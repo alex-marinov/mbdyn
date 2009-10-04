@@ -30,8 +30,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
+
+#include <sstream>
 
 #include "dgeequ.h"
 #ifdef USE_LAPACK
@@ -47,8 +49,16 @@ dgeequ_prepare(const MatrixHandler& mh,
 	nrows = mh.iGetNumRows();
 	ncols = mh.iGetNumCols();
 
-	if (nrows <= 0 || ncols <= 0) {
+	if (nrows <= 0) {
 		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative row number in dgeequ_prepare()");
+	}
+
+	if (ncols <= 0) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative column number in dgeequ_prepare()");
 	}
 
 	if (r.empty()) {
@@ -56,6 +66,8 @@ dgeequ_prepare(const MatrixHandler& mh,
 	} else {
 		if (r.size() != unsigned(nrows)) {
 			// error
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+				"row number mismatch in dgeequ_prepare()");
 		}
 		r.assign(nrows, 0.);
 	}
@@ -65,6 +77,8 @@ dgeequ_prepare(const MatrixHandler& mh,
 	} else {
 		if (c.size() != unsigned(ncols)) {
 			// error
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+				"column number mismatch in dgeequ_prepare()");
 		}
 		c.assign(ncols, 0.);
 	}
@@ -95,6 +109,9 @@ dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doub
 		&INFO);
 	if (INFO != 0) {
 		// error
+		std::ostringstream os;
+		os << "LAPACK's dgeequ() failed: INFO=" << INFO;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
 	}
 }
 #else // !USE_LAPACK
@@ -126,6 +143,7 @@ dgeequ_scale(FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doub
 }
 
 // scales vector, in place
+// caller needs to guarantee the length of s is at least N
 void
 dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s)
 {
@@ -135,6 +153,7 @@ dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s)
 }
 
 // scales vector handler, in place
+// caller needs to guarantee the length of s is at least N
 VectorHandler&
 dgeequ_scale(VectorHandler& v, doublereal *s)
 {

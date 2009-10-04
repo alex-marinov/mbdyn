@@ -84,7 +84,8 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	amax = rcmax;
 
 	if (rcmin == 0.) {
-		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"null min row value in dgeequ");
 	}
 
 	for (std::vector<doublereal>::iterator i = r.begin(); i != r.end(); ++i) {
@@ -112,7 +113,8 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	}
 
 	if (rcmin == 0.) {
-		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"null min column value in dgeequ");
 	}
 
 	for (std::vector<doublereal>::iterator i = c.begin(); i != c.end(); ++i) {
