@@ -84,8 +84,12 @@ main(int argc, char *argv[])
 		switch (len) {
 		case -1: {
 			int		save_errno = errno;
+
+			if (save_errno == EAGAIN && !s2s.is_blocking()) {
+				continue;
+			}
+				
 			const char	*err_msg = strerror(save_errno);
-			
 			silent_cerr("recv(" << s2s.sock << ",\"" << s2s.buf << "\") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);

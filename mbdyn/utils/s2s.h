@@ -44,6 +44,12 @@ struct s2s_sockaddr_t {
 	}	ms_addr;
 };
 
+enum {
+	BLOCK_UNKNOWN = 0,
+	BLOCK_NO,
+	BLOCK_YES
+};
+
 struct s2s_t {
 	int	sock;
 	int	nChannels;
@@ -52,7 +58,8 @@ struct s2s_t {
 	int	port;
 	char	buf[S2S_BUFSIZE];
 	std::vector<double>	dbuf;
-	bool	create;
+	int	create;
+	bool	block;
 	bool	stream2socket;
 	const char	*progname;
 
@@ -63,6 +70,8 @@ struct s2s_t {
 	void parse(int argc, char *argv[]);
 	void prepare(void);
 	void shutdown(void);
+
+	bool is_blocking(void) const;
 
 	ssize_t send(int flags) const;
 	ssize_t recv(int flags);

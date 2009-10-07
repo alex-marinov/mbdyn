@@ -428,6 +428,36 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			break;
 		}
 	}
+
+	if (HP.IsKeyWord("scale")) {
+		SolutionManager::MatrixScale ms;
+
+		if (HP.IsKeyWord("no")) {
+			ms = SolutionManager::NEVER;
+
+		} else if (HP.IsKeyWord("always")) {
+			ms = SolutionManager::ALWAYS;
+
+		} else if (HP.IsKeyWord("once")) {
+			ms = SolutionManager::ONCE;
+
+		} else {
+			silent_cerr("unknown scale value at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		switch (cs.GetSolver()) {
+		case LinSol::NAIVE_SOLVER:
+			cs.SetScale(ms);
+			break;
+
+		default:
+			pedantic_cerr("scale is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+			break;
+		}
+	}
 }
 
 std::ostream & RestartLinSol(std::ostream& out, const LinSol& cs)

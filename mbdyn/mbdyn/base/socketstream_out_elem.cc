@@ -129,10 +129,20 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	// prepare the output buffer
 	pSC->Prepare();
 
-	if (send(pUS->GetSock(), pSC->GetBuf(), pSC->GetSize(), send_flags) != pSC->GetSize()) {
+	int rc = send(pUS->GetSock(), pSC->GetBuf(), pSC->GetSize(), send_flags);
+	if (rc == -1 || rc != pSC->GetSize()) {
 		int save_errno = errno;
-		char *msg = strerror(save_errno);
+
+		// std::cerr << "rc=" << rc << ", size=" << pSC->GetSize() << ", errno=" << errno << ", flags=" << send_flags << std::endl;
+
+		// if (rc == -1 && save_errno == EAGAIN
+		// 	&& (send_flags & MSG_DONTWAIT))
+		if (save_errno == EAGAIN && (send_flags & MSG_DONTWAIT)) {
+			// would block; continue (and discard...)
+			return;
+		}
 		
+		char *msg = strerror(save_errno);
 		silent_cerr("SocketStreamElem(" << name << "): send() failed "
 				"(" << save_errno << ": " << msg << ")"
 				<< std::endl);

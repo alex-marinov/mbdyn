@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_SOCKET
@@ -69,6 +69,7 @@ path(0),
 host(0),
 port(-1),
 create(false),
+block(BLOCK_UNKNOWN),
 stream2socket(true),
 progname(0)
 {
@@ -93,14 +94,17 @@ s2s_t::~s2s_t(void)
 void
 s2s_t::usage(int rc) const
 {
-	const char	*C = "",
+	const char
+			*b = "",
+			*C = "",
 			*F = "",
 			*h = "",
 			*n = "",
 			*p = "",
 			*P = "",
 			*s = "";
-	
+
+	b = "    -b {y|n}\t\t"		"blocking mode (default: yes\n";
 	C = "    -C\t\t\t"		"create socket (default: connect to existing)\n";
 	h = "    -h <host>\t\t"		"host name (for INET sockets; default: \"localhost\")\n";
 	n = "    -n <channels>\t"	"number of channels (default: auto-detect)\n";
@@ -127,6 +131,7 @@ s2s_t::usage(int rc) const
 "\n"
 "    usage: " << this->progname << " [options]\n"
 "\n"
+			<< b
 			<< C
 			<< F
 			<< h
@@ -228,10 +233,10 @@ s2s_t::parse(int argc, char *argv[])
 
 	const char	*optstring;
 	if (this->stream2socket) {
-		optstring = "Ch:n:p:P:s";
+		optstring = "b:Ch:n:p:P:s";
 
 	} else {
-		optstring = "CF:h:n:p:P:s";
+		optstring = "b:CF:h:n:p:P:s";
 	}
 
 	while (true) {
@@ -242,6 +247,20 @@ s2s_t::parse(int argc, char *argv[])
 		}
 
 		switch (opt) {
+		case 'b':
+			if (strcmp(optarg, "y") == 0) {
+				this->block = BLOCK_YES;
+			} else if (strcmp(optarg, "n") == 0) {
+				this->block = BLOCK_NO;
+			} else {
+				silent_cerr("invalid value "
+						"\"" << optarg << "\""
+						" for option -b"
+						<< std::endl);
+				usage(EXIT_FAILURE);
+			}
+			break;
+
 		case 'C':
 			this->create = true;
 			break;
@@ -450,15 +469,41 @@ s2s_t::prepare(void)
 	signal(SIGPIPE, s2s_shutdown);
 }
 
+bool
+s2s_t::is_blocking(void) const
+{
+	return block == BLOCK_YES;
+}
+
 ssize_t
 s2s_t::send(int flags) const
 {
+	switch (block) {
+	case BLOCK_NO:
+		flags |= MSG_DONTWAIT;
+		break;
+
+	case BLOCK_YES:
+		flags &= ~MSG_DONTWAIT;
+		break;
+	}
+
 	return ::send(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
 }
 
 ssize_t
 s2s_t::recv(int flags)
 {
+	switch (block) {
+	case BLOCK_NO:
+		flags |= MSG_DONTWAIT;
+		break;
+
+	case BLOCK_YES:
+		flags &= ~MSG_DONTWAIT;
+		break;
+	}
+
 	return ::recv(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
 }
 

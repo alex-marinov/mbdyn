@@ -31,6 +31,8 @@ MBDyn 1.X-Devel
 		- fix error message when math parser unable to cast value
 		  (noted by Romuald Noret)
 		- only output valid frequencies if permuting with LAPACK
+		- fix non-blocking socket stream drivers/output elements
+		  (noted by Doug Baldwin)
 
 MBDyn 1.3.9
 	Enhancements:

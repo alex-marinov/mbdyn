@@ -215,8 +215,15 @@ do_abandon:;
 	case -1: {
 		int save_errno = errno;
 
-		/* some errno values may be legal */
+		// some errno values may be legal
 		switch (save_errno) {
+		case EAGAIN:
+			if (recv_flags & MSG_DONTWAIT) {
+				// non-blocking
+				return;
+			}
+			break;
+
 		case ECONNRESET:
 			goto do_abandon;
 		}
