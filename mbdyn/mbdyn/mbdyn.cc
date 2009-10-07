@@ -759,7 +759,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		tSecs = ct/clk_tck;
 		tMils = ((ct*1000)/clk_tck)%1000;
 
-		char timebuf[] = " (1000000000h 59m 59s 999ms)";
+		char timebuf[sizeof(" (1000000000h 59m 59s 999ms)")];
 		char *s = timebuf;
 		size_t l = sizeof(timebuf), n;
 

@@ -229,14 +229,13 @@ do_abandon:;
 		}
 
 		char *err_msg = strerror(save_errno);
-
 		silent_cout("SocketStreamDrive(" << sFileName << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-	default: {	
+	default: {
 		doublereal *rbuf = (doublereal *)buf - 1;
 
 		if (!sOutFileName.empty()) {
