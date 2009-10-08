@@ -1265,14 +1265,19 @@ IfFirstStepIsToBeRepeated:
 		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
-			dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+			doublereal dOldCurrTimeStep = dCurrTimeStep;
+			dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
 						iStIter,
 						CurrStep);
-			DEBUGCOUT("Changing time step during"
-				" first step after "
-				<< iStIter << " iterations"
-				<< std::endl);
-	    		goto IfFirstStepIsToBeRepeated;
+			if (dCurrTimeStep < dOldCurrTimeStep) {
+				DEBUGCOUT("Changing time step"
+					" from " << dOldCurrTimeStep
+					<< " to " << dCurrTimeStep
+					<< " during first step after "
+					<< iStIter << " iterations"
+					<< std::endl);
+	    			goto IfFirstStepIsToBeRepeated;
+			}
 	 	}
 
 	    	silent_cerr("Maximum iterations number "
@@ -1443,50 +1448,60 @@ IfStepIsToBeRepeated:
 			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
 				CurrStep = StepIntegrator::REPEATSTEP;
-				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+				doublereal dOldCurrTimeStep = dCurrTimeStep;
+				dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
 						iStIter,
 						CurrStep);
-				DEBUGCOUT("Changing time step"
-					" during step "
-					<< lStep << " after "
-					<< iStIter << " iterations"
-					<< std::endl);
-				goto IfStepIsToBeRepeated;
-	    		} else {
-				silent_cerr("Max iterations number "
-					<< pRegularSteps->GetIntegratorMaxIters()
-					<< " has been reached during"
-					" step " << lStep << "; "
-					"time step dt=" << dCurrTimeStep
-					<< " cannot be reduced further; "
-					"aborting..." << std::endl);
-	       			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-			}
+				if (dCurrTimeStep < dOldCurrTimeStep) {
+					DEBUGCOUT("Changing time step"
+						" from " << dOldCurrTimeStep
+						<< " to " << dCurrTimeStep
+						<< " during step "
+						<< lStep << " after "
+						<< iStIter << " iterations"
+						<< std::endl);
+					goto IfStepIsToBeRepeated;
+				}
+	    		}
+
+			silent_cerr("Max iterations number "
+				<< pRegularSteps->GetIntegratorMaxIters()
+				<< " has been reached during"
+				" step " << lStep << "; "
+				"time step dt=" << dCurrTimeStep
+				<< " cannot be reduced further; "
+				"aborting..." << std::endl);
+	       		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
 				CurrStep = StepIntegrator::REPEATSTEP;
-				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+				doublereal dOldCurrTimeStep = dCurrTimeStep;
+				dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
 						iStIter,
 						CurrStep);
-				DEBUGCOUT("Changing time step"
-					" during step "
-					<< lStep << " after "
-					<< iStIter << " iterations"
-					<< std::endl);
-				goto IfStepIsToBeRepeated;
-	    		} else {
-				silent_cerr("Simulation diverged after "
-					<< iStIter << " iterations, before "
-					"reaching max iteration number "
-					<< pRegularSteps->GetIntegratorMaxIters()
-					<< " during step " << lStep << "; "
-					"time step dt=" << dCurrTimeStep
-					<< " cannot be reduced further; "
-					"aborting..." << std::endl);
-				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-			}
+				if (dCurrTimeStep < dOldCurrTimeStep) {
+					DEBUGCOUT("Changing time step"
+						" from " << dOldCurrTimeStep
+						<< " to " << dCurrTimeStep
+						<< " during step "
+						<< lStep << " after "
+						<< iStIter << " iterations"
+						<< std::endl);
+					goto IfStepIsToBeRepeated;
+				}
+	    		}
+
+			silent_cerr("Simulation diverged after "
+				<< iStIter << " iterations, before "
+				"reaching max iteration number "
+				<< pRegularSteps->GetIntegratorMaxIters()
+				<< " during step " << lStep << "; "
+				"time step dt=" << dCurrTimeStep
+				<< " cannot be reduced further; "
+				"aborting..." << std::endl);
+			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (LinearSolver::ErrFactor err) {
 			/*
@@ -1586,8 +1601,7 @@ IfStepIsToBeRepeated:
 		}
 
       		/* Calcola il nuovo timestep */
-      		dCurrTimeStep =
-			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+      		dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
    	} // while (true)  END OF ENDLESS-LOOP
 }  // Solver::Run()
@@ -1674,8 +1688,15 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
     	case NOCHANGE:
        		return dCurrTimeStep;
 
-	case CHANGE:
-		return pStrategyChangeDrive->dGet(dTime);
+	case CHANGE: {
+		doublereal dNewStep = pStrategyChangeDrive->dGet(dTime);
+		if (Why == StepIntegrator::REPEATSTEP
+			&& dNewStep == dCurrTimeStep)
+		{
+			return dMinTimeStep/2.;
+		}
+		return std::max(std::min(dNewStep, dMaxTimeStep), dMinTimeStep);
+		}
 
     	case FACTOR:
        		if (Why == StepIntegrator::REPEATSTEP) {
@@ -3589,6 +3610,14 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< "minimum and maximum time step are equal, but "
 				<< "strategy factor has been selected:\n"
 				<< "this is meaningless - bailing out"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		break;
+
+	case CHANGE:
+		if (dMinTimeStep > dMaxTimeStep) {
+			silent_cerr("inconsistent min/max time step"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}

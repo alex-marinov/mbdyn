@@ -91,21 +91,31 @@ whole. They are:
 
 \subsubsection{Strategy}
 \begin{verbatim}
-    <card> ::= strategy : <strategy_data> ;
+    <card> ::= strategy : <strategy_type> [ , <strategy_data> ] ;
 \end{verbatim}
-where the available strategies are:
+The available strategies are:
+\begin{itemize}
+\item \kw{no change}
 \begin{verbatim}
-    <strategy_data> ::= no change 
+    <strategy_type> ::= no change 
 \end{verbatim}
-obviously the step is never changed;
+the time step is never changed.
+However, this prevents simulation termination when the maximum number
+of iterations is reached.
+As a consequence, its use only makes sense when repeating a time step
+results in soem modification of the analysis related to some user-defined
+function.
+
+\item \kw{factor}
 \begin{verbatim}
-    <strategy_data> ::= factor , 
-                        <reduction_factor> ,
-                        <steps_before_reduction> ,
-                        <raise_factor> ,
-                        <steps_before_raise> ,
-                        <min_iterations>
-			[ , <max_iteration> ]
+    <strategy_type> ::= factor
+    <strategy_data> ::= 
+        <reduction_factor> ,
+        <steps_before_reduction> ,
+        <raise_factor> ,
+        <steps_before_raise> ,
+        <min_iterations>
+        [ , <max_iterations> ]
 \end{verbatim}
 the time step is reduced or raised of the proper factor not before a
 minimum number of time steps; it is reduced if more than 
@@ -117,28 +127,48 @@ simulation value; however, it is better to set it to a lower value,
 leaving some spare iterations before bailing out the simulation; 
 the simulation bails out if two consecutive solution steps
 are performed without converging.
+
+\item \kw{change}
 \begin{verbatim}
-    <strategy_data> ::= change , 
-                        (drive_caller) <time_step_change>
+    <strategy_type> ::= change
+    <strategy_data> ::= (drive_caller) <time_step_pattern>
 \end{verbatim}
-the time step is change according to the \kw{time\_step\_change} law.
+the time step is change according to the \kw{time\_step\_pattern} pattern.
+If the time step returned by the drive caller does not change
+when a step needs to be repeated, the analysis is interrupted.
+
+Note: the \kw{change} strategy is not normally intended to provide
+adaptive time step, it rather allows to prescribe a given
+variable time step pattern based on the rule defined
+by the \kw{time\_step\_pattern} drive caller.
+\end{itemize}
+
 
 \subsubsection{Min Time Step}
 \begin{verbatim}
-    <card> ::= min time step : <time_step> ;
+    <card> ::= min time step : <min_time_step> ;
 \end{verbatim}
+Defines the minimum value allowed for the time step.
+This statement is only meaningful when variable time step is used.
+If the time step change strategy tries to use a time step smaller
+than \kw{min\_time\_step}, the simulation aborts.
 
 \subsubsection{Max Time Step}
 \begin{verbatim}
-    <card> ::= max time step : { <time_step> | unlimited } ;
+    <card> ::= max time step : { <max_time_step> | unlimited } ;
 \end{verbatim}
-both are significant only if the time step can vary.
+Defines the maximum value allowed for the time step.
+This statement is only meaningful when variable time step is used.
+If the time step change strategy tries to use a time step larger
+than \kw{max\_time\_step}, the value \kw{max\_time\_step} is used instead.
 
 \subsubsection{Time Step}
 \begin{verbatim}
     <card> ::= time step : <time_step> ;
 \end{verbatim}
 The initial time step.
+This value is used throughout the simulation unless some variable time step
+strategy is defined using the \kw{strategy} statement.
 
 \subsubsection{Tolerance}\label{sec:IVP:TOLERANCE}
 \begin{verbatim}

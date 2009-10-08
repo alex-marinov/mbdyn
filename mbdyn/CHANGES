@@ -33,6 +33,8 @@ MBDyn 1.X-Devel
 		- only output valid frequencies if permuting with LAPACK
 		- fix non-blocking socket stream drivers/output elements
 		  (noted by Doug Baldwin)
+		- fix endless loop detection using "change" variable time
+		  step strategy (noted by Patrick Rix)
 
 MBDyn 1.3.9
 	Enhancements:
