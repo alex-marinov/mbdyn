@@ -116,14 +116,14 @@ begin: elements;
 		create, yes,
 		# path, "../tmp/mbdyn.out.pendulum.sock",
 		port, 10011,
-		2,
-			1, parameter,	# revolute angle
-                        2, parameter;	# revolute angular velocity
+		values, 2,
+			nodedof, 1, parameter,	# revolute angle
+                        nodedof, 2, parameter;	# revolute angular velocity
 
 	force: 1, follower,
 		1,			# applied to structural node 1
+			position, null,	# arm
 			-1.,0.,0.,	# direction
-			null,		# arm
 		file,
 			1,		# read input from file 1
 			1;		# use channel 1
