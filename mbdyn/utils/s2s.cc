@@ -63,13 +63,13 @@
 static struct s2s_t	*s2s_list = 0;
 
 s2s_t::s2s_t(void)
-: sock(-1),
-nChannels(0),
+: nChannels(0),
 path(0),
 host(0),
 port(-1),
 create(false),
 block(BLOCK_UNKNOWN),
+sock(-1),
 stream2socket(true),
 progname(0)
 {

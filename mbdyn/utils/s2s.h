@@ -51,15 +51,20 @@ enum {
 };
 
 struct s2s_t {
-	int	sock;
+	// depend on configuration
 	int	nChannels;
+	// path and [host:][port] are mutually exclusive
 	char	*path;
 	const char	*host;
 	int	port;
-	char	buf[S2S_BUFSIZE];
-	std::vector<double>	dbuf;
 	int	create;
 	bool	block;
+
+	// internal data
+	int	sock;
+
+	char	buf[S2S_BUFSIZE];
+	std::vector<double>	dbuf;
 	bool	stream2socket;
 	const char	*progname;
 
