@@ -5102,6 +5102,9 @@ The syntax is:
             | [ no ] send first
             | [ do not ] abort if broken } [ , ... ] , ]
         [ output every, <steps> , ]
+        [ echo , <file_name>
+            [ , precision , <precision> ]
+            [ , shift , <shift> ] , ]
         <content>
 \end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
@@ -5148,6 +5151,11 @@ No further data send will occur for the duration of the simulation
 
 \item the field \kw{output every} requests output to occur
 only every \kw{steps};
+
+\item the field \kw{echo} causes the content that is sent to the peer
+to be echoed on file \kw{file\_name}; the optional parameter \kw{precision}
+determines the number of digits used in the output; the optional parameter
+\kw{shift} is currently unused;
 
 \item the field \kw{content} is detailed in the next section.
 \end{itemize}

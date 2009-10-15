@@ -51,6 +51,7 @@ public:
 	virtual ~StreamContentMotion(void);
 
 	void Prepare(void);
+	unsigned GetNumChannels(void) const;
 };
 
 /* StreamContentMotion - end */

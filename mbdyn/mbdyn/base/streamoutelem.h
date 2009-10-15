@@ -91,6 +91,7 @@ public:
 	int GetSize(void) const;
 
 	virtual void Prepare(void) = 0;
+	virtual unsigned GetNumChannels(void) const = 0;
 };
 
 extern StreamContent*
@@ -109,6 +110,7 @@ public:
 	virtual ~StreamContentValue(void);
 
 	void Prepare(void);
+	unsigned GetNumChannels(void) const;
 };
 
 /* StreamContentValue - end */

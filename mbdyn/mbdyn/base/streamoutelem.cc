@@ -152,6 +152,12 @@ StreamContentValue::Prepare(void)
 	}
 }
 
+unsigned
+StreamContentValue::GetNumChannels(void) const
+{
+	return Values.size();
+}
+
 /* StreamContentValue - end */
 
 /*

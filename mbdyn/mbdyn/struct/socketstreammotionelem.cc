@@ -146,5 +146,11 @@ StreamContentMotion::Prepare(void)
 	ASSERT(curbuf == &buf[buf.size()]);
 }
 
+unsigned
+StreamContentMotion::GetNumChannels(void) const
+{
+	return buf.size()/sizeof(doublereal);
+}
+
 /* StreamContentMotion - end */
 

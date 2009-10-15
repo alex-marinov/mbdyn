@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- added "const" variant of fixed/variable step file drivers
 		- added "echo" of socket stream file drivers
 		  (all three above suggested by Doug Baldwin)
+		- added "echo" of stream output elements
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked

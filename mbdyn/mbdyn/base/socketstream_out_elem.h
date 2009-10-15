@@ -50,25 +50,33 @@ protected:
 	int send_flags;
 	bool bSendFirst;
 	bool bAbortIfBroken;
+
+	std::string sOutFileName;
+	std::ofstream outFile;
+	int iPrecision;
+	doublereal dShift;
 	
 public:
-   	SocketStreamElem(unsigned int uL, const std::string& name, unsigned int oe,
-			UseSocket *pUS, StreamContent *pSC,
-			int flags, bool bSendFirst, bool bAbortIfBroken);
+   	SocketStreamElem(unsigned int uL, const std::string& name,
+		unsigned int oe,
+		UseSocket *pUS, StreamContent *pSC,
+		int flags, bool bSendFirst, bool bAbortIfBroken,
+		const std::string& sOutFileName, int iPrecision,
+		doublereal dShift);
 
    	virtual ~SocketStreamElem(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void SetValue(DataManager *pDM,
-			VectorHandler& X, VectorHandler& XP,
-			SimulationEntity::Hints *ph = 0);
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
 	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP);
+		const VectorHandler& XP);
 
 	/* Inverse Dynamics */
 	virtual void AfterConvergence(const VectorHandler& X, 
-			const VectorHandler& XP, const VectorHandler& XPP);
+		const VectorHandler& XP, const VectorHandler& XPP);
 };
 
 #endif // USE_SOCKET
@@ -77,7 +85,8 @@ class DataManager;
 class MBDynParser;
 
 extern Elem *
-ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type);
+ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP,
+	unsigned int uLabel, StreamContent::Type type);
 
 /* SocketStreamElem - end */
 
