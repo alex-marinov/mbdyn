@@ -71,7 +71,7 @@ public:
 	 *	fv	modal forces
 	 */
 	virtual unsigned
-	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
+	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
 		Vec3& f, Vec3& m, std::vector<doublereal>& fv) = 0;
 
 	/*
@@ -85,10 +85,49 @@ public:
 	 *	qP	derivatives of modal coordinates
 	 */
 	virtual void
-	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
+	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
 		const std::vector<doublereal>& qP) = 0;
+};
+
+/* ExtModalForceBase - end */
+
+/* ExtModalForce - begin */
+
+class ExtModalForce : public ExtModalForceBase {
+public:
+	ExtModalForce(void);
+	virtual ~ExtModalForce(void);
+
+	virtual unsigned
+	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
+		Vec3& f, Vec3& m, std::vector<doublereal>& fv);
+
+	virtual void
+	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
+		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+		const std::vector<doublereal>& q,
+		const std::vector<doublereal>& qP);
+
+protected:
+	virtual unsigned
+	RecvFromStream(std::istream& inf, unsigned uFlags, unsigned& uLabel,
+		Vec3& f, Vec3& m, std::vector<doublereal>& fv);
+	virtual unsigned
+	RecvFromFileDes(int infd, int recv_flags, unsigned uFlags, unsigned& uLabel,
+		Vec3& f, Vec3& m, std::vector<doublereal>& fv);
+
+	virtual void
+	SendToStream(std::ostream& outf, unsigned uFlags, unsigned uLabel,
+		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+		const std::vector<doublereal>& q,
+		const std::vector<doublereal>& qP);
+	virtual void
+	SendToFileDes(int outfd, int send_flags, unsigned uFlags, unsigned uLabel,
+		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+		const std::vector<doublereal>& q,
+		const std::vector<doublereal>& qP);
 };
 
 /* ExtModalForceBase - end */
@@ -109,8 +148,8 @@ protected:
 	std::vector<doublereal> q;
 	std::vector<doublereal> qP;
 
-	void Send(std::ostream& out, ExtFileHandlerBase::SendWhen when);
-	void Recv(std::istream& in);
+	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
+	void Recv(ExtFileHandlerBase *pEFH);
    
 public:
 	/* Costruttore */

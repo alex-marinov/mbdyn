@@ -38,6 +38,7 @@
 #include <string>
 
 #include "force.h"
+#include "usesock.h"
 #include "converged.h"
 
 /* ExtFileHandlerBase - begin */
@@ -59,12 +60,21 @@ public:
 
 	virtual void AfterPredict(void) = 0;
 
-	virtual std::ostream& Send_pre(SendWhen when) = 0;
+	// NOTE: returns true if Send() must be called
+	virtual bool Send_pre(SendWhen when) = 0;
 	virtual void Send_post(SendWhen when) = 0;
 
-	virtual std::istream& Recv_pre(void) = 0;
+	// NOTE: returns true if Recv() must be called
+	virtual bool Recv_pre(void) = 0;
 	// NOTE: returns true if converged
 	virtual bool Recv_post(void) = 0;
+
+	virtual std::ostream *GetOutStream(void);
+	virtual std::istream *GetInStream(void);
+	virtual int GetOutFileDes(void);
+	virtual int GetSendFlags(void) const;
+	virtual int GetInFileDes(void);
+	virtual int GetRecvFlags(void) const;
 };
 
 /* ExtFileHandlerBase - end */
@@ -90,14 +100,62 @@ public:
 
 	virtual void AfterPredict(void);
 
-	virtual std::ostream& Send_pre(SendWhen when);
+	virtual bool Send_pre(SendWhen when);
 	virtual void Send_post(SendWhen when);
 
-	virtual std::istream& Recv_pre(void);
+	virtual bool Recv_pre(void);
 	virtual bool Recv_post(void);
+
+	virtual std::ostream *GetOutStream(void);
+	virtual std::istream *GetInStream(void);
 };
 
 /* ExtFileHandler - end */
+
+/* ExtSocketHandler - begin */
+
+class ExtSocketHandler : public ExtFileHandlerBase {
+public:
+	enum ESCmd {
+		ES_UNKNOWN				= -1,
+		ES_REGULAR_DATA				= 2,
+		ES_GOTO_NEXT_STEP			= 4,
+		ES_ABORT				= 5,
+		ES_REGULAR_DATA_AND_GOTO_NEXT_STEP	= 6,
+
+		ES_LAST
+	};
+
+protected:
+	UseSocket *pUS;
+	unsigned recv_flags;
+	unsigned send_flags;
+	bool bReadForces;
+	bool bLastReadForce;
+
+	ESCmd u2cmd(unsigned u) const;
+	const char *cmd2str(ESCmd cmd) const;
+
+public:
+	ExtSocketHandler(UseSocket *pUS, int iSleepTime,
+		int recv_flags, int send_flags);
+	~ExtSocketHandler(void);
+
+	virtual void AfterPredict(void);
+
+	virtual bool Send_pre(SendWhen when);
+	virtual void Send_post(SendWhen when);
+
+	virtual bool Recv_pre(void);
+	virtual bool Recv_post(void);
+
+	virtual int GetOutFileDes(void);
+	virtual int GetSendFlags(void) const;
+	virtual int GetInFileDes(void);
+	virtual int GetRecvFlags(void) const;
+};
+
+/* ExtSocketHandler - end */
 
 /* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
 
@@ -125,8 +183,8 @@ protected:
 	void Send(ExtFileHandlerBase::SendWhen when);
 	void Recv(void);
 
-	virtual void Send(std::ostream& out, ExtFileHandlerBase::SendWhen when) = 0;
-	virtual void Recv(std::istream& in) = 0;
+	virtual void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when) = 0;
+	virtual void Recv(ExtFileHandlerBase *pEFH) = 0;
    
 public:
 	/* Costruttore */

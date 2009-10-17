@@ -55,13 +55,18 @@
 
 int
 mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
-		unsigned short int port, int dobind, int *perrno)
+	unsigned short int port, int dobind, int *perrno)
 {
    	int			sock = -1;
 	int			rc = -1;
 
 #ifdef HAVE_SOCKET
+	struct sockaddr_in	tmpname;
 	socklen_t		size;
+
+	if (name == NULL) {
+		name = &tmpname;
+	}
 
 	if (perrno) {
 		*perrno = 0;
@@ -111,13 +116,18 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 }
 
 int
-mbdyn_make_named_socket(const char *path, int dobind, int *perrno)
+mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
+	int dobind, int *perrno)
 {
    	int			sock = -1;
 
 #ifdef HAVE_SOCKET
-   	struct sockaddr_un	name;
+   	struct sockaddr_un	tmpname;
 	socklen_t		size;
+
+	if (name == NULL) {
+		name = &tmpname;
+	}
 
 	if (perrno) {
 		*perrno = 0;
@@ -133,15 +143,15 @@ mbdyn_make_named_socket(const char *path, int dobind, int *perrno)
    	}
 
    	/* Give the socket a name. */
-   	name.sun_family = AF_LOCAL;
-   	strncpy(name.sun_path, path, sizeof(name.sun_path));
+   	name->sun_family = AF_LOCAL;
+   	strncpy(name->sun_path, path, sizeof(name->sun_path));
 #ifdef HAVE_OFFSETOF
 	size = (offsetof(struct sockaddr_un, sun_path)
-			+ strlen(name.sun_path) + 1);
+			+ strlen(name->sun_path) + 1);
 #else /* HAVE_OFFSETOF */
 	size = sizeof(struct sockaddr_un);
 #endif /* !HAVE_OFFSETOF */
-   	if (dobind && bind(sock, (struct sockaddr *) &name, size) < 0) {
+   	if (dobind && bind(sock, (struct sockaddr *) name, size) < 0) {
 		if (perrno) {
 			*perrno = errno;
 		}

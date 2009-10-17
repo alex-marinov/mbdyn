@@ -149,22 +149,22 @@ int
 send_message(const char *message)
 {
 	int sock;
-	struct sockaddr_in server_name;
+	struct sockaddr_in peer_name;
 	FILE *fd;
 
 	/* Create the socket. */
 	if (path) {
-		sock = mbdyn_make_named_socket(path, 0, NULL);
+		sock = mbdyn_make_named_socket(0, path, 0, NULL);
 	} else {
-		sock = mbdyn_make_inet_socket(&server_name, host, port, 0, NULL);
+		sock = mbdyn_make_inet_socket(0, host, port, 0, NULL);
 	}
 	if (sock < 0) {
 		return -1;
 	}
 
 	/* Connect to the server. */
-	if (0 > connect(sock, (struct sockaddr *) &server_name,
-				sizeof(server_name))) {
+	if (0 > connect(sock, (struct sockaddr *) &peer_name,
+				sizeof(peer_name))) {
 		return -1;
 	}
 

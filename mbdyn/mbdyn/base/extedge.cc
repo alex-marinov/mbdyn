@@ -137,7 +137,7 @@ ExtFileHandlerEDGE::AfterPredict(void)
 	bReadForces = true;
 }
 
-std::ostream&
+bool
 ExtFileHandlerEDGE::Send_pre(SendWhen when)
 {
 	int cnt = 0;
@@ -167,7 +167,7 @@ bad:;
 		break;
 	}
 
-	return outfile;
+	return outfile.good();
 }
 
 void
@@ -212,13 +212,14 @@ ExtFileHandlerEDGE::Send_post(SendWhen when)
 	fclose(fd);
 retry:;
 	if (rename(ftmpname, fflagname.c_str()) == -1) {
-		switch(errno) {
+		switch (errno) {
 		case EBUSY:
 #ifdef USE_SLEEP
 			// TODO: configurable?
 			sleep(1);
 #endif // USE_SLEEP
 			goto retry;
+
 		default:
 			silent_cerr("unable to rename flag file "
 				"\"" << fdataname.c_str() << "\" "
@@ -228,7 +229,7 @@ retry:;
 	}
 }
 
-std::istream&
+bool
 ExtFileHandlerEDGE::Recv_pre(void)
 {
 	for (int cnt = 0; ;) {
@@ -291,7 +292,7 @@ done:;
 		infile.setstate(std::ios_base::badbit);
 	}
 
-	return infile;
+	return infile.good();
 }
 
 bool
@@ -302,6 +303,18 @@ ExtFileHandlerEDGE::Recv_post(void)
 	}
 
 	return !bReadForces;
+}
+
+std::ostream *
+ExtFileHandlerEDGE::GetOutStream(void)
+{
+	return &outfile;
+}
+
+std::istream *
+ExtFileHandlerEDGE::GetInStream(void)
+{
+	return &infile;
 }
 
 /* ExtFileHandlerEDGE - end */

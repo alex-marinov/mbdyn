@@ -327,7 +327,8 @@ s2s_t::prepare(void)
 		strncpy(this->buf, this->path, sizeof(this->buf));
 		
 		if (this->create) {
-			this->sock = mbdyn_make_named_socket(this->path, 1, &save_errno);
+			this->sock = mbdyn_make_named_socket(&addr.ms_addr.ms_addr_local,
+				this->path, 1, &save_errno);
 		
 			if (this->sock == -1) {
 				const char	*err_msg = strerror(save_errno);

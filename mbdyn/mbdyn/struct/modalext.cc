@@ -30,20 +30,163 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <dataman.h>
+#include "dataman.h"
 #include "extedge.h"
 #include "modalext.h"
 #include "modaledge.h"
 
 #include <fstream>
 
+/* ExtModalForceBase - begin */
+
 ExtModalForceBase::~ExtModalForceBase(void)
 {
 	NO_OP;
 }
+
+/* ExtModalForceBase - end */
+
+/* ExtModalForce - begin */
+
+ExtModalForce::ExtModalForce(void)
+{
+}
+
+ExtModalForce::~ExtModalForce(void)
+{
+}
+
+unsigned
+ExtModalForce::Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
+	Vec3& f, Vec3& m, std::vector<doublereal>& fv)
+{
+	std::istream *infp = pEFH->GetInStream();
+	if (infp) {
+		return RecvFromStream(*infp, uFlags, uLabel, f, m, fv);
+
+	} else {
+		return RecvFromFileDes(pEFH->GetInFileDes(), pEFH->GetRecvFlags(),
+			uFlags, uLabel, f, m, fv);
+	}
+}
+
+void
+ExtModalForce::Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
+	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+	const std::vector<doublereal>& q,
+	const std::vector<doublereal>& qP)
+{
+	std::ostream *outfp = pEFH->GetOutStream();
+	if (outfp) {
+		return SendToStream(*outfp, uFlags, uLabel, x, R, v, w, q, qP);
+
+	} else {
+		return SendToFileDes(pEFH->GetOutFileDes(), pEFH->GetSendFlags(),
+			uFlags, uLabel, x, R, v, w, q, qP);
+	}
+}
+
+unsigned
+ExtModalForce::RecvFromStream(std::istream& inf, unsigned uFlags, unsigned& uLabel,
+	Vec3& f, Vec3& m, std::vector<doublereal>& fv)
+{
+	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
+		doublereal df[3], dm[3];
+		inf
+			>> df[0] >> df[1] >> df[2]
+			>> dm[0] >> dm[1] >> dm[2];
+		f = Vec3(df);
+		m = Vec3(dm);
+	}
+
+	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
+		for (std::vector<doublereal>::iterator i = fv.begin(); i != fv.end(); i++) {
+			doublereal d;
+			inf >> d;
+			*i = d;
+		}
+	}
+
+	return uFlags;
+}
+
+unsigned
+ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
+	unsigned uFlags, unsigned& uLabel,
+	Vec3& f, Vec3& m, std::vector<doublereal>& fv)
+{
+	ssize_t rc;
+	size_t size;
+
+	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
+		size = 3*sizeof(doublereal);
+
+		rc = recv(infd, (void *)f.pGetVec(), size, recv_flags);
+		if (rc != (ssize_t)size) {
+			// error
+		}
+		rc = recv(infd, (void *)m.pGetVec(), size, recv_flags);
+		if (rc != (ssize_t)size) {
+			// error
+		}
+	}
+
+	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
+		size = fv.size()*sizeof(doublereal);
+		rc = recv(infd, (void *)&fv[0], size, recv_flags);
+		if (rc != (ssize_t)size) {
+			// error
+		}
+	}
+
+	return uFlags;
+}
+
+void
+ExtModalForce::SendToStream(std::ostream& outf, unsigned uFlags, unsigned uLabel,
+	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+	const std::vector<doublereal>& q,
+	const std::vector<doublereal>& qP)
+{
+	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
+		outf
+			<< x << std::endl
+			<< R << std::endl
+			<< v << std::endl
+			<< w << std::endl;
+	}
+
+	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
+		for (unsigned i = 0; i < q.size(); i++) {
+			outf << q[i] << " " << qP[i] << std::endl;
+		}
+	}
+}
+
+void
+ExtModalForce::SendToFileDes(int outfd, int send_flags,
+	unsigned uFlags, unsigned uLabel,
+	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
+	const std::vector<doublereal>& q,
+	const std::vector<doublereal>& qP)
+{
+	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
+		send(outfd, (const void *)x.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const void *)R.pGetMat(), 9*sizeof(doublereal), send_flags);
+		send(outfd, (const void *)v.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const void *)w.pGetVec(), 3*sizeof(doublereal), send_flags);
+	}
+
+	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
+		send(outfd, (const void *)&q[0], q.size()*sizeof(doublereal), send_flags);
+		send(outfd, (const void *)&qP[0], qP.size()*sizeof(doublereal), send_flags);
+	}
+}
+
+/* ExtModalForce - end */
 
 /* ModalExt - begin */
 
@@ -106,7 +249,7 @@ ModalExt::~ModalExt(void)
  * Send output to companion software
  */
 void
-ModalExt::Send(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
+ModalExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when)
 {
 	Vec3 x;
 	Mat3x3 R;
@@ -136,7 +279,7 @@ ModalExt::Send(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 		qP[i] = b(i + 1);
 	}
 
-	pEMF->Send(outf, uFlags, GetLabel(), x, R, v, w, q, qP);
+	pEMF->Send(pEFH, uFlags, GetLabel(), x, R, v, w, q, qP);
 
 #if 0
 	if (uFlags & ExtModalForceBase::EMF_RIGID) {
@@ -172,10 +315,10 @@ ModalExt::Send(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 }
 
 void
-ModalExt::Recv(std::istream& inf)
+ModalExt::Recv(ExtFileHandlerBase *pEFH)
 {
 	unsigned uLabel = 0;
-	unsigned uOutFlags = pEMF->Recv(inf, uFlags, uLabel, F, M, f);
+	unsigned uOutFlags = pEMF->Recv(pEFH, uFlags, uLabel, F, M, f);
 
 	if (uOutFlags & ExtModalForceBase::EMF_ERR) {
 		silent_cerr("ModalExt(" << GetLabel() << "): "
@@ -323,6 +466,9 @@ ReadModalExtForce(DataManager* pDM,
 			ASSERT(0);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+	} else if (dynamic_cast<ExtSocketHandler *>(pEFH) != 0) {
+		SAFENEW(pEMF, ExtModalForce);
 
 	// add more types
 

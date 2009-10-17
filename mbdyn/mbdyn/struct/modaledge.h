@@ -57,11 +57,11 @@ public:
 	ExtRigidForceEDGE(DataManager *pDM);
 
 	unsigned
-	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
+	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
 		Vec3& f, Vec3& m, std::vector<doublereal>& a);
 
 	void
-	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
+	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
 		const std::vector<doublereal>& qP);
@@ -76,11 +76,11 @@ public:
 	ExtModalForceEDGE(DataManager *pDM);
 
 	unsigned
-	Recv(std::istream& fin, unsigned uFlags, unsigned& uLabel,
+	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
 		Vec3& f, Vec3& m, std::vector<doublereal>& a);
 
 	void
-	Send(std::ostream& fout, unsigned uFlags, unsigned uLabel,
+	Send(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned uLabel,
 		const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 		const std::vector<doublereal>& q,
 		const std::vector<doublereal>& qP);

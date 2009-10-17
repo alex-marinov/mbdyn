@@ -48,12 +48,18 @@ protected:
 	Vec3 RefOffset;
 
 	bool bUnsorted;
+	bool bNoLabels;
 	std::vector<bool> done;
 
 	bool bOutputAccelerations;
 
-	void Send(std::ostream& out, ExtFileHandlerBase::SendWhen when);
-	void Recv(std::istream& in);
+	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
+	void Recv(ExtFileHandlerBase *pEFH);
+   
+	void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
+	void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
+	void RecvFromStream(std::istream& inf);
+	void RecvFromFileDes(int infd);
    
 public:
 	/* Costruttore */
@@ -62,6 +68,7 @@ public:
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bUnsorted,
+		bool bNoLabels,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,
 		bool bSendAfterPredict,

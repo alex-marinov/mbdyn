@@ -45,7 +45,8 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		unsigned short int port, int dobind, int *perror);
 
 extern int
-mbdyn_make_named_socket(const char *path, int dobind, int *perror);
+mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
+		int dobind, int *perror);
 
 /* These have been erased from FreeBSD's headers, so we have to 
  * work around with this ugly hack. This is not exactly the same,

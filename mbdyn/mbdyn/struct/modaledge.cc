@@ -163,12 +163,13 @@ body_forces,R,1,6,0
 */
 
 unsigned
-ExtRigidForceEDGE::Recv(std::istream& fin,
+ExtRigidForceEDGE::Recv(ExtFileHandlerBase *pEFH,
 	unsigned uFlags,
 	unsigned& uLabel,
 	Vec3& f, Vec3& m,
 	std::vector<doublereal>& a)
 {
+	std::istream& fin = *pEFH->GetInStream();
 	unsigned uOutFlags = ExtModalForceBase::EMF_NONE;
 
 	ASSERT((uFlags & ExtModalForceBase::EMF_RIGID) != 0);
@@ -319,12 +320,14 @@ OMGMAN,R,3,3,0
  */
 
 void
-ExtRigidForceEDGE::Send(std::ostream& fout, unsigned uFlags,
+ExtRigidForceEDGE::Send(
+	ExtFileHandlerBase *pEFH, unsigned uFlags,
 	unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
 	const std::vector<doublereal>& qP)
 {
+	std::ostream& fout = *pEFH->GetOutStream();
 	ASSERT((uFlags & ExtModalForceBase::EMF_RIGID) != 0);
 	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
 
@@ -373,12 +376,14 @@ modal_force_flow,R,5,1,0
  */
 
 unsigned
-ExtModalForceEDGE::Recv(std::istream& fin,
+ExtModalForceEDGE::Recv(
+	ExtFileHandlerBase *pEFH,
 	unsigned uFlags,
 	unsigned& uLabel,
 	Vec3& f, Vec3& m,
 	std::vector<doublereal>& a)
 {
+	std::istream& fin = *pEFH->GetInStream();
 	unsigned uOutFlags = ExtModalForceBase::EMF_NONE;
 
 	ASSERT((uFlags & ExtModalForceBase::EMF_MODAL) != 0);
@@ -531,12 +536,14 @@ modal_velocity,R,1,5,0
  */
 
 void
-ExtModalForceEDGE::Send(std::ostream& fout, unsigned uFlags,
+ExtModalForceEDGE::Send(
+	ExtFileHandlerBase *pEFH, unsigned uFlags,
 	unsigned uLabel,
 	const Vec3& x, const Mat3x3& R, const Vec3& v, const Vec3& w,
 	const std::vector<doublereal>& q,
 	const std::vector<doublereal>& qP)
 {
+	std::ostream& fout = *pEFH->GetOutStream();
 	ASSERT((uFlags & ExtModalForceBase::EMF_MODAL) != 0);
 	ASSERT((uFlags & ~ExtModalForceBase::EMF_ALL) == 0);
 

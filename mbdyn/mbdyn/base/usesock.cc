@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_SOCKET
@@ -230,14 +230,10 @@ port(p)
 	snprintf(buf, sizeof(buf), "%s:%u", host.c_str(), port);
 	
 	if (create) {
-		struct sockaddr_in	addr_name;
 		int			save_errno;
 		
-		/* Set everything to zero */
-		memset(&addr_name, 0, sizeof(addr_name));
-
-   		sock = mbdyn_make_inet_socket(&addr_name, host.c_str(), port, 1, 
-				&save_errno);
+   		sock = mbdyn_make_inet_socket(0, host.c_str(), port,
+			1, &save_errno);
 		
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
@@ -353,7 +349,7 @@ UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 	if (create) {
 		int		save_errno;
 
-		sock = mbdyn_make_named_socket(path.c_str(), 1, &save_errno);
+		sock = mbdyn_make_named_socket(0, path.c_str(), 1, &save_errno);
 		
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
