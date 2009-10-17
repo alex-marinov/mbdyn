@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2009
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -201,8 +201,8 @@ ModalExt::ModalExt(unsigned int uL,
 	int iCoupling,
 	ExtModalForceBase::BitMask bm,
 	flag fOut)
-: Elem(uL, fOut), 
-ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
+: Elem(uL, fOut),
+ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pModal(pmodal),
 bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
@@ -335,10 +335,24 @@ ModalExt::Recv(ExtFileHandlerBase *pEFH)
 	}
 }
 
+Force::Type
+ModalExt::GetForceType(void) const
+{
+	return Force::EXTERNALMODAL;
+}
+
+void
+ModalExt::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
+		+ pModal->uGetNModes();
+	*piNumCols = 1;
+}
+
 SubVectorHandler&
 ModalExt::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
-	const VectorHandler& XCurr, 
+	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
@@ -398,10 +412,21 @@ ModalExt::Output(OutputHandler& OH) const
 		out << std::endl;
 	}
 }
-   
+
+void
+ModalExt::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	if (pModal->pGetModalNode()) {
+		connectedNodes.resize(1);
+		connectedNodes[0] = pModal->pGetModalNode();
+	} else {
+		connectedNodes.resize(0);
+	}
+}
+
 Elem*
-ReadModalExtForce(DataManager* pDM, 
-	MBDynParser& HP, 
+ReadModalExtForce(DataManager* pDM,
+	MBDynParser& HP,
 	unsigned int uLabel)
 {
 	ExtFileHandlerBase *pEFH;

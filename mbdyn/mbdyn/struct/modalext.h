@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 2007-2009
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -150,7 +150,7 @@ protected:
 
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
-   
+
 public:
 	/* Costruttore */
 	ModalExt(unsigned int uL,
@@ -167,35 +167,78 @@ public:
 	virtual ~ModalExt(void);
 
 	/* Tipo di forza */
-	virtual Force::Type GetForceType(void) const { 
-		return Force::EXTERNALMODAL; 
-	};
- 
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
-			+ pModal->uGetNModes();
-		*piNumCols = 1;
-	};
+	virtual Force::Type GetForceType(void) const;
+
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr);     
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	virtual void Output(OutputHandler& OH) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		if (pModal->pGetModalNode()) {
-			connectedNodes.resize(1);
-			connectedNodes[0] = pModal->pGetModalNode();
-		} else {
-			connectedNodes.resize(0);
-		}
-	};
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	/* ************************************************ */
+};
+
+/* ModalExt - end */
+
+/* ModalMappingExt - begin */
+
+class ModalMappingExt : virtual public Elem, public ExtForce {
+protected:
+	bool bOutputAccelerations;
+	ExtModalForceBase *pEMF;
+	unsigned uFlags;
+
+	Vec3 F, M;
+	std::vector<doublereal> f;
+
+	// Temporary?
+	std::vector<doublereal> q;
+	std::vector<doublereal> qP;
+
+	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
+	void Recv(ExtFileHandlerBase *pEFH);
+
+public:
+	/* Costruttore */
+	ModalMappingExt(unsigned int uL,
+		DataManager *pDM,
+		// Set of nodes with mapping criteria goes here
+		// Modal *pmodal,
+		bool bOutputAccelerations,
+		ExtFileHandlerBase *pEFH,
+		ExtModalForceBase *pEMF,
+		bool bSendAfterPredict,
+		int iCoupling,
+		ExtModalForceBase::BitMask bm,
+		flag fOut);
+
+	virtual ~ModalMappingExt(void);
+
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const;
+
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
 };
 
@@ -205,8 +248,8 @@ class DataManager;
 class MBDynParser;
 
 extern Elem*
-ReadModalExtForce(DataManager* pDM, 
-       MBDynParser& HP, 
+ReadModalExtForce(DataManager* pDM,
+       MBDynParser& HP,
        unsigned int uLabel);
 
 #endif /* MODALEXT_H */
