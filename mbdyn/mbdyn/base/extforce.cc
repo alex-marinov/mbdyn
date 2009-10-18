@@ -322,6 +322,11 @@ bReadForces(true), bLastReadForce(false)
 
 ExtSocketHandler::~ExtSocketHandler(void)
 {
+	if (pUS->GetSock() >= 0) {
+		unsigned u = ES_ABORT;
+		// ignore result
+		(void)send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
+	}
 	SAFEDELETE(pUS);
 }
 
