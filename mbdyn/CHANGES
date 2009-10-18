@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 		- added "echo" of socket stream file drivers
 		  (all three above suggested by Doug Baldwin)
 		- added "echo" of stream output elements
+		- added socket support to external force
+		- added general external modal force
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked
