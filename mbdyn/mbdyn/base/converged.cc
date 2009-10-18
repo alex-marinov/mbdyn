@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "converged.h"
@@ -61,9 +61,9 @@ Converged::~Converged(void)
 }
 
 void
-Converged::Set(bool b)
+Converged::Set(Converged::State s)
 {
 	ASSERT(idx != unsigned(-1));
-	pDM->ConvergedSet(idx, b);
+	pDM->ConvergedSet(idx, s);
 }
 

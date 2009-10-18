@@ -1540,11 +1540,11 @@ DataManager::AfterPredict(void) const
 {
 	/* reset any external convergence requirement before starting
 	 * a new step */
-	for (std::vector<bool>::iterator i = IsConverged.begin();
+	for (Converged_t::iterator i = IsConverged.begin();
 		i != IsConverged.end();
 		i++)
 	{
-		*i = false;
+		*i = Converged::NOT_CONVERGED;
 	}
 
 	Node** ppLastNode = ppNodes+iTotNodes;
@@ -1709,31 +1709,46 @@ DataManager::ConvergedRegister(void)
 {
 	unsigned idx = IsConverged.size();
 	IsConverged.resize(idx + 1);
-	IsConverged[idx] = true;
+	IsConverged[idx] = Converged::CONVERGED;
 	return idx;
 }
 
 void
-DataManager::ConvergedSet(unsigned idx, bool b)
+DataManager::ConvergedSet(unsigned idx, Converged::State s)
 {
 	ASSERT(idx < IsConverged.size());
 
-	IsConverged[idx] = b;
+	IsConverged[idx] = s;
 }
 
 bool
 DataManager::Converged(void) const
 {
-	for (std::vector<bool>::const_iterator i = IsConverged.begin();
+	for (Converged_t::const_iterator i = IsConverged.begin();
 		i != IsConverged.end();
 		i++)
 	{
-		if (!*i) {
+		if (*i == Converged::NOT_CONVERGED) {
 			return false;
 		}
 	}
 
 	return true;
+}
+
+bool
+DataManager::EndOfSimulation(void) const
+{
+	for (Converged_t::const_iterator i = IsConverged.begin();
+		i != IsConverged.end();
+		i++)
+	{
+		if (*i == Converged::END_OF_SIMULATION) {
+			return true;
+		}
+	}
+
+	return false;
 }
 
 /* DataManager - end */

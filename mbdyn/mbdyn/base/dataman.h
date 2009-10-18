@@ -65,6 +65,7 @@
 
 #include "solverdiagnostics.h"
 #include "linsol.h"
+#include "converged.h"
 
 #ifdef USE_SOCKET
 #include "usesock.h"
@@ -383,7 +384,8 @@ protected:
 	throw(ChangedEquationStructure);
 
 protected:
-	mutable std::vector<bool> IsConverged;
+	typedef std::vector<Converged::State> Converged_t;
+	mutable Converged_t IsConverged;
 
 public:
 	// returns an idx to a newly created slot for convergence
@@ -392,9 +394,10 @@ public:
 	// using ConvergedRegister() should set to false
 	// at first iteration, and set to true when convergence
 	// is allowed
-	void ConvergedSet(unsigned idx, bool b);
+	void ConvergedSet(unsigned idx, Converged::State s);
 	// returns true only if all slots are true
 	bool Converged(void) const;
+	bool EndOfSimulation(void) const;
 
 public:
 	virtual void OutputPrepare(void);

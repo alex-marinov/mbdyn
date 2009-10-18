@@ -38,6 +38,13 @@
 class DataManager;
 
 class Converged {
+public:
+	enum State {
+		NOT_CONVERGED = 0x0U,
+		CONVERGED = 0x1U,
+		END_OF_SIMULATION = 0x2U
+	};
+
 protected:
 	DataManager *pDM;
 	unsigned idx;
@@ -47,7 +54,7 @@ public:
 	virtual ~Converged(void);
 
 	virtual void Register(void);
-	virtual void Set(bool b);
+	virtual void Set(Converged::State s);
 };
 
 #endif // CONVERGED_H

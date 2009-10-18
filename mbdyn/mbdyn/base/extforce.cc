@@ -615,7 +615,8 @@ ExtForce::Recv(void)
 		}
 
 		if (pEFH->Recv_post() && iCoupling) {
-			c.Set(true);
+			// TODO: need to handle requests for end of simulation
+			c.Set(Converged::CONVERGED);
 		}
 	}
 }

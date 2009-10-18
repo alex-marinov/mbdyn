@@ -1372,7 +1372,7 @@ IfFirstStepIsToBeRepeated:
 		StepIntegrator::StepChange CurrStep
 				= StepIntegrator::NEWSTEP;
 
-      		if (dTime >= dFinalTime) {
+      		if (pDM->EndOfSimulation() || dTime >= dFinalTime) {
 			if (pRTSolver) {
 				pRTSolver->StopCommanded();
 			}
