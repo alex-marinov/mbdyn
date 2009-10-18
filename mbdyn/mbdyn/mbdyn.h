@@ -32,8 +32,9 @@
 #ifndef MBDYN_H
 #define MBDYN_H
 
-    //  #include <iostream>  required for  std::cout , std::cerr , std::endl
-    //  BUT conflicts for  *.c  files
+    /*  #include <iostream>  required for  std::cout , std::cerr , std::endl
+     *  BUT conflicts for  *.c  files
+     */
 
 /* Global typedefs (unused yet) */
 typedef double mbReal;
