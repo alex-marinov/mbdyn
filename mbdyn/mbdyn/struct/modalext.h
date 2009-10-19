@@ -130,7 +130,7 @@ protected:
 		const std::vector<doublereal>& qP);
 };
 
-/* ExtModalForceBase - end */
+/* ExtModalForce - end */
 
 /* ModalExt - begin */
 
