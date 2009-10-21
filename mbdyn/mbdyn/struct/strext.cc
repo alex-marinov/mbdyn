@@ -37,6 +37,7 @@
 #include "strext.h"
 
 #include <fstream>
+#include <cerrno>
 
 /* StructExtForce - begin */
 
