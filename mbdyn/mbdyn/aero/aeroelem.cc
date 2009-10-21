@@ -1052,6 +1052,13 @@ ReadAerodynamicBody(DataManager* pDM,
 		bUseJacobian = true;
 	}
 
+	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
+		silent_cerr("AerodynamicBody(" << uLabel << "): "
+			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
 		if (HP.IsKeyWord("std")) {
@@ -2019,6 +2026,13 @@ ReadAerodynamicBeam(DataManager* pDM,
 		bUseJacobian = true;
 	}
 
+	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
+		silent_cerr("AerodynamicBeam3(" << uLabel << "): "
+			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
 		if (HP.IsKeyWord("std")) {
@@ -2906,6 +2920,13 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
 		bUseJacobian = true;
+	}
+
+	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
+		silent_cerr("AerodynamicBeam2(" << uLabel << "): "
+			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
