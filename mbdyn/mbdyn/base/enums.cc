@@ -224,6 +224,7 @@ const char* psJointNames[] = {
    "Deformable Hinge",
    "Deformable Displacement Joint",
    "Deformable Joint",
+   "Viscous Body",
    "Linear Velocity",
    "Angular Velocity",
    "Linear Acceleration",

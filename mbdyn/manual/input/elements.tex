@@ -3356,6 +3356,16 @@ from the node 1 offset and the node 2 position
 \item unrecognized hints are passed through to the constitutive law.
 \end{itemize}
 
+\subsubsection{Output}
+In addition to the standard output, the \kw{deformable displacement joint}
+outputs:
+\begin{itemize}
+\item columns 14--16: the three components of the linear strain.
+\end{itemize}
+If the constitutive law is either viscous or viscoelastic:
+\begin{itemize}
+\item columns 17--19: the three components of the linear strain rate.
+\end{itemize}
 
 
 
@@ -3443,6 +3453,21 @@ and the node 2 orientation
 \item unrecognized hints are passed through to the constitutive law.
 \end{itemize}
 
+\subsubsection{Output}
+In addition to the standard output, the \kw{deformable joint}
+outputs:
+\begin{itemize}
+\item columns 14--16 (or 14--22): the angular strain
+in the selected orientation format (either three or nine columns,
+according to the selected \kw{orientation description}, or to its 
+\hyperref{default value)}{default value, see Section~}{)}{sec:CONTROLDATA:DEFAULTORIENTATION}.
+\end{itemize}
+If the constitutive law is either viscous or viscoelastic:
+\begin{itemize}
+\item columns 17--19 (or 23--25): the three components
+of the angular strain rate.
+\end{itemize}
+
 
 
 
@@ -3524,6 +3549,24 @@ description of the available data in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 \subsubsection{Hints}
 When wrapped by a \kw{driven} element, the \kw{deformable joint}
 honors the same hints of the \kw{deformable displacement joint}.
+
+\subsubsection{Output}
+In addition to the standard output, the \kw{deformable joint}
+outputs:
+\begin{itemize}
+\item columns 14--16: the three components of the linear strain;
+\item columns 17--19 (or 17--25): the angular strain
+in the selected orientation format (either three or nine columns,
+according to the selected \kw{orientation description}, or to its 
+\hyperref{default value)}{default value, see Section~}{)}{sec:CONTROLDATA:DEFAULTORIENTATION}.
+\end{itemize}
+If the constitutive law is either viscous or viscoelastic:
+\begin{itemize}
+\item columns 20--22 (or 26--28): the three components
+of the linear strain rate;
+\item columns 23--25 (or 29--31): the three components
+of the angular strain rate.
+\end{itemize}
 
 
 
@@ -4836,6 +4879,21 @@ Deprecated in favour of the
 \label{sec:EL:STRUCT:JOINT:UNIVERSAL_ROTATION}
 Deprecated in favour of the
 \hyperref{\kw{cardano rotation}}{\kw{cardano rotation} (see Section~}{)}{sec:EL:STRUCT:JOINT:CARDANO_ROTATION}.
+
+\subsection{Viscous body}
+\label{sec:EL:STRUCT:JOINT:VISCOUS_BODY}
+\begin{verbatim}
+    <joint_type> ::= viscous body
+    <joint_arglist> ::=
+        <node> ,
+            [ position , (Vec3)<relative_offset> , ]
+            [ orientation, (Mat3x3)<relative_orientation> , ]
+            (ConstitutiveLaw6D) <const_law>
+\end{verbatim}
+This element defines a force and a moment that depend on the absolute 
+linear and angular velocity of a body, projected in the reference frame
+of the node itself.
+The force and moment are defined as a 6D viscous constitutive law.
 
 
 

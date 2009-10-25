@@ -73,6 +73,7 @@
 #include "vehj.h"      /* Giunti deformabili */
 #include "vehj2.h"     /* "" */
 #include "vehj3.h"     /* "" */
+#include "vb.h"		// viscous body
 
 #define MBDYN_X_COMPATIBLE_INPUT
 
@@ -169,6 +170,7 @@ ReadJoint(DataManager* pDM,
 		"deformable" "displacement" "hinge",	// deprecated
 		"deformable" "displacement" "joint",
 		"deformable" "joint",
+		"viscous" "body",
 		"invariant" "deformable" "hinge",
 		"invariant" "deformable" "displacement" "joint",
 		"invariant" "deformable" "joint",
@@ -230,6 +232,7 @@ ReadJoint(DataManager* pDM,
 		DEFORMABLEDISPHINGE,		// deprecated
 		DEFORMABLEDISPJOINT,
 		DEFORMABLEJOINT,
+		VISCOUSBODY,
 		INVARIANTDEFORMABLEHINGE,
 		INVARIANTDEFORMABLEDISPJOINT,
 		INVARIANTDEFORMABLEJOINT,
@@ -1914,6 +1917,73 @@ ReadJoint(DataManager* pDM,
 
 		} break;
 
+	case VISCOUSBODY:
+		{
+		/* lettura dei dati specifici */
+
+		/* nodo collegato 1 */
+		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+		/* Offset if displacement hinge */
+		ReferenceFrame RF(pNode);
+		if (HP.IsKeyWord("position")) {
+			NO_OP; // ignore it by now
+		}
+		Vec3 f(HP.GetPosRel(RF));
+
+		Mat3x3 R(Eye3);
+		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
+			R = HP.GetRotRel(RF);
+		}
+
+		/* Legame costitutivo */
+		ConstLawType::Type CLType = ConstLawType::VISCOUS;
+		ConstitutiveLaw6D* pCL = HP.GetConstLaw6D(CLType);
+
+		if (pCL->iGetNumDof() != 0) {
+			silent_cerr("line " << HP.GetLineData() << ": "
+				"\"viscous body\" does not support "
+				"dynamic constitutive laws yet"
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		OrientationDescription od = ReadOptionalOrientationDescription(pDM, HP);
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		switch (CLType) {
+		case ConstLawType::ELASTIC:
+		case ConstLawType::VISCOELASTIC:
+			silent_cerr("\"viscous body\" "
+				"needs viscous constitutive law "
+				"at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			
+		case ConstLawType::VISCOUS:
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				ViscousBody,
+				ViscousBody(uLabel, pDO, pCL,
+					pNode, f, R, od, fOut));
+			break;
+
+		default:
+			ASSERTMSG(0, "You shouldn't have reached this point");
+			silent_cerr("\"viscous body\" "
+				"at line " << HP.GetLineData()
+				<< " not implemented with the requested "
+				"constitutive law type" << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "viscousbody: " << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << f
+			<< " " << R
+			<< std::endl;
+
+		} break;
+
 	case LINEARVELOCITY:
 	case ANGULARVELOCITY:
 		{
@@ -1924,7 +1994,7 @@ ReadJoint(DataManager* pDM,
 		try {
 			Dir = HP.GetUnitVecRel(ReferenceFrame(pNode));
 		} catch (ErrNullNorm) {
-			silent_cerr("direction is null" << std::endl);
+			silent_cerr("linear/angular velocity direction is null" << std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
 

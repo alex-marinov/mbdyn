@@ -99,6 +99,8 @@ totalj.cc \
 totalj.h \
 univj.cc \
 univj.h \
+vb.cc \
+vb.h \
 vehj.cc \
 vehj.h \
 vehj2.cc \

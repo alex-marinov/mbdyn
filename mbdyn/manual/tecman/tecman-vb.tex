@@ -1,0 +1,218 @@
+\section{Viscous Body}
+This element implements the behavior of a viscous body,
+namely a force and a moment that depend on the absolute
+linear and angular velocity of a node, projected in the reference frame
+of the node.
+This element allows, for example, to implement the aerodynamics
+of a flight-mechanics rigid-body model, whose aerodynamic forces
+and moments depend on the absolute linear and angular velocity,
+projected in the reference frame of the body, by means of an appropriate
+constitutive law.
+
+The force and moment are defined as
+\begin{subequations}
+\begin{align}
+	\T{f} &= \TT{R} \TT{R}_h \tilde{\T{f}}
+	\\
+	\T{m} &= \TT{R} \TT{R}_h \tilde{\T{m}}
+		+ \T{o} \times \T{f}
+\end{align}
+\end{subequations}
+where
+\begin{align}
+	\T{o} &= \TT{R} \tilde{\T{o}}
+	,
+\end{align}
+\begin{subequations}
+\begin{align}
+	\tilde{\T{f}} &= \tilde{\T{f}}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}}
+	\\
+	\tilde{\T{m}} &= \tilde{\T{m}}\plbr{\tilde{\T{v}}, \tilde{\T{\omega}}}
+\end{align}
+\end{subequations}
+and
+\begin{subequations}
+\begin{align}
+	\tilde{\T{v}} &= \TT{R}_h^T \TT{R}^T\plbr{
+		\dot{\T{x}} + \T{\omega}\times\T{o}
+	}
+	\\
+	\tilde{\T{\omega}} &= \TT{R}_h^T \TT{R}^T\T{\omega}
+	.
+\end{align}
+\end{subequations}
+
+The linearization of the force and moment yields
+\begin{subequations}
+\begin{align}
+	\delta\tilde{\T{f}}
+	&=
+	\tilde{\T{f}}_{/\tilde{\T{v}}}
+	\delta\tilde{\T{v}}
+	+ 
+	\tilde{\T{f}}_{/\tilde{\T{\omega}}}
+	\delta\tilde{\T{\omega}}
+	\\
+	\delta\tilde{\T{m}}
+	&=
+	\tilde{\T{m}}_{/\tilde{\T{v}}}
+	\delta\tilde{\T{v}}
+	+ 
+	\tilde{\T{m}}_{/\tilde{\T{\omega}}}
+	\delta\tilde{\T{\omega}}
+\end{align}
+\end{subequations}
+with
+\begin{subequations}
+\begin{align}
+	\delta\tilde{\T{v}}
+	&=
+	\TT{R}_h^T \T{R}^T \plbr{
+		\delta\dot{\T{x}}
+		+ \delta\T{\omega} \times \T{o}
+		+ \T{\omega} \times \T{\theta}_\delta \times \T{o}
+	}
+	&&\equu
+	\TT{R}_h^T \T{R}^T \plbr{
+		\delta\dot{\T{x}}
+		- \T{o} \times \delta\dot{\T{g}}
+		+ \plbr{\T{o} \times \T{\omega}} \times \delta\T{g}
+	}
+	\\
+	\delta\tilde{\T{\omega}}
+	&=
+	\TT{R}_h^T \TT{R}^T \plbr{
+		\delta\T{\omega}
+		+ \T{\omega} \times \T{\theta}_\delta
+	}
+	&&\equu
+	\TT{R}_h^T \TT{R}^T \delta\dot{\T{g}}
+\end{align}
+\end{subequations}
+The linearization of the nodal forces and moments yields
+\begin{subequations}
+\begin{align}
+	\delta\T{f}
+	&=
+	\T{\theta}_\delta \times \T{f}
+	+ \TT{R} \TT{R}_h \delta\tilde{\T{f}}
+	\\
+	\delta\T{m}
+	&=
+	\T{\theta}_\delta \times \T{m}
+	+ \TT{R} \TT{R}_h \delta\tilde{\T{m}}
+	+ \T{o} \times \TT{R} \TT{R}_h \delta\tilde{\T{f}}
+	,
+\end{align}
+\end{subequations}
+namely
+\begin{align}
+	\sqbr{\matr{cc}{
+		\T{f}_{/\tilde{\T{v}}}
+			& \T{f}_{/\tilde{\T{\omega}}}
+			- \T{f}_{/\tilde{\T{v}}}\T{o}\times{}
+		\\
+%
+		\T{m}_{/\tilde{\T{v}}}
+		+ \T{o}\times\T{f}_{/\tilde{\T{v}}}
+			& \T{m}_{/\tilde{\T{\omega}}}
+			- \T{m}_{/\tilde{\T{v}}}\T{o}\times{}
+			+ \T{o}\times\plbr{
+				\T{f}_{/\tilde{\T{\omega}}}
+				- \T{f}_{/\tilde{\T{v}}}\T{o}\times{}
+			}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}} \\
+		\delta\T{\omega}
+	}}
+	& \nonumber \\ \mbox{}
+	+ \sqbr{\matr{c}{
+		\T{f}_{/\tilde{\T{\omega}}} \T{\omega}\times{}
+		- \T{f}_{/\tilde{\T{v}}}\T{\omega}\times\T{o}\times{}
+		\\
+%
+		\T{m}_{/\tilde{\T{\omega}}} \T{\omega}\times{}
+		- \T{m}_{/\tilde{\T{v}}}\T{\omega}\times\T{o}\times{}
+		+ \T{o}\times\plbr{
+			\T{f}_{/\tilde{\T{\omega}}} \T{\omega}\times{}
+			- \T{f}_{/\tilde{\T{v}}}\T{\omega}\times\T{o}\times{}
+		}
+	}} \T{\theta}_\delta
+	& \nonumber \\ \mbox{}
+	+ \sqbr{\matr{c}{
+		-\T{f} \times{}
+		\\
+%
+		-\T{m}\times{}
+	}} \T{\theta}_\delta
+	&=
+	\cubr{\cvvect{
+		\delta\T{f} \\
+		\delta\T{m}
+	}}
+\end{align}
+where
+\begin{subequations}
+\begin{align}
+	\T{f}_{/\tilde{\T{v}}}
+	&=
+	\TT{R} \TT{R}_h \tilde{\T{f}}_{/\tilde{\T{v}}} \TT{R}_h^T \TT{R}^T
+	\\
+	\T{f}_{/\tilde{\T{\omega}}}
+	&=
+	\TT{R} \TT{R}_h \tilde{\T{f}}_{/\tilde{\T{\omega}}} \TT{R}_h^T \TT{R}^T
+	\\
+	\T{m}_{/\tilde{\T{v}}}
+	&=
+	\TT{R} \TT{R}_h \tilde{\T{m}}_{/\tilde{\T{v}}} \TT{R}_h^T \TT{R}^T
+	\\
+	\T{m}_{/\tilde{\T{\omega}}}
+	&=
+	\TT{R} \TT{R}_h \tilde{\T{m}}_{/\tilde{\T{\omega}}} \TT{R}_h^T \TT{R}^T
+\end{align}
+\end{subequations}
+
+The updated-updated approximation yields
+\begin{align}
+	\sqbr{\matr{cc}{
+		\T{f}_{/\tilde{\T{v}}}
+			& \T{f}_{/\tilde{\T{\omega}}}
+			- \T{f}_{/\tilde{\T{v}}}\T{o}\times{}
+		\\
+%
+		\T{m}_{/\tilde{\T{v}}}
+		+ \T{o}\times\T{f}_{/\tilde{\T{v}}}
+			&
+			\T{m}_{/\tilde{\T{\omega}}}
+			- \T{m}_{/\tilde{\T{v}}}\T{o}\times{}
+			+ \T{o}\times\plbr{
+				\T{f}_{/\tilde{\T{\omega}}}
+				- \T{f}_{/\tilde{\T{v}}}\T{o}\times{}
+			}
+	}} \cubr{\cvvect{
+		\delta\dot{\T{x}} \\
+		\delta\dot{\T{g}}
+	}}
+	& \nonumber \\ \mbox{}
+	+ \sqbr{\matr{c}{
+		\T{f}_{/\tilde{\T{v}}}\plbr{\T{o}\times\T{\omega}}\times{}
+		\\
+%
+		\plbr{
+			\T{m}_{/\tilde{\T{v}}} + \T{o}\times\T{f}_{/\tilde{\T{v}}}
+		} \plbr{\T{o}\times\T{\omega}}\times{}
+	}} \delta\T{g}
+%	& \nonumber \\ \mbox{}
+	+ \sqbr{\matr{c}{
+		-\T{f} \times{}
+		\\
+%
+		-\T{m}\times{}
+	}} \delta\T{g}
+	&=
+	\cubr{\cvvect{
+		\delta\T{f} \\
+		\delta\T{m}
+	}}
+\end{align}
+
