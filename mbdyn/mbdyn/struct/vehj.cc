@@ -209,10 +209,11 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 			break;
 		}
 
-		/* TODO: the invariant case differs */
-		OH.Joints() << " "
-			<< R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
-			<< std::endl;
+		if (GetConstLawType() & ConstLawType::VISCOUS) {
+			OH.Joints() << " " << R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
+		}
+
+		OH.Joints() << std::endl;
 	}
 }
 
@@ -255,10 +256,10 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 			break;
 		}
 
-		/* TODO: the invariant case differs */
-		OH.Joints() << " "
-			<< hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
-			<< std::endl;
+		if (GetConstLawType() & ConstLawType::VISCOUS) {
+			OH.Joints() << " " << hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
+			}
+		OH.Joints() << std::endl;
 	}
 }
 

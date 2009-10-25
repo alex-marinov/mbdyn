@@ -123,8 +123,10 @@ DeformableJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
 				F, M, R1h*F, R1h*M);
 
+		// linear strain
 		OH.Joints() << " " << tilde_k.GetVec1() << " ";
 
+		// angular strain
 		switch (od) {
 		case EULER_123:
 			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
@@ -151,10 +153,11 @@ DeformableJoint::Output(OutputHandler& OH) const
 			break;
 		}
 
-		/* TODO: the invariant case differs */
-		OH.Joints() << " "
-			<< R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
-			<< std::endl;
+		if (GetConstLawType() & ConstLawType::VISCOUS) {
+			OH.Joints() << " " << tilde_kPrime;
+		}
+
+		OH.Joints() << std::endl;
 	}
 }
 

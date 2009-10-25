@@ -334,8 +334,13 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		Joint::Output(OH.Joints(), "DeformableDispJoint", GetLabel(),
-	    		GetF(), Zero3, pNode1->GetRCurr()*(tilde_R1h*GetF()), Zero3)
-			<< std::endl;
+	    		GetF(), Zero3,
+			pNode1->GetRCurr()*(tilde_R1h*GetF()), Zero3)
+			<< " " << tilde_d;
+		if (GetConstLawType() & ConstLawType::VISCOUS) {
+			OH.Joints() << " " << tilde_dPrime;
+		}
+		OH.Joints() << std::endl;
 	}
 }
 
