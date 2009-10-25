@@ -55,7 +55,6 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 {
 	ASSERT(iNumDrives > 0);
 	ASSERT(sFileName != NULL);
-	ASSERT(dDT > 0.);
 
 	std::ifstream in(sFileName);
 	if (!in) {
