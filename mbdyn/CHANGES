@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- added "echo" of stream output elements
 		- added socket support to external force
 		- added general external modal force
+		- added viscous body element
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked
@@ -40,6 +41,7 @@ MBDyn 1.X-Devel
 		  step strategy (noted by Patrick Rix)
 		- detect whether "jacobian" is needed in aero elements
 		  (noted by Patrick Rix)
+		- fix strain output of deformable joint
 
 MBDyn 1.3.9
 	Enhancements:

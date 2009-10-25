@@ -214,6 +214,7 @@ E. Bugs/missing features:
 	- add SetInitialValue to modal element
 	- allow to override initial modal value and derivative in .fem (DONE)
 	- check initial assembly of joints in slidercrank_r
+	- export private data from dummy structural nodes
 
 
 
