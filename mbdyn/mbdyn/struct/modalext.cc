@@ -118,6 +118,7 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 	unsigned uFlags, unsigned& uLabel,
 	Vec3& f, Vec3& m, std::vector<doublereal>& fv)
 {
+#ifdef USE_SOCKET
 	ssize_t rc;
 	size_t size;
 
@@ -143,6 +144,9 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 	}
 
 	return uFlags;
+#else // ! USE_SOCKET
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
 }
 
 void
@@ -173,6 +177,7 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 	const std::vector<doublereal>& q,
 	const std::vector<doublereal>& qP)
 {
+#ifdef USE_SOCKET
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
 		send(outfd, (const void *)x.pGetVec(), 3*sizeof(doublereal), send_flags);
 		send(outfd, (const void *)R.pGetMat(), 9*sizeof(doublereal), send_flags);
@@ -184,6 +189,9 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 		send(outfd, (const void *)&q[0], q.size()*sizeof(doublereal), send_flags);
 		send(outfd, (const void *)&qP[0], qP.size()*sizeof(doublereal), send_flags);
 	}
+#else // ! USE_SOCKET
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
 }
 
 /* ExtModalForce - end */
@@ -492,8 +500,10 @@ ReadModalExtForce(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+#ifdef USE_SOCKET
 	} else if (dynamic_cast<ExtSocketHandler *>(pEFH) != 0) {
 		SAFENEW(pEMF, ExtModalForce);
+#endif // USE_SOCKET
 
 	// add more types
 

@@ -276,6 +276,8 @@ ExtFileHandler::GetInStream(void)
 
 /* ExtSocketHandler - begin */
 
+#ifdef USE_SOCKET
+
 ExtSocketHandler::ESCmd
 ExtSocketHandler::u2cmd(unsigned u) const
 {
@@ -485,6 +487,8 @@ ExtSocketHandler::GetRecvFlags(void) const
 	return recv_flags;
 }
 
+#endif // USE_SOCKET
+
 /* ExtSocketHandler - end */
 
 /* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
@@ -682,15 +686,17 @@ ReadExtFileParams(DataManager* pDM,
 	}
 }
 
+
 static ExtFileHandlerBase *
 ReadExtSocketHandler(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
+#ifdef USE_SOCKET
 	ExtFileHandlerBase *pEFH = 0;
 
 	bool create = false;
-	unsigned short int port = -1; 
+	unsigned short int port = (unsigned short int)-1; 
 	std::string host;
 	std::string path;
 
@@ -857,7 +863,12 @@ ReadExtSocketHandler(DataManager* pDM,
 		ExtSocketHandler(pUS, iSleepTime, recv_flags, send_flags));
 
 	return pEFH;
+#else // ! USE_SOCKET
+	silent_cerr("ExtSocketHandler not supported" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
 }
+
 
 static ExtFileHandlerBase *
 ReadExtFileHandler(DataManager* pDM,
@@ -966,4 +977,3 @@ ReadExtForce(DataManager* pDM,
 		bSendAfterPredict = false;
 	}
 }
-

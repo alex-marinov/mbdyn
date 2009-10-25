@@ -38,8 +38,11 @@
 #include <string>
 
 #include "force.h"
-#include "usesock.h"
 #include "converged.h"
+
+#ifdef USE_SOCKET
+#include "usesock.h"
+#endif // USE_SOCKET
 
 /* ExtFileHandlerBase - begin */
 
@@ -114,6 +117,7 @@ public:
 
 /* ExtSocketHandler - begin */
 
+#ifdef USE_SOCKET
 class ExtSocketHandler : public ExtFileHandlerBase {
 public:
 	enum ESCmd {
@@ -154,6 +158,7 @@ public:
 	virtual int GetInFileDes(void);
 	virtual int GetRecvFlags(void) const;
 };
+#endif // USE_SOCKET
 
 /* ExtSocketHandler - end */
 

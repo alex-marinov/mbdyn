@@ -185,6 +185,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 void
 StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 {
+#ifdef USE_SOCKET
 	if (pRefNode) {
 #if 0
 		// TODO
@@ -243,6 +244,9 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 		}
 	}
+#else // ! USE_SOCKET
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
 }
 
 void
@@ -363,6 +367,7 @@ StructExtForce::RecvFromStream(std::istream& inf)
 void
 StructExtForce::RecvFromFileDes(int infd)
 {
+#ifdef USE_SOCKET
 	if (bUnsorted) {
 		done.resize(Nodes.size());
 
@@ -519,6 +524,9 @@ StructExtForce::RecvFromFileDes(int infd)
 			M[i] = Vec3(&f[3]);
 		}
 	}
+#else // ! USE_SOCKET
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
 }
 
 SubVectorHandler&
