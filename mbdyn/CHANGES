@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		- added socket support to external force
 		- added general external modal force
 		- added viscous body element
+		- added accelerations priv data to dummy structural nodes
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked

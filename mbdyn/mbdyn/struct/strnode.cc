@@ -890,7 +890,7 @@ StructNode::Output(OutputHandler& OH) const
 
 /* Output della soluzione perturbata (modi ...) */
 void
-StructNode::Output( OutputHandler& OH,
+StructNode::Output(OutputHandler& OH,
 	const VectorHandler& X,
 	const VectorHandler& XP) const
 {
@@ -1497,6 +1497,12 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	RRef = RCurr;
 }
 
+bool
+StructNode::ComputeAccelerations(bool b)
+{
+	return false;
+}
+
 /*
  * Metodi per l'estrazione di dati "privati".
  * Si suppone che l'estrattore li sappia interpretare.
@@ -1505,7 +1511,8 @@ StructNode::AfterConvergence(const VectorHandler& X,
 unsigned int
 StructNode::iGetNumPrivData(void) const
 {
-	return 3	// X
+	unsigned i =
+		3	// X
 		+ 3	// x (R^T * X)
 		+ 3	// Phi
 		+ 3	// XP
@@ -1516,6 +1523,16 @@ StructNode::iGetNumPrivData(void) const
 		+ 3	// Euler angles (313)
 		+ 3	// Euler angles (321)
 		+ 4;	// Euler parameters
+
+	if (bComputeAccelerations()) {
+		i +=
+			3	// XPP
+			+ 3	// xPP (R^T * XPP)
+			+ 3	// OmegaP
+			+ 3;	// omegaP (R^T * OmegaP)
+	}
+
+	return i;
 }
 
 /*
@@ -1528,6 +1545,7 @@ StructNode::iGetPrivDataIdx(const char *s) const
 {
 	long	idx;
 	char	*next;
+	std::string sDataName(s);
 
 	const char	*brk = std::strchr(s, '[' /*]*/ );
 	if (brk == 0) {
@@ -1625,7 +1643,41 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 27 + idx;
 	}
 
-	return 0;
+	bool bca = false;
+	unsigned i;
+	if (strncasecmp(s, "XPP", len) == 0) {
+		bca = true;
+		i = 34 + idx;
+
+	} else if (strncasecmp(s, "xPP", len) == 0) {
+		bca = true;
+		i = 37 + idx;
+
+	} else if (strncasecmp(s, "OmegaP", len) == 0) {
+		bca = true;
+		i = 40 + idx;
+
+	} else if (strncasecmp(s, "omegaP", len) == 0) {
+		bca = true;
+		i = 43 + idx;
+
+	} else {
+		// error
+		return 0;
+	}
+
+	// NOTE: bComputeAccels is set only if iGetPrivDataIdx() is called
+	// first; it is not when the (deprecated) idx is directly used.
+	if (bca) {
+		if (!const_cast<StructNode *>(this)->ComputeAccelerations(true)) {
+			silent_cerr("StructNode(" << GetLabel() << "): "
+				"request to compute accelerations failed, requested by private data \"" << sDataName << "\""
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	return i;
 }
 
 /*
@@ -1708,6 +1760,30 @@ StructNode::dGetPrivData(unsigned int i) const
 		}
 		return e(i - 31);
 	}
+
+	case 35:
+	case 36:
+	case 37:
+		ASSERT(bComputeAccelerations() == true);
+		return XPPCurr(i - 34);
+
+	case 38:
+	case 39:
+	case 40:
+		ASSERT(bComputeAccelerations() == true);
+		return RCurr.GetVec(i - 37)*XPPCurr;
+
+	case 41:
+	case 42:
+	case 43:
+		ASSERT(bComputeAccelerations() == true);
+		return WPCurr(i - 40);
+
+	case 44:
+	case 45:
+	case 46:
+		ASSERT(bComputeAccelerations() == true);
+		return RCurr.GetVec(i - 43)*WPCurr;
 	}
 
 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1733,10 +1809,10 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut),
-bComputeAccelerations((fOut & 2) ? true : false),
+bComputeAccels((fOut & 2) ? true : false),
 pAutoStr(0)
 {
-	bOutputAccels = bComputeAccelerations;
+	bOutputAccels = bComputeAccels;
 }
 
 
@@ -1906,7 +1982,7 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 	const Mat3x3& dJ) const
 {
 	/* FIXME: do it only if to be output... */
-	if (bComputeAccelerations) {
+	if (bComputeAccelerations()) {
 		pAutoStr->AddInertia(dm, dS, dJ);
 	}
 }
@@ -1936,16 +2012,18 @@ DynamicStructNode::GetGPCurr(void) const
 	return pAutoStr->GetGPCurr();
 }
 
-void
+bool
 DynamicStructNode::ComputeAccelerations(bool b)
 {
-	bComputeAccelerations = b;
+	bComputeAccels = b;
+	return true;
 }
 
 void
 DynamicStructNode::SetOutputFlag(flag f)
 {
 	if (f & 2) {
+		// ignore result
 		ComputeAccelerations(true);
 	}
 	ToBeOutput::SetOutputFlag(f);
@@ -1955,7 +2033,7 @@ void
 DynamicStructNode::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
-	if (bComputeAccelerations) {
+	if (bComputeAccelerations()) {
 		/* FIXME: pAutoStr is 0 in ModalNode */
 		if (pAutoStr == 0) {
 			return;
@@ -1970,7 +2048,7 @@ DynamicStructNode::BeforePredict(VectorHandler& X,
 	VectorHandler& XPr,
 	VectorHandler& XPPr) const
 {
-	if (bComputeAccelerations) {
+	if (bComputeAccelerations()) {
 		XPPPrev = XPPCurr;
 		WPPrev = WPCurr;
 	}
@@ -1988,8 +2066,8 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
 
 	if (iOrder == 2) {
 		/* FIXME: should not happen */
-		ASSERT(bComputeAccelerations);
-		if (!bComputeAccelerations) {
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
 			silent_cerr("DynamicStructNode::dGetDofValue("
 				<< iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
@@ -2026,8 +2104,8 @@ DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 
 	if (iOrder == 2) {
 		/* FIXME: should not happen */
-		ASSERT(bComputeAccelerations);
-		if (!bComputeAccelerations) {
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
 			silent_cerr("DynamicStructNode::dGetDofValuePrev("
 				<< iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
@@ -2057,8 +2135,8 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 
 	if (iOrder == 2) {
 		/* FIXME: should not happen */
-		ASSERT(bComputeAccelerations);
-		if (!bComputeAccelerations) {
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
 			silent_cerr("DynamicStructNode::SetDofValue("
 				<< dValue << "," << iDof << "," << iOrder << "): "
 				"accelerations are not computed while they should"
@@ -2076,131 +2154,6 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 	} else {
 		StructNode::SetDofValue(iDof, iOrder);
 	}
-}
-
-/*
- * Metodi per l'estrazione di dati "privati".
- * Si suppone che l'estrattore li sappia interpretare.
- * Come default non ci sono dati privati estraibili
- */
-unsigned int
-DynamicStructNode::iGetNumPrivData(void) const
-{
-	unsigned int i = StructNode::iGetNumPrivData();
-
-	if (bComputeAccelerations) {
-		i +=
-			3	// XPP
-			+ 3	// xPP
-			+ 3	// OmegaP
-			+ 3;	// omegaP
-	}
-
-	return i;
-}
-
-/*
- * Maps a string (possibly with substrings) to a private data;
- * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
- * in case of unrecognized data; error must be handled by caller
- */
-unsigned int
-DynamicStructNode::iGetPrivDataIdx(const char *s) const
-{
-	long	idx;
-	char	*next;
-
-	const char	*brk = std::strchr(s, '[' /*]*/ );
-	if (brk == 0) {
-		return 0;
-	}
-
-	size_t	len = brk - s;;
-	brk++;
-
-	errno = 0;
-	idx = strtol(brk, &next, 10);
-	int save_errno = errno;
-	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
-		return 0;
-	}
-
-	if (save_errno == ERANGE) {
-		silent_cerr("StructNode(" << GetLabel() << "): "
-			"warning, private data index "
-			<< std::string(brk, next - brk)
-			<< " overflows" << std::endl);
-		return 0;
-	}
-
-	/*
-		XPP		iOffset + idx		idx = {1,3}
-		xPP		iOffset + 3 + idx	idx = {1,3}
-		OmegaP		iOffset + 6 + idx	idx = {1,3}
-		omegaP		iOffset + 9 + idx	idx = {1,3}
-	 */
-
-	int iOffset = StructNode::iGetNumPrivData();
-
-	if (idx >= 1 && idx <= 3 && len >= STRLENOF("XPP")) {
-		if (strncasecmp(s, "XPP", len) == 0) {
-			bComputeAccelerations = true;
-			return iOffset + idx;
-		}
-	
-		if (strncasecmp(s, "xPP", len) == 0) {
-			bComputeAccelerations = true;
-			return iOffset + 3 + idx;
-		}
-	
-		if (strncasecmp(s, "OmegaP", len) == 0) {
-			bComputeAccelerations = true;
-			return iOffset + 6 + idx;
-		}
-	
-		if (strncasecmp(s, "omegaP", len) == 0) {
-			bComputeAccelerations = true;
-			return iOffset + 9 + idx;
-		}
-	}
-
-	return StructNode::iGetPrivDataIdx(s);
-}
-
-/*
- * Returns the current value of a private data
- * with 0 < i <= iGetNumPrivData()
- */
-doublereal
-DynamicStructNode::dGetPrivData(unsigned int i) const
-{
-	unsigned int ii = i - StructNode::iGetNumPrivData();
-
-	if (bComputeAccelerations) {
-		switch (ii) {
-		case 1:
-		case 2:
-		case 3:
-			return XPPCurr(ii);
-
-		case 4:
-		case 5:
-		case 6:
-			return RCurr.GetVec(ii - 3)*XPPCurr;
-
-		case 7:
-		case 8:
-		case 9:
-			return WPCurr(ii - 6);
-
-		case 10:
-		case 11:
-		case 12:
-			return RCurr.GetVec(ii - 9)*WPCurr;
-		}
-	}
-
-	return StructNode::dGetPrivData(i);
 }
 
 /* DynamicStructNode - end */
@@ -2263,7 +2216,7 @@ ModalNode::ModalNode(unsigned int uL,
 : DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
 	dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
-	/* XPP and WP are unknowns in ModalNode */
+	/* XPP and WP are not known in ModalNode */
 	ComputeAccelerations(false);
 }
 
@@ -2456,7 +2409,8 @@ DummyStructNode::DummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0, 0., 0., 0, ood, fOut), pNode(pN)
+: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0, 0., 0., 0, ood, fOut),
+pNode(pN)
 {
 	ASSERT(pNode != NULL);
 }
@@ -2566,6 +2520,12 @@ DummyStructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Update(X, XP);
 }
 
+bool
+DummyStructNode::ComputeAccelerations(bool b)
+{
+	return const_cast<StructNode *>(pNode)->ComputeAccelerations(b);
+}
+
 /* DummyStructNode - end */
 
 
@@ -2610,7 +2570,7 @@ OffsetDummyStructNode::Update_int(void)
 	WCurr = pNode->GetWCurr();
 	VCurr = pNode->GetVCurr() + WCurr.Cross(fCurr);
 
-	if (bOutputAccelerations()) {
+	if (bComputeAccelerations()) {
 		WPCurr = pNode->GetWPCurr();
 		XPPCurr = pNode->GetXPPCurr()
 			+ WCurr.Cross(WCurr.Cross(fCurr))
@@ -2712,7 +2672,7 @@ RelFrameDummyStructNode::Update_int(void)
 		- pNodeRef->GetVCurr()
 		- pNodeRef->GetWCurr().Cross(XRel));
 
-	if (bOutputAccelerations()) {
+	if (bComputeAccelerations()) {
 		WPCurr = RT*(pNode->GetWPCurr() - pNodeRef->GetWPCurr()
 			- pNodeRef->GetWCurr().Cross(pNode->GetWCurr()));
 		XPPCurr = RT*(pNode->GetXPPCurr() - pNodeRef->GetXPPCurr()
@@ -2737,6 +2697,22 @@ RelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 	const VectorHandler& /* XP */ )
 {
 	Update_int();
+}
+
+bool
+RelFrameDummyStructNode::ComputeAccelerations(bool b)
+{
+	bool ok = true;
+
+	if (!const_cast<StructNode *>(pNode)->ComputeAccelerations(b)) {
+		ok = false;
+	}
+
+	if (!const_cast<StructNode *>(pNodeRef)->ComputeAccelerations(b)) {
+		ok = false;
+	}
+
+	return ok;
 }
 
 /* RelFrameDummyStructNode - end */
@@ -2813,7 +2789,7 @@ PivotRelFrameDummyStructNode::Update_int(void)
 
 	XCurr = pNodeRef2->GetRCurr()*(Rh2*XCurr + fh2);
 
-	if (bOutputAccelerations()) {
+	if (bComputeAccelerations()) {
 		WPCurr = pNodeRef2->GetWPCurr()
 			+ pNodeRef2->GetWCurr().Cross(R2*WCurr)
 			+ R2*WPCurr;
@@ -2847,6 +2823,26 @@ PivotRelFrameDummyStructNode::Update(const VectorHandler& /* X */ ,
 	const VectorHandler& /* XP */ )
 {
 	Update_int();
+}
+
+bool
+PivotRelFrameDummyStructNode::ComputeAccelerations(bool b)
+{
+	bool ok = true;
+
+	if (!const_cast<StructNode *>(pNode)->ComputeAccelerations(b)) {
+		ok = false;
+	}
+
+	if (!const_cast<StructNode *>(pNodeRef)->ComputeAccelerations(b)) {
+		ok = false;
+	}
+
+	if (!const_cast<StructNode *>(pNodeRef2)->ComputeAccelerations(b)) {
+		ok = false;
+	}
+
+	return ok;
 }
 
 /* RelFrameDummyStructNode - end */

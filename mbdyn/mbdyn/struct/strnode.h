@@ -153,7 +153,9 @@ protected:
 
 	// reference motion, for relative kinematics
 	const RigidBodyKinematics *pRefRBK;
- 
+
+	// makes sense also for dummy nodes, as they may inherit
+	// accelerations from the parent node
 	bool bOutputAccels;
 
 public:
@@ -266,6 +268,8 @@ public:
 	virtual inline const doublereal& dGetVelocityStiffness(void) const;
 	virtual inline bool bOmegaRotates(void) const;
 
+	virtual bool ComputeAccelerations(bool b);
+	virtual inline bool bComputeAccelerations(void) const;
 	virtual inline bool bOutputAccelerations(void) const;
 
 	virtual void OutputPrepare(OutputHandler &OH);
@@ -475,6 +479,12 @@ StructNode::bOmegaRotates(void) const
 }
 
 inline bool
+StructNode::bComputeAccelerations(void) const
+{
+	return false;
+}
+
+inline bool
 StructNode::bOutputAccelerations(void) const
 {
 	return bOutputAccels;
@@ -512,7 +522,9 @@ class DynamicStructNode : public StructNode {
 protected:
 	/* Acceleration and angular acceleration; DynamicStructNode uses them
 	 * only for output; ModalNode uses them to store actual unknowns */
-	mutable bool bComputeAccelerations;
+
+	// "mutable" because can be set in iGetPrivDataIdx
+	mutable bool bComputeAccels;
 	mutable AutomaticStructElem *pAutoStr;
 
 	virtual inline void SetAutoStr(const AutomaticStructElem *p);
@@ -605,28 +617,9 @@ public:
 	virtual void SetDofValue(const doublereal& dValue,
 		unsigned int iDof, unsigned int iOrder = 0);
 
-	virtual void ComputeAccelerations(bool b);
+	virtual inline bool bComputeAccelerations(void) const;
+	virtual bool ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));
-
-	/*
-	 * Metodi per l'estrazione di dati "privati".
-	 * Si suppone che l'estrattore li sappia interpretare.
-	 * Come default non ci sono dati privati estraibili
-	 */
-	virtual unsigned int iGetNumPrivData(void) const;
-
-	/*
-	 * Maps a string (possibly with substrings) to a private data;
-	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
-	 * in case of unrecognized data; error must be handled by caller
-	 */
-	virtual unsigned int iGetPrivDataIdx(const char *s) const;
-
-	/*
-	 * Returns the current value of a private data
-	 * with 0 < i <= iGetNumPrivData()
-	 */
-	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 inline void
@@ -635,12 +628,17 @@ DynamicStructNode::SetAutoStr(const AutomaticStructElem *p)
 	pAutoStr = const_cast<AutomaticStructElem *>(p);
 }
 
+inline bool
+DynamicStructNode::bComputeAccelerations(void) const
+{
+	return bComputeAccels;
+}
+
 inline const AutomaticStructElem *
 DynamicStructNode::pGetAutoStr(void) const
 {
 	return pAutoStr;
 }
-
 
 /* Ritorna il numero di dofs (comune a tutto cio' che possiede dof) */
 inline unsigned int
@@ -881,6 +879,9 @@ public:
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const;
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	virtual inline bool bComputeAccelerations(void) const;
+	virtual bool ComputeAccelerations(bool b);
 };
 
 /* Ritorna il numero di dofs usato nell'assemblaggio iniziale */
@@ -913,6 +914,12 @@ inline unsigned int
 DummyStructNode::iGetNumDof(void) const
 {
 	return 0;
+}
+
+inline bool
+DummyStructNode::bComputeAccelerations(void) const
+{
+	return pNode->bComputeAccelerations();
 }
 
 /* DummyStructNode - end */
@@ -981,7 +988,16 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
+
+	virtual inline bool bComputeAccelerations(void) const;
+	virtual bool ComputeAccelerations(bool b);
 };
+
+inline bool
+RelFrameDummyStructNode::bComputeAccelerations(void) const
+{
+	return pNode->bComputeAccelerations() && pNodeRef->bComputeAccelerations();
+}
 
 /* RelFrameDummyStructNode - end */
 
@@ -1018,7 +1034,18 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);
+
+	virtual inline bool bComputeAccelerations(void) const;
+	virtual bool ComputeAccelerations(bool b);
 };
+
+inline bool
+PivotRelFrameDummyStructNode::bComputeAccelerations(void) const
+{
+	return pNode->bComputeAccelerations()
+		&& pNodeRef->bComputeAccelerations()
+		&& pNodeRef2->bComputeAccelerations();
+}
 
 /* PivotRelFrameDummyStructNode - end */
 
