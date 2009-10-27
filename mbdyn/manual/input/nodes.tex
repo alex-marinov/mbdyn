@@ -308,7 +308,7 @@ The rows contain: \vspace{2mm} \\
 \label{sec:NODE:STRUCTURAL:PRIV}
 The following data is available:
 \begin{enumerate}
-\item[] (all structural nodes)
+\item[] all structural nodes:
 \item \kw{"X[1]"} position in global direction 1
 \item \kw{"X[2]"} position in global direction 2
 \item \kw{"X[3]"} position in global direction 3
@@ -343,7 +343,7 @@ The following data is available:
 \item \kw{"PE[1]"} Euler parameter 1
 \item \kw{"PE[2]"} Euler parameter 2
 \item \kw{"PE[3]"} Euler parameter 3
-\item[] (dynamic nodes only)
+\item[] dynamic nodes only:
 \item \kw{"XPP[1]"} acceleration in global direction 1
 \item \kw{"XPP[2]"} acceleration in global direction 2
 \item \kw{"XPP[3]"} acceleration in global direction 3
@@ -370,6 +370,9 @@ their computation is enabled even if it was not explicitly enabled
 when the node was instantiated.
 However, if the \kw{index} form is used, their computation must have
 already been explicitly enabled.
+
+Note: dummy nodes based on dynamic nodes inherit the capability to provide
+access to linear and angular accelerations.
 
 
 \section{Electric Node}
