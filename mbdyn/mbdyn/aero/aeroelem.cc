@@ -264,7 +264,7 @@ Aerodynamic2DElem<iNN>::DescribeDof(std::vector<std::string>& desc,
 			os.seekp(0, std::ios_base::end);
 			os << ": internal state #" << s % iNumDof << " of " << iNumDof
 				<< " at point #" << s/iNumDof << " of " << GDI.iGetNum() << ", "
-				"block " << s/(iNumDof*GDI.iGetNum()) << " of " << iNN;
+				"block #" << s/(iNumDof*GDI.iGetNum()) << " of " << iNN;
 			desc[s] = os.str();
 		}
 
@@ -274,7 +274,7 @@ Aerodynamic2DElem<iNN>::DescribeDof(std::vector<std::string>& desc,
 	desc.resize(1);
 	os << ": internal state #" << i % iNumDof << " of " << iNumDof
 		<< " at point #" << i/iNumDof << " of " << GDI.iGetNum() << ", "
-		"block " << i/(iNumDof*GDI.iGetNum()) << " of " << iNN;
+		"block #" << i/(iNumDof*GDI.iGetNum()) << " of " << iNN;
 	desc[0] = os.str();
 }
 
