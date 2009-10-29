@@ -625,6 +625,7 @@ Simply execute
 ...
 
 \section{Simulink Interface}
+\label{sec:SimulinkInterface}
 This section describes how the Simulink Interface available
 within the MBDyn package has been successfully compiled and executed.
 By no means it is intended to suggest how the related packages 
@@ -632,6 +633,8 @@ should be built for other purposes, nor it may represent a replacement
 for the original build and install procedures.
 Please refer to the documentation available with each package
 for more details or for troubleshooting.
+An analogous interface with Scicos \cite{SCICOS}
+is described in Section~\ref{sec:ScicosInterface}.
 
 \noindent
 Software prerequisites:
@@ -683,8 +686,78 @@ In case, just try again...
 \item for more details on creating your own model, or on editing
 the interface parameters, refer to the \kw{README} 
 in \kw{contrib/SimulinkInterface}
-\item an analogous interface with Scicos is under development.
 \end{itemize}
+
+\section{Scicos Interface}
+\label{sec:ScicosInterface}
+This section describes how the Scicos \cite{SCICOS} interface available
+within the MBDyn package has been successfully compiled and executed.
+By no means it is intended to suggest how the related packages 
+should be built for other purposes, nor it may represent a replacement
+for the original build and install procedures.
+Please refer to the documentation available with each package
+for more details or for troubleshooting.
+
+An analogous interface with Simulink \cite{SIMULINK}
+is described in Section~\ref{sec:SimulinkInterface}.
+
+\begin{comment}
+
+\bigskip
+
+\noindent
+Software prerequisites:
+\begin{itemize}
+\item gcc/g++/g77 >= 3.0 (tested with gcc 3.3.1 and 3.4.0)
+\item Matlab/Simulink (tested with XXX)
+\end{itemize}
+Software requirements:
+\begin{itemize}
+\item MBDyn 1.2.1
+\end{itemize}
+
+\paragraph{MBDyn}
+\begin{itemize}
+\item download \kw{mbdyn-1.2.1.tar.gz} from \\
+\htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/}
+\item untar it in a temporary directory
+\item configure MBDyn by running
+\begin{verbatim}
+    $ ./configure 
+\end{verbatim}
+\item \kw{make} the package
+\item \kw{make install} the package
+\item in directory \kw{contrib/SimulinkInterface}, edit the file 
+\kw{Makefile} such that the appropriate \kw{mex} compiler is used;
+in my system it is \kw{/opt/matlab/bin/mex}
+\item \kw{make} the package
+\end{itemize}
+
+\paragraph{Run It!} \mbox{} \\
+To test the system, one needs a test input file; the example 
+\kw{pendulum} in the subdirectory \kw{examples} 
+should do the trick.
+\begin{itemize}
+\item start Matlab
+\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's 
+path, by executing
+\begin{verbatim}
+    > path('<path/to>/contrib/SimulinkInterface', path);
+\end{verbatim}
+\item execute simulink by clicking on the related icon, or by running
+\begin{verbatim}
+    > simulink
+\end{verbatim}
+\item open the model by clicking \kw{File->Open} on the menubar
+\item run the model by clicking \kw{Simulation->Start} on the menubar.
+some times, the first run fails; we're still trying to track that down.
+In case, just try again...
+\item for more details on creating your own model, or on editing
+the interface parameters, refer to the \kw{README} 
+in \kw{contrib/SimulinkInterface}
+\end{itemize}
+
+\end{comment}
 
 
 
