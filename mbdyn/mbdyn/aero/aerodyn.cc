@@ -253,10 +253,11 @@ void
 AirProperties::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.AirProps() << std::setw(8) << 0 << " "
-			<< dGetAirDensity(Zero3) << " "
-			<< dGetSoundSpeed(Zero3) << " "
-			<< GetVelocity(Zero3) << std::endl;
+		OH.AirProps() << std::setw(8) << GetLabel()
+			<< " " << dGetAirDensity(Zero3)
+			<< " " << dGetSoundSpeed(Zero3)
+			<< " " << GetVelocity(Zero3)
+			<< std::endl;
 	}
 }
  
