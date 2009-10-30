@@ -124,6 +124,10 @@ pdX(0), pdXP(0)
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
 
+	for (unsigned i = 0; i < 2*Order; i++) {
+		pdX[i] = 0.;
+	}
+
 	if (pdX0) {
 		for (unsigned i = 0; i < Order; i++) {
 			pdX[i] = pdX0[i];
@@ -191,6 +195,11 @@ GenelStateSpaceSISO::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = iNumDofs + 1;
 	*piNumCols = iNumDofs + 1;
+
+	// inputs may contribute to the Jacobian matrix
+	if (dynamic_cast<ScalarDofValue *>(SV_u) != 0) {
+		*piNumCols += 1;
+	}
 }
 
 /* assemblaggio jacobiano */
@@ -214,6 +223,28 @@ GenelStateSpaceSISO::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	WM.PutRowIndex(iNumRows, iRowIndex_y);
 	WM.PutColIndex(iNumCols, iColIndex_y);
+
+	// inputs may contribute to the Jacobian matrix
+	ScalarDofValue *SDV_u = dynamic_cast<ScalarDofValue *>(SV_u);
+	if (SDV_u != 0) {
+		ScalarDof& SD_u = dynamic_cast<ScalarDof &>(*SV_u);
+		integer iColIndex_u = SD_u.pNode->iGetFirstRowIndex() + 1;
+		integer iIdx_u = iNumCols - 1;
+
+		WM.PutColIndex(iIdx_u, iColIndex_u);
+
+		doublereal dd;
+		if (SD_u.iOrder == 0) {
+			dd = dCoef;
+		} else {
+			dd = 1.;
+		}
+
+		doublereal *pdb = pdB - 1;
+		for (unsigned int i = iNumDofs; i > 0; i--) {
+			WM.PutCoef(i, iIdx_u, pdb[i]*dd);
+		}
+	}
 
 	WM.PutCoef(iNumRows, iNumCols, dCoef);
 
@@ -479,6 +510,10 @@ pdX(0), pdXP(0)
 	SAFENEWARR(pdX, doublereal, 2*Order);
 	pdXP = pdX + Order;
 
+	for (unsigned i = 0; i < 2*Order; i++) {
+		pdX[i] = 0.;
+	}
+
 	if (pdX0) {
 		for (unsigned i = 0; i < Order; i++) {
 			pdX[i] = pdX0[i];
@@ -553,6 +588,13 @@ void GenelStateSpaceMIMO::WorkSpaceDim(integer* piNumRows,
 {
 	*piNumRows = iNumDofs + iNumOutputs;
 	*piNumCols = iNumDofs + iNumOutputs;
+
+	// inputs may contribute to the Jacobian matrix
+	for (unsigned int j = iNumInputs; j-- > 0; ) {
+		if (dynamic_cast<ScalarDofValue *>(SV_u[j]) != 0) {
+			*piNumCols += 1;
+		}
+	}
 }
 
 /* assemblaggio jacobiano */
@@ -569,6 +611,31 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
+
+	// inputs may contribute to the Jacobian matrix
+	integer iIdx_u = iNumDofs + iNumOutputs;
+	for (unsigned int j = 0; j < iNumOutputs; j++) {
+		ScalarDofValue *SDV_u = dynamic_cast<ScalarDofValue *>(SV_u[j]);
+		if (SDV_u != 0) {
+			ScalarDof& SD_u = dynamic_cast<ScalarDof &>(*SV_u[j]);
+			integer iColIndex_u = SD_u.pNode->iGetFirstRowIndex() + 1;
+			iIdx_u += 1;
+			WM.PutColIndex(iIdx_u, iColIndex_u);
+
+			doublereal dd;
+			if (SD_u.iOrder == 0) {
+				dd = dCoef;
+			} else {
+				dd = 1.;
+			}
+
+			doublereal *pdb = &pdB[j];
+			for (unsigned int i = 1; i <= iNumDofs; i++) {
+				WM.PutCoef(i, iIdx_u, pdb[0]*dd);
+				pdb += iNumInputs;
+			}
+		}
+	}
 
 	integer iFirstIndex = iGetFirstIndex();
 	doublereal* pdc = pdC + iNumOutputs*iNumDofs - 1;
