@@ -425,7 +425,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
 
 		dUMean = (1.-dWeight)*dVTip*dCt/(dRef+dCoeffDen)+dWeight*dUMeanPrev;
-	}else{
+	} else {
 		dUMean = dUMeanPrev;
 	}
 }
