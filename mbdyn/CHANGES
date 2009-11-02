@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		- added accelerations priv data to dummy structural nodes
 		- added Jacobian matrix contribution of state space SISO/MIMO
 		  elements when input is a ScalarNode
+		- added embryonic Scicos interface (by Tommaso Solcia)
 	Backward compatibility issues:
 		- the "imposed displacement", "imposed displacement pin"
 		  and "imposed orientation" joints are now mimicked
