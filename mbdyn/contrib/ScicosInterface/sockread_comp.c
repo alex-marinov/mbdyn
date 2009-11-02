@@ -113,7 +113,8 @@ sockread(scicos_block *block, int flag)
 		int k;
 
 		sockfd = *p_sock;
-		numbytes = recv(sockfd, (void *)&num, sizeof(num), MSG_WAITALL);
+		numbytes = recv(sockfd, (void *)&num, sizeof(num),
+			(MSG_NOSIGNAL|MSG_WAITALL));
 		if (numbytes == -1) {
 			perror("recv in function sockread");
 			set_block_error(-3);

@@ -122,7 +122,8 @@ sockwrite(scicos_block *block, int flag)
 			out(k) = num[k];
 		}
 
-		numbytes = send(sockfd, (void *)&num, sizeof(num), 0);
+		numbytes = send(sockfd, (void *)&num, sizeof(num),
+			MSG_NOSIGNAL);
 		if (numbytes == -1) {
 			perror("send in function sockwrite");
 			set_block_error(-3);
