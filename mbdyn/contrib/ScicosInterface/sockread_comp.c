@@ -48,7 +48,7 @@
 #include <machine.h>
 #include <math.h>
 
-#include "scicos_block4.h"
+#include "scilab/scicos_blocks/scicos_block4.h"
 
 /* outputs */
 #define out(i)        ((GetRealOutPortPtrs(block, i+1))[0])

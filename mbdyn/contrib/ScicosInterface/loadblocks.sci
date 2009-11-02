@@ -31,12 +31,10 @@
 //
 // ulink()
 
-ilib_for_link('sockwrite', 'sockwrite_comp', [], 'c')
+// load links
 exec loader.sce
 
-ilib_for_link('sockread', 'sockread_comp', [], 'c')
-exec loader.sce
-
+// load interfaces
 exec sockwrite_intf.sci;
 exec sockread_intf.sci;
 
