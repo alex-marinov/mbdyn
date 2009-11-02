@@ -1,7 +1,6 @@
 # $Header$
 
 enhancements:
-- add Scicos example "examples/pendulum.cosf" in textual form
 - add support for local sockets
 
 bugs:
