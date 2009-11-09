@@ -385,7 +385,7 @@ protected:
 
 protected:
 	typedef std::vector<Converged::State> Converged_t;
-	mutable Converged_t IsConverged;
+	mutable Converged_t m_IsConverged;
 
 public:
 	// returns an idx to a newly created slot for convergence
@@ -396,7 +396,7 @@ public:
 	// is allowed
 	void ConvergedSet(unsigned idx, Converged::State s);
 	// returns true only if all slots are true
-	bool Converged(void) const;
+	bool IsConverged(void) const;
 	bool EndOfSimulation(void) const;
 
 public:

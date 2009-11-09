@@ -1540,8 +1540,8 @@ DataManager::AfterPredict(void) const
 {
 	/* reset any external convergence requirement before starting
 	 * a new step */
-	for (Converged_t::iterator i = IsConverged.begin();
-		i != IsConverged.end();
+	for (Converged_t::iterator i = m_IsConverged.begin();
+		i != m_IsConverged.end();
 		i++)
 	{
 		*i = Converged::NOT_CONVERGED;
@@ -1707,25 +1707,25 @@ DataManager::GetEqDescription(int i) const
 unsigned
 DataManager::ConvergedRegister(void)
 {
-	unsigned idx = IsConverged.size();
-	IsConverged.resize(idx + 1);
-	IsConverged[idx] = Converged::CONVERGED;
+	unsigned idx = m_IsConverged.size();
+	m_IsConverged.resize(idx + 1);
+	m_IsConverged[idx] = Converged::CONVERGED;
 	return idx;
 }
 
 void
 DataManager::ConvergedSet(unsigned idx, Converged::State s)
 {
-	ASSERT(idx < IsConverged.size());
+	ASSERT(idx < m_IsConverged.size());
 
-	IsConverged[idx] = s;
+	m_IsConverged[idx] = s;
 }
 
 bool
-DataManager::Converged(void) const
+DataManager::IsConverged(void) const
 {
-	for (Converged_t::const_iterator i = IsConverged.begin();
-		i != IsConverged.end();
+	for (Converged_t::const_iterator i = m_IsConverged.begin();
+		i != m_IsConverged.end();
 		i++)
 	{
 		if (*i == Converged::NOT_CONVERGED) {
@@ -1739,8 +1739,8 @@ DataManager::Converged(void) const
 bool
 DataManager::EndOfSimulation(void) const
 {
-	for (Converged_t::const_iterator i = IsConverged.begin();
-		i != IsConverged.end();
+	for (Converged_t::const_iterator i = m_IsConverged.begin();
+		i != m_IsConverged.end();
 		i++)
 	{
 		if (*i == Converged::END_OF_SIMULATION) {

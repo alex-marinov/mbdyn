@@ -361,7 +361,7 @@ NonlinearSolver::MakeResTest(Solver *pS,
 	doublereal& dTest)
 {
 	dTest = pResTest->MakeTest(pS, Size, Vec, true)*pNLP->TestScale(pResTest);
-	return ((dTest < dTol) && pS->pGetDataManager()->Converged());
+	return ((dTest < dTol) && pS->pGetDataManager()->IsConverged());
 }
 
 bool
@@ -371,7 +371,7 @@ NonlinearSolver::MakeSolTest(Solver *pS,
 	doublereal& dTest)
 {
 	dTest = pSolTest->MakeTest(pS, Size, Vec);
-	return ((dTest < dTol) && pS->pGetDataManager()->Converged());
+	return ((dTest < dTol) && pS->pGetDataManager()->IsConverged());
 }
 
 #ifdef USE_EXTERNAL
