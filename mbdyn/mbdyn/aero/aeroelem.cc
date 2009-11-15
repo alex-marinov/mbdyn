@@ -130,6 +130,8 @@ AerodynamicOutput::IsNODE(void) const
 
 /* Aerodynamic2DElem - begin */
 
+static const bool bDefaultUseJacobian = false;
+
 template <unsigned iNN>
 Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	const DofOwner *pDO,
@@ -1049,7 +1051,7 @@ ReadAerodynamicBody(DataManager* pDM,
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
-		bUseJacobian = true;
+		bUseJacobian = HP.GetYesNoOrBool(bDefaultUseJacobian);
 	}
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
@@ -2023,7 +2025,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
-		bUseJacobian = true;
+		bUseJacobian = HP.GetYesNoOrBool(bDefaultUseJacobian);
 	}
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
@@ -2919,7 +2921,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
-		bUseJacobian = true;
+		bUseJacobian = HP.GetYesNoOrBool(bDefaultUseJacobian);
 	}
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {

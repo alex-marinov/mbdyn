@@ -161,11 +161,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	if (HP.IsKeyWord("create")) {
-		if (HP.IsKeyWord("yes")) {
-			create = true;
-		} else if (HP.IsKeyWord("no")) {
-			create = false;
-		} else {
+		if (!HP.GetYesNo(create)) {
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"\"create\" must be \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);

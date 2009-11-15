@@ -177,18 +177,9 @@ ReadRTPOSIXSolver(Solver *pS, MBDynParser& HP)
 	int RTCpuMap;
 	ReadRTParams(pS, HP, eRTMode, lRTPeriod, RTStackSize, bRTAllowNonRoot, RTCpuMap);
 
-	bool bNoOutput(true);
+	bool bNoOutput = true;
 	if (HP.IsKeyWord("output")) {
-		if (HP.IsKeyWord("yes")) {
-			bNoOutput = false;
-
-		} else if (HP.IsKeyWord("no")) {
-			bNoOutput = true;
-
-		} else {
-			int iNoOutput = HP.GetInt(1);
-			bNoOutput = (iNoOutput == 0);
-		}
+		bNoOutput = HP.GetYesNoOrBool(bNoOutput);
 	}
 
 	RTSolverBase *pRTSolver(0);

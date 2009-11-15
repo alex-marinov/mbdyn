@@ -358,6 +358,10 @@ public:
 	virtual void PutBackSemicolon(void);
 	/* legge un booleano con il mathpar */
 	virtual bool GetBool(bool bDefval = false);
+	/* legge un "yes"/"no" */
+	virtual bool GetYesNo(bool& bRet);
+	/* legge un "yes"/"no" o booleano con il mathpar */
+	virtual bool GetYesNoOrBool(bool bDefval = false);
 	/* legge un intero con il mathpar */
 	virtual integer GetInt(int iDefval = 0);
 	/* legge un reale col mathpar */

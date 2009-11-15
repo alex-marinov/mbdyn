@@ -701,11 +701,7 @@ ReadExtSocketHandler(DataManager* pDM,
 	std::string path;
 
 	if (HP.IsKeyWord("create")) {
-		if (HP.IsKeyWord("yes")) {
-			create = true;
-		} else if (HP.IsKeyWord("no")) {
-			create = false;
-		} else {
+		if (!HP.GetYesNo(create)) {
 			silent_cerr("ExtSocketHandler"
 				"(" << uLabel << "): "
 				"\"create\" must be either \"yes\" or \"no\" "
@@ -958,13 +954,7 @@ ReadExtForce(DataManager* pDM,
 	if (iCoupling) {
 		bSendAfterPredict = true;
 		if (HP.IsKeyWord("send" "after" "predict")) {
-			if (HP.IsKeyWord("yes")) {
-				bSendAfterPredict = true;
-
-			} else if (HP.IsKeyWord("no")) {
-				bSendAfterPredict = false;
-
-			} else {
+			if (!HP.GetYesNo(bSendAfterPredict)) {
 				silent_cerr("ExtForce(" << uLabel << "): "
 					"invalud \"send after predict\" value "
 					"at line " << HP.GetLineData()

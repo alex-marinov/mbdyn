@@ -35,6 +35,7 @@ MBDyn 1.X-Devel
 		  by "total joint" and "total pin joint"
 		- allow "position" in deformable hinge (ignored by now)
 		- the (implicit) label of "air properties" is now "1".
+		- "jacobian" in aerodynamic elements needs yes/no/<bool> arg
 	Known issues:
 	Bug fixes:
 		- fix error message when math parser unable to cast value

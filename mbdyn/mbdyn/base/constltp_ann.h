@@ -371,13 +371,7 @@ struct AnnElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		bool bUnit(false);
 		if (HP.IsKeyWord("unit" "input")) {
-			if (HP.IsKeyWord("yes")) {
-				bUnit = true;
-			} else if (HP.IsKeyWord("no")) {
-				bUnit = false;
-			} else {
-				bUnit = (HP.GetInt() != 0);
-			}
+			bUnit = HP.GetYesNoOrBool();
 		}
 
 		const char *s = HP.GetFileName();
@@ -405,13 +399,7 @@ struct AnnViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 
 		bool bUnit(false);
 		if (HP.IsKeyWord("unit" "input")) {
-			if (HP.IsKeyWord("yes")) {
-				bUnit = true;
-			} else if (HP.IsKeyWord("no")) {
-				bUnit = false;
-			} else {
-				bUnit = (HP.GetInt() != 0);
-			}
+			bUnit = HP.GetYesNoOrBool();
 		}
 
 		const char *s = HP.GetFileName();

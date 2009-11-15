@@ -677,11 +677,7 @@ EndOfUse:
 
 		/* Omega solidale con il nodo o con il rif. globale */
 		case OMEGAROTATES:
-			if (HP.IsKeyWord("yes")) {
-				bOmegaRotates = true;
-			} else if (HP.IsKeyWord("no")) {
-				bOmegaRotates = false;
-			} else {
+			if (!HP.GetYesNo(bOmegaRotates)) {
 				silent_cerr("Invalid option at line "
 					<< HP.GetLineData() << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -892,14 +888,8 @@ EndOfUse:
 						}
 
 						/* default; conservative: output is very verbose */
-						if ( HP.IsKeyWord("velocity")) {
-							if (HP.IsKeyWord("yes")) {
-								bAdamsVelocity = true;
-
-							} else if (HP.IsKeyWord("no")) {
-								bAdamsVelocity = false;
-
-							} else {
+						if (HP.IsKeyWord("velocity")) {
+							if (!HP.GetYesNo(bAdamsVelocity)) {
 								silent_cerr("unknown value "
 									"for \"velocity\" flag at line "
 									<< HP.GetLineData() << std::endl);
@@ -908,13 +898,7 @@ EndOfUse:
 						}
 
 						if (HP.IsKeyWord("acceleration")) {
-							if (HP.IsKeyWord("yes")) {
-								bAdamsAcceleration = true;
-
-							} else if (HP.IsKeyWord("no")) {
-								bAdamsAcceleration = false;
-
-							} else {
+							if (!HP.GetYesNo(bAdamsAcceleration)) {
 								silent_cerr("unknown value "
 									"for \"acceleration\" flag at line "
 									<< HP.GetLineData() << std::endl);

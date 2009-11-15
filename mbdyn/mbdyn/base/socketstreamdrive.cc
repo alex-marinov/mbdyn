@@ -311,11 +311,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 	}
 
 	if (HP.IsKeyWord("create")) {
-		if (HP.IsKeyWord("yes")) {
-			create = true;
-		} else if (HP.IsKeyWord("no")) {
-			create = false;
-		} else {
+		if (!HP.GetYesNo(create)) {
 			silent_cerr("SocketStreamDrive"
 				"(" << uLabel << ", \"" << name << "\"): "
 				"\"create\" must be either \"yes\" or \"no\" "

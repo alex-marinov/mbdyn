@@ -263,10 +263,7 @@ ReadVariableStepFileDrive(DataManager* pDM,
 	Drive::Bailout bo(Drive::BO_NONE);
 
 	if (HP.IsKeyWord("pad" "zeros") || HP.IsKeyWord("pad" "zeroes")) {
-		if (HP.IsKeyWord("no")) {
-			pz = false;
-
-		} else if (!HP.IsKeyWord("yes")) {
+		if (!HP.GetYesNo(pz)) {
 			silent_cerr("VariableStepFileDrive(" << uLabel << "): "
 				"unknown value for \"pad zeros\" "
 				"at line " << HP.GetLineData() << std::endl);

@@ -255,13 +255,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	}
 
 	if (HP.IsKeyWord("create")) {
-		if (HP.IsKeyWord("yes")) {
-			bCreate = true;
-
-		} else if (HP.IsKeyWord("no")) {
-			bCreate = false;
-
-		} else {
+		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("SocketStreamElem(" << uLabel << "):"
 				"\"create\" must be either "
 				"\"yes\" or \"no\" "

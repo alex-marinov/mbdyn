@@ -837,6 +837,38 @@ HighParser::GetBool(bool bDefVal)
 	return v.GetBool();
 }
 
+/*
+ * Read a boolean as "yes" or "no" and put the result in bRet
+ * return true in case of success, false otherwise (bRet undefined)
+ */
+bool
+HighParser::GetYesNo(bool& bRet)
+{
+	if (IsKeyWord("yes")) {
+		bRet = true;
+
+	} else if (IsKeyWord("no")) {
+		bRet = false;
+
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
+bool
+HighParser::GetYesNoOrBool(bool bDefval)
+{
+	bool bRet;
+
+	if (!GetYesNo(bRet)) {
+		bRet = GetBool(bDefval);
+	}
+
+	return bRet;
+}
+
 integer
 HighParser::GetInt(int iDefVal)
 {

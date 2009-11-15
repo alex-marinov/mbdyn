@@ -696,13 +696,7 @@ ReadGenel(DataManager* pDM,
 
 		bool bBalance(true);
 		if (HP.IsKeyWord("balance")) {
-			if (HP.IsKeyWord("yes")) {
-				bBalance = true;
-
-			} else if (HP.IsKeyWord("no")) {
-				bBalance = false;
-
-			} else {
+			if (!HP.GetYesNo(bBalance)) {
 				silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
 					"unknown balance mode at line "
 					<< HP.GetLineData()
@@ -927,13 +921,7 @@ ReadGenel(DataManager* pDM,
 	
 		bool bBalance(true);
 		if (HP.IsKeyWord("balance")) {
-			if (HP.IsKeyWord("yes")) {
-				bBalance = true;
-
-			} else if (HP.IsKeyWord("no")) {
-				bBalance = false;
-
-			} else {
+			if (!HP.GetYesNo(bBalance)) {
 				silent_cerr("ScalarFilter(" << uLabel << "): "
 					"unknown balance mode at line "
 					<< HP.GetLineData()
@@ -1092,13 +1080,7 @@ ReadGenel(DataManager* pDM,
 
 		bool bBalance(true);
 		if (HP.IsKeyWord("balance")) {
-			if (HP.IsKeyWord("yes")) {
-				bBalance = true;
-
-			} else if (HP.IsKeyWord("no")) {
-				bBalance = false;
-
-			} else {
+			if (!HP.GetYesNo(bBalance)) {
 				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "
 					"unknown balance mode at line "
 					<< HP.GetLineData()

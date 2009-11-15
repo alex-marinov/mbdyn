@@ -3065,17 +3065,7 @@ ReadStructNode(DataManager* pDM,
 				dPosStiff = HP.GetReal(dPosStiff);
 				dVelStiff = HP.GetReal(dVelStiff);
 
-				if (HP.IsKeyWord("yes")) {
-					bOmRot = true;
-
-				} else if (HP.IsKeyWord("no")) {
-					bOmRot = false;
-
-				} else {
-					silent_cerr("use keywords \"yes\" or \"no\"" << std::endl);
-					int iOmRot = bOmRot;
-					bOmRot = (HP.GetInt(iOmRot) != 0);
-				}
+				bOmRot = HP.GetYesNoOrBool(bOmRot);
 
 				DEBUGCOUT("Initial position stiffness: " << dPosStiff << std::endl);
 				DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << std::endl);
