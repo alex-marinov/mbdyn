@@ -5186,6 +5186,8 @@ except when using RTAI;
 
 \item the \kw{create} keyword determines whether the socket
 must be created or looked-up as already existing on the system;
+if \kw{create} is set to \kw{no}, MBDyn will retry for 60 seconds
+and then give up;
 
 \item \kw{socket\_name} is the path of the \kw{local} socket 
 that is used to communicate between processes;

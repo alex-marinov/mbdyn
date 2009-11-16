@@ -242,7 +242,8 @@ The meaning of the parameters is:
 it is mostly useless, and must be no more than 6 characters long,
 since it is only allowed for compatibility with RTAI's mailboxes;
 \item the instruction \kw{create} determines whether the socket will be
-created or looked for by MBDyn;
+created or looked for by MBDyn; if \kw{create} is set to \kw{no},
+MBDyn will retry for 60 seconds and then give up;
 \item the keyword \kw{local} indicates that a socket 
 in the local namespace will be used; if \kw{create} is set to \kw{yes},
 the socket is created, otherwise it must exist.

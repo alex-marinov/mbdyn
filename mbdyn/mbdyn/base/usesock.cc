@@ -146,13 +146,15 @@ void
 UseSocket::Connect(void)
 {
 	// FIXME: retry strategy should be configurable
-	int	count = 1000;
+	int	count = 600;
 	int	timeout = 100000;
 	
 	for ( ; count > 0; count--) {
 		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
 			int save_errno = errno;
-			if (save_errno == ECONNREFUSED) {
+			switch (save_errno) {
+			case ECONNREFUSED:	// inet
+			case ENOENT:		// unix
 				/* Socket does not exist yet; retry */
 				usleep(timeout);
 				continue;
