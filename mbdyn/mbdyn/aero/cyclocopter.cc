@@ -749,9 +749,9 @@ ReadCyclocopter(DataManager* pDM,
 		UNKNOWN = -1,
 		type = 0,
 		NO,
-		uniform1D,
-		uniform2D,
-		polimi,
+		UNIFORM1D,
+		UNIFORM2D,
+		POLIMI,
 		KARI,
 
 		LASTKEYWORD
@@ -764,7 +764,7 @@ ReadCyclocopter(DataManager* pDM,
         	CyclocopterInducedType = KeyWords(HP.GetWord());
 	}
 
-	switch( CyclocopterInducedType ) {
+	switch (CyclocopterInducedType) {
 	case NO: {
 		ResForceSet **ppres = ReadResSets(pDM, HP);
 
@@ -775,9 +775,10 @@ ReadCyclocopter(DataManager* pDM,
  
 		break;
 	}
-	case uniform1D:	
-	case uniform2D:	
-	case polimi:	{
+
+	case UNIFORM1D:	
+	case UNIFORM2D:	
+	case POLIMI: {
 		doublereal dOR = HP.GetReal();
 		if (dOR <= 0.) {
 			silent_cerr("Illegal null or negative "
@@ -844,32 +845,36 @@ ReadCyclocopter(DataManager* pDM,
 
 	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
 
-		switch( CyclocopterInducedType ) {
-		case uniform1D: {
+		switch (CyclocopterInducedType) {
+		case UNIFORM1D:
 			pEl = new CyclocopterUniform1D(uLabel, pDO,
 				pCraft, rrot, pRotor,
   				ppres, dOR, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-		}
-		case uniform2D: {
+
+		case UNIFORM2D:
 			pEl = new CyclocopterUniform2D(uLabel, pDO,
 				pCraft, rrot, pRotor,
   				ppres, dOR, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-		}
-		case polimi: {
+
+		case POLIMI:
 			pEl = new CyclocopterPolimi(uLabel, pDO,
 				pCraft, rrot, pRotor,
   				ppres, dOR, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-		}
+
+		default:
+			// impossible
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		break;
 		
 	}
+
 	case KARI: {
      		ResForceSet **ppres = ReadResSets(pDM, HP);
 
@@ -879,6 +884,7 @@ ReadCyclocopter(DataManager* pDM,
   			ppres, fOut);
 		break;
 	}
+
 	default:
 		silent_cerr("Rotor(" << uLabel << "): "
 			"unknown cyclocopter inflow model "

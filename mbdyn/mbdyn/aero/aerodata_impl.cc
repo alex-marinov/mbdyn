@@ -546,7 +546,7 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		cmx_0 = 0.;
 		cmy_0 = 0.;
 		cmz_0 = OUTA.cm;
-	}else{
+	} else {
 		cx_0 = 0.;
 		cy_0 = 0.;
 		cz_0 = 0.;
@@ -717,7 +717,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		cx_1 = OUTA.cd;
 		cy_1 = OUTA.cl;
 		cmz_1 = OUTA.cm;
-	}else{
+	} else {
 		cx_1 = 0.;
 		cy_1 = 0.;
 		cmz_1 = 0.;
@@ -1060,7 +1060,7 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		cmx_0 = 0.;
 		cmy_0 = 0.;
 		cmz_0 = OUTA.cm;
-	}else{
+	} else {
 		cx_0 = 0.;
 		cy_0 = 0.;
 		cz_0 = 0.;
@@ -1137,13 +1137,17 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 	doublereal d = 2*Uinf/chord;
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
+#if 0
 	doublereal qD = .5*VAM.density*UUinf2;
+#endif
 
 	// doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
 	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
 
+#if 0
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
 		+ (1 - A1 - A2)*u2;
+#endif
 
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);

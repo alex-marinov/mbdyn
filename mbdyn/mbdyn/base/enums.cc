@@ -252,7 +252,7 @@ const char* psJointNames[] = {
 
 
 /* Tipi di Rod */
-extern const char* psRodNames[] = {
+const char* psRodNames[] = {
    "Elastic Rod",
    "Visco-Elastic Rod",
    "Visco-Elastic Rod With Offset",
@@ -262,7 +262,7 @@ extern const char* psRodNames[] = {
 
 
 /* Tipi di DeformableHinge */
-extern const char* psConstLawNames[] = {
+const char* psConstLawNames[] = {
    "Elastic",
    "Viscous",
    "Visco-Elastic",
@@ -272,7 +272,7 @@ extern const char* psConstLawNames[] = {
 
 
 /* Tipi di Genel */
-extern const char* psGenelNames[] = {
+const char* psGenelNames[] = {
    "Swash Plate",
    "Rotor Trim",
    "Clamp",
@@ -293,7 +293,7 @@ extern const char* psGenelNames[] = {
 
 
 /* Tipi di Force */
-extern const char* psForceNames[] = {
+const char* psForceNames[] = {
    "Abstract Force",
    "Abstract Reaction Force",
 
@@ -344,7 +344,7 @@ const char* psHydraulicNames[] = {
 
 
 /* Tipi di Beam */
-extern const char* psBeamNames[] = {
+const char* psBeamNames[] = {
    "Elastic Beam",
    "Visco-Elastic Beam",
    "Piezo-Electric Beam",
@@ -354,7 +354,7 @@ extern const char* psBeamNames[] = {
 
 
 /* Tipi di Aero */
-extern const char* psAeroNames[] = {
+const char* psAeroNames[] = {
    "Rotor",
    "Aeromodal",
    "Aerodynamic Body",
@@ -367,7 +367,7 @@ extern const char* psAeroNames[] = {
 
 
 /* Tipi di Rotor */
-extern const char* psRotorNames[] = {
+const char* psRotorNames[] = {
    "No Induced Speed Rotor",
    "Uniform Induced Speed Rotor",
    "Glauert Induced Speed Rotor",
@@ -379,7 +379,7 @@ extern const char* psRotorNames[] = {
 
 
 /* Tipi di Bulk */
-extern const char* psBulkNames[] = {
+const char* psBulkNames[] = {
    "SpringSupport",
    "Spring",
    
