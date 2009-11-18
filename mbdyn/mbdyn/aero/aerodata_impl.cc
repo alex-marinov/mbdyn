@@ -891,14 +891,14 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	}
 	
 	FILE *fd;
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/X.mat","w");
+	fd = fopen("X.mat","w");
 	printf("DATI X\n");
 	for( iii=1; iii<=6; iii++){
 		printf("%lf ", XCurr(iFirstIndex+iii));
 		fprintf(fd,"%15.7e ", XCurr(iFirstIndex+iii));
 	}
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/XP.mat","w");
+	fd = fopen("XP.mat","w");
 	printf("\n");
 	printf("DATI XP\n");
 	for( iii=1; iii<=6; iii++){
@@ -907,7 +907,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	}
 	printf("\n");
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/W.mat","w");
+	fd = fopen("W.mat","w");
 	printf("DATI W\n");
 	printf("%lf %lf %lf %lf %lf %lf", W[VX], W[VY], W[VZ], W[WX], W[WY], W[WZ]);
 	fprintf(fd,"%15.7e %15.7e %15.7e %15.7e %15.7e %15.7e", W[VX], W[VY], W[VZ], W[WX], W[WY], W[WZ]);
@@ -925,11 +925,11 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("\nrho %lf ", rho);
 	printf("\nomegaPD %lf ", omegaPD);
 	printf("\ncx_0 %lf ", cx_0);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/cx_0.mat","w");
+	fd = fopen("cx_0.mat","w");
 	fprintf(fd,"%15.7e", cx_0);
 	fclose(fd);
 	printf("\ncy_0 %lf ", cy_0);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/cy_0.mat","w");
+	fd = fopen("cy_0.mat","w");
 	fprintf(fd,"%15.7e ", cy_0);
 	fclose(fd);
 	printf("\ncz_0 %lf ", cz_0);
@@ -937,11 +937,11 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("\ncmy_0 %lf ", cmy_0);
 	printf("\ncmz_0 %lf ", cmz_0);
 	printf("\ndCl_alpha %lf ", dCl_alpha);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dCl_alpha.mat","w");
+	fd = fopen("dCl_alpha.mat","w");
 	fprintf(fd,"%15.7e", dCl_alpha);
 	fclose(fd);
 	printf("\ndCd_alpha %lf", dCd_alpha);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dCd_alpha.mat","w");
+	fd = fopen("dCd_alpha.mat","w");
 	fprintf(fd,"%15.7e", dCd_alpha);
 	fclose(fd);
 	printf("\ndCm_alpha %lf", dCm_alpha);
@@ -1137,18 +1137,13 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 	doublereal d = 2*Uinf/chord;
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
-#if 0
 	doublereal qD = .5*VAM.density*UUinf2;
-#endif
 
 	// doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
 	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
 
-#if 0
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
 		+ (1 - A1 - A2)*u2;
-#endif
-
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
@@ -1358,14 +1353,14 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	}
 	
 	FILE *fd;
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/X.mat","w");
+	fd = fopen("X.mat","w");
 	printf("DATI X\n");
 	for( int iii=1; iii<=2; iii++){
 		printf("%lf ", XCurr(iFirstIndex+iii));
 		fprintf(fd,"%15.7e ", XCurr(iFirstIndex+iii));
 	}
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/XP.mat","w");
+	fd = fopen("XP.mat","w");
 	printf("\n");
 	printf("DATI XP\n");
 	for( int iii=1; iii<=2; iii++){
@@ -1374,7 +1369,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	}
 	printf("\n");
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/W.mat","w");
+	fd = fopen("W.mat","w");
 	printf("DATI W\n");
 	printf("%lf %lf %lf %lf %lf %lf", W[VX], W[VY], W[VZ], W[WX], W[WY], W[WZ]);
 	fprintf(fd,"%15.7e %15.7e %15.7e %15.7e %15.7e %15.7e", W[VX], W[VY], W[VZ], W[WX], W[WY], W[WZ]);
@@ -1391,11 +1386,11 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("\na %lf ", a);
 	printf("\nrho %lf ", rho);
 	printf("\ncx_0 %lf ", cx_0);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/cx_0.mat","w");
+	fd = fopen("cx_0.mat","w");
 	fprintf(fd,"%15.7e", cx_0);
 	fclose(fd);
 	printf("\ncy_0 %lf ", cy_0);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/cy_0.mat","w");
+	fd = fopen("cy_0.mat","w");
 	fprintf(fd,"%15.7e ", cy_0);
 	fclose(fd);
 	printf("\ncz_0 %lf ", cz_0);
@@ -1403,25 +1398,25 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	printf("\ncmy_0 %lf ", cmy_0);
 	printf("\ncmz_0 %lf ", cmz_0);
 	printf("\ndCl_alpha %lf ", dCl_alpha);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dCl_alpha.mat","w");
+	fd = fopen("dCl_alpha.mat","w");
 	fprintf(fd,"%15.7e", dCl_alpha);
 	fclose(fd);
 	printf("\ndCd_alpha %lf", dCd_alpha);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dCd_alpha.mat","w");
+	fd = fopen("dCd_alpha.mat","w");
 	fprintf(fd,"%15.7e", dCd_alpha);
 	fclose(fd);
 	printf("\ndCm_alpha %lf", dCm_alpha);
 	printf("\nclalpha %lf ", clalpha);
 	printf("\n q1 q2 i %lf %lf %d", q1, q2, i);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/ddot_alpha.mat","w");
+	fd = fopen("ddot_alpha.mat","w");
 	fprintf(fd,"%15.7e", ddot_alpha);
 	printf("%lf", ddot_alpha);
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dot_alpha.mat","w");
+	fd = fopen("dot_alpha.mat","w");
 	fprintf(fd,"%15.7e", dot_alpha);
 	printf("%lf", dot_alpha);
 	fclose(fd);
-	fd = fopen("/home/mattia/work/mbdyn/mbdyn/aero/UnsteadyAeroJ_test/dot_alpha_pivot.mat","w");
+	fd = fopen("dot_alpha_pivot.mat","w");
 	fprintf(fd,"%15.7e", dot_alpha_pivot);
 	printf("%lf", dot_alpha_pivot);
 	fclose(fd);
@@ -1432,6 +1427,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 
 	// probably, we need to reset fq, cq
 }
+
 void
 C81TheodorsenAeroData::AfterConvergence(int i,	
 	const VectorHandler& X, const VectorHandler& XP )
