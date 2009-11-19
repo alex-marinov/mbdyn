@@ -58,7 +58,7 @@ struct s2s_t {
 	const char	*host;
 	int	port;
 	int	create;
-	bool	block;
+	int	block;
 
 	// internal data
 	int	sock;
