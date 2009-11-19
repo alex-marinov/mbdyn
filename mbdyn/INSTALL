@@ -80,8 +80,8 @@ Known Problems (see also "BUGS" file)
 =====================================
 
    Some compilers are known to have problems in compiling MBDyn; its 
-development started with gcc 2.7.X, and now we're at about 4.1.X.
-gcc 3.X (except 3.2 and 3.3) and 4.X work correctly.
+development started with gcc 2.7.X, and now we're at about 4.4.X.
+gcc 3.X (except 3.2 and 3.3) and 4.X appear to work correctly.
 
    The parallel implementation used to need HSL (see 
    
