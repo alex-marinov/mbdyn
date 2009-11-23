@@ -77,7 +77,7 @@ typedef struct {
 #define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
 #define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
 #define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
-#define MBC_R_SIZE(mbc)			(24*sizeof(double))
+#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
 
 	/* modal data */
 	int		modes;
