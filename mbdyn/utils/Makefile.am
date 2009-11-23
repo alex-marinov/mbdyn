@@ -32,7 +32,8 @@ logproc
 endif
 
 if USE_X_ANN
-bin_PROGRAMS += mbfem
+bin_PROGRAMS += \
+mbfem
 endif
 
 if USE_SOCKET
@@ -49,6 +50,11 @@ endif
 # do not install these
 noinst_PROGRAMS = \
 playground
+
+if USE_SOCKET
+noinst_PROGRAMS += \
+test_modalext_socket
+endif
 
 MYLIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
