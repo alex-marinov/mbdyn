@@ -8,7 +8,6 @@ ann_in \
 ann_sf \
 ann_sim \
 ann_tr \
-autopilot \
 c81merge \
 c81test \
 cl \
@@ -25,11 +24,6 @@ rot2eu \
 rot2eup \
 rot2phi \
 rotrel \
-s2sctrl \
-sockdrive \
-socket2stream \
-stream2socket \
-trim \
 vec2rot
 
 if USE_RTAI
@@ -39,6 +33,17 @@ endif
 
 if USE_X_ANN
 bin_PROGRAMS += mbfem
+endif
+
+if USE_SOCKET
+bin_PROGRAMS += \
+autopilot \
+s2sctrl \
+sockdrive \
+socket2stream \
+stream2socket \
+test_modalext_socket \
+trim
 endif
 
 # do not install these
@@ -84,6 +89,7 @@ s2sctrl_SOURCES = s2sctrl.cc s2s.cc s2s.h
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
+test_modalext_socket_SOURCES = test_modalext_socket.c
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 mbfem_SOURCES = \
@@ -136,6 +142,7 @@ s2sctrl_LDADD = $(MYLIBS)
 sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
+test_modalext_socket_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@

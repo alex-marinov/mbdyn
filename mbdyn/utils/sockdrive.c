@@ -36,8 +36,6 @@
 #include <stdlib.h>
 #include <ac/getopt.h>
 
-#ifdef USE_SOCKET_DRIVES
-
 #include <stdio.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -278,15 +276,4 @@ main(int argc, char *argv[])
 
 	exit(EXIT_SUCCESS);
 }
-
-#else /* ! USE_SOCKET_DRIVES */
-
-int
-main(void)
-{
-	fprintf(stderr, "need sockets\n");
-	exit(EXIT_FAILURE);
-}
-
-#endif /* ! USE_SOCKET_DRIVES */
 

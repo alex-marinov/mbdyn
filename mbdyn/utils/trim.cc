@@ -30,10 +30,8 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
-
-#ifdef USE_SOCKET
 
 #include <string.h>
 #include <sys/types.h>
@@ -577,14 +575,3 @@ main(int argc, char *argv[])
 	trim.DoTrim(F, I, X);
 }
 
-#else // ! USE_SOCKET
-
-#include <iostream>
-
-int
-main(void)
-{
-	std::cerr << "sockets not available" << std::endl;
-}
-
-#endif // ! USE_SOCKET

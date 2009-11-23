@@ -29,13 +29,11 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#ifdef USE_SOCKET
 
 #include <termios.h>
 #include <ac/getopt.h>
@@ -399,13 +397,3 @@ main(int argc, char *argv[])
 	exit(EXIT_SUCCESS);
 }
 
-#else /* ! USE_SOCKET */
-
-int
-main(void)
-{
-	fprintf(stderr, "sockets are not available\n");
-
-	return EXIT_FAILURE;
-}
-#endif /* ! USE_SOCKET */

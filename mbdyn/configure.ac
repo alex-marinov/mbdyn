@@ -181,7 +181,6 @@ dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
 OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]
                           with debug mode {none|mem}],none,[none mem])
-OL_ARG_ENABLE(socket_drives,[  --enable-socket-drives  enable socket drives], auto)dnl
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
@@ -585,16 +584,13 @@ dnl
 dnl Checks for socket
 dnl
 AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
+use_socket=no
 if test "$have_socket" = "yes" ; then
 	AC_DEFINE(HAVE_SOCKET,1,[define if socket() is available])
 	AC_DEFINE(USE_SOCKET,1,[define if socket() can be used])
-fi
-
-if test "$ol_enable_socket_drives" != no ; then
+	use_socket=yes
 
 	if test $have_socket != no ; then
-		AC_DEFINE(USE_SOCKET_DRIVES,1,[define to enable socket drives])
-
 		AC_MSG_CHECKING([for socklen_t])
 		AC_TRY_COMPILE([#include <sys/socket.h>],[
 			socklen_t l;
@@ -605,13 +601,6 @@ if test "$ol_enable_socket_drives" != no ; then
 			AC_MSG_RESULT([yes])
 		else
 			AC_MSG_RESULT([no])
-		fi
-		
-	else
-		if test $ol_enable_socket_drives != auto ; then
-			AC_MSG_ERROR([cannot find sockets])
-		else
-			AC_MSG_WARN([socket drives not supported.])
 		fi
 	fi
 fi
@@ -2320,11 +2309,13 @@ AC_SUBST(GINACLIB_LIBS)
 AC_SUBST(DATE)
 
 dnl conditional build declarations
-AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
-AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
-AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
+AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
+AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
+AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
+AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
+
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 

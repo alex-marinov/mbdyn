@@ -33,8 +33,6 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_SOCKET
-
 #include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -133,15 +131,3 @@ done:;
 	exit(EXIT_SUCCESS);
 }
 
-#else // ! USE_SOCKET
-
-#include <iostream>
-
-int
-main(void)
-{
-	std::cerr << "sockets not available" << std::endl;
-	return EXIT_FAILURE;
-}
-
-#endif // ! USE_SOCKET

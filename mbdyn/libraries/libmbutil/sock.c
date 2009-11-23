@@ -30,10 +30,10 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#ifdef USE_SOCKET_DRIVES
+#ifdef USE_SOCKET
 
 #include <stdio.h>
 #include <errno.h>
@@ -60,7 +60,6 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
    	int			sock = -1;
 	int			rc = -1;
 
-#ifdef HAVE_SOCKET
 	struct sockaddr_in	tmpname;
 	socklen_t		size;
 
@@ -110,7 +109,6 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 			return -2;
 		}
    	}
-#endif /* HAVE_SOCKET */
 
    	return sock;
 }
@@ -121,7 +119,6 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 {
    	int			sock = -1;
 
-#ifdef HAVE_SOCKET
    	struct sockaddr_un	tmpname;
 	socklen_t		size;
 
@@ -157,9 +154,8 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 		}
       		return -2;
    	}
-#endif /* HAVE_SOCKET */
 
    	return sock;
 }
 
-#endif /* USE_SOCKET_DRIVES */
+#endif /* USE_SOCKET */

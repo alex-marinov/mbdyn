@@ -34,7 +34,7 @@
 #ifndef SOCKDRV_H
 #define SOCKDRV_H
 
-#ifdef USE_SOCKET_DRIVES
+#ifdef USE_SOCKET
 
 const unsigned short int MBDynSocketDrivePort = 5555;
 extern const char *MBDynSocketDrivePath;
@@ -86,7 +86,7 @@ public:
 
 /* SocketDrive - end */
 
-#endif /* USE_SOCKET_DRIVES */
+#endif /* USE_SOCKET */
 
 class DataManager;
 class MBDynParser;

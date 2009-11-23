@@ -25,6 +25,8 @@ llstack.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \
+mbc.c \
+mbc.h \
 mbsasl.c \
 mbsasl.h \
 myassert.cc \
