@@ -385,6 +385,10 @@ ExtSocketHandler::Send_post(SendWhen when)
 bool
 ExtSocketHandler::Recv_pre(void)
 {
+	if (!bReadForces) {
+		return false;
+	}
+
 	unsigned u = 0;
 
 	if (iSleepTime) {
