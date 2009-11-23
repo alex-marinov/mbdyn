@@ -53,10 +53,12 @@ ExtModalForceBase::~ExtModalForceBase(void)
 
 ExtModalForce::ExtModalForce(void)
 {
+	NO_OP;
 }
 
 ExtModalForce::~ExtModalForce(void)
 {
+	NO_OP;
 }
 
 unsigned
