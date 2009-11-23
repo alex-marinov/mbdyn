@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- added peer libraries for modal external force (mbc.h)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
