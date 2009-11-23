@@ -2142,9 +2142,9 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 		/* eaPrime = w/\ea + R*[(PHIr*b)/\]ia */
 		Mat3x3 Tmp = R*Mat3x3(PHIr*b);
-		Vec3 e1aPrime = Omega1.Cross(e2a) + Tmp.GetVec(1);
+		Vec3 e1aPrime = Omega1.Cross(e1a) + Tmp.GetVec(1);
 		Vec3 e2aPrime = Omega1.Cross(e2a) + Tmp.GetVec(2);
-		Vec3 e3aPrime = Omega1.Cross(e2a) + Tmp.GetVec(3);
+		Vec3 e3aPrime = Omega1.Cross(e3a) + Tmp.GetVec(3);
 		Vec3 MTmpPrime(0.);
 		MTmpPrime =
 			(e2a.Cross(Omega2.Cross(e3b)) - e3b.Cross(e2aPrime))*M.dGet(1)
