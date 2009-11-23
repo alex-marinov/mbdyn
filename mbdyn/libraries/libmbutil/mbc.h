@@ -83,8 +83,8 @@ typedef struct {
 	int		modes;
 	double		*m;
 #define MBC_Q(mbc)			(&(mbc)->m[0])
-#define MBC_QP(mbc)			(&(mbc)->r[(mbc)->modes])
-#define MBC_P(mbc)			(&(mbc)->r[2*(mbc)->modes])
+#define MBC_QP(mbc)			(&(mbc)->m[(mbc)->modes])
+#define MBC_P(mbc)			(&(mbc)->m[2*(mbc)->modes])
 #define MBC_M_KINEMATICS(mbc)		MBC_Q((mbc))
 #define MBC_M_DYNAMICS(mbc)		MBC_P((mbc))
 #define MBC_M_KINEMATICS_SIZE(mbc)	(2*(mbc)->modes*sizeof(double))
