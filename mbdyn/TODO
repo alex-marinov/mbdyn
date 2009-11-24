@@ -215,6 +215,9 @@ E. Bugs/missing features:
 	- allow to override initial modal value and derivative in .fem (DONE)
 	- check initial assembly of joints in slidercrank_r
 	- export private data from dummy structural nodes (DONE)
+	- allow 0 modes in modal element (nearly useless except for testing)
+	- UseSocket without host listens only on localhost
+	- external modal force needs work in "loose" coupling
 
 
 
