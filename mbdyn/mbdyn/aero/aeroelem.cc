@@ -374,6 +374,35 @@ Aerodynamic2DElem<iNN>::SetValue(DataManager *pDM,
 	}
 }
 
+template <unsigned iNN>
+void
+Aerodynamic2DElem<iNN>::AfterConvergence(
+	const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	/* Memoria in caso di forze instazionarie */
+	switch (aerodata->Unsteady()) {
+	case AeroData::STEADY:
+		break;
+
+	case AeroData::HARRIS:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	case AeroData::BIELAWA:
+		for (integer i = 0; i < iNN*GDI.iGetNum(); i++) {
+	 		aerodata->Update(i);
+		}
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer i = 0; i < iNN*GDI.iGetNum(); i++) {
+		aerodata->AfterConvergence(i, X, XP);
+	}
+}
+
 /* Dimensioni del workspace */
 template <unsigned iNN>
 void
@@ -884,34 +913,6 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	/* Sommare il termine al residuo */
 	WorkVec.Add(1, F);
 	WorkVec.Add(4, M);
-}
-
-void
-AerodynamicBody::AfterConvergence(
-	const VectorHandler& X,
-	const VectorHandler& XP)
-{
-	/* Memoria in caso di forze instazionarie */
-	switch (aerodata->Unsteady()) {
-	case AeroData::STEADY:
-		break;
-
-	case AeroData::HARRIS:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-	case AeroData::BIELAWA:
-		for (integer i = 0; i < GDI.iGetNum(); i++) {
-	 		aerodata->Update(i);
-		}
-		break;
-
-	default:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	for (integer i = 0; i < GDI.iGetNum(); i++) {
-		aerodata->AfterConvergence(i, X, XP);
-	}
 }
 
 /*
@@ -1849,34 +1850,6 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	}
 }
 
-void
-AerodynamicBeam::AfterConvergence(
-	const VectorHandler& X,
-	const VectorHandler& XP)
-{
-	/* Memoria in caso di forze instazionarie */
-	switch (aerodata->Unsteady()) {
-	case AeroData::STEADY:
-		break;
-
-	case AeroData::HARRIS:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-	case AeroData::BIELAWA:
-		for (integer i = 0; i < 3*GDI.iGetNum(); i++) {
-			aerodata->Update(i);
-		}
-		break;
-
-	default:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	for (integer i = 0; i < GDI.iGetNum(); i++) {
-		aerodata->AfterConvergence(i, X, XP);
-	}
-}
-
 /*
  * output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output
@@ -2756,34 +2729,6 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 		/* Somma il termine al residuo */
 		WorkVec.Add(6*iNode + 1, F[iNode]);
 		WorkVec.Add(6*iNode + 4, M[iNode]);
-	}
-}
-
-void
-AerodynamicBeam2::AfterConvergence(
-	const VectorHandler& X,
-	const VectorHandler& XP)
-{
-	/* Memoria in caso di forze instazionarie */
-	switch (aerodata->Unsteady()) {
-	case AeroData::STEADY:
-		break;
-
-	case AeroData::HARRIS:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-	case AeroData::BIELAWA:
-		for (integer i = 0; i < 2*GDI.iGetNum(); i++) {
-	 		aerodata->Update(i);
-		}
-		break;
-
-	default:
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	for (integer i = 0; i < GDI.iGetNum(); i++) {
-		aerodata->AfterConvergence(i, X, XP);
 	}
 }
 

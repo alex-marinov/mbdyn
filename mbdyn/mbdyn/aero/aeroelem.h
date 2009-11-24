@@ -167,6 +167,9 @@ public:
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints* h = 0);
 
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP);
+
 	/* Dimensioni del workspace */
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
@@ -247,12 +250,6 @@ public:
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-
-	/*
-	 * Elaborazione stato interno dopo la convergenza
-	 */
-	virtual void AfterConvergence(const VectorHandler& X,
-			const VectorHandler& XP);
 
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
@@ -365,12 +362,6 @@ public:
 		      const VectorHandler& XCurr);
 
 	/*
-	 * Elaborazione stato interno dopo la convergenza
-	 */
-	virtual void AfterConvergence(const VectorHandler& X,
-			const VectorHandler& XP);
-
-	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
@@ -469,12 +460,6 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		      const VectorHandler& XCurr);
-
-	/*
-	 * Elaborazione stato interno dopo la convergenza
-	 */
-	virtual void AfterConvergence(const VectorHandler& X,
-			const VectorHandler& XP);
 
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso

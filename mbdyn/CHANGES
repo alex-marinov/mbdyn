@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fixed nonzero angular velocity modal joint initial assembly
 		- fixed socket-based external force loose coupling
+		- fixed AerodynamicBeam2/3 AfterConvergence w/ int. states
 
 MBDyn 1.3.10
 	Enhancements:
