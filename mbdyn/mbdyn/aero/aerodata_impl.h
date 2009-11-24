@@ -165,7 +165,7 @@ protected:
 	doublereal chord;
 	doublereal a;
 	doublereal A1, A2, b1, b2;
-	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
+	doublereal cfx_0, cfy_0, cfz_0, cmx_0, cmy_0, cmz_0;
 	doublereal clalpha;
 
 public:
@@ -209,10 +209,11 @@ protected:
 	doublereal chord;
 	doublereal a;
 	doublereal A1, A2, b1, b2;
-	doublereal alpha_pivot, dot_alpha_pivot, dot_alpha, ddot_alpha;
-	doublereal cx_0, cy_0, cz_0, cmx_0, cmy_0, cmz_0;
-	doublereal clalpha;
-	doublereal prev_alpha_pivot, prev_dot_alpha, prev_time;
+	doublereal *alpha_pivot, *dot_alpha_pivot, *dot_alpha, *ddot_alpha;
+	doublereal *cfx_0, *cfy_0, *cmz_0;
+	doublereal *clalpha;
+	doublereal *prev_alpha_pivot, *prev_dot_alpha;
+	doublereal prev_time;
 
 public:
 	C81TheodorsenAeroData(integer p, const c81_data* d, DriveCaller *ptime = 0);

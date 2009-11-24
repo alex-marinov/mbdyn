@@ -53,11 +53,13 @@ AeroMemory::AeroMemory(DriveCaller *pt)
 AeroMemory::~AeroMemory(void)
 {
 	if (iPoints > 0) {
-		ASSERT(pTime != 0);
-		ASSERT(a != 0);
+		if (pTime) {
+			SAFEDELETE(pTime);
+		}
 
-		SAFEDELETE(pTime);
-		SAFEDELETEARR(a);
+		if (a) {
+			SAFEDELETEARR(a);
+		}
 	}
 }
 
@@ -143,9 +145,9 @@ AeroMemory::SetNumPoints(int i)
 {
 	int s = StorageSize();
 
-	if (s > 0) {
-		iPoints = i;
+	iPoints = i;
 
+	if (s > 0) {
 		SAFENEWARR(a, doublereal, 2*s*iPoints);
 		t = a + s*iPoints;
 
@@ -157,6 +159,12 @@ AeroMemory::SetNumPoints(int i)
 		}
 #endif /* !HAVE_MEMSET */
 	}
+}
+
+int
+AeroMemory::GetNumPoints(void) const
+{
+	return iPoints;
 }
 
 /* AeroMemory - end */

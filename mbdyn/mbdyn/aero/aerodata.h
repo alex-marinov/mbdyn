@@ -76,6 +76,7 @@ public:
 			doublereal &alf2);
 	void Update(int i);
 	void SetNumPoints(int i);
+	int GetNumPoints(void) const;
 };
 
 /* Memory - end */
