@@ -2217,6 +2217,15 @@ Modal::SetValue(DataManager *pDM,
 		X.PutCoef(iFlexIndex + NModes + iCnt, b.dGet(iCnt));
 		XP.PutCoef(iFlexIndex + iCnt, b.dGet(iCnt));
 	}
+
+	if (pModalNode) {
+		integer iRigidIndex = pModalNode->iGetFirstIndex();
+
+		X.Put(iRigidIndex + 6 + 1, pModalNode->GetVCurr());
+		X.Put(iRigidIndex + 9 + 1, pModalNode->GetWCurr());
+		XP.Put(iRigidIndex + 6 + 1, pModalNode->GetXPPCurr());
+		XP.Put(iRigidIndex + 9 + 1, pModalNode->GetWPCurr());
+	}
 }
 
 #if 0
