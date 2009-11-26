@@ -99,7 +99,7 @@ public:
 		bool bNoClobberOut,
 		int iSleepTime,
 		int iPrecision);
-	~ExtFileHandler(void);
+	virtual ~ExtFileHandler(void);
 
 	virtual void AfterPredict(void);
 
@@ -143,7 +143,7 @@ protected:
 public:
 	ExtSocketHandler(UseSocket *pUS, int iSleepTime,
 		int recv_flags, int send_flags);
-	~ExtSocketHandler(void);
+	virtual ~ExtSocketHandler(void);
 
 	virtual void AfterPredict(void);
 

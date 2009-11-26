@@ -218,6 +218,7 @@ E. Bugs/missing features:
 	- allow 0 modes in modal element (nearly useless except for testing)
 	- UseSocket without host listens only on localhost
 	- external modal force needs work in "loose" coupling
+	- allow preamble in communications with pairs {string,value}
 
 
 

@@ -418,8 +418,6 @@ ModalExt::Output(OutputHandler& OH) const
 				cnt++;
 			}
 		}
-
-		out << std::endl;
 	}
 }
 
