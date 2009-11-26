@@ -75,6 +75,7 @@ protected:
 	const char *EDGEcmd2str(int cmd) const;
 
 	EDGEcmd CheckFlag(int& cnt);
+	void SendFlag(EDGEcmd cmd);
 
 public:
 	ExtFileHandlerEDGE(std::string& fflagname,

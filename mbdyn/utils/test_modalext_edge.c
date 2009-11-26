@@ -47,10 +47,11 @@ sh(int signum)
 static int
 check_flag(const char *flag, int sleeptime)
 {
+	int rc;
+
 	while (1) {
 		FILE *f;
 		char c = ' ';
-		int rc;
 
 		f = fopen(flag, "r");
 		if (f == NULL && errno == ENOENT) {
@@ -60,14 +61,22 @@ check_flag(const char *flag, int sleeptime)
 
 		rc = fread((void *)&c, 1, 1, f);
 		fclose(f);
-		if (rc == 1 && c == '3') {
-			printf("testedge: got %c from file \"%s\"\n",
-				c, flag);
-			break;
+		if (rc == 1) {
+			printf("testedge: got %c from file \"%s\"\n", c, flag);
+
+			switch (c) {
+			case '3':
+				return 0;
+
+			case '5':
+				return 1;
+
+			default:
+				break;
+			}
 		}
 
-		printf("testedge: got %c from file \"%s\"; sleeping %d s\n",
-			c, flag, sleeptime);
+		printf("testedge: sleeping %d s\n", sleeptime);
 		sleep(sleeptime);
 	}
 
@@ -259,7 +268,11 @@ main(int argc, char *argv[])
 
 			/* rigid */
 			if (rflag != NULL) {
-				check_flag(rflag, sleeptime);
+				if (check_flag(rflag, sleeptime)) {
+					iter = niters;
+					keep_going = 0;
+					break;
+				}
 
 				f = fopen(rdata, "w");
 				if (f == NULL) {
@@ -280,7 +293,11 @@ main(int argc, char *argv[])
 			if (mflag != NULL) {
 				int i;
 
-				check_flag(mflag, sleeptime);
+				if (check_flag(mflag, sleeptime)) {
+					iter = niters;
+					keep_going = 0;
+					break;
+				}
 
 				f = fopen(mdata, "w");
 				if (f == NULL) {

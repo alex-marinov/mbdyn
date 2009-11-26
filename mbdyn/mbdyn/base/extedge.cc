@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
@@ -59,7 +59,17 @@ bReadForces(true)
 
 ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
 {
-	NO_OP;
+	int cnt = -1;
+	EDGEcmd cmd = CheckFlag(cnt);
+	switch (cmd) {
+	case EDGE_READ_READY:
+	case EDGE_GOTO_NEXT_STEP:
+		SendFlag(EDGE_QUIT);
+		break;
+
+	default:
+		break;
+	}
 }
 
 static const char *sEDGEcmd2str[] = {
@@ -90,6 +100,9 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 	cnt++;
 
 	infile.open(fflagname.c_str());
+	if (!infile && cnt == -1) {
+		return EDGE_QUIT;
+	}
 
 #ifdef USE_SLEEP
 	if (iSleepTime > 0) {
@@ -129,6 +142,48 @@ done:;
 	infile.clear();
 
 	return EDGEcmd(cmd);
+}
+
+void
+ExtFileHandlerEDGE::SendFlag(EDGEcmd cmd)
+{
+	// write to a temporary, unique file and then rename to fflagname
+#ifdef HAVE_MKSTEMP
+	char ftmpname[] = "mbedgeXXXXXX";
+	int filedes = mkstemp(ftmpname);
+	FILE *fd = fdopen(filedes, "w");
+#else // ! HAVE_MKSTEMP
+	std::string ftmpn(fflagname + ".tmp");
+	const char *ftmpname = ftmpn.c_str();
+	FILE *fd = fopen(ftmpname, "w");
+#endif // ! HAVE_MKSTEMP
+
+	fprintf(fd, "%d", int(cmd));
+	fclose(fd);
+retry:;
+	if (rename(ftmpname, fflagname.c_str()) == -1) {
+		switch (errno) {
+		case EBUSY:
+#ifdef USE_SLEEP
+			// TODO: configurable?
+			sleep(1);
+#endif // USE_SLEEP
+
+			if (mbdyn_stop_at_end_of_iteration()) {
+				// ultimately give up
+				unlink(ftmpname);
+				return;
+			}
+
+			goto retry;
+
+		default:
+			silent_cerr("unable to rename flag file "
+				"\"" << fdataname.c_str() << "\" "
+				"(errno=" << errno << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 }
 
 void
@@ -197,36 +252,7 @@ ExtFileHandlerEDGE::Send_post(SendWhen when)
 		bReadForces = true;
 	}
 
-	// write to a temporary, unique file and then rename to fflagname
-#ifdef HAVE_MKSTEMP
-	char ftmpname[] = "mbedgeXXXXXX";
-	int filedes = mkstemp(ftmpname);
-	FILE *fd = fdopen(filedes, "w");
-#else // ! HAVE_MKSTEMP
-	std::string ftmpn(fflagname + ".tmp");
-	const char *ftmpname = ftmpn.c_str();
-	FILE *fd = fopen(ftmpname, "w");
-#endif // ! HAVE_MKSTEMP
-
-	fprintf(fd, "%d", int(EDGE_MBDYN_WRITE_DONE));
-	fclose(fd);
-retry:;
-	if (rename(ftmpname, fflagname.c_str()) == -1) {
-		switch (errno) {
-		case EBUSY:
-#ifdef USE_SLEEP
-			// TODO: configurable?
-			sleep(1);
-#endif // USE_SLEEP
-			goto retry;
-
-		default:
-			silent_cerr("unable to rename flag file "
-				"\"" << fdataname.c_str() << "\" "
-				"(errno=" << errno << ")" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
+	SendFlag(EDGE_MBDYN_WRITE_DONE);
 }
 
 bool
