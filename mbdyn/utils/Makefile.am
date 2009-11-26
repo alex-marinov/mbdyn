@@ -24,6 +24,7 @@ rot2eu \
 rot2eup \
 rot2phi \
 rotrel \
+test_modalext_edge \
 vec2rot
 
 if USE_RTAI
@@ -53,6 +54,7 @@ playground
 
 if USE_SOCKET
 noinst_PROGRAMS += \
+test_modalext_edge \
 test_modalext_socket
 endif
 
@@ -95,6 +97,7 @@ s2sctrl_SOURCES = s2sctrl.cc s2s.cc s2s.h
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
+test_modalext_edge_SOURCES = test_modalext_edge.c
 test_modalext_socket_SOURCES = test_modalext_socket.c
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
