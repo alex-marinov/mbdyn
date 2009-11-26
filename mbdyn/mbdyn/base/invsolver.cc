@@ -93,6 +93,9 @@ void
 InverseSolver::Run(void)
 {
    	DEBUGCOUTFNAME("InverseSolver::Run");
+
+	mbdyn_signal_init(1);
+
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
 
@@ -539,7 +542,7 @@ InverseSolver::Run(void)
 	dTest = 0.;
 	dSolTest = 0.;
 
-	mbdyn_signal_init();
+	mbdyn_signal_init(0);
 
 	/* settaggio degli output Types */
 	unsigned OF = OutputFlags;

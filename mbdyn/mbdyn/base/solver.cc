@@ -145,7 +145,7 @@ mbdyn_really_exit_handler(int signum)
 }
 
 extern "C" void
-mbdyn_modify_last_iteration(int signum)
+mbdyn_modify_last_iteration_handler(int signum)
 {
    	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
       	signal(signum, mbdyn_really_exit_handler);
@@ -155,7 +155,7 @@ extern "C" void
 mbdyn_modify_final_time_handler(int signum)
 {
    	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_TIME_STEP;
-      	signal(signum, mbdyn_modify_last_iteration);
+      	signal(signum, mbdyn_modify_last_iteration_handler);
 }
 #endif /* HAVE_SIGNAL */
 
@@ -196,32 +196,39 @@ mbdyn_set_stop_at_end_of_time_step(void)
 }
 
 extern "C" void
-mbdyn_signal_init(void)
+mbdyn_signal_init(int pre)
 {
 #ifdef HAVE_SIGNAL
+	__sighandler_t hdl;
+	if (pre) {
+		hdl = mbdyn_really_exit_handler;
+
+	} else {
+		hdl = mbdyn_modify_final_time_handler;
+	}
 	/*
 	 * FIXME: don't do this if compiling with USE_RTAI
 	 * Re FIXME: use sigaction() ...
 	 */
-	::mbdyn_sh_term = signal(SIGTERM, mbdyn_modify_final_time_handler);
+	::mbdyn_sh_term = signal(SIGTERM, hdl);
 	if (::mbdyn_sh_term == SIG_IGN) {
 		signal(SIGTERM, SIG_IGN);
 	}
 
-	::mbdyn_sh_int = signal(SIGINT, mbdyn_modify_final_time_handler);
+	::mbdyn_sh_int = signal(SIGINT, hdl);
 	if (::mbdyn_sh_int == SIG_IGN) {
 		signal(SIGINT, SIG_IGN);
 	}
 
 #ifdef SIGHUP
-	::mbdyn_sh_hup = signal(SIGHUP, mbdyn_modify_final_time_handler);
+	::mbdyn_sh_hup = signal(SIGHUP, hdl);
 	if (::mbdyn_sh_hup == SIG_IGN) {
 		signal(SIGHUP, SIG_IGN);
 	}
 #endif // SIGHUP
 
 #ifdef SIGPIPE
-	::mbdyn_sh_pipe = signal(SIGPIPE, mbdyn_modify_final_time_handler);
+	::mbdyn_sh_pipe = signal(SIGPIPE, hdl);
 	if (::mbdyn_sh_pipe == SIG_IGN) {
 		signal(SIGPIPE, SIG_IGN);
 	}
@@ -351,6 +358,8 @@ void
 Solver::Run(void)
 {
    	DEBUGCOUTFNAME("Solver::Run");
+
+	mbdyn_signal_init(1);
 
    	/* Legge i dati relativi al metodo di integrazione */
    	ReadData(HP);
@@ -858,7 +867,7 @@ Solver::Run(void)
 	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
 
-	mbdyn_signal_init();
+	mbdyn_signal_init(0);
 
 	/* settaggio degli output Types */
 	unsigned OF = OutputFlags;

@@ -76,12 +76,12 @@ extern __sighandler_t mbdyn_sh_hup;
 extern __sighandler_t mbdyn_sh_pipe;
 
 extern "C" void mbdyn_really_exit_handler(int signum);
-extern "C" void mbdyn_modify_last_iteration(int signum);
+extern "C" void mbdyn_modify_last_iteration_handler(int signum);
 extern "C" void mbdyn_modify_final_time_handler(int signum);
 #endif /* HAVE_SIGNAL */
 #endif
 
-extern "C" void mbdyn_signal_init(void);
+extern "C" void mbdyn_signal_init(int pre);
 
 extern int mbdyn_reserve_stack(unsigned long size);
 
