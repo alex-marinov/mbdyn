@@ -1017,7 +1017,7 @@ Solver::Run(void)
 		}
 		catch (NonlinearSolver::NoConvergence) {
 			silent_cerr("First dummy step does not converge; "
-				"time step dt=" << dCurrTimeStep
+				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
 	 		pDM->Output(0, dTime, dCurrTimeStep, true);
@@ -1109,7 +1109,7 @@ Solver::Run(void)
 			catch (NonlinearSolver::NoConvergence) {
 				silent_cerr("Dummy step " << iSubStep
 					<< " does not converge; "
-					"time step dt=" << dCurrTimeStep
+					"TimeStep=" << dCurrTimeStep
 					<< " cannot be reduced further; "
 					"aborting..." << std::endl);
 	 			pDM->Output(0, dTime, dCurrTimeStep, true);
@@ -1283,8 +1283,8 @@ IfFirstStepIsToBeRepeated:
 	    	silent_cerr("Maximum iterations number "
 			<< pRegularSteps->GetIntegratorMaxIters()
 			<< " has been reached during "
-			"first step (time=" << dTime << "); "
-			<< "time step dt=" << dCurrTimeStep
+			"first step, Time=" << dTime << "; "
+			<< "TimeStep=" << dCurrTimeStep
 			<< " cannot be reduced further; "
 			"aborting..." << std::endl);
 	    	pDM->Output(0, dTime, dCurrTimeStep, true);
@@ -1466,9 +1466,10 @@ IfStepIsToBeRepeated:
 
 			silent_cerr("Max iterations number "
 				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " has been reached during"
-				" step " << lStep << "; "
-				"time step dt=" << dCurrTimeStep
+				<< " has been reached during "
+				"Step=" << lStep << ", "
+				"Time=" << dTime + dCurrTimeStep << "; "
+				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
 	       		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
@@ -1497,8 +1498,9 @@ IfStepIsToBeRepeated:
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
 				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " during step " << lStep << "; "
-				"time step dt=" << dCurrTimeStep
+				<< " during Step=" << lStep << ", "
+				"Time=" << dTime + dCurrTimeStep << "; "
+				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
