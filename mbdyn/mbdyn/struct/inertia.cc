@@ -96,7 +96,7 @@ CenterOfMass::Collect_int(void)
 		J_cm += Mat3x3(S, X_cm);
 		J_cm = J_cm.Symm();
 
-		Omega_cm = J_cm.Solve(G - X_cm.Cross(B));
+		Omega_cm = J_cm.LDLSolve(G - X_cm.Cross(B));
 	}
 }
 
