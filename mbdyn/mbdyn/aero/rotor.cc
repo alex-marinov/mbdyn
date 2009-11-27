@@ -56,6 +56,8 @@ extern "C" {
 
 #include "dataman.h"
 
+static const doublereal dVTipTreshold = 1e-6;
+
 /* Rotor - begin */
 
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
@@ -66,7 +68,7 @@ Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 InducedVelocity(uL, pDO, pC, ppres, fOut),
 pRotor(pR), pGround(pG),
-dOmegaRef(0.), dRadius(0.), dArea(0.),
+dOmegaRef(0.), dRadius(0.), dVTipRef(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
 iMaxIter(iMaxIt),
 iCurrIter(0),
@@ -308,7 +310,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	/* Angolo di influsso */
 	dVelocity = sqrt(dV3*dV3 + dVV);
-	if (dVelocity > std::numeric_limits<doublereal>::epsilon()) {
+	// if (dVelocity > std::numeric_limits<doublereal>::epsilon()) {
+	if (dVelocity > dVTipTreshold*dVTipRef) {
 		dSinAlphad = -dV3/dVelocity;
 		dCosAlphad = dV/dVelocity;
 
@@ -331,7 +334,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	dLambda = 0.;
 	dVTip = dOmega*dRadius;
 
-	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+	if (dVTip > dVTipTreshold*dVTipRef) {
 		dMu = (dVelocity*dCosAlphad)/dVTip;
 	}
 
@@ -367,15 +371,16 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	bUMeanRefConverged = false;
-	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
-		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++ ) {
+	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+	if (dVTip > dVTipTreshold*dVTipRef) {
+		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
 
 			doublereal dLambdaInd = dUMeanRef/dVTip;
 
-			dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
+			dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
 			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
-			doublereal dRef1 = 2.*sqrt(dMu*dMu+dLambda*dLambda);
-			doublereal dRef2 = dRef1*(dMu*dMu+dLambda*dLambda);
+			doublereal dRef1 = 2.*sqrt(dMu*dMu + dLambda*dLambda);
+			doublereal dRef2 = dRef1*(dMu*dMu + dLambda*dLambda);
 	
 			doublereal dDelta = 0.;
 			doublereal dF = 0.;
@@ -421,16 +426,20 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	 * Um = -------------------------------------
 	 *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
 	 */
-	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
+	if (dVTip > dVTipTreshold*dVTipRef) {
 		doublereal dMuTmp = dMu/dForwardFlightCorrection;
 		doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
-		doublereal dRef = 2*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
+		doublereal dRef = 2*sqrt(dMuTmp*dMuTmp + dLambdaTmp*dLambdaTmp);
 		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);		
-		if (dRef > std::numeric_limits<doublereal>::epsilon()) {
-			dUMean = (1.-dWeight)*dVTip*dCt/(dRef)+dWeight*dUMeanPrev;
+		if (dRef > dCt) {
+			// NOTE: an inflow velocity larger than VTip
+			// makes little sense
+			dUMean = (1. - dWeight)*dVTip*dCt/dRef + dWeight*dUMeanPrev;
 		} else {
 			dUMean = dUMeanPrev;
 		}
+
 	} else {
 		dUMean = dUMeanPrev;
 	}
@@ -602,6 +611,7 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 
 	dOmegaRef = dOR;
 	dRadius = dR;
+	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
 	dHoverCorrection = dCH;
@@ -777,6 +787,7 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 
 	dOmegaRef = dOR;
 	dRadius = dR;
+	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
 	dHoverCorrection = dCH;
@@ -953,6 +964,7 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
 
 	dOmegaRef = dOR;
 	dRadius = dR;
+	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
 	dHoverCorrection = dCH;
@@ -1186,6 +1198,7 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 
 	dOmegaRef = dOR;
 	dRadius = dR;
+	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 
 	dHoverCorrection = dCH;
@@ -1425,7 +1438,8 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	doublereal dVT
 				= sqrt(dLambdaTmp*dLambdaTmp + dMuTmp*dMuTmp);
 		 	doublereal dVm = 0.;
-		 	if (dVT > std::numeric_limits<doublereal>::epsilon()) {
+		 	// if (dVT > std::numeric_limits<doublereal>::epsilon()) {
+		 	if (dVT > dVTipTreshold*dVTipRef) {
 		       		dVm = (dMuTmp*dMuTmp + dLambdaTmp*(dLambdaTmp + dVConst))/dVT;
 		 	}
 

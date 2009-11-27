@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 		- fixed AerodynamicBeam2/3 AfterConvergence w/ int. states
 		- fixed "inertia" element when inertia tensor is singular
 		- fixed "diag damping" in "modal" joint
+		- fixed issues with rotor inflows at very low angular speed
+		  (Mattia Mattaboni)
 
 MBDyn 1.3.10
 	Enhancements:

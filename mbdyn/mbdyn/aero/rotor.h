@@ -49,6 +49,7 @@ protected:
 	doublereal dOmegaRef;		// Velocita' di rotazione di riferimento
 
 	doublereal dRadius;		// Raggio del rotore
+	doublereal dVTipRef;		// Raggio del rotore
 	doublereal dArea;		// Area del disco
 	doublereal dUMean;		// Velocita' indotta media
 	doublereal dUMeanRef;		// Velocita' indotta media (nominale)
