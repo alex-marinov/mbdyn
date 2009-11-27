@@ -2903,12 +2903,48 @@ ReadModal(DataManager* pDM,
 
 	} else if (HP.IsKeyWord("diag" "damping"))  {
 		bDampFlag = true;
-		
-		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
-			integer iDampedMode =  HP.GetInt();
-			cdamp = HP.GetReal();
-			DampRatios.Put(iDampedMode, cdamp);
+
+		if (HP.IsKeyWord("all")) {
+			for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
+				cdamp = HP.GetReal();
+				DampRatios.Put(iCnt, cdamp);
+			}
+
+		} else {
+			int iDM = HP.GetInt();
+			if (iDM <= 0 || unsigned(iDM) > NModes) {
+				silent_cerr("invalid number of damped modes "
+					"at line " << HP.GetLineData() <<std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			std::vector<bool> gotit(NModes);
+			fill(gotit.begin(), gotit.end(), false);
+
+			for (unsigned int iCnt = 1; iCnt <= unsigned(iDM); iCnt ++) {
+				integer iDampedMode =  HP.GetInt();
+				if (iDampedMode <= 0 || unsigned(iDampedMode) > NModes) {
+					silent_cerr("invalid index " << iDampedMode
+						<< " for damped mode #" << iCnt
+						<< " of " << iDM
+						<< " at line " << HP.GetLineData() <<std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (gotit[iDampedMode - 1]) {
+					silent_cerr("damping already provided for mode " << iDampedMode
+						<< " (damped mode #" << iCnt
+						<< " of " << iDM
+						<< ") at line " << HP.GetLineData() <<std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				}
+				gotit[iDampedMode - 1] = true;
+				cdamp = HP.GetReal();
+				DampRatios.Put(iDampedMode, cdamp);
+			}
 		}
+
 	} else {
 		silent_cout("Modal(" << uLabel << "): "
 				"no damping is assumed at line "

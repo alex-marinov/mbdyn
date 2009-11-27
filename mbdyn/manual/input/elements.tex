@@ -4048,9 +4048,9 @@ and orientation of the corresponding FEM nodes.
         { <fem_node_number> | from file } ,
         [ { no damping 
             | proportional damping , <damping_coef>
-            | diag damping , 
-                <mode_index> , <mode_damping_coef> 
-                [ , ... ] } ,
+            | diag damping ,
+                { all , <damping_coef> [ , ...]
+                | <damped_modes > , <mode_damping> [ , ... ] } } ,
         ]
         " <fem_data_file> " ,
         [ [ { mass | stiffness } ] threshold , <threshold> , ]
@@ -4062,6 +4062,8 @@ and orientation of the corresponding FEM nodes.
             { " <fem_node_label> " | (integer)<fem_node_label> } ,
                 <multibody_label> , (Vec3)<offset_of_FEM_node>
             [ , ... ]
+
+    <mode_damping> ::= <mode_index> , <mode_damping_coef>
 \end{verbatim}
 The \kw{reference\_modal\_node} is a special dynamic structural node 
 that is required to handle the rigid body motion of the modal joint.
@@ -4195,6 +4197,15 @@ where $\mathtt{factor}_i$ is the value provided
 for \kw{proportional damping} (same for all modes) or the list 
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
+
+The keyword \kw{diag damping} is followed by the count of damped modes,
+or by the keyword \kw{all}.
+If \kw{all} is used, as many damping coefficients as the available modes
+is expected.
+Otherwise, a list of \kw{mode\_damping} values follows.
+Each occurrence of \kw{mode\_damping} is made of the mode's index
+and the related damping value.
+
 
 \subsubsection{Output}
 Up to MBDyn 1.2.6 output occurred in a specific file that needed

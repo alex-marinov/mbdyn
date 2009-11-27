@@ -13,12 +13,15 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added peer libraries for modal external force (mbc.h)
 	Backward compatibility issues:
+		- syntax of "modal" joint "diag damping" changed
 	Known issues:
 	Bug fixes:
 		- fixed nonzero angular velocity modal joint initial assembly
 		- fixed socket-based external force loose coupling
 		- fixed Theodorsen unsteady aero handling of multiple points
 		- fixed AerodynamicBeam2/3 AfterConvergence w/ int. states
+		- fixed "inertia" element when inertia tensor is singular
+		- fixed "diag damping" in "modal" joint
 
 MBDyn 1.3.10
 	Enhancements:
