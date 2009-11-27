@@ -367,30 +367,33 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	bUMeanRefConverged = false;
-	/* dCoeffDen: coefficiente usato nel calcolo della velocità indotta per evitare di 
- 	 * avere un denominatore nullo quando dMu e dLambda sono entrambi nulli. Questo
- 	 * coefficiente viene sommato al termine (adimensionale):
- 	 * 2*sqrt(dMu*dMu+dLamnda*dLambda) 
-	 * */
-	doublereal dCoeffDen = 1.e-9;
 	if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++ ) {
-			doublereal dUMeanRefOrig = dUMeanRef;
+
+			doublereal dLambdaInd = dUMeanRef/dVTip;
 
 			dLambda = (dVelocity*dSinAlphad+dUMeanRef)/dVTip;
-
-			/* Velocità indotta media */
-			doublereal dRef = 2.*sqrt(dMu*dMu+dLambda*dLambda);
 			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
+			doublereal dRef1 = 2.*sqrt(dMu*dMu+dLambda*dLambda);
+			doublereal dRef2 = dRef1*(dMu*dMu+dLambda*dLambda);
+	
+			doublereal dDelta = 0.;
+			doublereal dF = 0.;
+			doublereal dFPrime = 0.;
+			if (dRef1 > std::numeric_limits<doublereal>::epsilon()) {
+				dF = dLambdaInd - dCt/dRef1;
+				dFPrime = 1. + (dCt/dRef2)*dLambda;
+				dDelta = dF/dFPrime;
+				dUMeanRef = dUMeanRef - dGE*dEta*dDelta*dVTip;
+			} else {
+				dDelta = 0.;
+			}
 
-			doublereal dDelta = dGE*dCt/(dRef+dCoeffDen) - dUMeanRefOrig/dVTip;
-
-			dUMeanRef = dEta*dDelta*dVTip + dUMeanRefOrig;
-
-			if (fabs(dDelta) <= dTolerance) {
+			if (fabs(dF) <= dTolerance) {
 				bUMeanRefConverged = true;
 				break;
 			}
+			
 		}
 
 		/* if no convergence, simply accept the current value
@@ -422,9 +425,12 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		doublereal dMuTmp = dMu/dForwardFlightCorrection;
 		doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
 		doublereal dRef = 2*sqrt(dMuTmp*dMuTmp+dLambdaTmp*dLambdaTmp);
-		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
-
-		dUMean = (1.-dWeight)*dVTip*dCt/(dRef+dCoeffDen)+dWeight*dUMeanPrev;
+		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);		
+		if (dRef > std::numeric_limits<doublereal>::epsilon()) {
+			dUMean = (1.-dWeight)*dVTip*dCt/(dRef)+dWeight*dUMeanPrev;
+		} else {
+			dUMean = dUMeanPrev;
+		}
 	} else {
 		dUMean = dUMeanPrev;
 	}
@@ -1806,6 +1812,7 @@ ReadRotor(DataManager* pDM,
 		 * iterations is less than tolerance in module, the
 		 * cycle breaks */
 		doublereal dTolerance = std::numeric_limits<double>::max();
+		//doublereal dTolerance = 1e-3;
 		if (HP.IsKeyWord("tolerance")) {
 			dTolerance = HP.GetReal();
 			if (dTolerance <= 0.) {
