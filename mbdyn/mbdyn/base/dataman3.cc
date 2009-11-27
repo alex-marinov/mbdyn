@@ -1179,25 +1179,28 @@ EndOfUse:
 			snprintf(solArrFileName, len, "%s.X", sInputFileName);
 		} break;
 
-		case SELECTTIMEOUT: {
-			int timeout = HP.GetInt();
+		case SELECTTIMEOUT:
 #ifdef USE_SOCKET
-			if (timeout <= 0) {
-				silent_cerr("illegal select timeout " << timeout
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
+			if (HP.IsKeyWord("forever")) {
+				SocketUsersTimeout = 0;
 			} else {
-				SocketUsersTimeout = 60*timeout;
+				int timeout = HP.GetInt();
+				if (timeout <= 0) {
+					silent_cerr("warning: illegal select timeout " << timeout
+						<< " (ignored) at line " << HP.GetLineData()
+						<< std::endl);
+				} else {
+					SocketUsersTimeout = 60*timeout;
+				}
 			}
 #else // ! USE_SOCKET
-			silent_cerr("\"select timeout\" not allowed "
+			silent_cerr("warning: \"select timeout\" not allowed (ignored) "
 				"at line " << HP.GetLineData()
 				<< " because the current architecture "
 				"apparently does not support sockets"
 				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
-		} break;
+			break;
 
 		case MODEL:
 			if (HP.IsKeyWord("static")) {

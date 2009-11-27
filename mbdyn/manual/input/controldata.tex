@@ -185,7 +185,7 @@ the simulation.
 
 \subsubsection{Select Timeout}
 \begin{verbatim}
-    <card> ::= select timeout , <timeout> ;
+    <card> ::= select timeout , { forever | <timeout> } ;
 \end{verbatim}
 exit after \kw{<timeout>} minutes when waiting for connections 
 on \kw{stream drives} or \kw{stream output elements}.
