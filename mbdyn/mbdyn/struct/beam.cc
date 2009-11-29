@@ -77,10 +77,14 @@ Beam::Beam(unsigned int uL,
 	const Mat3x3& rII,
 	const ConstitutiveLaw6D* pD_I,
 	const ConstitutiveLaw6D* pDII,
+	unsigned uOF,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
+uOutputFlags(uOF),
+od(ood),
 f(),
 RNode(),
 bConsistentInertia(false),
@@ -146,10 +150,14 @@ Beam::Beam(unsigned int uL,
 	doublereal dMII,
 	const Mat3x3& s0II,
 	const Mat3x3& j0II,
+	unsigned uOF,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
+uOutputFlags(uOF),
+od(ood),
 f(),
 RNode(),
 bConsistentInertia(true),
@@ -189,6 +197,17 @@ void
 Beam::Init(void)
 {
 	for (unsigned i = 0; i < NUMSEZ; i++) {
+#ifdef USE_NETCDF
+		Var_X[i] = 0;
+		Var_Phi[i] = 0;
+		Var_F[i] = 0;
+		Var_M[i] = 0;
+		Var_Nu[i] = 0;
+		Var_K[i] = 0;
+		Var_NuP[i] = 0;
+		Var_KP[i] = 0;
+#endif /* USE_NETCDF */
+
 		Omega[i] = Vec3(0.);
 		Az[i] = Vec6(0.);
 		AzRef[i] = Vec6(0.);
@@ -1021,6 +1040,363 @@ Beam::AfterPredict(VectorHandler& /* X */ ,
 	bFirstRes = true;
 }
 
+void
+Beam::OutputPrepare(OutputHandler &OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			/* get a pointer to binary NetCDF file
+			 * -->  pDM->OutHdl.BinFile */
+			NcFile *pBinFile = OH.pGetBinFile();
+			char buf[BUFSIZ];
+
+			// NOTE: should be "elem.beam3."?
+			int l = snprintf(buf, sizeof(buf), "elem.beam.%lu",
+				(unsigned long)GetLabel());
+
+			// X_II
+			// R_II
+			// Phi_II
+			// F_II
+			// M_II
+			// nu_II
+			// k_II
+			// nuP_II
+			// kP_II
+			
+			// NOTE: "Phi_II" is the longest var name
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Phi_II"))) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
+			const char *type = 0;
+			char typebuf[BUFSIZ];
+			switch (GetBeamType()) {
+			case Beam::ELASTIC:
+				type = "elastic";
+				break;
+
+			case Beam::VISCOELASTIC:
+				type = "viscoelastic";
+				break;
+
+			case Beam::PIEZOELECTRICELASTIC:
+				type = "piezoelectric elastic";
+				break;
+
+			case Beam::PIEZOELECTRICVISCOELASTIC:
+				type = "piezoelectric viscoelastic";
+				break;
+
+			default:
+				type = "unknown";
+				break;
+			}
+
+			snprintf(typebuf, sizeof(typebuf), "%s beam3", type);
+
+			if (!Var_Type->add_att("type", type)) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// add var name separator
+			buf[l++] = '.';
+
+			/* Add NetCDF (output) variables to the BinFile object
+			 * and save the NcVar* pointer returned from add_var
+			 * as handle for later write accesses.
+			 * Define also variable attributes */
+
+			static const char *sez[] = { "I", "II" };
+
+			for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+				if (uOutputFlags & Beam::OUTPUT_EP_X) {
+					strcpy(&buf[l], "X_");
+					strcpy(&buf[l + STRLENOF("X_")], sez[iSez]);
+					Var_X[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_X[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_X[iSez]->add_att("units", "m")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_X[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"global position vector (X, Y, Z) of evaluation point %s", sez[iSez]);
+					if (!Var_X[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_R) {
+					char descbuf[BUFSIZ];
+
+					switch (od) {
+					case ORIENTATION_MATRIX:
+						strcpy(&buf[l], "R_");
+						strcpy(&buf[l + STRLENOF("R_")], sez[iSez]);
+						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3(), OH.DimV3());
+						if (Var_Phi[iSez] == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("units", "-")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("type", "Mat3x3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						snprintf(descbuf, sizeof(descbuf),
+							"global orientation matrix (R11, R21, R31, R12, R22, R32, R13, R23, R33) of evaluation point %s", sez[iSez]);
+						if (!Var_Phi[iSez]->add_att("description", descbuf)) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						break;
+
+					case ORIENTATION_VECTOR:
+						strcpy(&buf[l], "Phi_");
+						strcpy(&buf[l + STRLENOF("Phi_")], sez[iSez]);
+						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3());
+						if (Var_Phi[iSez] == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("units", "radian")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("type", "Vec3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						snprintf(descbuf, sizeof(descbuf),
+							"global orientation vector (Phi_X, Phi_Y, Phi_Z) of evaluation point %s", sez[iSez]);
+						if (!Var_Phi[iSez]->add_att("description", descbuf)) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						break;
+
+					case EULER_123:
+					case EULER_313:
+					case EULER_321:
+						{
+						strcpy(&buf[l], "E_");
+						strcpy(&buf[l + STRLENOF("E_")], sez[iSez]);
+						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3());
+						if (Var_Phi[iSez] == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("units", "radian")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!Var_Phi[iSez]->add_att("type", "Vec3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						std::string desc;
+						switch (od) {
+						case EULER_123:
+							desc = "global orientation Euler angles (123) (E_X, E_Y, E_Z) ";
+							break;
+
+						case EULER_313:
+							desc = "global orientation Euler angles (313) (E_Z, E_X, E_Z') ";
+							break;
+
+						case EULER_321:
+							desc = "global orientation Euler angles (321) (E_Z, E_Y, E_X) ";
+							break;
+
+						default:
+							ASSERT(0);
+							break;
+						}
+
+						desc += sez[iSez];
+
+						if (!Var_Phi[iSez]->add_att("description", desc.c_str()))
+						{
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						} break;
+
+					default:
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_F) {
+					strcpy(&buf[l], "F_");
+					strcpy(&buf[l + STRLENOF("F_")], sez[iSez]);
+					Var_F[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_F[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_F[iSez]->add_att("units", "N")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_F[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"internal force in local frame (F_X, F_Y, F_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_F[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_M) {
+					strcpy(&buf[l], "M_");
+					strcpy(&buf[l + STRLENOF("M_")], sez[iSez]);
+					Var_M[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_M[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_M[iSez]->add_att("units", "Nm")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_M[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"internal moment in local frame (M_X, M_Y, M_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_M[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
+					strcpy(&buf[l], "nu_");
+					strcpy(&buf[l + STRLENOF("nu_")], sez[iSez]);
+					Var_Nu[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_Nu[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_Nu[iSez]->add_att("units", "-")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_Nu[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"linear strain in local frame (nu_X, nu_Y, nu_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_Nu[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_K) {
+					strcpy(&buf[l], "k_");
+					strcpy(&buf[l + STRLENOF("k_")], sez[iSez]);
+					Var_K[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_K[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_K[iSez]->add_att("units", "1/m")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_K[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"angular strain in local frame (K_X, K_Y, K_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_K[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
+					strcpy(&buf[l], "nuP_");
+					strcpy(&buf[l + STRLENOF("nuP_")], sez[iSez]);
+					Var_NuP[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_NuP[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_NuP[iSez]->add_att("units", "1/s")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_NuP[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_NuP[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
+					strcpy(&buf[l], "kP_");
+					strcpy(&buf[l + STRLENOF("kP_")], sez[iSez]);
+					Var_KP[iSez] = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (Var_KP[iSez] == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_KP[iSez]->add_att("units", "1/ms")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!Var_KP[iSez]->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"angular strain rate in local frame (KP_X, KP_Y, KP_Z) of evaluation point %s", sez[iSez]);
+					if (!Var_KP[iSez]->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+			}
+		}
+#endif // USE_NETCDF
+	}
+}
 
 /* output; si assume che ogni tipo di elemento sappia, attraverso
  * l'OutputHandler, dove scrivere il proprio output */
@@ -1028,9 +1404,93 @@ void
 Beam::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Beams() << std::setw(8) << GetLabel() << " "
-		<< AzLoc[S_I].GetVec1() << " " << AzLoc[S_I].GetVec2() << " "
-		<< AzLoc[SII].GetVec1() << " " << AzLoc[SII].GetVec2() << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
+				if (Var_X[iSez]) {
+					Var_X[iSez]->put_rec(p[iSez].pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_Phi[iSez]) {
+					Vec3 E;
+					switch (od) {
+					case EULER_123:
+						E = MatR2EulerAngles123(R[iSez])*dRaDegr;
+						break;
+
+					case EULER_313:
+						E = MatR2EulerAngles313(R[iSez])*dRaDegr;
+						break;
+
+					case EULER_321:
+						E = MatR2EulerAngles321(R[iSez])*dRaDegr;
+						break;
+
+					case ORIENTATION_VECTOR:
+						E = RotManip::VecRot(R[iSez]);
+						break;
+
+					case ORIENTATION_MATRIX:
+						break;
+
+					default:
+						/* impossible */
+						break;
+					}
+
+					switch (od) {
+					case EULER_123:
+					case EULER_313:
+					case EULER_321:
+					case ORIENTATION_VECTOR:
+						Var_Phi[iSez]->put_rec(E.pGetVec(), OH.GetCurrentStep());
+						break;
+
+					case ORIENTATION_MATRIX:
+						Var_Phi[iSez]->put_rec(R[iSez].pGetMat(), OH.GetCurrentStep());
+						break;
+
+					default:
+						/* impossible */
+						break;
+					}
+				}
+
+				if (Var_F[iSez]) {
+					Var_F[iSez]->put_rec(AzLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_M[iSez]) {
+					Var_M[iSez]->put_rec(AzLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_Nu[iSez]) {
+					Var_Nu[iSez]->put_rec(DefLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_K[iSez]) {
+					Var_K[iSez]->put_rec(DefLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_NuP[iSez]) {
+					Var_NuP[iSez]->put_rec(DefPrimeLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				}
+
+				if (Var_KP[iSez]) {
+					Var_KP[iSez]->put_rec(DefPrimeLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				}
+			}
+		}
+#endif /* USE_NETCDF */
+
+		if (OH.UseText(OutputHandler::BEAMS)) {
+			OH.Beams() << std::setw(8) << GetLabel()
+				<< " " << AzLoc[S_I].GetVec1()
+				<< " " << AzLoc[S_I].GetVec2()
+				<< " " << AzLoc[SII].GetVec1()
+				<< " " << AzLoc[SII].GetVec2()
+				<< std::endl;
+		}
 	}
 }
 
@@ -1363,9 +1823,11 @@ ViscoElasticBeam::ViscoElasticBeam(
 	const Mat3x3& rII,
 	const ConstitutiveLaw6D* pD_I,
 	const ConstitutiveLaw6D* pDII,
+	unsigned uOF,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
-Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, fOut)
+Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, uOF, ood, fOut)
 {
 	Init();
 }
@@ -1390,10 +1852,12 @@ ViscoElasticBeam::ViscoElasticBeam(
 	const Mat3x3& s0_I, const Mat3x3& j0_I,
 	doublereal dMII,
 	const Mat3x3& s0II, const Mat3x3& j0II,
+	unsigned uOF,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
-	  dM_I, s0_I, j0_I, dMII, s0II, j0II, fOut)
+	  dM_I, s0_I, j0_I, dMII, s0II, j0II, uOF, ood, fOut)
 {
 	Init();
 }
@@ -1813,6 +2277,91 @@ ViscoElasticBeam::dGetPrivData(unsigned int i) const
 /* ViscoElasticBeam - end */
 
 
+void
+ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
+{
+	od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	if (HP.IsKeyWord("custom" "output")) {
+		uFlags = Beam::OUTPUT_NONE;
+
+		while (HP.IsArg()) {
+			unsigned uFlag;
+
+			if (HP.IsKeyWord("position")) {
+				uFlag = Beam::OUTPUT_EP_X;
+
+			} else if (HP.IsKeyWord("orientation")) {
+				uFlag = Beam::OUTPUT_EP_R;
+
+			} else if (HP.IsKeyWord("configuration")) {
+				uFlag = Beam::OUTPUT_EP_CONFIGURATION;
+
+			} else if (HP.IsKeyWord("force")) {
+				uFlag = Beam::OUTPUT_EP_F;
+
+			} else if (HP.IsKeyWord("moment")) {
+				uFlag = Beam::OUTPUT_EP_M;
+
+			} else if (HP.IsKeyWord("forces")) {
+				uFlag = Beam::OUTPUT_EP_FORCES;
+
+			} else if (HP.IsKeyWord("linear" "strain")) {
+				uFlag = Beam::OUTPUT_EP_NU;
+
+			} else if (HP.IsKeyWord("angular" "strain")) {
+				uFlag = Beam::OUTPUT_EP_K;
+
+			} else if (HP.IsKeyWord("strains")) {
+				uFlag = Beam::OUTPUT_EP_STRAINS;
+
+			} else if (HP.IsKeyWord("linear" "strain" "rate")) {
+				uFlag = Beam::OUTPUT_EP_NUP;
+
+			} else if (HP.IsKeyWord("angular" "strain" "rate")) {
+				uFlag = Beam::OUTPUT_EP_KP;
+
+			} else if (HP.IsKeyWord("strain rates")) {
+				uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
+
+			} else if (HP.IsKeyWord("all")) {
+				uFlag = Beam::OUTPUT_EP_ALL;
+
+			} else {
+				break;
+			}
+
+			if (uFlags & uFlag) {
+				silent_cerr("Beam(" << uLabel << "): "
+					"duplicate custom output "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (uFlag & Beam::OUTPUT_EP_STRAIN_RATES) {
+				if (BT == Beam::ELASTIC) {
+					silent_cerr("Beam(" << uLabel << "): "
+						"strain rates only allowed for viscoelastic beams (ignored) "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					uFlag &= ~Beam::OUTPUT_EP_STRAIN_RATES;
+				}
+			}
+
+			if (uFlag & Beam::OUTPUT_EP_R) {
+				od = ReadOptionalOrientationDescription(pDM, HP);
+			}
+
+			uFlags |= uFlag;
+		}
+
+	} else {
+		uFlags = Beam::OUTPUT_DEFAULT;
+	}
+}
+
+
 /* Legge una trave */
 
 Elem *
@@ -1942,12 +2491,9 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ConstLawType::Type CLTypeII = ConstLawType::UNKNOWN;
 	ConstitutiveLaw6D* pDII = NULL;
 
-	/* Not allowed any more, since there is no simple way implement
-	 * the duplication of a constitutive law without a "virtual constructor"
-	 * for the constitutive law, the drivers and so on */
-
 	if (HP.IsKeyWord("same")) {
 		pDII = pD_I->pCopy();
+		CLTypeII = CLType_I;
 
 	} else {
 		pDII = HP.GetConstLaw6D(CLTypeII);
@@ -1959,6 +2505,13 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+	}
+
+	Beam::Type Type;
+	if (CLType_I == ConstLawType::ELASTIC && CLTypeII == ConstLawType::ELASTIC) {
+		Type = Beam::ELASTIC;
+	} else {
+		Type = Beam::VISCOELASTIC;
 	}
 
 #ifdef DEBUG
@@ -2029,8 +2582,11 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 #endif /* 0 */
 	}
 
-	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
+	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	unsigned uFlags = Beam::OUTPUT_NONE;
+	ReadBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
+	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (b_I || bII) {
@@ -2069,6 +2625,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Rn1, Rn2, Rn3,
 					R_I, RII,
 					pD_I, pDII,
+					uFlags, od,
 					fOut));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -2083,6 +2640,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					pvElecDofs,
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
+					uFlags, od,
 					fOut));
 		}
 
@@ -2096,6 +2654,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Rn1, Rn2, Rn3,
 					R_I, RII,
 					pD_I, pDII,
+					uFlags, od,
 					fOut));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -2110,6 +2669,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					pvElecDofs,
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
+					uFlags, od,
 					fOut));
 		}
 	}

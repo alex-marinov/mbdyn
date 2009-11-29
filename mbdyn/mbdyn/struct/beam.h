@@ -71,6 +71,31 @@ class Beam
 	LASTBEAMTYPE
     };
 
+	// output mask
+	enum {
+		OUTPUT_NONE = 0x000U,
+
+		OUTPUT_EP_X = 0x001U,
+		OUTPUT_EP_R = 0x002U,
+		OUTPUT_EP_CONFIGURATION = (OUTPUT_EP_X | OUTPUT_EP_R),
+
+		OUTPUT_EP_F = 0x010U,
+		OUTPUT_EP_M = 0x020U,
+		OUTPUT_EP_FORCES = (OUTPUT_EP_F | OUTPUT_EP_M ),
+
+		OUTPUT_EP_NU = 0x100U,
+		OUTPUT_EP_K = 0x200U,
+		OUTPUT_EP_STRAINS = (OUTPUT_EP_NU | OUTPUT_EP_K),
+
+		OUTPUT_EP_NUP = 0x400U,
+		OUTPUT_EP_KP = 0x800U,
+		OUTPUT_EP_STRAIN_RATES = (OUTPUT_EP_NUP | OUTPUT_EP_KP),
+
+		OUTPUT_DEFAULT = (OUTPUT_EP_F | OUTPUT_EP_M),
+
+		OUTPUT_EP_ALL = 0xFFFU
+	};
+
 protected:
  	static const unsigned int iNumPrivData =
 		+3		//  0 ( 1 ->  3) - strain
@@ -83,8 +108,24 @@ protected:
 		+3		// 21 (22 -> 24) - strain rate
 		+3		// 24 (25 -> 27) - curvature rate
 	;
+
     static unsigned int iGetPrivDataIdx_int(const char *s,
 	ConstLawType::Type type);
+
+	// output flags
+	unsigned uOutputFlags;
+	OrientationDescription od;
+
+#ifdef USE_NETCDF
+	NcVar	*Var_X[2],
+		*Var_Phi[2],
+		*Var_F[2],
+		*Var_M[2],
+		*Var_Nu[2],
+		*Var_K[2],
+		*Var_NuP[2],
+		*Var_KP[2];
+#endif /* USE_NETCDF */
 
   public:
     class ErrGeneric : public MBDynErrBase {
@@ -140,6 +181,9 @@ protected:
     Vec6 DefLoc[NUMSEZ];
     Vec6 DefLocRef[NUMSEZ];
     Vec6 DefLocPrev[NUMSEZ];
+
+    // NOTE: Moved to Beam from ViscoElasticBeam for output purposes
+    Vec6 DefPrimeLoc[NUMSEZ];
 
     Vec3 p[NUMSEZ];   
     Vec3 g[NUMSEZ];   
@@ -225,6 +269,7 @@ protected:
 	 const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 	 const Mat3x3& r_I, const Mat3x3& rII,
 	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
+	 unsigned uFlags, OrientationDescription ood,
 	 flag fOut);
    
     /* Costruttore per la trave con forze d'inerzia consistenti */
@@ -237,7 +282,9 @@ protected:
 	 doublereal dM_I,
 	 const Mat3x3& s0_I, const Mat3x3& j0_I,
 	 doublereal dMII,
-	 const Mat3x3& s0II, const Mat3x3& j0II, flag fOut);
+	 const Mat3x3& s0II, const Mat3x3& j0II,
+	 unsigned uFlags, OrientationDescription ood,
+	 flag fOut);
 
     /* Distruttore banale */
     virtual ~Beam(void);
@@ -317,6 +364,8 @@ protected:
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
    
+	virtual void OutputPrepare(OutputHandler &OH);
+
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   
@@ -417,7 +466,9 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
       
     Vec3 LPrimeRef[NUMSEZ]; 
    
-    Vec6 DefPrimeLoc[NUMSEZ];
+    // NOTE: Moved to Beam from ViscoElasticBeam for output purposes
+    // Vec6 DefPrimeLoc[NUMSEZ];
+
     Vec6 DefPrimeLocRef[NUMSEZ];
 
     Mat6x6 ERef[NUMSEZ];
@@ -455,6 +506,7 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     const Mat3x3& rII,
 	             const ConstitutiveLaw6D* pD_I, 
 		     const ConstitutiveLaw6D* pDII,
+		     unsigned uFlags, OrientationDescription ood,
 		     flag fOut);
    
     /* Costruttore per la trave con forze d'inerzia consistenti */
@@ -478,6 +530,7 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     doublereal dMII,
 		     const Mat3x3& s0II,
 		     const Mat3x3& j0II,
+		     unsigned uFlags, OrientationDescription ood,
 		     flag fOut);
 
     /* Distruttore banale */
@@ -511,6 +564,10 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 };
 
 /* ViscoElasticBeam - end */
+
+extern void
+ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	Beam::Type BT, unsigned& uFlags, OrientationDescription& od);
 
 extern Elem* 
 ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);

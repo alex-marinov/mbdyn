@@ -1379,6 +1379,7 @@ EndOfUse:
 		OutHdl.SetNetCDF(OutputHandler::STRNODES);
 		OutHdl.SetNetCDF(OutputHandler::INERTIA);
 		OutHdl.SetNetCDF(OutputHandler::JOINTS);
+		OutHdl.SetNetCDF(OutputHandler::BEAMS);
 	}
 
 	integer iOutputFrequency = 0;

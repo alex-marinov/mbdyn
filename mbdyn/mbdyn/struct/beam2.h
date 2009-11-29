@@ -64,6 +64,21 @@ class Beam2
     enum NodeName { NODE1 = 0, NODE2 = 1, NUMNODES = 2 };
     enum Deformations { STRAIN = 0, CURVAT = 1, NUMDEFORM = 2 };
    
+	// output flags
+	unsigned uOutputFlags;
+	OrientationDescription od;
+
+#ifdef USE_NETCDF
+	NcVar	*Var_X,
+		*Var_Phi,
+		*Var_F,
+		*Var_M,
+		*Var_Nu,
+		*Var_K,
+		*Var_NuP,
+		*Var_KP;
+#endif /* USE_NETCDF */
+
     /* Puntatori ai nodi */
     const StructNode* pNode[NUMNODES];
    
@@ -95,6 +110,9 @@ class Beam2
     Vec6 DefLoc;
     Vec6 DefLocRef;
     Vec6 DefLocPrev;
+
+    // NOTE: Moved to Beam2 from ViscoElasticBeam2 for output purposes
+    Vec6 DefPrimeLoc;
 
     Vec3 p;   
     Vec3 g;   
@@ -178,6 +196,7 @@ class Beam2
 	 const Mat3x3& R1, const Mat3x3& R2,
 	 const Mat3x3& r,
 	 const ConstitutiveLaw6D* pd,
+	 unsigned uFlags, OrientationDescription ood,
 	 flag fOut);
    
     /* Distruttore banale */
@@ -231,6 +250,8 @@ class Beam2
 	   doublereal dCoef, 
 	   const VectorHandler& XCurr,
 	   const VectorHandler& XPrimeCurr);
+
+	virtual void OutputPrepare(OutputHandler &OH);
 
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
@@ -332,7 +353,8 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
       
     Vec3 LPrimeRef;
    
-    Vec6 DefPrimeLoc;
+    // NOTE: Moved to Beam2 from ViscoElasticBeam2 for output purposes
+    // Vec6 DefPrimeLoc;
     Vec6 DefPrimeLocRef;
 
     Mat6x6 ERef;
@@ -362,6 +384,7 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
 		     const Mat3x3& R2,
 	             const Mat3x3& r, 
 	             const ConstitutiveLaw6D* pd, 
+		     unsigned uFlags, OrientationDescription ood,
 		     flag fOut);
    
     /* Distruttore banale */

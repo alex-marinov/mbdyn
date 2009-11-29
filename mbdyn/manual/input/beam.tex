@@ -1267,6 +1267,7 @@ only for development purposes.
 
 
 \subsection{Three-node beam element}
+\label{sec:EL:BEAM:BEAM3}
 The three-node beam element is described in detail in \cite{FV-AIAA}.
 Each of the three points the beam element connects is referred
 to a structural node but can have an arbitrary offset
@@ -1321,6 +1322,7 @@ The traditional input format is
         (ConstitutiveLaw6D) <constitutive_law_section_I> ,
         { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
         { same | (ConstitutiveLaw6D) <constitutive_law_section_II> }
+        [ , <custom_output> ]
 \end{verbatim}
 
 The \kw{relative\_offset\_i}, with \kw{i}=1,2,3, are the vectors
@@ -1363,6 +1365,7 @@ A more complete input format is
             | from nodes } ,
         { same
             | (ConstitutiveLaw6D) <constitutive_law_section_II> }
+        [ , <custom_output> ]
 \end{verbatim}
 This format is a superset of the traditional one, which is extended
 by adding the possibility to set relative node orientations
@@ -1371,6 +1374,34 @@ at the evaluation points, by providing the keyword \kw{from nodes}
 instead of the matrix.
 If the keyword \kw{same} is used for the second evaluation point,
 the same method is used to compute the orientation matrix.
+
+The \kw{custom\_output} optional data consists in
+\begin{verbatim}
+    <custom_output> ::= custom output , 
+        <custom_output_flag> [ , ... ]
+
+    <custom_output_flag> ::=
+        position
+        | orientation [ , <orientation_description> ]
+        | configuration        # ::= position , orientation
+        | force
+        | moment
+        | forces               # ::= force , moment
+        | linear strain
+        | angular strain
+        | strains              # ::= linear strain , angular strain
+        | linear strain rate
+        | angular strain rate
+        | strain rates         # ::= linear strain rate , angular strain rate
+        | all                  # equivalent to all the above
+\end{verbatim}
+Flags add up to form the custom output request.
+Flags may not be repeated.
+Strain rates are only available from viscoelastic beams.
+By default, only forces are output, to preserve compatibility
+with the original output format.
+The custom output is only available in NetCDF format;
+see Section~\ref{sec:NetCDF:Elem:Beam}.
 
 As an example, a simple beam element, with diagonal section stiffness 
 matrix is presented:
@@ -1452,6 +1483,7 @@ of the abstract nodes that represent the input signal tensions, as follows:
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ,
         { same | (Mat6xN) <piezoelectric_matrix_II> }
+        [ , <custom_output> ]
 \end{verbatim}
 where the \kw{abstract\_node\_label\_list} is the list of the labels of the
 abstract nodes that represent the electrodes.
@@ -1506,6 +1538,7 @@ private data related to point II are numbered from 28 to 54.
 
 
 \subsection{Two-node beam element}
+\label{sec:EL:BEAM:BEAM2}
 Similar considerations apply to the two-node beam.
 Its geometry is illustrated in Figure~\ref{fig:EL:BEAM:beam2}.
 
@@ -1537,6 +1570,7 @@ The syntax is
         <electrodes_number> ,
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ]
+        [ , <custom_output> ]
 \end{verbatim}
 
 A more complete form is
@@ -1556,6 +1590,7 @@ A more complete form is
         <electrodes_number> ,
         <abstract_node_label_list> ,
         (Mat6xN) <piezoelectric_matrix_I> ]
+        [ , <custom_output> ]
 \end{verbatim}
 
 \paragraph{Private Data.}

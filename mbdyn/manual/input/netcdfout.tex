@@ -27,6 +27,7 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \chapter{NetCDF Output Format}
+\label{sec:NETCDF}
 NetCDF is a format to efficiently store and retrieve data to and from
 a database on file in a portable, platform-independent manner.
 Further details can be found at
@@ -192,14 +193,81 @@ whose names describe the contents.
 Currently supported element types are:
 \begin{itemize}
 \item Automatic structural elements, indicated as \kw{autostruct}.
+\item Beam elements, indicated as \kw{beam2} and \kw{beam3}
+for 2- and 3-node beam elements, respectively.
 \end{itemize}
 
 
 
 \subsubsection{Automatic Structural}
+\label{sec:NetCDF:Elem:Automatic Structural}
 No variables are explicitly defined for the automatic structural
 element; on the contrary, their specific data, if requested,
 is appended to the corresponding dynamic structural node.
+
+
+\subsubsection{Beam}
+\label{sec:NetCDF:Elem:Beam}
+
+The beam elements allow to define a broad set of variables.
+
+\paragraph{Two-Node Beam Element.}
+The two-node beam element allows to define the variables
+\begin{itemize}
+\item \kw{elem.beam.<label>.X} contains the location
+of the evaluation point, in the global reference frame;
+
+\item \kw{elem.beam.<label>.R} contains the orientation matrix
+of the beam section at the evaluation point, in the global reference frame;
+
+\item \kw{elem.beam.<label>.Phi} contains the rotation vector
+that describes the orientation of the beam section at the evaluation point,
+in the global reference frame;
+
+\item \kw{elem.beam.<label>.E} contains the set of Euler angles
+that describes the orientation of the beam section at the evaluation point,
+in the global reference frame.
+The sequence of the angles is detailed in the variable's description.
+It can be 123 (the default), 313 or 321;
+
+\item \kw{elem.beam.<label>.F} contains the internal force
+at the evaluation point, in the reference frame of the beam section;
+
+\item \kw{elem.beam.<label>.M} contains the internal moment
+at the evaluation point, in the reference frame of the beam section;
+
+\item \kw{elem.beam.<label>.mu} contains the linear strain
+at the evaluation point, in the reference frame of the beam section;
+
+\item \kw{elem.beam.<label>.k} contains the angular strain
+at the evaluation point, in the reference frame of the beam section;
+
+\item \kw{elem.beam.<label>.muP} contains the linear strain rate
+at the evaluation point, in the reference frame of the beam section;
+
+\item \kw{elem.beam.<label>.kP} contains the angular strain rate
+at the evaluation point, in the reference frame of the beam section.
+\end{itemize}
+
+Note: variables \kw{elem.beam.<label>.R}, \kw{elem.beam.<label>.Phi} 
+and \kw{elem.beam.<label>.E} are mutually exclusive.
+
+Note: variables \kw{elem.beam.<label>.muP} and \kw{elem.beam.<label>.kP}
+are only available for viscoelastic beam elements.
+
+Note: by default, only variables \kw{elem.beam.<label>.F}
+and \kw{elem.beam.<label>.M} are output.
+See Section~\ref{sec:EL:BEAM:BEAM3} for indications
+about how to customize beam element output in NetCDF format.
+
+\paragraph{Three-Node Beam Element.}
+The three-node beam element allows to define the same set of variables
+of the two-node one, postfixed with either \kw{\_I} or \kw{\_II}
+to indicate the first (between nodes 1 and 2)
+or the second (between nodes 2 and 3)
+evaluation point.
+
+
 
 
 
