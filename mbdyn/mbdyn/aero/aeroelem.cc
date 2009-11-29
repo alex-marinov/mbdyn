@@ -389,7 +389,7 @@ Aerodynamic2DElem<iNN>::AfterConvergence(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case AeroData::BIELAWA:
-		for (integer i = 0; i < iNN*GDI.iGetNum(); i++) {
+		for (unsigned i = 0; i < iNN*GDI.iGetNum(); i++) {
 	 		aerodata->Update(i);
 		}
 		break;
@@ -398,7 +398,7 @@ Aerodynamic2DElem<iNN>::AfterConvergence(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer i = 0; i < iNN*GDI.iGetNum(); i++) {
+	for (unsigned i = 0; i < iNN*GDI.iGetNum(); i++) {
 		aerodata->AfterConvergence(i, X, XP);
 	}
 }
