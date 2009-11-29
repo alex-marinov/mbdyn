@@ -5477,13 +5477,13 @@ models:
 \begin{verbatim}
     <induced_velocity_model> ::= { uniform | glauert | mangler } , 
         <reference_omega> , <reference_radius> 
-        [ , ground , <ground_node> ]
-        [ , delay , (drive_caller) <memory_factor> ]
-        [ , max iterations , <max_iterations> ]
-        [ , tolerance , <tolerance> ]
-        [ , eta , <eta> ]
-        [ , correction , <hover_correction_factor> ,
-            <ff_correction_factor> ]
+        [ , { ground , <ground_node>
+            | delay , (drive_caller) <memory_factor>
+            | max iterations , <max_iterations>
+            | tolerance , <tolerance>
+            | eta , <eta>
+            | correction , <hover_correction_factor> ,
+                <ff_correction_factor> } [ , ... ] ]
 \end{verbatim}
 
 \begin{itemize}

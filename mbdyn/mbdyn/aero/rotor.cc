@@ -1759,127 +1759,221 @@ ReadRotor(DataManager* pDM,
 	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	 	}
 
+		// optional parameters
+		bool bGotInitialValues(false);
 	 	doublereal dVConst = 0.;
 	 	doublereal dVSine = 0.;
 	 	doublereal dVCosine = 0.;
 	 	DriveCaller *pdW = 0;
-
 		StructNode *pGround = 0;
-		if (HP.IsKeyWord("ground")) {
-			/* ground node */
-     			pGround = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		}
+		unsigned iMaxIter = unsigned(-1);
+		doublereal dTolerance = std::numeric_limits<double>::max();
+		doublereal dEta = -1.;
+	 	doublereal dCH = -1.;
+	 	doublereal dCFF = -1.;
 
-	 	if (InducedType == DYNAMICINFLOW) {
-	      		if (HP.IsKeyWord("initial" "value")) {
+		while (HP.IsArg()) {
+			if (HP.IsKeyWord("ground")) {
+				/*
+				 * ground node for ground effect modeling
+				 */
+				if (pGround != 0) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"ground\" node "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* ground node */
+     				pGround = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+			} else if (HP.IsKeyWord("initial" "value")) {
+	 			if (InducedType != DYNAMICINFLOW) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"invalid parameter \"initial value\" "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bGotInitialValues) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing \"initial value\" another time "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
 		   		dVConst = HP.GetReal();
 		   		dVSine = HP.GetReal();
 		   		dVCosine = HP.GetReal();
-	      		}
 
-	 	} else {
-	      		/*
-			 * Legge il coefficiente di peso della velocita'
-			 * indotta ("weight" e' deprecato, si preferisce
-			 * "delay")
-			 *
-			 * nota:
-			 *
-			 * U = U_n * ( 1 - dW ) + U_n-1 * dW
-			 *
-			 * quindi dW rappresenta il peso che si da'
-			 * al valore al passo precedente; in questo modo
-			 * si introduce un ritardo euristico (attenzione:
-			 * il ritardo vero dipende dal passo temporale)
-			 * che aiuta ad evitare problemi di convergenza.
-			 * Se si desidera un ritardo "fisico", conviene
-			 * provare il "Dynamic Inflow".
-			 */
-	      		if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
+				bGotInitialValues = true;
+
+	      		} else if (HP.IsKeyWord("weight") || HP.IsKeyWord("delay")) {
+	 			if (InducedType == DYNAMICINFLOW) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"invalid parameter \"delay\" "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (pdW != 0) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"delay\" driver "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+	      			/*
+				 * Legge il coefficiente di peso della velocita'
+				 * indotta ("weight" e' deprecato, si preferisce
+				 * "delay")
+				 *
+				 * nota:
+				 *
+				 * U = U_n * ( 1 - dW ) + U_n-1 * dW
+				 *
+				 * quindi dW rappresenta il peso che si da'
+				 * al valore al passo precedente; in questo modo
+				 * si introduce un ritardo euristico (attenzione:
+				 * il ritardo vero dipende dal passo temporale)
+				 * che aiuta ad evitare problemi di convergenza.
+				 * Se si desidera un ritardo "fisico", conviene
+				 * provare il "Dynamic Inflow".
+				 */
 		   		pdW = HP.GetDriveCaller();
-	      		} else {
-		   		SAFENEW(pdW, NullDriveCaller);
-	      		}
-	 	}
 
-		/* max iterations when computing reference inflow velocity;
-		 * after iMaxIter iterations, the current value is accepted
-		 * regardless of convergence; thus, 1 reproduces original
-		 * behavior */
-#if 0
-		int iMaxIter = INT_MAX;
-#endif
-		unsigned int iMaxIter = 1;
-		if (HP.IsKeyWord("max" "iterations")) {
-			int i = HP.GetInt();
-			if (i <= 0) {
-				silent_cerr("illegal max iterations "
-					<< i << " for Rotor("
-					<< uLabel << ")");
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			iMaxIter = i;
+	      		} else if (HP.IsKeyWord("max" "iterations")) {
+				if (iMaxIter != unsigned(-1)) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"max iterations\" value "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* max iterations when computing reference inflow velocity;
+				 * after iMaxIter iterations, the current value is accepted
+				 * regardless of convergence; thus, 1 reproduces original
+				 * behavior */
+				int i = HP.GetInt();
+				if (i <= 0) {
+					silent_cerr("illegal max iterations "
+						<< i << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				iMaxIter = i;
+
+	 		} else if (HP.IsKeyWord("tolerance")) {
+				if (dTolerance != std::numeric_limits<double>::max()) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"tolerance\" value "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* tolerance when computing reference inflow velocity;
+				 * when the difference in inflow velocity between two
+				 * iterations is less than tolerance in module, the
+				 * cycle breaks */
+
+				dTolerance = HP.GetReal();
+				if (dTolerance <= 0.) {
+					silent_cerr("illegal tolerance "
+						<< dTolerance << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("eta")) {
+				if (dEta != -1.) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"eta\" relaxation factor "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* increment factor when computing reference inflow velocity;
+				 * only a fraction dEta of the difference between two iterations
+				 * is applied */
+
+				dEta = HP.GetReal();
+				if (dEta <= 0.) {
+					silent_cerr("illegal eta "
+						<< dEta << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("correction")) {
+				if (dCH == -1.) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"correction\" factor "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+		 		/* Legge la correzione della velocita' indotta */
+		 		dCH = HP.GetReal();
+		 		DEBUGCOUT("Hover correction: " << dCH << std::endl);
+		 		if (dCH <= 0.) {
+		 			silent_cerr("Rotor(" << uLabel << "): "
+						"illegal null or negative hover inflow correction "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		 		}
+
+	 			dCFF = HP.GetReal();
+				DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
+	 			if (dCFF <= 0.) {
+	 				silent_cerr("Rotor(" << uLabel << "): "
+						"illegal null or negative forward-flight inflow correction "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	 			}
+
+			} else {
+				break;
+		 	}
 		}
-
-		/* tolerance when computing reference inflow velocity;
-		 * when the difference in inflow velocity between two
-		 * iterations is less than tolerance in module, the
-		 * cycle breaks */
-		doublereal dTolerance = std::numeric_limits<double>::max();
-		//doublereal dTolerance = 1e-3;
-		if (HP.IsKeyWord("tolerance")) {
-			dTolerance = HP.GetReal();
-			if (dTolerance <= 0.) {
-				silent_cerr("illegal tolerance "
-					<< dTolerance << " for Rotor("
-					<< uLabel << ")");
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-
-		/* increment factor when computing reference inflow velocity;
-		 * only a fraction dEta of the difference between two iterations
-		 * is applied */
-		doublereal dEta = 1.;
-		if (HP.IsKeyWord("eta")) {
-			dEta = HP.GetReal();
-			if (dEta <= 0.) {
-				silent_cerr("illegal eta "
-					<< dEta << " for Rotor("
-					<< uLabel << ")");
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-
-	 	/* Legge la correzione della velocita' indotta */
-	 	doublereal dCH = 1.;
-	 	doublereal dCFF = 1.;
-	 	if (HP.IsKeyWord("correction")) {
-	 		dCH = HP.GetReal();
-	 		DEBUGCOUT("Hover correction: " << dCH << std::endl);
-	 		if (dCH <= 0.) {
-	 			silent_cerr("warning, illegal null "
-					"or negative inflow correction "
-					"for rotor " << uLabel
-	 				<< ", switching to 1" << std::endl);
-	 			dCH = 1.;
-	 		}
-
-	 		dCFF = HP.GetReal();
-			DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
-	 		if (dCFF <= 0.) {
-	 			silent_cerr("warning, illegal null "
-					"or negative inflow correction "
-					"for rotor " << uLabel
-	 				<< ", switching to 1" << std::endl);
-	 			dCFF = 1.;
-	 		}
-	 	}
 
 	 	ppres = ReadResSets(pDM, HP);
 
 	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
 
+		// check consistency and initialize defaults
+		if (InducedType != DYNAMICINFLOW && pdW == 0) {
+		   	SAFENEW(pdW, NullDriveCaller);
+		}
+
+		if (iMaxIter == unsigned(-1)) {
+			iMaxIter = 1;
+
+		} else {
+			if (dTolerance == std::numeric_limits<double>::max()) {
+				silent_cerr("Rotor(" << uLabel << "): "
+					"warning, \"max iterations\" is meaningless with default tolerance"
+					<< std::endl);
+			}
+		}
+
+		if (dEta == -1.) {
+			dEta = 1.;
+		}
+
+		if (dCH == -1.) {
+	 		dCH = 1.;
+	 		dCFF = 1.;
+		}
+
+		// create element
       		switch (InducedType) {
 	     	case UNIFORM:
 	  		DEBUGCOUT("Uniform induced velocity" << std::endl);
