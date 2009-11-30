@@ -100,6 +100,7 @@ public:
 		TOTALREACTION,
 
 		MODAL,
+      SCREWJOINT,
 
 		LASTJOINTTYPE
 	};

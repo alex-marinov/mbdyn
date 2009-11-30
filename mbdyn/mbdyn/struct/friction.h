@@ -315,10 +315,9 @@ public:
  */
 class SimplePlaneHingeJointSh_c : public BasicShapeCoefficient {
 private:
-	doublereal r;
 	doublereal shc;
 public:
-	SimplePlaneHingeJointSh_c(const doublereal rr);
+	SimplePlaneHingeJointSh_c(void);
 	virtual doublereal Sh_c(void) const;
 	doublereal Sh_c(
 		const doublereal f,
@@ -332,6 +331,62 @@ public:
 		const ExpandableRowVector& dfc,
 		const ExpandableRowVector& dF,
 		const ExpandableRowVector& dv) const;
+};
+
+/** Simple, low load shape coefficient for revolute hinge (PlaneHingeJoint)
+ */
+class ScrewJointSh_c : public BasicShapeCoefficient {
+private:
+	doublereal shc;
+	
+	const doublereal radius;
+	const doublereal half_thread_angle;
+	const doublereal pitch_angle;
+	const doublereal sec_half_thread_angle;
+	const doublereal tg_pitch;
+	const doublereal tg_pitch2;
+public:
+	ScrewJointSh_c(
+		const doublereal r,
+		const doublereal hta
+	): 
+		radius(r), 
+		half_thread_angle(hta), 
+		pitch_angle(0.),
+		sec_half_thread_angle(1. / std::cos(half_thread_angle)),
+		tg_pitch(0.),
+		tg_pitch2(0.) {
+	};
+	doublereal ComputePitchAngle(const doublereal pitch) {
+		const_cast<doublereal&>(tg_pitch) = pitch / (2. * M_PI * radius);
+		const_cast<doublereal&>(tg_pitch2) = tg_pitch * tg_pitch;
+		const_cast<doublereal&>(pitch_angle) = std::atan(tg_pitch);
+		return radius / std::cos(pitch_angle);
+	};
+	virtual doublereal Sh_c(void) const {return shc;};
+	doublereal Sh_c(
+		const doublereal f,
+		const doublereal F,
+		const doublereal v) {
+		
+		shc  = radius * (f * sec_half_thread_angle * (1 + tg_pitch2)) /
+			(f * sec_half_thread_angle * tg_pitch - 1.);
+		return shc;
+	};
+	void dSh_c(
+		ExpandableRowVector& dShc,
+		const doublereal f,
+		const doublereal F,
+		const doublereal v,
+		const ExpandableRowVector& dfc,
+		const ExpandableRowVector& dF,
+		const ExpandableRowVector& dv) const {
+		doublereal dsh_fc = radius * (-sec_half_thread_angle * (1 + tg_pitch2) ) /
+			std::pow(f * sec_half_thread_angle * tg_pitch - 1., 2.);
+		dShc.ReDim(1);
+		dShc.Set(dsh_fc, 1.);
+		dShc.Link(1, &dfc);
+	};
 };
 
 //---------------------------------------

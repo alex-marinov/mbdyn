@@ -554,7 +554,7 @@ doublereal SimpleShapeCoefficient::Sh_c(
 	const doublereal f,
 	const doublereal F,
 	const doublereal v) {
-	return 1.;
+	return f;
 };
 
 void SimpleShapeCoefficient::dSh_c(
@@ -565,11 +565,13 @@ void SimpleShapeCoefficient::dSh_c(
 	const ExpandableRowVector& dfc,
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
-		dShc.ReDim(0);
+		dShc.ReDim(1);
+		dShc.Set(1. ,1);
+		dShc.Link(1,&dfc);
 };
 
-SimplePlaneHingeJointSh_c::SimplePlaneHingeJointSh_c(const doublereal rr): 
-	r(rr) {};
+SimplePlaneHingeJointSh_c::SimplePlaneHingeJointSh_c()
+ {};
 	
 doublereal SimplePlaneHingeJointSh_c::Sh_c(void) const {
 	return shc;
@@ -579,7 +581,7 @@ doublereal SimplePlaneHingeJointSh_c::Sh_c(
 	const doublereal f,
 	const doublereal F,
 	const doublereal v) {
-	shc = r/std::sqrt(1.+f*f);
+	shc = f/std::sqrt(1.+f*f);
 	return shc;
 };
 
@@ -591,7 +593,7 @@ void SimplePlaneHingeJointSh_c::dSh_c(
 	const ExpandableRowVector& dfc,
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
-		doublereal dsh_fc = r*-0.5*std::pow(1.+f*f,-3./2.)*f;
+		doublereal dsh_fc = 1./std::sqrt(1.+f*f)-0.5*std::pow(1.+f*f,-3./2.)*f;
 // 		dShc.ReDim(2);
 // 		dShc.Set(0.,1);
 // 		dShc.Link(1,&dF);
@@ -663,11 +665,13 @@ BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
 	const char* sKeyWords[] = {
 		"simple",
 		"simple" "plane" "hinge",
+		"screw" "joint",
  		NULL
 	};
 	enum KeyWords { 
 		SIMPLE = 0,
 		SIMPLEPLANEHINGE,
+		SCREWJOINT,
 		LASTKEYWORD
 	};
 	/* token corrente */
@@ -682,8 +686,24 @@ BasicShapeCoefficient *const ParseShapeCoefficient(MBDynParser& HP) {
 		break;
 	}
 	case SIMPLEPLANEHINGE: {
-		doublereal r = HP.GetReal();
-		return new SimplePlaneHingeJointSh_c(r);
+		return new SimplePlaneHingeJointSh_c();
+		break;
+	}
+	case SCREWJOINT: {
+		doublereal radius(0.), hta(0.);
+		if (HP.IsKeyWord("radius")) {
+			radius = HP.GetReal();
+		} else {
+			pedantic_cerr("ScrewJointShapeCoefficient: missing keyword \"radius\" at line "
+				<< HP.GetLineData());
+		}
+		if (HP.IsKeyWord("half" "thread" "angle")) {
+			hta = HP.GetReal();
+		} else {
+			pedantic_cerr("ScrewJointShapeCoefficient: missing keyword \"half thread angle\" at line "
+				<< HP.GetLineData());
+		}
+		return new ScrewJointSh_c(radius, hta);
 		break;
 	}
 	default: {

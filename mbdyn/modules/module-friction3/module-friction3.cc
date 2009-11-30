@@ -242,10 +242,9 @@ ass_jac(LoadableElem* pEl,
 		ExpandableRowVector dFr;
 		ExpandableRowVector dShc;
 		p->Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
-		dFr.ReDim(3);
-		dFr.Set(shc*f,1); dFr.Link(1,&dF);
-		dFr.Set(modF*f,2); dFr.Link(2,&dShc);
-		dFr.Set(shc*modF,3); dFr.Link(3,&dfc);
+		dFr.ReDim(2);
+		dFr.Set(shc,1); dFr.Link(1,&dF);
+		dFr.Set(F[0],2); dFr.Link(2,&dShc);
 		dFr.Add(WorkMat,1,1.);
 	}
 
@@ -301,7 +300,7 @@ ass_res(LoadableElem* pEl,
 		}
 		doublereal f = p->fc->fc();
 		doublereal shc = p->Sh_c->Sh_c(f,p->mass,v);
-		WorkVec.Add(1,-shc*p->mass*f);
+		WorkVec.Add(1,-shc*p->mass);
 		if (ChangeJac) {
 			throw Elem::ChangedEquationStructure();
 		}

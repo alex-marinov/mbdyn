@@ -1094,7 +1094,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	if (dm < std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("Body(" << uLabel << "): "
-			"mass value is too small" << std::endl);
+			"mass value " << dm << " is too small" << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

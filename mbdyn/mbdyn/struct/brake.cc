@@ -263,7 +263,7 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
           //reaction norm
       doublereal modF = std::max(brakeForce.dGet(), preF);
           //reaction moment
-      //doublereal M3 = shc*modF*f;
+      //doublereal M3 = shc*modF*r;
       
       ExpandableRowVector dfc;
       ExpandableRowVector dF;
@@ -296,10 +296,10 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of shape function
       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
           //variation of moment component
-      dM3.ReDim(3);
-      dM3.Set(shc*f, 1); dM3.Link(1, &dF);
-      dM3.Set(modF*f, 2); dM3.Link(2, &dShc);
-      dM3.Set(shc*modF, 3); dM3.Link(3, &dfc);
+      dM3.ReDim(2);
+      dM3.Set(shc*r, 1); dM3.Link(1, &dF);
+      dM3.Set(modF*r, 2); dM3.Link(2, &dShc);
+      
       //assemble first node
       //variation of moment component
       dM3.Add(WM, 3 + 1, e3a(1));
@@ -394,7 +394,7 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
       }
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f, modF, v);
-      M(3) = shc*modF*f;
+      M(3) = r*shc*modF;
       WorkVec.Sub(4, e3a*M(3));
       WorkVec.Add(10, e3a*M(3));
 //!!!!!!!!!!!!!!

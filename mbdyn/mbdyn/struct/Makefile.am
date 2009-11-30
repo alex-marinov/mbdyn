@@ -76,6 +76,8 @@ pzbeam2.cc \
 pzbeam2.h \
 rodj.cc \
 rodj.h \
+screwjoint.h \
+screwjoint.cc \
 shapefnc.cc \
 shapefnc.h \
 socketstreammotionelem.cc \

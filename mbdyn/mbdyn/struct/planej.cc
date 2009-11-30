@@ -690,7 +690,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //reaction norm
       doublereal modF = std::max(F.Norm(), preF);
           //reaction moment
-      //doublereal M3 = shc*modF*f;
+      //doublereal M3 = shc*modF*r;
       
       ExpandableRowVector dfc;
       ExpandableRowVector dF;
@@ -698,13 +698,9 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of reaction force
       dF.ReDim(3);
       if ((modF == 0.) or (F.Norm() < preF)) {
-          dF.Set(0.,1,12+1);
-          dF.Set(0.,2,12+2);
-          dF.Set(0.,3,12+3);
+          dF.Set(Vec3(0.),1,12+1);
       } else {
-          dF.Set(F.dGet(1)/modF,1,12+1);
-          dF.Set(F.dGet(2)/modF,2,12+2);
-          dF.Set(F.dGet(3)/modF,3,12+3);
+          dF.Set(F/modF,1,12+1);
       }
           //variation of relative velocity
       dv.ReDim(6);
@@ -768,38 +764,29 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
  * relative velocity linearization 
 */
 
-      dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
-      dv.Set((e3a.dGet(2)*1.)*r,2, 0+5);
-      dv.Set((e3a.dGet(3)*1.)*r,3, 0+6);
-      
-      dv.Set(-(e3a.dGet(1)*1.)*r,4, 6+4);
-      dv.Set(-(e3a.dGet(2)*1.)*r,5, 6+5);
-      dv.Set(-(e3a.dGet(3)*1.)*r,6, 6+6);
-
+      dv.Set(e3a*r,1, 0+4);
+      dv.Set(-e3a*r,4, 6+4);
 
       //assemble friction states
       fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
       		XCurr,XPrimeCurr,dF,dv);
-      ExpandableRowVector dM3;
+      ExpandableMatrix dM3;
       ExpandableRowVector dShc;
       //compute 
           //variation of shape function
       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
           //variation of moment component
-      dM3.ReDim(3);
-      dM3.Set(shc*f,1); dM3.Link(1,&dF);
-      dM3.Set(modF*f,2); dM3.Link(2,&dShc);
-      dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
+      dM3.ReDim(3,2);
+      dM3.SetBlockDim(1,1);
+      dM3.SetBlockDim(2,1);
+      dM3.Set(e3a*shc*r,1,1); dM3.Link(1,&dF);
+      dM3.Set(e3a*modF*r,1,2); dM3.Link(2,&dShc);
       //assemble first node
           //variation of moment component
-      dM3.Add(WM,0+4,e3a.dGet(1));
-      dM3.Add(WM,0+5,e3a.dGet(2));
-      dM3.Add(WM,0+6,e3a.dGet(3));
+      dM3.Add(WM, 4, 1.);
       //assemble second node
           //variation of moment component
-      dM3.Sub(WM,6+4,e3a.dGet(1));
-      dM3.Sub(WM,6+5,e3a.dGet(2));
-      dM3.Sub(WM,6+6,e3a.dGet(3));
+      dM3.Sub(WM, 6+4, 1.);
    }
    
    return WorkMat;
@@ -899,7 +886,7 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
       }
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);
-      M3 = shc*modF*f;
+      M3 = shc*modF*r;
       WorkVec.Sub(4,e3a*M3);
       WorkVec.Add(10,e3a*M3);
 //!!!!!!!!!!!!!!
@@ -2937,7 +2924,7 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //reaction norm
       doublereal modF = std::max(F.Norm(), preF);
           //reaction moment
-      //doublereal M3 = shc*modF*f;
+      //doublereal M3 = shc*modF*f*r;
       
       ExpandableRowVector dfc;
       ExpandableRowVector dF;
@@ -2959,14 +2946,8 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 /* (approximate: assume constant triads orientations) 
  * relative velocity linearization 
 */
-      dv.Set((e3a.dGet(1)*1.)*r,1, 0+4);
-      dv.Set((e3a.dGet(2)*1.)*r,2, 0+5);
-      dv.Set((e3a.dGet(3)*1.)*r,3, 0+6);
-      
-      dv.Set(-(e3a.dGet(1)*1.)*r,4, 6+4);
-      dv.Set(-(e3a.dGet(2)*1.)*r,5, 6+5);
-      dv.Set(-(e3a.dGet(3)*1.)*r,6, 6+6);
-
+      dv.Set(e3a*r,1, 0+4);
+      dv.Set(-e3a*r,4, 6+4);
 
       //assemble friction states
       fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
@@ -2977,10 +2958,9 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of shape function
       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
           //variation of moment component
-      dM3.ReDim(3);
-      dM3.Set(shc*f,1); dM3.Link(1,&dF);
-      dM3.Set(modF*f,2); dM3.Link(2,&dShc);
-      dM3.Set(shc*modF,3); dM3.Link(3,&dfc);
+      dM3.ReDim(2);
+      dM3.Set(shc * r,1); dM3.Link(1,&dF);
+      dM3.Set(modF * r,2); dM3.Link(2,&dShc);
       //assemble first node
           //variation of moment component
       dM3.Add(WM,0+4,e3a.dGet(1));
@@ -3090,7 +3070,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
       }
       doublereal f = fc->fc();
       doublereal shc = Sh_c->Sh_c(f,modF,v);
-      M3 = shc*modF*f;
+      M3 = shc*modF*r;
       WorkVec.Sub(4,e3a*M3);
       WorkVec.Add(10,e3a*M3);
 //!!!!!!!!!!!!!!
