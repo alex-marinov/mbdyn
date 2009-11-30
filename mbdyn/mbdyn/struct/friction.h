@@ -384,7 +384,7 @@ public:
 		doublereal dsh_fc = radius * (-sec_half_thread_angle * (1 + tg_pitch2) ) /
 			std::pow(f * sec_half_thread_angle * tg_pitch - 1., 2.);
 		dShc.ReDim(1);
-		dShc.Set(dsh_fc, 1.);
+		dShc.Set(dsh_fc, 1);
 		dShc.Link(1, &dfc);
 	};
 };
