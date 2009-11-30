@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added peer libraries for modal external force (mbc.h)
+		- added NetCDF support to beam2/3
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:
