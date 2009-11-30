@@ -66,6 +66,7 @@
 #include "point_contact.h"
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
+#include "screwjoint.h"
 #include "spherj.h"
 #include "totalequation.h"
 #include "totalj.h"
@@ -79,7 +80,6 @@
 
 /* Joint - begin */
 
-#include "screwjoint.h"
 Joint::Joint(unsigned int uL, const DofOwner* pDO,
 	flag fOut)
 : Elem(uL, fOut),
@@ -195,8 +195,8 @@ ReadJoint(DataManager* pDM,
 		"brake",
 		"gimbal" "rotation",
 		"modal",
-	"point" "contact",
-	"screw",
+		"point" "contact",
+		"screw",
 
 		NULL
 	};
@@ -259,7 +259,7 @@ ReadJoint(DataManager* pDM,
 		GIMBALROTATION,
 		MODAL,
 		POINT_SURFACE_CONTACT,
-	SCREWJOINT,
+		SCREWJOINT,
 		
 		LASTKEYWORD
 	};
@@ -3279,98 +3279,91 @@ ReadJoint(DataManager* pDM,
 						
 	} break;
 	
-    case SCREWJOINT: {
-       /* nodo collegato 1 */
-       StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	case SCREWJOINT: {
+		/* nodo collegato 1 */
+		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
        
-       ReferenceFrame RF(pNode1);
-       Vec3 p(0.);
-       if (HP.IsKeyWord("position")) {
+		ReferenceFrame RF(pNode1);
+		Vec3 p(0.);
+		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
-	       NO_OP;
-       } else {
-	       pedantic_cerr("Joint(" << uLabel
-			       << "): missing keyword \"position\" at line "
-			       << HP.GetLineData() << std::endl);
-       }
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
-          p = HP.GetPosRel(RF);
+		p = HP.GetPosRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
-       }
+		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
+ 
+		DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
        
-       DEBUGCOUT("Node 1 reference frame p:" << std::endl << p << std::endl);
-       
-       Mat3x3 R(Eye3);
-       if (HP.IsKeyWord("orientation")) {
+		Mat3x3 R(Eye3);
+		if (HP.IsKeyWord("orientation")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
-	       NO_OP;
-       } else {
-	       pedantic_cerr("Joint(" << uLabel
-			       << "): missing keyword \"orientation\" at line "
-			       << HP.GetLineData());
-       }
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"orientation\" at line "
+				<< HP.GetLineData());
+		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
-          R = HP.GetRotRel(RF);
+		R = HP.GetRotRel(RF);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
-       }
+		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
-       
-       /* nodo collegato 2 */
-       StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-              
-       Vec3 q(0.);
-       bool bOffset(false);
-       
-       if (HP.IsArg()) {
-	  if (HP.IsKeyWord("offset")) {
-	     bOffset = true;	     
-	     q = HP.GetPosRel(ReferenceFrame(pNode2), RF, p);	     
-	     DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
-	  }
-       }
-       doublereal pitch;
-       if (HP.IsKeyWord("pitch")) {
-	       pitch = HP.GetReal();
-       } else {
-	       pedantic_cerr("Joint(" << uLabel
-			       << "): missing keyword \"pitch\" at line "
-			       << HP.GetLineData());
-       }
-       
-       flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
-       
-       BasicFriction * bf = 0;
-       BasicShapeCoefficient * bsh = 0;
-       if (HP.IsKeyWord("friction")) {
-	       bf = ParseFriction(HP,pDM);
-	       bsh = ParseShapeCoefficient(HP);
-       }
 
+		/* nodo collegato 2 */
+		StructNode* pNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+		Vec3 q(0.);
+		bool bOffset(false);
        
-       SAFENEWWITHCONSTRUCTOR(pEl,
-				 ScrewJoint,
-				 ScrewJoint(uLabel, pDO, 
-						       pNode1, pNode2,
-						       p, q,
-						       R, pitch, fOut,
-						       bsh, bf));
+		if (HP.IsArg()) {
+			if (HP.IsKeyWord("offset")) {
+				bOffset = true;	     
+				q = HP.GetPosRel(ReferenceFrame(pNode2), RF, p);
+				DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
+			}
+		}
 
-       std::ostream& out = pDM->GetLogFile();
-       out << "screw: " << uLabel
-		<< " " << pNode1->GetLabel()
-		<< " " << p
-		<< " " << R
-		<< " " << pNode2->GetLabel()
-		<< " " << q
-		<< " " << Mat3x3(1.)
-		<< std::endl;
-    } break;
+		if (!HP.IsKeyWord("pitch")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"pitch\" at line "
+				<< HP.GetLineData());
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		doublereal pitch = HP.GetReal();
+ 
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+       
+		BasicFriction * bf = 0;
+		BasicShapeCoefficient * bsh = 0;
+		if (HP.IsKeyWord("friction")) {
+			bf = ParseFriction(HP,pDM);
+			bsh = ParseShapeCoefficient(HP);
+		}
 
+		SAFENEWWITHCONSTRUCTOR(pEl,
+			ScrewJoint,
+			ScrewJoint(uLabel, pDO, pNode1, pNode2,
+				p, q, R, pitch, fOut, bsh, bf));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "screw: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << p
+			<< " " << R
+			<< " " << pNode2->GetLabel()
+			<< " " << q
+			<< " " << Mat3x3(1.)
+			<< std::endl;
+	} break;
 
 	/* Aggiungere qui altri vincoli */
-
-			
 
 	default:
 		{
