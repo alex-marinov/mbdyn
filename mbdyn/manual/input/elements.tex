@@ -879,6 +879,31 @@ The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
 
+\paragraph{Example.} \
+\begin{verbatim}
+    set: integer NODE_LABEL = 100;
+    set: integer BODY_LABEL = 100;
+
+    # single mass example
+    body: BODY_LABEL, NODE_LABEL,
+        8.,                            # mass
+        reference, node, 0., 0., 0.,   # c.m. offset
+        diag, 4.8, 4.8, .4;            # inertia tensor
+
+    # three masses example (equivalent to the previous one)
+    body: BODY_LABEL, NODE_LABEL,
+        condense, 3,
+        4.,                            # mass 1 (mid)
+        reference, node, 0., 0., 0.,   # c.m. offset 1
+        diag, .4, .4, .2,              # inertia tensor 1
+        2.,                            # mass 2 (top)
+        reference, node, 0., 0., 1.,   # c.m. offset 2
+        diag, .2, .2, .1,              # inertia tensor 2
+        2.,                            # mass 3 (bottom)
+        reference, node, 0., 0., -1.,  # c.m. offset 3
+        diag, .2, .2, .1;              # inertia tensor 3
+\end{verbatim}
+
 \section{Bulk Elements}
 The \kw{bulk} element is intended as a sort of NASTRAN's \kw{CELAS} card,
 that can be used to apply a stiffness term on an arbitrary degree of freedom.
