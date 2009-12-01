@@ -221,13 +221,13 @@ ScrewJoint::AfterConvergence(const VectorHandler& X,
 		doublereal vrel = e1hz.Dot(OmegaTheta) * cos_pitch_angle_r;
 
 		//compute
-		std::vector<doublereal> modF(1), v(1), params;
+		doublereal modF, v;
 			 //relative velocity
-		v[0] = vrel;
+		v = vrel;
 			 //reaction norm
 		dLambda = X.dGetCoef(iGetFirstIndex()+1);
-		modF[0] = std::abs(dLambda);
-		fc->AfterConvergence(modF,v,params,X,XP,iGetFirstIndex()+1);
+		modF = std::abs(dLambda);
+		fc->AfterConvergence(modF,v,X,XP,iGetFirstIndex()+1);
 	}
 }
 
@@ -634,15 +634,15 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 		Vec3 Omega1r(pNode1->GetWRef());
 		Vec3 Omega2r(pNode2->GetWRef());	
 		//compute
-		std::vector<doublereal> modF(1), v(1), params;
+		doublereal modF, v;
 			 //relative velocity
 		doublereal F_sign = 1.;
 		if (dLambda < 0.) {
 			F_sign = -1;
 		}
-		v[0] = vrel * F_sign;
+		v = vrel * F_sign;
 			 //reaction norm
-		modF[0] = std::abs(dLambda);
+		modF = std::abs(dLambda);
 			 //reaction moment
 		//doublereal M3 = shc*modF*r;
 		
@@ -652,7 +652,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 			 //variation of reaction force
 		dF0.ReDim(1);
 // 		if ((modF[0] == 0.) or (F.Norm() < preF)) {
-		if ((modF[0] == 0.)) {
+		if ((modF == 0.)) {
 			 dF0.Set(0., 1, 12+1);
 		} else {
 			 dF0.Set(dLambda > 0 ? 1. : -1., 1, 12+1);
@@ -677,13 +677,13 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 
 		//assemble friction states
 		fc->AssJac(WM,dfc,12+1,iFirstReactionIndex+1,dCoef,modF,v,
-				params,XCurr,XPrimeCurr,dF0,dv);
+				XCurr,XPrimeCurr,dF0,dv);
 
 		ExpandableMatrix dM3diff;
 		ExpandableRowVector dShc;
 		//compute 
 			 //variation of shape function
-		Sh_c->dSh_c(dShc,f,modF[0],v[0],dfc,dF0,dv);
+		Sh_c->dSh_c(dShc,f,modF,v,dfc,dF0,dv);
 			 //variation of moment component
 		dM3diff.ReDim(3, 3);
 		dM3diff.SetBlockDim(1, 1);
@@ -692,8 +692,8 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 		dM3diff.SetBlockIdx(3, 4);
 		
 		dM3diff.Set(e1hz*shc, 1, 1); dM3diff.Link(1, &dF);
-		dM3diff.Set(e1hz*modF[0], 1, 2); dM3diff.Link(2, &dShc);
-		dM3diff.Set(-Mat3x3(e1hz) * dCoef * shc * modF[0], 1, 3); 
+		dM3diff.Set(e1hz*modF, 1, 2); dM3diff.Link(2, &dShc);
+		dM3diff.Set(-Mat3x3(e1hz) * dCoef * shc * modF, 1, 3); 
 		//dM3diff.Set(Mat3x3(1.) * shc * modF[0], 1, 3); 
 // 		std::cerr << "Ci siamo\n";
 		
@@ -812,22 +812,22 @@ ScrewJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef,
 		vrel = e1hz.Dot(OmegaTheta) * cos_pitch_angle_r;
 		
 		
-		std::vector<doublereal> modF(1), v(1), params;
+		doublereal modF, v;
 		doublereal F_sign = 1.;
 		if (dLambda < 0.) {
 			F_sign = -1;
 		}
-		v[0] = vrel * F_sign;
-		modF[0] = std::abs(dLambda);
+		v = vrel * F_sign;
+		modF = std::abs(dLambda);
 		try {
-			fc->AssRes(WorkVec,12+1,iFirstReactionIndex+1,modF,v,params,XCurr,XPrimeCurr);
+			fc->AssRes(WorkVec,12+1,iFirstReactionIndex+1,modF,v,XCurr,XPrimeCurr);
 		}
 		catch (Elem::ChangedEquationStructure) {
 			ChangeJac = true;
 		}
 		doublereal f = fc->fc();
 // 		std::cerr << f << " " << vrel << " " << dLambda << std::endl;
-		doublereal shc = Sh_c->Sh_c(f,modF[0],v[0]);
+		doublereal shc = Sh_c->Sh_c(f,modF,v);
 		
 		M3diff = shc*dLambda;
 		WorkVec.Sub(4, e1hz*M3diff);
