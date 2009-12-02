@@ -3331,7 +3331,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		if (!HP.IsKeyWord("pitch")) {
-			pedantic_cerr("Joint(" << uLabel << "): "
+			silent_cerr("Joint(" << uLabel << "): "
 				"missing keyword \"pitch\" at line "
 				<< HP.GetLineData());
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
