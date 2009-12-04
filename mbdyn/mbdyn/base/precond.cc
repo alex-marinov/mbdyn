@@ -61,7 +61,7 @@ FullJacobianPr::Precond(VectorHandler& b, VectorHandler& x,
 	/*
 	 * To be conservative, restore the existing vectors when done :)
 	 */
-	doublereal *pdr = NULL, *pds = NULL;
+	doublereal *pdr = 0, *pds = 0;
 
 	/*
 	 * FIXME: what if they're null, but in general need be different?
@@ -86,7 +86,7 @@ FullJacobianPr::Precond(VectorHandler& b, VectorHandler& x,
 	pSM->Solve();
 
 	(void)pSM->pdSetResVec(pdr);
-	if (pds != pdr) {
+	if (pds != 0 && pds != pdr) {
 		(void)pSM->pdSetSolVec(pds);
 	}
 }
