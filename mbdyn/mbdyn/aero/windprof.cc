@@ -38,15 +38,141 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
+#include "mbpar.h"
+
 #include "windprof.h"
+
+/* WindProfile - begin */
+
+WindProfile::WindProfile(
+	const Vec3& X0,
+	const Mat3x3& R0)
+: X0(X0), R0(R0)
+{
+	NO_OP;
+}
+
+WindProfile::~WindProfile(void)
+{
+	NO_OP;
+}
+
+/* WindProfile - end */
+
+/* ScalarFuncWindProfile - begin */
+
+ScalarFuncWindProfile::ScalarFuncWindProfile(
+	const Vec3& X0,
+	const Mat3x3& R0,
+	const BasicScalarFunction *sf)
+: WindProfile(X0, R0),
+sf(sf)
+{
+	ASSERT(sf != 0);
+}
+
+ScalarFuncWindProfile::~ScalarFuncWindProfile(void)
+{
+	NO_OP;
+}
+
+bool
+ScalarFuncWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
+{
+	// dZ is the component of (X - X0) along axis 3 of R0
+	doublereal dZ = R0.GetVec(3)*(X - X0);
+
+	// V is projected along axis 1 of R0
+	V = R0.GetVec(1)*(*sf)(dZ);
+
+	return true;
+}
+
+std::ostream&
+ScalarFuncWindProfile::Restart(std::ostream& out) const
+{
+	return out << "scalar function, "
+		<< ", reference position, " << X0
+		<< ", reference orientation, " << R0
+		<< " # not implemented yet";
+}
+
+ScalarFuncGR::~ScalarFuncGR(void)
+{
+	NO_OP;
+}
+
+Gust *
+ScalarFuncGR::Read(const DataManager* pDM, MBDynParser& HP)
+{
+	const BasicScalarFunction *sf = 0;
+	Vec3 X0(Zero3);
+	bool bGotX0 = false;
+	Mat3x3 R0(Eye3);
+	bool bGotR0 = false;
+
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("reference" "position")) {
+			if (bGotX0) {
+				silent_cerr("ScalarFuncWindProfile: "
+					"reference position provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			X0 = HP.GetVecAbs(AbsRefFrame);
+
+		} else if (HP.IsKeyWord("reference" "orientation")) {
+			if (bGotR0) {
+				silent_cerr("ScalarFuncWindProfile: "
+					"reference orientation provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			R0 = HP.GetRotAbs(AbsRefFrame);
+
+		} else {
+			break;
+		}
+	}
+
+	if (!HP.IsArg()) {
+		silent_cerr("ScalarFuncWindProfile: "
+			"function expected "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	sf = ParseScalarFunction(HP, const_cast<DataManager *const>(pDM));
+	if (sf == 0) {
+		silent_cerr("ScalarFuncWindProfile: "
+			"unable to parse scalar function "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	Gust *pG = 0;
+	SAFENEWWITHCONSTRUCTOR(pG, ScalarFuncWindProfile,
+		ScalarFuncWindProfile(X0, R0, sf));
+
+	return pG;
+}
+
+/* ScalarFuncWindProfile - end */
 
 /* PowerLawWindProfile - begin */
 
 PowerLawWindProfile::PowerLawWindProfile(
+	const Vec3& X0,
+	const Mat3x3& R0,
 	const doublereal dZRef,
 	const doublereal dVRef,
 	const doublereal dPower)
-: dZRef(dZRef),
+: WindProfile(X0, R0),
+dZRef(dZRef),
 dVRef(dVRef),
 dPower(dPower)
 {
@@ -64,14 +190,14 @@ PowerLawWindProfile::~PowerLawWindProfile(void)
 bool
 PowerLawWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 {
-	doublereal dZ = X(3);
+	// dZ is the component of (X - X0) along axis 3 of R0
+	doublereal dZ = R0.GetVec(3)*(X - X0);
 	if (dZ <= 0.) {
 		return false;
 	}
 
-	V(1) = dVRef*std::pow(dZ/dZRef, dPower);
-	V(2) = 0.;
-	V(3) = 0.;
+	// V is projected along axis 1 of R0
+	V = R0.GetVec(1)*(dVRef*std::pow(dZ/dZRef, dPower));
 
 	return true;
 }
@@ -80,6 +206,8 @@ std::ostream&
 PowerLawWindProfile::Restart(std::ostream& out) const
 {
 	return out << "power law"
+		<< ", reference position, " << X0
+		<< ", reference orientation, " << R0
 		<< ", reference elevation, " << dZRef
 		<< ", reference velocity, " << dVRef
 		<< ", exponent, " << dPower;
@@ -96,6 +224,10 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 	doublereal dZRef = -1.;
 	doublereal dVRef = -1.;
 	doublereal dPower = -1.;
+	Vec3 X0(Zero3);
+	bool bGotX0 = false;
+	Mat3x3 R0(Eye3);
+	bool bGotR0 = false;
 
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("reference" "elevation")) {
@@ -131,6 +263,28 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 
 			dPower = HP.GetReal();
 
+		} else if (HP.IsKeyWord("reference" "position")) {
+			if (bGotX0) {
+				silent_cerr("PowerLawWindProfile: "
+					"reference position provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			X0 = HP.GetVecAbs(AbsRefFrame);
+
+		} else if (HP.IsKeyWord("reference" "orientation")) {
+			if (bGotR0) {
+				silent_cerr("PowerLawWindProfile: "
+					"reference orientation provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			R0 = HP.GetRotAbs(AbsRefFrame);
+
 		} else {
 			break;
 		}
@@ -162,7 +316,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 
 	Gust *pG = 0;
 	SAFENEWWITHCONSTRUCTOR(pG, PowerLawWindProfile,
-		PowerLawWindProfile(dZRef, dVRef, dPower));
+		PowerLawWindProfile(X0, R0, dZRef, dVRef, dPower));
 
 	return pG;
 }
@@ -172,10 +326,13 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 /* LogarithmicWindProfile - begin */
 
 LogarithmicWindProfile::LogarithmicWindProfile(
+	const Vec3& X0,
+	const Mat3x3& R0,
 	const doublereal dZRef,
 	const doublereal dVRef,
 	const doublereal dSurfaceRoughnessLength)
-: dZRef(dZRef),
+: WindProfile(X0, R0),
+dZRef(dZRef),
 dVRef(dVRef),
 dSurfaceRoughnessLength(dSurfaceRoughnessLength),
 logZRefZ0(std::log(dZRef/dSurfaceRoughnessLength))
@@ -193,14 +350,14 @@ LogarithmicWindProfile::~LogarithmicWindProfile(void)
 bool
 LogarithmicWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 {
-	doublereal dZ = X(3);
+	// dZ is the component of (X - X0) along axis 3 of R0
+	doublereal dZ = R0.GetVec(3)*(X - X0);
 	if (dZ <= 0.) {
 		return false;
 	}
 
-	V(1) = dVRef*(std::log(dZ/dSurfaceRoughnessLength) - 0.)/(logZRefZ0 - 0.);
-	V(2) = 0.;
-	V(3) = 0.;
+	// V is projected along axis 1 of R0
+	V = R0.GetVec(1)*(dVRef*(std::log(dZ/dSurfaceRoughnessLength) - 0.)/(logZRefZ0 - 0.));
 
 	return true;
 }
@@ -209,6 +366,8 @@ std::ostream&
 LogarithmicWindProfile::Restart(std::ostream& out) const
 {
 	return out << "logarithmic"
+		<< ", reference position, " << X0
+		<< ", reference orientation, " << R0
 		<< ", reference elevation, " << dZRef
 		<< ", reference velocity, " << dVRef
 		<< ", surface roughness length, " << dSurfaceRoughnessLength;
@@ -225,6 +384,10 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 	doublereal dZRef = -1.;
 	doublereal dVRef = -1.;
 	doublereal dSurfaceRoughnessLength = -1.;
+	Vec3 X0(Zero3);
+	bool bGotX0 = false;
+	Mat3x3 R0(Eye3);
+	bool bGotR0 = false;
 
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("reference" "elevation")) {
@@ -260,6 +423,28 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 
 			dSurfaceRoughnessLength = HP.GetReal();
 
+		} else if (HP.IsKeyWord("reference" "position")) {
+			if (bGotX0) {
+				silent_cerr("PowerLawWindProfile: "
+					"reference position provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			X0 = HP.GetVecAbs(AbsRefFrame);
+
+		} else if (HP.IsKeyWord("reference" "orientation")) {
+			if (bGotR0) {
+				silent_cerr("PowerLawWindProfile: "
+					"reference orientation provided twice "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			R0 = HP.GetRotAbs(AbsRefFrame);
+
 		} else {
 			break;
 		}
@@ -291,7 +476,8 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 
 	Gust *pG = 0;
 	SAFENEWWITHCONSTRUCTOR(pG, LogarithmicWindProfile,
-		LogarithmicWindProfile(dZRef, dVRef, dSurfaceRoughnessLength));
+		LogarithmicWindProfile(X0, R0,
+			dZRef, dVRef, dSurfaceRoughnessLength));
 
 	return pG;
 }

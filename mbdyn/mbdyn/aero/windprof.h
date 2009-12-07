@@ -40,17 +40,56 @@
 #define WINDPROF_H
 
 #include "aerodyn.h"
+#include "ScalarFunctions.h"
+
+/* WindProfile - begin */
+
+class WindProfile : public Gust {
+protected:
+	const Vec3 X0;
+	const Mat3x3 R0;
+	
+public:
+	WindProfile(const Vec3& X0, const Mat3x3& R0);
+	virtual ~WindProfile(void);
+};
+
+/* WindProfile - end */
+
+/* ScalarFuncWindProfile - begin */
+
+class ScalarFuncWindProfile : public WindProfile {
+protected:
+	const BasicScalarFunction *sf;
+
+public:
+	ScalarFuncWindProfile(const Vec3& X0, const Mat3x3& R0,
+		const BasicScalarFunction *sf);
+	virtual ~ScalarFuncWindProfile(void);
+	virtual bool GetVelocity(const Vec3& X, Vec3& V) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+struct ScalarFuncGR : public GustRead {
+public:
+	virtual ~ScalarFuncGR(void);
+	virtual Gust *
+	Read(const DataManager* pDM, MBDynParser& HP);
+};
+
+/* ScalarFuncWindProfile - end */
 
 /* PowerLawWindProfile - begin */
 
-class PowerLawWindProfile : public Gust {
+class PowerLawWindProfile : public WindProfile {
 protected:
 	const doublereal dZRef;
 	const doublereal dVRef;
 	const doublereal dPower;
-	
+
 public:
-	PowerLawWindProfile(const doublereal dZRef, const doublereal dVRef,
+	PowerLawWindProfile(const Vec3& X0, const Mat3x3& R0,
+		const doublereal dZRef, const doublereal dVRef,
 		const doublereal dPower);
 	virtual ~PowerLawWindProfile(void);
 	virtual bool GetVelocity(const Vec3& X, Vec3& V) const;
@@ -68,7 +107,7 @@ public:
 
 /* LogarithmicWindProfile - begin */
 
-class LogarithmicWindProfile : public Gust {
+class LogarithmicWindProfile : public WindProfile {
 protected:
 	const doublereal dZRef;
 	const doublereal dVRef;
@@ -78,7 +117,8 @@ protected:
 	// TODO: stability function
 	
 public:
-	LogarithmicWindProfile(const doublereal dZRef, const doublereal dVRef,
+	LogarithmicWindProfile(const Vec3& X0, const Mat3x3& R0,
+		const doublereal dZRef, const doublereal dVRef,
 		const doublereal dSurfaceRoughnessLength);
 	virtual ~LogarithmicWindProfile(void);
 	virtual bool GetVelocity(const Vec3& X, Vec3& V) const;

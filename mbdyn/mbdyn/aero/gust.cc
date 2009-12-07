@@ -219,6 +219,7 @@ InitGustData(void)
 	}
 
 	SetGustData("front" "1D", new Gust1DGR);
+	SetGustData("scalar" "function", new ScalarFuncGR);
 	SetGustData("power" "law", new PowerLawGR);
 	SetGustData("logarithmic", new LogarithmicGR);
 
