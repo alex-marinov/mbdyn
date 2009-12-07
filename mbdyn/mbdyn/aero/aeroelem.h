@@ -116,8 +116,9 @@ protected:
 
 	const ShapeOwner Chord;		/* corda */
 	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */
-	const ShapeOwner VelocityPoint; /* punto di app. b.c. (3/4) */
-	const ShapeOwner Twist;         /* svergolamento */
+	const ShapeOwner VelocityPoint;	/* punto di app. b.c. (3/4) */
+	const ShapeOwner Twist;		/* svergolamento */
+	const ShapeOwner TipLoss;	/* tip loss model */
 
 	GaussDataIterator GDI;	/* Iteratore sui punti di Gauss */
 	std::vector<outa_t> OUTA;
@@ -140,6 +141,7 @@ public:
 		InducedVelocity* pR,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
+		const Shape* pTL,
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
@@ -228,6 +230,7 @@ public:
 		const Mat3x3& RaTmp,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
+		const Shape* pTL,
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
@@ -333,6 +336,7 @@ public:
 		const Mat3x3& Ra3Tmp,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
+		const Shape* pTL,
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
@@ -433,6 +437,7 @@ public:
 		const Mat3x3& Ra2Tmp,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
+		const Shape* pTL,
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,

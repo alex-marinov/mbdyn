@@ -129,7 +129,9 @@ sah.cc \
 sah.h \
 scalarvalue.cc \
 scalarvalue.h \
+shape.cc \
 shape.h \
+shape_impl.h \
 shockabsorber.h \
 simentity.cc \
 simentity.h \

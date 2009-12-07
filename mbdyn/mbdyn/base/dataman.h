@@ -799,7 +799,5 @@ ReadOrientationDescription(MBDynParser& HP);
 extern OrientationDescription
 ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP);
 
-extern Shape* ReadShape(MBDynParser& HP);
-
 #endif /* DATAMAN_H */
 

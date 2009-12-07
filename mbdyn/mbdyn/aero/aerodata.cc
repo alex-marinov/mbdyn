@@ -569,7 +569,7 @@ ReadC81InterpolatedAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aeroda
 void
 ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	Shape** ppChord, Shape** ppForce,
-	Shape** ppVelocity, Shape** ppTwist,
+	Shape** ppVelocity, Shape** ppTwist, Shape** ppTipLoss,
 	integer* piNumber, DriveCaller** ppDC,
 	AeroData** aerodata)
 {
@@ -605,6 +605,15 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	*ppForce = ReadShape(HP);
 	*ppVelocity = ReadShape(HP);
 	*ppTwist = ReadShape(HP);
+
+	*ppTipLoss = 0;
+	if (HP.IsKeyWord("tip" "loss")) {
+		*ppTipLoss = ReadShape(HP);
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(*ppTipLoss, ConstShape1D,
+			ConstShape1D(1.));
+	}
 
 	*piNumber = HP.GetInt();
 	if (*piNumber <= 0) {

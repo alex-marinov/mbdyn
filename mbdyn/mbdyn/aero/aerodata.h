@@ -181,6 +181,7 @@ extern void
 ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	Shape** ppChord, Shape** ppForce,
 	Shape** ppVelocity, Shape** ppTwist,
+	Shape** ppTipLoss,
 	integer* piNumber, DriveCaller** ppDC,
 	AeroData** aerodata);
 

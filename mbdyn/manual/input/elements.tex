@@ -130,6 +130,7 @@ The input format is:
         (shape_1D)          <surface_aerodynamic_center> ,
         (shape_1D)          <surface_b_c_point> ,
         (shape_1D)          <surface_twist> ,
+        [ tip loss , (shape_1D) <tip_loss> , ]
                             <integration_points>
         [ , control , (drive_caller) <control_drive> ] 
         [ , <airfoil_data> ]
@@ -197,6 +198,20 @@ The \kw{shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditions are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
+
+The optional \kw{tip loss} keyword allows to define an additional \kw{shape},
+whose value is used to scale the value of the normal aerodynamic force.
+By default, the scale factor is 1.
+The \kw{tip loss} shape should have a value comprised between 0 and 1.
+
+In any case, the user must be aware of the fact that Gauss integration
+will be used over the span of the element.
+This consists in evaluating forces at specific spanwise stations.
+This assumes that the function to be integrated over the spanwise domain
+is regular.
+Sharp variations, like tip loss concentrated in the outmost 2\%
+of a rotor blade span, might be entirely missed when using too little
+spanwise elements with too little integration points.
 
 The span of the \kw{aerodynamic body} element is set by the user;
 the center-span of the element is assumed to be the end of the offset vector.

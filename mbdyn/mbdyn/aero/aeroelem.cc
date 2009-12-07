@@ -138,6 +138,7 @@ Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	InducedVelocity* pR,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
+	const Shape* pTL,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
@@ -154,6 +155,7 @@ Chord(pC),
 ForcePoint(pF),
 VelocityPoint(pV),
 Twist(pT),
+TipLoss(pTL),
 GDI(iN),
 OUTA(iNN*iN, outa_Zero),
 bJacobian(bUseJacobian)
@@ -161,10 +163,10 @@ bJacobian(bUseJacobian)
 	DEBUGCOUTFNAME("Aerodynamic2DElem::Aerodynamic2DElem");
 
 	ASSERT(iNN >= 1 && iNN <= 3);
-	ASSERT(aerodata != NULL);
+	ASSERT(aerodata != 0);
 
 #ifdef DEBUG
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		ASSERT(pIndVel->GetElemType() == Elem::INDUCEDVELOCITY);
 	}
 #endif /* DEBUG */
@@ -435,12 +437,13 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	const Mat3x3& RaTmp,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
+	const Shape* pTL,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
 pNode(pN),
 f(fTmp),
 dHalfSpan(dS/2.),
@@ -451,7 +454,7 @@ M(0.)
 {
 	DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody");
 
-	ASSERT(pNode != NULL);
+	ASSERT(pNode != 0);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
 
 }
@@ -469,7 +472,7 @@ AerodynamicBody::Restart(std::ostream& out) const
 
 	out << "  aerodynamic body: " << GetLabel() << ", "
 		<< pNode->GetLabel();
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		out << ", rotor, " << pIndVel->GetLabel();
 	}
 	out << ", reference, node, ", f.Write(out, ", ")
@@ -537,7 +540,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor) {
 			dOmega = pRotor->dGetOmega();
@@ -588,7 +591,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		 * Se l'elemento e' collegato ad un rotore,
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
-		if (pIndVel != NULL) {
+		if (pIndVel != 0) {
 			Vr += pIndVel->GetInducedVelocity(Xnr);
 		}
 
@@ -780,7 +783,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
  	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor) {
 			dOmega = pRotor->dGetOmega();
@@ -834,7 +837,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		 * Se l'elemento e' collegato ad un rotore,
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
-		if (pIndVel != NULL) {
+		if (pIndVel != 0) {
 	 		Vr += pIndVel->GetInducedVelocity(Xnr);
 		}
 
@@ -896,7 +899,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 		/* Dimensionalizza le forze */
 		doublereal dWght = PW.dGetWght();
-		Vec3 FTmp(RRloc*(Vec3(dTng)*(dHalfSpan*dWght)));
+		dTng[1] *= TipLoss.dGet(dCsi);
+		Vec3 FTmp(RRloc*(Vec3(&dTng[0])*(dHalfSpan*dWght)));
 		F += FTmp;
 		M += RRloc*(Vec3(&dTng[3])*(dHalfSpan*dWght));
 		M += Xr.Cross(FTmp);
@@ -906,7 +910,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	} while (GDI.fGetNext(PW));
 
 	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pIndVel != NULL && !fPassiveInducedVelocity) {
+	if (pIndVel != 0 && !fPassiveInducedVelocity) {
 		pIndVel->AddForce(GetLabel(), F, M, Xn);
 	}
 
@@ -998,7 +1002,7 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		 * prima dell'elemento aerodinamico
 		 */
 		Elem* p = pDM->pFindElem(Elem::INDUCEDVELOCITY, uIV);
-		if (p == NULL) {
+		if (p == 0) {
 			silent_cerr(sElemType << "(" << uLabel << "): "
 				"InducedVelocity(" << uIV << ") not defined "
 				"at line " << HP.GetLineData()
@@ -1035,17 +1039,18 @@ ReadAerodynamicBody(DataManager* pDM,
 	doublereal dSpan = HP.GetReal();
 	DEBUGLCOUT(MYDEBUG_INPUT, "Span: " << dSpan << std::endl);
 
-	Shape* pChord = NULL;
-	Shape* pForce = NULL;
-	Shape* pVelocity = NULL;
-	Shape* pTwist = NULL;
+	Shape* pChord = 0;
+	Shape* pForce = 0;
+	Shape* pVelocity = 0;
+	Shape* pTwist = 0;
+	Shape* pTipLoss = 0;
 
 	integer iNumber = 0;
-	DriveCaller* pDC = NULL;
-	AeroData* aerodata = NULL;
+	DriveCaller* pDC = 0;
+	AeroData* aerodata = 0;
 
 	ReadAeroData(pDM, HP,
-		&pChord, &pForce, &pVelocity, &pTwist,
+		&pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
 		     &iNumber, &pDC, &aerodata);
 
 	aerodata->SetNumPoints(iNumber);
@@ -1081,12 +1086,12 @@ ReadAerodynamicBody(DataManager* pDM,
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
 
-	Elem* pEl = NULL;
+	Elem* pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBody,
 		AerodynamicBody(uLabel, pDO, pNode, pIndVel, f, dSpan, Ra,
-				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, bUseJacobian, fOut));
+			pChord, pForce, pVelocity, pTwist, pTipLoss,
+			iNumber, aerodata, pDC, bUseJacobian, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -1132,12 +1137,13 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	const Mat3x3& Ra3Tmp,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
+	const Shape* pTL,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -1151,18 +1157,18 @@ Ra3_3(Ra3Tmp.GetVec(3))
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::AerodynamicBeam");
 
-	ASSERT(pBeam != NULL);
+	ASSERT(pBeam != 0);
 	ASSERT(pBeam->GetElemType() == Elem::BEAM);
 
 	pNode1 = pBeam->pGetNode(1);
 	pNode2 = pBeam->pGetNode(2);
 	pNode3 = pBeam->pGetNode(3);
 
-	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1 != 0);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2 != 0);
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode3 != NULL);
+	ASSERT(pNode3 != 0);
 	ASSERT(pNode3->GetNodeType() == Node::STRUCTURAL);
 }
 
@@ -1178,7 +1184,7 @@ AerodynamicBeam::Restart(std::ostream& out) const
 	DEBUGCOUTFNAME("AerodynamicBeam::Restart");
 	out << "  aerodynamic beam: " << GetLabel()
 		<< ", " << pBeam->GetLabel();
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		out << ", rotor, " << pIndVel->GetLabel();
 	}
 	out << ", reference, node, ", f1.Write(out, ", ")
@@ -1308,7 +1314,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor != 0) {
 			dOmega = pRotor->dGetOmega();
@@ -1394,7 +1400,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pIndVel != NULL) {
+			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
@@ -1686,7 +1692,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor != 0) {
 			dOmega = pRotor->dGetOmega();
@@ -1757,7 +1763,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pIndVel != NULL) {
+			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
@@ -1826,7 +1832,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
-			Vec3 FTmp(RRloc*(Vec3(dTng)*dWght));
+			dTng[1] *= TipLoss.dGet(dCsi);
+			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
 			F[iNode] += FTmp;
 			M[iNode] += RRloc*(Vec3(&dTng[3])*dWght);
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
@@ -1839,7 +1846,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 		 * Se e' definito il rotore, aggiungere il contributo
 		 * alla trazione
 		 */
-		if (pIndVel != NULL && !fPassiveInducedVelocity) {
+		if (pIndVel != 0 && !fPassiveInducedVelocity) {
 			pIndVel->AddForce(GetLabel(),
 					F[iNode], M[iNode], Xn[iNode]);
 		}
@@ -1981,17 +1988,18 @@ ReadAerodynamicBeam(DataManager* pDM,
 	DEBUGLCOUT(MYDEBUG_INPUT,
 		"Node 3 rotation matrix: " << std::endl << Ra3 << std::endl);
 
-	Shape* pChord = NULL;
-	Shape* pForce = NULL;
-	Shape* pVelocity = NULL;
-	Shape* pTwist = NULL;
+	Shape* pChord = 0;
+	Shape* pForce = 0;
+	Shape* pVelocity = 0;
+	Shape* pTwist = 0;
+	Shape* pTipLoss = 0;
 
 	integer iNumber = 0;
-	DriveCaller* pDC = NULL;
-	AeroData* aerodata = NULL;
+	DriveCaller* pDC = 0;
+	AeroData* aerodata = 0;
 
 	ReadAeroData(pDM, HP,
-		&pChord, &pForce, &pVelocity, &pTwist,
+		&pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
 		&iNumber, &pDC, &aerodata);
 
 	aerodata->SetNumPoints(3*iNumber);
@@ -2027,13 +2035,13 @@ ReadAerodynamicBeam(DataManager* pDM,
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
 
-	Elem* pEl = NULL;
+	Elem* pEl = 0;
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam,
 		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel,
 			f1, f2, f3, Ra1, Ra2, Ra3,
-			pChord, pForce, pVelocity, pTwist,
+			pChord, pForce, pVelocity, pTwist, pTipLoss,
 			iNumber, aerodata, pDC, bUseJacobian, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
@@ -2093,6 +2101,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 	const Shape* pF,
 	const Shape* pV,
 	const Shape* pT,
+	const Shape* pTL,
 	integer iN,
 	AeroData* a,
 	const DriveCaller* pDC,
@@ -2100,7 +2109,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 	flag fOut
 )
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -2111,15 +2120,15 @@ Ra2_3(Ra2Tmp.GetVec(3))
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::AerodynamicBeam2");
 
-	ASSERT(pBeam != NULL);
+	ASSERT(pBeam != 0);
 	ASSERT(pBeam->GetElemType() == Elem::BEAM);
 
 	pNode1 = pBeam->pGetNode(1);
 	pNode2 = pBeam->pGetNode(2);
 
-	ASSERT(pNode1 != NULL);
+	ASSERT(pNode1 != 0);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode2 != NULL);
+	ASSERT(pNode2 != 0);
 	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 }
 
@@ -2135,7 +2144,7 @@ AerodynamicBeam2::Restart(std::ostream& out) const
 	DEBUGCOUTFNAME("AerodynamicBeam2::Restart");
 	out << "  aerodynamic beam2: " << GetLabel()
 		<< ", " << pBeam->GetLabel();
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		out << ", rotor, " << pIndVel->GetLabel();
 	}
 	out << ", reference, node, ", f1.Write(out, ", ")
@@ -2240,7 +2249,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor != 0) {
 			dOmega = pRotor->dGetOmega();
@@ -2324,7 +2333,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pIndVel != NULL) {
+			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
@@ -2577,7 +2586,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	 * si fa dare la velocita' di rotazione
 	 */
 	doublereal dOmega = 0.;
-	if (pIndVel != NULL) {
+	if (pIndVel != 0) {
 		Rotor *pRotor = dynamic_cast<Rotor *>(pIndVel);
 		if (pRotor != 0) {
 			dOmega = pRotor->dGetOmega();
@@ -2648,7 +2657,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			 * Se l'elemento e' collegato ad un rotore,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
-			if (pIndVel != NULL) {
+			if (pIndVel != 0) {
 				Vr += pIndVel->GetInducedVelocity(Xr);
 			}
 
@@ -2711,6 +2720,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
+			dTng[1] *= TipLoss.dGet(dCsi);
 			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
 			F[iNode] += FTmp;
 			M[iNode] += RRloc*(Vec3(&dTng[3])*dWght);
@@ -2721,7 +2731,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 		} while (GDI.fGetNext(PW));
 
 		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-		if (pIndVel != NULL && !fPassiveInducedVelocity) {
+		if (pIndVel != 0 && !fPassiveInducedVelocity) {
 			pIndVel->AddForce(GetLabel(),
 				F[iNode], M[iNode], Xn[iNode]);
 		}
@@ -2849,17 +2859,18 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	DEBUGLCOUT(MYDEBUG_INPUT,
 		   "Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
 
-	Shape* pChord = NULL;
-	Shape* pForce = NULL;
-	Shape* pVelocity = NULL;
-	Shape* pTwist = NULL;
+	Shape* pChord = 0;
+	Shape* pForce = 0;
+	Shape* pVelocity = 0;
+	Shape* pTwist = 0;
+	Shape* pTipLoss = 0;
 
 	integer iNumber = 0;
-	DriveCaller* pDC = NULL;
-	AeroData* aerodata = NULL;
+	DriveCaller* pDC = 0;
+	AeroData* aerodata = 0;
 
 	ReadAeroData(pDM, HP,
-		     &pChord, &pForce, &pVelocity, &pTwist,
+		     &pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
 		     &iNumber, &pDC, &aerodata);
 
 	aerodata->SetNumPoints(2*iNumber);
@@ -2895,14 +2906,14 @@ ReadAerodynamicBeam2(DataManager* pDM,
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
 
-	Elem* pEl = NULL;
+	Elem* pEl = 0;
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam2,
 		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel,
-				f1, f2, Ra1, Ra2,
-				pChord, pForce, pVelocity, pTwist,
-				iNumber, aerodata, pDC, bUseJacobian, fOut));
+			f1, f2, Ra1, Ra2,
+			pChord, pForce, pVelocity, pTwist, pTipLoss,
+			iNumber, aerodata, pDC, bUseJacobian, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {

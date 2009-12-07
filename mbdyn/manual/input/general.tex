@@ -2329,6 +2329,26 @@ The shapes currently available are:
     <shape_type> ::= const
     <shape_arglist> ::= <const_value>
     \end{verbatim}
+\begin{align}
+	f = \kw{const\_value}
+\end{align}
+
+    \item \kw{piecewise const}
+    \begin{verbatim}
+    <shape_type> ::= piecewise const
+    <shape_arglist> ::=
+        <number_of_points> , 
+            <abscissa> , <value>
+            [ , ... ]
+    \end{verbatim}
+\begin{align}
+	f(\xi) &= v_1	&& \xi \le \xi_1
+	\\
+	f(\xi) &= v_i	&& \xi_i \le \xi < \xi_{i+1}
+	\\
+	f(\xi) &= v_N	&& \xi_N \le \xi
+\end{align}
+
     \item \kw{linear}
     \begin{verbatim}
     <shape_type> ::= linear
@@ -2336,6 +2356,11 @@ The shapes currently available are:
         <value_at_-1> , 
         <value_at_1>
     \end{verbatim}
+\begin{align}
+	f(\xi) &= \frac{v(1) + v(-1)}{2}
+		+ \frac{v(1) - v(-1)}{2} \xi
+\end{align}
+
     \item \kw{piecewise linear}
     \begin{verbatim}
     <shape_type> ::= piecewise linear
@@ -2344,6 +2369,17 @@ The shapes currently available are:
             <abscissa> , <value>
             [ , ... ]
     \end{verbatim}
+\begin{align}
+	f(\xi) &= v_1	&& \xi \le \xi_1
+	\\
+	f(\xi) &=
+		v_i \frac{\xi_{i+1} - \xi}{\xi_{i+1} - \xi_i}
+		+ v_{i+1} \frac{\xi - \xi_i}{\xi_{i+1} - \xi_i}
+		&& \xi_i \le \xi < \xi_{i+1}
+	\\
+	f(\xi) &= v_N	&& \xi_N \le \xi
+\end{align}
+
     \item \kw{parabolic}
     \begin{verbatim}
     <shape_type> ::= parabolic
@@ -2352,6 +2388,12 @@ The shapes currently available are:
         <value_at_0> , 
         <value_at_1>
     \end{verbatim}
+\begin{align}
+	f(\xi) &= v(-1)\xi\plbr{\xi - 1}
+		+ v(0)\plbr{1 - \xi^2}
+		+ v(1)\xi\plbr{\xi + 1}
+\end{align}
+
 \end{enumerate}
 This form of input has been chosen since, being the shapes mainly used to
 interpolate values, it looks more ``natural'' to insert the mapping values
