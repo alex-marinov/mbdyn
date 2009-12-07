@@ -84,12 +84,12 @@ public:
 class PowerLawWindProfile : public WindProfile {
 protected:
 	const doublereal dZRef;
-	const doublereal dVRef;
+	DriveOwner VRef;
 	const doublereal dPower;
 
 public:
 	PowerLawWindProfile(const Vec3& X0, const Mat3x3& R0,
-		const doublereal dZRef, const doublereal dVRef,
+		const doublereal dZRef, const DriveCaller *pVRef,
 		const doublereal dPower);
 	virtual ~PowerLawWindProfile(void);
 	virtual bool GetVelocity(const Vec3& X, Vec3& V) const;
@@ -110,7 +110,7 @@ public:
 class LogarithmicWindProfile : public WindProfile {
 protected:
 	const doublereal dZRef;
-	const doublereal dVRef;
+	DriveOwner VRef;
 	const doublereal dSurfaceRoughnessLength;
 
 	const doublereal logZRefZ0;
@@ -118,7 +118,7 @@ protected:
 	
 public:
 	LogarithmicWindProfile(const Vec3& X0, const Mat3x3& R0,
-		const doublereal dZRef, const doublereal dVRef,
+		const doublereal dZRef, const DriveCaller *pVRef,
 		const doublereal dSurfaceRoughnessLength);
 	virtual ~LogarithmicWindProfile(void);
 	virtual bool GetVelocity(const Vec3& X, Vec3& V) const;

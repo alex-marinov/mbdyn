@@ -169,15 +169,15 @@ PowerLawWindProfile::PowerLawWindProfile(
 	const Vec3& X0,
 	const Mat3x3& R0,
 	const doublereal dZRef,
-	const doublereal dVRef,
+	const DriveCaller *pVRef,
 	const doublereal dPower)
 : WindProfile(X0, R0),
 dZRef(dZRef),
-dVRef(dVRef),
+VRef(pVRef),
 dPower(dPower)
 {
 	ASSERT(dZRef > 0.);
-	ASSERT(dVRef > 0.);
+	ASSERT(pVRef != 0);
 	// NOTE: should be < 1?
 	ASSERT(dPower > 0.);
 }
@@ -197,7 +197,7 @@ PowerLawWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 	}
 
 	// V is projected along axis 1 of R0
-	V = R0.GetVec(1)*(dVRef*std::pow(dZ/dZRef, dPower));
+	V = R0.GetVec(1)*(VRef.dGet()*std::pow(dZ/dZRef, dPower));
 
 	return true;
 }
@@ -205,12 +205,13 @@ PowerLawWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 std::ostream&
 PowerLawWindProfile::Restart(std::ostream& out) const
 {
-	return out << "power law"
+	out << "power law"
 		<< ", reference position, " << X0
 		<< ", reference orientation, " << R0
 		<< ", reference elevation, " << dZRef
-		<< ", reference velocity, " << dVRef
+		<< ", reference velocity, ", VRef.pGetDriveCaller()->Restart(out)
 		<< ", exponent, " << dPower;
+	return out;
 }
 
 PowerLawGR::~PowerLawGR(void)
@@ -222,7 +223,7 @@ Gust *
 PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 {
 	doublereal dZRef = -1.;
-	doublereal dVRef = -1.;
+	DriveCaller *pVRef = 0;
 	doublereal dPower = -1.;
 	Vec3 X0(Zero3);
 	bool bGotX0 = false;
@@ -242,7 +243,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 			dZRef = HP.GetReal();
 
 		} else if (HP.IsKeyWord("reference" "velocity")) {
-			if (dVRef != -1.) {
+			if (pVRef != 0) {
 				silent_cerr("PowerLawWindProfile: "
 					"reference velocity provided twice "
 					"at line " << HP.GetLineData()
@@ -250,7 +251,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			dVRef = HP.GetReal();
+			pVRef = HP.GetDriveCaller();
 
 		} else if (HP.IsKeyWord("exponent")) {
 			if (dPower != -1.) {
@@ -298,7 +299,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (dVRef == -1.) {
+	if (pVRef == 0) {
 		silent_cerr("PowerLawWindProfile: "
 			"reference velocity missing "
 			"at line " << HP.GetLineData()
@@ -316,7 +317,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 
 	Gust *pG = 0;
 	SAFENEWWITHCONSTRUCTOR(pG, PowerLawWindProfile,
-		PowerLawWindProfile(X0, R0, dZRef, dVRef, dPower));
+		PowerLawWindProfile(X0, R0, dZRef, pVRef, dPower));
 
 	return pG;
 }
@@ -329,16 +330,16 @@ LogarithmicWindProfile::LogarithmicWindProfile(
 	const Vec3& X0,
 	const Mat3x3& R0,
 	const doublereal dZRef,
-	const doublereal dVRef,
+	const DriveCaller *pVRef,
 	const doublereal dSurfaceRoughnessLength)
 : WindProfile(X0, R0),
 dZRef(dZRef),
-dVRef(dVRef),
+VRef(pVRef),
 dSurfaceRoughnessLength(dSurfaceRoughnessLength),
 logZRefZ0(std::log(dZRef/dSurfaceRoughnessLength))
 {
 	ASSERT(dZRef > 0.);
-	ASSERT(dVRef > 0.);
+	ASSERT(pVRef != 0);
 	ASSERT(dSurfaceRoughnessLength > 0.);
 }
 
@@ -357,7 +358,7 @@ LogarithmicWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 	}
 
 	// V is projected along axis 1 of R0
-	V = R0.GetVec(1)*(dVRef*(std::log(dZ/dSurfaceRoughnessLength) - 0.)/(logZRefZ0 - 0.));
+	V = R0.GetVec(1)*(VRef.dGet()*(std::log(dZ/dSurfaceRoughnessLength) - 0.)/(logZRefZ0 - 0.));
 
 	return true;
 }
@@ -365,12 +366,13 @@ LogarithmicWindProfile::GetVelocity(const Vec3& X, Vec3& V) const
 std::ostream&
 LogarithmicWindProfile::Restart(std::ostream& out) const
 {
-	return out << "logarithmic"
+	out << "logarithmic"
 		<< ", reference position, " << X0
 		<< ", reference orientation, " << R0
 		<< ", reference elevation, " << dZRef
-		<< ", reference velocity, " << dVRef
+		<< ", reference velocity, ", VRef.pGetDriveCaller()->Restart(out)
 		<< ", surface roughness length, " << dSurfaceRoughnessLength;
+	return out;
 }
 
 LogarithmicGR::~LogarithmicGR(void)
@@ -382,7 +384,7 @@ Gust *
 LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 {
 	doublereal dZRef = -1.;
-	doublereal dVRef = -1.;
+	DriveCaller *pVRef = 0;
 	doublereal dSurfaceRoughnessLength = -1.;
 	Vec3 X0(Zero3);
 	bool bGotX0 = false;
@@ -402,7 +404,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 			dZRef = HP.GetReal();
 
 		} else if (HP.IsKeyWord("reference" "velocity")) {
-			if (dVRef != -1.) {
+			if (pVRef != 0) {
 				silent_cerr("LogarithmicWindProfile: "
 					"reference velocity provided twice "
 					"at line " << HP.GetLineData()
@@ -410,7 +412,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			dVRef = HP.GetReal();
+			pVRef = HP.GetDriveCaller();
 
 		} else if (HP.IsKeyWord("surface" "roughness" "length")) {
 			if (dSurfaceRoughnessLength != -1.) {
@@ -458,7 +460,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (dVRef == -1.) {
+	if (pVRef == 0) {
 		silent_cerr("LogarithmicWindProfile: "
 			"reference velocity missing "
 			"at line " << HP.GetLineData()
@@ -477,7 +479,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 	Gust *pG = 0;
 	SAFENEWWITHCONSTRUCTOR(pG, LogarithmicWindProfile,
 		LogarithmicWindProfile(X0, R0,
-			dZRef, dVRef, dSurfaceRoughnessLength));
+			dZRef, pVRef, dSurfaceRoughnessLength));
 
 	return pG;
 }
