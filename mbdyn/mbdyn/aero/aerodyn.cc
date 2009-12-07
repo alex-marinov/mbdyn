@@ -69,6 +69,8 @@
 #include "drive_.h"
 #include "tpldrive.h"
 
+#include "windprof.h"
+
 /*
  * Gust
  */
@@ -588,6 +590,12 @@ ReadGust(DataManager *pDM, MBDynParser& HP)
 		/* gust */
 		SAFENEWWITHCONSTRUCTOR(pG, Gust1D,
 				Gust1D(f, g, v, pT, pP));
+
+	} else if (HP.IsKeyWord("power" "law")) {
+		pG = ReadPowerLawWindProfile(pDM, HP);
+
+	} else if (HP.IsKeyWord("logarithmic")) {
+		pG = ReadLogarithmicWindProfile(pDM, HP);
 
 	} else {
 		silent_cerr("unknown gust type at line "

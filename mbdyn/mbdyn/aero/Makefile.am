@@ -33,7 +33,9 @@ indvel.h \
 instruments.cc \
 instruments.h \
 rotor.cc \
-rotor.h
+rotor.h \
+windprof.cc \
+windprof.h
 
 libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static
