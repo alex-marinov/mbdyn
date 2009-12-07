@@ -462,9 +462,9 @@ The following data is available:
 \item \kw{"groundspeed"} the absolute value of the projection
 	of the node speed in the $xy$ plane.
 \item \kw{"altitude"} the $z$ component of the node position
-\item \kw{"attitude"} $\arctan\plbr{r_{31}, r_{11}}$
+\item \kw{"attitude"} $\tan^{-1}\plbr{r_{31}, r_{11}}$
 	(FIXME: better $\arcsin\plbr{r_{31}}$?)
-\item \kw{"bank"} $\arctan\plbr{r_{32}, r_{22}}$
+\item \kw{"bank"} $\tan^{-1}\plbr{r_{32}, r_{22}}$
 	(FIXME: better $\arcsin\plbr{r_{32}}$?)
 \item \kw{"turn"} (not available yet)
 \item \kw{"slip"} (not available yet)
@@ -5549,6 +5549,8 @@ with
 The \kw{delay} parameter is used to linearly combine the current
 reference induced velocity with the induced velocity at the previous step;
 no delay means there is no memory of the previous value.
+The memory factor behaves like a discrete first-order low-pass filter.
+As a consequence, its behavior depends on the integration time step.
 The \kw{memory\_factor} parameter defaults to 0.
 The \kw{hover\_correction\_factor} 
 and \kw{ff\_correction\_factor} parameters default to 1.
@@ -5604,34 +5606,42 @@ can be explicitly initialized by means of the optional
 \subsubsection{Output}
 The following output is available for all rotor elements:
 \begin{enumerate}
-\item element label
-\item rotor force in \kw{x} direction (longitudinal force)
-\item rotor force in \kw{y} direction (lateral force)
-\item rotor force in \kw{z} direction (thrust)
-\item rotor moment about \kw{x} direction (roll moment)
-\item rotor moment about \kw{y} direction (pitch moment)
-\item rotor moment about \kw{z} direction (torque)
-\item mean inflow velocity, based on momentum theory
-\item reference velocity at rotor center, sum of airstream
-	and craft node velocity
-\item rotor disk angle
-\item advance parameter $\mu$
-\item inflow parameter $\lambda$
-\item advance/inflow angle $\chi=\arctan\plbr{\mu/\lambda}$
-\item reference azimuthal direction $\psi_0$, related to rotor yaw angle
-\item boolean flag indicating convergence in reference induced velocity
-	computation iteration
-\item number of iterations required for convergence
+\item column 1: element label
+\item columns 2--4: rotor force in \kw{x}, \kw{y} and \kw{z} directions
+	(longitudinal, lateral and thrust components)
+\item columns 5--7: rotor moment about \kw{x}, \kw{y} and \kw{z} directions
+	(roll, pitch and torque components)
+\item column 8: mean inflow velocity, based on momentum theory
+\item column 9: reference velocity at rotor center, sum of airstream
+	and \kw{craft} node velocity
+\item column 10: rotor disk angle
+\item column 11: advance parameter $\mu$
+\item column 12: inflow parameter $\lambda$
+\item column 13: advance/inflow angle $\chi=\tan^{-1}\plbr{\mu/\lambda}$
+\item column 14: reference azimuthal direction $\psi_0$,
+	related to rotor yaw angle
+\item column 15: boolean flag indicating convergence
+	in reference induced velocity computation internal iterations
+\item column 16: number of iterations required for convergence
 \newcounter{elem_rotor_output}
 \setcounter{elem_rotor_output}{\value{enumi}}
 \end{enumerate}
 The \kw{dynamic inflow} model adds the columns
 \begin{enumerate}
 \setcounter{enumi}{\value{elem_rotor_output}}
-\item constant inflow state
-\item sine inflow state (lateral)
-\item cosine inflow state (longitudinal)
+\item column 17: constant inflow state
+\item column 18: sine inflow state (lateral)
+\item column 19: cosine inflow state (longitudinal)
 \end{enumerate}
+Rotor force and moment (columns 2--4 and 5--7) are the aerodynamic
+force and moment exerted by the rotor aerodynamics on the \kw{rotor\_node},
+projected in the reference frame of the \kw{craft\_node},
+optionally modified by the \kw{rotor\_orientation} matrix.
+The conventional naming of longitudinal (or drag), lateral and thrust force,
+and roll, pitch and torque moment, refer to a rotorcraft
+whose \kw{x} axis is the longitudinal (nose to tail) axis,
+whose \kw{y} axis is the lateral (portside) axis,
+and whose \kw{z} axis is the vertical (bottom to top) axis.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -5643,6 +5653,8 @@ The following data is available:
 \item \kw{"My"} rotor moment about \kw{y} direction (pitch moment)
 \item \kw{"Mz"} rotor moment about \kw{z} direction (torque)
 \end{enumerate}
+The rotor force and moment components are expressed in the same reference
+frame described in the Output Section above.
 
 
 
