@@ -497,7 +497,7 @@ are based on three-dimensional vectors which depend on multipliers.
             <T0> , <dT/dz> , <R> , <g0> , <z1> , <z2>
         } [ , reference altitude, <z0> ]
     } , (Vec3_tpl_drive_caller) <air_speed>
-    [ , gust , <gust_model> ]
+    [ , gust , <gust_model> [ , ... ] ]
 \end{verbatim}
 The first form consists in the bare input of the air density,
 in form of a drive caller, and of the sound celerity, e.g.:
@@ -543,15 +543,22 @@ altitudes of the null temperature gradient region \kw{z1} and
 \end{verbatim}
 The asymptotic air properties are characterized by the 3D template drive 
 of the air speed, in the global reference frame.
+
+\subsection{Gust}
 If the optional \kw{gust} keyword is used, a gust model can be added.
 Note that a very elementary gust model, represented by a uniform change
 in airstream speed and direction can be implemented by using
 a time-dependent airstream drive.
 
-A more sophisticated model is currently available, and provisions are
-made to allow four-dimensional gust profiles, dependent on time
-and position.
-The syntax is:
+Gusts can also be appended later to the \kw{air properties} element
+by using the statement
+\begin{verbatim}
+    gust : <gust_model> ;
+\end{verbatim}
+
+
+\subsubsection{Front 1D Gust}
+The syntax of the \kw{front 1D} gust model is:
 \begin{verbatim}
     <gust_model> ::= front 1D ,
         (Vec3) <front_direction> ,
@@ -594,11 +601,102 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
             cosine, 0., pi/waveLength, V_g/2., one, 0.;
 \end{verbatim}
 
-Gusts can also be added later to the \kw{air properties} element
-by using the statement
+
+
+\subsubsection{Scalar Function Wind Profile}
+The syntax of the \kw{scalar function} wind profile,
+implemented as a gust model within the \kw{air properties}, is:
 \begin{verbatim}
-    gust : <gust_model> ;
+    <gust_model> ::= scalar function ,
+        reference position , (Vec3)<X0> ,
+        reference orientation , (Mat3x3)<R0> ,
+        (ScalarFunction)<sf>
 \end{verbatim}
+It yields a uniform velocity profile along the \kw{x} axis of the
+reference orientation as a function of the \kw{z} axis component
+of the relative position; namely, given the relative position
+\begin{align}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	,
+\end{align}
+the velocity is
+\begin{align}
+	\T{v}
+	&=
+	\T{e}_1 \kw{sf}(z)
+	,
+\end{align}
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
+
+
+
+\subsubsection{Power Law Wind Profile}
+The syntax of the \kw{power law} wind profile, implemented as a gust model
+within the \kw{air properties}, is:
+\begin{verbatim}
+    <gust_model> ::= power law ,
+        reference position , (Vec3)<X0> ,
+        reference orientation , (Mat3x3)<R0> ,
+        reference elevation , <z_ref> ,
+        reference velocity , <v_ref> ,
+        exponent , <exponent>
+\end{verbatim}
+It yields a uniform velocity profile along the \kw{x} axis of the
+reference orientation as a function of the \kw{z} axis component
+of the relative position; namely, given the relative position
+\begin{align}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	,
+\end{align}
+the velocity is
+\begin{align}
+	\T{v}
+	&=
+	\T{e}_1 \kw{v\_ref} \plbr{\frac{z}{\kw{z\_ref}}}^\kw{exponent}
+	,
+\end{align}
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
+Typical exponents are about 0.1.
+
+
+
+\subsubsection{Logarithmic Wind Profile}
+The syntax of the \kw{logarithmic} wind profile, implemented as a gust model
+within the \kw{air properties}, is:
+\begin{verbatim}
+    <gust_model> ::= logarithmic ,
+        reference position , (Vec3)<X0> ,
+        reference orientation , (Mat3x3)<R0> ,
+        reference elevation , <z_ref> ,
+        reference velocity , <v_ref> ,
+        surface roughness length , <z_0>
+\end{verbatim}
+It yields a uniform velocity profile along the \kw{x} axis of the
+reference orientation as a function of the \kw{z} axis component
+of the relative position; namely, given the relative position
+\begin{align}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	,
+\end{align}
+the velocity is
+\begin{align}
+	\T{v}
+	&=
+	\T{e}_1 \kw{v\_ref} \frac{
+		\log(z/\kw{z\_0}) - \psi_m
+	}{
+		\log(\kw{z\_ref}/\kw{z\_0}) - \psi_m
+	}
+	,
+\end{align}
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
+
+The surface roughness length describes the typical roughness
+of the surrounding surface.
+It is a very small number in case of smooth surface
+(e.g.\ 0.01m for grass),
+or 1/20 to 1/30 of the typical obstacle's size (e.g.\ 1m for woods).
+
 
 \paragraph{Output}
 The output occurs in the \kw{.air} file, which contains:
