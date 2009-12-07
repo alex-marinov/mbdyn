@@ -93,7 +93,11 @@ pRBK(pRBK)
    
 AirProperties::~AirProperties(void)
 {
-	NO_OP;
+	for (std::vector<Gust *>::iterator i = gust.begin();
+		i != gust.end(); i++)
+	{
+		SAFEDELETE(*i);
+	}
 }
 
 void
