@@ -85,8 +85,13 @@ PowerLawWindProfile::Restart(std::ostream& out) const
 		<< ", exponent, " << dPower;
 }
 
+PowerLawGR::~PowerLawGR(void)
+{
+	NO_OP;
+}
+
 Gust *
-ReadPowerLawWindProfile(DataManager *pDM, MBDynParser& HP)
+PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 {
 	doublereal dZRef = -1.;
 	doublereal dVRef = -1.;
@@ -209,8 +214,13 @@ LogarithmicWindProfile::Restart(std::ostream& out) const
 		<< ", surface roughness length, " << dSurfaceRoughnessLength;
 }
 
+LogarithmicGR::~LogarithmicGR(void)
+{
+	NO_OP;
+}
+
 Gust *
-ReadLogarithmicWindProfile(DataManager *pDM, MBDynParser& HP)
+LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 {
 	doublereal dZRef = -1.;
 	doublereal dVRef = -1.;

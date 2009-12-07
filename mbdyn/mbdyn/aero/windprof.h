@@ -57,8 +57,12 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 };
 
-extern Gust *
-ReadPowerLawWindProfile(DataManager *pDM, MBDynParser& HP);
+struct PowerLawGR : public GustRead {
+public:
+	virtual ~PowerLawGR(void);
+	virtual Gust *
+	Read(const DataManager* pDM, MBDynParser& HP);
+};
 
 /* PowerLawWindProfile - end */
 
@@ -81,8 +85,12 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 };
 
-extern Gust *
-ReadLogarithmicWindProfile(DataManager *pDM, MBDynParser& HP);
+struct LogarithmicGR : public GustRead {
+public:
+	virtual ~LogarithmicGR(void);
+	virtual Gust *
+	Read(const DataManager* pDM, MBDynParser& HP);
+};
 
 /* LogarithmicWindProfile - end */
 

@@ -66,8 +66,12 @@ extern "C" {
 /* To allow direct loading of modules */
 #include "modules.h"
 
-/* To handle  of Elem2Param */
+/* To handle Elem2Param */
 #include "j2p.h"
+
+// To handle gusts
+#include "gust.h"
+
 /* DataManager - begin */
 
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
@@ -194,6 +198,8 @@ DofIter()
 	ElemManager();
 	NodeManager();
 	DofManager();
+
+	InitGustData();
 
 	/* registra il plugin per i dofs */
 	HP.GetMathParser().RegisterPlugIn("dof", dof_plugin, this);
@@ -625,6 +631,8 @@ DataManager::~DataManager(void)
 	ElemManagerDestructor();
 	NodeManagerDestructor();
 	DofManagerDestructor();
+
+	DestroyGustData();
 
 #if defined(USE_RUNTIME_LOADING)
 	if (loadableElemInitialized) {

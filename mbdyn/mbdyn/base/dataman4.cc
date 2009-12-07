@@ -587,7 +587,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			ElemMapType::iterator ap = ElemData[Elem::AIRPROPERTIES].ElemMap.begin();
-			dynamic_cast<AirProperties *>(ap->second)->AddGust(ReadGust(this, HP));
+			dynamic_cast<AirProperties *>(ap->second)->AddGust(ReadGustData(this, HP));
 
 		/* gestisco a parte gli elementi automatici strutturali, perche'
 		 * sono gia' stati costruiti altrove e li devo solo inizializzare;

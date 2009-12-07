@@ -28,6 +28,8 @@ cyclocopter.cc \
 cyclocopter.h \
 genfm.cc \
 genfm.h \
+gust.cc \
+gust.h \
 indvel.cc \
 indvel.h \
 instruments.cc \

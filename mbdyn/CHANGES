@@ -13,6 +13,8 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added peer libraries for modal external force (mbc.h)
 		- added NetCDF support to beam2/3
+		- added support for run-time loading of gust models
+		- added basic wind profiles
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:

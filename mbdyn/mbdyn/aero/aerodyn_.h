@@ -78,28 +78,6 @@
 
 #include "aerodyn.h"
 
-/* Gust1D - begin */
-
-class Gust1D : public Gust {
-private:
-	Vec3 FrontDir;
-	Vec3 GustDir;
-	doublereal dVRef;
-	DriveOwner Time;
-	DriveOwner GustProfile;
-
-public:
-	Gust1D(const Vec3& f, const Vec3& g, const doublereal& v,
-			DriveCaller *pT, DriveCaller *pG);
-	~Gust1D(void);
-
-	virtual std::ostream& Restart(std::ostream& out) const;
-	bool GetVelocity(const Vec3& X, Vec3& V) const;
-};
-
-/* Gust1D - end */
-
-
 /* BasicAirProperties - begin */
 
 class BasicAirProperties 

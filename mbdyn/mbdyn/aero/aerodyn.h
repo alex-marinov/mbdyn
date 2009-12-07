@@ -79,27 +79,9 @@
 #include "elem.h"
 #include "tpldrive.h"
 #include "rbk.h"
+#include "gust.h"
 
 extern const char* psAeroNames[];
-
-class AirProperties;
-
-/* Gust - begin */
-
-class Gust {
-protected:
-	const AirProperties *pAP;
-
-public:
-	virtual ~Gust(void);
-	void SetAirProperties(const AirProperties *pap);
-	virtual Vec3 GetVelocity(const Vec3& X) const;
-	virtual bool GetVelocity(const Vec3& X, Vec3& V) const = 0;
-	virtual std::ostream& Restart(std::ostream& out) const = 0;
-};
-
-/* Gust - end */
-
 
 /* AirProperties - begin */
 
@@ -215,9 +197,6 @@ public:
 
 class DataManager;
 
-extern Gust *
-ReadGust(DataManager *pDM, MBDynParser& HP);
-
 extern Elem *
 ReadAirProperties(DataManager* pDM, MBDynParser& HP);
 
@@ -296,5 +275,5 @@ public:
 
 /* AerodynamicElem - end */
 
-#endif /* AERODYN_H */
+#endif // AERODYN_H
 

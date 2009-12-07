@@ -69,67 +69,7 @@
 #include "drive_.h"
 #include "tpldrive.h"
 
-#include "windprof.h"
-
-/*
- * Gust
- */
-Gust::~Gust(void)
-{
-	NO_OP;
-}
-
-void
-Gust::SetAirProperties(const AirProperties *pap)
-{
-	ASSERT(pap != 0);
-	pAP = pap;
-}
-
-Vec3
-Gust::GetVelocity(const Vec3& X) const
-{
-	Vec3 V(0.);
-	GetVelocity(X, V);
-	return V;
-}
-
-Gust1D::Gust1D(const Vec3& f, const Vec3& g, const doublereal& v,
-	DriveCaller *pT, DriveCaller *pG)
-: FrontDir(f),
-GustDir(g),
-dVRef(v),
-Time(pT),
-GustProfile(pG)
-{
-	ASSERT(pT != NULL);
-	ASSERT(pG != NULL);
-}
-
-Gust1D::~Gust1D(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-Gust1D::Restart(std::ostream& out) const
-{
-	out << "front 1D, ",
-		FrontDir.Write(out, ", ")
-		<< ", ", GustDir.Write(out, ", ")
-		<< ", " << dVRef
-		<< ", ", GustProfile.pGetDriveCaller()->Restart(out);
-	return out;
-}
-
-bool
-Gust1D::GetVelocity(const Vec3& X, Vec3& V) const
-{
-	doublereal x = FrontDir*X + dVRef*Time.dGet();
-	doublereal v = GustProfile.dGet(x);
-	V = GustDir*v;
-	return true;
-}
+#include "gust.h"
 
 /* AirProperties - begin */
 
@@ -564,48 +504,6 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 
 /* StdAirProperties - end */
 
-Gust *
-ReadGust(DataManager *pDM, MBDynParser& HP)
-{
-	Gust *pG = 0;
-	if (HP.IsKeyWord("front" "1d")) {
-		/* front direction */
-		Vec3 f = HP.GetVecAbs(AbsRefFrame);
-
-		/* gust velocity direction */
-		Vec3 g = HP.GetVecAbs(AbsRefFrame);
-
-		/* reference velocity */
-		doublereal v = HP.GetReal();
-
-		/* time drive caller
-		 * FIXME: not needed if v = 0 */
-		DriveCaller *pT = NULL;
-		SAFENEWWITHCONSTRUCTOR(pT, TimeDriveCaller,
-				TimeDriveCaller(pDM->pGetDrvHdl()));
-
-		/* gust profile drive caller */
-		DriveCaller *pP = HP.GetDriveCaller();
-
-		/* gust */
-		SAFENEWWITHCONSTRUCTOR(pG, Gust1D,
-				Gust1D(f, g, v, pT, pP));
-
-	} else if (HP.IsKeyWord("power" "law")) {
-		pG = ReadPowerLawWindProfile(pDM, HP);
-
-	} else if (HP.IsKeyWord("logarithmic")) {
-		pG = ReadLogarithmicWindProfile(pDM, HP);
-
-	} else {
-		silent_cerr("unknown gust type at line "
-			<< HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	return pG;
-}
-
 static void
 ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
 		TplDriveCaller<Vec3>*& pDC, std::vector<Gust*>& gust)
@@ -616,7 +514,7 @@ ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
      	pDC = ReadDC3D(pDM, HP);
 	while (HP.IsKeyWord("gust")) {
 		/* gust */
-		gust.insert(gust.end(), ReadGust(pDM, HP));
+		gust.insert(gust.end(), ReadGustData(pDM, HP));
 	}
 }
 
