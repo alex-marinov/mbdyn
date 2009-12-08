@@ -40,6 +40,8 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-fPIC
+export LTFCCOMPILE = @LIBTOOL@ --mode=compile @FC@ $(AM_FFLAGS) @FFLAGS@ \
+	-fPIC
 export LIBTOOL = @LIBTOOL@
 export MODULES_DIRS=@MODULES_DIRS@
 export INSTALL_PROGRAM=${INSTALL}

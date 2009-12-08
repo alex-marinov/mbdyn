@@ -51,7 +51,7 @@ lib$(MBDYN_MODULE).la: $(MODULE_DEPENDENCIES) $(MBDYN_MODULE).lo
 
 %.lo: %.f90
 	$(MAKE) clean-so
-	$(LTF77COMPILE) -o $@ -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
+	$(LTFCCOMPILE) -o $@ -I$(MBDYN_MODULE_SRCDIR) -DMBDYN_MODULE -c $<
 
 %.lo: %.f
 	$(MAKE) clean-so

@@ -278,14 +278,20 @@ if test "x$CXX" = "x" ; then
 	AC_MSG_ERROR([Need a working C++ compiler])
 fi
 AC_PROG_FC
-AC_PROG_F77
-if test "x$FC" = "x" -a "x$F77" = "x" ; then
-	AC_MSG_ERROR([Need a working Fortran compiler])
-fi
 AC_FC_DUMMY_MAIN
 AC_FC_LIBRARY_LDFLAGS
-AC_F77_LIBRARY_LDFLAGS
-LIBS="$LIBS $FCLIBS $F77LIBS"
+if test "x$FC" = "x" ; then
+	AC_PROG_F77
+	if test "x$F77" = "x" ; then
+		AC_MSG_ERROR([Need a working Fortran compiler])
+	fi
+	AC_F77_LIBRARY_LDFLAGS
+	LIBS="$LIBS $F77LIBS"
+else
+	F77="$FC"
+	F77LIBS="$FCLIBS"
+	LIBS="$LIBS $FCLIBS"
+fi
 
 if test "$GCC" = "yes" ; then
 	dnl check for 3.3
