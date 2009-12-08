@@ -170,6 +170,7 @@ INCLUDES = \
 -I$(srcdir)/../mbdyn/base
 
 # Rule to compile modules; run "make <module-name>.so"
+# NOTE: this is a GNU make extension
 %.so: %.o
 	$(CXXLINK) -shared -o $@ $<
 
