@@ -400,6 +400,7 @@ isvan == 0 && /structural node:/ {
 
 	if (!exclude["structural node", $3]) {
 		node[node_num] = $3;
+		node[node_num, "relative"] = -1;
 		node[node_num, 1] = $4;
 		node[node_num, 2] = $5;
 		node[node_num, 3] = $6;
@@ -1176,7 +1177,7 @@ isvan == 0 && /aero3:/ && show["aero"] {
 }
 
 function node_pos(i, X) {
-	if (node[i, "relative"]) {
+	if (node[i, "relative"] >= 0) {
 		label = node[i, "relative"];
 		v2[1] = strnode[label, 1];
 		v2[2] = strnode[label, 2];
