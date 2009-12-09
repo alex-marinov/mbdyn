@@ -16,7 +16,7 @@ MBDyn 1.X-Devel
 		- added support for gust models run-time loading
 		- added gust models for basic wind profiles
 		- added piecewise constant shape
-		- added tip loss to aerodynamic elements
+		- added tip loss handling to aerodynamic elements
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:
