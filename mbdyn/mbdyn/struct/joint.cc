@@ -2809,8 +2809,8 @@ ReadJoint(DataManager* pDM,
 			pXDC[0] = ReadDCVecRel(pDM, HP, RF1h);
 
 			if (pDM->bIsInverseDynamics()) {
-				pXDC[1] = ReadDC3D(pDM, HP);
-				pXDC[2] = ReadDC3D(pDM, HP);
+				pXDC[1] = ReadDCVecRel(pDM, HP, RF1h);
+				pXDC[2] = ReadDCVecRel(pDM, HP, RF1h);
 			}
 
 		} else {
@@ -2854,8 +2854,8 @@ ReadJoint(DataManager* pDM,
 			pTDC[0] = ReadDCVecRel(pDM, HP, RF1hr);
 
 			if (pDM->bIsInverseDynamics()) {
-				pTDC[1] = ReadDC3D(pDM, HP);
-				pTDC[2] = ReadDC3D(pDM, HP);
+				pTDC[1] = ReadDCVecRel(pDM, HP, RF1hr);
+				pTDC[2] = ReadDCVecRel(pDM, HP, RF1hr);
 			}
 
 		} else {
