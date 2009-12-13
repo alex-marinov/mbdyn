@@ -1414,6 +1414,11 @@ enum OrientationDescription {
  una rotazione a cui corrispondono parametri singolari.
  */
 extern Vec3 MatR2gparam(const Mat3x3& R);
+
+/*
+ Computes so-called linear parametrization
+ */
+extern Vec3 MatR2LinParam(const Mat3x3& R);
    
 /*
  Calcola la matrice di rotazione a partire da due vettori sghembi. 

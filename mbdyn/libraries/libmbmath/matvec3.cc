@@ -713,6 +713,12 @@ MatR2gparam(const Mat3x3& m)
 	return m.Ax()*(4./d);
 }
 
+/* So-called linear parametrization, consisting in ax(R - R') */
+Vec3
+MatR2LinParam(const Mat3x3& m)
+{
+	return m.Ax();
+}
 
 /* Calcolo della matrice R a partire da due vettori sghembi */
 
