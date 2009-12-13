@@ -1824,6 +1824,10 @@ Currently supported communication schemes are
         " <data_file_name> "
         [ <common_parameters> ]
 
+    <socket> ::= socket ,
+        [ create , { yes | no } , ]
+        { path , <path> | port , <port> [ , host , <host> ] }
+
     <common_parameters> ::=
         [ , sleep time , <sleep_time> ]
         [ , precision , { default | <digits> } ]
@@ -1873,6 +1877,27 @@ so adaptive time stepping cannot be implemented.
 between the two processes.
 Its contents depend on the purpose it is used for,
 as described in the subsequent sections.
+
+
+
+\subsubsection{Socket communicator}
+The optional parameter \kw{create}, when set to \kw{yes}, indicates
+that MBDyn will create the socket, and the peer will have to connect to it.
+Otherwise, when set to \kw{no}, it indicates that MBDyn will try to connect
+to an already existing socket created by the peer.
+Connecting to a peer is attempted while reading the input file.
+Sockets are created when the input file has been read.
+MBDyn waits until all sockets have been connected to by peers
+before the simulation is started.
+
+MBDyn supports local (unix) sockets, defined using the \kw{path} parameter,
+and inet sockets, defined using the \kw{port} parameter.
+When \kw{create} is set to \kw{yes}, the optional keyword \kw{host}
+allows to define what interface of the host MBDyn will listen on.
+When \kw{create} is set to \kw{no}, the optional keyword \kw{host}
+indicates what host to connect to.
+It defaults to \kw{localhost}.
+
 
 
 
@@ -2211,6 +2236,57 @@ If \kw{type} is \kw{modal} or \kw{all}, each line contains:
 	the format of this field is \kw{element\_label.mode\_number};
 \item in column 2 the amplitude of the corresponding modal force.
 \end{itemize}
+
+
+
+\subsection{External modal mapping}
+This element allows to communicate with an external software that computes
+forces applied to a set of structural nodes,
+and may depend on the values of the corresponding variables.
+Modal forces are actually computed, based on the value of modal variables.
+The element thus projects the motion of the set of structural nodes
+in the space of a set of modes before communicating it to the peer.
+Similarly, it receives generalized forces that are projected back
+in the space of the structural nodes before assembly.
+Communication occurs by means of the communicators illustrated earlier
+for the \kw{external modal} case.
+\begin{verbatim}
+    <force_type> ::= external modal mapping
+    <force_arglist> ::= <external_force_communicator> ,
+    [ reference node , <ref_node_label> , ]
+    nodes number , <num_nodes> , <node1_label> [ , ... ] ,
+    modes number , <num_modes> ,
+    { full | sparse } mapping file , " <filename> "
+        [ , accelerations ]
+        [ , type , { rigid | modal | all } ]
+\end{verbatim}
+\kw{ref\_node\_label} is the label of the reference node
+if the modes express the motion relative to a specific node.
+
+The mapping file contains the matrix that maps the nodal and modal
+displacements, velocities and forces.
+When \kw{full mapping file} is used, a file containing a full
+\kw{num\_modes} times (6$\times$\kw{num\_nodes}) coefficients is expected.
+When \kw{sparse mapping file} is used, a file containing
+\kw{row}, \kw{col}, \kw{value} triplets is expected,
+with $1\le\kw{row}\le\kw{num\_modes}$
+and $1\le\kw{col}\le6\times\kw{num\_nodes}$.
+Both files may start with an arbitrary number of lines beginning
+with a hash mark (`\kw{\#}').
+They are treated as comments and ignored.
+
+If the optional keyword \kw{accelerations} is present,
+the output will also contain the modal accelerations.
+
+If the optional keyword \kw{type} is present,
+the alternative keywords \kw{rigid}, \kw{modal} or \kw{all}
+inform MBDyn about whether only the rigid or the modal portions
+of the force are expected.
+The default is \kw{all}, but some communicators might require
+a specific value.
+If \kw{rigid} or \kw{all} are used, the \kw{reference node} must be defined.
+
+
 
 
 
