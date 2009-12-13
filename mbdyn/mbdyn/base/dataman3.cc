@@ -1219,45 +1219,43 @@ EndOfUse:
 
 				bool bGot(false);
 
-				ReferenceFrame RF;
-
 				if (HP.IsKeyWord("position")) {
-					X = HP.GetPosAbs(RF);
+					X = HP.GetPosAbs(AbsRefFrame);
 					if (!X.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("orientation")) {
-					R = HP.GetRotAbs(RF);
+					R = HP.GetRotAbs(AbsRefFrame);
 					if (!R.IsExactlySame(Eye3)) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("velocity")) {
-					V = HP.GetVecAbs(RF);
+					V = HP.GetVecAbs(AbsRefFrame);
 					if (!V.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("angular" "velocity")) {
-					W = HP.GetVecAbs(RF);
+					W = HP.GetVecAbs(AbsRefFrame);
 					if (!W.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("acceleration")) {
-					XPP = HP.GetVecAbs(RF);
+					XPP = HP.GetVecAbs(AbsRefFrame);
 					if (!XPP.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("angular" "acceleration")) {
-					WP = HP.GetVecAbs(RF);
+					WP = HP.GetVecAbs(AbsRefFrame);
 					if (!WP.IsNull()) {
 						bGot = true;
 					}
@@ -1273,7 +1271,6 @@ EndOfUse:
 				SAFENEWWITHCONSTRUCTOR(pRBK,
 					ConstRigidBodyKinematics,
 					ConstRigidBodyKinematics(X, R, V, W, XPP, WP));
-				break;
 
 			} else if (HP.IsKeyWord("drive")) {
 				TplDriveCaller<Vec3> *pXDrv(0);
@@ -1286,22 +1283,22 @@ EndOfUse:
 				bool bGot(false);
 
 				if (HP.IsKeyWord("position")) {
-					pXDrv = ReadDC3D(this, HP);
+					pXDrv = ReadDCVecRel(this, HP, AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("orientation")) {
-					pThetaDrv = ReadDC3D(this, HP);
+					pThetaDrv = ReadDCVecRel(this, HP, AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("velocity")) {
-					pVDrv = ReadDC3D(this, HP);
+					pVDrv = ReadDCVecRel(this, HP, AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("angular" "velocity")) {
-					pWDrv = ReadDC3D(this, HP);
+					pWDrv = ReadDCVecRel(this, HP, AbsRefFrame);
 					bGot = true;
 				}
 
@@ -1327,15 +1324,19 @@ EndOfUse:
 					DriveRigidBodyKinematics(pXDrv,
 						pThetaDrv, pVDrv, pWDrv,
 						pXPPDrv, pWPDrv));
-				break;
 
-				
+			} else {
+				silent_cerr("unknown rigid body kinematics "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			silent_cerr("unknown rigid body kinematics "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			if (HP.IsArg()) {
+				silent_cerr("Semicolon expected at line "
+					<< HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		} break;
 
 		case UNKNOWN:
