@@ -36,6 +36,7 @@
 
 #include <vector>
 #include <string>
+
 #include "extforce.h"
 #include "modal.h"
 
@@ -165,62 +166,6 @@ public:
 		flag fOut);
 
 	virtual ~ModalExt(void);
-
-	/* Tipo di forza */
-	virtual Force::Type GetForceType(void) const;
-
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-
-	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
-	virtual void Output(OutputHandler& OH) const;
-
-	/* *******PER IL SOLUTORE PARALLELO******** */
-	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	/* ************************************************ */
-};
-
-/* ModalExt - end */
-
-/* ModalMappingExt - begin */
-
-class ModalMappingExt : virtual public Elem, public ExtForce {
-protected:
-	bool bOutputAccelerations;
-	ExtModalForceBase *pEMF;
-	unsigned uFlags;
-
-	Vec3 F, M;
-	std::vector<doublereal> f;
-
-	// Temporary?
-	std::vector<doublereal> q;
-	std::vector<doublereal> qP;
-
-	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
-	void Recv(ExtFileHandlerBase *pEFH);
-
-public:
-	/* Costruttore */
-	ModalMappingExt(unsigned int uL,
-		DataManager *pDM,
-		// Set of nodes with mapping criteria goes here
-		// Modal *pmodal,
-		bool bOutputAccelerations,
-		ExtFileHandlerBase *pEFH,
-		ExtModalForceBase *pEMF,
-		bool bSendAfterPredict,
-		int iCoupling,
-		ExtModalForceBase::BitMask bm,
-		flag fOut);
-
-	virtual ~ModalMappingExt(void);
 
 	/* Tipo di forza */
 	virtual Force::Type GetForceType(void) const;

@@ -61,6 +61,8 @@ modaledge.cc \
 modaledge.h \
 modalext.cc \
 modalext.h \
+modalmappingext.cc \
+modalmappingext.h \
 modalforce.cc \
 modalforce.h \
 module-wheel2.cc \

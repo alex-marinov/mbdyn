@@ -42,6 +42,7 @@
 #include "strext.h"
 #include "modalforce.h"
 #include "modalext.h"
+#include "modalmappingext.h"
 #include "totalj.h"
 #include "dataman.h"
 #include "tpldrive_impl.h"
@@ -256,6 +257,7 @@ ReadForce(DataManager* pDM,
 
 		"modal",
 		"external" "modal",
+		"external" "modal" "mapping",
 
 		"abstract",
 		"abstract" "internal",
@@ -282,6 +284,7 @@ ReadForce(DataManager* pDM,
 
 		MODALFORCE,
 		EXTERNALMODAL,
+		EXTERNALMODALMAPPING,
 
 		ABSTRACT,
 		ABSTRACTINTERNAL,
@@ -377,6 +380,10 @@ ReadForce(DataManager* pDM,
 
 	case EXTERNALMODAL:
 		pEl = ReadModalExtForce(pDM, HP, uLabel);
+		break;
+
+	case EXTERNALMODALMAPPING:
+		pEl = ReadModalMappingExtForce(pDM, HP, uLabel);
 		break;
 
 	case CONSERVATIVE:
