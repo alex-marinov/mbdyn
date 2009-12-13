@@ -1669,7 +1669,7 @@ MySubVectorHandler::Resize(integer iSize)
 
 	} else {
 		if (piRowm1 != NULL) {
-			if (iSize < iMaxSize) {
+			if (iSize <= iMaxSize) {
 				iCurSize = iSize;
 
 			} else {
