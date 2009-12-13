@@ -614,7 +614,7 @@ GenelStateSpaceMIMO::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	// inputs may contribute to the Jacobian matrix
 	integer iIdx_u = iNumDofs + iNumOutputs;
-	for (unsigned int j = 0; j < iNumOutputs; j++) {
+	for (unsigned int j = 0; j < iNumInputs; j++) {
 		ScalarDofValue *SDV_u = dynamic_cast<ScalarDofValue *>(SV_u[j]);
 		if (SDV_u != 0) {
 			ScalarDof& SD_u = dynamic_cast<ScalarDof &>(*SV_u[j]);
