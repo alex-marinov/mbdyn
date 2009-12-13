@@ -316,7 +316,7 @@ ExtSocketHandler::cmd2str(ESCmd cmd) const
 ExtSocketHandler::ExtSocketHandler(UseSocket *pUS, int iSleepTime,
 	int recv_flags, int send_flags)
 : ExtFileHandlerBase(iSleepTime, 0),
-pUS(pUS), recv_flags(recv_flags),
+pUS(pUS), recv_flags(recv_flags), send_flags(send_flags),
 bReadForces(true), bLastReadForce(false)
 {
 	NO_OP;
@@ -602,7 +602,7 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 }
 
 /*
- * Send output to companion software
+ * Send output to peer
  */
 void
 ExtForce::Send(ExtFileHandlerBase::SendWhen when)
