@@ -17,6 +17,8 @@ MBDyn 1.X-Devel
 		- added gust models for basic wind profiles
 		- added piecewise constant shape
 		- added tip loss handling to aerodynamic elements
+		- added referenced direction capability to rigid body
+		  kinematics
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:
@@ -30,6 +32,7 @@ MBDyn 1.X-Devel
 		- fixed issues with rotor inflows at very low angular speed
 		  (Mattia Mattaboni)
 		- fixed preconditioning issue in matrix free solver
+		- fixed index bug in GenelStateSpaceMIMO::AssJac()
 
 MBDyn 1.3.10
 	Enhancements:
