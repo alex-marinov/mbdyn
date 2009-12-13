@@ -14,7 +14,6 @@ A. Configuration:
 
 	- test for '_' appended to F77 symbols (recent autoconf does that)
 	- audit all the suite for not-so-GNU systems
-	- add test for pow_dd stuff (might be needed by fortran code)
 	- add check for make
 
 
@@ -56,6 +55,7 @@ D. Code:
 		- gravity (?)
 	- add absolute/relative reference frame dynamics interface
 	- generalize inflow models for fixed wing lifting surfaces
+	  (partially DONE)
 
 	Medium Projects:
 	- recover existing soft restart (Michele Attolico worked at it)
@@ -64,7 +64,8 @@ D. Code:
 	- add Scilab hooks
 	- add Simulink hooks (DONE by Michele Attolico:
 		see contrib/SimulinkInterface).
-	- add Scicos hooks
+	- add Scicos hooks (partially DONE by Tommaso Solcia:
+		see contrib/ScicosInterface).
 	- add a "shell" element that executes external programs,
 	  and allow exploitation for entities like elements, drives,
 	  constitutive laws and so
@@ -90,10 +91,10 @@ D. Code:
 			mbdyn > ascii
 			mbdyn > netcdf (in global output database)
 	- add aerodynamic elements Jacobian matrix contribution
-	  (DONE by Mattia Mattaboni)
+	  (DONE by Alessandro Fumagalli and Mattia Mattaboni)
 	- add sparse eigenvalue extraction (DONE, using ARPACK)
 	- add center of mass computation (DONE)/constraint
-	- add matrix scaling (partially DONE)
+	- add matrix scaling (partially DONE; needs test)
 
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
@@ -179,9 +180,9 @@ D. Code:
 		  a node with the clamp constraint plus a regular joint)
 		- modal force (DONE)
 	  this allows to add arbitrary elements connected to the modal element
-	- use getopt(3) in utils/
+	- use getopt(3) in utils/*
 	- add package-wide support for WinSocks in communication entities,
-	  including SimulinkInterface (using MSYS/MinGW)
+	  including SimulinkInterface and ScicosInterface (using MSYS/MinGW)
 	- add pseudo-realtime support based on nanosleep(2) (DONE)
 	- add RTAI-based motion output (DONE)
 	- use 3D (or 6D) templates for force and couple elements, preserving
@@ -217,7 +218,7 @@ E. Bugs/missing features:
 	- export private data from dummy structural nodes (DONE)
 	- allow 0 modes in modal element (nearly useless except for testing)
 	- UseSocket without host listens only on localhost
-	- external modal force needs work in "loose" coupling
+	- external modal force needs work in "loose" coupling (FIXED)
 	- allow preamble in communications with pairs {string,value}
 
 
