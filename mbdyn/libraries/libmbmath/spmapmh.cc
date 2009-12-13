@@ -354,8 +354,8 @@ SpMapMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 			const doublereal &dCoef),
 		VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols())
+	if (out.iGetSize() != iGetNumCols()
+			|| in.iGetSize() != iGetNumRows())
 	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
