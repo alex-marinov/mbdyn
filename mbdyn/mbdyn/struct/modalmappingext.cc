@@ -170,7 +170,7 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			x_tmp.Put(6*i + 1, Nodes[i].pNode->GetXCurr() - Nodes[i].X0);
-			x_tmp.Put(6*i + 4, MatR2LinParam(Nodes[i].pNode->GetRCurr().MulTM(Nodes[i].R0)));
+			x_tmp.Put(6*i + 4, MatR2LinParam(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0)));
 
 			xP_tmp.Put(6*i + 1, Nodes[i].pNode->GetVCurr());
 			xP_tmp.Put(6*i + 4, Nodes[i].pNode->GetWCurr());
