@@ -166,6 +166,18 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 	MyVectorHandler qP_tmp(qP.size(), &qP[0]);
 
 	if (pRefNode) {
+		const Vec3& XRef(pRefNode->GetXCurr());
+		const Mat3x3& RRef(pRefNode->GetRCurr());
+		const Vec3& VRef(pRefNode->GetVCurr());
+		const Vec3& WRef(pRefNode->GetWCurr());
+
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			x_tmp.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetXCurr() - Nodes[i].X0 - XRef));
+			x_tmp.Put(6*i + 4, MatR2LinParam(RRef.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
+
+			xP_tmp.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef));
+			xP_tmp.Put(6*i + 4, RRef.MulTV(Nodes[i].pNode->GetWCurr() - WRef));
+		}
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -243,6 +255,24 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 	pH->MatTVecMul(f_tmp, p_tmp);
 
 	if (pRefNode) {
+		const Vec3& XRef(pRefNode->GetXCurr());
+		const Mat3x3& RRef(pRefNode->GetRCurr());
+
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			Vec3 FTmp(&f[6*i]);
+			Vec3 MTmp(&f[6*i + 3]);
+
+			if (Nodes[i].pNode != pRefNode) {
+				F -= FTmp;
+				M -= MTmp + (Nodes[i].pNode->GetXCurr() - XRef).Cross(FTmp);
+			}
+
+			Nodes[i].F = RRef*FTmp;
+			Nodes[i].M = RRef*MTmp;
+		}
+
+		F = RRef*F;
+		M = RRef*M;
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
