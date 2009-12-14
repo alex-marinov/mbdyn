@@ -105,7 +105,7 @@ main(int argc, char *argv[])
 			}
 			if (iters < 1) {
 				fprintf(stderr, "testedge: "
-					"invalid sleep time %s\n",
+					"invalid iterations %s\n",
 					optarg);
 				usage();
 			}
