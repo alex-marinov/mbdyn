@@ -479,9 +479,9 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 	}
 	
 	WorkVec.Add(1, Az.GetVec1());
-	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1())+Az.GetVec2());
+	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1()) + Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
-	WorkVec.Sub(10, Az.GetVec2()+(p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
+	WorkVec.Sub(10, Az.GetVec2() + (p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
 }
 
    
@@ -1819,7 +1819,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
 	unsigned uFlags = Beam::OUTPUT_NONE;
-	ReadBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
+	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
 	

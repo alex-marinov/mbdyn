@@ -569,6 +569,10 @@ extern void
 ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	Beam::Type BT, unsigned& uFlags, OrientationDescription& od);
 
+extern void
+ReadOptionalBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	Beam::Type BT, unsigned& uFlags, OrientationDescription& od);
+
 extern Elem* 
 ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 

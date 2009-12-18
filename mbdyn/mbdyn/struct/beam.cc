@@ -2588,7 +2588,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
 	unsigned uFlags = Beam::OUTPUT_NONE;
-	ReadBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
+	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 
