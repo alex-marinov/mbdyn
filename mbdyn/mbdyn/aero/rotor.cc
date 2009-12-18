@@ -1910,7 +1910,7 @@ ReadRotor(DataManager* pDM,
 				}
 
 			} else if (HP.IsKeyWord("correction")) {
-				if (dCH == -1.) {
+				if (dCH != -1.) {
 					silent_cerr("Rotor(" << uLabel << "): "
 						"providing another \"correction\" factor "
 						"at line " << HP.GetLineData()
