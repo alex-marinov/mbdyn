@@ -33,6 +33,7 @@ MBDyn 1.X-Devel
 		  (Mattia Mattaboni; noted by Jinwei Shen)
 		- fixed preconditioning issue in matrix free solver
 		- fixed index bug in GenelStateSpaceMIMO::AssJac()
+		- fixed invalid density issue in rotor (noted by Jinwei Shen)
 
 MBDyn 1.3.10
 	Enhancements:

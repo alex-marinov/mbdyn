@@ -257,12 +257,12 @@ Rotor::dGetPos(const Vec3& X) const
 void
 Rotor::GetPos(const Vec3& X, doublereal& dr, doublereal& dp) const
 {
-	Vec3 XRel(RRotTranspose*(X-Res.Pole()));
+	Vec3 XRel(RRotTranspose*(X - Res.Pole()));
 
-	doublereal d1 = XRel.dGet(1);
-	doublereal d2 = XRel.dGet(2);
+	doublereal d1 = XRel(1);
+	doublereal d2 = XRel(2);
 
-	doublereal d = sqrt(d1*d1+d2*d2);
+	doublereal d = sqrt(d1*d1 + d2*d2);
 
 	ASSERT(dRadius > std::numeric_limits<doublereal>::epsilon());
 	dr = d/dRadius;
@@ -299,9 +299,9 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	/* Velocita' nel sistema del velivolo (del disco?) decomposta */
 	VTmp = RRotTranspose*VCraft;
-	doublereal dV1 = VTmp.dGet(1);
-	doublereal dV2 = VTmp.dGet(2);
-	doublereal dV3 = VTmp.dGet(3);
+	doublereal dV1 = VTmp(1);
+	doublereal dV2 = VTmp(2);
+	doublereal dV3 = VTmp(3);
 	doublereal dVV = dV1*dV1 + dV2*dV2;
 	doublereal dV = sqrt(dVV);
 	
@@ -327,6 +327,11 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	doublereal dT = RRot3*Res.Force();
 	doublereal dRho = dGetAirDensity(GetXCurr());
 
+	// bail out when density is negligible
+	if (dRho <= std::numeric_limits<doublereal>::epsilon()) {
+		return;
+	}
+
 	/* Parametri di influsso (usano il valore di dUMean al passo precedente) */
 	doublereal dVTip = 0.;
 	dMu = 0.;
@@ -343,7 +348,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	doublereal dGE = 1.;
 	if (pGround) {
 		Vec3 p = pGround->GetRCurr().MulTV(pRotor->GetXCurr() - pGround->GetXCurr());
-		doublereal z = p.dGet(3)*(4./dRadius);
+		doublereal z = p(3)*(4./dRadius);
 
 		if (z < .25) {
 			if (z <= 0.) {
@@ -371,31 +376,36 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	bUMeanRefConverged = false;
 	if (dVTip > dVTipTreshold*dVTipRef) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
-
 			doublereal dLambdaInd = dUMeanRef/dVTip;
 
 			dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
 			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
-			doublereal dRef1 = 2.*sqrt(dMu*dMu + dLambda*dLambda);
-			doublereal dRef2 = dRef1*(dMu*dMu + dLambda*dLambda);
+			doublereal dRef0 = dMu*dMu + dLambda*dLambda;
+			doublereal dRef1 = 2.*sqrt(dRef0);
+			doublereal dRef2 = dRef1*dRef0;
 	
-			doublereal dDelta = 0.;
 			doublereal dF = 0.;
-			doublereal dFPrime = 0.;
 			if (dRef1 > std::numeric_limits<doublereal>::epsilon()) {
-				dF = dLambdaInd - dCt/dRef1;
-				dFPrime = 1. + (dCt/dRef2)*dLambda;
-				dDelta = dF/dFPrime;
-				dUMeanRef = dUMeanRef - dGE*dEta*dDelta*dVTip;
-			} else {
-				dDelta = 0.;
+				dF = dLambdaInd - dGE*dCt/dRef1;
+				doublereal dFPrime = 1. + dGE*(dCt/dRef2)*dLambda;
+				doublereal dDelta = dF/dFPrime;
+				dUMeanRef -= dEta*dDelta*dVTip;
 			}
+
+#if 0
+			std::cerr
+				<< " iter=" << iCurrIter
+				<< " lambda=" << dLambda
+				<< " dRef1=" << dRef1
+				<< " dF=" << dF
+				<< " Uref=" << dUMeanRef
+				<< std::endl;
+#endif
 
 			if (fabs(dF) <= dTolerance) {
 				bUMeanRefConverged = true;
 				break;
 			}
-			
 		}
 
 		/* if no convergence, simply accept the current value
@@ -431,7 +441,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		if (dRef > dCt) {
 			// NOTE: an inflow velocity larger than VTip
 			// makes little sense
-			dUMean = (1. - dWeight)*dVTip*dCt/dRef + dWeight*dUMeanPrev;
+			dUMean = (1. - dWeight)*dGE*dVTip*dCt/dRef + dWeight*dUMeanPrev;
+
 		} else {
 			dUMean = dUMeanPrev;
 		}
@@ -1458,8 +1469,8 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	/* Thrust, roll and pitch coefficients */
 		 	dCT = dT/dDim;
 		 	dDim *= dRadius;
-		 	dCl = - M.dGet(1)/dDim;
-		 	dCm = - M.dGet(2)/dDim;
+		 	dCl = - M(1)/dDim;
+		 	dCm = - M(2)/dDim;
 
 			/* Matrix coefficients */
 			/* FIXME: divide by 0? */
