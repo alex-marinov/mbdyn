@@ -30,7 +30,7 @@ MBDyn 1.X-Devel
 		- fixed "inertia" element when inertia tensor is singular
 		- fixed "diag damping" in "modal" joint
 		- fixed issues with rotor inflows at very low angular speed
-		  (Mattia Mattaboni)
+		  (Mattia Mattaboni; noted by Jinwei Shen)
 		- fixed preconditioning issue in matrix free solver
 		- fixed index bug in GenelStateSpaceMIMO::AssJac()
 
