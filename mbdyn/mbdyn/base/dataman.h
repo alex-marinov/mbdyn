@@ -329,6 +329,10 @@ public:
 	void SetOrientationDescription(OrientationDescription);
 	OrientationDescription GetOrientationDescription(void) const;
 
+	/* default beam output */
+	void SetBeamOutput(unsigned, OrientationDescription);
+	void GetBeamOutput(unsigned&, OrientationDescription&) const;
+
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
 	MathParser& GetMathParser(void) const { return MathPar; };

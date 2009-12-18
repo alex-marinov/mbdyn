@@ -829,6 +829,21 @@ DataManager::GetOrientationDescription(void) const
 	return this->od;
 }
 
+/* default beam output */
+void
+DataManager::SetBeamOutput(unsigned flags, OrientationDescription od)
+{
+	this->beam_flags = flags;
+	this->beam_od = od;
+}
+
+void
+DataManager::GetBeamOutput(unsigned& flags, OrientationDescription& od) const
+{
+	flags = this->beam_flags;
+	od = this->beam_od;
+}
+
 bool
 DataManager::bOutputAccelerations(void) const
 {

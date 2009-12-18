@@ -2280,7 +2280,6 @@ void
 ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
 {
-	od = UNKNOWN_ORIENTATION_DESCRIPTION;
 	uFlags = Beam::OUTPUT_NONE;
 
 	while (HP.IsArg()) {
@@ -2360,12 +2359,9 @@ void
 ReadOptionalBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
 {
-	od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	pDM->GetBeamOutput(uFlags, od);
 	if (HP.IsKeyWord("custom" "output")) {
 		ReadBeamCustomOutput(pDM, HP, uLabel, BT, uFlags, od);
-
-	} else {
-		uFlags = Beam::OUTPUT_DEFAULT;
 	}
 }
 
