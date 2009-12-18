@@ -38,12 +38,10 @@ size. This is going to change, giving raise to a ``free'' and resizable
 structure. But this practice is to be considered reliable since it allows a
 sort of double-check on the entities that are inserted.
 
-\section{Model Control Cards}
-
-\subsection{Assembly-Related Cards}
+\section{Assembly-Related Cards}
 The initial assembly related cards are: 
 
-\subsubsection{Skip Initial Joint Assembly}
+\subsection{Skip Initial Joint Assembly}
 \begin{verbatim}
     <card> ::= skip initial joint assembly ;
 \end{verbatim}
@@ -60,7 +58,7 @@ for more details on performing appropriate initial joint assembly.
 
 
 
-\subsubsection{Use}\label{sec:CONTROLDATA:USE}
+\subsection{Use}\label{sec:CONTROLDATA:USE}
 \begin{verbatim}
     <card> ::= use : <item_list> , in assembly ;
     <item_list> ::= <item> [ , <item_list> ]
@@ -75,7 +73,7 @@ for more details on performing appropriate initial joint assembly.
 \kw{beams} are used by default, too, but can be added to the list
 essentially for backwards compatibility.
 
-\subsubsection{Initial Stiffness}\label{sec:CONTROLDATA:INITIALSTIFFNESS}
+\subsection{Initial Stiffness}\label{sec:CONTROLDATA:INITIALSTIFFNESS}
 \begin{verbatim}
     <card> ::= initial stiffness : <position_stiffness>
                                    [ , <velocity_stiffness> ] ;
@@ -93,14 +91,14 @@ be intended as a penalty coefficient.
 The same considerations apply to the penalty value for linear 
 and angular velocities.}
 
-\subsubsection{Omega Rotates}
+\subsection{Omega Rotates}
 \begin{verbatim}
     <card> ::= omega rotates : { yes | no } ;
 \end{verbatim}
 Sets whether the imposed angular velocity should be considered attached 
 to the node or fixed in the global system during the initial assembly.
 
-\subsubsection{Tolerance}
+\subsection{Tolerance}
 \begin{verbatim}
     <card> ::= tolerance : <tolerance> ;
 \end{verbatim}
@@ -111,7 +109,7 @@ that the algebraic constraints be satisfied as much as possible.
 The alternate statement \kw{initial tolerance} is tolerated 
 for backwards compatibility.
 
-\subsubsection{Max Iterations}
+\subsection{Max Iterations}
 \begin{verbatim}
     <card> ::= max iterations : <max_iterations> ;
 \end{verbatim}
@@ -119,14 +117,16 @@ The number of iterations that are allowed during the initial assembly.
 The alternate statement \kw{max initial iterations} is tolerated
 for backwards compatibility.
 
-\subsection{General-Purpose Cards}
 
-\subsubsection{Title}
+
+\section{General-Purpose Cards}
+
+\subsection{Title}
 \begin{verbatim}
     <card> ::= title : " <simulation_title> " ;
 \end{verbatim}
 
-\subsubsection{Print}\label{sec:CONTROLDATA:PRINT}
+\subsection{Print}\label{sec:CONTROLDATA:PRINT}
 \begin{verbatim}
     <card> ::= print : {
         dof stats |
@@ -174,7 +174,7 @@ while the statement
 \end{verbatim}
 disables all.
 
-\subsubsection{Make Restart File}
+\subsection{Make Restart File}
 \begin{verbatim}
     <card> ::= make restart file
         [ : { iterations , <iterations_between_restarts>
@@ -183,7 +183,7 @@ disables all.
 The default (no arguments) is to make the restart file only at the end of
 the simulation.
 
-\subsubsection{Select Timeout}
+\subsection{Select Timeout}
 \begin{verbatim}
     <card> ::= select timeout , { forever | <timeout> } ;
 \end{verbatim}
@@ -191,7 +191,7 @@ exit after \kw{<timeout>} minutes when waiting for connections
 on \kw{stream drives} or \kw{stream output elements}.
 By default, no timeout is used, so \kw{select} waits forever.
 
-\subsubsection{Default Output}\label{sec:CONTROLDATA:DEFAULTOUTPUT}
+\subsection{Default Output}\label{sec:CONTROLDATA:DEFAULTOUTPUT}
 \begin{verbatim}
     <card> ::= default output : <output_list> ;
     <output_list> ::= { all | none | <output_item> } 
@@ -249,7 +249,7 @@ of the entities whose output should be activated.
     end: control data;
 \end{verbatim}
 
-\subsubsection{Output Frequency}
+\subsection{Output Frequency}
 \label{sec:CONTROLDATA:OUTPUTFREQUENCY}
 This statement is intended for producing partial output.
 \begin{verbatim}
@@ -260,7 +260,7 @@ every \kw{<steps>} time steps, starting from the initial time.
 A more general functionality is now provided by the \kw{output meter}
 statement (Section~\ref{sec:CONTROLDATA:OUTPUTMETER}).
 
-\subsubsection{Output Meter}
+\subsection{Output Meter}
 \label{sec:CONTROLDATA:OUTPUTMETER}
 A drive that causes output to be generated when different from zero,
 while no output is created when equal to zero.  It is useful to reduce 
@@ -274,7 +274,7 @@ can be reproduced by using the \kw{meter} drive caller as follows:
     output meter: meter, 0., forever, steps, 10;
 \end{verbatim}
 
-\subsubsection{Output Precision}
+\subsection{Output Precision}
 Sets the desired output precision for those file types that allow it
 (currently, all the native output except the \kw{.out} file; the
 \kw{ADAMS} output, \kw{.res} files, are not affected.
@@ -287,7 +287,7 @@ This will no longer be an issue when the binary output is implemented;
 in that case, the output format will likely be fixed (float), or
 an optional extended format (double) will be allowed.
 
-\subsubsection{Output Results}
+\subsection{Output Results}
 This deprecated statement was intended for producing output in formats
 compatible with other software.
 See Appendix~\ref{sec:APP:OUTPUTRESULTS} for a description of the types
@@ -302,15 +302,20 @@ will replace the current textual output:
     <card> ::= output results : netcdf ;
 \end{verbatim}
 
-\subsubsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
+\subsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
 This statement is used to select the default format for orientation output.
 For historical reasons, MBDyn always used the 123 form of Euler angles
 (also known as Cardano angles).
 This statement allows to enable different formats:
 \begin{verbatim}
-    <card> ::= default orientation :
-        { euler123 | euler313 | euler321
-            | orientation vector | orientation matrix } ;
+    <card> ::= default orientation : <orientation_type> ;
+
+    <orientation_type> ::=
+        euler123
+        | euler313
+        | euler321
+        | orientation vector
+        | orientation matrix
 \end{verbatim}
 where
 \begin{itemize}
@@ -341,7 +346,46 @@ file generated by NetCDF).
 As a consequence, it is the user's responsibility to keep track
 of what representation is being used and treat output accordingly.
 
-\subsubsection{Default Scale}\label{sec:CONTROLDATA:DEFAULTSCALE}
+\subsection{Default Beam Output}\label{sec:CONTROLDATA:DEFAULTBEAMOUTPUT}
+This statement is used to select the default output of beam elements.
+\begin{verbatim}
+    <card> ::= default beam output :
+        <custom_output_flag> [ , ... ] ;
+
+    <custom_output_flag> ::=
+        position
+        | orientation [ , <orientation_description> ]
+        | configuration        # ::= position , orientation
+        | force
+        | moment
+        | forces               # ::= force , moment
+        | linear strain
+        | angular strain
+        | strains              # ::= linear strain , angular strain
+        | linear strain rate
+        | angular strain rate
+        | strain rates         # ::= linear strain rate , angular strain rate
+        | all                  # equivalent to all the above
+
+    <orientation_description> ::= orientation description ,
+        <orientation_type>
+\end{verbatim}
+The \kw{orientation\_type} is defined
+in Section~\ref{sec:CONTROLDATA:DEFAULTORIENTATION}.
+
+Flags add up to form the default beam output request.
+Flags may not be repeated.
+Strain rates are only available from viscoelastic beams;
+even if set, elastic beams will not output them.
+
+By default, only forces are output, to preserve compatibility
+with the original output format.
+The custom output is only available in NetCDF format;
+see Section~\ref{sec:NetCDF:Elem:Beam}.
+
+
+
+\subsection{Default Scale}\label{sec:CONTROLDATA:DEFAULTSCALE}
 \begin{verbatim}
     <card> ::= default scale: <scale_list> ;
     <scale_list> ::= <scale_pair> [ , <output_list> ]
@@ -365,7 +409,7 @@ in the problem-specific section.
 See Section~\ref{sec:IVP:TOLERANCE} for further details.
 
 
-\subsubsection{Model}
+\subsection{Model}
 \label{sec:CONTROLDATA:MODEL}
 \begin{verbatim}
     <card> ::= model : <model_type> ;
@@ -381,7 +425,7 @@ See the \kw{structural} node (Section~\ref{sec:NODE:STRUCTURAL}) for details.
 
 
 
-\subsubsection{Rigid Body Kinematics}
+\subsection{Rigid Body Kinematics}
 \label{sec:CONTROLDATA:RBK}
 \begin{verbatim}
     <card> ::= rigid body kinematics : <rbk_data> ;
@@ -422,7 +466,7 @@ whose velocity is typically expressed in the global reference frame.
 
 
 
-\subsubsection{Loadable path}
+\subsection{Loadable path}
 \label{sec:CONTROLDATA:LOADABLE_PATH}
 \begin{verbatim}
     loadable path : [ { set | add } , ] " <path> " ;

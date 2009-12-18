@@ -1379,22 +1379,10 @@ The \kw{custom\_output} optional data consists in
 \begin{verbatim}
     <custom_output> ::= custom output , 
         <custom_output_flag> [ , ... ]
-
-    <custom_output_flag> ::=
-        position
-        | orientation [ , <orientation_description> ]
-        | configuration        # ::= position , orientation
-        | force
-        | moment
-        | forces               # ::= force , moment
-        | linear strain
-        | angular strain
-        | strains              # ::= linear strain , angular strain
-        | linear strain rate
-        | angular strain rate
-        | strain rates         # ::= linear strain rate , angular strain rate
-        | all                  # equivalent to all the above
 \end{verbatim}
+The values of \kw{custom\_output\_flag}
+are defined in Section~\ref{sec:CONTROLDATA:DEFAULTBEAMOUTPUT}.
+
 Flags add up to form the custom output request.
 Flags may not be repeated.
 Strain rates are only available from viscoelastic beams.
