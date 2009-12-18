@@ -151,6 +151,8 @@ Var_Time(0),
 Var_TimeStep(0),
 #endif /* USE_NETCDF */
 od(EULER_123),
+beam_flags(Beam::OUTPUT_DEFAULT),
+beam_od(EULER_123),
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 iOutputBlock(1),
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */

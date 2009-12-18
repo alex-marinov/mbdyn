@@ -2276,85 +2276,93 @@ ViscoElasticBeam::dGetPrivData(unsigned int i) const
 
 /* ViscoElasticBeam - end */
 
-
 void
 ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
 {
 	od = UNKNOWN_ORIENTATION_DESCRIPTION;
-	if (HP.IsKeyWord("custom" "output")) {
-		uFlags = Beam::OUTPUT_NONE;
+	uFlags = Beam::OUTPUT_NONE;
 
-		while (HP.IsArg()) {
-			unsigned uFlag;
+	while (HP.IsArg()) {
+		unsigned uFlag;
 
-			if (HP.IsKeyWord("position")) {
-				uFlag = Beam::OUTPUT_EP_X;
+		if (HP.IsKeyWord("position")) {
+			uFlag = Beam::OUTPUT_EP_X;
 
-			} else if (HP.IsKeyWord("orientation")) {
-				uFlag = Beam::OUTPUT_EP_R;
+		} else if (HP.IsKeyWord("orientation")) {
+			uFlag = Beam::OUTPUT_EP_R;
 
-			} else if (HP.IsKeyWord("configuration")) {
-				uFlag = Beam::OUTPUT_EP_CONFIGURATION;
+		} else if (HP.IsKeyWord("configuration")) {
+			uFlag = Beam::OUTPUT_EP_CONFIGURATION;
 
-			} else if (HP.IsKeyWord("force")) {
-				uFlag = Beam::OUTPUT_EP_F;
+		} else if (HP.IsKeyWord("force")) {
+			uFlag = Beam::OUTPUT_EP_F;
 
-			} else if (HP.IsKeyWord("moment")) {
-				uFlag = Beam::OUTPUT_EP_M;
+		} else if (HP.IsKeyWord("moment")) {
+			uFlag = Beam::OUTPUT_EP_M;
 
-			} else if (HP.IsKeyWord("forces")) {
-				uFlag = Beam::OUTPUT_EP_FORCES;
+		} else if (HP.IsKeyWord("forces")) {
+			uFlag = Beam::OUTPUT_EP_FORCES;
 
-			} else if (HP.IsKeyWord("linear" "strain")) {
-				uFlag = Beam::OUTPUT_EP_NU;
+		} else if (HP.IsKeyWord("linear" "strain")) {
+			uFlag = Beam::OUTPUT_EP_NU;
 
-			} else if (HP.IsKeyWord("angular" "strain")) {
-				uFlag = Beam::OUTPUT_EP_K;
+		} else if (HP.IsKeyWord("angular" "strain")) {
+			uFlag = Beam::OUTPUT_EP_K;
 
-			} else if (HP.IsKeyWord("strains")) {
-				uFlag = Beam::OUTPUT_EP_STRAINS;
+		} else if (HP.IsKeyWord("strains")) {
+			uFlag = Beam::OUTPUT_EP_STRAINS;
 
-			} else if (HP.IsKeyWord("linear" "strain" "rate")) {
-				uFlag = Beam::OUTPUT_EP_NUP;
+		} else if (HP.IsKeyWord("linear" "strain" "rate")) {
+			uFlag = Beam::OUTPUT_EP_NUP;
 
-			} else if (HP.IsKeyWord("angular" "strain" "rate")) {
-				uFlag = Beam::OUTPUT_EP_KP;
+		} else if (HP.IsKeyWord("angular" "strain" "rate")) {
+			uFlag = Beam::OUTPUT_EP_KP;
 
-			} else if (HP.IsKeyWord("strain rates")) {
-				uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
+		} else if (HP.IsKeyWord("strain rates")) {
+			uFlag = Beam::OUTPUT_EP_STRAIN_RATES;
 
-			} else if (HP.IsKeyWord("all")) {
-				uFlag = Beam::OUTPUT_EP_ALL;
+		} else if (HP.IsKeyWord("all")) {
+			uFlag = Beam::OUTPUT_EP_ALL;
 
-			} else {
-				break;
-			}
+		} else {
+			break;
+		}
 
-			if (uFlags & uFlag) {
+		if (uFlags & uFlag) {
+			silent_cerr("Beam(" << uLabel << "): "
+				"duplicate custom output "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (uFlag & Beam::OUTPUT_EP_STRAIN_RATES) {
+			if (BT == Beam::ELASTIC) {
 				silent_cerr("Beam(" << uLabel << "): "
-					"duplicate custom output "
+					"strain rates only allowed for viscoelastic beams (ignored) "
 					"at line " << HP.GetLineData()
 					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				uFlag &= ~Beam::OUTPUT_EP_STRAIN_RATES;
 			}
-
-			if (uFlag & Beam::OUTPUT_EP_STRAIN_RATES) {
-				if (BT == Beam::ELASTIC) {
-					silent_cerr("Beam(" << uLabel << "): "
-						"strain rates only allowed for viscoelastic beams (ignored) "
-						"at line " << HP.GetLineData()
-						<< std::endl);
-					uFlag &= ~Beam::OUTPUT_EP_STRAIN_RATES;
-				}
-			}
-
-			if (uFlag & Beam::OUTPUT_EP_R) {
-				od = ReadOptionalOrientationDescription(pDM, HP);
-			}
-
-			uFlags |= uFlag;
 		}
+
+		if (uFlag & Beam::OUTPUT_EP_R) {
+			od = ReadOptionalOrientationDescription(pDM, HP);
+		}
+
+		uFlags |= uFlag;
+	}
+}
+
+
+void
+ReadOptionalBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
+{
+	od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	if (HP.IsKeyWord("custom" "output")) {
+		ReadBeamCustomOutput(pDM, HP, uLabel, BT, uFlags, od);
 
 	} else {
 		uFlags = Beam::OUTPUT_DEFAULT;

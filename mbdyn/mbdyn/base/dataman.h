@@ -193,6 +193,9 @@ protected:
 #endif /* USE_NETCDF */
 	OrientationDescription od;
 
+	unsigned beam_flags;
+	OrientationDescription beam_od;
+
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	mutable integer iOutputBlock;
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */

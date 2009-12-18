@@ -57,6 +57,8 @@
 
 #include "thermalnode.h"
 
+#include "beam.h"
+
 #include "rbk_impl.h"
 
 class NotAllowed {};
@@ -144,6 +146,7 @@ DataManager::ReadControl(MBDynParser& HP,
 			"accelerations",
 
 		"default" "orientation",
+		"default" "beam" "output",
 		"default" "scale",
 
 		"read" "solution" "array",
@@ -230,6 +233,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		ACCELERATIONS,
 
 		DEFAULTORIENTATION,
+		DEFAULTBEAMOUTPUT,
 		DEFAULTSCALE,
 
 		READSOLUTIONARRAY,
@@ -1086,6 +1090,10 @@ EndOfUse:
 
 		case DEFAULTORIENTATION:
 			od = ReadOrientationDescription(HP);
+			break;
+
+		case DEFAULTBEAMOUTPUT:
+			ReadBeamCustomOutput(this, HP, (unsigned)-1, Beam::VISCOELASTIC, beam_flags, beam_od);
 			break;
 
 		case DEFAULTSCALE:
