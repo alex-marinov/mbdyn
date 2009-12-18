@@ -310,7 +310,6 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	/* Angolo di influsso */
 	dVelocity = sqrt(dV3*dV3 + dVV);
-	// if (dVelocity > std::numeric_limits<doublereal>::epsilon()) {
 	if (dVelocity > dVTipTreshold*dVTipRef) {
 		dSinAlphad = -dV3/dVelocity;
 		dCosAlphad = dV/dVelocity;
@@ -334,7 +333,6 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	dLambda = 0.;
 	dVTip = dOmega*dRadius;
 
-	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 	if (dVTip > dVTipTreshold*dVTipRef) {
 		dMu = (dVelocity*dCosAlphad)/dVTip;
 	}
@@ -371,7 +369,6 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	bUMeanRefConverged = false;
-	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 	if (dVTip > dVTipTreshold*dVTipRef) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
 
@@ -426,7 +423,6 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	 * Um = -------------------------------------
 	 *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
 	 */
-	// if (dVTip > std::numeric_limits<doublereal>::epsilon()) {
 	if (dVTip > dVTipTreshold*dVTipRef) {
 		doublereal dMuTmp = dMu/dForwardFlightCorrection;
 		doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
@@ -1438,7 +1434,6 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	doublereal dVT
 				= sqrt(dLambdaTmp*dLambdaTmp + dMuTmp*dMuTmp);
 		 	doublereal dVm = 0.;
-		 	// if (dVT > std::numeric_limits<doublereal>::epsilon()) {
 		 	if (dVT > dVTipTreshold*dVTipRef) {
 		       		dVm = (dMuTmp*dMuTmp + dLambdaTmp*(dLambdaTmp + dVConst))/dVT;
 		 	}
