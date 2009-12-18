@@ -195,6 +195,7 @@ D. Code:
 	- check inertia computed with that from block 12 in modal joint (DONE)
 	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
+	- add record for damping matrix to modal input format
 
 
 
