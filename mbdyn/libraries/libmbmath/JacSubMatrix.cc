@@ -69,7 +69,7 @@ void ExpandableRowVector::Reset(void) {
 }
 void ExpandableRowVector::Link(const integer i, const ExpandableRowVector*const xp, const integer rhs_block) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Link() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::Link() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::Link() overflow");
 	ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableRowVector::Link() fatal error");
 	if (std::vector<ExpandableRowVector *>::size_type(rhs_block) > v[ i - 1].xm.size()) {
 		v[ i - 1].xm.resize(rhs_block);
@@ -78,19 +78,19 @@ void ExpandableRowVector::Link(const integer i, const ExpandableRowVector*const 
 }
 void ExpandableRowVector::Set(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Set() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::Set() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::Set() overflow");
 	v[i - 1].x = xx;
 }
 void ExpandableRowVector::Set(Vec3 xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Set() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i+3) <= v.size(), "ExpandableRowVector::Set() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i+3) <= v.size(), "ExpandableRowVector::Set() overflow");
 	v[i - 1].x = xx(1);
 	v[i - 0].x = xx(2);
 	v[i + 1].x = xx(3);
 }
 void ExpandableRowVector::SetIdx(integer i, integer iidx) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::SetIdx() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::SetIdx() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::SetIdx() overflow");
 // 	std::cerr << "ExpandableRowVector::SetIdx(" << i <<", " <<  iidx << ")" << std::endl;
 	v[i - 1].idx = iidx;
 }
@@ -108,24 +108,24 @@ doublereal&
 ExpandableRowVector::operator ()(integer i)
 {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::() overflow");
 	return v[i - 1].x;
 }
 const doublereal&
 ExpandableRowVector::operator ()(integer i) const
 {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::() overflow");
 	return v[i - 1].x;
 }
 void ExpandableRowVector::Add(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Add() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::Add() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::Add() overflow");
 	v[i - 1].x += xx;
 }
 void ExpandableRowVector::Sub(doublereal xx, integer i) {
 	ASSERTMSGBREAK(i > 0, "ExpandableRowVector::Sub() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableRowVector::Sub() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableRowVector>::size_type(i) <= v.size(), "ExpandableRowVector::Sub() overflow");
 	v[i - 1].x -= xx;
 }
 void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) const {
@@ -324,10 +324,10 @@ integer ExpandableMatrix::GetNBlocks() const {
 	return v.size();
 };
 integer ExpandableMatrix::GetBlockNCols(const integer block) const {
-	ASSERTMSGBREAK(block < v.size(), "ExpandableMatrix:GetBlockNCols(), "
-		"block shold be < nblocks");
 	ASSERTMSGBREAK(block >= 0, "ExpandableMatrix:GetBlockNCols(), "
 		"block shold be >= 0");
+	ASSERTMSGBREAK((unsigned long)block < v.size(), "ExpandableMatrix:GetBlockNCols(), "
+		"block shold be < nblocks");
 	return v[block].GetBlockNCols();
 }
 void ExpandableMatrix::Reset(void) {
@@ -339,9 +339,9 @@ void ExpandableMatrix::Reset(void) {
 
 void ExpandableMatrix::Link(const integer i, const ExpandableMatrix*const xp) {
 	ASSERTMSGBREAK(i > 0, "ExpandableMatrix::Link() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableMatrix::Link() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableColBlock>::size_type(i) <= v.size(), "ExpandableMatrix::Link() overflow");
 	//FIXME
-	ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableMatrix::Link() fatal error");
+	//ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableMatrix::Link() fatal error");
 	ASSERTMSGBREAK(v[i - 1].GetBlockNCols() == xp->GetNRows(), 
 		"ExpandableMatrix::Link() dimension mismatch");
 	v[i - 1].Link(xp);
@@ -349,9 +349,9 @@ void ExpandableMatrix::Link(const integer i, const ExpandableMatrix*const xp) {
 
 void ExpandableMatrix::Link(const integer i, const ExpandableRowVector*const xp) {
 	ASSERTMSGBREAK(i > 0, "ExpandableMatrix::Link() underflow");
-	ASSERTMSGBREAK(std::vector<ExpandableRow>::size_type(i) <= v.size(), "ExpandableMatrix::Link() overflow");
+	ASSERTMSGBREAK(std::vector<ExpandableColBlock>::size_type(i) <= v.size(), "ExpandableMatrix::Link() overflow");
 	//FIXME
-	ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableMatrix::Link() fatal error");
+	//ASSERTMSGBREAK(v[i - 1].idx == 0, "ExpandableMatrix::Link() fatal error");
 	ASSERTMSGBREAK(v[i - 1].GetBlockNCols() == 1, 
 		"ExpandableMatrix::Link() dimension mismatch");
 	v[i - 1].Link(xp);
