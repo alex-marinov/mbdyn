@@ -347,8 +347,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	/* Ground effect */
 	doublereal dGE = 1.;
 	if (pGround) {
-		Vec3 p = pGround->GetRCurr().MulTV(pRotor->GetXCurr() - pGround->GetXCurr());
-		doublereal z = p(3)*(4./dRadius);
+		doublereal p = pGround->GetRCurr().GetVec(3)*(pRotor->GetXCurr() - pGround->GetXCurr());
+		doublereal z = p/(dRadius/4.);
 
 		if (z < .25) {
 			if (z <= 0.) {
@@ -376,14 +376,13 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	bUMeanRefConverged = false;
 	if (dVTip > dVTipTreshold*dVTipRef) {
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
-			doublereal dLambdaInd = dUMeanRef/dVTip;
-
 			dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
+
+			doublereal dLambdaInd = dUMeanRef/dVTip;
 			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
 			doublereal dRef0 = dMu*dMu + dLambda*dLambda;
 			doublereal dRef1 = 2.*sqrt(dRef0);
 			doublereal dRef2 = dRef1*dRef0;
-	
 			doublereal dF = 0.;
 			if (dRef1 > std::numeric_limits<doublereal>::epsilon()) {
 				dF = dLambdaInd - dGE*dCt/dRef1;
@@ -407,6 +406,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 				break;
 			}
 		}
+
+		dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
 
 		/* if no convergence, simply accept the current value
 		 * very forgiving choice, though */
