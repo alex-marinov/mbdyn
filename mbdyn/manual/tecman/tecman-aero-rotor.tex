@@ -1,0 +1,164 @@
+% MBDyn (C) is a multibody analysis code.
+% http://www.mbdyn.org
+%
+% Copyright (C) 1996-2009
+%
+% Pierangelo Masarati  <masarati@aero.polimi.it>
+%
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+%
+% Changing this copyright notice is forbidden.
+%
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+%
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+%
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+%
+% Mattia Mattaboni <mattaboni@aero.polimi.it> is the author of this document
+
+Axis 3 is the rotor's axis.
+$\T{v}$ is the composition of the velocity of the aircraft node
+and of the airstream speed, if any, projected in the reference frame
+of the aircraft, namely
+\begin{align}
+	\T{v}
+	&=
+	\TT{R}_\text{craft}^T \plbr{
+		- \T{v}_\text{craft}
+		+ \T{v}_\infty
+	}
+	.
+\end{align}
+Definitions:
+\begin{subequations}
+\begin{align}
+	v_{12}
+	&=
+	\sqrt{v_1^2 + v_2^2}
+	\\
+	v
+	&=
+	\sqrt{v_1^2 + v_2^2 + v_3^2}
+	= \sqrt{\T{v}^T \T{v}}
+	\\
+	\sin\alpha_d
+	&=
+	-v_3/v
+	\\
+	\cos\alpha_d
+	&=
+	v_{12}/v
+	\\
+	\psi_0
+	&=
+	\tan^{-1}\plbr{\frac{v_2}{v1}}
+	\\
+	v_\text{tip}
+	&=
+	\Omega R
+	\\
+	\mu
+	&=
+	\cos\alpha_d \frac{v}{v_\text{tip}}
+\end{align}
+\end{subequations}
+Ground effect (if defined):
+\begin{subequations}
+\begin{align}
+	u_\text{IGE}
+	&=
+	k_\text{GE} u_\text{OGE}
+	\\
+	k
+	&=
+	1 - \frac{1}{z^2}
+	\\
+	z
+	&= \max\plbr{\frac{h}{R}, \frac{1}{4}}
+\end{align}
+\end{subequations}
+where $h$ is the distance of the aircraft node from the ground node
+(along axis 3 of the ground node).
+
+The reference induced velocity $u$ is computed by solving the implicit problem
+\begin{align}
+	f
+	&=
+	% \frac{u}{v_\text{tip}}
+	\lambda_u
+	- k_\text{GE} \frac{C_t}{2\sqrt{\mu^2 + \lambda^2}}
+	=
+	0
+	,
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	\lambda_u
+	&=
+	\frac{u}{v_\text{tip}}
+	\\
+	\lambda
+	&=
+	\frac{v \sin\alpha_d + u}{v_\text{tip}}
+	=
+	\frac{v \sin\alpha_d}{v_\text{tip}}
+	+ \lambda_u
+	.
+\end{align}
+\end{subequations}
+The problem is solved by means of a local Newton iteration.
+The Jacobian of the problem is
+\begin{align}
+	\frac{\partial f}{\partial \lambda_u}
+	&=
+	1 + k_\text{GE} \frac{C_t}{2 \plbr{\mu^2 + \lambda^2}^{3/2}} \lambda
+	.
+\end{align}
+The solution,
+\begin{align}
+	\Delta\lambda_u
+	&=
+	- \plbr{\frac{\partial f}{\partial \lambda_u}}^{-1} f
+	,
+\end{align}
+is added to $\lambda_u$ as
+$\lambda_u = \lambda_u + \eta \Delta\lambda_u$,
+where $0 < \eta \le 1$ is an optional relaxation factor.
+
+Corrections:
+the reference induced velocity is corrected by separately correcting
+the inflow and advance parameters, namely
+\begin{subequations}
+\begin{align}
+	\lambda^*
+	&=
+	\frac{\lambda}{k_\text{H}^2}
+	\\
+	\mu^*
+	&=
+	\frac{\mu}{k_\text{FF}}
+	.
+\end{align}
+\end{subequations}
+The reference induced velocity is then recomputed as
+\begin{align}
+	u^*
+	&=
+	\plbr{1 - \rho} k_\text{GE} v_\text{tip}
+		\frac{C_t}{2 \sqrt{\mu^{*^2} + \lambda^{*^2}}}
+	+ \rho u^*_\text{prev}
+	,
+\end{align}
+where $0 \le \rho < 1$ is a memory factor.
