@@ -63,6 +63,9 @@ public:
 
 	virtual ~ExtModalForceBase(void);
 
+	virtual bool
+	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes) = 0;
+
 	/*
 	 * Interface:
 	 *	f	force oriented wrt/ the global reference frame
@@ -100,6 +103,9 @@ class ExtModalForce : public ExtModalForceBase {
 public:
 	ExtModalForce(void);
 	virtual ~ExtModalForce(void);
+
+	virtual bool
+	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes);
 
 	virtual unsigned
 	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
@@ -149,6 +155,7 @@ protected:
 	std::vector<doublereal> q;
 	std::vector<doublereal> qP;
 
+	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
 

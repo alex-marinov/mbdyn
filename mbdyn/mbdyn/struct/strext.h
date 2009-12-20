@@ -53,6 +53,7 @@ protected:
 
 	bool bOutputAccelerations;
 
+	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
    

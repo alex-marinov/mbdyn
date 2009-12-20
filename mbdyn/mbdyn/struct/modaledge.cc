@@ -141,6 +141,14 @@ ExtForceEDGE::~ExtForceEDGE(void)
 	NO_OP;
 }
 
+bool
+ExtForceEDGE::Prepare(ExtFileHandlerBase *pEFH,
+	bool bRigid, unsigned uModes)
+{
+	// consistency is checked later
+	return true;
+}
+
 /* ExtForceEDGE - end */
 
 

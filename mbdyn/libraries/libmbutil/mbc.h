@@ -46,51 +46,29 @@ enum ESCmd {
 	ES_GOTO_NEXT_STEP			= 4,
 	ES_ABORT				= 5,
 	ES_REGULAR_DATA_AND_GOTO_NEXT_STEP	= 6,
+	ES_NEGOTIATION				= 7,
+	ES_OK					= 8,
 
 	ES_LAST
+};
+
+enum MBCType {
+	MBC_MODAL				= 0,
+	MBC_NODAL				= 1,
+
+	MBC_LAST
 };
 
 /* command structure */
 typedef struct {
 	int		sock;
+	unsigned	sock_flags;
 	int		recv_flags;
 	int		send_flags;
-	unsigned	cmd;
+	uint8_t		cmd;
 	char		data_and_next;
 	int		verbose;
 } mbc_t;
-
-/* modal data structure */
-typedef struct {
-	mbc_t		mbc;
-
-	/* rigid body data */
-	char		rigid;
-	double		r[3 + 9 + 3 + 3 + 3 + 3];
-#define	MBC_X(mbc)			(&(mbc)->r[0])
-#define	MBC_R(mbc)			(&(mbc)->r[3])
-#define	MBC_V(mbc)			(&(mbc)->r[12])
-#define	MBC_W(mbc)			(&(mbc)->r[15])
-#define	MBC_F(mbc)			(&(mbc)->r[18])
-#define	MBC_M(mbc)			(&(mbc)->r[21])
-#define MBC_R_KINEMATICS(mbc)		MBC_X((mbc))
-#define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
-#define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
-#define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
-#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
-
-	/* modal data */
-	int		modes;
-	double		*m;
-#define MBC_Q(mbc)			(&(mbc)->m[0])
-#define MBC_QP(mbc)			(&(mbc)->m[(mbc)->modes])
-#define MBC_P(mbc)			(&(mbc)->m[2*(mbc)->modes])
-#define MBC_M_KINEMATICS(mbc)		MBC_Q((mbc))
-#define MBC_M_DYNAMICS(mbc)		MBC_P((mbc))
-#define MBC_M_KINEMATICS_SIZE(mbc)	(2*(mbc)->modes*sizeof(double))
-#define MBC_M_DYNAMICS_SIZE(mbc)	((mbc)->modes*sizeof(double))
-#define MBC_M_SIZE(mbc)			(3*(mbc)->modes*sizeof(double))
-} mbc_modal_t;
 
 /* validate command
  *
@@ -106,30 +84,12 @@ mbc_check_cmd(mbc_t *mbc);
 extern int
 mbc_get_cmd(mbc_t *mbc);
 
-/* get modal motion from peer
- *
- * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
- * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
- */
-extern int
-mbc_modal_get_motion(mbc_modal_t *mbc);
-
 /* put command to peer
  *
  * command needs to be set in mbc->cmd
  */
 extern int
 mbc_put_cmd(mbc_t *mbc);
-
-/* put forces to peer
- *
- * if mbc->rigid, force and moment must be set in storage pointed to
- *	by macros MBC_F, MBC_M
- * if mbc->modes > 0, modal forces must be set in storage pointed to
- *	by macro MBC_P
- */
-extern int
-mbc_modal_put_forces(mbc_modal_t *mbc, int last);
 
 /* initialize communication using inet socket
  *
@@ -154,6 +114,68 @@ mbc_unix_init(mbc_t *mbc, const char *path);
 extern int
 mbc_destroy(mbc_t *mbc);
 
+/*
+ * nodal stuff
+ */
+typedef struct {
+	mbc_t		mbc;
+
+	/* reference node data */
+	uint8_t		rigid;
+	/* number of other nodes */
+	uint32_t	nodes;
+	double		r[3 + 9 + 3 + 3 + 3 + 3];
+#define	MBC_X(mbc)			(&(mbc)->r[0])
+#define	MBC_R(mbc)			(&(mbc)->r[3])
+#define	MBC_V(mbc)			(&(mbc)->r[12])
+#define	MBC_W(mbc)			(&(mbc)->r[15])
+#define	MBC_F(mbc)			(&(mbc)->r[18])
+#define	MBC_M(mbc)			(&(mbc)->r[21])
+#define MBC_R_KINEMATICS(mbc)		MBC_X((mbc))
+#define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
+#define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
+#define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
+#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
+} mbc_nodal_t;
+
+/* ... */
+
+/*
+ * modal stuff
+ */
+
+/* modal data structure */
+typedef struct {
+	mbc_t		mbc;
+
+	/* rigid body data */
+	uint8_t		rigid;
+	double		r[3 + 9 + 3 + 3 + 3 + 3];
+#define	MBC_X(mbc)			(&(mbc)->r[0])
+#define	MBC_R(mbc)			(&(mbc)->r[3])
+#define	MBC_V(mbc)			(&(mbc)->r[12])
+#define	MBC_W(mbc)			(&(mbc)->r[15])
+#define	MBC_F(mbc)			(&(mbc)->r[18])
+#define	MBC_M(mbc)			(&(mbc)->r[21])
+#define MBC_R_KINEMATICS(mbc)		MBC_X((mbc))
+#define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
+#define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
+#define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
+#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
+
+	/* modal data */
+	uint32_t	modes;
+	double		*m;
+#define MBC_Q(mbc)			(&(mbc)->m[0])
+#define MBC_QP(mbc)			(&(mbc)->m[(mbc)->modes])
+#define MBC_P(mbc)			(&(mbc)->m[2*(mbc)->modes])
+#define MBC_M_KINEMATICS(mbc)		MBC_Q((mbc))
+#define MBC_M_DYNAMICS(mbc)		MBC_P((mbc))
+#define MBC_M_KINEMATICS_SIZE(mbc)	(2*(mbc)->modes*sizeof(double))
+#define MBC_M_DYNAMICS_SIZE(mbc)	((mbc)->modes*sizeof(double))
+#define MBC_M_SIZE(mbc)			(3*(mbc)->modes*sizeof(double))
+} mbc_modal_t;
+
 /* initialize modal data
  *
  * mbc must be a pointer to a valid mbc_modal_t structure
@@ -165,7 +187,7 @@ mbc_destroy(mbc_t *mbc);
  * mbc_modal_destroy()
  */
 extern int
-mbc_modal_init(mbc_modal_t *mbc, int modes);
+mbc_modal_init(mbc_modal_t *mbc, unsigned modes);
 
 /* destroy modal data
  *
@@ -173,6 +195,52 @@ mbc_modal_init(mbc_modal_t *mbc, int modes);
  */
 extern int
 mbc_modal_destroy(mbc_modal_t *mbc);
+
+/* negotiate modal data
+ *
+ * mbc must be a pointer to a valid mbc_modal_t structure
+ *
+ * at least rigid body motion must be defined (mbc->rigid != 0),
+ * or modes must be > 0
+ *
+ * the socket must be initialized and connected
+ * sends a negotiation request to the master
+ *
+ * the protocol consists in:
+ *
+ * - negotiation request:
+ *   - the negotiation request tag (ES_NEGOTIATION, uint8_t)
+ *   - the type of interface (MBC_MODAL or MBC_NODAL, uint8_t)
+ *   - the number of modes (uint32_t)
+ *
+ * - negotiation response:
+ *   - the negotiation response tag (ES_OK or ES_ABORT, uint8_t)
+ */
+extern int
+mbc_modal_negotiate_request(mbc_modal_t *mbc);
+
+/* companion of above, provided for completeness; not used
+ */
+extern int
+mbc_modal_negotiate_response(mbc_modal_t *mbc);
+
+/* get modal motion from peer
+ *
+ * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
+ */
+extern int
+mbc_modal_get_motion(mbc_modal_t *mbc);
+
+/* put forces to peer
+ *
+ * if mbc->rigid, force and moment must be set in storage pointed to
+ *	by macros MBC_F, MBC_M
+ * if mbc->modes > 0, modal forces must be set in storage pointed to
+ *	by macro MBC_P
+ */
+extern int
+mbc_modal_put_forces(mbc_modal_t *mbc, int last);
 
 #ifdef __cplusplus
 }

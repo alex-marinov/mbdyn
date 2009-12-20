@@ -42,6 +42,7 @@
 
 #ifdef USE_SOCKET
 #include "usesock.h"
+#include "mbc.h"
 #endif // USE_SOCKET
 
 /* ExtFileHandlerBase - begin */
@@ -60,6 +61,12 @@ protected:
 public:
 	ExtFileHandlerBase(int iSleepTime, int iPrecision);
 	virtual ~ExtFileHandlerBase(void);
+
+	// NOTE: returns true if Prepare() must be called
+	virtual bool Prepare_pre(void) = 0;
+	// NOTE: returns true if peer must request negotiation during Prepare
+	virtual bool NegotiateRequest(void) const;
+	virtual void Prepare_post(bool ok) = 0;
 
 	virtual void AfterPredict(void) = 0;
 
@@ -101,6 +108,9 @@ public:
 		int iPrecision);
 	virtual ~ExtFileHandler(void);
 
+	virtual bool Prepare_pre(void);
+	virtual void Prepare_post(bool ok);
+
 	virtual void AfterPredict(void);
 
 	virtual bool Send_pre(SendWhen when);
@@ -119,17 +129,6 @@ public:
 
 #ifdef USE_SOCKET
 class ExtSocketHandler : public ExtFileHandlerBase {
-public:
-	enum ESCmd {
-		ES_UNKNOWN				= -1,
-		ES_REGULAR_DATA				= 2,
-		ES_GOTO_NEXT_STEP			= 4,
-		ES_ABORT				= 5,
-		ES_REGULAR_DATA_AND_GOTO_NEXT_STEP	= 6,
-
-		ES_LAST
-	};
-
 protected:
 	UseSocket *pUS;
 	unsigned recv_flags;
@@ -144,6 +143,10 @@ public:
 	ExtSocketHandler(UseSocket *pUS, int iSleepTime,
 		int recv_flags, int send_flags);
 	virtual ~ExtSocketHandler(void);
+
+	virtual bool Prepare_pre(void);
+	virtual bool NegotiateRequest(void) const;
+	virtual void Prepare_post(bool ok);
 
 	virtual void AfterPredict(void);
 
@@ -188,6 +191,7 @@ protected:
 	void Send(ExtFileHandlerBase::SendWhen when);
 	void Recv(void);
 
+	virtual bool Prepare(ExtFileHandlerBase *pEFH) = 0;
 	virtual void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when) = 0;
 	virtual void Recv(ExtFileHandlerBase *pEFH) = 0;
    

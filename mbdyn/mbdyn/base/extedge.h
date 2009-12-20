@@ -82,6 +82,9 @@ public:
 		std::string& fdataname, int iSleepTime, int iPrecision);
 	~ExtFileHandlerEDGE(void);
 
+	virtual bool Prepare_pre(void);
+	virtual void Prepare_post(bool ok);
+
 	virtual void AfterPredict(void);
 
 	virtual bool Send_pre(SendWhen when);

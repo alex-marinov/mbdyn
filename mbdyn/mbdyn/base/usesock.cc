@@ -190,6 +190,12 @@ UseSocket::ConnectSock(int s)
 }
 
 bool
+UseSocket::Create(void) const
+{
+	return create;
+}
+
+bool
 UseSocket::Connected(void) const
 {
 	return connected;

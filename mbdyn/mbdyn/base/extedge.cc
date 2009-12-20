@@ -186,6 +186,18 @@ retry:;
 	}
 }
 
+bool
+ExtFileHandlerEDGE::Prepare_pre(void)
+{
+	return false;
+}
+
+void
+ExtFileHandlerEDGE::Prepare_post(bool ok)
+{
+	NO_OP;
+}
+
 void
 ExtFileHandlerEDGE::AfterPredict(void)
 {

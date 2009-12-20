@@ -61,6 +61,75 @@ ExtModalForce::~ExtModalForce(void)
 	NO_OP;
 }
 
+bool
+ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
+{
+	if (pEFH->NegotiateRequest()) {
+		std::ostream *outfp = pEFH->GetOutStream();
+		if (outfp) {
+
+		} else {
+			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+			uint8_t *uint8_ptr;
+			uint32_t *uint32_ptr;
+
+			uint8_ptr = (uint8_t *)&buf[0];
+			uint8_ptr[0] = MBC_MODAL;
+			uint8_ptr[1] = bRigid;
+
+			uint32_ptr = (uint32_t *)&uint8_ptr[2];
+			uint32_ptr[0] = uModes;
+
+			ssize_t rc = send(pEFH->GetOutFileDes(),
+				(const void *)buf, sizeof(buf),
+				pEFH->GetSendFlags());
+			if (rc == -1) {
+
+			} else if (rc != sizeof(buf)) {
+
+			}
+		}
+
+	} else {
+		bool bR;
+		unsigned uM;
+
+		std::istream *infp = pEFH->GetInStream();
+		if (infp) {
+
+		} else {
+			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+			uint8_t *uint8_ptr;
+			uint32_t *uint32_ptr;
+
+			ssize_t rc = recv(pEFH->GetInFileDes(),
+				(void *)buf, sizeof(buf),
+				pEFH->GetRecvFlags());
+			if (rc == -1) {
+
+			} else if (rc != sizeof(buf)) {
+
+			}
+
+			uint8_ptr = (uint8_t *)&buf[0];
+			if (uint8_ptr[0] != MBC_MODAL) {
+				return false;
+			}
+
+			bR = uint8_ptr[1];
+
+			uint32_ptr = (uint32_t *)&uint8_ptr[2];
+			uM = uint32_ptr[0];
+		}
+
+		if (bR != bRigid || uM != uModes) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 unsigned
 ExtModalForce::Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,
 	Vec3& f, Vec3& m, std::vector<doublereal>& fv)
@@ -253,6 +322,14 @@ ModalExt::~ModalExt(void)
 	if (pEMF) {
 		SAFEDELETE(pEMF);
 	}
+}
+
+bool
+ModalExt::Prepare(ExtFileHandlerBase *pEFH)
+{
+	return pEMF->Prepare(pEFH,
+		uFlags & ExtModalForceBase::EMF_RIGID,
+		pModal->uGetNModes());
 }
 
 /*

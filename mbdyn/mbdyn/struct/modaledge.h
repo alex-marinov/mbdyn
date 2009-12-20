@@ -46,6 +46,9 @@ protected:
 public:
 	ExtForceEDGE(DataManager *pDM);
 	virtual ~ExtForceEDGE(void);
+
+	bool
+	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes);
 };
 
 /* ExtForceEDGE - end */

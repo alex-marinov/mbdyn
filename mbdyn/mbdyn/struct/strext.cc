@@ -101,6 +101,70 @@ StructExtForce::~StructExtForce(void)
 	NO_OP;
 }
 
+bool
+StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
+{
+	if (pEFH->NegotiateRequest()) {
+		std::ostream *outfp = pEFH->GetOutStream();
+		if (outfp) {
+
+		} else {
+			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
+			uint8_t *uint8_ptr;
+			uint32_t *uint32_ptr;
+
+			uint8_ptr = (uint8_t *)&buf[0];
+			uint8_ptr[0] = MBC_NODAL;
+
+			uint32_ptr = (uint32_t *)&uint8_ptr[1];
+			uint32_ptr[0] = Nodes.size();
+
+			ssize_t rc = send(pEFH->GetOutFileDes(),
+				(const void *)buf, sizeof(buf),
+				pEFH->GetSendFlags());
+			if (rc == -1) {
+
+			} else if (rc != sizeof(buf)) {
+
+			}
+		}
+
+	} else {
+		unsigned uN;
+
+		std::istream *infp = pEFH->GetInStream();
+		if (infp) {
+
+		} else {
+			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
+			uint8_t *uint8_ptr;
+			uint32_t *uint32_ptr;
+
+			ssize_t rc = recv(pEFH->GetInFileDes(),
+				(void *)buf, sizeof(buf),
+				pEFH->GetRecvFlags());
+			if (rc == -1) {
+
+			} else if (rc != sizeof(buf)) {
+
+			}
+
+			uint8_ptr = (uint8_t *)&buf[0];
+			if (uint8_ptr[0] != MBC_NODAL) {
+				return false;
+			}
+
+			uint32_ptr = (uint32_t *)&uint8_ptr[1];
+			uN = uint32_ptr[0];
+		}
+
+		if (uN != Nodes.size()) {
+			return false;
+		}
+	}
+
+	return true;
+}
 
 /*
  * Send output to companion software

@@ -57,6 +57,7 @@ public:
 	void SetSock(int s);
 	virtual void Connect(void);
 	virtual void ConnectSock(int s);
+	bool Create(void) const;
 	bool Connected(void) const;
 	void Abandon(void);
 	bool Abandoned(void) const;

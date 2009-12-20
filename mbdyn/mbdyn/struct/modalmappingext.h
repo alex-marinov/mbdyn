@@ -77,6 +77,7 @@ protected:
 	std::vector<doublereal> q;
 	std::vector<doublereal> qP;
 
+	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
 

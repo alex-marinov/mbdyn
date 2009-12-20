@@ -60,6 +60,12 @@ ExtFileHandlerBase::~ExtFileHandlerBase(void)
 	NO_OP;
 }
 
+bool
+ExtFileHandlerBase::NegotiateRequest(void) const
+{
+	return false;
+}
+
 /* NOTE: getting here, in general, should be considered Bad (TM)
  * however, right now, it is used to distinguish whether communication
  * will occur on a iostream or a file descriptor */
@@ -126,6 +132,18 @@ ExtFileHandler::~ExtFileHandler(void)
 	NO_OP;
 }
 
+bool
+ExtFileHandler::Prepare_pre(void)
+{
+	return true;
+}
+
+void
+ExtFileHandler::Prepare_post(bool ok)
+{
+	NO_OP;
+}
+
 void
 ExtFileHandler::AfterPredict(void)
 {
@@ -150,8 +168,7 @@ ExtFileHandler::Send_pre(SendWhen when)
 					break;
 
 				default:
-					silent_cerr("unable to stat "
-						"output file "
+					silent_cerr("unable to stat output file "
 						"\"" << fout.c_str() << "\": "
 						<< strerror(save_errno)
 						<< std::endl);
@@ -206,7 +223,15 @@ void
 ExtFileHandler::Send_post(SendWhen when)
 {
 	outf.close();
-	rename(tmpout.c_str(), fout.c_str());
+	if (rename(tmpout.c_str(), fout.c_str()) != 0) {
+		int save_errno = errno;
+		silent_cerr("ExtFileHandler: unable to rename output file "
+			"\"" << tmpout.c_str() << "\" "
+			"into \"" << fout.c_str() << "\" "
+			"(" << save_errno << ": " << strerror(save_errno) << ")"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
 bool
@@ -278,7 +303,7 @@ ExtFileHandler::GetInStream(void)
 
 #ifdef USE_SOCKET
 
-ExtSocketHandler::ESCmd
+ESCmd
 ExtSocketHandler::u2cmd(unsigned u) const
 {
 	switch (u) {
@@ -325,11 +350,103 @@ bReadForces(true), bLastReadForce(false)
 ExtSocketHandler::~ExtSocketHandler(void)
 {
 	if (pUS->GetSock() >= 0) {
-		unsigned u = ES_ABORT;
+		uint8_t u = ES_ABORT;
+
 		// ignore result
 		(void)send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
 	}
 	SAFEDELETE(pUS);
+}
+
+bool
+ExtSocketHandler::NegotiateRequest(void) const
+{
+	return !pUS->Create();
+}
+
+bool
+ExtSocketHandler::Prepare_pre(void)
+{
+	if (NegotiateRequest()) {
+		uint8_t u = ES_NEGOTIATION;
+
+		ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u),
+			send_flags);
+		if (rc == -1) {
+			int save_errno = errno;
+			silent_cerr("ExtSocketHandler: send() negotiation request failed "
+				"(" << save_errno << ": " << strerror(save_errno) << ")"
+				<< std::endl);
+			return false;
+
+		} else if (rc != sizeof(u)) {
+			silent_cerr("ExtSocketHandler: send() negotiation request failed "
+				"(sent " << rc << " bytes "
+				"instead of " << sizeof(u) << ")"
+				<< std::endl);
+			return false;
+		}
+
+	} else {
+		uint8_t u;
+		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
+			recv_flags);
+		if (rc == -1) {
+			return false;
+
+		} else if (rc != sizeof(u)) {
+			return false;
+		}
+
+		if (u != ES_NEGOTIATION) {
+			silent_cerr("ExtSocketHandler: "
+				"recv() negotiation request failed"
+				<< std::endl);
+			return false;
+		}
+
+	}
+
+	return true;
+}
+
+void
+ExtSocketHandler::Prepare_post(bool ok)
+{
+	if (NegotiateRequest()) {
+		uint8_t u;
+		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
+			recv_flags);
+		if (rc == -1) {
+
+		} else if (rc != sizeof(u)) {
+
+		}
+
+		if (u != ES_OK) {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+	} else {
+		uint8_t u = ok ? ES_OK : ES_ABORT;
+
+		ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u),
+			send_flags);
+		if (rc == -1) {
+			int save_errno = errno;
+			silent_cerr("ExtSocketHandler: send() negotiation response failed "
+				"(" << save_errno << ": " << strerror(save_errno) << ")"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		} else if (rc != sizeof(u)) {
+			silent_cerr("ExtSocketHandler: send() negotiation response failed "
+				"(sent " << rc << " bytes "
+				"instead of " << sizeof(u) << ")"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 }
 
 void
@@ -346,7 +463,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 		return false;
 	}
 
-	unsigned u;
+	uint8_t u;
 	if (when == SEND_AFTER_CONVERGENCE) {
 		u = ES_REGULAR_DATA_AND_GOTO_NEXT_STEP;
 	} else {
@@ -358,6 +475,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 		silent_cerr("ExtSocketHandler: send() failed "
 			"(" << save_errno << ": " << strerror(save_errno) << ")"
 			<< std::endl);
+		mbdyn_set_stop_at_end_of_iteration();
 		return false;
 
 	} else if (rc != sizeof(u)) {
@@ -365,6 +483,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 			"(sent " << rc << " bytes "
 			"instead of " << sizeof(u) << ")"
 			<< std::endl);
+		mbdyn_set_stop_at_end_of_iteration();
 		return false;
 	}
 
@@ -389,7 +508,7 @@ ExtSocketHandler::Recv_pre(void)
 		return false;
 	}
 
-	unsigned u = 0;
+	uint8_t u = 0;
 
 	if (iSleepTime) {
 		for ( ; ; ) {
@@ -408,6 +527,7 @@ ExtSocketHandler::Recv_pre(void)
 					"recv() failed (" << save_errno << ": "
 					<< strerror(save_errno) << ")"
 					<< std::endl);
+				mbdyn_set_stop_at_end_of_iteration();
 				return false;
 			}
 
@@ -430,6 +550,7 @@ ExtSocketHandler::Recv_pre(void)
 	case ES_UNKNOWN:
 		silent_cerr("ExtSocketHandler: "
 			"received unknown code " << u << std::endl);
+		mbdyn_set_stop_at_end_of_iteration();
 		return false;
 
 	case ES_REGULAR_DATA:
@@ -551,6 +672,15 @@ ExtForce::SetValue(DataManager *pDM,
 	SimulationEntity::Hints* h)
 {
 	bFirstSend = true;
+
+	bool ok = false;
+	if (pEFH->Prepare_pre()) {
+		ok = Prepare(pEFH);
+	}
+	pEFH->Prepare_post(ok);
+	if (!ok) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
 void

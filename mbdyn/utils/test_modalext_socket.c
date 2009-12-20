@@ -199,6 +199,10 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if (mbc_modal_negotiate_request(mbc)) {
+		exit(EXIT_FAILURE);
+	}
+
 	signal(SIGTERM, sh);
 	signal(SIGINT, sh);
 
