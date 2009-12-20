@@ -64,9 +64,17 @@ ExtModalForce::~ExtModalForce(void)
 bool
 ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 {
-	if (pEFH->NegotiateRequest()) {
+	switch (pEFH->NegotiateRequest()) {
+	case ExtFileHandlerBase::NEGOTIATE_NO:
+		break;
+
+	case ExtFileHandlerBase::NEGOTIATE_CLIENT: {
 		std::ostream *outfp = pEFH->GetOutStream();
 		if (outfp) {
+			*outfp << MBC_MODAL
+				<< ' ' << bRigid
+				<< ' ' << uModes
+				<< std::endl;
 
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
@@ -89,13 +97,19 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 
 			}
 		}
+		} break;
 
-	} else {
+	case ExtFileHandlerBase::NEGOTIATE_SERVER: {
+		unsigned type;
 		bool bR;
 		unsigned uM;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
+			*infp >> type >> bR >> uM;
+			if (type != MBC_MODAL) {
+				return false;
+			}
 
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
@@ -112,19 +126,17 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 			}
 
 			uint8_ptr = (uint8_t *)&buf[0];
-			if (uint8_ptr[0] != MBC_MODAL) {
-				return false;
-			}
-
+			type = uint8_ptr[0];
 			bR = uint8_ptr[1];
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[2];
 			uM = uint32_ptr[0];
 		}
 
-		if (bR != bRigid || uM != uModes) {
+		if (type != MBC_MODAL || bR != bRigid || uM != uModes) {
 			return false;
 		}
+		} break;
 	}
 
 	return true;
@@ -577,17 +589,14 @@ ReadModalExtForce(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-#ifdef USE_SOCKET
-	} else if (dynamic_cast<ExtSocketHandler *>(pEFH) != 0) {
-		SAFENEW(pEMF, ExtModalForce);
-#endif // USE_SOCKET
-
-	// add more types
+	// add more types if specific behavior is needed
 
 	} else {
-		silent_cerr("ModalExt(" << uLabel << "): "
-			"unknown external force type" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		// ExtFileHandler
+		// ExtSocketHandler
+
+		// wild guess: the default is fine
+		SAFENEW(pEMF, ExtModalForce);
 	}
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);

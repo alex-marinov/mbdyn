@@ -60,10 +60,10 @@ ExtFileHandlerBase::~ExtFileHandlerBase(void)
 	NO_OP;
 }
 
-bool
+ExtFileHandlerBase::Negotiate
 ExtFileHandlerBase::NegotiateRequest(void) const
 {
-	return false;
+	return NEGOTIATE_NO;
 }
 
 /* NOTE: getting here, in general, should be considered Bad (TM)
@@ -358,20 +358,28 @@ ExtSocketHandler::~ExtSocketHandler(void)
 	SAFEDELETE(pUS);
 }
 
-bool
+ExtFileHandlerBase::Negotiate
 ExtSocketHandler::NegotiateRequest(void) const
 {
-	return !pUS->Create();
+	if (pUS->Create()) {
+		return ExtFileHandlerBase::NEGOTIATE_CLIENT;
+
+	} else {
+		return ExtFileHandlerBase::NEGOTIATE_SERVER;
+	}
 }
 
 bool
 ExtSocketHandler::Prepare_pre(void)
 {
-	if (NegotiateRequest()) {
-		uint8_t u = ES_NEGOTIATION;
+	uint8_t u;
+	ssize_t rc;
 
-		ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u),
-			send_flags);
+	switch (NegotiateRequest()) {
+	case ExtFileHandlerBase::NEGOTIATE_CLIENT:
+		u = ES_NEGOTIATION;
+
+		rc = send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
 		if (rc == -1) {
 			int save_errno = errno;
 			silent_cerr("ExtSocketHandler: send() negotiation request failed "
@@ -386,11 +394,10 @@ ExtSocketHandler::Prepare_pre(void)
 				<< std::endl);
 			return false;
 		}
+		break;
 
-	} else {
-		uint8_t u;
-		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
-			recv_flags);
+	case ExtFileHandlerBase::NEGOTIATE_SERVER:
+		rc = recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
 		if (rc == -1) {
 			return false;
 
@@ -404,7 +411,10 @@ ExtSocketHandler::Prepare_pre(void)
 				<< std::endl);
 			return false;
 		}
+		break;
 
+	default:
+		ASSERT(0);
 	}
 
 	return true;

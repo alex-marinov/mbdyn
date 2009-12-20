@@ -55,6 +55,12 @@ public:
 		SEND_AFTER_CONVERGENCE
 	};
 
+	enum Negotiate {
+		NEGOTIATE_NO,
+		NEGOTIATE_CLIENT,
+		NEGOTIATE_SERVER
+	};
+
 protected:
 	int iSleepTime, iPrecision;
 
@@ -65,7 +71,7 @@ public:
 	// NOTE: returns true if Prepare() must be called
 	virtual bool Prepare_pre(void) = 0;
 	// NOTE: returns true if peer must request negotiation during Prepare
-	virtual bool NegotiateRequest(void) const;
+	virtual Negotiate NegotiateRequest(void) const;
 	virtual void Prepare_post(bool ok) = 0;
 
 	virtual void AfterPredict(void) = 0;
@@ -145,7 +151,7 @@ public:
 	virtual ~ExtSocketHandler(void);
 
 	virtual bool Prepare_pre(void);
-	virtual bool NegotiateRequest(void) const;
+	virtual Negotiate NegotiateRequest(void) const;
 	virtual void Prepare_post(bool ok);
 
 	virtual void AfterPredict(void);
