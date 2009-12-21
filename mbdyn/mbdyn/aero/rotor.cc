@@ -323,14 +323,14 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		return;
 	}
 
-	/* Trazione nel sistema rotore */
-	doublereal dT = RRot3*Res.Force();
-	doublereal dRho = dGetAirDensity(GetXCurr());
-
 	// bail out when density is negligible
+	doublereal dRho = dGetAirDensity(GetXCurr());
 	if (dRho <= std::numeric_limits<doublereal>::epsilon()) {
 		return;
 	}
+
+	// Thrust in rotor reference frame
+	doublereal dT = RRot3*Res.Force();
 
 	/* Parametri di influsso (usano il valore di dUMean al passo precedente) */
 	doublereal dVTip = 0.;
@@ -385,8 +385,8 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 			doublereal dRef2 = dRef1*dRef0;
 			doublereal dF = 0.;
 			if (dRef1 > std::numeric_limits<doublereal>::epsilon()) {
-				dF = dLambdaInd - dGE*dCt/dRef1;
-				doublereal dFPrime = 1. + dGE*(dCt/dRef2)*dLambda;
+				dF = dLambdaInd - dCt/dRef1;
+				doublereal dFPrime = 1. + (dCt/dRef2)*dLambda;
 				doublereal dDelta = dF/dFPrime;
 				dUMeanRef -= dEta*dDelta*dVTip;
 			}
