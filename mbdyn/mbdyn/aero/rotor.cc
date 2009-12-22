@@ -63,12 +63,14 @@ static const doublereal dVTipTreshold = 1e-6;
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, const StructNode* pG,
+	ResForceSet **ppres,
+	const doublereal& dR,
 	unsigned int iMaxIt, const doublereal& dTol, const doublereal& dE,
-	ResForceSet **ppres, flag fOut)
+	flag fOut)
 : Elem(uL, fOut),
 InducedVelocity(uL, pDO, pC, ppres, fOut),
 pRotor(pR), pGround(pG),
-dOmegaRef(0.), dRadius(0.), dVTipRef(0.), dArea(0.),
+dOmegaRef(0.), dRadius(dR), dVTipRef(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
 iMaxIter(iMaxIt),
 iCurrIter(0),
@@ -475,9 +477,8 @@ NoRotor::NoRotor(unsigned int uLabel,
 	const doublereal& dR,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, 0, 0., 0., ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, ppres, dR, 0, 0., 0., fOut)
 {
-	dRadius = dR; /* puo' essere richiesto dal trim */
 #ifdef USE_MPI
 	if (is_parallel && fToBeOutput()) {
 		SAFENEWARR(pBlockLenght, int, 3);
@@ -611,14 +612,13 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
 
 	dOmegaRef = dOR;
-	dRadius = dR;
 	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
@@ -787,14 +787,13 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
 
 	dOmegaRef = dOR;
-	dRadius = dR;
 	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
@@ -964,14 +963,13 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
 
 	dOmegaRef = dOR;
-	dRadius = dR;
 	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 	Weight.Set(pdW);
@@ -1197,7 +1195,7 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	const doublereal& dVCosineTmp,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, iMaxIt, dTol, dE, ppres, fOut),
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut),
 dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp),
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 {
@@ -1205,7 +1203,6 @@ dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
 	ASSERT(dR > 0.);
 
 	dOmegaRef = dOR;
-	dRadius = dR;
 	dVTipRef = dOmegaRef*dRadius;
 	dArea = M_PI*dRadius*dRadius;
 
@@ -1723,6 +1720,13 @@ ReadRotor(DataManager* pDM,
 	 	doublereal dR = 0.;
 	 	if (HP.IsKeyWord("radius")) {
 	      		dR = HP.GetReal();
+			if (dR <= 0) {
+				silent_cerr("Rotor(" << uLabel << "): "
+					"invalid radius " << dR
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 	 	}
 
 	 	ppres = ReadResSets(pDM, HP);
@@ -1749,8 +1753,8 @@ ReadRotor(DataManager* pDM,
 		doublereal dOR = HP.GetReal();
 	 	DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
 	 	if (dOR <= 0.) {
-	      		silent_cerr("Illegal null or negative "
-				"reference speed for rotor " << uLabel
+	      		silent_cerr("Rotor(" << uLabel << "): "
+				"invalid reference speed " << dOR
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1759,8 +1763,8 @@ ReadRotor(DataManager* pDM,
 	 	doublereal dR = HP.GetReal();
 	 	DEBUGCOUT("Radius: " << dR << std::endl);
 	 	if (dR <= 0.) {
-	      		silent_cerr("Illegal null or negative radius "
-				"for rotor " << uLabel
+	      		silent_cerr("Rotor(" << uLabel << "): "
+				"invalid radius " << dR
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2042,14 +2046,16 @@ ReadRotor(DataManager* pDM,
 	}
 
 	default:
-		silent_cerr("unknown induced velocity type at line "
+		silent_cerr("Rotor(" << uLabel << "): "
+			"unknown induced velocity type at line "
 	       		<< HP.GetLineData() << std::endl);
 	 	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		silent_cerr("semicolon expected at line "
+		silent_cerr("Rotor(" << uLabel << "): "
+			"semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
