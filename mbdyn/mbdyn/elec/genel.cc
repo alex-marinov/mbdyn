@@ -215,6 +215,21 @@ ReadGenel(DataManager* pDM,
 
 	case ROTORTRIM: {
 		Rotor* pRot = dynamic_cast<Rotor *>(pDM->ReadElem(HP, Elem::INDUCEDVELOCITY));
+		if (pRot == 0) {
+			silent_cerr("RotorTrim(" << uLabel << "): "
+				"unable to read rotor "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		doublereal dRadius = pRot->dGetRadius();
+		if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
+			silent_cerr("RotorTrim(" << uLabel << "): "
+				"invalid rotor radius for Rotor(" << pRot->GetLabel() << ") "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		ScalarDifferentialNode* pvNodes[3];
 		pvNodes[0] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
 		pvNodes[1] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
