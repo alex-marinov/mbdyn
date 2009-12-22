@@ -439,7 +439,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		doublereal dLambdaTmp = dLambda/(dHoverCorrection*dHoverCorrection);
 		doublereal dRef = 2*sqrt(dMuTmp*dMuTmp + dLambdaTmp*dLambdaTmp);
 		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);		
-		if (dRef > dCt) {
+		if (dRef > std::abs(dCt)) {
 			// NOTE: an inflow velocity larger than VTip
 			// makes little sense
 			dUMean = (1. - dWeight)*dGE*dVTip*dCt/dRef + dWeight*dUMeanPrev;
