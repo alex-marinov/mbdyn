@@ -109,10 +109,12 @@ public:
 	Rotor(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, const StructNode* pG,
+		ResForceSet **ppres,
+		const doublereal& dR,
 		unsigned int iMaxIt,
 		const doublereal& dTol,
 		const doublereal& dE,
-		ResForceSet **ppres, flag fOut);
+		flag fOut);
 	virtual ~Rotor(void);
 
 	// Elaborazione stato interno dopo la convergenza
