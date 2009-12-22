@@ -345,6 +345,12 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 	}
 
 	/* NOTE: dUMeanRef starts at the value it had previously */
+	if (std::abs(dUMeanRef) < std::numeric_limits<doublereal>::epsilon()
+		&& std::abs(dT) > std::numeric_limits<doublereal>::epsilon())
+	{
+		// first guess: start with the value in hover
+		dUMeanRef = copysign(std::sqrt(std::abs(dT)/(2*dRho*dArea)), dT);
+	}
 
 	/* Ground effect */
 	doublereal dGE = 1.;
@@ -381,6 +387,9 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 		doublereal dLambda0 = dVelocity*dSinAlphad/dVTip;
 		doublereal dLambdaInd = dUMeanRef/dVTip;
 
+		bool bRetrying = false;
+retry:;
+
 		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
 			dLambda = dLambda0 + dLambdaInd;
 
@@ -405,10 +414,27 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 				<< std::endl;
 #endif
 
-			if (fabs(dF) <= dTolerance) {
+			if (std::abs(dF) <= dTolerance) {
 				bUMeanRefConverged = true;
 				break;
 			}
+		}
+
+		// NOTE: the induced velocity must have the same sign
+		// of the thrust coefficient
+		if (dLambdaInd*dCt < 0.) {
+			if (!bRetrying) {
+				bRetrying = true;
+
+				// first guess: revert the sign of induced velocity
+				dLambdaInd = -dLambdaInd;
+				goto retry;
+			}
+
+			silent_cerr("Rotor(" << GetLabel() << "): "
+				"induced velocity and thrust signs differ "
+				"(lambda_u=" << dLambdaInd << ", Ct=" << dCt << ")"
+				<< std::endl);
 		}
 
 		dLambda = dLambda0 + dLambdaInd;
@@ -935,7 +961,7 @@ GlauertRotor::GetInducedVelocity(const Vec3& X) const
 	Wait();
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
-	if (fabs(dLambda) < 1.e-9) {
+	if (std::abs(dLambda) < 1.e-9) {
 		return RRot3*dUMeanPrev;
 	}
 
@@ -1142,10 +1168,10 @@ ManglerRotor::GetInducedVelocity(const Vec3& X) const
 		dm = sqrt(dm2);
 	}
 	doublereal da = 1. + dSinAlphad;
-	if (fabs(da) > 1.e-9) {
+	if (std::abs(da) > 1.e-9) {
 		da = (1. - dSinAlphad)/da;
 	}
-	if (fabs(da) > 0.) {
+	if (std::abs(da) > 0.) {
 		da = sqrt(da);
 	}
 
