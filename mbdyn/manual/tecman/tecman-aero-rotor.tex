@@ -62,7 +62,7 @@ Definitions:
 	\\
 	\psi_0
 	&=
-	\tan^{-1}\plbr{\frac{v_2}{v1}}
+	\tan^{-1}\plbr{\frac{v_2}{v_1}}
 	\\
 	v_\text{tip}
 	&=
@@ -73,6 +73,17 @@ Definitions:
 	\cos\alpha_d \frac{v}{v_\text{tip}}
 \end{align}
 \end{subequations}
+Note: $v \ge 0$ and $v_{12} \ge 0$ by definition;
+as a consequence, $\cos\alpha_d \ge 0$,
+while the sign of $\sin\alpha_d$ depends on whether
+the flow related to the absolute motion of the rotor
+enters the disk from above (> 0) or from below (< 0).
+$v_\text{tip} > 0$ by construction
+($\Omega = \nrbr{\T{\omega}}$, and no induced velocity
+is computed if $\Omega$ is below a threshold).
+As a consequence, $\mu \ge 0$.
+
+
 Ground effect (if defined):
 \begin{subequations}
 \begin{align}
@@ -97,7 +108,7 @@ The reference induced velocity $u$ is computed by solving the implicit problem
 	&=
 	% \frac{u}{v_\text{tip}}
 	\lambda_u
-	- k_\text{GE} \frac{C_t}{2\sqrt{\mu^2 + \lambda^2}}
+	- \frac{C_t}{2\sqrt{\mu^2 + \lambda^2}}
 	=
 	0
 	,
@@ -113,17 +124,28 @@ with
 	&=
 	\frac{v \sin\alpha_d + u}{v_\text{tip}}
 	=
-	\frac{v \sin\alpha_d}{v_\text{tip}}
+	\mu \tan\alpha_d
 	+ \lambda_u
 	.
 \end{align}
 \end{subequations}
+The value of $\lambda_u$ is initialized using the reference induced velocity
+$u$ at the previous step/iteration.
+Only when $u=0$ and $C_t\neq 0$, $u$ is initialized using its nominal value
+in hover,
+\begin{align}
+	u
+	&=
+	\text{sign}\plbr{T} \sqrt{\frac{\nrbr{T}}{2 \rho A}}
+	.
+\end{align}
+
 The problem is solved by means of a local Newton iteration.
 The Jacobian of the problem is
 \begin{align}
 	\frac{\partial f}{\partial \lambda_u}
 	&=
-	1 + k_\text{GE} \frac{C_t}{2 \plbr{\mu^2 + \lambda^2}^{3/2}} \lambda
+	1 + \frac{C_t}{2 \plbr{\mu^2 + \lambda^2}^{3/2}} \lambda
 	.
 \end{align}
 The solution,
@@ -162,3 +184,9 @@ The reference induced velocity is then recomputed as
 	,
 \end{align}
 where $0 \le \rho < 1$ is a memory factor.
+
+Note: in principle, multiple solutions for $\lambda_u$ are possible.
+However, only one solution is physical.
+Currently, no strategy is put in place to ensure that only the physical
+solution is considered.
+
