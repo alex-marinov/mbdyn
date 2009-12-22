@@ -377,11 +377,13 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	bUMeanRefConverged = false;
 	if (dVTip > dVTipTreshold*dVTipRef) {
-		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
-			dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
+		doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
+		doublereal dLambda0 = dVelocity*dSinAlphad/dVTip;
+		doublereal dLambdaInd = dUMeanRef/dVTip;
 
-			doublereal dLambdaInd = dUMeanRef/dVTip;
-			doublereal dCt = dT/(dRho*dArea*dVTip*dVTip);
+		for (iCurrIter = 0; iCurrIter < iMaxIter; iCurrIter++) {
+			dLambda = dLambda0 + dLambdaInd;
+
 			doublereal dRef0 = dMu*dMu + dLambda*dLambda;
 			doublereal dRef1 = 2.*sqrt(dRef0);
 			doublereal dRef2 = dRef1*dRef0;
@@ -390,7 +392,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 				dF = dLambdaInd - dCt/dRef1;
 				doublereal dFPrime = 1. + (dCt/dRef2)*dLambda;
 				doublereal dDelta = dF/dFPrime;
-				dUMeanRef -= dEta*dDelta*dVTip;
+				dLambdaInd -= dEta*dDelta;
 			}
 
 #if 0
@@ -409,7 +411,10 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 			}
 		}
 
-		dLambda = (dVelocity*dSinAlphad + dUMeanRef)/dVTip;
+		dLambda = dLambda0 + dLambdaInd;
+
+		// this is updated to serve as starting point for next iteration
+		dUMeanRef = dLambdaInd*dVTip;
 
 		/* if no convergence, simply accept the current value
 		 * very forgiving choice, though */
