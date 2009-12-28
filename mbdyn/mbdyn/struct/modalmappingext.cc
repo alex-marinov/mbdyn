@@ -168,11 +168,6 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 		W = Zero3;
 	}
 
-	MyVectorHandler x_tmp(x.size(), &x[0]);
-	MyVectorHandler xP_tmp(xP.size(), &xP[0]);
-	MyVectorHandler q_tmp(q.size(), &q[0]);
-	MyVectorHandler qP_tmp(qP.size(), &qP[0]);
-
 	if (pRefNode) {
 		const Vec3& XRef(pRefNode->GetXCurr());
 		const Mat3x3& RRef(pRefNode->GetRCurr());
@@ -180,61 +175,29 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 		const Vec3& WRef(pRefNode->GetWCurr());
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			x_tmp.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetXCurr() - Nodes[i].X0 - XRef));
-			x_tmp.Put(6*i + 4, MatR2LinParam(RRef.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
+			x.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetXCurr() - Nodes[i].X0 - XRef));
+			x.Put(6*i + 4, MatR2LinParam(RRef.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
 
-			xP_tmp.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef));
-			xP_tmp.Put(6*i + 4, RRef.MulTV(Nodes[i].pNode->GetWCurr() - WRef));
+			xP.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef));
+			xP.Put(6*i + 4, RRef.MulTV(Nodes[i].pNode->GetWCurr() - WRef));
 		}
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			x_tmp.Put(6*i + 1, Nodes[i].pNode->GetXCurr() - Nodes[i].X0);
-			x_tmp.Put(6*i + 4, MatR2LinParam(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0)));
+			x.Put(6*i + 1, Nodes[i].pNode->GetXCurr() - Nodes[i].X0);
+			x.Put(6*i + 4, MatR2LinParam(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0)));
 
-			xP_tmp.Put(6*i + 1, Nodes[i].pNode->GetVCurr());
-			xP_tmp.Put(6*i + 4, Nodes[i].pNode->GetWCurr());
+			xP.Put(6*i + 1, Nodes[i].pNode->GetVCurr());
+			xP.Put(6*i + 4, Nodes[i].pNode->GetWCurr());
 		}
 	}
 
-	pH->MatVecMul(q_tmp, x_tmp);
-	pH->MatVecMul(qP_tmp, xP_tmp);
+	pH->MatVecMul(q, x);
+	pH->MatVecMul(qP, xP);
 
 	// Temporary?
 
 	pEMF->Send(pEFH, uFlags, GetLabel(), X, R, V, W, q, qP);
-
-#if 0
-	if (uFlags & ExtModalForceBase::EMF_RIGID) {
-		const StructNode *pNode = pModal->pGetModalNode();
-
-		Mat3x3 RT = pNode->GetRCurr().Transpose();
-		outf << pNode->GetLabel()
-			<< " " << pNode->GetXCurr()
-			<< " " << pNode->GetRCurr()
-			<< " " << RT*pNode->GetVCurr()
-			<< " " << RT*pNode->GetWCurr();
-		if (bOutputAccelerations) {
-			outf
-				<< " " << pNode->GetXPPCurr()
-				<< " " << pNode->GetWPCurr();
-		}
-		outf << std::endl;
-	}
-
-	if (uFlags & ExtModalForceBase::EMF_MODAL) {
-		const VecN& a = pModal->GetA();
-		const VecN& b = pModal->GetB();
-		const VecN& bP = pModal->GetBP();
-		for (integer i = 1; i < pModal->uGetNModes(); i++) {
-			outf << a(i) << " " << b(i);
-			if (bOutputAccelerations) {
-				outf << " " << bP(i);
-			}
-			outf << std::endl;
-		}
-	}
-#endif
 }
 
 void
@@ -257,10 +220,7 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	MyVectorHandler p_tmp(p.size(), &p[0]);
-	MyVectorHandler f_tmp(f.size(), &f[0]);
-
-	pH->MatTVecMul(f_tmp, p_tmp);
+	pH->MatTVecMul(f, p);
 
 	if (pRefNode) {
 		const Vec3& XRef(pRefNode->GetXCurr());
@@ -270,17 +230,14 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			Vec3 FTmp(&f[6*i]);
 			Vec3 MTmp(&f[6*i + 3]);
 
-			if (Nodes[i].pNode != pRefNode) {
-				F -= FTmp;
-				M -= MTmp + (Nodes[i].pNode->GetXCurr() - XRef).Cross(FTmp);
-			}
-
 			Nodes[i].F = RRef*FTmp;
 			Nodes[i].M = RRef*MTmp;
-		}
 
-		F = RRef*F;
-		M = RRef*M;
+			if (Nodes[i].pNode != pRefNode) {
+				F += Nodes[i].F;
+				M += Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
+			}
+		}
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {

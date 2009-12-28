@@ -39,6 +39,7 @@
 
 #include "modalext.h"
 #include "spmapmh.h"
+#include "stlvh.h"
 
 /* ModalMappingExt - begin */
 
@@ -67,15 +68,13 @@ protected:
 	// rigid-body forces
 	Vec3 F, M;
 
-	// nodal & modal forces
-	std::vector<doublereal> f;
-	std::vector<doublereal> p;
+	STLVectorHandler f;
+	STLVectorHandler p;
 
-	// nodal & modal displacements/velocities (TODO: accelerations?)
-	std::vector<doublereal> x;
-	std::vector<doublereal> xP;
-	std::vector<doublereal> q;
-	std::vector<doublereal> qP;
+	STLVectorHandler x;
+	STLVectorHandler xP;
+	STLVectorHandler q;
+	STLVectorHandler qP;
 
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);

@@ -69,9 +69,9 @@ VectorHandler::Add(integer iRow, const Vec3& v)
 	ASSERT(iGetSize() >= iRow + 2);
 #endif /* DEBUG */
 
-	operator()(iRow) += v.dGet(1);
-	operator()(++iRow) += v.dGet(2);
-	operator()(++iRow) += v.dGet(3);
+	operator()(iRow) += v(1);
+	operator()(++iRow) += v(2);
+	operator()(++iRow) += v(3);
 }
 
 /* Sottrae un Vec3 nella posizione desiderata */
@@ -84,9 +84,9 @@ VectorHandler::Sub(integer iRow, const Vec3& v)
 	ASSERT(iGetSize() >= iRow + 2);
 #endif /* DEBUG */
 
-	operator()(iRow) -= v.dGet(1);
-	operator()(++iRow) -= v.dGet(2);
-	operator()(++iRow) -= v.dGet(3);
+	operator()(iRow) -= v(1);
+	operator()(++iRow) -= v(2);
+	operator()(++iRow) -= v(3);
 }
 
 /* Scrive un Vec3 nella posizione desiderata */
@@ -99,9 +99,9 @@ VectorHandler::Put(integer iRow, const Vec3& v)
 	ASSERT(iGetSize() >= iRow + 2);
 #endif /* DEBUG */
 
-	operator()(iRow) = v.dGet(1);
-	operator()(++iRow) = v.dGet(2);
-	operator()(++iRow) = v.dGet(3);
+	operator()(iRow) = v(1);
+	operator()(++iRow) = v(2);
+	operator()(++iRow) = v(3);
 }
 
 /* Somma e moltiplica per uno scalare */
@@ -261,7 +261,7 @@ VectorHandler::Dot(void) const
 doublereal
 VectorHandler::Norm(void) const
 {
-	return sqrt(Dot());
+	return std::sqrt(Dot());
 }
 
 /* Prodotto Scalare fra due Vettori */

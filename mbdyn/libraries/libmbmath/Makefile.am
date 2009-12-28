@@ -52,6 +52,8 @@ spmapmh.cc \
 spmapmh.h \
 spmh.cc \
 spmh.h \
+stlvh.cc \
+stlvh.h \
 submat.cc \
 submat.h \
 vh.cc \
