@@ -61,11 +61,13 @@ usage(void)
 {
 	fprintf(stderr,
 		"usage: testsocket [options]\n"
-		"\t-c [random:]<c>\t\tnumber of iterations\n"
+		"\t-c [random:]<c>\tnumber of iterations\n"
+		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-M <modes>\tmodes number\n"
+		"\t-p {p1,...,pM}\tmodal forces (need -M first)\n"
 		"\t-r\t\tuse rigid body data\n"
-		"\t-s <sleeptime>\t\tsleep time between tries\n"
+		"\t-s <sleeptime>\tsleep time between tries\n"
 		"\t-v\t\tverbose\n"
 		"\t-x\t\tdata_and_next\n");
 	exit(EXIT_FAILURE);
@@ -86,8 +88,11 @@ main(int argc, char *argv[])
 	mbc_modal_t	mbcx = { { 0 } };
 	mbc_modal_t	*mbc = &mbcx;
 
+	double fx[6], *f0 = NULL;
+	double *p0 = NULL;
+
 	while (1) {
-		int opt = getopt(argc, argv, "c:H:M:rs:vx");
+		int opt = getopt(argc, argv, "c:f:H:M:p:rs:vx");
 
 		if (opt == EOF) {
 			break;
@@ -104,12 +109,54 @@ main(int argc, char *argv[])
 				printf("iterations: %d\n", iters);
 			}
 			if (iters < 1) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_socket: "
 					"invalid iterations %s\n",
 					optarg);
 				usage();
 			}
 			break;
+
+		case 'f': {
+			char *s;
+			int i;
+
+			if (f0 != NULL) {
+				fprintf(stderr, "test_modalext_socket: "
+					"-f already provided\n");
+				usage();
+			}
+
+			f0 = fx;
+
+			s = optarg;
+			for (i = 0; i < 6; i++) {
+				char *next;
+
+				f0[i] = strtod(s, &next);
+				if (next == s) {
+					fprintf(stderr, "test_modalext_socket: "
+						"unable to parse f[%d]\n", i);
+					usage();
+				}
+
+				if (i < 5) {
+					if (next[0] != ',') {
+						fprintf(stderr, "test_modalext_socket: "
+							"unable to parse past f[%d]\n", i);
+						usage();
+					}
+
+					s = &next[1];
+
+				} else {
+					if (next[0] != '\0') {
+						fprintf(stderr, "test_modalext_socket: "
+							"extra cruft past f[%d]\n", i);
+						usage();
+					}
+				}
+			}
+			} break;
 
 		case 'H':
 			if (strncasecmp(optarg, "inet://", sizeof("inet://") - 1) == 0) {
@@ -145,14 +192,73 @@ main(int argc, char *argv[])
 			break;
 
 		case 'M':
+			if (p0 != NULL) {
+				fprintf(stderr, "test_modalext_socket: "
+					"-M cannot follow -p\n");
+				usage();
+			}
+
 			mbc->modes = atoi(optarg);
 			if (mbc->modes <= 0) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_socket: "
 					"invalid mode number %s\n",
 					optarg);
 				usage();
 			}
 			break;
+
+		case 'p': {
+			char *s;
+			int i;
+
+			if (p0 != NULL) {
+				fprintf(stderr, "test_modalext_socket: "
+					"-p already provided\n");
+				usage();
+			}
+
+			if (mbc->modes <= 0) {
+				fprintf(stderr, "test_modalext_socket: "
+					"-p requires -M\n");
+				usage();
+			}
+
+			p0 = (double *)calloc(sizeof(double), mbc->modes);
+			if (p0 == NULL) {
+				fprintf(stderr, "test_modalext_socket: "
+					"malloc for modal force values failed\n");
+				exit(EXIT_FAILURE);
+			}
+
+			s = optarg;
+			for (i = 0; i < mbc->modes; i++) {
+				char *next;
+
+				p0[i] = strtod(s, &next);
+				if (next == s) {
+					fprintf(stderr, "test_modalext_socket: "
+						"unable to parse p[%d]\n", i);
+					usage();
+				}
+
+				if (i < mbc->modes - 1) {
+					if (next[0] != ',') {
+						fprintf(stderr, "test_modalext_socket: "
+							"unable to parse past p[%d]\n", i);
+						usage();
+					}
+
+					s = &next[1];
+
+				} else {
+					if (next[0] != '\0') {
+						fprintf(stderr, "test_modalext_socket: "
+							"extra cruft past p[%d]\n", i);
+						usage();
+					}
+				}
+			}
+			} break;
 
 		case 'r':
 			mbc->rigid = 1;
@@ -161,7 +267,7 @@ main(int argc, char *argv[])
 		case 's':
 			sleeptime = atoi(optarg);
 			if (sleeptime < 0) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_socket: "
 					"invalid iters %s\n",
 					optarg);
 				usage();
@@ -256,21 +362,39 @@ main(int argc, char *argv[])
 				double *f = MBC_F(mbc);
 				double *m = MBC_M(mbc);
 
-				f[0] = 1.;
-				f[1] = 2.;
-				f[2] = 3.;
+				if (f0 != NULL) {
+					f[0] = f0[0];
+					f[1] = f0[1];
+					f[2] = f0[2];
 
-				m[0] = 4.;
-				m[1] = 5.;
-				m[2] = 6.;
+					m[0] = f0[3];
+					m[1] = f0[4];
+					m[2] = f0[5];
+
+				} else {
+					f[0] = 1.;
+					f[1] = 2.;
+					f[2] = 3.;
+
+					m[0] = 4.;
+					m[1] = 5.;
+					m[2] = 6.;
+				}
 			}
 
 			if (mbc->modes > 0) {
 				double *p = MBC_P(mbc);
 				int m;
 
-				for (m = 0; m < mbc->modes; m++) {
-					p[m] = (double)(m + 1);
+				if (p0) {
+					for (m = 0; m < mbc->modes; m++) {
+						p[m] = p0[m];
+					}
+
+				} else {
+					for (m = 0; m < mbc->modes; m++) {
+						p[m] = (double)(m + 1);
+					}
 				}
 			}
 
@@ -283,6 +407,10 @@ main(int argc, char *argv[])
 done:;
 	mbc_modal_destroy(mbc);
 	mbc_destroy(&mbc->mbc);
+
+	if (p0) {
+		free(p0);
+	}
 
 	return 0;
 }
