@@ -362,10 +362,10 @@ ExtFileHandlerBase::Negotiate
 ExtSocketHandler::NegotiateRequest(void) const
 {
 	if (pUS->Create()) {
-		return ExtFileHandlerBase::NEGOTIATE_CLIENT;
+		return ExtFileHandlerBase::NEGOTIATE_SERVER;
 
 	} else {
-		return ExtFileHandlerBase::NEGOTIATE_SERVER;
+		return ExtFileHandlerBase::NEGOTIATE_CLIENT;
 	}
 }
 
@@ -424,20 +424,6 @@ void
 ExtSocketHandler::Prepare_post(bool ok)
 {
 	if (NegotiateRequest()) {
-		uint8_t u;
-		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
-			recv_flags);
-		if (rc == -1) {
-
-		} else if (rc != sizeof(u)) {
-
-		}
-
-		if (u != ES_OK) {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-	} else {
 		uint8_t u = ok ? ES_OK : ES_ABORT;
 
 		ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u),
@@ -454,6 +440,20 @@ ExtSocketHandler::Prepare_post(bool ok)
 				"(sent " << rc << " bytes "
 				"instead of " << sizeof(u) << ")"
 				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+	} else {
+		uint8_t u;
+		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
+			recv_flags);
+		if (rc == -1) {
+
+		} else if (rc != sizeof(u)) {
+
+		}
+
+		if (u != ES_OK) {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
