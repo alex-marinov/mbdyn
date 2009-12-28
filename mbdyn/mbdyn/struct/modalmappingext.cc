@@ -179,10 +179,12 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 		const Vec3& WRef(pRefNode->GetWCurr());
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			x.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetXCurr() - Nodes[i].X0 - XRef));
+			Vec3 XRel = Nodes[i].pNode->GetXCurr() - XRef;
+
+			x.Put(6*i + 1, RRef.MulTV(XRel) - Nodes[i].X0);
 			x.Put(6*i + 4, MatR2LinParam(RRef.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
 
-			xP.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef));
+			xP.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef + XRel.Cross(WRef)));
 			xP.Put(6*i + 4, RRef.MulTV(Nodes[i].pNode->GetWCurr() - WRef));
 		}
 
@@ -571,8 +573,8 @@ ReadModalMappingExtForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	bool bUseRigidBodyForces(false);
-	bool bRotateRigidBodyForces(false);
+	bool bUseRigidBodyForces(true);
+	bool bRotateRigidBodyForces(true);
 	if (bm & ExtModalForceBase::EMF_RIGID && HP.IsKeyWord("use" "rigid" "body" "forces")) {
 		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
 
