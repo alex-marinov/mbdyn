@@ -2257,8 +2257,10 @@ for the \kw{external modal} case.
     nodes number , <num_nodes> , <node1_label> [ , ... ] ,
     modes number , <num_modes> ,
     { full | sparse } mapping file , " <filename> "
-        [ , accelerations ]
+        [ , accelerations , { yes | no } ]
         [ , type , { rigid | modal | all } ]
+        [ , use rigid body forces , { yes | no } ]
+        [ , rotate rigid body forces , { yes | no } ]
 \end{verbatim}
 \kw{ref\_node\_label} is the label of the reference node
 if the modes express the motion relative to a specific node.

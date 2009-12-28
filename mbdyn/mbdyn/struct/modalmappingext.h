@@ -45,9 +45,11 @@
 
 class ModalMappingExt : virtual public Elem, public ExtForce {
 protected:
-	bool bOutputAccelerations;
 	ExtModalForceBase *pEMF;
 	unsigned uFlags;
+	bool bOutputAccelerations;
+	bool bUseRigidBodyForces;
+	bool bRotateRigidBodyForces;
 
 	StructNode *pRefNode;
 
@@ -93,6 +95,8 @@ public:
 		bool bSendAfterPredict,
 		int iCoupling,
 		ExtModalForceBase::BitMask bm,
+		bool bUseRigidBodyForces,
+		bool bRotateRigidBodyForces,
 		flag fOut);
 
 	virtual ~ModalMappingExt(void);

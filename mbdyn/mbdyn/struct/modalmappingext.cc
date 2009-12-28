@@ -54,12 +54,16 @@ ModalMappingExt::ModalMappingExt(unsigned int uL,
 	bool bSendAfterPredict,
 	int iCoupling,
 	ExtModalForceBase::BitMask bm,
+	bool bUseRigidBodyForces,
+	bool bRotateRigidBodyForces,
 	flag fOut)
 : Elem(uL, fOut),
 ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
-bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
 uFlags(ExtModalForceBase::EMF_NONE),
+bOutputAccelerations(bOutputAccelerations),
+bUseRigidBodyForces(bUseRigidBodyForces),
+bRotateRigidBodyForces(bRotateRigidBodyForces),
 pRefNode(pRefNode),
 pH(pH),
 F(0.),
@@ -226,6 +230,19 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 		const Vec3& XRef(pRefNode->GetXCurr());
 		const Mat3x3& RRef(pRefNode->GetRCurr());
 
+		if (bUseRigidBodyForces) {
+			// use rigid body forces as provided by peer
+			if (bRotateRigidBodyForces) {
+				F = RRef*F;
+				M = RRef*M;
+			}
+
+		} else {
+			// re-compute rigid body forces using nodal forces
+			F = Zero3;
+			M = Zero3;
+		}
+
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 FTmp(&f[6*i]);
 			Vec3 MTmp(&f[6*i + 3]);
@@ -233,11 +250,13 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			Nodes[i].F = RRef*FTmp;
 			Nodes[i].M = RRef*MTmp;
 
-			if (Nodes[i].pNode != pRefNode) {
+			if (!bUseRigidBodyForces && Nodes[i].pNode != pRefNode) {
 				F += Nodes[i].F;
 				M += Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
 			}
 		}
+
+		
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -552,6 +571,16 @@ ReadModalMappingExtForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	bool bUseRigidBodyForces(false);
+	bool bRotateRigidBodyForces(false);
+	if (bm & ExtModalForceBase::EMF_RIGID && HP.IsKeyWord("use" "rigid" "body" "forces")) {
+		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
+
+		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
+			bRotateRigidBodyForces = HP.GetYesNo(bRotateRigidBodyForces);
+		}
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 
 	if (HP.IsArg()) {
@@ -565,7 +594,8 @@ ReadModalMappingExtForce(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalMappingExt,
 		ModalMappingExt(uLabel, pDM, pRefNode, n, pH,
 			bOutputAccelerations,
-			pEFH, pEMF, bSendAfterPredict, iCoupling, bm, fOut));
+			pEFH, pEMF, bSendAfterPredict, iCoupling, bm,
+			bUseRigidBodyForces, bRotateRigidBodyForces, fOut));
 
 	return pEl;
 }
