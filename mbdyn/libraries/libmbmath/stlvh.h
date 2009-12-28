@@ -46,6 +46,11 @@ public:
 
 	virtual ~STLVectorHandler(void);
 
+#ifdef DEBUG
+	/* Usata per il debug */
+	virtual void IsValid(void) const;
+#endif /* DEBUG */
+
 	virtual doublereal* pdGetVec(void) const;
 
 	virtual integer iGetSize(void) const;

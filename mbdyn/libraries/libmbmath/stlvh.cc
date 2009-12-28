@@ -57,10 +57,21 @@ STLVectorHandler::~STLVectorHandler(void)
 	NO_OP;
 }
 
+#ifdef DEBUG
+/* Usata per il debug */
+void
+STLVectorHandler::IsValid(void) const
+{
+	ASSERT(!empty());
+}
+#endif // DEBUG
+
 doublereal *
 STLVectorHandler::pdGetVec(void) const
 {
-	ASSERT(!empty());
+#ifdef DEBUG
+	IsValid();
+#endif // DEBUG
 
 	return &((*const_cast<STLVectorHandler *>(this))[0]);
 }
@@ -74,7 +85,9 @@ STLVectorHandler::iGetSize(void) const
 void
 STLVectorHandler::Reset(void)
 {
-	ASSERT(!empty());
+#ifdef DEBUG
+	IsValid();
+#endif // DEBUG
 
 	std::fill(begin(), end(), 0.);
 }
@@ -292,7 +305,9 @@ STLVectorHandler::operator = (const VectorHandler& VH)
 doublereal
 STLVectorHandler::Dot(void) const
 {
-	ASSERT(!empty());
+#ifdef DEBUG
+	IsValid();
+#endif // DEBUG
 
 	doublereal d2 = 0.;
 
