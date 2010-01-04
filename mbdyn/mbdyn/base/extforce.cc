@@ -50,7 +50,7 @@
 /* ExtFileHandlerBase - begin */
 
 ExtFileHandlerBase::ExtFileHandlerBase(int iSleepTime, int iPrecision)
-: iSleepTime(iSleepTime), iPrecision(iPrecision)
+: iSleepTime(iSleepTime), iPrecision(iPrecision), bOK(true)
 {
 	NO_OP;
 }
@@ -247,7 +247,7 @@ ExtFileHandler::Recv_pre(void)
                
 		if (mbdyn_stop_at_end_of_iteration()) {
 			inf.setstate(std::ios_base::badbit);
-			return false;
+			return (bOK = false);
 		}
 
 		sleep(iSleepTime);
@@ -385,31 +385,31 @@ ExtSocketHandler::Prepare_pre(void)
 			silent_cerr("ExtSocketHandler: send() negotiation request failed "
 				"(" << save_errno << ": " << strerror(save_errno) << ")"
 				<< std::endl);
-			return false;
+			return (bOK = false);
 
 		} else if (rc != sizeof(u)) {
 			silent_cerr("ExtSocketHandler: send() negotiation request failed "
 				"(sent " << rc << " bytes "
 				"instead of " << sizeof(u) << ")"
 				<< std::endl);
-			return false;
+			return (bOK = false);
 		}
 		break;
 
 	case ExtFileHandlerBase::NEGOTIATE_SERVER:
 		rc = recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
 		if (rc == -1) {
-			return false;
+			return (bOK = false);
 
 		} else if (rc != sizeof(u)) {
-			return false;
+			return (bOK = false);
 		}
 
 		if (u != ES_NEGOTIATION) {
 			silent_cerr("ExtSocketHandler: "
 				"recv() negotiation request failed"
 				<< std::endl);
-			return false;
+			return (bOK = false);
 		}
 		break;
 
@@ -448,8 +448,18 @@ ExtSocketHandler::Prepare_post(bool ok)
 		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
 			recv_flags);
 		if (rc == -1) {
+			int save_errno = errno;
+			silent_cerr("ExtSocketHandler: recv() negotiation response failed "
+				"(" << save_errno << ": " << strerror(save_errno) << ")"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (rc != sizeof(u)) {
+			silent_cerr("ExtSocketHandler: recv() negotiation response failed "
+				"(received " << rc << " bytes "
+				"instead of " << sizeof(u) << ")"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		}
 
@@ -469,7 +479,7 @@ ExtSocketHandler::AfterPredict(void)
 bool
 ExtSocketHandler::Send_pre(SendWhen when)
 {
-	if (!bReadForces) {
+	if (!bReadForces || !bOK) {
 		return false;
 	}
 
@@ -486,7 +496,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 			"(" << save_errno << ": " << strerror(save_errno) << ")"
 			<< std::endl);
 		mbdyn_set_stop_at_end_of_iteration();
-		return false;
+		return (bOK = false);
 
 	} else if (rc != sizeof(u)) {
 		silent_cerr("ExtSocketHandler: send() failed "
@@ -494,7 +504,7 @@ ExtSocketHandler::Send_pre(SendWhen when)
 			"instead of " << sizeof(u) << ")"
 			<< std::endl);
 		mbdyn_set_stop_at_end_of_iteration();
-		return false;
+		return (bOK = false);
 	}
 
 	return true;
@@ -538,11 +548,11 @@ ExtSocketHandler::Recv_pre(void)
 					<< strerror(save_errno) << ")"
 					<< std::endl);
 				mbdyn_set_stop_at_end_of_iteration();
-				return false;
+				return (bOK = false);
 			}
 
 			if (mbdyn_stop_at_end_of_iteration()) {
-				return false;
+				return (bOK = false);
 			}
 
 #ifdef USE_SLEEP
@@ -552,16 +562,36 @@ ExtSocketHandler::Recv_pre(void)
 
 	} else {
 		// wait until the status code is returned
-		recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
+		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
+		if (rc == -1) {
+			int save_errno = errno;
+	
+			if (errno != EAGAIN) {
+				silent_cerr("ExtSocketHandler: "
+					"recv() failed (" << save_errno << ": "
+					<< strerror(save_errno) << ")"
+					<< std::endl);
+				mbdyn_set_stop_at_end_of_iteration();
+				return (bOK = false);
+			}
+
+		} else if (rc != sizeof(u)) {
+			silent_cerr("ExtSocketHandler: "
+				"recv()=" << rc << " (expected " << sizeof(u) << ")" 
+				<< std::endl);
+			mbdyn_set_stop_at_end_of_iteration();
+			return (bOK = false);
+		}
 	}
 
 	// TODO: act upon status code value
 	switch (u2cmd(u)) {
 	case ES_UNKNOWN:
 		silent_cerr("ExtSocketHandler: "
-			"received unknown code " << u << std::endl);
+			"received unknown code (" << unsigned(u) << ")"
+			<< std::endl);
 		mbdyn_set_stop_at_end_of_iteration();
-		return false;
+		return (bOK = false);
 
 	case ES_REGULAR_DATA:
 		break;

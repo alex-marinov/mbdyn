@@ -2288,6 +2288,39 @@ The default is \kw{all}, but some communicators might require
 a specific value.
 If \kw{rigid} or \kw{all} are used, the \kw{reference node} must be defined.
 
+\subsubsection{Output}
+An external modal mapping element writes multiple lines at each time step
+in the \kw{.frc} file.
+
+If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
+\begin{itemize}
+\item in column 1 the label of the element and that of the corresponding node;
+	the format of this field is \kw{element\_label@node\_label};
+\item in columns 2--4 the three components of the force;
+\item in columns 5--7 the three components of the moment.
+\end{itemize}
+If \kw{type} is \kw{modal} or \kw{all}, two types of output are generated:
+\begin{itemize}
+\item a line for each node participating in the mapping, containing:
+\begin{itemize}
+\item in column 1 the label of the element and the corresponding node;
+	the format of this field is \kw{element\_label\#node\_number};
+\item in columns 2--4 the three components of the corresponding nodal force,
+	in the global reference frame;
+\item in columns 5--7 the three components of the corresponding nodal moment,
+	in the global reference frame;
+\end{itemize}
+
+\item a line for each mode the motion is mapped to, containing:
+\begin{itemize}
+\item in column 1 the label of the element and the corresponding mode;
+	the format of this field is \kw{element\_label.mode\_number};
+\item in column 2 the amplitude of the corresponding modal force;
+\item in column 3 the amplitude of the corresponding modal variable;
+\item in column 3 the amplitude of the corresponding modal variable derivative.
+\end{itemize}
+\end{itemize}
+
 
 
 

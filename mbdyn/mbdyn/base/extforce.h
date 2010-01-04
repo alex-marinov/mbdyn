@@ -63,6 +63,7 @@ public:
 
 protected:
 	int iSleepTime, iPrecision;
+	bool bOK;
 
 public:
 	ExtFileHandlerBase(int iSleepTime, int iPrecision);

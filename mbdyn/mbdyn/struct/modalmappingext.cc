@@ -173,19 +173,14 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 	}
 
 	if (pRefNode) {
-		const Vec3& XRef(pRefNode->GetXCurr());
-		const Mat3x3& RRef(pRefNode->GetRCurr());
-		const Vec3& VRef(pRefNode->GetVCurr());
-		const Vec3& WRef(pRefNode->GetWCurr());
-
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 XRel = Nodes[i].pNode->GetXCurr() - XRef;
+			Vec3 XRel = Nodes[i].pNode->GetXCurr() - X;
 
-			x.Put(6*i + 1, RRef.MulTV(XRel) - Nodes[i].X0);
-			x.Put(6*i + 4, MatR2LinParam(RRef.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
+			x.Put(6*i + 1, R.MulTV(XRel) - Nodes[i].X0);
+			x.Put(6*i + 4, MatR2LinParam(R.MulTM(Nodes[i].pNode->GetRCurr().MulMT(Nodes[i].R0))));
 
-			xP.Put(6*i + 1, RRef.MulTV(Nodes[i].pNode->GetVCurr() - VRef + XRel.Cross(WRef)));
-			xP.Put(6*i + 4, RRef.MulTV(Nodes[i].pNode->GetWCurr() - WRef));
+			xP.Put(6*i + 1, R.MulTV(Nodes[i].pNode->GetVCurr() - V + XRel.Cross(W)));
+			xP.Put(6*i + 4, R.MulTV(Nodes[i].pNode->GetWCurr() - W));
 		}
 
 	} else {
@@ -200,8 +195,6 @@ ModalMappingExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen whe
 
 	pH->MatVecMul(q, x);
 	pH->MatVecMul(qP, xP);
-
-	// Temporary?
 
 	pEMF->Send(pEFH, uFlags, GetLabel(), X, R, V, W, q, qP);
 }
@@ -339,8 +332,16 @@ ModalMappingExt::Output(OutputHandler& OH) const
 		}
 
 		if (uFlags & ExtModalForceBase::EMF_MODAL) {
+			for (unsigned i = 0; i < x.size(); i++) {
+				out << GetLabel() << '.' << i + 1
+					<< " " << p[i]
+					<< " " << q[i]
+					<< " " << qP[i]
+					<< std::endl;
+			}
+
 			for (unsigned i = 0; i < Nodes.size(); i++) {
-				out << GetLabel() << '.' << Nodes[i].pNode->GetLabel()
+				out << GetLabel() << '#' << Nodes[i].pNode->GetLabel()
 					<< " " << Nodes[i].F
 					<< " " << Nodes[i].M
 					<< std::endl;
