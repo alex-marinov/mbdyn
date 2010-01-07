@@ -25,14 +25,16 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 %
-% Mattia Mattaboni <mattaboni@aero.polimi.it> is the author of this document
+% Mattia Mattaboni <mattaboni@aero.polimi.it> and
+% Pierangelo Masarati <masarati@aero.polimi.it> authored this document.
 
+\paragraph{Definitions.} \
 Axis 3 is the rotor's axis.
-$\T{v}$ is the composition of the velocity of the aircraft node
+$\tilde{\T{v}}$ is the composition of the velocity of the `aircraft' node
 and of the airstream speed, if any, projected in the reference frame
-of the aircraft, namely
+of the `aircraft' node, namely
 \begin{align}
-	\T{v}
+	\tilde{\T{v}}
 	&=
 	\TT{R}_\text{craft}^T \plbr{
 		- \T{v}_\text{craft}
@@ -40,7 +42,7 @@ of the aircraft, namely
 	}
 	.
 \end{align}
-Definitions:
+%
 \begin{subequations}
 \begin{align}
 	v_{12}
@@ -50,7 +52,7 @@ Definitions:
 	v
 	&=
 	\sqrt{v_1^2 + v_2^2 + v_3^2}
-	= \sqrt{\T{v}^T \T{v}}
+	= \sqrt{\tilde{\T{v}}^T \tilde{\T{v}}}
 	\\
 	\sin\alpha_d
 	&=
@@ -84,7 +86,8 @@ is computed if $\Omega$ is below a threshold).
 As a consequence, $\mu \ge 0$.
 
 
-Ground effect (if defined):
+\paragraph{Ground effect.} \
+If defined, according to \cite{CHEESEMAN-BENNETT-1955},
 \begin{subequations}
 \begin{align}
 	u_\text{IGE}
@@ -99,9 +102,11 @@ Ground effect (if defined):
 	&= \max\plbr{\frac{h}{R}, \frac{1}{4}}
 \end{align}
 \end{subequations}
-where $h$ is the distance of the aircraft node from the ground node
-(along axis 3 of the ground node).
+where $h$ is the component along axis 3 of the `ground' node
+of distance between the `aircraft' and the `ground' node,
+assuming the `aircraft' node is located at the hub center.
 
+\paragraph{Reference Induced Velocity.} \
 The reference induced velocity $u$ is computed by solving the implicit problem
 \begin{align}
 	f
@@ -116,6 +121,10 @@ The reference induced velocity $u$ is computed by solving the implicit problem
 with
 \begin{subequations}
 \begin{align}
+	C_t
+	&=
+	\frac{T}{\rho \pi R^4 \Omega^2}
+	\\
 	\lambda_u
 	&=
 	\frac{u}{v_\text{tip}}
@@ -126,9 +135,11 @@ with
 	=
 	\mu \tan\alpha_d
 	+ \lambda_u
-	.
+	;
 \end{align}
 \end{subequations}
+$T$ is the component of the aerodynamic force of the rotor
+along the shaft axis.
 The value of $\lambda_u$ is initialized using the reference induced velocity
 $u$ at the previous step/iteration.
 Only when $u=0$ and $C_t\neq 0$, $u$ is initialized using its nominal value
@@ -139,7 +150,6 @@ in hover,
 	\text{sign}\plbr{T} \sqrt{\frac{\nrbr{T}}{2 \rho A}}
 	.
 \end{align}
-
 The problem is solved by means of a local Newton iteration.
 The Jacobian of the problem is
 \begin{align}
@@ -156,11 +166,12 @@ The solution,
 	,
 \end{align}
 is added to $\lambda_u$ as
-$\lambda_u = \lambda_u + \eta \Delta\lambda_u$,
-where $0 < \eta \le 1$ is an optional relaxation factor.
+$\lambda_u += \eta \Delta\lambda_u$,
+where $0 < \eta \le 1$ is an optional relaxation factor
+(by default, $\eta=1$).
 
-Corrections:
-the reference induced velocity is corrected by separately correcting
+\paragraph{Corrections.} \
+The reference induced velocity is corrected by separately correcting
 the inflow and advance parameters, namely
 \begin{subequations}
 \begin{align}
@@ -171,9 +182,9 @@ the inflow and advance parameters, namely
 	\mu^*
 	&=
 	\frac{\mu}{k_\text{FF}}
-	.
 \end{align}
 \end{subequations}
+(by default, $k_\text{H}=1$ and $k_\text{FF}=1$).
 The reference induced velocity is then recomputed as
 \begin{align}
 	u^*
@@ -183,7 +194,7 @@ The reference induced velocity is then recomputed as
 	+ \rho u^*_\text{prev}
 	,
 \end{align}
-where $0 \le \rho < 1$ is a memory factor.
+where $0 \le \rho < 1$ is a memory factor (by default, $\rho=0$).
 
 Note: in principle, multiple solutions for $\lambda_u$ are possible.
 However, only one solution is physical.
@@ -191,7 +202,12 @@ Currently, no strategy is put in place to ensure that only the physical
 solution is considered.
 
 
-\subsection{Glauert model}
+\subsection{Uniform Inflow Model}
+
+The induced velocity is equal to its reference value, $u^*$, everywhere.
+
+
+\subsection{Glauert Model}
 
 In forward flight (when $\mu > 0.15$) the inflow over the rotor disk can 
 be approximated by:
@@ -213,7 +229,10 @@ k_x &=  \frac{4}{3} \left( 1 - 1.8 \mu^2 \right) \tan{\frac{\chi}{2}}
 k_y &= 0,
 \end{align}
 
-\textbf{FIXME: \`e diversa dalle espressioni riportate sul Leishman}
+\textbf{FIXME: \`e diversa dalle espressioni riportate sul Leishman!}
+
+\textbf{TODO: si pu\`o aggiungere, come opzioni, le varie forme
+proposte da Leishman}
 
 
 where $\chi$ is the wake skew angle:
@@ -228,7 +247,7 @@ when the advance ratio is null (in hover).
 In fact, when $\mu = 0$ then $\chi = k_x = 0$.
 The inflow is thus uniform over the rotor disk, and equal to $\lambda_0$.
 
-\subsection{Mangler-Squire model}
+\subsection{Mangler-Squire Model}
 
 The Mangler-Squire model is developed under the high speed assumption
 and it should be used only for advance ratio grater than 0.1.
@@ -239,7 +258,8 @@ In the original formulation the induced velocity is computed as:
 \frac{c_0}{2} - \sum_{n=1}^{\infty} c_n(r,\alpha_d) \cos{n \psi} \right],
 \end{equation}
 since the advance ratio $\mu$ appears in the denominator this expression is
-not valid in hover. Bramwell proposed a different expression for the induced 
+not valid in hover.
+Bramwell \cite{BRAMWELL-1976} proposed a different expression for the induced 
 velocity:
 \begin{equation}
 \lambda_i = 4 \lambda_0 \left[ 
@@ -293,7 +313,8 @@ c_n = (-1)^{\frac{n}{2}-1}
 \right]^{\frac{n}{2}},
 \end{equation}
 
-Note: the Bramwell version makes sense also in hover but gives different
+Note: the version proposed by Bramwell \cite{BRAMWELL-1976}
+makes sense also in hover but gives different
 results with respect to the uniform inflow and the Glauert inflow models.
 Let assume $\alpha_d = \pi/2$, it follows that $c_n = 0$ for $n \ge 1$.
 Therefore the induced velocity does not depend on the azimuthal position 
