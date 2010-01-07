@@ -190,3 +190,116 @@ However, only one solution is physical.
 Currently, no strategy is put in place to ensure that only the physical
 solution is considered.
 
+
+\subsection{Glauert model}
+
+In forward flight (when $\mu > 0.15$) the inflow over the rotor disk can 
+be approximated by:
+\begin{align}
+\lambda_i &= \lambda_0 \left( 1 + k_x \frac{x}{R} + k_y \frac{y}{R} \right)
+\\
+&= \lambda_0 \left( 1 + k_x r \cos{\psi} + k_y r \sin{\psi} \right),
+\end{align}
+where the mean induced velocity $\lambda_0$ is computed as shown in the
+previous section.
+
+In literature a lot of expressions for the $k_x$ and $k_y$ coefficients have
+been proposed by different authors. In MBDyn the following expressions are
+used:
+\begin{align}
+k_x &=  \frac{4}{3} \left( 1 - 1.8 \mu^2 \right) \tan{\frac{\chi}{2}}
+\\
+k_y &= 0,
+\end{align}
+FIXME: è diversa dalle espressioni riportate sul Leishman
+
+
+where $\chi$ is the wake skew angle:
+\begin{equation}
+\chi = \tan^{-1}\left( \frac{\mu}{\lambda} \right).
+\end{equation}
+CHECK: dovrebbe essere equivalente all'espressione di Leishman ma
+sarebbe meglio verificare!!!
+
+Note: the Glauert inflow model exactly matches the uniform inflow model
+when the advance ratio is null, i.e in hover, because:
+\begin{equation}
+\mu = 0, 
+\end{equation}
+therefore:
+\begin{equation}
+\chi = k_x = 0,
+\end{equation}
+that means that the induced velocity is uniform over the rotor disk and
+equal to $\lambda_0$.
+
+\subsection{Mangler-Squire model}
+
+The Mangler-Squire model is developed under the high speed assumption
+and it should be used only for advance ratio grater than 0.1.
+
+In the original formulation the induced velocity is computed as:
+\begin{equation}
+\lambda_i = \left( \frac{ 2 C_T}{\mu} \right) \left[ 
+\frac{c_0}{2} - \sum_{n=1}^{\infty} c_n(r,\alpha) \cos{n \psi} \right],
+\end{equation}
+since the advance ratio $\mu$ appears in the denominator this expression is
+not valid in hover. Bramwell proposed a different expression for the induced 
+velocity:
+\begin{equation}
+\lambda_i = 4 \lambda_0 \left[ 
+\frac{c_0}{2} - \sum_{n=1}^{\infty} c_n(r,\alpha) \cos{n \psi} \right],
+\end{equation}
+where $\lambda_0$ is the mean inflow computed as shown before. In this way
+the Mangler-Squire inflow model makes sense also in hover. MBDyn uses the latter
+version.
+
+Regarding the $c_n$ coefficients, their expression depends on the form of the 
+rotor disk loading. Mangler and Squire developed the theory for two fundamental
+forms: Type I (elliptical loading) and Type III (a loading that vanishes at the 
+edges and at the center of the disk). The total loading is finally obtained by
+a linear combination of Type I and Type III loadings (see \cite{LEISHMAN-2006}).
+
+MBDyn uses just a Type III loading, and the resulting expressions for the
+$c_n$ coefficients are:
+\begin{equation}
+c_0 = \frac{15}{8} \eta \left( 1-\eta^2 \right),
+\end{equation}
+where $\eta = \sqrt{ 1 - r^2}$.
+\begin{equation}
+c_1 = -\frac{ 15 \pi}{256} 
+\left( 5 - 9 \eta^2 \right)
+\left[ 
+\left(1-\eta^2\right)
+\left( \frac{1 - \sin{\alpha}}{1 + \sin{\alpha}} \right)
+\right]^{\frac{1}{2}},
+\end{equation}
+\begin{equation}
+c_3 = \frac{ 45 \pi}{256} 
+\left[ 
+\left(1-\eta^2\right)
+\left( \frac{1 - \sin{\alpha}}{1 + \sin{\alpha}} \right)
+\right]^{\frac{3}{2}},
+\end{equation}
+and $c_n = 0$ for odd values of $n \ge 0$.
+
+For even values:
+\begin{equation}
+c_n = (-1)^{\frac{n-2}{2}} 
+\frac{15}{8}
+\left[ 
+{\frac{\eta + n}{n^2 -1}} \dot {\frac{9 \eta^2 + n^2 -6}{n^2 -9}} + 
+{\frac{ 3 \eta}{n^2 -9}} 
+\right]
+\left[ 
+\left( \frac{1 - \eta}{1 + \eta} \right)
+\left( \frac{1 - \sin{\alpha}}{1 + \sin{\alpha}} \right)
+\right]^{\frac{n}{2}},
+\end{equation}
+
+Note: the Bramwell version makes sense also in hover but gives different
+results with respect to the uniform inflow and the Glauert inflow models.
+Let assume $\alpha = \frac{\pi}{2}$, it follows that $c_n = 0$ for $n \ge 1$.
+Therefore the induced velocity does not depend on the azimuthal position 
+$\psi$ but only on the radial position $r$, so the inflow is not uniform, 
+but the mean inflow is still $\lambda_0$.
