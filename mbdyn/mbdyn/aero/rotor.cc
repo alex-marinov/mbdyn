@@ -1167,25 +1167,28 @@ ManglerRotor::GetInducedVelocity(const Vec3& X) const
 	if (dm2 > 0.) {
 		dm = sqrt(dm2);
 	}
-	doublereal da = 1. + dSinAlphad;
-	if (std::abs(da) > 1.e-9) {
-		da = (1. - dSinAlphad)/da;
+	doublereal da = 1. + std::abs(dSinAlphad);
+	if (da > 1.e-9) {
+		da = (1. - std::abs(dSinAlphad))/da;
 	}
-	if (std::abs(da) > 0.) {
+	if (da > 0.) {
 		da = sqrt(da);
 	}
 
+	// c_0
 	doublereal dd = 15./4.*dm*dr2;
 
-	/* Primo coefficiente */
+	// c_1
 	doublereal dc = -15./256.*M_PI*(9.*dr2 - 4.)*dr*da;
 	dd -= 4.*dc*cos(dp);
 
-	/* Secondo coefficiente */
+	// c_3
 	dc = 45./256.*M_PI*pow(da*dr, 3);
 	dd -= 4.*dc*cos(3.*dp);
 
-	/* Coefficienti pari, da 2 a 10: */
+	// c_[5:2:infty] = 0
+
+	// c_[2:2:infty] (truncated at 10)
 	for (int i = 2; i <= 10; i += 2) {
 		dc = pow(-1., i/2 - 1)*15./8.
 			*((dm + i)/(i*i - 1.)*(3. - 9.*dr2 + i*i) + 3.*dm)/(i*i - 9.)
@@ -1201,9 +1204,9 @@ ManglerRotor::GetInducedVelocity(const Vec3& X) const
 
 
 
-const doublereal dM11 = 8./(3.*M_PI);
-const doublereal dM22 = -16./(45.*M_PI);
-const doublereal dM33 = -16./(45.*M_PI);
+static const doublereal dM11 = 8./(3.*M_PI);
+static const doublereal dM22 = -16./(45.*M_PI);
+static const doublereal dM33 = -16./(45.*M_PI);
 
 /* DynamicInflowRotor - begin */
 
