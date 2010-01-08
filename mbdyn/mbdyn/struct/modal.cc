@@ -3375,7 +3375,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFEM << "\""
+						"input file \"" << sFileFEM << "\" "
 						"is bogus (RECORD GROUP 3)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3424,7 +3424,7 @@ ReadModal(DataManager* pDM,
 	
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFEM << "\""
+						"input file \"" << sFileFEM << "\" "
 						"is bogus (RECORD GROUP 4)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3588,16 +3588,30 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
+				// we assume rejected modes come first
 				for (unsigned int jMode = 1; jMode <= NRejModes; jMode++) {
+					// header
+					fdat.getline(str, sizeof(str));
+
+					silent_cout("Modal(" << uLabel << "): rejecting mode #" << jMode
+						<< " (" << str << ")" << std::endl);
+
+					// mode
+					for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+						doublereal n[6];
+	
+						fdat >> n[0] >> n[1] >> n[2]
+							>> n[3] >> n[4] >> n[5];
+					}
+
 					/* FIXME: siamo sicuri di avere 
 					 * raggiunto '\n'? */
-					fdat.getline(str, sizeof(str));
 					fdat.getline(str, sizeof(str));
 				}
 				
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFEM << "\""
+						"input file \"" << sFileFEM << "\" "
 						"is bogus (RECORD GROUP 8)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3608,10 +3622,22 @@ ReadModal(DataManager* pDM,
 					fdat.getline(str, sizeof(str));
 					if (strncmp("**", str, STRLENOF("**")) != 0)
 					{
-						silent_cerr("Modal(" << uLabel << "): "
-							"input file \"" << sFileFEM << "\""
-							"is bogus (\"**\" expected)"
-							<< std::endl);
+						if (NRejModes) {
+							silent_cerr("Modal(" << uLabel << "): "
+								"input file \"" << sFileFEM << "\""
+								"is bogus (\"**\" expected before mode #" << jMode
+								<< " of " << NModesFEM << "; "
+								"#" << jMode + NRejModes
+								<< " of " << NModesFEM + NRejModes
+								<< " including rejected)"
+								<< std::endl);
+						} else {
+							silent_cerr("Modal(" << uLabel << "): "
+								"input file \"" << sFileFEM << "\""
+								"is bogus (\"**\" expected before mode #" << jMode
+								<< " of " << NModesFEM << ")"
+								<< std::endl);
+						}
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					
@@ -3666,7 +3692,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFEM << "\""
+						"input file \"" << sFileFEM << "\" "
 						"is bogus (RECORD GROUP 9)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3726,7 +3752,7 @@ ReadModal(DataManager* pDM,
 
 				if (bActiveModes.empty()) {
 					silent_cerr("Modal(" << uLabel << "): "
-						"input file \"" << sFileFEM << "\""
+						"input file \"" << sFileFEM << "\" "
 						"is bogus (RECORD GROUP 10)"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
