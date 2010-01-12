@@ -1204,7 +1204,11 @@ ManglerRotor::GetInducedVelocity(const Vec3& X) const
 
 
 
-static const doublereal dM11 = 8./(3.*M_PI);
+/* static const doublereal dM11 = 8./(3.*M_PI); */
+static const doublereal dM11 = 128./(75.*M_PI); 
+/* seguendo il paper di Pitt and Peters il
+primo valore è quello "uncorrected" mentre il
+secondo è quello "corrected" */
 static const doublereal dM22 = -16./(45.*M_PI);
 static const doublereal dM33 = -16./(45.*M_PI);
 
