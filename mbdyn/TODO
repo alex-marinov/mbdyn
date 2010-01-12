@@ -221,6 +221,7 @@ E. Bugs/missing features:
 	- UseSocket without host listens only on localhost (BY DESIGN)
 	- external modal force needs work in "loose" coupling (FIXED)
 	- allow preamble in communications with pairs {string,value}
+	- rework rejected modes handling in modal joint
 
 
 
