@@ -482,11 +482,31 @@ and a $\mathbf{L}$ matrix is defined as:
 \right].
 \end{equation}
 
+%Finally the $\mathbf{M}$ matrix is defined as:
+%\begin{equation}\label{eq:Mdef}
+%\mathbf{M} = \left[
+%\begin{array}{ccc}
+%\frac{8}{3 \pi} & 0  & 0 \\
+%0 & -\frac{16}{45 \pi} & 0 \\
+%0 & 0 & -\frac{16}{45 \pi}
+%\end{array}
+%\right].
+%\end{equation}
+%
+%\textbf{Note: this choice of the $\mathbf{M}$ matrix corresponds
+%to the \emph{uncorrected} M-matrix in the Pitt and Peters paper,
+%even if they suggest a mixed form between the \emph{uncorrected}
+%and \emph{corrected} matrix where in the first column of the $\mathbf{M}$
+%and $\mathbf{L}$ matrices the \emph{corrected} values are used, while
+%the \emph{uncorrected} values are used for the second and third columns.
+%Following this approach the $M_{11}$ element in matrix \ref{eq:Mdef} 
+%should be replaced by $\frac{128}{75 \pi}$}.
+
 Finally the $\mathbf{M}$ matrix is defined as:
 \begin{equation}\label{eq:Mdef}
 \mathbf{M} = \left[
 \begin{array}{ccc}
-\frac{8}{3 \pi} & 0  & 0 \\
+\frac{128}{75 \pi} & 0  & 0 \\
 0 & -\frac{16}{45 \pi} & 0 \\
 0 & 0 & -\frac{16}{45 \pi}
 \end{array}
@@ -494,13 +514,10 @@ Finally the $\mathbf{M}$ matrix is defined as:
 \end{equation}
 
 \textbf{Note: this choice of the $\mathbf{M}$ matrix corresponds
-to the \emph{uncorrected} M-matrix in the Pitt and Peters paper,
-even if they suggest a mixed form between the \emph{uncorrected}
-and \emph{corrected} matrix where in the first column of the $\mathbf{M}$
-and $\mathbf{L}$ matrices the \emph{corrected} values are used, while
-the \emph{uncorrected} values are used for the second and third columns.
-Following this approach the $M_{11}$ element in matrix \ref{eq:Mdef} 
-should be replaced by $\frac{128}{75 \pi}$}.
+to the mixed \emph{uncorrected}-\emph{corrected} (following
+the authors nomenclature) M-matrix proposed by Pitt and Peters 
+in their paper.
+
 
 
 
