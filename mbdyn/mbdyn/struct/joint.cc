@@ -66,7 +66,9 @@
 #include "point_contact.h"
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
+#ifdef MBDYN_DEVEL
 #include "screwjoint.h"
+#endif // MBDYN_DEVEL
 #include "spherj.h"
 #include "totalequation.h"
 #include "totalj.h"
@@ -196,7 +198,9 @@ ReadJoint(DataManager* pDM,
 		"gimbal" "rotation",
 		"modal",
 		"point" "contact",
+#ifdef MBDYN_DEVEL
 		"screw",
+#endif // MBDYN_DEVEL
 
 		NULL
 	};
@@ -259,7 +263,9 @@ ReadJoint(DataManager* pDM,
 		GIMBALROTATION,
 		MODAL,
 		POINT_SURFACE_CONTACT,
+#ifdef MBDYN_DEVEL
 		SCREWJOINT,
+#endif // MBDYN_DEVEL
 		
 		LASTKEYWORD
 	};
@@ -3279,6 +3285,7 @@ ReadJoint(DataManager* pDM,
 						
 	} break;
 	
+#ifdef MBDYN_DEVEL
 	case SCREWJOINT: {
 		/* nodo collegato 1 */
 		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
@@ -3362,6 +3369,7 @@ ReadJoint(DataManager* pDM,
 			<< " " << Mat3x3(1.)
 			<< std::endl;
 	} break;
+#endif // MBDYN_DEVEL
 
 	/* Aggiungere qui altri vincoli */
 

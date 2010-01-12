@@ -34,19 +34,25 @@ logproc
 endif
 
 if USE_X_ANN
+if MBDYN_DEVEL
 bin_PROGRAMS += \
 mbfem
+endif
 endif
 
 if USE_SOCKET
 bin_PROGRAMS += \
 autopilot \
-s2sctrl \
 sockdrive \
 socket2stream \
 stream2socket \
 test_modalext_socket \
 trim
+
+if MBDYN_DEVEL
+bin_PROGRAMS += \
+s2sctrl
+endif
 endif
 
 # do not install these

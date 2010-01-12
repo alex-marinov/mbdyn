@@ -428,6 +428,13 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Sort out defines
 dnl
+dnl !!! set to "no" before release !!!
+MBDYN_DEVEL=yes
+dnl MBDYN_DEVEL=no
+if test x"$MBDYN_DEVEL" = x"yes" ; then 
+	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
+fi
+AM_CONDITIONAL(MBDYN_DEVEL,[test "$MBDYN_DEVEL" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl

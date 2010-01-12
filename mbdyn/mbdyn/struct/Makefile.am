@@ -78,8 +78,6 @@ pzbeam2.cc \
 pzbeam2.h \
 rodj.cc \
 rodj.h \
-screwjoint.h \
-screwjoint.cc \
 shapefnc.cc \
 shapefnc.h \
 socketstreammotionelem.cc \
@@ -112,6 +110,11 @@ vehj2.h \
 vehj3.cc \
 vehj3.h
 
+if MBDYN_DEVEL
+libstruct_la_SOURCES += \
+screwjoint.h \
+screwjoint.cc
+endif
 
 libstruct_la_LIBADD = @LIBS@
 libstruct_la_LDFLAGS = -static

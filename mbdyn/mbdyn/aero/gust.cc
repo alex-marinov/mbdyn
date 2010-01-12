@@ -36,9 +36,10 @@
 #include "gust.h"
 #include "dataman.h"
 #include "drive_.h"
-//#include "tpldrive.h"
 
+#ifdef MBDYN_DEVEL
 #include "windprof.h"
+#endif // MBDYN_DEVEL
 
 /* Gust - begin */
 
@@ -219,9 +220,11 @@ InitGustData(void)
 	}
 
 	SetGustData("front" "1D", new Gust1DGR);
+#ifdef MBDYN_DEVEL
 	SetGustData("scalar" "function", new ScalarFuncGR);
 	SetGustData("power" "law", new PowerLawGR);
 	SetGustData("logarithmic", new LogarithmicGR);
+#endif // MBDYN_DEVEL
 
 	/* NOTE: add here initialization of new built-in drive callers;
 	 * alternative ways to register new custom drive callers are:
