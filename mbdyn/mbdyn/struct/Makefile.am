@@ -110,8 +110,10 @@ vehj2.h \
 vehj3.cc \
 vehj3.h
 
+nodist_libstruct_la_SOURCES =
+
 if MBDYN_DEVEL
-libstruct_la_SOURCES += \
+nodist_libstruct_la_SOURCES += \
 screwjoint.h \
 screwjoint.cc
 endif

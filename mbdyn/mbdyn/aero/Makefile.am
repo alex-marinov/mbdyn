@@ -37,8 +37,10 @@ instruments.h \
 rotor.cc \
 rotor.h
 
+nodist_libaero_la_SOURCES =
+
 if MBDYN_DEVEL
-libaero_la_SOURCES += \
+nodist_libaero_la_SOURCES += \
 windprof.cc \
 windprof.h
 endif

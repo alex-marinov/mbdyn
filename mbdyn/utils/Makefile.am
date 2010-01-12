@@ -101,7 +101,7 @@ rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
-s2sctrl_SOURCES = s2sctrl.cc s2s.cc s2s.h
+nodist_s2sctrl_SOURCES = s2sctrl.cc s2s.cc s2s.h
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
@@ -110,7 +110,7 @@ test_modalext_edge_SOURCES = test_modalext_edge.c
 test_modalext_socket_SOURCES = test_modalext_socket.c
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
-mbfem_SOURCES = \
+nodist_mbfem_SOURCES = \
 Mbfem/block.cc \
 Mbfem/block.h \
 Mbfem/force3.h \
