@@ -24,8 +24,6 @@ rot2eu \
 rot2eup \
 rot2phi \
 rotrel \
-test_modalext \
-test_modalext_edge \
 vec2rot
 
 if USE_RTAI
@@ -46,7 +44,6 @@ autopilot \
 sockdrive \
 socket2stream \
 stream2socket \
-test_modalext_socket \
 trim
 
 if MBDYN_DEVEL
