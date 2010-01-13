@@ -1203,12 +1203,22 @@ ManglerRotor::GetInducedVelocity(const Vec3& X) const
 
 
 
+/*
+ * According to
+ * Dale M. Pitt, David A. Peters, 
+ * Theoretical Prediction of Dynamic-Inflow Derivatives,
+ * Vertica, 5, 1981, pp. 21-34
+ *
+ * 8/(3*pi): uncorrected value
+ * 128/(75*pi): corrected value
+ */
 
-/* static const doublereal dM11 = 8./(3.*M_PI); */
+#if 0
+static const doublereal dM11 = 8./(3.*M_PI);
+#else
 static const doublereal dM11 = 128./(75.*M_PI); 
-/* seguendo il paper di Pitt and Peters il
-primo valore è quello "uncorrected" mentre il
-secondo è quello "corrected" */
+#endif
+
 static const doublereal dM22 = -16./(45.*M_PI);
 static const doublereal dM33 = -16./(45.*M_PI);
 
@@ -1465,6 +1475,13 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 * (ovvero, i coefficienti CT, CL e CM sono divisi
 		 * per dOmega anziche' dOmega^2)
 		 */
+
+		dL11 = 0.;
+		dL13 = 0.;
+		dL22 = 0.;
+		dL31 = 0.;
+		dL33 = 0.;
+
 	   	doublereal dDim = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
 	   	if (dDim > std::numeric_limits<doublereal>::epsilon()) {
 			/*
@@ -1508,39 +1525,37 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		 	dCl = - M(1)/dDim;
 		 	dCm = - M(2)/dDim;
 
-			/* Matrix coefficients */
-			/* FIXME: divide by 0? */
-		 	doublereal dl11 = .5/dVT;
-			/* FIXME: divide by 0? */
-		 	doublereal d = 15./64.*M_PI*tan(dChi/2.);
-			/* FIXME: divide by 0? */
-		 	doublereal dl13 = d/dVm;
-			/* FIXME: divide by 0? */
-		 	doublereal dl31 = d/dVT;
+			if (dVT > std::numeric_limits<doublereal>::epsilon()
+				&& dVm > std::numeric_limits<doublereal>::epsilon())
+			{
 
-		 	doublereal dCosChi2 = cos(dChi/2.);
-		 	d = 2.*dCosChi2*dCosChi2;
-			/* FIXME: divide by 0? */
-		 	doublereal dl22 = -4./(d*dVm);
-			/* FIXME: divide by 0? */
-			doublereal dl33 = -4.*(d - 1)/(d*dVm);
+				/* Matrix coefficients */
+				/* FIXME: divide by 0? */
+			 	doublereal dl11 = .5/dVT;
+				/* FIXME: divide by 0? */
+			 	doublereal d = 15./64.*M_PI*tan(dChi/2.);
+				/* FIXME: divide by 0? */
+			 	doublereal dl13 = d/dVm;
+				/* FIXME: divide by 0? */
+			 	doublereal dl31 = d/dVT;
 
-			d = dl11*dl33 - dl31*dl13;
-			/* FIXME: divide by 0? */
-			dL11 = dOmega*dl33/d;
-			dL31 = -dOmega*dl31/d;
-			dL13 = -dOmega*dl13/d;
-			dL33 = dOmega*dl11/d;
-			dL22 = dOmega/dl22;
-
-	   	} else {
-			dL11 = 0.;
-			dL13 = 0.;
-			dL22 = 0.;
-			dL31 = 0.;
-			dL33 = 0.;
-	   	}
-
+			 	doublereal dCosChi2 = cos(dChi/2.);
+			 	d = 2.*dCosChi2*dCosChi2;
+				/* FIXME: divide by 0? */
+			 	doublereal dl22 = -4./(d*dVm);
+				/* FIXME: divide by 0? */
+				doublereal dl33 = -4.*(d - 1)/(d*dVm);
+	
+				d = dl11*dl33 - dl31*dl13;
+				/* FIXME: divide by 0? */
+				dL11 = dOmega*dl33/d;
+				dL31 = -dOmega*dl31/d;
+				dL13 = -dOmega*dl13/d;
+				dL33 = dOmega*dl11/d;
+				dL22 = dOmega/dl22;
+		   	}
+		}
+	
 #ifdef DEBUG
 	   	/* Prova: */
 		static int i = -1;
