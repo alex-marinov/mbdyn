@@ -39,6 +39,7 @@
 
 /* Tipi di elementi */
 const char* psElemNames[] = {
+   "Air Properties",
    "Rotor",
 
    "Automatic Structural",
@@ -66,7 +67,6 @@ const char* psElemNames[] = {
    "Driven",
    "External",
 
-   "Air Properties",
    "Aeromodal",
    "Aerodynamic Element",
 
@@ -79,6 +79,7 @@ const char* psElemNames[] = {
 
 /* Tipi di elementi */
 const char* psReadElemsElems[] = {
+   "air" "properties",
    "rotor",
 
    "automatic" "structural",
@@ -106,7 +107,6 @@ const char* psReadElemsElems[] = {
    "driven",
    "external",
 
-   "air" "properties",
    "aeromodal",
    "aerodynamic" "element",
    
@@ -122,6 +122,7 @@ const char* psReadElemsElems[] = {
  * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 
  * l'enum Elem::Type */
 const char* psReadControlElems[] = {
+   "air" "properties",
    "induced" "velocity" "elements",
 
    "automatic" "structural" "elements",
@@ -149,7 +150,6 @@ const char* psReadControlElems[] = {
    "driven" "elements",
    "external" "elements",
 
-   "air" "properties",
    "aeromodals",
    "aerodynamic" "elements",
    
@@ -163,6 +163,7 @@ const char* psReadControlElems[] = {
 
 /* Codici Adams per denominazione entita' */
 const char *psAdamsElemCode[] = {
+   "AIRP",
    "ROTR",
 
    "AUTO",
@@ -189,7 +190,6 @@ const char *psAdamsElemCode[] = {
    "RMBX",
    "EXTN",
    
-   "AIRP",
    "AERO",
    "AERM",
    

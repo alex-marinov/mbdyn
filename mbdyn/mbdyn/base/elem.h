@@ -87,8 +87,10 @@ public:
 	enum Type {
 		UNKNOWN = -1,
 
-		/* rotors must be as early as possible */
-		INDUCEDVELOCITY = 0,
+		// induced velocity must be as early as possible,
+		// but after air properties
+		AIRPROPERTIES = 0,
+		INDUCEDVELOCITY,
 	
 		AUTOMATICSTRUCTURAL,
 	
@@ -116,7 +118,6 @@ public:
 		EXTERNAL,
 
 		/* other aerodynamic elements must be as late as possible */
-		AIRPROPERTIES,
 		AEROMODAL,
 		AERODYNAMIC,
 
