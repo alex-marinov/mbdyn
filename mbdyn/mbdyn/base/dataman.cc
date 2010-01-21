@@ -351,6 +351,7 @@ DofIter()
 	ElemDataInit();
 
 	/* legge i drivers, crea la struttura ppDrive */
+	bool bGotDrivers = false;
 	if (iTotDrive > 0) {
 		if (CurrDesc != BEGIN) {
 			DEBUGCERR("");
@@ -368,10 +369,13 @@ DofIter()
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		bGotDrivers = true;
+
 		ReadDrivers(HP);
 		try {
 			CurrDesc = KeyWords(HP.GetDescription());
 		} catch (EndOfFile) {}
+
 	} else {
 		DEBUGCERR("warning, no drivers are defined" << std::endl);
 	}
@@ -392,7 +396,20 @@ DofIter()
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (KeyWords(HP.GetWord()) != ELEMENTS) {
+		switch (KeyWords(HP.GetWord())) {
+		case ELEMENTS:
+			break;
+
+		case DRIVERS:
+			if (!bGotDrivers) {
+				silent_cerr("got unexpected \"begin: drivers;\" "
+					"at line " << HP.GetLineData() << std::endl
+					<< "(hint: define \"file drivers\" in \"control data\" block)"
+					<< std::endl);
+			}
+			// fallthru
+
+		default:
 			DEBUGCERR("");
 			silent_cerr("\"begin: elements;\" expected at line "
 				<< HP.GetLineData() << std::endl);
