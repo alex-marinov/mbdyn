@@ -87,29 +87,34 @@ public:
 		unsigned		s_flags;
 		unsigned		s_default_flags;
 		doublereal		s_pivot_factor;
+		doublereal		s_drop_tolerance;
 	};
 
 protected:
 	SolverType currSolver;
 	unsigned solverFlags;
+
 	/*
 	 * number of threads
 	 * currently used by:
 	 * 	SparseLU
 	 */
 	unsigned nThreads;
+
 	/*
 	 * max workspace size
 	 * currently used by:
 	 * 	Y12
 	 */
 	integer iWorkSpaceSize;
+
 	/*
 	 * block size
 	 * currently used by:
 	 * 	Umfpack
 	 */
 	unsigned blockSize;
+
 	/*
 	 * pivot factor
 	 * currently used by:
@@ -119,6 +124,20 @@ protected:
 	 * 	Naive		1.0 -> 0.0
 	 */
    	doublereal dPivotFactor;
+
+	/*
+	 * drop tolerance
+	 * currently used by:
+	 *	Umfpack		>= 0.0 (0.0: use all)
+	 */
+	doublereal dDropTolerance;
+
+	/*
+	 * matrix scaling	NO, ONCE, ALWAYS
+	 * currently used by:
+	 *	Naive
+	 */
+	SolutionManager::MatrixScale ms;
 
 public:
 	static SolverType defaultSolver;
@@ -132,7 +151,9 @@ public:
 	unsigned GetNumThreads(void) const;
 	integer iGetWorkSpaceSize(void) const;
 	const doublereal& dGetPivotFactor(void) const;
+	const doublereal& dGetDropTolerance(void) const;
 	unsigned GetBlockSize(void) const;
+	SolutionManager::MatrixScale GetScale(void) const;
 
 	const char *const GetSolverName(SolverType t) const;
 	unsigned GetSolverFlags(SolverType t) const;
@@ -144,7 +165,9 @@ public:
 	bool SetNumThreads(unsigned nt);
 	bool SetWorkSpaceSize(integer);
 	bool SetPivotFactor(const doublereal &d);
+	bool SetDropTolerance(const doublereal &d);
 	bool SetBlockSize(unsigned bs);
+	bool SetScale(SolutionManager::MatrixScale ms);
 
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
@@ -154,5 +177,5 @@ extern const LinSol::solver_t solver[];
 
 /* LinSol - end */
 
-#endif /* LINEARSOLVER_H */
+#endif // LINEARSOLVER_H
 

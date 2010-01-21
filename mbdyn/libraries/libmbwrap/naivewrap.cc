@@ -35,7 +35,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <sys/types.h>
@@ -48,6 +48,7 @@
 #include "spmapmh.h"
 #include "naivewrap.h"
 #include "mthrdslv.h"
+#include "dgeequ.h"
 
 /* NaiveSolver - begin */
 NaiveSolver::NaiveSolver(const integer &size, const doublereal& dMP,
@@ -150,9 +151,10 @@ throw(LinearSolver::ErrFactor)
 /* NaiveSparseSolutionManager - begin */
 
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
-		const doublereal dMP)
+	const doublereal dMP, SolutionManager::MatrixScale ms)
 : A(0),
-VH(Dim)
+VH(Dim),
+ms(ms)
 {
 	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
 	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim, dMP, A));
@@ -177,11 +179,29 @@ NaiveSparseSolutionManager::MatrReset()
 	pLS->Reset();
 }
 
-/* Risolve il sistema  Fattorizzazione + Backward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 void
 NaiveSparseSolutionManager::Solve(void)
 {
+	if (ms != SolutionManager::NEVER) {
+		if (pLS->bReset()) {
+			if (msr.empty() || ms == SolutionManager::ALWAYS) {
+				// (re)compute
+				doublereal rowcnd, colcnd, amax;
+				dgeequ<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(*A, msr, msc, rowcnd, colcnd, amax);
+			}
+			// in any case scale matrix and right-hand-side
+			dgeequ_scale<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(*A, msr, msc);
+		}
+		dgeequ_scale(VH, &msr[0]);
+	}
+
 	pLS->Solve();
+
+	if (ms != SolutionManager::NEVER) {
+		// scale solution
+		dgeequ_scale(VH, &msc[0]);
+	}
 }
 
 /* Rende disponibile l'handler per la matrice */
@@ -212,9 +232,10 @@ NaiveSparseSolutionManager::pSolHdl(void) const
 
 template<class T>
 NaiveSparsePermSolutionManager<T>::NaiveSparsePermSolutionManager(
-		const integer Dim, 
-		const doublereal dMP)
-: NaiveSparseSolutionManager(Dim, dMP),
+	const integer Dim, 
+	const doublereal dMP,
+	SolutionManager::MatrixScale ms)
+: NaiveSparseSolutionManager(Dim, dMP, ms),
 dMinPiv(dMP < 0 ? 0 : dMP),
 TmpH(Dim),
 ePermState(PERM_NO)
@@ -266,12 +287,25 @@ NaiveSparsePermSolutionManager<T>::BackPerm(void)
 }
 
 
-/* Risolve il sistema: Fattorizzazione + Bacward Substitution */
+/* Risolve il sistema: Fattorizzazione + Backward Substitution */
 template<class T>
 void
 NaiveSparsePermSolutionManager<T>::Solve(void)
 {
 	doublereal *pd = 0;
+
+	if (ms != SolutionManager::NEVER) {
+		if (pLS->bReset()) {
+			if (msr.empty() || ms == SolutionManager::ALWAYS) {
+				// (re)compute
+				doublereal rowcnd, colcnd, amax;
+				dgeequ<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc, rowcnd, colcnd, amax);
+			}
+			// in any case scale matrix and right-hand-side
+			dgeequ_scale<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc);
+		}
+		dgeequ_scale(VH, &msr[0]);
+	}
 
 	if (ePermState == PERM_NO) {
 		ComputePermutation();
@@ -289,6 +323,11 @@ NaiveSparsePermSolutionManager<T>::Solve(void)
 
 		ASSERT(pd != 0);
 		pLS->pdSetSolVec(pd);
+	}
+
+	if (ms != SolutionManager::NEVER) {
+		// scale solution
+		dgeequ_scale(VH, &msc[0]);
 	}
 }
 

@@ -280,7 +280,7 @@ TaucsSparseSolutionManager::pSolHdl(void) const
 	return &xVH;
 }
 
-/* UmfpackSparseSolutionManager - end */
+/* TaucsSparseSolutionManager - end */
 
 template <class CC>
 TaucsSparseCCSolutionManager<CC>::TaucsSparseCCSolutionManager(integer Dim)
@@ -351,7 +351,7 @@ TaucsSparseCCSolutionManager<CC>::pMatHdl(void) const
 template class TaucsSparseCCSolutionManager<CColMatrixHandler<0> >;
 template class TaucsSparseCCSolutionManager<DirCColMatrixHandler<0> >;
 
-/* UmfpackSparseCCSolutionManager - end */
+/* TaucsSparseCCSolutionManager - end */
 
-#endif /* USE_UMFPACK */
+#endif /* USE_TAUCS */
 

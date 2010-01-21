@@ -422,12 +422,14 @@ main(int argc, char *argv[])
 	unsigned nt = 1;
 	unsigned block_size = 0;
 	double dpivot = -1.;
+	double ddroptol = 0.;
 	bool singular(false);
 	bool output_solution(false);
 	bool transpose(false);
 	int size = 3;
 	long long tf;
 	unsigned preord = COLAMD_PREORD;
+	SolutionManager::MatrixScale ms = SolutionManager::NEVER;
 	
 	while (1) {
 		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:Tw:");
@@ -726,17 +728,17 @@ main(int argc, char *argv[])
 		if (dir) {
 			std::cerr << " with dir matrix";
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, ddroptol, block_size));
 
 		} else if (cc) {
 			std::cerr << " with cc matrix";
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCMH;
-			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, block_size));
+			SAFENEWWITHCONSTRUCTOR(pSM, CCMH, CCMH(size, dpivot, ddroptol, block_size));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pSM,
 					UmfpackSparseSolutionManager,
-					UmfpackSparseSolutionManager(size, dpivot, block_size));
+					UmfpackSparseSolutionManager(size, dpivot, ddroptol, block_size));
 		}
 		std::cerr << std::endl;
 #else /* !USE_UMFPACK */
@@ -793,7 +795,7 @@ main(int argc, char *argv[])
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					NaiveSparsePermSolutionManager<Colamd_ordering>,
-					NaiveSparsePermSolutionManager<Colamd_ordering>(size, dpivot));
+					NaiveSparsePermSolutionManager<Colamd_ordering>(size, dpivot, ms));
 			}
 		} else {
 			if (nt > 1) {
@@ -811,7 +813,7 @@ main(int argc, char *argv[])
 			} else {
 				SAFENEWWITHCONSTRUCTOR(pSM,
 					NaiveSparseSolutionManager,
-					NaiveSparseSolutionManager(size, dpivot));
+					NaiveSparseSolutionManager(size, dpivot, ms));
 			}
 		}
 		std::cerr << " using " << nt << " threads " << std::endl;

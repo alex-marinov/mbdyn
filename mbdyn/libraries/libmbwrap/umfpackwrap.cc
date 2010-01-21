@@ -154,8 +154,10 @@
 
 /* UmfpackSolver - begin */
 	
-UmfpackSolver::UmfpackSolver(const integer &size, const doublereal &dPivot,
-		const unsigned blockSize)
+UmfpackSolver::UmfpackSolver(const integer &size,
+	const doublereal &dPivot,
+	const doublereal &dDropTolerance,
+	const unsigned blockSize)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -174,6 +176,13 @@ Numeric(0)
 		 * default: 0.1
 		 */
 		Control[UMFPACK_PIVOT_TOLERANCE] = dPivot;
+	}
+
+	if (dDropTolerance != 0.) {
+#ifdef UMFPACK_DROPTOL
+		ASSERT(dDropTolerance > 0.);
+		Control[UMFPACK_DROPTOL] = dDropTolerance;
+#endif
 	}
 
 	if (blockSize > 0) {
@@ -352,6 +361,7 @@ UmfpackSolver::bPrepareSymbolic(void)
 
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot,
+		doublereal dDropTolerance,
 		const unsigned blockSize)
 : A(Dim),
 x(Dim),
@@ -360,7 +370,7 @@ xVH(Dim, &x[0]),
 bVH(Dim, &b[0])
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
-			UmfpackSolver(Dim, dPivot, blockSize));
+			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&x[0]);
@@ -426,8 +436,9 @@ UmfpackSparseSolutionManager::pSolHdl(void) const
 template <class CC>
 UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
 		doublereal dPivot,
+		doublereal dDropTolerance,
 		const unsigned& blockSize)
-: UmfpackSparseSolutionManager(Dim, dPivot, blockSize),
+: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize),
 CCReady(false),
 Ac(0)
 {

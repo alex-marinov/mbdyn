@@ -30,7 +30,7 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include "ac/sys_sysinfo.h"
@@ -408,6 +408,32 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
+	if (HP.IsKeyWord("drop" "tolerance")) {
+		doublereal dDropTolerance = HP.GetReal();
+
+		if (currSolver.s_drop_tolerance == -1.) {
+			pedantic_cerr("\"drop tolerance\" is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+
+		} else {
+			if (dDropTolerance < 0.) {
+				silent_cerr("drop tolerance " << dDropTolerance
+						<< " is out of bounds; "
+						"using default "
+						"(" << currSolver.s_drop_tolerance << ")"
+						<< std::endl);
+				dDropTolerance = currSolver.s_drop_tolerance;
+			}
+			cs.SetDropTolerance(dDropTolerance);
+		}
+
+	} else {
+		if (currSolver.s_drop_tolerance != -1.) {
+			cs.SetDropTolerance(currSolver.s_drop_tolerance);
+		}
+	}
+
 	if (HP.IsKeyWord("block" "size")) {
 		integer blockSize = HP.GetInt();
 		if (blockSize < 1) {
@@ -423,6 +449,36 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 
 		default:
 			pedantic_cerr("block size is meaningless for "
+					<< currSolver.s_name
+					<< " solver" << std::endl);
+			break;
+		}
+	}
+
+	if (HP.IsKeyWord("scale")) {
+		SolutionManager::MatrixScale ms;
+
+		if (HP.IsKeyWord("no")) {
+			ms = SolutionManager::NEVER;
+
+		} else if (HP.IsKeyWord("always")) {
+			ms = SolutionManager::ALWAYS;
+
+		} else if (HP.IsKeyWord("once")) {
+			ms = SolutionManager::ONCE;
+
+		} else {
+			silent_cerr("unknown scale value at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		switch (cs.GetSolver()) {
+		case LinSol::NAIVE_SOLVER:
+			cs.SetScale(ms);
+			break;
+
+		default:
+			pedantic_cerr("scale is meaningless for "
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 			break;

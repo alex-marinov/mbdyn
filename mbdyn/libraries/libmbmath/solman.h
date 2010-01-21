@@ -99,6 +99,14 @@ public:
 /* SolutionManager - begin */
 
 class SolutionManager {
+public:
+	// whether matrix scaling should be performed, and when, using dgeequ()
+	enum MatrixScale {
+		NEVER = 0,
+		ONCE,
+		ALWAYS
+	};
+
 protected:
 	LinearSolver *pLS;
 

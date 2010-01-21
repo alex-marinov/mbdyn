@@ -77,8 +77,13 @@ protected:
 	mutable NaiveMatrixHandler *A;
 	mutable MyVectorHandler VH;
 
+	MatrixScale ms;
+	std::vector<doublereal> msr;
+	std::vector<doublereal> msc;
+
 public:
-	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
+		SolutionManager::MatrixScale ms = SolutionManager::NEVER);
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -113,8 +118,8 @@ private:
 	const doublereal dMinPiv;
 	mutable MyVectorHandler TmpH;
 
-	void ComputePermutation();
-	void BackPerm();
+	void ComputePermutation(void);
+	void BackPerm(void);
 
 protected:
 	enum {
@@ -129,7 +134,8 @@ protected:
 	virtual void MatrReset(void);
 	
 public:
-	NaiveSparsePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9);
+	NaiveSparsePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
+		SolutionManager::MatrixScale ms = SolutionManager::NEVER);
 	virtual ~NaiveSparsePermSolutionManager(void);
 
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
@@ -173,21 +179,21 @@ public:
 /* NaiveSparsePermSolutionManager - end */
 
 
-//supported permutations
+// supported permutations
 class Colamd_ordering;
-/* #ifdef USE_BOOST */
+// #ifdef USE_BOOST
 class rcmk_ordering;
 class king_ordering;
 class sloan_ordering;
 class md_ordering;
-/* #endif USE_BOOST */
-/* #ifdef USE_METIS */
+// #endif USE_BOOST
+// #ifdef USE_METIS
 class metis_ordering;
-/* #endif USE_METIS */
-/* #ifdef HAVE_UMFPACK4_1 */
+// #endif USE_METIS
+// #ifdef HAVE_UMFPACK4_1
 class amd_ordering;
-/* #endif */
+// #endif
 
 
-#endif /* NaiveSolutionManager_hh */
+#endif // NaiveSolutionManager_hh
 
