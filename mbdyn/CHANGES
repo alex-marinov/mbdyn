@@ -13,9 +13,12 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added gust models for basic wind profiles
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added drop tolerance (Umfpack)
+		- added matrix scaling (Naive)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed build without sockets (noted by Subhasis Sarkar)
 
 MBDyn 1.3.11
 	Enhancements:

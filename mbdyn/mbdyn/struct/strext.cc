@@ -108,6 +108,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		std::ostream *outfp = pEFH->GetOutStream();
 		if (outfp) {
 
+#ifdef USE_SOCKET
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
@@ -127,6 +128,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			} else if (rc != sizeof(buf)) {
 
 			}
+#endif // USE_SOCKET
 		}
 
 	} else {
@@ -135,6 +137,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
 
+#ifdef USE_SOCKET
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
@@ -156,6 +159,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uN = uint32_ptr[0];
+#endif // USE_SOCKET
 		}
 
 		if (uN != Nodes.size()) {

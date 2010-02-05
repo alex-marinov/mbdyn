@@ -42,8 +42,8 @@
 
 #ifdef USE_SOCKET
 #include "usesock.h"
-#include "mbc.h"
 #endif // USE_SOCKET
+#include "mbc.h"
 
 /* ExtFileHandlerBase - begin */
 

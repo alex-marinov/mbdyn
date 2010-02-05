@@ -76,6 +76,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 				<< ' ' << uModes
 				<< std::endl;
 
+#ifdef USE_SOCKET
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
@@ -96,6 +97,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 			} else if (rc != sizeof(buf)) {
 
 			}
+#endif // USE_SOCKET
 		}
 		} break;
 
@@ -111,6 +113,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 				return false;
 			}
 
+#ifdef USE_SOCKET
 		} else {
 			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
@@ -131,6 +134,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[2];
 			uM = uint32_ptr[0];
+#endif // USE_SOCKET
 		}
 
 		if (type != MBC_MODAL || bR != bRigid || uM != uModes) {
