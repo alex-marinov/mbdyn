@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed build without sockets (noted by Subhasis Sarkar)
+		- fixed scalar filter when order == 1
 
 MBDyn 1.3.11
 	Enhancements:

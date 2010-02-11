@@ -864,7 +864,7 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 
-		unsigned int Order = nd;
+		int Order = nd;
 
 		doublereal* pd = 0;
 
@@ -880,37 +880,42 @@ ReadGenel(DataManager* pDM,
 		if (bControllable) {
 			// matrix A
 			pd = pdA;
-			for (unsigned int i = 1; i <= Order; i++) {
+			for (int i = 1; i <= Order; i++) {
 				*pd++ = -den[i];
 			}
-			for (unsigned int i = 0; i < Order - 2; i++) {
+			for (int i = 0; i < Order - 2; i++) {
 				*pd++ = 1.;
-				for (unsigned j = 0; j < Order; j++) {
+				for (int j = 0; j < Order; j++) {
 					*pd++ = 0.;
 				}
 			}
-			*pd++ = 1.;
-			*pd++ = 0.;
+
+			if (Order > 1) {
+				*pd++ = 1.;
+				*pd++ = 0.;
+			}
+
+			ASSERT(pd == pdA + Order*Order);
 	
 			// matrix B
 			pd = pdB;
 			*pd++ = 1.;
-			for (unsigned int i = 0; i < Order - 1; i++) {
+			for (int i = 0; i < Order - 1; i++) {
 				*pd++ = 0.;
 			}
 	
 			// matrix C
 			pd = pdC;
-			for (unsigned int i = 1; i <= Order; i++) {
+			for (int i = 1; i <= Order; i++) {
 				*pd++ = num[i];
 			}
 
 		} else {
 			// matrix A
 			pd = pdA;
-			for (unsigned int i = 1; i <= Order; i++) {
+			for (int i = 1; i <= Order; i++) {
 				*pd++ = -den[i];
-				for (unsigned int j = 1; j < Order; j++) {
+				for (int j = 1; j < Order; j++) {
 					if (j == i) {
 						*pd++ = 1.;
 
@@ -919,17 +924,19 @@ ReadGenel(DataManager* pDM,
 					}
 				}
 			}
-	
+
+			ASSERT(pd == pdA + Order*Order);
+
 			// matrix B
 			pd = pdB;
-			for (unsigned int i = 1; i <= Order; i++) {
+			for (int i = 1; i <= Order; i++) {
 				*pd++ = num[i];
 			}
 	
 			// matrix C
 			pd = pdC;
 			*pd++ = 1.;
-			for (unsigned int i = 0; i < Order - 1; i++) {
+			for (int i = 0; i < Order - 1; i++) {
 				*pd++ = 0.;
 			}
 		}
