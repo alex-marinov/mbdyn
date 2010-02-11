@@ -262,14 +262,8 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 			pa->yp[i] = pa->yp_prev[i];
 		}
 		pa->nlrheo_t_cur = pa->nlrheo_t_prev;
-#if 0
-		std::cerr << &pa << ": ----------\n" << &pa << ":   ";
-#endif
 	} else {
 		pa->nlrheo_t_cur = t;
-#if 0
-		std::cerr << &pa << ": + ";
-#endif
 	}
 	for (i = 0; i < pa->n_parallelo; i++) {
 		double c[pa->n_serie[i]], k[pa->n_serie[i]];
@@ -541,9 +535,6 @@ nlrheo_int_func(double t, const double y[], double f[], void *para)
 
 	pa->f += sstatic * pa->static_low_freq_stiffness;
 	pa->f_s += pa->static_low_freq_stiffness;
-#if 0
-	std::cerr << pa->nlrheo_t_prev << " -> " << t << " -> " << pa->tf << " - " << pa->sf << " " << pa->vf << " " << pa->f << std::endl;
-#endif
 
 	return GSL_SUCCESS;
 }
@@ -696,7 +687,8 @@ nlrheo_update2(sym_params *pa,
 	
 	double *y = pa->y;
 	for (i = 0; i < pa->n_elementi - pa->n_parallelo + 2 + 1 + 1 + 2; i++) {
-		pa->yp[i] = pa->yp_prev[i] = pa->yp_saved[i];
+		pa->yp_prev[i] = pa->yp_saved[i];
+		pa->yp[i] = pa->yp_saved[i];
 		pa->nlrheo_t_cur = pa->nlrheo_t_prev = pa->prev_time;
 	}
 
