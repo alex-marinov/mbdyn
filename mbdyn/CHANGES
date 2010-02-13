@@ -9,10 +9,9 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.3.12
 	Enhancements:
 		- added gust models for basic wind profiles
-		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added drop tolerance (Umfpack)
 		- added matrix scaling (Naive)
 	Backward compatibility issues:
