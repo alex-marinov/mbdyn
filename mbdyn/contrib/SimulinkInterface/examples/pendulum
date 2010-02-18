@@ -90,8 +90,8 @@ begin: drivers;
         file: 1, stream,
         	stream drive name, "MBXOUT",
         	create, yes,
-		path, "/tmp/mbdyn.pendulum.in.sock",
-		# port, 8005,
+		# path, "/tmp/mbdyn.pendulum.in.sock",
+		port, 8005,
 		1;
 end: drivers;
 
