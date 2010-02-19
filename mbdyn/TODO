@@ -196,6 +196,9 @@ D. Code:
 	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
 	- add record for damping matrix to modal input format
+	- define a UserDefinedElem class; inherit LoadableElem from it;
+	  allow UserDefined elements to be loaded run-time
+	  (obsoletes LoadableElem)
 
 
 
