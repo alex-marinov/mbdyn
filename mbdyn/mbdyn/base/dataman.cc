@@ -245,8 +245,8 @@ DofIter()
 	/* parole chiave */
 	const char* sKeyWords[] = {
 		"begin",
-		"controldata",
-		"scalarfunction",
+		"control" "data",
+		"scalar" "function",
 		"nodes",
 		"elements",
 		"drivers",

@@ -121,7 +121,7 @@ void DataManager::DofDataInit(void)
 
 void DataManager::DofInit(void)
 {  
-   if( iTotDofOwners > 0) {	
+   if (iTotDofOwners > 0) {	
       
       /* Di ogni DofOwner setta il primo indice
        * e calcola il numero totale di Dof */
