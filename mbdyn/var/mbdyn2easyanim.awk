@@ -1,32 +1,32 @@
 # $Header$
-# MBDyn (C) is a multibody analysis code. 
+# MBDyn (C) is a multibody analysis code.
 # http://www.mbdyn.org
-# 
+#
 # Copyright (C) 1996-2010
-# 
+#
 # Pierangelo Masarati	<masarati@aero.polimi.it>
 # Paolo Mantegazza	<mantegazza@aero.polimi.it>
-# 
+#
 # Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
 # via La Masa, 34 - 20156 Milano, Italy
 # http://www.aero.polimi.it
-# 
+#
 # Changing this copyright notice is forbidden.
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation (version 2 of the License).
-# 
-# 
+#
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-# 
+#
 # Prepare MBDyn ASCII output (.log & .mov files) for loading within EasyAnim
 #
 # EasyAnim is a simple package for the visualization of mechanical systems
@@ -162,6 +162,54 @@ function phi2R(phi1, phi2, phi3, R,   dPhi, da, db) {
 	}
 }
 
+function nodeprop_add(name, color, radius) {
+	nodeprop[nodeprop_num, "name"] = name;
+	nodeprop[nodeprop_num, "color"] = color;
+	nodeprop[nodeprop_num, "radius"] = radius;
+	nodeprop_num++;
+}
+
+function node_absolute_add(name, x, y, z, prop) {
+	node[node_num] = name;
+	node[node_num, "relative"] = -1;
+	node[node_num, 1] = x;
+	node[node_num, 2] = y;
+	node[node_num, 3] = z;
+	node[node_num, "prop"] = prop;
+	node_num++;
+}
+
+function node_add(name, relative, x, y, z, prop) {
+	node[node_num] = name;
+	node[node_num, "relative"] = relative;
+	node[node_num, 1] = x;
+	node[node_num, 2] = y;
+	node[node_num, 3] = z;
+	node[node_num, "prop"] = prop;
+	node_num++;
+}
+
+function edgeprop_add(name, color, radius) {
+	edgeprop[edgeprop_num, "name"] = name;
+	edgeprop[edgeprop_num, "color"] = color;
+	edgeprop[edgeprop_num, "radius"] = radius;
+	edgeprop_num++;
+}
+
+function edge_add(name, node1label, node2label, prop) {
+	edge[edge_num] = name;
+	edge[edge_num, 1] = node1label;
+	edge[edge_num, 2] = node2label;
+	edge[edge_num, "prop"] = prop;
+	edge_num++;
+}
+
+function sideprop_add(name, color) {
+	sideprop[sideprop_num, "name"] = name;
+	sideprop[sideprop_num, "color"] = color;
+	sideprop_num++;
+}
+
 BEGIN {
 	isvan = 0;
 
@@ -249,106 +297,30 @@ BEGIN {
 	sideprop_num = 0;
 
 	# node props
-	nodeprop[nodeprop_num, "name"] = "hide";
-	nodeprop[nodeprop_num, "color"] = 0;
-	nodeprop[nodeprop_num, "radius"] = 0;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "hinge_node";
-	nodeprop[nodeprop_num, "color"] = 2;
-	nodeprop[nodeprop_num, "radius"] = 1.5;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "distance_node";
-	nodeprop[nodeprop_num, "color"] = 1;
-	nodeprop[nodeprop_num, "radius"] = 1.;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "rod_node";
-	nodeprop[nodeprop_num, "color"] = 1;
-	nodeprop[nodeprop_num, "radius"] = 1.;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "deformablejoint_node";
-	nodeprop[nodeprop_num, "color"] = 1;
-	nodeprop[nodeprop_num, "radius"] = 1.;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "totaljoint_node";
-	nodeprop[nodeprop_num, "color"] = 2;
-	nodeprop[nodeprop_num, "radius"] = 1.5;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "beam_node";
-	nodeprop[nodeprop_num, "color"] = 1;
-	nodeprop[nodeprop_num, "radius"] = 1.;
-	nodeprop_num++;
-
-	nodeprop[nodeprop_num, "name"] = "aero_node";
-	nodeprop[nodeprop_num, "color"] = 0;
-	nodeprop[nodeprop_num, "radius"] = 0.;
-	nodeprop_num++;
+	nodeprop_add("hide", 0, 0);
+	nodeprop_add("hinge_node", 2, 1.5);
+	nodeprop_add("distance_node", 1, 1.);
+	nodeprop_add("rod_node", 1, 1.);
+	nodeprop_add("deformablejoint_node", 1, 1.);
+	nodeprop_add("totaljoint_node", 2, 1.5);
+	nodeprop_add("beam_node", 1, 1.);
+	nodeprop_add("aero_node", 0, 0.);
 
 	# edge props
-	edgeprop[edgeprop_num, "name"] = "hinge_offset";
-	edgeprop[edgeprop_num, "color"] = 10;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "distance_edge";
-	edgeprop[edgeprop_num, "color"] = 1;
-	edgeprop[edgeprop_num, "radius"] = 1.;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "distance_offset";
-	edgeprop[edgeprop_num, "color"] = 12;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "rod_edge";
-	edgeprop[edgeprop_num, "color"] = 1;
-	edgeprop[edgeprop_num, "radius"] = 1.;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "rod_offset";
-	edgeprop[edgeprop_num, "color"] = 12;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "deformablejoint_edge";
-	edgeprop[edgeprop_num, "color"] = 5;
-	edgeprop[edgeprop_num, "radius"] = 2.5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "deformablejoint_offset";
-	edgeprop[edgeprop_num, "color"] = 12;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "totaljoint_edge";
-	edgeprop[edgeprop_num, "color"] = 1;
-	edgeprop[edgeprop_num, "radius"] = 1.;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "totaljoint_offset";
-	edgeprop[edgeprop_num, "color"] = 10;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "beam_edge";
-	edgeprop[edgeprop_num, "color"] = 14;
-	edgeprop[edgeprop_num, "radius"] = 1.;
-	edgeprop_num++;
-
-	edgeprop[edgeprop_num, "name"] = "beam_offset";
-	edgeprop[edgeprop_num, "color"] = 12;
-	edgeprop[edgeprop_num, "radius"] = .5;
-	edgeprop_num++;
+	edgeprop_add("hinge_offset", 10, .5);
+	edgeprop_add("distance_edge", 1, 1.);
+	edgeprop_add("distance_offset", 12, .5);
+	edgeprop_add("rod_edge", 1, 1.);
+	edgeprop_add("rod_offset", 12, .5);
+	edgeprop_add("deformablejoint_edge", 5, 2.5);
+	edgeprop_add("deformablejoint_offset", 12, .5);
+	edgeprop_add("totaljoint_edge", 1, 1.);
+	edgeprop_add("totaljoint_offset", 10, .5);
+	edgeprop_add("beam_edge", 14, 1.);
+	edgeprop_add("beam_offset", 12, .5);
 
 	# side props
-	sideprop[sideprop_num, "name"] = "aero";
-	sideprop[sideprop_num, "color"] = 14;
-	sideprop_num++;
+	sideprop_add("aero", 14);
 }
 
 isvan == 0 && /structural node:/ {
@@ -399,13 +371,7 @@ isvan == 0 && /structural node:/ {
 	strnode_num++;
 
 	if (!exclude["structural node", $3]) {
-		node[node_num] = $3;
-		node[node_num, "relative"] = -1;
-		node[node_num, 1] = $4;
-		node[node_num, 2] = $5;
-		node[node_num, 3] = $6;
-		node[node_num, "prop"] = "default";
-		node_num++;
+		node_absolute_add($3, $4, $5, $6, "default");
 	}
 }
 
@@ -422,52 +388,34 @@ isvan == 0 && (/sphericalhinge:/ || /revolutehinge/ || /universalhinge/) && show
 		j_hinge[$2, 2, 2] = $18;
 		j_hinge[$2, 2, 3] = $19;
 		j_hinge_num++;
-	
+
 		label1 = j_hinge[$2, 1];
 		label2 = j_hinge[$2, 2];
-	
+
 		if (j_hinge[$2, 1, 1] != 0. || j_hinge[$2, 1, 2] != 0. || j_hinge[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "hinge_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_hinge[$2, 1];
-			node[node_num, 1] = j_hinge[$2, 1, 1];
-			node[node_num, 2] = j_hinge[$2, 1, 2];
-			node[node_num, 3] = j_hinge[$2, 1, 3];
-			node[node_num, "prop"] = "hinge_node";
-			node_num++;
-			
-			edge[edge_num] = "hinge_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "hinge_offset";
-			edge_num++;
-	
+			node_add(label, j_hinge[$2, 1],
+				j_hinge[$2, 1, 1], j_hinge[$2, 1, 2], j_hinge[$2, 1, 2], "hinge_node");
+
+			edge_add("hinge_" $2 "_offset1", label1, label, "hinge_offset");
+
 			label1 = label;
 		}
-	
+
 		if (j_hinge[$2, 2, 1] != 0. || j_hinge[$2, 2, 2] != 0. || j_hinge[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "hinge_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_hinge[$2, 2];
-			node[node_num, 1] = j_hinge[$2, 2, 1];
-			node[node_num, 2] = j_hinge[$2, 2, 2];
-			node[node_num, 3] = j_hinge[$2, 2, 3];
-			node[node_num, "prop"] = "hinge_node";
-			node_num++;
-			
-			edge[edge_num] = "hinge_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "hinge_offset";
-			edge_num++;
-	
+			node_add(label, j_hinge[$2, 2],
+				j_hinge[$2, 2, 1], j_hinge[$2, 2, 2], j_hinge[$2, 2, 3], "hinge_node");
+
+			edge_add("hinge_" $2 "_offset2", label2, label, "hinge_offset");
+
 			label2 = label;
 		}
 	}
 }
-	
+
 isvan == 0 && /distance:/ && show["distance"] {
 	if (!exclude["joint", $2]) {
 		j_distance_label[j_distance_num] = $2;
@@ -481,58 +429,36 @@ isvan == 0 && /distance:/ && show["distance"] {
 		j_distance[$2, 2, 2] = $9;
 		j_distance[$2, 2, 3] = $10;
 		j_distance_num++;
-	
+
 		label1 = j_distance[$2, 1];
 		label2 = j_distance[$2, 2];
-	
+
 		if (j_distance[$2, 1, 1] != 0. || j_distance[$2, 1, 2] != 0. || j_distance[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "distance_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_distance[$2, 1];
-			node[node_num, 1] = j_distance[$2, 1, 1];
-			node[node_num, 2] = j_distance[$2, 1, 2];
-			node[node_num, 3] = j_distance[$2, 1, 3];
-			node[node_num, "prop"] = "distance_node";
-			node_num++;
-			
-			edge[edge_num] = "distance_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "distance_offset";
-			edge_num++;
-	
+			node_add(label, j_distance[$2, 1],
+				j_distance[$2, 1, 1], j_distance[$2, 1, 2], j_distance[$2, 1, 3], "distance_node");
+
+			edge_add("distance_" $2 "_offset1", label1, label, "distance_offset");
+
 			label1 = label;
 		}
-	
+
 		if (j_distance[$2, 2, 1] != 0. || j_distance[$2, 2, 2] != 0. || j_distance[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "distance_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_distance[$2, 2];
-			node[node_num, 1] = j_distance[$2, 2, 1];
-			node[node_num, 2] = j_distance[$2, 2, 2];
-			node[node_num, 3] = j_distance[$2, 2, 3];
-			node[node_num, "prop"] = "distance_node";
-			node_num++;
-			
-			edge[edge_num] = "distance_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "distance_offset";
-			edge_num++;
-	
+			node_add(label, j_distance[$2, 2],
+				j_distance[$2, 2, 1], j_distance[$2, 2, 2], j_distance[$2, 2, 3], "distance_node");
+
+			edge_add("distance_" $2 "_offset2", label2, label, "distance_offset");
+
 			label2 = label;
 		}
-	
-		edge[edge_num] = "distance_" $2;
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "distance_edge";
-		edge_num++;
+
+		edge_add("distance_" $2, label1, label2, "distance_edge");
 	}
 }
-	
+
 isvan == 0 && /rod:/ && show["rod"]{
 	if (!exclude["joint", $2]) {
 		j_rod_label[j_rod_num] = $2;
@@ -546,55 +472,33 @@ isvan == 0 && /rod:/ && show["rod"]{
 		j_rod[$2, 2, 2] = $9;
 		j_rod[$2, 2, 3] = $10;
 		j_rod_num++;
-	
+
 		label1 = j_rod[$2, 1];
 		label2 = j_rod[$2, 2];
-	
+
 		if (j_rod[$2, 1, 1] != 0. || j_rod[$2, 1, 2] != 0. || j_rod[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "rod_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_rod[$2, 1];
-			node[node_num, 1] = j_rod[$2, 1, 1];
-			node[node_num, 2] = j_rod[$2, 1, 2];
-			node[node_num, 3] = j_rod[$2, 1, 3];
-			node[node_num, "prop"] = "rod_node";
-			node_num++;
-			
-			edge[edge_num] = "rod_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "rod_offset";
-			edge_num++;
-	
+			node_add(label, j_rod[$2, 1],
+				j_rod[$2, 1, 1], j_rod[$2, 1, 2], j_rod[$2, 1, 3], "rod_node");
+
+			edge_add("rod_" $2 "_offset1", label1, label, "rod_offset");
+
 			label1 = label;
 		}
-	
+
 		if (j_rod[$2, 2, 1] != 0. || j_rod[$2, 2, 2] != 0. || j_rod[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "rod_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_rod[$2, 2];
-			node[node_num, 1] = j_rod[$2, 2, 1];
-			node[node_num, 2] = j_rod[$2, 2, 2];
-			node[node_num, 3] = j_rod[$2, 2, 3];
-			node[node_num, "prop"] = "rod_node";
-			node_num++;
-			
-			edge[edge_num] = "rod_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "rod_offset";
-			edge_num++;
-	
+			node_add(label, j_rod[$2, 2],
+				j_rod[$2, 2, 1], j_rod[$2, 2, 2], j_rod[$2, 2, 3], "rod_node");
+
+			edge_add("rod_" $2 "_offset2", label2, label, "rod_offset");
+
 			label2 = label;
 		}
-	
-		edge[edge_num] = "rod_" $2;
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "rod_edge";
-		edge_num++;
+
+		edge_add("rod_" $2, label1, label2, "rod_edge");
 	}
 }
 
@@ -611,55 +515,39 @@ isvan == 0 && (/deformablejoint:/ || /deformabledisplacementjoint:/) && show["de
 		j_deformablejoint[$2, 2, 2] = $18;
 		j_deformablejoint[$2, 2, 3] = $19;
 		j_deformablejoint_num++;
-	
+
 		label1 = j_deformablejoint[$2, 1];
 		label2 = j_deformablejoint[$2, 2];
-	
+
 		if (j_deformablejoint[$2, 1, 1] != 0. || j_deformablejoint[$2, 1, 2] != 0. || j_deformablejoint[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "deformablejoint_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_deformablejoint[$2, 1];
-			node[node_num, 1] = j_deformablejoint[$2, 1, 1];
-			node[node_num, 2] = j_deformablejoint[$2, 1, 2];
-			node[node_num, 3] = j_deformablejoint[$2, 1, 3];
-			node[node_num, "prop"] = "deformablejoint_node";
-			node_num++;
-			
-			edge[edge_num] = "deformablejoint_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "deformablejoint_offset";
-			edge_num++;
-	
+			node_add(label, j_deformablejoint[$2, 1],
+				j_deformablejoint[$2, 1, 1],
+				j_deformablejoint[$2, 1, 2],
+				j_deformablejoint[$2, 1, 3],
+				"deformablejoint_node");
+
+			edge_add("deformablejoint_" $2 "_offset1", label1, label, "deformablejoint_offset");
+
 			label1 = label;
 		}
-	
+
 		if (j_deformablejoint[$2, 2, 1] != 0. || j_deformablejoint[$2, 2, 2] != 0. || j_deformablejoint[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "deformablejoint_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_deformablejoint[$2, 2];
-			node[node_num, 1] = j_deformablejoint[$2, 2, 1];
-			node[node_num, 2] = j_deformablejoint[$2, 2, 2];
-			node[node_num, 3] = j_deformablejoint[$2, 2, 3];
-			node[node_num, "prop"] = "deformablejoint_node";
-			node_num++;
-			
-			edge[edge_num] = "deformablejoint_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "deformablejoint_offset";
-			edge_num++;
-	
+			node_add(label, j_deformablejoint[$2, 2],
+				j_deformablejoint[$2, 2, 1],
+				j_deformablejoint[$2, 2, 2],
+				j_deformablejoint[$2, 2, 3],
+				"deformablejoint_node");
+
+			edge_add("deformablejoint_" $2 "_offset2", label2, label, "deformablejoint_offset");
+
 			label2 = label;
 		}
-	
-		edge[edge_num] = "deformablejoint_" $2;
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "deformablejoint_edge";
-		edge_num++;
+
+		edge_add("deformablejoint_" $2, label1, label2, "deformablejoint_edge");
 	}
 }
 
@@ -676,55 +564,33 @@ isvan == 0 && /totaljoint:/ && show["totaljoint"] {
 		j_totaljoint[$2, 2, 2] = $18;
 		j_totaljoint[$2, 2, 3] = $19;
 		j_totaljoint_num++;
-	
+
 		label1 = j_totaljoint[$2, 1];
 		label2 = j_totaljoint[$2, 2];
-	
+
 		if (j_totaljoint[$2, 1, 1] != 0. || j_totaljoint[$2, 1, 2] != 0. || j_totaljoint[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "totaljoint_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_totaljoint[$2, 1];
-			node[node_num, 1] = j_totaljoint[$2, 1, 1];
-			node[node_num, 2] = j_totaljoint[$2, 1, 2];
-			node[node_num, 3] = j_totaljoint[$2, 1, 3];
-			node[node_num, "prop"] = "totaljoint_node";
-			node_num++;
-			
-			edge[edge_num] = "totaljoint_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "totaljoint_offset";
-			edge_num++;
-	
+			node_add(label, j_totaljoint[$2, 1],
+				j_totaljoint[$2, 1, 1], j_totaljoint[$2, 1, 2], j_totaljoint[$2, 1, 3], "totaljoint_node");
+
+			edge_add("totaljoint_" $2 "_offset1", label1, label, "totaljoint_offset");
+
 			label1 = label;
 		}
-	
+
 		if (j_totaljoint[$2, 2, 1] != 0. || j_totaljoint[$2, 2, 2] != 0. || j_totaljoint[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "totaljoint_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = j_totaljoint[$2, 2];
-			node[node_num, 1] = j_totaljoint[$2, 2, 1];
-			node[node_num, 2] = j_totaljoint[$2, 2, 2];
-			node[node_num, 3] = j_totaljoint[$2, 2, 3];
-			node[node_num, "prop"] = "totaljoint_node";
-			node_num++;
-			
-			edge[edge_num] = "totaljoint_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "totaljoint_offset";
-			edge_num++;
-	
+			node_add(label, j_totaljoint[$2, 2],
+				j_totaljoint[$2, 2, 1], j_totaljoint[$2, 2, 2], j_totaljoint[$2, 2, 3], "totaljoint_node");
+
+			edge_add("totaljoint_" $2 "_offset2", label2, label, "totaljoint_offset");
+
 			label2 = label;
 		}
-	
-		edge[edge_num] = "totaljoint_" $2;
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "totaljoint_edge";
-		edge_num++;
+
+		edge_add("totaljoint_" $2, label1, label2, "totaljoint_edge");
 	}
 }
 
@@ -748,55 +614,31 @@ isvan == 0 && /beam2:/ && show["beam"] {
 		beam2[$2, 2, 2] = $9;
 		beam2[$2, 2, 3] = $10;
 		beam2_num++;
-	
+
 		label1 = $3;
 		label2 = $7;
-	
+
 		if (beam2[$2, 1, 1] != 0. || beam2[$2, 1, 2] != 0. || beam2[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = beam2[$2, 1];
-			node[node_num, 1] = beam2[$2, 1, 1];
-			node[node_num, 2] = beam2[$2, 1, 2];
-			node[node_num, 3] = beam2[$2, 1, 3];
-			node[node_num, "prop"] = "beam_node";
-			node_num++;
-			
-			edge[edge_num] = "beam_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "beam_offset";
-			edge_num++;
-	
+			node_add(label, beam2[$2, 1], beam2[$2, 1, 1], beam2[$2, 1, 2], beam2[$2, 1, 3], "beam_node");
+
+			edge_add("beam_" $2 "_offset1", label1, label, "beam_offset");
+
 			label1 = label;
 		}
-	
+
 		if (beam2[$2, 2, 1] != 0. || beam2[$2, 2, 2] != 0. || beam2[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = beam2[$2, 2];
-			node[node_num, 1] = beam2[$2, 2, 1];
-			node[node_num, 2] = beam2[$2, 2, 2];
-			node[node_num, 3] = beam2[$2, 2, 3];
-			node[node_num, "prop"] = "beam_node";
-			node_num++;
-			
-			edge[edge_num] = "beam_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "beam_offset";
-			edge_num++;
-	
+			node_add(label, beam2[$2, 2], beam2[$2, 2, 1], beam2[$2, 2, 2], beam2[$2, 2, 3], "beam_node");
+
+			edge_add("beam_" $2 "_offset2", label2, label, "beam_offset");
+
 			label2 = label;
 		}
-	
-		edge[edge_num] = "beam_" $2;
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "beam_edge";
-		edge_num++;
+
+		edge_add("beam_" $2, label1, label2, "beam_edge");
 	}
 }
 
@@ -828,82 +670,43 @@ isvan == 0 && /beam3:/ && show["beam"] {
 		beam3[$2, 3, 2] = $13;
 		beam3[$2, 3, 3] = $14;
 		beam3_num++;
-	
+
 		label1 = $3;
 		label2 = $7;
 		label3 = $11;
-	
+
 		if (beam3[$2, 1, 1] != 0. || beam3[$2, 1, 2] != 0. || beam3[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point1";
-			node[node_num] = label;
-			node[node_num, "relative"] = beam3[$2, 1];
-			node[node_num, 1] = beam3[$2, 1, 1];
-			node[node_num, 2] = beam3[$2, 1, 2];
-			node[node_num, 3] = beam3[$2, 1, 3];
-			node[node_num, "prop"] = "beam_node";
-			node_num++;
-			
-			edge[edge_num] = "beam_" $2 "_offset1";
-			edge[edge_num, 1] = label1;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "beam_offset";
-			edge_num++;
-	
+			node_add(label, beam3[$2, 1], beam3[$2, 1, 1], beam3[$2, 1, 2], beam3[$2, 1, 3], "beam_node");
+
+			edge_add("beam_" $2 "_offset1", label1, label, "beam_offset");
+
 			label1 = label;
 		}
-	
+
 		if (beam3[$2, 2, 1] != 0. || beam3[$2, 2, 2] != 0. || beam3[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point2";
-			node[node_num] = label;
-			node[node_num, "relative"] = beam3[$2, 2];
-			node[node_num, 1] = beam3[$2, 2, 1];
-			node[node_num, 2] = beam3[$2, 2, 2];
-			node[node_num, 3] = beam3[$2, 2, 3];
-			node[node_num, "prop"] = "beam_node";
-			node_num++;
-			
-			edge[edge_num] = "beam_" $2 "_offset2";
-			edge[edge_num, 1] = label2;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "beam_offset";
-			edge_num++;
-	
+			node_add(label, beam3[$2, 2], beam3[$2, 2, 1], beam3[$2, 2, 2], beam3[$2, 2, 3], "beam_node");
+
+			edge_add("beam_" $2 "_offset2", label2, label, "beam_offset");
+
 			label2 = label;
 		}
-	
+
 		if (beam3[$2, 3, 1] != 0. || beam3[$2, 3, 2] != 0. || beam3[$2, 3, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point3";
-			node[node_num] = label;
-			node[node_num, "relative"] = beam3[$2, 3];
-			node[node_num, 1] = beam3[$2, 3, 1];
-			node[node_num, 2] = beam3[$2, 3, 2];
-			node[node_num, 3] = beam3[$2, 3, 3];
-			node[node_num, "prop"] = "beam_node";
-			node_num++;
-			
-			edge[edge_num] = "beam_" $2 "_offset3";
-			edge[edge_num, 1] = label3;
-			edge[edge_num, 2] = label;
-			edge[edge_num, "prop"] = "beam_offset";
-			edge_num++;
-	
+			node_add(label, beam3[$2, 3], beam3[$2, 3, 1], beam3[$2, 3, 2], beam3[$2, 3, 3], "beam_node");
+
+			edge_add("beam_" $2 "_offset3", label3, label, "beam_offset");
+
 			label3 = label;
 		}
-	
-		edge[edge_num] = "beam_" $2 "_1";
-		edge[edge_num, 1] = label1;
-		edge[edge_num, 2] = label2;
-		edge[edge_num, "prop"] = "beam_edge";
-		edge_num++;
-	
-		edge[edge_num] = "beam_" $2 "_2";
-		edge[edge_num, 1] = label2;
-		edge[edge_num, 2] = label3;
-		edge[edge_num, "prop"] = "beam_edge";
-		edge_num++;
+
+		edge_add("beam_" $2 "_1", label1, label2, "beam_edge");
+		edge_add("beam_" $2 "_2", label2, label3, "beam_edge");
 	}
 }
 
@@ -913,11 +716,11 @@ isvan == 0 && /aero0:/ && show["aero"] {
 			print "structural node("$3") requested by aero0("$2") as node not found" > "/dev/stderr";
 			exit;
 		}
-	
+
 		#   2-----4
 		#   |  1  |
 		#   1-----3
-	
+
 		aero0_label[aero0_num] = $2;
 		aero0[$2] = $3;
 		aero0[$2, 1, 1] = $4;
@@ -933,44 +736,20 @@ isvan == 0 && /aero0:/ && show["aero"] {
 		aero0[$2, 4, 2] = $14;
 		aero0[$2, 4, 3] = $15;
 		aero0_num++;
-	
+
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node[node_num] = label1;
-		node[node_num, "relative"] = aero0[$2];
-		node[node_num, 1] = aero0[$2, 1, 1];
-		node[node_num, 2] = aero0[$2, 1, 2];
-		node[node_num, 3] = aero0[$2, 1, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label1, aero0[$2], aero0[$2, 1, 1], aero0[$2, 1, 2], aero0[$2, 1, 3], "aero_node");
+
 		label2 = "aero_" $2 "_point2";
-		node[node_num] = label2;
-		node[node_num, "relative"] = aero0[$2];
-		node[node_num, 1] = aero0[$2, 2, 1];
-		node[node_num, 2] = aero0[$2, 2, 2];
-		node[node_num, 3] = aero0[$2, 2, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label2, aero0[$2], aero0[$2, 2, 1], aero0[$2, 2, 2], aero0[$2, 2, 3], "aero_node");
+
 		label3 = "aero_" $2 "_point3";
-		node[node_num] = label3;
-		node[node_num, "relative"] = aero0[$2];
-		node[node_num, 1] = aero0[$2, 3, 1];
-		node[node_num, 2] = aero0[$2, 3, 2];
-		node[node_num, 3] = aero0[$2, 3, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label3, aero0[$2], aero0[$2, 3, 1], aero0[$2, 3, 2], aero0[$2, 3, 3], "aero_node");
+
 		label4 = "aero_" $2 "_point4";
-		node[node_num] = label4;
-		node[node_num, "relative"] = aero0[$2];
-		node[node_num, 1] = aero0[$2, 4, 1];
-		node[node_num, 2] = aero0[$2, 4, 2];
-		node[node_num, 3] = aero0[$2, 4, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label4, aero0[$2], aero0[$2, 4, 1], aero0[$2, 4, 2], aero0[$2, 4, 3], "aero_node");
+
 		label = "aero_" $2;
 		side[side_num] = label;
 		side[side_num, "N"] = 4;
@@ -993,11 +772,11 @@ isvan == 0 && /aero2:/ && show["aero"] {
 			print "structural node("$10") requested by aero2("$2") as node 2 not found" > "/dev/stderr";
 			exit;
 		}
-	
+
 		#   2-----4
 		# 1 |     | 2
 		#   1-----3
-	
+
 		aero2_label[aero2_num] = $2;
 		aero2[$2, 1] = $3;
 		aero2[$2, 1, 1] = $4;
@@ -1014,44 +793,20 @@ isvan == 0 && /aero2:/ && show["aero"] {
 		aero2[$2, 4, 2] = $15;
 		aero2[$2, 4, 3] = $16;
 		aero2_num++;
-	
+
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node[node_num] = label1;
-		node[node_num, "relative"] = aero2[$2, 1];
-		node[node_num, 1] = aero2[$2, 1, 1];
-		node[node_num, 2] = aero2[$2, 1, 2];
-		node[node_num, 3] = aero2[$2, 1, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label1, aero2[$2, 1], aero2[$2, 1, 1], aero2[$2, 1, 2], aero2[$2, 1, 3], "aero_node");
+
 		label2 = "aero_" $2 "_point2";
-		node[node_num] = label2;
-		node[node_num, "relative"] = aero2[$2, 1];
-		node[node_num, 1] = aero2[$2, 2, 1];
-		node[node_num, 2] = aero2[$2, 2, 2];
-		node[node_num, 3] = aero2[$2, 2, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label2, aero2[$2, 1], aero2[$2, 2, 1], aero2[$2, 2, 2], aero2[$2, 2, 3], "aero_node");
+
 		label3 = "aero_" $2 "_point3";
-		node[node_num] = label3;
-		node[node_num, "relative"] = aero2[$2, 2];
-		node[node_num, 1] = aero2[$2, 3, 1];
-		node[node_num, 2] = aero2[$2, 3, 2];
-		node[node_num, 3] = aero2[$2, 3, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label3, aero2[$2, 2], aero2[$2, 3, 1], aero2[$2, 3, 2], aero2[$2, 3, 3], "aero_node");
+
 		label4 = "aero_" $2 "_point4";
-		node[node_num] = label4;
-		node[node_num, "relative"] = aero2[$2, 2];
-		node[node_num, 1] = aero2[$2, 4, 1];
-		node[node_num, 2] = aero2[$2, 4, 2];
-		node[node_num, 3] = aero2[$2, 4, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label4, aero2[$2, 2], aero2[$2, 4, 1], aero2[$2, 4, 2], aero2[$2, 4, 3], "aero_node");
+
 		label = "aero_" $2;
 		side[side_num] = label;
 		side[side_num, "N"] = 4;
@@ -1078,11 +833,11 @@ isvan == 0 && /aero3:/ && show["aero"] {
 			print "structural node("$17") requested by aero3("$2") as node 3 not found" > "/dev/stderr";
 			exit;
 		}
-	
+
 		#   2-----4-----6
 		# 1 |     | 2   | 3
 		#   1-----3-----5
-	
+
 		aero3_label[aero3_num] = $2;
 		aero3[$2, 1] = $3;
 		aero3[$2, 1, 1] = $4;
@@ -1106,62 +861,26 @@ isvan == 0 && /aero3:/ && show["aero"] {
 		aero3[$2, 6, 2] = $22;
 		aero3[$2, 6, 3] = $23;
 		aero3_num++;
-	
+
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node[node_num] = label1;
-		node[node_num, "relative"] = aero3[$2, 1];
-		node[node_num, 1] = aero3[$2, 1, 1];
-		node[node_num, 2] = aero3[$2, 1, 2];
-		node[node_num, 3] = aero3[$2, 1, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label1, aero3[$2, 1], aero3[$2, 1, 1], aero3[$2, 1, 2], aero3[$2, 1, 3], "aero_node");
+
 		label2 = "aero_" $2 "_point2";
-		node[node_num] = label2;
-		node[node_num, "relative"] = aero3[$2, 1];
-		node[node_num, 1] = aero3[$2, 2, 1];
-		node[node_num, 2] = aero3[$2, 2, 2];
-		node[node_num, 3] = aero3[$2, 2, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label2, aero3[$2, 1], aero3[$2, 2, 1], aero3[$2, 2, 2], aero3[$2, 2, 3], "aero_node");
+
 		label3 = "aero_" $2 "_point3";
-		node[node_num] = label3;
-		node[node_num, "relative"] = aero3[$2, 2];
-		node[node_num, 1] = aero3[$2, 3, 1];
-		node[node_num, 2] = aero3[$2, 3, 2];
-		node[node_num, 3] = aero3[$2, 3, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label3, aero3[$2, 2], aero3[$2, 3, 1], aero3[$2, 3, 2], aero3[$2, 3, 3], "aero_node");
+
 		label4 = "aero_" $2 "_point4";
-		node[node_num] = label4;
-		node[node_num, "relative"] = aero3[$2, 2];
-		node[node_num, 1] = aero3[$2, 4, 1];
-		node[node_num, 2] = aero3[$2, 4, 2];
-		node[node_num, 3] = aero3[$2, 4, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label4, aero3[$2, 2], aero3[$2, 4, 1], aero3[$2, 4, 2], aero3[$2, 4, 3], "aero_node");
+
 		label5 = "aero_" $2 "_point5";
-		node[node_num] = label5;
-		node[node_num, "relative"] = aero3[$2, 3];
-		node[node_num, 1] = aero3[$2, 5, 1];
-		node[node_num, 2] = aero3[$2, 5, 2];
-		node[node_num, 3] = aero3[$2, 5, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label5, aero3[$2, 3], aero3[$2, 5, 1], aero3[$2, 5, 2], aero3[$2, 5, 3], "aero_node");
+
 		label6 = "aero_" $2 "_point6";
-		node[node_num] = label6;
-		node[node_num, "relative"] = aero3[$2, 3];
-		node[node_num, 1] = aero3[$2, 6, 1];
-		node[node_num, 2] = aero3[$2, 6, 2];
-		node[node_num, 3] = aero3[$2, 6, 3];
-		node[node_num, "prop"] = "aero_node";
-		node_num++;
-	
+		node_add(label6, aero3[$2, 3], aero3[$2, 6, 1], aero3[$2, 6, 2], aero3[$2, 6, 3], "aero_node");
+
 		label = "aero_" $2;
 		side[side_num] = label;
 		side[side_num, "N"] = 6;
