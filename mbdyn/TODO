@@ -227,6 +227,7 @@ E. Bugs/missing features:
 	- external modal force needs work in "loose" coupling (FIXED)
 	- allow preamble in communications with pairs {string,value}
 	- rework rejected modes handling in modal joint
+	- check initial assembly of "distance" when nodes velocity is not null
 
 
 
