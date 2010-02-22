@@ -86,7 +86,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 	if (typeid(T) == typeid(Vec3)) {
 		dim = 3;
 
-	} else if (typeid(T) == typeid(Vec3)) {
+	} else if (typeid(T) == typeid(Vec6)) {
 		dim = 6;
 
 	} else {
@@ -383,7 +383,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 	if (typeid(T) == typeid(Vec3)) {
 		dim = 3;
 
-	} else if (typeid(T) == typeid(Vec3)) {
+	} else if (typeid(T) == typeid(Vec6)) {
 		dim = 6;
 
 	} else {
@@ -679,7 +679,7 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 	if (typeid(T) == typeid(Vec3)) {
 		dim = 3;
 
-	} else if (typeid(T) == typeid(Vec3)) {
+	} else if (typeid(T) == typeid(Vec6)) {
 		dim = 6;
 
 	} else {
