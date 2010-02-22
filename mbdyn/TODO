@@ -199,6 +199,8 @@ D. Code:
 	- define a UserDefinedElem class; inherit LoadableElem from it;
 	  allow UserDefined elements to be loaded run-time
 	  (obsoletes LoadableElem)
+	- write macros to add items for mbdyn2easyanim
+	- let symbolic constitutive law optionally know about "Time" & so
 
 
 
