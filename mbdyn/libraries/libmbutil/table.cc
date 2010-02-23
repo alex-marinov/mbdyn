@@ -69,7 +69,7 @@ tmp_sym consts[] = {
 
 	// add as needed...
 
-	{ NULL,        Int(0)           }
+	{ 0,           Int(0)           }
 };
 
 
@@ -106,7 +106,7 @@ Var *
 Table::Put(const char* const name, const TypedValue& x)
 {
 	NamedValue* pNV = Get(name);
-	if (pNV != NULL) {
+	if (pNV != 0) {
 		silent_cerr("Table::Put(): name \"" << name << "\" "
 			"already defined" << std::endl);
 		throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
