@@ -1528,7 +1528,7 @@ NamedValue::GetTypeName(void) const
 Var::Var(const char* const s, const TypedValue& v)
 : NamedValue(s), value(v)
 {
-	NO_OP;
+	value.SetConst(v.Const(), true);
 }
 
 Var::Var(const char* const s, const bool& v)
