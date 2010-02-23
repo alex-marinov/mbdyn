@@ -113,7 +113,7 @@ public:
 	const std::string& GetString(void) const;
 
 	void SetType(TypedValue::Type t, bool isConst = false);
-	void SetConst(bool isConst = true);
+	void SetConst(bool isConst = true, bool bForce = false);
 	const TypedValue& Set(const bool& b);
 	const TypedValue& Set(const Int& i);
 	const TypedValue& Set(const Real& r);

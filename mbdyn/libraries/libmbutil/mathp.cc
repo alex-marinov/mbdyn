@@ -739,8 +739,9 @@ TypedValue::TypedValue(const TypedValue::Type t, bool isConst)
 	}
 }
 
+// NOTE: TypedValue does not inherit const'ness
 TypedValue::TypedValue(const TypedValue& var)
-: type(var.type), bConst(var.bConst)
+: type(var.type), bConst(false)
 {
 	switch (type) {
 	case TypedValue::VAR_BOOL:
@@ -833,7 +834,7 @@ TypedValue::operator = (const TypedValue& var)
 		}
 	}
 
-	bConst = var.Const();
+	// NOTE: TypedValue does not inherit const'ness
 	return *this;
 }
 
@@ -927,7 +928,7 @@ TypedValue::Cast(const TypedValue& var)
 		}
 	}
 
-	bConst = var.Const();
+	// NOTE: TypedValue does not inherit const'ness
 	return *this;
 }
 
@@ -1052,8 +1053,12 @@ TypedValue::SetType(TypedValue::Type t, bool isConst)
 }
 
 void
-TypedValue::SetConst(bool isConst)
+TypedValue::SetConst(bool isConst, bool bForce)
 {
+	if (Const() && !isConst && !bForce) {
+		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
+	}
+
 	bConst = isConst;
 }
 
