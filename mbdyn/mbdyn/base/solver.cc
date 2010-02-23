@@ -1685,6 +1685,10 @@ Solver::~Solver(void)
 	if (pNLS) {
 		SAFEDELETE(pNLS);
 	}
+
+	if (pStrategyChangeDrive) {
+		SAFEDELETE(pStrategyChangeDrive);
+	}
 }
 
 /* Nuovo delta t */
