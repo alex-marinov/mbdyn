@@ -29,14 +29,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Tabella dei simboli; richiamata da table.cpp, parser.h */
+/* Tabella dei simboli; richiamata da table.cc, parser.h */
 
 #ifndef TABLE_H
 #define TABLE_H
 
-extern "C" {
-#include <strings.h>
-}
+#include <cstring>
 
 #include "except.h"
 #include "mathtyp.h"
