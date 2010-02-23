@@ -928,7 +928,7 @@ TypedValue::Cast(const TypedValue& var)
 		}
 	}
 
-	// NOTE: TypedValue does not inherit const'ness
+	bConst = var.Const();
 	return *this;
 }
 
