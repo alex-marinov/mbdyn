@@ -304,9 +304,6 @@ protected:
    
 	/* token corrente */
 	enum Token currtoken;
-      
-	/* inizio della lista */
-	VarList* varlist;
 
 	/* lista dei token; implementa una stack rudimentale */
 	struct TokenList {
@@ -331,11 +328,6 @@ protected:
 
 	/* lista di valori per l'elevamento a potenza (associa da destra) */
 	Stack<TypedValue> powerstack;
-
-	/* operazioni sulle var, se si usa la lista */
-	NamedValue* GetVar(const char* const s);
-	Var* NewVar(const char* const s, TypedValue::Type t,
-			const Real& d = 0.);
 
 	TypedValue::Type GetType(const char* const s) const;
 	TypedValue::TypeModifier GetTypeModifier(const char*) const;

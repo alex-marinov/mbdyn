@@ -1766,46 +1766,6 @@ MathParser::TokenPop(void)
 	return 1;
 }
 
-NamedValue*
-MathParser::GetVar(const char* const s)
-{
-	for (VarList* p = varlist; p != NULL; p = p->next) {
-		if (p->var != NULL && strcmp(s, p->var->GetName()) == 0) {
-			return p->var;
-		}
-	}
-	return NULL;
-}
-
-Var*
-MathParser::NewVar(const char* const s, TypedValue::Type t, const Real& d)
-{
-	if (GetVar(s) != NULL) {
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "var '", s, "' already defined!" );
-	}
-
-	Var* v = 0;
-	switch (t) {
-	case TypedValue::VAR_INT:
-		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, Int(d)));
-		break;
-
-	case TypedValue::VAR_REAL:
-		SAFENEWWITHCONSTRUCTOR(v, Var, Var(s, d));
-		break;
-
-	default:
-		throw TypedValue::ErrUnknownType(MBDYN_EXCEPT_ARGS);
-	}
-
-	VarList* p = 0;
-	SAFENEW(p, VarList);
-	p->var = v;
-	p->next = varlist;
-	varlist = p;
-	return v;
-}
-
 MathParser::NameSpace::NameSpace(const char *const n)
 : name(0)
 {
@@ -3670,7 +3630,6 @@ namebuf(0),
 namebuflen(default_namebuflen),
 value(),
 currtoken(UNKNOWNTOKEN),
-varlist(NULL),
 tokenlist(NULL),
 powerstack()
 {
@@ -3699,7 +3658,6 @@ namebuf(0),
 namebuflen(default_namebuflen),
 value(),
 currtoken(UNKNOWNTOKEN),
-varlist(0),
 tokenlist(0),
 powerstack()
 {
