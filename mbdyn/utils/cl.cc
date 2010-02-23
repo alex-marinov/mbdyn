@@ -70,7 +70,7 @@ main(int argc, const char* const argv[])
 	}
 	
 #ifdef USE_TABLE
-	Table t(31, 1);
+	Table t(true);
 #endif /* USE_TABLE */
 
 	if (argc > 1) {

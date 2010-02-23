@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2010
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -29,218 +29,140 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Codice della tabella dei simboli 
- * dell'analizzatore di espressioni alfanumeriche */
-
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <cstring>
 #include <string>
 #include <cmath>
 
-#include <myassert.h>
-#include <mynewmem.h>
+#include "myassert.h"
+#include "mynewmem.h"
 
-#include <table.h>
+#include "table.h"
 
 enum {
-     TABLE_INT,
-     TABLE_REAL
+	TABLE_INT,
+	TABLE_REAL
 };
 
-#define GCC_BUG 0
-
 struct tmp_sym {
-   const char* name;
-#if GCC_BUG != 1
-   TypedValue val;
-#else /* GCC_BUG == 1 */
-   int type;
-   Int i_val;
-   Real r_val;
-#endif /* GCC_BUG == 1 */
+	const char* name;
+	TypedValue val;
 };
 
 tmp_sym consts[] = {
-#if GCC_BUG != 1
-     { "e",         Real(M_E)        }, /* */
-     { "pi",        Real(M_PI)       }, /* */
-     { "RAND_MAX",  Int(RAND_MAX)    }, /* 2147483647 */
-     { "in2m",      Real(.0254)      }, /* conversion inches -> meters */
-     { "m2in",      Real(1./.0254)   }, /* conversion meters -> inches */
-     { "in2mm",     Real(25.4)       }, /* conversion inches -> millimeters */
-     { "mm2in",     Real(1./25.4)    }, /* conversion millimeters -> inches */
-     { "ft2m",      Real(.3048)      }, /* conversion feet -> meters */
-     { "m2ft",      Real(1./.3048)   }, /* conversion meters -> feet */
-     { "lb2kg",     Real(.4535)      }, /* conversion pounds -> kg */
-     { "kg2lb",     Real(1./.4535)   }, /* conversion kg -> pounds */
-     { "deg2rad",   Real(M_PI/180.)  }, /* conversion degrees -> radians */
-     { "rad2deg",   Real(180./M_PI)  }, /* conversion radians -> degrees */
-   
-   /* add as needed ... */
+	{ "e",         Real(M_E)        },
+	{ "pi",        Real(M_PI)       },
+	{ "RAND_MAX",  Int(RAND_MAX)    }, // 2147483647
+	{ "in2m",      Real(.0254)      }, // inches -> meters
+	{ "m2in",      Real(1./.0254)   }, // meters -> inches
+	{ "in2mm",     Real(25.4)       }, // inches -> millimeters
+	{ "mm2in",     Real(1./25.4)    }, // millimeters -> inches
+	{ "ft2m",      Real(.3048)      }, // feet -> meters
+	{ "m2ft",      Real(1./.3048)   }, // meters -> feet
+	{ "lb2kg",     Real(.4535)      }, // pounds -> kg
+	{ "kg2lb",     Real(1./.4535)   }, // kg -> pounds
+	{ "deg2rad",   Real(M_PI/180.)  }, // degrees -> radians
+	{ "rad2deg",   Real(180./M_PI)  }, // radians -> degrees
 
-     { NULL,        Int(0)           }  /* terminale */
-#else /* GCC_BUG == 1 */
-     { "e",         TABLE_REAL, Int(0),        Real(M_E)      }, /* */
-     { "pi",        TABLE_REAL, Int(0),        Real(M_PI)     }, /* */
-     { "RAND_MAX",  TABLE_INT,  Int(RAND_MAX), Real(0.)       }, /* 2147483647 */
-     { "in2m",      TABLE_REAL, Int(0),        Real(.0254)    }, /* conversion inches -> meters */
-     { "m2in",      TABLE_REAL, Int(0),        Real(1./.0254) }, /* conversion meters -> inches */
-     { "in2mm",     TABLE_REAL, Int(0),        Real(25.4)     }, /* conversion inches -> millimeters */
-     { "mm2in",     TABLE_REAL, Int(0),        Real(1./25.4)  }, /* conversion millimeters -> inches */
-     { "ft2m",      TABLE_REAL, Int(0),        Real(.3048)    }, /* conversion feet -> meters */
-     { "m2ft",      TABLE_REAL, Int(0),        Real(1./.3048) }, /* conversion meters -> feet */
-     { "lb2kg",     TABLE_REAL, Int(0),        Real(.4535)    }, /* conversion pounds -> kg */
-     { "kg2lb",     TABLE_REAL, Int(0),        Real(1./.4535) }, /* conversion kg -> pounds */
-     { "deg2rad",   TABLE_REAL, Int(0),        Real(M_PI/180.)}, /* conversion degrees -> radians */
-     { "rad2deg",   TABLE_REAL, Int(0),        Real(180./M_PI)}, /* conversion radians -> degrees */
-   
-   /* add as needed ... */
+	// add as needed...
 
-     { NULL,        TABLE_INT,  Int(0),        Real(0.)       }  /* terminale */
-#endif /* GCC_BUG == 1 */
+	{ NULL,        Int(0)           }
 };
 
 
-Table::Table(Int s, Int f) : size(s), v(NULL)
+Table::Table(bool bSetConstants)
+: vm()
 {
-   static char func_name[] = "Table::Table";
+	static char func_name[] = "Table::Table";
 
-   ASSERT(size > 0);
-   DEBUGCOUT("Table::Table" << std::endl);
-   
-   SAFENEWARR(v, VarList*, size);
-   
-   for (Int i = size; i-- > 0; ) {
-      v[i] = NULL; 
-   }
-   
-   if (!f) {
-      return;
-   }
-   
-   tmp_sym* p = consts;
-   while (p->name != NULL) {
-#if 1
-      NamedValue* n = Put(p->name, p->val);
-#else /* GCC_BUG == 1 */      
-      NamedValue* n = Put(p->name, (p->type == TABLE_REAL ? p->r_val : p->i_val));
-#endif /* GCC_BUG == 1 */
-      if (n == NULL) { 
-	 silent_cerr(func_name << ": unable to insert " << p->name 
-		 << std::endl);
-	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-      }
-      p++;
-   }
+	DEBUGCOUT("Table::Table" << std::endl);
+
+	if (bSetConstants) {
+		tmp_sym* p = consts;
+		while (p->name != 0) {
+			p->val.SetConst();
+			NamedValue* n = Put(p->name, p->val);
+			if (n == 0) {
+				silent_cerr(func_name << ": unable to insert " << p->name
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			p++;
+		}
+	}
 }
 
 Table::~Table(void)
 {
-   if (v != NULL) {
-      for (Int i = size; i-- > 0; ) {
-	 VarList* pn = v[i];
-	 while (pn != NULL) {
-	    VarList* n = pn;
-	    pn = n->next;
-	    SAFEDELETE(n->var);
-	    SAFEDELETE(n);
-	 }
-      }
-      SAFEDELETEARR(v);
-   }
+	for (VM::iterator i = vm.begin(); i != vm.end(); i++) {
+		delete i->second;
+	}
 }
 
-Int 
-Table::FindRow(const char* const name) const
-{
-   int ii = 0;
-   int i = 0; 
-   while (name[i] != '\0') {
-      ii = (ii << 1) ^ name[i++]; 
-   }
-   if (ii < 0) { 
-      ii = -ii; 
-   }
-   
-   ASSERT(size > 0);
-   return (ii%size);
-}
-
-Var * 
+Var *
 Table::Put(const char* const name, const TypedValue& x)
 {
-   static char func_name[] = "Table::Put()";
-   NamedValue* pVar = Get(name);
-   if (pVar != NULL) {
-      silent_cerr(func_name << ": name \"" << name 
-	<< "\" already defined" << std::endl);
-      throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
-   }
-   
-   int ii = FindRow(name);
-   pVar = NULL;
-   SAFENEWWITHCONSTRUCTOR(pVar, Var, Var(name, x));
-   VarList* pList = NULL;
-   SAFENEW(pList, VarList);
-   pList->var = pVar;
-   pList->next = v[ii];
-   v[ii] = pList;
-   return (Var *)pVar;
+	NamedValue* pNV = Get(name);
+	if (pNV != NULL) {
+		silent_cerr("Table::Put(): name \"" << name << "\" "
+			"already defined" << std::endl);
+		throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
+	}
+
+	Var *pVar = new Var(name, x);
+
+	if (!vm.insert(VM::value_type(name, pVar)).second) {
+		silent_cerr("Table::Put(): unable to insert variable "
+			"\"" << name << "\"" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pVar;
 }
 
 NamedValue *
 Table::Put(NamedValue *p)
 {
-   static char func_name[] = "Table::Put()";
-   NamedValue* pVar = Get(p->GetName());
-   if (pVar != NULL) {
-      silent_cerr(func_name << ": name \"" << p->GetName()
-	<< "\" already defined" << std::endl);
-      throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
-   }
+	NamedValue* pNV = Get(p->GetName());
+	if (pNV != 0) {
+		silent_cerr("Table::Put(): name \"" << p->GetName()
+			<< "\" already defined" << std::endl);
+		throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
+	}
 
-   int ii = FindRow(p->GetName());
-   pVar = NULL;
-   VarList* pList = NULL;
-   SAFENEW(pList, VarList);
-   pList->var = p;
-   pList->next = v[ii];
-   v[ii] = pList;
-   return pList->var;
+	if (!vm.insert(VM::value_type(p->GetName(), p)).second) {
+		silent_cerr("Table::Put(): unable to insert named value "
+			"\"" << p->GetName() << "\"" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return p;
 }
 
-NamedValue* 
+NamedValue*
 Table::Get(const char* const name) const
 {
-   int ii = FindRow(name);
-   VarList* n = v[ii];
-   
-   
-   while (n != NULL) {
-      if (strcmp(n->var->GetName(), name) == 0) {
-	 return n->var;
-      }
-      n = n->next;
-   }
-   return NULL;
+	VM::const_iterator i = vm.find(name);
+	if (i == vm.end()) {
+		return 0;
+	}
+	return i->second;
 }
 
-
-std::ostream& 
+std::ostream&
 operator << (std::ostream& out, Table& T)
-{  
-	for (Int i = T.size; i-- > 0; ) {      
-		VarList* pn = T.v[i];
-		while (pn != NULL) {
-			out
-				<< "  " << pn->var->GetTypeName()
-				<< " " << pn->var->GetName()
-				<< " = " << pn->var->GetVal() << std::endl;
-			pn = pn->next;  
-		}   
+{
+	for (Table::VM::const_iterator i = T.vm.begin(); i != T.vm.end(); i++) {
+			out << "  ";
+			if (i->second->Const()) {
+				out << "const ";
+			}
+			out << i->second->GetTypeName()
+				<< " " << i->second->GetName()
+				<< " = " << i->second->GetVal() << std::endl;
 	}
 
 	return out;

@@ -597,7 +597,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		if (mbp.MyRank == 0)
 #endif /* USE_MPI */
 		{
-			Table t(31, 1);
+			Table t(true);
 			MathParser mp(t);
 			GetEnviron(mp);
 			silent_cout("default symbol table:"
@@ -692,7 +692,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		switch (mbp.CurrInputFormat) {
 		case MBDYN: {
 			if (pT == NULL) {
-				SAFENEWWITHCONSTRUCTOR(pT, Table, Table(31, 1));
+				SAFENEWWITHCONSTRUCTOR(pT, Table, Table(true));
 			}
 			if (pMP == NULL) {
 				SAFENEWWITHCONSTRUCTOR(pMP, 

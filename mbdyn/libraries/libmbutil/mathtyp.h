@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2010
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -44,7 +44,7 @@ class TypedValue {
 public:
 	enum Type {
 		VAR_UNKNOWN = -1,
-		
+
 		VAR_BOOL,
 		VAR_INT,
 		VAR_REAL,
@@ -60,7 +60,7 @@ public:
 
 		MOD_LAST
 	};
- 
+
 	class ErrUnknownType : public MBDynErrBase {
 	public:
 		ErrUnknownType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
@@ -99,10 +99,10 @@ public:
 	TypedValue(const std::string& s, bool isConst = false);
 	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
-	
+
 	const TypedValue& operator = (const TypedValue& var);
 	const TypedValue& Cast(const TypedValue& var);
-	
+
 	TypedValue::Type GetType(void) const;
 	const char *const GetTypeName(void) const;
 	static const char *const GetTypeName(TypedValue::Type t);
@@ -111,14 +111,14 @@ public:
 	Int GetInt(void) const;
 	Real GetReal(void) const;
 	const std::string& GetString(void) const;
-	
+
 	void SetType(TypedValue::Type t, bool isConst = false);
 	void SetConst(bool isConst = true);
 	const TypedValue& Set(const bool& b);
 	const TypedValue& Set(const Int& i);
 	const TypedValue& Set(const Real& r);
 	const TypedValue& Set(const std::string& s);
-	
+
 	bool operator && (const TypedValue& v) const;
 	bool operator || (const TypedValue& v) const;
 	bool operator > (const TypedValue& v) const;
@@ -133,7 +133,7 @@ public:
 	TypedValue operator * (const TypedValue& v) const;
 	TypedValue operator / (const TypedValue& v) const;
 	TypedValue operator % (const TypedValue& v) const;
-	
+
 	const TypedValue& operator += (const TypedValue& v);
 	const TypedValue& operator -= (const TypedValue& v);
 	const TypedValue& operator *= (const TypedValue& v);
@@ -153,7 +153,7 @@ private:
 	char *name;
 
 	void AllocName(const char *const s);
-	
+
 public:
 	NamedValue(const char *const s);
 	virtual ~NamedValue(void);
@@ -180,26 +180,17 @@ public:
 	~Var(void);
 
 	bool IsVar(void) const;
-	
+
 	TypedValue::Type GetType(void) const;
 	bool Const(void) const;
 	TypedValue GetVal(void) const;
-	
+
 	void SetVal(const bool& b);
 	void SetVal(const Int& v);
 	void SetVal(const Real& v);
 	void SetVal(const std::string& v);
 	void SetVal(const TypedValue& v);
 	void Cast(const TypedValue& v);
-};
-
-/*
- * lista delle variabili, sara' sostituita da Table
- */
-struct VarList {
-	NamedValue* var;
-	
-	VarList* next;
 };
 
 #endif /* MATHTYP_H */

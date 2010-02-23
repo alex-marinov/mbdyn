@@ -202,7 +202,7 @@ D. Code:
 	- write macros to add items for mbdyn2easyanim (DONE)
 	- let symbolic constitutive law optionally know about "Time" & so
 	- allow math parser to generate expression tree (bison, ...)
-	- replace math parser symbol table with STL container
+	- replace math parser symbol table with STL container (DONE)
 	- allow to switch on/off iteration, residual, ... output with meter
 
 
