@@ -1231,6 +1231,50 @@ MeterDriveCaller::iGetSteps(void) const
 /* MeterDriveCaller - end */
 
 
+/* DirectDriveCaller - begin */
+
+class DirectDriveCaller : public DriveCaller {
+public:
+	DirectDriveCaller(const DriveHandler* pDH);
+	virtual ~DirectDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+#if 0
+	inline doublereal dGet(void) const;
+#endif
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+};
+
+inline doublereal
+DirectDriveCaller::dGet(const doublereal& dVar) const
+{
+	return dVar;
+}
+
+inline bool
+DirectDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+inline doublereal 
+DirectDriveCaller::dGetP(const doublereal& dVar) const
+{
+	return 1.;
+}
+
+/* MeterDriveCaller - end */
+
+
 /* PiecewiseLinearDriveCaller - begin */
 
 class PiecewiseLinearDriveCaller : public DriveCaller {

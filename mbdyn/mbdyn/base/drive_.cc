@@ -858,6 +858,40 @@ MeterDriveCaller::Restart(std::ostream& out) const
 /* MeterDriveCaller - end */
 
 
+/* DirectDriveCaller - begin */
+
+DirectDriveCaller::DirectDriveCaller(const DriveHandler* pDH)
+: DriveCaller(pDH)
+{
+	NO_OP;
+}
+
+DirectDriveCaller::~DirectDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+DirectDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		DirectDriveCaller,
+		DirectDriveCaller(pDrvHdl));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+DirectDriveCaller::Restart(std::ostream& out) const
+{
+	return out << " direct";
+}
+
+/* DirectDriveCaller - end */
+
+
 /* PiecewiseLinearDriveCaller - begin */
 
 PiecewiseLinearDriveCaller::PiecewiseLinearDriveCaller(const DriveHandler* pDH,
@@ -1829,6 +1863,30 @@ MeterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct DirectDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DirectDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "direct");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		DirectDriveCaller,
+		DirectDriveCaller(pDrvHdl));
+
+	return pDC;
+}
+
 struct PiecewiseLinearDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -2268,6 +2326,7 @@ InitDriveData(void)
 	SetDriveData("exponential", new ExponentialDCR);
 	SetDriveData("random", new RandomDCR);
 	SetDriveData("meter", new MeterDCR);
+	SetDriveData("direct", new DirectDCR);
 	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
 	SetDriveData("file", new FileDCR);
 	SetDriveData("string", new StringDCR);
