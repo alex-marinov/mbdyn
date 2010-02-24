@@ -142,7 +142,7 @@ Table::Put(NamedValue *p)
 	return p;
 }
 
-NamedValue*
+NamedValue *
 Table::Get(const char* const name) const
 {
 	VM::const_iterator i = vm.find(name);
@@ -156,13 +156,13 @@ std::ostream&
 operator << (std::ostream& out, Table& T)
 {
 	for (Table::VM::const_iterator i = T.vm.begin(); i != T.vm.end(); i++) {
-			out << "  ";
-			if (i->second->Const()) {
-				out << "const ";
-			}
-			out << i->second->GetTypeName()
-				<< " " << i->second->GetName()
-				<< " = " << i->second->GetVal() << std::endl;
+		out << "  ";
+		if (i->second->Const()) {
+			out << "const ";
+		}
+		out << i->second->GetTypeName()
+			<< " " << i->second->GetName()
+			<< " = " << i->second->GetVal() << std::endl;
 	}
 
 	return out;
