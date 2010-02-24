@@ -204,6 +204,8 @@ D. Code:
 	- allow math parser to generate expression tree (bison, ...)
 	- replace math parser symbol table with STL container (DONE)
 	- allow to switch on/off iteration, residual, ... output with meter
+	- NetCDF output of aerodynamic elements
+	- eigenanalysis at different time steps, with output on separate files
 
 
 
