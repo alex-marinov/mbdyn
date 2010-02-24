@@ -499,6 +499,10 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	d14 = VAM.force_position;
 	d34 = VAM.bc_position;
+	if (std::abs(d34 - d14) < std::numeric_limits<doublereal>::epsilon()) {
+		silent_cerr("C81TheodorsenAeroData::AssRes() [#" << i << "]: aerodynamic center and boundary condition point are almost coincident" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	chord = VAM.chord;
 
 	a = (d14 + d34)/chord;
@@ -1056,6 +1060,10 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	d14 = VAM.force_position;
 	d34 = VAM.bc_position;
+	if (std::abs(d34 - d14) < std::numeric_limits<doublereal>::epsilon()) {
+		silent_cerr("C81TheodorsenAeroData::AssRes() [#" << i << "]: aerodynamic center and boundary condition point are almost coincident" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	chord = VAM.chord;
 
 	a = (d14 + d34)/chord;
