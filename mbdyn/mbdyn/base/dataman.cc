@@ -460,26 +460,34 @@ DofIter()
 	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
 		/* mostra in modo succinto il numero di DofOwner per tipo */
 		for (int i = 0; i < DofOwner::LASTDOFTYPE; i++) {
-			std::cout << "DofType " << i << " (" << psDofOwnerNames[i]
-				<< "), n. of owners: " << DofData[i].iNum << std::endl;
+			std::cout << "DofType " << i << " "
+				"(" << psDofOwnerNames[i] << "), "
+				"n. of owners: " << DofData[i].iNum
+				<< std::endl;
 		}
 
 		/* mostra in modo succinto il numero di nodi per tipo */
 		for (int i = 0; i < Node::LASTNODETYPE; i++) {
-			std::cout << "NodeType " << i << " (" << psNodeNames[i]
-				<< "), n. of nodes: " << NodeData[i].iNum << std::endl;
+			std::cout << "NodeType " << i << " "
+				"(" << psNodeNames[i] << "), "
+				"n. of nodes: " << NodeData[i].NodeMap.size()
+				<< std::endl;
 		}
 
 		/* mostra in modo succinto il numero di elementi per tipo */
 		for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-			std::cout << "Element Type " << i << " (" << psElemNames[i]
-				<< "), n. of elems: " << ElemData[i].ElemMap.size() << std::endl;
+			std::cout << "Element Type " << i << " "
+				"(" << psElemNames[i] << "), "
+				"n. of elems: " << ElemData[i].ElemMap.size()
+				<< std::endl;
 		}
 
 		/* mostra in modo succinto il numero di drivers per tipo */
 		for (int i = 0; i < Drive::LASTDRIVETYPE; i++) {
-			std::cout << "DriveType " << i << " (" << psDriveNames[i]
-				<< "), n. of drivers: " << DriveData[i].iNum << std::endl;
+			std::cout << "DriveType " << i << " "
+				"(" << psDriveNames[i] << "), "
+				"n. of drivers: " << DriveData[i].iNum
+				<< std::endl;
 		}
 	}
 #endif /* DEBUG */
