@@ -77,6 +77,7 @@
 #include "readlinsol.h"
 #include "ls.h"
 #include "naivewrap.h"
+#include "Rot.hh"
 
 #include "solver_impl.h"
 
@@ -3022,6 +3023,9 @@ Solver::ReadData(MBDynParser& HP)
 				} else if (HP.IsKeyWord("output" "eigenvectors")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_EIGENVECTORS;
 
+				} else if (HP.IsKeyWord("output" "geometry")) {
+					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_GEOMETRY;
+
 				} else if (HP.IsKeyWord("upper" "frequency" "limit")) {
 					EigAn.dUpperFreq = HP.GetReal();
 					if (EigAn.dUpperFreq < 0.) {
@@ -4085,6 +4089,63 @@ output_eigenvectors(const VectorHandler *pBeta,
 	}
 }
 
+// Writes reference solution and indexes
+// in a form suitable for handling with octave/matlab
+static void
+output_geometry(DataManager* pDM, std::ostream& o)
+{
+	DataManager::NodeMapType::const_iterator i = pDM->begin(Node::STRUCTURAL);
+	DataManager::NodeMapType::const_iterator e = pDM->end(Node::STRUCTURAL);
+
+	// no structural nodes!
+	if (i == e) {
+		return;
+	}
+
+	o
+		<< "% structural nodes base index" << std::endl
+		<< "idx = [" << std::endl;
+
+	for (; i != e; i++) {
+		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
+		ASSERT(pN != 0);
+
+		if (pN->GetStructNodeType() == StructNode::DUMMY) {
+			continue;
+		}
+
+		o << std::setw(8) << pN->iGetFirstIndex() << ";" << std::endl;
+	}
+
+	o << "];" << std::endl;
+
+	o
+		<< "% structural nodes reference configuration (X, Phi)" << std::endl
+		<< "X0 = [" << std::endl;
+
+	for (i = pDM->begin(Node::STRUCTURAL); i != e; i++) {
+		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
+		ASSERT(pN != 0);
+
+		if (pN->GetStructNodeType() == StructNode::DUMMY) {
+			continue;
+		}
+
+		const Vec3& X(pN->GetX());
+		Vec3 Phi(RotManip::VecRot(pN->GetR()));
+
+		o
+			<< std::setw(24) << X(1) << ";" << std::endl
+			<< std::setw(24) << X(2) << ";" << std::endl
+			<< std::setw(24) << X(3) << ";" << std::endl
+			<< std::setw(24) << Phi(1) << ";" << std::endl
+			<< std::setw(24) << Phi(2) << ";" << std::endl
+			<< std::setw(24) << Phi(3) << ";" << std::endl;
+	}
+
+	o << "];" << std::endl;
+}
+
 #ifdef USE_LAPACK
 // Computes eigenvalues and eigenvectors using LAPACK's
 // generalized non-symmetric eigenanalysis
@@ -4412,6 +4473,10 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	std::vector<bool> vOut(iSize);
 	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA, iILO, iIHI, vOut);
 
+	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
+		output_geometry(pDM, o);
+	}
+
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 		output_eigenvectors(&Beta, AlphaR, AlphaI, 0.,
 			&MatVL, MatVR, pDM, pEA, vOut, o);
@@ -4640,6 +4705,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		std::vector<bool> vOut(nconv);
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
+		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
+			output_geometry(pDM, o);
+		}
+
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			std::vector<doublereal *> ZC(nconv);
 			FullMatrixHandler VR(&Z[0], &ZC[0], N*nconv, N, nconv);
@@ -4790,6 +4859,10 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		std::vector<bool> vOut(nconv);
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 	
+		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
+			output_geometry(pDM, o);
+		}
+
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			FullMatrixHandler VR(n, nconv);
 			doublecomplex *p = &eivec[0] - 1;

@@ -256,41 +256,41 @@ void
 DataManager::Update(int iOrder) const
 {
 	/* Nodes: */
-	switch(iOrder)	{
-		case 0:	{	/* Update nodes positions */
-			Node** ppLastNode = ppNodes+iTotNodes;
-			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXCurr, iOrder);
-			}
-			break;
+	switch(iOrder){
+	case 0:
+		// Update nodes positions
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+			(*i)->Update(*pXCurr, iOrder);
 		}
-		case 1:	{	/* Update nodes velocities*/
-			Node** ppLastNode = ppNodes+iTotNodes;
-			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXPrimeCurr, iOrder);
-			}
-			break;
+		break;
+
+	case 1:
+		// Update nodes velocities
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+			(*i)->Update(*pXPrimeCurr, iOrder);
 		}
-		case 2:	{	/* Update nodes accelerations*/
-			Node** ppLastNode = ppNodes+iTotNodes;
-			for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-				ASSERT(*ppTmp != NULL);
-				(*ppTmp)->Update(*pXPrimePrimeCurr, iOrder);
-			}
-			break;
+		break;
+
+	case 2:
+		// Update nodes accelerations
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+			(*i)->Update(*pXPrimePrimeCurr, iOrder);
 		}
-		case -1:{	/* Update constraints reactions (for output only...)*/
-			for (ElemMapType::const_iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-				j != ElemData[Elem::JOINT].ElemMap.end(); j++)	{
-				j->second->Update(*pLambdaCurr, iOrder);
-			}
-			break;
+		break;
+
+	case -1:
+		// Update constraints reactions (for output only...)*/
+		for (ElemMapType::const_iterator j = ElemData[Elem::JOINT].ElemMap.begin();
+			j != ElemData[Elem::JOINT].ElemMap.end(); j++)
+		{
+			j->second->Update(*pLambdaCurr, iOrder);
 		}
-		default:
-			break;
+		break;
+
+	default:
+		break;
 	}
+
 #if 0
 	/* Versione con iteratore: */
 	Elem* pEl = NULL;
@@ -306,12 +306,8 @@ void
 DataManager::IDAfterConvergence(void) const
 {	
 	/* Nodes: */
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterConvergence(*(VectorHandler*)pXCurr, 
-					*(VectorHandler*)pXPrimeCurr, 
-					*(VectorHandler*)pXPrimePrimeCurr);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->AfterConvergence(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
 	}
 
 	/* Versione con iteratore: */
@@ -343,13 +339,12 @@ DataManager::InverseDofOwnerSet(void)
 	int iJointTotNumDofs = 0;
 	
 	/* Setta i DofOwner dei nodi */
-	Node** ppTmpNode = ppNodes;
-	for (; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {
-		DofOwner* pDO = (DofOwner*)(*ppTmpNode)->pGetDofOwner();
-		pDO->iNumDofs = (*ppTmpNode)->iGetNumDof();
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		DofOwner* pDO = const_cast<DofOwner *>((*i)->pGetDofOwner());
+		pDO->iNumDofs = (*i)->iGetNumDof();
 		iNodeTotNumDofs += pDO->iNumDofs;
 	}
-	
+
 	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
                 j != ElemData[Elem::JOINT].ElemMap.end(); j++)
         {
@@ -413,56 +408,52 @@ void DataManager::InverseDofInit(bool bIsSquare)
 
 		
       		/* Mette gli indici ai DofOwner dei nodi strutturali: */
-		StructNode **ppFirstNode = (StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
-		StructNode **ppNode = ppFirstNode;
-		DofOwner* pTmp = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
-		
-      		integer iNodeIndex = 0;    /* contatore dei Dof dei nodi */
-      		integer iJointIndex = 0;    /* contatore dei Dof dei joint */
+		/* contatore dei Dof dei nodi */
+      		integer iNodeIndex = 0;
 
-      		integer iNumDofs = 0;  /* numero di dof di un owner */
-
-      		for(int iCnt = 1;  
-			pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
-				+ DofData[DofOwner::STRUCTURALNODE].iNum; 
-			iCnt++, pTmp++, ppNode++)
+		NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+		for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
+			iDOm1++, i++)
 		{
-			iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetNumDof();
-			if(iNumDofs > 0) {
-				pTmp->iFirstIndex = iNodeIndex;
+			DofOwner *pDO = const_cast<DofOwner *>(i->second->pGetDofOwner());
+      			unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
+			if (iNumDofs > 0) {
+				pDO->iFirstIndex = iNodeIndex;
 				iNodeIndex += iNumDofs;
+
 		 	} else {
-		    		pTmp->iFirstIndex = -1;
-		    		DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
+		    		pDO->iFirstIndex = -1;
+		    		DEBUGCERR("warning, item " << (iDOm1 + 1) << " has 0 dofs" << std::endl);
 		 	}
       		}
 		
-		/* Gli indici dei nodi sono ok*/
+		/* Gli indici dei nodi sono ok */
 		
 		/* Se il problema è ben posto, gli indici delle equazioni di vincolo
 		 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
 		 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
 		 * peso nello jacobiano) */
-		if(bIsSquare)	{
-			iJointIndex = 0;
-		} else {
+
+		/* contatore dei Dof dei joint */
+      		integer iJointIndex = 0;
+		if (!bIsSquare) {
 			iJointIndex = iNodeIndex;
 		}
-		
+
 		for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
 			j != ElemData[Elem::JOINT].ElemMap.end();
 			j++)
 		{
-			pTmp = (DofOwner *)(dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner();
-			if (pTmp) {
-				iNumDofs = pTmp->iNumDofs;
-				if(iNumDofs > 0) {
-					pTmp->iFirstIndex = iJointIndex;
+			DofOwner *pDO = const_cast<DofOwner *>((dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner());
+			if (pDO) {
+				unsigned iNumDofs = pDO->iNumDofs;
+				if (iNumDofs > 0) {
+					pDO->iFirstIndex = iJointIndex;
 					iJointIndex += iNumDofs;
+
 		 		} else {
-		    			pTmp->iFirstIndex = -1;
-		    			DEBUGCERR("warning, "
-						"Joint(" << j->second->GetLabel() << ") "
+		    			pDO->iFirstIndex = -1;
+		    			DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
 						"has 0 dofs" << std::endl);
 		 		}
 			}

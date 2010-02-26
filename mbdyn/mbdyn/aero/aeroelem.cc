@@ -48,7 +48,10 @@
 
 /* AerodynamicOutput - begin */
 
-AerodynamicOutput::AerodynamicOutput(flag f, int iNP)
+AerodynamicOutput::AerodynamicOutput(flag f, int iNP,
+		unsigned uFlags, OrientationDescription ood)
+: uOutputFlags(uFlags),
+od(ood)
 {
 	SetOutputFlag(f, iNP);
 }
@@ -78,21 +81,45 @@ AerodynamicOutput::ResetIterator(void)
 		ASSERT(!pOutput.empty());
 		pTmpOutput = pOutput.begin();
 	}
+
+#ifdef USE_NETCDF
+	if (!pNetCDFOutput.empty()) {
+		pTmpNetCDFOutput = pNetCDFOutput.begin();
+	}
+#endif // USE_NETCDF
 }
 
 void
-AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd)
+AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd,
+	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W, const Vec3& F, const Vec3& M)
 {
-	ASSERT(IsPGAUSS());
-	ASSERT(!pOutput.empty());
-	ASSERT(pTmpOutput >= pOutput.begin());
-	ASSERT(pTmpOutput < pOutput.end());
+	if (IsPGAUSS()) {
+		ASSERT(!pOutput.empty());
+		ASSERT(pTmpOutput >= pOutput.begin());
+		ASSERT(pTmpOutput < pOutput.end());
 
-	pTmpOutput->alpha = 180./M_PI*atan2(-v.dGet(2), v.dGet(1));
-	pTmpOutput->f = Vec3(pd[1], pd[0], pd[5]);
+		pTmpOutput->alpha = 180./M_PI*atan2(-v(2), v(1));
+		pTmpOutput->f = Vec3(pd[1], pd[0], pd[5]);
 
-	// move iterator forward
-	pTmpOutput++;
+		// move iterator forward
+		pTmpOutput++;
+	}
+
+#ifdef USE_NETCDF
+	if (!pNetCDFOutput.empty()) {
+		ASSERT(pTmpNetCDFOutput >= pNetCDFOutput.begin());
+		ASSERT(pTmpNetCDFOutput < pNetCDFOutput.end());
+
+		if (pTmpNetCDFOutput->Var_X) pTmpNetCDFOutput->X = X;
+		if (pTmpNetCDFOutput->Var_Phi) pTmpNetCDFOutput->R = R;
+		if (pTmpNetCDFOutput->Var_V) pTmpNetCDFOutput->V = V;
+		if (pTmpNetCDFOutput->Var_W) pTmpNetCDFOutput->W = W;
+		if (pTmpNetCDFOutput->Var_F) pTmpNetCDFOutput->F = F;
+		if (pTmpNetCDFOutput->Var_M) pTmpNetCDFOutput->M = M;
+
+		pTmpNetCDFOutput++;
+	}
+#endif // USE_NETCDF
 }
 
 AerodynamicOutput::eOutput
@@ -142,12 +169,13 @@ Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
+	unsigned uFlags, OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
-AerodynamicOutput(fOut, iNN*iN),
+AerodynamicOutput(fOut, iNN*iN, uFlags, ood),
 aerodata(a),
 pIndVel(pR),
 fPassiveInducedVelocity(0),
@@ -425,6 +453,380 @@ Aerodynamic2DElem<iNN>::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+template <unsigned iNN>
+void
+Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			/* get a pointer to binary NetCDF file
+			 * -->  pDM->OutHdl.BinFile */
+			NcFile *pBinFile = OH.pGetBinFile();
+			char buf[BUFSIZ];
+
+			int l = snprintf(buf, sizeof(buf), "elem.aerodynamic.%lu",
+				(unsigned long)GetLabel());
+
+			// X_XX
+			// R_XX
+			// Phi_XX
+			// V_XX
+			// Omega_XX
+			// F_XX
+			// M_XX
+			
+			// NOTE: "Omega_XX" is the longest var name
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega_XX"))) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
+
+			if (!Var_Type->add_att("type", elemnames[iNN - 1])) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// add var name separator
+			buf[l++] = '.';
+
+			int totgp = iNN*GDI.iGetNum();
+			pNetCDFOutput.resize(totgp);
+
+			int j = 0;
+			for (std::vector<AeroNetCDFOutput>::iterator i = pNetCDFOutput.begin();
+				i != pNetCDFOutput.end(); i++, j++)
+			{
+				/* Add NetCDF (output) variables to the BinFile object
+				 * and save the NcVar* pointer returned from add_var
+				 * as handle for later write accesses.
+				 * Define also variable attributes */
+				i->Var_X = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_X) {
+					strcpy(&buf[l], "X_");
+					snprintf(&buf[l + STRLENOF("X_")], sizeof(buf) - l - STRLENOF("X_"), "%d", j);
+					i->Var_X = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (i->Var_X == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_X->add_att("units", "m")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_X->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"global position vector (X, Y, Z) of Gauss point #%d/%d", j, totgp);
+					if (!i->Var_X->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				i->Var_Phi = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_R) {
+					char descbuf[BUFSIZ];
+
+					switch (od) {
+					case ORIENTATION_MATRIX:
+						strcpy(&buf[l], "R_");
+						snprintf(&buf[l + STRLENOF("R_")],
+							sizeof(buf) - l - STRLENOF("R_"), "%d", j);
+						i->Var_Phi = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3(), OH.DimV3());
+						if (i->Var_Phi == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("units", "-")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("type", "Mat3x3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						snprintf(descbuf, sizeof(descbuf),
+							"global orientation matrix (R11, R21, R31, R12, R22, R32, R13, R23, R33) of Gauss point #%d/%d", j, totgp);
+						if (!i->Var_Phi->add_att("description", descbuf)) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						break;
+
+					case ORIENTATION_VECTOR:
+						strcpy(&buf[l], "Phi_");
+						snprintf(&buf[l + STRLENOF("Phi_")],
+							sizeof(buf) - l - STRLENOF("Phi_"), "%d", j);
+						i->Var_Phi = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3());
+						if (i->Var_Phi == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("units", "radian")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("type", "Vec3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						snprintf(descbuf, sizeof(descbuf),
+							"global orientation vector (Phi_X, Phi_Y, Phi_Z) of Gauss point #%d/%d", j, totgp);
+						if (!i->Var_Phi->add_att("description", descbuf)) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						break;
+
+					case EULER_123:
+					case EULER_313:
+					case EULER_321:
+						{
+						strcpy(&buf[l], "E_");
+						snprintf(&buf[l + STRLENOF("E_")],
+							sizeof(buf) - l - STRLENOF("E_"), "%d", j);
+						i->Var_Phi = pBinFile->add_var(buf, ncDouble,
+							OH.DimTime(), OH.DimV3());
+						if (i->Var_Phi == 0) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("units", "radian")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						if (!i->Var_Phi->add_att("type", "Vec3")) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						std::string desc;
+						switch (od) {
+						case EULER_123:
+							desc = "global orientation Euler angles (123) (E_X, E_Y, E_Z) ";
+							break;
+
+						case EULER_313:
+							desc = "global orientation Euler angles (313) (E_Z, E_X, E_Z') ";
+							break;
+
+						case EULER_321:
+							desc = "global orientation Euler angles (321) (E_Z, E_Y, E_X) ";
+							break;
+
+						default:
+							ASSERT(0);
+							break;
+						}
+
+						char pgbuf[sizeof("#XX/XX")];
+						snprintf(pgbuf, sizeof(pgbuf), "#%d/%d", j, totgp);
+						desc += pgbuf;
+
+						if (!i->Var_Phi->add_att("description", desc.c_str())) {
+							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						} break;
+
+					default:
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				i->Var_V = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_V) {
+					strcpy(&buf[l], "V_");
+					snprintf(&buf[l + STRLENOF("V_")], sizeof(buf) - l - STRLENOF("V_"), "%d", j);
+					i->Var_V = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (i->Var_V == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_V->add_att("units", "m/s")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_V->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"velocity in global frame (F_X, F_Y, F_Z) of Gauss point #%d/%d", j, totgp);
+					if (!i->Var_V->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				i->Var_W = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_W) {
+					strcpy(&buf[l], "Omega_");
+					snprintf(&buf[l + STRLENOF("Omega_")], sizeof(buf) - l - STRLENOF("Omega_"), "%d", j);
+					i->Var_W = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (i->Var_W == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_W->add_att("units", "radian/s")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_W->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"angular velocity in global frame (F_X, F_Y, F_Z) of Gauss point #%d/%d", j, totgp);
+					if (!i->Var_W->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				i->Var_F = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_F) {
+					strcpy(&buf[l], "F_");
+					snprintf(&buf[l + STRLENOF("F_")], sizeof(buf) - l - STRLENOF("F_"), "%d", j);
+					i->Var_F = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (i->Var_F == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_F->add_att("units", "N")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_F->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"force in local frame (F_X, F_Y, F_Z) of Gauss point #%d/%d", j, totgp);
+					if (!i->Var_F->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				i->Var_M = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_M) {
+					strcpy(&buf[l], "M_");
+					snprintf(&buf[l + STRLENOF("M_")], sizeof(buf) - l - STRLENOF("M_"), "%d", j);
+					i->Var_M = pBinFile->add_var(buf, ncDouble,
+						OH.DimTime(), OH.DimV3());
+					if (i->Var_M == 0) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_M->add_att("units", "Nm")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (!i->Var_M->add_att("type", "Vec3")) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					char descbuf[BUFSIZ];
+					snprintf(descbuf, sizeof(descbuf),
+						"moment in local frame (M_X, M_Y, M_Z) of Gauss point #%d/%d", j, totgp);
+					if (!i->Var_M->add_att("description", descbuf)) {
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+			}
+		}
+#endif // USE_NETCDF
+	}
+}
+
+/* output; si assume che ogni tipo di elemento sappia, attraverso
+ * l'OutputHandler, dove scrivere il proprio output */
+template <unsigned iNN>
+void
+Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
+{
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
+		for (std::vector<AeroNetCDFOutput>::const_iterator i = pNetCDFOutput.begin();
+			i != pNetCDFOutput.end(); i++)
+		{
+			if (i->Var_X) {
+				i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
+			}
+
+			if (i->Var_Phi) {
+				Vec3 E;
+				switch (od) {
+				case EULER_123:
+					E = MatR2EulerAngles123(i->R)*dRaDegr;
+					break;
+
+				case EULER_313:
+					E = MatR2EulerAngles313(i->R)*dRaDegr;
+					break;
+
+				case EULER_321:
+					E = MatR2EulerAngles321(i->R)*dRaDegr;
+					break;
+
+				case ORIENTATION_VECTOR:
+					E = RotManip::VecRot(i->R);
+					break;
+
+				case ORIENTATION_MATRIX:
+					break;
+
+				default:
+					/* impossible */
+					break;
+				}
+
+				switch (od) {
+				case EULER_123:
+				case EULER_313:
+				case EULER_321:
+				case ORIENTATION_VECTOR:
+					i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+					break;
+
+				case ORIENTATION_MATRIX:
+					i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
+					break;
+
+				default:
+					/* impossible */
+					break;
+				}
+			}
+
+			if (i->Var_V) {
+				i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
+			}
+
+			if (i->Var_W) {
+				i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
+			}
+
+			if (i->Var_F) {
+				i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
+			}
+
+			if (i->Var_M) {
+				i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
+			}
+		}
+	}
+#endif /* USE_NETCDF */
+}
+
 /* Aerodynamic2DElem - end */
 
 
@@ -441,9 +843,10 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
+	unsigned uFlags, OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
 pNode(pN),
 f(fTmp),
 dHalfSpan(dS/2.),
@@ -892,18 +1295,19 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 			aerodata->GetForces(iPnt, dW, dTng, OUTA[iPnt]);
 		}
 
-		// specific for Gauss points force output
-		if (fToBeOutput() && IsPGAUSS()) {
-	 		SetData(VTmp, dTng);
-		}
-
 		/* Dimensionalizza le forze */
 		doublereal dWght = PW.dGetWght();
 		dTng[1] *= TipLoss.dGet(dCsi);
 		Vec3 FTmp(RRloc*(Vec3(&dTng[0])*(dHalfSpan*dWght)));
 		F += FTmp;
-		M += RRloc*(Vec3(&dTng[3])*(dHalfSpan*dWght));
+		Vec3 MTmp = RRloc*(Vec3(&dTng[3])*(dHalfSpan*dWght));
+		M += MTmp;
 		M += Xr.Cross(FTmp);
+
+		// specific for Gauss points force output
+		if (fToBeOutput()) {
+			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
+		}
 
 		iPnt++;
 
@@ -928,46 +1332,49 @@ AerodynamicBody::Output(OutputHandler& OH) const
 {
 	/* Output delle forze aerodinamiche F, M su apposito file */
 	if (fToBeOutput()) {
-		std::ostream& out = OH.Aerodynamic()
-			<< std::setw(8) << GetLabel();
+		Aerodynamic2DElem<1>::Output_int(OH);
 
-		switch (GetOutput()) {
-		case AEROD_OUT_NODE:
-			out << " " << std::setw(8) << pNode->GetLabel()
-				<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
-			break;
+		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
+			std::ostream& out = OH.Aerodynamic()
+				<< std::setw(8) << GetLabel();
 
-		case AEROD_OUT_PGAUSS:
-			ASSERT(!pOutput.empty());
-			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-				i != pOutput.end(); i++)
-			{
-	 			out << " " << i->alpha
-					<< " " << i->f;
+			switch (GetOutput()) {
+			case AEROD_OUT_NODE:
+				out << " " << std::setw(8) << pNode->GetLabel()
+					<< " ", F.Write(out, " ") << " ", M.Write(out, " ");
+				break;
+
+			case AEROD_OUT_PGAUSS:
+				ASSERT(!pOutput.empty());
+				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+					i != pOutput.end(); i++)
+				{
+	 				out << " " << i->alpha
+						<< " " << i->f;
+				}
+				break;
+
+			case AEROD_OUT_STD:
+				for (int i = 0; i < GDI.iGetNum(); i++) {
+	 				out
+						<< " " << OUTA[i].alpha
+						<< " " << OUTA[i].gamma
+						<< " " << OUTA[i].mach
+						<< " " << OUTA[i].cl
+						<< " " << OUTA[i].cd
+						<< " " << OUTA[i].cm
+						<< " " << OUTA[i].alf1
+						<< " " << OUTA[i].alf2;
+				}
+				break;
+
+			default:
+				ASSERT(0);
+				break;
 			}
-			break;
 
-		case AEROD_OUT_STD:
-			for (int i = 0; i < GDI.iGetNum(); i++) {
-	 			out
-					<< " " << OUTA[i].alpha
-					<< " " << OUTA[i].gamma
-					<< " " << OUTA[i].mach
-					<< " " << OUTA[i].cl
-					<< " " << OUTA[i].cd
-					<< " " << OUTA[i].cm
-					<< " " << OUTA[i].alf1
-					<< " " << OUTA[i].alf2;
-			}
-			break;
-
-		default:
-			ASSERT(0);
-			break;
-		}
-
-		out << std::endl;
-	}
+			out << std::endl;
+	}	}
 }
 
 /* AerodynamicBody - end */
@@ -1016,6 +1423,72 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 	return pIndVel;
 }
 
+void
+ReadAerodynamicCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	unsigned& uFlags, OrientationDescription& od)
+{
+	uFlags = AerodynamicOutput::OUTPUT_NONE;
+
+	while (HP.IsArg()) {
+		unsigned uFlag;
+
+		if (HP.IsKeyWord("position")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_X;
+
+		} else if (HP.IsKeyWord("orientation")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_R;
+
+		} else if (HP.IsKeyWord("velocity")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_V;
+
+		} else if (HP.IsKeyWord("angular" "velocity")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_W;
+
+		} else if (HP.IsKeyWord("configuration")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_CONFIGURATION;
+
+		} else if (HP.IsKeyWord("force")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_F;
+
+		} else if (HP.IsKeyWord("moment")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_M;
+
+		} else if (HP.IsKeyWord("forces")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_FORCES;
+
+		} else if (HP.IsKeyWord("all")) {
+			uFlag = AerodynamicOutput::OUTPUT_GP_ALL;
+
+		} else {
+			break;
+		}
+
+		if (uFlags & uFlag) {
+			silent_cerr("AerodynamicElement(" << uLabel << "): "
+				"duplicate custom output "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (uFlag & AerodynamicOutput::OUTPUT_GP_R) {
+			od = ReadOptionalOrientationDescription(pDM, HP);
+		}
+
+		uFlags |= uFlag;
+	}
+}
+
+void
+ReadOptionalAerodynamicCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	unsigned& uFlags, OrientationDescription& od)
+{
+	pDM->GetOutput(Elem::AERODYNAMIC, uFlags, od);
+	if (HP.IsKeyWord("custom" "output")) {
+		ReadAerodynamicCustomOutput(pDM, HP, uLabel, uFlags, od);
+	}
+}
+
 Elem *
 ReadAerodynamicBody(DataManager* pDM,
 	MBDynParser& HP,
@@ -1049,11 +1522,9 @@ ReadAerodynamicBody(DataManager* pDM,
 	DriveCaller* pDC = 0;
 	AeroData* aerodata = 0;
 
-	ReadAeroData(pDM, HP,
+	ReadAeroData(pDM, HP, 1,
 		&pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
-		     &iNumber, &pDC, &aerodata);
-
-	aerodata->SetNumPoints(iNumber);
+		&iNumber, &pDC, &aerodata);
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
@@ -1062,10 +1533,14 @@ ReadAerodynamicBody(DataManager* pDM,
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
 		silent_cerr("AerodynamicBody(" << uLabel << "): "
-			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			"aerodynamic model needs \"jacobian, yes\" at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	unsigned uFlags = AerodynamicOutput::OUTPUT_NONE;
+	ReadOptionalAerodynamicCustomOutput(pDM, HP, uLabel, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
@@ -1091,7 +1566,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		AerodynamicBody,
 		AerodynamicBody(uLabel, pDO, pNode, pIndVel, f, dSpan, Ra,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -1141,9 +1616,10 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
+	unsigned uFlags, OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -1825,18 +2301,19 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 				aerodata->GetForces(iPnt, dW, dTng, OUTA[iPnt]);
 			}
 
-			// specific for Gauss points force output
-			if (fToBeOutput() && IsPGAUSS()) {
-				SetData(VTmp, dTng);
-			}
-
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
 			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
 			F[iNode] += FTmp;
-			M[iNode] += RRloc*(Vec3(&dTng[3])*dWght);
+			Vec3 MTmp = RRloc*(Vec3(&dTng[3])*dWght);
+			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
+
+			// specific for Gauss points force output
+			if (fToBeOutput()) {
+				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
+			}
 
 			iPnt++;
 
@@ -1867,47 +2344,51 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 
 	if (fToBeOutput()) {
-		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
+		Aerodynamic2DElem<3>::Output_int(OH);
 
-		switch (GetOutput()) {
-		case AEROD_OUT_NODE:
-			out << " " << std::setw(8) << pBeam->GetLabel()
-				<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
-				<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ")
-				<< " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
-			break;
+		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
+			std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 
-		case AEROD_OUT_PGAUSS:
-			ASSERT(!pOutput.empty());
-
-			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-				i != pOutput.end(); i++)
-			{
-				out << " " << i->alpha
-					<< " " << i->f;
+			switch (GetOutput()) {
+			case AEROD_OUT_NODE:
+				out << " " << std::setw(8) << pBeam->GetLabel()
+					<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
+					<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ")
+					<< " ", F[NODE3].Write(out, " ") << " ", M[NODE3].Write(out, " ");
+				break;
+	
+			case AEROD_OUT_PGAUSS:
+				ASSERT(!pOutput.empty());
+	
+				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+					i != pOutput.end(); i++)
+				{
+					out << " " << i->alpha
+						<< " " << i->f;
+				}
+				break;
+	
+			case AEROD_OUT_STD:
+				for (int i = 0; i < 3*GDI.iGetNum(); i++) {
+					out
+						<< " " << OUTA[i].alpha
+						<< " " << OUTA[i].gamma
+						<< " " << OUTA[i].mach
+						<< " " << OUTA[i].cl
+						<< " " << OUTA[i].cd
+						<< " " << OUTA[i].cm
+						<< " " << OUTA[i].alf1
+						<< " " << OUTA[i].alf2;
+				}
+				break;
+	
+			default:
+				ASSERT(0);
+				break;
 			}
-			break;
-
-		case AEROD_OUT_STD:
-			for (int i = 0; i < 3*GDI.iGetNum(); i++) {
-				out
-					<< " " << OUTA[i].alpha
-					<< " " << OUTA[i].gamma
-					<< " " << OUTA[i].mach
-					<< " " << OUTA[i].cl
-					<< " " << OUTA[i].cd
-					<< " " << OUTA[i].cm
-					<< " " << OUTA[i].alf1
-					<< " " << OUTA[i].alf2;
-			}
-			break;
-
-		default:
-			ASSERT(0);
-			break;
+	
+			out << std::endl;
 		}
-
-		out << std::endl;
 	}
 }
 
@@ -1998,11 +2479,9 @@ ReadAerodynamicBeam(DataManager* pDM,
 	DriveCaller* pDC = 0;
 	AeroData* aerodata = 0;
 
-	ReadAeroData(pDM, HP,
+	ReadAeroData(pDM, HP, 3,
 		&pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
 		&iNumber, &pDC, &aerodata);
-
-	aerodata->SetNumPoints(3*iNumber);
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
@@ -2011,10 +2490,14 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
 		silent_cerr("AerodynamicBeam3(" << uLabel << "): "
-			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			"aerodynamic model needs \"jacobian, yes\" at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	unsigned uFlags = AerodynamicOutput::OUTPUT_NONE;
+	ReadOptionalAerodynamicCustomOutput(pDM, HP, uLabel, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
@@ -2042,7 +2525,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel,
 			f1, f2, f3, Ra1, Ra2, Ra3,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -2106,10 +2589,11 @@ AerodynamicBeam2::AerodynamicBeam2(
 	AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
+	unsigned uFlags, OrientationDescription ood,
 	flag fOut
 )
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, fOut),
+Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -2713,18 +3197,19 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 				aerodata->GetForces(iPnt, dW, dTng, OUTA[iPnt]);
 			}
 
-			// specific for Gauss points force output
-			if (fToBeOutput() && IsPGAUSS()) {
-				SetData(VTmp, dTng);
-			}
-
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
 			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
 			F[iNode] += FTmp;
-			M[iNode] += RRloc*(Vec3(&dTng[3])*dWght);
+			Vec3 MTmp = RRloc*(Vec3(&dTng[3])*dWght);
+			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
+
+			// specific for Gauss points force output
+			if (fToBeOutput()) {
+				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
+			}
 
 			iPnt++;
 
@@ -2752,50 +3237,54 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
 
 	if (fToBeOutput()) {
-		std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
+		Aerodynamic2DElem<2>::Output_int(OH);
 
-		switch (GetOutput()) {
+		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
+			std::ostream& out = OH.Aerodynamic() << std::setw(8) << GetLabel();
 
-		case AEROD_OUT_NODE:
-			out << " " << std::setw(8) << pBeam->GetLabel()
-				<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
-				<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
-			break;
-
-		case AEROD_OUT_PGAUSS:
-			ASSERT(!pOutput.empty());
-
-			for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-				i != pOutput.end(); i++)
-			{
-				out << " " << i->alpha
-					<< " " << i->f;
+			switch (GetOutput()) {
+	
+			case AEROD_OUT_NODE:
+				out << " " << std::setw(8) << pBeam->GetLabel()
+					<< " ", F[NODE1].Write(out, " ") << " ", M[NODE1].Write(out, " ")
+					<< " ", F[NODE2].Write(out, " ") << " ", M[NODE2].Write(out, " ");
+				break;
+	
+			case AEROD_OUT_PGAUSS:
+				ASSERT(!pOutput.empty());
+	
+				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
+					i != pOutput.end(); i++)
+				{
+					out << " " << i->alpha
+						<< " " << i->f;
+				}
+				break;
+	
+			case AEROD_OUT_STD:
+				for (int i = 0; i < 2*GDI.iGetNum(); i++) {
+		 			out
+						<< " " << OUTA[i].alpha
+						<< " " << OUTA[i].gamma
+						<< " " << OUTA[i].mach
+						<< " " << OUTA[i].cl
+						<< " " << OUTA[i].cd
+						<< " " << OUTA[i].cm
+						<< " " << OUTA[i].alf1
+						<< " " << OUTA[i].alf2;
+				}
+				break;
+	
+			default:
+				ASSERT(0);
+				break;
 			}
-			break;
-
-		case AEROD_OUT_STD:
-			for (int i = 0; i < 2*GDI.iGetNum(); i++) {
-	 			out
-					<< " " << OUTA[i].alpha
-					<< " " << OUTA[i].gamma
-					<< " " << OUTA[i].mach
-					<< " " << OUTA[i].cl
-					<< " " << OUTA[i].cd
-					<< " " << OUTA[i].cm
-					<< " " << OUTA[i].alf1
-					<< " " << OUTA[i].alf2;
-			}
-			break;
-
-		default:
-			ASSERT(0);
-			break;
+	
+			out << std::endl;
 		}
-
-		out << std::endl;
 	}
 }
-
+	
 /* AerodynamicBeam2 - end */
 
 
@@ -2857,7 +3346,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 
 	Mat3x3 Ra2(HP.GetRotRel(RF));
 	DEBUGLCOUT(MYDEBUG_INPUT,
-		   "Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
+		"Node 2 rotation matrix: " << std::endl << Ra2 << std::endl);
 
 	Shape* pChord = 0;
 	Shape* pForce = 0;
@@ -2869,11 +3358,9 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	DriveCaller* pDC = 0;
 	AeroData* aerodata = 0;
 
-	ReadAeroData(pDM, HP,
-		     &pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
-		     &iNumber, &pDC, &aerodata);
-
-	aerodata->SetNumPoints(2*iNumber);
+	ReadAeroData(pDM, HP, 2,
+		&pChord, &pForce, &pVelocity, &pTwist, &pTipLoss,
+		&iNumber, &pDC, &aerodata);
 
 	bool bUseJacobian(false);
 	if (HP.IsKeyWord("jacobian")) {
@@ -2882,10 +3369,14 @@ ReadAerodynamicBeam2(DataManager* pDM,
 
 	if (aerodata->iGetNumDof() > 0 && !bUseJacobian) {
 		silent_cerr("AerodynamicBeam2(" << uLabel << "): "
-			"aerodynamic model need jacobian at line " << HP.GetLineData()
+			"aerodynamic model needs \"jacobian, yes\" at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
+	unsigned uFlags = AerodynamicOutput::OUTPUT_NONE;
+	ReadOptionalAerodynamicCustomOutput(pDM, HP, uLabel, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	if (HP.IsArg()) {
@@ -2913,7 +3404,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel,
 			f1, f2, Ra1, Ra2,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {

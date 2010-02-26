@@ -43,6 +43,9 @@
 #include "aerodyn.h"
 #include "driven.h"
 
+#include "aeroelem.h"
+#include "beam.h"
+
 /* DataManager - begin */
 
 /* costruttore: resetta i dati */
@@ -56,6 +59,8 @@ DataManager::ElemManager(void)
 		ElemData[i].uFlags = 0U;
 		ElemData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
 		ElemData[i].OutFile = OutputHandler::UNKNOWN;	/* "output.h" */
+		ElemData[i].uOutputFlags = 0U;
+		ElemData[i].od = EULER_123;
 	}
 
 	/* Add dof type */
@@ -86,6 +91,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BEAM].OutFile = OutputHandler::BEAMS;
 	ElemData[Elem::BEAM].Desc = "Beam";
 	ElemData[Elem::BEAM].ShortDesc = "beam";
+	ElemData[Elem::BEAM].uOutputFlags = Beam::OUTPUT_DEFAULT;
 
 	ElemData[Elem::INDUCEDVELOCITY].OutFile = OutputHandler::ROTORS;
 	ElemData[Elem::INDUCEDVELOCITY].Desc = "InducedVelocity";
@@ -98,6 +104,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
 	ElemData[Elem::AERODYNAMIC].Desc = "Aerodynamic";
 	ElemData[Elem::AERODYNAMIC].ShortDesc = "aero";
+	ElemData[Elem::BEAM].uOutputFlags = AerodynamicOutput::OUTPUT_DEFAULT;
 
 	ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
 	ElemData[Elem::HYDRAULIC].Desc = "Hydraulic";

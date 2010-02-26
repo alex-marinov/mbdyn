@@ -14,6 +14,9 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- math symbol table reworked with STL
 		- added "direct" drive caller
+		- added NetCDF support to aerodynamic body & beam2/3
+		- added c81 data interpolation
+		- added reference configuration & indexes to eig output
 	Backward compatibility issues:
 		- TypedValue no longer inherits const'ness in assignments
 	Known issues:

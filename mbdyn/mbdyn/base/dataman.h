@@ -193,9 +193,6 @@ protected:
 #endif /* USE_NETCDF */
 	OrientationDescription od;
 
-	unsigned beam_flags;
-	OrientationDescription beam_od;
-
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	mutable integer iOutputBlock;
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
@@ -330,8 +327,8 @@ public:
 	OrientationDescription GetOrientationDescription(void) const;
 
 	/* default beam output */
-	void SetBeamOutput(unsigned, OrientationDescription);
-	void GetBeamOutput(unsigned&, OrientationDescription&) const;
+	void SetOutput(Elem::Type t, unsigned, OrientationDescription);
+	void GetOutput(Elem::Type t, unsigned&, OrientationDescription&) const;
 
 	/* Restituisce il DriveHandler */
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
@@ -525,9 +522,10 @@ public:
 			unsigned int uLabel, int CurrType) const = 0;
 	};
 
-protected:
 	typedef std::map<std::string, DataManager::ElemRead *, ltstrcase> ElemReadType;
 	typedef std::map<unsigned, Elem *> ElemMapType;
+
+protected:
 
 	/* struttura dei dati fondamentali degli elementi */
 	struct ElemDataStructure {
@@ -545,6 +543,10 @@ protected:
 		OutputHandler::OutFiles OutFile;	// Tipo di file in output
 
 		unsigned uFlags;		// flags
+
+		unsigned uOutputFlags;
+		OrientationDescription od;
+
 
 		/* helpers */
 		void IsUnique(bool b) { if (b) { uFlags |= ISUNIQUE; } else { uFlags &= ~ISUNIQUE; } };
@@ -637,6 +639,10 @@ public:
 	void ElemOutput(OutputHandler& OH) const;
 	void ElemOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
+
+	DataManager::ElemMapType::const_iterator begin(Elem::Type t) const;
+	DataManager::ElemMapType::const_iterator end(Elem::Type t) const;
+
 #if 0
 	void ElemOutput_pch(std::ostream& pch) const;
 	void ElemOutput_f06(std::ostream& f06, const VectorHandler& X) const;
@@ -645,13 +651,28 @@ public:
 #endif
 
 	/* da NodeManager */
+public:
+	/* element read functional object prototype */
+	struct NodeRead {
+		virtual ~NodeRead(void) { NO_OP; };
+		virtual Elem *
+		Read(const DataManager *pDM, MBDynParser& HP,
+			unsigned int uLabel, int CurrType) const = 0;
+	};
+
+	typedef std::map<std::string, DataManager::NodeRead *, ltstrcase> NodeReadType;
+	typedef std::map<unsigned, Node *> NodeMapType;
+
 protected:
 
 	/* struttura dei dati dei nodi. Per ogni tipo:
 	 * puntatore al puntatore al primo dato, numero degli item per tipo */
 	struct {
+#if 0
 		Node** ppFirstNode;
 		unsigned int iNum;
+#endif
+		unsigned int iExpectedNum;	// numero di nodi del tipo
 		unsigned uFlags;		// flags
 		const char *Desc;
 		const char *ShortDesc;
@@ -662,7 +683,15 @@ protected:
 		bool bDefaultOut(void) const { return (uFlags & DEFAULTOUT) == DEFAULTOUT; };
 
 		OutputHandler::OutFiles OutFile; /* Tipo di file in output */
+
+		/* element read map */
+		NodeReadType NodeRead;
+		NodeMapType NodeMap;
 	} NodeData[Node::LASTNODETYPE];
+
+	/* array of nodes */
+	typedef std::vector<Node *> NodeVecType;
+	NodeVecType Nodes;
 
 	VecIter<Node*> NodeIter;
 
@@ -670,7 +699,9 @@ protected:
 	 * (ogni nodo ha il suo formato caratteristico, comunque derivato
 	 * dalla classe Node) */
 	unsigned int iTotNodes;
+#if 0
 	Node** ppNodes;
+#endif
 
 public:
 	Node** ppFindNode(Node::Type Typ, unsigned int uL) const;
@@ -690,6 +721,9 @@ public:
 
 	/* inizializza le matrici ed alloca memoria */
 	void NodeDataInit(void);
+
+	DataManager::NodeMapType::const_iterator begin(Node::Type t) const;
+	DataManager::NodeMapType::const_iterator end(Node::Type t) const;
 
 	/* scrive i dati dei nodi */
 	void NodeOutputPrepare(OutputHandler& OH);

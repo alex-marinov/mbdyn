@@ -60,9 +60,6 @@ extern "C" {
 #endif /* USE_TCL */
 #include "modelns.h"
 
-/* temporary? */
-#include "beam.h"
-
 /* To allow direct loading of modules */
 #include "modules.h"
 
@@ -144,15 +141,13 @@ pOutputMeter(0),
 iOutputCount(0),
 ResMode(RES_TEXT),
 #ifdef USE_NETCDF
-/* NetCDF stuff */
+// NetCDF stuff
 bNetCDFsync(false),
 Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),
-#endif /* USE_NETCDF */
+#endif // USE_NETCDF
 od(EULER_123),
-beam_flags(Beam::OUTPUT_DEFAULT),
-beam_od(EULER_123),
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 iOutputBlock(1),
 #endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
@@ -185,7 +180,6 @@ pWorkVec(0),
 /* NodeManager */
 NodeIter(),
 iTotNodes(0),
-ppNodes(0),
 
 /* DofManager */
 iTotDofOwners(0),
@@ -442,7 +436,7 @@ DofIter()
 	/* fine lettura elementi */
 
 	for (int i = 0; i < Node::LASTNODETYPE; i++) {
-		if (NodeData[i].iNum > 0
+		if (!NodeData[i].NodeMap.empty()
 			&& NodeData[i].OutFile != OutputHandler::UNKNOWN)
 		{
 			OutHdl.Open(NodeData[i].OutFile);
@@ -701,9 +695,9 @@ void DataManager::MakeRestart(void)
 
 	/* Nodi */
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		if (NodeData[iCnt].iNum > 0) {
+		if (!NodeData[iCnt].NodeMap.empty()) {
 			OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
-				<< NodeData[iCnt].iNum << ';' << std::endl;
+				<< NodeData[iCnt].NodeMap.size() << ';' << std::endl;
 		}
 	}
 
@@ -768,11 +762,8 @@ void DataManager::MakeRestart(void)
 
 	/* Dati dei nodi */
 	OutHdl.Restart() << "begin: nodes;" << std::endl;
-	for (Node** ppTmpNode = ppNodes;
-		ppTmpNode < ppNodes+iTotNodes;
-		ppTmpNode++)
-	{
-		(*ppTmpNode)->Restart(OutHdl.Restart());
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->Restart(OutHdl.Restart());
 	}
 	OutHdl.Restart() << "end: nodes;" << std::endl << std::endl;
 
@@ -802,12 +793,12 @@ void DataManager::MakeRestart(void)
 		(*pTmpEl)->Restart(OutHdl.Restart());
 	}
 
-	Node** pLastNP = NodeData[Node::PARAMETER].ppFirstNode
-		+ NodeData[Node::PARAMETER].iNum;
-	for (Node** pTmpNP = NodeData[Node::PARAMETER].ppFirstNode; pTmpNP < pLastNP; pTmpNP++) {
-		((Elem2Param* )*pTmpNP) ->RestartBind(OutHdl.Restart());
+	for (NodeMapType::const_iterator i = NodeData[Node::PARAMETER].NodeMap.begin();
+		i != NodeData[Node::PARAMETER].NodeMap.end(); i++)
+	{
+		dynamic_cast<const Elem2Param *>(i->second)->RestartBind(OutHdl.Restart());
 	}
-
+		
 	OutHdl.Restart() << "end: elements;" << std::endl;
 
 	if (saveXSol) {
@@ -846,24 +837,48 @@ DataManager::GetOrientationDescription(void) const
 	return this->od;
 }
 
-/* default beam output */
+/* default output */
 void
-DataManager::SetBeamOutput(unsigned flags, OrientationDescription od)
+DataManager::SetOutput(Elem::Type t, unsigned flags, OrientationDescription od)
 {
-	this->beam_flags = flags;
-	this->beam_od = od;
+	ElemData[t].uOutputFlags = flags;
+	ElemData[t].od = od;
 }
 
 void
-DataManager::GetBeamOutput(unsigned& flags, OrientationDescription& od) const
+DataManager::GetOutput(Elem::Type t, unsigned& flags, OrientationDescription& od) const
 {
-	flags = this->beam_flags;
-	od = this->beam_od;
+	flags = ElemData[t].uOutputFlags;
+	od = ElemData[t].od;
 }
 
 bool
 DataManager::bOutputAccelerations(void) const
 {
 	return bOutputAccels;
+}
+
+DataManager::NodeMapType::const_iterator
+DataManager::begin(Node::Type t) const
+{
+	return NodeData[t].NodeMap.begin();
+}
+
+DataManager::NodeMapType::const_iterator
+DataManager::end(Node::Type t) const
+{
+	return NodeData[t].NodeMap.end();
+}
+
+DataManager::ElemMapType::const_iterator
+DataManager::begin(Elem::Type t) const
+{
+	return ElemData[t].ElemMap.begin();
+}
+
+DataManager::ElemMapType::const_iterator
+DataManager::end(Elem::Type t) const
+{
+	return ElemData[t].ElemMap.end();
 }
 

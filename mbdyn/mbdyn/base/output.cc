@@ -32,10 +32,10 @@
 /* gestore dell'output */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <output.h>
+#include "output.h"
 
 /* OutputHandler - begin */
 
@@ -167,7 +167,8 @@ OutputHandler::OutputHandler_int(void)
 	OutData[RESTARTXSOL].pof = &ofRestartXSol;
 
 	OutData[AERODYNAMIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
+		| OUTPUT_MAY_USE_NETCDF;
 	OutData[AERODYNAMIC].pof = &ofAerodynamic;
 
 	OutData[HYDRAULIC].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC

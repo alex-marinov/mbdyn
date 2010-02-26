@@ -198,6 +198,57 @@ for 2- and 3-node beam elements, respectively.
 \end{itemize}
 
 
+\subsubsection{Aerodynamic Elements}
+\label{sec:NetCDF:Elem:Aerodynamic}
+
+The aerodynamic elements allow to define a broad set of variables.
+Values are output at the integration points.
+Each element allows to define $n$ integration points.
+The \kw{aerodynamic body} outputs at $n$ points.
+The \kw{aerodynamic beam2} outputs at $2 \cdot n$ points.
+The \kw{aerodynamic beam3} outputs at $3 \cdot n$ points.
+
+\paragraph{Output.}
+\begin{itemize}
+\item \kw{elem.aerodynamic.<label>.X\_<i>} contains the location
+of the integration point \kw{<i>}, in the global reference frame;
+
+\item \kw{elem.aerodynamic.<label>.R\_<i>} contains the orientation matrix
+of the airfoil at the integration point \kw{<i>}, in the global reference frame;
+
+\item \kw{elem.aerodynamic.<label>.Phi\_<i>} contains the rotation vector
+that describes the orientation of the airfoil at the integration point \kw{<i>},
+in the global reference frame;
+
+\item \kw{elem.aerodynamic.<label>.E} contains the set of Euler angles
+that describes the orientation of the airfoil at the integration point \kw{<i>},
+in the global reference frame.
+The sequence of the angles is detailed in the variable's description.
+It can be 123 (the default), 313 or 321;
+
+\item \kw{elem.aerodynamic.<label>.V\_<i>} contains the velocity
+of the integration point \kw{<i>}, in the global reference frame;
+
+\item \kw{elem.aerodynamic.<label>.Omega\_<i>} contains the angular velocity
+of the integration point \kw{<i>}, in the global reference frame;
+
+\item \kw{elem.aerodynamic.<label>.F\_<i>} contains the force
+at the integration point \kw{<i>}, in the absolute reference frame;
+
+\item \kw{elem.aerodynamic.<label>.M\_<i>} contains the moment
+at the integration point \kw{<i>}, in the absolute reference frame,
+referred to the location of the integration point.
+\end{itemize}
+
+Note: variables \kw{elem.aerodynamic.<label>.R\_<i>},
+\kw{elem.aerodynamic.<label>.Phi\_<i>} 
+and \kw{elem.aerodynamic.<label>.E\_<i>} are mutually exclusive.
+
+Note: by default, only variables \kw{elem.aerodynamic.<label>.F\_<i>}
+and \kw{elem.aerodynamic.<label>.M\_<i>} are output.
+See Section~\ref{sec:EL:AERODYNAMIC} for indications
+about how to customize aerodynamic element output in NetCDF format.
+
 
 \subsubsection{Automatic Structural}
 \label{sec:NetCDF:Elem:Automatic Structural}

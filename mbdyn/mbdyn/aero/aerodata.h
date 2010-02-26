@@ -72,8 +72,8 @@ public:
 	AeroMemory(DriveCaller *pt);
 	virtual ~AeroMemory(void);
 
-	void Predict(int i, doublereal alpha, doublereal &alf1,
-			doublereal &alf2);
+	void Predict(int i, doublereal alpha,
+		doublereal &alf1, doublereal &alf2);
 	void Update(int i);
 	void SetNumPoints(int i);
 	int GetNumPoints(void) const;
@@ -123,7 +123,8 @@ protected:
 	int GetForcesJacCenteredDiff_int(int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
 
 public:
-	AeroData(UnsteadyModel u = STEADY, DriveCaller *pt = NULL);
+	AeroData(int i_p, int i_dim,
+		UnsteadyModel u = STEADY, DriveCaller *pt = 0);
 	virtual ~AeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
@@ -163,22 +164,14 @@ public:
 	virtual void
 	AfterConvergence(int i,
 		const VectorHandler& X, const VectorHandler& XP);
-	
 
-	inline AeroData::UnsteadyModel Unsteady(void) const;
+	AeroData::UnsteadyModel Unsteady(void) const;
 };
-
-
-inline AeroData::UnsteadyModel
-AeroData::Unsteady(void) const
-{
-	return unsteadyflag;
-}
 
 /* AeroData - end */
 
 extern void
-ReadAeroData(DataManager* pDM, MBDynParser& HP,
+ReadAeroData(DataManager* pDM, MBDynParser& HP, int dim,
 	Shape** ppChord, Shape** ppForce,
 	Shape** ppVelocity, Shape** ppTwist,
 	Shape** ppTipLoss,

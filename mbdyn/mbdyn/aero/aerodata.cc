@@ -34,7 +34,6 @@
 #endif /* HAVE_CONFIG_H */
 
 #include "mynewmem.h"
-// #define USE_C81INTERPOLATEDAERODATA
 #include "aerodata_impl.h"
 #include "gauss.h"
 #include "submat.h"
@@ -181,7 +180,8 @@ C81Data::C81Data(unsigned int uLabel)
 
 /* AeroData - begin */
 
-AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
+AeroData::AeroData(int i_p, int i_dim,
+	AeroData::UnsteadyModel u, DriveCaller *ptime)
 : AeroMemory(ptime), unsteadyflag(u), Omega(0.)
 {
 	if (u != AeroData::STEADY) {
@@ -189,11 +189,19 @@ AeroData::AeroData(AeroData::UnsteadyModel u, DriveCaller *ptime)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+
+	SetNumPoints(i_p*i_dim);
 }
 
 AeroData::~AeroData(void)
 {
 	NO_OP;
+}
+
+AeroData::UnsteadyModel
+AeroData::Unsteady(void) const
+{
+	return unsteadyflag;
 }
 
 void
@@ -479,95 +487,104 @@ ReadUnsteadyFlag(MBDynParser& HP)
 }
 
 static void
-ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
+ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata,
+	int iGP, int iDim, bool bInterp = false)
 {
+	doublereal dcltol = 1.e-6;
+	if (bInterp && HP.IsKeyWord("tolerance")) {
+		dcltol = HP.GetReal();
+		if (dcltol <= 0.) {
+			silent_cerr("ReadC81MultipleAeroData: "
+				"invalid c81 data tolerance at line "
+				<< HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	integer nProfiles = HP.GetInt();
 	if (nProfiles <= 0) {
-		silent_cerr("Need at least one profile at line "
+		silent_cerr("Need at least one airfoil at line "
 				<< HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	integer *profiles = NULL;
-	SAFENEWARR(profiles, integer, nProfiles+1);
-	doublereal *upper_bounds = NULL;
-	SAFENEWARR(upper_bounds, doublereal, nProfiles);
-	const c81_data** data = NULL;
-	SAFENEWARR(data, const c81_data*, nProfiles+1);
+	
+	std::vector<integer> profiles(nProfiles);
+	std::vector<doublereal> upper_bounds(nProfiles);
+	std::vector<const c81_data *> data(nProfiles);
 
 	for (int i = 0; i < nProfiles; i++) {
 		profiles[i] = HP.GetInt();
 		upper_bounds[i] = HP.GetReal();
 		if (upper_bounds[i] <= -1.) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
+			if (!bInterp || upper_bounds[i] < -1.) {
+				silent_cerr("upper bound "
+					<< i + 1 << " = " << upper_bounds[i]
 					<< " too small at line "
 					<< HP.GetLineData()
 					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
 		} else if (upper_bounds[i] > 1.) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
-					<< " too large at line "
-					<< HP.GetLineData()
-					<< std::endl);
+			silent_cerr("upper bound "
+				<< i + 1 << " = "
+				<< upper_bounds[i]
+				<< " too large at line "
+				<< HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (i > 0 && upper_bounds[i] <= upper_bounds[i-1]) {
-			silent_cerr("upper bound " << i+1 << " = "
-					<< upper_bounds[i]
-					<< " not in increasing order "
-					"at line " << HP.GetLineData()
-					<< std::endl);
+			silent_cerr("upper bound "
+				<< i+1 << " = " << upper_bounds[i]
+				<< " not in increasing order "
+				"at line " << HP.GetLineData()
+				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		data[i] = HP.GetC81Data(profiles[i]);
 		if (data[i] == NULL) {
-			silent_cerr("Unable to find profile "
-					<< profiles[i] << " at line "
-					<< HP.GetLineData()
-					<< std::endl);
+			silent_cerr("Unable to find airfoil "
+				<< profiles[i] << " at line "
+				<< HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
- 		DEBUGLCOUT(MYDEBUG_INPUT, "profile data " << i+1
-				<< " is from file c81 " << profiles[i]
-				<< std::endl);
+ 		DEBUGLCOUT(MYDEBUG_INPUT, "airfoil data " << i+1
+			<< " is from file c81 " << profiles[i]
+			<< std::endl);
 	}
 
-	if (upper_bounds[nProfiles-1] != 1.) {
+	if (upper_bounds[nProfiles - 1] != 1.) {
 		silent_cerr("warning: the last upper bound should be 1.0 "
-				"at line " << HP.GetLineData()
-				<< std::endl);
+			"at line " << HP.GetLineData() << std::endl);
 	}
 
-	profiles[nProfiles] = -1;
-	data[nProfiles] = NULL;
-
-	AeroData::UnsteadyModel
-		eInst = ReadUnsteadyFlag(HP);
-	DriveCaller *ptime = NULL;
+	AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
+	DriveCaller *ptime = 0;
 	if (eInst != AeroData::STEADY) {
 		SAFENEWWITHCONSTRUCTOR(ptime,
-				TimeDriveCaller,
-				TimeDriveCaller(pDM->pGetDrvHdl()));
+			TimeDriveCaller,
+			TimeDriveCaller(pDM->pGetDrvHdl()));
 	}
-	SAFENEWWITHCONSTRUCTOR(*aerodata,
-			C81MultipleAeroData,
-			C81MultipleAeroData(eInst,
-				nProfiles, profiles,
-				upper_bounds, data,
-				ptime));
-}
 
-static void
-ReadC81InterpolatedAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata)
-{
-	silent_cerr("C81InterpolatedAeroData not implemented yet" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	if (bInterp) {
+		SAFENEWWITHCONSTRUCTOR(*aerodata,
+			C81InterpolatedAeroData,
+			C81InterpolatedAeroData(iGP, iDim,
+				eInst, profiles, upper_bounds, data,
+				dcltol, ptime));
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(*aerodata,
+			C81MultipleAeroData,
+			C81MultipleAeroData(iGP, iDim,
+				eInst, profiles, upper_bounds, data,
+				ptime));
+	}
 }
 
 void
-ReadAeroData(DataManager* pDM, MBDynParser& HP,
+ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 	Shape** ppChord, Shape** ppForce,
 	Shape** ppVelocity, Shape** ppTwist, Shape** ppTipLoss,
 	integer* piNumber, DriveCaller** ppDC,
@@ -635,14 +652,14 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 	if (HP.IsArg()) {
 		switch (HP.IsKeyWord()) {
  		default:
-	  		silent_cerr("unknown profile type \"" << HP.GetString()
+	  		silent_cerr("unknown airfoil type \"" << HP.GetString()
 					<< "\" at line " << HP.GetLineData()
 					<< "; using default (NACA0012)"
 					<< std::endl);
 
  		case NACA0012: {
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				   "profile is NACA0012" << std::endl);
+				   "airfoil is NACA0012" << std::endl);
 
 			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 			DriveCaller *ptime = NULL;
@@ -652,13 +669,13 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(eInst, 1, ptime));
+				STAHRAeroData(*piNumber, iDim, eInst, 1, ptime));
 	  		break;
  		}
 
  		case RAE9671: {
 	  		DEBUGLCOUT(MYDEBUG_INPUT,
-				"profile is RAE9671" << std::endl);
+				"airfoil is RAE9671" << std::endl);
 
 			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 			DriveCaller *ptime = NULL;
@@ -668,7 +685,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 			}
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				STAHRAeroData,
-				STAHRAeroData(eInst, 2, ptime));
+				STAHRAeroData(*piNumber, iDim, eInst, 2, ptime));
 	  		break;
  		}
 
@@ -678,17 +695,17 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 		 */
  		case C81:
 			if (HP.IsKeyWord("multiple")) {
-				ReadC81MultipleAeroData(pDM, HP, aerodata);
+				ReadC81MultipleAeroData(pDM, HP, aerodata, *piNumber, iDim);
 
 			} else if (HP.IsKeyWord("interpolated")) {
-				ReadC81InterpolatedAeroData(pDM, HP, aerodata);
+				ReadC81MultipleAeroData(pDM, HP, aerodata, *piNumber, iDim, true);
 
 			} else {
 	  			integer iProfile = HP.GetInt();
 		  		const c81_data* data = HP.GetC81Data(iProfile);
 
 		  		DEBUGLCOUT(MYDEBUG_INPUT,
-					"profile data is from file c81 "
+					"airfoil data is from file c81 "
 					<< iProfile << std::endl);
 				AeroData::UnsteadyModel
 					eInst = ReadUnsteadyFlag(HP);
@@ -700,7 +717,8 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 				}
 	  			SAFENEWWITHCONSTRUCTOR(*aerodata,
 					C81AeroData,
-					C81AeroData(eInst, iProfile,
+					C81AeroData(*piNumber, iDim,
+						eInst, iProfile,
 						data, ptime));
 			}
 			break;
@@ -722,25 +740,27 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP,
 			// deprecated
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81TheodorsenAeroData,
-				C81TheodorsenAeroData(iProfile, data, omegaPD, ptime));
+				C81TheodorsenAeroData(*piNumber, iDim,
+					iProfile, data, omegaPD, ptime));
 #else // USE_UNSTEADY_6STATES
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81TheodorsenAeroData,
-				C81TheodorsenAeroData(iProfile, data, ptime));
+				C81TheodorsenAeroData(*piNumber, iDim,
+					iProfile, data, ptime));
 #endif // USE_UNSTEADY_6STATES
 			} break;
 		}
 
 	} else {
 		/* FIXME: better abort! */
-		silent_cerr("missing profile type at line "
+		silent_cerr("missing airfoil type at line "
 				<< HP.GetLineData()
 				<< "; using default (NACA0012)"
 				<< std::endl);
 
 		AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
 		SAFENEWWITHCONSTRUCTOR(*aerodata,
-			STAHRAeroData, STAHRAeroData(eInst, 1));
+			STAHRAeroData, STAHRAeroData(*piNumber, iDim, eInst, 1));
 	}
 }
 

@@ -44,6 +44,7 @@
 #include <cmath>
 
 #include "ac/f2c.h"
+#include "myassert.h"
 
 extern "C" {
 #include "aerodc81.h"
@@ -65,8 +66,6 @@ extern "C" {
  * AM(NAM)CM(NAM,1),....,CL(NAM,NMM)	10F7.0/(7x,9F7.0) 
  */
 
-static int
-do_c81_data_stall(c81_data *data, const doublereal dcltol);
 static int
 do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol);
 
@@ -363,6 +362,218 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
 	do_c81_data_stall(data, dcltol);
    
    	return 0;
+}
+
+extern "C" int
+merge_c81_data(
+	unsigned ndata,
+	const c81_data **data,
+	const doublereal *upper_bounds,
+	doublereal dCsi,
+	doublereal dcltol,
+	c81_data *i_data)
+{
+	ASSERT(ndata > 0);
+	ASSERT(data != 0);
+	ASSERT(upper_bounds != 0);
+	ASSERT(dCsi >= -1.);
+	ASSERT(dCsi <= 1.);
+	ASSERT(dcltol > 0.);
+	ASSERT(i_data != 0);
+
+	int	from = -1, to;
+
+	if (dCsi < upper_bounds[0]) {
+		silent_cerr("cannot find C81 data lower bound for point xi=" << dCsi << std::endl);
+		return -1;
+	}
+
+	for (unsigned i = 1; i < ndata; i++) {
+		if (upper_bounds[i] > dCsi) {
+			to = i;
+			break;
+		}
+	}
+
+	from = to - 1;
+
+	if (unsigned(from) == ndata) {
+		silent_cerr("cannot find C81 data upper bound for point xi=" << dCsi << std::endl);
+		return -1;
+	}
+
+	/* we need to interpolate between data[from]
+	 * and data[to] */
+
+	/* we only accept homogeneous data sources,
+	 * i.e. same Mach and alpha patterns */
+	if (data[from]->NML != data[to]->NML) {
+		silent_cerr("number of Mach points for Cl between airfoils "
+			<< from << " (" << data[from]->NML << ") and "
+			<< to << " (" << data[to]->NML << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	if (data[from]->NAL != data[to]->NAL) {
+		silent_cerr("number of AoA points for Cl between airfoils "
+			<< from << " (" << data[from]->NAL << ") and "
+			<< to << " (" << data[to]->NAL << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	if (data[from]->NMD != data[to]->NMD) {
+		silent_cerr("number of Mach points for Cd between airfoils "
+			<< from << " (" << data[from]->NMD << ") and "
+			<< to << " (" << data[to]->NMD << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	if (data[from]->NAD != data[to]->NAD) {
+		silent_cerr("number of AoA points for Cd between airfoils "
+			<< from << " (" << data[from]->NAD << ") and "
+			<< to << " (" << data[to]->NAD << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	if (data[from]->NMM != data[to]->NMM) {
+		silent_cerr("number of Mach points for Cm between airfoils "
+			<< from << " (" << data[from]->NMM << ") and "
+			<< to << " (" << data[to]->NMM << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	if (data[from]->NAM != data[to]->NAM) {
+		silent_cerr("number of AoA points for Cm between airfoils "
+			<< from << " (" << data[from]->NAM << ") and "
+			<< to << " (" << data[to]->NAM << ") do not match"
+			<< std::endl);
+		return -1;
+	}
+
+	for (int i = 0; i < data[from]->NML; i++) {
+		if (data[from]->ml[i] != data[to]->ml[i]) {
+			silent_cerr("Mach point " << i << "for Cl of airfoils "
+				<< from << " (" << data[from]->ml[i] << ") and "
+				<< to << " (" << data[to]->ml[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	for (int i = 0; i < data[from]->NAL; i++) {
+		if (data[from]->al[i] != data[to]->al[i]) {
+			silent_cerr("AoA point " << i << "for Cl of airfoils "
+				<< from << " (" << data[from]->al[i] << ") and "
+				<< to << " (" << data[to]->al[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	for (int i = 0; i < data[from]->NMD; i++) {
+		if (data[from]->md[i] != data[to]->md[i]) {
+			silent_cerr("Mach point " << i << "for Cd of airfoils "
+				<< from << " (" << data[from]->md[i] << ") and "
+				<< to << " (" << data[to]->md[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	for (int i = 0; i < data[from]->NAD; i++) {
+		if (data[from]->ad[i] != data[to]->ad[i]) {
+			silent_cerr("AoA point " << i << "for Cd of airfoils "
+				<< from << " (" << data[from]->ad[i] << ") and "
+				<< to << " (" << data[to]->ad[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	for (int i = 0; i < data[from]->NMM; i++) {
+		if (data[from]->mm[i] != data[to]->mm[i]) {
+			silent_cerr("Mach point " << i << "for Cm of airfoils "
+				<< from << " (" << data[from]->mm[i] << ") and "
+				<< to << " (" << data[to]->mm[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	for (int i = 0; i < data[from]->NAM; i++) {
+		if (data[from]->am[i] != data[to]->am[i]) {
+			silent_cerr("AoA point " << i << "for Cm of airfoils "
+				<< from << " (" << data[from]->am[i] << ") and "
+				<< to << " (" << data[to]->am[i] << ") differs"
+				<< std::endl);
+			return -1;
+		}
+	}
+
+	snprintf(i_data->header, sizeof(i_data->header),
+		"interpolated (\"%s\"[%e]->\"%s\"[%e]: [%e])",
+		data[from]->header, upper_bounds[from],
+		data[to]->header, upper_bounds[to], dCsi);
+
+	i_data->NML = data[from]->NML;
+	i_data->NAL = data[from]->NAL;
+	i_data->NMD = data[from]->NMD;
+	i_data->NAD = data[from]->NAD;
+	i_data->NMM = data[from]->NMM;
+	i_data->NAM = data[from]->NAM;
+
+	doublereal dw = upper_bounds[to] - upper_bounds[from];
+	doublereal dw_from = (upper_bounds[to] - dCsi)/dw;
+	doublereal dw_to = (dCsi - upper_bounds[from])/dw;
+
+	/* lift */
+	i_data->ml = new doublereal[i_data->NML];
+	for (int i = 0; i < i_data->NML; i++) {
+		i_data->ml[i] = data[from]->ml[i];
+	}
+	i_data->al = new doublereal[(i_data->NML + 1)*i_data->NAL];
+	for (int i = 0; i < i_data->NAL; i++) {
+		i_data->al[i] = data[from]->al[i];
+	}
+	for (int i = i_data->NAL; i < (i_data->NML + 1)*i_data->NAL; i++) {
+		i_data->al[i] = dw_from*data[from]->al[i] + dw_to*data[to]->al[i];
+	}
+
+	/* drag */
+	i_data->md = new doublereal[i_data->NMD];
+	for (int i = 0; i < i_data->NMD; i++) {
+		i_data->md[i] = data[from]->md[i];
+	}
+	i_data->ad = new doublereal[(i_data->NMD + 1)*i_data->NAD];      
+	for (int i = 0; i < i_data->NAD; i++) {
+		i_data->ad[i] = data[from]->ad[i];
+	}
+	for (int i = i_data->NAD; i < (i_data->NMD + 1)*i_data->NAD; i++) {
+		i_data->ad[i] = dw_from*data[from]->ad[i] + dw_to*data[to]->ad[i];
+	}
+
+	/* moment */
+	i_data->mm = new doublereal[i_data->NMM];
+	for (int i = 0; i < i_data->NMM; i++) {
+		i_data->mm[i] = data[from]->mm[i];
+	}
+	i_data->am = new doublereal[(i_data->NMM + 1)*i_data->NAM];
+	for (int i = 0; i < i_data->NAM; i++) {
+		i_data->am[i] = data[from]->am[i];
+	}
+	for (int i = i_data->NAM; i < (i_data->NMM + 1)*i_data->NAM; i++) {
+		i_data->am[i] = dw_from*data[from]->am[i] + dw_to*data[to]->am[i];
+	}
+
+	// FIXME: maybe this is not the best place
+	do_c81_data_stall(i_data, dcltol);
+
+	return 0;
 }
 
 extern "C" int
@@ -894,7 +1105,7 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 	return 0;
 }
 
-static int
+int
 do_c81_data_stall(c81_data *data, const doublereal dcltol)
 {
 	if (data == NULL || data->NML <= 0 || data->NMM <= 0) {

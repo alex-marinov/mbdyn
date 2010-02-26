@@ -46,8 +46,11 @@ void
 DataManager::NodeManager(void)
 {
 	for (int i = 0; i < Node::LASTNODETYPE; i++) {
+#if 0
 		NodeData[i].ppFirstNode = NULL;
 		NodeData[i].iNum = 0;
+#endif
+		NodeData[i].iExpectedNum = 0;
 		NodeData[i].uFlags = 0U;
 		NodeData[i].DefaultOut(::fDefaultOut == 1); /* Da "output.h" */
 		NodeData[i].OutFile = OutputHandler::UNKNOWN; /* Da "output.h" */
@@ -84,23 +87,12 @@ DataManager::NodeManagerDestructor(void)
 {
 	DEBUGCOUT("Entering DataManager::NodeManagerDestructor()" << std::endl);
 
-	ASSERT(ppNodes != NULL);
-
-	if (ppNodes != NULL) {
-		Node** pp = ppNodes;
-		while (pp < ppNodes+iTotNodes) {
-			ASSERT(*pp != NULL);
-			if (*pp != NULL) {
-				DEBUGCOUT("deleting "
-					<< psNodeNames[(*pp)->GetNodeType()] << "(" << (*pp)->GetLabel() << ")"
-					<< std::endl);
-				SAFEDELETE(*pp);
-			}
-			pp++;
-		}
-
-		DEBUGCOUT("deleting node structure" << std::endl);
-		SAFEDELETEARR(ppNodes);
+	for (NodeVecType::iterator p = Nodes.begin(); p != Nodes.end(); p++) {
+		DEBUGCOUT("deleting node "
+			<< psNodeNames[(*p)->GetNodeType()]
+			<< "(" << (*p)->GetLabel() << ")"
+			<< std::endl);
+		SAFEDELETE(*p);
 	}
 }
 
@@ -108,26 +100,20 @@ void
 DataManager::NodeDataInit(void)
 {
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		iTotNodes += NodeData[iCnt].iNum;
+		iTotNodes += NodeData[iCnt].iExpectedNum;
 	}
 
 	DEBUGCOUT("iTotNodes = " << iTotNodes << std::endl);
 
 	if (iTotNodes > 0) {
-		SAFENEWARR(ppNodes, Node*, iTotNodes);
+		Nodes.resize(iTotNodes);
 
-		NodeIter.Init(ppNodes, iTotNodes);
+		NodeIter.Init(&Nodes[0], iTotNodes);
 
-		Node** ppTmp = ppNodes;
-		while (ppTmp < ppNodes + iTotNodes) {
-			*ppTmp++ = NULL;
+		for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+			*i = 0;
 		}
 
-		NodeData[0].ppFirstNode = ppNodes;
-		for (int iCnt = 0; iCnt < Node::LASTNODETYPE-1; iCnt++) {
-			NodeData[iCnt+1].ppFirstNode =
-				NodeData[iCnt].ppFirstNode + NodeData[iCnt].iNum;
-		}
 	} else {
 		silent_cerr("warning, no nodes are defined" << std::endl);
 	}
@@ -138,11 +124,10 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
 	for (unsigned nt = 0; nt < Node::LASTNODETYPE; nt++) {
-		if (NodeData[nt].iNum && OH.UseNetCDF(NodeData[nt].OutFile)) {
+		if (!NodeData[nt].NodeMap.empty() && OH.UseNetCDF(NodeData[nt].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			integer iNumNodes = NodeData[nt].iNum;
-			Node** ppFirstNode = NodeData[nt].ppFirstNode;
+			integer iNumNodes = NodeData[nt].NodeMap.size();
 
 			NcFile *pBinFile = OH.pGetBinFile();
 
@@ -168,9 +153,10 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
+			NodeMapType::const_iterator p = NodeData[nt].NodeMap.begin();
+			for (unsigned i = 0; i < unsigned(iNumNodes); i++, p++) {
 				VarLabels->set_cur(i);
-				const long l = ppFirstNode[i]->GetLabel();
+				const long l = p->second->GetLabel();
 				VarLabels->put(&l, 1);
 			}
 		}
@@ -202,18 +188,16 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 #endif
 #endif // USE_NETCDF
 
-	Node** ppTmpNode = ppNodes;
-	for (; ppTmpNode < ppNodes + iTotNodes; ppTmpNode++) {
-		(*ppTmpNode)->OutputPrepare(OH);
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->OutputPrepare(OH);
 	}
 }
 
 void
 DataManager::NodeOutput(OutputHandler& OH) const
 {
-	Node** ppTmpNode = ppNodes;
-	for (; ppTmpNode < ppNodes + iTotNodes; ppTmpNode++) {
-		(*ppTmpNode)->Output(OH);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->Output(OH);
 	}
 }
 
@@ -223,9 +207,8 @@ DataManager::NodeOutput(
 	const VectorHandler& X,
 	const VectorHandler& XP) const
 {
-	Node** ppTmpNode = ppNodes;
-	for (; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {
-		(*ppTmpNode)->Output(OH, X, XP);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->Output(OH, X, XP);
 	}
 }
 
@@ -240,45 +223,26 @@ DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 Node*
 DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 {
-	if (NodeData[Typ].iNum == 0) {
+	NodeMapType::const_iterator p = NodeData[Typ].NodeMap.find(uL);
+	if (p == NodeData[Typ].NodeMap.end()) {
 		return 0;
 	}
 
-	ASSERT(NodeData[Typ].ppFirstNode != 0);
-
-	return pLabelSearch(NodeData[Typ].ppFirstNode, NodeData[Typ].iNum, uL);
+	return p->second;
 }
 
 /* cerca un nodo strutturale*/
 StructNode*
 DataManager::pFindStructNode(unsigned int uL) const
 {
-	if (NodeData[Node::STRUCTURAL].iNum == 0) {
-		silent_cerr("No structural nodes defined; "
-			"StructNode(" << uL << ") cannot be located."
-			<< std::endl);
-		return 0;
-	}
-
-	ASSERT(NodeData[Node::STRUCTURAL].ppFirstNode != 0);
-
-	return dynamic_cast<StructNode *>(pLabelSearch(NodeData[Node::STRUCTURAL].ppFirstNode, NodeData[Node::STRUCTURAL].iNum, uL));
+	return dynamic_cast<StructNode *>(pFindNode(Node::STRUCTURAL, uL));
 }
 
 /* cerca un nodo elettrico */
 ElectricNode*
 DataManager::pFindElectricNode(unsigned int uL) const
 {
-	if (NodeData[Node::ELECTRIC].iNum == 0) {
-		silent_cerr("No electric nodes defined; "
-			"ElectricNode(" << uL << ") cannot be located"
-			<< std::endl);
-		return 0;
-	}
-
-	ASSERT(NodeData[Node::ELECTRIC].ppFirstNode != 0);
-
-	return dynamic_cast<ElectricNode *>(pLabelSearch(NodeData[Node::ELECTRIC].ppFirstNode, NodeData[Node::ELECTRIC].iNum, uL));
+	return dynamic_cast<ElectricNode *>(pFindNode(Node::ELECTRIC, uL));
 }
 
 /* DataManager - end */

@@ -846,7 +846,8 @@ in the following.
 The traditional format is used unless a format is specified using either
 of the keywords \kw{free format} or \kw{fc511}
 (the latter is intentionally not documented).
-The format can be inferred from the heading line of the input file.
+The format is automatically inferred by reading the heading line
+of the input file.
 
 The optional keyword \kw{tolerance} allows to specify the tolerance
 that is used to determine the boundaries of the linear portion
@@ -916,8 +917,8 @@ the optional switch \kw{fc511}; it is intentionally not documented.
 
 \subsubsection{Free Format}
 Finally, to allow higher precision whenever available, a native format,
-based on \kw{c81}, is available; it is called \kw{free format} and 
-basically consists in the c81 format without continuation lines
+based on \kw{c81}, called \kw{free format}, is available.
+It basically consists in the c81 format without continuation lines
 and with arbitrary precision, with fields separated by blanks.
 The header is made of an arbitrary string, terminated by a semicolon,
 followed by the six numbers that define the dimensionality of the expected data.
@@ -943,6 +944,13 @@ this is the header; 2 8 2 2 2 2
  180.0  0.0   0.0
 \end{verbatim}
 
+Traditional format files can be automatically converted in free format
+using the \kw{c81test} utility:
+\begin{verbatim}
+    $ c81test -d var/naca0012_free_format.c81 var/naca0012.c81
+\end{verbatim}
+generates a free format version of the NACA 0012 airfoil data
+provided in the distribution.
 
 \subsubsection{Miscellaneous}
 A simple program that allows to read and plot the C81 tables
@@ -1504,36 +1512,36 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \hline
 \textbf{Name} & \textbf{Differentiable} & \textbf{Notes} \\
 \hline\hline
-\texttt{array} & $\surd$ & depends on subordinate drive callers \\
-\texttt{const} & $\surd$ & \\
-\texttt{cosine} & $\surd$ & \\
-\texttt{cubic} & $\surd$ & \\
-\texttt{direct} & $\surd$ & \\ %
-\texttt{dof} & & \\ %
-\texttt{double ramp} & $\surd$ & \\
-\texttt{double step} & $\surd$ & \\
-\texttt{drive} & $\surd$ & \\ %
-\texttt{element} & $\surd$ & \\ %
-\texttt{exponential} & $\surd$ & \\
-\texttt{file} & $\surd$ & \\ %
-\texttt{fourier series} & $\surd$ & \\
-\texttt{frequency sweep} & $\surd$ & depends on subordinate drive callers \\
-\texttt{linear} & $\surd$ & \\
-\texttt{meter} & $\surd$ & \\ %
-\texttt{node} & $\surd$ & \\ %
-\texttt{null} & $\surd$ & \\
-\texttt{one} & $\surd$ & \\
-\texttt{parabolic} & $\surd$ & \\
-\texttt{piecewise linear} & $\surd$ & \\
-\texttt{ramp} & $\surd$ & \\
-\texttt{random} & $\surd$ & \\ %
-\texttt{scalar function} & $\surd$ & depends on underlying scalar function \\
-\texttt{sine} & $\surd$ & \\
-\texttt{step} & $\surd$ & \\
-\texttt{string} & $\surd$ & \\ %
-\texttt{tanh} & $\surd$ & \\
-\texttt{time} & $\surd$ & \\
-\texttt{unit} & $\surd$ & \\ %
+\kw{array} & $\surd$ & depends on subordinate drive callers \\
+\kw{const} & $\surd$ & \\
+\kw{cosine} & $\surd$ & \\
+\kw{cubic} & $\surd$ & \\
+\kw{direct} & $\surd$ & \\ %
+\kw{dof} & & \\ %
+\kw{double ramp} & $\surd$ & \\
+\kw{double step} & $\surd$ & \\
+\kw{drive} & $\surd$ & \\ %
+\kw{element} & $\surd$ & \\ %
+\kw{exponential} & $\surd$ & \\
+\kw{file} & $\surd$ & \\ %
+\kw{fourier series} & $\surd$ & \\
+\kw{frequency sweep} & $\surd$ & depends on subordinate drive callers \\
+\kw{linear} & $\surd$ & \\
+\kw{meter} & $\surd$ & \\ %
+\kw{node} & $\surd$ & \\ %
+\kw{null} & $\surd$ & \\
+\kw{one} & $\surd$ & \\
+\kw{parabolic} & $\surd$ & \\
+\kw{piecewise linear} & $\surd$ & \\
+\kw{ramp} & $\surd$ & \\
+\kw{random} & $\surd$ & \\ %
+\kw{scalar function} & $\surd$ & depends on underlying scalar function \\
+\kw{sine} & $\surd$ & \\
+\kw{step} & $\surd$ & \\
+\kw{string} & $\surd$ & \\ %
+\kw{tanh} & $\surd$ & \\
+\kw{time} & $\surd$ & \\
+\kw{unit} & $\surd$ & \\ %
 \hline
 \end{tabular}
 \end{table}
@@ -1629,7 +1637,7 @@ The function
 Transparently returns the input value; the \kw{arglist} is empty.
 It is useful in conjunction with those drive callers
 that require their output to be fed into another drive caller,
-like the \texttt{dof}, \texttt{node} and \texttt{element}
+like the \kw{dof}, \kw{node} and \kw{element}
 drive callers, when the output must be used as is.
 
 \subsection{Dof drive}\label{sec:DRIVE:DOF}
@@ -1830,12 +1838,12 @@ in terms of the element's private data at each invocation.
 \end{verbatim}
 This drive yields a function that resembles the response
 of a first-order system to a step input.
-Its value corresponds to \texttt{initial\_value}
+Its value corresponds to \kw{initial\_value}
 for $t < \mathtt{initial\_time}$.
 For $t \ge \mathtt{initial\_time}$, it grows to
 $\mathtt{initial\_value} + \mathtt{amplitude\_value}$
 exponentially.
-The growth rate is governed by \texttt{time\_constant\_value}.
+The growth rate is governed by \kw{time\_constant\_value}.
 If $\mathtt{time\_constant\_value} < 0$, the function diverges.
 \begin{align}
 	f(t)
@@ -1932,7 +1940,7 @@ and the amplitude of the oscillation. Any drive can be used.
 	\nonumber \\
 	t_i &= \mathtt{initial\_time}
 	\nonumber \\
-	t_f &= \mathtt{final\_time} \ (\text{\texttt{forever}: } +\infty)
+	t_f &= \mathtt{final\_time} \ (\text{\kw{forever}: } +\infty)
 	\nonumber \\
 	f_i &= \mathtt{initial\_value}
 	\nonumber \\
@@ -3233,12 +3241,12 @@ The syntax is
         { null | (scalar_function) <diag_force''> }
         [ , ... ]
 \end{verbatim}
-The terms \texttt{kappa\_0'} and \verb1kappa_0''1 are indicated as
+The terms \kw{kappa\_0'} and \verb1kappa_0''1 are indicated as
 ``derivative of entity'' because in the generic case they are the result
 of a differential operator that computes the derivative of the force vector
 as function of the strain or strain rate vectors.
 So, for a 3D constitutive law, the force, the strain and the strain rate
-are $3\times 1$ vectors, while \texttt{kappa\_0'} and \verb1kappa_0''1
+are $3\times 1$ vectors, while \kw{kappa\_0'} and \verb1kappa_0''1
 are $3\times 3$ matrices.
 Matrix input, in MBDyn, requires to write the whole set of coefficients,
 row-wise; however, it can be described in many synthetic manners if
@@ -3265,11 +3273,11 @@ short forms; in the $3\times 3$ case they are
         # empty 3x3 matrix:
         null
 \end{verbatim}
-The terms \texttt{diag\_force'} and \verb1diag_force''1 refer
+The terms \kw{diag\_force'} and \verb1diag_force''1 refer
 to the names of the scalar functions that are defined for each component
 of the force vector.
 There must be as many terms as the dimensions of the constitutive law.
-These terms can either be \texttt{null}, if no non-linear contribution
+These terms can either be \kw{null}, if no non-linear contribution
 is defined for that component, or contain a string, enclosed in double quotes,
 which must refer to an already defined scalar function.
 The same scalar function can be used multiple times.
@@ -3432,7 +3440,7 @@ while the second one corresponds to
         }}
 \end{equation}
 Note: although the syntax of this constitutive law
-and that of the \texttt{nlsf viscoelastic} one
+and that of the \kw{nlsf viscoelastic} one
 (Section~\ref{sec:CL:nlsf-syntax})
 is essentially identical, their behavior may be quite different,
 as indicated by Equations~(\ref{eq:nlsf-cl}) and~(\ref{eq:nlp-cl}).

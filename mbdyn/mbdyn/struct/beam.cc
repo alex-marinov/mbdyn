@@ -2359,7 +2359,7 @@ void
 ReadOptionalBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	Beam::Type BT, unsigned& uFlags, OrientationDescription& od)
 {
-	pDM->GetBeamOutput(uFlags, od);
+	pDM->GetOutput(Elem::BEAM, uFlags, od);
 	if (HP.IsKeyWord("custom" "output")) {
 		ReadBeamCustomOutput(pDM, HP, uLabel, BT, uFlags, od);
 	}

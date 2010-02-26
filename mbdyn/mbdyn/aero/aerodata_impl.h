@@ -45,8 +45,10 @@ protected:
 	integer profile;
 
 public:
-	STAHRAeroData(AeroData::UnsteadyModel u, integer p,
-			DriveCaller *ptime = NULL);
+	STAHRAeroData(
+		int i_p, int i_dim,
+		AeroData::UnsteadyModel u, integer p,
+		DriveCaller *ptime = 0);
 	virtual ~STAHRAeroData(void);
 
 	std::ostream& Restart(std::ostream& out) const;
@@ -65,8 +67,10 @@ protected:
 	const c81_data* data;
 
 public:
-	C81AeroData(AeroData::UnsteadyModel u, integer p, const c81_data* d,
-			DriveCaller *ptime = 0);
+	C81AeroData(
+		int i_p, int i_dim,
+		AeroData::UnsteadyModel u, integer p, const c81_data* d,
+		DriveCaller *ptime = 0);
 	virtual ~C81AeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -79,22 +83,27 @@ public:
 
 /* C81MultipleAeroData - begin */
 
+struct C81AirfoilStation {
+	integer profile;
+	const c81_data *data;
+	doublereal upper_bound;
+};
+
 class C81MultipleAeroData : public AeroData {
 protected:
-	integer nprofiles;
-	integer *profiles;
-	doublereal *upper_bounds;
-	const c81_data** data;
+	std::vector<integer> profiles;
+	std::vector<doublereal> upper_bounds;
+	std::vector<const c81_data *> data;
 	integer curr_data;
 
 public:
 	C81MultipleAeroData(
-			AeroData::UnsteadyModel u,
-			integer np,
-			integer *p,
-			doublereal *ub,
-			const c81_data** d,
-			DriveCaller *ptime = NULL);
+		int i_p, int i_dim,
+		AeroData::UnsteadyModel u,
+		std::vector<integer>& p,
+		std::vector<doublereal>& ub,
+		std::vector<const c81_data*>& d,
+		DriveCaller *ptime = 0);
 	~C81MultipleAeroData(void);
 
 	std::ostream& Restart(std::ostream& out) const;
@@ -113,28 +122,23 @@ public:
 
 /* C81InterpolatedAeroData - begin */
 
-#ifdef USE_C81INTERPOLATEDAERODATA
-
 class C81InterpolatedAeroData : public AeroData {
 protected:
-	integer nprofiles;
-	integer *profiles;
-	doublereal *upper_bounds;
-	const c81_data** data;
+	std::vector<integer> profiles;
+	std::vector<doublereal> upper_bounds;
+	std::vector<const c81_data *> data;
 
-	integer i_points;
-	c81_data* i_data;
-	integer curr_data;
+	std::vector<c81_data> i_data;
 
 public:
 	C81InterpolatedAeroData(
-			AeroData::UnsteadyModel u,
-			integer np,
-			integer *p,
-			doublereal *ub,
-			const c81_data** d,
-			integer i_p,
-			DriveCaller *ptime = NULL);
+		int i_p, int i_dim,
+		AeroData::UnsteadyModel u,
+		std::vector<integer>& p,
+		std::vector<doublereal>& ub,
+		std::vector<const c81_data *>& d,
+		doublereal dcltol,
+		DriveCaller *ptime = 0);
 	~C81InterpolatedAeroData(void);
 
 	std::ostream& Restart(std::ostream& out) const;
@@ -151,11 +155,9 @@ public:
 
 /* C81InterpolatedAeroData - end */
 
-#endif /* USE_C81INTERPOLATEDAERODATA */
+/* C81TheodorsenAeroData - begin */
 
 #ifdef USE_UNSTEADY_6STATES
-
-/* C81TheodorsenAeroData - begin */
 
 class C81TheodorsenAeroData : public C81AeroData {
 protected:
@@ -169,7 +171,9 @@ protected:
 	doublereal clalpha;
 
 public:
-	C81TheodorsenAeroData(integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
+	C81TheodorsenAeroData(
+		int i_p, int i_dim,
+		integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
 	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -194,13 +198,9 @@ public:
 		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
 };
 
-/* C81TheodorsenAeroData - end */
-
 #endif /* USE_UNSTEADY_6STATES */
 
 #ifdef USE_UNSTEADY_2STATES
-
-/* C81TheodorsenAeroData - begin */
 
 class C81TheodorsenAeroData : public C81AeroData {
 protected:
@@ -216,7 +216,9 @@ protected:
 	doublereal prev_time;
 
 public:
-	C81TheodorsenAeroData(integer p, const c81_data* d, DriveCaller *ptime = 0);
+	C81TheodorsenAeroData(
+		int i_p, int i_dim,
+		integer p, const c81_data* d, DriveCaller *ptime = 0);
 	virtual ~C81TheodorsenAeroData(void);
 
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -243,9 +245,9 @@ public:
 	AfterConvergence( int i, const VectorHandler& X, const VectorHandler& XP );
 };
 
-/* C81TheodorsenAeroData - end */
-
 #endif /* USE_UNSTEADY_2STATES */
+
+/* C81TheodorsenAeroData - end */
 
 #endif // AERODATA_IMPL_H
 

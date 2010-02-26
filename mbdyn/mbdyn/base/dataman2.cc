@@ -245,7 +245,7 @@ DataManager::DofOwnerInit(void)
 {
 	DEBUGCOUTFNAME("DataManager::DofOwnerInit");
 	ASSERT(pDofs != NULL);
-	ASSERT(ppNodes != NULL);
+	ASSERT(!Nodes.empty());
 
 	bool pds =
 #ifdef DEBUG
@@ -262,7 +262,7 @@ DataManager::DofOwnerInit(void)
 	}
 
 	/* per ogni nodo strutturale */
-	if (NodeData[Node::STRUCTURAL].iNum > 0) {
+	if (!NodeData[Node::STRUCTURAL].NodeMap.empty()) {
 
 		/*
 		 * used by POD stuff: if any, output
@@ -277,60 +277,60 @@ DataManager::DofOwnerInit(void)
 		 */
 		OutHdl.Log() << "struct node dofs:";
 
-		StructNode** ppNd = (StructNode **)NodeData[Node::STRUCTURAL].ppFirstNode;
-		for (unsigned long i = 0; i < NodeData[Node::STRUCTURAL].iNum; i++) {
-			ASSERT(ppNd[i] != NULL);
-			if (ppNd[i]->GetStructNodeType() == StructNode::DUMMY) {
+		for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		{
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			ASSERT(pNode != 0);
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
-			OutHdl.Log() << " " << ppNd[i]->iGetFirstIndex();
+			OutHdl.Log() << " " << pNode->iGetFirstIndex();
 		}
 
 		OutHdl.Log() << std::endl;
 	}
 
 	/* per ogni nodo */
-	Node** ppNd = ppNodes;
-	while (ppNd < ppNodes+iTotNodes) {
-		ASSERT(*ppNd != NULL);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
 		DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-				psNodeNames[(*ppNd)->GetNodeType()]
-				<< "(" << (*ppNd)->GetLabel() << ")"
+				psNodeNames[(*i)->GetNodeType()]
+				<< "(" << (*i)->GetLabel() << ")"
 				<< std::endl);
 
 		unsigned int iNumDof;
 
 		/* chiede al nodo quanti dof possiede */
-		if ((iNumDof = (*ppNd)->iGetNumDof()) > 0) {
+		if ((iNumDof = (*i)->iGetNumDof()) > 0) {
 			/* si fa passare il primo Dof */
-			Dof* pDf = pDofs + (*ppNd)->iGetFirstIndex();
+			Dof* pDf = pDofs + (*i)->iGetFirstIndex();
 
 #ifdef DEBUG
 			DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
-					psNodeNames[(*ppNd)->GetNodeType()]
-					<< "(" << (*ppNd)->GetLabel() << "): "
-					"first dof = " << pDf->iIndex+1
+					psNodeNames[(*i)->GetNodeType()]
+					<< "(" << (*i)->GetLabel() << "): "
+					"first dof = " << pDf->iIndex + 1
 					<< std::endl);
 #endif /* DEBUG */
 
 			if (pds) {
-				unsigned int nd = (*ppNd)->iGetNumDof();
+				unsigned int nd = (*i)->iGetNumDof();
 				integer fd = pDf->iIndex;
 
-				std::cout << psNodeNames[(*ppNd)->GetNodeType()]
-					<< "(" << (*ppNd)->GetLabel() << "): "
+				std::cout << psNodeNames[(*i)->GetNodeType()]
+					<< "(" << (*i)->GetLabel() << "): "
 					<< nd << " " << fd + 1;
 				if (nd > 1) {
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-					(*ppNd)->DescribeDof(std::cout,
+					(*i)->DescribeDof(std::cout,
 							     "        ");
 				}
 
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-					(*ppNd)->DescribeEq(std::cout,
+					(*i)->DescribeEq(std::cout,
 							     "        ");
 				}
 			}
@@ -338,7 +338,7 @@ DataManager::DofOwnerInit(void)
 			/* per ogni Dof, chiede al nodo di che tipo e' e lo
 			 * setta nel DofOwner */
 			std::vector<std::string> DofDesc;
-			(*ppNd)->DescribeDof(DofDesc);
+			(*i)->DescribeDof(DofDesc);
 			if (DofDesc.size() == iNumDof) {
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].Description = DofDesc[iCnt];
@@ -346,8 +346,8 @@ DataManager::DofOwnerInit(void)
 
 			} else {
 				std::ostringstream os;
-				os << psNodeNames[(*ppNd)->GetNodeType()]
-					<< "(" << (*ppNd)->GetLabel() << ")";
+				os << psNodeNames[(*i)->GetNodeType()]
+					<< "(" << (*i)->GetLabel() << ")";
 				std::string name(os.str());
 
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
@@ -359,7 +359,7 @@ DataManager::DofOwnerInit(void)
 			}
 
 			std::vector<std::string> EqDesc;
-			(*ppNd)->DescribeEq(EqDesc);
+			(*i)->DescribeEq(EqDesc);
 			if (EqDesc.size() == iNumDof) {
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
 					pDf[iCnt].EqDescription = EqDesc[iCnt];
@@ -367,8 +367,8 @@ DataManager::DofOwnerInit(void)
 
 			} else {
 				std::ostringstream os;
-				os << psNodeNames[(*ppNd)->GetNodeType()]
-					<< "(" << (*ppNd)->GetLabel() << ")";
+				os << psNodeNames[(*i)->GetNodeType()]
+					<< "(" << (*i)->GetLabel() << ")";
 				std::string name(os.str());
 
 				for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
@@ -380,11 +380,10 @@ DataManager::DofOwnerInit(void)
 			}
 
 			for (unsigned int iCnt = 0; iCnt < iNumDof; iCnt++) {
-				pDf[iCnt].Order = (*ppNd)->GetDofType(iCnt);
-				pDf[iCnt].EqOrder = (*ppNd)->GetEqType(iCnt);
+				pDf[iCnt].Order = (*i)->GetDofType(iCnt);
+				pDf[iCnt].EqOrder = (*i)->GetEqType(iCnt);
 			}
 		}
-		ppNd++;
 	}
 
 	/* per ogni elemento */
@@ -587,12 +586,18 @@ DataManager::InitialJointAssembly(void)
 	ASSERT(DofData[DofOwner::STRUCTURALNODE].iNum > 0);
 
 	/* Nodi strutturali: mette gli indici ai DofOwner */
+#if 0
 	StructNode** ppFirstNode =
 		(StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
-	integer iNumNodes = NodeData[Node::STRUCTURAL].iNum;
 
 	StructNode** ppNode = ppFirstNode;
 	DofOwner* pTmp = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
+#endif
+
+#if 0
+	integer iNumNodes = NodeData[Node::STRUCTURAL].NodeMap.size();
+	NodeMapType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeMap.begin();
+#endif
 
 	bool pds =
 #ifdef DEBUG
@@ -606,8 +611,10 @@ DataManager::InitialJointAssembly(void)
 
 	/* Numero totale di Dof durante l'assemblaggio iniziale */
 	integer iInitialNumDofs = 0;
-	for (int iCnt = 0; iCnt < iNumNodes; iCnt++) {
-		iInitialNumDofs += ppFirstNode[iCnt]->iGetInitialNumDof();
+	for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+		i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+	{
+		iInitialNumDofs += dynamic_cast<const StructNode*>(i->second)->iGetInitialNumDof();
 	}
 
 	/* Elementi: mette gli indici agli eventuali DofOwner */
@@ -677,41 +684,42 @@ DataManager::InitialJointAssembly(void)
 	}
 
 	/* mette a posto i dof */
-	
+	DofOwner* pFDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
+	NodeMapType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeMap.begin();
+
 	iIndex = 0;
-	for (int iCnt = 1;
-		pTmp < DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner
-			+ DofData[DofOwner::STRUCTURALNODE].iNum;
-		iCnt++, pTmp++, ppNode++)
+	for (int iDOm1 = 0; iDOm1 <  DofData[DofOwner::STRUCTURALNODE].iNum;
+		iDOm1++, iNode++)
 	{
 		// numero di dof di un owner
-		unsigned int iNumDofs = pTmp->iNumDofs = (*ppNode)->iGetInitialNumDof();
+		const StructNode *pNode = dynamic_cast<const StructNode *>(iNode->second);
+		unsigned int iNumDofs = pFDO[iDOm1].iNumDofs = pNode->iGetInitialNumDof();
 		if (iNumDofs > 0) {
-			pTmp->iFirstIndex = iIndex;
+			pFDO[iDOm1].iFirstIndex = iIndex;
 			if (pds) {
 				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
 
-				std::cout << psNodeNames[(*ppNode)->GetNodeType()]
-					<< "(" << (*ppNode)->GetLabel()
+				std::cout << psNodeNames[pNode->GetNodeType()]
+					<< "(" << pNode->GetLabel()
 					<< "): " << nd << " " << fd + 1;
 				if (nd > 1) {
 					std::cout << "->" << fd + nd;
 				}
 				std::cout << std::endl;
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-					(*ppNode)->DescribeDof(std::cout,
+					pNode->DescribeDof(std::cout,
 							     "        ", true);
 				}
 
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-					(*ppNode)->DescribeEq(std::cout,
+					pNode->DescribeEq(std::cout,
 							     "        ", true);
 				}
 			}
 
 			std::vector<std::string> DofDesc;
-			(*ppNode)->DescribeDof(DofDesc, true);
+			pNode->DescribeDof(DofDesc, true);
 			if (DofDesc.size() == iNumDofs) {
 				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
 					pDofs[iIndex + iCnt].Description = DofDesc[iCnt];
@@ -719,8 +727,8 @@ DataManager::InitialJointAssembly(void)
 
 			} else {
 				std::ostringstream os;
-				os << psNodeNames[(*ppNode)->GetNodeType()]
-					<< "(" << (*ppNode)->GetLabel() << ")";
+				os << psNodeNames[pNode->GetNodeType()]
+					<< "(" << pNode->GetLabel() << ")";
 				std::string name(os.str());
 
 				for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
@@ -732,7 +740,7 @@ DataManager::InitialJointAssembly(void)
 			}
 
 			std::vector<std::string> EqDesc;
-			(*ppNode)->DescribeEq(EqDesc, true);
+			pNode->DescribeEq(EqDesc, true);
 			if (EqDesc.size() == iNumDofs) {
 				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
 					pDofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
@@ -740,8 +748,8 @@ DataManager::InitialJointAssembly(void)
 
 			} else {
 				std::ostringstream os;
-				os << psNodeNames[(*ppNode)->GetNodeType()]
-					<< "(" << (*ppNode)->GetLabel() << ")";
+				os << psNodeNames[pNode->GetNodeType()]
+					<< "(" << pNode->GetLabel() << ")";
 				std::string name(os.str());
 
 				for (unsigned int iCnt = 0; iCnt < iNumDofs; iCnt++) {
@@ -755,8 +763,8 @@ DataManager::InitialJointAssembly(void)
 			iIndex += iNumDofs;
 
 		} else {
-			pedantic_cerr(psNodeNames[(*ppNode)->GetNodeType()]
-				<< "(" << iCnt << ") has 0 dofs"
+			pedantic_cerr(psNodeNames[pNode->GetNodeType()]
+				<< "(" << (iDOm1 + 1) << ") has 0 dofs"
 				<< std::endl);
 		}
 	}
@@ -795,13 +803,13 @@ DataManager::InitialJointAssembly(void)
 						continue;
 					}
 
-					pTmp = const_cast<DofOwner *>(pDOEl->pGetDofOwner());
-					ASSERT(pTmp != 0);
+					DofOwner *pDO = const_cast<DofOwner *>(pDOEl->pGetDofOwner());
+					ASSERT(pDO != 0);
 					// numero di dof di un owner
 					unsigned int iNumDofs = pEl->iGetInitialNumDof();
-					pTmp->iNumDofs = iNumDofs;
+					pDO->iNumDofs = iNumDofs;
 					if (iNumDofs > 0) {
-						pTmp->iFirstIndex = iIndex;
+						pDO->iFirstIndex = iIndex;
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
@@ -922,10 +930,10 @@ DataManager::InitialJointAssembly(void)
 
 	/* Setta i valori iniziali dei gradi di liberta' dei nodi strutturali
 	 * durante l'assemblaggio iniziale */
-	for (StructNode** ppTmpNode = ppFirstNode;
-		ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++)
+	for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+		i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
 	{
-		(*ppTmpNode)->SetInitialValue(X);
+		dynamic_cast<StructNode *>(i->second)->SetInitialValue(X);
 	}
 
 	/* Setta i valori iniziali dei gradi di liberta' dei vincoli
@@ -963,38 +971,39 @@ DataManager::InitialJointAssembly(void)
 		pResHdl->Reset();
 
 		/* Contributo dei nodi */
-		for (StructNode** ppTmpNode = ppFirstNode;
-			ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++)
+		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
 		{
-			if ((*ppTmpNode)->GetStructNodeType() == StructNode::DUMMY) {
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
 
-			integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
+			integer iFirstIndex = pNode->pGetDofOwner()->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
-			doublereal dPosStiff = (*ppTmpNode)->dGetPositionStiffness();
-			doublereal dVelStiff = (*ppTmpNode)->dGetVelocityStiffness();
+			doublereal dPosStiff = pNode->dGetPositionStiffness();
+			doublereal dVelStiff = pNode->dGetVelocityStiffness();
 
 			/* Posizione: k*Delta_x = k(x_0-x) + F */
-			Vec3 TmpVec = (*ppTmpNode)->GetXPrev() - (*ppTmpNode)->GetXCurr();
+			Vec3 TmpVec = pNode->GetXPrev() - pNode->GetXCurr();
 			pResHdl->Add(iFirstIndex + 1, TmpVec*dPosStiff);
 
 			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
-			Mat3x3 RDelta = (*ppTmpNode)->GetRPrev().MulMT((*ppTmpNode)->GetRCurr());
+			Mat3x3 RDelta = pNode->GetRPrev().MulMT(pNode->GetRCurr());
 			TmpVec = Vec3(CGR_Rot::Param, RDelta);
 			pResHdl->Add(iFirstIndex + 4, TmpVec*dPosStiff);
 
 			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */
-			TmpVec = (*ppTmpNode)->GetVPrev() - (*ppTmpNode)->GetVCurr();
+			TmpVec = pNode->GetVPrev() - pNode->GetVCurr();
 			pResHdl->Add(iFirstIndex + 7, TmpVec*dVelStiff);
 
 			/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
 			 *                                    k*(R_Delta*w0-w) + M */
-			Vec3 wPrev((*ppTmpNode)->GetWPrev());
-			Vec3 wCurr((*ppTmpNode)->GetWCurr());
+			Vec3 wPrev(pNode->GetWPrev());
+			Vec3 wCurr(pNode->GetWCurr());
 
-			if ((*ppTmpNode)->bOmegaRotates()) {
+			if (pNode->bOmegaRotates()) {
 				/* con questa la velocita' angolare e' solidale
 				 * con il nodo */
 				TmpVec = RDelta*wPrev - wCurr;
@@ -1073,18 +1082,19 @@ DataManager::InitialJointAssembly(void)
 		pSM->MatrReset();
 
 		/* Contributo dei nodi */
-		for (StructNode** ppTmpNode = ppFirstNode;
-				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) 
+		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
 		{
-			if ((*ppTmpNode)->GetStructNodeType() == StructNode::DUMMY) {
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
 
-			integer iFirstIndex = ((*ppTmpNode)->pGetDofOwner())->iFirstIndex;
+			integer iFirstIndex = pNode->pGetDofOwner()->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
-			doublereal dPosStiff = (*ppTmpNode)->dGetPositionStiffness();
-			doublereal dVelStiff = (*ppTmpNode)->dGetVelocityStiffness();
+			doublereal dPosStiff = pNode->dGetPositionStiffness();
+			doublereal dVelStiff = pNode->dGetVelocityStiffness();
 
 			for (int iCnt = 1; iCnt <= 6; iCnt++) {
 				/* Posizione, rotazione */
@@ -1096,13 +1106,13 @@ DataManager::InitialJointAssembly(void)
 				pMatHdl->PutCoef(iTmp, iTmp, dVelStiff);
 			}
 
-			if ((*ppTmpNode)->bOmegaRotates()) {
+			if (pNode->bOmegaRotates()) {
 				/* con questi la velocita' angolare e' solidale con il nodo */
 
 				/* Velocita' angolare - termine di rotazione: R_Delta*w0/\ */
-				Mat3x3 R0 = (*ppTmpNode)->GetRPrev();
-				Mat3x3 R = (*ppTmpNode)->GetRCurr();
-				Vec3 W0 = (*ppTmpNode)->GetWPrev();
+				Mat3x3 R0 = pNode->GetRPrev();
+				Mat3x3 R = pNode->GetRCurr();
+				Vec3 W0 = pNode->GetWPrev();
 				Vec3 TmpVec = R*(R0.Transpose()*(W0*dVelStiff));
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
@@ -1158,9 +1168,10 @@ DataManager::InitialJointAssembly(void)
 		X += *pSolHdl;
 
 		/* Correggo i nodi */
-		for (StructNode** ppTmpNode = ppFirstNode;
-				ppTmpNode < ppFirstNode+iNumNodes; ppTmpNode++) {
-			(*ppTmpNode)->InitialUpdate(X);
+		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		{
+			dynamic_cast<StructNode *>(i->second)->InitialUpdate(X);
 		}
 	}
 
@@ -1181,13 +1192,13 @@ endofcycle:
 			DofOwner::Type CurrDofType = ElemData[iCnt1].DofOwnerType;
 
 			/* Puntatore al primo DofOwner */
-			pTmp = DofData[CurrDofType].pFirstDofOwner;
+			DofOwner *pDO = DofData[CurrDofType].pFirstDofOwner;
 
 			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
 				p != ElemData[iCnt1].ElemMap.end();
 				p++)
 			{
-				pTmp->iNumDofs = p->second->iGetNumDof();
+				pDO->iNumDofs = p->second->iGetNumDof();
 			}
 		}
 	}
@@ -1212,10 +1223,9 @@ DataManager::DofOwnerSet(void)
 	DEBUGCOUTFNAME("DataManager::DofOwnerSet");
 
 	/* Setta i DofOwner dei nodi */
-	Node** ppTmpNode = ppNodes;
-	for (; ppTmpNode < ppNodes+iTotNodes; ppTmpNode++) {
-		DofOwner* pDO = (DofOwner*)(*ppTmpNode)->pGetDofOwner();
-		pDO->iNumDofs = (*ppTmpNode)->iGetNumDof();
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		DofOwner* pDO = const_cast<DofOwner *>((*i)->pGetDofOwner());
+		pDO->iNumDofs = (*i)->iGetNumDof();
 	}
 
 	/* Setta i DofOwner degli elementi (chi li possiede) */
@@ -1248,9 +1258,8 @@ void
 DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 {
 	/* Nodi */
-	for (Node** ppNode = ppNodes; ppNode < ppNodes+iTotNodes; ppNode++) {
-		ASSERT(*ppNode != NULL);
-		(*ppNode)->SetValue(this, X, XP);
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->SetValue(this, X, XP);
 	}
 
 	/* Elementi */
@@ -1520,10 +1529,8 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 	VectorHandler& XPrev,
 	VectorHandler& XPPrev) const
 {
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->BeforePredict(X, XP, XPrev, XPPrev);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 
 	/* Versione con iteratore: */
@@ -1547,10 +1554,8 @@ DataManager::AfterPredict(void) const
 		*i = Converged::NOT_CONVERGED;
 	}
 
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterPredict(*pXCurr, *pXPrimeCurr);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->AfterPredict(*pXCurr, *pXPrimeCurr);
 	}
 
 	Elem* pEl = NULL;
@@ -1564,10 +1569,8 @@ DataManager::AfterPredict(void) const
 void
 DataManager::Update(void) const
 {
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->Update(*pXCurr, *pXPrimeCurr);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->Update(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
@@ -1582,11 +1585,8 @@ DataManager::Update(void) const
 void
 DataManager::AfterConvergence(void) const
 {
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->AfterConvergence(*pXCurr,
-			*pXPrimeCurr);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->AfterConvergence(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */
@@ -1645,10 +1645,8 @@ DataManager::AfterConvergence(void) const
 void
 DataManager::DerivativesUpdate(void) const
 {
-	Node** ppLastNode = ppNodes+iTotNodes;
-	for (Node** ppTmp = ppNodes; ppTmp < ppLastNode; ppTmp++) {
-		ASSERT(*ppTmp != NULL);
-		(*ppTmp)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		(*i)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 	}
 
 	/* Versione con iteratore: */

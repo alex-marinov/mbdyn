@@ -56,8 +56,48 @@ public:
 		AEROD_OUT_MASK		= (AEROD_OUT_STD | AEROD_OUT_PGAUSS | AEROD_OUT_NODE)
 	};
 
+	// output mask
+	enum {
+		OUTPUT_NONE = 0x000U,
+
+		OUTPUT_GP_X = 0x001U,
+		OUTPUT_GP_R = 0x002U,
+		OUTPUT_GP_V = 0x004U,
+		OUTPUT_GP_W = 0x008U,
+		OUTPUT_GP_CONFIGURATION = (OUTPUT_GP_X | OUTPUT_GP_R | OUTPUT_GP_V | OUTPUT_GP_W),
+
+		OUTPUT_GP_F = 0x010U,
+		OUTPUT_GP_M = 0x020U,
+
+		OUTPUT_GP_FORCES = (OUTPUT_GP_F | OUTPUT_GP_M),
+
+		OUTPUT_DEFAULT = (OUTPUT_GP_F | OUTPUT_GP_M),
+
+		OUTPUT_GP_ALL = 0xFFFU
+	};
+
 protected:
 	flag m_eOutput;
+
+	// output flags
+	unsigned uOutputFlags;
+	OrientationDescription od;
+
+#ifdef USE_NETCDF
+	// common to all AEROD_OUT_*, specific for NetCDF output
+	typedef struct {
+		Vec3 X;
+		Mat3x3 R;
+		Vec3 V;
+		Vec3 W;
+		Vec3 F;
+		Vec3 M;
+		NcVar *Var_X, *Var_Phi, *Var_V, *Var_W, *Var_F, *Var_M;
+	} AeroNetCDFOutput;
+
+	std::vector<AeroNetCDFOutput> pNetCDFOutput;
+	std::vector<AeroNetCDFOutput>::iterator pTmpNetCDFOutput;
+#endif /* USE_NETCDF */
 
 	// specific for AEROD_OUT_PGAUSS
 	typedef struct {
@@ -65,18 +105,19 @@ protected:
 		doublereal alpha;
 	} Aero_output;
 
-	/* per output AERO_OUT_PGAUSS */
 	std::vector<Aero_output> pOutput;
 	std::vector<Aero_output>::iterator pTmpOutput;
 
-
 public:
-	AerodynamicOutput(flag f, int iNP);
+	AerodynamicOutput(flag f, int iNP,
+		unsigned uFlags, OrientationDescription ood);
 	~AerodynamicOutput(void);
 
 	void SetOutputFlag(flag f, int iNP);
 	void ResetIterator(void);
-	void SetData(const Vec3& v, const doublereal *pd);
+	void SetData(const Vec3& v, const doublereal* pd,
+		const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W,
+		const Vec3& F, const Vec3& M);
 
 	AerodynamicOutput::eOutput GetOutput(void) const;
 	bool IsOutput(void) const;
@@ -134,6 +175,7 @@ protected:
 	 * viene settato dopo la costruzione
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
+	void Output_int(OutputHandler& OH) const;
 
 public:
 	Aerodynamic2DElem(unsigned int uLabel,
@@ -145,6 +187,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
+		unsigned uFlags, OrientationDescription ood,
 		flag fOut);
 	virtual ~Aerodynamic2DElem(void);
 
@@ -164,6 +207,8 @@ public:
 	virtual void DescribeEq(std::vector<std::string>& desc,
 		bool bInitial = false, int i = -1) const;
 	virtual DofOrder::Order GetDofType(unsigned int) const;
+
+	virtual void OutputPrepare(OutputHandler &OH);
 
 	virtual void SetValue(DataManager *pDM,
 			VectorHandler& X, VectorHandler& XP,
@@ -234,6 +279,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
+		unsigned uFlags, OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBody(void);
 
@@ -340,6 +386,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
+		unsigned uFlags, OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBeam(void);
 
@@ -441,6 +488,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
+		unsigned uFlags, OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBeam2(void);
 
@@ -495,6 +543,14 @@ public:
 
 class DataManager;
 class MBDynParser;
+
+extern void
+ReadAerodynamicCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	unsigned& uFlags, OrientationDescription& od);
+
+extern void
+ReadOptionalAerodynamicCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	unsigned& uFlags, OrientationDescription& od);
 
 extern Elem *
 ReadAerodynamicBody(DataManager* pDM, MBDynParser& HP,

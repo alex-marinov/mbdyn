@@ -57,6 +57,7 @@
 
 #include "thermalnode.h"
 
+#include "aeroelem.h"
 #include "beam.h"
 
 #include "rbk_impl.h"
@@ -147,6 +148,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		"default" "orientation",
 		"default" "beam" "output",
+		"default" "aerodynamic" "output",
 		"default" "scale",
 
 		"read" "solution" "array",
@@ -234,6 +236,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		DEFAULTORIENTATION,
 		DEFAULTBEAMOUTPUT,
+		DEFAULTAERODYNAMICOUTPUT,
 		DEFAULTSCALE,
 
 		READSOLUTIONARRAY,
@@ -257,7 +260,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		/* Numero di nodi strutturali attesi */
 		case STRUCTURALNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::STRUCTURAL].iNum = iDmy;
+			NodeData[Node::STRUCTURAL].iExpectedNum = iDmy;
 			DofData[DofOwner::STRUCTURALNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << std::endl);
 		} break;
@@ -265,7 +268,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		/* Numero di nodi elettrici attesi */
 		case ELECTRICNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::ELECTRIC].iNum = iDmy;
+			NodeData[Node::ELECTRIC].iExpectedNum = iDmy;
 			DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << std::endl);
 		} break;
@@ -273,7 +276,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		/* Numero di nodi termici attesi */
 		case THERMALNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::THERMAL].iNum = iDmy;
+			NodeData[Node::THERMAL].iExpectedNum = iDmy;
 			DofData[DofOwner::THERMALNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Thermal nodes: " << iDmy << std::endl);
 		} break;
@@ -281,7 +284,7 @@ DataManager::ReadControl(MBDynParser& HP,
 		/* Numero di nodi astratti attesi */
 		case ABSTRACTNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::ABSTRACT].iNum = iDmy;
+			NodeData[Node::ABSTRACT].iExpectedNum = iDmy;
 			DofData[DofOwner::ABSTRACTNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << std::endl);
 		} break;
@@ -289,14 +292,14 @@ DataManager::ReadControl(MBDynParser& HP,
 		/* Numero di nodi astratti attesi */
 		case PARAMETERNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::PARAMETER].iNum = iDmy;
+			NodeData[Node::PARAMETER].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Parameter nodes: " << iDmy << std::endl);
  		} break;
 
 		/* Numero di nodi idraulici attesi */
 		case HYDRAULICNODES: {
 			int iDmy = HP.GetInt();
-			NodeData[Node::HYDRAULIC].iNum = iDmy;
+			NodeData[Node::HYDRAULIC].iExpectedNum = iDmy;
 			DofData[DofOwner::HYDRAULICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << std::endl);
 		} break;
@@ -1093,7 +1096,13 @@ EndOfUse:
 			break;
 
 		case DEFAULTBEAMOUTPUT:
-			ReadBeamCustomOutput(this, HP, (unsigned)-1, Beam::VISCOELASTIC, beam_flags, beam_od);
+			ReadBeamCustomOutput(this, HP, unsigned(-1), Beam::VISCOELASTIC,
+				ElemData[Elem::BEAM].uOutputFlags, ElemData[Elem::BEAM].od);
+			break;
+
+		case DEFAULTAERODYNAMICOUTPUT:
+			ReadAerodynamicCustomOutput(this, HP, unsigned(-1),
+				ElemData[Elem::AERODYNAMIC].uOutputFlags, ElemData[Elem::AERODYNAMIC].od);
 			break;
 
 		case DEFAULTSCALE:
@@ -1389,6 +1398,7 @@ EndOfUse:
 		OutHdl.SetNetCDF(OutputHandler::INERTIA);
 		OutHdl.SetNetCDF(OutputHandler::JOINTS);
 		OutHdl.SetNetCDF(OutputHandler::BEAMS);
+		OutHdl.SetNetCDF(OutputHandler::AERODYNAMIC);
 	}
 
 	integer iOutputFrequency = 0;
@@ -1580,7 +1590,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 	/* struttura di servizio che conta i nodi tipo per tipo */
 	int iNumTypes[Node::LASTNODETYPE];
 	for (int i = 0; i < Node::LASTNODETYPE; i++) {
-		iNumTypes[i] = NodeData[i].iNum;
+		iNumTypes[i] = NodeData[i].iExpectedNum;
 	}
 
 	int iMissingNodes = iTotNodes;
@@ -1758,12 +1768,14 @@ DataManager::ReadNodes(MBDynParser& HP)
 				/* lettura dei dati specifici */
 
 				/* allocazione e creazione */
-				int i = NodeData[Node::STRUCTURAL].iNum
+				int i = NodeData[Node::STRUCTURAL].iExpectedNum
 					- iNumTypes[Node::STRUCTURAL] - 1;
-				ppN = NodeData[Node::STRUCTURAL].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner + i;
 
-				*ppN = ReadStructNode(this, HP, pDO, uLabel);
+				Node *pN = ReadStructNode(this, HP, pDO, uLabel);
+				if (pN != 0) {
+					ppN = &NodeData[Node::STRUCTURAL].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
 			} break;
 
 			/* nodi elettrici */
@@ -1792,15 +1804,18 @@ DataManager::ReadNodes(MBDynParser& HP)
 				flag fOut = fReadOutput(HP, Node::ELECTRIC);
 
 				/* allocazione e creazione */
-				int i = NodeData[Node::ELECTRIC].iNum
+				int i = NodeData[Node::ELECTRIC].iExpectedNum
 					- iNumTypes[Node::ELECTRIC] - 1;
-				ppN = NodeData[Node::ELECTRIC].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::ELECTRICNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
-				SAFENEWWITHCONSTRUCTOR(*ppN,
+				Node *pN = 0;
+				SAFENEWWITHCONSTRUCTOR(pN,
 					ElectricNode,
 					ElectricNode(uLabel, pDO, dx, dxp, fOut));
+				if (pN != 0) {
+					ppN = &NodeData[Node::ELECTRIC].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
 
 			} break;
 
@@ -1829,15 +1844,18 @@ DataManager::ReadNodes(MBDynParser& HP)
 				flag fOut = fReadOutput(HP, Node::THERMAL);
 
 				/* allocazione e creazione */
-				int i = NodeData[Node::THERMAL].iNum
+				int i = NodeData[Node::THERMAL].iExpectedNum
 					- iNumTypes[Node::THERMAL] - 1;
-				ppN = NodeData[Node::THERMAL].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::THERMALNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
-				SAFENEWWITHCONSTRUCTOR(*ppN,
+				Node *pN = 0;
+				SAFENEWWITHCONSTRUCTOR(pN,
 					ThermalNode,
 					ThermalNode(uLabel, pDO, dx, dxp, fOut));
+				if (pN != 0) {
+					ppN = &NodeData[Node::THERMAL].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
 
 			} break;
 
@@ -1884,27 +1902,30 @@ DataManager::ReadNodes(MBDynParser& HP)
 				flag fOut = fReadOutput(HP, Node::ABSTRACT);
 
 				/* allocazione e creazione */
-				int i = NodeData[Node::ABSTRACT].iNum
+				int i = NodeData[Node::ABSTRACT].iExpectedNum
 					- iNumTypes[Node::ABSTRACT] - 1;
-				ppN = NodeData[Node::ABSTRACT].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::ABSTRACTNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
+				Node *pN = 0;
 				if (bAlgebraic) {
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						ScalarAlgebraicNode,
 						ScalarAlgebraicNode(uLabel, pDO, dx, fOut));
 
 				} else {
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						ScalarDifferentialNode,
 						ScalarDifferentialNode(uLabel, pDO, dx, dxp, fOut));
 				}
 
+				if (pN != 0) {
+					ppN = &NodeData[Node::ABSTRACT].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
 			} break;
 
 			/* parametri */
-			case PARAMETER:
+			case PARAMETER: {
 				silent_cout("Reading "
 					<< psNodeNames[Node::PARAMETER] << "(" << uLabel << ")"
 					<< std::endl);
@@ -1930,6 +1951,8 @@ DataManager::ReadNodes(MBDynParser& HP)
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
+				Node *pN = 0;
+
 				/* bound a elemento */
 				if (HP.IsKeyWord("element")) {
 					DEBUGLCOUT(MYDEBUG_INPUT,
@@ -1938,11 +1961,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					flag fOut = fReadOutput(HP, Node::PARAMETER);
 
 					/* allocazione e creazione */
-					int i = NodeData[Node::PARAMETER].iNum
-						- iNumTypes[Node::PARAMETER] - 1;
-					ppN = NodeData[Node::PARAMETER].ppFirstNode + i;
-
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						Elem2Param,
 						Elem2Param(uLabel, &DummyDofOwner, fOut));
 
@@ -1972,11 +1991,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					flag fOut = fReadOutput(HP, Node::PARAMETER);
 
 					/* allocazione e creazione */
-					int i = NodeData[Node::PARAMETER].iNum
-						- iNumTypes[Node::PARAMETER] - 1;
-					ppN = NodeData[Node::PARAMETER].ppFirstNode + i;
-
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						SampleAndHold,
 						SampleAndHold(uLabel, &DummyDofOwner,
 							SD.pNode, pDC, dSP, fOut));
@@ -1995,11 +2010,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					flag fOut = fReadOutput(HP, Node::PARAMETER);
 
 					/* allocazione e creazione */
-					int i = NodeData[Node::PARAMETER].iNum
-						- iNumTypes[Node::PARAMETER] - 1;
-					ppN = NodeData[Node::PARAMETER].ppFirstNode + i;
-
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						StrainGageParam,
 						StrainGageParam(uLabel, &DummyDofOwner,
 							dY, dZ, fOut));
@@ -2025,17 +2036,16 @@ DataManager::ReadNodes(MBDynParser& HP)
 					flag fOut = fReadOutput(HP, Node::PARAMETER);
 
 					/* allocazione e creazione */
-					int i = NodeData[Node::PARAMETER].iNum
-						- iNumTypes[Node::PARAMETER] - 1;
-					ppN = NodeData[Node::PARAMETER].ppFirstNode + i;
-
-					SAFENEWWITHCONSTRUCTOR(*ppN,
+					SAFENEWWITHCONSTRUCTOR(pN,
 						ParameterNode,
 						ParameterNode(uLabel, &DummyDofOwner,
 							dX, fOut));
 				}
 
-				break;
+				if (pN != 0) {
+					ppN = &NodeData[Node::PARAMETER].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
+				} break;
 
 			/* nodi idraulici */
 			case HYDRAULIC: {
@@ -2061,16 +2071,19 @@ DataManager::ReadNodes(MBDynParser& HP)
 				flag fOut = fReadOutput(HP, Node::HYDRAULIC);
 
 				/* allocazione e creazione */
-				int i = NodeData[Node::HYDRAULIC].iNum
+				int i = NodeData[Node::HYDRAULIC].iExpectedNum
 					- iNumTypes[Node::HYDRAULIC] - 1;
-				ppN = NodeData[Node::HYDRAULIC].ppFirstNode + i;
 				DofOwner* pDO = DofData[DofOwner::HYDRAULICNODE].pFirstDofOwner + i;
 				pDO->SetScale(dScale);
 
-				SAFENEWWITHCONSTRUCTOR(*ppN,
+				Node *pN = 0;
+				SAFENEWWITHCONSTRUCTOR(pN,
 					PressureNode,
 					PressureNode(uLabel, pDO, dx, fOut));
 
+				if (pN != 0) {
+					ppN = &NodeData[Node::HYDRAULIC].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+				}
 			} break;
 
 
@@ -2142,6 +2155,21 @@ DataManager::ReadNodes(MBDynParser& HP)
 		}
 
 		throw DataManager::ErrMissingNodes(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* count & initialize node array */
+	unsigned iNumNodes = 0;
+	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
+		iNumNodes += NodeData[iCnt].NodeMap.size();
+	}
+	Nodes.resize(iNumNodes);
+	for (int iCnt = 0, iNode = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
+		for (NodeMapType::const_iterator p = NodeData[iCnt].NodeMap.begin();
+			p != NodeData[iCnt].NodeMap.end();
+			p++, iNode++)
+		{
+			Nodes[iNode] = p->second;
+		}
 	}
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << std::endl);

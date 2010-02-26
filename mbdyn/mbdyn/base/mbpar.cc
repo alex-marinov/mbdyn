@@ -109,6 +109,10 @@ MBDynParser::~MBDynParser(void)
 	DestroyCL();
 	DestroySF();
 
+	for (SFType::iterator i = SF.begin(); i != SF.end(); i++) {
+		SAFEDELETE(i->second);
+	}
+
 	for (RFType::iterator i = RF.begin(); i != RF.end(); i++) {
 		SAFEDELETE(i->second);
 	}

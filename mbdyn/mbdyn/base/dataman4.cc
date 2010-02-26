@@ -216,8 +216,8 @@ DataManager::ReadElems(MBDynParser& HP)
 	KeyTable K(HP, sKeyWords);
 
 	/* strutture di conteggio degli elementi letti */
-	for (int i = 0; i < Elem::LASTELEMTYPE; iNumTypes[i] = ElemData[i].iExpectedNum, i++) {
-		NO_OP;
+	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
+		iNumTypes[i] = ElemData[i].iExpectedNum;
 	}
 
 	int iMissingElems = Elems.size();
@@ -225,24 +225,23 @@ DataManager::ReadElems(MBDynParser& HP)
 
 	/* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
 	if (ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum > 0) {
-		StructNode** ppTmpNod = (StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
-		int iTotNod = NodeData[Node::STRUCTURAL].iNum;
-
 		ElemMapType &ElemMap = ElemData[Elem::AUTOMATICSTRUCTURAL].ElemMap;
-		for (StructNode** ppTmp = ppTmpNod; ppTmp < ppTmpNod+iTotNod; ppTmp++) {
-			if ((*ppTmp)->GetStructNodeType() == StructNode::DYNAMIC) {
-				ASSERT(dynamic_cast<DynamicStructNode*>(*ppTmp) != 0);
-
+		for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		{
+			const DynamicStructNode *pN = dynamic_cast<const DynamicStructNode *>(i->second);
+			if (pN != 0) {
 				Elem *pTmpEl = 0;
-				SAFENEWWITHCONSTRUCTOR(pTmpEl, AutomaticStructElem,
-					AutomaticStructElem(dynamic_cast<DynamicStructNode*>(*ppTmp)));
-				ElemMap.insert(ElemMapType::value_type((*ppTmp)->GetLabel(), pTmpEl));
+				SAFENEWWITHCONSTRUCTOR(pTmpEl,
+					AutomaticStructElem,
+					AutomaticStructElem(pN));
+				ElemMap.insert(ElemMapType::value_type(pN->GetLabel(), pTmpEl));
 
 				iMissingElems--;
 				iNumTypes[Elem::AUTOMATICSTRUCTURAL]--;
 				DEBUGLCOUT(MYDEBUG_INPUT,
-					"Initializing automatic structural element linked to node "
-					<< (*ppTmp)->GetLabel() << std::endl);
+					"Initializing automatic structural element linked to StructuralNode("
+					<< pN->GetLabel() << ")" << std::endl);
 			}
 		}
 	}
