@@ -364,9 +364,10 @@ The default behavior is to ignore such requests\footnote{See note above}.
 \begin{verbatim}
     <card> ::= eigenanalysis : <when>
         [ , { output [ full ] matrices
-            | parameter , <param>
             | output sparse matrices
             | output eigenvectors
+            | output geometry
+            | parameter , <param>
             | lower frequency limit, <lower>
             | upper frequency limit, <upper>
             | <method> }
@@ -404,6 +405,11 @@ using the \kw{rigid body kinematics} card
 \item \kw{output eigenvectors} causes the output of the eigenvalues
 	and of the eigenvectors in a \kw{.m} file,
 	intended to be loaded by tools like octave/matlab;
+\item \kw{output geometry} causes the output of the reference
+	configuration of structural nodes, if any,
+	and of the indexes that need to be used in order to extract
+	the perturbation of their position and orientation
+	from the eigenvectors;
 \item \kw{use lapack} performs the eigenanalysis using
 	LAPACK's \kw{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
@@ -495,8 +501,27 @@ only the eigenvectors corresponding to the selected eigenvalues are output;
 \item \texttt{VR}: the left eigenvectors, solution of the problem
 $\plbr{\TT{J}_{(+c)} + \Lambda \TT{J_{(-c)}}}^T\T{V_R}=\T{0}$;
 only the eigenvectors corresponding to the selected eigenvalues are output;
+
+\item \texttt{X0}: a vector containing the reference position
+and orientation of the structural nodes, if any (excluding any dummy node);
+the vector contains, for each node, the three components
+of the reference position and the three components of the Euler vector
+corresponding to the reference orientation; all data is referred
+to the absolute reference frame;
+
+\item \texttt{idx}: a vector containing the reference row index
+of each structural node in the eigenvectors;
 \end{itemize}
 The contents of this file may change across versions.
+
+\paragraph{Example.}
+\begin{verbatim}
+    # to access the "x" component of each node of each eigenvector
+    octave:1> VR(idx + 1, :)
+    # to plot the "y" component of each node of each eigenvector,
+    # with respect to the reference "x" component of the position of the nodes
+    octave:2> plot(X0(1:6:end), VR(idx + 2, :))
+\end{verbatim}
 
 
 

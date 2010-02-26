@@ -137,6 +137,7 @@ The input format is:
         [ , <airfoil_data> ]
         [ , unsteady , { bielawa } ]
         [ , jacobian , { yes | no | <bool> } ]
+        [ , <custom_output> ]
 \end{verbatim}
 where
 \begin{verbatim}
@@ -184,6 +185,20 @@ and
         <c81_label> , <position>
         [ ... ]
 \end{verbatim}
+The \kw{custom\_output} optional data consists in
+\begin{verbatim}
+    <custom_output> ::= custom output , 
+        <custom_output_flag> [ , ... ]
+\end{verbatim}
+The values of \kw{custom\_output\_flag}
+are defined in Section~\ref{sec:CONTROLDATA:DEFAULTAERODYNAMICOUTPUT}.
+
+Flags add up to form the custom output request.
+Flags may not be repeated.
+By default, only forces are output.
+The custom output is only available in NetCDF format;
+see Section~\ref{sec:NetCDF:Elem:Aerodynamic}.
+
 The field \kw{induced\_velocity} tells the element that it is linked to an
 \kw{induced velocity} element.
 This means that the element can get information about the
@@ -277,9 +292,6 @@ the interpolated data can be generated once for all with the utility
 \kw{util/c81merge} once the position of the integration point is known,
 and the \kw{multiple} mode can be used to directly provide
 the interpolated data to the aerodynamic element.
-
-\noindent
-\emph{FIXME: not implemented yet}
 
 The \kw{theodorsen} aerodynamic data uses C81 data from a single profile,
 and superimposes Wagner's approximation of the Theodorsen incompressible
