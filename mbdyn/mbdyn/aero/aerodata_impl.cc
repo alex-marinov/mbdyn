@@ -227,7 +227,7 @@ C81MultipleAeroData::GetForces(int i, const doublereal* W, doublereal* TNG, outa
 	}
 
 	ASSERT(i >= 0);
-	ASSERT(i < i_points);
+	ASSERT(unsigned(i) < data.size());
 
 	return c81_aerod2_u(const_cast<doublereal *>(W), &VAM, TNG, &OUTA,
 		const_cast<c81_data *>(data[curr_data]), unsteadyflag);
