@@ -204,8 +204,10 @@ D. Code:
 	- allow math parser to generate expression tree (bison, ...)
 	- replace math parser symbol table with STL container (DONE)
 	- allow to switch on/off iteration, residual, ... output with meter
-	- NetCDF output of aerodynamic elements
+	- NetCDF output of aerodynamic elements (DONE)
 	- eigenanalysis at different time steps, with output on separate files
+	- merge c81 data: interpolate data sets w/ same AoA/Mach resol. (DONE)
+	- allow multiple/interpolated c81 data in Theodorsen correction
 
 
 
@@ -233,6 +235,7 @@ E. Bugs/missing features:
 	- allow preamble in communications with pairs {string,value}
 	- rework rejected modes handling in modal joint
 	- check initial assembly of "distance" when nodes velocity is not null
+	- check & fix NetCDF library detection
 
 
 
