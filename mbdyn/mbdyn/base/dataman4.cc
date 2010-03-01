@@ -231,11 +231,18 @@ DataManager::ReadElems(MBDynParser& HP)
 		{
 			const DynamicStructNode *pN = dynamic_cast<const DynamicStructNode *>(i->second);
 			if (pN != 0) {
+				// NOTE: could be a modal node
+				if (pN->GetStructNodeType() != StructNode::DYNAMIC) {
+					continue;
+				}
+
 				Elem *pTmpEl = 0;
 				SAFENEWWITHCONSTRUCTOR(pTmpEl,
 					AutomaticStructElem,
 					AutomaticStructElem(pN));
 				ElemMap.insert(ElemMapType::value_type(pN->GetLabel(), pTmpEl));
+
+				ASSERT(iNumTypes[Elem::AUTOMATICSTRUCTURAL] > 0);
 
 				iMissingElems--;
 				iNumTypes[Elem::AUTOMATICSTRUCTURAL]--;
@@ -1064,7 +1071,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 	if (iMissingElems > 0) {
 		DEBUGCERR("");
-		silent_cerr("warning: " << iMissingElems
+		silent_cerr("error: " << iMissingElems
 			<< " elements are missing;" << std::endl);
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (iNumTypes[iCnt] > 0) {
