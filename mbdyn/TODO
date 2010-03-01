@@ -191,7 +191,7 @@ D. Code:
 	  modal variables; constraint that imposes the value of modal vars
 	- add "static" modal element (no dynamics equations)
 	- allow deformable hinge to have optional (useless) "position" spec
-	- output of incremental Euler vector
+	- output of incremental Euler vector (?)
 	- check inertia computed with that from block 12 in modal joint (DONE)
 	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
@@ -208,6 +208,7 @@ D. Code:
 	- eigenanalysis at different time steps, with output on separate files
 	- merge c81 data: interpolate data sets w/ same AoA/Mach resol. (DONE)
 	- allow multiple/interpolated c81 data in Theodorsen correction
+	- allow configurable float, int, bool (string?) & hton in stream I/O
 
 
 
