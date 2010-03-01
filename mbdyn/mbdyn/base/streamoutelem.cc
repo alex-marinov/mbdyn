@@ -170,8 +170,10 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 {
 	switch (type) {
 	case StreamContent::UNKNOWN:
-	case StreamContent::VALUES:
 		type = StreamContent::VALUES;
+		// fallthru
+
+	case StreamContent::VALUES:
 		if (HP.IsKeyWord("motion")) {
 			type = StreamContent::MOTION;
 

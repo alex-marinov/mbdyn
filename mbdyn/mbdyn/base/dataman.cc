@@ -794,11 +794,10 @@ void DataManager::MakeRestart(void)
 
 	/* Dati degli elementi */
 	OutHdl.Restart() << "begin: elements;" << std::endl;
-	for (ElemVecType::const_iterator pTmpEl = Elems.begin();
-		pTmpEl != Elems.end();
-		pTmpEl++)
+	for (ElemVecType::const_iterator p = Elems.begin();
+		p != Elems.end(); p++)
 	{
-		(*pTmpEl)->Restart(OutHdl.Restart());
+		(*p)->Restart(OutHdl.Restart());
 	}
 
 	for (NodeMapType::const_iterator i = NodeData[Node::PARAMETER].NodeMap.begin();
