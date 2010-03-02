@@ -17,11 +17,15 @@ MBDyn 1.X-Devel
 		- added NetCDF support to aerodynamic body & beam2/3
 		- added c81 data interpolation
 		- added reference configuration & indexes to eig output
+		- added extra info to inertia private data (Mattia Mattaboni)
 	Backward compatibility issues:
 		- TypedValue no longer inherits const'ness in assignments
 	Known issues:
 	Bug fixes:
 		- fixed type detection in GiNaC constitutive law
+
+	The features introduced in this release were partially sponsored
+	by REpower Systems AG
 
 MBDyn 1.3.12
 	Enhancements:
