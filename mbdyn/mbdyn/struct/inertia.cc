@@ -143,6 +143,14 @@ Inertia::Output_int(std::ostream& out) const
 		<< "    Rp:          " << R_princ << std::endl
 		<< "    Thetap:      " << RotManip::VecRot(R_princ) << std::endl
 		<< "    Jp:          " << J_princ << std::endl;
+
+	//printf("\n\nmassa %1.16e\n",dMass);
+	//Vec3 tmp = R0.MulTV(X_cm-X0);
+	//printf("xcg %1.16e %1.16e %1.16e\n", tmp(1), tmp(2), tmp(3) );
+	//printf("RR %1.16e %1.16e %1.16e\n", R_princ(1,1), R_princ(1,2), R_princ(1,3) );
+	//printf("RR %1.16e %1.16e %1.16e\n", R_princ(2,1), R_princ(2,2), R_princ(2,3) );
+	//printf("RR %1.16e %1.16e %1.16e\n", R_princ(3,1), R_princ(3,2), R_princ(3,3) );
+	//printf("JJ %1.16e %1.16e %1.16e\n\n\n", J_princ(1), J_princ(2), J_princ(3) );
 	return out;
 }
 
@@ -337,6 +345,9 @@ Inertia::iGetNumPrivData(void) const
 			+3		// Phi[1-3]
 			+3		// V[1-3]
 			+3		// Omega[1-3]
+			+3		// principal inertia moments
+			+3*3		// inertia tensor
+			+1		// mass
 		;
 }
 
@@ -369,6 +380,21 @@ Inertia::iGetPrivDataIdx(const char *s) const
 		idx = 9;
 		break;
 
+	case 'J':
+		if (s[1] == 'P') {
+			s++;
+			idx = 12;
+			break;
+		}
+		idx = 15;
+		break;
+
+	case 'm':
+		if (s[1] != '\0') {
+			return 0;
+		}
+		return 25;
+
 	default:
 		return 0;
 	}
@@ -384,39 +410,76 @@ Inertia::iGetPrivDataIdx(const char *s) const
 	case '2':
 	case '3':
 		idx += s[0] - '0';
+		s++;
+		if (idx > 15) {
+			if (s[0] != ',') {
+				return 0;
+			}
+			s++;
+			switch (s[0]) {
+			case '1':
+			case '2':
+			case '3':
+				break;
+
+			default:
+				return 0;
+			}
+			idx += 3*(s[0] - '1');
+			s++;
+		}
 		break;
 
 	default:
 		return 0;
 	}
 
-	s++;
+	//s++;
 	if (strcmp(s, "]") != 0) {
 		return 0;
 	}
-
 	return idx;
 }
 
 doublereal
 Inertia::dGetPrivData(unsigned int i) const
 {
+
 	unsigned int what = (i - 1)/3;
 	unsigned int which = (i - 1)%3 + 1;
 
 	switch (what) {
 	case 0:
+		// center of mass position
 		return X_cm(which);
 
 	case 1:
+		// principal inertia axes Euler vector components
 		return 0.;
 
 	case 2:
+		// center of mass velocity
 		return V_cm(which);
 
 	case 3:
+		// angular velocity
 		return Omega_cm(which);
+
+	case 4:
+		// principal inertia moments
+		return J_princ(which);
 	}
+
+	// mass
+	if (i == 25) {
+		return dMass;
+	}
+
+	// inertia tensor
+	int ir = (i - 15 - 1)%3 + 1;
+	int ic = (i - 15 - 1)/3 + 1;
+	
+	return J0(ir, ic);
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
