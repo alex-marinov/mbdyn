@@ -42,7 +42,7 @@ D. Code:
 		(see contrib/SimulinkInterface/; need an implicit extension).
 	- remove node/element type listing from "control data" block;
 	  use STL containers to keep track of model components
-	  (partially DONE for elements)
+	  (partially DONE for elements & nodes)
 	- implement contacts with non-flat surfaces
 	- implement "smart" structural nodes, so that static/dynamic
 		is detected
