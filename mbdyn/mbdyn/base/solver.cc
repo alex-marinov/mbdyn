@@ -273,11 +273,6 @@ HP(HPar),
 pStrategyChangeDrive(NULL),
 EigAn(),
 pRTSolver(0),
-#ifdef __HACK_POD__
-bPOD(0),
-iPODStep(0),
-iPODFrames(0),
-#endif /*__HACK_POD__*/
 iNumPreviousVectors(2),
 iUnkStates(1),
 pdWorkSpace(NULL),
@@ -701,39 +696,6 @@ Solver::Run(void)
 	}
 	pX->Reset();
 	pXPrime->Reset();
-
-#ifdef __HACK_POD__
-	std::ofstream PodOut;
-	if (bPOD) {
-		char *PODFileName = NULL;
-
-		if (sOutputFileName == NULL) {
-			SAFESTRDUP(PODFileName, "MBDyn.POD");
-
-		} else {
-			size_t l = strlen(sOutputFileName);
-			SAFENEWARR(PODFileName, char, l + STRLENOF(".POD") + 1);
-
-			memcpy(PODFileName, sOutputFileName, l);
-			memcpy(PODFileName+l, ".POD", STRLENOF(".POD") + 1);
-		}
-
-		PodOut.open(PODFileName);
-		if (!PodOut) {
-			silent_cerr("unable to open file \"" << PODFileName
-				<< "\"" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		SAFEDELETEARR(PODFileName);
-
-#ifdef __HACK_POD_BINARY__
-		/* matrix size is coded at the beginning */
-		PodOut.write((char *)&(pod.iFrames), sizeof(unsigned long));
-		PodOut.write((char *)&iNumDofs, sizeof(unsigned long));
-#endif /* __HACK_POD_BINARY__ */
-	}
-#endif /* __HACK_POD__ */
-
 
    	/*
 	 * Immediately link DataManager to current solution
@@ -1579,30 +1541,6 @@ IfStepIsToBeRepeated:
       		dTime += dRefTimeStep;
 
 		bSolConv = false;
-
-#ifdef __HACK_POD__
-		if (bPOD && dTime >= pod.dTime) {
-			if (++iPODStep == pod.iSteps) {
-				/* output degli stati su di una riga */
-#ifdef __HACK_POD_BINARY__
-	       			PodOut.write((char *)&pX, iNumDofs*sizeof(doublereal));
-	       			PodOut.write((char *)&pXPrime, iNumDofs*sizeof(doublereal));
-#else /* !__HACK_POD_BINARY__ */
-				PodOut << pX->dGetCoef(1);
-				for (integer j = 1; j < iNumDofs; j++) {
-					PodOut << "  " << pX->dGetCoef(j+1);
-                       		}
-                       		PodOut << std::endl;
-#endif /* ! __HACK_POD_BINARY__ */
-			}
-                     	iPODFrames++;
-                      	iPODStep = 0;
-		}
-
-		if (iPODFrames >= pod.iFrames){
-			bPOD = false;
-		}
-#endif /*__HACK_POD__ */
 
       		if (EigAn.bAnalysis
 			&& EigAn.OneAnalysis.dTime <= dTime
@@ -2966,33 +2904,12 @@ Solver::ReadData(MBDynParser& HP)
 		}
 
 		case POD:
-#ifdef __HACK_POD__
-			pod.dTime = HP.GetReal();
-
-			pod.iSteps = 1;
-			if (HP.IsArg()) {
-				pod.iSteps = HP.GetInt();
-			}
-
-			pod.iFrames = (unsigned int)(-1);
-			if (HP.IsArg()) {
-				pod.iFrames = HP.GetInt();
-			}
-
-			bPOD = true;
-			DEBUGLCOUT(MYDEBUG_INPUT, "POD analysis will be "
-					"performed since time " << pod.dTime
-					<< " for " << pod.iFrames
-					<< " frames  every " << pod.iSteps
-					<< " steps" << std::endl);
-#else/* !__HACK_POD__ */
 			silent_cerr("line " << HP.GetLineData()
 				<< ": POD analysis not supported (ignored)"
 				<< std::endl);
 			for (; HP.IsArg();) {
 				(void)HP.GetReal();
 			}
-#endif /* !__HACK_POD__ */
 			break;
 
 		case EIGENANALYSIS:

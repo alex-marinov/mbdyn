@@ -218,19 +218,6 @@ protected:
 
 	RTSolverBase *pRTSolver;
 
-#ifdef __HACK_POD__
-       struct PODData {
-               doublereal dTime;
-               unsigned int iSteps;
-               unsigned int iFrames;
-	       PODData(void) : dTime(0.), iSteps(0), iFrames(0) {};
-       } pod;
-
-       bool bPOD;
-       unsigned int iPODStep;
-       unsigned int iPODFrames;
-#endif /*__HACK_POD__*/
-
    	/* Strutture di gestione dei dati */
 	integer iNumPreviousVectors;
 	integer iUnkStates;
