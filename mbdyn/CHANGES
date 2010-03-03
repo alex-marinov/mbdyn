@@ -9,10 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.3.13
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
-		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- math symbol table reworked with STL
 		- added "direct" drive caller
 		- added NetCDF support to aerodynamic body & beam2/3
