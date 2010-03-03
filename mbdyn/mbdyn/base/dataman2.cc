@@ -298,10 +298,8 @@ DataManager::DofOwnerInit(void)
 				<< "(" << (*i)->GetLabel() << ")"
 				<< std::endl);
 
-		unsigned int iNumDof;
-
 		/* chiede al nodo quanti dof possiede */
-		iNumDof = (*i)->iGetNumDof();
+		unsigned int iNumDof = (*i)->iGetNumDof();
 		if (iNumDof > 0) {
 			ASSERT((*i)->iGetFirstIndex() >= 0);
 
@@ -399,10 +397,8 @@ DataManager::DofOwnerInit(void)
 					<< " (" << psElemNames[pEl->GetElemType()]
 					<< "(" << pEl->GetLabel() << "))" << std::endl);
 
-			unsigned int iNumDof;
-
 			/* chiede all'elemento quanti dof possiede */
-			iNumDof = pEl->iGetNumDof();
+			unsigned int iNumDof = pEl->iGetNumDof();
 			if (iNumDof > 0) {
 				ElemWithDofs* pEWD = CastElemWithDofs(pEl);
 
