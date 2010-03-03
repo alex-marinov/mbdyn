@@ -115,7 +115,9 @@ nodist_libstruct_la_SOURCES =
 if MBDYN_DEVEL
 nodist_libstruct_la_SOURCES += \
 screwjoint.h \
-screwjoint.cc
+screwjoint.cc \
+shell.cc \
+shell.h
 endif
 
 libstruct_la_LIBADD = @LIBS@

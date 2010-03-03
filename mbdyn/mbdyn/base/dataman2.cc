@@ -301,7 +301,10 @@ DataManager::DofOwnerInit(void)
 		unsigned int iNumDof;
 
 		/* chiede al nodo quanti dof possiede */
-		if ((iNumDof = (*i)->iGetNumDof()) > 0) {
+		iNumDof = (*i)->iGetNumDof();
+		if (iNumDof > 0) {
+			ASSERT((*i)->iGetFirstIndex() >= 0);
+
 			/* si fa passare il primo Dof */
 			Dof* pDf = pDofs + (*i)->iGetFirstIndex();
 
@@ -399,8 +402,11 @@ DataManager::DofOwnerInit(void)
 			unsigned int iNumDof;
 
 			/* chiede all'elemento quanti dof possiede */
-			if ((iNumDof = pEl->iGetNumDof()) > 0) {
+			iNumDof = pEl->iGetNumDof();
+			if (iNumDof > 0) {
 				ElemWithDofs* pEWD = CastElemWithDofs(pEl);
+
+				ASSERT(pEWD->iGetFirstIndex() >= 0);
 
 				/* si fa passare il DofOwner */
 				Dof* pDf = pDofs + pEWD->iGetFirstIndex();

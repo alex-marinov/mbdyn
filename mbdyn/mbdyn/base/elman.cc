@@ -65,6 +65,7 @@ DataManager::ElemManager(void)
 
 	/* Add dof type */
 	ElemData[Elem::JOINT].DofOwnerType = DofOwner::JOINT;
+	ElemData[Elem::PLATE].DofOwnerType = DofOwner::PLATE;
 	ElemData[Elem::ELECTRIC].DofOwnerType = DofOwner::ELECTRIC;
 	ElemData[Elem::THERMAL].DofOwnerType = DofOwner::THERMAL;
 	ElemData[Elem::ELECTRICBULK].DofOwnerType = DofOwner::ELECTRICBULK;
@@ -92,6 +93,10 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BEAM].Desc = "Beam";
 	ElemData[Elem::BEAM].ShortDesc = "beam";
 	ElemData[Elem::BEAM].uOutputFlags = Beam::OUTPUT_DEFAULT;
+
+	ElemData[Elem::PLATE].OutFile = OutputHandler::BEAMS;
+	ElemData[Elem::PLATE].Desc = "Plate";
+	ElemData[Elem::PLATE].ShortDesc = "Plate";
 
 	ElemData[Elem::INDUCEDVELOCITY].OutFile = OutputHandler::ROTORS;
 	ElemData[Elem::INDUCEDVELOCITY].Desc = "InducedVelocity";
@@ -134,7 +139,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::GENEL].iDerivation = ELEM | DOFOWNER;
 	ElemData[Elem::FORCE].iDerivation = ELEM | INITIALASSEMBLY;
 	ElemData[Elem::BEAM].iDerivation = ELEM | GRAVITYOWNER | INITIALASSEMBLY;
-	ElemData[Elem::PLATE].iDerivation = ELEM | INITIALASSEMBLY;
+	ElemData[Elem::PLATE].iDerivation = ELEM | GRAVITYOWNER | DOFOWNER | INITIALASSEMBLY;
 	ElemData[Elem::AIRPROPERTIES].iDerivation = ELEM | INITIALASSEMBLY;
 	ElemData[Elem::INDUCEDVELOCITY].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
 	ElemData[Elem::AEROMODAL].iDerivation = ELEM | DOFOWNER | AIRPROPOWNER;
@@ -155,12 +160,16 @@ DataManager::ElemManager(void)
 	ElemData[Elem::JOINT].ToBeUsedInAssembly(true);
 	ElemData[Elem::JOINT_REGULARIZATION].ToBeUsedInAssembly(true);
 	ElemData[Elem::BEAM].ToBeUsedInAssembly(true);
+#if 0
+	ElemData[Elem::PLATE].ToBeUsedInAssembly(true);
+#endif
 
 	/* Aggiungere qui se un tipo genera forze d'inerzia e quindi
 	 * deve essere collegato all'elemento accelerazione di gravita' */
 	ElemData[Elem::BODY].GeneratesInertiaForces(true);
 	ElemData[Elem::JOINT].GeneratesInertiaForces(true);
 	ElemData[Elem::LOADABLE].GeneratesInertiaForces(true);
+	ElemData[Elem::PLATE].GeneratesInertiaForces(true);
 
 	/* Aggiungere qui se un tipo usa le proprieta' dell'aria e quindi
 	 * deve essere collegato all'elemento proprieta' dell'aria */

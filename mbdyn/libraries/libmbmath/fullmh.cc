@@ -126,6 +126,44 @@ ppdCols(NULL), ppdColsm1(NULL), m_end(*this, true)
 	NO_OP;
 }
 
+/* costruttore di copia */
+FullMatrixHandler::FullMatrixHandler(const FullMatrixHandler& MH)
+: bOwnsMemory(true),
+iNumRows(0), iNumCols(0), iRawSize(0), iMaxCols(0),
+pdRaw(NULL), pdRawm1(NULL),
+ppdCols(NULL), ppdColsm1(NULL), m_end(*this, true)
+{
+	if (MH.pdRaw != 0) {
+		Resize(MH.iNumRows, MH.iNumCols);
+
+		for (integer i = 0; i < iNumRows*iNumCols; i++) {
+			pdRaw[i] = MH.pdRaw[i];
+		}
+	}
+}
+
+/* Overload di = usato per l'assemblaggio delle matrici */
+FullMatrixHandler&
+FullMatrixHandler::operator = (const FullMatrixHandler& MH)
+{
+	if (pdRaw == 0) {
+		Resize(MH.iNumRows, MH.iNumCols);
+
+	} else if (iNumRows != MH.iNumRows || iNumCols != MH.iNumCols) {
+		silent_cerr("FullMatrixHandler::operator = (const FullMatrixHandler&): "
+			"incompatible size (" << iNumRows << ", " << iNumCols << ") "
+			" <> (" << MH.iNumRows << ", " << MH.iNumCols << ")"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer i = 0; i < iNumRows*iNumCols; i++) {
+		pdRaw[i] = MH.pdRaw[i];
+	}
+
+	return *this;
+}
+
 
 FullMatrixHandler::~FullMatrixHandler(void)
 {
@@ -335,6 +373,33 @@ operator << (std::ostream& out, const FullMatrixHandler& m)
 	return out;
 }
 
+extern std::ostream&
+Write(std::ostream& out,
+	const FullMatrixHandler& m,
+	const char* s, 
+	const char* s2)
+{
+#ifdef HAVE_FMTFLAGS_IN_IOS
+	std::ios::fmtflags oldbits = out.setf(std::ios::scientific);
+#else /* !HAVE_FMTFLAGS_IN_IOS */
+	long oldbits = out.setf(ios::scientific);
+#endif /* !HAVE_FMTFLAGS_IN_IOS */
+
+	if (s2 == NULL) {
+		s2 = s;
+	}
+
+	for (int i = 1; i <= m.iNumRows; i++) {
+		for (int j = 1; j <= m.iNumCols; j++) {
+			out << std::setw(20) << std::setprecision(12)
+				<< m.ppdColsm1[j][i] << s;
+		}
+		out << s2;
+	}
+
+	out.flags(oldbits);
+	return out;
+}
 
 /* Overload di += usato per l'assemblaggio delle matrici */
 MatrixHandler&

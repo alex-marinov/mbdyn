@@ -32,10 +32,10 @@
 /* solution manager */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <string.h>	/* for memset() */
+#include <cstring>	/* for memset() */
 
 #include <iostream>
 #include <iomanip>
@@ -99,7 +99,7 @@ MatrixHandler&
 MatrixHandler::ScalarMul(const doublereal& d)
 {
 	for (integer i = 1; i <= iGetNumRows(); i++) {
-		for (integer j = 0; j <= iGetNumCols(); j++) {
+		for (integer j = 1; j <= iGetNumCols(); j++) {
 			this->operator()(i, j) *= d;
 		}
 	}
@@ -206,13 +206,17 @@ MatrixHandler::MatTMatDecMul(MatrixHandler& out, const MatrixHandler& in) const
 
 /* Matrix Vector product */
 VectorHandler&
-MatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
-			const doublereal& dCoef),
-		VectorHandler& out, const VectorHandler& in) const
+MatrixHandler::MatVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumRows()
 			|| in.iGetSize() != iGetNumCols())
 	{
+		silent_cerr("MatrixHandler::MatVecMul_base(): "
+			"size mismatch (" << out.iGetSize() << ", 1) "
+			"= (" << iGetNumRows() << ", " << iGetNumCols() << ") "
+			"* (" << in.iGetSize() << ", 1)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -230,13 +234,17 @@ MatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 }
 
 VectorHandler&
-MatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
-			const doublereal& dCoef),
-		VectorHandler& out, const VectorHandler& in) const
+MatrixHandler::MatTVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
 {
 	if (out.iGetSize() != iGetNumCols()
 			|| in.iGetSize() != iGetNumRows())
 	{
+		silent_cerr("MatrixHandler::MatVecMul_base(): "
+			"size mismatch (" << out.iGetSize() << ", 1) "
+			"= (" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
+			"* (" << in.iGetSize() << ", 1)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

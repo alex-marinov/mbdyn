@@ -89,6 +89,10 @@
 
 #include "stroutput.h"
 
+#ifdef MBDYN_DEVEL
+#include "shell.h"
+#endif // MBDYN_DEVEL
+
 static int iNumTypes[Elem::LASTELEMTYPE];
 
 /* enum delle parole chiave */
@@ -107,6 +111,8 @@ enum KeyWords {
 	BEAM,		/* same as BEAM3 */
 	BEAM2,
 	HBEAM,
+
+	SHELL4,
 
 	AIRPROPERTIES,
 	GUST,
@@ -170,6 +176,8 @@ DataManager::ReadElems(MBDynParser& HP)
 		"beam",
 		"beam2",
 		"hbeam",
+
+		"shell4",
 
 		"air" "properties",
 		"gust",
@@ -283,6 +291,12 @@ DataManager::ReadElems(MBDynParser& HP)
 			case HBEAM: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "beams" << std::endl);
 				Typ = Elem::BEAM;
+				break;
+			}
+
+			case SHELL4: {
+				DEBUGLCOUT(MYDEBUG_INPUT, "shells" << std::endl);
+				Typ = Elem::PLATE;
 				break;
 			}
 
@@ -465,7 +479,11 @@ DataManager::ReadElems(MBDynParser& HP)
 				case HBEAM:
 					t = Elem::BEAM;
 					break;
-	
+
+				case SHELL4:
+					t = Elem::PLATE;
+					break;
+
 				case INDUCEDVELOCITY:
 				case ROTOR:
 					t = Elem::INDUCEDVELOCITY;
@@ -730,6 +748,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case BEAM3:			/* same as BEAM */
 					case BEAM2:
 					case HBEAM:
+					case SHELL4:
 
 					case INDUCEDVELOCITY:
 					case ROTOR:
@@ -808,6 +827,10 @@ DataManager::ReadElems(MBDynParser& HP)
 						case BEAM2:
 						case HBEAM:
 							ppE = ppFindElem(Elem::BEAM, uLabel);
+							break;
+
+						case SHELL4:
+							ppE = ppFindElem(Elem::PLATE, uLabel);
 							break;
 
 						case INDUCEDVELOCITY:
@@ -937,6 +960,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BEAM3:		/* same as BEAM */
 				case BEAM2:
 				case HBEAM:
+				case SHELL4:
 
 				case GUST:
 				case INDUCEDVELOCITY:
@@ -1383,6 +1407,55 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		if (pE != 0) {
 			ppE = &ElemData[Elem::BEAM].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+		}
+
+		break;
+	}
+
+	/* shell */
+	case SHELL4: {
+		silent_cout("Reading Shell4(" << uLabel << ")" << std::endl);
+
+		if (iNumTypes[Elem::PLATE]-- <= 0) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData() << ": "
+				"Shell4(" << uLabel << ") "
+				"exceeds shell elements number" << std::endl);
+
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		/* verifica che non sia gia' definito */
+		if (pFindElem(Elem::PLATE, uLabel) != NULL) {
+			DEBUGCERR("");
+			silent_cerr("line " << HP.GetLineData() << ": "
+				"Shell4(" << uLabel << ") "
+				"already defined" << std::endl);
+
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		/* allocazione e creazione */
+		int i = ElemData[Elem::PLATE].iExpectedNum
+			- iNumTypes[Elem::PLATE] - 1;
+		DofOwner* pDO = DofData[DofOwner::PLATE].pFirstDofOwner + i;
+
+		/* allocazione e creazione */
+		switch (KeyWords(CurrType)) {
+		case SHELL4:
+#ifdef MBDYN_DEVEL
+			pE = ReadShell4(this, HP, pDO, uLabel);
+			break;
+#else // MBDYN_DEVEL
+			silent_cerr("Shell4: not distributed yet" << std::endl);
+#endif // MBDYN_DEVEL
+
+		default:
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (pE != 0) {
+			ppE = &ElemData[Elem::PLATE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
 
 		break;

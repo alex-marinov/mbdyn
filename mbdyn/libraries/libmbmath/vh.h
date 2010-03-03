@@ -157,7 +157,8 @@ protected:
 
 	doublereal* pdVecm1;
 
-private:
+public:	// needed by Shell4 :(
+// private:
 	MyVectorHandler(const MyVectorHandler&);
 
 public:

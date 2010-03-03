@@ -468,6 +468,7 @@ const char* psDofOwnerNames[] = {
    "Hydraulic Node",
    
    "Joint Element",
+   "Plate Element",
    "GENEL Element",
    "Induced Velocity Element",
    "Aerodynamic Element",

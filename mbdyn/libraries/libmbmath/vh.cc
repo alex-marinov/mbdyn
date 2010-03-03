@@ -32,7 +32,7 @@
 /* solution manager */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <string.h>	/* for memset() */
@@ -314,6 +314,26 @@ iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
 #ifdef DEBUG
 		IsValid();
 #endif /* DEBUG */
+	}
+}
+
+MyVectorHandler::MyVectorHandler(const MyVectorHandler& VH)
+: bOwnsMemory(false),
+iMaxSize(VH.iCurSize), iCurSize(VH.iCurSize), pdVecm1(0)
+{
+	if (iCurSize == 0) {
+		ASSERT(VH.pdVecm1 == 0);
+
+	} else {
+		bOwnsMemory = true;
+		Resize(iCurSize);
+#ifdef DEBUG
+		IsValid();
+#endif /* DEBUG */
+
+		for (integer i = 1; i <= iCurSize; i++) {
+			pdVecm1[i] = VH.pdVecm1[i];
+		}
 	}
 }
 

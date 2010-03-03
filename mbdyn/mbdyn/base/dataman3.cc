@@ -375,6 +375,17 @@ DataManager::ReadControl(MBDynParser& HP,
 			}
 		} break;
 
+		/* Numero di piastre attese */
+		case PLATES: {
+			int iDmy = HP.GetInt();
+			ElemData[Elem::PLATE].iExpectedNum = iDmy;
+			DofData[DofOwner::PLATE].iNum = iDmy;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Plates: " << iDmy << std::endl);
+			if (iDmy > 0 ) {
+				bInitialJointAssemblyToBeDone = true;
+			}
+		} break;
+
 		/* Elementi aerodinamici: proprieta' dell'aria */
 		case AIRPROPERTIES: {
 			if (ElemData[Elem::AIRPROPERTIES].iExpectedNum > 0) {
@@ -604,6 +615,14 @@ DataManager::ReadControl(MBDynParser& HP,
 #endif /* 0 */
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						"Beams are used by default "
+						"in initial joint assembly"
+						<< std::endl);
+					break;
+
+				case PLATES:
+					ElemData[Elem::PLATE].ToBeUsedInAssembly(true);
+					DEBUGLCOUT(MYDEBUG_INPUT,
+						"Plates will be used "
 						"in initial joint assembly"
 						<< std::endl);
 					break;

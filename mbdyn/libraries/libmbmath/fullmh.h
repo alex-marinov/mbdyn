@@ -42,12 +42,18 @@
 class FullMatrixHandler : public MatrixHandler {
 	friend std::ostream&
 	operator << (std::ostream& out, const FullMatrixHandler& m);
+	friend std::ostream& Write(std::ostream& out,
+		const FullMatrixHandler& m,
+		const char* s, const char* s2);
 	friend class FullSubMatrixHandler;
 	friend class SparseSubMatrixHandler;
 
-private:
-	// don't allow copy constructor!
+public:
+	// allow copy constructor!
 	FullMatrixHandler(const FullMatrixHandler&);
+	FullMatrixHandler& operator = (const FullMatrixHandler&);
+
+private:
 
 protected:
 	bool bOwnsMemory;
@@ -210,8 +216,10 @@ public:
 	operator () (integer iRow, integer iCol) {
 #ifdef DEBUG
 		IsValid();
-		ASSERT(iRow > 0 && iRow <= iNumRows);
-		ASSERT(iCol > 0 && iCol <= iNumCols);
+		ASSERT(iRow > 0);
+		ASSERT(iRow <= iNumRows);
+		ASSERT(iCol > 0);
+		ASSERT(iCol <= iNumCols);
 #endif /* DEBUG */
 
 		return ppdColsm1[iCol][iRow];
@@ -221,8 +229,10 @@ public:
 	operator () (integer iRow, integer iCol) const {
 #ifdef DEBUG
 		IsValid();
-		ASSERT(iRow > 0 && iRow <= iNumRows);
-		ASSERT(iCol > 0 && iCol <= iNumCols);
+		ASSERT(iRow > 0);
+		ASSERT(iRow <= iNumRows);
+		ASSERT(iCol > 0);
+		ASSERT(iCol <= iNumCols);
 #endif /* DEBUG */
 
 		return ppdColsm1[iCol][iRow];
@@ -255,6 +265,11 @@ public:
 
 extern std::ostream&
 operator << (std::ostream& out, const FullMatrixHandler& m);
+
+extern std::ostream& Write(std::ostream& out,
+	const FullMatrixHandler& m,
+	const char* s = " ", 
+	const char* s2 = NULL);
 
 /* FullMatrixHandler - end */
 

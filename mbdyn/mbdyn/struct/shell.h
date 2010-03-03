@@ -3,10 +3,10 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2010
+ * Copyright (C) 2010
  *
- * Pierangelo Masarati	<masarati@aero.polimi.it>
- * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ * Marco Morandini	<morandini@aero.polimi.it>
+ * Riccardo Vescovini	<vescovini@aero.polimi.it>
  *
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  * via La Masa, 34 - 20156 Milano, Italy
@@ -30,10 +30,6 @@
  */
 
 /*
- * Authors: Pierangelo Masarati, Marco Morandini, Riccardo Vescovini
- */
-
-/*
  * Inspired by
  * Wojciech Witkowski
  * "4-Node combined shell element with semi-EAS-ANS strain interpolations
@@ -52,6 +48,10 @@
 
 #include "constltp.h"
 
+/* da spostare in .cc */
+#include "Rot.hh"
+#include "joint.h"
+
 extern const char* psShellNames[];
 
 // Forward declaration
@@ -60,9 +60,11 @@ class MBDynParser;
 
 // Shell - begin
 
+
 class Shell
 : virtual public Elem,
-// public ElemGravityOwner,
+public ElemGravityOwner,
+public ElemWithDofs, 
 public InitialAssemblyElem
 {
 public:
@@ -75,7 +77,7 @@ public:
 		LASTSHELLTYPE
 	};
 
-	Shell(unsigned uLabel, flag fOut);
+	Shell(unsigned uLabel, const DofOwner* pDO, flag fOut);
 	virtual ~Shell(void);
 };
 
@@ -104,7 +106,7 @@ protected:
 	static unsigned int iGetPrivDataIdx_int(const char *s,
 		ConstLawType::Type type);
 #endif
-
+private:
 public:
 	// numbered according to
 	//
@@ -123,6 +125,8 @@ public:
 
 		NUMIP = 4
 	};
+	
+	static doublereal xi_i[NUMIP][2];
 
 	// numbered according to the side they are defined on
 	enum ShearStrainEvaluationPoint {
@@ -134,6 +138,8 @@ public:
 		NUMSSEP = 4
 	};
 
+	static doublereal xi_A[NUMSSEP][2];
+
 	enum NodeName {
 		NODE1 = 0,
 		NODE2 = 1,
@@ -142,6 +148,10 @@ public:
 
 		NUMNODES = 4
 	};
+
+	static doublereal xi_n[NUMNODES][2];
+	
+	static doublereal xi_0[2];
 
 	enum Deformations {
 		STRAIN = 0,
@@ -160,22 +170,65 @@ protected:
 	Vec3 fRef[NUMNODES];
 #endif
 
-	const Mat3x3 RNode[NUMNODES];
+	// nodal positions (0: initial; otherwise current)
+	Vec3 xa_0[NUMNODES];
+	Vec3 xa[NUMNODES];
+	// current nodal orientation
+	Mat3x3 Ta[NUMNODES];
+	// current nodal orientation with respect to T_overline (for interp.)
+	Mat3x3 Ra[NUMNODES];
+	// Euler vector of Ra
+	Vec3 phia[NUMNODES];
 
-	// Orientation matrix of the integration points
-	Mat3x3 R[NUMIP];
-	Mat3x3 RRef[NUMIP];
-	Mat3x3 RPrev[NUMIP];
+	// Average orientation matrix
+	Vec3 phi_tilde_i[NUMIP];
+	Vec3 phi_tilde_A[NUMSSEP];
+	Vec3 phi_tilde_0;
+	// Average orientation matrix 
+	//    .. in reference configuration
+	Mat3x3 T0_overline;
+	//    .. in current configuration
+	Mat3x3 T_overline;
+	
+	// Orientation matrix 
+	//    .. in reference configuration
+	Mat3x3 T_0_0;
+	Mat3x3 T_0_i[NUMIP];
+	Mat3x3 T_0_A[NUMSSEP];
+	//    .. in current configuration
+	Mat3x3 T_0;
+	Mat3x3 T_i[NUMIP];
+	Mat3x3 T_A[NUMSSEP];
 
-	// Orientation matrix of the shear strain evaluation points
-	Mat3x3 R[NUMSSEP];
-	Mat3x3 RRef[NUMSSEP];
-	Mat3x3 RPrev[NUMSSEP];
+// 	// Orientation matrix of the shear strain evaluation points
+// 	Mat3x3 R[NUMSSEP];
+// 	Mat3x3 RRef[NUMSSEP];
+// 	Mat3x3 RPrev[NUMSSEP];
 
-	// Constitutive law handlers at integration points
-	ConstitutiveLaw6DOwner* pD[NUMIP];
-	// Reference constitutive law tangent matrices
-	Mat6x6 DRef[NUMIP];
+	// rotation tensors
+	Mat3x3 Q_i[NUMIP];
+	Mat3x3 Q_A[NUMSSEP];
+
+	// Orientation tensor derivative axial vector
+	//    .. in reference configuration
+	Vec3 AxT_1_0_i[NUMIP];
+	Vec3 AxT_2_0_i[NUMIP];
+	//    .. in current configuration
+	Vec3 AxT_1_i[NUMIP];
+	Vec3 AxT_2_i[NUMIP];
+	Mat3x3 T_1_i[NUMIP];
+	Mat3x3 T_2_i[NUMIP];
+
+	// linear deformation vectors
+	Vec3 eps_tilde_1_i[NUMIP];
+	Vec3 eps_tilde_2_i[NUMIP];
+	Vec3 eps_tilde_1_A[NUMSSEP];
+	Vec3 eps_tilde_2_A[NUMSSEP];
+
+	// angular deformation vectors
+	Vec3 k_tilde_1_i[NUMIP];
+	Vec3 k_tilde_2_i[NUMIP];
+
 
 #if 0
 	// Angular velocity of the sections - TODO: viscoelastic
@@ -193,44 +246,82 @@ protected:
 	Vec6 DefLocPrev[NUMSEZ];
 #endif
 
-	Vec3 p[NUMIP];
-	Vec3 g[NUMIP];
-	Vec3 L0[NUMIP];
-	Vec3 L[NUMIP];
-	Vec3 LRef[NUMIP];
+public:
+	// Da appunti Vescovini
+	typedef MyVectorHandler vh;
+	typedef std::vector<vh> vvh;
+	typedef FullMatrixHandler fmh;
+	typedef std::vector<fmh> vfmh;
+	typedef ConstitutiveLawOwner<vh, fmh> ConstitutiveLawOwnerType;
 
-	doublereal dsdxi[NUMIP];
+protected:
+	fmh S_alpha_beta_0;
+	vfmh S_alpha_beta_i;
+	vfmh S_alpha_beta_A;
+	doublereal alpha_0;
+	doublereal alpha_i[NUMIP];
+ 	doublereal alpha_A[NUMSSEP];
+	vfmh L_alpha_B_i;
+	vfmh L_alpha_B_A;
+	vfmh L_alpha_beta_i;
+	vfmh L_alpha_beta_A;
+
+	vfmh B_overline_i;
+	vfmh B_overline_m_i;
+	vfmh B_overline_S_i;
+	vfmh D_overline_i;
+	vfmh G_i;
+
+	vfmh K_M_i;
+	vfmh K_G_i;
+	vfmh K_alpha_beta_i;
+
+	vvh p_i;
+	vvh r_d;
+	vvh r_beta;
+	
+	vfmh K_T_i;
+	vvh r_i;
+	
+	Vec3 phi_tilde_1_i[NUMIP];
+	Vec3 phi_tilde_2_i[NUMIP];
+	Mat3x3 T0_1_i[NUMIP];
+	Mat3x3 T0_2_i[NUMIP];
+	fmh M_0;
+	fmh M_0_Inv;
+	vfmh M_2_i;
+	vfmh M_2_A;
+	vfmh H_i;
+	vfmh H_A;
+	
+	vfmh P_i;
+	vfmh P_A;
+	
+	vfmh K_beta_beta_i;
+	
+	vvh S_i;
+		
+	vfmh L_i;
+	
+	vh beta;
+	vh epsilon_hat;
+	vh epsilon;
+
+#ifdef USE_CL_IN_SHELL
+	// Constitutive law handlers at integration points
+	ConstitutiveLawOwner<vh, fmh>* pD[NUMIP];
+#else // ! USE_CL_IN_SHELL
+	vvh FRef;
+#endif // ! USE_CL_IN_SHELL
+
+	// Reference constitutive law tangent matrices
+	vfmh DRef;
+
+	//stress
+	vvh stress_i;
 
 	// Is first residual
 	bool bFirstRes;
-
-	// Helpers
-	static Vec3
-	InterpState(const Vec3& v1,
-		const Vec3& v2,
-		const Vec3& v3,
-		const Vec3& v4,
-		enum Section Sec);
-	Vec3
-	InterpDeriv(const Vec3& v1,
-		const Vec3& v2,
-		const Vec3& v3,
-		const Vec3& v4,
-		enum Section Sec);
-
-	// Compute matrices
-	virtual void
-	AssStiffnessMat(FullSubMatrixHandler& WMA,
-		FullSubMatrixHandler& WMB,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
-	virtual void
-	AssStiffnessVec(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
 
 	// for derived elements that add external contributions
 	// to internal forces
@@ -239,31 +330,29 @@ protected:
 		NO_OP;
 	};
 
-	// Initialize shape functions derivatives; compute geometric curvature
-	virtual void DsDxi(void);
-
-	// Initial angular velocity of the sections
-	// TODO: can be improved
-	virtual void Omega0(void);
-
-	// Internal restart
-	virtual std::ostream& Restart_(std::ostream& out) const;
-
-	// Data Initialization
-	void Init(void);
+private:
+	void UpdateNodalAndAveragePosAndOrientation();
+	
+	void InterpolateOrientation();
+	void ComputeIPSEPRotations();
+	void ComputeIPCurvature();
 
 public:
 	Shell4(unsigned int uL,
+		const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2,
 		const StructNode* pN3, const StructNode* pN4,
-		const Vec3& f1, const Vec3& f2,
-		const Vec3& f3, const Vec3& f4,
+#if 0	// TODO: offset
+ 		const Vec3& f1, const Vec3& f2,
+ 		const Vec3& f3, const Vec3& f4,
+#endif
 		const Mat3x3& R1, const Mat3x3& R2,
 		const Mat3x3& R3, const Mat3x3& R4,
-		const Mat3x3& r_I, const Mat3x3& rII,
-		// TODO: add
-		const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
-		// TODO: add
+#ifdef USE_CL_IN_SHELL
+		const ConstitutiveLaw<vh, fmh>** pDTmp, 
+#else // ! USE_CL_IN_SHELL
+		const fmh& pDTmp,
+#endif // ! USE_CL_IN_SHELL
 		flag fOut);
 
 	virtual ~Shell4(void);
@@ -278,9 +367,24 @@ public:
 		return Elem::PLATE;
 	};
 
+	virtual unsigned int iGetNumDof(void) const { 
+		return 8;
+	};
+
+	virtual DofOrder::Order GetDofType(unsigned int i) const {
+		ASSERT(i >= 0 && i <= 8);
+		return DofOrder::ALGEBRAIC;
+	};
+
+	virtual DofOrder::Order GetEqType(unsigned int i) const {
+		ASSERT(i >= 0 && i <= 8);
+		return DofOrder::ALGEBRAIC;
+	};
+
 	// Contribution to restart file
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+#if 0
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
@@ -288,12 +392,13 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP,
     		const VectorHandler& XPP);
+#endif
 
 	// Workspace size
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 24;
-		*piNumCols = 24;
+		*piNumRows = 6*4 + 8;
+		*piNumCols = 6*4 + 8;
 	};
 
 	// Initial settings
@@ -302,17 +407,19 @@ public:
 		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
 		SimulationEntity::Hints *ph = 0);
 
+#if 0
 	// Prepares reference parameters after prediction
 	virtual void
 	AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ );
+#endif
 
 	// Residual assembly
-	virtual SubVectorHandler&
-	AssRes(SubVectorHandler& WorkVec,
+	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#if 0
 	// Inverse dynamics
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
@@ -320,6 +427,7 @@ public:
 		const VectorHandler&  XPrimeCurr ,
 		const VectorHandler&  XPrimePrimeCurr ,
 		int iOrder = -1);
+#endif
 
 	// Jacobian matrix assembly
 	virtual VariableSubMatrixHandler&
@@ -328,12 +436,14 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+#if 0
 	// Matrix assembly for eigenvalues
 	void
 	AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+#endif
 
 	virtual void Output(OutputHandler& OH) const;
 
@@ -343,8 +453,8 @@ public:
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 24;
-		*piNumCols = 24;
+		*piNumRows = 6*4;
+		*piNumCols = 6*4;
 	};
 
 	virtual void SetInitialValue(VectorHandler& /* X */ ) {
@@ -358,10 +468,12 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
+#if 0
 	// Access to private data
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
+#endif
 
 	// Access to nodes
 	virtual const StructNode* pGetNode(unsigned int i) const;
@@ -382,7 +494,10 @@ public:
 // Shell4 - end
 
 extern Elem*
-ReadShell4(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+ReadShell4(DataManager* pDM,
+	MBDynParser& HP,
+	const DofOwner* pDO,
+	unsigned int uLabel);
 
 #endif // SHELL_H
 
