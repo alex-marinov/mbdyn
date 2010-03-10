@@ -485,7 +485,7 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 		cmy_0 = 0.;
 		cmz_0 = 0.;
 	}
-
+#if 0
 	clalpha = OUTA.clalpha;
 	if (clalpha > 0.) {
 		doublereal cl = OUTA.cl + clalpha/2/d*(y2 - a/d*y3);
@@ -500,6 +500,43 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
         TNG[1] = qD*chord*(cl*v[0] - cd*v[1])/vp;
 	TNG[5] = qD*chord*chord*cm + d14*TNG[1];
 	}
+#endif
+	clalpha = OUTA.clalpha;
+	if (clalpha > 0.) {
+		//if (Uinf > std::numeric_limits<doublereal>::epsilon()) {		
+		if (Uinf > 1.e-5) {		
+			doublereal cl = OUTA.cl + clalpha/2/d*(y2 - a/d*y3);
+			doublereal cd = OUTA.cd;
+			doublereal cm = OUTA.cm + clalpha/2/d*(-y2/4 + (a/4/d - 1/d/16)*y3 - y4/4);
+			doublereal v[3], vp;
+			v[0] = W[0];
+			v[1] = W[1] + d34*W[5];
+			v[2] = W[2] - d34*W[4];
+			vp = sqrt(v[0]*v[0] + v[1]*v[1]);
+			TNG[0] = -qD*chord*(cl*v[1] + cd*v[0])/vp;
+       			TNG[1] = qD*chord*(cl*v[0] - cd*v[1])/vp;
+			TNG[5] = qD*chord*chord*cm + d14*TNG[1];
+		} else {
+			TNG[0] = 0.;
+			TNG[1] = 0.;
+			TNG[2] = 0.;
+			TNG[3] = 0.;
+			TNG[4] = 0.;
+			TNG[5] = 0.;
+		}
+	}
+	else {
+		TNG[0] = 0.;
+		TNG[1] = 0.;
+		TNG[2] = 0.;
+		TNG[3] = 0.;
+		TNG[4] = 0.;
+		TNG[5] = 0.;
+	}
+
+
+
+
 
 	WorkVec.PutCoef(iFirstSubIndex + 1, -q1p + q2);
 	WorkVec.PutCoef(iFirstSubIndex + 2, -q2p - b1*b2*d*d*q1 - (b1 + b2)*d*q2 + u2);
@@ -563,7 +600,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	WorkMat.IncCoef(iFirstSubIndex + 6, iFirstSubIndex + 5, -dCoef);
 
 
-
+#if 0
 	/* computing the matrix g_{/\tilde{v}} - dimension: 6x3, where 6 is n_states */
 	doublereal dU_V_11, dU_V_12, dU_V_21, dU_V_22;
 
@@ -881,7 +918,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	getchar();	
 #endif /* DEBUG_JACOBIAN_UNSTEADY */	
 
-
+#endif
 
 	AeroData::GetForcesJacForwardDiff_int(i, W, TNG, J, OUTA);
 
@@ -994,7 +1031,8 @@ C81TheodorsenAeroData::AssRes(SubVectorHandler& WorkVec,
 
 	a = (d14 + d34)/chord;
 
-	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
+	//doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
+	doublereal Uinf = sqrt(W[VX]*W[VX] + (W[VY]+d34*W[WZ])*(W[VY]+d34*W[WZ]));
 
 	A1 = TheodorsenParams[iParam][0];
 	A2 = TheodorsenParams[iParam][1];
@@ -1160,10 +1198,12 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		/* assembling the jacobian */
 		int iIndexColumn;
 		/* faccio i calcoli tenendo conto della sparsità della matrice g_{\/\tilde{v}} */
+		#if 1
 		for (iIndexColumn = 1; iIndexColumn <= vx.iGetNumCols(); iIndexColumn++){
 			WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_V_21*vx(1,iIndexColumn) + dG_V_22*vx(2,iIndexColumn));
 			WorkMat.IncCoef(iFirstSubIndex+2, iIndexColumn, dG_W_23*wx(3,iIndexColumn));
 		}
+		#endif
 		/* computing the matrix fq (f_a_{/q}) 3x2 */
 	
 		/* computing the derivative of the aerodynamic coefficient in the lookup table
@@ -1215,15 +1255,15 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		
 		doublereal M_q1 = qDc*chord*dCm_alpha*C11;
 		doublereal M_q2 = qDc*chord*dCm_alpha*C12;
-	
-		fq.Put(1, 1, -L_q1*sin_alpha -D_q1*cos_alpha);
-		fq.Put(1, 2, -L_q2*sin_alpha -D_q2*cos_alpha);
-		fq.Put(2, 1, L_q1*cos_alpha -D_q1*sin_alpha);
-		fq.Put(2, 2, L_q2*cos_alpha -D_q2*sin_alpha);
+		#if 0
+		fq.Put(1, 1, (-L_q1*sin_alpha -D_q1*cos_alpha));
+		fq.Put(1, 2, (-L_q2*sin_alpha -D_q2*cos_alpha));
+		fq.Put(2, 1, (L_q1*cos_alpha -D_q1*sin_alpha));
+		fq.Put(2, 2, (L_q2*cos_alpha -D_q2*sin_alpha));
 		
-		cq.Put(3, 1, M_q1 +d14*fq(2,1));
-		cq.Put(3, 2, M_q2 +d14*fq(2,2));
-	
+		cq.Put(3, 1, (M_q1 +d14*fq(2,1)));
+		cq.Put(3, 2, (M_q2 +d14*fq(2,2)));
+		#endif
 		/* computing the J matrix */
 		/* f_{/\tilde{v}} */
 		doublereal dY_V_11, dY_V_12;
@@ -1284,7 +1324,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		doublereal sin_alpha_wz = d34/sqrt(W[VX]*W[VX]+W[VY]*W[VY]);
 		doublereal cos_alpha_vx = ( W[VY]*W[VY]  )/den;
 		doublereal cos_alpha_vy = -( W[VX]*W[VY]  )/den;
-	
+		#if 1
 		J(1,1) = -Jaero(2,1)*sin_alpha -Jaero(1,1)*cos_alpha - Lift*sin_alpha_vx - Drag*cos_alpha_vx;
 		J(1,2) = -Jaero(2,2)*sin_alpha -Jaero(1,2)*cos_alpha - Lift*sin_alpha_vy - Drag*cos_alpha_vy;
 		J(1,3) = -Jaero(2,3)*sin_alpha -Jaero(1,3)*cos_alpha;
@@ -1301,6 +1341,7 @@ C81TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 		J(6,4) = d14*J(2,4);
 		J(6,5) = d14*J(2,5);
 		J(6,6) = Jaero(6,6) + d14*J(2,6);
+		#endif
 	}
 #endif
 #ifdef  DEBUG_JACOBIAN_UNSTEADY	
