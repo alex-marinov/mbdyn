@@ -105,6 +105,14 @@ AircraftInstruments::Update(void)
 	/* heading */
 	/* FIXME: assumes a flat world! N={1,0,0}, W={0,1,0} */
 	dMeasure[HEADING] = -std::atan2(e1(2), e1(1));
+
+	/* longitude */
+	/* FIXME: ??? */
+	dMeasure[LONGITUDE] = -X(2);	// /EARTH_RADIUS?
+
+	/* latitude */
+	/* FIXME: ??? */
+	dMeasure[LATITUDE] = X(1);	// /EARTH_RADIUS?
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -222,6 +230,14 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 
 	if (strcasecmp(s, "heading") == 0) {
 		return HEADING;
+	}
+
+	if (strcasecmp(s, "longitude") == 0) {
+		return LONGITUDE;
+	}
+
+	if (strcasecmp(s, "latitude") == 0) {
+		return LATITUDE;
 	}
 
 	return 0;

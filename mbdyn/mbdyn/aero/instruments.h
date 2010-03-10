@@ -32,7 +32,7 @@
 #ifndef INSTRUMENTS_H
 #define INSTRUMENTS_H
 
-/* Elementi aerodinamici stazionari */
+// strumenti di volo
 
 #include "aerodyn.h"
 
@@ -49,6 +49,8 @@ public:
 		VERTICALSPEED,
 		AOA,
 		HEADING,
+		LONGITUDE,
+		LATITUDE,
 
 		LASTMEASURE
 	};
@@ -132,5 +134,5 @@ extern Elem *
 ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel);
 
-#endif /* INSTRUMENTS_H */
+#endif // INSTRUMENTS_H
 
