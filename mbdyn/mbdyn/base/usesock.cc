@@ -423,8 +423,8 @@ UseLocalSocket::Connect(void)
 	addr.sun_family = AF_UNIX;
 	memcpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path));
 
-	pedantic_cout("connecting to local socket \""
-			<< path << "\" ..." << std::endl);
+	pedantic_cout("connecting to local socket \"" << path << "\" ..."
+		<< std::endl);
 
 	UseSocket::Connect();
 }
@@ -434,7 +434,8 @@ UseLocalSocket::ConnectSock(int s)
 {
 	UseSocket::ConnectSock(s);
 	
-	silent_cout("LOCAL connection to path=" << path << std::endl);
+	silent_cout("LOCAL connection to path=\"" << path << "\""
+		<< std::endl);
 }
 
 struct sockaddr *
