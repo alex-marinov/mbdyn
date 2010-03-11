@@ -344,6 +344,18 @@ ModalMappingExt::Output(OutputHandler& OH) const
 				out << GetLabel() << '#' << Nodes[i].pNode->GetLabel()
 					<< " " << Nodes[i].F
 					<< " " << Nodes[i].M
+					<< " " << x[6*i + 0]
+					<< " " << x[6*i + 1]
+					<< " " << x[6*i + 2]
+					<< " " << x[6*i + 3]
+					<< " " << x[6*i + 4]
+					<< " " << x[6*i + 5]
+					<< " " << xP[6*i + 0]
+					<< " " << xP[6*i + 1]
+					<< " " << xP[6*i + 2]
+					<< " " << xP[6*i + 3]
+					<< " " << xP[6*i + 4]
+					<< " " << xP[6*i + 5]
 					<< std::endl;
 			}
 		}
