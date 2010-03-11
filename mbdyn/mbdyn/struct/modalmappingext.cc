@@ -332,7 +332,7 @@ ModalMappingExt::Output(OutputHandler& OH) const
 		}
 
 		if (uFlags & ExtModalForceBase::EMF_MODAL) {
-			for (unsigned i = 0; i < x.size(); i++) {
+			for (unsigned i = 0; i < p.size(); i++) {
 				out << GetLabel() << '.' << i + 1
 					<< " " << p[i]
 					<< " " << q[i]
