@@ -29,6 +29,8 @@ mbc.c \
 mbc.h \
 mbsasl.c \
 mbsasl.h \
+mbstrbuf.cc \
+mbstrbuf.h \
 myassert.cc \
 myassert.h \
 mynewmem.cc \
