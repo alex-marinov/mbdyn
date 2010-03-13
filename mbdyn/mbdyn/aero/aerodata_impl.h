@@ -34,10 +34,6 @@
 
 #include "aerodata.h"
 
-//#define USE_UNSTEADY_6STATES
-#define USE_UNSTEADY_2STATES
-//#define DEBUG_JACOBIAN_UNSTEADY
-
 /* STAHRAeroData - begin */
 
 class STAHRAeroData : public AeroData {
@@ -157,51 +153,6 @@ public:
 
 /* C81TheodorsenAeroData - begin */
 
-#ifdef USE_UNSTEADY_6STATES
-
-class C81TheodorsenAeroData : public C81AeroData {
-protected:
-	integer iParam;
-	doublereal omegaPD;
-	doublereal d14, d34;
-	doublereal chord;
-	doublereal a;
-	doublereal A1, A2, b1, b2;
-	doublereal cfx_0, cfy_0, cfz_0, cmx_0, cmy_0, cmz_0;
-	doublereal clalpha;
-
-public:
-	C81TheodorsenAeroData(
-		int i_p, int i_dim,
-		integer p, const c81_data* d, doublereal omegaPD, DriveCaller *ptime = 0);
-	virtual ~C81TheodorsenAeroData(void);
-
-	virtual std::ostream& Restart(std::ostream& out) const;
-
-	// aerodynamic models with internal states
-	virtual unsigned int iGetNumDof(void) const;
-	virtual DofOrder::Order GetDofType(unsigned int i) const;
-	virtual void
-	AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		integer iFirstIndex, integer iFirstSubIndex,
-		int i, const doublereal* W, doublereal* TNG, outa_t& OUTA);
-	virtual void
-	AssJac(FullSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr,
-		integer iFirstIndex, integer iFirstSubIndex,
-		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
-		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
-};
-
-#endif /* USE_UNSTEADY_6STATES */
-
-#ifdef USE_UNSTEADY_2STATES
-
 class C81TheodorsenAeroData : public C81AeroData {
 protected:
 	integer iParam;
@@ -245,9 +196,65 @@ public:
 	AfterConvergence( int i, const VectorHandler& X, const VectorHandler& XP );
 };
 
-#endif /* USE_UNSTEADY_2STATES */
-
 /* C81TheodorsenAeroData - end */
+
+/* TheodorsenAeroData - begin */
+
+class TheodorsenAeroData : public AeroData {
+protected:
+	integer iParam;
+	doublereal d14, d34;
+	doublereal chord;
+	doublereal a;
+	doublereal A1, A2, b1, b2;
+	doublereal *alpha_pivot, *dot_alpha_pivot, *dot_alpha, *ddot_alpha;
+	doublereal *cfx_0, *cfy_0, *cmz_0;
+	doublereal *clalpha;
+	doublereal *prev_alpha_pivot, *prev_dot_alpha;
+	doublereal prev_time;
+
+	AeroData *pAeroData;
+
+public:
+	TheodorsenAeroData(
+		int i_p, int i_dim,
+		AeroData *pa, DriveCaller *ptime = 0);
+	virtual ~TheodorsenAeroData(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual void SetAirData(const doublereal& rho, const doublereal& c);
+
+	virtual void SetSectionData(const doublereal& abscissa,
+		const doublereal& chord,
+		const doublereal& forcepoint,
+		const doublereal& velocitypoint,
+		const doublereal& twist,
+		const doublereal& omega = 0.);
+
+
+	// aerodynamic models with internal states
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+	virtual void
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		int i, const doublereal* W, doublereal* TNG, outa_t& OUTA);
+	virtual void
+	AssJac(FullSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		integer iFirstIndex, integer iFirstSubIndex,
+		const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
+		int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA);
+	virtual void
+	AfterConvergence( int i, const VectorHandler& X, const VectorHandler& XP );
+};
+
+/* TheodorsenAeroData - end */
 
 #endif // AERODATA_IMPL_H
 

@@ -129,7 +129,7 @@ public:
 
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
 	std::ostream& RestartUnsteady(std::ostream& out) const;
-	void SetAirData(const doublereal& rho, const doublereal& c);
+	virtual void SetAirData(const doublereal& rho, const doublereal& c);
 
 	virtual void SetSectionData(const doublereal& abscissa,
 		const doublereal& chord,

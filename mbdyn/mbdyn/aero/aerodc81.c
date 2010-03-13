@@ -281,6 +281,7 @@ c81_aerod2_u(doublereal* W, const vam_t *VAM, doublereal* TNG, outa_t* OUTA,
 	 * non considera velocita' al di sotto di 1.e-6
 	 * FIXME: rendere parametrico?
 	 */
+
 	if (vp/cs < 1.e-6) {
 		TNG[V_X] = 0.;
 		TNG[V_Y] = 0.;

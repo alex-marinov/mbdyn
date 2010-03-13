@@ -543,7 +543,7 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		data[i] = HP.GetC81Data(profiles[i]);
-		if (data[i] == NULL) {
+		if (data[i] == 0) {
 			silent_cerr("Unable to find airfoil "
 				<< profiles[i] << " at line "
 				<< HP.GetLineData() << std::endl);
@@ -600,7 +600,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 
 		"theodorsen",
 
-		NULL
+		0
 	};
 
 	/* enum delle parole chiave */
@@ -662,7 +662,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				   "airfoil is NACA0012" << std::endl);
 
 			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
-			DriveCaller *ptime = NULL;
+			DriveCaller *ptime = 0;
 			if (eInst != AeroData::STEADY) {
 				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
 						TimeDriveCaller(pDM->pGetDrvHdl()));
@@ -678,7 +678,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				"airfoil is RAE9671" << std::endl);
 
 			AeroData::UnsteadyModel eInst = ReadUnsteadyFlag(HP);
-			DriveCaller *ptime = NULL;
+			DriveCaller *ptime = 0;
 			if (eInst != AeroData::STEADY) {
 				SAFENEWWITHCONSTRUCTOR(ptime, TimeDriveCaller,
 						TimeDriveCaller(pDM->pGetDrvHdl()));
@@ -709,7 +709,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 					<< iProfile << std::endl);
 				AeroData::UnsteadyModel
 					eInst = ReadUnsteadyFlag(HP);
-				DriveCaller *ptime = NULL;
+				DriveCaller *ptime = 0;
 				if (eInst != AeroData::STEADY) {
 					SAFENEWWITHCONSTRUCTOR(ptime,
 							TimeDriveCaller,
@@ -724,30 +724,60 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 			break;
 
 		case THEODORSEN: {
+#if 0
 	  		integer iProfile = HP.GetInt();
 		  	const c81_data* data = HP.GetC81Data(iProfile);
-#ifdef USE_UNSTEADY_6STATES
-			// deprecated
-			doublereal omegaPD = HP.GetReal();
-#endif // USE_UNSTEADY_6STATES
-			DriveCaller *ptime = NULL;
-			
+
+			DriveCaller *ptime = 0;
 			SAFENEWWITHCONSTRUCTOR(ptime,
 					TimeDriveCaller,
 					TimeDriveCaller(pDM->pGetDrvHdl()));
 
-#ifdef USE_UNSTEADY_6STATES
-			// deprecated
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				C81TheodorsenAeroData,
-				C81TheodorsenAeroData(*piNumber, iDim,
-					iProfile, data, omegaPD, ptime));
-#else // USE_UNSTEADY_6STATES
 	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
 				C81TheodorsenAeroData,
 				C81TheodorsenAeroData(*piNumber, iDim,
 					iProfile, data, ptime));
-#endif // USE_UNSTEADY_6STATES
+#else
+			AeroData *pa = 0;
+			if (HP.IsKeyWord("multiple")) {
+				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim);
+
+			} else if (HP.IsKeyWord("interpolated")) {
+				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim, true);
+
+			} else {
+	  			integer iProfile = HP.GetInt();
+		  		const c81_data* data = HP.GetC81Data(iProfile);
+
+		  		DEBUGLCOUT(MYDEBUG_INPUT,
+					"airfoil data is from file c81 "
+					<< iProfile << std::endl);
+				AeroData::UnsteadyModel
+					eInst = ReadUnsteadyFlag(HP);
+				DriveCaller *ptime = 0;
+				if (eInst != AeroData::STEADY) {
+					SAFENEWWITHCONSTRUCTOR(ptime,
+							TimeDriveCaller,
+							TimeDriveCaller(pDM->pGetDrvHdl()));
+				}
+	  			SAFENEWWITHCONSTRUCTOR(pa,
+					C81AeroData,
+					C81AeroData(*piNumber, iDim,
+						eInst, iProfile,
+						data, ptime));
+			}
+
+			DriveCaller *ptime = 0;
+			SAFENEWWITHCONSTRUCTOR(ptime,
+					TimeDriveCaller,
+					TimeDriveCaller(pDM->pGetDrvHdl()));
+
+			SAFENEWWITHCONSTRUCTOR(*aerodata,
+				TheodorsenAeroData,
+				TheodorsenAeroData(*piNumber, iDim,
+					pa, ptime));
+				
+#endif
 			} break;
 		}
 
