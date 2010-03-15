@@ -3374,21 +3374,9 @@ ReadJoint(DataManager* pDM,
 	/* Aggiungere qui altri vincoli */
 
 	default:
-		{
-		const char *s = HP.GetString();
-
-		const LoadableCalls *c = pDM->GetLoadableElemModule(s);
-
-		if (c == 0) {
-			silent_cerr("unknown joint type \"" << s << "\" in joint " << uLabel
-				<< " at line " << HP.GetLineData() << std::endl);
+		silent_cerr("Joint(" << uLabel << "): unknown joint type "
+			"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		SAFENEWWITHCONSTRUCTOR(pEl, LoadableElem,
-			LoadableElem(uLabel, pDO, c, pDM, HP));
-		pDM->OutputOpen(OutputHandler::LOADABLE);
-		} break;
 	}
 
 	/* Se non c'e' il punto e virgola finale */
