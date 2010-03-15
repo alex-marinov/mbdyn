@@ -3078,12 +3078,30 @@ ReadStructNode(DataManager* pDM,
 		od = ReadOptionalOrientationDescription(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
-		if (((CurrType == DYNAMIC || CurrType == MODAL)
-				&& HP.IsArg()
-				&& HP.IsKeyWord("accelerations"))
-			|| pDM->bOutputAccelerations())
-		{
-			fOut |= 2;
+		if (CurrType == DYNAMIC || CurrType == MODAL) {
+			if (pDM->bOutputAccelerations()) {
+				fOut |= 2;
+			}
+
+			if (HP.IsArg()) {
+				if (HP.IsKeyWord("accelerations")) {
+					if (HP.IsArg()) {
+						if (HP.GetYesNoOrBool(false)) {
+							fOut |= 2;
+
+						} else {
+							fOut &= ~2;
+						}
+
+					} else {
+						// deprecated
+						pedantic_cerr("StructNode(" << uLabel << "): "
+							"warning, \"accelerations\" needs \"yes\" or \"no\" at line " << HP.GetLineData()
+						<< std::endl);
+						fOut |= 2;
+					}
+				}
+			}
 		}
 
 		if (CurrType == DYNAMIC && pDM->bIsStaticModel()) {
