@@ -2332,6 +2332,8 @@ AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
+AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Prepare for libtool output:

@@ -161,6 +161,8 @@ tpldrive_impl.h \
 vec3drv.h \
 thirdorderstepsol.h \
 thirdorderstepsol.cc \
+userelem.cc \
+userelem.h \
 usesock.cc \
 usesock.h \
 varstep.cc \
@@ -168,6 +170,23 @@ varstep.h \
 ScalarFunctions.h \
 ScalarFunctionsImpl.h \
 ScalarFunctionsImpl.cc
+
+if BUILD_STATIC_MODULES
+modules_dir=$(srcdir)/../../modules
+
+# NOTE: only works for modules whose file name is equal to the folder's name
+static_modules_src = module-wheel2.cc module-wheel2.h
+
+$(static_modules_src):
+	@echo "creating symlinks to modules..."
+	@for i in $(static_modules_src) ; do \
+		b=`echo $$i | sed 's/\(.\+\)\.\(c\|cc\|h\|f\|f90\)$$/\1/'`; \
+		ln -sf $(modules_dir)/$$b/$$i ; \
+	done
+
+libbase_la_SOURCES += \
+$(static_modules_src)
+endif
 
 if USE_RTAI
 libbase_la_SOURCES += \

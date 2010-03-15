@@ -271,16 +271,13 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-InitialAssemblyElem(uLabel, flag(0)),
-AerodynamicElem(uLabel, pDO, flag(0)),
-ElemGravityOwner(uLabel, flag(0)),
+UserDefinedElem(uLabel, pDO),
 priv_data(NULL),
 module_name(NULL),
 #ifdef USE_RUNTIME_LOADING
 handle(NULL),
 #endif // USE_RUNTIME_LOADING
-calls(NULL),
-needsAirProperties(false)
+calls(NULL)
 {
    	ASSERT(pDM != NULL);
 
@@ -294,16 +291,13 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   DataManager* pDM, 
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-InitialAssemblyElem(uLabel, flag(0)),
-AerodynamicElem(uLabel, pDO, flag(0)),
-ElemGravityOwner(uLabel, flag(0)),
+UserDefinedElem(uLabel, pDO),
 priv_data(NULL),
 module_name(NULL),
 #ifdef USE_RUNTIME_LOADING
 handle(NULL),
 #endif // USE_RUNTIME_LOADING
-calls((LoadableCalls *)c),
-needsAirProperties(false)
+calls((LoadableCalls *)c)
 {
    	ASSERT(pDM != NULL);
 
@@ -557,18 +551,6 @@ LoadableElem::~LoadableElem(void)
    	SAFEDELETEARR(module_name);
 }
 
-Elem::Type 
-LoadableElem::GetElemType(void) const
-{
-   	return Elem::LOADABLE;
-}
-
-AerodynamicElem::Type
-LoadableElem::GetAerodynamicElemType(void) const
-{
-	return AerodynamicElem::AERODYNAMICLOADABLE;
-}
-
 unsigned int 
 LoadableElem::iGetNumDof(void) const
 {
@@ -784,11 +766,11 @@ LoadableElem::WriteAdamsDummyPartCmd(std::ostream& out,
 }
 #endif /* USE_ADAMS */
 
-Elem* 
-ReadLoadable(DataManager* pDM, MBDynParser& HP, 
-	const DofOwner* pDO, unsigned int uLabel)
+UserDefinedElem* 
+LoadableElemRead::Read(unsigned int uLabel, const DofOwner* pDO,
+	DataManager* pDM, MBDynParser& HP) const
 {
-   	Elem* pEl = NULL;
+	UserDefinedElem* pEl = NULL;
 
 	if (HP.IsKeyWord("reference")) {
 		const char *s = HP.GetStringWithDelims();
@@ -814,17 +796,5 @@ ReadLoadable(DataManager* pDM, MBDynParser& HP,
 	}
 
    	return pEl;
-}
-
-bool
-LoadableElem::NeedsAirProperties(void) const
-{
-	return needsAirProperties;
-}
-
-void
-LoadableElem::NeedsAirProperties(bool yesno)
-{
-	needsAirProperties = yesno;
 }
 

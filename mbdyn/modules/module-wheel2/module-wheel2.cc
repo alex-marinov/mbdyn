@@ -38,96 +38,14 @@
 #include <cfloat>
 #include <limits>
 
-#include "dataman.h"
-#include "loadable.h"
+#include "module-wheel2.h"
 
-/*
- * Usage:
- *
- *	loadable: <label>, <module name>, help [ , <module data> ] ;
- */
-
-struct module_wheel {
-	/*
-	 * Ruota
-	 */
-	StructNode *pWheel;
-
-	/*
-	 * Direzione asse ruota
-	 */
-	Vec3 WheelAxle;
-	
-	/*
-	 * Terreno
-	 */
-	StructNode *pGround;
-
-	/*
-	 * Posizione e orientazione del terreno
-	 */
-	Vec3 GroundPosition;
-	Vec3 GroundDirection;
-
-	/*
-	 * Geometria ruota
-	 */
-	doublereal dRadius;
-	doublereal dInternalRadius;
-	doublereal dVolCoef;
-
-	doublereal dRefArea;
-	doublereal dRNP;		/* R+nG'*pG */
-	doublereal dV0;
-
-	/*
-	 * Proprieta' pneumatico
-	 */
-	doublereal dP0;
-	doublereal dGamma;
-	doublereal dHystVRef;
-
-	/*
-	 * Attrito
-	 */
-	flag fSlip;
-	DriveCaller *pMuX0;
-	DriveCaller *pMuY0;
-	DriveCaller *pMuY1;
-	doublereal dvThreshold;
-
-	/*
-	 * Output
-	 */
-	Vec3 F;
-	Vec3 M;
-	doublereal dInstRadius;
-	doublereal dDeltaL;
-	doublereal dVn;
-	doublereal dSr;
-	doublereal dAlpha;
-	doublereal dAlphaThreshold;
-	doublereal dMuX;
-	doublereal dMuY;
-	doublereal dVa;
-	doublereal dVc;
-};
-
-/* funzioni di default */
-static void*
-read(LoadableElem* pEl,
-		DataManager* pDM,
-		MBDynParser& HP)
+Wheel2::Wheel2(unsigned uLabel, const DofOwner *pDO,
+	DataManager* pDM, MBDynParser& HP)
+: Elem(uLabel, flag(0)),
+UserDefinedElem(uLabel, pDO)
 {
-	DEBUGCOUTFNAME("read");
-	
-	/* allocation of user-defined struct */
-	module_wheel* p = NULL;
-	SAFENEW(p, module_wheel);
-
-	/*
-	 * help
-	 */
+	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
 "									\n"
@@ -200,635 +118,386 @@ read(LoadableElem* pEl,
 		}
 	}
 
-	/*
-	 * leggo la ruota
-	 */
-	p->pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	// read wheel node
+	pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-	/*
-	 * leggo l'orientazione dell'asse ruota nel sistema locale
-	 */
-	ReferenceFrame RF = ReferenceFrame(p->pWheel);
-	p->WheelAxle = HP.GetVecRel(RF);
-	
-	/*
-	 * leggo il terreno
-	 */
-	p->pGround = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
-	
-	/*
-	 * leggo posizione ed orientazione del terreno nel sistema del nodo
-	 */
-	RF = ReferenceFrame(p->pGround);
-	p->GroundPosition = HP.GetPosRel(RF);
-	p->GroundDirection = HP.GetVecRel(RF);
+	// read wheel axle
+	ReferenceFrame RF = ReferenceFrame(pWheel);
+	WheelAxle = HP.GetVecRel(RF);
 
-	/*
-	 * normalizzo l'orientazione del terreno
-	 */
-	doublereal d = p->GroundDirection.Dot();
+	// read ground node
+	pGround = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+
+	// read ground position/orientation
+	RF = ReferenceFrame(pGround);
+	GroundPosition = HP.GetPosRel(RF);
+	GroundDirection = HP.GetVecRel(RF);
+
+	// normalize ground orientation
+	doublereal d = GroundDirection.Dot();
 	if (d <= std::numeric_limits<doublereal>::epsilon()) {
-		silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+		silent_cerr("Wheel2(" << uLabel << "): "
 			"null direction at line " << HP.GetLineData()
 			<< std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	p->GroundDirection /= sqrt(d);
+	GroundDirection /= sqrt(d);
 
-	/*
-	 * Geometria ruota
-	 */
-	p->dRadius = HP.GetReal();
-	p->dInternalRadius = HP.GetReal();
-	p->dVolCoef = HP.GetReal();
-	
-	/*
-	 * Area di riferimento
-	 */
-	p->dRefArea = 3.7*p->dInternalRadius*sqrt(
-			p->dInternalRadius*(2.*p->dRadius-p->dInternalRadius)
-			);
+	// wheel geometry
+	dRadius = HP.GetReal();
+	dInternalRadius = HP.GetReal();
+	dVolCoef = HP.GetReal();
 
-	/*
-	 * termine per il calcolo di Delta L
-	 */
-	p->dRNP = p->dRadius+p->GroundPosition*p->GroundDirection;
+	// reference area
+	dRefArea = 3.7*dInternalRadius*std::sqrt(dInternalRadius*(2.*dRadius - dInternalRadius));
 
-	/*
-	 * Volume di riferimento
-	 */
-	p->dV0 = 2.*M_PI*(p->dRadius-p->dInternalRadius)
-		*M_PI*p->dInternalRadius*p->dInternalRadius*p->dVolCoef;
+	// parameter required to compute Delta L
+	dRNP = dRadius + GroundPosition*GroundDirection;
 
-	/*
-	 * Proprieta' pneumatico
-	 */
-	p->dP0 = HP.GetReal();
-	p->dGamma = HP.GetReal();
-	p->dHystVRef = HP.GetReal();
+	// reference volume
+	dV0 = 2.*M_PI*(dRadius - dInternalRadius)
+		*M_PI*dInternalRadius*dInternalRadius*dVolCoef;
 
-	/*
-	 * Attrito
-	 */
-	p->fSlip = 0;
+	// tyre properties
+	dP0 = HP.GetReal();
+	dGamma = HP.GetReal();
+	dHystVRef = HP.GetReal();
+
+	// friction
+	bSlip = false;
 	if (HP.IsKeyWord("slip")) {
-		p->fSlip = 1;
+		bSlip = true;
 
 		/*
 		 * Parametri di attrito
 		 */
-		p->pMuX0 = HP.GetDriveCaller();
-		p->pMuY0 = HP.GetDriveCaller();
-		p->pMuY1 = HP.GetDriveCaller();
+		pMuX0 = HP.GetDriveCaller();
+		pMuY0 = HP.GetDriveCaller();
+		pMuY1 = HP.GetDriveCaller();
 	
-		p->dvThreshold = 0.;
-		p->dAlphaThreshold = 0.;
+		dvThreshold = 0.;
+		dAlphaThreshold = 0.;
 		if (HP.IsKeyWord("threshold")) {
-			p->dvThreshold = HP.GetReal();
-			if (p->dvThreshold < 0.) {
-				silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
-					"illegal velocity threshold " << p->dvThreshold
+			dvThreshold = HP.GetReal();
+			if (dvThreshold < 0.) {
+				silent_cerr("Wheel2(" << uLabel << "): "
+					"illegal velocity threshold " << dvThreshold
 					<< " at line " << HP.GetLineData() << std::endl);
-				p->dvThreshold = fabs(p->dvThreshold);
+				dvThreshold = std::abs(dvThreshold);
 			}
 
-			p->dAlphaThreshold = HP.GetReal();
-			if (p->dvThreshold < 0.) {
-				silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
-					"illegal slip angle threshold " << p->dAlphaThreshold
+			dAlphaThreshold = HP.GetReal();
+			if (dvThreshold < 0.) {
+				silent_cerr("Wheel2(" << uLabel << "): "
+					"illegal slip angle threshold " << dAlphaThreshold
 					<< " at line " << HP.GetLineData() << std::endl);
-				p->dAlphaThreshold = fabs(p->dAlphaThreshold);
+				dAlphaThreshold = std::abs(dAlphaThreshold);
 			}
 		}
 	}
 	
 	std::ostream& out = pDM->GetLogFile();
-	out << "wheel2: " << pEl->GetLabel()
-		<< " " << p->pWheel->GetLabel()	//node label
-		<< " " << p->WheelAxle		//wheel axle
-		<< " " << p->pGround->GetLabel()//ground label
-		<< " " << p->GroundDirection	//ground direction
-		<< " " << p->dRadius		//wheel radius
-		<< " " << p->dInternalRadius	//wheel internal radius
+	out << "wheel2: " << uLabel
+		<< " " << pWheel->GetLabel()	//node label
+		<< " " << WheelAxle		//wheel axle
+		<< " " << pGround->GetLabel()	//ground label
+		<< " " << GroundDirection	//ground direction
+		<< " " << dRadius		//wheel radius
+		<< " " << dInternalRadius	//wheel internal radius
 		<< std::endl;
-	
-	return (void *)p;
 }
 
-#if 0
-static unsigned int
-i_get_num_dof(const LoadableElem* pEl)
+Wheel2::~Wheel2(void)
 {
-	DEBUGCOUTFNAME("i_get_num_dof");
-	return 0;
+	NO_OP;
 }
-#endif
 
-static void
-output(const LoadableElem* pEl, OutputHandler& OH)
+void
+Wheel2::Output(OutputHandler& OH) const
 {
-	DEBUGCOUTFNAME("output");
-	
-	if (pEl->fToBeOutput()) {
-		module_wheel* p = (module_wheel *)pEl->pGetData();      
+	if (fToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
-		out << std::setw(8) << pEl->GetLabel()	/* 1:	label */
-			<< " ", p->F.Write(out, " ")	/* 2-4:	force */
-			<< " ", p->M.Write(out, " ")	/* 5-7:	moment */
-			<< " " << p->dInstRadius	/* 8:	inst. radius */
-			<< " " << p->dDeltaL		/* 9:	radial deformation */
-			<< " " << p->dVn 		/* 10:	radial deformation velocity */
-			<< " " << p->dSr		/* 11:	slip ratio */
-			<< " " << 180./M_PI*p->dAlpha	/* 12:	slip angle */
-			<< " " << p->dMuX		/* 13:	longitudinal friction coefficient */
-			<< " " << p->dMuY		/* 14:	lateral friction coefficient */
-			<< " " << p->dVa		/* 15:	axis relative velocity */
-			<< " " << p->dVc		/* 16:	POC relative velocity */
+		out << std::setw(8) << GetLabel()	// 1:	label
+			<< " " << F			// 2-4:	force
+			<< " " << M			// 5-7:	moment
+			<< " " << dInstRadius		// 8:	inst. radius
+			<< " " << dDeltaL		// 9:	radial deformation
+			<< " " << dVn 			// 10:	radial deformation velocity
+			<< " " << dSr			// 11:	slip ratio
+			<< " " << 180./M_PI*dAlpha	// 12:	slip angle
+			<< " " << dMuX			// 13:	longitudinal friction coefficient
+			<< " " << dMuY			// 14:	lateral friction coefficient
+			<< " " << dVa			// 15:	axis relative velocity
+			<< " " << dVc			// 16:	POC relative velocity
 			<< std::endl;
 	}
 }
 
-#if 0
-static std::ostream&
-restart(const LoadableElem* pEl, std::ostream& out)
+void
+Wheel2::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	DEBUGCOUTFNAME("restart");
-	return out << "not implemented yet;" << std::endl;
-}
-#endif
-
-static void
-work_space_dim(const LoadableElem* pEl, 
-		    integer* piNumRows, 
-		    integer* piNumCols)
-{
-	DEBUGCOUTFNAME("work_space_dim");
 	*piNumRows = 12;
 	*piNumCols = 12;
 }
 
-static VariableSubMatrixHandler& 
-ass_jac(LoadableElem* pEl, 
-	VariableSubMatrixHandler& WorkMat,
+VariableSubMatrixHandler& 
+Wheel2::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef, 
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {  
-	DEBUGCOUTFNAME("ass_jac");   
 	WorkMat.SetNullMatrix();
 	
 	return WorkMat;
 }
 
-static SubVectorHandler& 
-ass_res(LoadableElem* pEl, 
-	SubVectorHandler& WorkVec,
+SubVectorHandler& 
+Wheel2::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("ass_res");
+	// ground orientation in the absolute frame
+	Vec3 n = pGround->GetRCurr()*GroundDirection;
+
+	// wheel-ground distance in the absolute frame
+	Vec3 x = pWheel->GetXCurr() - pGround->GetXCurr();
+
+	// contact when dDeltaL > 0
+	dDeltaL = dRNP - x*n;
+
+	// reset output data
+	dInstRadius = dRadius - dDeltaL;
 	
-	module_wheel* p = (module_wheel *)pEl->pGetData();
+	dSr = 0.;
+	dAlpha = 0.;
 
-	/*
-	 * Orientazione del terreno nel sistema assoluto
-	 */
-	Vec3 n = p->pGround->GetRCurr()*p->GroundDirection;
-	
-	/*
-	 * Distanza Wheel Ground nel sistema assoluto
-	 */
-	Vec3 x = p->pWheel->GetXCurr()-p->pGround->GetXCurr();
+	dMuX = 0.;
+	dMuY = 0.;
 
-	/*
-	 * se dDeltaL > 0 c'e' contatto, altrimenti no
-	 */
-	doublereal dDeltaL = p->dRNP - x*n;
-
-	/*
-	 * Reset dati per output
-	 */
-	p->dDeltaL = dDeltaL;
-	p->dInstRadius = p->dRadius-dDeltaL;
-	
-	p->dSr = 0.;
-	p->dAlpha = 0.;
-
-	p->dMuX = 0.;
-	p->dMuY = 0.;
-
-	p->dVa = 0.;
-	p->dVc = 0.;
+	dVa = 0.;
+	dVc = 0.;
 
 	if (dDeltaL < 0.) {
 		
-		p->F = Zero3;
-		p->M = Zero3;
+		F = Zero3;
+		M = Zero3;
 
-		p->dInstRadius = p->dRadius;
-		p->dDeltaL = 0.;
-		
-		/*
-		 * Non assemblo neppure il vettore ;)
-		 */
+		dInstRadius = dRadius;
+		dDeltaL = 0.;
+
+		// no need to assemble residual contribution
 		WorkVec.Resize(0);
 
 		return WorkVec;
 	}
-	
-	/*
-	 * Dimensiono il vettore
-	 */
+
+	// resize residual
 	integer iNumRows = 0;
 	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkSpaceDim(&iNumRows, &iNumCols);
    
 	WorkVec.ResizeReset(iNumRows);
 
-	integer iGroundFirstMomIndex = p->pGround->iGetFirstMomentumIndex();
-	integer iWheelFirstMomIndex = p->pWheel->iGetFirstMomentumIndex();
+	integer iGroundFirstMomIndex = pGround->iGetFirstMomentumIndex();
+	integer iWheelFirstMomIndex = pWheel->iGetFirstMomentumIndex();
 
-	/*
-	 * Indici equazioni
-	 */
+	// equations indexes
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iGroundFirstMomIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iWheelFirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iGroundFirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iWheelFirstMomIndex + iCnt);
 	}
 
-	/*
-	 * Velocita' tra Wheel (nell'asse)
-	 * e Ground nel sistema assoluto
-	 */
-	Vec3 va = p->pWheel->GetVCurr()
-		-p->pGround->GetVCurr()-(p->pGround->GetWCurr()).Cross(
-			p->pGround->GetRCurr()*p->GroundPosition
-			);
+	// relative speed between wheel axle and ground
+	Vec3 va = pWheel->GetVCurr() - pGround->GetVCurr()
+		- pGround->GetWCurr().Cross(pGround->GetRCurr()*GroundPosition);
 
-	p->dVa = (va - n*(n*va)).Norm();
+	dVa = (va - n*(n*va)).Norm();
 	
-	/*
-	 * Velocita' tra Wheel (nel punto di contatto) 
-	 * e Ground nel sistema assoluto
-	 */
-	Vec3 v = va - (p->pWheel->GetWCurr()).Cross(n*p->dInstRadius);
+	// relative speed between wheel and ground at contact point
+	Vec3 v = va - (pWheel->GetWCurr()).Cross(n*dInstRadius);
 	
-	/*
-	 * Componente normale al terreno della velocita'
-	 * (positiva se la ruota si allontana dal terreno)
-	 */
-	p->dVn = n*v;
+	// normal component of relative speed
+	// (positive when wheel departs from ground)
+	dVn = n*v;
 	
-	p->dVc = (v - n*p->dVn).Norm();
+	dVc = (v - n*dVn).Norm();
 	
-	/*
-	 * Stima dell'area di contatto
-	 */
-	doublereal dA = p->dRefArea*(dDeltaL/p->dInternalRadius);
+	// estimated contact area
+	doublereal dA = dRefArea*(dDeltaL/dInternalRadius);
 	
-	/*
-	 * Stima del volume di compenetrazione tra ruota e terreno
-	 */
+	// estimated intersection volume
 	doublereal dDeltaV = .5*dA*dDeltaL;
 
-	/*
-	 * Stima della pressione del pneumatico (adiabatica)
-	 */
-	doublereal dP = p->dP0*pow(p->dV0/(p->dV0 - dDeltaV), p->dGamma);
+	// estimated tyre pressure (polytropic)
+	doublereal dP = dP0*pow(dV0/(dV0 - dDeltaV), dGamma);
 
-	/*
-	 * Il punto di applicazione della forza e' xW - R * nG ;
-	 * per la forza normale si puo' usare anche la posizione
-	 * della ruota, nell'ipotesi che il punto di contatto
-	 * stia nell'intersezione della normale al ground passante
-	 * per l'asse ruota.
-	 *
-	 * FIXME: perche' dRadius invece di dInstRadius?
-	 */
-	Vec3 pc = p->pWheel->GetXCurr() - (n*p->dInstRadius);
+	// we assume the contact point lies at the root of the normal
+	// to the ground that passes through the center of the wheel
+	// this means that the axle needs to remain parallel to the ground
+	Vec3 pc = pWheel->GetXCurr() - (n*dInstRadius);
 
-	/*
-	 * Forza
-	 */
-	doublereal dFn = (dA*dP*(1. - tanh(p->dVn/p->dHystVRef)));
-	p->F = n*dFn;
+	// force
+	doublereal dFn = (dA*dP*(1. - tanh(dVn/dHystVRef)));
+	F = n*dFn;
 
-	if (p->fSlip) {
-	
-		/*
-		 * Direzione di "avanzamento": asse ruota cross normale
-		 * al ground
-		 */
-		Vec3 fwd = (p->pWheel->GetRCurr()*p->WheelAxle).Cross(n);
+	if (bSlip) {
+		// "forward" direction: axle cross normal to ground
+		Vec3 fwd = (pWheel->GetRCurr()*WheelAxle).Cross(n);
 		doublereal d = fwd.Dot();
 		if (d < std::numeric_limits<doublereal>::epsilon()) {
-			silent_cerr("Wheel2(" << pEl->GetLabel() << "): "
+			silent_cerr("Wheel2(" << GetLabel() << "): "
 				"wheel axle is (neraly) orthogonal "
 				"to the ground" << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		fwd /= sqrt(d);
 
-		/*
-		 * Slip ratio
-		 */
+		// slip ratio
 		doublereal dvx = fwd.Dot(v);
 		doublereal sgn = copysign(1., dvx);
-		doublereal dfvx = fabs(dvx);
+		doublereal dfvx = std::abs(dvx);
 		doublereal dvax = fwd.Dot(va);
-		doublereal dfvax = fabs(dvax);
+		doublereal dfvax = std::abs(dvax);
 
-		/*
-		 * FIXME: se la vax va a zero (perche' il velivolo si e'
-		 * fermato, ad esempio) lo "sleep" ratio deve essere 
-		 * "piccolo", o no?
-		 */
-		p->dSr = dfvx/(dfvax + p->dvThreshold);
-		if (p->dSr > 1.) {
-			p->dSr = 1.;
+		// FIXME: if vax ~ 0 (e.g. because the vehicle stopped)
+		// the "sleep" ratio needs to be small, right?
+		dSr = dfvx/(dfvax + dvThreshold);
+		if (dSr > 1.) {
+			dSr = 1.;
 		}
 
-		/*
-		 * Direzione laterale: normale cross forward
-		 */
+		// "lateral" direction: normal to ground cross forward
 		Vec3 lat = n.Cross(fwd);
 
-		/*
-		 * Velocita' laterale del mozzo
-		 */
+		// lateral speed of wheel center
 		doublereal dvay = lat.Dot(va);
 
-		/*
-		 * Angolo di deriva del mozzo
-		 * Nota: ristretto al Io-IVo quadrante
-		 * questa threshold sul modulo della velocita' fa in modo
-		 * che l'angolo vada a zero se il modulo della velocita'
-		 * e' troppo piccolo
-		 */
-		p->dAlpha = atan2(dvay, fabs(dvax));
-		if (p->dAlphaThreshold > 0.) {
-			doublereal dtmp = tanh(sqrt(dvax*dvax + dvay*dvay)/p->dAlphaThreshold);
-			p->dAlpha *= dtmp*dtmp;
+		// wheel center drift angle
+		// NOTE: the angle is restricted to the first quadran
+		// the angle goes to zero when the velocity is below threshold
+		dAlpha = atan2(dvay, std::abs(dvax));
+		if (dAlphaThreshold > 0.) {
+			doublereal dtmp = tanh(sqrt(dvax*dvax + dvay*dvay)/dAlphaThreshold);
+			dAlpha *= dtmp*dtmp;
 		}
 
-		/*
-		 * Coefficiente di attrito longitudinale
-		 */
-		doublereal dMuX0 = p->pMuX0->dGet(p->dSr);
-		/*
-		 * Nota: alpha/(pi/2) e' compreso tra -1. e 1.
-		 */
-		p->dMuX = dMuX0*sgn*(1. - fabs(p->dAlpha)/M_PI_2);
-		
-		/*
-		 * Correggo le forze:
-		 * uso il coefficiente di attrito longitudinale
-		 * con il segno della velocita' del punto di contatto
-		 */
-		p->F -= fwd*dFn*p->dMuX;
+		// longitudinal friction coefficient
+		doublereal dMuX0 = pMuX0->dGet(dSr);
+
+		// NOTE: -1 < alpha/(pi/2) < 1
+		dMuX = dMuX0*sgn*(1. - std::abs(dAlpha)/M_PI_2);
+
+		// force correction: the longitudinal friction coefficient
+		// is used with the sign of the contact point relative speed
+		F -= fwd*dFn*dMuX;
 
 		if (dvay != 0.) {
-			doublereal dAlpha = p->dAlpha;
-
-#if 0 /* non serve piu': Alpha e' ristretta al Io-IVo quadrante */
-			if (dAlpha > M_PI_2) {
-				dAlpha = M_PI-dAlpha;
-			} else if (dAlpha < -M_PI_2) {
-				dAlpha = -M_PI-dAlpha;
-			}
-#endif
+			doublereal dMuY0 = pMuY0->dGet(dAlpha);
+			doublereal dMuY1 = pMuY1->dGet(dAlpha);
 			
-			doublereal dMuY0 = p->pMuY0->dGet(dAlpha);
-			doublereal dMuY1 = p->pMuY1->dGet(dAlpha);
-			
-			p->dMuY = dMuY0 + (dMuY1 - dMuY0)*p->dSr;
+			dMuY = dMuY0 + (dMuY1 - dMuY0)*dSr;
 
-			/*
-			 * Correggo le forze
-			 */
-			p->F -= lat*dFn*p->dMuY;
+			// force correction
+			F -= lat*dFn*dMuY;
 		}
 	}
 
-	/*
-	 * Momento
-	 */
-	p->M = (pc - p->pWheel->GetXCurr()).Cross(p->F);
+	// moment
+	M = (pc - pWheel->GetXCurr()).Cross(F);
 
-	WorkVec.Sub(1, p->F);
-	WorkVec.Sub(4, (pc - p->pGround->GetXCurr()).Cross(p->F));
-	WorkVec.Add(7, p->F);
-	WorkVec.Add(10, p->M);
+	WorkVec.Sub(1, F);
+	WorkVec.Sub(4, (pc - pGround->GetXCurr()).Cross(F));
+	WorkVec.Add(7, F);
+	WorkVec.Add(10, M);
 
 	return WorkVec;
 }
 
-#if 0
-static void
-before_predict(const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev)
+unsigned int
+Wheel2::iGetNumPrivData(void) const
 {
-   DEBUGCOUTFNAME("before_predict");
-}
-
-static void
-after_predict(const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP)
-{
-	DEBUGCOUTFNAME("after_predict");
-}
-
-static void
-update(LoadableElem* pEl, 
-		const VectorHandler& X,
-		const VectorHandler& XP)
-{
-	DEBUGCOUTFNAME("update");
-}
-
-static unsigned int
-i_get_initial_num_dof(const LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("i_get_initial_num_dof");
 	return 0;
 }
 
-static void
-initial_work_space_dim(const LoadableElem* pEl, 
-		integer* piNumRows, 
-		integer* piNumCols)
+int
+Wheel2::iGetNumConnectedNodes(void) const
 {
-	DEBUGCOUTFNAME("initial_work_space_dim");
+	// wheel + ground
+	return 2;
+}
+
+void
+Wheel2::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	// wheel + ground
+	connectedNodes.resize(2);
+
+	connectedNodes[0] = pWheel;
+	connectedNodes[1] = pGround;
+}
+
+void 
+Wheel2::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+   	NO_OP;
+}
+
+std::ostream& 
+Wheel2::Restart(std::ostream& out) const
+{
+   	return out << "# not implemented yet" << std::endl;
+}
+
+unsigned
+Wheel2::iGetInitialNumDof(void) const
+{
+	return 0;
+}
+
+void 
+Wheel2::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
 	*piNumRows = 0;
 	*piNumCols = 0;
 }
 
-static VariableSubMatrixHandler& 
-initial_ass_jac(LoadableElem* pEl, 
-		VariableSubMatrixHandler& WorkMat, 
-		const VectorHandler& XCurr)
+VariableSubMatrixHandler&
+Wheel2::InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+	const VectorHandler& XCurr)
 {
-	DEBUGCOUTFNAME("initial_ass_jac");
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-   
-	FullSubMatrixHandler& WM = WorkMat.SetFull();
-	WM.ResizeReset(iNumRows, iNumCols);
-#if 0	
-	module_wheel* p = (module_wheel *)pEl->pGetData();
-#endif /* 0 */
-   
-	/* set sub-matrix indices and coefs */
-
+	WorkMat.SetNullMatrix();
 	return WorkMat;
 }
 
-static SubVectorHandler& 
-initial_ass_res(LoadableElem* pEl, 
-		SubVectorHandler& WorkVec, 
-		const VectorHandler& XCurr)
+SubVectorHandler& 
+Wheel2::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 {
-	DEBUGCOUTFNAME("initial_ass_res");
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
-	
-	WorkVec.Resize(iNumRows);
-
-#if 0
-	module_wheel* p = (module_wheel *)pEl->pGetData(); 
-#endif /* 0 */
-	
-	/* set sub-vector indices and coefs */
-   
+	WorkVec.Resize(0);
 	return WorkVec;
 }
 
-static void
-set_value(const LoadableElem* pEl, DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph)
-{
-	DEBUGCOUTFNAME("set_value");
-}
-   
-static void
-set_initial_value(const LoadableElem* pEl, VectorHandler& X)
-{
-	DEBUGCOUTFNAME("set_initial_value");
-}
-#endif
-
-static unsigned int
-i_get_num_priv_data(const LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("i_get_num_priv_data");
-	return 0;
-}
-
-static void
-destroy(LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("destroy");
-	module_wheel* p = (module_wheel *)pEl->pGetData();
-	
-	SAFEDELETE(p);
-}
-
-static int
-i_get_num_connected_nodes(const LoadableElem* /* pEl */ )
-{
-	DEBUGCOUTFNAME("i_get_num_connected_nodes");
-	
-	/* wheel + ground */
-	return 2;
-}
-
-static void
-get_connected_nodes(const LoadableElem* pEl, 
-		std::vector<const Node *>& connectedNodes)
-{
-	DEBUGCOUTFNAME("get_connected_nodes");
-	module_wheel* p = (module_wheel *)pEl->pGetData();
-	
-	/* wheel + ground */
-	connectedNodes.resize(2);
-
-	connectedNodes[0] = p->pWheel;
-	connectedNodes[1] = p->pGround;
-}
-
-#ifdef MBDYN_MODULE
-static
-#endif /* MBDYN_MODULE */
-struct
-LoadableCalls module_wheel2_lc = {
-	LOADABLE_VERSION_SET(1, 5, 0),
-
-	"wheel2",
-	"1.2.0",
-	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
-	"tire force model for landing gear analysis\n"
-		"\tcontact Stefania Gualdi <gualdi@aero.polimi.it>",
-
-	read, /* */
-	NULL /* i_get_num_dof */ ,
-	NULL /* set_dof */ ,
-	output, /* */
-	NULL /* restart */ ,
-	work_space_dim, /* */
-	ass_jac, /* */
-	NULL /* ass_mats */ ,
-	ass_res, /* */
-	NULL /* before_predict */ ,
-	NULL /* after_predict */ ,
-	NULL /* update */ ,
-	NULL /* after_convergence */ ,
-	NULL /* i_get_initial_num_dof */ ,
-	NULL /* initial_work_space_dim */ ,
-	NULL /* initial_ass_jac */ ,
-	NULL /* initial_ass_res */ ,
-	NULL /* set_value */ ,
-	NULL /* set_initial_value */ ,
-	i_get_num_priv_data,
-	NULL /* i_get_priv_data_idx */ ,
-	NULL /* d_get_priv_data */ ,
-	i_get_num_connected_nodes,
-	get_connected_nodes,
-	destroy,
-	NULL,
-	NULL,
-	NULL,
-	NULL
-};
-
-extern "C" {
-
-void *calls = &module_wheel2_lc;
-
+// #ifdef STATIC_MODULES, the function is registered by InitUDE()
 #ifndef STATIC_MODULES
 extern "C" int
-module_init(const char *s, void *dm, void *)
+module_init(const char *module_name, void *pdm, void *php)
 {
-	DataManager *pDM = (DataManager *)dm;
+	UserDefinedElemRead *rf = new UDERead<Wheel2>;
 
-	if (pDM == 0) {
-		silent_cerr("module-wheel2: DataManager unavailable (module_init() called too early?)" << std::endl);
-		return 1;
+	if (!SetUDE("wheel2", rf)) {
+		delete rf;
+
+		silent_cerr("Wheel2: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+
+		return -1;
 	}
-	
-	pDM->SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
 
 	return 0;
 }
-#endif /* !STATIC_MODULES */
-
-}
+#endif // STATIC_MODULES
 

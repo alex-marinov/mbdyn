@@ -61,10 +61,7 @@
 #include <ltdl.h>
 #endif // USE_RUNTIME_LOADING
 
-#include "elem.h"
-#include "dataman.h"
-#include "gravity.h"
-#include "aerodyn.h"
+#include "userelem.h"
 
 /*
  * Dynamically loadable element
@@ -244,9 +241,7 @@ struct LoadableCalls {
 
 class LoadableElem :
 	virtual public Elem,
-	public InitialAssemblyElem,
-	public AerodynamicElem,
-	public ElemGravityOwner
+	public UserDefinedElem
 {
 protected:
    	void* priv_data;	/* Dati privati passati alle funzioni */
@@ -255,7 +250,6 @@ protected:
 	lt_dlhandle handle;
 #endif // USE_RUNTIME_LOADING
 	LoadableCalls *calls;	/* Simboli delle funzioni attese */
-	bool needsAirProperties;
 
 	void GetCalls(MBDynParser& HP);
 	void BindCalls(DataManager* pDM, MBDynParser& HP);
@@ -270,9 +264,6 @@ public:
    
    	inline void* pGetData(void) const;
    
-   	virtual Elem::Type GetElemType(void) const;
-   	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
-
    	virtual unsigned int iGetNumDof(void) const;   
    	virtual DofOrder::Order GetDofType(unsigned int i) const;
    
@@ -324,9 +315,6 @@ public:
    	virtual unsigned int iGetPrivDataIdx(const char *s) const;
    	virtual doublereal dGetPrivData(unsigned int i) const;
 
-	bool NeedsAirProperties(void) const;
-	void NeedsAirProperties(bool yesno);
-
 	/* *******PER IL SOLUTORE BLOCK JACOBI-BROYDEN******** */
      	/* 
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
@@ -354,9 +342,17 @@ LoadableElem::pGetData(void) const
 class DataManager;
 class MBDynParser;
 
+// base class for user-defined element parsing
+struct LoadableElemRead : public UserDefinedElemRead {
+	virtual ~LoadableElemRead( void ) { NO_OP; };
+	virtual UserDefinedElem *
+	Read(unsigned uLabel, const DofOwner* pDO,
+		DataManager* const pDM, MBDynParser& HP) const;
+};
+
 extern Elem* 
 ReadLoadable(DataManager* pDM, MBDynParser& HP, 
-	     const DofOwner* pDO, unsigned int uLabel);
+     const DofOwner* pDO, unsigned int uLabel);
 
-#endif /* LOADABLE_H */
+#endif // LOADABLE_H
 

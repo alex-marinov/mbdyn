@@ -65,7 +65,6 @@ modalmappingext.cc \
 modalmappingext.h \
 modalforce.cc \
 modalforce.h \
-module-wheel2.cc \
 planej.cc \
 planej.h \
 point_contact.cc \
@@ -137,11 +136,4 @@ INCLUDES = \
 -I$(srcdir)/../../mbdyn/hydr
 
 include $(top_srcdir)/build/bot.mk
-
-module-wheel2.cc:
-	if test -f module-wheel2.cc ; then \
-		rm -f module-wheel2.cc ; \
-	else \
-		ln -sf $(srcdir)/../../modules/module-wheel2/module-wheel2.cc . ; \
-	fi
 
