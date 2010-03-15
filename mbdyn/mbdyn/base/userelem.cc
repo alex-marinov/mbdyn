@@ -55,7 +55,7 @@ static UDEWordSetType UDEWordSet;
 
 UserDefinedElem *
 ParseUserDefinedElem(unsigned uLabel, DofOwner* pDO,
-	MBDynParser& HP, DataManager* const pDM)
+	DataManager* const pDM, MBDynParser& HP)
 {
 	DEBUGCOUTFNAME("ParseUserDefinedElem(" << uLabel << ")");
 

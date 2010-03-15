@@ -138,7 +138,8 @@ enum KeyWords {
 	HYDRAULIC,
 
 	BULK,
-	LOADABLE,
+	USER_DEFINED,
+		LOADABLE,		// deprecated
 	DRIVEN,
 
 	SOCKETSTREAM_OUTPUT,
@@ -203,7 +204,8 @@ DataManager::ReadElems(MBDynParser& HP)
 		"hydraulic",
 
 		"bulk",
-		"loadable",
+		"user" "defined",
+			"loadable",		// deprecated
 		"driven",
 
 		"stream" "output",
@@ -371,6 +373,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
+			case USER_DEFINED:
 			case LOADABLE: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "loadable" << std::endl);
 				Typ = Elem::LOADABLE;
@@ -529,6 +532,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					t = Elem::BULK;
 					break;
 
+				case USER_DEFINED:
 				case LOADABLE:
 					t = Elem::LOADABLE;
 					break;
@@ -767,6 +771,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					case HYDRAULIC:
 
 					case BULK:
+					case USER_DEFINED:
 					case LOADABLE:
 					case EXISTING:
 
@@ -867,6 +872,7 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BULK, uLabel);
 							break;
 
+						case USER_DEFINED:
 						case LOADABLE:
 							ppE = ppFindElem(Elem::LOADABLE, uLabel);
 							break;
@@ -985,6 +991,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case HYDRAULIC:
 
 				case BULK:
+				case USER_DEFINED:
 				case LOADABLE:
 				case RTAI_OUTPUT:
 				case SOCKETSTREAM_OUTPUT:
@@ -1009,7 +1016,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					}
 
 #ifdef USE_RUNTIME_LOADING
-					if (CurrDesc == LOADABLE && !loadableElemInitialized) {
+					if ((CurrDesc == LOADABLE || CurrDesc == USER_DEFINED)
+						&& !loadableElemInitialized)
+					{
 						module_initialize();
 						loadableElemInitialized = true;
 					}
@@ -1839,6 +1848,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	/* elementi loadable */
+	case USER_DEFINED:
 	case LOADABLE: {
 		silent_cout("Reading LoadableElement(" << uLabel << ")" << std::endl);
 
@@ -1866,7 +1876,12 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			- iNumTypes[Elem::LOADABLE] - 1;
 		DofOwner* pDO = DofData[DofOwner::LOADABLE].pFirstDofOwner + i;
 
-		pE = ReadLoadable(this, HP, pDO, uLabel);
+		if (KeyWords(CurrType) == USER_DEFINED) {
+			pE = ParseUserDefinedElem(uLabel, pDO, this, HP);
+		} else {
+			pE = ReadLoadable(this, HP, pDO, uLabel);
+		}
+
 		if (pE != 0) {
 			ppE = &ElemData[Elem::LOADABLE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
 		}
@@ -1996,7 +2011,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			} else if (HP.IsKeyWord("joint")) {
 				Type = Elem::JOINT;
 
-			} else if (HP.IsKeyWord("loadable")) {
+			} else if (HP.IsKeyWord("user" "defined") || HP.IsKeyWord("loadable")) {
 				Type = Elem::LOADABLE;
 
 #if 0

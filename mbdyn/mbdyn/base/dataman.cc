@@ -66,6 +66,9 @@ extern "C" {
 /* To handle Elem2Param */
 #include "j2p.h"
 
+// To handle user-defined elements
+#include "userelem.h"
+
 // To handle gusts
 #include "gust.h"
 
@@ -195,6 +198,7 @@ DofIter()
 	NodeManager();
 	DofManager();
 
+	InitUDE();
 	InitGustData();
 
 	/* registra il plugin per i dofs */
@@ -230,11 +234,6 @@ DofIter()
 	 * i dati di controllo, chiama la relativa
 	 * funzione di lettura (distinta per comodita')
 	 */
-
-	/* initialize pre-loaded loadable elements... */
-#ifdef STATIC_MODULES
-	SetLoadableElemModule(module_wheel2_lc.name, &module_wheel2_lc);
-#endif /* STATIC_MODULES */
 
 	/* parole chiave */
 	const char* sKeyWords[] = {
@@ -653,6 +652,7 @@ DataManager::~DataManager(void)
 	NodeManagerDestructor();
 	DofManagerDestructor();
 
+	DestroyUDE();
 	DestroyGustData();
 
 #if defined(USE_RUNTIME_LOADING)

@@ -93,6 +93,9 @@ SetUDE(const std::string &s, UserDefinedElemRead *rude);
 // "private"
 extern void InitUDE(void);
 extern void DestroyUDE(void);
+extern UserDefinedElem *
+ParseUserDefinedElem(unsigned uLabel, DofOwner* pDO,
+	DataManager* const pDM, MBDynParser& HP);
 
 #endif // USERELEM_H
 
