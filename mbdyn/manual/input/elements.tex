@@ -169,8 +169,7 @@ where
     <airfoil_data> ::=
         { naca 0012
             | rae 9671
-            | c81 , <c81_data>
-            | theodorsen , <c81_label>
+            | [ theodorsen , ] c81 , <c81_data>
         }
 \end{verbatim}
 and
@@ -293,7 +292,7 @@ the interpolated data can be generated once for all with the utility
 and the \kw{multiple} mode can be used to directly provide
 the interpolated data to the aerodynamic element.
 
-The \kw{theodorsen} aerodynamic data uses C81 data from a single profile,
+The \kw{theodorsen} aerodynamic data uses C81 data,
 and superimposes Wagner's approximation of the Theodorsen incompressible
 unsteady correction of 2D lift and moment coefficients.
 It is experimental.
