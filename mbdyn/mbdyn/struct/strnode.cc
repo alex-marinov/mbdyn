@@ -3095,7 +3095,7 @@ ReadStructNode(DataManager* pDM,
 
 					} else {
 						// deprecated
-						pedantic_cerr("StructNode(" << uLabel << "): "
+						silent_cout("StructNode(" << uLabel << "): "
 							"warning, \"accelerations\" needs \"yes\" or \"no\" at line " << HP.GetLineData()
 						<< std::endl);
 						fOut |= 2;

@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- added c81 data interpolation w/ Theodorsen unsteady aero
 	Backward compatibility issues:
 		- structural nodes "accelerations" needs "yes" or "no"
+		- Theodorsen unsteady aero needs be followed by "c81" keyword
 	Known issues:
 	Bug fixes:
 

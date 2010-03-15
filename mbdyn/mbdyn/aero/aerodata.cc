@@ -738,6 +738,11 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				C81TheodorsenAeroData(*piNumber, iDim,
 					iProfile, data, ptime));
 #else
+			if (!HP.IsKeyWord("c81")) {
+				silent_cerr("Theodorsen aerodata: warning, assuming \"c81\" at line "
+				<< HP.GetLineData() << std::endl);
+			}
+
 			AeroData *pa = 0;
 			if (HP.IsKeyWord("multiple")) {
 				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim);
