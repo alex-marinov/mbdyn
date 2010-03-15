@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- added c81 data interpolation w/ Theodorsen unsteady aero
 	Backward compatibility issues:
+		- structural nodes "accelerations" needs "yes" or "no"
 	Known issues:
 	Bug fixes:
 

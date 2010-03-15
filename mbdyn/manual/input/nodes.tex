@@ -129,11 +129,11 @@ The \kw{dynamic} and the \kw{modal} node types allow
 the optional output keyword
 \kw{accelerations} after the standard node output parameters:
 \begin{verbatim}
-    <extra_arglist> ::= accelerations
+    <extra_arglist> ::= accelerations , { yes | no | <value> }
 \end{verbatim}
-to enable the output of the linear and angular accelerations of the node.
-Since this is a postprocessing, it is not required by the regular analysis,
-so it should be enabled only when strictly required.
+to enable/disable the output of the linear and angular accelerations
+of the node.  Since this is a postprocessing, it is not required
+by the regular analysis, so it should be enabled only when strictly required.
 
 Also note that accelerations may be inaccurate, since they are reconstructed
 from the momentum and the momenta moment derivatives through the inertia
@@ -210,7 +210,7 @@ The following dummy types are available:
         1, 1.,0.,0., 2, 0.,0.,1.,
         null,
         null,
-        accelerations;
+        accelerations, yes;
 \end{verbatim}
 
 \paragraph{Output.}
