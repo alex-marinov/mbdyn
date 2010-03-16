@@ -9,10 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.3.14
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
-		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- added c81 data interpolation w/ Theodorsen unsteady aero
 	Backward compatibility issues:
 		- structural nodes "accelerations" needs "yes" or "no"
