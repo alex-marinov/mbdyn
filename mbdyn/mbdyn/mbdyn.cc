@@ -136,6 +136,8 @@ struct mbdyn_proc_t {
 	bool bException;
 	bool bRedefine;
 	bool bTable;
+	Table* pT;
+	MathParser* pMP;
 	InputFormat CurrInputFormat;
 	InputSource CurrInputSource;
 	bool using_mpi;
@@ -632,9 +634,6 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	}
 
 	/* Gestione di input/output */
-	Table* pT = NULL;
-	MathParser* pMP = NULL;
-
 	int last = 0;
 	while (last == 0) {
 		if (mbp.CurrInputSource == FILE_STDIN) {
@@ -691,21 +690,21 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		Solver* pSolv = NULL;
 		switch (mbp.CurrInputFormat) {
 		case MBDYN: {
-			if (pT == NULL) {
-				SAFENEWWITHCONSTRUCTOR(pT, Table, Table(true));
+			if (mbp.pT == NULL) {
+				SAFENEWWITHCONSTRUCTOR(mbp.pT, Table, Table(true));
 			}
-			if (pMP == NULL) {
-				SAFENEWWITHCONSTRUCTOR(pMP, 
+			if (mbp.pMP == NULL) {
+				SAFENEWWITHCONSTRUCTOR(mbp.pMP, 
 					MathParser, 
-					MathParser(*pT, mbp.bRedefine));
+					MathParser(*mbp.pT, mbp.bRedefine));
 		
 					/* legge l'environment */
-				GetEnviron(*pMP);
+				GetEnviron(*mbp.pMP);
 			} 
 		
 			/* stream in ingresso */
 			InputStream In(*mbp.pIn);
-			MBDynParser HP(*pMP, In, 
+			MBDynParser HP(*mbp.pMP, In, 
 				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName);
 
 			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
@@ -735,13 +734,13 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		}
 
 		if (!mbp.bTable || currarg == argc) {
-			if (pMP != NULL) {
-				SAFEDELETE(pMP);
-				pMP = NULL;
+			if (mbp.pMP != NULL) {
+				SAFEDELETE(mbp.pMP);
+				mbp.pMP = NULL;
 			}
-			if (pT != NULL) {
-				SAFEDELETE(pT);
-				pT = NULL;
+			if (mbp.pT != NULL) {
+				SAFEDELETE(mbp.pT);
+				mbp.pT = NULL;
 			}
 		}
 
@@ -814,6 +813,8 @@ main(int argc, char* argv[])
        	mbp.bException = false;
        	mbp.bRedefine = false;
        	mbp.bTable = false;
+	mbp.pT = 0;
+	mbp.pMP = 0;
        	mbp.bShowSymbolTable = false;
 	mbp.pIn = NULL;
        	mbp.sInputFileName = (char *)sDefaultInputFileName;
@@ -918,6 +919,17 @@ main(int argc, char* argv[])
 			throw;
     		}
  	}
+
+	if (mbp.pMP != 0) {
+		SAFEDELETE(mbp.pMP);
+		mbp.pMP = 0;
+	}
+
+	if (mbp.pT != 0) {
+		SAFEDELETE(mbp.pT);
+		mbp.pT = 0;
+	}
+
 #ifdef USE_RTAI
 	if (::rtmbdyn_rtai_task) {
 		(void)rtmbdyn_rt_task_delete(&::rtmbdyn_rtai_task);
