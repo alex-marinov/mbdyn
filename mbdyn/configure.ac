@@ -226,6 +226,7 @@ OL_ARG_WITH(y12,[
        optional linear algebra solvers (naive is enabled by default):
   --with-y12              with Y12 sparse math library],yes,[auto yes no])
 OL_ARG_WITH(umfpack,[  --with-umfpack          with Umfpack math library],auto,[auto yes no])
+OL_ARG_WITH(klu,[  --with-klu          with KLU math library],auto,[auto yes no])
 OL_ARG_WITH(lapack,[  --with-lapack           with LAPACK math library],auto,[auto yes no])
 OL_ARG_WITH(harwell,[  --with-hsl              with HSL (Harwell) sparse math library - historical],no,[auto yes no])
 OL_ARG_WITH(meschach,[  --with-meschach         with Meschach math library - historical],no,[auto yes no])
@@ -347,6 +348,7 @@ METIS_LIBS=
 CHACO_LIBS=
 Y12_LIBS=
 UMFPACK_LIBS=
+KLU_LIBS=
 BLAS_LIBS=
 THREAD_LIBS=
 ATOMIC_OPS_LIBS=
@@ -1353,6 +1355,123 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for KLU
+dnl
+ol_link_klu=no
+if test "$ol_with_klu" != "no" ; then
+	dnl OL_ADD_DIRS(klu)
+	
+	AC_CHECK_HEADERS(klu.h)
+
+	if test "$ac_cv_header_klu_h" = "yes" ; then
+
+		dnl check for AMD
+		AC_MSG_CHECKING([for AMD library])
+		save_LIBS="$LIBS"
+		try_amd_LIBS="-lamd"
+		LIBS="$try_amd_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for amd */
+	return 0;
+		],[have_amd="yes"],[have_amd="no"])
+		if test "$have_amd" = "yes" ; then
+			try_klu_LIBS="$try_amd_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_klu_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+		dnl check for COLAMD
+		AC_MSG_CHECKING([for COLAMD library])
+		try_colamd_LIBS="-lcolamd"
+		LIBS="$try_colamd_LIBS $save_LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for colamd */
+	return 0;
+		],[have_colamd="yes"],[have_colamd="no"])
+		if test "$have_colamd" = "yes" ; then
+			try_klu_LIBS="$try_klu_LIBS $try_colamd_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_klu_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+		dnl check for BTF
+		AC_MSG_CHECKING([for BTF library])
+		try_btf_LIBS="-lbtf"
+		LIBS="$try_btf_LIBS $save_LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for btf */
+	return 0;
+		],[have_btf="yes"],[have_btf="no"])
+		if test "$have_btf" = "yes" ; then
+			try_klu_LIBS="$try_klu_LIBS $try_btf_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_klu_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+		dnl check for KLU
+		AC_MSG_CHECKING([for KLU library])
+		try_klu_LIBS="-lklu $try_klu_LIBS"
+		LIBS="$try_klu_LIBS $save_LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for klu */
+	return 0;
+		],[have_klu="yes"],[have_klu="no"])
+		if test "$have_klu" = "yes" ; then
+			AC_MSG_RESULT([yes])
+		else
+			try_klu_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+		if test "$have_klu" = "yes" ; then
+			ol_link_klu=yes
+			KLU_LIBS="$try_klu_LIBS"
+			if test "${BLAS_LIBS:-set}" = "set" ; then
+				AC_DEFINE(NBLAS,1,[define if BLAS/ATLAS are not available to KLU])
+				AC_MSG_WARN([KLU will be used without cblas/atlas])
+			fi
+		fi
+		LIBS="$save_LIBS"
+
+	fi
+fi
+		
+
+if test $ol_link_klu = no ; then
+	case "$ol_with_klu" in
+	yes) 
+		AC_MSG_ERROR([Could not locate KLU])
+		;;
+	auto)
+		AC_MSG_WARN([KLU not supported])
+		;;
+	*)
+		;;
+	esac
+else
+	AC_DEFINE(USE_KLU,1,[define if you want to use KLU])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Meschach
 dnl
 ol_link_meschach=no
@@ -2292,6 +2411,7 @@ AC_SUBST(MPI_LIBS)
 AC_SUBST(CHACO_LIBS)
 AC_SUBST(METIS_LIBS)
 AC_SUBST(UMFPACK_LIBS)
+AC_SUBST(KLU_LIBS)
 AC_SUBST(Y12_LIBS)
 AC_SUBST(SUPERLU_LIBS)
 AC_SUBST(WSMP_LIBS)

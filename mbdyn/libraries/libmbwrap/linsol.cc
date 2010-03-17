@@ -45,6 +45,7 @@
 #include "mschwrap.h"
 #include "y12wrap.h"
 #include "umfpackwrap.h"
+#include "kluwrap.h"
 #include "parsuperluwrap.h"
 #include "superluwrap.h"
 #include "lapackwrap.h"
@@ -123,6 +124,11 @@ const LinSol::solver_t solver[] = {
 		-1.
 #endif // ! UMFPACK_DROPTOL
 		},
+	{ "KLU", NULL, 
+		LinSol::KLU_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		.1 },
 	{ "Y12", NULL,
 		LinSol::Y12_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
@@ -141,7 +147,9 @@ const LinSol::solver_t solver[] = {
 LinSol::SolverType LinSol::defaultSolver = 
 #if defined(USE_UMFPACK)
 	LinSol::UMFPACK_SOLVER
-#else /* !USE_UMFPACK */
+#elif /* !USE_UMFPACK */ defined(USE_KLU)
+	LinSol::KLU_SOLVER
+#else /* !USE_KLU */
 	LinSol::NAIVE_SOLVER
 #endif
 	;
@@ -183,6 +191,12 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 	switch (t) {
 	case LinSol::UMFPACK_SOLVER:
 #ifdef USE_UMFPACK
+		currSolver = t;
+		return true;
+#endif /* USE_UMFPACK */
+
+	case LinSol::KLU_SOLVER:
+#ifdef USE_KLU
 		currSolver = t;
 		return true;
 #endif /* USE_UMFPACK */
@@ -635,6 +649,36 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			"to enable Umfpack solver" << std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_UMFPACK */
+
+	case LinSol::KLU_SOLVER:
+#ifdef USE_KLU
+		switch (type) {
+		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
+			typedef KLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+			break;
+		}
+
+		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
+			typedef KLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
+	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
+					CCSM(iNLD, dPivotFactor));
+			break;
+		}
+
+		default:
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+				KLUSparseSolutionManager,
+				KLUSparseSolutionManager(iNLD, dPivotFactor));
+			break;
+		}
+      		break;
+#else /* !USE_KLU */
+      		silent_cerr("Configure with --with-klu "
+			"to enable KLU solver" << std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif /* !USE_KLU */
 
 	case LinSol::NAIVE_SOLVER:
 		if (perm == LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {

@@ -47,6 +47,7 @@ public:
 		SUPERLU_SOLVER,
 		TAUCS_SOLVER,
                 UMFPACK_SOLVER,
+                KLU_SOLVER,
 		Y12_SOLVER,
 
 		LAST_SOLVER

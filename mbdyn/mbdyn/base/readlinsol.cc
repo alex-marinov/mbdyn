@@ -51,6 +51,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::TAUCS_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_name,
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
+		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
 		NULL
 	};
@@ -65,6 +66,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		TAUCS,
 		UMFPACK,
 		UMFPACK3,
+		KLU,
 		Y12,
 
 		LASTKEYWORD
@@ -160,6 +162,18 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 #endif /* USE_UMFPACK */
 		break;
 
+	case KLU:
+		/*
+		 * FIXME: use CC as default???
+		 */
+		cs.SetSolver(LinSol::KLU_SOLVER);
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using KLU sparse LU solver" << std::endl);
+#ifdef USE_KLU
+		bGotIt = true;
+#endif /* USE_KLU */
+		break;
+
 	case Y12:
 		/*
 		 * FIXME: use CC as default???
@@ -244,6 +258,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* amd ata? */
 	} else if (HP.IsKeyWord("mmdata")) {
 		silent_cerr("approximate minimum degree solver support is still TODO"
 			"task: detect (or import) the MD library;" 
@@ -262,6 +277,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* minimum degree ?*/
 	} else if (HP.IsKeyWord("minimum" "degree")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_MDAPLUSAT);
@@ -273,6 +289,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* Reverse Kuthill McKee? */
 	} else if (HP.IsKeyWord("rcmk")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_REVERSE_CUTHILL_MC_KEE);
@@ -285,6 +302,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* king ?*/
 	} else if (HP.IsKeyWord("king")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
@@ -297,6 +315,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* sloan ? */
 	} else if (HP.IsKeyWord("sloan")) {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_KING) {
 			cs.AddSolverFlags(LinSol::SOLVER_FLAGS_ALLOWS_KING);
@@ -309,6 +328,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 					<< currSolver.s_name
 					<< " solver" << std::endl);
 		}
+	/* nested dissection ? */
 	} else if (HP.IsKeyWord("nested" "dissection")) {
 #ifdef USE_METIS
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION) {
@@ -345,8 +365,9 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		} else if (nThreads != 1) {
 			pedantic_cerr("multithread is meaningless for "
 					<< currSolver.s_name
-					<< " solver; ignored" << std::endl);
+					<< " solver" << std::endl);
 		}
+
 
 	} else {
 		if (currSolver.s_flags & LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT) {

@@ -14,6 +14,8 @@ harwout.h \
 harwout_.cc \
 harwrap.cc \
 harwrap.h \
+kluwrap.h \
+kluwrap.cc \
 lapackwrap.cc \
 lapackwrap.h \
 linsol.cc \
@@ -46,6 +48,7 @@ libmbwrap_la_LIBADD = \
 ../libcolamd/libmbdyncolamd.la \
 ../libnaive/libnaive.la \
 @UMFPACK_LIBS@ \
+@KLU_LIBS@ \
 @MESCHACH_LIBS@ \
 @HARWELL_LIBS@ \
 @SUPERLU_LIBS@ \
