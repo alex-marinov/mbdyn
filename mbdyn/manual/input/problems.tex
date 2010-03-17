@@ -553,7 +553,7 @@ usually output.
 \label{sec:LINEAR-SOLVER}
 \begin{verbatim}
     <card> ::= linear solver :
-            { naive | umfpack | y12 | lapack | superlu | taucs | watson }
+            { naive | umfpack | klu | y12 | lapack | superlu | taucs | watson }
         [ , { map | cc | dir } ]
         [ , { colamd | mmdata } ]
         [ , mt , <threads> ]
@@ -580,6 +580,8 @@ This allows a very efficient solution of sparse matrices, with
 a $O(1)$ access cost to the coefficients.
 It ignores the \kw{workspace size} parameter.
 See \cite{NAIVE-2007} for details.
+
+The \kw{klu} solver is provided by the UFSparse suite.
 
 The \kw{y12} linear solver requires static allocation of the workspace;
 the optimal size is between 3 and 5 times the number of nonzero 
@@ -644,8 +646,8 @@ of \kw{cc} is quite limited ($\log_2\plbr{\mathrm{<nz>}}$, where
 \kw{<nz>} is the number of non-zeroes in a column) so it is definitely
 comparable to that of \kw{cc}.
 \end{itemize}
-Only \kw{umfpack}, \kw{y12} and \kw{superlu} linear solvers allow these
-settings.
+Only \kw{umfpack}, \kw{klu}, \kw{y12} and \kw{superlu}
+linear solvers allow these settings.
 
 The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU linear solvers;
 it enables the column rearrangement that minimizes the sparsity
@@ -688,6 +690,7 @@ summarizes how each linear solver deals with pivoting policies.
 \hline\hline
 	Naive		& 	&	&	&	&	& x	&	\\
 	Umfpack		& x	& x	& x	&	&	& x	& x	\\
+	KLU		& x	& x	& x	&	&	& x	&	\\
 	Y12m		& x	& x	& x	&	& x	& x	&	\\
 	Lapack		&	&	&	&	&	& x	&	\\
 %	Harwell		&	&	&	&	&	& x	&	\\
@@ -715,6 +718,7 @@ summarizes how each linear solver deals with pivoting policies.
 \hline\hline
 	Naive		& 			& full		&		\\
 	Umfpack 	& 			& dynamic	& default=32	\\
+	KLU 		& 			& dynamic	& 		\\
 	Y12m 		& default=$2\times{n^2}$& static	&		\\
 			& $3nz \rightarrow 5nz$	&		&		\\
 	Lapack		&			& full		&		\\
@@ -739,6 +743,7 @@ summarizes how each linear solver deals with pivoting policies.
 \hline\hline
 	Naive		& 1.0$\rightarrow$0.0		& 1.e$-8$	& \\
 	Umfpack 	& 0.0$\rightarrow$1.0 		& 0.1 		& \\
+	KLU 		& 0.0$\rightarrow$1.0 		& 0.1 		& \\
 	Y12m 		& boolean: none=0.0, full=1.0	& full		& \\
 	Lapack		& 1.0$\rightarrow$0.0		&		& \\
 %	Harwell		& full: 1.0			& 1.0		& \\

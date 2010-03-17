@@ -69,6 +69,7 @@ MYLIBS = \
 ../libraries/libann/libann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
+@KLU_LIBS@ \
 @MESCHACH_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
