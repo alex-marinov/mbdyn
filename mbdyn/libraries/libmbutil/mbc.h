@@ -68,6 +68,7 @@ typedef struct {
 	uint8_t		cmd;
 	char		data_and_next;
 	int		verbose;
+	int		timeout;
 } mbc_t;
 
 /* validate command

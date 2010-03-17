@@ -129,14 +129,40 @@ mbc_put_cmd(mbc_t *mbc)
 static int
 mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 {
+	unsigned long timeout = mbc->timeout*1000000;
+	unsigned long useconds = 100000;
+
 	if (mbc->sock < 0) {
 		fprintf(stderr, "unable to create socket\n");
 		return -1;
 	}
 
-	if (connect(mbc->sock, addr, socklen) < 0) {
-		fprintf(stderr, "unable to connect to peer\n");
-		return -1;
+	for ( ; ; ) {
+		if (connect(mbc->sock, addr, socklen) < 0) {
+			int save_errno = errno;
+			const char *msg;
+
+			if (timeout != 0) {
+				switch (save_errno) {
+				case ECONNREFUSED:	// inet
+				case ENOENT:		// unix
+					/* Socket does not exist yet; retry */
+					usleep(useconds);
+					if (mbc->timeout > 0) {
+						timeout -= useconds;
+					}
+					continue;
+				}
+			}
+
+			/* Connect failed */
+			msg = strerror(save_errno);
+			fprintf(stderr, "unable to connect to peer (%d: %s)\n",
+				save_errno, msg);
+			return -1;
+		}
+
+		break;
 	}
 
 	/* MSG_NOSIGNAL disables SIGPIPE
