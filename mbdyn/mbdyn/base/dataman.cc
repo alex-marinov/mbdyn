@@ -663,6 +663,17 @@ DataManager::~DataManager(void)
 		}
 	}
 #endif // USE_RUNTIME_LOADING
+
+#ifdef USE_SOCKET
+	std::map<int, UseSocket *>::const_iterator re = SocketUsers.end();
+	for (std::map<int, UseSocket *>::iterator ri = SocketUsers.begin();
+		ri != SocketUsers.end(); ri++)
+	{
+		if (!ri->second->Connected()) {
+			delete ri->second;
+		}
+	}
+#endif // USE_SOCKET
 } /* End of DataManager::DataManager() */
 
 
