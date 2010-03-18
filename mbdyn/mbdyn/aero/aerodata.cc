@@ -724,20 +724,6 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 			break;
 
 		case THEODORSEN: {
-#if 0
-	  		integer iProfile = HP.GetInt();
-		  	const c81_data* data = HP.GetC81Data(iProfile);
-
-			DriveCaller *ptime = 0;
-			SAFENEWWITHCONSTRUCTOR(ptime,
-					TimeDriveCaller,
-					TimeDriveCaller(pDM->pGetDrvHdl()));
-
-	  		SAFENEWWITHCONSTRUCTOR(*aerodata,
-				C81TheodorsenAeroData,
-				C81TheodorsenAeroData(*piNumber, iDim,
-					iProfile, data, ptime));
-#else
 			if (!HP.IsKeyWord("c81")) {
 				silent_cerr("Theodorsen aerodata: warning, assuming \"c81\" at line "
 				<< HP.GetLineData() << std::endl);
@@ -781,8 +767,6 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				TheodorsenAeroData,
 				TheodorsenAeroData(*piNumber, iDim,
 					pa, ptime));
-				
-#endif
 			} break;
 		}
 
