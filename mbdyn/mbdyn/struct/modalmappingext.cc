@@ -329,6 +329,7 @@ ModalMappingExt::Output(OutputHandler& OH) const
 
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
 			out << GetLabel() << "@" << pRefNode->GetLabel()
+				<< " " << F << " " << M
 				<< " " << F0 << " " << M0
 				<< std::endl;
 		}
