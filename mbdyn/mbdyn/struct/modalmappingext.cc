@@ -245,9 +245,9 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			Nodes[i].F = RRef*FTmp;
 			Nodes[i].M = RRef*MTmp;
 
-			if (!bUseRigidBodyForces && Nodes[i].pNode != pRefNode) {
-				F += Nodes[i].F;
-				M += Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
+			if (bUseRigidBodyForces && Nodes[i].pNode != pRefNode) {
+				F -= Nodes[i].F;
+				M -= Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
 			}
 		}
 
