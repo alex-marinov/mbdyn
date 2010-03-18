@@ -66,6 +66,8 @@ bUseRigidBodyForces(bUseRigidBodyForces),
 bRotateRigidBodyForces(bRotateRigidBodyForces),
 pRefNode(pRefNode),
 pH(pH),
+F0(0.),
+M0(0.),
 F(0.),
 M(0.)
 {
@@ -203,7 +205,7 @@ void
 ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 {
 	unsigned uLabel = 0;
-	unsigned uOutFlags = pEMF->Recv(pEFH, uFlags, uLabel, F, M, p);
+	unsigned uOutFlags = pEMF->Recv(pEFH, uFlags, uLabel, F0, M0, p);
 
 	if (uOutFlags & ExtModalForceBase::EMF_ERR) {
 		silent_cerr("ModalMappingExt(" << GetLabel() << "): "
@@ -228,8 +230,8 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 		if (bUseRigidBodyForces) {
 			// use rigid body forces as provided by peer
 			if (bRotateRigidBodyForces) {
-				F = RRef*F;
-				M = RRef*M;
+				F = RRef*F0;
+				M = RRef*M0;
 			}
 
 		} else {
@@ -327,7 +329,7 @@ ModalMappingExt::Output(OutputHandler& OH) const
 
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
 			out << GetLabel() << "@" << pRefNode->GetLabel()
-				<< " " << F << " " << M
+				<< " " << F0 << " " << M0
 				<< std::endl;
 		}
 

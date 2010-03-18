@@ -68,6 +68,7 @@ protected:
 	std::vector<NodeData> Nodes;
 
 	// rigid-body forces
+	Vec3 F0, M0;
 	Vec3 F, M;
 
 	STLVectorHandler f;
