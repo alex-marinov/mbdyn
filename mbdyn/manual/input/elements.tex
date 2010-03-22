@@ -39,8 +39,10 @@ The \kw{elements} section is enclosed in the cards:
 \end{verbatim}
 Every element card has the following format:
 \begin{verbatim}
-    <card> ::= <elem_type> : <arglist>
-               [ , output , { yes | no } ] ;
+    <card> ::= <elem_type> :
+        <arglist>
+        [ , output , { yes | no } ] ;
+        [ , <extra_arglist> ] ;
 \end{verbatim}
 where \kw{elem\_type} is one of the following:
 \begin{itemize}
@@ -138,6 +140,8 @@ The input format is:
         [ , unsteady , { bielawa } ]
         [ , jacobian , { yes | no | <bool> } ]
         [ , <custom_output> ]
+
+    <extra_arglist> ::= { std | gauss | node }
 \end{verbatim}
 where
 \begin{verbatim}
@@ -297,24 +301,23 @@ and superimposes Wagner's approximation of the Theodorsen incompressible
 unsteady correction of 2D lift and moment coefficients.
 It is experimental.
 
+The \kw{extra\_arglist} allows to define the style of the output.
+The \kw{std} style (the default), the \kw{gauss} and the \kw{node}
+styles are illustrated in the output section.
+
 
 \subsection{Output}
 Aerodynamic elements, both bodies and beams, write their output with file
 extension \kw{.aer}; for each time step the required elements are output.
-Three different formats are available; the format can be selected only at
-compile time, so it must be the same for all the elements. 
-
-\noindent
-\emph{Note: eventually the format will freeze; if all the output formats
-are be maintained, they will be made selectable at run-time,
-on a per-element basis.}
+Three different formats are available: \kw{std} (the default),
+\kw{gauss} and \kw{node}.
 
 \noindent
 In any case the label of the element is output first.
 
 \subsubsection{Coefficients at Gauss points}
-The output consists in a set of 8 numbers for each block,
-that describe data at each Gauss integration point;
+In the \kw{std} style, the output consists in a set of 8 numbers
+for each block, that describe data at each Gauss integration point;
 multiple blocks for a single element are written on the same line.
 The format is:
 \begin{itemize}
@@ -341,7 +344,7 @@ while a three-node beam is split in three portions,
 so the output contains $3\times \kw{integration\_points}$ data blocks.
 
 \subsubsection{Node}
-The format is:
+In the \kw{node} style, the format is:
 \begin{itemize}
     \item the label of the node
     \item the three components of the force applied to the node
@@ -351,7 +354,8 @@ When an \kw{aerodynamic beam} is considered, the output is repeated
 on the same line for each node the element is connected to.
 
 \subsubsection{Forces at Gauss points}
-The output refers to each Gauss integration point; the format is:
+In the \kw{gauss} style, the output consists in the forces and moments
+per unit length at each Gauss integration point; the format is:
 \begin{itemize}
     \item the direction of the wind velocity relative to the element frame
     \item the lift,
