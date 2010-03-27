@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- added support for KLU (Marco Morandini)
 	Backward compatibility issues:
+		- "run.time" is now "time" in NetCDF output
 	Known issues:
 	Bug fixes:
 		- fixed modal mapping with reference node

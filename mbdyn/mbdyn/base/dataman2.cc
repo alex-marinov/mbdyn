@@ -1333,7 +1333,7 @@ DataManager::OutputPrepare(void)
 		 * and save the NcVar* pointer returned from add_var as handle
 		 * for later write accesses. Define also variable attributes */
 		Var_Step = pBinFile->add_var("run.step", ncLong,
-			OutHdl.DimTime(), OutHdl.DimV1());
+			OutHdl.DimTime());
 		if (Var_Step == 0) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1350,8 +1350,10 @@ DataManager::OutputPrepare(void)
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		Var_Time = pBinFile->add_var("run.time", ncDouble,
-			OutHdl.DimTime(), OutHdl.DimV1());
+		// NOTE: should be "run.time", but many browsers understand
+		// just "time"...
+		Var_Time = pBinFile->add_var("time", ncDouble,
+			OutHdl.DimTime());
 		if (Var_Time == 0) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1370,7 +1372,7 @@ DataManager::OutputPrepare(void)
 		}
 
 		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble,
-			OutHdl.DimTime(), OutHdl.DimV1());
+			OutHdl.DimTime());
 		if (Var_TimeStep == 0) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
