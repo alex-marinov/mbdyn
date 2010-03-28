@@ -81,6 +81,7 @@ extern const char* psReadControlDrivers[];
  * */
 
 class DriveHandler;
+class DriveCaller;
 
 class Drive : public WithLabel {
 public:
@@ -119,6 +120,34 @@ public:
 
 /* Drive - end */
 
+/* DriveOwner - begin */
+
+/* Possessore di DriveCaller, ne garantisce la corretta distruzione */
+
+class DriveOwner {
+protected:
+	DriveCaller* pDriveCaller;
+
+public:
+	DriveOwner(const DriveCaller* pDC = 0);
+	virtual ~DriveOwner(void);
+
+	void Set(const DriveCaller* pDC);
+	DriveCaller* pGetDriveCaller(void) const;
+
+	doublereal dGet(const doublereal& dVar) const;
+	doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	bool bIsDifferentiable(void) const;
+	doublereal dGetP(const doublereal& dVar) const;
+	doublereal dGetP(void) const;
+};
+
+/* DriveOwner - end */
+
+
+
 
 /* DriveHandler - begin */
 
@@ -132,6 +161,7 @@ class DriveHandler {
 	friend class DataManager;
 	friend class RandDriveCaller;
 	friend class MeterDriveCaller;
+	friend class ClosestNextDriveCaller;
 
 private:
 #ifdef USE_MULTITHREAD
@@ -164,7 +194,7 @@ private:
 
 		inline integer iGetSteps(void) const;
 		inline bool bGetMeter(void) const;
-		virtual inline void SetMeter(void);
+		virtual inline void Set(void);
 	};
 
 	HardDestructor<MyMeter> MyMeterD;
@@ -183,7 +213,7 @@ private:
 
 		inline integer iGetSteps(void) const;
 		inline integer iGetRand(void) const;
-		virtual inline void SetMeter(void);
+		virtual inline void Set(void);
 	};
 
 	HardDestructor<MyRand> MyRandD;
@@ -191,13 +221,39 @@ private:
 	integer iRandDriveSize;
 	MyRand** ppMyRand;
 
+	/* For closest next drivers */
+	class MyClosestNext : public WithLabel {
+	protected:
+		const DriveHandler *pDH;
+		const DriveOwner Increment;
+		bool bMustSetNext;
+		doublereal dNext;
+
+	public:
+		MyClosestNext(unsigned int uLabel, const DriveHandler *pDH,
+			const DriveCaller *pIncrementDC, doublereal dStartTime);
+		virtual ~MyClosestNext(void);
+
+		inline bool bGetClosestNext(void) const;
+		virtual inline void Set(void);
+	};
+
+	HardDestructor<MyClosestNext> MyClosestNextD;
+	MyLList<MyClosestNext> MyClosestNextLL;
+	integer iClosestNextDriveSize;
+	MyClosestNext** ppMyClosestNext;
+
 protected:
 	void SetTime(const doublereal& dt, const doublereal& dts = -1.,
 		const integer& s = -1, flag fNewStep = 1);
 	void LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+	integer iRandInit(void);
 	integer iRandInit(integer iSteps);
+	integer iMeterInit(void);
 	integer iMeterInit(integer iSteps);
+	integer iClosestNextInit(void);
+	integer iClosestNextInit(const DriveCaller *pIncrement, doublereal dStartTime);
 
 public:
 	DriveHandler(MathParser &mp);
@@ -213,6 +269,7 @@ public:
 	inline integer iGetStep(void) const;
 	inline long int iGetRand(integer iNumber) const;
 	inline bool bGetMeter(integer iNumber) const;
+	inline bool bGetClosestNext(integer iNumber) const;
 };
 
 
@@ -224,9 +281,9 @@ DriveHandler::MyRand::iGetRand(void) const
 
 
 inline void
-DriveHandler::MyRand::SetMeter(void)
+DriveHandler::MyRand::Set(void)
 {
-	MyMeter::SetMeter();
+	MyMeter::Set();
 	if (iCurr == 0) {
 		iRand = rand();
 	}
@@ -248,10 +305,33 @@ DriveHandler::MyMeter::bGetMeter(void) const
 
 
 inline void
-DriveHandler::MyMeter::SetMeter(void)
+DriveHandler::MyMeter::Set(void)
 {
 	if (++iCurr == iSteps) {
 		iCurr = 0;
+	}
+}
+
+
+inline bool
+DriveHandler::MyClosestNext::bGetClosestNext(void) const
+{
+	return pDH->dGetTime() >= dNext;
+}
+
+
+inline void
+DriveHandler::MyClosestNext::Set(void)
+{
+	if (bMustSetNext) {
+		do {
+			dNext += Increment.dGet();
+		} while (bGetClosestNext());
+
+		bMustSetNext = false;
+
+	} else if (bGetClosestNext()) {
+		bMustSetNext = true;
 	}
 }
 
@@ -289,6 +369,12 @@ inline bool
 DriveHandler::bGetMeter(integer iNumber) const
 {
 	return ppMyMeter[iNumber]->bGetMeter();
+}
+
+inline bool
+DriveHandler::bGetClosestNext(integer iNumber) const
+{
+	return ppMyClosestNext[iNumber]->bGetClosestNext();
 }
 
 /* DriveHandler - end */
@@ -525,33 +611,6 @@ ConstDriveCaller::dGetP(void) const
 }
 
 /* ConstDriveCaller - end */
-
-
-/* DriveOwner - begin */
-
-/* Possessore di DriveCaller, ne garantisce la corretta distruzione */
-
-class DriveOwner {
-protected:
-	DriveCaller* pDriveCaller;
-
-public:
-	DriveOwner(const DriveCaller* pDC = 0);
-	virtual ~DriveOwner(void);
-
-	void Set(const DriveCaller* pDC);
-	DriveCaller* pGetDriveCaller(void) const;
-
-	doublereal dGet(const doublereal& dVar) const;
-	doublereal dGet(void) const;
-
-	/* this is about drives that are differentiable */
-	bool bIsDifferentiable(void) const;
-	doublereal dGetP(const doublereal& dVar) const;
-	doublereal dGetP(void) const;
-};
-
-/* DriveOwner - end */
 
 
 class DataManager;

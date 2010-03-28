@@ -451,8 +451,9 @@ DofIter()
 	}
 
 	/* Inizializza il drive handler */
-	DrvHdl.iRandInit(0);
-	DrvHdl.iMeterInit(0);
+	DrvHdl.iRandInit();
+	DrvHdl.iMeterInit();
+	DrvHdl.iClosestNextInit();
 
 	/* Verifica dei dati di controllo */
 #ifdef DEBUG

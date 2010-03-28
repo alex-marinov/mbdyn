@@ -164,7 +164,6 @@ TimeDriveCaller::dGetP(void) const
 
 /* TimeDriveCaller - end */
 
-
 /* TimeStepDriveCaller - begin */
 
 class TimeStepDriveCaller : public DriveCaller {
@@ -1229,6 +1228,43 @@ MeterDriveCaller::iGetSteps(void) const
 }
 
 /* MeterDriveCaller - end */
+
+
+/* ClosestNextDriveCaller - begin */
+
+class ClosestNextDriveCaller : public DriveCaller {
+private:
+	doublereal dStartTime;
+	doublereal dEndTime;
+	const DriveCaller *pIncrement;
+	integer iDriveNumber;
+
+public:
+	ClosestNextDriveCaller(const DriveHandler* pDH,
+		doublereal dS, doublereal dE,
+		const DriveCaller *pIncrement);
+	virtual ~ClosestNextDriveCaller(void);
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+};
+
+inline doublereal
+ClosestNextDriveCaller::dGet(const doublereal& dVar) const
+{
+	if (dVar < dStartTime || dVar > dEndTime) {
+		return 0.;
+	}
+
+	return doublereal(pDrvHdl->bGetClosestNext(iDriveNumber));
+}
+
+/* ClosestNextDriveCaller - end */
 
 
 /* DirectDriveCaller - begin */

@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- added support for KLU (Marco Morandini)
+		- added "closest next" drive caller support
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
 	Known issues:

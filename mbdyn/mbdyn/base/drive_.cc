@@ -858,6 +858,49 @@ MeterDriveCaller::Restart(std::ostream& out) const
 /* MeterDriveCaller - end */
 
 
+/* ClosestNextDriveCaller - begin */
+
+ClosestNextDriveCaller::ClosestNextDriveCaller(const DriveHandler* pDH,
+	doublereal dS, doublereal dE, const DriveCaller *pIncrement)
+: DriveCaller(pDH),
+dStartTime(dS), dEndTime(dE),
+pIncrement(pIncrement)
+{
+	iDriveNumber = pDrvHdl->iClosestNextInit(pIncrement, dStartTime);
+}
+
+ClosestNextDriveCaller::~ClosestNextDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+ClosestNextDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		ClosestNextDriveCaller,
+		ClosestNextDriveCaller(pDrvHdl, dStartTime, dEndTime,
+		pIncrement->pCopy()));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+ClosestNextDriveCaller::Restart(std::ostream& out) const
+{
+	out
+		<< " closest next, " << dStartTime
+		<< ", " << dEndTime
+		<< ", ", pIncrement->Restart(out);
+
+	return out;
+}
+
+/* ClosestNextDriveCaller - end */
+
+
 /* DirectDriveCaller - begin */
 
 DirectDriveCaller::DirectDriveCaller(const DriveHandler* pDH)
@@ -1863,6 +1906,42 @@ MeterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct ClosestNextDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+ClosestNextDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "closest next");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	doublereal dInitialTime = HP.GetReal();
+	DEBUGCOUT("Initial time: " << dInitialTime << std::endl);
+
+	doublereal dFinalTime = std::numeric_limits<double>::max();
+	if (!HP.IsKeyWord("forever")) {
+		dFinalTime = HP.GetReal();
+	}
+	DEBUGCOUT("Final time: " << dFinalTime << std::endl);
+
+	const DriveCaller *pIncrement = HP.GetDriveCaller(bDeferred);
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		ClosestNextDriveCaller,
+		ClosestNextDriveCaller(pDrvHdl, dInitialTime, dFinalTime,
+			pIncrement));
+
+	return pDC;
+}
+
 struct DirectDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -2326,6 +2405,7 @@ InitDriveData(void)
 	SetDriveData("exponential", new ExponentialDCR);
 	SetDriveData("random", new RandomDCR);
 	SetDriveData("meter", new MeterDCR);
+	SetDriveData("closest" "next", new ClosestNextDCR);
 	SetDriveData("direct", new DirectDCR);
 	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
 	SetDriveData("file", new FileDCR);
