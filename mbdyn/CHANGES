@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added "closest next" drive caller support
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
+		- scalar variables dropped "1" dimension in NetCDF output
 	Known issues:
 	Bug fixes:
 		- fixed modal mapping with reference node
