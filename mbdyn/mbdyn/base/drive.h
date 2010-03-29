@@ -49,7 +49,6 @@
 #include "output.h"
 #include "solman.h"
 #include "withlab.h"
-#include "llist.h"
 
 extern const char* psDriveNames[];
 extern const char* psReadControlDrivers[];
@@ -197,11 +196,6 @@ private:
 		virtual inline void Set(void);
 	};
 
-	HardDestructor<MyMeter> MyMeterD;
-	MyLList<MyMeter> MyMeterLL;
-	integer iMeterDriveSize;
-	MyMeter **ppMyMeter;
-
 	/* For random drivers */
 	class MyRand : public MyMeter {
 	protected:
@@ -215,11 +209,6 @@ private:
 		inline integer iGetRand(void) const;
 		virtual inline void Set(void);
 	};
-
-	HardDestructor<MyRand> MyRandD;
-	MyLList<MyRand> MyRandLL;
-	integer iRandDriveSize;
-	MyRand** ppMyRand;
 
 	/* For closest next drivers */
 	class MyClosestNext : public WithLabel {
@@ -238,21 +227,17 @@ private:
 		virtual inline void Set(void);
 	};
 
-	HardDestructor<MyClosestNext> MyClosestNextD;
-	MyLList<MyClosestNext> MyClosestNextLL;
-	integer iClosestNextDriveSize;
-	MyClosestNext** ppMyClosestNext;
+	std::vector<MyMeter *> Meter;
+	std::vector<MyRand *> Rand;
+	std::vector<MyClosestNext *> ClosestNext;
 
 protected:
 	void SetTime(const doublereal& dt, const doublereal& dts = -1.,
 		const integer& s = -1, flag fNewStep = 1);
 	void LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
-	integer iRandInit(void);
 	integer iRandInit(integer iSteps);
-	integer iMeterInit(void);
 	integer iMeterInit(integer iSteps);
-	integer iClosestNextInit(void);
 	integer iClosestNextInit(const DriveCaller *pIncrement, doublereal dStartTime);
 
 public:
@@ -361,20 +346,20 @@ DriveHandler::iGetStep(void) const
 inline long int
 DriveHandler::iGetRand(integer iNumber) const
 {
-	return ppMyRand[iNumber]->iGetRand();
+	return Rand[iNumber]->iGetRand();
 }
 
 
 inline bool
 DriveHandler::bGetMeter(integer iNumber) const
 {
-	return ppMyMeter[iNumber]->bGetMeter();
+	return Meter[iNumber]->bGetMeter();
 }
 
 inline bool
 DriveHandler::bGetClosestNext(integer iNumber) const
 {
-	return ppMyClosestNext[iNumber]->bGetClosestNext();
+	return ClosestNext[iNumber]->bGetClosestNext();
 }
 
 /* DriveHandler - end */

@@ -450,11 +450,6 @@ DofIter()
 		}
 	}
 
-	/* Inizializza il drive handler */
-	DrvHdl.iRandInit();
-	DrvHdl.iMeterInit();
-	DrvHdl.iClosestNextInit();
-
 	/* Verifica dei dati di controllo */
 #ifdef DEBUG
 	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {

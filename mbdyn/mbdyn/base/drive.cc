@@ -67,18 +67,9 @@ pVar(0),
 pXCurr(0),
 pXPrimeCurr(0),
 iCurrStep(0),
-MyMeterD(),
-MyMeterLL(MyMeterD),
-iMeterDriveSize(0),
-ppMyMeter(0),
-MyRandD(),
-MyRandLL(MyRandD),
-iRandDriveSize(0),
-ppMyRand(0),
-MyClosestNextD(),
-MyClosestNextLL(MyClosestNextD),
-iClosestNextDriveSize(0),
-ppMyClosestNext(0)
+Meter(0),
+Rand(0),
+ClosestNext(0)
 {
 #ifdef USE_MULTITHREAD
 	if (pthread_mutex_init(&parser_mutex, NULL)) {
@@ -184,37 +175,22 @@ DriveHandler::~DriveHandler(void)
 	pthread_mutex_destroy(&parser_mutex);
 #endif /* USE_MULTITHREAD */
 
-	if (iMeterDriveSize > 0) {
-		if (ppMyMeter != 0) {
-			SAFEDELETEARR(ppMyMeter);
-
-		} else {
-			silent_cerr("Error, "
-				"meter drive data array should exist"
-				<< std::endl);
-		}
+	for (std::vector<MyMeter *>::iterator i = Meter.begin();
+		i != Meter.end(); i++)
+	{
+		SAFEDELETE(*i);
 	}
 
-	if (iRandDriveSize > 0) {
-		if (ppMyRand != 0) {
-			SAFEDELETEARR(ppMyRand);
-
-		} else {
-			silent_cerr("Error, "
-				"random drive data array should exist"
-				<< std::endl);
-		}
+	for (std::vector<MyRand *>::iterator i = Rand.begin();
+		i != Rand.end(); i++)
+	{
+		SAFEDELETE(*i);
 	}
 
-	if (iClosestNextDriveSize > 0) {
-		if (ppMyClosestNext != 0) {
-			SAFEDELETEARR(ppMyClosestNext);
-
-		} else {
-			silent_cerr("Error, "
-				"closest next drive data array should exist"
-				<< std::endl);
-		}
+	for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
+		i != ClosestNext.end(); i++)
+	{
+		SAFEDELETE(*i);
 	}
 }
 
@@ -242,19 +218,22 @@ DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
 	if (fNewStep) {
 		iCurrStep++;
 
-		/* update the meter drivers */
-		for (long int iCnt = 0; iCnt < iMeterDriveSize; iCnt++) {
-			ppMyMeter[iCnt]->Set();
+		for (std::vector<MyMeter *>::iterator i = Meter.begin();
+			i != Meter.end(); i++)
+		{
+			(*i)->Set();
 		}
 
-		/* update the random drivers */
-		for (long int iCnt = 0; iCnt < iRandDriveSize; iCnt++) {
-			ppMyRand[iCnt]->Set();
+		for (std::vector<MyRand *>::iterator i = Rand.begin();
+			i != Rand.end(); i++)
+		{
+			(*i)->Set();
 		}
 
-		/* update the closest next drivers */
-		for (long int iCnt = 0; iCnt < iClosestNextDriveSize; iCnt++) {
-			ppMyClosestNext[iCnt]->Set();
+		for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
+			i != ClosestNext.end(); i++)
+		{
+			(*i)->Set();
 		}
 	}
 }
@@ -268,166 +247,43 @@ DriveHandler::LinkToSolution(const VectorHandler& XCurr,
 	pXPrimeCurr = const_cast<VectorHandler *>(&XPrimeCurr);
 }
 
-/*
- * se iSteps == 0 inizializza la lista dei random drivers;
- * se iSteps != 0 allora alloca un nuovo gestore dei dati del
- * random driver, e ritorna il numero d'ordine
- */
-integer
-DriveHandler::iRandInit(void)
-{
-	/* initialises the structure */
-	iRandDriveSize = MyRandLL.iGetSize();
-	if (iRandDriveSize == 0) {
-		return 0;
-	}
-
-	SAFENEWARR(ppMyRand, MyRand*, iRandDriveSize);
-
-	MyRand** ppmr = ppMyRand;
-	MyRand* pmr = 0;
-	if (!MyRandLL.GetFirst(pmr)) {
-		silent_cerr("Error in getting first random drive data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-#ifdef DEBUG
-	long int iCnt = 0;
-#endif
-	do {
-		ASSERT(++iCnt <= iRandDriveSize);
-		*ppmr++ = pmr;
-	} while (MyRandLL.GetNext(pmr));
-
-	return 0;
-}
-
 integer
 DriveHandler::iRandInit(integer iSteps)
 {
-	/* else, adds a driver */
 	MyRand* pmr = 0;
-	integer iNumber = MyRandLL.iGetSize();
+	integer iNumber = Rand.size();
 	SAFENEWWITHCONSTRUCTOR(pmr,
 		MyRand,
 		MyRand((unsigned int)iNumber, iSteps, rand()));
-
-	if (MyRandLL.Add(pmr)) {
-		silent_cerr("Error in insertion of random driver data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	Rand.push_back(pmr);
 
 	return iNumber;
-}
-
-
-/*
- * se iSteps == 0 inizializza la lista dei meter drivers;
- * se iSteps != 0 allora alloca un nuovo gestore dei dati del
- * meter driver, e ritorna il numero d'ordine
- */
-integer
-DriveHandler::iMeterInit(void)
-{
-	/* initialises the structure */
-	iMeterDriveSize = MyMeterLL.iGetSize();
-	if (iMeterDriveSize == 0) {
-		return 0;
-	}
-
-	SAFENEWARR(ppMyMeter, MyMeter*, iMeterDriveSize);
-
-	MyMeter** ppmm = ppMyMeter;
-	MyMeter* pmm = 0;
-	if (!MyMeterLL.GetFirst(pmm)) {
-		silent_cerr("Error in getting first meter drive data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-#ifdef DEBUG
-	long int iCnt = 0;
-#endif
-	do {
-		ASSERT(++iCnt <= iMeterDriveSize);
-		*ppmm++ = pmm;
-	} while (MyMeterLL.GetNext(pmm));
-
-	return 0;
 }
 
 integer
 DriveHandler::iMeterInit(integer iSteps)
 {
-	/* else, adds a driver */
 	MyMeter* pmm = 0;
-	integer iNumber = MyMeterLL.iGetSize();
+	integer iNumber = Meter.size();
 	SAFENEWWITHCONSTRUCTOR(pmm,
 		MyMeter,
 		MyMeter((unsigned int)iNumber, iSteps));
-
-	if (MyMeterLL.Add(pmm)) {
-		silent_cerr("Error in insertion of meter driver data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	Meter.push_back(pmm);
 
 	return iNumber;
 }
 
-
-/*
- * se pIncrement == 0 inizializza la lista dei random drivers;
- * se pIncrement != 0 allora alloca un nuovo gestore dei dati del
- * closest next driver, e ritorna il numero d'ordine
- */
 integer
-DriveHandler::iClosestNextInit(void)
+DriveHandler::iClosestNextInit(const DriveCaller *pIncrement,
+	doublereal dStartTime)
 {
-	/* initialises the structure */
-	iClosestNextDriveSize = MyClosestNextLL.iGetSize();
-	if (iClosestNextDriveSize == 0) {
-		return 0;
-	}
-
-	SAFENEWARR(ppMyClosestNext, MyClosestNext*, iClosestNextDriveSize);
-
-	MyClosestNext** ppmc = ppMyClosestNext;
 	MyClosestNext* pmc = 0;
-	if (!MyClosestNextLL.GetFirst(pmc)) {
-		silent_cerr("Error in getting first closest next drive data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-#ifdef DEBUG
-	long int iCnt = 0;
-#endif
-	do {
-		ASSERT(++iCnt <= iClosestNextDriveSize);
-		*ppmc++ = pmc;
-	} while (MyClosestNextLL.GetNext(pmc));
-
-	return 0;
-}
-
-integer
-DriveHandler::iClosestNextInit(const DriveCaller *pIncrement, doublereal dStartTime)
-{
-	/* else, adds a driver */
-	MyClosestNext* pmc = 0;
-	integer iNumber = MyClosestNextLL.iGetSize();
+	integer iNumber = ClosestNext.size();
 	SAFENEWWITHCONSTRUCTOR(pmc,
 		MyClosestNext,
-		MyClosestNext((unsigned int)iNumber, this, pIncrement, dStartTime));
-
-	if (MyClosestNextLL.Add(pmc)) {
-		silent_cerr("Error in insertion of closest next driver data"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+		MyClosestNext((unsigned int)iNumber, this,
+			pIncrement, dStartTime));
+	ClosestNext.push_back(pmc);
 
 	return iNumber;
 }
