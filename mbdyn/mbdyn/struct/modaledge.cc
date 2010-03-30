@@ -142,7 +142,7 @@ ExtForceEDGE::~ExtForceEDGE(void)
 }
 
 bool
-ExtForceEDGE::Prepare(ExtFileHandlerBase *pEFH,
+ExtForceEDGE::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel,
 	bool bRigid, unsigned uModes)
 {
 	// consistency is checked later

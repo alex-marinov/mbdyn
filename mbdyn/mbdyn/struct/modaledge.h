@@ -48,7 +48,7 @@ public:
 	virtual ~ExtForceEDGE(void);
 
 	bool
-	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes);
+	Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, unsigned uModes);
 };
 
 /* ExtForceEDGE - end */

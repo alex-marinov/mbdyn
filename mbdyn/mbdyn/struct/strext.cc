@@ -104,7 +104,13 @@ StructExtForce::~StructExtForce(void)
 bool
 StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 {
-	if (pEFH->NegotiateRequest()) {
+	bool bResult = true;
+
+	switch (pEFH->NegotiateRequest()) {
+	case ExtFileHandlerBase::NEGOTIATE_NO:
+		break;
+
+	case ExtFileHandlerBase::NEGOTIATE_CLIENT: {
 		std::ostream *outfp = pEFH->GetOutStream();
 		if (outfp) {
 
@@ -116,6 +122,9 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 			uint8_ptr = (uint8_t *)&buf[0];
 			uint8_ptr[0] = MBC_NODAL;
+			if (pRefNode != 0) {
+				uint8_ptr[0] |= MBC_REF_NODE;
+			}
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uint32_ptr[0] = Nodes.size();
@@ -124,15 +133,29 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 				(const void *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 			if (rc == -1) {
+				int save_errno = errno;
+				char *err_msg = strerror(save_errno);
+				silent_cerr("StructExtForce(" << GetLabel() << "): "
+					"negotiation request send() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (rc != sizeof(buf)) {
-
+				silent_cerr("StructExtForce(" << GetLabel() << "): "
+					"negotiation request send() failed "
+					"(sent " << rc << " of " << sizeof(buf) << " bytes)"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 #endif // USE_SOCKET
 		}
+		} break;
 
-	} else {
+	case ExtFileHandlerBase::NEGOTIATE_SERVER: {
 		unsigned uN;
+		unsigned uNodal;
+		bool bRef;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
@@ -147,27 +170,61 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 				(void *)buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == -1) {
+				int save_errno = errno;
+				char *err_msg = strerror(save_errno);
+				silent_cerr("StructExtForce(" << GetLabel() << "): "
+					"negotiation response recv() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (rc != sizeof(buf)) {
-
+				silent_cerr("StructExtForce(" << GetLabel() << "): "
+					"negotiation response recv() failed "
+					"(got " << rc << " of " << sizeof(buf) << " bytes)"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			uint8_ptr = (uint8_t *)&buf[0];
-			if (uint8_ptr[0] != MBC_NODAL) {
-				return false;
-			}
+			uNodal = (uint8_ptr[0] & MBC_MODAL_NODAL_MASK);
+			bRef = (uint8_ptr[0] & MBC_REF_NODE);
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uN = uint32_ptr[0];
 #endif // USE_SOCKET
 		}
 
-		if (uN != Nodes.size()) {
-			return false;
+		if (uNodal != MBC_NODAL) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: expecting MBC_NODAL "
+				"(=" << MBC_MODAL << "), got " << uNodal
+				<< std::endl);
+			bResult = false;
 		}
+
+		if ((pRefNode != 0 && !bRef) || (pRefNode == 0 && bRef)) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: reference node configuration mismatch "
+				"(local=" << (pRefNode != 0 ? "yes" : "no") << ", remote=" << (bRef ? "yes" : "no") << ")"
+				<< std::endl);
+			bResult = false;
+		}
+
+		if (uN != Nodes.size()) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: node number mismatch "
+				"(local=" << Nodes.size() << ", remote=" << uN << ")"
+				<< std::endl);
+			bResult = false;
+		}
+		} break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return true;
+	return bResult;
 }
 
 /*

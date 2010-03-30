@@ -62,8 +62,10 @@ ExtModalForce::~ExtModalForce(void)
 }
 
 bool
-ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
+ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, unsigned uModes)
 {
+	bool bResult = true;
+
 	switch (pEFH->NegotiateRequest()) {
 	case ExtFileHandlerBase::NEGOTIATE_NO:
 		break;
@@ -78,24 +80,37 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
 			uint32_t *uint32_ptr;
 
 			uint8_ptr = (uint8_t *)&buf[0];
 			uint8_ptr[0] = MBC_MODAL;
-			uint8_ptr[1] = bRigid;
+			if (bRigid) {
+				uint8_ptr[0] |= MBC_REF_NODE;
+			}
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[2];
+			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uint32_ptr[0] = uModes;
 
 			ssize_t rc = send(pEFH->GetOutFileDes(),
 				(const void *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 			if (rc == -1) {
+				int save_errno = errno;
+				char *err_msg = strerror(save_errno);
+				silent_cerr("ExtModalForce(" << uLabel << "): "
+					"negotiation request send() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (rc != sizeof(buf)) {
-
+				silent_cerr("ExtModalForce(" << uLabel << "): "
+					"negotiation request send() failed "
+					"(sent " << rc << " of " << sizeof(buf) << " bytes)"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 #endif // USE_SOCKET
 		}
@@ -115,7 +130,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
 			uint8_t *uint8_ptr;
 			uint32_t *uint32_ptr;
 
@@ -123,27 +138,61 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes)
 				(void *)buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == -1) {
+				int save_errno = errno;
+				char *err_msg = strerror(save_errno);
+				silent_cerr("ExtModalForce(" << uLabel << "): "
+					"negotiation response recv() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (rc != sizeof(buf)) {
-
+				silent_cerr("ExtModalForce(" << uLabel << "): "
+					"negotiation response recv() failed "
+					"(got " << rc << " of " << sizeof(buf) << " bytes)"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			uint8_ptr = (uint8_t *)&buf[0];
-			type = uint8_ptr[0];
-			bR = uint8_ptr[1];
+			type = (uint8_ptr[0] & MBC_MODAL_NODAL_MASK);
+			bR = (uint8_ptr[0] & MBC_REF_NODE);
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[2];
+			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uM = uint32_ptr[0];
 #endif // USE_SOCKET
 		}
 
-		if (type != MBC_MODAL || bR != bRigid || uM != uModes) {
-			return false;
+		if (type != MBC_MODAL) {
+			silent_cerr("ExtModalForce(" << uLabel << "): "
+				"negotiation response failed: expecting MBC_MODAL "
+				"(=" << MBC_MODAL << "), got " << type
+				<< std::endl);
+			bResult = false;
+		}
+
+		if ((bRigid && !bR) || (!bRigid && bR)) {
+			silent_cerr("ExtModalForce(" << uLabel << "): "
+				"negotiation response failed: reference node configuration mismatch "
+				"(local=" << (bRigid ? "yes" : "no") << ", remote=" << (bR ? "yes" : "no") << ")"
+				<< std::endl);
+			bResult = false;
+		}
+
+		if (uM != uModes) {
+			silent_cerr("ExtModalForce(" << uLabel << "): "
+				"negotiation response failed: mode number mismatch "
+				"(local=" << uModes << ", remote=" << uM << ")"
+				<< std::endl);
+			bResult = false;
 		}
 		} break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return true;
+	return bResult;
 }
 
 unsigned
@@ -343,7 +392,7 @@ ModalExt::~ModalExt(void)
 bool
 ModalExt::Prepare(ExtFileHandlerBase *pEFH)
 {
-	return pEMF->Prepare(pEFH,
+	return pEMF->Prepare(pEFH, GetLabel(),
 		uFlags & ExtModalForceBase::EMF_RIGID,
 		pModal->uGetNModes());
 }

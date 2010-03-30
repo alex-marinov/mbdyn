@@ -64,7 +64,7 @@ public:
 	virtual ~ExtModalForceBase(void);
 
 	virtual bool
-	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes) = 0;
+	Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, unsigned uModes) = 0;
 
 	/*
 	 * Interface:
@@ -105,7 +105,7 @@ public:
 	virtual ~ExtModalForce(void);
 
 	virtual bool
-	Prepare(ExtFileHandlerBase *pEFH, bool bRigid, unsigned uModes);
+	Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, unsigned uModes);
 
 	virtual unsigned
 	Recv(ExtFileHandlerBase *pEFH, unsigned uFlags, unsigned& uLabel,

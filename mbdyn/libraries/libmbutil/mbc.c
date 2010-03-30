@@ -390,7 +390,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	int rc;
 	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
-	char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+	char buf[sizeof(uint8_t) + sizeof(uint32_t)];
 
 	if (!mbc->rigid && mbc->modes == 0) {
 		fprintf(stderr, "need at least 1 mode or rigid body data\n");
@@ -407,9 +407,11 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 
 	uint8_ptr = (uint8_t *)&buf[0];
 	uint8_ptr[0] = (uint8_t)MBC_MODAL;
-	uint8_ptr[1] = mbc->rigid;
+	if (mbc->rigid) {
+		uint8_ptr[0] |= MBC_REF_NODE;
+	}
 
-	uint32_ptr = (uint32_t *)&uint8_ptr[2];
+	uint32_ptr = (uint32_t *)&uint8_ptr[1];
 	uint32_ptr[0] = mbc->modes;
 
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
@@ -450,6 +452,8 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
 	char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+	unsigned uModal;
+	unsigned uRef;
 
 	if (mbc_get_cmd((mbc_t*)mbc)) {
 		return -1;
@@ -477,15 +481,17 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 	rc = 0;
 
 	uint8_ptr = (uint8_t *)&buf[0];
-	if (uint8_ptr[0] != MBC_MODAL) {
+	uModal = uint8_ptr[0] & MBC_MODAL_NODAL_MASK;
+	uRef = uint8_ptr[0] & MBC_REF_NODE;
+	if (uModal != MBC_MODAL) {
 		rc++;
 	}
 
-	if (uint8_ptr[1] != mbc->rigid) {
+	if ((uRef && !mbc->rigid) || (!uRef && mbc->rigid)) {
 		rc++;
 	}
 
-	uint32_ptr = (uint32_t *)&uint8_ptr[2];
+	uint32_ptr = (uint32_t *)&uint8_ptr[1];
 	if (uint32_ptr[0] != mbc->modes) {
 		rc++;
 	}

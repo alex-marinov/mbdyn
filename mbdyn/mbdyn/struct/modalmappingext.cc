@@ -145,7 +145,7 @@ ModalMappingExt::~ModalMappingExt(void)
 bool
 ModalMappingExt::Prepare(ExtFileHandlerBase *pEFH)
 {
-	return pEMF->Prepare(pEFH,
+	return pEMF->Prepare(pEFH, GetLabel(),
 		uFlags & ExtModalForceBase::EMF_RIGID,
 		pH->iGetNumRows());
 }

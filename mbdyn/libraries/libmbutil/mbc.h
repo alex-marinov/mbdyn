@@ -53,8 +53,11 @@ enum ESCmd {
 };
 
 enum MBCType {
-	MBC_MODAL				= 0,
-	MBC_NODAL				= 1,
+	MBC_MODAL				= 0x01U,
+	MBC_NODAL				= 0x02U,
+	MBC_MODAL_NODAL_MASK			= (MBC_MODAL | MBC_NODAL),
+
+	MBC_REF_NODE				= 0x10U,
 
 	MBC_LAST
 };
