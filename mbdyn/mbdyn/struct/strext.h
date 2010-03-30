@@ -42,10 +42,13 @@
 
 class StructExtForce : virtual public Elem, public ExtForce {
 protected:
+	StructNode *pRefNode;
+	Vec3 F0, M0;
+	bool bUseReferenceNodeForces;
+	bool bRotateReferenceNodeForces;
+
 	std::vector<StructNode *> Nodes;
 	std::vector<Vec3> Offsets, F, M;
-	StructNode *pRefNode;
-	Vec3 RefOffset;
 
 	bool bUnsorted;
 	bool bNoLabels;
@@ -67,6 +70,9 @@ public:
 	/* Costruttore */
 	StructExtForce(unsigned int uL,
 		DataManager *pDM,
+		StructNode *pRefNode,
+		bool bUseReferenceNodeForces,
+		bool bRotateReferenceNodeForces,
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bUnsorted,

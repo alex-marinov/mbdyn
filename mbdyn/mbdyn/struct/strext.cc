@@ -45,6 +45,9 @@
 /* Costruttore */
 StructExtForce::StructExtForce(unsigned int uL,
 	DataManager *pDM,
+	StructNode *pRefNode,
+	bool bUseReferenceNodeForces,
+	bool bRotateReferenceNodeForces,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	bool bUnsorted,
@@ -57,8 +60,9 @@ StructExtForce::StructExtForce(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut), 
 ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
-pRefNode(0),
-RefOffset(0.),
+pRefNode(pRefNode),
+bUseReferenceNodeForces(bUseReferenceNodeForces),
+bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 bUnsorted(bUnsorted),
 bNoLabels(bNoLabels),
 bOutputAccelerations(bOutputAccelerations),
@@ -286,27 +290,56 @@ void
 StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 {
 	if (pRefNode) {
-#if 0
-		// TODO
-		Vec3 fRef = pRefNode->GetRCurr()*RefOffset;
-		Vec3 xRef = pRefNode->GetXCurr() + fRef;
-		Mat3x3 RRefT = pRefNode->GetRCurr().Transpose();
+		const Vec3& xRef = pRefNode->GetXCurr();
+		const Mat3x3& RRef = pRefNode->GetRCurr();
+		const Vec3& vRef = pRefNode->GetVCurr();
+		const Vec3& wRef = pRefNode->GetWCurr();
+		const Vec3& xppRef = pRefNode->GetXPPCurr();
+		const Vec3& wpRef = pRefNode->GetWPCurr();
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 f = Nodes[i]->GetRCurr()*Offsets[i];
-			Vec3 x = Nodes[i]->GetXCurr() + f;
-			Vec3 v = Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f);
+			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
+			Vec3 x(Nodes[i]->GetXCurr() + f);
+			Vec3 Dx(x - xRef);
+			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
+			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
+			Vec3 Dv(v - vRef - wRef.Cross(Dx));
+			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
 
 			outf << Nodes[i]->GetLabel()
-				<< " " << x
-				<< " " << Nodes[i]->GetRCurr()
-				<< " " << v
-				<< " " << Nodes[i]->GetWCurr()
-				<< std::endl;
+				<< " " << RRef.MulTV(Dx)
+				<< " ";
+			switch (uRot) {
+			case MBC_ROT_MAT:
+				outf << DR;
+				break;
+
+			case MBC_ROT_THETA:
+				outf << RotManip::VecRot(DR);
+				break;
+
+			case MBC_ROT_EULER_123:
+				outf << MatR2EulerAngles123(DR)*dRaDegr;
+				break;
+			}
+			outf
+				<< " " << RRef.MulTV(Dv)
+				<< " " << RRef.MulTV(w - wRef);
+
+			if (bOutputAccelerations) {
+				const Vec3& xpp(Nodes[i]->GetXPPCurr());
+				const Vec3& wp(Nodes[i]->GetWPCurr());
+
+				outf
+					<< " " << RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
+							- wRef.Cross(wRef.Cross(Dx) + Dv*2))
+					<< " " << RRef.MulTV(wp - wpRef - wRef.Cross(w));
+			}
+
+			outf << std::endl;
 		}
-#endif
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -366,27 +399,63 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 {
 #ifdef USE_SOCKET
 	if (pRefNode) {
-#if 0
-		// TODO
-		Vec3 fRef = pRefNode->GetRCurr()*RefOffset;
-		Vec3 xRef = pRefNode->GetXCurr() + fRef;
-		Mat3x3 RRefT = pRefNode->GetRCurr().Transpose();
+		const Vec3& xRef = pRefNode->GetXCurr();
+		const Mat3x3& RRef = pRefNode->GetRCurr();
+		const Vec3& vRef = pRefNode->GetVCurr();
+		const Vec3& wRef = pRefNode->GetWCurr();
+		const Vec3& xppRef = pRefNode->GetXPPCurr();
+		const Vec3& wpRef = pRefNode->GetWPCurr();
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 f = Nodes[i]->GetRCurr()*Offsets[i];
-			Vec3 x = Nodes[i]->GetXCurr() + f;
-			Vec3 v = Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f);
+			uint32_t l = Nodes[i]->GetLabel();
+
+			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
+			Vec3 x(Nodes[i]->GetXCurr() + f);
+			Vec3 Dx(x - xRef);
+			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
+			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
+			Vec3 Dv(v - vRef - wRef.Cross(Dx));
+			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
+			send(outfd, (void *)&l, sizeof(l), 0);
 
-			outf << Nodes[i]->GetLabel()
-				<< " " << x
-				<< " " << Nodes[i]->GetRCurr()
-				<< " " << v
-				<< " " << Nodes[i]->GetWCurr()
-				<< std::endl;
+			Vec3 xTilde(RRef.MulTV(Dx));
+			send(outfd, (void *)xTilde.pGetVec(), 3*sizeof(doublereal), 0);
+
+			switch (uRot) {
+			case MBC_ROT_MAT:
+				send(outfd, (void *)DR.pGetMat(), 9*sizeof(doublereal), 0);
+				break;
+
+			case MBC_ROT_THETA: {
+				Vec3 Theta(RotManip::VecRot(DR));
+				send(outfd, (void *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+				} break;
+
+			case MBC_ROT_EULER_123: {
+				Vec3 E(MatR2EulerAngles123(DR)*dRaDegr);
+				send(outfd, (void *)E.pGetVec(), 3*sizeof(doublereal), 0);
+				} break;
+			}
+
+			Vec3 vTilde(RRef.MulTV(Dv));
+			send(outfd, (void *)vTilde.pGetVec(), 3*sizeof(doublereal), 0);
+
+			Vec3 wTilde(RRef.MulTV(w - wRef));
+			send(outfd, (void *)wTilde.pGetVec(), 3*sizeof(doublereal), 0);
+
+			if (bOutputAccelerations) {
+				const Vec3& xpp = Nodes[i]->GetXPPCurr();
+				Vec3 xppTilde(RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
+					- wRef.Cross(wRef.Cross(Dx) + Dv*2)));
+				send(outfd, (void *)xppTilde.pGetVec(), 3*sizeof(doublereal), 0);
+
+				const Vec3& wp = Nodes[i]->GetWPCurr();
+				Vec3 wpTilde(RRef.MulTV(wp) - wpRef - wRef.Cross(w));
+				send(outfd, (void *)wpTilde.pGetVec(), 3*sizeof(doublereal), 0);
+			}
 		}
-#endif
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -399,7 +468,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 				wp = wp
 			 */
 
-			unsigned l = Nodes[i]->GetLabel();
+			uint32_t l = Nodes[i]->GetLabel();
 			// Optimization of the above formulas
 			const Mat3x3& R = Nodes[i]->GetRCurr();
 			Vec3 f = R*Offsets[i];
@@ -457,6 +526,15 @@ StructExtForce::Recv(ExtFileHandlerBase *pEFH)
 void
 StructExtForce::RecvFromStream(std::istream& inf)
 {
+	if (pRefNode) {
+		unsigned l;
+		doublereal *f = F0.pGetVec(), *m = M0.pGetVec();
+
+		inf >> l
+			>> f[0] >> f[1] >> f[2]
+			>> m[0] >> m[1] >> m[2];
+	}
+
 	if (bUnsorted) {
 		done.resize(Nodes.size());
 
@@ -561,6 +639,29 @@ void
 StructExtForce::RecvFromFileDes(int infd)
 {
 #ifdef USE_SOCKET
+	if (pRefNode) {
+		unsigned l;
+		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
+		doublereal *f;
+		ssize_t len;
+
+		len = recv(infd, (void *)buf, sizeof(buf), 0);
+		if (len != sizeof(buf)) {
+			int save_errno = errno;
+			char *err_msg = strerror(save_errno);
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"recv() failed (" << save_errno << ": "
+				<< err_msg << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		uint32_t *uint32_ptr = (uint32_t *)buf;
+		l = uint32_ptr[0];
+		f = (doublereal *)uint32_ptr[1];
+		F0 = Vec3(&f[0]);
+		M0 = Vec3(&f[3]);
+	}
+
 	if (bUnsorted) {
 		done.resize(Nodes.size());
 
@@ -730,12 +831,52 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 {
 	ExtForce::Recv();
 
-	WorkVec.ResizeReset(6*Nodes.size());
-
 	if (pRefNode) {
+		WorkVec.ResizeReset(6*(Nodes.size() + 1));
+
+		const Vec3& xRef = pRefNode->GetXCurr();
+		const Mat3x3& RRef = pRefNode->GetRCurr();
+
 		// manipulate
+		if (bUseReferenceNodeForces) {
+			if (bRotateReferenceNodeForces) {
+				F0 = RRef*F0;
+				M0 = RRef*M0;
+			}
+		}
+
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
+			for (int r = 1; r <= 6; r++) {
+				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
+			}
+
+			Vec3 f(RRef*F[i]);
+			Vec3 m(RRef*M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(f));
+
+			WorkVec.Add(i*6 + 1, f);
+			WorkVec.Add(i*6 + 4, m);
+
+			if (bUseReferenceNodeForces) {
+				F0 -= f;
+				M0 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+			}
+		}
+
+		if (bUseReferenceNodeForces) {
+			unsigned i = Nodes.size();
+			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
+			for (int r = 1; r <= 6; r++) {
+				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
+			}
+
+			WorkVec.Add(i*6 + 1, F0);
+			WorkVec.Add(i*6 + 4, M0);
+		}
 
 	} else {
+		WorkVec.ResizeReset(6*Nodes.size());
+
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
 			for (int r = 1; r <= 6; r++) {
@@ -782,6 +923,17 @@ ReadStructExtForce(DataManager* pDM,
 	bool bSendAfterPredict;
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
+	StructNode *pRefNode(0);
+	if (HP.IsKeyWord("reference" "node")) {
+		pRefNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		if (pRefNode == 0) {
+			silent_cerr("StructExtForce(" << uLabel << "): "
+				"illegal reference node "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	bool bUnsorted(false);
 	bool bNoLabels(false);
 	unsigned uRot = MBC_ROT_MAT;
@@ -794,6 +946,17 @@ ReadStructExtForce(DataManager* pDM,
 
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("unsorted")) {
+			if (bGotUnsorted) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"unsorted\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bUnsorted = true;
+			bGotUnsorted = true;
+
+		} else if (HP.IsKeyWord("unsorted")) {
 			if (bGotUnsorted) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
 					"\"unsorted\" already specified at line "
@@ -879,10 +1042,22 @@ ReadStructExtForce(DataManager* pDM,
 		}
 	}
 
+	bool bUseReferenceNodeForces(true);
+	bool bRotateReferenceNodeForces(true);
+	if (HP.IsKeyWord("use" "reference" "node" "forces")) {
+		bUseReferenceNodeForces = HP.GetYesNo(bUseReferenceNodeForces);
+
+		if (bUseReferenceNodeForces && HP.IsKeyWord("rotate" "reference" "node" "forces")) {
+			bRotateReferenceNodeForces = HP.GetYesNo(bRotateReferenceNodeForces);
+		}
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
-		StructExtForce(uLabel, pDM, Nodes, Offsets,
+		StructExtForce(uLabel, pDM, pRefNode,
+			bUseReferenceNodeForces, bRotateReferenceNodeForces,
+			Nodes, Offsets,
 			bUnsorted, bNoLabels, bOutputAccelerations, uRot,
 			pEFH, bSendAfterPredict, iCoupling, fOut));
 

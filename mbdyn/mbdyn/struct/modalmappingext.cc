@@ -228,14 +228,14 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 		const Mat3x3& RRef(pRefNode->GetRCurr());
 
 		if (bUseRigidBodyForces) {
-			// use rigid body forces as provided by peer
+			// initialize rigid body forces with values provided by peer
 			if (bRotateRigidBodyForces) {
 				F = RRef*F0;
 				M = RRef*M0;
 			}
 
 		} else {
-			// re-compute rigid body forces using nodal forces
+			// ignore rigid body forces
 			F = Zero3;
 			M = Zero3;
 		}
@@ -591,7 +591,7 @@ ReadModalMappingExtForce(DataManager* pDM,
 
 	bool bUseRigidBodyForces(true);
 	bool bRotateRigidBodyForces(true);
-	if (bm & ExtModalForceBase::EMF_RIGID && HP.IsKeyWord("use" "rigid" "body" "forces")) {
+	if ((bm & ExtModalForceBase::EMF_RIGID) && HP.IsKeyWord("use" "rigid" "body" "forces")) {
 		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
 
 		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
