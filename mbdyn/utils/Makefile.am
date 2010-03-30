@@ -60,7 +60,8 @@ test_modalext_edge
 
 if USE_SOCKET
 noinst_PROGRAMS += \
-test_modalext_socket
+test_modalext_socket \
+test_strext_socket
 endif
 
 MYLIBS = \
@@ -106,6 +107,7 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 test_modalext_SOURCES = test_modalext.cc
 test_modalext_edge_SOURCES = test_modalext_edge.c
 test_modalext_socket_SOURCES = test_modalext_socket.c
+test_strext_socket_SOURCES = test_strext_socket.c
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 nodist_mbfem_SOURCES = \
@@ -159,6 +161,7 @@ sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
 test_modalext_socket_LDADD = $(MYLIBS)
+test_strext_socket_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@

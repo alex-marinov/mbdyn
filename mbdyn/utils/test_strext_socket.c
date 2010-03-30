@@ -65,8 +65,8 @@ usage(void)
 		"\t-c [random:]<c>\tnumber of iterations\n"
 		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
-		"\t-M <modes>\tmodes number\n"
-		"\t-p {p1,...,pM}\tmodal forces (need -M first)\n"
+		"\t-N <nodes>\tnodes number\n"
+		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
 		"\t-r\t\tuse rigid body data\n"
 		"\t-s <sleeptime>\tsleep time between tries\n"
 		"\t-v\t\tverbose\n"
@@ -86,14 +86,14 @@ main(int argc, char *argv[])
 	char *host = NULL;
 	unsigned short int port = -1;
 
-	mbc_modal_t	mbcx = { { 0 } };
-	mbc_modal_t	*mbc = &mbcx;
+	mbc_nodal_t	mbcx = { { 0 } };
+	mbc_nodal_t	*mbc = &mbcx;
 
 	double fx[6], *f0 = NULL;
 	double *p0 = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:f:H:M:p:rs:vx");
+		int opt = getopt(argc, argv, "c:f:H:N:p:rs:vx");
 
 		if (opt == EOF) {
 			break;
@@ -110,7 +110,7 @@ main(int argc, char *argv[])
 				printf("iterations: %d\n", iters);
 			}
 			if (iters < 1) {
-				fprintf(stderr, "test_modalext_socket: "
+				fprintf(stderr, "test_strext_socket: "
 					"invalid iterations %s\n",
 					optarg);
 				usage();
@@ -122,7 +122,7 @@ main(int argc, char *argv[])
 			int i;
 
 			if (f0 != NULL) {
-				fprintf(stderr, "test_modalext_socket: "
+				fprintf(stderr, "test_strext_socket: "
 					"-f already provided\n");
 				usage();
 			}
@@ -132,18 +132,22 @@ main(int argc, char *argv[])
 			s = optarg;
 			for (i = 0; i < 6; i++) {
 				char *next;
+				const char fm[] = "fm";
+				const char xyz[] = "xyz";
 
 				f0[i] = strtod(s, &next);
 				if (next == s) {
-					fprintf(stderr, "test_modalext_socket: "
-						"unable to parse f[%d]\n", i);
+					fprintf(stderr, "test_strext_socket: "
+						"unable to parse %c%c\n",
+						fm[i/3], xyz[i%3]);
 					usage();
 				}
 
 				if (i < 5) {
 					if (next[0] != ',') {
-						fprintf(stderr, "test_modalext_socket: "
-							"unable to parse past f[%d]\n", i);
+						fprintf(stderr, "test_strext_socket: "
+							"unable to parse %c%c\n",
+							fm[i/3], xyz[i%3]);
 						usage();
 					}
 
@@ -151,8 +155,9 @@ main(int argc, char *argv[])
 
 				} else {
 					if (next[0] != '\0') {
-						fprintf(stderr, "test_modalext_socket: "
-							"extra cruft past f[%d]\n", i);
+						fprintf(stderr, "test_strext_socket: "
+							"extra cruft past %c%c\n",
+							fm[i/3], xyz[i%3]);
 						usage();
 					}
 				}
@@ -192,17 +197,17 @@ main(int argc, char *argv[])
 				
 			break;
 
-		case 'M':
+		case 'N':
 			if (p0 != NULL) {
-				fprintf(stderr, "test_modalext_socket: "
-					"-M cannot follow -p\n");
+				fprintf(stderr, "test_strext_socket: "
+					"-N cannot follow -p\n");
 				usage();
 			}
 
-			mbc->modes = atoi(optarg);
-			if (mbc->modes <= 0) {
-				fprintf(stderr, "test_modalext_socket: "
-					"invalid mode number %s\n",
+			mbc->nodes = atoi(optarg);
+			if (mbc->nodes <= 0) {
+				fprintf(stderr, "test_strext_socket: "
+					"invalid node number %s\n",
 					optarg);
 				usage();
 			}
@@ -213,39 +218,43 @@ main(int argc, char *argv[])
 			int i;
 
 			if (p0 != NULL) {
-				fprintf(stderr, "test_modalext_socket: "
+				fprintf(stderr, "test_strext_socket: "
 					"-p already provided\n");
 				usage();
 			}
 
-			if (mbc->modes <= 0) {
-				fprintf(stderr, "test_modalext_socket: "
-					"-p requires -M\n");
+			if (mbc->nodes <= 0) {
+				fprintf(stderr, "test_strext_socket: "
+					"-p requires -N\n");
 				usage();
 			}
 
-			p0 = (double *)calloc(sizeof(double), mbc->modes);
+			p0 = (double *)calloc(sizeof(double), 6*mbc->nodes);
 			if (p0 == NULL) {
-				fprintf(stderr, "test_modalext_socket: "
-					"malloc for modal force values failed\n");
+				fprintf(stderr, "test_strext_socket: "
+					"malloc for nodal force values failed\n");
 				exit(EXIT_FAILURE);
 			}
 
 			s = optarg;
-			for (i = 0; i < mbc->modes; i++) {
+			for (i = 0; i < 6*mbc->nodes; i++) {
 				char *next;
+				const char fm[] = "fm";
+				const char xyz[] = "xyz";
 
 				p0[i] = strtod(s, &next);
 				if (next == s) {
-					fprintf(stderr, "test_modalext_socket: "
-						"unable to parse p[%d]\n", i);
+					fprintf(stderr, "test_strext_socket: "
+						"unable to parse %c%d%c\n",
+						fm[(i/3)%2], i/6, xyz[i%3]);
 					usage();
 				}
 
-				if (i < mbc->modes - 1) {
+				if (i < mbc->nodes - 1) {
 					if (next[0] != ',') {
-						fprintf(stderr, "test_modalext_socket: "
-							"unable to parse past p[%d]\n", i);
+						fprintf(stderr, "test_strext_socket: "
+							"unable to parse %c%d%c\n",
+							fm[(i/3)%2], i/6, xyz[i%3]);
 						usage();
 					}
 
@@ -253,8 +262,9 @@ main(int argc, char *argv[])
 
 				} else {
 					if (next[0] != '\0') {
-						fprintf(stderr, "test_modalext_socket: "
-							"extra cruft past p[%d]\n", i);
+						fprintf(stderr, "test_strext_socket: "
+							"extra cruft past %c%d%c\n",
+							fm[(i/3)%2], i/6, xyz[i%3]);
 						usage();
 					}
 				}
@@ -268,7 +278,7 @@ main(int argc, char *argv[])
 		case 's':
 			sleeptime = atoi(optarg);
 			if (sleeptime < 0) {
-				fprintf(stderr, "test_modalext_socket: "
+				fprintf(stderr, "test_strext_socket: "
 					"invalid iters %s\n",
 					optarg);
 				usage();
@@ -302,11 +312,11 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_modal_init(mbc, mbc->modes)) {
+	if (mbc_nodal_init(mbc, mbc->nodes)) {
 		exit(EXIT_FAILURE);
 	}
 
-	if (mbc_modal_negotiate_request(mbc)) {
+	if (mbc_nodal_negotiate_request(mbc)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -326,7 +336,7 @@ main(int argc, char *argv[])
 		}
 
 		for (iter = 0; iter < niters; iter++) {
-			if (mbc_modal_get_motion(mbc)) {
+			if (mbc_nodal_get_motion(mbc)) {
 				goto done;
 			}
 
@@ -344,13 +354,24 @@ main(int argc, char *argv[])
 				fprintf(stdout, "w={%+16.8e,%+16.8e,%+16.8e}\n", w[0], w[1], w[2]);
 			}
 
-			if (mbc->modes > 0 && mbc->mbc.verbose) {
-				double *q = MBC_Q(mbc);
-				double *qp = MBC_QP(mbc);
-				int m;
+			if (mbc->nodes > 0 && mbc->mbc.verbose) {
+				double *n_x = MBC_N_X(mbc);
+				double *n_theta = MBC_N_THETA(mbc);
+				double *n_xp = MBC_N_XP(mbc);
+				double *n_omega = MBC_N_OMEGA(mbc);
+				int n;
 
-				for (m = 0; m < mbc->modes; m++) {
-					fprintf(stdout, "mode #%d: %+16.8e %+16.8e\n", m, q[m], qp[m]);
+				for (n = 0; n < mbc->nodes; n++) {
+					fprintf(stdout, "node #%d:\n"
+							"    x=     %+16.8e %+16.8e %+16.8e\n"
+							"    theta= %+16.8e %+16.8e %+16.8e\n"
+							"    xp=    %+16.8e %+16.8e %+16.8e\n"
+							"    omega= %+16.8e %+16.8e %+16.8e\n",
+							n,
+							n_x[3*n], n_x[3*n + 1], n_x[3*n + 2],
+							n_theta[3*n], n_theta[3*n + 1], n_theta[3*n + 2],
+							n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2],
+							n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
 				}
 			}
 
@@ -383,30 +404,38 @@ main(int argc, char *argv[])
 				}
 			}
 
-			if (mbc->modes > 0) {
-				double *p = MBC_P(mbc);
-				int m;
+			if (mbc->nodes > 0) {
+				double *n_f = MBC_N_F(mbc);
+				double *n_m = MBC_N_M(mbc);
+				int n;
 
 				if (p0) {
-					for (m = 0; m < mbc->modes; m++) {
-						p[m] = p0[m];
+					for (n = 0; n < mbc->nodes; n++) {
+						n_f[3*n] = p0[6*n];
+						n_f[3*n + 1] = p0[6*n + 1];
+						n_f[3*n + 2] = p0[6*n + 2];
+
+						n_m[3*n] = p0[6*n + 3];
+						n_m[3*n + 1] = p0[6*n + 4];
+						n_m[3*n + 2] = p0[6*n + 5];
 					}
 
 				} else {
-					for (m = 0; m < mbc->modes; m++) {
-						p[m] = (double)(m + 1);
+					for (n = 0; n < 3*mbc->nodes; n++) {
+						n_f[n] = (double)(n + 1);
+						n_m[n] = (double)(n + 1);
 					}
 				}
 			}
 
-			if (mbc_modal_put_forces(mbc, (iter == niters - 1))) {
+			if (mbc_nodal_put_forces(mbc, (iter == niters - 1))) {
 				goto done;
 			}
 		}
 	}
 
 done:;
-	mbc_modal_destroy(mbc);
+	mbc_nodal_destroy(mbc);
 	mbc_destroy(&mbc->mbc);
 
 	if (p0) {
