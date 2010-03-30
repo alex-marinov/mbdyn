@@ -62,12 +62,14 @@ usage(void)
 {
 	fprintf(stderr,
 		"usage: testsocket [options]\n"
+		"\t-a\t\tuse accelerations\n"
 		"\t-c [random:]<c>\tnumber of iterations\n"
 		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-N <nodes>\tnodes number\n"
 		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
 		"\t-r\t\tuse rigid body data\n"
+		"\t-R {mat|theta|euler123}\torientation format\n"
 		"\t-s <sleeptime>\tsleep time between tries\n"
 		"\t-v\t\tverbose\n"
 		"\t-x\t\tdata_and_next\n");
@@ -82,6 +84,9 @@ main(int argc, char *argv[])
 	int iters_random = 0;
 	unsigned steps;
 
+	int accelerations = 0;
+	unsigned rot = MBC_ROT_MAT;
+
 	char *path = NULL;
 	char *host = NULL;
 	unsigned short int port = -1;
@@ -93,13 +98,17 @@ main(int argc, char *argv[])
 	double *p0 = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:f:H:N:p:rs:vx");
+		int opt = getopt(argc, argv, "ac:f:H:N:p:rR:s:vx");
 
 		if (opt == EOF) {
 			break;
 		}
 
 		switch (opt) {
+		case 'a':
+			accelerations = 1;
+			break;
+
 		case 'c':
 			if (strncasecmp(optarg, "random:", sizeof("random:") -1) == 0) {
 				iters_random = 1;
@@ -275,6 +284,24 @@ main(int argc, char *argv[])
 			mbc->rigid = 1;
 			break;
 
+		case 'R':
+			if (strcasecmp(optarg, "mat") == 0) {
+				rot = MBC_ROT_MAT;
+
+			} else if (strcasecmp(optarg, "theta") == 0) {
+				rot = MBC_ROT_THETA;
+
+			} else if (strcasecmp(optarg, "euler123") == 0) {
+				rot = MBC_ROT_EULER_123;
+
+			} else {
+				fprintf(stderr, "test_strext_socket: "
+					"unknown orientation format \"%s\"\n",
+					optarg);
+				usage();
+			}
+			break;
+
 		case 's':
 			sleeptime = atoi(optarg);
 			if (sleeptime < 0) {
@@ -312,7 +339,10 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_nodal_init(mbc, mbc->nodes)) {
+	if (accelerations) {
+		rot |= MBC_ACCELS;
+	}
+	if (mbc_nodal_init(mbc, mbc->nodes, rot)) {
 		exit(EXIT_FAILURE);
 	}
 

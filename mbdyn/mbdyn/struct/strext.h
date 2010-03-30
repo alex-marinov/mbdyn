@@ -52,6 +52,7 @@ protected:
 	std::vector<bool> done;
 
 	bool bOutputAccelerations;
+	unsigned uRot;
 
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
@@ -71,6 +72,7 @@ public:
 		bool bUnsorted,
 		bool bNoLabels,
 		bool bOutputAccelerations,
+		unsigned bRot,
 		ExtFileHandlerBase *pEFH,
 		bool bSendAfterPredict,
 		int iCoupling,
@@ -113,5 +115,5 @@ ReadStructExtForce(DataManager* pDM,
        MBDynParser& HP, 
        unsigned int uLabel);
 
-#endif /* STREXT_H */
+#endif // STREXT_H
 

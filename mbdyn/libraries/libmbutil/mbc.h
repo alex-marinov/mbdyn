@@ -57,7 +57,15 @@ enum MBCType {
 	MBC_NODAL				= 0x02U,
 	MBC_MODAL_NODAL_MASK			= (MBC_MODAL | MBC_NODAL),
 
-	MBC_REF_NODE				= 0x10U,
+	MBC_REF_NODE				= 0x04U,
+
+	MBC_ACCELS				= 0x08U,
+
+	MBC_ROT_THETA				= 0x10U,
+	MBC_ROT_MAT				= 0x20U,
+	MBC_ROT_EULER_123			= 0x40U,
+	/* add more? */
+	MBC_ROT_MASK				= (MBC_ROT_THETA | MBC_ROT_MAT | MBC_ROT_EULER_123),
 
 	MBC_LAST
 };
@@ -141,18 +149,33 @@ typedef struct {
 
 	/* nodal data */
 	uint32_t	nodes;
-	double		*n;
-#define MBC_N_X(mbc)			(&(mbc)->n[0])
-#define MBC_N_THETA(mbc)		(&(mbc)->n[3*(mbc)->nodes])
-#define MBC_N_XP(mbc)			(&(mbc)->n[2*3*(mbc)->nodes])
-#define MBC_N_OMEGA(mbc)		(&(mbc)->n[3*3*(mbc)->nodes])
-#define MBC_N_F(mbc)			(&(mbc)->n[4*3*(mbc)->nodes])
-#define MBC_N_M(mbc)			(&(mbc)->n[5*3*(mbc)->nodes])
+	uint8_t		flags;
+	uint32_t	k_size;
+	double		*n_x;
+	double		*n_theta;
+	double		*n_r;
+	double		*n_euler_123;
+	double		*n_xp;
+	double		*n_omega;
+	double		*n_xpp;
+	double		*n_omegap;
+	double		*n_f;
+	double		*n_m;
+#define MBC_N_X(mbc)			((mbc)->n_x)
+#define MBC_N_THETA(mbc)		((mbc)->n_theta)
+#define MBC_N_R(mbc)			((mbc)->n_r)
+#define MBC_N_EULER123(mbc)		((mbc)->n_euler123)
+#define MBC_N_XP(mbc)			((mbc)->n_xp)
+#define MBC_N_OMEGA(mbc)		((mbc)->n_omega)
+#define MBC_N_XPP(mbc)			((mbc)->n_xpp)
+#define MBC_N_OMEGAP(mbc)		((mbc)->n_omegap)
+#define MBC_N_F(mbc)			((mbc)->n_f)
+#define MBC_N_M(mbc)			((mbc)->n_m)
 #define MBC_N_KINEMATICS(mbc)		MBC_N_X((mbc))
 #define MBC_N_DYNAMICS(mbc)		MBC_N_F((mbc))
-#define MBC_N_KINEMATICS_SIZE(mbc)	(4*3*(mbc)->nodes*sizeof(double))
+#define MBC_N_KINEMATICS_SIZE(mbc)	((mbc)->k_size)
 #define MBC_N_DYNAMICS_SIZE(mbc)	(2*3*(mbc)->nodes*sizeof(double))
-#define MBC_N_SIZE(mbc)			(6*3*(mbc)->nodes*sizeof(double))
+#define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
 } mbc_nodal_t;
 
 /* initialize nodal data
@@ -166,7 +189,7 @@ typedef struct {
  * mbc_nodal_destroy()
  */
 extern int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes);
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags);
 
 /* destroy nodal data
  *

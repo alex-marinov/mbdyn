@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added shell element (Riccardo Vescovini & Marco Morandini)
 		- added support for KLU (Marco Morandini)
 		- added "closest next" drive caller support
+		- added nodal external force support to peer library (mbc.h)
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
 		- scalar variables dropped "1" dimension in NetCDF output

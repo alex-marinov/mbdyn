@@ -358,7 +358,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  * mbc_nodal_destroy()
  */
 int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes)
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags)
 {
 	if (!mbc->rigid && nodes == 0) {
 		fprintf(stderr, "need at least 1 node or rigid body data\n");
@@ -366,9 +366,96 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes)
 	}
 
 	mbc->nodes = nodes;
+	mbc->flags = flags;
 
 	if (mbc->nodes > 0) {
-		mbc->n = (double *)malloc(MBC_N_SIZE(mbc));
+		unsigned rot = (mbc->flags & MBC_ROT_MASK);
+		double *ptr;
+
+		if (rot == 0) {
+			fprintf(stderr, "need orientation parametrization in flags\n");
+			return -1;
+		}
+
+		mbc->k_size = (3 + 3 + 3); /* x, xp, omega */
+
+		switch (rot) {
+		case MBC_ROT_MAT:
+			mbc->k_size += 9;
+			break;
+
+		case MBC_ROT_THETA:
+		case MBC_ROT_EULER_123:
+			mbc->k_size += 3;
+			break;
+
+		default:
+			fprintf(stderr, "unknown orientation parametrization %u in flags\n", rot);
+			return -1;
+		}
+
+		if (mbc->flags & MBC_ACCELS) {
+			mbc->k_size += 6;
+		}
+
+		mbc->k_size *= mbc->nodes;
+
+		mbc->n_x = NULL;
+		mbc->n_theta = NULL;
+		mbc->n_r = NULL;
+		mbc->n_euler_123 = NULL;
+		mbc->n_xp = NULL;
+		mbc->n_omega = NULL;
+		mbc->n_xpp = NULL;
+		mbc->n_omegap = NULL;
+		mbc->n_f = NULL;
+		mbc->n_m = NULL;
+
+		ptr = (double *)malloc(MBC_N_SIZE(mbc));
+		if (mbc->n_x == NULL) {
+			fprintf(stderr, "nodal data malloc failed\n");
+			return -1;
+		}
+
+		mbc->n_x = ptr;
+		ptr += 3*nodes;
+
+		switch (rot) {
+		case MBC_ROT_MAT:
+			mbc->n_r = ptr;
+			ptr += 9*nodes;
+			break;
+
+		case MBC_ROT_THETA:
+			mbc->n_theta = ptr;
+			ptr += 3*nodes;
+			break;
+
+		case MBC_ROT_EULER_123:
+			mbc->n_euler_123 = ptr;
+			ptr += 3*nodes;
+			break;
+		}
+
+		mbc->n_xp = ptr;
+		ptr += 3*nodes;
+
+		mbc->n_omega = ptr;
+		ptr += 3*nodes;
+
+		if (mbc->flags & MBC_ACCELS) {
+			mbc->n_xpp = ptr;
+			ptr += 3*nodes;
+
+			mbc->n_omegap = ptr;
+			ptr += 3*nodes;
+		}
+
+		mbc->n_f = ptr;
+		ptr += 3*nodes;
+
+		mbc->n_m = ptr;
+		ptr += 3*nodes;
 	}
 
 	return 0;
@@ -515,9 +602,18 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 int
 mbc_nodal_destroy(mbc_nodal_t *mbc)
 {
-	if (mbc->n) {
-		free(mbc->n);
-		mbc->n = NULL;
+	if (mbc->n_x) {
+		free(mbc->n_x);
+		mbc->n_x = NULL;
+		mbc->n_theta = NULL;
+		mbc->n_r = NULL;
+		mbc->n_euler_123 = NULL;
+		mbc->n_xp = NULL;
+		mbc->n_omega = NULL;
+		mbc->n_xpp = NULL;
+		mbc->n_omegap = NULL;
+		mbc->n_f = NULL;
+		mbc->n_m = NULL;
 	}
 
 	return 0;

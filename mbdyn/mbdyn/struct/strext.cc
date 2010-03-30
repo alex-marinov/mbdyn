@@ -35,6 +35,7 @@
 
 #include "dataman.h"
 #include "strext.h"
+#include "Rot.hh"
 
 #include <fstream>
 #include <cerrno>
@@ -49,6 +50,7 @@ StructExtForce::StructExtForce(unsigned int uL,
 	bool bUnsorted,
 	bool bNoLabels,
 	bool bOutputAccelerations,
+	unsigned uRot,
 	ExtFileHandlerBase *pEFH,
 	bool bSendAfterPredict,
 	int iCoupling,
@@ -59,13 +61,27 @@ pRefNode(0),
 RefOffset(0.),
 bUnsorted(bUnsorted),
 bNoLabels(bNoLabels),
-bOutputAccelerations(bOutputAccelerations)
+bOutputAccelerations(bOutputAccelerations),
+uRot(uRot)
 {
 	ASSERT(nodes.size() == offsets.size());
 	Nodes.resize(nodes.size());
 	Offsets.resize(nodes.size());
 	F.resize(nodes.size());
 	M.resize(nodes.size());
+
+	switch (uRot) {
+	case MBC_ROT_THETA:
+	case MBC_ROT_MAT:
+	case MBC_ROT_EULER_123:
+		break;
+
+	default:
+		silent_cerr("StructExtForce(" << GetLabel() << "): "
+			"unknown rotation format " << uRot
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	for (unsigned i = 0; i < nodes.size(); i++) {
 		Nodes[i] = nodes[i];
@@ -121,9 +137,13 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			uint32_t *uint32_ptr;
 
 			uint8_ptr = (uint8_t *)&buf[0];
-			uint8_ptr[0] = MBC_NODAL;
+			uint8_ptr[0] = MBC_NODAL | uRot;
 			if (pRefNode != 0) {
 				uint8_ptr[0] |= MBC_REF_NODE;
+			}
+
+			if (bOutputAccelerations) {
+				uint8_ptr[0] |= MBC_ACCELS;
 			}
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[1];
@@ -156,6 +176,8 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		unsigned uN;
 		unsigned uNodal;
 		bool bRef;
+		unsigned uR;
+		bool bAccel;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
@@ -189,6 +211,8 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			uint8_ptr = (uint8_t *)&buf[0];
 			uNodal = (uint8_ptr[0] & MBC_MODAL_NODAL_MASK);
 			bRef = (uint8_ptr[0] & MBC_REF_NODE);
+			uR = (uint8_ptr[0] & MBC_ROT_MASK);
+			bAccel = (uint8_ptr[0] & MBC_ACCELS);
 
 			uint32_ptr = (uint32_t *)&uint8_ptr[1];
 			uN = uint32_ptr[0];
@@ -207,6 +231,22 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: reference node configuration mismatch "
 				"(local=" << (pRefNode != 0 ? "yes" : "no") << ", remote=" << (bRef ? "yes" : "no") << ")"
+				<< std::endl);
+			bResult = false;
+		}
+
+		if (uR != uRot) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: orientation output mismatch "
+				"(local=" << uRot  << ", remote=" << uR << ")"
+				<< std::endl);
+			bResult = false;
+		}
+
+		if (bAccel != bOutputAccelerations) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: acceleration output mismatch "
+				"(local=" << (bOutputAccelerations ? "yes" : "no") << ", remote=" << (bAccel ? "yes" : "no") << ")"
 				<< std::endl);
 			bResult = false;
 		}
@@ -289,7 +329,21 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 			outf << Nodes[i]->GetLabel()
 				<< " " << x
-				<< " " << R
+				<< " ";
+			switch (uRot) {
+			case MBC_ROT_MAT:
+				outf << R;
+				break;
+
+			case MBC_ROT_THETA:
+				outf << RotManip::VecRot(R);
+				break;
+
+			case MBC_ROT_EULER_123:
+				outf << MatR2EulerAngles123(R)*dRaDegr;
+				break;
+			}
+			outf
 				<< " " << v
 				<< " " << w;
 
@@ -356,7 +410,21 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 
 			send(outfd, (void *)&l, sizeof(l), 0);
 			send(outfd, (void *)x.pGetVec(), 3*sizeof(doublereal), 0);
-			send(outfd, (void *)R.pGetMat(), 9*sizeof(doublereal), 0);
+			switch (uRot) {
+			case MBC_ROT_MAT:
+				send(outfd, (void *)R.pGetMat(), 9*sizeof(doublereal), 0);
+				break;
+
+			case MBC_ROT_THETA: {
+				Vec3 Theta(RotManip::VecRot(R));
+				send(outfd, (void *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+				} break;
+
+			case MBC_ROT_EULER_123: {
+				Vec3 E(MatR2EulerAngles123(R)*dRaDegr);
+				send(outfd, (void *)E.pGetVec(), 3*sizeof(doublereal), 0);
+				} break;
+			}
 			send(outfd, (void *)v.pGetVec(), 3*sizeof(doublereal), 0);
 			send(outfd, (void *)w.pGetVec(), 3*sizeof(doublereal), 0);
 
@@ -716,16 +784,77 @@ ReadStructExtForce(DataManager* pDM,
 
 	bool bUnsorted(false);
 	bool bNoLabels(false);
-	if (HP.IsKeyWord("unsorted")) {
-		bUnsorted = true;
-
-	} else if (HP.IsKeyWord("no" "labels")) {
-		bNoLabels = true;
-	}
-
+	unsigned uRot = MBC_ROT_MAT;
 	bool bOutputAccelerations(false);
-	if (HP.IsKeyWord("accelerations")) {
-		bOutputAccelerations = true;
+
+	bool bGotUnsorted(false);
+	bool bGotNoLabels(false);
+	bool bGotRot(false);
+	bool bGotAccels(false);
+
+	while (HP.IsArg()) {
+		if (HP.IsKeyWord("unsorted")) {
+			if (bGotUnsorted) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"unsorted\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bUnsorted = true;
+			bGotUnsorted = true;
+
+		} else if (HP.IsKeyWord("no" "labels")) {
+			if (bGotNoLabels) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"no labels\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bNoLabels = true;
+			bGotNoLabels = true;
+
+		} else if (HP.IsKeyWord("orientation")) {
+			if (bGotRot) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"orientation\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (HP.IsKeyWord("orientation" "vector")) {
+				uRot = MBC_ROT_THETA;
+
+			} else if (HP.IsKeyWord("orientation" "matrix")) {
+				uRot = MBC_ROT_MAT;
+
+			} else if (HP.IsKeyWord("euler" "123")) {
+				uRot = MBC_ROT_EULER_123;
+
+			} else {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"unknown \"orientation\" format at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bGotRot = true;	
+
+		} else if (HP.IsKeyWord("accelerations")) {
+			if (bGotNoLabels) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"accelerations\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bOutputAccelerations = true;
+			bGotAccels = true;
+
+		} else {
+			break;
+		}
 	}
 
 	int n = HP.GetInt();
@@ -754,7 +883,7 @@ ReadStructExtForce(DataManager* pDM,
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
 		StructExtForce(uLabel, pDM, Nodes, Offsets,
-			bUnsorted, bNoLabels, bOutputAccelerations,
+			bUnsorted, bNoLabels, bOutputAccelerations, uRot,
 			pEFH, bSendAfterPredict, iCoupling, fOut));
 
 	return pEl;
