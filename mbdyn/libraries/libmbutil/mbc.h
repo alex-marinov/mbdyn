@@ -126,8 +126,6 @@ typedef struct {
 
 	/* reference node data */
 	uint8_t		rigid;
-	/* number of other nodes */
-	uint32_t	nodes;
 	double		r[3 + 9 + 3 + 3 + 3 + 3];
 #define	MBC_X(mbc)			(&(mbc)->r[0])
 #define	MBC_R(mbc)			(&(mbc)->r[3])
@@ -140,9 +138,91 @@ typedef struct {
 #define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
 #define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
 #define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
+
+	/* nodal data */
+	uint32_t	nodes;
+	double		*n;
+#define MBC_N_X(mbc)			(&(mbc)->n[0])
+#define MBC_N_THETA(mbc)		(&(mbc)->n[3*(mbc)->nodes])
+#define MBC_N_XP(mbc)			(&(mbc)->n[2*3*(mbc)->nodes])
+#define MBC_N_OMEGA(mbc)		(&(mbc)->n[3*3*(mbc)->nodes])
+#define MBC_N_F(mbc)			(&(mbc)->n[4*3*(mbc)->nodes])
+#define MBC_N_M(mbc)			(&(mbc)->n[5*3*(mbc)->nodes])
+#define MBC_N_KINEMATICS(mbc)		MBC_N_X((mbc))
+#define MBC_N_DYNAMICS(mbc)		MBC_N_F((mbc))
+#define MBC_N_KINEMATICS_SIZE(mbc)	(4*3*(mbc)->nodes*sizeof(double))
+#define MBC_N_DYNAMICS_SIZE(mbc)	(2*3*(mbc)->nodes*sizeof(double))
+#define MBC_N_SIZE(mbc)			(6*3*(mbc)->nodes*sizeof(double))
 } mbc_nodal_t;
 
-/* ... */
+/* initialize nodal data
+ *
+ * mbc must be a pointer to a valid mbc_nodal_t structure
+ *
+ * at least rigid body motion must be defined (mbc->rigid != 0),
+ * or nodes must be > 0
+ *
+ * if nodes > 0, mallocs memory that needs to be freed calling
+ * mbc_nodal_destroy()
+ */
+extern int
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes);
+
+/* destroy nodal data
+ *
+ * does NOT free the mbc structure
+ */
+extern int
+mbc_nodal_destroy(mbc_nodal_t *mbc);
+
+/* negotiate nodal data
+ *
+ * mbc must be a pointer to a valid mbc_nodal_t structure
+ *
+ * at least rigid body motion must be defined (mbc->rigid != 0),
+ * or nodes must be > 0
+ *
+ * the socket must be initialized and connected
+ * sends a negotiation request to the master
+ *
+ * the protocol consists in:
+ *
+ * - negotiation request:
+ *   - the negotiation request tag (ES_NEGOTIATION, uint8_t)
+ *   - the type of interface (MBC_MODAL or MBC_NODAL, uint8_t)
+ *       - whether a reference node is defined, MBC_REF_NODE OR-ed to previous
+ *   - the number of nodes (uint32_t)
+ *
+ * - negotiation response:
+ *   - the negotiation response tag (ES_OK or ES_ABORT, uint8_t)
+ */
+extern int
+mbc_nodal_negotiate_request(mbc_nodal_t *mbc);
+
+/* companion of above, provided for completeness; not used
+ */
+extern int
+mbc_nodal_negotiate_response(mbc_nodal_t *mbc);
+
+/* get nodal motion from peer
+ *
+ * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
+ */
+extern int
+mbc_nodal_get_motion(mbc_nodal_t *mbc);
+
+/* put forces to peer
+ *
+ * if mbc->rigid, force and moment must be set in storage pointed to
+ *	by macros MBC_F, MBC_M
+ * if mbc->nodes > 0, nodal forces must be set in storage pointed to
+ *	by macro MBC_N_F, MBC_N_M
+ */
+extern int
+mbc_nodal_put_forces(mbc_nodal_t *mbc, int last);
+
+
 
 /*
  * modal stuff
@@ -215,6 +295,7 @@ mbc_modal_destroy(mbc_modal_t *mbc);
  * - negotiation request:
  *   - the negotiation request tag (ES_NEGOTIATION, uint8_t)
  *   - the type of interface (MBC_MODAL or MBC_NODAL, uint8_t)
+ *       - whether a reference node is defined, MBC_REF_NODE OR-ed to previous
  *   - the number of modes (uint32_t)
  *
  * - negotiation response:

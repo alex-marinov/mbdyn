@@ -237,6 +237,295 @@ mbc_destroy(mbc_t *mbc)
 }
 
 /*
+ * nodal stuff
+ */
+
+/* get nodal motion from peer
+ *
+ * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
+ */
+int
+mbc_nodal_get_motion(mbc_nodal_t *mbc)
+{
+	if (mbc_get_cmd((mbc_t*)mbc)) {
+		return -1;
+	}
+
+	if (mbc->mbc.verbose) {
+		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+	}
+
+	if (mbc->mbc.cmd == ES_ABORT) {
+		fprintf(stdout, "got ABORT from peer\n");
+		return -1;
+	}
+
+	if (mbc->mbc.cmd != ES_GOTO_NEXT_STEP) {
+		if (mbc->rigid) {
+			ssize_t rc;
+
+			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
+				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
+			if (rc != MBC_R_KINEMATICS_SIZE(mbc)) {
+				fprintf(stderr, "recv(%u) rigid failed (%d)\n",
+					MBC_R_KINEMATICS_SIZE(mbc), rc);
+				return -1;
+			}
+		}
+
+		if (mbc->nodes > 0) {
+			ssize_t rc;
+
+			rc = recv(mbc->mbc.sock, (void *)MBC_N_KINEMATICS(mbc),
+				MBC_N_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
+			if (rc != MBC_N_KINEMATICS_SIZE(mbc)) {
+				fprintf(stderr, "recv(%u) x, theta, xP, omega failed (%d)\n",
+					MBC_N_KINEMATICS_SIZE(mbc), rc);
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/* put forces to peer
+ *
+ * if mbc->rigid, force and moment must be set in storage pointed to
+ *	by macros MBC_F, MBC_M
+ * if mbc->nodes > 0, nodal forces must be set in storage pointed to
+ *	by macro MBC_N_F, MBC_N_M
+ */
+int
+mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
+{
+	if (last) {
+		if (mbc->mbc.data_and_next) {
+			mbc->mbc.cmd = ES_REGULAR_DATA_AND_GOTO_NEXT_STEP;
+
+		} else {
+			mbc->mbc.cmd = ES_GOTO_NEXT_STEP;
+		}
+
+	} else {
+		mbc->mbc.cmd = ES_REGULAR_DATA;
+	}
+
+	if (mbc_put_cmd((mbc_t *)mbc)) {
+		return -1;
+	}
+
+	if (mbc->mbc.cmd != ES_GOTO_NEXT_STEP) {
+		/* rigid */
+		if (mbc->rigid) {
+			ssize_t	rc;
+
+			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
+				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
+			if (rc != MBC_R_DYNAMICS_SIZE(mbc)) {
+				fprintf(stderr, "send(%u) rigid failed (%d)\n",
+					MBC_R_DYNAMICS_SIZE(mbc), rc);
+				return -1;
+			}
+		}
+
+		/* nodal */
+		if (mbc->nodes > 0) {
+			ssize_t	rc;
+
+			rc = send(mbc->mbc.sock, (const void *)MBC_N_DYNAMICS(mbc),
+				MBC_N_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
+			if (rc != MBC_N_DYNAMICS_SIZE(mbc)) {
+				fprintf(stderr, "send(%u) nodes failed (%d)\n",
+					MBC_N_DYNAMICS_SIZE(mbc), rc);
+				return -1;
+			}
+		}
+	}
+
+	return 0;
+}
+
+/* initialize nodal data
+ *
+ * mbc must be a pointer to a valid mbc_nodal_t structure
+ *
+ * at least rigid body motion must be defined (mbc->rigid != 0),
+ * or nodes must be > 0
+ *
+ * if nodes > 0, mallocs memory that needs to be freed calling
+ * mbc_nodal_destroy()
+ */
+int
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes)
+{
+	if (!mbc->rigid && nodes == 0) {
+		fprintf(stderr, "need at least 1 node or rigid body data\n");
+		return -1;
+	}
+
+	mbc->nodes = nodes;
+
+	if (mbc->nodes > 0) {
+		mbc->n = (double *)malloc(MBC_N_SIZE(mbc));
+	}
+
+	return 0;
+}
+
+/* negotiate nodal data
+ *
+ * mbc must be a pointer to a valid mbc_nodal_t structure
+ *
+ * at least rigid body motion must be defined (mbc->rigid != 0),
+ * or nodes must be > 0
+ *
+ * the socket must be initialized and connected
+ * sends a negotiation request to the master
+ */
+int
+mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
+{
+	int rc;
+	uint8_t *uint8_ptr;
+	uint32_t *uint32_ptr;
+	char buf[sizeof(uint8_t) + sizeof(uint32_t)];
+
+	if (!mbc->rigid && mbc->nodes == 0) {
+		fprintf(stderr, "need at least 1 node or rigid body data\n");
+		return -1;
+	}
+
+	if (!(mbc->mbc.sock_flags & MBC_SF_VALID)) {
+		fprintf(stderr, "socket is not valid\n");
+		return -1;
+	}
+
+	mbc->mbc.cmd = ES_NEGOTIATION;
+	mbc_put_cmd((mbc_t *)mbc);
+
+	uint8_ptr = (uint8_t *)&buf[0];
+	uint8_ptr[0] = (uint8_t)MBC_NODAL;
+	if (mbc->rigid) {
+		uint8_ptr[0] |= MBC_REF_NODE;
+	}
+
+	uint32_ptr = (uint32_t *)&uint8_ptr[1];
+	uint32_ptr[0] = mbc->nodes;
+
+	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
+		mbc->mbc.send_flags);
+	if (rc != sizeof(buf)) {
+		fprintf(stderr, "send negotiate request failed (%d)\n", rc);
+		return -1;
+	}
+
+	if (mbc_get_cmd((mbc_t*)mbc)) {
+		return -1;
+	}
+
+	if (mbc->mbc.verbose) {
+		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+	}
+
+	switch (mbc->mbc.cmd) {
+	case ES_ABORT:
+		fprintf(stdout, "got ABORT from peer\n");
+		return -1;
+
+	case ES_OK:
+		break;
+
+	default:
+		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		return -1;
+	}
+
+	return 0;
+}
+
+int
+mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
+{
+	int rc;
+	uint8_t *uint8_ptr;
+	uint32_t *uint32_ptr;
+	char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+	unsigned uNodal;
+	unsigned uRef;
+
+	if (mbc_get_cmd((mbc_t*)mbc)) {
+		return -1;
+	}
+
+	if (mbc->mbc.verbose) {
+		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+	}
+
+	switch (mbc->mbc.cmd) {
+	case ES_NEGOTIATION:
+		break;
+
+	default:
+		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		return -1;
+	}
+
+	rc = recv(mbc->mbc.sock, (void *)buf, sizeof(buf), mbc->mbc.recv_flags);
+	if (rc != sizeof(buf)) {
+		fprintf(stderr, "recv negotiate request failed\n");
+		return -1;
+	}
+
+	rc = 0;
+
+	uint8_ptr = (uint8_t *)&buf[0];
+	uNodal = uint8_ptr[0] & MBC_MODAL_NODAL_MASK;
+	uRef = uint8_ptr[0] & MBC_REF_NODE;
+	if (uNodal != MBC_NODAL) {
+		rc++;
+	}
+
+	if ((uRef && !mbc->rigid) || (!uRef && mbc->rigid)) {
+		rc++;
+	}
+
+	uint32_ptr = (uint32_t *)&uint8_ptr[1];
+	if (uint32_ptr[0] != mbc->nodes) {
+		rc++;
+	}
+
+	if (rc) {
+		mbc->mbc.cmd = ES_ABORT;
+
+	} else {
+		mbc->mbc.cmd = ES_OK;
+	}
+
+	mbc_put_cmd((mbc_t *)mbc);
+
+	return 0;
+}
+
+/* destroy nodal data
+ *
+ * does NOT free the mbc structure
+ */
+int
+mbc_nodal_destroy(mbc_nodal_t *mbc)
+{
+	if (mbc->n) {
+		free(mbc->n);
+		mbc->n = NULL;
+	}
+
+	return 0;
+}
+
+
+
+/*
  * modal stuff
  */
 
