@@ -230,22 +230,24 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
-			uint8_t *uint8_ptr;
+			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
-			uint8_ptr = (uint8_t *)&buf[0];
-			uint8_ptr[0] = MBC_NODAL | uRot;
+			uint32_ptr = (uint32_t *)&buf[0];
+			uint32_ptr[0] = MBC_NODAL | uRot;
 			if (pRefNode != 0) {
-				uint8_ptr[0] |= MBC_REF_NODE;
+				uint32_ptr[0] |= MBC_REF_NODE;
+			}
+
+			if (!bNoLabels) {
+				uint32_ptr[0] |= MBC_LABELS;
 			}
 
 			if (bOutputAccelerations) {
-				uint8_ptr[0] |= MBC_ACCELS;
+				uint32_ptr[0] |= MBC_ACCELS;
 			}
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[1];
-			uint32_ptr[0] = Nodes.size();
+			uint32_ptr[1] = Nodes.size();
 
 			ssize_t rc = send(pEFH->GetOutFileDes(),
 				(const void *)buf, sizeof(buf),
@@ -276,14 +278,14 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		bool bRef;
 		unsigned uR;
 		bool bAccel;
+		bool bLabel;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
-			uint8_t *uint8_ptr;
+			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
 			ssize_t rc = recv(pEFH->GetInFileDes(),
@@ -306,14 +308,14 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			uint8_ptr = (uint8_t *)&buf[0];
-			uNodal = (uint8_ptr[0] & MBC_MODAL_NODAL_MASK);
-			bRef = (uint8_ptr[0] & MBC_REF_NODE);
-			uR = (uint8_ptr[0] & MBC_ROT_MASK);
-			bAccel = (uint8_ptr[0] & MBC_ACCELS);
+			uint32_ptr = (uint32_t *)&buf[0];
+			uNodal = (uint32_ptr[0] & MBC_MODAL_NODAL_MASK);
+			bRef = (uint32_ptr[0] & MBC_REF_NODE);
+			uR = (uint32_ptr[0] & MBC_ROT_MASK);
+			bLabel = (uint32_ptr[0] & MBC_LABELS);
+			bAccel = (uint32_ptr[0] & MBC_ACCELS);
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[1];
-			uN = uint32_ptr[0];
+			uN = uint32_ptr[1];
 #endif // USE_SOCKET
 		}
 
@@ -337,6 +339,14 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: orientation output mismatch "
 				"(local=" << uRot  << ", remote=" << uR << ")"
+				<< std::endl);
+			bResult = false;
+		}
+
+		if (bLabel != !bNoLabels) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"negotiation response failed: labels output mismatch "
+				"(local=" << (!bNoLabels ? "yes" : "no") << ", remote=" << (bLabel ? "yes" : "no") << ")"
 				<< std::endl);
 			bResult = false;
 		}

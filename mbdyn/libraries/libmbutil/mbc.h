@@ -53,17 +53,19 @@ enum ESCmd {
 };
 
 enum MBCType {
-	MBC_MODAL				= 0x01U,
-	MBC_NODAL				= 0x02U,
+	MBC_MODAL				= 0x0001U,
+	MBC_NODAL				= 0x0002U,
 	MBC_MODAL_NODAL_MASK			= (MBC_MODAL | MBC_NODAL),
 
-	MBC_REF_NODE				= 0x04U,
+	MBC_REF_NODE				= 0x0004U,
 
-	MBC_ACCELS				= 0x08U,
+	MBC_ACCELS				= 0x0008U,
 
-	MBC_ROT_THETA				= 0x10U,
-	MBC_ROT_MAT				= 0x20U,
-	MBC_ROT_EULER_123			= 0x40U,
+	MBC_LABELS				= 0x0010U,
+
+	MBC_ROT_THETA				= 0x0100U,
+	MBC_ROT_MAT				= 0x0200U,
+	MBC_ROT_EULER_123			= 0x0400U,
 	/* add more? */
 	MBC_ROT_MASK				= (MBC_ROT_THETA | MBC_ROT_MAT | MBC_ROT_EULER_123),
 
@@ -149,32 +151,39 @@ typedef struct {
 
 	/* nodal data */
 	uint32_t	nodes;
-	uint8_t		flags;
+	uint32_t	flags;
 	uint32_t	k_size;
-	double		*n_x;
-	double		*n_theta;
-	double		*n_r;
-	double		*n_euler_123;
-	double		*n_xp;
-	double		*n_omega;
-	double		*n_xpp;
-	double		*n_omegap;
-	double		*n_f;
-	double		*n_m;
-#define MBC_N_X(mbc)			((mbc)->n_x)
-#define MBC_N_THETA(mbc)		((mbc)->n_theta)
-#define MBC_N_R(mbc)			((mbc)->n_r)
-#define MBC_N_EULER_123(mbc)		((mbc)->n_euler_123)
-#define MBC_N_XP(mbc)			((mbc)->n_xp)
-#define MBC_N_OMEGA(mbc)		((mbc)->n_omega)
-#define MBC_N_XPP(mbc)			((mbc)->n_xpp)
-#define MBC_N_OMEGAP(mbc)		((mbc)->n_omegap)
-#define MBC_N_F(mbc)			((mbc)->n_f)
-#define MBC_N_M(mbc)			((mbc)->n_m)
+
+	void		*n_ptr;
+	uint32_t	*n_k_labels;
+	double		*n_k_x;
+	double		*n_k_theta;
+	double		*n_k_r;
+	double		*n_k_euler_123;
+	double		*n_k_xp;
+	double		*n_k_omega;
+	double		*n_k_xpp;
+	double		*n_k_omegap;
+	uint32_t	d_size;
+	uint32_t	*n_d_labels;
+	double		*n_d_f;
+	double		*n_d_m;
+#define MBC_N_K_LABELS(mbc)		((mbc)->n_k_labels)
+#define MBC_N_X(mbc)			((mbc)->n_k_x)
+#define MBC_N_THETA(mbc)		((mbc)->n_k_theta)
+#define MBC_N_R(mbc)			((mbc)->n_k_r)
+#define MBC_N_EULER_123(mbc)		((mbc)->n_k_euler_123)
+#define MBC_N_XP(mbc)			((mbc)->n_k_xp)
+#define MBC_N_OMEGA(mbc)		((mbc)->n_k_omega)
+#define MBC_N_XPP(mbc)			((mbc)->n_k_xpp)
+#define MBC_N_OMEGAP(mbc)		((mbc)->n_k_omegap)
+#define MBC_N_D_LABELS(mbc)		((mbc)->n_d_labels)
+#define MBC_N_F(mbc)			((mbc)->n_d_f)
+#define MBC_N_M(mbc)			((mbc)->n_d_m)
 #define MBC_N_KINEMATICS(mbc)		MBC_N_X((mbc))
 #define MBC_N_DYNAMICS(mbc)		MBC_N_F((mbc))
 #define MBC_N_KINEMATICS_SIZE(mbc)	((mbc)->k_size)
-#define MBC_N_DYNAMICS_SIZE(mbc)	(2*3*(mbc)->nodes*sizeof(double))
+#define MBC_N_DYNAMICS_SIZE(mbc)	((mbc)->d_size)
 #define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
 } mbc_nodal_t;
 
@@ -193,8 +202,8 @@ typedef struct {
  * if accelerations != 0 accelerations are also output
  */
 extern int
-mbc_nodal_init(mbc_nodal_t *mbc,
-	unsigned rigid, unsigned nodes, unsigned rot, unsigned accels);
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
+	unsigned labels, unsigned rot, unsigned accels);
 
 /* destroy nodal data
  *

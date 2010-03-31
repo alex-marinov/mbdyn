@@ -66,6 +66,7 @@ usage(void)
 		"\t-c [random:]<c>\tnumber of iterations\n"
 		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
+		"\t-l\t\tlabels\n"
 		"\t-N <nodes>\tnodes number\n"
 		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
 		"\t-r\t\tuse rigid body data\n"
@@ -84,6 +85,7 @@ main(int argc, char *argv[])
 	int iters_random = 0;
 	unsigned steps;
 
+	int labels = 0;
 	int accelerations = 0;
 	unsigned rot = MBC_ROT_MAT;
 
@@ -98,7 +100,7 @@ main(int argc, char *argv[])
 	double *p0 = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "ac:f:H:N:p:rR:s:vx");
+		int opt = getopt(argc, argv, "ac:f:H:lN:p:rR:s:vx");
 
 		if (opt == EOF) {
 			break;
@@ -203,7 +205,10 @@ main(int argc, char *argv[])
 			} else {
 				usage();
 			}
-				
+			break;
+
+		case 'l':
+			labels = 1;
 			break;
 
 		case 'N':
@@ -339,7 +344,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_nodal_init(mbc, mbc->rigid, mbc->nodes, rot, accelerations)) {
+	if (mbc_nodal_init(mbc, mbc->rigid, mbc->nodes, labels, rot, accelerations)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -382,6 +387,7 @@ main(int argc, char *argv[])
 			}
 
 			if (mbc->nodes > 0 && mbc->mbc.verbose) {
+				uint32_t *n_labels = MBC_N_K_LABELS(mbc);
 				double *n_x = MBC_N_X(mbc);
 				double *n_r;
 				double *n_xp = MBC_N_XP(mbc);
@@ -389,7 +395,11 @@ main(int argc, char *argv[])
 				int n;
 
 				for (n = 0; n < mbc->nodes; n++) {
-					fprintf(stdout, "node #%d:\n", n);
+					if (labels) {
+						fprintf(stdout, "node #%d (%u):\n", n, n_labels[n]);
+					} else {
+						fprintf(stdout, "node #%d:\n", n);
+					}
 					fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
 						n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
 					switch (mbc->flags & MBC_ROT_MASK) {

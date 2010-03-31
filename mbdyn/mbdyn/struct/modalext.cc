@@ -81,18 +81,16 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
-			uint8_t *uint8_ptr;
+			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
-			uint8_ptr = (uint8_t *)&buf[0];
-			uint8_ptr[0] = MBC_MODAL;
+			uint32_ptr = (uint32_t *)&buf[0];
+			uint32_ptr[0] = MBC_MODAL;
 			if (bRigid) {
-				uint8_ptr[0] |= MBC_REF_NODE;
+				uint32_ptr[0] |= MBC_REF_NODE;
 			}
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[1];
-			uint32_ptr[0] = uModes;
+			uint32_ptr[1] = uModes;
 
 			ssize_t rc = send(pEFH->GetOutFileDes(),
 				(const void *)buf, sizeof(buf),
@@ -131,8 +129,7 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 
 #ifdef USE_SOCKET
 		} else {
-			char buf[sizeof(uint8_t) + sizeof(uint32_t)];
-			uint8_t *uint8_ptr;
+			char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 			uint32_t *uint32_ptr;
 
 			ssize_t rc = recv(pEFH->GetInFileDes(),
@@ -155,12 +152,11 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			uint8_ptr = (uint8_t *)&buf[0];
-			type = (uint8_ptr[0] & MBC_MODAL_NODAL_MASK);
-			bR = (uint8_ptr[0] & MBC_REF_NODE);
+			uint32_ptr = (uint32_t *)&buf[0];
+			type = (uint32_ptr[0] & MBC_MODAL_NODAL_MASK);
+			bR = (uint32_ptr[0] & MBC_REF_NODE);
 
-			uint32_ptr = (uint32_t *)&uint8_ptr[1];
-			uM = uint32_ptr[0];
+			uM = uint32_ptr[1];
 #endif // USE_SOCKET
 		}
 

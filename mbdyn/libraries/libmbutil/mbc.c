@@ -362,8 +362,8 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  * if accelerations != 0 accelerations are also output
  */
 int
-mbc_nodal_init(mbc_nodal_t *mbc,
-	unsigned rigid, unsigned nodes, unsigned rot, unsigned accels)
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
+	unsigned labels, unsigned rot, unsigned accels)
 {
 	mbc->nodes = nodes;
 	mbc->flags = MBC_NODAL;
@@ -382,7 +382,7 @@ mbc_nodal_init(mbc_nodal_t *mbc,
 	}
 
 	if (mbc->nodes > 0) {
-		double *ptr;
+		void *ptr;
 
 
 		mbc->k_size = (3 + 3 + 3); /* x, xp, omega */
@@ -411,62 +411,84 @@ mbc_nodal_init(mbc_nodal_t *mbc,
 
 		mbc->k_size *= mbc->nodes*sizeof(double);
 
-		mbc->n_x = NULL;
-		mbc->n_theta = NULL;
-		mbc->n_r = NULL;
-		mbc->n_euler_123 = NULL;
-		mbc->n_xp = NULL;
-		mbc->n_omega = NULL;
-		mbc->n_xpp = NULL;
-		mbc->n_omegap = NULL;
-		mbc->n_f = NULL;
-		mbc->n_m = NULL;
+		mbc->d_size = mbc->nodes*3*2*sizeof(double);
 
-		ptr = (double *)malloc(MBC_N_SIZE(mbc));
-		if (ptr == NULL) {
+		if (labels) {
+			mbc->flags |= MBC_LABELS;
+			mbc->k_size += mbc->nodes*sizeof(uint32_t);
+			mbc->d_size += mbc->nodes*sizeof(uint32_t);
+		}
+
+		mbc->n_k_labels = NULL;
+		mbc->n_k_x = NULL;
+		mbc->n_k_theta = NULL;
+		mbc->n_k_r = NULL;
+		mbc->n_k_euler_123 = NULL;
+		mbc->n_k_xp = NULL;
+		mbc->n_k_omega = NULL;
+		mbc->n_k_xpp = NULL;
+		mbc->n_k_omegap = NULL;
+		mbc->n_d_labels = NULL;
+		mbc->n_d_f = NULL;
+		mbc->n_d_m = NULL;
+
+		mbc->n_ptr = (void *)malloc(MBC_N_SIZE(mbc));
+		if (mbc->n_ptr == NULL) {
 			fprintf(stderr, "nodal data malloc failed\n");
 			return -1;
 		}
 
-		mbc->n_x = ptr;
-		ptr += 3*nodes;
+		ptr = mbc->n_ptr;
+
+		if (labels) {
+			mbc->n_k_labels = (uint32_t *)ptr;
+			ptr += nodes*sizeof(uint32_t);
+		}
+
+		mbc->n_k_x = (double *)ptr;
+		ptr += 3*sizeof(double)*nodes;
 
 		switch (rot) {
 		case MBC_ROT_MAT:
-			mbc->n_r = ptr;
-			ptr += 9*nodes;
+			mbc->n_k_r = (double *)ptr;
+			ptr += 9*sizeof(double)*nodes;
 			break;
 
 		case MBC_ROT_THETA:
-			mbc->n_theta = ptr;
-			ptr += 3*nodes;
+			mbc->n_k_theta = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
 			break;
 
 		case MBC_ROT_EULER_123:
-			mbc->n_euler_123 = ptr;
-			ptr += 3*nodes;
+			mbc->n_k_euler_123 = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
 			break;
 		}
 
-		mbc->n_xp = ptr;
-		ptr += 3*nodes;
+		mbc->n_k_xp = (double *)ptr;
+		ptr += 3*sizeof(double)*nodes;
 
-		mbc->n_omega = ptr;
-		ptr += 3*nodes;
+		mbc->n_k_omega = (double *)ptr;
+		ptr += 3*sizeof(double)*nodes;
 
 		if (mbc->flags & MBC_ACCELS) {
-			mbc->n_xpp = ptr;
-			ptr += 3*nodes;
+			mbc->n_k_xpp = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
 
-			mbc->n_omegap = ptr;
-			ptr += 3*nodes;
+			mbc->n_k_omegap = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
 		}
 
-		mbc->n_f = ptr;
-		ptr += 3*nodes;
+		if (labels) {
+			mbc->n_d_labels = (uint32_t *)ptr;
+			ptr += nodes*sizeof(uint32_t);
+		}
 
-		mbc->n_m = ptr;
-		ptr += 3*nodes;
+		mbc->n_d_f = (double *)ptr;
+		ptr += 3*sizeof(double)*nodes;
+
+		mbc->n_d_m = (double *)ptr;
+		ptr += 3*sizeof(double)*nodes;
 	}
 
 	return 0;
@@ -486,9 +508,8 @@ int
 mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 {
 	int rc;
-	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
-	char buf[sizeof(uint8_t) + sizeof(uint32_t)];
+	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 
 	if (!mbc->rigid && mbc->nodes == 0) {
 		fprintf(stderr, "need at least 1 node or rigid body data\n");
@@ -503,14 +524,13 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	mbc->mbc.cmd = ES_NEGOTIATION;
 	mbc_put_cmd((mbc_t *)mbc);
 
-	uint8_ptr = (uint8_t *)&buf[0];
-	uint8_ptr[0] = (uint8_t)MBC_NODAL | mbc->flags;
+	uint32_ptr = (uint32_t *)&buf[0];
+	uint32_ptr[0] = (uint32_t)(MBC_NODAL | mbc->flags);
 	if (mbc->rigid) {
-		uint8_ptr[0] |= MBC_REF_NODE;
+		uint32_ptr[0] |= MBC_REF_NODE;
 	}
 
-	uint32_ptr = (uint32_t *)&uint8_ptr[1];
-	uint32_ptr[0] = mbc->nodes;
+	uint32_ptr[1] = mbc->nodes;
 
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
@@ -547,11 +567,12 @@ int
 mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 {
 	int rc;
-	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
-	char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 	unsigned uNodal;
 	unsigned uRef;
+	unsigned uLabels;
+	unsigned uAccels;
 
 	if (mbc_get_cmd((mbc_t*)mbc)) {
 		return -1;
@@ -578,9 +599,12 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 
 	rc = 0;
 
-	uint8_ptr = (uint8_t *)&buf[0];
-	uNodal = uint8_ptr[0] & MBC_MODAL_NODAL_MASK;
-	uRef = uint8_ptr[0] & MBC_REF_NODE;
+	uint32_ptr = (uint32_t *)&buf[0];
+	uNodal = (uint32_ptr[0] & MBC_MODAL_NODAL_MASK);
+	uRef = (uint32_ptr[0] & MBC_REF_NODE);
+	uLabels = (uint32_ptr[0] & MBC_LABELS);
+	uAccels = (uint32_ptr[0] & MBC_ACCELS);
+
 	if (uNodal != MBC_NODAL) {
 		rc++;
 	}
@@ -589,8 +613,15 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 		rc++;
 	}
 
-	uint32_ptr = (uint32_t *)&uint8_ptr[1];
-	if (uint32_ptr[0] != mbc->nodes) {
+	if (uLabels != (mbc->flags & MBC_LABELS)) {
+		rc++;
+	}
+
+	if (uAccels != (mbc->flags & MBC_ACCELS)) {
+		rc++;
+	}
+
+	if (uint32_ptr[1] != mbc->nodes) {
 		rc++;
 	}
 
@@ -613,18 +644,20 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 int
 mbc_nodal_destroy(mbc_nodal_t *mbc)
 {
-	if (mbc->n_x) {
-		free(mbc->n_x);
-		mbc->n_x = NULL;
-		mbc->n_theta = NULL;
-		mbc->n_r = NULL;
-		mbc->n_euler_123 = NULL;
-		mbc->n_xp = NULL;
-		mbc->n_omega = NULL;
-		mbc->n_xpp = NULL;
-		mbc->n_omegap = NULL;
-		mbc->n_f = NULL;
-		mbc->n_m = NULL;
+	if (mbc->n_ptr) {
+		free(mbc->n_ptr);
+		mbc->n_k_labels = NULL;
+		mbc->n_k_x = NULL;
+		mbc->n_k_theta = NULL;
+		mbc->n_k_r = NULL;
+		mbc->n_k_euler_123 = NULL;
+		mbc->n_k_xp = NULL;
+		mbc->n_k_omega = NULL;
+		mbc->n_k_xpp = NULL;
+		mbc->n_k_omegap = NULL;
+		mbc->n_d_labels = NULL;
+		mbc->n_d_f = NULL;
+		mbc->n_d_m = NULL;
 	}
 
 	return 0;
