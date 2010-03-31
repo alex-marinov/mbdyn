@@ -832,7 +832,7 @@ StructExtForce::RecvFromFileDes(int infd)
 		if (bLabels) {
 			uint32_t *uint32_ptr = (uint32_t *)buf;
 			l = uint32_ptr[0];
-			f = (doublereal *)uint32_ptr[1];
+			f = (doublereal *)&uint32_ptr[1];
 
 		} else {
 			f = (doublereal *)buf;

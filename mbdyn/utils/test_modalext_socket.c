@@ -86,6 +86,9 @@ main(int argc, char *argv[])
 	char *host = NULL;
 	unsigned short int port = -1;
 
+	int rigid = 0;
+	unsigned modes = 0;
+
 	mbc_modal_t	mbcx = { { 0 } };
 	mbc_modal_t	*mbc = &mbcx;
 
@@ -192,21 +195,24 @@ main(int argc, char *argv[])
 				
 			break;
 
-		case 'M':
+		case 'M': {
+			int imodes;
+
 			if (p0 != NULL) {
 				fprintf(stderr, "test_modalext_socket: "
 					"-M cannot follow -p\n");
 				usage();
 			}
 
-			mbc->modes = atoi(optarg);
-			if (mbc->modes <= 0) {
+			imodes = atoi(optarg);
+			if (imodes <= 0) {
 				fprintf(stderr, "test_modalext_socket: "
 					"invalid mode number %s\n",
 					optarg);
 				usage();
 			}
-			break;
+			modes = (unsigned)imodes;
+			} break;
 
 		case 'p': {
 			char *s;
@@ -218,13 +224,13 @@ main(int argc, char *argv[])
 				usage();
 			}
 
-			if (mbc->modes <= 0) {
+			if (modes == 0) {
 				fprintf(stderr, "test_modalext_socket: "
 					"-p requires -M\n");
 				usage();
 			}
 
-			p0 = (double *)calloc(sizeof(double), mbc->modes);
+			p0 = (double *)calloc(sizeof(double), modes);
 			if (p0 == NULL) {
 				fprintf(stderr, "test_modalext_socket: "
 					"malloc for modal force values failed\n");
@@ -232,7 +238,7 @@ main(int argc, char *argv[])
 			}
 
 			s = optarg;
-			for (i = 0; i < mbc->modes; i++) {
+			for (i = 0; i < modes; i++) {
 				char *next;
 
 				p0[i] = strtod(s, &next);
@@ -242,7 +248,7 @@ main(int argc, char *argv[])
 					usage();
 				}
 
-				if (i < mbc->modes - 1) {
+				if (i < modes - 1) {
 					if (next[0] != ',') {
 						fprintf(stderr, "test_modalext_socket: "
 							"unable to parse past p[%d]\n", i);
@@ -262,7 +268,7 @@ main(int argc, char *argv[])
 			} break;
 
 		case 'r':
-			mbc->rigid = 1;
+			rigid = 1;
 			break;
 
 		case 's':
@@ -302,7 +308,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_modal_init(mbc, mbc->modes)) {
+	if (mbc_modal_init(mbc, rigid, modes)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -330,26 +336,41 @@ main(int argc, char *argv[])
 				goto done;
 			}
 
-			if (mbc->rigid && mbc->mbc.verbose) {
-				double *x = MBC_X(mbc);
-				double *R = MBC_R(mbc);
-				double *v = MBC_V(mbc);
-				double *w = MBC_W(mbc);
+			if (rigid && mbc->mbc.verbose) {
+				double *x = MBC_R_X(mbc);
+				double *r;
+				double *v = MBC_R_XP(mbc);
+				double *w = MBC_R_OMEGA(mbc);
 
 				fprintf(stdout, "x={%+16.8e,%+16.8e,%+16.8e}\n", x[0], x[1], x[2]);
-				fprintf(stdout, "R={{%+16.8e,%+16.8e,%+16.8e};\n", R[0], R[3], R[6]);
-				fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e};\n", R[1], R[4], R[7]);
-				fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e}};\n", R[2], R[5], R[8]);
+				switch (MBC_F_ROT(mbc)) {
+				case MBC_ROT_THETA:
+					r = MBC_R_THETA(mbc);
+					fprintf(stdout, "t={%+16.8e,%+16.8e,%+16.8e};\n", r[0], r[1], r[2]);
+					break;
+
+				case MBC_ROT_MAT:
+					r = MBC_R_R(mbc);
+					fprintf(stdout, "R={{%+16.8e,%+16.8e,%+16.8e};\n", r[0], r[3], r[6]);
+					fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e};\n", r[1], r[4], r[7]);
+					fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e}};\n", r[2], r[5], r[8]);
+					break;
+
+				case MBC_ROT_EULER_123:
+					r = MBC_R_EULER_123(mbc);
+					fprintf(stdout, "e={%+16.8e,%+16.8e,%+16.8e};\n", r[0], r[1], r[2]);
+					break;
+				}
 				fprintf(stdout, "v={%+16.8e,%+16.8e,%+16.8e}\n", v[0], v[1], v[2]);
 				fprintf(stdout, "w={%+16.8e,%+16.8e,%+16.8e}\n", w[0], w[1], w[2]);
 			}
 
-			if (mbc->modes > 0 && mbc->mbc.verbose) {
+			if (modes > 0 && mbc->mbc.verbose) {
 				double *q = MBC_Q(mbc);
 				double *qp = MBC_QP(mbc);
 				int m;
 
-				for (m = 0; m < mbc->modes; m++) {
+				for (m = 0; m < modes; m++) {
 					fprintf(stdout, "mode #%d: %+16.8e %+16.8e\n", m, q[m], qp[m]);
 				}
 			}
@@ -359,9 +380,9 @@ main(int argc, char *argv[])
 			}
 
 			/* set forces */
-			if (mbc->rigid) {
-				double *f = MBC_F(mbc);
-				double *m = MBC_M(mbc);
+			if (rigid) {
+				double *f = MBC_R_F(mbc);
+				double *m = MBC_R_M(mbc);
 
 				if (f0 != NULL) {
 					f[0] = f0[0];
@@ -383,17 +404,17 @@ main(int argc, char *argv[])
 				}
 			}
 
-			if (mbc->modes > 0) {
+			if (modes > 0) {
 				double *p = MBC_P(mbc);
 				int m;
 
 				if (p0) {
-					for (m = 0; m < mbc->modes; m++) {
+					for (m = 0; m < modes; m++) {
 						p[m] = p0[m];
 					}
 
 				} else {
-					for (m = 0; m < mbc->modes; m++) {
+					for (m = 0; m < modes; m++) {
 						p[m] = (double)(m + 1);
 					}
 				}

@@ -375,11 +375,16 @@ main(int argc, char *argv[])
 			}
 
 			if (rigid && mbc->mbc.verbose) {
-				double *x = MBC_X(mbc);
-				double *R = MBC_R(mbc);
-				double *v = MBC_V(mbc);
-				double *w = MBC_W(mbc);
+				double *x = MBC_R_X(mbc);
+				double *R = MBC_R_R(mbc);
+				double *v = MBC_R_XP(mbc);
+				double *w = MBC_R_OMEGA(mbc);
 
+				if (labels) {
+					fprintf(stdout, "reference node (%u):\n", MBC_R_K_LABEL(mbc));
+				} else {
+					fprintf(stdout, "reference node:\n");
+				}
 				fprintf(stdout, "x={%+16.8e,%+16.8e,%+16.8e}\n", x[0], x[1], x[2]);
 				fprintf(stdout, "R={{%+16.8e,%+16.8e,%+16.8e};\n", R[0], R[3], R[6]);
 				fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e};\n", R[1], R[4], R[7]);
@@ -404,7 +409,7 @@ main(int argc, char *argv[])
 					}
 					fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
 						n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
-					switch (mbc->flags & MBC_ROT_MASK) {
+					switch (MBC_F_ROT(mbc)) {
 					case MBC_ROT_MAT:
 						n_r =  MBC_N_R(mbc);
 						fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
@@ -440,8 +445,8 @@ main(int argc, char *argv[])
 
 			/* set forces */
 			if (rigid) {
-				double *f = MBC_F(mbc);
-				double *m = MBC_M(mbc);
+				double *f = MBC_R_F(mbc);
+				double *m = MBC_R_M(mbc);
 
 				if (f0 != NULL) {
 					f[0] = f0[0];

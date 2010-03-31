@@ -129,51 +129,77 @@ extern int
 mbc_destroy(mbc_t *mbc);
 
 /*
+ * rigid stuff
+ */
+typedef struct {
+	uint32_t	flags;
+#define MBC_F(mbc)			((mbc)->mbcr.flags)
+#define MBC_F_GET(mbc, f)		(MBC_F(mbc) & (f))
+#define MBC_F_SET(mbc, f)		(MBC_F(mbc) |= (f))
+#define MBC_F_RESET(mbc, f)		(MBC_F(mbc) &= ~(f))
+
+#define MBC_F_REF_NODE(mbc)		MBC_F_GET(mbc, MBC_REF_NODE)
+#define MBC_F_LABELS(mbc)		MBC_F_GET(mbc, MBC_LABELS)
+#define MBC_F_ACCELS(mbc)		MBC_F_GET(mbc, MBC_ACCELS)
+#define MBC_F_ROT(mbc)			MBC_F_GET(mbc, MBC_ROT_MASK)
+#define MBC_F_ROT_THETA(mbc)		MBC_F_GET(mbc, MBC_ROT_THETA)
+#define MBC_F_ROT_MAT(mbc)		MBC_F_GET(mbc, MBC_ROT_MAT)
+#define MBC_F_ROT_EULER_123(mbc)	MBC_F_GET(mbc, MBC_ROT_EULER_123)
+
+#define MBC_F_SET_REF_NODE(mbc)		MBC_F_SET(mbc, MBC_REF_NODE)
+#define MBC_F_SET_LABELS(mbc)		MBC_F_SET(mbc, MBC_LABELS)
+#define MBC_F_SET_ACCELS(mbc)		MBC_F_SET(mbc, MBC_ACCELS)
+#define MBC_F_SET_ROT_THETA(mbc)	MBC_F_SET(mbc, MBC_ROT_THETA)
+#define MBC_F_SET_ROT_MAT(mbc)		MBC_F_SET(mbc, MBC_ROT_MAT)
+#define MBC_F_SET_ROT_EULER_123(mbc)	MBC_F_SET(mbc, MBC_ROT_EULER_123)
+
+	/* reference node data */
+	char		r_ptr[(1 + 1)*sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3)*sizeof(double)];
+	uint32_t	k_size;
+	uint32_t	*r_k_label;
+	double		*r_k_x;
+	double		*r_k_theta;
+	double		*r_k_r;
+	double		*r_k_euler_123;
+	double		*r_k_xp;
+	double		*r_k_omega;
+	double		*r_k_xpp;
+	double		*r_k_omegap;
+	uint32_t	d_size;
+	uint32_t	*r_d_label;
+	double		*r_d_f;
+	double		*r_d_m;
+#define	MBC_R_K_LABEL(mbc)		((mbc)->mbcr.r_k_label[0])
+#define	MBC_R_X(mbc)			((mbc)->mbcr.r_k_x)
+#define	MBC_R_THETA(mbc)		((mbc)->mbcr.r_k_theta)
+#define	MBC_R_R(mbc)			((mbc)->mbcr.r_k_r)
+#define	MBC_R_EULER_123(mbc)		((mbc)->mbcr.r_k_euler_123)
+#define	MBC_R_XP(mbc)			((mbc)->mbcr.r_k_xp)
+#define	MBC_R_OMEGA(mbc)		((mbc)->mbcr.r_k_omega)
+#define	MBC_R_XPP(mbc)			((mbc)->mbcr.r_k_xpp)
+#define	MBC_R_OMEGAP(mbc)		((mbc)->mbcr.r_k_omegap)
+#define	MBC_R_D_LABEL(mbc)		((mbc)->mbcr.r_d_label[0])
+#define	MBC_R_F(mbc)			((mbc)->mbcr.r_d_f)
+#define	MBC_R_M(mbc)			((mbc)->mbcr.r_d_m)
+#define MBC_R_KINEMATICS_SIZE(mbc)	((mbc)->mbcr.k_size)
+#define MBC_R_DYNAMICS_SIZE(mbc)	((mbc)->mbcr.d_size)
+#define MBC_R_SIZE(mbc)			(MBC_R_KINEMATICS_SIZE(mbc) + MBC_R_DYNAMICS_SIZE(mbc))
+#define MBC_R_KINEMATICS(mbc)		((void *)(mbc)->mbcr.r_ptr)
+#define MBC_R_DYNAMICS(mbc)		((void *)(MBC_R_KINEMATICS(mbc) + MBC_R_KINEMATICS_SIZE(mbc)))
+} mbc_rigid_t;
+
+/*
  * nodal stuff
  */
 typedef struct {
 	mbc_t		mbc;
-
-	uint32_t	flags;
-#define MBC_NF(mbc)			((mbc)->flags)
-#define MBC_NF_GET(mbc, f)		((mbc)->flags & (f))
-#define MBC_NF_SET(mbc, f)		((mbc)->flags |= (f))
-#define MBC_NF_RESET(mbc, f)		((mbc)->flags &= ~(f))
-
-#define MBC_NF_REF_NODE(mbc)		MBC_NF_GET(mbc, MBC_REF_NODE)
-#define MBC_NF_LABELS(mbc)		MBC_NF_GET(mbc, MBC_LABELS)
-#define MBC_NF_ACCELS(mbc)		MBC_NF_GET(mbc, MBC_ACCELS)
-#define MBC_NF_ROT(mbc)			MBC_NF_GET(mbc, MBC_ROT_MASK)
-#define MBC_NF_ROT_THETA(mbc)		MBC_NF_GET(mbc, MBC_ROT_THETA)
-#define MBC_NF_ROT_MAT(mbc)		MBC_NF_GET(mbc, MBC_ROT_MAT)
-#define MBC_NF_ROT_EULER_123(mbc)	MBC_NF_GET(mbc, MBC_ROT_EULER_123)
-
-#define MBC_NF_SET_REF_NODE(mbc)	MBC_NF_SET(mbc, MBC_REF_NODE)
-#define MBC_NF_SET_LABELS(mbc)		MBC_NF_SET(mbc, MBC_LABELS)
-#define MBC_NF_SET_ACCELS(mbc)		MBC_NF_SET(mbc, MBC_ACCELS)
-#define MBC_NF_SET_ROT_THETA(mbc)	MBC_NF_SET(mbc, MBC_ROT_THETA)
-#define MBC_NF_SET_ROT_MAT(mbc)		MBC_NF_SET(mbc, MBC_ROT_MAT)
-#define MBC_NF_SET_ROT_EULER_123(mbc)	MBC_NF_SET(mbc, MBC_ROT_EULER_123)
-
-	/* reference node data */
-	double		r[3 + 9 + 3 + 3 + 3 + 3];
-#define	MBC_X(mbc)			(&(mbc)->r[0])
-#define	MBC_R(mbc)			(&(mbc)->r[3])
-#define	MBC_V(mbc)			(&(mbc)->r[12])
-#define	MBC_W(mbc)			(&(mbc)->r[15])
-#define	MBC_F(mbc)			(&(mbc)->r[18])
-#define	MBC_M(mbc)			(&(mbc)->r[21])
-#define MBC_R_KINEMATICS(mbc)		MBC_X((mbc))
-#define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
-#define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
-#define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
-#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
+	mbc_rigid_t	mbcr;
 
 	/* nodal data */
 	uint32_t	nodes;
 	uint32_t	k_size;
 
-	void		*n_ptr;
+	char		*n_ptr;
 	/* n_k_labels optional */
 	uint32_t	*n_k_labels;
 	double		*n_k_x;
@@ -207,8 +233,8 @@ typedef struct {
 #define MBC_N_M(mbc)			((mbc)->n_d_m)
 #define MBC_N_KINEMATICS_SIZE(mbc)	((mbc)->k_size)
 #define MBC_N_DYNAMICS_SIZE(mbc)	((mbc)->d_size)
-#define MBC_N_KINEMATICS(mbc)		((mbc)->n_ptr)
-#define MBC_N_DYNAMICS(mbc)		(MBC_N_KINEMATICS(mbc) + MBC_N_KINEMATICS_SIZE(mbc))
+#define MBC_N_KINEMATICS(mbc)		((void *)(mbc)->n_ptr)
+#define MBC_N_DYNAMICS(mbc)		((void *)(MBC_N_KINEMATICS(mbc) + MBC_N_KINEMATICS_SIZE(mbc)))
 #define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
 } mbc_nodal_t;
 
@@ -293,21 +319,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last);
 /* modal data structure */
 typedef struct {
 	mbc_t		mbc;
-
-	/* rigid body data */
-	uint8_t		rigid;
-	double		r[3 + 9 + 3 + 3 + 3 + 3];
-#define	MBC_X(mbc)			(&(mbc)->r[0])
-#define	MBC_R(mbc)			(&(mbc)->r[3])
-#define	MBC_V(mbc)			(&(mbc)->r[12])
-#define	MBC_W(mbc)			(&(mbc)->r[15])
-#define	MBC_F(mbc)			(&(mbc)->r[18])
-#define	MBC_M(mbc)			(&(mbc)->r[21])
-#define MBC_R_KINEMATICS(mbc)		MBC_X((mbc))
-#define MBC_R_DYNAMICS(mbc)		MBC_F((mbc))
-#define MBC_R_KINEMATICS_SIZE(mbc)	(18*sizeof(double))
-#define MBC_R_DYNAMICS_SIZE(mbc)	(6*sizeof(double))
-#define MBC_R_SIZE(mbc)			((18 + 6)*sizeof(double))
+	mbc_rigid_t	mbcr;
 
 	/* modal data */
 	uint32_t	modes;
@@ -333,7 +345,7 @@ typedef struct {
  * mbc_modal_destroy()
  */
 extern int
-mbc_modal_init(mbc_modal_t *mbc, unsigned modes);
+mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes);
 
 /* destroy modal data
  *

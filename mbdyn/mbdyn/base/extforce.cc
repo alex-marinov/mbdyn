@@ -382,13 +382,13 @@ ExtSocketHandler::Prepare_pre(void)
 		rc = send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
 		if (rc == -1) {
 			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: send() negotiation request failed "
+			silent_cerr("ExtSocketHandler: negotiation request send() failed "
 				"(" << save_errno << ": " << strerror(save_errno) << ")"
 				<< std::endl);
 			return (bOK = false);
 
 		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: send() negotiation request failed "
+			silent_cerr("ExtSocketHandler: negotiation request send() failed "
 				"(sent " << rc << " bytes "
 				"instead of " << sizeof(u) << ")"
 				<< std::endl);
@@ -406,8 +406,7 @@ ExtSocketHandler::Prepare_pre(void)
 		}
 
 		if (u != ES_NEGOTIATION) {
-			silent_cerr("ExtSocketHandler: "
-				"recv() negotiation request failed"
+			silent_cerr("ExtSocketHandler: negotiation request recv() failed"
 				<< std::endl);
 			return (bOK = false);
 		}
@@ -430,13 +429,13 @@ ExtSocketHandler::Prepare_post(bool ok)
 			send_flags);
 		if (rc == -1) {
 			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: send() negotiation response failed "
+			silent_cerr("ExtSocketHandler: negotiation response send() failed "
 				"(" << save_errno << ": " << strerror(save_errno) << ")"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: send() negotiation response failed "
+			silent_cerr("ExtSocketHandler: negotiation response send() failed "
 				"(sent " << rc << " bytes "
 				"instead of " << sizeof(u) << ")"
 				<< std::endl);
@@ -449,13 +448,13 @@ ExtSocketHandler::Prepare_post(bool ok)
 			recv_flags);
 		if (rc == -1) {
 			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: recv() negotiation response failed "
+			silent_cerr("ExtSocketHandler: negotiation response recv() failed "
 				"(" << save_errno << ": " << strerror(save_errno) << ")"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: recv() negotiation response failed "
+			silent_cerr("ExtSocketHandler: negotiation response recv() failed "
 				"(received " << rc << " bytes "
 				"instead of " << sizeof(u) << ")"
 				<< std::endl);
