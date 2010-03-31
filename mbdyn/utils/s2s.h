@@ -53,8 +53,8 @@ enum {
 struct s2s_t {
 	// depend on configuration
 	int	nChannels;
+	const char	*path;
 	// path and [host:][port] are mutually exclusive
-	char	*path;
 	const char	*host;
 	int	port;
 	int	create;
