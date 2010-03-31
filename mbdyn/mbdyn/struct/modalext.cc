@@ -39,6 +39,7 @@
 #include "modaledge.h"
 
 #include <fstream>
+#include <cerrno>
 
 /* ExtModalForceBase - begin */
 
