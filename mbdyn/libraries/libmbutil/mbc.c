@@ -914,7 +914,8 @@ mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes)
 		return -1;
 	}
 
-	mbc_rigid_init(&mbc->mbcr, rigid, 0, 0, 0);
+	/* FIXME: rotation configurable? */
+	mbc_rigid_init(&mbc->mbcr, rigid, 0, MBC_ROT_MAT, 0);
 
 	if (mbc->modes > 0) {
 		mbc->m = (double *)malloc(MBC_M_SIZE(mbc));
@@ -937,9 +938,8 @@ int
 mbc_modal_negotiate_request(mbc_modal_t *mbc)
 {
 	int rc;
-	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
-	char buf[sizeof(uint8_t) + sizeof(uint32_t)];
+	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 
 	if (!MBC_F_REF_NODE(mbc) && mbc->modes == 0) {
 		fprintf(stderr, "need at least 1 mode or rigid body data\n");
@@ -954,14 +954,9 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	mbc->mbc.cmd = ES_NEGOTIATION;
 	mbc_put_cmd((mbc_t *)mbc);
 
-	uint8_ptr = (uint8_t *)&buf[0];
-	uint8_ptr[0] = (uint8_t)MBC_MODAL;
-	if (MBC_F_REF_NODE(mbc)) {
-		uint8_ptr[0] |= MBC_REF_NODE;
-	}
-
-	uint32_ptr = (uint32_t *)&uint8_ptr[1];
-	uint32_ptr[0] = mbc->modes;
+	uint32_ptr = (uint32_t *)&buf[0];
+	uint32_ptr[0] = (uint32_t)MBC_F(mbc);
+	uint32_ptr[1] = mbc->modes;
 
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
@@ -998,9 +993,8 @@ int
 mbc_modal_negotiate_response(mbc_modal_t *mbc)
 {
 	int rc;
-	uint8_t *uint8_ptr;
 	uint32_t *uint32_ptr;
-	char buf[sizeof(uint8_t) + sizeof(uint8_t) + sizeof(uint32_t)];
+	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 	unsigned uModal;
 	unsigned uRef;
 
@@ -1029,9 +1023,10 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 
 	rc = 0;
 
-	uint8_ptr = (uint8_t *)&buf[0];
-	uModal = uint8_ptr[0] & MBC_MODAL_NODAL_MASK;
-	uRef = uint8_ptr[0] & MBC_REF_NODE;
+	uint32_ptr = (uint32_t *)&buf[0];
+	uModal = uint32_ptr[0] & MBC_MODAL_NODAL_MASK;
+	uRef = uint32_ptr[0] & MBC_REF_NODE;
+
 	if (uModal != MBC_MODAL) {
 		rc++;
 	}
@@ -1040,8 +1035,7 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 		rc++;
 	}
 
-	uint32_ptr = (uint32_t *)&uint8_ptr[1];
-	if (uint32_ptr[0] != mbc->modes) {
+	if (uint32_ptr[1] != mbc->modes) {
 		rc++;
 	}
 
