@@ -174,19 +174,25 @@ typedef struct {
 	uint32_t	k_size;
 
 	void		*n_ptr;
+	/* n_k_labels optional */
 	uint32_t	*n_k_labels;
 	double		*n_k_x;
+	/* n_k_theta, n_k_r, n_k_euler_123 mutually exclusive */
 	double		*n_k_theta;
 	double		*n_k_r;
 	double		*n_k_euler_123;
 	double		*n_k_xp;
 	double		*n_k_omega;
+	/* n_k_xpp, n_k_omegap optional */
 	double		*n_k_xpp;
 	double		*n_k_omegap;
+
 	uint32_t	d_size;
+	/* n_d_labels optional */
 	uint32_t	*n_d_labels;
 	double		*n_d_f;
 	double		*n_d_m;
+
 #define MBC_N_K_LABELS(mbc)		((mbc)->n_k_labels)
 #define MBC_N_X(mbc)			((mbc)->n_k_x)
 #define MBC_N_THETA(mbc)		((mbc)->n_k_theta)
