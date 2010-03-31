@@ -466,6 +466,15 @@ main(int argc, char *argv[])
 				double *n_m = MBC_N_M(mbc);
 				int n;
 
+				if (labels) {
+					uint32_t *k_l = MBC_N_K_LABELS(mbc);
+					uint32_t *d_l = MBC_N_D_LABELS(mbc);
+
+					for (n = 0; n < mbc->nodes; n++) {
+						d_l[n] = k_l[n];
+					}
+				}
+
 				if (p0) {
 					for (n = 0; n < mbc->nodes; n++) {
 						n_f[3*n] = p0[6*n];

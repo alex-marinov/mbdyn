@@ -180,10 +180,10 @@ typedef struct {
 #define MBC_N_D_LABELS(mbc)		((mbc)->n_d_labels)
 #define MBC_N_F(mbc)			((mbc)->n_d_f)
 #define MBC_N_M(mbc)			((mbc)->n_d_m)
-#define MBC_N_KINEMATICS(mbc)		MBC_N_X((mbc))
-#define MBC_N_DYNAMICS(mbc)		MBC_N_F((mbc))
 #define MBC_N_KINEMATICS_SIZE(mbc)	((mbc)->k_size)
 #define MBC_N_DYNAMICS_SIZE(mbc)	((mbc)->d_size)
+#define MBC_N_KINEMATICS(mbc)		((mbc)->n_ptr)
+#define MBC_N_DYNAMICS(mbc)		(MBC_N_KINEMATICS(mbc) + MBC_N_KINEMATICS_SIZE(mbc))
 #define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
 } mbc_nodal_t;
 
