@@ -242,7 +242,7 @@ mbc_destroy(mbc_t *mbc)
 
 /* get nodal motion from peer
  *
- * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if "rigid", access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
  */
 int
@@ -262,13 +262,13 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.cmd != ES_GOTO_NEXT_STEP) {
-		if (mbc->rigid) {
+		if (MBC_NF_REF_NODE(mbc)) {
 			ssize_t rc;
 
 			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
 				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc != MBC_R_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%u) rigid failed (%d)\n",
+				fprintf(stderr, "recv(%u) reference node failed (%d)\n",
 					MBC_R_KINEMATICS_SIZE(mbc), rc);
 				return -1;
 			}
@@ -292,7 +292,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 
 /* put forces to peer
  *
- * if mbc->rigid, force and moment must be set in storage pointed to
+ * if "rigid", force and moment must be set in storage pointed to
  *	by macros MBC_F, MBC_M
  * if mbc->nodes > 0, nodal forces must be set in storage pointed to
  *	by macro MBC_N_F, MBC_N_M
@@ -317,14 +317,14 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
 	}
 
 	if (mbc->mbc.cmd != ES_GOTO_NEXT_STEP) {
-		/* rigid */
-		if (mbc->rigid) {
+		/* reference node */
+		if (MBC_NF_REF_NODE(mbc)) {
 			ssize_t	rc;
 
 			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
 				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 			if (rc != MBC_R_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%u) rigid failed (%d)\n",
+				fprintf(stderr, "send(%u) reference node failed (%d)\n",
 					MBC_R_DYNAMICS_SIZE(mbc), rc);
 				return -1;
 			}
@@ -366,17 +366,13 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels)
 {
 	mbc->nodes = nodes;
-	mbc->flags = MBC_NODAL;
+	MBC_NF_SET(mbc, MBC_NODAL);
 
 	if (rigid) {
-		mbc->rigid = 1;
-		mbc->flags |= MBC_REF_NODE;
-
-	} else {
-		mbc->rigid = 0;
+		MBC_NF_SET_REF_NODE(mbc);
 	}
 
-	if (!mbc->rigid && mbc->nodes == 0) {
+	if (!MBC_NF_REF_NODE(mbc) && mbc->nodes == 0) {
 		fprintf(stderr, "need at least 1 node or rigid body data\n");
 		return -1;
 	}
@@ -389,13 +385,17 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 
 		switch (rot) {
 		case MBC_ROT_MAT:
-			mbc->flags |= rot;
+			MBC_NF_SET_ROT_MAT(mbc);
 			mbc->k_size += 9;
 			break;
 
 		case MBC_ROT_THETA:
+			MBC_NF_SET_ROT_THETA(mbc);
+			mbc->k_size += 3;
+			break;
+
 		case MBC_ROT_EULER_123:
-			mbc->flags |= rot;
+			MBC_NF_SET_ROT_EULER_123(mbc);
 			mbc->k_size += 3;
 			break;
 
@@ -405,7 +405,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		}
 
 		if (accels) {
-			mbc->flags |= MBC_ACCELS;
+			MBC_NF_SET_ACCELS(mbc);
 			mbc->k_size += 6;
 		}
 
@@ -414,7 +414,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		mbc->d_size = mbc->nodes*3*2*sizeof(double);
 
 		if (labels) {
-			mbc->flags |= MBC_LABELS;
+			MBC_NF_SET_LABELS(mbc);
 			mbc->k_size += mbc->nodes*sizeof(uint32_t);
 			mbc->d_size += mbc->nodes*sizeof(uint32_t);
 		}
@@ -440,7 +440,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 
 		ptr = mbc->n_ptr;
 
-		if (labels) {
+		if (MBC_NF_LABELS(mbc)) {
 			mbc->n_k_labels = (uint32_t *)ptr;
 			ptr += nodes*sizeof(uint32_t);
 		}
@@ -448,7 +448,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		mbc->n_k_x = (double *)ptr;
 		ptr += 3*sizeof(double)*nodes;
 
-		switch (rot) {
+		switch (MBC_NF_ROT(mbc)) {
 		case MBC_ROT_MAT:
 			mbc->n_k_r = (double *)ptr;
 			ptr += 9*sizeof(double)*nodes;
@@ -471,7 +471,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		mbc->n_k_omega = (double *)ptr;
 		ptr += 3*sizeof(double)*nodes;
 
-		if (mbc->flags & MBC_ACCELS) {
+		if (MBC_NF_ACCELS(mbc)) {
 			mbc->n_k_xpp = (double *)ptr;
 			ptr += 3*sizeof(double)*nodes;
 
@@ -479,7 +479,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 			ptr += 3*sizeof(double)*nodes;
 		}
 
-		if (labels) {
+		if (MBC_NF_LABELS(mbc)) {
 			mbc->n_d_labels = (uint32_t *)ptr;
 			ptr += nodes*sizeof(uint32_t);
 		}
@@ -511,7 +511,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	uint32_t *uint32_ptr;
 	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 
-	if (!mbc->rigid && mbc->nodes == 0) {
+	if (!MBC_NF_REF_NODE(mbc) && mbc->nodes == 0) {
 		fprintf(stderr, "need at least 1 node or rigid body data\n");
 		return -1;
 	}
@@ -525,11 +525,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	mbc_put_cmd((mbc_t *)mbc);
 
 	uint32_ptr = (uint32_t *)&buf[0];
-	uint32_ptr[0] = (uint32_t)(MBC_NODAL | mbc->flags);
-	if (mbc->rigid) {
-		uint32_ptr[0] |= MBC_REF_NODE;
-	}
-
+	uint32_ptr[0] = MBC_NF(mbc);
 	uint32_ptr[1] = mbc->nodes;
 
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
@@ -609,15 +605,15 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 		rc++;
 	}
 
-	if ((uRef && !mbc->rigid) || (!uRef && mbc->rigid)) {
+	if ((uRef && !MBC_NF_REF_NODE(mbc)) || (!uRef && MBC_NF_REF_NODE(mbc))) {
 		rc++;
 	}
 
-	if (uLabels != (mbc->flags & MBC_LABELS)) {
+	if (uLabels != MBC_NF_LABELS(mbc)) {
 		rc++;
 	}
 
-	if (uAccels != (mbc->flags & MBC_ACCELS)) {
+	if (uAccels != MBC_NF_ACCELS(mbc)) {
 		rc++;
 	}
 

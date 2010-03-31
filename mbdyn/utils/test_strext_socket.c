@@ -85,6 +85,8 @@ main(int argc, char *argv[])
 	int iters_random = 0;
 	unsigned steps;
 
+	int rigid = 0;
+	int nodes = 0;
 	int labels = 0;
 	int accelerations = 0;
 	unsigned rot = MBC_ROT_MAT;
@@ -218,8 +220,8 @@ main(int argc, char *argv[])
 				usage();
 			}
 
-			mbc->nodes = atoi(optarg);
-			if (mbc->nodes <= 0) {
+			nodes = atoi(optarg);
+			if (nodes <= 0) {
 				fprintf(stderr, "test_strext_socket: "
 					"invalid node number %s\n",
 					optarg);
@@ -237,13 +239,13 @@ main(int argc, char *argv[])
 				usage();
 			}
 
-			if (mbc->nodes <= 0) {
+			if (nodes <= 0) {
 				fprintf(stderr, "test_strext_socket: "
 					"-p requires -N\n");
 				usage();
 			}
 
-			p0 = (double *)calloc(sizeof(double), 6*mbc->nodes);
+			p0 = (double *)calloc(sizeof(double), 6*nodes);
 			if (p0 == NULL) {
 				fprintf(stderr, "test_strext_socket: "
 					"malloc for nodal force values failed\n");
@@ -251,7 +253,7 @@ main(int argc, char *argv[])
 			}
 
 			s = optarg;
-			for (i = 0; i < 6*mbc->nodes; i++) {
+			for (i = 0; i < 6*nodes; i++) {
 				char *next;
 				const char fm[] = "fm";
 				const char xyz[] = "xyz";
@@ -264,7 +266,7 @@ main(int argc, char *argv[])
 					usage();
 				}
 
-				if (i < 6*mbc->nodes - 1) {
+				if (i < 6*nodes - 1) {
 					if (next[0] != ',') {
 						fprintf(stderr, "test_strext_socket: "
 							"unable to parse %c%d%c\n",
@@ -286,7 +288,7 @@ main(int argc, char *argv[])
 			} break;
 
 		case 'r':
-			mbc->rigid = 1;
+			rigid = 1;
 			break;
 
 		case 'R':
@@ -344,7 +346,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_nodal_init(mbc, mbc->rigid, mbc->nodes, labels, rot, accelerations)) {
+	if (mbc_nodal_init(mbc, rigid, nodes, labels, rot, accelerations)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -372,7 +374,7 @@ main(int argc, char *argv[])
 				goto done;
 			}
 
-			if (mbc->rigid && mbc->mbc.verbose) {
+			if (rigid && mbc->mbc.verbose) {
 				double *x = MBC_X(mbc);
 				double *R = MBC_R(mbc);
 				double *v = MBC_V(mbc);
@@ -437,7 +439,7 @@ main(int argc, char *argv[])
 			}
 
 			/* set forces */
-			if (mbc->rigid) {
+			if (rigid) {
 				double *f = MBC_F(mbc);
 				double *m = MBC_M(mbc);
 

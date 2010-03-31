@@ -134,8 +134,28 @@ mbc_destroy(mbc_t *mbc);
 typedef struct {
 	mbc_t		mbc;
 
+	uint32_t	flags;
+#define MBC_NF(mbc)			((mbc)->flags)
+#define MBC_NF_GET(mbc, f)		((mbc)->flags & (f))
+#define MBC_NF_SET(mbc, f)		((mbc)->flags |= (f))
+#define MBC_NF_RESET(mbc, f)		((mbc)->flags &= ~(f))
+
+#define MBC_NF_REF_NODE(mbc)		MBC_NF_GET(mbc, MBC_REF_NODE)
+#define MBC_NF_LABELS(mbc)		MBC_NF_GET(mbc, MBC_LABELS)
+#define MBC_NF_ACCELS(mbc)		MBC_NF_GET(mbc, MBC_ACCELS)
+#define MBC_NF_ROT(mbc)			MBC_NF_GET(mbc, MBC_ROT_MASK)
+#define MBC_NF_ROT_THETA(mbc)		MBC_NF_GET(mbc, MBC_ROT_THETA)
+#define MBC_NF_ROT_MAT(mbc)		MBC_NF_GET(mbc, MBC_ROT_MAT)
+#define MBC_NF_ROT_EULER_123(mbc)	MBC_NF_GET(mbc, MBC_ROT_EULER_123)
+
+#define MBC_NF_SET_REF_NODE(mbc)	MBC_NF_SET(mbc, MBC_REF_NODE)
+#define MBC_NF_SET_LABELS(mbc)		MBC_NF_SET(mbc, MBC_LABELS)
+#define MBC_NF_SET_ACCELS(mbc)		MBC_NF_SET(mbc, MBC_ACCELS)
+#define MBC_NF_SET_ROT_THETA(mbc)	MBC_NF_SET(mbc, MBC_ROT_THETA)
+#define MBC_NF_SET_ROT_MAT(mbc)		MBC_NF_SET(mbc, MBC_ROT_MAT)
+#define MBC_NF_SET_ROT_EULER_123(mbc)	MBC_NF_SET(mbc, MBC_ROT_EULER_123)
+
 	/* reference node data */
-	uint8_t		rigid;
 	double		r[3 + 9 + 3 + 3 + 3 + 3];
 #define	MBC_X(mbc)			(&(mbc)->r[0])
 #define	MBC_R(mbc)			(&(mbc)->r[3])
@@ -151,7 +171,6 @@ typedef struct {
 
 	/* nodal data */
 	uint32_t	nodes;
-	uint32_t	flags;
 	uint32_t	k_size;
 
 	void		*n_ptr;
