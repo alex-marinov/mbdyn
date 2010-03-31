@@ -262,7 +262,7 @@ main(int argc, char *argv[])
 		fprintf( stderr, "FILE NOT FOUND (ComputationalTime.txt)\n" );
 		exit(EXIT_FAILURE);
 	}
-	double actual_time, time1, time2, delta_time;
+	double time1, time2, delta_time;
 	time_eval t1;
 	time_eval t2;
 	#endif
@@ -293,10 +293,6 @@ main(int argc, char *argv[])
 			y_k.vec[i] = s2s_measures.dbuf[i];
 		}
 		#ifdef COMPUTE_TIME
-		//clock_t t1 = clock();
-		//if( t1 == -1 ){
-		//	fprintf(stderr, "no clock1!!\n");
-		//}
 		gettimeofday( &t1, 0 );
     		time1 = ( t1.tv_sec + t1.tv_usec*1e-6 );
 		#endif
@@ -401,15 +397,9 @@ main(int argc, char *argv[])
 			matrix_write( &ARX_m.theta, fh_ARXParameters, W_M_BIN);
 		}
 		#ifdef COMPUTE_TIME
-		//clock_t t2 = clock();
-		//fprintf( stdout, "%le\n", (double)t2);
-		//if( t2 == -1 ){
-		//	fprintf(stderr, "no clock2!!\n");
-		//}
 		gettimeofday( &t2, 0 );
     		time2 = ( t2.tv_sec + t2.tv_usec*1e-6 );
 		delta_time = time2 - time1;
-		//double delta_time = double(t2-t1)/CLOCKS_PER_SEC;
 		fprintf(fh_time, "%le\n", delta_time);
 		#endif
 	}
