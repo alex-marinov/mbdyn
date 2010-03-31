@@ -63,10 +63,22 @@ ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
+F0(0.), M0(0.),
 bUnsorted(bUnsorted),
 bNoLabels(bNoLabels),
 bOutputAccelerations(bOutputAccelerations),
-uRot(uRot)
+uRot(uRot),
+iobuf_labels(0),
+iobuf_x(0),
+iobuf_R(0),
+iobuf_theta(0),
+iobuf_euler_123(0),
+iobuf_xp(0),
+iobuf_omega(0),
+iobuf_xpp(0),
+iobuf_omegap(0),
+iobuf_f(0),
+iobuf_m(0)
 {
 	ASSERT(nodes.size() == offsets.size());
 	Nodes.resize(nodes.size());
@@ -113,6 +125,88 @@ uRot(uRot)
 
 			pDSN->ComputeAccelerations(true);
 		}
+	}
+
+	// I/O will use filedes
+	if (!pEFH->GetOutStream()) {
+		node_kinematics_size = 3 + 3 + 3;
+
+		switch (uRot) {
+		case MBC_ROT_MAT:
+			node_kinematics_size += 9;
+			break;
+
+		case MBC_ROT_THETA:
+		case MBC_ROT_EULER_123:
+			node_kinematics_size += 3;
+			break;
+
+		default:
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (bOutputAccelerations) {
+			node_kinematics_size += 3 + 3;
+		}
+
+		node_kinematics_size *= sizeof(doublereal);
+		dynamics_size = (3 + 3)*sizeof(doublereal);
+
+		if (!bNoLabels) {
+			node_kinematics_size += sizeof(uint32_t);
+			dynamics_size += sizeof(uint32_t);
+		}
+
+		iobuf.resize(node_kinematics_size*Nodes.size());
+		dynamics_size *= Nodes.size();
+
+		char *ptr = &iobuf[0];
+		if (!bNoLabels) {
+			iobuf_labels = (uint32_t *)ptr;
+			ptr += sizeof(uint32_t)*Nodes.size();
+		}
+
+		iobuf_x = (doublereal *)ptr;
+		ptr += 3*sizeof(doublereal)*Nodes.size();
+
+		switch (uRot) {
+		case MBC_ROT_MAT:
+			iobuf_R = (doublereal *)ptr;
+			ptr += 9*sizeof(doublereal)*Nodes.size();
+			break;
+
+		case MBC_ROT_THETA:
+			iobuf_theta = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+			break;
+
+		case MBC_ROT_EULER_123:
+			iobuf_euler_123 = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+			break;
+		}
+
+		iobuf_xp = (doublereal *)ptr;
+		ptr += 3*sizeof(doublereal)*Nodes.size();
+
+		iobuf_omega = (doublereal *)ptr;
+		ptr += 3*sizeof(doublereal)*Nodes.size();
+
+		if (bOutputAccelerations) {
+			iobuf_xpp = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+
+			iobuf_omegap = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+		}
+
+		ptr = (char *)iobuf_x;
+
+		iobuf_f = (doublereal *)ptr;
+		ptr += 3*sizeof(doublereal)*Nodes.size();
+
+		iobuf_m = (doublereal *)ptr;
+		ptr += 3*sizeof(doublereal)*Nodes.size();
 	}
 }
 
@@ -297,6 +391,37 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
+		if (!bNoLabels) {
+			outf
+				<< pRefNode->GetLabel()
+				<< " ";
+		}
+		outf
+			<< xRef
+			<< " ";
+		switch (uRot) {
+		case MBC_ROT_MAT:
+			outf << RRef;
+			break;
+
+		case MBC_ROT_THETA:
+			outf << RotManip::VecRot(RRef);
+			break;
+
+		case MBC_ROT_EULER_123:
+			outf << MatR2EulerAngles123(RRef)*dRaDegr;
+			break;
+		}
+		outf
+			<< " " << vRef
+			<< " " << wRef;
+		if (bOutputAccelerations) {
+			outf
+				<< " " << xppRef
+				<< " " << wpRef;
+		}
+		outf << std::endl;
+
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
 			Vec3 x(Nodes[i]->GetXCurr() + f);
@@ -308,8 +433,13 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 			// manipulate
 
-			outf << Nodes[i]->GetLabel()
-				<< " " << RRef.MulTV(Dx)
+			if (!bNoLabels) {
+				outf
+					<< Nodes[i]->GetLabel()
+					<< " ";
+			}
+			outf
+				<< RRef.MulTV(Dx)
 				<< " ";
 			switch (uRot) {
 			case MBC_ROT_MAT:
@@ -327,7 +457,6 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			outf
 				<< " " << RRef.MulTV(Dv)
 				<< " " << RRef.MulTV(w - wRef);
-
 			if (bOutputAccelerations) {
 				const Vec3& xpp(Nodes[i]->GetXPPCurr());
 				const Vec3& wp(Nodes[i]->GetWPCurr());
@@ -337,7 +466,6 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 							- wRef.Cross(wRef.Cross(Dx) + Dv*2))
 					<< " " << RRef.MulTV(wp - wpRef - wRef.Cross(w));
 			}
-
 			outf << std::endl;
 		}
 
@@ -360,8 +488,13 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			Vec3 wCrossf = w.Cross(f);
 			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
 
-			outf << Nodes[i]->GetLabel()
-				<< " " << x
+			if (!bNoLabels) {
+				outf
+					<< Nodes[i]->GetLabel()
+					<< " ";
+			}
+			outf
+				<< x
 				<< " ";
 			switch (uRot) {
 			case MBC_ROT_MAT:
@@ -406,9 +539,19 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			uint32_t l = Nodes[i]->GetLabel();
+		if (!bNoLabels) {
+			uint32_t l = pRefNode->GetLabel();
+			send(outfd, (void *)&l, sizeof(l), 0);
+		}
 
+		// FIXME: customize rotations?
+		send(outfd, (void *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
+		send(outfd, (void *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
+		send(outfd, (void *)vRef.pGetVec(), 3*sizeof(doublereal), 0);
+		send(outfd, (void *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+		// FIXME: accelerations?
+
+		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
 			Vec3 x(Nodes[i]->GetXCurr() + f);
 			Vec3 Dx(x - xRef);
@@ -418,42 +561,45 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
-			send(outfd, (void *)&l, sizeof(l), 0);
+			if (!bNoLabels) {
+				uint32_t l = Nodes[i]->GetLabel();
+				iobuf_labels[i] = l;
+			}
 
 			Vec3 xTilde(RRef.MulTV(Dx));
-			send(outfd, (void *)xTilde.pGetVec(), 3*sizeof(doublereal), 0);
+			memcpy(&iobuf_x[3*i], xTilde.pGetVec(), 3*sizeof(doublereal));
 
 			switch (uRot) {
 			case MBC_ROT_MAT:
-				send(outfd, (void *)DR.pGetMat(), 9*sizeof(doublereal), 0);
+				memcpy(&iobuf_R[9*i], DR.pGetMat(), 9*sizeof(doublereal));
 				break;
 
 			case MBC_ROT_THETA: {
 				Vec3 Theta(RotManip::VecRot(DR));
-				send(outfd, (void *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_theta[3*i], Theta.pGetVec(), 3*sizeof(doublereal));
 				} break;
 
 			case MBC_ROT_EULER_123: {
 				Vec3 E(MatR2EulerAngles123(DR)*dRaDegr);
-				send(outfd, (void *)E.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_euler_123[3*i], E.pGetVec(), 3*sizeof(doublereal));
 				} break;
 			}
 
 			Vec3 vTilde(RRef.MulTV(Dv));
-			send(outfd, (void *)vTilde.pGetVec(), 3*sizeof(doublereal), 0);
+			memcpy(&iobuf_xp[3*i], vTilde.pGetVec(), 3*sizeof(doublereal));
 
 			Vec3 wTilde(RRef.MulTV(w - wRef));
-			send(outfd, (void *)wTilde.pGetVec(), 3*sizeof(doublereal), 0);
+			memcpy(&iobuf_omega[3*i], wTilde.pGetVec(), 3*sizeof(doublereal));
 
 			if (bOutputAccelerations) {
 				const Vec3& xpp = Nodes[i]->GetXPPCurr();
 				Vec3 xppTilde(RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
 					- wRef.Cross(wRef.Cross(Dx) + Dv*2)));
-				send(outfd, (void *)xppTilde.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_xpp[3*i], xppTilde.pGetVec(), 3*sizeof(doublereal));
 
 				const Vec3& wp = Nodes[i]->GetWPCurr();
 				Vec3 wpTilde(RRef.MulTV(wp) - wpRef - wRef.Cross(w));
-				send(outfd, (void *)wpTilde.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_omegap[3*i], wpTilde.pGetVec(), 3*sizeof(doublereal));
 			}
 		}
 
@@ -468,7 +614,6 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 				wp = wp
 			 */
 
-			uint32_t l = Nodes[i]->GetLabel();
 			// Optimization of the above formulas
 			const Mat3x3& R = Nodes[i]->GetRCurr();
 			Vec3 f = R*Offsets[i];
@@ -477,35 +622,40 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			Vec3 wCrossf = w.Cross(f);
 			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
 
-			send(outfd, (void *)&l, sizeof(l), 0);
-			send(outfd, (void *)x.pGetVec(), 3*sizeof(doublereal), 0);
+			if (!bNoLabels) {
+				uint32_t l = Nodes[i]->GetLabel();
+				iobuf_labels[i] = l;
+			}
+			memcpy(&iobuf_x[3*i], x.pGetVec(), 3*sizeof(doublereal));
 			switch (uRot) {
 			case MBC_ROT_MAT:
-				send(outfd, (void *)R.pGetMat(), 9*sizeof(doublereal), 0);
+				memcpy(&iobuf_R[9*i], R.pGetMat(), 9*sizeof(doublereal));
 				break;
 
 			case MBC_ROT_THETA: {
 				Vec3 Theta(RotManip::VecRot(R));
-				send(outfd, (void *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_theta[3*i], Theta.pGetVec(), 3*sizeof(doublereal));
 				} break;
 
 			case MBC_ROT_EULER_123: {
 				Vec3 E(MatR2EulerAngles123(R)*dRaDegr);
-				send(outfd, (void *)E.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_euler_123[3*i], E.pGetVec(), 3*sizeof(doublereal));
 				} break;
 			}
-			send(outfd, (void *)v.pGetVec(), 3*sizeof(doublereal), 0);
-			send(outfd, (void *)w.pGetVec(), 3*sizeof(doublereal), 0);
+			memcpy(&iobuf_xp[3*i], v.pGetVec(), 3*sizeof(doublereal));
+			memcpy(&iobuf_omega[3*i], w.pGetVec(), 3*sizeof(doublereal));
 
 			if (bOutputAccelerations) {
 				const Vec3& wp = Nodes[i]->GetWPCurr();
-				Vec3 a = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
+				Vec3 xpp = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
-				send(outfd, (void *)a.pGetVec(), 3*sizeof(doublereal), 0);
-				send(outfd, (void *)wp.pGetVec(), 3*sizeof(doublereal), 0);
+				memcpy(&iobuf_xpp[3*i], xpp.pGetVec(), 3*sizeof(doublereal));
+				memcpy(&iobuf_omegap[3*i], wp.pGetVec(), 3*sizeof(doublereal));
 			}
 		}
 	}
+
+	send(outfd, &iobuf[0], iobuf.size(), 0);
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif // ! USE_SOCKET
@@ -641,101 +791,106 @@ StructExtForce::RecvFromFileDes(int infd)
 #ifdef USE_SOCKET
 	if (pRefNode) {
 		unsigned l;
+		size_t ulen;
 		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
 		doublereal *f;
 		ssize_t len;
 
-		len = recv(infd, (void *)buf, sizeof(buf), 0);
-		if (len != sizeof(buf)) {
+		if (!bNoLabels) {
+			ulen = sizeof(buf);
+
+		} else {
+			ulen = 6*sizeof(doublereal);
+		}
+
+		len = recv(infd, (void *)buf, ulen, 0);
+		if (len == -1) {
 			int save_errno = errno;
 			char *err_msg = strerror(save_errno);
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"recv() failed (" << save_errno << ": "
 				<< err_msg << ")" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		} else if (unsigned(len) != ulen) {
+			silent_cerr("StructExtForce(" << GetLabel() << "): "
+				"recv() failed " "(got " << len << " of "
+				<< ulen << " bytes)" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		uint32_t *uint32_ptr = (uint32_t *)buf;
-		l = uint32_ptr[0];
-		f = (doublereal *)uint32_ptr[1];
+		if (!bNoLabels) {
+			uint32_t *uint32_ptr = (uint32_t *)buf;
+			l = uint32_ptr[0];
+			f = (doublereal *)uint32_ptr[1];
+
+		} else {
+			f = (doublereal *)buf;
+		}
+
 		F0 = Vec3(&f[0]);
 		M0 = Vec3(&f[3]);
 	}
 
-	if (bUnsorted) {
-		done.resize(Nodes.size());
+	ssize_t len = recv(infd, (void *)&iobuf[0], dynamics_size, 0);
+	if (len == -1) {
+		int save_errno = errno;
+		char *err_msg = strerror(save_errno);
+		silent_cerr("StructExtForce(" << GetLabel() << "): "
+			"recv() failed (" << save_errno << ": "
+			<< err_msg << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			done[i] = false;
+	} else if (unsigned(len) != dynamics_size) {
+		silent_cerr("StructExtForce(" << GetLabel() << "): "
+			"recv() failed " "(got " << len << " of "
+			<< dynamics_size << " bytes)" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (bUnsorted) {
+		if (!bNoLabels) {
+			done.resize(Nodes.size());
+
+			fill(done.begin(), done.end(), false);
 		}
 
 		unsigned cnt;
 		for (cnt = 0; cnt < Nodes.size(); cnt++) {
-			/* assume unsigned int label */
-			unsigned l, i;
-			doublereal f[6];
-			ssize_t len;
-
-			len = recv(infd, (void *)&l, sizeof(l), 0);
-			if (len != sizeof(l)) {
-				int save_errno = errno;
-				char *err_msg = strerror(save_errno);
-				silent_cerr("StructExtForce(" << GetLabel() << "): "
-					"recv() failed (" << save_errno << ": "
-					<< err_msg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			len = recv(infd, (void *)f, sizeof(f), MSG_DONTWAIT);
-			if (len == -1) {
-				int save_errno = errno;
-				if (errno == EAGAIN) {
-					// would block
-					break;
+			unsigned i = cnt;
+			if (!bNoLabels) {
+				unsigned l = iobuf_labels[cnt];
+				std::vector<StructNode *>::const_iterator n;
+				for (n = Nodes.begin(); n != Nodes.end(); n++) {
+					if ((*n)->GetLabel() == l) {
+						break;
+					}
 				}
 
-				char *err_msg = strerror(save_errno);
-				silent_cerr("StructExtForce(" << GetLabel() << "): "
-					"recv() failed (" << save_errno << ": "
-					<< err_msg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			} else if (len != sizeof(f)) {
-				int save_errno = errno;
-				char *err_msg = strerror(save_errno);
-				silent_cerr("StructExtForce(" << GetLabel() << "): "
-					"recv() failed (" << save_errno << ": "
-					<< err_msg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			for (i = 0; i < Nodes.size(); i++) {
-				if (Nodes[i]->GetLabel() == l) {
-					break;
+				if (n == Nodes.end()) {
+					silent_cerr("StructExtForce"
+						"(" << GetLabel() << "): "
+						"unknown label " << l
+						<< " as " << cnt << "-th node"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+
+				i = n - Nodes.begin();
+
+				if (done[i]) {
+					silent_cerr("StructExtForce"
+						"(" << GetLabel() << "): "
+						"label " << l << " already done"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				done[i] = true;
 			}
 
-			if (i == Nodes.size()) {
-				silent_cerr("StructExtForce"
-					"(" << GetLabel() << "): "
-					"unknown label " << l
-					<< " as " << cnt << "-th node"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (done[i]) {
-				silent_cerr("StructExtForce"
-					"(" << GetLabel() << "): "
-					"label " << l << " already done"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			done[i] = true;
-
-			F[i] = Vec3(&f[0]);
-			M[i] = Vec3(&f[3]);
+			F[i] = &iobuf_f[3*i];
+			M[i] = &iobuf_m[3*i];
 		}
 
 		if (cnt != Nodes.size()) {
@@ -758,22 +913,8 @@ StructExtForce::RecvFromFileDes(int infd)
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			/* assume unsigned int label */
-			unsigned l;
-			doublereal f[6];
-			ssize_t len;
-
 			if (!bNoLabels) {
-				len = recv(infd, (void *)&l, sizeof(l), 0);
-				if (len != sizeof(l)) {
-					int save_errno = errno;
-					char *err_msg = strerror(save_errno);
-					silent_cerr("StructExtForce(" << GetLabel() << "): "
-						"recv() failed (" << save_errno << ": "
-						<< err_msg << ")" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
+				unsigned l = iobuf_labels[i];
 				if (Nodes[i]->GetLabel() != l) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
@@ -783,39 +924,8 @@ StructExtForce::RecvFromFileDes(int infd)
 				}
 			}
 
-			len = recv(infd, (void *)f, sizeof(f), MSG_DONTWAIT);
-			if (len == -1) {
-				int save_errno = errno;
-				if (errno == EAGAIN) {
-					// would block
-					break;
-				}
-
-				char *err_msg = strerror(save_errno);
-				silent_cerr("StructExtForce(" << GetLabel() << "): "
-					"recv() failed (" << save_errno << ": "
-					<< err_msg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			} else if (len != sizeof(f)) {
-				int save_errno = errno;
-				char *err_msg = strerror(save_errno);
-				silent_cerr("StructExtForce(" << GetLabel() << "): "
-					"recv() failed (" << save_errno << ": "
-					<< err_msg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (Nodes[i]->GetLabel() != l) {
-				silent_cerr("StructExtForce"
-					"(" << GetLabel() << "): "
-					"invalid " << i << "-th label " << l
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			F[i] = Vec3(&f[0]);
-			M[i] = Vec3(&f[3]);
+			F[i] = Vec3(&iobuf_f[3*i]);
+			M[i] = Vec3(&iobuf_m[3*i]);
 		}
 	}
 #else // ! USE_SOCKET

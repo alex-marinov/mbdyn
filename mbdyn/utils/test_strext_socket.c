@@ -259,7 +259,7 @@ main(int argc, char *argv[])
 					usage();
 				}
 
-				if (i < mbc->nodes - 1) {
+				if (i < 6*mbc->nodes - 1) {
 					if (next[0] != ',') {
 						fprintf(stderr, "test_strext_socket: "
 							"unable to parse %c%d%c\n",
@@ -339,10 +339,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (accelerations) {
-		rot |= MBC_ACCELS;
-	}
-	if (mbc_nodal_init(mbc, mbc->nodes, rot)) {
+	if (mbc_nodal_init(mbc, mbc->rigid, mbc->nodes, rot, accelerations)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -386,22 +383,42 @@ main(int argc, char *argv[])
 
 			if (mbc->nodes > 0 && mbc->mbc.verbose) {
 				double *n_x = MBC_N_X(mbc);
-				double *n_theta = MBC_N_THETA(mbc);
+				double *n_r;
 				double *n_xp = MBC_N_XP(mbc);
 				double *n_omega = MBC_N_OMEGA(mbc);
 				int n;
 
 				for (n = 0; n < mbc->nodes; n++) {
-					fprintf(stdout, "node #%d:\n"
-							"    x=     %+16.8e %+16.8e %+16.8e\n"
-							"    theta= %+16.8e %+16.8e %+16.8e\n"
-							"    xp=    %+16.8e %+16.8e %+16.8e\n"
-							"    omega= %+16.8e %+16.8e %+16.8e\n",
-							n,
-							n_x[3*n], n_x[3*n + 1], n_x[3*n + 2],
-							n_theta[3*n], n_theta[3*n + 1], n_theta[3*n + 2],
-							n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2],
-							n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
+					fprintf(stdout, "node #%d:\n", n);
+					fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
+						n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
+					switch (mbc->flags & MBC_ROT_MASK) {
+					case MBC_ROT_MAT:
+						n_r =  MBC_N_R(mbc);
+						fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
+								"           %+16.8e %+16.8e %+16.8e\n"
+								"           %+16.8e %+16.8e %+16.8e\n",
+							n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
+							n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
+							n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
+						break;
+
+					case MBC_ROT_THETA:
+						n_r =  MBC_N_THETA(mbc);
+						fprintf(stdout, "    theta= %+16.8e %+16.8e %+16.8e\n",
+							n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+						break;
+
+					case MBC_ROT_EULER_123:
+						n_r =  MBC_N_EULER_123(mbc);
+						fprintf(stdout, " euler123= %+16.8e %+16.8e %+16.8e\n",
+							n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+						break;
+					}
+					fprintf(stdout, "    xp=    %+16.8e %+16.8e %+16.8e\n",
+						n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2]);
+					fprintf(stdout, "    omega= %+16.8e %+16.8e %+16.8e\n",
+						n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
 				}
 			}
 

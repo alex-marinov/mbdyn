@@ -164,7 +164,7 @@ typedef struct {
 #define MBC_N_X(mbc)			((mbc)->n_x)
 #define MBC_N_THETA(mbc)		((mbc)->n_theta)
 #define MBC_N_R(mbc)			((mbc)->n_r)
-#define MBC_N_EULER123(mbc)		((mbc)->n_euler123)
+#define MBC_N_EULER_123(mbc)		((mbc)->n_euler_123)
 #define MBC_N_XP(mbc)			((mbc)->n_xp)
 #define MBC_N_OMEGA(mbc)		((mbc)->n_omega)
 #define MBC_N_XPP(mbc)			((mbc)->n_xpp)
@@ -182,14 +182,19 @@ typedef struct {
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least rigid body motion must be defined (rigid != 0),
  * or nodes must be > 0
  *
  * if nodes > 0, mallocs memory that needs to be freed calling
  * mbc_nodal_destroy()
+ *
+ * rot must be one of MBC_ROT_*
+ *
+ * if accelerations != 0 accelerations are also output
  */
 extern int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags);
+mbc_nodal_init(mbc_nodal_t *mbc,
+	unsigned rigid, unsigned nodes, unsigned rot, unsigned accels);
 
 /* destroy nodal data
  *

@@ -43,9 +43,9 @@
 class StructExtForce : virtual public Elem, public ExtForce {
 protected:
 	StructNode *pRefNode;
-	Vec3 F0, M0;
 	bool bUseReferenceNodeForces;
 	bool bRotateReferenceNodeForces;
+	Vec3 F0, M0;
 
 	std::vector<StructNode *> Nodes;
 	std::vector<Vec3> Offsets, F, M;
@@ -56,6 +56,22 @@ protected:
 
 	bool bOutputAccelerations;
 	unsigned uRot;
+
+	// buffer for filedes I/O
+	unsigned node_kinematics_size;
+	unsigned dynamics_size;
+	std::vector<char> iobuf;
+	uint32_t *iobuf_labels;
+	doublereal *iobuf_x;
+	doublereal *iobuf_R;
+	doublereal *iobuf_theta;
+	doublereal *iobuf_euler_123;
+	doublereal *iobuf_xp;
+	doublereal *iobuf_omega;
+	doublereal *iobuf_xpp;
+	doublereal *iobuf_omegap;
+	doublereal *iobuf_f;
+	doublereal *iobuf_m;
 
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);

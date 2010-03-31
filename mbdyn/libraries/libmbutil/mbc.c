@@ -71,7 +71,7 @@ mbc_check_cmd(mbc_t *mbc)
 		return 0;
 	}
 
-	fprintf(stderr, "unknown cmd from peer\n");
+	fprintf(stderr, "unknown cmd (%u) from peer\n", mbc->cmd);
 	return -1;
 }
 
@@ -351,41 +351,51 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least rigid body motion must be defined (rigid != 0),
  * or nodes must be > 0
  *
  * if nodes > 0, mallocs memory that needs to be freed calling
  * mbc_nodal_destroy()
+ *
+ * rot must be one of MBC_ROT_*
+ *
+ * if accelerations != 0 accelerations are also output
  */
 int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags)
+mbc_nodal_init(mbc_nodal_t *mbc,
+	unsigned rigid, unsigned nodes, unsigned rot, unsigned accels)
 {
-	if (!mbc->rigid && nodes == 0) {
+	mbc->nodes = nodes;
+	mbc->flags = MBC_NODAL;
+
+	if (rigid) {
+		mbc->rigid = 1;
+		mbc->flags |= MBC_REF_NODE;
+
+	} else {
+		mbc->rigid = 0;
+	}
+
+	if (!mbc->rigid && mbc->nodes == 0) {
 		fprintf(stderr, "need at least 1 node or rigid body data\n");
 		return -1;
 	}
 
-	mbc->nodes = nodes;
-	mbc->flags = flags;
-
 	if (mbc->nodes > 0) {
-		unsigned rot = (mbc->flags & MBC_ROT_MASK);
 		double *ptr;
 
-		if (rot == 0) {
-			fprintf(stderr, "need orientation parametrization in flags\n");
-			return -1;
-		}
 
 		mbc->k_size = (3 + 3 + 3); /* x, xp, omega */
 
 		switch (rot) {
 		case MBC_ROT_MAT:
+			mbc->flags |= rot;
 			mbc->k_size += 9;
 			break;
 
 		case MBC_ROT_THETA:
 		case MBC_ROT_EULER_123:
+			mbc->flags |= rot;
 			mbc->k_size += 3;
 			break;
 
@@ -394,11 +404,12 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags)
 			return -1;
 		}
 
-		if (mbc->flags & MBC_ACCELS) {
+		if (accels) {
+			mbc->flags |= MBC_ACCELS;
 			mbc->k_size += 6;
 		}
 
-		mbc->k_size *= mbc->nodes;
+		mbc->k_size *= mbc->nodes*sizeof(double);
 
 		mbc->n_x = NULL;
 		mbc->n_theta = NULL;
@@ -412,7 +423,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned nodes, unsigned flags)
 		mbc->n_m = NULL;
 
 		ptr = (double *)malloc(MBC_N_SIZE(mbc));
-		if (mbc->n_x == NULL) {
+		if (ptr == NULL) {
 			fprintf(stderr, "nodal data malloc failed\n");
 			return -1;
 		}
@@ -493,7 +504,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	mbc_put_cmd((mbc_t *)mbc);
 
 	uint8_ptr = (uint8_t *)&buf[0];
-	uint8_ptr[0] = (uint8_t)MBC_NODAL;
+	uint8_ptr[0] = (uint8_t)MBC_NODAL | mbc->flags;
 	if (mbc->rigid) {
 		uint8_ptr[0] |= MBC_REF_NODE;
 	}
