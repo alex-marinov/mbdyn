@@ -1998,8 +1998,12 @@ Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external structural
     <force_arglist> ::= <external_force_communicator> ,
-        [ , unsorted ]
-        [ , accelerations ]
+        [ reference node , <ref_label> , ]
+        [ labels , { yes | no } , ]
+            [ sorted , { yes | no } ]
+        [ orientation ,
+            { orientation matrix | orientation vector | euler 123 } , ]
+        [ accelerations , { yes | no } ]
         <num_nodes> ,
             <node_label> [ , offset , (Vec3) <offset> ]
             [ , ... ]
@@ -2009,26 +2013,37 @@ Communication occurs by means of the communicators illustrated earlier.
 The forces are read from the input file in textual form,
 each line formatted as follows:
 \begin{itemize}
-\item a label;
+\item a label (if \kw{labels} is set to \kw{yes});
 \item three components of force in the global frame;
-\item three components of moment in the global frame, referred to the node as the pole.
+\item three components of moment in the global frame,
+	referred to the node as the pole.
 \end{itemize}
 The label indicates what node the force and the moment apply to; 
 each force is applied in a point that may be optionally offset 
 from the corresponding node location according to \kw{offset}.
-The optional keyword \kw{unsorted} tells the forces might be
+If optional keyword \kw{sorted} is set to \kw{no}, the forces might be
 read in arbitrary order, so they need to be recognized by the label.
+The option \kw{sorted} is only meaningful when \kw{labels} is set to \kw{yes}.
 
 The output file is written in textual form, each line formatted as follows:
 \begin{itemize}
-\item a label;
+\item a label (if \kw{labels} is set to \kw{yes});
 \item the position in the global frame;
-\item the orientation matrix in the global frame, row-oriented:
-$R_{11}$, $R_{12}$, $R_{13}$, $R_{21}$, \ldots, $R_{32}$, $R_{33}$;
+\item the orientation of the node with respect to the global frame:
+\begin{itemize}
+	\item if \kw{orientation} is set to \kw{orientation matrix},
+	the orientation matrix in the global frame, row-oriented:
+	$R_{11}$, $R_{12}$, $R_{13}$, $R_{21}$, \ldots, $R_{32}$, $R_{33}$;
+	\item if \kw{orientation} is set to \kw{orientation vector},
+	the orientation vector's components;
+	\item if \kw{orientation} is set to \kw{euler 123},
+	the three Euler anlgles, in degrees, according to the 1,2,3
+	convention;
+\end{itemize}
 \item the velocity with respect to the global frame;
 \item the angular velocity with respect to the global frame.
 \end{itemize}
-If the optional keyword \kw{accelerations} is present,
+If the optional keyword \kw{accelerations} is set to \kw{yes},
 at the end of each line the following optional fields will appear:
 \begin{itemize}
 \item the acceleration with respect to the global frame;
@@ -2037,6 +2052,12 @@ at the end of each line the following optional fields will appear:
 The label indicates what node the kinematics is related to;
 the position and the velocity refer to a point that may be optionally
 offset from the node location according to \kw{offset}.
+
+If a \kw{reference node} was given, the first record is related
+to the reference node itself.
+The following records contain forces and moments in the reference frame
+of the reference node.
+
 
 \subsubsection{EDGE communicator}
 TBD

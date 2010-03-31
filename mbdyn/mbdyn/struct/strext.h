@@ -50,12 +50,12 @@ protected:
 	std::vector<StructNode *> Nodes;
 	std::vector<Vec3> Offsets, F, M;
 
-	bool bUnsorted;
-	bool bNoLabels;
+	bool bLabels;
+	bool bSorted;
 	std::vector<bool> done;
 
-	bool bOutputAccelerations;
 	unsigned uRot;
+	bool bOutputAccelerations;
 
 	// buffer for filedes I/O
 	unsigned node_kinematics_size;
@@ -91,8 +91,8 @@ public:
 		bool bRotateReferenceNodeForces,
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
-		bool bUnsorted,
-		bool bNoLabels,
+		bool bSorted,
+		bool bLabels,
 		bool bOutputAccelerations,
 		unsigned bRot,
 		ExtFileHandlerBase *pEFH,

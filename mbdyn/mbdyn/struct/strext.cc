@@ -50,8 +50,8 @@ StructExtForce::StructExtForce(unsigned int uL,
 	bool bRotateReferenceNodeForces,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
-	bool bUnsorted,
-	bool bNoLabels,
+	bool bSorted,
+	bool bLabels,
 	bool bOutputAccelerations,
 	unsigned uRot,
 	ExtFileHandlerBase *pEFH,
@@ -64,10 +64,10 @@ pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 F0(0.), M0(0.),
-bUnsorted(bUnsorted),
-bNoLabels(bNoLabels),
-bOutputAccelerations(bOutputAccelerations),
+bLabels(bLabels),
+bSorted(bSorted),
 uRot(uRot),
+bOutputAccelerations(bOutputAccelerations),
 iobuf_labels(0),
 iobuf_x(0),
 iobuf_R(0),
@@ -106,8 +106,8 @@ iobuf_m(0)
 		M[i] = Zero3;
 	}
 
-	ASSERT(!(bNoLabels && bUnsorted));
-	if (bUnsorted) {
+	ASSERT(!(!bLabels && !bSorted));
+	if (!bSorted) {
 		done.resize(nodes.size());
 	}
 
@@ -152,7 +152,7 @@ iobuf_m(0)
 		node_kinematics_size *= sizeof(doublereal);
 		dynamics_size = (3 + 3)*sizeof(doublereal);
 
-		if (!bNoLabels) {
+		if (bLabels) {
 			node_kinematics_size += sizeof(uint32_t);
 			dynamics_size += sizeof(uint32_t);
 		}
@@ -161,7 +161,7 @@ iobuf_m(0)
 		dynamics_size *= Nodes.size();
 
 		char *ptr = &iobuf[0];
-		if (!bNoLabels) {
+		if (bLabels) {
 			iobuf_labels = (uint32_t *)ptr;
 			ptr += sizeof(uint32_t)*Nodes.size();
 		}
@@ -239,7 +239,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 				uint32_ptr[0] |= MBC_REF_NODE;
 			}
 
-			if (!bNoLabels) {
+			if (bLabels) {
 				uint32_ptr[0] |= MBC_LABELS;
 			}
 
@@ -277,8 +277,8 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		unsigned uNodal;
 		bool bRef;
 		unsigned uR;
-		bool bAccel;
-		bool bLabel;
+		bool bA;
+		bool bL;
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
@@ -312,8 +312,8 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			uNodal = (uint32_ptr[0] & MBC_MODAL_NODAL_MASK);
 			bRef = (uint32_ptr[0] & MBC_REF_NODE);
 			uR = (uint32_ptr[0] & MBC_ROT_MASK);
-			bLabel = (uint32_ptr[0] & MBC_LABELS);
-			bAccel = (uint32_ptr[0] & MBC_ACCELS);
+			bL = (uint32_ptr[0] & MBC_LABELS);
+			bA = (uint32_ptr[0] & MBC_ACCELS);
 
 			uN = uint32_ptr[1];
 #endif // USE_SOCKET
@@ -343,18 +343,18 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			bResult = false;
 		}
 
-		if (bLabel != !bNoLabels) {
+		if (bL != bLabels) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: labels output mismatch "
-				"(local=" << (!bNoLabels ? "yes" : "no") << ", remote=" << (bLabel ? "yes" : "no") << ")"
+				"(local=" << (bLabels ? "yes" : "no") << ", remote=" << (bL ? "yes" : "no") << ")"
 				<< std::endl);
 			bResult = false;
 		}
 
-		if (bAccel != bOutputAccelerations) {
+		if (bA != bOutputAccelerations) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: acceleration output mismatch "
-				"(local=" << (bOutputAccelerations ? "yes" : "no") << ", remote=" << (bAccel ? "yes" : "no") << ")"
+				"(local=" << (bOutputAccelerations ? "yes" : "no") << ", remote=" << (bA ? "yes" : "no") << ")"
 				<< std::endl);
 			bResult = false;
 		}
@@ -401,7 +401,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
-		if (!bNoLabels) {
+		if (bLabels) {
 			outf
 				<< pRefNode->GetLabel()
 				<< " ";
@@ -443,7 +443,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 			// manipulate
 
-			if (!bNoLabels) {
+			if (bLabels) {
 				outf
 					<< Nodes[i]->GetLabel()
 					<< " ";
@@ -498,7 +498,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			Vec3 wCrossf = w.Cross(f);
 			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
 
-			if (!bNoLabels) {
+			if (bLabels) {
 				outf
 					<< Nodes[i]->GetLabel()
 					<< " ";
@@ -549,7 +549,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
-		if (!bNoLabels) {
+		if (bLabels) {
 			uint32_t l = pRefNode->GetLabel();
 			send(outfd, (void *)&l, sizeof(l), 0);
 		}
@@ -571,7 +571,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
-			if (!bNoLabels) {
+			if (bLabels) {
 				uint32_t l = Nodes[i]->GetLabel();
 				iobuf_labels[i] = l;
 			}
@@ -632,7 +632,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			Vec3 wCrossf = w.Cross(f);
 			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
 
-			if (!bNoLabels) {
+			if (bLabels) {
 				uint32_t l = Nodes[i]->GetLabel();
 				iobuf_labels[i] = l;
 			}
@@ -695,7 +695,7 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			>> m[0] >> m[1] >> m[2];
 	}
 
-	if (bUnsorted) {
+	if (!bSorted) {
 		done.resize(Nodes.size());
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -769,7 +769,7 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			unsigned l;
 			doublereal f[3], m[3];
 
-			if (!bNoLabels) {
+			if (bLabels) {
 				inf >> l;
 
 				if (Nodes[i]->GetLabel() != l) {
@@ -806,7 +806,7 @@ StructExtForce::RecvFromFileDes(int infd)
 		doublereal *f;
 		ssize_t len;
 
-		if (!bNoLabels) {
+		if (bLabels) {
 			ulen = sizeof(buf);
 
 		} else {
@@ -829,7 +829,7 @@ StructExtForce::RecvFromFileDes(int infd)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bNoLabels) {
+		if (bLabels) {
 			uint32_t *uint32_ptr = (uint32_t *)buf;
 			l = uint32_ptr[0];
 			f = (doublereal *)uint32_ptr[1];
@@ -858,8 +858,8 @@ StructExtForce::RecvFromFileDes(int infd)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (bUnsorted) {
-		if (!bNoLabels) {
+	if (!bSorted) {
+		if (bLabels) {
 			done.resize(Nodes.size());
 
 			fill(done.begin(), done.end(), false);
@@ -868,7 +868,7 @@ StructExtForce::RecvFromFileDes(int infd)
 		unsigned cnt;
 		for (cnt = 0; cnt < Nodes.size(); cnt++) {
 			unsigned i = cnt;
-			if (!bNoLabels) {
+			if (bLabels) {
 				unsigned l = iobuf_labels[cnt];
 				std::vector<StructNode *>::const_iterator n;
 				for (n = Nodes.begin(); n != Nodes.end(); n++) {
@@ -923,7 +923,7 @@ StructExtForce::RecvFromFileDes(int infd)
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			if (!bNoLabels) {
+			if (bLabels) {
 				unsigned l = iobuf_labels[i];
 				if (Nodes[i]->GetLabel() != l) {
 					silent_cerr("StructExtForce"
@@ -1054,49 +1054,68 @@ ReadStructExtForce(DataManager* pDM,
 		}
 	}
 
-	bool bUnsorted(false);
-	bool bNoLabels(false);
+	bool bSorted(false);
+	bool bLabels(false);
 	unsigned uRot = MBC_ROT_MAT;
 	bool bOutputAccelerations(false);
 
-	bool bGotUnsorted(false);
-	bool bGotNoLabels(false);
+	bool bGotSorted(false);
+	bool bGotLabels(false);
 	bool bGotRot(false);
 	bool bGotAccels(false);
 
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("unsorted")) {
-			if (bGotUnsorted) {
+			silent_cerr("StructExtForce(" << uLabel << "): "
+				"use of \"unsorted\" deprecated in favor of \"sorted, { yes | no }\" at line "
+				<< HP.GetLineData() << std::endl);
+
+			if (bGotSorted) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
 					"\"unsorted\" already specified at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bUnsorted = true;
-			bGotUnsorted = true;
+			bSorted = false;
+			bGotSorted = true;
 
-		} else if (HP.IsKeyWord("unsorted")) {
-			if (bGotUnsorted) {
+		} else if (HP.IsKeyWord("sorted")) {
+			if (bGotSorted) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
-					"\"unsorted\" already specified at line "
+					"\"sorted\" already specified at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bUnsorted = true;
-			bGotUnsorted = true;
+			bSorted = HP.GetYesNo(bSorted);
+			bGotSorted = true;
 
 		} else if (HP.IsKeyWord("no" "labels")) {
-			if (bGotNoLabels) {
+			silent_cerr("StructExtForce(" << uLabel << "): "
+				"use of \"no labels\" deprecated in favor of \"labels, { yes | no }\" at line "
+				<< HP.GetLineData() << std::endl);
+
+			if (bGotLabels) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
 					"\"no labels\" already specified at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bNoLabels = true;
-			bGotNoLabels = true;
+			bLabels = false;
+			bGotLabels = true;
+
+		} else if (HP.IsKeyWord("labels")) {
+			if (bGotLabels) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"labels\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bLabels = HP.GetYesNo(bLabels);
+			bGotLabels = true;
 
 		} else if (HP.IsKeyWord("orientation")) {
 			if (bGotRot) {
@@ -1125,14 +1144,14 @@ ReadStructExtForce(DataManager* pDM,
 			bGotRot = true;	
 
 		} else if (HP.IsKeyWord("accelerations")) {
-			if (bGotNoLabels) {
+			if (bGotAccels) {
 				silent_cerr("StructExtForce(" << uLabel << "): "
 					"\"accelerations\" already specified at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bOutputAccelerations = true;
+			bOutputAccelerations = HP.GetYesNo(bOutputAccelerations);
 			bGotAccels = true;
 
 		} else {
@@ -1178,7 +1197,7 @@ ReadStructExtForce(DataManager* pDM,
 		StructExtForce(uLabel, pDM, pRefNode,
 			bUseReferenceNodeForces, bRotateReferenceNodeForces,
 			Nodes, Offsets,
-			bUnsorted, bNoLabels, bOutputAccelerations, uRot,
+			bSorted, bLabels, bOutputAccelerations, uRot,
 			pEFH, bSendAfterPredict, iCoupling, fOut));
 
 	return pEl;
