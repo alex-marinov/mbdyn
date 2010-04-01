@@ -11,7 +11,7 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include <matrix.h>
+#include "matrix.h"
 
 /* codici errore */
 typedef enum {

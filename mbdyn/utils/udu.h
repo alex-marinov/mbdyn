@@ -12,7 +12,7 @@ extern "C" {
 #endif /* __cplusplus */
 
 #include <math.h>
-#include <matrix.h>
+#include "matrix.h"
 
 typedef double REAL;
 
