@@ -342,6 +342,7 @@ main(int argc, char *argv[])
 		}
 		/* aggiorno i vettori con U(K-1) e Ym(K)*/
 		GPC_VectorUpdate2( &GPC_m, &y_k, &u_k);
+		vector_null(&u_CON_k);
 		if (  ((iStepCONCounter >= GPCdata.ControlON1) && (iStepCONCounter <= GPCdata.ControlOFF1)) ||
 					((iStepCONCounter >= GPCdata.ControlON2) && (iStepCONCounter <= GPCdata.ControlOFF2)) ||
 					((iStepCONCounter >= GPCdata.ControlON3) && (iStepCONCounter <= GPCdata.ControlOFF3)) ||

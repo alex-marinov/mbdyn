@@ -70,6 +70,7 @@ main(int argc, const char* const argv[])
 	}
 	
 #ifdef USE_TABLE
+	//Table t(1);
 	Table t(true);
 #endif /* USE_TABLE */
 
