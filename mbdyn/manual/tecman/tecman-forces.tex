@@ -1,0 +1,52 @@
+\section{Abstract Force}
+
+\section{Structural Forces}
+
+\subsection{Force}
+
+\subsubsection{Absolute}
+
+\subsubsection{Follower}
+
+\subsubsection{Absolute Internal}
+
+\subsubsection{Follower Internal}
+
+\subsection{Couple}
+
+\subsubsection{Absolute}
+
+\subsubsection{Follower}
+
+\subsubsection{Absolute Internal}
+
+\subsubsection{Follower Internal}
+
+\section{Modal}
+
+\section{External}
+
+\subsection{External Structural}
+
+\subsection{External Modal}
+
+\subsection{External Modal Mapping}
+
+\subsection{Client Library}
+
+\subsubsection{Socket-Based Protocol}
+Each communication is prefixed by a \texttt{uint8\_t} value
+that indicates the type of operation being performed.
+It is optionally followed by a message.
+Values are
+\begin{itemize}
+\item \texttt{ES\_REGULAR\_DATA}
+\item \texttt{ES\_GOTO\_NEXT\_STEP}
+\item \texttt{ES\_ABORT}
+\item \texttt{ES\_REGULAR\_DATA\_AND\_GOTO\_NEXT\_STEP}
+\item \texttt{ES\_NEGOTIATION}
+\item \texttt{ES\_OK}
+\end{itemize}
+The corresponding numerical value is defined in \texttt{mbc.h}.
+
+The negotiation step
