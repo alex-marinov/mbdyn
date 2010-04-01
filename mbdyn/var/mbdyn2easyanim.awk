@@ -51,6 +51,7 @@
 # showDeformableJoint	generates nodes at joints and offsets for def. joint
 # noShowBeam		suppresses generation of beam elements
 # noShowAero		suppresses generation of aerodynamic elements
+# every			outputs data every many time steps
 
 # multiplies a 3x3 matrix times a 3 vector, adds a second 3 vector
 # and stores result in another vector
@@ -212,6 +213,15 @@ function sideprop_add(name, color) {
 
 BEGIN {
 	isvan = 0;
+
+	if (every) {
+		if (every < 0) {
+			every = 0;
+
+		} else {
+			every--;
+		}
+	}
 
 	# Note: by default, distance, rod, beam and aero elements are output
 	# generic hinges and deformable joints can be optionally output
@@ -1030,5 +1040,11 @@ isvan == 1 {
 			printf("%e %e %e\n", X[1], X[2], X[3]) >> vanfile;
 		}
 		i = 0;
+
+		if (every) {
+			for (j = 0; j < every*strnode_num; j++) {
+				getline;
+			}
+		}
 	}
 }
