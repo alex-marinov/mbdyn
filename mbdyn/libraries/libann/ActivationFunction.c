@@ -37,8 +37,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
-#include <ActivationFunction.h>
-#include <matrix.h>
+#include "ActivationFunction.h"
+#include "matrix.h"
 
 /* ACTIVATION FUNCTION 1: hyperbolic tangent */
 

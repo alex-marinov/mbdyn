@@ -37,7 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <matrix.h>
+#include "matrix.h"
 
 /* inizializza un elemento della classe matrice */
 mat_res_t matrix_init( matrix *MAT, unsigned Nrow, unsigned Ncolumn ){
