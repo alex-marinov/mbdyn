@@ -405,6 +405,79 @@ ReadModalMappingExtForce(DataManager* pDM,
 		}
 	}
 
+	bool bUseRigidBodyForces(pRefNode != 0 ? true : false);
+	bool bRotateRigidBodyForces(true);
+	if (pRefNode != 0 && HP.IsKeyWord("use" "rigid" "body" "forces")) {
+		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
+
+		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
+			bRotateRigidBodyForces = HP.GetYesNo(bRotateRigidBodyForces);
+		}
+	}
+
+	bool bOutputAccelerations(false);
+	if (HP.IsKeyWord("accelerations")) {
+		bOutputAccelerations = true;
+	}
+
+	// safe default: both rigid and modal
+	ExtModalForceBase::BitMask bm = ExtModalForceBase::EMF_ALL;
+	if (HP.IsKeyWord("type")) {
+		if (HP.IsKeyWord("rigid")) {
+			bm = ExtModalForceBase::EMF_RIGID;
+		} else if (HP.IsKeyWord("modal")) {
+			bm = ExtModalForceBase::EMF_MODAL;
+		} else if (HP.IsKeyWord("all")) {
+			bm = ExtModalForceBase::EMF_ALL;
+		} else {
+			silent_cerr("ModalMappingExt(" << uLabel << "): unknown ModalMappingExt type "
+				" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	ExtModalForceBase *pEMF = 0;
+	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH) != 0) {
+		// EDGE needs two separate ModalMappingExt elements,
+		// one for the rigid part and one for the modal part
+
+		switch (bm & ExtModalForceBase::EMF_ALL) {
+		case ExtModalForceBase::EMF_RIGID:
+			SAFENEWWITHCONSTRUCTOR(pEMF, ExtRigidForceEDGE,
+				ExtRigidForceEDGE(pDM));
+			break;
+
+		case ExtModalForceBase::EMF_MODAL:
+			SAFENEWWITHCONSTRUCTOR(pEMF, ExtModalForceEDGE,
+				ExtModalForceEDGE(pDM));
+			break;
+
+		case ExtModalForceBase::EMF_ALL:
+			silent_cerr("ModalMappingExt(" << uLabel << "): "
+				"EDGE ExtFileHandler can only be used "
+				"when ModalMappingExt is either \"rigid\" "
+				"or \"modal\" but not when it is \"all\" "
+				" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+		default:
+			ASSERT(0);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#ifdef USE_SOCKET
+	} else if (dynamic_cast<ExtSocketHandler *>(pEFH) != 0) {
+		SAFENEW(pEMF, ExtModalForce);
+#endif // USE_SOCKET
+
+	// add more types
+
+	} else {
+		silent_cerr("ModalMappingExt(" << uLabel << "): "
+			"unknown external force type" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	if (!HP.IsKeyWord("nodes" "number")) {
 		silent_cerr("ModalMappingExt(" << uLabel << "): "
 			"\"nodes number\" keyword expected "
@@ -523,79 +596,6 @@ ReadModalMappingExtForce(DataManager* pDM,
 					(*pH)(ir, ic) = d;
 				}
 			}
-		}
-	}
-
-	bool bOutputAccelerations(false);
-	if (HP.IsKeyWord("accelerations")) {
-		bOutputAccelerations = true;
-	}
-
-	// safe default: both rigid and modal
-	ExtModalForceBase::BitMask bm = ExtModalForceBase::EMF_ALL;
-	if (HP.IsKeyWord("type")) {
-		if (HP.IsKeyWord("rigid")) {
-			bm = ExtModalForceBase::EMF_RIGID;
-		} else if (HP.IsKeyWord("modal")) {
-			bm = ExtModalForceBase::EMF_MODAL;
-		} else if (HP.IsKeyWord("all")) {
-			bm = ExtModalForceBase::EMF_ALL;
-		} else {
-			silent_cerr("ModalMappingExt(" << uLabel << "): unknown ModalMappingExt type "
-				" at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
-	ExtModalForceBase *pEMF = 0;
-	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH) != 0) {
-		// EDGE needs two separate ModalMappingExt elements,
-		// one for the rigid part and one for the modal part
-
-		switch (bm & ExtModalForceBase::EMF_ALL) {
-		case ExtModalForceBase::EMF_RIGID:
-			SAFENEWWITHCONSTRUCTOR(pEMF, ExtRigidForceEDGE,
-				ExtRigidForceEDGE(pDM));
-			break;
-
-		case ExtModalForceBase::EMF_MODAL:
-			SAFENEWWITHCONSTRUCTOR(pEMF, ExtModalForceEDGE,
-				ExtModalForceEDGE(pDM));
-			break;
-
-		case ExtModalForceBase::EMF_ALL:
-			silent_cerr("ModalMappingExt(" << uLabel << "): "
-				"EDGE ExtFileHandler can only be used "
-				"when ModalMappingExt is either \"rigid\" "
-				"or \"modal\" but not when it is \"all\" "
-				" at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		default:
-			ASSERT(0);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-#ifdef USE_SOCKET
-	} else if (dynamic_cast<ExtSocketHandler *>(pEFH) != 0) {
-		SAFENEW(pEMF, ExtModalForce);
-#endif // USE_SOCKET
-
-	// add more types
-
-	} else {
-		silent_cerr("ModalMappingExt(" << uLabel << "): "
-			"unknown external force type" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	bool bUseRigidBodyForces(true);
-	bool bRotateRigidBodyForces(true);
-	if ((bm & ExtModalForceBase::EMF_RIGID) && HP.IsKeyWord("use" "rigid" "body" "forces")) {
-		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
-
-		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
-			bRotateRigidBodyForces = HP.GetYesNo(bRotateRigidBodyForces);
 		}
 	}
 

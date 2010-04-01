@@ -396,7 +396,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 	if (pRefNode) {
 		const Vec3& xRef = pRefNode->GetXCurr();
 		const Mat3x3& RRef = pRefNode->GetRCurr();
-		const Vec3& vRef = pRefNode->GetVCurr();
+		const Vec3& xpRef = pRefNode->GetVCurr();
 		const Vec3& wRef = pRefNode->GetWCurr();
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
@@ -423,7 +423,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			break;
 		}
 		outf
-			<< " " << vRef
+			<< " " << xpRef
 			<< " " << wRef;
 		if (bOutputAccelerations) {
 			outf
@@ -438,7 +438,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			Vec3 Dx(x - xRef);
 			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
 			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
-			Vec3 Dv(v - vRef - wRef.Cross(Dx));
+			Vec3 Dv(v - xpRef - wRef.Cross(Dx));
 			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
@@ -544,7 +544,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 	if (pRefNode) {
 		const Vec3& xRef = pRefNode->GetXCurr();
 		const Mat3x3& RRef = pRefNode->GetRCurr();
-		const Vec3& vRef = pRefNode->GetVCurr();
+		const Vec3& xpRef = pRefNode->GetVCurr();
 		const Vec3& wRef = pRefNode->GetWCurr();
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
@@ -554,12 +554,28 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			send(outfd, (void *)&l, sizeof(l), 0);
 		}
 
-		// FIXME: customize rotations?
 		send(outfd, (void *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
-		send(outfd, (void *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
-		send(outfd, (void *)vRef.pGetVec(), 3*sizeof(doublereal), 0);
+		switch (uRot) {
+		case MBC_ROT_MAT:
+			send(outfd, (void *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
+			break;
+
+		case MBC_ROT_THETA: {
+			Vec3 Theta(RotManip::VecRot(RRef));
+			send(outfd, (void *)Theta.pGetVec(), 3*sizeof(doublereal), 0);
+			} break;
+
+		case MBC_ROT_EULER_123: {
+			Vec3 E(MatR2EulerAngles123(RRef)*dRaDegr);
+			send(outfd, (void *)E.pGetVec(), 3*sizeof(doublereal), 0);
+			} break;
+		}
+		send(outfd, (void *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
 		send(outfd, (void *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
-		// FIXME: accelerations?
+		if (bOutputAccelerations) {
+			send(outfd, (void *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
+			send(outfd, (void *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+		}
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
@@ -567,7 +583,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			Vec3 Dx(x - xRef);
 			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
 			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
-			Vec3 Dv(v - vRef - wRef.Cross(Dx));
+			Vec3 Dv(v - xpRef - wRef.Cross(Dx));
 			const Vec3& w(Nodes[i]->GetWCurr());
 
 			// manipulate
@@ -1068,11 +1084,14 @@ ReadStructExtForce(DataManager* pDM,
 	bool bLabels(false);
 	unsigned uRot = MBC_ROT_MAT;
 	bool bOutputAccelerations(false);
+	bool bUseReferenceNodeForces(true);
+	bool bRotateReferenceNodeForces(true);
 
 	bool bGotSorted(false);
 	bool bGotLabels(false);
 	bool bGotRot(false);
 	bool bGotAccels(false);
+	bool bGotUseRefForces(false);
 
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("unsorted")) {
@@ -1164,6 +1183,28 @@ ReadStructExtForce(DataManager* pDM,
 			bOutputAccelerations = HP.GetYesNo(bOutputAccelerations);
 			bGotAccels = true;
 
+		} else if (HP.IsKeyWord("use" "reference" "node" "forces")) {
+			if (pRefNode == 0) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"use reference node forces\" only meaningful when reference node is used at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (bGotUseRefForces) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"use reference node forces\" already specified at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			
+			bUseReferenceNodeForces = HP.GetYesNo(bUseReferenceNodeForces);
+			bGotUseRefForces = true;
+
+			if (bUseReferenceNodeForces && HP.IsKeyWord("rotate" "reference" "node" "forces")) {
+				bRotateReferenceNodeForces = HP.GetYesNo(bRotateReferenceNodeForces);
+			}
+
 		} else {
 			break;
 		}
@@ -1188,16 +1229,6 @@ ReadStructExtForce(DataManager* pDM,
 			Offsets[i] = HP.GetPosRel(RF);
 		} else {
 			Offsets[i] = Vec3(0.);
-		}
-	}
-
-	bool bUseReferenceNodeForces(true);
-	bool bRotateReferenceNodeForces(true);
-	if (HP.IsKeyWord("use" "reference" "node" "forces")) {
-		bUseReferenceNodeForces = HP.GetYesNo(bUseReferenceNodeForces);
-
-		if (bUseReferenceNodeForces && HP.IsKeyWord("rotate" "reference" "node" "forces")) {
-			bRotateReferenceNodeForces = HP.GetYesNo(bRotateReferenceNodeForces);
 		}
 	}
 

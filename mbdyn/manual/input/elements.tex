@@ -1998,16 +1998,31 @@ Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external structural
     <force_arglist> ::= <external_force_communicator> ,
-        [ reference node , <ref_label> , ]
+        [ reference node , <ref_node_label> , ]
         [ labels , { yes | no } , ]
             [ sorted , { yes | no } ]
         [ orientation ,
             { orientation matrix | orientation vector | euler 123 } , ]
         [ accelerations , { yes | no } ]
+        [ use reference node forces , { yes | no } ,
+            [ rotate reference node forces , { yes | no } ] ]
         <num_nodes> ,
             <node_label> [ , offset , (Vec3) <offset> ]
             [ , ... ]
 \end{verbatim}
+\begin{itemize}
+\item \kw{use reference node forces} only meaningful
+when \kw{reference node} is used.
+It assumes the external solver is sending the forces and moments
+related to the reference node.
+They correspond to the rigid-body forces and moments applied
+to the whole system.
+As such, the forces and moments applied to each node
+are removed accordingly.
+If it is set to \kw{no}, reference node forces and moments
+will be ignored.
+\end{itemize}
+
 
 \subsubsection{File communicator}
 The forces are read from the input file in textual form,
@@ -2293,13 +2308,14 @@ for the \kw{external modal} case.
     <force_type> ::= external modal mapping
     <force_arglist> ::= <external_force_communicator> ,
     [ reference node , <ref_node_label> , ]
-    nodes number , <num_nodes> , <node1_label> [ , ... ] ,
+    [ use rigid body forces , { yes | no } ,
+        [ rotate rigid body forces , { yes | no } , ] ]
+    [ accelerations , { yes | no } , ]
+    [ type , { rigid | modal | all } , ]
+    nodes number , <num_nodes> ,
+        <node1_label> [ , ... ] ,
     modes number , <num_modes> ,
     { full | sparse } mapping file , " <filename> "
-        [ , accelerations , { yes | no } ]
-        [ , type , { rigid | modal | all } ]
-        [ , use rigid body forces , { yes | no } ]
-        [ , rotate rigid body forces , { yes | no } ]
 \end{verbatim}
 \kw{ref\_node\_label} is the label of the reference node
 if the modes express the motion relative to a specific node.
