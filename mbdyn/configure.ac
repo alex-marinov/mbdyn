@@ -2479,6 +2479,7 @@ AC_OUTPUT([ \
 	./libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
 	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
 	./libraries/libann/Makefile:libraries/libann/Makefile.in
+	./libraries/libmbc/Makefile:libraries/libmbc/Makefile.in
 	./mbdyn/Makefile:mbdyn/Makefile.in
 	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
 	./mbdyn/aero/Makefile:mbdyn/aero/Makefile.in

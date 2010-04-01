@@ -125,6 +125,7 @@ libstruct_la_LDFLAGS = -static
 INCLUDES = \
 -I../../include \
 -I$(srcdir)/../../include \
+-I$(srcdir)/../../libraries/libmbc \
 -I$(srcdir)/../../libraries/libmbutil \
 -I$(srcdir)/../../libraries/libmbmath \
 -I$(srcdir)/../../libraries/libmbwrap \

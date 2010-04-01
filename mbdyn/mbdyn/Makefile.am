@@ -28,6 +28,7 @@ elec/libelec.la \
 thermo/libthermo.la \
 hydr/libhydr.la \
 base/libbase.la  \
+../libraries/libmbc/libmbc.la \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libann/libann.la \
 $(GINACLIB_LIBS) \

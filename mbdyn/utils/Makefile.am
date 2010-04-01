@@ -67,6 +67,7 @@ endif
 MYLIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
+../libraries/libmbc/libmbc.la \
 ../libraries/libann/libann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
@@ -100,7 +101,6 @@ rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
-#s2sctrl_SOURCES = s2sctrl.cc GPC.cc udu.c s2s.cc s2s.h 
 s2sctrl_SOURCES = s2sctrl.cc GPC.cc GPC.h s2s.cc s2s.h udu.c udu.h
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
@@ -172,6 +172,7 @@ logproc_LDFLAGS = -static
 INCLUDES = \
 -I../include \
 -I$(srcdir)/../include \
+-I$(srcdir)/../libraries/libmbc \
 -I$(srcdir)/../libraries/libmbutil \
 -I$(srcdir)/../libraries/libmbmath \
 -I$(srcdir)/../libraries/libmbwrap \

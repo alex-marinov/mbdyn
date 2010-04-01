@@ -24,8 +24,6 @@ llstack.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \
-mbc.c \
-mbc.h \
 mbsasl.c \
 mbsasl.h \
 mbstrbuf.cc \
@@ -41,8 +39,6 @@ parser.h \
 parsinc.cc \
 parsinc.h \
 search.h \
-sock.c \
-sock.h \
 stack.h \
 table.cc \
 table.h \
