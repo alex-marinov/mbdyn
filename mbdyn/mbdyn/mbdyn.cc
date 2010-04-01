@@ -113,6 +113,8 @@ void *rtmbdyn_rtai_task = NULL;
 #include "solver.h"
 #include "invsolver.h"
 
+#include "cleanup.h"
+
 enum InputFormat {
 	MBDYN,
 	ADAMS,
@@ -822,6 +824,8 @@ main(int argc, char* argv[])
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = FILE_UNKNOWN;
+
+	atexit(mbdyn_cleanup_destroy);
 
 #ifdef USE_MPI
 	char	ProcessorName_[1024] = "localhost";

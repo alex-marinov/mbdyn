@@ -6,6 +6,8 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libmbutil.la
 
 libmbutil_la_SOURCES = \
+cleanup.cc \
+cleanup.h \
 crypt.cc \
 crypt.h \
 destr.h \

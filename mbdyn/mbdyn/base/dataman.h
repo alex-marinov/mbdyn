@@ -277,6 +277,8 @@ public:
 	/* distruttore */
 	virtual ~DataManager(void);
 
+	int Cleanup(void);
+
 	/* helpers */
 	int ReadScalarAlgebraicNode(MBDynParser& HP, unsigned int uLabel,
 			Node::Type type, doublereal& dX);
@@ -475,6 +477,7 @@ protected:
 	time_t SocketUsersTimeout;
 
 	void WaitSocketUsers(void);
+	void DeleteSocketUsers(void);
 
 public:
 	void RegisterSocketUser(UseSocket *pUS);
@@ -830,6 +833,8 @@ public:
 
 /* InitialAssemblyIterator - end */
 
+extern "C" int
+datamanager_cleanup(void *);
 
 extern ScalarDof
 ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder);

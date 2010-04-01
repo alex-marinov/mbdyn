@@ -72,6 +72,9 @@ extern "C" {
 // To handle gusts
 #include "gust.h"
 
+// To handle cleanups
+#include "cleanup.h"
+
 /* DataManager - begin */
 
 /* linka i singoli DriveCaller al DriveHandler posseduto dal DataManager */
@@ -192,6 +195,8 @@ pDofs(0),
 DofIter()
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
+
+	mbdyn_cleanup_register(datamanager_cleanup, (void *)this);
 
 	/* pseudocostruttori */
 	ElemManager();
@@ -661,6 +666,14 @@ DataManager::~DataManager(void)
 #endif // USE_RUNTIME_LOADING
 } /* End of DataManager::DataManager() */
 
+int
+DataManager::Cleanup(void)
+{
+#ifdef USE_SOCKET
+	DeleteSocketUsers();
+#endif // USE_SOCKET
+	return 0;
+}
 
 void
 DataManager::OutputOpen(const OutputHandler::OutFiles o)
@@ -883,5 +896,15 @@ DataManager::ElemMapType::const_iterator
 DataManager::end(Elem::Type t) const
 {
 	return ElemData[t].ElemMap.end();
+}
+
+extern "C" int
+datamanager_cleanup(void *data)
+{
+	DataManager *pDM = (DataManager *)data;
+
+	silent_cerr("DataManager cleanup" << std::endl);
+
+	return pDM->Cleanup();
 }
 

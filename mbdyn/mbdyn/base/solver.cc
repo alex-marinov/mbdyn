@@ -78,6 +78,7 @@
 #include "ls.h"
 #include "naivewrap.h"
 #include "Rot.hh"
+#include "cleanup.h"
 
 #include "solver_impl.h"
 
@@ -141,6 +142,8 @@ mbdyn_really_exit_handler(int signum)
       		break;
 #endif // SIGPIPE
    	}
+
+	mbdyn_cleanup();
 
 	throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 }
