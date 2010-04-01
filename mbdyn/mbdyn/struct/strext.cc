@@ -952,16 +952,26 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 	ExtForce::Recv();
 
 	if (pRefNode) {
-		WorkVec.ResizeReset(6*(Nodes.size() + 1));
+		integer iSize = Nodes.size();
+		if (bUseReferenceNodeForces) {
+			iSize++;
+		}
+		WorkVec.ResizeReset(6*iSize);
 
 		const Vec3& xRef = pRefNode->GetXCurr();
 		const Mat3x3& RRef = pRefNode->GetRCurr();
 
+		Vec3 FTmp, MTmp;
+
 		// manipulate
 		if (bUseReferenceNodeForces) {
 			if (bRotateReferenceNodeForces) {
-				F0 = RRef*F0;
-				M0 = RRef*M0;
+				FTmp = RRef*F0;
+				MTmp = RRef*M0;
+
+			} else {
+				FTmp = F0;
+				MTmp = M0;
 			}
 		}
 
@@ -978,8 +988,8 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.Add(i*6 + 4, m);
 
 			if (bUseReferenceNodeForces) {
-				F0 -= f;
-				M0 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+				FTmp -= f;
+				MTmp -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
 			}
 		}
 
@@ -990,8 +1000,8 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
 			}
 
-			WorkVec.Add(i*6 + 1, F0);
-			WorkVec.Add(i*6 + 4, M0);
+			WorkVec.Add(i*6 + 1, FTmp);
+			WorkVec.Add(i*6 + 4, MTmp);
 		}
 
 	} else {
