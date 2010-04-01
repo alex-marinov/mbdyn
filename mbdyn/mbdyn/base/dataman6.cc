@@ -61,6 +61,7 @@ DataManager::DeleteSocketUsers(void)
 		i != SocketUsers.end(); i++)
 	{
 		delete i->second;
+		SocketUsers.erase(i);
 	}
 }
 
@@ -144,6 +145,7 @@ do_timeout:;
 				/* remove accepted from set */
 				FD_CLR(i, &active_set);
 				close(i);
+				SocketUsers.erase(i);
 
 				/* register as connected */
 				pUS->ConnectSock(sock);
