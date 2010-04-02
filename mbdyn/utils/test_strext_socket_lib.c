@@ -29,13 +29,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#if 0
 #include <stdlib.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <signal.h>
 #include <unistd.h>
 #include <string.h>
+
+#include "test_strext_socket_lib.h"
 
 /*
  * NOTE: this is all we use from MBDyn.  It was intentionally designed
@@ -53,7 +53,7 @@ sh(int signum)
 	signal(signum, SIG_DFL);
 }
 
-void
+static void
 usage(void)
 {
 	fprintf(stderr,
@@ -73,30 +73,30 @@ usage(void)
 	exit(EXIT_FAILURE);
 }
 
-int
-main(int argc, char *argv[])
+static int sleeptime = 1;
+static int iters = 1;
+static int iters_random = 0;
+static unsigned steps;
+
+static int rigid = 0;
+static int nodes = 0;
+static int labels = 0;
+static int accelerations = 0;
+static unsigned rot = MBC_ROT_MAT;
+
+static char *path = NULL;
+static char *host = NULL;
+static unsigned short int port = -1;
+
+static mbc_nodal_t	mbcx = { { 0 } };
+static mbc_nodal_t	*mbc = &mbcx;
+
+static double fx[6], *f0 = NULL;
+static double *p0 = NULL;
+
+void
+test_init(int argc, char *argv[])
 {
-	int sleeptime = 1;
-	int iters = 1;
-	int iters_random = 0;
-	unsigned steps;
-
-	int rigid = 0;
-	int nodes = 0;
-	int labels = 0;
-	int accelerations = 0;
-	unsigned rot = MBC_ROT_MAT;
-
-	char *path = NULL;
-	char *host = NULL;
-	unsigned short int port = -1;
-
-	mbc_nodal_t	mbcx = { { 0 } };
-	mbc_nodal_t	*mbc = &mbcx;
-
-	double fx[6], *f0 = NULL;
-	double *p0 = NULL;
-
 	while (1) {
 		int opt = getopt(argc, argv, "ac:f:H:lN:p:rR:s:vx");
 
@@ -352,7 +352,14 @@ main(int argc, char *argv[])
 
 	signal(SIGTERM, sh);
 	signal(SIGINT, sh);
+}
 
+/*
+ * specific to test_strext_socket
+ */
+void
+test_run(void)
+{
 	for (steps = 0; keep_going > 0; steps++) {
 		int iter;
 		int niters;
@@ -510,19 +517,205 @@ done:;
 	if (p0) {
 		free(p0);
 	}
-
-	return 0;
 }
-#endif
 
-
-#include "test_strext_socket_lib.h"
-
-int
-main(int argc, char *argv[])
+/*
+ * specific to test_strext_socket_f
+ */
+void
+tdata_(int32_t *RIGID, int32_t *NODES, int32_t *ITERS, int32_t *VERB,
+	int32_t *RC_P)
 {
-	test_init(argc, argv);
-	test_run();
-	return 0;
+	if (!MBC_F_ROT_MAT(mbc)) {
+		*RC_P = 1;
+		return;
+	}
+
+	if (MBC_F_LABELS(mbc)) {
+		*RC_P = 1;
+		return;
+	}
+
+	if (MBC_F_ACCELS(mbc)) {
+		*RC_P = 1;
+		return;
+	}
+
+	*RIGID = MBC_F_REF_NODE(mbc);
+	*NODES = mbc->nodes;
+	*VERB = mbc->mbc.verbose;
+
+	*ITERS = iters;
+
+	return;
+}
+
+void
+tforce_(float *RF, float *RM, float *NF, float *NM)
+{
+	/* set forces */
+	if (rigid) {
+		if (f0 != NULL) {
+			RF[0] = f0[0];
+			RF[1] = f0[1];
+			RF[2] = f0[2];
+
+			RM[0] = f0[3];
+			RM[1] = f0[4];
+			RM[2] = f0[5];
+
+		} else {
+			RF[0] = 1.;
+			RF[1] = 2.;
+			RF[2] = 3.;
+
+			RM[0] = 4.;
+			RM[1] = 5.;
+			RM[2] = 6.;
+		}
+	}
+
+	if (mbc->nodes > 0) {
+		int n;
+
+		if (p0) {
+			for (n = 0; n < mbc->nodes; n++) {
+				NF[3*n] = p0[6*n];
+				NF[3*n + 1] = p0[6*n + 1];
+				NF[3*n + 2] = p0[6*n + 2];
+
+				NM[3*n] = p0[6*n + 3];
+				NM[3*n + 1] = p0[6*n + 4];
+				NM[3*n + 2] = p0[6*n + 5];
+			}
+
+		} else {
+			for (n = 0; n < 3*mbc->nodes; n++) {
+				NF[n] = (double)(n + 1);
+				NM[n] = (double)(n + 1);
+			}
+		}
+	}
+
+	return;
+}
+
+
+void
+tsend_(float *RF, float *RM, float *NF, float *NM,
+        int32_t *CONVERGED_P, int32_t *RC_P)
+{
+	/* set forces */
+	if (MBC_F_REF_NODE(mbc)) {
+		double *f = MBC_R_F(mbc);
+		double *m = MBC_R_M(mbc);
+
+		f[0] = RF[0];
+		f[1] = RF[1];
+		f[2] = RF[2];
+
+		m[0] = RM[0];
+		m[1] = RM[1];
+		m[2] = RM[2];
+	}
+
+	if (mbc->nodes > 0) {
+		double *f = MBC_N_F(mbc);
+		double *m = MBC_N_M(mbc);
+		int node;
+
+		for (node = 0; node < mbc->nodes; node++) {
+			f[node] = NF[node];
+			f[node + 1] = NF[node + 1];
+			f[node + 2] = NF[node + 2];
+
+			m[node] = NM[node];
+			m[node + 1] = NM[node + 1];
+			m[node + 2] = NM[node + 2];
+		}
+	}
+
+	/* NOTE: the flag indicates convergence when not 0 */
+	if (mbc_nodal_put_forces(mbc, *CONVERGED_P)) {
+		*RC_P = 1;
+		return;
+	}
+
+	*RC_P = 0;
+	return;
+}
+
+void
+trecv_(float *RX, float *RR, float *RXP, float *ROMEGA,
+	float *NX, float *NR, float *NXP, float *NOMEGA, int32_t *RC_P)
+{
+	if (mbc_nodal_get_motion(mbc)) {
+		*RC_P = 1;
+		return;
+	}
+
+	if (MBC_F_REF_NODE(mbc)) {
+		double *x = MBC_R_X(mbc);
+		double *r = MBC_R_R(mbc);
+		double *v = MBC_R_XP(mbc);
+		double *w = MBC_R_OMEGA(mbc);
+
+		RX[0] = x[0];
+		RX[1] = x[1];
+		RX[2] = x[2];
+
+		RR[0] = r[0];
+		RR[1] = r[1];
+		RR[2] = r[2];
+		RR[3] = r[3];
+		RR[4] = r[4];
+		RR[5] = r[5];
+		RR[6] = r[6];
+		RR[7] = r[7];
+		RR[8] = r[8];
+
+		RXP[0] = v[0];
+		RXP[1] = v[1];
+		RXP[2] = v[2];
+
+		ROMEGA[0] = w[0];
+		ROMEGA[1] = w[1];
+		ROMEGA[2] = w[2];
+	}
+
+	if (mbc->nodes > 0) {
+		double *x = MBC_N_X(mbc);
+		double *r = MBC_N_R(mbc);
+		double *v = MBC_N_XP(mbc);
+		double *w = MBC_N_OMEGA(mbc);
+		int node;
+
+		for (node = 0; node < mbc->nodes; node++) {
+			NX[node] = x[node];
+			NX[node + 1] = x[node + 1];
+			NX[node + 2] = x[node + 2];
+
+			NR[node] = r[node];
+			NR[node + 1] = r[node + 1];
+			NR[node + 2] = r[node + 2];
+			NR[node + 3] = r[node + 3];
+			NR[node + 4] = r[node + 4];
+			NR[node + 5] = r[node + 5];
+			NR[node + 6] = r[node + 6];
+			NR[node + 7] = r[node + 7];
+			NR[node + 8] = r[node + 8];
+
+			NXP[node] = v[node];
+			NXP[node + 1] = v[node + 1];
+			NXP[node + 2] = v[node + 2];
+
+			NOMEGA[node] = w[node];
+			NOMEGA[node + 1] = w[node + 1];
+			NOMEGA[node + 2] = w[node + 2];
+		}
+	}
+
+	*RC_P = 0;
+	return;
 }
 
