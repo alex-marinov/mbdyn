@@ -4,6 +4,7 @@ include $(top_srcdir)/build/top.mk
 
 # Build libmbc.a library
 noinst_LTLIBRARIES = libmbc.la
+#lib_LTLIBRARIES = libmbc.la
 
 libmbc_la_SOURCES = \
 mbc.c \
