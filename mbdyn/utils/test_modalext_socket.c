@@ -30,16 +30,11 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 #include <stdio.h>
-#include <unistd.h>
-#include <strings.h>
 #include <signal.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
+#include <unistd.h>
+#include <string.h>
 
 /*
  * NOTE: this is all we use from MBDyn.  It was intentionally designed
