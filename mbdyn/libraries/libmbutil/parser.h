@@ -376,30 +376,6 @@ public:
 	virtual const char* GetString(unsigned flags = HighParser::NONE);
 	/* stringa delimitata */
 	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM, bool escape = true); 
-	/* vettore Vec3 */
-	virtual Vec3 GetVec3(void);
-	/* vettore Vec3 */
-	virtual Vec3 GetVec3(const Vec3& vDef);
-	/* matrice R mediante i due vettori */
-	virtual Mat3x3 GetMatR2vec(void);
-	/* matrice 3x3 simmetrica */
-	virtual Mat3x3 GetMat3x3Sym(void);
-	/* matrice 3x3 arbitraria */
-	virtual Mat3x3 GetMat3x3(void);
-	virtual Mat3x3 GetMat3x3(const Mat3x3& mDef);
-
-	virtual Vec6 GetVec6(void);
-	virtual Vec6 GetVec6(const Vec6& vDef);
-	virtual Mat6x6 GetMat6x6(void);
-	virtual Mat6x6 GetMat6x6(const Mat6x6& mDef);
-
-	virtual doublereal Get(const doublereal& d);
-	virtual Vec3 Get(const Vec3& v);
-	virtual Mat3x3 Get(const Mat3x3& m);
-	virtual Vec6 Get(const Vec6& v);
-	virtual Mat6x6 Get(const Mat6x6& m);
-
-	virtual void GetMat6xN(Mat3xN& m1, Mat3xN& m2, integer iNumCols);
 };
 
 /* Le funzioni:
