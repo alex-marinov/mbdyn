@@ -76,8 +76,6 @@ tmp_sym consts[] = {
 Table::Table(bool bSetConstants)
 : vm()
 {
-	static char func_name[] = "Table::Table";
-
 	DEBUGCOUT("Table::Table" << std::endl);
 
 	if (bSetConstants) {
@@ -86,7 +84,7 @@ Table::Table(bool bSetConstants)
 			p->val.SetConst();
 			NamedValue* n = Put(p->name, p->val);
 			if (n == 0) {
-				silent_cerr(func_name << ": unable to insert " << p->name
+				silent_cerr("Table: unable to insert const \"" << p->name << "\""
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}

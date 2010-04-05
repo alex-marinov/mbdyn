@@ -46,7 +46,7 @@
 
 static bool		mbdyn_task2cpu_disabled = false;
 #ifdef HAVE_THREADS
-static pthread_mutex_t	mbdyn_task2cpu_mutex_t = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t	mbdyn_task2cpu_mutex = PTHREAD_MUTEX_INITIALIZER;
 #endif /* HAVE_THREADS */
 
 int
@@ -55,7 +55,7 @@ mbdyn_task2cpu(int cpu)
 	int		fd = -1;
 
 #ifdef HAVE_THREADS
-	pthread_mutex_lock(&::mbdyn_task2cpu_mutex_t);
+	pthread_mutex_lock(&::mbdyn_task2cpu_mutex);
 #endif /* HAVE_THREADS */
 	if (!::mbdyn_task2cpu_disabled) {
 #ifdef HAVE_TASK2CPU
@@ -79,7 +79,7 @@ mbdyn_task2cpu(int cpu)
 #endif /* ! HAVE_TASK2CPU */
 	}
 #ifdef HAVE_THREADS
-	pthread_mutex_unlock(&::mbdyn_task2cpu_mutex_t);
+	pthread_mutex_unlock(&::mbdyn_task2cpu_mutex);
 #endif /* HAVE_THREADS */
 
 	return (fd == -1);
