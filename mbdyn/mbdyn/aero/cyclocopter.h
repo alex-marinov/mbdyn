@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2010
+ * Copyright (C) 1996-2009
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -48,7 +48,13 @@ class CyclocopterInflow
 protected:
 	const StructNode* pRotor;
 
-	doublereal dOmegaRef;		// Reference rotation speed (never used!!)
+	unsigned int iFlagAverage;			// == 1: usa la media delle forze sul giro
+					//	per calcolare la velocità indotta
+					//	per il giro successivo
+					// == 0: usa il valore istantaneo (eventualmente
+					// 	filtrato)
+
+
 	doublereal dRadius;		// Rotor radius
 	doublereal dSpan;		// Blade length
 	doublereal dArea;		// Cylinder longitudinal area
@@ -128,6 +134,25 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
 
+	// Restituisce ad un elemento la velocità indotta
+	// in base alla posizione azimuthale (usata per
+	// iterare tra calcolo della valocità indotta e 
+	// calcolo delle forze aerodinamiche - solo
+	// per il modello di influsso KARI per il ciclocottero)
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+
+	// Restituisce la velocità indotta dalla metà superiore del rotore
+	// ( solo per KARI ciclocottero) 
+	virtual doublereal GetW( const Vec3& X) const {
+		return 0;
+	}
+	virtual doublereal GetPsi( const Vec3& X) const {
+		return 0;
+	}
+	virtual Mat3x3 GetRRotor( const Vec3& X) const {
+		return Zero3x3;
+	}
+
 };
 
 /* CyclocopterNoInflow - end */
@@ -155,6 +180,15 @@ protected:
 
 	mutable doublereal dUindMeanPrev;
 
+	bool bFlagIsFirstBlade;
+
+	doublereal dAzimuth, dAzimuthPrev;
+
+	doublereal dTz, dTzMean;
+	Vec3 F, FMean, FMeanOut;
+
+	unsigned int iStepCounter;
+
 	/* dati per il filtraggio delle forze */
 	doublereal Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
 
@@ -162,7 +196,7 @@ public:
 	CyclocopterUniform1D(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, ResForceSet **ppres, 
-		const doublereal& dOR, const doublereal& dR,
+		const unsigned int& iFlagAve, const doublereal& dR,
 		const doublereal& dL, const doublereal& dOmegaFilter,
 		const doublereal& dDeltaT, DriveCaller *pdW,
 		flag fOut);
@@ -171,6 +205,10 @@ public:
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	// output; si assume che ogni tipo di elemento sappia,
+	// attraverso l'OutputHandler, dove scrivere il proprio output
+	virtual void Output(OutputHandler& OH) const;
 
 	// assemblaggio residuo
 	virtual SubVectorHandler&
@@ -186,6 +224,25 @@ public:
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+
+	// Restituisce ad un elemento la velocità indotta
+	// in base alla posizione azimuthale (usata per
+	// iterare tra calcolo della valocità indotta e 
+	// calcolo delle forze aerodinamiche - solo
+	// per il modello di influsso KARI per il ciclocottero)
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+
+	// Restituisce la velocità indotta dalla metà superiore del rotore
+	// ( solo per KARI ciclocottero) 
+	virtual doublereal GetW( const Vec3& X) const {
+		return 0;
+	}
+	virtual doublereal GetPsi( const Vec3& X) const {
+		return 0;
+	}
+	virtual Mat3x3 GetRRotor( const Vec3& X) const {
+		return Zero3x3;
+	}
 };
 
 /* CyclocopterUnifor1D - end */
@@ -210,6 +267,14 @@ protected:
 	Vec3 dUind;
 	mutable Vec3 dUindPrev;
 
+	bool bFlagIsFirstBlade;
+
+	doublereal dAzimuth, dAzimuthPrev;
+
+	Vec3 F, FMean, FMeanOut;
+
+	unsigned int iStepCounter;
+
 	/* dati per il filtraggio delle forze */
 	Vec3 Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
 
@@ -217,7 +282,7 @@ public:
 	CyclocopterUniform2D(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, ResForceSet **ppres, 
-		const doublereal& dOR, const doublereal& dR,
+		const unsigned int& iFlagAve, const doublereal& dR,
 		const doublereal& dL, const doublereal& dOmegaFilter,
 		const doublereal& dDeltaT, DriveCaller *pdW,
 		flag fOut);
@@ -226,6 +291,10 @@ public:
 	// Elaborazione stato interno dopo la convergenza
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	// output; si assume che ogni tipo di elemento sappia,
+	// attraverso l'OutputHandler, dove scrivere il proprio output
+	virtual void Output(OutputHandler& OH) const;
 
 	// assemblaggio residuo
 	virtual SubVectorHandler&
@@ -241,6 +310,25 @@ public:
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+
+	// Restituisce ad un elemento la velocità indotta
+	// in base alla posizione azimuthale (usata per
+	// iterare tra calcolo della valocità indotta e 
+	// calcolo delle forze aerodinamiche - solo
+	// per il modello di influsso KARI per il ciclocottero)
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+
+	// Restituisce la velocità indotta dalla metà superiore del rotore
+	// ( solo per KARI ciclocottero) 
+	virtual doublereal GetW( const Vec3& X) const {
+		return 0;
+	}
+	virtual doublereal GetPsi( const Vec3& X) const {
+		return 0;
+	}
+	virtual Mat3x3 GetRRotor( const Vec3& X) const {
+		return Zero3x3;
+	}
 
 };
 
@@ -273,14 +361,29 @@ protected:
 
 	doublereal dXi;
 
+	bool bFlagIsFirstBlade;
+
+	doublereal dAzimuth, dAzimuthPrev;
+
+	Vec3 F, FMean, FMeanOut;
+
+	unsigned int iStepCounter;
+
 	/* dati per il filtraggio delle forze */
 	Vec3 Uk, Uk_1, Uk_2, Yk, Yk_1, Yk_2;
+
+	unsigned int iCounter;
+	unsigned int iRotationCounter;
+
+	doublereal dpPrev, dp;
+	
+	bool flag_print;
 
 public:
 	CyclocopterPolimi(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, ResForceSet **ppres, 
-		const doublereal& dOR, const doublereal& dR,
+		const unsigned int& iFlagAve, const doublereal& dR,
 		const doublereal& dL, const doublereal& dOmegaFilter,
 		const doublereal& dDeltaT, DriveCaller *pdW,
 		flag fOut);
@@ -308,6 +411,25 @@ public:
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+
+	// Restituisce ad un elemento la velocità indotta
+	// in base alla posizione azimuthale (usata per
+	// iterare tra calcolo della valocità indotta e 
+	// calcolo delle forze aerodinamiche - solo
+	// per il modello di influsso KARI per il ciclocottero)
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+
+	// Restituisce la velocità indotta dalla metà superiore del rotore
+	// ( solo per KARI ciclocottero) 
+	virtual doublereal GetW( const Vec3& X) const {
+		return 0;
+	}
+	virtual doublereal GetPsi( const Vec3& X) const {
+		return 0;
+	}
+	virtual Mat3x3 GetRRotor( const Vec3& X) const {
+		return Zero3x3;
+	}
 
 };
 
@@ -384,6 +506,7 @@ public:
 };
 
 /* CyclocopterKARI - end */
+
 
 class DataManager;
 class MBDynParser;

@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2010
+ * Copyright (C) 1996-2009
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -40,6 +40,8 @@
 
 #include "cyclocopter.h"
 #include "dataman.h"
+
+#define EXTENDED_PLOT
 
 /* CyclocopterInflow - begin */
 
@@ -176,7 +178,8 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	if (fToBeOutput() ){
-		RRotorTranspose = (pCraft->GetRCurr()*RRot).Transpose();
+		RRotorTranspose = pCraft->GetRCurr()*RRot;
+		RRotorTranspose = RRotorTranspose.Transpose();
 	}
 	
 	ResetForce();
@@ -209,19 +212,18 @@ CyclocopterNoInflow::GetInducedVelocity(const Vec3& X) const
 CyclocopterUniform1D::CyclocopterUniform1D(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, 
-	const doublereal& dOR, const doublereal& dR,
+	const unsigned int& iFlagAve, const doublereal& dR,
 	const doublereal& dL, const doublereal& dOmegaFilter,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
 CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
-	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
 	ASSERT(dL > 0.);	
 	ASSERT(pdW != 0);	
 
-	dOmegaRef = dOR;
+	iFlagAverage = iFlagAve;
 	dRadius = dR;
 	dSpan = dL;
 	dArea = 2*dRadius*dSpan;
@@ -231,6 +233,20 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	
 	dUindMean = 0.;
 	dUindMeanPrev = 0.;
+
+	bFlagIsFirstBlade = 1;
+	
+	dAzimuth = 0.;
+	dAzimuthPrev = 0.;
+	
+	dTz = 0.;
+	dTzMean = 0.;
+
+	F = 0.;
+	FMean = 0.;
+	FMeanOut = 0.;
+
+	iStepCounter = 0;
 
 	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 	
@@ -251,9 +267,61 @@ CyclocopterUniform1D::~CyclocopterUniform1D(void)
 }
 
 void
+CyclocopterUniform1D::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+
+                OH.Rotors()
+                        << std::setw(8) << GetLabel()   /* 1 */
+                        << " " << RRotorTranspose*Res.Force()     /* 2-4 */
+                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << dUindMean                	 /* 8 */
+                        << " " << dAzimuth                	 /* 9 */
+                        << " " << iStepCounter                	 /* 10 */
+                        << " " << "0."                	 /* 11 */
+                        << " " << "0."                	 /* 12 */
+                        << " " << "0."                	 /* 13 */
+                        << " " << FMeanOut                	 /* 14 */
+                        << std::endl;
+
+                /* FIXME: check for parallel stuff ... */
+                for (int i = 0; ppRes && ppRes[i]; i++) {
+                        OH.Rotors()
+                                << std::setw(8) << GetLabel()
+                                << ":" << ppRes[i]->GetLabel()
+                                << " " << ppRes[i]->pRes->Force()
+                                << " " << ppRes[i]->pRes->Couple()
+                                << std::endl;
+                }
+	}
+
+
+}
+
+void
 CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
-
+	bFlagIsFirstBlade = 1;
+	/* calcolo la forza media sul giro generata dal rotore */
+	dTzMean += dTz;
+	FMean = FMean + F;
+	iStepCounter++;
+	//if( (dAzimuth>0. && dAzimuthPrev<0.) || (dAzimuth<0. && dAzimuthPrev>0.) ){
+	if( (dAzimuth>0. && dAzimuthPrev<0.) ){
+		FMean = FMean/iStepCounter;
+		FMeanOut = FMean;
+		if (iFlagAverage == 1) {
+			dTzMean = dTzMean/iStepCounter;
+			doublereal dRho = dGetAirDensity(GetXCurr());
+			dUindMean = copysign(std::sqrt(std::abs(dTzMean)/(2*dRho*dArea)), dTzMean);
+			dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
+			dTzMean = 0.;
+		}
+		FMean = 0.;
+		iStepCounter = 0;
+	}
+	dAzimuthPrev = dAzimuth;
+	
 	/* aggiorno ingressi e uscite del filtro */
 	Yk_2 = Yk_1;
 	Yk_1 = Yk;
@@ -289,16 +357,20 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 	RRotor = pCraft->GetRCurr()*RRot;
 	RRot3 = RRotor.GetVec(3);
 	RRotorTranspose = RRotor.Transpose();
-	doublereal dTz= RRot3*Res.Force();
-	/* filtro le forze */
-	Uk = dTz;
-	Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
-	dTz = Yk;	
-	
-	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMean = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
+	/* Forze nel sistema rotore */
+	F = RRotorTranspose*Res.Force();
+	dTz= RRot3*Res.Force();
+	if (iFlagAverage == 0){
+		/* filtro le forze */
+		Uk = dTz;
+		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
+		dTz = Yk;	
+		doublereal dRho = dGetAirDensity(GetXCurr());
+		dUindMean = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
 
-	dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
+		dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
+	} 
+		 
 	
 	ResetForce();
 	WorkVec.Resize(0);	
@@ -309,6 +381,17 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 void
 CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
 {
+	
+	/* colcolo la posizione azimutale della prima pala */
+	if (bFlagIsFirstBlade == 1 ) {
+		Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
+		doublereal d1 = XRel.dGet(2);
+		doublereal d2 = XRel.dGet(3);
+		dAzimuth = atan2(d2, d1);
+		bFlagIsFirstBlade = 0;
+	}
+
+
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
@@ -321,7 +404,6 @@ CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 Vec3
 CyclocopterUniform1D::GetInducedVelocity(const Vec3& X) const
 {
-	
 	return RRot3*dUindMean;
 }
 
@@ -332,19 +414,19 @@ CyclocopterUniform1D::GetInducedVelocity(const Vec3& X) const
 CyclocopterUniform2D::CyclocopterUniform2D(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, 
-	const doublereal& dOR, const doublereal& dR,
+	const unsigned int& iFlagAve, const doublereal& dR,
 	const doublereal& dL, const doublereal& dOmegaFilter,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
 CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
-	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
 	ASSERT(dL > 0.);	
 	ASSERT(pdW != 0);	
 
-	dOmegaRef = dOR;
+	iFlagAverage = iFlagAve;
+
 	dRadius = dR;
 	dSpan = dL;
 	dArea = 2*dRadius*dSpan;
@@ -355,6 +437,17 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	dUind = 0.;
 	dUindPrev = 0.;
 	dUindMean = 0.;
+
+	bFlagIsFirstBlade = 1;
+	
+	dAzimuth = 0.;
+	dAzimuthPrev = 0.;
+	
+	F = 0.;
+	FMean = 0.;
+	FMeanOut = 0.;
+
+	iStepCounter = 0;
 	
 	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 
@@ -375,8 +468,97 @@ CyclocopterUniform2D::~CyclocopterUniform2D(void)
 }
 
 void
+CyclocopterUniform2D::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+
+                OH.Rotors()
+                        << std::setw(8) << GetLabel()   /* 1 */
+                        << " " << RRotorTranspose*Res.Force()     /* 2-4 */
+                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << dUindMean                	 /* 8 */
+                        << " " << dAzimuth                	 /* 9 */
+                        << " " << iStepCounter                	 /* 10 */
+                        << " " << dUind                	 /* 11-13 */
+                        << " " << FMeanOut                	 /* 14-16 */
+                        << std::endl;
+
+                /* FIXME: check for parallel stuff ... */
+                for (int i = 0; ppRes && ppRes[i]; i++) {
+                        OH.Rotors()
+                                << std::setw(8) << GetLabel()
+                                << ":" << ppRes[i]->GetLabel()
+                                << " " << ppRes[i]->pRes->Force()
+                                << " " << ppRes[i]->pRes->Couple()
+                                << std::endl;
+                }
+	}
+
+}
+
+void
 CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
+	bFlagIsFirstBlade = 1;
+#if 0
+	if (iFlagAverage == 1) {
+		/* calcolo la forza media sul giro generata dal rotore */
+		FMean = FMean + F;
+		iStepCounter++;
+		//if( (dAzimuth>0. && dAzimuthPrev<0.) || (dAzimuth<0. && dAzimuthPrev>0.) ){
+		if( (dAzimuth>0. && dAzimuthPrev<0.) ){
+			FMean = FMean/iStepCounter;
+			/* Forza nel piano normale all'asse di rotazione */
+			doublereal dT= sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
+			/* Velocità indotta: calcolata in base alla dT */
+			doublereal dRho = dGetAirDensity(GetXCurr());
+			dUindMean = sqrt(dT/(2*dRho*dArea));
+			/* Componenti della velocità indotta nel sistema 
+	 		* rotore */
+			dUind = 0.;
+			if (dT > std::numeric_limits<doublereal>::epsilon()) {
+				dUind(2) = dUindMean*FMean(2)/dT;
+				dUind(3) = dUindMean*FMean(3)/dT;
+			}
+			dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+			dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+			dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
+
+			FMean = 0.;
+			iStepCounter = 0;
+		}
+	}
+#endif
+	/* calcolo la forza media sul giro generata dal rotore */
+	FMean = FMean + F;
+	iStepCounter++;
+	if( (dAzimuth>0. && dAzimuthPrev<0.) ){
+		FMean = FMean/iStepCounter;
+		FMeanOut = FMean;
+		if (iFlagAverage == 1) {
+			/* Forza nel piano normale all'asse di rotazione */
+			doublereal dT= sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
+			/* Velocità indotta: calcolata in base alla dT */
+			doublereal dRho = dGetAirDensity(GetXCurr());
+			dUindMean = sqrt(dT/(2*dRho*dArea));
+			/* Componenti della velocità indotta nel sistema 
+	 		* rotore */
+			dUind = 0.;
+			if (dT > std::numeric_limits<doublereal>::epsilon()) {
+				dUind(2) = dUindMean*FMean(2)/dT;
+				dUind(3) = dUindMean*FMean(3)/dT;
+			}
+			dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+			dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+			dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
+		}
+
+		FMean = 0.;
+		iStepCounter = 0;
+	}
+
+
+	dAzimuthPrev = dAzimuth;
 
 	dUindPrev = dUind;
 
@@ -409,30 +591,35 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	/* UNIFORM induced velocity */
-	/* Trasposta della matrice di rotazione del rotore */
+	/* Trasporta della matrice di rotazione del rotore */
 	RRotor = pCraft->GetRCurr()*RRot;
 	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
-	Vec3 F = RRotorTranspose*Res.Force();
-	/* filtro le forze */
-	Uk = F;
-	Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
-	F = Yk;	
-	/* Forza nel piano normale all'asse di rotazione */
-	doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
-	/* Velocità indotta: calcolata in base alla dT */
-	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMean = sqrt(dT/(2*dRho*dArea));
-	/* Componenti della velocità indotta nel sistema 
-	 * rotore */
-	dUind = 0.;
-	if (dT > std::numeric_limits<doublereal>::epsilon()) {
-		dUind(2) = dUindMean*F(2)/dT;
-		dUind(3) = dUindMean*F(3)/dT;
+	F = RRotorTranspose*Res.Force();
+	if (iFlagAverage == 0){
+		/* filtro le forze */
+		Uk = F;
+		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
+		F = Yk;	
+		/* Forza nel piano normale all'asse di rotazione */
+		doublereal dT= sqrt(F(2)*F(2) + F(3)*F(3));
+		/* Velocità indotta: calcolata in base alla dT */
+		doublereal dRho = dGetAirDensity(GetXCurr());
+		dUindMean = sqrt(dT/(2*dRho*dArea));
+		/* Componenti della velocità indotta nel sistema 
+	 	* rotore */
+		dUind = 0.;
+		if (dT > std::numeric_limits<doublereal>::epsilon()) {
+			dUind(2) = dUindMean*F(2)/dT;
+			dUind(3) = dUindMean*F(3)/dT;
+		}
+		dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+		dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+		dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);		
+
+		dUindMean = sqrt(dUind(1)*dUind(1) + dUind(2)*dUind(2) + dUind(3)*dUind(3));
 	}
-	dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
-	dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
-	dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
+	
 
 	ResetForce();
 	WorkVec.Resize(0);
@@ -443,6 +630,17 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 void
 CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
 {
+	
+	/* colcolo la posizione azimutale della prima pala */
+	//if (bFlagIsFirstBlade == 1 && iFlagAverage == 1) {
+	if (bFlagIsFirstBlade == 1) {
+		Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
+		doublereal d1 = XRel.dGet(2);
+		doublereal d2 = XRel.dGet(3);
+		dAzimuth = atan2(d2, d1);
+		bFlagIsFirstBlade = 0;
+	}
+
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
@@ -456,6 +654,7 @@ CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 Vec3
 CyclocopterUniform2D::GetInducedVelocity(const Vec3& X) const
 {
+	//printf("%f %f %f\n",dUind(1),dUind(2),dUind(3));
 	return RRotor*dUind;
 }
 
@@ -466,19 +665,19 @@ CyclocopterUniform2D::GetInducedVelocity(const Vec3& X) const
 CyclocopterPolimi::CyclocopterPolimi(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, 
-	const doublereal& dOR, const doublereal& dR,
+	const unsigned int& iFlagAve, const doublereal& dR,
 	const doublereal& dL, const doublereal& dOmegaFilter,
 	const doublereal& dDeltaT, DriveCaller *pdW, 
 	flag fOut)
 : Elem(uL, fOut),
 CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 {
-	ASSERT(dOR > 0.);	
 	ASSERT(dR > 0.);	
 	ASSERT(dL > 0.);	
 	ASSERT(pdW != 0);	
 
-	dOmegaRef = dOR;
+	iFlagAverage = iFlagAve;
+
 	dRadius = dR;
 	dSpan = dL;
 	dArea = 2*dRadius*dSpan;
@@ -489,6 +688,19 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	dUind = 0.;
 	dUindPrev = 0.;
 	dUindMean = 0.;
+
+	dXi = 0.;
+
+	bFlagIsFirstBlade = 1;
+	
+	dAzimuth = 0.;
+	dAzimuthPrev = 0.;
+	
+	F = 0.;
+	FMean = 0.;
+	FMeanOut = 0.;
+
+	iStepCounter = 0;
 	
 	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 	
@@ -500,7 +712,6 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	Yk = 0.;
 	Yk_1 = 0.;
 	Yk_2 = 0.;
-
 	
 }
 
@@ -512,6 +723,39 @@ CyclocopterPolimi::~CyclocopterPolimi(void)
 void
 CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
+	bFlagIsFirstBlade = 1;
+	/* calcolo la forza media sul giro generata dal rotore */
+	FMean = FMean + F;;
+	iStepCounter++;
+	//if( (dAzimuth>0. && dAzimuthPrev<0.) || (dAzimuth<0. && dAzimuthPrev>0.) ){
+	if( (dAzimuth>0. && dAzimuthPrev<0.) ){
+		FMean = FMean/iStepCounter;
+		FMeanOut = FMean;
+		if (iFlagAverage == 1) {
+			/* Forza nel piano normale all'asse di rotazione */
+			doublereal dT= sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
+			/* Velocità indotta: calcolata in base alla dT */
+			doublereal dRho = dGetAirDensity(GetXCurr());
+			dUindMean = sqrt(dT/(2*dRho*dArea));
+			/* Componenti della velocità indotta nel sistema 
+	 		* rotore */
+			dUind = 0.;
+			if (dT > std::numeric_limits<doublereal>::epsilon()) {
+				dUind(2) = dUindMean*FMean(2)/dT;
+				dUind(3) = dUindMean*FMean(3)/dT;
+			}
+			dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+			dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+			dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
+			/* angolo di cui è ruotata la trazione */
+			dXi = atan2(FMean(3), FMean(2)) - M_PI/2.;
+		}
+
+		FMean = 0.;
+		iStepCounter = 0;
+	}
+
+	dAzimuthPrev = dAzimuth;
 
 	dUindPrev = dUind;
 
@@ -549,10 +793,8 @@ CyclocopterPolimi::Output(OutputHandler& OH) const
                         << " " << dUindMean              /* 8 */
                         << " " << dUind                	 /* 9 -11*/
                         << " " << dXi                	 /* 12 */
-                        << " " << "0."               	 /* 13 */
-                        << " " << "0."                	 /* 14 */
-                        << " " << "0."   		 /* 15 */
-                        << " " << "0."           	 /* 16 */
+                        << " " << dAzimuth               /* 13 */
+                        << " " << FMeanOut                	 /* 14-16 */
                         << std::endl;
 
                 /* FIXME: check for parallel stuff ... */
@@ -576,33 +818,36 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	/* UNIFORM induced velocity */
-	/* Trasposta della matrice di rotazione del rotore */
+	/* Trasporta della matrice di rotazione del rotore */
 	RRotor = pCraft->GetRCurr()*RRot;
 	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
-	Vec3 F = RRotorTranspose*Res.Force();
-	/* filtro le forze */
-	Uk = F;
-	Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
-	F = Yk;	
-	/* Forza nel piano normale all'asse di rotazione */
-	doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
-	/* angolo di cui è ruotata la trazione */
-	dXi = atan2(F(3), F(2)) - M_PI/2.;
-	/* Velocità indotta: calcolata in base alla dT */
-	doublereal dRho = dGetAirDensity(GetXCurr());
-	dUindMean = sqrt( dT/(2*dRho*dArea) );
-	/* Componenti della velocità indotta nel sistema 
-	 * rotore */
-	dUind = 0.;
-	if (dT > std::numeric_limits<doublereal>::epsilon()) {
-		dUind(2) = dUindMean*F(2)/dT;
-		dUind(3) = dUindMean*F(3)/dT;
-	}
-	dUind(1) = (1-dWeight)*dUind(1)+dWeight*dUindPrev(1);
-	dUind(2) = (1-dWeight)*dUind(2)+dWeight*dUindPrev(2);
-	dUind(3) = (1-dWeight)*dUind(3)+dWeight*dUindPrev(3);
+	F = RRotorTranspose*Res.Force();
+	if (iFlagAverage == 0){
+		/* filtro le forze */
+		Uk = F;
+		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
+		F = Yk;	
+		/* Forza nel piano normale all'asse di rotazione */
+		doublereal dT= sqrt(F(2)*F(2) + F(3)*F(3));
+		/* Velocità indotta: calcolata in base alla dT */
+		doublereal dRho = dGetAirDensity(GetXCurr());
+		dUindMean = sqrt(dT/(2*dRho*dArea));
+		/* Componenti della velocità indotta nel sistema 
+	 	* rotore */
+		dUind = 0.;
+		if (dT > std::numeric_limits<doublereal>::epsilon()) {
+			dUind(2) = dUindMean*F(2)/dT;
+			dUind(3) = dUindMean*F(3)/dT;
+		}
+		dUind(1) = (1 - dWeight)*dUind(1) + dWeight*dUindPrev(1);
+		dUind(2) = (1 - dWeight)*dUind(2) + dWeight*dUindPrev(2);
+		dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
 
+		dUindMean = sqrt(dUind(1)*dUind(1) + dUind(2)*dUind(2) + dUind(3)*dUind(3));
+		/* angolo di cui è ruotata la trazione */
+		dXi = atan2(F(3), F(2)) - M_PI/2.;
+	}
 	
 	ResetForce();
 	WorkVec.Resize(0);	
@@ -613,9 +858,19 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 void
 CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
 {
+	
+	/* colcolo la posizione azimutale della prima pala */
+	if (bFlagIsFirstBlade == 1) {
+		Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
+		doublereal d1 = XRel.dGet(2);
+		doublereal d2 = XRel.dGet(3);
+		dAzimuth = atan2(d2, d1);
+		bFlagIsFirstBlade = 0;
+	}
+
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
-		Res.AddForces(F, M, X);
+		Res.AddForces(F,M,X);
 		InducedVelocity::AddForce(uL, F, M, X);
 	} else {
 		Res.AddForce(F);
@@ -625,18 +880,16 @@ CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const
 Vec3
 CyclocopterPolimi::GetInducedVelocity(const Vec3& X) const
 {
+	Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
 
-	//Vec3 XRel(RRotorTranspose*(X-Res.Pole()));
-	Vec3 XRel(RRotorTranspose*(X - pRotor->GetXCurr()));
-
-	doublereal d1 = XRel(2);
-	doublereal d2 = XRel(3);
+	doublereal d1 = XRel.dGet(2);
+	doublereal d2 = XRel.dGet(3);
 
 	/* dPsi0 non serve a nulla perchè uso l'angolo
 	 * relativo: (dp-dXi)!!! */
-	doublereal dp = atan2(d2, d1);
+	doublereal dpp = atan2(d2, d1);
 
-	doublereal r = sqrt(d1*d1 + d2*d2)*cos(dp - dXi);
+	doublereal r = sqrt(d1*d1+d2*d2)*cos(dpp-dXi);
 	
 	return RRotor*((dUind*(M_PI/2.))*cos((M_PI/2.)*(r/dRadius)));
 
@@ -749,9 +1002,9 @@ ReadCyclocopter(DataManager* pDM,
 		UNKNOWN = -1,
 		type = 0,
 		NO,
-		UNIFORM1D,
-		UNIFORM2D,
-		POLIMI,
+		uniform1D,
+		uniform2D,
+		polimi,
 		KARI,
 
 		LASTKEYWORD
@@ -764,7 +1017,7 @@ ReadCyclocopter(DataManager* pDM,
         	CyclocopterInducedType = KeyWords(HP.GetWord());
 	}
 
-	switch (CyclocopterInducedType) {
+	switch( CyclocopterInducedType ) {
 	case NO: {
 		ResForceSet **ppres = ReadResSets(pDM, HP);
 
@@ -775,14 +1028,13 @@ ReadCyclocopter(DataManager* pDM,
  
 		break;
 	}
-
-	case UNIFORM1D:	
-	case UNIFORM2D:	
-	case POLIMI: {
-		doublereal dOR = HP.GetReal();
-		if (dOR <= 0.) {
-			silent_cerr("Illegal null or negative "
-				"reference speed for rotor" << uLabel
+	case uniform1D:	
+	case uniform2D:	
+	case polimi:	{
+		unsigned int iFlagAve = HP.GetInt();
+		if ( (iFlagAve != 0) && (iFlagAve != 1) ) {
+			silent_cerr("Illegal input "
+				"for rotor" << uLabel
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -845,36 +1097,32 @@ ReadCyclocopter(DataManager* pDM,
 
 	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
 
-		switch (CyclocopterInducedType) {
-		case UNIFORM1D:
+		switch( CyclocopterInducedType ) {
+		case uniform1D: {
 			pEl = new CyclocopterUniform1D(uLabel, pDO,
 				pCraft, rrot, pRotor,
-  				ppres, dOR, dR, dL,
+  				ppres, iFlagAve, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-
-		case UNIFORM2D:
+		}
+		case uniform2D: {
 			pEl = new CyclocopterUniform2D(uLabel, pDO,
 				pCraft, rrot, pRotor,
-  				ppres, dOR, dR, dL,
+  				ppres, iFlagAve, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-
-		case POLIMI:
+		}
+		case polimi: {
 			pEl = new CyclocopterPolimi(uLabel, pDO,
 				pCraft, rrot, pRotor,
-  				ppres, dOR, dR, dL,
+  				ppres, iFlagAve, dR, dL,
 				dOmegaFilter, dDeltaT, pdW, fOut);
 			break;
-
-		default:
-			// impossible
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		}
 		break;
 		
 	}
-
 	case KARI: {
      		ResForceSet **ppres = ReadResSets(pDM, HP);
 
@@ -884,7 +1132,6 @@ ReadCyclocopter(DataManager* pDM,
   			ppres, fOut);
 		break;
 	}
-
 	default:
 		silent_cerr("Rotor(" << uLabel << "): "
 			"unknown cyclocopter inflow model "
