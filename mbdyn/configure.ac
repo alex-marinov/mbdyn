@@ -345,10 +345,10 @@ dnl
 dnl detect and configure swig for python bindings
 dnl
 dnl AX_PKG_SWIG(1.3.17, [], [ AC_MSG_ERROR([SWIG required]) ])
-dnl AX_PKG_SWIG
-dnl AX_SWIG_ENABLE_CXX
-dnl AX_SWIG_MULTI_MODULE_SUPPORT
-dnl AX_SWIG_PYTHON
+AX_PKG_SWIG
+AX_SWIG_ENABLE_CXX
+AX_SWIG_MULTI_MODULE_SUPPORT
+AX_SWIG_PYTHON
 
 dnl ----------------------------------------------------------------
 dnl

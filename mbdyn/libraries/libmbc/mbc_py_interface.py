@@ -8,9 +8,9 @@ except ImportError:
         print "Import Error: mbc_py module"
 
 class mbcNodal:
-	def __init__(self, path, host, port, data_and_next, verbose, rigid, nodes, labels, rot, accels):
+	def __init__(self, path, host, port, timeout, verbose, data_and_next, rigid, nodes, labels, rot, accels):
 		""" initialize the module """
-		if mbc_py.mbc_py_nodal_initialize(path, host, port, data_and_next, verbose, rigid, nodes, labels, rot, accels):
+		if mbc_py.mbc_py_nodal_initialize(path, host, port, timeout, verbose, data_and_next, rigid, nodes, labels, rot, accels):
 			print "mbc_py_nodal_initialize: error";
 			raise Exception;
 		""" set pointers """

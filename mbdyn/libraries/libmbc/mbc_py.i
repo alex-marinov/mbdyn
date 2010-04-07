@@ -8,7 +8,7 @@
         extern int
         mbc_py_nodal_initialize(const char *const path,
                 const char *const host, unsigned port,
-                unsigned data_and_next, unsigned verbose,
+                int timeout, unsigned verbose, unsigned data_and_next,
                 unsigned rigid, unsigned nodes,
                 unsigned labels, unsigned rot, unsigned accels);
 
@@ -26,7 +26,7 @@
 int
 mbc_py_nodal_initialize(const char *path,
         const char *host, unsigned port,
-        unsigned data_and_next, unsigned verbose,
+        int timeout, unsigned verbose, unsigned data_and_next,
         unsigned rigid, unsigned nodes,
         unsigned labels, unsigned rot, unsigned accels);
 

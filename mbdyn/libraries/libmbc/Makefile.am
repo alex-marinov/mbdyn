@@ -31,15 +31,11 @@ mbc_py_global.i \
 mbc_py_global.h \
 mbc_py_wrap.cc
 
-SWIG = swig
-SWIG_LANG = -python
-SWIG_FLAGS = -c++ -I/usr/local/share/swig/1.3.40 -I/usr/local/share/swig/1.3.40/python
-PYTHON_INCLUDES = -I/usr/include/python2.4 -I/usr/lib/python2.4/site-packages/numpy/core/include
-
-INCLUDES += $(PYTHON_INCLUDES)
+SWIG_FLAGS = @SWIG_LIB@
+INCLUDES += $(AX_SWIG_PYTHON_CPPFLAGS)
 
 mbc_py_wrap.cc: $(srcdir)/mbc_py.i $(srcdir)/mbc_py_global.h
-	$(SWIG) $(SWIG_LANG) $(SWIG_FLAGS) -o $@ $<
+	$(SWIG) $(SWIG_FLAGS) $(AX_SWIG_PYTHON_OPT) -o $@ $<
 
 libmbc_py_la_LIBADD = @LIBS@ libmbc.la
 libmbc_py_la_LDFLAGS =

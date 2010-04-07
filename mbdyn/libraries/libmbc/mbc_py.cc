@@ -31,6 +31,8 @@
 
 #include "mbc_py.h"
 
+#include <iostream>
+
 uint32_t *mbc_r_k_label;
 double *mbc_r_x;
 double *mbc_r_theta;
@@ -88,10 +90,28 @@ static mbc_nodal_t priv_mbc, *mbc = &priv_mbc;
 int
 mbc_py_nodal_initialize(const char *const path,
 	const char *const host, unsigned port,
-	unsigned data_and_next, unsigned verbose,
+	int timeout, unsigned verbose, unsigned data_and_next,
 	unsigned rigid, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels)
 {
+	::mbc->mbc.data_and_next = data_and_next;
+	::mbc->mbc.verbose = verbose;
+	::mbc->mbc.timeout = timeout;
+
+	if (::mbc->mbc.verbose) {
+		if (path && path[0]) {
+			std::cout << "connecting to path=" << path << std::endl;
+		} else {
+			std::cout << "connecting to host=" << host << ":" << port << std::endl;
+		}
+
+		if (::mbc->mbc.timeout < 0) {
+			std::cout << "timeout=forever" << std::endl;
+		} else {
+			std::cout << "timeout=" << ::mbc->mbc.timeout << std::endl;
+		}
+	}
+
 	if (path && path[0]) {
 		if (mbc_unix_init((mbc_t *)::mbc, path)) {
 			return -1;
@@ -105,9 +125,6 @@ mbc_py_nodal_initialize(const char *const path,
 	} else {
 		return -1;
 	}
-
-	::mbc->mbc.data_and_next = data_and_next;
-	::mbc->mbc.verbose = verbose;
 
 	if (mbc_nodal_init(::mbc, rigid, nodes, labels, rot, accels)) {
 		return -1;
