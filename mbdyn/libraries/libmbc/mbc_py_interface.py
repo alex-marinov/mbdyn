@@ -10,9 +10,9 @@ except ImportError:
 class mbcNodal:
 	def __init__(self, path, host, port, data_and_next, verbose, rigid, nodes, labels, rot, accels):
 		""" initialize the module """
-		mbc_py.mbc_py_nodal_initialize(path, host, port, data_and_next, verbose, rigid, nodes, labels, rot, accels);
-
-	def get_ptr(self):
+		if mbc_py.mbc_py_nodal_initialize(path, host, port, data_and_next, verbose, rigid, nodes, labels, rot, accels):
+			print "mbc_py_nodal_initialize: error";
+			raise Exception;
 		""" set pointers """
 		self.r_k_label = mbc_py.cvar.mbc_r_k_label;
 		self.r_x = mbc_py.cvar.mbc_r_x;
@@ -68,11 +68,11 @@ class mbcNodal:
 
 	def send(self, last):
 		""" send forces to peer """
-		mbc_py.mbc_py_nodal_send(last);
+		return mbc_py.mbc_py_nodal_send(last);
 
 	def recv(self):
 		""" receive kinematics from peer """
-		mbc_py.mbc_py_nodal_recv();
+		return mbc_py.mbc_py_nodal_recv();
 
 	def destroy(self):
 		""" destroy handler """

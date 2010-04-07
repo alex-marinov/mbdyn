@@ -1,5 +1,5 @@
 
-%typemap(varout) uint32_t *mbc_r_k_label
+%typemap(varout) unsigned *mbc_r_k_label
 {
         if ($1 == NULL) {
                 $result = Py_None;
@@ -170,7 +170,7 @@
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
 }
 
-%typemap(varout) uint32_t *mbc_r_d_label
+%typemap(varout) unsigned *mbc_r_d_label
 {
         if ($1 == NULL) {
                 $result = Py_None;
@@ -227,7 +227,7 @@
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
 }
 
-%typemap(varout) uint32_t *mbc_n_k_labels
+%typemap(varout) unsigned *mbc_n_k_labels
 {
         if ($1 == NULL) {
                 $result = Py_None;
@@ -398,7 +398,7 @@
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
 }
 
-%typemap(varout) uint32_t *mbc_n_d_labels
+%typemap(varout) unsigned *mbc_n_d_labels
 {
         if ($1 == NULL) {
                 $result = Py_None;

@@ -33,14 +33,14 @@
 #define MBC_GLOBAL_PY_H
 
 #ifdef SWIG
-%import "mbc_py.i"
+%import "mbc_py_global.i"
 #endif // SWIG
 
 #ifndef extern_t
 #define extern_t extern
 #endif // extern_t
 
-extern_t uint32_t *mbc_r_k_label;
+extern_t unsigned *mbc_r_k_label;
 extern_t double *mbc_r_x;
 extern_t double *mbc_r_theta;
 extern_t double *mbc_r_r;
@@ -49,24 +49,24 @@ extern_t double *mbc_r_xp;
 extern_t double *mbc_r_omega;
 extern_t double *mbc_r_xpp;
 extern_t double *mbc_r_omegap;
-extern_t uint32_t *mbc_r_d_label;
+extern_t unsigned *mbc_r_d_label;
 extern_t double *mbc_r_f;
 extern_t double *mbc_r_m;
 
-extern_t uint32_t mbc_r_k_label_size;
-extern_t uint32_t mbc_r_x_size;
-extern_t uint32_t mbc_r_theta_size;
-extern_t uint32_t mbc_r_r_size;
-extern_t uint32_t mbc_r_euler_123_size;
-extern_t uint32_t mbc_r_xp_size;
-extern_t uint32_t mbc_r_omega_size;
-extern_t uint32_t mbc_r_xpp_size;
-extern_t uint32_t mbc_r_omegap_size;
-extern_t uint32_t mbc_r_d_label_size;
-extern_t uint32_t mbc_r_f_size;
-extern_t uint32_t mbc_r_m_size;
+extern_t unsigned mbc_r_k_label_size;
+extern_t unsigned mbc_r_x_size;
+extern_t unsigned mbc_r_theta_size;
+extern_t unsigned mbc_r_r_size;
+extern_t unsigned mbc_r_euler_123_size;
+extern_t unsigned mbc_r_xp_size;
+extern_t unsigned mbc_r_omega_size;
+extern_t unsigned mbc_r_xpp_size;
+extern_t unsigned mbc_r_omegap_size;
+extern_t unsigned mbc_r_d_label_size;
+extern_t unsigned mbc_r_f_size;
+extern_t unsigned mbc_r_m_size;
 
-extern_t uint32_t *mbc_n_k_labels;
+extern_t unsigned *mbc_n_k_labels;
 extern_t double *mbc_n_x;
 extern_t double *mbc_n_theta;
 extern_t double *mbc_n_r;
@@ -75,21 +75,21 @@ extern_t double *mbc_n_xp;
 extern_t double *mbc_n_omega;
 extern_t double *mbc_n_xpp;
 extern_t double *mbc_n_omegap;
-extern_t uint32_t *mbc_n_d_labels;
+extern_t unsigned *mbc_n_d_labels;
 extern_t double *mbc_n_f;
 extern_t double *mbc_n_m;
 
-extern_t uint32_t mbc_n_k_labels_size;
-extern_t uint32_t mbc_n_x_size;
-extern_t uint32_t mbc_n_theta_size;
-extern_t uint32_t mbc_n_r_size;
-extern_t uint32_t mbc_n_euler_123_size;
-extern_t uint32_t mbc_n_xp_size;
-extern_t uint32_t mbc_n_omega_size;
-extern_t uint32_t mbc_n_xpp_size;
-extern_t uint32_t mbc_n_omegap_size;
-extern_t uint32_t mbc_n_d_labels_size;
-extern_t uint32_t mbc_n_f_size;
-extern_t uint32_t mbc_n_m_size;
+extern_t unsigned mbc_n_k_labels_size;
+extern_t unsigned mbc_n_x_size;
+extern_t unsigned mbc_n_theta_size;
+extern_t unsigned mbc_n_r_size;
+extern_t unsigned mbc_n_euler_123_size;
+extern_t unsigned mbc_n_xp_size;
+extern_t unsigned mbc_n_omega_size;
+extern_t unsigned mbc_n_xpp_size;
+extern_t unsigned mbc_n_omegap_size;
+extern_t unsigned mbc_n_d_labels_size;
+extern_t unsigned mbc_n_f_size;
+extern_t unsigned mbc_n_m_size;
 
 #endif // MBC_PY_H

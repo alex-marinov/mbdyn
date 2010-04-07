@@ -85,7 +85,7 @@ uint32_t mbc_n_m_size;
 
 static mbc_nodal_t priv_mbc, *mbc = &priv_mbc;
 
-void
+int
 mbc_py_nodal_initialize(const char *const path,
 	const char *const host, unsigned port,
 	unsigned data_and_next, unsigned verbose,
@@ -94,27 +94,27 @@ mbc_py_nodal_initialize(const char *const path,
 {
 	if (path && path[0]) {
 		if (mbc_unix_init((mbc_t *)::mbc, path)) {
-			return;
+			return -1;
 		}
 
 	} else if (host && host[0]) {
 		if (mbc_inet_init((mbc_t *)::mbc, host, port)) {
-			return;
+			return -1;
 		}
 
 	} else {
-		return;
+		return -1;
 	}
 
 	::mbc->mbc.data_and_next = data_and_next;
 	::mbc->mbc.verbose = verbose;
 
 	if (mbc_nodal_init(::mbc, rigid, nodes, labels, rot, accels)) {
-		return;
+		return -1;
 	}
 
 	if (mbc_nodal_negotiate_request(::mbc)) {
-		return;
+		return -1;
 	}
 
 	if (rigid) {
@@ -208,28 +208,20 @@ mbc_py_nodal_initialize(const char *const path,
 		mbc_n_m = MBC_N_M(::mbc);
 		mbc_n_m_size = 3*nodes;
 	}
+
+	return 0;
 }
 
-void
-mbc_py_get_ptr(void)
-{
-	return;
-}
-
-void
+int
 mbc_py_nodal_send(int last)
 {
-	if (mbc_nodal_put_forces(::mbc, last)) {
-		// error
-	}
+	return mbc_nodal_put_forces(::mbc, last);
 }
 
-void
+int
 mbc_py_nodal_recv(void)
 {
-	if (mbc_nodal_get_motion(::mbc)) {
-		// error
-	}
+	return mbc_nodal_get_motion(::mbc);
 }
 
 void
