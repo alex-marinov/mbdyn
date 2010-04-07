@@ -40,6 +40,8 @@
 #define extern_t extern
 #endif // extern_t
 
+/* rigid body global data */
+
 extern_t unsigned *mbc_r_k_label;
 extern_t double *mbc_r_x;
 extern_t double *mbc_r_theta;
@@ -66,6 +68,8 @@ extern_t unsigned mbc_r_d_label_size;
 extern_t unsigned mbc_r_f_size;
 extern_t unsigned mbc_r_m_size;
 
+/* nodal element global data */
+
 extern_t unsigned *mbc_n_k_labels;
 extern_t double *mbc_n_x;
 extern_t double *mbc_n_theta;
@@ -91,5 +95,15 @@ extern_t unsigned mbc_n_omegap_size;
 extern_t unsigned mbc_n_d_labels_size;
 extern_t unsigned mbc_n_f_size;
 extern_t unsigned mbc_n_m_size;
+
+/* modal element global data */
+
+extern_t double *mbc_m_q;
+extern_t double *mbc_m_qp;
+extern_t double *mbc_m_p;
+
+extern_t uint32_t mbc_m_q_size;
+extern_t uint32_t mbc_m_qp_size;
+extern_t uint32_t mbc_m_p_size;
 
 #endif // MBC_PY_H

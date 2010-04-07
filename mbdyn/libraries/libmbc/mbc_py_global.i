@@ -1,3 +1,33 @@
+# $Header$
+#
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2010
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
 
 %typemap(varout) unsigned *mbc_r_k_label
 {
@@ -451,6 +481,63 @@
 }
 
 %typemap(varin) double *mbc_n_m
+{
+        Py_INCREF($input);
+        $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+}
+
+%typemap(varout) double *mbc_m_q
+{
+        if ($1 == NULL) {
+                $result = Py_None;
+        } else {
+                PyArrayObject *tmp;
+                int dims[1];
+                dims[0] = mbc_m_q_size;
+                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                $result = (PyObject *)tmp;
+        }
+}
+
+%typemap(varin) double *mbc_m_q
+{
+        Py_INCREF($input);
+        $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+}
+
+%typemap(varout) double *mbc_m_qp
+{
+        if ($1 == NULL) {
+                $result = Py_None;
+        } else {
+                PyArrayObject *tmp;
+                int dims[1];
+                dims[0] = mbc_m_qp_size;
+                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                $result = (PyObject *)tmp;
+        }
+}
+
+%typemap(varin) double *mbc_m_qp
+{
+        Py_INCREF($input);
+        $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+}
+
+%typemap(varout) double *mbc_m_p
+{
+        if ($1 == NULL) {
+                $result = Py_None;
+        } else {
+                PyArrayObject *tmp;
+                int dims[1];
+                dims[0] = mbc_m_p_size;
+                tmp = (PyArrayObject *)PyArray_FromDimsAndData(1,dims,PyArray_DOUBLE,(char *)$1);
+                $result = (PyObject *)tmp;
+        }
+}
+
+%typemap(varin) double *mbc_m_p
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
