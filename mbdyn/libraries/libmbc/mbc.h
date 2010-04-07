@@ -39,6 +39,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include <stdint.h>
+
 /* legal commands */
 enum ESCmd {
 	ES_UNKNOWN				= -1,

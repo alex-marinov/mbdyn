@@ -193,6 +193,7 @@ OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithr
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output],no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output],no)dnl
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
+OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -338,6 +339,16 @@ fi
 
 dnl AM_DISABLE_SHARED dnl Remove when you want to build shared libs also
 AM_PROG_LIBTOOL
+
+dnl ----------------------------------------------------------------
+dnl
+dnl detect and configure swig for python bindings
+dnl
+dnl AX_PKG_SWIG(1.3.17, [], [ AC_MSG_ERROR([SWIG required]) ])
+dnl AX_PKG_SWIG
+dnl AX_SWIG_ENABLE_CXX
+dnl AX_SWIG_MULTI_MODULE_SUPPORT
+dnl AX_SWIG_PYTHON
 
 dnl ----------------------------------------------------------------
 dnl
@@ -575,6 +586,15 @@ if test "$ol_enable_netcdf" != no ; then
 	if test $have_libudunits = yes ; then
 		AC_DEFINE(USE_UDUNITS,1,[define this to enable udunits in NetCDF based output])
 	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable Python support
+dnl
+use_python=no
+if test "$ol_enable_python" != no ; then
+	use_python=yes
 fi
 
 dnl ----------------------------------------------------------------
@@ -2448,6 +2468,7 @@ AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
+AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
