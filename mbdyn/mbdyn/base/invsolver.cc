@@ -92,12 +92,12 @@ pXPrimePrime(NULL), pLambda(NULL)
 void
 InverseSolver::Run(void)
 {
-   	DEBUGCOUTFNAME("InverseSolver::Run");
+	DEBUGCOUTFNAME("InverseSolver::Run");
 
 	mbdyn_signal_init(1);
 
-   	/* Legge i dati relativi al metodo di integrazione */
-   	ReadData(HP);
+	/* Legge i dati relativi al metodo di integrazione */
+	ReadData(HP);
 
 /*FIXME:*/	
 //	bParallel = false;
@@ -331,8 +331,8 @@ InverseSolver::Run(void)
 	}
 	HP.Close();
 
-   	/* Si fa dare l'std::ostream al file di output per il log */
-   	std::ostream& Out = pDM->GetOutFile();
+	/* Si fa dare l'std::ostream al file di output per il log */
+	std::ostream& Out = pDM->GetOutFile();
 
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
 #ifdef USE_SCHUR
@@ -343,8 +343,8 @@ InverseSolver::Run(void)
 
 	const DriveHandler* pDH = pDM->pGetDrvHdl();
 	pRegularSteps->SetDriveHandler(pDH);
-   	/* Costruisce i vettori della soluzione ai vari passi */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
+	/* Costruisce i vettori della soluzione ai vari passi */
+	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
 #ifdef USE_SCHUR
 	if (bParallel) {
@@ -360,7 +360,7 @@ InverseSolver::Run(void)
 	} else
 #endif // USE_SCHUR
 	{
-   		iNumDofs = pDM->iGetNumDofs();
+		iNumDofs = pDM->iGetNumDofs();
 	}
 
 	/* relink those known drive callers that might need
@@ -369,7 +369,7 @@ InverseSolver::Run(void)
 		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
 	}
 
-   	ASSERT(iNumDofs > 0);
+	ASSERT(iNumDofs > 0);
 	
 	/* sono i passi precedenti usati dall'integratore */
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
@@ -382,13 +382,13 @@ InverseSolver::Run(void)
 		2*(iNumPreviousVectors)*iNumDofs);
 	/* allocate MyVectorHandlers for previous time steps: use workspace */
 	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-   		SAFENEWWITHCONSTRUCTOR(pX,
-			       	MyVectorHandler,
-			       	MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
+		SAFENEWWITHCONSTRUCTOR(pX,
+			MyVectorHandler,
+			MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
 		qX.push_back(pX);
-   		SAFENEWWITHCONSTRUCTOR(pXPrime,
-			       	MyVectorHandler,
-			       	MyVectorHandler(iNumDofs,
+		SAFENEWWITHCONSTRUCTOR(pXPrime,
+			MyVectorHandler,
+			MyVectorHandler(iNumDofs,
 				pdWorkSpace+((iNumPreviousVectors)+ivec)*iNumDofs));
 		qXPrime.push_back(pXPrime);
 		pX = NULL;
@@ -398,24 +398,24 @@ InverseSolver::Run(void)
 #endif
 
 	SAFENEWWITHCONSTRUCTOR(pX,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 	SAFENEWWITHCONSTRUCTOR(pXPrime,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 	SAFENEWWITHCONSTRUCTOR(pXPrimePrime,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 	SAFENEWWITHCONSTRUCTOR(pLambda,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 
 	pX->Reset();
 	pXPrime->Reset();
 	pXPrimePrime->Reset();
 	pLambda->Reset();
 
-   	/*
+	/*
 	 * Immediately link DataManager to current solution
 	 *
 	 * this should work as long as the last unknown time step is put
@@ -564,33 +564,33 @@ InverseSolver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
-   	long lStep = 0;                      
-   	doublereal dCurrTimeStep = 0.;
+	long lStep = 0;                      
+	doublereal dCurrTimeStep = 0.;
 
 #ifdef USE_EXTERNAL
-         /* comunica che gli ultimi dati inviati sono la condizione iniziale */
-                 External::SendInitial();
+	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
+	External::SendInitial();
 #endif /* USE_EXTERNAL */
 
-   	/* Output delle "condizioni iniziali" */
-   	pDM->Output(lStep, dTime, dCurrTimeStep);
+	/* Output delle "condizioni iniziali" */
+	pDM->Output(lStep, dTime, dCurrTimeStep);
 
 #ifdef USE_EXTERNAL
-        /* il prossimo passo e' un regular */
+	/* il prossimo passo e' un regular */
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-   	lStep = 1; /* Resetto di nuovo lStep */
-   	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
+	lStep = 1; /* Resetto di nuovo lStep */
+	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
-   	if (mbdyn_stop_at_end_of_time_step()) {
-      		/* Fa l'output della soluzione al primo passo ed esce */
-      		Out << "Interrupted during first step." << std::endl;
-      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-   	}
+	if (mbdyn_stop_at_end_of_time_step()) {
+		/* Fa l'output della soluzione al primo passo ed esce */
+		Out << "Interrupted during first step." << std::endl;
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (outputMsg()) {
-      		Out
+		Out
 			<< "Step " << lStep
 			<< " " << dTime+dCurrTimeStep
 			<< " " << dCurrTimeStep
@@ -602,7 +602,7 @@ InverseSolver::Run(void)
 	}
 	
 	bSolConv = false;
-   	dRefTimeStep = dInitialTimeStep;
+	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
 
 	if (pRTSolver) {
@@ -623,7 +623,7 @@ InverseSolver::Run(void)
 		StepIntegrator::StepChange CurrStep
 				= StepIntegrator::NEWSTEP;
 
-      		if (dTime >= dFinalTime) {
+		if (dTime >= dFinalTime) {
 			if (pRTSolver) {
 				pRTSolver->StopCommanded();
 			}
@@ -653,7 +653,7 @@ InverseSolver::Run(void)
 			pRTSolver->Log();
 			return;
 
-      		} else if (mbdyn_stop_at_end_of_time_step()
+		} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
 				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
 #endif /* USE_MPI */
@@ -663,8 +663,8 @@ InverseSolver::Run(void)
 				pRTSolver->StopCommanded();
 			}
 
-	 		silent_cout("Interrupted!" << std::endl
-	   			<< "Simulation ended at time "
+			silent_cout("Interrupted!" << std::endl
+				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -675,10 +675,10 @@ InverseSolver::Run(void)
 				pRTSolver->Log();
 			}
 
-	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-      		}
+			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+		}
 
-      		lStep++;
+		lStep++;
 
 		if (pRTSolver) {
 			pRTSolver->Wait();
@@ -705,7 +705,7 @@ IfStepIsToBeRepeated:
 					<< iStIter << " iterations"
 					<< std::endl);
 				goto IfStepIsToBeRepeated;
-	    		} else {
+			} else {
 				silent_cerr("Max iterations number "
 					<< pRegularSteps->GetIntegratorMaxIters()
 					<< " has been reached during"
@@ -716,7 +716,7 @@ IfStepIsToBeRepeated:
 					<< " cannot be reduced"
 					" further;" << std::endl
 					<< "aborting..." << std::endl);
-	       			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -754,7 +754,7 @@ IfStepIsToBeRepeated:
 				pRTSolver->StopCommanded();
 			}
 
-	 		silent_cout("Simulation ended at time "
+			silent_cout("Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -765,19 +765,19 @@ IfStepIsToBeRepeated:
 				pRTSolver->Log();
 			}
 
-	 		return;
-      		}
+			return;
+		}
 		catch (...) {
 			throw;
 		}
 
-	      	dTotErr += dTest;
-      		iTotIter += iStIter;
-      		
+		dTotErr += dTest;
+		iTotIter += iStIter;
+
 		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
-      			Out << "Step " << lStep
+			Out << "Step " << lStep
 				<< " " << dTime+dCurrTimeStep
 				<< " " << dCurrTimeStep
 				<< " " << iStIter
@@ -787,46 +787,46 @@ IfStepIsToBeRepeated:
 				<< std::endl;
 		}
 
-     	 	DEBUGCOUT("Step " << lStep
+		DEBUGCOUT("Step " << lStep
 			<< " has been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 
-	      	dRefTimeStep = dCurrTimeStep;
-      		dTime += dRefTimeStep;
+		dRefTimeStep = dCurrTimeStep;
+		dTime += dRefTimeStep;
 
 		bSolConv = false;
 		
-      		/* Calcola il nuovo timestep */
-      		dCurrTimeStep =
+		/* Calcola il nuovo timestep */
+		dCurrTimeStep =
 			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-   	} // while (true)  END OF ENDLESS-LOOP
+	} // while (true)  END OF ENDLESS-LOOP
 }  // InverseSolver::Run()
 
 /* Distruttore */
 InverseSolver::~InverseSolver(void)
 {
-   	DEBUGCOUTFNAME("Solver::~Solver");
+	DEBUGCOUTFNAME("Solver::~Solver");
 
-   	if (sInputFileName != NULL) {
-      		SAFEDELETEARR(sInputFileName);
-   	}
+	if (sInputFileName != NULL) {
+		SAFEDELETEARR(sInputFileName);
+	}
 
-   	if (sOutputFileName != NULL) {
-      		SAFEDELETEARR(sOutputFileName);
-   	}
+	if (sOutputFileName != NULL) {
+		SAFEDELETEARR(sOutputFileName);
+	}
 
 	SAFEDELETE(pX);
 	SAFEDELETE(pXPrime);
 	SAFEDELETE(pXPrimePrime);
 	SAFEDELETE(pLambda);
 
-   	if (pdWorkSpace != NULL) {
-      		SAFEDELETEARR(pdWorkSpace);
-   	}
+	if (pdWorkSpace != NULL) {
+		SAFEDELETEARR(pdWorkSpace);
+	}
 
-   	if (pDM != NULL) {
-      		SAFEDELETE(pDM);
+	if (pDM != NULL) {
+		SAFEDELETE(pDM);
 	}
 
 	if (pRegularSteps) {
@@ -945,11 +945,11 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 void
 InverseSolver::ReadData(MBDynParser& HP)
 {
-   	DEBUGCOUTFNAME("InverseDynamics::ReadData");
+	DEBUGCOUTFNAME("InverseDynamics::ReadData");
 
-   	/* parole chiave */
-   	const char* sKeyWords[] = {
-      		"begin",
+	/* parole chiave */
+	const char* sKeyWords[] = {
+		"begin",
 		"inverse" "dynamics",
 		"end",
 		
@@ -1022,11 +1022,11 @@ InverseSolver::ReadData(MBDynParser& HP)
 		"threads",
 
 		NULL
-   	};
+	};
 
-   	/* enum delle parole chiave */
-   	enum KeyWords {
-      		UNKNOWN = -1,
+	/* enum delle parole chiave */
+	enum KeyWords {
+		UNKNOWN = -1,
 		BEGIN = 0,
 		INVERSEDYNAMICS,
 		END,
@@ -1095,44 +1095,44 @@ InverseSolver::ReadData(MBDynParser& HP)
 		THREADS,
 
 		LASTKEYWORD
-   	};
+	};
 
-   	/* tabella delle parole chiave */
-   	KeyTable K(HP, sKeyWords);
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
 
-   	/* legge i dati della simulazione */
-   	if (KeyWords(HP.GetDescription()) != BEGIN) {
-      		silent_cerr("Error: <begin> expected at line "
+	/* legge i dati della simulazione */
+	if (KeyWords(HP.GetDescription()) != BEGIN) {
+		silent_cerr("Error: <begin> expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-   	if (KeyWords(HP.GetWord()) != INVERSEDYNAMICS) {
-      		silent_cerr("Error: <begin: inverse dynamics;> expected at line "
+	if (KeyWords(HP.GetWord()) != INVERSEDYNAMICS) {
+		silent_cerr("Error: <begin: inverse dynamics;> expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-   	bool bMethod(false);
-   	bool bFictitiousStepsMethod(false);
+	bool bMethod(false);
+	bool bFictitiousStepsMethod(false);
 
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
 	 */
 
 	doublereal dTol = ::dDefaultTol;
-   	doublereal dSolutionTol = 0.;
-   	integer iMaxIterations = ::iDefaultMaxIterations;
+	doublereal dSolutionTol = 0.;
+	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
-        /* Dati dei passi fittizi di trimmaggio iniziale */
-   	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
-   	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
+	/* Dati dei passi fittizi di trimmaggio iniziale */
+	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
+	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
 
-   	/* Dati del passo iniziale di calcolo delle derivate */
+	/* Dati del passo iniziale di calcolo delle derivate */
 
 	doublereal dDerivativesTol = ::dDefaultTol;
-   	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
+	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -1140,41 +1140,41 @@ InverseSolver::ReadData(MBDynParser& HP)
 #endif /* USE_MULTITHREAD */
 
 
-   	/* Ciclo infinito */
-   	while (true) {
-      		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
+	/* Ciclo infinito */
+	while (true) {
+		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
 
-      		switch (CurrKeyWord) {
-       		case INITIALTIME:
-	  		dInitialTime = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
-				   << dInitialTime << std::endl);
-	  		break;
+		switch (CurrKeyWord) {
+		case INITIALTIME:
+			dInitialTime = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
+				<< dInitialTime << std::endl);
+			break;
 
-       		case FINALTIME:
-	  		dFinalTime = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
-				   << dFinalTime << std::endl);
+		case FINALTIME:
+			dFinalTime = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
+				<< dFinalTime << std::endl);
 
-	  		if(dFinalTime <= dInitialTime) {
-	     			silent_cerr("warning: final time " << dFinalTime
-	       				<< " is less than initial time "
+			if(dFinalTime <= dInitialTime) {
+				silent_cerr("warning: final time " << dFinalTime
+					<< " is less than initial time "
 					<< dInitialTime << ';' << std::endl
-	       				<< "this will cause the simulation"
+					<< "this will cause the simulation"
 					" to abort" << std::endl);
 			}
-	  		break;
+			break;
 
-       		case TIMESTEP:
-	  		dInitialTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
-				   << dInitialTimeStep << std::endl);
+		case TIMESTEP:
+			dInitialTimeStep = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
+				<< dInitialTimeStep << std::endl);
 
-	  		if (dInitialTimeStep == 0.) {
-	     			silent_cerr("warning, null initial time step"
+			if (dInitialTimeStep == 0.) {
+				silent_cerr("warning, null initial time step"
 					" is not allowed" << std::endl);
-	  		} else if (dInitialTimeStep < 0.) {
-	     			dInitialTimeStep = -dInitialTimeStep;
+			} else if (dInitialTimeStep < 0.) {
+				dInitialTimeStep = -dInitialTimeStep;
 				silent_cerr("warning, negative initial time step"
 					" is not allowed;" << std::endl
 					<< "its modulus " << dInitialTimeStep
@@ -1182,30 +1182,30 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			break;
 
-       		case MINTIMESTEP:
-	  		dMinTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
-				   << dMinTimeStep << std::endl);
+		case MINTIMESTEP:
+			dMinTimeStep = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
+				<< dMinTimeStep << std::endl);
 
-	  		if (dMinTimeStep == 0.) {
-	     			silent_cerr("warning, null minimum time step"
+			if (dMinTimeStep == 0.) {
+				silent_cerr("warning, null minimum time step"
 					" is not allowed" << std::endl);
-	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			} else if (dMinTimeStep < 0.) {
 				dMinTimeStep = -dMinTimeStep;
 				silent_cerr("warning, negative minimum time step"
 					" is not allowed;" << std::endl
 					<< "its modulus " << dMinTimeStep
 					<< " will be considered" << std::endl);
-	  		}
-	  		break;
+			}
+			break;
 
-       		case MAXTIMESTEP:
-	  		dMaxTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
-				   << dMaxTimeStep << std::endl);
+		case MAXTIMESTEP:
+			dMaxTimeStep = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
+				<< dMaxTimeStep << std::endl);
 
-	  		if (dMaxTimeStep == 0.) {
+			if (dMaxTimeStep == 0.) {
 				silent_cout("no max time step limit will be"
 					" considered" << std::endl);
 			} else if (dMaxTimeStep < 0.) {
@@ -1214,48 +1214,48 @@ InverseSolver::ReadData(MBDynParser& HP)
 					" is not allowed;" << std::endl
 					<< "its modulus " << dMaxTimeStep
 					<< " will be considered" << std::endl);
-	  		}
-	  		break;
+			}
+			break;
 
-       		case ABORTAFTER: {
-	  		KeyWords WhenToAbort(KeyWords(HP.GetWord()));
-	  		switch (WhenToAbort) {
-	   		case INPUT:
-	      			eAbortAfter = AFTER_INPUT;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		"Simulation will abort after"
+		case ABORTAFTER: {
+			KeyWords WhenToAbort(KeyWords(HP.GetWord()));
+			switch (WhenToAbort) {
+			case INPUT:
+				eAbortAfter = AFTER_INPUT;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
 					" data input" << std::endl);
-	      			break;
+				break;
 
-	   		case ASSEMBLY:
-	     			eAbortAfter = AFTER_ASSEMBLY;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " initial assembly" << std::endl);
-	      			break;
+			case ASSEMBLY:
+				eAbortAfter = AFTER_ASSEMBLY;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" initial assembly" << std::endl);
+				break;
 
-	   		case DERIVATIVES:
-	      			eAbortAfter = AFTER_DERIVATIVES;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " derivatives solution" << std::endl);
-	      			break;
+			case DERIVATIVES:
+				eAbortAfter = AFTER_DERIVATIVES;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" derivatives solution" << std::endl);
+				break;
 
-	   		case FICTITIOUSSTEPS:
-	   		case DUMMYSTEPS:
-	      			eAbortAfter = AFTER_DUMMY_STEPS;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " dummy steps solution" << std::endl);
-	      			break;
+			case FICTITIOUSSTEPS:
+			case DUMMYSTEPS:
+				eAbortAfter = AFTER_DUMMY_STEPS;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" dummy steps solution" << std::endl);
+				break;
 
-	   		default:
-	      			silent_cerr("Don't know when to abort,"
+			default:
+				silent_cerr("Don't know when to abort,"
 					" so I'm going to abort now" << std::endl);
-	      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		break;
-       		}	
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+		}	
 
 		case OUTPUT: {
 			unsigned OF = OUTPUT_DEFAULT;
@@ -1463,8 +1463,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 				bTrueNewtonRaphson = 0;
 				if (HP.IsArg()) {
 					iIterationsBeforeAssembly = HP.GetInt();
-		  		} else {
-		       			iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
+				} else {
+					iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
@@ -1672,9 +1672,9 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
-    				bTrueNewtonRaphson = true;
+				bTrueNewtonRaphson = true;
 				bKeepJac = false;
-    				iIterationsBeforeAssembly = 0;
+				iIterationsBeforeAssembly = 0;
 
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
@@ -1767,7 +1767,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 							"eta coefficient "
 							"for iterative "
 							"solver: "
-	  						<< dIterertiveEtaMax
+							<< dIterertiveEtaMax
 							<< std::endl);
 				}
 
@@ -1893,8 +1893,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
-   	switch (CurrStrategy) {
-    	case FACTOR:
+	switch (CurrStrategy) {
+	case FACTOR:
 		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
 			silent_cerr("warning, "
 				<< "strategy maximum number "

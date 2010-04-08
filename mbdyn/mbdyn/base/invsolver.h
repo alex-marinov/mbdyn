@@ -75,9 +75,9 @@ protected:
 public:   
    	/* costruttore */
    	InverseSolver(MBDynParser& HP, 
-		       	    const char* sInputFileName, 
-			    const char* sOutputFileName,
-			    bool bParallel = false);
+		const char* sInputFileName, 
+		const char* sOutputFileName,
+		bool bParallel = false);
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	virtual ~InverseSolver(void);

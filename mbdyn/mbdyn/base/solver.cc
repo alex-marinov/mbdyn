@@ -120,28 +120,28 @@ __sighandler_t mbdyn_sh_pipe = SIG_DFL;
 extern "C" void
 mbdyn_really_exit_handler(int signum)
 {
-   	::mbdyn_keep_going = MBDYN_STOP_NOW;
-   	switch (signum) {
-    	case SIGTERM:
-      		signal(signum, ::mbdyn_sh_term);
-      		break;
+	::mbdyn_keep_going = MBDYN_STOP_NOW;
+	switch (signum) {
+	case SIGTERM:
+		signal(signum, ::mbdyn_sh_term);
+		break;
 
-    	case SIGINT:
-      		signal(signum, ::mbdyn_sh_int);
-      		break;
+	case SIGINT:
+		signal(signum, ::mbdyn_sh_int);
+		break;
 
 #ifdef SIGHUP
-    	case SIGHUP:
-      		signal(signum, ::mbdyn_sh_hup);
-      		break;
+	case SIGHUP:
+		signal(signum, ::mbdyn_sh_hup);
+		break;
 #endif // SIGHUP
 
 #ifdef SIGPIPE
-    	case SIGPIPE:
-      		signal(signum, ::mbdyn_sh_pipe);
-      		break;
+	case SIGPIPE:
+		signal(signum, ::mbdyn_sh_pipe);
+		break;
 #endif // SIGPIPE
-   	}
+	}
 
 	mbdyn_cleanup();
 
@@ -151,15 +151,15 @@ mbdyn_really_exit_handler(int signum)
 extern "C" void
 mbdyn_modify_last_iteration_handler(int signum)
 {
-   	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
-      	signal(signum, mbdyn_really_exit_handler);
+	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_ITERATION;
+	signal(signum, mbdyn_really_exit_handler);
 }
 
 extern "C" void
 mbdyn_modify_final_time_handler(int signum)
 {
-   	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_TIME_STEP;
-      	signal(signum, mbdyn_modify_last_iteration_handler);
+	::mbdyn_keep_going = MBDYN_STOP_AT_END_OF_TIME_STEP;
+	signal(signum, mbdyn_modify_last_iteration_handler);
 }
 #endif /* HAVE_SIGNAL */
 
@@ -356,12 +356,12 @@ pNLS(NULL)
 void
 Solver::Run(void)
 {
-   	DEBUGCOUTFNAME("Solver::Run");
+	DEBUGCOUTFNAME("Solver::Run");
 
 	mbdyn_signal_init(1);
 
-   	/* Legge i dati relativi al metodo di integrazione */
-   	ReadData(HP);
+	/* Legge i dati relativi al metodo di integrazione */
+	ReadData(HP);
 
 #ifdef USE_MULTITHREAD
 	/* check for thread potential */
@@ -592,23 +592,23 @@ Solver::Run(void)
 	// close input stream
 	HP.Close();
 
-   	/* Si fa dare l'std::ostream al file di output per il log */
-   	std::ostream& Out = pDM->GetOutFile();
+	/* Si fa dare l'std::ostream al file di output per il log */
+	std::ostream& Out = pDM->GetOutFile();
 
-   	if (eAbortAfter == AFTER_INPUT) {
-      		/* Esce */
+	if (eAbortAfter == AFTER_INPUT) {
+		/* Esce */
 		pDM->Output(0, dTime, 0., true);
-      		Out << "End of Input; no simulation or assembly is required."
+		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
-      		return;
+		return;
 
-   	} else if (eAbortAfter == AFTER_ASSEMBLY) {
-      		/* Fa l'output dell'assemblaggio iniziale e poi esce */
-      		pDM->Output(0, dTime, 0., true);
-      		Out << "End of Initial Assembly; no simulation is required."
+	} else if (eAbortAfter == AFTER_ASSEMBLY) {
+		/* Fa l'output dell'assemblaggio iniziale e poi esce */
+		pDM->Output(0, dTime, 0., true);
+		Out << "End of Initial Assembly; no simulation is required."
 			<< std::endl;
-      		return;
-   	}
+		return;
+	}
 
 #ifdef USE_SCHUR
 	/* Qui crea le partizioni: principale fra i processi, se parallelo  */
@@ -617,15 +617,15 @@ Solver::Run(void)
 	}
 #endif // USE_SCHUR
 
-   	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
-   	const DriveHandler* pDH = pDM->pGetDrvHdl();
-   	pRegularSteps->SetDriveHandler(pDH);
+	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
+	const DriveHandler* pDH = pDM->pGetDrvHdl();
+	pRegularSteps->SetDriveHandler(pDH);
 	if (iFictitiousStepsNumber) {
-   		pFictitiousSteps->SetDriveHandler(pDH);
+		pFictitiousSteps->SetDriveHandler(pDH);
 	}
 
-   	/* Costruisce i vettori della soluzione ai vari passi */
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
+	/* Costruisce i vettori della soluzione ai vari passi */
+	DEBUGLCOUT(MYDEBUG_MEM, "creating solution vectors" << std::endl);
 
 #ifdef USE_SCHUR
 	if (bParallel) {
@@ -641,7 +641,7 @@ Solver::Run(void)
 	} else
 #endif // USE_SCHUR
 	{
-   		iNumDofs = pDM->iGetNumDofs();
+		iNumDofs = pDM->iGetNumDofs();
 	}
 
 	/* relink those known drive callers that might need
@@ -650,7 +650,7 @@ Solver::Run(void)
 		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
 	}
 
-   	ASSERT(iNumDofs > 0);
+	ASSERT(iNumDofs > 0);
 
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
 	integer iFSteps = 0;
@@ -671,13 +671,13 @@ Solver::Run(void)
 		2*(iNumPreviousVectors)*iNumDofs);
 	/* allocate MyVectorHandlers for previous time steps: use workspace */
 	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-   		SAFENEWWITHCONSTRUCTOR(pX,
-			       	MyVectorHandler,
-			       	MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
+		SAFENEWWITHCONSTRUCTOR(pX,
+			MyVectorHandler,
+			MyVectorHandler(iNumDofs, pdWorkSpace+ivec*iNumDofs));
 		qX.push_back(pX);
-   		SAFENEWWITHCONSTRUCTOR(pXPrime,
-			       	MyVectorHandler,
-			       	MyVectorHandler(iNumDofs,
+		SAFENEWWITHCONSTRUCTOR(pXPrime,
+			MyVectorHandler,
+			MyVectorHandler(iNumDofs,
 				pdWorkSpace+((iNumPreviousVectors)+ivec)*iNumDofs));
 		qXPrime.push_back(pXPrime);
 		pX = NULL;
@@ -685,28 +685,28 @@ Solver::Run(void)
 	}
 	/* allocate MyVectorHandlers for unknown time step(s): own memory */
 	SAFENEWWITHCONSTRUCTOR(pX,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 	SAFENEWWITHCONSTRUCTOR(pXPrime,
-		       	MyVectorHandler,
-		       	MyVectorHandler(iUnkStates*iNumDofs));
+		MyVectorHandler,
+		MyVectorHandler(iUnkStates*iNumDofs));
 
 
 	/* Resetta i vettori */
-   	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
+	for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
 		qX[ivec]->Reset();
 		qXPrime[ivec]->Reset();
 	}
 	pX->Reset();
 	pXPrime->Reset();
 
-   	/*
+	/*
 	 * Immediately link DataManager to current solution
 	 *
 	 * this should work as long as the last unknown time step is put
 	 * at the beginning of pX, pXPrime
 	 */
-   	pDM->LinkToSolution(*pX, *pXPrime);
+	pDM->LinkToSolution(*pX, *pXPrime);
 
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
@@ -789,7 +789,7 @@ Solver::Run(void)
 	/* registers tests in nonlinear solver */
 	pNLS->SetTest(pResTest, pSolTest);
 
-   	/*
+	/*
 	 * Dell'assemblaggio iniziale dei vincoli se ne occupa il DataManager
 	 * in quanto e' lui il responsabile dei dati della simulazione,
 	 * e quindi anche della loro coerenza. Inoltre e' lui a sapere
@@ -804,7 +804,7 @@ Solver::Run(void)
 	 */
 	pDM->OutputPrepare();
 
-   	/*
+	/*
 	 * Dialoga con il DataManager per dargli il tempo iniziale
 	 * e per farsi inizializzare i vettori di soluzione e derivata
 	 */
@@ -815,13 +815,13 @@ Solver::Run(void)
 	pDM->SetTime(dTime, 0., 0);
 
 
-   	if (EigAn.bAnalysis
+	if (EigAn.bAnalysis
 		&& EigAn.OneAnalysis.dTime <= dTime
 		&& !EigAn.OneAnalysis.bDone)
 	{
-	 	Eig();
-	 	EigAn.OneAnalysis.bDone = true;
-   	}
+		Eig();
+		EigAn.OneAnalysis.bDone = true;
+	}
 
 	integer iTotIter = 0;
 	integer iStIter = 0;
@@ -864,24 +864,22 @@ Solver::Run(void)
 #ifdef USE_EXTERNAL
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
-   	/* Setup SolutionManager(s) */
+	/* Setup SolutionManager(s) */
 	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
 
 	/* Derivative steps */
 	try {
-
 		dTest = pDerivativeSteps->Advance(this,
-				0., 1., StepIntegrator::NEWSTEP,
-			 	qX, qXPrime, pX, pXPrime,
-				iStIter, dTest, dSolTest);
+			0., 1., StepIntegrator::NEWSTEP,
+			qX, qXPrime, pX, pXPrime,
+			iStIter, dTest, dSolTest);
 	}
 	catch (NonlinearSolver::NoConvergence) {
 		silent_cerr("Initial derivatives calculation " << iStIter
 			<< " does not converge; aborting..." << std::endl
 			<< "(hint: try playing with the \"derivatives coefficient\" value)" << std::endl);
-	 	pDM->Output(0, dTime, 0., true);
-	 	throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-
+		pDM->Output(0, dTime, 0., true);
+		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
 		/*
@@ -919,14 +917,14 @@ Solver::Run(void)
 	iTotIter += iStIter;
 
 	if (outputMsg()) {
-   		Out << "# Derivatives solution step at time " << dInitialTime
-     			<< " performed in " << iStIter
-     			<< " iterations with " << dTest
-     			<< " error" << std::endl;
+		Out << "# Derivatives solution step at time " << dInitialTime
+			<< " performed in " << iStIter
+			<< " iterations with " << dTest
+			<< " error" << std::endl;
 	}
 
-   	DEBUGCOUT("Derivatives solution step has been performed successfully"
-		  " in " << iStIter << " iterations" << std::endl);
+	DEBUGCOUT("Derivatives solution step has been performed successfully"
+		" in " << iStIter << " iterations" << std::endl);
 
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
@@ -935,74 +933,73 @@ Solver::Run(void)
 	}
 #endif /* USE_EXTERNAL */
 
-   	if (eAbortAfter == AFTER_DERIVATIVES) {
-      		/*
+	if (eAbortAfter == AFTER_DERIVATIVES) {
+		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
 
 
-      		pDM->Output(0, dTime, 0., true);
-      		Out << "End of derivatives; no simulation is required."
+		pDM->Output(0, dTime, 0., true);
+		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
-      		return;
-   	} else if (mbdyn_stop_at_end_of_time_step()) {
-      		/*
+		return;
+	} else if (mbdyn_stop_at_end_of_time_step()) {
+		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
 		 */
-      		pDM->Output(0, dTime, 0., true);
-      		Out << "Interrupted during derivatives computation." << std::endl;
-      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-   	}
+		pDM->Output(0, dTime, 0., true);
+		Out << "Interrupted during derivatives computation." << std::endl;
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
 
 	/* Dati comuni a passi fittizi e normali */
-   	long lStep = 1;
-   	doublereal dCurrTimeStep = 0.;
+	long lStep = 1;
+	doublereal dCurrTimeStep = 0.;
 
-   	if (iFictitiousStepsNumber > 0) {
+	if (iFictitiousStepsNumber > 0) {
+		/* passi fittizi */
 
-       		/* passi fittizi */
-
-      		/*
+		/*
 		 * inizio integrazione: primo passo a predizione lineare
 		 * con sottopassi di correzione delle accelerazioni
 		 * e delle reazioni vincolari
 		 */
-      		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
-      		Flip();
+		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+		Flip();
 
-      		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
-      		dCurrTimeStep = dRefTimeStep;
+		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
+		dCurrTimeStep = dRefTimeStep;
 		/* FIXME: do we need to serve pending drives in dummy steps? */
-      		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 
-      		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
-			   << dCurrTimeStep << std::endl);
+		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
+			<< dCurrTimeStep << std::endl);
 
-	 	ASSERT(pFirstFictitiousStep != NULL);
+		ASSERT(pFirstFictitiousStep != NULL);
 
-   		/* Setup SolutionManager(s) */
+		/* Setup SolutionManager(s) */
 		SetupSolmans(pFirstFictitiousStep->GetIntegratorNumUnknownStates());
 		/* pFirstFictitiousStep */
 		try {
-	 		dTest = pFirstFictitiousStep->Advance(this,
-					dRefTimeStep, 1.,
-					StepIntegrator::NEWSTEP,
-					qX, qXPrime, pX, pXPrime,
-					iStIter, dTest, dSolTest);
+			dTest = pFirstFictitiousStep->Advance(this,
+				dRefTimeStep, 1.,
+				StepIntegrator::NEWSTEP,
+				qX, qXPrime, pX, pXPrime,
+				iStIter, dTest, dSolTest);
 		}
 		catch (NonlinearSolver::NoConvergence) {
 			silent_cerr("First dummy step does not converge; "
 				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
-	 		pDM->Output(0, dTime, dCurrTimeStep, true);
-	 		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+			pDM->Output(0, dTime, dCurrTimeStep, true);
+			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			/*
-		 	 * Mettere qui eventuali azioni speciali
-		 	 * da intraprendere in caso di errore ...
-		 	 */
+			 * Mettere qui eventuali azioni speciali
+			 * da intraprendere in caso di errore ...
+			 */
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		catch (LinearSolver::ErrFactor err) {
@@ -1028,58 +1025,59 @@ Solver::Run(void)
 		SAFEDELETE(pFirstFictitiousStep);
 		pFirstFictitiousStep = 0;
 
-      		dRefTimeStep = dCurrTimeStep;
-      		dTime += dRefTimeStep;
+		dRefTimeStep = dCurrTimeStep;
+		dTime += dRefTimeStep;
 
 #if 0
 		/* don't sum up the derivatives error */
-      		dTotErr += dTest;
+		dTotErr += dTest;
 #endif
-      		iTotIter += iStIter;
+		iTotIter += iStIter;
 
-      		if (mbdyn_stop_at_end_of_time_step()) {
-	 		/*
+		if (mbdyn_stop_at_end_of_time_step()) {
+			/*
 			 * Fa l'output della soluzione delle derivate iniziali
 			 * ed esce
 			 */
 #ifdef DEBUG_FICTITIOUS
-	   		pDM->Output(0, dTime, dCurrTimeStep, true);
+			pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
-	 		Out << "Interrupted during first dummy step." << std::endl;
-	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-      		}
+			Out << "Interrupted during first dummy step." << std::endl;
+			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+		}
 
 #ifdef DEBUG_FICTITIOUS
-      		pDM->Output(0, dTime, dCurrTimeStep, true);
+		pDM->Output(0, dTime, dCurrTimeStep, true);
 #endif /* DEBUG_FICTITIOUS */
 
-       		/* Passi fittizi successivi */
+		/* Passi fittizi successivi */
 		if (iFictitiousStepsNumber > 1) {
-   			/* Setup SolutionManager(s) */
+			/* Setup SolutionManager(s) */
 			SetupSolmans(pFictitiousSteps->GetIntegratorNumUnknownStates());
 		}
 
-      		for (int iSubStep = 2;
-		     iSubStep <= iFictitiousStepsNumber;
-		     iSubStep++) {
-      			pDM->BeforePredict(*pX, *pXPrime,
-				   	*qX[0], *qXPrime[0]);
-	 		Flip();
+		for (int iSubStep = 2;
+			iSubStep <= iFictitiousStepsNumber;
+			iSubStep++)
+		{
+			pDM->BeforePredict(*pX, *pXPrime,
+				*qX[0], *qXPrime[0]);
+			Flip();
 
-	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
-				   << iSubStep
-				   << "; current time step: " << dCurrTimeStep
-				   << std::endl);
+			DEBUGLCOUT(MYDEBUG_FSTEPS, "Dummy step "
+				<< iSubStep
+				<< "; current time step: " << dCurrTimeStep
+				<< std::endl);
 
-	 		ASSERT(pFictitiousSteps!= NULL);
+			ASSERT(pFictitiousSteps!= NULL);
 			try {
-	 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
-	 			dTest = pFictitiousSteps->Advance(this,
-						dRefTimeStep,
-						dCurrTimeStep/dRefTimeStep,
-					 	StepIntegrator::NEWSTEP,
-						qX, qXPrime, pX, pXPrime,
-						iStIter, dTest, dSolTest);
+				pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
+				dTest = pFictitiousSteps->Advance(this,
+					dRefTimeStep,
+					dCurrTimeStep/dRefTimeStep,
+					StepIntegrator::NEWSTEP,
+					qX, qXPrime, pX, pXPrime,
+					iStIter, dTest, dSolTest);
 			}
 			catch (NonlinearSolver::NoConvergence) {
 				silent_cerr("Dummy step " << iSubStep
@@ -1087,14 +1085,14 @@ Solver::Run(void)
 					"TimeStep=" << dCurrTimeStep
 					<< " cannot be reduced further; "
 					"aborting..." << std::endl);
-	 			pDM->Output(0, dTime, dCurrTimeStep, true);
-	 			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+				pDM->Output(0, dTime, dCurrTimeStep, true);
+				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 
 			catch (NonlinearSolver::ErrSimulationDiverged) {
 				/*
-		 		 * Mettere qui eventuali azioni speciali
-		 		 * da intraprendere in caso di errore ...
+				 * Mettere qui eventuali azioni speciali
+				 * da intraprendere in caso di errore ...
 		 		 */
 				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
@@ -1121,85 +1119,85 @@ Solver::Run(void)
 
 #if 0
 			/* don't sum up the derivatives error */
-      			dTotErr += dTest;
+			dTotErr += dTest;
 #endif
-      			iTotIter += iStIter;
+			iTotIter += iStIter;
 
 #ifdef DEBUG
-	 		if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
-	    			Out << "Step " << lStep
+			if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
+				Out << "Step " << lStep
 					<< " time " << dTime+dCurrTimeStep
 					<< " step " << dCurrTimeStep
 					<< " iterations " << iStIter
 					<< " error " << dTest << std::endl;
-	 		}
+			}
 #endif /* DEBUG */
 
-	 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep
-				   << " of step " << lStep
-				   << " has been successfully completed "
-				   "in " << iStIter << " iterations"
-				   << std::endl);
+			DEBUGLCOUT(MYDEBUG_FSTEPS, "Substep " << iSubStep
+				<< " of step " << lStep
+				<< " has been successfully completed "
+				"in " << iStIter << " iterations"
+				<< std::endl);
 
-	 		if (mbdyn_stop_at_end_of_time_step()) {
+			if (mbdyn_stop_at_end_of_time_step()) {
 				/* */
 #ifdef DEBUG_FICTITIOUS
-	    			pDM->Output(0, dTime, dCurrTimeStep);
+				pDM->Output(0, dTime, dCurrTimeStep);
 #endif /* DEBUG_FICTITIOUS */
-	    			Out << "Interrupted during dummy steps."
+				Out << "Interrupted during dummy steps."
 					<< std::endl;
 				throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 			}
 
 			dTime += dRefTimeStep;
-      		}
+		}
 		if (outputMsg()) {
-      			Out << "# Initial solution after dummy steps "
+			Out << "# Initial solution after dummy steps "
 				"at time " << dTime
 				<< " performed in " << iStIter
 				<< " iterations with " << dTest
 				<< " error" << std::endl;
 		}
 
-      		DEBUGLCOUT(MYDEBUG_FSTEPS,
-			   "Fictitious steps have been successfully completed "
-			   "in " << iStIter << " iterations" << std::endl);
+		DEBUGLCOUT(MYDEBUG_FSTEPS,
+			"Fictitious steps have been successfully completed "
+			"in " << iStIter << " iterations" << std::endl);
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
 		External::SendInitial();
 #endif /* USE_EXTERNAL */
-   	} /* Fine dei passi fittizi */
+	} /* Fine dei passi fittizi */
 
-   	/* Output delle "condizioni iniziali" */
-   	pDM->Output(0, dTime, dCurrTimeStep);
+	/* Output delle "condizioni iniziali" */
+	pDM->Output(0, dTime, dCurrTimeStep);
 
-        if (outputMsg()) {
-  	 	Out
+	if (outputMsg()) {
+		Out
 			<< "# Key for lines starting with \"Step\":"
 				<< std::endl
 			<< "# Step Time TStep NIter ResErr SolErr SolConv"
 				<< std::endl
 			<< "Step " << 0
-     			<< " " << dTime+dCurrTimeStep
-     			<< " " << dCurrTimeStep
-     			<< " " << iStIter
-     			<< " " << dTest
+			<< " " << dTime+dCurrTimeStep
+			<< " " << dCurrTimeStep
+			<< " " << iStIter
+			<< " " << dTest
 			<< " " << dSolTest
 			<< " " << bSolConv
 			<< std::endl;
 	}
 
 
-   	if (eAbortAfter == AFTER_DUMMY_STEPS) {
-      		Out << "End of dummy steps; no simulation is required."
+	if (eAbortAfter == AFTER_DUMMY_STEPS) {
+		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
 		return;
 
-   	} else if (mbdyn_stop_at_end_of_time_step()) {
-      		/* Fa l'output della soluzione ed esce */
-      		Out << "Interrupted during dummy steps." << std::endl;
-      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-   	}
+	} else if (mbdyn_stop_at_end_of_time_step()) {
+		/* Fa l'output della soluzione ed esce */
+		Out << "Interrupted during dummy steps." << std::endl;
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
 
 	/* primo passo regolare */
 
@@ -1208,19 +1206,19 @@ Solver::Run(void)
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-   	lStep = 1; /* Resetto di nuovo lStep */
+	lStep = 1; /* Resetto di nuovo lStep */
 
-   	DEBUGCOUT("Step " << lStep << " has been successfully completed "
+	DEBUGCOUT("Step " << lStep << " has been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 
 
-   	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
+	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
-      	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
 	Flip();
 	dRefTimeStep = dInitialTimeStep;
-   	dCurrTimeStep = dRefTimeStep;
+	dCurrTimeStep = dRefTimeStep;
 
 	ASSERT(pFirstRegularStep!= NULL);
 	StepIntegrator::StepChange CurrStep
@@ -1251,21 +1249,21 @@ IfFirstStepIsToBeRepeated:
 					<< " during first step after "
 					<< iStIter << " iterations"
 					<< std::endl);
-	    			goto IfFirstStepIsToBeRepeated;
+				goto IfFirstStepIsToBeRepeated;
 			}
-	 	}
+		}
 
-	    	silent_cerr("Maximum iterations number "
+		silent_cerr("Maximum iterations number "
 			<< pRegularSteps->GetIntegratorMaxIters()
 			<< " has been reached during "
 			"first step, Time=" << dTime << "; "
 			<< "TimeStep=" << dCurrTimeStep
 			<< " cannot be reduced further; "
 			"aborting..." << std::endl);
-	    	pDM->Output(0, dTime, dCurrTimeStep, true);
+		pDM->Output(0, dTime, dCurrTimeStep, true);
 
 		throw Solver::ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-      	}
+	}
 	catch (NonlinearSolver::ErrSimulationDiverged) {
 		/*
 		 * Mettere qui eventuali azioni speciali
@@ -1297,16 +1295,16 @@ IfFirstStepIsToBeRepeated:
 	SAFEDELETE(pFirstRegularStep);
 	pFirstRegularStep = 0;
 
-   	pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+	pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
-   	if (mbdyn_stop_at_end_of_time_step()) {
-      		/* Fa l'output della soluzione al primo passo ed esce */
-      		Out << "Interrupted during first step." << std::endl;
-      		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-   	}
+	if (mbdyn_stop_at_end_of_time_step()) {
+		/* Fa l'output della soluzione al primo passo ed esce */
+		Out << "Interrupted during first step." << std::endl;
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (outputMsg()) {
-      		Out
+		Out
 			<< "Step " << lStep
 			<< " " << dTime+dCurrTimeStep
 			<< " " << dCurrTimeStep
@@ -1319,35 +1317,34 @@ IfFirstStepIsToBeRepeated:
 
 	bSolConv = false;
 
-   	dRefTimeStep = dCurrTimeStep;
-   	dTime += dRefTimeStep;
+	dRefTimeStep = dCurrTimeStep;
+	dTime += dRefTimeStep;
 
-   	dTotErr += dTest;
-   	iTotIter += iStIter;
+	dTotErr += dTest;
+	iTotIter += iStIter;
 
-   	if (EigAn.bAnalysis
+	if (EigAn.bAnalysis
 		&& EigAn.OneAnalysis.dTime <= dTime
 		&& !EigAn.OneAnalysis.bDone)
 	{
-	 	Eig();
+		Eig();
 		EigAn.OneAnalysis.bDone = true;
-      	}
+	}
 
 	if (pRTSolver) {
 		pRTSolver->Init();
 	}
 
-    	/* Altri passi regolari */
+	/* Altri passi regolari */
 	ASSERT(pRegularSteps != NULL);
 
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
-      	while (true) {
-
+	while (true) {
 		StepIntegrator::StepChange CurrStep
 				= StepIntegrator::NEWSTEP;
 
-      		if (pDM->EndOfSimulation() || dTime >= dFinalTime) {
+		if (pDM->EndOfSimulation() || dTime >= dFinalTime) {
 			if (pRTSolver) {
 				pRTSolver->StopCommanded();
 			}
@@ -1376,9 +1373,9 @@ IfFirstStepIsToBeRepeated:
 			pRTSolver->Log();
 			return;
 
-      		} else if (mbdyn_stop_at_end_of_time_step()
+		} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
-				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
+			|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
 #endif /* USE_MPI */
 				)
 		{
@@ -1386,8 +1383,8 @@ IfFirstStepIsToBeRepeated:
 				pRTSolver->StopCommanded();
 			}
 
-	 		silent_cout("Interrupted!" << std::endl
-	   			<< "Simulation ended at time "
+			silent_cout("Interrupted!" << std::endl
+				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -1398,11 +1395,11 @@ IfFirstStepIsToBeRepeated:
 				pRTSolver->Log();
 			}
 
-	 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
-      		}
+			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+		}
 
-      		lStep++;
-      		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+		lStep++;
+		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 
 		Flip();
 
@@ -1437,7 +1434,7 @@ IfStepIsToBeRepeated:
 						<< std::endl);
 					goto IfStepIsToBeRepeated;
 				}
-	    		}
+			}
 
 			silent_cerr("Max iterations number "
 				<< pRegularSteps->GetIntegratorMaxIters()
@@ -1447,7 +1444,7 @@ IfStepIsToBeRepeated:
 				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
 				"aborting..." << std::endl);
-	       		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 		catch (NonlinearSolver::ErrSimulationDiverged) {
 			if (dCurrTimeStep > dMinTimeStep) {
@@ -1467,7 +1464,7 @@ IfStepIsToBeRepeated:
 						<< std::endl);
 					goto IfStepIsToBeRepeated;
 				}
-	    		}
+			}
 
 			silent_cerr("Simulation diverged after "
 				<< iStIter << " iterations, before "
@@ -1506,7 +1503,7 @@ IfStepIsToBeRepeated:
 				pRTSolver->StopCommanded();
 			}
 
-	 		silent_cout("Simulation ended at time "
+			silent_cout("Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -1517,16 +1514,16 @@ IfStepIsToBeRepeated:
 				pRTSolver->Log();
 			}
 
-	 		return;
-      		}
+			return;
+		}
 
-	      	dTotErr += dTest;
-      		iTotIter += iStIter;
+		dTotErr += dTest;
+		iTotIter += iStIter;
 
-      		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
-      			Out << "Step " << lStep
+			Out << "Step " << lStep
 				<< " " << dTime+dCurrTimeStep
 				<< " " << dCurrTimeStep
 				<< " " << iStIter
@@ -1536,16 +1533,16 @@ IfStepIsToBeRepeated:
 				<< std::endl;
 		}
 
-     	 	DEBUGCOUT("Step " << lStep
+		DEBUGCOUT("Step " << lStep
 			<< " has been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 
-	      	dRefTimeStep = dCurrTimeStep;
-      		dTime += dRefTimeStep;
+		dRefTimeStep = dCurrTimeStep;
+		dTime += dRefTimeStep;
 
 		bSolConv = false;
 
-      		if (EigAn.bAnalysis
+		if (EigAn.bAnalysis
 			&& EigAn.OneAnalysis.dTime <= dTime
 			&& !EigAn.OneAnalysis.bDone)
 		{
@@ -1553,28 +1550,28 @@ IfStepIsToBeRepeated:
 			EigAn.OneAnalysis.bDone = true;
 		}
 
-      		/* Calcola il nuovo timestep */
-      		dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+		/* Calcola il nuovo timestep */
+		dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-   	} // while (true)  END OF ENDLESS-LOOP
+	} // while (true)  END OF ENDLESS-LOOP
 }  // Solver::Run()
 
 /* Distruttore */
 Solver::~Solver(void)
 {
-   	DEBUGCOUTFNAME("Solver::~Solver");
+	DEBUGCOUTFNAME("Solver::~Solver");
 
-   	if (sInputFileName != NULL) {
-      		SAFEDELETEARR(sInputFileName);
-   	}
+	if (sInputFileName != NULL) {
+		SAFEDELETEARR(sInputFileName);
+	}
 
-   	if (sOutputFileName != NULL) {
-      		SAFEDELETEARR(sOutputFileName);
-   	}
+	if (sOutputFileName != NULL) {
+		SAFEDELETEARR(sOutputFileName);
+	}
 
 	if (!qX.empty()) {
 		for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-   			if (qX[ivec] != NULL) {
+			if (qX[ivec] != NULL) {
 				SAFEDELETE(qX[ivec]);
 				SAFEDELETE(qXPrime[ivec]);
 			}
@@ -1588,32 +1585,32 @@ Solver::~Solver(void)
 		SAFEDELETE(pXPrime);
 	}
 
-   	if (pdWorkSpace != NULL) {
-      		SAFEDELETEARR(pdWorkSpace);
-   	}
+	if (pdWorkSpace != NULL) {
+		SAFEDELETEARR(pdWorkSpace);
+	}
 
-   	if (pDM != NULL) {
-      		SAFEDELETE(pDM);
+	if (pDM != NULL) {
+		SAFEDELETE(pDM);
 	}
 
 	if (pRTSolver) {
 		SAFEDELETE(pRTSolver);
 	}
 
-   	if (pDerivativeSteps) {
-   		SAFEDELETE(pDerivativeSteps);
+	if (pDerivativeSteps) {
+		SAFEDELETE(pDerivativeSteps);
 	}
 
-   	if (pFirstFictitiousStep) {
-   		SAFEDELETE(pFirstFictitiousStep);
+	if (pFirstFictitiousStep) {
+		SAFEDELETE(pFirstFictitiousStep);
 	}
 
 	if (pFictitiousSteps) {
 		SAFEDELETE(pFictitiousSteps);
 	}
 
-   	if (pFirstRegularStep) {
-   		SAFEDELETE(pFirstRegularStep);
+	if (pFirstRegularStep) {
+		SAFEDELETE(pFirstRegularStep);
 	}
 
 	if (pRegularSteps) {
@@ -1636,14 +1633,14 @@ Solver::~Solver(void)
 /* Nuovo delta t */
 doublereal
 Solver::NewTimeStep(doublereal dCurrTimeStep,
-				 integer iPerformedIters,
-				 StepIntegrator::StepChange Why)
+	integer iPerformedIters,
+	StepIntegrator::StepChange Why)
 {
-   	DEBUGCOUTFNAME("Solver::NewTimeStep");
+	DEBUGCOUTFNAME("Solver::NewTimeStep");
 
-   	switch (CurrStrategy) {
-    	case NOCHANGE:
-       		return dCurrTimeStep;
+	switch (CurrStrategy) {
+	case NOCHANGE:
+		return dCurrTimeStep;
 
 	case CHANGE: {
 		doublereal dNewStep = pStrategyChangeDrive->dGet(dTime);
@@ -1655,34 +1652,33 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 		return std::max(std::min(dNewStep, dMaxTimeStep), dMinTimeStep);
 		}
 
-    	case FACTOR:
-       		if (Why == StepIntegrator::REPEATSTEP) {
-	  		if (dCurrTimeStep*StrategyFactor.dReductionFactor
-	      			> dMinTimeStep)
+	case FACTOR:
+		if (Why == StepIntegrator::REPEATSTEP) {
+			if (dCurrTimeStep*StrategyFactor.dReductionFactor > dMinTimeStep)
 			{
-	     			if (bLastChance == true) {
+				if (bLastChance == true) {
 					bLastChance = false;
-	     			}
-	     			iStepsAfterReduction = 0;
-	     			return dCurrTimeStep*StrategyFactor.dReductionFactor;
+				}
+				iStepsAfterReduction = 0;
+				return dCurrTimeStep*StrategyFactor.dReductionFactor;
 
-	  		} else {
-	     			if (bLastChance == false) {
+			} else {
+				if (bLastChance == false) {
 					bLastChance = true;
 					return dMinTimeStep;
-	     			} else {
+				} else {
 					/*
 					 * Fuori viene intercettato
 					 * il valore illegale
 					 */
 					return dCurrTimeStep*StrategyFactor.dReductionFactor;
-	     			}
-	  		}
-       		}
+				}
+			}
+		}
 
-       		if (Why == StepIntegrator::NEWSTEP) {
-	  		iStepsAfterReduction++;
-	  		iStepsAfterRaise++;
+		if (Why == StepIntegrator::NEWSTEP) {
+			iStepsAfterReduction++;
+			iStepsAfterRaise++;
 
 			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
 
@@ -1692,29 +1688,29 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 // 				<< iStepsAfterRaise << " " << StrategyFactor.iStepsBeforeRaise << " "
 // 				<< dCurrTimeStep << " " << dMaxTimeStep << "\n";
 			if (iPerformedIters > StrategyFactor.iMaxIters) {
-	     			iStepsAfterReduction = 0;
+				iStepsAfterReduction = 0;
 				bLastChance = false;
-	     			return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep);
+				return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep);
 
 			} else if (iPerformedIters <= StrategyFactor.iMinIters
-	      			&& iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
+				&& iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
 				&& iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
 				&& dCurrTimeStep < dMaxTimeStep)
 			{
-	     			iStepsAfterRaise = 0;
+				iStepsAfterRaise = 0;
 				iWeightedPerformedIters = 0;
-	     			return dCurrTimeStep*StrategyFactor.dRaiseFactor;
-	  		}
-	  		return dCurrTimeStep;
-       		}
-       		break;
+				return dCurrTimeStep*StrategyFactor.dRaiseFactor;
+			}
+			return dCurrTimeStep;
+		}
+		break;
 
-    	default:
-       		silent_cerr("You shouldn't have reached this point!" << std::endl);
-       		throw Solver::ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+	default:
+		silent_cerr("You shouldn't have reached this point!" << std::endl);
+		throw Solver::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-   	return dCurrTimeStep;
+	return dCurrTimeStep;
 }
 
 /*scrive il contributo al file di restart*/
@@ -1849,11 +1845,11 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 void
 Solver::ReadData(MBDynParser& HP)
 {
-   	DEBUGCOUTFNAME("MultiStepIntegrator::ReadData");
+	DEBUGCOUTFNAME("MultiStepIntegrator::ReadData");
 
-   	/* parole chiave */
-   	const char* sKeyWords[] = {
-      		"begin",
+	/* parole chiave */
+	const char* sKeyWords[] = {
+		"begin",
 		"initial" "value",
 		"multistep",		/* deprecated */
 		"end",
@@ -1954,11 +1950,11 @@ Solver::ReadData(MBDynParser& HP)
 		"threads",
 
 		NULL
-   	};
+	};
 
-   	/* enum delle parole chiave */
-   	enum KeyWords {
-      		UNKNOWN = -1,
+	/* enum delle parole chiave */
+	enum KeyWords {
+		UNKNOWN = -1,
 		BEGIN = 0,
 		INITIAL_VALUE,
 		MULTISTEP,
@@ -2055,19 +2051,19 @@ Solver::ReadData(MBDynParser& HP)
 		THREADS,
 
 		LASTKEYWORD
-   	};
+	};
 
-   	/* tabella delle parole chiave */
-   	KeyTable K(HP, sKeyWords);
+	/* tabella delle parole chiave */
+	KeyTable K(HP, sKeyWords);
 
-   	/* legge i dati della simulazione */
-   	if (KeyWords(HP.GetDescription()) != BEGIN) {
-      		silent_cerr("Error: <begin> expected at line "
+	/* legge i dati della simulazione */
+	if (KeyWords(HP.GetDescription()) != BEGIN) {
+		silent_cerr("Error: <begin> expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-   	switch (KeyWords(HP.GetWord())) {
+	switch (KeyWords(HP.GetWord())) {
 	case MULTISTEP:
 		pedantic_cout("warning: \"begin: multistep\" is deprecated; "
 			"use \"begin: initial value;\" instead." << std::endl);
@@ -2075,31 +2071,31 @@ Solver::ReadData(MBDynParser& HP)
 		break;
 
 	default:
-      		silent_cerr("Error: \"begin: initial value;\" expected at line "
+		silent_cerr("Error: \"begin: initial value;\" expected at line "
 			<< HP.GetLineData() << "; aborting..." << std::endl);
-      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-   	bool bMethod(false);
-   	bool bFictitiousStepsMethod(false);
+	bool bMethod(false);
+	bool bFictitiousStepsMethod(false);
 
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
 	 */
 
 	doublereal dTol = ::dDefaultTol;
-   	doublereal dSolutionTol = 0.;
-   	integer iMaxIterations = ::iDefaultMaxIterations;
+	doublereal dSolutionTol = 0.;
+	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
-        /* Dati dei passi fittizi di trimmaggio iniziale */
-   	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
-   	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
+	/* Dati dei passi fittizi di trimmaggio iniziale */
+	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
+	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
 
-   	/* Dati del passo iniziale di calcolo delle derivate */
+	/* Dati del passo iniziale di calcolo delle derivate */
 
 	doublereal dDerivativesTol = ::dDefaultTol;
-   	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
+	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -2107,45 +2103,45 @@ Solver::ReadData(MBDynParser& HP)
 #endif /* USE_MULTITHREAD */
 
 
-   	/* Ciclo infinito */
-   	while (true) {
-      		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
+	/* Ciclo infinito */
+	while (true) {
+		KeyWords CurrKeyWord = KeyWords(HP.GetDescription());
 
-      		switch (CurrKeyWord) {
-       		case INITIALTIME:
-	  		dInitialTime = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
-				   << dInitialTime << std::endl);
-	  		break;
+		switch (CurrKeyWord) {
+		case INITIALTIME:
+			dInitialTime = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Initial time is "
+				<< dInitialTime << std::endl);
+			break;
 
-       		case FINALTIME:
+		case FINALTIME:
 			if (HP.IsKeyWord("forever")) {
 				dFinalTime = std::numeric_limits<doublereal>::max();
 			} else {
-		  		dFinalTime = HP.GetReal();
+				dFinalTime = HP.GetReal();
 			}
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
-				   << dFinalTime << std::endl);
+			DEBUGLCOUT(MYDEBUG_INPUT, "Final time is "
+				<< dFinalTime << std::endl);
 
-	  		if(dFinalTime <= dInitialTime) {
-	     			silent_cerr("warning: final time " << dFinalTime
-	       				<< " is less than initial time "
+			if(dFinalTime <= dInitialTime) {
+				silent_cerr("warning: final time " << dFinalTime
+					<< " is less than initial time "
 					<< dInitialTime << ';' << std::endl
-	       				<< "this will cause the simulation"
+					<< "this will cause the simulation"
 					" to abort" << std::endl);
 			}
-	  		break;
+			break;
 
-       		case TIMESTEP:
-	  		dInitialTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
-				   << dInitialTimeStep << std::endl);
+		case TIMESTEP:
+			dInitialTimeStep = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Initial time step is "
+				<< dInitialTimeStep << std::endl);
 
-	  		if (dInitialTimeStep == 0.) {
-	     			silent_cerr("warning, null initial time step"
+			if (dInitialTimeStep == 0.) {
+				silent_cerr("warning, null initial time step"
 					" is not allowed" << std::endl);
-	  		} else if (dInitialTimeStep < 0.) {
-	     			dInitialTimeStep = -dInitialTimeStep;
+			} else if (dInitialTimeStep < 0.) {
+				dInitialTimeStep = -dInitialTimeStep;
 				silent_cerr("warning, negative initial time step"
 					" is not allowed;" << std::endl
 					<< "its modulus " << dInitialTimeStep
@@ -2153,33 +2149,33 @@ Solver::ReadData(MBDynParser& HP)
 			}
 			break;
 
-       		case MINTIMESTEP:
-	  		dMinTimeStep = HP.GetReal();
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
-				   << dMinTimeStep << std::endl);
+		case MINTIMESTEP:
+			dMinTimeStep = HP.GetReal();
+			DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
+				<< dMinTimeStep << std::endl);
 
-	  		if (dMinTimeStep == 0.) {
-	     			silent_cerr("warning, null min time step"
+			if (dMinTimeStep == 0.) {
+				silent_cerr("warning, null min time step"
 					" is not allowed" << std::endl);
-	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (dMinTimeStep < 0.) {
 				silent_cerr("negative min time step"
 					" is not allowed" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		break;
+			}
+			break;
 
-       		case MAXTIMESTEP:
+		case MAXTIMESTEP:
 			if (HP.IsKeyWord("unlimited")) {
 				dMaxTimeStep = 0.;
 			} else {
-	  			dMaxTimeStep = HP.GetReal();
+				dMaxTimeStep = HP.GetReal();
 			}
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
-				   << dMaxTimeStep << std::endl);
+			DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
+				<< dMaxTimeStep << std::endl);
 
-	  		if (dMaxTimeStep == 0.) {
+			if (dMaxTimeStep == 0.) {
 				silent_cout("no max time step limit will be"
 					" considered" << std::endl);
 
@@ -2187,12 +2183,12 @@ Solver::ReadData(MBDynParser& HP)
 				silent_cerr("negative max time step"
 					" is not allowed" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		break;
+			}
+			break;
 
-       		case FICTITIOUSSTEPSNUMBER:
-       		case DUMMYSTEPSNUMBER:
-	  		iFictitiousStepsNumber = HP.GetInt();
+		case FICTITIOUSSTEPSNUMBER:
+		case DUMMYSTEPSNUMBER:
+			iFictitiousStepsNumber = HP.GetInt();
 			if (iFictitiousStepsNumber < 0) {
 				iFictitiousStepsNumber =
 					::iDefaultFictitiousStepsNumber;
@@ -2203,84 +2199,83 @@ Solver::ReadData(MBDynParser& HP)
 			} else if (iFictitiousStepsNumber == 1) {
 				silent_cerr("warning, a single dummy step"
 					" may be useless" << std::endl);
-	  		}
+			}
 
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: "
-		     		   << iFictitiousStepsNumber << std::endl);
-	  		break;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: "
+				<< iFictitiousStepsNumber << std::endl);
+			break;
 
-       		case FICTITIOUSSTEPSRATIO:
-       		case DUMMYSTEPSRATIO:
-	  		dFictitiousStepsRatio = HP.GetReal();
-	  		if (dFictitiousStepsRatio < 0.) {
+		case FICTITIOUSSTEPSRATIO:
+		case DUMMYSTEPSRATIO:
+			dFictitiousStepsRatio = HP.GetReal();
+			if (dFictitiousStepsRatio < 0.) {
 				silent_cerr("negative dummy steps ratio"
 					" is illegal" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-	  		if (dFictitiousStepsRatio > 1.) {
+			if (dFictitiousStepsRatio > 1.) {
 				silent_cerr("warning, dummy steps ratio"
 					" is larger than one." << std::endl
 					<< "Something like 1.e-3 should"
 					" be safer ..." << std::endl);
-	  		}
+			}
 
-	  		DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: "
-		     		   << dFictitiousStepsRatio << std::endl);
-	  		break;
+			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: "
+				<< dFictitiousStepsRatio << std::endl);
+			break;
 
-       		case FICTITIOUSSTEPSTOLERANCE:
-       		case DUMMYSTEPSTOLERANCE:
-	  		dFictitiousStepsTolerance = HP.GetReal();
-	  		if (dFictitiousStepsTolerance <= 0.) {
+		case FICTITIOUSSTEPSTOLERANCE:
+		case DUMMYSTEPSTOLERANCE:
+			dFictitiousStepsTolerance = HP.GetReal();
+			if (dFictitiousStepsTolerance <= 0.) {
 				silent_cerr("negative dummy steps"
 					" tolerance is illegal" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
+			}
 			DEBUGLCOUT(MYDEBUG_INPUT,
-				   "Fictitious steps tolerance: "
-		     		   << dFictitiousStepsTolerance << std::endl);
-	  		break;
+				"Fictitious steps tolerance: "
+				<< dFictitiousStepsTolerance << std::endl);
+			break;
 
-       		case ABORTAFTER: {
-	  		KeyWords WhenToAbort(KeyWords(HP.GetWord()));
-	  		switch (WhenToAbort) {
-	   		case INPUT:
-	      			eAbortAfter = AFTER_INPUT;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		"Simulation will abort after"
+		case ABORTAFTER: {
+			KeyWords WhenToAbort(KeyWords(HP.GetWord()));
+			switch (WhenToAbort) {
+			case INPUT:
+				eAbortAfter = AFTER_INPUT;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
 					" data input" << std::endl);
-	      			break;
+				break;
 
-	   		case ASSEMBLY:
-	     			eAbortAfter = AFTER_ASSEMBLY;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " initial assembly" << std::endl);
-	      			break;
+			case ASSEMBLY:
+				eAbortAfter = AFTER_ASSEMBLY;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" initial assembly" << std::endl);
+				break;
 
-	   		case DERIVATIVES:
-	      			eAbortAfter = AFTER_DERIVATIVES;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " derivatives solution" << std::endl);
-	      			break;
+			case DERIVATIVES:
+				eAbortAfter = AFTER_DERIVATIVES;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" derivatives solution" << std::endl);
+				break;
 
-	   		case FICTITIOUSSTEPS:
-	   		case DUMMYSTEPS:
-	      			eAbortAfter = AFTER_DUMMY_STEPS;
-	      			DEBUGLCOUT(MYDEBUG_INPUT,
-			 		   "Simulation will abort after"
-					   " dummy steps solution" << std::endl);
-	      			break;
+			case FICTITIOUSSTEPS:
+			case DUMMYSTEPS:
+				eAbortAfter = AFTER_DUMMY_STEPS;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Simulation will abort after"
+					" dummy steps solution" << std::endl);
+				break;
 
-	   		default:
-	      			silent_cerr("Don't know when to abort,"
+			default:
+				silent_cerr("Don't know when to abort,"
 					" so I'm going to abort now" << std::endl);
-	      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		break;
-       		}
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		} break;
 
 		case OUTPUT: {
 			unsigned OF = OUTPUT_DEFAULT;
@@ -2332,26 +2327,24 @@ Solver::ReadData(MBDynParser& HP)
 			} else {
 				AddOutputFlags(OF);
 			}
+		} break;
 
-			break;
-		}
-
-       		case METHOD: {
-	  		if (bMethod) {
-	     			silent_cerr("error: multiple definition"
+		case METHOD: {
+			if (bMethod) {
+				silent_cerr("error: multiple definition"
 					" of integration method at line "
 					<< HP.GetLineData() << std::endl);
-	     			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		bMethod = true;
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			bMethod = true;
 
-	  		KeyWords KMethod = KeyWords(HP.GetWord());
-	  		switch (KMethod) {
-	   		case CRANKNICHOLSON:
+			KeyWords KMethod = KeyWords(HP.GetWord());
+			switch (KMethod) {
+			case CRANKNICHOLSON:
 				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
-	   		case CRANKNICOLSON:
+			case CRANKNICOLSON:
 				RegularType = INT_CRANKNICOLSON;
-	      			break;
+				break;
 
 			case BDF:
 				/* default (order 2) */
@@ -2378,60 +2371,60 @@ Solver::ReadData(MBDynParser& HP)
 					SAFENEW(pRhoRegular, NullDriveCaller);
 					SAFENEW(pRhoAlgebraicRegular, NullDriveCaller);
 				}
-		  		break;
+				break;
 
-	   		case NOSTRO:
-				  silent_cerr("integration method \"nostro\" "
-						  "is deprecated; use \"ms\" "
-						  "instead at line "
-						  << HP.GetLineData()
-						  << std::endl);
-	   		case MS:
-	   		case HOPE:
-	      			pRhoRegular = HP.GetDriveCaller(true);
+			case NOSTRO:
+				silent_cerr("integration method \"nostro\" "
+					"is deprecated; use \"ms\" "
+					"instead at line "
+					<< HP.GetLineData()
+					<< std::endl);
+			case MS:
+			case HOPE:
+				pRhoRegular = HP.GetDriveCaller(true);
 
-	      			pRhoAlgebraicRegular = NULL;
+				pRhoAlgebraicRegular = NULL;
 				if (HP.IsArg()) {
 					pRhoAlgebraicRegular = HP.GetDriveCaller(true);
 				} else {
 					pRhoAlgebraicRegular = pRhoRegular->pCopy();
 				}
 
-	      			switch (KMethod) {
-	       			case NOSTRO:
-	       			case MS:
+				switch (KMethod) {
+				case NOSTRO:
+				case MS:
 					RegularType = INT_MS2;
-		  			break;
+					break;
 
-	       			case HOPE:
+				case HOPE:
 					RegularType = INT_HOPE;
-		  			break;
+					break;
 
-	       			default:
-	          			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	      			}
-	      			break;
+				default:
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				break;
 
 			case THIRDORDER:
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-	      				pRhoRegular = HP.GetDriveCaller(true);
+					pRhoRegular = HP.GetDriveCaller(true);
 				}
 				RegularType = INT_THIRDORDER;
 				break;
 
 			case IMPLICITEULER:
 				RegularType = INT_IMPLICITEULER;
-		  		break;
+				break;
 
-	   		default:
-	      			silent_cerr("Unknown integration method at line "
+			default:
+				silent_cerr("Unknown integration method at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	  		}
-	  		break;
-       		}
+			}
+			break;
+		}
 
 		case FICTITIOUSSTEPSMETHOD:
 		case DUMMYSTEPSMETHOD: {
@@ -2500,12 +2493,12 @@ Solver::ReadData(MBDynParser& HP)
 					FictitiousType = INT_HOPE;
 					break;
 
-	       			default:
-	          			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				default:
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-	      			break;
+				break;
 
-	   		case THIRDORDER:
+			case THIRDORDER:
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
@@ -2514,7 +2507,7 @@ Solver::ReadData(MBDynParser& HP)
 				FictitiousType = INT_THIRDORDER;
 				break;
 
-	   		case IMPLICITEULER:
+			case IMPLICITEULER:
 				FictitiousType = INT_IMPLICITEULER;
 				break;
 
@@ -2741,8 +2734,8 @@ Solver::ReadData(MBDynParser& HP)
 				bTrueNewtonRaphson = 0;
 				if (HP.IsArg()) {
 					iIterationsBeforeAssembly = HP.GetInt();
-		  		} else {
-		       			iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
+				} else {
+					iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
@@ -3278,9 +3271,9 @@ Solver::ReadData(MBDynParser& HP)
 
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
-    				bTrueNewtonRaphson = true;
+				bTrueNewtonRaphson = true;
 				bKeepJac = false;
-    				iIterationsBeforeAssembly = 0;
+				iIterationsBeforeAssembly = 0;
 
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
@@ -3374,7 +3367,7 @@ Solver::ReadData(MBDynParser& HP)
 							"eta coefficient "
 							"for iterative "
 							"solver: "
-	  						<< dIterertiveEtaMax
+							<< dIterertiveEtaMax
 							<< std::endl);
 				}
 
@@ -3500,8 +3493,8 @@ Solver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
-   	switch (CurrStrategy) {
-    	case FACTOR:
+	switch (CurrStrategy) {
+	case FACTOR:
 		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
 			silent_cerr("warning, "
 				<< "strategy maximum number "
@@ -3640,7 +3633,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 			break;
 
 		case INT_MS2:
-  			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
 					MultistepSolver,
 					MultistepSolver(dFictitiousStepsTolerance,
 						0.,
@@ -3715,7 +3708,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	case INT_MS2:
-  		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
+		SAFENEWWITHCONSTRUCTOR(pRegularSteps,
 				MultistepSolver,
 				MultistepSolver(dTol,
 					dSolutionTol,
@@ -5179,10 +5172,10 @@ Solver::AllocateNonlinearSolver()
 void
 Solver::SetupSolmans(integer iStates, bool bCanBeParallel)
 {
-   	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
-		   << iNumDofs*iUnkStates <<
-		   "\n\tnumdofs = " << iNumDofs
-		   << "\n\tnumstates = " << iStates << std::endl);
+	DEBUGLCOUT(MYDEBUG_MEM, "creating SolutionManager\n\tsize = "
+		<< iNumDofs*iUnkStates <<
+		"\n\tnumdofs = " << iNumDofs
+		<< "\n\tnumstates = " << iStates << std::endl);
 
 	/* delete previous solmans */
 	if (pSM != 0) {
