@@ -2106,6 +2106,21 @@ Each line contains:
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
 
+If a reference node is defined, a special line is output for the reference node,
+containing:
+\begin{itemize}
+\item in column 1 the label of the element and that of the corresponding node;
+	the format of this field is \kw{element\_label\#node\_label};
+\item in columns 2--4 the three components of the force,
+	in the global reference frame;
+\item in columns 5--7 the three components of the moment
+	with respect to the reference node,
+	in the global reference frame;
+\item in columns 8--10 the three components of the force,
+	as received from the peer;
+\item in columns 11--13 the three components of the moment,
+	as received from the peer.
+\end{itemize}
 
 \subsection{External modal}
 This element allows to communicate with an external software that computes
@@ -2280,7 +2295,7 @@ in the \kw{.frc} file.
 If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label@node\_label};
+	the format of this field is \kw{element\_label\#node\_label};
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
@@ -2350,16 +2365,16 @@ in the \kw{.frc} file.
 If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label@node\_label};
+	the format of this field is \kw{element\_label\#node\_label};
 \item in columns 2--4 the three components of the force,
 	in the global reference frame;
 \item in columns 5--7 the three components of the moment
 	with respect to the reference node,
 	in the global reference frame;
 \item in columns 8--10 the three components of the force,
-	as sent by the peer;
+	as received from the peer;
 \item in columns 11--13 the three components of the moment,
-	as sent by the peer.
+	as received from the peer.
 \end{itemize}
 If \kw{type} is \kw{modal} or \kw{all}, two types of output are generated:
 \begin{itemize}

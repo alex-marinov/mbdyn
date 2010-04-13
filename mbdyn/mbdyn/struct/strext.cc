@@ -64,6 +64,7 @@ pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 F0(0.), M0(0.),
+F1(0.), M1(0.),
 bLabels(bLabels),
 bSorted(bSorted),
 uRot(uRot),
@@ -977,17 +978,15 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 		const Vec3& xRef = pRefNode->GetXCurr();
 		const Mat3x3& RRef = pRefNode->GetRCurr();
 
-		Vec3 FTmp, MTmp;
-
 		// manipulate
 		if (bUseReferenceNodeForces) {
 			if (bRotateReferenceNodeForces) {
-				FTmp = RRef*F0;
-				MTmp = RRef*M0;
+				F1 = RRef*F0;
+				M1 = RRef*M0;
 
 			} else {
-				FTmp = F0;
-				MTmp = M0;
+				F1 = F0;
+				M1 = M0;
 			}
 		}
 
@@ -1004,8 +1003,8 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.Add(i*6 + 4, m);
 
 			if (bUseReferenceNodeForces) {
-				FTmp -= f;
-				MTmp -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+				F1 -= f;
+				M1 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
 			}
 		}
 
@@ -1016,8 +1015,8 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
 			}
 
-			WorkVec.Add(i*6 + 1, FTmp);
-			WorkVec.Add(i*6 + 4, MTmp);
+			WorkVec.Add(i*6 + 1, F1);
+			WorkVec.Add(i*6 + 4, M1);
 		}
 
 	} else {
@@ -1041,6 +1040,15 @@ void
 StructExtForce::Output(OutputHandler& OH) const
 {
 	std::ostream& out = OH.Forces();
+
+	if (pRefNode) {
+		out << GetLabel() << "#" << pRefNode->GetLabel()
+			<< " " << F1
+			<< " " << M1
+			<< " " << F0
+			<< " " << M0
+			<< std::endl;
+	}
 
 	for (unsigned i = 0; i < Nodes.size(); i++) {
 		out << GetLabel() << "@" << Nodes[i]->GetLabel()
