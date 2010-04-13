@@ -158,19 +158,19 @@ typedef struct {
 	/* reference node data */
 	char		r_ptr[(1 + 1)*sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3)*sizeof(double)];
 	uint32_t	k_size;
-	uint32_t	r_k_label;
-	uint32_t	r_k_x;
-	uint32_t	r_k_theta;
-	uint32_t	r_k_r;
-	uint32_t	r_k_euler_123;
-	uint32_t	r_k_xp;
-	uint32_t	r_k_omega;
-	uint32_t	r_k_xpp;
-	uint32_t	r_k_omegap;
+	int32_t		r_k_label;
+	int32_t		r_k_x;
+	int32_t		r_k_theta;
+	int32_t		r_k_r;
+	int32_t		r_k_euler_123;
+	int32_t		r_k_xp;
+	int32_t		r_k_omega;
+	int32_t		r_k_xpp;
+	int32_t		r_k_omegap;
 	uint32_t	d_size;
-	uint32_t	r_d_label;
-	uint32_t	r_d_f;
-	uint32_t	r_d_m;
+	int32_t		r_d_label;
+	int32_t		r_d_f;
+	int32_t		r_d_m;
 #define MBC_R_PTR(mbc, type, off)	((off) < 0 ? NULL : ((type *)&((mbc)->mbcr.r_ptr[(off)])))
 #define	MBC_R_K_LABEL(mbc)		(MBC_R_PTR((mbc), uint32_t, (mbc)->mbcr.r_k_label)[0])
 #define	MBC_R_X(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_x))
