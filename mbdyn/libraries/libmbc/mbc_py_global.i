@@ -46,6 +46,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_x
@@ -65,6 +66,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_theta
@@ -84,6 +86,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_r
@@ -103,6 +106,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_euler_123
@@ -122,6 +126,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_xp
@@ -141,6 +146,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_omega
@@ -160,6 +166,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_xpp
@@ -179,6 +186,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_omegap
@@ -198,6 +206,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) unsigned *mbc_r_d_label
@@ -217,6 +226,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_f
@@ -236,6 +246,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_r_m
@@ -255,6 +266,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) unsigned *mbc_n_k_labels
@@ -274,6 +286,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_x
@@ -293,6 +306,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_theta
@@ -312,6 +326,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_r
@@ -331,6 +346,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_euler_123
@@ -350,6 +366,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_xp
@@ -369,6 +386,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_omega
@@ -388,6 +406,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_xpp
@@ -407,6 +426,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_omegap
@@ -426,6 +446,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) unsigned *mbc_n_d_labels
@@ -445,6 +466,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_n_f
@@ -464,6 +486,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 
@@ -484,6 +507,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_m_q
@@ -503,6 +527,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_m_qp
@@ -522,6 +547,7 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 
 %typemap(varout) double *mbc_m_p
@@ -541,5 +567,6 @@
 {
         Py_INCREF($input);
         $1 = ($1_basetype *)(((PyArrayObject *)$input)->data);
+        if ($1 == NULL) goto fail;
 }
 

@@ -158,31 +158,32 @@ typedef struct {
 	/* reference node data */
 	char		r_ptr[(1 + 1)*sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3)*sizeof(double)];
 	uint32_t	k_size;
-	uint32_t	*r_k_label;
-	double		*r_k_x;
-	double		*r_k_theta;
-	double		*r_k_r;
-	double		*r_k_euler_123;
-	double		*r_k_xp;
-	double		*r_k_omega;
-	double		*r_k_xpp;
-	double		*r_k_omegap;
+	uint32_t	r_k_label;
+	uint32_t	r_k_x;
+	uint32_t	r_k_theta;
+	uint32_t	r_k_r;
+	uint32_t	r_k_euler_123;
+	uint32_t	r_k_xp;
+	uint32_t	r_k_omega;
+	uint32_t	r_k_xpp;
+	uint32_t	r_k_omegap;
 	uint32_t	d_size;
-	uint32_t	*r_d_label;
-	double		*r_d_f;
-	double		*r_d_m;
-#define	MBC_R_K_LABEL(mbc)		((mbc)->mbcr.r_k_label[0])
-#define	MBC_R_X(mbc)			((mbc)->mbcr.r_k_x)
-#define	MBC_R_THETA(mbc)		((mbc)->mbcr.r_k_theta)
-#define	MBC_R_R(mbc)			((mbc)->mbcr.r_k_r)
-#define	MBC_R_EULER_123(mbc)		((mbc)->mbcr.r_k_euler_123)
-#define	MBC_R_XP(mbc)			((mbc)->mbcr.r_k_xp)
-#define	MBC_R_OMEGA(mbc)		((mbc)->mbcr.r_k_omega)
-#define	MBC_R_XPP(mbc)			((mbc)->mbcr.r_k_xpp)
-#define	MBC_R_OMEGAP(mbc)		((mbc)->mbcr.r_k_omegap)
-#define	MBC_R_D_LABEL(mbc)		((mbc)->mbcr.r_d_label[0])
-#define	MBC_R_F(mbc)			((mbc)->mbcr.r_d_f)
-#define	MBC_R_M(mbc)			((mbc)->mbcr.r_d_m)
+	uint32_t	r_d_label;
+	uint32_t	r_d_f;
+	uint32_t	r_d_m;
+#define MBC_R_PTR(mbc, type, off)	((off) < 0 ? NULL : ((type *)&((mbc)->mbcr.r_ptr[(off)])))
+#define	MBC_R_K_LABEL(mbc)		(MBC_R_PTR((mbc), uint32_t, (mbc)->mbcr.r_k_label)[0])
+#define	MBC_R_X(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_x))
+#define	MBC_R_THETA(mbc)		(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_theta))
+#define	MBC_R_R(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_r))
+#define	MBC_R_EULER_123(mbc)		(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_euler_123))
+#define	MBC_R_XP(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_xp))
+#define	MBC_R_OMEGA(mbc)		(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_omega))
+#define	MBC_R_XPP(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_xpp))
+#define	MBC_R_OMEGAP(mbc)		(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_omegap))
+#define	MBC_R_D_LABEL(mbc)		(MBC_R_PTR((mbc), uint32_t, (mbc)->mbcr.r_d_label)[0])
+#define	MBC_R_F(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_d_f))
+#define	MBC_R_M(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_d_m))
 #define MBC_R_KINEMATICS_SIZE(mbc)	((mbc)->mbcr.k_size)
 #define MBC_R_DYNAMICS_SIZE(mbc)	((mbc)->mbcr.d_size)
 #define MBC_R_SIZE(mbc)			(MBC_R_KINEMATICS_SIZE(mbc) + MBC_R_DYNAMICS_SIZE(mbc))

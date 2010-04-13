@@ -143,100 +143,102 @@ mbc_py_nodal_initialize(const char *const path,
 		return -1;
 	}
 
+	int id = n_mbc.size();
+	n_mbc.push_back(mbc);
+
+	mbc_nodal_t *mbcp = &n_mbc[id];
+
 	if (rigid) {
 		if (labels) {
-			mbc_r_k_label = &MBC_R_K_LABEL(&mbc);
+			mbc_r_k_label = &MBC_R_K_LABEL(mbcp);
 			mbc_r_k_label_size = 1;
 
-			mbc_r_d_label = &MBC_R_D_LABEL(&mbc);
+			mbc_r_d_label = &MBC_R_D_LABEL(mbcp);
 			mbc_r_d_label_size = 1;
 		}
 
-		mbc_r_x = MBC_R_X(&mbc);
+		mbc_r_x = MBC_R_X(mbcp);
 		mbc_r_x_size = 3;
 
 		switch (rot) {
 		case MBC_ROT_THETA:
-			mbc_r_theta = MBC_R_THETA(&mbc);
+			mbc_r_theta = MBC_R_THETA(mbcp);
 			mbc_r_theta_size = 3;
 			break;
 
 		case MBC_ROT_MAT:
-			mbc_r_r = MBC_R_R(&mbc);
+			mbc_r_r = MBC_R_R(mbcp);
 			mbc_r_r_size = 9;
 			break;
 
 		case MBC_ROT_EULER_123:
-			mbc_r_euler_123 = MBC_R_EULER_123(&mbc);
+			mbc_r_euler_123 = MBC_R_EULER_123(mbcp);
 			mbc_r_euler_123_size = 3;
 			break;
 		}
 
-		mbc_r_xp = MBC_R_XP(&mbc);
+		mbc_r_xp = MBC_R_XP(mbcp);
 		mbc_r_xp_size = 3;
-		mbc_r_omega = MBC_R_OMEGA(&mbc);
+		mbc_r_omega = MBC_R_OMEGA(mbcp);
 		mbc_r_omega_size = 3;
 
 		if (accels) {
-			mbc_r_xpp = MBC_R_XPP(&mbc);
+			mbc_r_xpp = MBC_R_XPP(mbcp);
 			mbc_r_xpp_size = 3;
-			mbc_r_omegap = MBC_R_OMEGAP(&mbc);
+			mbc_r_omegap = MBC_R_OMEGAP(mbcp);
 			mbc_r_omegap_size = 3;
 		}
 
-		mbc_r_f = MBC_R_F(&mbc);
+		mbc_r_f = MBC_R_F(mbcp);
 		mbc_r_f_size = 3;
-		mbc_r_m = MBC_R_M(&mbc);
+		mbc_r_m = MBC_R_M(mbcp);
 		mbc_r_m_size = 3;
 	}
 
 	if (nodes > 0) {
 		if (labels) {
-			mbc_n_k_labels = MBC_N_K_LABELS(&mbc);
+			mbc_n_k_labels = MBC_N_K_LABELS(mbcp);
 			mbc_n_k_labels_size = nodes;
-			mbc_n_d_labels = MBC_N_D_LABELS(&mbc);
+			mbc_n_d_labels = MBC_N_D_LABELS(mbcp);
 			mbc_n_d_labels_size = nodes;
 		}
 
-		mbc_n_x = MBC_N_X(&mbc);
+		mbc_n_x = MBC_N_X(mbcp);
 		mbc_n_x_size = 3*nodes;
 
 		switch (rot) {
 		case MBC_ROT_THETA:
-			mbc_n_theta = MBC_N_THETA(&mbc);
+			mbc_n_theta = MBC_N_THETA(mbcp);
 			mbc_n_theta_size = 3*nodes;
 			break;
 
 		case MBC_ROT_MAT:
-			mbc_n_r = MBC_N_R(&mbc);
+			mbc_n_r = MBC_N_R(mbcp);
 			mbc_n_r_size = 9*nodes;
 			break;
 
 		case MBC_ROT_EULER_123:
-			mbc_n_euler_123 = MBC_N_EULER_123(&mbc);
+			mbc_n_euler_123 = MBC_N_EULER_123(mbcp);
 			mbc_n_euler_123_size = 3*nodes;
 		}
 
-		mbc_n_xp = MBC_N_XP(&mbc);
+		mbc_n_xp = MBC_N_XP(mbcp);
 		mbc_n_xp_size = 3*nodes;
-		mbc_n_omega = MBC_N_OMEGA(&mbc);
+		mbc_n_omega = MBC_N_OMEGA(mbcp);
 		mbc_n_omega_size = 3*nodes;
 
 		if (accels) {
-			mbc_n_xpp = MBC_N_XPP(&mbc);
+			mbc_n_xpp = MBC_N_XPP(mbcp);
 			mbc_n_xpp_size = 3*nodes;
-			mbc_n_omegap = MBC_N_OMEGAP(&mbc);
+			mbc_n_omegap = MBC_N_OMEGAP(mbcp);
 			mbc_n_omegap_size = 3*nodes;
 		}
 
-		mbc_n_f = MBC_N_F(&mbc);
+		mbc_n_f = MBC_N_F(mbcp);
 		mbc_n_f_size = 3*nodes;
-		mbc_n_m = MBC_N_M(&mbc);
+		mbc_n_m = MBC_N_M(mbcp);
 		mbc_n_m_size = 3*nodes;
 	}
-
-	int id = n_mbc.size();
-	n_mbc.push_back(mbc);
 
 	return id;
 }
@@ -334,34 +336,39 @@ mbc_py_modal_initialize(const char *const path,
 		return -1;
 	}
 
+	int id = m_mbc.size();
+	m_mbc.push_back(mbc);
+
+	mbc_modal_t *mbcp = &m_mbc[id];
+
 	if (rigid) {
-		mbc_r_x = MBC_R_X(&mbc);
+		mbc_r_x = MBC_R_X(mbcp);
 		mbc_r_x_size = 3;
-		mbc_r_r = MBC_R_R(&mbc);
+		mbc_r_r = MBC_R_R(mbcp);
 		mbc_r_r_size = 9;
 
-		mbc_r_xp = MBC_R_XP(&mbc);
+		mbc_r_xp = MBC_R_XP(mbcp);
 		mbc_r_xp_size = 3;
-		mbc_r_omega = MBC_R_OMEGA(&mbc);
+		mbc_r_omega = MBC_R_OMEGA(mbcp);
 		mbc_r_omega_size = 3;
 
-		mbc_r_f = MBC_R_F(&mbc);
+		mbc_r_f = MBC_R_F(mbcp);
 		mbc_r_f_size = 3;
-		mbc_r_m = MBC_R_M(&mbc);
+		mbc_r_m = MBC_R_M(mbcp);
 		mbc_r_m_size = 3;
 	}
 
 	if (modes > 0) {
-		mbc_m_q = MBC_Q(&mbc);
+		mbc_m_q = MBC_Q(mbcp);
 		mbc_m_q_size = modes;
-		mbc_m_qp = MBC_QP(&mbc);
+		mbc_m_qp = MBC_QP(mbcp);
 		mbc_m_qp_size = modes;
 
-		mbc_m_p = MBC_P(&mbc);
+		mbc_m_p = MBC_P(mbcp);
 		mbc_m_p_size = modes;
 	}
 
-	return 0;
+	return id;
 }
 
 int
