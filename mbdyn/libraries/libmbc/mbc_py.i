@@ -44,6 +44,9 @@
                 unsigned labels, unsigned rot, unsigned accels);
 
         extern int
+        mbc_py_nodal_negotiate(unsigned id);
+
+        extern int
         mbc_py_nodal_send(unsigned id, int last);
 
         extern int
@@ -57,6 +60,9 @@
                 const char *const host, unsigned port,
                 int timeout, unsigned verbose, unsigned data_and_next,
                 unsigned rigid, unsigned modes);
+
+        extern int
+        mbc_py_modal_negotiate(unsigned id);
 
         extern int
         mbc_py_modal_send(unsigned id, int last);
@@ -77,6 +83,9 @@ mbc_py_nodal_initialize(const char *path,
         unsigned labels, unsigned rot, unsigned accels);
 
 int
+mbc_py_nodal_negotiate(unsigned id);
+
+int
 mbc_py_nodal_send(unsigned id, int last);
 
 int
@@ -90,6 +99,9 @@ mbc_py_modal_initialize(const char *const path,
         const char *const host, unsigned port,
         int timeout, unsigned verbose, unsigned data_and_next,
         unsigned rigid, unsigned modes);
+
+int
+mbc_py_modal_negotiate(unsigned id);
 
 int
 mbc_py_modal_send(unsigned id, int last);

@@ -14,7 +14,13 @@ class mbcNodal:
 		if self.id < 0:
 			print "mbc_py_nodal_initialize: error";
 			raise Exception;
+
+	def negotiate(self):
 		""" set pointers """
+		if (mbc_py.mbc_py_nodal_negotiate(self.id) < 0):
+			print "mbc_py_nodal_negotiate: error";
+			raise Exception;
+
 		self.r_k_label = mbc_py.cvar.mbc_r_k_label;
 		self.r_x = mbc_py.cvar.mbc_r_x;
 		self.r_theta = mbc_py.cvar.mbc_r_theta;
@@ -86,7 +92,13 @@ class mbcModal:
 		if self.id < 0:
 			print "mbc_py_modal_initialize: error";
 			raise Exception;
+
+	def negotiate(self):
 		""" set pointers """
+		if (mbc_py.mbc_py_modal_negotiate(self.id) < 0):
+			print "mbc_py_modal_negotiate: error";
+			raise Exception;
+
 		self.r_k_label = mbc_py.cvar.mbc_r_k_label;
 		self.r_x = mbc_py.cvar.mbc_r_x;
 		self.r_theta = mbc_py.cvar.mbc_r_theta;
