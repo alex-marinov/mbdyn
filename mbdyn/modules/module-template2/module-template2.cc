@@ -86,7 +86,7 @@ UserDefinedElem(uLabel, pDO)
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
 "									\n"
-"Module: 	template						\n"
+"Module: 	template2						\n"
 "Author: 	Pierangelo Masarati <masarati@aero.polimi.it>		\n"
 "Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
 "		Politecnico di Milano					\n"
@@ -221,5 +221,23 @@ ModuleTemplate::InitialAssRes(
 	WorkVec.ResizeReset(0);
 
 	return WorkVec;
+}
+
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	UserDefinedElemRead *rf = new UDERead<ModuleTemplate>;
+
+	if (!SetUDE("template2", rf)) {
+		delete rf;
+
+		silent_cerr("module-template2: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+
+		return -1;
+	}
+
+	return 0;
 }
 
