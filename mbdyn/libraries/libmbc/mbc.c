@@ -71,7 +71,7 @@ mbc_check_cmd(mbc_t *mbc)
 		return 0;
 	}
 
-	fprintf(stderr, "unknown cmd (%u) from peer\n", mbc->cmd);
+	fprintf(stderr, "unknown cmd (%lu) from peer\n", (unsigned long)mbc->cmd);
 	return -1;
 }
 
@@ -87,7 +87,7 @@ mbc_get_cmd(mbc_t *mbc)
 	rc = recv(mbc->sock, (void *)&mbc->cmd, sizeof(mbc->cmd),
 		mbc->recv_flags);
 	if (rc != sizeof(mbc->cmd)) {
-		fprintf(stderr, "recv(cmd=%u) failed\n", mbc->cmd);
+		fprintf(stderr, "recv(cmd=%lu) failed\n", (unsigned long)mbc->cmd);
 		return -1;
 	}
 
@@ -112,13 +112,13 @@ mbc_put_cmd(mbc_t *mbc)
 	}
 
 	if (mbc->verbose) {
-		fprintf(stdout, "cmd to peer: %u\n", mbc->cmd);
+		fprintf(stdout, "cmd to peer: %lu\n", (unsigned long)mbc->cmd);
 	}
 
 	rc = send(mbc->sock, (const void *)&mbc->cmd, sizeof(mbc->cmd),
 		mbc->send_flags);
 	if (rc != sizeof(mbc->cmd)) {
-		fprintf(stderr, "send(cmd=%u) failed (%d)\n", mbc->cmd, rc);
+		fprintf(stderr, "send(cmd=%lu) failed (%ld)\n", (unsigned long)mbc->cmd, (long)rc);
 		return -1;
 	}
 
@@ -157,8 +157,8 @@ mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 
 			/* Connect failed */
 			msg = strerror(save_errno);
-			fprintf(stderr, "unable to connect to peer (%d: %s)\n",
-				save_errno, msg);
+			fprintf(stderr, "unable to connect to peer (%ld: %s)\n",
+				(long)save_errno, msg);
 			return -1;
 		}
 
@@ -340,7 +340,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	if (mbc->mbc.cmd == ES_ABORT) {
@@ -355,8 +355,8 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
 				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc != MBC_R_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%u) reference node failed (%d)\n",
-					MBC_R_KINEMATICS_SIZE(mbc), rc);
+				fprintf(stderr, "recv(%lu) reference node failed (%ld)\n",
+					(unsigned long)MBC_R_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -367,8 +367,8 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 			rc = recv(mbc->mbc.sock, (void *)MBC_N_KINEMATICS(mbc),
 				MBC_N_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
 			if (rc != MBC_N_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%u) x, theta, xP, omega failed (%d)\n",
-					MBC_N_KINEMATICS_SIZE(mbc), rc);
+				fprintf(stderr, "recv(%lu) x, theta, xP, omega failed (%ld)\n",
+					(unsigned long)MBC_N_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -411,8 +411,8 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
 			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
 				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 			if (rc != MBC_R_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%u) reference node failed (%d)\n",
-					MBC_R_DYNAMICS_SIZE(mbc), rc);
+				fprintf(stderr, "send(%lu) reference node failed (%ld)\n",
+					(unsigned long)MBC_R_DYNAMICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -424,8 +424,8 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
 			rc = send(mbc->mbc.sock, (const void *)MBC_N_DYNAMICS(mbc),
 				MBC_N_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
 			if (rc != MBC_N_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%u) nodes failed (%d)\n",
-					MBC_N_DYNAMICS_SIZE(mbc), rc);
+				fprintf(stderr, "send(%lu) nodes failed (%ld)\n",
+					(unsigned long)MBC_N_DYNAMICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -478,7 +478,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		break;
 
 	default:
-		fprintf(stderr, "unknown orientation parametrization %u in flags\n", rot);
+		fprintf(stderr, "unknown orientation parametrization %lu in flags\n", (unsigned long)rot);
 		return -1;
 	}
 
@@ -522,7 +522,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 			break;
 
 		default:
-			fprintf(stderr, "unknown orientation parametrization %u in flags\n", rot);
+			fprintf(stderr, "unknown orientation parametrization %lu in flags\n", (unsigned long)rot);
 			return -1;
 		}
 
@@ -638,7 +638,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
 	if (rc != sizeof(buf)) {
-		fprintf(stderr, "send negotiate request failed (%d)\n", rc);
+		fprintf(stderr, "send negotiate request failed (%ld)\n", (long)rc);
 		return -1;
 	}
 
@@ -647,7 +647,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -659,7 +659,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 		break;
 
 	default:
-		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		fprintf(stdout, "unexpected cmd=%lu from peer\n", (unsigned long)mbc->mbc.cmd);
 		return -1;
 	}
 
@@ -682,7 +682,7 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -690,7 +690,7 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 		break;
 
 	default:
-		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		fprintf(stdout, "unexpected cmd=%lu from peer\n", (unsigned long)mbc->mbc.cmd);
 		return -1;
 	}
 
@@ -786,7 +786,7 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	if (mbc->mbc.cmd == ES_ABORT) {
@@ -800,9 +800,19 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 
 			rc = recv(mbc->mbc.sock, (void *)MBC_R_KINEMATICS(mbc),
 				MBC_R_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
-			if (rc != MBC_R_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%u) rigid failed (%d)\n",
-					MBC_R_KINEMATICS_SIZE(mbc), rc);
+			if (rc == -1) {
+				int save_errno = errno;
+				const char *msg;
+
+				msg = strerror(save_errno);
+				fprintf(stderr, "recv(%lu) rigid failed (%ld: %s)\n",
+					(unsigned long)MBC_R_KINEMATICS_SIZE(mbc),
+					(long)save_errno, msg);
+				return -1;
+
+			} else if ((unsigned long)rc != MBC_R_KINEMATICS_SIZE(mbc)) {
+				fprintf(stderr, "recv(%lu) rigid failed (%ld)\n",
+					(unsigned long)MBC_R_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -812,9 +822,19 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 
 			rc = recv(mbc->mbc.sock, (void *)MBC_M_KINEMATICS(mbc),
 				MBC_M_KINEMATICS_SIZE(mbc), mbc->mbc.recv_flags);
-			if (rc != MBC_M_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%u) q, qP failed (%d)\n",
-					MBC_M_KINEMATICS_SIZE(mbc), rc);
+			if (rc == -1) {
+				int save_errno = errno;
+				const char *msg;
+
+				msg = strerror(save_errno);
+				fprintf(stderr, "recv(%lu) q, qP failed (%ld: %s)\n",
+					(unsigned long)MBC_M_KINEMATICS_SIZE(mbc),
+					(long)save_errno, msg);
+				return -1;
+
+			} else if ((unsigned long)rc != MBC_M_KINEMATICS_SIZE(mbc)) {
+				fprintf(stderr, "recv(%lu) q, qP failed (%ld)\n",
+					(unsigned long)MBC_M_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -856,9 +876,19 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 
 			rc = send(mbc->mbc.sock, (const void *)MBC_R_DYNAMICS(mbc),
 				MBC_R_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
-			if (rc != MBC_R_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%u) rigid failed (%d)\n",
-					MBC_R_DYNAMICS_SIZE(mbc), rc);
+			if (rc == -1) {
+				int save_errno = errno;
+				const char *msg;
+
+				msg = strerror(save_errno);
+				fprintf(stderr, "send(%lu) rigid failed (%ld: %s)\n",
+					(unsigned long)MBC_R_DYNAMICS_SIZE(mbc),
+					(long)save_errno, msg);
+				return -1;
+
+			} else if ((unsigned long)rc != MBC_R_DYNAMICS_SIZE(mbc)) {
+				fprintf(stderr, "send(%lu) rigid failed (%ld)\n",
+					(unsigned long)MBC_R_DYNAMICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -869,9 +899,19 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 
 			rc = send(mbc->mbc.sock, (const void *)MBC_M_DYNAMICS(mbc),
 				MBC_M_DYNAMICS_SIZE(mbc), mbc->mbc.send_flags);
-			if (rc != MBC_M_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%u) modes failed (%d)\n",
-					MBC_M_DYNAMICS_SIZE(mbc), rc);
+			if (rc == -1) {
+				int save_errno = errno;
+				const char *msg;
+
+				msg = strerror(save_errno);
+				fprintf(stderr, "send(%lu) modes failed (%ld: %s)\n",
+					(unsigned long)MBC_M_DYNAMICS_SIZE(mbc),
+					(long)save_errno, msg);
+				return -1;
+
+			} else if ((unsigned long)rc != MBC_M_DYNAMICS_SIZE(mbc)) {
+				fprintf(stderr, "send(%lu) modes failed (%ld)\n",
+					(unsigned long)MBC_M_DYNAMICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
 		}
@@ -952,7 +992,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	rc = send(mbc->mbc.sock, (const void *)buf, sizeof(buf),
 		mbc->mbc.send_flags);
 	if (rc != sizeof(buf)) {
-		fprintf(stderr, "send negotiate request failed (%d)\n", rc);
+		fprintf(stderr, "send negotiate request failed (%ld)\n", (long)rc);
 		return -1;
 	}
 
@@ -961,7 +1001,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -973,7 +1013,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 		break;
 
 	default:
-		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		fprintf(stdout, "unexpected cmd=%lu from peer\n", (unsigned long)mbc->mbc.cmd);
 		return -1;
 	}
 
@@ -994,7 +1034,7 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %u\n", mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -1002,7 +1042,7 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 		break;
 
 	default:
-		fprintf(stdout, "unexpected cmd=%u from peer\n", mbc->mbc.cmd);
+		fprintf(stdout, "unexpected cmd=%lu from peer\n", (unsigned long)mbc->mbc.cmd);
 		return -1;
 	}
 
