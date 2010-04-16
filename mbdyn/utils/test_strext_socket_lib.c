@@ -402,7 +402,7 @@ test_run(void)
 				double *n_r;
 				double *n_xp = MBC_N_XP(mbc);
 				double *n_omega = MBC_N_OMEGA(mbc);
-				int n;
+				unsigned n;
 
 				for (n = 0; n < mbc->nodes; n++) {
 					if (labels) {
@@ -474,7 +474,7 @@ test_run(void)
 			if (mbc->nodes > 0) {
 				double *n_f = MBC_N_F(mbc);
 				double *n_m = MBC_N_M(mbc);
-				int n;
+				unsigned n;
 
 				if (labels) {
 					uint32_t *k_l = MBC_N_K_LABELS(mbc);
@@ -576,7 +576,7 @@ tforce_(float *RF, float *RM, float *NF, float *NM)
 	}
 
 	if (mbc->nodes > 0) {
-		int n;
+		unsigned n;
 
 		if (p0) {
 			for (n = 0; n < mbc->nodes; n++) {
@@ -622,7 +622,7 @@ tsend_(float *RF, float *RM, float *NF, float *NM,
 	if (mbc->nodes > 0) {
 		double *f = MBC_N_F(mbc);
 		double *m = MBC_N_M(mbc);
-		int node;
+		unsigned node;
 
 		for (node = 0; node < mbc->nodes; node++) {
 			f[node] = NF[node];
@@ -688,7 +688,7 @@ trecv_(float *RX, float *RR, float *RXP, float *ROMEGA,
 		double *r = MBC_N_R(mbc);
 		double *v = MBC_N_XP(mbc);
 		double *w = MBC_N_OMEGA(mbc);
-		int node;
+		unsigned node;
 
 		for (node = 0; node < mbc->nodes; node++) {
 			NX[node] = x[node];
