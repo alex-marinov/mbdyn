@@ -1422,7 +1422,7 @@ DataManager::Output(long lStep,
 	 * incontrollabile */
 
 	/* output only when allowed by the output meter */
-	if ((!force) && !pOutputMeter->dGet()) {
+	if (!force && !pOutputMeter->dGet()) {
 		return;
 	}
 
@@ -1477,10 +1477,10 @@ void
 DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 {
 	/* Dati dei nodi */
-	NodeOutput((OutputHandler&)OutHdl, X, XP);
+	NodeOutput(OutHdl, X, XP);
 
 	/* Dati degli elementi */
-	ElemOutput((OutputHandler&)OutHdl, X, XP);
+	ElemOutput(OutHdl, X, XP);
 }
 
 #if 0
