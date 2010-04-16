@@ -227,10 +227,10 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
-			ndof = iGetNumDof();
+			ndof = iGetInitialNumDof();
 
 		} else {
-			ndof = iGetInitialNumDof();
+			ndof = iGetNumDof();
 		}
 	}
 	desc.resize(ndof);
@@ -240,13 +240,59 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 
 	if (i == -1) {
 		std::string name(os.str());
+		unsigned int cnt = 0;
 
-		for (i = 0; i < ndof; i++) {
-			os.str(name);
-			os.seekp(0, std::ios_base::end);
-			os << ": dof(" << i + 1 << ")";
-			desc[i] = os.str();
+		if (nPosConstraints > 0 || nVelConstraints > 0) {
+			for (unsigned int i = 0; i < 3; i++) {
+				if (bPosActive[i] || bVelActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": dof(" << cnt + 1 << ") F" << idx2xyz[i];
+					desc[cnt] = os.str();
+					cnt++;
+				}
+			}
 		}
+
+		if (nRotConstraints > 0 || nAgvConstraints > 0) {
+			for (unsigned int i = 0; i < 3; i++) {
+				if (bRotActive[i] || bAgvActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": dof(" << cnt + 1 << ") M" << idx2xyz[i];
+					desc[cnt] = os.str();
+					cnt++;
+				}
+			}
+		}
+
+		if (bInitial) {
+			if (nPosConstraints > 0) {
+				for (unsigned int i = 0; i < 3; i++) {
+					if (bPosActive[i]) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": dof(" << cnt + 1 << ") FP" << idx2xyz[i];
+						desc[cnt] = os.str();
+						cnt++;
+					}
+				}
+			}
+			
+			if (nRotConstraints > 0) {
+				for (unsigned int i = 0; i < 3; i++) {
+					if (bRotActive[i]) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": dof(" << cnt + 1 << ") MP" << idx2xyz[i];
+						desc[cnt] = os.str();
+						cnt++;
+					}
+				}
+			}	
+		}
+
+		ASSERT(cnt == ndof);
 
 	} else {
 		os << ": dof(" << i + 1 << ")";
@@ -374,10 +420,10 @@ TotalJoint::DescribeEq(std::vector<std::string>& desc,
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
-			ndof = iGetNumDof();
+			ndof = iGetInitialNumDof();
 
 		} else {
-			ndof = iGetInitialNumDof();
+			ndof = iGetNumDof();
 		}
 	}
 	desc.resize(ndof);
@@ -387,13 +433,73 @@ TotalJoint::DescribeEq(std::vector<std::string>& desc,
 
 	if (i == -1) {
 		std::string name(os.str());
+		unsigned int cnt = 0;
 
-		for (i = 0; i < ndof; i++) {
-			os.str(name);
-			os.seekp(0, std::ios_base::end);
-			os << ": equation(" << i + 1 << ")";
-			desc[i] = os.str();
+		if (nPosConstraints > 0 || nVelConstraints > 0) {
+			for (unsigned int i = 0; i < 3; i++) {
+				if (bPosActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << cnt + 1 << ") P" << idx2xyz[i] << "1=P" << idx2xyz[i] << "2";
+					desc[cnt] = os.str();
+					cnt++;
+
+				} else if (bVelActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << cnt + 1 << ") V" << idx2xyz[i] << "1=V" << idx2xyz[i] << "2";
+					desc[cnt] = os.str();
+					cnt++;
+				}
+			}
 		}
+
+		if (nRotConstraints > 0 || nAgvConstraints > 0) {
+			for (unsigned int i = 0; i < 3; i++) {
+				if (bRotActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << cnt + 1 << ") theta" << idx2xyz[i] << "1=theta" << idx2xyz[i] << "2";
+					desc[cnt] = os.str();
+					cnt++;
+
+				} else if (bAgvActive[i]) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << ": equation(" << cnt + 1 << ") W" << idx2xyz[i] << "1=W" << idx2xyz[i] << "2";
+					desc[cnt] = os.str();
+					cnt++;
+				}
+			}
+		}
+
+		if (bInitial) {
+			if (nPosConstraints > 0) {
+				for (unsigned int i = 0; i < 3; i++) {
+					if (bPosActive[i]) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": equation(" << cnt + 1 << ") v" << idx2xyz[i] << "1=v" << idx2xyz[i] << "2";
+						desc[cnt] = os.str();
+						cnt++;
+					}
+				}
+			}
+			
+			if (nRotConstraints > 0) {
+				for (unsigned int i = 0; i < 3; i++) {
+					if (bRotActive[i]) {
+						os.str(name);
+						os.seekp(0, std::ios_base::end);
+						os << ": equation(" << cnt + 1 << ") w" << idx2xyz[i] << "1=w" << idx2xyz[i] << "2";
+						desc[cnt] = os.str();
+						cnt++;
+					}
+				}
+			}	
+		}
+
+		ASSERT(cnt == ndof);
 
 	} else {
 		os << ": equation(" << i + 1 << ")";
