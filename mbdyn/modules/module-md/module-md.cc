@@ -163,6 +163,8 @@ iCouplingCounter(0)
 			}
 		}
 	}
+
+	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
 
 MD::~MD(void)
