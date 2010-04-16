@@ -847,6 +847,10 @@ Solver::Run(void)
 		OF |= OUTPUT_SOL;
 	}
 	pNLS->SetOutputFlags(OF);
+	if (pOutputMeter) {
+		pOutputMeter->SetDrvHdl(pDM->pGetDrvHdl());
+		pNLS->SetOutputMeter(pOutputMeter->pCopy());
+	}
 
 	pDerivativeSteps->SetDataManager(pDM);
 	pDerivativeSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
@@ -1892,6 +1896,7 @@ Solver::ReadData(MBDynParser& HP)
 			"jacobian" "matrix",
 			"bailout",
 			"messages",
+		"output" "meter",
 
 		"method",
 		/* DEPRECATED */ "fictitious" "steps" "method" /* END OF DEPRECATED */ ,
@@ -1995,6 +2000,7 @@ Solver::ReadData(MBDynParser& HP)
 			JACOBIANMATRIX,
 			BAILOUT,
 			MESSAGES,
+		OUTPUTMETER,
 
 		METHOD,
 		FICTITIOUSSTEPSMETHOD,
@@ -2324,10 +2330,15 @@ Solver::ReadData(MBDynParser& HP)
 
 			if (setOutput) {
 				SetOutputFlags(OF);
+
 			} else {
 				AddOutputFlags(OF);
 			}
 		} break;
+
+		case OUTPUTMETER:
+			SetOutputMeter(HP.GetDriveCaller(true));
+			break;
 
 		case METHOD: {
 			if (bMethod) {

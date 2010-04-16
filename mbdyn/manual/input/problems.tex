@@ -906,6 +906,14 @@ and add the iterations output, use:
     output: none, iterations;
 \end{verbatim}
 
+\subsubsection{Output meter}
+This command conditions the output selected by the \kw{output} command
+to a meter, expressed in terms of a drive caller.
+Only when the drive caller returns \kw{true} (!0), the output occurs.
+\begin{verbatim}
+    <card> ::= output meter : (DriveCaller)<when> ;
+\end{verbatim}
+
 
 
 \subsection{Real-Time Execution}\label{sec:REAL-TIME}

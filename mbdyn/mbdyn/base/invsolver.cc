@@ -556,6 +556,10 @@ InverseSolver::Run(void)
 		OF |= OUTPUT_SOL;
 	}
 	pNLS->SetOutputFlags(OF);
+	if (pOutputMeter) {
+		pOutputMeter->SetDrvHdl(pDM->pGetDrvHdl());
+		pNLS->SetOutputMeter(pOutputMeter->pCopy());
+	}
 
 	pRegularSteps->SetDataManager(pDM);
 	pRegularSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
@@ -979,6 +983,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			"jacobian" "matrix",
 			"bailout",
 			"messages",
+		"output" "meter",
 
 		"method",
 			"inverse" "default",
@@ -1056,6 +1061,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 			JACOBIANMATRIX,
 			BAILOUT,
 			MESSAGES,
+		OUTPUTMETER,
+
 		METHOD,
 			INVERSEDEFAULT,
 
@@ -1310,6 +1317,10 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 			break;
 		}
+
+		case OUTPUTMETER:
+			SetOutputMeter(HP.GetDriveCaller(true));
+			break;
 
 		case TOLERANCE: {
 			/*

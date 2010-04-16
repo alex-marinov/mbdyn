@@ -32,9 +32,12 @@
 #ifndef SOLVERDIAGNOSTICS_H
 #define SOLVERDIAGNOSTICS_H
 
+#include "drive.h"
+
 class SolverDiagnostics {
 protected:
  	unsigned OutputFlags;
+	DriveCaller *pOutputMeter;
 
 	enum {
 		OUTPUT_NONE		= 0x0000,
@@ -53,32 +56,39 @@ protected:
 	};
 public:
 
-	SolverDiagnostics(unsigned OF = OUTPUT_DEFAULT);
+	SolverDiagnostics(unsigned OF = OUTPUT_DEFAULT, DriveCaller *pOM = 0);
 	virtual ~SolverDiagnostics(void);
 	
 	void SetNoOutput(void);
 
+	void SetOutputMeter(DriveCaller *pOM);
+
 	void SetOutputFlags(unsigned OF);
 	void AddOutputFlags(unsigned OF);
 	void DelOutputFlags(unsigned OF);
-		
+
+	inline bool outputMeter(void) const {
+		return (!pOutputMeter || pOutputMeter->dGet());
+	};
+
 	inline bool outputIters(void) const {
-		return (OutputFlags & OUTPUT_ITERS);
+		return outputMeter() && (OutputFlags & OUTPUT_ITERS);
 	};
  
 	inline bool outputRes(void) const {
-		return (OutputFlags & OUTPUT_RES);
+		return outputMeter() && (OutputFlags & OUTPUT_RES);
 	};
  
 	inline bool outputSol(void) const {
-		return (OutputFlags & OUTPUT_SOL);
+		return outputMeter() && (OutputFlags & OUTPUT_SOL);
 	};
  
 	inline bool outputJac(void) const {
-		return (OutputFlags & OUTPUT_JAC);
+		return outputMeter() && (OutputFlags & OUTPUT_JAC);
 	};
 
 	inline bool outputBailout(void) const {
+		// NOTE: this is NOT conditioned by output meter
 		return (OutputFlags & OUTPUT_BAILOUT);
 	};
 

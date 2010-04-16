@@ -36,7 +36,8 @@
 #include <myassert.h>
 #include <solverdiagnostics.h>
  
-SolverDiagnostics::SolverDiagnostics(unsigned OF)
+SolverDiagnostics::SolverDiagnostics(unsigned OF, DriveCaller *pOM)
+: pOutputMeter(pOM)
 {
 	SetOutputFlags(OF);
 }
@@ -44,12 +45,23 @@ SolverDiagnostics::SolverDiagnostics(unsigned OF)
 SolverDiagnostics::~SolverDiagnostics(void)
 {
 	SetOutputFlags(0);
+	SetOutputMeter(0);
 }
 	
 void
 SolverDiagnostics::SetNoOutput(void)
 {
 	OutputFlags = OUTPUT_NONE;
+}
+
+void
+SolverDiagnostics::SetOutputMeter(DriveCaller *pOM)
+{
+	if (pOutputMeter) {
+		delete pOutputMeter;
+	}
+
+	pOutputMeter = pOM;
 }
 
 void

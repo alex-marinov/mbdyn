@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- added nodal external force support to peer library (mbc.h)
 		- added relative frame external force support
 		- added peer library libmbc with python wrapping
+		- added solver diagnostics output meter
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
 		- scalar variables dropped "1" dimension in NetCDF output
