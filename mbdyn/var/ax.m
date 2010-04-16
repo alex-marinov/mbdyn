@@ -28,20 +28,13 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-function Gamma = mat_dexp(theta)
+function v = ax(M)
 
-t = sqrt(theta'*theta);
-
-if (t > 0.),
-	a = sin(t)/t;
-	b = (1 - cos(t))/t^2;
-	c = (1 - a)/t^2;
-
-	theta_cross = cross(theta);
-
-	Gamma = eye(3) + b*theta_cross + c*theta_cross*theta_cross;
-
-else
-	Gamma = eye(3);
+if (size(M) != [3, 3]),
+	error('M must be 3x3');
 end
+
+MM = (M - M')/2;
+
+v = [MM(3, 2); MM(1, 3); MM(2, 1)];
 

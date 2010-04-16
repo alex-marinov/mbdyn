@@ -28,20 +28,16 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-function Gamma = mat_dexp(theta)
+function theta = rotvec(R)
 
-t = sqrt(theta'*theta);
+n_sintheta = ax(R);
+sintheta = norm(n_sintheta);
+costheta = (trace(R) - 1)/2;
+ntheta = atan2(sintheta, costheta);
 
-if (t > 0.),
-	a = sin(t)/t;
-	b = (1 - cos(t))/t^2;
-	c = (1 - a)/t^2;
-
-	theta_cross = cross(theta);
-
-	Gamma = eye(3) + b*theta_cross + c*theta_cross*theta_cross;
-
+if (sintheta < 1e-6),
+	theta = n_sintheta;
 else
-	Gamma = eye(3);
+	theta = n_sintheta*(ntheta/sintheta);
 end
 

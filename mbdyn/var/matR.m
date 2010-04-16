@@ -28,20 +28,13 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-function Gamma = mat_dexp(theta)
+function R = matR(theta)
 
-t = sqrt(theta'*theta);
-
+t = norm(theta);
 if (t > 0.),
 	a = sin(t)/t;
 	b = (1 - cos(t))/t^2;
-	c = (1 - a)/t^2;
-
-	theta_cross = cross(theta);
-
-	Gamma = eye(3) + b*theta_cross + c*theta_cross*theta_cross;
-
+	R = eye(3) + a*cross(theta) + b*cross(theta)*cross(theta);
 else
-	Gamma = eye(3);
+	R = eye(3);
 end
-
