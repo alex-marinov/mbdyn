@@ -69,6 +69,7 @@ enum MBCType {
 	MBC_ROT_MAT				= 0x0200U,
 	MBC_ROT_EULER_123			= 0x0400U,
 	/* add more? */
+	MBC_ROT_NONE				= 0x0000U,
 	MBC_ROT_MASK				= (MBC_ROT_THETA | MBC_ROT_MAT | MBC_ROT_EULER_123),
 
 	MBC_LAST

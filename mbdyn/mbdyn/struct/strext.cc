@@ -88,6 +88,7 @@ iobuf_m(0)
 	M.resize(nodes.size());
 
 	switch (uRot) {
+	case MBC_ROT_NONE:
 	case MBC_ROT_THETA:
 	case MBC_ROT_MAT:
 	case MBC_ROT_EULER_123:
@@ -130,16 +131,19 @@ iobuf_m(0)
 
 	// I/O will use filedes
 	if (!pEFH->GetOutStream()) {
-		node_kinematics_size = 3 + 3 + 3;
+		node_kinematics_size = 3 + 3;
 
 		switch (uRot) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
-			node_kinematics_size += 9;
+			node_kinematics_size += 9 + 3;
 			break;
 
 		case MBC_ROT_THETA:
 		case MBC_ROT_EULER_123:
-			node_kinematics_size += 3;
+			node_kinematics_size += 3 + 3;
 			break;
 
 		default:
@@ -147,11 +151,20 @@ iobuf_m(0)
 		}
 
 		if (bOutputAccelerations) {
-			node_kinematics_size += 3 + 3;
+			node_kinematics_size += 3;
+			if (uRot != MBC_ROT_NONE) {
+				node_kinematics_size += 3;
+			}
 		}
 
 		node_kinematics_size *= sizeof(doublereal);
-		dynamics_size = (3 + 3)*sizeof(doublereal);
+
+		dynamics_size = 3;
+		if (uRot != MBC_ROT_NONE) {
+			dynamics_size += 3;
+		}
+
+		dynamics_size *= sizeof(doublereal);
 
 		if (bLabels) {
 			node_kinematics_size += sizeof(uint32_t);
@@ -171,6 +184,9 @@ iobuf_m(0)
 		ptr += 3*sizeof(doublereal)*Nodes.size();
 
 		switch (uRot) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
 			iobuf_R = (doublereal *)ptr;
 			ptr += 9*sizeof(doublereal)*Nodes.size();
@@ -190,15 +206,19 @@ iobuf_m(0)
 		iobuf_xp = (doublereal *)ptr;
 		ptr += 3*sizeof(doublereal)*Nodes.size();
 
-		iobuf_omega = (doublereal *)ptr;
-		ptr += 3*sizeof(doublereal)*Nodes.size();
+		if (uRot != MBC_ROT_NONE) {
+			iobuf_omega = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+		}
 
 		if (bOutputAccelerations) {
 			iobuf_xpp = (doublereal *)ptr;
 			ptr += 3*sizeof(doublereal)*Nodes.size();
 
-			iobuf_omegap = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			if (uRot != MBC_ROT_NONE) {
+				iobuf_omegap = (doublereal *)ptr;
+				ptr += 3*sizeof(doublereal)*Nodes.size();
+			}
 		}
 
 		ptr = (char *)iobuf_x;
@@ -206,8 +226,10 @@ iobuf_m(0)
 		iobuf_f = (doublereal *)ptr;
 		ptr += 3*sizeof(doublereal)*Nodes.size();
 
-		iobuf_m = (doublereal *)ptr;
-		ptr += 3*sizeof(doublereal)*Nodes.size();
+		if (uRot != MBC_ROT_NONE) {
+			iobuf_m = (doublereal *)ptr;
+			ptr += 3*sizeof(doublereal)*Nodes.size();
+		}
 	}
 }
 
@@ -407,29 +429,46 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 				<< pRefNode->GetLabel()
 				<< " ";
 		}
+
 		outf
-			<< xRef
-			<< " ";
+			<< xRef;
+
 		switch (uRot) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
-			outf << RRef;
+			outf
+				<< " " << RRef;
 			break;
 
 		case MBC_ROT_THETA:
-			outf << RotManip::VecRot(RRef);
+			outf
+				<< " " << RotManip::VecRot(RRef);
 			break;
 
 		case MBC_ROT_EULER_123:
-			outf << MatR2EulerAngles123(RRef)*dRaDegr;
+			outf
+				<< " " << MatR2EulerAngles123(RRef)*dRaDegr;
 			break;
 		}
+
 		outf
-			<< " " << xpRef
-			<< " " << wRef;
+			<< " " << xpRef;
+
+		if (uRot != MBC_ROT_NONE) {
+			outf
+				<< " " << wRef;
+		}
+
 		if (bOutputAccelerations) {
 			outf
-				<< " " << xppRef
-				<< " " << wpRef;
+				<< " " << xppRef;
+
+			if (uRot != MBC_ROT_NONE) {
+				outf
+					<< " " << wpRef;
+			}
 		}
 		outf << std::endl;
 
@@ -449,33 +488,50 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 					<< Nodes[i]->GetLabel()
 					<< " ";
 			}
+
 			outf
-				<< RRef.MulTV(Dx)
-				<< " ";
+				<< RRef.MulTV(Dx);
+
 			switch (uRot) {
+			case MBC_ROT_NONE:
+				break;
+
 			case MBC_ROT_MAT:
-				outf << DR;
+				outf
+					<< " " << DR;
 				break;
 
 			case MBC_ROT_THETA:
-				outf << RotManip::VecRot(DR);
+				outf
+					<< " " << RotManip::VecRot(DR);
 				break;
 
 			case MBC_ROT_EULER_123:
-				outf << MatR2EulerAngles123(DR)*dRaDegr;
+				outf
+					<< " " << MatR2EulerAngles123(DR)*dRaDegr;
 				break;
 			}
+
 			outf
-				<< " " << RRef.MulTV(Dv)
-				<< " " << RRef.MulTV(w - wRef);
+				<< " " << RRef.MulTV(Dv);
+			
+			if (uRot != MBC_ROT_NONE) {
+				outf
+					<< " " << RRef.MulTV(w - wRef);
+			}
+
 			if (bOutputAccelerations) {
 				const Vec3& xpp(Nodes[i]->GetXPPCurr());
-				const Vec3& wp(Nodes[i]->GetWPCurr());
 
 				outf
 					<< " " << RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
-							- wRef.Cross(wRef.Cross(Dx) + Dv*2))
-					<< " " << RRef.MulTV(wp - wpRef - wRef.Cross(w));
+							- wRef.Cross(wRef.Cross(Dx) + Dv*2));
+				if (uRot != MBC_ROT_NONE) {
+					const Vec3& wp(Nodes[i]->GetWPCurr());
+
+					outf
+						<< " " << RRef.MulTV(wp - wpRef - wRef.Cross(w));
+				}
 			}
 			outf << std::endl;
 		}
@@ -504,33 +560,48 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 					<< Nodes[i]->GetLabel()
 					<< " ";
 			}
+
 			outf
-				<< x
-				<< " ";
+				<< x;
+
 			switch (uRot) {
+			case MBC_ROT_NONE:
+				break;
+
 			case MBC_ROT_MAT:
-				outf << R;
+				outf
+					<< " " << R;
 				break;
 
 			case MBC_ROT_THETA:
-				outf << RotManip::VecRot(R);
+				outf
+					<< " " << RotManip::VecRot(R);
 				break;
 
 			case MBC_ROT_EULER_123:
-				outf << MatR2EulerAngles123(R)*dRaDegr;
+				outf
+					<< " " << MatR2EulerAngles123(R)*dRaDegr;
 				break;
 			}
 			outf
-				<< " " << v
-				<< " " << w;
+				<< " " << v;
+
+			if (uRot != MBC_ROT_NONE) {
+				outf
+					<< " " << w;
+			}
 
 			if (bOutputAccelerations) {
 				const Vec3& wp = Nodes[i]->GetWPCurr();
 				Vec3 a = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
 				outf
-					<< " " << a
-					<< " " << wp;
+					<< " " << a;
+
+				if (uRot != MBC_ROT_NONE) {
+					outf
+						<< " " << wp;
+				}
 			}
 
 			outf << std::endl;
@@ -557,6 +628,9 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 
 		send(outfd, (void *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
 		switch (uRot) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
 			send(outfd, (void *)RRef.pGetMat(), 9*sizeof(doublereal), 0);
 			break;
@@ -572,10 +646,14 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			} break;
 		}
 		send(outfd, (void *)xpRef.pGetVec(), 3*sizeof(doublereal), 0);
-		send(outfd, (void *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+		if (uRot != MBC_ROT_NONE) {
+			send(outfd, (void *)wRef.pGetVec(), 3*sizeof(doublereal), 0);
+		}
 		if (bOutputAccelerations) {
 			send(outfd, (void *)xppRef.pGetVec(), 3*sizeof(doublereal), 0);
-			send(outfd, (void *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+			if (uRot != MBC_ROT_NONE) {
+				send(outfd, (void *)wpRef.pGetVec(), 3*sizeof(doublereal), 0);
+			}
 		}
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -597,6 +675,9 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			memcpy(&iobuf_x[3*i], xTilde.pGetVec(), 3*sizeof(doublereal));
 
 			switch (uRot) {
+			case MBC_ROT_NONE:
+				break;
+
 			case MBC_ROT_MAT:
 				memcpy(&iobuf_R[9*i], DR.pGetMat(), 9*sizeof(doublereal));
 				break;
@@ -615,8 +696,10 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			Vec3 vTilde(RRef.MulTV(Dv));
 			memcpy(&iobuf_xp[3*i], vTilde.pGetVec(), 3*sizeof(doublereal));
 
-			Vec3 wTilde(RRef.MulTV(w - wRef));
-			memcpy(&iobuf_omega[3*i], wTilde.pGetVec(), 3*sizeof(doublereal));
+			if (uRot != MBC_ROT_NONE) {
+				Vec3 wTilde(RRef.MulTV(w - wRef));
+				memcpy(&iobuf_omega[3*i], wTilde.pGetVec(), 3*sizeof(doublereal));
+			}
 
 			if (bOutputAccelerations) {
 				const Vec3& xpp = Nodes[i]->GetXPPCurr();
@@ -624,9 +707,11 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 					- wRef.Cross(wRef.Cross(Dx) + Dv*2)));
 				memcpy(&iobuf_xpp[3*i], xppTilde.pGetVec(), 3*sizeof(doublereal));
 
-				const Vec3& wp = Nodes[i]->GetWPCurr();
-				Vec3 wpTilde(RRef.MulTV(wp) - wpRef - wRef.Cross(w));
-				memcpy(&iobuf_omegap[3*i], wpTilde.pGetVec(), 3*sizeof(doublereal));
+				if (uRot != MBC_ROT_NONE) {
+					const Vec3& wp = Nodes[i]->GetWPCurr();
+					Vec3 wpTilde(RRef.MulTV(wp) - wpRef - wRef.Cross(w));
+					memcpy(&iobuf_omegap[3*i], wpTilde.pGetVec(), 3*sizeof(doublereal));
+				}
 			}
 		}
 
@@ -655,6 +740,9 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 			memcpy(&iobuf_x[3*i], x.pGetVec(), 3*sizeof(doublereal));
 			switch (uRot) {
+			case MBC_ROT_NONE:
+				break;
+
 			case MBC_ROT_MAT:
 				memcpy(&iobuf_R[9*i], R.pGetMat(), 9*sizeof(doublereal));
 				break;
@@ -670,14 +758,18 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 				} break;
 			}
 			memcpy(&iobuf_xp[3*i], v.pGetVec(), 3*sizeof(doublereal));
-			memcpy(&iobuf_omega[3*i], w.pGetVec(), 3*sizeof(doublereal));
+			if (uRot != MBC_ROT_NONE) {
+				memcpy(&iobuf_omega[3*i], w.pGetVec(), 3*sizeof(doublereal));
+			}
 
 			if (bOutputAccelerations) {
 				const Vec3& wp = Nodes[i]->GetWPCurr();
 				Vec3 xpp = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
 				memcpy(&iobuf_xpp[3*i], xpp.pGetVec(), 3*sizeof(doublereal));
-				memcpy(&iobuf_omegap[3*i], wp.pGetVec(), 3*sizeof(doublereal));
+				if (uRot != MBC_ROT_NONE) {
+					memcpy(&iobuf_omegap[3*i], wp.pGetVec(), 3*sizeof(doublereal));
+				}
 			}
 		}
 	}
@@ -707,12 +799,19 @@ StructExtForce::RecvFromStream(std::istream& inf)
 		unsigned l;
 		doublereal *f = F0.pGetVec(), *m = M0.pGetVec();
 
-		inf >> l
-			>> f[0] >> f[1] >> f[2]
-			>> m[0] >> m[1] >> m[2];
+		if (bLabels) {
+			inf >> l;
+		}
+
+		inf >> f[0] >> f[1] >> f[2];
+		if (uRot != MBC_ROT_NONE) {
+			inf >> m[0] >> m[1] >> m[2];
+		}
 	}
 
 	if (!bSorted) {
+		ASSERT(bLabels);
+
 		done.resize(Nodes.size());
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -726,8 +825,10 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			doublereal f[3], m[3];
 
 			inf >> l
-				>> f[0] >> f[1] >> f[2]
-				>> m[0] >> m[1] >> m[2];
+				>> f[0] >> f[1] >> f[2];
+			if (uRot != MBC_ROT_NONE) {
+				inf >> m[0] >> m[1] >> m[2];
+			}
 
 			if (!inf) {
 				break;
@@ -759,7 +860,9 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			done[i] = true;
 
 			F[i] = Vec3(f);
-			M[i] = Vec3(m);
+			if (uRot != MBC_ROT_NONE) {
+				M[i] = Vec3(m);
+			}
 		}
 
 		if (cnt != Nodes.size()) {
@@ -799,15 +902,19 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			}
 
 			inf
-				>> f[0] >> f[1] >> f[2]
-				>> m[0] >> m[1] >> m[2];
+				>> f[0] >> f[1] >> f[2];
+			if (uRot != MBC_ROT_NONE) {
+				inf >> m[0] >> m[1] >> m[2];
+			}
 
 			if (!inf) {
 				break;
 			}
 
 			F[i] = Vec3(f);
-			M[i] = Vec3(m);
+			if (uRot != MBC_ROT_NONE) {
+				M[i] = Vec3(m);
+			}
 		}
 	}
 }
@@ -818,16 +925,20 @@ StructExtForce::RecvFromFileDes(int infd)
 #ifdef USE_SOCKET
 	if (pRefNode) {
 		unsigned l;
-		size_t ulen;
+		size_t ulen = 0;
 		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
 		doublereal *f;
 		ssize_t len;
 
 		if (bLabels) {
-			ulen = sizeof(buf);
+			ulen = sizeof(uint32_t);
+		}
+
+		if (uRot != MBC_ROT_NONE) {
+			ulen += 6*sizeof(doublereal);
 
 		} else {
-			ulen = 6*sizeof(doublereal);
+			ulen += 3*sizeof(doublereal);
 		}
 
 		len = recv(infd, (void *)buf, ulen, 0);
@@ -856,7 +967,9 @@ StructExtForce::RecvFromFileDes(int infd)
 		}
 
 		F0 = Vec3(&f[0]);
-		M0 = Vec3(&f[3]);
+		if (uRot != MBC_ROT_NONE) {
+			M0 = Vec3(&f[3]);
+		}
 	}
 
 	ssize_t len = recv(infd, (void *)&iobuf[0], dynamics_size, 0);
@@ -876,48 +989,47 @@ StructExtForce::RecvFromFileDes(int infd)
 	}
 
 	if (!bSorted) {
-		if (bLabels) {
-			done.resize(Nodes.size());
+		ASSERT(bLabels);
 
-			fill(done.begin(), done.end(), false);
-		}
+		done.resize(Nodes.size());
+		fill(done.begin(), done.end(), false);
 
 		unsigned cnt;
 		for (cnt = 0; cnt < Nodes.size(); cnt++) {
 			unsigned i = cnt;
-			if (bLabels) {
-				unsigned l = iobuf_labels[cnt];
-				std::vector<StructNode *>::const_iterator n;
-				for (n = Nodes.begin(); n != Nodes.end(); n++) {
-					if ((*n)->GetLabel() == l) {
-						break;
-					}
+			unsigned l = iobuf_labels[cnt];
+			std::vector<StructNode *>::const_iterator n;
+			for (n = Nodes.begin(); n != Nodes.end(); n++) {
+				if ((*n)->GetLabel() == l) {
+					break;
 				}
-
-				if (n == Nodes.end()) {
-					silent_cerr("StructExtForce"
-						"(" << GetLabel() << "): "
-						"unknown label " << l
-						<< " as " << cnt << "-th node"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				i = n - Nodes.begin();
-
-				if (done[i]) {
-					silent_cerr("StructExtForce"
-						"(" << GetLabel() << "): "
-						"label " << l << " already done"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				done[i] = true;
 			}
 
+			if (n == Nodes.end()) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"unknown label " << l
+					<< " as " << cnt << "-th node"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			i = n - Nodes.begin();
+
+			if (done[i]) {
+				silent_cerr("StructExtForce"
+					"(" << GetLabel() << "): "
+					"label " << l << " already done"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			done[i] = true;
+
 			F[i] = &iobuf_f[3*i];
-			M[i] = &iobuf_m[3*i];
+			if (uRot != MBC_ROT_NONE) {
+				M[i] = &iobuf_m[3*i];
+			}
 		}
 
 		if (cnt != Nodes.size()) {
@@ -952,7 +1064,9 @@ StructExtForce::RecvFromFileDes(int infd)
 			}
 
 			F[i] = Vec3(&iobuf_f[3*i]);
-			M[i] = Vec3(&iobuf_m[3*i]);
+			if (uRot != MBC_ROT_NONE) {
+				M[i] = Vec3(&iobuf_m[3*i]);
+			}
 		}
 	}
 #else // ! USE_SOCKET
@@ -968,12 +1082,21 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 {
 	ExtForce::Recv();
 
+	int iOffset;
+	if (uRot != MBC_ROT_NONE) {
+		iOffset = 6;
+
+	} else {
+		iOffset = 3;
+	}
+
 	if (pRefNode) {
 		integer iSize = Nodes.size();
 		if (bUseReferenceNodeForces) {
 			iSize++;
 		}
-		WorkVec.ResizeReset(6*iSize);
+
+		WorkVec.ResizeReset(iOffset*iSize);
 
 		const Vec3& xRef = pRefNode->GetXCurr();
 		const Mat3x3& RRef = pRefNode->GetRCurr();
@@ -982,54 +1105,67 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 		if (bUseReferenceNodeForces) {
 			if (bRotateReferenceNodeForces) {
 				F1 = RRef*F0;
-				M1 = RRef*M0;
+				if (uRot != MBC_ROT_NONE) {
+					M1 = RRef*M0;
+				}
 
 			} else {
 				F1 = F0;
-				M1 = M0;
+				if (uRot != MBC_ROT_NONE) {
+					M1 = M0;
+				}
 			}
 		}
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
-			for (int r = 1; r <= 6; r++) {
-				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
+			for (int r = 1; r <= iOffset; r++) {
+				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
 
 			Vec3 f(RRef*F[i]);
-			Vec3 m(RRef*M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(f));
+			WorkVec.Add(i*iOffset + 1, f);
 
-			WorkVec.Add(i*6 + 1, f);
-			WorkVec.Add(i*6 + 4, m);
+			Vec3 m;
+			if (uRot != MBC_ROT_NONE) {
+				m = RRef*M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(f);
+				WorkVec.Add(i*iOffset + 4, m);
+			}
 
 			if (bUseReferenceNodeForces) {
 				F1 -= f;
-				M1 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+				if (uRot != MBC_ROT_NONE) {
+					M1 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+				}
 			}
 		}
 
 		if (bUseReferenceNodeForces) {
 			unsigned i = Nodes.size();
 			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
-			for (int r = 1; r <= 6; r++) {
-				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
+			for (int r = 1; r <= iOffset; r++) {
+				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
 
-			WorkVec.Add(i*6 + 1, F1);
-			WorkVec.Add(i*6 + 4, M1);
+			WorkVec.Add(i*iOffset + 1, F1);
+			if (uRot != MBC_ROT_NONE) {
+				WorkVec.Add(i*iOffset + 4, M1);
+			}
 		}
 
 	} else {
-		WorkVec.ResizeReset(6*Nodes.size());
+		WorkVec.ResizeReset(iOffset*Nodes.size());
 
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
-			for (int r = 1; r <= 6; r++) {
-				WorkVec.PutRowIndex(i*6 + r, iFirstIndex + r);
+			for (int r = 1; r <= iOffset; r++) {
+				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
 
-			WorkVec.Add(i*6 + 1, F[i]);
-			WorkVec.Add(i*6 + 4, M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(F[i]));
+			WorkVec.Add(i*iOffset + 1, F[i]);
+			if (uRot != MBC_ROT_NONE) {
+				WorkVec.Add(i*iOffset + 4, M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(F[i]));
+			}
 		}
 	}
 
@@ -1088,7 +1224,7 @@ ReadStructExtForce(DataManager* pDM,
 		}
 	}
 
-	bool bSorted(false);
+	bool bSorted(true);
 	bool bLabels(false);
 	unsigned uRot = MBC_ROT_MAT;
 	bool bOutputAccelerations(false);
@@ -1162,7 +1298,10 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			if (HP.IsKeyWord("orientation" "vector")) {
+			if (HP.IsKeyWord("none")) {
+				uRot = MBC_ROT_NONE;
+
+			} else if (HP.IsKeyWord("orientation" "vector")) {
 				uRot = MBC_ROT_THETA;
 
 			} else if (HP.IsKeyWord("orientation" "matrix")) {
@@ -1216,6 +1355,12 @@ ReadStructExtForce(DataManager* pDM,
 		} else {
 			break;
 		}
+	}
+
+	if (!bLabels && !bSorted) {
+		silent_cerr("StructExtForce(" << uLabel << "): "
+			"\"no labels\" and \"unsorted\" incompatible" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	int n = HP.GetInt();

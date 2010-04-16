@@ -2002,7 +2002,7 @@ Communication occurs by means of the communicators illustrated earlier.
         [ labels , { yes | no } , ]
             [ sorted , { yes | no } ]
         [ orientation ,
-            { orientation matrix | orientation vector | euler 123 } , ]
+            { none | orientation matrix | orientation vector | euler 123 } , ]
         [ accelerations , { yes | no } ]
         [ use reference node forces , { yes | no } ,
             [ rotate reference node forces , { yes | no } ] ]
@@ -2021,6 +2021,10 @@ As such, the forces and moments applied to each node
 are removed accordingly.
 If it is set to \kw{no}, reference node forces and moments
 will be ignored.
+
+\item The orientation style \kw{none} implies that only positions, velocities 
+and accelerations will be output (the latter only if \kw{accelerations}
+is set to \kw{yes}).
 \end{itemize}
 
 

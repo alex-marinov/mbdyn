@@ -274,6 +274,9 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	offset += 3*sizeof(double);
 
 	switch (rot) {
+	case MBC_ROT_NONE:
+		break;
+
 	case MBC_ROT_THETA:
 		mbc->r_k_theta = offset;
 		offset += 3*sizeof(double);
@@ -288,20 +291,27 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 		mbc->r_k_euler_123 = offset;
 		offset += 3*sizeof(double);
 		break;
+
+	default:
+		return -1;
 	}
 
 	mbc->r_k_xp = offset;
 	offset += 3*sizeof(double);
 
-	mbc->r_k_omega = offset;
-	offset += 3*sizeof(double);
+	if (rot != MBC_ROT_NONE) {
+		mbc->r_k_omega = offset;
+		offset += 3*sizeof(double);
+	}
 
 	if (accels) {
 		mbc->r_k_xpp = offset;
 		offset += 3*sizeof(double);
 
-		mbc->r_k_omegap = offset;
-		offset += 3*sizeof(double);
+		if (rot != MBC_ROT_NONE) {
+			mbc->r_k_omegap = offset;
+			offset += 3*sizeof(double);
+		}
 	}
 
 	mbc->k_size = offset;
@@ -315,10 +325,12 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	mbc->r_d_f = offset;
 	offset += 3*sizeof(double);
 	mbc->d_size += 3*sizeof(double);
-	
-	mbc->r_d_m = offset;
-	offset += 3*sizeof(double);
-	mbc->d_size += 3*sizeof(double);
+
+	if (rot != MBC_ROT_NONE) {
+		mbc->r_d_m = offset;
+		offset += 3*sizeof(double);
+		mbc->d_size += 3*sizeof(double);
+	}
 
 	return 0;
 }
@@ -465,6 +477,9 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 	}
 
 	switch (rot) {
+	case MBC_ROT_NONE:
+		break;
+
 	case MBC_ROT_MAT:
 		MBC_F_SET_ROT_MAT(mbc);
 		break;
@@ -509,30 +524,35 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 	if (mbc->nodes > 0) {
 		void *ptr;
 
-		mbc->k_size = (3 + 3 + 3); /* x, xp, omega */
+		mbc->k_size = (3 + 3); /* x, xp */
 
 		switch (MBC_F_ROT(mbc)) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
-			mbc->k_size += 9;
+			mbc->k_size += 9 + 3;
 			break;
 
 		case MBC_ROT_THETA:
 		case MBC_ROT_EULER_123:
-			mbc->k_size += 3;
+			mbc->k_size += 3 + 3;
 			break;
-
-		default:
-			fprintf(stderr, "unknown orientation parametrization %lu in flags\n", (unsigned long)rot);
-			return -1;
 		}
 
 		if (MBC_F_ACCELS(mbc)) {
-			mbc->k_size += 6;
+			mbc->k_size += 3;
+			if (MBC_F_ROT(mbc) != MBC_ROT_NONE) {
+				mbc->k_size += 3;
+			}
 		}
 
 		mbc->k_size *= mbc->nodes*sizeof(double);
 
-		mbc->d_size = mbc->nodes*3*2*sizeof(double);
+		mbc->d_size = mbc->nodes*3*sizeof(double);
+		if (MBC_F_ROT(mbc) != MBC_ROT_NONE) {
+			mbc->d_size += mbc->nodes*3*sizeof(double);
+		}
 
 		if (MBC_F_LABELS(mbc)) {
 			mbc->k_size += mbc->nodes*sizeof(uint32_t);
@@ -556,6 +576,9 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		ptr += 3*sizeof(double)*nodes;
 
 		switch (MBC_F_ROT(mbc)) {
+		case MBC_ROT_NONE:
+			break;
+
 		case MBC_ROT_MAT:
 			mbc->n_k_r = (double *)ptr;
 			ptr += 9*sizeof(double)*nodes;
@@ -575,15 +598,19 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		mbc->n_k_xp = (double *)ptr;
 		ptr += 3*sizeof(double)*nodes;
 
-		mbc->n_k_omega = (double *)ptr;
-		ptr += 3*sizeof(double)*nodes;
+		if (MBC_F_ROT(mbc) != MBC_ROT_NONE) {
+			mbc->n_k_omega = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
+		}
 
 		if (MBC_F_ACCELS(mbc)) {
 			mbc->n_k_xpp = (double *)ptr;
 			ptr += 3*sizeof(double)*nodes;
 
-			mbc->n_k_omegap = (double *)ptr;
-			ptr += 3*sizeof(double)*nodes;
+			if (MBC_F_ROT(mbc) != MBC_ROT_NONE) {
+				mbc->n_k_omegap = (double *)ptr;
+				ptr += 3*sizeof(double)*nodes;
+			}
 		}
 
 		if (MBC_F_LABELS(mbc)) {
@@ -594,8 +621,10 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		mbc->n_d_f = (double *)ptr;
 		ptr += 3*sizeof(double)*nodes;
 
-		mbc->n_d_m = (double *)ptr;
-		ptr += 3*sizeof(double)*nodes;
+		if (MBC_F_ROT(mbc) != MBC_ROT_NONE) {
+			mbc->n_d_m = (double *)ptr;
+			ptr += 3*sizeof(double)*nodes;
+		}
 	}
 
 	return 0;
