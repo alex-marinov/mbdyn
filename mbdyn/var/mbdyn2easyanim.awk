@@ -236,6 +236,7 @@ BEGIN {
 	show["distance"] = 1;
 	show["rod"] = 1;
 	show["beam"] = 1;
+	show["shell"] = 1;
 	show["aero"] = 1;
 
 	if (showNone) {
@@ -273,6 +274,10 @@ BEGIN {
 			show["beam"] = 0;
 		}
 
+		if (noShowShell) {
+			show["shell"] = 0;
+		}
+
 		if (noShowAero) {
 			show["aero"] = 0;
 		}
@@ -290,6 +295,8 @@ BEGIN {
 
 	beam2_num = 0;
 	beam3_num = 0;
+
+	shell4_num = 0;
 
 	aero0_num = 0;
 	aero2_num = 0;
@@ -314,6 +321,7 @@ BEGIN {
 	nodeprop_add("deformablejoint_node", 1, 1.);
 	nodeprop_add("totaljoint_node", 2, 1.5);
 	nodeprop_add("beam_node", 1, 1.);
+	nodeprop_add("shell_node", 0, 0.);
 	nodeprop_add("aero_node", 0, 0.);
 
 	# edge props
@@ -330,6 +338,7 @@ BEGIN {
 	edgeprop_add("beam_offset", 12, .5);
 
 	# side props
+	sideprop_add("shell", 12);
 	sideprop_add("aero", 14);
 }
 
@@ -717,6 +726,48 @@ isvan == 0 && /beam3:/ && show["beam"] {
 
 		edge_add("beam_" $2 "_1", label1, label2, "beam_edge");
 		edge_add("beam_" $2 "_2", label2, label3, "beam_edge");
+	}
+}
+
+isvan == 0 && /shell4:/ && show["shell"] {
+	if (!exclude["shell", $2]) {
+		if (!($3 in strnode)) {
+			print "structural node("$3") requested by shell4("$2") as node 1 not found" > "/dev/stderr";
+			exit;
+		}
+		if (!($4 in strnode)) {
+			print "structural node("$4") requested by shell4("$2") as node 2 not found" > "/dev/stderr";
+			exit;
+		}
+		if (!($5 in strnode)) {
+			print "structural node("$5") requested by shell4("$2") as node 3 not found" > "/dev/stderr";
+			exit;
+		}
+		if (!($6 in strnode)) {
+			print "structural node("$6") requested by shell4("$2") as node 4 not found" > "/dev/stderr";
+			exit;
+		}
+		shell4_label[shell4_num] = $2;
+		shell4[$2, 1] = $3;
+		shell4[$2, 2] = $4;
+		shell4[$2, 3] = $5;
+		shell4[$2, 4] = $6;
+		shell4_num++;
+
+		label1 = $3;
+		label2 = $4;
+		label3 = $5;
+		label4 = $6;
+
+		label = "shell_" $2;
+		side[side_num] = label;
+		side[side_num, "N"] = 4;
+		side[side_num, 1] = label1;
+		side[side_num, 2] = label2;
+		side[side_num, 3] = label3;
+		side[side_num, 4] = label4;
+		side[side_num, "prop"] = "shell";
+		side_num++;
 	}
 }
 
