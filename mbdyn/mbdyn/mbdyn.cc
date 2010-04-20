@@ -891,7 +891,7 @@ main(int argc, char* argv[])
     	}
 
     	try {
-		mbdyn_parse_arguments( mbp, argc, argv, currarg);
+		mbdyn_parse_arguments(mbp, argc, argv, currarg);
 	} catch (NoErr) {
 		silent_cout("MBDyn terminated normally" << std::endl);
 		rc = EXIT_SUCCESS;
@@ -940,6 +940,8 @@ main(int argc, char* argv[])
 		::rtmbdyn_rtai_task = NULL;
 	}
 #endif /* USE_RTAI */
+
+	mbdyn_cleanup();
    
     	MB_EXIT(rc);
 } // main() end
