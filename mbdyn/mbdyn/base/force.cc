@@ -40,6 +40,7 @@
 #include "force.h"
 #include "strforce.h"
 #include "strext.h"
+#include "strmappingext.h"
 #include "modalforce.h"
 #include "modalext.h"
 #include "modalmappingext.h"
@@ -254,6 +255,7 @@ ReadForce(DataManager* pDM,
 		"total" "internal",
 
 		"external" "structural",
+		"external" "structural" "mapping",
 
 		"modal",
 		"external" "modal",
@@ -281,6 +283,7 @@ ReadForce(DataManager* pDM,
 		TOTALINTERNAL,
 
 		EXTERNALSTRUCTURAL,
+		EXTERNALSTRUCTURALMAPPING,
 
 		MODALFORCE,
 		EXTERNALMODAL,
@@ -372,6 +375,10 @@ ReadForce(DataManager* pDM,
 
 	case EXTERNALSTRUCTURAL:
 		pEl = ReadStructExtForce(pDM, HP, uLabel);
+		break;
+
+	case EXTERNALSTRUCTURALMAPPING:
+		pEl = ReadStructMappingExtForce(pDM, HP, uLabel);
 		break;
 
 	case MODALFORCE:

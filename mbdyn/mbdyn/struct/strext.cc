@@ -522,13 +522,13 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 
 			if (bOutputAccelerations) {
 				const Vec3& xpp(Nodes[i]->GetXPPCurr());
+				const Vec3& wp(Nodes[i]->GetWPCurr());
 
 				outf
 					<< " " << RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
-							- wRef.Cross(wRef.Cross(Dx) + Dv*2));
+							- wRef.Cross(wRef.Cross(Dx) + Dv*2)
+							+ wp.Cross(f) + w.Cross(w.Cross(f)));
 				if (uRot != MBC_ROT_NONE) {
-					const Vec3& wp(Nodes[i]->GetWPCurr());
-
 					outf
 						<< " " << RRef.MulTV(wp - wpRef - wRef.Cross(w));
 				}
@@ -703,12 +703,14 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 
 			if (bOutputAccelerations) {
 				const Vec3& xpp = Nodes[i]->GetXPPCurr();
+				const Vec3& wp = Nodes[i]->GetWPCurr();
+
 				Vec3 xppTilde(RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
-					- wRef.Cross(wRef.Cross(Dx) + Dv*2)));
+					- wRef.Cross(wRef.Cross(Dx) + Dv*2)
+					+ wp.Cross(f) + w.Cross(w.Cross(f))));
 				memcpy(&iobuf_xpp[3*i], xppTilde.pGetVec(), 3*sizeof(doublereal));
 
 				if (uRot != MBC_ROT_NONE) {
-					const Vec3& wp = Nodes[i]->GetWPCurr();
 					Vec3 wpTilde(RRef.MulTV(wp) - wpRef - wRef.Cross(w));
 					memcpy(&iobuf_omegap[3*i], wpTilde.pGetVec(), 3*sizeof(doublereal));
 				}

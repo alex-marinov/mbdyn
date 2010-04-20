@@ -384,6 +384,103 @@ ModalMappingExt::GetConnectedNodes(std::vector<const Node *>& connectedNodes) co
 	}
 }
 
+SpMapMatrixHandler *
+ReadSparseMappingMatrix(MBDynParser& HP, integer nRows, integer nCols)
+{
+	bool bSparse;
+	if (HP.IsKeyWord("full" "mapping" "file")) {
+		bSparse = false;
+
+	} else if (HP.IsKeyWord("sparse" "mapping" "file")) {
+		bSparse = true;
+
+	} else {
+		silent_cerr("mapping file expected "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	doublereal dThreshold = 0.;
+	if (HP.IsKeyWord("threshold")) {
+		dThreshold = HP.GetReal();
+		if (dThreshold < 0.) {
+			silent_cerr("invalid threshold " << dThreshold
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+	
+	const char *sFileName = HP.GetFileName();
+	if (sFileName == 0) {
+		silent_cerr("unable to read mapping file name "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	std::ifstream in(sFileName);
+	if (!in) {
+		silent_cerr("unable to open mapping file "
+			"\"" << sFileName << "\" "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	char c = in.get();
+	while (c == '#') {
+		do {
+			c = in.get();
+		} while (c != '\n');
+		c = in.get();
+	}
+	in.putback(c);
+
+	SpMapMatrixHandler *pH = 0;
+	SAFENEWWITHCONSTRUCTOR(pH, SpMapMatrixHandler,
+		SpMapMatrixHandler(nRows, nCols));
+
+	if (bSparse) {
+		integer ir, ic, cnt = 0, nzcnt = 0;
+		doublereal d;
+		while (in >> ir >> ic >> d) {
+			if (ir <= 0 || ir > nRows || ic <= 0 || ic > nCols) {
+				silent_cerr("invalid row(=" << ir << ")/col(=" << ic <<") number for coefficient #" << cnt << " "
+					"from file \"" << sFileName << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (std::abs(d) > dThreshold) {
+				(*pH)(ir, ic) = d;
+				nzcnt++;
+			}
+
+			cnt++;
+		}
+
+		pedantic_cout("got " << cnt << " nonzeros (" << nzcnt << " actually stored) from file \"" << sFileName << "\"" << std::endl);
+
+	} else {
+		int nzcnt = 0;
+		for (integer ir = 1; ir <= nRows; ir++) {
+			for (integer ic = 1; ic <= nCols; ic++) {
+				doublereal d;
+				in >> d;
+				if (!in) {
+					silent_cerr("unable to read coefficient(" << ir << ", " << ic << ") "
+						"from file \"" << sFileName << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				if (std::abs(d) > dThreshold) {
+					(*pH)(ir, ic) = d;
+					nzcnt++;
+				}
+			}
+		}
+		pedantic_cout("got " << nzcnt << " nonzeros from file \"" << sFileName << "\"" << std::endl);
+	}
+
+	return pH;
+}
+
 Elem*
 ReadModalMappingExtForce(DataManager* pDM,
 	MBDynParser& HP,
@@ -516,88 +613,7 @@ ReadModalMappingExtForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	bool bSparse;
-	if (HP.IsKeyWord("full" "mapping" "file")) {
-		bSparse = false;
-
-	} else if (HP.IsKeyWord("sparse" "mapping" "file")) {
-		bSparse = true;
-
-	} else {
-		silent_cerr("ModalMappingExt(" << uLabel << "): "
-			"mapping file expected "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	
-	const char *sFileName = HP.GetFileName();
-	if (sFileName == 0) {
-		silent_cerr("ModalMappingExt(" << uLabel << "): "
-			"unable to read mapping file name "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	std::ifstream in(sFileName);
-	if (!in) {
-		silent_cerr("ModalMappingExt(" << uLabel << "): "
-			"unable to open mapping file "
-			"\"" << sFileName << "\" "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	char c = in.get();
-	while (c == '#') {
-		do {
-			c = in.get();
-		} while (c != '\n');
-		c = in.get();
-	}
-	in.putback(c);
-
-	SpMapMatrixHandler *pH = 0;
-	SAFENEWWITHCONSTRUCTOR(pH, SpMapMatrixHandler,
-		SpMapMatrixHandler(nModes, 6*nNodes));
-
-	if (bSparse) {
-		integer ir, ic, cnt = 0;
-		doublereal d;
-		while (in >> ir >> ic >> d) {
-			if (ir <= 0 || ir > nModes || ic <= 0 || ic > 6*nNodes) {
-				silent_cerr("ModalMappingExt(" << uLabel << "): "
-					"invalid row(=" << ir << ")/col(=" << ic <<") number for coefficient #" << cnt << " "
-					"from file \"" << sFileName << "\"" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (d != 0.) {
-				(*pH)(ir, ic) = d;
-			}
-
-			cnt++;
-		}
-
-		pedantic_cout("ModalMappingExt(" << uLabel << "): "
-			"got " << cnt << " nonzeros from file \"" << sFileName << "\"" << std::endl);
-
-	} else {
-		for (integer ir = 1; ir <= nModes; ir++) {
-			for (integer ic = 1; ic <= 6*nNodes; ic++) {
-				doublereal d;
-				in >> d;
-				if (!in) {
-					silent_cerr("ModalMappingExt(" << uLabel << "): "
-						"unable to read coefficient(" << ir << ", " << ic << ") "
-						"from file \"" << sFileName << "\"" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				if (d != 0.) {
-					(*pH)(ir, ic) = d;
-				}
-			}
-		}
-	}
+	SpMapMatrixHandler *pH = ReadSparseMappingMatrix(HP, nModes, 6*nNodes);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 

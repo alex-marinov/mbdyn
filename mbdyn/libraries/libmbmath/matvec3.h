@@ -164,7 +164,7 @@ class Vec3 {
    
    /*
     Costruttore da VectorHandler. Prende i valori da iFirstIndex 
-    a iFirstIndex+1. Nota: gli indici del VectorHandler partono da 1, 
+    a iFirstIndex+2. Nota: gli indici del VectorHandler partono da 1, 
     in stile FORTRAN.
     */
    Vec3(const VectorHandler& vh, integer iFirstIndex) {

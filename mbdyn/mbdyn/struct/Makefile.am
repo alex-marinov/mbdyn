@@ -85,6 +85,8 @@ spherj.cc \
 spherj.h \
 strext.cc \
 strext.h \
+strmappingext.cc \
+strmappingext.h \
 strforce.cc \
 strforce.h \
 strforce_impl.h \

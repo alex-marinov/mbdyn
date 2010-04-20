@@ -245,6 +245,7 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	unsigned labels, unsigned rot, unsigned accels)
 {
 	uint32_t offset = 0;
+	int do_retry = 1;
 
 	mbc->k_size = 0;
 	mbc->r_k_label = -1;
@@ -273,9 +274,16 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	mbc->r_k_x = offset;
 	offset += 3*sizeof(double);
 
-	switch (rot) {
+retry:;
+	switch (MBC_U_REF_NODE_ROT(rot)) {
 	case MBC_ROT_NONE:
-		break;
+		if (do_retry) {
+			rot = MBC_U_ROT_REF_NODE(rot);
+			do_retry = 0;
+			goto retry;
+		}
+		fprintf(stderr, "rotation must be defined for reference node\n");
+		return -1;
 
 	case MBC_ROT_THETA:
 		mbc->r_k_theta = offset;
@@ -293,25 +301,22 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 		break;
 
 	default:
+		fprintf(stderr, "unknown rotation mode 0x%lx\n", (unsigned long)rot);
 		return -1;
 	}
 
 	mbc->r_k_xp = offset;
 	offset += 3*sizeof(double);
 
-	if (rot != MBC_ROT_NONE) {
-		mbc->r_k_omega = offset;
-		offset += 3*sizeof(double);
-	}
+	mbc->r_k_omega = offset;
+	offset += 3*sizeof(double);
 
 	if (accels) {
 		mbc->r_k_xpp = offset;
 		offset += 3*sizeof(double);
 
-		if (rot != MBC_ROT_NONE) {
-			mbc->r_k_omegap = offset;
-			offset += 3*sizeof(double);
-		}
+		mbc->r_k_omegap = offset;
+		offset += 3*sizeof(double);
 	}
 
 	mbc->k_size = offset;
@@ -326,11 +331,9 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	offset += 3*sizeof(double);
 	mbc->d_size += 3*sizeof(double);
 
-	if (rot != MBC_ROT_NONE) {
-		mbc->r_d_m = offset;
-		offset += 3*sizeof(double);
-		mbc->d_size += 3*sizeof(double);
-	}
+	mbc->r_d_m = offset;
+	offset += 3*sizeof(double);
+	mbc->d_size += 3*sizeof(double);
 
 	return 0;
 }
@@ -476,8 +479,19 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		return -1;
 	}
 
-	switch (rot) {
+	switch (rot & MBC_ROT_MASK) {
 	case MBC_ROT_NONE:
+		switch (MBC_U_REF_NODE_ROT(rot)) {
+		case MBC_ROT_MAT:
+		case MBC_ROT_THETA:
+		case MBC_ROT_EULER_123:
+			MBC_F_SET(mbc, rot);
+			break;
+
+		default:
+			fprintf(stderr, "unknown orientation parametrization 0x%lx in flags\n", (unsigned long)rot);
+			return -1;
+		}
 		break;
 
 	case MBC_ROT_MAT:
@@ -493,7 +507,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		break;
 
 	default:
-		fprintf(stderr, "unknown orientation parametrization %lu in flags\n", (unsigned long)rot);
+		fprintf(stderr, "unknown orientation parametrization 0x%lx in flags\n", (unsigned long)rot);
 		return -1;
 	}
 

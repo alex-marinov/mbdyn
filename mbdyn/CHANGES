@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added relative frame external force support
 		- added peer library libmbc with python wrapping
 		- added solver diagnostics output meter
+		- added structural mapping external force
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
 		- scalar variables dropped "1" dimension in NetCDF output

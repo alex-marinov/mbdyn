@@ -63,11 +63,13 @@ usage(void)
 		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-l\t\tlabels\n"
+		"\t-n\t\tonly forces, no moments\n"
 		"\t-N <nodes>\tnodes number\n"
 		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
 		"\t-r\t\tuse rigid body data\n"
 		"\t-R {mat|theta|euler123}\torientation format\n"
 		"\t-s <sleeptime>\tsleep time between tries\n"
+		"\t-t <timeout>\thow long to wait for connection\n"
 		"\t-v\t\tverbose\n"
 		"\t-x\t\tdata_and_next\n");
 	exit(EXIT_FAILURE);
@@ -78,6 +80,7 @@ static int iters = 1;
 static int iters_random = 0;
 static unsigned steps;
 
+static int nomoments = 0;
 static int rigid = 0;
 static int nodes = 0;
 static int labels = 0;
@@ -98,7 +101,7 @@ void
 test_init(int argc, char *argv[])
 {
 	while (1) {
-		int opt = getopt(argc, argv, "ac:f:H:lN:p:rR:s:vx");
+		int opt = getopt(argc, argv, "ac:f:H:lnN:p:rR:s:t:vx");
 
 		if (opt == EOF) {
 			break;
@@ -209,6 +212,14 @@ test_init(int argc, char *argv[])
 			labels = 1;
 			break;
 
+		case 'n':
+			if (p0 != NULL) {
+				fprintf(stderr, "-n must occur before -p\n");
+				usage();
+			}
+			nomoments = 1;
+			break;
+
 		case 'N':
 			if (p0 != NULL) {
 				fprintf(stderr, "test_strext_socket: "
@@ -227,7 +238,7 @@ test_init(int argc, char *argv[])
 
 		case 'p': {
 			char *s;
-			int i;
+			int i, size = 6;
 
 			if (p0 != NULL) {
 				fprintf(stderr, "test_strext_socket: "
@@ -241,7 +252,11 @@ test_init(int argc, char *argv[])
 				usage();
 			}
 
-			p0 = (double *)calloc(sizeof(double), 6*nodes);
+			if (nomoments) {
+				size = 3;
+			}
+
+			p0 = (double *)calloc(sizeof(double), size*nodes);
 			if (p0 == NULL) {
 				fprintf(stderr, "test_strext_socket: "
 					"malloc for nodal force values failed\n");
@@ -249,24 +264,28 @@ test_init(int argc, char *argv[])
 			}
 
 			s = optarg;
-			for (i = 0; i < 6*nodes; i++) {
+			for (i = 0; i < size*nodes; i++) {
 				char *next;
-				const char fm[] = "fm";
+				char fm[sizeof("fm")] = "fm";
 				const char xyz[] = "xyz";
+
+				if (nomoments) {
+					fm[1] = 'f';
+				}
 
 				p0[i] = strtod(s, &next);
 				if (next == s) {
 					fprintf(stderr, "test_strext_socket: "
 						"unable to parse %c%d%c\n",
-						fm[(i/3)%2], i/6, xyz[i%3]);
+						fm[(i/3)%2], i/size, xyz[i%3]);
 					usage();
 				}
 
-				if (i < 6*nodes - 1) {
+				if (i < size*nodes - 1) {
 					if (next[0] != ',') {
 						fprintf(stderr, "test_strext_socket: "
 							"unable to parse %c%d%c\n",
-							fm[(i/3)%2], i/6, xyz[i%3]);
+							fm[(i/3)%2], i/size, xyz[i%3]);
 						usage();
 					}
 
@@ -276,7 +295,7 @@ test_init(int argc, char *argv[])
 					if (next[0] != '\0') {
 						fprintf(stderr, "test_strext_socket: "
 							"extra cruft past %c%d%c\n",
-							fm[(i/3)%2], i/6, xyz[i%3]);
+							fm[(i/3)%2], i/size, xyz[i%3]);
 						usage();
 					}
 				}
@@ -315,6 +334,14 @@ test_init(int argc, char *argv[])
 			}
 			break;
 
+		case 't':
+			if (strcasecmp(optarg, "forever") == 0) {
+				mbc->mbc.timeout = -1;
+			} else {
+				mbc->mbc.timeout = atoi(optarg);
+			}
+			break;
+
 		case 'v':
 			mbc->mbc.verbose = 1;
 			break;
@@ -326,6 +353,10 @@ test_init(int argc, char *argv[])
 		default:
 			usage();
 		}
+	}
+
+	if (nomoments) {
+		rot = MBC_U_ROT_REF_NODE(rot);
 	}
 
 	if (path) {
@@ -378,6 +409,7 @@ test_run(void)
 			}
 
 			if (rigid && mbc->mbc.verbose) {
+				// TODO: handle other rotation forms for reference node motion
 				double *x = MBC_R_X(mbc);
 				double *R = MBC_R_R(mbc);
 				double *v = MBC_R_XP(mbc);
@@ -412,33 +444,37 @@ test_run(void)
 					}
 					fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
 						n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
-					switch (MBC_F_ROT(mbc)) {
-					case MBC_ROT_MAT:
-						n_r =  MBC_N_R(mbc);
-						fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
-								"           %+16.8e %+16.8e %+16.8e\n"
-								"           %+16.8e %+16.8e %+16.8e\n",
-							n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
-							n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
-							n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
-						break;
+					if (nomoments == 0) {
+						switch (MBC_F_ROT(mbc)) {
+						case MBC_ROT_MAT:
+							n_r =  MBC_N_R(mbc);
+							fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
+									"           %+16.8e %+16.8e %+16.8e\n"
+									"           %+16.8e %+16.8e %+16.8e\n",
+								n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
+								n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
+								n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
+							break;
 
-					case MBC_ROT_THETA:
-						n_r =  MBC_N_THETA(mbc);
-						fprintf(stdout, "    theta= %+16.8e %+16.8e %+16.8e\n",
-							n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
-						break;
+						case MBC_ROT_THETA:
+							n_r =  MBC_N_THETA(mbc);
+							fprintf(stdout, "    theta= %+16.8e %+16.8e %+16.8e\n",
+								n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+							break;
 
-					case MBC_ROT_EULER_123:
-						n_r =  MBC_N_EULER_123(mbc);
-						fprintf(stdout, " euler123= %+16.8e %+16.8e %+16.8e\n",
-							n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
-						break;
+						case MBC_ROT_EULER_123:
+							n_r =  MBC_N_EULER_123(mbc);
+							fprintf(stdout, " euler123= %+16.8e %+16.8e %+16.8e\n",
+								n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+							break;
+						}
 					}
 					fprintf(stdout, "    xp=    %+16.8e %+16.8e %+16.8e\n",
 						n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2]);
-					fprintf(stdout, "    omega= %+16.8e %+16.8e %+16.8e\n",
-						n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
+					if (nomoments == 0) {
+						fprintf(stdout, "    omega= %+16.8e %+16.8e %+16.8e\n",
+							n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
+					}
 				}
 			}
 
@@ -486,20 +522,28 @@ test_run(void)
 				}
 
 				if (p0) {
+					int size = 6;
+					if (nomoments) {
+						size = 3;
+					}
 					for (n = 0; n < mbc->nodes; n++) {
-						n_f[3*n] = p0[6*n];
-						n_f[3*n + 1] = p0[6*n + 1];
-						n_f[3*n + 2] = p0[6*n + 2];
+						n_f[3*n] = p0[size*n];
+						n_f[3*n + 1] = p0[size*n + 1];
+						n_f[3*n + 2] = p0[size*n + 2];
 
-						n_m[3*n] = p0[6*n + 3];
-						n_m[3*n + 1] = p0[6*n + 4];
-						n_m[3*n + 2] = p0[6*n + 5];
+						if (nomoments == 0) {
+							n_m[3*n] = p0[size*n + 3];
+							n_m[3*n + 1] = p0[size*n + 4];
+							n_m[3*n + 2] = p0[size*n + 5];
+						}
 					}
 
 				} else {
 					for (n = 0; n < 3*mbc->nodes; n++) {
 						n_f[n] = (double)(n + 1);
-						n_m[n] = (double)(n + 1);
+						if (nomoments == 0) {
+							n_m[n] = (double)(n + 1);
+						}
 					}
 				}
 			}
