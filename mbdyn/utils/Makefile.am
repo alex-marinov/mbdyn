@@ -110,11 +110,15 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 test_modalext_SOURCES = test_modalext.cc
 test_modalext_edge_SOURCES = test_modalext_edge.c
 test_modalext_socket_SOURCES = test_modalext_socket.c
-test_strext_socket_SOURCES = test_strext_socket.c test_strext_socket_lib.c
+test_strext_socket_SOURCES = \
+test_strext_socket.c \
+test_strext_socket_lib.c \
+test_strext_socket_lib.h
 test_strext_socket_f_SOURCES = \
 test_strext_socket_f.f \
 test_strext_socket_f_main.c \
-test_strext_socket_lib.c
+test_strext_socket_lib.c \
+test_strext_socket_lib.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
 nodist_mbfem_SOURCES = \
