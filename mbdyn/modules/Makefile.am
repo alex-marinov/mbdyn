@@ -120,7 +120,6 @@ module-aerodyn/AeroDyn.h \
 module-aerodyn/Makefile.inc \
 module-aerodyn/mbdyn_ad.f90 \
 module-aerodyn/module-aerodyn.cc \
-module-aerodyn/module-aerodyn.h \
 module-aerodyn/README \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README \
@@ -134,6 +133,7 @@ module-drive/README \
 module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README \
 module-template/module-template.cc \
+module-template2/module-template2.cc \
 module-wheel2/module-wheel2.cc \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
