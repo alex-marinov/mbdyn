@@ -135,6 +135,7 @@ module-scalarfunc/README \
 module-template/module-template.cc \
 module-template2/module-template2.cc \
 module-wheel2/module-wheel2.cc \
+module-wheel2/module-wheel2.h \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
 module-udunits/README
