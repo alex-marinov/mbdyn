@@ -20,7 +20,6 @@ $(scicos_srcdir)/sockwrite_comp.c \
 $(scicos_srcdir)/README \
 $(scicos_srcdir)/TODO \
 $(scicos_srcdir)/examples/pendulum \
-$(scicos_srcdir)/examples/Pendulum.cos \
 $(scicos_srcdir)/examples/Pendulum.cosf
 
 simulink_dir = "$(datarootdir)/Simulink"
