@@ -45,5 +45,5 @@ or in this directory.
 
 To enable model debug output, #define MODULE_AERODYN_DEBUG
 when building the module (either set CPPFLAGS="-DMODULE_AERODYN_DEBUG=1"
-or manually edit <module-aerodyn.h>)
+or manually edit <module-aerodyn.cc>)
 
