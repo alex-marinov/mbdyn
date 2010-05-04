@@ -33,7 +33,7 @@
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <string.h>	/* for memset() */
+#include <cstring>	/* for memset() */
 #include <iostream>
 #include <iomanip>
 
@@ -109,6 +109,7 @@ ppdCols(NULL), ppdColsm1(NULL), m_end(*this, true)
 	ASSERT(iNumRows > 0);
 	ASSERT(iNumCols > 0);
 	Resize(iNumRows, iNumCols);
+	Reset();
 
 #ifdef DEBUG
 	IsValid();

@@ -67,6 +67,23 @@ MatrixHandler::PacMat(void)
 	return 0L;
 }
 
+/* Overload di = */
+MatrixHandler& 
+MatrixHandler::operator = (const MatrixHandler& MH)
+{
+	integer nr = MH.iGetNumRows();
+	integer nc = MH.iGetNumCols();
+	Resize(nr, nc);
+	for (integer i = 1; i <= nr; i++) { 
+		for (integer ii = 1; ii <= nc; ii++) { 
+			this->operator()(i, ii) = MH(i, ii);
+		}
+	}
+	return *this;
+}
+
+
+
 /* Overload di += usato per l'assemblaggio delle matrici */
 MatrixHandler&
 MatrixHandler::operator +=(const SubMatrixHandler& SubMH)

@@ -35,7 +35,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
-#include <string.h>	/* for memset() */
+#include <cstring>	/* for memset() */
+#include <cmath>
 
 #include <iostream>
 #include <iomanip>
@@ -158,6 +159,7 @@ VectorHandler::ScalarMul(const VectorHandler& VH, const doublereal& d)
 	return *this;
 }
 
+
 /* Overload di += usato per la correzione della soluzione */
 VectorHandler&
 VectorHandler::operator += (const VectorHandler& VH)
@@ -227,12 +229,12 @@ VectorHandler&
 VectorHandler::operator = (const VectorHandler& VH)
 {
 #ifdef DEBUG
-	IsValid();
 	VH.IsValid();
-	ASSERT(iGetSize() == VH.iGetSize());
 #endif /* DEBUG */
 
-	for (integer i = iGetSize(); i > 0; i--) {
+	integer nr = VH.iGetSize();
+	Resize(nr);
+	for (integer i = nr; i > 0; i--) {
 		operator()(i) = VH(i);
 	}
 
@@ -308,6 +310,7 @@ iMaxSize(iSize), iCurSize(iSize), pdVecm1(0)
 		if (pdTmpVec == NULL) {
 			bOwnsMemory = true;
 			Resize(iSize);
+			Reset();
 		} else {
 			pdVecm1 = pdTmpVec - 1;
 		}

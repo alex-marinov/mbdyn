@@ -79,6 +79,13 @@ rodj.cc \
 rodj.h \
 shapefnc.cc \
 shapefnc.h \
+shell.cc \
+shell.h \
+shell.hc \
+shelleasans.cc \
+shelleasans.h \
+shelleas.cc \
+shelleas.h \
 socketstreammotionelem.cc \
 socketstreammotionelem.h \
 spherj.cc \

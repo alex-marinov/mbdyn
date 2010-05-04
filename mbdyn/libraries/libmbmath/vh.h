@@ -41,7 +41,6 @@
 #ifndef VH_H
 #define VH_H
 
-#include <cmath>
 #include <iostream>
 #include "ac/f2c.h"
 
@@ -157,8 +156,7 @@ protected:
 
 	doublereal* pdVecm1;
 
-public:	// needed by Shell4 :(
-// private:
+public:		// needed by Shell4 :(
 	MyVectorHandler(const MyVectorHandler&);
 
 public:

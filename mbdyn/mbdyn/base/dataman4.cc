@@ -112,7 +112,8 @@ enum KeyWords {
 	BEAM2,
 	HBEAM,
 
-	SHELL4,
+	SHELL4EAS,
+	SHELL4EASANS,
 
 	AIRPROPERTIES,
 	GUST,
@@ -178,7 +179,8 @@ DataManager::ReadElems(MBDynParser& HP)
 		"beam2",
 		"hbeam",
 
-		"shell4",
+		"shell4eas",
+		"shell4easans",
 
 		"air" "properties",
 		"gust",
@@ -296,7 +298,9 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
-			case SHELL4: {
+
+			case SHELL4EAS:
+			case SHELL4EASANS: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "shells" << std::endl);
 				Typ = Elem::PLATE;
 				break;
@@ -483,7 +487,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					t = Elem::BEAM;
 					break;
 
-				case SHELL4:
+				case SHELL4EAS:
+				case SHELL4EASANS:
 					t = Elem::PLATE;
 					break;
 
@@ -752,7 +757,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					case BEAM3:			/* same as BEAM */
 					case BEAM2:
 					case HBEAM:
-					case SHELL4:
+					case SHELL4EAS:
+					case SHELL4EASANS:
 
 					case INDUCEDVELOCITY:
 					case ROTOR:
@@ -834,7 +840,8 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BEAM, uLabel);
 							break;
 
-						case SHELL4:
+						case SHELL4EAS:
+						case SHELL4EASANS:
 							ppE = ppFindElem(Elem::PLATE, uLabel);
 							break;
 
@@ -966,7 +973,8 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BEAM3:		/* same as BEAM */
 				case BEAM2:
 				case HBEAM:
-				case SHELL4:
+				case SHELL4EAS:
+				case SHELL4EASANS:
 
 				case GUST:
 				case INDUCEDVELOCITY:
@@ -1422,13 +1430,14 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	/* shell */
-	case SHELL4: {
-		silent_cout("Reading Shell4(" << uLabel << ")" << std::endl);
+	case SHELL4EAS:
+	case SHELL4EASANS: {
+		silent_cout("Reading Shell(" << uLabel << ")" << std::endl);
 
 		if (iNumTypes[Elem::PLATE]-- <= 0) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"Shell4(" << uLabel << ") "
+				"Shell(" << uLabel << ") "
 				"exceeds shell elements number" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1438,7 +1447,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		if (pFindElem(Elem::PLATE, uLabel) != NULL) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"Shell4(" << uLabel << ") "
+				"Shell(" << uLabel << ") "
 				"already defined" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1451,12 +1460,20 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		/* allocazione e creazione */
 		switch (KeyWords(CurrType)) {
-		case SHELL4:
+		case SHELL4EAS:
 #ifdef MBDYN_DEVEL
-			pE = ReadShell4(this, HP, pDO, uLabel);
+			pE = ReadShell4EAS(this, HP, pDO, uLabel);
 			break;
 #else // MBDYN_DEVEL
-			silent_cerr("Shell4: not distributed yet" << std::endl);
+			silent_cerr("Shell4EAS: not distributed yet" << std::endl);
+#endif // MBDYN_DEVEL
+
+		case SHELL4EASANS:
+#ifdef MBDYN_DEVEL
+			pE = ReadShell4EASANS(this, HP, pDO, uLabel);
+			break;
+#else // MBDYN_DEVEL
+			silent_cerr("Shell4EASANS: not distributed yet" << std::endl);
 #endif // MBDYN_DEVEL
 
 		default:
