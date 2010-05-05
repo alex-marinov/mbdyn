@@ -127,6 +127,9 @@ public:
 	/* dimensioni */
 	virtual integer iGetNumRows(void) const = 0;
 	virtual integer iGetNumCols(void) const = 0;
+	
+	/* Overload di = */
+	virtual MatrixHandler& operator = (const MatrixHandler& MH);
 
 	/* Overload di += usato per l'assemblaggio delle matrici */
 	virtual MatrixHandler& operator += (const SubMatrixHandler& SubMH);
