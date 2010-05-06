@@ -369,8 +369,11 @@ stress_i(NUMIP, vh(12))
 	// save initial axial values
 	ComputeIPCurvature();
 	for (integer i = 0; i < NUMIP; i++) {
-		k_1_0_i[i] = k_1_i[i];
-		k_2_0_i[i] = k_2_i[i];
+		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
+		eps_tilde_1_0_i[i] = T_i[i].MulTV(y_i_1[i]);
+		eps_tilde_2_0_i[i] = T_i[i].MulTV(y_i_2[i]);
+		k_tilde_1_0_i[i] = T_i[i].MulTV(k_1_i[i]);
+		k_tilde_2_0_i[i] = T_i[i].MulTV(k_2_i[i]);
 	}
 }
 
@@ -421,10 +424,10 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 	ComputeIPCurvature();
 	for (integer i = 0; i < NUMIP; i++) {
 		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - Vec3(1., 0., 0.);
-		eps_tilde_2_i[i] = T_i[i].MulTV(y_i_2[i]) - Vec3(0., 1., 0.);
-		k_tilde_1_i[i] = T_i[i].MulTV(k_1_i[i]) - T_0_i[i].MulTV(k_1_0_i[i]);
-		k_tilde_2_i[i] = T_i[i].MulTV(k_2_i[i]) - T_0_i[i].MulTV(k_2_0_i[i]);
+		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - eps_tilde_1_0_i[i];
+		eps_tilde_2_i[i] = T_i[i].MulTV(y_i_2[i]) - eps_tilde_2_0_i[i];
+		k_tilde_1_i[i] = T_i[i].MulTV(k_1_i[i]) - k_tilde_1_0_i[i];
+		k_tilde_2_i[i] = T_i[i].MulTV(k_2_i[i]) - k_tilde_2_0_i[i];
 		// parte variabile di B_overline_i
 		for (integer n = 0; n < NUMNODES; n++) {
 			Mat3x3 Phi_Delta_i_n_LI_i = Phi_Delta_i[i][n] * LI[n](xi_i[i]);
@@ -748,8 +751,6 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 		
 		Ktbetaq.MatMatMul(K_beta_beta, P_i[i]);
 		
-#warning	"FIXME: check dCoef!!!"
-
 		
 // 		{
 // 			Vec3 n1, n2, m1, m2;

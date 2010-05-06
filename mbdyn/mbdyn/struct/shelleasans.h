@@ -204,22 +204,28 @@ protected:
 	Mat3x3 Q_A[NUMSSEP];
 
 	// Orientation tensor derivative axial vector
-	//    .. in reference configuration
-	Vec3 k_1_0_i[NUMIP];
-	Vec3 k_2_0_i[NUMIP];
-	//    .. in current configuration
 	Vec3 k_1_i[NUMIP];
 	Vec3 k_2_i[NUMIP];
 // 	Mat3x3 T_1_i[NUMIP];
 // 	Mat3x3 T_2_i[NUMIP];
 
 	// linear deformation vectors
+	//    .. in reference configuration
+	Vec3 eps_tilde_1_0_i[NUMIP];
+	Vec3 eps_tilde_2_0_i[NUMIP];
+	Vec3 eps_tilde_1_0_A[NUMSSEP];
+	Vec3 eps_tilde_2_0_A[NUMSSEP];
+	//    .. in current configuration
 	Vec3 eps_tilde_1_i[NUMIP];
 	Vec3 eps_tilde_2_i[NUMIP];
 	Vec3 eps_tilde_1_A[NUMSSEP];
 	Vec3 eps_tilde_2_A[NUMSSEP];
 
 	// angular deformation vectors
+	//    .. in reference configuration
+	Vec3 k_tilde_1_0_i[NUMIP];
+	Vec3 k_tilde_2_0_i[NUMIP];
+	//    .. in current configuration
 	Vec3 k_tilde_1_i[NUMIP];
 	Vec3 k_tilde_2_i[NUMIP];
 

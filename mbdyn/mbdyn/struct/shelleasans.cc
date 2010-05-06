@@ -271,7 +271,6 @@ stress_i(NUMIP, vh(12))
 	pNode[NODE2] = pN2;
 	pNode[NODE3] = pN3;
 	pNode[NODE4] = pN4;
-#warning "TODO: orientazione iniziale con normale messa a posto"
 // 	f[NODE1] = f1;
 // 	f[NODE2] = f2;
 // 	f[NODE3] = f3;
@@ -385,8 +384,11 @@ stress_i(NUMIP, vh(12))
 	// save initial axial values
 	ComputeIPCurvature();
 	for (integer i = 0; i < NUMIP; i++) {
-		k_1_0_i[i] = k_1_i[i];
-		k_2_0_i[i] = k_2_i[i];
+		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
+		eps_tilde_1_0_i[i] = T_i[i].MulTV(y_i_1[i]);
+		eps_tilde_2_0_i[i] = T_i[i].MulTV(y_i_2[i]);
+		k_tilde_1_0_i[i] = T_i[i].MulTV(k_1_i[i]);
+		k_tilde_2_0_i[i] = T_i[i].MulTV(k_2_i[i]);
 	}
 	for (integer i = 0; i < NUMSSEP; i++) {
 		fmh L_alpha_B_A(4, 2);
@@ -396,6 +398,12 @@ stress_i(NUMIP, vh(12))
 		S_alpha_beta_A[i](2, 1) = T_0_A[i].GetCol(2) * x_1;
 		S_alpha_beta_A[i](1, 2) = T_0_A[i].GetCol(1) * x_2;
 		S_alpha_beta_A[i](2, 2) = T_0_A[i].GetCol(2) * x_2;
+
+		Vec3 y_A_1;
+		Vec3 y_A_2;
+		InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
+		eps_tilde_1_0_A[i] = T_A[i].MulTV(y_A_1);
+		eps_tilde_2_0_A[i] = T_A[i].MulTV(y_A_2);
 
 		// xi_A_i = S_alpha_beta_A^{-1}
 		FullMatrixHandler xi_A_i(2, 2);
@@ -409,6 +417,15 @@ stress_i(NUMIP, vh(12))
 		
 		L_alpha_B_A.MatMatMul(L_alpha_beta_A[i], xi_A_i); 
 
+	}
+	{
+		Vec3 y_A_1;
+		Vec3 y_A_2;
+		for (integer i = 0; i < NUMSSEP; i++) {
+			InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
+			eps_tilde_1_0_A[i] = T_A[i].MulTV(y_A_1);
+			eps_tilde_2_0_A[i] = T_A[i].MulTV(y_A_2);
+		}
 	}
 }
 
@@ -459,10 +476,10 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 	ComputeIPCurvature();
 	for (integer i = 0; i < NUMIP; i++) {
 		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - Vec3(1., 0., 0.);
-		eps_tilde_2_i[i] = T_i[i].MulTV(y_i_2[i]) - Vec3(0., 1., 0.);
-		k_tilde_1_i[i] = T_i[i].MulTV(k_1_i[i]) - T_0_i[i].MulTV(k_1_0_i[i]);
-		k_tilde_2_i[i] = T_i[i].MulTV(k_2_i[i]) - T_0_i[i].MulTV(k_2_0_i[i]);
+		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - eps_tilde_1_0_i[i];
+		eps_tilde_2_i[i] = T_i[i].MulTV(y_i_2[i]) - eps_tilde_2_0_i[i];
+		k_tilde_1_i[i] = T_i[i].MulTV(k_1_i[i]) - k_tilde_1_0_i[i];
+		k_tilde_2_i[i] = T_i[i].MulTV(k_2_i[i]) - k_tilde_2_0_i[i];
 		// parte variabile di B_overline_i
 		for (integer n = 0; n < NUMNODES; n++) {
 			Mat3x3 Phi_Delta_i_n_LI_i = Phi_Delta_i[i][n] * LI[n](xi_i[i]);
@@ -514,8 +531,8 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 		for (integer i = 0; i < NUMSSEP; i++) {
 			B_overline_A.Reset();
 			InterpDeriv(xa, L_alpha_beta_A[i], y_A_1, y_A_2);
-			eps_tilde_1_A[i] = T_A[i].MulTV(y_A_1) - Vec3(1., 0., 0.);
-			eps_tilde_2_A[i] = T_A[i].MulTV(y_A_2) - Vec3(0., 1., 0.);
+			eps_tilde_1_A[i] = T_A[i].MulTV(y_A_1) - eps_tilde_1_0_A[i];
+			eps_tilde_2_A[i] = T_A[i].MulTV(y_A_2) - eps_tilde_2_0_A[i];
 			for (integer n = 0; n < NUMNODES; n++) {
 				Mat3x3 Phi_Delta_A_n_LI_i = Phi_Delta_A[i][n] * LI[n](xi_A[i]);
 				// delta epsilon_tilde_1_A
@@ -690,8 +707,6 @@ Shell4EASANS::AssJac(VariableSubMatrixHandler& WorkMat,
 		
 		Ktbetaq.MatMatMul(K_beta_beta, P_i[i]);
 		
-#warning	"FIXME: check dCoef!!!"
-
 		AssembleMatrix(WM, 1, 1, Kg, alpha_i[i] * w_i[i] * dCoef);
 		
 
