@@ -107,9 +107,10 @@ usage(void)
 		"usage: testedge [options]\n"
 		"\t-c [random:]<c>\t\tnumber of iterations\n"
 		"\t-m [flag|data]=<file>\tmodal file names (set both)\n"
-		"\t-M <modes>\tmodes number\n"
+		"\t-M <modes>\t\tmodes number\n"
 		"\t-r [flag|data]=<file>\trigid-body file names (set both)\n"
-		"\t-s <sleeptime>\t\tsleep time between tries\n" );
+		"\t-s <sleeptime>\t\tsleep time between tries\n"
+		"\t-v\t\t\tverbose\n" );
 	exit(EXIT_FAILURE);
 }
 
@@ -125,9 +126,10 @@ main(int argc, char *argv[])
 	int iters_random = 0;
 	unsigned steps;
 	int modes = 5;
+	int verbose = 0;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:m:M:r:s:");
+		int opt = getopt(argc, argv, "c:m:M:r:s:v");
 
 		if (opt == EOF) {
 			break;
@@ -199,6 +201,10 @@ main(int argc, char *argv[])
 					optarg);
 				usage();
 			}
+			break;
+
+		case 'v':
+			verbose++;
 			break;
 
 		default:
@@ -275,6 +281,22 @@ main(int argc, char *argv[])
 					break;
 				}
 
+				if (verbose) {
+					char buf[BUFSIZ];
+
+					f = fopen(rdata, "r");
+					if (f == NULL) {
+						fprintf(stderr, "unable to open rigid data file \"%s\"\n", rflag);
+						exit(EXIT_FAILURE);
+					}
+
+					while (fgets(buf, sizeof(buf), f) != NULL) {
+						printf(">> rdata:%s", buf);
+					}
+
+					fclose(f);
+				}
+
 				f = fopen(rdata, "w");
 				if (f == NULL) {
 					fprintf(stderr, "unable to open rigid data file \"%s\"\n", rflag);
@@ -298,6 +320,22 @@ main(int argc, char *argv[])
 					iter = niters;
 					keep_going = 0;
 					break;
+				}
+
+				if (verbose) {
+					char buf[BUFSIZ];
+
+					f = fopen(mdata, "r");
+					if (f == NULL) {
+						fprintf(stderr, "unable to open modal data file \"%s\"\n", mflag);
+						exit(EXIT_FAILURE);
+					}
+
+					while (fgets(buf, sizeof(buf), f) != NULL) {
+						printf(">> mdata:%s", buf);
+					}
+
+					fclose(f);
 				}
 
 				f = fopen(mdata, "w");

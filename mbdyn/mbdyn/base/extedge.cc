@@ -189,7 +189,7 @@ retry:;
 bool
 ExtFileHandlerEDGE::Prepare_pre(void)
 {
-	return false;
+	return true;
 }
 
 void
