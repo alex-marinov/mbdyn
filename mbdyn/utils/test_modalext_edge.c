@@ -67,6 +67,8 @@ check_flag(const char *flag, int sleeptime)
 			printf("testedge: got %c from file \"%s\"\n", c, flag);
 
 			switch (c) {
+			case '0':
+			case '1':
 			case '3':
 				return 0;
 
@@ -415,32 +417,12 @@ main(int argc, char *argv[])
 					fclose(f);
 				}
 
-#if 0
-				f = fopen(rdata, "w");
-				if (f == NULL) {
-					int save_errno = errno;
-
-					fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
-						rdata, save_errno, strerror(save_errno));
-					exit(EXIT_FAILURE);
-				}
-
-				fprintf(f,
-					"* rigid-body forces and moments\n"
-					"body_forces,R,1,6,0\n"
-					"0.1 0.2 0.3 0.4 0.5 0.6\n");
-				fclose(f);
-#endif
-
 				put_rdata(rdata, fm);
-
 				put_flag(rflag, cmd);
 			}
 
 			/* modal */
 			if (mflag != NULL) {
-				int i;
-
 				if (check_flag(mflag, sleeptime)) {
 					iter = niters;
 					keep_going = 0;
@@ -465,27 +447,6 @@ main(int argc, char *argv[])
 
 					fclose(f);
 				}
-
-#if 0
-				f = fopen(mdata, "w");
-				if (f == NULL) {
-					int save_errno = errno;
-
-					fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
-						mdata, save_errno, strerror(save_errno));
-					exit(EXIT_FAILURE);
-				}
-
-				fprintf(f,
-					"* modal forces\n"
-					"modal_force_flow,R,%d,1,0\n",
-					modes);
-				for (i = 0; i < modes; i++) {
-					fprintf(f, "%e ", ((double)i)/10.0 );
-				}
-				fprintf(f, "\n");
-				fclose(f);
-#endif
 
 				put_mdata(mdata, modes, fg);
 				put_flag(mflag, cmd);

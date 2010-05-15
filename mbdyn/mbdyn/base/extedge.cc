@@ -42,9 +42,10 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
+#include <cstring>
 
 /* ExtFileHandlerEDGE - begin */
 
@@ -177,11 +178,15 @@ retry:;
 
 			goto retry;
 
-		default:
+		default: {
+			int save_errno = errno;
 			silent_cerr("unable to rename flag file "
 				"\"" << fdataname.c_str() << "\" "
-				"(errno=" << errno << ")" << std::endl);
+				"(errno=" << save_errno << ": "
+				<< strerror(save_errno) << ")"
+				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 }
@@ -208,19 +213,40 @@ bool
 ExtFileHandlerEDGE::Send_pre(SendWhen when)
 {
 	int cnt = 0;
+	EDGEcmd cmd = EDGE_UNKNOWN;
+
 	if (!bReadForces) {
 		goto bad;
 	}
 
 	// open data file for writing
-	switch (CheckFlag(cnt)) {
+retry:;
+	cmd = CheckFlag(cnt);
+	switch (cmd) {
+	case EDGE_INITIALIZING:
+	case EDGE_BUSY:
+#ifdef USE_SLEEP
+		if (iSleepTime > 0) {
+			silent_cout("flag file \"" << fflagname.c_str() << "\": "
+				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
+				" try #" << cnt << "; "
+				"sleeping " << iSleepTime << " s" << std::endl); 
+
+			sleep(iSleepTime);
+		}
+#endif // USE_SLEEP
+		goto retry;
+
 	case EDGE_READ_READY:
 	case EDGE_GOTO_NEXT_STEP:
 		outfile.open(fdataname.c_str());
 		if (!outfile) {
+			int save_errno = errno;
 			silent_cerr("unable to open data file "
 				"\"" << fdataname.c_str() << "\" "
-				"for output" << std::endl);
+				"for output (" << errno << ": "
+				<< strerror(save_errno) << ")"
+				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
