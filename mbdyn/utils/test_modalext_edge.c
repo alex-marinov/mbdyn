@@ -32,6 +32,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 #include <strings.h>
 #include <signal.h>
 #include <errno.h>
@@ -90,11 +91,68 @@ put_flag(const char *flag, int cmd)
 	FILE *f = fopen(flag, "w");
 
 	if (f == NULL) {
-		fprintf(stderr, "unable to open flag file \"%s\"\n", flag);
+		int save_errno = errno;
+		fprintf(stderr, "unable to open flag file \"%s\" (%d: %s)\n",
+			flag, save_errno, strerror(save_errno));
 		exit(EXIT_FAILURE);
 	}
 
 	fprintf(f, "%d", cmd);
+	fclose(f);
+
+	return 0;
+}
+
+static int
+put_rdata(const char *rdata, double fm[6])
+{
+	FILE *f;
+	int i;
+
+	f = fopen(rdata, "w");
+	if (f == NULL) {
+		int save_errno = errno;
+
+		fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
+			rdata, save_errno, strerror(save_errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(f,
+		"* rigid-body forces and moments\n"
+		"body_forces,R,1,6,0\n");
+	for (i = 0; i < 6; i++) {
+		fprintf(f, "%e ", fm[i]);
+	}
+	fputc('\n', f);
+	fclose(f);
+
+	return 0;
+}
+
+static int
+put_mdata(const char *mdata, int modes, double *fg)
+{
+	FILE *f;
+	int i;
+
+	f = fopen(mdata, "w");
+	if (f == NULL) {
+		int save_errno = errno;
+
+		fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
+			mdata, save_errno, strerror(save_errno));
+		exit(EXIT_FAILURE);
+	}
+
+	fprintf(f,
+		"* modal forces\n"
+		"modal_force_flow,R,%d,1,0\n",
+		modes);
+	for (i = 0; i < modes; i++) {
+		fprintf(f, "%e ", fg[i]);
+	}
+	fputc('\n', f);
 	fclose(f);
 
 	return 0;
@@ -127,6 +185,8 @@ main(int argc, char *argv[])
 	unsigned steps;
 	int modes = 5;
 	int verbose = 0;
+	double fm[6];
+	double *fg = NULL;
 
 	while (1) {
 		int opt = getopt(argc, argv, "c:m:M:r:s:v");
@@ -253,6 +313,61 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sh);
 	signal(SIGINT, sh);
 
+	if (rflag != NULL) {
+		FILE *f = NULL;
+		int i;
+
+		f = fopen(rflag, "r");
+		if (f == NULL) {
+			int save_errno = errno;
+			if (save_errno == ENOENT) {
+				put_flag(rflag, 0);
+
+			} else {
+				fprintf(stderr, "unable to open rigid flag file \"%s\" (%d: %s)\n",
+					rflag, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+		} else {
+			fclose(f);
+		}
+
+		for (i = 0; i < 6; i++) {
+			fm[i] = 0.1*(i + 1);
+		}
+
+		put_rdata(rdata, fm);
+	}
+
+	if (mflag != NULL) {
+		FILE *f = NULL;
+		int i;
+
+		f = fopen(mflag, "r");
+		if (f == NULL) {
+			int save_errno = errno;
+			if (save_errno == ENOENT) {
+				put_flag(mflag, 0);
+
+			} else {
+				fprintf(stderr, "unable to open modal flag file \"%s\" (%d: %s)\n",
+					mflag, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+		} else {
+			fclose(f);
+		}
+
+		fg = (double *)malloc(sizeof(double)*modes);
+		for (i = 0; i < modes; i++) {
+			fg[i] = ((double)i)/10.0;
+		}
+
+		put_mdata(mdata, modes, fg);
+	}
+
 	for (steps = 0; keep_going > 0; steps++) {
 		int iter;
 		int niters;
@@ -286,7 +401,10 @@ main(int argc, char *argv[])
 
 					f = fopen(rdata, "r");
 					if (f == NULL) {
-						fprintf(stderr, "unable to open rigid data file \"%s\"\n", rflag);
+						int save_errno = errno;
+
+						fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
+							rdata, save_errno, strerror(save_errno));
 						exit(EXIT_FAILURE);
 					}
 
@@ -297,9 +415,13 @@ main(int argc, char *argv[])
 					fclose(f);
 				}
 
+#if 0
 				f = fopen(rdata, "w");
 				if (f == NULL) {
-					fprintf(stderr, "unable to open rigid data file \"%s\"\n", rflag);
+					int save_errno = errno;
+
+					fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
+						rdata, save_errno, strerror(save_errno));
 					exit(EXIT_FAILURE);
 				}
 
@@ -308,6 +430,9 @@ main(int argc, char *argv[])
 					"body_forces,R,1,6,0\n"
 					"0.1 0.2 0.3 0.4 0.5 0.6\n");
 				fclose(f);
+#endif
+
+				put_rdata(rdata, fm);
 
 				put_flag(rflag, cmd);
 			}
@@ -327,7 +452,10 @@ main(int argc, char *argv[])
 
 					f = fopen(mdata, "r");
 					if (f == NULL) {
-						fprintf(stderr, "unable to open modal data file \"%s\"\n", mflag);
+						int save_errno = errno;
+
+						fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
+							mdata, save_errno, strerror(save_errno));
 						exit(EXIT_FAILURE);
 					}
 
@@ -338,9 +466,13 @@ main(int argc, char *argv[])
 					fclose(f);
 				}
 
+#if 0
 				f = fopen(mdata, "w");
 				if (f == NULL) {
-					fprintf(stderr, "unable to open modal data file \"%s\"\n", rflag);
+					int save_errno = errno;
+
+					fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
+						mdata, save_errno, strerror(save_errno));
 					exit(EXIT_FAILURE);
 				}
 
@@ -353,7 +485,9 @@ main(int argc, char *argv[])
 				}
 				fprintf(f, "\n");
 				fclose(f);
+#endif
 
+				put_mdata(mdata, modes, fg);
 				put_flag(mflag, cmd);
 			}
 		}
