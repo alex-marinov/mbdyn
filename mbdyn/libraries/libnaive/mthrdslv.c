@@ -84,7 +84,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	doublereal den, mul, mulpiv, fapvr, fari;
 	doublereal *par, *papvr;
 
-	if (neq > NAIVE_MAX) {
+	if (neq <= 0 || (unsigned long)neq > NAIVE_MAX) {
 		return NAIVE_ERANGE;
 	}
 
@@ -180,7 +180,7 @@ naivslv(RMAT a, integer neq, integer *nzc, IMAT ci,
 	doublereal s;
 	doublereal *par;
 
-	if (neq > NAIVE_MAX) {
+	if (neq <= 0 || (unsigned long)neq > NAIVE_MAX) {
 		return NAIVE_ERANGE;
 	}
 
