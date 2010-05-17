@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added shell element (Riccardo Vescovini & Marco Morandini)
 	Backward compatibility issues:
+		- edge interface changed, to conform to EDGE 5.1
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)

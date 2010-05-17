@@ -52,6 +52,7 @@ check_flag(const char *flag, int sleeptime)
 	int rc;
 
 	while (1) {
+		char buf[BUFSIZ];
 		FILE *f;
 		char c = ' ';
 
@@ -61,6 +62,10 @@ check_flag(const char *flag, int sleeptime)
 			return 1;
 		}
 
+		fgets(buf, sizeof(buf), f);
+		if (strcmp(buf, "FLAG I 1 1 0\n") != 0) {
+			/* error */
+		}
 		rc = fread((void *)&c, 1, 1, f);
 		fclose(f);
 		if (rc == 1) {
@@ -99,6 +104,7 @@ put_flag(const char *flag, int cmd)
 		exit(EXIT_FAILURE);
 	}
 
+	fprintf(f, "FLAG I 1 1 0\n");
 	fprintf(f, "%d", cmd);
 	fclose(f);
 

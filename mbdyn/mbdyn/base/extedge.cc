@@ -132,6 +132,20 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	for (int cnt = 0; infile; cnt++) {
+		static const char *expected = "FLAG I 1 1 0\n";
+		char c = infile.get();
+		if (c != expected[cnt]) {
+			silent_cerr("flag file \"" << fflagname.c_str() << "\": "
+				"unexpected char #" << cnt << " in header" << std::endl); 
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (c == '\n') {
+			break;
+		}
+	}
+
 	infile >> cmd;
 
 done:;
@@ -159,6 +173,7 @@ ExtFileHandlerEDGE::SendFlag(EDGEcmd cmd)
 	FILE *fd = fopen(ftmpname, "w");
 #endif // ! HAVE_MKSTEMP
 
+	fprintf(fd, "FLAG I 1 1 0\n");
 	fprintf(fd, "%d", int(cmd));
 	fclose(fd);
 retry:;
@@ -235,6 +250,12 @@ retry:;
 			sleep(iSleepTime);
 		}
 #endif // USE_SLEEP
+
+		if (mbdyn_stop_at_end_of_iteration()) {
+			bReadForces = false;
+			goto bad;
+		}
+
 		goto retry;
 
 	case EDGE_READ_READY:
