@@ -47,6 +47,91 @@
 #include <cerrno>
 #include <cstring>
 
+int
+mbedge_goto_eol(std::istream& fin, char *buf, size_t bufsiz)
+{
+	size_t i;
+
+	for (i = 0; i < bufsiz; i++) {
+		buf[i] = fin.get();
+
+		if (!fin) {
+			return -1;
+		}
+
+		if (buf[i] == '\n') {
+			buf[i] = '\0';
+			break;
+		}
+	}
+
+	if (i == bufsiz) {
+		return -1;
+	}
+
+	return 0;
+}
+
+char *
+mbedge_eat_sep(char *buf, size_t& buflen)
+{
+	size_t	len = buflen;
+
+	ASSERT(buflen > 0);
+
+	while (len > 0) {
+		if (buf[0] == '\n' || buf[0] == '\0' || (buf[0] != ',' && !std::isspace(buf[0]))) {
+			buflen = len;
+			return buf;
+		}
+
+		len--;
+		buf++;
+	}
+
+	return 0;
+}
+
+char *
+mbedge_eat_field(char *buf, size_t& buflen, const char *val)
+{
+	ASSERT(buflen > 0);
+
+	size_t vallen = strlen(val);
+	if (buflen < vallen) {
+		return 0;
+	}
+
+	if (strncmp(buf, val, vallen) == 0) {
+		buflen -= vallen;
+		return &buf[vallen];
+	}
+
+	return 0;
+}
+
+#if 0
+char *
+mbedge_eat_field(char *buf, size_t& buflen)
+{
+	size_t len = buflen;
+
+	ASSERT(buflen > 0);
+
+	while (len > 0) {
+		if (buf[0] == ',' || std::isspace(buf[0])) {
+			buflen = len;
+			return buf;
+		}
+
+		len--;
+		buf++;
+	}
+
+	return 0;
+}
+#endif
+
 /* ExtFileHandlerEDGE - begin */
 
 ExtFileHandlerEDGE::ExtFileHandlerEDGE(std::string& fflagname,
@@ -97,6 +182,7 @@ ExtFileHandlerEDGE::EDGEcmd
 ExtFileHandlerEDGE::CheckFlag(int& cnt)
 {
 	int cmd;
+	unsigned lineno = 0;
 
 	cnt++;
 
@@ -132,20 +218,189 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (unsigned cnt = 0; infile; cnt++) {
-		static const std::string expected("UPDATE,N,0,0,1\nFLAG,I,1,1,0\n");
+	/*
+	UPDATE,N,0,0,1
+	FLAG,I,1,1,0
+	<flag value>
+	*/
 
-		if (expected[cnt] == '\0') {
-			break;
+	// old syntax without this block
+	while (true) {
+		char buf[BUFSIZ], *p;
+		if (mbedge_goto_eol(infile, buf, sizeof(buf))) {
+			if (!infile) {
+				break;
+			}
 		}
 
-		char c = infile.get();
-		if (c != expected[cnt]) {
-			silent_cerr("flag file \"" << fflagname.c_str() << "\": "
-				"unexpected char #" << cnt
-				<< " ('" << c << "', " << int(c) << ") "
-				"in header" << std::endl); 
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		lineno++;
+
+		if (buf[0] == '*') {
+			continue;
+		}
+
+		if (strncasecmp(buf, "UPDATE", STRLENOF("UPDATE")) == 0) {
+			size_t buflen = sizeof(buf) - STRLENOF("UPDATE");
+			p = &buf[0] + STRLENOF("UPDATE");
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "N");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"N\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "0");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "0");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "1");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (p[0] != '\0' && p[0] != '\n') {
+				silent_cerr("ExtRigidForceEDGE: no line terminator "
+					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (mbedge_goto_eol(infile, buf, sizeof(buf))) {
+				silent_cerr("ExtRigidForceEDGE: unable to get \"FLAG\" line "
+					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			lineno++;
+				
+			if (strncasecmp(buf, "FLAG", STRLENOF("FLAG")) != 0) {
+				silent_cerr("ExtRigidForceEDGE: \"FLAG\" line expected "
+					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			buflen = sizeof(buf) - STRLENOF("FLAG");
+			p = &buf[0] + STRLENOF("FLAG");
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "I");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"I\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "1");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "1");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_field(p, buflen, "0");
+			if (p == 0) {
+				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = mbedge_eat_sep(p, buflen);
+			if (p == 0) {
+				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
+					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (p[0] != '\0' && p[0] != '\n') {
+				silent_cerr("ExtRigidForceEDGE: no line terminator "
+					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			lineno++;
+				
+			break;
 		}
 	}
 

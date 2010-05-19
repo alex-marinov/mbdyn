@@ -99,6 +99,18 @@ public:
 
 /* ExtFileHandlerEDGE - end */
 
+extern int
+mbedge_goto_eol(std::istream& fin, char *buf, size_t bufsiz);
+char *
+mbedge_eat_sep(char *buf, size_t& buflen);
+char *
+mbedge_eat_field(char *buf, size_t& buflen, const char *val);
+#if 0
+char *
+mbedge_eat_field(char *buf, size_t& buflen);
+#endif
+
+
 class DataManager;
 class MBDynParser;
 

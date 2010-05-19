@@ -37,92 +37,8 @@
 
 #include <cerrno>
 
+#include "extedge.h"
 #include "modaledge.h"
-
-static int
-goto_eol(std::istream& fin, char *buf, size_t bufsiz)
-{
-	size_t i;
-
-	for (i = 0; i < bufsiz; i++) {
-		buf[i] = fin.get();
-
-		if (!fin) {
-			return -1;
-		}
-
-		if (buf[i] == '\n') {
-			buf[i] = '\0';
-			break;
-		}
-	}
-
-	if (i == bufsiz) {
-		return -1;
-	}
-
-	return 0;
-}
-
-static char *
-eat_sep(char *buf, size_t& buflen)
-{
-	size_t	len = buflen;
-
-	ASSERT(buflen > 0);
-
-	while (len > 0) {
-		if (buf[0] == '\n' || buf[0] == '\0' || (buf[0] != ',' && !std::isspace(buf[0]))) {
-			buflen = len;
-			return buf;
-		}
-
-		len--;
-		buf++;
-	}
-
-	return 0;
-}
-
-static char *
-eat_field(char *buf, size_t& buflen, const char *val)
-{
-	ASSERT(buflen > 0);
-
-	size_t vallen = strlen(val);
-	if (buflen < vallen) {
-		return 0;
-	}
-
-	if (strncmp(buf, val, vallen) == 0) {
-		buflen -= vallen;
-		return &buf[vallen];
-	}
-
-	return 0;
-}
-
-#if 0
-static char *
-eat_field(char *buf, size_t& buflen)
-{
-	size_t len = buflen;
-
-	ASSERT(buflen > 0);
-
-	while (len > 0) {
-		if (buf[0] == ',' || std::isspace(buf[0])) {
-			buflen = len;
-			return buf;
-		}
-
-		len--;
-		buf++;
-	}
-
-	return 0;
-}
-#endif
 
 /* ExtForceEDGE - begin */
 
@@ -190,7 +106,7 @@ ExtRigidForceEDGE::Recv(ExtFileHandlerBase *pEFH,
 	unsigned lineno = 0;
 	while (true) {
 		char buf[BUFSIZ], *p;
-		if (goto_eol(fin, buf, sizeof(buf))) {
+		if (mbedge_goto_eol(fin, buf, sizeof(buf))) {
 			if (!fin) {
 				break;
 			}
@@ -206,63 +122,63 @@ ExtRigidForceEDGE::Recv(ExtFileHandlerBase *pEFH,
 			size_t buflen = sizeof(buf) - STRLENOF("body_forces");
 			p = &buf[0] + STRLENOF("body_forces");
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "R");
+			p = mbedge_eat_field(p, buflen, "R");
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip field \"R\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "1");
+			p = mbedge_eat_field(p, buflen, "1");
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "6");
+			p = mbedge_eat_field(p, buflen, "6");
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip field \"6\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "0");
+			p = mbedge_eat_field(p, buflen, "0");
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
@@ -287,7 +203,7 @@ ExtRigidForceEDGE::Recv(ExtFileHandlerBase *pEFH,
 			}
 
 			// skip to eol
-			if (goto_eol(fin, buf, sizeof(buf))) {
+			if (mbedge_goto_eol(fin, buf, sizeof(buf))) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip to end of line "
 					"at line=" << lineno << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -404,7 +320,7 @@ ExtModalForceEDGE::Recv(
 	unsigned lineno = 0;
 	while (true) {
 		char buf[BUFSIZ], *p;
-		if (goto_eol(fin, buf, sizeof(buf))) {
+		if (mbedge_goto_eol(fin, buf, sizeof(buf))) {
 			if (!fin) {
 				break;
 			}
@@ -422,21 +338,21 @@ ExtModalForceEDGE::Recv(
 			size_t buflen = sizeof(buf) - STRLENOF("modal_force_flow");
 			p = &buf[0] + STRLENOF("modal_force_flow");
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "R");
+			p = mbedge_eat_field(p, buflen, "R");
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip field \"R\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
@@ -458,35 +374,35 @@ ExtModalForceEDGE::Recv(
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(next, buflen);
+			p = mbedge_eat_sep(next, buflen);
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "1");
+			p = mbedge_eat_field(p, buflen, "1");
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_field(p, buflen, "0");
+			p = mbedge_eat_field(p, buflen, "0");
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			p = eat_sep(p, buflen);
+			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtModalForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
@@ -516,7 +432,7 @@ ExtModalForceEDGE::Recv(
 			}
 
 			// skip to eol
-			if (goto_eol(fin, buf, sizeof(buf))) {
+			if (mbedge_goto_eol(fin, buf, sizeof(buf))) {
 				silent_cerr("ExtModalForceEDGE: unable to skip to end of line "
 					"at line=" << lineno << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
