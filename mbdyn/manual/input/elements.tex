@@ -1830,7 +1830,7 @@ Different communication schemes are supported.
 By default, communication occurs via files.
 Currently supported communication schemes are
 \begin{verbatim}
-    <external_force_communicator> ::= { <file> | <edge> }
+    <external_force_communicator> ::= { <file> | <edge> | <socket> }
 
     <file> ::=
         " <input_file_name> " [ , unlink ] ,
@@ -1875,17 +1875,27 @@ as a primitive form of inter-process communication.
 This communicator has been developed in cooperation with Luca Cavagna,
 to support communication with FOI's EDGE.
 
-\kw{flag\_file\_name} is the name of the file used to communicate
+The file \kw{flag\_file\_name} is used to synchronize the communication
 between the processes.
 The same file is truncated and reused by both processes.
-It contains a single digit, whose meaning is:
+The syntax of the file changed since EDGE 5.1; this change is reflected
+from MBDyn 1.3.16 on.
+The file contains a two lines header, followed by a line containing a single digit.
+The header is
+\begin{verbatim}
+    UPDATE,N,0,0,1
+    FLAG,I,1,1,0
+\end{verbatim}
+The digit indicates the command.  Its meaning is:
 \begin{itemize}
-\item[0 ---] external software is initializing; MBDyn must wait;
-\item[1 ---] external software is busy; MBDyn must wait;
-\item[2 ---] external software is ready to read kinematics; MBDyn can start writing kinematics;
-\item[3 ---] MBDyn finished writing kinematics; external software can start reading (written by MBDyn);
-\item[4 ---] external software converged; MBDyn should go to convergence and advance to the next time step;
-\item[5 ---] external software decided to quit; MBDyn should stop communicating.
+\item[0 :] external software is initializing; MBDyn must wait;
+\item[1 :] external software is busy; MBDyn must wait;
+\item[2 :] external software is ready to read kinematics; MBDyn can start reading forces and writing kinematics;
+\item[3 :] MBDyn finished writing kinematics; external software can start reading kinematics and writing forces
+	(written by MBDyn when data file is ready);
+\item[4 :] external software converged; MBDyn should go to convergence, advance to the next time step,
+and start writing new step kinematics;
+\item[5 :] external software decided to quit; MBDyn should stop communicating.
 \end{itemize}
 So far, there are no provisions for re-executing a time step,
 nor for communicating either the time or the time step,
