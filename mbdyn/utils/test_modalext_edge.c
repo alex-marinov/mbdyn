@@ -63,8 +63,12 @@ check_flag(const char *flag, int sleeptime)
 		}
 
 		fgets(buf, sizeof(buf), f);
-		if (strcmp(buf, "FLAG I 1 1 0\n") != 0) {
-			/* error */
+		if (strcmp(buf, "UPDATE,N,0,0,1\n") != 0) {
+			return -1;
+		}
+		fgets(buf, sizeof(buf), f);
+		if (strcmp(buf, "FLAG,I,1,1,0\n") != 0) {
+			return -1;
 		}
 		rc = fread((void *)&c, 1, 1, f);
 		fclose(f);
@@ -104,7 +108,8 @@ put_flag(const char *flag, int cmd)
 		exit(EXIT_FAILURE);
 	}
 
-	fprintf(f, "FLAG I 1 1 0\n");
+	fprintf(f, "UPDATE,N,0,0,1\n");
+	fprintf(f, "FLAG,I,1,1,0\n");
 	fprintf(f, "%d", cmd);
 	fclose(f);
 
