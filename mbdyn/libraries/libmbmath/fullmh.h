@@ -247,7 +247,7 @@ public:
 	/* Esegue il prodotto tra due matrici e se lo memorizza */
 	void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
 
-#if 0	/* by now, use the default implementation */
+#if 1	/* by now, use the default implementation */
 protected:
 	MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,

@@ -428,13 +428,87 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 	integer iN = m1.iGetNumCols();
 
 	for (integer iRow = 1; iRow <= iNumRows; iRow++) {
-		for (integer iCol = 1; iCol <=iNumCols; iCol++) {
+		for (integer iCol = 1; iCol <= iNumCols; iCol++) {
 			ppdColsm1[iCol][iRow] = 0.;
 			for (integer iK = 1; iK <= iN; iK++) {
 				ppdColsm1[iCol][iRow] += m1(iRow,iK)*m2(iK,iCol);
 			}
 		}
 	}
+}
+
+MatrixHandler&
+FullMatrixHandler::MatMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol,
+		const doublereal& dCoef),
+	MatrixHandler& out, const MatrixHandler& in) const
+{
+	const FullMatrixHandler *pin = dynamic_cast<const FullMatrixHandler *>(&in);
+	if (pin == 0) {
+		return MatrixHandler::MatTMatMul_base(op, out, in);
+	}
+
+	integer out_nc = out.iGetNumCols();
+	integer out_nr = out.iGetNumRows();
+	integer in_nr = in.iGetNumRows();
+
+	if (out_nr != iGetNumRows()
+		|| out_nc != in.iGetNumCols()
+		|| in_nr != iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer c = 1; c <= out_nc; c++) {
+		for (integer r = 1; r <= out_nr; r++) {
+			doublereal d = 0.;
+
+			for (integer k = 1; k <= in_nr; k++) {
+				d += ppdColsm1[r][k]*pin->ppdColsm1[k][c];
+			}
+
+			(out.*op)(r, c, d);
+		}
+	}
+
+	return out;
+}
+
+MatrixHandler&
+FullMatrixHandler::MatTMatMul_base(
+	void (MatrixHandler::*op)(integer iRow, integer iCol,
+		const doublereal& dCoef),
+	MatrixHandler& out, const MatrixHandler& in) const
+{
+	const FullMatrixHandler *pin = dynamic_cast<const FullMatrixHandler *>(&in);
+	if (pin == 0) {
+		return MatrixHandler::MatTMatMul_base(op, out, in);
+	}
+
+	integer out_nc = out.iGetNumCols();
+	integer out_nr = out.iGetNumRows();
+	integer in_nr = in.iGetNumRows();
+
+	if (out_nr != iGetNumCols()
+		|| out_nc != in.iGetNumCols()
+		|| in_nr != iGetNumRows())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (integer c = 1; c <= out_nc; c++) {
+		for (integer r = 1; r <= out_nr; r++) {
+			doublereal d = 0.;
+
+			for (integer k = 1; k <= in_nr; k++) {
+				d += ppdColsm1[k][r]*pin->ppdColsm1[k][c];
+			}
+
+			(out.*op)(r, c, d);
+		}
+	}
+
+	return out;
 }
 
 void
