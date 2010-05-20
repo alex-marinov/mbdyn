@@ -2061,7 +2061,8 @@ If optional keyword \kw{sorted} is set to \kw{no}, the forces might be
 read in arbitrary order, so they need to be recognized by the label.
 The option \kw{sorted} is only meaningful when \kw{labels} is set to \kw{yes}.
 
-The output file is written in textual form, each line formatted as follows:
+The kinematics are written to the output file in textual form,
+each line formatted as follows:
 \begin{itemize}
 \item a label (if \kw{labels} is set to \kw{yes});
 \item the position in the global frame;
@@ -2095,8 +2096,18 @@ The following records contain forces and moments in the reference frame
 of the reference node.
 
 
+
 \subsubsection{EDGE communicator}
 TBD
+
+
+
+
+\subsubsection{Socket communicator}
+TBD
+
+
+
 
 \paragraph{Example.} \
 The following defines an \kw{external structural} force
@@ -2126,7 +2137,6 @@ Each line contains:
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
-
 If a reference node is defined, a special line is output for the reference node,
 containing:
 \begin{itemize}
@@ -2225,6 +2235,18 @@ when \kw{labels} is set to \kw{yes}.
         mapped points number, 27,
         sparse mapping file, "mapping.dat";
 \end{verbatim}
+
+\subsubsection{File communicator}
+TBD
+
+\subsubsection{EDGE communicator}
+TBD
+
+\subsubsection{Socket communicator}
+TBD
+
+\subsubsection{Output}
+TBD
 
 
 
@@ -2396,6 +2418,12 @@ this format is open, and thus can be implemented by other software
 in order to easily couple with MBDyn.
 
 
+
+\subsubsection{Socket communicator}
+TBD
+
+
+
 \subsubsection{Output}
 An external modal element writes multiple lines at each time step
 in the \kw{.frc} file.
@@ -2470,6 +2498,20 @@ of the force are expected.
 The default is \kw{all}, but some communicators might require
 a specific value.
 If \kw{rigid} or \kw{all} are used, the \kw{reference node} must be defined.
+
+
+
+\subsubsection{File communicator}
+Same as \kw{external modal}.
+
+\subsubsection{EDGE communicator}
+Same as \kw{external modal}.
+
+\subsubsection{Socket communicator}
+Same as \kw{external modal}.
+
+
+
 
 \subsubsection{Output}
 An external modal mapping element writes multiple lines at each time step
