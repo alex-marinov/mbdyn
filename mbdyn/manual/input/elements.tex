@@ -1569,6 +1569,7 @@ The format is:
 \end{itemize}
 
 \subsection{Structural force}
+\label{sec:EL:FORCE:STRUCTURAL:FORCE}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } 
     <force_arglist> ::=
@@ -1628,6 +1629,7 @@ The format is:
 \end{itemize}
 
 \subsection{Structural internal force}
+\label{sec:EL:FORCE:STRUCTURAL:INTERNAL_FORCE}
 \begin{verbatim}
     <force_type> ::= { absolute | follower } internal
     <force_arglist> ::=
@@ -1675,6 +1677,7 @@ The format is:
 
 
 \subsection{Structural couple}
+\label{sec:EL:FORCE:STRUCTURAL:COUPLE}
 The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
 \begin{verbatim}
     <elem_type> ::= couple
@@ -1714,6 +1717,7 @@ The format is:
 \end{itemize}
 
 \subsection{Structural internal couple}
+\label{sec:EL:FORCE:STRUCTURAL:INTERNAL_COUPLE}
 The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
 \begin{verbatim}
     <elem_type> ::= couple
@@ -1748,6 +1752,7 @@ to the Jacobian matrix: the force remains explicit.
 Their improper use may result in missing convergence.
 
 \subsection{Modal}
+\label{sec:EL:FORCE:MODAL}
 This element allows to define a set of generalized forces
 acting on the equations related to the generalized variables
 of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
@@ -2001,12 +2006,14 @@ Something like
 
 
 \subsection{External structural}
+\label{sec:EL:FORCE:EXTERNAL:STRUCTURAL}
 This element allows to communicate with an external software that computes
 forces applied to a pool of nodes and may depend on the kinematics of those
 nodes.
 Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external structural
+
     <force_arglist> ::= <external_force_communicator> ,
         [ reference node , <ref_node_label> , ]
         [ labels , { yes | no } , ]
@@ -2136,7 +2143,93 @@ containing:
 	as received from the peer.
 \end{itemize}
 
+
+
+
+\subsection{External structural mapping}
+\label{sec:EL:FORCE:EXTERNAL:STRUCTURAL_MAPPING}
+This element allows to communicate with an external software that computes
+forces applied to a pool of nodes and may depend on the kinematics of those
+nodes through a linear mapping.
+Communication occurs by means of the communicators illustrated earlier.
+\begin{verbatim}
+    <force_type> ::= external structural mapping
+
+    <force_arglist> ::= <external_force_communicator> ,
+        [ reference node , <ref_node_label> , ]
+        [ labels , { yes | no } , ]
+        [ orientation ,
+            { none | orientation matrix | orientation vector | euler 123 } , ]
+        [ accelerations , { yes | no } ]
+        [ use reference node forces , { yes | no } ,
+            [ rotate reference node forces , { yes | no } ] ]
+        <num_points> ,
+            <node_label> , offset [ , <point_label> ] , (Vec3) <offset>
+                [ , ... ]
+        [ , echo , " <echo_file_name> " [ , precision , <digits> ] [ , stop ] ]
+        [ , mapped points number , <mapped_points> ,
+            { full | sparse } mapping file , " <mapping_file_name> "
+                [ , threshold , <threshold> ]
+            [ , { mapped labels file , " <mapped_labels_file_name> "
+                | <mapped_label> [ , ... ] } ] ]
+\end{verbatim}
+A set of \kw{num\_points} points is generated first,
+by computing the kinematics of the points originating
+from the rigid-body motion of the structural nodes \kw{node\_label}
+according to the specified offset.
+Multiple \kw{offset} blocks can appear for each \kw{node\_label}.
+
+The \kw{echo} keyword causes the positions of those points
+to be written in a file named \kw{echo\_file\_name}.
+If the keyword \kw{stop} is present, the simulation ends here.
+This is useful to generate the bulk data that is needed to compute
+the linear mapping matrix.
+
+When the keyword \kw{mapped points number} is present,
+a mapping matrix is read from the file named \kw{mapping\_file\_name}.
+The matrix must have $3 \times \mathtt{mapped\_points}$ rows
+and $3 \times \mathtt{num\_points}$.
+Otherwise, the element behaves as if the mapping were the identity matrix.
+See the \htmlref{\kw{modal}}{sec:EL:FORCE:EXTERNAL:MODAL_MAPPING}
+variant for a description of the mapping file format.
+
+The labels of the original points, indicated as \kw{point\_label},
+and the labels of the mapped points, either contained
+in the \kw{mapped\_labels\_file\_name},
+or directly listed as \kw{mapped\_label}, must be provided
+when \kw{labels} is set to \kw{yes}.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    force: 100, external structural mapping,
+        socket,
+            create, yes,
+            path, "/tmp/mbdyn.sock",
+            no signal,
+        coupling, tight,
+        reference node, 0,
+        points number, 9,
+            10,
+                offset, null,       # centered at node
+                offset, 0., 1., 0., # y offset
+                offset, 0., 0., 1., # z offset
+            20,
+                offset, null,       # ...
+                offset, 0., 1., 0.,
+                offset, 0., 0., 1.,
+            30,
+                offset, null,
+                offset, 0., 1., 0.,
+                offset, 0., 0., 1.,
+        # echo, "points.dat", stop,
+        mapped points number, 27,
+        sparse mapping file, "mapping.dat";
+\end{verbatim}
+
+
+
 \subsection{External modal}
+\label{sec:EL:FORCE:EXTERNAL:MODAL}
 This element allows to communicate with an external software that computes
 forces applied to a 
 \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element,
@@ -2144,6 +2237,7 @@ and may depend on the values of the corresponding generalized variables.
 Communication occurs by means of the communicators illustrated earlier.
 \begin{verbatim}
     <force_type> ::= external modal
+
     <force_arglist> ::= <external_force_communicator> ,
         <modal_label>
         [ , accelerations ]
@@ -2323,6 +2417,7 @@ If \kw{type} is \kw{modal} or \kw{all}, each line contains:
 
 
 \subsection{External modal mapping}
+\label{sec:EL:FORCE:EXTERNAL:MODAL_MAPPING}
 This element allows to communicate with an external software that computes
 forces applied to a set of structural nodes,
 and may depend on the values of the corresponding variables.
@@ -2335,6 +2430,7 @@ Communication occurs by means of the communicators illustrated earlier
 for the \kw{external modal} case.
 \begin{verbatim}
     <force_type> ::= external modal mapping
+
     <force_arglist> ::= <external_force_communicator> ,
     [ reference node , <ref_node_label> , ]
     [ use rigid body forces , { yes | no } ,
@@ -2344,7 +2440,8 @@ for the \kw{external modal} case.
     nodes number , <num_nodes> ,
         <node1_label> [ , ... ] ,
     modes number , <num_modes> ,
-    { full | sparse } mapping file , " <filename> "
+    { full | sparse } mapping file , " <mapping_file_name> "
+        [ , threshold , <threshold> ]
 \end{verbatim}
 \kw{ref\_node\_label} is the label of the reference node
 if the modes express the motion relative to a specific node.
@@ -2360,6 +2457,8 @@ and $1\le\kw{col}\le6\times\kw{num\_nodes}$.
 Both files may start with an arbitrary number of lines beginning
 with a hash mark (`\kw{\#}').
 They are treated as comments and ignored.
+If a \kw{threshold} is given, only elements whose absolute value
+is larger than threshold are retained.
 
 If the optional keyword \kw{accelerations} is present,
 the output will also contain the modal accelerations.
