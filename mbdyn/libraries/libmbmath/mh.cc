@@ -130,18 +130,22 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 		MatrixHandler& out, const MatrixHandler& in) const
 {
-	if (out.iGetNumRows() != iGetNumRows()
-			|| out.iGetNumCols() != in.iGetNumCols()
-			|| in.iGetNumRows() != iGetNumCols())
+	integer out_nc = out.iGetNumCols();
+	integer out_nr = out.iGetNumRows();
+	integer in_nr = in.iGetNumRows();
+
+	if (out_nr != iGetNumRows()
+		|| out_nc != in.iGetNumCols()
+		|| in_nr != iGetNumCols())
 	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out.iGetNumCols(); c++) {
-		for (integer r = 1; r <= out.iGetNumRows(); r++) {
+	for (integer c = 1; c <= out_nc; c++) {
+		for (integer r = 1; r <= out_nr; r++) {
 			doublereal d = 0.;
 
-			for (integer k = 1; k <= in.iGetNumRows(); k++) {
+			for (integer k = 1; k <= in_nr; k++) {
 				d += dGetCoef(r, k)*in(k, c);
 			}
 
@@ -157,18 +161,22 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			integer iCol, const doublereal& dCoef),
 		MatrixHandler& out, const MatrixHandler& in) const
 {
-	if (out.iGetNumRows() != iGetNumCols()
-			|| out.iGetNumCols() != in.iGetNumCols()
-			|| in.iGetNumRows() != iGetNumRows())
+	integer out_nc = out.iGetNumCols();
+	integer out_nr = out.iGetNumRows();
+	integer in_nr = in.iGetNumRows();
+
+	if (out_nr != iGetNumCols()
+		|| out_nc != in.iGetNumCols()
+		|| in_nr != iGetNumRows())
 	{
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out.iGetNumCols(); c++) {
-		for (integer r = 1; r <= out.iGetNumRows(); r++) {
+	for (integer c = 1; c <= out_nc; c++) {
+		for (integer r = 1; r <= out_nr; r++) {
 			doublereal d = 0.;
 
-			for (integer k = 1; k <= in.iGetNumRows(); k++) {
+			for (integer k = 1; k <= in_nr; k++) {
 				d += dGetCoef(k, r)*in(k, c);
 			}
 
