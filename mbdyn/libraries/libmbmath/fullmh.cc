@@ -437,6 +437,17 @@ FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 	}
 }
 
+#ifdef USE_LAPACK
+extern "C" int
+dgemm_(const char *TRANSA, const char *TRANSB,
+	integer *M, integer *N, integer *K,
+	doublereal *ALPHA,
+	doublereal *A, integer *LDA,
+	doublereal *B, integer *LDB,
+	doublereal *BETA,
+	doublereal *C, integer *LDC);
+#endif // USE_LAPACK
+
 MatrixHandler&
 FullMatrixHandler::MatMatMul_base(
 	void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -445,6 +456,7 @@ FullMatrixHandler::MatMatMul_base(
 {
 	const FullMatrixHandler *pin = dynamic_cast<const FullMatrixHandler *>(&in);
 	if (pin == 0) {
+		// if input matrix is not FullMatrixHandler, use generic function
 		return MatrixHandler::MatTMatMul_base(op, out, in);
 	}
 
@@ -459,17 +471,105 @@ FullMatrixHandler::MatMatMul_base(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out_nc; c++) {
-		for (integer r = 1; r <= out_nr; r++) {
-			doublereal d = 0.;
+	FullMatrixHandler *pout = dynamic_cast<FullMatrixHandler *>(&out);
+	if (pout == 0) {
+		// if output matrix is not FullMatrixHandler,
+		// optimize coefficient computation
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
 
-			for (integer k = 1; k <= in_nr; k++) {
-				d += ppdColsm1[r][k]*pin->ppdColsm1[k][c];
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(r, k) * in(k, c)
+					d += ppdColsm1[k][r]*pin->ppdColsm1[c][k];
+				}
+
+				(out.*op)(r, c, d);
 			}
-
-			(out.*op)(r, c, d);
 		}
+
+		return out;
 	}
+
+	// if all matrices are FullMatrixHandler,
+	// either use LAPACK or optimize coefficient computation and store
+#ifdef USE_LAPACK
+	doublereal ALPHA, BETA;
+	if (op == &MatrixHandler::IncCoef) {
+		BETA = 1.;
+		ALPHA = 1.;
+
+	} else if (op == &MatrixHandler::DecCoef) {
+		BETA = 1.;
+		ALPHA = -1.;
+
+	} else if (op == &MatrixHandler::PutCoef) {
+		BETA = 0.;
+		ALPHA = 1.;
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const char *TRANSA = "N";
+	const char *TRANSB = "N";
+	dgemm_(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
+		&ALPHA,
+		this->pdRaw, &out_nr,
+		pin->pdRaw, &in_nr,
+		&BETA,
+		pout->pdRaw, &out_nr);
+
+#else // ! USE_LAPACK
+	if (op == &MatrixHandler::IncCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(r, k) * in(k, c)
+					d += ppdColsm1[k][r]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] += d;
+			}
+		}
+
+	} else if (op == &MatrixHandler::DecCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(r, k) * in(k, c)
+					d += ppdColsm1[k][r]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] -= d;
+			}
+		}
+
+	} else if (op == &MatrixHandler::PutCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(r, k) * in(k, c)
+					d += ppdColsm1[k][r]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] = d;
+			}
+		}
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif // ! USE_LAPACK
 
 	return out;
 }
@@ -482,6 +582,7 @@ FullMatrixHandler::MatTMatMul_base(
 {
 	const FullMatrixHandler *pin = dynamic_cast<const FullMatrixHandler *>(&in);
 	if (pin == 0) {
+		// if input matrix is not FullMatrixHandler, use generic function
 		return MatrixHandler::MatTMatMul_base(op, out, in);
 	}
 
@@ -496,17 +597,105 @@ FullMatrixHandler::MatTMatMul_base(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer c = 1; c <= out_nc; c++) {
-		for (integer r = 1; r <= out_nr; r++) {
-			doublereal d = 0.;
+	FullMatrixHandler *pout = dynamic_cast<FullMatrixHandler *>(&out);
+	if (pout == 0) {
+		// if output matrix is not FullMatrixHandler,
+		// optimize coefficient computation
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
 
-			for (integer k = 1; k <= in_nr; k++) {
-				d += ppdColsm1[k][r]*pin->ppdColsm1[k][c];
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(k, r) * in(k, c)
+					d += ppdColsm1[r][k]*pin->ppdColsm1[c][k];
+				}
+
+				(out.*op)(r, c, d);
 			}
-
-			(out.*op)(r, c, d);
 		}
+
+		return out;
 	}
+
+	// if all matrices are FullMatrixHandler,
+	// either use LAPACK or optimize coefficient computation and store
+#ifdef USE_LAPACK
+	doublereal ALPHA, BETA;
+	if (op == &MatrixHandler::IncCoef) {
+		BETA = 1.;
+		ALPHA = 1.;
+
+	} else if (op == &MatrixHandler::DecCoef) {
+		BETA = 1.;
+		ALPHA = -1.;
+
+	} else if (op == &MatrixHandler::PutCoef) {
+		BETA = 0.;
+		ALPHA = 1.;
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const char *TRANSA = "T";
+	const char *TRANSB = "N";
+	dgemm_(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
+		&ALPHA,
+		this->pdRaw, &in_nr,
+		pin->pdRaw, &in_nr,
+		&BETA,
+		pout->pdRaw, &out_nr);
+
+#else // ! USE_LAPACK
+	if (op == &MatrixHandler::IncCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(k, r) * in(k, c)
+					d += ppdColsm1[r][k]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] += d;
+			}
+		}
+
+	} else if (op == &MatrixHandler::DecCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(k, r) * in(k, c)
+					d += ppdColsm1[r][k]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] -= d;
+			}
+		}
+
+	} else if (op == &MatrixHandler::PutCoef) {
+		for (integer c = 1; c <= out_nc; c++) {
+			for (integer r = 1; r <= out_nr; r++) {
+				doublereal d = 0.;
+
+				for (integer k = 1; k <= in_nr; k++) {
+					// this(k, r) * in(k, c)
+					d += ppdColsm1[r][k]*pin->ppdColsm1[c][k];
+				}
+
+				// (out.*op)(r, c, d);
+				pout->ppdColsm1[c][r] = d;
+			}
+		}
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif // ! USE_LAPACK
 
 	return out;
 }
