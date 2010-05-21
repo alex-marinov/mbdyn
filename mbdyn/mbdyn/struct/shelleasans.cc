@@ -186,13 +186,18 @@ Shell4EASANS::ComputeInitialNodeOrientation(void)
 void
 Shell4EASANS::InterpolateOrientation(void)
 {
+	Mat3x3 DRot_I_phi_tilde_n_MT_T_overline[NUMNODES];
+	for (integer n = 0; n < NUMNODES; n++) {
+		DRot_I_phi_tilde_n_MT_T_overline[n] = 
+			RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
+	}
 	for (integer i = 0; i < NUMIP; i++) {
 		phi_tilde_i[i] = Interp(phi_tilde_n, xi_i[i]);
 		T_i[i] = T_overline * RotManip::Rot(phi_tilde_i[i]) * iTa_i[i];
 		Mat3x3 T_overline_Gamma_tilde_i(T_overline * RotManip::DRot(phi_tilde_i[i]));
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_i[i][n] = T_overline_Gamma_tilde_i * 
-				RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
+				DRot_I_phi_tilde_n_MT_T_overline[n];
 		}
 	}
 	Vec3 phi_tilde_0 = Interp(phi_tilde_n, xi_0);
@@ -203,7 +208,7 @@ Shell4EASANS::InterpolateOrientation(void)
 		Mat3x3 T_overline_Gamma_tilde_A(T_overline * RotManip::DRot(phi_tilde_A[i]));
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_A[i][n] = T_overline_Gamma_tilde_A * 
-				RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
+				DRot_I_phi_tilde_n_MT_T_overline[n];
 		}
 	}
 }
