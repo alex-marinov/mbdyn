@@ -73,12 +73,15 @@ MatrixHandler::operator = (const MatrixHandler& MH)
 {
 	integer nr = MH.iGetNumRows();
 	integer nc = MH.iGetNumCols();
+
 	Resize(nr, nc);
+
 	for (integer i = 1; i <= nr; i++) { 
 		for (integer ii = 1; ii <= nc; ii++) { 
 			this->operator()(i, ii) = MH(i, ii);
 		}
 	}
+
 	return *this;
 }
 
@@ -115,8 +118,11 @@ MatrixHandler::operator -=(const VariableSubMatrixHandler& SubMH)
 MatrixHandler&
 MatrixHandler::ScalarMul(const doublereal& d)
 {
-	for (integer i = 1; i <= iGetNumRows(); i++) {
-		for (integer j = 1; j <= iGetNumCols(); j++) {
+	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	for (integer i = 1; i <= nr; i++) {
+		for (integer j = 1; j <= nc; j++) {
 			this->operator()(i, j) *= d;
 		}
 	}
@@ -138,6 +144,23 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumCols())
 	{
+		char *strop;
+
+		if (op == &MatrixHandler::IncCoef) {
+			strop = "+=";
+		} else if (op == &MatrixHandler::DecCoef) {
+			strop = "-=";
+		} else if (op == &MatrixHandler::PutCoef) {
+			strop = "=";
+		} else {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		silent_cerr("MatrixHandler::MatMatMul_base: size mismatch "
+			"out(" << out_nr << ", " << out_nc << ") "
+			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ") "
+			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -146,7 +169,7 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			doublereal d = 0.;
 
 			for (integer k = 1; k <= in_nr; k++) {
-				d += dGetCoef(r, k)*in(k, c);
+				d += this->operator()(r, k)*in(k, c);
 			}
 
 			(out.*op)(r, c, d);
@@ -169,6 +192,24 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumRows())
 	{
+		char *strop;
+
+		if (op == &MatrixHandler::IncCoef) {
+			strop = "+=";
+		} else if (op == &MatrixHandler::DecCoef) {
+			strop = "-=";
+		} else if (op == &MatrixHandler::PutCoef) {
+			strop = "=";
+		} else {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		silent_cerr("MatrixHandler::MatTMatMul_base: size mismatch "
+			"out(" << out_nr << ", " << out_nc << ") "
+			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
+			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -177,7 +218,7 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 			doublereal d = 0.;
 
 			for (integer k = 1; k <= in_nr; k++) {
-				d += dGetCoef(k, r)*in(k, c);
+				d += this->operator()(k, r)*in(k, c);
 			}
 
 			(out.*op)(r, c, d);
@@ -235,21 +276,22 @@ MatrixHandler::MatVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumRows()
-			|| in.iGetSize() != iGetNumCols())
-	{
-		silent_cerr("MatrixHandler::MatVecMul_base(): "
-			"size mismatch (" << out.iGetSize() << ", 1) "
-			"= (" << iGetNumRows() << ", " << iGetNumCols() << ") "
-			"* (" << in.iGetSize() << ", 1)" << std::endl);
+	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	if (out.iGetSize() != nr || in.iGetSize() != nc) {
+		silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
+			"out(" << out.iGetSize() << ", 1) "
+			"= this(" << nr << ", " << nc << ") "
+			"* in(" << in.iGetSize() << ", 1)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer r = 1; r <= iGetNumRows(); r++) {
+	for (integer r = 1; r <= nr; r++) {
 		doublereal d = 0.;
 
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += dGetCoef(r, c)*in(c);
+		for (integer c = 1; c <= nc; c++) {
+			d += this->operator()(r, c)*in(c);
 		}
 		(out.*op)(r, d);
 	}
@@ -263,21 +305,22 @@ MatrixHandler::MatTVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
-	if (out.iGetSize() != iGetNumCols()
-			|| in.iGetSize() != iGetNumRows())
-	{
-		silent_cerr("MatrixHandler::MatVecMul_base(): "
-			"size mismatch (" << out.iGetSize() << ", 1) "
-			"= (" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
-			"* (" << in.iGetSize() << ", 1)" << std::endl);
+	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	if (out.iGetSize() != nc || in.iGetSize() != nr) {
+		silent_cerr("MatrixHandler::MatVecMul_base(): size mismatch "
+			"out(" << out.iGetSize() << ", 1) "
+			"= this(" << nr << ", " << nc << ")^T "
+			"* in(" << in.iGetSize() << ", 1)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (integer r = 1; r <= iGetNumCols(); r++) {
+	for (integer r = 1; r <= nc; r++) {
 		doublereal d = 0.;
 
-		for (integer c = 1; c <= in.iGetSize(); c++) {
-			d += dGetCoef(c, r)*in(c);
+		for (integer c = 1; c <= nr; c++) {
+			d += this->operator()(c, r)*in(c);
 		}
 		(out.*op)(r, d);
 	}
@@ -350,12 +393,16 @@ MatrixHandler::dGetCoef(integer ix, integer iy) const {
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)
 {
-	for (integer i = 1; i <= MH.iGetNumRows(); i++) {
-		for (integer j = 1; j <= MH.iGetNumCols(); j++) {
+	integer nr = MH.iGetNumRows();
+	integer nc = MH.iGetNumCols();
+
+	for (integer i = 1; i <= nr; i++) {
+		for (integer j = 1; j <= nc; j++) {
 			out << std::setw(16) << MH(i, j);
 		}
 		out << std::endl;
 	}
+
 	return out;
 }
 

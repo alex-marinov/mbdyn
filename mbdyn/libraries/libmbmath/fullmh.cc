@@ -421,31 +421,168 @@ void
 FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
 		const FullMatrixHandler& m2)
 {
-	ASSERT(m1.iGetNumRows() == iGetNumRows());
-	ASSERT(m2.iGetNumRows() == m1.iGetNumCols());
-	ASSERT(m2.iGetNumCols() == iGetNumCols());
+	if (m1.iGetNumRows() != iGetNumRows()
+		|| m2.iGetNumRows() != m1.iGetNumCols()
+		|| m2.iGetNumCols() != iGetNumCols())
+	{
+		silent_cerr("FullMatrixHandler::MatMul: size mismatch "
+			"this(" << iGetNumRows() << ", " << iGetNumCols() << ") "
+			"= m1(" << m1.iGetNumRows() << ", " << m1.iGetNumCols() << ") "
+			"* m2(" << m2.iGetNumRows() << ", " << m2.iGetNumCols() << ")"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-	integer iN = m1.iGetNumCols();
+	integer nc = m1.iGetNumCols();
 
 	for (integer iRow = 1; iRow <= iNumRows; iRow++) {
 		for (integer iCol = 1; iCol <= iNumCols; iCol++) {
 			ppdColsm1[iCol][iRow] = 0.;
-			for (integer iK = 1; iK <= iN; iK++) {
-				ppdColsm1[iCol][iRow] += m1(iRow,iK)*m2(iK,iCol);
+			for (integer iK = 1; iK <= nc; iK++) {
+				// ppdColsm1[iCol][iRow] += m1(iRow, iK)*m2(iK, iCol);
+				ppdColsm1[iCol][iRow] += m1.ppdColsm1[iK][iRow]*m2.ppdColsm1[iCol][iK];
 			}
 		}
 	}
 }
 
 #ifdef USE_LAPACK
+/*
+NAME
+       DGEMM - one of the matrix-matrix operations   C := alpha*op( A )*op( B ) + beta*C,
+
+SYNOPSIS
+       SUBROUTINE DGEMM(TRANSA,TRANSB,M,N,K,ALPHA,A,LDA,B,LDB,BETA,C,LDC)
+
+           DOUBLE                                                         PRECISION ALPHA,BETA
+
+           INTEGER                                                        K,LDA,LDB,LDC,M,N
+
+           CHARACTER                                                      TRANSA,TRANSB
+
+           DOUBLE                                                         PRECISION A(LDA,*),B(LDB,*),C(LDC,*)
+
+PURPOSE
+       DGEMM  performs one of the matrix-matrix operations
+
+       where  op( X ) is one of
+
+          op( X ) = X   or   op( X ) = X',
+
+       alpha  and beta are scalars, and A, B and C are matrices, with op( A ) an m by k matrix,  op( B )  a  k by
+       n matrix and  C an m by n matrix.
+
+ARGUMENTS
+       TRANSA - CHARACTER*1.  On entry, TRANSA specifies the form of op( A ) to be used in the matrix multiplica-
+       tion as follows:
+
+       TRANSA = 'N' or 'n',  op( A ) = A.
+
+       TRANSA = 'T' or 't',  op( A ) = A'.
+
+       TRANSA = 'C' or 'c',  op( A ) = A'.
+
+       Unchanged on exit.
+
+       TRANSB - CHARACTER*1.  On entry, TRANSB specifies the form of op( B ) to be used in the matrix multiplica-
+       tion as follows:
+
+       TRANSB = 'N' or 'n',  op( B ) = B.
+
+       TRANSB = 'T' or 't',  op( B ) = B'.
+
+       TRANSB = 'C' or 'c',  op( B ) = B'.
+
+       Unchanged on exit.
+
+       M      - INTEGER.
+              On entry,  M  specifies  the number  of rows  of the  matrix op( A )  and of  the   matrix   C.   M
+              must  be at least  zero.  Unchanged on exit.
+
+       N      - INTEGER.
+              On  entry,   N  specifies the number  of columns of the matrix op( B ) and the number of columns of
+              the matrix C. N must be at least zero.  Unchanged on exit.
+
+       K      - INTEGER.
+              On entry,  K  specifies  the number of columns of the matrix op( A ) and the number of rows of  the
+              matrix op( B ). K must be at least  zero.  Unchanged on exit.
+
+       ALPHA  - DOUBLE PRECISION.
+              On entry, ALPHA specifies the scalar alpha.  Unchanged on exit.
+
+       A      - DOUBLE PRECISION array of DIMENSION ( LDA, ka ), where ka is
+              k   when  TRANSA = 'N' or 'n',  and is  m  otherwise.  Before entry with  TRANSA = 'N' or 'n',  the
+              leading  m by k part of the array  A  must contain the matrix  A,  otherwise the leading   k  by  m
+              part of the array  A  must contain  the matrix A.  Unchanged on exit.
+
+       LDA    - INTEGER.
+              On  entry,  LDA  specifies  the first dimension of A as declared in the calling (sub) program. When
+              TRANSA = 'N' or 'n' then LDA must be at least  max( 1, m ), otherwise  LDA must be at  least   max(
+              1, k ).  Unchanged on exit.
+
+       B      - DOUBLE PRECISION array of DIMENSION ( LDB, kb ), where kb is
+              n   when  TRANSB = 'N' or 'n',  and is  k  otherwise.  Before entry with  TRANSB = 'N' or 'n',  the
+              leading  k by n part of the array  B  must contain the matrix  B,  otherwise the leading   n  by  k
+              part of the array  B  must contain  the matrix B.  Unchanged on exit.
+
+       LDB    - INTEGER.
+              On  entry,  LDB  specifies  the first dimension of B as declared in the calling (sub) program. When
+              TRANSB = 'N' or 'n' then LDB must be at least  max( 1, k ), otherwise  LDB must be at  least   max(
+              1, n ).  Unchanged on exit.
+
+       BETA   - DOUBLE PRECISION.
+              On  entry,   BETA   specifies the scalar  beta.  When  BETA  is supplied as zero then C need not be
+              set on input.  Unchanged on exit.
+
+       C      - DOUBLE PRECISION array of DIMENSION ( LDC, n ).
+              Before entry, the leading  m by n  part of the array  C must contain the matrix   C,   except  when
+              beta   is zero, in which case C need not be set on entry.  On exit, the array  C  is overwritten by
+              the  m by n  matrix ( alpha*op( A )*op( B ) + beta*C ).
+
+       LDC    - INTEGER.
+              On entry, LDC specifies the first dimension of C as declared  in   the   calling   (sub)   program.
+              LDC  must  be  at  least max( 1, m ).  Unchanged on exit.
+
+              Level 3 Blas routine.
+
+              --  Written  on 8-February-1989.  Jack Dongarra, Argonne National Laboratory.  Iain Duff, AERE Har-
+              well.  Jeremy Du Croz, Numerical Algorithms Group Ltd.  Sven Hammarling, Numerical Algorithms Group
+              Ltd.
+ */
+/*
+   Note: dgemm performs
+
+       C := alpha*op( A )*op( B ) + beta*C,
+
+   in MatMatMul_base and MatTMatMul_base context,
+
+       A := *this
+       B := in
+       C := out
+
+       op( B ) := B
+
+   in MatMatMul_base context,
+
+       op( A ) := A
+
+   in MatTMatMul_base context,
+
+       op( A ) := A^T
+
+   out = op( A ) * B 	requires alpha = 1, beta = 0
+   out += op( A ) * B 	requires alpha = 1, beta = 1
+   out -= op( A ) * B 	requires alpha = -1, beta = 1
+ */
+
 extern "C" int
-dgemm_(const char *TRANSA, const char *TRANSB,
-	integer *M, integer *N, integer *K,
-	doublereal *ALPHA,
-	doublereal *A, integer *LDA,
-	doublereal *B, integer *LDB,
-	doublereal *BETA,
-	doublereal *C, integer *LDC);
+__FC_DECL__(dgemm)(const char *const TRANSA, const char *const TRANSB,
+	const integer *const M, const integer *const N, const integer *const K,
+	const doublereal *const ALPHA,
+	const doublereal *const A, const integer *const LDA,
+	const doublereal *const B, const integer *const LDB,
+	const doublereal *const BETA,
+	doublereal *const C, const integer *const LDC);
 #endif // USE_LAPACK
 
 MatrixHandler&
@@ -468,6 +605,23 @@ FullMatrixHandler::MatMatMul_base(
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumCols())
 	{
+		char *strop;
+
+		if (op == &MatrixHandler::IncCoef) {
+			strop = "+=";
+		} else if (op == &MatrixHandler::DecCoef) {
+			strop = "-=";
+		} else if (op == &MatrixHandler::PutCoef) {
+			strop = "=";
+		} else {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		silent_cerr("FullMatrixHandler::MatMatMul_base: size mismatch "
+			"out(" << out_nr << ", " << out_nc << ") "
+			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ") "
+			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -513,7 +667,7 @@ FullMatrixHandler::MatMatMul_base(
 
 	const char *TRANSA = "N";
 	const char *TRANSB = "N";
-	dgemm_(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
+	__FC_DECL__(dgemm)(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
 		&ALPHA,
 		this->pdRaw, &out_nr,
 		pin->pdRaw, &in_nr,
@@ -594,6 +748,23 @@ FullMatrixHandler::MatTMatMul_base(
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumRows())
 	{
+		char *strop;
+
+		if (op == &MatrixHandler::IncCoef) {
+			strop = "+=";
+		} else if (op == &MatrixHandler::DecCoef) {
+			strop = "-=";
+		} else if (op == &MatrixHandler::PutCoef) {
+			strop = "=";
+		} else {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		silent_cerr("FullMatrixHandler::MatTMatMul_base: size mismatch "
+			"out(" << out_nr << ", " << out_nc << ") "
+			<< strop << " this(" << iGetNumRows() << ", " << iGetNumCols() << ")^T "
+			"* in(" << in_nr << ", " << in.iGetNumCols() << ")"
+			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -639,7 +810,7 @@ FullMatrixHandler::MatTMatMul_base(
 
 	const char *TRANSA = "T";
 	const char *TRANSB = "N";
-	dgemm_(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
+	__FC_DECL__(dgemm)(TRANSA, TRANSB, &out_nr, &out_nc, &in_nr,
 		&ALPHA,
 		this->pdRaw, &in_nr,
 		pin->pdRaw, &in_nr,

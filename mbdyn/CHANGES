@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added shell element (Marco Morandini, Riccardo Vescovini)
+		- optimized full matrix handler operations
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 	Known issues:
