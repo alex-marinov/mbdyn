@@ -187,14 +187,16 @@ void
 Shell4EASANS::InterpolateOrientation(void)
 {
 	Mat3x3 DRot_I_phi_tilde_n_MT_T_overline[NUMNODES];
+	Mat3x3 Ri, Gammai;
 	for (integer n = 0; n < NUMNODES; n++) {
 		DRot_I_phi_tilde_n_MT_T_overline[n] = 
 			RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
 	}
 	for (integer i = 0; i < NUMIP; i++) {
 		phi_tilde_i[i] = Interp(phi_tilde_n, xi_i[i]);
-		T_i[i] = T_overline * RotManip::Rot(phi_tilde_i[i]) * iTa_i[i];
-		Mat3x3 T_overline_Gamma_tilde_i(T_overline * RotManip::DRot(phi_tilde_i[i]));
+		RotManip::RotAndDRot(phi_tilde_i[i], Ri, Gammai);
+		T_i[i] = T_overline * Ri * iTa_i[i];
+		Mat3x3 T_overline_Gamma_tilde_i(T_overline * Gammai);
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_i[i][n] = T_overline_Gamma_tilde_i * 
 				DRot_I_phi_tilde_n_MT_T_overline[n];
@@ -204,8 +206,9 @@ Shell4EASANS::InterpolateOrientation(void)
 	T_0 = T_overline * RotManip::Rot(phi_tilde_0);
 	for (integer i = 0; i < NUMSSEP; i++) {
 		phi_tilde_A[i] = Interp(phi_tilde_n, xi_A[i]);
-		T_A[i] = T_overline * RotManip::Rot(phi_tilde_A[i]) * iTa_A[i];
-		Mat3x3 T_overline_Gamma_tilde_A(T_overline * RotManip::DRot(phi_tilde_A[i]));
+		RotManip::RotAndDRot(phi_tilde_A[i], Ri, Gammai);
+		T_A[i] = T_overline * Ri * iTa_A[i];
+		Mat3x3 T_overline_Gamma_tilde_A(T_overline * Gammai);
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_A[i][n] = T_overline_Gamma_tilde_A * 
 				DRot_I_phi_tilde_n_MT_T_overline[n];
@@ -227,6 +230,10 @@ Shell4EASANS::InterpolateOrientation(void)
 void
 Shell4EASANS::ComputeIPCurvature(void)
 {
+	Mat3x3 Gamma_I_n_MT_T_overline[NUMNODES];
+	for (integer n = 0; n < NUMNODES; n++) {
+		Gamma_I_n_MT_T_overline[n] = RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
+	}
 	for (integer i = 0; i < NUMIP; i++) {
 		Vec3 phi_tilde_1_i(0.);
 		Vec3 phi_tilde_2_i(0.);
@@ -237,10 +244,9 @@ Shell4EASANS::ComputeIPCurvature(void)
 		Mat3x3 tmp1 = T_overline * RotManip::Elle(phi_tilde_i[i], phi_tilde_1_i);
 		Mat3x3 tmp2 = T_overline * RotManip::Elle(phi_tilde_i[i], phi_tilde_2_i);
 		for (int n = 0; n < NUMNODES; n++) {
-			Mat3x3 tmp3 = RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
-			Kappa_delta_i_1[i][n] = tmp1 * tmp3 * LI[n](xi_i[i]) + 
+			Kappa_delta_i_1[i][n] = tmp1 * Gamma_I_n_MT_T_overline[n] * LI[n](xi_i[i]) + 
 				Phi_Delta_i[i][n] * L_alpha_beta_i[i](n + 1, 1);
-			Kappa_delta_i_2[i][n] = tmp2 * tmp3 * LI[n](xi_i[i]) + 
+			Kappa_delta_i_2[i][n] = tmp2 * Gamma_I_n_MT_T_overline[n] * LI[n](xi_i[i]) + 
 				Phi_Delta_i[i][n] * L_alpha_beta_i[i](n + 1, 2);
 		}
 	}
