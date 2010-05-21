@@ -152,6 +152,35 @@ Shell4EASANS::ComputeInitialNodeOrientation(void)
 		t2 = t3.Cross(t1);
 		iTa[i] = (pNode[i]->GetRCurr()).MulTM(Mat3x3(t1, t2, t3));
 	}
+	for (integer i = 0; i < NUMIP; i++) {
+		iTa_i[i] = Mat3x3(1.);
+	}
+	for (integer i = 0; i < NUMSSEP; i++) {
+		iTa_A[i] = Mat3x3(1.);
+	}
+	UpdateNodalAndAveragePosAndOrientation();
+	InterpolateOrientation();
+	for (integer i = 0; i < NUMIP; i++) {
+		Vec3 t1 = InterpDeriv_xi1(xa, xi_i[i]);
+		t1 = t1 / t1.Norm();
+		Vec3 t2 = InterpDeriv_xi2(xa, xi_i[i]);
+		t2 = t2 / t2.Norm();
+		Vec3 t3 = t1.Cross(t2);
+		t3 = t3 / t3.Norm();
+		t2 = t3.Cross(t1);
+		iTa_i[i] = (T_i[i]).MulTM(Mat3x3(t1, t2, t3));
+	}
+	for (integer i = 0; i < NUMSSEP; i++) {
+		Vec3 t1 = InterpDeriv_xi1(xa, xi_A[i]);
+		t1 = t1 / t1.Norm();
+		Vec3 t2 = InterpDeriv_xi2(xa, xi_A[i]);
+		t2 = t2 / t2.Norm();
+		Vec3 t3 = t1.Cross(t2);
+		t3 = t3 / t3.Norm();
+		t2 = t3.Cross(t1);
+		iTa_A[i] = (T_A[i]).MulTM(Mat3x3(t1, t2, t3));
+	}
+	InterpolateOrientation();
 }
 
 void
@@ -159,7 +188,7 @@ Shell4EASANS::InterpolateOrientation(void)
 {
 	for (integer i = 0; i < NUMIP; i++) {
 		phi_tilde_i[i] = Interp(phi_tilde_n, xi_i[i]);
-		T_i[i] = T_overline * RotManip::Rot(phi_tilde_i[i]);
+		T_i[i] = T_overline * RotManip::Rot(phi_tilde_i[i]) * iTa_i[i];
 		Mat3x3 T_overline_Gamma_tilde_i(T_overline * RotManip::DRot(phi_tilde_i[i]));
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_i[i][n] = T_overline_Gamma_tilde_i * 
@@ -170,7 +199,7 @@ Shell4EASANS::InterpolateOrientation(void)
 	T_0 = T_overline * RotManip::Rot(phi_tilde_0);
 	for (integer i = 0; i < NUMSSEP; i++) {
 		phi_tilde_A[i] = Interp(phi_tilde_n, xi_A[i]);
-		T_A[i] = T_overline * RotManip::Rot(phi_tilde_A[i]);
+		T_A[i] = T_overline * RotManip::Rot(phi_tilde_A[i]) * iTa_A[i];
 		Mat3x3 T_overline_Gamma_tilde_A(T_overline * RotManip::DRot(phi_tilde_A[i]));
 		for (int n = 0; n < NUMNODES; n++) {
 			Phi_Delta_A[i][n] = T_overline_Gamma_tilde_A * 
@@ -276,8 +305,8 @@ stress_i(NUMIP, vh(12))
 // 	f[NODE3] = f3;
 // 	f[NODE4] = f4;
 	ComputeInitialNodeOrientation();
-	UpdateNodalAndAveragePosAndOrientation();
-	InterpolateOrientation();
+// 	UpdateNodalAndAveragePosAndOrientation();
+// 	InterpolateOrientation();
 	// copy ref values
 	T0_overline = T_overline;
 	T_0_0 = T_0;

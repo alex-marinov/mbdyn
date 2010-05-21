@@ -163,9 +163,8 @@ protected:
 	Vec3 xa[NUMNODES];
 	// current nodal orientation
 	Mat3x3 iTa[NUMNODES];
-	Mat3x3 Ta[NUMNODES];
-	// current nodal orientation with respect to T_overline (for interp.)
-	Mat3x3 Ra[NUMNODES];
+	Mat3x3 iTa_i[NUMIP];
+	Mat3x3 iTa_A[NUMSSEP];
 	// Euler vector of Ra
 	Vec3 phi_tilde_n[NUMNODES];
 

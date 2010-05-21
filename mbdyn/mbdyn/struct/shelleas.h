@@ -148,6 +148,7 @@ protected:
 	Vec3 xa[NUMNODES];
 	// current nodal orientation
 	Mat3x3 iTa[NUMNODES];
+	Mat3x3 iTa_i[NUMIP];
 	// Euler vector of Ra
 	Vec3 phi_tilde_n[NUMNODES];
 
@@ -268,7 +269,7 @@ protected:
 
 private:
 	void UpdateNodalAndAveragePosAndOrientation();
-	void ComputeInitialNodeOrientation();
+	void ComputeInitialNodeAndIptOrientation();
 	void InterpolateOrientation();
 // 	void ComputeIPSEPRotations();
 	void ComputeIPCurvature();
