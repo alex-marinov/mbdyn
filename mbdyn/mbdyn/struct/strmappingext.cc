@@ -72,11 +72,11 @@ F0(0.), M0(0.),
 F1(0.), M1(0.),
 pH(pH),
 uPoints(nodes.size()),
-uMappedPoints(unsigned(pH->iGetNumRows())/3),
+uMappedPoints(pH ? unsigned(pH->iGetNumRows())/3 : 0),
 bLabels(bLabels),
 bOutputAccelerations(bOutputAccelerations),
 uRRot(uRRot),
-m_qlabels(mappedlabels),
+m_qlabels(pH ? mappedlabels : labels),
 m_f(3*uPoints),
 m_p(3*uMappedPoints),
 m_x(3*uPoints),
@@ -87,8 +87,10 @@ m_qP(3*uMappedPoints),
 m_qPP(0)
 {
 	ASSERT(nodes.size() == offsets.size());
-	ASSERT(uPoints == pH->iGetNumCols());
-	ASSERT(uMappedPoints*3 == unsigned(pH->iGetNumRows()));
+	if (pH) {
+		ASSERT(uPoints == pH->iGetNumCols());
+		ASSERT(uMappedPoints*3 == unsigned(pH->iGetNumRows()));
+	}
 
 	switch (uRRot) {
 	case MBC_ROT_THETA:
@@ -128,10 +130,6 @@ m_qPP(0)
 			pPrev = p;
 		}
 	} while (p != nodes.end());
-
-	if (bLabels) {
-		m_qlabels.resize(3*uMappedPoints);
-	}
 
 	unsigned uPts = 0;
 	n = Nodes.begin();
@@ -640,15 +638,25 @@ StructMappingExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen whe
 		send(outfd, &m_qlabels[0], sizeof(uint32_t)*m_qlabels.size(), 0);
 	}
 
-	pH->MatVecMul(m_q, m_x);
-	pH->MatVecMul(m_qP, m_xP);
+	if (pH) {
+		pH->MatVecMul(m_q, m_x);
+		pH->MatVecMul(m_qP, m_xP);
 
-	send(outfd, &m_q[0], sizeof(double)*m_q.size(), 0);
-	send(outfd, &m_qP[0], sizeof(double)*m_qP.size(), 0);
+		send(outfd, &m_q[0], sizeof(double)*m_q.size(), 0);
+		send(outfd, &m_qP[0], sizeof(double)*m_qP.size(), 0);
 
-	if (bOutputAccelerations) {
-		pH->MatVecMul(m_qPP, m_xPP);
-		send(outfd, &m_qPP[0], sizeof(double)*m_qPP.size(), 0);
+		if (bOutputAccelerations) {
+			pH->MatVecMul(m_qPP, m_xPP);
+			send(outfd, &m_qPP[0], sizeof(double)*m_qPP.size(), 0);
+		}
+
+	} else {
+		send(outfd, &m_x[0], sizeof(double)*m_x.size(), 0);
+		send(outfd, &m_xP[0], sizeof(double)*m_xP.size(), 0);
+
+		if (bOutputAccelerations) {
+			send(outfd, &m_xPP[0], sizeof(double)*m_xPP.size(), 0);
+		}
 	}
 
 #else // ! USE_SOCKET
@@ -797,8 +805,19 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 		}
 	}
 
-	ssize_t len = recv(infd, (void *)&m_p[0], sizeof(double)*m_p.size(),
-		pEFH->GetRecvFlags());
+	size_t fsize;
+	double *fp;
+
+	if (pH) {
+		fp = &m_p[0];
+		fsize = sizeof(double)*m_p.size();
+
+	} else {
+		fp = &m_f[0];
+		fsize = sizeof(double)*m_f.size();
+	}
+
+	ssize_t len = recv(infd, (void *)fp, fsize, pEFH->GetRecvFlags());
 	if (len == -1) {
 		int save_errno = errno;
 		char *err_msg = strerror(save_errno);
@@ -807,14 +826,16 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 			<< err_msg << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-	} else if (unsigned(len) != sizeof(double)*m_p.size()) {
+	} else if (unsigned(len) != fsize) {
 		silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
 			"recv() failed " "(got " << len << " of "
-			<< sizeof(double)*m_p.size() << " bytes)" << std::endl);
+			<< fsize << " bytes)" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	pH->MatTVecMul(m_f, m_p);
+	if (pH) {
+		pH->MatTVecMul(m_f, m_p);
+	}
 
 	if (pRefNode) {
 		for (unsigned p3 = 0, n = 0; n < Nodes.size(); n++) {
@@ -1218,101 +1239,98 @@ ReadStructMappingExtForce(DataManager* pDM,
 		}
 	}
 
-	if (!HP.IsKeyWord("mapped" "points" "number")) {
-		silent_cerr("StructMappingExtForce(" << uLabel << "): "
-			"\"mapped points number\" keyword expected "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	int nMappedPoints = HP.GetInt();
-	if (nMappedPoints <= 0) {
-		silent_cerr("StructMappingExtForce(" << uLabel << "): "
-			"invalid mapped points number " << nMappedPoints
-			<< " at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	SpMapMatrixHandler *pH = ReadSparseMappingMatrix(HP, 3*nMappedPoints, 3*nPoints);
-
+	int nMappedPoints = 0;
+	SpMapMatrixHandler *pH = 0;
 	std::vector<uint32_t> MappedLabels;
-	if (bLabels) {
-		MappedLabels.resize(nMappedPoints);
-		if (HP.IsKeyWord("mapped" "labels" "file")) {
-			const char *sFileName = HP.GetFileName();
-			if (sFileName == 0) {
-				silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"unable to read mapped labels file name "
-					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+	if (HP.IsKeyWord("mapped" "points" "number")) {
+		nMappedPoints = HP.GetInt();
+		if (nMappedPoints <= 0) {
+			silent_cerr("StructMappingExtForce(" << uLabel << "): "
+				"invalid mapped points number " << nMappedPoints
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
-			std::ifstream in(sFileName);
-			if (!in) {
-				silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"unable to open mapped labels file "
-					"\"" << sFileName << "\" "
-					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+		pH = ReadSparseMappingMatrix(HP, 3*nMappedPoints, 3*nPoints);
 
-			char c = in.get();
-			while (c == '#') {
-				do {
-					c = in.get();
-				} while (c != '\n');
-				c = in.get();
-			}
-			in.putback(c);
+		if (bLabels) {
+			MappedLabels.resize(nMappedPoints);
+			if (HP.IsKeyWord("mapped" "labels" "file")) {
+				const char *sFileName = HP.GetFileName();
+				if (sFileName == 0) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"unable to read mapped labels file name "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
-			for (unsigned l = 0; l < unsigned(nMappedPoints); l++) {
-				int i;
-				in >> i;
+				std::ifstream in(sFileName);
 				if (!in) {
 					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"unable to read mapped label #" << l << "/" << nMappedPoints
-						<< " from mapped labels file \"" << sFileName << "\"" << std::endl);
+						"unable to open mapped labels file "
+						"\"" << sFileName << "\" "
+						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-				if (i < 0) {
-					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"invalid (negative) mapped label #" << l << "/" << nMappedPoints
-						<< " from mapped labels file \"" << sFileName << "\"" << std::endl);
+
+				char c = in.get();
+				while (c == '#') {
+					do {
+						c = in.get();
+					} while (c != '\n');
+					c = in.get();
+				}
+				in.putback(c);
+
+				for (unsigned l = 0; l < unsigned(nMappedPoints); l++) {
+					int i;
+					in >> i;
+					if (!in) {
+						silent_cerr("StructMappingExtForce(" << uLabel << "): "
+							"unable to read mapped label #" << l << "/" << nMappedPoints
+							<< " from mapped labels file \"" << sFileName << "\"" << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					if (i < 0) {
+						silent_cerr("StructMappingExtForce(" << uLabel << "): "
+							"invalid (negative) mapped label #" << l << "/" << nMappedPoints
+							<< " from mapped labels file \"" << sFileName << "\"" << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					MappedLabels[l] = i;
+				}
+
+			} else {
+				for (unsigned l = 0; l < unsigned(nMappedPoints); l++) {
+					int i = HP.GetInt();
+					if (i < 0) {
+						silent_cerr("StructMappingExtForce(" << uLabel << "): "
+							"invalid (negative) mapped label #" << l << "/" << nMappedPoints
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					MappedLabels[l] = i;
+				}
+			}
+
+			int duplicate = 0;
+			for (unsigned l = 1; l < unsigned(nMappedPoints); l++) {
+				for (unsigned c = 0; c < l; c++) {
+					if (MappedLabels[l] == MappedLabels[c]) {
+						duplicate++;
+						silent_cerr("StructMappingExtForce(" << uLabel << "): "
+							"duplicate mapped label " << MappedLabels[l] << ": "
+							"#" << l << "==#" << c << std::endl);
+					}
+				}
+			}
+
+			if (duplicate) {
+				silent_cerr("StructMappingExtForce(" << uLabel << "): "
+					<< duplicate << " duplicate mapped labels"
+					<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				MappedLabels[l] = i;
 			}
-
-		} else {
-			for (unsigned l = 0; l < unsigned(nMappedPoints); l++) {
-				int i = HP.GetInt();
-				if (i < 0) {
-					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-						"invalid (negative) mapped label #" << l << "/" << nMappedPoints
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				MappedLabels[l] = i;
-			}
-		}
-
-		int duplicate = 0;
-		for (unsigned l = 1; l < unsigned(nMappedPoints); l++) {
-			for (unsigned c = 0; c < l; c++) {
-				if (MappedLabels[l] == MappedLabels[c]) {
-					duplicate++;
-					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"duplicate mapped label " << MappedLabels[l] << ": #" << l << "==#" << c
-						<< std::endl);
-				}
-			}
-		}
-
-		if (duplicate) {
-			silent_cerr("StructMappingExtForce(" << uLabel << "): "
-				<< duplicate << " duplicate mapped labels"
-				<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
