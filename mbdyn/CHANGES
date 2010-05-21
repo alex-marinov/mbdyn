@@ -12,7 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
-		- added shell element (Riccardo Vescovini & Marco Morandini)
+		- added shell element (Marco Morandini, Riccardo Vescovini)
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 	Known issues:
@@ -27,7 +27,7 @@ MBDyn 1.3.15
 		- added relative frame external force support
 		- added peer library libmbc with python wrapping
 		- added solver diagnostics output meter
-		- added structural mapping external force
+		- added external structural mapping force
 		- reworked user-defined element support
 	Backward compatibility issues:
 		- "run.time" is now "time" in NetCDF output
@@ -35,7 +35,7 @@ MBDyn 1.3.15
 		- syntax of external structural force changed
 	Known issues:
 	Bug fixes:
-		- fixed modal mapping with reference node
+		- fixed external modal mapping force with reference node
 		- fixed socket cleanup in case of error
 
 MBDyn 1.3.14
@@ -84,7 +84,7 @@ MBDyn 1.3.11
 		- added tip loss handling to aerodynamic elements
 		- added referenced direction capability to rigid body
 		  kinematics
-		- added modal mapping external modal force element
+		- added external modal mapping force element
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:
