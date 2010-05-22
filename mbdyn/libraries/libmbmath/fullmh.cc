@@ -881,9 +881,23 @@ FullMatrixHandler::Add(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -904,9 +918,23 @@ FullMatrixHandler::Sub(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -927,9 +955,23 @@ FullMatrixHandler::Put(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -951,9 +993,23 @@ FullMatrixHandler::Add(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -975,9 +1031,23 @@ FullMatrixHandler::Sub(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -999,9 +1069,23 @@ FullMatrixHandler::Put(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ir, ic) * dCoef);
@@ -1022,9 +1106,23 @@ FullMatrixHandler::AddT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1045,9 +1143,23 @@ FullMatrixHandler::SubT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1068,9 +1180,23 @@ FullMatrixHandler::PutT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1092,9 +1218,23 @@ FullMatrixHandler::AddT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1116,9 +1256,23 @@ FullMatrixHandler::SubT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1140,9 +1294,23 @@ FullMatrixHandler::PutT(integer iRow,
 	iRow--;
 	iCol--;
 
-	//TODO. error checking: check dimensions!
-	//check da fare: dest.iGetNumRows() <= nr+iRow
-	//check da fare: dest.iGetNumCols() <= nc+iCol
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow >= 0);
+	ASSERT(iCol >= 0);
+	ASSERT(iRow + nr <= iGetNumRows());
+	ASSERT(iCol + nc <= iGetNumCols());
+#endif // DEBUG
+#if 0
+	if (iRow < 0 || iCol < 0
+		|| iRow + nr > iGetNumRows()
+		|| iCol + nc > iGetNumCols())
+	{
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+#endif
+
 	for (integer ir = 1; ir <= nr; ir++) {
 		for (integer ic = 1; ic <= nc; ic++) {
 			// IncCoef(ir + iRow, ic + iCol, source(ic, ir) * dCoef);
@@ -1883,6 +2051,52 @@ FullMatrixHandler::Put(integer iRow, integer iCol, const MatNx3& m)
 	for (int r = m.iGetNumRows(); r > 0; r--) {
 		for (integer c = 3; c > 0; c--) {
 			ppdColsm1[iCol + c][iRow + r] = m(r, c);
+		}
+	}
+}
+
+void
+FullMatrixHandler::CopyMatrixRow(integer dest_row,
+	const FullMatrixHandler & source, integer source_row)
+{
+	integer nc = iGetNumCols();
+
+	ASSERT(dest_row >= 1);
+	ASSERT(dest_row <= iGetNumRows());
+	ASSERT(source_row >= 1);
+	ASSERT(source_row <= source.iGetNumRows());
+	ASSERT(nc == source.iGetNumCols());
+
+	for (integer ic = 1; ic <= nc; ic++) {
+		// dest(dest_row, ic) = source(source_row, ic);
+		ppdColsm1[ic][dest_row] = source.ppdColsm1[ic][source_row];
+	}
+}
+
+void
+FullMatrixHandler::CopyMatrixBlock(integer dest_row, integer dest_col,
+	const FullMatrixHandler & source, 
+	integer source_start_row, integer source_end_row,
+	integer source_start_col, integer source_end_col)
+{
+	ASSERT(source_start_row >= 1);
+	ASSERT(source_end_row <= source.iGetNumRows());
+	ASSERT(source_start_row <= source_end_row);
+	ASSERT(dest_row >= 1);
+	ASSERT(dest_row + (source_end_row - source_start_row) <= iGetNumRows());
+
+	ASSERT(source_start_col >= 1);
+	ASSERT(source_end_col <= source.iGetNumCols());
+	ASSERT(source_start_col <= source_end_col);
+	ASSERT(dest_col >= 1);
+	ASSERT(dest_col + (source_end_col - source_start_col) <= iGetNumCols());
+
+	for (integer ir = source_start_row; ir <= source_end_row; ir++) {
+		integer row = dest_row + (ir - source_start_row);
+		for (integer ic = source_start_col; ic <= source_end_col; ic++) {
+			integer col = dest_col + (ic - source_start_col);
+			// dest(row, col) = source(ir, ic);
+			ppdColsm1[col][row] = source.ppdColsm1[ic][ir];
 		}
 	}
 }

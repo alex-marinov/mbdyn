@@ -492,10 +492,10 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 
 	/* Calcola le azioni interne */
 	for (integer i = 0; i < NUMIP; i++) {
-		InsertVector(epsilon,  1, eps_tilde_1_i[i]);
-		InsertVector(epsilon,  4, eps_tilde_2_i[i]);
-		InsertVector(epsilon,  7, k_tilde_1_i[i]);
-		InsertVector(epsilon, 10, k_tilde_2_i[i]);
+		epsilon.Put(1, eps_tilde_1_i[i]);
+		epsilon.Put(4, eps_tilde_2_i[i]);
+		epsilon.Put(7, k_tilde_1_i[i]);
+		epsilon.Put(10, k_tilde_2_i[i]);
 		// TODO: recupera epsilon_hat con l'ordine giusto per qua
 		P_i[i].MatVecMul(epsilon_hat, beta);
 // 		{

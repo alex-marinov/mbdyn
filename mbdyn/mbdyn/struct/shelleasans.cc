@@ -592,8 +592,12 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 					T_A[i].MulTM(y_A_2) * Phi_Delta_A_n_LI_i
 				);
 			}
+#if 0
 			CopyMatrixRow(B_overline_3_ABCD, i + 1, B_overline_A, 3);
 			CopyMatrixRow(B_overline_6_ABCD, i + 1, B_overline_A, 6);
+#endif
+			B_overline_3_ABCD.CopyMatrixRow(i + 1, B_overline_A, 3);
+			B_overline_6_ABCD.CopyMatrixRow(i + 1, B_overline_A, 6);
 		}
 		fmh tmp_B_ANS(1, 24);
 		for (integer i = 0; i < NUMIP; i++) {
@@ -614,10 +618,16 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			;
 			
 			sh1.MatMatMul(tmp_B_ANS, B_overline_3_ABCD);
+#if 0
 			CopyMatrixRow(B_overline_i[i], 3, tmp_B_ANS, 1);
+#endif
+			B_overline_i[i].CopyMatrixRow(3, tmp_B_ANS, 1);
 			
 			sh2.MatMatMul(tmp_B_ANS, B_overline_6_ABCD);
+#if 0
 			CopyMatrixRow(B_overline_i[i], 6, tmp_B_ANS, 1);
+#endif
+			B_overline_i[i].CopyMatrixRow(6, tmp_B_ANS, 1);
 		}
 	}
 	
@@ -625,18 +635,21 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 // 	{
 // 		integer tmpidx1[5] = {0, 1, 5, 4, 2};
 // 		for (integer i = 0; i < NUMIP; i++) {
-// 			for (integer n = 1; n <=4; n++) {
+// 			for (integer n = 1; n <= 4; n++) {
+//#if 0
 // 				CopyMatrixRow(B_overline_m_i[i], n, B_overline_i[i], tmpidx1[n]);
+//#endif
+// 				B_overline_m_i[i].CopyMatrixRow(n, B_overline_i[i], tmpidx1[n]);
 // 			}
 // 		}
 // 	}
 
 	/* Calcola le azioni interne */
 	for (integer i = 0; i < NUMIP; i++) {
-		InsertVector(epsilon,  1, eps_tilde_1_i[i]);
-		InsertVector(epsilon,  4, eps_tilde_2_i[i]);
-		InsertVector(epsilon,  7, k_tilde_1_i[i]);
-		InsertVector(epsilon, 10, k_tilde_2_i[i]);
+		epsilon.Put(1, eps_tilde_1_i[i]);
+		epsilon.Put(4, eps_tilde_2_i[i]);
+		epsilon.Put(7, k_tilde_1_i[i]);
+		epsilon.Put(10, k_tilde_2_i[i]);
 		// TODO: recupera epsilon_hat con l'ordine giusto per qua
 		P_i[i].MatVecMul(epsilon_hat, beta);
 

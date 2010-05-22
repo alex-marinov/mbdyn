@@ -515,6 +515,13 @@ public:
 	void Add(integer iRow, integer iCol, const MatNx3& m);
 	void Sub(integer iRow, integer iCol, const MatNx3& m);
 	void Put(integer iRow, integer iCol, const MatNx3& m);
+
+	void CopyMatrixRow(integer dest_row,
+		const FullMatrixHandler & source, integer source_row);
+	void CopyMatrixBlock(integer dest_row, integer dest_col,
+		const FullMatrixHandler & source, 
+		integer source_start_row, integer source_end_row,
+		integer source_start_col, integer source_end_col);
 };
 
 extern std::ostream&

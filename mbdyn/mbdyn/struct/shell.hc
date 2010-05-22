@@ -1,7 +1,7 @@
 #ifndef SHELL_HC
 #define SHELL_HC
 
-
+#if 0
 static inline void
 InsertMatrix(FullMatrixHandler & dest, 
 	integer start_row, 
@@ -119,7 +119,9 @@ CopyMatrixBlock(FullMatrixHandler & dest, integer dest_row, integer dest_col,
 		}
 	}
 }
+#endif
 
+#if 0
 static inline void
 InsertVector(MyVectorHandler & dest, 
 	integer start_row, 
@@ -134,6 +136,7 @@ InsertVector(MyVectorHandler & dest,
 	}
 	return;
 }
+#endif
 
 static inline void
 AssembleVector(SubVectorHandler & dest, 
@@ -232,7 +235,8 @@ RotateForward(MyVectorHandler & e, const Mat3x3 R)
 	for (integer b = 0; b < 4; b++) {
 		ExtractVec3(t, e, 1 + b * 3);
 		t1 = R * t;
-		InsertVector(e, 1 + b * 3, t1);
+		// InsertVector(e, 1 + b * 3, t1);
+		e.Put(1 + b * 3, t1);
 	}
 }
 
@@ -245,7 +249,8 @@ RotateBackward(MyVectorHandler & e, const Mat3x3 R)
 	for (integer b = 0; b < 4; b++) {
 		ExtractVec3(t, e, 1 + b * 3);
 		t1 = R.MulTV(t);
-		InsertVector(e, 1 + b * 3, t1);
+		// InsertVector(e, 1 + b * 3, t1);
+		e.Put(1 + b * 3, t1);
 	}
 }
 
@@ -260,7 +265,8 @@ RotateForward(FullMatrixHandler & C, const Mat3x3 R)
 		for (integer rc = 0; rc < 4; rc++) {
 			ExtractMat3x3(m, C, 1 + rb * 3, 1 + rc * 3);
 			m1 = R * m.MulMT(R);
-			InsertMatrix(C, 1 + rb * 3, 1 + rc * 3, m1);
+			// InsertMatrix(C, 1 + rb * 3, 1 + rc * 3, m1);
+			C.Put(1 + rb * 3, 1 + rc * 3, m1);
 		}
 	}
 }
