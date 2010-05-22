@@ -305,6 +305,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
+			// TODO: stream negotiation?
 
 #ifdef USE_SOCKET
 		} else {

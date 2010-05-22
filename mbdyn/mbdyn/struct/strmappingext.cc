@@ -246,6 +246,7 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 		std::istream *infp = pEFH->GetInStream();
 		if (infp) {
+			// TODO: stream negotiation?
 
 #ifdef USE_SOCKET
 		} else {
@@ -1194,8 +1195,8 @@ ReadStructMappingExtForce(DataManager* pDM,
 		}
 
 		time_t t = std::time(NULL);
-		char *user = std::getenv("USER");
-		char *host = std::getenv("HOSTNAME");
+		const char *user = std::getenv("USER");
+		const char *host = std::getenv("HOSTNAME");
 		if (user == 0) user = "nobody";
 		if (host == 0) host = "unknown";
 
