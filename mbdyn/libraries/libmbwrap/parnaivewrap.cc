@@ -560,7 +560,7 @@ void
 ParNaiveSparsePermSolutionManager::BackPerm(void)
 {
 	for (integer i = 0; i < A->iGetNumCols(); i++) {
-		XH.PutCoef(invperm[i] + 1, VH.dGetCoef(i + 1));
+		XH(invperm[i] + 1) = VH(i + 1);
 	}
 }
 

@@ -1458,13 +1458,13 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	WorkVec.PutRowIndex(2, iFirstIndex + 2);
 	   	WorkVec.PutRowIndex(3, iFirstIndex + 3);
 
-	   	dVConst = XCurr.dGetCoef(iFirstIndex + 1);
-	   	dVSine = XCurr.dGetCoef(iFirstIndex + 2);
-	   	dVCosine = XCurr.dGetCoef(iFirstIndex + 3);
+	   	dVConst = XCurr(iFirstIndex + 1);
+	   	dVSine = XCurr(iFirstIndex + 2);
+	   	dVCosine = XCurr(iFirstIndex + 3);
 
-	   	doublereal dVConstPrime = XPrimeCurr.dGetCoef(iFirstIndex + 1);
-	   	doublereal dVSinePrime = XPrimeCurr.dGetCoef(iFirstIndex + 2);
-	   	doublereal dVCosinePrime = XPrimeCurr.dGetCoef(iFirstIndex + 3);
+	   	doublereal dVConstPrime = XPrimeCurr(iFirstIndex + 1);
+	   	doublereal dVSinePrime = XPrimeCurr(iFirstIndex + 2);
+	   	doublereal dVCosinePrime = XPrimeCurr(iFirstIndex + 3);
 
 		doublereal dCT = 0.;
 		doublereal dCl = 0.;

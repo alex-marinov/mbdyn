@@ -202,7 +202,7 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 	row_cont_type::const_iterator ri, re;
 	re = col_indices[icol].end();
 	for (ri = col_indices[icol].begin(); ri != re; ri++) {
-		out.PutCoef(ri->first + 1, ri->second);
+		out(ri->first + 1) = ri->second;
 	}
 	return out;
 }

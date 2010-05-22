@@ -236,7 +236,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
    
    /* Aggiorna i dati propri */
    v = Vec3(XCurr, iFirstReactionIndex+1);
-   dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);   
+   dAlpha = XCurr(iFirstReactionIndex+4);   
 
    doublereal dDistance = pGetDriveCaller()->dGet();
 
@@ -340,8 +340,8 @@ DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
        * ed il coefficiente di amplificazione dAlpha
        * sono stati aggiornati durante il calcolo del residuo */
       
-      dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);
-      doublereal dBeta = XCurr.dGetCoef(iReactionPrimeIndex+4);
+      dAlpha = XCurr(iFirstReactionIndex+4);
+      doublereal dBeta = XCurr(iReactionPrimeIndex+4);
       v = Vec3(XCurr, iFirstReactionIndex+1);
       Vec3 w(XCurr, iReactionPrimeIndex+1);
       Vec3 deltaXP(pNode2->GetVCurr()-pNode1->GetVCurr());
@@ -486,8 +486,8 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 x2P(pNode2->GetVCurr());
    v = Vec3(XCurr, iFirstReactionIndex+1);
    Vec3 w(XCurr, iReactionPrimeIndex+1);
-   dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);   
-   doublereal dBeta = XCurr.dGetCoef(iReactionPrimeIndex+4);
+   dAlpha = XCurr(iFirstReactionIndex+4);   
+   doublereal dBeta = XCurr(iReactionPrimeIndex+4);
 
    doublereal dDistance = pGetDriveCaller()->dGet();
    
@@ -890,7 +890,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 
    /* Aggiorna i dati propri */
    v = Vec3(XCurr, iFirstReactionIndex+1);
-   dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);   
+   dAlpha = XCurr(iFirstReactionIndex+4);   
 
    doublereal dDistance = pGetDriveCaller()->dGet();
    
@@ -963,7 +963,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutColIndex(24+iCnt, iFirstReactionIndex+iCnt);
    }
         
-   doublereal dAlphaP = XCurr.dGetCoef(iReactionPrimeIndex+4);  
+   doublereal dAlphaP = XCurr(iReactionPrimeIndex+4);  
    Vec3 vP(XCurr, iReactionPrimeIndex+1);   
    
    Vec3 f1Tmp(pNode1->GetRRef()*f1);
@@ -1131,8 +1131,8 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 
    v = Vec3(XCurr, iFirstReactionIndex+1);
    Vec3 vP(XCurr, iReactionPrimeIndex+1);
-   dAlpha = XCurr.dGetCoef(iFirstReactionIndex+4);   
-   doublereal dAlphaP = XCurr.dGetCoef(iReactionPrimeIndex+4);   
+   dAlpha = XCurr(iFirstReactionIndex+4);   
+   doublereal dAlphaP = XCurr(iReactionPrimeIndex+4);   
 
    Vec3 x1(pNode1->GetXCurr());
    Vec3 x2(pNode2->GetXCurr());

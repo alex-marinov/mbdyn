@@ -120,7 +120,7 @@ class DofOwnerOwner {
     * gli indici di eventuali altri Dof sono consecutivi.
     * Il primo Dof viene indirizzato nel modo seguente: 
     * - doublereal::X[Node::iGetFirstIndex()]   se si usa un array c,
-    * - VectorHandler::dGetCoef(Node::iGetFirstIndex()+1) se si usa un handler
+    * - VectorHandler::operator()(Node::iGetFirstIndex()+1) se si usa un handler
     * questa convenzione e' stata assunta per compatibilita' con le
     * porzioni di codice scritte in FORTRAN
     */

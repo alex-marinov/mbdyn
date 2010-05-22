@@ -292,7 +292,7 @@ DrivenElem::AssRes(SubVectorHandler& WorkVec,
 
 		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WorkVec.PutRowIndex(iCnt, iFirstIndex+iCnt);
-			WorkVec.PutCoef(iCnt, -XCurr.dGetCoef(iFirstIndex+iCnt));
+			WorkVec.PutCoef(iCnt, -XCurr(iFirstIndex+iCnt));
 		}
 	}
 

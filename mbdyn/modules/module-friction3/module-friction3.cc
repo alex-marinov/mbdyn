@@ -227,7 +227,7 @@ ass_jac(LoadableElem* pEl,
 	if (p->fc) {
 		doublereal f = p->fc->fc();
 		doublereal shc = p->Sh_c->Sh_c();
-		doublereal v = XPrimeCurr.dGetCoef(iFirstPositionIndex+1);
+		doublereal v = XPrimeCurr(iFirstPositionIndex+1);
 		doublereal modF = p->mass;
 		//doublereal F = shc*modF*f;
 		
@@ -283,14 +283,14 @@ ass_res(LoadableElem* pEl,
 	}
 	}
 	
-	WorkVec.PutCoef(1,-XPrimeCurr.dGetCoef(iFirstMomentumIndex+1));
+	WorkVec.PutCoef(1,-XPrimeCurr(iFirstMomentumIndex+1));
 	WorkVec.PutCoef(2,
-		XPrimeCurr.dGetCoef(iFirstPositionIndex+1));
+		XPrimeCurr(iFirstPositionIndex+1));
 	WorkVec.IncCoef(2,
-		-XCurr.dGetCoef(iFirstMomentumIndex+1)/p->mass);
+		-XCurr(iFirstMomentumIndex+1)/p->mass);
 	if (p->fc) {
 		bool ChangeJac(false);
-		doublereal v = XPrimeCurr.dGetCoef(iFirstPositionIndex+1);
+		doublereal v = XPrimeCurr(iFirstPositionIndex+1);
 		try {
 			p->fc->AssRes(WorkVec,2,iFirstReactionIndex,p->mass,
 				v,XCurr,XPrimeCurr);
@@ -344,7 +344,7 @@ after_convergence(const LoadableElem* pEl,
 	module_friction* p = (module_friction*)pEl->pGetData();
 	if (p->fc) {
 		integer iFirstPositionIndex = p->pos.pNode->iGetFirstRowIndex();
-		doublereal v = XP.dGetCoef(iFirstPositionIndex+1);
+		doublereal v = XP(iFirstPositionIndex+1);
 		p->fc->AfterConvergence(p->mass,v,X,XP,pEl->iGetFirstIndex());
 	}
 }

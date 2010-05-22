@@ -107,8 +107,8 @@ static int
 func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	doublereal x = X.dGetCoef(1);
-	doublereal v = X.dGetCoef(2);
+	doublereal x = X(1);
+	doublereal v = X(2);
 	R.PutCoef(1, v);
 	R.PutCoef(2, -(pd->k*x+pd->c*v)/pd->m);
 	return 0;
@@ -119,8 +119,8 @@ out(void* p, std::ostream& o,
 	const VectorHandler& X, const VectorHandler& XP)
 {
 	// private_data* pd = (private_data*)p;
-	return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
-		<< " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2);
+	return o << X(1) << " " << X(2)
+		<< " " << XP(1) << " " << XP(2);
 }
 
 static int

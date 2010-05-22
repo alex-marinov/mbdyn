@@ -290,11 +290,11 @@ ass_res(LoadableElem* pEl,
       WorkVec.PutRowIndex(6+iCnt, iIndex+iCnt);
    }
 
-   p->F = Vec3(XCurr.dGetCoef(iIndex+1),
-	       XCurr.dGetCoef(iIndex+2),
+   p->F = Vec3(XCurr(iIndex+1),
+	       XCurr(iIndex+2),
 	       0.);
    p->M = Vec3(XCurr, iIndex+4);
-   p->s = XCurr.dGetCoef(iIndex+3);
+   p->s = XCurr(iIndex+3);
    
    Vec3 X(get_x(p->s));
    Mat3x3 R(get_r(p->s));

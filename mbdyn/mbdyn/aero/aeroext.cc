@@ -263,23 +263,23 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 		Vec3 F(0.);
 		Vec3 Fo(0.);
 		Vec3 M(0.);
-		F[0] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+1);
-		F[1] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+2);
-		F[2] +=  pdBuffer->dGetCoef(i*(OffN+1)*3+3);
+		F[0] +=  pdBuffer->operator()(i*(OffN+1)*3+1);
+		F[1] +=  pdBuffer->operator()(i*(OffN+1)*3+2);
+		F[2] +=  pdBuffer->operator()(i*(OffN+1)*3+3);
 		if (MomFlag) {
-			M[0] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+1);
-			M[1] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+2);
-			M[2] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+3);
+			M[0] +=  pdBufferVel->operator()(i*(OffN+1)*3+1);
+			M[1] +=  pdBufferVel->operator()(i*(OffN+1)*3+2);
+			M[2] +=  pdBufferVel->operator()(i*(OffN+1)*3+3);
 		}
 		for (int j=1; j <= OffN; j++) {
-			Fo[0] =  pdBuffer->dGetCoef(i*(OffN+1)*3+j*3+1);
-			Fo[1] =  pdBuffer->dGetCoef(i*(OffN+1)*3+j*3+2);
-			Fo[2] =  pdBuffer->dGetCoef(i*(OffN+1)*3+j*3+3);			
+			Fo[0] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+1);
+			Fo[1] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+2);
+			Fo[2] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+3);			
 			F += Fo;
 			if (MomFlag) {
-				M[0] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+j*3+1);
-				M[1] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+j*3+2);
-				M[2] +=  pdBufferVel->dGetCoef(i*(OffN+1)*3+j*3+3);
+				M[0] +=  pdBufferVel->operator()(i*(OffN+1)*3+j*3+1);
+				M[1] +=  pdBufferVel->operator()(i*(OffN+1)*3+j*3+2);
+				M[2] +=  pdBufferVel->operator()(i*(OffN+1)*3+j*3+3);
 			}
 			M -= Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
 		}
@@ -581,13 +581,13 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 
 #warning "FIXME: review"
 	for (int iNode = 0; iNode < ModalNodes; iNode++) {
-		F[0] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 1);
-		F[1] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 2);
-		F[2] +=  pdBuffer->dGetCoef(iNode*ModalNodes*3 + 3);
+		F[0] +=  pdBuffer->operator()(iNode*ModalNodes*3 + 1);
+		F[1] +=  pdBuffer->operator()(iNode*ModalNodes*3 + 2);
+		F[2] +=  pdBuffer->operator()(iNode*ModalNodes*3 + 3);
 		if (MomFlag) {
-			M[0] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 1);
-			M[1] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 2);
-			M[2] +=  pdBufferVel->dGetCoef(iNode*ModalNodes*3 + 3);
+			M[0] +=  pdBufferVel->operator()(iNode*ModalNodes*3 + 1);
+			M[1] +=  pdBufferVel->operator()(iNode*ModalNodes*3 + 2);
+			M[2] +=  pdBufferVel->operator()(iNode*ModalNodes*3 + 3);
 		}
 		for (int iMode = 0; iMode < NModes; iMode++) {
 			WorkVec.Add(iMode + 1, RT*F*(pModal->pGetPHIt().GetVec(iMode*ModalNodes + iNode + 1)));
@@ -615,7 +615,7 @@ AerodynamicExternalModal::Output(OutputHandler& OH) const
 		int size = pForce->iGetSize();
 		for (int i = 0; i < size; i++) {
 			out << std::setw(8) 
-				<< " " << pForce->dGetCoef(i+1) << std::endl;
+				<< " " << pForce->operator()(i+1) << std::endl;
 		}
 	}
 }

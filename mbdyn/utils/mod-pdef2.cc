@@ -112,10 +112,10 @@ int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-//    doublereal u = X.dGetCoef(3);
-//    doublereal v = X.dGetCoef(4);
+   doublereal x = X(1);
+   doublereal y = X(2);
+//    doublereal u = X(3);
+//    doublereal v = X(4);
    
    doublereal l = sqrt(x*x+y*y);
    doublereal m = pd->m;
@@ -138,10 +138,10 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal u = X.dGetCoef(3);
-   doublereal v = X.dGetCoef(4);
+   doublereal x = X(1);
+   doublereal y = X(2);
+   doublereal u = X(3);
+   doublereal v = X(4);
    
    doublereal m = pd->m;
    // doublereal c = pd->c;
@@ -163,10 +163,10 @@ std::ostream& out(void* p, std::ostream& o,
 {
    private_data* pd = (private_data*)p;
   
-   doublereal x = X.dGetCoef(1);
-   doublereal y = X.dGetCoef(2);
-   doublereal u = X.dGetCoef(3);
-   doublereal v = X.dGetCoef(4);   
+   doublereal x = X(1);
+   doublereal y = X(2);
+   doublereal u = X(3);
+   doublereal v = X(4);   
    doublereal m = pd->m;
    doublereal k = pd->k;
    doublereal l0 = pd->l;
@@ -178,9 +178,9 @@ std::ostream& out(void* p, std::ostream& o,
   
    
    return o << theta << " " << (l-l0)
-     << " " << X.dGetCoef(3) << " " << X.dGetCoef(4)
-     << " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2)
-     << " " << XP.dGetCoef(3) << " " << XP.dGetCoef(4)
+     << " " << X(3) << " " << X(4)
+     << " " << XP(1) << " " << XP(2)
+     << " " << XP(3) << " " << XP(4)
      << " " << x << " " << y << " " << E;
 }
 

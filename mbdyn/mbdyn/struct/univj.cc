@@ -234,7 +234,7 @@ UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna i dati propri */
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	dM = XCurr.dGetCoef(iFirstReactionIndex + 4);
+	dM = XCurr(iFirstReactionIndex + 4);
 
 	/* Recupera i dati */
 	const Vec3& x1(pNode1->GetXCurr());
@@ -374,7 +374,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Vec3& Omega2(pNode2->GetWRef());
 	/* F ed M sono gia' state aggiornate da InitialAssRes */
 	Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex+4));
+	doublereal dMPrime(XCurr(iReactionPrimeIndex+4));
 
 	/* Distanze e matrici di rotazione dai nodi alla cerniera
 	 * nel sistema globale */
@@ -544,9 +544,9 @@ UniversalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	dM = XCurr.dGetCoef(iFirstReactionIndex + 4);
+	dM = XCurr(iFirstReactionIndex + 4);
 	Vec3 FPrime(XCurr, iReactionPrimeIndex + 1);
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex + 4));
+	doublereal dMPrime(XCurr(iReactionPrimeIndex + 4));
 
 	/* Distanza nel sistema globale */
 	Vec3 d1Tmp(R1*d1);
@@ -748,7 +748,7 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutRowIndex(6 + 1, iFirstReactionIndex + 1);
 
 	/* Aggiorna i dati propri */
-	dM = XCurr.dGetCoef(iFirstReactionIndex+1);
+	dM = XCurr(iFirstReactionIndex+1);
 
 	/* Recupera i dati */
 	const Mat3x3& R1(pNode1->GetRCurr());
@@ -848,7 +848,7 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Vec3& Omega1(pNode1->GetWRef());
 	const Vec3& Omega2(pNode2->GetWRef());
 	/* F ed M sono gia' state aggiornate da InitialAssRes */
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex+1));
+	doublereal dMPrime(XCurr(iReactionPrimeIndex+1));
 
 	/* Matrici di rotazione dai nodi alla cerniera
 	 * nel sistema globale */
@@ -985,8 +985,8 @@ UniversalRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	const Vec3& Omega2(pNode2->GetWCurr());
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
-	dM = XCurr.dGetCoef(iFirstReactionIndex + 1);
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex + 1));
+	dM = XCurr(iFirstReactionIndex + 1);
+	doublereal dMPrime(XCurr(iReactionPrimeIndex + 1));
 
 	/* orientazione nel sistema globale */
 	Vec3 e3a(R1*R1h.GetVec(3));
@@ -1171,7 +1171,7 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	dM = XCurr.dGetCoef(iFirstReactionIndex + 4);
+	dM = XCurr(iFirstReactionIndex + 4);
 
 	const Vec3& x(pNode->GetXCurr());
 	const Mat3x3& R(pNode->GetRCurr());
@@ -1251,7 +1251,7 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Vec3& Omega(pNode->GetWRef());
 	/* F, M sono state aggiornate da InitialAssRes */
 	Vec3 FPrime(XCurr, iReactionPrimeIndex + 1);
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex + 4));
+	doublereal dMPrime(XCurr(iReactionPrimeIndex + 4));
 
 	/* Matrici identita' */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
@@ -1386,9 +1386,9 @@ UniversalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	const Vec3& Omega(pNode->GetWCurr());
 
 	F = Vec3(XCurr, iFirstReactionIndex + 1);
-	dM = XCurr.dGetCoef(iFirstReactionIndex + 4);
+	dM = XCurr(iFirstReactionIndex + 4);
 	Vec3 FPrime(XCurr, iReactionPrimeIndex + 1);
-	doublereal dMPrime(XCurr.dGetCoef(iReactionPrimeIndex + 4));
+	doublereal dMPrime(XCurr(iReactionPrimeIndex + 4));
 
 	/* Versori delle cerniere */
 	Vec3 e3(R0.GetVec(3));

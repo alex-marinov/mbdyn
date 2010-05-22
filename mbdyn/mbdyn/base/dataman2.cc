@@ -1671,7 +1671,7 @@ DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
  	for (int iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Eq  " << std::setw(8)
 			<< iTmpCnt << ": " 
-			<< std::setw(20) << Res.dGetCoef(iTmpCnt)
+			<< std::setw(20) << Res(iTmpCnt)
 			<< " " << pDofs[iTmpCnt-1].EqDescription
 			<< std::endl);
 	}
@@ -1686,7 +1686,7 @@ DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
  	for (integer iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Dof " << std::setw(8)
 			<< iTmpCnt << ": " 
-			<< std::setw(20) << Sol.dGetCoef(iTmpCnt)
+			<< std::setw(20) << Sol(iTmpCnt)
 			<< " " << pDofs[iTmpCnt-1].Description
 			<< std::endl);
 	}

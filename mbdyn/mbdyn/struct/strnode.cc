@@ -1026,18 +1026,18 @@ StructNode::Output_f06(
 		out
 			<< std::setw(13) << GetLabel() << "      G"
 			<< std::setw(18) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+1)
+			<< X(iFirstIndex+1)
 			<< std::setw(15) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+2)
+			<< X(iFirstIndex+2)
 			<< std::setw(15) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+3)
+			<< X(iFirstIndex+3)
 
 			<< std::setw(15) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+4)
+			<< X(iFirstIndex+4)
 			<< std::setw(15) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+5)
+			<< X(iFirstIndex+5)
 			<< std::setw(15) << std::setprecision(6)
-			<< X.dGetCoef(iFirstIndex+6)
+			<< X(iFirstIndex+6)
 			<< std::endl;
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
@@ -1058,33 +1058,33 @@ StructNode::Output_f06(
 		out
 			<< "0" << std::setw(12) << GetLabel() << "      G"
 			<< std::setw(18) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+1)
+			<< Xr(iFirstIndex+1)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+2)
+			<< Xr(iFirstIndex+2)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+3)
+			<< Xr(iFirstIndex+3)
 
 			<< std::setw(15) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+4)
+			<< Xr(iFirstIndex+4)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+5)
+			<< Xr(iFirstIndex+5)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xr.dGetCoef(iFirstIndex+6)
+			<< Xr(iFirstIndex+6)
 			<< std::endl
 
 			<< std::setw(38) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+1)
+			<< Xi(iFirstIndex+1)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+2)
+			<< Xi(iFirstIndex+2)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+3)
+			<< Xi(iFirstIndex+3)
 
 			<< std::setw(15) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+4)
+			<< Xi(iFirstIndex+4)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+5)
+			<< Xi(iFirstIndex+5)
 			<< std::setw(15) << std::setprecision(6)
-			<< Xi.dGetCoef(iFirstIndex+6)
+			<< Xi(iFirstIndex+6)
 			<< std::endl;
 	}
 #endif /* __HACK_NASTRAN_MODES__ */
@@ -1363,9 +1363,9 @@ StructNode::BeforePredict(VectorHandler& X,
 		<< "g:" << std::setw(16) << gPrev(1) << std::setw(16) << 0 << std::endl
 		<< "  " << std::setw(16) << gPrev(2) << std::setw(16) << 0 << std::endl
 		<< "  " << std::setw(16) << gPrev(3) << std::setw(16) << 0 << std::endl
-		<< "w:" << std::setw(16) << XP.dGetCoef(iFirstPos+4) << std::setw(16) << WCurr(1) << std::endl
-		<< "  " << std::setw(16) << XP.dGetCoef(iFirstPos+5) << std::setw(16) << WCurr(2) << std::endl
-		<< "  " << std::setw(16) << XP.dGetCoef(iFirstPos+6) << std::setw(16) << WCurr(3) << std::endl;
+		<< "w:" << std::setw(16) << XP(iFirstPos+4) << std::setw(16) << WCurr(1) << std::endl
+		<< "  " << std::setw(16) << XP(iFirstPos+5) << std::setw(16) << WCurr(2) << std::endl
+		<< "  " << std::setw(16) << XP(iFirstPos+6) << std::setw(16) << WCurr(3) << std::endl;
 #endif
 
 	XPrev = XCurr;

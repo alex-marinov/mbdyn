@@ -825,8 +825,8 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
    /* Aggiorna i dati propri */
    F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
-	    XCurr.dGetCoef(iFirstReactionIndex+5),
+   M = Vec3(XCurr(iFirstReactionIndex+4),
+	    XCurr(iFirstReactionIndex+5),
 	    0.);
 
    /*
@@ -1023,8 +1023,8 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    /* F ed M sono gia' state aggiornate da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+4),
-	       XCurr.dGetCoef(iReactionPrimeIndex+5),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+4),
+	       XCurr(iReactionPrimeIndex+5),
 	       0.);
    
    /* Matrici identita' */   
@@ -1249,12 +1249,12 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Aggiorna F ed M, che restano anche per InitialAssJac */
    F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
-	    XCurr.dGetCoef(iFirstReactionIndex+5),
+   M = Vec3(XCurr(iFirstReactionIndex+4),
+	    XCurr(iFirstReactionIndex+5),
 	    0.);
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+4),
-	       XCurr.dGetCoef(iReactionPrimeIndex+5),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+4),
+	       XCurr(iReactionPrimeIndex+5),
 	       0.);
    
    /* Distanza nel sistema globale */
@@ -1824,8 +1824,8 @@ SubVectorHandler& PlaneRotationJoint::AssRes(SubVectorHandler& WorkVec,
    }
 
    /* Aggiorna i dati propri */
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+1),
-	    XCurr.dGetCoef(iFirstReactionIndex+2),
+   M = Vec3(XCurr(iFirstReactionIndex+1),
+	    XCurr(iFirstReactionIndex+2),
 	    0.);
 
    /*
@@ -1962,8 +1962,8 @@ PlaneRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    const Vec3& Omega2(pNode2->GetWRef());
    
    /* F ed M sono gia' state aggiornate da InitialAssRes */
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    
    /* Matrici identita' */   
@@ -2144,11 +2144,11 @@ PlaneRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    const Vec3& Omega2(pNode2->GetWCurr());
    
    /* Aggiorna F ed M, che restano anche per InitialAssJac */
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+1),
-	    XCurr.dGetCoef(iFirstReactionIndex+2),
+   M = Vec3(XCurr(iFirstReactionIndex+1),
+	    XCurr(iFirstReactionIndex+2),
 	    0.);
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    
    /* Distanza nel sistema globale */
@@ -3443,8 +3443,8 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    /* Aggiorna F ed M, che restano anche per InitialAssJac */
    F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
-	    XCurr.dGetCoef(iFirstReactionIndex+5),
+   M = Vec3(XCurr(iFirstReactionIndex+4),
+	    XCurr(iFirstReactionIndex+5),
 	    0.);
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    Vec3 MPrime(XCurr, iReactionPrimeIndex+4);
@@ -4088,8 +4088,8 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    }
    
    F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
-	    XCurr.dGetCoef(iFirstReactionIndex+5),
+   M = Vec3(XCurr(iFirstReactionIndex+4),
+	    XCurr(iFirstReactionIndex+5),
 	    0.);
    
    Vec3 x(pNode->GetXCurr());
@@ -4187,8 +4187,8 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Omega(pNode->GetWRef());
    /* F, M sono state aggiornate da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+4),
-	       XCurr.dGetCoef(iReactionPrimeIndex+5),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+4),
+	       XCurr(iReactionPrimeIndex+5),
 	       0.);
    
    /* Distanza nel sistema globale */
@@ -4332,12 +4332,12 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Mat3x3 RhTmp(R*Rh);
    
    F = Vec3(XCurr, iFirstReactionIndex+1);
-   M = Vec3(XCurr.dGetCoef(iFirstReactionIndex+4),
-	    XCurr.dGetCoef(iFirstReactionIndex+5),
+   M = Vec3(XCurr(iFirstReactionIndex+4),
+	    XCurr(iFirstReactionIndex+5),
 	    0.);
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
-   Vec3 MPrime(XCurr.dGetCoef(iReactionPrimeIndex+4),
-	       XCurr.dGetCoef(iReactionPrimeIndex+5),
+   Vec3 MPrime(XCurr(iReactionPrimeIndex+4),
+	       XCurr(iReactionPrimeIndex+5),
 	       0.);
    
    /* Versori delle cerniere */

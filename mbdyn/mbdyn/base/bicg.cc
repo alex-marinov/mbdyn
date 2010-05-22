@@ -288,7 +288,7 @@ rebuild_matrix:;
 			std::cout << "v:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-					<< v.dGetCoef(iTmpCnt) << std::endl;
+					<< v(iTmpCnt) << std::endl;
 			}
 #endif /* DEBUG_ITERATIVE */
 

@@ -175,8 +175,8 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    Mat3x3 RvTmp = pNode1->GetRCurr()*Rv;
 
    /* Aggiorna i dati propri */
-   F.Put(1, XCurr.dGetCoef(iFirstReactionIndex+1));
-   F.Put(2, XCurr.dGetCoef(iFirstReactionIndex+2));
+   F.Put(1, XCurr(iFirstReactionIndex+1));
+   F.Put(2, XCurr(iFirstReactionIndex+2));
    Vec3 FTmp(RvTmp*F);
    
    WorkVec.Add(1, FTmp);
@@ -236,8 +236,8 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Omega(pNode1->GetWRef());
    
    /* Aggiorna i dati propri */
-   Vec3 FPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   Vec3 FPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    Mat3x3 RvTmp(pNode1->GetRRef()*Rv);
    Vec3 FTmp(RvTmp*F);
@@ -388,10 +388,10 @@ InLineJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 Omega(pNode1->GetWCurr());
    
    /* Aggiorna i dati propri */
-   F.Put(1, XCurr.dGetCoef(iFirstReactionIndex+1));
-   F.Put(2, XCurr.dGetCoef(iFirstReactionIndex+2));
-   Vec3 FPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   F.Put(1, XCurr(iFirstReactionIndex+1));
+   F.Put(2, XCurr(iFirstReactionIndex+2));
+   Vec3 FPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    Vec3 FTmp(RvTmp*F);
    Vec3 FPrimeTmp(RvTmp*FPrime);
@@ -578,8 +578,8 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    Mat3x3 RvTmp = pNode1->GetRCurr()*Rv;
 
    /* Aggiorna i dati propri */
-   F.Put(1, XCurr.dGetCoef(iFirstReactionIndex+1));
-   F.Put(2, XCurr.dGetCoef(iFirstReactionIndex+2));
+   F.Put(1, XCurr(iFirstReactionIndex+1));
+   F.Put(2, XCurr(iFirstReactionIndex+2));
    Vec3 FTmp(RvTmp*F);
    
    WorkVec.Add(1, FTmp);
@@ -654,8 +654,8 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 xp2qmxp1(pNode2->GetVCurr()+Omega2.Cross(qTmp)-pNode1->GetVCurr());
    
    /* Aggiorna i dati propri */
-   Vec3 FPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   Vec3 FPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    Vec3 FTmp(RvTmp*F);
    Vec3 FPrimeTmp(RvTmp*FPrime);
@@ -862,10 +862,10 @@ InLineWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 xp2qmxp1(pNode2->GetVCurr()+Omega2.Cross(qTmp)-pNode1->GetVCurr());
    
    /* Aggiorna i dati propri */
-   F.Put(1, XCurr.dGetCoef(iFirstReactionIndex+1));
-   F.Put(2, XCurr.dGetCoef(iFirstReactionIndex+2));
-   Vec3 FPrime(XCurr.dGetCoef(iReactionPrimeIndex+1),
-	       XCurr.dGetCoef(iReactionPrimeIndex+2),
+   F.Put(1, XCurr(iFirstReactionIndex+1));
+   F.Put(2, XCurr(iFirstReactionIndex+2));
+   Vec3 FPrime(XCurr(iReactionPrimeIndex+1),
+	       XCurr(iReactionPrimeIndex+2),
 	       0.);
    Vec3 FTmp(RvTmp*F);
    Vec3 FPrimeTmp(RvTmp*FPrime);

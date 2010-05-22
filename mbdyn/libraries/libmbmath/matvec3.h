@@ -169,9 +169,9 @@ class Vec3 {
     */
    Vec3(const VectorHandler& vh, integer iFirstIndex) {
       ASSERT(iFirstIndex > 0 && iFirstIndex <= vh.iGetSize()-2);
-      pdVec[V1] = vh.dGetCoef(iFirstIndex);
-      pdVec[V2] = vh.dGetCoef(++iFirstIndex);
-      pdVec[V3] = vh.dGetCoef(++iFirstIndex);
+      pdVec[V1] = vh(iFirstIndex);
+      pdVec[V2] = vh(++iFirstIndex);
+      pdVec[V3] = vh(++iFirstIndex);
    };
    
    /*

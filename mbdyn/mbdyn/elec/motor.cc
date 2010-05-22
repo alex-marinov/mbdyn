@@ -151,7 +151,7 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 TmpDir(pStrNode1->GetRRef()*Dir);
 	Vec3 Cdi(TmpDir*(dGain*dCoef));
-	doublereal i = XCurr.dGetCoef(iFirstIndex);
+	doublereal i = XCurr(iFirstIndex);
 	Vec3 C(Cdi*i);
 	Vec3 Tmp((TmpDir + pStrNode2->GetWRef().Cross(TmpDir*dCoef))*dGain);
 
@@ -206,8 +206,8 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutRowIndex(8, iElecNode2FirstIndex);
 	WorkVec.PutRowIndex(9, iFirstIndex);
 
-	doublereal i = XCurr.dGetCoef(iFirstIndex);
-	doublereal iP = XPrimeCurr.dGetCoef(iFirstIndex);
+	doublereal i = XCurr(iFirstIndex);
+	doublereal iP = XPrimeCurr(iFirstIndex);
 	doublereal dV = pVoltage2->dGetX() - pVoltage1->dGetX();
 
 	Vec3 TmpDir(pStrNode1->GetRCurr()*Dir);

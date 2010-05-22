@@ -104,7 +104,7 @@ static int
 jac(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	doublereal x = X.dGetCoef(1);
+	doublereal x = X(1);
 	J.PutCoef(1, 2, 1.);
 	J.PutCoef(2, 1, -(pd->k+3.*x*x*pd->alpha)/pd->m);
 	J.PutCoef(2, 2, -pd->c/pd->m);
@@ -115,8 +115,8 @@ static int
 res(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
 {
 	private_data* pd = (private_data*)p;
-	doublereal x = X.dGetCoef(1);
-	doublereal v = X.dGetCoef(2);
+	doublereal x = X(1);
+	doublereal v = X(2);
 	R.PutCoef(1, v);
 	R.PutCoef(2, (pd->f*sin(pd->omega*t)-((pd->k+pd->alpha*x*x)*x+pd->c*v))/pd->m);
 	return 0;
@@ -127,13 +127,13 @@ out(void* p, std::ostream& o,
 	const VectorHandler& X, const VectorHandler& XP)
 {
 	private_data* pd = (private_data*)p;
-	doublereal x = X.dGetCoef(1);
-	doublereal v = X.dGetCoef(2);
+	doublereal x = X(1);
+	doublereal v = X(2);
    
 	doublereal E = .5*(pd->m*v*v+(pd->k+.5*pd->alpha*x*x)*x*x);
 		      
-	return o << X.dGetCoef(1) << " " << X.dGetCoef(2)
-		<< " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2) << " " << E;
+	return o << X(1) << " " << X(2)
+		<< " " << XP(1) << " " << XP(2) << " " << E;
 }
 
 static int

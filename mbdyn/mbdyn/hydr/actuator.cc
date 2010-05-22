@@ -386,11 +386,11 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
    doublereal p1 = pNodeHyd1->dGetX();
    doublereal p2 = pNodeHyd2->dGetX();
    
-   dp1 = XCurr.dGetCoef(iIndex+1);
-   dp2 = XCurr.dGetCoef(iIndex+2);
+   dp1 = XCurr(iIndex+1);
+   dp2 = XCurr(iIndex+2);
    
-   dpP1 = XPrimeCurr.dGetCoef(iIndex+1);
-   dpP2 = XPrimeCurr.dGetCoef(iIndex+2);
+   dpP1 = XPrimeCurr(iIndex+1);
+   dpP2 = XPrimeCurr(iIndex+2);
    
    Vec3 x1(pNodeStr1->GetXCurr());
    Vec3 x2(pNodeStr2->GetXCurr());

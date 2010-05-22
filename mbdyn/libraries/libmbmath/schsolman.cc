@@ -599,12 +599,12 @@ SchurSolutionManager::Solve(void)
 #ifdef DEBUG_SCHUR
 	std::cout << "# Solve 20a:";
 	for (int i = 1; i <= iIntVecDim; i++) {
-		std::cout << " " << pgVH->dGetCoef(i);
+		std::cout << " " << pgVH->operator()(i);
 	}
 	std::cout << std::endl;
 	std::cout << "# Solve 20b:";
 	for (int i = 1; i <= iLocVecDim; i++) {
-		std::cout << " " << pSolrVH->dGetCoef(i);
+		std::cout << " " << pSolrVH->operator()(i);
 	}
 	std::cout << std::endl;
 #endif /* DEBUG_SCHUR */

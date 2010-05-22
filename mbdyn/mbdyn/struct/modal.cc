@@ -1448,7 +1448,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	for (int i = 1; i <= WorkVec.iGetSize(); i++) {
 		std::cerr << std::setw(2) << i << "("
 			<< std::setw(2) << WorkVec.iGetRowIndex(i) << ")"
-			<< std::setw(20) << WorkVec.dGetCoef(i) << std::endl;
+			<< std::setw(20) << WorkVec(i) << std::endl;
 	}
 #endif
 
@@ -1987,8 +1987,8 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 	/* aggiorna le forze modali : K*a, C*aP */
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-		a.Put(iCnt, XCurr.dGetCoef(iFlexIndex + iCnt));
-		b.Put(iCnt, XCurr.dGetCoef(iFlexIndex + NModes + iCnt));
+		a.Put(iCnt, XCurr(iFlexIndex + iCnt));
+		b.Put(iCnt, XCurr(iFlexIndex + NModes + iCnt));
 	}
 
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {

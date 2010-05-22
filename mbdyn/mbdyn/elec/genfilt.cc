@@ -313,8 +313,8 @@ GenelStateSpaceSISO::AssRes(SubVectorHandler& WorkVec,
 	doublereal d = dD*u - y;
 	for (unsigned int i = iNumDofs; i > 0; i--) {
 		WorkVec.PutRowIndex(i, iFirstIndex + i);
-		pdx[i] = XCurr.dGetCoef(iFirstIndex + i);
-		pdxp[i] = XPrimeCurr.dGetCoef(iFirstIndex + i);
+		pdx[i] = XCurr(iFirstIndex + i);
+		pdxp[i] = XPrimeCurr(iFirstIndex + i);
 		d += pdc[i]*pdx[i];
 	}
 
@@ -711,8 +711,8 @@ GenelStateSpaceMIMO::AssRes(SubVectorHandler& WorkVec,
 	doublereal* pdxp = pdXP-1;
 	for (unsigned int i = iNumDofs; i > 0; i--) {
 		WorkVec.PutRowIndex(i, iFirstIndex+i);
-		pdx[i] = XCurr.dGetCoef(iFirstIndex+i);
-		pdxp[i] = XPrimeCurr.dGetCoef(iFirstIndex+i);
+		pdx[i] = XCurr(iFirstIndex+i);
+		pdxp[i] = XPrimeCurr(iFirstIndex+i);
 	}
 
 	doublereal* pdc = pdC + iNumOutputs*iNumDofs - 1;

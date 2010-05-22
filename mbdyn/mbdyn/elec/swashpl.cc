@@ -213,9 +213,9 @@ SwashPlate::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutRowIndex(5, iNode2FirstIndex);
 	WorkVec.PutRowIndex(6, iNode3FirstIndex);
 
-	doublereal dXColl = XCurr.dGetCoef(iCollFirstIndex);
-	doublereal dXLong = XCurr.dGetCoef(iLongFirstIndex);
-	doublereal dXLat = XCurr.dGetCoef(iLatFirstIndex);
+	doublereal dXColl = XCurr(iCollFirstIndex);
+	doublereal dXLong = XCurr(iLongFirstIndex);
+	doublereal dXLat = XCurr(iLatFirstIndex);
 
 	WorkVec.PutCoef(1, -dXColl);
 	WorkVec.PutCoef(2, -dXLong);

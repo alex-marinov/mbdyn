@@ -109,7 +109,7 @@ VecN::VecN(const VectorHandler& vh, integer ns, integer iFirstIndex)
    ASSERT(iFirstIndex > 0 && iFirstIndex + ns - 1 <= vh.iGetSize());
    Create_(ns);
    for(integer iCnt = 0; iCnt < ns; iCnt++) {
-      pdVec[iCnt] = vh.dGetCoef(iFirstIndex+iCnt);
+      pdVec[iCnt] = vh(iFirstIndex+iCnt);
    }
 }
 
@@ -119,7 +119,7 @@ VecN::Copy(const VectorHandler& vh, integer iFirstIndex)
 {
    ASSERT(iFirstIndex > 0 && iFirstIndex + iNumRows - 1 <= vh.iGetSize());
    for (integer iCnt = 0; iCnt < iNumRows; iCnt++) {
-      pdVec[iCnt] = vh.dGetCoef(iFirstIndex+iCnt);
+      pdVec[iCnt] = vh(iFirstIndex+iCnt);
    }
 
    return *this;

@@ -110,7 +110,7 @@ class ContactJoint : virtual public Elem, public Joint {
       dD = N.Dot(D);
       doublereal dV = N.Dot(V);
       
-      dF = XCurr.dGetCoef(iIndex);
+      dF = XCurr(iIndex);
       
       if (dD > 0. 
 	  || (dD == 0. && dF >= 0.) 
@@ -156,7 +156,7 @@ class ContactJoint : virtual public Elem, public Joint {
       dD = N.Dot(D);
       doublereal dV = N.Dot(V);
       
-      dF = XCurr.dGetCoef(iIndex);
+      dF = XCurr(iIndex);
       
       if (dD > 0. 
 	  || (dD == 0. && dF >= 0.) 

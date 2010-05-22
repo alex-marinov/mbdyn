@@ -217,8 +217,8 @@ void ModLugreFriction::AssRes(
 	const doublereal v,
 	const VectorHandler& X,
 	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
-	doublereal z = X.dGetCoef(solution_startdof+1);
-	doublereal zp = XP.dGetCoef(solution_startdof+1);
+	doublereal z = X(solution_startdof+1);
+	doublereal zp = XP(solution_startdof+1);
 	f = sigma0*z + sigma1*zp + sigma2*v;
 	WorkVec.IncCoef(startdof+1,zp-v+alpha(z,v)*v*z/fs(v)*sigma0);
 };
@@ -236,8 +236,8 @@ void ModLugreFriction::AssJac(
 	const ExpandableRowVector& dF,
 	const ExpandableRowVector& dv) const {
 
-	doublereal z = X.dGetCoef(solution_startdof+1);
-	//doublereal zp = XP.dGetCoef(solution_startdof+1);
+	doublereal z = X(solution_startdof+1);
+	//doublereal zp = XP(solution_startdof+1);
 /*
  * 	attrito
  */
@@ -351,7 +351,7 @@ void DiscreteCoulombFriction::AfterConvergence(
 	const VectorHandler&X, 
 	const VectorHandler&XP, 
 	const unsigned int solution_startdof) {
-	f = X.dGetCoef(solution_startdof+1);
+	f = X(solution_startdof+1);
 // 	std::cerr << " ** ";
 // 	std::cerr << f << " " << v << " " << status << " " << transition_type << " ";
 	converged_v = v;
@@ -382,7 +382,7 @@ void DiscreteCoulombFriction::AssRes(
 	const VectorHandler& X,
 	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
 // 	std::cerr << "Chimata residuo. Status:" << status << std::endl;
-	f = X.dGetCoef(solution_startdof+1);
+	f = X(solution_startdof+1);
 //	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {
 //* 	std::cerr << "Attrito: " << f << " " << (std::fabs(f)-fss(0))/fss(0) << " - " << std::endl;
 //*	std::cerr << "v: " << v << std::endl; 

@@ -151,8 +151,8 @@ Accumulator::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal density = HF->dGetDensity();
   
    /* unused? doublereal p1 = pNode1->dGetX(); */
-   s = XCurr.dGetCoef(iFirstIndex+1);  /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);  /* velocita' */
+   s = XCurr(iFirstIndex+1);  /* spostamento */
+   v = XCurr(iFirstIndex+2);  /* velocita' */
    
    doublereal Jac11 = 0;
    doublereal Jac12 = 0;
@@ -230,10 +230,10 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
    integer iFirstIndex = iGetFirstIndex();
    
    doublereal p1 = pNode1->dGetX();
-   s = XCurr.dGetCoef(iFirstIndex+1);        /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);        /* velocita' */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1);  /* velocita' */
-   vp = XPrimeCurr.dGetCoef(iFirstIndex+2);  /* accelerazione */
+   s = XCurr(iFirstIndex+1);        /* spostamento */
+   v = XCurr(iFirstIndex+2);        /* velocita' */
+   sp = XPrimeCurr(iFirstIndex+1);  /* velocita' */
+   vp = XPrimeCurr(iFirstIndex+2);  /* accelerazione */
 
    doublereal Res_1 = 0.;
    doublereal Res_2 = 0.;
@@ -491,9 +491,9 @@ Tank::AssJac(VariableSubMatrixHandler& WorkMat,
    
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX(); 
-   /* p1 = XCurr.dGetCoef(pNode1->iGetFirstRowIndex()+1); */
+   /* p1 = XCurr(pNode1->iGetFirstRowIndex()+1); */
 
-   s = XCurr.dGetCoef(iFirstIndex+1); /* livello */
+   s = XCurr(iFirstIndex+1); /* livello */
      
    /* salto di pressione nodo1-Tank */
    doublereal jumpPres1S = fabs(p1-press);  
@@ -577,8 +577,8 @@ Tank::AssRes(SubVectorHandler& WorkVec,
    
    integer iFirstIndex = iGetFirstIndex();
    
-   s = XCurr.dGetCoef(iFirstIndex+1);       /* livello */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' del livello */
+   s = XCurr(iFirstIndex+1);       /* livello */
+   sp = XPrimeCurr(iFirstIndex+1); /* velocita' del livello */
   
    if (s < 0.) {
       silent_cerr("Tank(" << GetLabel() << ": negative fluid level "

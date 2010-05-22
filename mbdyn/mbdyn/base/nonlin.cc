@@ -257,7 +257,7 @@ NonlinearSolverTestScale::SetScale(const VectorHandler* pScl)
 const doublereal&
 NonlinearSolverTestScale::dScaleCoef(const integer& iIndex) const
 {
-	return pScale->dGetCoef(iIndex);
+	return pScale->operator()(iIndex);
 }
 
 /* NonlinearSolverTestScale - end */

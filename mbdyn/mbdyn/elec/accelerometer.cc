@@ -199,14 +199,14 @@ Accelerometer::AssRes(SubVectorHandler& WorkVec,
 
 	Vec3 XP(pStrNode->GetVCurr());
 	Mat3x3 R(pStrNode->GetRCurr());
-	doublereal v = XCurr.dGetCoef(iFirstIndex + 1);
-	doublereal vp = XPrimeCurr.dGetCoef(iFirstIndex + 1);
-	doublereal y1 = XCurr.dGetCoef(iFirstIndex + 2);
-	doublereal y1p = XPrimeCurr.dGetCoef(iFirstIndex + 2);
-	doublereal y2 = XCurr.dGetCoef(iFirstIndex + 3);
-	doublereal y2p = XPrimeCurr.dGetCoef(iFirstIndex + 3);
-	doublereal z = XCurr.dGetCoef(iAbstractIndex + 1);
-	doublereal zp = XPrimeCurr.dGetCoef(iAbstractIndex + 1);
+	doublereal v = XCurr(iFirstIndex + 1);
+	doublereal vp = XPrimeCurr(iFirstIndex + 1);
+	doublereal y1 = XCurr(iFirstIndex + 2);
+	doublereal y1p = XPrimeCurr(iFirstIndex + 2);
+	doublereal y2 = XCurr(iFirstIndex + 3);
+	doublereal y2p = XPrimeCurr(iFirstIndex + 3);
+	doublereal z = XCurr(iAbstractIndex + 1);
+	doublereal zp = XPrimeCurr(iAbstractIndex + 1);
 
 	WorkVec.PutCoef(1, (R*Dir).Dot(XP) - v);
 	WorkVec.PutCoef(2, -y1p - dOmega*dOmega/dTau*y2);
@@ -353,8 +353,8 @@ TranslAccel::AssRes(SubVectorHandler& WorkVec,
 	Vec3 tmpf = pStrNode->GetRCurr()*f;
 	Vec3 tmpd = pStrNode->GetRCurr()*Dir;
 
-	doublereal v = XCurr.dGetCoef(iFirstIndex);
-	doublereal vp = XPrimeCurr.dGetCoef(iFirstIndex);
+	doublereal v = XCurr(iFirstIndex);
+	doublereal vp = XPrimeCurr(iFirstIndex);
 	doublereal a = pAbsNode->dGetX();
 
 	WorkVec.PutCoef(1, vp - a);
@@ -492,8 +492,8 @@ RotAccel::AssRes(SubVectorHandler& WorkVec,
 
 	Vec3 tmp = pStrNode->GetRCurr()*Dir;
 
-	doublereal v = XCurr.dGetCoef(iFirstIndex);
-	doublereal vp = XPrimeCurr.dGetCoef(iFirstIndex);
+	doublereal v = XCurr(iFirstIndex);
+	doublereal vp = XPrimeCurr(iFirstIndex);
 	doublereal a = pAbsNode->dGetX();
 
 	WorkVec.PutCoef(1, vp - a);

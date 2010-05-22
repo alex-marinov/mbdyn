@@ -150,9 +150,9 @@ LinearAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNodeRowIndex = pNode->iGetFirstRowIndex();
    integer iIndex = iGetFirstIndex();
    
-   doublereal dQ = XCurr.dGetCoef(iIndex+1);
-   doublereal dQP = XPrimeCurr.dGetCoef(iIndex+1);
-   dF = XCurr.dGetCoef(iIndex+2);
+   doublereal dQ = XCurr(iIndex+1);
+   doublereal dQP = XPrimeCurr(iIndex+1);
+   dF = XCurr(iIndex+2);
    
    Vec3 V = pNode->GetVCurr();
    
@@ -364,9 +364,9 @@ AngularAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
    integer iNodeRowIndex = pNode->iGetFirstRowIndex();
    integer iIndex = iGetFirstIndex();
    
-   doublereal dQ = XCurr.dGetCoef(iIndex+1);
-   doublereal dQP = XPrimeCurr.dGetCoef(iIndex+1);
-   dM = XCurr.dGetCoef(iIndex+2);
+   doublereal dQ = XCurr(iIndex+1);
+   doublereal dQP = XPrimeCurr(iIndex+1);
+   dM = XCurr(iIndex+2);
       
    Vec3 W = pNode->GetWCurr();
    Vec3 TmpDir = pNode->GetRCurr()*Dir;

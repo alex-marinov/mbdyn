@@ -140,7 +140,7 @@ Pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    doublereal jumpPres = fabs(p1-p2);
-   doublereal q = XCurr.dGetCoef(iFirstIndex);  /* portata */
+   doublereal q = XCurr(iFirstIndex);  /* portata */
    doublereal Jac13 = -1.;
    doublereal Jac23 = 1.;
    doublereal Jac31 = 1.;
@@ -286,7 +286,7 @@ Pipe::AssRes(SubVectorHandler& WorkVec,
    integer iNode2RowIndex = pNode2->iGetFirstRowIndex()+1;
    integer iFirstIndex = iGetFirstIndex()+1;
    
-   doublereal q = XCurr.dGetCoef(iFirstIndex);  /* portata q */
+   doublereal q = XCurr(iFirstIndex);  /* portata q */
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    doublereal density = HF->dGetDensity((p1+p2)/2.);
@@ -561,8 +561,8 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    
-   doublereal q1 = XCurr.dGetCoef(iFirstIndex+2);        /* portata nodo 1 */
-   doublereal q2 = XCurr.dGetCoef(iFirstIndex+3);        /* portata nodo 2 */
+   doublereal q1 = XCurr(iFirstIndex+2);        /* portata nodo 1 */
+   doublereal q2 = XCurr(iFirstIndex+3);        /* portata nodo 2 */
    
    doublereal densityDPres = HF->dGetDensityDPres();
    doublereal densityS = HF->dGetDensity(p1);            /* densita' all'inizio del tubo */
@@ -702,8 +702,8 @@ Dynamic_pipe::AssJac(VariableSubMatrixHandler& WorkMat,
    DEBUGCOUT("JAC p2:        " << p2 << std::endl);
    DEBUGCOUT("JAC q1:        " << q1 << std::endl);
    DEBUGCOUT("JAC q2:        " << q2 << std::endl);
-   doublereal q1p = XPrimeCurr.dGetCoef(iFirstIndex+2); /* derivata q nodo 1 */
-   doublereal q2p = XPrimeCurr.dGetCoef(iFirstIndex+3); /* derivata q nodo 2 */
+   doublereal q1p = XPrimeCurr(iFirstIndex+2); /* derivata q nodo 1 */
+   doublereal q2p = XPrimeCurr(iFirstIndex+3); /* derivata q nodo 2 */
    DEBUGCOUT("JAC q1p:       " << q1p << std::endl);
    DEBUGCOUT("JAC q2p:       " << q2p << std::endl);
    DEBUGCOUT("JAC length:    " << length << std::endl);
@@ -757,13 +757,13 @@ Dynamic_pipe::AssRes(SubVectorHandler& WorkVec,
    doublereal p2 = pNode2->dGetX();
    integer iFirstIndex = iGetFirstIndex();
    
-   doublereal pr = XCurr.dGetCoef(iFirstIndex+1);        /* pressione */
-   doublereal prp = XPrimeCurr.dGetCoef(iFirstIndex+1);  /* derivata pressione */
+   doublereal pr = XCurr(iFirstIndex+1);        /* pressione */
+   doublereal prp = XPrimeCurr(iFirstIndex+1);  /* derivata pressione */
    
-   doublereal q1 = XCurr.dGetCoef(iFirstIndex+2);        /* portata nodo 1 */
-   doublereal q2 = XCurr.dGetCoef(iFirstIndex+3);        /* portata nodo 2 */
-   doublereal q1p = XPrimeCurr.dGetCoef(iFirstIndex+2);  /* derivata portata nodo 1 */
-   doublereal q2p = XPrimeCurr.dGetCoef(iFirstIndex+3);  /* derivata portata nodo 2 */
+   doublereal q1 = XCurr(iFirstIndex+2);        /* portata nodo 1 */
+   doublereal q2 = XCurr(iFirstIndex+3);        /* portata nodo 2 */
+   doublereal q1p = XPrimeCurr(iFirstIndex+2);  /* derivata portata nodo 1 */
+   doublereal q2p = XPrimeCurr(iFirstIndex+3);  /* derivata portata nodo 2 */
    
    flow1 = q1;  /* per l'output */
    flow2 = q2;  /* per l'output */
@@ -1248,15 +1248,15 @@ DynamicPipe::AssRes(SubVectorHandler& WorkVec,
    
    integer iFirstIndex = iGetFirstIndex();
    
-   p1 = XCurr.dGetCoef(iFirstIndex+1);        /* pressione */
-   p2 = XCurr.dGetCoef(iFirstIndex+2);        /* pressione */
-   p1p = XPrimeCurr.dGetCoef(iFirstIndex+1);  /* derivata pressione */
-   p2p = XPrimeCurr.dGetCoef(iFirstIndex+2);  /* derivata pressione */
+   p1 = XCurr(iFirstIndex+1);        /* pressione */
+   p2 = XCurr(iFirstIndex+2);        /* pressione */
+   p1p = XPrimeCurr(iFirstIndex+1);  /* derivata pressione */
+   p2p = XPrimeCurr(iFirstIndex+2);  /* derivata pressione */
    
-   q1 = XCurr.dGetCoef(iFirstIndex+3);        /* portata nodo 1 */
-   q2 = XCurr.dGetCoef(iFirstIndex+4);        /* portata nodo 2 */
-   q1p = XPrimeCurr.dGetCoef(iFirstIndex+3);  /* derivata portata nodo 1 */
-   q2p = XPrimeCurr.dGetCoef(iFirstIndex+4);  /* derivata portata nodo 2 */
+   q1 = XCurr(iFirstIndex+3);        /* portata nodo 1 */
+   q2 = XCurr(iFirstIndex+4);        /* portata nodo 2 */
+   q1p = XPrimeCurr(iFirstIndex+3);  /* derivata portata nodo 1 */
+   q2p = XPrimeCurr(iFirstIndex+4);  /* derivata portata nodo 2 */
    
    doublereal p0 = .5*(p1+p2);
    

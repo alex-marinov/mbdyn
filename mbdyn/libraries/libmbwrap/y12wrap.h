@@ -62,9 +62,9 @@
  * 
  * // Operare sulla matrice e sui vettori
  *         pMH->PutCoef(row, col, coef);
- *         coef = pMH->dGetCoef(row, col);
+ *         coef = pMH->operator()(row, col);
  *         pRH->PutCoef(row, coef);
- *         coef = pRH->dGetCoef(row);
+ *         coef = pRH->operator()(row);
  * 
  * // Risolvere il problema; in questa fase si assume che: 
  * //  - la matrice sia stata completata;

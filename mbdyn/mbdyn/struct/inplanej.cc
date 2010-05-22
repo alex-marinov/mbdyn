@@ -153,7 +153,7 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
    // Vec3 pTmp = R*p;
    
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
    Vec3 F(vTmp*dF);
    
    WorkVec.Add(1, F);
@@ -212,7 +212,7 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 Omega(pNode1->GetWRef());
    
    /* Aggiorna i dati propri */
-   doublereal dFPrime = XCurr.dGetCoef(iReactionPrimeIndex+1);
+   doublereal dFPrime = XCurr(iReactionPrimeIndex+1);
    Vec3 vTmp(pNode1->GetRRef()*v);
    Vec3 F(vTmp*dF);
    Vec3 FPrime(vTmp*dFPrime);
@@ -323,8 +323,8 @@ SubVectorHandler& InPlaneJoint::InitialAssRes(SubVectorHandler& WorkVec,
    // Vec3 pTmp = R*p;   
    
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
-   doublereal dFPrime = XCurr.dGetCoef(iReactionPrimeIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
+   doublereal dFPrime = XCurr(iReactionPrimeIndex+1);
    Vec3 F(vTmp*dF);
    Vec3 FPrime(vTmp*dFPrime);
    Vec3 Tmp(Omega.Cross(F)+FPrime);
@@ -493,7 +493,7 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 x2pqmx1(pNode2->GetXCurr()+qTmp-pNode1->GetXCurr());
    
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
    Vec3 F(vTmp*dF);
    
    WorkVec.Add(1, F);
@@ -556,7 +556,7 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 xp2pqpmxp1(pNode2->GetVCurr()+Omega2.Cross(qTmp)-pNode1->GetVCurr());
    
    /* Aggiorna i dati propri */
-   doublereal dFPrime = XCurr.dGetCoef(iReactionPrimeIndex+1);
+   doublereal dFPrime = XCurr(iReactionPrimeIndex+1);
    Vec3 F(vTmp*dF);
    Vec3 FPrime(vTmp*dFPrime);
 
@@ -703,8 +703,8 @@ InPlaneWithOffsetJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 xp2pqpmxp1(pNode2->GetVCurr()+Omega2.Cross(qTmp)-pNode1->GetVCurr());
    
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
-   doublereal dFPrime = XCurr.dGetCoef(iReactionPrimeIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
+   doublereal dFPrime = XCurr(iReactionPrimeIndex+1);
    Vec3 F(vTmp*dF);
    Vec3 FPrime(vTmp*dFPrime);
    Vec3 Tmp(Omega1.Cross(F)+FPrime);

@@ -250,8 +250,8 @@ ScalarDifferentialNode::Update(const class VectorHandler& X,
 	dXPrev = dX;
 	dXPPrev = dXP;
 
-	dX = X.dGetCoef(iFirstIndex);
-	dXP = XP.dGetCoef(iFirstIndex);
+	dX = X(iFirstIndex);
+	dXP = XP(iFirstIndex);
 }
 
 std::ostream&
@@ -433,7 +433,7 @@ ScalarAlgebraicNode::Update(const class VectorHandler& X,
 	integer iFirstIndex = iGetFirstIndex()+1;
 
 	dXPrev = dX;
-	dX = X.dGetCoef(iFirstIndex);
+	dX = X(iFirstIndex);
 }
 
 std::ostream&

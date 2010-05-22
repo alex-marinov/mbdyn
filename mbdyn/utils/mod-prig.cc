@@ -94,8 +94,8 @@ int grad(void* p, MatrixHandler& J, const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal theta = X.dGetCoef(1); 
-//    doublereal phi = X.dGetCoef(2);
+   doublereal theta = X(1); 
+//    doublereal phi = X(2);
    
    doublereal ctheta = cos(theta);
 //    doublereal stheta = sin(theta);
@@ -113,8 +113,8 @@ int func(void* p, VectorHandler& R, const VectorHandler& X, const doublereal& t)
 {
    private_data* pd = (private_data*)p;
    
-   doublereal theta = X.dGetCoef(1);
-   doublereal phi = X.dGetCoef(2);
+   doublereal theta = X(1);
+   doublereal phi = X(2);
    
 //    doublereal ctheta = cos(theta);
    doublereal stheta = sin(theta);
@@ -133,10 +133,10 @@ std::ostream& out(void* p, std::ostream& o,
 {
    private_data* pd = (private_data*)p;
   
-   doublereal theta = X.dGetCoef(1);
+   doublereal theta = X(1);
    doublereal ctheta = cos(theta);
    doublereal stheta = sin(theta);
-   doublereal phi = X.dGetCoef(2);
+   doublereal phi = X(2);
    doublereal m = pd->m;   
    doublereal l = pd->l;
    doublereal g = pd->g;
@@ -149,8 +149,8 @@ std::ostream& out(void* p, std::ostream& o,
   
    
    return o << theta
-     << " " << X.dGetCoef(2)
-     << " " << XP.dGetCoef(1) << " " << XP.dGetCoef(2)
+     << " " << X(2)
+     << " " << XP(1) << " " << XP(2)
      << " " << x << " " << y << " " << E;
 }
 

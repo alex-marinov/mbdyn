@@ -862,7 +862,7 @@ main(int argc, char *argv[])
 	}
 	if (output_solution) {
 		for (int i = 1; i <= size; i++) {
-			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+			std::cout << "\tsol[" << i << "] = " << px->operator()(i) 
 				<< std::endl;
 		}
 	}
@@ -910,7 +910,7 @@ main(int argc, char *argv[])
 	
 	if (output_solution) {
 		for (int i = 1; i <= size; i++) {
-			std::cout << "\tsol[" << i << "] = " << px->dGetCoef(i) 
+			std::cout << "\tsol[" << i << "] = " << px->operator()(i) 
 				<< std::endl;
 		}
 	}

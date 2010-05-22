@@ -151,7 +151,7 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
    
    /* Recupera i dati */
    Vec3 vNode(pNode->GetVCurr());
@@ -229,7 +229,7 @@ LinearVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
-   dF = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dF = XCurr(iFirstReactionIndex+1);
    
    /* Recupera i dati */
    Vec3 vNode(pNode->GetVCurr());
@@ -368,7 +368,7 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
-   dM = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dM = XCurr(iFirstReactionIndex+1);
    
    /* Recupera i dati */
    Vec3 Omega(pNode->GetWCurr());
@@ -456,7 +456,7 @@ AngularVelocityJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.PutRowIndex(4, iFirstReactionIndex+1);
 
    /* Aggiorna i dati propri */
-   dM = XCurr.dGetCoef(iFirstReactionIndex+1);
+   dM = XCurr(iFirstReactionIndex+1);
    
    /* Recupera i dati */
    Vec3 Omega(pNode->GetWCurr());   

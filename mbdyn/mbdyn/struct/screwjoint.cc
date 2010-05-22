@@ -225,7 +225,7 @@ ScrewJoint::AfterConvergence(const VectorHandler& X,
 			 //relative velocity
 		v = vrel;
 			 //reaction norm
-		dLambda = X.dGetCoef(iGetFirstIndex()+1);
+		dLambda = X(iGetFirstIndex()+1);
 		modF = std::abs(dLambda);
 		fc->AfterConvergence(modF,v,X,XP,iGetFirstIndex()+1);
 	}
@@ -740,7 +740,7 @@ ScrewJoint::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
 	}
 
-	dLambda = XCurr.dGetCoef(iFirstReactionIndex+1);
+	dLambda = XCurr(iFirstReactionIndex+1);
 
 	AssVec(WorkVec, dCoef, XCurr, XPrimeCurr);
 

@@ -150,7 +150,7 @@ GenelClamp::AssRes(SubVectorHandler& WorkVec,
 	integer iFirstReactionIndex = iGetFirstIndex() + 1;
 
 	doublereal dVal = SD.pNode->dGetDofValue(1, SD.iOrder);
-	dRct = XCurr.dGetCoef(iFirstReactionIndex);
+	dRct = XCurr(iFirstReactionIndex);
 
 	WorkVec.PutItem(1, iRowIndex, -dRct);
 
@@ -323,7 +323,7 @@ GenelDistance::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal dVal1 = SD1.pNode->dGetDofValue(1, SD1.iOrder);
 	doublereal dVal2 = SD2.pNode->dGetDofValue(1, SD2.iOrder);
-	dRct = XCurr.dGetCoef(iFirstReactionIndex);
+	dRct = XCurr(iFirstReactionIndex);
 
 	WorkVec.PutItem(1, iNode1RowIndex, dRct);
 	WorkVec.PutItem(2, iNode2RowIndex, -dRct);
@@ -1075,8 +1075,8 @@ GenelMass::AssRes(SubVectorHandler& WorkVec,
 	integer iDerivativeIndex = iGetFirstIndex()+1;
 
 	doublereal dVal = SD.pNode->dGetXPrime();
-	doublereal dDer = XCurr.dGetCoef(iDerivativeIndex);
-	doublereal dDerPrime = XPrimeCurr.dGetCoef(iDerivativeIndex);
+	doublereal dDer = XCurr(iDerivativeIndex);
+	doublereal dDerPrime = XPrimeCurr(iDerivativeIndex);
 
 	WorkVec.PutItem(1, iRowIndex, -dGet()*dDerPrime);
 	WorkVec.PutItem(2, iDerivativeIndex, dVal - dDer);

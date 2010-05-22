@@ -502,7 +502,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
-				fem_data.data[i].X(j) = pX_fem->dGetCoef(i+1,j);
+				fem_data.data[i].X(j) = pX_fem->operator()(i+1,j);
 			}
 		}
 	}
@@ -531,7 +531,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (unsigned j = 1; j <= 3 ; j++) {
 				for (unsigned k = 1 ; k <= 3; k++) {
-					fem_data.data[i].R(j,k) = pR_fem->dGetCoef(i+1,(j-1)*3+k);
+					fem_data.data[i].R(j,k) = pR_fem->operator()(i+1,(j-1)*3+k);
 				}
 			}
 		}
@@ -561,7 +561,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
-				fem_data.data[i].V(j) = pV_fem->dGetCoef(i+1,j);
+				fem_data.data[i].V(j) = pV_fem->operator()(i+1,j);
 			}
 		}
 	}
@@ -587,7 +587,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
-				fem_data.data[i].W(j) = pW_fem->dGetCoef(i+1,j);
+				fem_data.data[i].W(j) = pW_fem->operator()(i+1,j);
 			}
 		}
 	}
@@ -617,7 +617,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
-				fem_data.data[i].XPP(j) = pXPP_fem->dGetCoef(i+1,j);
+				fem_data.data[i].XPP(j) = pXPP_fem->operator()(i+1,j);
 			}
 		}
 	}
@@ -643,7 +643,7 @@ StructOutputInterp::Manipulate_int(const GeometryData& mb_data)
 		// Packing data
 		for (unsigned i = 0 ; i < fem_data.data.size() ; i++){
 			for (int j = 1; j <= 3 ; j++) {
-				fem_data.data[i].WP(j) = pWP_fem->dGetCoef(i+1,j);
+				fem_data.data[i].WP(j) = pWP_fem->operator()(i+1,j);
 			}
 		}
 	}

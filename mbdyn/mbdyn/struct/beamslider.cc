@@ -531,7 +531,7 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	const StructNode *pBeamNode[Beam::NUMNODES];
 	
 	/* Aggiorna i dati propri */
-	sRef = XCurr.dGetCoef(iFirstReactionIndex+1);
+	sRef = XCurr(iFirstReactionIndex+1);
 	F = Vec3(XCurr, iFirstReactionIndex+1+1);
 	switch (iType) {
 		/*
@@ -539,8 +539,8 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 		 * orthogonal to the tangent to the reference line
 		 */
 	case CLASSIC:
-		m.Put(2, XCurr.dGetCoef(iFirstReactionIndex+1+3+1));
-		m.Put(3, XCurr.dGetCoef(iFirstReactionIndex+1+3+2));
+		m.Put(2, XCurr(iFirstReactionIndex+1+3+1));
+		m.Put(3, XCurr(iFirstReactionIndex+1+3+2));
 		break;
 		
 		/*

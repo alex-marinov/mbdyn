@@ -313,18 +313,18 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 
 	if (pGTL[iRow] > 0) {
 		if (pGTL[iCol] > 0) {
-			return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
+			return pB->operator()(pGTL[iRow], pGTL[iCol]);
 
 		} else if(pGTL[iCol] < 0) {
-			return pE->dGetCoef(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
+			return pE->operator()(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
 		}
 
 	} else if (pGTL[iRow] < 0) {
 		if (pGTL[iCol] > 0) {
-			return pF->dGetCoef(-pGTL[iRow], pGTL[iCol]);
+			return pF->operator()(-pGTL[iRow], pGTL[iCol]);
 
 		} else if (pGTL[iCol] < 0) {
-			return pC->dGetCoef(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
+			return pC->operator()(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
 		}
 	}
 
@@ -389,18 +389,18 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol) const
 
 	if (pGTL[iRow] > 0) {
 		if (pGTL[iCol] > 0) {
-			return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
+			return pB->operator()(pGTL[iRow], pGTL[iCol]);
 
 		} else if (pGTL[iCol] < 0) {
-			return pE->dGetCoef(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
+			return pE->operator()(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
 		}
 
 	} else {
 		if (pGTL[iCol] > 0) {
-			return pF->dGetCoef(-pGTL[iRow], pGTL[iCol]);
+			return pF->operator()(-pGTL[iRow], pGTL[iCol]);
 
 		} else if (pGTL[iCol] < 0) {
-			return pC->dGetCoef(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
+			return pC->operator()(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
 		}
 	}
 
@@ -442,7 +442,7 @@ SchurMatrixHandler::CompLocSchur(void)
     		for (int k = 0; k < LSize; k++) {
       			for (int i = 0; i < ISize; i++) {
         			pdC[i + iColc] -=
-					pF->dGetCoef(i + 1, k + 1) * pdE[k + iCole];
+					pF->operator()(i + 1, k + 1) * pdE[k + iCole];
       			}
     		}
   	}
@@ -474,7 +474,7 @@ SchurMatrixHandler::PrintMatrix(void)
 
 	for (int i = 0; i < LSize; i++) {
 		for (int j = 0; j < LSize; j++) {
- 			silent_cout(pB->dGetCoef(i + 1, j + 1) << " ");
+ 			silent_cout(pB->operator()(i + 1, j + 1) << " ");
 		}
 
 		for (int j = 0; j < ISize; j++) {
@@ -485,7 +485,7 @@ SchurMatrixHandler::PrintMatrix(void)
 
 	for (int i = 0; i < ISize; i++) {
 		for (int j = 0; j < LSize; j++) {
- 			silent_cout(pF->dGetCoef(i + 1, j + 1) << " ");
+ 			silent_cout(pF->operator()(i + 1, j + 1) << " ");
 		}
 
 		for (int j = 0; j < ISize; j++) {
@@ -691,10 +691,10 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
-		return pLV->dGetCoef(pGTL[iRow]);
+		return pLV->operator()(pGTL[iRow]);
 
 	} else if (pGTL[iRow] < 0) {
-		return pIV->dGetCoef(-pGTL[iRow]);
+		return pIV->operator()(-pGTL[iRow]);
 
 	} else {
 #ifdef USE_MPI
@@ -719,10 +719,10 @@ SchurVectorHandler::operator()(integer iRow) const
 #endif /* DEBUG */
 
 	if (pGTL[iRow] > 0) {
-		return pLV->dGetCoef(pGTL[iRow]);
+		return pLV->operator()(pGTL[iRow]);
 
 	} else if (pGTL[iRow] < 0) {
-		return pIV->dGetCoef(-pGTL[iRow]);
+		return pIV->operator()(-pGTL[iRow]);
 
 	} else {
 #ifdef USE_MPI
@@ -755,11 +755,11 @@ SchurVectorHandler::PrintVector(void)
 	silent_cout("Schur Vector " << std::endl);
 
 	for (int j = 0; j < LSize; j++) {
- 		silent_cout(pLV->dGetCoef(j + 1) << " " << std::endl);
+ 		silent_cout(pLV->operator()(j + 1) << " " << std::endl);
 	}
 
 	for (int j = 0; j < ISize; j++) {
- 		silent_cout(pIV->dGetCoef(j + 1) << " " << std::endl);
+ 		silent_cout(pIV->operator()(j + 1) << " " << std::endl);
 	}
 }
 
@@ -1001,23 +1001,23 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 
 	if (pGTL[iRow] > 0) {
 		if (pGTL[iCol] > 0) {
-			return pB->dGetCoef(pGTL[iRow], pGTL[iCol]);
+			return pB->operator()(pGTL[iRow], pGTL[iCol]);
 
 		} else if (pGTL[iCol] < 0) {
 			if (Eflag) {
-				return pE->dGetCoef(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
+				return pE->operator()(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
 
 			} else {
-				return pEs->dGetCoef(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
+				return pEs->operator()(pGTL[iRow] - (pGTL[iCol] + 1)*LSize);
 			}
 		}
 
 	} else if (pGTL[iRow] < 0) {
 		if (pGTL[iCol] > 0) {
-			return pF->dGetCoef(-pGTL[iRow], pGTL[iCol]);
+			return pF->operator()(-pGTL[iRow], pGTL[iCol]);
 
 		} else if (pGTL[iCol] < 0) {
-			return pC->dGetCoef(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
+			return pC->operator()(-pGTL[iRow] - (pGTL[iCol] + 1)*ISize);
 		}
 	}
 
@@ -1059,7 +1059,7 @@ SchurMatrixHandlerUm::CompLocSchur(void)
     		for (int k = 0; k < LSize; k++) {
       			for (int i = 0; i < ISize; i++) {
         			pdC[i + iColc] -=
-					pF->dGetCoef(i + 1, k + 1) * pdEs[k + iCole];
+					pF->operator()(i + 1, k + 1) * pdEs[k + iCole];
       			}
     		}
   	}
@@ -1092,7 +1092,7 @@ SchurMatrixHandlerUm::PrintMatrix(void)
 
 	for (int i = 0; i < LSize; i++) {
 		for (int j = 0; j < LSize; j++) {
- 			silent_cout(pB->dGetCoef(i + 1, j + 1) << " ");
+ 			silent_cout(pB->operator()(i + 1, j + 1) << " ");
 		}
 
 		for (int j = 0; j < ISize; j++) {
@@ -1107,7 +1107,7 @@ SchurMatrixHandlerUm::PrintMatrix(void)
 
 	for (int i = 0; i < ISize; i++) {
 		for (int j = 0;j < LSize; j++) {
- 			silent_cout(pF->dGetCoef(i + 1, j + 1) << " ");
+ 			silent_cout(pF->operator()(i + 1, j + 1) << " ");
 		}
 
 		for (int j = 0; j < ISize; j++) {

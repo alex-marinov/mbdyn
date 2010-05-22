@@ -99,7 +99,7 @@ main(void)
 	std::cout << "matrix in cc<0> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << ccm0.dGetCoef(ir, ic);
+			std::cout << std::setw(16) << ccm0(ir, ic);
 		}
 		std::cout << std::endl;
 	}
@@ -111,7 +111,7 @@ main(void)
 	std::cout << "matrix in cc<1> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << ccm1.dGetCoef(ir, ic);
+			std::cout << std::setw(16) << ccm1(ir, ic);
 		}
 		std::cout << std::endl;
 	}
@@ -122,7 +122,7 @@ main(void)
 	std::cout << "matrix in dir<0> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << dirm0.dGetCoef(ir, ic);
+			std::cout << std::setw(16) << dirm0(ir, ic);
 		}
 		std::cout << std::endl;
 	}
@@ -133,7 +133,7 @@ main(void)
 	std::cout << "matrix in dir<1> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << dirm1.dGetCoef(ir, ic);
+			std::cout << std::setw(16) << dirm1(ir, ic);
 		}
 		std::cout << std::endl;
 	}

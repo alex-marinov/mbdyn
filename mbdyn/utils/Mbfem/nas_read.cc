@@ -767,7 +767,7 @@ void text_dump(char* InFileName,int N_step,int N_block,map<int,Block> BlockList)
 		fprintf(fout,"%d %d\n",pH->iGetNumRows(),pH->iGetNumCols());
 		for (int i=0; i < pH->iGetNumRows(); i++){
 			for (int j=0; j < pH->iGetNumCols(); j++){
-				fprintf(fout,"%le ",pH->dGetCoef(i+1,j+1));
+				fprintf(fout,"%le ",pH->operator()(i+1,j+1));
 			}
 			fprintf(fout,"\n");
 		}

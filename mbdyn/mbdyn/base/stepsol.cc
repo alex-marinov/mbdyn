@@ -225,7 +225,7 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
 		{
 
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+				doublereal d = pXPrimeCurr->operator()(iCntp1);
 				doublereal d2 = d*d;
 
 				doublereal ds = pTest->dScaleCoef(iCntp1);
@@ -309,7 +309,7 @@ DerivativeSolver::UpdateDof(const int DCount,
 		const DofOrder::Order Order,
 		const VectorHandler* const pSol) const
 {
-	doublereal d = pSol->dGetCoef(DCount);
+	doublereal d = pSol->operator()(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
 		pXPrimeCurr->IncCoef(DCount, d);
 		
@@ -390,7 +390,7 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 // 		inc.Reset();
 // 		inc.PutCoef(i, ddd);
 // 		Update(&inc);
-// 		std::cerr << pXPrimeCurr->dGetCoef(30) << std::endl;
+// 		std::cerr << pXPrimeCurr->operator()(30) << std::endl;
 // 		pDM->AssRes(incsol, db0Differential);
 // 		inc.Reset();
 // 		inc.PutCoef(i, -ddd);
@@ -399,8 +399,8 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 // 		incsol*=(1./(-ddd));
 // 		for (integer j = 1; j <= pJac->iGetNumCols(); j++) {
 // 			pippo.PutCoef(j, i, 
-// 				std::abs(incsol.dGetCoef(j)) >
-// 				1.E-100?incsol.dGetCoef(j):0.);
+// 				std::abs(incsol(j)) >
+// 				1.E-100?incsol(j):0.);
 // 		}
 // 	}
 // 	std::cerr << "\nxxxxxxxxxxxxxxx\n" << std::endl;
@@ -416,7 +416,7 @@ StepNIntegrator::UpdateDof(const int DCount,
 	const DofOrder::Order Order,
 	const VectorHandler* const pSol) const
 {
-	doublereal d = pSol->dGetCoef(DCount);
+	doublereal d = pSol->operator()(DCount);
 	if (Order == DofOrder::DIFFERENTIAL) {
 		pXPrimeCurr->IncCoef(DCount, d);
 		
@@ -475,17 +475,17 @@ void Step1Integrator::PredictDof(const int DCount,
 	const VectorHandler* const pSol) const
 {
 	if (Order == DofOrder::DIFFERENTIAL) {
-		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-		doublereal dXPnm1 = pXPrimePrev->dGetCoef(DCount);
+		doublereal dXnm1 = pXPrev->operator()(DCount);
+		doublereal dXPnm1 = pXPrimePrev->operator()(DCount);
 		doublereal dXPn = dPredDer(dXnm1, dXPnm1);
 		doublereal dXn = dPredState(dXnm1, dXPn, dXPnm1);
 		pXPrimeCurr->PutCoef(DCount, dXPn);
 		pXCurr->PutCoef(DCount, dXn);
 	
 	} else if (Order == DofOrder::ALGEBRAIC) {
-		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
+		doublereal dXnm1 = pXPrev->operator()(DCount);
 		doublereal dXInm1 = 
-			pXPrimePrev->dGetCoef(DCount);
+			pXPrimePrev->operator()(DCount);
 				                                
 		doublereal dXn = dPredDerAlg(dXInm1, dXnm1);
 		doublereal dXIn = dPredStateAlg(dXInm1, dXn, dXnm1);
@@ -543,15 +543,15 @@ Step1Integrator::Advance(Solver* pS,
 			",   XPrime  ,   XPPrev" << std::endl;
 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
     			std::cout << std::setw(4) << iTmpCnt << ": ";
-			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
+			std::cout << std::setw(12) << pX->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 				std::cout << std::setw(12)
-				<< (qX[ivec])->dGetCoef(iTmpCnt);
+				<< (qX[ivec])->operator()(iTmpCnt);
 			} 
-			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
+			std::cout << std::setw(12) << pXPrime->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 				std::cout << std::setw(12)
-				<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
+				<< (qXPrime[ivec])->operator()(iTmpCnt);
 			} 
 			std::cout << std::endl;
  		}
@@ -600,12 +600,12 @@ void Step2Integrator::PredictDof(const int DCount,
 	const VectorHandler* const pSol) const
 {
 	if (Order == DofOrder::DIFFERENTIAL) {
-		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-		doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
-		doublereal dXPnm1 = pXPrimePrev->dGetCoef(DCount);
+		doublereal dXnm1 = pXPrev->operator()(DCount);
+		doublereal dXnm2 = pXPrev2->operator()(DCount);
+		doublereal dXPnm1 = pXPrimePrev->operator()(DCount);
 
 		doublereal dXPnm2 = 
-			pXPrimePrev2->dGetCoef(DCount);
+			pXPrimePrev2->operator()(DCount);
 		doublereal dXPn = dPredDer(dXnm1, dXnm2, 
 				dXPnm1, dXPnm2);
 		doublereal dXn = dPredState(dXnm1, dXnm2, 
@@ -615,10 +615,10 @@ void Step2Integrator::PredictDof(const int DCount,
 		pXCurr->PutCoef(DCount, dXn);
 		
 	} else if (Order == DofOrder::ALGEBRAIC) {
-		doublereal dXnm1 = pXPrev->dGetCoef(DCount);
-		doublereal dXnm2 = pXPrev2->dGetCoef(DCount);
+		doublereal dXnm1 = pXPrev->operator()(DCount);
+		doublereal dXnm2 = pXPrev2->operator()(DCount);
 		doublereal dXInm1 = 
-			pXPrimePrev->dGetCoef(DCount);
+			pXPrimePrev->operator()(DCount);
 						                                
 		doublereal dXn = dPredDerAlg(dXInm1, 
 				dXnm1, dXnm2);
@@ -684,15 +684,15 @@ Step2Integrator::Advance(Solver* pS,
 			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
     			std::cout << std::setw(4) << iTmpCnt << ": ";
-			std::cout << std::setw(12) << pX->dGetCoef(iTmpCnt);
+			std::cout << std::setw(12) << pX->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
 				std::cout << std::setw(12)
-					<< (qX[ivec])->dGetCoef(iTmpCnt);
+					<< (qX[ivec])->operator()(iTmpCnt);
 			} 
-			std::cout << std::setw(12) << pXPrime->dGetCoef(iTmpCnt);
+			std::cout << std::setw(12) << pXPrime->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 				std::cout << std::setw(12)
-					<< (qXPrime[ivec])->dGetCoef(iTmpCnt);
+					<< (qXPrime[ivec])->operator()(iTmpCnt);
 			} 
 			std::cout << std::endl;
  		}
@@ -1365,7 +1365,7 @@ InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest) const
 		{
 
 			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
-				doublereal d = pXPrimeCurr->dGetCoef(iCntp1);
+				doublereal d = pXPrimeCurr->operator()(iCntp1);
 				doublereal d2 = d*d;
 
 				doublereal ds = pTest->dScaleCoef(iCntp1);

@@ -398,8 +398,8 @@ Solver::Flip(void)
 	MyVectorHandler* x = qX[0];
 	MyVectorHandler* xp = qXPrime[0];
 	for (integer i = 1; i <= iNumDofs; i++) {
-		x->PutCoef(i, pX->dGetCoef(i));
-		xp->PutCoef(i, pXPrime->dGetCoef(i));
+		x->PutCoef(i, pX->operator()(i));
+		xp->PutCoef(i, pXPrime->operator()(i));
 	}			
 }
 

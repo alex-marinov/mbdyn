@@ -72,7 +72,7 @@ int res(void* p, VectorHandler& R, const doublereal&,
 	const VectorHandler& X, const VectorHandler& XP)
 {
    // private_data* pd = (private_data*)p;
-   R.PutCoef(1, -1.*X.dGetCoef(1)-1.*XP.dGetCoef(1));
+   R.PutCoef(1, -1.*X(1)-1.*XP(1));
    return 0;
 }
 

@@ -217,19 +217,19 @@ retry:;
 		pM = pSM->pMatHdl();
 		pM->Reset();
 
-		pM->PutCoef(1, 1, m11);
-		pM->PutCoef(2, 2, m22);
-		pM->PutCoef(3, 3, m33);
+		pM->operator()(1, 1) = m11;
+		pM->operator()(2, 2) = m22;
+		pM->operator()(3, 3) = m33;
 		if (d) {
-			pM->PutCoef(1, 2, d);
-			pM->PutCoef(2, 1, d);
-			pM->PutCoef(2, 3, d);
-			pM->PutCoef(3, 2, d);
+			pM->operator()(1, 2) = d;
+			pM->operator()(2, 1) = d;
+			pM->operator()(2, 3) = d;
+			pM->operator()(3, 2) = d;
 		}
 		
-		pV->PutCoef(1, b1);
-		pV->PutCoef(2, b2);
-		pV->PutCoef(3, b3);
+		pV->operator()(1) = b1;
+		pV->operator()(2) = b2;
+		pV->operator()(3) = b3;
 
 	} catch (MatrixHandler::ErrRebuildMatrix) {
 		std::cerr << "need to rebuild matrix..." << std::endl;

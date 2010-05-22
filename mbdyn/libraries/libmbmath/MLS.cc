@@ -179,7 +179,7 @@ MLSP::Interpolate(const GeometryData& fem_data, const GeometryData& mb_data, SpM
                 MyVectorHandler h(N);
 		B.MatTVecMul(h,pp);
 		for (unsigned int j = 0 ; j < N ; j++){
-			pH->PutCoef(i+1, idx[j]+1, h(j+1));
+			pH->operator()(i+1, idx[j]+1) = h(j+1);
 		}
 
 
@@ -280,7 +280,7 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
                 MyVectorHandler h(N);
 		B.MatTVecMul(h,pp);
 		for (unsigned int j = 0 ; j < N ; j++){
-			pH->PutCoef(i+1, idx[j]+1, h(j+1));
+			pH->operator()(i+1, idx[j]+1) = h(j+1);
 		}
 	}
 }

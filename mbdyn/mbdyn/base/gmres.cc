@@ -112,14 +112,14 @@ Gmres::Backsolve(VectorHandler& x, integer sz,
 		VectorHandler& s, MyVectorHandler* v) 
 { 
 	for (int i = sz+1; i > 0; i--) {
-    		s.PutCoef(i, s.dGetCoef(i) / H(i, i));
+    		s.PutCoef(i, s(i) / H(i, i));
     		for (int j = i - 1; j > 0; j--) {
-      			s.DecCoef(j, H(j, i) * s.dGetCoef(i));
+      			s.DecCoef(j, H(j, i) * s(i));
 		}
   	}
 
   	for (int j = 0; j <= sz; j++) {
-    		x.ScalarAddMul(v[j], s.dGetCoef(j+1));
+    		x.ScalarAddMul(v[j], s(j+1));
 	}
 }
 
@@ -300,7 +300,7 @@ rebuild_matrix:;
 			std::cout << "v[i]:" << i << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-					<< v[i].dGetCoef(iTmpCnt) << std::endl;
+					<< v[i](iTmpCnt) << std::endl;
 			}
 #endif /* DEBUG_ITERATIVE */
 
@@ -310,7 +310,7 @@ rebuild_matrix:;
 			std::cout << "vHat:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-					<< vHat.dGetCoef(iTmpCnt) << std::endl;
+					<< vHat(iTmpCnt) << std::endl;
 			}
 #endif /* DEBUG_ITERATIVE */
 
@@ -324,7 +324,7 @@ rebuild_matrix:;
 			std::cout << "w:" << std::endl;
 	 		for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    			std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-					<< w.dGetCoef(iTmpCnt) << std::endl;
+					<< w(iTmpCnt) << std::endl;
 			}
 #endif /* DEBUG_ITERATIVE */
 
@@ -380,7 +380,7 @@ rebuild_matrix:;
 
 	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    				std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-						<< v[i+1].dGetCoef(iTmpCnt) << std::endl;
+						<< v[i+1](iTmpCnt) << std::endl;
 				}
 #endif /* DEBUG_ITERATIVE */
 			} else {
@@ -394,8 +394,8 @@ rebuild_matrix:;
 			} 
 			for (int k = 0; k < i; k++) {
         			ApplyPlaneRotation(H(k+1, i+1), H(k+2, i+1),
-						cs.dGetCoef(k+1),
-						sn.dGetCoef(k+1));
+						cs(k+1),
+						sn(k+1));
 
 #ifdef DEBUG_ITERATIVE
 				std::cerr << "H(k, i): " << k+1 << " " << i+1 << " " << H(k+1, i+1) << std::endl;
@@ -408,14 +408,14 @@ rebuild_matrix:;
 					cs(i+1), sn(i+1));
 
 #ifdef DEBUG_ITERATIVE
-			std::cerr << "cs(i): " << cs.dGetCoef(i+1) << std::endl;
-			std::cerr << "sn(i): " << sn.dGetCoef(i+1) << std::endl;
+			std::cerr << "cs(i): " << cs(i+1) << std::endl;
+			std::cerr << "sn(i): " << sn(i+1) << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
       			ApplyPlaneRotation(H(i+1, i+1), H(i+2, i+1),
 					cs(i+1), sn(i+1));
       			ApplyPlaneRotation(s(i+1), s(i+2), cs(i+1), sn(i+1));
-			if ((resid = fabs(s.dGetCoef(i+2))) < LocTol) {
+			if ((resid = fabs(s(i+2))) < LocTol) {
 
 #ifdef DEBUG_ITERATIVE
 				std::cerr << "resid 1: " << resid  << std::endl;
@@ -428,7 +428,7 @@ rebuild_matrix:;
 				std::cout << "dx:" << std::endl;
 	 			for (int iTmpCnt = 1; iTmpCnt <= Size; iTmpCnt++) {
 	    				std::cout << "Dof" << std::setw(4) << iTmpCnt << ": " 
-						<< dx.dGetCoef(iTmpCnt) << std::endl;
+						<< dx(iTmpCnt) << std::endl;
 				}
 #endif /* DEBUG_ITERATIVE */
 

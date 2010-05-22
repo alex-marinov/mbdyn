@@ -563,7 +563,7 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 	doublereal dKappa = 2.*Cd*Cd*density;
 	
 	for (int i = 0; i < LAST_Q; i++) {
-		q[i] = XCurr.dGetCoef(iFirstIndex+i);
+		q[i] = XCurr(iFirstIndex+i);
 	}
 
 #ifdef VALVE_6
@@ -751,8 +751,8 @@ Dynamic_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p4 = pNode4->dGetX();
    doublereal density = HF->dGetDensity();
 
-   s = XCurr.dGetCoef(iFirstIndex+1); /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2); /* velocita' */
+   s = XCurr(iFirstIndex+1); /* spostamento */
+   v = XCurr(iFirstIndex+2); /* velocita' */
    
    doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo2 */
    doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo3 */
@@ -886,10 +886,10 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
 
    Force = pGetDriveCaller()->dGet();
    
-   s = XCurr.dGetCoef(iFirstIndex+1);       /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);       /* velocita' */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' */
-   vp = XPrimeCurr.dGetCoef(iFirstIndex+2); /* accelerazione */
+   s = XCurr(iFirstIndex+1);       /* spostamento */
+   v = XCurr(iFirstIndex+2);       /* velocita' */
+   sp = XPrimeCurr(iFirstIndex+1); /* velocita' */
+   vp = XPrimeCurr(iFirstIndex+2); /* accelerazione */
    
    doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo2 */
    doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo3 */
@@ -1203,8 +1203,8 @@ Pressure_flow_control_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p6 = pNode6->dGetX();
    doublereal density = HF->dGetDensity();
 
-   s = XCurr.dGetCoef(iFirstIndex+1); /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2); /* velocita' */
+   s = XCurr(iFirstIndex+1); /* spostamento */
+   v = XCurr(iFirstIndex+2); /* velocita' */
    
    doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo2 */
    doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo3 */
@@ -1338,10 +1338,10 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
 
    Force = pGetDriveCaller()->dGet();
    
-   s = XCurr.dGetCoef(iFirstIndex+1);       /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);       /* velocita' */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' */
-   vp = XPrimeCurr.dGetCoef(iFirstIndex+2); /* accelerazione */
+   s = XCurr(iFirstIndex+1);       /* spostamento */
+   v = XCurr(iFirstIndex+2);       /* velocita' */
+   sp = XPrimeCurr(iFirstIndex+1); /* velocita' */
+   vp = XPrimeCurr(iFirstIndex+2); /* accelerazione */
    
    doublereal jumpPres12 = fabs(p1-p2); /* salto di pressione nodo1 & nodo2 */
    doublereal jumpPres13 = fabs(p1-p3); /* salto di pressione nodo1 & nodo3 */
@@ -1589,11 +1589,11 @@ Pressure_valve::AssJac(VariableSubMatrixHandler& WorkMat,
 
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX(); 
-   /* p1 = XCurr.dGetCoef(pNode1->iGetFirstRowIndex()+1); */
+   /* p1 = XCurr(pNode1->iGetFirstRowIndex()+1); */
    doublereal density = HF->dGetDensity();
   
-   s = XCurr.dGetCoef(iFirstIndex+1); /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2); /* velocita' */
+   s = XCurr(iFirstIndex+1); /* spostamento */
+   v = XCurr(iFirstIndex+2); /* velocita' */
    
    doublereal Cd = .6;       
    doublereal jumpPres = fabs(p1-p2);
@@ -1689,10 +1689,10 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
 
    integer iFirstIndex = iGetFirstIndex();
    
-   s = XCurr.dGetCoef(iFirstIndex+1);       /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);       /* velocita' */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1); /* velocita' */
-   vp = XPrimeCurr.dGetCoef(iFirstIndex+2); /* accelerazione */
+   s = XCurr(iFirstIndex+1);       /* spostamento */
+   v = XCurr(iFirstIndex+2);       /* velocita' */
+   sp = XPrimeCurr(iFirstIndex+1); /* velocita' */
+   vp = XPrimeCurr(iFirstIndex+2); /* accelerazione */
    doublereal density = HF->dGetDensity();
   
    doublereal Cd = .6;
@@ -1948,8 +1948,8 @@ Flow_valve::AssJac(VariableSubMatrixHandler& WorkMat,
    doublereal p1 = pNode1->dGetX();
    doublereal p2 = pNode2->dGetX();
    doublereal p3 = pNode3->dGetX();
-   s = XCurr.dGetCoef(iFirstIndex+1);  /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);  /* velocita' */
+   s = XCurr(iFirstIndex+1);  /* spostamento */
+   v = XCurr(iFirstIndex+2);  /* velocita' */
    
    doublereal Cd = .6;        /* verificare */
    doublereal jumpPres12 = fabs(p1-p2);
@@ -2125,10 +2125,10 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
    doublereal p3 = pNode3->dGetX();
    integer iFirstIndex = iGetFirstIndex();
 
-   s = XCurr.dGetCoef(iFirstIndex+1);        /* spostamento */
-   v = XCurr.dGetCoef(iFirstIndex+2);        /* velocita' */
-   sp = XPrimeCurr.dGetCoef(iFirstIndex+1);  /* velocita' */
-   vp = XPrimeCurr.dGetCoef(iFirstIndex+2);  /* accelerazione */
+   s = XCurr(iFirstIndex+1);        /* spostamento */
+   v = XCurr(iFirstIndex+2);        /* velocita' */
+   sp = XPrimeCurr(iFirstIndex+1);  /* velocita' */
+   vp = XPrimeCurr(iFirstIndex+2);  /* accelerazione */
   
    doublereal Cd = .6;
    doublereal jumpPres12 = fabs(p1-p2);

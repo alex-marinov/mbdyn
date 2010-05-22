@@ -250,7 +250,7 @@ void Block::InterpAcc(){
 			// Calcolo delle coppie
 			for (int i=1; i<= Nfem; i++) {
 				for (int j=1; j<=3; j++) {
-					FemIneCou[it_st->first]->PutCoef(i,j,(FemAcc[it_st->first]->dGetCoef(i,j+3))*(FemMM->dGetCoef(i,j)));
+					FemIneCou[it_st->first]->PutCoef(i,j,(FemAcc[it_st->first]->operator()(i,j+3))*(FemMM->operator()(i,j)));
 				}
 			}
 		}
@@ -314,20 +314,20 @@ FullMatrixHandler* Block::GetFemAcc(int i_lc) {
 }
 
 Vec3 Block::GetFemAcc(int i_lc,int id){
-	Vec3 temp(FemAcc[i_lc]->dGetCoef(id,1),FemAcc[i_lc]->dGetCoef(id,2),FemAcc[i_lc]->dGetCoef(id,3));
+	Vec3 temp(FemAcc[i_lc]->operator()(id,1),FemAcc[i_lc]->operator()(id,2),FemAcc[i_lc]->operator()(id,3));
 	return temp;
 }
 
 Vec3 Block::GetMbAcc(int i_lc,int id_0){
 	// Diciamo che è una funzione di servizio, e quindi restituisce direttamente la riga utile ignorando gli adj
 	int id = (id_0-1)*(Nadj+1)+1;
-	Vec3 temp(MbAcc[i_lc]->dGetCoef(id,1),MbAcc[i_lc]->dGetCoef(id,2),MbAcc[i_lc]->dGetCoef(id,3));
+	Vec3 temp(MbAcc[i_lc]->operator()(id,1),MbAcc[i_lc]->operator()(id,2),MbAcc[i_lc]->operator()(id,3));
 	return temp;
 }
 
 Vec3 Block::GetFemRAcc(int i_lc,int id){
 	if (beam){
-		Vec3 temp(FemAcc[i_lc]->dGetCoef(id,4),FemAcc[i_lc]->dGetCoef(id,5),FemAcc[i_lc]->dGetCoef(id,6));
+		Vec3 temp(FemAcc[i_lc]->operator()(id,4),FemAcc[i_lc]->operator()(id,5),FemAcc[i_lc]->operator()(id,6));
 		return temp;
 	} else {
 		// Return null vector
@@ -339,7 +339,7 @@ Vec3 Block::GetFemRAcc(int i_lc,int id){
 Vec3 Block::GetMbRAcc(int i_lc,int id_0){
         if (beam){
 		int id = (id_0-1)*(Nadj+1)+1;
-		Vec3 temp(MbAcc[i_lc]->dGetCoef(id,4),MbAcc[i_lc]->dGetCoef(id,5),MbAcc[i_lc]->dGetCoef(id,6));
+		Vec3 temp(MbAcc[i_lc]->operator()(id,4),MbAcc[i_lc]->operator()(id,5),MbAcc[i_lc]->operator()(id,6));
 		return temp;
 	} else {
 		// Return null vector
@@ -351,18 +351,18 @@ Vec3 Block::GetMbRAcc(int i_lc,int id_0){
 Vec3 Block::GetMbDisp(int i_lc,int id_0){
 	// Diciamo che è una funzione di servizio, e quindi restituisce direttamente la riga utile ignorando gli adj
 	int id = (id_0-1)*(Nadj+1)+1;
-	Vec3 temp(MbDisp[i_lc]->dGetCoef(id,1),MbDisp[i_lc]->dGetCoef(id,2),MbDisp[i_lc]->dGetCoef(id,3));
+	Vec3 temp(MbDisp[i_lc]->operator()(id,1),MbDisp[i_lc]->operator()(id,2),MbDisp[i_lc]->operator()(id,3));
 	return temp;
 }
 
 Vec3 Block::GetFemDisp(int i_lc,int id){
-	Vec3 temp(FemDisp[i_lc]->dGetCoef(id,1),FemDisp[i_lc]->dGetCoef(id,2),FemDisp[i_lc]->dGetCoef(id,3));
+	Vec3 temp(FemDisp[i_lc]->operator()(id,1),FemDisp[i_lc]->operator()(id,2),FemDisp[i_lc]->operator()(id,3));
 	return temp;
 }
 
 Vec3 Block::GetFemRot(int i_lc,int id){
 	if (beam){
-		Vec3 temp(FemDisp[i_lc]->dGetCoef(id,4),FemAcc[i_lc]->dGetCoef(id,5),FemAcc[i_lc]->dGetCoef(id,6));
+		Vec3 temp(FemDisp[i_lc]->operator()(id,4),FemAcc[i_lc]->operator()(id,5),FemAcc[i_lc]->operator()(id,6));
 		return temp;
 	} else {
 		// Return null vector
@@ -374,7 +374,7 @@ Vec3 Block::GetFemRot(int i_lc,int id){
 Vec3 Block::GetMbRot(int i_lc,int id_0){
         if (beam){
 		int id = (id_0-1)*(Nadj+1)+1;
-		Vec3 temp(MbDisp[i_lc]->dGetCoef(id,4),MbAcc[i_lc]->dGetCoef(id,5),MbAcc[i_lc]->dGetCoef(id,6));
+		Vec3 temp(MbDisp[i_lc]->operator()(id,4),MbAcc[i_lc]->operator()(id,5),MbAcc[i_lc]->operator()(id,6));
 		return temp;
 	} else {
 		// Return null vector

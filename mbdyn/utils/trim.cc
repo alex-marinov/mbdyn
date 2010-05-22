@@ -533,7 +533,7 @@ NRTrim::DoTrim(const std::vector<double> expectedMeasures,
 		psm->Solve();
 
 		for (unsigned int i = 0; i < incrControls.size(); i++) {
-			X[i] = Xref[i] + pX->dGetCoef(i + 1);
+			X[i] = Xref[i] + pX->operator()(i + 1);
 			Xref[i] = X[i];
 		}
 

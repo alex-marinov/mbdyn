@@ -321,7 +321,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	Vec = pNode2->GetXCurr() - pNode1->GetXCurr();
 
 	/* Aggiorna i dati propri */
-	dAlpha = XCurr.dGetCoef(iFirstReactionIndex + 1);
+	dAlpha = XCurr(iFirstReactionIndex + 1);
 
 	dDistance = pGetDriveCaller()->dGet();
    
@@ -753,7 +753,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 		- pNode1->GetXCurr() - f1Tmp;
 
 	/* Aggiorna i dati propri */
-	dAlpha = XCurr.dGetCoef(iFirstReactionIndex + 1);
+	dAlpha = XCurr(iFirstReactionIndex + 1);
 
 	dDistance = pGetDriveCaller()->dGet();
    
