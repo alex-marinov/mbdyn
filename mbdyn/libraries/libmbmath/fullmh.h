@@ -36,6 +36,8 @@
 #include "except.h"
 
 #include "spmh.h"
+#include "matvec3.h"
+#include "matvec3n.h"
 
 /* FullMatrixHandler - begin */
 
@@ -260,7 +262,259 @@ protected:
 #endif /* by now, use the default implementation */
 
 public:
+	void Add(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Sub(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Put(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Add(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void Sub(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void Put(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void AddT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void SubT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void PutT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void AddT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void SubT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void PutT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
 
+	/*
+	 * Somma un vettore di tipo Vec3 in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	Add(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Sottrae un vettore di tipo Vec3 in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	Sub(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Scrive un vettore di tipo Vec3 in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	Put(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Somma un vettore di tipo Vec3 trasposto in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3 trasposto (riga).
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	AddT(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Sottrae un vettore di tipo Vec3 trasposto in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3 trasposto (riga).
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	SubT(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Scrive un vettore di tipo Vec3 trasposto in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3 trasposto (riga).
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	PutT(integer iRow, integer iCol, const Vec3& v);
+
+#if 0 /* FIXME: replace original? */
+	/*
+	 * Somma un vettore di tipo Vec3 in una data posizione in diagonale.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	AddDiag(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Sottrae un vettore di tipo Vec3 in una data posizione in diagonale.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	SubDiag(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Scrive un vettore di tipo Vec3 in una data posizione in diagonale.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	PutDiag(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Somma un vettore di tipo Vec3 in una data posizione [ v x ].
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	AddCross(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Sottrae un vettore di tipo Vec3 in una data posizione [ v x ].
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	SubCross(integer iRow, integer iCol, const Vec3& v);
+
+	/*
+	 * Scrive un vettore di tipo Vec3 in una data posizione [ v x ].
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per il vettore 3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param v    Vec3 da sommare
+	 */
+	void
+	PutCross(integer iRow, integer iCol, const Vec3& v);
+#endif
+
+	/*
+	 * Somma una matrice di tipo Mat3x3 in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3x3 da sommare
+	 */
+	void
+	Add(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	AddT(integer iRow, integer iCol, const Mat3x3& m);
+
+	/*
+	 * Sottrae una matrice di tipo Mat3x3 da una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3x3 da sottrarre
+	 */
+	void
+	Sub(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	SubT(integer iRow, integer iCol, const Mat3x3& m);
+
+	/*
+	 * Scrive una matrice di tipo Mat3x3 in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3x3 da scrivere
+	 */
+	void
+	Put(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	PutT(integer iRow, integer iCol, const Mat3x3& m);
+
+	/*
+	 * Somma una matrice di tipo Mat3xN in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3xN
+	 */
+	void
+	Add(integer iRow, integer iCol, const Mat3xN& m);
+
+	/*
+	 * Sottrae una matrice di tipo Mat3xN da una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3xN
+	 */
+	void
+	Sub(integer iRow, integer iCol, const Mat3xN& m);
+
+	/*
+	 * Scrive una matrice di tipo Mat3xN in una data posizione.
+	 * Nota: si assume che nella sottomatrice vi sia spazio
+	 * per la matrice 3x3.
+	 * Nota: gli indici sono a base 1, in stile FORTRAN.
+	 * @param iRow indice di riga della sottomatrice da cui iniziare
+	 * @param iCol indice di colonna della sottomatrice da cui iniziare
+	 * @param m    Mat3xN
+	 */
+	void
+	Put(integer iRow, integer iCol, const Mat3xN& m);
+
+	/* come sopra, ma per matrici Nx3 **/
+	void Add(integer iRow, integer iCol, const MatNx3& m);
+	void Sub(integer iRow, integer iCol, const MatNx3& m);
+	void Put(integer iRow, integer iCol, const MatNx3& m);
 };
 
 extern std::ostream&

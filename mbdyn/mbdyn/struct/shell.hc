@@ -151,6 +151,7 @@ AssembleVector(SubVectorHandler & dest,
 	return;
 }
 
+#if 0
 static inline void
 AssembleMatrix(FullSubMatrixHandler & dest, 
 	integer start_row, 
@@ -162,14 +163,17 @@ AssembleMatrix(FullSubMatrixHandler & dest,
 	integer nc = source.iGetNumCols();
 	start_row--;
 	start_col--;
+
 	//TODO. error checking: check dimensions!
 	//check da fare: dest.iGetNumRows() <= nr+start_row
 	//check da fare: dest.iGetNumCols() <= nc+start_col
-	for (integer i = 1; i <= nr; i++) {
-		for (integer ii = 1; ii <= nc; ii++) {
-			dest.IncCoef(i + start_row, ii + start_col, source(i, ii) * dCoef);
+	for (integer ir = 1; ir <= nr; ir++) {
+		for (integer ic = 1; ic <= nc; ic++) {
+			dest.IncCoef(ir + start_row, ic + start_col, source(ir, ic) * dCoef);
+			// dest.ppdColsm1[ic + start_col][ir + start_row] += dCoef*source.ppdColsm1[ic][ir];
 		}
 	}
+
 	return;
 }
 
@@ -187,13 +191,16 @@ AssembleTransposeMatrix(FullSubMatrixHandler & dest,
 	//TODO. error checking: check dimensions!
 	//check da fare: dest.iGetNumRows() <= nr+start_row
 	//check da fare: dest.iGetNumCols() <= nc+start_col
-	for (integer i = 1; i <= nr; i++) {
-		for (integer ii = 1; ii <= nc; ii++) {
-			dest.IncCoef(i + start_row, ii + start_col, source(ii, i) * dCoef);
+	for (integer ir = 1; ir <= nr; ir++) {
+		for (integer ic = 1; ic <= nc; ic++) {
+			dest.IncCoef(ir + start_row, ic + start_col, source(ic, ir) * dCoef);
+			// dest.ppdColsm1[ic + start_col][ir + start_row] += dCoef*source.ppdColsm1[ir][ic];
 		}
 	}
+
 	return;
 }
+#endif
 
 static inline void
 ExtractVec3(Vec3& dest, const MyVectorHandler & source, integer start_row)
@@ -541,5 +548,6 @@ InvBlockDiagonal4_2x4_2(const FullMatrixHandler& a, FullMatrixHandler & out)
 	return;
 }
 
+#endif // SHELL_HC
 
-#endif //SHELL_HC
+// vim:ft=c

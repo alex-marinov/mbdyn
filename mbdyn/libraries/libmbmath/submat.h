@@ -505,6 +505,8 @@ public:
 	 */
 	void
 	Add(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	AddT(integer iRow, integer iCol, const Mat3x3& m);
 
 	/*
 	 * Sottrae una matrice di tipo Mat3x3 da una data posizione.
@@ -517,6 +519,8 @@ public:
 	 */
 	void
 	Sub(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	SubT(integer iRow, integer iCol, const Mat3x3& m);
 
 	/*
 	 * Scrive una matrice di tipo Mat3x3 in una data posizione.
@@ -529,6 +533,8 @@ public:
 	 */
 	void
 	Put(integer iRow, integer iCol, const Mat3x3& m);
+	void
+	PutT(integer iRow, integer iCol, const Mat3x3& m);
 
 	/*
 	 * Somma una matrice di tipo Mat3xN in una data posizione.
@@ -574,6 +580,31 @@ public:
 	void PutDiag(integer iFirstRow, integer iFirstCol, const Vec3& v);
 	void PutDiag(integer iFirstRow, integer iFirstCol, const doublereal& v);
 	void PutCross(integer iFirstRow, integer iFirstCol, const Vec3& v);
+
+	void Add(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Sub(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Put(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void Add(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void Sub(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void Put(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void AddT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void SubT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void PutT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source);
+	void AddT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void SubT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
+	void PutT(integer iRow,  integer iCol,
+		const FullMatrixHandler & source, const doublereal dCoef);
 
 	/* Interazione con le matrici */
 

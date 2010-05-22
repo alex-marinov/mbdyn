@@ -523,42 +523,46 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 		// parte variabile di B_overline_i
 		for (integer n = 0; n < NUMNODES; n++) {
 			Mat3x3 Phi_Delta_i_n_LI_i = Phi_Delta_i[i][n] * LI[n](xi_i[i]);
+
 			// delta epsilon_tilde_1_i
-			InsertMatrix(B_overline_i[i], 1, 1 + 6 * n, T_i[i].Transpose() * (L_alpha_beta_i[i](n + 1, 1)));
-			InsertMatrix(B_overline_i[i], 1, 4 + 6 * n, 
-				T_i[i].MulTM(y_i_1[i]) * Phi_Delta_i_n_LI_i
-			);
+			B_overline_i[i].PutT(1, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 1));
+			B_overline_i[i].Put(1, 4 + 6 * n, T_i[i].MulTM(y_i_1[i]) * Phi_Delta_i_n_LI_i);
+
 			// delta epsilon_tilde_2_i
-			InsertMatrix(B_overline_i[i], 4, 1 + 6 * n, T_i[i].Transpose() * (L_alpha_beta_i[i](n + 1, 2)));
-			InsertMatrix(B_overline_i[i], 4, 4 + 6 * n, 
-				T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i
-			);
+			B_overline_i[i].PutT(4, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 2));
+			B_overline_i[i].Put(4, 4 + 6 * n, T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i);
+
 			// delta k_tilde_1_i
 			Vec3 phi_tilde_1_i(0.);
 			Vec3 phi_tilde_2_i(0.);
 			InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
-			InsertMatrix(B_overline_i[i], 7, 4 + 6 * n, 
+			B_overline_i[i].Put(7, 4 + 6 * n,
 				T_i[i].MulTM(k_1_i[i]) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_1[i][n])
 			);
+
 			// delta k_tilde_2_i
-			InsertMatrix(B_overline_i[i], 10, 4 + 6 * n, 
+			B_overline_i[i].Put(10, 4 + 6 * n, 
 				T_i[i].MulTM(k_2_i[i]) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_2[i][n])
 			);
 
 			// delta y_alpha_1
-			InsertMatrix(D_overline_i[i],  1, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 1)));
+			D_overline_i[i].Put(1, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 1)));
+
 			// delta y_alpha_2
-			InsertMatrix(D_overline_i[i],  4, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 2)));
+			D_overline_i[i].Put(4, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 2)));
+
 			// delta k_1_i
-			InsertMatrix(D_overline_i[i],  7, 4 + n * 6, Kappa_delta_i_1[i][n]);
+			D_overline_i[i].Put(7, 4 + n * 6, Kappa_delta_i_1[i][n]);
+
 			// delta k_1_i
-			InsertMatrix(D_overline_i[i], 10, 4 + n * 6, Kappa_delta_i_2[i][n]);
+			D_overline_i[i].Put(10, 4 + n * 6, Kappa_delta_i_2[i][n]);
+
 			// phi_delta
-			InsertMatrix(D_overline_i[i], 13, 4 + n * 6, Phi_Delta_i_n_LI_i);
+			D_overline_i[i].Put(13, 4 + n * 6, Phi_Delta_i_n_LI_i);
 		}
 	}
 	// ANS
@@ -575,14 +579,16 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			eps_tilde_2_A[i] = T_A[i].MulTV(y_A_2) - eps_tilde_2_0_A[i];
 			for (integer n = 0; n < NUMNODES; n++) {
 				Mat3x3 Phi_Delta_A_n_LI_i = Phi_Delta_A[i][n] * LI[n](xi_A[i]);
+
 				// delta epsilon_tilde_1_A
-				InsertMatrix(B_overline_A, 1, 1 + 6 * n, T_A[i].Transpose() * (L_alpha_beta_A[i](n + 1, 1)));
-				InsertMatrix(B_overline_A, 1, 4 + 6 * n, 
+				B_overline_A.PutT(1, 1 + 6 * n, T_A[i] * L_alpha_beta_A[i](n + 1, 1));
+				B_overline_A.Put(1, 4 + 6 * n, 
 					T_A[i].MulTM(y_A_1) * Phi_Delta_A_n_LI_i
 				);
+
 				// delta epsilon_tilde_2_A
-				InsertMatrix(B_overline_A, 4, 1 + 6 * n, T_A[i].Transpose() * (L_alpha_beta_A[i](n + 1, 2)));
-				InsertMatrix(B_overline_A, 4, 4 + 6 * n, 
+				B_overline_A.PutT(4, 1 + 6 * n, T_A[i] * L_alpha_beta_A[i](n + 1, 2));
+				B_overline_A.Put(4, 4 + 6 * n, 
 					T_A[i].MulTM(y_A_2) * Phi_Delta_A_n_LI_i
 				);
 			}
@@ -658,14 +664,15 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			+ Tm1.Tens(k_1_i[i]) - Mat3x3(Tm1.Dot(k_1_i[i]))
 			+ Tm2.Tens(k_2_i[i]) - Mat3x3(Tm2.Dot(k_2_i[i]))
 			;
-		
-		InsertMatrix(G_i[i],  1, 13, Mat3x3(-Tn1));
-		InsertMatrix(G_i[i],  4, 13, Mat3x3(-Tn2));
-		InsertMatrix(G_i[i], 13,  7, Mat3x3(Tm1));
-		InsertMatrix(G_i[i], 13, 10, Mat3x3(Tm2));
-		InsertMatrix(G_i[i], 13,  1, Mat3x3(Tn1));
-		InsertMatrix(G_i[i], 13,  4, Mat3x3(Tn2));
-		InsertMatrix(G_i[i], 13, 13, Hh);
+
+		// NOTE: use PutCross()?
+		G_i[i].PutT(1, 13, Mat3x3(Tn1));
+		G_i[i].PutT(4, 13, Mat3x3(Tn2));
+		G_i[i].Put(13, 7, Mat3x3(Tm1));
+		G_i[i].Put(13, 10, Mat3x3(Tm2));
+		G_i[i].Put(13, 1, Mat3x3(Tn1));
+		G_i[i].Put(13, 4, Mat3x3(Tn2));
+		G_i[i].Put(13, 13, Hh);
 	}
 	
 	//Residuo
@@ -747,19 +754,24 @@ Shell4EASANS::AssJac(VariableSubMatrixHandler& WorkMat,
 		
 		Ktbetaq.MatMatMul(K_beta_beta, P_i[i]);
 		
-		AssembleMatrix(WM, 1, 1, Kg, alpha_i[i] * w_i[i] * dCoef);
-		
-
-		
 // 		std::cerr << "Kg:\n" << std::fixed << std::setprecision(12) << Kg << std::endl;
-		
-		
-		AssembleMatrix(WM, 1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
 // 		std::cerr << "Km:\n" << std::fixed << std::setprecision(12) << Km << std::endl;
 
-		AssembleTransposeMatrix(WM, 1, 25, K_beta_q, alpha_i[i] * w_i[i]);
-		AssembleMatrix(WM, 25, 1, K_beta_q, alpha_i[i] * w_i[i]);
-		AssembleMatrix(WM, 25, 25, K_beta_beta, alpha_i[i] * w_i[i] / dCoef);
+		// AssembleMatrix(WM, 1, 1, Kg, alpha_i[i] * w_i[i] * dCoef);
+
+		// AssembleMatrix(WM, 1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
+
+		// AssembleTransposeMatrix(WM, 1, 25, K_beta_q, alpha_i[i] * w_i[i]);
+		// AssembleMatrix(WM, 25, 1, K_beta_q, alpha_i[i] * w_i[i]);
+		// AssembleMatrix(WM, 25, 25, K_beta_beta, alpha_i[i] * w_i[i] / dCoef);
+
+		WM.Add(1, 1, Kg, alpha_i[i] * w_i[i] * dCoef);
+
+		WM.Add(1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
+
+		WM.AddT(1, 25, K_beta_q, alpha_i[i] * w_i[i]);
+		WM.Add(25, 1, K_beta_q, alpha_i[i] * w_i[i]);
+		WM.Add(25, 25, K_beta_beta, alpha_i[i] * w_i[i] / dCoef);
 	}
 	return WorkMat;
 

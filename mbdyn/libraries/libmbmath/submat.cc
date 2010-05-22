@@ -207,178 +207,40 @@ FullSubMatrixHandler::Attach(int iRows, int iCols, integer* piTmpIndx)
 	}
 }
 
-/* somma un vettore di tipo Vec3 in una data posizione */
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] += pdFrom[V1];
-
-	ppdColsm1[iCol][iRow + 1] += pdFrom[V2];
-
-	ppdColsm1[iCol][iRow + 2] += pdFrom[V3];
+	FullMatrixHandler::Add(iRow, iCol, v);
 }
 
-/* sottrae un vettore di tipo Vec3 in una data posizione */
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] -= pdFrom[V1];
-
-	ppdColsm1[iCol][iRow + 1] -= pdFrom[V2];
-
-	ppdColsm1[iCol][iRow + 2] -= pdFrom[V3];
+	FullMatrixHandler::Sub(iRow, iCol, v);
 }
 
-/* scrive un vettore di tipo Vec3 in una data posizione */
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] = pdFrom[V1];
-
-	ppdColsm1[iCol][iRow + 1] = pdFrom[V2];
-
-	ppdColsm1[iCol][iRow + 2] = pdFrom[V3];
+	FullMatrixHandler::Put(iRow, iCol, v);
 }
 
-/* somma un vettore di tipo Vec3 trasposto in una data posizione */
 void
 FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] += pdFrom[V1];
-
-	ppdColsm1[iCol + 1][iRow] += pdFrom[V2];
-
-	ppdColsm1[iCol + 2][iRow] += pdFrom[V3];
+	FullMatrixHandler::AddT(iRow, iCol, v);
 }
 
-/* sottrae un vettore di tipo Vec3 trasposto in una data posizione */
 void
 FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] -= pdFrom[V1];
-
-	ppdColsm1[iCol + 1][iRow] -= pdFrom[V2];
-
-	ppdColsm1[iCol + 2][iRow] -= pdFrom[V3];
+	FullMatrixHandler::SubT(iRow, iCol, v);
 }
 
-/* scrive un vettore di tipo Vec3 trasposto in una data posizione */
 void
 FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Vec3& v)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN)
-	 */
-	doublereal* pdFrom = v.pGetVec();
-
-	ppdColsm1[iCol][iRow] = pdFrom[V1];
-
-	ppdColsm1[iCol + 1][iRow] = pdFrom[V2];
-
-	ppdColsm1[iCol + 2][iRow] = pdFrom[V3];
+	FullMatrixHandler::PutT(iRow, iCol, v);
 }
 
 #if 0 /* FIXME: replace original? */
@@ -566,283 +428,79 @@ FullSubMatrixHandler::PutCross(integer iRow, integer iCol, const Vec3& v)
 }
 #endif
 
-/* somma una matrice di tipo Mat3x3 in una data posizione */
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3x3& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	/* Nota: assume che la matrice sia organizzata
-	 * "per colonne" (stile FORTRAN) e assume
-	 * che la matrice Mat3x3 sia organizzata anch'essa per colonne */
-	doublereal* pdFrom = m.pGetMat();
-
-	ppdColsm1[iCol][iRow] += pdFrom[M11];
-	ppdColsm1[iCol][iRow + 1] += pdFrom[M21];
-	ppdColsm1[iCol][iRow + 2] += pdFrom[M31];
-
-	ppdColsm1[iCol + 1][iRow] += pdFrom[M12];
-	ppdColsm1[iCol + 1][iRow + 1] += pdFrom[M22];
-	ppdColsm1[iCol + 1][iRow + 2] += pdFrom[M32];
-
-	ppdColsm1[iCol + 2][iRow] += pdFrom[M13];
-	ppdColsm1[iCol + 2][iRow + 1] += pdFrom[M23];
-	ppdColsm1[iCol + 2][iRow + 2] += pdFrom[M33];
-
-#if 0
-	for (unsigned c = 0; c < 2; c++) {
-		for (unsigned r = 0; r < 2; r++) {
-			ppdColsm1[iCol + c][iRow + r] += pdFrom[r];
-		}
-		pdFrom += 3;
-	}
-#endif
+	FullMatrixHandler::Add(iRow, iCol, m);
 }
 
+void
+FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Mat3x3& m)
+{
+	FullMatrixHandler::AddT(iRow, iCol, m);
+}
 
-/* sottrae una matrice di tipo Mat3x3 in una data posizione
- * analoga ala precedente, con il meno (per evitare temporanei ecc) */
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3x3& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1
-	 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	doublereal* pdFrom = m.pGetMat();
-
-	ppdColsm1[iCol][iRow] -= pdFrom[M11];
-	ppdColsm1[iCol][iRow + 1] -= pdFrom[M21];
-	ppdColsm1[iCol][iRow + 2] -= pdFrom[M31];
-
-	ppdColsm1[iCol + 1][iRow] -= pdFrom[M12];
-	ppdColsm1[iCol + 1][iRow + 1] -= pdFrom[M22];
-	ppdColsm1[iCol + 1][iRow + 2] -= pdFrom[M32];
-
-	ppdColsm1[iCol + 2][iRow] -= pdFrom[M13];
-	ppdColsm1[iCol + 2][iRow + 1] -= pdFrom[M23];
-	ppdColsm1[iCol + 2][iRow + 2] -= pdFrom[M33];
-
-#if 0
-	for (unsigned c = 0; c < 2; c++) {
-		for (unsigned r = 0; r < 2; r++) {
-			ppdColsm1[iCol + c][iRow + r] -= pdFrom[r];
-		}
-		pdFrom += 3;
-	}
-#endif
+	FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
+void
+FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Mat3x3& m)
+{
+	FullMatrixHandler::SubT(iRow, iCol, m);
+}
 
-/* mette una matrice di tipo Mat3x3 in una data posizione;
- * analoga alle precedenti */
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3x3& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1
-	 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	doublereal* pdFrom = m.pGetMat();
-
-	ppdColsm1[iCol][iRow] = pdFrom[M11];
-	ppdColsm1[iCol][iRow + 1] = pdFrom[M21];
-	ppdColsm1[iCol][iRow + 2] = pdFrom[M31];
-
-	ppdColsm1[iCol + 1][iRow] = pdFrom[M12];
-	ppdColsm1[iCol + 1][iRow + 1] = pdFrom[M22];
-	ppdColsm1[iCol + 1][iRow + 2] = pdFrom[M32];
-
-	ppdColsm1[iCol + 2][iRow] = pdFrom[M13];
-	ppdColsm1[iCol + 2][iRow + 1] = pdFrom[M23];
-	ppdColsm1[iCol + 2][iRow + 2] = pdFrom[M33];
-
-#if 0
-	for (unsigned c = 0; c < 2; c++) {
-		for (unsigned r = 0; r < 2; r++) {
-			ppdColsm1[iCol + c][iRow + r] = pdFrom[r];
-		}
-		pdFrom += 3;
-	}
-#endif
+	FullMatrixHandler::Put(iRow, iCol, m);
 }
 
+void
+FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Mat3x3& m)
+{
+	FullMatrixHandler::PutT(iRow, iCol, m);
+}
 
-/* somma una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const Mat3xN& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - m.iGetNumCols() + 1);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = 3; r > 0; r--) {
-		for (integer c = m.iGetNumCols(); c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] += m(r, c);
-		}
-	}
+	FullMatrixHandler::Add(iRow, iCol, m);
 }
 
-/* sottrae una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const Mat3xN& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - m.iGetNumCols() + 1);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = 3; r > 0; r--) {
-		for (integer c = m.iGetNumCols(); c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] -= m(r, c);
-		}
-	}
+	FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
-/* setta una matrice di tipo Mat3xN in una data posizione */
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
 {
-	/* iRow e iCol sono gli indici effettivi di riga e colonna
-	 * es. per il primo coefficiente:
-	 *     iRow = 1, iCol = 1 */
-
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - 2);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - m.iGetNumCols() + 1);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = 3; r > 0; r--) {
-		for (integer c = m.iGetNumCols(); c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] = m(r, c);
-		}
-	}
+	FullMatrixHandler::Put(iRow, iCol, m);
 }
 
-/* somma una matrice di tipo MatNx3 in una data posizione */
 void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)
 {
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - m.iGetNumRows() + 1);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = m.iGetNumRows(); r > 0; r--) {
-		for (integer c = 3; c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] += m(r, c);
-		}
-	}
+	FullMatrixHandler::Add(iRow, iCol, m);
 }
 
 /* sottrae una matrice di tipo MatNx3 in una data posizione */
 void
 FullSubMatrixHandler::Sub(integer iRow, integer iCol, const MatNx3& m)
 {
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - m.iGetNumRows() + 1);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = m.iGetNumRows(); r > 0; r--) {
-		for (integer c = 3; c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] -= m(r, c);
-		}
-	}
+	FullMatrixHandler::Sub(iRow, iCol, m);
 }
 
 /* setta una matrice di tipo MatNx3 in una data posizione */
 void
 FullSubMatrixHandler::Put(integer iRow, integer iCol, const MatNx3& m)
 {
-#ifdef DEBUG
-	IsValid();
-
-	ASSERT(iRow > 0);
-	ASSERT(iRow <= iNumRows - m.iGetNumRows() + 1);
-	ASSERT(iCol > 0);
-	ASSERT(iCol <= iNumCols - 2);
-#endif /* DEBUG */
-
-	--iRow;
-	--iCol;
-	for (int r = m.iGetNumRows(); r > 0; r--) {
-		for (integer c = 3; c > 0; c--) {
-			ppdColsm1[iCol + c][iRow + r] = m(r, c);
-		}
-	}
+	FullMatrixHandler::Put(iRow, iCol, m);
 }
-
 
 /* setta una matrice di tipo Mat3xN in una data posizione */
 void
@@ -1076,6 +734,108 @@ operator << (std::ostream& out, const FullSubMatrixHandler& m)
 	}
 
 	return out << std::endl;
+}
+
+void
+FullSubMatrixHandler::Add(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::Add(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::Sub(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::Sub(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::Put(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::Put(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::Add(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::Add(iRow, iCol, source, dCoef);
+}
+
+void
+FullSubMatrixHandler::Sub(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::Sub(iRow, iCol, source, dCoef);
+}
+
+void
+FullSubMatrixHandler::Put(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::Put(iRow, iCol, source, dCoef);
+}
+
+void
+FullSubMatrixHandler::AddT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::AddT(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::SubT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::SubT(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::PutT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source)
+{
+	FullMatrixHandler::PutT(iRow, iCol, source);
+}
+
+void
+FullSubMatrixHandler::AddT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::AddT(iRow, iCol, source, dCoef);
+}
+
+void
+FullSubMatrixHandler::SubT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::SubT(iRow, iCol, source, dCoef);
+}
+
+void
+FullSubMatrixHandler::PutT(integer iRow, 
+	integer iCol, 
+	const FullMatrixHandler & source,
+	const doublereal dCoef)
+{
+	FullMatrixHandler::PutT(iRow, iCol, source, dCoef);
 }
 
 /* FullSubMatrixHandler - end */

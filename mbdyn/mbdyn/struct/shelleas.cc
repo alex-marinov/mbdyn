@@ -457,32 +457,35 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 		// parte variabile di B_overline_i
 		for (integer n = 0; n < NUMNODES; n++) {
 			Mat3x3 Phi_Delta_i_n_LI_i = Phi_Delta_i[i][n] * LI[n](xi_i[i]);
+
 			// delta epsilon_tilde_1_i
-			InsertMatrix(B_overline_i[i], 1, 1 + 6 * n, T_i[i].Transpose() * (L_alpha_beta_i[i](n + 1, 1)));
-			InsertMatrix(B_overline_i[i], 1, 4 + 6 * n, 
+			B_overline_i[i].PutT(1, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 1));
+			B_overline_i[i].Put(1, 4 + 6 * n, 
 				T_i[i].MulTM(y_i_1[i]) * Phi_Delta_i_n_LI_i
 			);
+
 			// delta epsilon_tilde_2_i
-			InsertMatrix(B_overline_i[i], 4, 1 + 6 * n, T_i[i].Transpose() * (L_alpha_beta_i[i](n + 1, 2)));
-			InsertMatrix(B_overline_i[i], 4, 4 + 6 * n, 
+			B_overline_i[i].PutT(4, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 2));
+			B_overline_i[i].Put(4, 4 + 6 * n, 
 				T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i
 			);
+
 			// delta k_tilde_1_i
 			Vec3 phi_tilde_1_i(0.);
 			Vec3 phi_tilde_2_i(0.);
 			InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
-			InsertMatrix(B_overline_i[i], 7, 4 + 6 * n, 
+			B_overline_i[i].Put(7, 4 + 6 * n, 
 				T_i[i].MulTM(k_1_i[i]) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_1[i][n])
 			);
+
 			// delta k_tilde_2_i
-			InsertMatrix(B_overline_i[i], 10, 4 + 6 * n, 
+			B_overline_i[i].Put(10, 4 + 6 * n, 
 				T_i[i].MulTM(k_2_i[i]) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_2[i][n])
 			);
-
 		}
 	}
 	
@@ -613,7 +616,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 // 					std::cerr << std::setprecision(12) << "T y_i_2 " << T_i[ip].MulTV(y_i_2[ip]) << "\n";
 // 					std::cerr << std::setprecision(12) << "T " << T_i[ip] << "\n";
 // 				}
-// 				doublereal saved_value = inc.dGetCoef(pNode[n]->iGetFirstIndex() + gdl);
+// 				doublereal saved_value = inc(pNode[n]->iGetFirstIndex() + gdl);
 // 				inc.IncCoef(pNode[n]->iGetFirstIndex() + gdl, ddd);
 // 				const_cast<StructNode*>(pNode[n])->Update(inc, xprime);
 // 				UpdateNodalAndAveragePosAndOrientation();
@@ -676,10 +679,10 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 // 						B_overline_i[ip](9 + comp, gdl + 6 * n)) > 1.E-30?
 // 						pippo(9 + comp, gdl + 6 * n) - 
 // 						B_overline_i[ip](9 + comp, gdl + 6 * n) : 0.;
-// 					maxdiff = std::max(maxdiff, std::abs(pippodiff.dGetCoef(0 + comp, gdl + 6 * n)));
-// 					maxdiff = std::max(maxdiff, std::abs(pippodiff.dGetCoef(3 + comp, gdl + 6 * n)));
-// 					maxdiff = std::max(maxdiff, std::abs(pippodiff.dGetCoef(6 + comp, gdl + 6 * n)));
-// 					maxdiff = std::max(maxdiff, std::abs(pippodiff.dGetCoef(9 + comp, gdl + 6 * n)));
+// 					maxdiff = std::max(maxdiff, std::abs(pippodiff(0 + comp, gdl + 6 * n)));
+// 					maxdiff = std::max(maxdiff, std::abs(pippodiff(3 + comp, gdl + 6 * n)));
+// 					maxdiff = std::max(maxdiff, std::abs(pippodiff(6 + comp, gdl + 6 * n)));
+// 					maxdiff = std::max(maxdiff, std::abs(pippodiff(9 + comp, gdl + 6 * n)));
 // 				}	
 // 			}
 // // 			check rotation linearization
@@ -687,7 +690,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 // 				//Mat3x3 RDelta = pNode[n]->GetRCurr().MulMT(pNode[n]->GetRRef());
 // 				//Mat3x3 Gamma = RotManip::DRot(RotManip::VecRot(RDelta));
 // 				Mat3x3 Gamma = Mat3x3(CGR_Rot::MatG, pNode[n]->GetgCurr());
-// 				doublereal saved_value = inc.dGetCoef(pNode[n]->iGetFirstIndex() + gdl);
+// 				doublereal saved_value = inc(pNode[n]->iGetFirstIndex() + gdl);
 // 				Mat3x3 SavedT = T_i[ip];
 // 				inc.IncCoef(pNode[n]->iGetFirstIndex() + gdl, ddd);
 // 				const_cast<StructNode*>(pNode[n])->Update(inc, xprime);
@@ -709,14 +712,14 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 // 		}
 // // 		for (integer j = 1; j <= pJac->iGetNumCols(); j++) {
 // // 			pippo.PutCoef(j, i, 
-// // 				std::abs(incsol.dGetCoef(j)) >
-// // 				1.E-100?incsol.dGetCoef(j):0.);
+// // 				std::abs(incsol(j)) >
+// // 				1.E-100?incsol(j):0.);
 // // 			pippodiff.PutCoef(j, i, 
-// // 				std::abs(pippo.dGetCoef(j,i)-pJac->dGetCoef(j,i)) >
-// // 				1.E-30?pippo.dGetCoef(j,i)-pJac->dGetCoef(j,i):0.);
-// // 			maxdiff = std::max(maxdiff, std::abs(pippodiff.dGetCoef(j, i)));
+// // 				std::abs(pippo(j,i)-pJac->operator()(j,i)) >
+// // 				1.E-30?pippo(j,i)-pJac->operator()(j,i):0.);
+// // 			maxdiff = std::max(maxdiff, std::abs(pippodiff(j, i)));
 // // 			// use finite difference Jacobian matrix
-// // 			pJac->PutCoef(j, i, incsol.dGetCoef(j));
+// // 			pJac->PutCoef(j, i, incsol(j));
 // // 		}
 // 	std::cerr << "\n---------------\n" << std::endl;
 // 	std::cerr << std::fixed << std::setprecision(6) << pippo << std::endl;
@@ -1173,12 +1176,18 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 // 		std::cerr << "Kg:\n" << std::fixed << std::setprecision(12) << Kg << std::endl;
 		
 		
-		AssembleMatrix(WM, 1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
 // 		std::cerr << "Km:\n" << std::fixed << std::setprecision(12) << Km << std::endl;
+		// AssembleMatrix(WM, 1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
 
-		AssembleTransposeMatrix(WM, 1, 25, K_beta_q, alpha_i[i] * w_i[i]);
-		AssembleMatrix(WM, 25, 1, K_beta_q, alpha_i[i] * w_i[i] * dCoef);
-		AssembleMatrix(WM, 25, 25, K_beta_beta, alpha_i[i] * w_i[i]);
+		// AssembleTransposeMatrix(WM, 1, 25, K_beta_q, alpha_i[i] * w_i[i]);
+		// AssembleMatrix(WM, 25, 1, K_beta_q, alpha_i[i] * w_i[i] * dCoef);
+		// AssembleMatrix(WM, 25, 25, K_beta_beta, alpha_i[i] * w_i[i]);
+
+		WM.Add(1, 1, Km, alpha_i[i] * w_i[i] * dCoef);
+
+		WM.AddT(1, 25, K_beta_q, alpha_i[i] * w_i[i]);
+		WM.Add(25, 1, K_beta_q, alpha_i[i] * w_i[i] * dCoef);
+		WM.Add(25, 25, K_beta_beta, alpha_i[i] * w_i[i]);
 	}
 	return WorkMat;
 
