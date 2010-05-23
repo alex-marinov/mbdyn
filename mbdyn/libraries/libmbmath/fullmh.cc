@@ -888,7 +888,7 @@ FullMatrixHandler::MatVecMul_base(
 			// out(ir) ? this(ir, ic) * in(ic)
 			d += ppdColsm1[ic][ir]*in(ic);
 		}
-		(*out.op)(ir, d);
+		(out.*op)(ir, d);
 	}
 
 	return out;
@@ -899,8 +899,8 @@ FullMatrixHandler::MatTVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
-	integer nr = iGetNumRows();
-	integer nc = iGetNumCols();
+	integer nr = iGetNumCols();
+	integer nc = iGetNumRows();
 
 	ASSERT(nc == in.iGetSize());
 	ASSERT(nr == out.iGetSize());
@@ -911,7 +911,7 @@ FullMatrixHandler::MatTVecMul_base(
 			// out(ir) ? this(ic, ir) * in(ic)
 			d += ppdColsm1[ir][ic]*in(ic);
 		}
-		(*out.op)(ir, d);
+		(out.*op)(ir, d);
 	}
 
 	return out;
