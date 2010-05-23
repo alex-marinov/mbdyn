@@ -681,68 +681,125 @@ before any iteration starts.
 For simplicity, think of an explicit Ordinary Differential Equation
 (ODE) problem like
 \begin{equation}
-  \dot{y} = f(y, t)
+	\dot{\T{y}} = \hat{\T{f}}(\T{y}, t)
 \end{equation}
-with the initial value of $t(0) = t_0$ and $y(0) = y_0$; 
-then, the computation of $\dot{y}(0)$ is trivial.  
+with the initial value of $t(0) = t_0$ and $\T{y}(0) = \T{y}_0$; 
+then, the computation of $\dot{\T{y}}(0)$ is trivial.  
 Now, the actual problem is Differential Algebraic (DAE) and implicit, 
 i.e. something like
 \begin{equation}
-  F(\dot{y}, y, t) = 0
+  \T{f}(\dot{\T{y}}, \T{y}, t) = 0
 \end{equation}
 (actually, it's a bit more complicated, since it's index 3), 
-and we still need to compute $\dot{y}(0)$ 
-(and the algebraic variables as well, 
-which in the above representation are hidden in the $\dot{y}$).
-During the regular solution phase (i.e. the Newton iteration) 
+and we still need to compute the derivatives $\dot{\T{y}}(0)$ 
+of the differential variables, and the algebraic variables as well, 
+which in the above representation are hidden in the $\dot{\T{y}}$.
+During the regular solution phase (i.e.\ the Newton iteration) 
 we solve a problem of the form
 \begin{equation}
-  F/_{\dot{y}} \Delta \dot{y} + F_{/y} \Delta y = - F
+  \T{f}_{/\dot{\T{y}}} \Delta \dot{\T{y}} + \T{f}_{/\T{y}} \Delta \T{y} = - \T{f}
 \end{equation}
-and, according to the integration formula that we're using,
+and, according to the integration formula that we are using,
 \begin{equation}
-  \Delta y = \texttt{dCoef} * \Delta \dot{y}
+  \Delta \T{y} = \texttt{dCoef} \cdot \Delta \dot{\T{y}}
 \end{equation}
-where \texttt{dCoef} is essentially the time step times some number that is specific to the integration formula; it's 1/2 for Crank-Nicolson, it's 2/3 for BDF and so on.
-So the real iteration is
+where $\texttt{dCoef} = b_0 h$ is essentially the time step $h$
+times some coefficient $b_0$ specific for the integration formula;
+it is 1/2 for Crank-Nicolson, 2/3 for BDF and so on.
+So the actual iteration is
 \begin{equation}
-  ( F_{/\dot{y}} + \texttt{dCoef} F_{/y} ) \Delta \dot{y} = - F
+	\plbr{\T{f}_{/\dot{\T{y}}} + \texttt{dCoef} \cdot \T{f}_{/\T{y}} } \Delta \dot{\T{y}} = - \T{f}
+	\label{eq:derivatives:iteration}
+	.
 \end{equation}
 
 To avoid the need to implement a dedicated routine to compute 
-the initial value of $\dot{y}$, we iterate over the above reported problem, 
-ideally with a time step of $0$, which means that $F_{/y}$ is not considered.  
+the initial value of $\dot{\T{y}}$, we iterate over the above reported problem, 
+ideally with a time step of $0$, which means that $\T{f}_{/\T{y}}$ is not considered.  
 However, since the problem is differential algebraic, 
-matrix $F_{/\dot{y}}$ is structurally singular, so the time step 
-must be different from $0$, but small enough to let the correction
+the Jacobian matrix $\T{f}_{/\dot{\T{y}}}$ can be structurally singular,
+so the time step must be greater than $0$, but small enough to let the correction
 \begin{equation}
-	\Delta y = \texttt{dCoef} * \Delta \dot{y}
-	\label{eq:dcoef}
+	\Delta \T{y} = \texttt{dCoef} \cdot \Delta \dot{\T{y}}
+	\label{eq:derivatives:dcoef}
 \end{equation}
-be negligible with respect to $\Delta \dot{y}$.  
+be negligible with respect to $\Delta \dot{\T{y}}$.  
+
+Assuming the above is true, during this phase the update procedure
+of the Newton iteration is modified.
+Instead of computing
+\begin{subequations}
+\label{eq:derivatives:update}
+\begin{align}
+	\dot{\T{y}}^{(i+1)} &= \dot{\T{y}}^{(i)} + \Delta\dot{\T{y}}
+	\\
+	\T{y}^{(i+1)} &= \T{y}^{(i)} + \texttt{dCoef} \cdot \Delta\dot{\T{y}}
+	,
+\end{align}
+\end{subequations}
+the ``derivatives'' update actually consists in
+\begin{subequations}
+\label{eq:derivatives:modified-update}
+\begin{align}
+	\dot{\T{y}}^{(i+1)} &= \dot{\T{y}}^{(i)} + \Delta\dot{\T{y}}
+	\\
+	\T{y}^{(i+1)} &= \T{y}^{(i)}
+	;
+\end{align}
+\end{subequations}
+namely, the initial value of $\T{y}$ is preserved.
+This corresponds to performing a Newton iteration
+with an incomplete Jacobian matrix.
+For this purpose, nodes and elements that need to take this into account
+when updating internal states can provide a \texttt{DerivativesUpdate} method
+(declared in \texttt{SimulationEntity}).
+
 To conclude, the ``derivatives coefficient'' defined in the input file 
-is this ``\texttt{dCoef}'', 
+is the ``\texttt{dCoef}'' of Eq.~(\ref{eq:derivatives:iteration}), 
 which can be interpreted as the time step of a ``fake'' 
 initial step that is used to compute the initial value of 
 the highest order derivatives.  
 It should be as small as possible, but too small makes 
 the problem ill-conditioned (and $0$ makes it structurally singular).  
 The default value is usually fine 
-(it is rarely needed to set one, unless something 
+(it rarely needs to be set, unless something 
 really strange is going on).\\
 
-\noindent
 If the initial derivatives phase requires
 more than one iteration  
 this may mean that
 the system is impulsively loaded  with inappropriate 
 initial values of states; 
-In this case, it is possible to increase the number of iterations, e.g.:
+In this case, the number of iterations can be increased,
+by setting
 \begin{verbatim}
   derivatives coefficient: 1e-9;
   derivatives tolerance: 1e-6;
   derivatives max iterations: 10; 
 \end{verbatim}
+in the \texttt{initial value} block.
+If the solution does not converge, you should enable iterations output,
+adding
+\begin{verbatim}
+  output: iterations;
+\end{verbatim}
+in the \texttt{initial value} block.
+If you notice that the error settled to some value, and does not reduce
+as iterations progress, this means that the incomplete update
+of Eqs.~(\ref{eq:derivatives:modified-update})
+is preventing the problem from converging, because the initial value
+of $\T{y}$ is compatible with the constraints
+but does not satisfy equilibrium.
+
+In this case, one can play with the \texttt{derivatives coefficient}
+parameter, to emphasize the ``inertia'' terms instead of the ``elastic'' ones,
+or simply increase the \texttt{derivatives tolerance} so that the solution
+with the current \texttt{derivatives coefficient} is considered converged.
+The latter choice may result in a ``rough'' behavior of the solution
+during the initial steps of the simulation.
+
+
+
 \section{Dummy Steps}
 \section{Regular Steps}
 
@@ -2690,7 +2747,7 @@ Constraint equations (normalized\footnote{When purely algebraic
 constraints are considered, to improve the scaling of the matrix,
 the constraint equation can be divided by \texttt{dCoef},
 the coefficient related to the integration method illustrated 
-in Equation~(\ref{eq:dcoef}).
+in Equation~(\ref{eq:derivatives:dcoef}).
 %See \ref{sec:}.
 } by \texttt{dCoef})
 \begin{equation}
