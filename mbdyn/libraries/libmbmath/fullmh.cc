@@ -594,7 +594,7 @@ FullMatrixHandler::MatMatMul_base(
 	const FullMatrixHandler *pin = dynamic_cast<const FullMatrixHandler *>(&in);
 	if (pin == 0) {
 		// if input matrix is not FullMatrixHandler, use generic function
-		return MatrixHandler::MatTMatMul_base(op, out, in);
+		return MatrixHandler::MatMatMul_base(op, out, in);
 	}
 
 	integer out_nc = out.iGetNumCols();
@@ -867,6 +867,52 @@ FullMatrixHandler::MatTMatMul_base(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif // ! USE_LAPACK
+
+	return out;
+}
+
+VectorHandler&
+FullMatrixHandler::MatVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	ASSERT(nc == in.iGetSize());
+	ASSERT(nr == out.iGetSize());
+
+	for (integer ir = 1; ir <= nr; ir++) {
+		doublereal d = 0.;
+		for (integer ic = 1; ic <= nc; ic++) {
+			// out(ir) ? this(ir, ic) * in(ic)
+			d += ppdColsm1[ic][ir]*in(ic);
+		}
+		(*out.op)(ir, d);
+	}
+
+	return out;
+}
+
+VectorHandler&
+FullMatrixHandler::MatTVecMul_base(
+	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
+	VectorHandler& out, const VectorHandler& in) const
+{
+	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	ASSERT(nc == in.iGetSize());
+	ASSERT(nr == out.iGetSize());
+
+	for (integer ir = 1; ir <= nr; ir++) {
+		doublereal d = 0.;
+		for (integer ic = 1; ic <= nc; ic++) {
+			// out(ir) ? this(ic, ir) * in(ic)
+			d += ppdColsm1[ir][ic]*in(ic);
+		}
+		(*out.op)(ir, d);
+	}
 
 	return out;
 }

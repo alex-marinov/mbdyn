@@ -249,7 +249,6 @@ public:
 	/* Esegue il prodotto tra due matrici e se lo memorizza */
 	void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
 
-#if 1	/* by now, use the default implementation */
 protected:
 	MatrixHandler&
 	MatMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
@@ -259,7 +258,15 @@ protected:
 	MatTMatMul_base(void (MatrixHandler::*op)(integer iRow, integer iCol,
 				const doublereal& dCoef),
 			MatrixHandler& out, const MatrixHandler& in) const;
-#endif /* by now, use the default implementation */
+
+	virtual VectorHandler&
+	MatVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
+	virtual VectorHandler&
+	MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
+				const doublereal& dCoef),
+			VectorHandler& out, const VectorHandler& in) const;
 
 public:
 	void Add(integer iRow,  integer iCol,
