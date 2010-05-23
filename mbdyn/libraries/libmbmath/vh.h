@@ -147,6 +147,7 @@ operator << (std::ostream& out, const VectorHandler& VH);
 /* MyVectorHandler - begin */
 
 class MyVectorHandler : public VectorHandler {
+	friend class FullMatrixHandler;
 protected:
 	bool bOwnsMemory;
 

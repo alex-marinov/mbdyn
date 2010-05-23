@@ -241,7 +241,7 @@ void SetupSystem(
 				(*pM)(row_values[i], col_values[i]) = x_values[i];
 			}
 			for (int i = 1; i <= size; i++) {
-				pV->PutCoef(i, pM->dGetCoef(i,size));
+				pV->PutCoef(i, pM->operator()(i, size));
 			}
 		} else {
 
@@ -293,7 +293,7 @@ void SetupSystem(
 		ifile.close();
 		
 		for (integer i = 1; i <= size; i++) {
-			pV->PutCoef(i, pM->dGetCoef(i,size));
+			pV->PutCoef(i, pM->operator()(i, size));
 		}
 		std::cout << "\nThe matrix has "
 			<< pM->iGetNumRows() << " rows, "

@@ -882,13 +882,66 @@ FullMatrixHandler::MatVecMul_base(
 	ASSERT(nc == in.iGetSize());
 	ASSERT(nr == out.iGetSize());
 
-	for (integer ir = 1; ir <= nr; ir++) {
-		doublereal d = 0.;
-		for (integer ic = 1; ic <= nc; ic++) {
-			// out(ir) ? this(ir, ic) * in(ic)
-			d += ppdColsm1[ic][ir]*in(ic);
+	const MyVectorHandler *pin = dynamic_cast<const MyVectorHandler *>(&in);
+	if (pin == 0) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ir, ic) * in(ic)
+				d += ppdColsm1[ic][ir]*in(ic);
+			}
+			(out.*op)(ir, d);
 		}
-		(out.*op)(ir, d);
+
+		return out;
+	}
+
+	MyVectorHandler *pout = dynamic_cast<MyVectorHandler *>(&out);
+	if (pout == 0) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ir, ic) * in(ic)
+				d += ppdColsm1[ic][ir]*pin->pdVecm1[ic];
+			}
+			(out.*op)(ir, d);
+		}
+
+		return out;
+	}
+
+	if (op == &VectorHandler::IncCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ir, ic) * in(ic)
+				d += ppdColsm1[ic][ir]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] += d;
+		}
+
+	} else if (op == &VectorHandler::DecCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ir, ic) * in(ic)
+				d += ppdColsm1[ic][ir]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] -= d;
+		}
+
+	} else if (op == &VectorHandler::PutCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ir, ic) * in(ic)
+				d += ppdColsm1[ic][ir]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] = d;
+		}
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return out;
@@ -905,13 +958,66 @@ FullMatrixHandler::MatTVecMul_base(
 	ASSERT(nc == in.iGetSize());
 	ASSERT(nr == out.iGetSize());
 
-	for (integer ir = 1; ir <= nr; ir++) {
-		doublereal d = 0.;
-		for (integer ic = 1; ic <= nc; ic++) {
-			// out(ir) ? this(ic, ir) * in(ic)
-			d += ppdColsm1[ir][ic]*in(ic);
+	const MyVectorHandler *pin = dynamic_cast<const MyVectorHandler *>(&in);
+	if (pin == 0) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ic, ir) * in(ic)
+				d += ppdColsm1[ir][ic]*in(ic);
+			}
+			(out.*op)(ir, d);
 		}
-		(out.*op)(ir, d);
+
+		return out;
+	}
+
+	MyVectorHandler *pout = dynamic_cast<MyVectorHandler *>(&out);
+	if (pout == 0) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ic, ir) * in(ic)
+				d += ppdColsm1[ir][ic]*pin->pdVecm1[ic];
+			}
+			(out.*op)(ir, d);
+		}
+
+		return out;
+	}
+
+	if (op == &VectorHandler::IncCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ic, ir) * in(ic)
+				d += ppdColsm1[ir][ic]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] += d;
+		}
+
+	} else if (op == &VectorHandler::DecCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ic, ir) * in(ic)
+				d += ppdColsm1[ir][ic]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] -= d;
+		}
+
+	} else if (op == &VectorHandler::PutCoef) {
+		for (integer ir = 1; ir <= nr; ir++) {
+			doublereal d = 0.;
+			for (integer ic = 1; ic <= nc; ic++) {
+				// out(ir) ? this(ic, ir) * in(ic)
+				d += ppdColsm1[ir][ic]*pin->pdVecm1[ic];
+			}
+			pout->pdVecm1[ir] = d;
+		}
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return out;
