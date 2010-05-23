@@ -83,7 +83,8 @@ IncludeParser::~IncludeParser(void)
 void IncludeParser::Close(void)
 {
    	MyInput* pmi = NULL;
-   	if (MyInStack.Pop(pmi)) {
+	if (!myinput.empty()) {
+		pmi = myinput.top();
       		ASSERT(pmi != NULL);
       		/* Nota: deve esserci solo l'ultimo file */
       		ASSERT(pf != NULL);
@@ -131,6 +132,8 @@ void IncludeParser::Close(void)
 
       		/* pmi must be non NULL */
       		SAFEDELETE(pmi);     
+
+		myinput.pop();
    	}
    
    	/* sCurrPath can be NULL if Close() has been already called */
@@ -150,7 +153,9 @@ flag
 IncludeParser::fCheckStack(void)
 {
    	MyInput* pmi = NULL;
-   	if (MyInStack.Pop(pmi)) {
+	if (!myinput.empty()) {
+		pmi = myinput.top();
+
       		ASSERT(pmi != NULL);
       		/* 
        		 * Nota: se la stack e' piena, allora sia pf che pIn
@@ -190,7 +195,11 @@ IncludeParser::fCheckStack(void)
 #endif /* USE_INCLUDE_PARSER */
       
       		SAFEDELETE(pmi);
+
+		myinput.pop();
+
       		return flag(1);
+
    	} else {
       		return flag(0);
    	}
@@ -326,7 +335,7 @@ IncludeParser::Include_int()
    	SAFENEWWITHCONSTRUCTOR(pmi, MyInput, MyInput(pf_old, pIn_old));
 #endif /* !USE_INCLUDE_PARSER */
  
-   	MyInStack.Push(pmi);
+	myinput.push(pmi);
  
    	/* FIXME: mettere un test se c'e' il punto e virgola? */
    	CurrToken = HighParser::DESCRIPTION;

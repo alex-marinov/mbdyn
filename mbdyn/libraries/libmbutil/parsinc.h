@@ -103,9 +103,9 @@
 #define PARSINC_H
 
 #include <fstream>
+#include <stack>
 
-#include <parser.h>
-#include <llstack.h>
+#include "parser.h"
 
 /* IncludeParser - begin */
 
@@ -139,7 +139,7 @@ class IncludeParser : public HighParser {
 #endif /* !USE_INCLUDE_PARSER */
    };
    
-   LLStack<MyInput> MyInStack;
+   std::stack<MyInput *> myinput;
    char* sCurrPath;
    char* sCurrFile;
 

@@ -21,8 +21,6 @@ gauss.cc \
 gauss.h \
 input.cc \
 input.h \
-llstack.cc \
-llstack.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \
