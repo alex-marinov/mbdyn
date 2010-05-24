@@ -32,7 +32,7 @@
 /* datamanager */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #ifdef USE_MULTITHREAD
@@ -55,6 +55,7 @@ extern "C" {
 }
 
 #include "mtdataman.h"
+#include "spmapmh.h"
 #include "task2cpu.h"
 
 static inline void
@@ -569,7 +570,7 @@ retry:;
 	case CC_NO:
 		DEBUGCERR("CC_NO => CC_FIRST" << std::endl);
 
-		ASSERT(dynamic_cast<SpMapMatrixHandler *>(&JacHdl));
+		ASSERT(dynamic_cast<SpMapMatrixHandler *>(&JacHdl) != 0);
 
 		DataManager::AssJac(JacHdl, dCoef, ElemIter, *pWorkMat);
 		CCReady = CC_FIRST;
