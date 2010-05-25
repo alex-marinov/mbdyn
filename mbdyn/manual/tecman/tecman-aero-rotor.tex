@@ -341,18 +341,18 @@ but the mean inflow is still $\lambda_0$.
 \subsection{Dynamic Inflow Model}
 
 The dynamic inflow model implemented in MBDyn has been developed by Pitt
-and Peters and it is described in \cite{PITT}. 
+and Peters \cite{PITT}. 
 Here the model is just briefly described together with the MBDyn implementation
 peculiarities. 
 
 The inflow dynamics is represented by a simple first-order linear model: 
 \begin{equation}\label{eq:PP}
-\mathbf{M} \boldsymbol{\dot{\lambda}} + \mathbf{l}^{-1} \boldsymbol{\lambda} =
- \mathbf{C},
+\TT{M} \dot{\T{\lambda}} + \TT{L}^{-1} \T{\lambda} =
+ \T{c},
 \end{equation}
-where $\boldsymbol{\lambda}$ is a vector with 3 elements:
+where $\T{\lambda}$ is a vector with 3 elements:
 \begin{equation}
-\boldsymbol{\lambda} = 
+\T{\lambda} = 
 \left[ 
 \begin{array}{c}
 \lambda_0 \\
@@ -372,7 +372,7 @@ u_{ind}(r, \psi) = \Omega R ( \lambda_0 + \lambda_s r \sin{\psi} +
 The right-hand term in equation \ref{eq:PP} contains the thrust,
 roll moment and pitch moment coefficients:
 \begin{equation}
-\mathbf{C} = \left[
+\T{c} = \left[
 \begin{array}{c}
 C_T \\
 C_L \\
@@ -386,35 +386,35 @@ C_M
 \end{array}
 \right],
 \end{equation}
-while $\boldsymbol{\lambda}$ is derived with respect a non-dimensional
+while $\T{\lambda}$ is derived with respect a non-dimensional
 time $\Omega t$:
 \begin{equation}
-\boldsymbol{\dot{\lambda}} = \frac{ d \boldsymbol{\lambda}}{ d (\Omega t)}.
+\dot{\T{\lambda}} = \frac{ d \T{\lambda}}{ d (\Omega t)}.
 \end{equation}
 
 Equation \ref{eq:PP} could be rewritten as:
 \begin{equation}
-\mathbf{M} \boldsymbol{\dot{\lambda}} + \Omega \mathbf{l}^{-1} \boldsymbol{\lambda} =
-\Omega \mathbf{C},
+\TT{M} \dot{\T{\lambda}} + \Omega \TT{L}^{-1} \T{\lambda} =
+\Omega \T{c},
 \end{equation}
 where now the dot represents the (dimensional) time derivative. The latter is the 
 form implemented in MBDyn.
 
-The $\mathbf{l}$ matrix is defined as:
+Matrix $\TT{L}$ is defined as:
 \begin{equation}
-\mathbf{l} = \mathbf{\tilde{l}} \cdot \mathbf{k} = 
+\TT{L} = \tilde{\TT{L}} \cdot \TT{K} = 
 \left[
 \begin{array}{ccc}
-\frac{1}{2} & 0 & \frac{15 \pi}{64} \tan{\frac{\chi}{2}} \\
- 0 & -\frac{4}{2 \cos^2{\frac{\chi}{2}}} & 0 \\
-\frac{15 \pi}{64} \tan{\frac{\chi}{2}} & 0 &
--\frac{4 ( 2 \cos^2{\frac{\chi}{2}} - 1 ) }{2 \cos^2{\frac{\chi}{2}}}
+\cfrac{1}{2} & 0 & \cfrac{15 \pi}{64} \tan{\cfrac{\chi}{2}} \\
+ 0 & -\cfrac{4}{2 \cos^2{\cfrac{\chi}{2}}} & 0 \\
+\cfrac{15 \pi}{64} \tan{\cfrac{\chi}{2}} & 0 &
+-\cfrac{4 ( 2 \cos^2{\cfrac{\chi}{2}} - 1 ) }{2 \cos^2{\cfrac{\chi}{2}}}
 \end{array}
 \right] \left[
 \begin{array}{ccc}
-\frac{1}{V_T} & & \\
-& \frac{1}{V_m} & \\
-& & \frac{1}{V_m}
+\cfrac{1}{V_T} & & \\
+& \cfrac{1}{V_m} & \\
+& & \cfrac{1}{V_m}
 \end{array}
 \right],
 \end{equation}
@@ -433,27 +433,27 @@ and
 \end{equation}
 where $u_{ind}^{0}$ is the steady uniform induced velocity
 computed as described in the uniform inflow model section.
-The elements in the $\mathbf{k}$ matrix are respectively:
+The elements in matrix $\TT{K}$ matrix are respectively:
 \begin{equation}
 V_T = \sqrt{\lambda^2 + \mu^2},
 \end{equation}
 and
 \begin{equation}
-V_m = \frac{\mu^2 + \lambda \left( \lambda + \frac{u_{ind}^{0}}{\Omega R} \right)}
+V_m = \frac{\mu^2 + \lambda \left( \lambda + \cfrac{u_{ind}^{0}}{\Omega R} \right)}
 {\sqrt{\lambda^2 + \mu^2}}
 \end{equation}
 
 
-\textbf{Note: the $\mathbf{l}$ matrix is slightly different from the $\mathbf{L}$
-matrix in the Pitt and Peters paper \cite{PITT} because here the
+\textbf{Note: matrix $\TT{L}$ is slightly different from matrix $\TT{L}$
+in Pitt and Peters' paper \cite{PITT} because here the
 first column elements are divided by $V_T$ while the second and
-third columns elements by $V_m$, whereas in the $\mathbf{L}$ matrix
+third columns elements by $V_m$, whereas in matrix $\TT{L}$
 an unique value $v$ is used for all the elements in the matrix.
 The $V_m$ term corresponds to the \emph{steady lift mass-flow parameter}
 defined in the Pitt and Peters paper, while the $V_T$ corresponds to
 the \emph{no lift mass-flow parameter}, because 
 $\overline{\lambda} + \overline{\nu} = \lambda$ and 
-$\overline{\nu} = \frac{u_{ind}^{0}}{\Omega R}$.
+$\overline{\nu} = u_{ind}^{0}/(\Omega R)$.
 Moreover in the Pitt and Peters work the elements are function of
 $\alpha = \tan^{-1}{\frac{\lambda}{\mu}}$, the relation between $\alpha$ and
 $\chi$ is:
@@ -468,23 +468,23 @@ So,
 \sin{\alpha} = 2 \cos^{2} {\frac{\chi}{2}}
 \end{equation}
 That means that the only difference in the MBDyn implementation is
-related to the $\mathbf{k}$ matrix}.
+related to matrix $\TT{K}$}.
 
-In MBDyn the inversion of the $\mathbf{l}$ matrix is analytically computed
-and a $\mathbf{L}$ matrix is defined as:
+In MBDyn the inversion of the $\TT{L}$ matrix is formulated analytically;
+matrix $\TT{L}^*$ is defined as:
 \begin{equation}
-\mathbf{L} = \Omega \mathbf{l}^{-1} = \Omega \left[
+\TT{L}^* = \Omega \TT{L}^{-1} = \Omega \left[
 \begin{array}{ccc}
-\frac{l_{33}}{l_{11}l_{33}-l_{13}l_{31}} & 0 & -\frac{l_{13}}{l_{11}l_{33}-l_{13}l_{31}} \\
-0 & \frac{1}{l_{22}} & 0 \\
--\frac{l_{31}}{l_{11}l_{33}-l_{13}l_{31}} & 0 & \frac{l_{11}}{l_{11}l_{33}-l_{13}l_{31}}
+\cfrac{l_{33}}{l_{11}l_{33}-l_{13}l_{31}} & 0 & -\cfrac{l_{13}}{l_{11}l_{33}-l_{13}l_{31}} \\
+0 & \cfrac{1}{l_{22}} & 0 \\
+-\cfrac{l_{31}}{l_{11}l_{33}-l_{13}l_{31}} & 0 & \cfrac{l_{11}}{l_{11}l_{33}-l_{13}l_{31}}
 \end{array}
 \right].
 \end{equation}
 
-%Finally the $\mathbf{M}$ matrix is defined as:
+%Finally the $\TT{M}$ matrix is defined as:
 %\begin{equation}\label{eq:Mdef}
-%\mathbf{M} = \left[
+%\TT{M} = \left[
 %\begin{array}{ccc}
 %\frac{8}{3 \pi} & 0  & 0 \\
 %0 & -\frac{16}{45 \pi} & 0 \\
@@ -493,29 +493,29 @@ and a $\mathbf{L}$ matrix is defined as:
 %\right].
 %\end{equation}
 %
-%\textbf{Note: this choice of the $\mathbf{M}$ matrix corresponds
+%\textbf{Note: this choice of the $\TT{M}$ matrix corresponds
 %to the \emph{uncorrected} M-matrix in the Pitt and Peters paper,
 %even if they suggest a mixed form between the \emph{uncorrected}
-%and \emph{corrected} matrix where in the first column of the $\mathbf{M}$
-%and $\mathbf{L}$ matrices the \emph{corrected} values are used, while
+%and \emph{corrected} matrix where in the first column of the $\TT{M}$
+%and $\TT{L}$ matrices the \emph{corrected} values are used, while
 %the \emph{uncorrected} values are used for the second and third columns.
 %Following this approach the $M_{11}$ element in matrix \ref{eq:Mdef} 
 %should be replaced by $\frac{128}{75 \pi}$}.
 
-Finally the $\mathbf{M}$ matrix is defined as:
+Finally, matrix $\TT{M}$ is defined as:
 \begin{equation}\label{eq:Mdef}
-\mathbf{M} = \left[
+\TT{M} = \left[
 \begin{array}{ccc}
-\frac{128}{75 \pi} & 0  & 0 \\
-0 & -\frac{16}{45 \pi} & 0 \\
-0 & 0 & -\frac{16}{45 \pi}
+\cfrac{128}{75 \pi} & 0  & 0 \\
+0 & -\cfrac{16}{45 \pi} & 0 \\
+0 & 0 & -\cfrac{16}{45 \pi}
 \end{array}
 \right].
 \end{equation}
 
-\textbf{Note: this choice of the $\mathbf{M}$ matrix corresponds
+\textbf{Note: this choice of matrix $\TT{M}$ corresponds
 to the mixed \emph{uncorrected}-\emph{corrected} (following
-the authors nomenclature) M-matrix proposed by Pitt and Peters 
+the authors' nomenclature) M-matrix proposed by Pitt and Peters 
 in their paper.}
 
 
