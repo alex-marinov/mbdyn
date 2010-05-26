@@ -87,8 +87,6 @@
 #include "socketstream_out_elem.h"
 #include "socketstreammotionelem.h"
 
-#include "stroutput.h"
-
 #ifdef MBDYN_DEVEL
 #include "shell.h"
 #endif // MBDYN_DEVEL
@@ -146,7 +144,6 @@ enum KeyWords {
 	SOCKETSTREAM_OUTPUT,
 	SOCKETSTREAM_MOTION_OUTPUT,
 	RTAI_OUTPUT,
-	STRUCTOUTPUT,
 
 	INERTIA,
 
@@ -213,7 +210,6 @@ DataManager::ReadElems(MBDynParser& HP)
 		"stream" "output",
 		"stream" "motion" "output",
 		"RTAI" "output",
-		"structural" "output",
 
 		"inertia",
 
@@ -545,7 +541,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				case RTAI_OUTPUT:
 				case SOCKETSTREAM_OUTPUT:
 				case SOCKETSTREAM_MOTION_OUTPUT:
-				case STRUCTOUTPUT:
 					silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 						<< " does not support bind" << std::endl);
 				default:
@@ -780,8 +775,6 @@ DataManager::ReadElems(MBDynParser& HP)
 					case USER_DEFINED:
 					case LOADABLE:
 					case EXISTING:
-
-					case STRUCTOUTPUT:
 						DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 						break;
 
@@ -882,10 +875,6 @@ DataManager::ReadElems(MBDynParser& HP)
 						case USER_DEFINED:
 						case LOADABLE:
 							ppE = ppFindElem(Elem::LOADABLE, uLabel);
-							break;
-
-						case STRUCTOUTPUT:
-							ppE = ppFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel);
 							break;
 
 						default:
@@ -1004,7 +993,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				case RTAI_OUTPUT:
 				case SOCKETSTREAM_OUTPUT:
 				case SOCKETSTREAM_MOTION_OUTPUT:
-				case STRUCTOUTPUT:
 				{
 					Elem **ppE = 0;
 
@@ -1915,7 +1903,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	case SOCKETSTREAM_OUTPUT:
 	case SOCKETSTREAM_MOTION_OUTPUT:
-	case STRUCTOUTPUT: {
+	{
 		silent_cout("Reading StreamOutputElement(" << uLabel << ")" << std::endl);
 
 		if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
@@ -1952,10 +1940,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 				"at line " << HP.GetLineData() << std::endl);
 			pE = ReadSocketStreamElem(this, HP, uLabel,
 				StreamContent::MOTION);
-			break;
-
-		case STRUCTOUTPUT:
-			pE = ReadStructOutput(this, HP, uLabel);
 			break;
 
 		default:
