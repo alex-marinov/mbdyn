@@ -109,10 +109,7 @@ public:
 		return Force::EXTERNALSTRUCTURAL; 
 	};
  
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6*Nodes.size();
-		*piNumCols = 1;
-	};
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,

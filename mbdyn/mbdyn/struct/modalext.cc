@@ -493,9 +493,15 @@ ModalExt::GetForceType(void) const
 void
 ModalExt::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
-		+ pModal->uGetNModes();
-	*piNumCols = 1;
+	if (iCoupling == COUPLING_NONE) {
+		*piNumRows = 0;
+		*piNumCols = 0;
+
+	} else {
+		*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
+			+ pModal->uGetNModes();
+		*piNumCols = 1;
+	}
 }
 
 SubVectorHandler&
@@ -505,6 +511,11 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
+
+	if (iCoupling == COUPLING_NONE) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
 
 	integer iR, iC;
 	WorkSpaceDim(&iR, &iC);

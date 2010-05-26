@@ -77,14 +77,14 @@ bLabels(bLabels),
 bOutputAccelerations(bOutputAccelerations),
 uRRot(uRRot),
 m_qlabels(pH ? mappedlabels : labels),
-m_f(3*uPoints),
-m_p(3*uMappedPoints),
 m_x(3*uPoints),
 m_xP(3*uPoints),
 m_xPP(0),
 m_q(3*uMappedPoints),
 m_qP(3*uMappedPoints),
-m_qPP(0)
+m_qPP(0),
+m_f(3*uPoints),
+m_p(3*uMappedPoints)
 {
 	ASSERT(nodes.size() == offsets.size());
 	if (pH) {
@@ -176,6 +176,19 @@ m_qPP(0)
 StructMappingExtForce::~StructMappingExtForce(void)
 {
 	NO_OP;
+}
+
+void
+StructMappingExtForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	if (iCoupling == COUPLING_NONE) {
+		*piNumRows = 0;
+		*piNumCols = 0;
+
+	} else {
+		*piNumRows = (pRefNode ? 6 : 0) + 6*Nodes.size();
+		*piNumCols = 1;
+	}
 }
 
 bool
@@ -874,6 +887,11 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
+
+	if (iCoupling == COUPLING_NONE) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
 
 	if (pRefNode) {
 		integer iSize = Nodes.size();

@@ -184,9 +184,18 @@ protected:
 	// exchange after predict?
 	bool bSendAfterPredict;
 
+public:
+	//-1: no coupling, only send kinematics
 	// 0: loose coupling
 	// 1: tight coupling
 	// >1: exchange every iCoupling iterations
+	enum {
+		COUPLING_NONE = -1,
+		COUPLING_LOOSE = 0,
+		COUPLING_TIGHT = 1
+	};
+
+protected:
 	int iCoupling;
 
 	// iteration counter

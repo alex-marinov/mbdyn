@@ -728,7 +728,7 @@ ExtForce::Update(const VectorHandler& XCurr,
 {
 	/* If running tight coupling, send kinematics every iteration */
 	/* NOTE: tight coupling may need relaxation */
-	if (iCoupling && !((++iCouplingCounter)%iCoupling)) {
+	if (iCoupling >= COUPLING_TIGHT && !((++iCouplingCounter)%iCoupling)) {
 		Send(bFirstSend ? ExtFileHandlerBase::SEND_FIRST_TIME
 			: ExtFileHandlerBase::SEND_REGULAR);
 	}
@@ -760,7 +760,7 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	/* If not running tight coupling, send kinematics only at convergence */
-	if (iCoupling != 1) {
+	if (iCoupling != COUPLING_TIGHT) {
 		Send(ExtFileHandlerBase::SEND_AFTER_CONVERGENCE);
 #if 0
 		if (bRemoveIn) {
@@ -786,15 +786,19 @@ ExtForce::Send(ExtFileHandlerBase::SendWhen when)
 void
 ExtForce::Recv(void)
 {
-	if ((iCoupling && !bFirstSend && !(iCouplingCounter%iCoupling)) || (!iCoupling && bFirstSend)) {
+	if ((iCoupling >= COUPLING_TIGHT && !bFirstSend && !(iCouplingCounter%iCoupling)) || (!iCoupling && bFirstSend)) {
 		if (pEFH->Recv_pre()) {
 			Recv(pEFH);
 		}
 
-		if (pEFH->Recv_post() && iCoupling) {
+		if (pEFH->Recv_post()) {
 			// TODO: need to handle requests for end of simulation
 			c.Set(Converged::CONVERGED);
 		}
+	}
+
+	if (iCoupling == COUPLING_NONE) {
+		c.Set(Converged::CONVERGED);
 	}
 }
 
@@ -1103,17 +1107,20 @@ ReadExtForce(DataManager* pDM,
 {
 	pEFH = ReadExtFileHandler(pDM, HP, uLabel);
 
-	iCoupling = 0;
+	iCoupling = ExtForce::COUPLING_LOOSE;
 	if (HP.IsKeyWord("coupling")) {
-		if (HP.IsKeyWord("loose")) {
-			iCoupling = 0;
+		if (HP.IsKeyWord("none")) {
+			iCoupling = ExtForce::COUPLING_NONE;
+
+		} else if (HP.IsKeyWord("loose")) {
+			iCoupling = ExtForce::COUPLING_LOOSE;
 
 		} else if (HP.IsKeyWord("tight")) {
-			iCoupling = 1;
+			iCoupling = ExtForce::COUPLING_TIGHT;
 
 		} else {
 			iCoupling = HP.GetInt();
-			if (iCoupling < 0) {
+			if (iCoupling < -1) {
 				silent_cerr("ExtForce(" << uLabel << "): "
 					"invalid coupling value "
 					"\"" << iCoupling << "\""
@@ -1124,7 +1131,7 @@ ReadExtForce(DataManager* pDM,
 		}
 	}
 
-	if (iCoupling) {
+	if (iCoupling >= ExtForce::COUPLING_TIGHT) {
 		bSendAfterPredict = true;
 		if (HP.IsKeyWord("send" "after" "predict")) {
 			if (!HP.GetYesNo(bSendAfterPredict)) {

@@ -238,6 +238,19 @@ StructExtForce::~StructExtForce(void)
 	NO_OP;
 }
 
+void
+StructExtForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	if (iCoupling == COUPLING_NONE) {
+		*piNumRows = 0;
+		*piNumCols = 0;
+
+	} else {
+		*piNumRows = (pRefNode ? 6 : 0) + 6*Nodes.size();
+		*piNumCols = 1;
+	}
+}
+
 bool
 StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 {
@@ -1084,6 +1097,11 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
+
+	if (iCoupling == COUPLING_NONE) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
 
 	int iOffset;
 	if (uRot != MBC_ROT_NONE) {

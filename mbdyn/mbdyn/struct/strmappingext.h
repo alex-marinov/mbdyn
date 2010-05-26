@@ -78,15 +78,15 @@ protected:
 
 	std::vector<uint32_t> m_qlabels;
 
-	STLVectorHandler m_f;
-	STLVectorHandler m_p;
-
 	STLVectorHandler m_x;
 	STLVectorHandler m_xP;
 	STLVectorHandler m_xPP;
 	STLVectorHandler m_q;
 	STLVectorHandler m_qP;
 	STLVectorHandler m_qPP;
+
+	STLVectorHandler m_f;
+	STLVectorHandler m_p;
 
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
@@ -124,10 +124,7 @@ public:
 		return Force::EXTERNALSTRUCTURAL; 
 	};
  
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6*Nodes.size();
-		*piNumCols = 1;
-	};
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,

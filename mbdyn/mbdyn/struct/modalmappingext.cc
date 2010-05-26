@@ -272,8 +272,14 @@ ModalMappingExt::GetForceType(void) const
 void
 ModalMappingExt::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = (pRefNode ? 6 : 0) + 6*Nodes.size();
-	*piNumCols = 1;
+	if (iCoupling == COUPLING_NONE) {
+		*piNumRows = 0;
+		*piNumCols = 0;
+
+	} else {
+		*piNumRows = (pRefNode ? 6 : 0) + 6*Nodes.size();
+		*piNumCols = 1;
+	}
 }
 
 SubVectorHandler&
@@ -283,6 +289,11 @@ ModalMappingExt::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XPrimeCurr)
 {
 	ExtForce::Recv();
+
+	if (iCoupling == COUPLING_NONE) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
 
 	integer iR, iC;
 	WorkSpaceDim(&iR, &iC);
@@ -344,21 +355,23 @@ ModalMappingExt::Output(OutputHandler& OH) const
 			}
 
 			for (unsigned i = 0; i < Nodes.size(); i++) {
+				const double *px = &x[6*i];
+				const double *pxP = &xP[6*i];
 				out << GetLabel() << '#' << Nodes[i].pNode->GetLabel()
 					<< " " << Nodes[i].F
 					<< " " << Nodes[i].M
-					<< " " << x[6*i + 0]
-					<< " " << x[6*i + 1]
-					<< " " << x[6*i + 2]
-					<< " " << x[6*i + 3]
-					<< " " << x[6*i + 4]
-					<< " " << x[6*i + 5]
-					<< " " << xP[6*i + 0]
-					<< " " << xP[6*i + 1]
-					<< " " << xP[6*i + 2]
-					<< " " << xP[6*i + 3]
-					<< " " << xP[6*i + 4]
-					<< " " << xP[6*i + 5]
+					<< " " << px[0]
+					<< " " << px[1]
+					<< " " << px[2]
+					<< " " << px[3]
+					<< " " << px[4]
+					<< " " << px[5]
+					<< " " << pxP[0]
+					<< " " << pxP[1]
+					<< " " << pxP[2]
+					<< " " << pxP[3]
+					<< " " << pxP[4]
+					<< " " << pxP[5]
 					<< std::endl;
 			}
 		}
