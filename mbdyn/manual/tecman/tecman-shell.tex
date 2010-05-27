@@ -1,5 +1,688 @@
-\emph{Author: Riccardo Vescovini}
-
+\emph{Authors: Marco Morandini and Riccardo Vescovini}
+\newcommand{ \fracd }[ 2 ]{ \frac{ \displaystyle{ #1 } }{ \displaystyle{ #2 }} }
+\newcommand{ \fracdp }[ 2 ]{ \frac{ \displaystyle{ \partial #1 } }{ \displaystyle{ \partial #2 }} }
+\newcommand{ \Rot }[ 1 ]{ \text{Rot} \plbr{ #1 } }
+\newcommand{ \VecRot }[ 1 ]{ \text{VecRot} \plbr{ #1 } }
+\newcommand{ \valxii }[ 0 ]{\plbr{ \T{ \xi }_{ i } } }
+\newcommand{ \valxin }[ 0 ]{\plbr{ \T{ \xi }_{ n } } }
+\newcommand{ \valxiA }[ 0 ]{\plbr{ \T{ \xi }_{ A } } }
+\newcommand{ \valxio }[ 0 ]{\plbr{ \T{ \xi }_{ 0 } } }
 \noindent
-\textbf{TODO}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%VARIATIONAL PRINCIPLE%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Variational principle}
+The formulation refers to the modified Hu-Washizu variational functional. The linearization of the functional is written as:
+\begin{equation}
+\delta W + \Delta \delta W = 0
+\end{equation}
+with:
+\begin{equation}
+\delta W = \int_A \plbr{
+\delta{\T{\epsilon}}^T \T{\sigma} + \delta \hat{\T{\epsilon}}^T \T{\sigma}
+} dA
+\label{eq:deltaW}
+\end{equation}
+and:
+\begin{equation}
+\Delta \delta W = \int_A \plbr{
+\delta {\T{\epsilon}} ^T  \T{C} \plbr{ \Delta {\T{\epsilon}}  + \Delta \hat{\T{\epsilon}}} +
+\delta \hat{\T{\epsilon}} ^T  \T{C} \plbr{ \Delta {\T{\epsilon}}  + \Delta \hat{\T{\epsilon}}} +
+\Delta \delta { \T{\epsilon} }^T \T{\sigma}
+} dA
+\label{eq:DeltadeltaW}
+\end{equation}
+where:
+\begin{itemize}
+\item $\T{C}$ is constitutive law (integrated along the shell thickness)
+\item $\T{\epsilon}$ is the vector of the compatible strains (resulting from the strain-displacement relations)
+\item $\T{\hat{\epsilon}}$ is the vector of the enhancing strains (EAS)
+\item $\T{\sigma}$ is the vector of forces and moments per unit length
+\end{itemize}
+The enhancing strains $\T{\hat{\epsilon}}$ are interpolated within the element.\\
+The compatible strains $\T{\epsilon}$ are defined as:
+\begin{equation}
+\underset{ 12 \times 1 }{
+ \T{\epsilon}
+ } =
+\cubr{\vvect{c}{
+ \tilde{\T{\epsilon}}_1 \\
+ \tilde{\T{\epsilon}}_2 \\
+ \tilde{\T{k} }_1 \\
+ \tilde{\T{k} }_2 \\
+}}
+\end{equation}
+where:
+\begin{equation}
+\tilde{\T{\epsilon}}_k =
+\T{T} ^T \T{y}_{,k}  - \T{e}_k
+\label{eq:epsilon}
+\end{equation}
+where the comma followed by the index represents the derivation with respect to the $k$-th arc-length coordinate.\\
+$\T{T}$ is the orientation and $\T{y}$ is the position vector both in the deformed configuration, and
+$\T{e}_k=\delta_{ik}$.
+\begin{equation}
+\tilde{\T{k}}_k  =
+\T{T}^ T \T{k}_k  - \T{T}_0 ^ T  \T{k}^{0}_{k}
+\end{equation}
+with:
+\begin{equation}
+\T{k}_k  \times = \T{T}_{,k} \T{T}^T
+\end{equation}
+The vector $\T{\sigma}$ is:
+\begin{equation}
+ \T{\sigma} =
+\cubr{\vvect{c}{
+ \T{n}_1 \\
+ \T{n}_2 \\
+ \T{m}_1 \\
+ \T{m}_2 \\
+}}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%NOTATION%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Finite element discretization and notation}
+The shell elements has four nodes, whose numeration starts from the upper right node and moves in counterclockwise direction, as shown in Figure~\ref{fig:shell}.
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=8cm]{shellPic.eps}
+\caption{Shell finite element}
+\label{fig:shell}
+\end{figure}
+In the natural domain, the coordinate system is identified by the coordinates $\xi_1$ and $\xi_2$, both varying in the range $[-1, 1]$. \\
+In the next it will be used the notation:
+\begin{equation}
+\T{\xi} = \plbr{\xi_{1},\xi_{2}}
+\end{equation}
+Four points are defined on the midsides of the element, and are used in the context of the ANS approach. In particular, they are denoted by the set of coordinates:
+\begin{equation}
+\vvect{c}{
+\T{\xi}_a = \plbr{\xi_{1a},\xi_{2a}} \\
+\T{\xi}_b = \plbr{\xi_{1b},\xi_{2b}} \\
+\T{\xi}_c = \plbr{\xi_{1c},\xi_{2c}} \\
+\T{\xi}_d = \plbr{\xi_{1d},\xi_{2d}}
+}
+\label{eq:xiSep}
+\end{equation}
+The following convention is adopted:
+\begin{itemize}
+	\item the subscript $n$ denotes a nodal variable
+  \item $\T{\xi}_i$ means $\T{\xi}$ evaluated in a generic integration point
+  \item $\T{\xi}_A$ means $\T{\xi}$ evaluated in one of the four shear evaluation points
+  \item $\T{\xi}_0$ means $\T{\xi}$ evaluated at the origin
+\end{itemize}
+Accordingly to the numeration of the nodes, the bilinear shape functions defined at element level are:
+\begin{subequations}
+\begin{align}
+L_1(\T{\xi}) & = \frac{1}{4} \plbr{ 1 + \xi_1 } \plbr{ 1 + \xi_2 } \\
+L_2(\T{\xi}) & = \frac{1}{4} \plbr{ 1 - \xi_1 } \plbr{ 1 + \xi_2 } \\
+L_3(\T{\xi}) & = \frac{1}{4} \plbr{ 1 - \xi_1 } \plbr{ 1 - \xi_2 } \\
+L_4(\T{\xi}) & = \frac{1}{4} \plbr{ 1 + \xi_1 } \plbr{ 1 - \xi_2 }
+\end{align}
+\end{subequations}
+The degrees of freedom associated to each element are 24 nodal positions and orientations collected in the vector ${\T{q}}$:
+\begin{align}
+\underset{24 \times 1}{\delta{\T{q}}}  =
+\cubr{\vvect{c}{
+\delta \T{y}_{n} \\
+\T{\varphi}_{\delta n} \\
+}}
+ = &
+\cubr{\vvect{c}{
+\delta \T{y}_{1} \\
+\T{\varphi}_{\delta 1} \\
+\delta \T{y}_{2} \\
+\T{\varphi}_{\delta 2} \\
+\delta \T{y}_{3} \\
+\T{\varphi}_{\delta 3} \\
+\delta \T{y}_{4} \\
+\T{\varphi}_{\delta 4} \\
+}}
+&
+\underset{24 \times 1}{\Delta{\T{q}}}  =
+\cubr{\vvect{c}{
+\delta \T{y}_{n} \\
+\T{\varphi}_{\Delta n} \\
+}}
+ = &
+\cubr{\vvect{c}{
+\Delta \T{y}_{1} \\
+\T{\varphi}_{\Delta 1} \\
+\Delta \T{y}_{2} \\
+\T{\varphi}_{\Delta 2} \\
+\Delta \T{y}_{3} \\
+\T{\varphi}_{\Delta 3} \\
+\Delta \T{y}_{4} \\
+\T{\varphi}_{\Delta 4} \\
+}}
+\end{align}
+and 7 internal degrees of freedom related to the assumed strain (EAS) and collected in the vector $\T{\beta}$.\\
+The total number of degrees of freedom is so 31.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%LINEARIZATION%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Linearization}
+The virtual variation of the compatible strains $\T{\epsilon}$ is obtained as:
+\begin{equation}
+\delta \T{\epsilon} =
+\cubr{\vvect{c}{
+\delta \tilde{\T{\epsilon} }_1 \\
+\delta \tilde{\T{\epsilon} }_2 \\
+\delta \tilde{\T{k} }_1 \\
+\delta \tilde{\T{k} }_2 \\
+}}
+\end{equation}
+In particular, the virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ is:
+\begin{equation}
+\delta \tilde{\T{\epsilon} }_k  = \delta \plbr{ \T{T}^T \T{y}_{,k} } =
+\sum_{i=1}^n \T{T}^T \T{y}_{,k} \times \T{\Phi}_{n} L_n \varphi_{\delta n} + \sum_{i=1}^n \T{T}^T L_{n,k} \delta \T{y}_{n}
+\label{eq:delta_epsilon}
+\end{equation}
+where:
+\begin{equation}
+\T{\Phi}_{n} = \overline{\T{T}}  \tilde{ \T{\Gamma} } \tilde{ \T{\Gamma} }_n^{-1} \overline{\T{T}}^T
+\end{equation}
+The  virtual variations of the curvatures $\tilde{\T{k} }_k$ is:
+\begin{equation}
+\delta \tilde{\T{k} }_k = \delta \plbr{ \T{T}^T \T{k}_k } =
+\sum_{i=1}^n \T{T}^T \T{k}_k \times \T{\Phi}_n L_n \varphi_{\delta n} + \sum_{i=1}^n \T{T}^T \T{K}_{kn} \varphi_{\delta n}
+\label{eq:delta_k}
+\end{equation}
+where:
+\begin{equation}
+\T{K}_{kn} = \overline{\T{T}} \mathcal{L} \plbr{ \tilde{\T{\varphi}}, \tilde{\T{\varphi}}_{,k} } \tilde{ \T{\Gamma} }_{n}^{-1} \overline{T}^T L_n + \T{\Phi}_{n} L_{n,k}
+\end{equation}
+the term $L_{n,k}$ is the derivative of the $n$-th shape function with respect to the $k$-th arc-length coordinate.\\
+%%%%%%%delta delta%%%%%%%
+The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
+\begin{equation}
+\begin{split}
+\T{n}_k \cdot \Delta \delta \tilde{\T{\epsilon}}_k =
+\T{n}_k \cdot \Delta \delta \plbr{ \T{T}^T \T{y}_{,k} } & =
+\sum_{m,n=1}^{4} \varphi_{\delta n} \T{\Phi}_{n}^T L_n \T{y}_{,k} \times \plbr{ \T{T} \T{n}_k } \times \T{\Phi}_m L_m  \varphi_{\Delta n} + \\
+& + \sum_{m,n=1}^{4} \varphi_{\delta n} \T{\Phi}_{n}^T L_n \plbr{\T{T} \T{n}_k} \times L_{m,k} \Delta \T{y}_{n} + \\
+& - \sum_{m,n=1}^{4} \delta \T{y}_n L_{n,k} \plbr{\T{T} \T{n}_k} \times \T{\Phi}_m L_m \varphi_{\Delta m}
+\end{split}
+\label{eq:Deltadelta_epsilon}
+\end{equation}
+\begin{equation}
+\begin{split}
+\T{m}_k \cdot \Delta \delta \tilde{\T{k}}_k =
+\T{m}_k \cdot \Delta \delta \plbr{\T{T}^T \T{k}_k} & =
+\sum_{m,n=1}^{4} \varphi_{\delta n} L_n \T{\Phi}_n^T \T{k}_k \times \plbr{\T{T} \T{m}_k} \times \T{\Phi_{m}} L_m \varphi_{\Delta m} + \\
+&+\sum_{m,n=1}^{4} \varphi_{\delta n} L_n \T{\Phi}_n^T \plbr{\T{T} \T{m}_k} \times \T{\Phi}_m L_{m,k} \varphi_{\Delta m}
+\end{split}
+\label{eq:Deltadelta_k}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%IMPLEMENTATION%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\section{Implementation}
+Having shown the variational principle and the linearization of strains and curvatures, it is then possible to develop the procedure to derive the jacobian matrix and the residual.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%ORIENTATION%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Orientation interpolation}
+In the initial configuration it is built the matrix:
+\begin{equation}
+\T{ iTa }_n = \T{ R }_n^T \sqbr{ \T{ t }_{ 1n } \T{ t }_{ 2n } \T{ t }_{ 3n } }
+\end{equation}
+with $\T{ R }_n$ node orientation, and $\T{t}_{in}$ vectors tangent to the element surface.\\
+So:
+\begin{equation}
+\T{T}_{n} = \T{ R }_n \T{ iTa }_n
+\end{equation}
+It is then calculated:
+\begin{equation}
+\T{ T }_{ avg } = \fracd{ 1 }{ 4 } \sum_{ n = 1 }^{ 4 } \T{ T }_n
+\end{equation}
+which is in general a not orthogonal matrix.\\
+An orthogonal matrix can be obtained by applying:
+\begin{equation}
+\overline{ \T{ T } } = \Rot{ \VecRot{ \T{ T }_{avg} }  }
+\end{equation}
+which is then used to calculate the nodal rotation:
+\begin{equation}
+\tilde{ \T{ R } }_{ n } = \overline{ \T{ T } } ^T \T{ T }_n
+\end{equation}
+and:
+\begin{equation}
+\tilde{ \varphi }_n = \VecRot{ \tilde{ \T{ R } }_n }
+\end{equation}
+The nodal values of $\tilde{ \varphi }_n$ are interpolated by means of the shape functions:
+\begin{equation}
+\tilde{ \T{ \varphi } } \valxii = \sum_{ i = 1 }^{ 4 } L_n \valxii \tilde{ \T{ \varphi } }_n
+\end{equation}
+from which is obtained the rotation matrix at the integration point:
+\begin{equation}
+\tilde{ \T{ R } } \valxii = \Rot{ \tilde{ \varphi } \valxii }
+\end{equation}
+and finally the orientation at the integration point:
+\begin{equation}
+\T{ T } \valxii = \overline{ \T{ T } } \tilde{ \T{ R } } \valxii
+\end{equation}
+The virtual variation of $\T{\varphi}$ at the integration point is related to the nodal valeus by:
+\begin{equation}
+\T{ \varphi }_{\delta} \valxii =
+\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxii L_n \valxii \varphi_{\delta n}
+\end{equation}
+with:
+\begin{equation}
+\T{ \Phi }_n \valxii =
+\overline{ \T{ T } } \tilde{ \Gamma } \plbr{ \tilde{ \varphi \valxii } }  \tilde{ \Gamma } ^ {-1} \plbr{ \tilde{ \varphi }_n } \overline{ \T{ T } } ^ T
+\end{equation}
+Similarly the virtual variation of $\T{\varphi}$ can be obtained at the shear evaluation points as:
+\begin{equation}
+\T{ \varphi }_{\delta} \valxiA =
+\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxiA L_n \valxiA \varphi_{\delta n}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%POSITION%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Position interpolation}
+The nodal positions are so interpolated as:
+\begin{equation}
+\T{ y }   = \sum_{ n = 1 }^4  L_n   \T{ y }_n
+\end{equation}
+The derivatives with respect to the generic coordinate $\xi_k$ at the integration points is:
+\begin{equation}
+\fracdp{ \T{ x } \valxii }{ \xi_k }  = \sum_{ n = 1 }^4 \fracdp{ L_n \valxii }{ \xi_k } \T{ x }_n
+\end{equation}
+It is then possible to build the matrix:
+\begin{equation}
+\underset{ 2 \times 2 }{ \T{ S }_{ \alpha \beta } \valxii } =
+\sqbr{ \matr{ c  c  }{
+\underset{ 1 \times 3 }{ \T{ t }_{1}^{0} \valxii } \underset{ 3 \times 1 }{ \fracdp{ \T{x} \valxii }{ \xi_1 } } & \T{ t }_{1}^{0} \valxii \fracdp{ \T{x} \valxii }{ \xi_2 } \\
+\T{ t }_{2}^{0} \valxii \fracdp{ \T{x} \valxii }{ \xi_1 } & \T{ t }_{2}^{0} \valxii \fracdp{ \T{x} \valxii }{ \xi_2 }
+}}
+\end{equation}
+observing that $\T{T}_0 \valxii = \sqbr{ \T{t}_{1}^{0} \valxii  \T{t}_{2}^{0} \valxii \T{t}_{3}^{0} \valxii }$.\\
+With the same procedure are derived $\T{ S }_{ \alpha \beta } \valxio$ and  $\T{ S }_{ \alpha \beta } \valxiA$.\\
+\begin{equation}
+\underset{ 4 \times 2 } { \T{ L }_{ \alpha B } \valxii } =
+\sqbr{ \matr{ c c }{
+\fracdp{ L_1 \valxii }{ \xi_1 } & \fracdp{ L_1 \valxii }{ \xi_2 } \\
+\fracdp{ L_2 \valxii }{ \xi_1 } & \fracdp{ L_2 \valxii }{ \xi_2 } \\
+\fracdp{ L_3 \valxii }{ \xi_1 } & \fracdp{ L_3 \valxii }{ \xi_2 } \\
+\fracdp{ L_4 \valxii }{ \xi_1 } & \fracdp{ L_4 \valxii }{ \xi_2 } \\
+}}
+\end{equation}
+\begin{equation}
+\underset{ 4 \times 2 } { \T{ L }_{ \alpha \beta } \valxii }=
+\T{ L }_{ \alpha B } \valxii \T{S}_{\alpha \beta} ^{-1} \valxii
+\end{equation}
+which is the matrix giving the variation of the shape functions $L_n$ with respect the the arc-length coordinates:
+\begin{equation}
+\T{L}_{\alpha \beta} =
+\sqbr{ \matr{ c c }{
+L_{1,1} & L_{1,2} \\
+L_{2,1} & L_{2,2} \\
+L_{3,1} & L_{3,2} \\
+L_{4,1} & L_{4,2}
+}}
+\end{equation}
+In order to perform the integration in the isoparametric domain the area element need to be calculated. In particular, the determinant of the jacobian of the transformation between the physical and the natural domain has to be calculated. It is:
+\begin{align}
+\alpha \valxii & = \det \T{ S }_{\alpha \beta} \valxii &
+\alpha \valxiA & = \det \T{ S }_{\alpha \beta} \valxiA
+\end{align}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%EAS%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Enhancing strains interpolation}
+The virtual variation and increments of the enhancing strains $\T{\hat{\epsilon}}$ are interpolated as:
+\begin{align}
+\underset{12 \times 1}{\delta \hat{\T{\epsilon}}} \valxii & = \underset{12 \times 7}{\T{P}} \valxii \underset{7 \times 1}{ \delta \T{\beta}} &  \Delta \hat{\T{\epsilon}}\valxii & = \T{P}\valxii \Delta \T{\beta}
+\end{align}
+where $\T{\beta}$ is the vector collecting the the strains parameters, while the expression of the matrix $\T{P}$ is derived in the next. \\
+The EAS approach here adopted considers the enhancing of the membrane strains only, i.e. $\epsilon_{11}$, $\epsilon_{12}$, $\epsilon_{21}$ and $\epsilon_{22}$. Shear strains and bending strains are not enhanced.\\
+The interpolation is performed in the natural domain adopting the shape functions:
+\begin{equation}
+\underset{ 4 \times 7 } { \T{ H } \valxii } =
+\sqbr{ \matr{ c c c c c c c }{
+\xi_{1i} & \xi_{1i} \xi_{2i} &  0    &      0      &   0   &      0      &   0     \\
+  0   &      0      & \xi_{2i} & \xi_{1i} \xi_{2i} &   0   &      0      &   0     \\
+  0   &      0      &  0    &      0      & \xi_{1i} & \xi_{1i} \xi_{2i} &   0      \\
+  0   &      0      &  0    &      0      &   0   & \xi_{1i} \xi_{2i} & \xi_{2i}
+}}
+\end{equation}
+The interpolation is reported in the pyshical domain with a push-forward operation with the transformation matrix $\T{M}_0$, defined as:
+\begin{equation}
+\underset{ 4 \times 4 } { \T{M}_0 } =
+\sqbr{ \matr{ c c c c}{
+s_{ 1, 1 } s_{ 1, 1 } & s_{ 1, 2 } s_{ 1, 2 } & s_{ 1, 2 } s_{ 1, 1 } &  s_{ 1, 1 } s_{ 1, 2 } \\
+s_{ 2, 1 } s_{ 2, 1 } & s_{ 2, 2 } s_{ 2, 2 } & s_{ 2, 2 } s_{ 2, 1 } &  s_{ 2, 1 } s_{ 2, 2 } \\
+s_{ 1, 1 } s_{ 2, 1 } & s_{ 1, 2 } s_{ 2, 2 } & s_{ 1, 1 } s_{ 2, 2 } &  s_{ 1, 2 } s_{ 2, 1 } \\
+s_{ 1, 1 } s_{ 2, 1 } & s_{ 1, 2 } s_{ 2, 2 } & s_{ 1, 2 } s_{ 2, 1 } &  s_{ 1, 1 } s_{ 2, 2 }
+}}
+\end{equation}
+where the generic term $s_{ i, k }$ is the element $\plbr{i,k}$ of the matrix $\T{ S }_{ \alpha \beta } \valxio$.\\
+\begin{equation}
+\underset{ 12 \times 7 }{ \T{ P } \valxii } =
+\fracd{ \alpha \valxio }{ \alpha \valxii } \underset{ 12 \times 4  }{ \T{\mathcal{P}} } \underset{ 4 \times 4 }{ \T{ M }_{0}^{-T} } \underset{ 4 \times 7 }{ \T{H} \valxii }
+\end{equation}
+where $\T{\mathcal{P}}$ is a permutation matrix defined as:
+
+\begin{equation}
+\underset{ 12 \times 7 }{ \T{\mathcal{P}} } =
+\sqbr{ \matr{ c c c c  }{
+1 & 0 & 0 & 0 \\
+0 & 0 & 1 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 1 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0 \\
+0 & 0 & 0 & 0
+}}
+\end{equation}
+which has the places the enhanced strains in the corresponding positions of the global vector of membrane and bending strains $\T{\epsilon}$.
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%COMAPTIBLE STRAINS%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Compatible strains interpolation}
+The virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ at the $i$-th integration point is obtained from Eq.~\ref{eq:delta_epsilon}:
+\begin{equation}
+\begin{split}
+\delta \tilde{\T{\epsilon} }_k \valxii & = \delta \plbr{ \T{T}\valxii^T \T{y}_{,k} \valxii } = \\
+& \sum_{i=1}^n \T{T}\valxii^T \T{y}_{,k}\valxii \times \T{\Phi}_{n} \valxii L_n \valxii \varphi_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{L}_{\alpha \beta} \valxii \plbr{ n, k } \valxii \delta \T{y}_{n}
+\end{split}
+\label{eq:delta_epsilon_i}
+\end{equation}
+where $\T{L}_{\alpha \beta} \valxii \plbr{ n, k }$ denotes the element $\plbr{n, k}$ of the matrix $\T{L}_{\alpha \beta} \valxii$.\\
+The  virtual variation of the curvatures $\tilde{\T{k} }_k$ at the $i$-th integration point is derived from Eq.~\ref{eq:delta_k}:
+\begin{equation}
+\begin{split}
+\delta \tilde{\T{k} }_k \valxii & = \delta \plbr{ \T{T}\valxii^T \T{k}_k \valxii} =  \\
+& \sum_{i=1}^n \T{T}\valxii^T \T{k}_k\valxii \times \T{\Phi}_n\valxii L_n\valxii \varphi_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{K}_{kn}\valxii \varphi_{n \delta}
+\end{split}
+\label{eq:delta_k_i}
+\end{equation}
+where:
+\begin{equation}
+\T{\Phi}_{n} \valxii = \overline{\T{T}}  \tilde{ \T{\Gamma} } \plbr{ \tilde{\varphi} \valxii } \tilde{ \T{\Gamma} }_n^{-1} \overline{\T{T}}^T
+\end{equation}
+and:
+\begin{equation}
+\T{K}_{kn} \valxii =
+\overline{\T{T}} \mathcal{L} \plbr{ \tilde{\T{\varphi}}\valxii, \tilde{\T{\varphi}}_{,k}\valxii } \tilde{ \T{\Gamma} }_{n}^{-1} \overline{T}^T L_n\valxii + \T{\Phi}_{n}\valxii \T{L}_{\alpha \beta} \valxii \plbr{ n, k } \valxii
+\end{equation}
+The derivative of the the vector $\tilde{\T{\varphi}}$ with respect to the $k$-th arc-length coordinate can be expressed as function of the nodal values as:
+\begin{equation}
+\tilde{ \T{ \varphi } }_{,k} \valxii  =
+\sum_{n=1}^4 \T{L}_{\alpha \beta} \valxii \plbr{ n, k } \T{\varphi}_{n}
+\end{equation}
+The curvatures are given by:
+\begin{equation}
+\T{k}_{k} \valxii  =
+\overline{\T{T}} \tilde{\Gamma} \plbr{ \tilde{\varphi} \valxii } \tilde{ \varphi }_{,k} \valxii
+\end{equation}
+and the derivative of the position vector is:
+\begin{equation}
+\T{y}_{,k} \valxii  =
+\sum_{i=1}^{4} \T{L}_{\alpha \beta} \valxii \plbr{n,k} \T{y}_n
+\end{equation}
+The compatible strains can so be expressed as function of the nodal variables $\T{q}$ by considering Eqs.~\ref{eq:delta_epsilon_i} and \ref{eq:delta_k_i}:
+\begin{equation}
+\delta \T{\epsilon} = \overline{\T{B}} \delta{\T{q}}
+\end{equation}
+with:
+\begin{equation}
+\underset{ 12 \times 24 }{\overline{\T{B}} \valxii} =
+\sqbr{ \matr{ c c c c  }{
+\overline{\T{B}}_1 \valxii & \overline{\T{B}}_2 \valxii & \overline{\T{B}}_3 \valxii & \overline{\T{B}}_4 \valxii
+}}
+\label{eq:B_overline}
+\end{equation}
+and:
+\begin{equation}
+\underset{ 12 \times 6 }{\overline{\T{B}}_n \valxii} =
+\sqbr{ \matr{ c c  }{
+\T{T} \valxii^T \T{L}_{\alpha \beta} \valxii \plbr{n,1} & \T{T}\valxii^T \T{y}_{,1} \valxii \times \T{\Phi}_{n} \valxii L_{n} \valxii \\
+\T{T} \valxii^T \T{L}_{\alpha \beta} \valxii \plbr{n,2} & \T{T}\valxii^T \T{y}_{,2} \valxii \times \T{\Phi}_{n} \valxii L_{n} \valxii \\
+0 & \T{T}\valxii^T \T{k}_{1} \valxii \times \T{\Phi}_{n} \valxii L_{n} \valxii + \T{T} \valxii^T \T{K}_{1n} \valxii \\
+0 & \T{T}\valxii^T \T{k}_{2} \valxii \times \T{\Phi}_{n} \valxii L_{n} \valxii + \T{T} \valxii^T \T{K}_{2n} \valxii
+}}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%ANS%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{ANS}
+The ANS technique is applied to prevent shear locking. Here the ANS is applied to shear strains only, i.e. $\epsilon_{1}$ and  $\epsilon_{2}$ The approach consists in interpolating the shear strains in the midsides of the element in the natural domain. Such interpolated strains are then used to derive the shear strains at the integration points.\\
+The use of the ANS technique leads a re-definition of:
+\begin{itemize}
+	\item the two rows of the $\overline{\T{B}}$ matrix relative to shear strains
+	\item the shear strains
+\end{itemize}
+The compatible strains are:
+\begin{align}
+\tilde{\T{\epsilon}}_1 & =
+\cubr{\vvect{c}{
+\epsilon_{11} \\
+\epsilon_{12} \\
+\epsilon_{1}
+}}
+&
+\tilde{\T{\epsilon}}_2 & =
+\cubr{\vvect{c}{
+\epsilon_{21} \\
+\epsilon_{22} \\
+\epsilon_{2}
+}}
+\end{align}
+At first, the compatible strains are evaluated at the shear evaluation points of Figure~\ref{fig:shell}. This is done referring to Eq.~\ref{eq:epsilon}
+\begin{equation}
+\tilde{\T{\epsilon}}_k \valxiA  =
+\T{T} \valxiA ^T \T{y}_{,k} \valxiA - \T{e}_k
+\end{equation}
+The matrix $\overline{\T{B}}$ of Eq.~\ref{eq:B_overline} is built also in the shear evaluation points for the membrane strains only, and is indicated as $\overline{\overline{\T{B}}}$
+\begin{equation}
+\underset{ 6 \times 24 }{\overline{\overline{\T{B}}} \valxiA} =
+\sqbr{ \matr{ c c c c  }{
+\overline{\overline{\T{B}}}_1 \valxiA & \overline{\overline{\T{B}}}_2 \valxiA & \overline{\overline{\T{B}}}_3 \valxiA & \overline{\overline{\T{B}}}_4 \valxiA
+}}
+\end{equation}
+with:
+\begin{equation}
+\underset{ 6 \times 6 }{\overline{\overline{\T{B}}}_n \valxiA} =
+\sqbr{ \matr{ c c  }{
+\T{T} \valxiA ^ T \T{L}_{\alpha \beta} \valxiA \plbr{n,1} & \T{T} \valxiA^T \T{y}_{,1} \valxiA \times \T{\Phi}_{n} \valxiA L_{n}  \valxiA \\
+\T{T} \valxiA ^ T \T{L}_{\alpha \beta} \valxiA \plbr{n,2} & \T{T} \valxiA^T \T{y}_{,2} \valxiA \times \T{\Phi}_{n} \valxiA L_{n}  \valxiA
+}}
+\end{equation}
+The rows relative to the shear strains $\epsilon_1$ and $\epsilon_2$ are collected in:
+\begin{align}
+\underset{ 4 \times 24 }{\overline{\overline{\T{B3}}} \valxiA} & =
+\sqbr{ \matr{ c c  }{
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_a } \plbr{3,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_b } \plbr{3,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_c } \plbr{3,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_d } \plbr{3,:}
+}}
+&
+\underset{ 4 \times 24 }{\overline{\overline{\T{B6}}} \valxiA} & =
+\sqbr{ \matr{ c c  }{
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_a } \plbr{6,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_b } \plbr{6,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_c } \plbr{6,:} \\
+\overline{\overline{\T{B}}} \plbr{ \T{\xi}_d } \plbr{6,:}
+}}
+\end{align}
+where $\overline{\overline{\T{B}}} \plbr{ \T{\xi}_a } \plbr{k,:}$ is used to denote all the element of the $k$-th row of $\overline{\overline{\T{B}}} \plbr{ \T{\xi}_a }$.\\
+The matrices $\overline{\overline{\T{B3}}}$ and $\overline{\overline{\T{B6}}}$ are interpolated to obtain the values at the integration points.
+\begin{align}
+\overline{\T{B3}} \valxii & = \fracd{1}{2}
+\sqbr{ \matr{ c c c c  }{
+1 + \xi_{2i} & 0 & 1 - \xi_{2i} & 0
+}}
+\overline{\overline{\T{B3}}} \valxiA
+\\
+\overline{\T{B6}} \valxii & = \fracd{1}{2}
+\sqbr{ \matr{ c c c c  }{
+1 + \xi_{1i} & 0 & 1 - \xi_{1i} & 0
+}}
+\overline{\overline{\T{B6}}} \valxiA
+\end{align}
+The obtained matrices $\overline{\T{B3}}$ and $\overline{\T{B6}}$ replace the corresponding rows of the matrix $\overline{\T{B}}$ of Eq.~\ref{eq:B_overline}.\\
+The second step in the application of the ANS technique is the interpolation of the shear strains:
+\begin{subequations}
+\begin{align}
+\epsilon_1 \valxii & =
+\fracd{1}{2} \plbr{ 1 + \xi_{2i} } \epsilon_1 \plbr{ \T{\xi}_a } + \fracd{1}{2} \plbr{1-\xi_{2i}} \epsilon_1 \plbr{ \T{\xi}_c } \\
+\epsilon_2 \valxii & =
+\fracd{1}{2} \plbr{ 1 - \xi_{1i} } \epsilon_2 \plbr{ \T{\xi}_b } + \fracd{1}{2} \plbr{1+\xi_{1i}} \epsilon_2 \plbr{ \T{\xi}_d }
+\end{align}
+\end{subequations}
+The so interpolated strains $\epsilon_1$ and $\epsilon_2$ are then inserted into the proper position in the vector $\T{\epsilon}$ respectively.\\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%FORCES%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Forces}
+Strains and curvatures can be calculated as:
+\begin{equation}
+\tilde{\T{\epsilon}}_k \valxii  =
+\T{T} \valxii ^T \T{y}_{,k} \valxii - \T{e}_k
+\end{equation}
+\begin{equation}
+\tilde{\T{k}}_k  =
+\T{T} \valxii ^ T \T{k}_k \valxii - \T{T}_0 ^ T \valxii \T{k}^{0}_{k} \valxii
+\end{equation}
+where $\T{T}_0$ and $\T{k}^{0}_{k}$ are calculated at the first step.\\
+The total strain is the sum of the compatible and the enhancing strains:
+\begin{equation}
+\T{\epsilon}_t \valxii =
+\T{\epsilon} \valxii +
+\hat{ \T{\epsilon} } \valxii
+\end{equation}
+The resulting forces are easily computed by means of the constitutive law:
+\begin{equation}
+\T{\sigma} \valxii =
+\T{C}\valxii \T{\epsilon}_t \valxii
+\end{equation}
+which is:
+\begin{equation}
+\T{\sigma} \valxii =
+\cubr{\vvect{c}{
+\T{n}_1 \valxii \\
+\T{n}_2 \valxii \\
+\T{m}_1 \valxii \\
+\T{m}_2 \valxii
+}}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%%%JACOBIAN%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Jacobian matrix}
+The second variation of the variational principle of Eq.~\ref{eq:DeltadeltaW} gives the jacobian matrix. In particular, the finite element discretization is here presented for the five different terms of Eq.~\ref{eq:DeltadeltaW}.\\
+The first term is:
+\begin{equation}
+\begin{split}
+\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta {\T{\epsilon}}  dA & = \\
+& = \delta{\T{q}}^T  \sum_{i=1}^{4} \overline{\T{B}}\valxii^T  \T{C}\valxii  \overline{\T{B}}\valxii  \alpha \valxii   w_i \Delta \T{q} \\
+& = \delta{\T{q}}^T  \T{K}_m  \Delta \T{q}
+\end{split}
+\end{equation}
+The second term is:
+\begin{equation}
+\begin{split}
+\int_A  \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta {\T{\epsilon}} dA & = \\
+& = \delta{\T{\beta}}^T  \sum_{i=1}^{4} \T{P}\valxii^T  \T{C}\valxii  \overline{\T{B}}\valxii  \alpha \valxii  w_i \Delta \T{q} \\
+& = \delta{\T{\beta}}^T  \T{K}_{\beta q}  \Delta \T{q}
+\end{split}
+\end{equation}
+The third term is:
+\begin{equation}
+\begin{split}
+\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} dA & = \\
+& = \delta{\T{q}}^T  \T{K}_{\beta q}^T  \Delta \T{\beta}
+\end{split}
+\end{equation}
+The fourth term is:
+\begin{equation}
+\begin{split}
+\int_A \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} dA & = \\
+& = \delta{\T{\beta}}^T  \sum_{i=1}^{4} \T{P}\valxii^T  \T{C}\valxii  \T{P}\valxii  \alpha \valxii  w_i \Delta \T{\beta} \\
+& = \delta{\T{\beta}}^T  \T{K}_{\beta \beta}  \Delta \T{\beta}
+\end{split}
+\end{equation}
+The fifth term is:
+\begin{equation}
+\begin{split}
+\int_A \Delta \delta { \T{\epsilon} }^T \T{\sigma} dA & = \\
+& = \delta{\T{q}}^T  \sum_{i=1}^{4} \overline{\T{D}}\valxii^T  \T{G}\valxii  \overline{\T{D}}\valxii  \alpha \valxii  w_i \Delta \T{q} \\
+& = \delta{\T{q}}^T  \T{K}_g  \Delta \T{q}
+\end{split}
+\end{equation}
+where this last expression is obtained starting from Eqs.~\ref{eq:Deltadelta_epsilon} and \ref{eq:Deltadelta_k}, and where:
+\begin{equation}
+\underset{ 15 \times 24 }{\overline{\T{D}} \valxii} =
+\sqbr{ \matr{ c c c c  }{
+\overline{\T{D}}_1 \valxii & \overline{\T{D}}_2 \valxii & \overline{\T{D}}_3 \valxii & \overline{\T{D}}_4 \valxii
+}}
+\end{equation}
+with:
+\begin{equation}
+\underset{ 15 \times 6 }{\overline{\T{D}}_n \valxii} =
+\sqbr{ \matr{ c c  }{
+\T{L}_{\alpha \beta} \valxii \plbr{n,1} \T{I} & \T{0} \\
+\T{L}_{\alpha \beta} \valxii \plbr{n,2} \T{I} & \T{0} \\
+\T{0} & \T{K}_{1n} \valxii\\
+\T{0} & \T{K}_{2n} \valxii \\
+\T{0} & \T{\Phi}_{n} \valxii L_{n} \valxii \\
+}}
+\end{equation}
+\begin{equation}
+\begin{split}
+\T{Hh} \valxii & =
+\T{T} \valxii \T{n}_1 \valxii \otimes \T{y}_{,1} \valxii - \T{T} \valxii \T{n}_1 \cdot \T{y}_{,1} \valxii \T{I} + \\
+& + \T{T} \valxii \T{n}_2 \valxii \otimes \T{y}_{,2} \valxii - \T{T} \valxii \T{n}_2 \cdot \T{y}_{,2} \valxii \T{I} + \\
+& + \T{T} \valxii \T{m}_1 \valxii \otimes \T{k}_{1} \valxii - \T{T} \valxii \T{m}_1 \cdot \T{k}_{1} \valxii \T{I} + \\
+& + \T{T} \valxii \T{m}_2 \valxii \otimes \T{k}_{2} \valxii - \T{T} \valxii \T{m}_2 \cdot \T{k}_{2} \valxii \T{I}
+\end{split}
+\end{equation}
+\begin{equation}
+\underset{ 15 \times 15 }{ \T{G} \valxii } =
+\sqbr{ \matr{ c c c c c}{
+\T{0} & \T{0} & \T{0} & \T{0} & -\T{T} \valxii \T{n}_1 \valxii \\
+\T{0} & \T{0} & \T{0} & \T{0} & -\T{T} \valxii \T{n}_2 \valxii \\
+\T{0} & \T{0} & \T{0} & \T{0} & -\T{T} \valxii \T{n}_1 \valxii \\
+\T{0} & \T{0} & \T{0} & \T{0} &  \T{0} \\
+\T{0} & \T{0} & \T{0} & \T{0} &  \T{0} \\
+\T{T} \valxii \T{n}_1 \valxii & \T{T} \valxii \T{n}_2 \valxii & \T{T} \valxii \T{m}_1 \valxii &  \T{T} \valxii \T{m}_2 \valxii & \T{Hh} \valxii
+}}
+\end{equation}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%%%%RESIDUAL%%%%%%%%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\subsection{Residual}
+The residual comes from the finite element approximation of Eq.~\ref{eq:deltaW}. \\
+The first term is:
+\begin{equation}
+\begin{split}
+\int_A \delta{\T{\epsilon}}^T \T{\sigma} dA & = \\
+& = \delta \T{q}^T \sum_{i=1}^{4} \overline{\T{B}}\valxii^T  \T{\sigma}\valxii  \alpha \valxii  w_i \\
+& = \delta \T{q}^T \T{r}_{d}
+\end{split}
+\end{equation}
+The second term is:
+\begin{equation}
+\begin{split}
+\int_A \delta \hat{\T{\epsilon}}^T \T{\sigma} dA & = \\
+& = \delta \T{\beta}^T \sum_{i=1}^{4} \T{P}\valxii^T  \T{\sigma}\valxii  \alpha \valxii  w_i \\
+& = \delta \T{\beta}^T \T{r}_{\beta}
+\end{split}
+\end{equation}
+The resulting governing equations are then:
+\begin{subequations}
+\begin{align}
+\plbr{ \T{K}_m + \T{K}_g } \Delta \T{q} + \T{K}_{\beta q} ^ T \Delta \T{\beta} & = - \T{r}_{d} \\
+\T{K}_{\beta q}  \Delta \T{q} + \T{K}_{\beta \beta}  \Delta \T{\beta} & = - \T{r}_{\beta} \\
+\end{align}
+\end{subequations}
