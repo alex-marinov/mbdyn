@@ -160,9 +160,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::JOINT].ToBeUsedInAssembly(true);
 	ElemData[Elem::JOINT_REGULARIZATION].ToBeUsedInAssembly(true);
 	ElemData[Elem::BEAM].ToBeUsedInAssembly(true);
-#if 0
 	ElemData[Elem::PLATE].ToBeUsedInAssembly(true);
-#endif
 
 	/* Aggiungere qui se un tipo genera forze d'inerzia e quindi
 	 * deve essere collegato all'elemento accelerazione di gravita' */
@@ -752,13 +750,19 @@ CurrType(Elem::UNKNOWN)
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
 	ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
 
-	pCurr = (*pElemData)[iCnt].ElemMap.begin();
 	FirstType = CurrType = Elem::Type(iCnt);
 }
 
 InitialAssemblyElem *
 InitialAssemblyIterator::GetFirst(void) const
 {
+	// FIXME: this should not happen: if there are no elements
+	// that need initial assembly, we shouldn't get here in the
+	// first place
+	if (FirstType == Elem::LASTELEMTYPE) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	CurrType = FirstType;
 	pCurr = (*pElemData)[FirstType].ElemMap.begin();
 
