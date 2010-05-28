@@ -61,8 +61,8 @@ where:
 \label{eq:epsilon}
 \end{equation}
 where the comma followed by the index represents the derivation with respect to the $k$-th arc-length coordinate.\\
-$\T{T}$ is the orientation and $\T{y}$ is the position vector both in the deformed configuration, and
-$\T{e}_k=\delta_{ik}$.
+$\T{T}$ is the orientation and $\T{y}$ is the position vector both in the deformed configuration, and $\T{e}_k=\{e_{1k},e_{2k},e_{3k}\}$, with
+$e_{ik}=\delta_{ik}$.
 \begin{equation}
 \tilde{\T{k}}_k  =
 \T{T}^ T \T{k}_k  - \T{T}_0 ^ T  \T{k}^{0}_{k}
@@ -85,7 +85,8 @@ The vector $\T{\sigma}$ is:
 %%%%%%%%NOTATION%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Finite element discretization and notation}
-The shell elements has four nodes, whose numeration starts from the upper right node and moves in counterclockwise direction, as shown in Figure~\ref{fig:shell}.
+The shell elements has four nodes, numbered counterclockwise
+starting from the upper right node, as shown in Figure~\ref{fig:shell}.
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=8cm]{shellPic.eps}
@@ -93,11 +94,14 @@ The shell elements has four nodes, whose numeration starts from the upper right 
 \label{fig:shell}
 \end{figure}
 In the natural domain, the coordinate system is identified by the coordinates $\xi_1$ and $\xi_2$, both varying in the range $[-1, 1]$. \\
-In the next it will be used the notation:
+In the following, the notation
 \begin{equation}
 \T{\xi} = \plbr{\xi_{1},\xi_{2}}
 \end{equation}
-Four points are defined on the midsides of the element, and are used in the context of the ANS approach. In particular, they are denoted by the set of coordinates:
+will be used.
+Four points are defined at the element's midsides.
+They are used in the context of the ANS approach.
+In particular, they are denoted by the set of coordinates:
 \begin{equation}
 \vvect{c}{
 \T{\xi}_a = \plbr{\xi_{1a},\xi_{2a}} \\
@@ -114,7 +118,7 @@ The following convention is adopted:
   \item $\T{\xi}_A$ means $\T{\xi}$ evaluated in one of the four shear evaluation points
   \item $\T{\xi}_0$ means $\T{\xi}$ evaluated at the origin
 \end{itemize}
-Accordingly to the numeration of the nodes, the bilinear shape functions defined at element level are:
+According to the numeration of the nodes, the bilinear shape functions defined at element level are:
 \begin{subequations}
 \begin{align}
 L_1(\T{\xi}) & = \frac{1}{4} \plbr{ 1 + \xi_1 } \plbr{ 1 + \xi_2 } \\
@@ -123,7 +127,8 @@ L_3(\T{\xi}) & = \frac{1}{4} \plbr{ 1 - \xi_1 } \plbr{ 1 - \xi_2 } \\
 L_4(\T{\xi}) & = \frac{1}{4} \plbr{ 1 + \xi_1 } \plbr{ 1 - \xi_2 }
 \end{align}
 \end{subequations}
-The degrees of freedom associated to each element are 24 nodal positions and orientations collected in the vector ${\T{q}}$:
+The degrees of freedom associated to each element are 24 nodal position
+and orientation parameter components, collected in vector ${\T{q}}$:
 \begin{align}
 \underset{24 \times 1}{\delta{\T{q}}}  =
 \cubr{\vvect{c}{
@@ -159,13 +164,13 @@ The degrees of freedom associated to each element are 24 nodal positions and ori
 \T{\varphi}_{\Delta 4} \\
 }}
 \end{align}
-and 7 internal degrees of freedom related to the assumed strain (EAS) and collected in the vector $\T{\beta}$.\\
-The total number of degrees of freedom is so 31.
+and 7 internal degrees of freedom related to the assumed strain (EAS) and collected in vector $\T{\beta}$.\\
+The total number of degrees of freedom is 31.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%LINEARIZATION%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Linearization}
-The virtual variation of the compatible strains $\T{\epsilon}$ is obtained as:
+The virtual variation of the compatible strains $\T{\epsilon}$ is
 \begin{equation}
 \delta \T{\epsilon} =
 \cubr{\vvect{c}{
