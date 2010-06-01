@@ -453,7 +453,8 @@ retry:;
 #endif
 	}
 
-	if (dMu == 0. && dLambda == 0.) {
+	//if (dMu == 0. && dLambda == 0.) {
+	if (std::abs(dMu) < std::numeric_limits<doublereal>::epsilon() ) {
 		dChi = 0.;
 
 	} else {
