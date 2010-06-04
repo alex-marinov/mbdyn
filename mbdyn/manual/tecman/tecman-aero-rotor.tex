@@ -462,10 +462,17 @@ $\chi$ is:
 \end{equation}
 So,
 \begin{equation}
-\sqrt{\frac{1-\sin{\alpha}}{1+\sin{\alpha}}} = \tan{\frac{\chi}{2}},
+\sin{\alpha} = 
+\cos{\chi} = 
+\cos{\plbr{\frac{\chi}{2}+\frac{\chi}{2}}}=
+\cos^{2}{\frac{\chi}{2}} - \sin^{2}{\frac{\chi}{2}} = 
+2 \cos^{2} {\frac{\chi}{2}}-1,
 \end{equation}
 \begin{equation}
-\sin{\alpha} = 2 \cos^{2} {\frac{\chi}{2}}
+\sqrt{\frac{1-\sin{\alpha}}{1+\sin{\alpha}}} = 
+\sqrt{ \frac{2 - 2 \cos^{2}{\frac{\chi}{2}}}{2 \cos^{2}{\frac{\chi}{2}}} } = 
+\sqrt{ \frac{ 2 \sin^{2}{\frac{\chi}{2}}}{2 \cos^{2}{\frac{\chi}{2}}} } = 
+\tan{\frac{\chi}{2}}.
 \end{equation}
 That means that the only difference in the MBDyn implementation is
 related to matrix $\TT{K}$}.
