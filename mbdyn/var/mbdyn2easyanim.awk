@@ -974,6 +974,7 @@ function node_pos(i, X) {
 
 		} else if (strnode[label, "orientation"] == "euler123") {
 			euler123_2R(strnode[label, 4], strnode[label, 5], strnode[label, 6], R);
+
 		} else if (strnode[label, "orientation"] == "mat") {
 			R[1, 1] = strnode[label, 4];
 			R[1, 2] = strnode[label, 5];
@@ -1074,7 +1075,7 @@ isvan == 1 {
 	strnode[$1, 4] = $5;
 	strnode[$1, 5] = $6;
 	strnode[$1, 6] = $7;
-	if (strnode[$1, orientation] == "mat") {
+	if (strnode[$1, "orientation"] == "mat") {
 		strnode[$1, 7] = $8;
 		strnode[$1, 8] = $9;
 		strnode[$1, 9] = $10;
