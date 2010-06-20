@@ -192,6 +192,11 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 	}
 
 #ifdef USE_SLEEP
+	// Needs tuning?
+	const int max_retries = 10;
+	int retrying = 0;
+retry:;
+
 	if (iSleepTime > 0) {
 		// WARNING: loops forever
 		// add optional, configurable limit?
@@ -247,6 +252,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -254,6 +265,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"N\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -261,6 +278,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -268,6 +291,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -275,6 +304,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -282,6 +317,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -289,6 +330,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -296,6 +343,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -303,18 +356,36 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (p[0] != '\0' && p[0] != '\n') {
 				silent_cerr("ExtRigidForceEDGE: no line terminator "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (mbedge_goto_eol(infile, buf, sizeof(buf))) {
 				silent_cerr("ExtRigidForceEDGE: unable to get \"FLAG\" line "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -323,6 +394,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (strncasecmp(buf, "FLAG", STRLENOF("FLAG")) != 0) {
 				silent_cerr("ExtRigidForceEDGE: \"FLAG\" line expected "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -333,6 +410,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -340,6 +423,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"I\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -347,6 +436,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -354,6 +449,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -361,6 +462,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -368,6 +475,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -375,6 +488,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -382,6 +501,12 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -389,12 +514,24 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (p[0] != '\0' && p[0] != '\n') {
 				silent_cerr("ExtRigidForceEDGE: no line terminator "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
+#ifdef USE_SLEEP
+				if (retrying < max_retries) {
+					retrying++;
+					goto retry;
+				}
+#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
