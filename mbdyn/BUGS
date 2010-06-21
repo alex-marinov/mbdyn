@@ -42,6 +42,7 @@ http://www.aero.polimi.it
 1.3.4
 	- (-x^y) is equivalent to ((-x)^y) instead of (-(x^y)).
 
-HEAD
+all versions
 	- y12/cc interaction (throws ErrRebuildMatrix)
+	- multithread assembly broke with g++ >= 4.4
 
