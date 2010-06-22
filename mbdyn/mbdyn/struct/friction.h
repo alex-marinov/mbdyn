@@ -361,6 +361,9 @@ public:
 		const_cast<doublereal&>(tg_pitch) = pitch / (2. * M_PI * radius);
 		const_cast<doublereal&>(tg_pitch2) = tg_pitch * tg_pitch;
 		const_cast<doublereal&>(pitch_angle) = std::atan(tg_pitch);
+		const_cast<doublereal&>(half_thread_angle) = std::atan(
+			std::cos(pitch_angle) * std::tan(half_thread_angle)
+		);
 		return radius / std::cos(pitch_angle);
 	};
 	virtual doublereal Sh_c(void) const {return shc;};
