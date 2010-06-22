@@ -155,10 +155,9 @@ public:
 			EIG_LAST
 		};
 		unsigned uFlags;
-   		struct {
-     	 		doublereal dTime;
-      			bool bDone;
-	   	} OneAnalysis;
+		std::vector<doublereal> Analyses;
+		std::vector<doublereal>::iterator currAnalysis;
+
 		doublereal dParam;
 		bool bOutputModes;
 

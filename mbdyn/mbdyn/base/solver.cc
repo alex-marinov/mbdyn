@@ -64,6 +64,7 @@
 #include <cfloat>
 #include <cmath>
 #include <vector>
+#include <algorithm>
 #include "ac/sys_sysinfo.h"
 
 #include "solver.h"
@@ -814,13 +815,20 @@ Solver::Run(void)
 	dTime = dInitialTime;
 	pDM->SetTime(dTime, 0., 0);
 
+	EigAn.currAnalysis = std::find_if(EigAn.Analyses.begin(), EigAn.Analyses.end(),
+		bind2nd(std::greater<doublereal>(), dTime));
+	if (EigAn.currAnalysis != EigAn.Analyses.end() && EigAn.currAnalysis != EigAn.Analyses.begin()) {
+		EigAn.currAnalysis--;
+	}
 
 	if (EigAn.bAnalysis
-		&& EigAn.OneAnalysis.dTime <= dTime
-		&& !EigAn.OneAnalysis.bDone)
+		&& EigAn.currAnalysis != EigAn.Analyses.end()
+		&& *EigAn.currAnalysis <= dTime)
 	{
 		Eig();
-		EigAn.OneAnalysis.bDone = true;
+		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
+			EigAn.currAnalysis++;
+		}
 	}
 
 	integer iTotIter = 0;
@@ -1328,11 +1336,17 @@ IfFirstStepIsToBeRepeated:
 	iTotIter += iStIter;
 
 	if (EigAn.bAnalysis
-		&& EigAn.OneAnalysis.dTime <= dTime
-		&& !EigAn.OneAnalysis.bDone)
+		&& EigAn.currAnalysis != EigAn.Analyses.end()
+		&& *EigAn.currAnalysis <= dTime)
 	{
+		std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
+			EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+		if (i != EigAn.Analyses.end()) {
+			i--;
+			EigAn.currAnalysis = i;
+		}
 		Eig();
-		EigAn.OneAnalysis.bDone = true;
+		EigAn.currAnalysis++;
 	}
 
 	if (pRTSolver) {
@@ -1547,11 +1561,17 @@ IfStepIsToBeRepeated:
 		bSolConv = false;
 
 		if (EigAn.bAnalysis
-			&& EigAn.OneAnalysis.dTime <= dTime
-			&& !EigAn.OneAnalysis.bDone)
+			&& EigAn.currAnalysis != EigAn.Analyses.end()
+			&& *EigAn.currAnalysis <= dTime)
 		{
+			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
+				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+			if (i != EigAn.Analyses.end()) {
+				i--;
+				EigAn.currAnalysis = i;
+			}
 			Eig();
-			EigAn.OneAnalysis.bDone = true;
+			EigAn.currAnalysis++;
 		}
 
 		/* Calcola il nuovo timestep */
@@ -2922,10 +2942,35 @@ Solver::ReadData(MBDynParser& HP)
 		case EIGENANALYSIS:
 #ifdef USE_EIG
 			// read eigenanalysis time (to be changed)
-			EigAn.OneAnalysis.dTime = HP.GetReal();
+			if (HP.IsKeyWord("list")) {
+				int iNumTimes = HP.GetInt();
+				if (iNumTimes <= 0) {
+					silent_cerr("invalid number of eigenanalysis times "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				EigAn.Analyses.resize(iNumTimes);
+				for (std::vector<doublereal>::iterator i = EigAn.Analyses.begin();
+					i != EigAn.Analyses.end(); i++)
+				{
+					*i = HP.GetReal();
+					if (i > EigAn.Analyses.begin() && *i <= *(i-1)) {
+						silent_cerr("eigenanalysis times must be in strict ascending order "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+			} else {
+				EigAn.Analyses.resize(1);
+				EigAn.Analyses[0] = HP.GetReal();
+			}
 
 			// initialize EigAn
-			EigAn.OneAnalysis.bDone = false;
+			EigAn.currAnalysis = EigAn.Analyses.begin();
 			EigAn.bAnalysis = true;
 
 			// permute is the default; use "balance, no" to disable
@@ -4973,11 +5018,25 @@ Solver::Eig(void)
 			tmpFileName = sOutputFileName;
 		}
 
+		unsigned uSize = EigAn.Analyses.size();
+		if (uSize > 1) {
+			unsigned uCurr = EigAn.currAnalysis - EigAn.Analyses.begin();
+			int iLength = 1 + (int)log10(uSize - 1);
+
+			char buf[BUFSIZ];
+			snprintf(buf, sizeof(buf), ".%0*u", iLength, uCurr);
+			tmpFileName += buf;
+		}
+
 		tmpFileName += ".m";
 		o.open(tmpFileName.c_str());
 
 		o.setf(std::ios::right | std::ios::scientific);
 		o.precision(16);
+
+		// header
+		o
+			<< "% time: " << dTime << std::endl;
 
 		/* coefficient */
 		o
