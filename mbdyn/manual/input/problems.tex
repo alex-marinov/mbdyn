@@ -362,7 +362,8 @@ The default behavior is to ignore such requests\footnote{See note above}.
 \subsubsection{Eigenanalysis}
 \label{sec:IVP:eigenanalysis}
 \begin{verbatim}
-    <card> ::= eigenanalysis : <when>
+    <card> ::= eigenanalysis :
+        { <when> | list , <num_times> , <when> [ , ... ] }
         [ , { output [ full ] matrices
             | output sparse matrices
             | output eigenvectors
@@ -390,7 +391,14 @@ using the \kw{rigid body kinematics} card
 (see Section~\ref{sec:CONTROLDATA:RBK}).
 
 \begin{itemize}
-\item \kw{when} indicates at what time the eigenanalysis is performed;
+\item \kw{when} indicates at what time the eigenanalysis is performed.
+	The analysis is performed at the first time step for which
+	\kw{Time} is greater than or equal to \kw{when}.
+	If the keyword \kw{list} is given, \kw{num\_times} values
+	of \kw{when} are expected.  At most \kw{num\_times} eigenanalyses
+	are performed; the output file name is composed using
+	the position of the corresponding \kw{when} in the array
+	of times;
 \item \kw{param} is the value of the coefficient that is used to project
 	the problem in the discrete time domain; it represents
 	a singularity point in the transformation from the discrete
