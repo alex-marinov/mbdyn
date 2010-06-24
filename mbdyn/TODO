@@ -209,6 +209,7 @@ D. Code:
 	- merge c81 data: interpolate data sets w/ same AoA/Mach resol. (DONE)
 	- allow multiple/interpolated c81 data in Theodorsen correction
 	- allow configurable float, int, bool (string?) & hton in stream I/O
+	- allow to specify parameters independently for each eigenanalysis
 
 
 

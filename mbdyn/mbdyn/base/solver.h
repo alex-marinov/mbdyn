@@ -155,6 +155,9 @@ public:
 			EIG_LAST
 		};
 		unsigned uFlags;
+
+		// TODO: allow to specify eigenanalysis parameters
+		// for each analysis in the list
 		std::vector<doublereal> Analyses;
 		std::vector<doublereal>::iterator currAnalysis;
 
