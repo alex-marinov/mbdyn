@@ -45,7 +45,6 @@ class ModuleController
 : virtual public Elem, public UserDefinedElem {
 private:
 	std::vector<DriveCaller *> measures;
-	std::vector<doublereal> outputs;
 
 	// outputs = A * measures
 	FullMatrixHandler A;
@@ -145,8 +144,6 @@ UserDefinedElem(uLabel, pDO)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	outputs.resize(no);
-
 	A.Resize(no, nm);
 
 	for (integer ir = 1; ir <= no; ir++) {
@@ -182,10 +179,8 @@ ModuleController::Output(OutputHandler& OH) const
 			out << " " << (*i)->dGet();
 		}
 
-		for (std::vector<doublereal>::const_iterator i = outputs.begin();
-			i != outputs.end(); i++)
-		{
-			out << " " << *i;
+		for (integer i = 1; i <= A.iGetNumRows(); i++) {
+			out << " " << dGetPrivData(i);
 		}
 
 		out << std::endl;
@@ -225,7 +220,7 @@ ModuleController::AssRes(SubVectorHandler& WorkVec,
 unsigned int
 ModuleController::iGetNumPrivData(void) const
 {
-	return outputs.size();
+	return A.iGetNumRows();
 }
 
 unsigned int
