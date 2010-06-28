@@ -461,9 +461,6 @@ main(int argc, char *argv[])
 
 					fclose(f);
 				}
-
-				put_rdata(rdata, fm);
-				put_flag(rflag, cmd);
 			}
 
 			/* modal */
@@ -492,9 +489,17 @@ main(int argc, char *argv[])
 
 					fclose(f);
 				}
+			}
 
+			/* revert order of modal and rigid */
+			if (mflag != NULL) {
 				put_mdata(mdata, modes, fg);
 				put_flag(mflag, cmd);
+			}
+
+			if (rflag != NULL) {
+				put_rdata(rdata, fm);
+				put_flag(rflag, cmd);
 			}
 		}
 	}
