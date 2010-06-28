@@ -39,6 +39,9 @@
 
 volatile sig_atomic_t keep_going = 1;
 
+int do_rename;
+int sleeptime = 1;
+
 static void
 sh(int signum)
 {
@@ -99,7 +102,16 @@ check_flag(const char *flag, int sleeptime)
 static int
 put_flag(const char *flag, int cmd)
 {
-	FILE *f = fopen(flag, "w");
+	FILE *f;
+	char ftmpname[] = "mbedgeXXXXXX";
+
+	if (do_rename) {
+		int filedes = mkstemp(ftmpname);
+		f = fdopen(filedes, "w");
+
+	} else {
+		f = fopen(flag, "w");
+	}
 
 	if (f == NULL) {
 		int save_errno = errno;
@@ -112,6 +124,24 @@ put_flag(const char *flag, int cmd)
 	fprintf(f, "FLAG,I,1,1,0\n");
 	fprintf(f, "%d", cmd);
 	fclose(f);
+
+	if (do_rename) {
+retry:;
+		if (rename(ftmpname, flag) == -1) {
+			switch (errno) {
+			case EBUSY:
+				sleep(sleeptime);
+				goto retry;
+
+			default: {
+				int save_errno = errno;
+				fprintf(stderr, "unable to rename flag file \"%s\" (errno=%d: %s)\n",
+					flag, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+				}
+			}
+		}
+	}
 
 	return 0;
 }
@@ -179,6 +209,7 @@ usage(void)
 		"\t-c [random:]<c>\t\tnumber of iterations\n"
 		"\t-m [flag|data]=<file>\tmodal file names (set both)\n"
 		"\t-M <modes>\t\tmodes number\n"
+		"\t-n\t\t\tuse \"rename\" when writing flag files\n"
 		"\t-r [flag|data]=<file>\trigid-body file names (set both)\n"
 		"\t-s <sleeptime>\t\tsleep time between tries\n"
 		"\t-v\t\t\tverbose\n" );
@@ -192,7 +223,6 @@ main(int argc, char *argv[])
 	char *rdata = NULL;
 	char *mflag = NULL;
 	char *mdata = NULL;
-	int sleeptime = 1;
 	int iters = 1;
 	int iters_random = 0;
 	unsigned steps;
@@ -202,7 +232,7 @@ main(int argc, char *argv[])
 	double *fg = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:m:M:r:s:v");
+		int opt = getopt(argc, argv, "c:m:M:nr:s:v");
 
 		if (opt == EOF) {
 			break;
@@ -239,6 +269,10 @@ main(int argc, char *argv[])
 					optarg);
 				usage();
 			}
+			break;
+
+		case 'n':
+			do_rename++;
 			break;
 
 		case 'M':
