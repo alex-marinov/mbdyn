@@ -146,8 +146,7 @@ bReadForces(true)
 ExtFileHandlerEDGE::~ExtFileHandlerEDGE(void)
 {
 	int cnt = -1;
-	EDGEcmd cmd = CheckFlag(cnt);
-	switch (cmd) {
+	switch (CheckFlag(cnt)) {
 	case EDGE_READ_READY:
 	case EDGE_GOTO_NEXT_STEP:
 		SendFlag(EDGE_QUIT);
@@ -251,7 +250,7 @@ retry:;
 			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -264,7 +263,7 @@ retry:;
 			p = mbedge_eat_field(p, buflen, "N");
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"N\" "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -277,7 +276,7 @@ retry:;
 			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -290,7 +289,7 @@ retry:;
 			p = mbedge_eat_field(p, buflen, "0");
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -303,7 +302,7 @@ retry:;
 			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -316,7 +315,7 @@ retry:;
 			p = mbedge_eat_field(p, buflen, "0");
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -329,7 +328,7 @@ retry:;
 			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -342,7 +341,7 @@ retry:;
 			p = mbedge_eat_field(p, buflen, "1");
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -355,7 +354,7 @@ retry:;
 			p = mbedge_eat_sep(p, buflen);
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
-					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
+					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
 #ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
@@ -729,7 +728,9 @@ ExtFileHandlerEDGE::Recv_pre(void)
 		case EDGE_QUIT:
 			silent_cout("EDGE requested end of simulation"
 				<< std::endl);
-			throw NoErr(MBDYN_EXCEPT_ARGS);
+			mbdyn_set_stop_at_end_of_time_step();
+			bReadForces = false;
+			goto done;
 
 		default:
 			break;

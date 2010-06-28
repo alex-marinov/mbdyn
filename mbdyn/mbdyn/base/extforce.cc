@@ -603,7 +603,9 @@ ExtSocketHandler::Recv_pre(void)
 	case ES_ABORT:
 		silent_cout("ExtSocketHandler: peer requested end of simulation"
 			<< std::endl);
-		throw NoErr(MBDYN_EXCEPT_ARGS);
+		mbdyn_set_stop_at_end_of_time_step();
+		bReadForces = false;
+		return false;
 
 	case ES_REGULAR_DATA_AND_GOTO_NEXT_STEP:
 		// peer is done; read forces for the last time
