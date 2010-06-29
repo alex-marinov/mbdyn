@@ -83,7 +83,7 @@ private:
 	mutable std::vector<doublereal> fwd;
 	std::vector<integer>	todo; 
 	mutable std::vector<AO_t> row_locks;
-	mutable std::vector<AO_t> col_locks;
+	mutable std::vector<AO_TS_t> col_locks;
 
 	NaiveMatrixHandler *A;
 

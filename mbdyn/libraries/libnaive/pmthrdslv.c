@@ -67,7 +67,7 @@ pnaivfct(doublereal** a,
 	integer *todo,
 	doublereal minpiv,
 	AO_t *row_locks,
-	AO_t *col_locks,
+	volatile AO_TS_t *col_locks,
 	int task,
 	int ncpu)
 {
@@ -176,10 +176,10 @@ pnaivfct(doublereal** a,
 					while (atomic_inc_and_test((atomic_t *)&col_locks[pvc]));
 #endif
 					//while (mbdyn_cmpxchgl((int32_t *)&col_locks[pvc], 1, 0) != 0);
-					while (AO_compare_and_swap_full(&col_locks[pvc], 0, 1) == 0);
+					while (AO_test_and_set_full(&col_locks[pvc]) == AO_TS_CLEAR);
 					pnzk[pvc] = 1;
 					ril[k][nril[k]++] = pvc;
-					col_locks[pvc] = 0;
+					AO_CLEAR(&col_locks[pvc]);
 					//atomic_set((atomic_t *)&col_locks[pvc], 0); 
 				}
 			}

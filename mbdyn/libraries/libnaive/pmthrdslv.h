@@ -43,7 +43,7 @@ extern "C" {
 extern int pnaivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	integer *nzc, IMAT ci, integer* nril, IMAT ril, NZMAT nz,
 	integer *piv, integer *todo, doublereal minpiv,
-	AO_t *row_locks, AO_t *col_locks, int task, int ncpu);
+	AO_t *row_locks, volatile AO_TS_t *col_locks, int task, int ncpu);
 
 extern int pnaivslv(RMAT a, integer neq, integer *nzc, IMAT ci, 
 	doublereal *rhs, integer *piv, doublereal *fwd, doublereal *sol,

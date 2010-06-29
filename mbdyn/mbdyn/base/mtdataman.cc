@@ -59,22 +59,22 @@ extern "C" {
 #include "task2cpu.h"
 
 static inline void
-do_lock(AO_t *p)
+do_lock(volatile AO_TS_t *p)
 {
-	while (!mbdyn_compare_and_swap(p, 1, 0));
+	while (mbdyn_test_and_set(p) == AO_TS_SET);
 }
 	
 static inline void
-do_unlock(AO_t *p)
+do_unlock(AO_TS_t *p)
 {
-	mbdyn_compare_and_swap(p, 0, 1);
+	AO_CLEAR(p);
 }
 
 static void
 naivepsad(doublereal **ga, integer **gri, 
 		integer *gnzr, integer **gci, integer *gnzc, char **gnz,
 		doublereal **a, integer **ci, integer *nzc,
-		integer from, integer to, AO_t *lock)
+		integer from, integer to, AO_TS_t *lock)
 {
 
 	for (integer r = from; r < to; r++) {
@@ -136,7 +136,7 @@ CCReady(CC_NO),
 thread_data(0),
 op(MultiThreadDataManager::OP_UNKNOWN),
 thread_count(0),
-propagate_ErrMatrixRebuild(false)
+propagate_ErrMatrixRebuild(AO_TS_INITIALIZER)
 {
 #if 0	/* no effects ... */
 	struct sched_param	sp;
@@ -278,8 +278,7 @@ MultiThreadDataManager::thread(void *p)
 						<< " caught ErrRebuildMatrix"
 						<< std::endl);
 
-				mbdyn_compare_and_swap(&arg->pDM->propagate_ErrMatrixRebuild,
-						sig_atomic_t(true), sig_atomic_t(false));
+				mbdyn_test_and_set(&arg->pDM->propagate_ErrMatrixRebuild);
 
 			} catch (...) {
 				throw;
@@ -507,8 +506,8 @@ retry:;
 			 * each thread sees the array of all the matrices,
 			 * and uses only its own for element assembly,
 			 * all for per-thread matrix summation */
-			SAFENEWARR(thread_data[0].lock, AO_t, JacHdl.iGetNumRows());
-			memset(thread_data[0].lock, 0, sizeof(AO_t)*JacHdl.iGetNumRows());
+			SAFENEWARR(thread_data[0].lock, AO_TS_t, JacHdl.iGetNumRows());
+			memset(thread_data[0].lock, AO_TS_INITIALIZER, sizeof(AO_t)*JacHdl.iGetNumRows());
 
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
 					NaiveMatrixHandler*, nThreads);
@@ -552,7 +551,7 @@ MultiThreadDataManager::CCAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 {
 	ASSERT(thread_data != NULL);
 
-	propagate_ErrMatrixRebuild = sig_atomic_t(false);
+	AO_CLEAR(&propagate_ErrMatrixRebuild);
 
 	CompactSparseMatrixHandler *pMH
 		= dynamic_cast<CompactSparseMatrixHandler *>(&JacHdl);
@@ -625,8 +624,7 @@ retry:;
 				<< " caught ErrRebuildMatrix"
 				<< std::endl);
 
-		mbdyn_compare_and_swap(&propagate_ErrMatrixRebuild,
-				sig_atomic_t(true), sig_atomic_t(false));
+		mbdyn_test_and_set(&propagate_ErrMatrixRebuild);
 
 	} catch (...) {
 		throw;
@@ -638,7 +636,7 @@ retry:;
 	}
 	pthread_mutex_unlock(&thread_mutex);
 
-	if (propagate_ErrMatrixRebuild) {
+	if (propagate_ErrMatrixRebuild == AO_TS_SET) {
 		for (unsigned i = 1; i < nThreads; i++) {
 			SAFEDELETE(thread_data[i].pJacHdl);
 			thread_data[i].pJacHdl = 0;

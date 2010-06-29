@@ -142,10 +142,10 @@ public:
  */
 class InUse {
 private:
-	mutable AO_t	inuse;
+	mutable volatile AO_TS_t	inuse;
 
 public:
-	InUse(void) : inuse(false) { NO_OP; };
+	InUse(void) : inuse(AO_TS_INITIALIZER) { NO_OP; };
 	virtual ~InUse(void) { NO_OP; };
 
 	inline bool bIsInUse(void) const
@@ -156,12 +156,10 @@ public:
 		 * 	false:	make it true; return true
 		 */
 		/* FIXME: make it portable */
-		bool b = mbdyn_compare_and_swap(&inuse,
-				sig_atomic_t(true), sig_atomic_t(false));
 
-		return !b;
+		return (mbdyn_test_and_set(&inuse) == AO_TS_CLEAR);
 	};
-	inline void SetInUse(bool b = false) { inuse = b; };
+	inline void ReSetInUse() { AO_CLEAR(&inuse); };
 };
 
 /* #define DEBUG_VECITER */
@@ -192,7 +190,7 @@ public:
 		ASSERT(VecIter<T>::iSize > 0);
 
 		for (unsigned i = 0; i < VecIter<T>::iSize; i++) {
-			VecIter<T>::pStart[i]->SetInUse();
+			VecIter<T>::pStart[i]->ReSetInUse();
 		}
 	}
 
@@ -237,7 +235,7 @@ public:
 		for (VecIter<T>::pCount++; 
 			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize; 
 			VecIter<T>::pCount++) {
-			if (!(*VecIter<T>::pCount)->bIsInUse()) {
+			if ((*VecIter<T>::pCount)->bIsInUse()) {
 				TReturn = *VecIter<T>::pCount;
 #ifdef DEBUG_VECITER
 				iCount++;

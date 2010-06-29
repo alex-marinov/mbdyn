@@ -86,7 +86,7 @@ protected:
 
 		/* for Naive assembly */
 		NaiveMatrixHandler** ppNaiveJacHdl;
-		AO_t* lock;
+		AO_TS_t* lock;
 
 		VectorHandler* pResHdl;
 		MatrixHandler* pMatA;
@@ -125,7 +125,7 @@ protected:
 	pthread_cond_t	thread_cond;
 
 	/* this is used to propagate ErrMatrixRebuild ... */
-	AO_t	propagate_ErrMatrixRebuild;
+	AO_TS_t	propagate_ErrMatrixRebuild;
 
 	void EndOfOp(void);
 

@@ -39,6 +39,7 @@
 
 #include <atomic_ops.h>
 
+#if 0
 static inline int
 mbdyn_compare_and_swap(
 	AO_t *val, 
@@ -47,5 +48,14 @@ mbdyn_compare_and_swap(
 {
 	return AO_compare_and_swap_full(val, oldval, newval);
 };
+#endif
+
+static inline AO_TS_VAL_t
+mbdyn_test_and_set(
+	volatile AO_TS_t *val)
+{
+	return AO_test_and_set_full(val);
+};
+
 	
 #endif /* ac_spinlock_h */

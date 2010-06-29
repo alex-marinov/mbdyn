@@ -1013,8 +1013,7 @@ fi
 if test "$ol_link_multithread" = "yes" -o "$ol_link_multithread_naive" = "yes" ; then
 	SAVE_LIBS="$LIBS"
 	LIBS="$LIBS -latomic_ops_gpl -latomic_ops"
-	AC_TRY_LINK([#include <atomic_ops.h>], [AO_t t; AO_compare_and_swap_full(&t, t, t)],[have_atomic_ops=yes],[have_atomic_ops=no],[-latomic_ops])
-	LIBS="$SAVE_LIBS"
+	AC_TRY_LINK([#include <atomic_ops.h>], [AO_t t; AO_TS_t tt; AO_compare_and_swap_full(&t, t, t); AO_test_and_set_full(&tt)],[have_atomic_ops=yes],[have_atomic_ops=no],[-latomic_ops])	LIBS="$SAVE_LIBS"
 	if test $have_atomic_ops = "yes" ; then
 		AC_DEFINE(HAVE_ATOMIC_OPS,1,[define to use HP's atomic_ops library])
 	else
