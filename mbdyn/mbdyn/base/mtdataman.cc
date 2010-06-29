@@ -509,6 +509,7 @@ retry:;
 			SAFENEWARR(thread_data[0].lock, AO_TS_t, JacHdl.iGetNumRows());
 			memset(thread_data[0].lock, AO_TS_INITIALIZER, sizeof(AO_TS_t)*JacHdl.iGetNumRows());
 
+			thread_data[0].ppNaiveJacHdl = 0;
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
 					NaiveMatrixHandler*, nThreads);
 			thread_data[0].ppNaiveJacHdl[0] = pNaiveJacHdl;
