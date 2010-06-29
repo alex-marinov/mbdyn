@@ -173,20 +173,20 @@ The suggested usage inside a stacked call sequence of parsing functions is
 Part *
 read_part(HighParser& HP)
 {
-    /* prepare names */
+    // prepare names
     enum KeyWord { KEYWORD1, KEYWORD2, KEYWORD_LAST };
     char *key_table_array[] = { "keyword1", "keyword2", 0 };
-    /* build KeyTable class */
+    // build KeyTable class
     KeyTable k(HP, key_table_array);
     Part *returned_object = 0;
-    /* parse input */
+    // parse input
     do {
         switch (KeyWord(HP.GetWord())) {
         default:
-            /* do something... */
+            // do something...
             break;
         case KEYWORD1:
-            /* ...and build returned_object  */
+            // ...and build returned_object
             return returned_object;
         }
     } while (true);
@@ -195,20 +195,20 @@ read_part(HighParser& HP)
 void
 read_all(HighParser& HP)
 {
-    /* prepare names */
+    // prepare names
     enum KeyWord { KEY1, KEY2, PART, KEY_LAST };
     char *keytable[] = { "key1", "key2", "part", 0 };
-    /* build KeyTable class */
+    // build KeyTable class
     KeyTable k(HP, keytable);
-    /* do something */
+    // do something
     Part *part = 0;
     do {
         switch (KeyWord(HP.GetWord())) {
         default:
-            /* do something... */
+            // do something...
             break;
         case PART:
-            /* read part */
+            // read part
             Part *part = read_part(HP);
             break;
         }
