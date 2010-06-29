@@ -215,7 +215,7 @@ retry:;
 		}
 	} else
 #endif // USE_SLEEP
-	{
+	if (!infile) {
 		// error
 		silent_cerr("flag file \"" << fflagname.c_str() << "\" "
 			"missing" << std::endl); 
@@ -543,7 +543,7 @@ retry:;
 	infile >> cmd;
 
 done:;
-	silent_cerr("flag file \"" << fflagname.c_str() << "\": "
+	silent_cerr("checking flag file \"" << fflagname.c_str() << "\": "
 		"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 		<< std::endl);
 
@@ -599,6 +599,11 @@ retry:;
 			}
 		}
 	}
+
+	silent_cerr("sending flag file \"" << fflagname.c_str() << "\": "
+		"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
+		<< std::endl);
+
 }
 
 bool
