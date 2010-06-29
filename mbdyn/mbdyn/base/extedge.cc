@@ -543,7 +543,7 @@ retry:;
 	infile >> cmd;
 
 done:;
-	silent_cerr("checking flag file \"" << fflagname.c_str() << "\": "
+	silent_cerr("<<< checking flag file \"" << fflagname.c_str() << "\": "
 		"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 		<< std::endl);
 
@@ -600,7 +600,7 @@ retry:;
 		}
 	}
 
-	silent_cerr("sending flag file \"" << fflagname.c_str() << "\": "
+	silent_cerr(">>> sending flag file \"" << fflagname.c_str() << "\": "
 		"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 		<< std::endl);
 
