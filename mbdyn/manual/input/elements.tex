@@ -2197,7 +2197,17 @@ If the keyword \kw{stop} is present, the simulation ends here.
 This is useful to generate the bulk data that is needed to compute
 the linear mapping matrix.
 
-When the keyword \kw{mapped points number} is present,
+When the \kw{reference node} keyword is present, the kinematics
+of the points is formulated in the reference frame of node
+\nt{ref\_node\_label}.
+The forces are expected in the same reference frame.
+In this case, if \kw{use reference node forces} is set to \kw{yes},
+the force and moment related to node \nt{ref\_node\_label} 
+returned by the external solver are used;
+if \kw{rotate reference node forces} is set to \kw{yes},
+they are first rotated in the global reference frame.
+
+When the \kw{mapped points number} keyword is present,
 a mapping matrix is read from the file named \nt{mapping\_file\_name}.
 The matrix must be
 $(3 \times \nt{mapped\_points}) \times (3 \times \nt{num\_points})$.
@@ -2246,6 +2256,11 @@ TBD
 
 \subsubsection{Socket communicator}
 TBD
+
+The format of the socket communicator is relatively simple;
+however, implementors may exploit the peer library \kw{libmbc},
+whose API is defined in \kw{mbc.h}.
+A python wrapper is also available.
 
 \subsubsection{Output}
 TBD
