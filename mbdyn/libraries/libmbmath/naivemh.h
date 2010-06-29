@@ -172,6 +172,11 @@ protected:
 const doublereal&
 NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 {
+	ASSERT(iRow > 0);
+	ASSERT(iRow <= iGetNumRows());
+	ASSERT(iCol > 0);
+	ASSERT(iCol <= iGetNumCols());
+
 	--iRow;
 	--iCol;
 	if (ppnonzero[iRow][iCol]) {
@@ -183,6 +188,11 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 doublereal&
 NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 {
+	ASSERT(iRow > 0);
+	ASSERT(iRow <= iGetNumRows());
+	ASSERT(iCol > 0);
+	ASSERT(iCol <= iGetNumCols());
+
 	--iRow;
 	--iCol;
 	if (!(ppnonzero[iRow][iCol])) {
@@ -262,6 +272,11 @@ public:
 
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const {
+		ASSERT(iRow > 0);
+		ASSERT(iRow <= iGetNumRows());
+		ASSERT(iCol > 0);
+		ASSERT(iCol <= iGetNumCols());
+
 		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
 		return NaiveMatrixHandler::operator()(iRow, iCol);
@@ -269,6 +284,11 @@ public:
 
 	virtual inline doublereal&
 	operator () (integer iRow, integer iCol) {
+		ASSERT(iRow > 0);
+		ASSERT(iRow <= iGetNumRows());
+		ASSERT(iCol > 0);
+		ASSERT(iCol <= iGetNumCols());
+
 		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
 		return NaiveMatrixHandler::operator()(iRow, iCol);
