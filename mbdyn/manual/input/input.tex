@@ -40,10 +40,15 @@
 \usepackage{html}
 \usepackage{comment}
 \usepackage{moreverb}
+\usepackage{fancyvrb}
+\usepackage{xcolor}
 
 \input{../stdmacro}
 
-\newcommand{\kw}[1]{\texttt{#1}}
+\newcommand{\kw}[1]{\textcolor{red}{\texttt{#1}}}
+\newcommand{\nt}[1]{\textcolor{blue}{\texttt{#1}}}
+\newcommand{\bnt}[1]{<\textcolor{blue}{\texttt{#1}}>}
+\newcommand{\ty}[1]{\textcolor{green}{\texttt{#1}}}
 %\newcommand{\kw}[1]{\fbox{\texttt{#1}}}
 \newcommand{\T}[1]{\boldsymbol{#1}}
 \newcommand{\TT}[1]{\boldsymbol{#1}}

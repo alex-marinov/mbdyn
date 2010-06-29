@@ -685,7 +685,7 @@ the velocity is
 \begin{align}
 	\T{v}
 	&=
-	\T{e}_1 \kw{v\_ref} \plbr{\frac{z}{\kw{z\_ref}}}^\kw{exponent}
+	\T{e}_1 \kw{v\_ref} \plbr{\frac{z}{\kw{z\_ref}}}^{\kw{exponent}}
 	,
 \end{align}
 where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
@@ -2162,51 +2162,53 @@ This element allows to communicate with an external software that computes
 forces applied to a pool of nodes and may depend on the kinematics of those
 nodes through a linear mapping.
 Communication occurs by means of the communicators illustrated earlier.
-\begin{verbatim}
-    <force_type> ::= external structural mapping
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{force_type} ::= \kw{external structural mapping}
 
-    <force_arglist> ::= <external_force_communicator> ,
-        [ reference node , <ref_node_label> , ]
-        [ labels , { yes | no } , ]
-        [ orientation ,
-            { none | orientation matrix | orientation vector | euler 123 } , ]
-        [ accelerations , { yes | no } ]
-        [ use reference node forces , { yes | no } ,
-            [ rotate reference node forces , { yes | no } ] ]
-        <num_points> ,
-            <node_label> , offset [ , <point_label> ] , (Vec3) <offset>
+    \bnt{force_arglist} ::= \bnt{external_force_communicator} ,
+        [ \kw{reference node} , \bnt{ref_node_label} , ]
+        [ \kw{labels} , { \kw{yes} | \kw{no} } , ]
+        [ \kw{orientation} ,
+            { \kw{none} | \kw{orientation matrix} | \kw{orientation vector} | \kw{euler 123} } , ]
+        [ \kw{accelerations} , { \kw{yes} | \kw{no} } ]
+        [ \kw{use reference node forces} , { \kw{yes} | \kw{no} } ,
+            [ \kw{rotate reference node forces} , { \kw{yes} | \kw{no} } ] ]
+        \bnt{num_points} ,
+            \bnt{node_label} , \kw{offset} [ , \bnt{point_label} ] , \ty{(Vec3)} \bnt{offset}
                 [ , ... ]
-        [ , echo , " <echo_file_name> " [ , precision , <digits> ] [ , stop ] ]
-        [ , mapped points number , <mapped_points> ,
-            { full | sparse } mapping file , " <mapping_file_name> "
-                [ , threshold , <threshold> ]
-            [ , { mapped labels file , " <mapped_labels_file_name> "
-                | <mapped_label> [ , ... ] } ] ]
-\end{verbatim}
-A set of \kw{num\_points} points is generated first,
+        [ , \kw{echo} , " \bnt{echo_file_name} " [ , \kw{precision} , \bnt{digits} ] [ , \kw{stop} ] ]
+        [ , \kw{mapped points number} , \bnt{mapped_points} ,
+            { \kw{full} | \kw{sparse} } \kw{mapping file} , " \bnt{mapping_file_name} "
+                [ , \kw{threshold} , \bnt{threshold} ]
+            [ , \{ \kw{mapped labels file} , " \bnt{mapped_labels_file_name} "
+                | \bnt{mapped_label} [ , ... ] \} ] ]
+\end{Verbatim}
+%\end{verbatim}
+A set of \nt{num\_points} points is generated first,
 by computing the kinematics of the points originating
-from the rigid-body motion of the structural nodes \kw{node\_label}
+from the rigid-body motion of the structural nodes \nt{node\_label}
 according to the specified offset.
-Multiple \kw{offset} blocks can appear for each \kw{node\_label}.
+Multiple \kw{offset} blocks can appear for each \nt{node\_label}.
 
 The \kw{echo} keyword causes the positions of those points
-to be written in a file named \kw{echo\_file\_name}.
+to be written in a file named \nt{echo\_file\_name}.
 If the keyword \kw{stop} is present, the simulation ends here.
 This is useful to generate the bulk data that is needed to compute
 the linear mapping matrix.
 
 When the keyword \kw{mapped points number} is present,
-a mapping matrix is read from the file named \kw{mapping\_file\_name}.
-The matrix must have $3 \times \mathtt{mapped\_points}$ rows
-and $3 \times \mathtt{num\_points}$.
+a mapping matrix is read from the file named \nt{mapping\_file\_name}.
+The matrix must be
+$(3 \times \nt{mapped\_points}) \times (3 \times \nt{num\_points})$.
 Otherwise, the element behaves as if the mapping were the identity matrix.
 See the \htmlref{\kw{modal}}{sec:EL:FORCE:EXTERNAL:MODAL_MAPPING}
 variant for a description of the mapping file format.
 
-The labels of the original points, indicated as \kw{point\_label},
+The labels of the original points, indicated as \nt{point\_label},
 and the labels of the mapped points, either contained
-in the \kw{mapped\_labels\_file\_name},
-or directly listed as \kw{mapped\_label}, must be provided
+in the \nt{mapped\_labels\_file\_name},
+or directly listed as \nt{mapped\_label}, must be provided
 when \kw{labels} is set to \kw{yes}.
 
 \paragraph{Example.} \
@@ -2476,8 +2478,8 @@ if the modes express the motion relative to a specific node.
 
 The mapping file contains the matrix that maps the nodal and modal
 displacements, velocities and forces.
-When \kw{full mapping file} is used, a file containing a full
-\kw{num\_modes} times (6$\times$\kw{num\_nodes}) coefficients is expected.
+When \kw{full mapping file} is used, a file containing
+$\kw{num\_modes} \times (6\times\kw{num\_nodes}$) coefficients is expected.
 When \kw{sparse mapping file} is used, a file containing
 \kw{row}, \kw{col}, \kw{value} triplets is expected,
 with $1\le\kw{row}\le\kw{num\_modes}$
@@ -2487,6 +2489,9 @@ with a hash mark (`\kw{\#}').
 They are treated as comments and ignored.
 If a \kw{threshold} is given, only elements whose absolute value
 is larger than threshold are retained.
+The value of \kw{threshold} defaults to 0.
+The mapping matrix is internally stored and handled as sparse,
+regardless of the file format.
 
 If the optional keyword \kw{accelerations} is present,
 the output will also contain the modal accelerations.
