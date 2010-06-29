@@ -507,7 +507,7 @@ retry:;
 			 * and uses only its own for element assembly,
 			 * all for per-thread matrix summation */
 			SAFENEWARR(thread_data[0].lock, AO_TS_t, JacHdl.iGetNumRows());
-			memset(thread_data[0].lock, AO_TS_INITIALIZER, sizeof(AO_t)*JacHdl.iGetNumRows());
+			memset(thread_data[0].lock, AO_TS_INITIALIZER, sizeof(AO_TS_t)*JacHdl.iGetNumRows());
 
 			SAFENEWARR(thread_data[0].ppNaiveJacHdl,
 					NaiveMatrixHandler*, nThreads);
