@@ -41,6 +41,11 @@ volatile sig_atomic_t keep_going = 1;
 
 int do_rename;
 int sleeptime = 1;
+int verbose;
+enum {
+	RM,
+	MR
+} order = RM;
 
 static void
 sh(int signum)
@@ -201,6 +206,153 @@ put_mdata(const char *mdata, int modes, double *fg)
 	return 0;
 }
 
+static int
+do_rigid0(const char *rflag, const char *rdata, double *fm)
+{
+	if (rflag != NULL) {
+		FILE *f = NULL;
+		int i;
+
+		f = fopen(rflag, "r");
+		if (f == NULL) {
+			int save_errno = errno;
+			if (save_errno == ENOENT) {
+				put_flag(rflag, 0);
+
+			} else {
+				fprintf(stderr, "unable to open rigid flag file \"%s\" (%d: %s)\n",
+					rflag, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+		} else {
+			fclose(f);
+		}
+
+		for (i = 0; i < 6; i++) {
+			fm[i] = 0.1*(i + 1);
+		}
+
+		put_rdata(rdata, fm);
+	}
+
+	return 0;
+}
+
+static int
+do_modal0(const char *mflag, const char *mdata, int modes, double **fgp)
+{
+	if (mflag != NULL) {
+		FILE *f = NULL;
+		int i;
+
+		f = fopen(mflag, "r");
+		if (f == NULL) {
+			int save_errno = errno;
+			if (save_errno == ENOENT) {
+				put_flag(mflag, 0);
+
+			} else {
+				fprintf(stderr, "unable to open modal flag file \"%s\" (%d: %s)\n",
+					mflag, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+		} else {
+			fclose(f);
+		}
+
+		*fgp = (double *)malloc(sizeof(double)*modes);
+		for (i = 0; i < modes; i++) {
+			(*fgp)[i] = ((double)i)/10.0;
+		}
+
+		put_mdata(mdata, modes, *fgp);
+	}
+
+	return 0;
+}
+
+int
+do_rigid(const char *rflag, const char *rdata,
+	int niters, int *iterp, int cmd,
+	double *fm)
+{
+	/* rigid */
+	if (rflag != NULL) {
+		if (check_flag(rflag, sleeptime)) {
+			*iterp = niters;
+			keep_going = 0;
+			return 0;
+		}
+
+		if (verbose) {
+			char buf[BUFSIZ];
+			FILE *f;
+
+			f = fopen(rdata, "r");
+			if (f == NULL) {
+				int save_errno = errno;
+
+				fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
+					rdata, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+			while (fgets(buf, sizeof(buf), f) != NULL) {
+				printf(">> rdata:%s", buf);
+			}
+
+			fclose(f);
+		}
+
+		put_rdata(rdata, fm);
+		put_flag(rflag, cmd);
+	}
+
+	return 0;
+}
+
+int
+do_modal(const char *mflag, const char *mdata,
+	int niters, int *iterp, int cmd,
+	int modes, double *fg)
+{
+	/* modal */
+	if (mflag != NULL) {
+		if (check_flag(mflag, sleeptime)) {
+			*iterp = niters;
+			keep_going = 0;
+			return 0;
+		}
+
+		if (verbose) {
+			char buf[BUFSIZ];
+			FILE *f;
+
+			f = fopen(mdata, "r");
+			if (f == NULL) {
+				int save_errno = errno;
+
+				fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
+					mdata, save_errno, strerror(save_errno));
+				exit(EXIT_FAILURE);
+			}
+
+			while (fgets(buf, sizeof(buf), f) != NULL) {
+				printf(">> mdata:%s", buf);
+			}
+
+			fclose(f);
+		}
+
+		put_mdata(mdata, modes, fg);
+		put_flag(mflag, cmd);
+	}
+
+	return 0;
+}
+
 void
 usage(void)
 {
@@ -210,6 +362,7 @@ usage(void)
 		"\t-m [flag|data]=<file>\tmodal file names (set both)\n"
 		"\t-M <modes>\t\tmodes number\n"
 		"\t-n\t\t\tuse \"rename\" when writing flag files\n"
+		"\t-o {rm|mr}\tprocess rigid,modal (rm) or modal,rigid (mr)\n"
 		"\t-r [flag|data]=<file>\trigid-body file names (set both)\n"
 		"\t-s <sleeptime>\t\tsleep time between tries\n"
 		"\t-v\t\t\tverbose\n" );
@@ -227,12 +380,11 @@ main(int argc, char *argv[])
 	int iters_random = 0;
 	unsigned steps;
 	int modes = 5;
-	int verbose = 0;
 	double fm[6];
 	double *fg = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:m:M:nr:s:v");
+		int opt = getopt(argc, argv, "c:m:M:no:r:s:v");
 
 		if (opt == EOF) {
 			break;
@@ -271,15 +423,30 @@ main(int argc, char *argv[])
 			}
 			break;
 
-		case 'n':
-			do_rename++;
-			break;
-
 		case 'M':
 			modes = atoi(optarg);
 			if (modes <= 0) {
 				fprintf(stderr, "testedge: "
 					"invalid mode number %s\n",
+					optarg);
+				usage();
+			}
+			break;
+
+		case 'n':
+			do_rename++;
+			break;
+
+		case 'o':
+			if (strcmp(optarg, "rm") == 0) {
+				order = RM;
+
+			} else if (strcmp(optarg, "mr") == 0) {
+				order = MR;
+
+			} else {
+				fprintf(stderr, "testedge: "
+					"invalid order \"%s\"\n",
 					optarg);
 				usage();
 			}
@@ -360,59 +527,16 @@ main(int argc, char *argv[])
 	signal(SIGTERM, sh);
 	signal(SIGINT, sh);
 
-	if (rflag != NULL) {
-		FILE *f = NULL;
-		int i;
+	switch (order) {
+	case RM:
+		do_rigid0(rflag, rdata, fm);
+		do_modal0(mflag, mdata, modes, &fg);
+		break;
 
-		f = fopen(rflag, "r");
-		if (f == NULL) {
-			int save_errno = errno;
-			if (save_errno == ENOENT) {
-				put_flag(rflag, 0);
-
-			} else {
-				fprintf(stderr, "unable to open rigid flag file \"%s\" (%d: %s)\n",
-					rflag, save_errno, strerror(save_errno));
-				exit(EXIT_FAILURE);
-			}
-
-		} else {
-			fclose(f);
-		}
-
-		for (i = 0; i < 6; i++) {
-			fm[i] = 0.1*(i + 1);
-		}
-
-		put_rdata(rdata, fm);
-	}
-
-	if (mflag != NULL) {
-		FILE *f = NULL;
-		int i;
-
-		f = fopen(mflag, "r");
-		if (f == NULL) {
-			int save_errno = errno;
-			if (save_errno == ENOENT) {
-				put_flag(mflag, 0);
-
-			} else {
-				fprintf(stderr, "unable to open modal flag file \"%s\" (%d: %s)\n",
-					mflag, save_errno, strerror(save_errno));
-				exit(EXIT_FAILURE);
-			}
-
-		} else {
-			fclose(f);
-		}
-
-		fg = (double *)malloc(sizeof(double)*modes);
-		for (i = 0; i < modes; i++) {
-			fg[i] = ((double)i)/10.0;
-		}
-
-		put_mdata(mdata, modes, fg);
+	case MR:
+		do_modal0(mflag, mdata, modes, &fg);
+		do_rigid0(rflag, rdata, fm);
+		break;
 	}
 
 	for (steps = 0; keep_going > 0; steps++) {
@@ -428,79 +552,24 @@ main(int argc, char *argv[])
 		}
 
 		for (iter = 0; iter < niters; iter++) {
-			FILE *f = NULL;
 			int cmd = 2;
 
 			if (iter == niters - 1) {
 				cmd = 4;
 			}
 
-			/* rigid */
-			if (rflag != NULL) {
-				if (check_flag(rflag, sleeptime)) {
-					iter = niters;
-					keep_going = 0;
-					break;
-				}
+			switch (order) {
+			case RM:
+				do_rigid(rflag, rdata, niters, &iter, cmd, fm);
+				do_modal(mflag, mdata, niters, &iter, cmd, modes, fg);
+				break;
 
-				if (verbose) {
-					char buf[BUFSIZ];
-
-					f = fopen(rdata, "r");
-					if (f == NULL) {
-						int save_errno = errno;
-
-						fprintf(stderr, "unable to open rigid data file \"%s\" (%d: %s)\n",
-							rdata, save_errno, strerror(save_errno));
-						exit(EXIT_FAILURE);
-					}
-
-					while (fgets(buf, sizeof(buf), f) != NULL) {
-						printf(">> rdata:%s", buf);
-					}
-
-					fclose(f);
-				}
+			case MR:
+				do_modal(mflag, mdata, niters, &iter, cmd, modes, fg);
+				do_rigid(rflag, rdata, niters, &iter, cmd, fm);
+				break;
 			}
 
-			/* modal */
-			if (mflag != NULL) {
-				if (check_flag(mflag, sleeptime)) {
-					iter = niters;
-					keep_going = 0;
-					break;
-				}
-
-				if (verbose) {
-					char buf[BUFSIZ];
-
-					f = fopen(mdata, "r");
-					if (f == NULL) {
-						int save_errno = errno;
-
-						fprintf(stderr, "unable to open modal data file \"%s\" (%d: %s)\n",
-							mdata, save_errno, strerror(save_errno));
-						exit(EXIT_FAILURE);
-					}
-
-					while (fgets(buf, sizeof(buf), f) != NULL) {
-						printf(">> mdata:%s", buf);
-					}
-
-					fclose(f);
-				}
-			}
-
-			/* revert order of modal and rigid */
-			if (mflag != NULL) {
-				put_mdata(mdata, modes, fg);
-				put_flag(mflag, cmd);
-			}
-
-			if (rflag != NULL) {
-				put_rdata(rdata, fm);
-				put_flag(rflag, cmd);
-			}
 		}
 	}
 
