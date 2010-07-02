@@ -707,28 +707,22 @@ operator << (std::ostream& out, const FullSubMatrixHandler& m)
 	m.IsValid();
 #endif /* DEBUG */
 
-	integer iRow = (integer)m.iNumRows;
-	integer iCol = (integer)m.iNumCols;
-	integer* piRowm1 = (integer *)m.piRowm1;
-	integer* piColm1 = (integer *)m.piColm1;
-	doublereal** ppd = (doublereal **)m.ppdColsm1;
-
-	ASSERT(iRow > 0);
-	ASSERT(iCol > 0);
-	ASSERT(piRowm1 != NULL);
-	ASSERT(piColm1 != NULL);
-	ASSERT(ppd != NULL);
+	ASSERT(m.iNumRows > 0);
+	ASSERT(m.iNumCols > 0);
+	ASSERT(m.piRowm1 != NULL);
+	ASSERT(m.piColm1 != NULL);
+	ASSERT(m.ppdColsm1 != NULL);
 
 	out << std::setw(12) << "";
-	for (integer c = 1; c < iCol; c++) {
-		out << std::setw(12) << piColm1[c];
+	for (integer c = 1; c <= m.iNumCols; c++) {
+		out << std::setw(12) << m.piColm1[c];
 	}
 	out << std::endl << std::endl;
 
-	for (integer r = 1; r < iRow; r++) {
-		out << std::setw(12) << piRowm1[r];
-		for (integer c = 0; c < iCol; c++) {
-			out << std::setw(12) << ppd[c][r];
+	for (integer r = 1; r <= m.iNumRows; r++) {
+		out << std::setw(12) << m.piRowm1[r];
+		for (integer c = 1; c <= m.iNumCols; c++) {
+			out << std::setw(12) << m.ppdColsm1[c][r];
 		}
  		out << std::endl;
 	}
