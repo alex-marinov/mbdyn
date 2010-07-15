@@ -518,10 +518,20 @@ ReadModalMappingExtForce(DataManager* pDM,
 	bool bUseRigidBodyForces(pRefNode != 0 ? true : false);
 	bool bRotateRigidBodyForces(true);
 	if (pRefNode != 0 && HP.IsKeyWord("use" "rigid" "body" "forces")) {
-		bUseRigidBodyForces = HP.GetYesNo(bUseRigidBodyForces);
+		if (!HP.GetYesNo(bUseRigidBodyForces)) {
+			silent_cerr("ModalMappingExt(" << uLabel << "): "
+				"\"use rigid body forces\" must be either \"yes\" or \"no\" "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
 		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
-			bRotateRigidBodyForces = HP.GetYesNo(bRotateRigidBodyForces);
+			if (!HP.GetYesNo(bRotateRigidBodyForces)) {
+				silent_cerr("ModalMappingExt(" << uLabel << "): "
+					"\"rotate rigid body forces\" must be either \"yes\" or \"no\" "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 

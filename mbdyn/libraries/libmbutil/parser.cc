@@ -850,8 +850,6 @@ HighParser::GetYesNo(bool& bRet)
 	} else if (IsKeyWord("no")) {
 		bRet = false;
 
-		return false;
-
 	} else {
 		return false;
 	}

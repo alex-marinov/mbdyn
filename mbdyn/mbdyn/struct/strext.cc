@@ -1282,7 +1282,12 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bSorted = HP.GetYesNo(bSorted);
+			if (!HP.GetYesNo(bSorted)) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"sorted\" must be either \"yes\" or \"no\" at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			bGotSorted = true;
 
 		} else if (HP.IsKeyWord("no" "labels")) {
@@ -1308,7 +1313,12 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bLabels = HP.GetYesNo(bLabels);
+			if (!HP.GetYesNo(bLabels)) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"labels\" must be either \"yes\" or \"no\" at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			bGotLabels = true;
 
 		} else if (HP.IsKeyWord("orientation")) {
@@ -1348,7 +1358,12 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bOutputAccelerations = HP.GetYesNo(bOutputAccelerations);
+			if (!HP.GetYesNo(bOutputAccelerations)) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"accelerations\" must be either \"yes\" or \"no\" at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			bGotAccels = true;
 
 		} else if (HP.IsKeyWord("use" "reference" "node" "forces")) {
@@ -1366,11 +1381,21 @@ ReadStructExtForce(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			
-			bUseReferenceNodeForces = HP.GetYesNo(bUseReferenceNodeForces);
+			if (!HP.GetYesNo(bUseReferenceNodeForces)) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"\"use reference node forces\" must be either \"yes\" or \"no\" at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			bGotUseRefForces = true;
 
 			if (bUseReferenceNodeForces && HP.IsKeyWord("rotate" "reference" "node" "forces")) {
-				bRotateReferenceNodeForces = HP.GetYesNo(bRotateReferenceNodeForces);
+				if (!HP.GetYesNo(bRotateReferenceNodeForces)) {
+					silent_cerr("StructExtForce(" << uLabel << "): "
+						"\"rotate reference node forces\" must be either \"yes\" or \"no\" at line "
+						<< HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 			}
 
 		} else {
