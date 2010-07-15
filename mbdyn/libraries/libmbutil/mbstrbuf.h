@@ -52,6 +52,7 @@ public:
 	std::ostream& stats(std::ostream& out);
 
 	void make_room(unsigned newlen);
+	void return_cursor(unsigned newcursor = 0);
 	void print_str(const char *str);
 	void print_double(const char *fmt, double d);
 	const char *get_buf(void) const;

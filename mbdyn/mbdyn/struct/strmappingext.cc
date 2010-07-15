@@ -88,8 +88,8 @@ m_p(3*uMappedPoints)
 {
 	ASSERT(nodes.size() == offsets.size());
 	if (pH) {
-		ASSERT(uPoints == pH->iGetNumCols());
-		ASSERT(uMappedPoints*3 == unsigned(pH->iGetNumRows()));
+		ASSERT(3*uPoints == pH->iGetNumCols());
+		ASSERT(3*uMappedPoints == unsigned(pH->iGetNumRows()));
 	}
 
 	switch (uRRot) {
@@ -346,10 +346,10 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			bResult = false;
 		}
 
-		if (uN != uPoints) {
+		if (uN != uMappedPoints) {
 			silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
 				"negotiation response failed: node number mismatch "
-				"(local=" << uPoints << ", remote=" << uN << ")"
+				"(local=" << uMappedPoints << ", remote=" << uN << ")"
 				<< std::endl);
 			bResult = false;
 		}
@@ -893,6 +893,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 		return WorkVec;
 	}
 
+
 	if (pRefNode) {
 		integer iSize = Nodes.size();
 		if (bUseReferenceNodeForces) {
@@ -930,7 +931,6 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 				M1 -= Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
 			}
 		}
-
 		if (bUseReferenceNodeForces) {
 			unsigned n = Nodes.size();
 			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
@@ -1224,14 +1224,15 @@ ReadStructMappingExtForce(DataManager* pDM,
 			<< "# " << std::ctime(&t)
 			<< "# labels: " << (bLabels ? "on" : "off") << std::endl;
 		if (pRefNode) {
-			out << "# reference: " << pRefNode->GetLabel() << std::endl;
-		}
-		out
-			<< "# points: " << nPoints << std::endl;
-
-		if (pRefNode) {
 			const Vec3& xRef = pRefNode->GetXCurr();
 			const Mat3x3& RRef = pRefNode->GetRCurr();
+			out 
+				<< "# reference: " << pRefNode->GetLabel() << std::endl
+			    	<< "# position: " << xRef << std::endl
+			    	<< "# orientation: " << MatR2EulerAngles123(RRef)*dRaDegr << std::endl; 	
+			out
+		  		<< "# points: " << nPoints << std::endl;
+
 
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
 				if (bLabels) {
@@ -1243,6 +1244,8 @@ ReadStructMappingExtForce(DataManager* pDM,
 			}
 
 		} else {
+			out
+				<< "# points: " << nPoints << std::endl;
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
 				if (bLabels) {
 					out << Labels[p] << " ";

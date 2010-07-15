@@ -36,6 +36,7 @@
 #include <cstdio>
 #include <cstring>
 #include "mbstrbuf.h"
+#include <stdio.h>
 
 std::ostream&
 mbstrbuf::stats(std::ostream& out)
@@ -54,6 +55,13 @@ mbstrbuf::make_room(unsigned newlen)
 	buf = ptr;
 	len = newlen;
 }
+
+void 
+mbstrbuf::return_cursor(unsigned newcursor)
+{
+	cursor = newcursor;
+}
+
 
 void
 mbstrbuf::print_str(const char *str)
