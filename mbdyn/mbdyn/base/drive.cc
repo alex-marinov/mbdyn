@@ -196,7 +196,7 @@ DriveHandler::~DriveHandler(void)
 
 void
 DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
-	const integer& s, flag fNewStep)
+	const integer& s)
 {
 	/* Setta la variabile Time nella tabella dei simboli */
 	ASSERT(pTime != 0);
@@ -212,28 +212,29 @@ DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
 	if (s >= 0) {
 		ASSERT(pStep != 0);
 		pStep->SetVal(s);
-	}
 
-	/* in case of new step */
-	if (fNewStep) {
-		iCurrStep++;
+		/* in case of new step */
+		if (s != iCurrStep) {
+			ASSERT(iCurrStep + 1 == s);
+			iCurrStep = s;
 
-		for (std::vector<MyMeter *>::iterator i = Meter.begin();
-			i != Meter.end(); i++)
-		{
-			(*i)->Set();
-		}
+			for (std::vector<MyMeter *>::iterator i = Meter.begin();
+				i != Meter.end(); i++)
+			{
+				(*i)->Set();
+			}
 
-		for (std::vector<MyRand *>::iterator i = Rand.begin();
-			i != Rand.end(); i++)
-		{
-			(*i)->Set();
-		}
+			for (std::vector<MyRand *>::iterator i = Rand.begin();
+				i != Rand.end(); i++)
+			{
+				(*i)->Set();
+			}
 
-		for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
-			i != ClosestNext.end(); i++)
-		{
-			(*i)->Set();
+			for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
+				i != ClosestNext.end(); i++)
+			{
+				(*i)->Set();
+			}
 		}
 	}
 }
@@ -330,10 +331,8 @@ DriveHandler::MyRand::~MyRand(void)
 }
 
 DriveHandler::MyMeter::MyMeter(unsigned int uLabel, integer iS)
-: WithLabel(uLabel), iSteps(iS), iCurr(iS - 1)
+: WithLabel(uLabel), iSteps(iS), iCurr(0)
 {
-	// NOTE: iCurr set to iSteps - 1 so that it will be set
-	// to 0 by Set() when called the first time
 	NO_OP;
 }
 

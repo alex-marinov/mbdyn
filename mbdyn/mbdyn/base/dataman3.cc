@@ -877,7 +877,7 @@ EndOfUse:
 			SAFENEWWITHCONSTRUCTOR(pOutputMeter,
 				MeterDriveCaller,
 				MeterDriveCaller(&DrvHdl, 
-					std::numeric_limits<double>::min(),
+					-std::numeric_limits<double>::max(),
 					std::numeric_limits<double>::max(), 
 					iFreq)
 				);

@@ -232,8 +232,8 @@ private:
 	std::vector<MyClosestNext *> ClosestNext;
 
 protected:
-	void SetTime(const doublereal& dt, const doublereal& dts = -1.,
-		const integer& s = -1, flag fNewStep = 1);
+	void SetTime(const doublereal& dt, const doublereal& dts,
+		const integer& s);
 	void LinkToSolution(const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 	integer iRandInit(integer iSteps);
