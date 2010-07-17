@@ -330,8 +330,10 @@ DriveHandler::MyRand::~MyRand(void)
 }
 
 DriveHandler::MyMeter::MyMeter(unsigned int uLabel, integer iS)
-: WithLabel(uLabel), iSteps(iS), iCurr(0)
+: WithLabel(uLabel), iSteps(iS), iCurr(iS - 1)
 {
+	// NOTE: iCurr set to iSteps - 1 so that it will be set
+	// to 0 by Set() when called the first time
 	NO_OP;
 }
 
