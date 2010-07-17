@@ -162,7 +162,7 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	} else {
 		/* add the drive handler to the drive callers... */
 		for (DCType::const_iterator i = DC.begin(); i != DC.end(); i++) {
-			((DriveCaller *)i->second)->SetDrvHdl(pDH);
+			const_cast<DriveCaller *>(i->second)->SetDrvHdl(pDH);
 		}
 	}
 }
@@ -580,12 +580,9 @@ MBDynParser::DriveCaller_int(void)
 	/* allow "reference" (copy cached drive) */
 	DriveCaller *pDC = GetDriveCaller(bDeferred);
 	if (pDC == NULL) {
-		silent_cerr("unable to read drive caller " << uLabel);
-		if (sName) {
-			silent_cerr(" (" << sName << ")");
-		}
-		silent_cerr(" at line " << GetLineData()
-				<< std::endl);
+		silent_cerr("unable to read drive caller " << uLabel
+			<< " (" << (sName ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
