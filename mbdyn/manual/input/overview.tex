@@ -38,14 +38,16 @@ So it is natural to make each module read and interpret its data starting
 from the input phase.
 
 Every statement (or `card') follows the syntax:
-\begin{verbatim}
-    <card> ::= <description> [ : <arglist> ] ;
-\end{verbatim}
-\kw{<arglist>} is a(n optional) list of arguments, that is driven by the 
-\kw{<description>} that identifies the card. 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{description} [ : \bnt{arglist} ] ;
+\end{Verbatim}
+%\end{verbatim}
+\nt{arglist} is a(n optional) list of arguments, that is driven by the 
+\nt{description} that identifies the card. 
 The keyword can be made of multiple words separated by spaces or tabs; 
 the extra spaces are skipped\footnote{
-	Anything that makes the C function \kw{isspace()} 
+	Anything that makes the C function \texttt{isspace()} 
 	return \kw{true}
 }, and the match is case insensitive. 
 The arguments are usually separated by commas\footnote{
@@ -149,7 +151,7 @@ of the input file is used.
 
 The contents of the output files are described within the description
 of the items (nodes or elements) that generate them.
-Only a general information file, with extension \kw{.out}, 
+Only a general information file, with extension \texttt{.out}, 
 is described here. 
 The file contains general information about the simulation; 
 it is not formatted. 
@@ -180,13 +182,14 @@ The fields indicate:
 	or on the solution (0 for residual, 1 for solution).
 \end{enumerate}
 
-There is also a supplementary file, with \kw{.log} extension,
+There is also a supplementary file, with \texttt{.log} extension,
 that may contain extra (logging) information.
 Its content, although very experimental and subjected to changes,
 is documented in Appendix~\ref{sec:APP:LOGFILE}.
 
 \bigskip
 
-An experimental support for output using the NetCDF database format
+Experimental support for output using the NetCDF database format
 is available for selected items.
+See Appendix~\ref{sec:NETCDF} for details.
 

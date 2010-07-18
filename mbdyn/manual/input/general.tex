@@ -62,7 +62,7 @@ However, they may be used in quite a few significant places,
 for example to indicate file names, so few details on their syntax
 are provided.
 
-Strings are typically delimited by double quotes (`\kw{"}').
+Strings are typically delimited by double quotes (`\texttt{"}').
 When a string is expected, the parser looks for the opening 
 double quotes and eats up all the white space before it.
 Then all characters are read as they are until the closing 
@@ -92,17 +92,20 @@ Every time a numeric value is expected, the result of evaluating
 a mathematical expression can be used, including variable declaration 
 and assignment (variable names and values are kept in memory throughout
 the input phase and the simulation) and simple math functions.
-Named variables and non-named constants are strongly typed; two types are
-currently available, \kw{integer} and \kw{real}.
-Operations account for the type and perform implicit cast when allowed.
-For instance \kw{1+2.5} returns a \kw{real} whose value 
-is \kw{3.5}, since one of the 
-two addenda is \kw{real}, while \kw{1/3} returns \kw{0} because 
-the integer division is used.
+Named variables and non-named constants are strongly typed; three types are
+currently available, \kw{integer}, \kw{real}, and \kw{string}.
+
+Operations are strongly typed and perform implicit cast when allowed.
+For instance \texttt{1+2.5} returns a \kw{real} whose value 
+is \texttt{3.5}, since one of the 
+two addenda is \kw{real}, while \texttt{1/3} returns \texttt{0} because 
+both types are implicit integers and the integer division is used.
+
 An empty field, delimited by a valid separator (a comma or a semicolon,
 depending on whether other arguments are expected or not) returns the
 (program supplied) default value for that field, if supplied by the caller, 
 otherwise the parser automatically defaults to zero.
+
 Multiple expressions can be used, provided they are enclosed in plain 
 brackets and are separated by semicolons; the result 
 of the last expression will be used as the expected numeric value,
@@ -117,11 +120,11 @@ like variable declarations and assignments) will be evaluated.
 The latter sequence evaluates to $ \sin\plbr{2\pi{t}+.87} $,
 depending on the current value of the pre-defined variable \kw{Time}.
 The constant \kw{pi} is always defined as $ \pi $ with machine precision
-(the macro \kw{M\_PI} in the standard C header file \kw{math.h}).
+(the macro \texttt{M\_PI} in the standard C header file \texttt{math.h}).
 Other constants are pre-defined, as illustrated
 in Table~\ref{tab:MATHP-VARS}.
 
-When MBDyn is invoked with the `\kw{-H}' option,
+When MBDyn is invoked with the `\texttt{-H}' option,
 \begin{verbatim}
     mbdyn -H
 \end{verbatim}
@@ -172,9 +175,9 @@ user@host:~>
 \end{figure}
 
 The variable \kw{Time} is declared, defined and initialized\footnote{
-    A variable is \kw{declared} when its name enters the namespace;
-    it is \kw{defined} when it can be referenced;
-    it is \kw{initialized} when it is first assigned a value
+    A variable is \emph{declared} when its name enters the namespace;
+    it is \emph{defined} when it can be referenced;
+    it is \emph{initialized} when it is first assigned a value
 } from the beginning of the control data section, and during the solution 
 phase it is assigned the value of the current time. 
 
@@ -196,31 +199,31 @@ can be reassigned.
 		\multicolumn{1}{c}{\textbf{Type}} &
 		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{\^} & Binary, right & Power \\
-		\kw{+} & Unary, left & Plus sign \\
-		\kw{-} & Unary, left & Minus sign \\
-		\kw{*} & Binary, left & Multiplication \\
-		\kw{/} & Binary, left & Division \\
-		\kw{+} & Binary, left & Addition \\
-		\kw{-} & Binary, left & Subtraction \\
-		\kw{>} & Binary, left & Greater than \\
-		\kw{>=} & Binary, left & Greater than or equal to \\
-		\kw{==} & Binary, left & Equal to \\
-		\kw{<=} & Binary, left & Less than or equal to \\
-		\kw{<} & Binary, left & Less than \\
-		\kw{!=} & Binary, left & Not equal \\
-		\kw{!} & Unary, right & NOT \\
-		\kw{\&\&} & Binary, left & AND \\
-		\kw{||} & Binary, left & OR \\
-		\kw{\~{}|} & Binary, left & XOR (exclusive OR) \\
-		\kw{=} & Binary, right & Assignment \\
+		\texttt{\^} & Binary, right & Power \\
+		\texttt{+} & Unary, left & Plus sign \\
+		\texttt{-} & Unary, left & Minus sign \\
+		\texttt{*} & Binary, left & Multiplication \\
+		\texttt{/} & Binary, left & Division \\
+		\texttt{+} & Binary, left & Addition \\
+		\texttt{-} & Binary, left & Subtraction \\
+		\texttt{>} & Binary, left & Greater than \\
+		\texttt{>=} & Binary, left & Greater than or equal to \\
+		\texttt{==} & Binary, left & Equal to \\
+		\texttt{<=} & Binary, left & Less than or equal to \\
+		\texttt{<} & Binary, left & Less than \\
+		\texttt{!=} & Binary, left & Not equal \\
+		\texttt{!} & Unary, right & NOT \\
+		\texttt{\&\&} & Binary, left & AND \\
+		\texttt{||} & Binary, left & OR \\
+		\texttt{\~{}|} & Binary, left & XOR (exclusive OR) \\
+		\texttt{=} & Binary, right & Assignment \\
 		\hline
 	\end{tabular}
 	\end{center}
 	\footnotesize
 	Note: ``left'' and ``right'' refer to the associativity
 	of the operators. \\
-	Note: the \kw{String} type only supports the binary ``+'' operator.
+	Note: the \kw{string} type only supports the binary ``+'' operator.
 \end{table}
 
 \begin{table}
@@ -284,13 +287,13 @@ can be reassigned.
 		\multicolumn{1}{c}{\textbf{Name}} &
 		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{Bool} & Boolean number (promoted to \kw{Integer}, \kw{Real},
-			or \kw{String} (0 or 1), whenever required) \\
-		\kw{Integer} & Integer number (promoted to \kw{Real}, or \kw{String},
+		\kw{bool} & Boolean number (promoted to \kw{integer}, \kw{real},
+			or \kw{string} (0 or 1), whenever required) \\
+		\kw{integer} & Integer number (promoted to \kw{real}, or \kw{string},
 			whenever required) \\
-		\kw{Real} & Real number (promoted to \kw{String}
+		\kw{real} & Real number (promoted to \kw{string}
 			whenever required) \\
-		\kw{String} & Text string \\
+		\kw{string} & Text string \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -344,13 +347,14 @@ i.e.\ they should be referenced by writing
 Other namespaces may be defined by the user, and loaded by means
 of the \kw{module load} card described
 in Section~\ref{sec:GENERAL:MODULE-LOAD}.
+
 The namespace that refers to the current model is loaded by default.
 Its name is \kw{model}, and contains the functions 
 defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 
 \begin{table}
 	\begin{center}
-	\caption{Functions in \kw{model} namespace}
+	\caption{Functions in the \kw{model} namespace}
 	\label{tab:MODEL-NS-FUNCS}
 	\begin{tabular}{lllp{.6\textwidth}}
 		\hline
@@ -394,9 +398,9 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
 				indicated by its label (the first argument)
 				for the input specified as second argument \\
-		\kw{sf::<name>}	& Real	& Real			&
+		\kw{sf}\texttt{::}\bnt{name}	& Real	& Real			&
 				evaluates the \htmlref{\kw{scalar function}}{sec:SCALARFUNCS}
-				\kw{<name>} for the input specified as argument \\
+				\nt{name} for the input specified as argument \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -421,7 +425,7 @@ so that it gets registered to the appropriate code:
     set: OSQBR <plugin> , <var> [ , <arglist> ] CSQBR ;
     <arglist> ::= <arg1> [ , ... ]
 \end{verbatim}
-where \kw{OSQBR} and \kw{CSQBR} stand for ``open'' and ``close''
+where \texttt{OSQBR} and \texttt{CSQBR} stand for `open' and `close'
 square brackets, respectively, which shouldn't be confused with those
 that indicate optional parameters.
 
@@ -429,7 +433,7 @@ In the following, the built-in plugins\footnote{Built-in and plug-in
 may sound contradictory, and in fact they are.  However, consider
 that the mathematical parser is essentially independent of MBDyn
 (in fact, it has been turned into a command-line calculator
-in \kw{cl(1)}), so, from this point of view, built-in plug-ins
+in \texttt{cl(1)}), so, from this point of view, built-in plug-ins
 are used to plug MBDyn information into an independent, lower-level
 piece of code.} are illustrated.
 For details on nodes, elements, their properties and the information
@@ -443,14 +447,16 @@ including the value of the degrees of freedom.}
 The \kw{dof} plugin allows to link a variable to a specific degree of freedom
 of a node, or to its derivative, whenever defined.
 The syntax is
-\begin{verbatim}
-    <plugin> ::= dof
-    <arglist> ::= <label> , <type> [ , <index> ] , { algebraic | differential }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{plugin} ::= \kw{dof}
+    \bnt{arglist} ::= \bnt{label} , \bnt{type} [ , \bnt{index} ] , \{ \kw{algebraic} | \kw{differential} \}
+\end{Verbatim}
+%\end{verbatim}
 where
-\kw{label} is the label of the node,
-\kw{type} is the node type,
-\kw{index} is the index of the degree of freedom that is requested,
+\nt{label} is the label of the node,
+\nt{type} is the node type,
+\nt{index} is the index of the degree of freedom that is requested,
 if the node has more than one, while
 \kw{algebraic} and \kw{differential} refer to the value of the dof
 and of its derivative, respectively.
@@ -458,8 +464,8 @@ The derivative can be requested only for those degrees of freedom
 that have one.
 
 \paragraph{Example.} \
-The variable \kw{VARNAME} takes the value of the derivative
-of \kw{abstract} node \kw{NODENAME}
+The variable \texttt{VARNAME} takes the value of the derivative
+of \kw{abstract} node \texttt{NODENAME}
 \begin{verbatim}
     set: integer NODENAME = 1000;
     # the node must exist
@@ -472,29 +478,31 @@ of \kw{abstract} node \kw{NODENAME}
 The \kw{node} plugin allows to link a variable to any data a node
 can expose, including the values of its degrees of freedom.
 The syntax is
-\begin{verbatim}
-    <plugin> ::= node
-    <arglist> ::= <label> , <type>
-        [ , { [ index= ] <index> | string= <name> } ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{plugin} ::= \kw{node}
+    \bnt{arglist} ::= \bnt{label} , \bnt{type}
+        [ , \{ [ \kw{index=} ] \bnt{index} | \kw{string=} \bnt{name} \} ]
+\end{Verbatim}
+%\end{verbatim}
 where
-\kw{label} is the label of the node,
-\kw{type} is the node type,
-and the mutually exclusive \kw{index} and \kw{name} represent the index
-of the datum that is requested, \kw{name} being a user-friendly
+\nt{label} is the label of the node,
+\nt{type} is the node type,
+and the mutually exclusive \nt{index} and \nt{name} represent the index
+of the datum that is requested, \nt{name} being a user-friendly
 representation of the actual index.
-The \kw{index} form is the default; however, the \kw{name} form is recommended.
-Note that \kw{name} can be enclosed in double quotes,
+The \nt{index} form is the default; however, the \nt{name} form is recommended.
+Note that \nt{name} should be enclosed in double quotes,
 although not strictly required.
-In fact, some node types allow names that include square brackets.
+In fact, some node types allow data names that include square brackets.
 In those cases, double-quote enclosing is needed to avoid parsing errors,
 since closing square brackets indicate the end
 of the plugin variable specification.
 
 \paragraph{Example.} \
 This implements the same variable defined in the \kw{dof} example,
-where the variable \kw{VARNAME} takes the value of the derivative
-of \kw{abstract} node \kw{NODENAME}
+where the variable \texttt{VARNAME} takes the value of the derivative
+of \kw{abstract} node \texttt{NODENAME}
 \begin{verbatim}
     set: integer NODENAME = 1000;
     # the node must exist
@@ -507,28 +515,30 @@ of \kw{abstract} node \kw{NODENAME}
 The \kw{element} plugin allows to link a variable to any data an element
 can expose, including the values of its degrees of freedom.
 The syntax is
-\begin{verbatim}
-    <plugin> ::= element
-    <arglist> ::= <label> , <type>
-        [ , { [ index= ] <index> | string= <name> } ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{plugin} ::= \kw{element}
+    \bnt{arglist} ::= \bnt{label} , \bnt{type}
+        [ , \{ [ \kw{index=} ] \bnt{index} | \kw{string=} \bnt{name} \} ]
+\end{Verbatim}
+%\end{verbatim}
 where
-\kw{label} is the label of the element,
-\kw{type} is the element type,
-and the mutually exclusive \kw{index} and \kw{name} represent the index
-of the datum that is requested, \kw{name} being a user-friendly
+\nt{label} is the label of the element,
+\nt{type} is the element type,
+and the mutually exclusive \nt{index} and \nt{name} represent the index
+of the datum that is requested, \nt{name} being a user-friendly
 representation of the actual index.
-The \kw{index} form is the default; however, the \kw{name} form is recommended.
-Note that \kw{name} can be enclosed in double quotes,
+The \nt{index} form is the default; however, the \nt{name} form is recommended.
+Note that \nt{name} should be enclosed in double quotes,
 although not strictly required.
-In fact, some node types allow names that include square brackets.
+In fact, some element types allow names that include square brackets.
 In those cases, double-quote enclosing is needed to avoid parsing errors,
 since closing square brackets indicate the end
 of the plugin variable specification.
 
 \paragraph{Example.} \
-The variable \kw{VARNAME} takes the value of the $z$ component 
-of the reaction force of \kw{joint} \kw{ELEMNAME}
+The variable \texttt{VARNAME} takes the value of the $z$ component 
+of the reaction force of \kw{joint} \texttt{ELEMNAME}
 \begin{verbatim}
     set: integer ELEMNAME = 1000;
     # the joint must exist
@@ -548,13 +558,13 @@ mathematical expression.
 This is useful to rescale structure values by reassigning the value 
 of the scale factor.
 The main data structures are:
-\subsection{\kw{3 x 1} vectors}
+\subsection{\texttt{3 x 1} vectors}
 \begin{enumerate}
     \item general case: a sequence of 3 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialized
 	with zeros.
 \end{enumerate}
-As an example, all the following lines define an empty \kw{3 x 1} vector:
+As an example, all the following lines define an empty \texttt{3 x 1} vector:
 \begin{verbatim}
     default
     null
@@ -568,13 +578,13 @@ The following rescales an arbitrary vector
     cos(pi/3.),0.,sin(pi/3.), scale, 100.
 \end{verbatim}
 
-\subsection{\kw{6 x 1} vectors}
+\subsection{\texttt{6 x 1} vectors}
 \begin{enumerate}
     \item general case: a sequence of 6 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialized 
     with zeros.	
 \end{enumerate}
-\subsection{\kw{3 x 3} matrices}
+\subsection{\texttt{3 x 3} matrices}
 \begin{enumerate}
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -667,12 +677,12 @@ the above data as
 \psfrag{2bc}{\fbox{2'}}
 \psfrag{3c}{\fbox{3}}
 \includegraphics[width=.9\textwidth]{MatR2vec}
-\caption{Construction of \kw{3 x 3} orientation matrix from two
+\caption{Construction of \texttt{3 x 3} orientation matrix from two
 non-parallel vectors.}
 \label{fig:general:orientation-matrices:MatR2vec}
 \end{figure}
 
-\subsection{\kw{3 x 3} orientation matrices}
+\subsection{\texttt{3 x 3} orientation matrices}
 \begin{enumerate}
 \item general case: two vectors that define an orthonormal reference
 system, each of them preceded by its index in the final orientation matrix.
@@ -694,16 +704,17 @@ Examples:
 \end{verbatim}
 The first example represents the identity matrix, i.e.\ no rotation 
 occurs with respect to the global reference frame: direction 1
-in the local frame is parallel to \kw{1.,0.,0.}, which represents
+in the local frame is parallel to \texttt{1.,0.,0.}, which represents
 direction 1 in the global frame, while direction 2 in the local frame
-is parallel to \kw{0.,1.,0.}, which represents direction 2
+is parallel to \texttt{0.,1.,0.}, which represents direction 2
 in the global frame.
 
 The second example describes a rotation of $ \pi/6 $ radian about
 global direction 3: direction 1 in the local frame results from 
-composing \kw{cos(pi/6.)} in global direction 1 and \kw{sin(pi/6.)}
+composing \kw{cos}\texttt{(pi/6.)} in global direction 1
+and \kw{sin}\texttt{(pi/6.)}
 in global direction 2, while direction 3 in the local frame remains
-parallel to \kw{0.,0.,1.}, which represents direction 3 in the global
+parallel to \texttt{0.,0.,1.}, which represents direction 3 in the global
 frame.
 
 \item a variant of the above, which may be useful when only one
@@ -752,7 +763,7 @@ The resulting matrix is computed as
 	\T{R} = \exp\plbr{\T{v}\times{}}
 \end{equation}
 \end{enumerate}
-\subsection{\kw{6 x 6} matrices}
+\subsection{\texttt{6 x 6} matrices}
 \begin{enumerate}
     \item general case: a sequence of 36 reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -787,12 +798,12 @@ The resulting matrix is computed as
     \item null matrix: keyword \kw{null}; the matrix is initialized 
     with zeros.
 \end{enumerate}
-\subsection{\kw{6 x N} matrices}
+\subsection{\texttt{6 x N} matrices}
 \begin{enumerate}
-    \item general case: a sequence of \kw{6 x N} reals, comma-separated, that
+    \item general case: a sequence of \texttt{6 x N} reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
     \ldots, $ a_{6\plbr{N-1}} $, $ a_{6N} $.
-    \item ANBA format: keyword \kw{anba}, followed by \kw{6 x N} reals,
+    \item ANBA format: keyword \kw{anba}, followed by \texttt{6 x N} reals,
     comma-separated, that represent the coefficients of the beam stiffness
     matrix as generated by the code ANBA, namely the following
     transformation is performed:
@@ -819,14 +830,16 @@ They are:
 
 
 \subsection{Constitutive Law}\label{sec:CONSTITUTIVE-LAW}
-\begin{verbatim}
-    <card> ::= constitutive law : <label>
-        [ , name , " <name> " ]
-        <dim> , (ConstitutiveLaw<dim>D) <constitutive_law> ;
-\end{verbatim}
-Constitutive laws are grouped by their dimensionality \kw{<dim>},
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{constitutive law} : \bnt{label}
+        [ , \kw{name} , " \bnt{name} " ]
+        \bnt{dim} , \ty{(ConstitutiveLaw<dim>D)} \bnt{constitutive_law} ;
+\end{Verbatim}
+%\end{verbatim}
+Constitutive laws are grouped by their dimensionality \nt{dim},
 which (up to now) can be any of 1, 3 and 6.
-The \kw{<constitutive\_law>} is parsed according to the rules
+The \nt{constitutive\_law} is parsed according to the rules
 described in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 
 
@@ -834,14 +847,16 @@ described in Section~\ref{sec:CONSTITUTIVE-LAWS}.
 \subsection{C81 Data}\label{sec:C81-DATA}
 This keyword allows to define and read the \kw{c81 data} 
 airfoil tables that are used by aerodynamic elements.
-\begin{verbatim}
-    <card> ::= c81 data : <label> [ , name , " <name> " ]
-        " <filename> "
-        [ , tolerance , <tolerance> ]
-        [ , { fc511 | free format } ]
-        [ , echo , " <output_filename> " [ , free format ] ] ;
-\end{verbatim}
-Data is read from file \kw{filename} according to the format specified
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{c81 data} : \bnt{label} [ , \kw{name} , " \bnt{name} " ]
+        " \bnt{filename} "
+        [ , \kw{tolerance} , \bnt{tolerance} ]
+        [ , \{ \kw{fc511} | \kw{free format} \} ]
+        [ , \kw{echo} , " \bnt{output_filename} " [ , \kw{free format} ] ] ;
+\end{Verbatim}
+%\end{verbatim}
+Data is read from file \nt{filename} according to the format specified
 in the following.
 The traditional format is used unless a format is specified using either
 of the keywords \kw{free format} or \kw{fc511}
@@ -862,18 +877,18 @@ Otherwise, it will be in the traditional format.
 \subsubsection{Traditional Format}
 The file is in textual form; the traditional format (the default) is:
 \begin{itemize}
-\item first line: \kw{"\%30s\%2d\%2d\%2d\%2d\%2d\%2d"} 
+\item first line: \texttt{"\%30s\%2d\%2d\%2d\%2d\%2d\%2d"} 
 where the first 30 chars are a title string, currently ignored by MBDyn,
 followed by 6 two-digit integers that indicate:
 	\begin{itemize}
-	\item the number \kw{ML} of \emph{Mach} points for $C_l$;
-	\item the number \kw{NL} of angle of attack points for $C_l$;
-	\item the number \kw{MD} of \emph{Mach} points for $C_d$;
-	\item the number \kw{ND} of angle of attack points for $C_d$;
-	\item the number \kw{MM} of \emph{Mach} points for $C_m$;
-	\item the number \kw{NM} of angle of attack points for $C_m$.
+	\item the number \texttt{ML} of \emph{Mach} points for $C_l$;
+	\item the number \texttt{NL} of angle of attack points for $C_l$;
+	\item the number \texttt{MD} of \emph{Mach} points for $C_d$;
+	\item the number \texttt{ND} of angle of attack points for $C_d$;
+	\item the number \texttt{MM} of \emph{Mach} points for $C_m$;
+	\item the number \texttt{NM} of angle of attack points for $C_m$.
 	\end{itemize}
-The example in \kw{var/naca0012.c81} contains:
+The example in \texttt{var/naca0012.c81} contains:
 {\small
 \begin{verbatim}
 PROFILO NACA 0012             11391165 947
@@ -885,13 +900,13 @@ with the first field filled with blanks;
 \item a block containing the $C_l$ data, made of:
 	\begin{itemize}
 	\item a record with the first field blank, followed by
-	the \kw{ML} \emph{Mach} values for the $C_l$;
-	\item \kw{NL} records containing the angle of attack
-	in the first field, followed by \kw{ML} values of $C_l$
+	the \texttt{ML} \emph{Mach} values for the $C_l$;
+	\item \texttt{NL} records containing the angle of attack
+	in the first field, followed by \texttt{ML} values of $C_l$
 	for each \emph{Mach} number; angles of attack wrap around 
 	360 deg, starting from -180 deg.
 	\end{itemize}
-The example provided in file \kw{var/naca0012.c81}
+The example provided in file \texttt{var/naca0012.c81}
 contains 11 \emph{Mach} points and 39 angle of attack records for the $C_l$
 of the NACA0012 airfoil at high (unspecified) \emph{Reynolds}:
 {\small
@@ -906,9 +921,9 @@ of the NACA0012 airfoil at high (unspecified) \emph{Reynolds}:
 \end{verbatim}
 }
 \item a block containing the $C_d$ data, same as for $C_l$,
-with \kw{MD} \emph{Mach} points and \kw{ND} angle of attack records;
+with \texttt{MD} \emph{Mach} points and \texttt{ND} angle of attack records;
 \item a block containing the $C_m$ data, same as for $C_l$,
-with \kw{MM} \emph{Mach} points and \kw{NM} angle of attack records.
+with \texttt{MM} \emph{Mach} points and \texttt{NM} angle of attack records.
 \end{itemize}
 
 \subsubsection{Alternative Format}
@@ -917,8 +932,8 @@ the optional switch \kw{fc511}; it is intentionally not documented.
 
 \subsubsection{Free Format}
 Finally, to allow higher precision whenever available, a native format,
-based on \kw{c81}, called \kw{free format}, is available.
-It basically consists in the c81 format without continuation lines
+based on \texttt{c81}, called \kw{free format}, is available.
+It basically consists in the \texttt{c81} format without continuation lines
 and with arbitrary precision, with fields separated by blanks.
 The header is made of an arbitrary string, terminated by a semicolon,
 followed by the six numbers that define the dimensionality of the expected data.
@@ -945,7 +960,7 @@ this is the header; 2 8 2 2 2 2
 \end{verbatim}
 
 Traditional format files can be automatically converted in free format
-using the \kw{c81test} utility:
+using the \texttt{c81test(1)} utility:
 \begin{verbatim}
     $ c81test -d var/naca0012_free_format.c81 var/naca0012.c81
 \end{verbatim}
@@ -955,24 +970,27 @@ provided in the distribution.
 \subsubsection{Miscellaneous}
 A simple program that allows to read and plot the C81 tables
 is available at \\
-\htmladdnormallink{\kw{http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html}}
+\htmladdnormallink{\texttt{http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html}}
         {http://homepage.mac.com/jhuwaldt/java/Applications/TableReader/TableReader.html} \\
 (thanks to Marco Fossati for pointing it out).
 
 A simple utility that parses the C81 file and computes 
 the aerodynamic coefficients for a given pair of angle of attack 
-and Mach number is \kw{c81test}, available in the MBDyn utils suite.
+and Mach number is \texttt{c81test(1)}, available in the MBDyn utils suite.
 This routine uses exactly the same code internally used by MBDyn,
 so it should be considered a check of the code rather than a real tool.
 
 
 \subsection{Drive Caller}\label{sec:DRIVE-CALLER}
-\begin{verbatim}
-    <card> ::= drive caller : <label>
-        [ , name , " <name> " ]
-        (DriveCaller)<drive_caller> ;
-\end{verbatim}
-The keyword \kw{drive caller} allows to define
+The \kw{drive caller} directive
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{drive caller} : \bnt{label}
+        [ , \kw{name} , " \bnt{name} " ]
+        \ty{(DriveCaller)}\bnt{drive_caller} ;
+\end{Verbatim}
+%\end{verbatim}
+allows to define
 a \hyperref{\kw{drive caller}}{\kw{drive caller} (see Section~}{)}{sec:DRIVE}
 that can be subsequently reused.
 It is useful essentially in two cases:
@@ -989,33 +1007,47 @@ It is useful essentially in two cases:
 
 \subsection{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID}
 The \kw{hydraulic fluid} directive:
-\begin{verbatim}
-    <card> ::= hydraulic fluid : <unique_label> , 
-        <fluid_type> , <fluid_properties> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{hydraulic fluid} : \bnt{label} , 
+        \bnt{fluid_type} , \bnt{fluid_properties} ;
+\end{Verbatim}
+%\end{verbatim}
 allows to define a hydraulic fluid to be later used in hydraulic elements,
 see Section~\ref{sec:EL:HYDR}.
-The fluid is identified by a numerical label. 
-The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are
+The fluid is identified by the \nt{label}. 
+The \nt{fluid\_type}s, with the related \nt{fluid\_properties}, are
 described in \ref{sec:HYDRAULIC-FLUID-DATA}
 
 
 
 \subsection{Include}
-The \kw{include} directive:
-\begin{verbatim}
-    <card> ::= include : " <file_name> " ;
-\end{verbatim}
-where \kw{file\_name} is a valid filename for the operative system in
-use, that must be enclosed in double quotes (").
+The \kw{include} directive
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{include} : " \bnt{file_name} " ;
+\end{Verbatim}
+%\end{verbatim}
+allows to include the contents of the file
+\nt{file\_name},
+which must be a valid filename for the operating system in
+use.
+The file name must be enclosed in double quotes (\texttt{"}).
 The full (absolute or relative) path must be given if the included file 
 is not in the directory of the including one.
-There is no check for recursive \kw{include}s, so 
-{\bf the user must take care of recursion}.
+
+\bigskip
+
+\fbox{There is no check for recursive \kw{include}s, so 
+{\bf the user must take care of recursion}.}
+
+\bigskip
+
 The \kw{include} directive forces the parser to scan the included file
-\kw{file\_name} before continuing with the including one.
+\nt{file\_name} before continuing with the including one.
 This is very useful if, for instance, a big model can be made of many
 small models that are meaningful by themselves.
+
 It can be used to replicate parts of the model, by simply using parametric 
 labels for nodes, elements, reference systems, and setting a bias value 
 before multiple-including the same bulk data file.
