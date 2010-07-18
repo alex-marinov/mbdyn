@@ -47,6 +47,7 @@
 class SocketStreamDrive : public StreamDrive {
 protected:
 	unsigned int InputEvery;
+	bool bReceiveFirst;
 	unsigned int InputCounter;
 
 	UseSocket *pUS;
@@ -63,7 +64,7 @@ public:
 		const DriveHandler* pDH,
 		UseSocket *pUS, bool c,
 		const std::string& sFileName,
-		integer nd, unsigned int ie,
+		integer nd, unsigned int ie, bool bReceiveFirst,
 		int flags,
 		const struct timeval& st,
 		const std::string& sOutFileName, int iPrecision,

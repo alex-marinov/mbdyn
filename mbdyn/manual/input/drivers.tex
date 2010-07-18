@@ -214,6 +214,7 @@ or model debugging purposes.}
         [ { [ no ] signal
             | [ non ] blocking } , [ ... ] ]
         [ input every , <steps> , ]
+        [ receive first , { yes | no } , ]
         [ timeout , <timeout> , ]
         [ echo , " <echo_file_name> "
             [ , precision , <precision> ]
@@ -258,6 +259,9 @@ is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
 in case the stream is read after it was closed by the peer;
 \item the keyword \kw{input every} allows to read new driver values
 every \kw{steps} time steps;
+\item the keyword \kw{receive first} allows to enable/disable
+receiving data at the initial time (defaults to \kw{yes},
+thus data is expected at the initial time, during derivatives);
 \item the keyword \kw{timeout} allows to set a timeout
 for each read operation; the timeout is expressed in seconds
 as a floating point number, with a theoretical micro-second resolution

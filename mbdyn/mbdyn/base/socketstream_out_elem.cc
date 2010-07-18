@@ -132,8 +132,14 @@ SocketStreamElem::SetValue(DataManager *pDM,
 		SimulationEntity::Hints *ph)
 {
 	if (bSendFirst) {
+		// output imposed values (before "derivatives")
+		OutputCounter = OutputEvery - 1;
+
 		AfterConvergence(X, XP);
 	}
+
+	// do not send "derivatives"
+	OutputCounter = -1;
 }
 
 void

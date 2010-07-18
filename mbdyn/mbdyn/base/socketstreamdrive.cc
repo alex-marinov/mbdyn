@@ -76,17 +76,29 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		UseSocket *pUS, bool c,
 		const std::string& sFileName,
-		integer nd, unsigned int ie,
+		integer nd, unsigned int ie, bool bReceiveFirst,
 		int flags,
 		const struct timeval& st,
 		const std::string& sOutFileName, int iPrecision,
 		doublereal dShift)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-InputEvery(ie), InputCounter(0), pUS(pUS), recv_flags(flags),
+InputEvery(ie), bReceiveFirst(bReceiveFirst), InputCounter(ie - 1),
+pUS(pUS), recv_flags(flags),
 SocketTimeout(st),
 sOutFileName(sOutFileName), iPrecision(iPrecision), dShift(dShift)
 {
+	// NOTE: InputCounter is set to InputEvery - 1 so that input
+	// is expected at initialization (initial time) and then every
+	// InputEvery steps; for example, for InputEvery == 4, input
+	// is expected at:
+	//	initial time
+	//	initial time + 4 * timestep
+	//	initial time + 8 * timestep
 	ASSERT(InputEvery > 0);
+
+	if (!bReceiveFirst) {
+		InputCounter -= InputEvery;
+	}
 
 	if (!sOutFileName.empty()) {
 		outFile.open(sOutFileName.c_str());
@@ -461,6 +473,18 @@ ReadSocketStreamDrive(DataManager* pDM,
 		InputEvery = (unsigned int)i;
 	}
 
+	bool bReceiveFirst(true);
+	if (HP.IsKeyWord("receive" "first")) {
+		if (!HP.GetYesNo(bReceiveFirst)) {
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"\"receive first\" must be either \"yes\" or \"no\" "
+				<< "at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	struct timeval SocketTimeout = { 0, 0 };
 	if (HP.IsKeyWord("timeout")) {
 		doublereal st = HP.GetReal();
@@ -546,7 +570,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 		SocketStreamDrive(uLabel,
 			pDM->pGetDrvHdl(), pUS, create,
-			name, idrives, InputEvery,
+			name, idrives, InputEvery, bReceiveFirst,
 			flags, SocketTimeout,
 			sOutFileName, iPrecision, dShift));
 
