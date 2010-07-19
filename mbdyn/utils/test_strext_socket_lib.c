@@ -63,8 +63,10 @@ usage(void)
 		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-l\t\tlabels\n"
+		"\t-i <filename>\tinput file\n"
 		"\t-n\t\tonly forces, no moments\n"
 		"\t-N <nodes>\tnodes number\n"
+		"\t-o <filename>\t output file\n"
 		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
 		"\t-r\t\tuse rigid body data\n"
 		"\t-R {mat|theta|euler123}\torientation format\n"
@@ -97,11 +99,16 @@ static mbc_nodal_t	*mbc = &mbcx;
 static double fx[6], *f0 = NULL;
 static double *p0 = NULL;
 
+static int inpfile = 0;
+static int outfile = 0;
+static FILE *inputfile  = NULL;
+static FILE *outputfile = NULL;
+
 void
 test_init(int argc, char *argv[])
 {
 	while (1) {
-		int opt = getopt(argc, argv, "ac:f:H:lnN:p:rR:s:t:vx");
+		int opt = getopt(argc, argv, "ac:f:H:i:lnN:o:p:rR:s:t:vx");
 
 		if (opt == EOF) {
 			break;
@@ -132,6 +139,11 @@ test_init(int argc, char *argv[])
 		case 'f': {
 			char *s;
 			int i;
+			if (inpfile) {
+				fprintf(stderr, "test_strext_socket: "
+					"-i already provided\n");
+				usage();
+			}
 
 			if (f0 != NULL) {
 				fprintf(stderr, "test_strext_socket: "
@@ -207,6 +219,64 @@ test_init(int argc, char *argv[])
 				usage();
 			}
 			break;
+		
+		case 'i' : {
+
+			int size = 6;
+
+			if (f0 != NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"-i error -f already provided\n");
+				usage();
+			}
+
+			if (p0 != NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"-i error -p already provided\n");
+				usage();
+			}
+
+			if (inputfile != NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"-i already provided\n");
+				usage();
+			}
+
+			if (optarg == NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"-i empty argument\n");
+				usage();
+			}
+
+			inputfile = fopen(optarg, "r");	
+			if (inputfile == NULL) {
+				fprintf(stderr,  "test_strext_socket: "
+					"-i unable to open input file %s\n", optarg);
+				usage(); 
+			}	
+
+			if (nodes <= 0) {
+				fprintf(stderr, "test_strext_socket: "
+					"-o requires -N\n");
+				usage();
+			}
+
+			if (nomoments) {
+				size = 3;
+		  	}	
+
+			f0 = fx;
+
+			p0 = (double *)calloc(sizeof(double), size*nodes);
+			if (p0 == NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"malloc for nodal force values failed\n");
+				exit(EXIT_FAILURE);
+			}
+			
+			
+			inpfile = 1;
+			} break;
 
 		case 'l':
 			labels = 1;
@@ -236,6 +306,23 @@ test_init(int argc, char *argv[])
 			}
 			break;
 
+		case 'o': 
+
+			if (optarg == NULL) {
+				fprintf(stderr, "test_strext_socket: "
+					"-o empty argument\n");
+				usage();
+			}
+
+			outputfile = fopen(optarg, "w");	
+			if (outputfile == NULL) {
+				fprintf(stderr, "unable to open output file %s\n", optarg);
+				usage(); 
+			}
+
+			outfile = 1;
+			break;
+
 		case 'p': {
 			char *s;
 			int i, size = 6;
@@ -255,6 +342,7 @@ test_init(int argc, char *argv[])
 			if (nomoments) {
 				size = 3;
 			}
+
 
 			p0 = (double *)calloc(sizeof(double), size*nodes);
 			if (p0 == NULL) {
@@ -408,27 +496,81 @@ test_run(void)
 				goto done;
 			}
 
-			if (rigid && mbc->mbc.verbose) {
-				// TODO: handle other rotation forms for reference node motion
-				double *x = MBC_R_X(mbc);
-				double *R = MBC_R_R(mbc);
-				double *v = MBC_R_XP(mbc);
-				double *w = MBC_R_OMEGA(mbc);
-
-				if (labels) {
-					fprintf(stdout, "reference node (%u):\n", MBC_R_K_LABEL(mbc));
-				} else {
-					fprintf(stdout, "reference node:\n");
-				}
-				fprintf(stdout, "x={%+16.8e,%+16.8e,%+16.8e}\n", x[0], x[1], x[2]);
-				fprintf(stdout, "R={{%+16.8e,%+16.8e,%+16.8e};\n", R[0], R[3], R[6]);
-				fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e};\n", R[1], R[4], R[7]);
-				fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e}};\n", R[2], R[5], R[8]);
-				fprintf(stdout, "v={%+16.8e,%+16.8e,%+16.8e}\n", v[0], v[1], v[2]);
-				fprintf(stdout, "w={%+16.8e,%+16.8e,%+16.8e}\n", w[0], w[1], w[2]);
+			if (outfile)  {
+				fprintf(outputfile, "STEP %u ITERATION %d\n", steps, iter);
 			}
 
-			if (mbc->nodes > 0 && mbc->mbc.verbose) {
+			if (rigid) {
+				double *x = MBC_R_X(mbc);
+				double *R;
+				double *v = MBC_R_XP(mbc);
+				double *w = MBC_R_OMEGA(mbc);
+				if (outfile) {
+
+					if (labels) {
+						fprintf(outputfile, "REF (%u)\n", MBC_R_K_LABEL(mbc));
+					} else {
+						fprintf(outputfile, "REF \n");
+					}
+
+					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n", x[0], x[1], x[2]);
+		
+					switch (MBC_F_ROT(mbc)) {
+					default:
+						R =  MBC_R_R(mbc);
+						fprintf(outputfile, "R %+16.8e %+16.8e %+16.8e", R[0], R[3], R[6]);
+						fprintf(outputfile, " %+16.8e %+16.8e %+16.8e", R[1], R[4], R[7]);
+						fprintf(outputfile, " %+16.8e %+16.8e %+16.8e\n", R[2], R[5], R[8]);
+						break;
+					case MBC_ROT_THETA:
+						R =  MBC_R_THETA(mbc);
+						fprintf(outputfile, "T %+16.8e %+16.8e %+16.8e\n",
+								R[0], R[1], R[2]);
+						break;
+
+					case MBC_ROT_EULER_123:
+						R =  MBC_R_EULER_123(mbc);
+						fprintf(outputfile, "E %+16.8e %+16.8e %+16.8e\n",
+								R[0], R[1], R[2]);
+						break;
+					}
+	
+					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n", v[0], v[1], v[2]);
+					fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n\n", w[0], w[1], w[2]);
+				}	
+				else if (mbc->mbc.verbose) {
+
+					if (labels) {
+						fprintf(stdout, "reference node (%u):\n", MBC_R_K_LABEL(mbc));
+					} else {
+						fprintf(stdout, "reference node:\n");
+					}
+					fprintf(stdout, "x={%+16.8e,%+16.8e,%+16.8e}\n", x[0], x[1], x[2]);
+					switch (MBC_F_ROT(mbc)) {
+					default:
+						R =  MBC_R_R(mbc);
+						fprintf(stdout, "R={{%+16.8e,%+16.8e,%+16.8e};\n", R[0], R[3], R[6]);
+						fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e};\n", R[1], R[4], R[7]);
+						fprintf(stdout, "   {%+16.8e,%+16.8e,%+16.8e}}\n", R[2], R[5], R[8]);
+						break;
+					case MBC_ROT_THETA:
+						R =  MBC_R_THETA(mbc);
+						fprintf(stdout, " theta={%+16.8e,%+16.8e,%+16.8e\n}",
+								R[0], R[1], R[2]);
+						break;
+
+					case MBC_ROT_EULER_123:
+						R =  MBC_R_EULER_123(mbc);
+						fprintf(stdout, "euler123={%+16.8e,%+16.8e,%+16.8e}\n",
+								R[0], R[1], R[2]);
+						break;
+					}
+					fprintf(stdout, "v={%+16.8e,%+16.8e,%+16.8e}\n", v[0], v[1], v[2]);
+					fprintf(stdout, "w={%+16.8e,%+16.8e,%+16.8e}\n", w[0], w[1], w[2]);
+				
+				} 
+			}
+			if (mbc->nodes > 0) {
 				uint32_t *n_labels = MBC_N_K_LABELS(mbc);
 				double *n_x = MBC_N_X(mbc);
 				double *n_r;
@@ -436,53 +578,159 @@ test_run(void)
 				double *n_omega = MBC_N_OMEGA(mbc);
 				unsigned n;
 
-				for (n = 0; n < mbc->nodes; n++) {
-					if (labels) {
-						fprintf(stdout, "node #%d (%u):\n", n, n_labels[n]);
-					} else {
-						fprintf(stdout, "node #%d:\n", n);
+				if (outfile) {
+					fprintf(outputfile, "POS %u\n", mbc->nodes);
+					for (n = 0; n < mbc->nodes; n++) {
+						if (labels) {
+							fprintf(outputfile,"%d ", n_labels[n]);
+						} 
+						fprintf(outputfile,"%+16.8e %+16.8e %+16.8e\n",
+							 n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
 					}
-					fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
-						n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
 					if (nomoments == 0) {
-						switch (MBC_F_ROT(mbc)) {
-						case MBC_ROT_MAT:
-							n_r =  MBC_N_R(mbc);
-							fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
-									"           %+16.8e %+16.8e %+16.8e\n"
-									"           %+16.8e %+16.8e %+16.8e\n",
-								n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
-								n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
-								n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
-							break;
+						fprintf(outputfile, "ROT %u\n", mbc->nodes);
+						for (n = 0; n < mbc->nodes; n++) {
+							if (labels) {
+								fprintf(outputfile, "%d ", n_labels[n]);
+							}	
+							switch (MBC_F_ROT(mbc)) {
+							default:
+								n_r =  MBC_N_R(mbc);
+								fprintf(outputfile, "%+16.8e %+16.8e %+16.8e"
+										" %+16.8e %+16.8e %+16.8e"
+										" %+16.8e %+16.8e %+16.8e\n",
+									n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
+									n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
+									n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
+								break;
 
-						case MBC_ROT_THETA:
-							n_r =  MBC_N_THETA(mbc);
-							fprintf(stdout, "    theta= %+16.8e %+16.8e %+16.8e\n",
-								n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
-							break;
+							case MBC_ROT_THETA:
+								n_r =  MBC_N_THETA(mbc);
+								fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
+									n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+								break;
 
-						case MBC_ROT_EULER_123:
-							n_r =  MBC_N_EULER_123(mbc);
-							fprintf(stdout, " euler123= %+16.8e %+16.8e %+16.8e\n",
-								n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
-							break;
+							case MBC_ROT_EULER_123:
+								n_r =  MBC_N_EULER_123(mbc);
+								fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
+									n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+								break;
+							}
+						}	
+					}
+					fprintf(outputfile, "VEL %u\n", mbc->nodes);
+					for (n = 0; n < mbc->nodes; n++) {
+						if (labels) {
+							fprintf(outputfile, "%d ", n_labels[n]);
+						}
+						fprintf(outputfile,"%+16.8e %+16.8e %+16.8e\n",
+							 n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2]);
+					}
+					if (nomoments == 0) {
+						fprintf(outputfile, "W %u\n", mbc->nodes);
+						for (n = 0; n < mbc->nodes; n++) {
+							if (labels) {
+								fprintf(outputfile, "%d ", n_labels[n]);
+							}	
+							fprintf(outputfile, "%+16.8e %+16.8e %+16.8e\n",
+								n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
 						}
 					}
-					fprintf(stdout, "    xp=    %+16.8e %+16.8e %+16.8e\n",
-						n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2]);
-					if (nomoments == 0) {
-						fprintf(stdout, "    omega= %+16.8e %+16.8e %+16.8e\n",
-							n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
+				}
+				else if (mbc->mbc.verbose) {
+					for (n = 0; n < mbc->nodes; n++) {
+						if (labels) {
+							fprintf(stdout, "node #%d (%u):\n", n, n_labels[n]);
+						} else {
+							fprintf(stdout, "node #%d:\n", n);
+						}
+						fprintf(stdout, "    x=     %+16.8e %+16.8e %+16.8e\n",
+							n_x[3*n], n_x[3*n + 1], n_x[3*n + 2]);
+						if (nomoments == 0) {
+							switch (MBC_F_ROT(mbc)) {
+							default:
+								n_r =  MBC_N_R(mbc);
+								fprintf(stdout, "    R=     %+16.8e %+16.8e %+16.8e\n"
+										"           %+16.8e %+16.8e %+16.8e\n"
+										"           %+16.8e %+16.8e %+16.8e\n",
+									n_r[9*n], n_r[9*n + 3], n_r[9*n + 6],
+									n_r[9*n + 1], n_r[9*n + 4], n_r[9*n + 7],
+									n_r[9*n + 2], n_r[9*n + 5], n_r[9*n + 8]);
+								break;
+
+							case MBC_ROT_THETA:
+								n_r =  MBC_N_THETA(mbc);
+								fprintf(stdout, "    theta= %+16.8e %+16.8e %+16.8e\n",
+									n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+								break;
+
+							case MBC_ROT_EULER_123:
+								n_r =  MBC_N_EULER_123(mbc);
+								fprintf(stdout, " euler123= %+16.8e %+16.8e %+16.8e\n",
+									n_r[3*n], n_r[3*n + 1], n_r[3*n + 2]);
+								break;
+							}
+						}
+						fprintf(stdout, "    xp=    %+16.8e %+16.8e %+16.8e\n",
+							n_xp[3*n], n_xp[3*n + 1], n_xp[3*n + 2]);
+						if (nomoments == 0) {
+							fprintf(stdout, "    omega= %+16.8e %+16.8e %+16.8e\n",
+								n_omega[3*n], n_omega[3*n + 1], n_omega[3*n + 2]);
+						}
 					}
 				}
-			}
+			}	
 
 			if (sleeptime) {
 				sleep(sleeptime);
 			}
 
 			/* set forces */
+			if (inpfile && (iter == 0) && !feof(inputfile)) {
+				unsigned i;
+				unsigned n;
+				int size = 6;
+				if (fscanf(inputfile, "Step %u\n", &i) != 1) {
+					fprintf(stderr, "Step: %u. Error while reading step"
+						" number form input file\n", steps);
+					exit(EXIT_FAILURE);
+				} 
+				if (i != steps) {
+					fprintf(stderr, "Error wrong step number form input file," 
+						" is %u and shoul be %u\n", i, steps);
+					exit(EXIT_FAILURE);
+				}
+				if (rigid) {
+					if (fscanf(inputfile, "REF %lg %lg %lg %lg %lg %lg\n", 
+						&f0[0], &f0[1], &f0[2], &f0[3], &f0[4], &f0[5]) != 6) {
+						fprintf(stderr, "Step: %u. Error while reading Reference Node"
+							" forces form input file\n", steps);
+						exit(EXIT_FAILURE);
+					}
+				}
+
+				if (nomoments) {
+					size = 3;
+				}
+				for (n = 0; n < mbc->nodes; n++) {
+					if (nomoments == 0) {
+						if (fscanf(inputfile, "%lg %lg %lg %lg %lg %lg\n", 
+							&p0[size*n], &p0[size*n +1], &p0[size*n + 2],
+							&p0[size*n + 3], &p0[size*n +4], &p0[size*n + 5]) != 6) {
+							fprintf(stderr, "Step: %u. Error while reading Force & Moments" 
+ 								" for Node %u form input file\n", steps, n);
+							exit(EXIT_FAILURE);
+						}
+					} else {
+						if (fscanf(inputfile, "%lg %lg %lg\n", 
+							&p0[size*n], &p0[size*n + 1], &p0[size*n + 2]) != 3) {
+							fprintf(stderr, "Step: %u. Error while reading Forces for Node %u"
+								" form input file\n", steps, n);
+							exit(EXIT_FAILURE);
+						}
+					}
+				}	
+			} 
 			if (rigid) {
 				double *f = MBC_R_F(mbc);
 				double *m = MBC_R_M(mbc);
