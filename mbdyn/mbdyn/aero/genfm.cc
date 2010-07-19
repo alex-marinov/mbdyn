@@ -581,11 +581,17 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 
 	/* The offset is in the reference frame of the node */
 	ReferenceFrame RF(pNode);
-	Vec3 f(HP.GetPosRel(RF));
+	Vec3 f(0.);
+	if (HP.IsKeyWord("position")) {
+		f = HP.GetPosRel(RF);
+	}
 
 	/* the orientation is in flight mechanics (FIXME?) reference frame:
 	 * X forward, Y to the right, Z down */
-	Mat3x3 Ra(HP.GetRotRel(RF));
+	Mat3x3 Ra(Eye3);
+	if (HP.IsKeyWord("orientation")) {
+		Ra = HP.GetRotRel(RF);
+	}
 
 	/* 1. by default, which means that coefficients are only normalized
 	 * by the dynamic pressure */
@@ -601,8 +607,23 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 	}
 
 	/* TODO: allow to reference previously loaded data */
-	std::string fname(HP.GetFileName());
-	GenericAerodynamicData *pData = ReadGenericAerodynamicData(fname);
+	GenericAerodynamicData *pData = 0;
+	if (HP.IsKeyWord("file")) {
+		std::string fname(HP.GetFileName());
+		pData = ReadGenericAerodynamicData(fname);
+
+	} else if (HP.IsKeyWord("reference")) {
+		silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
+			"references to generic aerodynamic data not implemented yet "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+	} else {
+		silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
+			"keyword \"file\" expected "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 

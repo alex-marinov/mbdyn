@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- added "receive first" option to stream input
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
+		- changed Generic Aerodynamic Force input format
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)
