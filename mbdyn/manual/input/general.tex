@@ -2500,13 +2500,16 @@ For example, a \ty{Vec3} drive hint is:
 
 \section{Friction}
 A friction-based element needs the definition of
-at least a \kw{friction model} and of a \kw{shape function}.
+at least a friction model and of a shape function.
+
 \subsection{Friction models}
 The \kw{friction model} input format is:
-\begin{verbatim}
-    <friction_model> ::= <friction_type> ,
-        <friction_arglist>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{friction_model} ::= \bnt{friction_type} ,
+        \bnt{friction_arglist}
+\end{Verbatim}
+%\end{verbatim}
 Currently implemented friction models are:
 \begin{enumerate}
 \item \kw{modlugre}\\
@@ -2514,140 +2517,166 @@ This friction model is based on the one presented in \cite{LUGRE-2002}
 by Pierre Dupont, Vincent Hayward, Brian Armstrong and Friedhelm Altpeter,
 known as `LuGre'.
 The input format is:
-    \begin{verbatim}
-    <friction_model> ::= modlugre
-    <friction_arglist> ::=
-        <sigma0>,
-        <sigma1>,
-        <sigma2>,
-        <kappa>,
-        <friction_function>
-    <sigma0> ::= <const_value>
-    <sigma1> ::= <const_value>
-    <sigma2> ::= <const_value>
-    <friction_function> ::= <ScalarFunction>
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{friction_model} ::= \kw{modlugre}
+    \bnt{friction_arglist} ::=
+        \bnt{sigma0} ,
+        \bnt{sigma1} ,
+        \bnt{sigma2} ,
+        \bnt{kappa} ,
+        \ty{(ScalarFunction)} \bnt{friction_function}
+\end{Verbatim}
+%\end{verbatim}
+
     \item \kw{discrete coulomb}\\
     This is a Coulomb model with viscous friction and
     internal states to resolve stick/slip conditions.
-    \begin{verbatim}
-    <friction_model> ::= discrete coulomb
-    <friction_arglist> ::=
-        [ sigma2 , <sigma2> , ]
-        [ velocity ratio , <vel_ratio> , ]
-        <friction_function>
-    <sigma2> ::= <const_value>
-    <vel_ratio> ::= <const_value>
-    <friction_function> ::= <ScalarFunction>
-    \end{verbatim}
-    where \kw{sigma2} gives the viscous friction;
-    \kw{velocity ratio} defaults to 0.8, and is used
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{friction_model} ::= \kw{discrete coulomb}
+    \bnt{friction_arglist} ::=
+        [ \kw{sigma2} , \bnt{sigma2} , ]
+        [ \kw{velocity ratio} , \bnt{vel_ratio} , ]
+        \ty{(ScalarFunction)} \bnt{friction_function}
+\end{Verbatim}
+%\end{verbatim}
+    where \nt{sigma2} gives the viscous friction;
+    \nt{vel\_ratio} defaults to 0.8, and is used
     to discriminate stick/slip conditions
 \end{enumerate}
-where \kw{friction\_function} give the static friction
+where \nt{friction\_function} gives the static friction
 as a function of sliding velocity.
+
 \subsection{Shape functions}
-A \kw{shape function} input format is:
-\begin{verbatim}
-    <shape_function> ::= <shape_function_type> ,
-        <shape_function_arglist>
-\end{verbatim}
-Currently implemented friction models are:
+The input format of shape functions is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_function} ::= \bnt{shape_function_type} ,
+        \bnt{shape_function_arglist}
+\end{Verbatim}
+%\end{verbatim}
+Currently implemented shape functions for friction models are:
 \begin{enumerate}
     \item \kw{simple}\\
     This shape function is equal to one. It does not need arguments.
-    \begin{verbatim}
-    <shape_function> ::= simple
-    <shape_function_arglist> ::=
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_function} ::= \kw{simple}
+    \bnt{shape_function_arglist} ::=
+\end{Verbatim}
+%\end{verbatim}
+
     \item \kw{simple plane hinge}
-    \begin{verbatim}
-    <shape_function> ::= simple plane hinge
-    <shape_function_arglist> ::= <radius>
-    <radius> ::= <const_value>
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_function} ::= \kw{simple plane hinge}
+    \bnt{shape_function_arglist} ::= \bnt{radius}
+\end{Verbatim}
+%\end{verbatim}
     This is the shape function of a \kw{revolute hinge} with radius equal to 
-    \kw{radius} and subject to small loads.
+    \nt{radius} and subject to small loads.
 \end{enumerate}
+
+
+
 \section{Shapes}
-The \kw{shape} entities are objects that return a value depending on one
+The \ty{Shape} entities are objects that return a value depending on one
 (or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
 At present, only 1D shapes are used, by aerodynamic elements.
-A \kw{shape} input format is:
-\begin{verbatim}
-    <shape_1D> ::= <shape_type> ,
-        <shape_arglist>
-\end{verbatim}
+A \ty{Shape} input format is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_1D} ::= \bnt{shape_type} ,
+        \bnt{shape_arglist}
+\end{Verbatim}
+%\end{verbatim}
 The shapes currently available are:
 \begin{enumerate}
     \item \kw{const}
-    \begin{verbatim}
-    <shape_type> ::= const
-    <shape_arglist> ::= <const_value>
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_type} ::= \kw{const}
+    \bnt{shape_arglist} ::= \bnt{const_value}
+\end{Verbatim}
+%\end{verbatim}
 \begin{align}
-	f = \kw{const\_value}
+	f = \nt{const\_value}
 \end{align}
 
     \item \kw{piecewise const}
-    \begin{verbatim}
-    <shape_type> ::= piecewise const
-    <shape_arglist> ::=
-        <number_of_points> , 
-            <abscissa> , <value>
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_type} ::= \kw{piecewise const}
+    \bnt{shape_arglist} ::=
+        \bnt{number_of_points} , 
+            \bnt{abscissa} , \bnt{value}
             [ , ... ]
-    \end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
+\begin{subequations}
 \begin{align}
-	f(\xi) &= v_1	&& \xi \le \xi_1
+	f(\xi) &= \nt{value}_1	&& \xi \le \nt{abscissa}_1
 	\\
-	f(\xi) &= v_i	&& \xi_i \le \xi < \xi_{i+1}
+	f(\xi) &= \nt{value}_i	&& \nt{abscissa}_i \le \xi < \nt{abscissa}_{i+1}
 	\\
-	f(\xi) &= v_N	&& \xi_N \le \xi
+	f(\xi) &= \nt{value}_N	&& \nt{abscissa}_N \le \xi
 \end{align}
+\end{subequations}
 
     \item \kw{linear}
-    \begin{verbatim}
-    <shape_type> ::= linear
-    <shape_arglist> ::=
-        <value_at_-1> , 
-        <value_at_1>
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_type} ::= \kw{linear}
+    \bnt{shape_arglist} ::=
+        \bnt{value_at_-1} , 
+        \bnt{value_at_1}
+\end{Verbatim}
+%\end{verbatim}
 \begin{align}
-	f(\xi) &= \frac{v(1) + v(-1)}{2}
-		+ \frac{v(1) - v(-1)}{2} \xi
+	f(\xi) &= \frac{\nt{value\_at\_-1} + \nt{value\_at\_1}}{2}
+		+ \frac{\nt{value\_at\_-1} - \nt{value\_at\_1}}{2} \xi
 \end{align}
 
     \item \kw{piecewise linear}
-    \begin{verbatim}
-    <shape_type> ::= piecewise linear
-    <shape_arglist> ::=
-        <number_of_points> , 
-            <abscissa> , <value>
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_type} ::= \kw{piecewise linear}
+    \bnt{shape_arglist} ::=
+        \bnt{number_of_points} , 
+            \bnt{abscissa} , \bnt{value}
             [ , ... ]
-    \end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
+\begin{subequations}
 \begin{align}
-	f(\xi) &= v_1	&& \xi \le \xi_1
+	f(\xi) &= \nt{value}_1	&& \xi \le \nt{abscissa}_1
 	\\
 	f(\xi) &=
-		v_i \frac{\xi_{i+1} - \xi}{\xi_{i+1} - \xi_i}
-		+ v_{i+1} \frac{\xi - \xi_i}{\xi_{i+1} - \xi_i}
-		&& \xi_i \le \xi < \xi_{i+1}
+		\nt{value}_i \, \, \frac{\nt{abscissa}_{i+1} - \xi}{\nt{abscissa}_{i+1} - \nt{abscissa}_i}
+	\nonumber \\
+		&
+		+ \nt{value}_{i+1} \, \frac{\xi - \nt{abscissa}_i}{\nt{abscissa}_{i+1} - \nt{abscissa}_i}
+		&& \nt{abscissa}_i \le \xi < \nt{abscissa}_{i+1}
 	\\
-	f(\xi) &= v_N	&& \xi_N \le \xi
+	f(\xi) &= \nt{value}_N	&& \nt{abscissa}_N \le \xi
 \end{align}
+\end{subequations}
 
     \item \kw{parabolic}
-    \begin{verbatim}
-    <shape_type> ::= parabolic
-    <shape_arglist> ::=
-        <value_at_-1> , 
-        <value_at_0> , 
-        <value_at_1>
-    \end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{shape_type} ::= \kw{parabolic}
+    \bnt{shape_arglist} ::=
+        \bnt{value_at_-1} , 
+        \bnt{value_at_0} , 
+        \bnt{value_at_1}
+\end{Verbatim}
+%\end{verbatim}
 \begin{align}
-	f(\xi) &= v(-1)\xi\plbr{\xi - 1}
-		+ v(0)\plbr{1 - \xi^2}
-		+ v(1)\xi\plbr{\xi + 1}
+	f(\xi) &= \nt{value\_at\_-1} \cdot \xi\plbr{\xi - 1}
+		+ \nt{value\_at\_0} \cdot \plbr{1 - \xi^2}
+		+ \nt{value\_at\_1} \cdot \xi\plbr{\xi + 1}
 \end{align}
 
 \end{enumerate}
@@ -2655,7 +2684,7 @@ This form of input has been chosen since, being the shapes mainly used to
 interpolate values, it looks more ``natural'' to insert the mapping values
 at characteristic points.
 For \kw{piecewise linear} shapes, there must be 
-\kw{number\_of\_points} pairs of absciss\ae\ and values; absciss\ae\
+\nt{number\_of\_points} pairs of absciss\ae\ and values; absciss\ae\
 must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
@@ -2668,7 +2697,7 @@ The ``deformable'' elements at present are:
 \begin{itemize}
 \item \htmlref{\kw{rod}}{sec:EL:STRUCT:JOINT:ROD}
 	and
-	\htmlref{\kw{genel spring}}{sec:EL:GENEL:SPRING}
+	\htmlref{\kw{genel} \kw{spring}}{sec:EL:GENEL:SPRING}
 	and related elements (1D);
 \item \htmlref{\kw{deformable hinge}}{sec:EL:JOINT:DEFORMABLEHINGE}
 	and \htmlref{\kw{deformable displacement joint}}{sec:EL:JOINT:DEFORMABLEDISP}
@@ -2698,15 +2727,14 @@ according to the definition of an element.
 However, the special card described in Section~\ref{sec:CONSTITUTIVE-LAW}
 allows to define constitutive laws stand-alone, and attach them
 to the elements by means of the following mechanism:
-\begin{verbatim}
-    <constitutive_law> ::=
-        { <constitutive_law_definition>
-            | <constitutive_law_reference> }
-
-    <constitutive_law_reference> ::= reference , <label>
-\end{verbatim}
-where \kw{<constitutive\_law\_definition>} is described in the following,
-while \kw{<label>} is the label of a previously defined constitutive law
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{constitutive_law} ::=
+        \{ \bnt{constitutive_law_definition} | \kw{reference} , \bnt{label} \}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{<constitutive\_law\_definition>} is described in the following,
+while \nt{<label>} is the label of a previously defined constitutive law
 of the appropriate dimensionality, as described
 in Section~\ref{sec:CONSTITUTIVE-LAW}.
 
@@ -2724,38 +2752,38 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{3D}} &
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
-	linear elastic, linear elastic isotropic			& $\surd$ & $\surd$ & $\surd$ \\
-	linear elastic generic						& $\surd$ & $\surd$ & $\surd$ \\
-	linear elastic generic axial torsion coupling			&         &         & $\surd$ \\
-	cubic elastic generic						& $\surd$ & $\surd$ &         \\
-	log elastic							& $\surd$ &         &         \\
-	linear elastic generic bi-stop					& $\surd$ & $\surd$ & $\surd$ \\
-	double linear elastic						& $\surd$ & $\surd$ &         \\
-	isotropic hardening elastic					& $\surd$ & $\surd$ & $\surd$ \\
-	scalar function elastic, scalar function elastic isotropic	& $\surd$ & $\surd$ & $\surd$ \\
-	scalar function elastic orthotropic				& $\surd$ & $\surd$ & $\surd$ \\
-	linear viscous, linear viscous isotropic			& $\surd$ & $\surd$ & $\surd$ \\
-	linear viscous generic						& $\surd$ & $\surd$ & $\surd$ \\
-	linear viscoelastic, linear viscoelastic isotropic		& $\surd$ & $\surd$ & $\surd$ \\
-	linear viscoelastic generic					& $\surd$ & $\surd$ & $\surd$ \\
-	linear time variant viscoelastic generic			& $\surd$ & $\surd$ & $\surd$ \\
-	linear viscoelastic generic axial torsion coupling		&         &         & $\surd$ \\
-	cubic viscoelastic generic					& $\surd$ & $\surd$ &         \\
-	double linear viscoelastic					& $\surd$ & $\surd$ &         \\
-	turbulent viscoelastic						& $\surd$ &         &         \\
-	linear viscoelastic generic bi-stop				& $\surd$ & $\surd$ & $\surd$ \\
-	shock absorber							& $\surd$ &         &         \\
-	symbolic elastic						& $\surd$ & $\surd$ & $\surd$ \\
-	symbolic viscous						& $\surd$ & $\surd$ & $\surd$ \\
-	symbolic viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
-	ann elastic							& $\surd$ & $\surd$ & $\surd$ \\
-	ann viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
-	nlsf elastic							& $\surd$ & $\surd$ & $\surd$ \\
-	nlsf viscous							& $\surd$ & $\surd$ & $\surd$ \\
-	nlsf viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
-	nlp elastic							& $\surd$ & $\surd$ & $\surd$ \\
-	nlp viscous							& $\surd$ & $\surd$ & $\surd$ \\
-	nlp viscoelastic						& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear elastic}, \kw{linear elastic isotropic}			& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear elastic generic}						& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear elastic generic axial torsion coupling}			&         &         & $\surd$ \\
+	\kw{cubic elastic generic}						& $\surd$ & $\surd$ &         \\
+	\kw{log elastic}							& $\surd$ &         &         \\
+	\kw{linear elastic generic bistop}					& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{double linear elastic}						& $\surd$ & $\surd$ &         \\
+	\kw{isotropic hardening elastic}					& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{scalar function elastic}, \kw{scalar function elastic isotropic}	& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{scalar function elastic orthotropic}				& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscous}, \kw{linear viscous isotropic}			& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscous generic}						& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscoelastic}, \kw{linear viscoelastic isotropic}		& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscoelastic generic}					& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear time variant viscoelastic generic}				& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscoelastic generic axial torsion coupling}			&         &         & $\surd$ \\
+	\kw{cubic viscoelastic generic}						& $\surd$ & $\surd$ &         \\
+	\kw{double linear viscoelastic}						& $\surd$ & $\surd$ &         \\
+	\kw{turbulent viscoelastic}						& $\surd$ &         &         \\
+	\kw{linear viscoelastic generic bistop}				& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{shock absorber}							& $\surd$ &         &         \\
+	\kw{symbolic elastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{symbolic viscous}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{symbolic viscoelastic}						& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{ann elastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{ann viscoelastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlsf elastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlsf viscous}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlsf viscoelastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlp elastic}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlp viscous}							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{nlp viscoelastic}							& $\surd$ & $\surd$ & $\surd$ \\
 	\hline
 	\multicolumn{4}{c}{} \\
 	\hline
@@ -2764,21 +2792,23 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{3D}} &
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
-	invariant angular (wrapper)					&         & $\surd$ &         \\
+	\kw{invariant angular} (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
 \end{table}
 
 The constitutive laws are entered as follows:
-\begin{verbatim}
-    <constitutive_law_definition> ::= <specific_const_law>
-        [ , prestress, (entity) <prestress> ]
-        [ , prestrain, (entity_tpl_driver) <prestrain> ]
-    <specific_const_law> ::= <const_law_name> ,
-        <const_law_data>
-\end{verbatim}
-where \kw{const\_law\_name} is the name of the constitutive law and
-\kw{const\_law\_data} depends on the specific constitutive law. 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
+        [ , \kw{prestress} , \ty{(Entity)} \bnt{prestress} ]
+        [ , \kw{prestrain} , \ty{(TplDriveCaller<Entity>)} \bnt{prestrain} ]
+    \bnt{specific_const_law} ::= \bnt{const_law_name} ,
+        \bnt{const_law_data}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{const\_law\_name} is the name of the constitutive law and
+\nt{const\_law\_data} depends on the specific constitutive law. 
 The latter fields, whose type depends on the dimensionality of the
 constitutive law, are optional, under the assumption that the
 constitutive law is the last portion of a card, or that any ambiguity 
@@ -2788,10 +2818,12 @@ entered as follows:
 
 
 \subsection{Linear elastic, linear elastic isotropic}
-\begin{verbatim}
-    <specific_const_law> ::= linear elastic [ isotropic ] , 
-        (scalar) <stiffness>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear elastic} [ \kw{isotropic} ] , 
+        \ty{(Scalar)} \bnt{stiffness}
+\end{Verbatim}
+%\end{verbatim}
 the isotropic stiffness coefficient; the word \kw{isotropic}
 can be omitted, essentially because it has no meaning
 for scalar constitutive laws.
@@ -2808,14 +2840,16 @@ for scalar constitutive laws.
   
   
 \subsection{Linear elastic generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear elastic generic ,  
-        (derivative_of_entity) <stiffness>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear elastic generic} ,
+        \ty{(DerivativeOfEntity)} \bnt{stiffness}
+\end{Verbatim}
+%\end{verbatim}
 the stiffness matrix. In case of 1D, the type is scalar, 
 and there is no distinction between \kw{generic} and \kw{isotropic}, 
-while, in case of \kw{n x 1} vectors, the type is the corresponding 
-\kw{n x n} matrix.
+while, in case of $N \times 1$ vectors, the type is the corresponding 
+$N \times N$ matrix.
 
 \paragraph{Example.} \
 \begin{verbatim}
@@ -2834,128 +2868,146 @@ while, in case of \kw{n x 1} vectors, the type is the corresponding
 
 \subsection{Linear elastic generic axial torsion coupling}
 \label{sec:CONSTITUTIVE-LAWS:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}
-\begin{verbatim}
-    <specific_const_law> ::= 
-        linear elastic generic axial torsion coupling ,  
-            (derivative_of_entity) <stiffness> ,
-            (scalar) <coupling_coefficient>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= 
+        \kw{linear elastic generic axial torsion coupling} ,
+            \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+            \ty{(Scalar)} \bnt{coupling_coefficient}
+\end{Verbatim}
+%\end{verbatim}
 this is defined only for $6 \times 1$ vectors, where the torsion stiffness,
 coefficient $ a_{44} $ in the stiffness matrix, depends linearly on 
 the axial strain, $ \varepsilon_1 $, by means of 
-\kw{coupling\_coefficient}, i.e.\ the run-time torsion stiffness is 
+\nt{coupling\_coefficient}, i.e.\ the run-time torsion stiffness is 
 \begin{displaymath}
 	a_{44} = GJ + \nt{coupling\_coefficient} \cdot \varepsilon_1 .
 \end{displaymath}
-This \kw{<coupling\_coefficient>}, in the classical nonlinear beam theory,
+This \nt{<coupling\_coefficient>}, in the classical nonlinear beam theory,
 is estimated according to some geometric property \cite{HOUBOLT-BROOKS-1957};
 a general approach to the computation of prestressed beam properties
 is presented in \cite{BORRI-MERLINI}, which is implemented in some versions
 of the ANBA software.
 
 \subsection{Cubic elastic generic}
-\begin{verbatim}
-    <specific_const_law> ::= 
-        cubic elastic generic
-            (entity) <stiffness1> ,
-            (entity) <stiffness2> ,
-            (entity) <stiffness3>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= 
+        \kw{cubic elastic generic}
+            \ty{(Entity)} \bnt{stiffness_1} ,
+            \ty{(Entity)} \bnt{stiffness_2} ,
+            \ty{(Entity)} \bnt{stiffness_3}
+\end{Verbatim}
+%\end{verbatim}
 this is defined only for scalar and $3 \times 1$ vectors; the constitutive
 law is written according to the formula
 \begin{displaymath}
-	f = \nt{stiffness1} \cdot \varepsilon
-	+ \nt{stiffness2} \cdot \shbr{\varepsilon}\varepsilon
-	+ \nt{stiffness3} \cdot \varepsilon^3
+	f = \nt{stiffness\_1} \cdot \varepsilon
+	+ \nt{stiffness\_2} \cdot \shbr{\varepsilon}\varepsilon
+	+ \nt{stiffness\_3} \cdot \varepsilon^3
 \end{displaymath}
 and it is mainly intended for use with human body models 
 where the stiffness of the joints is typically given in this form.
 
+\textbf{FIXME: check!}
+
 \subsection{Log elastic}
-\begin{verbatim}
-    <specific_const_law> ::= log elastic ,
-        (derivative_of_entity) <stiffness>      
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{log elastic} ,
+        \ty{(DerivativeOfEntity)} \bnt{stiffness}
+\end{Verbatim}
+%\end{verbatim}
 this is defined only for scalars. The force is defined as:
 \begin{displaymath}
-    f \ = \ \kw{stiffness} \ \llk{log}\plbr{1+\varepsilon}
+    f \ = \ \nt{stiffness} \ \llk{log}\plbr{1 + \varepsilon}
 \end{displaymath}
   
-\subsection{Linear elastic bi-stop generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear elastic bistop,
-        (derivative_of_entity) <stiffness> ,
-        [ initial state , { inactive | active } , ]
-        (DriveCaller)<activating_condition> ,
-        (DriveCaller)<deactivating_condition>
-\end{verbatim}
+\subsection{Linear elastic bistop generic}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear elastic bistop} ,
+        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+        [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
+        \ty{(DriveCaller)} \bnt{activating_condition} ,
+        \ty{(DriveCaller)} \bnt{deactivating_condition}
+\end{Verbatim}
+%\end{verbatim}
   
 \subsection{Double linear elastic}
-\begin{verbatim}
-    <specific_const_law> ::= double linear elastic ,
-        (scalar) <stiffness_1> ,
-        (scalar) <upper_strain> ,
-        (scalar) <lower_strain> ,
-        (scalar) <stiffness_2>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{double linear elastic} ,
+        \ty{(Scalar)} \bnt{stiffness_1} ,
+        \ty{(Scalar)} \bnt{upper_strain} ,
+        \ty{(Scalar)} \bnt{lower_strain} ,
+        \ty{(Scalar)} \bnt{stiffness_2}
+\end{Verbatim}
+%\end{verbatim}
 this is defined for scalar and $3 \times 1$ vectors. In the scalar case the
 meaning of the entries is straightforward,
 while in case of $3 \times 1$ vectors the constitutive law is isotropic
 but in the local direction 3, where, in case of strain
-out of the upper or lower bound, the \kw{stiffness\_2} is used.
+out of the upper or lower bound, the \nt{stiffness\_2} is used.
 
 \subsection{Isotropic hardening elastic}
-\begin{verbatim}
-    <specific_const_law> ::= isotropic hardening elastic ,
-        (scalar) <stiffness> ,
-        (scalar) <reference_strain>
-        [ , linear stiffness , <linear_stiffness> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{isotropic hardening elastic} ,
+        \ty{(Scalar)} \bnt{stiffness} ,
+        \ty{(Scalar)} \bnt{reference_strain}
+        [ , \kw{linear stiffness} , \bnt{linear_stiffness} ]
+\end{Verbatim}
+%\end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-    f \ = \ \kw{stiffness} \ \frac{
+    f \ = \ \nt{stiffness} \ \frac{
         \beta + \alpha\shbr{\T{\varepsilon}}^2
     }{
         1 + \alpha\shbr{\T{\varepsilon}}^2
     }\varepsilon
 \end{displaymath}
-where $\alpha=3/\shbr{\kw{reference\_strain}}^2$,
-and $\beta=\kw{linear\_stiffness}/\kw{stiffness}$.
+where $\alpha=3/\shbr{\nt{reference\_strain}}^2$,
+and $\beta=\nt{linear\_stiffness}/\nt{stiffness}$.
 The resulting constitutive law, in the scalar case,
 is somewhat soft/hard when $\beta$ is lower/greater than 1
-and $\shbr{\varepsilon}$ is smaller than \kw{reference\_strain},
-approaching \kw{linear\_stiffness} when $\varepsilon\rightarrow{0}$,
+and $\shbr{\varepsilon}$ is smaller than \nt{reference\_strain},
+approaching \nt{linear\_stiffness} when $\varepsilon\rightarrow{0}$,
 while it grows to quasi-linear for larger $\shbr{\varepsilon}$, 
-with slope $\kw{stiffness}$.
+with slope $\nt{stiffness}$.
 
 \subsection{Scalar function elastic, scalar function elastic isotropic}
 This constitutive law is based on a 
-\htmlref{\kw{scalar function} (Section~\ref{sec:SCALARFUNCS})}
+\htmlref{\ty{ScalarFunction} (Section~\ref{sec:SCALARFUNCS})}
 	{sec:SCALARFUNCS}
 to represent an analytical force-displacement curve 
 of a single variable that is automatically differentiated 
 to compute the slope of the curve, namely the local stiffness.
-\begin{verbatim}
-    <specific_const_law> ::= scalar function elastic isotropic ,
-        (DifferentiableScalarFunction)<function>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{isotropic} ] ,
+        \ty{(DifferentiableScalarFunction)} \bnt{function}
+\end{Verbatim}
+%\end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-	f_i = \nt{<function>}\plbr{\T{\varepsilon}_i}
+	f_i = \nt{function}\plbr{\T{\varepsilon}_i}
 \end{displaymath}
 the force is computed for each direction as a function of the respective
 strain component using the same function.
 When used for 1D elements, the word \kw{isotropic} can be omitted.
 
 \subsection{Scalar function elastic orthotropic}
-\begin{verbatim}
-    <specific_const_law> ::= scalar function elastic orthotropic ,
-        { (DifferentiableScalarFunction)<function> | null }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{orthotropic} ] ,
+        \{ \ty{(DifferentiableScalarFunction)} \bnt{function} | \kw{null} \}
         [ , ... ]
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 this constitutive law is defined as follows:
 \begin{displaymath}
-	f_i = \nt{<function>}_i\plbr{\T{\varepsilon}_i}
+	f_i = \nt{function}_i \plbr{\T{\varepsilon}_i}
 \end{displaymath}
 the force is computed for each direction as a function of the respective
 strain component using a specific function for each component.
@@ -2984,10 +3036,12 @@ indicates that the constitutive law is only defined in direction 3
 as a multilinear function.
 
 \subsection{Linear viscous, linear viscous isotropic}
-\begin{verbatim}
-    <specific_const_law> ::= linear viscous [ isotropic ] , 
-        (scalar) <viscosity_coefficient>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear viscous} [ \kw{isotropic} ] , 
+        \ty{(Scalar)} \bnt{viscosity}
+\end{Verbatim}
+%\end{verbatim}
 the linear viscous coefficient. \\
 {\em 
     Note: this constitutive law does not require any prestrain template
@@ -2995,49 +3049,65 @@ the linear viscous coefficient. \\
 }
   
 \subsection{Linear viscous generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear viscous generic , 
-        (derivative_of_entity) <viscosity_matrix>
-\end{verbatim}
-the linear viscous matrix. \\
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear viscous generic} , 
+        \ty{(DerivativeOfEntity)} \bnt{viscosity}
+\end{Verbatim}
+%\end{verbatim}
+the linear viscous $N \times N $ matrix. \\
 {\em 
     Note: this constitutive law does not require any prestrain template
     drive caller.
 }
   
 \subsection{Linear viscoelastic, linear viscoelastic isotropic}
-\begin{verbatim}
-    <specific_const_law> ::= linear viscoelastic [ isotropic ] ,
-        (scalar) <stiffness> ,
-        { (scalar) <viscosity_coefficient>
-            | proportional, (scalar) <factor> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear viscoelastic} [ \kw{isotropic} ] ,
+        \ty{(Scalar)} \bnt{stiffness} ,
+        \{ \ty{(Scalar)} \bnt{viscosity}
+            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
+\end{Verbatim}
+%\end{verbatim}
 the isotropic stiffness and viscosity coefficients.
+If \kw{proportional} is given, then
+$\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
   
 \subsection{Linear viscoelastic generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear viscoelastic generic ,  
-        (derivative_of_entity) <stiffness> ,
-        { (derivative_of_entity) <viscosity_matrix> 
-            | proportional, (scalar) <factor> }
-\end{verbatim}
-the linear stiffness and viscosity matrices.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear viscoelastic generic} ,  
+        \ty{(DerivativeOfEntity)} \nt{stiffness} ,
+        \{ \ty{(DerivativeOfEntity)} \bnt{viscosity} 
+            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
+\end{Verbatim}
+%\end{verbatim}
+the linear stiffness and viscosity $N \times N$ matrices.
+If \kw{proportional} is given, then
+$\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
   
 \subsection{Linear time variant viscoelastic generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear time variant viscoelastic generic ,  
-        (derivative_of_entity) <stiffness> ,
-        (DriveCaller> <stiffness_scale> ,
-        { (derivative_of_entity) <viscosity>
-            | proportional, (scalar) <factor> } ,
-        (DriveCaller> <viscosity_scale>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear time variant viscoelastic generic} ,
+        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+        \ty{(DriveCaller)} \bnt{stiffness_scale} ,
+        \{ \ty{(DerivativeOfEntity)} \bnt{viscosity}
+            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \} ,
+        \ty{(DriveCaller)} \bnt{viscosity_scale}
+\end{Verbatim}
+%\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
 by the respective scale factors,
 \begin{align}
 	\T{f} &= \nt{stiffness} \cdot \nt{stiffness\_scale} \cdot \T{\varepsilon}
 		+ \nt{viscosity} \cdot \nt{viscosity\_scale} \cdot \dot{\T{\varepsilon}}
+	.
 \end{align}
+If \kw{proportional} is given, then
+$\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
+
 \paragraph{Example.}
 \begin{verbatim}
     linear time variant visco elastic,
@@ -3046,7 +3116,8 @@ by the respective scale factors,
 \end{verbatim}
 At 2s, the stiffness grows of 10\% from the nominal value in .2s,
 while the damping doubles.
-See Section~\ref{sec:DRIVE} for details on the syntax of \kw{drive callers}.
+See Section~\ref{sec:DRIVE} for details on the syntax
+of \ty{DriveCaller} entities.
 
 Beware that arbitrarily changing the stiffness
 and the damping of an elastic component during the execution
@@ -3056,94 +3127,104 @@ for example, a higher damping level may be desirable to smooth out
 a non-physical transient, and later return to the appropriate damping value.
   
 \subsection{Linear viscoelastic generic axial torsion coupling}
-\begin{verbatim}
-    <specific_const_law> ::= 
-        linear viscoelastic generic axial torsion coupling ,  
-            (derivative_of_entity) <stiffness> ,
-            { (derivative_of_entity) <viscosity_matrix> 
-                | proportional, (scalar) <factor> }
-            (scalar) <coupling_coefficient>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= 
+        \kw{linear viscoelastic generic axial torsion coupling} ,
+            \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+            \{ \ty{(DerivativeOfEntity)} \bnt{viscosity} 
+                | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
+            \ty{(Scalar)} \bnt{coupling_coefficient}
+\end{Verbatim}
+%\end{verbatim}
 this is defined only for $6 \times 1$ vectors; it is the viscoelastic 
 extension of the 
 \hyperref{\kw{linear elastic generic axial torsion coupling} constitutive law}{\kw{linear elastic generic axial torsion coupling} constitutive law (see Section~}{)}{sec:CONSTITUTIVE-LAWS:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}.
 
 
 \subsection{Cubic viscoelastic generic}
-\begin{verbatim}
-    <specific_const_law> ::= 
-        cubic elastic generic
-            (entity) <stiffness1> ,
-            (entity) <stiffness2> ,
-            (entity) <stiffness3> ,
-            (derivative_of_entity) <viscosity_matrix> 
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= 
+        \kw{cubic elastic generic}
+            \ty{(Entity)} \bnt{stiffness_1} ,
+            \ty{(Entity)} \bnt{stiffness_2} ,
+            \ty{(Entity)} \bnt{stiffness_3} ,
+            \ty{(DerivativeOfEntity)} \bnt{viscosity}
+\end{Verbatim}
+%\end{verbatim}
 this is defined only for scalar and $3 \times 1$ vectors; the constitutive
 law is written according to the formula
 \begin{displaymath}
-	f = \nt{stiffness1} \cdot \varepsilon
-	+ \nt{stiffness2} \cdot \shbr{\varepsilon}\varepsilon
-	+ \nt{stiffness3} \cdot \varepsilon^3
-	+ \nt{viscosity\_matrix} \cdot \dot{\varepsilon}
+	f = \nt{stiffness\_1} \cdot \varepsilon
+	+ \nt{stiffness\_2} \cdot \shbr{\varepsilon}\varepsilon
+	+ \nt{stiffness\_3} \cdot \varepsilon^3
+	+ \nt{viscosity} \cdot \dot{\varepsilon}
 \end{displaymath}
 and it is mainly intended for use with human body models 
 where the stiffness of the joints is typically given in this form.
 
 \subsection{Double linear viscoelastic}
-\begin{verbatim}
-    <specific_const_law> ::= double linear viscoelastic ,
-        (scalar) <stiffness_1> ,
-        (scalar) <upper_strain> ,
-        (scalar) <lower_strain> ,
-        (scalar) <stiffness_2> ,
-        (scalar) <viscosity_coefficient>
-        [ , second damping , (scalar) <viscosity_coefficient_2> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{double linear viscoelastic} ,
+        \ty{(Scalar)} \bnt{stiffness_1} ,
+        \ty{(Scalar)} \bnt{upper_strain} ,
+        \ty{(Scalar)} \bnt{lower_strain} ,
+        \ty{(Scalar)} \bnt{stiffness_2} ,
+        \ty{(Scalar)} \bnt{viscosity}
+        [ , \kw{second damping} , \ty{(Scalar)} \bnt{viscosity_2} ]
+\end{Verbatim}
+%\end{verbatim}
 this is analogous to the \kw{double linear elastic} constitutive law,
 except for the isotropic viscosity term.
 The second viscosity value is used when the strain is outside the
-\kw{lower\_strain}-\kw{upper\_strain} range.
+$\nt{lower\_strain} - \nt{upper\_strain}$ range.
 
 When this constitutive law is used with $3 \times 1$ vectors, 
 the double linear elastic and viscous term only applies to component 3.
   
 \subsection{Turbulent viscoelastic}
-\begin{verbatim}
-    <specific_const_law> ::= turbulent viscoelastic ,
-        (scalar) <stiffness> ,
-        (scalar) <parabolic_viscous_coefficient>
-        [ , (scalar) <threshold> 
-            [ , (scalar) <linear_viscous_coefficient> ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{turbulent viscoelastic} ,
+        \ty{(Scalar)} \bnt{stiffness} ,
+        \ty{(Scalar)} \bnt{parabolic_viscosity}
+        [ , \ty{(Scalar)} \bnt{threshold}
+            [ , \ty{(Scalar)} \bnt{linear_viscosity} ] ]
+\end{Verbatim}
+%\end{verbatim}
 the constitutive law has the form:
 \begin{displaymath}
-    \T{f} \ = \ \kw{stiffness} \ \T{\varepsilon} + k \ \dot{\T{\varepsilon}}
+    \T{f} \ = \ \nt{stiffness} \ \T{\varepsilon} + k \ \dot{\T{\varepsilon}}
 \end{displaymath}
 where:
 \begin{displaymath}
     k = \lcubr{\matr{lcr}{
-        \kw{linear\_viscous\_coefficient} & & 
-            \shbr{\dot{\T{\varepsilon}}} \leq \kw{threshold} \\
-        \kw{parabolic\_viscous\_coefficient} & &
-            \shbr{\T{\dot{\varepsilon}}} > \kw{threshold}
+        \nt{linear\_viscosity} & & 
+            \shbr{\dot{\T{\varepsilon}}} \leq \nt{threshold} \\
+        \nt{parabolic\_viscosity} & &
+            \shbr{\T{\dot{\varepsilon}}} > \nt{threshold}
     }}
 \end{displaymath}
-if \kw{threshold} is null, or not defined, the constitutive law is always
-parabolic. If the \kw{linear\_viscous\_coefficient} is not defined, it is
-computed based on \kw{parabolic\_viscous\_coefficient} and on 
-\kw{threshold} to give a continuous force curve (with discontinuous slope).
+if \nt{threshold} is null, or not defined, the constitutive law is always
+parabolic. If the \nt{linear\_viscosity} is not defined, it is
+computed based on \nt{parabolic\_viscosity} and on 
+\nt{threshold} to give a continuous force curve (with discontinuous slope).
 Otherwise, it can be set by the user to give a discontinuous force curve,
 as observed in some fluids at intermediate Reynolds number.
 
-\subsection{Linear viscoelastic bi-stop generic}
-\begin{verbatim}
-    <specific_const_law> ::= linear viscoelastic bistop ,
-        (derivative_of_entity) <stiffness> ,
-        (derivative_of_entity) <viscosity_coefficient> ,
-        [ initial state , { inactive | active } , ]
-        (DriveCaller)<activating_condition> ,
-        (DriveCaller)<deactivating_condition>
-\end{verbatim}
+\subsection{Linear viscoelastic bistop generic}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{linear viscoelastic bistop} ,
+        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+        \ty{(DerivativeOfEntity)} \bnt{viscosity} ,
+        [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
+        \ty{(DriveCaller)} \bnt{activating_condition} ,
+        \ty{(DriveCaller)} \bnt{deactivating_condition}
+\end{Verbatim}
+%\end{verbatim}
   
 \subsection{GRAALL damper}
 This is a very experimental constitutive law, based on a nonlinear model
@@ -3159,54 +3240,55 @@ constitutive law.
 
 \subsection{shock absorber}\label{sec:CL:SHOCK-ABSORBER}
 This constitutive law implements a landing gear hydraulic shock absorber:
-\begin{verbatim}
-    <specific_const_law> ::= shock absorber ,
-        [ prestrain , <value> , ]
-        <reference pressure> ,
-        <reference area for force computation> ,
-        <interaction coefficient> ,
-        <polytropic exponent> ,
-        [ epsilon max , <upper strain bound> , ]
-        [ epsilon min , <lower strain bound> , ]
-        [ penalty , <penalty factor for strain> , 
-            <penalty factor for strain rate> , ]
-        [ metering , <metering area> ,
-            [ negative , <metering area for negative strain rate> , ]
-        [ orifice , <orifice area> , ]
-        <fluid area> ,
-        <fluid density> ,
-        <drag coefficient / reference length
-                (scales strain rate to velocity)>
-        [ , friction, <reference epsilon prime> ,
-                 <friction amplitude coefficient> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{shock absorber} ,
+        [ \kw{prestrain} , \bnt{value} , ]
+        \bnt{reference_pressure} ,
+        \bnt{reference_area_for_force_computation} ,
+        \bnt{interaction_coefficient} ,
+        \bnt{polytropic_exponent} ,
+        [ \kw{epsilon max} , \bnt{upper_strain_bound} , ]
+        [ \kw{epsilon min} , \bnt{lower_strain_bound} , ]
+        [ \kw{penalty} , \bnt{penalty_factor_for_strain} , 
+            \bnt{penalty_factor_for_strain_rate} , ]
+        [ \kw{metering} , \bnt{metering_area} ,
+            [ \kw{negative} , \bnt{metering_area_for_negative_strain_rate} , ]
+        [ \kw{orifice} , \bnt{orifice_area} , ]
+        \bnt{fluid_area} ,
+        \bnt{fluid_density} ,
+        \bnt{drag_coefficient_/_reference_length} # scales strain rate to velocity
+        [ , \kw{friction} , \bnt{reference_epsilon_prime} ,
+                 \bnt{friction_amplitude_coefficient} ]
+\end{Verbatim}
+%\end{verbatim}
 where
 \begin{itemize}
-\item the \kw{interaction coefficient} is represented by
+\item the \nt{interaction\_coefficient} is represented by
 \begin{displaymath}
-	\kw{kinematic scale} \frac{L A}{V_0}
+	\nt{kinematic scale} \cdot \frac{L A}{V_0}
 \end{displaymath}
-where \kw{kinematic scale} is the ratio between the stroke
+where \nt{kinematic scale} is the ratio between the stroke
 of the shock absorber and that of the gas;
-\item \kw{epsilon max} is the upper strain bound; it must be
+\item \nt{upper\_strain\_bound} is the upper strain bound; it must be
 at least larger than the prestrain, and defaults to 0,
 i.e.\ the shock absorber, at rest, is assumed to be fully
 extended;
-\item \kw{epsilon min} is the lower strain bound; it must be
+\item \nt{lower\_strain\_bound} is the lower strain bound; it must be
 at least smaller than the prestrain, and defaults to -0.5, 
 i.e.\ the shock absorber is assumed to allow a contraction
 equal to half its full length;
-\item the \kw{penalty factor for strain} defaults to 1e+9;
+\item the \nt{penalty\_factor\_for\_strain} defaults to 1e+9;
 it is active only when strain bounds are violated;
-\item the \kw{penalty factor for strain rate} defaults to 0;
+\item the \nt{penalty\_factor\_for\_strain\_rate} defaults to 0;
 it is active only when strain bounds are violated;
-\item the \kw{metering area} is given by a \kw{drive} 
+\item the \nt{metering\_area} is given by a \ty{DriveCaller} 
 and is strain dependent; if the keyword \kw{negative} is used, 
-then the \kw{metering area for negative strain rate} is used
+then the \nt{metering\_area\_for\_negative\_strain\_rate} is used
 when the strain rate is negative, i.e.\ the shock absorber
-is being compressed, while the \kw{metering area} is used only
+is being compressed, while \nt{metering\_area} is used only
 when the shock absorber is extending;
-\item the \kw{<orifice>} drive determines the area of an
+\item the \kw{orifice} drive determines the area of an
 additional orifice, which essentially depends on the sign
 of the strain rate; it is used to implement relief valves;
 \item ...
@@ -3233,16 +3315,18 @@ the user-supplied expression that describes the relationship
 between the output and the input.
 
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= symbolic elastic ,
-        epsilon , " <epsilon> " ,
-        expression , " <expression> "
-\end{verbatim}
-where \kw{epsilon} is the symbol describing the input
-parameter as it will be used in \kw{expression}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{symbolic elastic} ,
+        \kw{epsilon} , " \bnt{epsilon} " ,
+        \kw{expression} , " \bnt{expression} "
+\end{Verbatim}
+%\end{verbatim}
+where \nt{epsilon} is the symbol describing the input
+parameter as it will be used in \nt{expression}.
 
 For constitutive laws with more than one dimension,
-a string for each \kw{epsilon} and one for each \kw{expression}
+a string for each \nt{epsilon} and one for each \nt{expression}
 are expected.  For example:
 \begin{verbatim}
     # 1D symbolic constitutive law
@@ -3263,44 +3347,50 @@ are not available within symbolic consitutive laws.}
 
 \subsection{symbolic viscous}\label{sec:CL:SYMBOLIC-VISCOUS}
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= symbolic viscous ,
-        epsilon prime , " <epsilon_prime> " ,
-        expression , " <expression> "
-\end{verbatim}
-where \kw{epsilon\_prime} is the symbol describing the derivative
-of the input parameter as it will be used in \kw{expression}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{symbolic viscous} ,
+        \kw{epsilon prime} , " \bnt{epsilon_prime} " ,
+        \kw{expression} , " \bnt{expression} "
+\end{Verbatim}
+%\end{verbatim}
+where \nt{epsilon\_prime} is the symbol describing the derivative
+of the input parameter as it will be used in \nt{expression}.
 
 For constitutive laws with more than one dimension,
-a string for each \kw{epsilon\_prime} and one for each \kw{expression}
+a string for each \nt{epsilon\_prime} and one for each \nt{expression}
 are expected.
 
 \subsection{symbolic viscoelastic}\label{sec:CL:SYMBOLIC-VISCOELASTIC}
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= symbolic viscoelastic,
-        epsilon , " <epsilon> " ,
-        epsilon prime , " <epsilon_prime> " ,
-        expression , " <expression> "
-\end{verbatim}
-where \k{epsilon} and \kw{epsilon\_prime} are the symbols describing 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{symbolic viscoelastic} ,
+        \kw{epsilon} , " \bnt{epsilon} " ,
+        \kw{epsilon prime} , " \bnt{epsilon_prime} " ,
+        \kw{expression} , " \bnt{expression} "
+\end{Verbatim}
+%\end{verbatim}
+where \nt{epsilon} and \nt{epsilon\_prime} are the symbols describing 
 the input parameter and its derivative as they will be used
-in \kw{expression}.
+in \nt{expression}.
 
 For constitutive laws with more than one dimension,
-a string for each \kw{epsilon}, one for each \kw{epsilon\_prime},
-and one for each \kw{expression} are expected.
+a string for each \nt{epsilon}, one for each \nt{epsilon\_prime},
+and one for each \nt{expression} are expected.
 
 \subsection{ann elastic}\label{sec:CL:ANN-ELASTIC}
 The implementation  of the family of \kw{ann} constitutive laws
 is based on an Artifical Neural Network library that is embedded in MBDyn.
 
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= ann elastic ,
-        " <file_name> "
-\end{verbatim}
-where the file \kw{file\_name} contains the parameters of the network.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{ann elastic} ,
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
+where the file \nt{file\_name} contains the parameters of the network.
 What is mainly significant to users is the need to scale inputs and outputs
 to match the amplitudes and possibly the offsets used in the training.
 For this purpose, the last two rows of the input files contain coefficients
@@ -3321,10 +3411,12 @@ so that the actual output is
 
 \subsection{ann viscoelastic}\label{sec:CL:ANN-VISCOELASTIC}
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= ann viscoelastic ,
-        " <file_name> "
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{ann viscoelastic} ,
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
 where the file \kw{file\_name} contains the parameters of the network.
 
 \subsection{nlsf viscoelastic}
@@ -3356,31 +3448,33 @@ the specific fraction of the input data.
 \paragraph{Syntax.}
 \label{sec:CL:nlsf-syntax}
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= nlsf viscoelastic ,
-        (derivative_of_entity) <kappa_0'> ,
-        { null | (scalar_function) <diag_force'> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{nlsf viscoelastic} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force'} \}
         [ , ... ] ,
-        { (derivative_of_entity) <kappa_0''> | proportional , <coef> } ,
-        { null | (scalar_function) <diag_force''> }
+        \{ \ty{(DerivativeOfEntity)} \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force''} \}
         [ , ... ]
 
-    <specific_const_law> ::= nlsf elastic ,
-        (derivative_of_entity) <kappa_0'> ,
-        { null | (scalar_function) <diag_force'> }
+    \bnt{specific_const_law} ::= \kw{nlsf elastic} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force'} \}
         [ , ... ]
 
-    <specific_const_law> ::= nlsf viscous ,
-        (derivative_of_entity) <kappa_0''> ,
-        { null | (scalar_function) <diag_force''> }
+    \bnt{specific_const_law} ::= \kw{nlsf viscous} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0''} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force''} \}
         [ , ... ]
-\end{verbatim}
-The terms \kw{kappa\_0'} and \verb1kappa_0''1 are indicated as
-``derivative of entity'' because in the generic case they are the result
+\end{Verbatim}
+%\end{verbatim}
+The terms \nt{kappa\_0'} and \nt{kappa\_0'{'}} are indicated as
+\ty{DerivativeOfEntity} because in the generic case they are the result
 of a differential operator that computes the derivative of the force vector
 as function of the strain or strain rate vectors.
 So, for a 3D constitutive law, the force, the strain and the strain rate
-are $3\times 1$ vectors, while \kw{kappa\_0'} and \verb1kappa_0''1
+are $3\times 1$ vectors, while \nt{kappa\_0'} and \nt{kappa\_0'{'}}
 are $3\times 3$ matrices.
 Matrix input, in MBDyn, requires to write the whole set of coefficients,
 row-wise; however, it can be described in many synthetic manners if
@@ -3407,7 +3501,7 @@ short forms; in the $3\times 3$ case they are
         # empty 3x3 matrix:
         null
 \end{verbatim}
-The terms \kw{diag\_force'} and \verb1diag_force''1 refer
+The terms \nt{diag\_force'} and \nt{diag\_force'{'}} refer
 to the names of the scalar functions that are defined for each component
 of the force vector.
 There must be as many terms as the dimensions of the constitutive law.
@@ -3499,25 +3593,27 @@ the specific fraction of the input data.
 
 \paragraph{Syntax.}
 The syntax is
-\begin{verbatim}
-    <specific_const_law> ::= nlp viscoelastic ,
-        (derivative_of_entity) <kappa_0'> ,
-        { null | (scalar_function) <diag_stiffness> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{nlp viscoelastic} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_stiffness} \}
         [ , ... ] ,
-        { (derivative_of_entity) <kappa_0''> | proportional , <coef> } ,
-        { null | (scalar_function) <diag_damping> }
+        \{ \ty{(DerivativeOfEntity)} \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_damping} \}
         [ , ... ]
 
-    <specific_const_law> ::= nlp elastic ,
-        (derivative_of_entity) <kappa_0'> ,
-        { null | (scalar_function) <diag_stiffness> }
+    \bnt{specific_const_law} ::= \kw{nlp elastic} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_stiffness} \}
         [ , ... ]
 
-    <specific_const_law> ::= nlp viscous ,
-        (derivative_of_entity) <kappa_0''> ,
-        { null | (scalar_function) <diag_damping> }
+    \bnt{specific_const_law} ::= \kw{nlp viscous} ,
+        \ty{(DerivativeOfEntity)} \bnt{kappa_0''} ,
+        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_damping} \}
         [ , ... ]
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 
 \paragraph{Example.} \
 A 1D and a 3D constitutive law using the same exponential scalar function:
@@ -3588,11 +3684,13 @@ As such, it can only be used with the 3D dimensionality.
 It basically allows to refer an ancillary 3D constitutive law
 to an orientation that is intermediate with respect to the orientations
 of the two connected nodes.
-\begin{verbatim}
-    <specific_const_law> ::= invariant angular ,
-        <xi> , <ancillary_const_law>
-\end{verbatim}
-\kw{xi} is the fraction of relative orientation the ancillary
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{invariant angular} ,
+        \bnt{xi} , \bnt{ancillary_const_law}
+\end{Verbatim}
+%\end{verbatim}
+\nt{xi} is the fraction of relative orientation the ancillary
 constitutive law will be referred to, with respect
 to the first node of the joint.
 Its value should be comprised between 0 (attached to the first node)
@@ -3606,7 +3704,7 @@ This may slow down convergence, or even prevent it.
 If this is an issue,
 the \htmlref{\kw{invariant deformable hinge}}{sec:EL:JOINT:INVDEFORMABLEHINGE}
 should be used, since it does not suffer from this limitation,
-although it only allows $\kw{xi} = 1/2$.
+although it only allows $\nt{xi} = 1/2$.
 
 
 
