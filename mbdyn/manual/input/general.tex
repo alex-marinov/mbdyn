@@ -989,7 +989,7 @@ The \kw{drive caller} directive
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{drive caller} : \bnt{label}
         [ , \kw{name} , " \bnt{name} " ]
-        \ty{(DriveCaller)}\bnt{drive_caller} ;
+        \ty{(DriveCaller)} \bnt{drive_caller} ;
 \end{Verbatim}
 %\end{verbatim}
 allows to define
@@ -2042,11 +2042,13 @@ and the amplitude of the oscillation. Any drive can be used.
 \end{align}
 
 \subsection{Linear drive}\label{sec:DRIVE:LINEAR}
-\begin{verbatim}
-    <drive_caller> ::= linear ,
-        <const_coef> ,
-        <slope_coef>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{linear} ,
+        \bnt{const_coef} ,
+        \bnt{slope_coef}
+\end{Verbatim}
+%\end{verbatim}
 The function
 \begin{align}
 	f\plbr{t} &= \nt{const\_coef} \nonumber \\
@@ -2056,12 +2058,14 @@ The function
 \subsection{Meter drive}
 The \kw{meter} drive has value zero except for every \kw{steps} steps,
 where it assumes unit value.
-\begin{verbatim}
-    <drive_caller> ::= meter ,
-        <initial_time> ,
-        { forever | <final_time> }
-        [ , steps , <steps_between_spikes>]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{meter} ,
+        \bnt{initial_time} ,
+        \{ \kw{forever} | \bnt{final_time} \}
+        [ , \kw{steps} , \bnt{steps_between_spikes} ]
+\end{Verbatim}
+%\end{verbatim}
 the first optional entry, preceded by the keyword \kw{steps}, sets the
 number of steps between spikes.
 
@@ -2073,23 +2077,25 @@ defines a drive whose value is zero except at time step 0.
 and every 10 time steps from that, where it assumes unit value.
 
 \subsection{Node drive}\label{sec:DRIVE:NODE}
-\begin{verbatim}
-    <drive_caller> ::= node ,
-        <label> ,
-        <type> ,
-        [ { string, "<name>" | index , <index> } , ]
-        (DriveCaller) <func_drive>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{node} ,
+        \bnt{label} ,
+        \bnt{type} ,
+        [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ]
+        \ty{(DriveCaller)} \bnt{func_drive}
+\end{Verbatim}
+%\end{verbatim}
 a reference to the private data of a node is read.
-This is made of: the node's \kw{label}, the node's \kw{type}
+This is made of: the node's \nt{label}, the node's \nt{type}
 and a specification of which private data is being referred;
-the \kw{index} can be directly given, prepended by the keyword
-\kw{index}, or the symbolic name can be used, prepended by 
+the \nt{index} can be directly given, prepended by the keyword
+\kw{index}, or the symbolic name \nt{name} can be used, prepended by 
 the keyword \kw{string}.
 If that node allows only one private data, the specification 
 can be omitted.
 Then a recursive call to a drive data is read. 
-The driver returns the value of the \kw{func\_drive} 
+The driver returns the value of the \nt{func\_drive} 
 \htmlref{\kw{drive}}{sec:DRIVE} using the value of the 
 node's private data as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
@@ -2113,24 +2119,30 @@ uses the same value, addressed in an alternative manner, in computing
 a string expression.
 
 \subsection{Null drive}
-\begin{verbatim}
-    <drive_caller> ::= null
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{null}
+\end{Verbatim}
+%\end{verbatim}
 Zero valued; the \kw{arglist} is empty.
 
 \subsection{One drive}
-\begin{verbatim}
-    <drive_caller> ::= one
-\end{verbatim}
-Unit valued; the \kw{arglist} is empty.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{one}
+\end{Verbatim}
+%\end{verbatim}
+Unit valued; the \nt{arglist} is empty.
 
 \subsection{Parabolic drive}
-\begin{verbatim}
-    <drive_caller> ::= parabolic ,
-        <const_coef> , 
-        <linear_coef> , 
-        <parabolic_coef>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{parabolic} ,
+        \bnt{const_coef} , 
+        \bnt{linear_coef} , 
+        \bnt{parabolic_coef}
+\end{Verbatim}
+%\end{verbatim}
 The function
 \begin{align}
 	f\plbr{t} &= \nt{const\_coef} \nonumber \\
@@ -2139,24 +2151,28 @@ The function
 \end{align}
 
 \subsection{Piecewise linear drive}
-\begin{verbatim}
-    <drive_caller> ::= piecewise linear ,
-        <num_points> ,
-            <point> , <value> 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{piecewise linear} ,
+        \bnt{num_points} ,
+            \bnt{point} , \bnt{value} 
             [ , ... ]
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 Piecewise linear function; the first and the last point/value pairs are
 extrapolated in case a value beyond the extremes is required.
 Linear interpolation between pairs is used.
 
 \subsection{Ramp drive}
-\begin{verbatim}
-    <drive_caller> ::= ramp ,
-        <slope> , 
-        <initial_time> ,
-        { forever | <final_time> } ,
-        <initial_value>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{ramp} ,
+        \bnt{slope} , 
+        \bnt{initial_time} ,
+        \{ \kw{forever} | \bnt{final_time} \} ,
+        \bnt{initial_value}
+\end{Verbatim}
+%\end{verbatim}
 The function
 \begin{align}
 	f\plbr{t} &= \nt{initial\_value} \nonumber \\
@@ -2173,30 +2189,38 @@ The function
 \end{align}
 
 \subsection{Random drive}
-\begin{verbatim}
-    <drive_caller> ::= random ,
-        <amplitude_value> ,
-        <mean_value> ,
-        <initial_time> ,
-        { forever | <final_time> }
-        [ , steps , <steps_to_hold_value>]
-        [ , seed , { time | <seed_value>} ]
-\end{verbatim}
-the first optional entry, preceded by the keyword \kw{steps}, sets the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{random} ,
+        \bnt{amplitude_value} ,
+        \bnt{mean_value} ,
+        \bnt{initial_time} ,
+        \{ \kw{forever} | \bnt{final_time} \}
+        [ , \kw{steps} , \bnt{steps_to_hold_value} ]
+        [ , \kw{seed} , \{ \kw{time} | \bnt{seed_value} \} ]
+\end{Verbatim}
+%\end{verbatim}
+the first optional entry, \nt{steps\_to\_hold\_value},
+preceded by the keyword \kw{steps}, sets the
 number of steps a random value must be held before generating a new
-random number. The second optional entry, preceded by the keyword
-\kw{seed}, sets the new seed for the random number generator. A numeric
-value can be used, or the keyword \kw{time} uses the current time from
-the internal clock. A given seed can be used to ensure that two
+random number.
+The second optional entry, preceded by the keyword
+\kw{seed}, sets the new seed for the random number generator.
+A numeric \nt{seed\_value} value can be used,
+otherwise the keyword \kw{time} uses the current time from
+the internal clock.
+A given seed can be used to ensure that two
 simulations use exactly the same random sequence (concurrent settings 
 are not managed, so it is not very reliable).
 
 \subsection{Scalar function drive}
-\begin{verbatim}
-    <drive_caller> ::= scalar function, " <scalar_function_name> "
-        [ , <scalar_function_definition> ]
-\end{verbatim}
-The scalar function called \kw{scalar\_function\_name} must exist;
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{scalar function} , " \bnt{scalar_function_name} "
+        [ , \bnt{scalar_function_definition} ]
+\end{Verbatim}
+%\end{verbatim}
+The scalar function called \nt{scalar\_function\_name} must exist;
 alternatively, it must be defined inline.
 
 \paragraph{Example.} \
@@ -2224,25 +2248,27 @@ Alternative syntax example:
 \end{verbatim}
 
 \subsection{Sine drive}
-\begin{verbatim}
-    <drive_caller> ::= sine ,
-        <initial_time> ,
-        <angular_velocity> ,
-        <amplitude> ,
-        { [ - ] <number_of_cycles> | half | one | forever } , 
-        <initial_value>
-\end{verbatim}
-where \kw{angular\_velocity} is $2\pi/T$.
-The value of \kw{number\_of\_cycles} determines the behavior of the drive. 
-If it is positive, \kw{number\_of\_cycles}$-1/2$ oscillations are performed. 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{sine} ,
+        \bnt{initial_time} ,
+        \bnt{angular_velocity} ,
+        \bnt{amplitude} ,
+        \{ [ - ] \bnt{number_of_cycles} | \kw{half} | \kw{one} | \kw{forever} \} , 
+        \bnt{initial_value}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{angular\_velocity} is $2\pi/T$.
+The value of \nt{number\_of\_cycles} determines the behavior of the drive. 
+If it is positive, $\nt{number\_of\_cycles}-1/2$ oscillations are performed. 
 If it is negative, the oscillations end after 
-\kw{number\_of\_cycles}$-3/4$ cycles at the top of the sine, with null
+$\nt{number\_of\_cycles}-3/4$ cycles at the top of the sine, with null
 tangent.
-Special keywords can be used for \kw{number\_of\_cycles}:
+Special keywords can be used for \nt{number\_of\_cycles}:
 \begin{itemize}
-	\item \kw{forever}, which means the oscillation never stops;
-	\item \kw{one}, which means exactly half period is performed;
-	\item \kw{half}, which means exactly a quarter of period is performed,
+	\item \kw{forever}: the oscillation never stops;
+	\item \kw{one}: exactly half period is performed;
+	\item \kw{half}: exactly a quarter of period is performed,
 	so the function stops at
 \begin{align}
 	f\plbr{t} &= \nt{initial\_value} \\
@@ -2264,12 +2290,14 @@ Special keywords can be used for \kw{number\_of\_cycles}:
 \end{itemize}
 
 \subsection{Step drive}
-\begin{verbatim}
-    <drive_caller> ::= step ,
-        <initial_time> , 
-        <step_value> ,
-        <initial_value>
-\end{verbatim}    
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{step} ,
+        \bnt{initial_time} , 
+        \bnt{step_value} ,
+        \bnt{initial_value}
+\end{Verbatim}    
+%\end{verbatim}    
 The function
 \begin{align}
 	f\plbr{t} &= \nt{initial\_value} \nonumber \\
@@ -2283,18 +2311,20 @@ The function
 \end{align}
 
 \subsection{String drive}
-\begin{verbatim}
-    <drive_caller> ::= string ,
-        " <expression_string> "
-\end{verbatim}
-\kw{expression\_string} is a string, delimited by double quotes.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{string} ,
+        " \bnt{expression_string} "
+\end{Verbatim}
+%\end{verbatim}
+\nt{expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time 
 the \htmlref{\kw{drive}}{sec:DRIVE} is invoked.
 The variable \kw{Time} is kept up to date and can be used in the 
 string to compute the return value.
 Another variable, \kw{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
-in the \hyperref{dof drive}{dof drive (see Section~}{)}{sec:DRIVE:DOF};
+in the \hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DRIVE:DOF};
 e.g.:
 \begin{verbatim}
     ..., string, "e^(-Time)*cos(2.*pi*Time)" ...
@@ -2328,16 +2358,20 @@ It is differentiable.
 %%% TODO: add a plot that exemplifies the three cases
 
 \subsection{Time drive}
-\begin{verbatim}
-    <drive_caller> ::= time
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{time}
+\end{Verbatim}
+%\end{verbatim}
 Yields the current time; the arglist is empty.
 
 \subsection{Unit drive}
-\begin{verbatim}
-    <drive_caller> ::= unit
-\end{verbatim}
-Always 1; the \kw{arglist} is empty.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{unit}
+\end{Verbatim}
+%\end{verbatim}
+Always 1; the \nt{arglist} is empty.
 
 
 
@@ -2356,14 +2390,21 @@ by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
 In some cases, during the analysis, different entities can be reinitialized
 as a consequence of some event, typically triggered by the waking up 
 of a so-called \kw{driven} element (See Section~\ref{sec:EL:BASE:DRIVEN}).
-The \kw{drive caller} is re-parsed when the entity that owns it is sent
+The \ty{DriveCaller} is re-parsed when the entity that owns it is sent
 a \kw{hint} of the form
-\begin{verbatim}
-    "drive{ <drive_caller> }"
-\end{verbatim}
-is used, where \kw{<drive\_caller} is an arbitrary drive caller specification,
-enclosed in double quotes.
-Typically, the use of a \kw{hint} is necessary when the specification of the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    "drive\{ \bnt{drive_caller} \}"
+\end{Verbatim}
+%\end{verbatim}
+is used, where \nt{drive\_caller} is an arbitrary drive caller specification.
+The whole hint argument needs to be enclosed in double quotes because MBDyn
+treats it as a string.
+It is not parsed until needed.
+At that point, the string (after removing the enclosing double quotes)
+is fed into the parser.
+
+Typically, the use of a \kw{hint} is needed when the specification of the
 drive caller parameters depends on the configuration of the system when the
 entity that uses it is waken up.
 For example, a \kw{distance joint}, an element that enforces the distance
@@ -2383,13 +2424,14 @@ the element is waken up:
 
 
 \subsection{Template drive}\label{sec:TPL-DRIVE}
-A particular \kw{DriveCaller} is the template drive caller.
+A particular \ty{DriveCaller} is the template drive caller,
+indicated as \ty{TplDriveCaller}.
 It basically consists in a drive with a dimensionality other than scalar.
 Typically, it is made of a constant entity, with the desired dimensionality,
 that multiplies a conventional 
-\hyperref{\kw{drive}}{\kw{drive} (see Section~}{)}{sec:DRIVE}
+\hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
 to give a drive entity of dimensionality different from that 
-of a simple scalar \kw{drive}.
+of a simple scalar drive.
 
 There are four types of template drive callers:
 \begin{itemize}
@@ -2400,47 +2442,53 @@ There are four types of template drive callers:
 which linearly combines a set of template drive callers.
 \end{itemize}
 They are entered as follows:
-\begin{verbatim}
-    <tpl_drive_caller> ::= null
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{tpl_drive_caller} ::= \kw{null}
 
-    <tpl_drive_caller> ::= single ,
-        <entity> , <drive_caller> 
+    \bnt{tpl_drive_caller} ::= \kw{single} ,
+        \bnt{entity} , \ty{(DriveCaller)} \bnt{drive_caller}
 
-    <tpl_drive_caller> ::= component ,
-        <component_drive_caller> [ , ... ]
-
-    <component_drive_caller> ::= { inactive | <drive_caller> }
-
-    <tpl_drive_caller> ::= array ,
-        <num_template_drive_callers> ,
-        <tpl_drive_caller>
+    \bnt{tpl_drive_caller} ::= \kw{component} ,
+        \bnt{component_drive_caller}
         [ , ... ]
-\end{verbatim}
+
+    \bnt{component_drive_caller} ::= \{ \kw{inactive} | \ty{(DriveCaller)} \bnt{drive_caller} \}
+
+    \bnt{tpl_drive_caller} ::= \kw{array} ,
+        \bnt{num_template_drive_callers} ,
+            \bnt{tpl_drive_caller}
+            [ , ... ]
+\end{Verbatim}
+%\end{verbatim}
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
 vector, $6 \times 1$ vector are the types currently defined, but, since 
-a C++ template has been used, the implementation of other ones 
+a C++ template has been used, the implementation of new ones 
 is straightforward).
 
 In case of scalar values, the template reverts by default to a normal 
 drive caller, so no overhead is added.
 
 In the case of the \kw{component} template drive caller,
-as many drive callers as the dimensionality of the template drive caller
-are expected.
+as many instances of a \ty{DriveCaller} as the dimensionality
+of the template drive caller are expected.
 
 At least 1 drive caller is expected in the case of the \kw{array}
 template drive caller. 
-If \kw{num\_template\_drive\_callers} is exactly 1, only a single
+If \nt{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to the handling of the drive caller array.    
 
-Also the \kw{template drive} can be re-parsed as a consequence of a
+The template drive can be re-parsed as a consequence of a
 \hyperref{\kw{hint}}{\kw{hint} (see Section~}{)}{sec:GENERAL:DRIVE:HINT}.
 In this case, the syntax of the \kw{hint} is:
-\begin{verbatim}
-    "drive<n>{ <tpl_drive_caller> }"
-\end{verbatim}
-For example, a \kw{Vec3} drive hint is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    "drive\bnt{n}\{ \bnt{tpl_drive_caller} \}"
+\end{Verbatim}
+%\end{verbatim}
+where \nt{n} is the dimension of \nt{entity}.
+For example, a \ty{Vec3} drive hint is:
 \begin{verbatim}
     "drive3{ 1., 0., 0. , sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}

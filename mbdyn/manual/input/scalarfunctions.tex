@@ -26,9 +26,9 @@
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 \section{Scalar functions}\label{sec:SCALARFUNCS}
-A \kw{ScalarFunction} object allows to compute the value of a function.
-Almost every scalar function is of type \kw{DifferentiableScalarFunction},
-derived from \kw{ScalarFunction}, and allows to compute the derivatives of
+A \ty{ScalarFunction} object allows to compute the value of a function.
+Almost every scalar function is of type \ty{DifferentiableScalarFunction},
+derived from \ty{ScalarFunction}, and allows to compute the derivatives of
 the function as well. Currently implemented scalar functions are
 \begin{itemize}
 \item \kw{const}: $f(x)=c$
@@ -50,102 +50,123 @@ set of points $\{a,b)$
 \end{itemize}
 
 \noindent
-Every \kw{ScalarFunction} card follows the format
-\begin{verbatim}
-    <card> :: = scalar function : <unique_scalar_func_name>, 
-                    <scalar_func_type>,
-                    <scalar_func_args>
-\end{verbatim}
-\begin{verbatim}
-    <scalar_func_name> :: = string 
-\end{verbatim}
+Every \ty{ScalarFunction} card follows the format
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} :: = \kw{scalar function} : " \bnt{unique_scalar_func_name} " , 
+                    \bnt{scalar_func_type} ,
+                    \bnt{scalar_func_args}
+\end{Verbatim}
+%\end{verbatim}
+The name of the scalar function is a string, thus it needs to be enclosed
+in double quotes.
 
-\noindent
+\textbf{TODO: add examples.}
+
 The type of scalar function,
-\kw{scalar\_func\_type}, together 
-with relevant arguments, \kw{scalar\_func\_args},
+\nt{scalar\_func\_type}, together 
+with relevant arguments, \nt{scalar\_func\_args},
 are as follows:
 \subsubsection{Const Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= const
-    <scalar_func_args> ::= <const_coef>
-\end{verbatim}
-Note: if the \kw{scalar\_func\_type} is omitted,
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{const}
+    \bnt{scalar_func_args} ::= \bnt{const_coef}
+\end{Verbatim}
+%\end{verbatim}
+Note: if the \nt{scalar\_func\_type} is omitted,
 a \kw{const} scalar function is assumed.
 
 \subsubsection{Exp Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= exp
-    <scalar_func_args> ::=
-        [ base , <base> , ]
-        [ coefficient , <coef> , ]
-        <multiplier_coef>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{exp}
+    \bnt{scalar_func_args} ::=
+        [ \kw{base} , \bnt{base} , ]
+        [ \kw{coefficient} , \bnt{coef} , ]
+        \bnt{multiplier_coef}
+\end{Verbatim}
+%\end{verbatim}
 Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
 
 \subsubsection{Log Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= log
-    <scalar_func_args> ::=
-        [ base , <base> , ]
-        [ coefficient , <coef> , ]
-        <multiplier_coef>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{log}
+    \bnt{scalar_func_args} ::=
+        [ \kw{base} , \bnt{base} , ]
+        [ \kw{coefficient} , \bnt{coef} , ]
+        \bnt{multiplier_coef}
+\end{Verbatim}
+%\end{verbatim}
 Note: the optional \kw{base} (defaults to $e$, Neper's number,
 resulting in natural logarithms)
-and the optional \kw{coefficient}
+and the optional value \nt{coef}, prepended by the keyword \kw{coefficient},
 must be positive.
 The argument must be positive as well, otherwise an exception is thrown.
 
 \subsubsection{Pow Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= pow
-    <scalar_func_args> ::= <exponent_coef>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{pow}
+    \bnt{scalar_func_args} ::= \bnt{exponent_coef}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Linear Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= linear
-    <scalar_func_args> ::= <point>, <point>
-    <point>            ::= <x>, <y>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{linear}
+    \bnt{scalar_func_args} ::= \bnt{point} , \bnt{point}
+    \bnt{point}            ::= \bnt{x}, \bnt{y}
+\end{Verbatim}
+%\end{verbatim}
+A line passing through the two points.
 
 \subsubsection{Cubic Natural Spline Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= cubicspline
-    <scalar_func_args> ::= [ do not extrapolate , ]
-        <point>, 
-        <point>
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{cubic spline}
+    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
+        \bnt{point} , 
+        \bnt{point}
         [ , ... ]
-        [ , end ]
-    <point>            ::= <x>, <y>
-\end{verbatim}
-The \kw{end} delimiter is required if the card needs to continue;
-it can be omitted if the card ends with a semicolon.
+        [ , \kw{end} ]
+    \bnt{point}            ::= \bnt{x} , \bnt{y}
+\end{Verbatim}
+%\end{verbatim}
+The \kw{end} delimiter is required if the card needs to continue
+(i.e.\ the \ty{ScalarFunction} definition is embedded in a more complex
+statement); it can be omitted if the card ends with a semicolon
+right after the last point.
 
 \subsubsection{Multilinear Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= multilinear
-    <scalar_func_args> ::= [ do not extrapolate , ]
-        <point>, 
-        <point>
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{multilinear}
+    \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
+        \bnt{point} , 
+        \bnt{point}
         [ , ... ]
-        [ , end ]
-    <point>            ::= <x>, <y>
-\end{verbatim}
+        [ , \kw{end} ]
+    \bnt{point}            ::= \bnt{x} , \bnt{y}
+\end{Verbatim}
+%\end{verbatim}
 Unless \kw{do not extrapolate} is set, when the input is outside
-the provided values of \kw{x} the value is extrapolated using the slope
+the provided values of \nt{x} the value is extrapolated using the slope
 of the nearest point pair.
 
 \subsubsection{Chebychev Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= chebychev
-    <scalar_func_args> ::= 
-        <lower_bound> , <upper_bound> ,
-        [ do not extrapolate , ]
-        <coef_0> [ , <coef_1> [ , ... ] ]
-        [ , end ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{chebychev}
+    \bnt{scalar_func_args} ::= 
+        \bnt{lower_bound} , \bnt{upper_bound} ,
+        [ \kw{do not extrapolate} , ]
+        \bnt{coef_0} [ , \bnt{coef_1} [ , ... ] ]
+        [ , \kw{end} ]
+\end{Verbatim}
+%\end{verbatim}
 Chebychev polynomials of the first kind are defined as
 \begin{equation}
 	T_n\plbr{\xi} = \cos\plbr{n \cos^{-1}\plbr{\xi}} ,
@@ -192,27 +213,35 @@ Differentiation of order higher than 1 is not currently implemented.
 
 
 \subsubsection{Sum Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= sum
-    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{sum}
+    \bnt{scalar_func_args} ::= \ty{(ScalarFunction)} \bnt{f1} , \ty{(ScalarFunction)} \bnt{f2}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Sub Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= sub
-    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{sub}
+    \bnt{scalar_func_args} ::= \ty{(ScalarFunction)} \bnt{f1} , \ty{(ScalarFunction)} \bnt{f2}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Mul Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= mul
-    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{mul}
+    \bnt{scalar_func_args} ::= \ty{(ScalarFunction)} \bnt{f1} , \ty{(ScalarFunction)} \bnt{f2}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Div Scalar Function}
-\begin{verbatim}
-    <scalar_func_type> ::= div
-    <scalar_func_args> ::= (ScalarFunction)<f1>, (ScalarFunction)<f2>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{scalar_func_type} ::= \kw{div}
+    \bnt{scalar_func_args} ::= \ty{(ScalarFunction)} \bnt{f1} , \ty{(ScalarFunction)} \bnt{f2}
+\end{Verbatim}
+%\end{verbatim}
 Note: division by zero is checked, and an exception is thrown.
 
