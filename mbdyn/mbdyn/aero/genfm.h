@@ -82,6 +82,8 @@ protected:
 	const Mat3x3 tilde_Ra;	/* Rotaz. del sistema aerodinamico al nodo */
 
 	/* force and moment */
+	Vec3 tilde_F;
+	Vec3 tilde_M;
 	Vec3 F;
 	Vec3 M;
 
