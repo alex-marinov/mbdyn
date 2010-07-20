@@ -668,6 +668,7 @@ The following data is available:
 
 \subsection{Generic Aerodynamic Force}
 \label{sec:EL:AERO:GAF}
+This element is experimental.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{normal_arglist} ::= \bnt{node_label} ,
@@ -678,6 +679,19 @@ The following data is available:
         \{ \kw{file} , " \bnt{gaf_file_name} " | \kw{reference} , \bnt{gaf_label} \}
 \end{Verbatim}
 %\end{verbatim}
+
+\paragraph{Output}
+The following output is available:
+\begin{enumerate}
+\item column 1: element label
+\item column 2: the angle of attack $\alpha$
+\item column 3: the sideslip angle $\beta$
+\item columns 4--6: force components in local $x$, $y$ and $z$ directions
+\item columns 7--9: moment components in local $x$, $y$ and $z$ directions,
+	referred to the reference point (node plus offset)
+\item columns 10--12: force components in global $x$, $y$ and $z$ directions
+\item columns 13--15: moment components in global $x$, $y$ and $z$ directions,
+	referred to the node
 
 
 
