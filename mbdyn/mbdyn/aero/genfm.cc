@@ -33,6 +33,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cmath>
+
 #include "dataman.h"
 #include "aeroelem.h"
 #include "genfm.h"
@@ -70,10 +72,8 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 	Vec3 V(R.MulTV(Vca));
 
-	/* FIXME: according to source, the rotation sequence
-	 * is alpha, then beta */
-	dAlpha = atan2(V(3), V(1));
-	dBeta = -atan2(V(2), V(1));
+	dAlpha = atan2(V(3), std::abs(V(1)));
+	dBeta = atan2(-V(2), copysign(std::sqrt(V(1)*V(1) + V(2)*V(2)), V(1)));
 
 	doublereal rho, c, p, T;
 	GetAirProps(Xca, rho, c, p, T);	/* p, T no used yet */
@@ -88,13 +88,12 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 	ASSERT(nAlpha >= 0);
 	ASSERT(nBeta >= 0);
 
-	/* TODO: search for Alpha, Beta */
-	if (dAlpha <= pData->Alpha[0]) {
+	if (dAlpha < pData->Alpha[0]) {
 		/* smooth out coefficients if Alpha does not span -180 => 180 */
 		doublereal dAlphaX = (dAlpha - pData->Alpha[0])/(-M_PI - pData->Alpha[0]);
 		doublereal dSmoothAlpha = (std::cos(M_PI*dAlphaX) + 1)/2.;
 
-		if (dBeta <= pData->Beta[0]) {
+		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -102,7 +101,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			tilde_F = Vec3(&pData->Data[0][0].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[0][0].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
-		} else if (dBeta >= pData->Beta[nBeta]) {
+		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -127,12 +126,12 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			tilde_M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothAlpha);
 		}
 
-	} else if (dAlpha >= pData->Alpha[nAlpha]) {
+	} else if (dAlpha > pData->Alpha[nAlpha]) {
 		/* smooth out coefficients if Alpha does not span -180 => 180 */
 		doublereal dAlphaX = (dAlpha - pData->Alpha[nAlpha])/(-M_PI - pData->Alpha[nAlpha]);
 		doublereal dSmoothAlpha = (std::cos(M_PI*dAlphaX) + 1)/2.;
 
-		if (dBeta <= pData->Beta[0]) {
+		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -140,7 +139,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			tilde_F = Vec3(&pData->Data[0][nAlpha].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[0][nAlpha].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
-		} else if (dBeta >= pData->Beta[nBeta]) {
+		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -175,7 +174,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 		doublereal d1Alpha = (pData->Alpha[iAlpha + 1] - dAlpha)/ddAlpha;
 		doublereal d2Alpha = (dAlpha - pData->Alpha[iAlpha])/ddAlpha;
 
-		if (dBeta <= pData->Beta[0]) {
+		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[0])/(-M_PI - pData->Beta[0]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -186,7 +185,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 			tilde_F = Vec3(&c.dCoef[0])*(dScaleForce*dSmoothBeta);
 			tilde_M = Vec3(&c.dCoef[3])*(dScaleMoment*dSmoothBeta);
 
-		} else if (dBeta >= pData->Beta[nBeta]) {
+		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
 			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(M_PI - pData->Beta[nBeta]);
 			doublereal dSmoothBeta = (std::cos(M_PI*dBetaX) + 1)/2.;
@@ -255,6 +254,72 @@ GenericAerodynamicForce::~GenericAerodynamicForce(void)
 	if (pData != 0) {
 		delete pData;
 	}
+}
+
+/* Tipo dell'elemento (usato per debug ecc.) */
+Elem::Type
+GenericAerodynamicForce::GetElemType(void) const
+{
+	return Elem::AERODYNAMIC;
+}
+
+/* Dimensioni del workspace */
+void
+GenericAerodynamicForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 6;
+	*piNumCols = 1;
+}
+
+/* assemblaggio jacobiano */
+VariableSubMatrixHandler&
+GenericAerodynamicForce::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUTFNAME("GenericAerodynamicForce::AssJac");
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+/* Numero di GDL iniziali */
+unsigned int
+GenericAerodynamicForce::iGetInitialNumDof(void) const
+{
+	return 0;
+}
+
+/* Dimensioni del workspace */
+void
+GenericAerodynamicForce::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 6;
+	*piNumCols = 1;
+}
+
+/* assemblaggio jacobiano */
+VariableSubMatrixHandler&
+GenericAerodynamicForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& /* XCurr */)
+{
+	DEBUGCOUTFNAME("GenericAerodynamicForce::InitialAssJac");
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
+
+/* Tipo di elemento aerodinamico */
+AerodynamicElem::Type
+GenericAerodynamicForce::GetAerodynamicElemType(void) const
+{
+	return AerodynamicElem::GENERICFORCE;
+}
+
+void
+GenericAerodynamicForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(1);
+	connectedNodes[0] = pNode;
 }
 
 /* Scrive il contributo dell'elemento al file di restart */

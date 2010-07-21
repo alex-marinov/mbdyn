@@ -109,31 +109,20 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* Tipo dell'elemento (usato per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::AERODYNAMIC;
-	};
+	virtual Elem::Type GetElemType(void) const;
 
 	/* funzioni proprie */
 
 	/* Dimensioni del workspace */
 	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 6;
-		*piNumCols = 1;
-		/* NOTE: Jacobian could be implemented... */
-	};
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal /* dCoef */ ,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
-	{
-		DEBUGCOUTFNAME("GenericAerodynamicForce::AssJac");
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
@@ -149,28 +138,16 @@ public:
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Numero di GDL iniziali */
-	virtual unsigned int iGetInitialNumDof(void) const
-	{
-		return 0;
-	};
+	virtual unsigned int iGetInitialNumDof(void) const;
 
 	/* Dimensioni del workspace */
 	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
-	{
-		*piNumRows = 6;
-		*piNumCols = 1;
-	};
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* assemblaggio jacobiano */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& /* XCurr */)
-	{
-		DEBUGCOUTFNAME("GenericAerodynamicForce::InitialAssJac");
-		WorkMat.SetNullMatrix();
-		return WorkMat;
-	};
+		const VectorHandler& XCurr);
 
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
@@ -178,22 +155,14 @@ public:
 		const VectorHandler& XCurr);
 
 	/* Tipo di elemento aerodinamico */
-	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const
-	{
-		return AerodynamicElem::GENERICFORCE;
-	};
+	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */
 	/*
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		connectedNodes.resize(1);
-		connectedNodes[0] = pNode;
-	};
-	/* ************************************************ */
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 };
 
 extern Elem *
