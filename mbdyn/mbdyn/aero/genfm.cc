@@ -80,7 +80,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 	doublereal q = Vca.Dot()*rho/2.;
 
 	doublereal dScaleForce = q*dRefSurface;
-	doublereal dScaleMoment = dScaleForce*dRefSurface;
+	doublereal dScaleMoment = dScaleForce*dRefLength;
 
 	int nAlpha = pData->Alpha.size() - 1;
 	int nBeta = pData->Beta.size() - 1;
