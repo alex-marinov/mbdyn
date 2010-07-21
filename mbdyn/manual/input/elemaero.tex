@@ -688,11 +688,75 @@ The following output is available:
 \item column 3: the sideslip angle $\beta$
 \item columns 4--6: force components in local $x$, $y$ and $z$ directions
 \item columns 7--9: moment components in local $x$, $y$ and $z$ directions,
-	referred to the reference point (node plus offset)
+	about the reference point (node plus offset)
 \item columns 10--12: force components in global $x$, $y$ and $z$ directions
 \item columns 13--15: moment components in global $x$, $y$ and $z$ directions,
-	referred to the node
+	about the node
 \end{enumerate}
+
+\subsubsection{Generic Aerodynamic Element Data}
+Data is stored in ASCII format in a file.
+
+An arbitrary number of comment lines is allowed at the beginning.
+Comment lines start with either a percent `\textbf{\%}'
+or a hash mark `\texttt{\#}' in the first column.
+Their content is discarded until the end of the line.
+
+The first non-comment line must contain two integers separated by whitespace.
+The integers represent the expected number of angle of attack
+and sideslip angle values, $N_\alpha$ and $N_\beta$.
+
+Another arbitrary number of comment lines is allowed.
+
+A set of $N_\alpha \cdot N_\beta$ lines is expected.
+No comments or empty lines are allowed in between.
+Each line contains:
+\begin{itemize}
+\item column 1: the angle of attack, $\alpha$
+\item column 2: the sideslip angle, $\beta$
+\item columns 3--5: the force coefficients
+\item columns 6--8: the moment coefficients
+\end{itemize}
+
+Notes:
+\begin{enumerate}
+\item lines are sorted as follows:
+all values of $\alpha$ are defined for each value of $\beta$;
+the same values of $\alpha$ are expected for each $\beta$;
+\item the angles are expected in degrees;
+\item the coefficients are either expected in dimensional
+or non-dimensional form.
+In the former case, the force coefficients represent areas,
+while the moment coefficients represent volumes, since they need
+to be multiplied by the dynamic pressure to become forces and moments.
+In the latter case, they are pure numbers;
+a reference surface and length must be defined in the configuration
+of the corresponding \kw{generic aerodynamic force} element.
+\end{enumerate}
+
+\paragraph{Example.}
+\begin{verbatim}
+# This is an example of data for the "generic aerodynamic force" element
+# 5 values of angle of attack (alpha) and 3 values of sideslip angle (beta)
+# are provided
+5 3
+# alpha beta fx/q fy/q fz/q mx/q my/q mz/q
+-90 -90 0 0 0 0 0 0
+-20 -90 0 0 0 0 0 0
+  0 -90 0 0 0 0 0 0
+ 20 -90 0 0 0 0 0 0
+ 90 -90 0 0 0 0 0 0
+-90   0 0 0 0 0 0 0
+-20   0 0 0 0 0 0 0
+  0   0 0 0 0 0 0 0
+ 20   0 0 0 0 0 0 0
+ 90   0 0 0 0 0 0 0
+-90  90 0 0 0 0 0 0
+-20  90 0 0 0 0 0 0
+  0  90 0 0 0 0 0 0
+ 20  90 0 0 0 0 0 0
+ 90  90 0 0 0 0 0 0
+\end{verbatim}
 
 
 
