@@ -42,6 +42,8 @@
 
 /* GenericAerodynamicForce - begin */
 
+// TODO: add private data; e.g. alpha, beta
+
 /* Assemblaggio residuo */
 void
 GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
@@ -466,7 +468,7 @@ GenericAerodynamicData::GenericAerodynamicCoef::operator / (const doublereal& d)
 
 
 static GenericAerodynamicData *
-ReadGenericAerodynamicData(const std::string& fname)
+ReadGenericAerodynamicData(const std::string& fname, doublereal dScaleAngle, doublereal dScaleLength)
 {
 	std::ifstream in(fname.c_str());
 
@@ -537,6 +539,13 @@ ReadGenericAerodynamicData(const std::string& fname)
 	pData->Beta.resize(nBeta);
 	pData->Data.resize(nBeta);
 
+	doublereal dScaleForce = dScaleLength*dScaleLength;
+	doublereal dScaleMoment = dScaleForce*dScaleLength;
+	doublereal dScale[6] = {
+		dScaleForce, dScaleForce, dScaleForce,
+		dScaleMoment, dScaleMoment, dScaleMoment
+	};
+
 	/* get the matrices */
 	for (int iBeta = 0; iBeta < nBeta; iBeta++) {
 		pData->Data[iBeta].resize(nAlpha);
@@ -585,7 +594,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 			for (int iCoef = 0; iCoef < 6; iCoef++) {
 				in >> dCoef;
 
-				pData->Data[iBeta][iAlpha].dCoef[iCoef] = dCoef;
+				pData->Data[iBeta][iAlpha].dCoef[iCoef] = dCoef*dScale[iCoef];
 			}
 
 			/* discard to end of line */
@@ -606,7 +615,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 
 	/* deg => radian */
 	for (int iAlpha = 0; iAlpha < nAlpha; iAlpha++) {
-		pData->Alpha[iAlpha] *= M_PI/180.;
+		pData->Alpha[iAlpha] *= dScaleAngle;
 
 		if (iAlpha == 0) {
 			continue;
@@ -624,7 +633,7 @@ ReadGenericAerodynamicData(const std::string& fname)
 
 	/* deg => radian */
 	for (int iBeta = 0; iBeta < nBeta; iBeta++) {
-		pData->Beta[iBeta] *= M_PI/180.;
+		pData->Beta[iBeta] *= dScaleAngle;
 
 		if (iBeta == 0) {
 			continue;
@@ -680,8 +689,45 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 	/* TODO: allow to reference previously loaded data */
 	GenericAerodynamicData *pData = 0;
 	if (HP.IsKeyWord("file")) {
+		doublereal dScaleAngle = 1.;
+		if (HP.IsKeyWord("angle" "units")) {
+			if (HP.IsKeyWord("radians")) {
+				dScaleAngle = 1.;
+
+			} else if (HP.IsKeyWord("degrees")) {
+				dScaleAngle = M_PI/180.;
+
+			} else {
+				silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
+					"unknown angle unit at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+		} else if (HP.IsKeyWord("scale" "angles")) {
+			doublereal d = HP.GetReal(dScaleAngle);
+			if (d <= 0.) {
+				silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
+					"invalid angle scale factor " << d
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			dScaleAngle = d;
+		}
+
+		doublereal dScaleLength = 1.;
+		if (HP.IsKeyWord("scale" "lengths")) {
+			doublereal d = HP.GetReal(dScaleLength);
+			if (d <= 0.) {
+				silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
+					"invalid length scale factor " << d
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			dScaleLength = d;
+		}
+
 		std::string fname(HP.GetFileName());
-		pData = ReadGenericAerodynamicData(fname);
+		pData = ReadGenericAerodynamicData(fname, dScaleAngle, dScaleLength);
 
 	} else if (HP.IsKeyWord("reference")) {
 		silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
