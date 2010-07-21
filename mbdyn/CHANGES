@@ -18,13 +18,14 @@ MBDyn 1.X-Devel
 		- added "receive first" option to stream input
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
-		- changed Generic Aerodynamic Force input format
+		- changed GenericAerodynamicForce input format
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)
 		- fix output meter initial output (noted by Doug Baldwin)
 		- fix "output every" in stream output (noted by Doug Baldwin)
 		- fix "input every" in stream input (noted by Doug Baldwin)
+		- fix GenericAerodynamicForce (noted by Stefan van't'Hoff)
 
 MBDyn 1.3.15
 	Enhancements:
