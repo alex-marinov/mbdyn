@@ -671,12 +671,20 @@ The following data is available:
 This element is experimental.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{generic aerodynamic force}
+
     \bnt{normal_arglist} ::= \bnt{node_label} ,
         [ \kw{position} , \bnt{relative_position} , ]
         [ \kw{orientation} , \bnt{relative_orientation} , ]
         [ \kw{reference surface} , \bnt{reference_surface} , ]
         [ \kw{reference length} , \bnt{reference_length} , ]
-        \{ \kw{file} , " \bnt{gaf_file_name} " | \kw{reference} , \bnt{gaf_label} \}
+        \{ \bnt{data_file_specification} | \kw{reference} , \bnt{gaf_data_label} \}
+
+    \bnt{data_file_specification} ::= \kw{file} , 
+        [ \{ \kw{angle units} , \{ \kw{radians} | \kw{degrees} \}
+            | \kw{scale angles} , \bnt{angle_scale_factor} \} , ]
+        [ \kw{scale lengths} , \bnt{length_scale_factor} , ]
+        " \bnt{data_file_name} "
 \end{Verbatim}
 %\end{verbatim}
 
@@ -693,6 +701,9 @@ The following output is available:
 \item columns 13--15: moment components in global $x$, $y$ and $z$ directions,
 	about the node
 \end{enumerate}
+
+\paragraph{Private Data}
+The \kw{generic aerodynamic force} element does not output any private data.
 
 \subsubsection{Generic Aerodynamic Element Data}
 Data is stored in ASCII format in a file.
@@ -714,8 +725,8 @@ Each line contains:
 \begin{itemize}
 \item column 1: the angle of attack, $\alpha$
 \item column 2: the sideslip angle, $\beta$
-\item columns 3--5: the force coefficients
-\item columns 6--8: the moment coefficients
+\item columns 3--5: the force coefficients $f_{x/q}$, $f_{y/q}$, $f_{z/q}$
+\item columns 6--8: the moment coefficients $m_{x/q}$, $m_{y/q}$, $m_{z/q}$
 \end{itemize}
 
 Notes:
@@ -723,7 +734,14 @@ Notes:
 \item lines are sorted as follows:
 all values of $\alpha$ are defined for each value of $\beta$;
 the same values of $\alpha$ are expected for each $\beta$;
-\item the angles are expected in degrees;
+\item the angles are expected in radians;
+use the mutually exclusive optional keywords \kw{angle units},
+to specify either \kw{radians} or \kw{degrees},
+or \kw{scale angles}, to specify the \nt{angle\_scale\_factor};
+\item $q=1/2 \rho V^2$ is the local reference dynamic pressure,
+where $V$ is the norm of the velocity at the reference point;
+\item the coefficients express forces and moments in the reference frame
+attached to the body;
 \item the coefficients are either expected in dimensional
 or non-dimensional form.
 In the former case, the force coefficients represent areas,
@@ -732,9 +750,13 @@ to be multiplied by the dynamic pressure to become forces and moments.
 In the latter case, they are pure numbers;
 a reference surface and length must be defined in the configuration
 of the corresponding \kw{generic aerodynamic force} element.
+When dimensional coefficients are specified, they can be rescaled
+by using the optional keyword \kw{scale lengths} to specify
+the \nt{length\_scale\_factor}.
 \end{enumerate}
 
 \paragraph{Example.}
+The content of the file \texttt{example.dat} is
 \begin{verbatim}
 # This is an example of data for the "generic aerodynamic force" element
 # 5 values of angle of attack (alpha) and 3 values of sideslip angle (beta)
@@ -756,6 +778,13 @@ of the corresponding \kw{generic aerodynamic force} element.
   0  90 0 0 0 0 0 0
  20  90 0 0 0 0 0 0
  90  90 0 0 0 0 0 0
+\end{verbatim}
+The corresponding statement in the input file is
+\begin{verbatim}
+    set: integer GAF_NODE = 10;
+    set: integer GAF_ELEM = 20;
+    generic aerodynamic force: GAF_ELEM, GAF_NODE,
+        file, angle units, degrees, "example.dat";
 \end{verbatim}
 
 
