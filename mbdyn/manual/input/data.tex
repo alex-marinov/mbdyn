@@ -29,20 +29,25 @@
 \chapter{Data}\label{sec:DATA}
 The \kw{data} section is read directly by the driver program. It is
 included between the cards:
-\begin{verbatim}
-    begin: data;
-        ...
-    end: data;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{data} ;
+        # ...
+    \kw{end} : \kw{data} ;
+\end{Verbatim}
+%\end{verbatim}
 
 \section{Problem}
 The only active card is the \kw{problem} card.
 
 The syntax is
-\begin{verbatim}
-    <card> ::= problem : <problem> ;
-    <problem> ::= { initial value | inverse dynamics } ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{problem} : \bnt{problem} ;
+
+    \bnt{problem} ::= \{ \kw{initial value} | \kw{inverse dynamics} \} ;
+\end{Verbatim}
+%\end{verbatim}
 For long time the only supported problem type was the
 \kw{initial value} problem.
 As a consequence, if no \kw{problem} card is present,

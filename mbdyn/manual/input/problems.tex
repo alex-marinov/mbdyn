@@ -30,11 +30,13 @@
 This section is used to insert all the data related to the problem that
 one needs MBDyn to solve in the simulation.
 The section data is included between the cards:
-\begin{verbatim}
-    begin : <problem_name> ;
-        ...
-    end : <problem_name> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \bnt{problem_name} ;
+        # ...
+    \kw{end} : \bnt{problem_name} ;
+\end{Verbatim}
+%\end{verbatim}
 
 Implemented problems are:
 \begin{itemize}
@@ -67,11 +69,13 @@ Implicit Runge-Kutta-like schemes
 \cite{MASARATI-LANZ-MANTEGAZZA-2001}.
 
 The syntax of the module is:
-\begin{verbatim}
-    begin: initial value;
-        ...
-    end: initial value;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{initial value} ;
+        # ...
+    \kw{end} : \kw{initial value} ;
+\end{Verbatim}
+%\end{verbatim}
 At present, there are a number of cards that can be grouped as follows, 
 based on the integration phase they refer to.
 
@@ -80,25 +84,33 @@ those data that refer to the main integration phase or the simulation as a
 whole. They are:
 
 \subsubsection{Initial Time}
-\begin{verbatim}
-    <card> ::= initial time : <time> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{initial time} : \bnt{time} ;
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Final Time}
-\begin{verbatim}
-    <card> ::= final time : {forever | <time>} ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{final time} : \{ \kw{forever} | \bnt{time} \} ;
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Strategy}
-\begin{verbatim}
-    <card> ::= strategy : <strategy_type> [ , <strategy_data> ] ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{strategy} : \bnt{strategy_type} [ , \bnt{strategy_data} ] ;
+\end{Verbatim}
+%\end{verbatim}
 The available strategies are:
 \begin{itemize}
 \item \kw{no change}
-\begin{verbatim}
-    <strategy_type> ::= no change 
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{strategy_type} ::= \kw{no change}
+\end{Verbatim}
+%\end{verbatim}
 the time step is never changed.
 However, this prevents simulation termination when the maximum number
 of iterations is reached.
@@ -107,77 +119,91 @@ results in soem modification of the analysis related to some user-defined
 function.
 
 \item \kw{factor}
-\begin{verbatim}
-    <strategy_type> ::= factor
-    <strategy_data> ::= 
-        <reduction_factor> ,
-        <steps_before_reduction> ,
-        <raise_factor> ,
-        <steps_before_raise> ,
-        <min_iterations>
-        [ , <max_iterations> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{strategy_type} ::= \kw{factor}
+
+    \bnt{strategy_data} ::= 
+        \bnt{reduction_factor} ,
+        \bnt{steps_before_reduction} ,
+        \bnt{raise_factor} ,
+        \bnt{steps_before_raise} ,
+        \bnt{min_iterations}
+        [ , \bnt{max_iterations} ]
+\end{Verbatim}
+%\end{verbatim}
 the time step is reduced or raised of the proper factor not before a
 minimum number of time steps; it is reduced if more than 
-\kw{max\_iterations} are performed at a time step, or it the current
+\nt{max\_iterations} are performed at a time step, or it the current
 step do not converge; it is raised if less
-than \kw{min\_iterations} are performed at a time step;
-\kw{max\_iterations} defaults to the global \kw{max\_iterations}
+than \nt{min\_iterations} are performed at a time step;
+\nt{max\_iterations} defaults to the global \nt{max\_iterations}
 simulation value; however, it is better to set it to a lower value,
 leaving some spare iterations before bailing out the simulation; 
 the simulation bails out if two consecutive solution steps
 are performed without converging.
 
 \item \kw{change}
-\begin{verbatim}
-    <strategy_type> ::= change
-    <strategy_data> ::= (drive_caller) <time_step_pattern>
-\end{verbatim}
-the time step is change according to the \kw{time\_step\_pattern} pattern.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{strategy_type} ::= \kw{change}
+
+    \bnt{strategy_data} ::= \ty{(DriveCaller)} \bnt{time_step_pattern}
+\end{Verbatim}
+%\end{verbatim}
+the time step is change according to the \nt{time\_step\_pattern} pattern.
 If the time step returned by the drive caller does not change
 when a step needs to be repeated, the analysis is interrupted.
 
 Note: the \kw{change} strategy is not normally intended to provide
 adaptive time step, it rather allows to prescribe a given
 variable time step pattern based on the rule defined
-by the \kw{time\_step\_pattern} drive caller.
+by the \nt{time\_step\_pattern} \ty{DriveCaller}.
 \end{itemize}
 
 
 \subsubsection{Min Time Step}
-\begin{verbatim}
-    <card> ::= min time step : <min_time_step> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{min time step} : \bnt{min_time_step} ;
+\end{Verbatim}
+%\end{verbatim}
 Defines the minimum value allowed for the time step.
 This statement is only meaningful when variable time step is used.
 If the time step change strategy tries to use a time step smaller
-than \kw{min\_time\_step}, the simulation aborts.
+than \nt{min\_time\_step}, the simulation aborts.
 
 \subsubsection{Max Time Step}
-\begin{verbatim}
-    <card> ::= max time step : { <max_time_step> | unlimited } ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{max time step} : \{ \bnt{max_time_step} | \kw{unlimited} \} ;
+\end{Verbatim}
+%\end{verbatim}
 Defines the maximum value allowed for the time step.
 This statement is only meaningful when variable time step is used.
 If the time step change strategy tries to use a time step larger
-than \kw{max\_time\_step}, the value \kw{max\_time\_step} is used instead.
+than \nt{max\_time\_step}, the value \nt{max\_time\_step} is used instead.
 
 \subsubsection{Time Step}
-\begin{verbatim}
-    <card> ::= time step : <time_step> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{time step} : \bnt{time_step} ;
+\end{Verbatim}
+%\end{verbatim}
 The initial time step.
 This value is used throughout the simulation unless some variable time step
 strategy is defined using the \kw{strategy} statement.
 
 \subsubsection{Tolerance}\label{sec:IVP:TOLERANCE}
-\begin{verbatim}
-    <card> ::= tolerance : { null | <residual_tolerance> }
-            [ , test , { none | norm | minmax } [ , scale ] ]
-        [ , { null | <solution_tolerance> } 
-            [ , test , { none | norm | minmax } ] ] ;
-\end{verbatim}
-The only mandatory value is \kw{residual\_tolerance}, 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{tolerance} : \{ \kw{null} | \bnt{residual_tolerance} \}
+            [ , \kw{test} , \{ \kw{none} | \kw{norm} | \kw{minmax} \} [ , \kw{scale} ] ]
+        [ , \{ \kw{null} | \bnt{solution_tolerance} \} 
+            [ , \kw{test} , \{ \kw{none} | \kw{norm} | \kw{minmax} \} ] ] ;
+\end{Verbatim}
+%\end{verbatim}
+The only mandatory value is \nt{residual\_tolerance}, 
 the tolerance used for the residual test; the keyword \kw{null}
 disables the residual testing, disabling the computation
 of the test on the residual.
@@ -192,7 +218,7 @@ The optional parameter \kw{scale} is used to enable the scaling
 of the residual before performing the test; default scale factors 
 can be set for each type of degree of freedom owner, and some
 entities allow individual scaling; by default, no scaling takes place.
-A tolerance \kw{solution\_tolerance} to test the solution 
+A tolerance \nt{solution\_tolerance} to test the solution 
 (the difference between the states at two iterations) is allowed, 
 and also in this case a test mechanism can be chosen;
 by default, no test on the solution convergence is done.
@@ -217,30 +243,40 @@ Currently, no scaling is allowed in the solution test.
 \end{verbatim}
 
 \subsubsection{Max Iterations}
-\begin{verbatim}
-    <card> ::= max iterations : <max_iterations> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{max iterations} : \bnt{max_iterations} ;
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Modify Residual Test}
-\begin{verbatim}
-    <card> ::= modify residual test;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{modify residual test} ;
+\end{Verbatim}
+%\end{verbatim}
 modify the residual test taking in account the rate of change of the status.
 
 \subsubsection{Method}
-\begin{verbatim}
-    <card> ::= method : <method_data> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{method} : \bnt{method_data} ;
+\end{Verbatim}
+%\end{verbatim}
 there are four multistep methods at present. 
+
 The first is Crank-Nicolson:
-\begin{verbatim}
-    <method_data> ::= crank nicolson
-\end{verbatim}
-the second and the third are original 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \kw{crank nicolson}
+\end{Verbatim}
+%\end{verbatim}
+
+The second and the third are original 
 methods; the former is discussed in \cite{MASARATI-LANZ-MANTEGAZZA-2001},
 see also
 \begin{quote}
-\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/publications.html}}{http://www.aero.polimi.it/mbdyn/publications.html}
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/publications.html}}{http://www.aero.polimi.it/mbdyn/publications.html}
 \end{quote} 
 Those methods are unconditionally stable and can be tuned to give 
 the desired algorithmic dissipation
@@ -248,21 +284,24 @@ by setting the value of the asymptotic spectral radius.
 The radius can be set independently for the differential
 and the algebraic variables, and a driver is used, to allow parameter 
 dependent radius variation.
-\begin{verbatim}
-    <method_data> ::= { ms | hope } ,
-        (drive_caller) <differential_radius>
-        [ , (drive_caller) <algebraic_radius> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \{ \kw{ms} | \kw{hope} \} ,
+        \ty{(DriveCaller)} \bnt{differential_radius}
+        [ , \ty{(DriveCaller)} \bnt{algebraic_radius} ]
+\end{Verbatim}
+%\end{verbatim}
 The first method proved to be more accurate at high values of asymptotic
 radius (low dissipation), while the second proved to be more accurate
 at low values of the radius (high dissipation).
 They look nearly equivalent at radii close to 0.4, with the former
 giving the best compromise between algorithmic dissipation and accuracy 
 at about 0.6.
-The algebraic radius can be omitted, defaulting to the same 
+The \nt{algebraic\_radius} can be omitted, defaulting to the same 
 as the differential one.
 It is unclear whether a different spectral radius can help in increasing
 accuracy or dissipation of the algebraic unknowns.
+
 The fourth method is experimental. It is a third-order,
 two stage unconditionally stable method, which can be tuned to give 
 the desired algorithmic dissipation by setting the value 
@@ -270,10 +309,12 @@ of the asymptotic spectral radius, which should not be
 too close to zero.
 Currently it is not possible to independently set the radius 
 for the differential and the algebraic variables.
-\begin{verbatim}
-    <method_data> ::= third order ,
-        { ad hoc | (drive_caller) <differential_radius> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \kw{third order} ,
+        \{ \kw{ad hoc} | \ty{(DriveCaller)} \bnt{differential_radius} \}
+\end{Verbatim}
+%\end{verbatim}
 When the keyword \kw{ad hoc} is used, a method equivalent
 to a Runge-Kutta Radau IIA results, with zero asymptotic
 spectral radius; otherwise, an original third-order
@@ -283,78 +324,90 @@ integration method is used, with tunable algorithmic dissipation.
 The multistep method, when the asymptotic radius is zero, degenerates
 in the Backward Differentiation Formulas of order two.
 A shortcut to this case is provided as
-\begin{verbatim}
-    <method_data> ::= bdf [ , order , <order> ]
-\end{verbatim}
-The keyword \kw{order} can be used to indicate a specific order
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \kw{bdf} [ , \kw{order} , \bnt{order} ]
+\end{Verbatim}
+%\end{verbatim}
+The keyword \kw{order} can be used to indicate a specific \nt{order}
 of the BDF formulas; only first order (implicit Euler) and 
 second order formulas are currently implemented, and the default
 is the second order formula, which is the most useful.
 The first order formula may be of help for very specific problems.
 It can also be selected using the shortcut
-\begin{verbatim}
-    <method_data> ::= implicit euler
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{method_data} ::= \kw{implicit euler}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Nonlinear Solver}
 The nonlinear solver solves a nonlinear problem $F(x)=0$.
+The syntax is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{nonlinear solver} : \bnt{nonlinear_solver_data} ;
+\end{Verbatim}
+%\end{verbatim}
 Two nonlinear solvers are currently available:
 a Newton-Raphson iterator and a matrix-free solver.
+
 The first nonlinear solver, a modified Newton-Raphson, 
 is well tested.
-\begin{verbatim}
-    <card> ::= nonlinear solver : <nonlinear_solver_data> ;
-\end{verbatim}
-\begin{verbatim}
-    <nonlinear_solver_data> ::= newton raphson : { 
-        true | modified , <iterations>
-            [ , keep jacobian matrix ]
-            [ , honor element requests ] } ;
-\end{verbatim}
-if \kw{modified}, the number of \kw{<iterations>} the same Jacobian matrix 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{nonlinear_solver_data} ::= \kw{newton raphson} :
+        \{ \kw{true} | \kw{modified} , \bnt{iterations}
+            [ , \kw{keep jacobian matrix} ]
+            [ , \kw{honor element requests} ] \} ;
+\end{Verbatim}
+%\end{verbatim}
+if \kw{modified}, the number of \nt{iterations} the same Jacobian matrix 
 will be reused, and thus factored only once, is expected.
 If the option \kw{keep jacobian matrix} is selected,
 the Jacobian matrix is preserved
-for the desired \kw{<iterations>} even across time steps.
+for the desired \nt{iterations} even across time steps.
 By default, the Jacobian matrix is recomputed at the beginning 
 of each time step.
-If the option \kw{honor element requests} is selected, the preconditioned
+If the option \kw{honor element requests} is selected, the factorization
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{
 	At present, only few elements that can change the structure
 	of the equations, or at least radically change the Jacobian matrix,
 	actually issue this request.
 }.
+
 The second nonlinear solver, based on a
 matrix-free algorithm, is experimental.
-\begin{verbatim}
-    <nonlinear_solver_data> ::= matrix free, { bicgstab | gmres }
-        [ , tolerance, < tolerance > ]
-        [ , steps , <steps> ]
-        [ , tau , <tau> ]
-        [ , eta , <eta> ]
-        [ , preconditioner, {
-            full jacobian matrix [ , steps, <steps> ] 
-	        [ , honor element requests ]
-    } ];
-\end{verbatim}
-where \kw{<tolerance>} is the iterative linear solver tolerance;
-\kw{<steps>} is the maximum number of linear solver iterations;
-\kw{<tau>} is a measure of the configuration perturbation used
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{nonlinear_solver_data} ::= \kw{matrix free} , \{ \kw{bicgstab} | \kw{gmres} \}
+        [ , \kw{tolerance} , \bnt{tolerance} ]
+        [ , \kw{steps} , \bnt{steps} ]
+        [ , \kw{tau} , \bnt{tau} ]
+        [ , \kw{eta} , \bnt{eta} ]
+        [ , \kw{preconditioner} ,
+            \{ \kw{full jacobian matrix} [ , \kw{steps} , \bnt{steps} ] 
+	        [ , \kw{honor element requests} ] \} ];
+\end{Verbatim}
+%\end{verbatim}
+where \nt{tolerance} is the iterative linear solver tolerance;
+\nt{steps} is the maximum number of linear solver iterations;
+\nt{tau} is a measure of the configuration perturbation used
 to obtain a matrix-free approximation of the product
 of the Jacobian matrix times the solution vector;
 it is seldom necessary to change the default value of this parameter,
 mainly for very ``stiff'' problems.
-By setting \kw{<eta>} one changes the convergence requirements; 
+By setting \nt{eta} the convergence requirements are changed; 
 further reference for this parameter may be found in \cite{KELLEY-1995}; 
 do not change it unless you know what you are doing.
-The value \kw{<steps>} of the \kw{steps} keyword 
+The value \nt{steps} of the \kw{steps} keyword 
 of the \kw{preconditioner} sub-block 
 sets the maximum number of iterations that can be performed 
 without requiring an update of the preconditioner; 
 this parameter can heavily influence
 the performance of the matrix-free solver.
-If the option \kw{honor element requests} is selected, the preconditioned
+If the option \kw{honor element requests} is selected, the preconditioner
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{See note above}.
 

@@ -115,9 +115,9 @@ like variable declarations and assignments) will be evaluated.
 \paragraph{Example.} \
 \begin{verbatim}
     1.                                                     # == 1.
-    (real r = 2.*pi; integer i = 1; sin(i*r*Time+.87))     # == sin(2*pi*Time+.87)
+    (real r = 2.*pi; integer i = 3; sin(i*r*Time+.87))     # == sin(6*pi*Time+.87)
 \end{verbatim}
-The latter sequence evaluates to $ \sin\plbr{2\pi{t}+.87} $,
+The latter sequence evaluates to $ \sin\plbr{6\pi{t}+.87} $,
 depending on the current value of the pre-defined variable \kw{Time}.
 The constant \kw{pi} is always defined as $ \pi $ with machine precision
 (the macro \texttt{M\_PI} in the standard C header file \texttt{math.h}).
@@ -2338,13 +2338,15 @@ parsed expression, where non-symbolic branches are evaluated once for all,
 to speed up evaluation.}
 
 \subsection{Tanh drive}
-\begin{verbatim}
-    <drive_caller> ::= tanh,
-        <initial_time> ,
-        <amplitude> ,
-        <slope> ,
-        <initial_value>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{tanh} ,
+        \bnt{initial_time} ,
+        \bnt{amplitude} ,
+        \bnt{slope} ,
+        \bnt{initial_value}
+\end{Verbatim}
+%\end{verbatim}
 This drive computes a function of the type
 \begin{displaymath}
 	f\plbr{t} = \nt{initial\_value} + \nt{amplitude} \cdot\llk{tanh}\plbr{
@@ -3713,84 +3715,133 @@ although it only allows $\nt{xi} = 1/2$.
 Hydraulic fluid data defines the constitutive properties
 of hydraulic fluids, which are generally required by hydraulic elements.
 Hydraulic fluid data can be defined in two ways, according to the BNF:
-\begin{verbatim}
-    <hydraulic_fluid> ::=
-        { <fluid_type> , <fluid_properties>
-            | reference, <label> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydraulic_fluid} ::=
+        \{ \bnt{fluid_type} , \bnt{fluid_properties}
+            | \kw{reference} , \bnt{label} \}
+\end{Verbatim}
+%\end{verbatim}
 The latter references a previously defined hydraulic fluid dataset,
 described in Section~\ref{sec:HYDRAULIC-FLUID}.
-The \kw{fluid\_type}s, with the related \kw{fluid\_properties}, are:
+The available types \nt{fluid\_type},
+with the related \nt{fluid\_properties}, are:
 
 \subsection{Incompressible}
-\begin{verbatim}
-    <fluid_type> ::= incompressible
-    <fluid_properties> ::=
-        [ density , <density> ]
-        [ , viscosity , <viscosity> ]
-        [ , pressure , <pressure > ]
-        [ , temperature , <temperature> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{fluid_type} ::= \kw{incompressible}
+
+    \bnt{fluid_properties} ::=
+        \bnt{property} [ , ... ]
+
+    \bnt{property} ::=
+        \{ \kw{density} , \bnt{density}
+            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{pressure} , \bnt{pressure}
+            | \kw{temperature} , \bnt{temperature} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsection{Linearly compressible}
-\begin{verbatim}
-    <fluid_type> ::= linear compressible
-    <fluid_properties> ::=
-        [ density , <ref_density> ,
-            <beta> , <ref_pressure> ]
-        [ , viscosity , <viscosity> ]
-        [ , temperature , <temperature> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{fluid_type} ::= \kw{linear compressible}
+
+    \bnt{fluid_properties} ::=
+        \bnt{property} [ , ... ]
+
+    \bnt{property} ::=
+        \{ \kw{density} , \bnt{ref_density} ,
+                \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
+            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{temperature} , \bnt{temperature} \}
+\end{Verbatim}
+%\end{verbatim}
+If the keyword \kw{sound celerity} is used, the bulk modulus \nt{beta}
+is computed as
+\begin{align}
+	\nt{beta}
+	&=
+	\nt{ref\_density} \cdot \nt{sound\_celerity}^2
+\end{align}
 
 \subsection{Linearly compressible, with thermal dependency}
-\begin{verbatim}
-    <fluid_type> ::= linear thermal compressible
-    <fluid_properties> ::=
-        [ density , <ref_density> ,
-            <beta> , <ref_pressure> ,
-            <alpha> , <ref_temperature> ]
-        [ , viscosity , <viscosity> ]
-\end{verbatim}
+% \begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{fluid_type} ::= \kw{linear thermal compressible}
+
+    \bnt{fluid_properties} ::= 
+        \bnt{property} [ , ... ]
+
+    \bnt{property} ::=
+        \{ \kw{density} , \bnt{ref_density} ,
+                \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
+                \bnt{alpha} , \bnt{ref_temperature}
+            | \kw{viscosity} , \bnt{viscosity} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsection{Super (linearly compressible, with thermal dependency)}
-\begin{verbatim}
-    <fluid_type> ::= super
-    <fluid_properties> ::=
-        [ density , <ref_density> ,
-            <beta> , <ref_pressure> ,
-            <alpha> , <ref_temperature> ]
-        [ , viscosity , <viscosity> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{fluid_type} ::= \kw{super}
+
+    \bnt{fluid_properties} ::= 
+        \bnt{property} [ , ... ]
+
+    \bnt{property} ::=
+        \{ \kw{density} , \bnt{ref_density} ,
+                \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
+            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{temperature} , \bnt{temperature} \}
+\end{Verbatim}
+%\end{verbatim}
 according to equation
-\begin{displaymath}
-	\matr{ll}{
-		\rho \ = \ \rho_0 + \rho_\text{ref}\cfrac{1}{2}\plbr{
-			1 + \llk{tanh}\plbr{a\plbr{p-p_\text{ref}}}
-		} & p < p_\text{ref} \\
-		+= \ \cfrac{p-p_\text{ref}}{\beta} & p > p_\text{ref}
+\begin{align}
+	\rho_-
+	&=
+	\rho_0 + \nt{ref\_density} \cdot \cfrac{1}{2}\plbr{
+		1 + \tanh\plbr{a\plbr{p - p_0}}
 	}
-\end{displaymath}
-\emph{Note: highly experimental}
+	\nonumber \\
+	\rho
+	&=
+	\rho_-
+		& p &< p_0
+	\\
+	\rho
+	&=
+	\rho_- + \cfrac{p - p_0}{\nt{beta}}
+		& p &> p_0
+	\nonumber
+\end{align}
+\emph{Note: highly experimental; currently, $\rho_0$, $a$ and $p_0$
+are hardcoded in SI units.}
 
 \subsection{Exponential compressible fluid, with saturation}
-\begin{verbatim}
-    <fluid_type> ::= exponential
-    <fluid_properties> ::=
-        [ density , <ref_density> ,
-            <beta> , <ref_pressure> ,
-            <alpha> , <ref_temperature> , ]
-        [ viscosity , <viscosity> , ]
-        <psat>
-\end{verbatim}
-where \kw{psat} is the saturation pressure, according to equation
-\begin{displaymath}
-	\matr{ll}{
-		\rho \ = \ \rho_0 \e{\cfrac{p-p_0}{\beta}} &
-		p > p_\text{sat} \\
-		\rho \ = \ \rho_0 \e{1000\cfrac{p-p_0}{\beta}} &
-		p < p_\text{sat}
-	}
-\end{displaymath}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{fluid_type} ::= \kw{exponential}
+
+    \bnt{fluid_properties} ::= 
+        [ \bnt{property} [ , ... ] , ] \bnt{p_sat}
+
+    \bnt{property} ::=
+        \{ \kw{density} , \bnt{ref_density} ,
+                \{ \kw{sound celerity} , \bnt{sound_celerity} | \bnt{beta} \} , \bnt{ref_pressure}
+            | \kw{viscosity} , \bnt{viscosity}
+            | \kw{temperature} , \bnt{temperature} \}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{p\_sat} is the saturation pressure, according to equation
+\begin{align}
+	\rho &= \nt{ref\_density} \cdot \text{e}^{\cfrac{p - \nt{ref\_pressure}}{\nt{beta}}}
+		& p &> \nt{p\_sat}
+	\nonumber \\
+	\rho &= \nt{ref\_density} \cdot \text{e}^{1000\cfrac{p - \nt{ref\_pressure}}{\nt{beta}}}
+		& p &< \nt{p\_sat}
+\end{align}
 \emph{Note: this fluid constitutive law is loosely inspired by AMESim's
 simply corrected compressible fluid.}
 
@@ -3801,9 +3852,11 @@ Some authentication methods are defined and made available to specific
 program modules; they are used to authenticate before accessing some
 resources of the program while it is running.
 The syntax is:
-\begin{verbatim}
-    <authentication_method> ::= <method> [ , <specific_data> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{authentication_method} ::= \bnt{method} [ , \bnt{specific_data} ]
+\end{Verbatim}
+%\end{verbatim}
 Authentication methods in general expect some authentication tokens to be
 input.
 Usually a user name and a password are required.
@@ -3819,7 +3872,7 @@ is strongly recommended; otherwise no authentication should be used.
 As an alternative, a SSH tunnel may be established between the client
 and the server machine, and simple authentication can be used.
 Otherwise, if the user has direct access to the server where
-the computation is being run, sockets with \kw{local} namespace
+the computation is being run, sockets with \texttt{local} namespace
 can be used, and security can be enforced by means of the access
 privileges of the socket file.
 Since some of the UN*X systems do not honor socket permissions,
@@ -3829,49 +3882,59 @@ of the directory to control access to the socket.
 
 Available methods are:
 \subsection{No authentication}
-\begin{verbatim}
-    <authentication_method> ::= no auth
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{authentication_method} ::= \kw{no auth}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsection{Password}
-\begin{verbatim}
-    <authentication_method> ::= password ,
-        user , " <user_name> " ,
-        credentials , { prompt | " <user_cred> " }
-        [ , salt format , <salt_format> ]
-\end{verbatim}
-In case the keyword \kw{prompt} is given as credentials, the user is
-prompted for a password.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{authentication_method} ::= \kw{password}
+
+    \bnt{specific_data} ::=
+        \kw{user} , " \bnt{user_name} " ,
+        \kw{credentials} , \{ \kw{prompt} | " \bnt{user_cred} " \}
+        [ , \kw{salt format} , \bnt{salt_format} ]
+\end{Verbatim}
+%\end{verbatim}
+In case the keyword \kw{prompt} is given as \kw{credentials}, the user is
+prompted for a password; \nt{user\_cred} is used otherwise.
 The optional parameter \kw{salt\_format} allows to specify different
-formats for the \kw{salt}, for those \kw{crypt(3)} extensions 
+formats for the \texttt{salt}, for those \texttt{crypt(3)} extensions 
 that support more sophisticated encryption mechanisms (e.g.\ MD5).
-See \kw{crypt(3)} for details.
-If the credentials are preceded by the string \kw{\{CRYPT\}},
+See \texttt{crypt(3)} for details.
+If the credentials are preceded by the string \texttt{\{CRYPT\}},
 they are assumed to be already encrypted, and the remaining portion is used.
 
 \subsection{PAM (Pluggable Authentication Modules)}
-\begin{verbatim}
-    <authentication_method> ::= pam 
-        [ , user , " <user_name> " ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{authentication_method} ::= \kw{pam}
+
+    \bnt{specific_data} ::=
+        [ \kw{user} , " \bnt{user_name} " ]
+\end{Verbatim}
+%\end{verbatim}
 The {\em Linux-PAM} Pluggable Authentication Modules can be used to
 authenticate a user. 
 If no user name is provided, the effective user id, as provided by the 
-\kw{geteuid()} system function, is used to retrieve the username of the
+\texttt{geteuid(2)} system function, is used to retrieve the username of the
 owner of mbdyn process.
 the \kw{user} must be valid. 
 The authentication is performed through a system-dependent \kw{pam}
 configuration file.
 No checks on the validity of the account or on the permission of opening a
 session are made; account, session and password changes should be explicitly
-denied to \kw{mbdyn} to avoid possible security breaks (see the following
+denied to \texttt{mbdyn} to avoid possible security breaks (see the following
 example).
 The interested reader should consult the documentation that comes with the
 package, try for instance
-\htmladdnormallink{\kw{http://www.kernel.org/pub/linux/libs/pam/\ }}\
+\htmladdnormallink{\texttt{http://www.kernel.org/pub/linux/libs/pam/\ }}\
 for details.
 
-An example is provided with the package, in  \kw{/etc/pam.d/mbdyn}:
+An example is provided with the package, in  \texttt{/etc/pam.d/mbdyn}:
 \begin{verbatim}
     ### use either of the following:
     auth       required     /lib/security/pam_unix_auth.so
@@ -3888,17 +3951,23 @@ authentication.
 
 
 \subsection{SASL (Simple Authentication and Security Layer)}
-\begin{verbatim}
-    <authentication_method> ::= sasl
-        [ , user , " <user_name> " ]
-        [ , mechanism , " <preferred_mechanism> " ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{authentication_method} ::= \kw{sasl}
+
+    \bnt{specific_data} ::= [ \bnt{parameter} [ , ... ] ]
+
+    \bnt{parameter} ::=
+        \{ \kw{user} , " \bnt{user_name} "
+            | \kw{mechanism} , " \bnt{preferred_mechanism} " \}
+\end{Verbatim}
+%\end{verbatim}
 This is the preferred authentication method because 
 it is mechanism-independent, it can be reasonably secure
 and automatically selects the most appropriate mechanism available
 on both the client and the server machine.
 It requires Cyrus SASL 2 (See 
-\htmladdnormallink{\kw{http://asg.web.cmu.edu/sasl/\ }}\
+\htmladdnormallink{\texttt{http://asg.web.cmu.edu/sasl/\ }}\
 for details, and follow the documentation to obtain a working setup).
 
 
@@ -3912,25 +3981,25 @@ Finally there are some miscellaneous points:
   
     \begin{enumerate}
   
-        \item \kw{MBDYNVARS=<expr\_list>}
-	where \kw{expr\_list} is a series of mathematical expressions
+        \item \texttt{\kw{MBDYNVARS}=\bnt{expr\_list}}
+	where \nt{expr\_list} is a series of mathematical expressions
 	separated by semicolons. 
 	They are parsed and evaluated; if variables are declared, they are
 	added to the symbol table to be used during the whole execution 
 	of the program.
     
-        \item \kw{MBDYN\_<type>\_<name>=<value>},
-	where \kw{type} is a legal mbdyn type (\kw{integer} or \kw{real};
-	see Table~\ref{tab:MATHP-TYPES} for details),
-	\kw{name} is a legal symbol name and \kw{value} is a legal
-	mathematical expression.
+        \item \texttt{\kw{MBDYN\_\bnt{type}\_\bnt{name}}=\bnt{value}},
+	where \nt{type} is a legal mbdyn type (\kw{integer}, \kw{real}
+	or \kw{string}; see Table~\ref{tab:MATHP-TYPES} for details),
+	\nt{name} is a legal symbol name and \nt{value} is a legal
+	expression.
     
     \end{enumerate}
     
     \item Newlines and indentations are not meaningful. But good indentation
     habits can lead to better and more readable input files.
     
-    \item Everything that follows the character \kw{`\#'} is considered a
+    \item Everything that follows the character \texttt{`\#'} is considered a
     remark, and is discarded until the end of the line. 
     This can occur everywhere in the file, even inside a math expression 
     (if any problems occur, please let me know, because chances are 
@@ -3938,7 +4007,7 @@ Finally there are some miscellaneous points:
     
     \item A new style for comments has been introduced, resembling the 
     C programming language style: everything comprised between the marks
-    \kw{/*} and \kw{*/} is regarded as a remark:
+    \texttt{/*} and \texttt{*/} is regarded as a remark:
 \begin{verbatim}
     /*
      * useful comments make input files readable!

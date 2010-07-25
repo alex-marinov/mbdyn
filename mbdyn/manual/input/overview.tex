@@ -72,47 +72,53 @@ Anyway, the structured data always follows the rules of the general data.
 Few exceptions are present, and will be eliminated soon.
 Every data block is surrounded by the control statements \kw{begin} and
 \kw{end}:
-\begin{verbatim}
-    begin: <block_name> ;
-        ...
-    end: <block_name> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \bnt{block_name} ;
+        # block content
+    \kw{end} : \bnt{block_name} ;
+\end{Verbatim}
+%\end{verbatim}
 The block sequence is:
-\begin{verbatim}
-    begin: data;
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{data} ;
         # select a problem
-    end: data;
+    \kw{end} : \kw{data} ;
 
-    begin: <problem>;
+    \kw{begin} : \bnt{problem} ;
         # problem data
-    end: <problem>;
+    \kw{end} : \bnt{problem} ;
 
-    begin: control data;
+    \kw{begin} : \kw{control data} ;
         # model control data
-    end: control data;
+    \kw{end} : \kw{control data} ;
 
-    begin: nodes;
+    \kw{begin} : \kw{nodes} ;
         # nodes data
-    end: nodes;
+    \kw{end} : \kw{nodes} ;
 
-    # note: optional
-    begin: drivers;
+    # note: optional, if defined in \kw{control data}
+    \kw{begin} : \kw{drivers} ;
         # special drivers data
-    end: drivers;
+    \kw{end} : \kw{drivers} ;
 
-    begin: elements;
+    \kw{begin} : \kw{elements} ;
         # elements data
-    end: elements;
-\end{verbatim}
+    \kw{end} : \kw{elements} ;
+\end{Verbatim}
+%\end{verbatim}
 The \kw{drivers} block is optional.
 
 The Schur solver allows an extra block after that of the elements:
-\begin{verbatim}
-    # note: optional; only allowed when Schur solver is used
-    begin: parallel;
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    # note: optional; only allowed when Schur solver is defined in \nt{problem}
+    \kw{begin} : \kw{parallel} ;
         # parallel data
-    end: parallel;
-\end{verbatim}
+    \kw{end} : \kw{parallel} ;
+\end{Verbatim}
+%\end{verbatim}
 where data specific to the partitioning and the connectivity
 of the Schur solver is provided.
 This is yet undocumented, and will likely be described 
