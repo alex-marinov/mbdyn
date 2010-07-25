@@ -28,43 +28,53 @@
 
 \chapter{Drivers}\label{sec:DRIVERS}
 The \kw{drivers} section is enclosed by the cards:
-\begin{verbatim}
-    begin: drivers;
-        ...
-    end: drivers;
-\end{verbatim}
-Every \kw{driver} card has the following format:
-\begin{verbatim}
-    <card> ::= <driver_type> : <arglist> ;
-\end{verbatim}
-At present only \kw{driver\_type} drivers of type \kw{file} are supported.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{drivers} ;
+        # ...
+    \kw{end} : \kw{drivers} ;
+\end{Verbatim}
+%\end{verbatim}
+Every \kw{driver} card has the format:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{driver_type} : \bnt{arglist} ;
+\end{Verbatim}
+%\end{verbatim}
+At present the only type \nt{driver\_type} of drivers supported is \kw{file}.
 
 \section{File Drivers}
 The \kw{file} drivers are defined by the statement
-\begin{verbatim}
-    file : <arglist> ;
-\end{verbatim}
-A comprehensive family of \kw{file} drivers is planned;
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{file} : \bnt{file_arglist} ;
+\end{Verbatim}
+%\end{verbatim}
+A comprehensive family of \kw{file} drivers is available;
 their syntax is:
-\begin{verbatim}
-    <arglist> ::= <label> , <normal_arglist>
-\end{verbatim}
-The following \kw{file} drivers are supported at present:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{file_arglist} ::= \bnt{label} , \bnt{normal_arglist}
+\end{Verbatim}
+%\end{verbatim}
+The following \kw{file} drivers are supported:
 
 
 
 \subsection{Fixed Step}
-\begin{verbatim}
-    <normal_arglist> ::= fixed step , 
-        { count | <steps_number> } ,
-        <columns_number> ,
-        <initial_time> ,
-        <time_step> 
-        [ , interpolation , { linear | const } ]
-        { , [ pad zeroes , { yes | no } , ]
-         | [ bailout, { none | upper | lower | any } , ] }
-        " <file_name> "
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{fixed step} , 
+        \{ \kw{count} | \bnt{steps_number} \} ,
+        \bnt{columns_number} ,
+        \bnt{initial_time} ,
+        \bnt{time_step} ,
+        [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
+        [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \}
+            | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} \} , ]
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
 The value at an arbitrary time is interpolated from the available data.
 
 If the requested value is out of time bounds, zero is returned,
@@ -89,14 +99,17 @@ The file format is
 \end{verbatim}
 
 \subsection{Variable Step}
-\begin{verbatim}
-    <normal_arglist> ::= variable step , 
-        <columns_number> ,
-        [ , interpolation , { linear | const } ]
-        { , [ pad zeroes , { yes | no } , ]
-         | [ bailout, { none | upper | lower | any } , ] }
-        " <file_name> "
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{variable step} , 
+        \bnt{columns_number} ,
+        [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
+        [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \} 
+            | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} , \} , ]
+        " \bnt{file_name} "
+\end{Verbatim}
+%\end{verbatim}
+The same considerations of the \kw{fixed step} type apply.
 
 The file format is
 \begin{verbatim}
@@ -110,56 +123,67 @@ Time values must grow monotonically.
 
 
 \subsection{Socket}
-\begin{verbatim}
-    <normal_arglist> ::= socket , 
-                         <columns_number>
-                         { , local, " <file_name> " 
-                           | [ , port, <port_number> ] }
-                         (AuthenticationMethod)<authentication>
-\end{verbatim}
-The driver binds to a socket listening on port \kw{port\_number} 
-(defaults to 5555) or on the named pipe \kw{file\_name}; at the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{socket} , 
+        \bnt{columns_number} ,
+        \{ \kw{local} , " \bnt{file_name} " 
+            | [ \kw{port} , \bnt{port_number} , ] \ty{(AuthenticationMethod)} \bnt{authentication} \}
+\end{Verbatim}
+%\end{verbatim}
+The driver binds to a socket listening on port \nt{port\_number} 
+(defaults to 9011) or on the named pipe \nt{file\_name}; at the
 beginning of each time step, in case of connection, the driver expects some
 input data in text format, consisting in an authentication token 
 (if required).
 The authentication token is usually in the form
-\begin{verbatim}
-    user: <user_name> <new_line>
-    password: <user_password> <new_line>
-\end{verbatim}
-{\em 
-    Note: white-spaces may be significant in \kw{user\_name}, 
-    and surely are in \kw{user\_password}.
-} \\    
-It is followed by a label token, in the form
-\begin{verbatim}
-    label: <label> <new_line>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    user: \bnt{user_name} NEWLINE
+    password: \bnt{user_password} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+where \texttt{NEWLINE} is a literal `newline' (i.e.\ `\verb;\n;').
+White-spaces may be significant in \nt{user\_name}, 
+and surely are in \nt{user\_password}.
+
+The identification is followed by a label token, in the form
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    label: \bnt{label} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
 indicating the column being edited, followed by the desired changes; 
 the connection is terminated by a single mark followed by a newline:
-\begin{verbatim}
-    . <new_line>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    . NEWLINE
+\end{Verbatim}
+%\end{verbatim}
 The permitted operations, at present, are:
-\begin{verbatim}
-    value: <value> <new_line>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    value: \bnt{value} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
 sets the value the drive will assume from the current step on
-\begin{verbatim}
-    inc: { yes | no } <new_line>
-\end{verbatim}
-tells whether to switch on or off the increment mode, resulting in
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    inc: \{ \kw{yes} | \kw{no} \} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+tells whether to switch \kw{on} or \kw{off} the increment mode, resulting in
 subsequent value commands being ``set'' rather than ``add''
-\begin{verbatim}
-    imp: { yes | no } <new_line>
-\end{verbatim}
-tells whether to switch on or off the impulse mode, resulting in subsequent
-value commands to be applied for one step only. \\
-{\em 
-    Note: at present, impulse mode supersedes any incremental mode, namely
-    the value of the drive is reset to zero after one step.
-    This behavior may change in the future.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    imp: \{ \kw{yes} | \kw{no} \} NEWLINE
+\end{Verbatim}
+%\end{verbatim}
+tells whether to switch \kw{on} or \kw{off} the impulse mode;
+when \kw{on}, subsequent value commands to be applied for one step only.
+At present, impulse mode supersedes any incremental mode, namely
+the value of the drive is reset to zero after one step.
+This behavior may change in the future.
 
 
 
@@ -170,30 +194,32 @@ that reads the input data from a RTAI mailbox in non-blocking mode.
 It is intended as a means of communication between different processes
 running in real-time.
 The syntax is:
-\begin{verbatim}
-    <normal_arglist> ::= RTAI input ,
-        stream drive name , " <stream_name> " ,
-        [ create , { yes | no } , ]
-        [ host , " <host_name> " , ]
-        [ { [ non ] blocking } , [ ... ] ]
-        <columns_number> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{RTAI input} ,
+        \kw{stream drive name} , " \bnt{stream_name} " ,
+        [ \kw{create} , \{ \kw{yes} | \kw{no} \} , ]
+        [ \kw{host} , " \bnt{host_name} " , ]
+        [ \{ [ \kw{non} ] \kw{blocking} \} , [ ... ] ]
+        \bnt{columns_number} ;
+\end{Verbatim}
+%\end{verbatim}
 where
 \begin{itemize}
-\item \kw{stream\_name} is the name of the mailbox (a unique string 
+\item \nt{stream\_name} is the name of the mailbox (a unique string 
 no more than 6 characters long);
 \item the \kw{create} keyword determines whether the mailbox 
 must be created or looked-up as already existing on the system;
-\item \kw{host\_name} is the name or the IP of the remote host where 
+\item \nt{host\_name} is the name or the IP of the remote host where 
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no} and the mailbox must be already defined
 on the remote host;
-\item the number of channels \kw{columns\_number} determines how many
+\item the number of channels \nt{columns\_number} determines how many
 columns can be accessed via the \kw{file} drive caller mechanism 
 of Section~\ref{sec:DRIVE:FILE}, as for all the other \kw{file} drivers.
 \end{itemize}
 This part of the program is rapidly evolving, so do please not expect
-too much documentation and backwards compatibility.
+too much documentation and backward compatibility.
 
 \emph{Note: at present, these elements require that the simulation
 be run in real-time mode (see Section~\ref{sec:REAL-TIME});
@@ -204,23 +230,24 @@ or model debugging purposes.}
 
 
 \subsection{Stream}\label{sec:Stream}
-\begin{verbatim}
-    <normal_arglist> ::= stream,
-        name , " <stream_name> " ,
-        create , { yes | no } ,
-        [ { local , " <socket_name> " , |
-            [ port , <port_number> , ]
-            [ host , " <host_name> " , ] } ]
-        [ { [ no ] signal
-            | [ non ] blocking } , [ ... ] ]
-        [ input every , <steps> , ]
-        [ receive first , { yes | no } , ]
-        [ timeout , <timeout> , ]
-        [ echo , " <echo_file_name> "
-            [ , precision , <precision> ]
-            [ , shift , <shift> ] , ]
-        <columns_number>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{stream} ,
+        \kw{name} , " \bnt{stream_name} " ,
+        \kw{create} , \{ \kw{yes} | \kw{no} \} ,
+        [ \{ \kw{local} , " \bnt{path} " ,
+            | [ \kw{port} , \bnt{port_number} , ] [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \{ [ \kw{no} ] \kw{signal}
+            | [ \kw{non} ] \kw{blocking} \} , [ ... ] , ]
+        [ \kw{input every} , \bnt{steps} , ]
+        [ \kw{receive first} , \{ \kw{yes} | \kw{no} \} , ]
+        [ \kw{timeout} , \bnt{timeout} , ]
+        [ \kw{echo} , " \bnt{echo_file_name} "
+            [ , \kw{precision} , \bnt{precision} ]
+            [ , \kw{shift} , \bnt{shift} ] , ]
+        \bnt{columns_number}
+\end{Verbatim}
+%\end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
 from remote processes both during regular simulations and during 
 real-time simulations under RTAI.
@@ -239,7 +266,7 @@ of the communication with the controller process.
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
-\item \kw{stream\_name} indicates the name the stream will be known as;
+\item \nt{stream\_name} indicates the name the stream will be known as;
 it is mostly useless, and must be no more than 6 characters long,
 since it is only allowed for compatibility with RTAI's mailboxes;
 \item the instruction \kw{create} determines whether the socket will be
@@ -250,15 +277,15 @@ in the local namespace will be used; if \kw{create} is set to \kw{yes},
 the socket is created, otherwise it must exist.
 \item either of the keywords \kw{port} or \kw{host} indicate that a socket
 in the internet namespace will be used;
-if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
+if \kw{create} is set to \kw{yes}, \nt{host\_name} indicates 
 the host that is allowed to connect to the socket; it defaults 
-to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
+to any host (0.0.0.0); if \kw{create} is set to \kw{no},
 \kw{host\_name} indicates what host to connect to; the default 
-is localhost (\kw{127.0.0.1}); the default port is \kw{5500};
-\item the keyword \kw{no signal} disables raising a \kw{SIGPIPE}
+is localhost (127.0.0.1); the default port is 9011;
+\item the keyword \kw{no signal} disables raising a \texttt{SIGPIPE}
 in case the stream is read after it was closed by the peer;
 \item the keyword \kw{input every} allows to read new driver values
-every \kw{steps} time steps;
+every \nt{steps} time steps;
 \item the keyword \kw{receive first} allows to enable/disable
 receiving data at the initial time (defaults to \kw{yes},
 thus data is expected at the initial time, during derivatives);
@@ -267,7 +294,7 @@ for each read operation; the timeout is expressed in seconds
 as a floating point number, with a theoretical micro-second resolution
 (the actual resolution is left to the OS);
 \item the keyword \kw{echo} allows to echo the streamed data
-into file \kw{echo\_file\_name}, using the optional \kw{precision}
+into file \nt{echo\_file\_name}, using the optional \kw{precision}
 and a \kw{shift} for the time, to make sure step changes are captured
 correctly (a small negative value is recommended);
 the resulting file is suitable to re-execute the simulation
@@ -283,7 +310,7 @@ keyword is mandatory.
 During real-time simulations, streams wrap non-blocking RTAI mailboxes.
 The meaning of the parameters is:
 \begin{itemize}
-\item the parameter \kw{stream\_name} indicates the name the stream
+\item the parameter \nt{stream\_name} indicates the name the stream
 will be known as in RTAI's resource namespace;
 it must no more than 6 characters long, and actually represents the mailbox name;
 \item the instruction \kw{create} determines whether the mailbox will be
@@ -296,7 +323,7 @@ if none is given, a local mailbox is assumed;
 \item the keyword \kw{port} is ignored.
 \end{itemize}
 
-The parameter \kw{columns\_number} determines how many
+The parameter \nt{columns\_number} determines how many
 channels will be used.
 A channel is a double typed number; a \kw{stream drive} can read
 an arbitrary number of simultaneous channels.
