@@ -414,23 +414,25 @@ The default behavior is to ignore such requests\footnote{See note above}.
 
 \subsubsection{Eigenanalysis}
 \label{sec:IVP:eigenanalysis}
-\begin{verbatim}
-    <card> ::= eigenanalysis :
-        { <when> | list , <num_times> , <when> [ , ... ] }
-        [ , { output [ full ] matrices
-            | output sparse matrices
-            | output eigenvectors
-            | output geometry
-            | parameter , <param>
-            | lower frequency limit, <lower>
-            | upper frequency limit, <upper>
-            | <method> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{eigenanalysis} :
+        \{ \bnt{when} | \kw{list} , \bnt{num_times} , \bnt{when} [ , ... ] \}
+        [ , \{ \kw{output} [ \kw{full} ] \kw{matrices}
+            | \kw{output sparse matrices}
+            | \kw{output eigenvectors}
+            | \kw{output geometry}
+            | \kw{parameter} , \bnt{param}
+            | \kw{lower frequency limit} , \bnt{lower}
+            | \kw{upper frequency limit} , \bnt{upper}
+            | \bnt{method} \}
             [ , ... ] ]
-    <method> ::=
-        { use lapack [ , balance , { no | scale | permute | all } ]
-            | use arpack , <nev> , <ncv> , <tol>
-            | use jdqz , <nev> , <ncv> , <tol> } 
-\end{verbatim}
+    \bnt{method} ::=
+        \{ \kw{use lapack} [ , \kw{balance} , \{ \kw{no} | \kw{scale} | \kw{permute} | \kw{all} \} ]
+            | \kw{use arpack} , \bnt{nev} , \bnt{ncv} , \bnt{tol}
+            | \kw{use jdqz} , \bnt{nev} , \bnt{ncv} , \bnt{tol} \} 
+\end{Verbatim}
+%\end{verbatim}
 Performs the direct eigenanalysis of the problem.
 This functionality is experimental.
 Direct eigenanalysis based on the matrices of the system
@@ -444,49 +446,49 @@ using the \kw{rigid body kinematics} card
 (see Section~\ref{sec:CONTROLDATA:RBK}).
 
 \begin{itemize}
-\item \kw{when} indicates at what time the eigenanalysis is performed.
+\item \nt{when} indicates at what time the eigenanalysis is performed.
 	The analysis is performed at the first time step for which
-	\kw{Time} is greater than or equal to \kw{when}.
-	If the keyword \kw{list} is given, \kw{num\_times} values
-	of \kw{when} are expected.  At most \kw{num\_times} eigenanalyses
+	$\kw{Time} \ge \nt{when}$.
+	If the keyword \kw{list} is given, \nt{num\_times} values
+	of \nt{when} are expected.  At most \nt{num\_times} eigenanalyses
 	are performed; the output file name is composed using
-	the position of the corresponding \kw{when} in the array
+	the position of the corresponding \nt{when} in the array
 	of times;
-\item \kw{param} is the value of the coefficient that is used to project
+\item \nt{param} is the value of the coefficient that is used to project
 	the problem in the discrete time domain; it represents
 	a singularity point in the transformation from the discrete
 	to the continuous eigenvalues, so it should not coincide with
 	an eigenvalue of the problem;  by default it is 1.0;
 \item \kw{output full matrices} causes the output
-	of the (full) problem matrices in a \kw{.m} file,
-	intended to be loaded by tools like octave/matlab;
+	of the (full) problem matrices in a \texttt{.m} file,
+	intended to be loaded by tools like Octave/Matlab;
 \item \kw{output sparse matrices} causes the output
-	of the problem matrices in sparse form in a \kw{.m} file,
-	intended to be loaded by tools like octave/matlab;
+	of the problem matrices in sparse form in a \texttt{.m} file,
+	intended to be loaded by tools like Octave/Matlab;
 \item \kw{output eigenvectors} causes the output of the eigenvalues
-	and of the eigenvectors in a \kw{.m} file,
-	intended to be loaded by tools like octave/matlab;
+	and of the eigenvectors in a \texttt{.m} file,
+	intended to be loaded by tools like Octave/Matlab;
 \item \kw{output geometry} causes the output of the reference
 	configuration of structural nodes, if any,
 	and of the indexes that need to be used in order to extract
 	the perturbation of their position and orientation
 	from the eigenvectors;
 \item \kw{use lapack} performs the eigenanalysis using
-	LAPACK's \kw{dggev()} routine (generalized unsymmetric eigenanalysis
+	LAPACK's \texttt{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
 \item \kw{balance} performs matrix permutation (\kw{permute}),
 	scaling (\kw{scale}), both (\kw{all}) using LAPACK's
-	\kw{dggevx()} routine, or none (\kw{no}) using \kw{dggev()};
-	by default, matrix permutation is performed, using \kw{dggevx()};
+	\texttt{dggevx()} routine, or none (\kw{no}) using \texttt{dggev()};
+	by default, matrix permutation is performed, using \texttt{dggevx()};
 \item \kw{use arpack} performs the eigenanalysis using
-	ARPACK's \kw{dnaupd()} and \kw{dneupd()} routines
+	ARPACK's \texttt{dnaupd()} and \texttt{dneupd()} routines
 	(canonical unsymmetric eigenanalysis,
 	using the Implicitly Restarted Arnoldi Method, IRAM).
 	It requires the additional parameters:
 	\begin{itemize}
-	\item \kw{nev}, the number of the desired eigenvalues;
-	\item \kw{ncv}, the number of the Arnoldi vectors;
-	\item \kw{tol}, the tolerance (positive; zero means machine error).
+	\item \nt{nev}, the number of the desired eigenvalues;
+	\item \nt{ncv}, the number of the Arnoldi vectors;
+	\item \nt{tol}, the tolerance (positive; zero means machine error).
 	\end{itemize}
 \item \kw{use jdqz} performs the eigenanalysis using JDQZ (Jacobi-Davidson QZ
 	decomposition).
@@ -495,10 +497,10 @@ using the \kw{rigid body kinematics} card
 	is not formalized yet (experimental).
 \item \kw{lower frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is larger than
-	\kw{lower} Hz;
+	\nt{lower} Hz;
 \item \kw{upper frequency limit} only outputs those eigenvalues and eigenvectors
 	that are complex and whose imaginary part is smaller than
-	\kw{upper} Hz;
+	\nt{upper} Hz;
 \end{itemize}
 The \kw{eigenanalysis} functionality is experimental,
 so the syntax could need adjustments and change across versions.
@@ -518,14 +520,14 @@ It may be beneficial in those cases where the number of deformable components
 is much larger than the number of constraint equations.
 
 \paragraph{Output}
-A brief summary of the eigenvalues is output in the \kw{.out} file.
-Most of the information is dumped in a \kw{.m} file in a format
+A brief summary of the eigenvalues is output in the \texttt{.out} file.
+Most of the information is dumped in a \texttt{.m} file in a format
 that is suitable for execution with scientific software like
 Octave and Matlab.
 The execution of the file populates the environment of those software
 with a set of variables that contains the results of the eigenanalysis.
 According to the options used in the \kw{eigenanalysis} card,
-the \kw{.m} file may contain:
+the \texttt{.m} file may contain:
 \begin{itemize}
 \item \texttt{Aplus}: 
 matrix
@@ -588,12 +590,15 @@ The contents of this file may change across versions.
 
 \subsubsection{Abort After}
 \label{sec:IVP:abort after}
-\begin{verbatim}
-    <card> ::= abort after : { input 
-                             | assembly 
-                             | derivatives 
-                             | dummy steps } ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{abort after} :
+        \{ \kw{input} 
+            | \kw{assembly}
+            | \kw{derivatives}
+            | \kw{dummy steps} \} ;
+\end{Verbatim}
+%\end{verbatim}
 mainly used to cleanly check models and simulations at various phases.
 When set to \kw{input}, the simulation ends after input is completed;
 when set to \kw{assembly}, the simulation ends after initial assembly,
@@ -612,17 +617,20 @@ usually output.
 
 \subsubsection{Linear Solver}   
 \label{sec:LINEAR-SOLVER}
-\begin{verbatim}
-    <card> ::= linear solver :
-            { naive | umfpack | klu | y12 | lapack | superlu | taucs | watson }
-        [ , { map | cc | dir } ]
-        [ , { colamd | mmdata } ]
-        [ , mt , <threads> ]
-        [ , workspace size , <workspace_size> ] 
-        [ , pivot factor , <factor> ]
-        [ , block size, <block_size> ] ;
-\end{verbatim}
-The default, if available, is \kw{umfpack}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{linear solver} :
+            \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} \}
+        [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
+        [ , \{ \kw{colamd} | \kw{mmdata} \} ]
+        [ , \kw{mt} , \bnt{threads} ]
+        [ , \kw{workspace size} , \bnt{workspace_size} ] 
+        [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
+        [ , \kw{block size} , \bnt{block_size} ] ;
+\end{Verbatim}
+%\end{verbatim}
+
+The default, when available, is \kw{umfpack}.
 Since it dynamically allocates memory as required, the \kw{workspace size} 
 parameter, if given, is ignored.
 The \kw{umfpack} linear solver honors the \kw{block size} keyword,
@@ -642,11 +650,11 @@ a $O(1)$ access cost to the coefficients.
 It ignores the \kw{workspace size} parameter.
 See \cite{NAIVE-2007} for details.
 
-The \kw{klu} solver is provided by the UFSparse suite.
+The \kw{klu} solver is provided by University of Florida's SparseSuite.
 
 The \kw{y12} linear solver requires static allocation of the workspace;
-the optimal size is between 3 and 5 times the number of nonzero 
-coefficients.
+the optimal size \nt{workspace\_size} is between 3 and 5 times
+the number of nonzero coefficients of the sparse matrix.
 By default, twice the size of the full matrix is allocated
 (which sounds a bit nonsense, but is conservative enough);
 then the linear solver automatically uses an optimal amount of memory
@@ -654,21 +662,21 @@ based on the results of the previous factorization; this could
 result in a failure if the filling of the matrix changes 
 dramatically between two factorizations.
 
-The \kw{lapack} linear solver uses LAPACK's \kw{dgetrf()} and \kw{dgetrs()}
+The \kw{lapack} linear solver uses LAPACK's \texttt{dgetrf()} and \texttt{dgetrs()}
 functions with a dense storage, and thus ignores the \kw{workspace size}
 parameter.
 
 Finally, \kw{superlu} is an experimental linear solver that is able to perform
 the factorization in a multi-threaded environment.
 If more than one CPU is available, it automatically uses all the CPUs;
-the keyword \kw{mt} allows to enforce the desired number of threads.
+the keyword \kw{mt} allows to enforce the desired number of \nt{threads}.
 See also the \kw{threads} keyword for more details on multi-threaded
 solution.
 
 \begin{comment}
 Another linear solver, that is available mostly for historical reasons, 
-is \kw{harwell}, with a \kw{workspace size}
-of $ \kw{numdofs}\times\kw{numdofs} $, but in certain cases the user
+is \kw{harwell}, with a \nt{workspace\_size}
+of $ \nt{numdofs}\times\nt{numdofs} $, but in certain cases the user
 might prefer a smaller workspace, since the matrix is handled as sparse,
 while sometimes a larger space is required, since when the matrix is
 full, a little more space is required, due to extra storage needs when
@@ -703,8 +711,8 @@ However, in practical applications, the cost of these operations
 is a very small fraction of the factorization time.
 If the problem is quite large, the memory consumption might
 become unacceptable; if the problem is quite small, the access time
-of \kw{cc} is quite limited ($\log_2\plbr{\mathrm{<nz>}}$, where
-\kw{<nz>} is the number of non-zeroes in a column) so it is definitely
+of \kw{cc} is quite limited ($\log_2\plbr{\bnt{nz}}$, where
+\nt{nz} is the number of non-zeroes in a column) so it is definitely
 comparable to that of \kw{cc}.
 \end{itemize}
 Only \kw{umfpack}, \kw{klu}, \kw{y12} and \kw{superlu}
@@ -712,13 +720,14 @@ linear solvers allow these settings.
 
 The keyword \kw{colamd} is honored by the \kw{naive} and SuperLU linear solvers;
 it enables the column rearrangement that minimizes the sparsity
-of the factored matrix, as implemented in \kw{libcolamd}
-(part of \kw{umfpack} package). The keyword \kw{mmdata} is honored by 
+of the factored matrix, as implemented in \texttt{libcolamd}
+(part of University of Florida's SparseSuite package).
+The keyword \kw{mmdata} is honored by 
 the scalar SuperLU linear solver only; it enables column rearrangement
 based on the MMD ordering of the symmetric matrix $A^T A$.
 
 
-The \kw{pivot factor} is a real number, which in a heuristic sense 
+The \nt{pivot\_factor} is a real number, which in a heuristic sense 
 can be regarded as the threshold for the ratio between two coefficients 
 below which they are switched, so $ 0.0 $ means no pivoting, 
 while $ 1.0 $ means switch as soon as the norm of the ratio 
@@ -824,23 +833,25 @@ Deprecated; see
 
 
 \subsubsection{Threads}   
-\begin{verbatim}
-    <card> ::= threads :
-        { auto | disable | [ { assembly | solver } , ] <threads> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{threads} :
+        \{ \kw{auto} | \kw{disable} | [ \{ \kw{assembly} | \kw{solver} \} , ] \bnt{threads} \}
+\end{Verbatim}
+%\end{verbatim}
 By default, if enabled at compile time, the assembly is performed
 in a multi-threaded environment if more than one CPU is available 
 and the selected solver allows it (e.g.\ if it supports any form 
 of compressed matrix handling, \kw{cc} or \kw{dir}).
 However, this behavior can be influenced by the \kw{threads} directive.
 The value \kw{auto} is the default; the value \kw{disable} reverts
-to the usual scalar behavior; otherwise \kw{<threads>}, the desired 
-number of threads, is read.
+to the usual scalar behavior; otherwise \nt{threads}, the desired 
+number of threads, is read and used.
 If it is prefixed by the keyword \kw{assembly}, the desired number
 of threads is used only in assembly; if it is prefixed by the keyword
 \kw{solver}, the desired number of threads is used only during 
 factorization/solution, if the linear solver supports it (currently,
-only the \kw{superlu} solver does).
+only \kw{naive} and \kw{superlu} solvers do).
 As an example, on a 4 CPU architecture, to use 2 threads for assembly
 and 4 threads for solution, use
 \begin{verbatim}
@@ -853,24 +864,8 @@ and 4 threads for solution, use
 
 
 \subsection{Derivatives Data}
-Data related to the derivatives phase. They are:
-
-
-\subsubsection{Derivatives Tolerance}
-\begin{verbatim}
-    <card> ::= derivatives tolerance : <tolerance> ;
-\end{verbatim}
-
-\subsubsection{Derivatives Max Iterations}
-\begin{verbatim}
-    <card> ::= derivatives max iterations : <max_iterations> ;
-\end{verbatim}
-
-\subsubsection{Derivatives Coefficient}
-\begin{verbatim}
-    <card> ::= derivatives coefficient : <coefficient> ;
-\end{verbatim}
-right after the initial assembly and before the simulation starts, the
+Data related to the `derivatives' phase.
+Right after the initial assembly and before the simulation starts, the
 so-called derivatives solution is performed. The system is solved with
 the kinematic unknowns constrained, in order to properly determine the
 dynamic unknowns, namely momenta and constraint reactions. For this
@@ -883,42 +878,37 @@ problem dependent. A rule-of-thumb is: if the system has small
 stiffness and high inertia, the coefficient can be big, if the system
 has high stiffness and small inertia, the coefficient must be small.
 
+The derivatives solution is always performed and cannot be disabled.
+If for any reason it does not converge, to practically disable it 
+one can set a very large tolerance.
+Subsequent time steps may start with a less than ideal initialization,
+resulting in a rough transient.
+
+\subsubsection{Derivatives Tolerance}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{derivatives tolerance} : \bnt{tolerance} ;
+\end{Verbatim}
+%\end{verbatim}
+
+\subsubsection{Derivatives Max Iterations}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{derivatives max iterations} : \bnt{max_iterations} ;
+\end{Verbatim}
+%\end{verbatim}
+
+\subsubsection{Derivatives Coefficient}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{derivatives coefficient} : \bnt{coefficient} ;
+\end{Verbatim}
+%\end{verbatim}
+
+
 
 \subsection{Dummy Steps Data}
-Data related to the dummy steps phase. They are:
-
-\subsubsection{Dummy Steps Tolerance}
-\begin{verbatim}
-    <card> ::= dummy steps tolerance : <tolerance> ;
-\end{verbatim}
-
-\subsubsection{Dummy Steps Max Iterations}
-\begin{verbatim}
-    <card> ::= dummy steps max iterations : <max iterations> ;
-\end{verbatim}    
-{\em
-    Note: no step change, modified Newton-Raphson and so on is allowed
-    during the dummy steps.
-}
-
-\subsubsection{Dummy Steps Number}
-\begin{verbatim}
-    <card> ::= dummy steps number : <number> ;
-\end{verbatim}
-number of dummy steps.
-
-\subsubsection{Dummy Steps Ratio}
-\begin{verbatim}
-    <card> ::= dummy steps ratio : <ratio> ;
-\end{verbatim}
-ratio of the time step to be used in the dummy steps to the regular
-time step.
-
-\subsubsection{Dummy Steps Method}
-\begin{verbatim}
-    <card> ::= method : <method_data> ;
-\end{verbatim}
-Same as for the normal simulation method. 
+Data related to the `dummy steps' phase.
 The dummy steps are intended as a sort of numerical computation 
 of the second order derivatives of the constraint equations. 
 The displacement constraint equations in an index three 
@@ -934,6 +924,51 @@ should be performed with a very short time step, to seek accuracy, and
 with a high numerical damping, to cancel as quickly as possible the high
 frequency numerical noise.
 
+\emph{Note: no step change, modified Newton-Raphson and so on is allowed
+    during the dummy steps.}
+
+\emph{Note: in most practical applications, dummy steps should not be used.}
+
+
+\subsubsection{Dummy Steps Tolerance}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{dummy steps tolerance} : \bnt{tolerance} ;
+\end{Verbatim}
+%\end{verbatim}
+
+\subsubsection{Dummy Steps Max Iterations}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{dummy steps max iterations} : \bnt{max iterations} ;
+\end{Verbatim}    
+%\end{verbatim}    
+
+\subsubsection{Dummy Steps Number}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{dummy steps number} : \bnt{number} ;
+\end{Verbatim}
+%\end{verbatim}
+number of dummy steps.
+
+\subsubsection{Dummy Steps Ratio}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{dummy steps ratio} : \bnt{ratio} ;
+\end{Verbatim}
+%\end{verbatim}
+ratio of the time step to be used in the dummy steps to the regular
+time step.
+
+\subsubsection{Dummy Steps Method}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{method} : \bnt{method_data} ;
+\end{Verbatim}
+%\end{verbatim}
+Same as for the normal simulation method. 
+
 \subsection{Output Data}\label{sec:PROBLEMS:OUTPUT}
 Model output, e.g.\ nodes and elements output, is handled
 by the data manager; the integrator only deals with
@@ -941,25 +976,27 @@ simulation-related output, and takes care of some debug output.
 
 \subsubsection{Output}
 This command requests special output related to the solution phase.
-\begin{verbatim}
-    <card> ::= output : <item> [ , <item> [ , ... ] ] ;
-    <item> ::= { iterations
-               | residual
-               | solution
-               | jacobian matrix
-               | messages
-               | none }
-\end{verbatim}
-The item \kw{iterations} logs a detailed output of the error
-at each iteration inside a time step 
-% in the \kw{.out} file.
-on the standard output.
-The items \kw{residual}, \kw{solution} and \kw{jacobian matrix} log
-the residual, the solution and the Jacobian matrix to standard output;
-they are currently available only for the umfpack solver, and they are
-mainly intended for last resort debugging purposes.
-The item \kw{messages} refers to all messaging 
-on the \kw{.out} file; by default, it is on.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output} : \bnt{item} [ , ... ] ;
+
+    \bnt{item} ::=
+        \{ \kw{iterations}
+            | \kw{residual}
+            | \kw{solution}
+            | \kw{jacobian matrix}
+            | \kw{messages}
+            | \kw{none} \}
+\end{Verbatim}
+%\end{verbatim}
+The keyword \kw{iterations} logs on \texttt{stdout}
+a detailed output of the error at each iteration inside a time step.
+The keywords \kw{residual}, \kw{solution} and \kw{jacobian matrix}
+log to \texttt{stdout} the residual, the solution and the Jacobian matrix;
+they are mainly intended for last resort debugging purposes,
+as the output can be extremely verbose.
+The item \kw{messages} refers to all messaging on the \texttt{.out} file;
+by default, it is on.
 The special item \kw{none} clears the output flags; the items
 are additive, so, for instance, to clear out the default 
 and add the iterations output, use:
@@ -970,10 +1007,12 @@ and add the iterations output, use:
 \subsubsection{Output meter}
 This command conditions the output selected by the \kw{output} command
 to a meter, expressed in terms of a drive caller.
-Only when the drive caller returns \kw{true} (!0), the output occurs.
-\begin{verbatim}
-    <card> ::= output meter : (DriveCaller)<when> ;
-\end{verbatim}
+Only when the drive caller returns \texttt{true} (!0), the output occurs.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output meter} : \ty{(DriveCaller)} \bnt{when} ;
+\end{Verbatim}
+%\end{verbatim}
 
 
 
@@ -984,21 +1023,23 @@ Only when the drive caller returns \kw{true} (!0), the output occurs.
 \noindent
 This statement forces MBDyn to be scheduled in real-time,
 based on the capabilities of the underlying OS.
-\begin{verbatim}
-    <card> ::= real time : [ { RTAI | POSIX } , ]
-        <mode>
-        [ , reserve stack , <stack-size> ]
-        [ , allow nonroot ]
-        [ , cpu map , <cpu-map> ]
-        [ , output , { yes | no } ]
-        [ , hard real time ]
-        [ , real time log [ , file name , <command-name> ] ]
-    <mode> ::= {
-        [ mode , period , ] time step , <time_step>
-        | mode , semaphore [ , <semaphore_args> ]
-        | mode , IO
-    }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{real time} : [ \{ \kw{RTAI} | \kw{POSIX} \} , ]
+        \bnt{mode}
+        [ , \kw{reserve stack} , \bnt{stack_size} ]
+        [ , \kw{allow nonroot} ]
+        [ , \kw{cpu map} , \bnt{cpu-map} ]
+        [ , \kw{output} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{hard real time} ]
+        [ , \kw{real time log} [ , \kw{file name} , \bnt{command_name} ] ]
+
+    \bnt{mode} ::=
+        \{ [ \kw{mode} , \kw{period} , ] \kw{time step} , \bnt{time_step}
+        | \kw{mode} , \kw{semaphore} [ , \bnt{semaphore_args} ]
+        | \kw{mode} , \kw{IO} \}
+\end{Verbatim}
+%\end{verbatim}
 where:
 \begin{itemize}
 \item the optional \kw{RTAI} or \kw{POSIX} keywords indicate whether
@@ -1007,15 +1048,15 @@ or POSIX should be used to schedule the execution of MBDyn in real-time
 (defaults to \kw{RTAI});
 
 \item when the keyword \kw{mode} is set to \kw{period}, the execution
-is scheduled periodically; when set to \kw{semaphore}, it waits 
-for an external trigger to start a new step;
-when set to \kw{IO}, it assumes synchronization is provided
-by waiting on blocking I/O streams
+is scheduled periodically; when \kw{mode} is set to \kw{semaphore},
+the execution waits for an external trigger to start a new step;
+when \kw{mode} is set to \kw{IO}, the execution assumes synchronization
+to be provided by waiting on blocking I/O streams
 (note: \kw{semaphore} is not implemented yet,
-so \kw{semaphore\_args} 
-is currently undefined; default is \kw{period});
+so \nt{semaphore\_args} is currently undefined;
+the default \kw{mode} is \kw{period});
 
-\item the \kw{time\_step}, required when the scheduling is \kw{periodic},
+\item the \nt{time\_step}, required when scheduling is \kw{periodic},
 is the sample rate in nanoseconds (ns); 
 usually, it matches the time step of the simulation,
 but it can be different for other purposes;
@@ -1028,13 +1069,13 @@ the highest priority; only honored by \kw{RTAI});
 
 \item the keyword \kw{reserve stack} instructs the program 
 to statically reserve the desired stack size by means 
-of the \kw{mlockall(2)} system call; it should be used to ensure 
+of the \texttt{mlockall(2)} system call; it should be used to ensure 
 that no page swapping occurs during the real-time simulation;
 a minimal default value (1024 bytes) is set in any case;
 
 \item the keyword \kw{cpu map} allows the program to force its
 execution on a specific subset of CPUs on multiprocessor hardware;
-the syntax of the \kw{<cpu-map>} field is a byte-sized integer 
+the syntax of the \nt{cpu\_map} field is a byte-sized integer 
 (between 0 and 255) whose active bits are the desired CPUs (up to 8);
 
 \item the keyword \kw{output} determines whether output is entirely disabled
@@ -1047,18 +1088,18 @@ in hard real-time; the default is soft real-time
 (RTAI only; by default scheduling is in soft real-time);
 
 \item the keyword \kw{real time log} enables logging by means 
-of RTAI mailboxes; an optional \kw{filename} argument allows 
-to set the name of the logging process that is used.
+of RTAI mailboxes; an optional \kw{file name} argument allows 
+to set the \nt{command\_name} of the logging process that is used.
 It should be a low priority soft real-time process that communicates
-with the simulator by means of the RTAI mailbox called \kw{logmb}.
+with the simulator by means of the RTAI mailbox called \texttt{logmb}.
 The log process mailbox may receive a sequence of message consisting
 in two integers: the time step number and the amount of nanoseconds
 that time step overrun the scheduling period.
 
-Note: if no \kw{<command-name>} is given, to guarantee the detection 
-of the default log command the process \kw{PATH} environment variable 
-is augmented by prepending ``\kw{.:BINPATH}''; by default,
-\kw{BINPATH} is the \verb;${bindir}; directory of the build environment,
+Note: if no \nt{command\_name} is given, to guarantee the detection 
+of the default log command the process \texttt{PATH} environment variable 
+is augmented by prepending \texttt{".:BINPATH"}; by default,
+\texttt{BINPATH} is the \verb;${bindir}; directory of the build environment,
 so it can be set by using the \verb;--bindir; configure switch.
 \end{itemize}
 The keywords must be given in the sequence reported above.
