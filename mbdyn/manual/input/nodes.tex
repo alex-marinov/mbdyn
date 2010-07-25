@@ -28,20 +28,24 @@
 
 \chapter{Nodes}\label{sec:NODES}
 The \kw{nodes} section is enclosed in the cards:
-\begin{verbatim}
-    begin: nodes;
-        ...
-    end: nodes;
-\end{verbatim}
-Every node card has the following format:
-\begin{verbatim}
-    <card> ::= <node_type> : <node_label>
-        <additional_args>
-        [ , scale , { default | <scale> } ]
-        [ , output , { yes | no } ]
-        [ , <extra_arglist> ] ;
-\end{verbatim}
-where \kw{node\_type} is one of the following:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{nodes} ;
+        # ...
+    \kw{end} : \kw{nodes} ;
+\end{Verbatim}
+%\end{verbatim}
+Every node card has the format:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{node_type} : \bnt{node_label}
+        \bnt{additional_args}
+        [ , \kw{scale} , \{ \kw{default} | \bnt{scale} \} ]
+        [ , \kw{output} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \bnt{extra_arglist} ] ;
+\end{Verbatim}
+%\end{verbatim}
+where \nt{node\_type} is one of the following:
 \begin{itemize}
     \item \kw{abstract}
     \item \kw{electric}
@@ -97,47 +101,53 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
 
 \subsection{Syntax}
 \label{sec:NODE:STRUCTURAL:SYNTAX}
-\begin{verbatim}
-    <additional_args> ::= { , static | dynamic | modal } ,
-        (Vec3)              <absolute_position> ,
-        (OrientationMatrix) <absolute_orientation_matrix> ,
-            [ orientation description , <orientation_description> , ]
-        (Vec3)              <absolute_velocity> ,
-        (Vec3)              <absolute_angular_velocity>
-        [ , assembly
-          , (scalar) <position_initial_stiffness>
-          , (scalar) <velocity_initial_stiffness>
-          , (flag)   <omega_rotates?> ]
-    <orientation_description> ::=
-        { euler123 | euler313 | euler321
-             | orientation vector | orientation matrix }
-\end{verbatim}
-The \kw{omega\_rotates} parameter determines whether 
-the initial angular velocity should follow or not the node 
-as it is rotated by the initial assembly procedure; it may assume 
-the values \kw{yes}/\kw{no} or 0/nonzero.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
+        \ty{(Vec3)}              \bnt{absolute_position} ,
+        \ty{(OrientationMatrix)} \bnt{absolute_orientation_matrix} ,
+            [ \kw{orientation description} , \bnt{orientation_description} , ]
+        \ty{(Vec3)}              \bnt{absolute_velocity} ,
+        \ty{(Vec3)}              \bnt{absolute_angular_velocity}
+        [ , \kw{assembly}
+          , \ty{(Scalar)} \bnt{position_initial_stiffness}
+          , \ty{(Scalar)} \bnt{velocity_initial_stiffness}
+          , \ty{(YesNo)}   \bnt{omega_rotates?} ]
 
-The stiffness parameters, and the \kw{omega\_rotates} flag, 
-override the default values. 
+    \bnt{orientation_description} ::=
+        \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
+             | \kw{orientation vector} | \kw{orientation matrix} \}
+\end{Verbatim}
+%\end{verbatim}
+
+The stiffness parameters and the \nt{omega\_rotates} flag
+override the default values optionally set by the \kw{initial stiffness}
+and \kw{omega rotates} keywords in the \kw{control data} block. 
 They are optional, but they must be supplied all together if at least
-one is to be input. \\
-The \kw{omega\_rotates} flag can take values \kw{yes} or \kw{no};
-a numerical value of 0 (no) or 1 (yes) is supported for backwards
+one is to be input.
+
+The \nt{omega\_rotates} parameter determines whether 
+the initial angular velocity should follow or not the node 
+as it is rotated by the initial assembly procedure.
+It can take values \kw{yes} or \kw{no};
+a numerical value of 0 (no) or 1 (yes) is supported for backward
 compatibility, but its use is deprecated.
 
 The \kw{dynamic} and the \kw{modal} node types allow
 the optional output keyword
 \kw{accelerations} after the standard node output parameters:
-\begin{verbatim}
-    <extra_arglist> ::= accelerations , { yes | no | <value> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{extra_arglist} ::= \kw{accelerations} , \{ \kw{yes} | \kw{no} | \bnt{value} \}
+\end{Verbatim}
+%\end{verbatim}
 to enable/disable the output of the linear and angular accelerations
-of the node.  Since this is a postprocessing, it is not required
-by the regular analysis, so it should be enabled only when strictly required.
+of the node.  Since they are computed as a postprocessing, they are not required
+by the regular analysis, so they should be enabled only when strictly required.
 
 Also note that accelerations may be inaccurate, since they are reconstructed
 from the momentum and the momenta moment derivatives through the inertia
-associated to the node.
+properties associated to dynamic nodes.
 
 Also \kw{dummy} nodes allow the keyword \kw{accelerations},
 but honor it only if provided by the nodes they are related to.
@@ -153,50 +163,60 @@ to modify each node of a dynamic model.
 \subsection{Dummy Node}
 \label{sec:NODE:STRUCTURAL:DUMMY}
 The \kw{dummy} structural node has been added to ease the visualization
-of the kinematics of arbitrary points of the system. 
+of the kinematics of arbitrary points of the system
+during the simulation. 
 It does not provide any degrees of freedom, and it must be attached
 to another node.
 
 Two dummy structural node types are available.
-\begin{verbatim}
-    <additional_args> ::= , dummy , <base_node> , <type> , <dummy_node_data>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \kw{dummy} , \bnt{base_node_label} , \bnt{type} , \bnt{dummy_node_data}
+\end{Verbatim}
+%\end{verbatim}
 
-Dummy nodes take the label of the \kw{base\_node} they are attached to, 
-followed by the type of dummy node, possibly followed by specific data.
-The following dummy types are available:
+Dummy nodes take the label \nt{base\_node\_label} of the node they are attached to, 
+followed by \nt{type}, the type of dummy node, possibly followed by specific data,
+\nt{dummy\_node\_data}.
+The following types are available:
 
 \begin{itemize}
-    \item offset:
-    \begin{verbatim}
-    <type> ::= offset
-    <dummy_node_data> ::=
-        (Vec3)              <relative_offset> ,
-        (OrientationMatrix) <relative_orientation_matrix>
-            [ orientation description , <orientation_description> , ]
-    \end{verbatim}
+    \item \kw{offset}:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{type} ::= \kw{offset}
+
+    \bnt{dummy_node_data} ::=
+        \ty{(Vec3)}              \bnt{relative_offset} ,
+        \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix}
+            [ , \kw{orientation description} , \bnt{orientation_description} ]
+\end{Verbatim}
+%\end{verbatim}
     It outputs the configuration of a point offset from the base node.
             
-    \item relative frame:
-    \begin{verbatim}
-    <type> ::= relative frame
-    <dummy_node_data> ::= <reference_node>
-        [ , position , <reference_offset> ]
-        [ , orientation , <reference_orientation_matrix> ]
-            [ orientation description , <orientation_description> , ]
-        [ , pivot node , <pivot_node>
-            [ position , <pivot_offset> ]
-            [ orientation , <pivot_orientation_matrix> ] ]
-    \end{verbatim}
-    It outputs the configuration of the base node in the frame defined
-    by the \kw{reference\_node}, optionally offset 
-    by \kw{reference\_offset} and with relative orientation 
-    \kw{reference\_orientation\_matrix}.
+    \item \kw{relative frame}:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{type} ::= \kw{relative frame}
 
-    If a \kw{pivot\_node} is given, the relative frame motion
+    \bnt{dummy_node_data} ::= \bnt{reference_node_label}
+        [ , \kw{position} , \ty{(Vec3)} \bnt{reference_offset} ]
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{reference_orientation_matrix} ]
+            [ \kw{orientation description} , \bnt{orientation_description} , ]
+        [ , \kw{pivot node} , \bnt{pivot_node_label}
+            [ , \kw{position} , \ty{(Vec3)} \bnt{pivot_offset} ]
+            [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{pivot_orientation_matrix} ] ]
+\end{Verbatim}
+%\end{verbatim}
+    It outputs the configuration of the base node in the frame defined
+    by the node of label \nt{reference\_node\_label}, optionally offset 
+    by \nt{reference\_offset} and with optional relative orientation 
+    \nt{reference\_orientation\_matrix}.
+
+    If a \nt{pivot\_node\_label} is given, the relative frame motion
     is transformed as if it were expressed in the reference frame
-    of the pivot node, optionally offset by \kw{pivot\_offset}
-    and with relative orientation \kw{pivot\_orientation\_matrix}.
+    of the pivot node, optionally offset by \nt{pivot\_offset}
+    and with optional relative orientation \nt{pivot\_orientation\_matrix}.
 \end{itemize}
 
 \paragraph{Example.} \
@@ -217,12 +237,12 @@ The following dummy types are available:
 \label{sec:NODE:STRUCTURAL:OUTPUT}
 Structural nodes generate two kinds of output files:
 \begin{itemize}
-\item the \kw{.mov} file;
-\item the \kw{.ine} file.
+\item the \texttt{.mov} file;
+\item the \texttt{.ine} file.
 \end{itemize}
 
-\textbf{The \kw{.mov} Output File.} \\
-The first refers to the kinematics of the node; its extension is \kw{.mov},
+\textbf{The \texttt{.mov} Output File.} \\
+The first refers to the kinematics of the node; its extension is \texttt{.mov},
 and for each time step it contains one row for each node whose output is
 required.
 The rows contain: \vspace{2mm} \\
@@ -235,13 +255,13 @@ The rows contain: \vspace{2mm} \\
 	11--13 & the three components of the angular velocity of the node \\
 	\hline
 	14--16 & the three components of the linear acceleration
-		of the \kw{dynamic} nodes (optional) \\
+		of the \kw{dynamic} and \kw{modal} nodes (optional) \\
 	17--19 & the three components of the angular acceleration
-		of the \kw{dynamic} nodes (optional) \\
+		of the \kw{dynamic} and \kw{modal} nodes (optional) \\
 	\hline
 \end{tabular}\vspace{2mm}\\
 All the quantities are expressed in the global frame, except for
-the dummy \kw{relative frame} node type, whose quantities are,
+the \kw{relative frame} type of \kw{dummy} node, whose quantities are,
 by definition, in the relative frame.
 
 There exist two variants of this output.
@@ -274,15 +294,15 @@ the previous rotation, concluded by a rotation about axis 3
 of the frame resulting from the two previous rotations.
 To consistently transform this set of parameters into some other
 representation, see the tools
-\kw{eu2rot(1)}, \kw{rot2eu(1)}, \kw{rot2eup(1)}, \kw{rot2phi(1)}.
+\texttt{eu2rot(1)}, \texttt{rot2eu(1)}, \texttt{rot2eup(1)}, \texttt{rot2phi(1)}.
 The functions that compute the relationship between an orientation
 matrix and the set of three angles and vice versa are
-\kw{MatR2EulerAngles()} and \kw{EulerAngles2MatR()}, in \kw{matvec3.h}.
+\texttt{MatR2EulerAngles()} and \texttt{EulerAngles2MatR()}, in \texttt{matvec3.h}.
 }
 
-\textbf{The \kw{.ine} Output File.} \\
+\textbf{The \texttt{.ine} Output File.} \\
 The second output file refers only to dynamic nodes, and contains their
-inertia; its extension is \kw{.ine}.
+inertia; its extension is \texttt{.ine}.
 For each time step, it contains information about the inertia of all the
 nodes whose output is required.
 Notice that more than one inertia body can be attached to one node; the
@@ -376,13 +396,15 @@ access to linear and angular accelerations.
 
 
 \section{Electric Node}
-\begin{verbatim}
-    <additional_args> ::= [ , value , <initial_value>
-        [ , derivative , <derivative_initial_value> ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= [ , \kw{value} , \bnt{initial_value}
+        [ , \kw{derivative} , \bnt{derivative_initial_value} ] ]
+\end{Verbatim}
+%\end{verbatim}
 \emph{Note: the keywords \kw{value} and \kw{derivative}
 have been introduced recently; \kw{value} is not mandatory,
-resulting in a warning while \kw{derivative} is required.
+resulting in a warning, while \kw{derivative} is required.
 The same applies to the \kw{abstract node} 
 and to the \kw{hydraulic node}; the latter is an algebraic
 node, so only \kw{value} is allowed.
@@ -401,11 +423,13 @@ The following data is available:
 
 
 \section{Abstract Node}
-\begin{verbatim}
-    <additional_args> ::= , { algebraic | differential }
-        [ , value , <initial_value>
-        [ , derivative , <derivative_initial_value> ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{algebraic} | \kw{differential} \}
+        [ , \kw{value} , \bnt{initial_value}
+        [ , \kw{derivative} , \bnt{derivative_initial_value} ] ]
+\end{Verbatim}
+%\end{verbatim}
 \emph{
 	Note: abstract nodes are ancestors of all scalar node types.
 	Many \kw{genel} and \kw{electric} elements can be connected
@@ -414,7 +438,7 @@ The following data is available:
 }
 
 \paragraph{Output.}
-The value of abstract nodes is output with file extension \kw{.abs}; for
+The value of abstract nodes is output with file extension \texttt{.abs}; for
 each time step the output of the required nodes is written.
 The format of each row is
 \begin{itemize}
@@ -441,9 +465,11 @@ It is derived from the generic scalar agebraic node; as a consequence,
 it can be connected to all elements that operate on generic scalar nodes. 
 
 The syntax is
-\begin{verbatim}
-    <additional_args> ::= [ , value , <initial_value> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= [ , \kw{value} , \bnt{initial_value} ]
+\end{Verbatim}
+%\end{verbatim}
 
 \paragraph{Private Data.}
 \label{sec:NODE:HYDRAULIC:PRIV}
@@ -456,12 +482,14 @@ The following data is available:
 
 \section{Parameter Node}
 \label{sec:NODE:PARAMETER}
-\begin{verbatim}
-    <aditional_args> ::= { [ , value , <initial_value> ]
-        | , element 
-        | , sample and hold, (node_dof) <signal> , <sample_time>
-        | , beam strain gage , <y> , <z> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= \{ [ , \kw{value} , \bnt{initial_value} ]
+        | , \kw{element}
+        | , \kw{sample and hold} , \ty{(NodeDof} \bnt{signal} , \bnt{sample_time}
+        | , \kw{beam strain gage} , \bnt{y} , \bnt{z} \}
+\end{Verbatim}
+%\end{verbatim}
 The parameter node is derived from the class scalar algebraic node, but it
 is used in a rather peculiar way: it doesn't own any degree of freedom,
 so it does not participate in the solution, but is used as a sort of
@@ -481,9 +509,9 @@ node expects to be bound to an element, and to access bulk element data
 \paragraph{Sample and Hold.}
 \label{sec:NODE:PARAMETER:SAH}
 When the argument list starts with the keyword \kw{sample and hold},
-followed by a \kw{NodeDof} and a sample time,
+followed by a \ty{NodeDof} specification and a sample time,
 the parameter node contains the value of the input signal, namely
-the value of the node, for the duration of the \kw{sample\_time}.
+the value of the node, for the duration of the \nt{sample\_time}.
 This may be useful to preserve the value of some signal across
 time steps.
 
@@ -492,12 +520,12 @@ time steps.
 When the argument list starts with the keyword \kw{beam strain gage},
 followed by the coordinates of a point on the section of a beam,
 the \kw{parameter} node expects to be bound to a \kw{beam} element,
-and to access the measure of the axial strain at point \kw{x}, \kw{y}
+and to access the measure of the axial strain at point \nt{x}, \nt{y}
 in the section plane as a combination of section strains and curvatures:
 \begin{equation}
 	\varepsilon = \nu_x
-		+ \mathtt{z} \cdot \kappa_y 
-		- \mathtt{y} \cdot \kappa_z ,
+		+ \nt{z} \cdot \kappa_y 
+		- \nt{y} \cdot \kappa_z ,
 \end{equation}
 where
 \begin{itemize}
@@ -510,7 +538,8 @@ is set in the
 \hyperref{\kwnd{bind} statement}{\kw{bind} statement (see Section~}{)}{sec:EL:BIND}.
 
 \emph{Note: measuring strains by means of derivatives of interpolated
-positions and orientations may lead to inaccurate results.}
+positions and orientations may lead to inaccurate results; force summation
+should be used instead.}
 
 
 
@@ -521,16 +550,19 @@ positions and orientations may lead to inaccurate results.}
 \subsection{Output}
 \label{sec:NODE:MISC:OUTPUT}
 There is an extra card, that is used to modify the output behavior of nodes:  
-\begin{verbatim}
-    <card> ::= output : <node_type> , <node_list> ;
-    <node_list> ::= { <node_label>  [ , <node_list> ] 
-        | range , <node_start_label> , <node_end_label> }
-\end{verbatim}
-\kw{node\_item} is a valid node type that can be read in the \kw{nodes}
-module.
-In case the keyword \kw{range} is used, all existing nodes comprised
-between \kw{<node\_start\_label>} and \kw{<node\_end\_label>}
-are set; missing ones are silently ignored.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output} : \bnt{node_type} , \bnt{node_list} ;
+
+    \bnt{node_list} ::= \{ \bnt{node_label}  [ , ... ] 
+        | \kw{range} , \bnt{node_start_label} , \bnt{node_end_label} \}
+\end{Verbatim}
+%\end{verbatim}
+\nt{node\_type} is a valid node type that can be read in the \kw{nodes}
+block.
+In case the keyword \kw{range} is used, all nodes of that type
+with label between \nt{node\_start\_label} and \nt{node\_end\_label}
+are set.
 
 \noindent
 {\em
@@ -545,9 +577,7 @@ are set; missing ones are silently ignored.
    The same remarks apply to the output of the elements.
 }
 
-{\em
-    Note: for dynamic structural nodes, the optional keyword \kw{accelerations}
-    can be used right after the \kw{node\_type} to enable the output
-    of the accelerations.
-}
+If \nt{node\_type} is \kw{structural}, the optional keyword \kw{accelerations}
+can be used right after the \nt{node\_type} to enable the output
+of the accelerations.
 
