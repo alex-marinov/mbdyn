@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
+		- aeromodal element syntax changed
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)

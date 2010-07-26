@@ -605,9 +605,6 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
     */             
  
     	  
-   /* Nodo */
-   StructNode* pModalNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-
    /* giunto modale collegato */		     
    Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
    Modal* pModalJoint = dynamic_cast<Modal*>(pM);
@@ -616,8 +613,14 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 	      << " is required to be a modal joint" << std::endl);
       throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
-   
-   ReferenceFrame RF(pModalNode);
+
+   ReferenceFrame RF;
+   const StructNode* pModalNode = pModalJoint->pGetModalNode();
+   if (pModalNode) {
+      RF = ReferenceFrame(pModalNode);
+   } else {
+      RF = AbsRefFrame;
+   }
 
    Mat3x3 Ra(HP.GetRotRel(RF));
 
