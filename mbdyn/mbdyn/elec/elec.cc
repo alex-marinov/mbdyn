@@ -609,6 +609,11 @@ ReadElectric(DataManager* pDM,
 						iOrderA, iOrderB,
 						iPredS, iContrS,
 						dPeriodicFactor, f_proc));
+
+			} else {
+				silent_cerr("DiscreteControl(" << uLabel << "): "
+					"unknown adaptive control type at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			// Forgetting factor
