@@ -32,18 +32,22 @@
 
 \chapter{Elements}\label{sec:ELEMENTS}
 The \kw{elements} section is enclosed in the cards:
-\begin{verbatim}
-    begin: elements;
-        ...
-    end: elements;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{begin} : \kw{elements} ;
+        # ...
+    \kw{end} : \kw{elements} ;
+\end{Verbatim}
+%\end{verbatim}
 Every element card has the following format:
-\begin{verbatim}
-    <card> ::= <elem_type> :
-        <arglist>
-        [ , output , { yes | no } ] ;
-        [ , <extra_arglist> ] ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \bnt{elem_type} :
+        \bnt{arglist}
+        [ , \kw{output} , \{ \kw{yes} | \kw{no} \} ] 
+        [ , \bnt{extra_arglist} ] ;
+\end{Verbatim}
+%\end{verbatim}
 where \kw{elem\_type} is one of the following:
 \begin{itemize}
 \item structural elements:
@@ -99,17 +103,19 @@ where \kw{elem\_type} is one of the following:
 \item \kw{loadable}
 \end{itemize}
 
-\item \kw{miscellaneous element cards}
+\item miscellaneous element cards
 \end{itemize}
 
 
 In case of elements that can be instantiated only once, like
-the \kw{gravity} or the \kw{air properties} elements, the \kw{arglist}
+the \kw{gravity} or the \kw{air properties} elements, the \nt{arglist}
 doesn't contain any label; otherwise, a label is expected first, to allow 
 for checks on duplicated elements, namely: 
-\begin{verbatim}
-    <arglist> ::= <label> , <normal_arglist>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{arglist} ::= \bnt{label} , \bnt{normal_arglist}
+\end{Verbatim}
+%\end{verbatim}
 The data manager reads the element type and the label and checks for
 duplication. If the element is not defined yet, the proper read function is
 called, which parses the rest of the card and constructs the element.

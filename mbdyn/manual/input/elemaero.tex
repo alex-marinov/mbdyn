@@ -40,73 +40,83 @@ and use the same interpolation functions of the beam to compute
 the configuration at an arbitrary point.
 
 The input format is:
-\begin{verbatim}
-    <normal_arglist> ::= <connectivity> ,
-        (shape_1D)          <surface_chord> ,
-        (shape_1D)          <surface_aerodynamic_center> ,
-        (shape_1D)          <surface_b_c_point> ,
-        (shape_1D)          <surface_twist> ,
-        [ tip loss , (shape_1D) <tip_loss> , ]
-                            <integration_points>
-        [ , control , (drive_caller) <control_drive> ] 
-        [ , <airfoil_data> ]
-        [ , unsteady , { bielawa } ]
-        [ , jacobian , { yes | no | <bool> } ]
-        [ , <custom_output> ]
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \{ \kw{aerodynamic body} | \kw{aerodynamic beam2} | \kw{aerodynamic beam3} \}
 
-    <extra_arglist> ::= { std | gauss | node }
-\end{verbatim}
+    \bnt{normal_arglist} ::= \bnt{connectivity} ,
+        \ty{(Shape<1D>)}          \bnt{surface_chord} ,
+        \ty{(Shape<1D>)}          \bnt{surface_aerodynamic_center} ,
+        \ty{(Shape<1D>)}          \bnt{surface_b_c_point} ,
+        \ty{(Shape<1D>)}          \bnt{surface_twist} ,
+        [ \kw{tip loss} , \ty{(Shape<1D>)} \bnt{tip_loss} , ]
+        \bnt{integration_points}
+        [ , \kw{control} , \ty{(DriveCaller)} \bnt{control_drive} ] 
+        [ , \bnt{airfoil_data} ]
+        [ , \kw{unsteady} , \{ \kw{bielawa} \} ]
+        [ , \kw{jacobian} , \{ \kw{yes} | \kw{no} | \bnt{bool} \} ]
+        [ , \bnt{custom_output} ]
+
+    \bnt{extra_arglist} ::= \{ \kw{std} | \kw{gauss} | \kw{node} \}
+\end{Verbatim}
+%\end{verbatim}
 where
-\begin{verbatim}
-    <connectivity> ::= { <body_conn> | <beam2_conn> | <beam3_conn> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{connectivity} ::= \{ \bnt{body_conn} | \bnt{beam2_conn} | \bnt{beam3_conn} \}
 
-    <body_conn> ::= <node_label> 
-        [ , induced velocity , <induced_velocity_label> ] ,
-        (Vec3)              <relative_surface_offset> , 
-        (OrientationMatrix) <relative_surface_orientation> ,
-        (scalar)            <surface_span>
+    # \bnt{elem_type} ::= \kw{aerodynamic body}
+    \bnt{body_conn} ::= \bnt{node_label}
+        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        \ty{(Vec3)}              <relative_surface_offset> , 
+        \ty{(OrientationMatrix)} <relative_surface_orientation> ,
+        \ty{(Scalar)}            <surface_span>
 
-    <beam2_conn> ::= <beam2_label> 
-        [ , induced velocity , <induced_velocity_label> ] ,
-        (Vec3)              <relative_surface_offset_1> ,       
-        (OrientationMatrix) <relative_surface_orientation_1> ,
-        (Vec3)              <relative_surface_offset_2> ,
-        (OrientationMatrix) <relative_surface_orientation_2> ,
+    # \bnt{elem_type} ::= \kw{aerodynamic beam2}
+    \bnt{beam2_conn} ::= \bnt{beam2_label}
+        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        \ty{(Vec3)}              \bnt{relative_surface_offset_1} ,
+        \ty{(OrientationMatrix)} \bnt{relative_surface_orientation_1} ,
+        \ty{(Vec3)}              \bnt{relative_surface_offset_2} ,
+        \ty{(OrientationMatrix)} \bnt{relative_surface_orientation_2} ,
 
-    <beam3_conn> ::= <beam3_label> 
-        [ , induced velocity , <induced_velocity_label> ] ,
-        (Vec3)              <relative_surface_offset_1> ,       
-        (OrientationMatrix) <relative_surface_orientation_1> ,
-        (Vec3)              <relative_surface_offset_2> ,
-        (OrientationMatrix) <relative_surface_orientation_2> ,
-        (Vec3)              <relative_surface_offset_3> ,       
-        (OrientationMatrix) <relative_surface_orientation_3> ,
-\end{verbatim}
-\begin{verbatim}
-    <airfoil_data> ::=
-        { naca 0012
-            | rae 9671
-            | [ theodorsen , ] c81 , <c81_data>
-        }
-\end{verbatim}
+    # \bnt{elem_type} ::= \kw{aerodynamic beam3}
+    \bnt{beam3_conn} ::= \bnt{beam3_label} 
+        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        \ty{(Vec3)}              \bnt{relative_surface_offset_1} ,
+        \ty{(OrientationMatrix)} \bnt{relative_surface_orientation_1} ,
+        \ty{(Vec3)}              \bnt{relative_surface_offset_2} ,
+        \ty{(OrientationMatrix)} \bnt{relative_surface_orientation_2} ,
+        \ty{(Vec3)}              \bnt{relative_surface_offset_3} ,       
+        \ty{(OrientationMatrix)} \bnt{relative_surface_orientation_3} ,
+
+    \bnt{airfoil_data} ::=
+        \{ \kw{naca 0012}
+            | \kw{rae 9671}
+            | [ \kw{theodorsen} , ] \kw{c81} , \bnt{c81_data} \}
+\end{Verbatim}
+%\end{verbatim}
 and
-\begin{verbatim}
-    <c81_data> ::= <c81_label> 
-
-    <c81_data> ::= multiple , <airfoil_number> ,
-        <c81_label> , <end_point>
-        [ ... ]
-
-    <c81_data> ::= interpolated, <airfoil_number> ,
-        <c81_label> , <position>
-        [ ... ]
-\end{verbatim}
-The \kw{custom\_output} optional data consists in
-\begin{verbatim}
-    <custom_output> ::= custom output , 
-        <custom_output_flag> [ , ... ]
-\end{verbatim}
-The values of \kw{custom\_output\_flag}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{c81_data} ::=
+        \{ \bnt{c81_label}
+            | \kw{multiple} , \bnt{airfoil_number} ,
+                \bnt{c81_label} , \bnt{end_point}
+                [ , ... ]
+            | \kw{interpolated} , \bnt{airfoil_number} ,
+                \bnt{c81_label} , \bnt{position}
+                [ , ... ] \}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{custom\_output} optional data consists in
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{custom_output} ::= \kw{custom output} , 
+        \bnt{custom_output_flag} [ , ... ]
+\end{Verbatim}
+%\end{verbatim}
+The values of \nt{custom\_output\_flag}
 are defined in Section~\ref{sec:CONTROLDATA:DEFAULTAERODYNAMICOUTPUT}.
 
 Flags add up to form the custom output request.
@@ -115,7 +125,7 @@ By default, only forces are output.
 The custom output is only available in NetCDF format;
 see Section~\ref{sec:NetCDF:Elem:Aerodynamic}.
 
-The field \kw{induced\_velocity} tells the element that it is linked to an
+The field \nt{induced\_velocity} tells the element that it is linked to an
 \kw{induced velocity} element.
 This means that the element can get information about the
 induced velocity and should supply information about the forces it generates.
@@ -126,15 +136,16 @@ This means that the aerodynamic beam offsets refer to the position
 of the beam's nodes, and have nothing to do with offsets related
 to the structural beam element.
 
-The \kw{shape} entities are used to compute the physical chord,
+The \ty{Shape<1D>} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditions are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
 
-The optional \kw{tip loss} keyword allows to define an additional \kw{shape},
+The optional \kw{tip loss} keyword allows to define an additional shape,
+\nt{tip\_loss},
 whose value is used to scale the value of the normal aerodynamic force.
 By default, the scale factor is 1.
-The \kw{tip loss} shape should have a value comprised between 0 and 1.
+The \nt{tip\_loss} shape should have a value comprised between 0 and 1.
 
 In any case, the user must be aware of the fact that Gauss integration
 will be used over the span of the element.
@@ -147,14 +158,14 @@ spanwise elements with too little integration points.
 
 The span of the \kw{aerodynamic body} element is set by the user;
 the center-span of the element is assumed to be the end of the offset vector.
-The span of the \kw{aerodynamic beam2} and \kw{aerodynamic beam 3} elements
+The span of the \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements
 is computed based on the metrics of the beam, from the first to the last node.
 
 The aerodynamic center and the velocity measurement points are measured
 relative to the centerline of the elements, that is the line in direction 3
 of the local frame from the end of the offset vector.
 This line is assumed to be at the 25\% of the airfoil chord when steady
-aerodynamic coefficients are used (\kw{unsteady\_flag} = 0).
+aerodynamic coefficients are used (\nt{unsteady\_flag} = 0).
 The direction 1 is assumed to be the ``reference'' line of the airfoil, 
 from the trailing edge to the leading edge (points ``forward''),
 while direction 2 is normal to the other two and goes from the lower 
@@ -169,17 +180,18 @@ and properties.
   \caption{Airfoil geometry}\label{fig:AIRFOIL}
 \end{figure}
 
-The \kw{airfoil\_data} defaults to a built-in NACA 0012 semi-analytical
+The \nt{airfoil\_data} defaults to a built-in NACA 0012 semi-analytical
 model (FIXME: the unsteady correction is buggy; use the \kw{c81} 
 mode instead).
+
 The \kw{multiple} mode of the c81 data allows to specify
 more than one airfoil for an aerodynamic element; the transition
 between airfoils is sharp.
-The integer \kw{airfoil\_number} indicates how many airfoils are expected;
-the real \kw{end\_point} indicates where the influence zone for that
+The integer \nt{airfoil\_number} indicates how many airfoils are expected;
+the real \nt{end\_point} indicates where the influence zone for that
 airfoil ends, expressed in terms of a non-dimensional abscissa spanning 
 $\plbr{-1,1}$ along the reference line, roughly along axis 3 
-of the aerodynamic reference frame; \kw{end\_point} must not lie outside
+of the aerodynamic reference frame; \nt{end\_point} must not lie outside
 the element.
 So, for example, if airfoil NACA 0015 is used in the leftmost part
 of an element up to 1/4 span, NACA 0012 is used from 1/4 to 3/4 span,
@@ -198,14 +210,15 @@ and NACA 0009 is used in the remaining rightmost 1/4, the syntax is:
             naca0009,  1.0,    # from  0.5 to  1.0
     # ...rest of aerodynamic element definition
 \end{verbatim}
-The \kw{interpolated} mode of the c81 data allows to specify 
+
+The \kw{interpolated} mode of the \kw{c81} data allows to specify 
 a smooth transition between different airfoils inside an element.
 The interpolation occurs at the integration points where the
 aerodynamic data is required, and it is performed once for all
 at the beginning of the analysis.
 Since this operation is time consuming, and essentially unnecessary,
 the interpolated data can be generated once for all with the utility
-\kw{util/c81merge} once the position of the integration point is known,
+\texttt{util/c81merge} once the position of the integration point is known,
 and the \kw{multiple} mode can be used to directly provide
 the interpolated data to the aerodynamic element.
 
@@ -214,14 +227,14 @@ and superimposes Wagner's approximation of the Theodorsen incompressible
 unsteady correction of 2D lift and moment coefficients.
 It is experimental.
 
-The \kw{extra\_arglist} allows to define the style of the output.
+The \nt{extra\_arglist} allows to define the style of the output.
 The \kw{std} style (the default), the \kw{gauss} and the \kw{node}
 styles are illustrated in the output section.
 
 
 \subsubsection{Output}
 Aerodynamic elements, both bodies and beams, write their output with file
-extension \kw{.aer}; for each time step the required elements are output.
+extension \texttt{.aer}; for each time step the required elements are output.
 In any case the label of the element is output first.
 Three different formats are available: \kw{std} (the default),
 \kw{gauss} and \kw{node}.
@@ -248,8 +261,8 @@ The format is:
     \item a private number
     \item another private number
 \end{itemize}
-When an \kw{aerodynamic beam} is considered, the output 
-is repeated for each portion of the beam; so, for example,
+When \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements are considered,
+the output is repeated for each portion of the beam; so, for example,
 a two-node beam is split in two portions, so the output
 contains $2\times \nt{integration\_points}$ data blocks,
 while a three-node beam is split in three portions,
@@ -262,8 +275,9 @@ the format is:
     \item the three components of the force applied to the node
     \item the three components of the couple applied to the node
 \end{itemize}
-When an \kw{aerodynamic beam} is considered, the output is repeated 
-on the same line for each node the element is connected to.
+When \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements are considered,
+the output is repeated on the same line for each node
+the element is connected to.
 
 \item[\kw{gauss}] (or Forces at Gauss points):
 the output consists in the forces and moments
@@ -274,8 +288,8 @@ per unit length at each Gauss integration point; the format is:
     \item the drag,
     \item and the aerodynamic moment per unit length
 \end{itemize}
-When an \kw{aerodynamic beam} is considered, the output 
-is repeated on the same line for each portion of beam.
+When \kw{aerodynamic beam2} \and \kw{aerodynamic beam3} elements are considered,
+the output is repeated on the same line for each portion of beam.
 \end{itemize}
 
 
@@ -291,17 +305,19 @@ Its definition is very similar to that of the pure modal element,
 but it also includes some data representing unsteady aerodynamics 
 in the time domain trough the residualization matrices.
 This element is defined as follows:
-\begin{verbatim}
-    <element_type> ::= aeromodal
-    <element_arglist> ::= <label> , 
-        <modal node> ,  
-        <reference modal joint> ,
-        (Mat3x3)<orientation> ,
-        <reference chord> ,
-        <number of aerodynamic states> ,
-        [ rigid , ]
-        <state space modal matrices file>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{aeromodal}
+
+    \bnt{normal_arglist} ::= 
+        \bnt{reference_modal_joint} ,
+        \ty{(OrientationMatrix)} \bnt{orientation} ,
+        \bnt{reference_chord} ,
+        \bnt{number_of_aerodynamic_states} ,
+        [ \kw{rigid} , ]
+        " \bnt{modal_matrices_file} "
+\end{Verbatim}
+%\end{verbatim}
 With this formulation, anytime an aeromodal element is defined, 
 the user needs to declare the number of modal aerodynamic elements 
 in use in the \kw{control data} section.
@@ -315,7 +331,7 @@ to the rigid body motion of the underlying modal element (FIXME: untested).
 There is also an optional gust model which is totally undocumented;
 for further information, please contact the Author(s).
 
-The \kw{.fea} file includes the state space model in form 
+The \nt{modal\_matrices\_file} file includes the state space model in form 
 of matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
 according to the representation
 \begin{align*}
@@ -344,22 +360,21 @@ The file is formatted as follows:
 
 \paragraph{Example.} \
 \begin{verbatim}
-    aeromodal: Wing, Wing, Wing,
+    aeromodal: WING, WING_JOINT,
         eye,
         131.25, 10, "ha145b.fea";
 \end{verbatim}
-The \kw{aeromodal} element is declared with the label \kw{Wing}.
-This element is attached to a modal node, also labeled
-with the name \kw{Wing}, and the reference \kw{modal} joint 
-it is referred to is named \kw{Wing} as well.
+The \kw{aeromodal} element is declared with the label \texttt{WING}.
+This element is attached to a \kw{modal} joint 
+named \texttt{WING\_JOINT}.
 The orientation of the aerodynamic reference with respect 
-to the nodal reference is here expressed by the matrix eye.
-The aerodynamic element chord is 131.25 (inches!).
+to the nodal reference is here expressed by the identity matrix (\kw{eye}).
+The aerodynamic element chord is 131.25 inches.
 This quantity must be consistent with the system chosen to define 
-the whole model (S.I., for example; in this case, British Units).
+the whole model (SI, for example; in this case, British Units).
 The next field, 10, indicates the number of states needed to use 
 the aerodynamic model.
-The string \kw{ha145b.fea} is the name of the file that contains
+\texttt{ha145b.fea} is the name of the file that contains
 the state space model matrices, obtained with an approximation 
 chosen by the user.
 In this particular case, a 10 states Pad\'e approximation 
@@ -368,7 +383,7 @@ This example is taken from the Bisplinghoff Ashley Halfman
 (BAH) Jet Transport Wing cantilevered wing with modal aerodynamic 
 frequency responce, computed by a double-lattice method at Mach 0.0.
 Data were extracted from the MSC-NASTRAN aeroelastic example file, 
-named \kw{ha145b}, while the aerodynamic state-space fitting 
+named \texttt{ha145b}, while the aerodynamic state-space fitting 
 has been computed using a Pad\'e polynomial approximation
 (by Pasinetti \& Mantegazza).
 All quantities are expressed in inches and pounds.
@@ -376,12 +391,15 @@ All quantities are expressed in inches and pounds.
 
 
 \subsection{Aircraft Instruments}
-\begin{verbatim}
-    <card> ::= aircraft instruments
-    <arglist> ::= <aircraft_node>
-        [ , orientation , (Mat3x3)<relative orientation> ]
-\end{verbatim}
-The \kw{aircraft\_node} represents the aircraft; it is assumed
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{aircraft instruments}
+
+    \bnt{normal_arglist} ::= \bnt{aircraft_node}
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation} ]
+\end{Verbatim}
+%\end{verbatim}
+The \nt{aircraft\_node} represents the aircraft; it is assumed
 that the ``nose'' of the aircraft is toward the positive $x$ direction
 of the node, and the ``top'' of the aircraft is toward the positive 
 $z$ direction of the node.
@@ -434,17 +452,19 @@ of the air plus the description of the airstream velocity direction
 and amplitude.
 The former can be expressed in different forms, while the latter
 are based on three-dimensional vectors which depend on multipliers.
-\begin{verbatim}
-    <arglist> ::= {
-        (drive_caller) <air_density> , (scalar) <sound_speed> 
-        | std , { { SI | British }
-            [ , temperature deviation , <delta T> ]
-            | <p0> , (drive_caller) <rho0> ,
-            <T0> , <dT/dz> , <R> , <g0> , <z1> , <z2>
-        } [ , reference altitude, <z0> ]
-    } , (Vec3_tpl_drive_caller) <air_speed>
-    [ , gust , <gust_model> [ , ... ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{arglist} ::=
+        \{ \ty{(DriveCaller)} \bnt{air_density} , \ty{(Scalar)} \bnt{sound_celerity}
+            | \kw{std} , \{ \{ \kw{SI} | \kw{British} \}
+                [ , \kw{temperature deviation} , \bnt{delta_T} ]
+                | \bnt{p0} , \ty{(DriveCaller)} \bnt{rho0} ,
+                    \bnt{T0} , \bnt{dT/dz} , \bnt{R} , \bnt{g0} , \bnt{z1} , \bnt{z2} \}
+            [ , \kw{reference altitude} , \bnt{z0} ] \} ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{air_speed}
+        [ , \kw{gust} , \bnt{gust_model} [ , ... ] ]
+\end{Verbatim}
+%\end{verbatim}
 The first form consists in the bare input of the air density,
 in form of a drive caller, and of the sound celerity, e.g.:
 \begin{verbatim}
@@ -461,18 +481,18 @@ with a temperature deviation and an altitude offset, e.g.:
 \end{verbatim}
 where standard properties in SI are used, with a temperature
 deviation of -55 K and a reference altitude of 1000 m.
-The air properties are computed based on the Z position of the
-point where the air properties are requested (plus the optional
+The air properties are computed based on the $z$ position of the
+point where the \kw{air properties} are requested (plus the optional
 altitude offset).
 The last possibility lets the user input all the parameters
-required to compute the air properties based on the Z position
+required to compute the \kw{air properties} based on the $z$ position
 of the point where they are requested, namely the reference
-pressure \kw{p0}, the reference density \kw{rho0},
-the reference temperature \kw{T0}, the initial temperature
-gradient \kw{dT/dz}, the gas constant \kw{R}, the
-initial gravity acceleration \kw{g0}, the bottom and top
-altitudes of the null temperature gradient region \kw{z1} and
-\kw{z2}; e.g., for SI units:
+pressure \nt{p0}, the reference density \nt{rho0},
+the reference temperature \nt{T0}, the initial temperature
+gradient \nt{dT/dz}, the gas constant \nt{R}, the
+initial gravity acceleration \nt{g0}, the bottom and top
+altitudes of the null temperature gradient region \nt{z1} and
+\nt{z2}; e.g., for SI units:
 \begin{verbatim}
     air properties: std,
         101325.,       /* Pa */
@@ -487,7 +507,7 @@ altitudes of the null temperature gradient region \kw{z1} and
         reference altitude, 1000.,
         1.,0.,0., 150.;
 \end{verbatim}
-The asymptotic air properties are characterized by the 3D template drive 
+The asymptotic air properties are characterized by the \ty{TplDriveCaller<Vec3>}
 of the air speed, in the global reference frame.
 
 \subsubsection{Gust}
@@ -498,20 +518,24 @@ a time-dependent airstream drive.
 
 Gusts can also be appended later to the \kw{air properties} element
 by using the statement
-\begin{verbatim}
-    gust : <gust_model> ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{gust} : \bnt{gust_model} ;
+\end{Verbatim}
+%\end{verbatim}
 
 
 \paragraph{Front 1D Gust}
 The syntax of the \kw{front 1D} gust model is:
-\begin{verbatim}
-    <gust_model> ::= front 1D ,
-        (Vec3) <front_direction> ,
-        (Vec3) <perturbation_direction> ,
-        (scalar) <front_velocity> ,
-        (drive_caller) <front_profile>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{gust_model} ::= \kw{front 1D} ,
+        \ty{(Vec3)}        \bnt{front_direction} ,
+        \ty{(Vec3)}        \bnt{perturbation_direction} ,
+        \ty{(Scalar)}      \bnt{front_velocity} ,
+        \ty{(DriveCaller)} \bnt{front_profile}
+\end{Verbatim}
+%\end{verbatim}
 This model consists in a uniform front, defined as
 \begin{displaymath}
 	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{\T{f} \cdot \T{x} + V_{ref} \cdot t}
@@ -522,13 +546,13 @@ where
 \item $\T{x}$ is the position of the point whose airstream velocity
 is being computed;
 \item $t$ is the current time;
-\item $\T{n}$ is the unit vector \kw{perturbation\_direction} 
+\item $\T{n}$ is the unit vector \nt{perturbation\_direction} 
 that defines the direction of the velocity perturbation;
-\item $g\plbr{\cdot}$ is the function \kw{front\_profile} 
+\item $g\plbr{\cdot}$ is the function \nt{front\_profile} 
 that defines the gust profile;
-\item $\T{f}$ is the unit vector \kw{front\_direction} 
+\item $\T{f}$ is the unit vector \nt{front\_direction} 
 that defines the direction of propagation of the front;
-\item $V_{ref}$ is the velocity \kw{front\_velocity} 
+\item $V_{ref}$ is the velocity \nt{front\_velocity} 
 of propagation of the front in direction $\T{f}$.
 \end{itemize}
 As an example, a transverse cosine-shaped gust, with a wavelength of 100 m
@@ -552,90 +576,96 @@ and a peak velocity of 5 m/s moving downstream at the airstream speed,
 \paragraph{Scalar Function Wind Profile}
 The syntax of the \kw{scalar function} wind profile,
 implemented as a gust model within the \kw{air properties}, is:
-\begin{verbatim}
-    <gust_model> ::= scalar function ,
-        reference position , (Vec3)<X0> ,
-        reference orientation , (Mat3x3)<R0> ,
-        (ScalarFunction)<sf>
-\end{verbatim}
-It yields a uniform velocity profile along the \kw{x} axis of the
-reference orientation as a function of the \kw{z} axis component
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{gust_model} ::= \kw{scalar function} ,
+        \kw{reference position} , \ty{(Vec3)} \bnt{X0} ,
+        \kw{reference orientation} , \ty{(OrientationMatrix)} \bnt{R0} ,
+        \ty{(ScalarFunction)} \bnt{sf}
+\end{Verbatim}
+%\end{verbatim}
+It yields a uniform velocity profile along the $x$ axis of the
+reference orientation as a function of the $z$ axis component
 of the relative position; namely, given the relative position
 \begin{align}
-	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \nt{X0}}
 	,
 \end{align}
 the velocity is
 \begin{align}
 	\T{v}
 	&=
-	\T{e}_1 \kw{sf}(z)
+	\T{e}_1 \cdot \nt{sf}(z)
 	,
 \end{align}
-where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \nt{R0}.
 
 
 
 \paragraph{Power Law Wind Profile}
 The syntax of the \kw{power law} wind profile, implemented as a gust model
 within the \kw{air properties}, is:
-\begin{verbatim}
-    <gust_model> ::= power law ,
-        reference position , (Vec3)<X0> ,
-        reference orientation , (Mat3x3)<R0> ,
-        reference elevation , <z_ref> ,
-        reference velocity , (DriveCaller)<v_ref> ,
-        exponent , <exponent>
-\end{verbatim}
-It yields a uniform velocity profile along the \kw{x} axis of the
-reference orientation as a function of the \kw{z} axis component
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{gust_model} ::= \kw{power law} ,
+        \kw{reference position} , \ty{(Vec3)} \bnt{X0} ,
+        \kw{reference orientation} , \ty{(OrientationMatrix)} \bnt{R0} ,
+        \kw{reference elevation} , \bnt{z_ref} ,
+        \kw{reference velocity} , \ty{(DriveCaller)} \bnt{v_ref} ,
+        \kw{exponent} , \bnt{exponent}
+\end{Verbatim}
+%\end{verbatim}
+It yields a uniform velocity profile along the $x$ axis of the
+reference orientation as a function of the $z$ axis component
 of the relative position; namely, given the relative position
 \begin{align}
-	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \nt{X0}}
 	,
 \end{align}
 the velocity is
 \begin{align}
 	\T{v}
 	&=
-	\T{e}_1 \kw{v\_ref} \plbr{\frac{z}{\kw{z\_ref}}}^{\kw{exponent}}
+	\T{e}_1 \cdot \nt{v\_ref} \plbr{\frac{z}{\nt{z\_ref}}}^{\nt{exponent}}
 	,
 \end{align}
-where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
-Typical exponents are about 0.1.
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \nt{R0}.
+Typical values of \nt{exponent} are about 0.1.
 
 
 
 \paragraph{Logarithmic Wind Profile}
 The syntax of the \kw{logarithmic} wind profile, implemented as a gust model
 within the \kw{air properties}, is:
-\begin{verbatim}
-    <gust_model> ::= logarithmic ,
-        reference position , (Vec3)<X0> ,
-        reference orientation , (Mat3x3)<R0> ,
-        reference elevation , <z_ref> ,
-        reference velocity , (DriveCaller)<v_ref> ,
-        surface roughness length , <z_0>
-\end{verbatim}
-It yields a uniform velocity profile along the \kw{x} axis of the
-reference orientation as a function of the \kw{z} axis component
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{gust_model} ::= \kw{logarithmic} ,
+        \kw{reference position} , \ty{(Vec3)} \bnt{X0} ,
+        \kw{reference orientation} , \ty{(OrientationMatrix)} \bnt{R0} ,
+        \kw{reference elevation} , \bnt{z_ref} ,
+        \kw{reference velocity} , \ty{(DriveCaller)} \bnt{v_ref} ,
+        \kw{surface roughness length} , \bnt{z_0}
+\end{Verbatim}
+%\end{verbatim}
+It yields a uniform velocity profile along the $x$ axis of the
+reference orientation as a function of the $z$ axis component
 of the relative position; namely, given the relative position
 \begin{align}
-	z &= \T{e}_3 \cdot \plbr{\T{x} - \T{x}_0}
+	z &= \T{e}_3 \cdot \plbr{\T{x} - \nt{X0}}
 	,
 \end{align}
 the velocity is
 \begin{align}
 	\T{v}
 	&=
-	\T{e}_1 \kw{v\_ref} \frac{
-		\log(z/\kw{z\_0}) - \psi_m
+	\T{e}_1 \cdot \nt{v\_ref} \cdot \frac{
+		\log(z/\nt{z\_0}) - \psi_m
 	}{
-		\log(\kw{z\_ref}/\kw{z\_0}) - \psi_m
+		\log(\nt{z\_ref}/\nt{z\_0}) - \psi_m
 	}
 	,
 \end{align}
-where $\T{e}_i$ is the $i$-th axis of the reference orientation \kw{R0}.
+where $\T{e}_i$ is the $i$-th axis of the reference orientation \nt{R0}.
 
 The surface roughness length describes the typical roughness
 of the surrounding surface.
@@ -645,7 +675,7 @@ or 1/20 to 1/30 of the typical obstacle's size (e.g.\ 1m for woods).
 
 
 \paragraph{Output}
-The output occurs in the \kw{.air} file, which contains:
+The output occurs in the \texttt{.air} file, which contains:
 \begin{itemize}
 \item a fake label, always set to 1
 \item the air density
@@ -811,49 +841,57 @@ Originally, this type of element was known as \kw{rotor},
 and the original syntax is preserved for backwards compatibility.
 
 The syntax of the helicopter rotor \kw{induced velocity} element is:
-\begin{verbatim}
-    <elem_type> ::= induced velocity
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{induced velocity}
 
-    <normal_arglist> ::= <craft_node> ,
-            [ hinge , (Mat3x3)<rotor_orientation> , ]
-        <rotor_node> ,
-        induced velocity , <induced_velocity_model>
-\end{verbatim}
-The optional \kw{rotor\_orientation} is required when axis 3 
-of the \kw{craft\_node} is not aligned with the rotor axis; axis 3
-of the \kw{rotor\_node} must be aligned with the rotor axis.
+    \bnt{normal_arglist} ::= \bnt{craft_node} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{rotor_orientation} , ]
+        \bnt{rotor_node} ,
+        \kw{induced velocity} , \bnt{induced_velocity_model}
+\end{Verbatim}
+%\end{verbatim}
+The optional \nt{rotor\_orientation} is required when axis 3 
+of the \nt{craft\_node} is not aligned with the rotor axis; axis 3
+of the \nt{rotor\_node} must be aligned with the rotor axis.
 
 There are five models of induced velocity. 
 The first is no induced velocity; the syntax is:
-\begin{verbatim}
-    <induced_velocity_model> ::= no
-\end{verbatim}
-There is no argument list. This element doesn't compute any induced
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{induced_velocity_model} ::= \kw{no}
+\end{Verbatim}
+%\end{verbatim}
+There is no argument list. This element does not compute any induced
 velocity, but still computes the rotor traction for output purposes,
 if output is required.
 The others have a fairly common syntax.  The first three are
 \kw{uniform}, \kw{glauert} and \kw{mangler} induced velocity
 models:
-\begin{verbatim}
-    <induced_velocity_model> ::= { uniform | glauert | mangler } , 
-        <reference_omega> , <reference_radius> 
-        [ , { ground , <ground_node>
-            | delay , (drive_caller) <memory_factor>
-            | max iterations , <max_iterations>
-            | tolerance , <tolerance>
-            | eta , <eta>
-            | correction , <hover_correction_factor> ,
-                <ff_correction_factor> } [ , ... ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{induced_velocity_model} ::= \{ \kw{uniform} | \kw{glauert} | \kw{mangler} \} , 
+        \bnt{reference_omega} , \bnt{reference_radius}
+        [ , \bnt{option} [ , ... ] ]
+
+    \bnt{option} ::=
+        \{ \kw{ground} , \bnt{ground_node}
+            | \kw{delay} , \ty{(DriveCaller)} \bnt{memory_factor}
+            | \kw{max iterations} , \bnt{max_iterations}
+            | \kw{tolerance} , \bnt{tolerance}
+            | \kw{eta} , \bnt{eta}
+            | \kw{correction} , \bnt{hover_correction_factor}, \bnt{ff_correction_factor} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \begin{itemize}
 \item
-The \kw{reference\_omega} field is used to decide whether
+The \nt{reference\_omega} field is used to decide whether
 the induced velocity computation must be inhibited because the rotor speed
 is very low.
 
 \item
-The \kw{reference\_radius} field is used to make the rotor related parameters
+The \nt{reference\_radius} field is used to make the rotor related parameters
 non-dimensional.
 
 \item
@@ -865,73 +903,67 @@ is used for an approximate correction of the axial inflow velocity
 \cite{NASA-TR-3021}.
 
 \item
-The \kw{memory\_factor}, the \kw{hover\_correction\_factor} 
-and the \kw{ff\_correction\_factor} (forward flight) are
+The \nt{memory\_factor}, the \nt{hover\_correction\_factor} 
+and the \nt{ff\_correction\_factor} (forward flight) are
 used to correct the nominal induced velocity, according to the formula
-\begin{eqnarray*}
-	U_{\text{effective}} & = &
-	\plbr{1 - \mathtt{memory\_factor}} 
-		U_{\text{nominal}} \\
-	& & \mbox{} + \mathtt{memory\_factor} \ U_{\text{previous}}
-\end{eqnarray*}
+\begin{align*}
+	U_{\text{effective}}
+	&=
+	\plbr{1 - \nt{memory\_factor}} U_{\text{nominal}}
+	\\
+	&+ \nt{memory\_factor} \ U_{\text{previous}}
+\end{align*}
 with
-\begin{displaymath}
-	U_{\text{nominal}} = \frac{T}{2 \rho A V_{\text{tip}} \sqrt{
-		\cfrac{\lambda^2}{\mathtt{hover\_correction\_factor}^4}
-		+ \cfrac{\mu^2}{\mathtt{ff\_correction\_factor}^2}
+\begin{align*}
+	U_{\text{nominal}}
+	&=
+	\frac{T}{2 \rho A V_{\text{tip}} \sqrt{
+		\cfrac{\lambda^2}{\nt{hover\_correction\_factor}^4}
+		+ \cfrac{\mu^2}{\nt{ff\_correction\_factor}^2}
 	}}
-\end{displaymath}
+\end{align*}
 The \kw{delay} parameter is used to linearly combine the current
 reference induced velocity with the induced velocity at the previous step;
 no delay means there is no memory of the previous value.
 The memory factor behaves like a discrete first-order low-pass filter.
 As a consequence, its behavior depends on the integration time step.
-The \kw{memory\_factor} parameter defaults to 0.
-The \kw{hover\_correction\_factor} 
-and \kw{ff\_correction\_factor} parameters default to 1.
+The \nt{memory\_factor} parameter defaults to 0.
+The \nt{hover\_correction\_factor} 
+and \nt{ff\_correction\_factor} parameters default to 1.
 
 \item
-The \kw{max\_iterations}, the \kw{tolerance} 
-and the \kw{eta} parameters refer to the iteration cycle 
+The \nt{max\_iterations}, \nt{tolerance} 
+and \nt{eta} parameters refer to the iteration cycle 
 that is performed to compute the nominal induced velocity.
-After \kw{max\_iterations}, or when the absolute value 
+After \nt{max\_iterations}, or when the absolute value 
 of the difference between two iterations of the nominal induced 
-velocity is less than \kw{tolerance}, the cycle ends.
-Only a fraction \kw{eta} of the difference between two
+velocity is less than \nt{tolerance}, the cycle ends.
+Only a fraction \nt{eta} of the difference between two
 iterations of the nominal induced velocity is actually
-used; \kw{eta} defaults to 1.
+used; \nt{eta} defaults to 1.
 The default is to make only one iteration, which is backward-compatible
 with the original behavior.
-\begin{comment}
-\emph{
-	Note: the syntax of the correction factors input changed
-	from MBDyn 1.1 to MBDyn 1.2, where two separate factors,
-	according to conventional models (e.g.\ CAMRAD/JA), 
-	are now allowed instead of one.
-	No backward compatibility has been implemented because 
-	this is a very specialistic parameter and it was introduced 
-	very recently.
-}
-\end{comment}
 \end{itemize}
 
 The last induced velocity model uses a dynamic inflow model,
 based on \cite{PITT}, with 3 inflow states.
 The syntax is:
-\begin{verbatim}
-    <induced_velocity_model> ::= dynamic inflow , 
-        <reference_omega> , 
-        <reference_radius> 
-        [ , ground , <ground_node> ]
-        [ , initial value , <const_vel> ,
-            <cosine_vel> ,
-            <sine_vel> ]
-        [ , max iterations , <max_iterations> ]
-        [ , tolerance , <tolerance> ]
-        [ , eta , <eta> ]
-        [ , correction , <hover_correction_factor> ,
-            <ff_correction_factor> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{induced_velocity_model} ::= \kw{dynamic inflow} , 
+        \bnt{reference_omega} , 
+        \bnt{reference_radius} 
+        [ , \bnt{option} [ , ... ] ]
+
+    \bnt{option} ::=
+        \{ \kw{ground} , \bnt{<ground_node}
+            | \kw{initial value} , \bnt{const_vel} , \bnt{cosine_vel} , \bnt{sine_vel}
+            | \kw{max iterations} , \bnt{max_iterations}
+            | \kw{tolerance} , \bnt{tolerance}
+            | \kw{eta} , \bnt{eta}
+            | \kw{correction} , \bnt{hover_correction_factor} , \bnt{ff_correction_factor} \}
+\end{Verbatim}
+%\end{verbatim}
 Most of the parameters are the same as for the previous models.
 The optional \kw{delay} parameter is no longer allowed.
 The three states, corresponding to uniform, fore-aft and lateral inflow,
@@ -942,13 +974,13 @@ can be explicitly initialized by means of the optional
 The following output is available for all rotor elements:
 \begin{enumerate}
 \item column 1: element label
-\item columns 2--4: rotor force in \kw{x}, \kw{y} and \kw{z} directions
+\item columns 2--4: rotor force in $x$, $y$ and $z$ directions
 	(longitudinal, lateral and thrust components)
-\item columns 5--7: rotor moment about \kw{x}, \kw{y} and \kw{z} directions
+\item columns 5--7: rotor moment about $x$, $y$ and $z$ directions
 	(roll, pitch and torque components)
 \item column 8: mean inflow velocity, based on momentum theory
 \item column 9: reference velocity at rotor center, sum of airstream
-	and \kw{craft} node velocity
+	and \nt{craft\_node} node velocity
 \item column 10: rotor disk angle
 \item column 11: advance parameter $\mu$
 \item column 12: inflow parameter $\lambda$
@@ -969,24 +1001,24 @@ The \kw{dynamic inflow} model adds the columns
 \item column 19: cosine inflow state (longitudinal)
 \end{enumerate}
 Rotor force and moment (columns 2--4 and 5--7) are the aerodynamic
-force and moment exerted by the rotor aerodynamics on the \kw{rotor\_node},
-projected in the reference frame of the \kw{craft\_node},
-optionally modified by the \kw{rotor\_orientation} matrix.
+force and moment exerted by the rotor aerodynamics on the \nt{rotor\_node},
+projected in the reference frame of the \nt{craft\_node},
+optionally modified by the \nt{rotor\_orientation} matrix.
 The conventional naming of longitudinal (or drag), lateral and thrust force,
 and roll, pitch and torque moment, refer to a rotorcraft
-whose \kw{x} axis is the longitudinal (nose to tail) axis,
-whose \kw{y} axis is the lateral (portside) axis,
-and whose \kw{z} axis is the vertical (bottom to top) axis.
+whose $x$ axis is the longitudinal (nose to tail) axis,
+whose $y$ axis is the lateral (portside) axis,
+and whose $z$ axis is the vertical (bottom to top) axis.
 
 \paragraph{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"Tx"} rotor force in \kw{x} direction (longitudinal force)
-\item \kw{"Ty"} rotor force in \kw{y} direction (lateral force)
-\item \kw{"Tz"} rotor force in \kw{z} direction (thrust)
-\item \kw{"Mx"} rotor moment about \kw{x} direction (roll moment)
-\item \kw{"My"} rotor moment about \kw{y} direction (pitch moment)
-\item \kw{"Mz"} rotor moment about \kw{z} direction (torque)
+\item \kw{"Tx"} rotor force in $x$ direction (longitudinal force)
+\item \kw{"Ty"} rotor force in $y$ direction (lateral force)
+\item \kw{"Tz"} rotor force in $z$ direction (thrust)
+\item \kw{"Mx"} rotor moment about $x$ direction (roll moment)
+\item \kw{"My"} rotor moment about $y$ direction (pitch moment)
+\item \kw{"Mz"} rotor moment about $z$ direction (torque)
 \end{enumerate}
 The rotor force and moment components are expressed in the same reference
 frame described in the Output Section above.
