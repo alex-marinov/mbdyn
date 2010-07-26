@@ -136,14 +136,17 @@ The only reason to repeat its definition is to modify the values
 of the momentum and of the momenta moment, and to initialize
 their derivatives.
 The label must match that of the node it refers to.
-\begin{verbatim}
-    <element_type> ::= automatic structural
-    <normal_arglist> ::=
-        (Vec3) <momentum> ,
-        (Vec3) <momenta_moment> ,
-        (Vec3) <momentum_derivative> ,
-        (Vec3) <momenta_moment_derivative>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{automatic structural}
+
+    \bnt{normal_arglist} ::=
+        \ty{(Vec3)} \bnt{momentum} ,
+        \ty{(Vec3)} \bnt{momenta_moment} ,
+        \ty{(Vec3)} \bnt{momentum_derivative} ,
+        \ty{(Vec3)} \bnt{momenta_moment_derivative}
+\end{Verbatim}
+%\end{verbatim}
 All the provided values are recomputed during the initial derivatives phase,
 so they should be intended as initial values for the Newton iteration.
 In general, there is no need to provide this data; they can speed up
@@ -2029,7 +2032,7 @@ The format is:
     <genel_type> ::= spring
     <genel_arglist> ::= (node_dof) <node_1> ,
                         (node_dof) <node_2> ,
-                        (ConstitutiveLaw1D) <const_law>
+                        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 {\em 
     Note: the constitutive law must be \kw{elastic}, but the \kw{distance}
@@ -2042,7 +2045,7 @@ The format is:
 \begin{verbatim}
     <genel_type> ::= spring support
     <genel_arglist> ::= (node_dof) <node> ,                      
-                        (ConstitutiveLaw1D) <const_law>
+                        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 {\em
     Note: the \kw{spring support} must use the \kw{algebraic} value of a 
@@ -2057,7 +2060,7 @@ The format is:
     <genel_type> ::= cross spring support
     <genel_arglist> ::= (node_dof) <row_node> ,                      
                         (node_dof) <col_node> ,                      
-                        (ConstitutiveLaw1D) <const_law>
+                        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 It writes a term depending on the \kw{col\_node} degree of freedom in an
 arbitrary manner (given by the \kw{const\_law}) to the 
@@ -3178,7 +3181,7 @@ changes during the analysis.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw3D) <const_law>
+        (ConstitutiveLaw<3D>) <const_law>
 \end{verbatim}
 
 \noindent
@@ -3287,7 +3290,7 @@ changes during the analysis.
         <node_2> 
         [ , position , (Vec3) <relative_position_2> ]
         [ , orientation , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw3D) <const_law>
+        (ConstitutiveLaw<3D>) <const_law>
         [ , orientation description ,
             { euler123 | euler313 | euler 321
                 | orientation vector | orientation matrix } ]
@@ -3408,7 +3411,7 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
         <node_2> , (Vec3) <relative_offset_2>
         [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (ConstitutiveLaw6D) <const_law>
+        (ConstitutiveLaw<6D>) <const_law>
 \end{verbatim}
 \emph{Note: this joint is experimental; it only works with elastic 
 constitutive laws, the use with viscous and viscoelastic laws 
@@ -4433,7 +4436,7 @@ The syntax is:
         <node_2> , 
             [ position , <relative_offset_2> , ]
         (scalar) { <rod_length> | from nodes }
-        (ConstitutiveLaw1D) <const_law>
+        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 Note: an alternative obsolete syntax is:
 \begin{verbatim}
@@ -4443,7 +4446,7 @@ Note: an alternative obsolete syntax is:
         (scalar) { <rod_length> | from nodes }
         [ , offset , (Vec3) <relative_offset_1> , 
                      (Vec3) <relative_offset_2> ] ,
-        (ConstitutiveLaw1D) <const_law>
+        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 It will probably be discontinued.
 See also
@@ -4535,7 +4538,7 @@ The syntax is:
     <joint_arglist> ::= <node_1> , (Vec3) <relative_offset_1>
                         <node_2> , (Vec3) <relative_offset_2>
         (scalar) { <rod_length> | from nodes } ,
-        (ConstitutiveLaw1D) <const_law>
+        (ConstitutiveLaw<1D>) <const_law>
 \end{verbatim}
 Analogous to the \kw{rod} joint with the optional arg \kw{offset};
 see Section~\ref{sec:EL:STRUCT:JOINT:ROD} for details.
@@ -4796,7 +4799,7 @@ Deprecated in favour of the
         <node> ,
             [ position , ] (Vec3)<relative_offset> ,
             [ orientation, (Mat3x3)<relative_orientation> , ]
-            (ConstitutiveLaw6D) <const_law>
+            (ConstitutiveLaw<6D>) <const_law>
 \end{verbatim}
 This element defines a force and a moment that depend on the absolute 
 linear and angular velocity of a body, projected in the reference frame

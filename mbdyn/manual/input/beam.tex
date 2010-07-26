@@ -1312,32 +1312,35 @@ Any of the supported 6D constitutive laws can be supplied to define the
 constitutive properties of each beam section.
 
 The traditional input format is
-\begin{verbatim}
-    <element_type> ::= beam3
-    <normal_arglist> ::=
-        <node_1> , (Vec3) <relative_offset_1> ,
-        <node_2> , (Vec3) <relative_offset_2> ,
-        <node_3> , (Vec3) <relative_offset_3> ,
-        (OrientationMatrix) <orientation_matrix_section_I> ,
-        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
-        { same | (ConstitutiveLaw6D) <constitutive_law_section_II> }
-        [ , <custom_output> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{beam3}
 
-The \kw{relative\_offset\_i}, with \kw{i}=1,2,3, are the vectors
+    \bnt{normal_arglist} ::=
+        \bnt{node_1_label} , \ty{(Vec3)} \bnt{relative_offset_1} ,
+        \bnt{node_2_label} , \ty{(Vec3)} \bnt{relative_offset_2} ,
+        \bnt{node_3_label} , \ty{(Vec3)} \bnt{relative_offset_3} ,
+        \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_I} ,
+        \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_I} ,
+        \{ \kw{same} | \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_II} \} ,
+        \{ \kw{same} | \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_II} \}
+        [ , \bnt{custom_output} ]
+\end{Verbatim}
+%\end{verbatim}
+
+The \nt{relative\_offset\_}\bnt{i}, with \nt{i}=1,2,3, are the vectors
 $\T{o}_i$, with $i$=1,2,3, of Figure~\ref{fig:EL:BEAM:beam3}.
 
-The orientation matrices \kw{orientation\_matrix\_section\_j},
-with \kw{j}=I,II, are the section orientation matrices
+The orientation matrices \nt{orientation\_matrix\_section\_}\bnt{j},
+with \nt{j}=I,II, are the section orientation matrices
 $\TT{R}_j$, with $j$=$I$,$II$, of Figure~\ref{fig:EL:BEAM:beam3}.
 
 The first keyword \kw{same}, alternative to the 
-\kw{orientation\_matrix\_section\_II}, means that the same orientation
+\nt{orientation\_matrix\_section\_II}, means that the same orientation
 defined for the first point will be used for the second point.
 
 The second keyword \kw{same}, alternative to the
-\kw{constitutive\_law\_section\_II}, means that the same constitutive law
+\nt{constitutive\_law\_section\_II}, means that the same constitutive law
 defined for the first point will be used for the second point.
 
 If any of the constitutive laws is either viscous or viscoelastic,
@@ -1345,28 +1348,31 @@ the viscoelastic variant of the beam element is used.
 Otherwise, the elastic variant is used.
 
 A more complete input format is
-\begin{verbatim}
-    <element_type> ::= beam3
-    <normal_arglist> ::=
-        <node_1> ,
-            [ position , ] (Vec3) <relative_offset_1> ,
-            [ orientation , (Mat3x3) <relative_orientation_1> , ]
-        <node_2> ,
-            [ position , ] (Vec3) <relative_offset_2> ,
-            [ orientation , (Mat3x3) <relative_orientation_2> , ]
-        <node_3> ,
-            [ position , ] (Vec3) <relative_offset_3> ,
-            [ orientation , (Mat3x3) <relative_orientation_3> , ]
-        { (OrientationMatrix) <orientation_matrix_section_I>
-            | from nodes } ,
-        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        { same
-            | (OrientationMatrix) <orientation_matrix_section_II>
-            | from nodes } ,
-        { same
-            | (ConstitutiveLaw6D) <constitutive_law_section_II> }
-        [ , <custom_output> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{beam3}
+
+    \bnt{normal_arglist} ::=
+        \bnt{node_1_label} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_1} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_1} , ]
+        \bnt{node_2_label} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_2} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_2} , ]
+        \bnt{node_3} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_3} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_3} , ]
+        \{ \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_I}
+            | \kw{from nodes} \} ,
+        \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_I} ,
+        \{ \kw{same}
+            | \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_II}
+            | \kw{from nodes} \} ,
+        \{ \kw{same}
+            | \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_II} \}
+        [ , \bnt{custom_output} ]
+\end{Verbatim}
+%\end{verbatim}
 This format is a superset of the traditional one, which is extended
 by adding the possibility to set relative node orientations
 that can be subsequently used to interpolate the orientation matrices
@@ -1376,11 +1382,12 @@ If the keyword \kw{same} is used for the second evaluation point,
 the same method is used to compute the orientation matrix.
 
 The \kw{custom\_output} optional data consists in
-\begin{verbatim}
-    <custom_output> ::= custom output , 
-        <custom_output_flag> [ , ... ]
-\end{verbatim}
-The values of \kw{custom\_output\_flag}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{custom_output} ::= \kw{custom output} , \bnt{custom_output_flag} [ , ... ]
+\end{Verbatim}
+%\end{verbatim}
+The values of \nt{custom\_output\_flag}
 are defined in Section~\ref{sec:CONTROLDATA:DEFAULTBEAMOUTPUT}.
 
 Flags add up to form the custom output request.
@@ -1457,23 +1464,25 @@ is used in the constitutive matrix:
 A piezoelectric actuator beam element is available; an arbitrary
 linear piezoelectric actuation matrix is required, together with the labels
 of the abstract nodes that represent the input signal tensions, as follows:
-\begin{verbatim}
-    <normal_arglist> ::=
-        <node_1> , (Vec3) <relative_offset_1> ,
-        <node_2> , (Vec3) <relative_offset_2> ,
-        <node_3> , (Vec3) <relative_offset_3> ,
-        (OrientationMatrix) <orientation_matrix_section_I> ,
-        (ConstitutiveLaw6D) <constitutive_law_section_I> ,
-        { same | (OrientationMatrix) <orientation_matrix_section_II> } ,
-        { same | (ConstitutiveLaw6D) <constitutive_law_section_II> } ,
-        piezoelectric actuator , 
-        <electrodes_number> ,
-        <abstract_node_label_list> ,
-        (Mat6xN) <piezoelectric_matrix_I> ,
-        { same | (Mat6xN) <piezoelectric_matrix_II> }
-        [ , <custom_output> ]
-\end{verbatim}
-where the \kw{abstract\_node\_label\_list} is the list of the labels of the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::=
+        \bnt{node_1_label} , \ty{(Vec3)} \bnt{relative_offset_1} ,
+        \bnt{node_2_label} , \ty{(Vec3)} \bnt{relative_offset_2} ,
+        \bnt{node_3_label} , \ty{(Vec3)} \bnt{relative_offset_3} ,
+        \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_I} ,
+        \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_I} ,
+        \{ \kw{same} | \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_II} \} ,
+        \{ \kw{same} | \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_II} \} ,
+        \kw{piezoelectric actuator} , 
+            \bnt{electrodes_number} ,
+            \bnt{abstract_node_label_list} ,
+            \ty{(Mat6xN)} \bnt{piezoelectric_matrix_I} ,
+            \{ \kw{same} | \ty{(Mat6xN)} \bnt{piezoelectric_matrix_II} \}
+        [ , \bnt{custom_output} ]
+\end{Verbatim}
+%\end{verbatim}
+where the \nt{abstract\_node\_label\_list} is the list of the labels of the
 abstract nodes that represent the electrodes.
 
 
@@ -1547,39 +1556,45 @@ Its geometry is illustrated in Figure~\ref{fig:EL:BEAM:beam2}.
 \end{figure}
 
 The syntax is
-\begin{verbatim}
-    <element_type> ::= beam2
-    <normal_arglist> ::=
-        <node_1> , (Vec3) <relative_offset_1> ,
-        <node_2> , (Vec3) <relative_offset_2> ,
-        (OrientationMatrix) <orientation_matrix_section_I> ,
-        (ConstitutiveLaw6D) <constitutive_law_section_I>
-        [ , piezoelectric actuator , 
-        <electrodes_number> ,
-        <abstract_node_label_list> ,
-        (Mat6xN) <piezoelectric_matrix_I> ]
-        [ , <custom_output> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{beam2}
+
+    \bnt{normal_arglist} ::=
+        \bnt{node_1_label} , \ty{(Vec3)} \bnt{relative_offset_1} ,
+        \bnt{node_2_label} , \ty{(Vec3)} \bnt{relative_offset_2} ,
+        \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_I} ,
+        \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_I}
+        [ , \kw{piezoelectric actuator} , 
+            \bnt{electrodes_number} ,
+            \bnt{abstract_node_label_list} ,
+            \ty{(Mat6xN)} \bnt{piezoelectric_matrix_I} ]
+        [ , \bnt{custom_output} ]
+\end{Verbatim}
+%\end{verbatim}
 
 A more complete form is
-\begin{verbatim}
-    <element_type> ::= beam2
-    <normal_arglist> ::=
-        <node_1> ,
-            [ position , ] (Vec3) <relative_offset_1> ,
-            [ orientation , (Mat3x3) <relative_orientation_1> , ]
-        <node_2> ,
-            [ position , ] (Vec3) <relative_offset_2> ,
-            [ orientation , (Mat3x3) <relative_orientation_2> , ]
-        { (OrientationMatrix) <orientation_matrix_section_I>
-            | from nodes } ,
-        (ConstitutiveLaw6D) <constitutive_law_section_I>
-        [ , piezoelectric actuator , 
-        <electrodes_number> ,
-        <abstract_node_label_list> ,
-        (Mat6xN) <piezoelectric_matrix_I> ]
-        [ , <custom_output> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{beam2}
+
+    \bnt{normal_arglist} ::=
+        \bnt{node_1_label} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_1} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_1} , ]
+        \bnt{node_2_label} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_2} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_2} , ]
+        \{ \ty{(OrientationMatrix)} \bnt{orientation_matrix_section_I}
+            | \kw{from nodes} \} ,
+        \ty{(ConstitutiveLaw<6D>)} \bnt{constitutive_law_section_I}
+        [ , \kw{piezoelectric actuator} , 
+            \bnt{electrodes_number} ,
+            \bnt{abstract_node_label_list} ,
+            \ty{(Mat6xN)} \bnt{piezoelectric_matrix_I} ]
+        [ , \bnt{custom_output} ]
+\end{Verbatim}
+%\end{verbatim}
 
 \paragraph{Private Data.}
 The same private data indicated for the \kw{beam3} element is available
@@ -1616,7 +1631,7 @@ shear locking, according to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
-\kw{.act}; for each time step, the output of the required beams is
+\texttt{.act}; for each time step, the output of the required beams is
 written.
 The internal forces and couples are computed from the interpolated strains
 along the beam by means of the constitutive law, at the two evaluation
@@ -1631,6 +1646,9 @@ The format is:
 \end{itemize}
 The last two items (i.e.\ the last 6 columns) are generated
 only by the three-node beam element.
+
+More detailed output is allowed when using NetCDF;
+see Section~\ref{sec:NetCDF:Elem:Beam} for details.
 
 
 
