@@ -1751,7 +1751,13 @@ ReadRotor(DataManager* pDM,
 
 	/* rotor orientation with respect to aircraft */
      	Mat3x3 rrot(Eye3);
-     	if (HP.IsKeyWord("hinge")) {
+     	if (HP.IsKeyWord("orientation")) {
+     		ReferenceFrame RF(pCraft);
+     		rrot = HP.GetRotRel(RF);
+
+     	} else if (HP.IsKeyWord("hinge")) {
+		silent_cerr("InducedVelocity(" << uLabel << "): deprecated keyword \"hinge\"; use \"orientation\" instead at line " << HP.GetLineData() << std::endl);
+
      		ReferenceFrame RF(pCraft);
      		rrot = HP.GetRotRel(RF);
      	}
