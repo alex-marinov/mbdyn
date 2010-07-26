@@ -182,32 +182,36 @@ It is rather used to instruct a
 \htmlref{\kw{parameter node}}{sec:NODE:PARAMETER}
 about which parameter of an element it is bound to.
 The \kw{parameter node} must exist, and the element the node 
-is being bound to, of type \kw{element\_type} and label \kw{element\_label},
+is being bound to, of type \nt{elem\_type} and label \nt{element\_label},
 must have been already defined.
 The complete syntax is:
-\begin{verbatim}
-    <arglist> ::= <element_label> , 
-        <element_type> ,
-        <parameter_node_label> , 
-        <bind_args>
-\end{verbatim}
-where \kw{bind\_args} depend on the type of parameter node.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::=
+        \bnt{element_label} ,
+        \bnt{element_type} ,
+        \bnt{parameter_node_label} , 
+        \bnt{bind_args}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{bind\_args} depend on the type of parameter node.
 
 \subsection{Element}
 When binding an element to an 
 \htmlref{\kw{element}}{sec:NODE:PARAMETER:ELEMENT} parameter node,
 each element makes a number of specific parameters available.
-A detailed list is given for each element in the \kw{private data}
-section.
+A detailed list is given for each element in the private data section.
 In that case:
-\begin{verbatim}
-    <bind_args> ::=
-        { <parameter_index> | name , " <parameter_name> " }
-\end{verbatim}
-The value of \kw{parameter\_index} must be legal, i.e.\ between 1 and the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{bind_args} ::=
+        \{ \bnt{parameter_index} | \kw{name} , " \bnt{parameter_name} " \}
+\end{Verbatim}
+%\end{verbatim}
+The value of \nt{parameter\_index} must be legal, i.e.\ between 1 and the
 maximum number of parameters made available by the element.
-The alternative form, which will become the default, allows more
-friendly definition of the binding.
+The alternative form, using the keyword \kw{name} followed by the \nt{parameter\_name},
+ allows more friendly definition of the binding.
 The name of the parameter depends on the element whose property
 is being bound.
 A complete listing of the parameters that a parameter node 
@@ -217,7 +221,7 @@ It is advisable that a mechanism for elements to publish
 what parameters they can make available be devised and implemented.
 
 \paragraph{Example.} \
-The parameter node \kw{angle} is bound to the rotation of a 
+The parameter node \texttt{ANGLE} is bound to the rotation of a 
 \hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
 \begin{verbatim}
     # ... problem block
@@ -229,29 +233,32 @@ The parameter node \kw{angle} is bound to the rotation of a
         # ... other control data
     end: control data;
 
-    set: integer node1 = 1000;
-    set: integer node2 = 2000;
-    set: integer angle = 5000;
+    set: integer NODE1 = 1000;
+    set: integer NODE2 = 2000;
+    set: integer ANGLE = 5000;
+    set: integer REVOLUTE = 6000;
 
     begin: nodes;
-        structural: node1, dynamic, null, eye, null, null;
-        structural: node2, dynamic, null, eye, null, null;
-        parameter: angle, element;
+        structural: NODE1, dynamic, null, eye, null, null;
+        structural: NODE2, dynamic, null, eye, null, null;
+        parameter: ANGLE, element;
 
         # ... other nodes
     end: nodes;
 
     begin: elements;
-        joint: 1, revolute hinge,
-            node1, reference, node, null,
-                hinge, reference, node, eye,
-            node2, reference, node, null,
-                hinge, reference, node, eye;
-        bind: 1, joint, angle, string, "rx";
-        couple: 1, node1, 0.,0.,1.,
-            dof, angle, parameter, 1, linear, 0.,1.;
-        couple: 2, node2, 0.,0.,1.,
-            element, 1, joint, string, "rx", linear, 0.,1.;
+        joint: REVOLUTE, revolute hinge,
+            NODE1,
+                position, reference, node, null,
+                orientation, reference, node, eye,
+            NODE2,
+                position, reference, node, null,
+                orientation, reference, node, eye;
+        bind: REVOLUTE, joint, ANGLE, string, "rx";
+        couple: 1, NODE1, 0.,0.,1.,
+            dof, ANGLE, parameter, 1, linear, 0.,1.;
+        couple: 2, NODE2, 0.,0.,1.,
+            element, REVOLUTE, joint, string, "rx", linear, 0.,1.;
 
         # ... other elements
     end: elements;
@@ -269,13 +276,14 @@ the \kw{parameter} node, which can be used to connect
 \subsection{Beam strain gage}
 When binding an element to a
 \htmlref{\kw{beam strain gage}}{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
-parameter node, the \kw{element\_type} field must be \kw{beam}.
+parameter node, the \nt{element\_type} field must be \kw{beam}.
 In that case:
-\begin{verbatim}
-    <bind_args> ::=
-        <evaluation_point>
-\end{verbatim}
-where \kw{evaluation\_point} is the evaluation point of the beam element
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{bind_args} ::= \bnt{beam_evaluation_point}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{beam\_evaluation\_point} is the evaluation point of the beam element
 where the internal strain and curvatures must be evaluated.
 It must be 1 for 2-node beams, while it can be either 1 or 2
 for 3-node beams.
@@ -308,34 +316,37 @@ for 3-node beams.
 
 
 \section{Body}
-\begin{verbatim}
-    <one_body> ::=
-        (scalar) <mass> , 
-        (Vec3)   <relative_center_of_mass> ,
-        (Mat3x3) <inertia_matrix>
-        [ , inertial , 
-            { node | (OrientationMatrix) <orientation_matrix> } ]
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{body}
 
-    <normal_arglist> ::= <node_label> ,
-        { <one_body>
-        | condense, (integer) <num_masses> ,
-            <one_body> [ , ... ] }
-\end{verbatim}
+    \bnt{normal_arglist} ::= \bnt{node_label} ,
+        \{ \bnt{one_body}
+            | \kw{condense} , \bnt{num_masses} , \bnt{one_body} [ , ... ] \}
+
+    \bnt{one_body} ::=
+        \ty{(Scalar)} \bnt{mass} , 
+        \ty{(Vec3)}   \bnt{relative_center_of_mass} ,
+        \ty{(Mat3x3)} \bnt{inertia_matrix}
+        [ , \kw{inertial} , 
+            \{ \kw{node} | \ty{(OrientationMatrix)} \bnt{orientation_matrix} \} ]
+\end{Verbatim}
+%\end{verbatim}
 If only one mass is defined, the first method should be used. Otherwise,
 many masses can be referred to the same element by means of the keyword
-\kw{condense}, followed by the number of expected masses \kw{num\_masses}.
+\kw{condense}, followed by the number of expected masses \nt{num\_masses}.
 The format of each sub-mass is the same as for the single mass input (actually, 
-when \kw{condense} is not supplied, \kw{num\_masses} is assumed to be 1).
+when \kw{condense} is not supplied, \nt{num\_masses} is assumed to be 1).
 
-The \kw{inertia\_matrix} is always referred to the center of mass of the
+The \nt{inertia\_matrix} is always referred to the center of mass of the
 mass that is being added. It can be rotated locally by means of the extra
-\kw{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
+\nt{orientation\_matrix} supplied after the (optional) keyword \kw{inertial}.
 The keyword \kw{node} corresponds to the default, i.e.\ the inertia matrix
 is assumed to be input in the node reference frame.
 
 Note: in many commercial finite element software, the off-diagonal elements 
 of the inertia matrix are defined with a minus sign; for instance, 
-NASTRAN's \kw{CONM2} lumped inertia card expects the values as indicated
+NASTRAN's \texttt{CONM2} lumped inertia card expects the values as indicated
 in Figure~\ref{fig:el:body:CONM2}.
 %
 \begin{figure}[b]
@@ -347,19 +358,19 @@ CONM2   EID     G       CID     M       X1      X2      X3
         I11     I21     I22     I31     I32     I33
 \end{boxedverbatim}
 \end{minipage}
-\caption{NASTRAN \kw{CONM2} card}
+\caption{NASTRAN \texttt{CONM2} card}
 \label{fig:el:body:CONM2}
 \end{figure}
 %
 However, the matrix is reconstructed as
 \begin{displaymath}
-	\mathrm{NASTRAN \ ::= } \ \sqbr{\matr{cccccc}{
-		M & & & & & \\
-		& M & & \multicolumn{3}{c}{\mathrm{symmetric}} \\
-		& & M & & & \\
-		& & & I11 & & \\
-		& & & -I21 & I22 & \\
-		& & & -I31 & -I32 & I33
+	\mathrm{NASTRAN \ ::= } \ \sqbr{\matr{rrrrrr}{
+		\texttt{M} & & & & & \\
+		& \texttt{M} & & \multicolumn{3}{c}{\text{symmetric}} \\
+		& & \texttt{M} & & & \\
+		& & & \texttt{I11} & & \\
+		& & & -\texttt{I21} & \texttt{I22} & \\
+		& & & -\texttt{I31} & -\texttt{I32} & \texttt{I33}
 	}}
 \end{displaymath}
 see for instance \emph{NASTRAN V70.5 Quick Reference Guide} for details.
@@ -371,19 +382,19 @@ that will be used in the computation, i.e.\
 as reported below:
 \begin{displaymath}
 	\mathrm{MBDyn \ ::= } \ \sqbr{\matr{ccc}{
-		i11 & i12 & i13 \\
-		& i22 & i23 \\
-		\multicolumn{2}{l}{\mathrm{sym.}} & i33
+		\texttt{i11} & \texttt{i12} & \texttt{i13} \\
+		& \texttt{i22} & \texttt{i23} \\
+		\multicolumn{2}{l}{\text{sym.}} & \texttt{i33}
 	}}
 \end{displaymath}
 So:
 \begin{eqnarray*}
-	i11 & = & I11 \\
-	i22 & = & I22 \\
-	i33 & = & I33 \\
-	i12 & = & - I21 \\
-	i13 & = & - I31 \\
-	i23 & = & - I32
+	\texttt{i11} & = & \texttt{I11} \\
+	\texttt{i22} & = & \texttt{I22} \\
+	\texttt{i33} & = & \texttt{I33} \\
+	\texttt{i12} & = & - \texttt{I21} \\
+	\texttt{i13} & = & - \texttt{I31} \\
+	\texttt{i23} & = & - \texttt{I32}
 \end{eqnarray*}
 The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
@@ -414,22 +425,32 @@ in Section~\ref{sec:EL:MISC:INERTIA}.
         diag, .2, .2, .1;              # inertia tensor 3
 \end{verbatim}
 
+
+
 \section{Bulk Elements}
-The \kw{bulk} element is intended as a sort of NASTRAN's \kw{CELAS} card,
+The \kw{bulk} element is intended as a sort of NASTRAN's \texttt{CELAS} card,
 that can be used to apply a stiffness term on an arbitrary degree of freedom.
 Extensions are planned to different kind of elements.
 The syntax of the \kw{bulk} element is:
-\begin{verbatim}
-    <normal_arglist> ::= <bulk_type> , <bulk_arglist>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{bulk}
+
+    \bnt{normal_arglist} ::= \bnt{bulk_type} , \bnt{bulk_arglist}
+\end{Verbatim}
+%\end{verbatim}
 At present only the \kw{stiffness spring} type is available.
 
 \subsection{Stiffness spring}
-\begin{verbatim}
-    <bulk_type> ::= stiffness spring
-    <bulk_arglist> ::= (node_dof) <dof> ,
-                       (drive_caller) <stiffness_drive>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{bulk_type} ::= \kw{stiffness spring}
+
+    \bnt{bulk_arglist} ::=
+        \ty{(NodeDof)} \bnt{dof} ,
+        \ty{(DriveCaller)} \bnt{stiffness_drive}
+\end{Verbatim}
+%\end{verbatim}
 The equation related to the desired dof of the linked node is added a
 contribution based on the value of the desired degree of freedom (even the
 derivative can be used) multiplied times the stiffness.
@@ -453,9 +474,11 @@ ones (from the program's point of view they are exactly the same, the
 difference is only semantic). The true electric elements, such resistors,
 switches and so on, are classified as \kw{electric bulk} elements.
 The syntax for \kw{electric} elements is:
-\begin{verbatim}
-    <normal_arglist> ::= <electric_type> , <electric_arglist>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \bnt{electric_type} , \bnt{electric_arglist}
+\end{Verbatim}
+%\end{verbatim}
 The \kw{electric} elements implemented at present are:
 \begin{itemize}
 	\item \kw{accelerometer}
@@ -463,56 +486,70 @@ The \kw{electric} elements implemented at present are:
 	\item \kw{motor}
 	\item \kw{discrete control}
 \end{itemize}
-The syntax is described below.
+The syntax is described in the following.
 
 \subsection{Accelerometer}
-\begin{verbatim}
-    <electric_arglist> ::=
-        { translational | rotational } ,
-        <struct_node_label> ,
-        <abstract_node_label> ,
-        ((Unit)Vec3) <measure_direction>
-        [ , position , (Vec3) <position> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{electric_type} ::= \kw{accelerometer}
+
+    \bnt{electric_arglist} ::=
+        \{ \kw{translational} | \kw{rotational} \} ,
+        \bnt{struct_node_label} ,
+        \bnt{abstract_node_label} ,
+        \ty{((Unit)Vec3)} \bnt{measure_direction}
+        [ , \kw{position} , \ty{(Vec3)} \bnt{position} ]
+\end{Verbatim}
+%\end{verbatim}
 The \kw{position} is optional; it is meaningless for \kw{rotational}
 accelerometers.
-The measure is taken along or about direction \kw{measure\_direction};
+The measure is taken along or about direction \nt{measure\_direction};
 the vector is internally normalized to unity.
 
 \noindent
 Legacy element: accelerometer with built-in transfer function
-\begin{verbatim}
-    <electric_arglist> ::= <struct_node_label> ,
-        <abstract_node_label> ,
-        ((Unit)Vec3) <measure_direction> ,
-        (scalar) <omega> ,
-        (scalar) <tau> ,
-        (scalar) <csi> ,
-        (scalar) <kappa>	
-\end{verbatim}
-The label \kw{struct\_node\_label} defines the node whose acceleration 
-is being measured; the label \kw{abstract\_node\_label} defines the
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{electric_type} ::= \kw{accelerometer}
+
+    \bnt{electric_arglist} ::= \bnt{struct_node_label} ,
+        \bnt{abstract_node_label} ,
+        \ty{((Unit)Vec3)} \bnt{measure_direction} ,
+        \ty{(Scalar)} \bnt{omega} ,
+        \ty{(Scalar)} \bnt{tau} ,
+        \ty{(Scalar)} \bnt{csi} ,
+        \ty{(Scalar)} \bnt{kappa}	
+\end{Verbatim}
+%\end{verbatim}
+The label \nt{struct\_node\_label} defines the node whose acceleration 
+is being measured; the label \nt{abstract\_node\_label} defines the
 \kw{abstract node} that will receive the output signal. 
 An \kw{electric node} can be used as well (?).
-The measure is taken along direction \kw{measure\_direction};
+The measure is taken along direction \nt{measure\_direction};
 the vector is internally normalized to unity.
 The transfer function of the accelerometer is:
 \begin{displaymath}
-    \frac{e_0}{a} = \kw{kappa}\frac{\kw{tau} \ s}{
-        \plbr{1+\kw{tau} \ s}
-        \plbr{1+2 \ \kw{csi}/\kw{omega} \ s+s^2/\kw{omega}^2}
+    \frac{e_0}{a} = \nt{kappa} \cdot \frac{\nt{tau} \cdot s}{
+        \plbr{1 + \nt{tau} \cdot s}
+        \plbr{1 + 2 \cdot \nt{csi} \cdot (s/\nt{omega}) + (s/\nt{omega})^2}
     }
 \end{displaymath}
 where $ e_0 $ is the output signal, $ a $ is the input (the acceleration)
-and $ s $ is the Laplace variable.
+and $ s $ is Laplace's variable.
+
+
 
 \subsection{Displacement}
-\begin{verbatim}
-    <electric_arglist> ::=
-        <node_1> , (Vec3) <relative_offset_1> ,
-        <node_2> , (Vec3) <relative_offset_2> ,
-        <abstract_node_label>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{electric_type} ::= \kw{displacement}
+
+    \bnt{electric_arglist} ::=
+        \bnt{struct_node_1_label} , \ty{(Vec3)} \bnt{relative_offset_1} ,
+        \bnt{struct_node_2_label} , \ty{(Vec3)} \bnt{relative_offset_2} ,
+        \bnt{abstract_node_label}
+\end{Verbatim}
+%\end{verbatim}
 \begin{subequations}
 \begin{align}
 	\T{d} &= \T{x}_b + \T{o}_b - \T{x}_a - \T{o}_a \\
@@ -523,36 +560,40 @@ The value $x$ is added to the right-hand side of the equation
 of the \kw{abstract} node.
 
 \subsection{Motor}
-\begin{verbatim}
-    <electric_arglist> ::=
-        <node_1> ,
-        <node_2> , 
-        ((Unit)Vec3) <direction_relative_to_node_1> ,
-        <abstract_node_label1>,
-        <abstract_node_label2>,
-        (scalar) dG,
-        (scalar) dl,
-        (scalar) dr
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{electric_type} ::= \kw{motor}
+
+    \bnt{electric_arglist} ::=
+        \bnt{struct_node_1_label} ,
+        \bnt{struct_node_2_label} ,
+        \ty{((Unit)Vec3)} \bnt{direction_relative_to_node_1} ,
+        \bnt{abstract_node_1_label} ,
+        \bnt{abstract_node_2_label} ,
+        \ty{(Scalar)} \bnt{dG},
+        \ty{(Scalar)} \bnt{dL},
+        \ty{(Scalar)} \bnt{dR}
+\end{Verbatim}
+%\end{verbatim}
 \begin{subequations}
 \begin{align}
 	\omega &= \T{e}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \\
 	V &= V_2 - V_1 \\
-	V &= \mathtt{dl} \frac{\mathrm{d}i}{\mathrm{d}t} + \mathtt{dr} \, i + \mathtt{dG} \, \omega \\
-	\T{c}_1 &= - \T{e} \, \mathtt{dG} \, i \\
-	\T{c}_2 &= \T{e} \, \mathtt{dG} \, i \\
+	V &= \nt{dL} \frac{\mathrm{d}i}{\mathrm{d}t} + \nt{dR} \, i + \nt{dG} \, \omega \\
+	\T{c}_1 &= - \T{e} \, \nt{dG} \, i \\
+	\T{c}_2 &= \T{e} \, \nt{dG} \, i \\
 	i_1 &= -i \\
 	i_2 &= i
 \end{align}
 \end{subequations}
 The motor applies an internal torque about direction
-$\T{e}$=\kw{direction\_relative\_to\_node\_1}
+$\T{e}=\nt{direction\_relative\_to\_node\_1}$
 to both the structural nodes it is connected to.
 The direction $\T{e}$ is internally normalized to unity.
 It also applies a current to both the electrical nodes it is connected to.
 
 The element assumes that the relative orientation between nodes 1 and 2
-can only change by rotating about the direction $\T{e}$, so appropriate
+can only change by rotating about direction $\T{e}$, so appropriate
 joints must be in place.
 
 
@@ -605,26 +646,26 @@ This element is not self-starting; it assumes that both
 inputs and outputs at times before the start time are zero.
 
 The so-called ``output'' signals, indicated with $\T{y}$,
-can be instances of either \kw{node\_dof} or \kw{drive\_caller} objects.
+can be instances of either \ty{NodeDof} or \ty{DriveCaller} objects.
 The so-called ``input'' signals, indicated with $\T{u}$,
-must be instances of \kw{node\_dof} object.
-This implies that instances of \kw{node\_dof} objects
+must be instances of \ty{NodeDof} object.
+This implies that instances of \ty{NodeDof} objects
 need the corresponding equations to be (at least) statically defined.
 In fact, the \kw{discrete control} element uses the ``output''
-\kw{node\_dof} values, the $\T{y}$, to compute the corresponding
+\ty{NodeDof} values, the $\T{y}$, to compute the corresponding
 ``inputs'', the $\T{u}$.
 The latter are substantially added as a right-hand side
-to the equations of the corresponding \kw{node\_dof} objects.
+to the equations of the corresponding \ty{NodeDof} objects.
 As a consequence, other elements must contribute to the left-hand side
-of all the \kw{node\_dof} equations in order to make them defined.
+of all the \ty{NodeDof} equations in order to make them defined.
 
 Note that other elements may also contribute to the right-hand side
-of the ``input'' \kw{node\_dof} object.
+of the ``input'' \ty{NodeDof} object.
 Specifically, other \kw{abstract} forces may contribute to their value.
 In that case, the additional forces represent the exogenous inputs.
 They are considered as part of the input used by the \kw{discrete control}
 element, since the value $\T{u}_k$ to be used in the control equation
-is extracted from the value of the corresponding \kw{node\_dof} objects.
+is extracted from the value of the corresponding \ty{NodeDof} objects.
 
 Figure~\ref{fig:discctrl} illustrates the behavior of the element.
 The typical suggested approach is illustrated later in an example.
@@ -648,47 +689,55 @@ The typical suggested approach is illustrated later in an example.
 \end{figure}
 
 The syntax is
-\begin{verbatim}
-    <electric_arglist> ::= <num_outputs> , <num_inputs> ,
-        <orderA> [, fir , <orderB> ] ,
-        <num_iter> ,
-        <control_data> , 
-        outputs ,
-            (scalar_value)<output_value> 
-                [ , scale , (drive_caller) scale ]
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{electric_type} ::= \kw{discrete control}
+
+    \bnt{electric_arglist} ::= \bnt{num_outputs} , \bnt{num_inputs} ,
+        \bnt{order_A} [ , \kw{fir} , \bnt{order_B} ] ,
+        \bnt{num_iter} ,
+        \bnt{control_data} , 
+        \kw{outputs} ,
+            \ty{(ScalarValue)} \bnt{output_value}
+                [ , \kw{scale} , \ty{(DriveCaller)} \bnt{scale} ]
             [ , ... ] ,
-        inputs ,
-            (node_dof) <input_dof>
+        \kw{inputs} ,
+            \ty{(NodeDof)} \bnt{input_dof}
             [ , ... ]
 
-    <output_value> ::=
-        { [ node dof , ] (node_dof)<output_dof>
-            | drive , (drive_caller)<output_drive> }
-\end{verbatim}
-The lists of the output and input dofs follows. The input {\tt
-node\_dof}s do not require the \kw{orderA} and \kw {orderB} 
-fields, since they are simply
-used to compute the control forces, and thus identify an equation.
-\kw{orderB} defaults to \kw{orderA} unless a \kw{fir} control is choosen.\\
-The \kw{control\_data} has the following syntax:
-\begin{verbatim}  
-        <control_data> ::= <control_type> , <control_arglist>
-\end{verbatim}
+    \bnt{output_value} ::=
+        \{ [ \kw{node dof} , ] \ty{(NodeDof)} \bnt{output_dof}
+            | \kw{drive} , \ty{(DriveCaller)} \bnt{output_drive} \}
+\end{Verbatim}
+%\end{verbatim}
+The lists of the output and input dofs follows. The inputs
+do not require the \nt{order\_A} and \nt{order\_B} fields,
+since they are simply used to compute the control forces,
+and thus identify an equation.
+\nt{order\_B} defaults to \nt{order\_A} unless a \kw{fir} control is chosen.
 
+The \nt{control\_data} has the syntax:
+%\begin{verbatim}  
+\begin{Verbatim}[commandchars=\\\{\}]
+        \bnt{control_data} ::= \bnt{control_type} , \bnt{control_arglist}
+\end{Verbatim}
+%\end{verbatim}
 At present only a simple form of control is implemented. Other types
 to come are system identification, both recursive and one-shot, and
 adaptive control, with different models and schemes, all based on 
 Generalized Predictive Control (GPC) and Deadbeat Control.
-The \kw{control\_data} syntax is:
-\begin{verbatim}
-    <control_data> ::=
-        { control , " <control_matrices_file> " |
-        | identification , <identification_data> }
-        | adaptive control , <adaptive_control_data> }
-\end{verbatim}
+The \nt{control\_data} syntax is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{control_data} ::=
+        \{ \kw{control} , " \bnt{control_matrices_file} "
+            | \kw{identification} , \bnt{identification_data}
+            | \kw{adaptive control} , \bnt{adaptive_control_data} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{Control}
-The file \kw{control\_matrices\_file} must contain the matrices
+The file \nt{control\_matrices\_file} must contain the matrices
 $ a_c $, $ b_c $ of the control in plain text (as generated by Matlab, for
 instance):
 
@@ -701,90 +750,91 @@ instance):
     \ldots,     \\
     $ b_{cp} $  \\
 \end{tabular} \\
-where $ p $ is the \kw{order} of the controller and the matrices $ a_c $
-have \kw{num\_inputs} rows and \kw{num\_outputs} columns, while the
-matrices $ b_c $ have \kw{num\_inputs} rows and \kw{num\_inputs} columns.
+where $ p $ is the \nt{order\_A} of the controller and the matrices $ a_c $
+have \nt{num\_inputs} rows and \nt{num\_outputs} columns, while the
+matrices $ b_c $ have \nt{num\_inputs} rows and \nt{num\_inputs} columns.
 
 \subsubsection{Identification}
-\begin{verbatim}
-    <identification_data> ::=
-        { arx | armax } ,
-        <forgetting_factor> ,
-        <persistent excitation> ,
-        [file, " <output_file_name> " ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{identification_data} ::=
+        \{ \kw{arx} | \kw{armax} \}
+        [ , \bnt{forgetting_factor} ]
+        [ , \bnt{persistent_excitation} ]
+        [ , \kw{file} , " \bnt{output_file_name} " ]
+\end{Verbatim}
+%\end{verbatim}
 The forgetting factor is defined as
-\begin{verbatim}
-    <forgetting_factor> ::=
-        [ forgettingfactor,
-          { const , (scalar) d |
-            dynamic,
-              (integer) n1 ,
-              (integer) n2 ,
-              (scalar) rho ,
-              (scalar) fact ,
-              (scalar) kref ,
-              (scalar) klim
-           }
-        ]    
-\end{verbatim}
-The default is a \kw{const} forgetting factor with $d=1$.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{forgetting_factor} ::=
+        \kw{forgettingfactor} ,
+          \{ \kw{const} , \bnt{d}
+              | \kw{dynamic} , \bnt{n1} , \bnt{n2} , \bnt{rho} , \bnt{fact} , \bnt{kref} , \bnt{klim} \}
+\end{Verbatim}
+%\end{verbatim}
+The default is a \kw{const} forgetting factor with $\nt{d}=1$.
 
-The \kw{persistent\_excitation} is defined as
-\begin{verbatim}
-    <persistent_excitation> ::=
-        [ excitation , (drive caller) excitation_drive [ , ... ] ]
-\end{verbatim}
-where \kw{num\_inputs} \kw{excitation\_drive}s must be defined.
+The \nt{persistent\_excitation} is defined as
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{persistent_excitation} ::=
+        \kw{excitation} , \ty{(DriveCaller)} \bnt{excitation_drive} [ , ... ]
+\end{Verbatim}
+%\end{verbatim}
+where \nt{num\_inputs} instances of \nt{excitation\_drive} must be defined.
+By default, no persistent excitation is defined.
 
 \subsubsection{Adaptive control}
-The \kw{adaptive\_control\_data} card is
-\begin{verbatim}
-    <adaptive_control_data> ::=
-        [ arx | armax ]
-        [ , periodic , (scalar) periodic_factor ] ,
-        [ , { 
-               gpc ,
-               (integer) prediction_advancing_horizon ,
-               (integer) control_advancing_horizon ,
-               (integer) prediction_receding_horizon ,
-               [ prediction weights , (scalar) Wi [ , ... ] , ]
-               [ control weights , (scalar) Ri [ , ... ] , ]
-               (drive_caller) weight_drive
-             } | { 
-               deadbeat,
-               (integer) prediction_advancing_horizon ,
-               (integer) control_advancing_horizon
-             }
-        ] ,
-        <forgetting_factor> ,
-        <persistent_excitation>
-        [ , trigger , (drive_caller) trigger_drive ]
-        [ , desired output , (drive_caller) output_drive [ , ... ] ]
-        [ , file , " <file_name> " ]            
-\end{verbatim}
+The \nt{adaptive\_control\_data} card is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{adaptive_control_data} ::=
+        [ \{ \kw{arx} | \kw{armax} \} , ]
+        [ \kw{periodic} , \bnt{periodic_factor} , ]
+        \{ \kw{gpc} ,
+            \bnt{prediction_advancing_horizon} ,
+            \bnt{control_advancing_horizon} ,
+            \bnt{prediction_receding_horizon} ,
+            [ \kw{prediction weights} , \bnt{Wi} [ , ... ] , ]
+            [ \kw{control weights} , \bnt{Ri} [ , ... ] , ]
+            \ty{(DriveCaller)} \bnt{weight_drive}
+        | \kw{deadbeat} ,
+            \bnt{prediction_advancing_horizon} ,
+            \bnt{control_advancing_horizon} \}
+        [ , \bnt{forgetting_factor} ]
+        [ , \bnt{persistent_excitation} ]
+        [ , \kw{trigger} , \ty{(DriveCaller)} \bnt{trigger_drive} ]
+        [ , \kw{desired output} , \ty{(DriveCaller)} \bnt{output_drive} [ , ... ] ]
+        [ , \kw{file} , " \bnt{file_name} " ]
+\end{Verbatim}
+%\end{verbatim}
 The default is \kw{arx}.
 
 The meaning of the keywords is:
 \begin{itemize}
-\item the \kw{periodic\_factor} defaults to 0;
+\item the \nt{periodic\_factor} defaults to 0;
 
 \item if the keyword \kw{prediction weights} is present,
-(\kw{prediction\_advancing\_horizon} - \kw{prediction\_receding\_horizon}) 
-weights \kw{Wi} must be supplied.
+a number of weights \nt{Wi} equal to
+\begin{quote}
+$(\nt{prediction\_advancing\_horizon} - \nt{prediction\_receding\_horizon})$
+\end{quote}
+must be supplied.
 If the keyword \kw{control weights} is present,
-\kw{control\_advancing\_horizon} weights \kw{Ri} must be supplied.
+a number of weights \nt{Ri} equal to \nt{control\_advancing\_horizon}
+must be supplied.
 If the keywords are not defined, the corresponding weights
 default to 1;
 
 \item the \kw{desired output}
-card requires \kw{num\_outputs} drives to be defined.
+option requires \nt{num\_outputs} drives to be defined.
 \end{itemize}
 
 \subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"u[<idx>]"} value of the \kw{idx}-th control output.
+\item \kw{"u[\bnt{idx}]"} value of the \nt{idx}-th control output.
 \end{enumerate}
 
 \subsubsection{Examples}
@@ -805,7 +855,7 @@ The control matrices are
 	}}
 \end{align}
 \end{subequations}
-They are defined in the control data file \kw{discretecontrol.dat} as
+They are defined in the control data file \texttt{discretecontrol.dat} as
 \begin{verbatim}
     a_11 a_12
     a_21 a_22
@@ -813,10 +863,10 @@ They are defined in the control data file \kw{discretecontrol.dat} as
     0.0 1.0
 \end{verbatim}
 The model consists in two abstract nodes for the control input
-\kw{node\_dof} objects.
+\ty{NodeDof} objects.
 They need to be grounded.
 This can be formulated by using a \kw{spring support} \kw{genel}
-for each abstract node, characterized by a unit spring coefficient,
+for each \kw{abstract} node, characterized by a unit spring coefficient,
 such that
 \begin{subequations}
 \begin{align}
@@ -825,8 +875,8 @@ such that
 \end{align}
 \end{subequations}
 Moreover, assume that the first measure, $y_1$,
-comes from a \kw{node\_dof} object,
-while the second one, $y_2$, comes from a \kw{drive} object.
+comes from a \ty{NodeDof} object,
+while the second one, $y_2$, comes from a \ty{DriveCaller} object.
 The equation corresponding to $y_1$ must be appropriately grounded
 as well, for example by means of yet another \kw{spring support}
 \kw{genel}.
@@ -4815,16 +4865,22 @@ problems.
 \begin{comment}
 %%% TODO
 \begin{verbatim}
-    <card> ::= <element_type> : <label> , <type> [ , <data> ] ;
-    <element_type> ::= joint regularization
+    <elem_type> ::= joint regularization
+
+    <normal_arglist> ::= <type> , <data>
+
     <type> ::= { tikhonov | dynamic }
+
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
 \end{comment}
 \begin{verbatim}
-    <card> ::= <element_type> : <label> , <type> [ , <data> ] ;
-    <element_type> ::= joint regularization
+    <elem_type> ::= joint regularization
+
+    <normal_arglist> ::= <type> , <data>
+
     <type> ::= tikhonov
+
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
 An element is instantiated, which requires
