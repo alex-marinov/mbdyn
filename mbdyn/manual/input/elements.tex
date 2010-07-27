@@ -2688,21 +2688,27 @@ the drive of the gravity acceleration, in the global reference frame.
     Initially implemented by: Lamberto Puggelli \\
     Reviewed by: Pierangelo Masarati
 }
-\begin{verbatim}
-    <normal_arglist> ::= <hydr_elem_type> , 
-        <hydr_elem_data>
-\end{verbatim}
-The field \kw{hydraulic\_element\_data} usually contains information
-about fluid properties, which are handled by means of an \kw{hydraulic\_fluid}.
+
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{hydraulic}
+
+    \bnt{normal_arglist} ::= \bnt{hydr_elem_type} , \bnt{hydr_elem_data}
+\end{Verbatim}
+%\end{verbatim}
+The field \nt{hydraulic\_element\_data} usually contains information
+about fluid properties, which are handled by means of a \ty{HydraulicFluid}.
 This can be directly inserted, following the syntax described in
 Section~\ref{sec:HYDRAULIC-FLUID} preceded by the keyword \kw{fluid}, or a
 previously defined fluid can be recalled by using the keyword 
 \kw{reference} followed by the label of the desired fluid:
-\begin{verbatim}
-    <hydraulic_fluid_properties> ::=
-        { <hydraulic_fluid_specification>
-        | reference , <hydraulic_fluid_label> }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydraulic_fluid_properties} ::=
+        \{ \bnt{hydraulic_fluid_specification}
+            | \kw{reference} , \bnt{hydraulic_fluid_label} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsection{Actuator}
 The \kw{actuator} element models the hydraulic and interactional aspects
@@ -2720,21 +2726,25 @@ the two chambers and between the chambers and the outside,
 and the related pressure losses, must be explicitly taken care of,
 e.g.\ by means of \kw{minor loss} elements.
 \label{sec:EL:HYDR:ACTUATOR}
-\begin{verbatim}
-    <hydr_elem_type> ::= actuator
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{actuator}
 
-    <hydr_elem_data> ::= <node_1> , <node_2> , 
-        <struct_node_1> , (Vec3) <offset_1> ,
-        <struct_node_2> , (Vec3) <offset_2> ,
-        [ direction , ((Unit)Vec3) <direction> , ]
-        <area_1> ,
-        <area_2> ,
-        <cylinder_length> ,
-        fluid , (hydraulic_fluid_properties)<fluid_1> ,
-        { same | fluid , (hydraulic_fluid_properties)<fluid_2> }
-\end{verbatim}
-The vector \kw{direction} is internally normalized to unity.
-By default, it is direction 3 in the reference frame of structural node 1.
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} , 
+        \bnt{struct_node_1} , \ty{(Vec3)} \bnt{offset_1} ,
+        \bnt{struct_node_2} , \ty{(Vec3)} \bnt{offset_2} ,
+        [ \kw{direction} , \ty{((Unit)Vec3)} \bnt{direction} , ]
+        \bnt{area_1} ,
+        \bnt{area_2} ,
+        \bnt{cylinder_length} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid_1} ,
+        \{ \kw{same} | \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid_2} \}
+\end{Verbatim}
+%\end{verbatim}
+The vector \nt{direction} is internally normalized to unity.
+By default, it is direction 3 in the reference frame of the \kw{structural}
+node \nt{struct\_node\_1}.
 
 \paragraph{Example.} \
 See the ``actuator'' example at
@@ -2751,16 +2761,18 @@ and the related chapter of the tutorials
 \subsection{Minor Loss}
 A pressure loss between two pressure nodes.
 \label{sec:EL:HYDR:MINOR_LOSS}
-\begin{verbatim}
-    <hydr_elem_type> ::= minor loss
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{minor loss}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <k12> , <k21> , <area> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
-Coefficients \kw{k12} and \kw{k21} characterize the pressure loss
-when the flow goes from pressure node 1 to 2 and viceversa.
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{k12} , \bnt{k21} , \bnt{area} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
+Coefficients \nt{k12} and \nt{k21} characterize the pressure loss
+when the flow goes from \nt{node\_1} to \nt{node\_2} and viceversa.
 Turbulent flow is assumed.
 
 
@@ -2769,77 +2781,84 @@ Turbulent flow is assumed.
 A pressure loss between three pressure nodes,
 depending on the sign of the pressure drop.
 \label{sec:EL:HYDR:THREE_WAY_MINOR_LOSS}
-\begin{verbatim}
-    <hydr_elem_type> ::= three way minor loss
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{three way minor loss}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> , <node_3> ,
-        <k12> , <k31> , <area_12> , <area_31> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
-Coefficients \kw{k12} and \kw{k31} and the respective values of area
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} , \bnt{node_3} ,
+        \bnt{k12} , \bnt{k31} , \bnt{area_12} , \bnt{area_31} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
+Coefficients \nt{k12} and \nt{k31} and the respective values of area
 characterize the pressure loss when the flow goes
-from pressure node 1 to 2 and from pressure node 3 to 1, respectively.
+from \nt{node\_1} to \nt{node\_2} and from \nt{node\_3} to \nt{node\_1},
+respectively.
 Turbulent flow is assumed.
 
 
 
 \subsection{Control Valve}
 \label{sec:EL:HYDR:CONTROL_VALVE}
-\begin{verbatim}
-    <hydr_elem_type> ::= control valve
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{control valve}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <node_3> , <node_4>
-        <area> ,
-        [ loss , <loss_factor> , ]
-        (DriveCaller) <state> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{node_3} , \bnt{node_4} ,
+        \bnt{area} ,
+        [ \kw{loss} , \bnt{loss_factor} , ]
+        \ty{(DriveCaller)} \bnt{state} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 This element represents a valve that connects
-\kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
-when \kw{state} is positive, and \kw{node\_1} to \kw{node\_3}
-and \kw{node\_2} to \kw{node\_4} when \kw{state} is negative.
-The flow area is proportional to \kw{area} times the norm of \kw{state},
+\nt{node\_1} to \nt{node\_2} and \nt{node\_3} to \nt{node\_4}
+when \nt{state} is positive, and \nt{node\_1} to \nt{node\_3}
+and \nt{node\_2} to \nt{node\_4} when \nt{state} is negative.
+The flow area is proportional to \nt{area} times the norm of \nt{state},
 which must be comprised between $-1$ and $1$.
-If \kw{loss\_factor} is defined, it represents the fraction
-of area that leaks even when \kw{state} is exactly zero.
+If \nt{loss\_factor} is defined, it represents the fraction
+of area that leaks when \nt{state} is exactly zero.
 
 
 
 \subsection{Dynamic Control Valve}
 \label{sec:EL:HYDR:DYNAMIC_CONTROL_VALVE}
-\begin{verbatim}
-    <hydr_elem_type> ::= dynamic control valve
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{dynamic control valve}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <node_3> , <node_4> ,
-        (DriveCaller) <force> ,
-        <initial_displacement> ,
-        <max_displacement> ,
-        <duct_width> ,
-        [ loss , <loss_factor> , ]
-        <valve_diameter> ,
-        <valve_density> ,
-        <displacement> ,
-        <velocity> ,
-        <acceleration> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{node_3} , \bnt{node_4} ,
+        \ty{(DriveCaller)} \bnt{force} ,
+        \bnt{initial_displacement} ,
+        \bnt{max_displacement} ,
+        \bnt{duct_width} ,
+        [ \kw{loss} , \bnt{loss_factor} , ]
+        \bnt{valve_diameter} ,
+        \bnt{valve_density} ,
+        \bnt{displacement_penalty} ,
+        \bnt{velocity_penalty} ,
+        \bnt{acceleration_penalty} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 This element represents a valve that connects
-\kw{node\_1} to \kw{node\_2} and \kw{node\_3} to \kw{node\_4}
-when the displacement is positive and \kw{node\_1} to \kw{node\_3}
-and \kw{node\_2} to \kw{node\_4} when the displacement is negative,
+\nt{node\_1} to \nt{node\_2} and \nt{node\_3} to \nt{node\_4}
+when the displacement is positive and \nt{node\_1} to \nt{node\_3}
+and \nt{node\_2} to \nt{node\_4} when the displacement is negative,
 accounting for the dynamics of the valve body.
-The control force \kw{force} is applied to the valve, whose 
+The control force \nt{force} is applied to the valve, whose 
 geometric and structural properties are described by 
-\kw{initial\_displacement}, \kw{max\_displacement},
-\kw{duct\_width}, \kw{valve\_diameter} and \kw{valve\_density}.
-Again the \kw{loss\_factor}, if defined, represents the fraction
+\nt{initial\_displacement}, \nt{max\_displacement},
+\nt{duct\_width}, \nt{valve\_diameter} and \nt{valve\_density}.
+Again the \nt{loss\_factor}, if defined, represents the fraction
 of the area that leaks when the displacement is zero.
-Finally, \kw{displacement}, \kw{velocity} and \kw{acceleration}
+Finally, \nt{displacement\_penalty}, \nt{velocity\_penalty} and \nt{acceleration\_penalty}
 are the penalty coefficients for displacement, velocity and acceleration
 when the maximum stroke is reached.
 
@@ -2848,83 +2867,91 @@ when the maximum stroke is reached.
 
 \subsection{Pressure Flow Control Valve}
 \label{sec:EL:HYDR:PRESSURE_FLOW_CONTROL_VALVE}
-\begin{verbatim}
-    <hydr_elem_type> ::= pressure flow control valve
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{pressure flow control valve}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <node_3> , <node_4> ,
-        <node_5> , <node_6> ,
-        (DriveCaller) <force> ,
-        <initial_displacement> ,
-        <max_displacement> ,
-        <duct_width> ,
-        [ loss , <loss_factor> , ]
-        <valve_diameter> ,
-        <valve_density> ,
-        <displacement> ,
-        <velocity> ,
-        <acceleration> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{node_3} , \bnt{node_4} ,
+        \bnt{node_5} , \bnt{node_6} ,
+        \ty{(DriveCaller)} \bnt{force} ,
+        \bnt{initial_displacement} ,
+        \bnt{max_displacement} ,
+        \bnt{duct_width} ,
+        [ \kw{loss} , \bnt{loss_factor} , ]
+        \bnt{valve_diameter} ,
+        \bnt{valve_density} ,
+        \bnt{displacement_penalty} ,
+        \bnt{velocity_penalty} ,
+        \bnt{acceleration_penalty} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 Same as Dynamic Control Valve (\ref{sec:EL:HYDR:DYNAMIC_CONTROL_VALVE}),
-only the pressures at \kw{node\_5} and \kw{node\_6} are applied
+only the pressures at \nt{node\_5} and \nt{node\_6} are applied
 at the sides of the valve body and participate in the force balance.
 
 
 
 \subsection{Pressure Valve}
 \label{sec:EL:HYDR:PRESSURE_VALVE}
-\begin{verbatim}
-    <hydr_elem_type> ::= pressure valve
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{pressure valve}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <area> ,
-        <mass> ,
-        <max_area> ,
-        <spring_stiffness> ,
-        <spring_preload> ,
-        <width> ,
-        <displacement_penalty> ,
-        <velocity_penalty> ,
-        <acceleration_penalty> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{area} ,
+        \bnt{mass} ,
+        \bnt{max_area} ,
+        \bnt{spring_stiffness} ,
+        \bnt{spring_preload} ,
+        \bnt{width} ,
+        \bnt{displacement_penalty} ,
+        \bnt{velocity_penalty} ,
+        \bnt{acceleration_penalty} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsection{Flow Valve}
 \label{sec:EL:HYDR:FLOW_VALVE}
-\begin{verbatim}
-    <hydr_elem_type> ::= flow valve
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{flow valve}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> , <node_3> ,
-        <area> ,
-        <mass> ,
-        <max_area> ,
-        <spring_stiffness> ,
-        <spring_preload> ,
-        <width> ,
-        <displacement_penalty> ,
-        <velocity_penalty> ,
-        <acceleration_penalty> ,
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} , \bnt{node_3} ,
+        \bnt{area} ,
+        \bnt{mass} ,
+        \bnt{max_area} ,
+        \bnt{spring_stiffness} ,
+        \bnt{spring_preload} ,
+        \bnt{width} ,
+        \bnt{displacement_penalty} ,
+        \bnt{velocity_penalty} ,
+        \bnt{acceleration_penalty} ,
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 
 
 
 \subsection{Orifice}
 \label{sec:EL:HYDR:ORIFICE}
-\begin{verbatim}
-    <hydr_elem_type> ::= orifice
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{orifice}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <orifice_area> ,
-        [ area , <pipe_area> , ]
-        [ reynolds , <critical_reynolds_number> , ]
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{orifice_area} ,
+        [ \kw{area} , \bnt{pipe_area} , ]
+        [ \kw{reynolds} , \bnt{critical_reynolds_number} , ]
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 
 
 
@@ -2947,18 +2974,20 @@ In detail, it models the pressure loss due to fluid viscosity
 according to a constitutive law that depends on the Reynolds number
 computed on average fluid velocity and hydraulic diameter.
 Transition between laminar and turbulent flow is also modeled.
-\begin{verbatim}
-    <hydr_elem_type> ::= pipe
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{pipe}
 
-    <hydr_elem_data> ::=
-        <node_1> , <node_2> ,
-        <hydraulic_diameter> ,
-        [ area , <area> , ]
-        <length> ,
-        [ turbulent , ]
-        [ initial value , <flow> , ]
-        fluid , (hydraulic_fluid_properties)<fluid>
-\end{verbatim}
+    \bnt{hydr_elem_data} ::=
+        \bnt{node_1} , \bnt{node_2} ,
+        \bnt{hydraulic_diameter} ,
+        [ \kw{area} , \bnt{area} , ]
+        \bnt{length} ,
+        [ \kw{turbulent} , ]
+        [ \kw{initial value} , \bnt{flow} , ]
+        \kw{fluid} , \ty{(HydraulicFluid)} \bnt{fluid}
+\end{Verbatim}
+%\end{verbatim}
 When \kw{area} is not given, it defaults to the equivalent area
 computed according to the hydraulic diameter.
 The flag \kw{turbulent} forces the flow to be considered turbulent
@@ -2987,6 +3016,11 @@ Same syntax as the \kw{pipe} hydraulic element
 (Section~\ref{sec:EL:HYDR:PIPE}),
 it also considers fluid compressibility in terms of pressure time derivative,
 and thus the corresponding dynamic effect.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{hydr_elem_type} ::= \kw{dynamic pipe}
+\end{Verbatim}
+%\end{verbatim}
 
 
 
@@ -2994,7 +3028,7 @@ and thus the corresponding dynamic effect.
 \subsection{Imposed Pressure}
 \label{sec:EL:HYDR:IMPOSED_PRESSURE}
 No specific element has been implemented to impose the pressure at one node.
-The \kw{clamp} variant of the \kw{genel} element type
+The \kw{clamp} variant of the \kw{genel} element
 (Section~\ref{sec:EL:GENEL:CLAMP}) can be used instead.
 
 \paragraph{Example.} \
@@ -3010,7 +3044,7 @@ The \kw{clamp} variant of the \kw{genel} element type
 \subsection{Imposed Flow}
 \label{sec:EL:HYDR:IMPOSED_FLOW}
 No specific element has been implemented to impose the flow at one node.
-The \kw{abstract} variant of the \kw{force} element type
+The \kw{abstract} variant of the \kw{force} element
 (Section~\ref{sec:EL:FORCE:ABSTRACT}) can be used instead.
 The magnitude of the abstract force is the mass flow extracted
 from the circuit at that node.
@@ -3031,16 +3065,23 @@ the node.
 
 
 \section{Joint Element}
-Many different joints are available. A first rough classification can be
-based on which joints have internal degrees of freedom (the reactions) and
-which don't. The latter are flexible joints, that directly add their
-stiffness contribution to the dynamic system matrix. From the input point
-of view there is no difference between the two classes.
-a typical joint entry is made as follows:
-\begin{verbatim}
-    <normal_arglist> :: = <joint_type> , <joint_arglist>
-\end{verbatim}
-The output is written to a file with extension \kw{.jnt}.
+Joint elements connect structural nodes.
+Many different joints are available. 
+Joints may have internal degrees of freedom (the reaction forces)
+when they introduce kinematic constraints in form of algebraic relationships
+between the coordinates of the nodes they connect.
+Joints that introduce configuration-dependent forces are flexible joints.
+From the point of view of the input syntax there is no difference between
+the two classes.
+A typical joint entry is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{joint}
+
+    \bnt{normal_arglist} :: = \bnt{joint_type} , \bnt{joint_arglist}
+\end{Verbatim}
+%\end{verbatim}
+The output is written to a file with extension \texttt{.jnt}.
 The output is generally made of a standard part, plus some extra information
 depending on the type of joint, which, when available, is described along
 with the joint description.
@@ -3061,12 +3102,17 @@ Legal joint types, with relative data, are:
 \subsection{Angular acceleration}
 This joint imposes the absolute angular acceleration of a node
 about a given axis.
-\begin{verbatim}
-    <joint_type> ::= angular acceleration
-    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
-                        (drive_caller) <acceleration>
-\end{verbatim}
-The axis is \kw{relative\_direction}; it is internally normalized to unity.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{angular acceleration}
+
+    \bnt{joint_arglist} ::=
+        \bnt{node_label} ,
+        \ty{((Unit)Vec3)} \bnt{relative_direction} , 
+        \ty{(DriveCaller)} \bnt{acceleration}
+\end{Verbatim}
+%\end{verbatim}
+The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3077,16 +3123,22 @@ The following data is available:
 
 
 
-
 \subsection{Angular velocity}
 This joint imposes the absolute angular velocity of a node
 about a given axis.
-\begin{verbatim}
-    <joint_type> ::= angular velocity
-    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
-                        (drive_caller) <velocity>
-\end{verbatim}
-The axis is \kw{relative\_direction}; it is internally normalized to unity.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{angular velocity}
+
+    \bnt{joint_arglist} ::=
+        \bnt{node_label} ,
+        \ty{((Unit)Vec3)} \bnt{relative_direction} , 
+        \ty{(DriveCaller)} \bnt{velocity}
+\end{Verbatim}
+%\end{verbatim}
+The rotation axis of the imposed angular velocity is \nt{relative\_direction};
+it is internally normalized to unity.
+It rotates with the node indicated by \nt{node\_label}.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3094,26 +3146,29 @@ The following data is available:
 \item \kw{"w"} imposed angular velocity about joint direction
 \end{enumerate}
 
+
+
 \subsection{Axial rotation}
 \label{sec:EL:STRUCT:JOINT:AXIAL_ROTATION}
 This joint is equivalent to a
 \hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE},
 but the angular velocity about axis 3 is imposed by means of the driver.
-\begin{verbatim}
-    <joint_type> ::= axial rotation
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <relative_offset_1> 
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> , (Vec3) <relative_offset_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (drive_caller) <angular_velocity>
-\end{verbatim}
-{\em
-    Note: this joint forces nodes 1 and 2 to rotate about relative 
-    axis 3 with imposed angular velocity.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{axial rotation}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_1} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_1} , ]
+        \bnt{node_2} ,
+            [ \kw{position} , ] \ty{(Vec3)} \bnt{relative_offset_2} ,
+            [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_2} , ]
+        \ty{(DriveCaller)} \bnt{angular_velocity}
+\end{Verbatim}
+%\end{verbatim}
+This joint forces \nt{node\_1} and \nt{node\_2} to rotate about relative 
+axis 3 with imposed angular velocity \nt{angular\_velocity}.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3139,8 +3194,7 @@ with respect to node 2 is reset;
 with respect to node 1 is reset;
 \item \kw{offset\{2\}} the offset of the joint
 with respect to node 2 is reset;
-\item unrecognized hints are passed through to the friction model,
-if any.
+\item unrecognized hints are passed to the friction model, if any.
 \end{itemize}
 
 
