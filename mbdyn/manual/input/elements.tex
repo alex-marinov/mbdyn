@@ -928,32 +928,51 @@ that may depend on arbitrary parameters (usually the simulated time),
 and a location in space.
 Structural couples have three parameter-dependent components.
 The syntax of the \kw{force} element is:
-\begin{verbatim}
-  <normal_arglist> ::= <force_type> , <force_arglist>
-\end{verbatim}
-where \kw{force\_type} can be \kw{abstract} for an abstract force, or 
-\kw{absolute} or \kw{follower} for a structural force.
-The latter types also apply to the \kw{couple} element,
-which can be structural only.
-It is discussed in this section because of its input syntax commonality 
-with the structural force elements.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \{ \kw{force} | \kw{couple} \}
 
-There is yet another type of structural force,
-the \kw{external structural}, which is essentially used to provide
-an easy to use interface for coupling with external software
-in a loose or tight manner (the tight manner is not fully implemented yet).
+    \bnt{normal_arglist} ::= \bnt{force_type} , \bnt{force_arglist}
+
+    \bnt{force_type} ::=
+        \{ \kw{abstract} [ \kw{internal} ] # \kw{force}
+            | \{ \kw{absolute} | \kw{follower} \} [ \kw{internal} ] # \kw{force}, \kw{couple}
+            | \kw{modal}
+            | \kw{external} \{ \kw{structural} | \kw{modal} \} [ \kw{mapping} ] \} # \kw{force}
+\end{Verbatim}
+%\end{verbatim}
+The \kw{abstract} \nt{force\_type} applies to generic equations;
+
+The \kw{structural} force type only applies to equilibrium equations
+related to \kw{structural} nodes.
+The \kw{couple} element can only be structural.
+It is discussed in this section because of its input syntax commonality 
+with the structural \kw{force} elements.
+
+The \kw{modal} \nt{force\_type} applies to equations related
+to a \kw{modal} element.
+
+The \kw{external structural} and the \kw{external modal} types
+are essentially used to provide an easy to use interface
+for coupling with external software in a loose or tight manner.
 
 \subsection{Output}
 The output is discussed according to the types of forces. 
 The label of the element is output first in all the cases.
 
 \subsection{Abstract force}\label{sec:EL:FORCE:ABSTRACT}
-\begin{verbatim}
-    <force_type> ::= abstract 
-    <force_arglist> ::= (node_dof) <dof> ,
-                        (drive_caller) <force_magnitude>
-\end{verbatim}
-the \kw{dof} field is a normal \kw{node\_dof} but no \kw{order} is required
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
+    \bnt{force_type} ::= \kw{abstract}
+
+    \bnt{force_arglist} ::=
+        \ty{(NodeDof)}     \bnt{dof} ,
+        \ty{(DriveCaller)} \bnt{force_magnitude}
+\end{Verbatim}
+%\end{verbatim}
+the \nt{dof} field is a normal \ty{NodeDof}; no \kw{order} is required
 since the \kw{force} simply applies to the equation related to the node,
 regardless of the order.
 
@@ -962,8 +981,8 @@ The format is:
 \begin{itemize}
     \item the label of the element;
     \item the label of the node\footnote{Since the \kw{abstract} force type
-	can connect to \kw{node\_dof}, information provided here
-	can be partial if the \kw{node\_dof} actually represents
+	can connect to \ty{NodeDof}, information provided here
+	can be partial if the \ty{NodeDof} actually represents
 	a component of a node with more than one degree of freedom.
 	\label{footnote:EL:FORCE:ABSTRACT:OUTPUT:node_dof}}
 	the force is applied to;
@@ -971,13 +990,19 @@ The format is:
 \end{itemize}
 
 \subsection{Abstract reaction force}
-\begin{verbatim}
-    <force_type> ::= abstract internal
-    <force_arglist> ::= (node_dof) <dof1> ,
-                        (node_dof) <dof2> ,
-                        (drive_caller) <force_magnitude>
-\end{verbatim}
-the \kw{dof1} and \kw{dof2} fields are normal \kw{node\_dof}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
+    \bnt{force_type} ::= \kw{abstract internal}
+
+    \bnt{force_arglist} ::=
+        \ty{(NodeDof)}     \bnt{dof_1} ,
+        \ty{(NodeDof)}     \bnt{dof_2} ,
+        \ty{(DriveCaller)} \bnt{force_magnitude}
+\end{Verbatim}
+%\end{verbatim}
+the \nt{dof\_1} and \nt{dof\_2} fields are normal \ty{NodeDof}
 but no \kw{order} is required since the \kw{force} simply applies
 to the equations related to the nodes, regardless of the order, with
 opposite magnitudes.
@@ -999,37 +1024,42 @@ The format is:
 
 \subsection{Structural force}
 \label{sec:EL:FORCE:STRUCTURAL:FORCE}
-\begin{verbatim}
-    <force_type> ::= { absolute | follower } 
-    <force_arglist> ::=
-        <node_label> , 
-        position, (Vec3) <relative_arm> ,
-        (Vec3_tpl_drive_caller) <force_value>
-\end{verbatim}
-The vector \kw{relative\_arm} defines the offset with respect
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
+    \bnt{force_type} ::= \{ \kw{absolute} | \kw{follower} \} 
+
+    \bnt{force_arglist} ::=
+        \bnt{node_label} , 
+        \kw{position} , \ty{(Vec3)} \bnt{relative_arm} ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{force_value}
+\end{Verbatim}
+%\end{verbatim}
+The vector \nt{relative\_arm} defines the offset with respect
 to the node of the point where the force is applied.
-The drive \kw{force\_value} defines the value of the force
+The drive \nt{force\_value} defines the value of the force
 as a function of time.
 
-The force and the moment applied to node \kw{node\_label} are thus
+The force and the moment applied to node \nt{node\_label} are thus
 \begin{itemize}
 \item \kw{absolute} force element:
 \begin{subequations}
 \begin{align}
-	\T{f} & = \mathtt{force\_value} \\
-	\T{m} & = \plbr{\TT{R} \ \mathtt{relative\_arm}} \times \mathtt{force\_value} ;
+	\T{f} & = \nt{force\_value} \\
+	\T{m} & = \plbr{\TT{R} \cdot \nt{relative\_arm}} \times \nt{force\_value} ;
 \end{align}
 \end{subequations}
 
 \item \kw{follower} force element:
 \begin{subequations}
 \begin{align}
-	\T{f} & = \TT{R} \ \mathtt{force\_value} \\
-	\T{m} & = \TT{R} \plbr{\mathtt{relative\_arm} \times \mathtt{force\_value}} ;
+	\T{f} & = \TT{R} \ \nt{force\_value} \\
+	\T{m} & = \TT{R} \plbr{\nt{relative\_arm} \times \nt{force\_value}} ;
 \end{align}
 \end{subequations}
 \end{itemize}
-$\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
+$\TT{R}$ is the orientation matrix of the node \nt{node\_label}.
 
 \paragraph{Example.} \
 \begin{verbatim}
@@ -1059,15 +1089,20 @@ The format is:
 
 \subsection{Structural internal force}
 \label{sec:EL:FORCE:STRUCTURAL:INTERNAL_FORCE}
-\begin{verbatim}
-    <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::=
-        <node1_label> , 
-        position, (Vec3) <relative_arm1> ,
-        <node2_label> ,
-        position, (Vec3) <relative_arm2> ,
-        (Vec3_tpl_drive_caller) <force_value>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
+    \bnt{force_type} ::= \{ \kw{absolute} | \kw{follower} \} \kw{internal}
+
+    \bnt{force_arglist} ::=
+        \bnt{node_1_label} , 
+        \kw{position} , \ty{(Vec3)} \bnt{relative_arm_1} ,
+        \bnt{node_2_label} ,
+        \kw{position} , \ty{(Vec3)} \bnt{relative_arm_2} ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{force_value}
+\end{Verbatim}
+%\end{verbatim}
 The format is basically identical to the previous case,
 except for the definition of the second node.
 
@@ -1108,34 +1143,39 @@ The format is:
 \subsection{Structural couple}
 \label{sec:EL:FORCE:STRUCTURAL:COUPLE}
 The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
-\begin{verbatim}
-    <elem_type> ::= couple
-    <force_type> ::= { absolute | follower } 
-    <force_arglist> ::=
-        <node_label> ,
-        [ position, (Vec3) <relative_arm> , ]
-        (Vec3_tpl_drive_caller) <couple_value>
-\end{verbatim}
-The vector \kw{relative\_arm} defines the offset with respect
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{couple}
+
+    \bnt{force_type} ::= \{ \kw{absolute} | \kw{follower} \} 
+
+    \bnt{force_arglist} ::=
+        \bnt{node_label} ,
+        [ \kw{position} , \ty{(Vec3)} \bnt{relative_arm} , ]
+        \ty{(TplDriveCaller<Vec3>)} \bnt{couple_value}
+\end{Verbatim}
+%\end{verbatim}
+The vector \nt{relative\_arm} defines the offset with respect
 to the node of the point where the couple is applied.
-It is not used in the analysis, but it can be optionally provided
-for future reference (e.g.\ for the visualization of the couple).
-The drive \kw{couple\_value} defines the value of the couple
+It is not used in the analysis (since it makes no sense),
+but it can be optionally provided for future reference
+(e.g.\ for the visualization of the couple).
+The drive \nt{couple\_value} defines the value of the couple
 as a function of time.
 
-The moment applied to node \kw{node\_label} is thus
+The moment applied to node \nt{node\_label} is thus
 \begin{itemize}
 \item \kw{absolute} couple element:
 \begin{align}
-	\T{m} & = \mathtt{couple\_value}
+	\T{m} & = \nt{couple\_value}
 \end{align}
 
 \item \kw{follower} couple element:
 \begin{align}
-	\T{m} & = \TT{R} \ \mathtt{couple\_value}
+	\T{m} & = \TT{R} \cdot \nt{couple\_value}
 \end{align}
 \end{itemize}
-$\TT{R}$ is the orientation matrix of the node \kw{node\_label}.
+$\TT{R}$ is the orientation matrix of the node \nt{node\_label}.
 
 \subsubsection{Output}
 The format is:
@@ -1147,17 +1187,21 @@ The format is:
 
 \subsection{Structural internal couple}
 \label{sec:EL:FORCE:STRUCTURAL:INTERNAL_COUPLE}
-The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
-\begin{verbatim}
-    <elem_type> ::= couple
-    <force_type> ::= { absolute | follower } internal
-    <force_arglist> ::=
-        <node1_label> ,
-        [ position, (Vec3) <relative_arm1> , ]
-        <node2_label> ,
-        [ position, (Vec3) <relative_arm2> , ]
-        (Vec3_tpl_drive_caller) <couple_value>
-\end{verbatim}
+The structural couple is defined by using \kw{couple} as \nt{elem\_type}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{couple}
+
+    \bnt{force_type} ::= \{ \kw{absolute} | \kw{follower} \} \kw{internal}
+
+    \bnt{force_arglist} ::=
+        \bnt{node_1_label} ,
+        [ \kw{position} , \ty{(Vec3)} \bnt{relative_arm_1} , ]
+        \bnt{node_2_label} ,
+        [ \kw{position} , \ty{(Vec3)} \bnt{relative_arm_2} , ]
+        \ty{(TplDriveCaller<Vec3>)} \bnt{couple_value}
+\end{Verbatim}
+%\end{verbatim}
 The format is basically identical to the previous case,
 except for the definition of the second node.
 
@@ -1178,34 +1222,40 @@ a simple feedback control can be easily implemented.
 Note however that the dependence of a force on some internal state
 does not result in adding the corresponding contribution 
 to the Jacobian matrix: the force remains explicit.
-Their improper use may result in missing convergence.
+Their improper use may result in missing convergence,
+or singularity of the Jacobian matrix of the problem.
 
 \subsection{Modal}
 \label{sec:EL:FORCE:MODAL}
 This element allows to define a set of generalized forces
 acting on the equations related to the generalized variables
 of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
-\begin{verbatim}
-    <force_type> ::= modal
-    <force_arglist> ::=
-        <modal_label> ,
-            [ list , <number_of_modes> , <mode1> [ , ... ] , ]
-        (DriveCaller)<force1>
-            [ , resultant , (Vec3)<f> , (Vec3)<m> ]
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
+    \bnt{force_type} ::= \kw{modal}
+
+    \bnt{force_arglist} ::=
+        \bnt{modal_label} ,
+            [ \kw{list} , \bnt{number_of_modes} , \bnt{mode1} [ , ... ] , ]
+        \ty{(DriveCaller)} \bnt{force1}
+            [ , \kw{resultant} , \ty{(Vec3)} \bnt{f} , \ty{(Vec3)} \bnt{m} ]
         [ , ... ]
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 It requires the label of the modal joint it is connected to,
-\kw{modal\_label}.
+\nt{modal\_label}.
 If the optional keyword \kw{list} is given, the number of excited modes
-\kw{number\_of\_modes} and the list of the excited modes is expected,
-otherwise it assumes all modes of the \kw{modal\_label} modal joint
+\nt{number\_of\_modes} and the list of the excited modes is expected,
+otherwise it assumes all modes of the \nt{modal\_label} modal joint
 will be excited.
 
 A list of
 \hyperref{\kw{drive callers}}{\kw{drive callers} (see Section~}{)}{sec:DRIVE}.
 that provide the excitation value for each mode is required last.
 If the keyword \kw{list} was given, the drive callers
-must be \kw{number\_of\_modes}, otherwise they must be as many
+must be \nt{number\_of\_modes}, otherwise they must be as many
 as the modes of the excited modal joint element.
 
 If the \kw{modal} joint element is connected to a modal node
@@ -1263,39 +1313,44 @@ based on information on the kinematics of the model.
 Different communication schemes are supported.
 By default, communication occurs via files.
 Currently supported communication schemes are
-\begin{verbatim}
-    <external_force_communicator> ::= { <file> | <edge> | <socket> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{external_force_communicator} ::= \{ \bnt{file} | \bnt{edge} | \bnt{socket} \}
 
-    <file> ::=
-        " <input_file_name> " [ , unlink ] ,
-        " <output_file_name> " [ , no clobber ]
-        [ <common_parameters> ]
+    \bnt{file} ::=                             # the default
+        " \bnt{input_file_name} " [ , \kw{unlink} ] ,
+        " \bnt{output_file_name} " [ , \kw{no clobber} ]
+        [ , \bnt{common_parameters} ]
 
-    <edge> ::= edge ,
-        " <flag_file_name> " ,
-        " <data_file_name> "
-        [ <common_parameters> ]
+    \bnt{edge} ::= \kw{edge} ,
+        " \bnt{flag_file_name} " ,
+        " \bnt{data_file_name} "
+        [ , \bnt{common_parameters} ]
 
-    <socket> ::= socket ,
-        [ create , { yes | no } , ]
-        { path , <path> | port , <port> [ , host , <host> ] }
+    \bnt{socket} ::= \kw{socket} ,
+        [ \kw{create} , \{ \kw{yes} | \kw{no} \} , ]
+        \{ \kw{path} , \bnt{path} | \kw{port} , \bnt{port} [ , \kw{host} , \bnt{host} ] \}
+        [ , \bnt{common_parameters} ]
 
-    <common_parameters> ::=
-        [ , sleep time , <sleep_time> ]
-        [ , precision , { default | <digits> } ]
-        [ , coupling , { loose | tight | <coupling_steps> } ]
-        [ , send after predict , { yes | no } ]
-\end{verbatim}
+    \bnt{common_parameters} ::= \bnt{common_parameter} [ , ... ]
+
+    \bnt{common_parameter} ::=
+        \{ \kw{sleep time} , \bnt{sleep_time}
+            | \kw{precision} , \{ \kw{default} | \bnt{digits} \}   # not valid for \kw{socket}
+            | \kw{coupling} , \{ \kw{staggered} | \kw{loose} | \kw{tight} | \bnt{coupling_steps} \}
+            | \kw{send after predict} , \{ \kw{yes} | \kw{no} \} \}
+\end{Verbatim}
+%\end{verbatim}
 
 \subsubsection{File communicator}
-\kw{input\_file\_name} is the name of the file MBDyn expects to find
+\nt{input\_file\_name} is the name of the file MBDyn expects to find
 with the values of the force.
 The content depends on the purpose it is used for.
 The optional keyword \kw{unlink} indicates that MBDyn is supposed
 to unlink the file as soon as it is ready to read another one,
 as a primitive form of inter-process communication.
 
-\kw{output\_file\_name} is the name of the file MBDyn creates
+\nt{output\_file\_name} is the name of the file MBDyn creates
 each time it intends to communicate the kinematics of the model
 to the external software.
 The contents depend on the purpose it is used for.
@@ -1309,7 +1364,7 @@ as a primitive form of inter-process communication.
 This communicator has been developed in cooperation with Luca Cavagna,
 to support communication with FOI's EDGE.
 
-The file \kw{flag\_file\_name} is used to synchronize the communication
+The file \nt{flag\_file\_name} is used to synchronize the communication
 between the processes.
 The same file is truncated and reused by both processes.
 The syntax of the file changed since EDGE 5.1; this change is reflected
@@ -1335,7 +1390,7 @@ So far, there are no provisions for re-executing a time step,
 nor for communicating either the time or the time step,
 so adaptive time stepping cannot be implemented.
 
-\kw{data\_file\_name} is the name of the file used to actually send data
+\nt{data\_file\_name} is the name of the file used to actually send data
 between the two processes.
 Its contents depend on the purpose it is used for,
 as described in the subsequent sections.
@@ -1355,33 +1410,36 @@ before the simulation is started.
 MBDyn supports local (unix) sockets, defined using the \kw{path} parameter,
 and inet sockets, defined using the \kw{port} parameter.
 When \kw{create} is set to \kw{yes}, the optional keyword \kw{host}
-allows to define what interface of the host MBDyn will listen on.
+allows to define what interface MBDyn will listen on.
 When \kw{create} is set to \kw{no}, the optional keyword \kw{host}
 indicates what host to connect to.
-It defaults to \kw{localhost}.
+It defaults to `localhost'.
 
 
 
 
 \subsubsection{Common parameters}
-The optional parameter \kw{sleep\_time} determines how long MBDyn
+The optional parameter \nt{sleep\_time} determines how long MBDyn
 is supposed to sleep while waiting for a new input file to appear
 or for an old output file to disappear.
 
-The optional parameter \kw{precision} determines the precision
+The optional parameter \nt{precision} determines the precision
 used in writing the output file; the default is 16 digits.
+This is only meaningful for communicators based on textual files.
 
 The optional parameter \kw{coupling} determines whether the coupling
-will be \kw{loose} (communicate each time step, the default) or
-\kw{tight} (communicate each iteration); otherwise, if \kw{coupling\_steps}
-is provided, the communication occurs every \kw{coupling\_steps}.
+will be \kw{staggered} (communicate each time step, with one step delay),
+\kw{loose} (communicate each time step, no delay, the default) or
+\kw{tight} (communicate each iteration); otherwise, if \nt{coupling\_steps}
+is provided, the communication occurs every \nt{coupling\_steps}.
 
 The optional parameter \kw{send after predict} allows to indicate
 whether MBDyn must send the predicted motion or not when playing
 a tight coupling loop.
 
-\paragraph{Loose Coupling.} \
-When the coupling is \kw{loose}, the communication pattern is:
+
+\paragraph{Staggered Coupling.} \
+When the coupling is \kw{staggered}, the communication pattern is:
 \begin{enumerate}
 \item MBDyn receives a set of forces sent by the external peer
 	the first time the residual is assembled within time step $k$;
@@ -1396,6 +1454,28 @@ using forces evaluated for the kinematics at the previous time step, $k-1$.
 Something like
 \begin{align}
 	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_{k - 1}}
+	&=
+	\T{0}
+	.
+\end{align}
+Note: not implemented yet.
+
+\paragraph{Loose Coupling.} \
+When the coupling is \kw{loose}, the communication pattern is:
+\begin{enumerate}
+\item MBDyn sends a set of kinematic parameters related to step $k$
+	after predict.
+
+\item MBDyn receives a set of forces sent by the external peer
+	the first time the residual is assembled within time step $k$;
+	the external peer generated that set of forces
+	based on the predicted kinematics at step $k$;
+\end{enumerate}
+As a consequence, MBDyn solves the kinematics at the current time step, $k$,
+using forces evaluated for the predicted kinematics at the current time step, $k$.
+Something like
+\begin{align}
+	\T{f}\plbr{\T{y}_k, \dot{\T{y}}_k, \T{u}_{k}^{(0)}}
 	&=
 	\T{0}
 	.
@@ -1440,22 +1520,27 @@ This element allows to communicate with an external software that computes
 forces applied to a pool of nodes and may depend on the kinematics of those
 nodes.
 Communication occurs by means of the communicators illustrated earlier.
-\begin{verbatim}
-    <force_type> ::= external structural
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
 
-    <force_arglist> ::= <external_force_communicator> ,
-        [ reference node , <ref_node_label> , ]
-        [ labels , { yes | no } , ]
-            [ sorted , { yes | no } ]
-        [ orientation ,
-            { none | orientation matrix | orientation vector | euler 123 } , ]
-        [ accelerations , { yes | no } ]
-        [ use reference node forces , { yes | no } ,
-            [ rotate reference node forces , { yes | no } ] ]
-        <num_nodes> ,
-            <node_label> [ , offset , (Vec3) <offset> ]
+    \bnt{force_type} ::= \kw{external structural}
+
+    \bnt{force_arglist} ::= \bnt{external_force_communicator} ,
+        [ \kw{reference node} , \bnt{ref_node_label} , ]
+        [ \{ \kw{labels} , \{ \kw{yes} | \kw{no} \}
+                | \kw{sorted} , \{ \kw{yes} | \kw{no} \}
+                | \kw{orientation} ,
+                    \{ \kw{none} | \kw{orientation matrix} | \kw{orientation vector} | \kw{euler 123} \}
+                | \kw{accelerations} , \{ \kw{yes} | \kw{no} \}
+                | \kw{use reference node forces} , \{ \kw{yes} | \kw{no} \}
+                    [ , \kw{rotate reference node forces} , \{ \kw{yes} | \kw{no} \} ] \}
+            [ , ... ] , ]
+        \bnt{num_nodes} ,
+            \bnt{node_label} [ , \kw{offset} , \ty{(Vec3)} \bnt{offset} ]
             [ , ... ]
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 \begin{itemize}
 \item \kw{use reference node forces} only meaningful
 when \kw{reference node} is used.
@@ -1558,11 +1643,11 @@ with the file communicator
 
 \subsubsection{Output}
 An external modal element writes one line for each connected node
-at each time step in the \kw{.frc} file.
+at each time step in the \texttt{.frc} file.
 Each line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label@node\_label};
+	the format of this field is \nt{element\_label}\texttt{@}\nt{node\_label};
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
@@ -1570,7 +1655,7 @@ If a reference node is defined, a special line is output for the reference node,
 containing:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label\#node\_label};
+	the format of this field is \nt{element\_label}\texttt{\#}\nt{node\_label};
 \item in columns 2--4 the three components of the force,
 	in the global reference frame;
 \item in columns 5--7 the three components of the moment
@@ -1593,22 +1678,25 @@ nodes through a linear mapping.
 Communication occurs by means of the communicators illustrated earlier.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
+
     \bnt{force_type} ::= \kw{external structural mapping}
 
     \bnt{force_arglist} ::= \bnt{external_force_communicator} ,
         [ \kw{reference node} , \bnt{ref_node_label} , ]
-        [ \kw{labels} , { \kw{yes} | \kw{no} } , ]
-        [ \kw{orientation} ,
-            { \kw{none} | \kw{orientation matrix} | \kw{orientation vector} | \kw{euler 123} } , ]
-        [ \kw{accelerations} , { \kw{yes} | \kw{no} } ]
-        [ \kw{use reference node forces} , { \kw{yes} | \kw{no} } ,
-            [ \kw{rotate reference node forces} , { \kw{yes} | \kw{no} } ] ]
+        [ \{ \kw{labels} , \{ \kw{yes} | \kw{no} \}
+                | \kw{orientation} ,
+                    \{ \kw{none} | \kw{orientation matrix} | \kw{orientation vector} | \kw{euler 123} \}
+                | \kw{accelerations} , \{ \kw{yes} | \kw{no} \}
+                | \kw{use reference node forces} , \{ \kw{yes} | \kw{no} \}
+                    [ , \kw{rotate reference node forces} , \{ \kw{yes} | \kw{no} \} ] \}
+            [ , ... ] , ]
         \bnt{num_points} ,
             \bnt{node_label} , \kw{offset} [ , \bnt{point_label} ] , \ty{(Vec3)} \bnt{offset}
                 [ , ... ]
         [ , \kw{echo} , " \bnt{echo_file_name} " [ , \kw{precision} , \bnt{digits} ] [ , \kw{stop} ] ]
         [ , \kw{mapped points number} , \bnt{mapped_points} ,
-            { \kw{full} | \kw{sparse} } \kw{mapping file} , " \bnt{mapping_file_name} "
+            \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
                 [ , \kw{threshold} , \bnt{threshold} ]
             [ , \{ \kw{mapped labels file} , " \bnt{mapped_labels_file_name} "
                 | \bnt{mapped_label} [ , ... ] \} ] ]
@@ -1687,8 +1775,8 @@ TBD
 TBD
 
 The format of the socket communicator is relatively simple;
-however, implementors may exploit the peer library \kw{libmbc},
-whose API is defined in \kw{mbc.h}.
+however, implementors may exploit the peer library \texttt{libmbc},
+whose API is defined in \texttt{mbc.h}.
 A python wrapper is also available.
 
 \subsubsection{Output}
@@ -1703,15 +1791,19 @@ forces applied to a
 \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element,
 and may depend on the values of the corresponding generalized variables.
 Communication occurs by means of the communicators illustrated earlier.
-\begin{verbatim}
-    <force_type> ::= external modal
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
 
-    <force_arglist> ::= <external_force_communicator> ,
-        <modal_label>
-        [ , accelerations ]
-        [ , type , { rigid | modal | all } ]
-\end{verbatim}
-\kw{modal\_label} is the label of the 
+    \bnt{force_type} ::= \kw{external modal}
+
+    \bnt{force_arglist} ::= \bnt{external_force_communicator} ,
+        \bnt{modal_label}
+        [ , \kw{accelerations} ]
+        [ , \kw{type} , \{ \kw{rigid} | \kw{modal} | \kw{all} \} ]
+\end{Verbatim}
+%\end{verbatim}
+\nt{modal\_label} is the label of the 
 \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element
 the force element is connected to.
 
@@ -1789,71 +1881,80 @@ and the other with \kw{type} set to \kw{modal}.
 \paragraph{Rigid.} \
 When \kw{type} is \kw{rigid}, the data file written by the external software
 is expected to contain:
-\begin{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
 * this is a comment
 body_forces,R,1,6,0
-<fx> <fy> <fz> <mx> <my> <mz>
-\end{verbatim}
-where \kw{fx}, \kw{fy}, \kw{fz}, \kw{mx}, \kw{my}, \kw{mz}
+\bnt{fx} \bnt{fy} \bnt{fz} \bnt{mx} \bnt{my} \bnt{mz}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{fx}, \nt{fy}, \nt{fz}, \nt{mx}, \nt{my}, \nt{mz}
 respectively are the force and moment components
 oriented according to the global reference frame.
 The moments are referred to the point that represents the origin
 of the FE model reference frame, or to either of
-the \kw{origin position} or the \kw{origin node}, if defined.
+the \kw{origin position} or the \kw{origin node} of the \kw{modal} element,
+if defined.
 
 The data file written by MBDyn contains:
-\begin{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
 * this is a comment
 body_dynamics,N,0,0,3
 * Body linear velocity in body axes
 VRELV,R,1,3,0
-<vx> <vy> <vz>
+\bnt{vx} \bnt{vy} \bnt{vz}
 * Body angular velocity in body axes
 VRELM,R,1,3,0
-<omegax> <omegay> <omegaz>
+\bnt{omegax} \bnt{omegay} \bnt{omegaz}
 * Body reference frame cosines (listed by columns)
 OMGMAN,R,3,3,0
-<R11> <R21> <R31>
-<R12> <R22> <R32>
-<R13> <R23> <R33>
-\end{verbatim}
+\bnt{R11} \bnt{R21} \bnt{R31}
+\bnt{R12} \bnt{R22} \bnt{R32}
+\bnt{R13} \bnt{R23} \bnt{R33}
+\end{Verbatim}
+%\end{verbatim}
 where:
 \begin{itemize}
-\item \kw{vx}, \kw{vy}, \kw{vz} are the components of the velocity
+\item \nt{vx}, \nt{vy}, \nt{vz} are the components of the velocity
 	of the rigid body, in body axes;
-\item \kw{omegax}, \kw{omegay}, \kw{omegaz} are the components
+\item \nt{omegax}, \nt{omegay}, \nt{omegaz} are the components
 	of the angular velocity of the rigid body, in body axes;
-\item \kw{R11}, \kw{R12}, \kw{R13}, \kw{R21}, \kw{R22}, \kw{R23},
-	\kw{R31}, \kw{R32}, \kw{R33} are the components
+\item \nt{R11}, \nt{R12}, \nt{R13}, \nt{R21}, \nt{R22}, \nt{R23},
+	\nt{R31}, \nt{R32}, \nt{R33} are the components
 	of the orientation matrix.
 \end{itemize}
 
 \paragraph{Modal.} \
-When \kw{type} is \kw{modal}, the data file written by the external software
-is expected to contain:
-\begin{verbatim}
+When \kw{type} is \kw{modal}, the external software is expected to write
+a data file containing:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
 * this is a comment
-modal_force_flow,R,<n>,1,0
-<f1> ... <fn>
-\end{verbatim}
-where \kw{n} is the number of modes (must match the number of active modes
-in the \kw{modal} joint element), while \kw{f1} to \kw{fn} are the amplitudes
+modal_force_flow,R,\bnt{n},1,0
+\bnt{f1} ... \bnt{fn}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{n} is the number of modes (must match the number of active modes
+in the \kw{modal} joint element), while \nt{f1} to \nt{fn} are the amplitudes
 of the modal forces.
 
 The data file written by MBDyn contains:
-\begin{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
 * this is a comment
 modal_state,N,0,0,2
-modal_coordinate,R,1,<n>,0
-<q1> ... <qn>
-modal_velocity,R,1,<n>,0
-<qp1> ... <qpn>
-\end{verbatim}
+modal_coordinate,R,1,\bnt{n},0
+\bnt{q1} ... \bnt{qn}
+modal_velocity,R,1,\bnt{n},0
+\bnt{qp1} ... \bnt{qpn}
+\end{Verbatim}
+%\end{verbatim}
 where:
 \begin{itemize}
-\item \kw{n} is again the number of modes;
-\item \kw{q1} to \kw{qn} are the amplitudes of the modal coordinates;
-\item \kw{qp1} to \kw{qpn} are the amplitudes of the derivatives
+\item \nt{n} is again the number of modes;
+\item \nt{q1} to \nt{qn} are the amplitudes of the modal coordinates;
+\item \nt{qp1} to \nt{qpn} are the amplitudes of the derivatives
 	of the modal coordinates.
 \end{itemize}
 
@@ -1872,19 +1973,19 @@ TBD
 
 \subsubsection{Output}
 An external modal element writes multiple lines at each time step
-in the \kw{.frc} file.
+in the \texttt{.frc} file.
 
 If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label\#node\_label};
+	the format of this field is \nt{element\_label}\texttt{\#}\nt{node\_label};
 \item in columns 2--4 the three components of the force;
 \item in columns 5--7 the three components of the moment.
 \end{itemize}
 If \kw{type} is \kw{modal} or \kw{all}, each line contains:
 \begin{itemize}
 \item in column 1 the label of the element and the corresponding mode;
-	the format of this field is \kw{element\_label.mode\_number};
+	the format of this field is \nt{element\_label}\texttt{.}\nt{mode\_number};
 \item in column 2 the amplitude of the corresponding modal force.
 \end{itemize}
 
@@ -1902,38 +2003,46 @@ Similarly, it receives generalized forces that are projected back
 in the space of the structural nodes before assembly.
 Communication occurs by means of the communicators illustrated earlier
 for the \kw{external modal} case.
-\begin{verbatim}
-    <force_type> ::= external modal mapping
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{force}
 
-    <force_arglist> ::= <external_force_communicator> ,
-    [ reference node , <ref_node_label> , ]
-    [ use rigid body forces , { yes | no } ,
-        [ rotate rigid body forces , { yes | no } , ] ]
-    [ accelerations , { yes | no } , ]
-    [ type , { rigid | modal | all } , ]
-    nodes number , <num_nodes> ,
-        <node1_label> [ , ... ] ,
-    modes number , <num_modes> ,
-    { full | sparse } mapping file , " <mapping_file_name> "
-        [ , threshold , <threshold> ]
-\end{verbatim}
-\kw{ref\_node\_label} is the label of the reference node
+    \bnt{force_type} ::= \kw{external modal mapping}
+
+    \bnt{force_arglist} ::= \bnt{external_force_communicator} ,
+        [ \kw{reference node} , \bnt{ref_node_label} , ]
+        [ \kw{use rigid body forces} , \{ \kw{yes} | \kw{no} \} ,
+            [ \kw{rotate rigid body forces} , \{ \kw{yes} | \kw{no} \} , ] ]
+        [ \kw{accelerations} , \{ \kw{yes} | \kw{no} \} , ]
+        [ \kw{type} , \{ \kw{rigid} | \kw{modal} | \kw{all} \} , ]
+        \kw{nodes number} , \bnt{num_nodes} ,
+            \bnt{node_1_label} [ , ... ] ,
+        \kw{modes number} , \bnt{num_modes} ,
+        \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
+            [ , \kw{threshold} , \bnt{threshold} ]
+\end{Verbatim}
+%\end{verbatim}
+\nt{ref\_node\_label} is the label of the reference node
 if the modes express the motion relative to a specific node.
 
 The mapping file contains the matrix that maps the nodal and modal
 displacements, velocities and forces.
 When \kw{full mapping file} is used, a file containing
-$\kw{num\_modes} \times (6\times\kw{num\_nodes}$) coefficients is expected.
+$\nt{num\_modes} \times (6\times\nt{num\_nodes}$) coefficients is expected.
 When \kw{sparse mapping file} is used, a file containing
-\kw{row}, \kw{col}, \kw{value} triplets is expected,
-with $1\le\kw{row}\le\kw{num\_modes}$
-and $1\le\kw{col}\le6\times\kw{num\_nodes}$.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+\bnt{row} \bnt{col} \bnt{value}
+\end{Verbatim}
+%\end{verbatim}
+triplets is expected, with $1 \le \nt{row} \le \nt{num\_modes}$
+and $1 \le \nt{col} \le 6\times\nt{num\_nodes}$.
 Both files may start with an arbitrary number of lines beginning
-with a hash mark (`\kw{\#}').
+with a hash mark (`\texttt{\#}').
 They are treated as comments and ignored.
 If a \kw{threshold} is given, only elements whose absolute value
 is larger than threshold are retained.
-The value of \kw{threshold} defaults to 0.
+The value of \nt{threshold} defaults to 0.
 The mapping matrix is internally stored and handled as sparse,
 regardless of the file format.
 
@@ -1964,12 +2073,12 @@ Same as \kw{external modal}.
 
 \subsubsection{Output}
 An external modal mapping element writes multiple lines at each time step
-in the \kw{.frc} file.
+in the \texttt{.frc} file.
 
 If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
-	the format of this field is \kw{element\_label\#node\_label};
+	the format of this field is \nt{element\_label}\texttt{@}\nt{node\_label};
 \item in columns 2--4 the three components of the force,
 	in the global reference frame;
 \item in columns 5--7 the three components of the moment
@@ -1985,7 +2094,7 @@ If \kw{type} is \kw{modal} or \kw{all}, two types of output are generated:
 \item a line for each node participating in the mapping, containing:
 \begin{itemize}
 \item in column 1 the label of the element and the corresponding node;
-	the format of this field is \kw{element\_label\#node\_number};
+	the format of this field is \nt{element\_label}\texttt{\#}\nt{node\_label};
 \item in columns 2--4 the three components of the corresponding nodal force,
 	in the global reference frame;
 \item in columns 5--7 the three components of the corresponding nodal moment,
@@ -2007,7 +2116,7 @@ If \kw{type} is \kw{modal} or \kw{all}, two types of output are generated:
 \item a line for each mode the motion is mapped to, containing:
 \begin{itemize}
 \item in column 1 the label of the element and the corresponding mode;
-	the format of this field is \kw{element\_label.mode\_number};
+	the format of this field is \nt{element\_label}\texttt{.}\nt{mode\_number};
 \item in column 2 the amplitude of the corresponding modal force;
 \item in column 3 the amplitude of the corresponding modal variable;
 \item in column 4 the amplitude of the corresponding modal variable derivative.
