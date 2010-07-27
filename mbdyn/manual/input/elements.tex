@@ -5070,6 +5070,28 @@ of the node itself.
 The force and moment are defined as a 6D viscous constitutive law.
 
 
+\subsection{Lower Pairs}
+
+\subsubsection{Revolute}
+Use a \kw{revolute hinge}, or a \kw{total joint}.
+
+\subsubsection{Prismatic}
+Use a \kw{prismatic} and an \kw{inline}, or a \kw{total joint}.
+
+\subsubsection{Screw}
+Not supported yet.
+
+\subsubsection{Cylindrical}
+Use a \kw{revolute rotation} and an \kw{inline}, or a \kw{total joint}.
+
+\subsubsection{Spherical}
+Use a \kw{spherical hinge}, or a \kw{total joint}.
+
+\subsubsection{Planar}
+Use a \kw{revolute rotation} and an \kw{in plane}, or a \kw{total joint}.
+
+
+
 
 \section{Joint Regularization}
 The \kw{joint regularization} element is used to modify
@@ -5087,24 +5109,26 @@ problems.
     <data> ::= { <coef> | list , <coef_1> [ , ... ] }
 \end{verbatim}
 \end{comment}
-\begin{verbatim}
-    <elem_type> ::= joint regularization
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{joint regularization}
 
-    <normal_arglist> ::= <type> , <data>
+    \bnt{normal_arglist} ::= \bnt{type} [ , \bnt{data} ]
 
-    <type> ::= tikhonov
+    \bnt{type} ::= \kw{tikhonov}
 
-    <data> ::= { <coef> | list , <coef_1> [ , ... ] }
-\end{verbatim}
+    \bnt{data} ::= \{ \bnt{coef} | \kw{list} , \bnt{coef_1} [ , ... ] \}
+\end{Verbatim}
+%\end{verbatim}
 An element is instantiated, which requires
-an underlying algebraic constraint ( a \kw{joint} element)
-with the same label to exist.
+an underlying algebraic constraint (a \kw{joint} element
+that instantiates algebraic equations) with the same label to exist.
 In that case, the algebraic constraint equations are modified
-in order to regularize the problem.
-The \kw{joint} that is to be regularized must exist,
-and it must have internal states.
+to regularize the problem.
+The \kw{joint} that is regularized must exist,
+and it must write constraint equations.
 If the keyword \kw{list} is used, the coefficients for each internal state
-is expected; the number of coefficients is determined by the joint.
+are expected; the number of coefficients is determined by the joint.
 
 \subsection{Tikhonov}
 The \kw{tikhonov} joint regularization type consists in modifying
@@ -5117,8 +5141,8 @@ and the corresponding Lagrangian multipliers $\T{\lambda}$, namely
 	\T{\Phi}_{/\T{x}} \Delta\T{x} &= - \T{\Phi}\plbr{\T{x}, t}
 \end{align}
 by adding the multipliers to the constraint equation,
-weighed by the coefficient \kw{coef} (or by the list of coefficients
-\kw{coef\_i}, in case different coefficients are given):
+weighed by the coefficient \nt{coef} (or by the list of coefficients
+\nt{coef\_}\bnt{i}, in case different coefficients are given):
 \begin{align}
 	\plbr{\T{\Phi}_{/\T{x}}^T \T{\lambda}}_{/\T{x}} \Delta\T{x}
 	+ \T{\Phi}_{/\T{x}}^T \Delta\T{\lambda}
@@ -5129,7 +5153,7 @@ weighed by the coefficient \kw{coef} (or by the list of coefficients
 \end{align}
 The Tikhonov regularization allows the constraint to be violated
 by an amount that depends on the multipliers.
-In this sense, the coefficient \kw{coef} should be considered
+In this sense, the coefficient \nt{coef} should be considered
 sort of a compliance: the larger the coefficient,
 the larger the constraint violation for a given value
 of the reaction $\T{\lambda}$.
