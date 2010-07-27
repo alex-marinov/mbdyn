@@ -2135,12 +2135,16 @@ or are just under development and thus are not collected in a class
 of their own until their configuration is stabilized, usually are
 classified as \textsc{Genel}.
 The syntax of the \textsc{Genel} elements is:
-\begin{verbatim}
-    <normal_arglist> ::= <genel_type> , <genel_arglist>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{genel}
+
+    \bnt{normal_arglist} ::= \bnt{genel_type} , \bnt{genel_arglist}
+\end{Verbatim}
+%\end{verbatim}
 
 \noindent
-The output goes in a file with extension \kw{.gen}; only few elements
+The output goes in a file with extension \texttt{.gen}; only few elements
 actually generate output.
 
 \noindent
@@ -2152,11 +2156,15 @@ The latter could be moved to a more specific class in future releases.
    
 \subsubsection{Clamp}
 \label{sec:EL:GENEL:CLAMP}
-\begin{verbatim}
-    <genel_type> ::= clamp
-    <genel_arglist> ::= (node_dof) <clamped_node> ,
-                        (drive_caller) <imposed_value>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{clamp}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{clamped_node} ,
+        \ty{(DriveCaller)} \bnt{imposed_value}
+\end{Verbatim}
+%\end{verbatim}
 This element simply forces one arbitrary degree of freedom to assume a value
 depending on the drive.
 
@@ -2169,12 +2177,16 @@ The format is:
   
 \subsubsection{Distance}
 \label{sec:EL:GENEL:DISTANCE}
-\begin{verbatim}
-    <genel_type> ::= distance
-    <genel_arglist> ::= (node_dof) <node_1> ,
-                        (node_dof) <node_2> ,
-                        (drive_caller) <imposed_distance>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{distance}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{node_1} ,
+        \ty{(NodeDof)} \bnt{node_2} ,
+        \ty{(DriveCaller)} \bnt{imposed_distance}
+\end{Verbatim}
+%\end{verbatim}
 This element forces the difference between two arbitrary degrees of freedom
 to assume the value dictated by the driver.
 
@@ -2187,82 +2199,94 @@ The format is:
   
 \subsubsection{Spring}
 \label{sec:EL:GENEL:SPRING}
-\begin{verbatim}
-    <genel_type> ::= spring
-    <genel_arglist> ::= (node_dof) <node_1> ,
-                        (node_dof) <node_2> ,
-                        (ConstitutiveLaw<1D>) <const_law>
-\end{verbatim}
-{\em 
-    Note: the constitutive law must be \kw{elastic}, but the \kw{distance}
-    genel can apply to arbitrary order degrees of freedom, even between degrees 
-    of freedom of different order.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{spring}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{node_1} ,
+        \ty{(NodeDof)} \bnt{node_2} ,
+        \ty{(ConstitutiveLaw<1D>)} \bnt{const_law}
+\end{Verbatim}
+%\end{verbatim}
+The constitutive law must be \kw{elastic}, but the \kw{distance}
+genel can apply to arbitrary order degrees of freedom, even between degrees 
+of freedom of different order.
 
 \subsubsection{Spring support}
 \label{sec:EL:GENEL:SPRING-SUPPORT}
-\begin{verbatim}
-    <genel_type> ::= spring support
-    <genel_arglist> ::= (node_dof) <node> ,                      
-                        (ConstitutiveLaw<1D>) <const_law>
-\end{verbatim}
-{\em
-    Note: the \kw{spring support} must use the \kw{algebraic} value of a 
-    \kw{differential} node, but it can use an arbitrary constitutive law,
-    i.e.\ an elastic constitutive law for a spring, or a viscous
-    constitutive law for a damper, and so on.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{spring support}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{node} ,
+        \ty{(ConstitutiveLaw<1D>)} \bnt{const_law}
+\end{Verbatim}
+%\end{verbatim}
+The \kw{spring support} must use the \kw{algebraic} value of a 
+\kw{differential} node, but it can use an arbitrary constitutive law,
+i.e.\ an elastic constitutive law for a spring, or a viscous
+constitutive law for a damper, and so on.
 
 \subsubsection{Cross spring support}
 \label{sec:EL:GENEL:CROSS-SPRING-SUPPORT}
-\begin{verbatim}
-    <genel_type> ::= cross spring support
-    <genel_arglist> ::= (node_dof) <row_node> ,                      
-                        (node_dof) <col_node> ,                      
-                        (ConstitutiveLaw<1D>) <const_law>
-\end{verbatim}
-It writes a term depending on the \kw{col\_node} degree of freedom in an
-arbitrary manner (given by the \kw{const\_law}) to the 
-\kw{row\_node} equation. \\
-{\em
-    Note: the \kw{cross spring support} must use the \kw{algebraic} value
-    of a \kw{differential} node, but can use an arbitrary constitutive law,
-    i.e.\ an elastic constitutive law for a spring, or a viscous
-    constitutive law for a damper, and so on.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{cross spring support}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{row_node} ,
+        \ty{(NodeDof)} \bnt{col_node} ,
+        \ty{(ConstitutiveLaw<1D>)} \bnt{const_law}
+\end{Verbatim}
+%\end{verbatim}
+It writes a term depending on the \nt{col\_node} degree of freedom in an
+arbitrary manner (given by the \nt{const\_law}) to the 
+\nt{row\_node} equation.
+
+The \kw{cross spring support} must use the \kw{algebraic} value
+of a \kw{differential} node, but can use an arbitrary constitutive law,
+i.e.\ an elastic constitutive law for a spring, or a viscous
+constitutive law for a damper, and so on.
 
 \subsubsection{Mass}
 \label{sec:EL:GENEL:MASS}
-\begin{verbatim}
-    <genel_type> ::= mass
-    <genel_arglist> ::= (node_dof) <node> ,                     
-                        (drive_caller) <mass>
-\end{verbatim}
-{\em
-    Note: the mass must use the \kw{algebraic} value of a {\tt
-    differential} node. The derivative of the \kw{differential} value of
-    the dof is differentiated in a state-space sense, and an inertial driven
-    term is applied to the equation related to the dof:
-    \begin{eqnarray*}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{mass}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{node} ,
+        \ty{(DriveCaller)} \bnt{mass}
+\end{Verbatim}
+%\end{verbatim}
+The mass must use the \kw{algebraic} value of a \kw{differential} node.
+The derivative of the \kw{differential} value of
+the dof is differentiated in a state-space sense, and an inertial driven
+term is applied to the equation related to the dof:
+\begin{eqnarray*}
         m\dot{u} + \ldots & = & f \\
 	u - \dot{x} & = & 0
-    \end{eqnarray*}
-}
+\end{eqnarray*}
 
 \subsubsection{Scalar filter}
 \label{sec:EL:GENEL:SCALAR-FILTER}
-\begin{verbatim}
-    <genel_type> ::= scalar filter
-    <genel_arglist> ::=
-        (node_dof) <output_node> ,
-        { [ node dof , ] (node_dof) <input_node>
-            | drive , (drive_caller) <input_value> } ,
-        [ canonical form , { controllable | observable } , ]
-        <output_order> [ , <output_coef_list> ] ,
-        <input_order> , <input_coef_list>
-        [ , gain , <gain> ]
-        [ , balance , { yes | no } ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{scalar filter}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{output_node} ,
+        \{ [ \kw{node dof} , ] \ty{(NodeDof)} \bnt{input_node}
+            | \kw{drive} , \ty{(DriveCaller)} \bnt{input_value} \} ,
+        [ \kw{canonical form} , \{ \kw{controllable} | \kw{observable} \} , ]
+        \bnt{output_order} [ , \bnt{output_coef_list} ] ,
+        \bnt{input_order} [ , \bnt{input_coef_list} ]
+        [ , \kw{gain} , \bnt{gain} ]
+        [ , \kw{balance} , \{ \kw{yes} | \kw{no} \} ]
+\end{Verbatim}
+%\end{verbatim}
 This element models a scalar filter of the form
 \begin{displaymath}
     A\plbr{s}y = B\plbr{s}u
@@ -2281,17 +2305,17 @@ where $ A $, $ B $ are polynomials of arbitrary order, namely
 		+ a_{n_d}
 	} u\plbr{s}
 \end{displaymath}
-The filter must be proper, namely the \kw{output\_order} $n_d$
-must be greater than or at most equal to the \kw{input\_order}, $n_n$.
+The filter must be proper, namely the \nt{output\_order} $n_d$
+must be greater than or at most equal to the \nt{input\_order}, $n_n$.
 The polynomial $ A $ is assumed to be monic, so the coefficient 
 $a_0=1$ and only the coefficients from $a_1$ to $a_{n_d}$ must be input,
 while all the coefficients of polynomial $ B $ are required,
 i.e.\ from $b_0$ to $b_{n_n}$.
 
 If a \kw{gain} is supplied, all the coefficients of $ B $
-are multiplied by the gain.
+are multiplied by the \nt{gain}.
 
-Originally, the input needed to be taken from a \kw{scalar\_dof};
+Originally, the input needed to be taken from a \ty{ScalarDof};
 now, it can also be taken from a \kw{drive}, which can completely replace
 the original form (e.g.\ by means of the \kw{dof}, the \kw{node}
 and the \kw{element} drives) and requires much less effort because
@@ -2436,23 +2460,26 @@ had to be rearranged in order to make the denominator monic.
 
 \subsubsection{State space SISO}
 \label{sec:EL:GENEL:STATE-SPACE-SISO}
-\begin{verbatim}
-    <genel_type> ::= state space SISO
-    <genel_arglist> ::=
-        (node_dof) <output_node> ,
-        { [ node dof , ] (node_dof) <input_node>
-            | drive , (drive_caller) <input_value> } ,
-        <state_order>
-        [ , matrix E , <coefficient_list> ] ,
-        matrix A , <coefficient_list> ,
-        matrix B , <coefficient_list> ,
-        matrix C , <coefficient_list>
-        [ , matrix D , <coefficient> ]
-        [ , gain , <gain> ]
-        [ , balance , { yes | no } ]
-        [ , value , <x0 list>
-            [ , derivative , <x0p list> ] ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{state space SISO}
+
+    \bnt{genel_arglist} ::=
+        \ty{(NodeDof)} \bnt{output_node} ,
+        \{ [ \kw{node dof} , ] \ty{(NodeDof)} \bnt{input_node}
+            | \kw{drive} , \ty{(DriveCaller)} \bnt{input_value} \} ,
+        \bnt{state_order}
+        [ , \kw{matrix E} , \bnt{matrix_E_coef_list} ] ,
+        \kw{matrix A} , \bnt{matrix_A_coef_list} ,
+        \kw{matrix B} , \bnt{matrix_B_coef_list} ,
+        \kw{matrix C} , \bnt{matrix_C_coef_list}
+        [ , \kw{matrix D} , \bnt{D_coef} ]
+        [ , \kw{gain} , \bnt{gain} ]
+        [ , \kw{balance} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{value} , \bnt{x0_list}
+            [ , \kw{derivative} , \bnt{x0p_list} ] ]
+\end{Verbatim}
+%\end{verbatim}
 This element models a scalar (SISO) state space filter of the form
 \begin{align*}
 	\T{E} \dot{\T{x}} &= \T{A} \T{x} + \T{B} u \\
@@ -2461,13 +2488,13 @@ This element models a scalar (SISO) state space filter of the form
 where
 \begin{itemize}
 \item $\T{E}$ is a(n optional) matrix
-	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+	$\nt{state\_order} \times \nt{state\_order}$, defaulting to the identity matrix $\T{I}$,
 \item $\T{A}$ is a matrix
-	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+	$\nt{state\_order} \times \nt{state\_order}$,
 \item $\T{B}$ is a vector
-	$\mathtt{state\_order} \times 1$,
+	$\nt{state\_order} \times 1$,
 \item $\T{C}$ is a vector
-	$1 \times \mathtt{state\_order}$, and
+	$1 \times \nt{state\_order}$, and
 \item $D$ is a(n optional) scalar.
 \end{itemize}
 The matrices are read row-oriented; e.g., for matrix $\T{A}$:
@@ -2481,35 +2508,38 @@ The matrices are read row-oriented; e.g., for matrix $\T{A}$:
 
 If LAPACK is available, the matrices are balanced by default,
 unless explicitly disabled by using the \kw{balance} optional keyword.
-If matrix $\TT{E}$ is defined, the \kw{DGGBAL} routine is used;
-the \kw{DGEBAL} routine is used otherwise.
+If matrix $\TT{E}$ is defined, the \texttt{dggbal()} routine is used;
+the \texttt{dgebal()} routine is used otherwise.
 
-The state and its derivative can be initialized using the keyword \kw{value}
+The state and its derivative can be initialized using the keywords \kw{value}
 and \kw{derivative}.
 The initialization of the derivative only makes sense when the filter
 is in descriptor form.
 
 \subsubsection{State space MIMO}
 \label{sec:EL:GENEL:STATE-SPACE-MIMO}
-\begin{verbatim}
-    <genel_type> ::= state space MIMO
-    <genel_arglist> ::=
-        <num_outputs> , (node_dof) <output_node_list> ,
-        <num_inputs> ,
-            { [ node dof , ] (node_dof) <input_node>
-                | drive , (drive_caller) <input_value> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{state space MIMO}
+
+    \bnt{genel_arglist} ::=
+        \bnt{num_outputs} , \ty{(NodeDof)} \bnt{output_node_list} ,
+        \bnt{num_inputs} ,
+            \{ [ \kw{node dof} , ] \ty{(NodeDof)} \bnt{input_node}
+                | \kw{drive} , \ty{(DriveCaller)} \bnt{input_value} \}
             [ , ... ] ,
-        <state_order>
-        [ , matrix E , <coefficient_list> ] ,
-        matrix A , <coefficient_list> ,
-        matrix B , <coefficient_list> ,
-        matrix C , <coefficient_list>
-        [ , matrix D , <coefficient_list> ]
-        [ , gain , <gain> ]
-        [ , balance , { yes | no } ]
-        [ , value , <x0 list>
-            [ , derivative , <x0p list> ] ]
-\end{verbatim}
+        \bnt{state_order}
+        [ , \kw{matrix E} , \bnt{matrix_E_coef_list} ] ,
+        \kw{matrix A} , \bnt{matrix_A_coef_list} ,
+        \kw{matrix B} , \bnt{matrix_B_coef_list} ,
+        \kw{matrix C} , \bnt{matrix_C_coef_list}
+        [ , \kw{matrix D} , \bnt{matrix_D_coef_list} ]
+        [ , \kw{gain} , \bnt{gain} ]
+        [ , \kw{balance} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{value} , \bnt{x0_list}
+            [ , \kw{derivative} , \bnt{x0p_list} ] ]
+\end{Verbatim}
+%\end{verbatim}
 This element models a vector (MIMO) state space filter of the form
 \begin{align*}
         \T{E} \dot{\T{x}} &= \T{A}\T{x}+\T{B}\T{u} \\
@@ -2518,22 +2548,28 @@ This element models a vector (MIMO) state space filter of the form
 where
 \begin{itemize}
 \item $\T{E}$ is a(n optional) matrix
-	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+	$\nt{state\_order} \times \nt{state\_order}$, defaulting to the identity matrix $\T{I}$,
 \item $\T{A}$ is a matrix
-	$\mathtt{state\_order} \times \mathtt{state\_order}$,
+	$\nt{state\_order} \times \nt{state\_order}$,
 \item $\T{B}$ is a matrix
-	$\mathtt{state\_order} \times \mathtt{num\_inputs}$,
+	$\nt{state\_order} \times \nt{num\_inputs}$,
 \item $\T{C}$ is a matrix
-	$\mathtt{num\_outputs} \times \mathtt{state\_order}$, and
+	$\nt{num\_outputs} \times \nt{state\_order}$, and
 \item $\T{D}$ is a(n optional) matrix
-	$\mathtt{num\_outputs} \times \mathtt{num\_inputs}$.
+	$\nt{num\_outputs} \times \nt{num\_inputs}$.
 \end{itemize}
 The matrices are read row-oriented.
 
 If LAPACK is available, the matrices are balanced by default,
 unless explicitly disabled by using the \kw{balance} optional keyword.
-If matrix $\TT{E}$ is defined, the \kw{DGGBAL} routine is used;
-the \kw{DGEBAL} routine is used otherwise.
+If matrix $\TT{E}$ is defined, the \texttt{dggbal()} routine is used;
+the \texttt{dgebal()} routine is used otherwise.
+
+The state and its derivative can be initialized using the keywords \kw{value}
+and \kw{derivative}.
+The initialization of the derivative only makes sense when the filter
+is in descriptor form.
+
 
 
 \subsection{Special Rotorcraft \textsc{Genel} Elements}
@@ -2550,64 +2586,74 @@ The \kw{swashplate} \textsc{Genel} is used to transform the controls
 of a rotor, in terms of collective and fore/aft and lateral cyclic pitch, 
 into the elongations of the actuators that actually move the swash plate.
 The syntax of the \kw{swashplate} is:
-\begin{verbatim}
-    <genel_type> ::= swash plate
-    <genel_arglist> ::=
-        <collective_abstract_node> 
-        [ , limits , <min_collective> , <max_collective> ] ,
-        <fore/aft_abstract_node> 
-        [ , limits , <min_fore/aft> , <max_fore/aft> ] ,
-        <lateral_abstract_node> 
-        [ , limits , <min_lateral> , <max_lateral> ] ,
-        <actuator_1_abstract_node> ,
-        <actuator_2_abstract_node> ,
-        <actuator_3_abstract_node> 
-        [ , <dynamic_coef> , <cyclic_factor> , <collective_factor> ]
-\end{verbatim}
-The first three abstract nodes will contain the input values 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{swash plate}
+
+    \bnt{genel_arglist} ::=
+        \bnt{collective_abstract_node}
+            [ , \kw{limits} , \bnt{min_collective} , \bnt{max_collective} ] ,
+        \bnt{fore/aft_abstract_node}
+            [ , \kw{limits} , \bnt{min_fore/aft} , \bnt{max_fore/aft} ] ,
+        \bnt{lateral_abstract_node} 
+            [ , \kw{limits} , \bnt{min_lateral} , \bnt{max_lateral} ] ,
+        \bnt{actuator_1_abstract_node_label} ,
+        \bnt{actuator_2_abstract_node_label} ,
+        \bnt{actuator_3_abstract_node_label} 
+        [ , \bnt{dynamic_coef} , \bnt{cyclic_factor} , \bnt{collective_factor} ]
+\end{Verbatim}
+%\end{verbatim}
+The first three abstract nodes contain the input values 
 of collective, fore/aft and cyclic pitch
 (they can be actuated by means of abstract forces),
 and the limits on the ``angles'' can be easily set. 
 The last three nodes will contain the values of the stroke of the actuators.
+
 The first actuator should be put at the azimuthal position 
 that makes the current blade assume the fore/aft pitch,
 so that its pitch link is $\llk{atan}\plbr{1/\omega_{\beta}}$
 before the front direction.
-The other actuators should follow, 120\degr apart in clockwise direction.
+The other actuators should follow, 120 deg apart in clockwise direction.
+
 The limits on the actuators will simply force the value of the control
 inputs to remain in the boundaries regardless of the input values.
+
 The last three optional parameters are a dynamic coefficient that is used to
 add some dynamics to the actuators' stroke, namely the input variables are
 applied a sort of \kw{spring stiffness} \kw{bulk} element, while the
 actuators' strokes are applied a transfer function of the first order, namely
-$ \alpha\dot{x}+x=f $, where $ \alpha=\kw{dynamic\_coef} $ and $ f $ is
+$ \alpha\dot{x}+x=f $, where $ \alpha=\nt{dynamic\_coef} $ and $ f $ is
 the desired stroke, so the smaller is $ \alpha $, the more the behavior is
 static.
-The \kw{cyclic\_factor} and the \kw{collective\_factor} parameters are
+
+The \nt{cyclic\_factor} and the \nt{collective\_factor} parameters are
 used to scale the inputs from angles in the desired units to strokes, that
 usually are dimensional parameters. The actual strokes are made of the
-collective contribution multiplied by \kw{collective\_factor}, and the
-cyclic contribution multiplied by \kw{collective\_factor} times 
-\kw{cyclic\_factor}.
+collective contribution multiplied by \nt{collective\_factor}, and the
+cyclic contribution multiplied by
+$\nt{collective\_factor} \times \nt{cyclic\_factor}$.
 
 \subsubsection{Rotor Trim}
 \label{sec:EL:GENEL:ROTOR-TRIM}
 The syntax of the \kw{rotor trim} is
-\begin{verbatim}
-    <genel_type> ::= rotor trim
-    <genel_arglist> ::= <rotor_label> ,
-        <thrust_node_label> ,
-        <longitudinal_moment_node_label> ,
-        <lateral_moment_node_label> ,
-        (drive_caller) <desired_thrust_coefficient> ,
-        (drive_caller) <desired_longitudinal_moment_coefficient> ,
-        (drive_caller) <desired_lateral_moment_coefficient> ,
-        <rotor_lock_number> ,
-        <rotor_nondimensional_flap_frequency> ,
-        <thrust_time_constant> , <moments_time_constant> ,
-	<thrust_gain> , <moments_gain>
-	[ , trigger , (drive_caller) <trigger> ]
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{genel_type} ::= \kw{rotor trim}
+
+    \bnt{genel_arglist} ::= \bnt{rotor_label} ,
+        \bnt{thrust_node_label} ,
+        \bnt{longitudinal_moment_node_label} ,
+        \bnt{lateral_moment_node_label} ,
+        \ty{(DriveCaller)} \bnt{desired_thrust_coefficient} ,
+        \ty{(DriveCaller)} \bnt{desired_longitudinal_moment_coefficient} ,
+        \ty{(DriveCaller)} \bnt{desired_lateral_moment_coefficient} ,
+        \bnt{rotor_lock_number} ,
+        \bnt{rotor_nondimensional_flap_frequency} ,
+        \bnt{thrust_time_constant} , \bnt{moments_time_constant} ,
+	\bnt{thrust_gain} , \bnt{moments_gain}
+	[ , \kw{trigger} , \ty{(DriveCaller)} \bnt{trigger} ]
+\end{Verbatim}
+%\end{verbatim}
 The \kw{rotor trim} is experimental; it allows to set the controls 
 of a generic helicopter, in conjunction with the \kw{swashplate}
 element, to asymptotically obtain the desired level of thrust and
@@ -2623,9 +2669,13 @@ For details, see \cite{PETERS-TRIM90}.
 
 
 \section{Gravity Element}
-\begin{verbatim}
-    <arglist> ::= (Vec3_tpl_drive_caller) <gravity_acceleration>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{gravity}
+
+    \bnt{arglist} ::= \ty{(TplDriveCaller<Vec3>)} \bnt{gravity_acceleration}
+\end{Verbatim}
+%\end{verbatim}
 the drive of the gravity acceleration, in the global reference frame.
 
 
