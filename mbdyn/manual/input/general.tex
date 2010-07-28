@@ -736,18 +736,25 @@ The vector is computed based on a very simple algorithm: it contains
 	$v_1\plbr{\mathrm{max}}$;
 	\item 0.0 on the remaining index.
 \end{itemize}
+
 \item identity matrix: keyword \kw{eye}; the identity matrix,
 which means there is no rotation with respect to the global reference
 frame.
+
 \item a complete orientation matrix: keyword \kw{matr}
 followed by the nine, row-oriented, coefficients, namely
 $ r_{11} $, $ r_{12} $, \ldots, $ r_{33} $.
 \emph{Note: no orthogonality check is performed; be sure an orthogonal
 matrix, within the desired tolerance, is input}.
+
 \item Euler angles: keyword \kw{euler}, followed by the three
 values, as output by structural nodes.
 The keywords \kw{euler123}, \kw{euler313} and \kw{euler321}
 allow to use orientations in the sequence specified by the keyword.
+
+\fbox{Note: the output in the \texttt{.mov} file is in degrees,
+while in input MBDyn requires angles in radians.}
+
 \emph{Note: the definition of the three angles that are used 
 by the code to express orientations may vary between versions.
 Currently, Bryant-Cardano angles are used in place of Euler
@@ -758,6 +765,7 @@ definition will be used for input and output, but models
 over versions may become incompatible, so this syntax should 
 really be used only as a means to quickly reproduce in the input
 an orientation as resulting from a previous analysis.}
+
 \item Orientation vector: keyword \kw{vector}, followed by the three
 values, as output by structural nodes.
 The resulting matrix is computed as
@@ -765,6 +773,7 @@ The resulting matrix is computed as
 	\T{R} = \exp\plbr{\T{v}\times{}}
 \end{equation}
 \end{enumerate}
+
 \subsection{$6 \times 6$ matrices}
 \begin{enumerate}
     \item general case: a sequence of 36 reals, comma-separated, that
