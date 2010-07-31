@@ -3754,29 +3754,27 @@ of the angular strain rate.
 This joint forces the distance between two points,
 each relative to a node, to assume the value indicated by the drive.
 If no offset is given, the points are coincident with the node themselves.
-\begin{verbatim}
-    <joint_type> ::= distance 
-    <joint_arglist> ::= <node_1> , 
-                        [ position , <relative_offset_1> , ]
-                        <node_2> ,
-                        [ position , <relative_offset_2> , ]
-                        { (drive_caller) <distance> | from nodes }
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{distance}
 
-\noindent
-{\em 
-    Note: the \kw{relative\_offset\_*} are the distances of each end
-    of the joint from the relative nodes in the node reference frame.
-    Both the \kw{distance} and the \kw{distance with offset} joints
-    allow for null distance, but the transition from null to non-null
-    distance is not smooth at all.
-} \\
-{\em
-    Note: in case the keywords \kw{from nodes} are used, a constant drive
-    caller is automatically instantiated for the \kw{distance}. 
-    Its value is computed from the initial positions of the nodes;
-    if defined, the distance between the offsets is considered. 
-}
+    \bnt{joint_arglist} ::=
+        \bnt{node_1_label} , 
+        [ \kw{position} , \bnt{relative_offset_1} , ]
+        \bnt{node_2_label} ,
+        [ \kw{position} , \bnt{relative_offset_2} , ]
+        \{ \ty{(DriveCaller} \bnt{distance} | \kw{from nodes} \}
+\end{Verbatim}
+%\end{verbatim}
+The \kw{relative\_offset\_*} are the distances of each end
+of the joint from the relative nodes in the node reference frame.
+The \kw{distance} and the \kw{distance with offset} joints
+do not allow null distance.
+
+Note: in case the keyword \kw{from nodes} is used, a constant drive
+caller is automatically instantiated for the \kw{distance}. 
+Its value is computed from the initial positions of the nodes;
+if defined, the distance between the offsets is considered. 
 
 \subsubsection{Output}
 The extra output is:
@@ -3815,13 +3813,18 @@ This joint imposes the relative position between two points
 optionally offset from two structural nodes,
 in the form of a vector that expresses the direction of the displacement
 in the reference frame of node 1, whose amplitude is defined by a drive.
-\begin{verbatim}
-    <joint_type> ::= drive displacement
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <offset_1> ,
-        <node_2> , (Vec3) <offset_2> ,
-        (Vec3_tpl_drive_caller) <relative_position>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{drive displacement}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label} , \ty{(Vec3)} \bnt{offset_1} ,
+        \bnt{node_2_label} , \ty{(Vec3)} \bnt{offset_2} ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{relative_position}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total joint}}{\kw{total joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3843,7 +3846,7 @@ to the drive displacement point;
 \item \kw{offset\{2\}} the offset of the joint
 with respect to node 2 is reset by pointing 
 to the drive displacement point;
-\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\item unrecognized hints are passed through to the \ty{TplDriveCaller<Vec3>}.
 \end{itemize}
 
 
@@ -3854,13 +3857,18 @@ This joint imposes the absolute position of a point optionally offset
 from a structural node, in the form of a vector that expresses 
 the direction of the displacement in the absolute reference frame,
 whose amplitude is defined by a drive.
-\begin{verbatim}
-    <joint_type> ::= drive displacement pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <node_offset> ,
-        (Vec3) <offset> ,
-        (Vec3_tpl_drive_caller) <position>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{drive displacement pin}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_label} , \ty{(Vec3)} \bnt{node_offset} ,
+        \ty{(Vec3)} \bnt{offset} ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{position}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total pin joint}}{\kw{total pin joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3882,7 +3890,7 @@ to the driven displacement point;
 \item \kw{offset\{0\}} the offset of the joint
 with respect to the absolute reference frame is reset by pointing
 to the driven displacement point;
-\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\item unrecognized hints are passed through to the \ty{TplDriveCaller<Vec3>}.
 \end{itemize}
 
 
