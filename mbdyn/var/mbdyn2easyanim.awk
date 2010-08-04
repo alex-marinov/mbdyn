@@ -176,6 +176,9 @@ function node_absolute_add(name, x, y, z, prop) {
 	node[node_num, 1] = x;
 	node[node_num, 2] = y;
 	node[node_num, 3] = z;
+	strnode[name, 1] = x;
+	strnode[name, 2] = y;
+	strnode[name, 3] = z;
 	node[node_num, "prop"] = prop;
 	node_num++;
 }
@@ -233,6 +236,7 @@ BEGIN {
 	show["hinge"] = 0;
 	show["deformablejoint"] = show["hinge"];
 	show["totaljoint"] = show["hinge"];
+	show["totalpinjoint"] = show["hinge"];
 	show["distance"] = 1;
 	show["rod"] = 1;
 	show["beam"] = 1;
@@ -268,6 +272,10 @@ BEGIN {
 
 		if (showTotalJoint) {
 			show["totaljoint"] = 1;
+		}
+
+		if (showTotalPinJoint) {
+			show["totalpinjoint"] = 1;
 		}
 
 		if (noShowBeam) {
@@ -610,6 +618,40 @@ isvan == 0 && /totaljoint:/ && show["totaljoint"] {
 		}
 
 		edge_add("totaljoint_" $2, label1, label2, "totaljoint_edge");
+	}
+}
+
+isvan == 0 && /totalpinjoint:/ && show["totalpinjoint"] {
+	if (!exclude["joint", $2]) {
+		j_totalpinjoint_label[j_totalpinjoint_num] = $2;
+		j_totalpinjoint[$2] = j_totalpinjoint_num;
+		j_totalpinjoint[$2, 1] = $3;
+		j_totalpinjoint[$2, 1, 1] = $4;
+		j_totalpinjoint[$2, 1, 2] = $5;
+		j_totalpinjoint[$2, 1, 3] = $6;
+		j_totalpinjoint[$2, 2, 1] = $16;
+		j_totalpinjoint[$2, 2, 2] = $17;
+		j_totalpinjoint[$2, 2, 3] = $18;
+		j_totalpinjoint_num++;
+
+		label1 = j_totalpinjoint[$2, 1];
+
+		if (j_totalpinjoint[$2, 1, 1] != 0. || j_totalpinjoint[$2, 1, 2] != 0. || j_totalpinjoint[$2, 1, 3] != 0.) {
+			# create offset node and link
+			label = "totalpinjoint_" $2 "_point1";
+			node_add(label, label1,
+				j_totalpinjoint[$2, 1, 1], j_totalpinjoint[$2, 1, 2], j_totalpinjoint[$2, 1, 3], "totaljoint_node");
+
+			edge_add("totalpinjoint_" $2 "_offset1", label1, label, "totaljoint_offset");
+
+			label1 = label;
+		}
+
+		# create node and link
+		label2 = "totalpinjoint_" $2 "_point2";
+		node_absolute_add(label2, j_totalpinjoint[$2, 2, 1], j_totalpinjoint[$2, 2, 2], j_totalpinjoint[$2, 2, 3], "totaljoint_node");
+
+		edge_add("totalpinjoint_" $2, label1, label2, "totaljoint_edge");
 	}
 }
 
