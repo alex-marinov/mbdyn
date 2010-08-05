@@ -1694,7 +1694,14 @@ Communication occurs by means of the communicators illustrated earlier.
         \bnt{num_points} ,
             \bnt{node_label} , \kw{offset} [ , \bnt{point_label} ] , \ty{(Vec3)} \bnt{offset}
                 [ , ... ]
-        [ , \kw{echo} , " \bnt{echo_file_name} " [ , \kw{precision} , \bnt{digits} ] [ , \kw{stop} ] ]
+        [ , \kw{echo} , " \bnt{echo_file_name} "
+            [ , \{ \kw{precision} , \bnt{digits}
+                | \kw{surface} , \bnt{surface_file_name}
+                | \kw{output} , \bnt{output_file_name}
+                | \kw{order} , \bnt{order}
+                | \kw{basenode} , \bnt{basenode}
+                | \kw{weight} , \bnt{weight} \} [ , ... ] ]
+            [ , \kw{stop} ] ]
         [ , \kw{mapped points number} , \bnt{mapped_points} ,
             \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
                 [ , \kw{threshold} , \bnt{threshold} ]
@@ -1713,6 +1720,10 @@ to be written in a file named \nt{echo\_file\_name}.
 If the keyword \kw{stop} is present, the simulation ends here.
 This is useful to generate the bulk data that is needed to compute
 the linear mapping matrix.
+The optional keyword \kw{precision} allows to set \nt{precision}
+digits in the logged data; the other optional keywords refer to values
+that are written verbatim to the file.
+See the mapping scripts (\textbf{FIXME}) for details.
 
 When the \kw{reference node} keyword is present, the kinematics
 of the points is formulated in the reference frame of node

@@ -1220,16 +1220,140 @@ ReadStructMappingExtForce(DataManager* pDM,
 
 		out.setf(std::ios::scientific);
 
-		if (HP.IsKeyWord("precision")) {
-			int iPrecision = HP.GetInt();
-			if (iPrecision <= 0) {
-				silent_cerr("StructMappingExtForce(" << uLabel << "): "
-					"invalid echo precision " << iPrecision
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		bool bGotSurface(false);
+		bool bGotOutput(false);
+		bool bGotOrder(false);
+		bool bGotBaseNode(false);
+		bool bGotWeight(false);
+
+		bool bGotPrecision(false);
+
+	/*
+	surface: basicgrid.dat
+	output: blade1H.dat
+	order: 2
+	basenode: 12
+	weight: 2 
+
+	*/
+
+		std::string surface;
+		std::string output;
+		int order;
+		int basenode;
+		int weight;
+
+		while (true) {
+			if (HP.IsKeyWord("precision")) {
+				if (bGotPrecision) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"precision\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotPrecision = true;
+
+				int iPrecision = HP.GetInt();
+				if (iPrecision <= 0) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid echo precision " << iPrecision
+						<< " at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				out.precision(iPrecision);
+
+			} else if (HP.IsKeyWord("surface")) {
+				if (bGotSurface) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"surface\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotSurface = true;
+
+				surface = HP.GetFileName();
+				if (surface.empty()) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid \"surface\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("output")) {
+				if (bGotOutput) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"output\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotOutput = true;
+
+				output = HP.GetFileName();
+				if (output.empty()) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid \"output\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("order")) {
+				if (bGotOrder) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"order\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotOrder = true;
+
+				order = HP.GetInt();
+				// FIXME: limits?
+				if (0) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid \"order\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("basenode")) {
+				if (bGotBaseNode) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"basenode\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotBaseNode = true;
+
+				basenode = HP.GetInt();
+				// FIXME: limits?
+				if (0) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid \"basenode\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("weight")) {
+				if (bGotWeight) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"\"weight\" already specified "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				bGotWeight = true;
+
+				weight = HP.GetInt();
+				// FIXME: limits?
+				if (0) {
+					silent_cerr("StructMappingExtForce(" << uLabel << "): "
+						"invalid \"weight\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else {
+				break;
 			}
-			out.precision(iPrecision);
 		}
 
 		time_t t = std::time(NULL);
@@ -1253,6 +1377,25 @@ ReadStructMappingExtForce(DataManager* pDM,
 			out
 		  		<< "# points: " << nPoints << std::endl;
 
+			if (bGotSurface) {
+				out << "# surface: " << surface << std::endl;
+			}
+
+			if (bGotOutput) {
+				out << "# output: " << output << std::endl;
+			}
+
+			if (bGotOrder) {
+				out << "# order: " << order << std::endl;
+			}
+
+			if (bGotBaseNode) {
+				out << "# basenode: " << basenode << std::endl;
+			}
+
+			if (bGotWeight) {
+				out << "# weight: " << weight << std::endl;
+			}
 
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
 				if (bLabels) {
@@ -1266,6 +1409,27 @@ ReadStructMappingExtForce(DataManager* pDM,
 		} else {
 			out
 				<< "# points: " << nPoints << std::endl;
+
+			if (bGotSurface) {
+				out << "# surface: " << surface << std::endl;
+			}
+
+			if (bGotOutput) {
+				out << "# output: " << output << std::endl;
+			}
+
+			if (bGotOrder) {
+				out << "# order: " << order << std::endl;
+			}
+
+			if (bGotBaseNode) {
+				out << "# basenode: " << basenode << std::endl;
+			}
+
+			if (bGotWeight) {
+				out << "# weight: " << weight << std::endl;
+			}
+
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
 				if (bLabels) {
 					out << Labels[p] << " ";
