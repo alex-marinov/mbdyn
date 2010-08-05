@@ -5522,33 +5522,35 @@ This topic is under development, so expect frequent changes, and
 please do not count too much on backward compatibility.
 
 The syntax is:
-\begin{verbatim}
-    <elem_type> ::= stream output
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{stream output}
 
-    <arglist> ::=
-        stream name , " <stream_name> " ,
-        create , { yes | no } ,
-        [ { local , " <socket_name> " , |
-            [ port , <port_number> , ]
-            [ host , " <host_name> " , ] } ]
-        [ { [ no ] signal
-            | [ non ] blocking
-            | [ no ] send first
-            | [ do not ] abort if broken } [ , ... ] , ]
-        [ output every, <steps> , ]
-        [ echo , <file_name>
-            [ , precision , <precision> ]
-            [ , shift , <shift> ] , ]
-        <content>
-\end{verbatim}
+    \bnt{arglist} ::=
+        \kw{stream name} , " \bnt{stream_name} " ,
+        \kw{create} , \{ \kw{yes} | \kw{no} \} ,
+        [ \{ \kw{local} , " \bnt{socket_name} " , |
+            [ \kw{port} , \bnt{port_number} , ]
+            [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \{ [ \kw{no} ] \kw{signal}
+            | [ \kw{non} ] \kw{blocking}
+            | [ \kw{no} ] \kw{send first}
+            | [ \kw{do not} ] \kw{abort if broken} \} [ , ... ] , ]
+        [ \kw{output every} , \bnt{steps} , ]
+        [ \kw{echo} , \bnt{file_name}
+            [ , \kw{precision} , \bnt{precision} ]
+            [ , \kw{shift} , \bnt{shift} ] , ]
+        \bnt{content}
+\end{Verbatim}
+%\end{verbatim}
 The stream output allows MBDyn to send streamed outputs 
 to remote processes during both batch and real-time simulations,
-using sockets either in the \kw{local} or in the \kw{inet} namespace.
+using sockets either in the \texttt{local} or in the \texttt{inet} namespace.
 If the simulation is run in real-time using RTAI, RTAI mailboxes
 are used instead.
 
 \begin{itemize}
-\item \kw{stream\_name} is the name of the RTAI mailbox where 
+\item \nt{stream\_name} is the name of the RTAI mailbox where 
 the output is written  (a unique string no more than six characters long);
 it is basically ignored by the \kw{stream output} element
 except when using RTAI;
@@ -5558,21 +5560,21 @@ must be created or looked-up as already existing on the system;
 if \kw{create} is set to \kw{no}, MBDyn will retry for 60 seconds
 and then give up;
 
-\item \kw{socket\_name} is the path of the \kw{local} socket 
+\item \nt{socket\_name} is the path of the \kw{local} socket 
 that is used to communicate between processes;
 
-\item \kw{port} is the port number to be used with a \kw{inet} socket.
+\item \nt{port\_number} is the port number to be used with a \texttt{inet} socket.
 The default port number is 9011 (intentionally unassigned by IANA).
-If no \kw{host\_name} is given, \kw{localhost} will be used;
+If no \nt{host\_name} is given, \kw{localhost} will be used;
 
-\item \kw{host\_name} is the name or the IP of the remote host where
+\item \nt{host\_name} is the name or the IP of the remote host where
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no}.
 The simulation will not start until the socket is created on the remote host;
 
-\item the flag \kw{no signal} requests that no \kw{SIGPIPE} be raised
+\item the flag \kw{no signal} requests that no \texttt{SIGPIPE} be raised
 when sending through a socket when the other end is broken
-(by default, \kw{SIGPIPE} is raised);
+(by default, \texttt{SIGPIPE} is raised);
 
 \item the flag \kw{non blocking} requests that operations on the socket
 do not block (or block, in case of \kw{blocking}, the default);
@@ -5586,14 +5588,14 @@ No further data send will occur for the duration of the simulation
 (the default);
 
 \item the field \kw{output every} requests output to occur
-only every \kw{steps};
+only every \nt{steps};
 
 \item the field \kw{echo} causes the content that is sent to the peer
-to be echoed on file \kw{file\_name}; the optional parameter \kw{precision}
+to be echoed on file \nt{file\_name}; the optional parameter \nt{precision}
 determines the number of digits used in the output; the optional parameter
-\kw{shift} is currently unused;
+\nt{shift} is currently unused;
 
-\item the field \kw{content} is detailed in the next section.
+\item the field \nt{content} is detailed in the next section.
 \end{itemize}
 This element, when used with the \kw{motion} content type,
 obsoletes the \kw{stream motion output} element
@@ -5611,44 +5613,46 @@ in an arbitrary set of independent scalar channels.
 A form specifically intended to communicate the motion
 of a mechanical system is called \kw{motion}, consisting
 in a subset of the kinematics of a set of structural nodes:
-\begin{verbatim}
-    <content> ::= { <values> | <motion> }
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{content} ::= \{ \bnt{values} | \bnt{motion} \}
 
-    <values> ::= [ values , ]
-        <channel_number> ,
-            <value>
+    \bnt{values} ::= [ \kw{values} , ]
+        \bnt{channel_number} ,
+            \bnt{value}
             [ , ... ]
 
-    <value> ::= {
-        [ nodedof , ] (node_dof) <output_dof>
-        | drive , (DriveCaller) <drive_data>
-    }
+    \bnt{value} ::=
+        \{ [ \kw{nodedof} , ] \ty{(NodeDof)} \bnt{output_dof}
+            | \kw{drive} , \ty{(DriveCaller)} \bnt{drive_data} \}
 
-    <motion> ::= motion ,
-        [ output flags ,
-            { position
-            | orientation matrix
-            | orientation matrix transpose
-            | velocity
-            | angular velocity } [ , ... ] , ]
-        { all | <struct_node_label> [ , ... ] }
-\end{verbatim}
+    \bnt{motion} ::= \kw{motion} ,
+        [ \kw{output flags} ,
+            \{ \kw{position}
+                | \kw{orientation matrix}
+                | \kw{orientation matrix transpose}
+                | \kw{velocity}
+                | \kw{angular velocity} \}
+             [ , ... ] , ]
+        \{ \kw{all} | \bnt{struct_node_label} [ , ... ] \}
+\end{Verbatim}
+%\end{verbatim}
 where
 \begin{itemize}
 \item the (optional) keyword \kw{values} indicates that a set
 of independent scalar channels is output by the element;
 
-\item the number of channels \kw{channel\_number} that are written
-determines how many \kw{value} entries must be read.
-In case of \kw{node\_dof} (the default, deprecated),
+\item the number of channels \nt{channel\_number} that are written
+determines how many \nt{value} entries must be read.
+In case of \kw{nodedof} (the default, deprecated),
 they must be valid scalar dof entries, which can be connected
 in many ways to nodal degrees of freedom;
-in case of \kw{drive\_data}, they can be arbitrary functions,
+in case of \kw{drive}, they can be arbitrary functions,
 including node or element private data;
 
 \item the keyword \kw{motion} indicates that a subset of the kinematic
 parameters of a set of structural nodes is output by the element.
-As opposed to the \kw{values} case, which is intended for generic
+As opposed to the \nt{values} case, which is intended for generic
 interprocess communication output, this content type is intended to ease
 and optimize the output of the motion of structural nodes,
 to be used for on-line visualization purposes.
@@ -5659,7 +5663,7 @@ from a stream.
 The optional keyword \kw{output flags} allows to request the output
 of specific node kinematics: the node position, orientation matrix
 (either row- or column-major), the velocity and the angular velocity.
-The default is equivalent to \kw{output flags, position}.
+The default is equivalent to \texttt{\kw{output flags}, \kw{position}}.
 \end{itemize}
 
 
@@ -5668,7 +5672,7 @@ The default is equivalent to \kw{output flags, position}.
 During non real-time simulations, streams operate in blocking mode.
 The meaning of the parameters is:
 \begin{itemize}
-\item \kw{stream\_name} indicates the name the stream would be known as
+\item \nt{stream\_name} indicates the name the stream would be known as
 by RTAI; it must be no more than 6 characters long, and mostly useless;
 
 \item the instruction \kw{create} determines whether MBDyn will create
@@ -5681,11 +5685,11 @@ the socket is created, otherwise it must exist.
 \item either of the keywords \kw{port} or \kw{host} indicate that a socket
 in the internet namespace will be used;
 
-if \kw{create} is set to \kw{yes}, \kw{host\_name} indicates 
+if \kw{create} is set to \kw{yes}, \nt{host\_name} indicates 
 the host that is allowed to connect to the socket; it defaults 
-to any host (\kw{0.0.0.0}); if \kw{create} is set to \kw{no},
-\kw{host\_name} indicates what host to connect to; the default 
-is localhost (\kw{127.0.0.1}); the default port is \kw{9011}
+to any host (\texttt{0.0.0.0}); if \kw{create} is set to \kw{no},
+\nt{host\_name} indicates what host to connect to; the default 
+is localhost (\texttt{127.0.0.1}); the default port is \kw{9011}
 (intentionally unassigned by IANA);
 
 \item the flag \kw{no signal} is honored;
@@ -5707,7 +5711,7 @@ keyword is mandatory.
 During real-time simulations, streams wrap non-blocking RTAI mailboxes.
 The meaning of the parameters is:
 \begin{itemize}
-\item the parameter \kw{stream\_name} indicates the name the stream
+\item the parameter \nt{stream\_name} indicates the name the stream
 will be known as in RTAI's resource namespace; it must be exactly 6 characters long;
 
 \item the instruction \kw{create} determines whether the mailbox will be
@@ -5754,21 +5758,23 @@ This element type is obsoleted by the \kw{stream output} element
 with the \kw{motion} content type
 (see Section~\ref{sec:EL:OUTELEM:STREAM_MOTION_OUTPUT}).
 The syntax is:
-\begin{verbatim}
-    <elem_type> ::= stream motion output
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{stream motion output}
 
-    <arglist> ::= 
-        stream name , " <stream_name> " ,
-        create , { yes | no } ,
-        [ { local , " <socket_name> " , |
-            [ port , <port_number> , ]
-            [ host , " <host_name> " , ] } ]
-        [ { [ no ] signal
-            | [ non ] blocking
-            | [ no ] send first
-            | [ do not ] abort if broken } [ , ... ] , ]
-        <motion>
-\end{verbatim}
+    \bnt{arglist} ::= 
+        \kw{stream name} , " \bnt{stream_name} " ,
+        \kw{create} , \{ \kw{yes} | \kw{no} \} ,
+        [ \{ \kw{local} , " \bnt{socket_name} " ,
+                | [ \kw{port} , \bnt{port_number} , ] [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \{ [ \kw{no} ] \kw{signal}
+                | [ \kw{non} ] \kw{blocking}
+                | [ \kw{no} ] \kw{send first}
+                | [ \kw{do not} ] \kw{abort if broken} \}
+            [ , ... ] , ]
+        \bnt{motion}
+\end{Verbatim}
+%\end{verbatim}
 Its support may be discontinued in the future.
 
 
@@ -5797,16 +5803,21 @@ or other parameters including the value of any degree of freedom,
 the driven elements can be ``driven'' in a very flexible way.
 Every element can be driven, except those that can be instantiated once only.
 The syntax for a driven element is:
-\begin{verbatim}
-    <normal_arglist> ::= (drive_caller) <element_driver> ,
-        [ hint , " <hint> " , [ ... ] ]
-        <driven_element>
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{driven}
 
-    <driven_element> ::= existing : <elem_type> , <elem_label>
-    <driven_element> ::= <element_card>
-\end{verbatim}
-When the first format is used, an existing element 
-of type \kw{elem\_type} and label \kw{elem\_label} is looked for, 
+    \bnt{normal_arglist} ::= \ty{(DriveCaller)} \bnt{element_driver} ,
+        [ \kw{hint} , " \bnt{hint} " [ , ... ] ] ,
+        \bnt{driven_element}
+
+    \bnt{driven_element} ::=
+        \{ \kw{existing} : \bnt{driven_elem_type} , \bnt{driven_elem_label}
+            | \bnt{element_card} \}
+\end{Verbatim}
+%\end{verbatim}
+When the keyword \kw{existing} is used, an existing element 
+of type \nt{driven\_elem\_type} and label \nt{driven\_elem\_label} is looked for, 
 and it is wrapped by the driven element.
 In this case, no new element is instantiated.
 The label of the element must match that of the driving element given 
@@ -5816,37 +5827,38 @@ even when wrapping an existing element the output flags can be set
 at the end of the card.
 This flag overrides the one set when the driven element was instantiated.
 
-When the second format is used, a new normal element is read 
-after the driving element's declaration; it is then instantiated 
-and wrapped by the \kw{driven} element wrapper.
-Note that after the element type,
-or after the keyword \kw{existing}, a colon is used as a separator.
-This is one of the very few  exception to the rule that colons 
-can only follow descriptions at the beginning of a card.
-The label of the driven element must match that of the driving element 
-given at the beginning of the card.
+Otherwise, a regular element is read after the driving element's declaration;
+it is then instantiated and wrapped by the \kw{driven} element wrapper.
+Note that after the keyword \kw{existing} or after the driven element type,
+a colon is used as a separator.
+This is probably the only exception to the rule that the colon
+can only follow a \nt{description} at the beginning of a card.
+The label \nt{driven\_elem\_label} of the driven element must match that
+of the driving element used at the beginning of the \kw{driven} card.
 
 \paragraph{Example.} \
 A pin constraint between two rigid bodies is released:
 \begin{verbatim}
-    set: integer body_1 = 1;
-    set: integer body_2 = 2;
+    set: integer BODY_1 = 1;
+    set: integer BODY_2 = 2;
     # ...
-    structural: body_1, dynamic,
+    structural: BODY_1, dynamic,
         null, eye, null, null;
-    structural: body_2, dynamic,
+    structural: BODY_2, dynamic,
         null, eye, null, null;
     # ....
-    rigid body: body_1, body_1,
+    body: BODY_1, BODY_1,
         1000., null, diag, 100.,100.,1.;
-    rigid body: body_2, body_2,
+    body: BODY_2, BODY_2,
         10., null, diag, 1.e-1,1.e-1,1.e-3;
     # ...
-    # this constraint will be released when t = 10 s
+    # this constraint will be released when Time = 10 s
     driven: 1, string, "Time<10.",
     joint: 1, spherical hinge,
-        body_1, null,
-        body_2, null;
+        BODY_1,
+            position, null,
+        BODY_2,
+            position, null;
 \end{verbatim}
 
 \paragraph{Example.} \
@@ -5860,32 +5872,36 @@ is reached.
 The value of an abstract node is used to input the angular velocity 
 to the \kw{axial rotation} joint.
 \begin{verbatim}
-    set: integer body_1 = 1;
-    set: integer body_2 = 2;
-    set: integer control_output = 3;
+    set: integer BODY_1 = 1;
+    set: integer BODY_2 = 2;
+    set: integer CONTROL_OUTPUT = 3;
     # ...
-    structural: body_1, static,
+    structural: BODY_1, static,
         null, eye, null, null;
-    structural: body_2, dynamic,
+    structural: BODY_2, dynamic,
         null, eye, null, null;
-    abstract: control_output;
+    abstract: CONTROL_OUTPUT;
     # ....
-    driven: 1, dof, body_2, structural, 6, differential,
-        string, "Var<100.",
+    driven: 1, node, BODY_2, structural, string, "Omega[3]",
+        string, "Var < 100.",
     joint: 1, axial rotation,
-        body_1, null,
-            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
-        body_2, null,
-            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
-        dof, control_output, abstract, algebraic,
+        BODY_1,
+            position, null,
+            orientation, 1, 1.,0.,0., 3, 0.,0.,1.,
+        BODY_2,
+            position, null,
+            orientation, 1, 1.,0.,0., 3, 0.,0.,1.,
+        node, CONTROL_OUTPUT, abstract, string, "x",
             linear, 0.,1.;
-    driven: 2, dof, body_2, structural, 6, differential,
-        string, "Var>=100.",
+    driven: 2, node, BODY_2, structural, string, "Omega[3]",
+        string, "Var >= 100.",
     joint: 2, revolute hinge,
-        body_1, null,
-            hinge, 1, 1.,0.,0., 3, 0.,0.,1.,
-        body_2, null,
-            hinge, 1, 1.,0.,0., 3, 0.,0.,1.;
+        BODY_1,
+            position, null,
+            orientation, 1, 1.,0.,0., 3, 0.,0.,1.,
+        BODY_2,
+            position, null,
+            orientation, 1, 1.,0.,0., 3, 0.,0.,1.;
 \end{verbatim}
 
 \subsubsection{Hint}
@@ -5938,39 +5954,41 @@ and generalized as much as possible.
 \subsection{Inertia}\label{sec:EL:MISC:INERTIA}
 This card causes the equivalent inertia properties of a subset
 of elements to be generated.
-\begin{verbatim}
-    <card> ::= inertia : <label>
-        [ , name , " <inertia_name> " ]
-        [ , position , (Vec3)<reference_position> ]
-        [ , orientation , (Mat3x3)<reference_orientation> ]
-        , <type_subset> [ , ... ]
-        [ , output , { no | yes | log | both } ] ;
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{inertia} : \bnt{label}
+        [ , \kw{name} , " \bnt{inertia_name} " ]
+        [ , \kw{position} , \ty{(Vec3)} \bnt{reference_position} ]
+        [ , \kw{orientation} , \ty{(Mat3x3)} \bnt{reference_orientation} ]
+        , \bnt{type_subset} [ , ... ]
+        [ , \kw{output} , \{ \kw{no} | \kw{yes} | \kw{log} | \kw{both} \} ] ;
 
-        <type_subset> ::= <type> , { all | <label_list> }
-        <type> ::= { body | joint | loadable }
-        <label_list> ::= <label> [ , <label_list> ]
-\end{verbatim}
+        \bnt{type_subset} ::= \bnt{type} , \{ \kw{all} | \bnt{label} [ , ... ] \}
+
+        \bnt{type} ::= \{ \kw{body} | \kw{joint} | \kw{loadable} \}
+\end{Verbatim}
+%\end{verbatim}
 where \kw{type} currently can be \kw{body}, \kw{joint} and \kw{loadable}, 
 although more elements associated to inertia might participate in the future.
 All elements whose labels are listed must exist, and duplicates
 are detected and considered errors.
-The keyword \kw{all} causes all the elements of type \kw{type} 
+The keyword \kw{all} causes all the elements of type \nt{type} 
 to be included in the list.
 
 \noindent
 The only effect of the \kw{inertia} statement is to log
-each \kw{inertia} entry in the \kw{.log} file in a self explanatory form,
+each \kw{inertia} entry in the \texttt{.log} file in a self explanatory form,
 referred both to the \kw{global} reference frame and to a reference frame
-originating from \kw{reference\_position} and oriented 
-as \kw{reference\_orientation}.
+originating from \nt{reference\_position} and oriented 
+as \nt{reference\_orientation}.
 The optional parameter \kw{output} may be used to alter the default 
 behavior:
 \begin{itemize}
 \item \kw{no} disables the output, making the \kw{inertia} 
 statement essentially ineffective;
 \item \kw{yes} enables output to standard output;
-\item \kw{log} enables output to the \kw{.log} file (the default);
-\item \kw{both} enables output to both standard output and \kw{.log} file.
+\item \kw{log} enables output to the \texttt{.log} file (the default);
+\item \kw{both} enables output to both standard output and \texttt{.log} file.
 \end{itemize}
 
 
@@ -5979,15 +5997,19 @@ statement essentially ineffective;
 This card does not instantiate any \kw{element}; it rather enables
 output of selected elements, and it is analogous to that of the
 \hyperref{\kw{nodes}}{\kw{nodes} (see Section~}{)}{sec:NODE:MISC:OUTPUT}:
-\begin{verbatim}
-    <card> ::= output : <elem_type> , <elem_list> ;
-    <elem_list> ::= { <elem_label>  [ , <elem_list> ]
-        | range , <elem_start_label> , <elem_end_label> }
-\end{verbatim}
-\kw{elem\_type} is a valid element type that can be read 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output} : \bnt{elem_type} , \bnt{elem_list} ;
+
+    \bnt{elem_list} ::=
+        \{ \bnt{elem_label}  [ , ... ]
+            | \kw{range} , \bnt{elem_start_label} , \bnt{elem_end_label} \}
+\end{Verbatim}
+%\end{verbatim}
+\nt{elem\_type} is a valid element type that can be read 
 as card name in the \kw{elements} block.
 In case the keyword \kw{range} is used, all existing elements comprised
-between \kw{elem\_start\_label} and \kw{elem\_end\_label}
+between \nt{elem\_start\_label} and \nt{elem\_end\_label}
 are set; missing ones are silently ignored.
 
 
