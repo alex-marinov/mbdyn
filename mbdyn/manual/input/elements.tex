@@ -1696,11 +1696,12 @@ Communication occurs by means of the communicators illustrated earlier.
                 [ , ... ]
         [ , \kw{echo} , " \bnt{echo_file_name} "
             [ , \{ \kw{precision} , \bnt{digits}
-                | \kw{surface} , " \bnt{surface_file_name} "
-                | \kw{output} , " \bnt{output_file_name} "
-                | \kw{order} , \bnt{order}
-                | \kw{basenode} , \bnt{basenode}
-                | \kw{weight} , \bnt{weight} \} [ , ... ] ]
+                    | \kw{surface} , " \bnt{surface_file_name} "
+                    | \kw{output} , " \bnt{output_file_name} "
+                    | \kw{order} , \bnt{order}
+                    | \kw{basenode} , \bnt{basenode}
+                    | \kw{weight} , \{ \kw{inf} | \ty{(Scalar)} \bnt{weight} \} \}
+                [ , ... ] ]
             [ , \kw{stop} ] ]
         [ , \kw{mapped points number} , \bnt{mapped_points} ,
             \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
@@ -1723,7 +1724,9 @@ the linear mapping matrix.
 The optional keyword \kw{precision} allows to set \nt{precision}
 digits in the logged data; the other optional keywords refer to values
 that are written verbatim to the file.
-See the mapping scripts (\textbf{FIXME}) for details.
+In detail, \nt{order} is an integer ($1 \le \nt{order} \le 3$),
+\nt{basenode} is the number of nodes for each region ($\nt{basenode} > 0$),
+\nt{weight} is a weighting coefficient ($\nt{weight} \ge -2$ or \kw{inf}).
 
 When the \kw{reference node} keyword is present, the kinematics
 of the points is formulated in the reference frame of node

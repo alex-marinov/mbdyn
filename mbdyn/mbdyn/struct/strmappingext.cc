@@ -1242,6 +1242,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 		int order;
 		int basenode;
 		int weight;
+		bool bWeightInf(false);
 
 		while (true) {
 			if (HP.IsKeyWord("precision")) {
@@ -1307,10 +1308,9 @@ ReadStructMappingExtForce(DataManager* pDM,
 				bGotOrder = true;
 
 				order = HP.GetInt();
-				// FIXME: limits?
-				if (0) {
+				if (order < 1 || order > 3) {
 					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-						"invalid \"order\" "
+						"invalid order=" << order << ", must be 1 <= order <= 3 "
 						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -1325,10 +1325,9 @@ ReadStructMappingExtForce(DataManager* pDM,
 				bGotBaseNode = true;
 
 				basenode = HP.GetInt();
-				// FIXME: limits?
-				if (0) {
+				if (basenode <= 0) {
 					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-						"invalid \"basenode\" "
+						"invalid basenode=" << basenode << ", must be > 0 "
 						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -1342,13 +1341,17 @@ ReadStructMappingExtForce(DataManager* pDM,
 				}
 				bGotWeight = true;
 
-				weight = HP.GetInt();
-				// FIXME: limits?
-				if (0) {
-					silent_cerr("StructMappingExtForce(" << uLabel << "): "
-						"invalid \"weight\" "
-						"at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				if (HP.IsKeyWord("inf")) {
+					bWeightInf = true;
+
+				} else {
+					weight = HP.GetInt();
+					if (weight < -2) {
+						silent_cerr("StructMappingExtForce(" << uLabel << "): "
+							"invalid weight=" << weight << ", must be >= -2 or \"inf\" "
+							"at line " << HP.GetLineData() << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
 				}
 
 			} else {
@@ -1394,7 +1397,11 @@ ReadStructMappingExtForce(DataManager* pDM,
 			}
 
 			if (bGotWeight) {
-				out << "# weight: " << weight << std::endl;
+				if (bWeightInf) {
+					out << "# weight: inf" << std::endl;
+				} else {
+					out << "# weight: " << weight << std::endl;
+				}
 			}
 
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
@@ -1427,7 +1434,11 @@ ReadStructMappingExtForce(DataManager* pDM,
 			}
 
 			if (bGotWeight) {
-				out << "# weight: " << weight << std::endl;
+				if (bWeightInf) {
+					out << "# weight: inf" << std::endl;
+				} else {
+					out << "# weight: " << weight << std::endl;
+				}
 			}
 
 			for (unsigned p = 0; p < unsigned(nPoints); p++) {
