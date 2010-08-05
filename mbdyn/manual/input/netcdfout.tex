@@ -62,10 +62,12 @@ by a variable, whose name indicates the type of datum and the entity
 that generated it, organized in a tree-like fashion.
 
 For example, the vector containing the three components 
-of the position of a structural node is
-\begin{verbatim}
-    node.struct.<label>.X
-\end{verbatim}
+of the position of the \kw{structural} node labeled \nt{label} is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{node.struct.}\bnt{label}\kw{.X}
+\end{Verbatim}
+%\end{verbatim}
 Each variable usually has few attributes:
 \begin{itemize}
 \item a \kw{description} is usually given;
@@ -98,9 +100,12 @@ There is no variable \kw{run}, with the name of the run level.
 This level contains general, simulation-related data:
 \begin{itemize}
 \item \kw{run.step}, the step number;
-\item \kw{run.time}, the value of the time;
+\item \kw{time} (previously \kw{run.time}), the value of the time;
 \item \kw{run.timestep}, the value of the timestep.
 \end{itemize}
+Note: the \kw{run.time} variable has been renamed \kw{time}
+because many NetCDF manipulation tools automatically recognize
+this name as the ordering variable for the rest of the data.
 
 
 
@@ -329,16 +334,16 @@ evaluation point.
 \section{Accessing the Database}
 The database can be accessed using any of the tools listed at the web site
 \begin{quote}
-\htmladdnormallink{\kw{http://www.unidata.ucar.edu/software/netcdf/software.html}}{http://www.unidata.ucar.edu/software/netcdf/software.html}
+\htmladdnormallink{\texttt{http://www.unidata.ucar.edu/software/netcdf/software.html}}{http://www.unidata.ucar.edu/software/netcdf/software.html}
 \end{quote}
 (yes, including MBDyn itself\ldots)
 
 
 
 \subsection{Octave}
-The \kw{octcdf} package, available from
+The \texttt{octcdf} package, available from
 \begin{quote}
-\htmladdnormallink{\kw{http://ocgmod1.marine.usf.edu/}}{http://ocgmod1.marine.usf.edu/},
+\htmladdnormallink{\texttt{http://ocgmod1.marine.usf.edu/}}{http://ocgmod1.marine.usf.edu/},
 \end{quote}
 provides a clean interface to using NetCDF databases from within
 the popular math environment Octave.

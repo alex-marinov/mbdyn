@@ -36,11 +36,11 @@ joint of MBDyn.
 This data can be obtained, for example:
 \begin{itemize}
 \item from Code Aster
-(\htmladdnormallink{\kw{http://www.code-aster.org/}}{http://www.code-aster.org/}),
+(\htmladdnormallink{\texttt{http://www.code-aster.org/}}{http://www.code-aster.org/}),
 as discussed in Section~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:ASTER};
 \item from NASTRAN
-(\htmladdnormallink{\kw{http://www.mscsoftware.com/}}{http://www.mscsoftware.com/})
-output, using the \kw{femgen} utility,
+(\htmladdnormallink{\texttt{http://www.mscsoftware.com/}}{http://www.mscsoftware.com/})
+output, using the \texttt{femgen} utility,
 as detailed in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}
 (in short, it processes binary output from NASTRAN, as defined by means
 of appropriate ALTER files provided with MBDyn sources, into a file
@@ -54,70 +54,78 @@ from analytical or numerical models of any kind.
 
 The format is:
 {\small
-\begin{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
 <comments>
-** RECORD GROUP 1,<any comment; "HEADER">
+** \kw{RECORD GROUP 1},<any comment to EOL; "HEADER">
 <comment>
-<REV> <NNODES> <NNORMAL> <NATTACHED> <NCONSTRAINT> <NREJECTED>
-<comments; NMODES = NNORMAL + NATTACHED + NCONSTRAINT - NREJECTED>
-** RECORD GROUP 2,<any comment; "FINITE ELEMENT NODE LIST">
-<FEMLABEL> [...<NNODES>]
-<comments; FEM label list: <NNODES> integers>
-** RECORD GROUP 3,<any comment; "INITIAL MODAL DISPLACEMENTS">
-<MODEDISP> [..<NMODES>]
-<comments; initial mode displacements: <NMODES> reals>
-** RECORD GROUP 4,<any comment; "INITIAL MODAL VELOCITIES">
-<MODEVEL> [..<NMODES>]
-<comments; initial mode velocities: <NMODES> reals>
-** RECORD GROUP 5,<any comment; "NODAL X COORDINATES">
-<FEMX> [...<NNODES>]
+\bnt{REV} \bnt{NNODES} \bnt{NNORMAL} \bnt{NATTACHED} \bnt{NCONSTRAINT} \bnt{NREJECTED}
+<comments; \nt{NMODES} = \nt{NNORMAL} + \nt{NATTACHED} + \nt{NCONSTRAINT} - \nt{NREJECTED}>
+** \kw{RECORD GROUP 2},<any comment to EOL; "FINITE ELEMENT NODE LIST">
+\bnt{FEMLABEL} [...\nt{NNODES}]
+<comments; FEM label list: \nt{NNODES} integers>
+** \kw{RECORD GROUP 3},<any comment to EOL; "INITIAL MODAL DISPLACEMENTS">
+\bnt{MODEDISP} [...\nt{NMODES}]
+<comments; initial mode displacements: \nt{NMODES} reals>
+** \kw{RECORD GROUP 4},<any comment to EOL; "INITIAL MODAL VELOCITIES">
+\bnt{MODEVEL} [...\nt{NMODES}]
+<comments; initial mode velocities: \nt{NMODES} reals>
+** \kw{RECORD GROUP 5},<any comment to EOL; "NODAL X COORDINATES">
+\bnt{FEM_X} [...\nt{NNODES}]
 <comments; FEM node X coordinates>
-** RECORD GROUP 6,<any comment; "NODAL Y COORDINATES">
-<FEMY> [...<NNODES>]
+** \kw{RECORD GROUP 6},<any comment to EOL; "NODAL Y COORDINATES">
+\bnt{FEM_Y} [...\nt{NNODES}]
 <comments; FEM node Y coordinates>
-** RECORD GROUP 7,<any comment; "NODAL Z COORDINATES">
-<FEMZ> [...<NNODES>]
+** \kw{RECORD GROUP 7},<any comment to EOL; "NODAL Z COORDINATES">
+\bnt{FEM_Z} [...\nt{NNODES}]
 <comments; FEM node Z coordinates>
-** RECORD GROUP 8,<any comment; "NON-ORTHOGONALIZED MODE SHAPES">
+** \kw{RECORD GROUP 8},<any comment to EOL; "NON-ORTHOGONALIZED MODE SHAPES">
 <comment; NORMAL MODE SHAPE # 1>
-    <FEM1 X> <FEM1 Y> <FEM1 Z> <FEM1 RX> <FEM1 RY> <FEM1 RZ>
-    <... NNODES>
+    \bnt{FEM1_X} \bnt{FEM1_Y} \bnt{FEM1_Z} \bnt{FEM1_RX} \bnt{FEM1_RY} \bnt{FEM1_RZ}
+    [...\nt{NNODES}]
 <comment; NORMAL MODE SHAPE # 2>
-    <FEM1 X> <FEM1 Y> <FEM1 Z> <FEM1 RX> <FEM1 RY> <FEM1 RZ>
-    <... NNODES>
-<... NMODES>
-<comments; for each MODE, for each NODE: modal displacements/rotations>
-** RECORD GROUP 9,<any comment; "MODAL MASS MATRIX. COLUMN-MAJOR FORM">
-<M_1_1>      <...> <M_1_NMODES>
-<...>
-<M_NMODES_1> <...> <M_NMODES_NMODES>
+    \bnt{FEM2_X} \bnt{FEM2_Y} \bnt{FEM2_Z} \bnt{FEM2_RX} \bnt{FEM2_RY} \bnt{FEM2_RZ}
+    [...\nt{NNODES}]
+[...\nt{NMODES}]
+<comments; for each \nt{MODE}, for each \nt{NODE}: modal displacements/rotations>
+** \kw{RECORD GROUP 9},<any comment to EOL; "MODAL MASS MATRIX. COLUMN-MAJOR FORM">
+\bnt{M_1_1}      [...] \bnt{M_1_NMODES}
+[...]
+\bnt{M_NMODES_1} [...] \bnt{M_NMODES_NMODES}
 <comments; the modal mass matrix in column-major (symmetric?)>
-** RECORD GROUP 10,<any comment; "MODAL STIFFNESS MATRIX. COLUMN-MAJOR FORM">
-<K_1_1>      <...> <K_1_NMODES>
-<...>
-<K_NMODES_1> <...> <K_NMODES_NMODES>
+** \kw{RECORD GROUP 10},<any comment to EOL; "MODAL STIFFNESS MATRIX. COLUMN-MAJOR FORM">
+\bnt{K_1_1}      [...] \bnt{K_1_NMODES}
+[...]
+\bnt{K_NMODES_1} [...] \bnt{K_NMODES_NMODES}
 <comments; the modal stiffness matrix in column-major (symmetric?)>
-** RECORD GROUP 11,<any comment; "DIAGONAL OF LUMPED MASS MATRIX">
-<M_1_X> <M_1_Y> <M_1_Z> <M_1_RX> <M_1_RY> <M_1_RZ>
-<...>
-<M_NNODES_X> <...> <M_NNODES_RZ>
+** \kw{RECORD GROUP 11},<any comment to EOL; "DIAGONAL OF LUMPED MASS MATRIX">
+\bnt{M_1_X} \bnt{M_1_Y} \bnt{M_1_Z} \bnt{M_1_RX} \bnt{M_1_RY} \bnt{M_1_RZ}
+[...]
+\bnt{M_NNODES_X} [...] \bnt{M_NNODES_RZ}
 <comments; the lumped diagonal mass matrix of the FEM model>
-** RECORD GROUP 12,<any comment; "GLOBAL INERTIA PROPERTIES">
-<MASS>
-<X_CG> <Y_CG> <Z_CG>
-<J_XX> <J_XY> <J_XZ>
-<J_YX> <J_YY> <J_YZ>
-<J_ZX> <J_ZY> <J_ZZ>
+** \kw{RECORD GROUP 12},<any comment to EOL; "GLOBAL INERTIA PROPERTIES">
+\bnt{MASS}
+\bnt{X_CG} \bnt{Y_CG} \bnt{Z_CG}
+\bnt{J_XX} \bnt{J_XY} \bnt{J_XZ}
+\bnt{J_YX} \bnt{J_YY} \bnt{J_YZ}
+\bnt{J_ZX} \bnt{J_ZY} \bnt{J_ZZ}
 <comments; the global inertia properties of the modal element>
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 }
 
-An arbitrary number of comment lines may appear within records;
-the beginning of a record is marked
-\begin{verbatim}
-** RECORD GROUP <RID>
-\end{verbatim}
-where the number \kw{<RID>} indicates what record is being read.
+An arbitrary number of comment lines may appear
+where \texttt{<comments[...]>} is used;
+only one comment line must appear where
+where \texttt{<comment[...]>} is used.
+
+The beginning of a record is marked
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+** \kw{RECORD GROUP} \bnt{RID}
+\end{Verbatim}
+%\end{verbatim}
+where the number \nt{RID} indicates what record is being read.
 The size of each record, i.e.\ the number of values that are expected,
 is defined based on the header record, so MBDyn should be able to detect
 incomplete or mis-formatted files.
@@ -127,45 +135,45 @@ The records contain:
 \item \kw{RECORD GROUP 1}, a.k.a.\ the ``header'', contains a summary
 of the contents of the file:
 	\begin{itemize}
-	\item \kw{<REV>} is a string that indicates the revision number;
+	\item \nt{REV} is a string that indicates the revision number;
 	it is currently ignored;
-	\item \kw{<NNODES>} is the number of (exposed) FEM nodes 
+	\item \nt{NNODES} is the number of (exposed) FEM nodes 
 	in the FEM model;
-	\item \kw{<NNORMAL>} is the number of normal modes;
-	\item \kw{<NATTACHED>} is the number of ``attached'',
+	\item \nt{NNORMAL} is the number of normal modes;
+	\item \nt{NATTACHED} is the number of ``attached'',
 	i.e.\ static, modes;
-	\item \kw{<NCONSTRAINT>} is the number of constraint modes;
-	\item \kw{<NREJECTED>} is the number of rejected modes.
+	\item \nt{NCONSTRAINT} is the number of constraint modes;
+	\item \nt{NREJECTED} is the number of rejected modes.
 	\end{itemize}
 Currently, the number of available modes is computed as
 \begin{displaymath}
-	\kw{NMODES} = \kw{NNORMAL} + \kw{NATTACHED}
-		+ \kw{NCONSTRAINT} - \kw{NREJECTED}
+	\nt{NMODES} = \nt{NNORMAL} + \nt{NATTACHED}
+		+ \nt{NCONSTRAINT} - \nt{NREJECTED}
 \end{displaymath}
 because modes are treated in a generalized manner,
 so there is no need to consider the different types of shapes
 in a specific manner.
 Typically, one should set all numbers to 0, except for
-\kw{<NNORMAL>} which should be set to the number of modes
+\nt{NNORMAL} which should be set to the number of modes
 actually present in the data set.
 Remember that MBDyn can still select a subset of the available 
 modes to be used in the analysis, so that there is no need 
 to further edit this file.
 
-\item \kw{RECORD GROUP 2} contains a listing of the \kw{<NNODES>} labels
+\item \kw{RECORD GROUP 2} contains a listing of the \nt{NNODES} labels
 of the (exposed) FEM nodes.
 The labels can be any string of text, and are separated by blanks
-(as intended by the \kw{isspace(3)} C standard library function).
+(as intended by the \texttt{isspace(3)} C standard library function).
 A label cannot thus contain any amount of whitespace.
 
-\item \kw{RECORD GROUP 3} contains the initial values of the \kw{<NMODES>}
+\item \kw{RECORD GROUP 3} contains the initial values of the \nt{NMODES}
 modal unknowns  (optional; set to zero if omitted);
 
-\item \kw{RECORD GROUP 4} contains the initial values of the \kw{<NMODES>}
+\item \kw{RECORD GROUP 4} contains the initial values of the \nt{NMODES}
 modal unknowns derivatives (optional; set to zero if omitted);
 
 \item \kw{RECORD GROUP 5} contains the $X$ component of the position
-of the \kw{<NNODES>} FEM nodes in the reference frame attached 
+of the \nt{NNODES} FEM nodes in the reference frame attached 
 to the \kw{modal} node (or to the \kw{origin node}, if given).
 
 \item \kw{RECORD GROUP 6} contains the $Y$ component of the data above;
@@ -173,7 +181,7 @@ to the \kw{modal} node (or to the \kw{origin node}, if given).
 \item \kw{RECORD GROUP 7} contains the $Z$ component of the data above;
 
 \item \kw{RECORD GROUP 8} contains the non-orthogonalized components 
-of the \kw{<NMODES>} modes; for each mode, the three components 
+of the \nt{NMODES} modes; for each mode, the three components 
 $X$, $Y$, $Z$ of the modal displacement, and the three components
 $RX$, $RY$, $RZ$ of the linearized modal rotations are listed;
 each mode shape is separated by a comment line, which typically is
@@ -183,7 +191,7 @@ each mode shape is separated by a comment line, which typically is
 for readability;
 
 \item \kw{RECORD GROUP 9} contains the modal mass matrix,
-i.e.\ a square, \kw{NMODES} times \kw{NMODES} matrix that contains
+i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
 the reduced mass $\sqbr{m}$ resulting from the multiplication
 \begin{equation}
 	\label{eq:modal-mass-constraint}
@@ -194,7 +202,7 @@ It can be semi-definite positive, or even zero, if a partially
 or entirely static model is considered.
 
 \item \kw{RECORD GROUP 10} contains the modal stiffness matrix,
-i.e.\ a square, \kw{NMODES} times \kw{NMODES} matrix that contains
+i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
 the reduced stiffness $\sqbr{k}$ resulting from the multiplication
 \begin{equation}
 	\sqbr{k} = \cubr{X}^T \sqbr{K} \cubr{X}
@@ -211,7 +219,7 @@ Note however that the positive-definiteness of the generalized
 stiffness matrix is not a requirement.
 
 \item \kw{RECORD GROUP 11} contains the lumped inertia matrix
-associated to the \kw{<NNODES>} (exposed) FEM nodes;
+associated to the \nt{NNODES} (exposed) FEM nodes;
 for each node, the $X$, $Y$, $Z$, $RX$, $RY$ and $RY$ inertia
 coefficients are listed (they can be zero).
 The nodal mass coefficients $Y$ and $Z$ should be equal
@@ -265,8 +273,8 @@ It models a FEM model made of three aligned nodes, where inertia
 is evenly distributed.
 Note that each line is prefixed with a two-digit line number 
 that is not part of the input file.
-Also, for readability, all comments are prefixed by ``\kw{**}'', in analogy
-with the mandatory ``\kw{** RECORD GROUP}'' lines, although not strictly
+Also, for readability, all comments are prefixed by ``\texttt{**}'', in analogy
+with the mandatory ``\texttt{** RECORD GROUP}'' lines, although not strictly
 required by the format of the file.
 
 {\small
@@ -353,8 +361,8 @@ As a consequence, the three mode shapes must be interpreted as static
 shapes, since the modal mass matrix is null.
 Note that each line is prefixed with a two-digit line number 
 that is not part of the input file.
-Also, for readability, all comments are prefixed by ``\kw{**}'', in analogy
-with the mandatory ``\kw{** RECORD GROUP}'' lines, although not strictly 
+Also, for readability, all comments are prefixed by ``\texttt{**}'', in analogy
+with the mandatory ``\texttt{** }\kw{RECORD GROUP}'' lines, although not strictly 
 required by the format of the file.
 
 \noindent
@@ -433,60 +441,62 @@ the static one only behaves statically when straining is involved.
 \section{Code Aster Procedure}
 \label{sec:APP:EL:STRUCT:JOINT:MODAL:ASTER}
 
-The \kw{fem\_data\_file} can be generated by Code Aster, using
-the macro provided in the \kw{cms.py} file, 
-which is located in directory \kw{contrib/CodeAster/cms/} 
+The \nt{fem\_data\_file} can be generated by Code Aster, using
+the macro provided in the \texttt{cms.py} file, 
+which is located in directory \texttt{contrib/CodeAster/cms/} 
 of the distribution, and is installed in directory
-\kw{\$PREFIX/share/py/}.
+\texttt{\$PREFIX/share/py/}.
 
 Preparing the input for Code Aster essentially requires to prepare
 the bulk of the mesh either manually or using some meshing tools
-(e.g.\ \kw{gmsh}), as illustrated in the related documentation
-and tutorials, and then writing a simple script in \kw{python}
-(\htmladdnormallink{\kw{http://www.python.org/}}{http://www.python.org/})
+(e.g.\ \texttt{gmsh}), as illustrated in the related documentation
+and tutorials, and then writing a simple script in \texttt{python}
+(\htmladdnormallink{\texttt{http://www.python.org/}}{http://www.python.org/})
 that defines the execution procedure.
 
 To produce the data for MBDyn's modal element, a specific macro 
 needs to be invoked during the execution of Aster.
 The macro instructs Aster about how the solution procedure
 needs to be tailored to produce the desired results, and then
-generates the \kw{.fem} file with all the requested data.
+generates the \texttt{.fem} file with all the requested data.
 
 The steps of the procedure are as follows:
 \begin{enumerate} % procedure
 
-\item prepare a Code Aster input model (the \kw{.mail} file),
+\item prepare a Code Aster input model (the \texttt{.mail} file),
 containing the nodes, the connections and at least a few groups
 of nodes, as indicated in the following;
 
-\item prepare a Code Aster command file (the \kw{.comm} file),
+\item prepare a Code Aster command file (the \texttt{.comm} file),
 following, for example, one of the given templates;
 
 \item as soon as the model, the materials, the element properties
 and any optional boundary constrains are defined,
 call the \kw{CMS} macro with the appropriate parameters.
 The syntax of the macro is:
-\begin{verbatim}
-    CMS(
-        MAILLAGE = <mesh concept> ,
-        [ INTERFACE = <interface node set name> , ]
-        EXPOSED = _F( { GROUP_NO = <exposed node set name> | TOUT = 'OUI' } ),
-        MODELE = <model concept> ,
-        CARA_ELEM = <element properties concept> ,
-        CHAM_MATER = <material properties concept> ,
-        [ CHAR_MECA = <boundary conditions concept> ,
-        [ OPTIONS = _F(
-            [ NMAX_FREQ = <maximum number of frequencies> ]
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{CMS}(
+        \kw{MAILLAGE} = \bnt{mesh_concept} ,
+        [ \kw{INTERFACE} = \bnt{interface_node_set_name} , ]
+        \kw{EXPOSED} = _F( \{ \kw{GROUP_NO} = \bnt{exposed_node_set_name} | \kw{TOUT} = \kw{'OUI'} \} ),
+        \kw{MODELE} = \bnt{model_concept} ,
+        \kw{CARA_ELEM} = \bnt{element_properties_concept} ,
+        \kw{CHAM_MATER} = \bnt{material_properties_concept} ,
+        [ \kw{CHAR_MECA} = \bnt{boundary_conditions_concept} ,
+        [ \kw{OPTIONS} = _F(
+            [ \kw{NMAX_FREQ} = \bnt{maximum_number_of_frequencies} ]
         ), ]
-        OUT = _F(
-            TYPE = { 'MBDYN' },
-                [ PRECISION = <number of digits> , ]
-                [ DIAG_MASS = { 'OUI' | 'NON' } , ]
-                [ RIGB_MASS = { 'OUI' | 'NON' } , ]
-                FICHIER = <output file name> 
+        \kw{OUT} = _F(
+            \kw{TYPE} = \{ \kw{'MBDYN'} \} ,
+                [ \kw{PRECISION} = \bnt{number_of_digits} , ]
+                [ \kw{DIAG_MASS} = \{ \kw{'OUI'} | \kw{'NON'} \} , ]
+                [ \kw{RIGB_MASS} = \{ \kw{'OUI'} | \kw{'NON'} \} , ]
+                \kw{FICHIER} = \bnt{output_file_name}
         )
     );
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 where:
 \begin{itemize}
 \item \kw{MAILLAGE} is the name of a python object
@@ -500,7 +510,7 @@ where:
 	\item \kw{GROUP\_NO} is a string containing the name
 		of the group of nodes, defined in the mesh file,
 		that will be exposed, i.e.\ that will appear
-		in the \kw{.fem} file generated by this macro;
+		in the \texttt{.fem} file generated by this macro;
 	\item \kw{TOUT} is a string that must be set to \kw{'OUI'},
 		indicating that all nodes will be exposed
 		(technically speaking, all nodes involved
@@ -532,34 +542,35 @@ where:
 		it must be a fully qualified path, otherwise
 		it is not clear where the file is actually generated;
 	\item \kw{PRECISION} contains the number of digits to be used
-		when writing the data (for example, \kw{PRECISION = 8}
-		results in using the format specifier \kw{\%16.8e});
+		when writing the data (for example, \kw{PRECISION}\texttt{ = 8}
+		results in using the format specifier \texttt{\%16.8e});
 	\item \kw{DIAG\_MASS} requests the output of the diagonal
-		of the mass matrix (block 11); this option really makes
+		of the mass matrix (\texttt{RECORD GROUP 11});
+		this option really makes
 		sense only if all nodes are output (namely, if the nodes
 		set passed to \kw{EXPOSED} consists in all nodes);
 	\item \kw{DIAG\_MASS} requests the output of the rigid-body
-		inertia properties (block 12);
+		inertia properties (\texttt{RECORD GROUP 12});
 	\end{itemize}
 \end{itemize}
 the macro returns a python object consisting in the generalized model
 it used to generate the file, as returned by \kw{MACR\_ELEM\_DYNA}.
 
-\item prepare a \kw{.export} file, either following the examples
-or using \kw{astk};
+\item prepare a \texttt{.export} file, either following the examples
+or using \texttt{astk};
 
 \item run Aster.
 
 \end{enumerate} % procedure
-Annotated examples are provided in directory \kw{contrib/CodeAster/cms/}.
+Annotated examples are provided in directory \texttt{contrib/CodeAster/cms/}.
 
 
 
 \section{NASTRAN Procedure}
 \label{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}
 
-The \kw{fem\_data\_file} can be generated using NASTRAN,
-by means of the \kw{ALTER} cards provided in directory \kw{etc/modal.d/}
+The \nt{fem\_data\_file} can be generated using NASTRAN,
+by means of the \kw{ALTER} cards provided in directory \texttt{etc/modal.d/}
 of the distribution.
 
 The steps of the procedure are as follows:
@@ -574,7 +585,7 @@ releases of the manual).
 \kw{ALTER} cards.
 In detail:
 \begin{enumerate}
-\item the file \kw{MBDyn\_NASTRAN\_alter\_1.nas} contains
+\item the file \texttt{MBDyn\_NASTRAN\_alter\_1.nas} contains
 	\kw{ALTER} definitions for static solutions; appropriate
 	loading subcases for each solution must be provided
 	in the case control and in the bulk data sections
@@ -582,7 +593,7 @@ In detail:
 
 	\emph{FIXME: I don't know how to use static shapes only}.
 
-\item the file \kw{MBDyn\_NASTRAN\_alter\_2.nas} contains
+\item the file \texttt{MBDyn\_NASTRAN\_alter\_2.nas} contains
 	\kw{ALTER} definitions for eigenanalysis solutions;
 	an appropriate eigenanalysis method, with the related
 	data card must be provided in the case control 
@@ -592,13 +603,13 @@ In detail:
 		with static shapes; I only get the normal mode shapes,
 		even if the matrices are complete}.
 
-\item the file \kw{MBDyn\_NASTRAN\_alter\_3.nas} contains
+\item the file \texttt{MBDyn\_NASTRAN\_alter\_3.nas} contains
 	\kw{ALTER} definitions for eigenanalysis solutions;
 	an appropriate eigenanalysis method, with the related
 	data card must be provided in the case control 
 	and in the bulk data sections of the input file;
 
-	\emph{Note: this works; see} \kw{tests/modal/beam.README}.
+	\emph{Note: this works; see} \texttt{tests/modal/beam.README}.
 
 \end{enumerate}
 Exactly one of these files must be included at the very top 
@@ -615,9 +626,9 @@ The static solution of case (a: \kw{SOL 101}) and the eigensolution
 of case (b: \kw{SOL 103}) need to be performed in sequence; 
 if only the eigensolution is to be used, the \kw{ALTER} file 
 of case (c: \kw{SOL 103}) must be used.
-The static solution of case (a) generates a binary file \kw{mbdyn.stm};
+The static solution of case (a) generates a binary file \texttt{mbdyn.stm};
 the eigensolutions of cases (b--c) generate two binary files, 
-\kw{mbdyn.mat} and \kw{mbdyn.tab}, which, in case (b), include
+\texttt{mbdyn.mat} and \texttt{mbdyn.tab}, which, in case (b), include
 the static solutions as well.
 The \kw{ALTER} currently included in the MBDyn distribution work 
 correctly only with the following \kw{PARAM} data card:
@@ -629,11 +640,11 @@ PARAM,POST,-1
 \item Run NASTRAN.
 
 
-\item Run the tool \kw{utils/femgen}, which transforms the above binary files
-into the \kw{fem\_data\_file}.
+\item Run the tool \texttt{femgen}, which transforms the above binary files
+into the \nt{fem\_data\_file}.
 The file name is currently requested as terminal input; this is the name 
-of the file that will be used in the input model for \kw{mbdyn}.
-Conventionally, the \kw{.fem} extension is used.
+of the file that will be used in the input model for \texttt{mbdyn}.
+Conventionally, the \texttt{.fem} extension is used.
 
 \end{enumerate} % procedure
 
@@ -648,6 +659,6 @@ script (shell, awk, python) for handling of textual output, to a fully
 featured modeling and translation interface.
 If you want to share what you developed with the MBDyn project, feel free
 to submit code, procedures or just ideas and discuss them on the
-\htmladdnormallink{\kw{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
+\htmladdnormallink{\texttt{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
 mailing list.
 

@@ -57,24 +57,26 @@ are built-in.
 
 \begin{comment} % there's no need to advertize this
 \section{MSC.ADAMS}
-Support for MSC.ADAMS in form of \kw{.res} file output 
+Support for MSC.ADAMS in form of \texttt{.res} file output 
 in ASCII form must be enabled at configure time, by using 
-the directive \kw{--enable-adams}.
-MBDyn generates a \kw{.ada} file and a \kw{.res} file.
-The \kw{.ada} file must be processed by the utility \kw{ada2cmd} 
+the directive \texttt{--enable-adams}.
+MBDyn generates a \texttt{.ada} file and a \texttt{.res} file.
+The \texttt{.ada} file must be processed by the utility \texttt{ada2cmd} 
 (under development), along with some user-defined data to improve
 the representation of the entities (e.g.\ shapes, colors, sizes
-and so on) to generate a \kw{.cmd} file.
-ADAMS/View interprets the \kw{.cmd} file to build the model,
-and reads the \kw{.res} file in text form (very verbose),
+and so on) to generate a \texttt{.cmd} file.
+ADAMS/View interprets the \texttt{.cmd} file to build the model,
+and reads the \texttt{.res} file in text form (very verbose),
 which contains the analysis results.
 The interface is activated by the directive
-\begin{verbatim}
-    output results : adams
-        [ , model name , " <name> " ]
-        [ , velocity , { yes | no } ]
-        [ , acceleration , { yes | no } ] ;
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{output results} : \kw{adams}
+        [ , \kw{model name} , " \bnt{name} " ]
+        [ , \kw{velocity} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{acceleration} , \{ \kw{yes} | \kw{no} \} ] ;
+\end{Verbatim}
+%\end{verbatim}
 The model name is optional, defaulting to \kw{mbdyn}.
 By default, velocities and accelerations are not output; they can be
 explicitly enabled by using the \kw{velocity} and \kw{acceleration}
@@ -89,13 +91,13 @@ The sequence is:
 \item compile MBDyn with ADAMS support
 \item add the directive
 \begin{verbatim}
-    output results : adams;
+    output results: adams;
 \end{verbatim}
 \item run the analysis
-\item generate the \kw{.cmd} file from the resulting \kw{.ada} file
+\item generate the \texttt{.cmd} file from the resulting \texttt{.ada} file
 \item run ADAMS/View
-\item import the \kw{.cmd} file
-\item import the \kw{.res} file
+\item import the \texttt{.cmd} file
+\item import the \texttt{.res} file
 \end{itemize}
 The \kw{velocity} flag enables the output of the velocities 
 of the parts; it defaults to \kw{no} because the output 
@@ -114,91 +116,80 @@ to an external, post-processing script.}
 MBDyn exploits a special version of EasyAnim, based on 1.3 sources
 and patched by MBDyn developers; the patch is known to work under UN*X
 (GNU/Linux, essentially); it has not been tested with Windows, except with
-\kw{cygwin}.
+\texttt{cygwin}.
 It is available from the MBDyn web site, and it has been submitted
 to EasyAnim developers for evaluation.
 Check out MBDyn's web site for more information.
 
-The preparation of the output is done via \kw{awk}, which is invoked
-by the \kw{mbdyn2easyanim.sh} script.
-It uses the \kw{.log} and \kw{.mov} files, and generates a pair of
-\kw{.vol} and \kw{.van} files which contain the model and the motion,
+The preparation of the output is done via \texttt{awk(1)}, which is invoked
+by the \texttt{mbdyn2easyanim.sh} script.
+It uses the \texttt{.log} and \texttt{.mov} files, and generates a pair of
+\texttt{.vol} and \texttt{.van} files which contain the model and the motion,
 respectively.
 Use
-\begin{verbatim}
-    mbdyn2easyanim.sh $filename
-\end{verbatim}
-where \kw{\$filename} is the name of the output file from MBDyn,
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    mbdyn2easyanim.sh \bnt{filename}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{filename} is the name of the output file from MBDyn,
 with no extension.
 
 The above script generates a model based on the topology information
-contained in the \kw{.log} file, plus the animation information
-according to the contents of the \kw{.mov} file.
+contained in the \nt{filename}\texttt{.log} file, plus the animation information
+according to the contents of the \nt{filename}.\texttt{.mov} file.
 
 To check the model during preparation, run MBDyn with
 \begin{verbatim}
     abort after: input;
 \end{verbatim}
-in the \kw{<problem\_name>} section (pag~\pageref{sec:IVP:abort after}),
+in the \nt{problem\_name} section (pag~\pageref{sec:IVP:abort after}),
 so that the model is output in the input configuration,
 and EasyAnim can visualize it.
 
-The model can be customized by supplying the \kw{mbdyn2easyanim.sh}
-script additional \kw{awk} code that adds nodes, edges and sides 
+The model can be customized by supplying the \texttt{mbdyn2easyanim.sh}
+script additional \texttt{awk(1)} code that adds nodes, edges and sides 
 whose movement is associated to that of existing nodes.
 
-For this purpose, one needs to write an \kw{awk} script like
+For this purpose, one needs to write an \texttt{awk(1)} script like
 \begin{verbatim}
 BEGIN {
     # add a node property
-    nodeprop[nodeprop_num, "name"] = "dummy_node";   # node prop name
-    nodeprop[nodeprop_num, "color"] = 4;             # color
-    nodeprop[nodeprop_num, "radius"] = 1.;           # radius
-    nodeprop_num++;
+    # node prop name, color, radius
+    nodeprop_add("dummy_node", 4, 1.);
 
     # add a node
-    node[node_num] = "added_node"                    # node name
-    node[node_num, "relative"] = "base_node";        # base node name (label)
-    node[node_num, 1] = 1.;                          # x in base node frame
-    node[node_num, 2] = 2.;                          # y in base node frame
-    node[node_num, 3] = 3.;                          # z in base node frame
-    node[node_num, "prop"] = "dummy_node";           # node prop name
-    node_num++;
+    # node name, base node name, x, y, z in base node frame, prop name
+    node_add("added_node", "base_node", 1., 2., 3., "dummy_node");
 
     # add an edge property
-    edgeprop[edgeprop_num, "name"] = "dummy_edge";   # edge prop name
-    edgeprop[edgeprop_num, "color"] = 15;            # color
-    edgeprop[edgeprop_num, "radius"] = 2.;           # radius
-    edgeprop_num++;
+    # edge prop name, color, radius
+    edgeprop_add("dummy_edge", 15, 2.);
 
     # add an edge
-    edge[edge_num] = "added_edge";                   # edge name
-    edge[edge_num, 1] = "node_1";                    # node 1 name
-    edge[edge_num, 2] = "node_2;                     # node 2 name
-    edge[edge_num, "prop"] = "dummy_edge";           # edge prop name
-    edge_num++;
+    # edge name, node 1 name, node 2 name, prop name
+    edge_add("added_edge", "node_1", "node_2", "dummy_edge");
 
     # add a side property
-    sideprop[sideprop_num, "name"] = "dummy_side";   # side prop name
-    sideprop[sideprop_num, "color"] = 8;             # color
-    sideprop_num++;
+    # side prop name, color
+    sideprop_add("dummy_side", 8);
 
     # add a side
-    side[side_num] = "added_side";
-    side[side_num, "N"] = 4;
-    side[side_num, 1] = "node_1";
-    side[side_num, 2] = "node_2";
-    side[side_num, 3] = "node_3";
-    side[side_num, 4] = "node_4";
-    side[side_num, "prop"] = "dummy_side";
-    side_num++;
+    nodes[1] = "node_1";
+    nodes[2] = "node_2";
+    nodes[3] = "node_3";
+    nodes[4] = "node_4";
+    # side name, number of nodes, node labels, prop name
+    side_add("added_side", 4, nodes, "dummy_side");
 }
 \end{verbatim}
-place it into a file, say \kw{custom.awk},
+place it into a file, say \texttt{custom.awk},
 and then invoke the interface script as
-\begin{verbatim}
-    mbdyn2easyanim.sh -f custom.awk $filename
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    mbdyn2easyanim.sh -f custom.awk \bnt{filename}
+\end{Verbatim}
+%\end{verbatim}
 
 
 
@@ -222,27 +213,29 @@ This section notes how output can be manipulated in useful manners.
 
 \subsection{Output in a Relative Reference Frame}
 In many cases it may be useful to represent the output 
-of \kw{structural nodes} in a reference frame relative to one node.
+of \kw{structural} nodes in a reference frame relative to one node.
 For example, to investigate the deformation of a helicopter rotor,
 it may be useful to refer the motion of the blades
 to the reference frame of the rotor hub, so that the reference 
 rotation of the rotor is separated from the local straining.
 
-For this purpose, MBDyn provides an \kw{awk(1)} script that
-extracts the desired information from the \kw{.mov} file.
+For this purpose, MBDyn provides an \texttt{awk(1)} script that
+extracts the desired information from the \texttt{.mov} file.
 
-The script is \kw{\$SRC/var/abs2rel.awk}
-and is usually installed in \kw{\$PREFIX/share/awk}.
+The script is \texttt{\$SRC/var/abs2rel.awk}
+and is usually installed in \texttt{\$PREFIX/share/awk}.
 
 To invoke the script run
-\begin{verbatim}
-$ awk -f abs2rel.awk \
-        -v RefNode=label \
-        [-v RefOnly={0|1}] \
-        [-v InputMode=imode] \
-        [-v OutputMode=omode] \
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    $ awk -f abs2rel.awk \textbackslash
+        -v \kw{RefNode}=\bnt{label} \textbackslash
+        [-v \kw{RefOnly}=\{0|1\}] \textbackslash
+        [-v \kw{InputMode}=\bnt{imode}] \textbackslash
+        [-v \kw{OutputMode}=\bnt{omode}] \textbackslash
         infile.mov > outfile.mov
-\end{verbatim}
+\end{Verbatim}
+%\end{verbatim}
 It requires the specification of the reference node label,
 which is given by the \kw{RefNode} parameter.
 
@@ -253,7 +246,7 @@ according to the orientation of the reference node.
 The command also allows to specify the input and output formats 
 of the orientations, under the assumption that rotations
 of all nodes are generated with the same format.
-The optional parameters \kw{imode} and \kw{omode} can be:
+The optional parameters \nt{imode} and \nt{omode} can be:
 \begin{itemize}
 \item \kw{euler123} for the Euler-like angles, in degrees,
 	according to the 123 sequence;
@@ -286,7 +279,7 @@ as function of that of the reference one, namely
 where subscript $0$ refers to the reference node,
 subscript $n$ refers to the generic $n$-th node,
 and the prime refers to the relative values.
-Accelerations are only computed when present in the \kw{.mov} file
+Accelerations are only computed when present in the \texttt{.mov} file
 for both nodes.
 
 When \kw{RefOnly} is set to 1, the script simply re-orients
