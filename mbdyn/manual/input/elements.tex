@@ -1696,8 +1696,8 @@ Communication occurs by means of the communicators illustrated earlier.
                 [ , ... ]
         [ , \kw{echo} , " \bnt{echo_file_name} "
             [ , \{ \kw{precision} , \bnt{digits}
-                | \kw{surface} , \bnt{surface_file_name}
-                | \kw{output} , \bnt{output_file_name}
+                | \kw{surface} , " \bnt{surface_file_name} "
+                | \kw{output} , " \bnt{output_file_name} "
                 | \kw{order} , \bnt{order}
                 | \kw{basenode} , \bnt{basenode}
                 | \kw{weight} , \bnt{weight} \} [ , ... ] ]
@@ -3911,17 +3911,23 @@ to the driven displacement point;
 This joint imposes the relative orientation between two nodes,
 in the form of a rotation about an axis whose amplitude is defined
 by a drive.
-\begin{verbatim}
-    <joint_type> ::= drive hinge
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2> 
-        [ , hinge , (OrientationMatrix) <relative_orientation_matrix_2> ] ,
-        (Vec3_tpl_drive_caller) <hinge_orientation>
-\end{verbatim}
-\emph{Note: this element is eXperimental; now it is more reliable, 
-but it is limited to $\nrbr{\tt <hinge\_orientation>} < \pi$}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{drive hinge}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label}
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_1} ] ,
+        \bnt{node_2_label}
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_2} ] ,
+        \ty{(TplDriveCaller<Vec3>)} \bnt{hinge_orientation}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total joint}}{\kw{total joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
+
+Note: this element is experimental; now it is more reliable, 
+but it is limited to $\nrbr{\nt{hinge\_orientation}} < \pi$.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -3941,7 +3947,7 @@ When wrapped by a \kw{driven} element, the following hints are honored:
 of the reference in which the enforced orientation is expressed is reset;
 \item \kw{hinge\{2\}} the orientation with respect to node 2
 of the reference in which the enforced orientation is expressed is reset;
-\item unrecognized hints are passed through to the \kw{Vec3} drive.
+\item unrecognized hints are passed through to the \ty{Vec3} drive.
 \end{itemize}
 
 \subsection{Gimbal hinge}
@@ -3962,23 +3968,21 @@ It is equivalent to a series of two Cardano's joints
 (the \hyperref{\kw{cardano hinge}}{\kw{cardano hinge}, see Section~}{}{sec:EL:STRUCT:JOINT:CARDANO_HINGE})
 rotated 90 degrees apart, each accounting for half the relative rotation
 between axis 3 of each side of the joint.
-\begin{verbatim}
-    <joint_type> ::= gimbal rotation
-    <joint_arglist> ::= 
-        <node_1>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_1> ] ,
-        <node_2>
-        [ , hinge , 
-            (OrientationMatrix) <relative_orientation_matrix_2> ]
-        [ , orientation description ,
-            { euler123 | euler313 | euler 321
-                | orientation vector | orientation matrix } ]
-\end{verbatim}
-{\em
-    Note: this joint allows nodes 1 and 2 to rotate about relative 
-    axes 1 and 2.
-}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{gimbal rotation}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label}
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_1} ] ,
+        \bnt{node_2_label}
+        [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation_matrix_2} ]
+        [ , \kw{orientation description} ,
+            \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
+                | \kw{orientation vector} | \kw{orientation matrix} \} ]
+\end{Verbatim}
+%\end{verbatim}
+This joint allows nodes 1 and 2 to rotate about relative axes 1 and 2.
 
 \subsubsection{Output}
 The \kw{gimbal rotation} joint outputs the three components
@@ -3994,8 +3998,8 @@ orientation description defined by the
 
 The three components of the reaction couple in the local frame, 
 and the angles $\vartheta$ and $\varphi$ are also available
-as private data of the element under the names \kw{lambda[1-3]},
-\kw{theta} and \kw{phi}.
+as private data of the element under the names \kw{lambda[\bnt{i}]},
+with \nt{i}=1,2,3, \kw{theta} and \kw{phi}.
 For a description of the formulation and of the angles describe above,
 see the Technical Manual.
 
@@ -4017,21 +4021,26 @@ This joint imposes the relative position between two points,
 optionally offset from two structural nodes,
 along a given direction that is rigidly attached to the first node.
 The amplitude of the displacement is defined by a drive.
-\begin{verbatim}
-    <joint_type> ::= imposed displacement
-    <joint_arglist> ::= 
-        <node_1> , (Vec3) <offset_1> ,
-        <node_2> , (Vec3) <offset_2> ,
-        (Vec3) <direction> ,
-        (drive_caller) <relative_position>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{imposed displacement}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label} , \ty{(Vec3)} \bnt{offset_1} ,
+        \bnt{node_2_label} , \ty{(Vec3)} \bnt{offset_2} ,
+        \ty{(Vec3)} \bnt{direction} ,
+        \ty{(DriveCaller)} \bnt{relative_position}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total joint}}{\kw{total joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
 
 \subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"d"} imposed displacement along \kw{direction},
+\item \kw{"d"} imposed displacement along \nt{direction},
 in node 1 reference frame;
-\item \kw{"f"} reaction force along \kw{direction},
+\item \kw{"f"} reaction force along \nt{direction},
 in node 1 reference frame.
 \end{enumerate}
 
@@ -4055,21 +4064,26 @@ This joint imposes the absolute displacement of a point optionally offset
 from a structural node, along a direction defined
 in the absolute reference frame.
 The amplitude of the displacement is defined by a drive.
-\begin{verbatim}
-    <joint_type> ::= imposed displacement pin
-    <joint_arglist> ::= 
-        <node> , (Vec3) <node_offset> ,
-        (Vec3) <offset> ,
-        (Vec3) <direction> ,
-        (drive_caller) <position>
-\end{verbatim}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{imposed displacement pin}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_label} , \ty{(Vec3)} \bnt{node_offset} ,
+        \ty{(Vec3)} \bnt{offset} ,
+        \ty{(Vec3)} \bnt{direction} ,
+        \ty{(DriveCaller)} \bnt{position}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total pin joint}}{\kw{total pin joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}.
 
 \subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
-\item \kw{"x"} imposed displacement along \kw{direction},
+\item \kw{"x"} imposed displacement along \nt{direction},
 in the absolute reference frame;
-\item \kw{"f"} reaction force along \kw{direction},
+\item \kw{"f"} reaction force along \nt{direction},
 in the absolute reference frame.
 \end{enumerate}
 
@@ -4091,41 +4105,47 @@ to the imposed displacement point;
 \subsection{In line}
 This joint forces a point relative to the second node to move 
 along a line attached to the first node.
-\begin{verbatim}
-    <joint_type> ::= in line
-    <joint_arglist> ::= 
-        <node_1> , 
-        (Vec3) <relative_line_position> ,
-        (Mat3x3) <relative_orientation> ,
-        <node_2>
-        [ , offset , (Vec3) <relative_offset>]
-\end{verbatim}
-A point, optionally offset by \kw{relative\_offset} from the position
-of node \kw{node\_2}, slides along a line that passes through a point 
-that is rigidly offset by \kw{relative\_line\_position}
-from the position of \kw{node\_1}, and is directed as direction 3 
-of \kw{relative orientation}.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{in line}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label} , 
+        [ \kw{position} , \ty{(Vec3)} \bnt{relative_line_position} , ]
+        [ \kw{orientation} , \ty{(OrientationMatrix)} \bnt{relative_orientation} , ]
+        \bnt{node_2_label}
+        [ , \kw{offset} , \ty{(Vec3)} \bnt{relative_offset} ]
+\end{Verbatim}
+%\end{verbatim}
+A point, optionally offset by \nt{relative\_offset} from the position
+of node \nt{node\_2\_label}, slides along a line that passes through a point 
+that is rigidly offset by \nt{relative\_line\_position}
+from the position of \nt{node\_1\_label}, and is directed as direction 3 
+of \nt{relative orientation}.
 
 
 
 \subsection{In plane}
 This joint forces a point relative to the second node to move 
 in a plane attached to the first node.
-\begin{verbatim}
-    <joint_type> ::= in plane
-    <joint_arglist> ::= 
-        <node_1> , 
-        (Vec3) <relative_plane_position> ,
-        ((Unit)Vec3) <relative_normal_direction> ,
-        <node_2>
-        [ , offset , (Vec3) <relative_offset>]
-\end{verbatim}
-A point, optionally offset by \kw{relative\_offset} from the position
-of node \kw{node\_2}, slides on a plane that passes through a point 
-that is rigidly offset by \kw{relative\_plane\_position}
-from the position of \kw{node\_1}, and is perpendicular to 
-\kw{relative\_normal\_direction}.
-The vector \kw{relative\_normal\_direction} is internally normalized to unity.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{in plane}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label} , 
+        [ \kw{position} , \ty{(Vec3)} \bnt{relative_plane_position} , ]
+        \ty{((Unit)Vec3)} \bnt{relative_normal_direction} ,
+        \bnt{node_2_label}
+        [ , \kw{offset} , \ty{(Vec3)} \bnt{relative_offset} ]
+\end{Verbatim}
+%\end{verbatim}
+A point, optionally offset by \nt{relative\_offset} from the position
+of node \nt{node\_2\_label}, slides on a plane that passes through a point 
+that is rigidly offset by \nt{relative\_plane\_position}
+from the position of \nt{node\_1\_label}, and is perpendicular to 
+\nt{relative\_normal\_direction}.
+The vector \nt{relative\_normal\_direction} is internally normalized to unity.
 
 
 
@@ -4173,23 +4193,34 @@ This joint will eventually evolve into a connection with external programs
 that impose the entire motion of a node; at present, you can use it
 by directly writing code in files \verb;mbdyn/struct/kin.cc; and
 \verb;mbdyn/struct/kin.h; that implement the motion you wish to impose.
-\begin{verbatim}
-    <joint_type> ::= kinematic
-    <joint_arglist> ::= 
-        <node_1> ,
-        (drive_caller) <input>
-\end{verbatim}
-\emph{Note: this element is eXperimental.}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{kinematic}
+
+    \bnt{joint_arglist} ::= 
+        \bnt{node_1_label} ,
+        \ty{(DriveCaller)} \bnt{input}
+\end{Verbatim}
+%\end{verbatim}
+This element is superseded by the
+\hyperref{\kw{total pin joint}}{\kw{total pin joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}.
+
+Note: this element is eXperimental.
 
 \subsection{Linear acceleration}
 This joint imposes the absolute linear acceleration of a node
 along a given axis.
-\begin{verbatim}
-    <joint_type> ::= linear acceleration
-    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
-                        (drive_caller) <acceleration>
-\end{verbatim}
-The axis is \kw{relative\_direction}; it is internally normalized to unity.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{linear acceleration}
+
+    \bnt{joint_arglist} ::=
+        \bnt{node_label} ,
+        \ty{((Unit)Vec3)} \bnt{relative_direction} , 
+        \ty{(DriveCaller)} \bnt{acceleration}
+\end{Verbatim}
+%\end{verbatim}
+The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -4201,12 +4232,17 @@ The following data is available:
 \subsection{Linear velocity}
 This joint imposes the absolute linear velocity of a node
 along a given axis.
-\begin{verbatim}
-    <joint_type> ::= linear velocity
-    <joint_arglist> ::= <node> , ((Unit)Vec3) <relative_direction> , 
-                        (drive_caller) <velocity>
-\end{verbatim}
-The axis is \kw{relative\_direction}; it is internally normalized to unity.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{linear velocity}
+
+    \bnt{joint_arglist} ::=
+        \bnt{node_label} ,
+        \ty{((Unit)Vec3)} \bnt{relative_direction} , 
+        \ty{(DriveCaller)} \bnt{velocity}
+\end{Verbatim}
+%\end{verbatim}
+The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -4224,40 +4260,41 @@ This joint implements a Component Mode Synthesis (CMS) deformable body.
 Its interface with the multibody domain is represented by clamps
 that constrain the multibody interface nodes to the position
 and orientation of the corresponding FEM nodes.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type} ::= \kw{modal}
 
-\begin{verbatim}
-    <joint_type> ::= modal
-    <joint_arglist> ::=
-        { <reference_modal_node> | clamped
-            [ , position , (Vec3)<absolute_position> ]
-            [ , orientation , (Mat3x3)<absolute_orientation> ] } ,
-        <mode_number> ,
-        [ list, <mode> [ , ... ] , ]
-        [ initial value ,
-            { mode , <n> , <q_n> , <qP_n> [ , ... ]
-                | <q_1> , <qP_1> [ ... ] } , ]
-        { <fem_node_number> | from file } ,
-        [ { no damping 
-            | proportional damping , <damping_coef>
-            | diag damping ,
-                { all , <damping_coef> [ , ...]
-                | <damped_modes > , <mode_damping> [ , ... ] } } ,
-        ]
-        " <fem_data_file> " ,
-        [ [ { mass | stiffness } ] threshold , <threshold> , ]
-        [ { create binary | use binary | update binary }
+    \bnt{joint_arglist} ::=
+        \{ \bnt{reference_modal_node} | \kw{clamped}
+            [ , \kw{position} , \ty{(Vec3)} \bnt{absolute_position} ]
+            [ , \kw{orientation} , \ty{(OrientationMatrix)} \bnt{absolute_orientation} ] \} ,
+        \bnt{mode_number} ,
+        [ \kw{list} , \bnt{mode} [ , ... ] , ]
+        [ \kw{initial value} ,
+            { \kw{mode} , \bnt{n} , \bnt{q_n} , \bnt{qP_n} [ , ... ]
+                | \bnt{q_1} , \bnt{qP_1} [ ... ] } , ]
+        \{ \bnt{fem_node_number} | \kw{from file} \} ,
+        [ \{ \kw{no damping}
+            | \kw{proportional damping} , \bnt{damping_coef}
+            | \kw{diag damping} ,
+                \{ \kw{all} , \bnt{damping_coef} [ , ...]
+                | \bnt{damped_modes} , \bnt{mode_damping} [ , ... ] \} \} , ]
+        " \bnt{fem_data_file} " ,
+        [ [ \{ \kw{mass} | \kw{stiffness} \} ] \kw{threshold} , \bnt{threshold} , ]
+        [ \{ \kw{create binary} | \kw{use binary} | \kw{update binary} \}
             [ , ... ] , ]
-        [ use invariant 9 , ]
-        [ { origin node , <origin_node> | origin position , (Vec3)<pos> } , ]
-        <interface_nodes_number> , <interface_node> [ , ... ]
+        [ \kw{use invariant 9} , ]
+        [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , \ty{(Vec3)} \bnt{pos} \} , ]
+        \bnt{interface_nodes_number} , \bnt{interface_node} [ , ... ]
 
-    <mode_damping> ::= <mode_index> , <mode_damping_coef>
+    \bnt{mode_damping} ::= \bnt{mode_index} , \bnt{mode_damping_coef}
 
-    <interface_node> ::=
-        { " <fem_node_label> " | (integer)<fem_node_label> } ,
-            <multibody_label> , (Vec3)<offset_of_FEM_node>
-\end{verbatim}
-The \kw{reference\_modal\_node} is a special dynamic structural node 
+    \bnt{interface_node} ::=
+        \{ " \bnt{fem_node_label} " | \ty{(Integer)} \bnt{fem_node_label} \} ,
+            \bnt{multibody_label} , \ty{(Vec3)} \bnt{offset_of_FEM_node}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{reference\_modal\_node} is a special dynamic structural node 
 that is required to handle the rigid body motion of the modal joint.
 Its input is completely analogous to that of the \kw{dynamic} structural
 nodes, see Section~\ref{sec:NODE:STRUCTURAL}, only the keyword \kw{dynamic} 
@@ -4265,8 +4302,8 @@ must be replaced by \kw{modal}.
 
 If no rigid body dynamics is required, e.g.\ if the modal element
 is clamped, the \kw{clamped} option can be used, which allows
-to set the optional \kw{absolute\_position}
-and \kw{absolute\_orientation}.
+to set the optional \nt{absolute\_position}
+and \nt{absolute\_orientation}.
 The former is the location, in the multibody
 global reference system, of the origin of the FEM reference system.
 The latter is the orientation,
@@ -4276,9 +4313,9 @@ They default to zero and identity, which means
 that the global multibody reference frame
 and the FEM reference system are coincident.
 
-The mode count in \kw{mode\_number} is not required to match
+The mode count in \nt{mode\_number} is not required to match
 the number of modes listed in the FEM data file; if a lower number
-is given, only the first \kw{mode\_number} modes are used;
+is given, only the first \nt{mode\_number} modes are used;
 moreover, a list of active modes can be given, to use non-consecutive
 modes; e.g., to use modes 1, 2, 3 and 6 out of a set of 10 modes
 defined in the FEM data file, write
@@ -4298,7 +4335,7 @@ The \kw{origin node} keyword defines what FEM node corresponds
 to the \kw{modal} node in the multibody domain,
 or what FEM node corresponds to the optional absolute position 
 and orientation in case of a clamped modal element.
-The \kw{origin position } keyword defines where, in the FEM model
+The \kw{origin position} keyword defines where, in the FEM model
 reference frame, the \kw{modal} node is placed, or the location
 that corresponds to the optional absolute position and orientation
 in case of a clamped modal element.
@@ -4317,18 +4354,18 @@ meaning that the same threshold must be used for both matrices.
 
 The list of matchings between FEM and multibody nodes needs
 special care.
-The \kw{offset\_of\_FEM\_node} field contains the distance
+The \nt{offset\_of\_FEM\_node} field contains the distance
 of the FEM node from the respective multibody node; by default,
 this is expressed in the reference frame of the multibody node.
 
-The \kw{fem\_data\_file} can be generated by NASTRAN, 
+The \nt{fem\_data\_file} can be generated by NASTRAN, 
 following the procedure illustrated
 in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:NASTRAN}.
 
 It is strongly recommended that constrained modal analysis
 be used for otherwise free bodies, with the statically 
 determined constraint consisting of clamping the FEM node 
-that will coincide with the node indicated as \kw{reference\_modal\_node},
+that will coincide with the node indicated as \nt{reference\_modal\_node},
 and using the \kw{origin node} to make that point the origin
 of the FEM frame.
 
@@ -4357,7 +4394,7 @@ Offsets between FEM and multibody nodes
 should be avoided unless strictly required.
 
 \textbf{Note about the FEM file:}
-the format of the \kw{fem\_data\_file} is relatively straightforward;
+the format of the \nt{fem\_data\_file} is relatively straightforward;
 it is reported
 in Appendix~\ref{sec:APP:EL:STRUCT:JOINT:MODAL:FORMAT}.
 Initial modal displacements and velocities can be added,
@@ -4366,13 +4403,13 @@ is discouraged, unless strictly required.
 
 
 \textbf{Note about large FEM files:}
-using a very large \kw{fem\_data\_file} may require long time for
+using a very large \nt{fem\_data\_file} may require long time for
 reading and parsing ASCII floats.
 The keyword \kw{use binary} instructs MBDyn to use a binary version
-of the \kw{fem\_data\_file}.
+of the \nt{fem\_data\_file}.
 This binary version is automatically generated by MBDyn if requested
 by means of the keyword \kw{create binary}.
-The binary version of the \kw{fem\_data\_file} is used only if its
+The binary version of the \nt{fem\_data\_file} is used only if its
 timestamp is more recent than that of the ASCII version.
 The keyword \kw{update binary} instructs MBDyn to regenerate the
 binary version when the ASCII version is more recent.
@@ -4383,9 +4420,9 @@ structural damping can be provided by specifying any of the
 In the last two cases, a damping factor is required.
 The corresponding damping for the $i$-th mode is computed as
 \begin{displaymath}
-	c_i = \mathtt{factor}_i \, 2 \sqrt{k_i m_i}
+	c_i = \nt{factor}_i \, 2 \sqrt{k_i m_i}
 \end{displaymath}
-where $\mathtt{factor}_i$ is the value provided
+where $\nt{factor}_i$ is the value provided
 for \kw{proportional damping} (same for all modes) or the list 
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
@@ -4394,8 +4431,8 @@ The keyword \kw{diag damping} is followed by the count of damped modes,
 or by the keyword \kw{all}.
 If \kw{all} is used, as many damping coefficients as the available modes
 are expected.
-Otherwise, a list of \kw{mode\_damping} values follows.
-Each occurrence of \kw{mode\_damping} is made of the mode's index
+Otherwise, a list of \nt{mode\_damping} values follows.
+Each occurrence of \nt{mode\_damping} is made of the mode's index
 and the related damping value.
 
 
@@ -4403,12 +4440,12 @@ and the related damping value.
 Up to MBDyn 1.2.6 output occurred in a specific file that needed
 to be mandatorily given as the last argument to each modal element
 definition.
-Now output occurs in a \kw{.mod} file, which contains, for each time step,
+Now output occurs in a \texttt{.mod} file, which contains, for each time step,
 as many rows as all the modes of all the modal elements whose output is enabled.
 Each row is structured as follows:
 \begin{itemize}
 \item a field containing the label of the modal joint and the number of the mode,
-separated by a dot (e.g. \kw{label.mode})
+separated by a dot (e.g. \nt{label}\texttt{.}\nt{mode})
 \item the value of the modal unknown
 \item the value of the first derivative of the modal unknown
 \item the value of the second derivative of the modal unknown
@@ -4437,17 +4474,17 @@ the output will look like
 \subsubsection{Private Data}
 The following data is available, for each mode:
 \begin{enumerate}
-\item \kw{"q[<m>]"} mode \kw{<m>} value
-\item \kw{"qP[<m>]"} mode \kw{<m>} derivative value
-\item \kw{"qPP[<m>]"} mode \kw{<m>} second derivative value
-\item \kw{"x[<n>,<i>]"} FEM node \kw{<n>} position \kw{<i>} component value
-\item \kw{"xP[<n>,<i>]"} FEM node \kw{<n>} velocity \kw{<i>} component value
-\item \kw{"xPP[<n>,<i>]"} FEM node \kw{<n>} acceleration \kw{<i>} component value
-\item \kw{"w[<n>,<i>]"} FEM node \kw{<n>} angular velocity \kw{<i>} component value
-\item \kw{"wP[<n>,<i>]"} FEM node \kw{<n>} angular acceleration \kw{<i>} component value
+\item \kw{"q[\bnt{m}]"} mode \nt{m} value
+\item \kw{"qP[\bnt{m}]"} mode \nt{m} derivative value
+\item \kw{"qPP[\bnt{m}]"} mode \nt{m} second derivative value
+\item \kw{"x[\bnt{n},\bnt{i}]"} FEM node \nt{n} position \nt{i} component value
+\item \kw{"xP[\bnt{n},\bnt{i}]"} FEM node \nt{n} velocity \nt{i} component value
+\item \kw{"xPP[\bnt{n},\bnt{i}]"} FEM node \nt{n} acceleration \nt{i} component value
+\item \kw{"w[\bnt{n},\bnt{i}]"} FEM node \nt{n} angular velocity \nt{i} component value
+\item \kw{"wP[\bnt{n},\bnt{i}]"} FEM node \nt{n} angular acceleration \nt{i} component value
 \end{enumerate}
-When \kw{<m>} is a number, the mode whose name is that number is used;
-when \kw{<m>} is the character `\#' followed by a number,
+When \nt{m} is a number, the mode whose name is that number is used;
+when \nt{m} is the character `\#' followed by a number,
 the mode whose index is the number is used.
 The two cases may differ when only a subset of the modes defined
 in the FEM data file are actually used.
