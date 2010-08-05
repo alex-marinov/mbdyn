@@ -128,7 +128,7 @@ Time values must grow monotonically.
     \bnt{normal_arglist} ::= \kw{socket} , 
         \bnt{columns_number} ,
         \{ \kw{local} , " \bnt{file_name} " 
-            | [ \kw{port} , \bnt{port_number} , ] \ty{(AuthenticationMethod)} \bnt{authentication} \}
+            | [ \kw{port} , \bnt{port_number} , ] (\ty{AuthenticationMethod}) \bnt{authentication} \}
 \end{Verbatim}
 %\end{verbatim}
 The driver binds to a socket listening on port \nt{port\_number} 

@@ -148,7 +148,7 @@ are performed without converging.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{strategy_type} ::= \kw{change}
 
-    \bnt{strategy_data} ::= \ty{(DriveCaller)} \bnt{time_step_pattern}
+    \bnt{strategy_data} ::= (\ty{DriveCaller}) \bnt{time_step_pattern}
 \end{Verbatim}
 %\end{verbatim}
 the time step is change according to the \nt{time\_step\_pattern} pattern.
@@ -287,8 +287,8 @@ dependent radius variation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{method_data} ::= \{ \kw{ms} | \kw{hope} \} ,
-        \ty{(DriveCaller)} \bnt{differential_radius}
-        [ , \ty{(DriveCaller)} \bnt{algebraic_radius} ]
+        (\ty{DriveCaller}) \bnt{differential_radius}
+        [ , (\ty{DriveCaller}) \bnt{algebraic_radius} ]
 \end{Verbatim}
 %\end{verbatim}
 The first method proved to be more accurate at high values of asymptotic
@@ -312,7 +312,7 @@ for the differential and the algebraic variables.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{method_data} ::= \kw{third order} ,
-        \{ \kw{ad hoc} | \ty{(DriveCaller)} \bnt{differential_radius} \}
+        \{ \kw{ad hoc} | (\ty{DriveCaller}) \bnt{differential_radius} \}
 \end{Verbatim}
 %\end{verbatim}
 When the keyword \kw{ad hoc} is used, a method equivalent
@@ -1010,7 +1010,7 @@ to a meter, expressed in terms of a drive caller.
 Only when the drive caller returns \texttt{true} (!0), the output occurs.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output meter} : \ty{(DriveCaller)} \bnt{when} ;
+    \bnt{card} ::= \kw{output meter} : (\ty{DriveCaller}) \bnt{when} ;
 \end{Verbatim}
 %\end{verbatim}
 

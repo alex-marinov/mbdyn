@@ -52,10 +52,10 @@ The input manual is regularly updated, but omissions may occur,
 and outdated stuff and bugs may always slip in.
 Please feel free to notify errors and submit patches,
 if you think there is anything wrong in it, using the
-\htmladdnormallink{\kw{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
+\htmladdnormallink{\texttt{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
  mailing list
 (you need to subscribe first; instructions can be obtained on the website
-\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}).
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}).
 
 \subsection{What element should I use to model \emph{Y}?}
 To answer this question, the complement of the input manual,
@@ -63,10 +63,10 @@ namely a modeling manual, is required.
 Unfortunately, such document does not exist, and it is not even foreseen.
 Right now, modeling style and capabilities are grossly addressed
 in the tutorials; for specific needs you should ask on the
-\htmladdnormallink{\kw{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
+\htmladdnormallink{\texttt{mbdyn-users@mbdyn.org}}{mailto:mbdyn-users@mbdyn.org}
 mailing list (you need to subscribe first; instructions can be obtained
 on the web site
-\htmladdnormallink{\kw{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}).
+\htmladdnormallink{\texttt{http://www.aero.polimi.it/mbdyn/}}{http://www.aero.polimi.it/mbdyn/}).
 
 \section{Output}
 \subsection{How can I reduce the amount of output?}
@@ -111,10 +111,10 @@ of those entities that must be absolutely on or off; this overrides
 the \kw{default output} value.
 \item use the \kw{output} statement to enable the output of those
 entities that must be on for that simulation only; this overrides
-both the \kw{default output} and the \kw{direct} values.
+both the \kw{default output} and the direct values.
 \end{itemize}
 
-The \kw{direct} option goes in the model, so it may be hidden 
+The direct option goes in the model, so it may be hidden 
 in an include file of a component that is used in different models;
 its value should not be modified directly.
 On the contrary, the \kw{output} statement can appear anywhere
@@ -173,15 +173,15 @@ to produce output only when a certain variable reaches a certain value, use
 \begin{verbatim}
     output meter: string, "Omega > 99.";
 \end{verbatim}
-if \kw{Omega} is the third component of the angular velocity 
+if \texttt{Omega} is the third component of the angular velocity 
 of a certain node (say, node 1000), later on, after the node is defined, 
 the related definition must appear:
 \begin{verbatim}
     set: "[dof,Omega,1000,structural,6,differential]
 \end{verbatim}
 i.e.\ the sixth component of the derivative state of node 1000,
-the angular velocity about axis 3, is assigned to the variable \kw{Omega}.
-Any time \kw{Omega} is evaluated in a string expression, its value
+the angular velocity about axis 3, is assigned to the variable \texttt{Omega}.
+Any time \texttt{Omega} is evaluated in a string expression, its value
 gets updated.
 
 

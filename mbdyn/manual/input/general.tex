@@ -845,7 +845,7 @@ They are:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{constitutive law} : \bnt{label}
         [ , \kw{name} , " \bnt{name} " ]
-        \bnt{dim} , \ty{(ConstitutiveLaw<dim>D)} \bnt{constitutive_law} ;
+        \bnt{dim} , (\ty{ConstitutiveLaw<dim>D}) \bnt{constitutive_law} ;
 \end{Verbatim}
 %\end{verbatim}
 Constitutive laws are grouped by their dimensionality \nt{dim},
@@ -998,7 +998,7 @@ The \kw{drive caller} directive
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{drive caller} : \bnt{label}
         [ , \kw{name} , " \bnt{name} " ]
-        \ty{(DriveCaller)} \bnt{drive_caller} ;
+        (\ty{DriveCaller}) \bnt{drive_caller} ;
 \end{Verbatim}
 %\end{verbatim}
 allows to define
@@ -1722,8 +1722,8 @@ drive callers, when the output needs to be used as is.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{dof} ,
-        \ty{(NodeDof)} \bnt{driving_dof} ,
-        \ty{(DriveCaller)} \bnt{func_drive}
+        (\ty{NodeDof}) \bnt{driving_dof} ,
+        (\ty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a \hyperref{\ty{NodeDof}}{\ty{NodeDof} (see Section~}{)}{sec:NODEDOF}, 
@@ -1872,7 +1872,7 @@ is equivalent to
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ]
-        \ty{(DriveCaller)} \bnt{func_drive}
+        (\ty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of an element is read.
@@ -2093,7 +2093,7 @@ and every 10 time steps from that, where it assumes unit value.
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ]
-        \ty{(DriveCaller)} \bnt{func_drive}
+        (\ty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of a node is read.
@@ -2459,13 +2459,13 @@ They are entered as follows:
     \bnt{tpl_drive_caller} ::= \kw{null}
 
     \bnt{tpl_drive_caller} ::= \kw{single} ,
-        \bnt{entity} , \ty{(DriveCaller)} \bnt{drive_caller}
+        \bnt{entity} , (\ty{DriveCaller}) \bnt{drive_caller}
 
     \bnt{tpl_drive_caller} ::= \kw{component} ,
         \bnt{component_drive_caller}
         [ , ... ]
 
-    \bnt{component_drive_caller} ::= \{ \kw{inactive} | \ty{(DriveCaller)} \bnt{drive_caller} \}
+    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\ty{DriveCaller}) \bnt{drive_caller} \}
 
     \bnt{tpl_drive_caller} ::= \kw{array} ,
         \bnt{num_template_drive_callers} ,
@@ -2537,7 +2537,7 @@ The input format is:
         \bnt{sigma1} ,
         \bnt{sigma2} ,
         \bnt{kappa} ,
-        \ty{(ScalarFunction)} \bnt{friction_function}
+        (\ty{ScalarFunction}) \bnt{friction_function}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -2550,7 +2550,7 @@ The input format is:
     \bnt{friction_arglist} ::=
         [ \kw{sigma2} , \bnt{sigma2} , ]
         [ \kw{velocity ratio} , \bnt{vel_ratio} , ]
-        \ty{(ScalarFunction)} \bnt{friction_function}
+        (\ty{ScalarFunction}) \bnt{friction_function}
 \end{Verbatim}
 %\end{verbatim}
     where \nt{sigma2} gives the viscous friction;
@@ -2813,8 +2813,8 @@ The constitutive laws are entered as follows:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
-        [ , \kw{prestress} , \ty{(Entity)} \bnt{prestress} ]
-        [ , \kw{prestrain} , \ty{(TplDriveCaller<Entity>)} \bnt{prestrain} ]
+        [ , \kw{prestress} , (\ty{Entity}) \bnt{prestress} ]
+        [ , \kw{prestrain} , (\ty{TplDriveCaller<Entity>}) \bnt{prestrain} ]
     \bnt{specific_const_law} ::= \bnt{const_law_name} ,
         \bnt{const_law_data}
 \end{Verbatim}
@@ -2833,7 +2833,7 @@ entered as follows:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear elastic} [ \kw{isotropic} ] , 
-        \ty{(Scalar)} \bnt{stiffness}
+        (\ty{Scalar}) \bnt{stiffness}
 \end{Verbatim}
 %\end{verbatim}
 the isotropic stiffness coefficient; the word \kw{isotropic}
@@ -2855,7 +2855,7 @@ for scalar constitutive laws.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear elastic generic} ,
-        \ty{(DerivativeOfEntity)} \bnt{stiffness}
+        (\ty{DerivativeOfEntity}) \bnt{stiffness}
 \end{Verbatim}
 %\end{verbatim}
 the stiffness matrix. In case of 1D, the type is scalar, 
@@ -2884,8 +2884,8 @@ $N \times N$ matrix.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= 
         \kw{linear elastic generic axial torsion coupling} ,
-            \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
-            \ty{(Scalar)} \bnt{coupling_coefficient}
+            (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
+            (\ty{Scalar}) \bnt{coupling_coefficient}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for $6 \times 1$ vectors, where the torsion stiffness,
@@ -2906,9 +2906,9 @@ of the ANBA software.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= 
         \kw{cubic elastic generic}
-            \ty{(Entity)} \bnt{stiffness_1} ,
-            \ty{(Entity)} \bnt{stiffness_2} ,
-            \ty{(Entity)} \bnt{stiffness_3}
+            (\ty{Entity}) \bnt{stiffness_1} ,
+            (\ty{Entity}) \bnt{stiffness_2} ,
+            (\ty{Entity}) \bnt{stiffness_3}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for scalar and $3 \times 1$ vectors; the constitutive
@@ -2927,7 +2927,7 @@ where the stiffness of the joints is typically given in this form.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{log elastic} ,
-        \ty{(DerivativeOfEntity)} \bnt{stiffness}
+        (\ty{DerivativeOfEntity}) \bnt{stiffness}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for scalars. The force is defined as:
@@ -2939,10 +2939,10 @@ this is defined only for scalars. The force is defined as:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear elastic bistop} ,
-        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
+        (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
-        \ty{(DriveCaller)} \bnt{activating_condition} ,
-        \ty{(DriveCaller)} \bnt{deactivating_condition}
+        (\ty{DriveCaller}) \bnt{activating_condition} ,
+        (\ty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -2950,10 +2950,10 @@ this is defined only for scalars. The force is defined as:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{double linear elastic} ,
-        \ty{(Scalar)} \bnt{stiffness_1} ,
-        \ty{(Scalar)} \bnt{upper_strain} ,
-        \ty{(Scalar)} \bnt{lower_strain} ,
-        \ty{(Scalar)} \bnt{stiffness_2}
+        (\ty{Scalar}) \bnt{stiffness_1} ,
+        (\ty{Scalar}) \bnt{upper_strain} ,
+        (\ty{Scalar}) \bnt{lower_strain} ,
+        (\ty{Scalar}) \bnt{stiffness_2}
 \end{Verbatim}
 %\end{verbatim}
 this is defined for scalar and $3 \times 1$ vectors. In the scalar case the
@@ -2966,8 +2966,8 @@ out of the upper or lower bound, the \nt{stiffness\_2} is used.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{isotropic hardening elastic} ,
-        \ty{(Scalar)} \bnt{stiffness} ,
-        \ty{(Scalar)} \bnt{reference_strain}
+        (\ty{Scalar}) \bnt{stiffness} ,
+        (\ty{Scalar}) \bnt{reference_strain}
         [ , \kw{linear stiffness} , \bnt{linear_stiffness} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -2998,7 +2998,7 @@ to compute the slope of the curve, namely the local stiffness.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{isotropic} ] ,
-        \ty{(DifferentiableScalarFunction)} \bnt{function}
+        (\ty{DifferentiableScalarFunction}) \bnt{function}
 \end{Verbatim}
 %\end{verbatim}
 this constitutive law is defined as follows:
@@ -3013,7 +3013,7 @@ When used for 1D elements, the word \kw{isotropic} can be omitted.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{orthotropic} ] ,
-        \{ \ty{(DifferentiableScalarFunction)} \bnt{function} | \kw{null} \}
+        \{ (\ty{DifferentiableScalarFunction}) \bnt{function} | \kw{null} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -3051,7 +3051,7 @@ as a multilinear function.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscous} [ \kw{isotropic} ] , 
-        \ty{(Scalar)} \bnt{viscosity}
+        (\ty{Scalar}) \bnt{viscosity}
 \end{Verbatim}
 %\end{verbatim}
 the linear viscous coefficient. \\
@@ -3064,7 +3064,7 @@ the linear viscous coefficient. \\
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscous generic} , 
-        \ty{(DerivativeOfEntity)} \bnt{viscosity}
+        (\ty{DerivativeOfEntity}) \bnt{viscosity}
 \end{Verbatim}
 %\end{verbatim}
 the linear viscous $N \times N $ matrix. \\
@@ -3077,9 +3077,9 @@ the linear viscous $N \times N $ matrix. \\
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscoelastic} [ \kw{isotropic} ] ,
-        \ty{(Scalar)} \bnt{stiffness} ,
-        \{ \ty{(Scalar)} \bnt{viscosity}
-            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
+        (\ty{Scalar}) \bnt{stiffness} ,
+        \{ (\ty{Scalar}) \bnt{viscosity}
+            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
 \end{Verbatim}
 %\end{verbatim}
 the isotropic stiffness and viscosity coefficients.
@@ -3090,9 +3090,9 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscoelastic generic} ,  
-        \ty{(DerivativeOfEntity)} \nt{stiffness} ,
-        \{ \ty{(DerivativeOfEntity)} \bnt{viscosity} 
-            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
+        (\ty{DerivativeOfEntity}) \nt{stiffness} ,
+        \{ (\ty{DerivativeOfEntity}) \bnt{viscosity} 
+            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity $N \times N$ matrices.
@@ -3103,11 +3103,11 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear time variant viscoelastic generic} ,
-        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
-        \ty{(DriveCaller)} \bnt{stiffness_scale} ,
-        \{ \ty{(DerivativeOfEntity)} \bnt{viscosity}
-            | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \} ,
-        \ty{(DriveCaller)} \bnt{viscosity_scale}
+        (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
+        (\ty{DriveCaller}) \bnt{stiffness_scale} ,
+        \{ (\ty{DerivativeOfEntity}) \bnt{viscosity}
+            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \} ,
+        (\ty{DriveCaller}) \bnt{viscosity_scale}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
@@ -3143,10 +3143,10 @@ a non-physical transient, and later return to the appropriate damping value.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= 
         \kw{linear viscoelastic generic axial torsion coupling} ,
-            \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
-            \{ \ty{(DerivativeOfEntity)} \bnt{viscosity} 
-                | \kw{proportional} , \ty{(Scalar)} \bnt{factor} \}
-            \ty{(Scalar)} \bnt{coupling_coefficient}
+            (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
+            \{ (\ty{DerivativeOfEntity}) \bnt{viscosity} 
+                | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
+            (\ty{Scalar}) \bnt{coupling_coefficient}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for $6 \times 1$ vectors; it is the viscoelastic 
@@ -3159,10 +3159,10 @@ extension of the
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= 
         \kw{cubic elastic generic}
-            \ty{(Entity)} \bnt{stiffness_1} ,
-            \ty{(Entity)} \bnt{stiffness_2} ,
-            \ty{(Entity)} \bnt{stiffness_3} ,
-            \ty{(DerivativeOfEntity)} \bnt{viscosity}
+            (\ty{Entity}) \bnt{stiffness_1} ,
+            (\ty{Entity}) \bnt{stiffness_2} ,
+            (\ty{Entity}) \bnt{stiffness_3} ,
+            (\ty{DerivativeOfEntity}) \bnt{viscosity}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for scalar and $3 \times 1$ vectors; the constitutive
@@ -3180,12 +3180,12 @@ where the stiffness of the joints is typically given in this form.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{double linear viscoelastic} ,
-        \ty{(Scalar)} \bnt{stiffness_1} ,
-        \ty{(Scalar)} \bnt{upper_strain} ,
-        \ty{(Scalar)} \bnt{lower_strain} ,
-        \ty{(Scalar)} \bnt{stiffness_2} ,
-        \ty{(Scalar)} \bnt{viscosity}
-        [ , \kw{second damping} , \ty{(Scalar)} \bnt{viscosity_2} ]
+        (\ty{Scalar}) \bnt{stiffness_1} ,
+        (\ty{Scalar}) \bnt{upper_strain} ,
+        (\ty{Scalar}) \bnt{lower_strain} ,
+        (\ty{Scalar}) \bnt{stiffness_2} ,
+        (\ty{Scalar}) \bnt{viscosity}
+        [ , \kw{second damping} , (\ty{Scalar}) \bnt{viscosity_2} ]
 \end{Verbatim}
 %\end{verbatim}
 this is analogous to the \kw{double linear elastic} constitutive law,
@@ -3200,10 +3200,10 @@ the double linear elastic and viscous term only applies to component 3.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{turbulent viscoelastic} ,
-        \ty{(Scalar)} \bnt{stiffness} ,
-        \ty{(Scalar)} \bnt{parabolic_viscosity}
-        [ , \ty{(Scalar)} \bnt{threshold}
-            [ , \ty{(Scalar)} \bnt{linear_viscosity} ] ]
+        (\ty{Scalar}) \bnt{stiffness} ,
+        (\ty{Scalar}) \bnt{parabolic_viscosity}
+        [ , (\ty{Scalar}) \bnt{threshold}
+            [ , (\ty{Scalar}) \bnt{linear_viscosity} ] ]
 \end{Verbatim}
 %\end{verbatim}
 the constitutive law has the form:
@@ -3230,11 +3230,11 @@ as observed in some fluids at intermediate Reynolds number.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscoelastic bistop} ,
-        \ty{(DerivativeOfEntity)} \bnt{stiffness} ,
-        \ty{(DerivativeOfEntity)} \bnt{viscosity} ,
+        (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
+        (\ty{DerivativeOfEntity}) \bnt{viscosity} ,
         [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
-        \ty{(DriveCaller)} \bnt{activating_condition} ,
-        \ty{(DriveCaller)} \bnt{deactivating_condition}
+        (\ty{DriveCaller}) \bnt{activating_condition} ,
+        (\ty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -3463,21 +3463,21 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlsf viscoelastic} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force'} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ] ,
-        \{ \ty{(DerivativeOfEntity)} \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force''} \}
+        \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf elastic} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force'} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf viscous} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0''} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_force''} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -3608,21 +3608,21 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlp viscoelastic} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_stiffness} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ] ,
-        \{ \ty{(DerivativeOfEntity)} \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_damping} \}
+        \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp elastic} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0'} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_stiffness} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp viscous} ,
-        \ty{(DerivativeOfEntity)} \bnt{kappa_0''} ,
-        \{ \kw{null} | \ty{(ScalarFunction)} \bnt{diag_damping} \}
+        (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
+        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
