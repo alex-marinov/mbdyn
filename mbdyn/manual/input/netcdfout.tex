@@ -78,7 +78,7 @@ Each level contains some datum that is intended to make the contents
 of the database as self-explanatory as possible.
 For example, the level \kw{node} contains an array whose values
 are the strings indicating the node types available;
-each level \kw{node.<type>} contains the labels of the available nodes
+each level \kw{node.}\bnt{type} contains the labels of the available nodes
 for that type, and so on.
 
 
@@ -110,8 +110,8 @@ This level contains as many sublevels as the node types
 that are present in the model.
 Each node type consists in a variable that contains an array
 with the labels (integers) of the nodes defined for that type.
-A variable named \kw{node.<type>.<label>} may be present (it is,
-for example, for structural nodes); however, useful data is usually
+A variable named \kw{node.}\texttt{\bnt{type}.\bnt{label}} may be present
+(it is, for example, for \kw{structural nodes}); however, useful data is usually
 contained in specific variables, whose names describe the contents.
 
 Currently supported node types are:
@@ -125,25 +125,25 @@ Currently supported node types are:
 \label{sec:NetCDF:Node:Structural Node}
 The following variables are defined.
 \begin{itemize}
-\item \kw{node.struct.<label>} is actually empty;
+\item \kw{node.struct.}\bnt{label} is actually empty;
 it contains the type of the structural node in the \kw{type} attribute;
 
-\item \kw{node.struct.<label>.X} contains the position of the node,
+\item \kw{node.struct.}\bnt{label}\kw{.X} contains the position of the node,
 in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.R} contains the orientation matrix of the node,
+\item \kw{node.struct.}\bnt{label}\kw{.R} contains the orientation matrix of the node,
 in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.Phi} contains the orientation vector
+\item \kw{node.struct.}\bnt{label}\kw{.Phi} contains the orientation vector
 describing the orientation of the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.E} contains the Euler angles
+\item \kw{node.struct.}\bnt{label}\kw{.E} contains the Euler angles
 describing the orientation of the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.XP} contains the velocity
+\item \kw{node.struct.}\bnt{label}\kw{.XP} contains the velocity
 of the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.Omega} contains the angular velocity
+\item \kw{node.struct.}\bnt{label}\kw{.Omega} contains the angular velocity
 of the node, in the appropriate reference frame.
 \end{itemize}
 Note that only one of \kw{R}, \kw{Phi}, or \kw{E} are present,
@@ -156,10 +156,10 @@ and
 The \kw{dynamic} and \kw{modal} node types, if requested, can output
 extra variables.
 \begin{itemize}
-\item \kw{node.struct.<label>.XPP} contains the acceleration of the node,
+\item \kw{node.struct.}\bnt{label}\kw{.XPP} contains the acceleration of the node,
 in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.OmegaP} contains the angular acceleration
+\item \kw{node.struct.}\bnt{label}\kw{.OmegaP} contains the angular acceleration
 of the node, in the appropriate reference frame.
 \end{itemize}
 
@@ -169,16 +169,16 @@ by the corresponding \kw{automatic structural} element.
 As a consequence, extra variables can appear in the output
 of \kw{dynamic} nodes.
 \begin{itemize}
-\item \kw{node.struct.<label>.B} contains the momentum of the inertia
+\item \kw{node.struct.}\bnt{label}\kw{.B} contains the momentum of the inertia
 associated to the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.G} contains the momenta moment of the inertia
+\item \kw{node.struct.}\bnt{label}\kw{.G} contains the momenta moment of the inertia
 associated to the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.BP} contains the derivative of the momentum
+\item \kw{node.struct.}\bnt{label}\kw{.BP} contains the derivative of the momentum
 of the inertia associated to the node, in the appropriate reference frame;
 
-\item \kw{node.struct.<label>.GP} contains the derivative of momenta moment
+\item \kw{node.struct.}\bnt{label}\kw{.GP} contains the derivative of momenta moment
 of the inertia associated to the node, in the appropriate reference frame.
 \end{itemize}
 
@@ -189,7 +189,7 @@ This level contains as many sublevels as the element types
 that are present in the model.
 Each element type consists in a variable that contains an array
 with the labels (integers) of the elements defined for that type.
-A variable named \kw{elem.<type>.<label>} may be present; however,
+A variable named \kw{elem.}\texttt{\bnt{type}.\bnt{label}} may be present; however,
 useful data is usually contained in specific variables,
 whose names describe the contents.
 
@@ -203,7 +203,7 @@ for 2- and 3-node beam elements, respectively.
 
 \subsubsection{Aerodynamic Elements}
 \label{sec:NetCDF:Elem:Aerodynamic}
-\emph{NetCDF output or aerodynamic elements has been sponsored
+\emph{NetCDF output of aerodynamic elements has been sponsored
 by REpower Systems AG.}
 
 The aerodynamic elements allow to define a broad set of variables.
@@ -215,42 +215,41 @@ The \kw{aerodynamic beam3} outputs at $3 \cdot n$ points.
 
 \paragraph{Output.}
 \begin{itemize}
-\item \kw{elem.aerodynamic.<label>.X\_<i>} contains the location
-of the integration point \kw{<i>}, in the global reference frame;
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.X\_}\bnt{i} contains the location
+of the integration point \nt{i}, in the global reference frame;
 
-\item \kw{elem.aerodynamic.<label>.R\_<i>} contains the orientation matrix
-of the airfoil at the integration point \kw{<i>}, in the global reference frame;
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.R\_}\bnt{i} contains the orientation matrix
+of the airfoil at the integration point \nt{i}, in the global reference frame;
 
-\item \kw{elem.aerodynamic.<label>.Phi\_<i>} contains the rotation vector
-that describes the orientation of the airfoil at the integration point \kw{<i>},
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.Phi\_}\bnt{i} contains the rotation vector
+that describes the orientation of the airfoil at the integration point \nt{i},
 in the global reference frame;
 
-\item \kw{elem.aerodynamic.<label>.E} contains the set of Euler angles
-that describes the orientation of the airfoil at the integration point \kw{<i>},
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.E\_}\bnt{i} contains the set of Euler angles
+that describes the orientation of the airfoil at the integration point \nt{i},
 in the global reference frame.
 The sequence of the angles is detailed in the variable's description.
 It can be 123 (the default), 313 or 321;
 
-\item \kw{elem.aerodynamic.<label>.V\_<i>} contains the velocity
-of the integration point \kw{<i>}, in the global reference frame;
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.V\_}\bnt{i} contains the velocity
+of the integration point \nt{i}, in the global reference frame;
 
-\item \kw{elem.aerodynamic.<label>.Omega\_<i>} contains the angular velocity
-of the integration point \kw{<i>}, in the global reference frame;
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.Omega\_}\bnt{i} contains the angular velocity
+of the integration point \nt{i}, in the global reference frame;
 
-\item \kw{elem.aerodynamic.<label>.F\_<i>} contains the force
-at the integration point \kw{<i>}, in the absolute reference frame;
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i} contains the force
+at the integration point \nt{i}, in the absolute reference frame;
 
-\item \kw{elem.aerodynamic.<label>.M\_<i>} contains the moment
-at the integration point \kw{<i>}, in the absolute reference frame,
+\item \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} contains the moment
+at the integration point \nt{i}, in the absolute reference frame,
 referred to the location of the integration point.
 \end{itemize}
 
-Note: variables \kw{elem.aerodynamic.<label>.R\_<i>},
-\kw{elem.aerodynamic.<label>.Phi\_<i>} 
-and \kw{elem.aerodynamic.<label>.E\_<i>} are mutually exclusive.
+Note: variables \kw{R\_}\bnt{i}, \kw{Phi\_}\bnt{i} and \kw{E\_}\bnt{i}
+are mutually exclusive.
 
-Note: by default, only variables \kw{elem.aerodynamic.<label>.F\_<i>}
-and \kw{elem.aerodynamic.<label>.M\_<i>} are output.
+Note: by default, only variables \kw{elem.aerodynamic.}\bnt{label}\kw{.F\_}\bnt{i}
+and \kw{elem.aerodynamic.}\bnt{label}\kw{.M\_}\bnt{i} are output.
 See Section~\ref{sec:EL:AERO:BODY-BEAM23} for indications
 about how to customize aerodynamic element output in NetCDF format.
 
@@ -270,49 +269,48 @@ The beam elements allow to define a broad set of variables.
 \paragraph{Two-Node Beam Element.}
 The two-node beam element allows to define the variables
 \begin{itemize}
-\item \kw{elem.beam.<label>.X} contains the location
+\item \kw{elem.beam.}\bnt{label}\kw{.X} contains the location
 of the evaluation point, in the global reference frame;
 
-\item \kw{elem.beam.<label>.R} contains the orientation matrix
+\item \kw{elem.beam.}\bnt{label}\kw{.R} contains the orientation matrix
 of the beam section at the evaluation point, in the global reference frame;
 
-\item \kw{elem.beam.<label>.Phi} contains the rotation vector
+\item \kw{elem.beam.}\bnt{label}\kw{.Phi} contains the rotation vector
 that describes the orientation of the beam section at the evaluation point,
 in the global reference frame;
 
-\item \kw{elem.beam.<label>.E} contains the set of Euler angles
+\item \kw{elem.beam.}\bnt{label}\kw{.E} contains the set of Euler angles
 that describes the orientation of the beam section at the evaluation point,
 in the global reference frame.
 The sequence of the angles is detailed in the variable's description.
 It can be 123 (the default), 313 or 321;
 
-\item \kw{elem.beam.<label>.F} contains the internal force
+\item \kw{elem.beam.}\bnt{label}\kw{.F} contains the internal force
 at the evaluation point, in the reference frame of the beam section;
 
-\item \kw{elem.beam.<label>.M} contains the internal moment
+\item \kw{elem.beam.}\bnt{label}\kw{.M} contains the internal moment
 at the evaluation point, in the reference frame of the beam section;
 
-\item \kw{elem.beam.<label>.mu} contains the linear strain
+\item \kw{elem.beam.}\bnt{label}\kw{.mu} contains the linear strain
 at the evaluation point, in the reference frame of the beam section;
 
-\item \kw{elem.beam.<label>.k} contains the angular strain
+\item \kw{elem.beam.}\bnt{label}\kw{.k} contains the angular strain
 at the evaluation point, in the reference frame of the beam section;
 
-\item \kw{elem.beam.<label>.muP} contains the linear strain rate
+\item \kw{elem.beam.}\bnt{label}\kw{.muP} contains the linear strain rate
 at the evaluation point, in the reference frame of the beam section;
 
-\item \kw{elem.beam.<label>.kP} contains the angular strain rate
+\item \kw{elem.beam.}\bnt{label}\kw{.kP} contains the angular strain rate
 at the evaluation point, in the reference frame of the beam section.
 \end{itemize}
 
-Note: variables \kw{elem.beam.<label>.R}, \kw{elem.beam.<label>.Phi} 
-and \kw{elem.beam.<label>.E} are mutually exclusive.
+Note: variables \kw{R}, \kw{Phi} and \kw{E} are mutually exclusive.
 
-Note: variables \kw{elem.beam.<label>.muP} and \kw{elem.beam.<label>.kP}
+Note: variables \kw{muP} and \kw{kP}
 are only available for viscoelastic beam elements.
 
-Note: by default, only variables \kw{elem.beam.<label>.F}
-and \kw{elem.beam.<label>.M} are output.
+Note: by default, only variables \kw{F}
+and \kw{M} are output.
 See Section~\ref{sec:EL:BEAM:BEAM3} for indications
 about how to customize beam element output in NetCDF format.
 
