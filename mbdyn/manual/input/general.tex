@@ -1106,10 +1106,11 @@ A clear example is given in
 \begin{verbatim}
         modules/module-wheel2/module-wheel2.cc
 \end{verbatim}
-where the \texttt{module\_init()} function registers the loadable element
-in the set of loadable element handlers.
+where the \texttt{module\_init()} function registers
+the \kw{user defined} element called \kw{wheel2}
+in the set of user-defined element handlers.
 The module can be retrieved later using the syntax described
-in Section~\ref{sec:EL:BASE:LOADABLE}.
+in Section~\ref{sec:EL:BASE:USER_DEFINED}.
 Note, however, that the \texttt{module\_init()} function may be used
 for any purpose.
 A typical use consists in registering any kind of handlers

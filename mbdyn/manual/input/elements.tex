@@ -101,6 +101,7 @@ where \kw{elem\_type} is one of the following:
 \item \kw{force}
 \item \kw{genel}
 \item \kw{loadable}
+\item \kw{user defined}
 \end{itemize}
 
 \item miscellaneous element cards
@@ -5290,33 +5291,46 @@ in the right hand-side of the above equation.
 \end{comment}
 
 
-\section{Loadable Element}\label{sec:EL:BASE:LOADABLE}
+\section{User-Defined Elements}\label{sec:EL:BASE:USER_DEFINED}
+
+\subsection{Loadable Element}\label{sec:EL:BASE:USER_DEFINED:LOADABLE}
+Note: the \kw{loadable} element is deprecated in favor
+of the \kw{user defined} element.
+
 The \kw{loadable} element is a wrapper for a user-defined element that is
 compiled in a separated module and linked run-time.
-The module should provide a comprehensive set of functions with a specified
-API; default functions are available if no special features are required.
+The module should provide a comprehensive set of functions according to 
+a specified API; default functions are available if no special features
+are required.
 Implementation of modules can be very easy, but a deep knowledge of the
-internals of the code is required if special tasks are required. 
+internals of the code is required when special tasks need to be performed. 
 There are virtually no limits on what a loadable element can do.
+
 The syntax is simply:
-\begin{verbatim}
-    <normal_arglist> ::= " <module_name> "
-        [ , name, " <calls> " ] 
-        [ , <module_data> ]
-\end{verbatim}
-where \kw{module\_name} is the name of the module file; as soon as the file
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{loadable}
+
+    \bnt{normal_arglist} ::= " \bnt{module_name} "
+        [ , \kw{name} , " \bnt{calls} " ] 
+        [ , \bnt{module_data} ]
+\end{Verbatim}
+%\end{verbatim}
+where \nt{module\_name} is the name of the module file; as soon as the file
 is checked and the binding of the structure with function bindings 
-succeeded, a function called \kw{read} is invoked, and passed the input
+succeeded, a function called \texttt{read()} is invoked, passing it the input
 stream.
-This function is in charge of reading \kw{module\_data} following the
+This function is in charge of reading \nt{module\_data} following the
 general syntax of the input file.
 
 An alternative form is
-\begin{verbatim}
-    <normal_arglist> ::= reference , " <name> "
-        [ , <module_data> ]
-\end{verbatim}
-where \kw{name} is the name by which the loadable element recorded itself
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{normal_arglist} ::= \kw{reference} , " \bnt{name} "
+        [ , \bnt{module_data} ]
+\end{Verbatim}
+%\end{verbatim}
+where \nt{name} is the name by which the loadable element recorded itself
 when registered via the \kw{module load} directive, as described
 in Section~\ref{sec:GENERAL:MODULE-LOAD}.
 As a consequence, the following forms are equivalent:
@@ -5330,42 +5344,86 @@ As a consequence, the following forms are equivalent:
     joint: 3, some_module;
 \end{verbatim}
 
-It is advisable that the function \kw{read} prints some help message
-when the first field of \kw{module\_data} is the keyword \kw{help}.
+It is advisable that the function \texttt{read()} prints some help message
+when the first field of \nt{module\_data} is the keyword \kw{help}.
 All the helpers and the high-level structures are available, such as
 drivers, constitutive laws, reference frames.
 Refer to each module for a description (if available) of the features and of
 the input/output format.
-\kw{module\_name} should be a full path to the module function.
+\nt{module\_name} should be a full path to the module function.
 If the name starts with a slash ``/'', the full path name is used.
 Otherwise the module is searched in the colon-separated list of directories 
-contained in the environment variable \kw{LD\_LIBRARY}, then among the
-libraries listed in \kw{/etc/ld.so.cache}, and finally in
-\kw{/usr/lib} and in \kw{/lib} (see \kw{dlopen(3)}).
+contained in the environment variable \texttt{LD\_LIBRARY}, then among the
+libraries listed in \texttt{/etc/ld.so.cache}, and finally in
+\texttt{/usr/lib} and in \texttt{/lib} (see \texttt{dlopen(3)}).
 At last, it is searched in the current directory, and the extension
-\kw{.so} is added if missing.
-The string \kw{calls} represents the name of the structure that contains
+\texttt{.so} is added if missing.
+The string \nt{calls} represents the name of the structure that contains
 the bindings to the functions.
-The default is \kw{calls}.
+The default is \texttt{calls}.
 
 \noindent
-Refer to \kw{\$(BASE)/mbdyn/base/loadable.h} for a description of the
+Refer to \texttt{\$(BASE)/mbdyn/base/loadable.h} for a description of the
 functions that are allowed.
 An example module is given in directory
 \begin{verbatim}
     $(BASE)/modules/module-template/
 \end{verbatim}
-which can be used as a starting point for building a custom module.
+which can be used as a starting point to build a custom module.
 % An analogous C/FORTRAN style interface is being planned, at the cost of
 % possibly losing some of the fancy C++ features made available by the code.
-The \kw{loadable element} interface allows to link modules in different
-languages, e.g.\ C or FORTRAN77; simply use \kw{module-template}
-as a guideline to providing callbacks to the \kw{loadable element}
+The \kw{loadable} element interface allows to link modules in different
+languages, e.g.\ C or FORTRAN77; simply use \texttt{module-template}
+as a guideline to providing callbacks to the \kw{loadable} element
 interface and to collect required info from the main program
 (e.g.\ node positions, equation indices and everything else that is
 required for appropriate connection), then call the functions that
 actually do the work in other languages from inside the callbacks.
-Note that, in general, to call external functions from C++ one needs
+
+\subsection{User-Defined Element}
+The \kw{user defined} element is a much more streamlined form
+of custom element definition than the \kw{loadable} element.
+From the point of view of the syntax the differences are minimal;
+however, from an implementation point of view, the \kw{user defined}
+element is preferable.
+
+The definition of a \kw{user defined} element requires two steps.
+In the first step, a run-time loadable module is loaded using the 
+\hyperref{\kw{module load} directive}{\kw{module load} directive (see Section~}{)}{sec:GENERAL:MODULE-LOAD}.
+This registers a handler to the \kw{user defined} element type
+along with a \nt{name} used to reference it.
+In the second step, an instance of that \kw{user defined} element type
+is created, referencing it by \nt{name}.
+
+The syntax of the \kw{user defined} element is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{user defined}
+
+    \bnt{normal_arglist} ::= \bnt{name} [ , \bnt{module_data} ]
+\end{Verbatim}
+%\end{verbatim}
+As for the \kw{loadable} element, it is recommended that 
+some useful output is given if the first \nt{module\_data}
+is the keyword \kw{help}.
+
+An example module is given in directory
+\begin{verbatim}
+    $(BASE)/modules/module-template2/
+\end{verbatim}
+which can be used as a starting point to build a custom module.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    module load: "libmodule-template2"
+
+    user defined: 1000, template2, help;
+\end{verbatim}
+
+
+
+\subsection{General Discussion on Run-Time Loadable Modules}
+In general, to call external functions from C++ one needs
 to declare them as
 \begin{verbatim}
     #include <sys/types.h>
@@ -5381,7 +5439,7 @@ other compilers add underscores at the beginning or at the end of the
 names.
 Check what is the behavior of your compiler, by compiling a simple 
 program with your favorite FORTRAN 77 compiler, then looking at it
-with the utility \kw{nm(1)}, which will show how the symbols are represented 
+with the utility \texttt{nm(1)}, which will show how the symbols are represented 
 internally.
 
 \noindent
@@ -5396,46 +5454,55 @@ C This is a compiler test
 
       END
 \end{verbatim}
-when compiled with \kw{g77(1)} on a GNU/Linux system, yields:
+when compiled with \texttt{g77(1)} on a GNU/Linux system, yields:
 \begin{verbatim}
 [masarati@mbdyn manual]$ g77 -c f77sub.f
 [masarati@mbdyn manual]$ nm f77sub.o
 00000000 T f77sub_
 \end{verbatim}
-That is, \kw{g77(1)} lowercases all symbols, and adds a trailing 
+That is, \texttt{g77(1)} lowercases all symbols, and adds a trailing 
 underscore.
 Macros to automatically detect and take care of this behavior 
-will be added.
+are planned.
 
 
 \noindent
 To compile loadable modules, one needs to configure
 the package as follows:
-\begin{verbatim}
-    ./configure --with-module=<module_name>
-\end{verbatim}
-where \kw{module\_name} is the name of the directory the module
-is placed in with the \kw{module-} part stripped; e.g.\ to compile
-the tire module that resides in \kw{\$(BASE)/modules/module-wheel2} 
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    ./configure --with-module=\bnt{module_name}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{module\_name} is the name of the directory the module
+is placed in with the \texttt{module-} part stripped; e.g.\ to compile
+the tire module that resides in \texttt{\$(BASE)/modules/module-wheel2} 
 one must type
 \begin{verbatim}
     ./configure --with-module=wheel2
 \end{verbatim}
 Multiple modules can be compiled by typing the list of the names
 separated by blanks.
+
+\bigskip
+
+\noindent
+\fbox{\begin{minipage}{.96\textwidth}
 The modules need to resolve some of the symbols that are in the
 main executable; until a full working libtool support is implemented,
 this must be done by hand.
-For the \kw{g++(1)} compiler one requires the switch \kw{-rdynamic} 
-to be added to the loader flags, e.g.
-\begin{verbatim}
-    LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
-\end{verbatim}
-with \kw{sh(1)} and compatible shells like \kw{bash(1)}, or
-\begin{verbatim}
-    env LDFLAGS="-rdynamic" ./configure --with-module=<module_name>
-\end{verbatim}
-with \kw{csh(1)} and compatible shells.
+The \texttt{g++(1)} compiler requires the switch `\texttt{-rdynamic}'
+to be added to the loader's flags.
+\end{minipage}}
+
+\bigskip
+
+For example,
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    ./configure --with-module=\bnt{module_name} LDFLAGS="-rdynamic" 
+\end{Verbatim}
+%\end{verbatim}
 
 
 
@@ -5705,10 +5772,9 @@ The syntax is:
 Its support may be discontinued in the future.
 
 
-
-\subsection{Structural output}
-\label{sec:EL:OUTELEM:STRUCTURAL_OUTPUT}
-TODO.
+%\subsection{Structural output}
+%\label{sec:EL:OUTELEM:STRUCTURAL_OUTPUT}
+%TODO.
 
 
 
