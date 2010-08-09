@@ -1253,7 +1253,7 @@ Shell4EAS::Output(OutputHandler& OH) const
 }
 
 
-typedef LinearElasticGenericConstitutiveLaw<Shell4EAS::vh, Shell4EAS::fmh> LEGCLShell;
+typedef LinearElasticGenericConstitutiveLaw<Shell::vh, Shell::fmh> LEGCLShell;
 
 Elem*
 ReadShell4EAS(DataManager* pDM,
@@ -1274,15 +1274,15 @@ ReadShell4EAS(DataManager* pDM,
 	}
 
 #ifdef USE_CL_IN_SHELL
-	const ConstitutiveLaw<Shell4EAS::vh, Shell4EAS::fmh> *pD[4];
+	const ConstitutiveLaw<Shell::vh, Shell::fmh> *pD[4];
 
 	/* Prestress and prestrain */
-	Shell4EAS::vh PreStress(12);
+	Shell::vh PreStress(12);
 	PreStress.Reset();
 
-	TplDriveCaller<Shell4EAS::vh>* pTplDC = new ZeroTplDriveCaller<Shell4EAS::vh>;
+	TplDriveCaller<Shell::vh>* pTplDC = new ZeroTplDriveCaller<Shell::vh>;
 
-	Shell4EAS::fmh S(12, 12);
+	Shell::fmh S(12, 12);
 	for (unsigned ir = 1; ir <= 12; ir++) {
 		for (unsigned ic = 1; ic <= 12; ic++) {
 			S(ir, ic) = HP.GetReal();
@@ -1296,29 +1296,11 @@ ReadShell4EAS(DataManager* pDM,
 		pD[i] = pD[0]->Copy();
 	}
 #else // ! USE_CL_IN_SHELL
-	Shell4EAS::fmh pD(12, 12);
-	if (HP.IsKeyWord("diag")) {
-		pD.Reset();
-		for (unsigned ir = 1; ir <= 12; ir++) {
-			pD(ir, ir) = HP.GetReal();
-		}
+	Shell::fmh pD(12, 12);
 
-	} else if (HP.IsKeyWord("sym")) {
-		for (unsigned ir = 1; ir <= 12; ir++) {
-			pD(ir, ir) = HP.GetReal();
-			for (unsigned ic = ir + 1; ic <= 12; ic++) {
-				doublereal d = HP.GetReal();
-				pD(ir, ic) = d;
-				pD(ic, ir) = d;
-			}
-		}
-
-	} else {
-		for (unsigned ir = 1; ir <= 12; ir++) {
-			for (unsigned ic = 1; ic <= 12; ic++) {
-				pD(ir, ic) = HP.GetReal();
-			}
-		}
+	if (ReadShellConstLaw(HP, pD)) {
+		silent_cerr("Shell(" << uLabel << "): unable to read isotropic constitutive law" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif // ! USE_CL_IN_SHELL
 
@@ -1341,3 +1323,4 @@ ReadShell4EAS(DataManager* pDM,
 
 	return pEl;
 }
+

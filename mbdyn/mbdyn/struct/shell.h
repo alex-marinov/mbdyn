@@ -76,6 +76,13 @@ public:
 		LASTSHELLTYPE
 	};
 
+	// Da appunti Vescovini
+	typedef MyVectorHandler vh;
+	typedef std::vector<vh> vvh;
+	typedef FullMatrixHandler fmh;
+	typedef std::vector<fmh> vfmh;
+	typedef ConstitutiveLawOwner<vh, fmh> ConstitutiveLawOwnerType;
+
 	Shell(unsigned uLabel, const DofOwner* pDO, flag fOut);
 	virtual ~Shell(void);
 };
@@ -93,6 +100,9 @@ ReadShell4EASANS(DataManager* pDM,
 	MBDynParser& HP,
 	const DofOwner* pDO,
 	unsigned int uLabel);
+
+extern int
+ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD);
 
 #endif // SHELL_H
 

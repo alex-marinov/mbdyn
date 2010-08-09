@@ -245,14 +245,6 @@ protected:
 	Vec6 DefLocPrev[NUMSEZ];
 #endif
 
-public:
-	// Da appunti Vescovini
-	typedef MyVectorHandler vh;
-	typedef std::vector<vh> vvh;
-	typedef FullMatrixHandler fmh;
-	typedef std::vector<fmh> vfmh;
-	typedef ConstitutiveLawOwner<vh, fmh> ConstitutiveLawOwnerType;
-
 protected:
 	fmh S_alpha_beta_0;
 	vfmh S_alpha_beta_i;
