@@ -576,7 +576,7 @@ ReadJointRegularization(DataManager* pDM,
 				<< "(" << uLabel << ") "
 				"at line " << HP.GetLineData()
 				<< std::endl);
-			DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		}
 
