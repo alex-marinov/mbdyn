@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- optimized full matrix handler operations
 		- support multiple eigenanalyses per simulation
 		- added "receive first" option to stream input
+		- added structural mapping scripts (Giuseppe Quaranta)
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
