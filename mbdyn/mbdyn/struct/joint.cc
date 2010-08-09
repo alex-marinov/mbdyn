@@ -973,6 +973,12 @@ ReadJoint(DataManager* pDM,
 		Vec3 X0(0.);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		if (HP.IsKeyWord("position"))
+#else /* MBDYN_X_COMPATIBLE_INPUT */
+		if (!HP.IsKeyWord("position")) {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"keyword \"position\" expected at line " << HP.GetLineData()
+				<< std::endl);
+		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 		{
 			X0 = HP.GetPosAbs(AbsRefFrame);
