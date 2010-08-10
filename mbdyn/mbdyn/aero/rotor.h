@@ -170,7 +170,7 @@ public:
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 		Wait();
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
-		return Res.Couple();
+		return Res.Moment();
 	};
 
 #if 0

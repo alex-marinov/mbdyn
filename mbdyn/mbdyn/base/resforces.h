@@ -36,7 +36,7 @@
 #include <iostream>
 
 #include <set>
-#include <strnode.h>
+#include "strnode.h"
 
 /* ResForces - begin */
 
@@ -52,14 +52,14 @@ public:
 	virtual void Reset(void);
 	void AddForce(const Vec3& f);
 	void AddForce(const Vec3& f, Vec3& x);
-	void AddCouple(const Vec3& c);
+	void AddMoment(const Vec3& c);
 	void AddForces(const Vec3& f, const Vec3& c, const Vec3& x);
 	void PutForce(const Vec3& f);
-	void PutCouple(const Vec3& c);
+	void PutMoment(const Vec3& c);
 	void PutForces(const Vec3& f, const Vec3& c);
 	
 	virtual const Vec3& Force(void) const;
-	virtual const Vec3& Couple(void) const;
+	virtual const Vec3& Moment(void) const;
 	virtual const Vec3& Pole(void) const = 0;
 };
 
@@ -99,7 +99,7 @@ public:
 	virtual ~LocalNodeResForces(void);
 
 	const Vec3& Force(void) const;
-	const Vec3& Couple(void) const;
+	const Vec3& Moment(void) const;
 };
 
 struct ResForceSet : public WithLabel {

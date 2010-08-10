@@ -119,6 +119,12 @@ InducedVelocity::GetAerodynamicElemType(void) const
 	return AerodynamicElem::INDUCEDVELOCITY;
 }
 
+bool
+InducedVelocity::bSectionalForces(void) const
+{
+	return false;
+}
+
 unsigned int
 InducedVelocity::iGetNumPrivData(void) const {
 	return 6;
@@ -159,12 +165,12 @@ InducedVelocity::dGetPrivData(unsigned int i) const
 	case 1:
 	case 2:
 	case 3:
-		return Res.Force().dGet(i);
+		return Res.Force()(i);
 
 	case 4:
 	case 5:
 	case 6:
-		return Res.Couple().dGet(i - 3);
+		return Res.Moment()(i - 3);
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -204,16 +210,16 @@ InducedVelocity::ExchangeLoads(flag fWhat)
 	if (is_parallel && IndVelComm.Get_size() > 1) {
 		if (fWhat) {
 			/* Scambia F e M */
-			Res.Force().PutTo(pTmpVecS);
-			Res.Couple().PutTo(pTmpVecS + 3);
+			Res.Force().PutTo(&pTmpVecS[0]);
+			Res.Moment().PutTo(&pTmpVecS[3]);
 			for (int i = 0; ppRes && ppRes[i]; i++) {
-				ppRes[i]->pRes->Force().PutTo(pTmpVecS + 6 + 6*i);
-				ppRes[i]->pRes->Couple().PutTo(pTmpVecS + 9 + 6*i);
+				ppRes[i]->pRes->Force().PutTo(&pTmpVecS[6 + 6*i]);
+				ppRes[i]->pRes->Moment().PutTo(&pTmpVecS[9 + 6*i]);
 			}
 			IndVelComm.Allreduce(pTmpVecS, pTmpVecR, iForcesVecDim, MPI::DOUBLE, MPI::SUM);
-			Res.PutForces(Vec3(pTmpVecR), Vec3(pTmpVecR + 3));
+			Res.PutForces(Vec3(&pTmpVecR[0]), Vec3(&pTmpVecR[3]));
 			for (int i = 0; ppRes && ppRes[i]; i++) {
-				ppRes[i]->pRes->PutForces(Vec3(pTmpVecR + 6 + 6*i),  Vec3(pTmpVecR + 9 + 6*i));
+				ppRes[i]->pRes->PutForces(Vec3(&pTmpVecR[6 + 6*i]),  Vec3(&pTmpVecR[9 + 6*i]));
 			}
 
 		} else {
@@ -237,7 +243,7 @@ void
 InducedVelocity::ExchangeVelocity(void)
 {
 #define ROTDATATYPELABEL	100
-	if (is_parallel && IndVelComm.Get_size() > 1){
+	if (is_parallel && IndVelComm.Get_size() > 1) {
 		if (IndVelComm.Get_rank() == 0) {
 			for (int i = 1; i < IndVelComm.Get_size(); i++) {
 				IndVelComm.Send(MPI::BOTTOM, 1, *pIndVelDataType,
@@ -249,9 +255,9 @@ InducedVelocity::ExchangeVelocity(void)
 		}
 	}
 }
-#endif /* USE_MPI */
+#endif // USE_MPI
 
-/* Somma alla trazione il contributo di forza di un elemento generico */
+// Somma alla trazione il contributo di forza di un elemento generico
 void
 InducedVelocity::AddForce(unsigned int uL,
 	const Vec3& F, const Vec3& M, const Vec3& X)
@@ -261,6 +267,16 @@ InducedVelocity::AddForce(unsigned int uL,
 			ppRes[i]->pRes->AddForces(F, M, X);
 		}
 	}
+}
+
+// Somma alla trazione il contributo di forza di un elemento generico
+// usando la forza e il momento per unita' di apertura e il peso
+void
+InducedVelocity::AddSectionalForce(unsigned int uL,
+	const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X)
+{
+	ASSERT(bSectionalForce() == true);
+	InducedVelocity::AddForce(uL, F*dW, M*dW, X);
 }
 
 void

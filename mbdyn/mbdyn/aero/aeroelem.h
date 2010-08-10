@@ -153,7 +153,7 @@ class Aerodynamic2DElem :
 protected:
 	AeroData* aerodata;
 	InducedVelocity* pIndVel;
-	flag fPassiveInducedVelocity;
+	flag bPassiveInducedVelocity;
 
 	const ShapeOwner Chord;		/* corda */
 	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */
@@ -176,6 +176,9 @@ protected:
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
 	void Output_int(OutputHandler& OH) const;
+	void AddForce_int(const Vec3& F, const Vec3& M, const Vec3& X) const;
+	void AddSectionalForce_int(const Vec3& F, const Vec3& M,
+		doublereal dW, const Vec3& X) const;
 
 public:
 	Aerodynamic2DElem(unsigned int uLabel,

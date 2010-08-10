@@ -70,7 +70,7 @@ ResForces::AddForce(const Vec3& f, Vec3& x)
 }
 
 void
-ResForces::AddCouple(const Vec3& c)
+ResForces::AddMoment(const Vec3& c)
 {
 	C += c;
 }
@@ -89,7 +89,7 @@ ResForces::PutForce(const Vec3& f)
 }
 
 void
-ResForces::PutCouple(const Vec3& c)
+ResForces::PutMoment(const Vec3& c)
 {
 	C = c;
 }
@@ -108,7 +108,7 @@ ResForces::Force(void) const
 }
 
 const Vec3&
-ResForces::Couple(void) const
+ResForces::Moment(void) const
 {
 	return C;
 }
@@ -185,7 +185,7 @@ LocalNodeResForces::Force(void) const
 }
 
 const Vec3&
-LocalNodeResForces::Couple(void) const
+LocalNodeResForces::Moment(void) const
 { 
 	return (Cr = pNode->GetRCurr().Transpose()*C);
 }

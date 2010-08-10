@@ -82,7 +82,7 @@ CyclocopterInflow::Output(OutputHandler& OH) const
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
                         << " " << dUindMean                	 /* 8 */
                         << " " << "0."                	 /* 9 */
                         << " " << "0."                	 /* 10 */
@@ -100,7 +100,7 @@ CyclocopterInflow::Output(OutputHandler& OH) const
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
+                                << " " << ppRes[i]->pRes->Moment()
                                 << std::endl;
                 }
 	}
@@ -274,7 +274,7 @@ CyclocopterUniform1D::Output(OutputHandler& OH) const
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
                         << " " << dUindMean                	 /* 8 */
                         << " " << dAzimuth                	 /* 9 */
                         << " " << iStepCounter                	 /* 10 */
@@ -290,7 +290,7 @@ CyclocopterUniform1D::Output(OutputHandler& OH) const
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
+                                << " " << ppRes[i]->pRes->Moment()
                                 << std::endl;
                 }
 	}
@@ -475,7 +475,7 @@ CyclocopterUniform2D::Output(OutputHandler& OH) const
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
                         << " " << dUindMean                	 /* 8 */
                         << " " << dAzimuth                	 /* 9 */
                         << " " << iStepCounter                	 /* 10 */
@@ -489,7 +489,7 @@ CyclocopterUniform2D::Output(OutputHandler& OH) const
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
+                                << " " << ppRes[i]->pRes->Moment()
                                 << std::endl;
                 }
 	}
@@ -789,7 +789,7 @@ CyclocopterPolimi::Output(OutputHandler& OH) const
                 OH.Rotors()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
-                        << " " << RRotorTranspose*Res.Couple()    /* 5-7 */
+                        << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
                         << " " << dUindMean              /* 8 */
                         << " " << dUind                	 /* 9 -11*/
                         << " " << dXi                	 /* 12 */
@@ -803,7 +803,7 @@ CyclocopterPolimi::Output(OutputHandler& OH) const
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
-                                << " " << ppRes[i]->pRes->Couple()
+                                << " " << ppRes[i]->pRes->Moment()
                                 << std::endl;
                 }
 	}

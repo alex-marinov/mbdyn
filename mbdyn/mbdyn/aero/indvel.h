@@ -53,6 +53,7 @@ public:
 
 		// non-rotating...
 
+		USER_DEFINED	= 0x01000000U,
 		ROTOR		= 0x10000000U,
 
 		// rotating...
@@ -125,6 +126,9 @@ public:
 	// Tipo dell'elemento (usato per debug ecc.)
 	virtual Elem::Type GetElemType(void) const;
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
+
+	// Return "true" if sectional forces are needed
+	virtual bool bSectionalForces(void) const;
 
 	/* Metodi per l'estrazione di dati "privati".
 	 * Si suppone che l'estrattore li sappia interpretare.
@@ -211,12 +215,28 @@ public:
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 		Wait();
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
-		return Res.Couple();
+		return Res.Moment();
 	};
 
-	// Somma alla trazione il contributo di un elemento
+	// Elements use this function to pass induced velocity models
+	// their contribution to forces and moments at a specific location X.
+	// Each element can call this function multiple times to provide
+	// multiple contributions in one iteration.
+	// Elements must not call this function when bSectionalForces() 
+	// returns "true"
 	virtual void AddForce(unsigned int uL,
 		const Vec3& F, const Vec3& M, const Vec3& X);
+
+	// Elements use this function to pass induced velocity models
+	// their contribution to sectional forces and moments at a specific
+	// location X.
+	// Each element can call this function multiple times to provide
+	// multiple contributions in one iteration.
+	// Elements should not call this function when bSectionalForces() 
+	// returns "false"
+	virtual void AddSectionalForce(unsigned int uL,
+		const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X);
+
 	virtual void ResetForce(void);
 
 	// Restituisce ad un elemento la velocita' indotta

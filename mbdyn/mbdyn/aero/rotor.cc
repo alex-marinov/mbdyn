@@ -176,7 +176,7 @@ Rotor::Output(OutputHandler& OH) const
 	    		OH.Rotors()
 				<< std::setw(8) << GetLabel()	/* 1 */
 	    			<< " " << RRotTranspose*Res.Force()  /* 2-4 */
-				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
+				<< " " << RRotTranspose*Res.Moment() /* 5-7 */
 	    			<< " " << dUMean		/* 8 */
 	    			<< " " << dVelocity		/* 9 */
 	    			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
@@ -193,7 +193,7 @@ Rotor::Output(OutputHandler& OH) const
 					<< std::setw(8) << GetLabel()
 	    				<< ":" << ppRes[i]->GetLabel()
 	    				<< " " << ppRes[i]->pRes->Force()
-	    				<< " " << ppRes[i]->pRes->Couple()
+	    				<< " " << ppRes[i]->pRes->Moment()
 	    				<< std::endl;
 	    		}
 		}
@@ -202,7 +202,7 @@ Rotor::Output(OutputHandler& OH) const
 		OH.Rotors()
 			<< std::setw(8) << GetLabel()	/* 1 */
 			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
-			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
+			<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
 			<< " " << dUMean		/* 8 */
 			<< " " << dVelocity		/* 9 */
 			<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
@@ -220,7 +220,7 @@ Rotor::Output(OutputHandler& OH) const
 				<< std::setw(8) << GetLabel()
 				<< ":" << ppRes[i]->GetLabel()
 				<< " " << ppRes[i]->pRes->Force()
-				<< " " << ppRes[i]->pRes->Couple()
+				<< " " << ppRes[i]->pRes->Moment()
 				<< std::endl;
 		}
 #endif /* !USE_MPI */
@@ -582,27 +582,25 @@ NoRotor::Restart(std::ostream& out) const
 	return Rotor::Restart(out) << "no;" << std::endl;
 }
 
-/* Somma alla trazione il contributo di forza di un elemento generico */
+// Somma alla trazione il contributo di forza di un elemento generico
 void
 NoRotor::AddForce(unsigned int uL,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
-	/*
-	 * Non gli serve in quanto non calcola velocita' indotta.
-	 * Solo se deve fare l'output lo calcola
-	 */
+	// Non gli serve in quanto non calcola velocita' indotta.
+	// Solo se deve fare l'output lo calcola
 #ifdef USE_MPI
 	if (ReqV != MPI::REQUEST_NULL) {
 		while (!ReqV.Test()) {
 			MYSLEEP(mysleeptime);
 		}
 	}
-#endif /* USE_MPI */
+#endif // USE_MPI
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_lock(&forces_mutex);
 	Wait();
-#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
@@ -611,7 +609,7 @@ NoRotor::AddForce(unsigned int uL,
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	pthread_mutex_unlock(&forces_mutex);
-#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 }
 
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
@@ -1347,7 +1345,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 			OH.Rotors()
 				<< std::setw(8) << GetLabel()	/* 1 */
 				<< " " << RRotTranspose*Res.Force()  /* 2-4 */
-				<< " " << RRotTranspose*Res.Couple() /* 5-7 */
+				<< " " << RRotTranspose*Res.Moment() /* 5-7 */
 				<< " " << dUMean	/* 8 */
 				<< " " << dVelocity	/* 9 */
 				<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
@@ -1367,7 +1365,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 					<< std::setw(8) << GetLabel()
 	    				<< ":" << ppRes[i]->GetLabel()
 					<< " " << ppRes[i]->pRes->Force()
-					<< " " << ppRes[i]->pRes->Couple()
+					<< " " << ppRes[i]->pRes->Moment()
 					<< std::endl;
 			}
 		}
@@ -1376,7 +1374,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 		OH.Rotors()
 			<< std::setw(8) << GetLabel()	/* 1 */
 			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
-			<< " " << RRotTranspose*Res.Couple()	/* 5-7 */
+			<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
 			<< " " << dUMean	/* 8 */
 			<< " " << dVelocity	/* 9 */
 			<< " " << atan2(dSinAlphad,dCosAlphad)	/* 10 */
@@ -1396,7 +1394,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 				<< std::setw(8) << GetLabel()
     				<< ":" << ppRes[i]->GetLabel()
 				<< " " << ppRes[i]->pRes->Force()
-				<< " " << ppRes[i]->pRes->Couple()
+				<< " " << ppRes[i]->pRes->Moment()
 				<< std::endl;
 		}
 #endif /* !USE_MPI */
@@ -1518,7 +1516,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 		      			dSinP, dCosP, 0.,
 		      			0., 0., 1.);
 
-		   	Vec3 M(RTmp*(RRotTranspose*Res.Couple()));
+		   	Vec3 M(RTmp*(RRotTranspose*Res.Moment()));
 
 		 	/* Thrust, roll and pitch coefficients */
 		 	dCT = dT/dDim;

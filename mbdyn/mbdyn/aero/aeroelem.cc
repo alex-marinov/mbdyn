@@ -178,7 +178,7 @@ DriveOwner(pDC),
 AerodynamicOutput(fOut, iNN*iN, uFlags, ood),
 aerodata(a),
 pIndVel(pR),
-fPassiveInducedVelocity(0),
+bPassiveInducedVelocity(false),
 Chord(pC),
 ForcePoint(pF),
 VelocityPoint(pV),
@@ -827,6 +827,38 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 #endif /* USE_NETCDF */
 }
 
+// only send forces if:
+// 1) an induced velocity model is defined
+// 2) this element is not "passive" (i.e. contributes to induced velocity)
+// 3) the induced velocity model does not require sectional forces
+template <unsigned iNN>
+void 
+Aerodynamic2DElem<iNN>::AddForce_int(const Vec3& F,
+	const Vec3& M, const Vec3& X) const
+{
+	if (pIndVel != 0 && !bPassiveInducedVelocity
+		&& !pIndVel->bSectionalForces())
+	{
+		pIndVel->AddForce(GetLabel(), F, M, X);
+	}
+}
+
+// only send forces if:
+// 1) an induced velocity model is defined
+// 2) this element is not "passive" (i.e. contributes to induced velocity)
+// 3) the induced velocity model require sectional forces
+template <unsigned iNN>
+void
+Aerodynamic2DElem<iNN>::AddSectionalForce_int(const Vec3& F,
+	const Vec3& M, doublereal dW, const Vec3& X) const
+{
+	if (pIndVel != 0 && !bPassiveInducedVelocity
+		&& pIndVel->bSectionalForces())
+	{
+		pIndVel->AddSectionalForce(GetLabel(), F, M, dW, X);
+	}
+}
+
 /* Aerodynamic2DElem - end */
 
 
@@ -1296,11 +1328,18 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		}
 
 		/* Dimensionalizza le forze */
-		doublereal dWght = PW.dGetWght();
+		doublereal dWght = dHalfSpan*PW.dGetWght();
 		dTng[1] *= TipLoss.dGet(dCsi);
-		Vec3 FTmp(RRloc*(Vec3(&dTng[0])*(dHalfSpan*dWght)));
+		Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
+		Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
+
+		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		AddSectionalForce_int(FTmp, MTmp, dWght, Xn);
+
+		FTmp *= dWght;
+		MTmp *= dWght;
+
 		F += FTmp;
-		Vec3 MTmp = RRloc*(Vec3(&dTng[3])*(dHalfSpan*dWght));
 		M += MTmp;
 		M += Xr.Cross(FTmp);
 
@@ -1313,10 +1352,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 
 	} while (GDI.fGetNext(PW));
 
-	/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-	if (pIndVel != 0 && !fPassiveInducedVelocity) {
-		pIndVel->AddForce(GetLabel(), F, M, Xn);
-	}
+	// Se e' definito il rotore, aggiungere il contributo alla trazione
+	AddForce_int(F, M, Xn);
 
 	/* Sommare il termine al residuo */
 	WorkVec.Add(1, F);
@@ -1384,6 +1421,7 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 	unsigned uLabel, const char *sElemType)
 {
 	bool bReadIV(false);
+	bool bReadUDIV(false);
 	InducedVelocity *pIndVel = 0;
 	if (HP.IsKeyWord("rotor")) {
 		silent_cerr(sElemType << "(" << uLabel << "): "
@@ -1396,6 +1434,10 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 
 	} else if (HP.IsKeyWord("induced" "velocity")) {
 		bReadIV = true;
+
+	} else if (HP.IsKeyWord("user" "defined" "induced" "velocity")) {
+		bReadIV = true;
+		bReadUDIV = true;
 	}
 
 	if (bReadIV) {
@@ -1408,14 +1450,34 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		 * NOTA: ovviamente il rotore deve essere definito
 		 * prima dell'elemento aerodinamico
 		 */
-		Elem* p = pDM->pFindElem(Elem::INDUCEDVELOCITY, uIV);
-		if (p == 0) {
-			silent_cerr(sElemType << "(" << uLabel << "): "
-				"InducedVelocity(" << uIV << ") not defined "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		Elem* p;
+
+		if (bReadUDIV) {
+			p = pDM->pFindElem(Elem::LOADABLE, uIV);
+			if (p == 0) {
+				silent_cerr(sElemType << "(" << uLabel << "): "
+					"user-defined InducedVelocity(" << uIV << ") not defined "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+		} else {
+	 		p = pDM->pFindElem(Elem::INDUCEDVELOCITY, uIV);
+			if (p == 0) {
+				silent_cerr(sElemType << "(" << uLabel << "): "
+					"InducedVelocity(" << uIV << ") not defined "
+					"at line " << HP.GetLineData()
+					<< std::endl);
+
+				// try a user-defined one?
+				p = pDM->pFindElem(Elem::LOADABLE, uIV);
+				if (p == 0 || !dynamic_cast<InducedVelocity *>(p)) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
 		}
+
 		pIndVel = dynamic_cast<InducedVelocity *>(p);
 		ASSERT(pIndVel != 0);
 	}
@@ -2304,9 +2366,15 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
-			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
+			Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
+			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
+
+			// Se e' definito il rotore, aggiungere il contributo alla trazione
+			AddSectionalForce_int(FTmp, MTmp, dWght, Xr);
+
+			FTmp *= dWght;
+			MTmp *= dWght;
 			F[iNode] += FTmp;
-			Vec3 MTmp = RRloc*(Vec3(&dTng[3])*dWght);
 			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
 
@@ -2319,14 +2387,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 
 		} while (GDI.fGetNext(PW));
 
-		/*
-		 * Se e' definito il rotore, aggiungere il contributo
-		 * alla trazione
-		 */
-		if (pIndVel != 0 && !fPassiveInducedVelocity) {
-			pIndVel->AddForce(GetLabel(),
-					F[iNode], M[iNode], Xn[iNode]);
-		}
+		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		AddForce_int(F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
 		WorkVec.Add(6*iNode + 1, F[iNode]);
@@ -3200,9 +3262,15 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			/* Dimensionalizza le forze */
 			doublereal dWght = dXds*dsdCsi*PW.dGetWght();
 			dTng[1] *= TipLoss.dGet(dCsi);
-			Vec3 FTmp(RRloc*(Vec3(&dTng[0])*dWght));
+			Vec3 FTmp(RRloc*(Vec3(&dTng[0])));
+			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
+
+			// Se e' definito il rotore, aggiungere il contributo alla trazione
+			AddSectionalForce_int(FTmp, MTmp, dWght, Xr);
+
+			FTmp *= dWght;
+			MTmp *= dWght;
 			F[iNode] += FTmp;
-			Vec3 MTmp = RRloc*(Vec3(&dTng[3])*dWght);
 			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
 
@@ -3215,11 +3283,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 
 		} while (GDI.fGetNext(PW));
 
-		/* Se e' definito il rotore, aggiungere il contributo alla trazione */
-		if (pIndVel != 0 && !fPassiveInducedVelocity) {
-			pIndVel->AddForce(GetLabel(),
-				F[iNode], M[iNode], Xn[iNode]);
-		}
+		// Se e' definito il rotore, aggiungere il contributo alla trazione
+		AddForce_int(F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
 		WorkVec.Add(6*iNode + 1, F[iNode]);

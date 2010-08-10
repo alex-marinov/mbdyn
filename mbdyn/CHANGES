@@ -17,6 +17,8 @@ MBDyn 1.X-Devel
 		- support multiple eigenanalyses per simulation
 		- added "receive first" option to stream input
 		- added structural mapping scripts (Giuseppe Quaranta)
+		- allow user-defined induced velocity models
+		- allow induced velocity models based on sectional forces
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
