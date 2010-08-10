@@ -53,19 +53,21 @@ struct tmp_sym {
 };
 
 tmp_sym consts[] = {
-	{ "e",         Real(M_E)        },
-	{ "pi",        Real(M_PI)       },
-	{ "RAND_MAX",  Int(RAND_MAX)    }, // 2147483647
-	{ "in2m",      Real(.0254)      }, // inches -> meters
-	{ "m2in",      Real(1./.0254)   }, // meters -> inches
-	{ "in2mm",     Real(25.4)       }, // inches -> millimeters
-	{ "mm2in",     Real(1./25.4)    }, // millimeters -> inches
-	{ "ft2m",      Real(.3048)      }, // feet -> meters
-	{ "m2ft",      Real(1./.3048)   }, // meters -> feet
-	{ "lb2kg",     Real(.4535)      }, // pounds -> kg
-	{ "kg2lb",     Real(1./.4535)   }, // kg -> pounds
-	{ "deg2rad",   Real(M_PI/180.)  }, // degrees -> radians
-	{ "rad2deg",   Real(180./M_PI)  }, // radians -> degrees
+	{ "e",         Real(M_E)          },
+	{ "pi",        Real(M_PI)         },
+	{ "RAND_MAX",  Int(RAND_MAX)      }, // 2147483647
+	{ "in2m",      Real(.0254)        }, // inches -> meters
+	{ "m2in",      Real(1./.0254)     }, // meters -> inches
+	{ "in2mm",     Real(25.4)         }, // inches -> millimeters
+	{ "mm2in",     Real(1./25.4)      }, // millimeters -> inches
+	{ "ft2m",      Real(.3048)        }, // feet -> meters
+	{ "m2ft",      Real(1./.3048)     }, // meters -> feet
+	{ "lb2kg",     Real(.45359237)    }, // pounds -> kg
+	{ "kg2lb",     Real(1./.45359237) }, // kg -> pounds
+	{ "deg2rad",   Real(M_PI/180.)    }, // degrees -> radians
+	{ "rad2deg",   Real(180./M_PI)    }, // radians -> degrees
+	{ "slug2kg",   Real(9.80665/.3048*.45359237) }, // slugs -> kilograms (14.5939029372064)
+	{ "kg2slug",   Real(.3048/.45359237/9.80665) }, // kilograms -> slugs (0.0685217658567918)
 
 	// add as needed...
 

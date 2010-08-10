@@ -130,7 +130,7 @@ When MBDyn is invoked with the `\texttt{-H}' option,
 \end{verbatim}
 it prints the predefined variables table.
 A typical output is shown in Figure~\ref{fig:MBDYN-H}.
-Values are stored with the maximum precision allowed by the underlying
+Real values are stored with the maximum precision allowed by the underlying
 \kw{real} type (by default, double precision, 64 bit).
 
 \begin{figure}
@@ -153,19 +153,21 @@ Use 'mbdyn --license' to see the conditions.
 There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty" for details.
 
 default symbol table:
-  real mm2in = 0.0393701
-  real lb2kg = 0.4535
-  real m2in = 39.3701
-  real m2ft = 3.28084
-  real in2m = 0.0254
-  real in2mm = 25.4
-  real pi = 3.14159
-  real deg2rad = 0.0174533
-  real kg2lb = 2.20507
-  real e = 2.71828
-  real rad2deg = 57.2958
-  int RAND_MAX = 2147483647
-  real ft2m = 0.3048
+  const integer RAND_MAX = 2147483647
+  const real deg2rad = 0.0174533
+  const real e = 2.71828
+  const real ft2m = 0.3048
+  const real in2m = 0.0254
+  const real in2mm = 25.4
+  const real kg2lb = 2.20462
+  const real kg2slug = 0.0685218
+  const real lb2kg = 0.453592
+  const real m2ft = 3.28084
+  const real m2in = 39.3701
+  const real mm2in = 0.0393701
+  const real pi = 3.14159
+  const real rad2deg = 57.2958
+  const real slug2kg = 14.5939
 
 MBDyn terminated normally
 user@host:~>
