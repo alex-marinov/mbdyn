@@ -821,9 +821,13 @@ Solver::Run(void)
 		EigAn.currAnalysis--;
 	}
 
+	// if eigenanalysis is requested and currAnalysis points
+	// past the end of the array, the analysis was requested
+	// at Time <= current time
 	if (EigAn.bAnalysis
-		&& EigAn.currAnalysis != EigAn.Analyses.end()
-		&& *EigAn.currAnalysis <= dTime)
+		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
+				&& EigAn.Analyses.back() == dTime)
+			|| *EigAn.currAnalysis <= dTime))
 	{
 		Eig();
 		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
