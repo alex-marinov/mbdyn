@@ -56,11 +56,10 @@ extern "C" {
 
 /* InducedVelocity - begin */
 
-InducedVelocity::InducedVelocity(unsigned int uL, const DofOwner* pDO,
+InducedVelocity::InducedVelocity(unsigned int uL,
 	const StructNode *pCraft,
 	ResForceSet **ppres, flag fOut)
 : Elem(uL, fOut),
-AerodynamicElem(uL, pDO, fOut),
 #ifdef USE_MPI
 is_parallel(false),
 pBlockLenght(0),
@@ -103,20 +102,6 @@ InducedVelocity::~InducedVelocity(void)
 	pthread_cond_destroy(&induced_velocity_cond);
 	pthread_mutex_destroy(&forces_mutex);
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
-}
-
-/* Tipo dell'elemento (usato per debug ecc.) */
-Elem::Type
-InducedVelocity::GetElemType(void) const
-{
-	return Elem::INDUCEDVELOCITY;
-}
-
-/* Tipo dell'elemento (usato per debug ecc.) */
-AerodynamicElem::Type
-InducedVelocity::GetAerodynamicElemType(void) const
-{
-	return AerodynamicElem::INDUCEDVELOCITY;
 }
 
 bool
@@ -310,6 +295,39 @@ InducedVelocity::Done(void) const
 	pthread_mutex_unlock(&induced_velocity_mutex);
 }
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
+
+/* InducedVelocity - end */
+
+/* InducedVelocityElem - begin */
+
+InducedVelocityElem::InducedVelocityElem(unsigned int uL, const DofOwner* pDO,
+	const StructNode *pCraft,
+	ResForceSet **ppres, flag fOut)
+: Elem(uL, fOut),
+AerodynamicElem(uL, pDO, fOut),
+InducedVelocity(uL, pCraft, ppres, fOut)
+{
+	NO_OP;
+}
+
+InducedVelocityElem::~InducedVelocityElem(void)
+{
+	NO_OP;
+}
+
+/* Tipo dell'elemento (usato per debug ecc.) */
+Elem::Type
+InducedVelocityElem::GetElemType(void) const
+{
+	return Elem::INDUCEDVELOCITY;
+}
+
+/* Tipo dell'elemento (usato per debug ecc.) */
+AerodynamicElem::Type
+InducedVelocityElem::GetAerodynamicElemType(void) const
+{
+	return AerodynamicElem::INDUCEDVELOCITY;
+}
 
 /* InducedVelocity - end */
 

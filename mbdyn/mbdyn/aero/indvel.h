@@ -46,7 +46,7 @@
 /* InducedVelocity - begin */
 
 class InducedVelocity
-: virtual public Elem, public AerodynamicElem {
+: virtual public Elem {
 public:
 	enum Type {
 		UNKNOWN = -1,
@@ -116,19 +116,12 @@ protected:
 	ResForceSet **ppRes;
 
 public:
-	InducedVelocity(unsigned int uL, const DofOwner* pDO,
+	InducedVelocity(unsigned int uL,
 		const StructNode* pCraft,
 		ResForceSet **ppres, flag fOut);
 	virtual ~InducedVelocity(void);
 
 	// funzioni di servizio
-
-	// Tipo dell'elemento (usato per debug ecc.)
-	virtual Elem::Type GetElemType(void) const;
-	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
-
-	// Return "true" if sectional forces are needed
-	virtual bool bSectionalForces(void) const;
 
 	/* Metodi per l'estrazione di dati "privati".
 	 * Si suppone che l'estrattore li sappia interpretare.
@@ -136,6 +129,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	// Return "true" if sectional forces are needed
+	virtual bool bSectionalForces(void) const;
 
 	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
 	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a
@@ -155,46 +151,6 @@ public:
 	// ritorna il numero di Dofs per gli elementi che sono anche DofOwners
 	virtual unsigned int iGetNumDof(void) const {
 		return 0;
-	};
-
-	// esegue operazioni sui dof di proprieta' dell'elemento
-	virtual DofOrder::Order GetDofType(unsigned int i) const {
-		ASSERT(i >= 0 && i < this->iGetNumDof());
-		return DofOrder::DIFFERENTIAL;
-	};
-
-	// funzioni proprie */
-
-	// Dimensioni del workspace
-	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 0;
-		*piNumCols = 0;
-	};
-
-	// assemblaggio jacobiano
-	virtual VariableSubMatrixHandler&
-	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr);
-
-	// Elaborazione stato interno dopo la convergenza
-	virtual void
-	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
-
-	// Relativo ai ...WithDofs
-	virtual void SetInitialValue(VectorHandler& /* X */ ) {
-		NO_OP;
-	};
-
-	// Relativo ai ...WithDofs
-	virtual void
-	SetValue(DataManager *pDM,
-		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
-		SimulationEntity::Hints *ph = 0)
-	{
-		NO_OP;
 	};
 
 	// Type
@@ -243,6 +199,38 @@ public:
 	// in base alla posizione azimuthale
 	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
 
+	// Dimensioni del workspace
+	virtual void
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 0;
+		*piNumCols = 0;
+	};
+
+	// assemblaggio jacobiano
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	// Elaborazione stato interno dopo la convergenza
+	virtual void
+	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+
+	// Relativo ai ...WithDofs
+	virtual void SetInitialValue(VectorHandler& /* X */ ) {
+		NO_OP;
+	};
+
+	// Relativo ai ...WithDofs
+	virtual void
+	SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& /* XP */ ,
+		SimulationEntity::Hints *ph = 0)
+	{
+		NO_OP;
+	};
+
 	// *******PER IL SOLUTORE PARALLELO********
 	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	// utile per l'assemblaggio della matrice di connessione fra i dofs
@@ -262,6 +250,45 @@ public:
 
 /* InducedVelocity - end */
 
+/* InducedVelocityElem - begin */
+
+class InducedVelocityElem
+: virtual public Elem, public AerodynamicElem, public InducedVelocity {
+public:
+	InducedVelocityElem(unsigned int uL, const DofOwner* pDO,
+		const StructNode* pCraft,
+		ResForceSet **ppres, flag fOut);
+	virtual ~InducedVelocityElem(void);
+
+	// funzioni di servizio
+
+	// Tipo dell'elemento (usato per debug ecc.)
+	virtual Elem::Type GetElemType(void) const;
+	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
+
+	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
+	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a
+	 * ritornare 0 per gli elementi che non possiedono gradi di liberta'.
+	 * Viene usato nella costruzione dei DofOwner e quindi deve essere
+	 * indipendente da essi. In genere non comporta overhead in quanto il
+	 * numero di dof aggiunti da un tipo e' una costante e non richede dati
+	 * propri.
+	 * Il metodo pGetDofOwner() ritorna il puntatore al DofOwner dell'oggetto.
+	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
+	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
+	 * dof propri.
+	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
+	 * E' usato per completare i singoli Dof relativi all'elemento.
+	 */
+
+	// esegue operazioni sui dof di proprieta' dell'elemento
+	virtual DofOrder::Order GetDofType(unsigned int i) const {
+		ASSERT(i >= 0 && i < this->iGetNumDof());
+		return DofOrder::DIFFERENTIAL;
+	};
+};
+
+/* InducedVelocityElem - end */
 
 #endif // INDVEL_H
 

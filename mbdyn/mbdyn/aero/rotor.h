@@ -41,7 +41,7 @@ extern const char* psRotorNames[];
 /* Rotor - begin */
 
 class Rotor
-: virtual public Elem, public InducedVelocity {
+: virtual public Elem, public InducedVelocityElem {
 protected:
 	const StructNode* pRotor;
 	const StructNode* pGround;

@@ -50,7 +50,7 @@ CyclocopterInflow::CyclocopterInflow(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pR, ResForceSet **ppres, 
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
+InducedVelocityElem(uL, pDO, pC, ppres, fOut),
 pRotor(pR),
 RRot(rrot)
 {
@@ -903,7 +903,7 @@ CyclocopterKARI::CyclocopterKARI(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, ResForceSet **ppres, flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
+InducedVelocityElem(uL, pDO, pC, ppres, fOut),
 pRotor(pR),
 RRot(rrot)
 {	

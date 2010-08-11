@@ -68,7 +68,7 @@ Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	unsigned int iMaxIt, const doublereal& dTol, const doublereal& dE,
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocity(uL, pDO, pC, ppres, fOut),
+InducedVelocityElem(uL, pDO, pC, ppres, fOut),
 pRotor(pR), pGround(pG),
 dOmegaRef(0.), dRadius(dR), dVTipRef(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),

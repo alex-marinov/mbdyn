@@ -44,7 +44,7 @@
 */
 
 class CyclocopterInflow
-: virtual public Elem, public InducedVelocity {
+: virtual public Elem, public InducedVelocityElem {
 protected:
 	const StructNode* pRotor;
 
@@ -453,7 +453,7 @@ Baltimore, MD, June 7-10, 2004.
 */
 
 class CyclocopterKARI
-: virtual public Elem, public InducedVelocity {
+: virtual public Elem, public InducedVelocityElem {
 protected:
 	const StructNode* pRotor;
 	Mat3x3 RRot;
