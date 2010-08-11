@@ -1,0 +1,161 @@
+# $Header$
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	# final time: 10.;
+	final time: .001;
+	time step: 1.e-3;
+
+	tolerance: 1.e-5;
+	max iterations: 10;
+
+	method: ms, .6;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-6;
+	derivatives max iterations: 10;
+	output: iterations;
+end: initial value;
+
+begin: control data;
+	structural nodes: 4;
+	rigid bodies: 3;
+	joints: 2;
+	beams: 1;
+	air properties;
+	loadable elements: 1;
+	aerodynamic elements: 1;
+
+	output results: netcdf;
+	# default orientation: orientation vector;
+	default aerodynamic output: all,
+		orientation description, orientation vector;
+	default beam output: all,
+		orientation description, orientation vector;
+end: control data;
+
+set: real OMEGA = 2*pi/160./1.e-3;
+set: real L = 5.;
+set: real C = .1;
+set: real M = 6.;
+# set: real theta_0 = 2.*deg2rad;
+set: real THETA_0 = 12.*deg2rad;
+
+reference: 1,
+	null,
+	# 0., 0., 5.e3,
+	eye,
+	null,
+	null;
+reference: 2,
+	reference, 1, null,
+	reference, 1, eye,
+	reference, 1, null,
+	reference, 1, 0.,0.,OMEGA;
+reference: 3,
+	reference, 2, null,
+	reference, 2,
+		1, 0., cos(THETA_0), sin(THETA_0),
+		3, 1., 0., 0.,
+	reference, 2, null,
+	reference, 2, null;
+
+begin: nodes;
+	structural: 1000, static,
+		reference, 1, null,
+		reference, 1, eye,
+		reference, 1, null,
+		reference, 1, null;
+	structural: 1, dynamic,
+		reference, 2, null,
+		reference, 2, eye,
+		reference, 2, null,
+		reference, 2, null;
+	structural: 2, dynamic,
+		reference, 2, L/2, 0., 0.,
+		reference, 2, eye,
+		reference, 2, null,
+		reference, 2, null;
+	structural: 3, dynamic,
+		reference, 2, L, 0., 0.,
+                reference, 2, eye,
+		reference, 2, null,
+		reference, 2, null;
+end: nodes;
+
+begin: elements;
+	joint: 1000, clamp, 1000, node, node;
+	joint: 1, axial rotation,
+		1000, reference, 1, null,
+		1, reference, 1, null,
+		const, OMEGA;
+
+	body: 1, 1,
+		M/4,
+		L/8, 0., 0.,
+		diag, 1., 1/12.*M/4*(L/4)^2, 1/12.*M/4*(L/4)^2;
+	body: 2, 2,
+		M/2.,
+		null,
+		diag, 1., 1/12.*M/2*(L/2)^2, 1/12.*M/2*(L/2)^2;
+	body: 3, 3,
+		M/4,
+		-L/8,0.,0.,
+		diag, 1., 1/12.*M/4*(L/4)^2, 1/12.*M/4*(L/4)^2;
+
+	beam: 1,
+		1, null,
+		2, null,
+		3, null,
+		eye,
+		linear viscoelastic generic,
+			diag, 1.e8,1.e8,1.e8, 1.e5,1.e5,1.e6,
+			proportional, 1.e-3,
+		same,
+		same;
+/*
+    air properties: 1.225, 340.,
+                    single, 1.,0.,0.,
+		            const, 0.*.3*(5.*40.);
+*/
+	scalar function: "MyGust", const, 1.;
+	air properties: std, SI,
+		single, 1., 0., 0.,
+			const, 0.*.3*(5.*40.),
+		gust,
+		# power law, reference elevation, 80., reference velocity, 12., exponent, .09;
+		# logarithmic, reference elevation, 80., reference velocity, 12., surface roughness length, .25;
+		scalar function, "MyGust";
+
+	c81data: 1, "../../var/naca0012.c81";
+
+	# create a symlink to libmodule-charm.so in this folder
+	module load: "./libmodule-charm.so";
+	user defined: 1, charm, 1, output, yes;
+	aerodynamic beam: 1, 1, induced velocity, 1,
+		reference, node, null,
+		reference, 3, eye,
+		reference, node, null,
+		reference, 3, eye,
+		reference, node, null,
+		reference, 3, eye,
+		const, C,
+		const, 0.,
+		const, -.5*C,
+		const, 0.,
+		3,
+		# naca0012, unsteady, bielawa
+		# c81, 1 # , unsteady, bielawa
+		c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+end: elements;
+
+# vim:ft=mbd
