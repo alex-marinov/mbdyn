@@ -36,7 +36,6 @@
 #include <cmath>
 
 #include "dataman.h"
-#include "aeroelem.h"
 #include "genfm.h"
 #include "bisec.h"
 
