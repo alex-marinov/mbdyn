@@ -144,7 +144,7 @@ MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumCols())
 	{
-		char *strop;
+		const char *strop;
 
 		if (op == &MatrixHandler::IncCoef) {
 			strop = "+=";
@@ -192,7 +192,7 @@ MatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 		|| out_nc != in.iGetNumCols()
 		|| in_nr != iGetNumRows())
 	{
-		char *strop;
+		const char *strop;
 
 		if (op == &MatrixHandler::IncCoef) {
 			strop = "+=";
