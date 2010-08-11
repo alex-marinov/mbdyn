@@ -84,12 +84,12 @@ The block sequence is:
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{begin} : \kw{data} ;
         # select a problem
-        \kw{problem} : \bnt{problem} ;
+        \kw{problem} : \bnt{problem_name} ;
     \kw{end} : \kw{data} ;
 
-    \kw{begin} : \bnt{problem} ;
+    \kw{begin} : \bnt{problem_name} ;
         # problem-specific data
-    \kw{end} : \bnt{problem} ;
+    \kw{end} : \bnt{problem_name} ;
 
     \kw{begin} : \kw{control data} ;
         # model control data
@@ -114,7 +114,7 @@ The \kw{drivers} block is optional.
 The Schur solver allows an extra block after that of the elements:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    # note: optional; only allowed when Schur solver is defined in \nt{problem}
+    # note: optional; only allowed when Schur solver is defined in \nt{problem_name}
     \kw{begin} : \kw{parallel} ;
         # parallel data
     \kw{end} : \kw{parallel} ;
