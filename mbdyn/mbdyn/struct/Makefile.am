@@ -79,13 +79,6 @@ rodj.cc \
 rodj.h \
 shapefnc.cc \
 shapefnc.h \
-shell.cc \
-shell.h \
-shell.hc \
-shelleasans.cc \
-shelleasans.h \
-shelleas.cc \
-shelleas.h \
 socketstreammotionelem.cc \
 socketstreammotionelem.h \
 spherj.cc \
@@ -118,12 +111,23 @@ vehj3.h
 
 nodist_libstruct_la_SOURCES =
 
+# screw
 if MBDYN_DEVEL
 nodist_libstruct_la_SOURCES += \
 screwjoint.h \
-screwjoint.cc \
+screwjoint.cc
+endif
+
+# shell
+if MBDYN_DEVEL
+nodist_libstruct_la_SOURCES += \
 shell.cc \
-shell.h
+shell.h \
+shell.hc \
+shelleasans.cc \
+shelleasans.h \
+shelleas.cc \
+shelleas.h
 endif
 
 libstruct_la_LIBADD = @LIBS@
