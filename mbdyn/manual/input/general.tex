@@ -1659,7 +1659,7 @@ value.
         \bnt{initial_time} ,
         \bnt{angular_velocity} ,
         \bnt{amplitude} ,
-        { [ - ] \bnt{number_of_cycles} | \kw{half} | \kw{one} | \kw{forever} } , 
+        \{ [ - ] \bnt{number_of_cycles} | \kw{half} | \kw{one} | \kw{forever} \} , 
         \bnt{initial_value}
 \end{Verbatim}
 %\end{verbatim}
@@ -1707,7 +1707,7 @@ Special keywords can be used for \nt{number\_of\_cycles}:
     \bnt{drive_caller} ::= \kw{cubic} ,
         \bnt{const_coef} , 
         \bnt{linear_coef} ,
-        \bnt{parabolic_coef}, 
+        \bnt{parabolic_coef} , 
         \bnt{cubic_coef}
 \end{Verbatim}
 %\end{verbatim}
@@ -2499,7 +2499,7 @@ In the case of the \kw{component} template drive caller,
 as many instances of a \ty{DriveCaller} as the dimensionality
 of the template drive caller are expected.
 
-At least 1 drive caller is expected in the case of the \kw{array}
+At least one drive caller is expected in the case of the \kw{array}
 template drive caller. 
 If \nt{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
@@ -2514,10 +2514,12 @@ In this case, the syntax of the \kw{hint} is:
 \end{Verbatim}
 %\end{verbatim}
 where \nt{n} is the dimension of \nt{entity}.
-For example, a \ty{Vec3} drive hint is:
+For example, a \ty{TplDriveCaller<Vec3>} drive hint is:
 \begin{verbatim}
-    "drive3{ 1., 0., 0. , sine, 0., 2*pi, 1., forever, 0.}"
+    "drive3{ 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}
+which corresponds to a vector \texttt{1., 0., 0.} that multiplies
+a \kw{sine} drive caller with the parameters illustrated above.
 
 
 
