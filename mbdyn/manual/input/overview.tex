@@ -46,10 +46,10 @@ Every statement (or `card') follows the syntax:
 \nt{arglist} is a(n optional) list of arguments, that is driven by the 
 \nt{description} that identifies the card. 
 The keyword can be made of multiple words separated by spaces or tabs; 
-the extra spaces are skipped\footnote{
+the extra spaces\footnote{
 	Anything that makes the C function \texttt{isspace()} 
 	return \kw{true}
-}, and the match is case insensitive. 
+} are skipped, and the match is case insensitive. 
 The arguments are usually separated by commas\footnote{
 	A few exceptions require a colon to separate blocks of arguments;
 	wherever it is feasible, those exceptions will be eliminated 
@@ -84,10 +84,11 @@ The block sequence is:
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{begin} : \kw{data} ;
         # select a problem
+        \kw{problem} : \bnt{problem} ;
     \kw{end} : \kw{data} ;
 
     \kw{begin} : \bnt{problem} ;
-        # problem data
+        # problem-specific data
     \kw{end} : \bnt{problem} ;
 
     \kw{begin} : \kw{control data} ;
@@ -98,7 +99,7 @@ The block sequence is:
         # nodes data
     \kw{end} : \kw{nodes} ;
 
-    # note: optional, if defined in \kw{control data}
+    # note: optional, if requested in \kw{control data}
     \kw{begin} : \kw{drivers} ;
         # special drivers data
     \kw{end} : \kw{drivers} ;

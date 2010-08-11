@@ -141,16 +141,18 @@ Real values are stored with the maximum precision allowed by the underlying
 \begin{verbatim}
 user@host:~> mbdyn -H
 
-MBDyn - MultiBody Dynamics 1.2-Engineering
-compiled on May 20 2004 at 10:42:24
+MBDyn - MultiBody Dynamics 1.X-Devel
+compiled on Jul 25 2010 at 21:36:59
 
-Copyright 1997-2010 (C) Paolo Mantegazza and Pierangelo Masarati,
-Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano.
+Copyright 1996-2010 (C) Paolo Mantegazza and Pierangelo Masarati,
+Dipartimento di Ingegneria Aerospaziale <http://www.aero.polimi.it/>
+Politecnico di Milano                   <http://www.polimi.it/>
 
-MBDyn is free software, covered by the GNU General Public License, and you are
-welcome to change it and/or distribute copies of it under certain conditions.
-Use 'mbdyn --license' to see the conditions.
-There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty" for details.
+MBDyn is free software, covered by the GNU General Public License,
+and you are welcome to change it and/or distribute copies of it
+under certain conditions.  Use 'mbdyn --license' to see the conditions.
+There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty"
+for details.
 
 default symbol table:
   const integer RAND_MAX = 2147483647
@@ -170,10 +172,9 @@ default symbol table:
   const real slug2kg = 14.5939
 
 MBDyn terminated normally
-user@host:~>
 \end{verbatim}
 \end{minipage}
-\caption{Predefined variables in math parser}
+\caption{Predefined constants in math parser}
 \end{figure}
 
 The variable \kw{Time} is declared, defined and initialized\footnote{
@@ -303,7 +304,7 @@ can be reassigned.
 
 \begin{table}
 	\begin{center}
-	\caption{Predefined variables in math parser}\label{tab:MATHP-VARS}
+	\caption{Predefined variables and constantsin math parser}\label{tab:MATHP-VARS}
 	\begin{tabular}{lll}
 		\hline
 		\multicolumn{1}{c}{\textbf{Name}} &
@@ -314,8 +315,9 @@ can be reassigned.
 		\kw{TimeStep} & Real & Current simulation time step \\
 		\kw{Step} & Integer & Current simulation step \\
 		\kw{Var} & Real & \multicolumn{1}{p{.5\textwidth}}{Set
-			by dof, node, or element drive caller with
-			DOF value, node or element private data value} \\
+			by \kw{dof}, \kw{node}, or \kw{element}
+			drive callers with degree of freedom value,
+			node or element private data value, respectively} \\
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
@@ -327,10 +329,12 @@ can be reassigned.
 		\kw{mm2in} & Real & Meter to inch ratio (1.0/25.4) \\
 		\kw{ft2m} & Real & Foot to meter ratio (0.3048) \\
 		\kw{m2ft} & Real & Meter to foot ratio (1.0/0.3048) \\
-		\kw{lb2kg} & Real & Pound to kilogram ratio (0.4535) \\
-		\kw{kg2lb} & Real & Kilogram to pound ratio (1.0/0.4535) \\
+		\kw{lb2kg} & Real & Pound to kilogram ratio (0.45359237) \\
+		\kw{kg2lb} & Real & Kilogram to pound ratio (1.0/0.45359237) \\
 		\kw{deg2rad} & Real & Degree to radian ratio ($\pi$/180) \\
 		\kw{rad2deg} & Real & Radian to degree ratio (180/$\pi$) \\
+		\kw{slug2kg} & Real & Slug to kilogram ratio (14.5939) \\
+		\kw{kg2slug} & Real & Kilogram to slug ratio (1.0/14.5939) \\
 		\hline
 	\end{tabular}
 	\end{center}
@@ -430,7 +434,7 @@ so that it gets registered to the appropriate code:
 \end{Verbatim}
 %\end{verbatim}
 where \texttt{OSQBR} and \texttt{CSQBR} stand for `open' and `close'
-square brackets, respectively, which shouldn't be confused with those
+square brackets, respectively, which should not be confused with those
 that indicate optional parameters.
 
 In the following, the built-in plugins\footnote{Built-in and plug-in
@@ -454,7 +458,13 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{plugin} ::= \kw{dof}
-    \bnt{arglist} ::= \bnt{label} , \bnt{type} [ , \bnt{index} ] , \{ \kw{algebraic} | \kw{differential} \}
+
+    \bnt{arglist} ::= \bnt{label} , \bnt{type}
+        [ , \bnt{index} ] ,
+        \{ \kw{algebraic} | \kw{differential} \}
+        [ , \kw{prev=} \bnt{prev} ]
+
+    \bnt{prev} ::= \{ \kw{true} | \kw{false} \}
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -466,6 +476,7 @@ if the node has more than one, while
 and of its derivative, respectively.
 The derivative can be requested only for those degrees of freedom
 that have one.
+When \nt{prev} is \kw{true}, the value at the previous time step is used.
 
 \paragraph{Example.} \
 The variable \texttt{VARNAME} takes the value of the derivative
@@ -504,13 +515,14 @@ since closing square brackets indicate the end
 of the plugin variable specification.
 
 \paragraph{Example.} \
-This implements the same variable defined in the \kw{dof} example,
-where the variable \texttt{VARNAME} takes the value of the derivative
-of \kw{abstract} node \texttt{NODENAME}
+This implements a variable \texttt{VARNAME} with exactly the same value
+of the one defined in the example of the \kw{dof} plugin,
+where the variable takes the value of the derivative
+of the \kw{abstract} node \texttt{NODENAME}
 \begin{verbatim}
     set: integer NODENAME = 1000;
     # the node must exist
-    set: [node,VARNAME,NODENAME,abstract,string,"xP"];
+    set: [node,VARNAME,NODENAME,abstract,string="xP"];
 \end{verbatim}
 
 
@@ -546,7 +558,7 @@ of the reaction force of \kw{joint} \texttt{ELEMNAME}
 \begin{verbatim}
     set: integer ELEMNAME = 1000;
     # the joint must exist
-    set: [element,VARNAME,ELEMNAME,joint,string,"Fz"];
+    set: [element,VARNAME,ELEMNAME,joint,string="Fz"];
 \end{verbatim}
 
 
@@ -703,7 +715,7 @@ results from the cross product of the third and the first vector.
 Examples:
 \begin{verbatim}
     1, 1.,0.,0., 2, 0.,1.,0.
-    1, (real alpha=pi/6.; cos(alpha)), sin(alpha), 0.,
+    1, (real ALPHA = pi/6.; cos(ALPHA)), sin(ALPHA), 0.,
         3, 0.,0.,1.
 \end{verbatim}
 The first example represents the identity matrix, i.e.\ no rotation 
