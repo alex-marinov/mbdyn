@@ -398,6 +398,8 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Elementi aerodinamici: rotori */
 		case ROTORS:
+			silent_cerr("deprecated \"rotors\", use \"induced velocity elements\" instead at line " << HP.GetLineData() << std::endl);
+			// fallthru
 		case INDUCEDVELOCITYELEMENTS: {
 			int iDmy = HP.GetInt();
 			ElemData[Elem::INDUCEDVELOCITY].iExpectedNum = iDmy;

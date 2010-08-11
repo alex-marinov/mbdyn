@@ -304,7 +304,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			case INDUCEDVELOCITY:
 			case ROTOR: {
-				DEBUGLCOUT(MYDEBUG_INPUT, "rotors" << std::endl);
+				DEBUGLCOUT(MYDEBUG_INPUT, "induced velocity elements" << std::endl);
 				Typ = Elem::INDUCEDVELOCITY;
 				break;
 			}
@@ -1476,15 +1476,17 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	/* Elementi aerodinamici: rotori */
-	case INDUCEDVELOCITY:
-	case ROTOR: {
-		silent_cout("Reading Rotor(" << uLabel << ")" << std::endl);
+	case ROTOR:
+		silent_cerr("InducedVelocity(" << uLabel << "): deprecated \"rotor\", use \"induced velocity\" instead at line " << HP.GetLineData() << std::endl);
+		// fallthru
+	case INDUCEDVELOCITY: {
+		silent_cout("Reading InducedVelocity(" << uLabel << ")" << std::endl);
 
 		if (iNumTypes[Elem::INDUCEDVELOCITY]-- <= 0) {
 			DEBUGCERR("");
-			silent_cerr("line " << HP.GetLineData() << ": "
-				"Rotor(" << uLabel << ") "
-				"exceeds rotor elements number" << std::endl);
+			silent_cerr("InducedVelocity(" << uLabel << "): "
+				"exceeds induced velocity elements number "
+				"at line " << HP.GetLineData() << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1492,9 +1494,9 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* verifica che non sia gia' definito */
 		if (pFindElem(Elem::INDUCEDVELOCITY, uLabel) != NULL) {
 			DEBUGCERR("");
-			silent_cerr("line " << HP.GetLineData() << ": "
-				"Rotor(" << uLabel << ") "
-				"already defined" << std::endl);
+			silent_cerr("InducedVelocity(" << uLabel << ") "
+				"already defined at line "
+				<< HP.GetLineData() << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
