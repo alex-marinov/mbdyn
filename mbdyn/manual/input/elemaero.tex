@@ -67,14 +67,14 @@ where
 
     # \bnt{elem_type} ::= \kw{aerodynamic body}
     \bnt{body_conn} ::= \bnt{node_label}
-        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
         (\ty{Vec3})              <relative_surface_offset> , 
         (\ty{OrientationMatrix}) <relative_surface_orientation> ,
         (\ty{Scalar})            <surface_span>
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam2}
     \bnt{beam2_conn} ::= \bnt{beam2_label}
-        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
         (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
         (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
         (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
@@ -82,7 +82,7 @@ where
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam3}
     \bnt{beam3_conn} ::= \bnt{beam3_label} 
-        [ , \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
         (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
         (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
         (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
@@ -125,10 +125,15 @@ By default, only forces are output.
 The custom output is only available in NetCDF format;
 see Section~\ref{sec:NetCDF:Elem:Aerodynamic}.
 
-The field \nt{induced\_velocity} tells the element that it is linked to an
-\kw{induced velocity} element.
+The field \nt{induced\_velocity} indicates the label
+of the \kw{induced velocity} element that this element is linked to.
 This means that the element can get information about the
 induced velocity and should supply information about the forces it generates.
+If the keyword \kw{user defined induced velocity} is used,
+then \nt{induced\_velocity} refers to a \kw{user defined} element.
+Note: if the keyword \kw{induced velocity} is used
+and no induced velocity element is found with the label \nt{induced velocity}
+a \kw{user defined} element with that label is looked up.
 
 An arbitrary relative orientation and offset is allowed for all elements with
 respect to the nodes they are linked to. 
@@ -157,9 +162,9 @@ of a rotor blade span, might be entirely missed when using too little
 spanwise elements with too little integration points.
 
 The span of the \kw{aerodynamic body} element is set by the user;
-the center-span of the element is assumed to be the end of the offset vector.
+the offset vector points to the center-span of the element.
 The span of the \kw{aerodynamic beam2} and \kw{aerodynamic beam3} elements
-is computed based on the metrics of the beam, from the first to the last node.
+is computed based on the metric of the beam, from the first to the last node.
 
 The aerodynamic center and the velocity measurement points are measured
 relative to the centerline of the elements, that is the line in direction 3
