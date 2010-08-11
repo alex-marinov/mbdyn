@@ -214,6 +214,21 @@ function sideprop_add(name, color) {
 	sideprop_num++;
 }
 
+function side_add(name, numnodes, nodelabels, prop) {
+	side[side_num] = name;
+	side[side_num, "N"] = numnodes;
+	for (i = 1; i <= numnodes; i++) {
+		# check if exists?
+		if (!(i in nodelabels)) {
+			print "node #" i " of " numnodes " missing while adding side\"" name "\"" > /dev/stderr;
+			exit 1;
+		}
+		side[side_num, i] = nodelabels[i];
+	}
+	side[side_num, "prop"] = prop;
+	side_num++;
+}
+
 BEGIN {
 	isvan = 0;
 
