@@ -556,6 +556,20 @@ ReadGenericAerodynamicData(const std::string& fname, doublereal dScaleAngle, dou
 			/* read (and check) alpha */
 			in >> dCoef;
 			if (iBeta == 0) {
+				if (iAlpha == 0) {
+					doublereal dErr = dCoef*dScaleAngle + M_PI/2.;
+					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
+						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
+							"warning, alpha[0] != -pi/2 (error=" << 100*dErr/(M_PI/2.) << "%)" << std::endl);
+					}
+				} else if (iAlpha == nAlpha - 1) {
+					doublereal dErr = dCoef*dScaleAngle - M_PI/2.;
+					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
+						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
+							"warning, alpha[" << iAlpha << "] != pi/2 (error=" << 100*dErr/(M_PI/2.) << "%)" << std::endl);
+					}
+				}
+
 				pData->Alpha[iAlpha] = dCoef;
 
 			} else if (dCoef != pData->Alpha[iAlpha]) {
@@ -575,6 +589,20 @@ ReadGenericAerodynamicData(const std::string& fname, doublereal dScaleAngle, dou
 			/* read (and check) beta */
 			in >> dCoef;
 			if (iAlpha == 0) {
+				if (iBeta == 0) {
+					doublereal dErr = dCoef*dScaleAngle + M_PI;
+					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
+						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
+							"warning, beta[0] != -pi (error=" << 100*dErr/M_PI << "%)" << std::endl);
+					}
+				} else if (iBeta == nBeta - 1) {
+					doublereal dErr = dCoef*dScaleAngle - M_PI;
+					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
+						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
+							"warning, beta[" << iBeta << "] != pi (error=" << 100*dErr/M_PI << "%)" << std::endl);
+					}
+				}
+
 				pData->Beta[iBeta] = dCoef;
 
 			} else if (dCoef != pData->Beta[iBeta]) {
