@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2010
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -53,17 +53,17 @@ extern "C" {
 #include "c81data.h"
 
 /*
- * header NML,NAL,NMD,NAD,NMM,NAM	A30,6I2 
- * ML(1),....,ML(NML)			7x,9F7.0   eventualmente su piu' righe 
- * AL(1)  CL(1,1),....,CL(1,NML)	10F7.0/(7x,9F7.0) 
- * :         :     :       : 
- * AL(NAL)CL(NAL,1),....,CL(NAL,NML)	10F7.0/(7x,9F7.0) 
- * AD(1)  CD(1,1),....,CD(1,NMD)	10F7.0/(7x,9F7.0) 
- * :         :     :       : 
- * AD(NAD)CD(NAD,1),....,CD(NAD,NMD)	10F7.0/(7x,9F7.0) 
- * AM(1)  CM(1,1),....,CL(1,NMM)	10F7.0/(7x,9F7.0) 
- * :         :     :       : 
- * AM(NAM)CM(NAM,1),....,CL(NAM,NMM)	10F7.0/(7x,9F7.0) 
+ * header NML,NAL,NMD,NAD,NMM,NAM	A30,6I2
+ * ML(1),....,ML(NML)			7x,9F7.0   eventualmente su piu' righe
+ * AL(1)  CL(1,1),....,CL(1,NML)	10F7.0/(7x,9F7.0)
+ * :         :     :       :
+ * AL(NAL)CL(NAL,1),....,CL(NAL,NML)	10F7.0/(7x,9F7.0)
+ * AD(1)  CD(1,1),....,CD(1,NMD)	10F7.0/(7x,9F7.0)
+ * :         :     :       :
+ * AD(NAD)CD(NAD,1),....,CD(NAD,NMD)	10F7.0/(7x,9F7.0)
+ * AM(1)  CM(1,1),....,CL(1,NMM)	10F7.0/(7x,9F7.0)
+ * :         :     :       :
+ * AM(NAM)CM(NAM,1),....,CL(NAM,NMM)	10F7.0/(7x,9F7.0)
  */
 
 static int
@@ -140,7 +140,7 @@ get_double(const char *const from, doublereal &d)
 	return 0;
 }
 
-static int 
+static int
 get_c81_vec(std::istream& in, doublereal* v, int ncols)
 {
 	char	buf[128];
@@ -165,11 +165,23 @@ get_c81_vec(std::istream& in, doublereal* v, int ncols)
 			return -1;
 		}
    	}
-   
+
    	return 0;
 }
 
-static int 
+static int
+check_vec(doublereal* v, int n)
+{
+	for (int i = 1; i < n; i++) {
+		if (v[i] <= v[i - 1]) {
+			return i;
+		}
+	}
+
+	return 0;
+}
+
+static int
 get_c81_mat(std::istream& in, doublereal* m, int nrows, int ncols)
 {
 	char	buf[128];
@@ -177,7 +189,7 @@ get_c81_mat(std::istream& in, doublereal* m, int nrows, int ncols)
    	if (!in || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
    	}
- 
+
    	for (int r = 0; r < nrows; r++) {
 		int	row = 0;
 		int	offset = 0;
@@ -185,7 +197,7 @@ get_c81_mat(std::istream& in, doublereal* m, int nrows, int ncols)
       		for (int c = 0; c < ncols; c++) {
 			char	tmp[8];
 			int	i = (c - offset)%(9 - offset + 1);
-			
+
 			if (i == 0) {
 				if (++row == 2) {
 					offset = 1;
@@ -202,7 +214,7 @@ get_c81_mat(std::istream& in, doublereal* m, int nrows, int ncols)
 			}
       		}
    	}
-   
+
    	return 0;
 }
 
@@ -211,7 +223,7 @@ put_c81_row(std::ostream& out, doublereal* v, int dim, int ncols, int first = 0)
 {
    	int start = 0;
    	const int N = 9;
-   
+
    	if (first) {
       		out << std::setw(7) << v[0];
       		start = dim;
@@ -219,7 +231,7 @@ put_c81_row(std::ostream& out, doublereal* v, int dim, int ncols, int first = 0)
    	} else {
       		out << std::setw(7) << "";
    	}
-   
+
    	for (int i = 0; i < (ncols-1)/N; i++) {
       		for (int j = 0; j < N; j++) {
 	 		out << std::setw(7) << v[start+dim*j];
@@ -227,12 +239,12 @@ put_c81_row(std::ostream& out, doublereal* v, int dim, int ncols, int first = 0)
       		out << std::endl << std::setw(7) << "";
       		start += dim*N;
    	}
-   
+
    	for (int j = 0; j < (ncols-1)%N+1; j++) {
       		out << std::setw(7) << v[start+dim*j];
    	}
    	out << std::endl;
-   
+
    	return 0;
 }
 
@@ -244,7 +256,7 @@ put_c81_vec(std::ostream& out, doublereal* v, int nrows)
    	}
 
    	put_c81_row(out, v, 1, nrows);
-   
+
    	return 0;
 }
 
@@ -254,11 +266,11 @@ put_c81_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
    	if (!out || m == NULL || nrows < 1 || ncols < 1) {
       		return -1;
    	}
-     
+
    	for (int i = 0; i < nrows; i++) {
       		put_c81_row(out, m+i, nrows, ncols, 1);
    	}
-	 
+
    	return 0;
 }
 
@@ -286,14 +298,14 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
 	if (ff) {
 		*ff = 0;
 	}
-   
+
    	/* header */
    	in.getline(buf, sizeof(buf));
 	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
 		if (ff) {
 			*ff = 1;
 		}
-   
+
 		return read_c81_data_free_format(in, data, dcltol);
 	}
 
@@ -311,12 +323,12 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
    	if (get_int(&buf[36], data->NAD)) {
 		return -1;
 	}
-	
+
    	buf[36] = '\0';
    	if (get_int(&buf[34], data->NMD)) {
 		return -1;
 	}
-   
+
    	buf[34] = '\0';
    	if (get_int(&buf[32], data->NAL)) {
 		return -1;
@@ -332,35 +344,53 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
 			|| data->NAL <= 0 || data->NML <= 0) {
 		return -1;
 	}
-   
+
    	buf[30] = '\0';
    	strncpy(data->header, buf, 30);
    	data->header[30] = '\0';
-   
+
    	/* lift */
    	data->ml = new doublereal[data->NML];
    	get_c81_vec(in, data->ml, data->NML);
-   
+	if (check_vec(data->ml, data->NML)) {
+		return -1;
+	}
+
    	data->al = new doublereal[(data->NML+1)*data->NAL];
    	get_c81_mat(in, data->al, data->NAL, data->NML+1);
-   
+	if (check_vec(data->al, data->NAL)) {
+		return -1;
+	}
+
    	/* drag */
    	data->md = new doublereal[data->NMD];
    	get_c81_vec(in, data->md, data->NMD);
-   
-   	data->ad = new doublereal[(data->NMD+1)*data->NAD];      
+	if (check_vec(data->md, data->NMD)) {
+		return -1;
+	}
+
+   	data->ad = new doublereal[(data->NMD+1)*data->NAD];
    	get_c81_mat(in, data->ad, data->NAD, data->NMD+1);
-   
+	if (check_vec(data->ad, data->NAD)) {
+		return -1;
+	}
+
    	/* moment */
    	data->mm = new doublereal[data->NMM];
    	get_c81_vec(in, data->mm, data->NMM);
-   
+	if (check_vec(data->mm, data->NMM)) {
+		return -1;
+	}
+
    	data->am = new doublereal[(data->NMM+1)*data->NAM];
    	get_c81_mat(in, data->am, data->NAM, data->NMM+1);
+	if (check_vec(data->am, data->NAM)) {
+		return -1;
+	}
 
 	/* FIXME: maybe this is not the best place */
 	do_c81_data_stall(data, dcltol);
-   
+
    	return 0;
 }
 
@@ -549,7 +579,7 @@ merge_c81_data(
 	for (int i = 0; i < i_data->NMD; i++) {
 		i_data->md[i] = data[from]->md[i];
 	}
-	i_data->ad = new doublereal[(i_data->NMD + 1)*i_data->NAD];      
+	i_data->ad = new doublereal[(i_data->NMD + 1)*i_data->NAD];
 	for (int i = 0; i < i_data->NAD; i++) {
 		i_data->ad[i] = data[from]->ad[i];
 	}
@@ -595,16 +625,16 @@ write_c81_data(std::ostream& out, c81_data* data)
      		<< std::setw(2) << data->NMM
      		<< std::setw(2) << data->NAM
 		<< std::endl;
-   
+
    	put_c81_vec(out, data->ml, data->NML);
    	put_c81_mat(out, data->al, data->NAL, data->NML+1);
-   
+
    	put_c81_vec(out, data->md, data->NMD);
    	put_c81_mat(out, data->ad, data->NAD, data->NMD+1);
-   
+
    	put_c81_vec(out, data->mm, data->NMM);
    	put_c81_mat(out, data->am, data->NAM, data->NMM+1);
-   
+
    	return 0;
 }
 
@@ -682,7 +712,7 @@ extern "C" int
 read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal *&dm)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
-   
+
    	in.getline(buf, sizeof(buf));
 
    	buf[10] = '\0';
@@ -780,7 +810,7 @@ extern "C" int
 read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
-   
+
    	/* header */
    	in.getline(buf, sizeof(buf));
 
@@ -836,7 +866,7 @@ read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 
 	/* FIXME: maybe this is not the best place */
 	do_c81_data_stall(data, dcltol);
-   
+
    	return 0;
 }
 
@@ -844,7 +874,7 @@ extern "C" int
 read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
-   
+
    	/* header */
    	in.getline(buf, sizeof(buf));
 	if (strncasecmp(buf, "# FREE FORMAT", STRLENOF("# FREE FORMAT")) == 0) {
@@ -878,13 +908,16 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcl
 			|| data->NAL <= 0 || data->NML <= 0) {
 		return -1;
 	}
-   
+
    	/* lift */
    	data->ml = new doublereal[data->NML];
 	for (int c = 0; c < data->NML; c++) {
    		in >> data->ml[c];
 	}
-   
+	if (check_vec(data->ml, data->NML)) {
+		return -1;
+	}
+
    	data->al = new doublereal[(data->NML + 1)*data->NAL];
 	for (int r = 0; r < data->NAL; r++) {
 		/* NOTE: "<=" because the number of columns is data->NML + 1
@@ -893,36 +926,51 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcl
 			in >> data->al[r + data->NAL*c];
 		}
 	}
-   
+	if (check_vec(data->al, data->NAL)) {
+		return -1;
+	}
+
    	/* drag */
    	data->md = new doublereal[data->NMD];
 	for (int c = 0; c < data->NMD; c++) {
    		in >> data->md[c];
 	}
-   
-   	data->ad = new doublereal[(data->NMD + 1)*data->NAD];      
+	if (check_vec(data->md, data->NMD)) {
+		return -1;
+	}
+
+   	data->ad = new doublereal[(data->NMD + 1)*data->NAD];
 	for (int r = 0; r < data->NAD; r++) {
 		for (int c = 0; c <= data->NMD; c++) {
 			in >> data->ad[r + data->NAD*c];
 		}
 	}
-   
+	if (check_vec(data->ad, data->NAD)) {
+		return -1;
+	}
+
    	/* moment */
    	data->mm = new doublereal[data->NMM];
 	for (int c = 0; c < data->NMM; c++) {
    		in >> data->mm[c];
 	}
-   
+	if (check_vec(data->mm, data->NMM)) {
+		return -1;
+	}
+
    	data->am = new doublereal[(data->NMM + 1)*data->NAM];
 	for (int r = 0; r < data->NAM; r++) {
 		for (int c = 0; c <= data->NMM; c++) {
 			in >> data->am[r + data->NAM*c];
 		}
 	}
+	if (check_vec(data->am, data->NAM)) {
+		return -1;
+	}
 
 	/* FIXME: maybe this is not the best place */
 	do_c81_data_stall(data, dcltol);
-   
+
    	return 0;
 }
 
@@ -957,7 +1005,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 		}
 		out << std::endl;
 	}
-   
+
 	/* drag */
 	for (int c = 0; c < data->NMD; c++) {
 		out << data->md[c] << " ";
@@ -969,7 +1017,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 		}
 		out << std::endl;
 	}
-   
+
 	/* moment */
 	for (int c = 0; c < data->NMM; c++) {
 		out << data->mm[c] << " ";
@@ -981,7 +1029,7 @@ write_c81_data_free_format(std::ostream& out, c81_data* data)
 		}
 		out << std::endl;
 	}
-   
+
    	return 0;
 }
 
@@ -998,17 +1046,17 @@ get_c81_data(long int jpro)
    	return __c81_pdata[jpro];
 }
 
-extern "C" int 
+extern "C" int
 set_c81_data(long int jpro, c81_data* data)
 {
    	if (__c81_pdata == NULL || jpro >= c81_ndata) {
       		c81_data** pp = NULL;
       		int ndata = c81_ndata;
-      
+
       		if (jpro >= c81_ndata) {
 	 		ndata = jpro+1;
       		}
-      
+
       		pp = new c81_data*[ndata];
       		if (__c81_pdata != NULL) {
 	 		for (int i = 0; i < ndata; i++) {
@@ -1022,9 +1070,9 @@ set_c81_data(long int jpro, c81_data* data)
       		silent_cerr("profile " << jpro << "already defined" << std::endl);
       		return -1;
    	}
-   
+
    	__c81_pdata[jpro] = data;
-   
+
    	return 0;
 }
 
@@ -1083,12 +1131,12 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 		}
 
 		dcla0 = (a[start + na - 1] - dcl0)/(a[na - 1] - a0);
-		
+
 		/* cerca il punto inferiore in cui cessa la linearita' */
 		for (int i = na - 2; i >= 0; i--) {
 			doublereal dcla = (a[start + i] - dcl0)/(a[i] - a0);
 			if (dcla - dcla0 < -dcla0*dcltol) {
-			
+
 				/* stallo inferiore */
 				stall[NM + nm] = a[i + 1];
 

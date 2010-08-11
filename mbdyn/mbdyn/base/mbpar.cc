@@ -305,8 +305,14 @@ MBDynParser::C81Data_int(void)
 		sName = sTmp;
 	}
 	
-	const char* filename = GetFileName();
-	std::ifstream in(filename);
+	std::string filename = GetFileName();
+	if (filename.empty()) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"invalid file at line " 
+			<< GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	std::ifstream in(filename.c_str());
 	if (!in) {
 		silent_cerr("C81Data(" << uLabel << "): "
 			"unable to open file '" << filename << "' at line " 
@@ -365,6 +371,48 @@ MBDynParser::C81Data_int(void)
 		if (ff) {
 			bFF = true;
 		}
+	}
+
+	// CL
+	if (data->al[0] > -180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CL alpha[0]=" << data->al[0] << " > -180 (error=" << 100*(data->al[0]/180. + 1.) << "%)" << std::endl);
+	}
+	if (data->al[data->NAL - 1] < 180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CL alpha[" << data->NAL - 1 << "]=" << data->al[data->NAL - 1] << " < 180 (error=" << 100*(data->al[data->NAL - 1]/180. - 1.) << "%)" << std::endl);
+	}
+	if (data->ml[0] > 0.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CL mach[0]=" << data->ml[0] << " > 0" << std::endl);
+	}
+
+	// CD
+	if (data->ad[0] > -180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CD alpha[0]=" << data->ad[0] << " > -180 (error=" << 100*(data->ad[0]/180. + 1.) << "%)" << std::endl);
+	}
+	if (data->ad[data->NAD - 1] < 180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CD alpha[" << data->NAD - 1 << "]=" << data->ad[data->NAD - 1] << " < 180 (error=" << 100*(data->ad[data->NAD - 1]/180. - 1.) << "%)" << std::endl);
+	}
+	if (data->md[0] > 0.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CD mach[0]=" << data->md[0] << " > 0" << std::endl);
+	}
+
+	// CM
+	if (data->am[0] > -180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CM alpha[0]=" << data->am[0] << " > -180 (error=" << 100*(data->am[0]/180. + 1.) << "%)" << std::endl);
+	}
+	if (data->am[data->NAM - 1] < 180.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CM alpha[" << data->NAM - 1 << "]=" << data->am[data->NAM - 1] << " < 180 (error=" << 100*(data->am[data->NAM - 1]/180. - 1.) << "%)" << std::endl);
+	}
+	if (data->mm[0] > 0.) {
+		silent_cerr("C81Data(" << uLabel << "): "
+			"warning, CM mach[0]=" << data->mm[0] << " > 0" << std::endl);
 	}
 
 	if (IsKeyWord("echo")) {
