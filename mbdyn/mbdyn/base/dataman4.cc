@@ -1477,10 +1477,26 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* Elementi aerodinamici: rotori */
 	case ROTOR:
-		silent_cerr("InducedVelocity(" << uLabel << "): deprecated \"rotor\", use \"induced velocity\" instead at line " << HP.GetLineData() << std::endl);
-		// fallthru
 	case INDUCEDVELOCITY: {
 		silent_cout("Reading InducedVelocity(" << uLabel << ")" << std::endl);
+
+		switch (KeyWords(CurrType)) {
+		case ROTOR:
+			silent_cerr("InducedVelocity(" << uLabel << "): deprecated \"rotor\", use \"induced velocity\" of typoe \"rotor\" instead at line " << HP.GetLineData() << std::endl);
+			break;
+
+		case INDUCEDVELOCITY:
+			if (HP.IsKeyWord("rotor")) {
+				// continue
+			} else {
+				silent_cerr("InducedVelocity(" << uLabel << "): unknown induced velocity type at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+
+		default:
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
 		if (iNumTypes[Elem::INDUCEDVELOCITY]-- <= 0) {
 			DEBUGCERR("");

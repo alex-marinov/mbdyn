@@ -833,6 +833,15 @@ at an arbitrary point on the lifting surface or rotor disk.
 This velocity term in turn is used by the aerodynamic elements to determine
 a better estimate of the boundary conditions.
 
+The syntax of the \kw{induced velocity} elements is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{induced velocity}
+
+    \bnt{normal_arglist} ::= \bnt{induced_velocity_type} , \bnt{induced_velocity_data}
+\end{Verbatim}
+%\end{verbatim}
+
 \subsubsection{Rotor}
 \label{sec:EL:AERO:INDVEL:ROTOR}
 Currently, induced velocity models are only implemented
@@ -843,9 +852,9 @@ and the original syntax is preserved for backwards compatibility.
 The syntax of the helicopter rotor \kw{induced velocity} element is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{elem_type} ::= \kw{induced velocity}
+    \bnt{induced_velocity_type} ::= \kw{rotor}
 
-    \bnt{normal_arglist} ::= \bnt{craft_node} ,
+    \bnt{induced_velocity_data} ::= \bnt{craft_node} ,
             [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{rotor_orientation} , ]
         \bnt{rotor_node} ,
         \kw{induced velocity} , \bnt{induced_velocity_model}
