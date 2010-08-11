@@ -859,7 +859,7 @@ They are:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{constitutive law} : \bnt{label} ,
         [ \kw{name} , " \bnt{name} " , ]
-        \bnt{dim} , (\ty{ConstitutiveLaw<dim>D}) \bnt{constitutive_law} ;
+        \bnt{dim} , (\ty{ConstitutiveLaw}\bnt{dim}\ty{D}) \bnt{constitutive_law} ;
 \end{Verbatim}
 %\end{verbatim}
 Constitutive laws are grouped by their dimensionality \nt{dim},
@@ -904,7 +904,7 @@ The file is in textual form; the traditional format (the default) is:
 \begin{itemize}
 \item first line: \texttt{"\%30s\%2d\%2d\%2d\%2d\%2d\%2d"} 
 where the first 30 chars are a title string, currently ignored by MBDyn,
-followed by 6 two-digit integers that indicate:
+followed by 6 consecutive two-digit integers that indicate:
 	\begin{itemize}
 	\item the number \texttt{ML} of \emph{Mach} points for $C_l$;
 	\item the number \texttt{NL} of angle of attack points for $C_l$;
@@ -916,6 +916,7 @@ followed by 6 two-digit integers that indicate:
 The example in \texttt{var/naca0012.c81} contains:
 {\small
 \begin{verbatim}
+1........01........01........0MLNLMDNDMMNM; not part of format
 PROFILO NACA 0012             11391165 947
 \end{verbatim}
 }
@@ -936,6 +937,7 @@ contains 11 \emph{Mach} points and 39 angle of attack records for the $C_l$
 of the NACA0012 airfoil at high (unspecified) \emph{Reynolds}:
 {\small
 \begin{verbatim}
+......7......7......7......7......7......7......7......7......7......7; not part of format
        0.     .20    .30    .40    .50    .60    .70    .75    .80
        .90    1.
 -180.  0.     0.     0.     0.     0.     0.     0.     0.     0.
@@ -960,7 +962,7 @@ Finally, to allow higher precision whenever available, a native format,
 based on \texttt{c81}, called \kw{free format}, is available.
 It basically consists in the \texttt{c81} format without continuation lines
 and with arbitrary precision, with fields separated by blanks.
-The header is made of an arbitrary string, terminated by a semicolon,
+The header is made of an arbitrary string, terminated by a semicolon `\texttt{;}',
 followed by the six numbers that define the dimensionality of the expected data.
 
 \paragraph{Example.} \
@@ -1010,8 +1012,8 @@ so it should be considered a check of the code rather than a real tool.
 The \kw{drive caller} directive
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{drive caller} : \bnt{label}
-        [ , \kw{name} , " \bnt{name} " ]
+    \bnt{card} ::= \kw{drive caller} : \bnt{label} ,
+        [ \kw{name} , " \bnt{name} " , ]
         (\ty{DriveCaller}) \bnt{drive_caller} ;
 \end{Verbatim}
 %\end{verbatim}
@@ -1063,7 +1065,7 @@ is not in the directory of the including one.
 
 \bigskip
 
-\fbox{There is no check for recursive \kw{include}s, so 
+\fbox{There is no check for recursive \kw{include} directives, so 
 {\bf the user must take care of recursion}.}
 
 \bigskip
@@ -1156,10 +1158,10 @@ The \kw{reference} directive:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
-        \bnt{absolute_position} ,
-        \bnt{absolute_orientation_matrix} ,
-        \bnt{absolute_velocity} ,
-        \bnt{absolute_angular_velocity} ;
+        (\ty{Vec3}) \bnt{absolute_position} ,
+        (\ty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+        (\ty{Vec3}) \bnt{absolute_velocity} ,
+        (\ty{Vec3}) \bnt{absolute_angular_velocity} ;
 \end{Verbatim}
 %\end{verbatim}
 A \kw{reference} system is declared and defined.
@@ -1210,7 +1212,7 @@ So, depending on the caller, the entry can be in the following forms:
 	the data is in \nt{reference\_label} reference frame. 
 	This reference frame must be already defined. 
 \end{enumerate}
-In some cases, significantly in case of joints that connect two nodes,
+In some cases, significantly in case of joints that connect two nodes
 $a$ and $b$, special reference types are allowed
 when reading specific entities related to the second node.
 These reference types compute the value of the entity with respect
@@ -2451,10 +2453,10 @@ the element is waken up:
 
 \subsection{Template drive}\label{sec:TPL-DRIVE}
 A particular \ty{DriveCaller} is the template drive caller,
-indicated as \ty{TplDriveCaller}.
-It basically consists in a drive with a dimensionality other than scalar.
-Typically, it is made of a constant entity, with the desired dimensionality,
-that multiplies a conventional 
+indicated as \ty{TplDriveCaller}\bnt{type}.
+It basically consists in a drive with dimensionality other than scalar.
+Typically, it is made of a constant entity, with the dimensionality
+of \nt{type}, that multiplies a conventional 
 \hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
 to give a drive entity of dimensionality different from that 
 of a simple scalar drive.
@@ -2478,6 +2480,7 @@ They are entered as follows:
     \bnt{tpl_drive_caller} ::= \kw{component} ,
         \bnt{component_drive_caller}
         [ , ... ]
+        # as many \nt{component_drive_caller} as the dimensionality of \nt{entity}
 
     \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\ty{DriveCaller}) \bnt{drive_caller} \}
 
@@ -2485,6 +2488,7 @@ They are entered as follows:
         \bnt{num_template_drive_callers} ,
             \bnt{tpl_drive_caller}
             [ , ... ]
+            # \nt{num_template_drive_callers} instances of \nt{tpl_drive_caller}
 \end{Verbatim}
 %\end{verbatim}
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
@@ -2499,7 +2503,7 @@ In the case of the \kw{component} template drive caller,
 as many instances of a \ty{DriveCaller} as the dimensionality
 of the template drive caller are expected.
 
-At least one drive caller is expected in the case of the \kw{array}
+At least one \nt{tpl\_drive\_caller} is expected in the case of the \kw{array}
 template drive caller. 
 If \nt{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
@@ -2548,6 +2552,7 @@ The input format is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{friction_model} ::= \kw{modlugre}
+
     \bnt{friction_arglist} ::=
         \bnt{sigma0} ,
         \bnt{sigma1} ,
@@ -2563,6 +2568,7 @@ The input format is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{friction_model} ::= \kw{discrete coulomb}
+
     \bnt{friction_arglist} ::=
         [ \kw{sigma2} , \bnt{sigma2} , ]
         [ \kw{velocity ratio} , \bnt{vel_ratio} , ]
@@ -2590,7 +2596,8 @@ Currently implemented shape functions for friction models are:
     This shape function is equal to one. It does not need arguments.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{shape_function} ::= \kw{simple}
+    \bnt{shape_function_type} ::= \kw{simple}
+
     \bnt{shape_function_arglist} ::=
 \end{Verbatim}
 %\end{verbatim}
@@ -2598,7 +2605,8 @@ Currently implemented shape functions for friction models are:
     \item \kw{simple plane hinge}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{shape_function} ::= \kw{simple plane hinge}
+    \bnt{shape_function_type} ::= \kw{simple plane hinge}
+
     \bnt{shape_function_arglist} ::= \bnt{radius}
 \end{Verbatim}
 %\end{verbatim}
@@ -2625,6 +2633,7 @@ The shapes currently available are:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_type} ::= \kw{const}
+
     \bnt{shape_arglist} ::= \bnt{const_value}
 \end{Verbatim}
 %\end{verbatim}
@@ -2636,6 +2645,7 @@ The shapes currently available are:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_type} ::= \kw{piecewise const}
+
     \bnt{shape_arglist} ::=
         \bnt{number_of_points} , 
             \bnt{abscissa} , \bnt{value}
@@ -2656,6 +2666,7 @@ The shapes currently available are:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_type} ::= \kw{linear}
+
     \bnt{shape_arglist} ::=
         \bnt{value_at_-1} , 
         \bnt{value_at_1}
@@ -2670,6 +2681,7 @@ The shapes currently available are:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_type} ::= \kw{piecewise linear}
+
     \bnt{shape_arglist} ::=
         \bnt{number_of_points} , 
             \bnt{abscissa} , \bnt{value}
@@ -2695,6 +2707,7 @@ The shapes currently available are:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_type} ::= \kw{parabolic}
+
     \bnt{shape_arglist} ::=
         \bnt{value_at_-1} , 
         \bnt{value_at_0} , 
@@ -2831,6 +2844,7 @@ The constitutive laws are entered as follows:
     \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
         [ , \kw{prestress} , (\ty{Entity}) \bnt{prestress} ]
         [ , \kw{prestrain} , (\ty{TplDriveCaller<Entity>}) \bnt{prestrain} ]
+
     \bnt{specific_const_law} ::= \bnt{const_law_name} ,
         \bnt{const_law_data}
 \end{Verbatim}

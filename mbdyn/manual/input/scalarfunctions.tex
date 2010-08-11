@@ -54,8 +54,8 @@ Every \ty{ScalarFunction} card follows the format
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} :: = \kw{scalar function} : " \bnt{unique_scalar_func_name} " , 
-                    \bnt{scalar_func_type} ,
-                    \bnt{scalar_func_args}
+        \bnt{scalar_func_type} ,
+        \bnt{scalar_func_args}
 \end{Verbatim}
 %\end{verbatim}
 The name of the scalar function is a string, thus it needs to be enclosed
@@ -71,6 +71,7 @@ are as follows:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{const}
+
     \bnt{scalar_func_args} ::= \bnt{const_coef}
 \end{Verbatim}
 %\end{verbatim}
@@ -81,6 +82,7 @@ a \kw{const} scalar function is assumed.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{exp}
+
     \bnt{scalar_func_args} ::=
         [ \kw{base} , \bnt{base} , ]
         [ \kw{coefficient} , \bnt{coef} , ]
@@ -93,6 +95,7 @@ Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{log}
+
     \bnt{scalar_func_args} ::=
         [ \kw{base} , \bnt{base} , ]
         [ \kw{coefficient} , \bnt{coef} , ]
@@ -109,6 +112,7 @@ The argument must be positive as well, otherwise an exception is thrown.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{pow}
+
     \bnt{scalar_func_args} ::= \bnt{exponent_coef}
 \end{Verbatim}
 %\end{verbatim}
@@ -117,7 +121,9 @@ The argument must be positive as well, otherwise an exception is thrown.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{linear}
+
     \bnt{scalar_func_args} ::= \bnt{point} , \bnt{point}
+
     \bnt{point}            ::= \bnt{x}, \bnt{y}
 \end{Verbatim}
 %\end{verbatim}
@@ -127,11 +133,13 @@ A line passing through the two points.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{cubic spline}
+
     \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
         \bnt{point} , 
         \bnt{point}
         [ , ... ]
         [ , \kw{end} ]
+
     \bnt{point}            ::= \bnt{x} , \bnt{y}
 \end{Verbatim}
 %\end{verbatim}
@@ -144,11 +152,13 @@ right after the last point.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{multilinear}
+
     \bnt{scalar_func_args} ::= [ \kw{do not extrapolate} , ]
         \bnt{point} , 
         \bnt{point}
         [ , ... ]
         [ , \kw{end} ]
+
     \bnt{point}            ::= \bnt{x} , \bnt{y}
 \end{Verbatim}
 %\end{verbatim}
@@ -160,6 +170,7 @@ of the nearest point pair.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{chebychev}
+
     \bnt{scalar_func_args} ::= 
         \bnt{lower_bound} , \bnt{upper_bound} ,
         [ \kw{do not extrapolate} , ]
@@ -216,6 +227,7 @@ Differentiation of order higher than 1 is not currently implemented.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{sum}
+
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
@@ -224,6 +236,7 @@ Differentiation of order higher than 1 is not currently implemented.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{sub}
+
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
@@ -232,6 +245,7 @@ Differentiation of order higher than 1 is not currently implemented.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{mul}
+
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
@@ -240,6 +254,7 @@ Differentiation of order higher than 1 is not currently implemented.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{div}
+
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
