@@ -17,12 +17,17 @@ MBDyn 1.X-Devel
 		- support multiple eigenanalyses per simulation
 		- added "receive first" option to stream input
 		- added structural mapping scripts (Giuseppe Quaranta)
+		- improved external structural mapping force
+		  (Giuseppe Quaranta)
 		- allow user-defined induced velocity models
 		- allow induced velocity models based on sectional forces
+		- added "slug2kg" and "kg2slug" constants to symbol table
+		- reworked input manual
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
 		- aeromodal element syntax changed
+		- precision of some built-in symbol table constants increased
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)
