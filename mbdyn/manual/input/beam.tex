@@ -112,7 +112,7 @@ or elastic-plastic constitutive laws.
 MBDyn allows the broadest generality in defining what a linear elastic 
 constitutive law contains, since the entire $6\times{6}$ constitutive
 matrix can be input.
-This means that internal forces and couples can be arbitrarily related
+This means that internal forces and moments can be arbitrarily related
 to generalized strains and curvatures.
 However, to make sense, a constitutive matrix at the section level,
 must satisfy some constraints, e.g.\ it is expected to be symmetric, 
@@ -171,7 +171,7 @@ $x$, $y$ and $z$ originates from an arbitrary reference point
 on the section.
 
 Isotropic uniform beam sections allow to group the internal forces 
-and couples in two sets, together with their conjugated generalized 
+and moments in two sets, together with their conjugated generalized 
 strains:
 those related to shear stress and strain, and those related 
 to axial stress and strain, as illustrated
@@ -1631,21 +1631,30 @@ shear locking, according to Equation~(\ref{eq:2-NODE-BEAM-STIFFNESS}).
 
 \subsection{Output}
 The output related to beam elements is contained in a file with extension 
-\texttt{.act}; for each time step, the output of the required beams is
-written.
-The internal forces and couples are computed from the interpolated strains
-along the beam by means of the constitutive law, at the two evaluation
-points. 
+\texttt{.act}; for each time step, the output is written
+for those element it was requested.
+The internal forces and moments are computed from the interpolated strains
+along the beam by means of the constitutive law, at the evaluation points. 
 The format is:
 \begin{itemize}
-    \item the label of the beam
-    \item the three components of the force at the first evaluation point
-    \item the three components of the couple at the first evaluation point
-    \item the three components of the force at the second evaluation point
-    \item the three components of the couple at the second evaluation point    
+    \item column 1: the label of the beam;
+    \item columns 2--4: the three components of the force
+	at the first evaluation point, oriented according
+	to the reference frame of that beam section;
+    \item columns 5--7: the three components of the moment
+	at the first evaluation point, oriented according
+	to the reference frame of that beam section.
 \end{itemize}
-The last two items (i.e.\ the last 6 columns) are generated
-only by the three-node beam element.
+
+The three-node beam element generates six additional columns:
+\begin{itemize}
+    \item columns 8--10: the three components of the force
+	at the second evaluation point, oriented according
+	to the reference frame of that beam section;
+    \item columns 11--13: the three components of the moment
+	at the second evaluation point, oriented according
+	to the reference frame of that beam section.
+\end{itemize}
 
 More detailed output is allowed when using NetCDF;
 see Section~\ref{sec:NetCDF:Elem:Beam} for details.
