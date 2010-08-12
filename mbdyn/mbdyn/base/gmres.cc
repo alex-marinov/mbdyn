@@ -180,6 +180,8 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	std::cout << " Gmres New Step " << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
+	doublereal dOldErr;
+	doublereal dErrFactor = 1.;
 	while (true) {
 
 #ifdef 	USE_EXTERNAL 	
@@ -200,6 +202,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		}
 
 		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		if (iIterCnt > 0) {
+			dErrFactor *= dErr/dOldErr;
+		}
+		dOldErr = dErr;
 
 #ifdef DEBUG_ITERATIVE
       		std::cerr << "dErr " << dErr << std::endl;
@@ -225,7 +231,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
 		if (iIterCnt >= std::abs(iMaxIter)) {
-			if (iMaxIter < 0) {
+			if (iMaxIter < 0 && dErrFactor < 1.) {
 				return;
 			}
 			if (outputBailout()) {
