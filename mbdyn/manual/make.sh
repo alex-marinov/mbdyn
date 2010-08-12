@@ -10,12 +10,15 @@ if [ -r $VERSIONFILE ] ; then
 fi
 LOG="make.log"
 
+MAKEPS=no
 MAKEPDF=yes
-MAKEHTML=yes
+MAKEHTML=no
 MAKESRC=no
 
 while test x$1 != x ; do
 	case $1 in
+	--ps=no) MAKEPS=no ; shift ;;
+	--ps=yes|--ps) MAKEPS=yes ; shift ;;
 	--pdf=no) MAKEPDF=no ; shift ;;
 	--pdf=yes|--pdf) MAKEPDF=yes ; shift ;;
 	--html=no) MAKEHTML=no ; shift ;;
@@ -91,7 +94,11 @@ for IN in $TGT; do
 			if [ "$CONVERT" != "" ] ; then
 				"$CONVERT" "$OUT.ps" "$OUT.pdf" >> "$LOG" 2>&1
 			fi
-			gzip "$OUT.ps"
+			if test "x$MAKEPS" = "xyes" ; then
+				gzip "$OUT.ps"
+			else
+				rm -f "$OUT.ps"
+			fi
 		fi
 	fi
 
