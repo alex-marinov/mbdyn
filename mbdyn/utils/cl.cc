@@ -29,20 +29,17 @@
  */
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
 #include <iostream>
 #include <sstream>
 
-#include <input.h>
-#include <mathp.h>
+#include "input.h"
+#include "mathp.h"
 
 /* plugins per math parser */
-#include <dummypgin.h>
-#ifdef USE_TCL
-#include <tclpgin.h>
-#endif /* USE_TCL */
+#include "dummypgin.h"
 
 int 
 main(int argc, const char* const argv[])
@@ -83,15 +80,7 @@ main(int argc, const char* const argv[])
 #else /* !USE_TABLE */
 	    		MathParser mp(In);
 #endif /* !USE_TABLE */
-#ifdef USE_TCL
-			/* registra il plugin per il tcl */
-			mp.RegisterPlugIn("tcl", tcl_plugin, NULL);
-#else /* !USE_TCL */
-			mp.RegisterPlugIn("tcl", dummy_plugin,
-					(void *)"configure with --with-tcl "
-					"to use tcl plugin");
-#endif /* USE_TCL */
-	
+
 			if (verbose) {
 	    			std::cout << "argv[" << i << "] = ";
 			}
@@ -113,14 +102,6 @@ main(int argc, const char* const argv[])
 #else /* !USE_TABLE */
       	MathParser mp(In);
 #endif /* !USE_TABLE */
-
-#ifdef USE_TCL
-	/* registra il plugin per il tcl */
-	mp.RegisterPlugIn("tcl", tcl_plugin, NULL);
-#else /* !USE_TCL */
-	mp.RegisterPlugIn("tcl", dummy_plugin,
-			(void *)"configure with --with-tcl to use tcl plugin");
-#endif /* USE_TCL */
 
 	try {	
 		mp.GetForever(std::cout, "\n");

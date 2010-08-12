@@ -89,7 +89,6 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 itertest_SOURCES = itertest.cc
@@ -109,7 +108,6 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 dgeequtest_SOURCES = dgeequtest.cc
@@ -129,7 +127,6 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 INCLUDES = \

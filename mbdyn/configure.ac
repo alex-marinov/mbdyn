@@ -197,7 +197,6 @@ OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
-OL_ARG_WITH(tcl,[  --with-tcl              with tcl interpreters],no,[auto yes no])
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
 OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
@@ -362,7 +361,6 @@ TAUCS_LIBS=
 ARPACK_LIBS=
 JDQZ_LIBS=
 SECURITY_LIBS=
-TCL_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
 RT_LIBS=
@@ -724,29 +722,6 @@ else
 	AC_MSG_RESULT([no])
 fi
 AC_LANG_C
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Checks for tcl
-dnl
-ol_link_tcl=no
-if test $ol_with_tcl != no ; then
-	AC_CHECK_HEADERS(tcl.h)
-
-	AC_MSG_CHECKING([for tcl library])
-
-	AC_CHECK_LIB(tcl,Tcl_CreateInterp,[have_libtcl=yes],[have_libtcl=no])
-	if test $have_libtcl != no ; then
-		AC_DEFINE(USE_TCL,1,[define if you want to use tcl])
-		TCL_LIBS=-ltcl
-	else
-		if test $ol_with_tcl != auto ; then
-			AC_MSG_ERROR([Could not locate tcl library])
-		else
-			AC_MSG_WARN([tcl not supported])
-		fi
-	fi
-fi
 
 dnl ----------------------------------------------------------------
 dnl
@@ -2445,7 +2420,6 @@ AC_SUBST(JDQZ_LIBS)
 AC_SUBST(THREAD_LIBS)
 AC_SUBST(ATOMIC_OPS_LIBS)
 AC_SUBST(SECURITY_LIBS)
-AC_SUBST(TCL_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
 AC_SUBST(RT_LIBS)

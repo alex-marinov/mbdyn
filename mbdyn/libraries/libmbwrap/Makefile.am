@@ -60,7 +60,6 @@ libmbwrap_la_LIBADD = \
 @BLAS_LIBS@ \
 @LIBS@ \
 @FCLIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 libmbwrap_la_LDFLAGS =
@@ -85,7 +84,6 @@ libmbwrap.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 cctest_SOURCES = cctest.cc
@@ -99,7 +97,6 @@ libmbwrap.la \
 @BLAS_LIBS@ \
 @LIBS@ \
 @FCLIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 if USE_ARPACK
@@ -116,7 +113,6 @@ libmbwrap.la \
 @BLAS_LIBS@ \
 @LIBS@ \
 @FCLIBS@ \
-@TCL_LIBS@ \
 @THREAD_LIBS@
 
 endif

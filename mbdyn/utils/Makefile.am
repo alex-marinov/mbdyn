@@ -76,7 +76,6 @@ MYLIBS = \
 @MESCHACH_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@TCL_LIBS@ \
 @LIBS@
 
 ann_in_SOURCES = ann_in.c

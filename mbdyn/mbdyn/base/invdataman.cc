@@ -55,9 +55,6 @@
 #include "dofpgin.h"
 #include "privpgin.h"
 #include "dummypgin.h"
-#ifdef USE_TCL
-#include "tclpgin.h"
-#endif /* USE_TCL */
 #include "modelns.h"
 
 /* temporary? */

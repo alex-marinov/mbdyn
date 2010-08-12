@@ -55,9 +55,6 @@ extern "C" {
 #include "dofpgin.h"
 #include "privpgin.h"
 #include "dummypgin.h"
-#ifdef USE_TCL
-#include "tclpgin.h"
-#endif /* USE_TCL */
 #include "modelns.h"
 
 /* To allow direct loading of modules */
@@ -214,14 +211,6 @@ DofIter()
 
 	/* registra il plugin per i dati privati degli elementi */
 	HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
-
-#ifdef USE_TCL
-	/* registra il plugin per il tcl */
-	HP.GetMathParser().RegisterPlugIn("tcl", tcl_plugin, 0);
-#else /* !USE_TCL */
-	HP.GetMathParser().RegisterPlugIn("tcl", dummy_plugin,
-		(void *)"configure with --with-tcl to use tcl plugin");
-#endif /* USE_TCL */
 
 	/* registra il namespace del modello */
 	HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
