@@ -964,15 +964,16 @@ time step.
 \subsubsection{Dummy Steps Method}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{method} : \bnt{method_data} ;
+    \bnt{card} ::= \kw{dummy steps method} : \bnt{method_data} ;
 \end{Verbatim}
 %\end{verbatim}
 Same as for the normal simulation method. 
 
 \subsection{Output Data}\label{sec:PROBLEMS:OUTPUT}
 Model output, e.g.\ nodes and elements output, is handled
-by the data manager; the integrator only deals with
-simulation-related output, and takes care of some debug output.
+by the data manager in the \kw{control data} block;
+the solver only deals with simulation-related output,
+and takes care of some debug output.
 
 \subsubsection{Output}
 This command requests special output related to the solution phase.

@@ -23,14 +23,23 @@ while test x$1 != x ; do
 	--src=no) MAKESRC=no ; shift ;;
 	--src=yes|--src) MAKESRC=yes ; shift ;;
 	--all) MAKEPDF=yes ; MAKEHTML=yes; MAKESRC=yes ; shift ;;
+	--tgt) shift; TGT=$1; shift ;;
 	*) echo "unknown arg $1" ; exit 1 ;;
 	esac
 done
 
 rm -f "$LOG"
 
-TGT="input install tecman"
+if test "x$TGT" = "x" ; then
+	TGT="input install tecman"
+fi
+
 for IN in $TGT; do
+	if ! test -d $IN ; then
+		echo "invalid tgt=$IN"
+		exit 1
+	fi
+
 	cd $IN
 
 	OUT="mbdyn-${IN}$VV"

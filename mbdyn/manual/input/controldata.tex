@@ -206,7 +206,7 @@ the simulation.
 %\end{verbatim}
 exit after \nt{timeout} minutes when waiting for connections 
 on \kw{stream drives} or \kw{stream output elements}.
-By default, no timeout is used, so \kw{select} waits forever.
+By default, no timeout is used, so \texttt{select(2)} waits forever.
 
 \subsection{Default Output}\label{sec:CONTROLDATA:DEFAULTOUTPUT}
 %\begin{verbatim}
@@ -298,11 +298,21 @@ can be reproduced by using the \nt{meter} drive caller as follows:
     output meter: meter, 0., forever, steps, 10;
 \end{verbatim}
 
+When integrating with variable time step,
+one may want to use the
+\kw{closest next} \ty{DriveCaller}
+(see Section~\ref{sec:DRIVE:CLOSEST_NEXT}); for example,
+\begin{verbatim}
+    output meter: closest next, 2., forever, const, 0.01;
+\end{verbatim}
+causes output to occur at times greater than or equal to
+multiples of 0.01 s, starting at 2 s.
+
 \subsection{Output Precision}
-Sets the desired output precision for those file types that allow it
+Sets the desired output precision for those file types that honor it
 (currently, all the native output except the \texttt{.out} file).
-The default is 6; since the output is in formatted plain text, the higher
-precision, the larger the files and the slower the simulation.
+The default is 6 digits; since the output is in formatted plain text,
+the higher the precision, the larger the files and the slower the simulation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{output precision} : \bnt{number_of_digits} ;
@@ -387,10 +397,10 @@ This statement is used to select the default output of built-in aerodynamic elem
             | \kw{orientation} [ , \bnt{orientation_description} ]
             | \kw{velocity}
             | \kw{angular velocity}
-            | \kw{configuration} # ::= \kw{position} , \kw{orientation} , \kw{velocity} , \kw{angular velocity}
+            | \kw{configuration} # ::= \kw{position}, \kw{orientation}, \kw{velocity}, \kw{angular velocity}
             | \kw{force}
             | \kw{moment}
-            | \kw{forces}        # ::= \kw{force} , \kw{moment}
+            | \kw{forces}        # ::= \kw{force}, \kw{moment}
             | \kw{all} \}         # equivalent to all the above
 
     \bnt{orientation_description} ::= \kw{orientation description} , \bnt{orientation_type}
@@ -421,16 +431,16 @@ This statement is used to select the default output of beam elements.
     \bnt{custom_output_flag} ::=
         \{ \kw{position}
             | \kw{orientation} [ , \bnt{orientation_description} ]
-            | \kw{configuration}        # ::= \kw{position} , \kw{orientation}
+            | \kw{configuration}        # ::= \kw{position}, \kw{orientation}
             | \kw{force}
             | \kw{moment}
-            | \kw{forces}               # ::= \kw{force} , \kw{moment}
+            | \kw{forces}               # ::= \kw{force}, \kw{moment}
             | \kw{linear strain}
             | \kw{angular strain}
-            | \kw{strains}              # ::= \kw{linear strain} , \kw{angular strain}
+            | \kw{strains}              # ::= \kw{linear strain}, \kw{angular strain}
             | \kw{linear strain rate}
             | \kw{angular strain rate}
-            | \kw{strain rates}         # ::= \kw{linear strain rate} , \kw{angular strain rate}
+            | \kw{strain rates}         # ::= \kw{linear strain rate}, \kw{angular strain rate}
             | \kw{all} \}                # equivalent to all the above
 
     \bnt{orientation_description} ::= \kw{orientation description} ,

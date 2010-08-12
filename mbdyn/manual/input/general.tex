@@ -92,14 +92,14 @@ Every time a numeric value is expected, the result of evaluating
 a mathematical expression can be used, including variable declaration 
 and assignment (variable names and values are kept in memory throughout
 the input phase and the simulation) and simple math functions.
-Named variables and non-named constants are strongly typed; three types are
-currently available, \kw{integer}, \kw{real}, and \kw{string}.
+Named variables and non-named constants are strongly typed; four types are
+currently available: \kw{bool}, \kw{integer}, \kw{real}, and \kw{string}.
 
 Operations are strongly typed and perform implicit cast when allowed.
 For instance \texttt{1+2.5} returns a \kw{real} whose value 
 is \texttt{3.5}, since one of the 
 two addenda is \kw{real}, while \texttt{1/3} returns \texttt{0} because 
-both types are implicit integers and the integer division is used.
+both values are implicit integers and thus the integer division is used.
 
 An empty field, delimited by a valid separator (a comma or a semicolon,
 depending on whether other arguments are expected or not) returns the
@@ -1596,22 +1596,23 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \textbf{Name} & \textbf{Differentiable} & \textbf{Notes} \\
 \hline\hline
 \kw{array} & $\surd$ & depends on subordinate drive callers \\
+\kw{closest next} & $\surd$ & depends on subordinate drive caller \\
 \kw{const} & $\surd$ & \\
 \kw{cosine} & $\surd$ & \\
 \kw{cubic} & $\surd$ & \\
 \kw{direct} & $\surd$ & \\ %
-\kw{dof} & & \\ %
+\kw{dof} & & depends on subordinate drive caller \\ %
 \kw{double ramp} & $\surd$ & \\
 \kw{double step} & $\surd$ & \\
-\kw{drive} & $\surd$ & \\ %
-\kw{element} & $\surd$ & \\ %
+\kw{drive} & $\surd$ & depends on subordinate drive callers \\ %
+\kw{element} & $\surd$ & depends on subordinate drive caller \\ %
 \kw{exponential} & $\surd$ & \\
 \kw{file} & $\surd$ & \\ %
 \kw{fourier series} & $\surd$ & \\
 \kw{frequency sweep} & $\surd$ & depends on subordinate drive callers \\
 \kw{linear} & $\surd$ & \\
 \kw{meter} & $\surd$ & \\ %
-\kw{node} & $\surd$ & \\ %
+\kw{node} & $\surd$ & depends on subordinate drive caller \\ %
 \kw{null} & $\surd$ & \\
 \kw{one} & $\surd$ & \\
 \kw{parabolic} & $\surd$ & \\
@@ -1643,6 +1644,30 @@ normal drives; \nt{num\_drives} must be at least 1, in which case
 a simple drive caller is created, otherwise an array of drive callers 
 is created and at every call their value is added to give 
 the final value of the array drive.
+
+\subsection{Closest next drive}
+\label{sec:DRIVE:CLOSEST_NEXT}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{closest next} ,
+        \bnt{initial_time} ,
+        \{ \kw{forever} | \bnt{final_time} \} ,
+        (\ty{DriveCaller}) \bnt{increment}
+\end{Verbatim}
+%\end{verbatim}
+This drive returns a non-zero value when called for the first time
+with an argument greater that or equal to the current threshold value,
+which is computed starting from \nt{initial\_time} and incrementing
+it each time by as many \nt{increment} values as required to pass
+the current value of \kw{Time}.
+As soon as a threshold value is exceeded, as many values of \nt{increment}
+as required to pass the current value of \kw{Time} are added,
+and the process repeats.
+
+This drive caller is useful within the \kw{output meter} statement
+(see Section~\ref{sec:CONTROLDATA:OUTPUTMETER})
+to obtain nearly equally spaced output when integrating
+with variable time step.
 
 \subsection{Const(ant) drive}
 %\begin{verbatim}
@@ -1851,8 +1876,8 @@ The function
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{drive} ,
-            \bnt{drive_caller1} , 
-            \bnt{drive_caller2}
+        (\ty{DriveCaller}) \bnt{drive_caller1} , 
+        (\ty{DriveCaller}) \bnt{drive_caller2}
 \end{Verbatim}
 %\end{verbatim}
 This is simply a ``function of function'' drive: the output 
@@ -2036,8 +2061,8 @@ the \nt{number\_of\_terms} must be at least 1.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{frequency sweep} ,
         \bnt{initial_time} ,
-        \bnt{angular_velocity_drive} ,
-        \bnt{amplitude_drive} ,
+        (\ty{DriveCaller}) \bnt{angular_velocity_drive} ,
+        (\ty{DriveCaller}) \bnt{amplitude_drive} ,
         \bnt{initial_value} ,
         \{ \kw{forever} | \bnt{final_time} \} ,
         \bnt{final_value}
@@ -3360,8 +3385,8 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{symbolic elastic} ,
-        \kw{epsilon} , " \bnt{epsilon} " ,
-        \kw{expression} , " \bnt{expression} "
+        \kw{epsilon} , " \bnt{epsilon} " [ , ... ] ,
+        \kw{expression} , " \bnt{expression} " [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 where \nt{epsilon} is the symbol describing the input
@@ -3392,8 +3417,8 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{symbolic viscous} ,
-        \kw{epsilon prime} , " \bnt{epsilon_prime} " ,
-        \kw{expression} , " \bnt{expression} "
+        \kw{epsilon prime} , " \bnt{epsilon_prime} " [ , ... ] ,
+        \kw{expression} , " \bnt{expression} " [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 where \nt{epsilon\_prime} is the symbol describing the derivative
@@ -3408,9 +3433,9 @@ The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{symbolic viscoelastic} ,
-        \kw{epsilon} , " \bnt{epsilon} " ,
-        \kw{epsilon prime} , " \bnt{epsilon_prime} " ,
-        \kw{expression} , " \bnt{expression} "
+        \kw{epsilon} , " \bnt{epsilon} " [ ,  ... ] ,
+        \kw{epsilon prime} , " \bnt{epsilon_prime} " [ , ... ] ,
+        \kw{expression} , " \bnt{expression} " [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 where \nt{epsilon} and \nt{epsilon\_prime} are the symbols describing 
