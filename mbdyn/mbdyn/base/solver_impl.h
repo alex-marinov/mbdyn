@@ -87,8 +87,8 @@ extern int mbdyn_reserve_stack(unsigned long size);
 
 /* Parametri locali */
 static const doublereal dDefaultDerivativesCoefficient = 1.e-6;
-static const integer iDefaultFictitiousStepsNumber = 0;
-static const doublereal dDefaultFictitiousStepsRatio = 1.e-3;
+static const integer iDefaultDummyStepsNumber = 0;
+static const doublereal dDefaultDummyStepsRatio = 1.e-3;
 static const integer iDefaultIterationsBeforeAssembly = 2;
 static const integer iDefaultIterativeSolversMaxSteps = 100;
 static const integer iDefaultPreconditionerSteps = 20;
@@ -99,6 +99,6 @@ static const doublereal defaultIterativeTau = 1.e-7;
 static const integer iDefaultMaxIterations = 1;
 static const doublereal dDefaultMinTimeStep = -1.;
 static const doublereal dDefaultMaxTimeStep = -1.;
-static const doublereal dDefaultFictitiousStepsTolerance = dDefaultTol;
+static const doublereal dDefaultDummyStepsTolerance = dDefaultTol;
 
 #endif /* ! SOLVER_IMPL_H */

@@ -63,16 +63,16 @@
 
 
 /* per il debugging */
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
-#include <solman.h>
-#include <deque>  
-#include <dataman.h> 
+#include "myassert.h"
+#include "mynewmem.h"
+#include "except.h"
+#include "solman.h"
+#include "dataman.h"
 #include "dofown.h"
 #include "drive.h"
-#include <nonlinpb.h>
-#include <nonlin.h>
+#include "nonlinpb.h"
+#include "nonlin.h"
+#include <deque>
 
 /* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
 class Solver;

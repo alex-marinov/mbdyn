@@ -40,10 +40,11 @@
 #ifndef NONLIN_H
 #define NONLIN_H
 
-#include <solverdiagnostics.h>
-#include <external.h>
-#include <nonlinpb.h>
-#include <solman.h>  
+#include "solverdiagnostics.h"
+#include "external.h"
+#include "nonlinpb.h"
+#include "solman.h"
+
 #include <cfloat>
 #include <vector>
 

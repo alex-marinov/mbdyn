@@ -52,8 +52,10 @@
 
 #include "dofown.h"
 #include "output.h"
+
 #include <cfloat>
 #include <cmath>
+#include <cstdlib>
 
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
@@ -81,7 +83,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
-		doublereal& dErr ,
+		doublereal& dErr,
 		const doublereal& SolTol,
 		doublereal& dSolErr)
 {
@@ -95,6 +97,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	pPrevNLP = pNLP;
 	dSolErr = 0.;
 
+	doublereal dOldErr;
+	doublereal dErrFactor = 1.;
 	while (true) {
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
@@ -114,7 +118,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 				forceJacobian = true;
 			}
 		}
-		
+
       		if (outputRes()) {
 			pS->PrintResidual(*pRes, iIterCnt);
       		}
@@ -126,6 +130,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * it? */
 
 		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		if (iIterCnt > 0) {
+			dErrFactor *= dErr/dOldErr;
+		}
+		dOldErr = dErr;
 
 		if (outputIters()) {
 #ifdef USE_MPI
@@ -144,7 +152,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	 		return;
       		}
       		
-		if (iIterCnt > iMaxIter) {
+		if (iIterCnt >= std::abs(iMaxIter)) {
+			if (iMaxIter < 0 && dErrFactor < 1.) {
+				return;
+			}
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}
@@ -155,8 +166,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 		bool bJacBuilt(false);
 		if (bTrueNewtonRaphson
-				|| (iPerformedIterations%IterationBeforeAssembly == 0)
-				|| forceJacobian)
+			|| (iPerformedIterations%IterationBeforeAssembly == 0)
+			|| forceJacobian)
 		{
       			pSM->MatrReset();
 rebuild_matrix:;

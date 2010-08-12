@@ -291,24 +291,24 @@ dRefTimeStep(0.),
 dInitialTimeStep(1.),
 dMinTimeStep(::dDefaultMinTimeStep),
 dMaxTimeStep(::dDefaultMaxTimeStep),
-iFictitiousStepsNumber(::iDefaultFictitiousStepsNumber),
-dFictitiousStepsRatio(::dDefaultFictitiousStepsRatio),
+iDummyStepsNumber(::iDefaultDummyStepsNumber),
+dDummyStepsRatio(::dDefaultDummyStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
 iStepsAfterReduction(0),
 iStepsAfterRaise(0),
 iWeightedPerformedIters(0),
 bLastChance(false),
 RegularType(INT_UNKNOWN),
-FictitiousType(INT_UNKNOWN),
+DummyType(INT_UNKNOWN),
 pDerivativeSteps(0),
-pFirstFictitiousStep(0),
-pFictitiousSteps(0),
+pFirstDummyStep(0),
+pDummySteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
 pRhoRegular(NULL),
 pRhoAlgebraicRegular(NULL),
-pRhoFictitious(NULL),
-pRhoAlgebraicFictitious(NULL),
+pRhoDummy(NULL),
+pRhoAlgebraicDummy(NULL),
 dDerivativesCoef(::dDefaultDerivativesCoefficient),
 ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
@@ -621,8 +621,8 @@ Solver::Run(void)
 	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
 	const DriveHandler* pDH = pDM->pGetDrvHdl();
 	pRegularSteps->SetDriveHandler(pDH);
-	if (iFictitiousStepsNumber) {
-		pFictitiousSteps->SetDriveHandler(pDH);
+	if (iDummyStepsNumber) {
+		pDummySteps->SetDriveHandler(pDH);
 	}
 
 	/* Costruisce i vettori della soluzione ai vari passi */
@@ -655,15 +655,15 @@ Solver::Run(void)
 
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
 	integer iFSteps = 0;
-	if (iFictitiousStepsNumber) {
-		iFSteps = pFictitiousSteps->GetIntegratorNumPreviousStates();
+	if (iDummyStepsNumber) {
+		iFSteps = pDummySteps->GetIntegratorNumPreviousStates();
 	}
 	iNumPreviousVectors = (iRSteps < iFSteps) ? iFSteps : iRSteps;
 
 	integer iRUnkStates = pRegularSteps->GetIntegratorNumUnknownStates();
 	integer iFUnkStates = 0;
-	if (iFictitiousStepsNumber) {
-		iFUnkStates = pFictitiousSteps->GetIntegratorNumUnknownStates();
+	if (iDummyStepsNumber) {
+		iFUnkStates = pDummySteps->GetIntegratorNumUnknownStates();
 	}
 	iUnkStates = (iRUnkStates < iFUnkStates) ? iFUnkStates : iRUnkStates;
 
@@ -866,11 +866,11 @@ Solver::Run(void)
 
 	pDerivativeSteps->SetDataManager(pDM);
 	pDerivativeSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-	if (iFictitiousStepsNumber) {
-		pFirstFictitiousStep->SetDataManager(pDM);
-		pFirstFictitiousStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
-		pFictitiousSteps->SetDataManager(pDM);
-		pFictitiousSteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+	if (iDummyStepsNumber) {
+		pFirstDummyStep->SetDataManager(pDM);
+		pFirstDummyStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
+		pDummySteps->SetDataManager(pDM);
+		pDummySteps->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
 	}
 	pFirstRegularStep->SetDataManager(pDM);
 	pFirstRegularStep->OutputTypes(DEBUG_LEVEL_MATCH(MYDEBUG_PRED));
@@ -944,7 +944,7 @@ Solver::Run(void)
 
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
-	if (iFictitiousStepsNumber == 0) {
+	if (iDummyStepsNumber == 0) {
 		External::SendInitial();
 	}
 #endif /* USE_EXTERNAL */
@@ -972,7 +972,7 @@ Solver::Run(void)
 	long lStep = 1;
 	doublereal dCurrTimeStep = 0.;
 
-	if (iFictitiousStepsNumber > 0) {
+	if (iDummyStepsNumber > 0) {
 		/* passi fittizi */
 
 		/*
@@ -983,7 +983,7 @@ Solver::Run(void)
 		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
 		Flip();
 
-		dRefTimeStep = dInitialTimeStep*dFictitiousStepsRatio;
+		dRefTimeStep = dInitialTimeStep*dDummyStepsRatio;
 		dCurrTimeStep = dRefTimeStep;
 		/* FIXME: do we need to serve pending drives in dummy steps? */
 		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
@@ -991,13 +991,13 @@ Solver::Run(void)
 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			<< dCurrTimeStep << std::endl);
 
-		ASSERT(pFirstFictitiousStep != NULL);
+		ASSERT(pFirstDummyStep != NULL);
 
 		/* Setup SolutionManager(s) */
-		SetupSolmans(pFirstFictitiousStep->GetIntegratorNumUnknownStates());
-		/* pFirstFictitiousStep */
+		SetupSolmans(pFirstDummyStep->GetIntegratorNumUnknownStates());
+		/* pFirstDummyStep */
 		try {
-			dTest = pFirstFictitiousStep->Advance(this,
+			dTest = pFirstDummyStep->Advance(this,
 				dRefTimeStep, 1.,
 				StepIntegrator::NEWSTEP,
 				qX, qXPrime, pX, pXPrime,
@@ -1038,8 +1038,8 @@ Solver::Run(void)
 			return;
 		}
 
-		SAFEDELETE(pFirstFictitiousStep);
-		pFirstFictitiousStep = 0;
+		SAFEDELETE(pFirstDummyStep);
+		pFirstDummyStep = 0;
 
 		dRefTimeStep = dCurrTimeStep;
 		dTime += dRefTimeStep;
@@ -1067,13 +1067,13 @@ Solver::Run(void)
 #endif /* DEBUG_FICTITIOUS */
 
 		/* Passi fittizi successivi */
-		if (iFictitiousStepsNumber > 1) {
+		if (iDummyStepsNumber > 1) {
 			/* Setup SolutionManager(s) */
-			SetupSolmans(pFictitiousSteps->GetIntegratorNumUnknownStates());
+			SetupSolmans(pDummySteps->GetIntegratorNumUnknownStates());
 		}
 
 		for (int iSubStep = 2;
-			iSubStep <= iFictitiousStepsNumber;
+			iSubStep <= iDummyStepsNumber;
 			iSubStep++)
 		{
 			pDM->BeforePredict(*pX, *pXPrime,
@@ -1085,10 +1085,10 @@ Solver::Run(void)
 				<< "; current time step: " << dCurrTimeStep
 				<< std::endl);
 
-			ASSERT(pFictitiousSteps!= NULL);
+			ASSERT(pDummySteps!= NULL);
 			try {
 				pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
-				dTest = pFictitiousSteps->Advance(this,
+				dTest = pDummySteps->Advance(this,
 					dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep,
 					StepIntegrator::NEWSTEP,
@@ -1176,7 +1176,7 @@ Solver::Run(void)
 		}
 
 		DEBUGLCOUT(MYDEBUG_FSTEPS,
-			"Fictitious steps have been successfully completed "
+			"Dummy steps have been successfully completed "
 			"in " << iStIter << " iterations" << std::endl);
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
@@ -1269,8 +1269,8 @@ IfFirstStepIsToBeRepeated:
 			}
 		}
 
-		silent_cerr("Maximum iterations number "
-			<< pRegularSteps->GetIntegratorMaxIters()
+		silent_cerr("Max iterations number "
+			<< std::abs(pRegularSteps->GetIntegratorMaxIters())
 			<< " has been reached during "
 			"first step, Time=" << dTime << "; "
 			<< "TimeStep=" << dCurrTimeStep
@@ -1459,7 +1459,7 @@ IfStepIsToBeRepeated:
 			}
 
 			silent_cerr("Max iterations number "
-				<< pRegularSteps->GetIntegratorMaxIters()
+				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
 				<< " has been reached during "
 				"Step=" << lStep << ", "
 				"Time=" << dTime + dCurrTimeStep << "; "
@@ -1491,7 +1491,7 @@ IfStepIsToBeRepeated:
 			silent_cerr("Simulation diverged after "
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
-				<< pRegularSteps->GetIntegratorMaxIters()
+				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
 				<< " during Step=" << lStep << ", "
 				"Time=" << dTime + dCurrTimeStep << "; "
 				"TimeStep=" << dCurrTimeStep
@@ -1629,12 +1629,12 @@ Solver::~Solver(void)
 		SAFEDELETE(pDerivativeSteps);
 	}
 
-	if (pFirstFictitiousStep) {
-		SAFEDELETE(pFirstFictitiousStep);
+	if (pFirstDummyStep) {
+		SAFEDELETE(pFirstDummyStep);
 	}
 
-	if (pFictitiousSteps) {
-		SAFEDELETE(pFictitiousSteps);
+	if (pDummySteps) {
+		SAFEDELETE(pDummySteps);
 	}
 
 	if (pFirstRegularStep) {
@@ -1798,7 +1798,10 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		ASSERT(0);
 	}
 
-	out << "  max iterations: " << pRegularSteps->GetIntegratorMaxIters()
+	integer iMI = pRegularSteps->GetIntegratorMaxIters();
+	out << "  max iterations: " << std::abs(iMI);
+	if (iMI < 0) out << ", at most";
+	out
 		<< ";" << std::endl
 		<< "  tolerance: " << pRegularSteps->GetIntegratorDTol();
 	switch(ResTest) {
@@ -1837,14 +1840,14 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
 		<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
 		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl;
-	if (iFictitiousStepsNumber) {
+	if (iDummyStepsNumber) {
 		out
-			<< "  fictitious steps max iterations: " << pFictitiousSteps->GetIntegratorMaxIters() << ";" << std::endl
-			<< "  fictitious steps tolerance: " << pFictitiousSteps->GetIntegratorDTol() << ";" << std::endl;
+			<< "  dummy steps max iterations: " << pDummySteps->GetIntegratorMaxIters() << ";" << std::endl
+			<< "  dummy steps tolerance: " << pDummySteps->GetIntegratorDTol() << ";" << std::endl;
 	}
 	out
-		<< "  fictitious steps number: " << iFictitiousStepsNumber << ";" << std::endl
-		<< "  fictitious steps ratio: " << dFictitiousStepsRatio << ";" << std::endl;
+		<< "  dummy steps number: " << iDummyStepsNumber << ";" << std::endl
+		<< "  dummy steps ratio: " << dDummyStepsRatio << ";" << std::endl;
 	switch (NonlinearSolverType) {
 	case NonlinearSolver::MATRIXFREE:
 		out << "  #  nonlinear solver: matrix free;" << std::endl;
@@ -2107,7 +2110,7 @@ Solver::ReadData(MBDynParser& HP)
 	}
 
 	bool bMethod(false);
-	bool bFictitiousStepsMethod(false);
+	bool bDummyStepsMethod(false);
 
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
@@ -2119,8 +2122,8 @@ Solver::ReadData(MBDynParser& HP)
 	bool bModResTest = false;
 
 	/* Dati dei passi fittizi di trimmaggio iniziale */
-	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
-	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
+	doublereal dDummyStepsTolerance = ::dDefaultDummyStepsTolerance;
+	integer iDummyStepsMaxIterations = ::iDefaultMaxIterations;
 
 	/* Dati del passo iniziale di calcolo delle derivate */
 
@@ -2218,54 +2221,54 @@ Solver::ReadData(MBDynParser& HP)
 
 		case FICTITIOUSSTEPSNUMBER:
 		case DUMMYSTEPSNUMBER:
-			iFictitiousStepsNumber = HP.GetInt();
-			if (iFictitiousStepsNumber < 0) {
-				iFictitiousStepsNumber =
-					::iDefaultFictitiousStepsNumber;
+			iDummyStepsNumber = HP.GetInt();
+			if (iDummyStepsNumber < 0) {
+				iDummyStepsNumber =
+					::iDefaultDummyStepsNumber;
 				silent_cerr("negative dummy steps number"
 					" is illegal" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-			} else if (iFictitiousStepsNumber == 1) {
+			} else if (iDummyStepsNumber == 1) {
 				silent_cerr("warning, a single dummy step"
 					" may be useless" << std::endl);
 			}
 
-			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps number: "
-				<< iFictitiousStepsNumber << std::endl);
+			DEBUGLCOUT(MYDEBUG_INPUT, "Dummy steps number: "
+				<< iDummyStepsNumber << std::endl);
 			break;
 
 		case FICTITIOUSSTEPSRATIO:
 		case DUMMYSTEPSRATIO:
-			dFictitiousStepsRatio = HP.GetReal();
-			if (dFictitiousStepsRatio < 0.) {
+			dDummyStepsRatio = HP.GetReal();
+			if (dDummyStepsRatio < 0.) {
 				silent_cerr("negative dummy steps ratio"
 					" is illegal" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			if (dFictitiousStepsRatio > 1.) {
+			if (dDummyStepsRatio > 1.) {
 				silent_cerr("warning, dummy steps ratio"
 					" is larger than one." << std::endl
 					<< "Something like 1.e-3 should"
 					" be safer ..." << std::endl);
 			}
 
-			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps ratio: "
-				<< dFictitiousStepsRatio << std::endl);
+			DEBUGLCOUT(MYDEBUG_INPUT, "Dummy steps ratio: "
+				<< dDummyStepsRatio << std::endl);
 			break;
 
 		case FICTITIOUSSTEPSTOLERANCE:
 		case DUMMYSTEPSTOLERANCE:
-			dFictitiousStepsTolerance = HP.GetReal();
-			if (dFictitiousStepsTolerance <= 0.) {
+			dDummyStepsTolerance = HP.GetReal();
+			if (dDummyStepsTolerance <= 0.) {
 				silent_cerr("negative dummy steps"
 					" tolerance is illegal" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			DEBUGLCOUT(MYDEBUG_INPUT,
-				"Fictitious steps tolerance: "
-				<< dFictitiousStepsTolerance << std::endl);
+				"Dummy steps tolerance: "
+				<< dDummyStepsTolerance << std::endl);
 			break;
 
 		case ABORTAFTER: {
@@ -2463,33 +2466,33 @@ Solver::ReadData(MBDynParser& HP)
 
 		case FICTITIOUSSTEPSMETHOD:
 		case DUMMYSTEPSMETHOD: {
-			if (bFictitiousStepsMethod) {
+			if (bDummyStepsMethod) {
 				silent_cerr("error: multiple definition "
 					"of dummy steps integration method "
 					"at line " << HP.GetLineData()
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			bFictitiousStepsMethod = true;
+			bDummyStepsMethod = true;
 
 			KeyWords KMethod = KeyWords(HP.GetWord());
 			switch (KMethod) {
 			case CRANKNICHOLSON:
 				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
 			case CRANKNICOLSON:
-				FictitiousType = INT_CRANKNICOLSON;
+				DummyType = INT_CRANKNICOLSON;
 				break;
 
 			case BDF:
 				/* default (order 2) */
-				FictitiousType = INT_MS2;
+				DummyType = INT_MS2;
 
 				if (HP.IsKeyWord("order")) {
 					int iOrder = HP.GetInt();
 
 					switch (iOrder) {
 					case 1:
-						FictitiousType = INT_IMPLICITEULER;
+						DummyType = INT_IMPLICITEULER;
 						break;
 
 					case 2:
@@ -2501,31 +2504,31 @@ Solver::ReadData(MBDynParser& HP)
 					}
 				}
 
-				if (FictitiousType == INT_MS2) {
-					SAFENEW(pRhoFictitious, NullDriveCaller);
-					SAFENEW(pRhoAlgebraicFictitious, NullDriveCaller);
+				if (DummyType == INT_MS2) {
+					SAFENEW(pRhoDummy, NullDriveCaller);
+					SAFENEW(pRhoAlgebraicDummy, NullDriveCaller);
 				}
 				break;
 
 			case NOSTRO:
 			case MS:
 			case HOPE:
-				pRhoFictitious = HP.GetDriveCaller(true);
+				pRhoDummy = HP.GetDriveCaller(true);
 
 				if (HP.IsArg()) {
-					pRhoAlgebraicFictitious = HP.GetDriveCaller(true);
+					pRhoAlgebraicDummy = HP.GetDriveCaller(true);
 				} else {
-					pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
+					pRhoAlgebraicDummy = pRhoDummy->pCopy();
 				}
 
 				switch (KMethod) {
 				case NOSTRO:
 				case MS:
-					FictitiousType = INT_MS2;
+					DummyType = INT_MS2;
 					break;
 
 				case HOPE:
-					FictitiousType = INT_HOPE;
+					DummyType = INT_HOPE;
 					break;
 
 				default:
@@ -2537,13 +2540,13 @@ Solver::ReadData(MBDynParser& HP)
 				if (HP.IsKeyWord("ad" "hoc")) {
 					/* do nothing */ ;
 				} else {
-					pRhoFictitious = HP.GetDriveCaller(true);
+					pRhoDummy = HP.GetDriveCaller(true);
 				}
-				FictitiousType = INT_THIRDORDER;
+				DummyType = INT_THIRDORDER;
 				break;
 
 			case IMPLICITEULER:
-				FictitiousType = INT_IMPLICITEULER;
+				DummyType = INT_IMPLICITEULER;
 				break;
 
 			default:
@@ -2692,6 +2695,9 @@ Solver::ReadData(MBDynParser& HP)
 			DEBUGLCOUT(MYDEBUG_INPUT,
 					"Max iterations = "
 					<< iMaxIterations << std::endl);
+			if (HP.IsKeyWord("at" "most")) {
+				iMaxIterations = -iMaxIterations;
+			}
 			break;
 		}
 
@@ -2727,18 +2733,18 @@ Solver::ReadData(MBDynParser& HP)
 
 		case FICTITIOUSSTEPSMAXITERATIONS:
 		case DUMMYSTEPSMAXITERATIONS: {
-			iFictitiousStepsMaxIterations = HP.GetInt();
-			if (iFictitiousStepsMaxIterations < 1) {
-				iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
+			iDummyStepsMaxIterations = HP.GetInt();
+			if (iDummyStepsMaxIterations < 1) {
+				iDummyStepsMaxIterations = ::iDefaultMaxIterations;
 				silent_cerr("warning, dummy steps "
 					"max iterations < 1 is illegal; "
 					"using default value "
-					<< iFictitiousStepsMaxIterations
+					<< iDummyStepsMaxIterations
 					<< std::endl);
 			}
-			DEBUGLCOUT(MYDEBUG_INPUT, "Fictitious steps "
+			DEBUGLCOUT(MYDEBUG_INPUT, "Dummy steps "
 					"max iterations = "
-					<< iFictitiousStepsMaxIterations
+					<< iDummyStepsMaxIterations
 					<< std::endl);
 			break;
 		}
@@ -3652,15 +3658,15 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 
 	/* Metodo di integrazione di default */
-	if (iFictitiousStepsNumber && !bFictitiousStepsMethod) {
-		ASSERT(FictitiousType == INT_UNKNOWN);
+	if (iDummyStepsNumber && !bDummyStepsMethod) {
+		ASSERT(DummyType == INT_UNKNOWN);
 
-		SAFENEW(pRhoFictitious, NullDriveCaller);
+		SAFENEW(pRhoDummy, NullDriveCaller);
 
 		/* DriveCaller per Rho asintotico per variabili algebriche */
-		pRhoAlgebraicFictitious = pRhoFictitious->pCopy();
+		pRhoAlgebraicDummy = pRhoDummy->pCopy();
 
-		FictitiousType = INT_MS2;
+		DummyType = INT_MS2;
 	}
 
 	/* costruzione dello step solver derivative */
@@ -3673,71 +3679,71 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				bModResTest));
 
 	/* First step prediction must always be Crank-Nicolson for accuracy */
-	if (iFictitiousStepsNumber) {
-		SAFENEWWITHCONSTRUCTOR(pFirstFictitiousStep,
+	if (iDummyStepsNumber) {
+		SAFENEWWITHCONSTRUCTOR(pFirstDummyStep,
 				CrankNicolsonIntegrator,
-				CrankNicolsonIntegrator(dFictitiousStepsTolerance,
+				CrankNicolsonIntegrator(dDummyStepsTolerance,
 					0.,
-					iFictitiousStepsMaxIterations,
+					iDummyStepsMaxIterations,
 					bModResTest));
 
-		/* costruzione dello step solver fictitious */
-		switch (FictitiousType) {
+		/* costruzione dello step solver dummy */
+		switch (DummyType) {
 		case INT_CRANKNICOLSON:
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					CrankNicolsonIntegrator,
-					CrankNicolsonIntegrator(dFictitiousStepsTolerance,
+					CrankNicolsonIntegrator(dDummyStepsTolerance,
 						0.,
-						iFictitiousStepsMaxIterations,
+						iDummyStepsMaxIterations,
 						bModResTest));
 			break;
 
 		case INT_MS2:
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					MultistepSolver,
-					MultistepSolver(dFictitiousStepsTolerance,
+					MultistepSolver(dDummyStepsTolerance,
 						0.,
-						iFictitiousStepsMaxIterations,
-						pRhoFictitious,
-						pRhoAlgebraicFictitious,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
 						bModResTest));
 			break;
 
 		case INT_HOPE:
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					HopeSolver,
-					HopeSolver(dFictitiousStepsTolerance,
+					HopeSolver(dDummyStepsTolerance,
 						dSolutionTol,
-						iFictitiousStepsMaxIterations,
-						pRhoFictitious,
-						pRhoAlgebraicFictitious,
+						iDummyStepsMaxIterations,
+						pRhoDummy,
+						pRhoAlgebraicDummy,
 						bModResTest));
 			break;
 
 		case INT_THIRDORDER:
-			if (pRhoFictitious == 0) {
-				SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			if (pRhoDummy == 0) {
+				SAFENEWWITHCONSTRUCTOR(pDummySteps,
 						AdHocThirdOrderIntegrator,
-						AdHocThirdOrderIntegrator(dFictitiousStepsTolerance,
+						AdHocThirdOrderIntegrator(dDummyStepsTolerance,
 							dSolutionTol,
-							iFictitiousStepsMaxIterations,
+							iDummyStepsMaxIterations,
 							bModResTest));
 			} else {
-				SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+				SAFENEWWITHCONSTRUCTOR(pDummySteps,
 						TunableThirdOrderIntegrator,
-						TunableThirdOrderIntegrator(dFictitiousStepsTolerance,
+						TunableThirdOrderIntegrator(dDummyStepsTolerance,
 							dSolutionTol,
-							iFictitiousStepsMaxIterations,
-							pRhoFictitious,
+							iDummyStepsMaxIterations,
+							pRhoDummy,
 							bModResTest));
 			}
 			break;
 
 		case INT_IMPLICITEULER:
-			SAFENEWWITHCONSTRUCTOR(pFictitiousSteps,
+			SAFENEWWITHCONSTRUCTOR(pDummySteps,
 					ImplicitEulerIntegrator,
-					ImplicitEulerIntegrator(dFictitiousStepsTolerance,
-						dSolutionTol, iFictitiousStepsMaxIterations,
+					ImplicitEulerIntegrator(dDummyStepsTolerance,
+						dSolutionTol, iDummyStepsMaxIterations,
 						bModResTest));
 			break;
 

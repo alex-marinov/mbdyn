@@ -42,6 +42,7 @@
 #endif /* HAVE_CONFIG_H */
   
 #include <cmath>
+#include <cstdlib>
 #include <limits>
 
 #include "solver.h"
@@ -78,7 +79,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
-		doublereal& dErr ,
+		doublereal& dErr,
 		const doublereal& SolTol,
 		doublereal& dSolErr)
 {
@@ -183,7 +184,10 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
       		if (!std::isfinite(dErr)) {
 			throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
-		if (iIterCnt > iMaxIter) {
+		if (iIterCnt >= std::abs(iMaxIter)) {
+			if (iMaxIter < 0) {
+				return;
+			}
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}

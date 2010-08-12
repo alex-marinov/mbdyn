@@ -912,14 +912,14 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 		<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
 		<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
 		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl;
-	if (iFictitiousStepsNumber) {
+	if (iDummyStepsNumber) {
 		out
-			<< "  fictitious steps max iterations: " << pFictitiousSteps->GetIntegratorMaxIters() << ";" << std::endl
-			<< "  fictitious steps tolerance: " << pFictitiousSteps->GetIntegratorDTol() << ";" << std::endl;
+			<< "  dummy steps max iterations: " << pDummySteps->GetIntegratorMaxIters() << ";" << std::endl
+			<< "  dummy steps tolerance: " << pDummySteps->GetIntegratorDTol() << ";" << std::endl;
 	}
 	out
-		<< "  fictitious steps number: " << iFictitiousStepsNumber << ";" << std::endl
-		<< "  fictitious steps ratio: " << dFictitiousStepsRatio << ";" << std::endl;
+		<< "  dummy steps number: " << iDummyStepsNumber << ";" << std::endl
+		<< "  dummy steps ratio: " << dDummyStepsRatio << ";" << std::endl;
 	switch (NonlinearSolverType) {
 	case NonlinearSolver::MATRIXFREE:
 		out << "  #  nonlinear solver: matrix free;" << std::endl;
@@ -1121,7 +1121,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 	}
 
 	bool bMethod(false);
-	bool bFictitiousStepsMethod(false);
+	bool bDummyStepsMethod(false);
 
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
@@ -1133,8 +1133,8 @@ InverseSolver::ReadData(MBDynParser& HP)
 	bool bModResTest = false;
 
 	/* Dati dei passi fittizi di trimmaggio iniziale */
-	doublereal dFictitiousStepsTolerance = ::dDefaultFictitiousStepsTolerance;
-	integer iFictitiousStepsMaxIterations = ::iDefaultMaxIterations;
+	doublereal dDummyStepsTolerance = ::dDefaultDummyStepsTolerance;
+	integer iDummyStepsMaxIterations = ::iDefaultMaxIterations;
 
 	/* Dati del passo iniziale di calcolo delle derivate */
 

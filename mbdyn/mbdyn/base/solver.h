@@ -239,8 +239,8 @@ protected:
    	doublereal dMaxTimeStep;
 
    	/* Dati dei passi fittizi di trimmaggio iniziale */
-   	integer iFictitiousStepsNumber;
-   	doublereal dFictitiousStepsRatio;
+   	integer iDummyStepsNumber;
+   	doublereal dDummyStepsRatio;
    
    	/* Flags vari */
 	enum AbortAfter {
@@ -268,18 +268,18 @@ protected:
 			INT_IMPLICITEULER,
 			INT_UNKNOWN
 	};
-	StepIntegratorType RegularType,  FictitiousType;
+	StepIntegratorType RegularType,  DummyType;
 	
    	StepIntegrator* pDerivativeSteps;
-   	StepIntegrator* pFirstFictitiousStep;
-	StepIntegrator* pFictitiousSteps;
+   	StepIntegrator* pFirstDummyStep;
+	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
    	StepIntegrator* pRegularSteps;
 	
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
-	DriveCaller* pRhoFictitious;
-	DriveCaller* pRhoAlgebraicFictitious;
+	DriveCaller* pRhoDummy;
+	DriveCaller* pRhoAlgebraicDummy;
 	
 	doublereal dDerivativesCoef;
 	/* Type of linear solver */

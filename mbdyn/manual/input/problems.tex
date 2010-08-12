@@ -245,9 +245,56 @@ Currently, no scaling is allowed in the solution test.
 \subsubsection{Max Iterations}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{max iterations} : \bnt{max_iterations} ;
+    \bnt{card} ::= \kw{max iterations} : \bnt{max_iterations} [ , \kw{at most} ] ;
 \end{Verbatim}
 %\end{verbatim}
+Error out after \nt{max\_iterations} without passing the convergence test.
+
+If the optional keywords \kw{at most} are given,
+the step is considered successfully performed after \nt{max\_iterations}
+regardless of passing the convergence test, as soon as the error
+reduced since the first iteration.
+For example, when using
+\begin{verbatim}
+    max iterations: 5, at most;
+\end{verbatim}
+the convergence pattern
+\begin{verbatim}
+    ...
+        Iteration(0) 1.16374e+06 J
+                SolErr 0
+        Iteration(1) 8330.76 J
+                SolErr 0
+        Iteration(2) 43768.8 J
+                SolErr 0
+        Iteration(3) 2981.01 J
+                SolErr 0
+        Iteration(4) 118839 J
+                SolErr 0
+        Iteration(5) 8654.02 J
+    ...
+\end{verbatim}
+succeeds, since $8654.02 < 1.16374\text{e$+$}06$, while
+\begin{verbatim}
+    ...
+        Iteration(0) 1.66901e+06 J
+                SolErr 0
+        Iteration(1) 2.06327e+09 J
+                SolErr 0
+        Iteration(2) 2.64337e+10 J
+                SolErr 0
+        Iteration(3) 1.2131e+12 J
+                SolErr 0
+        Iteration(4) 7.08449e+12 J
+                SolErr 0
+        Iteration(5) 2.18828e+15 J
+Max iterations number 5 has been reached during Step=6, Time=0.06; \
+TimeStep=0.01 cannot be reduced further; aborting...
+An error occurred during the execution of MBDyn; aborting... 
+\end{verbatim}
+fials since $2.18828\text{e$+$}15 > 1.66901\text{e$+$}06$.
+
+\fbox{\textbf{This option should be used with extreme care.}}
 
 \subsubsection{Modify Residual Test}
 %\begin{verbatim}

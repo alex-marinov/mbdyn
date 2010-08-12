@@ -40,7 +40,7 @@
 #ifndef NR_H
 #define NR_H
 
-#include <nonlin.h>
+#include "nonlin.h"
 
 class NewtonRaphsonSolver : public NonlinearSolver
 {

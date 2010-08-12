@@ -43,6 +43,7 @@
 
 #include <limits>
 #include <cmath>
+#include <cstdlib>
 
 #include "solver.h"
 #include "gmres.h"  
@@ -129,7 +130,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 		const integer iMaxIter,
 		const doublereal& Tol,
 		integer& iIterCnt,
-		doublereal& dErr ,
+		doublereal& dErr,
 		const doublereal& SolTol,
 		doublereal& dSolErr)
 {
@@ -223,7 +224,10 @@ Gmres::Solve(const NonlinearProblem* pNLP,
       		if (!std::isfinite(dErr)) {
 			throw ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
-		if (iIterCnt > iMaxIter) {
+		if (iIterCnt >= std::abs(iMaxIter)) {
+			if (iMaxIter < 0) {
+				return;
+			}
 			if (outputBailout()) {
 				pS->PrintResidual(*pRes, iIterCnt);
 			}
