@@ -55,6 +55,8 @@ TclPlugIn::~TclPlugIn(void)
 	if (interp) {
 		Tcl_DeleteInterp(interp);
 	}
+
+	Tcl_DecrRefCount(cmd);
 }
 
 const char *
@@ -123,6 +125,8 @@ TclPlugIn::Read(int argc, char *argv[])
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	Tcl_IncrRefCount(cmd);
+
 	return 0;
 }
 
@@ -137,7 +141,7 @@ TclPlugIn::GetVal(void) const
 {
 	Tcl_Obj *res;
 	
-	if (Tcl_GlobalEvalObj(interp, cmd) != TCL_OK) {
+	if (Tcl_EvalObjEx(interp, cmd, 0) != TCL_OK) {
 		silent_cerr("TclPlugIn::GetVal: Tcl_GlobalEvalObj: error" 
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -148,24 +152,33 @@ TclPlugIn::GetVal(void) const
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	
-	Real d;
-	if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
-		silent_cerr("TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
-			<< std::endl);
+
+	switch (type) {
+	case TypedValue::VAR_INT: {
+		int i;
+		if (Tcl_GetIntFromObj(NULL, res, &i) != TCL_OK) {
+			silent_cerr("TclPlugIn::GetVal: Tcl_GetIntFromObj: error"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		return TypedValue(i);
+		}
+
+	case TypedValue::VAR_REAL: {
+		double d;
+		if (Tcl_GetDoubleFromObj(NULL, res, &d) != TCL_OK) {
+			silent_cerr("TclPlugIn::GetVal: Tcl_GetDoubleFromObj: error"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		return TypedValue(d);
+		}
+
+	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	Tcl_ResetResult(interp);
-
-	switch (type) {
-	case TypedValue::VAR_INT:
-		return TypedValue(Int(d));
-	  
-	case TypedValue::VAR_REAL:
-	default:
-		return TypedValue(d);
-	}
 }
 
 MathParser::PlugIn *
