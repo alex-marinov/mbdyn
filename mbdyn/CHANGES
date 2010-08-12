@@ -13,12 +13,9 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added shell element (Marco Morandini, Riccardo Vescovini)
-		- added "at most" max iterations feature
 	Backward compatibility issues:
-		- TCL plugin moved to run-time loadable module
 	Known issues:
 	Bug fixes:
-		- fixed max iterations count (off-by-one)
 
 MBDyn 1.3.16
 	Enhancements:
@@ -33,11 +30,13 @@ MBDyn 1.3.16
 		- added "slug2kg" and "kg2slug" constants to symbol table
 		- reworked input manual
 		- added sanity checks in c81 data
+		- added "at most" max iterations feature
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
 		- aeromodal element syntax changed
 		- precision of some built-in symbol table constants increased
+		- TCL plugin fixed and moved to run-time loadable module
 	Known issues:
 	Bug fixes:
 		- fix EDGE communication (noted by Luca Cavagna)
@@ -45,6 +44,7 @@ MBDyn 1.3.16
 		- fix "output every" in stream output (noted by Doug Baldwin)
 		- fix "input every" in stream input (noted by Doug Baldwin)
 		- fix GenericAerodynamicForce (noted by Stefan van't'Hoff)
+		- fixed max iterations count (off-by-one)
 
 MBDyn 1.3.15
 	Enhancements:
