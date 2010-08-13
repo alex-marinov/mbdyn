@@ -124,6 +124,76 @@ TimeDriveCaller::Restart(std::ostream& out) const
 /* TimeDriveCaller - end */
 
 
+/* TimeStepDriveCaller - begin */
+
+TimeStepDriveCaller::TimeStepDriveCaller(const DriveHandler* pDH)
+: DriveCaller(pDH)
+{
+	NO_OP;
+}
+
+TimeStepDriveCaller::~TimeStepDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+TimeStepDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC, TimeStepDriveCaller, TimeStepDriveCaller(pDrvHdl));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+TimeStepDriveCaller::Restart(std::ostream& out) const
+{
+	return out << "timestep";
+}
+
+/* TimeStepDriveCaller - end */
+
+
+/* MultDriveCaller - begin */
+
+MultDriveCaller::MultDriveCaller(const DriveHandler *pDH,
+	const DriveCaller* pDC1, const DriveCaller *pDC2)
+: DriveCaller(pDH),
+DO1(pDC1), DO2(pDC2)
+{
+	NO_OP;
+}
+
+MultDriveCaller::~MultDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+MultDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC, MultDriveCaller,
+		MultDriveCaller(pDrvHdl,
+			DO1.pGetDriveCaller(), DO2.pGetDriveCaller()));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+MultDriveCaller::Restart(std::ostream& out) const
+{
+	return out << "mult, ",
+		DO1.pGetDriveCaller()->Restart(out) << ", ";
+		DO2.pGetDriveCaller()->Restart(out);
+}
+
+/* MultDriveCaller - end */
+
+
 /* ConstDriveCaller - begin */
 
 ConstDriveCaller::ConstDriveCaller(doublereal d)
@@ -1128,6 +1198,54 @@ TimeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct TimeStepDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+TimeStepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "timestep");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	SAFENEWWITHCONSTRUCTOR(pDC, TimeStepDriveCaller, TimeStepDriveCaller(pDrvHdl));
+
+	return pDC;
+}
+
+struct MultDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+MultDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "mult");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller* pDC1 = HP.GetDriveCaller();
+	DriveCaller* pDC2 = HP.GetDriveCaller();
+
+	DriveCaller *pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		MultDriveCaller,
+		MultDriveCaller(pDrvHdl, pDC1, pDC2));
+
+	return pDC;
+}
+
 struct NullDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* /* pDM */ , MBDynParser& /* HP */ , bool /* bDeferred */ );
@@ -1291,6 +1409,9 @@ CubicDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+/*
+ * this allows each drive to be preceded by the keyword "function"
+ */
 struct FunctionDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -2384,37 +2505,39 @@ InitDriveData(void)
 		return;
 	}
 
-	SetDriveData("time", new TimeDCR);
-	SetDriveData("null", new NullDCR);
-	SetDriveData("one", new OneDCR);	/* deprecated */
-	SetDriveData("unit", new OneDCR);
+	SetDriveData("array", new ArrayDCR);
+	SetDriveData("closest" "next", new ClosestNextDCR);
 	SetDriveData("const", new ConstDCR);
-	SetDriveData("linear", new LinearDCR);
-	SetDriveData("parabolic", new ParabolicDCR);
-	SetDriveData("cubic", new CubicDCR);
-	SetDriveData("function", new FunctionDCR);
-	SetDriveData("step", new StepDCR);
-	SetDriveData("double" "step", new DoubleStepDCR);
-	SetDriveData("ramp", new RampDCR);
-	SetDriveData("double" "ramp", new DoubleRampDCR);
-	SetDriveData("sine", new SineDCR);
 	SetDriveData("cosine", new CosineDCR);
-	SetDriveData("tanh", new TanhDCR);
+	SetDriveData("cubic", new CubicDCR);
+	SetDriveData("direct", new DirectDCR);
+	SetDriveData("dof", new DofDCR);
+	SetDriveData("double" "ramp", new DoubleRampDCR);
+	SetDriveData("double" "step", new DoubleStepDCR);
+	SetDriveData("drive", new DriveDCR);
+	SetDriveData("element", new ElementDCR);
+	SetDriveData("exponential", new ExponentialDCR);
+	SetDriveData("file", new FileDCR);
 	SetDriveData("fourier" "series", new FourierSeriesDCR);
 	SetDriveData("frequency" "sweep", new FrequencySweepDCR);
-	SetDriveData("exponential", new ExponentialDCR);
-	SetDriveData("random", new RandomDCR);
+	SetDriveData("function", new FunctionDCR);
+	SetDriveData("linear", new LinearDCR);
 	SetDriveData("meter", new MeterDCR);
-	SetDriveData("closest" "next", new ClosestNextDCR);
-	SetDriveData("direct", new DirectDCR);
-	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
-	SetDriveData("file", new FileDCR);
-	SetDriveData("string", new StringDCR);
-	SetDriveData("dof", new DofDCR);
+	SetDriveData("mult", new MultDCR);
 	SetDriveData("node", new NodeDCR);
-	SetDriveData("element", new ElementDCR);
-	SetDriveData("drive", new DriveDCR);
-	SetDriveData("array", new ArrayDCR);
+	SetDriveData("null", new NullDCR);
+	SetDriveData("one", new OneDCR);	/* deprecated */
+	SetDriveData("parabolic", new ParabolicDCR);
+	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
+	SetDriveData("ramp", new RampDCR);
+	SetDriveData("random", new RandomDCR);
+	SetDriveData("sine", new SineDCR);
+	SetDriveData("step", new StepDCR);
+	SetDriveData("string", new StringDCR);
+	SetDriveData("tanh", new TanhDCR);
+	SetDriveData("time", new TimeDCR);
+	SetDriveData("timestep", new TimeStepDCR);
+	SetDriveData("unit", new OneDCR);
 
 	/* NOTE: add here initialization of new built-in drive callers;
 	 * alternative ways to register new custom drive callers are:

@@ -1612,9 +1612,10 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{frequency sweep} & $\surd$ & depends on subordinate drive callers \\
 \kw{linear} & $\surd$ & \\
 \kw{meter} & $\surd$ & \\ %
+\kw{mult} & $\surd$ & depends on subordinate drive callers \\ %
 \kw{node} & $\surd$ & depends on subordinate drive caller \\ %
 \kw{null} & $\surd$ & \\
-\kw{one} & $\surd$ & \\
+%\kw{one} & $\surd$ & \\
 \kw{parabolic} & $\surd$ & \\
 \kw{piecewise linear} & $\surd$ & \\
 \kw{ramp} & $\surd$ & \\
@@ -1625,6 +1626,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{string} & $\surd$ & \\ %
 \kw{tanh} & $\surd$ & \\
 \kw{time} & $\surd$ & \\
+\kw{timestep} & $\surd$ & \\
 \kw{unit} & $\surd$ & \\ %
 \hline
 \end{tabular}
@@ -1635,8 +1637,8 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{array} ,
         \bnt{num_drives} ,
-            \bnt{drive_caller}
-            [ , \bnt{drive_caller} [ , ... ] ]
+            (\ty{DriveCaller}) \bnt{drive_caller}
+            [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 this is simply a front-end for the linear combination of \nt{num\_drives} 
@@ -2127,6 +2129,17 @@ number of steps between spikes.
 defines a drive whose value is zero except at time step 0. 
 and every 10 time steps from that, where it assumes unit value.
 
+\subsection{Mult drive}
+The \kw{mult} drive multiplies the value of two subordinate drives.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{mult} ,
+        (\ty{DriveCaller}) \bnt{drive\_1} ,
+        (\ty{DriveCaller}) \bnt{drive\_2}
+\end{Verbatim}
+%\end{verbatim}
+
+
 \subsection{Node drive}\label{sec:DRIVE:NODE}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -2177,6 +2190,7 @@ a string expression.
 %\end{verbatim}
 Zero valued; the \kw{arglist} is empty.
 
+\begin{comment}
 \subsection{One drive}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -2184,6 +2198,7 @@ Zero valued; the \kw{arglist} is empty.
 \end{Verbatim}
 %\end{verbatim}
 Unit valued; the \nt{arglist} is empty.
+\end{comment}
 
 \subsection{Parabolic drive}
 %\begin{verbatim}
@@ -2272,7 +2287,8 @@ are not managed, so it is not very reliable).
 \end{Verbatim}
 %\end{verbatim}
 The scalar function called \nt{scalar\_function\_name} must exist;
-alternatively, it must be defined inline.
+alternatively, it is defined inline according to
+\nt{scalar\_function\_definition}.
 
 \paragraph{Example.} \
 \begin{verbatim}
@@ -2418,6 +2434,14 @@ It is differentiable.
 %\end{verbatim}
 Yields the current time; the arglist is empty.
 
+\subsection{Timestep drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{timestep}
+\end{Verbatim}
+%\end{verbatim}
+Yields the current timestep; the arglist is empty.
+
 \subsection{Unit drive}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -2426,7 +2450,10 @@ Yields the current time; the arglist is empty.
 %\end{verbatim}
 Always 1; the \nt{arglist} is empty.
 
-
+\subsection{Deprecated drive callers}
+\begin{itemize}
+\item \kw{one}; use \kw{unit} instead.
+\end{itemize}
 
 
 
@@ -2447,10 +2474,11 @@ The \ty{DriveCaller} is re-parsed when the entity that owns it is sent
 a \kw{hint} of the form
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    "drive\{ \bnt{drive_caller} \}"
+    "drive\{ (\ty{DriveCaller}) \bnt{drive_caller} \}"
 \end{Verbatim}
 %\end{verbatim}
-is used, where \nt{drive\_caller} is an arbitrary drive caller specification.
+is used, where \nt{drive\_caller} is an arbitrary \ty{DriveCaller}
+specification.
 The whole hint argument needs to be enclosed in double quotes because MBDyn
 treats it as a string.
 It is not parsed until needed.

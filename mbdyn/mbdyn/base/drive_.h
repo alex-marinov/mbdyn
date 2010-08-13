@@ -196,6 +196,52 @@ TimeStepDriveCaller::dGet(void) const
 /* TimeStepDriveCaller - end */
 
 
+/* MultDriveCaller - begin */
+
+class MultDriveCaller : public DriveCaller {
+protected:
+	DriveOwner DO1, DO2;
+
+public:
+	MultDriveCaller(const DriveHandler* pDH,
+		const DriveCaller *pDC1, const DriveCaller *pDC2);
+	virtual ~MultDriveCaller(void);
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	inline doublereal dGet(const doublereal& dVar) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+};
+
+inline doublereal
+MultDriveCaller::dGet(const doublereal& dVar) const
+{
+	return DO1.pGetDriveCaller()->dGet(dVar)*DO2.pGetDriveCaller()->dGet(dVar);
+}
+
+inline bool
+MultDriveCaller::bIsDifferentiable(void) const
+{
+	return DO1.pGetDriveCaller()->bIsDifferentiable()
+		&& DO2.pGetDriveCaller()->bIsDifferentiable();
+}
+
+inline doublereal 
+MultDriveCaller::dGetP(const doublereal& dVar) const
+{
+	return DO1.pGetDriveCaller()->dGetP(dVar)*DO1.pGetDriveCaller()->dGet(dVar)
+		+ DO1.pGetDriveCaller()->dGet(dVar)*DO1.pGetDriveCaller()->dGetP(dVar);
+}
+
+/* MultDriveCaller - end */
+
 /* LinearDriveCaller - begin */
 
 class LinearDriveCaller : public DriveCaller {

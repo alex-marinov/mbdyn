@@ -23,6 +23,8 @@ MBDyn 1.3.16
 		- reworked input manual
 		- added sanity checks in c81 data
 		- added "at most" max iterations feature
+		- added "timestep" drive caller
+		- added "mult" drive caller
 	Backward compatibility issues:
 		- edge interface changed, to conform to EDGE 5.1
 		- changed GenericAerodynamicForce input format
