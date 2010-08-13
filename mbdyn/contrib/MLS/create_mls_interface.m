@@ -210,7 +210,7 @@ fprintf(fid, '# Moving Lest Square interface matrix\n');
 fprintf(fid, '# Date %s\n',  date);
 fprintf(fid, '# MBDyn Structural file "%s" nodes=%d\n', filename, MBNodeN);
 fprintf(fid, '# External file "%s" nodes=%d\n', extfile, ExtNodeN);
-fprintf(fid, '# mapping matrix: %dx%d (%d non-zero coefficients)\n', 3*ExtNodeN, 3*MBNodeN, length(r));
+fprintf(fid, '# mapping matrix: %dx%d (%d non-zero coefficients, %f%%)\n', 3*ExtNodeN, 3*MBNodeN, length(r), 100*length(r)/(3*ExtNodeN*3*MBNodeN));
 for i = 1 : length(r)
 	fprintf(fid, '%d %d %12.6g\n', 3 * (r(i) - 1) + 1, 3 * (c(i) - 1) + 1, s(i));
 	fprintf(fid, '%d %d %12.6g\n', 3 * (r(i) - 1) + 2, 3 * (c(i) - 1) + 2, s(i));
