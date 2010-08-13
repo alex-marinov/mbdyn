@@ -450,42 +450,77 @@ ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols)
 	bool bComputeRows(nRows < 0);
 	bool bComputeCols(nCols < 0);
 
-	if (bComputeRows || bComputeCols ) {
+	if (bComputeRows || bComputeCols) {
 		std::streampos pos = in.tellg();
-
 		integer nVals;
-		for (nVals = 0; !in.eof(); nVals++) {
-			integer ir, ic;
-			doublereal d;
-			in >> ir >> ic >> d;
+
+		if (bSparse) {
+			for (nVals = 0; !in.eof(); nVals++) {
+				integer ir, ic;
+				doublereal d;
+				in >> ir >> ic >> d;
+
+				if (bComputeRows) {
+					if (ir > nRows) {
+						nRows = ir;
+					}
+	
+				} else {
+					if (ir > nRows) {
+						silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+							"inconsistent row=" << ir << " for coefficient #" << nVals << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				if (bComputeCols) {
+					if (ic > nCols) {
+						nCols = ic;
+					}
+	
+				} else {
+					if (ic > nCols) {
+						silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+							"inconsistent col=" << ic << " for coefficient #" << nVals << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+			}
+			nVals--;
+
+		} else {
+			if (bComputeRows && bComputeCols) {
+				silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+					"cannot compute both row and col numbers" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			for (nVals = 0; !in.eof(); nVals++) {
+				doublereal d;
+
+				in >> d;
+			}
+			nVals--;
 
 			if (bComputeRows) {
-				if (ir > nRows) {
-					nRows = ir;
-				}
-
-			} else {
-				if (ir > nRows) {
+				if ((nVals % nCols) != 0) {
 					silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
-						"inconsistent row=" << ir << " for coefficient #" << nVals << std::endl);
+						"vals=" << nVals << " is not a multiple of cols=" << nCols << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-			}
 
-			if (bComputeCols) {
-				if (ic > nCols) {
-					nCols = ic;
-				}
+				nRows = nVals/nCols;
 
-			} else {
-				if (ic > nCols) {
+			} else if (bComputeCols) {
+				if ((nVals % nRows) != 0) {
 					silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
-						"inconsistent col=" << ic << " for coefficient #" << nVals << std::endl);
+						"vals=" << nVals << " is not a multiple of rows=" << nRows << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+
+				nCols = nVals/nRows;
 			}
 		}
-		nVals--;
 
 		in.clear();
 		in.seekg(pos);
