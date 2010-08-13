@@ -411,22 +411,24 @@ merge_c81_data(
 	ASSERT(dcltol > 0.);
 	ASSERT(i_data != 0);
 
-	int	from = -1, to;
-
 	if (dCsi < upper_bounds[0]) {
 		silent_cerr("cannot find C81 data lower bound for point xi=" << dCsi << std::endl);
 		return -1;
 	}
 
+	int to = 0;
 	for (unsigned i = 1; i < ndata; i++) {
 		if (upper_bounds[i] > dCsi) {
 			to = i;
 			break;
 		}
 	}
+	if (to == 0) {
+		silent_cerr("cannot find C81 data upper bound for point xi=" << dCsi << std::endl);
+		return -1;
+	}
 
-	from = to - 1;
-
+	int from = to - 1;
 	if (unsigned(from) == ndata) {
 		silent_cerr("cannot find C81 data upper bound for point xi=" << dCsi << std::endl);
 		return -1;
