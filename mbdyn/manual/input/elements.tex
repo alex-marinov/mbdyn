@@ -1704,7 +1704,7 @@ Communication occurs by means of the communicators illustrated earlier.
                     | \kw{weight} , \{ \kw{inf} | (\ty{Scalar}) \bnt{weight} \} \}
                 [ , ... ] ]
             [ , \kw{stop} ] ]
-        [ , \kw{mapped points number} , \bnt{mapped_points} ,
+        [ , \kw{mapped points number} , \{ \kw{from file} | \bnt{mapped_points} \} ,
             \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
                 [ , \kw{threshold} , \bnt{threshold} ]
             [ , \{ \kw{mapped labels file} , " \bnt{mapped_labels_file_name} "
@@ -1741,6 +1741,9 @@ they are first rotated in the global reference frame.
 
 When the \kw{mapped points number} keyword is present,
 a mapping matrix is read from the file named \nt{mapping\_file\_name}.
+If the keyword \kw{from file} is used, the number of \nt{mapped\_points}
+is computed from the number of rows of the matrix
+in file \nt{mapping\_file\_name}.
 The matrix must be
 $(3 \times \nt{mapped\_points}) \times (3 \times \nt{num\_points})$.
 Otherwise, the element behaves as if the mapping were the identity matrix.
@@ -2032,7 +2035,7 @@ for the \kw{external modal} case.
         [ \kw{type} , \{ \kw{rigid} | \kw{modal} | \kw{all} \} , ]
         \kw{nodes number} , \bnt{num_nodes} ,
             \bnt{node_1_label} [ , ... ] ,
-        \kw{modes number} , \bnt{num_modes} ,
+        \kw{modes number} , \{ \kw{from file} | \bnt{num_modes} \} ,
         \{ \kw{full} | \kw{sparse} \} \kw{mapping file} , " \bnt{mapping_file_name} "
             [ , \kw{threshold} , \bnt{threshold} ]
 \end{Verbatim}
@@ -2060,6 +2063,8 @@ is larger than threshold are retained.
 The value of \nt{threshold} defaults to 0.
 The mapping matrix is internally stored and handled as sparse,
 regardless of the file format.
+When the keyword \kw{from file} is used, the number of modes \nt{num\_modes}
+is computed from the matrix contained in the file \nt{mapping\_file\_name}.
 
 If the optional keyword \kw{accelerations} is present,
 the output will also contain the modal accelerations.

@@ -1460,15 +1460,26 @@ ReadStructMappingExtForce(DataManager* pDM,
 	SpMapMatrixHandler *pH = 0;
 	std::vector<uint32_t> MappedLabels;
 	if (HP.IsKeyWord("mapped" "points" "number")) {
-		nMappedPoints = HP.GetInt();
-		if (nMappedPoints <= 0) {
-			silent_cerr("StructMappingExtForce(" << uLabel << "): "
-				"invalid mapped points number " << nMappedPoints
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		if (HP.IsKeyWord("from" "file")) {
+			nMappedPoints = -1;
+
+		} else {
+			nMappedPoints = HP.GetInt();
+			if (nMappedPoints <= 0) {
+				silent_cerr("StructMappingExtForce(" << uLabel << "): "
+					"invalid mapped points number " << nMappedPoints
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			nMappedPoints *= 3;
 		}
 
-		pH = ReadSparseMappingMatrix(HP, 3*nMappedPoints, 3*nPoints);
+		integer nCols = 3*nPoints;
+		pH = ReadSparseMappingMatrix(HP, nMappedPoints, nCols);
+		ASSERT((nMappedPoints%3) == 0);
+		ASSERT(nCols == 3*nPoints);
+		nMappedPoints /= 3;
 
 		if (bLabels) {
 			MappedLabels.resize(nMappedPoints);

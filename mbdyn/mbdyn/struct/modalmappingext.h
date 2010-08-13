@@ -128,7 +128,7 @@ class DataManager;
 class MBDynParser;
 
 extern SpMapMatrixHandler *
-ReadSparseMappingMatrix(MBDynParser& HP, integer nRows, integer nCols);
+ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols);
 
 extern Elem*
 ReadModalMappingExtForce(DataManager* pDM,

@@ -398,7 +398,7 @@ ModalMappingExt::GetConnectedNodes(std::vector<const Node *>& connectedNodes) co
 }
 
 SpMapMatrixHandler *
-ReadSparseMappingMatrix(MBDynParser& HP, integer nRows, integer nCols)
+ReadSparseMappingMatrix(MBDynParser& HP, integer& nRows, integer& nCols)
 {
 	bool bSparse;
 	if (HP.IsKeyWord("full" "mapping" "file")) {
@@ -446,6 +446,56 @@ ReadSparseMappingMatrix(MBDynParser& HP, integer nRows, integer nCols)
 		c = in.get();
 	}
 	in.putback(c);
+
+	bool bComputeRows(nRows < 0);
+	bool bComputeCols(nCols < 0);
+
+	if (bComputeRows || bComputeCols ) {
+		std::streampos pos = in.tellg();
+
+		integer nVals;
+		for (nVals = 0; !in.eof(); nVals++) {
+			integer ir, ic;
+			doublereal d;
+			in >> ir >> ic >> d;
+
+			if (bComputeRows) {
+				if (ir > nRows) {
+					nRows = ir;
+				}
+
+			} else {
+				if (ir > nRows) {
+					silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+						"inconsistent row=" << ir << " for coefficient #" << nVals << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+			if (bComputeCols) {
+				if (ic > nCols) {
+					nCols = ic;
+				}
+
+			} else {
+				if (ic > nCols) {
+					silent_cerr("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+						"inconsistent col=" << ic << " for coefficient #" << nVals << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+		}
+		nVals--;
+
+		in.clear();
+		in.seekg(pos);
+
+		silent_cout("ReadSparseMappingMatrix(\"" << sFileName << "\"): "
+			"rows=" << nRows
+			<< " cols=" << nCols
+			<< " vals=" << nVals
+			<< std::endl);
+	}
 
 	SpMapMatrixHandler *pH = 0;
 	SAFENEWWITHCONSTRUCTOR(pH, SpMapMatrixHandler,
@@ -628,15 +678,20 @@ ReadModalMappingExtForce(DataManager* pDM,
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	int nModes = HP.GetInt();
-	if (nModes <= 0) {
-		silent_cerr("ModalMappingExt(" << uLabel << "): "
-			"invalid modes number "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	int nModes = -1;
+	if (!HP.IsKeyWord("from" "file")) {
+		nModes = HP.GetInt();
+		if (nModes <= 0) {
+			silent_cerr("ModalMappingExt(" << uLabel << "): "
+				"invalid modes number "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
-	SpMapMatrixHandler *pH = ReadSparseMappingMatrix(HP, nModes, 6*nNodes);
+	integer nCols = 6*nNodes;
+	SpMapMatrixHandler *pH = ReadSparseMappingMatrix(HP, nModes, nCols);
+	ASSERT(nCols == 6*nNodes);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 
