@@ -132,12 +132,14 @@ module-drive/module-drive.cc \
 module-drive/README \
 module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README \
+module-tclpgin/Makefile.inc \
+module-tclpgin/module-tclpgin.cc \
 module-template/module-template.cc \
 module-template2/module-template2.cc \
-module-wheel2/module-wheel2.cc \
-module-wheel2/module-wheel2.h \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
-module-udunits/README
+module-udunits/README \
+module-wheel2/module-wheel2.cc \
+module-wheel2/module-wheel2.h
 
 include $(top_srcdir)/build/bot.mk
