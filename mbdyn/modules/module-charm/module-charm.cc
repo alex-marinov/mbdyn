@@ -28,6 +28,22 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 2010
+ *
+ * Pierangelo Masarati  <masarati@aero.polimi.it>
+ *
+ * All rights reserved.
+ *
+ * This module implements a user-defined induced velocity element
+ * based on CDI's CHARM free wake.
+ *
+ * <http://www.continuum-dynamics.com/pr-charm.html>
+ *
+ * This module has been sponsored by Baldwin Technology Company LLC
+ * <http://www.baldwintechnology.com/>
+ */
+
 #ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
