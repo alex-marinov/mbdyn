@@ -45,6 +45,8 @@
 #include "c81data.h"
 #include "Rot.hh"
 
+#include <sstream>
+
 /* AerodynamicOutput - begin */
 
 AerodynamicOutput::AerodynamicOutput(flag f, int iNP,
