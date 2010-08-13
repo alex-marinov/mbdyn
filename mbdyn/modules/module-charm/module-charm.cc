@@ -205,6 +205,11 @@ ModuleCHARM::AddSectionalForce(unsigned int uL,
 			m_data[idx].counter = m_data[idx - 1].counter + 1;
 		}
 
+		m_data[idx].F = Zero3;
+		m_data[idx].M = Zero3;
+		m_data[idx].dW = 0.;
+		m_data[idx].X = Zero3;
+
 	} else {
 		const Mat3x3& R(pCraft->GetRCurr());
 
