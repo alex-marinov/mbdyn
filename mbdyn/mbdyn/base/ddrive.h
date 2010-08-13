@@ -42,8 +42,8 @@
 #ifndef DDRIVE_H
 #define DDRIVE_H
 
-#include <drive.h>
-#include <node.h>
+#include "drive.h"
+#include "node.h"
 
 class DriveDriveCaller : public DriveCaller
 {

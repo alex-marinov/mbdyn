@@ -40,7 +40,6 @@
 #include "aeroelem.h"
 
 #include "shapefnc.h"
-#include "drive_.h"
 
 #include "aerodc81.h"
 #include "c81data.h"

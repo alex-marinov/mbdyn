@@ -39,7 +39,6 @@
 #include "except.h"
 #include "dataman.h"
 #include "external.h"
-#include "drive_.h"
 
 /* le label delle comunicazioni vengono costruite in questo modo:
  *
