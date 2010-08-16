@@ -54,6 +54,32 @@ sh(int signum)
 	signal(signum, SIG_DFL);
 }
 
+static const char *cmd2str(int cmd)
+{
+	switch (cmd) {
+	case 0:
+		return "EDGE is initializing; MBDyn waits";
+
+	case 1:
+		return "EDGE is busy; MBDyn waits";
+
+	case 2:
+		return "EDGE waits (is ready to read kinematics); MBDyn iterates";
+
+	case 3:
+		return "EDGE is computing; MBDyn waits before reading forces";
+
+	case 4:
+		return "EDGE converged; MBDyn advances one step";
+
+	case 5:
+		return "EDGE wants to end simulation";
+
+	default:
+		return "unknown";
+	}
+}
+
 static int
 check_flag(const char *flag, int sleeptime)
 {
@@ -66,22 +92,28 @@ check_flag(const char *flag, int sleeptime)
 
 		f = fopen(flag, "r");
 		if (f == NULL && errno == ENOENT) {
-			printf("testedge: file \"%s\" created\n", flag);
+			fprintf(stderr, "test_modalext_edge: file \"%s\" missing\n", flag);
 			return 1;
 		}
 
 		fgets(buf, sizeof(buf), f);
 		if (strcmp(buf, "UPDATE,N,0,0,1\n") != 0) {
+			size_t len = strlen(buf);
+			buf[len - 1] = '\0';
+			fprintf(stderr, "test_modalext_edge: expecting \"UPDATE,N,0,0,1\", got \"%s\" from file \"%s\"\n", buf, flag);
 			return -1;
 		}
 		fgets(buf, sizeof(buf), f);
 		if (strcmp(buf, "FLAG,I,1,1,0\n") != 0) {
+			size_t len = strlen(buf);
+			buf[len - 1] = '\0';
+			fprintf(stderr, "test_modalext_edge: expecting \"FLAG,I,1,1,0\", got \"%s\" from file \"%s\"\n", buf, flag);
 			return -1;
 		}
 		rc = fread((void *)&c, 1, 1, f);
 		fclose(f);
 		if (rc == 1) {
-			printf("testedge: got %c from file \"%s\"\n", c, flag);
+			fprintf(stderr, "test_modalext_edge: got %c (%s) from file \"%s\"\n", c, cmd2str(c - '0'), flag);
 
 			switch (c) {
 			case '0':
@@ -97,8 +129,10 @@ check_flag(const char *flag, int sleeptime)
 			}
 		}
 
-		printf("testedge: sleeping %d s\n", sleeptime);
-		sleep(sleeptime);
+		if (sleeptime) {
+			fprintf(stderr, "test_modalext_edge: sleeping %d s\n", sleeptime);
+			sleep(sleeptime);
+		}
 	}
 
 	return 0;
@@ -120,7 +154,7 @@ put_flag(const char *flag, int cmd)
 
 	if (f == NULL) {
 		int save_errno = errno;
-		fprintf(stderr, "unable to open flag file \"%s\" (%d: %s)\n",
+		fprintf(stderr, "unable to open flag file \"%s\" for writing (%d: %s)\n",
 			flag, save_errno, strerror(save_errno));
 		exit(EXIT_FAILURE);
 	}
@@ -300,7 +334,7 @@ do_rigid(const char *rflag, const char *rdata,
 			}
 
 			while (fgets(buf, sizeof(buf), f) != NULL) {
-				printf(">> rdata:%s", buf);
+				fprintf(stderr, ">> rdata:%s", buf);
 			}
 
 			fclose(f);
@@ -340,7 +374,7 @@ do_modal(const char *mflag, const char *mdata,
 			}
 
 			while (fgets(buf, sizeof(buf), f) != NULL) {
-				printf(">> mdata:%s", buf);
+				fprintf(stderr, ">> mdata:%s", buf);
 			}
 
 			fclose(f);
@@ -357,7 +391,7 @@ void
 usage(void)
 {
 	fprintf(stderr,
-		"usage: testedge [options]\n"
+		"usage: test_modalext_edge [options]\n"
 		"\t-c [random:]<c>\t\tnumber of iterations\n"
 		"\t-m [flag|data]=<file>\tmodal file names (set both)\n"
 		"\t-M <modes>\t\tmodes number\n"
@@ -398,10 +432,10 @@ main(int argc, char *argv[])
 
 			} else {
 				iters = atoi(optarg);
-				printf("iterations: %d\n", iters);
+				fprintf(stderr, "iterations: %d\n", iters);
 			}
 			if (iters < 1) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"invalid sleep time %s\n",
 					optarg);
 				usage();
@@ -416,7 +450,7 @@ main(int argc, char *argv[])
 				mdata = &optarg[sizeof("data=") - 1];
 
 			} else {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"unknown modal file \"%s\"\n",
 					optarg);
 				usage();
@@ -426,7 +460,7 @@ main(int argc, char *argv[])
 		case 'M':
 			modes = atoi(optarg);
 			if (modes <= 0) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"invalid mode number %s\n",
 					optarg);
 				usage();
@@ -445,7 +479,7 @@ main(int argc, char *argv[])
 				order = MR;
 
 			} else {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"invalid order \"%s\"\n",
 					optarg);
 				usage();
@@ -460,7 +494,7 @@ main(int argc, char *argv[])
 				rdata = &optarg[sizeof("data=") - 1];
 
 			} else {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"unknown rigid file \"%s\"\n",
 					optarg);
 				usage();
@@ -470,7 +504,7 @@ main(int argc, char *argv[])
 		case 's':
 			sleeptime = atoi(optarg);
 			if (sleeptime < 0) {
-				fprintf(stderr, "testedge: "
+				fprintf(stderr, "test_modalext_edge: "
 					"invalid iters %s\n",
 					optarg);
 				usage();
@@ -487,7 +521,7 @@ main(int argc, char *argv[])
 	}
 
 	if (mflag == NULL && mdata != NULL) {
-		fprintf(stderr, "testedge: "
+		fprintf(stderr, "test_modalext_edge: "
 			"need modal flag file "
 			"along with modal data file \"%s\"\n",
 			mdata);
@@ -495,7 +529,7 @@ main(int argc, char *argv[])
 	}
 
 	if (mflag != NULL && mdata == NULL) {
-		fprintf(stderr, "testedge: "
+		fprintf(stderr, "test_modalext_edge: "
 			"need modal data file "
 			"along with modal flag file \"%s\"\n",
 			mflag);
@@ -503,7 +537,7 @@ main(int argc, char *argv[])
 	}
 
 	if (rflag == NULL && rdata != NULL) {
-		fprintf(stderr, "testedge: "
+		fprintf(stderr, "test_modalext_edge: "
 			"need rigid flag file "
 			"along with rigid data file \"%s\"\n",
 			rdata);
@@ -511,7 +545,7 @@ main(int argc, char *argv[])
 	}
 
 	if (rflag != NULL && rdata == NULL) {
-		fprintf(stderr, "testedge: "
+		fprintf(stderr, "test_modalext_edge: "
 			"need rigid data file "
 			"along with rigid flag file \"%s\"\n",
 			rflag);
@@ -519,7 +553,7 @@ main(int argc, char *argv[])
 	}
 
 	if (mflag == NULL && rflag == NULL) {
-		fprintf(stderr, "testedge: "
+		fprintf(stderr, "test_modalext_edge: "
 			"need at least rigid or modal files\n");
 		usage();
 	}
@@ -545,7 +579,7 @@ main(int argc, char *argv[])
 
 		if (iters_random) {
 			niters = rand() % iters + 1;
-			printf("    iterations within this iter: %d\n", niters);
+			fprintf(stderr, "    iterations within this iter: %d\n", niters);
 
 		} else {
 			niters = iters;
