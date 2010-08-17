@@ -260,7 +260,7 @@ void
 InducedVelocity::AddSectionalForce(unsigned int uL,
 	const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X)
 {
-	ASSERT(bSectionalForce() == true);
+	ASSERT(bSectionalForces() == true);
 	InducedVelocity::AddForce(uL, F*dW, M*dW, X);
 }
 
