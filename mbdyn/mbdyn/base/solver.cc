@@ -4652,9 +4652,9 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	logical RVEC = true;
 	const char *HOWMNY = "A";
 	std::vector<logical> SELECT(NCV);
-	std::vector<doublereal> DR(NEV + 1);
-	std::vector<doublereal> DI(NEV + 1);
-	std::vector<doublereal> Z(N*(NEV + 1));
+	std::vector<doublereal> D(2*NCV);
+	doublereal *DR = &D[0], *DI = &D[NCV];
+	std::vector<doublereal> Z(N*(NCV + 1));
 	integer LDZ = N;
 	std::vector<doublereal> WORKEV(3*NCV);
 
@@ -4695,8 +4695,8 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	int nconv = IPARAM[4];
 	if (nconv > 0) {
-		MyVectorHandler AlphaR(nconv, &DR[0]);
-		MyVectorHandler AlphaI(nconv, &DI[0]);
+		MyVectorHandler AlphaR(nconv, DR);
+		MyVectorHandler AlphaI(nconv, DI);
 		std::vector<bool> vOut(nconv);
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
