@@ -4610,7 +4610,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	switch (INFO) {
 	case 1:
-		silent_cerr("Maximum number of iterations taken. "
+		silent_cerr("INFO=1: Maximum number of iterations taken. "
 			"All possible eigenvalues of OP have been found. IPARAM(5) "
 			"returns the number of wanted converged Ritz values "
 			"(currently = " << IPARAM[4] << "; requested NEV = " << NEV << ")."
@@ -4618,18 +4618,22 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		break;
 
 	case 2:
-		silent_cerr("No longer an informational error. Deprecated starting "
+		silent_cerr("INFO=2: No longer an informational error. Deprecated starting "
 			"with release 2 of ARPACK."
 			<< std::endl);
 		break;
 
 	case 3:
-		silent_cerr("No shifts could be applied during a cycle of the "
+		silent_cerr("INFO=3: No shifts could be applied during a cycle of the "
 			"implicitly restarted Arnoldi iteration. One possibility "
 			"is to increase the size of NCV (currently = " << NCV << ") "
 			"relative to NEV (currently = " << NEV << "). "
 			"See remark 4 in dnaupd(3)."
 			<< std::endl);
+		break;
+
+	default:
+		silent_cerr("INFO=" << INFO << ": undocumented value." << std::endl);
 		break;
 	}
 
