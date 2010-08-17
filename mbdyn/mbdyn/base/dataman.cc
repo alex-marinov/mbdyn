@@ -193,7 +193,10 @@ DofIter()
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
 
-	mbdyn_cleanup_register(datamanager_cleanup, (void *)this);
+	ppCleanupData = new DataManager*;
+	*ppCleanupData = this;
+
+	mbdyn_cleanup_register(datamanager_cleanup, (void *)ppCleanupData);
 
 	/* pseudocostruttori */
 	ElemManager();
@@ -606,6 +609,8 @@ DofIter()
 
 DataManager::~DataManager(void)
 {
+	*ppCleanupData = 0;
+
 	/* Se e' richiesto il file di restart, il distruttore del DataManager
 	 * crea il file e forza gli oggetti a scrivere il loro contributo nel modo
 	 * opportuno
@@ -890,10 +895,17 @@ DataManager::end(Elem::Type t) const
 extern "C" int
 datamanager_cleanup(void *data)
 {
-	DataManager *pDM = (DataManager *)data;
+	DataManager **p = (DataManager **)data;
+	if (*p) {
+		DataManager *pDM = (DataManager *)*p;
 
-	silent_cerr("DataManager cleanup" << std::endl);
+		silent_cerr("DataManager cleanup" << std::endl);
 
-	return pDM->Cleanup();
+		delete p;
+
+		return pDM->Cleanup();
+	}
+
+	return 0;
 }
 

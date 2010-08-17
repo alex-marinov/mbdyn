@@ -82,6 +82,8 @@ class DataManager : public SolutionDataManager, public SolverDiagnostics,
 	public DataManagerErrors {
 
 protected:
+	DataManager **ppCleanupData;
+
 #ifdef USE_MULTITHREAD
 	/* from input file, or auto-detected */
 	unsigned int nThreads;
