@@ -895,17 +895,19 @@ DataManager::end(Elem::Type t) const
 extern "C" int
 datamanager_cleanup(void *data)
 {
+	int rc = 0;
+
 	DataManager **p = (DataManager **)data;
 	if (*p) {
 		DataManager *pDM = (DataManager *)*p;
 
 		silent_cerr("DataManager cleanup" << std::endl);
 
-		delete p;
-
-		return pDM->Cleanup();
+		rc = pDM->Cleanup();
 	}
 
-	return 0;
+	delete p;
+
+	return rc;
 }
 
