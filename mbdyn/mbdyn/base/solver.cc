@@ -4609,6 +4609,9 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	}
 
 	switch (INFO) {
+	case 0:
+		break;
+
 	case 1:
 		silent_cerr("INFO=1: Maximum number of iterations taken. "
 			"All possible eigenvalues of OP have been found. IPARAM(5) "
