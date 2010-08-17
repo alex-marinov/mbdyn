@@ -102,7 +102,7 @@ The file format is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{normal_arglist} ::= \kw{variable step} , 
-        \bnt{columns_number} ,
+        \bnt{channels_number} ,
         [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
         [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \} 
             | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} , \} , ]
@@ -115,10 +115,16 @@ The file format is
 \begin{verbatim}
 # an arbitrary number of lines starting with `#'
 #
-# time channel #1 channel #2 ... channel #n
-  0.   1.         2.         ... 100.
+# time channel#1 channel#2 ... channel#n
+  0.   1.        2.        ... 100.
+  0.01 1.2       1.8       ...  90.
 ...
 \end{verbatim}
+The number of available records is computed as the number
+of non-comment lines (lines not starting with a hash mark `\texttt{\#}').
+The first column contains the time, while the remaining
+\nt{channels\_number} columns contain the values of the input channels
+at that time.
 Time values must grow monotonically.
 
 
