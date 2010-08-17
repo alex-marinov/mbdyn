@@ -9,6 +9,18 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.X-Devel
+	Enhancements:
+		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added shell element (Marco Morandini, Riccardo Vescovini)
+		- improved sanity checks when using arpack for eigenanalysis
+		- improved error checking in fixed/variable step file driver
+		  (noted by Stefan van't'Hoff)
+	Backward compatibility issues:
+	Known issues:
+	Bug fixes:
+		- fixed data manager cleanup
+
 MBDyn 1.3.16
 	Enhancements:
 		- optimized full matrix handler operations
