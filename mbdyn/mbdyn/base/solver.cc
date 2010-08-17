@@ -4504,9 +4504,18 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	N = MatA.iGetNumRows();
 	WHICH = "SM";
 	NEV = pEA->arpack.iNEV;
+	if (NEV > N) {
+		silent_cerr("eig_arpack: invalid NEV=" << NEV << " > size of problem (=" << N << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	TOL = pEA->arpack.dTOL;
 	RESID.resize(N, 0.);
 	NCV = pEA->arpack.iNCV;
+	if (NCV > N) {
+		silent_cerr("eig_arpack: invalid NCV=" << NCV << " > size of problem (=" << N << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	V.resize(N*NCV, 0.);
 	LDV = N;
 	IPARAM[0] = 1;
