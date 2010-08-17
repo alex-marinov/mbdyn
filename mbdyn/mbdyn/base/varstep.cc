@@ -107,6 +107,7 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 	}
 
 	for (integer j = 0; j < iNumSteps; j++) {
+		// 0 -> iNumDrives to account for time
 		for (integer i = 0; i <= iNumDrives; i++) {
 			in >> pvd[i][j];
 			if (in.eof()) {
@@ -114,6 +115,31 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 					<< sFileName << '\'' << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
+
+			int c;
+			for (c = in.get(); isspace(c); c = in.get()) {
+				if (c == '\n') {
+					if (i == 0) {
+						silent_cerr("unexpected end of line #" << j + 1 << " after time=" << pvd[0][j] << ", column #" << i + 1 << " of file '"
+							<< sFileName << '\'' << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					if (i != iNumDrives) {
+						silent_cerr("unexpected end of line #" << j + 1 << ", time=" << pvd[0][j] << " after channel #" << i << ", column #" << i + 1 << " of file '"
+							<< sFileName << '\'' << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					break;
+				}
+			}
+
+			if (i == iNumDrives && c != '\n') {
+				silent_cerr("missing end-of-line at line #" << j + 1 << ", time=" << pvd[0][j] << " of file '"
+					<< sFileName << '\'' << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			in.putback(c);
 		}
 
 		if (j > 0) {

@@ -118,6 +118,26 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 					<< sFileName << '\'' << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
+
+			int c;
+			for (c = in.get(); isspace(c); c = in.get()) {
+				if (c == '\n') {
+					if (i != iNumDrives) {
+						silent_cerr("unexpected end of line #" << j + 1 << " after channel #" << i << ", column #" << i << " of file '"
+							<< sFileName << '\'' << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					break;
+				}
+			}
+
+			if (i == iNumDrives && c != '\n') {
+				silent_cerr("missing end-of-line at line #" << j + 1 << " of file '"
+					<< sFileName << '\'' << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			in.putback(c);
 		}
 	}
 
