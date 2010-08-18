@@ -178,145 +178,6 @@ The following data is available:
 \input{beam}
 
 
-\section{Bind}\label{sec:EL:BIND}
-The statement \kw{bind} does not really define an element.
-It is rather used to instruct a
-\htmlref{\kw{parameter node}}{sec:NODE:PARAMETER}
-about which parameter of an element it is bound to.
-The \kw{parameter node} must exist, and the element the node 
-is being bound to, of type \nt{elem\_type} and label \nt{element\_label},
-must have been already defined.
-The complete syntax is:
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{normal_arglist} ::=
-        \bnt{element_label} ,
-        \bnt{element_type} ,
-        \bnt{parameter_node_label} , 
-        \bnt{bind_args}
-\end{Verbatim}
-%\end{verbatim}
-where \nt{bind\_args} depend on the type of parameter node.
-
-\subsection{Element}
-When binding an element to an 
-\htmlref{\kw{element}}{sec:NODE:PARAMETER:ELEMENT} parameter node,
-each element makes a number of specific parameters available.
-A detailed list is given for each element in the private data section.
-In that case:
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{bind_args} ::=
-        \{ \bnt{parameter_index} | \kw{name} , " \bnt{parameter_name} " \}
-\end{Verbatim}
-%\end{verbatim}
-The value of \nt{parameter\_index} must be legal, i.e.\ between 1 and the
-maximum number of parameters made available by the element.
-The alternative form, using the keyword \kw{name} followed by the \nt{parameter\_name},
- allows more friendly definition of the binding.
-The name of the parameter depends on the element whose property
-is being bound.
-A complete listing of the parameters that a parameter node 
-can be bound to is not available, since most are added based
-on developers' needs.
-It is advisable that a mechanism for elements to publish 
-what parameters they can make available be devised and implemented.
-
-\paragraph{Example.} \
-The parameter node \texttt{ANGLE} is bound to the rotation of a 
-\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
-\begin{verbatim}
-    # ... problem block
-
-    begin: control data;
-        structural nodes: 2;
-        parameter nodes: 1;
-        forces: 2;
-        # ... other control data
-    end: control data;
-
-    set: integer NODE1 = 1000;
-    set: integer NODE2 = 2000;
-    set: integer ANGLE = 5000;
-    set: integer REVOLUTE = 6000;
-
-    begin: nodes;
-        structural: NODE1, dynamic, null, eye, null, null;
-        structural: NODE2, dynamic, null, eye, null, null;
-        parameter: ANGLE, element;
-
-        # ... other nodes
-    end: nodes;
-
-    begin: elements;
-        joint: REVOLUTE, revolute hinge,
-            NODE1,
-                position, reference, node, null,
-                orientation, reference, node, eye,
-            NODE2,
-                position, reference, node, null,
-                orientation, reference, node, eye;
-        bind: REVOLUTE, joint, ANGLE, string, "rx";
-        couple: 1, NODE1, 0.,0.,1.,
-            dof, ANGLE, parameter, 1, linear, 0.,1.;
-        couple: 2, NODE2, 0.,0.,1.,
-            element, REVOLUTE, joint, string, "rx", linear, 0.,1.;
-
-        # ... other elements
-    end: elements;
-\end{verbatim}
-Note that the same element data, i.e.\ the revolute hinge
-relative rotation angle, is used to drive a couple in two different
-ways; the latter, by means of the 
-\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE:ELEMENT}
-is more direct, but the former, by means of the 
-\hyperref{\kw{dof} drive}{\kw{dof} drive (see Section~}{)}{sec:DRIVE:DOF}
-through the \kw{bind} mechanism has the additional effect of updating
-the \kw{parameter} node, which can be used to connect
-\htmlref{\kw{genel}}{sec:EL:GENEL} elements for special purposes.
-
-\subsection{Beam strain gage}
-When binding an element to a
-\htmlref{\kw{beam strain gage}}{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
-parameter node, the \nt{element\_type} field must be \kw{beam}.
-In that case:
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{bind_args} ::= \bnt{beam_evaluation_point}
-\end{Verbatim}
-%\end{verbatim}
-where \nt{beam\_evaluation\_point} is the evaluation point of the beam element
-where the internal strain and curvatures must be evaluated.
-It must be 1 for 2-node beams, while it can be either 1 or 2
-for 3-node beams.
-
-\paragraph{Example.} \
-\begin{verbatim}
-    # ... problem block
-
-    begin: control data;
-        parameter nodes: 1;
-        beams: 1;
-        # ... other control data
-    end: control data;
-
-    set: integer BEAM = 100;
-    set: integer STRAIN = 200;
-
-    begin: nodes;
-        parameter: STRAIN, beam strain gage, 0.0, 0.1;
-        # ... other nodes
-    end: nodes;
-
-    begin: elements;
-        beam3: BEAM, ...; # beam data
-        bind: BEAM, beam, STRAIN, 1;
-        # ... other elements
-    end: elements;
-\end{verbatim}
-
-
-
 \section{Body}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -5798,6 +5659,146 @@ This section lists some extra cards that do not correspond to any
 specific simulation entity, but rather alter the behavior 
 of existing entries or cause special operations to be undertaken
 during model input.
+
+
+
+\subsection{Bind}\label{sec:EL:MISC:BIND}
+The statement \kw{bind} does not really define an element.
+It is rather used to instruct a
+\htmlref{\kw{parameter node}}{sec:NODE:PARAMETER}
+about which parameter of an element it is bound to.
+The \kw{parameter node} must exist, and the element the node 
+is being bound to, of type \nt{elem\_type} and label \nt{element\_label},
+must have been already defined.
+The complete syntax is:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{bind}
+
+    \bnt{arglist} ::=
+        \bnt{element_label} ,
+        \bnt{element_type} ,
+        \bnt{parameter_node_label} , 
+        \bnt{bind_args}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{bind\_args} depend on the type of parameter node.
+
+\subsubsection{Element}
+When binding an element to an 
+\htmlref{\kw{element}}{sec:NODE:PARAMETER:ELEMENT} parameter node,
+each element makes a number of specific parameters available.
+A detailed list is given for each element in the private data section.
+In that case:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{bind_args} ::=
+        \{ [ \kw{index} , ] \bnt{parameter_index}
+            | \kw{string} , " \bnt{parameter_name} " \}
+\end{Verbatim}
+%\end{verbatim}
+The value of \nt{parameter\_index} must be legal, i.e.\ between 1 and the
+maximum number of parameters made available by the element.
+The alternative form, using the keyword \kw{string} followed by
+the \nt{parameter\_name}, allows more friendly definition of the binding.
+The name of the parameter depends on the element whose property
+is being bound.
+A complete listing of the parameters that a parameter node 
+can be bound to can be found in the `Private data' subsection
+of each element's specification.
+
+\paragraph{Example.} \
+The parameter node \texttt{ANGLE} is bound to the rotation of a 
+\hyperref{\kw{revolute hinge}}{\kw{revolute hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}.
+\begin{verbatim}
+    # ... problem block
+
+    begin: control data;
+        structural nodes: 2;
+        parameter nodes: 1;
+        forces: 2;
+        # ... other control data
+    end: control data;
+
+    set: integer NODE1 = 1000;
+    set: integer NODE2 = 2000;
+    set: integer ANGLE = 5000;
+    set: integer REVOLUTE = 6000;
+
+    begin: nodes;
+        structural: NODE1, dynamic, null, eye, null, null;
+        structural: NODE2, dynamic, null, eye, null, null;
+        parameter: ANGLE, element;
+
+        # ... other nodes
+    end: nodes;
+
+    begin: elements;
+        joint: REVOLUTE, revolute hinge,
+            NODE1,
+                position, reference, node, null,
+                orientation, reference, node, eye,
+            NODE2,
+                position, reference, node, null,
+                orientation, reference, node, eye;
+        bind: REVOLUTE, joint, ANGLE, string, "rx";
+        couple: 1, NODE1, 0.,0.,1.,
+            dof, ANGLE, parameter, 1, linear, 0.,1.;
+        couple: 2, NODE2, 0.,0.,1.,
+            element, REVOLUTE, joint, string, "rx", linear, 0.,1.;
+
+        # ... other elements
+    end: elements;
+\end{verbatim}
+Note that the same element data, i.e.\ the revolute hinge
+relative rotation angle, is used to drive a couple in two different
+ways; the latter, by means of the 
+\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE:ELEMENT}
+is more direct, but the former, by means of the 
+\hyperref{\kw{dof} drive}{\kw{dof} drive (see Section~}{)}{sec:DRIVE:DOF}
+through the \kw{bind} mechanism has the additional effect of updating
+the \kw{parameter} node, which can be used to connect
+\htmlref{\kw{genel}}{sec:EL:GENEL} elements for special purposes.
+
+\subsubsection{Beam strain gage}
+When binding an element to a
+\htmlref{\kw{beam strain gage}}{sec:NODE:PARAMETER:BEAM_STRAIN_GAGE}
+parameter node, the \nt{element\_type} field must be \kw{beam}.
+In that case:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{bind_args} ::= \bnt{beam_evaluation_point}
+\end{Verbatim}
+%\end{verbatim}
+where \nt{beam\_evaluation\_point} is the evaluation point of the beam element
+where the internal strain and curvatures must be evaluated.
+It must be 1 for 2-node beams, while it can be either 1 or 2
+for 3-node beams.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    # ... problem block
+
+    begin: control data;
+        parameter nodes: 1;
+        beams: 1;
+        # ... other control data
+    end: control data;
+
+    set: integer BEAM = 100;
+    set: integer STRAIN = 200;
+
+    begin: nodes;
+        parameter: STRAIN, beam strain gage, 0.0, 0.1;
+        # ... other nodes
+    end: nodes;
+
+    begin: elements;
+        beam3: BEAM, ...; # beam data
+        bind: BEAM, beam, STRAIN, 1;
+        # ... other elements
+    end: elements;
+\end{verbatim}
 
 
 
