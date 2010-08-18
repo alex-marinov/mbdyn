@@ -580,6 +580,10 @@ DataManager::ReadElems(MBDynParser& HP)
 				i = pEl->iGetPrivDataIdx(s.c_str());
 
 			} else {
+				if (HP.IsKeyWord("index")) {
+					// may become required
+					NO_OP;
+				}
 				i = HP.GetInt();
 			}
 
