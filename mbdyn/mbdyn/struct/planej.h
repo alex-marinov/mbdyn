@@ -59,7 +59,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Vec3 F;
    Vec3 M;
    bool calcInitdTheta;
-   mutable doublereal dTheta;
+   mutable int NTheta;
+   mutable doublereal dTheta, dThetaWrapped;
 
    /* friction related data */
    BasicShapeCoefficient *const Sh_c;
@@ -204,7 +205,8 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    Mat3x3 R1h;
    Mat3x3 R2h;
    Vec3 M;
-   mutable doublereal dTheta;
+   mutable int NTheta;
+   mutable doublereal dTheta, dThetaWrapped;
    
  public:
    /* Costruttore non banale */
@@ -337,7 +339,8 @@ public Joint, public DriveOwner {
    Mat3x3 R2h;
    Vec3 F;
    Vec3 M;
-   mutable doublereal dTheta;
+   mutable int NTheta;
+   mutable doublereal dTheta, dThetaWrapped;
 
    /* friction related data */
    BasicShapeCoefficient *const Sh_c;
@@ -489,7 +492,8 @@ class PlanePinJoint : virtual public Elem, public Joint {
    Vec3 F;
    Vec3 M;
    bool calcInitdTheta;
-   mutable doublereal dTheta;
+   mutable int NTheta;
+   mutable doublereal dTheta, dThetaWrapped;
    
  public:
    /* Costruttore non banale */

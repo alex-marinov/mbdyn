@@ -39,6 +39,7 @@
 #include <limits>
 
 #include "planej.h"
+#include "Rot.hh"
 #include "hint_impl.h"
 
 /* PlaneHingeJoint - begin */
@@ -62,7 +63,7 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.),
-calcInitdTheta(_calcInitdTheta), dTheta(initDTheta),
+calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
@@ -401,10 +402,9 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 	}
 
 	if (calcInitdTheta) {
-		Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
-		Vec3 v(MatR2EulerAngles(RTmp));
+		Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
 		
-		dTheta = v.dGet(3);
+		dThetaWrapped = dTheta = v.dGet(3);
 	}
 	
 #if 0
@@ -467,14 +467,23 @@ void
 PlaneHingeJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+	doublereal dThetaTmp(v(3));
 
-	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-	Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	// unwrap
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		NTheta++;
+	}
 
-	dTheta += v.dGet(3);
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		NTheta--;
+	}
+
+	// save new wrapped angle
+	dThetaWrapped = dThetaTmp;
+
+	// compute new unwrapped angle
+	dTheta = 2*M_PI*NTheta + dThetaWrapped;
 
 	if (fc) {
 		Mat3x3 R1(pNode1->GetRCurr());
@@ -1361,13 +1370,20 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-       Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-       Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+	doublereal dThetaTmp(v(3));
 
-       return dTheta + v(3);
+	int n = 0;
+
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		n++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		n--;
+	}
+
+	return 2*M_PI*(NTheta + n) + dThetaTmp;
     }
       
     case 2: {
@@ -1406,7 +1422,8 @@ PlaneRotationJoint::PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-R1h(R1hTmp), R2h(R2hTmp), M(0.), dTheta(0.)
+R1h(R1hTmp), R2h(R2hTmp), M(0.),
+NTheta(0), dTheta(0.), dThetaWrapped(0.)
 {
    NO_OP;
 }
@@ -1600,10 +1617,9 @@ PlaneRotationJoint::SetValue(DataManager *pDM,
 		}
 	}
 
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
-	Vec3 v(MatR2EulerAngles(RTmp));
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
 
-	dTheta = v.dGet(3);
+	dThetaWrapped = dTheta = v.dGet(3);
 }
 
 Hint *
@@ -1632,13 +1648,23 @@ void
 PlaneRotationJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-	Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+	doublereal dThetaTmp(v(3));
 
-	dTheta += v.dGet(3);
+	// unwrap
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		NTheta++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		NTheta--;
+	}
+
+	// save new wrapped angle
+	dThetaWrapped = dThetaTmp;
+
+	// compute new unwrapped angle
+	dTheta = 2*M_PI*NTheta + dThetaWrapped;
 }
 
 
@@ -2237,13 +2263,20 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-       Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-			*pNode1->GetRPrev()*R1h).Transpose()
-			*((pNode2->GetRCurr()*R2h).Transpose()
-			*pNode2->GetRPrev()*R2h));
-       Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+	doublereal dThetaTmp(v(3));
 
-       return dTheta + v(3);
+	int n = 0;
+
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		n++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		n--;
+	}
+
+	return 2*M_PI*(NTheta + n) + dThetaTmp;
     }
       
     case 2: {
@@ -2288,7 +2321,8 @@ AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC), 
 pNode1(pN1), pNode2(pN2), 
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.), dTheta(0.),
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.),
+NTheta(0), dTheta(0.), dThetaWrapped(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
 	NO_OP;
@@ -2646,7 +2680,7 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
-	dTheta = v.dGet(3);
+	dThetaWrapped = dTheta = v.dGet(3);
 	
 	if (fc) {
 		fc->SetValue(pDM, X, XP, ph, iGetFirstIndex() + NumSelfDof);
@@ -2697,12 +2731,24 @@ void
 AxialRotationJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 R1Tmp(((pNode1->GetRCurr()*R1h).Transpose()*pNode1->GetRPrev()*R1h).Transpose()
-		*((pNode2->GetRCurr()*R2h).Transpose()*pNode2->GetRPrev()*R2h));
-	Vec3 v1(MatR2EulerAngles(R1Tmp.Transpose()));
+	Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+	doublereal dThetaTmp(v(3));
 
-	dTheta += v1.dGet(3);
-	
+	// unwrap
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		NTheta++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		NTheta--;
+	}
+
+	// save new wrapped angle
+	dThetaWrapped = dThetaTmp;
+
+	// compute new unwrapped angle
+	dTheta = 2*M_PI*NTheta + dThetaWrapped;
+
 	if (fc) {
 		Mat3x3 R1(pNode1->GetRCurr());
 		Mat3x3 R1hTmp(R1*R1h);
@@ -3559,13 +3605,20 @@ AxialRotationJoint::dGetPrivData(unsigned int i) const
    
 	switch (i) {
 	case 1: {
-		Mat3x3 RTmp(((pNode1->GetRCurr()*R1h).Transpose()
-				*pNode1->GetRPrev()*R1h).Transpose()
-				*((pNode2->GetRCurr()*R2h).Transpose()
-					*pNode2->GetRPrev()*R2h));
-		Vec3 v(MatR2EulerAngles(RTmp.Transpose()));
+		Vec3 v(RotManip::VecRot((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h)));
+		doublereal dThetaTmp(v(3));
 
-		return dTheta + v(3);
+		int n = 0;
+
+		if (dThetaTmp - dThetaWrapped < -M_PI) {
+			n++;
+		}
+
+		if (dThetaTmp - dThetaWrapped > M_PI) {
+			n--;
+		}
+
+		return 2*M_PI*(NTheta + n) + dThetaTmp;
 	}
       
 	case 2: 
@@ -3604,7 +3657,8 @@ Joint(uL, pDO, fOut),
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp),
 F(0.), M(0.),
-calcInitdTheta(_calcInitdTheta), dTheta(initDTheta)
+calcInitdTheta(_calcInitdTheta),
+NTheta(0), dTheta(initDTheta), dThetaWrapped(0.)
 {
    NO_OP;
 }
@@ -3870,9 +3924,8 @@ PlanePinJoint::SetValue(DataManager *pDM,
 	}
 
 	if (calcInitdTheta) {
-		Mat3x3 RTmp(R0.Transpose()*(pNode->GetRCurr()*Rh));
-		Vec3 v(MatR2EulerAngles(RTmp));
-		dTheta = v.dGet(3);
+		Vec3 v(RotManip::VecRot(R0.MulTM(pNode->GetRCurr()*Rh)));
+		dThetaWrapped = dTheta = v.dGet(3);
 	}
 }
 
@@ -3925,10 +3978,24 @@ void
 PlanePinJoint::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
-	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr()*Rh);
-	Vec3 v(MatR2EulerAngles(RTmp));
+	Vec3 v(RotManip::VecRot(R0.MulTM(pNode->GetRCurr()*Rh)));
+	doublereal dThetaTmp(v(3));
 
-	dTheta += v.dGet(3);
+	// unwrap
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		NTheta++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		NTheta--;
+	}
+
+	// save new wrapped angle
+	dThetaWrapped = dThetaTmp;
+
+	// compute new unwrapped angle
+	dTheta = 2*M_PI*NTheta + dThetaWrapped;
+
 }
 
 void
@@ -4440,10 +4507,20 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
    
    switch (i) {
     case 1: {
-	Mat3x3 RTmp(pNode->GetRPrev().Transpose()*pNode->GetRCurr()*Rh);
-	Vec3 v(MatR2EulerAngles(RTmp));
+	Vec3 v(RotManip::VecRot(R0.MulTM(pNode->GetRCurr()*Rh)));
+	doublereal dThetaTmp(v(3));
 
-       return dTheta + v(3);
+	int n = 0;
+
+	if (dThetaTmp - dThetaWrapped < -M_PI) {
+		n++;
+	}
+
+	if (dThetaTmp - dThetaWrapped > M_PI) {
+		n--;
+	}
+
+	return 2*M_PI*(NTheta + n) + dThetaTmp;
     }
       
     case 2: {

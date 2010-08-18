@@ -20,6 +20,8 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed data manager cleanup
+		- fixed revolute joint private data "rz" computation
+		  (noted by Stefan van't'Hoff)
 
 MBDyn 1.3.16
 	Enhancements:
