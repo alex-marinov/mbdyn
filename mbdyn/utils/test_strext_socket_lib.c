@@ -692,11 +692,11 @@ test_run(void)
 				int size = 6;
 				if (fscanf(inputfile, "Step %u\n", &i) != 1) {
 					fprintf(stderr, "Step: %u. Error while reading step"
-						" number form input file\n", steps);
+						" number from input file\n", steps);
 					exit(EXIT_FAILURE);
 				} 
 				if (i != steps) {
-					fprintf(stderr, "Error wrong step number form input file," 
+					fprintf(stderr, "Error wrong step number from input file," 
 						" is %u and shoul be %u\n", i, steps);
 					exit(EXIT_FAILURE);
 				}
@@ -704,7 +704,7 @@ test_run(void)
 					if (fscanf(inputfile, "REF %lg %lg %lg %lg %lg %lg\n", 
 						&f0[0], &f0[1], &f0[2], &f0[3], &f0[4], &f0[5]) != 6) {
 						fprintf(stderr, "Step: %u. Error while reading Reference Node"
-							" forces form input file\n", steps);
+							" forces from input file\n", steps);
 						exit(EXIT_FAILURE);
 					}
 				}
@@ -718,14 +718,14 @@ test_run(void)
 							&p0[size*n], &p0[size*n +1], &p0[size*n + 2],
 							&p0[size*n + 3], &p0[size*n +4], &p0[size*n + 5]) != 6) {
 							fprintf(stderr, "Step: %u. Error while reading Force & Moments" 
- 								" for Node %u form input file\n", steps, n);
+ 								" for Node %u from input file\n", steps, n);
 							exit(EXIT_FAILURE);
 						}
 					} else {
 						if (fscanf(inputfile, "%lg %lg %lg\n", 
 							&p0[size*n], &p0[size*n + 1], &p0[size*n + 2]) != 3) {
 							fprintf(stderr, "Step: %u. Error while reading Forces for Node %u"
-								" form input file\n", steps, n);
+								" from input file\n", steps, n);
 							exit(EXIT_FAILURE);
 						}
 					}
