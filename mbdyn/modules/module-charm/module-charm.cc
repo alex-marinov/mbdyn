@@ -140,7 +140,7 @@ iFirstAssembly(2)
 "		http://www.aero.polimi.it/				\n"
 " Description:	This module implements an induced velocity model	\n"
 "		based on CHARM's free wake, distributed by CDI.		\n"
-"		Sponsored by Baldwin Technologies Company.		\n"
+"		Sponsored by Baldwin Technologies Company, LLC.		\n"
 "									\n"
 "	All rights reserved.						\n"
 			<< std::endl);
@@ -293,13 +293,14 @@ ModuleCHARM::iGetNumPrivData(void) const
 int
 ModuleCHARM::iGetNumConnectedNodes(void) const
 {
-	return 0;
+	return 1;
 }
 
 void
 ModuleCHARM::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
-	connectedNodes.resize(0);
+	connectedNodes.resize(1);
+	connectedNodes[0] = pCraft;
 }
 
 void
