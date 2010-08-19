@@ -55,6 +55,11 @@
 #include "userelem.h"
 #include "indvel.h"
 
+// CHARM's header file (apparently it is experimental)
+#undef __stdcall
+#define __stdcall
+#include "CharmWP.h"
+
 class ModuleCHARM
 : virtual public Elem, public UserDefinedElem, public InducedVelocity {
 private:
@@ -271,6 +276,12 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AssRes: iFirstAssembly=" << iFirstAssembly << std::endl;
 
 	if (iFirstAssembly) {
+		if (iFirstAssembly == 1) {
+			// all topological information should be available;
+			// module can be initialized
+			NO_OP;
+		}
+
 		iFirstAssembly--;
 	}
 
