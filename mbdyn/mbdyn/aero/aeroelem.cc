@@ -1466,16 +1466,21 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		} else {
 	 		p = pDM->pFindElem(Elem::INDUCEDVELOCITY, uIV);
 			if (p == 0) {
-				silent_cerr(sElemType << "(" << uLabel << "): "
-					"InducedVelocity(" << uIV << ") not defined "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-
 				// try a user-defined one?
 				p = pDM->pFindElem(Elem::LOADABLE, uIV);
 				if (p == 0 || !dynamic_cast<InducedVelocity *>(p)) {
+					silent_cerr(sElemType << "(" << uLabel << "): "
+						"InducedVelocity(" << uIV << ") not defined "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+
+				silent_cerr(sElemType << "(" << uLabel << "): "
+					"InducedVelocity(" << uIV << ") not defined; using user-defined InducedVelocity(" << uIV << ") "
+					"at line " << HP.GetLineData()
+					<< std::endl);
 			}
 		}
 
