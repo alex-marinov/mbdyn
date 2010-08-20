@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- improved sanity checks when using arpack for eigenanalysis
 		- improved error checking in fixed/variable step file driver
 		  (noted by Stefan van't'Hoff)
+		- added alpha-first generic aerodynamic element
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

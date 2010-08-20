@@ -705,7 +705,8 @@ The following data is available:
 
 \subsection{Generic Aerodynamic Force}
 \label{sec:EL:AERO:GAF}
-This element is experimental.
+This element computes generalized aerodynamic forces parametrized
+on dynamic pressure and angle of attack and sideslip angle.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{generic aerodynamic force}
@@ -715,6 +716,7 @@ This element is experimental.
         [ \kw{orientation} , \bnt{relative_orientation} , ]
         [ \kw{reference surface} , \bnt{reference_surface} , ]
         [ \kw{reference length} , \bnt{reference_length} , ]
+        [ \kw{alpha first} , \{ \kw{no} | \kw{yes} \} , ]
         \{ \bnt{data_file_specification} | \kw{reference} , \bnt{gaf_data_label} \}
 
     \bnt{data_file_specification} ::= \kw{file} , 
@@ -724,6 +726,90 @@ This element is experimental.
         " \bnt{data_file_name} "
 \end{Verbatim}
 %\end{verbatim}
+This element computes aerodynamic forces and moments $\T{f}_a$, $\T{m}_a$
+proportional to the dynamic pressure $q=\rho \T{v}^T \T{v}/2$
+and to empirical coefficients tabulated as functions
+of the angle of attack $\alpha$ and the sideslip angle $\beta$.
+The angles are computed from the relative airstream velocity $\T{v}$
+expressed in the reference frame of the body.
+The velocity is computed at the reference point, optionally offset
+from the node \nt{node\_label} by the offset \nt{relative\_position}
+(defaults to \kw{null}), in a reference frame optionally oriented
+from that of the node \nt{node\_label} by the orientation matrix
+\nt{relative\_orientation} (defaults to \kw{eye}), namely
+\begin{subequations}
+\begin{align}
+	\TT{o} &= (\ty{OrientationMatrix})\ \nt{relative\_position}
+	\\
+	\TT{R}_h &= (\ty{Vec3})\ \nt{relative\_orientation}
+	\\
+	\TT{v} &= \TT{R}_h^T \TT{R}_n^T \plbr{
+		\dot{\T{x}}_n + \T{\omega}_n \times \TT{R}_n \TT{o}
+	}
+\end{align}
+\end{subequations}
+By default the angles are computed from the components of $\T{v}$
+according to the formulas
+\begin{subequations}
+\begin{align}
+	\alpha
+	&=
+	\text{atan}\plbr{
+		\cfrac{v_3}{\nrbr{v_1}}
+	}
+	\\
+	\beta
+	&=
+	-\text{atan}\plbr{
+		\cfrac{v_2}{\text{sign}(v_1)\sqrt{v_1^2 + v_2^2}}
+	}
+	;
+\end{align}
+\end{subequations}
+as a consequence, $-\pi/2 \le \alpha \le \pi/2$
+and $-\pi \le \beta \le \pi$.
+If the optional keyword \kw{alpha first} is set to \kw{yes},
+the alternative formulas
+\begin{subequations}
+\begin{align}
+	\alpha
+	&=
+	\text{atan}\plbr{
+		\cfrac{v_3}{\text{sign}(v_1)\sqrt{v_1^2 + v_2^2}}
+	}
+	\\
+	\beta
+	&=
+	-\text{atan}\plbr{
+		\cfrac{v_2}{\nrbr{v_1}}
+	}
+	.
+\end{align}
+\end{subequations}
+are used; as a consequence, $-\pi \le \alpha \le \pi$
+and $-\pi/2 \le \beta \le \pi/2$.
+In both cases, they assume that the body reference system
+is loosely aligned as:
+\begin{itemize}
+\item axis 1 goes from tail to nose of the aircraft;
+\item axis 2 points to the right;
+\item axis 3 points towards the ground when the aircraft is in level flight.
+\end{itemize}
+Force and moment are consistently applied to the node as
+\begin{subequations}
+\begin{align}
+	\T{f}_n &= \TT{R}_n \TT{R}_h \T{f}_a
+	\\
+	\T{m}_n &= \T{R}_n \TT{R}_h \TT{m}_a
+		+ \TT{R}_n \plbr{\T{o} \times \plbr{\TT{R}_h \T{f}_a}}
+\end{align}
+\end{subequations}
+
+\emph{Note: this element does not contribute to the Jacobian matrix
+of the problem; as such, it may deteriorate the convergence properties
+of the solution when aerodynamic forces dominate the problem.
+Moreover, it is not suitable for the direct computation of the eigenvalues
+of a problem about a steady solution.}
 
 \paragraph{Output}
 The following output is available:
@@ -731,11 +817,15 @@ The following output is available:
 \item column 1: element label
 \item column 2: the angle of attack $\alpha$
 \item column 3: the sideslip angle $\beta$
-\item columns 4--6: force components in local $x$, $y$ and $z$ directions
-\item columns 7--9: moment components in local $x$, $y$ and $z$ directions,
+\item columns 4--6: the components of force $\T{f}_a$
+	in local $x$, $y$ and $z$ directions
+\item columns 7--9: the components of moment $\T{m}_a$
+	in local $x$, $y$ and $z$ directions,
 	about the reference point (node plus offset)
-\item columns 10--12: force components in global $x$, $y$ and $z$ directions
-\item columns 13--15: moment components in global $x$, $y$ and $z$ directions,
+\item columns 10--12: the components of force $\T{f}_n$
+	in global $x$, $y$ and $z$ directions
+\item columns 13--15: the components of moment $\T{m}_n$
+	in global $x$, $y$ and $z$ directions,
 	about the node
 \end{enumerate}
 

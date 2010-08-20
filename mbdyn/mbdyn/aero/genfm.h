@@ -76,6 +76,9 @@ protected:
 	 * non-dimensional coefficients */
 	const doublereal dRefSurface;
 	const doublereal dRefLength;
+	const bool bAlphaFirst;
+	const doublereal dAlphaMax;
+	const doublereal dBetaMax;
 	/* Offset of aerodynamic center with respect to node position */
 	const Vec3 tilde_f;
 	/* orientation of aerodynamic reference frame with respect to node */
@@ -100,7 +103,7 @@ public:
 		const DofOwner *pDO,
 		const StructNode* pN,
 		const Vec3& fTmp, const Mat3x3& RaTmp,
-		doublereal dS, doublereal dL,
+		doublereal dS, doublereal dL, bool bAlphaFirst,
 		GenericAerodynamicData *pData,
 		flag fOut);
 	virtual ~GenericAerodynamicForce(void);
