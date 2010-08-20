@@ -770,7 +770,9 @@ Notes:
 \begin{enumerate}
 \item lines are sorted as follows:
 all values of $\alpha$ are defined for each value of $\beta$;
-the same values of $\alpha$ are expected for each $\beta$;
+the same values of $\alpha$ are expected for each value of $\beta$;
+\item the angle ranges are $-\pi/2 \le \alpha \le \pi/2$,
+$-\pi \le \beta \le \pi$;
 \item the angles are expected in radians;
 use the mutually exclusive optional keywords \kw{angle units},
 to specify either \kw{radians} or \kw{degrees},
@@ -796,25 +798,30 @@ the \nt{length\_scale\_factor}.
 The content of the file \texttt{example.dat} is
 \begin{verbatim}
 # This is an example of data for the "generic aerodynamic force" element
-# 5 values of angle of attack (alpha) and 3 values of sideslip angle (beta)
+# 5 values of angle of attack (alpha) and 4 values of sideslip angle (beta)
 # are provided
-5 3
+5 4
 # alpha beta fx/q fy/q fz/q mx/q my/q mz/q
--90 -90 0 0 0 0 0 0
--20 -90 0 0 0 0 0 0
-  0 -90 0 0 0 0 0 0
- 20 -90 0 0 0 0 0 0
- 90 -90 0 0 0 0 0 0
--90   0 0 0 0 0 0 0
--20   0 0 0 0 0 0 0
-  0   0 0 0 0 0 0 0
- 20   0 0 0 0 0 0 0
- 90   0 0 0 0 0 0 0
--90  90 0 0 0 0 0 0
--20  90 0 0 0 0 0 0
-  0  90 0 0 0 0 0 0
- 20  90 0 0 0 0 0 0
- 90  90 0 0 0 0 0 0
+-90 -180  0  0  0  0  0  0
+-20 -180  0  0  0  0  0  0
+  0 -180  0  0  0  0  0  0
+ 20 -180  0  0  0  0  0  0
+ 90 -180  0  0  0  0  0  0
+-90  -20  0  0  0  0  0  0
+-20  -20  0  0  0  0  0  0
+  0  -20  0  0  0  0  0  0
+ 20  -20  0  0  0  0  0  0
+ 90  -20  0  0  0  0  0  0
+-90   20  0  0  0  0  0  0
+-20   20  0  0  0  0  0  0
+  0   20  0  0  0  0  0  0
+ 20   20  0  0  0  0  0  0
+ 90   20  0  0  0  0  0  0
+-90  180  0  0  0  0  0  0
+-20  180  0  0  0  0  0  0
+  0  180  0  0  0  0  0  0
+ 20  180  0  0  0  0  0  0
+ 90  180  0  0  0  0  0  0
 \end{verbatim}
 The corresponding statement in the input file is
 \begin{verbatim}
