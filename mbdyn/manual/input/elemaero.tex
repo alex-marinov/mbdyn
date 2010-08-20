@@ -746,8 +746,12 @@ from that of the node \nt{node\_label} by the orientation matrix
 	\TT{v} &= \TT{R}_h^T \TT{R}_n^T \plbr{
 		\dot{\T{x}}_n + \T{\omega}_n \times \TT{R}_n \TT{o}
 	}
+	,
 \end{align}
 \end{subequations}
+where $\T{x}_n$ and $\TT{R}_n$ are the position and orientation 
+of the node, and $\dot{\T{x}}_n$ and $\T{\omega}_n$ are its linear
+and angular velocity.
 By default the angles are computed from the components of $\T{v}$
 according to the formulas
 \begin{subequations}
@@ -811,6 +815,10 @@ of the solution when aerodynamic forces dominate the problem.
 Moreover, it is not suitable for the direct computation of the eigenvalues
 of a problem about a steady solution.}
 
+\emph{Note: this element, by itself, is not enough to model
+the rigid body aerodynamics of an aircraft, since it does not map
+forces on angle rates.}
+
 \paragraph{Output}
 The following output is available:
 \begin{enumerate}
@@ -861,12 +869,16 @@ Notes:
 \item lines are sorted as follows:
 all values of $\alpha$ are defined for each value of $\beta$;
 the same values of $\alpha$ are expected for each value of $\beta$;
-\item the angle ranges are $-\pi/2 \le \alpha \le \pi/2$,
-$-\pi \le \beta \le \pi$;
+\item the angle ranges are $-\pi/2 \le \alpha \le \pi/2$ and
+$-\pi \le \beta \le \pi$; or, if \kw{alpha first} is \kw{yes},
+they are $-\pi \le \alpha \le \pi$ and $-\pi/2 \le \beta \le \pi/2$;
 \item the angles are expected in radians;
 use the mutually exclusive optional keywords \kw{angle units},
 to specify either \kw{radians} or \kw{degrees},
-or \kw{scale angles}, to specify the \nt{angle\_scale\_factor};
+or \kw{scale angles}, to specify the \nt{angle\_scale\_factor}.
+The \nt{angle\_scale\_factor} is the factor that when multiplied by the
+angle transforms it into radians; for example, if angles are provided
+in degrees then $\nt{angle\_scale\_factor} = \pi/180$;
 \item $q=1/2 \rho V^2$ is the local reference dynamic pressure,
 where $V$ is the norm of the velocity at the reference point;
 \item the coefficients express forces and moments in the reference frame
@@ -876,8 +888,8 @@ or non-dimensional form.
 In the former case, the force coefficients represent areas,
 while the moment coefficients represent volumes, since they need
 to be multiplied by the dynamic pressure to become forces and moments.
-In the latter case, they are pure numbers;
-a reference surface and length must be defined in the configuration
+In the latter case, they are pure numbers; a \nt{reference\_surface}
+and \nt{reference\_length} must be defined in the configuration
 of the corresponding \kw{generic aerodynamic force} element.
 When dimensional coefficients are specified, they can be rescaled
 by using the optional keyword \kw{scale lengths} to specify

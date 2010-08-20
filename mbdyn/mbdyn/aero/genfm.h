@@ -43,6 +43,8 @@
 struct GenericAerodynamicData {
 	std::string name;
 
+	bool bAlphaFirst;
+
 	/* angle of attack and sideslip angle datapoints number */
 	int nAlpha;
 	int nBeta;
@@ -77,8 +79,6 @@ protected:
 	const doublereal dRefSurface;
 	const doublereal dRefLength;
 	const bool bAlphaFirst;
-	const doublereal dAlphaMax;
-	const doublereal dBetaMax;
 	/* Offset of aerodynamic center with respect to node position */
 	const Vec3 tilde_f;
 	/* orientation of aerodynamic reference frame with respect to node */

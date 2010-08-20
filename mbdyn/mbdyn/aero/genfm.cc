@@ -43,6 +43,9 @@
 
 // TODO: add private data; e.g. alpha, beta
 
+static const doublereal dAlphaMax[] = { M_PI/2, M_PI };
+static const doublereal dBetaMax[] = { M_PI, M_PI/2 };
+
 /* Assemblaggio residuo */
 void
 GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
@@ -97,21 +100,21 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 	if (dAlpha < pData->Alpha[0]) {
 		/* smooth out coefficients if Alpha does not span -180 => 180 */
-		doublereal dAlphaX = (dAlpha - pData->Alpha[0])/(-dAlphaMax - pData->Alpha[0]);
-		doublereal dSmoothAlpha = (std::cos(dAlphaMax*dAlphaX) + 1)/2.;
+		doublereal dAlphaX = (dAlpha - pData->Alpha[0])/(-::dAlphaMax[bAlphaFirst] - pData->Alpha[0]);
+		doublereal dSmoothAlpha = (std::cos(::dAlphaMax[bAlphaFirst]*dAlphaX) + 1)/2.;
 
 		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[0])/(-dBetaMax - pData->Beta[0]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-::dBetaMax[bAlphaFirst] - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			tilde_F = Vec3(&pData->Data[0][0].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[0][0].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(dBetaMax - pData->Beta[nBeta]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(::dBetaMax[bAlphaFirst] - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			tilde_F = Vec3(&pData->Data[nBeta][0].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[nBeta][0].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
@@ -135,21 +138,21 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 	} else if (dAlpha > pData->Alpha[nAlpha]) {
 		/* smooth out coefficients if Alpha does not span -180 => 180 */
-		doublereal dAlphaX = (dAlpha - pData->Alpha[nAlpha])/(-dAlphaMax - pData->Alpha[nAlpha]);
-		doublereal dSmoothAlpha = (std::cos(dAlphaMax*dAlphaX) + 1)/2.;
+		doublereal dAlphaX = (dAlpha - pData->Alpha[nAlpha])/(-::dAlphaMax[bAlphaFirst] - pData->Alpha[nAlpha]);
+		doublereal dSmoothAlpha = (std::cos(::dAlphaMax[bAlphaFirst]*dAlphaX) + 1)/2.;
 
 		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[0])/(-dBetaMax - pData->Beta[0]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-::dBetaMax[bAlphaFirst] - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			tilde_F = Vec3(&pData->Data[0][nAlpha].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[0][nAlpha].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
 
 		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(dBetaMax - pData->Beta[nBeta]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(::dBetaMax[bAlphaFirst] - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			tilde_F = Vec3(&pData->Data[nBeta][nAlpha].dCoef[0])*(dScaleForce*dSmoothAlpha*dSmoothBeta);
 			tilde_M = Vec3(&pData->Data[nBeta][nAlpha].dCoef[3])*(dScaleMoment*dSmoothAlpha*dSmoothBeta);
@@ -183,8 +186,8 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 		if (dBeta < pData->Beta[0]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[0])/(-dBetaMax - pData->Beta[0]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[0])/(-::dBetaMax[bAlphaFirst] - pData->Beta[0]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[0][iAlpha]*d1Alpha + pData->Data[0][iAlpha + 1]*d2Alpha;
@@ -194,8 +197,8 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 
 		} else if (dBeta > pData->Beta[nBeta]) {
 			/* smooth out coefficients if Beta does not span -180 => 180 */
-			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(dBetaMax - pData->Beta[nBeta]);
-			doublereal dSmoothBeta = (std::cos(dBetaMax*dBetaX) + 1)/2.;
+			doublereal dBetaX = (dBeta - pData->Beta[nBeta])/(::dBetaMax[bAlphaFirst] - pData->Beta[nBeta]);
+			doublereal dSmoothBeta = (std::cos(::dBetaMax[bAlphaFirst]*dBetaX) + 1)/2.;
 
 			GenericAerodynamicData::GenericAerodynamicCoef c
 				= pData->Data[nBeta][iAlpha]*d1Alpha + pData->Data[nBeta][iAlpha + 1]*d2Alpha;
@@ -246,8 +249,6 @@ pNode(pN),
 dRefSurface(dS),
 dRefLength(dL),
 bAlphaFirst(bAlphaFirst),
-dAlphaMax(bAlphaFirst ? M_PI : M_PI/2),
-dBetaMax(bAlphaFirst ? M_PI/2 : M_PI),
 tilde_f(fTmp),
 tilde_Ra(RaTmp),
 tilde_F(0.),
@@ -492,17 +493,6 @@ ReadGenericAerodynamicData(const std::string& fname,
 	int nAlpha, nBeta;
 	int c;
 
-	doublereal dAlphaMax;
-	doublereal dBetaMax;
-	if (bAlphaFirst) {
-		dAlphaMax = M_PI;
-		dBetaMax = M_PI/2;
-
-	} else {
-		dAlphaMax = M_PI/2;
-		dBetaMax = M_PI;
-	}
-
 	/* skip comments */
 	for (c = in.get(); c == '%' || c == '#'; c = in.get()) {
 		/* discard to end of line */
@@ -552,6 +542,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 
 	GenericAerodynamicData *pData = new GenericAerodynamicData;
 	pData->name = fname;
+	pData->bAlphaFirst = bAlphaFirst;
 	pData->nAlpha = nAlpha;
 	pData->nBeta = nBeta;
 
@@ -577,16 +568,16 @@ ReadGenericAerodynamicData(const std::string& fname,
 			in >> dCoef;
 			if (iBeta == 0) {
 				if (iAlpha == 0) {
-					doublereal dErr = dCoef*dScaleAngle + dAlphaMax;
+					doublereal dErr = dCoef*dScaleAngle + ::dAlphaMax[bAlphaFirst];
 					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
 						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
-							"warning, alpha[0] != -pi/2 (error=" << 100*dErr/dAlphaMax << "%)" << std::endl);
+							"warning, alpha[0] != -pi/2 (error=" << 100*dErr/::dAlphaMax[bAlphaFirst] << "%)" << std::endl);
 					}
 				} else if (iAlpha == nAlpha - 1) {
-					doublereal dErr = dCoef*dScaleAngle - dAlphaMax;
+					doublereal dErr = dCoef*dScaleAngle - ::dAlphaMax[bAlphaFirst];
 					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
 						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
-							"warning, alpha[" << iAlpha << "] != pi/2 (error=" << 100*dErr/dAlphaMax << "%)" << std::endl);
+							"warning, alpha[" << iAlpha << "] != pi/2 (error=" << 100*dErr/::dAlphaMax[bAlphaFirst] << "%)" << std::endl);
 					}
 				}
 
@@ -610,16 +601,16 @@ ReadGenericAerodynamicData(const std::string& fname,
 			in >> dCoef;
 			if (iAlpha == 0) {
 				if (iBeta == 0) {
-					doublereal dErr = dCoef*dScaleAngle + dBetaMax;
+					doublereal dErr = dCoef*dScaleAngle + ::dBetaMax[bAlphaFirst];
 					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
 						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
-							"warning, beta[0] != -pi (error=" << 100*dErr/dBetaMax << "%)" << std::endl);
+							"warning, beta[0] != -pi (error=" << 100*dErr/::dBetaMax[bAlphaFirst] << "%)" << std::endl);
 					}
 				} else if (iBeta == nBeta - 1) {
-					doublereal dErr = dCoef*dScaleAngle - dBetaMax;
+					doublereal dErr = dCoef*dScaleAngle - ::dBetaMax[bAlphaFirst];
 					if (std::abs(dErr) > std::numeric_limits<doublereal>::epsilon()) {
 						silent_cerr("ReadGenericAerodynamicData(" << fname << "): "
-							"warning, beta[" << iBeta << "] != pi (error=" << 100*dErr/dBetaMax << "%)" << std::endl);
+							"warning, beta[" << iBeta << "] != pi (error=" << 100*dErr/::dBetaMax[bAlphaFirst] << "%)" << std::endl);
 					}
 				}
 
@@ -794,7 +785,7 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 
 	} else {
 		silent_cerr("GenericAerodynamicForce(" << uLabel << "): "
-			"keyword \"file\" expected "
+			"keyword \"file\" or \"reference\" expected "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
