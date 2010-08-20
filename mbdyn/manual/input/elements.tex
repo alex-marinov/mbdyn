@@ -779,7 +779,7 @@ The model is
 
 
 \section{Force}\label{sec:EL:FORCE}
-The \kw{force} element, in MBDyn, is a general means to introduce 
+The \kw{force} element is a general means to introduce 
 a right-hand side to the equations, i.e.\ an explicit contribution
 to the equations.
 There is a basic distinction between abstract and structural forces:
@@ -798,9 +798,9 @@ The syntax of the \kw{force} element is:
     \bnt{normal_arglist} ::= \bnt{force_type} , \bnt{force_arglist}
 
     \bnt{force_type} ::=
-        \{ \kw{abstract} [ \kw{internal} ] # \kw{force}
-            | \{ \kw{absolute} | \kw{follower} \} [ \kw{internal} ] # \kw{force}, \kw{couple}
-            | \kw{modal}
+        \{ \kw{abstract} [ \kw{internal} ]                             # \kw{force}
+            | \{ \kw{absolute} | \kw{follower} \} [ \kw{internal} ]          # \kw{force}, \kw{couple}
+            | \kw{modal}                                         # \kw{force}
             | \kw{external} \{ \kw{structural} | \kw{modal} \} [ \kw{mapping} ] \} # \kw{force}
 \end{Verbatim}
 %\end{verbatim}
