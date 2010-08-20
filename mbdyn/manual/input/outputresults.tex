@@ -129,15 +129,14 @@ respectively.
 Use
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    mbdyn2easyanim.sh \bnt{filename}
+    mbdyn2easyanim.sh \bnt{mbdyn_output_filename}
 \end{Verbatim}
 %\end{verbatim}
-where \nt{filename} is the name of the output file from MBDyn,
+where \nt{mbdyn\_output\_filename} is the name of the output file from MBDyn,
 with no extension.
-
-The above script generates a model based on the topology information
-contained in the \nt{filename}\texttt{.log} file, plus the animation information
-according to the contents of the \nt{filename}.\texttt{.mov} file.
+This script generates a model based on the topology information
+contained in the \nt{mbdyn\_output\_filename}\texttt{.log} file, plus the animation information
+according to the contents of the \nt{mbdyn\_output\_filename}\texttt{.mov} file.
 
 To check the model during preparation, run MBDyn with
 \begin{verbatim}
@@ -187,7 +186,7 @@ place it into a file, say \texttt{custom.awk},
 and then invoke the interface script as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    mbdyn2easyanim.sh -f custom.awk \bnt{filename}
+    mbdyn2easyanim.sh -f custom.awk \bnt{mbdyn\_output\_filename}
 \end{Verbatim}
 %\end{verbatim}
 
