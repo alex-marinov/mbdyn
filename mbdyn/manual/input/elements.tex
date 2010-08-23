@@ -48,7 +48,7 @@ Every element card has the following format:
         [ , \bnt{extra_arglist} ] ;
 \end{Verbatim}
 %\end{verbatim}
-where \kw{elem\_type} is one of the following:
+where \nt{elem\_type} is one of the following:
 \begin{itemize}
 \item structural elements:
 \begin{itemize}
@@ -1005,7 +1005,7 @@ The format is:
 
 \subsection{Structural couple}
 \label{sec:EL:FORCE:STRUCTURAL:COUPLE}
-The structural couple is defined by using \kw{couple} as \kw{elem\_type}.
+The structural couple is defined by using \kw{couple} as \nt{elem\_type}.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{couple}
@@ -3648,7 +3648,7 @@ If no offset is given, the points are coincident with the node themselves.
         \{ (\ty{DriveCaller}) \bnt{distance} | \kw{from nodes} \}
 \end{Verbatim}
 %\end{verbatim}
-The \kw{relative\_offset\_*} are the distances of each end
+The \nt{relative\_offset\_*} are the distances of each end
 of the joint from the relative nodes in the node reference frame.
 The \kw{distance} and the \kw{distance with offset} joints
 do not allow null distance.
@@ -4830,33 +4830,35 @@ ideal constraints that connect two nodes.
     \bnt{joint_arglist} ::=
         \bnt{node_1_label}
             [ , \kw{position} , (\ty{Vec3}) \bnt{relative_offset_1} ]
-            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{relative_position_orientation_1} ]
-            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{relative_rotation_orientation_1} ]
+            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{rel_pos_orientation_1} ]
+            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ]
         , \bnt{node_2_label}
             [ , \kw{position} , (\ty{Vec3}) \bnt{relative_offset_2} ]
-            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{relative_position_orientation_2} ]
-            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{relative_rotation_orientation_2} ]
+            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{rel_pos_orientation_2} ]
+            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{rel_rot_orientation_2} ]
         [ , \kw{position constraint} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
+            \bnt{position_status} , \bnt{position_status} , \bnt{position_status} ,
             (\ty{TplDriveCaller<Vec3>}) \bnt{imposed_relative_position} ]
         [ , \kw{orientation constraint} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
+            \bnt{orientation_status} , \bnt{orientation_status} , \bnt{orientation_status} ,
             (\ty{TplDriveCaller<Vec3>}) \bnt{imposed_relative_rotation} ]
+
+    \bnt{position_status} ::=
+            \{ \kw{inactive} | \kw{active} | \kw{position} | \kw{velocity} | \bnt{status} \}
+
+    \bnt{orientation_status} ::=
+            \{ \kw{inactive} | \kw{active} | \kw{rotation} | \kw{angular velocity} | \bnt{status} \}
 \end{Verbatim}
 %\end{verbatim}
 The relative position imposed by the \kw{position constraint}
 is imposed in a reference frame rigidly attached to the first node,
 in the optional offset \nt{relative\_offset\_1},
-and optionally further oriented by the \nt{relative\_position\_orientation\_1}
+and optionally further oriented by the \nt{rel\_pos\_orientation\_1}
 matrix.
 
 The relative orientation imposed by the \kw{orientation constraint}
 is imposed in a reference frame rigidly attached to the first node,
-optionally further oriented by the \kw{relative\_rotation\_orientation\_1}
+optionally further oriented by the \nt{rel\_rot\_orientation\_1}
 matrix.
 It consists in the Euler vector that expresses
 the imposed relative orientation, in radian.
@@ -4878,6 +4880,17 @@ the corresponding component of the imposed position or orientation
 is enforced, otherwise it is ignored;
 however, the complete three-dimensional vectors of the imposed relative
 position or orientation must be provided.
+
+When the \kw{position constraint} is enforced, the keyword \kw{active}
+is equivalent to \kw{position}; if the keyword \kw{velocity} is used,
+the constraint imposes the velocity of that component of the relative position,
+resulting in a non-holonomic constraint.
+
+Similarly, when the \kw{orientation constraint} is enforced,
+the keyword \kw{active} is equivalent to \kw{rotation};
+if the keyword \kw{angular velocity} is used,
+the constraint imposed the angular velocity of that component
+of the relative orientation, resulting in a non-holonomic constraint.
 
 \subsubsection{Private Data}
 The following data is available:
@@ -4940,23 +4953,26 @@ ideal constraints that ground one node.
     \bnt{joint_arglist} ::=
         \bnt{node_label}
             [ , \kw{position} , (\ty{Vec3}) \bnt{relative_offset} ]
-            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{relative_position_orientation} ]
-            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{relative_rotation_orientation} ]
+            [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{rel_pos_orientation} ]
+            [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{rel_rot_orientation} ]
         [ , \kw{position} , (\ty{Vec3}) \bnt{absolute position} ]
-        [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{absolute_position_orientation} ]
-        [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{absolute_rotation_orientation} ]
+        [ , \kw{position orientation} , (\ty{OrientationMatrix}) \bnt{abs_pos_orientation} ]
+        [ , \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{abs_rot_orientation} ]
         [ , \kw{position constraint} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
+            \bnt{position_status} , \bnt{position_status} , \bnt{position_status} ,
             (\ty{TplDriveCaller<Vec3>}) \bnt{imposed_absolute_position} ]
         [ , \kw{orientation constraint} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
-            \{ \kw{active} | \kw{inactive} | \bnt{status} \} ,
+            \bnt{orientation_status} , \bnt{orientation_status} , \bnt{orientation_status} ,
             (\ty{TplDriveCaller<Vec3>}) \bnt{imposed_absolute_rotation} ]
+
+    \bnt{position_status} ::=
+            \{ \kw{inactive} | \kw{active} | \kw{position} | \kw{velocity} | \bnt{status} \}
+
+    \bnt{orientation_status} ::=
+            \{ \kw{inactive} | \kw{active} | \kw{rotation} | \kw{angular velocity} | \bnt{status} \}
 \end{Verbatim}
 %\end{verbatim}
+The non-holonomic variant is not implemented yet.
 
 \subsubsection{Private Data}
 The following data is available:
