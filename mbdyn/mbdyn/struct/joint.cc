@@ -2317,7 +2317,7 @@ ReadJoint(DataManager* pDM,
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		pXDC[0] = ReadDCVecRel(pDM, HP, RF1);
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
@@ -2328,7 +2328,7 @@ ReadJoint(DataManager* pDM,
 			TotalJoint,
 			TotalJoint(uLabel, pDO,
 				bXActive, bVActive, pXDC,
-				bTActive, bWActive, pTDC,
+				bRActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
@@ -2362,10 +2362,12 @@ ReadJoint(DataManager* pDM,
 		Mat3x3 Rchr(Eye3);
 
 		bool bXActive[3] = { true, true, true };
+		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = { 0, 0, 0 };
 		pXDC[0] = ReadDCVecAbs(pDM, HP, AbsRefFrame);
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
+		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = { 0, 0, 0 };
 		SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
 
@@ -2374,8 +2376,8 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			TotalPinJoint,
 			TotalPinJoint(uLabel, pDO,
-				bXActive, pXDC,
-				bTActive, pTDC,
+				bXActive, bVActive, pXDC,
+				bRActive, bWActive, pTDC,
 				Xc, Rch, Rchr,
 				pNode, fn, Rnh, Rnhr,
 				fOut));
@@ -2417,7 +2419,7 @@ ReadJoint(DataManager* pDM,
 		TplDriveCaller<Vec3>* pXDC[3] = { 0, 0, 0 };
 		SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 
-		bool bTActive[3] = { true, true, true };
+		bool bRActive[3] = { true, true, true };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = { 0, 0, 0 };
 
@@ -2431,7 +2433,7 @@ ReadJoint(DataManager* pDM,
 			TotalJoint,
 			TotalJoint(uLabel, pDO,
 				bXActive, bVActive, pXDC,
-				bTActive, bWActive, pTDC,
+				bRActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
@@ -2534,27 +2536,27 @@ ReadJoint(DataManager* pDM,
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
 					bWActive[i] = false;
 
 				} else if (HP.IsKeyWord("rotation") || HP.IsKeyWord("active")) {
-					bTActive[i] = true;
+					bRActive[i] = true;
 					bWActive[i] = false;
 				
 				} else if (HP.IsKeyWord("angular" "velocity")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
 					bWActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
 						bool bActive = HP.GetInt();
-						bTActive[i] = bActive;
+						bRActive[i] = bActive;
 						bWActive[i] = bActive;
 						continue;
 					}
@@ -2583,7 +2585,7 @@ ReadJoint(DataManager* pDM,
 			TotalEquation,
 			TotalEquation(uLabel, pDO,
 				bXActive, bVActive, pXDC,
-				bTActive, bWActive, pTDC,
+				bRActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
@@ -2666,18 +2668,18 @@ ReadJoint(DataManager* pDM,
 			}
 		}
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
 
 				} else if (HP.IsKeyWord("active")) {
-					bTActive[i] = true;
+					bRActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
-						bTActive[i] = HP.GetBool();
+						bRActive[i] = HP.GetBool();
 						continue;
 					}
 
@@ -2722,7 +2724,7 @@ ReadJoint(DataManager* pDM,
 			TotalReaction,
 			TotalReaction(uLabel, pDO,
 				bXActive, 
-				bTActive, 
+				bRActive, 
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				tot_eq_pt,
@@ -2828,27 +2830,27 @@ ReadJoint(DataManager* pDM,
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
 					bWActive[i] = false;
 
 				} else if (HP.IsKeyWord("rotation") || HP.IsKeyWord("active")) {
-					bTActive[i] = true;
+					bRActive[i] = true;
 					bWActive[i] = false;
 				
 				} else if (HP.IsKeyWord("angular" "velocity")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
 					bWActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
 						bool bActive = HP.GetInt();
-						bTActive[i] = bActive;
+						bRActive[i] = bActive;
 						bWActive[i] = false;
 						continue;
 					}
@@ -2879,7 +2881,7 @@ ReadJoint(DataManager* pDM,
 			TotalJoint,
 			TotalJoint(uLabel, pDO,
 				bXActive, bVActive, pXDC,
-				bTActive, bWActive, pTDC,
+				bRActive, bWActive, pTDC,
 				pNode1, f1, R1h, R1hr,
 				pNode2, f2, R2h, R2hr,
 				fOut));
@@ -2936,18 +2938,26 @@ ReadJoint(DataManager* pDM,
 		}
 
 		bool bXActive[3] = { false, false, false };
+		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
+					bVActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
+				} else if (HP.IsKeyWord("position") || HP.IsKeyWord("active")) {
 					bXActive[i] = true;
+					bVActive[i] = false;
+
+				} else if (HP.IsKeyWord("velocity")) {
+					bXActive[i] = false;
+					bVActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
 						bXActive[i] = HP.GetBool();
+						bVActive[i] = false;
 						continue;
 					}
 
@@ -2971,19 +2981,27 @@ ReadJoint(DataManager* pDM,
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
-		bool bTActive[3] = { false, false, false };
+		bool bRActive[3] = { false, false, false };
+		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
-					bTActive[i] = false;
+					bRActive[i] = false;
+					bWActive[i] = false;
 
-				} else if (HP.IsKeyWord("active")) {
-					bTActive[i] = true;
+				} else if (HP.IsKeyWord("rotation") || HP.IsKeyWord("active")) {
+					bRActive[i] = true;
+					bWActive[i] = false;
+
+				} else if (HP.IsKeyWord("angular" "velocity")) {
+					bRActive[i] = false;
+					bWActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
-						bTActive[i] = HP.GetBool();
+						bRActive[i] = HP.GetBool();
+						bWActive[i] = false;
 						continue;
 					}
 
@@ -3012,8 +3030,8 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			TotalPinJoint,
 			TotalPinJoint(uLabel, pDO,
-				bXActive, pXDC,
-				bTActive, pTDC,
+				bXActive, bVActive, pXDC,
+				bRActive, bWActive, pTDC,
 				Xc, Rch, Rchr,
 				pNode, fn, Rnh, Rnhr,
 				fOut));

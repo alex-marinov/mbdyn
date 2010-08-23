@@ -254,6 +254,8 @@ private:
 	Mat3x3 tilde_Rnhr;
 	bool bPosActive[3];
 	bool bRotActive[3];
+	bool bVelActive[3];
+	bool bAgvActive[3];	/* Agv stands for AnGular Velocity */
 	
 	Mat3x3 RchT;
 	Vec3 tilde_Xc;
@@ -270,9 +272,18 @@ private:
 	unsigned int nConstraints;
 	unsigned int nPosConstraints;
 	unsigned int nRotConstraints;
+	unsigned int nVelConstraints;
+	unsigned int nAgvConstraints;
 	
 	unsigned int iPosIncid[3];
 	unsigned int iRotIncid[3];
+	unsigned int iVelIncid[3];
+	unsigned int iAgvIncid[3];
+
+	unsigned int iPosEqIndex[3];
+	unsigned int iRotEqIndex[3];
+	unsigned int iVelEqIndex[3];
+	unsigned int iAgvEqIndex[3];
 	
 	mutable Vec3 M;
 	mutable Vec3 F;
@@ -282,9 +293,9 @@ private:
 public:
 	/* Constructor */
 	TotalPinJoint(unsigned int uL, const DofOwner *pDO,
-		bool bPos[3],
+		bool bPos[3], bool bVel[3],
 		TplDriveCaller<Vec3> *const pDCPos[3],
-		bool bRot[3],
+		bool bRot[3], bool bAgv[3],
 		TplDriveCaller<Vec3> *const pDCRot[3],
 		const Vec3& XcTmp, const Mat3x3& RchTmp, const Mat3x3& RchrTmp,
 		const StructNode* pN,
