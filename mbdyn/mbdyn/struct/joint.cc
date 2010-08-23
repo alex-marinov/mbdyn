@@ -2797,14 +2797,14 @@ ReadJoint(DataManager* pDM,
 					bVActive[i] = false;
 
 				} else if (HP.IsKeyWord("velocity")) {
-					bVActive[i] = true;
 					bXActive[i] = false;
+					bVActive[i] = true;
 
 				} else {
 					if (HP.IsArg()) {
 						bool bActive = HP.GetBool();
 						bXActive[i] = bActive;
-						bVActive[i] = bActive;
+						bVActive[i] = false;
 						continue;
 					}
 
@@ -2849,12 +2849,12 @@ ReadJoint(DataManager* pDM,
 					if (HP.IsArg()) {
 						bool bActive = HP.GetInt();
 						bTActive[i] = bActive;
-						bWActive[i] = bActive;
+						bWActive[i] = false;
 						continue;
 					}
 
 					silent_cerr("TotalJoint(" << uLabel << "): "
-						"invalid status for position component #" << i + 1
+						"invalid status for orientation component #" << i + 1
 						<< " at line " << HP.GetLineData() << std::endl);
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -2963,8 +2963,8 @@ ReadJoint(DataManager* pDM,
 			pXDC[0] = ReadDCVecRel(pDM, HP, RFch);
 
 			if (pDM->bIsInverseDynamics()) {
-				pXDC[1] = ReadDC3D(pDM, HP);
-				pXDC[2] = ReadDC3D(pDM, HP);
+				pXDC[1] = ReadDCVecRel(pDM, HP, RFch);
+				pXDC[2] = ReadDCVecRel(pDM, HP, RFch);
 			}
 
 		} else {
@@ -2999,8 +2999,8 @@ ReadJoint(DataManager* pDM,
 			pTDC[0] = ReadDCVecRel(pDM, HP, RFchr);
 
 			if (pDM->bIsInverseDynamics()) {
-				pTDC[1] = ReadDC3D(pDM, HP);
-				pTDC[2] = ReadDC3D(pDM, HP);
+				pTDC[1] = ReadDCVecRel(pDM, HP, RFchr);
+				pTDC[2] = ReadDCVecRel(pDM, HP, RFchr);
 			}
 
 		} else {
