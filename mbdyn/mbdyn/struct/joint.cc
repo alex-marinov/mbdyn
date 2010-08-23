@@ -57,7 +57,6 @@
 #include "gimbal.h"
 #include "inplanej.h"  /* Vincoli di giacitura nel piano */
 #include "inline.h"
-#include "kinj.h"
 #include "modal.h"
 #if 0 /* No longer supported */
 #include "planedj.h"
@@ -192,7 +191,7 @@ ReadJoint(DataManager* pDM,
 		"total" "internal" "reaction",
 		"total" "joint",
 		"total" "pin" "joint",
-		"kinematic",
+		"kinematic",				// obsoleted
 		"beam" "slider",
 		"brake",
 		"gimbal" "rotation",
@@ -257,7 +256,7 @@ ReadJoint(DataManager* pDM,
 		TOTALINTERNALREACTION,
 		TOTALJOINT,
 		TOTALPINJOINT,
-		KINEMATIC,
+		KINEMATIC,				// obsoleted
 		BEAMSLIDER,
 		BRAKE,
 		GIMBALROTATION,
@@ -3031,21 +3030,10 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case KINEMATIC:
-		{
-		/* nodo collegato */
-		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-
-		DriveCaller* pDC = HP.GetDriveCaller();
-
-		Kinematics* pK = NULL;
-		SAFENEWWITHCONSTRUCTOR(pK, KinematicsTest, KinematicsTest(pDC));
-
-		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
-
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			KinJoint,
-			KinJoint(uLabel, pDO, pNode, pK, fOut));
-		} break;
+		silent_cerr("Joint(" << uLabel << "): "
+			"\"kinematic\" obolete; replace with a \"total [pin] joint\" "
+			<< "at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 	case BEAMSLIDER:
 		{

@@ -51,10 +51,6 @@ joint.h \
 joint_.h \
 jointreg.cc \
 jointreg.h \
-kin.cc \
-kin.h \
-kinj.cc \
-kinj.h \
 modal.cc \
 modal.h \
 modaledge.cc \
