@@ -18,13 +18,21 @@ fi
 
 set +xv
 
-ASTERCMD="/home/masarati/Lavoro/mbdyn/ASTER/aster-9.3.0/outils/as_run"
-WORKDIR="/home/masarati/Lavoro/mbdyn/mbdyn-src/contrib/CodeAster/cms"
+### modify as appropriate
+ASTERVERSION="9.3"
+ASTERBINPATH="/home/masarati/Lavoro/mbdyn/ASTER/aster-9.3.0-2/outils"
+#ASTERVERSION="10.2"
+#ASTERBINPATH="/opt/aster/bin"
+MBDYNSRCDIR="/home/masarati/Lavoro/mbdyn/mbdyn-src"
+
+ASTERCMD="$ASTERBINPATH/as_run"
+WORKDIR="$MBDYNSRCDIR/contrib/CodeAster/cms"
 EXPORTINFNAME="cms.export.in"
 EXPORTFNAME="${FNAME}.export"
 COMMFNAME="${FNAME}.comm"
 
 cat "$EXPORTINFNAME" | sed \
+	-e "s;@ASTERVERSION@;$ASTERVERSION;g" \
 	-e "s;@WORKDIR@;$WORKDIR;g" \
 	-e "s;@COMMFNAME@;$COMMFNAME;g" \
 	-e "s;@MAILFNAME@;$MAILFNAME;g" \

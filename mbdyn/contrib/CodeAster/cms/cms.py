@@ -369,19 +369,46 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 
 	else:
 		assert(cms_exposed_fact['TOUT'] == 'OUI');
-		# NOTE: this name is reserved to MBDyn (!?!)
+		# NOTE: this name must be reserved to MBDyn (!?!)
 		cms_exposed = 'MBDYN_TN';
 		# NOTE: 1.e+38 to make sure we catch all (?!?)
-		# FIXME: only works if model is truly 3D :-(
 		ma = maillage
-		ma = DEFI_GROUP(	reuse = ma,
-					MAILLAGE = ma,
-					CREA_GROUP_NO = ( _F(
-						NOM = cms_exposed,
-						OPTION = 'ENV_SPHERE',
-						POINT = ( 0.0, 0.0, 0.0 ),
-						RAYON = 1.e+38,
-						PRECISION = ( 1.e+38 ) ) ) );
+
+		# NOTE: hack to find out whether a mesh is 2D or 3D
+		# create handler for mesh
+		mm = MAIL_PY();
+		mm.FromAster(maillage);
+
+		# Coordonnees des noeuds
+		coord = mm.cn;
+
+		is_3D = 0;
+		z0 = coord[0][2];
+		for nn in range(1, mm.dime_maillage[0] - 1):
+			if (coord[nn][2] != z0):
+				is_3D = 1;
+				break;
+
+		if is_3D:
+			# FIXME: only works if model is truly 3D :-(
+			# TODO: test whether the mesh is 2D or z_cst
+			ma = DEFI_GROUP(	reuse = ma,
+						MAILLAGE = ma,
+						CREA_GROUP_NO = ( _F(
+							NOM = cms_exposed,
+							OPTION = 'ENV_SPHERE',
+							POINT = ( 0.0, 0.0, 0.0 ),
+							RAYON = 1.e+38,
+							PRECISION = ( 1.e+38 ) ) ) );
+		else:
+			ma = DEFI_GROUP(	reuse = ma,
+						MAILLAGE = ma,
+						CREA_GROUP_NO = ( _F(
+							NOM = cms_exposed,
+							OPTION = 'ENV_SPHERE',
+							POINT = ( 0.0, 0.0 ),
+							RAYON = 1.e+38,
+							PRECISION = ( 1.e+38 ) ) ) );
 		maillage = ma;
 
 	# create handler for mesh
@@ -742,6 +769,7 @@ def cms_ops(self, MAILLAGE, INTERFACE, EXPOSED, MODELE, CARA_ELEM, CHAM_MATER, C
 								TYPE = 'CRAIGB',
 								GROUP_NO = cms_interface ) );
 
+		# NOTE: RITZ no longer allows MODE_STAT in CodeAster 10.X
 		bm = DEFI_BASE_MODALE(	RITZ = ( _F( MODE_MECA = sol_dyn ),
 						 _F( MODE_STAT = sol_stat ) ),
 					INTERF_DYNA = interfa,

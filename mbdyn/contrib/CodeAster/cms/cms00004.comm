@@ -152,7 +152,7 @@ genm = CMS(	MAILLAGE = ma,
 		CHAR_MECA = chbc,
 		INTERFACE = cms_interface,
 		# EXPOSED = _F( GROUP_NO = cms_exposed ),
-		EXPOSED = _F( TOUT = 'OUI' ),
+		EXPOSED = _F( TOUT = 'OUI' ),	# automatically selects all
 		OPTIONS = _F( NMAX_FREQ = 4 ),
 		OUT = _F(	TYPE = 'MBDYN',
 				FICHIER = cms_outfname,
