@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		  (noted by Stefan van't'Hoff)
 		- fixed 2D mesh all-nodes automatic selection
 		  in CodeAster CMS macro
+		- fixed external structural mapping when no mapping required
 
 MBDyn 1.3.16
 	Enhancements:

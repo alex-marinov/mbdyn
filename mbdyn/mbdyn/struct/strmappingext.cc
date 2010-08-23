@@ -346,10 +346,11 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			bResult = false;
 		}
 
-		if (uN != uMappedPoints) {
+		unsigned uMP = pH ? uMappedPoints : uPoints;
+		if (uN != uMP) {
 			silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
 				"negotiation response failed: node number mismatch "
-				"(local=" << uMappedPoints << ", remote=" << uN << ")"
+				"(local=" << uMP << ", remote=" << uN << ")"
 				<< std::endl);
 			bResult = false;
 		}
