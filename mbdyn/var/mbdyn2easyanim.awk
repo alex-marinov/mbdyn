@@ -438,7 +438,10 @@ isvan == 0 && (/sphericalhinge:/ || /revolutehinge/ || /universalhinge/) && show
 			# create offset node and link
 			label = "hinge_" $2 "_point1";
 			node_add(label, j_hinge[$2, 1],
-				j_hinge[$2, 1, 1], j_hinge[$2, 1, 2], j_hinge[$2, 1, 2], "hinge_node");
+				j_hinge[$2, 1, 1],
+				j_hinge[$2, 1, 2],
+				j_hinge[$2, 1, 3],
+				"hinge_node");
 
 			edge_add("hinge_" $2 "_offset1", label1, label, "hinge_offset");
 
@@ -449,7 +452,10 @@ isvan == 0 && (/sphericalhinge:/ || /revolutehinge/ || /universalhinge/) && show
 			# create offset node and link
 			label = "hinge_" $2 "_point2";
 			node_add(label, j_hinge[$2, 2],
-				j_hinge[$2, 2, 1], j_hinge[$2, 2, 2], j_hinge[$2, 2, 3], "hinge_node");
+				j_hinge[$2, 2, 1],
+				j_hinge[$2, 2, 2],
+				j_hinge[$2, 2, 3],
+				"hinge_node");
 
 			edge_add("hinge_" $2 "_offset2", label2, label, "hinge_offset");
 
@@ -479,7 +485,10 @@ isvan == 0 && /distance:/ && show["distance"] {
 			# create offset node and link
 			label = "distance_" $2 "_point1";
 			node_add(label, j_distance[$2, 1],
-				j_distance[$2, 1, 1], j_distance[$2, 1, 2], j_distance[$2, 1, 3], "distance_node");
+				j_distance[$2, 1, 1],
+				j_distance[$2, 1, 2],
+				j_distance[$2, 1, 3],
+				"distance_node");
 
 			edge_add("distance_" $2 "_offset1", label1, label, "distance_offset");
 
@@ -490,7 +499,10 @@ isvan == 0 && /distance:/ && show["distance"] {
 			# create offset node and link
 			label = "distance_" $2 "_point2";
 			node_add(label, j_distance[$2, 2],
-				j_distance[$2, 2, 1], j_distance[$2, 2, 2], j_distance[$2, 2, 3], "distance_node");
+				j_distance[$2, 2, 1],
+				j_distance[$2, 2, 2],
+				j_distance[$2, 2, 3],
+				"distance_node");
 
 			edge_add("distance_" $2 "_offset2", label2, label, "distance_offset");
 
@@ -522,7 +534,10 @@ isvan == 0 && /rod:/ && show["rod"]{
 			# create offset node and link
 			label = "rod_" $2 "_point1";
 			node_add(label, j_rod[$2, 1],
-				j_rod[$2, 1, 1], j_rod[$2, 1, 2], j_rod[$2, 1, 3], "rod_node");
+				j_rod[$2, 1, 1],
+				j_rod[$2, 1, 2],
+				j_rod[$2, 1, 3],
+				"rod_node");
 
 			edge_add("rod_" $2 "_offset1", label1, label, "rod_offset");
 
@@ -533,7 +548,10 @@ isvan == 0 && /rod:/ && show["rod"]{
 			# create offset node and link
 			label = "rod_" $2 "_point2";
 			node_add(label, j_rod[$2, 2],
-				j_rod[$2, 2, 1], j_rod[$2, 2, 2], j_rod[$2, 2, 3], "rod_node");
+				j_rod[$2, 2, 1],
+				j_rod[$2, 2, 2],
+				j_rod[$2, 2, 3],
+				"rod_node");
 
 			edge_add("rod_" $2 "_offset2", label2, label, "rod_offset");
 
@@ -614,7 +632,10 @@ isvan == 0 && /totaljoint:/ && show["totaljoint"] {
 			# create offset node and link
 			label = "totaljoint_" $2 "_point1";
 			node_add(label, j_totaljoint[$2, 1],
-				j_totaljoint[$2, 1, 1], j_totaljoint[$2, 1, 2], j_totaljoint[$2, 1, 3], "totaljoint_node");
+				j_totaljoint[$2, 1, 1],
+				j_totaljoint[$2, 1, 2],
+				j_totaljoint[$2, 1, 3],
+				"totaljoint_node");
 
 			edge_add("totaljoint_" $2 "_offset1", label1, label, "totaljoint_offset");
 
@@ -625,7 +646,10 @@ isvan == 0 && /totaljoint:/ && show["totaljoint"] {
 			# create offset node and link
 			label = "totaljoint_" $2 "_point2";
 			node_add(label, j_totaljoint[$2, 2],
-				j_totaljoint[$2, 2, 1], j_totaljoint[$2, 2, 2], j_totaljoint[$2, 2, 3], "totaljoint_node");
+				j_totaljoint[$2, 2, 1],
+				j_totaljoint[$2, 2, 2],
+				j_totaljoint[$2, 2, 3],
+				"totaljoint_node");
 
 			edge_add("totaljoint_" $2 "_offset2", label2, label, "totaljoint_offset");
 
@@ -655,7 +679,10 @@ isvan == 0 && /totalpinjoint:/ && show["totalpinjoint"] {
 			# create offset node and link
 			label = "totalpinjoint_" $2 "_point1";
 			node_add(label, label1,
-				j_totalpinjoint[$2, 1, 1], j_totalpinjoint[$2, 1, 2], j_totalpinjoint[$2, 1, 3], "totaljoint_node");
+				j_totalpinjoint[$2, 1, 1],
+				j_totalpinjoint[$2, 1, 2],
+				j_totalpinjoint[$2, 1, 3],
+				"totaljoint_node");
 
 			edge_add("totalpinjoint_" $2 "_offset1", label1, label, "totaljoint_offset");
 
@@ -697,7 +724,11 @@ isvan == 0 && /beam2:/ && show["beam"] {
 		if (beam2[$2, 1, 1] != 0. || beam2[$2, 1, 2] != 0. || beam2[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point1";
-			node_add(label, beam2[$2, 1], beam2[$2, 1, 1], beam2[$2, 1, 2], beam2[$2, 1, 3], "beam_node");
+			node_add(label, beam2[$2, 1],
+				beam2[$2, 1, 1],
+				beam2[$2, 1, 2],
+				beam2[$2, 1, 3],
+				"beam_node");
 
 			edge_add("beam_" $2 "_offset1", label1, label, "beam_offset");
 
@@ -707,7 +738,11 @@ isvan == 0 && /beam2:/ && show["beam"] {
 		if (beam2[$2, 2, 1] != 0. || beam2[$2, 2, 2] != 0. || beam2[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point2";
-			node_add(label, beam2[$2, 2], beam2[$2, 2, 1], beam2[$2, 2, 2], beam2[$2, 2, 3], "beam_node");
+			node_add(label, beam2[$2, 2],
+				beam2[$2, 2, 1],
+				beam2[$2, 2, 2],
+				beam2[$2, 2, 3],
+				"beam_node");
 
 			edge_add("beam_" $2 "_offset2", label2, label, "beam_offset");
 
@@ -754,7 +789,11 @@ isvan == 0 && /beam3:/ && show["beam"] {
 		if (beam3[$2, 1, 1] != 0. || beam3[$2, 1, 2] != 0. || beam3[$2, 1, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point1";
-			node_add(label, beam3[$2, 1], beam3[$2, 1, 1], beam3[$2, 1, 2], beam3[$2, 1, 3], "beam_node");
+			node_add(label, beam3[$2, 1],
+				beam3[$2, 1, 1],
+				beam3[$2, 1, 2],
+				beam3[$2, 1, 3],
+				"beam_node");
 
 			edge_add("beam_" $2 "_offset1", label1, label, "beam_offset");
 
@@ -764,7 +803,11 @@ isvan == 0 && /beam3:/ && show["beam"] {
 		if (beam3[$2, 2, 1] != 0. || beam3[$2, 2, 2] != 0. || beam3[$2, 2, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point2";
-			node_add(label, beam3[$2, 2], beam3[$2, 2, 1], beam3[$2, 2, 2], beam3[$2, 2, 3], "beam_node");
+			node_add(label, beam3[$2, 2],
+				beam3[$2, 2, 1],
+				beam3[$2, 2, 2],
+				beam3[$2, 2, 3],
+				"beam_node");
 
 			edge_add("beam_" $2 "_offset2", label2, label, "beam_offset");
 
@@ -774,7 +817,11 @@ isvan == 0 && /beam3:/ && show["beam"] {
 		if (beam3[$2, 3, 1] != 0. || beam3[$2, 3, 2] != 0. || beam3[$2, 3, 3] != 0.) {
 			# create offset node and link
 			label = "beam_" $2 "_point3";
-			node_add(label, beam3[$2, 3], beam3[$2, 3, 1], beam3[$2, 3, 2], beam3[$2, 3, 3], "beam_node");
+			node_add(label, beam3[$2, 3],
+				beam3[$2, 3, 1],
+				beam3[$2, 3, 2],
+				beam3[$2, 3, 3],
+				"beam_node");
 
 			edge_add("beam_" $2 "_offset3", label3, label, "beam_offset");
 
@@ -857,16 +904,32 @@ isvan == 0 && /aero0:/ && show["aero"] {
 
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node_add(label1, aero0[$2], aero0[$2, 1, 1], aero0[$2, 1, 2], aero0[$2, 1, 3], "aero_node");
+		node_add(label1, aero0[$2],
+			aero0[$2, 1, 1],
+			aero0[$2, 1, 2],
+			aero0[$2, 1, 3],
+			"aero_node");
 
 		label2 = "aero_" $2 "_point2";
-		node_add(label2, aero0[$2], aero0[$2, 2, 1], aero0[$2, 2, 2], aero0[$2, 2, 3], "aero_node");
+		node_add(label2, aero0[$2],
+			aero0[$2, 2, 1],
+			aero0[$2, 2, 2],
+			aero0[$2, 2, 3],
+			"aero_node");
 
 		label3 = "aero_" $2 "_point3";
-		node_add(label3, aero0[$2], aero0[$2, 3, 1], aero0[$2, 3, 2], aero0[$2, 3, 3], "aero_node");
+		node_add(label3, aero0[$2],
+			aero0[$2, 3, 1],
+			aero0[$2, 3, 2],
+			aero0[$2, 3, 3],
+			"aero_node");
 
 		label4 = "aero_" $2 "_point4";
-		node_add(label4, aero0[$2], aero0[$2, 4, 1], aero0[$2, 4, 2], aero0[$2, 4, 3], "aero_node");
+		node_add(label4, aero0[$2],
+			aero0[$2, 4, 1],
+			aero0[$2, 4, 2],
+			aero0[$2, 4, 3],
+			"aero_node");
 
 		label = "aero_" $2;
 		side[side_num] = label;
@@ -914,16 +977,32 @@ isvan == 0 && /aero2:/ && show["aero"] {
 
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node_add(label1, aero2[$2, 1], aero2[$2, 1, 1], aero2[$2, 1, 2], aero2[$2, 1, 3], "aero_node");
+		node_add(label1, aero2[$2, 1],
+			aero2[$2, 1, 1],
+			aero2[$2, 1, 2],
+			aero2[$2, 1, 3],
+			"aero_node");
 
 		label2 = "aero_" $2 "_point2";
-		node_add(label2, aero2[$2, 1], aero2[$2, 2, 1], aero2[$2, 2, 2], aero2[$2, 2, 3], "aero_node");
+		node_add(label2, aero2[$2, 1],
+			aero2[$2, 2, 1],
+			aero2[$2, 2, 2],
+			aero2[$2, 2, 3],
+			"aero_node");
 
 		label3 = "aero_" $2 "_point3";
-		node_add(label3, aero2[$2, 2], aero2[$2, 3, 1], aero2[$2, 3, 2], aero2[$2, 3, 3], "aero_node");
+		node_add(label3, aero2[$2, 2],
+			aero2[$2, 3, 1],
+			aero2[$2, 3, 2],
+			aero2[$2, 3, 3],
+			"aero_node");
 
 		label4 = "aero_" $2 "_point4";
-		node_add(label4, aero2[$2, 2], aero2[$2, 4, 1], aero2[$2, 4, 2], aero2[$2, 4, 3], "aero_node");
+		node_add(label4, aero2[$2, 2],
+			aero2[$2, 4, 1],
+			aero2[$2, 4, 2],
+			aero2[$2, 4, 3],
+			"aero_node");
 
 		label = "aero_" $2;
 		side[side_num] = label;
@@ -982,22 +1061,45 @@ isvan == 0 && /aero3:/ && show["aero"] {
 
 		# create offset node and side
 		label1 = "aero_" $2 "_point1";
-		node_add(label1, aero3[$2, 1], aero3[$2, 1, 1], aero3[$2, 1, 2], aero3[$2, 1, 3], "aero_node");
+		node_add(label1, aero3[$2, 1],
+			aero3[$2, 1, 1],
+			aero3[$2, 1, 2],
+			aero3[$2, 1, 3], "aero_node");
 
 		label2 = "aero_" $2 "_point2";
-		node_add(label2, aero3[$2, 1], aero3[$2, 2, 1], aero3[$2, 2, 2], aero3[$2, 2, 3], "aero_node");
+		node_add(label2, aero3[$2, 1],
+			aero3[$2, 2, 1],
+			aero3[$2, 2, 2],
+			aero3[$2, 2, 3],
+			"aero_node");
 
 		label3 = "aero_" $2 "_point3";
-		node_add(label3, aero3[$2, 2], aero3[$2, 3, 1], aero3[$2, 3, 2], aero3[$2, 3, 3], "aero_node");
+		node_add(label3, aero3[$2, 2],
+			aero3[$2, 3, 1],
+			aero3[$2, 3, 2],
+			aero3[$2, 3, 3],
+			"aero_node");
 
 		label4 = "aero_" $2 "_point4";
-		node_add(label4, aero3[$2, 2], aero3[$2, 4, 1], aero3[$2, 4, 2], aero3[$2, 4, 3], "aero_node");
+		node_add(label4, aero3[$2, 2],
+			aero3[$2, 4, 1],
+			aero3[$2, 4, 2],
+			aero3[$2, 4, 3],
+			"aero_node");
 
 		label5 = "aero_" $2 "_point5";
-		node_add(label5, aero3[$2, 3], aero3[$2, 5, 1], aero3[$2, 5, 2], aero3[$2, 5, 3], "aero_node");
+		node_add(label5, aero3[$2, 3],
+			aero3[$2, 5, 1],
+			aero3[$2, 5, 2],
+			aero3[$2, 5, 3],
+			"aero_node");
 
 		label6 = "aero_" $2 "_point6";
-		node_add(label6, aero3[$2, 3], aero3[$2, 6, 1], aero3[$2, 6, 2], aero3[$2, 6, 3], "aero_node");
+		node_add(label6, aero3[$2, 3],
+			aero3[$2, 6, 1],
+			aero3[$2, 6, 2],
+			aero3[$2, 6, 3],
+			"aero_node");
 
 		label = "aero_" $2;
 		side[side_num] = label;
