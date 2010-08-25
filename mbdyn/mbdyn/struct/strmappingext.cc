@@ -857,7 +857,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 			Nodes[n].F = Zero3;
 			Nodes[n].M = Zero3;
 			for (unsigned o = 0; o < Nodes[n].Offsets.size(); o++, p3 += 3) {
-				Nodes[n].Offsets[o].F = pRefNode->GetRCurr()*Vec3(m_f, p3 + 1);
+				Nodes[n].Offsets[o].F = pRefNode->GetRCurr()*Vec3(&m_f[p3]);
 				Nodes[n].F += Nodes[n].Offsets[o].F;
 				Vec3 f(Nodes[n].pNode->GetRCurr()*Nodes[n].Offsets[o].Offset);
 				Nodes[n].M += f.Cross(Nodes[n].Offsets[o].F);
@@ -869,7 +869,7 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 			Nodes[n].F = Zero3;
 			Nodes[n].M = Zero3;
 			for (unsigned o = 0; o < Nodes[n].Offsets.size(); o++, p3 += 3) {
-				Nodes[n].Offsets[o].F = Vec3(m_f, p3 + 1);
+				Nodes[n].Offsets[o].F = Vec3(&m_f[p3]);
 				Nodes[n].F += Nodes[n].Offsets[o].F;
 				Vec3 f(Nodes[n].pNode->GetRCurr()*Nodes[n].Offsets[o].Offset);
 				Nodes[n].M += f.Cross(Nodes[n].Offsets[o].F);
@@ -932,6 +932,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 				M1 -= Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
 			}
 		}
+
 		if (bUseReferenceNodeForces) {
 			unsigned n = Nodes.size();
 			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
