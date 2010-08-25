@@ -37,6 +37,11 @@
 #		InputMode	{euler123|vector|matrix} (default: euler123)
 #		OutputMode	{euler123|vector|matrix} (default: euler123)
 #		RefOnly		{0|1} (default: 0): re-position & re-orient only
+#
+# undocumented options:
+#		NumBlades	(int) <nb>
+#		BladeLabelOff	(int) <off>
+#		RotorAxis	{1,2,3}|{x,y,z}
 
 # R matrix from Euler 123 angles
 function euler2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dSinBeta, dCosGamma, dSinGamma) {
@@ -282,12 +287,46 @@ function output() {
 			continue;
 		}
 
+		if (NumBlades > 0) {
+			# Note: blades must be defined with local axis 1
+			# along the blade axis, axis 3 alomg the flapwise
+			# direction, axis 2 according to a right triad
+			# (chordwise trail to lead for counter-clockwise
+			# rotors)
+			# Blade #1 is assumed to be aligned with the reference
+			# node; higher blade numbers lag behind
+			#
+			#         ^            blade #4  |
+			#         | y                    |
+			#         |                      |
+			#         |     x                |  blade #1
+			#	  +------>      ---------o---------
+			#                      blade #3  |
+			#                                |
+			#                                |
+			#                                | blade #2
+			#
+			ib = int(label[node]/BladeLabelOff);
+			psi = -2*3.14159265358979323846*(ib - 1)/NumBlades;
+
+			theta[1] = 0.;
+			theta[2] = 0.;
+			theta[3] = 0.;
+			theta[RotorAxis] = psi;
+			vec2R(theta[1], theta[2], theta[3], Rpsi);
+			mat3_mul_mat3(R0, Rpsi, Rb)
+		}
+
 		# position
 		Xr[1] = Pos[node, 1] - X0[1];
 		Xr[2] = Pos[node, 2] - X0[2];
 		Xr[3] = Pos[node, 3] - X0[3];
 
-		mat3T_mul_vec3(R0, Xr, X);
+		if (NumBlades > 0) {
+			mat3T_mul_vec3(Rb, Xr, X);
+		} else {
+			mat3T_mul_vec3(R0, Xr, X);
+		}
 
 		# orientation
 		if (imode == 0) {
@@ -310,7 +349,11 @@ function output() {
 			Rn[3, 3] = The[node, 9];
 		}
 
-		mat3T_mul_mat3(R0, Rn, R);
+		if (NumBlades > 0) {
+			mat3T_mul_mat3(Rb, Rn, R);
+		} else {
+			mat3T_mul_mat3(R0, Rn, R);
+		}
 
 		if (omode == 0) {
 			R2euler(R, e);
@@ -325,14 +368,22 @@ function output() {
 			Vr[2] = Vel[node, 2];
 			Vr[3] = Vel[node, 3];
 
-			mat3T_mul_vec3(R0, Vr, V);
+			if (NumBlades > 0) {
+				mat3T_mul_vec3(Rb, Vr, V);
+			} else {
+				mat3T_mul_vec3(R0, Vr, V);
+			}
 
 			# angular velocity
 			Wr[1] = Ome[node, 1];
 			Wr[2] = Ome[node, 2];
 			Wr[3] = Ome[node, 3];
 
-			mat3T_mul_vec3(R0, Wr, W);
+			if (NumBlades > 0) {
+				mat3T_mul_vec3(Rb, Wr, W);
+			} else {
+				mat3T_mul_vec3(R0, Wr, W);
+			}
 
 			if (accel[node]) {
 				# acceleration
@@ -340,14 +391,22 @@ function output() {
 				Ar[2] = Acc[node, 2];
 				Ar[3] = Acc[node, 3];
 
-				mat3T_mul_vec3(R0, Ar, A);
+				if (NumBlades > 0) {
+					mat3T_mul_vec3(Rb, Ar, A);
+				} else {
+					mat3T_mul_vec3(R0, Ar, A);
+				}
 
 				# angular acceleration
 				WPr[1] = OmeP[node, 1];
 				WPr[2] = OmeP[node, 2];
 				WPr[3] = OmeP[node, 3];
 
-				mat3T_mul_vec3(R0, WPr, WP);
+				if (NumBlades > 0) {
+					mat3T_mul_vec3(Rb, WPr, WP);
+				} else {
+					mat3T_mul_vec3(R0, WPr, WP);
+				}
 			}
 
 		} else {
@@ -358,14 +417,22 @@ function output() {
 			Vr[2] = Vel[node, 2] - V0[2] - Vtmp[2];
 			Vr[3] = Vel[node, 3] - V0[3] - Vtmp[3];
 
-			mat3T_mul_vec3(R0, Vr, V);
+			if (NumBlades > 0) {
+				mat3T_mul_vec3(Rb, Vr, V);
+			} else {
+				mat3T_mul_vec3(R0, Vr, V);
+			}
 
 			# angular velocity
 			Wr[1] = Ome[node, 1] - W0[1];
 			Wr[2] = Ome[node, 2] - W0[2];
 			Wr[3] = Ome[node, 3] - W0[3];
 
-			mat3T_mul_vec3(R0, Wr, W);
+			if (NumBlades > 0) {
+				mat3T_mul_vec3(Rb, Wr, W);
+			} else {
+				mat3T_mul_vec3(R0, Wr, W);
+			}
 
 			if (accel[node]) {
 				# acceleration
@@ -388,7 +455,11 @@ function output() {
 				Ar[2] -= 2*ATmp[2]
 				Ar[3] -= 2*ATmp[3]
 			
-				mat3T_mul_vec3(R0, Ar, A);
+				if (NumBlades > 0) {
+					mat3T_mul_vec3(Rb, Ar, A);
+				} else {
+					mat3T_mul_vec3(R0, Ar, A);
+				}
 
 				# angular acceleration
 				vec3_cross_vec3(W0, Wr, WPTmp);
@@ -397,7 +468,11 @@ function output() {
 				WPr[2] = OmeP[node, 2] - WP0[2] - WPTmp[2];
 				WPr[3] = OmeP[node, 3] - WP0[3] - WPTmp[3];
 
-				mat3T_mul_vec3(R0, WPr, WP);
+				if (NumBlades > 0) {
+					mat3T_mul_vec3(Rb, WPr, WP);
+				} else {
+					mat3T_mul_vec3(R0, WPr, WP);
+				}
 			}
 		}
 
@@ -458,6 +533,37 @@ BEGIN {
 	} else if (OutputMode != 0) {
 		printf("Unknown OutputMode=%s\n", OutputMode);
 		exit;
+	}
+
+	if (NumBlades < 0) {
+		printf("NumBlades must be 0 (not a rotor) or positive\n");
+		exit;
+	}
+
+	if (NumBlades > 0) {
+		if (BladeLabelOff == 0) {
+			printf("Need BladeLabelOffset\n");
+			exit;
+
+		} else if (int(BladeLabelOff) != BladeLabelOff) {
+			printf("BladeLabelOffset must be an integer\n");
+			exit;
+
+		} else if (BladeLabelOff <= 0) {
+			printf("BladeLabelOffset must be positive\n");
+			exit;
+		}
+
+		if (RotorAxis == "x") {
+			RotorAxis = 0 + 1;
+		} else if (RotorAxis == "y") {
+			RotorAxis = 0 + 2;
+		} else if (RotorAxis == "z") {
+			RotorAxis = 0 + 3;
+		} else if (RotorAxis != 1 && RotorAxis != 2 && RotorAxis != 3) {
+			printf("Invalid RotorAxis\n");
+			exit;
+		}
 	}
 
 	deg2rad = 0.017453293;
