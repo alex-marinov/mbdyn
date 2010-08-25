@@ -89,6 +89,7 @@ public:
 		std::vector<std::string>& epsilonPrime,
 		std::vector<std::string>& expression);
      	virtual ~SymbolicViscousConstitutiveLaw(void);
+	virtual ConstLawType::Type GetConstLawType(void) const;
 };
 
 typedef SymbolicViscousConstitutiveLaw<doublereal, doublereal> 
@@ -115,6 +116,13 @@ SymbolicViscousConstitutiveLaw<T, Tder>::~SymbolicViscousConstitutiveLaw(void)
 	NO_OP;
 }
 
+template <class T, class Tder>
+ConstLawType::Type
+SymbolicViscousConstitutiveLaw<T, Tder>::GetConstLawType(void) const
+{
+	return ConstLawType::VISCOUS;
+}
+
 /* SymbolicViscousConstitutiveLaw - end */
 
 /* SymbolicViscoElasticConstitutiveLaw - begin */
@@ -130,6 +138,7 @@ public:
 		std::vector<std::string>& epsilonPrime,
 		std::vector<std::string>& expression);
      	virtual ~SymbolicViscoElasticConstitutiveLaw(void);
+	virtual ConstLawType::Type GetConstLawType(void) const;
 };
 
 typedef SymbolicViscoElasticConstitutiveLaw<doublereal, doublereal> 
@@ -155,6 +164,13 @@ template <class T, class Tder>
 SymbolicViscoElasticConstitutiveLaw<T, Tder>::~SymbolicViscoElasticConstitutiveLaw(void)
 {
 	NO_OP;
+}
+
+template <class T, class Tder>
+ConstLawType::Type
+SymbolicViscoElasticConstitutiveLaw<T, Tder>::GetConstLawType(void) const
+{
+	return ConstLawType::VISCOELASTIC;
 }
 
 /* SymbolicViscoElasticConstitutiveLaw - end */
