@@ -307,14 +307,28 @@ function output() {
 			#                                | blade #2
 			#
 			ib = int(label[node]/BladeLabelOff);
-			psi = -2*3.14159265358979323846*(ib - 1)/NumBlades;
+			if (ib > 0 && ib <= NumBlades) {
+				psi = -2*3.14159265358979323846*(ib - 1)/NumBlades;
 
-			theta[1] = 0.;
-			theta[2] = 0.;
-			theta[3] = 0.;
-			theta[RotorAxis] = psi;
-			vec2R(theta[1], theta[2], theta[3], Rpsi);
-			mat3_mul_mat3(R0, Rpsi, Rb)
+				theta[1] = 0.;
+				theta[2] = 0.;
+				theta[3] = 0.;
+				theta[RotorAxis] = psi;
+				vec2R(theta[1], theta[2], theta[3], Rpsi);
+				mat3_mul_mat3(R0, Rpsi, Rb)
+			} else {
+				Rb[1, 1] = R0[1, 1];
+				Rb[1, 2] = R0[1, 2];
+				Rb[1, 3] = R0[1, 3];
+
+				Rb[2, 1] = R0[2, 1];
+				Rb[2, 2] = R0[2, 2];
+				Rb[2, 3] = R0[2, 3];
+
+				Rb[3, 1] = R0[3, 1];
+				Rb[3, 2] = R0[3, 2];
+				Rb[3, 3] = R0[3, 3];
+			}
 		}
 
 		# position
