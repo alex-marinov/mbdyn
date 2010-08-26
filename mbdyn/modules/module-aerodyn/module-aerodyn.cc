@@ -69,7 +69,7 @@
 // #define USE_DOUBLE_PRECISION
 #define USE_SINGLE_PRECISION
 
-#include "AeroDyn.h"
+#include "NREL_AeroDyn.h"
 
 class AeroDynModule
 : virtual public Elem,
