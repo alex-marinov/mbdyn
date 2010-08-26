@@ -788,7 +788,9 @@ ExtForce::Send(ExtFileHandlerBase::SendWhen when)
 void
 ExtForce::Recv(void)
 {
-	if ((iCoupling >= COUPLING_TIGHT && !bFirstSend && !(iCouplingCounter%iCoupling)) || (!iCoupling && bFirstSend)) {
+	if ((iCoupling >= COUPLING_TIGHT && !bFirstSend && !(iCouplingCounter%iCoupling))
+		|| ((iCoupling == COUPLING_LOOSE || iCoupling == COUPLING_STAGGERED) && bFirstSend))
+	{
 		if (pEFH->Recv_pre()) {
 			Recv(pEFH);
 		}
@@ -1113,6 +1115,9 @@ ReadExtForce(DataManager* pDM,
 	if (HP.IsKeyWord("coupling")) {
 		if (HP.IsKeyWord("none")) {
 			iCoupling = ExtForce::COUPLING_NONE;
+
+		} else if (HP.IsKeyWord("staggered")) {
+			iCoupling = ExtForce::COUPLING_STAGGERED;
 
 		} else if (HP.IsKeyWord("loose")) {
 			iCoupling = ExtForce::COUPLING_LOOSE;
