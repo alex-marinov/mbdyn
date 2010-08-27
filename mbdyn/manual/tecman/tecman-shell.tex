@@ -1,8 +1,8 @@
 \emph{Authors: Marco Morandini and Riccardo Vescovini}
 \newcommand{ \fracd }[ 2 ]{ \frac{ \displaystyle{ #1 } }{ \displaystyle{ #2 }} }
 \newcommand{ \fracdp }[ 2 ]{ \frac{ \displaystyle{ \partial #1 } }{ \displaystyle{ \partial #2 }} }
-\newcommand{ \Rot }[ 1 ]{ \text{Rot} \plbr{ #1 } }
-\newcommand{ \VecRot }[ 1 ]{ \text{VecRot} \plbr{ #1 } }
+\newcommand{ \Rot }[ 1 ]{ \texttt{Rot} \plbr{ #1 } }
+\newcommand{ \VecRot }[ 1 ]{ \texttt{VecRot} \plbr{ #1 } }
 \newcommand{ \valxii }[ 0 ]{\plbr{ \T{ \xi }_{ i } } }
 \newcommand{ \valxin }[ 0 ]{\plbr{ \T{ \xi }_{ n } } }
 \newcommand{ \valxiA }[ 0 ]{\plbr{ \T{ \xi }_{ A } } }
@@ -22,7 +22,7 @@ with:
 \begin{equation}
 \delta W = \int_A \plbr{
 \delta{\T{\epsilon}}^T \T{\sigma} + \delta \hat{\T{\epsilon}}^T \T{\sigma}
-} dA
+} \text{d}A
 \label{eq:deltaW}
 \end{equation}
 and:
@@ -31,7 +31,7 @@ and:
 \delta {\T{\epsilon}} ^T  \T{C} \plbr{ \Delta {\T{\epsilon}}  + \Delta \hat{\T{\epsilon}}} +
 \delta \hat{\T{\epsilon}} ^T  \T{C} \plbr{ \Delta {\T{\epsilon}}  + \Delta \hat{\T{\epsilon}}} +
 \Delta \delta { \T{\epsilon} }^T \T{\sigma}
-} dA
+} \text{d}A
 \label{eq:DeltadeltaW}
 \end{equation}
 where:
@@ -99,7 +99,7 @@ In the following, the notation
 \T{\xi} = \plbr{\xi_{1},\xi_{2}}
 \end{equation}
 will be used.
-Four points are defined at the element's midsides.
+Four points are defined at the element's mid-sides.
 They are used in the context of the ANS approach.
 In particular, they are denoted by the set of coordinates:
 \begin{equation}
@@ -183,7 +183,7 @@ The virtual variation of the compatible strains $\T{\epsilon}$ is
 In particular, the virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ is:
 \begin{equation}
 \delta \tilde{\T{\epsilon} }_k  = \delta \plbr{ \T{T}^T \T{y}_{,k} } =
-\sum_{i=1}^n \T{T}^T \T{y}_{,k} \times \T{\Phi}_{n} L_n \varphi_{\delta n} + \sum_{i=1}^n \T{T}^T L_{n,k} \delta \T{y}_{n}
+\sum_{i=1}^n \T{T}^T \T{y}_{,k} \times \T{\Phi}_{n} L_n \T{\varphi}_{\delta n} + \sum_{i=1}^n \T{T}^T L_{n,k} \delta \T{y}_{n}
 \label{eq:delta_epsilon}
 \end{equation}
 where:
@@ -193,7 +193,7 @@ where:
 The  virtual variations of the curvatures $\tilde{\T{k} }_k$ is:
 \begin{equation}
 \delta \tilde{\T{k} }_k = \delta \plbr{ \T{T}^T \T{k}_k } =
-\sum_{i=1}^n \T{T}^T \T{k}_k \times \T{\Phi}_n L_n \varphi_{\delta n} + \sum_{i=1}^n \T{T}^T \T{K}_{kn} \varphi_{\delta n}
+\sum_{i=1}^n \T{T}^T \T{k}_k \times \T{\Phi}_n L_n \T{\varphi}_{\delta n} + \sum_{i=1}^n \T{T}^T \T{K}_{kn} \T{\varphi}_{\delta n}
 \label{eq:delta_k}
 \end{equation}
 where:
@@ -207,9 +207,9 @@ The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
 \begin{split}
 \T{n}_k \cdot \Delta \delta \tilde{\T{\epsilon}}_k =
 \T{n}_k \cdot \Delta \delta \plbr{ \T{T}^T \T{y}_{,k} } & =
-\sum_{m,n=1}^{4} \varphi_{\delta n} \T{\Phi}_{n}^T L_n \T{y}_{,k} \times \plbr{ \T{T} \T{n}_k } \times \T{\Phi}_m L_m  \varphi_{\Delta n} + \\
-& + \sum_{m,n=1}^{4} \varphi_{\delta n} \T{\Phi}_{n}^T L_n \plbr{\T{T} \T{n}_k} \times L_{m,k} \Delta \T{y}_{n} + \\
-& - \sum_{m,n=1}^{4} \delta \T{y}_n L_{n,k} \plbr{\T{T} \T{n}_k} \times \T{\Phi}_m L_m \varphi_{\Delta m}
+\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} \T{\Phi}_{n}^T L_n \T{y}_{,k} \times \plbr{ \T{T} \T{n}_k } \times \T{\Phi}_m L_m  \T{\varphi}_{\Delta n} + \\
+& + \sum_{m,n=1}^{4} \T{\varphi}_{\delta n} \T{\Phi}_{n}^T L_n \plbr{\T{T} \T{n}_k} \times L_{m,k} \Delta \T{y}_{n} + \\
+& - \sum_{m,n=1}^{4} \delta \T{y}_n L_{n,k} \plbr{\T{T} \T{n}_k} \times \T{\Phi}_m L_m \T{\varphi}_{\Delta m}
 \end{split}
 \label{eq:Deltadelta_epsilon}
 \end{equation}
@@ -217,8 +217,8 @@ The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
 \begin{split}
 \T{m}_k \cdot \Delta \delta \tilde{\T{k}}_k =
 \T{m}_k \cdot \Delta \delta \plbr{\T{T}^T \T{k}_k} & =
-\sum_{m,n=1}^{4} \varphi_{\delta n} L_n \T{\Phi}_n^T \T{k}_k \times \plbr{\T{T} \T{m}_k} \times \T{\Phi_{m}} L_m \varphi_{\Delta m} + \\
-&+\sum_{m,n=1}^{4} \varphi_{\delta n} L_n \T{\Phi}_n^T \plbr{\T{T} \T{m}_k} \times \T{\Phi}_m L_{m,k} \varphi_{\Delta m}
+\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} L_n \T{\Phi}_n^T \T{k}_k \times \plbr{\T{T} \T{m}_k} \times \T{\Phi_{m}} L_m \T{\varphi}_{\Delta m} + \\
+&+\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} L_n \T{\Phi}_n^T \plbr{\T{T} \T{m}_k} \times \T{\Phi}_m L_{m,k} \T{\varphi}_{\Delta m}
 \end{split}
 \label{eq:Deltadelta_k}
 \end{equation}
@@ -226,7 +226,7 @@ The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
 %%%%%%%%%IMPLEMENTATION%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{Implementation}
-Having shown the variational principle and the linearization of strains and curvatures, it is then possible to develop the procedure to derive the jacobian matrix and the residual.
+Having shown the variational principle and the linearization of strains and curvatures, it is then possible to develop the procedure to derive the Jacobian matrix and the residual.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%ORIENTATION%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -255,34 +255,34 @@ which is then used to calculate the nodal rotation:
 \end{equation}
 and:
 \begin{equation}
-\tilde{ \varphi }_n = \VecRot{ \tilde{ \T{ R } }_n }
+\tilde{ \T{\varphi} }_n = \VecRot{ \tilde{ \T{ R } }_n }
 \end{equation}
-The nodal values of $\tilde{ \varphi }_n$ are interpolated by means of the shape functions:
+The nodal values of $\tilde{ \T{\varphi} }_n$ are interpolated by means of the shape functions:
 \begin{equation}
 \tilde{ \T{ \varphi } } \valxii = \sum_{ i = 1 }^{ 4 } L_n \valxii \tilde{ \T{ \varphi } }_n
 \end{equation}
 from which is obtained the rotation matrix at the integration point:
 \begin{equation}
-\tilde{ \T{ R } } \valxii = \Rot{ \tilde{ \varphi } \valxii }
+\tilde{ \T{ R } } \valxii = \Rot{ \tilde{ \T{\varphi} } \valxii }
 \end{equation}
 and finally the orientation at the integration point:
 \begin{equation}
 \T{ T } \valxii = \overline{ \T{ T } } \tilde{ \T{ R } } \valxii
 \end{equation}
-The virtual variation of $\T{\varphi}$ at the integration point is related to the nodal valeus by:
+The virtual variation of $\T{\varphi}$ at the integration point is related to the nodal values by:
 \begin{equation}
 \T{ \varphi }_{\delta} \valxii =
-\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxii L_n \valxii \varphi_{\delta n}
+\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxii L_n \valxii \T{\varphi}_{\delta n}
 \end{equation}
 with:
 \begin{equation}
 \T{ \Phi }_n \valxii =
-\overline{ \T{ T } } \tilde{ \Gamma } \plbr{ \tilde{ \varphi \valxii } }  \tilde{ \Gamma } ^ {-1} \plbr{ \tilde{ \varphi }_n } \overline{ \T{ T } } ^ T
+\overline{ \T{ T } } \tilde{ \Gamma } \plbr{ \tilde{ \T{\varphi} \valxii } }  \tilde{ \Gamma } ^ {-1} \plbr{ \tilde{ \T{\varphi} }_n } \overline{ \T{ T } } ^ T
 \end{equation}
 Similarly the virtual variation of $\T{\varphi}$ can be obtained at the shear evaluation points as:
 \begin{equation}
 \T{ \varphi }_{\delta} \valxiA =
-\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxiA L_n \valxiA \varphi_{\delta n}
+\sum_{ n = 1 }^{ 4 } \T{ \Phi }_n \valxiA L_n \valxiA \T{\varphi}_{\delta n}
 \end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%POSITION%%%%%%%%%%%
@@ -329,7 +329,7 @@ L_{3,1} & L_{3,2} \\
 L_{4,1} & L_{4,2}
 }}
 \end{equation}
-In order to perform the integration in the isoparametric domain the area element need to be calculated. In particular, the determinant of the jacobian of the transformation between the physical and the natural domain has to be calculated. It is:
+In order to perform the integration in the isoparametric domain the area element need to be calculated. In particular, the determinant of the Jacobian of the transformation between the physical and the natural domain has to be calculated. It is:
 \begin{align}
 \alpha \valxii & = \det \T{ S }_{\alpha \beta} \valxii &
 \alpha \valxiA & = \det \T{ S }_{\alpha \beta} \valxiA
@@ -354,7 +354,7 @@ The interpolation is performed in the natural domain adopting the shape function
   0   &      0      &  0    &      0      &   0   & \xi_{1i} \xi_{2i} & \xi_{2i}
 }}
 \end{equation}
-The interpolation is reported in the pyshical domain with a push-forward operation with the transformation matrix $\T{M}_0$, defined as:
+The interpolation is reported in the physical domain with a push-forward operation with the transformation matrix $\T{M}_0$, defined as:
 \begin{equation}
 \underset{ 4 \times 4 } { \T{M}_0 } =
 \sqbr{ \matr{ c c c c}{
@@ -397,7 +397,7 @@ The virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ at t
 \begin{equation}
 \begin{split}
 \delta \tilde{\T{\epsilon} }_k \valxii & = \delta \plbr{ \T{T}\valxii^T \T{y}_{,k} \valxii } = \\
-& \sum_{i=1}^n \T{T}\valxii^T \T{y}_{,k}\valxii \times \T{\Phi}_{n} \valxii L_n \valxii \varphi_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{L}_{\alpha \beta} \valxii \plbr{ n, k } \valxii \delta \T{y}_{n}
+& \sum_{i=1}^n \T{T}\valxii^T \T{y}_{,k}\valxii \times \T{\Phi}_{n} \valxii L_n \valxii \T{\varphi}_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{L}_{\alpha \beta} \valxii \plbr{ n, k } \valxii \delta \T{y}_{n}
 \end{split}
 \label{eq:delta_epsilon_i}
 \end{equation}
@@ -406,13 +406,13 @@ The  virtual variation of the curvatures $\tilde{\T{k} }_k$ at the $i$-th integr
 \begin{equation}
 \begin{split}
 \delta \tilde{\T{k} }_k \valxii & = \delta \plbr{ \T{T}\valxii^T \T{k}_k \valxii} =  \\
-& \sum_{i=1}^n \T{T}\valxii^T \T{k}_k\valxii \times \T{\Phi}_n\valxii L_n\valxii \varphi_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{K}_{kn}\valxii \varphi_{n \delta}
+& \sum_{i=1}^n \T{T}\valxii^T \T{k}_k\valxii \times \T{\Phi}_n\valxii L_n\valxii \T{\varphi}_{n \delta} + \sum_{i=1}^n \T{T}\valxii^T \T{K}_{kn}\valxii \T{\varphi}_{n \delta}
 \end{split}
 \label{eq:delta_k_i}
 \end{equation}
 where:
 \begin{equation}
-\T{\Phi}_{n} \valxii = \overline{\T{T}}  \tilde{ \T{\Gamma} } \plbr{ \tilde{\varphi} \valxii } \tilde{ \T{\Gamma} }_n^{-1} \overline{\T{T}}^T
+\T{\Phi}_{n} \valxii = \overline{\T{T}}  \tilde{ \T{\Gamma} } \plbr{ \tilde{\T{\varphi}} \valxii } \tilde{ \T{\Gamma} }_n^{-1} \overline{\T{T}}^T
 \end{equation}
 and:
 \begin{equation}
@@ -427,7 +427,7 @@ The derivative of the the vector $\tilde{\T{\varphi}}$ with respect to the $k$-t
 The curvatures are given by:
 \begin{equation}
 \T{k}_{k} \valxii  =
-\overline{\T{T}} \tilde{\Gamma} \plbr{ \tilde{\varphi} \valxii } \tilde{ \varphi }_{,k} \valxii
+\overline{\T{T}} \tilde{\Gamma} \plbr{ \tilde{\T{\varphi}} \valxii } \tilde{ \T{\varphi} }_{,k} \valxii
 \end{equation}
 and the derivative of the position vector is:
 \begin{equation}
@@ -460,7 +460,7 @@ and:
 %%%%%%%%%%ANS%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{ANS}
-The ANS technique is applied to prevent shear locking. Here the ANS is applied to shear strains only, i.e. $\epsilon_{1}$ and  $\epsilon_{2}$ The approach consists in interpolating the shear strains in the midsides of the element in the natural domain. Such interpolated strains are then used to derive the shear strains at the integration points.\\
+The ANS technique is applied to prevent shear locking. Here the ANS is applied to shear strains only, i.e. $\epsilon_{1}$ and  $\epsilon_{2}$ The approach consists in interpolating the shear strains in the mid-sides of the element in the natural domain. Such interpolated strains are then used to derive the shear strains at the integration points.\\
 The use of the ANS technique leads a re-definition of:
 \begin{itemize}
 	\item the two rows of the $\overline{\T{B}}$ matrix relative to shear strains
@@ -585,11 +585,11 @@ which is:
 %%%%%%%%%%%JACOBIAN%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \subsection{Jacobian matrix}
-The second variation of the variational principle of Eq.~\ref{eq:DeltadeltaW} gives the jacobian matrix. In particular, the finite element discretization is here presented for the five different terms of Eq.~\ref{eq:DeltadeltaW}.\\
+The second variation of the variational principle of Eq.~\ref{eq:DeltadeltaW} gives the Jacobian matrix. In particular, the finite element discretization is here presented for the five different terms of Eq.~\ref{eq:DeltadeltaW}.\\
 The first term is:
 \begin{equation}
 \begin{split}
-\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta {\T{\epsilon}}  dA & = \\
+\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta {\T{\epsilon}}  \text{d}A & = \\
 & = \delta{\T{q}}^T  \sum_{i=1}^{4} \overline{\T{B}}\valxii^T  \T{C}\valxii  \overline{\T{B}}\valxii  \alpha \valxii   w_i \Delta \T{q} \\
 & = \delta{\T{q}}^T  \T{K}_m  \Delta \T{q}
 \end{split}
@@ -597,7 +597,7 @@ The first term is:
 The second term is:
 \begin{equation}
 \begin{split}
-\int_A  \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta {\T{\epsilon}} dA & = \\
+\int_A  \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta {\T{\epsilon}} \text{d}A & = \\
 & = \delta{\T{\beta}}^T  \sum_{i=1}^{4} \T{P}\valxii^T  \T{C}\valxii  \overline{\T{B}}\valxii  \alpha \valxii  w_i \Delta \T{q} \\
 & = \delta{\T{\beta}}^T  \T{K}_{\beta q}  \Delta \T{q}
 \end{split}
@@ -605,14 +605,14 @@ The second term is:
 The third term is:
 \begin{equation}
 \begin{split}
-\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} dA & = \\
+\int_A \delta {\T{\epsilon}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} \text{d}A & = \\
 & = \delta{\T{q}}^T  \T{K}_{\beta q}^T  \Delta \T{\beta}
 \end{split}
 \end{equation}
 The fourth term is:
 \begin{equation}
 \begin{split}
-\int_A \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} dA & = \\
+\int_A \delta \hat{{\T{\epsilon}}} ^T  \T{C}  \Delta \hat{{\T{\epsilon}}} \text{d}A & = \\
 & = \delta{\T{\beta}}^T  \sum_{i=1}^{4} \T{P}\valxii^T  \T{C}\valxii  \T{P}\valxii  \alpha \valxii  w_i \Delta \T{\beta} \\
 & = \delta{\T{\beta}}^T  \T{K}_{\beta \beta}  \Delta \T{\beta}
 \end{split}
@@ -620,7 +620,7 @@ The fourth term is:
 The fifth term is:
 \begin{equation}
 \begin{split}
-\int_A \Delta \delta { \T{\epsilon} }^T \T{\sigma} dA & = \\
+\int_A \Delta \delta { \T{\epsilon} }^T \T{\sigma} \text{d}A & = \\
 & = \delta{\T{q}}^T  \sum_{i=1}^{4} \overline{\T{D}}\valxii^T  \T{G}\valxii  \overline{\T{D}}\valxii  \alpha \valxii  w_i \Delta \T{q} \\
 & = \delta{\T{q}}^T  \T{K}_g  \Delta \T{q}
 \end{split}
@@ -671,7 +671,7 @@ The residual comes from the finite element approximation of Eq.~\ref{eq:deltaW}.
 The first term is:
 \begin{equation}
 \begin{split}
-\int_A \delta{\T{\epsilon}}^T \T{\sigma} dA & = \\
+\int_A \delta{\T{\epsilon}}^T \T{\sigma} \text{d}A & = \\
 & = \delta \T{q}^T \sum_{i=1}^{4} \overline{\T{B}}\valxii^T  \T{\sigma}\valxii  \alpha \valxii  w_i \\
 & = \delta \T{q}^T \T{r}_{d}
 \end{split}
@@ -679,7 +679,7 @@ The first term is:
 The second term is:
 \begin{equation}
 \begin{split}
-\int_A \delta \hat{\T{\epsilon}}^T \T{\sigma} dA & = \\
+\int_A \delta \hat{\T{\epsilon}}^T \T{\sigma} \text{d}A & = \\
 & = \delta \T{\beta}^T \sum_{i=1}^{4} \T{P}\valxii^T  \T{\sigma}\valxii  \alpha \valxii  w_i \\
 & = \delta \T{\beta}^T \T{r}_{\beta}
 \end{split}
