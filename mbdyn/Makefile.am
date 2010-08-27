@@ -27,6 +27,7 @@ simulink_srcdir = contrib/SimulinkInterface
 simulink_files = \
 $(simulink_srcdir)/Makefile \
 $(simulink_srcdir)/MBDynCom.mdl \
+$(simulink_srcdir)/mbdyn.sh \
 $(simulink_srcdir)/README \
 $(simulink_srcdir)/setup.m \
 $(simulink_srcdir)/sfun_mbdyn_com_read.c \
