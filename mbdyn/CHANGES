@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		  in CodeAster CMS macro
 		- fixed external structural mapping when no mapping required
 		- fixed viscous/viscoelastic symbolic constitutive laws
+		- fixed VHUB computation in module-aerodyn (Fanzhong Meng)
 
 MBDyn 1.3.16
 	Enhancements:

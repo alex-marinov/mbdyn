@@ -932,7 +932,7 @@ __FC_DECL__(getrotorparams)(
 	const Vec3& hub_Omega = ::module_aerodyn->pGetHubNode()->GetWCurr();
 	Vec3 rotation_axis = nacelle_R.GetVec(3);
 
-	*Omega = std::fabs(hub_Omega*rotation_axis);
+	*Omega = std::abs(hub_Omega*rotation_axis);
 	module_aerodyn->SetRotorSpeed(*Omega);
 
     	/* 
@@ -960,7 +960,10 @@ __FC_DECL__(getrotorparams)(
 	 * Positive value is in the same direction with Yaw Angle.
 	 * Variable name is *VHUB.[m/s or feet/s]
 	 */ 
-	*VHUB = hub_Omega(3)*::module_aerodyn->dGetHubTowerXYDistance();
+	// *VHUB = hub_Omega(3)*::module_aerodyn->dGetHubTowerXYDistance();
+	/* See Emails by Fanzhong Meng August 27, 2010 */
+	const Vec3& nacelle_Omega = ::module_aerodyn->pGetNacelleNode()->GetWCurr();
+	*VHUB = nacelle_Omega(3)*::module_aerodyn->dGetHubTowerXYDistance();
 
 #ifdef MODULE_AERODYN_DEBUG
 	silent_cerr("getrotorparams: "
