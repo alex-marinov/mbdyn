@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- improved error checking in fixed/variable step file driver
 		  (noted by Stefan van't'Hoff)
 		- added alpha-first generic aerodynamic element
+		- allow to fine-tune when initial eigenanalysis is performed
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
