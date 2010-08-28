@@ -501,6 +501,11 @@ using the \kw{rigid body kinematics} card
 	are performed; the output file name is composed using
 	the position of the corresponding \nt{when} in the array
 	of times;
+	if $\nt{when} < \nt{initial\_time}$ the first eigenanalysis
+	is performed before the ``derivatives'' phase;
+	if $\nt{when} = \nt{initial\_time}$ the first eigenanalysis
+	is performed after the ``derivatives'' phase
+	and before the first regular step;
 \item \nt{param} is the value of the coefficient that is used to project
 	the problem in the discrete time domain; it represents
 	a singularity point in the transformation from the discrete

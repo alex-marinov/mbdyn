@@ -823,11 +823,11 @@ Solver::Run(void)
 
 	// if eigenanalysis is requested and currAnalysis points
 	// past the end of the array, the analysis was requested
-	// at Time <= current time
+	// at Time < initial time; perform *before* derivatives
 	if (EigAn.bAnalysis
 		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
-				&& EigAn.Analyses.back() == dTime)
-			|| *EigAn.currAnalysis <= dTime))
+				&& EigAn.Analyses.back() < dTime)
+			|| *EigAn.currAnalysis < dTime))
 	{
 		Eig();
 		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
@@ -966,6 +966,20 @@ Solver::Run(void)
 		pDM->Output(0, dTime, 0., true);
 		Out << "Interrupted during derivatives computation." << std::endl;
 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
+
+	// if eigenanalysis is requested and currAnalysis points
+	// past the end of the array, the analysis was requested
+	// at Time == initial time; perform *after* derivatives
+	if (EigAn.bAnalysis
+		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
+				&& EigAn.Analyses.back() == dTime)
+			|| *EigAn.currAnalysis == dTime))
+	{
+		Eig();
+		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
+			EigAn.currAnalysis++;
+		}
 	}
 
 	/* Dati comuni a passi fittizi e normali */
