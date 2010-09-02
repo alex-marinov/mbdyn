@@ -448,11 +448,13 @@ test_init(int argc, char *argv[])
 	}
 
 	if (path) {
+		/* initialize UNIX socket (path) */
 		if (mbc_unix_init((mbc_t *)mbc, path)) {
 			exit(EXIT_FAILURE);
 		}
 
 	} else if (host) {
+		/* initialize INET socket (host, port) */
 		if (mbc_inet_init((mbc_t *)mbc, host, port)) {
 			exit(EXIT_FAILURE);
 		}
@@ -461,10 +463,14 @@ test_init(int argc, char *argv[])
 		usage();
 	}
 
+	/* initialize data structure:
+	 */
 	if (mbc_nodal_init(mbc, rigid, nodes, labels, rot, accelerations)) {
 		exit(EXIT_FAILURE);
 	}
 
+	/* "negotiate" configuration with MBDyn
+	 * errors out if configurations are inconsistent */
 	if (mbc_nodal_negotiate_request(mbc)) {
 		exit(EXIT_FAILURE);
 	}
@@ -492,6 +498,9 @@ test_run(void)
 		}
 
 		for (iter = 0; iter < niters; iter++) {
+			/* receives motion when available
+			 * errors out in case of problems
+			 */
 			if (mbc_nodal_get_motion(mbc)) {
 				goto done;
 			}
@@ -796,6 +805,10 @@ test_run(void)
 				}
 			}
 
+			/* sends forces
+			 * second argument == 1 indicates convergence;
+			 * otherwise MBDyn will send another solution
+			 * and keep iterating */
 			if (mbc_nodal_put_forces(mbc, (iter == niters - 1))) {
 				goto done;
 			}
@@ -803,8 +816,8 @@ test_run(void)
 	}
 
 done:;
+	/* destroy data structure and close socket */
 	mbc_nodal_destroy(mbc);
-	mbc_destroy(&mbc->mbc);
 
 	if (p0) {
 		free(p0);

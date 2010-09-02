@@ -423,7 +423,6 @@ main(int argc, char *argv[])
 
 done:;
 	mbc_modal_destroy(mbc);
-	mbc_destroy(&mbc->mbc);
 
 	if (p0) {
 		free(p0);

@@ -129,13 +129,6 @@ mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port);
 extern int
 mbc_unix_init(mbc_t *mbc, const char *path);
 
-/* destroy communication
- *
- * does NOT free the mbc structure
- */
-extern int
-mbc_destroy(mbc_t *mbc);
-
 /*
  * rigid stuff
  */
@@ -284,14 +277,17 @@ mbc_nodal_destroy(mbc_nodal_t *mbc);
  * or nodes must be > 0
  *
  * the socket must be initialized and connected
- * sends a negotiation request to the master
+ *
+ * this function sends a negotiation request to the master
  *
  * the protocol consists in:
  *
  * - negotiation request:
  *   - the negotiation request tag (ES_NEGOTIATION, uint8_t)
- *   - the type of interface (MBC_MODAL or MBC_NODAL, uint8_t)
+ *   - a bunch of flags (uint32_t), containing:
+ *       - the type of interface (MBC_MODAL or MBC_NODAL)
  *       - whether a reference node is defined, MBC_REF_NODE OR-ed to previous
+ *       - more...
  *   - the number of nodes (uint32_t)
  *
  * - negotiation response:
@@ -381,8 +377,10 @@ mbc_modal_destroy(mbc_modal_t *mbc);
  *
  * - negotiation request:
  *   - the negotiation request tag (ES_NEGOTIATION, uint8_t)
- *   - the type of interface (MBC_MODAL or MBC_NODAL, uint8_t)
+ *   - a bunch of flags (uint32_t), containing:
+ *       - the type of interface (MBC_MODAL or MBC_NODAL)
  *       - whether a reference node is defined, MBC_REF_NODE OR-ed to previous
+ *       - more...
  *   - the number of modes (uint32_t)
  *
  * - negotiation response:

@@ -225,12 +225,13 @@ mbc_unix_init(mbc_t *mbc, const char *path)
  *
  * does NOT free the mbc structure
  */
-int
+static int
 mbc_destroy(mbc_t *mbc)
 {
 	/* TODO: send "abort"? */
 	if (mbc->sock >= 0) {
 		close(mbc->sock);
+		mbc->sock = -1;
 	}
 
 	return 0;
@@ -807,7 +808,7 @@ mbc_nodal_destroy(mbc_nodal_t *mbc)
 		mbc->n_ptr = NULL;
 	}
 
-	return 0;
+	return mbc_destroy((mbc_t *)mbc);
 }
 
 
@@ -1137,7 +1138,7 @@ mbc_modal_destroy(mbc_modal_t *mbc)
 		mbc->m = NULL;
 	}
 
-	return 0;
+	return mbc_destroy((mbc_t *)mbc);
 }
 
 #endif /* USE_SOCKET */
