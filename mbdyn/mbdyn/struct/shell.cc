@@ -232,7 +232,209 @@ ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD)
 		pD(11, 11) = D;
 		pD(12, 12) = D*(1. - dnu)/2*dat;
 
+	} else if (HP.IsKeyWord("plane" "isotropic")) {
+/*
+Eshell =
+[              h/(1-nu_lt^2/E_l*E_t)*E_l,                                      0,                                      0,                                      0,        h/(1-nu_lt^2/E_l*E_t)*nu_lt*E_t,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[                                      0,                                  2*h*G,                                      0,                                  2*h*G,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[                                      0,                                      0,                                 h*G*as,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[                                      0,                                  2*h*G,                                      0,                                  2*h*G,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[        h/(1-nu_lt^2/E_l*E_t)*nu_lt*E_t,                                      0,                                      0,                                      0,              h/(1-nu_lt^2/E_l*E_t)*E_t,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                 h*G*as,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,       1/12*h^3/(1-nu_lt^2/E_l*E_t)*E_l,                                      0,                                      0,                                      0, 1/12*h^3/(1-nu_lt^2/E_l*E_t)*nu_lt*E_t,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                              1/6*h^3*G,                                      0,                              1/6*h^3*G,                                      0,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                          1/12*h^3*G*dat,                                      0,                                      0,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                              1/6*h^3*G,                                      0,                              1/6*h^3*G,                                      0,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0, 1/12*h^3/(1-nu_lt^2/E_l*E_t)*nu_lt*E_t,                                      0,                                      0,                                      0,       1/12*h^3/(1-nu_lt^2/E_l*E_t)*E_t,                                      0]
+[                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                                      0,                          1/12*h^3*G*dat]
+ 
+*/
+
+		doublereal dE_l;
+		doublereal dE_t;
+		doublereal dnu_lt;
+		doublereal dnu_tl;
+		doublereal dG;
+		doublereal dh;
+		doublereal das = 1.;
+		doublereal dat = .01;
+		bool bGot_E_l(false);
+		bool bGot_E_t(false);
+		bool bGot_nu_lt(false);
+		bool bGot_nu_tl(false);
+		bool bGot_G(false);
+		bool bGot_h(false);
+		bool bGot_as(false);
+		bool bGot_at(false);
+
+		while (HP.IsArg()) {
+			if (HP.IsKeyWord("E_l") || HP.IsKeyWord("longitudinal" "Young" "modulus")) {
+				if (bGot_E_l) {
+					silent_cerr("Shell plane isotropic constitutive law: longitudinal Young's modulus already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_E_l = true;
+				dE_l = HP.GetReal();
+				if (dE_l <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid longitudinal Young's modulus " << dE_l << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else if (HP.IsKeyWord("E_t") || HP.IsKeyWord("transverse" "Young" "modulus")) {
+				if (bGot_E_t) {
+					silent_cerr("Shell plane isotropic constitutive law: transverse Young's modulus already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_E_t = true;
+				dE_t = HP.GetReal();
+				if (dE_t <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid transverse Young's modulus " << dE_t << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else if (HP.IsKeyWord("nu_lt") || HP.IsKeyWord("longitudinal" "transverse" "Poisson" "modulus")) {
+				if (bGot_nu_lt) {
+					silent_cerr("Shell plane isotropic constitutive law: longitudinal transverse Poisson's modulus already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_nu_lt = true;
+				dnu_lt = HP.GetReal();
+#if 0
+				if (dnu_lt <= 0. || dnu_lt >= .5) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid longitudinal transverse Poisson's modulus " << dnu_lt << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+#endif
+
+			} else if (HP.IsKeyWord("nu_tl") || HP.IsKeyWord("transverse" "longitudinal" "Poisson" "modulus")) {
+				if (bGot_nu_lt) {
+					silent_cerr("Shell plane isotropic constitutive law: transverse longitudinal Poisson's modulus already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_nu_tl = true;
+				dnu_tl = HP.GetReal();
+#if 0
+				if (dnu_tl <= 0. || dnu_tl >= .5) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid transverse longitudinal Poisson's modulus " << dnu_lt << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+#endif
+
+			} else if (HP.IsKeyWord("G") || HP.IsKeyWord("shear" "modulus")) {
+				if (bGot_G) {
+					silent_cerr("Shell plane isotropic constitutive law: shear modulus already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_G = true;
+				dG = HP.GetReal();
+				if (dG <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid shear modulus " << dG << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else if (HP.IsKeyWord("thickness")) {
+				if (bGot_h) {
+					silent_cerr("Shell plane isotropic constitutive law: thickness already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_h = true;
+				dh = HP.GetReal();
+				if (dh <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid thickness " << dh << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else if (HP.IsKeyWord("as") /* better name? */ ) {
+				if (bGot_as) {
+					silent_cerr("Shell plane isotropic constitutive law: as (?) already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_as = true;
+				das = HP.GetReal();
+				if (das <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid as " << das << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else if (HP.IsKeyWord("at") /* better name? */ ) {
+				if (bGot_at) {
+					silent_cerr("Shell plane isotropic constitutive law: at (?) already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_at = true;
+				dat = HP.GetReal();
+				if (dat <= 0.) {
+					silent_cerr("Shell plane isotropic constitutive law: invalid at " << dat << " at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+
+			} else {
+				break;
+			}
+		}
+
+		if (!bGot_E_l) {
+				silent_cerr("Shell plane isotropic constitutive law: longitudinal Young's modulus missing at line " << HP.GetLineData() << std::endl);
+				return -1;
+		}
+
+		if (!bGot_E_t) {
+				silent_cerr("Shell plane isotropic constitutive law: transverse Young's modulus missing at line " << HP.GetLineData() << std::endl);
+				return -1;
+		}
+
+		if (!bGot_nu_lt && !bGot_nu_tl) {
+				silent_cerr("Shell plane isotropic constitutive law: Poisson's modulus missing at line " << HP.GetLineData() << std::endl);
+				return -1;
+
+		} else if (bGot_nu_lt && bGot_nu_tl) {
+			if (std::abs(dnu_tl*dE_l - dnu_lt*dE_t) >
+				std::numeric_limits<doublereal>::epsilon())
+			{
+				silent_cerr("Shell plane isotropic constitutive law: inconsistent material data" << std::endl);
+				return -1;
+			}
+
+		} else if (bGot_nu_tl) {
+			dnu_lt = dnu_tl*dE_l/dE_t;
+		}
+
+		if (!bGot_G) {
+				silent_cerr("Shell plane isotropic constitutive law: shear modulus missing at line " << HP.GetLineData() << std::endl);
+				return -1;
+		}
+
+		doublereal C = dh/(1. - dnu_lt*dnu_lt/dE_l*dE_t);
+		doublereal G = dh*dG;
+		doublereal D = 1./12.*dh*dh*dh/(1. - dnu_lt*dnu_lt/dE_l*dE_t);
+		doublereal F = 1./12.*dh*dh*dh*dG;
+
+		pD(1, 1) = C*dE_l;
+		pD(1, 5) = C*dnu_lt*dE_t;
+		pD(2, 2) = 2.*G;
+		// pD(2, 4) = 2.*G;
+		pD(3, 3) = G*das;
+		// pD(4, 2) = 2.*G;
+		pD(4, 4) = 2.*G;
+		pD(5, 1) = C*dnu_lt*dE_t;
+		pD(5, 5) = C*dE_t;
+		pD(6, 6) = G*das;
+		pD(7, 7) = D*dE_l;
+		pD(7, 11) = D*dnu_lt*dE_t;
+		pD(8, 8) = 2.*F;
+		// pD(8, 10) = 2*F;
+		pD(9, 9) = F*dat;
+		// pD(10, 8) = 2*F;
+		pD(10, 10) = 2*F;
+		pD(11, 7) = D*dnu_lt*dE_t;
+		pD(11, 11) = D*dE_t;
+		pD(12, 12) = F*dat;
+
 	} else {
+		if (HP.IsKeyWord("matr")) {
+			// tolerate it
+		}
+
 		for (unsigned ir = 1; ir <= 12; ir++) {
 			for (unsigned ic = 1; ic <= 12; ic++) {
 				pD(ir, ic) = HP.GetReal();
