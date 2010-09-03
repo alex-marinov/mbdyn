@@ -118,19 +118,19 @@ MBCBase::~MBCBase(void)
 }
 
 int
-MBCBase::Init(const std::string& path)
+MBCBase::Init(const char *const path)
 {
 	if (m_status != NOT_READY) return -1;
-	int rc = mbc_unix_init(GetBasePtr(), path.c_str());
+	int rc = mbc_unix_init(GetBasePtr(), path);
 	if (rc == 0) m_status = READY;
 	return rc;
 }
 
 int
-MBCBase::Init(const std::string& host, short unsigned port)
+MBCBase::Init(const char *const host, short unsigned port)
 {
 	if (m_status != NOT_READY) return -1;
-	int rc = mbc_inet_init(GetBasePtr(), host.c_str(), port);
+	int rc = mbc_inet_init(GetBasePtr(), host, port);
 	if (rc == 0) m_status = READY;
 	return rc;
 }

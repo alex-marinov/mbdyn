@@ -31,7 +31,6 @@
 #ifndef MBCXX_H
 #define MBCXX_H
 
-#include <string>
 #include <mbc.h>
 
 // hack...
@@ -89,8 +88,8 @@ public:
 	MBCBase(void);
 	virtual ~MBCBase(void);
 
-	int Init(const std::string& path);
-	int Init(const std::string& host, short unsigned port);
+	int Init(const char *const path);
+	int Init(const char *const host, short unsigned port);
 
 	virtual int Negotiate(void) const = 0;
 	virtual int PutForces(bool bConverged) const = 0;

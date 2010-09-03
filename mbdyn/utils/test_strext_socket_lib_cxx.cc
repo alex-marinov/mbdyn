@@ -30,7 +30,9 @@
  */
 
 #include <iostream>
-#include <string>
+#include <cstdio>
+#include <cstdlib>
+#include <cstring>
 #include <signal.h>
 #include <unistd.h>
 
@@ -89,8 +91,8 @@ static MBCBase::Rot rot = MBCBase::MAT;
 
 static MBCNodal *mbc;
 
-static std::string path;
-static std::string host;
+static const char *path;
+static const char *host;
 static unsigned short int port = -1;
 
 static double fx[6], *f0 = NULL;
@@ -195,7 +197,7 @@ test_init(int argc, char *argv[])
 				long l;
 
 				host = optarg + sizeof("inet://") - 1;
-				ptr = strchr(host.c_str(), ':');
+				ptr = strchr(host, ':');
 				if (ptr == NULL) {
 					usage();
 				}
@@ -456,13 +458,13 @@ test_init(int argc, char *argv[])
 	 */
 	mbc = new MBCNodal(rigidrot, nodes, labels, rot, accelerations);
 
-	if (!path.empty()) {
+	if (path) {
 		/* initialize UNIX socket (path) */
 		if (mbc->Init(path)) {
 			exit(EXIT_FAILURE);
 		}
 
-	} else if (!host.empty()) {
+	} else if (host) {
 		/* initialize INET socket (host, port) */
 		if (mbc->Init(host, port)) {
 			exit(EXIT_FAILURE);
@@ -972,6 +974,10 @@ trecv_(float *RX, float *RR, float *RXP, float *ROMEGA,
 			RR[1] = mbc->Euler123(2);
 			RR[2] = mbc->Euler123(3);
 			break;
+
+		default:
+			*RC_P = 1;
+			return;
 		}
 
 		RXP[0] = mbc->XP(1);
@@ -1013,6 +1019,10 @@ trecv_(float *RX, float *RR, float *RXP, float *ROMEGA,
 				NR[3*(node - 1) + 1] = mbc->Euler123(2);
 				NR[3*(node - 1) + 2] = mbc->Euler123(3);
 				break;
+
+			default:
+				*RC_P = 1;
+				return;
 			}
 
 			NXP[3*(node - 1)] = mbc->XP(node, 1);
