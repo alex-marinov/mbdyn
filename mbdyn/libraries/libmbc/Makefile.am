@@ -9,6 +9,8 @@ noinst_LTLIBRARIES = libmbc.la
 libmbc_la_SOURCES = \
 mbc.c \
 mbc.h \
+mbcxx.c \
+mbcxx.h \
 sock.c \
 sock.h
 

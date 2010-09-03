@@ -146,7 +146,7 @@ typedef struct {
 #define MBC_F_ROT_THETA(mbc)		MBC_F_GET(mbc, MBC_ROT_THETA)
 #define MBC_F_ROT_MAT(mbc)		MBC_F_GET(mbc, MBC_ROT_MAT)
 #define MBC_F_ROT_EULER_123(mbc)	MBC_F_GET(mbc, MBC_ROT_EULER_123)
-#define MBC_F_REF_NODE_ROT(mc)		(MBC_F_GET(mbc, MBC_REF_NODE_ROT_MASK) >> 4)
+#define MBC_F_REF_NODE_ROT(mbc)		(MBC_F_GET(mbc, MBC_REF_NODE_ROT_MASK) >> 4)
 #define MBC_U_REF_NODE_ROT(u)		(((u) & MBC_REF_NODE_ROT_MASK) >> 4)
 #define MBC_F_ROT_REF_NODE(mc)		(MBC_F_GET(mbc, MBC_ROT_MASK) << 4)
 #define MBC_U_ROT_REF_NODE(u)		(((u) & MBC_ROT_MASK) << 4)

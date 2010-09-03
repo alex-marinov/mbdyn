@@ -36,13 +36,17 @@ C #include "mbc.h"
 
       IMPLICIT NONE
 
-      INTEGER*4 RIGID, NODES, ITERS, VERB
+      INTEGER*4 RIGID, NODES, ROT, ITERS, VERB
       INTEGER*4 STEPS, KEEPGOING, ITER, RC, I, J, N, CONVERGED
       REAL*4 RF(3), RM(3), NF(3, 100), NM(3, 100)
-      REAL*4 RX(3), RR(3, 3), RXP(3), ROMEGA(3),
-     & NX(3, 100), NR(3, 3, 100), NXP(3, 100), NOMEGA(3, 100)
+      REAL*4 RX(3), RR(3, 3), RTHETA(3), RXP(3), ROMEGA(3),
+     & NX(3, 100), NR(3, 3, 100), NTHETA(3, 100),
+     & NXP(3, 100), NOMEGA(3, 100)
 
-      CALL TDATA(RIGID, NODES, ITERS, VERB, RC)
+      EQUIVALENCE(RR(1, 1), RTHETA(1))
+      EQUIVALENCE(NR(1, 1, 1), NTHETA(1, 1))
+
+      CALL TDATA(RIGID, NODES, ROT, ITERS, VERB, RC)
       IF (NODES .GT. 100) THEN
         WRITE(*, *) 'NODES=',NODES,' exceeds max (100)'
         STOP
@@ -63,7 +67,13 @@ C #include "mbc.h"
             IF (RIGID .NE. 0) THEN
               WRITE (*, *) 'reference node:'
               WRITE (*, *) 'x=', (RX(I), I=1,3)
-              WRITE (*, *) 'R=', (RR(I,J), I,J = 1,3)
+              IF (ROT .EQ. 0) THEN
+                WRITE (*, *) 'R=', (RR(I,J), I,J = 1,3)
+              ELSEIF (ROT .EQ. 1) THEN
+                WRITE (*, *) 'THETA=', (RTHETA(I), I = 1,3)
+              ELSEIF (ROT .EQ. 2) THEN
+                WRITE (*, *) 'EULER123=', (RTHETA(I), I = 1,3)
+              ENDIF
               WRITE (*, *) 'xp=', (RXP(I), I = 1,3)
               WRITE (*, *) 'omega=', (ROMEGA(I), I = 1,3)
             ENDIF
@@ -72,7 +82,13 @@ C #include "mbc.h"
               DO N = 1,NODES
                 WRITE (*, *) 'node', N, ':'
                 WRITE (*, *) 'x=', (NX(I,N), I = 1,3)
-                WRITE (*, *) 'R=', (NR(I,J,N), I,J = 1,3)
+                IF (ROT .EQ. 0) THEN
+                  WRITE (*, *) 'R=', (NR(I,J,N), I,J = 1,3)
+                ELSEIF (ROT .EQ. 1) THEN
+                  WRITE (*, *) 'THETA=', (NTHETA(I, N), I = 1,3)
+                ELSEIF (ROT .EQ. 2) THEN
+                  WRITE (*, *) 'EULER123=', (NTHETA(I, N), I = 1,3)
+                ENDIF
                 WRITE (*, *) 'xp=', (NXP(I,N), I = 1,3)
                 WRITE (*, *) 'omega=', (NOMEGA(I,N), I = 1,3)
               ENDDO

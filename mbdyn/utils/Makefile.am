@@ -62,7 +62,9 @@ if USE_SOCKET
 noinst_PROGRAMS += \
 test_modalext_socket \
 test_strext_socket \
-test_strext_socket_f
+test_strext_socket_f \
+test_strext_socket_cxx \
+test_strext_socket_f_cxx
 endif
 
 MYLIBS = \
@@ -117,6 +119,15 @@ test_strext_socket_f_SOURCES = \
 test_strext_socket_f.f \
 test_strext_socket_f_main.c \
 test_strext_socket_lib.c \
+test_strext_socket_lib.h
+test_strext_socket_cxx_SOURCES = \
+test_strext_socket.c \
+test_strext_socket_lib_cxx.cc \
+test_strext_socket_lib.h
+test_strext_socket_f_cxx_SOURCES = \
+test_strext_socket_f.f \
+test_strext_socket_f_main.c \
+test_strext_socket_lib_cxx.cc \
 test_strext_socket_lib.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
@@ -173,6 +184,8 @@ stream2socket_LDADD = $(MYLIBS)
 test_modalext_socket_LDADD = $(MYLIBS)
 test_strext_socket_LDADD = $(MYLIBS)
 test_strext_socket_f_LDADD = $(MYLIBS)
+test_strext_socket_cxx_LDADD = $(MYLIBS)
+test_strext_socket_f_cxx_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@
