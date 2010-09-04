@@ -231,6 +231,7 @@ function side_add(name, numnodes, nodelabels, prop) {
 
 BEGIN {
 	isvan = 0;
+	steps = 0;
 
 	if (every) {
 		if (every < 0) {
@@ -1250,6 +1251,7 @@ isvan == 1 {
 
 			printf("%e %e %e\n", X[1], X[2], X[3]) >> vanfile;
 		}
+		steps++;
 		i = 0;
 
 		if (every) {
@@ -1257,5 +1259,11 @@ isvan == 1 {
 				getline;
 			}
 		}
+	}
+}
+
+END {
+	if (steps > 0) {
+		printf "successfully converted %d steps\n", steps;
 	}
 }
