@@ -241,6 +241,8 @@ protected:
 	ConstitutiveLawOwner<vh, fmh>* pD[NUMIP];
 #else // ! USE_CL_IN_SHELL
 	vvh FRef;
+	bool bPreStress;
+	vh PreStress;
 #endif // ! USE_CL_IN_SHELL
 
 	// Reference constitutive law tangent matrices
@@ -281,6 +283,7 @@ public:
 		const ConstitutiveLaw<vh, fmh>** pDTmp, 
 #else // ! USE_CL_IN_SHELL
 		const fmh& pDTmp,
+		const vh& PreStress,
 #endif // ! USE_CL_IN_SHELL
 		flag fOut);
 

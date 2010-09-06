@@ -228,6 +228,7 @@ Shell4EAS::Shell4EAS(unsigned int uL,
 	const ConstitutiveLaw<vh, fmh>** pDTmp, 
 #else // ! USE_CL_IN_SHELL
 	const fmh& pDTmp,
+	const vh& PreStress,
 #endif // ! USE_CL_IN_SHELL
 	flag fOut)
 : 
@@ -245,6 +246,11 @@ P_i(NUMIP, fmh(12, iGetNumDof()) ),
 beta(iGetNumDof()),
 epsilon_hat(12),
 epsilon(12),
+
+#ifndef USE_CL_IN_SHELL
+bPreStress(PreStress.Norm() > 0.),
+PreStress(PreStress),
+#endif // ! USE_CL_IN_SHELL
 
 DRef(NUMIP, fmh(12, 12)),
 stress_i(NUMIP, vh(12))
@@ -514,6 +520,9 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 		stress_i[i] = pD[i]->GetF();
 #else // ! USE_CL_IN_SHELL
 		DRef[i].MatVecMul(stress_i[i], epsilon);
+		if (bPreStress) {
+			stress_i[i] += PreStress;
+		}
 #endif // ! USE_CL_IN_SHELL
 	}
 		
@@ -1273,12 +1282,12 @@ ReadShell4EAS(DataManager* pDM,
 		}
 	}
 
-#ifdef USE_CL_IN_SHELL
-	const ConstitutiveLaw<Shell::vh, Shell::fmh> *pD[4];
-
 	/* Prestress and prestrain */
 	Shell::vh PreStress(12);
 	PreStress.Reset();
+
+#ifdef USE_CL_IN_SHELL
+	const ConstitutiveLaw<Shell::vh, Shell::fmh> *pD[4];
 
 	TplDriveCaller<Shell::vh>* pTplDC = new ZeroTplDriveCaller<Shell::vh>;
 
@@ -1298,7 +1307,7 @@ ReadShell4EAS(DataManager* pDM,
 #else // ! USE_CL_IN_SHELL
 	Shell::fmh pD(12, 12);
 
-	if (ReadShellConstLaw(HP, pD)) {
+	if (ReadShellConstLaw(HP, pD, PreStress)) {
 		silent_cerr("Shell(" << uLabel << "): unable to read isotropic constitutive law" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -1311,7 +1320,11 @@ ReadShell4EAS(DataManager* pDM,
 		Shell4EAS(uLabel, pDO,
 			pN[0], pN[1], pN[2], pN[3],
 			R[0], R[1], R[2], R[3],
-			pD, fOut));
+#ifdef USE_CL_IN_SHELL
+#else // ! USE_CL_IN_SHELL
+			pD, PreStress,
+#endif // ! USE_CL_IN_SHELL
+			fOut));
 
 	std::ostream& out = pDM->GetLogFile();
 	out << "shell4: " << uLabel

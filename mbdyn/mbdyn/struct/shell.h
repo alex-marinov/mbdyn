@@ -102,7 +102,7 @@ ReadShell4EASANS(DataManager* pDM,
 	unsigned int uLabel);
 
 extern int
-ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD);
+ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress);
 
 #endif // SHELL_H
 

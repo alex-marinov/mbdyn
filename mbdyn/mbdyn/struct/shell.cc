@@ -61,8 +61,11 @@ Shell::~Shell(void)
 }
 
 int
-ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD)
+ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress)
 {
+	ASSERT(pD.iGetNumRows() == 12);
+	ASSERT(pD.iGetNumCols() == 12);
+
 	if (HP.IsKeyWord("diag")) {
 		pD.Reset();
 		for (unsigned ir = 1; ir <= 12; ir++) {
@@ -439,6 +442,13 @@ Eshell =
 			for (unsigned ic = 1; ic <= 12; ic++) {
 				pD(ir, ic) = HP.GetReal();
 			}
+		}
+	}
+
+	if (HP.IsKeyWord("prestress")) {
+		ASSERT(PreStress.iGetSize() == 12);
+		for (unsigned ir = 1; ir <= 12; ir++) {
+			PreStress(ir) = HP.GetReal();
 		}
 	}
 
