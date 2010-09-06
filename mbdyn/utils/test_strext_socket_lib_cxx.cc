@@ -91,8 +91,8 @@ static MBCBase::Rot rot = MBCBase::MAT;
 
 static MBCNodal *mbc;
 
-static const char *path;
-static const char *host;
+static char *path;
+static char *host;
 static unsigned short int port = -1;
 
 static double fx[6], *f0 = NULL;
