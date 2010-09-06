@@ -3,8 +3,8 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbc.a library
-noinst_LTLIBRARIES = libmbc.la
-#lib_LTLIBRARIES = libmbc.la
+#noinst_LTLIBRARIES = libmbc.la
+lib_LTLIBRARIES = libmbc.la
 
 libmbc_la_SOURCES = \
 mbc.c \
@@ -17,6 +17,10 @@ sock.h
 libmbc_la_LIBADD = @LIBS@
 libmbc_la_LDFLAGS =
 
+include_HEADERS = \
+mbc.h \
+mbcxx.h
+
 INCLUDES = \
 -I../../include \
 -I$(srcdir)/../../include \
@@ -24,7 +28,7 @@ INCLUDES = \
 -I$(srcdir)/../../mbdyn
 
 if USE_PYTHON
-lib_LTLIBRARIES = libmbc_py.la
+lib_LTLIBRARIES += libmbc_py.la
 libmbc_py_la_SOURCES = \
 mbc_py.i \
 mbc_py.h \
@@ -51,6 +55,7 @@ install-exec-local:
 	if test -f .libs/libmbc_py.so ; then \
 		cp .libs/libmbc_py.so $(libexecdir)/mbpy/_mbc_py.so ; \
 	fi
+	$(install_sh_DATA) mbc_py.py $(srcdir)/mbc_py_interface.py $(libexecdir)/mbpy/
 
 clean-local:
 	rm -f mbc_py_wrap.cc mbc_py.py
