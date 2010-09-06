@@ -397,6 +397,7 @@ mdlOutputs(SimStruct *S, int_T tid)
 	int		sock = ssGetIWork(S)[0];
 	int		conn = ssGetIWork(S)[1];
 	static char_T	errMsg[BUFSIZ];
+	int		save_errno;
 
 	if (conn == 0) {
 		if (sock == 0) {
@@ -556,8 +557,10 @@ retry:;
 			rc = poll(&ufds, 1, TIME_OUT);
 			switch (rc) {
 			case -1:
+				save_errno = errno;
 				snprintf(errMsg, sizeof(errMsg),
-					"\nWRITE sfunction: POLL error (-1)\n");
+					"\nWRITE sfunction: POLL error (%d: %s)\n",
+					save_errno, strerror(save_errno));
 				ssSetErrorStatus(S, errMsg);
 				printf("%s", errMsg);
 				return;
