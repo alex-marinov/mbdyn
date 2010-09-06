@@ -253,6 +253,11 @@ Eshell =
  
 */
 
+		/* TODO:
+		     - check singularity in shear coefficients
+		     - add (optional) re-orientation?
+		 */
+
 		doublereal dE_l;
 		doublereal dE_t;
 		doublereal dnu_lt;
