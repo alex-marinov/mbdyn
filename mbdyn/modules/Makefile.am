@@ -116,7 +116,7 @@ distclean:
 
 # Add distributed modules below
 EXTRA_DIST = Makefile.module Makefile.template \
-module-aerodyn/AeroDyn.h \
+module-aerodyn/NREL_AeroDyn.h \
 module-aerodyn/Makefile.inc \
 module-aerodyn/mbdyn_ad.f90 \
 module-aerodyn/module-aerodyn.cc \
