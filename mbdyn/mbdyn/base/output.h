@@ -45,14 +45,14 @@
 #include <iomanip>
 #include <fstream>
 
-#include <myassert.h>
-#include <except.h>
-#include <solman.h>
-#include <filename.h>
-
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>  
 #endif /* USE_NETCDF */
+
+#include "myassert.h"
+#include "except.h"
+#include "solman.h"
+#include "filename.h"
 
 /* OutputHandler - begin */
 
@@ -90,8 +90,9 @@ public:
 		NETCDF,
 		THERMALNODES,
 		THERMALELEMENTS,
+		PLATES,
 
-		LASTFILE			// 29
+		LASTFILE			// 30
 	};
 
 private:
@@ -178,6 +179,7 @@ private:
 	std::ofstream ofModal;
 	std::ofstream ofThermalNodes;
 	std::ofstream ofThermalElements;
+	std::ofstream ofPlates;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -261,6 +263,7 @@ public:
 	inline std::ostream& Modal(void) const;
 	inline std::ostream& ThermalNodes(void) const;
 	inline std::ostream& ThermalElements(void) const;
+	inline std::ostream& Plates(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -562,6 +565,13 @@ OutputHandler::Modal(void) const
 {
 	ASSERT(IsOpen(MODAL));
 	return (std::ostream&)ofModal;
+}
+
+inline std::ostream&
+OutputHandler::Plates(void) const
+{
+	ASSERT(IsOpen(PLATES));
+	return (std::ostream&)ofPlates;
 }
 
 inline int

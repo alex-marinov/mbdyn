@@ -76,6 +76,7 @@ const char* psExt[] = {
 	".nc",
 	".thn",
 	".the",
+	".pla",
 	NULL
 };
 
@@ -226,6 +227,11 @@ OutputHandler::OutputHandler_int(void)
 	OutData[MODAL].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[MODAL].pof = &ofModal;
+
+	OutData[PLATES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
+		| OUTPUT_MAY_USE_NETCDF;
+	OutData[PLATES].pof = &ofPlates;
 
 	OutData[NETCDF].flags = 0
 		| OUTPUT_MAY_USE_NETCDF;

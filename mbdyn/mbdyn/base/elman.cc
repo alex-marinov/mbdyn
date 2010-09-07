@@ -94,7 +94,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::BEAM].ShortDesc = "beam";
 	ElemData[Elem::BEAM].uOutputFlags = Beam::OUTPUT_DEFAULT;
 
-	ElemData[Elem::PLATE].OutFile = OutputHandler::BEAMS;
+	ElemData[Elem::PLATE].OutFile = OutputHandler::PLATES;
 	ElemData[Elem::PLATE].Desc = "Plate";
 	ElemData[Elem::PLATE].ShortDesc = "Plate";
 

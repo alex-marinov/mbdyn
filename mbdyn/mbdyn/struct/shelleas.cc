@@ -1253,10 +1253,16 @@ void
 Shell4EAS::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		if (OH.UseText(OutputHandler::BEAMS)) {
-			OH.Beams() << std::setw(8) << GetLabel()
+		if (OH.UseText(OutputHandler::PLATES)) {
+			std::ostream& out = OH.Plates();
+			out << std::setw(8) << GetLabel();
 				// TODO: complete
-				<< std::endl;
+			for (integer i = 0; i < NUMIP; i++) {
+				for (integer r = 1; r <= 12; r++) {
+					out << " " << stress_i[i](r);
+				}
+			}
+			out << std::endl;
 		}
 	}
 }
