@@ -74,7 +74,7 @@ D. Code:
 		working at it; suggestion: try a transition force from stick
 		to slip that is higher than slip force)
 	- review output to allow selective ascii/binary output (see NetCDF)
-	- replace MyLList and LLStack with STL containers
+	- replace MyLList and LLStack with STL containers (DONE)
 	- add friction to contacts
 	- rework modal element to be static/dynamic (DONE)
 	- rework modal element to use momentum and momenta moment instead
@@ -111,7 +111,7 @@ D. Code:
 		matrix eigenvalue analysis (eigs; DONE)
 	- add selected output streamed on sockets for interactive analysis
 		by implementing sort of "sensors", possibly based on the
-		elements' "private data" (Michele Attolico worked at it;
+		elements' "private data" (DONE: Michele Attolico worked at it;
 		see "output elements" and RTAI-related features; DONE)
 	- add rot2any/any2rot utilities
 	- try to rewrite hydraulic nodes as scalar differential (?)
@@ -192,7 +192,7 @@ D. Code:
 	- add "static" modal element (no dynamics equations)
 	- allow deformable hinge to have optional (useless) "position" spec
 	- output of incremental Euler vector (?)
-	- check inertia computed with that from block 12 in modal joint (DONE)
+	- check computed inertia with that from block 12 in modal joint (DONE)
 	- add linear time variant constitutive law (DONE)
 	- add elastic and viscous variants of linear time variant const law
 	- add record for damping matrix to modal input format
@@ -207,7 +207,7 @@ D. Code:
 	- NetCDF output of aerodynamic elements (DONE)
 	- eigenanalysis at different time steps, with output on separate files
 	- merge c81 data: interpolate data sets w/ same AoA/Mach resol. (DONE)
-	- allow multiple/interpolated c81 data in Theodorsen correction
+	- allow multiple/interpolated c81 data in Theodorsen correction (DONE)
 	- allow configurable float, int, bool (string?) & hton in stream I/O
 	- allow to specify parameters independently for each eigenanalysis
 
@@ -247,9 +247,9 @@ F. Documentation:
 	- update and audit the input manual (partially DONE)
 	- document output (partially DONE)
 	- document element private data names (partially DONE)
-	- document piezo beam
+	- document piezo beam (DONE)
 	- tutorial for piezo beam (DONE)
 	- clarify (with demos) the functionality of the modal element (DONE)
-	- document electric elements and sensors
+	- document electric elements and sensors (DONE)
 	- document additional output of rotations (DONE)
 
