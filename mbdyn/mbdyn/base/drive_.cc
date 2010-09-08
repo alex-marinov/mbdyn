@@ -178,7 +178,7 @@ MultDriveCaller::pCopy(void) const
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC, MultDriveCaller,
 		MultDriveCaller(pDrvHdl,
-			DO1.pGetDriveCaller(), DO2.pGetDriveCaller()));
+			DO1.pGetDriveCaller()->pCopy(), DO2.pGetDriveCaller()->pCopy()));
 	return pDC;
 }
 
@@ -1090,8 +1090,8 @@ DriveArrayCaller::pCopy(void) const
 	ASSERT(ppDriveCallers != 0);
 	ASSERT(iNumDrivers > 0);
 
-	DriveCaller** ppDC = 0;
-	SAFENEWARR(ppDC, DriveCaller*, iNumDrivers);
+	const DriveCaller** ppDC = 0;
+	SAFENEWARR(ppDC, const DriveCaller*, iNumDrivers);
 
 	for (int i = 0; i < iNumDrivers; i++) {
 		ppDC[i] = ppDriveCallers[i]->pCopy();
@@ -1100,7 +1100,7 @@ DriveArrayCaller::pCopy(void) const
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DriveArrayCaller,
-		DriveArrayCaller(pDrvHdl, iNumDrivers, (const DriveCaller**)ppDC));
+		DriveArrayCaller(pDrvHdl, iNumDrivers, ppDC));
 
 	return pDC;
 }
