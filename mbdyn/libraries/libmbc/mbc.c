@@ -243,7 +243,7 @@ mbc_destroy(mbc_t *mbc)
 
 static int
 mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
-	unsigned labels, unsigned rot, unsigned accels)
+	unsigned labels, unsigned *rotp, unsigned accels)
 {
 	uint32_t offset = 0;
 	int do_retry = 1;
@@ -276,10 +276,10 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	offset += 3*sizeof(double);
 
 retry:;
-	switch (MBC_U_REF_NODE_ROT(rot)) {
+	switch (MBC_U_REF_NODE_2_ROT(*rotp)) {
 	case MBC_ROT_NONE:
 		if (do_retry) {
-			rot = MBC_U_ROT_REF_NODE(rot);
+			*rotp = MBC_U_ROT_2_REF_NODE(*rotp);
 			do_retry = 0;
 			goto retry;
 		}
@@ -302,7 +302,7 @@ retry:;
 		break;
 
 	default:
-		fprintf(stderr, "unknown rotation mode 0x%lx\n", (unsigned long)rot);
+		fprintf(stderr, "unknown rotation mode 0x%lx\n", (unsigned long)*rotp);
 		return -1;
 	}
 
@@ -482,17 +482,6 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 
 	switch (rot & MBC_ROT_MASK) {
 	case MBC_ROT_NONE:
-		switch (MBC_U_REF_NODE_ROT(rot)) {
-		case MBC_ROT_MAT:
-		case MBC_ROT_THETA:
-		case MBC_ROT_EULER_123:
-			MBC_F_SET(mbc, rot);
-			break;
-
-		default:
-			fprintf(stderr, "unknown orientation parametrization 0x%lx in flags\n", (unsigned long)rot);
-			return -1;
-		}
 		break;
 
 	case MBC_ROT_MAT:
@@ -520,7 +509,10 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		MBC_F_SET_LABELS(mbc);
 	}
 
-	mbc_rigid_init(&mbc->mbcr, rigid, labels, rot, accels);
+	if (mbc_rigid_init(&mbc->mbcr, rigid, labels, &rot, accels)) {
+		return -1;
+	}
+	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
 	
 	mbc->n_ptr = NULL;
 	mbc->n_k_labels = NULL;
@@ -977,6 +969,8 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 int
 mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes)
 {
+	unsigned rot = MBC_ROT_MAT;
+
 	MBC_F_SET(mbc, MBC_MODAL);
 	mbc->modes = modes;
 
@@ -990,7 +984,10 @@ mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes)
 	}
 
 	/* FIXME: rotation configurable? */
-	mbc_rigid_init(&mbc->mbcr, rigid, 0, MBC_ROT_MAT, 0);
+	if (mbc_rigid_init(&mbc->mbcr, rigid, 0, &rot, 0)) {
+		return -1;
+	}
+	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
 
 	if (mbc->modes > 0) {
 		mbc->m = (double *)malloc(MBC_M_SIZE(mbc));

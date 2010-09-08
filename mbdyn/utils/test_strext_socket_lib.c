@@ -444,7 +444,7 @@ test_init(int argc, char *argv[])
 	}
 
 	if (nomoments) {
-		rot = MBC_U_ROT_REF_NODE(rot);
+		rot = MBC_U_ROT_2_REF_NODE(rot);
 	}
 
 	if (path) {

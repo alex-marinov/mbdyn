@@ -35,7 +35,7 @@
 
 // hack...
 extern "C" {
-struct mbc_rigid_stub_t {
+struct mbc_refnode_stub_t {
 	mbc_t mbc;
 	mbc_rigid_t mbcr;
 };
@@ -44,7 +44,7 @@ struct mbc_rigid_stub_t {
 class MBCBase {
 protected:
 	virtual mbc_t *GetBasePtr(void) const = 0;
-	virtual mbc_rigid_stub_t *GetRigidPtr(void) const = 0;
+	virtual mbc_refnode_stub_t *GetRigidPtr(void) const = 0;
 
 public:
 	enum Type {
@@ -77,6 +77,8 @@ public:
 protected:
 	enum Status {
 		NOT_READY,
+		INITIALIZED,
+		SOCKET_READY,
 		READY,
 		CLOSED
 	} m_status;
@@ -136,14 +138,18 @@ private:
 	mutable mbc_nodal_t mbc;
 
 	virtual mbc_t *GetBasePtr(void) const;
-	virtual mbc_rigid_stub_t *GetRigidPtr(void) const;
+	virtual mbc_refnode_stub_t *GetRigidPtr(void) const;
 
 public:
-	MBCNodal(MBCBase::Rot rigid, unsigned nodes,
+	MBCNodal(void);
+	MBCNodal(MBCBase::Rot refnode_rot, unsigned nodes,
         	bool labels, MBCBase::Rot rot, bool accels);
 	virtual ~MBCNodal(void);
 
 	MBCBase::Type GetType(void) const;
+
+	int Initialize(MBCBase::Rot refnode_rot, unsigned nodes,
+        	bool labels, MBCBase::Rot rot, bool accels);
 
 	virtual int Negotiate(void) const;
 	virtual int PutForces(bool bConverged) const;
@@ -222,13 +228,16 @@ private:
 	mutable mbc_modal_t mbc;
 
 	virtual mbc_t *GetBasePtr(void) const;
-	virtual mbc_rigid_stub_t *GetRigidPtr(void) const;
+	virtual mbc_refnode_stub_t *GetRigidPtr(void) const;
 
 public:
-	MBCModal(MBCBase::Rot rigid, unsigned modes);
+	MBCModal(void);
+	MBCModal(MBCBase::Rot refnode_rot, unsigned modes);
 	virtual ~MBCModal(void);
 
 	MBCBase::Type GetType(void) const;
+
+	int Initialize(MBCBase::Rot refnode_rot, unsigned modes);
 
 	virtual int Negotiate(void) const;
 	virtual int PutForces(bool bConverged) const;
