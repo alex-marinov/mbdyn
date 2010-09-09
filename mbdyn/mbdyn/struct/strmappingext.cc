@@ -92,16 +92,18 @@ m_p(3*uMappedPoints)
 		ASSERT(3*uMappedPoints == unsigned(pH->iGetNumRows()));
 	}
 
-	switch (uRRot) {
-	case MBC_ROT_THETA:
-	case MBC_ROT_MAT:
-	case MBC_ROT_EULER_123:
-		break;
+	if (pRefNode) {
+		switch (uRRot) {
+		case MBC_ROT_THETA:
+		case MBC_ROT_MAT:
+		case MBC_ROT_EULER_123:
+			break;
 
-	default:
-		silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
-			"invalid reference node rotation type " << uRRot << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		default:
+			silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
+				"invalid reference node rotation type " << uRRot << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
 	StructNode *pNode = 0;
@@ -1024,7 +1026,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 	}
 
 	bool bLabels(false);
-	unsigned uRRot = MBC_ROT_MAT;
+	unsigned uRRot = pRefNode ? MBC_ROT_MAT : MBC_ROT_NONE;
 	bool bOutputAccelerations(false);
 	bool bUseReferenceNodeForces(true);
 	bool bRotateReferenceNodeForces(true);
