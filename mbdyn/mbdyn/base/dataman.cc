@@ -193,10 +193,8 @@ DofIter()
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
 
-	ppCleanupData = new DataManager*;
-	*ppCleanupData = this;
-
-	mbdyn_cleanup_register(datamanager_cleanup, (void *)ppCleanupData);
+	mbdyn_cleanup_register(datamanager_cleanup, &ppCleanupData);
+	*ppCleanupData = (void *)this;
 
 	/* pseudocostruttori */
 	ElemManager();
@@ -897,16 +895,13 @@ datamanager_cleanup(void *data)
 {
 	int rc = 0;
 
-	DataManager **p = (DataManager **)data;
-	if (*p) {
-		DataManager *pDM = (DataManager *)*p;
+	if (data != 0) {
+		DataManager *pDM = (DataManager *)data;
 
 		silent_cerr("DataManager cleanup" << std::endl);
 
 		rc = pDM->Cleanup();
 	}
-
-	delete p;
 
 	return rc;
 }

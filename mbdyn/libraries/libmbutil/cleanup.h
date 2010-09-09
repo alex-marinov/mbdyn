@@ -38,8 +38,14 @@ extern "C" {
 
 typedef int (*mbdyn_cleanup_f)(void *);
 
+/* registers a cleanup handler; if datapp is not 0,
+ * *datap receives the address of a void * that can be used to store
+ * the address of private data to be passed to the handler.
+ * The handler should take care of destroying the data pointed
+ * by **datapp unless it has already been reset by the caller.
+ */
 extern int
-mbdyn_cleanup_register(mbdyn_cleanup_f handler, void *data);
+mbdyn_cleanup_register(mbdyn_cleanup_f handler, void ***datapp);
 
 extern int
 mbdyn_cleanup(void);

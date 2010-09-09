@@ -43,12 +43,12 @@ struct cleanup {
 	void *data;
 
 public:
-	cleanup(mbdyn_cleanup_f handler, void *data);
+	cleanup(mbdyn_cleanup_f handler);
 	~cleanup(void);
 };
 
-cleanup::cleanup(mbdyn_cleanup_f handler, void *data)
-: handler(handler), data(data)
+cleanup::cleanup(mbdyn_cleanup_f handler)
+: handler(handler), data(0)
 {
 	NO_OP;
 }
@@ -61,12 +61,16 @@ cleanup::~cleanup(void)
 static std::stack<cleanup *> c;
 
 extern "C" int
-mbdyn_cleanup_register(mbdyn_cleanup_f handler, void *data)
+mbdyn_cleanup_register(mbdyn_cleanup_f handler, void ***datapp)
 {
 
-	pedantic_cout("mbdyn_cleanup_register: " << (void *)handler << ":" << (void *)data << std::endl);
+	pedantic_cout("mbdyn_cleanup_register: " << (void *)handler << ":" << (void *)datapp << std::endl);
 
-	c.push(new cleanup(handler, data));
+	cleanup *p = new cleanup(handler);
+	if (datapp != 0) {
+		*datapp = &p->data;
+	}
+	c.push(p);
 
 	return 0;
 }
