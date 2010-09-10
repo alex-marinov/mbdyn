@@ -54,6 +54,23 @@ enum sock_flags_t {
 	MBC_SF_VALID = 0x1U
 };
 
+static const char *
+mbc_cmd2str(uint8_t cmd)
+{
+	switch (cmd) {
+	case ES_REGULAR_DATA: return "REGULAR_DATA";
+	case ES_GOTO_NEXT_STEP: return "GOTO_NEXT_STEP";
+	case ES_ABORT: return "ABORT";
+	case ES_REGULAR_DATA_AND_GOTO_NEXT_STEP: return "REGULAR_DATA_AND_GOTO_NEXT_STEP";
+	case ES_NEGOTIATION: return "NEGOTIATION";
+	case ES_OK: return "OK";
+	default:
+		break;
+	}
+
+	return "UNKNOWN";
+}
+
 /* validate command
  *
  * command needs to be set in mbc->cmd
@@ -112,7 +129,8 @@ mbc_put_cmd(mbc_t *mbc)
 	}
 
 	if (mbc->verbose) {
-		fprintf(stdout, "cmd to peer: %lu\n", (unsigned long)mbc->cmd);
+		fprintf(stdout, "cmd to peer: %lu (%s)\n",
+			(unsigned long)mbc->cmd, mbc_cmd2str(mbc->cmd));
 	}
 
 	rc = send(mbc->sock, (const void *)&mbc->cmd, sizeof(mbc->cmd),
@@ -356,7 +374,8 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	if (mbc->mbc.cmd == ES_ABORT) {
@@ -683,7 +702,8 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -718,7 +738,8 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -822,7 +843,8 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	if (mbc->mbc.cmd == ES_ABORT) {
@@ -1042,7 +1064,8 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	switch (mbc->mbc.cmd) {
@@ -1075,7 +1098,8 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc)
 	}
 
 	if (mbc->mbc.verbose) {
-		fprintf(stdout, "cmd from peer: %lu\n", (unsigned long)mbc->mbc.cmd);
+		fprintf(stdout, "cmd from peer: %lu (%s)\n",
+			(unsigned long)mbc->mbc.cmd, mbc_cmd2str(mbc->mbc.cmd));
 	}
 
 	switch (mbc->mbc.cmd) {
