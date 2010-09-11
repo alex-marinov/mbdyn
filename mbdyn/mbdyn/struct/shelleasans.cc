@@ -911,7 +911,7 @@ ReadShell4EASANS(DataManager* pDM,
 	Shell::fmh pD(12, 12);
 
 	if (ReadShellConstLaw(HP, pD, PreStress)) {
-		silent_cerr("Shell(" << uLabel << "): unable to read isotropic constitutive law" << std::endl);
+		silent_cerr("Shell(" << uLabel << "): unable to read constitutive law" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif // ! USE_CL_IN_SHELL
