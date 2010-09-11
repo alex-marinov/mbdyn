@@ -116,7 +116,7 @@ ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress)
 				}
 				bGot_nu = true;
 				dnu = HP.GetReal();
-				if (dnu <= 0. || dnu >= .5) {
+				if (dnu < 0. || dnu >= .5) {
 					silent_cerr("Shell isotropic constitutive law: invalid Poisson's modulus " << dnu << " at line " << HP.GetLineData() << std::endl);
 					return -1;
 				}
