@@ -5064,7 +5064,7 @@ Solver::Eig(void)
 			int iLength = 1 + (int)log10(uSize - 1);
 
 			char buf[BUFSIZ];
-			snprintf(buf, sizeof(buf), ".%0*u", iLength, uCurr);
+			snprintf(buf, sizeof(buf), "_%0*u", iLength, uCurr);
 			tmpFileName += buf;
 		}
 
