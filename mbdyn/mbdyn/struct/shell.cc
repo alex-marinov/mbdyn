@@ -180,7 +180,7 @@ ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress)
 		if (bGot_G) got++;
 
 		if (got < 2) {
-			silent_cerr("Shell isotropic constitutive law: incomplete material data (need two of Young's modulus, Poisson's modulus, shear modulus)" << std::endl);
+			silent_cerr("Shell isotropic constitutive law: incomplete material data (need at least two among Young's modulus, Poisson's modulus, shear modulus)" << std::endl);
 			return -1;
 		}
 
@@ -213,27 +213,29 @@ ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress)
 		}
 
 		doublereal C = dE/(1. - dnu*dnu)*dh;
-		doublereal D = dE/(1. - dnu*dnu)*dh*dh*dh/12;
+		doublereal D = C*dh*dh/12;
+		doublereal G = dG*dh;
+		doublereal F = G*dh*dh/12;
 
 		pD.Reset();
 
 		pD(1, 1) = C;
 		pD(1, 5) = C*dnu;
-		pD(2, 2) = C*(1. - dnu);
-		pD(3, 3) = C*(1. - dnu)/2*das;
-		pD(4, 4) = C*(1. - dnu);
-		pD(5, 1) = pD(1, 5);
+		pD(2, 2) = 2*G;
+		pD(3, 3) = G*das;
+		pD(4, 4) = 2*G;
+		pD(5, 1) = C*dnu;
 		pD(5, 5) = C;
-		pD(6, 6) = C*(1. - dnu)/2*das;
+		pD(6, 6) = G*das;
 
-		pD(7, 7) = D;
-		pD(7, 11) = D*dnu;
-		pD(8, 8) = D*(1. - dnu);
-		pD(9, 9) = D*(1. - dnu)/2*dat;
-		pD(10, 10) = D*(1. - dnu);
-		pD(11, 7) = pD(7, 11);
-		pD(11, 11) = D;
-		pD(12, 12) = D*(1. - dnu)/2*dat;
+		pD(7, 7) = 2*F;
+		pD(8, 8) = D;
+		pD(8, 10) = -D*dnu;
+		pD(9, 9) = F*dat;
+		pD(10, 10) = D;
+		pD(10, 8) = -D*dnu;
+		pD(11, 11) = 2*F;
+		pD(12, 12) = F*dat;
 
 	} else if (HP.IsKeyWord("plane" "stress" "orthotropic")) {
 /*
