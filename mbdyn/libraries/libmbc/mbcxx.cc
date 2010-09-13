@@ -426,7 +426,7 @@ MBCNodal::Initialize(MBCBase::Rot refnode_rot, unsigned nodes,
 {
 	if (GetStatus() != NOT_READY) return -1;
 	int rc = mbc_nodal_init(&mbc, refnode_rot, nodes, labels,
-		unsigned(rot) | MBC_U_ROT_2_REF_NODE(unsigned(refnode_rot)),
+		unsigned(rot) | MBC_U_ROT_2_REF_NODE_ROT(unsigned(refnode_rot)),
 		accels);
 	if (rc == 0) const_cast<MBCNodal *>(this)->SetStatus(INITIALIZED);
 	return rc;

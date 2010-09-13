@@ -294,10 +294,10 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	offset += 3*sizeof(double);
 
 retry:;
-	switch (MBC_U_REF_NODE_2_ROT(*rotp)) {
+	switch (MBC_U_REF_NODE_ROT_2_ROT(*rotp)) {
 	case MBC_ROT_NONE:
 		if (do_retry) {
-			*rotp = MBC_U_ROT_2_REF_NODE(*rotp);
+			*rotp = MBC_U_ROT_2_REF_NODE_ROT(*rotp);
 			do_retry = 0;
 			goto retry;
 		}

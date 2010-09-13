@@ -212,7 +212,7 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			uint32_t *uint32_ptr;
 
 			uint32_ptr = (uint32_t *)&buf[0];
-			uint32_ptr[0] = MBC_NODAL | MBC_U_ROT_2_REF_NODE(uRRot);
+			uint32_ptr[0] = MBC_NODAL | MBC_U_ROT_2_REF_NODE_ROT(uRRot);
 			if (pRefNode != 0) {
 				uint32_ptr[0] |= MBC_REF_NODE;
 			}
@@ -324,10 +324,10 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			bResult = false;
 		}
 
-		if (uRR != MBC_U_ROT_2_REF_NODE(uRRot)) {
+		if (uRR != MBC_U_ROT_2_REF_NODE_ROT(uRRot)) {
 			silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
 				"negotiation response failed: orientation output mismatch "
-				"(local=" << MBC_U_ROT_2_REF_NODE(uRRot) << ", remote=" << uR << ")"
+				"(local=" << MBC_U_ROT_2_REF_NODE_ROT(uRRot) << ", remote=" << uR << ")"
 				<< std::endl);
 			bResult = false;
 		}
