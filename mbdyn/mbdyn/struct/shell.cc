@@ -212,8 +212,8 @@ ReadShellConstLaw(MBDynParser& HP, Shell::fmh& pD, Shell::vh& PreStress)
 			return -1;
 		}
 
-		doublereal C = dE*dh/(1. - dnu*dnu);
-		doublereal D = dE*dh*dh*dh/12/(1. - dnu*dnu);
+		doublereal C = dE/(1. - dnu*dnu)*dh;
+		doublereal D = dE/(1. - dnu*dnu)*dh*dh*dh/12;
 
 		pD.Reset();
 
@@ -263,6 +263,7 @@ Eshell =
 		doublereal dnu_lt;
 		doublereal dnu_tl;
 		doublereal dG;
+		doublereal dBeta;
 		doublereal dh;
 		doublereal das = 1.;
 		doublereal dat = .01;
@@ -271,6 +272,7 @@ Eshell =
 		bool bGot_nu_lt(false);
 		bool bGot_nu_tl(false);
 		bool bGot_G(false);
+		bool bGot_Beta(false);
 		bool bGot_h(false);
 		bool bGot_as(false);
 		bool bGot_at(false);
@@ -339,6 +341,18 @@ Eshell =
 					silent_cerr("Shell plane stress orthotropic constitutive law: invalid shear modulus " << dG << " at line " << HP.GetLineData() << std::endl);
 					return -1;
 				}
+
+			} else if (HP.IsKeyWord("beta")) {
+				if (bGot_Beta) {
+					silent_cerr("Shell plane stress orthotropic constitutive law: fiber angle \"beta\" already provided at line " << HP.GetLineData() << std::endl);
+					return -1;
+				}
+				bGot_Beta = true;
+				dBeta = HP.GetReal();
+
+				// temporary
+				silent_cerr("Shell plane stress orthotropic constitutive law: fiber angle \"beta\" not supported yet" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 			} else if (HP.IsKeyWord("thickness")) {
 				if (bGot_h) {
