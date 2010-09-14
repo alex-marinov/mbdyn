@@ -443,6 +443,8 @@ Eshell =
 		pD(5, 1) = C*dnu_lt*dE_t;
 		pD(5, 5) = C*dE_t;
 		pD(6, 6) = G*das;
+
+#if 0
 		pD(7, 7) = D*dE_l;
 		pD(7, 11) = D*dnu_lt*dE_t;
 		pD(8, 8) = 2.*F;
@@ -452,6 +454,18 @@ Eshell =
 		pD(10, 10) = 2*F;
 		pD(11, 7) = D*dnu_lt*dE_t;
 		pD(11, 11) = D*dE_t;
+		pD(12, 12) = F*dat;
+#endif
+
+		pD(7, 7) = 2.*F;
+		pD(8, 8) = D*dE_l;
+		pD(8, 10) = -D*dnu_lt*dE_t;
+		// pD(8, 10) = 2*F;
+		pD(9, 9) = F*dat;
+		// pD(10, 8) = 2*F;
+		pD(10, 8) = -D*dnu_lt*dE_t;
+		pD(10, 10) = D*dE_t;
+		pD(11, 11) = 2*F;
 		pD(12, 12) = F*dat;
 
 	} else {
