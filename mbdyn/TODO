@@ -238,6 +238,9 @@ E. Bugs/missing features:
 	- rework rejected modes handling in modal joint
 	- check initial assembly of "distance" when nodes velocity is not null
 	- check & fix NetCDF library detection
+	- allow re-orientation of FEM reference system in modal node
+	- allow offset & re-orientation of exported motion
+	  in external structural [mapping]
 
 
 
