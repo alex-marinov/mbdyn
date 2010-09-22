@@ -68,6 +68,10 @@ public:
 		return out;
 	};
 
+	inline T Get(const doublereal& dVar) const {
+		return T(0.);
+	};
+
 	inline T Get(void) const {
 		return T(0.);
 	};
@@ -127,6 +131,10 @@ public:
 		return pGetDriveCaller()->Restart(out);
 	};
 
+	inline T Get(const doublereal& dVar) const {
+		return t*dGet(dVar);
+	};
+
 	inline T Get(void) const {
 		return t*dGet();
 	};
@@ -179,6 +187,10 @@ public:
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		return pGetDriveCaller()->Restart(out);
+	};
+
+	inline doublereal Get(const doublereal& dVar) const {
+		return dGet(dVar);
 	};
 
 	inline doublereal Get(void) const {

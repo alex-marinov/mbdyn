@@ -275,6 +275,16 @@ public:
 		return out;
 	};
 
+	inline T Get(const doublereal& dVar) const {
+		T t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			t(i + 1) = m_dc[i]->dGet(dVar);
+		}
+
+		return t;
+	};
+
 	inline T Get(void) const {
 		T t;
 
@@ -419,6 +429,14 @@ public:
 		return out;
 	};
 
+	inline T Get(const doublereal& dVar) const {
+		T v = 0.;
+		for (int i = 0; i < iNumDrives; i++) {
+			v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet(dVar));
+		}
+		return v;
+	};
+
 	inline T Get(void) const {
 		T v = 0.;
 		for (int i = 0; i < iNumDrives; i++) {
@@ -504,6 +522,14 @@ public:
 			out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
 		}
 		return out;
+	};
+
+	inline doublereal Get(const doublereal& dVar) const {
+		doublereal v = 0.;
+		for (int i = 0; i < iNumDrives; i++) {
+			v += pDrivesArray[i].pDriveCaller->dGet(dVar);
+		}
+		return v;
 	};
 
 	inline doublereal Get(void) const {

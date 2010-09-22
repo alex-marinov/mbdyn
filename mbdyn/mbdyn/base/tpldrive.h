@@ -56,7 +56,10 @@ public:
 	virtual std::ostream& Restart_int(std::ostream& out) const = 0;
 
 	/* Restituisce il valore del driver */
-	virtual T Get(void) const = 0;
+	virtual T Get(const doublereal& dVar) const = 0;
+	virtual T Get(void) const {
+		return Get(0.);
+	};
 
 	/* this is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const {
@@ -101,6 +104,10 @@ public:
 
 	TplDriveCaller<T>* pGetDriveCaller(void) const {
 		return pTplDriveCaller;
+	};
+
+	T Get(const doublereal& dVar) const {
+		return pTplDriveCaller->Get(dVar);
 	};
 
 	T Get(void) const {
