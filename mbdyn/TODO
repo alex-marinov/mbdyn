@@ -210,6 +210,8 @@ D. Code:
 	- allow multiple/interpolated c81 data in Theodorsen correction (DONE)
 	- allow configurable float, int, bool (string?) & hton in stream I/O
 	- allow to specify parameters independently for each eigenanalysis
+	- implement incremental load element inspired by Riks' method
+	  (DONE, module-loadinc)
 
 
 
