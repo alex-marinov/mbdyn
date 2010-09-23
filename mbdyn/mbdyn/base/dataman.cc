@@ -650,10 +650,7 @@ DataManager::~DataManager(void)
 
 #if defined(USE_RUNTIME_LOADING)
 	if (loadableElemInitialized) {
-		if (lt_dlexit()) {
-			std::cerr << "lt_dlexit failed" << std::endl;
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		module_finalize();
 	}
 #endif // USE_RUNTIME_LOADING
 } /* End of DataManager::DataManager() */

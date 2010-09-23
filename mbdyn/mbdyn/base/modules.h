@@ -35,5 +35,8 @@
 extern void
 module_initialize(void);
 
-#endif /* MODULES_H */
+extern void
+module_finalize(void);
+
+#endif // MODULES_H
 

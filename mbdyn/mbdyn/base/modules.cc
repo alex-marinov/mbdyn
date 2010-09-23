@@ -67,3 +67,16 @@ module_initialize(void)
 #endif // USE_RUNTIME_LOADING
 }
 
+void
+module_finalize(void)
+{
+	if (!::done) {
+		return;
+	}
+
+	::done = false;
+
+#ifdef USE_RUNTIME_LOADING
+	lt_dlexit();
+#endif // USE_RUNTIME_LOADING
+}

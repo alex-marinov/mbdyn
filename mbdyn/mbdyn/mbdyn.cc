@@ -112,6 +112,7 @@ void *rtmbdyn_rtai_task = NULL;
 
 #include "solver.h"
 #include "invsolver.h"
+#include "modules.h"
 
 #include "cleanup.h"
 
@@ -940,6 +941,8 @@ main(int argc, char* argv[])
 		::rtmbdyn_rtai_task = NULL;
 	}
 #endif /* USE_RTAI */
+
+	module_finalize();
 
 	mbdyn_cleanup();
    
