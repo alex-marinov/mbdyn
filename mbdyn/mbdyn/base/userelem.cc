@@ -39,9 +39,9 @@
 // include here known loadable element parsers that go into InitUDE()
 #include "loadable.h"
 
-#ifdef BUILD_STATIC_MODULES
+#ifdef STATIC_MODULES
 #include "module-wheel2.h"
-#endif // BUILD_STATIC_MODULES
+#endif // STATIC_MODULES
 
 typedef std::map<std::string, UserDefinedElemRead *, ltstrcase> UDEMapType;
 static UDEMapType UDEMap;
@@ -110,10 +110,10 @@ InitUDE(void)
 
 	b = SetUDE("loadable", new LoadableElemRead);
 	ASSERT(b != false);
-#ifdef BUILD_STATIC_MODULES
+#ifdef STATIC_MODULES
 	b = SetUDE("wheel2", new UDERead<Wheel2>);
 	ASSERT(b != false);
-#endif // BUILD_STATIC_MODULES
+#endif // STATIC_MODULES
 }
 
 void
