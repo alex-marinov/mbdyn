@@ -39,8 +39,8 @@ begin: initial value;
 	tolerance: 1e-6;
 
 	output: iterations;
-	output: residual;
-	output: jacobian;
+	# output: residual;
+	# output: jacobian;
 end: initial value;
 
 begin: control data;

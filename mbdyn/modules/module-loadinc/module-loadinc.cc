@@ -60,9 +60,16 @@ private:
 
 	// TODO: implement other strategies?
 
-	std::vector<const StructNode *> m_Nodes;
+	struct NodeData {
+		const StructNode *pNode;
+		Vec3 DX;
+		Vec3 DTheta;
+	};
+	std::vector<NodeData> m_Nodes;
 	doublereal m_dCompliance;
 	doublereal m_dDeltaP;
+
+	doublereal m_DeltaS2;
 
 public:
 	LoadIncNorm(unsigned uLabel, const DofOwner *pDO,
@@ -111,7 +118,8 @@ LoadIncNorm::LoadIncNorm(
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
-m_FirstSteps(0),
+m_FirstSteps(2),
+m_S(0.),
 m_dPMax(1.),
 m_dCompliance(1.)
 {
@@ -177,7 +185,7 @@ m_dCompliance(1.)
 		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 			continue;
 		}
-		m_Nodes[uCnt] = pNode;
+		m_Nodes[uCnt].pNode = pNode;
 		uCnt++;
 	}
 
@@ -188,6 +196,8 @@ m_dCompliance(1.)
 	}
 	m_dDeltaP = dDeltaS/m_dCompliance;
 	m_dPPrev = -m_dDeltaP;
+
+	m_DeltaS2 = dDeltaS;
 
 	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
 }
@@ -252,6 +262,7 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iIndex = iGetFirstIndex() + 1;
 
 	if (m_FirstSteps) {
+		WM.ResizeReset(1, 1);
 		WM.PutRowIndex(1, iIndex);
 		WM.PutColIndex(1, iIndex);
 		WM.PutCoef(1, 1, m_dCompliance);
@@ -263,9 +274,9 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		WM.PutRowIndex(1, iIndex);
 		WM.PutColIndex(iNumCols, iIndex);
-		doublereal d = m_dDeltaP*m_dCompliance*m_dCompliance;
+		doublereal d = (m_dDeltaP*m_dCompliance*m_dCompliance)/m_DeltaS2;
 		if (std::abs(d) <= 10.*std::numeric_limits<doublereal>::epsilon()) {
-			d = m_DeltaS.dGet()*m_dCompliance;
+			d = (m_DeltaS.dGet()*m_dCompliance)/m_DeltaS2;
 		}
 		WM.PutCoef(1, iNumCols, d);
 
@@ -273,23 +284,19 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 		// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
 
 		integer iNodeOffset = 0;
-		for (std::vector<const StructNode *>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
-			integer iFirstPositionIndex = (*i)->iGetFirstIndex();
-
-			// possible optimization: DX and DTheta are also computed in AssRes()
-			Vec3 DX = (*i)->GetXCurr() - (*i)->GetXPrev();
-			Vec3 DTheta = RotManip::VecRot((*i)->GetRCurr().MulMT((*i)->GetRPrev()));
+		for (std::vector<NodeData>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
+			integer iFirstPositionIndex = i->pNode->iGetFirstIndex();
 
 			// FIXME: check linearization
-			Mat3x3 Gm1 = RotManip::DRot_I(DTheta);
-			Vec3 VTmp = Gm1.MulTV(DTheta);
+			Mat3x3 Gm1 = RotManip::DRot_I(i->DTheta);
+			Vec3 VTmp = Gm1.MulTV(i->DTheta);
 
 			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 				WM.PutColIndex(iNodeOffset + iCnt, iFirstPositionIndex + iCnt);
-				WM.PutCoef(1, iNodeOffset + iCnt, (2.*dCoef)*DX(iCnt));
+				WM.PutCoef(1, iNodeOffset + iCnt, (dCoef/m_DeltaS2)*i->DX(iCnt));
 
 				WM.PutColIndex(iNodeOffset + 3 + iCnt, iFirstPositionIndex + 3 + iCnt);
-				WM.PutCoef(1, iNodeOffset + 3 + iCnt, (2.*dCoef)*VTmp(iCnt));
+				WM.PutCoef(1, iNodeOffset + 3 + iCnt, (dCoef/m_DeltaS2)*VTmp(iCnt));
 			}
 
 			iNodeOffset += 6;
@@ -330,17 +337,20 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 		d = dDeltaS - m_dP*m_dCompliance;
 
 	} else {
-		d = dDeltaS*dDeltaS;
+		d = 0.;
 
-		for (std::vector<const StructNode *>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
-			Vec3 DX = (*i)->GetXCurr() - (*i)->GetXPrev();
-			d -= DX.Dot();
+		for (std::vector<NodeData>::iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
+			i->DX = i->pNode->GetXCurr() - i->pNode->GetXPrev();
+			d += i->DX.Dot();
 
-			Vec3 DTheta = RotManip::VecRot((*i)->GetRCurr().MulMT((*i)->GetRPrev()));
-			d -= DTheta.Dot();
+			i->DTheta = RotManip::VecRot(i->pNode->GetRCurr().MulMT(i->pNode->GetRPrev()));
+			d += i->DTheta.Dot();
 		}
 
-		d -= (m_dDeltaP*m_dCompliance)*(m_dDeltaP*m_dCompliance);
+		d += (m_dDeltaP*m_dCompliance)*(m_dDeltaP*m_dCompliance);
+		m_DeltaS2 = std::sqrt(d);
+
+		d = dDeltaS - m_DeltaS2;
 	}
 
 	WorkVec.PutItem(1, iIndex, d);
@@ -366,7 +376,7 @@ LoadIncNorm::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 	connectedNodes.resize(m_Nodes.size());
 
 	for (unsigned uCnt = 0; uCnt < m_Nodes.size(); uCnt++) {
-		connectedNodes[uCnt] = m_Nodes[uCnt];
+		connectedNodes[uCnt] = m_Nodes[uCnt].pNode;
 	}
 }
 
