@@ -213,12 +213,19 @@ public:
 	/* Copia */
 	virtual DriveCaller* pCopy(void) const;
 
+	inline doublereal dGet(void) const;
 	inline doublereal dGet(const doublereal& dVar) const;
 
 	/* this is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
 };
+
+inline doublereal
+MultDriveCaller::dGet(void) const
+{
+	return DO1.pGetDriveCaller()->dGet()*DO2.pGetDriveCaller()->dGet();
+}
 
 inline doublereal
 MultDriveCaller::dGet(const doublereal& dVar) const
