@@ -48,12 +48,12 @@
 class LoadIncNorm
 : virtual public Elem, public UserDefinedElem {
 private:
-	DataManager *m_pDM;
+	int m_FirstSteps;
 	doublereal m_dP;
 	doublereal m_dPPrev;
 	DriveOwner m_DeltaS;
 	doublereal m_S;
-	int m_FirstSteps;
+
 
 	// stop at or past max load
 	doublereal m_dPMax;
@@ -67,6 +67,8 @@ private:
 	};
 	std::vector<NodeData> m_Nodes;
 	doublereal m_dCompliance;
+	doublereal m_dRefLen;
+	integer m_iDofOffset;
 	doublereal m_dDeltaP;
 
 	doublereal m_DeltaS2;
@@ -121,19 +123,29 @@ UserDefinedElem(uLabel, pDO),
 m_FirstSteps(2),
 m_S(0.),
 m_dPMax(1.),
-m_dCompliance(1.)
+m_dCompliance(1.),
+m_dRefLen(1.),
+m_iDofOffset(6)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
 "\n"
-"Module:        loadinc\n"
+"Module:        loadinc - load increment normalization\n"
 "Author:        Pierangelo Masarati <masarati@aero.polimi.it>\n"
-"Organization:	Dipartimento di Ingegneria Aerospaziale\n"
+"Organization:  Dipartimento di Ingegneria Aerospaziale\n"
 "               Politecnico di Milano\n"
 "               http://www.aero.polimi.it/\n"
 "\n"
 "               All rights reserved\n"
+"\n"
+"Usage:\n"
+"\n"
+"user defined : <label> , load increment normalization ,\n"
+"        [ max load , <max_load> , ]          # bails out when p >= max_load\n"
+"        [ compliance , <compliance> , ]      # compliance*p = length\n"
+"        [ reference length, <ref_length> , ] # multiplies DeltaTheta\n"
+"        (DriveCaller) <DeltaS> ;             # arc length increment\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -157,6 +169,18 @@ m_dCompliance(1.)
 		if (m_dCompliance <= std::numeric_limits<doublereal>::epsilon()) {
 			silent_cerr("LoadIncNorm(" << uLabel << "): invalid \"compliance\" at line " << HP.GetLineData() << std::endl);
 			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if (HP.IsKeyWord("reference" "length")) {
+		m_dRefLen = HP.GetReal();
+		if (m_dRefLen < 0.) {
+			silent_cerr("LoadIncNorm(" << uLabel << "): invalid \"reference length\" at line " << HP.GetLineData() << std::endl);
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (m_dRefLen == 0.) {
+			m_iDofOffset = 3;
 		}
 	}
 
@@ -248,7 +272,7 @@ void
 LoadIncNorm::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 1;
-	*piNumCols = 6*m_Nodes.size() + 1;
+	*piNumCols = m_iDofOffset*m_Nodes.size() + 1;
 }
 
 VariableSubMatrixHandler& 
@@ -283,23 +307,30 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
 
+		doublereal dCoefX = dCoef/m_DeltaS2;
+		doublereal dCoefTheta = dCoefX*m_dRefLen*m_dRefLen;
+
 		integer iNodeOffset = 0;
 		for (std::vector<NodeData>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
 			integer iFirstPositionIndex = i->pNode->iGetFirstIndex();
 
-			// FIXME: check linearization
-			Mat3x3 Gm1 = RotManip::DRot_I(i->DTheta);
-			Vec3 VTmp = Gm1.MulTV(i->DTheta);
-
 			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 				WM.PutColIndex(iNodeOffset + iCnt, iFirstPositionIndex + iCnt);
-				WM.PutCoef(1, iNodeOffset + iCnt, (dCoef/m_DeltaS2)*i->DX(iCnt));
-
-				WM.PutColIndex(iNodeOffset + 3 + iCnt, iFirstPositionIndex + 3 + iCnt);
-				WM.PutCoef(1, iNodeOffset + 3 + iCnt, (dCoef/m_DeltaS2)*VTmp(iCnt));
+				WM.PutCoef(1, iNodeOffset + iCnt, dCoefX*i->DX(iCnt));
 			}
 
-			iNodeOffset += 6;
+			if (m_dRefLen > 0.) {
+				// FIXME: check linearization
+				Mat3x3 Gm1 = RotManip::DRot_I(i->DTheta);
+				Vec3 VTmp = Gm1.MulTV(i->DTheta);
+
+				for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+					WM.PutColIndex(iNodeOffset + 3 + iCnt, iFirstPositionIndex + 3 + iCnt);
+					WM.PutCoef(1, iNodeOffset + 3 + iCnt, dCoefTheta*VTmp(iCnt));
+				}
+			}
+
+			iNodeOffset += m_iDofOffset;
 		}
 	}
 
@@ -343,8 +374,10 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 			i->DX = i->pNode->GetXCurr() - i->pNode->GetXPrev();
 			d += i->DX.Dot();
 
-			i->DTheta = RotManip::VecRot(i->pNode->GetRCurr().MulMT(i->pNode->GetRPrev()));
-			d += i->DTheta.Dot();
+			if (m_dRefLen > 0.) {
+				i->DTheta = RotManip::VecRot(i->pNode->GetRCurr().MulMT(i->pNode->GetRPrev()));
+				d += (m_dRefLen*m_dRefLen)*i->DTheta.Dot();
+			}
 		}
 
 		d += (m_dDeltaP*m_dCompliance)*(m_dDeltaP*m_dCompliance);
@@ -520,13 +553,23 @@ UserDefinedElem(uLabel, pDO)
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
 "\n"
-"Module:        loadinc\n"
+"Module:        loadinc - load increment force\n"
 "Author:        Pierangelo Masarati <masarati@aero.polimi.it>\n"
-"Organization:	Dipartimento di Ingegneria Aerospaziale\n"
+"Organization:  Dipartimento di Ingegneria Aerospaziale\n"
 "               Politecnico di Milano\n"
 "               http://www.aero.polimi.it/\n"
 "\n"
 "               All rights reserved\n"
+"\n"
+"Usage:\n"
+"\n"
+"user defined : <label> , load increment force ,\n"
+"        { force | couple } ,\n"
+"        { absolute | follower } ,\n"
+"        <node_label> ,\n"
+"        [ position , (Vec3) <position> , ] # meaningless for couple\n"
+"        (Vec3) <direction> , \n"
+"        load increment normalization , <lin_label> ;\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {

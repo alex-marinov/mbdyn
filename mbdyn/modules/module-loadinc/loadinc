@@ -103,10 +103,13 @@ begin: elements;
 	module load: "./libmodule-loadinc.so";
 
 	user defined: 0, load increment normalization,
+		help,
 		max load, 1.e3,
 		compliance, 1.e-4,
+		reference length, 1.,
 		const, .01;
 	user defined: 1, load increment force,
+		help,
 		force, absolute,
 		# couple, absolute,
 		1, position, null,
