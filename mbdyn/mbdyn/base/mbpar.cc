@@ -221,7 +221,14 @@ MBDynParser::Reference_int(void)
 			w = GetOmeAbs(AbsRefFrame);
 		}
 	}
-	
+
+	if (IsArg()) {
+		silent_cerr("semicolon expected after reference " << uLabel
+			<< " (" << (sName ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	DEBUGLCOUT(MYDEBUG_INPUT, std::endl
 		   << "\tX = " << x << std::endl
 		   << "\tR = " << R << std::endl
@@ -272,7 +279,14 @@ MBDynParser::HydraulicFluid_int(void)
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	
+
+	if (IsArg()) {
+		silent_cerr("semicolon expected after hydraulic fluid " << uLabel
+			<< " (" << (sName ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	if (!HF.insert(HFType::value_type(uLabel, pHF)).second) {
 		silent_cerr("hydraulic fluid " << uLabel
 			<< " already defined at line " << GetLineData()
@@ -451,7 +465,14 @@ MBDynParser::C81Data_int(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
+
+	if (IsArg()) {
+		silent_cerr("semicolon expected after c81 data " << uLabel
+			<< " (" << (!sName.empty() ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	if (!AD.insert(ADType::value_type(uLabel, data)).second) {
 		silent_cerr("C81Data(" << uLabel << "): "
 			"redefined at line " << GetLineData()
@@ -596,6 +617,13 @@ MBDynParser::ConstitutiveLaw_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	if (IsArg()) {
+		silent_cerr("semicolon expected after constitutive law " << uLabel
+			<< " (" << (sName ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	if (sName) {
 		SAFEDELETEARR(sName);
 	}
@@ -672,6 +700,12 @@ MBDynParser::ScalarFunction_int(void)
 	}
 
 	(void)ParseScalarFunction(*this, pDM);
+
+	if (IsArg()) {
+		silent_cerr("semicolon expected after scalar function "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
 void 
@@ -746,6 +780,13 @@ MBDynParser::ModuleLoad_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	if (IsArg()) {
+		silent_cerr("semicolon expected after module "
+			"\"" << module_name << "\""
+			<< " at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	silent_cout("module \"" << module_name << "\" loaded" << std::endl);
 
    	SAFEDELETEARR(module_name);
@@ -794,12 +835,26 @@ MBDynParser::GetDescription_int(const char *s)
 	} else if (!strcmp(s, "license")) {
 		mbdyn_license();
 		CurrLowToken = LowP.GetToken(*pIn);
+
+		if (IsArg()) {
+			silent_cerr("semicolon expected after \"license\" "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		return true;
 
 	/* Scrive il disclaimer */
 	} else if (!strcmp(s, "warranty")) {
 		mbdyn_warranty();
 		CurrLowToken = LowP.GetToken(*pIn);
+
+		if (IsArg()) {
+			silent_cerr("semicolon expected after \"warranty\" "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		return true;
 	}
 
