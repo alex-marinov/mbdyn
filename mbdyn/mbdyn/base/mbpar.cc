@@ -634,6 +634,13 @@ MBDynParser::DriveCaller_int(void)
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	if (IsArg()) {
+		silent_cerr("semicolon expected after drive caller " << uLabel
+			<< " (" << (sName ? sName : "unknown" ) << ") "
+			"at line " << GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	pDC->PutLabel(uLabel);
 	if (sName) {
 		pDC->PutName(sName);
