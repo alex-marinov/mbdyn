@@ -71,6 +71,12 @@ DrivenElem::~DrivenElem(void)
 	}
 }
 
+bool
+DrivenElem::bIsActive(void) const
+{
+	return (dGet() != 0.);
+}
+
 void
 DrivenElem::Output(OutputHandler& OH) const
 {

@@ -56,6 +56,8 @@ public:
 			const Elem* pE, SimulationEntity::Hints *ph = 0);
 	~DrivenElem(void);
 
+	virtual bool bIsActive(void) const;
+
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void SetValue(DataManager *pdm,
