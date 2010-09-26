@@ -43,6 +43,7 @@
 #include "solver.h"
 #include "dataman.h"
 #include "userelem.h"
+#include "driven.h"
 #include "Rot.hh"
 
 class LoadIncNorm
@@ -52,6 +53,7 @@ private:
 	doublereal m_dP;
 	doublereal m_dPPrev;
 	DriveOwner m_DeltaS;
+	doublereal m_dDeltaS;
 	doublereal m_S;
 
 
@@ -213,15 +215,15 @@ m_iDofOffset(6)
 		uCnt++;
 	}
 
-	doublereal dDeltaS = m_DeltaS.dGet();
-	if (dDeltaS <= std::sqrt(std::numeric_limits<doublereal>::epsilon())) {
+	m_dDeltaS = m_DeltaS.dGet();
+	if (m_dDeltaS < 0.) {
 		silent_cerr("LoadIncNorm(" << uLabel << "): DeltaS must be positive" << std::endl);
 		throw NoErr(MBDYN_EXCEPT_ARGS);
 	}
-	m_dDeltaP = dDeltaS/m_dCompliance;
+	m_dDeltaP = m_dDeltaS/m_dCompliance;
 	m_dPPrev = -m_dDeltaP;
 
-	m_DeltaS2 = dDeltaS;
+	m_DeltaS2 = m_dDeltaS;
 
 	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
 }
@@ -258,6 +260,8 @@ LoadIncNorm::AfterConvergence(const VectorHandler& X,
 		mbdyn_set_stop_at_end_of_time_step();
 	}
 
+	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_FirstSteps=" << m_FirstSteps << std::endl;
+
 	if (m_FirstSteps) {
 		m_FirstSteps--;
 	}
@@ -285,7 +289,9 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	integer iIndex = iGetFirstIndex() + 1;
 
-	if (m_FirstSteps) {
+	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_FirstSteps=" << m_FirstSteps << std::endl;
+
+	if (m_FirstSteps || m_dDeltaS == 0.) {
 		WM.ResizeReset(1, 1);
 		WM.PutRowIndex(1, iIndex);
 		WM.PutColIndex(1, iIndex);
@@ -300,7 +306,7 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(iNumCols, iIndex);
 		doublereal d = (m_dDeltaP*m_dCompliance*m_dCompliance)/m_DeltaS2;
 		if (std::abs(d) <= 10.*std::numeric_limits<doublereal>::epsilon()) {
-			d = (m_DeltaS.dGet()*m_dCompliance)/m_DeltaS2;
+			d = m_DeltaS.dGet()*m_dCompliance;
 		}
 		WM.PutCoef(1, iNumCols, d);
 
@@ -354,18 +360,20 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 
 	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
 
-	doublereal dDeltaS = m_DeltaS.dGet();
-	if (dDeltaS <= std::sqrt(std::numeric_limits<doublereal>::epsilon())) {
+	m_dDeltaS = m_DeltaS.dGet();
+	if (m_dDeltaS < 0.) {
 		silent_cerr("LoadIncNorm(" << uLabel << ")::AssRes(): DeltaS must be positive" << std::endl);
 		throw NoErr(MBDYN_EXCEPT_ARGS);
 	}
 	doublereal d;
 
+	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_FirstSteps=" << m_FirstSteps << std::endl;
+
 	if (m_FirstSteps == 2) {
 		d = -m_dP*m_dCompliance;
 
-	} else if (m_FirstSteps == 1) {
-		d = dDeltaS - m_dP*m_dCompliance;
+	} else if (m_FirstSteps == 1 || m_dDeltaS == 0.) {
+		d = m_dDeltaS - m_dP*m_dCompliance;
 
 	} else {
 		d = 0.;
@@ -383,7 +391,7 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 		d += (m_dDeltaP*m_dCompliance)*(m_dDeltaP*m_dCompliance);
 		m_DeltaS2 = std::sqrt(d);
 
-		d = dDeltaS - m_DeltaS2;
+		d = m_dDeltaS - m_DeltaS2;
 	}
 
 	WorkVec.PutItem(1, iIndex, d);
@@ -503,6 +511,7 @@ private:
 	bool m_bFollower;
 
 	LoadIncNorm *m_pLoadIncNorm;
+	DrivenElem *m_pDrivenLoadIncNorm;
 	StructNode *m_pNode;
 	Vec3 m_b;
 	Vec3 m_Dir;
@@ -624,8 +633,23 @@ UserDefinedElem(uLabel, pDO)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	m_pLoadIncNorm = dynamic_cast<LoadIncNorm *>(pDM->ReadElem(HP, Elem::LOADABLE));
-	ASSERT(m_pLoadIncNorm != 0);
+	// if m_pLoadIncNorm is driven, make sure the LoadIncForce
+	// and the LoadIncNorm are simultaneously active
+	Elem *pEl = pDM->ReadElem(HP, Elem::LOADABLE);
+	m_pLoadIncNorm = dynamic_cast<LoadIncNorm *>(pEl);
+	if (m_pLoadIncNorm == 0) {
+		m_pDrivenLoadIncNorm = dynamic_cast<DrivenElem *>(pEl);
+		if (m_pDrivenLoadIncNorm == 0) {
+			silent_cerr("LoadIncForce(" << uLabel << "): invalid \"load increment normalization\" UseDefined(" << pEl->GetLabel() << ") element at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		m_pLoadIncNorm = dynamic_cast<LoadIncNorm *>(m_pDrivenLoadIncNorm->pGetElem());
+		if (m_pLoadIncNorm == 0) {
+			silent_cerr("LoadIncForce(" << uLabel << "): invalid \"load increment normalization\" UseDefined(" << pEl->GetLabel() << ") element at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
@@ -678,6 +702,13 @@ LoadIncForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
+	// if m_pLoadIncNorm is driven, make sure the LoadIncForce
+	// and the LoadIncNorm are simultaneously active
+	if (m_pDrivenLoadIncNorm && !m_pDrivenLoadIncNorm->bIsActive()) {
+		silent_cerr("LoadIncForce(" << GetLabel() << "): LoadIncNorm(" << m_pLoadIncNorm->GetLabel() << ") inactive" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	integer iNumRows, iNumCols;
@@ -769,6 +800,13 @@ LoadIncForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
+	// if m_pLoadIncNorm is driven, make sure the LoadIncForce
+	// and the LoadIncNorm are simultaneously active
+	if (m_pDrivenLoadIncNorm && !m_pDrivenLoadIncNorm->bIsActive()) {
+		silent_cerr("LoadIncForce(" << GetLabel() << "): LoadIncNorm(" << m_pLoadIncNorm->GetLabel() << ") inactive" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	integer iNumRows, iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
