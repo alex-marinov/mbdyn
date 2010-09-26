@@ -69,9 +69,11 @@ public:
 inline doublereal
 PrivDriveCaller::dGet(const doublereal& dVar) const
 {
-	silent_cerr("warning, possible improper call of element drive "
-		"with real argument" << std::endl);
-	return DriveOwner::pGetDriveCaller()->dGet(dVar);
+	silent_cerr("warning, possible improper call of element drive with real argument; \"dVar\" is ignored and private data is returned instead"
+		<< std::endl);
+
+	// ignore dVar; return private data
+	return dGet();
 }
 
 inline doublereal
