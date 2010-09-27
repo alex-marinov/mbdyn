@@ -54,7 +54,7 @@ private:
 	doublereal m_dPPrev;
 	DriveOwner m_DeltaS;
 	doublereal m_dDeltaS;
-	doublereal m_S;
+	doublereal m_dS;
 
 
 	// stop at or past max load
@@ -93,6 +93,8 @@ public:
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
 	unsigned int iGetNumPrivData(void) const;
+	unsigned int iGetPrivDataIdx(const char *s) const;
+	doublereal dGetPrivData(unsigned int i) const;
 	int iGetNumConnectedNodes(void) const;
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
@@ -123,7 +125,7 @@ LoadIncNorm::LoadIncNorm(
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
 m_FirstSteps(2),
-m_S(0.),
+m_dS(0.),
 m_dPMax(1.),
 m_dCompliance(1.),
 m_dRefLen(1.),
@@ -241,7 +243,7 @@ LoadIncNorm::Output(OutputHandler& OH) const
 
 		out << GetLabel()
 			<< " " << m_dP
-			<< " " << m_S
+			<< " " << m_dS
 			<< std::endl;
 	}
 }
@@ -266,7 +268,7 @@ LoadIncNorm::AfterConvergence(const VectorHandler& X,
 		m_FirstSteps--;
 	}
 
-	m_S += m_DeltaS.dGet();
+	m_dS += m_DeltaS.dGet();
 	m_dPPrev = m_dP;
 
 	// std::cerr << "### " << __PRETTY_FUNCTION__ << " m_dP=" << m_dP << " m_dDeltaP=" << m_dDeltaP << " m_dPPrev=" << m_dPPrev << std::endl;
@@ -402,7 +404,43 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 unsigned int
 LoadIncNorm::iGetNumPrivData(void) const
 {
+	return 3;
+}
+
+unsigned int
+LoadIncNorm::iGetPrivDataIdx(const char *s) const
+{
+	if (strcmp(s, "p") == 0) {
+		return 1;
+	}
+
+	if (strcmp(s, "S") == 0) {
+		return 2;
+	}
+
+	if (strcmp(s, "DeltaS") == 0) {
+		return 3;
+	}
+
 	return 0;
+}
+
+doublereal
+LoadIncNorm::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+		return m_dP;
+
+	case 2:
+		return m_dS;
+
+	case 3:
+		return m_dDeltaS;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
 int
@@ -556,7 +594,8 @@ LoadIncForce::LoadIncForce(
 	unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
-UserDefinedElem(uLabel, pDO)
+UserDefinedElem(uLabel, pDO),
+m_pDrivenLoadIncNorm(0)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
