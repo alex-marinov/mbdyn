@@ -40,7 +40,7 @@
 #include "loadable.h"
 
 #ifdef STATIC_MODULES
-#include "module-wheel2.h"
+#include "module-wheel2/module-wheel2.h"
 #endif // STATIC_MODULES
 
 typedef std::map<std::string, UserDefinedElemRead *, ltstrcase> UDEMapType;

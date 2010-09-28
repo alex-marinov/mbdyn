@@ -174,20 +174,12 @@ ScalarFunctionsImpl.cc
 nodist_libbase_la_SOURCES =
 
 if BUILD_STATIC_MODULES
-modules_dir=$(srcdir)/../../modules
-
-# NOTE: only works for modules whose file name is equal to the folder's name
-static_modules_src = module-wheel2.cc module-wheel2.h
-
-$(static_modules_src):
-	@echo "creating symlinks to modules..."
-	@for i in $(static_modules_src) ; do \
-		b=`echo $$i | sed 's/\(.\+\)\.\(c\|cc\|h\|f\|f90\)$$/\1/'`; \
-		ln -sf $(modules_dir)/$$b/$$i ; \
-	done
-
+# wheel2
 nodist_libbase_la_SOURCES += \
-$(static_modules_src)
+$(srcdir)/../../modules/module-wheel2/module-wheel2.cc \
+$(srcdir)/../../modules/module-wheel2/module-wheel2.h
+
+# add more...
 endif
 
 if USE_RTAI
@@ -232,6 +224,7 @@ INCLUDES = \
 -I$(srcdir)/../../mbdyn/elec \
 -I$(srcdir)/../../mbdyn/thermo \
 -I$(srcdir)/../../mbdyn/hydr \
+-I$(srcdir)/../../modules \
 $(GINACLIB_CPPFLAGS)
 
 noinst_PROGRAMS = inusetest
