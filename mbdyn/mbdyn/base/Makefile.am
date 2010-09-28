@@ -171,7 +171,7 @@ ScalarFunctions.h \
 ScalarFunctionsImpl.h \
 ScalarFunctionsImpl.cc
 
-noinst_libbase_la_SOURCES =
+nodist_libbase_la_SOURCES =
 
 if BUILD_STATIC_MODULES
 modules_dir=$(srcdir)/../../modules
@@ -186,7 +186,7 @@ $(static_modules_src):
 		ln -sf $(modules_dir)/$$b/$$i ; \
 	done
 
-noinst_libbase_la_SOURCES += \
+nodist_libbase_la_SOURCES += \
 $(static_modules_src)
 endif
 
