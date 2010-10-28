@@ -69,7 +69,8 @@ pXPrimeCurr(0),
 iCurrStep(0),
 Meter(0),
 Rand(0),
-ClosestNext(0)
+ClosestNext(0),
+SH(0)
 {
 #ifdef USE_MULTITHREAD
 	if (pthread_mutex_init(&parser_mutex, NULL)) {
@@ -192,6 +193,12 @@ DriveHandler::~DriveHandler(void)
 	{
 		SAFEDELETE(*i);
 	}
+
+	for (std::vector<MySH *>::iterator i = SH.begin();
+		i != SH.end(); i++)
+	{
+		SAFEDELETE(*i);
+	}
 }
 
 void
@@ -232,6 +239,12 @@ DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
 
 			for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
 				i != ClosestNext.end(); i++)
+			{
+				(*i)->Set();
+			}
+
+			for (std::vector<MySH *>::iterator i = SH.begin();
+				i != SH.end(); i++)
 			{
 				(*i)->Set();
 			}
@@ -289,6 +302,38 @@ DriveHandler::iClosestNextInit(const DriveCaller *pIncrement,
 	return iNumber;
 }
 
+
+integer
+DriveHandler::iSHInit(const DriveCaller *pFunc, const DriveCaller *pTrigger,
+	const doublereal dVal0)
+{
+	MySH* pms = 0;
+	integer iNumber = SH.size();
+	SAFENEWWITHCONSTRUCTOR(pms,
+		MySH,
+		MySH((unsigned int)iNumber, pFunc, pTrigger, dVal0));
+	SH.push_back(pms);
+
+	return iNumber;
+}
+
+const DriveCaller *
+DriveHandler::pGetSHFunc(integer iNumber) const
+{
+	return SH[iNumber]->pGetFunc();
+}
+
+const DriveCaller *
+DriveHandler::pGetSHTrigger(integer iNumber) const
+{
+	return SH[iNumber]->pGetTrigger();
+}
+
+const doublereal
+DriveHandler::dGetSHVal0(integer iNumber) const
+{
+	return SH[iNumber]->dGetVal0();
+}
 
 void
 DriveHandler::PutSymbolTable(Table& T)
@@ -353,6 +398,38 @@ DriveHandler::MyClosestNext::MyClosestNext(unsigned int uLabel,
 DriveHandler::MyClosestNext::~MyClosestNext(void)
 {
 	NO_OP;
+}
+
+DriveHandler::MySH::MySH(unsigned int uLabel,
+	const DriveCaller *pFunc,
+	const DriveCaller *pTrigger,
+	const doublereal dVal0)
+: WithLabel(uLabel), dVal0(dVal0), dVal(dVal0), Func(pFunc), Trigger(pTrigger)
+{
+	NO_OP;
+}
+
+DriveHandler::MySH::~MySH(void)
+{
+	NO_OP;
+}
+
+const DriveCaller *
+DriveHandler::MySH::pGetFunc(void) const
+{
+	return Func.pGetDriveCaller();
+}
+
+const DriveCaller *
+DriveHandler::MySH::pGetTrigger(void) const
+{
+	return Trigger.pGetDriveCaller();
+}
+
+const doublereal
+DriveHandler::MySH::dGetVal0(void) const
+{
+	return dVal0;
 }
 
 /* DriveHandler - end */

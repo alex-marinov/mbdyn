@@ -161,6 +161,7 @@ class DriveHandler {
 	friend class RandDriveCaller;
 	friend class MeterDriveCaller;
 	friend class ClosestNextDriveCaller;
+	friend class SHDriveCaller;
 
 private:
 #ifdef USE_MULTITHREAD
@@ -227,9 +228,32 @@ private:
 		virtual inline void Set(void);
 	};
 
+	/* For sample'n'hold */
+	class MySH : public WithLabel {
+	protected:
+		const doublereal dVal0;
+		mutable doublereal dVal;
+		const DriveOwner Func;
+		const DriveOwner Trigger;
+
+	public:
+		MySH(unsigned int uLabel,
+			const DriveCaller *pFunc,
+			const DriveCaller *pTrigger,
+			const doublereal dVal0);
+		virtual ~MySH(void);
+
+		inline doublereal dGetSH(void) const;
+		virtual inline void Set(void);
+		const DriveCaller *pGetFunc(void) const;
+		const DriveCaller *pGetTrigger(void) const;
+		const doublereal dGetVal0(void) const;
+	};
+
 	std::vector<MyMeter *> Meter;
 	std::vector<MyRand *> Rand;
 	std::vector<MyClosestNext *> ClosestNext;
+	std::vector<MySH *> SH;
 
 protected:
 	void SetTime(const doublereal& dt, const doublereal& dts,
@@ -239,6 +263,8 @@ protected:
 	integer iRandInit(integer iSteps);
 	integer iMeterInit(integer iSteps);
 	integer iClosestNextInit(const DriveCaller *pIncrement, doublereal dStartTime);
+	integer iSHInit(const DriveCaller *pFunc, const DriveCaller *pTrigger,
+		const doublereal dVal0);
 
 public:
 	DriveHandler(MathParser &mp);
@@ -255,6 +281,11 @@ public:
 	inline long int iGetRand(integer iNumber) const;
 	inline bool bGetMeter(integer iNumber) const;
 	inline bool bGetClosestNext(integer iNumber) const;
+	inline doublereal dGetSH(integer iNumber) const;
+
+	const DriveCaller *pGetSHFunc(integer iNumber) const;
+	const DriveCaller *pGetSHTrigger(integer iNumber) const;
+	const doublereal dGetSHVal0(integer iNumber) const;
 };
 
 
@@ -322,6 +353,22 @@ DriveHandler::MyClosestNext::Set(void)
 
 
 inline doublereal
+DriveHandler::MySH::dGetSH(void) const
+{
+	return dVal;
+}
+
+
+inline void
+DriveHandler::MySH::Set(void)
+{
+	if (Trigger.dGet()) {
+		dVal = Func.dGet();
+	}
+}
+
+
+inline doublereal
 DriveHandler::dGetTime(void) const
 {
 	ASSERT(pTime != 0);
@@ -360,6 +407,12 @@ inline bool
 DriveHandler::bGetClosestNext(integer iNumber) const
 {
 	return ClosestNext[iNumber]->bGetClosestNext();
+}
+
+inline doublereal
+DriveHandler::dGetSH(integer iNumber) const
+{
+	return SH[iNumber]->dGetSH();
 }
 
 /* DriveHandler - end */

@@ -47,6 +47,7 @@
 #include "privdrive.h"
 #include "filedrv.h"
 #include "ddrive.h"
+#include "shdrive.h"
 
 /* StringDriveCaller - begin */
 
@@ -2398,6 +2399,36 @@ DriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct SHDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+SHDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	DriveCaller *pFunc = HP.GetDriveCaller(bDeferred);
+	DriveCaller *pTrigger = HP.GetDriveCaller(bDeferred);
+
+	doublereal dVal0 = 0.;
+	if (HP.IsKeyWord("initial" "value")) {
+		dVal0 = HP.GetReal();
+	}
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		SHDriveCaller,
+		SHDriveCaller(pDrvHdl, pFunc, pTrigger, dVal0));
+
+	return pDC;
+}
+
 struct ArrayDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -2531,6 +2562,7 @@ InitDriveData(void)
 	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
 	SetDriveData("ramp", new RampDCR);
 	SetDriveData("random", new RandomDCR);
+	SetDriveData("sample" "and" "hold", new SHDCR);
 	SetDriveData("sine", new SineDCR);
 	SetDriveData("step", new StepDCR);
 	SetDriveData("string", new StringDCR);

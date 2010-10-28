@@ -1620,6 +1620,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{piecewise linear} & $\surd$ & \\
 \kw{ramp} & $\surd$ & \\
 \kw{random} & $\surd$ & \\ %
+\kw{sample and hold} & & \\ %
 \kw{scalar function} & $\surd$ & depends on underlying scalar function \\
 \kw{sine} & $\surd$ & \\
 \kw{step} & $\surd$ & \\
@@ -2278,6 +2279,21 @@ the internal clock.
 A given seed can be used to ensure that two
 simulations use exactly the same random sequence (concurrent settings 
 are not managed, so it is not very reliable).
+
+\subsection{Sample and hold drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{sample and hold} ,
+        (\ty{DriveCaller}) \bnt{function} ,
+        (\ty{DriveCaller}) \bnt{trigger}
+	[ , \kw{initial value} , \bnt{initial_value} ]
+\end{Verbatim}
+%\end{verbatim}
+When \nt{trigger} is non-zero, the value of the function \nt{function}
+is recorded and returned; when \nt{trigger} is zero,
+the last recorded value is returned.
+When the optional keyword \kw{initial value} is present,
+the value \nt{initial\_value} is returned until \nt{trigger} is zero.
 
 \subsection{Scalar function drive}
 %\begin{verbatim}

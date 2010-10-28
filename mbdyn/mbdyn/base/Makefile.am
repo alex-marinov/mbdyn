@@ -132,6 +132,8 @@ scalarvalue.h \
 shape.cc \
 shape.h \
 shape_impl.h \
+shdrive.cc \
+shdrive.h \
 shockabsorber.h \
 simentity.cc \
 simentity.h \
