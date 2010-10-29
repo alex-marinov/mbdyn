@@ -92,6 +92,7 @@ begin: drivers;
         	create, yes,
 		# path, "/tmp/mbdyn.pendulum.in.sock",
 		port, 8005,
+		receive first, no,
 		1;
 end: drivers;
 
@@ -129,4 +130,4 @@ begin: elements;
 			1;		# use channel 1
 end: elements;
 
-
+# vim:ft=mbd
