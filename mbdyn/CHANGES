@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added alpha-first generic aerodynamic element
 		- allow to fine-tune when initial eigenanalysis is performed
 		- added C++ interface to external forces peer library
+		- added "sample and hold" (Mattia Mattaboni)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
