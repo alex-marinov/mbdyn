@@ -131,7 +131,7 @@ check_flag(const char *flag, int sleeptime)
 
 		if (sleeptime) {
 			fprintf(stderr, "test_modalext_edge: sleeping %d s\n", sleeptime);
-			sleep(sleeptime);
+			usleep(1000000*sleeptime);
 		}
 	}
 
@@ -144,11 +144,14 @@ put_flag(const char *flag, int cmd)
 	FILE *f;
 	char ftmpname[] = "mbedgeXXXXXX";
 
+#ifdef HAVE_MKSTEMP
 	if (do_rename) {
 		int filedes = mkstemp(ftmpname);
 		f = fdopen(filedes, "w");
 
-	} else {
+	} else
+#endif // HAVE_MKSTEMP
+	{
 		f = fopen(flag, "w");
 	}
 
@@ -169,7 +172,7 @@ retry:;
 		if (rename(ftmpname, flag) == -1) {
 			switch (errno) {
 			case EBUSY:
-				sleep(sleeptime);
+				usleep(1000000*sleeptime);
 				goto retry;
 
 			default: {
@@ -468,7 +471,12 @@ main(int argc, char *argv[])
 			break;
 
 		case 'n':
+#ifdef HAVE_MKSTEMP
 			do_rename++;
+#else // ! HAVE_MKSTEMP
+			fprintf(stderr, "test_modalext_edge: "
+				"'-n' meaningless\n");
+#endif // ! HAVE_MKSTEMP
 			break;
 
 		case 'o':

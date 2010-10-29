@@ -190,7 +190,7 @@ retry_1:;
 					goto done;
 				}
 
-				sleep(1);
+				usleep(1000000);
 				goto retry_1;
 			}
 
@@ -229,7 +229,7 @@ retry_1:;
 			unlink(fname_in.c_str());
 
 			if (sleeptime) {
-				sleep(sleeptime);
+				usleep(1000000*sleeptime);
 			}
 
 			/* set forces */
