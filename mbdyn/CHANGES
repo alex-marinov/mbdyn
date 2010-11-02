@@ -129,12 +129,13 @@ MBDyn 1.3.11
 	Enhancements:
 		- added peer libraries for modal external force (mbc.h)
 		- added NetCDF support to beam2/3
-		- added support for gust models run-time loading
+		- added support for run-time loading of gust models
 		- added piecewise constant shape
 		- added tip loss handling to aerodynamic elements
 		- added referenced direction capability to rigid body
 		  kinematics
 		- added external modal mapping force element
+		  (partially supported by PRIN 20078TJFZE)
 	Backward compatibility issues:
 		- syntax of "modal" joint "diag damping" changed
 	Known issues:
