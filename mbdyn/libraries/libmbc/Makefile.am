@@ -3,18 +3,27 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 
 # Build libmbc.a library
-#noinst_LTLIBRARIES = libmbc.la
+noinst_LTLIBRARIES = libmbc_static.la
+
+### libmbc_static.la is linked by mbdyn; libmbc.la is installed
+### NOTE: all mbdyn needs are the "sock" stuff
+libmbc_static_la_SOURCES = \
+sock.c \
+sock.h
+
+libmbc_static_la_LIBADD = @LIBS@
+libmbc_static_la_LDFLAGS =
+
+
 lib_LTLIBRARIES = libmbc.la
 
 libmbc_la_SOURCES = \
 mbc.c \
 mbc.h \
 mbcxx.cc \
-mbcxx.h \
-sock.c \
-sock.h
+mbcxx.h
 
-libmbc_la_LIBADD = @LIBS@
+libmbc_la_LIBADD = libmbc_static.la @LIBS@
 libmbc_la_LDFLAGS =
 
 include_HEADERS = \

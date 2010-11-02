@@ -28,7 +28,7 @@ elec/libelec.la \
 thermo/libthermo.la \
 hydr/libhydr.la \
 base/libbase.la  \
-../libraries/libmbc/libmbc.la \
+../libraries/libmbc/libmbc_static.la \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libann/libann.la \
 $(GINACLIB_LIBS) \
@@ -55,6 +55,9 @@ $(GINACLIB_LIBS) \
 @X_ANN_LIBS@ \
 @LIBS@ \
 $(GINACLIB_LIBS)
+
+### note: to avoid dynamic linking, in mbdyn_LDADD use
+### ../libraries/libmbc/.libs/libmbc.a
 
 INCLUDES = \
 -I../include \
