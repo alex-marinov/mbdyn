@@ -170,7 +170,7 @@ mbc_py_nodal_negotiate(unsigned id)
 		mbc_r_x = MBC_R_X(mbcp);
 		mbc_r_x_size = 3;
 
-		switch (MBC_F_ROT(mbcp)) {
+		switch (MBC_F_ROT_REF_NODE(mbcp)) {
 		case MBC_ROT_THETA:
 			mbc_r_theta = MBC_R_THETA(mbcp);
 			mbc_r_theta_size = 3;
@@ -185,6 +185,10 @@ mbc_py_nodal_negotiate(unsigned id)
 			mbc_r_euler_123 = MBC_R_EULER_123(mbcp);
 			mbc_r_euler_123_size = 3;
 			break;
+
+		default:
+			std::cerr << "mbc_py_nodal_negotiate: unknown reference node orientation" << std::endl;
+			return -1;
 		}
 
 		mbc_r_xp = MBC_R_XP(mbcp);
@@ -230,6 +234,13 @@ mbc_py_nodal_negotiate(unsigned id)
 		case MBC_ROT_EULER_123:
 			mbc_n_euler_123 = MBC_N_EULER_123(mbcp);
 			mbc_n_euler_123_size = 3*mbcp->nodes;
+
+		case MBC_ROT_NONE:
+			break;
+
+		default:
+			std::cerr << "mbc_py_nodal_negotiate: unknown node orientation " << MBC_F_ROT(mbcp) << std::endl;
+			return -1;
 		}
 
 		mbc_n_xp = MBC_N_XP(mbcp);
