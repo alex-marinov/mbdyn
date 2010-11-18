@@ -191,7 +191,8 @@ public:
 	// Elements should not call this function when bSectionalForces() 
 	// returns "false"
 	virtual void AddSectionalForce(unsigned int uL,
-		const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X);
+		const Vec3& F, const Vec3& M, doublereal dW,
+		const Vec3& X, const Mat3x3& R);
 
 	virtual void ResetForce(void);
 

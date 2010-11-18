@@ -258,7 +258,8 @@ InducedVelocity::AddForce(unsigned int uL,
 // usando la forza e il momento per unita' di apertura e il peso
 void
 InducedVelocity::AddSectionalForce(unsigned int uL,
-	const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X)
+	const Vec3& F, const Vec3& M, doublereal dW,
+	const Vec3& X, const Mat3x3& R)
 {
 	ASSERT(bSectionalForces() == true);
 	InducedVelocity::AddForce(uL, F*dW, M*dW, X);

@@ -851,12 +851,12 @@ Aerodynamic2DElem<iNN>::AddForce_int(const Vec3& F,
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::AddSectionalForce_int(const Vec3& F,
-	const Vec3& M, doublereal dW, const Vec3& X) const
+	const Vec3& M, doublereal dW, const Vec3& X, const Mat3x3& R) const
 {
 	if (pIndVel != 0 && !bPassiveInducedVelocity
 		&& pIndVel->bSectionalForces())
 	{
-		pIndVel->AddSectionalForce(GetLabel(), F, M, dW, X);
+		pIndVel->AddSectionalForce(GetLabel(), F, M, dW, X, R);
 	}
 }
 
@@ -1335,7 +1335,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
-		AddSectionalForce_int(FTmp, MTmp, dWght, Xn);
+		AddSectionalForce_int(FTmp, MTmp, dWght, Xnr, RRloc);
 
 		FTmp *= dWght;
 		MTmp *= dWght;
@@ -2376,7 +2376,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
-			AddSectionalForce_int(FTmp, MTmp, dWght, Xr);
+			AddSectionalForce_int(FTmp, MTmp, dWght, Xr, RRloc);
 
 			FTmp *= dWght;
 			MTmp *= dWght;
@@ -3272,7 +3272,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
-			AddSectionalForce_int(FTmp, MTmp, dWght, Xr);
+			AddSectionalForce_int(FTmp, MTmp, dWght, Xr, RRloc);
 
 			FTmp *= dWght;
 			MTmp *= dWght;
