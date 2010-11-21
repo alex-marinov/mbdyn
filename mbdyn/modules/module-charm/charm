@@ -6,8 +6,8 @@ end: data;
 
 begin: initial value;
 	initial time: 0.;
-	# final time: 10.;
-	final time: .001;
+	final time: 10.;
+	# final time: .001;
 	time step: 1.e-3;
 
 	tolerance: 1.e-5;
@@ -135,7 +135,15 @@ begin: elements;
 
 	# create a symlink to libmodule-charm.so in this folder
 	module load: "./libmodule-charm.so";
-	user defined: 1, charm, 1, output, yes;
+	user defined: 1, charm,
+		units, si,
+			# output unit, 98,
+		aircraft, 1,
+		rotors, 2,
+			2, 10,
+			2, 10,
+		trim times, .9999, 1.9999, 2.9999, 3.9999,
+		output, yes;
 	aerodynamic beam: 1, 1, induced velocity, 1,
 		reference, node, null,
 		reference, 3, eye,
