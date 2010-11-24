@@ -192,7 +192,8 @@ public:
 	// returns "false"
 	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
-		const Vec3& X, const Mat3x3& R);
+		const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W);
 
 	virtual void ResetForce(void);
 

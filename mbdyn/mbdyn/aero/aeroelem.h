@@ -178,7 +178,8 @@ protected:
 	void Output_int(OutputHandler& OH) const;
 	void AddForce_int(const Vec3& F, const Vec3& M, const Vec3& X) const;
 	void AddSectionalForce_int(unsigned iPnt, const Vec3& F, const Vec3& M,
-		doublereal dW, const Vec3& X, const Mat3x3& R) const;
+		doublereal dW, const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W) const;
 
 public:
 	Aerodynamic2DElem(unsigned int uLabel,

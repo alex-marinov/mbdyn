@@ -75,7 +75,9 @@ public:
 	virtual bool bSectionalForces(void) const;
 	virtual Vec3 GetInducedVelocity(const Vec3&) const;
 	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
-		const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X);
+		const Vec3& F, const Vec3& M, doublereal dW,
+		const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W);
 
 	virtual void Output(OutputHandler& OH) const;
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
@@ -173,7 +175,9 @@ ModuleIndVel::GetInducedVelocity(const Vec3& X) const
 
 void
 ModuleIndVel::AddSectionalForce(unsigned int uL, unsigned iPnt,
-	const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X)
+	const Vec3& F, const Vec3& M, doublereal dW,
+	const Vec3& X, const Mat3x3& R,
+	const Vec3& V, const Vec3& W)
 {
 	std::cerr << "ModuleIndVel(" << GetLabel() << ")::AddSectionalForce: " << uL << std::endl;
 
