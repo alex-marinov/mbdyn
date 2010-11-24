@@ -190,7 +190,7 @@ public:
 	// multiple contributions in one iteration.
 	// Elements should not call this function when bSectionalForces() 
 	// returns "false"
-	virtual void AddSectionalForce(unsigned int uL,
+	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R);
 

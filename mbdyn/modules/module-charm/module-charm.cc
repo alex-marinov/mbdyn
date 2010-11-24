@@ -61,6 +61,8 @@
 #define __stdcall
 #include <CharmWP.h>
 
+// The functions that follow are stubs to simulate the availability
+// of CHARM's WP library
 #define MBCHARM_FAKE 1
 #ifdef MBCHARM_FAKE
 int
@@ -165,6 +167,37 @@ private:
 	typedef std::vector<PointData> PD;
 	PD::iterator m_data_iter;
 
+	// rotor->blade->point
+	struct ElemMapping {
+		unsigned uLabel;
+	};
+
+	struct SurfaceMapping {
+		std::vector<ElemMapping> Elems;
+	};
+
+	struct RotorMapping {
+		std::vector<SurfaceMapping> Blades;
+	};
+
+	std::vector<RotorMapping> m_Rotors;
+
+	// element -> rotor, blade
+	struct RotorBlade {
+		int iRotor;
+		int iBlade;
+		int iFirstPoint;
+
+		RotorBlade(int iRotor, int iBlade) : iRotor(iRotor), iBlade(iBlade), iFirstPoint(-1) { NO_OP; };
+		virtual ~RotorBlade(void) { NO_OP; };
+	};
+
+	typedef std::map<unsigned, RotorBlade *> RBM;
+	RBM m_e2b_map;
+
+	// Time handling
+	// KTRSIM-related stuff (Fidelity/speed trade off settings)
+	// TODO: use azimuth instead of time (number of revolutions)
 	DriveOwner m_Time;
 	std::vector<double> m_TrimTime;
 	std::vector<double>::const_iterator m_TrimTimeIter;
@@ -193,7 +226,7 @@ public:
 	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
 	virtual bool bSectionalForces(void) const;
 	virtual Vec3 GetInducedVelocity(const Vec3&) const;
-	virtual void AddSectionalForce(unsigned int uL,
+	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R);
 
@@ -347,65 +380,58 @@ iFirstAssembly(2)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	std::vector<int> v_num_blades(num_rotors);
-	std::vector<int> v_num_control_points(num_rotors);
+	m_Rotors.resize(num_rotors);
 
 	for (int ir = 0; ir < num_rotors; ir++) {
-		v_num_blades[ir] = HP.GetInt();
-		if (v_num_blades[ir] < 1) {
+		int iNumBlades = HP.GetInt();
+		if (iNumBlades < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid number of blades " << v_num_blades[ir]
+				"invalid number of blades " << iNumBlades
+				<< " for rotor #" << ir << " of " << num_rotors
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].Blades.resize(iNumBlades);
+
+		int iNumElems = HP.GetInt();
+		if (iNumElems < 1) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid number of elements " << iNumElems
 				<< " for rotor #" << ir << " of " << num_rotors
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		v_num_control_points[ir] = HP.GetInt();
-		if (v_num_control_points[ir] < 1) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid number of control points " << v_num_control_points[ir]
-				<< " for rotor #" << ir << " of " << num_rotors
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		for (int ib = 0; ib < iNumBlades; ib++) {
+			for (int ie = 0; ie < iNumElems; ie++) {
+				int il = HP.GetInt();
+				if (il < 0) {
+					silent_cerr("ModuleCHARM(" << uLabel << "): "
+						"invalid label " << il
+						<< " for element #" << ie << " of " << iNumElems << ", "
+						<< "blade #" << ib << " of " << iNumBlades << ", "
+						<< "rotor #" << ir << " of " << num_rotors
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				RotorBlade *pRB = new RotorBlade(ir, ib);
+				if (!m_e2b_map.insert(RBM::value_type(unsigned(il), pRB)).second) {
+					silent_cerr("ModuleCHARM(" << uLabel << "): "
+						"label " << il
+						<< " for element #" << ie << " of " << iNumElems << ", "
+						<< "blade #" << ib << " of " << iNumBlades << ", "
+						<< "rotor #" << ir << " of " << num_rotors
+						<< "already in use"
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
 		}
 	}
 
-	allocWPAircraft(num_rotors, &v_num_blades[0],
-           	&v_num_control_points[0], &m_wpaircraft);
-
-	if (m_wpaircraft.number_rotors_or_surfaces != num_rotors) {
-		silent_cerr("ModuleCHARM(" << uLabel << "): "
-			"number of rotors mismatch "
-			"(" << m_wpaircraft.number_rotors_or_surfaces
-			<< " instead of " << num_rotors << ") "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	for (int ir = 0; ir < num_rotors; ir++) {
-		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
-		if (rotor->number_blades != v_num_blades[ir]) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"number of blades mismatch "
-				"(" << rotor->number_blades
-				<< " instead of " << v_num_blades[ir] << ") "
-				"for rotor #" << ir << " of " << num_rotors
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		if (rotor->number_control_points != v_num_control_points[ir]) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"number of control points mismatch "
-				"(" << rotor->number_control_points
-				<< " instead of " << v_num_control_points[ir] << ") "
-				"for rotor #" << ir << " of " << num_rotors
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
-	m_TrimTime.resize(5);
 	if (HP.IsKeyWord("trim" "times")) {
+		m_TrimTime.resize(5);
 		for (unsigned it = 0; it < 4; it++) {
 			m_TrimTime[it] = HP.GetReal();
 			if (it > 0 && m_TrimTime[it] <= m_TrimTime[it - 1]) {
@@ -416,11 +442,11 @@ iFirstAssembly(2)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
-		m_TrimTime[4] = std::numeric_limits<doublereal>::max();
 
 	} else {
-		m_TrimTime[0] = std::numeric_limits<doublereal>::max();
+		m_TrimTime.resize(1);
 	}
+	m_TrimTime[m_TrimTime.size() - 1] = std::numeric_limits<doublereal>::max();
 	m_TrimTimeIter = m_TrimTime.begin();
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
@@ -456,7 +482,55 @@ ModuleCHARM::Init_int(void)
 	// this function must be called after all data has been set up
 	ASSERT(iFirstAssembly == 1);
 
-	initWPModule(1,		// FIXME: one aircraft only
+	int num_rotors = m_Rotors.size();
+	std::vector<int> v_num_blades(num_rotors);
+	std::vector<int> v_num_control_points(num_rotors);
+
+	for (int ir = 0; ir < num_rotors; ir++) {
+		ASSERT(m_Rotors[ir].Blades.size() > 0);
+		v_num_control_points[ir] = m_Rotors[ir].Blades[0].Elems.size();
+		if (v_num_control_points[ir] < 1) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid number of control points " << v_num_control_points[ir]
+				<< " for rotor #" << ir << " of " << num_rotors << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	allocWPAircraft(num_rotors, &v_num_blades[0],
+           	&v_num_control_points[0], &m_wpaircraft);
+
+	if (m_wpaircraft.number_rotors_or_surfaces != num_rotors) {
+		silent_cerr("ModuleCHARM(" << uLabel << "): "
+			"number of rotors mismatch "
+			"(" << m_wpaircraft.number_rotors_or_surfaces
+			<< " instead of " << num_rotors << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (int ir = 0; ir < num_rotors; ir++) {
+		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
+		if (rotor->number_blades != v_num_blades[ir]) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"number of blades mismatch "
+				"(" << rotor->number_blades
+				<< " instead of " << v_num_blades[ir] << ") "
+				"for rotor #" << ir << " of " << num_rotors << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (rotor->number_control_points != v_num_control_points[ir]) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"number of control points mismatch "
+				"(" << rotor->number_control_points
+				<< " instead of " << v_num_control_points[ir] << ") "
+				"for rotor #" << ir << " of " << num_rotors << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	// FIXME: one aircraft only
+	initWPModule(1,
 		&m_wpaircraft,
 		m_eval_pts.size(), m_eval_pts.size(), &m_eval_pts[0],
 		1,		// FIXME: areEvalPointsFixed?
@@ -574,7 +648,7 @@ ModuleCHARM::GetInducedVelocity(const Vec3& X) const
 }
 
 void
-ModuleCHARM::AddSectionalForce(unsigned int uL,
+ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R)
 {

@@ -177,7 +177,7 @@ protected:
 	virtual void SetOutputFlag(flag f = flag(1));
 	void Output_int(OutputHandler& OH) const;
 	void AddForce_int(const Vec3& F, const Vec3& M, const Vec3& X) const;
-	void AddSectionalForce_int(const Vec3& F, const Vec3& M,
+	void AddSectionalForce_int(unsigned iPnt, const Vec3& F, const Vec3& M,
 		doublereal dW, const Vec3& X, const Mat3x3& R) const;
 
 public:

@@ -74,7 +74,7 @@ public:
 	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
 	virtual bool bSectionalForces(void) const;
 	virtual Vec3 GetInducedVelocity(const Vec3&) const;
-	virtual void AddSectionalForce(unsigned int uL,
+	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
 		const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X);
 
 	virtual void Output(OutputHandler& OH) const;
@@ -172,7 +172,7 @@ ModuleIndVel::GetInducedVelocity(const Vec3& X) const
 }
 
 void
-ModuleIndVel::AddSectionalForce(unsigned int uL,
+ModuleIndVel::AddSectionalForce(unsigned int uL, unsigned iPnt,
 	const Vec3& F, const Vec3& M, doublereal dW, const Vec3& X)
 {
 	std::cerr << "ModuleIndVel(" << GetLabel() << ")::AddSectionalForce: " << uL << std::endl;
