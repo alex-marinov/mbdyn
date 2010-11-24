@@ -293,12 +293,26 @@ begin: elements;
 			# output unit, 98,
 		aircraft, 0,
 		rotors, 2,	# number of rotors
-			2,	# number of blades of rotor #0
-				1,	# number of elements per blade of rotor #0
+			rotation direction, counter clockwise,	# optional
+			radius, R,
+			chord, C,
+			root cutout, R_CUTOUT,
+			omega, OMEGA,
+			hub node, ROTOR_1,
+			orientation, eye,
+			blades, 2,	# number of blades of rotor #0
+				elements, 1,	# number of elements per blade of rotor #0
 				ROTOR_1 + BLADE_1,	# elements of rotor #0, blade #0
 				ROTOR_1 + BLADE_2,	# elements of rotor #0, blade #1
-			2, 	# number of blades of rotor #1
-				1,	# number of elements per blade of rotor #1
+			rotation direction, clockwise,	# optional
+			radius, R,
+			chord, C,
+			root cutout, R_CUTOUT,
+			omega, OMEGA,
+			hub node, ROTOR_2,
+			orientation, eye,
+			blades, 2, 	# number of blades of rotor #1
+				elements, 1,	# number of elements per blade of rotor #1
 				ROTOR_2 + BLADE_1,	# elements of rotor #1, blade #0
 				ROTOR_2 + BLADE_2,	# elements of rotor #1, blade #1
 		trim times, .9999, 1.9999, 2.9999, 3.9999,

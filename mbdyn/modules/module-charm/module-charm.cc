@@ -54,7 +54,8 @@
 #include "dataman.h"
 #include "userelem.h"
 #include "indvel.h"
-#include "drive_.h"
+#include "drive_.h" // for TimeDrive
+#include "Rot.hh"
 
 // CHARM's header file (apparently it is experimental)
 #undef __stdcall
@@ -149,13 +150,19 @@ class ModuleCHARM
 	public InducedVelocity
 {
 private:
+	// forward declaration
+	struct RotorBlade;
+
 	// TODO: define per-point structure
 	struct PointData {
 		unsigned label;
 		unsigned counter;
-		Vec3 F;
-		Vec3 M;
-		doublereal dW;
+
+		RotorBlade *pRB;
+		int iOff;
+
+		double dF;
+		double dV;
 		Vec3 X;
 
 	public:
@@ -167,31 +174,18 @@ private:
 	typedef std::vector<PointData> PD;
 	PD::iterator m_data_iter;
 
-	// rotor->blade->point
-	struct ElemMapping {
-		unsigned uLabel;
-	};
-
-	struct SurfaceMapping {
-		std::vector<ElemMapping> Elems;
-	};
-
-	struct RotorMapping {
-		std::vector<SurfaceMapping> Blades;
-	};
-
-	std::vector<RotorMapping> m_Rotors;
-
 	// element -> rotor, blade
 	struct RotorBlade {
 		int iRotor;
 		int iBlade;
 		int iElem;
-		int iFirstPoint;
+		int iFirst;
+		int iCount;
+		int iIdx;
 
 		RotorBlade(int iRotor, int iBlade, int iElem)
 			: iRotor(iRotor), iBlade(iBlade),
-			iElem(iElem), iFirstPoint(-1)
+			iElem(iElem), iCount(-1), iIdx(-1)
 		{
 			NO_OP;
 		};
@@ -201,6 +195,33 @@ private:
 
 	typedef std::map<unsigned, RotorBlade *> RBM;
 	RBM m_e2b_map;
+
+	// rotor->blade->point
+	struct ElemMapping {
+		unsigned uLabel;
+		RotorBlade *pRB;
+	};
+
+	struct SurfaceMapping {
+		Mat3x3 Rh;
+
+		std::vector<ElemMapping> Elems;
+	};
+
+	struct RotorMapping {
+		int rotation_dir;
+		double radius;
+		double average_chord;
+		double root_cutout;
+		double omega100;
+
+		Mat3x3 Rh;
+		StructNode *pHub;
+
+		std::vector<SurfaceMapping> Blades;
+	};
+
+	std::vector<RotorMapping> m_Rotors;
 
 	// Time handling
 	// KTRSIM-related stuff (Fidelity/speed trade off settings)
@@ -391,6 +412,108 @@ iFirstAssembly(2)
 	m_Rotors.resize(num_rotors);
 
 	for (int ir = 0; ir < num_rotors; ir++) {
+		if (HP.IsKeyWord("rotation" "direction")) {
+			if (HP.IsKeyWord("counter" "clockwise")) {
+				m_Rotors[ir].rotation_dir = 1;
+
+			} else if (HP.IsKeyWord("clockwise")) {
+				m_Rotors[ir].rotation_dir = -1;
+
+			} else {
+				m_Rotors[ir].rotation_dir = HP.GetInt();
+				if (std::abs(m_Rotors[ir].rotation_dir) != 1) {
+					silent_cerr("ModuleCHARM(" << uLabel << "): "
+						"invalid \"rotation direction\" "
+						"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+		} else {
+			m_Rotors[ir].rotation_dir = 1;
+		}
+
+		if (!HP.IsKeyWord("radius")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"radius\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].radius = HP.GetReal();
+		if (m_Rotors[ir].radius <= 0.) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid \"radius\" " << m_Rotors[ir].radius
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!HP.IsKeyWord("chord")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"chord\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].average_chord = HP.GetReal();
+		if (m_Rotors[ir].average_chord <= 0.) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid (average) \"chord\" " << m_Rotors[ir].average_chord
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!HP.IsKeyWord("root" "cutout")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"root cutout\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].root_cutout = HP.GetReal();
+		if (m_Rotors[ir].root_cutout <= 0.
+			|| m_Rotors[ir].root_cutout >= m_Rotors[ir].radius)
+		{
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid \"root cutout\" " << m_Rotors[ir].root_cutout
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!HP.IsKeyWord("omega")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"omega\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].omega100 = HP.GetReal();
+		if (m_Rotors[ir].omega100 <= 0.) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid \"root cutout\" " << m_Rotors[ir].omega100
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!HP.IsKeyWord("hub" "node")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"hub node\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		m_Rotors[ir].pHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+		if (HP.IsKeyWord("orientation")) {
+			m_Rotors[ir].Rh = HP.GetRotRel(ReferenceFrame(pCraft));
+
+		} else {
+			// construct Rh from aircraft and hub nodes
+			Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
+			m_Rotors[ir].Rh = Rac.MulTM(m_Rotors[ir].pHub->GetRCurr());
+		}
+
+		if (!HP.IsKeyWord("blades")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"blades\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		int iNumBlades = HP.GetInt();
 		if (iNumBlades < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
@@ -401,6 +524,12 @@ iFirstAssembly(2)
 		}
 		m_Rotors[ir].Blades.resize(iNumBlades);
 
+		if (!HP.IsKeyWord("elements")) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"\"elements\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		int iNumElems = HP.GetInt();
 		if (iNumElems < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
@@ -438,6 +567,7 @@ iFirstAssembly(2)
 				}
 
 				m_Rotors[ir].Blades[ib].Elems[ie].uLabel = unsigned(il);
+				m_Rotors[ir].Blades[ib].Elems[ie].pRB = pRB;
 			}
 		}
 	}
@@ -507,7 +637,7 @@ ModuleCHARM::Init_int(void)
 			int num_points = 0;
 			for (int ie = 0; ie < num_elems; ie++) {
 				unsigned uLabel = m_Rotors[ir].Blades[ib].Elems[ie].uLabel;
-				int iPoints = m_e2b_map[uLabel]->iFirstPoint;
+				int iPoints = m_e2b_map[uLabel]->iCount;
 
 #if 0
 				std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
@@ -515,7 +645,7 @@ ModuleCHARM::Init_int(void)
 					<< " ir=" << m_e2b_map[uLabel]->iRotor
 					<< " ib=" << m_e2b_map[uLabel]->iBlade
 					<< " ie=" << m_e2b_map[uLabel]->iElem
-					<< " num_points=" << m_e2b_map[uLabel]->iFirstPoint
+					<< " num_points=" << m_e2b_map[uLabel]->iCount
 					<< std::endl;
 #endif
 
@@ -528,6 +658,8 @@ ModuleCHARM::Init_int(void)
 						"did not write forces during initialization" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+
+				m_e2b_map[uLabel]->iFirst = num_points;
 				num_points += iPoints;
 			}
 
@@ -591,7 +723,33 @@ ModuleCHARM::Init_int(void)
 				"for rotor #" << ir << " of " << num_rotors << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		rotor->isRotor = 1;
+		rotor->rotation_dir = m_Rotors[ir].rotation_dir;
+		rotor->radius = m_Rotors[ir].radius;
+		rotor->average_chord = m_Rotors[ir].average_chord;
+		rotor->root_cutout = m_Rotors[ir].root_cutout;
+		// T_body_to_hub = Rh^T
+		rotor->T_body_to_hub[0][0] = m_Rotors[ir].Rh(1, 1);
+		rotor->T_body_to_hub[0][1] = m_Rotors[ir].Rh(1, 2);
+		rotor->T_body_to_hub[0][2] = m_Rotors[ir].Rh(1, 3);
+		rotor->T_body_to_hub[1][0] = m_Rotors[ir].Rh(2, 1);
+		rotor->T_body_to_hub[1][1] = m_Rotors[ir].Rh(2, 2);
+		rotor->T_body_to_hub[1][2] = m_Rotors[ir].Rh(2, 3);
+		rotor->T_body_to_hub[2][0] = m_Rotors[ir].Rh(3, 1);
+		rotor->T_body_to_hub[2][1] = m_Rotors[ir].Rh(3, 2);
+		rotor->T_body_to_hub[2][2] = m_Rotors[ir].Rh(3, 3);
+		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);
+		Mat3x3 Rhb(Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
+		Vec3 Psi(RotManip::VecRot(Rhb));
+		rotor->azimuthal_offset = Psi(3)*m_Rotors[ir].rotation_dir;
+		rotor->omega100 = m_Rotors[ir].omega100;
+#if 0
+		rotor->nominal_thrust_coeff = 0.;
+#endif
 	}
+
+	// TODO: generate "charm.inp"
 
 	// FIXME: one aircraft only
 	initWPModule(1,
@@ -681,6 +839,58 @@ ModuleCHARM::Update_int(void)
 	m_wpaircraft.T_inertial_to_body[2][2] = Rac(3, 3);
 
 	// TODO: rotor(s)
+	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
+		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
+
+		// hub position
+		Vec3 Xhb(Rac.MulTV(m_Rotors[ir].pHub->GetXCurr() - Xac));
+		rotor->hub_position[0] = Xhb(1);
+		rotor->hub_position[1] = Xhb(2);
+		rotor->hub_position[2] = Xhb(3);
+
+		// azimuth
+		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);
+		Mat3x3 Rhb(Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
+		Vec3 Psi(RotManip::VecRot(Rhb));
+		rotor->azimuth = Psi(3);
+		while (rotor->azimuth < 0.) {
+			rotor->azimuth += 2.*M_PI;
+		}
+		while (rotor->azimuth > 2.*M_PI) {
+			rotor->azimuth -= 2.*M_PI;
+		}
+		rotor->azimuth = Psi(3);
+
+		// rotor velocity
+		Vec3 ehb3(m_Rotors[ir].pHub->GetRCurr().GetVec(3));
+		rotor->rotor_speed = std::abs(ehb3*(m_Rotors[ir].pHub->GetWCurr() - pCraft->GetWCurr()));
+
+#if 0
+		silent_cout("ModuleCHARM(" << GetLabel() << "): "
+			"ir=" << ir << " psi=" << rotor->azimuth
+			<< " omega=" << rotor->rotor_speed << std::endl);
+#endif
+
+		for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
+			wpBlade *blade = &rotor->blades[ib];
+
+			for (unsigned ie = 0; ie < m_Rotors[ir].Blades[ib].Elems.size(); ie++) {
+				int iFirst = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iFirst;
+				int iCount = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iCount;
+				int iIdx = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iIdx;
+
+				ASSERT(iIdx != -1);
+
+				for (int ip = 0; ip < iCount; ip++) {
+					blade->tangential_velocity[iFirst + ip] = m_data[iIdx].dV;
+					blade->spanwise_lift[iFirst + ip] = m_data[iIdx].dF;
+					blade->control_pts[iFirst + ip][0] = m_data[iIdx].X(1);
+					blade->control_pts[iFirst + ip][1] = m_data[iIdx].X(2);
+					blade->control_pts[iFirst + ip][2] = m_data[iIdx].X(3);
+				}
+			}
+		}
+	}
 
 	// actually call the module and update the induced velocity
 	// FIXME: the exact sequence needs to be carefully defined
@@ -708,7 +918,35 @@ ModuleCHARM::Update_int(void)
 Vec3
 ModuleCHARM::GetInducedVelocity(const Vec3& X) const
 {
-	return Zero3;
+	if (iFirstAssembly) {
+		return Zero3;
+	}
+
+	// TODO: maybe this can be computed once for all at each AssRes?
+	Mat3x3 R(pCraft->GetRCurr()*m_Rh);
+	Vec3 Xloc = R.MulTV(X - pCraft->GetXCurr());
+
+	unsigned iIdx, iMinIdx = -1;
+	doublereal dMinErr = std::numeric_limits<doublereal>::max();
+
+	for (iIdx = 0; iIdx < m_data.size(); iIdx++) {
+		doublereal dErr = (Xloc - m_data[iIdx].X).Norm();
+		if (dErr < dMinErr) {
+			iMinIdx = iIdx;
+		}
+	}
+
+	ASSERT(iMinIdx != -1);
+
+	int ir = m_data[iMinIdx].pRB->iRotor;
+	int ib = m_data[iMinIdx].pRB->iBlade;
+	int ip = m_data[iMinIdx].pRB->iFirst + m_data[iMinIdx].iOff;
+
+	Vec3 V(R*Vec3(m_wpaircraft.rotors[ir].blades[ib].cp_velocity[ip]));
+
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::GetInducedVelocity: X={" << X << "} V={" << V << "}" << std::endl;
+
+	return V;
 }
 
 void
@@ -728,9 +966,8 @@ ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 			m_data[idx].counter = m_data[idx - 1].counter + 1;
 		}
 
-		m_data[idx].F = Zero3;
-		m_data[idx].M = Zero3;
-		m_data[idx].dW = 0.;
+		m_data[idx].dF = 0.;
+		m_data[idx].dV = 0.;
 		m_data[idx].X = Zero3;
 
 		int ir = m_e2b_map[uL]->iRotor;
@@ -742,26 +979,46 @@ ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (m_e2b_map[uL]->iFirstPoint == -1) {
-			m_e2b_map[uL]->iFirstPoint = 1;
+		if (m_e2b_map[uL]->iCount == -1) {
+			m_e2b_map[uL]->iIdx = idx;
+			m_e2b_map[uL]->iCount = 1;
+
 		} else {
-			m_e2b_map[uL]->iFirstPoint++;
+			m_e2b_map[uL]->iCount++;
 		}
+
+		m_data[idx].pRB = m_e2b_map[uL];
+		m_data[idx].iOff = m_e2b_map[uL]->iCount - 1;
 
 #if 0
 		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt
-			<< " ir=" << ir << " ib=" << ib << " ie=" << ie << " num_points=" << m_e2b_map[uL]->iFirstPoint
+			<< " ir=" << ir << " ib=" << ib << " ie=" << ie << " num_points=" << m_e2b_map[uL]->iCount
 			<< std::endl;
 #endif
 
 	} else {
-		Mat3x3 R(pCraft->GetRCurr()*m_Rh);
+		// TODO: maybe this can be computed once for all at each AssRes?
+		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
 
 		// resolve force, moment and point in craft's reference frame
-		m_data_iter->F = R.MulTV(F);
-		m_data_iter->M = R.MulTV(M);
-		m_data_iter->dW = dW;
-		m_data_iter->X = R.MulTV(X - pCraft->GetXCurr());
+		Vec3 Vloc(R.MulTV(V));
+		std::cerr << "*** Vloc={" << Vloc << "}" << std::endl;
+		Vloc(3) = 0.;
+		Vec3 Floc(R.MulTV(F));
+		std::cerr << "*** Floc={" << Floc << "}" << std::endl;
+		Floc(3) = 0.;
+		m_data_iter->dV = Vloc.Norm();
+		if (m_data_iter->dV > std::numeric_limits<doublereal>::epsilon()) {
+			Vloc /= m_data_iter->dV;
+			Vec3 Tmp(Vloc.Cross(Floc));
+			m_data_iter->dF = (Vloc.Cross(Floc))(3);
+
+		} else {
+			m_data_iter->dF = 0.;
+		}
+		m_data_iter->X = Rac.MulTV(X - pCraft->GetXCurr());
+
+		std::cerr << "    dV=" << m_data_iter->dV << " dF=" << m_data_iter->dF << " X={" << m_data_iter->X << "}" << std::endl;
 
 		m_data_iter++;
 	}
@@ -785,9 +1042,8 @@ ModuleCHARM::Output(OutputHandler& OH) const
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
 			out << GetLabel() << "#" << i->label << "#" << i->counter
-				<< " " << i->F
-				<< " " << i->M
-				<< " " << i->dW
+				<< " " << i->dF
+				<< " " << i->dV
 				<< " " << i->X
 				<< std::endl;
 		}
