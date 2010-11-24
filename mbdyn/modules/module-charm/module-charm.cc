@@ -186,9 +186,16 @@ private:
 	struct RotorBlade {
 		int iRotor;
 		int iBlade;
+		int iElem;
 		int iFirstPoint;
 
-		RotorBlade(int iRotor, int iBlade) : iRotor(iRotor), iBlade(iBlade), iFirstPoint(-1) { NO_OP; };
+		RotorBlade(int iRotor, int iBlade, int iElem)
+			: iRotor(iRotor), iBlade(iBlade),
+			iElem(iElem), iFirstPoint(-1)
+		{
+			NO_OP;
+		};
+
 		virtual ~RotorBlade(void) { NO_OP; };
 	};
 
@@ -228,7 +235,8 @@ public:
 	virtual Vec3 GetInducedVelocity(const Vec3&) const;
 	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
-		const Vec3& X, const Mat3x3& R);
+		const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W);
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	virtual void Output(OutputHandler& OH) const;
@@ -403,6 +411,7 @@ iFirstAssembly(2)
 		}
 
 		for (int ib = 0; ib < iNumBlades; ib++) {
+			m_Rotors[ir].Blades[ib].Elems.resize(iNumElems);
 			for (int ie = 0; ie < iNumElems; ie++) {
 				int il = HP.GetInt();
 				if (il < 0) {
@@ -415,8 +424,9 @@ iFirstAssembly(2)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				RotorBlade *pRB = new RotorBlade(ir, ib);
+				RotorBlade *pRB = new RotorBlade(ir, ib, ie);
 				if (!m_e2b_map.insert(RBM::value_type(unsigned(il), pRB)).second) {
+					delete pRB;
 					silent_cerr("ModuleCHARM(" << uLabel << "): "
 						"label " << il
 						<< " for element #" << ie << " of " << iNumElems << ", "
@@ -426,6 +436,8 @@ iFirstAssembly(2)
 						<< " at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
+
+				m_Rotors[ir].Blades[ib].Elems[ie].uLabel = unsigned(il);
 			}
 		}
 	}
@@ -487,8 +499,60 @@ ModuleCHARM::Init_int(void)
 	std::vector<int> v_num_control_points(num_rotors);
 
 	for (int ir = 0; ir < num_rotors; ir++) {
-		ASSERT(m_Rotors[ir].Blades.size() > 0);
-		v_num_control_points[ir] = m_Rotors[ir].Blades[0].Elems.size();
+		int num_blades = m_Rotors[ir].Blades.size();
+		ASSERT(num_blades > 0);
+		int num_points_per_blade = 0;
+		for (int ib = 0; ib < num_blades; ib++) {
+			int num_elems = m_Rotors[ir].Blades[ib].Elems.size();
+			int num_points = 0;
+			for (int ie = 0; ie < num_elems; ie++) {
+				unsigned uLabel = m_Rotors[ir].Blades[ib].Elems[ie].uLabel;
+				int iPoints = m_e2b_map[uLabel]->iFirstPoint;
+
+#if 0
+				std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
+					"label=" << uLabel
+					<< " ir=" << m_e2b_map[uLabel]->iRotor
+					<< " ib=" << m_e2b_map[uLabel]->iBlade
+					<< " ie=" << m_e2b_map[uLabel]->iElem
+					<< " num_points=" << m_e2b_map[uLabel]->iFirstPoint
+					<< std::endl;
+#endif
+
+				if (iPoints == -1) {
+					silent_cerr("ModuleCHARM(" << uLabel << "): "
+						"Element(" << uLabel << "), "
+						"element " << ie << " of " << num_elems << ", "
+						"blade " << ib << " of " << num_blades << ", "
+						"rotor " << ir << " of " << num_rotors << " "
+						"did not write forces during initialization" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				num_points += iPoints;
+			}
+
+#if 0
+			std::cerr << "ModuleCHARM(" << uLabel << "): "
+				"rotor=" << ir << " "
+				"blade=" << ib << " "
+				"points=" << num_points << std::endl;
+#endif
+
+			if (ib == 0) {
+				num_points_per_blade = num_points;
+
+			} else if (num_points != num_points_per_blade) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"number of points " << num_points << ", "
+					"blade " << ib << " of " << num_blades << ", "
+					"rotor " << ir << " of " << num_rotors << " "
+					"does not match number of points " << num_points_per_blade << " "
+					"of blade " << 0 << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		v_num_control_points[ir] = num_points_per_blade;
 		if (v_num_control_points[ir] < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
 				"invalid number of control points " << v_num_control_points[ir]
@@ -650,7 +714,7 @@ ModuleCHARM::GetInducedVelocity(const Vec3& X) const
 void
 ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
-	const Vec3& X, const Mat3x3& R)
+	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W)
 {
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt << std::endl;
 
@@ -668,6 +732,27 @@ ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 		m_data[idx].M = Zero3;
 		m_data[idx].dW = 0.;
 		m_data[idx].X = Zero3;
+
+		int ir = m_e2b_map[uL]->iRotor;
+		int ib = m_e2b_map[uL]->iBlade;
+		int ie = m_e2b_map[uL]->iElem;
+		if (m_Rotors[ir].Blades[ib].Elems[ie].uLabel != uL) {
+			silent_cerr("ModuleCHARM(" << GetLabel() << "): "
+				"uL=" << uL << " iPnt=" << iPnt << " mismatch" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (m_e2b_map[uL]->iFirstPoint == -1) {
+			m_e2b_map[uL]->iFirstPoint = 1;
+		} else {
+			m_e2b_map[uL]->iFirstPoint++;
+		}
+
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt
+			<< " ir=" << ir << " ib=" << ib << " ie=" << ie << " num_points=" << m_e2b_map[uL]->iFirstPoint
+			<< std::endl;
+#endif
 
 	} else {
 		Mat3x3 R(pCraft->GetRCurr()*m_Rh);
@@ -740,7 +825,7 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 		if (iFirstAssembly == 1) {
 			// all topological information should be available;
 			// module can be initialized
-			NO_OP;
+			Init_int();
 		}
 
 		iFirstAssembly--;
