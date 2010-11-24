@@ -153,7 +153,7 @@ class Aerodynamic2DElem :
 protected:
 	AeroData* aerodata;
 	InducedVelocity* pIndVel;
-	flag bPassiveInducedVelocity;
+	bool bPassiveInducedVelocity;
 
 	const ShapeOwner Chord;		/* corda */
 	const ShapeOwner ForcePoint;	/* punto di app. della forza (1/4) */

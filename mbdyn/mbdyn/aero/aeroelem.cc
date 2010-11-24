@@ -847,7 +847,7 @@ Aerodynamic2DElem<iNN>::AddForce_int(const Vec3& F,
 // only send forces if:
 // 1) an induced velocity model is defined
 // 2) this element is not "passive" (i.e. contributes to induced velocity)
-// 3) the induced velocity model require sectional forces
+// 3) the induced velocity model requires sectional forces
 template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::AddSectionalForce_int(unsigned iPnt, const Vec3& F,
@@ -1337,7 +1337,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
-		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xnr, RRloc, VTmp, WTmp);
+		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xnr, RRloc, Vr, Wn);
 
 		FTmp *= dWght;
 		MTmp *= dWght;
@@ -2378,7 +2378,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
-			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, VTmp, WTmp);
+			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
 			FTmp *= dWght;
 			MTmp *= dWght;
@@ -3274,7 +3274,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			Vec3 MTmp(RRloc*(Vec3(&dTng[3])));
 
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
-			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, VTmp, WTmp);
+			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
 			FTmp *= dWght;
 			MTmp *= dWght;
