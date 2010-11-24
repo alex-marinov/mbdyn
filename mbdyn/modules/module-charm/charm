@@ -51,10 +51,10 @@ begin: control data;
 			+2	# blades
 		)
 	;
-	output results: netcdf;
-	# default orientation: orientation vector;
-	default aerodynamic output: all,
-		orientation description, orientation vector;
+	# output results: netcdf;
+	default orientation: orientation vector;
+	# default aerodynamic output: all,
+	#	orientation description, orientation vector;
 end: control data;
 
 set: const real R = 5.;
