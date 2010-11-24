@@ -652,7 +652,7 @@ ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R)
 {
-	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << std::endl;
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt << std::endl;
 
 	if (iFirstAssembly == 1) {
 		unsigned idx = m_data.size();
