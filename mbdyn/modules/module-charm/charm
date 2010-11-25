@@ -48,7 +48,7 @@ begin: control data;
 	loadable elements: 1;
 	aerodynamic elements:
 		+2*(
-			+2	# blades
+			+4	# blades
 		)
 	;
 	# output results: netcdf;
@@ -301,9 +301,11 @@ begin: elements;
 			hub node, ROTOR_1,
 			orientation, eye,
 			blades, 2,	# number of blades of rotor #0
-				elements, 1,	# number of elements per blade of rotor #0
+				elements, 2,	# number of elements per blade of rotor #0
 				ROTOR_1 + BLADE_1,	# elements of rotor #0, blade #0
+				ROTOR_1 + BLADE_1 + 1,
 				ROTOR_1 + BLADE_2,	# elements of rotor #0, blade #1
+				ROTOR_1 + BLADE_2 + 1,
 			rotation direction, clockwise,	# optional
 			radius, R,
 			chord, C,
@@ -312,9 +314,11 @@ begin: elements;
 			hub node, ROTOR_2,
 			orientation, eye,
 			blades, 2, 	# number of blades of rotor #1
-				elements, 1,	# number of elements per blade of rotor #1
+				elements, 2,	# number of elements per blade of rotor #1
 				ROTOR_2 + BLADE_1,	# elements of rotor #1, blade #0
+				ROTOR_2 + BLADE_1 + 1,
 				ROTOR_2 + BLADE_2,	# elements of rotor #1, blade #1
+				ROTOR_2 + BLADE_2 + 1,
 		trim times, .9999, 1.9999, 2.9999, 3.9999,
 		output, yes;
 
@@ -323,10 +327,29 @@ begin: elements;
 	set: CURR_BLADE = BLADE_1;
 	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		induced velocity, 1,
-		reference, node, -(R - R_CUTOUT)/2, 0., 0.,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
 			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
-		R - R_CUTOUT,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
 		const, -.5*C*0,
@@ -343,10 +366,29 @@ begin: elements;
 	set: CURR_BLADE = BLADE_2;
 	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		induced velocity, 1,
-		reference, node, -(R - R_CUTOUT)/2, 0., 0.,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
 			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
-		R - R_CUTOUT,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
 		const, -.5*C*0,
@@ -366,10 +408,29 @@ begin: elements;
 	set: CURR_BLADE = BLADE_1;
 	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		induced velocity, 1,
-		reference, node, -(R - R_CUTOUT)/2, 0., 0.,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
 			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
-		R - R_CUTOUT,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
 		const, -.5*C*0,
@@ -386,10 +447,29 @@ begin: elements;
 	set: CURR_BLADE = BLADE_2;
 	aerodynamic body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		induced velocity, 1,
-		reference, node, -(R - R_CUTOUT)/2, 0., 0.,
+		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
 			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
-		R - R_CUTOUT,
+		(R - R_CUTOUT)/2,
+		const, C,
+		const, 0.,
+		const, -.5*C*0,
+		const, 0.,
+		GAUSS_POINTS,
+		# naca0012, unsteady, bielawa
+		c81, 1 # , unsteady, bielawa
+		# c81, interpolated, 2, 1, -1., 1, 1.
+		, jacobian, yes
+		, custom output, all, orientation description, orientation vector
+		, output, yes
+		, gauss
+		;
+	aerodynamic body: CURR_ROTOR + CURR_BLADE + 1, CURR_ROTOR + CURR_BLADE,
+		induced velocity, 1,
+		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
+		reference, CURR_ROTOR + CURR_BLADE,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, -1., 0., 0.,
+		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
 		const, -.5*C*0,
