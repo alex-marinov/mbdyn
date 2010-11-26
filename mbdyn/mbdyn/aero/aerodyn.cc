@@ -794,7 +794,7 @@ AerodynamicElem::NeedsAirProperties(void) const
 const InducedVelocity *
 AerodynamicElem::pGetInducedVelocity(void) const
 {
-	return NULL;
+	return 0;
 }
 
 /* AerodynamicElem - end */
