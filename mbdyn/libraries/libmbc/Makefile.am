@@ -43,7 +43,9 @@ mbc_py.i \
 mbc_py.h \
 mbc_py.cc \
 mbc_py_global.i \
-mbc_py_global.h \
+mbc_py_global.h
+
+nodist_libmbc_py_la_SOURCES = \
 mbc_py_wrap.cc
 
 SWIG_FLAGS = @SWIG_LIB@ $(AX_SWIG_PYTHON_OPT) $(AX_SWIG_PYTHON_CPPFLAGS)
