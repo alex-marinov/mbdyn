@@ -70,7 +70,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 	 * aggiunge alla velocita' la velocita' indotta
 	 */
 	if (pRotor != NULL) {
- 		Vca += pRotor->GetInducedVelocity(Xca);
+ 		Vca += pRotor->GetInducedVelocity(GetElemType(), GetLabel(), 0, Xca);
 	}
 #endif
 

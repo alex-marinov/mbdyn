@@ -163,7 +163,7 @@ static const bool bDefaultUseJacobian = false;
 template <unsigned iNN>
 Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	const DofOwner *pDO,
-	InducedVelocity* pR,
+	InducedVelocity* pR, bool bPassive,
 	const Shape* pC, const Shape* pF,
 	const Shape* pV, const Shape* pT,
 	const Shape* pTL,
@@ -179,7 +179,7 @@ DriveOwner(pDC),
 AerodynamicOutput(fOut, iNN*iN, uFlags, ood),
 aerodata(a),
 pIndVel(pR),
-bPassiveInducedVelocity(false),
+bPassiveInducedVelocity(bPassive),
 Chord(pC),
 ForcePoint(pF),
 VelocityPoint(pV),
@@ -850,15 +850,16 @@ Aerodynamic2DElem<iNN>::AddForce_int(const Vec3& F,
 // 3) the induced velocity model requires sectional forces
 template <unsigned iNN>
 void
-Aerodynamic2DElem<iNN>::AddSectionalForce_int(unsigned iPnt, const Vec3& F,
-	const Vec3& M, doublereal dW,
+Aerodynamic2DElem<iNN>::AddSectionalForce_int(unsigned uPnt,
+	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R,
 	const Vec3& V, const Vec3& W) const
 {
 	if (pIndVel != 0 && !bPassiveInducedVelocity
 		&& pIndVel->bSectionalForces())
 	{
-		pIndVel->AddSectionalForce(GetLabel(), iPnt, F, M, dW, X, R, V, W);
+		pIndVel->AddSectionalForce(GetElemType(), GetLabel(), uPnt,
+			F, M, dW, X, R, V, W);
 	}
 }
 
@@ -869,7 +870,7 @@ Aerodynamic2DElem<iNN>::AddSectionalForce_int(unsigned iPnt, const Vec3& F,
 
 AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	const DofOwner *pDO,
-	const StructNode* pN, InducedVelocity* pR,
+	const StructNode* pN, InducedVelocity* pR, bool bPassive,
 	const Vec3& fTmp, doublereal dS,
 	const Mat3x3& RaTmp,
 	const Shape* pC, const Shape* pF,
@@ -881,7 +882,8 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	unsigned uFlags, OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<1>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
+Aerodynamic2DElem<1>(uLabel, pDO, pR, bPassive, pC, pF, pV, pT, pTL, iN,
+	a, pDC, bUseJacobian, uFlags, ood, fOut),
 pNode(pN),
 f(fTmp),
 dHalfSpan(dS/2.),
@@ -1030,7 +1032,8 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
 		if (pIndVel != 0) {
-			Vr += pIndVel->GetInducedVelocity(Xnr);
+			Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xnr);
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
@@ -1276,7 +1279,8 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		 * aggiunge alla velocita' la velocita' indotta
 		 */
 		if (pIndVel != 0) {
-	 		Vr += pIndVel->GetInducedVelocity(Xnr);
+	 		Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xnr);
 		}
 
 		/* Copia i dati nel vettore di lavoro dVAM */
@@ -1419,13 +1423,13 @@ AerodynamicBody::Output(OutputHandler& OH) const
 
 /* AerodynamicBody - end */
 
-static InducedVelocity*
+static bool
 ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
-	unsigned uLabel, const char *sElemType)
+	unsigned uLabel, const char *sElemType,
+	InducedVelocity*& pIndVel, bool &bPassive)
 {
 	bool bReadIV(false);
 	bool bReadUDIV(false);
-	InducedVelocity *pIndVel = 0;
 	if (HP.IsKeyWord("rotor")) {
 		silent_cerr(sElemType << "(" << uLabel << "): "
 			"\"rotor\" keyword is deprecated; "
@@ -1447,6 +1451,11 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		unsigned int uIV = (unsigned int)HP.GetInt();
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Linked to InducedVelocity(" << uIV << ")" << std::endl);
+
+		bPassive = false;
+		if (HP.IsKeyWord("passive")) {
+			bPassive = true;
+		}
 
 		/*
 		 * verifica di esistenza del rotore
@@ -1490,7 +1499,7 @@ ReadInducedVelocity(DataManager *pDM, MBDynParser& HP,
 		ASSERT(pIndVel != 0);
 	}
 
-	return pIndVel;
+	return (pIndVel != 0);
 }
 
 void
@@ -1570,7 +1579,10 @@ ReadAerodynamicBody(DataManager* pDM,
 	/* Nodo */
 	StructNode* pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBody");
+	InducedVelocity* pIndVel = 0;
+	bool bPassive(false);
+	(void)ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBody",
+		pIndVel, bPassive);
 
 	ReferenceFrame RF(pNode);
 	Vec3 f(HP.GetPosRel(RF));
@@ -1634,7 +1646,8 @@ ReadAerodynamicBody(DataManager* pDM,
 	Elem* pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBody,
-		AerodynamicBody(uLabel, pDO, pNode, pIndVel, f, dSpan, Ra,
+		AerodynamicBody(uLabel, pDO, pNode, pIndVel, bPassive,
+			f, dSpan, Ra,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
 			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
 
@@ -1673,7 +1686,7 @@ ReadAerodynamicBody(DataManager* pDM,
 
 AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	const DofOwner *pDO,
-	const Beam* pB, InducedVelocity* pR,
+	const Beam* pB, InducedVelocity* pR, bool bPassive,
 	const Vec3& fTmp1,
 	const Vec3& fTmp2,
 	const Vec3& fTmp3,
@@ -1689,7 +1702,8 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	unsigned uFlags, OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<3>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
+Aerodynamic2DElem<3>(uLabel, pDO, pR, bPassive,
+	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -1947,7 +1961,8 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
 			if (pIndVel != 0) {
-				Vr += pIndVel->GetInducedVelocity(Xr);
+				Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xr);
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
@@ -2310,7 +2325,8 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
 			if (pIndVel != 0) {
-				Vr += pIndVel->GetInducedVelocity(Xr);
+				Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xr);
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
@@ -2498,7 +2514,10 @@ ReadAerodynamicBeam(DataManager* pDM,
 	ASSERT(pBeam != 0);
 
 	/* Eventuale rotore */
-	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam3");
+	InducedVelocity* pIndVel = 0;
+	bool bPassive(false);
+	(void)ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam3",
+		pIndVel, bPassive);
 
 	/* Nodo 1: */
 
@@ -2592,7 +2611,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam,
-		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel,
+		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel, bPassive,
 			f1, f2, f3, Ra1, Ra2, Ra3,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
 			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
@@ -2645,7 +2664,7 @@ AerodynamicBeam2::AerodynamicBeam2(
 	unsigned int uLabel,
 	const DofOwner* pDO,
 	const Beam2* pB,
-	InducedVelocity* pR,
+	InducedVelocity* pR, bool bPassive,
 	const Vec3& fTmp1,
 	const Vec3& fTmp2,
 	const Mat3x3& Ra1Tmp,
@@ -2663,7 +2682,8 @@ AerodynamicBeam2::AerodynamicBeam2(
 	flag fOut
 )
 : Elem(uLabel, fOut),
-Aerodynamic2DElem<2>(uLabel, pDO, pR, pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
+Aerodynamic2DElem<2>(uLabel, pDO, pR, bPassive,
+	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -2888,7 +2908,8 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
 			if (pIndVel != 0) {
-				Vr += pIndVel->GetInducedVelocity(Xr);
+				Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xr);
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
@@ -3212,7 +3233,8 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			 * aggiunge alla velocita' la velocita' indotta
 			 */
 			if (pIndVel != 0) {
-				Vr += pIndVel->GetInducedVelocity(Xr);
+				Vr += pIndVel->GetInducedVelocity(GetElemType(),
+				GetLabel(), iPnt, Xr);
 			}
 
 			/* Copia i dati nel vettore di lavoro dVAM */
@@ -3393,7 +3415,10 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	}
 
 	/* Eventuale rotore */
-	InducedVelocity* pIndVel = ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam2");
+	InducedVelocity* pIndVel = 0;
+	bool bPassive(false);
+	(void)ReadInducedVelocity(pDM, HP, uLabel, "AerodynamicBeam2",
+		pIndVel, bPassive);
 
 	/* Nodo 1: */
 
@@ -3474,7 +3499,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 
 	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicBeam2,
-		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel,
+		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel, bPassive,
 			f1, f2, Ra1, Ra2,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
 			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));

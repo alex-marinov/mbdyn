@@ -73,8 +73,10 @@ public:
 	// induced velocity specific calls
 	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
 	virtual bool bSectionalForces(void) const;
-	virtual Vec3 GetInducedVelocity(const Vec3&) const;
-	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3&) const;
+	virtual void AddSectionalForce(Elem::Type type,
+		unsigned int uLabel, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
@@ -168,24 +170,27 @@ ModuleIndVel::bSectionalForces(void) const
 }
 
 Vec3
-ModuleIndVel::GetInducedVelocity(const Vec3& X) const
+ModuleIndVel::GetInducedVelocityElem::Type type,
+		unsigned uLabel, unsigned uPnt, (const Vec3& X) const
 {
 	return Zero3;
 }
 
 void
-ModuleIndVel::AddSectionalForce(unsigned int uL, unsigned iPnt,
+ModuleIndVel::AddSectionalForce(Elem::Type type,
+	unsigned int uLabel, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R,
 	const Vec3& V, const Vec3& W)
 {
-	std::cerr << "ModuleIndVel(" << GetLabel() << ")::AddSectionalForce: " << uL << std::endl;
+	std::cerr << "ModuleIndVel(" << GetLabel() << ")::AddSectionalForce: "
+		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << std::endl;
 
 	if (iFirstAssembly == 1) {
 		unsigned idx = m_data.size();
 		m_data.resize(idx + 1);
-		m_data[idx].label = uL;
-		if (idx == 0 || (idx > 0 && uL != m_data[idx - 1].label)) {
+		m_data[idx].label = uLabel;
+		if (idx == 0 || (idx > 0 && uLabel != m_data[idx - 1].label)) {
 			m_data[idx].counter = 0;
 		} else {
 			m_data[idx].counter = m_data[idx - 1].counter + 1;

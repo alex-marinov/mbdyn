@@ -257,13 +257,14 @@ InducedVelocity::AddForce(unsigned int uL,
 // Somma alla trazione il contributo di forza di un elemento generico
 // usando la forza e il momento per unita' di apertura e il peso
 void
-InducedVelocity::AddSectionalForce(unsigned int uL, unsigned iPnt,
+InducedVelocity::AddSectionalForce(Elem::Type type,
+	unsigned int uLabel, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R,
 	const Vec3& V, const Vec3& W)
 {
 	ASSERT(bSectionalForces() == true);
-	InducedVelocity::AddForce(uL, F*dW, M*dW, X);
+	InducedVelocity::AddForce(uLabel, F*dW, M*dW, X);
 }
 
 void

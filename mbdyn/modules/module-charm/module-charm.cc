@@ -66,7 +66,7 @@
 // of CHARM's WP library
 #define MBCHARM_FAKE 1
 #ifdef MBCHARM_FAKE
-int
+extern "C" int
 allocWPAircraft(
 	int num_rotor_surf,
 	int *num_blades,
@@ -80,6 +80,10 @@ allocWPAircraft(
 
 	aircraft->number_rotors_or_surfaces = num_rotor_surf;
 
+#if 0
+	std::cerr << "allocWPAircraft: number_rotors_or_surfaces=" << aircraft->number_rotors_or_surfaces << std::endl;
+#endif
+
 	for (int ir = 0; ir < num_rotor_surf; ir++) {
 		wpRotorSurface *rotor = &aircraft->rotors[ir];
 
@@ -88,12 +92,18 @@ allocWPAircraft(
 
 		rotor->number_blades = num_blades[ir];
 		rotor->number_control_points = num_control_pts[ir];
+
+#if 0
+		std::cerr << "allocWPAircraft: rotor_or_surface[" << ir << "] number_blades=" << rotor->number_blades
+			<< " number_control_points=" << rotor->number_control_points << std::endl;
+#endif
+
 	}
 
 	return 0;
 }
 
-void
+extern "C" void
 initWPModule( 
 	int num_aircraft, 
 	wpAircraft *aircraft, 
@@ -111,33 +121,33 @@ initWPModule(
 	ASSERT(options != 0);
 }
 
-void
+extern "C" void
 updateIndVelocity(wpAircraft *aircraft, chOffRotorEval *eval)
 {
 	ASSERT(aircraft != 0);
 	ASSERT(eval != 0);
 }
 
-void
+extern "C" void
 setCHARMGlobal(chGlobal *global)
 {
 	ASSERT(global != 0);
 }
 
-void
+extern "C" void
 setWPAircraft(int index, wpAircraft *aircraft)
 {
 	ASSERT(aircraft != NULL);
 	ASSERT(index == 0);	// only one aircraft
 }
 
-void
+extern "C" void
 setCHARMOffRotor(int numPoints, chOffRotorEval *eval)
 {
 	ASSERT(eval != 0);
 }
 
-void
+extern "C" void
 updateWake(int isTrimming, chStatus *status)
 {
 	ASSERT(status != 0);
@@ -155,24 +165,39 @@ private:
 
 	// TODO: define per-point structure
 	struct PointData {
+		Elem::Type type;
 		unsigned label;
 		unsigned counter;
 
 		RotorBlade *pRB;
 		int iOff;
 
-		double dF;
-		double dV;
 		Vec3 X;
 
+		double *pos;
+		double *vel;
+
+		double spanwise_lift;
+		double tangential_velocity;
+
+		double *spanwise_lift_p;
+		double *tangential_velocity_p;
+
 	public:
-		PointData(void) { NO_OP; };
+		PointData(void)
+		: type(Elem::UNKNOWN), label(unsigned(-1)), counter(unsigned(-1)),
+		pRB(0), iOff(-1), pos(0), vel(0),
+		spanwise_lift_p(0), tangential_velocity_p(0)
+		{
+			NO_OP;
+		};
 		~PointData(void) { NO_OP; };
 	};
 
-	std::vector<PointData> m_data;
+	mutable std::vector<PointData> m_data;
 	typedef std::vector<PointData> PD;
-	PD::iterator m_data_iter;
+	PD::iterator m_data_frc_iter;
+	mutable PD::iterator m_data_vel_iter;
 
 	// element -> rotor, blade
 	struct RotorBlade {
@@ -193,6 +218,7 @@ private:
 		virtual ~RotorBlade(void) { NO_OP; };
 	};
 
+	// TODO: need to take element type into account
 	typedef std::map<unsigned, RotorBlade *> RBM;
 	RBM m_e2b_map;
 
@@ -235,6 +261,7 @@ private:
 	std::vector<chOffRotorEval> m_eval_pts;
 
 	Mat3x3 m_Rh;
+	Mat3x3 m_Rac;
 	wpAircraft m_wpaircraft;
 
 	// add private data
@@ -253,13 +280,17 @@ public:
 	// induced velocity specific calls
 	virtual InducedVelocity::Type GetInducedVelocityType(void) const;
 	virtual bool bSectionalForces(void) const;
-	virtual Vec3 GetInducedVelocity(const Vec3&) const;
-	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3&) const;
+	virtual void AddSectionalForce(Elem::Type type,
+		unsigned int uLabel, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+	virtual void AfterConvergence(const VectorHandler& X, 
+			const VectorHandler& XP);
 	virtual void Output(OutputHandler& OH) const;
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 	VariableSubMatrixHandler& 
@@ -628,8 +659,19 @@ ModuleCHARM::Init_int(void)
 	std::vector<int> v_num_blades(num_rotors);
 	std::vector<int> v_num_control_points(num_rotors);
 
+#if 0
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
+		"num_rotors=" << num_rotors << std::endl;
+#endif
+
 	for (int ir = 0; ir < num_rotors; ir++) {
 		int num_blades = m_Rotors[ir].Blades.size();
+
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
+			"rotor[" << ir << "] num_blades=" << num_blades << std::endl;
+#endif
+
 		ASSERT(num_blades > 0);
 		int num_points_per_blade = 0;
 		for (int ib = 0; ib < num_blades; ib++) {
@@ -684,13 +726,15 @@ ModuleCHARM::Init_int(void)
 			}
 		}
 
-		v_num_control_points[ir] = num_points_per_blade;
-		if (v_num_control_points[ir] < 1) {
+		if (num_points_per_blade < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
 				"invalid number of control points " << v_num_control_points[ir]
 				<< " for rotor #" << ir << " of " << num_rotors << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		v_num_blades[ir] = num_blades;
+		v_num_control_points[ir] = num_points_per_blade;
 	}
 
 	allocWPAircraft(num_rotors, &v_num_blades[0],
@@ -704,6 +748,15 @@ ModuleCHARM::Init_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+#if 0
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
+		"num_rotors_or_surfaces=" << m_wpaircraft.number_rotors_or_surfaces << std::endl;
+#endif
+
+	Mat3x3 Rb2h[2];
+	Rb2h[0] = Mat3x3(1, 0, 0, 0, -1, 0, 0, 0, -1);
+	Rb2h[1] = Eye3;
+
 	for (int ir = 0; ir < num_rotors; ir++) {
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
 		if (rotor->number_blades != v_num_blades[ir]) {
@@ -714,6 +767,11 @@ ModuleCHARM::Init_int(void)
 				"for rotor #" << ir << " of " << num_rotors << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
+			"rotor[" << ir << "] number_blades=" << rotor->number_blades << std::endl;
+#endif
 
 		if (rotor->number_control_points != v_num_control_points[ir]) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
@@ -739,13 +797,64 @@ ModuleCHARM::Init_int(void)
 		rotor->T_body_to_hub[2][0] = m_Rotors[ir].Rh(3, 1);
 		rotor->T_body_to_hub[2][1] = m_Rotors[ir].Rh(3, 2);
 		rotor->T_body_to_hub[2][2] = m_Rotors[ir].Rh(3, 3);
+		// orientation of shaft frame in inertial frame
 		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);
+		// relative rotation between hub and shaft
 		Mat3x3 Rhb(Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
 		Vec3 Psi(RotManip::VecRot(Rhb));
 		rotor->azimuthal_offset = Psi(3)*m_Rotors[ir].rotation_dir;
+		silent_cout("ModuleCHARM(" << uLabel << "): "
+			"rotor " << ir << "/" << num_rotors
+			<< " azimuthal offset=" << rotor->azimuthal_offset
+			<< std::endl);
+		doublereal dPsi = 2.*M_PI/rotor->number_blades;
+#if 0
+		std::cerr << "*** dPsi=" << dPsi << std::endl;
+#endif
+
+		Mat3x3& Rb2hTmp(Rb2h[(1 - rotor->rotation_dir)/2]);
+
+		for (int ib = 0; ib < rotor->number_blades; ib++) {
+			// FIXME: azimuth of blades increases
+			m_Rotors[ir].Blades[ib].Rh = m_Rotors[ir].Rh*RotManip::Rot(Vec3(0., 0., ib*dPsi))*Rb2hTmp;
+#if 0
+			std::cerr << "*** m_Rotors[" << ir << "].Blades[" << ib << "].Rh=" << m_Rotors[ir].Blades[ib].Rh << std::endl;
+#endif
+		}
 		rotor->omega100 = m_Rotors[ir].omega100;
 #if 0
 		rotor->nominal_thrust_coeff = 0.;
+#endif
+	}
+
+	for (PD::iterator m_data_iter = m_data.begin(); m_data_iter != m_data.end(); m_data_iter++) {
+		if (m_data_iter->pRB) {
+			int ir = m_data_iter->pRB->iRotor;
+			int ib = m_data_iter->pRB->iBlade;
+			int ip = m_data_iter->pRB->iFirst + m_data_iter->iOff;
+
+			m_data_iter->pos = &m_wpaircraft.rotors[ir].blades[ib].control_pts[ip][0];
+			m_data_iter->vel = &m_wpaircraft.rotors[ir].blades[ib].cp_velocity[ip][0];
+
+			m_data_iter->tangential_velocity_p = &m_wpaircraft.rotors[ir].blades[ib].tangential_velocity[ip];
+			m_data_iter->spanwise_lift_p = &m_wpaircraft.rotors[ir].blades[ib].spanwise_lift[ip];
+
+		} else {
+			unsigned idx = m_eval_pts.size();
+			m_eval_pts.resize(idx + 1);
+			
+			m_eval_pts[idx].ref_frame = 0;
+
+			m_data_iter->iOff = idx;
+			m_data_iter->pos = &m_eval_pts[idx].xyz[0];
+			m_data_iter->vel = &m_eval_pts[idx].uvw[0];
+		}
+
+#if 1
+		// initialize, otherwise valgrind may complain
+		m_data_iter->vel[0] = 0.;
+		m_data_iter->vel[1] = 0.;
+		m_data_iter->vel[2] = 0.;
 #endif
 	}
 
@@ -767,11 +876,11 @@ ModuleCHARM::Update_int(void)
 	doublereal rho, c, p, T;
 	GetAirProps(Xac, rho, c, p, T);
 	const Vec3& Vac(pCraft->GetVCurr());
-	Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
-	Vec3 VBac(Rac.MulTV(Vac));
-	Vec3 WBac(Rac.MulTV(pCraft->GetWCurr()));
+	// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh); // m_R computed by AssRes()
+	Vec3 VBac(m_Rac.MulTV(Vac));
+	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
 	// FIXME: Euler angles? 123 or 321?  Rac or Rac^T?
-	Vec3 EBac = MatR2EulerAngles123(Rac);
+	Vec3 EBac = MatR2EulerAngles123(m_Rac);
 
 	// update global data
 	Vec3 Vinf(0.);
@@ -828,29 +937,30 @@ ModuleCHARM::Update_int(void)
 	m_wpaircraft.euler_angles[1] = EBac(2);
 	m_wpaircraft.euler_angles[2] = EBac(3);
 	// FIXME: R(i, j) or R(j, i)?
-	m_wpaircraft.T_inertial_to_body[0][0] = Rac(1, 1);
-	m_wpaircraft.T_inertial_to_body[0][1] = Rac(2, 1);
-	m_wpaircraft.T_inertial_to_body[0][2] = Rac(3, 1);
-	m_wpaircraft.T_inertial_to_body[1][0] = Rac(1, 2);
-	m_wpaircraft.T_inertial_to_body[1][1] = Rac(2, 2);
-	m_wpaircraft.T_inertial_to_body[1][2] = Rac(3, 2);
-	m_wpaircraft.T_inertial_to_body[2][0] = Rac(1, 3);
-	m_wpaircraft.T_inertial_to_body[2][1] = Rac(2, 3);
-	m_wpaircraft.T_inertial_to_body[2][2] = Rac(3, 3);
+	m_wpaircraft.T_inertial_to_body[0][0] = m_Rac(1, 1);
+	m_wpaircraft.T_inertial_to_body[0][1] = m_Rac(2, 1);
+	m_wpaircraft.T_inertial_to_body[0][2] = m_Rac(3, 1);
+	m_wpaircraft.T_inertial_to_body[1][0] = m_Rac(1, 2);
+	m_wpaircraft.T_inertial_to_body[1][1] = m_Rac(2, 2);
+	m_wpaircraft.T_inertial_to_body[1][2] = m_Rac(3, 2);
+	m_wpaircraft.T_inertial_to_body[2][0] = m_Rac(1, 3);
+	m_wpaircraft.T_inertial_to_body[2][1] = m_Rac(2, 3);
+	m_wpaircraft.T_inertial_to_body[2][2] = m_Rac(3, 3);
 
 	// TODO: rotor(s)
 	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
 
 		// hub position
-		Vec3 Xhb(Rac.MulTV(m_Rotors[ir].pHub->GetXCurr() - Xac));
+		Vec3 Xhb(m_Rac.MulTV(m_Rotors[ir].pHub->GetXCurr() - Xac));
 		rotor->hub_position[0] = Xhb(1);
 		rotor->hub_position[1] = Xhb(2);
 		rotor->hub_position[2] = Xhb(3);
 
 		// azimuth
-		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);
-		Mat3x3 Rhb(Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
+		// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);	// m_R computed by AssRes()
+		Mat3x3 Rac(m_Rac*m_Rotors[ir].Rh);
+		Mat3x3 Rhb(m_Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
 		Vec3 Psi(RotManip::VecRot(Rhb));
 		rotor->azimuth = Psi(3);
 		while (rotor->azimuth < 0.) {
@@ -871,6 +981,7 @@ ModuleCHARM::Update_int(void)
 			<< " omega=" << rotor->rotor_speed << std::endl);
 #endif
 
+#if 0
 		for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
 			wpBlade *blade = &rotor->blades[ib];
 
@@ -882,14 +993,37 @@ ModuleCHARM::Update_int(void)
 				ASSERT(iIdx != -1);
 
 				for (int ip = 0; ip < iCount; ip++) {
-					blade->tangential_velocity[iFirst + ip] = m_data[iIdx].dV;
-					blade->spanwise_lift[iFirst + ip] = m_data[iIdx].dF;
+					blade->tangential_velocity[iFirst + ip] = m_data[iIdx].tangential_velocity;
+					blade->spanwise_lift[iFirst + ip] = m_data[iIdx].spanwise_lift;
 					blade->control_pts[iFirst + ip][0] = m_data[iIdx].X(1);
 					blade->control_pts[iFirst + ip][1] = m_data[iIdx].X(2);
 					blade->control_pts[iFirst + ip][2] = m_data[iIdx].X(3);
 				}
 			}
 		}
+#endif
+	}
+
+#if 0
+	std::cerr << "### ModuleCHARM::Update_int: m_data.size=" << m_data.size() << std::endl;
+#endif
+
+	// loop on all data points, regardless of their type
+	// to set X; blade points also set tangential velocity and lift
+	for (PD::iterator i = m_data.begin(); i != m_data.end(); i++) {
+		i->X.PutTo(i->pos);
+		if (i->pRB) {
+			*(i->tangential_velocity_p) = i->tangential_velocity;
+			*(i->spanwise_lift_p) = i->spanwise_lift;
+		}
+
+#if 1
+		if (i->pRB) {
+			std::cerr << "Rotors[" << i->pRB->iRotor << "].Blades[" << i->pRB->iBlade << "] X=" << i->X << std::endl;
+		} else {
+			std::cerr << "X=" << i->X << std::endl;
+		}
+#endif
 	}
 
 	// actually call the module and update the induced velocity
@@ -916,125 +1050,262 @@ ModuleCHARM::Update_int(void)
 }
 
 Vec3
-ModuleCHARM::GetInducedVelocity(const Vec3& X) const
+ModuleCHARM::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
-	if (iFirstAssembly) {
-		return Zero3;
-	}
+	Vec3 V;
 
-	// TODO: maybe this can be computed once for all at each AssRes?
-	Mat3x3 R(pCraft->GetRCurr()*m_Rh);
-	Vec3 Xloc = R.MulTV(X - pCraft->GetXCurr());
+#if 0
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::GetInducedVelocity: "
+		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+		"X={" << X << "} iFirstAssembly=" << iFirstAssembly << std::endl;
+#endif
 
-	unsigned iIdx, iMinIdx = -1;
-	doublereal dMinErr = std::numeric_limits<doublereal>::max();
+	if (iFirstAssembly == 1) {
+		bool bGotIt(false);
+		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
+			if (i->type == type && i->label == uLabel && i->counter == uPnt) {
 
-	for (iIdx = 0; iIdx < m_data.size(); iIdx++) {
-		doublereal dErr = (Xloc - m_data[iIdx].X).Norm();
-		if (dErr < dMinErr) {
-			iMinIdx = iIdx;
+#if 0
+				std::cerr << "ModuleCHARM(" << GetLabel() << ")::GetInducedVelocity: "
+					<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+					"gotit" << std::endl;
+#endif
+
+				bGotIt = true;
+				break;
+			}
 		}
+
+		if (!bGotIt) {
+			unsigned idx = m_data.size();
+			m_data.resize(idx + 1);
+			m_data[idx].type = type;
+			m_data[idx].label = uLabel;
+			m_data[idx].counter = uPnt;
+
+			// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
+			m_data[idx].X = m_Rac.MulTV(X - pCraft->GetXCurr());
+		}
+
+		V = Zero3;
+
+	} else {
+		// NOTE: we only need the final value of the position
+		// to update it when the new step of CHARM WP is needed
+		// for this purpose it may be preferable to only save X
+		// and manipulate it later
+		// there is no need to cache the value of the induced
+		// velocity, as this would only save a Vec3 constructor
+		// from double[3]
+		if (m_data_vel_iter->pRB) {
+			int ir = m_data_vel_iter->pRB->iRotor;
+			int ib = m_data_vel_iter->pRB->iBlade;
+			Mat3x3 RTmp(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Blades[ib].Rh);
+
+#if 0
+			std::cerr << "*** ir=" << ir << std::endl;
+			std::cerr << "*** ib=" << ib << std::endl;
+			std::cerr << "*** m_Rac=" << m_Rac << std::endl;
+			std::cerr << "*** m_Rotors[" << ir << "].Blades[" << ib << "].Rh=" << m_Rotors[ir].Blades[ib].Rh << std::endl;
+#endif
+
+			// blade points (XSIM) are in the blade frame
+			// the blade frame originates from root cutout
+			// in the disk plane
+			// axis 1 points outwards radially
+			// axis 2 points from leading to trailing edge
+			// axis 3 is 1 cross 2 (down for counter-clockwise)
+			m_data_frc_iter->X = RTmp.MulTV(X - m_Rotors[ir].pHub->GetX());
+			m_data_frc_iter->X(1) -= m_Rotors[ir].root_cutout;
+
+
+			V = RTmp*Vec3(m_data_vel_iter->vel);
+
+#if 0
+			std::cerr << "*** V=" << V << std::endl;
+#endif
+
+		} else {
+			// set for later...
+			m_data_vel_iter->X = m_Rac.MulTV(X - pCraft->GetXCurr());
+
+			V = m_Rac*Vec3(m_data_vel_iter->vel);
+
+#if 0
+			std::cerr << "+++ V=" << V << std::endl;
+#endif
+		}
+
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::GetInducedVelocity: "
+			"X={" << X << "} V={" << V << "} Xloc={" << m_data_vel_iter->X <<"}" << std::endl;
+#endif
+
+		m_data_vel_iter++;
 	}
-
-	ASSERT(iMinIdx != -1);
-
-	int ir = m_data[iMinIdx].pRB->iRotor;
-	int ib = m_data[iMinIdx].pRB->iBlade;
-	int ip = m_data[iMinIdx].pRB->iFirst + m_data[iMinIdx].iOff;
-
-	Vec3 V(R*Vec3(m_wpaircraft.rotors[ir].blades[ib].cp_velocity[ip]));
-
-	std::cerr << "ModuleCHARM(" << GetLabel() << ")::GetInducedVelocity: X={" << X << "} V={" << V << "}" << std::endl;
 
 	return V;
 }
 
 void
-ModuleCHARM::AddSectionalForce(unsigned int uL, unsigned iPnt,
+ModuleCHARM::AddSectionalForce(Elem::Type type,
+	unsigned int uLabel, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W)
 {
-	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt << std::endl;
+#if 0
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << std::endl;
+#endif
 
 	if (iFirstAssembly == 1) {
 		unsigned idx = m_data.size();
-		m_data.resize(idx + 1);
-		m_data[idx].label = uL;
-		if (idx == 0 || (idx > 0 && uL != m_data[idx - 1].label)) {
+		ASSERT(idx > 0);
+		ASSERT(uLabel != unsigned(-1));
+		idx--;
+
+		if (m_data[idx].type != type
+			|| m_data[idx].label != uLabel
+			|| m_data[idx].counter != uPnt)
+		{
+			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+				"mismatch, expecting "
+				<< psElemNames[m_data[idx].type] << "(" << m_data[idx].label << "):" << m_data[idx].counter
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		m_data[idx].label = uLabel;
+		if (idx == 0 || (idx > 0 && uLabel != m_data[idx - 1].label)) {
 			m_data[idx].counter = 0;
 		} else {
 			m_data[idx].counter = m_data[idx - 1].counter + 1;
 		}
+#endif
 
-		m_data[idx].dF = 0.;
-		m_data[idx].dV = 0.;
-		m_data[idx].X = Zero3;
+		m_data[idx].spanwise_lift = 0.;
+		m_data[idx].tangential_velocity = 0.;
 
-		int ir = m_e2b_map[uL]->iRotor;
-		int ib = m_e2b_map[uL]->iBlade;
-		int ie = m_e2b_map[uL]->iElem;
-		if (m_Rotors[ir].Blades[ib].Elems[ie].uLabel != uL) {
-			silent_cerr("ModuleCHARM(" << GetLabel() << "): "
-				"uL=" << uL << " iPnt=" << iPnt << " mismatch" << std::endl);
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+			<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+			"idx=" << idx << std::endl;
+#endif
+
+		// sanity check
+		Vec3 Xloc(m_Rac.MulTV(X - pCraft->GetXCurr()));
+		if (!m_data[idx].X.IsSame(Xloc, 1e-15)) {
+			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+				"Xloc = {" << Xloc << "}, GetInducedVelocity({" << m_data[idx].X << "}) "
+				"possible mismatch" << std::endl);
+		}
+
+		int ir = m_e2b_map[uLabel]->iRotor;
+		int ib = m_e2b_map[uLabel]->iBlade;
+		int ie = m_e2b_map[uLabel]->iElem;
+		if (m_Rotors[ir].Blades[ib].Elems[ie].uLabel != uLabel) {
+			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+				"mismatch" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (m_e2b_map[uL]->iCount == -1) {
-			m_e2b_map[uL]->iIdx = idx;
-			m_e2b_map[uL]->iCount = 1;
+		if (m_e2b_map[uLabel]->iCount == -1) {
+			m_e2b_map[uLabel]->iIdx = idx;
+			m_e2b_map[uLabel]->iCount = 1;
 
 		} else {
-			m_e2b_map[uL]->iCount++;
+			m_e2b_map[uLabel]->iCount++;
 		}
 
-		m_data[idx].pRB = m_e2b_map[uL];
-		m_data[idx].iOff = m_e2b_map[uL]->iCount - 1;
+		m_data[idx].pRB = m_e2b_map[uLabel];
+		m_data[idx].iOff = m_e2b_map[uLabel]->iCount - 1;
 
 #if 0
-		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: " << uL << ":" << iPnt
-			<< " ir=" << ir << " ib=" << ib << " ie=" << ie << " num_points=" << m_e2b_map[uL]->iCount
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+			<< " ir=" << ir << " ib=" << ib << " ie=" << ie << " num_points=" << m_e2b_map[uLabel]->iCount
 			<< std::endl;
 #endif
 
 	} else {
 		// TODO: maybe this can be computed once for all at each AssRes?
-		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
+		// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
+
+		while (m_data_frc_iter->pRB == 0) {
+			if (m_data_frc_iter == m_data.end()) {
+				silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+					<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+					"unexpected end of iterator" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			m_data_frc_iter++;
+		}
 
 		// resolve force, moment and point in craft's reference frame
 		Vec3 Vloc(R.MulTV(V));
+
+#if 0
 		std::cerr << "*** Vloc={" << Vloc << "}" << std::endl;
+#endif
+
 		Vloc(3) = 0.;
 		Vec3 Floc(R.MulTV(F));
+
+#if 0
 		std::cerr << "*** Floc={" << Floc << "}" << std::endl;
+#endif
+
 		Floc(3) = 0.;
-		m_data_iter->dV = Vloc.Norm();
-		if (m_data_iter->dV > std::numeric_limits<doublereal>::epsilon()) {
-			Vloc /= m_data_iter->dV;
+		m_data_frc_iter->tangential_velocity = Vloc.Norm();
+		if (m_data_frc_iter->tangential_velocity > std::numeric_limits<doublereal>::epsilon()) {
+			Vloc /= m_data_frc_iter->tangential_velocity;
 			Vec3 Tmp(Vloc.Cross(Floc));
-			m_data_iter->dF = (Vloc.Cross(Floc))(3);
+			m_data_frc_iter->spanwise_lift = (Vloc.Cross(Floc))(3);
 
 		} else {
-			m_data_iter->dF = 0.;
+			m_data_frc_iter->spanwise_lift = 0.;
 		}
-		m_data_iter->X = Rac.MulTV(X - pCraft->GetXCurr());
 
-		std::cerr << "    dV=" << m_data_iter->dV << " dF=" << m_data_iter->dF << " X={" << m_data_iter->X << "}" << std::endl;
+#if 0
+		std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
+			<< " dF=" << m_data_frc_iter->spanwise_lift
+			<< " X={" << m_data_frc_iter->X << "}" << std::endl;
+#endif
 
-		m_data_iter++;
+		m_data_frc_iter++;
 	}
 }
 
 void
 ModuleCHARM::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
+	NO_OP;
+	// Update_int();
+}
+
+void
+ModuleCHARM::AfterConvergence(const VectorHandler& X, 
+	const VectorHandler& XP)
+{
 	// NO_OP;
+	if (iFirstAssembly) {
+		return;
+	}
+
 	Update_int();
 }
 
 void
 ModuleCHARM::Output(OutputHandler& OH) const
 {
+#if 0
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::Output: size=" << m_data.size() << std::endl;
+#endif
 
 	// should do something useful
 	if (fToBeOutput()) {
@@ -1042,8 +1313,8 @@ ModuleCHARM::Output(OutputHandler& OH) const
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
 			out << GetLabel() << "#" << i->label << "#" << i->counter
-				<< " " << i->dF
-				<< " " << i->dV
+				<< " " << i->spanwise_lift
+				<< " " << i->tangential_velocity
 				<< " " << i->X
 				<< std::endl;
 		}
@@ -1063,8 +1334,21 @@ ModuleCHARM::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
+#if 0
+	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AssJac: iFirstAssembly=" << iFirstAssembly << std::endl;
+#endif
+
 	// should do something useful
 	WorkMat.SetNullMatrix();
+
+	// re-initialize iterators to loop over point data
+	// when AddSectionalForces() and GetInducedVelocity() are called
+	m_data_frc_iter = m_data.begin();
+	while (m_data_frc_iter != m_data.end() && m_data_frc_iter->pRB == 0) {
+		m_data_frc_iter++;
+	}
+
+	m_data_vel_iter = m_data.begin();
 
 	return WorkMat;
 }
@@ -1075,7 +1359,11 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
+#if 0
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AssRes: iFirstAssembly=" << iFirstAssembly << std::endl;
+#endif
+
+	m_Rac = pCraft->GetRCurr()*m_Rh;
 
 	if (iFirstAssembly) {
 		if (iFirstAssembly == 1) {
@@ -1087,9 +1375,14 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 		iFirstAssembly--;
 	}
 
-	// re-initialize iterator to loop over point data
-	// when AddSectionalForces is called
-	m_data_iter = m_data.begin();
+	// re-initialize iterators to loop over point data
+	// when AddSectionalForces() and GetInducedVelocity() are called
+	m_data_frc_iter = m_data.begin();
+	while (m_data_frc_iter != m_data.end() && m_data_frc_iter->pRB == 0) {
+		m_data_frc_iter++;
+	}
+
+	m_data_vel_iter = m_data.begin();
 
 	// should do something useful
 	WorkVec.ResizeReset(0);

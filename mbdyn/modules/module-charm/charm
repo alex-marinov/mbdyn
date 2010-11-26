@@ -281,8 +281,8 @@ begin: elements;
 
 	air properties: std, SI,
 		-1., 0., 0.,
-			const, 0.;
-			# const, .3*(5.*40.);
+			# const, 0.;
+			const, .3*(5.*40.);
 
 	c81data: 1, "../../var/naca0012.c81";
 

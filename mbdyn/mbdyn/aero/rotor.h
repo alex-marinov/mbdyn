@@ -173,12 +173,6 @@ public:
 		return Res.Moment();
 	};
 
-#if 0
-	// Restituisce ad un elemento la velocita' indotta
-	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
-#endif
-
 	// *******PER IL SOLUTORE PARALLELO********
 	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	// utile per l'assemblaggio della matrice di connessione fra i dofs
@@ -234,7 +228,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
 /* NoRotor - end */
@@ -282,7 +277,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
 /* UniformRotor - end */
@@ -330,7 +326,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
 /* GlauertRotor - end */
@@ -378,7 +375,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
 /* ManglerRotor - end */
@@ -485,7 +483,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
 /* DynamicInflowRotor - end */

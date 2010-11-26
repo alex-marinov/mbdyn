@@ -190,7 +190,8 @@ public:
 	// multiple contributions in one iteration.
 	// Elements should not call this function when bSectionalForces() 
 	// returns "false"
-	virtual void AddSectionalForce(unsigned int uL, unsigned iPnt,
+	virtual void AddSectionalForce(Elem::Type type,
+		unsigned int uLabel, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
@@ -199,7 +200,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const = 0;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const = 0;
 
 	// Dimensioni del workspace
 	virtual void

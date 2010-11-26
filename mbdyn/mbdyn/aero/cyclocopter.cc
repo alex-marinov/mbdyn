@@ -199,7 +199,8 @@ CyclocopterNoInflow::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, con
 }
 
 Vec3
-CyclocopterNoInflow::GetInducedVelocity(const Vec3& X) const
+CyclocopterNoInflow::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	
 	return Zero3;
@@ -402,7 +403,8 @@ CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 }
 
 Vec3
-CyclocopterUniform1D::GetInducedVelocity(const Vec3& X) const
+CyclocopterUniform1D::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	return RRot3*dUindMean;
 }
@@ -652,7 +654,8 @@ CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 }
 
 Vec3
-CyclocopterUniform2D::GetInducedVelocity(const Vec3& X) const
+CyclocopterUniform2D::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	//printf("%f %f %f\n",dUind(1),dUind(2),dUind(3));
 	return RRotor*dUind;
@@ -878,7 +881,8 @@ CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const
 }
 
 Vec3
-CyclocopterPolimi::GetInducedVelocity(const Vec3& X) const
+CyclocopterPolimi::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	Vec3 XRel(RRotorTranspose*(X-pRotor->GetXCurr()));
 
@@ -963,7 +967,8 @@ CyclocopterKARI::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const V
 #endif
 
 Vec3
-CyclocopterKARI::GetInducedVelocity(const Vec3& X) const
+CyclocopterKARI::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	return Zero3;
 }

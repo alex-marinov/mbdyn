@@ -615,7 +615,8 @@ NoRotor::AddForce(unsigned int uL,
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3
-NoRotor::GetInducedVelocity(const Vec3& /* X */ ) const
+NoRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	return Zero3;
 }
@@ -786,7 +787,8 @@ UniformRotor::AddForce(unsigned int uL,
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3
-UniformRotor::GetInducedVelocity(const Vec3& /* X */ ) const
+UniformRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();
@@ -950,7 +952,8 @@ GlauertRotor::AddForce(unsigned int uL,
  * azimuthale
  */
 Vec3
-GlauertRotor::GetInducedVelocity(const Vec3& X) const
+GlauertRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	if (dUMeanPrev == 0.) {
 		return Vec3(0.);
@@ -1147,7 +1150,8 @@ ManglerRotor::AddForce(unsigned int uL,
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3
-ManglerRotor::GetInducedVelocity(const Vec3& X) const
+ManglerRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	if (dUMeanPrev == 0.) {
 		return Vec3(0.);
@@ -1565,7 +1569,7 @@ DynamicInflowRotor::AssRes(SubVectorHandler& WorkVec,
 	   	Vec3 XTmp(pRotor->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
 	   	doublereal dPsiTmp, dXTmp;
 	   	GetPos(XTmp, dXTmp, dPsiTmp);
-	   	Vec3 IndV = GetInducedVelocity(XTmp);
+	   	Vec3 IndV = GetInducedVelocity(GetElemType(), GetLabel(), 0, XTmp);
 	   	std::cout
 		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
 		 	<< "V rotore:  " << VCraft << std::endl
@@ -1685,7 +1689,8 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 /* Restituisce ad un elemento la velocita' indotta in base alla posizione
  * azimuthale */
 Vec3
-DynamicInflowRotor::GetInducedVelocity(const Vec3& X) const
+DynamicInflowRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
 	Wait();

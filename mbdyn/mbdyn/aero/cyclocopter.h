@@ -132,7 +132,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 
 	// Restituisce ad un elemento la velocità indotta
 	// in base alla posizione azimuthale (usata per
@@ -223,7 +224,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 
 	// Restituisce ad un elemento la velocità indotta
 	// in base alla posizione azimuthale (usata per
@@ -309,7 +311,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 
 	// Restituisce ad un elemento la velocità indotta
 	// in base alla posizione azimuthale (usata per
@@ -410,7 +413,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 
 	// Restituisce ad un elemento la velocità indotta
 	// in base alla posizione azimuthale (usata per
@@ -495,7 +499,8 @@ public:
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
-	virtual Vec3 GetInducedVelocity(const Vec3& X) const;
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 
 	// *******PER IL SOLUTORE PARALLELO********
 	// Fornisce il tipo e la label dei nodi che sono connessi all'elemento

@@ -177,14 +177,15 @@ protected:
 	virtual void SetOutputFlag(flag f = flag(1));
 	void Output_int(OutputHandler& OH) const;
 	void AddForce_int(const Vec3& F, const Vec3& M, const Vec3& X) const;
-	void AddSectionalForce_int(unsigned iPnt, const Vec3& F, const Vec3& M,
-		doublereal dW, const Vec3& X, const Mat3x3& R,
+	void AddSectionalForce_int(unsigned uPnt,
+		const Vec3& F, const Vec3& M, doublereal dW,
+		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W) const;
 
 public:
 	Aerodynamic2DElem(unsigned int uLabel,
 		const DofOwner *pDO,
-		InducedVelocity* pR,
+		InducedVelocity* pR, bool bPassive,
 		const Shape* pC, const Shape* pF,
 		const Shape* pV, const Shape* pT,
 		const Shape* pTL,
@@ -274,7 +275,7 @@ protected:
 public:
 	AerodynamicBody(unsigned int uLabel,
 		const DofOwner *pDO,
-		const StructNode* pN, InducedVelocity* pR,
+		const StructNode* pN, InducedVelocity* pR, bool bPassive,
 		const Vec3& fTmp, doublereal dS,
 		const Mat3x3& RaTmp,
 		const Shape* pC, const Shape* pF,
@@ -377,7 +378,7 @@ protected:
 public:
 	AerodynamicBeam(unsigned int uLabel,
 		const DofOwner *pDO,
-		const Beam* pB, InducedVelocity* pR,
+		const Beam* pB, InducedVelocity* pR, bool bPassive,
 		const Vec3& fTmp1,
 		const Vec3& fTmp2,
 		const Vec3& fTmp3,
@@ -481,7 +482,7 @@ protected:
 public:
 	AerodynamicBeam2(unsigned int uLabel,
 		const DofOwner *pDO,
-		const Beam2* pB, InducedVelocity* pR,
+		const Beam2* pB, InducedVelocity* pR, bool bPassive,
 		const Vec3& fTmp1,
 		const Vec3& fTmp2,
 		const Mat3x3& Ra1Tmp,

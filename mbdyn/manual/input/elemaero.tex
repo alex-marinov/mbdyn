@@ -67,14 +67,16 @@ where
 
     # \bnt{elem_type} ::= \kw{aerodynamic body}
     \bnt{body_conn} ::= \bnt{node_label}
-        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
+            [ , \kw{passive} ] , ] 
         (\ty{Vec3})              <relative_surface_offset> , 
         (\ty{OrientationMatrix}) <relative_surface_orientation> ,
         (\ty{Scalar})            <surface_span>
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam2}
     \bnt{beam2_conn} ::= \bnt{beam2_label}
-        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
+            [ , \kw{passive} ] , ] 
         (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
         (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
         (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
@@ -82,7 +84,8 @@ where
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam3}
     \bnt{beam3_conn} ::= \bnt{beam3_label} 
-        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label} ] ,
+        [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
+            [ , \kw{passive} ] , ] 
         (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
         (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
         (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
@@ -134,6 +137,7 @@ then \nt{induced\_velocity} refers to a \kw{user defined} element.
 Note: if the keyword \kw{induced velocity} is used
 and no induced velocity element is found with the label \nt{induced velocity}
 a \kw{user defined} element with that label is looked up.
+If the optional 
 
 An arbitrary relative orientation and offset is allowed for all elements with
 respect to the nodes they are linked to. 
