@@ -1486,7 +1486,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		switch (KeyWords(CurrType)) {
 		case ROTOR:
-			silent_cerr("InducedVelocity(" << uLabel << "): deprecated \"rotor\", use \"induced velocity\" of typoe \"rotor\" instead at line " << HP.GetLineData() << std::endl);
+			silent_cerr("InducedVelocity(" << uLabel << "): deprecated \"rotor\", use \"induced velocity\" of type \"rotor\" instead at line " << HP.GetLineData() << std::endl);
 			break;
 
 		case INDUCEDVELOCITY:
