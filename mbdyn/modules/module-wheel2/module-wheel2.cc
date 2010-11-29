@@ -195,6 +195,8 @@ UserDefinedElem(uLabel, pDO)
 			}
 		}
 	}
+
+	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 	
 	std::ostream& out = pDM->GetLogFile();
 	out << "wheel2: " << uLabel
