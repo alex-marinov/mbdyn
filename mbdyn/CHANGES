@@ -33,6 +33,7 @@ MBDyn 1.X-Devel
 		- fixed VHUB computation in module-aerodyn (Fanzhong Meng)
 		- fixed minor issues in external structural mapping
 		- fixed PrivDriveCaller ("element", "node") when used with arg
+		- fixed output flag in module-wheel2
 
 MBDyn 1.3.16
 	Enhancements:
