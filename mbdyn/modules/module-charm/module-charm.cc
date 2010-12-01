@@ -80,10 +80,6 @@ allocWPAircraft(
 
 	aircraft->number_rotors_or_surfaces = num_rotor_surf;
 
-#if 0
-	std::cerr << "allocWPAircraft: number_rotors_or_surfaces=" << aircraft->number_rotors_or_surfaces << std::endl;
-#endif
-
 	for (int ir = 0; ir < num_rotor_surf; ir++) {
 		wpRotorSurface *rotor = &aircraft->rotors[ir];
 
@@ -92,12 +88,6 @@ allocWPAircraft(
 
 		rotor->number_blades = num_blades[ir];
 		rotor->number_control_points = num_control_pts[ir];
-
-#if 0
-		std::cerr << "allocWPAircraft: rotor_or_surface[" << ir << "] number_blades=" << rotor->number_blades
-			<< " number_control_points=" << rotor->number_control_points << std::endl;
-#endif
-
 	}
 
 	return 0;
