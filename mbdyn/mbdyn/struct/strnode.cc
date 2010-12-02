@@ -1589,7 +1589,7 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		omegaP		43 + idx	idx = {1,3}
 	 */
 
-	if (strncasecmp(s, "PE", len) == 0) {
+	if (strncmp(s, "PE", len) == 0) {
 		if (idx < 0 || idx > 3) {
 			return 0;
 		}
@@ -1601,63 +1601,63 @@ StructNode::iGetPrivDataIdx(const char *s) const
 		return 0;
 	}
 
-	if (strncasecmp(s, "X", len) == 0) {
+	if (strncmp(s, "X", len) == 0) {
 		return 0 + idx;
 	}
 
-	if (strncasecmp(s, "x", len) == 0) {
+	if (strncmp(s, "x", len) == 0) {
 		return 3 + idx;
 	}
 
-	if (strncasecmp(s, "Phi", len) == 0) {
+	if (strncmp(s, "Phi", len) == 0) {
 		return 6 + idx;
 	}
 
-	if (strncasecmp(s, "XP", len) == 0) {
+	if (strncmp(s, "XP", len) == 0) {
 		return 9 + idx;
 	}
 
-	if (strncasecmp(s, "xP", len) == 0) {
+	if (strncmp(s, "xP", len) == 0) {
 		return 12 + idx;
 	}
 
-	if (strncasecmp(s, "Omega", len) == 0) {
+	if (strncmp(s, "Omega", len) == 0) {
 		return 15 + idx;
 	}
 
-	if (strncasecmp(s, "omega", len) == 0) {
+	if (strncmp(s, "omega", len) == 0) {
 		return 18 + idx;
 	}
 
-	if (strncasecmp(s, "E", len) == 0
-		|| strncasecmp(s, "E123", len) == 0)
+	if (strncmp(s, "E", len) == 0
+		|| strncmp(s, "E123", len) == 0)
 	{
 		return 21 + idx;
 	}
 
-	if (strncasecmp(s, "E313", len) == 0) {
+	if (strncmp(s, "E313", len) == 0) {
 		return 24 + idx;
 	}
 
-	if (strncasecmp(s, "E321", len) == 0) {
+	if (strncmp(s, "E321", len) == 0) {
 		return 27 + idx;
 	}
 
 	bool bca = false;
 	unsigned i;
-	if (strncasecmp(s, "XPP", len) == 0) {
+	if (strncmp(s, "XPP", len) == 0) {
 		bca = true;
 		i = 34 + idx;
 
-	} else if (strncasecmp(s, "xPP", len) == 0) {
+	} else if (strncmp(s, "xPP", len) == 0) {
 		bca = true;
 		i = 37 + idx;
 
-	} else if (strncasecmp(s, "OmegaP", len) == 0) {
+	} else if (strncmp(s, "OmegaP", len) == 0) {
 		bca = true;
 		i = 40 + idx;
 
-	} else if (strncasecmp(s, "omegaP", len) == 0) {
+	} else if (strncmp(s, "omegaP", len) == 0) {
 		bca = true;
 		i = 43 + idx;
 

@@ -34,6 +34,8 @@ MBDyn 1.X-Devel
 		- fixed minor issues in external structural mapping
 		- fixed PrivDriveCaller ("element", "node") when used with arg
 		- fixed output flag in module-wheel2
+		- fixed case detection in structural node private data
+		  (noted by Louis Gagnon)
 
 MBDyn 1.3.16
 	Enhancements:
