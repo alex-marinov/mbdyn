@@ -61,8 +61,6 @@ Every \ty{ScalarFunction} card follows the format
 The name of the scalar function is a string, thus it needs to be enclosed
 in double quotes.
 
-\textbf{TODO: add examples.}
-
 The type of scalar function,
 \nt{scalar\_func\_type}, together 
 with relevant arguments, \nt{scalar\_func\_args},
@@ -78,6 +76,11 @@ are as follows:
 Note: if the \nt{scalar\_func\_type} is omitted,
 a \kw{const} scalar function is assumed.
 
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "const_function", const, 1.e-2;
+\end{verbatim}
+
 \subsubsection{Exp Scalar Function}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -89,7 +92,19 @@ a \kw{const} scalar function is assumed.
         \bnt{multiplier_coef}
 \end{Verbatim}
 %\end{verbatim}
-Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{multiplier\_coef} \cdot \nt{base}^{\plbr{\nt{coef} \cdot x}}
+\end{align}
+Note: the optional \nt{base} must be positive
+(defaults to $e$, Neper's number);
+\nt{coef} defaults to 1.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "exp_function", exp, 1.e-2; # 1.e-2*e^x
+\end{verbatim}
 
 \subsubsection{Log Scalar Function}
 %\begin{verbatim}
@@ -102,11 +117,21 @@ Note: the optional \kw{base} must be positive (defaults to $e$, Neper's number).
         \bnt{multiplier_coef}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{multiplier\_coef} \cdot \log_{\nt{base}}\plbr{\nt{coef} \cdot x}
+\end{align}
 Note: the optional \kw{base} (defaults to $e$, Neper's number,
 resulting in natural logarithms)
 and the optional value \nt{coef}, prepended by the keyword \kw{coefficient},
 must be positive.
 The argument must be positive as well, otherwise an exception is thrown.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "log_function", log, 1.e-2; # 1.e-2*log(x)
+\end{verbatim}
 
 \subsubsection{Pow Scalar Function}
 %\begin{verbatim}
@@ -116,6 +141,16 @@ The argument must be positive as well, otherwise an exception is thrown.
     \bnt{scalar_func_args} ::= \bnt{exponent_coef}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	x^{\nt{exponent\_coef}}
+\end{align}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "pow_function", pow, 3.; # x^3.
+\end{verbatim}
 
 \subsubsection{Linear Scalar Function}
 %\begin{verbatim}
@@ -127,7 +162,21 @@ The argument must be positive as well, otherwise an exception is thrown.
     \bnt{point}            ::= \bnt{x}, \bnt{y}
 \end{Verbatim}
 %\end{verbatim}
-A line passing through the two points.
+A line passing through the two points,
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{y}_i
+	+
+	\frac{\nt{y}_f - \nt{y}_i}{\nt{x}_f - \nt{x}_i} \plbr{x - \nt{x}_i}
+\end{align}
+where $\nt{x}_i$, $\nt{y}_i$ are the coordinates of the first point,
+while $\nt{x}_f$, $\nt{y}_f$ are the coordinates of the second point.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "linear_function", linear, 0., 0., 1., 1.;
+\end{verbatim}
 
 \subsubsection{Cubic Natural Spline Scalar Function}
 %\begin{verbatim}
@@ -231,6 +280,19 @@ Differentiation of order higher than 1 is not currently implemented.
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{f1}\plbr{x} + \nt{f2}\plbr{x}
+\end{align}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "first_function", const, 1.;
+    scalar function: "second_function", const, 2.;
+    scalar function: "sum_function", sum, "first_function", "second_function";
+\end{verbatim}
+
 
 \subsubsection{Sub Scalar Function}
 %\begin{verbatim}
@@ -240,6 +302,18 @@ Differentiation of order higher than 1 is not currently implemented.
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{f1}\plbr{x} - \nt{f2}\plbr{x}
+\end{align}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "first_function", const, 1.;
+    scalar function: "second_function", const, 2.;
+    scalar function: "sub_function", sub, "first_function", "second_function";
+\end{verbatim}
 
 \subsubsection{Mul Scalar Function}
 %\begin{verbatim}
@@ -249,6 +323,18 @@ Differentiation of order higher than 1 is not currently implemented.
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{f1}\plbr{x} \cdot \nt{f2}\plbr{x}
+\end{align}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "first_function", const, 1.;
+    scalar function: "second_function", const, 2.;
+    scalar function: "mul_function", mul, "first_function", "second_function";
+\end{verbatim}
 
 \subsubsection{Div Scalar Function}
 %\begin{verbatim}
@@ -258,5 +344,17 @@ Differentiation of order higher than 1 is not currently implemented.
     \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
+\begin{align}
+	f\plbr{x}
+	&=
+	\nt{f1}\plbr{x} / \nt{f2}\plbr{x}
+\end{align}
 Note: division by zero is checked, and an exception is thrown.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    scalar function: "first_function", const, 1.;
+    scalar function: "second_function", const, 2.;
+    scalar function: "div_function", div, "first_function", "second_function";
+\end{verbatim}
 
