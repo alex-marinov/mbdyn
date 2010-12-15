@@ -299,12 +299,13 @@ LogScalarFunction::~LogScalarFunction()
 doublereal
 LogScalarFunction::operator()(const doublereal x) const
 {
-	if (x <= 0.) {
+	doublereal xx = coef*x;
+	if (xx <= 0.) {
 		silent_cerr("LogScalarFunction: argument must be positive" << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return log(coef*x)*mul_const;
+	return log(xx)*mul_const;
 }
 
 doublereal
@@ -358,7 +359,8 @@ struct LogSFR: public ScalarFunctionRead {
 		doublereal c = 1.;
 		if (HP.IsKeyWord("coefficient")) {
 			c = HP.GetReal();
-			if (c <= 0.) {
+			// note: c*x must be > 0, but x could be negative
+			if (c == 0.) {
 				silent_cerr("LogSFR: "
 					"invalid coefficient " << c
 					<< " at line "

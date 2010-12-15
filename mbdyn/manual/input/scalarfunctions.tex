@@ -98,7 +98,7 @@ a \kw{const} scalar function is assumed.
 	\nt{multiplier\_coef} \cdot \nt{base}^{\plbr{\nt{coef} \cdot x}}
 \end{align}
 Note: the optional \nt{base} must be positive
-(defaults to $e$, Neper's number);
+(defaults to `$\textrm{e}$', Neper's number);
 \nt{coef} defaults to 1.
 
 \paragraph{Example.} \
@@ -122,11 +122,12 @@ Note: the optional \nt{base} must be positive
 	&=
 	\nt{multiplier\_coef} \cdot \log_{\nt{base}}\plbr{\nt{coef} \cdot x}
 \end{align}
-Note: the optional \kw{base} (defaults to $e$, Neper's number,
+Note: the optional \kw{base} (defaults to `$\textrm{e}$', Neper's number,
 resulting in natural logarithms)
-and the optional value \nt{coef}, prepended by the keyword \kw{coefficient},
 must be positive.
-The argument must be positive as well, otherwise an exception is thrown.
+The optional value \nt{coef}, prepended by the keyword \kw{coefficient},
+(defaults to 1).
+The argument must be positive, otherwise an exception is thrown.
 
 \paragraph{Example.} \
 \begin{verbatim}
