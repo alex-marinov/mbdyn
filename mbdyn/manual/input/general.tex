@@ -2612,6 +2612,9 @@ The \kw{friction model} input format is:
         \bnt{friction_arglist}
 \end{Verbatim}
 %\end{verbatim}
+where \nt{friction\_function} gives the static friction
+as a function of sliding velocity.
+
 Currently implemented friction models are:
 \begin{enumerate}
 \item \kw{modlugre}\\
@@ -2647,10 +2650,14 @@ The input format is:
 %\end{verbatim}
     where \nt{sigma2} gives the viscous friction;
     \nt{vel\_ratio} defaults to 0.8, and is used
-    to discriminate stick/slip conditions
+    to discriminate stick/slip conditions.
+    Note that \kw{discrete coulomb}
+    cannot handle stick conditions when the reaction force
+    in the constraint goes to zero (resulting in a singular Jacobian matrix).
+    The \kw{preload} parameter needs to be used to make sure
+    the joint is preloaded as appropriate
+    (see the documentation of the specific joint for details).
 \end{enumerate}
-where \nt{friction\_function} gives the static friction
-as a function of sliding velocity.
 
 \subsection{Shape functions}
 The input format of shape functions is:
