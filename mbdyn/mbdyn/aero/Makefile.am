@@ -39,10 +39,22 @@ rotor.h \
 windprof.cc \
 windprof.h
 
-#nodist_libaero_la_SOURCES =
+nodist_libaero_la_SOURCES =
+
 #if MBDYN_DEVEL
 #nodist_libaero_la_SOURCES += \
 #endif
+
+if BUILD_STATIC_MODULES
+if BUILD_CHARM
+# charm
+nodist_libaero_la_SOURCES += \
+$(srcdir)/../../modules/module-charm/module-charm.cc \
+$(srcdir)/../../modules/module-charm/mbcharm.h
+
+# add more...
+endif
+endif
 
 libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static

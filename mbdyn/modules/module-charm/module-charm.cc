@@ -48,6 +48,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #endif /* HAVE_CONFIG_H */
 
+#include <cstdlib>
 #include <iostream>
 #include <cfloat>
 
@@ -56,6 +57,8 @@
 #include "indvel.h"
 #include "drive_.h" // for TimeDrive
 #include "Rot.hh"
+
+#include "mbcharm.h"
 
 // CHARM's header file (apparently it is experimental)
 #undef __stdcall
@@ -1454,14 +1457,25 @@ ModuleCHARM::InitialAssRes(
 	return WorkVec;
 }
 
-extern "C" int
-module_init(const char *module_name, void *pdm, void *php)
+bool
+mbcharm_set(void)
 {
 	UserDefinedElemRead *rf = new UDERead<ModuleCHARM>;
 
-	if (!SetUDE("charm", rf)) {
+	bool b = SetUDE("charm", rf);
+	if (!b) {
 		delete rf;
+	}
 
+	return b;
+}
+
+// #ifdef STATIC_MODULES, the function is registered by InitUDE()
+#ifndef STATIC_MODULES
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	if (!mbcharm_set()) {
 		silent_cerr("module-charm: "
 			"module_init(" << module_name << ") "
 			"failed" << std::endl);
@@ -1471,4 +1485,4 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	return 0;
 }
-
+#endif // ! STATIC_MODULES
