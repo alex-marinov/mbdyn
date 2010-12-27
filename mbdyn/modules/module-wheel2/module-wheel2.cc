@@ -483,6 +483,7 @@ Wheel2::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 }
 
 // #ifdef STATIC_MODULES, the function is registered by InitUDE()
+#ifndef STATIC_MODULES
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
@@ -500,4 +501,4 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	return 0;
 }
-
+#endif // ! STATIC_MODULES
