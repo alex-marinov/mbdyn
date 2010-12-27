@@ -257,6 +257,8 @@ AC_ARG_WITH(module,[
 	MODULES_DIRS=$ol_arg
 ],[MODULES_DIRS=])dnl
 
+OL_ARG_WITH(charm,[  --with-charm            with CHARM WP module],no,[auto yes no])
+
 fool_libtool=yes
 case "$host" in
 	*-apple-*)
@@ -831,7 +833,13 @@ case "$ol_with_static_modules" in
 		;;
 esac
 if test "$build_static_modules" = "yes" ; then
-	AC_DEFINE(STATIC_MODULES,1,[define to build module wheel2 as static])
+	AC_DEFINE(STATIC_MODULES,1,[define to statically build modules])
+fi
+
+build_charm=no
+if test "$ol_with_charm" != "no" ; then
+	build_charm=yes
+	AC_DEFINE(HAVE_CHARM,1,[define to build CHARM WP module])
 fi
 
 dnl ----------------------------------------------------------------
@@ -2448,6 +2456,7 @@ AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
+AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])
 
 dnl ----------------------------------------------------------------
 dnl
