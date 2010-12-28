@@ -813,7 +813,7 @@ Solver::Run(void)
 	 * have not been ServePending'd
 	 */
 	dTime = dInitialTime;
-	pDM->SetTime(dTime, 0., 0);
+	pDM->SetTime(dTime, dInitialTimeStep, 0);
 
 	EigAn.currAnalysis = std::find_if(EigAn.Analyses.begin(), EigAn.Analyses.end(),
 		bind2nd(std::greater<doublereal>(), dTime));
