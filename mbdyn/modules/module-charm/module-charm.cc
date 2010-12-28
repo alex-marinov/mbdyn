@@ -147,6 +147,13 @@ updateWake(int isTrimming, chStatus *status)
 }
 #endif // MBCHARM_FAKE
 
+// Some builds of libWPModule call this function...
+extern "C" int
+shipwake_(void)
+{
+	return 0;
+}
+
 class ModuleCHARM
 : virtual public Elem,
 	public UserDefinedElem,
