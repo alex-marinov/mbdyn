@@ -45,19 +45,26 @@ nodist_libaero_la_SOURCES =
 #nodist_libaero_la_SOURCES += \
 #endif
 
+libaero_la_LIBADD = @LIBS@
+libaero_la_LDFLAGS = -static
+
 if BUILD_STATIC_MODULES
 if BUILD_CHARM
 # charm
 nodist_libaero_la_SOURCES += \
 $(srcdir)/../../modules/module-charm/module-charm.cc \
-$(srcdir)/../../modules/module-charm/mbcharm.h
+$(srcdir)/../../modules/module-charm/mbcharm.h \
+$(srcdir)/../../modules/module-charm/charm_common.c \
+$(srcdir)/../../modules/module-charm/CharmWP.c
+
+# NOTE: charm_common.c and CharmWP.c belong to CHARM's developers' kit
+# and thus are not distributed with MBDyn
+
+libaero_la_LIBADD += -lWPModule
 
 # add more...
 endif
 endif
-
-libaero_la_LIBADD = @LIBS@
-libaero_la_LDFLAGS = -static
 
 INCLUDES = \
 -I../../include \
