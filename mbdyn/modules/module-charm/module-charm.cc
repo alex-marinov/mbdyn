@@ -147,12 +147,101 @@ updateWake(int isTrimming, chStatus *status)
 }
 #endif // MBCHARM_FAKE
 
+#ifdef NEED_CHARM_SHIPWAKE
 // Some builds of libWPModule call this function...
+
+/*
+      SUBROUTINE SHIPWAKE(T,NPTS,XPTS,VPTS,IFRAME)
+C   This subroutine provides ship airwake induced velocities
+C   at a set of points at time T.  Ship airwake velocities
+C   are added to the current values in the VPTS array.
+
+C--------------------C
+C  List of Arguments C
+C--------------------C
+C  
+C   ARGUMENT       TYPE       I/O   MEANING
+C
+C    T             REAL        I    Time (seconds)
+C
+C    NPTS          INT         I    Number of evaluation points where
+C                                   ship airwake induced velocities
+C                                   are to be evaluated at time T
+C
+C    XPTS(i,n)  REAL(3,NPTS)   I    Evaluation point locations at time T
+C                                   i=1,2,3 = x,y,z; n=point number
+C                                    (ft or m)
+C
+C    VPTS(i,n)  REAL(3,NPTS)   O    The ship airwake induced velocity
+C                                   at the XPTS evaluation points at
+C                                   time T is added to the velocity
+C                                   currently in VPTS. (ft/s or m/s)
+C
+C    IFRAME         INT        I    IFRAME=1 points and velocities are 
+C                                            in the ship frame
+C                                   IFRAME=2 points and velocities are
+C                                            in the inertial frame
+C--------------------C
+C  List of Variables C
+C--------------------C
+C  
+C    XSHIP(i)      REAL(3)     Origin of ship airwake frame
+C                              in inertial frame at time T,
+C                              (i=1,2,3 = x,y,z) (ft or m)
+C  
+C    VSHIP(i)      REAL(3)     Velocity of ship airwake frame
+C                              in inertial frame at time T,
+C                              (i=1,2,3 = u,v,w) (ft/s or m/s)
+C  
+C    ROLL,PITCH    REAL        Orientation of ship airwake frame
+C    YAW                       in inertial frame at time T,
+C                              (degs) (applied in reverse order)
+C
+C    WINDMAG       REAL        Incoming free stream wind magnitude 
+C                               (ft/s or m/s)
+C
+C    WINDDIR       REAL        Incoming free stream wind direction
+C                                (degs) (positive from starboard)
+C
+C    WIND(i)       REAL(3)     Wind vector in the ship airwake frame
+C                              at time T, (i=1,2,3 = u,v,w)
+C                              (ft/s or m/s) (determined from
+C                              WINDMAG and WINDDIR).  WIND is the 
+C                              incoming wind vector.
+C
+C    ITEST         INT         Flags the type of ship airwake model
+C                              ITEST = 0: Use the ship airwake
+C                                         read in from the shipwake.dat
+C                                         file
+C                              ITEST > 0: Use a user-defined analytical
+C                                         ship airwake model coded up
+C                                         directly in this subroutine.
+
+C---------------------------------------------------------------------C
+C** NOTE: The ship airwake induced velocity is *added* to VPTS,
+C**       as opposed to simply assigned to VPTS.  This saves 
+C**       memory and some CPU time.
+C---------------------------------------------------------------------C
+
+      DIMENSION XSHIP(3),VSHIP(3),WIND(3),XPTS(3,*),VPTS(3,*)
+      DIMENSION TV(3),XV(3),VV(3),FITS(3,3)
+      DATA ITEST/1/
+
+      DATA RTD,DTR/57.2957795,.017453293/
+ */
+
 extern "C" int
-shipwake_(void)
+shipwake_(
+	doublereal *T,
+	integer *NPTS,
+	doublereal *XPTS,
+	doublereal *VPTS,
+	integer *IFRAME )
 {
 	return 0;
 }
+
+#endif // ! NEED_CHARM_SHIPWAKE
 
 class ModuleCHARM
 : virtual public Elem,

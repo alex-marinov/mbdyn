@@ -840,6 +840,10 @@ build_charm=no
 if test "$ol_with_charm" != "no" ; then
 	build_charm=yes
 	AC_DEFINE(HAVE_CHARM,1,[define to build CHARM WP module])
+	dnl add test
+	if test 1 = 1 ; then
+		AC_DEFINE(NEED_CHARM_SHIPWAKE,1,[define if CHARM WP module needs shipwake])
+	fi
 fi
 
 dnl ----------------------------------------------------------------
