@@ -1005,6 +1005,8 @@ ModuleCHARM::Set_int(void)
 	Vec3 Vinf(0.);
 	if (fGetAirVelocity(Vinf, Xac)) {
 #if 0
+		// Apparently, inertial_winds is incompatible 
+		// with INFLOW == 1 (analysis in the aircraft frame)
 		m_chglobal.inertial_winds[0] = Vinf(1);
 		m_chglobal.inertial_winds[1] = Vinf(2);
 		m_chglobal.inertial_winds[2] = Vinf(3);

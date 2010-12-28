@@ -84,7 +84,7 @@ reference: ROTOR_1,
 	reference, GROUND, 0., 0., 1.,
 	reference, GROUND, eye,
 	reference, GROUND, null,
-	reference, GROUND, 0.,0.,OMEGA;
+	reference, GROUND, 0.,0.,-OMEGA;
 
 reference: ROTOR_1 + BLADE_1,
 	reference, ROTOR_1, R, 0., 0.,
@@ -140,7 +140,7 @@ begin: elements;
 		GROUND, position, reference, CURR_ROTOR, null,
 		CURR_ROTOR, position, reference, CURR_ROTOR, null,
 		position constraint, 1, 1, 1, null,
-		orientation constraint, 1, 1, 1, 0., 0., 1., linear, 0., OMEGA;
+		orientation constraint, 1, 1, 1, 0., 0., 1., linear, 0., -OMEGA;
 	joint: CURR_ROTOR + 1, revolute hinge,
 		CURR_ROTOR,
 			position, reference, CURR_ROTOR, null,
@@ -232,7 +232,7 @@ begin: elements;
 		induced velocity, 1,
 		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
-			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
 		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
@@ -251,7 +251,7 @@ begin: elements;
 		induced velocity, 1,
 		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
-			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
 		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
@@ -271,7 +271,7 @@ begin: elements;
 		induced velocity, 1,
 		reference, node, -(R - R_CUTOUT)*3/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
-			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
 		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,
@@ -290,7 +290,7 @@ begin: elements;
 		induced velocity, 1,
 		reference, node, -(R - R_CUTOUT)/4, 0., 0.,
 		reference, CURR_ROTOR + CURR_BLADE,
-			1, 0., cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
+			1, 0., -cos(THETA_0), sin(THETA_0), 3, 1., 0., 0.,
 		(R - R_CUTOUT)/2,
 		const, C,
 		const, 0.,

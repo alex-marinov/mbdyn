@@ -1,4 +1,6 @@
 sample1.inp: Template input file for initial development use
+INFLOW
+ 1
 NPSI, IMKS
  12 1
 IBLPLT   MPLOT   NFRAMES
