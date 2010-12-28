@@ -1,0 +1,73 @@
+sample1.inp: Template input file for initial development use
+NPSI, IMKS
+ 12 1
+IBLPLT   MPLOT   NFRAMES
+  0        0        0
+IFV
+ 0
+ISURF
+  0
+NOWAKE   ICNVCT   NPWAKE   IFAR   MBCVE   AOVLAP
+  0        2        0       0       2       0
+NZONE   (NVORT(I), I=1,NZONE)
+  3       14  6  2
+(NPTFW(I), I=1,NZONE)
+ 6  6  24
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=1 (Min core radii)
+ 14*0.02
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=1 (Max core radii)
+ 14*1.0
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=2 (Min core radii)
+ 6*0.02
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=2 (Max core radii)
+ 6*1.0
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=3 (Min core radii)
+ 2*0.1
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=3 (Max core radii)
+ 2*0.1
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=1 (Min cutoff distances)
+ 14*0.02
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=1 (Max cutoff distances)
+ 14*1.0
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=2 (Min cutoff distances)
+ 6*0.02
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=2 (Max cutoff distances)
+ 6*1.0
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=3 (Min cutoff distances)
+ 2*0.1
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=3 (Max cutoff distances)
+ 2*0.1
+SRAD   SHGHT (Shaft radius and height for vortex-splitting)
+0.0    0.0
+NOWAKE   ICNVCT   NPWAKE   IFAR   MBCVE   AOVLAP
+  0        2        0       0       2       0
+NZONE   (NVORT(I), I=1,NZONE)
+  3       14  6  2
+(NPTFW(I), I=1,NZONE)
+ 6  6  24
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=1 (Min core radii)
+ 14*0.02
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=1 (Max core radii)
+ 14*1.0
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=2 (Min core radii)
+ 6*0.02
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=2 (Max core radii)
+ 6*1.0
+(CORLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=3 (Min core radii)
+ 2*0.1
+(CORLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=3 (Max core radii)
+ 2*0.1
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=1 (Min cutoff distances)
+ 14*0.02
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=1 (Max cutoff distances)
+ 14*1.0
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=2 (Min cutoff distances)
+ 6*0.02
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=2 (Max cutoff distances)
+ 6*1.0
+(CUTLIM(NV,IZONE,1), NV=1,NVORT(IZONE) IZONE=3 (Min cutoff distances)
+ 2*0.1
+(CUTLIM(NV,IZONE,2), NV=1,NVORT(IZONE) IZONE=3 (Max cutoff distances)
+ 2*0.1
+SRAD   SHGHT (Shaft radius and height for vortex-splitting)
+0.0    0.0

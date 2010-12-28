@@ -49,8 +49,13 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <cstdlib>
-#include <iostream>
+#include <cerrno>
 #include <cfloat>
+#include <iostream>
+
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "dataman.h"
 #include "userelem.h"
@@ -67,7 +72,7 @@
 
 // The functions that follow are stubs to simulate the availability
 // of CHARM's WP library
-#define MBCHARM_FAKE 1
+//#define MBCHARM_FAKE 1
 #ifdef MBCHARM_FAKE
 extern "C" int
 allocWPAircraft(
@@ -948,6 +953,16 @@ ModuleCHARM::Init_int(void)
 	}
 
 	// TODO: generate "charm.inp"
+	{
+		struct stat st;
+		if (stat("charm.inp", &st) != 0) {
+			int save_errno = errno;
+			silent_cerr("ModuleCHARM::Init_int: unable to stat file \"charm.inp\" (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	silent_cout("ModuleCHARM::Init_int: calling initWPModule()" <<std::endl);
 
 	// FIXME: one aircraft only
 	initWPModule(1,
@@ -955,6 +970,8 @@ ModuleCHARM::Init_int(void)
 		m_eval_pts.size(), m_eval_pts.size(), &m_eval_pts[0],
 		1,		// FIXME: areEvalPointsFixed?
 		&m_chglobal, &m_wpoptions);
+
+	silent_cout("ModuleCHARM::Init_int: called initWPModule()" <<std::endl);
 }
 
 void
