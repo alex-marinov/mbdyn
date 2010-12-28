@@ -528,8 +528,8 @@ test_run(void)
 					default:
 						R =  MBC_R_R(mbc);
 						fprintf(outputfile, "R %+16.8e %+16.8e %+16.8e", R[0], R[3], R[6]);
-						fprintf(outputfile, " %+16.8e %+16.8e %+16.8e", R[1], R[4], R[7]);
-						fprintf(outputfile, " %+16.8e %+16.8e %+16.8e\n", R[2], R[5], R[8]);
+						fprintf(outputfile, "  %+16.8e %+16.8e %+16.8e", R[1], R[4], R[7]);
+						fprintf(outputfile, "  %+16.8e %+16.8e %+16.8e\n", R[2], R[5], R[8]);
 						break;
 					case MBC_ROT_THETA:
 						R =  MBC_R_THETA(mbc);
