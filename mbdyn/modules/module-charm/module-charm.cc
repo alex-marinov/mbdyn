@@ -254,6 +254,9 @@ class ModuleCHARM
 	public InducedVelocity
 {
 private:
+	// save data manager
+	DataManager *pDM;
+
 	// forward declaration
 	struct RotorBlade;
 
@@ -346,7 +349,6 @@ private:
 	// Time handling
 	// KTRSIM-related stuff (Fidelity/speed trade off settings)
 	// TODO: use azimuth instead of time (number of revolutions)
-	DriveOwner m_Time;
 	std::vector<double> m_TrimTime;
 	std::vector<double>::const_iterator m_TrimTimeIter;
 
@@ -362,6 +364,7 @@ private:
 	int iFirstAssembly;
 
 	void Init_int(void);
+	void Set_int(void);
 	void Update_int(void);
 
 public:
@@ -419,7 +422,7 @@ ModuleCHARM::ModuleCHARM(
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
 InducedVelocity(uLabel, 0, 0, flag(0)),
-m_Time(new TimeDriveCaller(pDM->pGetDrvHdl())),
+pDM(pDM),
 iFirstAssembly(2)
 {
 	// help
@@ -447,7 +450,6 @@ iFirstAssembly(2)
 	}
 
 	// global data
-	m_chglobal.current_time = m_Time.dGet();
 	m_chglobal.trim_flag = 0;
 
 	// NOTE: ignore ground by now
@@ -462,6 +464,10 @@ iFirstAssembly(2)
 	m_chglobal.iv_filter_damp[0];
 	m_chglobal.iv_filter_damp[1];
 #endif
+
+	m_chglobal.inertial_winds[0] = 0.;
+	m_chglobal.inertial_winds[1] = 0.;
+	m_chglobal.inertial_winds[2] = 0.;
 
 	// wake-panel options
 	m_wpoptions.kblind = 1;
@@ -952,6 +958,8 @@ ModuleCHARM::Init_int(void)
 #endif
 	}
 
+	Set_int();
+
 	// TODO: generate "charm.inp"
 	{
 		struct stat st;
@@ -961,6 +969,11 @@ ModuleCHARM::Init_int(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+
+	m_chglobal.current_time = pDM->pGetDrvHdl()->dGetTime();
+	m_chglobal.time_increment = pDM->pGetDrvHdl()->dGetTimeStep();
+
+	silent_cout("ModuleCHARM::Init_int: current_time=" << m_chglobal.current_time << " time_increment=" << m_chglobal.time_increment << std::endl);
 
 	silent_cout("ModuleCHARM::Init_int: calling initWPModule()" <<std::endl);
 
@@ -975,13 +988,13 @@ ModuleCHARM::Init_int(void)
 }
 
 void
-ModuleCHARM::Update_int(void)
+ModuleCHARM::Set_int(void)
 {
 	const Vec3& Xac(pCraft->GetXCurr());
 	// p, T not used yet
 	doublereal rho, c, p, T;
 	GetAirProps(Xac, rho, c, p, T);
-	const Vec3& Vac(pCraft->GetVCurr());
+	Vec3 Vac(pCraft->GetVCurr());
 	// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh); // m_R computed by AssRes()
 	Vec3 VBac(m_Rac.MulTV(Vac));
 	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
@@ -991,14 +1004,17 @@ ModuleCHARM::Update_int(void)
 	// update global data
 	Vec3 Vinf(0.);
 	if (fGetAirVelocity(Vinf, Xac)) {
+#if 0
 		m_chglobal.inertial_winds[0] = Vinf(1);
 		m_chglobal.inertial_winds[1] = Vinf(2);
 		m_chglobal.inertial_winds[2] = Vinf(3);
+#endif
+		Vac -= Vinf;
 	}
 
-	doublereal dTime = m_Time.dGet();
-	m_chglobal.time_increment = dTime - m_chglobal.current_time;
+	doublereal dTime = pDM->pGetDrvHdl()->dGetTime();
 	m_chglobal.current_time = dTime;
+	m_chglobal.time_increment = pDM->pGetDrvHdl()->dGetTimeStep();
 
 	// NOTE: ignore ground by now
 #if 0
@@ -1131,6 +1147,12 @@ ModuleCHARM::Update_int(void)
 		}
 #endif
 	}
+}
+
+void
+ModuleCHARM::Update_int(void)
+{
+	Set_int();
 
 	// actually call the module and update the induced velocity
 	// FIXME: the exact sequence needs to be carefully defined
@@ -1520,7 +1542,7 @@ ModuleCHARM::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-	NO_OP;
+	ASSERT(pDM == this->pDM);
 }
 
 std::ostream&
