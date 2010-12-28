@@ -853,9 +853,7 @@ ModuleCHARM::Init_int(void)
 		"num_rotors_or_surfaces=" << m_wpaircraft.number_rotors_or_surfaces << std::endl;
 #endif
 
-	Mat3x3 Rb2h[2];
-	Rb2h[0] = Mat3x3(1, 0, 0, 0, -1, 0, 0, 0, -1);
-	Rb2h[1] = Eye3;
+	Mat3x3 Rb2h(1, 0, 0, 0, -1, 0, 0, 0, -1);
 
 	for (int ir = 0; ir < num_rotors; ir++) {
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
@@ -883,40 +881,41 @@ ModuleCHARM::Init_int(void)
 		}
 
 		rotor->isRotor = 1;
+		ASSERT(std::abs(m_Rotors[ir].rotation_dir) == 1);
 		rotor->rotation_dir = m_Rotors[ir].rotation_dir;
 		rotor->radius = m_Rotors[ir].radius;
 		rotor->average_chord = m_Rotors[ir].average_chord;
 		rotor->root_cutout = m_Rotors[ir].root_cutout;
 		// T_body_to_hub = Rh^T
+		// NOTE: C indexes need to be exchanged
 		rotor->T_body_to_hub[0][0] = m_Rotors[ir].Rh(1, 1);
-		rotor->T_body_to_hub[0][1] = m_Rotors[ir].Rh(1, 2);
-		rotor->T_body_to_hub[0][2] = m_Rotors[ir].Rh(1, 3);
-		rotor->T_body_to_hub[1][0] = m_Rotors[ir].Rh(2, 1);
+		rotor->T_body_to_hub[1][0] = m_Rotors[ir].Rh(1, 2);
+		rotor->T_body_to_hub[2][0] = m_Rotors[ir].Rh(1, 3);
+		rotor->T_body_to_hub[0][1] = m_Rotors[ir].Rh(2, 1);
 		rotor->T_body_to_hub[1][1] = m_Rotors[ir].Rh(2, 2);
-		rotor->T_body_to_hub[1][2] = m_Rotors[ir].Rh(2, 3);
-		rotor->T_body_to_hub[2][0] = m_Rotors[ir].Rh(3, 1);
-		rotor->T_body_to_hub[2][1] = m_Rotors[ir].Rh(3, 2);
+		rotor->T_body_to_hub[2][1] = m_Rotors[ir].Rh(2, 3);
+		rotor->T_body_to_hub[0][2] = m_Rotors[ir].Rh(3, 1);
+		rotor->T_body_to_hub[1][2] = m_Rotors[ir].Rh(3, 2);
 		rotor->T_body_to_hub[2][2] = m_Rotors[ir].Rh(3, 3);
 		// orientation of shaft frame in inertial frame
 		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh*m_Rotors[ir].Rh);
 		// relative rotation between hub and shaft
 		Mat3x3 Rhb(Rac.MulTM(m_Rotors[ir].pHub->GetRCurr()));
 		Vec3 Psi(RotManip::VecRot(Rhb));
-		rotor->azimuthal_offset = Psi(3)*m_Rotors[ir].rotation_dir;
+		rotor->azimuthal_offset = 0.;
+		rotor->azimuth = Psi(3)*rotor->rotation_dir;
 		silent_cout("ModuleCHARM(" << uLabel << "): "
 			"rotor " << ir << "/" << num_rotors
-			<< " azimuthal offset=" << rotor->azimuthal_offset
+			<< " azimuth=" << rotor->azimuth
 			<< std::endl);
 		doublereal dPsi = 2.*M_PI/rotor->number_blades;
 #if 0
 		std::cerr << "*** dPsi=" << dPsi << std::endl;
 #endif
 
-		Mat3x3& Rb2hTmp(Rb2h[(1 - rotor->rotation_dir)/2]);
-
 		for (int ib = 0; ib < rotor->number_blades; ib++) {
 			// FIXME: azimuth of blades increases
-			m_Rotors[ir].Blades[ib].Rh = m_Rotors[ir].Rh*RotManip::Rot(Vec3(0., 0., ib*dPsi))*Rb2hTmp;
+			m_Rotors[ir].Blades[ib].Rh = m_Rotors[ir].Rh*RotManip::Rot(Vec3(0., 0., rotor->rotation_dir*ib*dPsi))*Rb2h;
 #if 0
 			std::cerr << "*** m_Rotors[" << ir << "].Blades[" << ib << "].Rh=" << m_Rotors[ir].Blades[ib].Rh << std::endl;
 #endif
@@ -1064,15 +1063,16 @@ ModuleCHARM::Set_int(void)
 	m_wpaircraft.euler_angles[1] = EBac(2);
 	m_wpaircraft.euler_angles[2] = EBac(3);
 #endif
-	// FIXME: R(i, j) or R(j, i)?
+	// T_inertial_to_body = m_Rac^T
+	// NOTE: C indexes need to be exchanged
 	m_wpaircraft.T_inertial_to_body[0][0] = m_Rac(1, 1);
-	m_wpaircraft.T_inertial_to_body[0][1] = m_Rac(2, 1);
-	m_wpaircraft.T_inertial_to_body[0][2] = m_Rac(3, 1);
 	m_wpaircraft.T_inertial_to_body[1][0] = m_Rac(1, 2);
-	m_wpaircraft.T_inertial_to_body[1][1] = m_Rac(2, 2);
-	m_wpaircraft.T_inertial_to_body[1][2] = m_Rac(3, 2);
 	m_wpaircraft.T_inertial_to_body[2][0] = m_Rac(1, 3);
+	m_wpaircraft.T_inertial_to_body[0][1] = m_Rac(2, 1);
+	m_wpaircraft.T_inertial_to_body[1][1] = m_Rac(2, 2);
 	m_wpaircraft.T_inertial_to_body[2][1] = m_Rac(2, 3);
+	m_wpaircraft.T_inertial_to_body[0][2] = m_Rac(3, 1);
+	m_wpaircraft.T_inertial_to_body[1][2] = m_Rac(3, 2);
 	m_wpaircraft.T_inertial_to_body[2][2] = m_Rac(3, 3);
 
 	// TODO: rotor(s)
@@ -1097,7 +1097,7 @@ ModuleCHARM::Set_int(void)
 		while (rotor->azimuth > 2.*M_PI) {
 			rotor->azimuth -= 2.*M_PI;
 		}
-		rotor->azimuth = Psi(3);
+		rotor->azimuth = rotor->rotation_dir*Psi(3);
 
 		// rotor velocity
 		Vec3 ehb3(m_Rotors[ir].pHub->GetRCurr().GetVec(3));
@@ -1145,7 +1145,7 @@ ModuleCHARM::Set_int(void)
 			*(i->spanwise_lift_p) = i->spanwise_lift;
 		}
 
-#if 1
+#if 0
 		if (i->pRB) {
 			std::cerr << "Rotors[" << i->pRB->iRotor << "].Blades[" << i->pRB->iBlade << "] X=" << i->X << std::endl;
 		} else {
@@ -1235,6 +1235,8 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 		if (m_data_vel_iter->pRB) {
 			int ir = m_data_vel_iter->pRB->iRotor;
 			int ib = m_data_vel_iter->pRB->iBlade;
+			int iRotationDir = m_Rotors[ir].rotation_dir;
+
 			Mat3x3 RTmp(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Blades[ib].Rh);
 
 #if 0
@@ -1242,6 +1244,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			std::cerr << "*** ib=" << ib << std::endl;
 			std::cerr << "*** m_Rac=" << m_Rac << std::endl;
 			std::cerr << "*** m_Rotors[" << ir << "].Blades[" << ib << "].Rh=" << m_Rotors[ir].Blades[ib].Rh << std::endl;
+			std::cerr << "*** X={" << RTmp.MulTV(X - m_Rotors[ir].pHub->GetX()) << "}" << std::endl;
 #endif
 
 			// blade points (XSIM) are in the blade frame
@@ -1252,9 +1255,11 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			// axis 3 is 1 cross 2 (down for counter-clockwise)
 			m_data_frc_iter->X = RTmp.MulTV(X - m_Rotors[ir].pHub->GetX());
 			m_data_frc_iter->X(1) -= m_Rotors[ir].root_cutout;
+			m_data_frc_iter->X(2) *= iRotationDir;
 
 
 			V = RTmp*Vec3(m_data_vel_iter->vel);
+			V(2) *= iRotationDir;
 
 #if 0
 			std::cerr << "*** V=" << V << std::endl;
