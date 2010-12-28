@@ -998,8 +998,10 @@ ModuleCHARM::Set_int(void)
 	// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh); // m_R computed by AssRes()
 	Vec3 VBac(m_Rac.MulTV(Vac));
 	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
+#if 0
 	// FIXME: Euler angles? 123 or 321?  Rac or Rac^T?
 	Vec3 EBac = MatR2EulerAngles123(m_Rac);
+#endif
 
 	// update global data
 	Vec3 Vinf(0.);
@@ -1057,9 +1059,11 @@ ModuleCHARM::Set_int(void)
 	m_wpaircraft.angular_rates[0] = WBac(1);
 	m_wpaircraft.angular_rates[1] = WBac(2);
 	m_wpaircraft.angular_rates[2] = WBac(3);
+#if 0
 	m_wpaircraft.euler_angles[0] = EBac(1);
 	m_wpaircraft.euler_angles[1] = EBac(2);
 	m_wpaircraft.euler_angles[2] = EBac(3);
+#endif
 	// FIXME: R(i, j) or R(j, i)?
 	m_wpaircraft.T_inertial_to_body[0][0] = m_Rac(1, 1);
 	m_wpaircraft.T_inertial_to_body[0][1] = m_Rac(2, 1);
