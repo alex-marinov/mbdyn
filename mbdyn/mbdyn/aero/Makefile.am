@@ -60,6 +60,7 @@ $(srcdir)/../../modules/module-charm/CharmWP.c
 # NOTE: charm_common.c and CharmWP.c belong to CHARM's developers' kit
 # and thus are not distributed with MBDyn
 
+# NOTE: libWPModule.a must be in the load path; use LDFLAGS
 libaero_la_LIBADD += -lWPModule
 
 # add more...
