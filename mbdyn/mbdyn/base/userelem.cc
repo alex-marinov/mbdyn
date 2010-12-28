@@ -41,6 +41,9 @@
 
 #ifdef STATIC_MODULES
 #include "module-wheel2/module-wheel2.h"
+#ifdef HAVE_CHARM
+#include "module-charm/mbcharm.h"
+#endif // HAVE_CHARM
 #endif // STATIC_MODULES
 
 typedef std::map<std::string, UserDefinedElemRead *, ltstrcase> UDEMapType;
@@ -113,6 +116,10 @@ InitUDE(void)
 #ifdef STATIC_MODULES
 	b = SetUDE("wheel2", new UDERead<Wheel2>);
 	ASSERT(b != false);
+#ifdef HAVE_CHARM
+	b = mbcharm_set();
+	ASSERT(b != false);
+#endif // HAVE_CHARM
 #endif // STATIC_MODULES
 }
 
