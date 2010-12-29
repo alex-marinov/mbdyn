@@ -1257,9 +1257,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			m_data_frc_iter->X(1) -= m_Rotors[ir].root_cutout;
 			m_data_frc_iter->X(2) *= iRotationDir;
 
-
-			V = RTmp*Vec3(m_data_vel_iter->vel);
-			V(2) *= iRotationDir;
+			V = RTmp*Vec3(m_data_vel_iter->vel[0], iRotationDir*m_data_vel_iter->vel[1], m_data_vel_iter->vel[2]);
 
 #if 0
 			std::cerr << "*** V=" << V << std::endl;
@@ -1393,6 +1391,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 		Vloc(3) = 0.;
+
 		Vec3 Floc(R.MulTV(F));
 
 #if 0
@@ -1403,14 +1402,13 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 		m_data_frc_iter->tangential_velocity = Vloc.Norm();
 		if (m_data_frc_iter->tangential_velocity > std::numeric_limits<doublereal>::epsilon()) {
 			Vloc /= m_data_frc_iter->tangential_velocity;
-			Vec3 Tmp(Vloc.Cross(Floc));
 			m_data_frc_iter->spanwise_lift = (Vloc.Cross(Floc))(3);
 
 		} else {
 			m_data_frc_iter->spanwise_lift = 0.;
 		}
 
-#if 0
+#if 1
 		std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
 			<< " dF=" << m_data_frc_iter->spanwise_lift
 			<< " X={" << m_data_frc_iter->X << "}" << std::endl;
@@ -1455,6 +1453,7 @@ ModuleCHARM::Output(OutputHandler& OH) const
 				<< " " << i->spanwise_lift
 				<< " " << i->tangential_velocity
 				<< " " << i->X
+				<< " " << i->vel[0] << " " << i->vel[1] << " " << i->vel[2]
 				<< std::endl;
 		}
 	}
