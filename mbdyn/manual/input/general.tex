@@ -2317,12 +2317,12 @@ alternatively, it is defined inline according to
              10., 0.1,
              20., 1.;
      set: integer MY_DRIVE = 1000;
-     drive: MY_DRIVE, scalar function, "this_is_a_test";
+     drive caller: MY_DRIVE, scalar function, "this_is_a_test";
 \end{verbatim}
 Alternative syntax example:
 \begin{verbatim}
      set: integer MY_DRIVE = 1000;
-     drive: MY_DRIVE, scalar function, "this_is_a_test",
+     drive caller: MY_DRIVE, scalar function, "this_is_a_test",
         multilinear,
             -20., 1.,
             -10., 0.1,
