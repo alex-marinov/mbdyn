@@ -1741,8 +1741,23 @@ MBDynParser::GetMatR2vec(void)
 		doublereal r32 = GetReal();
 		doublereal r33 = GetReal();
 
-		/* FIXME: check for orthogonality? */
-		return Mat3x3(r11, r21, r31, r12, r22, r32, r13, r23, r33);
+		Mat3x3 R(r11, r21, r31, r12, r22, r32, r13, r23, r33);
+		doublereal dTol = 1.e-12;
+		if (IsKeyWord("tolerance")) {
+			dTol = GetReal();
+			if (dTol < 0.) {
+				silent_cerr("invalid (negative) tolerance while reading orientation matrix in \"matr\" format at line " << GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		if (!Eye3.IsSame(R.MulTM(R), dTol)) {
+			silent_cerr("warning: orientation matrix orthogonality not within tolerance at line " << GetLineData() << std::endl);
+			// not an error?
+			// throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		return R;
 	}
 
 	if (IsKeyWord("euler" "parameters")) {
