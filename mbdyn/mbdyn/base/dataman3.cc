@@ -1384,6 +1384,7 @@ EndOfUse:
 			DEBUGCERR("");
 			silent_cerr("unknown description at line "
 				<< HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			ASSERT(0);
 			break;
 
