@@ -28,16 +28,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <fstream>
 #include <iostream>
-#include <math.h>
+#include <cmath>
 
-#include <myassert.h>
-#include <solman.h>
+#include "myassert.h"
+#include "solman.h"
 #include "dae-intg.h"
 
 struct private_data {

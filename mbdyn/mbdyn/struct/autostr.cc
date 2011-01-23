@@ -29,14 +29,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cmath>
 #include <cfloat>
 
-#include <autostr.h>
+#include "autostr.h"
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)

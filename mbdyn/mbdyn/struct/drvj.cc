@@ -31,11 +31,9 @@
 
 /* Giunti di velocita' imposta */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <drvj.h>
+#include "drvj.h"
 
 /* LinearVelocity - begin */
 

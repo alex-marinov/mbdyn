@@ -29,11 +29,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <dummypgin.h>
+#include "dummypgin.h"
 
 DummyPlugIn::DummyPlugIn(MathParser& mp, void *arg)
 : MathParser::PlugIn(mp)

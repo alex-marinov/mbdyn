@@ -29,14 +29,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include <cstdio>
 #include <cstring>
 #include "mbstrbuf.h"
-#include <stdio.h>
+//#include <stdio.h>
 
 std::ostream&
 mbstrbuf::stats(std::ostream& out)

@@ -30,9 +30,7 @@
  */
  /* Elemento aerodinamico modale */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include "aeromodal.h"
 #include "dataman.h"

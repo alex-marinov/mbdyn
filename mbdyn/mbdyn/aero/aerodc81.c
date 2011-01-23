@@ -29,14 +29,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
-#include "stdio.h"
-#include "stdlib.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
 #include "ac/f2c.h"
-#include "math.h"
 #include "aerodc81.h"
 #include "bisec.h"
 

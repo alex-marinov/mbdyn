@@ -31,9 +31,7 @@
  * 	Alessandro Fumagalli	< alessandro.fumagalli@polimi.it >
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cstring>
 #include <stdlib.h>

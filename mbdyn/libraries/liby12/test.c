@@ -27,15 +27,13 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <ac/f2c.h>
+#include "ac/f2c.h"
 
-#include <y12lib.h>
+#include "y12lib.h"
 
 int
 main(void)

@@ -28,16 +28,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <string.h>
+#include <cstring>
 #include <iostream>
 
-#include <matvec3.h>
-#include <matvecexp.h>
-#include <Rot.hh>
+#include "matvec3.h"
+#include "matvecexp.h"
+#include "Rot.hh"
 
 int main(int argn, const char* const argv[])
 {

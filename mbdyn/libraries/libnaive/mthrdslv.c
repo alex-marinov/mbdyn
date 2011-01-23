@@ -50,7 +50,7 @@ The subroutine naivfct perform the LU factorization, naivslv the back-solve.
 
 
 #ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <math.h>
 #include "ac/f2c.h"

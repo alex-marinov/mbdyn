@@ -46,9 +46,7 @@
  * O means "OK" and F means "Fail"
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -66,7 +64,7 @@
 #include <sys/types.h>
 #include <sys/poll.h>
 #include <sys/socket.h>
-#include <ac/getopt.h>
+#include "ac/getopt.h"
 
 #include <sasl/sasl.h>
 #include "mbsasl.h"

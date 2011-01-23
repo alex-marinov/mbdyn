@@ -31,9 +31,7 @@
 
 /* socket driver */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 /* include del programma */
 
@@ -42,9 +40,9 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
-#include <rtai_out_elem.h>
-#include <mbrtai_utils.h>
-#include <dataman.h>
+#include "rtai_out_elem.h"
+#include "mbrtai_utils.h"
+#include "dataman.h"
 
 /* RTMBDynOutElem - begin */
 

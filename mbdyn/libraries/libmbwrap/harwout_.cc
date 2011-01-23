@@ -29,16 +29,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #ifdef USE_HARWELL
 
 #include <iostream>
 
-#include <myassert.h>
-#include <harwout.h>
+#include "myassert.h"
+#include "harwout.h"
 
 int
 harwell_error(int, const char* const v[])

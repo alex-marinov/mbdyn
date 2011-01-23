@@ -28,21 +28,19 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <ac/getopt.h>
+#include "ac/getopt.h"
 
 extern "C" {
-#include <aerodc81.h>
+#include "aerodc81.h"
 }
 
-#include <c81data.h>
+#include "c81data.h"
 
 /*
  * header NML,NAL,NMD,NAD,NMM,NAM          A30,6I2 

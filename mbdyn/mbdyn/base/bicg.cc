@@ -37,9 +37,7 @@
   * classi che implementano la risoluzione del sistema nonlineare 
   */
   
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
   
 #include <cmath>
 #include <cstdlib>

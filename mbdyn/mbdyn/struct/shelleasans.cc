@@ -36,9 +36,7 @@
  * Comput Mech (2009) 43:307­319 DOI 10.1007/s00466-008-0307-x
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include "constltp_impl.h"
 #include "tpldrive_impl.h"

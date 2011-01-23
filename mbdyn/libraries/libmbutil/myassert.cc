@@ -47,9 +47,7 @@ se msg e' definito, viene aggiunto in coda al messaggio di default
 
 ******************************************************************************/
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include <cstring>
 

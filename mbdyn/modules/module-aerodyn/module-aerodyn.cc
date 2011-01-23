@@ -50,9 +50,7 @@
  * Based on module-aerodyn.cc by Fanzhong Meng and Pierangelo Masarati.
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h" 		/* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include "Rot.hh"
 

@@ -46,9 +46,7 @@
 
 /* metodo per la soluzione del modello */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 /* required for configure time macros with paths */
 #include <cstring>

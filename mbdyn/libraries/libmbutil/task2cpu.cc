@@ -29,9 +29,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <unistd.h>
 #include <fcntl.h>
@@ -40,7 +38,7 @@
 #include <sys/ioctl.h>
 #endif // HAVE_TASK2CPU
 
-#include <ac/pthread.h>
+#include "ac/pthread.h"
 
 #include <iostream>
 

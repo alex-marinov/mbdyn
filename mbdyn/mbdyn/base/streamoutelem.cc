@@ -33,9 +33,7 @@
  * Portions Copyright Michele Attolico <attolico@aero.polimi.it>
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include "dataman.h"
 #include "streamoutelem.h"

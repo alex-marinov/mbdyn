@@ -34,14 +34,12 @@
  * to prepare textual output for Altair's MotionView
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #ifdef USE_MOTIONVIEW
 
-#include <dataman.h>
-#include <dataman_.h>
+#include "dataman.h"
+#include "dataman_.h"
 
 #define USE_MOTION_VIEW_C_API
 

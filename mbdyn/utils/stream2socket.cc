@@ -29,18 +29,16 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
-#include <string.h>
+#include <cstring>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>

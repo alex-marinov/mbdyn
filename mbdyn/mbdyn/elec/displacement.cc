@@ -31,13 +31,11 @@
 
 /* Elementi elettrici */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <strnode.h>
-#include <elecnode.h>
-#include <displacement.h>
+#include "strnode.h"
+#include "elecnode.h"
+#include "displacement.h"
 
 /* DispMeasure - begin */
 

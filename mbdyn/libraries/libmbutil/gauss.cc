@@ -31,11 +31,9 @@
 
 /* Punti di Gauss */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <gauss.h>
+#include "gauss.h"
 
 /* FIXME: better use double precision numbers ... */
 

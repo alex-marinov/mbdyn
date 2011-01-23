@@ -34,14 +34,12 @@
  * to prepare textual output for ADAMS/View
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #ifdef USE_ADAMS
 
-#include <dataman.h>
-#include <dataman_.h>
+#include "dataman.h"
+#include "dataman_.h"
 
 bool
 DataManager::bAdamsOutput(void) const

@@ -34,9 +34,7 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include <cfloat>
 #include <limits>

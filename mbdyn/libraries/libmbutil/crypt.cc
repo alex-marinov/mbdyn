@@ -29,14 +29,12 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <myassert.h>
+#include "myassert.h"
 #include <stdlib.h>
 #include <string.h>
-#include <crypt.h>
+#include "crypt.h"
 
 char *
 mbdyn_make_salt(char *salt, size_t saltlen, const char *salt_format)

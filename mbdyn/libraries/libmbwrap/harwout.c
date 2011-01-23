@@ -29,17 +29,15 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #ifdef USE_HARWELL
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <ac/f2c.h>
+#include "ac/f2c.h"
 
-#include <harwout.h>
+#include "harwout.h"
 
 /* ma28ad - begin */
 

@@ -31,9 +31,7 @@
 
 /* Lettura elementi */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
 #include "mbdefs.h"
 #include "modules.h"

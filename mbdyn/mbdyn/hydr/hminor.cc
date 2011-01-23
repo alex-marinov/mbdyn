@@ -34,14 +34,12 @@
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cfloat>
 #include <limits>
 
-#include <hminor.h>
+#include "hminor.h"
 
 /* Minor_losses - begin */
 

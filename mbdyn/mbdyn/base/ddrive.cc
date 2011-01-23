@@ -29,13 +29,9 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/* Drive che usa  i gradi di liberta' */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
-
-#include <ddrive.h>
+#include "ddrive.h"
 
 
 DriveDriveCaller::DriveDriveCaller(const DriveHandler* pDH, 

@@ -34,18 +34,16 @@
  * Mattia Mattaboni	<mattaboni@aero.polimi.it>
  */
 
-#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
 
-#include <string.h>
+#include <cstring>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <errno.h>
+#include <cstdio>
+#include <cstdlib>
+#include <cerrno>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -53,7 +51,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <math.h>
+#include <cmath>
 #include <time.h>
 #include <sys/time.h>
 

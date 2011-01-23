@@ -29,12 +29,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifdef HAVE_CONFIG_H
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
-#endif /* HAVE_CONFIG_H */
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <sstream>
-#include <privpgin.h>
+#include "privpgin.h"
 
 PrivPlugIn::PrivPlugIn(MathParser& mp, DataManager *pDM)
 : MathParser::PlugIn(mp), pSE(0), iIndex(0), pDM(pDM)
