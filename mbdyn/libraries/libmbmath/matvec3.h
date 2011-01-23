@@ -225,6 +225,15 @@ class Vec3 {
    };
    
    /*
+    * element by element product of vectors
+    */
+   Vec3 EBEMult(const Vec3& v) const {
+		return Vec3(pdVec[V1]*v.pdVec[V1],
+		pdVec[V2]*v.pdVec[V2],
+		pdVec[V3]*v.pdVec[V3]);
+   };
+
+   /*
     Prodotto vettore per matrice. 
     Restituisce il prodotto vettore tra se stesso e m in un temporaneo.
     */
