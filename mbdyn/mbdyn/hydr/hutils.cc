@@ -30,7 +30,7 @@
  */
 
 /* 
- * Copyright 1999-2011 Lamberto Puggelli <puggelli@tiscalinet.it>
+ * Copyright 1999-2000 Lamberto Puggelli <puggelli@tiscalinet.it>
  * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
  */
 
