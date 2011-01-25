@@ -23,6 +23,8 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- loosely/not coupled ext force needs not set convergence
+		  (noted by Tingnan Zhang)
 		- fixed data manager cleanup
 		- fixed revolute joint private data "rz" computation
 		  (noted by Stefan van't'Hoff)

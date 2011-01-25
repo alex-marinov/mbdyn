@@ -61,7 +61,8 @@ Converged::~Converged(void)
 void
 Converged::Set(Converged::State s)
 {
-	ASSERT(idx != unsigned(-1));
-	pDM->ConvergedSet(idx, s);
+	if (idx != unsigned(-1)) {
+		pDM->ConvergedSet(idx, s);
+	}
 }
 
