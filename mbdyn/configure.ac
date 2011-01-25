@@ -403,11 +403,13 @@ AC_CHECK_HEADERS(stdint.h)
 AC_CHECK_HEADERS(stdio.h)
 AC_CHECK_HEADERS(stdlib.h)
 AC_CHECK_HEADERS(string.h)
+AC_CHECK_HEADERS(sys/ipc.h)
 AC_CHECK_HEADERS(sys/mman.h)
 AC_CHECK_HEADERS(sys/param.h)
 AC_CHECK_HEADERS(sys/poll.h)
 AC_CHECK_HEADERS(sys/pstat.h)
 AC_CHECK_HEADERS(sys/select.h)
+AC_CHECK_HEADERS(sys/shm.h)
 AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(sys/sysinfo.h)
 AC_CHECK_HEADERS(sys/times.h)
@@ -432,8 +434,8 @@ dnl
 dnl Sort out defines
 dnl
 dnl !!! set to "no" before release !!!
-MBDYN_DEVEL=yes
-dnl MBDYN_DEVEL=no
+dnl MBDYN_DEVEL=yes
+MBDYN_DEVEL=no
 if test x"$MBDYN_DEVEL" = x"yes" ; then 
 	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
 fi
@@ -2329,6 +2331,7 @@ AC_CHECK_FUNCS([ \
 	pstat_getprocessor \
 	putenv \
 	setenv \
+	shmget \
 	signal \
 	sleep \
 	strftime \
