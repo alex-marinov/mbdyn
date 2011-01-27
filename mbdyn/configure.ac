@@ -434,8 +434,8 @@ dnl
 dnl Sort out defines
 dnl
 dnl !!! set to "no" before release !!!
-dnl MBDYN_DEVEL=yes
-MBDYN_DEVEL=no
+MBDYN_DEVEL=yes
+dnl MBDYN_DEVEL=no
 if test x"$MBDYN_DEVEL" = x"yes" ; then 
 	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
 fi
@@ -2327,6 +2327,7 @@ AC_CHECK_FUNCS([ \
 	memmove \
 	mkstemp \
 	mlockall \
+	nanosleep \
 	pstat_getdynamic \
 	pstat_getprocessor \
 	putenv \
@@ -2341,6 +2342,7 @@ AC_CHECK_FUNCS([ \
 	time \
 	times \
 	unsetenv \
+	usleep \
 ])
 
 dnl ----------------------------------------------------------------

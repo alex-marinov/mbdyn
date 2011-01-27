@@ -78,8 +78,8 @@ protected:
 	void SendFlag(EDGEcmd cmd);
 
 public:
-	ExtFileHandlerEDGE(std::string& fflagname,
-		std::string& fdataname, int iSleepTime, int iPrecision);
+	ExtFileHandlerEDGE(std::string& fflagname, std::string& fdataname,
+		mbsleep_t SleepTime, std::streamsize Precision);
 	~ExtFileHandlerEDGE(void);
 
 	virtual bool Prepare_pre(void);

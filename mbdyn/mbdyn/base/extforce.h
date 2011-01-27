@@ -37,6 +37,7 @@
 #include <vector>
 #include <string>
 
+#include "mbsleep.h"
 #include "force.h"
 #include "converged.h"
 
@@ -62,11 +63,12 @@ public:
 	};
 
 protected:
-	int iSleepTime, iPrecision;
+	std::streamsize Precision;
+	mbsleep_t SleepTime;
 	bool bOK;
 
 public:
-	ExtFileHandlerBase(int iSleepTime, int iPrecision);
+	ExtFileHandlerBase(mbsleep_t SleepTime, std::streamsize Precision);
 	virtual ~ExtFileHandlerBase(void);
 
 	// NOTE: returns true if Prepare() must be called
@@ -111,8 +113,8 @@ public:
 		bool bRemoveIn,
 	        std::string& fout,
 		bool bNoClobberOut,
-		int iSleepTime,
-		int iPrecision);
+		mbsleep_t SleepTime,
+		std::streamsize Precision);
 	virtual ~ExtFileHandler(void);
 
 	virtual bool Prepare_pre(void);
@@ -147,7 +149,7 @@ protected:
 	const char *cmd2str(ESCmd cmd) const;
 
 public:
-	ExtSocketHandler(UseSocket *pUS, int iSleepTime,
+	ExtSocketHandler(UseSocket *pUS, mbsleep_t SleepTime,
 		int recv_flags, int send_flags);
 	virtual ~ExtSocketHandler(void);
 
@@ -269,8 +271,8 @@ extern void
 ReadExtFileParams(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel,
-	int& iSleepTime,
-	int& iPrecision);
+	mbsleep_t& SleepTime,
+	std::streamsize& Precision);
 
 #endif // EXTFORCE_H
 

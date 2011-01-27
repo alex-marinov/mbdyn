@@ -47,8 +47,9 @@
 
 /* ExtFileHandlerBase - begin */
 
-ExtFileHandlerBase::ExtFileHandlerBase(int iSleepTime, int iPrecision)
-: iSleepTime(iSleepTime), iPrecision(iPrecision), bOK(true)
+ExtFileHandlerBase::ExtFileHandlerBase(mbsleep_t SleepTime,
+	std::streamsize Precision)
+: Precision(Precision), SleepTime(SleepTime), bOK(true)
 {
 	NO_OP;
 }
@@ -116,9 +117,9 @@ ExtFileHandler::ExtFileHandler(std::string& fin,
 	bool bRemoveIn,
         std::string& fout,
 	bool bNoClobberOut,
-	int iSleepTime,
-	int iPrecision)
-: ExtFileHandlerBase(iSleepTime, iPrecision),
+	mbsleep_t SleepTime,
+	std::streamsize Precision)
+: ExtFileHandlerBase(SleepTime, Precision),
 fin(fin), fout(fout), tmpout(fout + ".tmp"),
 bRemoveIn(bRemoveIn), bNoClobberOut(bNoClobberOut)
 {
@@ -179,19 +180,16 @@ ExtFileHandler::Send_pre(SendWhen when)
 					return false;
 				}
 
-#ifdef USE_SLEEP
-				if (iSleepTime > 0) {
+				if (SleepTime > 0) {
 					silent_cout("output file "
 						"\"" << fout.c_str() << "\" "
 						"still present, "
 						"try #" << cnt << "; "
-						"sleeping " << iSleepTime << " s"
+						"sleeping " << SleepTime << " s"
 						<< std::endl);
-					sleep(iSleepTime);
+					mbsleep(SleepTime);
 
-				} else
-#endif // USE_SLEEP
-				{
+				} else {
 					silent_cout("output file "
 						"\"" << fout.c_str() << "\" "
 						"still present, "
@@ -210,8 +208,8 @@ ExtFileHandler::Send_pre(SendWhen when)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (iPrecision != 0) {
-		outf.precision(iPrecision);
+	if (Precision != 0) {
+		outf.precision(Precision);
 	}
 	outf.setf(std::ios::scientific);
 	return outf.good();
@@ -237,22 +235,20 @@ ExtFileHandler::Recv_pre(void)
 {
 	inf.open(fin.c_str());
 
-#ifdef USE_SLEEP
 	for (int cnt = 0; !inf; cnt++) {
 		silent_cout("input file \"" << fin.c_str() << "\" missing, "
 			"try #" << cnt << "; "
-			"sleeping " << iSleepTime << " s" << std::endl); 
+			"sleeping " << SleepTime << " s" << std::endl); 
                
 		if (mbdyn_stop_at_end_of_iteration()) {
 			inf.setstate(std::ios_base::badbit);
 			return (bOK = false);
 		}
 
-		sleep(iSleepTime);
+		mbsleep(SleepTime);
 		inf.clear();
 		inf.open(fin.c_str());
 	}
-#endif // USE_SLEEP
 
 	return inf.good();
 }
@@ -336,9 +332,9 @@ ExtSocketHandler::cmd2str(ESCmd cmd) const
 	return ESCmd2str[cmd];
 }
 
-ExtSocketHandler::ExtSocketHandler(UseSocket *pUS, int iSleepTime,
+ExtSocketHandler::ExtSocketHandler(UseSocket *pUS, mbsleep_t SleepTime,
 	int recv_flags, int send_flags)
-: ExtFileHandlerBase(iSleepTime, 0),
+: ExtFileHandlerBase(SleepTime, 0),
 pUS(pUS), recv_flags(recv_flags), send_flags(send_flags),
 bReadForces(true), bLastReadForce(false)
 {
@@ -527,7 +523,7 @@ ExtSocketHandler::Recv_pre(void)
 
 	uint8_t u = 0;
 
-	if (iSleepTime) {
+	if (SleepTime != 0) {
 		for ( ; ; ) {
 			ssize_t rc;
 
@@ -552,9 +548,7 @@ ExtSocketHandler::Recv_pre(void)
 				return (bOK = false);
 			}
 
-#ifdef USE_SLEEP
-			sleep(iSleepTime);
-#endif // USE_SLEEP
+			mbsleep(SleepTime);
 		}
 
 	} else {
@@ -833,34 +827,37 @@ void
 ReadExtFileParams(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel,
-	int& iSleepTime,
-	int& iPrecision)
+	mbsleep_t& SleepTime,
+	std::streamsize& Precision)
 {
-	int iMinSleepTime = iSleepTime;
+	mbsleep_t MinSleepTime = SleepTime;
 	if (HP.IsKeyWord("sleep" "time")) {
-		iSleepTime = HP.GetInt();
-		if (iSleepTime < iMinSleepTime ) {
+		doublereal d = HP.GetReal();
+		if (d < 0.) {
+			// error
+		}
+		SleepTime = HP.GetTimeout(SleepTime);
+		if (SleepTime < MinSleepTime ) {
 			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid sleep time " << iSleepTime
+				"invalid sleep time " << SleepTime
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
-	iPrecision = 6;
+	Precision = 6;
 	if (HP.IsKeyWord("precision")) {
 		if (!HP.IsKeyWord("default")) {
-			iPrecision = HP.GetInt();
-		}
-
-		if (iPrecision < 0) {
-			silent_cerr("ExtForce(" << uLabel << "): "
-				"invalid precision value "
-				"\"" << iPrecision << "\""
-				" at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			Precision = HP.GetInt();
+			if (Precision < 0) {
+				silent_cerr("ExtForce(" << uLabel << "): "
+					"invalid precision value "
+					"\"" << Precision << "\""
+					" at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 }
@@ -1029,13 +1026,13 @@ ReadExtSocketHandler(DataManager* pDM,
 		pUS->Connect();
 	}
 
-	int iSleepTime = 0;
-	int iPrecision = 0;
-	ReadExtFileParams(pDM, HP, uLabel, iSleepTime, iPrecision);
+	mbsleep_t SleepTime = mbsleep_init(0);
+	std::streamsize Precision = 0;
+	ReadExtFileParams(pDM, HP, uLabel, SleepTime, Precision);
 	// NOTE: so far, precision is ignored
 
 	SAFENEWWITHCONSTRUCTOR(pEFH, ExtSocketHandler,
-		ExtSocketHandler(pUS, iSleepTime, recv_flags, send_flags));
+		ExtSocketHandler(pUS, SleepTime, recv_flags, send_flags));
 
 	return pEFH;
 #else // ! USE_SOCKET
@@ -1088,13 +1085,13 @@ ReadExtFileHandler(DataManager* pDM,
 		bNoClobberOut = true;
 	}
 
-	int iSleepTime = 1;
-	int iPrecision = 0;
-	ReadExtFileParams(pDM, HP, uLabel, iSleepTime, iPrecision);
+	mbsleep_t SleepTime = mbsleep_init(1);
+	std::streamsize Precision = 0;
+	ReadExtFileParams(pDM, HP, uLabel, SleepTime, Precision);
 
 	SAFENEWWITHCONSTRUCTOR(pEFH, ExtFileHandler,
 		ExtFileHandler(fin, bUnlinkIn, fout, bNoClobberOut,
-			iSleepTime, iPrecision));
+			SleepTime, Precision));
 
 	return pEFH;
 }

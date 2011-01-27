@@ -35,6 +35,7 @@
 
 #include "myassert.h"
 #include "mynewmem.h"
+#include "mbsleep.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -144,8 +145,8 @@ void
 UseSocket::Connect(void)
 {
 	// FIXME: retry strategy should be configurable
-	int	count = 600;
-	int	timeout = 100000;
+	int count = 600;
+	mbsleep_t timeout;
 	
 	for ( ; count > 0; count--) {
 		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
@@ -154,7 +155,8 @@ UseSocket::Connect(void)
 			case ECONNREFUSED:	// inet
 			case ENOENT:		// unix
 				/* Socket does not exist yet; retry */
-				usleep(timeout);
+				mbsleep_real2sleep(0.1, &timeout);
+				mbsleep(timeout);
 				continue;
 			}
 

@@ -133,8 +133,8 @@ mbedge_eat_field(char *buf, size_t& buflen)
 /* ExtFileHandlerEDGE - begin */
 
 ExtFileHandlerEDGE::ExtFileHandlerEDGE(std::string& fflagname,
-	std::string& fdataname, int iSleepTime, int iPrecision)
-: ExtFileHandlerBase(iSleepTime, iPrecision),
+	std::string& fdataname, mbsleep_t SleepTime, std::streamsize Precision)
+: ExtFileHandlerBase(SleepTime, Precision),
 fflagname(fflagname), fdataname(fdataname),
 bReadForces(true)
 {
@@ -188,32 +188,30 @@ ExtFileHandlerEDGE::CheckFlag(int& cnt)
 		return EDGE_QUIT;
 	}
 
-#ifdef USE_SLEEP
 	// Needs tuning?
 	const int max_retries = 10;
 	int retrying = 0;
 retry:;
 
-	if (iSleepTime > 0) {
+	if (SleepTime > 0) {
 		// WARNING: loops forever
 		// add optional, configurable limit?
 		for (; !infile; cnt++) {
 			silent_cout("flag file \"" << fflagname.c_str() << "\" "
 				"missing, try #" << cnt << "; "
-				"sleeping " << iSleepTime << " s" << std::endl); 
+				"sleeping " << SleepTime << " s" << std::endl); 
 			if (mbdyn_stop_at_end_of_iteration()) {
 				cmd = EDGE_QUIT;
 				goto done;
 			}
 
-			sleep(iSleepTime);
+			mbsleep(SleepTime);
 
 			infile.clear();
 			infile.open(fflagname.c_str());
 		}
-	} else
-#endif // USE_SLEEP
-	if (!infile) {
+
+	} else if (!infile) {
 		// error
 		silent_cerr("flag file \"" << fflagname.c_str() << "\" "
 			"missing" << std::endl); 
@@ -249,12 +247,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -262,12 +258,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"N\" "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -275,12 +269,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -288,12 +280,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -301,12 +291,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -314,12 +302,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -327,12 +313,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -340,12 +324,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -353,36 +335,30 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << &buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (p[0] != '\0' && p[0] != '\n') {
 				silent_cerr("ExtRigidForceEDGE: no line terminator "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (mbedge_goto_eol(infile, buf, sizeof(buf))) {
 				silent_cerr("ExtRigidForceEDGE: unable to get \"FLAG\" line "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -391,12 +367,10 @@ retry:;
 			if (strncasecmp(buf, "FLAG", STRLENOF("FLAG")) != 0) {
 				silent_cerr("ExtRigidForceEDGE: \"FLAG\" line expected "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -407,12 +381,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -420,12 +392,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"I\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -433,12 +403,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -446,12 +414,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -459,12 +425,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -472,12 +436,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"1\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -485,12 +447,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -498,12 +458,10 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtFileHandlerEDGE: unable to skip field \"0\" "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -511,24 +469,20 @@ retry:;
 			if (p == 0) {
 				silent_cerr("ExtRigidForceEDGE: unable to skip separator "
 					"at line=" << lineno << ", \"" << buf[sizeof(buf) - buflen] << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (p[0] != '\0' && p[0] != '\n') {
 				silent_cerr("ExtRigidForceEDGE: no line terminator "
 					"at line=" << lineno << ", \"" << p << "\"" << std::endl);
-#ifdef USE_SLEEP
 				if (retrying < max_retries) {
 					retrying++;
 					goto retry;
 				}
-#endif // USE_SLEEP
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -572,11 +526,10 @@ ExtFileHandlerEDGE::SendFlag(EDGEcmd cmd)
 retry:;
 	if (rename(ftmpname, fflagname.c_str()) == -1) {
 		switch (errno) {
-		case EBUSY:
-#ifdef USE_SLEEP
+		case EBUSY: {
+			mbsleep_t timeout = mbsleep_init(1);
 			// TODO: configurable?
-			sleep(1);
-#endif // USE_SLEEP
+			mbsleep(timeout);
 
 			if (mbdyn_stop_at_end_of_iteration()) {
 				// ultimately give up
@@ -585,6 +538,7 @@ retry:;
 			}
 
 			goto retry;
+			}
 
 		default: {
 			int save_errno = errno;
@@ -638,16 +592,14 @@ retry:;
 	switch (cmd) {
 	case EDGE_INITIALIZING:
 	case EDGE_BUSY:
-#ifdef USE_SLEEP
-		if (iSleepTime > 0) {
+		if (SleepTime > 0) {
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
 				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 				" try #" << cnt << "; "
-				"sleeping " << iSleepTime << " s" << std::endl); 
+				"sleeping " << SleepTime << " s" << std::endl); 
 
-			sleep(iSleepTime);
+			mbsleep(SleepTime);
 		}
-#endif // USE_SLEEP
 
 		if (mbdyn_stop_at_end_of_iteration()) {
 			bReadForces = false;
@@ -670,7 +622,7 @@ retry:;
 		}
 
 		outfile.setf(std::ios::scientific);
-		outfile.precision(iPrecision);
+		outfile.precision(Precision);
 		break;
 
 	default:
@@ -746,17 +698,14 @@ ExtFileHandlerEDGE::Recv_pre(void)
 
 		// WARNING: loops forever
 		// add optional, configurable limit?
-#ifdef USE_SLEEP
-		if (iSleepTime > 0) {
+		if (SleepTime > 0) {
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
 				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 				" try #" << cnt << "; "
-				"sleeping " << iSleepTime << " s" << std::endl); 
+				"sleeping " << SleepTime << " s" << std::endl); 
 
-			sleep(iSleepTime);
-		} else
-#endif // USE_SLEEP
-		{
+			mbsleep(SleepTime);
+		} else {
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
 				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"
 				" try #" << cnt << std::endl); 
@@ -829,12 +778,12 @@ ReadExtFileHandlerEDGE(DataManager* pDM,
 	}
 	std::string fdataname = s;
 
-	int iSleepTime = 1;
-	int iPrecision = 0;
-	ReadExtFileParams(pDM, HP, uLabel, iSleepTime, iPrecision);
+	mbsleep_t SleepTime = mbsleep_init(1);
+	std::streamsize Precision = 0;
+	ReadExtFileParams(pDM, HP, uLabel, SleepTime, Precision);
 
 	SAFENEWWITHCONSTRUCTOR(pEFH, ExtFileHandlerEDGE,
-		ExtFileHandlerEDGE(fflagname, fdataname, iSleepTime, iPrecision));
+		ExtFileHandlerEDGE(fflagname, fdataname, SleepTime, Precision));
 
 	return pEFH;
 }

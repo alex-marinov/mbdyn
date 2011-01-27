@@ -35,6 +35,7 @@
 
 #include <cfloat>
 
+#include "dataman.h"
 #include "force.h"
 #include "strforce.h"
 #include "strext.h"
@@ -43,7 +44,6 @@
 #include "modalext.h"
 #include "modalmappingext.h"
 #include "totalj.h"
-#include "dataman.h"
 #include "tpldrive_impl.h"
 
 /* Force - begin */
