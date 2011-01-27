@@ -230,7 +230,7 @@ INCLUDES = \
 $(GINACLIB_CPPFLAGS)
 
 noinst_PROGRAMS = inusetest
-inusetest_SOURCES = inuse.cc
+inusetest_SOURCES = inusetest.cc
 inusetest_LDADD = @THREAD_LIBS@ \
 @ATOMIC_OPS_LIBS@ \
 ../../libraries/libmbutil/libmbutil.la
