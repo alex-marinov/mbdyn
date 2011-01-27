@@ -26,6 +26,9 @@ mathp.h \
 mathtyp.h \
 mbsasl.c \
 mbsasl.h \
+mbsleep.c \
+mbsleep.h \
+mbsleep_int.cc \
 mbstrbuf.cc \
 mbstrbuf.h \
 myassert.cc \

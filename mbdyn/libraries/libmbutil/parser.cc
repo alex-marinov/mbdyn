@@ -883,6 +883,18 @@ HighParser::GetReal(const doublereal& dDefVal)
 	return v.GetReal();
 }
 
+mbsleep_t
+HighParser::GetTimeout(const mbsleep_t& DefVal)
+{
+	doublereal d;
+	mbsleep_sleep2real(DefVal, &d);
+	TypedValue v(d);
+	v = GetValue(v);
+	mbsleep_t newval;
+	mbsleep_real2sleep(v.GetReal(), &newval);
+	return newval;
+}
+
 std::string
 HighParser::GetString(const std::string& sDefVal)
 {

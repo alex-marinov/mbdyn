@@ -118,6 +118,7 @@
 #include "matvec3.h"
 #include "matvec3n.h"
 #include "matvec6.h"
+#include "mbsleep.h"
 
 
 /* Classi dichiarate */
@@ -364,12 +365,14 @@ public:
 	virtual bool GetYesNoOrBool(bool bDefval = false);
 	/* legge un intero con il mathpar */
 	virtual integer GetInt(int iDefval = 0);
-	/* legge un reale col mathpar */
+	/* legge un reale con il mathpar */
 	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
-	/* legge una string col mathpar */
+	/* legge una string con il mathpar */
 	virtual std::string GetString(const std::string& sDefVal);
-	/* legge una string col mathpar */
+	/* legge un valore tipizzato con il mathpar */
 	virtual TypedValue GetValue(const TypedValue& v);
+	/* legge un timeout */
+	virtual mbsleep_t GetTimeout(const mbsleep_t& DefVal);
 	/* legge una keyword */
 	virtual int GetWord(void);
 	/* legge una stringa */
