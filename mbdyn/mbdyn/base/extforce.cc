@@ -832,14 +832,11 @@ ReadExtFileParams(DataManager* pDM,
 {
 	mbsleep_t MinSleepTime = SleepTime;
 	if (HP.IsKeyWord("sleep" "time")) {
-		doublereal d = HP.GetReal();
-		if (d < 0.) {
-			// error
-		}
 		SleepTime = HP.GetTimeout(SleepTime);
 		if (SleepTime < MinSleepTime ) {
 			silent_cerr("ExtForce(" << uLabel << "): "
 				"invalid sleep time " << SleepTime
+				<< " less than " << MinSleepTime
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
