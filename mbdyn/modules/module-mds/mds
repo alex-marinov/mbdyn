@@ -1,0 +1,44 @@
+# $Header$
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: 10.;
+	time step: 1.e-2;
+
+	tolerance: 1.e-6;
+	max iterations: 10;
+
+	method: ms, .6;
+
+	# derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 10;
+
+	output: iterations;
+	# output: residual;
+end: initial value;
+
+begin: control data;
+	loadable elements: 1;
+end: control data;
+
+set: real M = 1.;
+set: real OMEGA = 2*pi;
+set: real XI = .1;
+set: real K = M*OMEGA^2;
+set: real D = 2*XI*M*OMEGA;
+
+begin: elements;
+	module load: "./libmodule-mds.so";
+	user defined: 1, mds,
+		M, D, K,
+			# sine, 0., .2*OMEGA, 1., forever, 0.,
+			sine, 0., 10.*OMEGA, 1., one, 0.,
+		output, yes;
+end: elements;
+
+# vim:ft=mbd
