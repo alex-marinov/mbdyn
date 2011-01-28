@@ -147,7 +147,8 @@ UseSocket::Connect(void)
 	// FIXME: retry strategy should be configurable
 	int count = 600;
 	mbsleep_t timeout;
-	
+	mbsleep_real2sleep(0.1, &timeout);
+
 	for ( ; count > 0; count--) {
 		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
 			int save_errno = errno;
@@ -155,7 +156,6 @@ UseSocket::Connect(void)
 			case ECONNREFUSED:	// inet
 			case ENOENT:		// unix
 				/* Socket does not exist yet; retry */
-				mbsleep_real2sleep(0.1, &timeout);
 				mbsleep(timeout);
 				continue;
 			}
