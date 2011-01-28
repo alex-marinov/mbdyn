@@ -1205,6 +1205,63 @@ if test $ol_with_blas != no ; then
 	AC_MSG_RESULT([$have_blas])
 fi
 
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Need either Metis or Chaco with MPI and Taucs
+dnl
+dnl First we check for Metis
+ol_link_metis=no
+if test "$ol_with_metis" != "no" ; then
+	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
+		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
+	
+	AC_CHECK_HEADERS(metis.h)
+
+	if test "$ac_cv_header_metis_h" = "yes" ; then
+		if test "$ol_link_metis" != "no" ; then
+			AC_DEFINE(USE_METIS,1,
+				[define if you want to use Metis])
+		fi
+	fi
+
+	if test "$ol_link_metis" = "no" -o "$ac_cv_header_metis_h" != "yes" ; then
+		if test "$ol_with_metis" != "auto" ; then
+			AC_MSG_ERROR([Could not locate Metis])
+		else
+			AC_MSG_WARN([Metis not supported])
+			dnl set to "no" because we cannot link metis
+			dnl without header file
+			ol_link_metis="no"
+		fi
+	else
+		METIS_LIBS="-lmetis -lm"
+	fi
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Now we check for Chaco.
+dnl
+ol_link_chaco=no
+if test "$ol_with_chaco" != no ; then
+	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
+
+	if test $have_chaco != no ; then
+		CHACO_LIBS="-lchaco -lm"
+		AC_DEFINE(USE_CHACO,1,[define if you want to use Chaco])
+		ol_link_chaco=yes
+	fi
+
+	if test "$ol_link_chaco" = no ; then
+                if test $ol_with_chaco != auto ; then
+                        AC_MSG_ERROR([Could not locate Chaco])
+                else
+                        AC_MSG_WARN([Chaco not supported])
+                fi
+        fi
+fi
+
 dnl ----------------------------------------------------------------
 dnl
 dnl Check for Umfpack
@@ -1232,6 +1289,82 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_umfpack_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
+
+		dnl check for COLAMD
+		AC_MSG_CHECKING([for COLAMD library])
+		try_colamd_LIBS="-lcolamd -lm"
+		LIBS="$try_colamd_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for colamd */
+	return 0;
+		],[have_colamd="yes"],[have_colamd="no"])
+		if test "$have_colamd" = "yes" ; then
+			try_umfpack_LIBS="$try_colamd_LIBS $try_umfpack_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+
+
+		dnl check for CCOLAMD
+		AC_MSG_CHECKING([for CCOLAMD library])
+		try_ccolamd_LIBS="-lccolamd -lm"
+		LIBS="$try_ccolamd_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for ccolamd */
+	return 0;
+		],[have_ccolamd="yes"],[have_ccolamd="no"])
+		if test "$have_ccolamd" = "yes" ; then
+			try_umfpack_LIBS="$try_ccolamd_LIBS $try_umfpack_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+
+
+		dnl check for CAMD
+		AC_MSG_CHECKING([for CAMD library])
+		try_camd_LIBS="-lcamd -lm"
+		LIBS="$try_camd_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for camd */
+	return 0;
+		],[have_camd="yes"],[have_camd="no"])
+		if test "$have_camd" = "yes" ; then
+			try_umfpack_LIBS="$try_camd_LIBS $try_umfpack_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			AC_MSG_RESULT([no])
+		fi
+
+
+		dnl check for CHOLMOD
+		AC_MSG_CHECKING([for CHOLMOD library])
+		try_cholmod_LIBS="-lcholmod $METIS_LIBS -lm"
+		LIBS="$try_cholmod_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for cholmod */
+	return 0;
+		],[have_cholmod="yes"],[have_cholmod="no"])
+		if test "$have_cholmod" = "yes" ; then
+			try_umfpack_LIBS="$try_cholmod_LIBS $try_umfpack_LIBS"
+			AC_MSG_RESULT([yes])
+		else
 			AC_MSG_RESULT([no])
 		fi
 
@@ -2043,62 +2176,6 @@ if test $ol_with_mpi != no ; then
 			AC_MSG_WARN([MPI not supported])
 		fi
 	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Need either Metis or Chaco with MPI and Taucs
-dnl
-dnl First we check for Metis
-ol_link_metis=no
-if test "$ol_with_metis" != "no" ; then
-	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
-		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
-	
-	AC_CHECK_HEADERS(metis.h)
-
-	if test "$ac_cv_header_metis_h" = "yes" ; then
-		if test "$ol_link_metis" != "no" ; then
-			AC_DEFINE(USE_METIS,1,
-				[define if you want to use Metis])
-		fi
-	fi
-
-	if test "$ol_link_metis" = "no" -o "$ac_cv_header_metis_h" != "yes" ; then
-		if test "$ol_with_metis" != "auto" ; then
-			AC_MSG_ERROR([Could not locate Metis])
-		else
-			AC_MSG_WARN([Metis not supported])
-			dnl set to "no" because we cannot link metis
-			dnl without header file
-			ol_link_metis="no"
-		fi
-	else
-		METIS_LIBS="-lmetis -lm"
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Now we check for Chaco.
-dnl
-ol_link_chaco=no
-if test "$ol_with_chaco" != no ; then
-	AC_CHECK_LIB(chaco,interface,[have_chaco=yes],[have_chaco=no],[-lm])
-
-	if test $have_chaco != no ; then
-		CHACO_LIBS="-lchaco -lm"
-		AC_DEFINE(USE_CHACO,1,[define if you want to use Chaco])
-		ol_link_chaco=yes
-	fi
-
-	if test "$ol_link_chaco" = no ; then
-                if test $ol_with_chaco != auto ; then
-                        AC_MSG_ERROR([Could not locate Chaco])
-                else
-                        AC_MSG_WARN([Chaco not supported])
-                fi
-        fi
 fi
 
 dnl ----------------------------------------------------------------
