@@ -364,88 +364,81 @@ template <class T>
 struct DrivesArray {
 	DriveCaller* pDriveCaller;
 	T t;
+	DrivesArray(void) : pDriveCaller(0), t() {};
 };
-
 
 template <class T>
 class ArrayTplDriveCaller : public TplDriveCaller<T> {
 protected:
-	DrivesArray<T>* pDrivesArray;
-	unsigned short int iNumDrives;
+	std::vector<DrivesArray<T> > m_dc;
 
 public:
-	ArrayTplDriveCaller(unsigned short int i, DrivesArray<T>* pDA)
-	: pDrivesArray(pDA), iNumDrives(i) {
-		ASSERT(i > 0);
-		ASSERT(pDA != 0);
+	ArrayTplDriveCaller(std::vector<DrivesArray<T> >& dc)
+	: m_dc(dc) {
+		ASSERT(!dc.empty());
 	};
 
 	~ArrayTplDriveCaller(void) {
-		for (int i = 0; i < iNumDrives; i++) {
-			SAFEDELETE(pDrivesArray[i].pDriveCaller);
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			SAFEDELETE(m_dc[i].pDriveCaller);
 		}
-		SAFEDELETEARR(pDrivesArray);
 	};
 
 	/* copia */
 	virtual TplDriveCaller<T>* pCopy(void) const {
-		typedef DrivesArray<T> da;
-		da* pDA = 0;
-
-		SAFENEWARRNOFILL(pDA, da, iNumDrives);
-
-		for (int i = 0; i < iNumDrives; i++) {
-			pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
-			pDA[i].t = pDrivesArray[i].t;
+		std::vector<DrivesArray<T> > dc(m_dc.size());
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			dc[i].pDriveCaller = m_dc[i].pDriveCaller->pCopy();
+			dc[i].t = m_dc[i].t;
 		}
 
-		typedef ArrayTplDriveCaller<T> dc;
+		typedef ArrayTplDriveCaller<T> dc_t;
 		TplDriveCaller<T>* pDC = 0;
 
-		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
+		SAFENEWWITHCONSTRUCTOR(pDC, dc_t, dc_t(dc));
 
 		return pDC;
 	};
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "array, " << iNumDrives;
-		for (int i = 0; i < iNumDrives; i++) {
+		out << "array, " << m_dc.size();
+		for (unsigned i = 0; i < m_dc.size(); i++) {
 			out << ", ",
-				Write(out, pDrivesArray[i].t, ", ") << ", ",
-				pDrivesArray[i].pDriveCaller->Restart(out);
+				Write(out, m_dc[i].t, ", ") << ", ",
+				m_dc[i].pDriveCaller->Restart(out);
 		}
 		return out;
 	};
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
-		for (int i = 0; i < iNumDrives; i++) {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
 			out << ", ",
-				Write(out, pDrivesArray[i].t, ", ") << ", ",
-				pDrivesArray[i].pDriveCaller->Restart(out);
+				Write(out, m_dc[i].t, ", ") << ", ",
+				m_dc[i].pDriveCaller->Restart(out);
 		}
 		return out;
 	};
 
 	inline T Get(const doublereal& dVar) const {
 		T v = 0.;
-		for (int i = 0; i < iNumDrives; i++) {
-			v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet(dVar));
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGet(dVar));
 		}
 		return v;
 	};
 
 	inline T Get(void) const {
 		T v = 0.;
-		for (int i = 0; i < iNumDrives; i++) {
-			v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGet());
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGet());
 		}
 		return v;
 	};
 
 	inline bool bIsDifferentiable(void) const {
-		for (int i = 0; i < iNumDrives; i++) {
-			if (!pDrivesArray[i].pDriveCaller->bIsDifferentiable()) {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (!m_dc[i].pDriveCaller->bIsDifferentiable()) {
 				return false;
 			}
 		}
@@ -454,92 +447,84 @@ public:
 
 	inline T GetP(void) const {
 		T v = 0.;
-		for (int i = 0; i < iNumDrives; i++) {
-			v += (pDrivesArray[i].t)*(pDrivesArray[i].pDriveCaller->dGetP());
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGetP());
 		}
 		return v;
 	};
 
 	inline int getNDrives(void) const {
-		return iNumDrives;
+		return m_dc.size();
 	};
 };
 
 template<>
 class ArrayTplDriveCaller<doublereal> : public TplDriveCaller<doublereal> {
 protected:
-	DrivesArray<doublereal>* pDrivesArray;
-	unsigned short int iNumDrives;
+	std::vector<DrivesArray<doublereal> > m_dc;
 
 public:
-	ArrayTplDriveCaller(unsigned short int i,
-		DrivesArray<doublereal>* pDA)
-	: pDrivesArray(pDA), iNumDrives(i) {
-		ASSERT(i > 0);
-		ASSERT(pDA != 0);
+	ArrayTplDriveCaller(std::vector<DrivesArray<doublereal> > dc)
+	: m_dc(dc) {
+		ASSERT(!m_dc.empty());
 	};
 
 	virtual ~ArrayTplDriveCaller(void) {
-		for (int i = 0; i < iNumDrives; i++) {
-			SAFEDELETE(pDrivesArray[i].pDriveCaller);
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			SAFEDELETE(m_dc[i].pDriveCaller);
 		}
-		SAFEDELETEARR(pDrivesArray);
 	};
 
 	/* copia */
 	virtual TplDriveCaller<doublereal>* pCopy(void) const {
-		typedef DrivesArray<doublereal> da;
-		da* pDA = 0;
-
-		SAFENEWARRNOFILL(pDA, da, iNumDrives);
-
-		for (int i = 0; i < iNumDrives; i++) {
-			pDA[i].pDriveCaller = pDrivesArray[i].pDriveCaller->pCopy();
-			pDA[i].t = pDrivesArray[i].t;
+		std::vector<DrivesArray<doublereal> > dc(m_dc.size());
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			dc[i].pDriveCaller = m_dc[i].pDriveCaller->pCopy();
+			dc[i].t = m_dc[i].t;
 		}
 
-		typedef ArrayTplDriveCaller<doublereal> dc;
+		typedef ArrayTplDriveCaller<doublereal> dc_t;
 		TplDriveCaller<doublereal>* pDC = 0;
 
-		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(iNumDrives, pDA));
+		SAFENEWWITHCONSTRUCTOR(pDC, dc_t, dc_t(dc));
 
 		return pDC;
 	};
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "array, " << iNumDrives;
-		for (int i = 0; i < iNumDrives; i++) {
-			out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+		out << "array, " << m_dc.size();
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ", m_dc[i].pDriveCaller->Restart(out);
 		}
 		return out;
 	};
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
-		for (int i = 0; i < iNumDrives; i++) {
-			out << ", ", pDrivesArray[i].pDriveCaller->Restart(out);
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ", m_dc[i].pDriveCaller->Restart(out);
 		}
 		return out;
 	};
 
 	inline doublereal Get(const doublereal& dVar) const {
 		doublereal v = 0.;
-		for (int i = 0; i < iNumDrives; i++) {
-			v += pDrivesArray[i].pDriveCaller->dGet(dVar);
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			v += m_dc[i].pDriveCaller->dGet(dVar);
 		}
 		return v;
 	};
 
 	inline doublereal Get(void) const {
 		doublereal v = 0.;
-		for (int i = 0; i < iNumDrives; i++) {
-			v += pDrivesArray[i].pDriveCaller->dGet();
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			v += m_dc[i].pDriveCaller->dGet();
 		}
 		return v;
 	};
 
 	inline int getNDrives(void) const {
-		return iNumDrives;
+		return m_dc.size();
 	};
 };
 
@@ -562,21 +547,19 @@ public:
 			return SingleTDCR<T>::Read(pDM, HP);
 		} /* else */
 
-
-		DrivesArray<T>* pDA = 0;
-		SAFENEWARRNOFILL(pDA, DrivesArray<T>, iNumDr);
+		std::vector<DrivesArray<T> > dc(iNumDr);
 
 		for (unsigned short int i = 0; i < iNumDr; i++) {
 			T t(0.);
-			pDA[i].t = GetT(HP, t);
-			pDA[i].pDriveCaller = HP.GetDriveCaller();
+			dc[i].t = GetT(HP, t);
+			dc[i].pDriveCaller = HP.GetDriveCaller();
 		}
 
 		TplDriveCaller<T>* pTplDC = 0;
 
 		SAFENEWWITHCONSTRUCTOR(pTplDC,
 			ArrayTplDriveCaller<T>,
-			ArrayTplDriveCaller<T>(iNumDr, pDA));
+			ArrayTplDriveCaller<T>(dc));
 
 		return pTplDC;
 	};

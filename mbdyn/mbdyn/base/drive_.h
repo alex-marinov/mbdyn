@@ -1460,14 +1460,14 @@ PiecewiseLinearDriveCaller::dGetP(const doublereal& dVar) const
 /* DriveArrayCaller - begin */
 
 class DriveArrayCaller : public DriveCaller {
+public:
+	typedef std::vector<const DriveCaller *> dcv_t;
+
 private:
-	unsigned short int iNumDrivers;
-	const DriveCaller** ppDriveCallers;
+	dcv_t  m_dc;
 
 public:
-	DriveArrayCaller(const DriveHandler* pDH,
-		unsigned short int i,
-		const DriveCaller** ppDC);
+	DriveArrayCaller(const DriveHandler* pDH, dcv_t& DC);
 	virtual ~DriveArrayCaller(void);
 
 	/* Copia */
@@ -1492,9 +1492,10 @@ DriveArrayCaller::dGet(const doublereal& dVar) const
 {
 	doublereal d = 0.;
 
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDriveCallers[i] != 0);
-		d += ppDriveCallers[i]->dGet(dVar);
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT(*i != 0);
+
+		d += (*i)->dGet(dVar);
 	}
 
 	return d;
@@ -1505,9 +1506,10 @@ DriveArrayCaller::dGet(void) const
 {
 	doublereal d = 0.;
 
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDriveCallers[i] != 0);
-		d += ppDriveCallers[i]->dGet();
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT(*i != 0);
+
+		d += (*i)->dGet();
 	}
 
 	return d;
@@ -1516,9 +1518,10 @@ DriveArrayCaller::dGet(void) const
 inline bool
 DriveArrayCaller::bIsDifferentiable(void) const
 {
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDriveCallers[i] != 0);
-		if (!ppDriveCallers[i]->bIsDifferentiable()) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT(*i != 0);
+
+		if (!(*i)->bIsDifferentiable()) {
 			return false;
 		}
 	}
@@ -1531,9 +1534,11 @@ DriveArrayCaller::dGetP(const doublereal& dVar) const
 {
 	doublereal dP = 0.;
 
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDriveCallers[i] != 0);
-		dP += ppDriveCallers[i]->dGetP();
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT(*i != 0);
+		ASSERT((*i)->bIsDifferentiable());
+
+		dP += (*i)->dGetP();
 	}
 
 	return dP;

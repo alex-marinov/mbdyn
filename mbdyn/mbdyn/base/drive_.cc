@@ -1057,49 +1057,42 @@ PiecewiseLinearDriveCaller::Restart(std::ostream& out) const
 
 /* DriveArrayCaller - begin */
 
-DriveArrayCaller::DriveArrayCaller(const DriveHandler* pDH,
-	unsigned short int i, const DriveCaller** ppDC)
-: DriveCaller(pDH), iNumDrivers(i), ppDriveCallers(ppDC)
+DriveArrayCaller::DriveArrayCaller(const DriveHandler* pDH, dcv_t& DC)
+: DriveCaller(pDH), m_dc(DC)
 {
 #ifdef DEBUG
-	ASSERT(iNumDrivers > 0);
-	ASSERT(ppDriveCallers != 0);
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDC[i] != 0);
+	ASSERT(!m_dc.empty());
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT((*i) != 0);
 	}
 #endif /* DEBUG */
 }
 
 DriveArrayCaller::~DriveArrayCaller(void)
 {
-	ASSERT(ppDriveCallers != 0);
-	ASSERT(iNumDrivers > 0);
+	ASSERT(!m_dc.empty());
 
-	for (int i = 0; i < iNumDrivers; i++) {
-		SAFEDELETE(ppDriveCallers[i]);
+	for (dcv_t::iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		SAFEDELETE(*i);
 	}
-
-	SAFEDELETEARR(ppDriveCallers);
 }
 
 /* Copia */
 DriveCaller *
 DriveArrayCaller::pCopy(void) const
 {
-	ASSERT(ppDriveCallers != 0);
-	ASSERT(iNumDrivers > 0);
+	ASSERT(!m_dc.empty());
 
-	const DriveCaller** ppDC = 0;
-	SAFENEWARR(ppDC, const DriveCaller*, iNumDrivers);
+	dcv_t DC(m_dc.size());
 
-	for (int i = 0; i < iNumDrivers; i++) {
-		ppDC[i] = ppDriveCallers[i]->pCopy();
+	for (unsigned i = 0; i < m_dc.size(); i++) {
+		DC[i] = m_dc[i]->pCopy();
 	}
 
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DriveArrayCaller,
-		DriveArrayCaller(pDrvHdl, iNumDrivers, ppDC));
+		DriveArrayCaller(pDrvHdl, DC));
 
 	return pDC;
 }
@@ -1108,11 +1101,14 @@ DriveArrayCaller::pCopy(void) const
 std::ostream&
 DriveArrayCaller::Restart(std::ostream& out) const
 {
-	out << " array, " << iNumDrivers;
-	for (int i = 0; i < iNumDrivers; i++) {
-		ASSERT(ppDriveCallers[i] != 0);
-		out << ", ", ppDriveCallers[i]->Restart(out);
+	out << " array, " << m_dc.size();
+
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+		ASSERT((*i) != 0);
+
+		out << ", ", (*i)->Restart(out);
 	}
+
 	return out;
 }
 
@@ -2453,17 +2449,15 @@ ArrayDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		pDC = HP.GetDriveCaller();
 
 	} else {
-		DriveCaller** ppDC = 0;
-		SAFENEWARR(ppDC, DriveCaller*, iNumDr);
+		DriveArrayCaller::dcv_t DC(iNumDr);
 		for (int i = 0; i < iNumDr; i++) {
-			ppDC[i] = HP.GetDriveCaller();
+			DC[i] = HP.GetDriveCaller();
 		}
 
 		/* allocazione e creazione array */
 		SAFENEWWITHCONSTRUCTOR(pDC,
 			DriveArrayCaller,
-			DriveArrayCaller(pDrvHdl, iNumDr,
-			(const DriveCaller**)ppDC));
+			DriveArrayCaller(pDrvHdl, DC));
 	}
 
 	return pDC;
