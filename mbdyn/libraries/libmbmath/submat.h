@@ -282,13 +282,13 @@ public:
 	inline const doublereal&
 	dGetCoef(integer iRow, integer iCol) const;
 
-#if 0
+// FIXME: disambiguate operator()
 	inline const doublereal&
 	operator () (integer iRow, integer iCol) const;
 
 	inline doublereal&
 	operator () (integer iRow, integer iCol);
-#endif
+// end of FIXME: disambiguate operator()
 
 	/* Gestione degli indici */
 
@@ -673,7 +673,7 @@ FullSubMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 	return FullMatrixHandler::dGetCoef(iRow, iCol);
 }
 
-#if 0
+// FIXME: disambiguate operator()
 inline const doublereal&
 FullSubMatrixHandler::operator () (integer iRow, integer iCol) const
 {
@@ -685,7 +685,7 @@ FullSubMatrixHandler::operator () (integer iRow, integer iCol)
 {
 	return FullMatrixHandler::operator()(iRow, iCol);
 }
-#endif
+// end of FIXME: disambiguate operator()
 
 /* FullSubMatrixHandler - end */
 
