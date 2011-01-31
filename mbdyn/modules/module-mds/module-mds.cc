@@ -175,10 +175,19 @@ ModuleMDS::AssJac(VariableSubMatrixHandler& WorkMat,
 	 *	                            [    -dCoef        1.   ]
 	 */
 
+#if 0
+	// old style
 	WM.PutCoef(1, 1, dM + dCoef*dD);
 	WM.PutCoef(1, 2, dCoef*dK);
 	WM.PutCoef(2, 1, -dCoef);
 	WM.PutCoef(2, 2, 1.);
+#endif
+
+	// cleaner (less efficient?)
+	WM(1, 1) = dM + dCoef*dD;
+	WM(1, 2) = dCoef*dK;
+	WM(2, 1) = -dCoef;
+	WM(2, 2) = 1.;
 
 	return WorkMat;
 }
