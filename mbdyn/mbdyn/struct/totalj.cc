@@ -1754,7 +1754,7 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 		off += 18;
 		break;
 
-	case 'W':
+	case 'w':
 		/* relative angular velocity */
 		off += 21;
 		break;
@@ -3229,7 +3229,7 @@ TotalPinJoint::iGetPrivDataIdx(const char *s) const
 		off += 15;
 		break;
 
-	case 'W':
+	case 'w':
 		/* relative angular velocity */
 		off += 18;
 		break;
