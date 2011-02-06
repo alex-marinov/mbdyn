@@ -52,13 +52,23 @@
 	
 
 FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
-		const std::string& s, integer nd)
+	const std::string& s,
+	integer nd, const std::vector<doublereal>& v0)
 : Drive(uL, pDH), sFileName(s), iNumDrives(nd), pdVal(NULL)
 {
    	SAFENEWARR(pdVal, doublereal, nd + 1);
-   	for (int iCnt = 0; iCnt <= nd; iCnt++) {
-      		pdVal[iCnt] = 0.;
-   	}
+	if (v0.empty()) {
+   		for (int iCnt = 0; iCnt <= nd; iCnt++) {
+      			pdVal[iCnt] = 0.;
+   		}
+
+	} else {
+		ASSERT(v0.size() == nd );
+		pdVal[0] = 0.;
+		for (int iCnt = 0; iCnt < nd; iCnt++) {
+			pdVal[iCnt + 1] = v0[iCnt];
+		}
+	}
 }
 
 

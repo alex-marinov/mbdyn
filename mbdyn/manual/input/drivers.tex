@@ -133,6 +133,7 @@ Time values must grow monotonically.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{normal_arglist} ::= \kw{socket} , 
         \bnt{columns_number} ,
+	[ \kw{initial values} , \bnt{value \#1} , ... , ]
         \{ \kw{local} , " \bnt{file_name} " 
             | [ \kw{port} , \bnt{port_number} , ] (\ty{AuthenticationMethod}) \bnt{authentication} \}
 \end{Verbatim}
@@ -252,6 +253,7 @@ or model debugging purposes.}
             [ , \kw{precision} , \bnt{precision} ]
             [ , \kw{shift} , \bnt{shift} ] , ]
         \bnt{columns_number}
+            [ , \kw{initial values} , \bnt{value \#1} , ... ]
 \end{Verbatim}
 %\end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
@@ -275,12 +277,15 @@ The meaning of the parameters is:
 \item \nt{stream\_name} indicates the name the stream will be known as;
 it is mostly useless, and must be no more than 6 characters long,
 since it is only allowed for compatibility with RTAI's mailboxes;
+
 \item the instruction \kw{create} determines whether the socket will be
 created or looked for by MBDyn; if \kw{create} is set to \kw{no},
 MBDyn will retry for 60 seconds and then give up;
+
 \item the keyword \kw{local} indicates that a socket 
 in the local namespace will be used; if \kw{create} is set to \kw{yes},
 the socket is created, otherwise it must exist.
+
 \item either of the keywords \kw{port} or \kw{host} indicate that a socket
 in the internet namespace will be used;
 if \kw{create} is set to \kw{yes}, \nt{host\_name} indicates 
@@ -288,24 +293,36 @@ the host that is allowed to connect to the socket; it defaults
 to any host (0.0.0.0); if \kw{create} is set to \kw{no},
 \nt{host\_name} indicates what host to connect to; the default 
 is localhost (127.0.0.1); the default port is 9011;
+
 \item the keyword \kw{no signal} disables raising a \texttt{SIGPIPE}
 in case the stream is read after it was closed by the peer;
+
 \item the keyword \kw{input every} allows to read new driver values
 every \nt{steps} time steps;
+
 \item the keyword \kw{receive first} allows to enable/disable
 receiving data at the initial time (defaults to \kw{yes},
 thus data is expected at the initial time, during derivatives);
+
 \item the keyword \kw{timeout} allows to set a timeout
 for each read operation; the timeout is expressed in seconds
 as a floating point number, with a theoretical micro-second resolution
 (the actual resolution is left to the OS);
+
 \item the keyword \kw{echo} allows to echo the streamed data
 into file \nt{echo\_file\_name}, using the optional \kw{precision}
 and a \kw{shift} for the time, to make sure step changes are captured
 correctly (a small negative value is recommended);
 the resulting file is suitable to re-execute the simulation
 using a \kw{variable step} file driver, using a \kw{const} value
-for the \kw{interpolation} option.
+for the \kw{interpolation} option;
+
+\item the keyword \kw{initial values},
+followed by \nt{columns\_number} real values,
+allows to set the initial values of each channel;
+this is useful for example if the initial value of a channel
+is needed during initial assembly, before the first set of values
+is read from the peer.
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 

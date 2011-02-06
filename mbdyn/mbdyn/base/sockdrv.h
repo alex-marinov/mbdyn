@@ -69,10 +69,12 @@ protected:
 
 public:
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
-	            unsigned short int p, AuthMethod* a, integer nd);
+	        unsigned short int p, AuthMethod* a,
+		integer nd, const std::vector<doublereal>& v0);
 
    	SocketDrive(unsigned int uL, const DriveHandler* pDH,
-	            const char *path, integer nd);
+	        const char *path,
+		integer nd, const std::vector<doublereal>& v0);
 
    	virtual ~SocketDrive(void);
 
@@ -91,8 +93,9 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Drive* ReadSocketDrive(DataManager* pDM,
-		MBDynParser& HP, unsigned int uLabel);
+extern Drive*
+ReadSocketDrive(DataManager* pDM,
+	MBDynParser& HP, unsigned int uLabel);
 
 #endif /* SOCKDRV_H */
 

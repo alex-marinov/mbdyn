@@ -43,11 +43,13 @@
 
 /* VariableStepFileDrive - begin */
 
+static const std::vector<doublereal> v0;
+
 VariableStepFileDrive::VariableStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
 		integer ind, bool bl, bool pz, Drive::Bailout bo)
-: FileDrive(uL, pDH, sFileName, ind),
+: FileDrive(uL, pDH, sFileName, ind, v0),
 iNumSteps(-1), iCurrStep(-1),
 bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 {

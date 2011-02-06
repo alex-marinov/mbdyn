@@ -34,8 +34,9 @@
 #ifndef FILEDRV_H
 #define FILEDRV_H
 
-#include <drive.h>
-#include <mbdyn.h>
+#include "mbdyn.h"
+#include "drive.h"
+
 /* FileDrive - begin */
 
 class FileDrive : public Drive {
@@ -60,7 +61,8 @@ protected:
 
 public:
 	FileDrive(unsigned int uL, const DriveHandler* pDH,
-			const std::string& s, integer nd);
+		const std::string& s,
+		integer nd, const std::vector<doublereal>& v0);
 	virtual ~FileDrive(void);
 
 	virtual Drive::Type GetDriveType(void) const;

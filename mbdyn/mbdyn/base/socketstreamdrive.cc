@@ -71,15 +71,16 @@
 #define DEFAULT_HOST	"127.0.0.1"
 
 SocketStreamDrive::SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
-		UseSocket *pUS, bool c,
-		const std::string& sFileName,
-		integer nd, unsigned int ie, bool bReceiveFirst,
-		int flags,
-		const struct timeval& st,
-		const std::string& sOutFileName, int iPrecision,
-		doublereal dShift)
-: StreamDrive(uL, pDH, sFileName, nd, c),
+	const DriveHandler* pDH,
+	UseSocket *pUS, bool c,
+	const std::string& sFileName,
+	integer nd, const std::vector<doublereal>& v0,
+	unsigned int ie, bool bReceiveFirst,
+	int flags,
+	const struct timeval& st,
+	const std::string& sOutFileName, int iPrecision,
+	doublereal dShift)
+: StreamDrive(uL, pDH, sFileName, nd, v0, c),
 InputEvery(ie), bReceiveFirst(bReceiveFirst), InputCounter(ie - 1),
 pUS(pUS), recv_flags(flags),
 SocketTimeout(st),
@@ -546,6 +547,14 @@ ReadSocketStreamDrive(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	std::vector<doublereal> v0;
+	if (HP.IsKeyWord("initial" "values")) {
+		v0.resize(idrives);
+		for (int i = 0; i < idrives; i++) {
+			v0[i] = HP.GetReal();
+		}
+	}
+
 	UseSocket *pUS = 0;
 	if (path.empty()) {
 		if (port == (unsigned short int)(-1)) {
@@ -568,7 +577,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 		SocketStreamDrive(uLabel,
 			pDM->pGetDrvHdl(), pUS, create,
-			name, idrives, InputEvery, bReceiveFirst,
+			name, idrives, v0, InputEvery, bReceiveFirst,
 			flags, SocketTimeout,
 			sOutFileName, iPrecision, dShift));
 

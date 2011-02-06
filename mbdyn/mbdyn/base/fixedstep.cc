@@ -42,13 +42,15 @@
 
 /* FixedStepFileDrive - begin */
 
+static const std::vector<doublereal> v0;
+
 FixedStepFileDrive::FixedStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
 		const char* const sFileName,
 		integer ins, integer ind,
 		doublereal t0, doublereal dt,
 		bool bl, bool pz, Drive::Bailout bo)
-: FileDrive(uL, pDH, sFileName, ind),
+: FileDrive(uL, pDH, sFileName, ind, v0),
 dT0(t0), dDT(dt), iNumSteps(ins),
 bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 {

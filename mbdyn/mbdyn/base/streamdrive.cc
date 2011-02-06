@@ -38,10 +38,11 @@
 /* StreamDrive - begin */
 
 StreamDrive::StreamDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const std::string& sFileName,
-			 integer nd, bool c)
-: FileDrive(uL, pDH, sFileName, nd),
+	const DriveHandler* pDH,
+	const std::string& sFileName,
+	integer nd, const std::vector<doublereal>& v0,
+	bool c)
+: FileDrive(uL, pDH, sFileName, nd, v0),
 create(c)
 {
    	ASSERT(nd > 0);

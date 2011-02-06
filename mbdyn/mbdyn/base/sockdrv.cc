@@ -63,10 +63,9 @@ const size_t BUFSIZE = 1024;
 const char *MBDynSocketDrivePath = "/var/mbdyn/mbdyn.sock";
 
 SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
-			 unsigned short int p,
-			 AuthMethod* a,
-			 integer nd)
-: FileDrive(uL, pDH, "socket", nd),
+	unsigned short int p, AuthMethod* a,
+	integer nd, const std::vector<doublereal>& v0)
+: FileDrive(uL, pDH, "socket", nd, v0),
 type(AF_INET),
 auth(a),
 pFlags(NULL)
@@ -103,8 +102,9 @@ pFlags(NULL)
 }
 
 SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
-		const char *path, integer nd)
-: FileDrive(uL, pDH, "socket", nd),
+	const char *path,
+	integer nd, const std::vector<doublereal>& v0)
+: FileDrive(uL, pDH, "socket", nd, v0),
 type(AF_LOCAL),
 auth(NULL),
 pFlags(NULL)
@@ -548,6 +548,14 @@ ReadSocketDrive(DataManager* pDM,
 	unsigned short int port = MBDynSocketDrivePort;
 	const char *path = NULL;
 
+	std::vector<doublereal> v0;
+	if (HP.IsKeyWord("initial" "values")) {
+		v0.resize(idrives);
+		for (integer i = 0; i < idrives; i++) {
+			v0[i] = HP.GetReal();
+		}
+	}
+
 	if (HP.IsKeyWord("local")) {
 		path = HP.GetFileName();
 		ASSERT(path != NULL);
@@ -580,15 +588,15 @@ ReadSocketDrive(DataManager* pDM,
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDr,
-				SocketDrive,
-				SocketDrive(uLabel, pDM->pGetDrvHdl(),
-					port, pAuth, idrives));
+			SocketDrive,
+			SocketDrive(uLabel, pDM->pGetDrvHdl(),
+				port, pAuth, idrives, v0));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pDr,
-				SocketDrive,
-				SocketDrive(uLabel, pDM->pGetDrvHdl(),
-					path, idrives));
+			SocketDrive,
+			SocketDrive(uLabel, pDM->pGetDrvHdl(),
+				path, idrives, v0));
 	}
 
 	return pDr;

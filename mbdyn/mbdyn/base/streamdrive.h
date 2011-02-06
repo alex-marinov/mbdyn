@@ -50,9 +50,10 @@ protected:
 
 public:
    	StreamDrive(unsigned int uL,
-			 const DriveHandler* pDH,
-			 const std::string& sFileName,
-			 integer nd, bool c);
+		const DriveHandler* pDH,
+		const std::string& sFileName,
+		integer nd, const std::vector<doublereal>& v0,
+		bool c);
 
    	virtual ~StreamDrive(void);
 };
