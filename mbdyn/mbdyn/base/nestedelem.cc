@@ -118,6 +118,39 @@ NestedElem::GetEqType(unsigned int i) const
 	return pElem->GetEqType(i);
 }
 
+std::ostream&
+NestedElem::DescribeDof(std::ostream& out,
+	const char *prefix, bool bInitial) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->DescribeDof(out, prefix, bInitial);
+}
+
+void
+NestedElem::DescribeDof(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->DescribeDof(desc, bInitial, i);
+}
+
+std::ostream&
+NestedElem::DescribeEq(std::ostream& out,
+	const char *prefix, bool bInitial) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->DescribeEq(out, prefix, bInitial);
+}
+
+void
+NestedElem::DescribeEq(std::vector<std::string>& desc,
+	bool bInitial, int i) const
+{
+	ASSERT(pElem != NULL);
+	return pElem->DescribeEq(desc, bInitial, i);
+}
+
+
 /* Dimensioni del workspace */
 void
 NestedElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const

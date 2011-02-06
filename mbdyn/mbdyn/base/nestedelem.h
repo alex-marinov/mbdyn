@@ -93,6 +93,16 @@ public:
 	 */
 	virtual unsigned int iGetNumDof(void) const;
  
+	/* inherited from SimulationEntity */
+	virtual std::ostream& DescribeDof(std::ostream& out,
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeDof(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
+	virtual std::ostream& DescribeEq(std::ostream& out,
+		const char *prefix = "", bool bInitial = false) const;
+	virtual void DescribeEq(std::vector<std::string>& desc,
+		bool bInitial = false, int i = -1) const;
+
 	/* esegue operazioni sui dof di proprieta' dell'elemento */
 	virtual DofOrder::Order GetDofType(unsigned int i) const;
 	
