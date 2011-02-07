@@ -61,6 +61,8 @@ mbc_py_wrap.cc: $(mbc_py_wrap_dep)
 libmbc_py_la_LIBADD = @LIBS@ libmbc.la
 libmbc_py_la_LDFLAGS =
 
+EXTRA_DIST = mbc_py_interface.py
+
 install-exec-local:
 	$(mkinstalldirs) $(libexecdir)/mbpy
 	if test -f .libs/libmbc_py.so ; then \
