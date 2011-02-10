@@ -77,7 +77,8 @@ if (best_dist<abs(dist_current_node))
     else
 
         % otherwise choose right
-        if (~isempty(tree_cell_2(node_number).left))
+        %%% if (~isempty(tree_cell_2(node_number).left))
+        if (~isempty(tree_cell_2(node_number).right))
             kd_closestpointgood(0,point,tree_cell_2(node_number).right);
         else
             return;
@@ -108,7 +109,8 @@ else
 
 
     % check to see if any points to the right of the node are good
-    if (~isempty(tree_cell_2(node_number).left))
+    %%% if (~isempty(tree_cell_2(node_number).left))
+    if (~isempty(tree_cell_2(node_number).right))
         kd_closestpointgood(0,point,tree_cell_2(node_number).right);
     else
         return;

@@ -71,7 +71,7 @@ end
 extfile = 'surface.dat';
 outputfile = 'output.dat';
 labFlag = 0;
-RefNodeId = 0;
+RefNodeId = -1;
 MBNodeN = 0;
 MBNodeList = []; 
 IOrder = 2;
@@ -206,10 +206,26 @@ if (fid < 0)
 	return;
 end
 
-fprintf(fid, '# Moving Lest Square interface matrix\n');
+fprintf(fid, '# Moving Least Square interface matrix\n');
 fprintf(fid, '# Date %s\n',  date);
 fprintf(fid, '# MBDyn Structural file "%s" nodes=%d\n', filename, MBNodeN);
 fprintf(fid, '# External file "%s" nodes=%d\n', extfile, ExtNodeN);
+if (labFlag == 1),
+	fprintf(fid, '# labels: on\n');
+else
+	fprintf(fid, '# labels: off\n');
+end
+if (RefNodeId > -1),
+	fprintf(fid, '# reference: %d\n', RefNodeId);
+end
+fprintf(fid, '# order: %d\n', IOrder);
+fprintf(fid, '# basenode: %d\n', IBaseNodN);
+if (IWeight == inf),
+	fprintf(fid, '# weight: inf\n');
+else
+	fprintf(fid, '# weight: %d\n', IWeight);
+end
+fprintf(fid, '# output: %s\n', outputfile);
 fprintf(fid, '# mapping matrix: %dx%d (%d non-zero coefficients, %f%%)\n', 3*ExtNodeN, 3*MBNodeN, 3*length(r), 100*3*length(r)/(3*ExtNodeN*3*MBNodeN));
 for i = 1 : length(r)
 	fprintf(fid, '%d %d %.16g\n', 3 * (r(i) - 1) + 1, 3 * (c(i) - 1) + 1, s(i));

@@ -63,7 +63,8 @@ if (point(tree_cell(node_number).splitdim)<=tree_cell(node_number).splitval)
 else
     % as the point is to the right of the split dimension
     % recurse to the right
-    if (isempty(tree_cell(node_number).left))
+    %%% if (isempty(tree_cell(node_number).left))
+    if (isempty(tree_cell(node_number).right))
         % incase the left node is empty, then output current results
         index_vals=tree_cell(node_number).index;
         vector_vals=tree_cell(node_number).nodevector;
