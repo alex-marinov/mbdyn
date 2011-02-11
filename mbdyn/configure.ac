@@ -593,6 +593,11 @@ if test "$ol_enable_python" != no ; then
 	dnl
 	dnl AX_PKG_SWIG(1.3.17, [], [ AC_MSG_ERROR([SWIG required]) ])
 	AX_PKG_SWIG
+
+	if test x"$SWIG" = x -a "$ol_enable_python" = yes ; then
+		AC_MSG_ERROR([python needs swig])
+	fi
+
 	AX_SWIG_ENABLE_CXX
 	AX_SWIG_MULTI_MODULE_SUPPORT
 	AX_SWIG_PYTHON
