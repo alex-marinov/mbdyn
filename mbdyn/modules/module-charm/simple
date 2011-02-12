@@ -16,10 +16,10 @@ begin: initial value;
 	method: ms, .6;
 
 	# derivatives coefficient: 1.e-12;
-	derivatives tolerance: 1.e-3;
+	derivatives tolerance: 1.e+9;
 	derivatives max iterations: 10;
 
-	output: iterations;
+	# output: iterations;
 	# output: residual;
 end: initial value;
 
@@ -47,8 +47,8 @@ begin: control data;
 		)
 	;
 	air properties;
-	# loadable elements: 1;
-	induced velocity elements: 1;
+	loadable elements: 1;
+	# induced velocity elements: 1;
 	aerodynamic elements:
 		+1*(
 			+2*4	# blades
@@ -85,8 +85,8 @@ reference: GROUND,
 reference: ROTOR_1 + 1,
 	reference, GROUND, null,
 	reference, GROUND,
-		eye,
-		# 2, 0., 1., 0., 1, cos(1.*deg2rad), 0., -sin(1.*deg2rad),
+		2, 0., 1., 0.,
+		1, cos(-3.*deg2rad), 0., sin(-3.*deg2rad),
 	reference, GROUND, null,
 	reference, GROUND, null;
 
@@ -204,12 +204,11 @@ begin: elements;
 	air properties: std, SI,
 		-1., 0., 0.,
 			# const, 0.;
-			# const, .1*(5.*40.);
-			cosine, 3., pi/1., .1*(5.*40.)/2, half, 0.;
+			const, .2*OMEGA*R;
+			# cosine, 3., pi/1., .1*(5.*40.)/2, half, 0.;
 
 	c81data: 1, "../../var/naca0012.c81";
 
-	/*
 	# create a symlink to libmodule-charm.so in this folder
 	# module load: "./libmodule-charm.so";
 	user defined: 1, charm,
@@ -236,14 +235,15 @@ begin: elements;
 				ROTOR_1 + BLADE_2 + 3,
 		trim times, .9999, 1.9999, 2.9999, 3.9999,
 		output, yes;
-	*/
 
+	/*
 	induced velocity: 1, rotor,
 		GROUND,
 		ROTOR_1,
 		induced velocity,
 			# no;
 			glauert, OMEGA, R, delay, .6;
+	*/
 
 	# rotor 1
 	set: CURR_ROTOR = ROTOR_1;

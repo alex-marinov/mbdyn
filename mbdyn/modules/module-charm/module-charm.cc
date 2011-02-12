@@ -68,6 +68,8 @@
 #define __stdcall
 #include <CharmWP.h>
 
+extern "C" int __FC_DECL__(charmdebug)(integer *nout);
+
 // The functions that follow are stubs to simulate the availability
 // of CHARM's WP library
 //#define MBCHARM_FAKE 1
@@ -147,6 +149,12 @@ extern "C" void
 updateWake(int isTrimming, chStatus *status)
 {
 	ASSERT(status != 0);
+}
+
+extern "C" int
+__FC_DECL__(charmdebug)(integer *nout)
+{
+	return 0;
 }
 #endif // MBCHARM_FAKE
 
@@ -337,7 +345,8 @@ private:
 		double omega100;
 
 		Mat3x3 Rh;
-		StructNode *pHub;
+		const StructNode *pNRHub;
+		const StructNode *pHub;
 
 		std::vector<SurfaceMapping> Blades;
 	};
@@ -354,6 +363,7 @@ private:
 	wpOptions m_wpoptions;
 	std::vector<chOffRotorEval> m_eval_pts;
 
+	Mat3x3 m_RabsMBDyn2CHARM;
 	Mat3x3 m_Rh;
 	Mat3x3 m_Rac;
 	wpAircraft m_wpaircraft;
@@ -507,6 +517,17 @@ iFirstAssembly(2)
 	}
 	m_wpoptions.nupsim = 0;
 
+	if (HP.IsKeyWord("world" "orientation")) {
+		m_RabsMBDyn2CHARM = HP.GetRotAbs(AbsRefFrame);
+
+	} else {
+		/*
+		 * x == x
+		 * y == -y
+		 * z == -z
+		 */
+		m_RabsMBDyn2CHARM = Mat3x3(1., 0., 0., 0., -1., 0., 0., 0., -1.);
+	}
 
 	// aircraft
 	if (!HP.IsKeyWord("aircraft")) {
@@ -618,6 +639,16 @@ iFirstAssembly(2)
 				"invalid \"root cutout\" " << m_Rotors[ir].omega100
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (HP.IsKeyWord("non" "rotating" "hub" "node")) {
+			silent_cerr("\"non rotating hub node\" not implemented yet" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+			m_Rotors[ir].pNRHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+
+		} else {
+			m_Rotors[ir].pNRHub = pCraft;
 		}
 
 		if (!HP.IsKeyWord("hub" "node")) {
@@ -993,12 +1024,10 @@ ModuleCHARM::Set_int(void)
 	GetAirProps(Xac, rho, c, p, T);
 	Vec3 Vac(pCraft->GetVCurr());
 	// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh); // m_R computed by AssRes()
+	Vec3 XCac(m_RabsMBDyn2CHARM.MulTV(Xac));
+	Vec3 VCac(m_RabsMBDyn2CHARM.MulTV(Vac));
 	Vec3 VBac(m_Rac.MulTV(Vac));
 	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
-#if 0
-	// FIXME: Euler angles? 123 or 321?  Rac or Rac^T?
-	Vec3 EBac = MatR2EulerAngles123(m_Rac);
-#endif
 
 	// update global data
 	Vec3 Vinf(0.);
@@ -1044,23 +1073,26 @@ ModuleCHARM::Set_int(void)
 
 	// update aircraft data
 	m_wpaircraft.air_density = rho;
-	m_wpaircraft.inertial_position[0] = Xac(1);
-	m_wpaircraft.inertial_position[1] = Xac(2);
-	m_wpaircraft.inertial_position[2] = Xac(3);
-	m_wpaircraft.inertial_velocity[0] = Vac(1);
-	m_wpaircraft.inertial_velocity[1] = Vac(2);
-	m_wpaircraft.inertial_velocity[2] = Vac(3);
+	// FIXME: "c" (sound celerity) should be set as SSPSIM,
+	// but there is no means yet using WP's C/C++ interface
+	cvc3_.sspsim[0] = c;
+
+	// NOTE: CHARM's inertial frame is "z" down, while MBDyn's is usually "z" up
+	// we use m_RabsMBDyn2CHARM to map the two worlds
+	m_wpaircraft.inertial_position[0] = XCac(1);
+	m_wpaircraft.inertial_position[1] = XCac(2);
+	m_wpaircraft.inertial_position[2] = XCac(3);
+	m_wpaircraft.inertial_velocity[0] = VCac(1);
+	m_wpaircraft.inertial_velocity[1] = VCac(2);
+	m_wpaircraft.inertial_velocity[2] = VCac(3);
+
 	m_wpaircraft.body_velocity[0] = VBac(1);
 	m_wpaircraft.body_velocity[1] = VBac(2);
 	m_wpaircraft.body_velocity[2] = VBac(3);
 	m_wpaircraft.angular_rates[0] = WBac(1);
 	m_wpaircraft.angular_rates[1] = WBac(2);
 	m_wpaircraft.angular_rates[2] = WBac(3);
-#if 0
-	m_wpaircraft.euler_angles[0] = EBac(1);
-	m_wpaircraft.euler_angles[1] = EBac(2);
-	m_wpaircraft.euler_angles[2] = EBac(3);
-#endif
+
 	// T_inertial_to_body = m_Rac^T
 	// NOTE: C indexes need to be exchanged
 	m_wpaircraft.T_inertial_to_body[0][0] = m_Rac(1, 1);
@@ -1095,44 +1127,12 @@ ModuleCHARM::Set_int(void)
 		while (rotor->azimuth > 2.*M_PI) {
 			rotor->azimuth -= 2.*M_PI;
 		}
-		rotor->azimuth = rotor->rotation_dir*Psi(3);
+		rotor->azimuth *= rotor->rotation_dir;
 
 		// rotor velocity
 		Vec3 ehb3(m_Rotors[ir].pHub->GetRCurr().GetVec(3));
 		rotor->rotor_speed = std::abs(ehb3*(m_Rotors[ir].pHub->GetWCurr() - pCraft->GetWCurr()));
-
-#if 0
-		silent_cout("ModuleCHARM(" << GetLabel() << "): "
-			"ir=" << ir << " psi=" << rotor->azimuth
-			<< " omega=" << rotor->rotor_speed << std::endl);
-#endif
-
-#if 0
-		for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
-			wpBlade *blade = &rotor->blades[ib];
-
-			for (unsigned ie = 0; ie < m_Rotors[ir].Blades[ib].Elems.size(); ie++) {
-				int iFirst = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iFirst;
-				int iCount = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iCount;
-				int iIdx = m_Rotors[ir].Blades[ib].Elems[ie].pRB->iIdx;
-
-				ASSERT(iIdx != -1);
-
-				for (int ip = 0; ip < iCount; ip++) {
-					blade->tangential_velocity[iFirst + ip] = m_data[iIdx].tangential_velocity;
-					blade->spanwise_lift[iFirst + ip] = m_data[iIdx].spanwise_lift;
-					blade->control_pts[iFirst + ip][0] = m_data[iIdx].X(1);
-					blade->control_pts[iFirst + ip][1] = m_data[iIdx].X(2);
-					blade->control_pts[iFirst + ip][2] = m_data[iIdx].X(3);
-				}
-			}
-		}
-#endif
 	}
-
-#if 0
-	std::cerr << "### ModuleCHARM::Update_int: m_data.size=" << m_data.size() << std::endl;
-#endif
 
 	// loop on all data points, regardless of their type
 	// to set X; blade points also set tangential velocity and lift
@@ -1295,9 +1295,17 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 	if (iFirstAssembly == 1) {
+
+		ASSERT(uLabel != unsigned(-1));
+		if (m_e2b_map.find(uLabel) == m_e2b_map.end()) {
+			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
+				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+				"not known (check related elements list)" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		unsigned idx = m_data.size();
 		ASSERT(idx > 0);
-		ASSERT(uLabel != unsigned(-1));
 		idx--;
 
 		if (m_data[idx].type != type
@@ -1406,7 +1414,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			m_data_frc_iter->spanwise_lift = 0.;
 		}
 
-#if 1
+#if 0
 		std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
 			<< " dF=" << m_data_frc_iter->spanwise_lift
 			<< " X={" << m_data_frc_iter->X << "}" << std::endl;
@@ -1450,9 +1458,13 @@ ModuleCHARM::Output(OutputHandler& OH) const
 			out << GetLabel() << "#" << i->label << "#" << i->counter
 				<< " " << i->spanwise_lift
 				<< " " << i->tangential_velocity
-				<< " " << i->X
-				<< " " << i->vel[0] << " " << i->vel[1] << " " << i->vel[2]
-				<< std::endl;
+				<< " " << i->X;
+			if (i->vel) {
+				out << " " << i->vel[0] << " " << i->vel[1] << " " << i->vel[2];
+			} else {
+				out << " " << 0. << " " << 0. << " " << 0.;
+			}
+			out << std::endl;
 		}
 	}
 }
