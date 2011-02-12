@@ -114,7 +114,7 @@ reference: ROTOR_1 + 1,
 	reference, GROUND, null,
 	reference, GROUND,
 		2, 0., 1., 0.,
-		1, cos(-3.*deg2rad), 0., sin(-3.*deg2rad),
+		1, cos(3.*deg2rad), 0., sin(3.*deg2rad),
 	reference, GROUND, null,
 	reference, GROUND, null;
 
@@ -250,7 +250,7 @@ begin: elements;
 		diag, 1., 50./12*R^2, 50./12*R^2;
 
 	air properties: std, SI,
-		-1., 0., 0.,
+		1., 0., 0.,
 			# const, 0.;
 			const, .2*OMEGA*R;
 			# cosine, 3., pi/1., .1*(5.*40.)/2, half, 0.;
@@ -263,6 +263,7 @@ begin: elements;
 		units, si,
 			# output unit, 98,
 		aircraft, GROUND,
+			aircraft orientation, 1, -1., 0., 0., 2, 0., 1., 0.,
 		rotors, 1,	# number of rotors
 			rotation direction, counter clockwise,	# optional
 			radius, R,
@@ -270,7 +271,9 @@ begin: elements;
 			root cutout, R_CUTOUT,
 			omega, OMEGA,
 			hub node, ROTOR_1,
-			orientation, reference, ROTOR_1, eye,
+			rotor orientation, reference, ROTOR_1, 1, 1., 0., 0., 2, 0., -1., 0.,
+			non rotating hub node, GROUND,
+				orientation, reference, GROUND, 1, 1., 0., 0., 2, 0., -1., 0.,
 			blades, 2,	# number of blades of rotor #0
 				elements, 10,	# number of elements per blade of rotor #0
 				ROTOR_1 + BLADE_1 + 1,	# elements of rotor #0, blade #0
