@@ -39,8 +39,8 @@ begin: initial value;
 	# final time: .001;
 	time step: 1.e-3;
 
-	tolerance: 1.e-5;
-	max iterations: 10;
+	tolerance: 1.e-3;
+	max iterations: 20;
 
 	method: ms, .6;
 
@@ -106,15 +106,15 @@ set: const integer GAUSS_POINTS = 1;
 
 reference: GROUND,
 	reference, global, null,
-	reference, global, eye,
+	reference, global,
+		2, 0., 1., 0.,
+		1, cos(3.*deg2rad), 0., sin(3.*deg2rad),
 	reference, global, null,
 	reference, global, null;
 
 reference: ROTOR_1 + 1,
 	reference, GROUND, null,
-	reference, GROUND,
-		2, 0., 1., 0.,
-		1, cos(3.*deg2rad), 0., sin(3.*deg2rad),
+	reference, GROUND, eye,
 	reference, GROUND, null,
 	reference, GROUND, null;
 
@@ -176,6 +176,22 @@ begin: nodes;
 		reference, CURR_BLADE + CURR_ROTOR, null;
 end: nodes;
 
+set: const real B0 = 0.; # 7.73*deg2rad;
+#set: const real B1C = 2.08*deg2rad;
+#set: const real B1S = -3.65*deg2rad;
+set: const real B1C = 0.5*deg2rad;
+set: const real B1S = -1.2*deg2rad;
+
+drive caller: CURR_ROTOR + BLADE_1,
+	mult,
+		cosine, 0., pi/.5, .5, half, 0.,
+		string, "B0 + B1C*cos(OMEGA*Time) + B1S*sin(OMEGA*Time)";
+
+drive caller: CURR_ROTOR + BLADE_2,
+	mult,
+		cosine, 0., pi/.5, .5, half, 0.,
+		string, "B0 - B1C*cos(OMEGA*Time) - B1S*sin(OMEGA*Time)";
+
 begin: elements;
 	joint: GROUND, clamp, GROUND, node, node;
 
@@ -215,7 +231,7 @@ begin: elements;
 			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
 			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
 		position constraint, 1, 1, 1, null,
-		orientation constraint, 1, 1, 1, null;
+		orientation constraint, 1, 1, 1, 1., 0., 0., reference, CURR_ROTOR + CURR_BLADE;
 	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		50.,
 		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
@@ -243,7 +259,7 @@ begin: elements;
 			position orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
 			rotation orientation, reference, CURR_ROTOR + CURR_BLADE, eye,
 		position constraint, 1, 1, 1, null,
-		orientation constraint, 1, 1, 1, null;
+		orientation constraint, 1, 1, 1, 1., 0., 0., reference, CURR_ROTOR + CURR_BLADE;
 	body: CURR_ROTOR + CURR_BLADE, CURR_ROTOR + CURR_BLADE,
 		50.,
 		reference, CURR_ROTOR + CURR_BLADE, -R/2, 0., 0.,
@@ -270,10 +286,11 @@ begin: elements;
 			chord, C,
 			root cutout, R_CUTOUT,
 			omega, OMEGA,
+			thrust coefficient, .004,
 			hub node, ROTOR_1,
 			rotor orientation, reference, ROTOR_1, 1, 1., 0., 0., 2, 0., -1., 0.,
-			non rotating hub node, GROUND,
-				orientation, reference, GROUND, 1, 1., 0., 0., 2, 0., -1., 0.,
+			shaft node, GROUND,
+				shaft orientation, reference, GROUND, 1, 1., 0., 0., 2, 0., -1., 0.,
 			blades, 2,	# number of blades of rotor #0
 				elements, 10,	# number of elements per blade of rotor #0
 				ROTOR_1 + BLADE_1 + 1,	# elements of rotor #0, blade #0
