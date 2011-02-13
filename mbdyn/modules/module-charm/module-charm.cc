@@ -343,6 +343,7 @@ private:
 		double average_chord;
 		double root_cutout;
 		double omega100;
+		double nominal_thrust_coeff;
 
 		// node rigidly attached to (non-rotating) shaft
 		const StructNode *pShaft;
@@ -657,6 +658,13 @@ iFirstAssembly(2)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		if (HP.IsKeyWord("thrust" "coefficient")) {
+			m_Rotors[ir].nominal_thrust_coeff = HP.GetReal();
+
+		} else {
+			m_Rotors[ir].nominal_thrust_coeff = 0.;
+		}
+
 		if (!HP.IsKeyWord("hub" "node")) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
 				"\"hub node\" expected "
@@ -672,10 +680,10 @@ iFirstAssembly(2)
 			m_Rotors[ir].Rh_hub = Mat3x3(1., 0., 0., 0., -1., 0., 0., 0., -1.);
 		}
 
-		if (HP.IsKeyWord("non" "rotating" "hub" "node")) {
+		if (HP.IsKeyWord("shaft" "node")) {
 			m_Rotors[ir].pShaft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-			if (HP.IsKeyWord("orientation")) {
+			if (HP.IsKeyWord("shaft" "orientation")) {
 				m_Rotors[ir].Rh_shaft = HP.GetRotRel(ReferenceFrame(m_Rotors[ir].pShaft));
 
 			} else {
@@ -974,9 +982,7 @@ ModuleCHARM::Init_int(void)
 #endif
 		}
 		rotor->omega100 = m_Rotors[ir].omega100;
-#if 0
-		rotor->nominal_thrust_coeff = 0.;
-#endif
+		rotor->nominal_thrust_coeff = m_Rotors[ir].nominal_thrust_coeff;
 	}
 
 	for (PD::iterator m_data_iter = m_data.begin(); m_data_iter != m_data.end(); m_data_iter++) {
@@ -1279,7 +1285,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			m_data_frc_iter->X(1) -= m_Rotors[ir].root_cutout;
 			m_data_frc_iter->X(2) *= iRotationDir;
 
-			V = RTmp*Vec3(m_data_vel_iter->vel[0], iRotationDir*m_data_vel_iter->vel[1], m_data_vel_iter->vel[2]);
+			V = RTmp*Vec3(-m_data_vel_iter->vel[0], -iRotationDir*m_data_vel_iter->vel[1], -m_data_vel_iter->vel[2]);
 
 #if 0
 			std::cerr << "*** V=" << V << std::endl;
@@ -1289,7 +1295,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			// set for later...
 			m_data_vel_iter->X = m_Rac.MulTV(X - pCraft->GetXCurr());
 
-			V = m_Rac*Vec3(m_data_vel_iter->vel);
+			V = m_Rac*Vec3(-m_data_vel_iter->vel[0], -m_data_vel_iter->vel[1], -m_data_vel_iter->vel[2]);
 
 #if 0
 			std::cerr << "+++ V=" << V << std::endl;
