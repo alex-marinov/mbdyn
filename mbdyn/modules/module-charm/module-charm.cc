@@ -1059,7 +1059,7 @@ ModuleCHARM::Set_int(void)
 	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
 
 	// update global data
-	Vec3 Vinf(0.);
+	Vec3 Vinf(::Zero3);
 	if (fGetAirVelocity(Vinf, Xac)) {
 #if 0
 		// Apparently, inertial_winds is incompatible 
