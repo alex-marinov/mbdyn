@@ -1001,6 +1001,15 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 	case HOWLETT:
 		k1 = pow(sin(dChi), 2);
 		break;
+
+	case DREES_2: {
+		doublereal dLdM = dLambda/dMu;
+		k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM - dLdM));
+		k2 = -2.*dMu;
+		} break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	doublereal dd = 1. + dr*(k1*cos(dp) + k2*sin(dp));
