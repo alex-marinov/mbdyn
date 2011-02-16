@@ -217,8 +217,13 @@ ModuleMDS::AssRes(SubVectorHandler& WorkVec,
 	 *	    {         v - x'          }
 	 */
 
+#if 0
 	WorkVec.PutCoef(1, F.dGet() - dM*dVP - dD*dV - dK*dX);
 	WorkVec.PutCoef(2, dV - dXP);
+#endif
+
+	WorkVec(1) = F.dGet() - dM*dVP - dD*dV - dK*dX;
+	WorkVec(2) = dV - dXP;
 
 	return WorkVec;
 }
