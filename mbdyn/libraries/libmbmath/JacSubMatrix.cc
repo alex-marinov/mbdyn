@@ -133,7 +133,7 @@ void ExpandableRowVector::Add(SubVectorHandler& WorkVec, const doublereal c) con
 		}
 
 		if (v[i].idx != 0) {
-			WorkVec.Add(v[i].idx, c*v[i].x);
+			WorkVec.IncCoef(v[i].idx, c*v[i].x);
 		} else {
 			for (std::vector<const ExpandableRowVector *>::size_type rhs_block = 0; rhs_block < v[i].xm.size(); rhs_block++) {
 				ASSERTMSGBREAK(v[i].xm[rhs_block] != 0, "ExpandableRowVector::Add() null pointer to ExpandableRowVector");
@@ -149,7 +149,7 @@ void ExpandableRowVector::Sub(SubVectorHandler& WorkVec, const doublereal c) con
 		}
 
 		if (v[i].idx != 0) {
-			WorkVec.Sub(v[i].idx, c*v[i].x);
+			WorkVec.DecCoef(v[i].idx, c*v[i].x);
 		} else {
 			for (std::vector<const ExpandableRowVector *>::size_type rhs_block = 0; rhs_block < v[i].xm.size(); rhs_block++) {
 				ASSERTMSGBREAK(v[i].xm[rhs_block] != 0, "ExpandableRowVector::Sub() null pointer to ExpandableRowVector");
