@@ -309,7 +309,7 @@ public:
 	};
 
 protected:
-	Type type;
+	Type gtype;
 
 public:
 	GlauertRotor(unsigned int uLabel,
@@ -327,7 +327,7 @@ public:
 		const doublereal& dE,
 		const doublereal& dCH,
 		const doublereal& dCFF,
-		GlauertRotor::Type type,
+		GlauertRotor::Type gtype,
 		flag fOut);
 	virtual ~GlauertRotor(void);
 

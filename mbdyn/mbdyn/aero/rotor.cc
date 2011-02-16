@@ -815,11 +815,11 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const doublereal& dE,
 	const doublereal& dCH,
 	const doublereal& dCFF,
-	GlauertRotor::Type type,
+	GlauertRotor::Type gtype,
 	flag fOut)
 : Elem(uLabel, fOut),
 Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut),
-type(type)
+gtype(gtype)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -971,7 +971,7 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 	GetPos(X, dr, dp);
 
 	doublereal k1, k2 = 0.;
-	switch (type) {
+	switch (gtype) {
 	case GLAUERT:
 		k1 = 4./3.*(1. - 1.8*dMu*dMu)*tan(dChi/2.);
 		break;
@@ -1856,31 +1856,31 @@ ReadRotor(DataManager* pDM,
     	case GLAUERT:
     	case MANGLER:
     	case DYNAMICINFLOW: {
-		GlauertRotor::Type type(GlauertRotor::GLAUERT);
+		GlauertRotor::Type gtype(GlauertRotor::GLAUERT);
 		if (InducedType == GLAUERT && HP.IsKeyWord("type")) {
 			if (HP.IsKeyWord("glauert")) {
-				type = GlauertRotor::GLAUERT;
+				gtype = GlauertRotor::GLAUERT;
 
 			} else if (HP.IsKeyWord("coleman")) {
-				type = GlauertRotor::COLEMAN_ET_AL;
+				gtype = GlauertRotor::COLEMAN_ET_AL;
 
 			} else if (HP.IsKeyWord("drees")) {
-				type = GlauertRotor::DREES_1;
+				gtype = GlauertRotor::DREES_1;
 
 			} else if (HP.IsKeyWord("payne")) {
-				type = GlauertRotor::PAYNE;
+				gtype = GlauertRotor::PAYNE;
 
 			} else if (HP.IsKeyWord("white" "and" "blake")) {
-				type = GlauertRotor::WHITE_AND_BLAKE;
+				gtype = GlauertRotor::WHITE_AND_BLAKE;
 
 			} else if (HP.IsKeyWord("pitt" "and" "peters")) {
-				type = GlauertRotor::PITT_AND_PETERS;
+				gtype = GlauertRotor::PITT_AND_PETERS;
 
 			} else if (HP.IsKeyWord("howlett")) {
-				type = GlauertRotor::HOWLETT;
+				gtype = GlauertRotor::HOWLETT;
 
 			} else if (HP.IsKeyWord("drees" "2")) {
-				type = GlauertRotor::DREES_2;
+				gtype = GlauertRotor::DREES_2;
 
 			} else {
 				silent_cerr("Rotor(" << uLabel << "): "
@@ -2146,7 +2146,7 @@ ReadRotor(DataManager* pDM,
    						pRotor, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,
-						dCH, dCFF, type,
+						dCH, dCFF, gtype,
    						fOut));
 	  		break;
 
