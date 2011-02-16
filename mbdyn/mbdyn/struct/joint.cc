@@ -293,7 +293,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 1 */
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
 			f1 = HP.GetPosRel(RF1);
@@ -303,7 +303,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f2 = HP.GetPosRel(ReferenceFrame(pNode2), RF1, f1);
 			bOffset = true;
@@ -363,7 +363,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 1 */
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
@@ -385,7 +385,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -506,10 +506,10 @@ ReadJoint(DataManager* pDM,
 		std::ostream& out = pDM->GetLogFile();
 		out << "clamp: " << uLabel
 			<< " " << pNode->GetLabel()
-			<< " " << Vec3(0.)
+			<< " " << Zero3
 			<< " " << Mat3x3(1.)
 			<< " " << pNode->GetLabel()
-			<< " " << Vec3(0.)
+			<< " " << Zero3
 			<< " " << Mat3x3(1.)
 			<< std::endl;
 		} break;
@@ -524,7 +524,7 @@ ReadJoint(DataManager* pDM,
 
 		ReferenceFrame RF(pNode);
 
-		Vec3 d(0.);
+		Vec3 d(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -547,7 +547,7 @@ ReadJoint(DataManager* pDM,
 		DEBUGCOUT("Node reference frame d:" << std::endl << d << std::endl);
 
 		/* posizione (vettore di 3 elementi) */
-		Vec3 X0(0.);
+		Vec3 X0(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -605,7 +605,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 		ReferenceFrame RF1(pNode1);
-		Vec3 d1(0.);
+		Vec3 d1(Zero3);
 
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		if (HP.IsKeyWord("position")) {
@@ -662,7 +662,7 @@ ReadJoint(DataManager* pDM,
 		/* Stessa cosa per il nodo 2 */
 
 		ReferenceFrame RF2(pNode2);
-		Vec3 d2(0.);
+		Vec3 d2(Zero3);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		if (HP.IsKeyWord("position")) {
 			d2 = HP.GetPosRel(RF2, RF1, d1);
@@ -812,7 +812,7 @@ ReadJoint(DataManager* pDM,
 #if 0
 			// might be useful for a body sliding on a plane...
 			bool isForce(false);
-			Vec3 Dir(0.);
+			Vec3 Dir(Zero3);
 #endif
 
 			DriveCaller *pDC = HP.GetDriveCaller();
@@ -865,10 +865,10 @@ ReadJoint(DataManager* pDM,
 			std::ostream& out = pDM->GetLogFile();
 			out << "cardanorotation: " << uLabel
 				<< " " << pNode1->GetLabel()
-				<< " " << Vec3(0.)
+				<< " " << Zero3
 				<< " " << R1h
 				<< " " << pNode2->GetLabel()
-				<< " " << Vec3(0.)
+				<< " " << Zero3
 				<< " " << R2h
 				<< std::endl;
 			} break;
@@ -932,7 +932,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 		ReferenceFrame RF(pNode);
-		Vec3 d(0.);
+		Vec3 d(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -966,7 +966,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 
-		Vec3 X0(0.);
+		Vec3 X0(Zero3);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		if (HP.IsKeyWord("position"))
 #else /* MBDYN_X_COMPATIBLE_INPUT */
@@ -1061,7 +1061,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 		ReferenceFrame RF(pNode1);
-		Vec3 p(0.);
+		Vec3 p(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -1090,7 +1090,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 q(0.);
+		Vec3 q(Zero3);
 		bool bOffset(false);
 
 		if (HP.IsArg()) {
@@ -1135,7 +1135,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
 		ReferenceFrame RF(pNode1);
-		Vec3 p(0.);
+		Vec3 p(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -1171,7 +1171,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 q(0.);
+		Vec3 q(Zero3);
 		bool bOffset(false);
 
 		if (HP.IsArg()) {
@@ -1222,7 +1222,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
 			f1 = HP.GetPosRel(RF1);
@@ -1233,7 +1233,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f2 = HP.GetPosRel(ReferenceFrame(pNode2), RF1, f1);
 			bOffset = true;
@@ -1361,7 +1361,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 1 */
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
@@ -1384,7 +1384,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -2126,10 +2126,10 @@ ReadJoint(DataManager* pDM,
 		std::ostream& out = pDM->GetLogFile();
 		out << "prismatic: " << uLabel
 			<< " " << pNode1->GetLabel()
-			<< " " << Vec3(0.)
+			<< " " << Zero3
 			<< " " << R1h
 			<< " " << pNode2->GetLabel()
-			<< " " << Vec3(0.)
+			<< " " << Zero3
 			<< " " << R2h
 			<< std::endl;
 		} break;
@@ -2195,7 +2195,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF(pNode1);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
@@ -2216,7 +2216,7 @@ ReadJoint(DataManager* pDM,
 		RF = ReferenceFrame(pNode2);
 
 		/* Stessa cosa per il nodo 2 */
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -2247,7 +2247,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF(pNode);
 
-		Vec3 f(0.);
+		Vec3 f(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -2263,7 +2263,7 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		/* Stessa cosa per il terreno */
-		Vec3 x(0.);
+		Vec3 x(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -2452,7 +2452,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF1(pNode1);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f1 = HP.GetPosRel(RF1);
 		}
@@ -2473,7 +2473,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF2(pNode2);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f2 = HP.GetPosRel(RF2, RF1, f1);
 		}
@@ -2604,7 +2604,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF1(pNode1);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f1 = HP.GetPosRel(RF1);
 		}
@@ -2625,7 +2625,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF2(pNode2);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f2 = HP.GetPosRel(RF2, RF1, f1);
 		}
@@ -2744,7 +2744,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF1(pNode1);
 
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f1 = HP.GetPosRel(RF1);
 		}
@@ -2765,7 +2765,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF2(pNode2);
 
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			f2 = HP.GetPosRel(RF2, RF1, f1);
 		}
@@ -2900,7 +2900,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 		ReferenceFrame RF(pNode);
 
-		Vec3 fn(0.);
+		Vec3 fn(Zero3);
 		if (HP.IsKeyWord("position")) {
 			fn = HP.GetPosRel(RF);
 		}
@@ -2917,7 +2917,7 @@ ReadJoint(DataManager* pDM,
 			Rnhr = HP.GetRotRel(RF);
 		}
 
-		Vec3 Xc(0.);
+		Vec3 Xc(Zero3);
 		if (HP.IsKeyWord("position")) {
 			Xc = HP.GetPosAbs(AbsRefFrame);
 		}
@@ -3300,7 +3300,7 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode1 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
        
 		ReferenceFrame RF(pNode1);
-		Vec3 p(0.);
+		Vec3 p(Zero3);
 		if (HP.IsKeyWord("position")) {
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 			NO_OP;
@@ -3335,7 +3335,7 @@ ReadJoint(DataManager* pDM,
 		/* nodo collegato 2 */
 		StructNode* pNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
-		Vec3 q(0.);
+		Vec3 q(Zero3);
 		bool bOffset(false);
        
 		if (HP.IsArg()) {

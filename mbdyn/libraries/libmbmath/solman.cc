@@ -42,9 +42,6 @@
 #include "matvec3.h"
 #include "ls.h"
 
-/* Zero for sparse vector and matrix handlers */
-const doublereal dZero = 0.;
-
 /* SolutionDataManager - begin */
 
 SolutionDataManager::~SolutionDataManager(void)

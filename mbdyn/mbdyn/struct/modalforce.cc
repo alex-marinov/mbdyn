@@ -54,8 +54,8 @@ modeList(modeList),
 f(f),
 Mt(mt),
 Mr(mr),
-F(0.),
-M(0.)
+F(Zero3),
+M(Zero3)
 {
 	ASSERT(pModal != 0);
 }

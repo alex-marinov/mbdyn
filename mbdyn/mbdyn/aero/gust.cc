@@ -54,7 +54,7 @@ Gust::SetAirProperties(const AirProperties *pap)
 Vec3
 Gust::GetVelocity(const Vec3& X) const
 {
-	Vec3 V(0.);
+	Vec3 V(Zero3);
 	GetVelocity(X, V);
 	return V;
 }

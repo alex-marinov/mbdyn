@@ -69,11 +69,11 @@ public:
 	};
 
 	inline T Get(const doublereal& dVar) const {
-		return T(0.);
+		return mbzero<T>();
 	};
 
 	inline T Get(void) const {
-		return T(0.);
+		return mbzero<T>();
 	};
 
 	/* this is about drives that are differentiable */
@@ -82,7 +82,7 @@ public:
 	};
 
 	inline T GetP(void) const {
-		return T(0.);
+		return mbzero<T>();
 	};
 
 	inline int getNDrives(void) const {

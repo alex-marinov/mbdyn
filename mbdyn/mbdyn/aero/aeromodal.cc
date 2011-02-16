@@ -181,7 +181,7 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
    	doublereal rho, vs, p, T;
 	GetAirProps(X0, rho, vs, p, T);		/* p, T are not used yet */
 
-   	Vec3 VTmp(0.);
+   	Vec3 VTmp(Zero3);
    	if(fGetAirVelocity(VTmp, X0)) {
    		Vr -= VTmp;
    	}
@@ -445,7 +445,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    doublereal rho, vs, p, T;
    GetAirProps(X0, rho, vs, p, T);	/* p, T are not used yet */
 
-   Vec3 Vair(0.);
+   Vec3 Vair(Zero3);
    if(fGetAirVelocity(Vair, X0)) {
    	Vr -= Vair;
    }
@@ -477,7 +477,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 
    
    for (unsigned int i=1; i <= NAeroStates; i++) {
- 	WorkVec.Add(RigidF+NStModes+i, -pxaPrime->operator()(i)+(2*nV/Chord)*(TmpA(i)));
+ 	WorkVec.IncCoef(RigidF+NStModes+i, -pxaPrime->operator()(i)+(2*nV/Chord)*(TmpA(i)));
    }
    for (unsigned int i=1; i <= NStModes+RigidF; i++) {
    	for (unsigned int j=1; j <= NStModes+RigidF; j++) {
@@ -492,8 +492,8 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
         }
    }
    if (RigidF) {
-   	Vec3 F(0.);
-   	Vec3 M(0.);	
+   	Vec3 F(Zero3);
+   	Vec3 M(Zero3);	
    	for (unsigned int i=1; i <= 3; i++) {
 		F.Put(i,qd*Tmp(i)+qd1*TmpP(i)+qd2*TmpS(i));
 		M.Put(i,qd*Tmp(i+3)+qd1*TmpP(i+3)+qd2*TmpS(i+3));
@@ -505,7 +505,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 	WorkVec.Add(4,M);
    }	
    for (unsigned int i=1+RigidF; i <= NStModes+RigidF; i++) {
-	WorkVec.Add(i,qd*Tmp(i)+qd1*TmpP(i)+qd2*TmpS(i));
+	WorkVec.IncCoef(i,qd*Tmp(i)+qd1*TmpP(i)+qd2*TmpS(i));
    }
    
    if (NGust) {
@@ -514,12 +514,12 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    	doublereal Vzg = Vair(3)/nV; 
 #endif
    	for (unsigned int i=1; i <= NAeroStates; i++) {
- 		WorkVec.Add(RigidF+NStModes+i, (2*nV/Chord)*pB->operator()(i,RigidF+NStModes+1)*pgs->operator()(1)
+ 		WorkVec.IncCoef(RigidF+NStModes+i, (2*nV/Chord)*pB->operator()(i,RigidF+NStModes+1)*pgs->operator()(1)
 		+(2*nV/Chord)*pB->operator()(i,RigidF+NStModes+2)*pgs->operator()(3));
    	}
    	if (RigidF) {
-   		Vec3 F(0.);
-   		Vec3 M(0.);	
+   		Vec3 F(Zero3);
+   		Vec3 M(Zero3);	
    		for (unsigned int i=1; i <= 3; i++) {
 			F.Put(i,qd*pD0->operator()(i,RigidF+NStModes+1)*pgs->operator()(1)+qd*pD0->operator()(i,RigidF+NStModes+2)*pgs->operator()(3)
 		              +qd1*pD1->operator()(i,RigidF+NStModes+1)*pgs->operator()(2)
@@ -539,20 +539,20 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 		WorkVec.Add(4,M);
    	}	
    	for (unsigned int i=1+RigidF; i <= NStModes+RigidF; i++) {
-		WorkVec.Add(i,qd*pD0->operator()(i,RigidF+NStModes+1)*pgs->operator()(1)+qd*pD0->operator()(i,RigidF+NStModes+2)*pgs->operator()(3)
+		WorkVec.IncCoef(i,qd*pD0->operator()(i,RigidF+NStModes+1)*pgs->operator()(1)+qd*pD0->operator()(i,RigidF+NStModes+2)*pgs->operator()(3)
 		              +qd1*pD1->operator()(i,RigidF+NStModes+1)*pgs->operator()(2)
 			      +qd1*pD1->operator()(i,RigidF+NStModes+2)*pgs->operator()(4)
 			      +qd2*pD2->operator()(i,RigidF+NStModes+1)*pgsPrime->operator()(2)
 			      +qd2*pD2->operator()(i,RigidF+NStModes+2)*pgsPrime->operator()(4));
 	}
 	for (unsigned int i=0; i < NGust; i++) {
-		WorkVec.Add(RigidF+i*2+1+NStModes+NAeroStates,-pgsPrime->operator()(1+i*2)+pgs->operator()(2+i*2));
+		WorkVec.IncCoef(RigidF+i*2+1+NStModes+NAeroStates,-pgsPrime->operator()(1+i*2)+pgs->operator()(2+i*2));
 		if (nV != 0) {
-		WorkVec.Add(RigidF+i*2+2+NStModes+NAeroStates,-pgsPrime->operator()(2+i*2)
+		WorkVec.IncCoef(RigidF+i*2+2+NStModes+NAeroStates,-pgsPrime->operator()(2+i*2)
 			-gustVff*gustVff*pgs->operator()(1+i*2)-2*gustXi*gustVff*pgs->operator()(2+i*2)
 			+gustVff*gustVff*Vair(2+i)/nV);
 		} else {
-		WorkVec.Add(RigidF+i*2+2+NStModes+NAeroStates,-pgsPrime->operator()(2+i*2)
+		WorkVec.IncCoef(RigidF+i*2+2+NStModes+NAeroStates,-pgsPrime->operator()(2+i*2)
 			-gustVff*gustVff*pgs->operator()(1+i*2)-2*gustXi*gustVff*pgs->operator()(2+i*2));
 		}		
 	}

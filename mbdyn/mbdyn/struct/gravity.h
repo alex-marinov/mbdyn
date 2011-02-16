@@ -162,19 +162,19 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    virtual Vec3 GetS_int(void) const {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetS_int()" << std::endl);
-      return Vec3(0.);
+      return Zero3;
    };
 
    virtual Mat3x3 GetJ_int(void) const {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetJ_int()" << std::endl);
-      return Mat3x3(0.);
+      return Zero3x3;
    };
 
    virtual Vec3 GetB_int(void) const {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetB_int()" << std::endl);
-      return Vec3(0.);
+      return Zero3;
    };
 
    // NOTE: gravity owners must provide the momenta moment
@@ -182,7 +182,7 @@ class ElemGravityOwner : virtual public Elem, public GravityOwner {
    virtual Vec3 GetG_int(void) const {
       pedantic_cerr("ElemGravityOwner(" << GetLabel() << "): "
 	      "warning, using default GetG_int()" << std::endl);
-      return Vec3(0.);
+      return Zero3;
    };
 
  public:

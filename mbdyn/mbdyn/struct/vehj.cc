@@ -472,7 +472,7 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 		flag fOut)
 : Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
-ThetaRef(0.)
+ThetaRef(Zero3)
 {
 	NO_OP;
 }
@@ -1127,7 +1127,7 @@ ViscousHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	} else {
 		Omega = R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
 
-		ConstitutiveLaw3DOwner::Update(0., Omega);
+		ConstitutiveLaw3DOwner::Update(Zero3, Omega);
 	}
 
 	Vec3 M(R1h*ConstitutiveLaw3DOwner::GetF());
@@ -1256,7 +1256,7 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 		flag fOut)
 : Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
-ThetaRef(0.)
+ThetaRef(Zero3)
 {
 	NO_OP;
 }
@@ -1711,7 +1711,7 @@ public:
 	virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.);
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = Zero3);
 };
 
 

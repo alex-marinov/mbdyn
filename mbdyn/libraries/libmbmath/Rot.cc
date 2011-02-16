@@ -153,7 +153,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		unit = Phi.Ax();
 		sinphi = unit.Norm();
 		phi = atan2(sinphi, cosphi);
-		CoeffA(phi, phi, &a);
+		CoeffA(phi, Vec3(phi, 0, 0), &a);
 		unit = unit/a;
 	} else {
 		// -1 <= cosphi <= 0

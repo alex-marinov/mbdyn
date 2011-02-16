@@ -339,7 +339,7 @@ SchurMatrixHandler::dGetCoef(integer iRow, integer iCol) const
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	return ::dZero;
+	return ::Zero1;
 }
 
 inline doublereal&
@@ -415,7 +415,7 @@ SchurMatrixHandler::operator () (integer iRow, integer iCol) const
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	return ::dZero;
+	return ::Zero1;
 }
 
 inline VectorHandler&
@@ -707,7 +707,7 @@ SchurVectorHandler::dGetCoef(integer iRow) const
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
 #endif /* ! USE_MPI */
-		return dZero;
+		return Zero1;
 	}
 }
 
@@ -735,7 +735,7 @@ SchurVectorHandler::operator()(integer iRow) const
 			"trying to operate on nonlocal index "
 			<< iRow << std::endl);
 #endif /* ! USE_MPI */
-		return dZero;
+		return Zero1;
 	}
 }
 
@@ -1032,7 +1032,7 @@ SchurMatrixHandlerUm::dGetCoef(integer iRow, integer iCol) const
 		<< iRow << "," << iCol << std::endl);
 #endif /* ! USE_MPI */
 
-	return ::dZero;
+	return ::Zero1;
 }
 
 inline doublereal*

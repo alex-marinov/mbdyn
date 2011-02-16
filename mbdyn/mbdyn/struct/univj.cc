@@ -52,7 +52,7 @@ UniversalHingeJoint::UniversalHingeJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), dM(0.)
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), dM(0.)
 {
 	NO_OP;
 }
@@ -1031,7 +1031,7 @@ UniversalPinJoint::UniversalPinJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode(pN),
-X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp), F(0.), dM(0.)
+X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp), F(Zero3), dM(0.)
 {
 	NO_OP;
 }

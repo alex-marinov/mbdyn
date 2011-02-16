@@ -1246,12 +1246,12 @@ EndOfUse:
 
 		case RIGIDBODYKINEMATICS: {
 			if (HP.IsKeyWord("const")) {
-				Vec3 X(0.);
+				Vec3 X(Zero3);
 				Mat3x3 R(Eye3);
-				Vec3 V(0.);
-				Vec3 W(0.);
-				Vec3 XPP(0.);
-				Vec3 WP(0.);
+				Vec3 V(Zero3);
+				Vec3 W(Zero3);
+				Vec3 XPP(Zero3);
+				Vec3 WP(Zero3);
 
 				bool bGot(false);
 

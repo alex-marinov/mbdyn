@@ -55,9 +55,9 @@ TplDriveOwner<Vec3>(pDC),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
 R1Ref(Eye3),
 RRef(Eye3),
-ThetaRef(0.),
-ThetaCurr(0.),
-M(0.),
+ThetaRef(Zero3),
+ThetaCurr(Zero3),
+M(Zero3),
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);

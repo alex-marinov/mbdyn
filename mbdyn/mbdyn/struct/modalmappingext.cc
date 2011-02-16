@@ -62,10 +62,10 @@ bUseRigidBodyForces(bUseRigidBodyForces),
 bRotateRigidBodyForces(bRotateRigidBodyForces),
 pRefNode(pRefNode),
 pH(pH),
-F0(0.),
-M0(0.),
-F(0.),
-M(0.)
+F0(Zero3),
+M0(Zero3),
+F(Zero3),
+M(Zero3)
 {
 	ASSERT(pEMF != 0);
 

@@ -50,7 +50,7 @@ DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), Vec(0.), dAlpha(0.)
+pNode1(pN1), pNode2(pN2), Vec(Zero3), dAlpha(0.)
 {
 	NO_OP;
 }

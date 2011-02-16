@@ -37,7 +37,7 @@
 #include "Rot.hh"
 
 ConstRigidBodyKinematics::ConstRigidBodyKinematics(void)
-: X(0.), R(Eye3), V(0.), W(0.), XPP(0.), WP(0.)
+: X(Zero3), R(Eye3), V(Zero3), W(Zero3), XPP(Zero3), WP(Zero3)
 {
 	NO_OP;
 }

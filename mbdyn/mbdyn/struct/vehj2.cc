@@ -57,8 +57,8 @@ pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 tilde_R1hT_tilde_f1(tilde_R1h.Transpose()*tilde_f1),
-tilde_d(0.), tilde_dPrime(0.),
-bFirstRes(false), F(0.)
+tilde_d(Zero3), tilde_dPrime(Zero3),
+bFirstRes(false), F(Zero3)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

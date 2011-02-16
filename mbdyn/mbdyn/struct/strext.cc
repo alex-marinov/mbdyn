@@ -61,8 +61,8 @@ ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pRefNode(pRefNode),
 bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
-F0(0.), M0(0.),
-F1(0.), M1(0.),
+F0(Zero3), M0(Zero3),
+F1(Zero3), M1(Zero3),
 bLabels(bLabels),
 bSorted(bSorted),
 uRot(uRot),
@@ -1425,7 +1425,7 @@ ReadStructExtForce(DataManager* pDM,
 		if (HP.IsKeyWord("offset")) {
 			Offsets[i] = HP.GetPosRel(RF);
 		} else {
-			Offsets[i] = Vec3(0.);
+			Offsets[i] = Vec3(Zero3);
 		}
 	}
 

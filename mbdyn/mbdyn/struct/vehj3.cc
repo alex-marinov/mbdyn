@@ -72,7 +72,7 @@ pNode1(pN1), pNode2(pN2),
 tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 od(od),
-tilde_k(0.), tilde_kPrime(0.),
+tilde_k(Zero6), tilde_kPrime(Zero6),
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -741,7 +741,7 @@ ElasticJoint::ElasticJoint(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut),
 DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, od, fOut),
-ThetaRef(0.)
+ThetaRef(Zero3)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento
@@ -914,7 +914,7 @@ ElasticJointInv::ElasticJointInv(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut),
 DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, od, fOut),
-ThetaRef(0.)
+ThetaRef(Zero3)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento
@@ -1231,7 +1231,7 @@ ViscoElasticJoint::ViscoElasticJoint(unsigned int uL,
 	flag fOut)
 : Elem(uL, fOut),
 DeformableJoint(uL, pDO, pCL, pN1, pN2, tilde_f1, tilde_f2, tilde_R1h, tilde_R2h, od, fOut),
-ThetaRef(0.)
+ThetaRef(Zero3)
 {
 	/*
 	 * Chiede la matrice tangente di riferimento

@@ -57,7 +57,7 @@ GenericAerodynamicForce::AssVec(SubVectorHandler& WorkVec)
 	Vec3 Xca(pNode->GetXCurr() + f);
 	Vec3 Vca(pNode->GetVCurr() + f.Cross(pNode->GetWCurr()));
 
-	Vec3 VTmp(0.);
+	Vec3 VTmp(Zero3);
       	if (fGetAirVelocity(VTmp, Xca)) {
 		Vca -= VTmp;
 	}
@@ -249,10 +249,10 @@ dRefLength(dL),
 bAlphaFirst(bAlphaFirst),
 tilde_f(fTmp),
 tilde_Ra(RaTmp),
-tilde_F(0.),
-tilde_M(0.),
-F(0.),
-M(0.),
+tilde_F(Zero3),
+tilde_M(Zero3),
+F(Zero3),
+M(Zero3),
 pData(pD)
 {
 	NO_OP;
@@ -698,7 +698,7 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 
 	/* The offset is in the reference frame of the node */
 	ReferenceFrame RF(pNode);
-	Vec3 f(0.);
+	Vec3 f(Zero3);
 	if (HP.IsKeyWord("position")) {
 		f = HP.GetPosRel(RF);
 	}

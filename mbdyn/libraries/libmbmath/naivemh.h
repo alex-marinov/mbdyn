@@ -182,7 +182,7 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol) const
 	if (ppnonzero[iRow][iCol]) {
 		return ppdRows[iRow][iCol];
 	}
-	return ::dZero;
+	return ::Zero1;
 }
 
 doublereal&

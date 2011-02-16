@@ -100,16 +100,16 @@ bFirstRes(true)
 			ConstitutiveLaw6DOwner,
 			ConstitutiveLaw6DOwner(pd));
 	
-	Omega = Vec3(0.); 
-	Az = Vec6(0.);
-	AzRef = Vec6(0.);
-	AzLoc = Vec6(0.);
-	DefLoc = Vec6(0.);
-	DefLocRef = Vec6(0.);
-	p = Vec3(0.);
-	g = Vec3(0.);
-	L0 = Vec3(0.);
-	L = Vec3(0.);
+	Omega = Zero3; 
+	Az = Zero6;
+	AzRef = Zero6;
+	AzLoc = Zero6;
+	DefLoc = Zero6;
+	DefLocRef = Zero6;
+	p = Zero3;
+	g = Zero3;
+	L0 = Zero3;
+	L = Zero3;
 
 	DsDxi();
 }
@@ -782,10 +782,10 @@ ViscoElasticHBeam::ViscoElasticHBeam(unsigned int uL,
 : Elem(uL, fOut),
 HBeam(uL, pN1, pN2, F1, F2, r, pd, fOut)
 {
-	LPrimeRef = LPrime = Vec3(0.);  
-	gPrime = Vec3(0.);
+	LPrimeRef = LPrime = Zero3;  
+	gPrime = Zero3;
 	
-	DefPrimeLoc = DefPrimeLocRef = Vec6(0.);
+	DefPrimeLoc = DefPrimeLocRef = Zero6;
 	
 	/* Nota: DsDxi() viene chiamata dal costruttore di Beam */
 	HBeam::Omega0();

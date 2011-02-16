@@ -408,9 +408,9 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		/* Prestress and prestrain */
-		T PreStress(0.);
+		T PreStress(mbzero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(0.);
+		T PreStrain(mbzero<T>());
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
 		if (bElastic && bViscous) {

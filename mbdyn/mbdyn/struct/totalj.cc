@@ -67,7 +67,7 @@ ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
 tilde_f1(R1h.MulTV(f1)),
-M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
+M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -1428,8 +1428,8 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
 	 * Recupero FPrime e MPrime*/
-	Vec3 MPrime(0.);
-	Vec3 FPrime(0.);
+	Vec3 MPrime(Zero3);
+	Vec3 FPrime(Zero3);
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		FPrime(iPosIncid[iCnt]) = XCurr(iReactionPrimeIndex + 1 + iCnt);
@@ -1636,8 +1636,8 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 Omega2Crossb2(Omega2Cross*b2);
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
-	Vec3 FPrime(0.);
-	Vec3 MPrime(0.);
+	Vec3 FPrime(Zero3);
+	Vec3 MPrime(Zero3);
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -1829,12 +1829,12 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	case 21:
 		{
 		Vec3 v(	pNode1->GetRCurr().MulTV(
-			(pNode2->GetVCurr() + pNode2->GetWCurr()*(pNode2->GetRCurr()*f2)
-				- pNode1->GetVCurr()) + 
-			Mat3x3(pNode1->GetWCurr()).MulTV( pNode2->GetXCurr() + 
-								pNode2->GetRCurr()*f2
-								- pNode1->GetXCurr() - f1) 
-							)
+			(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(pNode2->GetRCurr()*f2)
+				- pNode1->GetVCurr()) -
+			pNode1->GetWCurr().Cross( pNode2->GetXCurr() + 
+				pNode2->GetRCurr()*f2
+				- pNode1->GetXCurr() - f1) 
+			)
 		);
 		
 			return R1h.GetVec(i-18)*v;
@@ -1881,7 +1881,7 @@ XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
-M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
+M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -3026,8 +3026,8 @@ TotalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
 	 * Recupero FPrime e MPrime*/
-	Vec3 MPrime(0.);
-	Vec3 FPrime(0.);
+	Vec3 MPrime(Zero3);
+	Vec3 FPrime(Zero3);
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		FPrime(iPosIncid[iCnt]) = XCurr(iReactionPrimeIndex + 1 + iCnt);
@@ -3127,8 +3127,8 @@ TotalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
 	Vec3 Omega(pNode->GetWCurr());
 	
-	Vec3 FPrime(0.);
-	Vec3 MPrime(0.);
+	Vec3 FPrime(Zero3);
+	Vec3 MPrime(Zero3);
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -3329,7 +3329,7 @@ pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 FDrv(pDCForce), MDrv(pDCCouple),
-M(0.), F(0.)
+M(Zero3), F(Zero3)
 {
 	NO_OP;
 }

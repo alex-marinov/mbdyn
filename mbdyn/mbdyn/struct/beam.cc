@@ -87,11 +87,11 @@ f(),
 RNode(),
 bConsistentInertia(false),
 dMass_I(0.),
-S0_I(0.),
-J0_I(0.),
+S0_I(Zero3),
+J0_I(Zero3),
 dMassII(0.),
-S0II(0.),
-J0II(0.),
+S0II(Zero3),
+J0II(Zero3),
 bFirstRes(false)
 {
 	ASSERT(pN1 != NULL);
@@ -206,18 +206,18 @@ Beam::Init(void)
 		Var_KP[i] = 0;
 #endif /* USE_NETCDF */
 
-		Omega[i] = Vec3(0.);
-		Az[i] = Vec6(0.);
-		AzRef[i] = Vec6(0.);
-		AzLoc[i] = Vec6(0.);
-		DefLoc[i] = Vec6(0.);
-		DefLocRef[i] = Vec6(0.);
-		DefLocPrev[i] = Vec6(0.);
-		p[i] = Vec3(0.);
-		g[i] = Vec3(0.);
-		L0[i] = Vec3(0.);
-		L[i] = Vec3(0.);
-		LRef[i] = Vec3(0.);
+		Omega[i] = Zero3;
+		Az[i] = Zero6;
+		AzRef[i] = Zero6;
+		AzLoc[i] = Zero6;
+		DefLoc[i] = Zero6;
+		DefLocRef[i] = Zero6;
+		DefLocPrev[i] = Zero6;
+		p[i] = Zero3;
+		g[i] = Zero3;
+		L0[i] = Zero3;
+		L[i] = Zero3;
+		LRef[i] = Zero3;
 	}
 
 	DsDxi();
@@ -509,7 +509,7 @@ Beam::DsDxi(void)
 			xTmp[NODE2],
 			xTmp[NODE3],
 			Beam::Section(i)));
-		pD[i]->Update(0.);
+		pD[i]->Update(Zero6);
 		DRef[i] = MultRMRt(pD[i]->GetFDE(), R[i]);
 	}
 }
@@ -1863,13 +1863,13 @@ Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
 void
 ViscoElasticBeam::Init(void)
 {
-	gPrime[S_I] = gPrime[SII] = Vec3(0.);
+	gPrime[S_I] = gPrime[SII] = Zero3;
 
-	LPrime[S_I] = LPrime[SII] = Vec3(0.);
-	LPrimeRef[S_I] = LPrimeRef[SII] = Vec3(0.);
+	LPrime[S_I] = LPrime[SII] = Zero3;
+	LPrimeRef[S_I] = LPrimeRef[SII] = Zero3;
 
-	DefPrimeLoc[S_I] = DefPrimeLoc[SII] = Vec6(0.);
-	DefPrimeLocRef[S_I] = DefPrimeLocRef[SII] = Vec6(0.);
+	DefPrimeLoc[S_I] = DefPrimeLoc[SII] = Zero6;
+	DefPrimeLocRef[S_I] = DefPrimeLocRef[SII] = Zero6;
 
 	/* Nota: DsDxi() viene chiamata dal costruttore di Beam */
 	Beam::Omega0();
@@ -2596,10 +2596,10 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		Vec3 g1(CGR_Rot::Param, R.MulTM(R1*Rn1));
 		Vec3 g3(CGR_Rot::Param, R.MulTM(R3*Rn3));
 		if (b_I) {
-			R_I = R*Mat3x3(CGR_Rot::MatR, Beam::InterpState(g1, 0., g3, Beam::S_I));
+			R_I = R*Mat3x3(CGR_Rot::MatR, Beam::InterpState(g1, Zero3, g3, Beam::S_I));
 		}
 		if (bII) {
-			RII = R*Mat3x3(CGR_Rot::MatR, Beam::InterpState(g1, 0., g3, Beam::SII));
+			RII = R*Mat3x3(CGR_Rot::MatR, Beam::InterpState(g1, Zero3, g3, Beam::SII));
 		}
 	}
 

@@ -61,9 +61,9 @@ public:
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.);
+	virtual void Update(const T& Eps, const T& EpsPrime = mbzero<T>());
 
-	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.);
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mbzero<T>());
 	virtual std::ostream& OutputAppend(std::ostream& out) const;
 };
 
@@ -76,7 +76,7 @@ TDConstitutiveLawWrapper<T, Tder>::TDConstitutiveLawWrapper(
 	const doublereal& dInitialWork,
 	ConstitutiveLaw<T, Tder> *pcl)
 : dF(df), dW(dl), dScaleEpsilon(dsd), dScaleForce(dsf),
-dWCurr(dInitialWork), EpsPrev(0.), FPrev(0.), pCL(pcl)
+dWCurr(dInitialWork), EpsPrev(mbzero<T>()), FPrev(mbzero<T>()), pCL(pcl)
 {
 	NO_OP;
 }

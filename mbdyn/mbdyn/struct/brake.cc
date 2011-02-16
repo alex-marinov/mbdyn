@@ -58,7 +58,7 @@ Brake::Brake(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(0.), */ M(0.), dTheta(0.),
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr), brakeForce(pdc) /* ,
 isForce(isforce), Dir(dir) */
 {
@@ -345,8 +345,8 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
    
    /* Aggiorna i dati propri */
    //FIXME
-   //F = Vec3(0.);
-   M = Vec3(0.);
+   //F = Vec3(Zero3);
+   M = Vec3(Zero3);
 
    /*
     * FIXME: provare a mettere "modificatori" di forza/momento sui gdl

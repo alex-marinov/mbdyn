@@ -39,8 +39,8 @@
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
 : Elem(pN->GetLabel(), pN->fToBeOutput()),
-pNode((DynamicStructNode *)pN), B(0.), G(0.), BP(0.), GP(0.),
-m(0.), S(0.), J(0.)
+pNode((DynamicStructNode *)pN), B(Zero3), G(Zero3), BP(Zero3), GP(Zero3),
+m(0.), S(Zero3), J(Zero3)
 {
 	pNode->SetAutoStr(this);
 }

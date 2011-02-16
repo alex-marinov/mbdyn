@@ -2015,10 +2015,10 @@ ReadStructuralForce(DataManager* pDM,
 	/* nodo collegato */
 	StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
 	ReferenceFrame rf(pNode);
-	Vec3 Arm(0.);
+	Vec3 Arm(Zero3);
 
 	// FIXME: legacy...
-	Vec3 Dir(0.);
+	Vec3 Dir(Zero3);
 	bool bLegacy(false);
 
 	/* distanza dal nodo (vettore di 3 elementi) (solo se e' una forza) */
@@ -2058,7 +2058,7 @@ ReadStructuralForce(DataManager* pDM,
 	}
 
 	StructNode *pNode2 = 0;
-	Vec3 Arm2(0.);
+	Vec3 Arm2(Zero3);
 	if (bInternal) {
 		/* nodo collegato */
 		pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);

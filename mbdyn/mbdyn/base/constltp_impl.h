@@ -469,7 +469,7 @@ public:
 		return ElasticConstitutiveLaw3D::Restart_int(out);
 	};
 
-	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = 0.) {
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = Zero3) {
 		ConstitutiveLaw3D::Epsilon = Eps;
 		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
 		ConstitutiveLaw3D::F = ElasticConstitutiveLaw3D::PreStress;
@@ -759,7 +759,7 @@ public:
 		return Restart_int(out);
 	};
 
-	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = 0.) {
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */ = Zero3) {
 		Epsilon = Eps;
 
 		Vec3 PreStrain = Get();
@@ -851,7 +851,7 @@ public:
 		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = Zero3) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		T x = ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get();
 		doublereal dx2 = x*x;
@@ -1011,7 +1011,7 @@ public:
 		return Restart_int(out);
 	};
 
-	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = 0.) {
+	virtual void Update(const Vec3& Eps, const Vec3& /* EpsPrime */  = Zero3) {
 		doublereal dE;
 
 		Epsilon = Eps;
@@ -1583,7 +1583,7 @@ public:
 		return ElasticConstitutiveLaw3D::Restart_int(out);
 	};
 
-	virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
+	virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = Zero3) {
 		ConstitutiveLaw3D::Epsilon = Eps;
 		ConstitutiveLaw3D::EpsilonPrime = EpsPrime;
 		Vec3 v1 = Eps - ElasticConstitutiveLaw3D::Get();
@@ -1832,7 +1832,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
       return Restart_int(out);
    };
 
-   virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
+   virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = Zero3) {
       Epsilon = Eps;
       EpsilonPrime = EpsPrime;
 
@@ -2011,7 +2011,7 @@ public:
 			const DriveCaller *pD
 	) : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
 	status(initialStatus),
-	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(0.) {
+	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(mbzero<T>()) {
 		ASSERT(pActivatingCondition != NULL);
 		ASSERT(pDeactivatingCondition != NULL);
 		FDECurr = Stiff;

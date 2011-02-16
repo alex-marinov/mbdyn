@@ -194,14 +194,14 @@ pInv8(pInv8),
 pInv9(pInv9),
 pInv10(pInv10),
 pInv11(pInv11),
-Inv3jaj(0.),
-Inv3jaPj(0.),
+Inv3jaj(Zero3),
+Inv3jaPj(Zero3),
 Inv8jaj(0.),
 Inv8jaPj(0.),
 Inv5jaj(NModes, 0.),
 Inv5jaPj(NModes, 0.),
-VInv5jaj(0.),
-VInv5jaPj(0.),
+VInv5jaj(Zero3),
+VInv5jaPj(Zero3),
 Inv8jTranspose(0.),
 Inv9jkajak(0.),
 Inv9jkajaPk(0.),
@@ -1080,7 +1080,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	}
 #endif
 
-	Vec3 Inv3jaPPj(0.);
+	Vec3 Inv3jaPPj(Zero3);
 	if (pInv3 != 0) {
 		Inv3jaj = *pInv3 * a;
 		Inv3jaPj = *pInv3 * b;
@@ -2143,7 +2143,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		Vec3 e1aPrime = Omega1.Cross(e1a) + Tmp.GetVec(1);
 		Vec3 e2aPrime = Omega1.Cross(e2a) + Tmp.GetVec(2);
 		Vec3 e3aPrime = Omega1.Cross(e3a) + Tmp.GetVec(3);
-		Vec3 MTmpPrime(0.);
+		Vec3 MTmpPrime(Zero3);
 		MTmpPrime =
 			(e2a.Cross(Omega2.Cross(e3b)) - e3b.Cross(e2aPrime))*M.dGet(1)
 			+ (e3a.Cross(Omega2.Cross(e1b)) - e1b.Cross(e3aPrime))*M.dGet(1)
@@ -2468,7 +2468,7 @@ Modal::dGetPrivData(unsigned int i) const
 			if (pModalNode) {
 				R = pModalNode->GetRCurr();
 			}
-			Vec3 Wn(0.);
+			Vec3 Wn(Zero3);
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Wn += pModeShapesr->GetVec(iOffset)*b(jMode);
@@ -2484,7 +2484,7 @@ Modal::dGetPrivData(unsigned int i) const
 			if (pModalNode) {
 				R = pModalNode->GetRCurr();
 			}
-			Vec3 Vn(0.);
+			Vec3 Vn(Zero3);
 			Vec3 Xn(pXYZFEMNodes->GetVec(n + 1));
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
@@ -2506,8 +2506,8 @@ Modal::dGetPrivData(unsigned int i) const
 			if (pModalNode) {
 				R = pModalNode->GetRCurr();
 			}
-			Vec3 WPn(0.);
-			Vec3 Wn(0.);
+			Vec3 WPn(Zero3);
+			Vec3 Wn(Zero3);
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
 				Vec3 v = pModeShapesr->GetVec(iOffset);
@@ -2526,8 +2526,8 @@ Modal::dGetPrivData(unsigned int i) const
 			if (pModalNode) {
 				R = pModalNode->GetRCurr();
 			}
-			Vec3 XPPn(0.);
-			Vec3 XPn(0.);
+			Vec3 XPPn(Zero3);
+			Vec3 XPn(Zero3);
 			Vec3 Xn(pXYZFEMNodes->GetVec(n + 1));
 			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 				integer iOffset = (jMode - 1)*NFEMNodes + n + 1;
@@ -2957,7 +2957,7 @@ ReadModal(DataManager* pDM,
 	/* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
 
 	doublereal dMass = 0;              /* massa totale */
-	Vec3 STmp(0.);                     /* momenti statici  */
+	Vec3 STmp(Zero3);                  /* momenti statici  */
 	Mat3x3 JTmp(0.);                   /* inerzia totale  */
 	std::vector<doublereal> FEMMass;   /* masse nodali   */
 	std::vector<Vec3> FEMJ;            /* inerzie nodali (sono diagonali) */
@@ -4536,7 +4536,7 @@ ReadModal(DataManager* pDM,
 	Mat3xN* pPHIrStrNode = NULL;
 
 	/* traslazione origine delle coordinate */
-	Vec3 Origin(0.);
+	Vec3 Origin(Zero3);
 	bool bOrigin(false);
 
 	if (HP.IsKeyWord("origin" "node")) {
@@ -4721,7 +4721,7 @@ ReadModal(DataManager* pDM,
 	 * or none is used, and the global inertia of the body is expected */
 	if (bBuildInvariants) {
 		doublereal dMassInv = 0.;
-		Vec3 STmpInv(0.);
+		Vec3 STmpInv(Zero3);
 		Mat3x3 JTmpInv(0.);
 
 		MatNxN GenMass(NModes, 0.);

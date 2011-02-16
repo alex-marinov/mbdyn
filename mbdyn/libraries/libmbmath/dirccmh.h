@@ -99,7 +99,7 @@ public:
 		integer idx = pindices[i_col][i_row];
 		if (idx == -1) {
 			/* matrix must be rebuilt */
-			return ::dZero;
+			return ::Zero1;
 
 		}
 

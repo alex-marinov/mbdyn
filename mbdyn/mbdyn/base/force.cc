@@ -413,7 +413,7 @@ ReadForce(DataManager* pDM,
 	case TOTALINTERNAL: {
 		/* nodo collegato 1 */
 		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
-		Vec3 f1(0.);
+		Vec3 f1(Zero3);
 		Mat3x3 R1h(Eye3);
 		Mat3x3 R1hr(Eye3);
 
@@ -434,7 +434,7 @@ ReadForce(DataManager* pDM,
 		}
 
 		StructNode* pNode2 = 0;
-		Vec3 f2(0.);
+		Vec3 f2(Zero3);
 		Mat3x3 R2h(Eye3);
 		Mat3x3 R2hr(Eye3);
 

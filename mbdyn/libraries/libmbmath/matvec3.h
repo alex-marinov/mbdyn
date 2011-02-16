@@ -43,6 +43,8 @@
 #include "except.h"
 #include "solman.h"
 
+#include "tpls.h"
+
 enum {
    V1 = 0,
    V2 = 1,
@@ -123,19 +125,19 @@ class Vec3 {
    /* 
     Costruttore banalissimo: non fa nulla. Attenzione che cosi' il
     valore di Vec3 e' unpredictable. Se si desidera un vettore nullo
-    usare Vec3(0.);
+    usare Zero3.
     */   
    Vec3(void) { 
       NO_OP; 
    };
    
    /*
-    Assegna i tre valori. Se gli ultimi due non sono presenti li setta a zero.
-    Per azzerare il vettore, basta usare Vec3(0.)
+    Assegna i tre valori. 
+    Per azzerare il vettore, usare Zero3.
     */
    Vec3(const doublereal& v1, 
-	const doublereal& v2 = 0., 
-	const doublereal& v3 = 0.) {
+	const doublereal& v2, 
+	const doublereal& v3) {
       pdVec[V1] = v1; 
       pdVec[V2] = v2; 
       pdVec[V3] = v3; 
@@ -1340,9 +1342,22 @@ class Mat3x3 {
 		  const char* sFill2 = NULL) const;
 };
 
-extern const Mat3x3 Eye3;
-extern const Mat3x3 Zero3x3;
+extern const doublereal Zero1;
 extern const Vec3 Zero3;
+extern const Mat3x3 Zero3x3;
+extern const Mat3x3 Eye3;
+
+template <>
+inline const doublereal& mbzero<doublereal>(void)
+{
+	return ::Zero1;
+}
+
+template <>
+inline const Vec3& mbzero<Vec3>(void)
+{
+	return ::Zero3;
+}
 
 /* Mat3x3 - end */
 

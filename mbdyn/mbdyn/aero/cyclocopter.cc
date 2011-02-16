@@ -241,9 +241,9 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	dTz = 0.;
 	dTzMean = 0.;
 
-	F = 0.;
-	FMean = 0.;
-	FMeanOut = 0.;
+	F = Zero3;
+	FMean = Zero3;
+	FMeanOut = Zero3;
 
 	iStepCounter = 0;
 
@@ -316,7 +316,7 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 			dTzMean = 0.;
 		}
-		FMean = 0.;
+		FMean = Zero3;
 		iStepCounter = 0;
 	}
 	dAzimuthPrev = dAzimuth;
@@ -434,8 +434,8 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	Weight.Set(pdW);
 	dWeight = 0.;
 	
-	dUind = 0.;
-	dUindPrev = 0.;
+	dUind = Zero3;
+	dUindPrev = Zero3;
 	dUindMean = 0.;
 
 	bFlagIsFirstBlade = 1;
@@ -443,22 +443,22 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	dAzimuth = 0.;
 	dAzimuthPrev = 0.;
 	
-	F = 0.;
-	FMean = 0.;
-	FMeanOut = 0.;
+	F = Zero3;
+	FMean = Zero3;
+	FMeanOut = Zero3;
 
 	iStepCounter = 0;
 	
 	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 
 	/* ingresso del filtro */
-	Uk = 0.;
-	Uk_1 = 0.;
-	Uk_2 = 0.;
+	Uk = Zero3;
+	Uk_1 = Zero3;
+	Uk_2 = Zero3;
 	/* uscita del filtro */
-	Yk = 0.;
-	Yk_1 = 0.;
-	Yk_2 = 0.;
+	Yk = Zero3;
+	Yk_1 = Zero3;
+	Yk_2 = Zero3;
 
 }
 
@@ -543,7 +543,7 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			dUindMean = sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema 
 	 		* rotore */
-			dUind = 0.;
+			dUind = Zero3;
 			if (dT > std::numeric_limits<doublereal>::epsilon()) {
 				dUind(2) = dUindMean*FMean(2)/dT;
 				dUind(3) = dUindMean*FMean(3)/dT;
@@ -553,7 +553,7 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			dUind(3) = (1 - dWeight)*dUind(3) + dWeight*dUindPrev(3);
 		}
 
-		FMean = 0.;
+		FMean = Zero3;
 		iStepCounter = 0;
 	}
 
@@ -608,7 +608,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 		dUindMean = sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema 
 	 	* rotore */
-		dUind = 0.;
+		dUind = Zero3;
 		if (dT > std::numeric_limits<doublereal>::epsilon()) {
 			dUind(2) = dUindMean*F(2)/dT;
 			dUind(3) = dUindMean*F(3)/dT;
@@ -686,8 +686,8 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	Weight.Set(pdW);
 	dWeight = 0.;
 	
-	dUind = 0.;
-	dUindPrev = 0.;
+	dUind = Zero3;
+	dUindPrev = Zero3;
 	dUindMean = 0.;
 
 	dXi = 0.;
@@ -697,22 +697,22 @@ CyclocopterInflow(uL, pDO, pC, rrot, pR, ppres, fOut)
 	dAzimuth = 0.;
 	dAzimuthPrev = 0.;
 	
-	F = 0.;
-	FMean = 0.;
-	FMeanOut = 0.;
+	F = Zero3;
+	FMean = Zero3;
+	FMeanOut = Zero3;
 
 	iStepCounter = 0;
 	
 	SetFilterCoefficients( dOmegaFilter, dDeltaT );
 	
 	/* ingresso del filtro */
-	Uk = 0.;
-	Uk_1 = 0.;
-	Uk_2 = 0.;
+	Uk = Zero3;
+	Uk_1 = Zero3;
+	Uk_2 = Zero3;
 	/* uscita del filtro */
-	Yk = 0.;
-	Yk_1 = 0.;
-	Yk_2 = 0.;
+	Yk = Zero3;
+	Yk_1 = Zero3;
+	Yk_2 = Zero3;
 	
 }
 
@@ -740,7 +740,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 			dUindMean = sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema 
 	 		* rotore */
-			dUind = 0.;
+			dUind = Zero3;
 			if (dT > std::numeric_limits<doublereal>::epsilon()) {
 				dUind(2) = dUindMean*FMean(2)/dT;
 				dUind(3) = dUindMean*FMean(3)/dT;
@@ -752,7 +752,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 			dXi = atan2(FMean(3), FMean(2)) - M_PI/2.;
 		}
 
-		FMean = 0.;
+		FMean = Zero3;
 		iStepCounter = 0;
 	}
 
@@ -836,7 +836,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 		dUindMean = sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema 
 	 	* rotore */
-		dUind = 0.;
+		dUind = Zero3;
 		if (dT > std::numeric_limits<doublereal>::epsilon()) {
 			dUind(2) = dUindMean*F(2)/dT;
 			dUind(3) = dUindMean*F(3)/dT;

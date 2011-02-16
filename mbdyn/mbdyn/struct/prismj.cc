@@ -47,7 +47,7 @@ PrismaticJoint::PrismaticJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-R1h(R1hTmp), R2h(R2hTmp), M(0.)
+R1h(R1hTmp), R2h(R2hTmp), M(Zero3)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);

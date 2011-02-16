@@ -46,8 +46,6 @@ SparseMatrixHandler::~SparseMatrixHandler(void)
 	NO_OP;
 }
 
-doublereal SparseMatrixHandler::SparseMatrixElement_base::dZero = 0.;
-
 CompactSparseMatrixHandler::CompactSparseMatrixHandler(const integer &n,
 		const integer &nn,
 		std::vector<doublereal>&x,

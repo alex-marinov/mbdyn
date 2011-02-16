@@ -60,7 +60,7 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.),
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
@@ -705,7 +705,7 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //variation of reaction force
       dF.ReDim(3);
       if ((modF == 0.) or (F.Norm() < preF)) {
-          dF.Set(Vec3(0.),1,12+1);
+          dF.Set(Vec3(Zero3),1,12+1);
       } else {
           dF.Set(F/modF,1,12+1);
       }
@@ -1420,7 +1420,7 @@ PlaneRotationJoint::PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
-R1h(R1hTmp), R2h(R2hTmp), M(0.),
+R1h(R1hTmp), R2h(R2hTmp), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.)
 {
    NO_OP;
@@ -2319,7 +2319,7 @@ AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC), 
 pNode1(pN1), pNode2(pN2), 
-d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(0.), M(0.),
+d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr)
 {
@@ -3654,7 +3654,7 @@ PlanePinJoint::PlanePinJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode(pN), 
 X0(X0Tmp), R0(R0Tmp), d(dTmp), Rh(RhTmp),
-F(0.), M(0.),
+F(Zero3), M(Zero3),
 calcInitdTheta(_calcInitdTheta),
 NTheta(0), dTheta(initDTheta), dThetaWrapped(0.)
 {

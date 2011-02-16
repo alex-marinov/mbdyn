@@ -88,8 +88,8 @@ protected:
 public:
 	ConstitutiveLaw(void)
 	: WithLabel(0),
-	Epsilon(0.), EpsilonPrime(0.),
-	F(0.), FDE(0.), FDEPrime(0.) {
+	Epsilon(mbzero<T>()), EpsilonPrime(mbzero<T>()),
+	F(mbzero<T>()), FDE(0.), FDEPrime(0.) {
 		NO_OP;
 	};
 
@@ -104,9 +104,9 @@ public:
 		return out;
 	};
 	
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.) = 0;
+	virtual void Update(const T& Eps, const T& EpsPrime = mbzero<T>()) = 0;
 
-	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mbzero<T>()) {
 		NO_OP;
 	};
    
@@ -191,12 +191,12 @@ public:
 		return pConstLaw; 
 	};
 
-	inline void Update(const T& Eps, const T& EpsPrime = 0.) {
+	inline void Update(const T& Eps, const T& EpsPrime = mbzero<T>()) {
 		ASSERT(pConstLaw != NULL);
 		pConstLaw->Update(Eps, EpsPrime);
 	};
 
-	inline void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
+	inline void AfterConvergence(const T& Eps, const T& EpsPrime = mbzero<T>()) {
 		ASSERT(pConstLaw != NULL);
 		pConstLaw->AfterConvergence(Eps, EpsPrime);
 	};

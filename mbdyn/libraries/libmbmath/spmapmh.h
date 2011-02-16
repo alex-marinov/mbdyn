@@ -219,7 +219,7 @@ public:
 		row_cont_type& row = col_indices[iy - 1];
 		i = row.find(ix - 1);
 		if (i == row.end()) {
-			return ::dZero;
+			return ::Zero1;
 
 		} else {
 			return i->second;
@@ -237,7 +237,7 @@ public:
 		row_cont_type& row = col_indices[iy - 1];
 		i = row.find(ix - 1);
 		if (i == row.end()) {
-			return ::dZero;
+			return ::Zero1;
 
 		} else {
 			return i->second;

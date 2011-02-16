@@ -53,8 +53,7 @@
 #include "vh.h"
 #include "mh.h"
 
-/* Zero for sparse vector and matrix handlers */
-extern const doublereal dZero;
+#include "matvec3.h"
 
 /* classi virtuali dichiarate in questo file */
 class MatrixHandler;    /* gestore matrice */

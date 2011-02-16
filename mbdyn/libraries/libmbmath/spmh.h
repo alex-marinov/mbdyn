@@ -58,8 +58,6 @@ public:
 		integer iRow;
 		integer iCol;
 
-		static doublereal dZero;
-
 		SparseMatrixElement_base(void)
 			: iRow(0), iCol(0) { NO_OP; };
 		SparseMatrixElement_base(integer iRow, integer iCol)
@@ -85,10 +83,11 @@ public:
 	struct SparseMatrixElementRef : public SparseMatrixElement_base {
 		doublereal& dCoef;
 
-		SparseMatrixElementRef(void)
-			: dCoef(dZero) {};
 		SparseMatrixElementRef(integer iRow, integer iCol, doublereal& dCoef)
 			: SparseMatrixElement_base(iRow, iCol), dCoef(dCoef) { NO_OP; };
+private:
+		// do not use
+		SparseMatrixElementRef(void);
 	};
 
 	// const reference
@@ -96,7 +95,7 @@ public:
 		const doublereal& dCoef;
 
 		SparseMatrixElementConstRef(void)
-			: dCoef(dZero) {};
+			: dCoef(::Zero1) {};
 		SparseMatrixElementConstRef(integer iRow, integer iCol, const doublereal& dCoef)
 			: SparseMatrixElement_base(iRow, iCol), dCoef(dCoef) { NO_OP; };
 	};

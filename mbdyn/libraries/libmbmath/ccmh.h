@@ -120,7 +120,7 @@ public:
 				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_begin] - off > i_row
 				|| CompactSparseMatrixHandler_tpl<off>::Ai[row_end] - off < i_row)
 		{
-			return ::dZero;
+			return ::Zero1;
 		}
 
 		while (row_end >= row_begin) {
@@ -135,7 +135,7 @@ public:
 			}
 		}
 
-		return ::dZero;
+		return ::Zero1;
 	};
 
 	void Resize(integer ir, integer ic);

@@ -54,9 +54,9 @@ TplDriveOwner<Vec3>(pDC),
 pNode1(pN1), pNode2(pN2), f1(f1), f2(f2), 
 R1Ref(Eye3),
 RRef(Eye3),
-f2Ref(0.),
-dRef(0.),
-F(0.)
+f2Ref(Zero3),
+dRef(Zero3),
+F(Zero3)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -683,9 +683,9 @@ DriveDisplacementPinJoint::DriveDisplacementPinJoint(unsigned int uL,
 Joint(uL, pDO, fOut), 
 TplDriveOwner<Vec3>(pDC),
 pNode(pN), f(f), x(x),
-fRef(0.),
-dRef(0.),
-F(0.)
+fRef(Zero3),
+dRef(Zero3),
+F(Zero3)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);

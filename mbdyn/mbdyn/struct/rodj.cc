@@ -53,7 +53,7 @@ ConstitutiveLaw1DOwner(pCL),
 pNode1(pN1),
 pNode2(pN2),
 dL0(dLength),
-v(0.),
+v(Zero3),
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)

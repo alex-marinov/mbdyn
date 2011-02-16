@@ -887,8 +887,8 @@ f(fTmp),
 dHalfSpan(dS/2.),
 Ra(RaTmp),
 Ra3(RaTmp.GetVec(3)),
-F(0.),
-M(0.)
+F(Zero3),
+M(Zero3)
 {
 	DEBUGCOUTFNAME("AerodynamicBody::AerodynamicBody");
 
@@ -1020,7 +1020,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 Vr(Vn + Wn.Cross(Xr));
 
 		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
+		Vec3 VTmp(Zero3);
 		if (fGetAirVelocity(VTmp, Xnr)) {
 			Vr -= VTmp;
 		}
@@ -1267,7 +1267,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		Vec3 Vr(Vn + Wn.Cross(Xr));
 
 		/* Contributo di velocita' del vento */
-		Vec3 VTmp(0.);
+		Vec3 VTmp(Zero3);
 		if (fGetAirVelocity(VTmp, Xnr)) {
 	 		Vr -= VTmp;
 		}
@@ -1949,7 +1949,7 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3 Gamma(ER_Rot::MatG, gr);
 
 			/* Contributo di velocita' del vento */
-			Vec3 VTmp(0.);
+			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
 			}
@@ -2313,7 +2313,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			Vec3 Wr(Wn1*dN1 + Wn2*dN2 + Wn3*dN3);
 
 			/* Contributo di velocita' del vento */
-			Vec3 VTmp(0.);
+			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
 			}
@@ -2896,7 +2896,7 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 thetar(overline_theta*dN2);
 
 			/* Contributo di velocita' del vento */
-			Vec3 VTmp(0.);
+			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
 			}
@@ -3221,7 +3221,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			Vec3 thetar(overline_theta*((1. + dN2 - dN1)/2.));
 
 			/* Contributo di velocita' del vento */
-			Vec3 VTmp(0.);
+			Vec3 VTmp(Zero3);
 			if (fGetAirVelocity(VTmp, Xr)) {
 				Vr -= VTmp;
 			}

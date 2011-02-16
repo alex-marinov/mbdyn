@@ -37,7 +37,7 @@
 /* ResForces - begin */
 
 ResForces::ResForces(void) 
-: F(0.), C(0.)
+: F(Zero3), C(Zero3)
 { 
 	NO_OP; 
 }
@@ -50,8 +50,8 @@ ResForces::~ResForces(void)
 void
 ResForces::Reset(void)
 { 
-	F = 0.; 
-	C = 0.;
+	F = Zero3; 
+	C = Zero3;
 }
 
 void
@@ -112,7 +112,7 @@ ResForces::Moment(void) const
 }
 
 ExternResForces::ExternResForces(void)
-: X(0.)
+: X(Zero3)
 {
 	NO_OP;
 }

@@ -77,7 +77,7 @@ AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
 : Elem(1, fOut),
 InitialAssemblyElem(1, fOut),
 TplDriveOwner<Vec3>(pDC),
-Velocity(0.),
+Velocity(Zero3),
 gust(g),
 pRBK(pRBK)
 {

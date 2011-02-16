@@ -634,4 +634,10 @@ extern const Vec6 Zero6;
 extern const Mat6x6 Zero6x6;
 extern const Mat6x6 Eye6;
 
+template <>
+inline const Vec6& mbzero<Vec6>(void)
+{
+	return Zero6;
+}
+
 #endif /* MATVEC6_H */

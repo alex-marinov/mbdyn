@@ -52,7 +52,7 @@ DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), v(0.), dAlpha(0.)
+pNode1(pN1), pNode2(pN2), v(Zero3), dAlpha(0.)
 {
    NO_OP;
 }
@@ -676,7 +676,7 @@ DistanceJointWithOffset::DistanceJointWithOffset(unsigned int uL,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), v(0.), dAlpha(0.)
+pNode1(pN1), pNode2(pN2), f1(f1Tmp), f2(f2Tmp), v(Zero3), dAlpha(0.)
 {
    ASSERT(pDO != NULL);
    ASSERT(pDC != NULL);
@@ -1382,7 +1382,7 @@ ClampJoint::ClampJoint(unsigned int uL, const DofOwner*pD,
 		       flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pD, fOut), 
-pNode(pN), XClamp(X0), RClamp(R0), F(0.), M(0.)
+pNode(pN), XClamp(X0), RClamp(R0), F(Zero3), M(Zero3)
 { 
    NO_OP; 
 }

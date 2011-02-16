@@ -233,8 +233,8 @@ Shell4EASANS::ComputeIPCurvature(void)
 		Gamma_I_n_MT_T_overline[n] = RotManip::DRot_I(phi_tilde_n[n]).MulMT(T_overline);
 	}
 	for (integer i = 0; i < NUMIP; i++) {
-		Vec3 phi_tilde_1_i(0.);
-		Vec3 phi_tilde_2_i(0.);
+		Vec3 phi_tilde_1_i(Zero3);
+		Vec3 phi_tilde_2_i(Zero3);
 		InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
 		Mat3x3 T_overlineGamma_tilde_i(T_overline * RotManip::DRot(phi_tilde_i[i]));
 		k_1_i[i] = T_overlineGamma_tilde_i * phi_tilde_1_i;
@@ -537,8 +537,8 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			B_overline_i[i].Put(4, 4 + 6 * n, T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i);
 
 			// delta k_tilde_1_i
-			Vec3 phi_tilde_1_i(0.);
-			Vec3 phi_tilde_2_i(0.);
+			Vec3 phi_tilde_1_i(Zero3);
+			Vec3 phi_tilde_2_i(Zero3);
 			InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
 			B_overline_i[i].Put(7, 4 + 6 * n,
 				T_i[i].MulTM(k_1_i[i]) * Phi_Delta_i_n_LI_i

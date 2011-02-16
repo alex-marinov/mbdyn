@@ -51,7 +51,7 @@ GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
-M(0.), dTheta(0.), dPhi(0.), od(od)
+M(Zero3), dTheta(0.), dPhi(0.), od(od)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);

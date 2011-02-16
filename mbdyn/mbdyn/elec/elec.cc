@@ -229,7 +229,7 @@ ReadElectric(DataManager* pDM,
 			DEBUGCOUT("Direction: " << std::endl << Dir << std::endl);
 
 			// offset
-			Vec3 Tmpf(0.);
+			Vec3 Tmpf(Zero3);
 			if (HP.IsKeyWord("position") || HP.IsKeyWord("offset") || f == 1) {
 				Tmpf = HP.GetPosRel(ReferenceFrame(pStrNode));
 			}
@@ -337,7 +337,7 @@ ReadElectric(DataManager* pDM,
 			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 		// offset 1
-		Vec3 Tmpf1(0.);
+		Vec3 Tmpf1(Zero3);
 		if (HP.IsKeyWord("position")) {
 			NO_OP;
 		}
@@ -348,7 +348,7 @@ ReadElectric(DataManager* pDM,
 			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 		// offset 2
-		Vec3 Tmpf2(0.);
+		Vec3 Tmpf2(Zero3);
 		if (HP.IsKeyWord("position")) {
 			NO_OP;
 		}

@@ -41,9 +41,10 @@
 #include "matvec3.h"
 
 /* noteworthy constant */
+const doublereal Zero1(0.);
+const Vec3 Zero3(0., 0., 0.);
 const Mat3x3 Eye3(1., 0., 0., 0., 1., 0., 0., 0., 1.);
 const Mat3x3 Zero3x3(0., 0., 0., 0., 0., 0., 0., 0., 0.);
-const Vec3 Zero3(0., 0., 0.);
 
 
 /* Vec3 - begin */
@@ -800,7 +801,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
-   return Zero3x3; // phony call, not reachable
+   return ::Zero3x3; // phony call, not reachable
 }
 
 

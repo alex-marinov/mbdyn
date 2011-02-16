@@ -56,6 +56,7 @@ stlvh.cc \
 stlvh.h \
 submat.cc \
 submat.h \
+tpls.h \
 vh.cc \
 vh.h
 

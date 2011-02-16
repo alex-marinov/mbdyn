@@ -165,7 +165,7 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	}
 }
 
-const ReferenceFrame AbsRefFrame(0, Vec3(0.), Eye3, Vec3(0.), Vec3(0.), EULER_123);
+const ReferenceFrame AbsRefFrame(0, Zero3, Eye3, Zero3, Zero3, EULER_123);
 
 
 void 
@@ -201,8 +201,8 @@ MBDynParser::Reference_int(void)
 			<< GetLineData() << std::endl);
 	}
 	Mat3x3 R(GetRotAbs(AbsRefFrame));
-	Vec3 v(0.);
-	Vec3 w(0.);
+	Vec3 v(Zero3);
+	Vec3 w(Zero3);
 	if (IsArg()) {
 		if (!IsKeyWord("velocity")) {
 			pedantic_cerr("ReferenceFrame(" << uLabel
@@ -1691,7 +1691,7 @@ MBDynParser::Get(const doublereal& d)
 Vec3
 MBDynParser::GetVec3(void)
 {
-	Vec3 v(0.);
+	Vec3 v(Zero3);
 	return GetVec3(v);
 }
 
@@ -1815,7 +1815,7 @@ MBDynParser::GetMatR2vec(void)
 	v1(3) = GetReal();
 
 	int i2 = GetInt();
-	Vec3 v2(0.);
+	Vec3 v2(Zero3);
 
 	if (IsKeyWord("guess")) {
 		int i_max = 1;
@@ -1851,7 +1851,7 @@ Mat3x3
 MBDynParser::GetMat3x3Sym(void)
 {
 	if (IsKeyWord("null")) {
-		return Mat3x3(0.);
+		return Zero3x3;
 	}
    
 	Mat3x3 m;
@@ -1886,7 +1886,7 @@ MBDynParser::GetMat3x3Sym(void)
 Mat3x3
 MBDynParser::GetMat3x3(void)
 {
-	Mat3x3 m(0.);
+	Mat3x3 m(Zero3x3);
 	return GetMat3x3(m);
 }
 
@@ -1958,7 +1958,7 @@ MBDynParser::GetMat3x3(const Mat3x3& mDef)
 Vec6
 MBDynParser::GetVec6(void)
 {
-	Vec6 v(0.);
+	Vec6 v(Zero6);
 	return GetVec6(v);
 }
 
@@ -1995,7 +1995,7 @@ MBDynParser::GetVec6(const Vec6& vDef)
 Mat6x6
 MBDynParser::GetMat6x6(void)
 {
-	Mat6x6 m(0.);
+	Mat6x6 m(Zero6x6);
 	return GetMat6x6(m);
 }
 

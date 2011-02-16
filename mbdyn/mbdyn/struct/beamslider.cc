@@ -82,10 +82,10 @@ Joint(uL, pDO, fOut),
 nRotConstr(0), nBeams(nB), iCurrBeam(0), iType(iT),
 pNode(pN), ppBeam(ppB),
 f(fTmp), R(RTmp),
-F(0.), M(0.),
+F(Zero3), M(Zero3),
 sRef(0.), s(0.),
 dL(dl),
-x(0.), l(0.)
+x(Zero3), l(Zero3)
 {
 	ASSERT(pNode != NULL);
 	ASSERT(nBeams > 0);
@@ -255,7 +255,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.DecCoef(6*(1+Beam::NUMNODES)+1+i, i, 1.);
 	}
 
-	Vec3 lp(0.);
+	Vec3 lp(Zero3);
 	for (unsigned int iN = 0; iN < Beam::NUMNODES; iN++) {
 		Vec3 Tmp(fTmp[iN].Cross(F));
 
@@ -647,8 +647,8 @@ BeamSliderJoint::AssRes(SubVectorHandler& WorkVec,
 	/*
 	 * Recupero dati
 	 */
-	x = Vec3(0.);
-	l = Vec3(0.);
+	x = Vec3(Zero3);
+	l = Vec3(Zero3);
 	for (unsigned int i = 0; i < Beam::NUMNODES; i++) {
 		xNod[i] = pBeamNode[i]->GetXCurr();
 		fTmp[i] = pBeamNode[i]->GetRCurr()*ppBeam[iCurrBeam]->Getf(i+1);

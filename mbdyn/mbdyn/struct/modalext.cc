@@ -346,8 +346,8 @@ pModal(pmodal),
 bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
 uFlags(ExtModalForceBase::EMF_NONE),
-F(0.),
-M(0.)
+F(Zero3),
+M(Zero3)
 {
 	ASSERT(pModal != 0);
 	ASSERT(pEMF != 0);

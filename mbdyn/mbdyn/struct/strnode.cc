@@ -115,10 +115,10 @@ StructNode::StructNode(unsigned int uL,
 RPrev(R0),
 RRef(R0),
 RCurr(R0),
-gRef(0.),
-gCurr(0.),
-gPRef(0.),
-gPCurr(0.),
+gRef(Zero3),
+gCurr(Zero3),
+gPRef(Zero3),
+gPCurr(Zero3),
 XPrev(X0),
 XCurr(X0),
 VPrev(V0),
@@ -126,10 +126,10 @@ VCurr(V0),
 WPrev(W0),
 WRef(W0),
 WCurr(W0),
-XPPCurr(0.),
-WPCurr(0.),
-XPPPrev(0.),
-WPPrev(0.),
+XPPCurr(Zero3),
+WPCurr(Zero3),
+XPPPrev(Zero3),
+WPPrev(Zero3),
 pRefNode(pRN),
 #ifdef USE_NETCDF
 Var_X(0),
@@ -1269,8 +1269,8 @@ StructNode::SetValue(DataManager *pDM,
 
 	integer iFirstIndex = iGetFirstIndex();
 	X.Put(iFirstIndex + 1, XPrev);
-	X.Put(iFirstIndex + 4, Vec3(0.));
-	gRef = gCurr = gPRef = gPCurr = Vec3(0.);
+	X.Put(iFirstIndex + 4, Zero3);
+	gRef = gCurr = gPRef = gPCurr = Zero3;
 	XP.Put(iFirstIndex + 1, VPrev);
 	XP.Put(iFirstIndex + 4, WPrev);
 }
@@ -1332,7 +1332,7 @@ StructNode::BeforePredict(VectorHandler& X,
 	Mat3x3 RDelta(RPrev.MulMT(RCurr));
 
 	/* Mi assicuro che g al passo corrente sia nullo */
-	X.Put(iFirstPos + 4, Vec3(0.));
+	X.Put(iFirstPos + 4, Zero3);
 
 	/* Calcolo g al passo precedente attraverso la matrice RDelta riferita
 	 * a tutto il passo. Siccome RDelta e' calcolata all'indietro,
@@ -1404,10 +1404,10 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	WCurr = Mat3x3(CGR_Rot::MatG, gRef)*gPRef;
 
 	/* Resetto i parametri di rotazione e le derivate, g e gP */
-	X.Put(iFirstIndex + 4, Vec3(0.));
-	XP.Put(iFirstIndex + 4, Vec3(0.));
+	X.Put(iFirstIndex + 4, Zero3);
+	XP.Put(iFirstIndex + 4, Zero3);
 
-	gCurr = gPCurr = Vec3(0.);
+	gCurr = gPCurr = Zero3;
 
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	if (pRefNode) {
@@ -1491,7 +1491,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	 * use gRef as reference and the solution is a perturbation
 	 * from it */
 	gRef = Vec3(X, iFirstIndex + 4);
-	gCurr = Vec3(0.);
+	gCurr = Zero3;
 	RRef = RCurr;
 }
 
@@ -2407,7 +2407,7 @@ DummyStructNode::DummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, 0., 0., 0., 0., 0, 0, 0., 0., 0, ood, fOut),
+: StructNode(uL, pDO, Zero3, Zero3x3, Zero3, Zero3, 0, 0, 0., 0., 0, ood, fOut),
 pNode(pN)
 {
 	ASSERT(pNode != NULL);

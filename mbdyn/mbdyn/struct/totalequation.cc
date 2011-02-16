@@ -61,7 +61,7 @@ ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
 tilde_f1(R1h.Transpose()*f1),
-M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.)
+M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -830,7 +830,7 @@ TotalEquation::Output(OutputHandler& OH) const
 		Mat3x3 RTmp(R1rTmp.MulTM(R2rTmp));
 
 		Joint::Output(OH.Joints(), "TotalEquation", GetLabel(),
-			Vec3(0.), Vec3(0.), Vec3(0.), Vec3(0.))
+			Zero3, Zero3, Zero3, Zero3)
 			<< " " << MatR2EulerAngles(RTmp)*dRaDegr
 			<< " " << R1rTmp.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
 			<< " " << ThetaDeltaPrev << std::endl;
@@ -1162,14 +1162,15 @@ TotalEquation::dGetPrivData(unsigned int i) const
 	case 19:
 	case 20:
 	case 21:
+		// FIXME: blind fix
 		{
-		Vec3 v(	pNode1->GetRCurr().MulTV(
-			(pNode2->GetVCurr() + pNode2->GetWCurr()*(pNode2->GetRCurr()*f2)
-				- pNode1->GetVCurr()) + 
-			Mat3x3(pNode1->GetWCurr()).MulTV( pNode2->GetXCurr() + 
-								pNode2->GetRCurr()*f2
-								- pNode1->GetXCurr() - f1) 
-							)
+		Vec3 v(pNode1->GetRCurr().MulTV(
+			(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(pNode2->GetRCurr()*f2)
+				- pNode1->GetVCurr()) - 
+			pNode1->GetWCurr().Cross(pNode2->GetXCurr() + 
+				pNode2->GetRCurr()*f2
+				- pNode1->GetXCurr() - f1) 
+			)
 		);
 		
 			return R1h.GetVec(i-18)*v;
@@ -1215,7 +1216,7 @@ f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 tilde_f1(R1h.Transpose()*f1),
-M(0.), F(0.), ThetaDelta(0.), ThetaDeltaPrev(0.),
+M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3),
 total_equation_element(t_elm)
 {
 	/* Equations 1->3: Positions
@@ -1891,8 +1892,8 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
 	 * Recupero FPrime e MPrime*/
-	Vec3 MPrime(0.);
-	Vec3 FPrime(0.);
+	Vec3 MPrime(Zero3);
+	Vec3 FPrime(Zero3);
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		FPrime(iPosIncid[iCnt]) = XCurr(iReactionPrimeIndex + 1 + iCnt);
@@ -2099,8 +2100,8 @@ TotalReaction::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 Omega2Crossb2(Omega2Cross*b2);
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
-	Vec3 FPrime(0.);
-	Vec3 MPrime(0.);
+	Vec3 FPrime(Zero3);
+	Vec3 MPrime(Zero3);
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -2287,13 +2288,14 @@ TotalReaction::dGetPrivData(unsigned int i) const
 	case 20:
 	case 21:
 		{
-		Vec3 v(	pNode1->GetRCurr().Transpose()*(
-			(pNode2->GetVCurr() + pNode2->GetWCurr()*(pNode2->GetRCurr()*f2)
-				- pNode1->GetVCurr()) + 
-			Mat3x3(pNode1->GetWCurr()).Transpose()* ( pNode2->GetXCurr() + 
-								pNode2->GetRCurr()*f2
-								- pNode1->GetXCurr() -f1) 
-							)
+		// FIXME: blind fix
+		Vec3 v(pNode1->GetRCurr().MulTV(
+			(pNode2->GetVCurr() + pNode2->GetWCurr().Cross(pNode2->GetRCurr()*f2)
+				- pNode1->GetVCurr()) -
+			pNode1->GetWCurr().Cross( pNode2->GetXCurr() + 
+				pNode2->GetRCurr()*f2
+				- pNode1->GetXCurr() -f1) 
+			)
 		);
 		
 			return R1h.GetVec(i-18)*v;

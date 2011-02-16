@@ -49,7 +49,7 @@ Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(RTmp1h),
 d2(dTmp2), R2h(RTmp2h), 
-F(0.)
+F(Zero3)
 {
    NO_OP;
 }
@@ -485,7 +485,7 @@ PinJoint::PinJoint(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pN,
 		   const Vec3& X0Tmp, const Vec3& dTmp, flag fOut)
 : Elem(uL, fOut), 
-Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), F(0.)
+Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), F(Zero3)
 {
    NO_OP;
 }

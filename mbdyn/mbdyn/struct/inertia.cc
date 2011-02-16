@@ -59,10 +59,10 @@ void
 CenterOfMass::Collect_int(void)
 {
 	dMass = 0.;
-	S = 0.;
-	J = 0.;
+	S = Zero3;
+	J = Zero3;
 
-	Vec3 B(0.), G(0.);
+	Vec3 B(Zero3), G(Zero3);
 
 	for (std::set<const ElemGravityOwner *>::const_iterator i = elements.begin();
 		i != elements.end();
@@ -78,9 +78,9 @@ CenterOfMass::Collect_int(void)
 
 	J_cm = J;
 	if (dMass < std::numeric_limits<doublereal>::epsilon()) {
-		X_cm = 0.;
-		V_cm = 0.;
-		Omega_cm = 0.;
+		X_cm = Zero3;
+		V_cm = Zero3;
+		Omega_cm = Zero3;
 		J_cm = J_cm.Symm();
 
 	} else {
@@ -223,7 +223,7 @@ Inertia::Collect_int(void)
 			"mass is null" << std::endl);
 
 		R_princ = Eye3;
-		J_princ = 0.;
+		J_princ = Zero3;
 
 	} else {
 		J_cm.EigSym(J_princ, R_princ);

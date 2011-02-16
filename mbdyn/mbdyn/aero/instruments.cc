@@ -63,7 +63,7 @@ AircraftInstruments::Update(void)
 	const Vec3 e2(R.GetVec(2));
 	const Vec3 e3(R.GetVec(3));
 
-	Vec3 VTmp(0.);
+	Vec3 VTmp(Zero3);
       	if (fGetAirVelocity(VTmp, X)) {
 		VV -= VTmp;
 	}

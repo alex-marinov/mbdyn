@@ -805,11 +805,11 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
-	Vec3 Acceleration(0.);
+	Vec3 Acceleration(Zero3);
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
 	/* TODO: reference */
-	Vec3 W(0.);
+	Vec3 W(Zero3);
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 
@@ -842,7 +842,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
-	Vec3 Acceleration(0.);
+	Vec3 Acceleration(Zero3);
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
 
 	/* W is uninitialized because its use is conditioned by w */
@@ -1033,9 +1033,9 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	doublereal dm = 0.;
 	ReferenceFrame RF(dynamic_cast<StructNode *>(pStrNode));
-	Vec3 Xgc(0.);
-	Vec3 STmp(0.);
-	Mat3x3 J(0.);
+	Vec3 Xgc(Zero3);
+	Vec3 STmp(Zero3);
+	Mat3x3 J(Zero3x3);
 
 	for (int iCnt = 1; iCnt <= iNumMasses; iCnt++) {
 		/* massa */
