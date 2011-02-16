@@ -999,9 +999,14 @@ The others have a fairly common syntax.  The first three are
 models:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{induced_velocity_model} ::= \{ \kw{uniform} | \kw{glauert} | \kw{mangler} \} , 
+    \bnt{induced_velocity_model} ::=
+        \{ \kw{uniform} | \kw{glauert} [ , \kw{type} , \bnt{glauert_type} ] | \kw{mangler} \} , 
         \bnt{reference_omega} , \bnt{reference_radius}
         [ , \bnt{option} [ , ... ] ]
+
+    \bnt{glauert_type} ::= \{ \kw{glauert} | \kw{coleman} | \kw{drees}
+        | \kw{payne} | \kw{white and blake} | \kw{pitt and peters} | \kw{howlett}
+        | \kw{drees 2} \}
 
     \bnt{option} ::=
         \{ \kw{ground} , \bnt{ground_node}

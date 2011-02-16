@@ -288,6 +288,30 @@ public:
 
 class GlauertRotor : virtual public Elem, public Rotor {
 public:
+	enum Type {
+		UNKNOWN = -1,
+
+		// from (?)
+		GLAUERT,
+
+		// from J. Gordon Leishman, Principles of Helicopter Aerodynamics, 2000
+		COLEMAN_ET_AL,
+		DREES_1,
+		PAYNE,
+		WHITE_AND_BLAKE,
+		PITT_AND_PETERS,
+		HOWLETT,
+
+		// from Massimo Gennaretti, Roma Tre
+		DREES_2,
+
+		LAST
+	};
+
+protected:
+	Type type;
+
+public:
 	GlauertRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -303,6 +327,7 @@ public:
 		const doublereal& dE,
 		const doublereal& dCH,
 		const doublereal& dCFF,
+		GlauertRotor::Type type,
 		flag fOut);
 	virtual ~GlauertRotor(void);
 

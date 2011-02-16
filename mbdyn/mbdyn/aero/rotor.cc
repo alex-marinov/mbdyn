@@ -77,8 +77,8 @@ dEta(dE),
 bUMeanRefConverged(false),
 Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
-RRotTranspose(0.), RRot(rrot), RRot3(0.),
-VCraft(0.),
+RRotTranspose(0.), RRot(rrot), RRot3(Zero3),
+VCraft(Zero3),
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
@@ -292,7 +292,7 @@ Rotor::InitParam(bool bComputeMeanInducedVelocity)
 
 	/* Velocita' di traslazione del velivolo */
 	VCraft = -pRotor->GetVCurr();
-	Vec3 VTmp(0.);
+	Vec3 VTmp(Zero3);
 	if (fGetAirVelocity(VTmp, pRotor->GetXCurr())) {
 		VCraft += VTmp;
 	}
@@ -815,9 +815,11 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const doublereal& dE,
 	const doublereal& dCH,
 	const doublereal& dCFF,
+	GlauertRotor::Type type,
 	flag fOut)
 : Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
+Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut),
+type(type)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
@@ -954,7 +956,7 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	if (dUMeanPrev == 0.) {
-		return Vec3(0.);
+		return Zero3;
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -967,7 +969,41 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 
 	doublereal dr, dp;
 	GetPos(X, dr, dp);
-	doublereal dd = 1. + 4./3.*(1. - 1.8*dMu*dMu)*tan(dChi/2.)*dr*cos(dp);
+
+	doublereal k1, k2 = 0.;
+	switch (type) {
+	case GLAUERT:
+		k1 = 4./3.*(1. - 1.8*dMu*dMu)*tan(dChi/2.);
+		break;
+
+	case COLEMAN_ET_AL:
+		k1 = tan(dChi/2.);
+		break;
+
+	case DREES_1:
+		// FIXME: divide by zero?
+		k1 = 4./3.*(1 - cos(dChi) - 1.8*dMu*dMu)/sin(dChi);
+		k2 = -2.*dMu;
+		break;
+
+	case PAYNE:
+		k1 = 4./3.*(dMu/dLambda/(1.2 + dMu/dLambda));
+		break;
+
+	case WHITE_AND_BLAKE:
+		k1 = sqrt(2.)*sin(dChi);
+		break;
+
+	case PITT_AND_PETERS:
+		k1 = 15.*M_PI/23.*tan(dChi/2.);
+		break;
+
+	case HOWLETT:
+		k1 = pow(sin(dChi), 2);
+		break;
+	}
+
+	doublereal dd = 1. + dr*(k1*cos(dp) + k2*sin(dp));
 
 	return RRot3*(dd*dUMeanPrev);
 };
@@ -1152,7 +1188,7 @@ ManglerRotor::GetInducedVelocity(Elem::Type type,
 	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	if (dUMeanPrev == 0.) {
-		return Vec3(0.);
+		return Zero3;
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -1811,6 +1847,40 @@ ReadRotor(DataManager* pDM,
     	case GLAUERT:
     	case MANGLER:
     	case DYNAMICINFLOW: {
+		GlauertRotor::Type type(GlauertRotor::GLAUERT);
+		if (InducedType == GLAUERT && HP.IsKeyWord("type")) {
+			if (HP.IsKeyWord("glauert")) {
+				type = GlauertRotor::GLAUERT;
+
+			} else if (HP.IsKeyWord("coleman")) {
+				type = GlauertRotor::COLEMAN_ET_AL;
+
+			} else if (HP.IsKeyWord("drees")) {
+				type = GlauertRotor::DREES_1;
+
+			} else if (HP.IsKeyWord("payne")) {
+				type = GlauertRotor::PAYNE;
+
+			} else if (HP.IsKeyWord("white" "and" "blake")) {
+				type = GlauertRotor::WHITE_AND_BLAKE;
+
+			} else if (HP.IsKeyWord("pitt" "and" "peters")) {
+				type = GlauertRotor::PITT_AND_PETERS;
+
+			} else if (HP.IsKeyWord("howlett")) {
+				type = GlauertRotor::HOWLETT;
+
+			} else if (HP.IsKeyWord("drees" "2")) {
+				type = GlauertRotor::DREES_2;
+
+			} else {
+				silent_cerr("Rotor(" << uLabel << "): "
+					"unknown variant of Glauert's induced velocity at line "
+					<< HP.GetLineData() << std::endl);
+	      			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
 		doublereal dOR = HP.GetReal();
 	 	DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
 	 	if (dOR <= 0.) {
@@ -2067,7 +2137,7 @@ ReadRotor(DataManager* pDM,
    						pRotor, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,
-						dCH, dCFF,
+						dCH, dCFF, type,
    						fOut));
 	  		break;
 
