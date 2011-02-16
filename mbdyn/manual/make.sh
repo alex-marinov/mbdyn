@@ -15,6 +15,8 @@ MAKEPDF=yes
 MAKEHTML=no
 MAKESRC=no
 
+TGT="input install tecman"
+
 while test x$1 != x ; do
 	case $1 in
 	--ps=no) MAKEPS=no ; shift ;;
@@ -32,10 +34,6 @@ while test x$1 != x ; do
 done
 
 rm -f "$LOG"
-
-if test "x$TGT" = "x" ; then
-	TGT="input install tecman"
-fi
 
 for IN in $TGT; do
 	if ! test -d $IN ; then
