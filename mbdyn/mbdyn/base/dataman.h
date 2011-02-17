@@ -411,12 +411,11 @@ public:
 	virtual void OutputPrepare(void);
 
 	/* stampa i risultati */
-	virtual void Output(long lStep,
-		const doublereal& dTime,
-		const doublereal& dTimeStep,
-		bool force = false) const;
-	virtual void Output(const VectorHandler& X,
-			const VectorHandler& XP) const;
+	virtual bool
+	Output(long lStep, const doublereal& dTime,
+		const doublereal& dTimeStep, bool force = false) const;
+	virtual void
+	Output(const VectorHandler& X, const VectorHandler& XP) const;
 
 	void OutputOpen(const OutputHandler::OutFiles out);
 

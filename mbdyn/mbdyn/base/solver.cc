@@ -839,6 +839,7 @@ Solver::Run(void)
 	doublereal dTest = std::numeric_limits<double>::max();
 	doublereal dSolTest = std::numeric_limits<double>::max();
 	bool bSolConv = false;
+	bool bOut = false;
 	/* calcolo delle derivate */
 	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
@@ -1197,7 +1198,7 @@ Solver::Run(void)
 	} /* Fine dei passi fittizi */
 
 	/* Output delle "condizioni iniziali" */
-	pDM->Output(0, dTime, dCurrTimeStep);
+	bOut = pDM->Output(0, dTime, dCurrTimeStep);
 
 	if (outputMsg()) {
 		Out
@@ -1212,6 +1213,7 @@ Solver::Run(void)
 			<< " " << dTest
 			<< " " << dSolTest
 			<< " " << bSolConv
+			<< " " << bOut
 			<< std::endl;
 	}
 
@@ -1323,7 +1325,7 @@ IfFirstStepIsToBeRepeated:
 	SAFEDELETE(pFirstRegularStep);
 	pFirstRegularStep = 0;
 
-	pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+	bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 	if (mbdyn_stop_at_end_of_time_step()) {
 		/* Fa l'output della soluzione al primo passo ed esce */
@@ -1340,6 +1342,7 @@ IfFirstStepIsToBeRepeated:
 			<< " " << dTest
 			<< " " << dSolTest
 			<< " " << bSolConv
+			<< " " << bOut
 			<< std::endl;
 	}
 
@@ -1554,7 +1557,7 @@ IfStepIsToBeRepeated:
 		dTotErr += dTest;
 		iTotIter += iStIter;
 
-		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+		bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
 			Out << "Step " << lStep
@@ -1564,6 +1567,7 @@ IfStepIsToBeRepeated:
 				<< " " << dTest
 				<< " " << dSolTest
 				<< " " << bSolConv
+				<< " " << bOut
 				<< std::endl;
 		}
 

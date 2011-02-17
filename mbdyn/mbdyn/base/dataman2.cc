@@ -1398,7 +1398,7 @@ DataManager::OutputPrepare(void)
 }
 
 /* Output dati */
-void
+bool
 DataManager::Output(long lStep,
 	const doublereal& dTime,
 	const doublereal& dTimeStep,
@@ -1421,7 +1421,7 @@ DataManager::Output(long lStep,
 
 	/* output only when allowed by the output meter */
 	if (!force && !pOutputMeter->dGet()) {
-		return;
+		return false;
 	}
 
 	/*
@@ -1468,6 +1468,8 @@ DataManager::Output(long lStep,
 		OutHdl.pGetBinFile()->sync();
 	}
 #endif /* USE_NETCDF */
+
+	return true;
 }
 
 /* Output dati */
