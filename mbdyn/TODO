@@ -243,6 +243,9 @@ E. Bugs/missing features:
 	- allow re-orientation of FEM reference system in modal node
 	- allow offset & re-orientation of exported motion
 	  in external structural [mapping]
+	- send "delta" instead of position in external structural [mapping]
+	- support float instead of double in NetCDF output
+	- support "med" in output
 
 
 
