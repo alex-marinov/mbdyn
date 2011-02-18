@@ -55,11 +55,10 @@ int
 mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int dobind, int *perrno)
 {
-   	int			sock = -1;
-	int			rc = -1;
+   	int sock = -1;
 
-	struct sockaddr_in	tmpname;
-	socklen_t		size;
+	struct sockaddr_in tmpname;
+	socklen_t size;
 
 	if (name == NULL) {
 		name = &tmpname;
@@ -83,7 +82,7 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
    	name->sin_port = htons(port);
 	
 	if (hostname) {
-		struct hostent	*hostinfo;
+		struct hostent *hostinfo;
 
 		hostinfo = gethostbyname(hostname);
 		if (hostinfo == NULL) {
@@ -99,6 +98,7 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 	size = sizeof(struct sockaddr_in);
 	
 	if (dobind) {
+		int rc = -1;
 		rc = bind(sock, (struct sockaddr *) name, size);
 		if (rc < 0) {
 			if (perrno) {
@@ -115,10 +115,10 @@ int
 mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 	int dobind, int *perrno)
 {
-   	int			sock = -1;
+   	int sock = -1;
 
-   	struct sockaddr_un	tmpname;
-	socklen_t		size;
+   	struct sockaddr_un tmpname;
+	socklen_t size;
 
 	if (name == NULL) {
 		name = &tmpname;
