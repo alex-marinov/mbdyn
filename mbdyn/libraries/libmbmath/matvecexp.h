@@ -338,11 +338,6 @@ public:
 		mom = min.mom;
 	};
 
-	MatExp(const doublereal& d1, const doublereal& d2 = 0.) {
-		vec = mb_deye<Mat3x3>(d1);
-		mom = mb_deye<Mat3x3>(d2);
-	};
-	
 	MatExp(const VecExp& vin) {
 		vec = Mat3x3(vin.GetVec());
 		mom = Mat3x3(vin.GetMom());

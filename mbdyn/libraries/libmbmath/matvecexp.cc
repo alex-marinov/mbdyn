@@ -58,7 +58,7 @@
 // because they might be not initialized yet
 const VecExp ZeroExp(0., 0., 0., 0., 0., 0.);
 const MatExp EyeExp(Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.),
-	Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.));
+	Mat3x3(0., 0., 0., 0., 0., 0., 0., 0., 0.));
 
 
 
