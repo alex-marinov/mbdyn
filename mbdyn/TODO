@@ -244,6 +244,7 @@ E. Bugs/missing features:
 	- allow offset & re-orientation of exported motion
 	  in external structural [mapping]
 	- send "delta" instead of position in external structural [mapping]
+	- add "output" flag to .out (DONE)
 	- support float instead of double in NetCDF output
 	- support "med" in output
 
