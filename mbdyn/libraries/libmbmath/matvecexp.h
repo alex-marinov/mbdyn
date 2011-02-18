@@ -186,14 +186,10 @@ public:
 		mom = vin.GetVec2();
 	};
 
-	VecExp(
-			const doublereal& d1, 
-			const doublereal& d2 = 0.,
-			const doublereal& d3 = 0.,
-			const doublereal& d4 = 0., 
-			const doublereal& d5 = 0., 
-			const doublereal& d6 = 0.
-	) {
+	VecExp(const doublereal& d1, const doublereal& d2,
+		const doublereal& d3, const doublereal& d4, 
+		const doublereal& d5, const doublereal& d6)
+	{
 		vec = Vec3(d1, d2, d3);
 		mom = Vec3(d4, d5, d6);
 	};
@@ -343,8 +339,8 @@ public:
 	};
 
 	MatExp(const doublereal& d1, const doublereal& d2 = 0.) {
-		vec = Mat3x3(d1);
-		mom = Mat3x3(d2);
+		vec = mb_deye<Mat3x3>(d1);
+		mom = mb_deye<Mat3x3>(d2);
 	};
 	
 	MatExp(const VecExp& vin) {

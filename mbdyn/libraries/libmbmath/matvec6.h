@@ -52,12 +52,9 @@ class Vec6 {
       v[1] = vin.v[1];
    };
 
-   Vec6(const doublereal& d1, 
-	const doublereal& d2 = 0.,
-	const doublereal& d3 = 0.,
-	const doublereal& d4 = 0., 
-	const doublereal& d5 = 0., 
-	const doublereal& d6 = 0.) {
+   Vec6(const doublereal& d1, const doublereal& d2, const doublereal& d3,
+	const doublereal& d4, const doublereal& d5, const doublereal& d6)
+   {
       v[0] = Vec3(d1, d2, d3);
       v[1] = Vec3(d4, d5, d6);
    };
@@ -142,9 +139,6 @@ class Vec6 {
       }
       if (d == 0.) {
 	 throw ErrDivideByZero(MBDYN_EXCEPT_ARGS); /* error */
-#if 0	 
-	 exit(1);
-#endif /* 0 */
       }
       /* else */
       v[0] /= d; /* divide */
@@ -188,7 +182,7 @@ class Vec6 {
    inline const doublereal& dGet(unsigned short int i) const {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
-	 throw ErrOutOfRange(MBDYN_EXCEPT_ARGS);
+	 throw ErrRowIndexOutOfRange(i, 1, 6, MBDYN_EXCEPT_ARGS);
       }
       unsigned short int j = (i - 1)/3;
       return v[j].dGet(i - 3*j);
@@ -209,7 +203,7 @@ class Vec6 {
    inline void Put(unsigned short int i, const doublereal& d) {
       ASSERT(i > 0 && i < 7);
       if (i < 1 || i > 6) {
-	 throw ErrOutOfRange(MBDYN_EXCEPT_ARGS);
+	 throw ErrRowIndexOutOfRange(i, 1, 6, MBDYN_EXCEPT_ARGS);
       }
       unsigned short int j = (i-1)/3;
       v[j].Put(i-3*j, d);
@@ -257,13 +251,6 @@ class Mat6x6 {
       m[1][1] = min.m[1][1];
    };
 
-   Mat6x6(const doublereal& d) {      
-      m[0][0] = Mat3x3(d);
-      m[0][1].Reset();
-      m[1][0].Reset();
-      m[1][1] = Mat3x3(d);
-   };
-   
    Mat6x6(const doublereal& d11,
 	  const doublereal& d21,
 	  const doublereal& d31,
@@ -550,8 +537,11 @@ class Mat6x6 {
 
    const doublereal& dGet(unsigned short int ir, unsigned short int ic) const {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
-      if ((ir < 1 || ir > 6) || (ic < 1 || ic > 6)) {
-	 throw ErrOutOfRange(MBDYN_EXCEPT_ARGS);
+      if (ir < 1 || ir > 6) {
+	 throw ErrRowIndexOutOfRange(ir, 1, 6, MBDYN_EXCEPT_ARGS);
+      }
+      if (ic < 1 || ic > 6) {
+	 throw ErrColIndexOutOfRange(ic, 1, 6, MBDYN_EXCEPT_ARGS);
       }
       unsigned short int jr = (ir-1)/3;
       unsigned short int jc = (ic-1)/3;
@@ -574,8 +564,11 @@ class Mat6x6 {
    
    void Put(unsigned short int ir, unsigned short int ic, const doublereal& d) {
       ASSERT((ir > 0 && ir < 7) && (ic > 0 && ic < 7));
-      if ((ir < 1 || ir > 6) || (ic < 1 || ic > 6)) {
-	 throw ErrOutOfRange(MBDYN_EXCEPT_ARGS);
+      if (ir < 1 || ir > 6) {
+	 throw ErrRowIndexOutOfRange(ir, 1, 6, MBDYN_EXCEPT_ARGS);
+      }
+      if (ic < 1 || ic > 6) {
+	 throw ErrColIndexOutOfRange(ic, 1, 6, MBDYN_EXCEPT_ARGS);
       }
       unsigned short int jr = (ir-1)/3;
       unsigned short int jc = (ic-1)/3;
@@ -635,9 +628,33 @@ extern const Mat6x6 Zero6x6;
 extern const Mat6x6 Eye6;
 
 template <>
-inline const Vec6& mbzero<Vec6>(void)
+inline const Vec6& mb_zero<Vec6>(void)
 {
 	return Zero6;
 }
 
-#endif /* MATVEC6_H */
+template <>
+inline const Mat6x6& mb_zero<Mat6x6>(void)
+{
+	return Zero6x6;
+}
+
+template <>
+inline Mat6x6 mb_deye<Mat6x6>(const doublereal d)
+{
+	// TODO: optimize
+	return Mat6x6(mb_deye<Mat3x3>(d), Zero3x3, Zero3x3, mb_deye<Mat3x3>(d));
+}
+
+template <>
+inline Mat6x6& mb_deye<Mat6x6>(Mat6x6& out, const doublereal d)
+{
+	out.PutMat11(mb_deye<Mat3x3>(d));
+	out.PutMat12(Zero3x3);
+	out.PutMat21(Zero3x3);
+	out.PutMat22(mb_deye<Mat3x3>(d));
+
+	return out;
+}
+
+#endif // MATVEC6_H

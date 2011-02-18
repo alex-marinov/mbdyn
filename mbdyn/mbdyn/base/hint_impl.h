@@ -63,7 +63,7 @@ protected:
 	T t;
 
 public:
-	TplVecHint(const char *s, const T& t = mbzero<T>());
+	TplVecHint(const char *s, const T& t = mb_zero<T>());
 	virtual ~TplVecHint(void);
 
 	T pCreateVec(DataManager *pDM) const;
@@ -92,7 +92,7 @@ TplVecHint<T>::pCreateVec(DataManager *pDM) const
 	MBDynParser HP(pDM->GetMathParser(), In, "TplVecHint::pCreateVec");
 	HP.ExpectArg();
 
-	T vec(mbzero<T>());
+	T vec(mb_zero<T>());
 	HP.Get(vec);
 
 	return vec;
@@ -107,7 +107,7 @@ protected:
 	T	t;
 
 public:
-	TplDriveHint(const char *s, const T& t = mbzero<T>());
+	TplDriveHint(const char *s, const T& t = mb_zero<T>());
 	virtual ~TplDriveHint(void);
 	TplDriveCaller<T> *pCreateDrive(DataManager *pDM) const;
 };

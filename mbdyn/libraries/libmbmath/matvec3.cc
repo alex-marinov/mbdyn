@@ -584,6 +584,11 @@ Mat3x3::Reset(void)
 
 /* Mat3x3 - end */
 
+const Mat3x3Zero_Manip Mat3x3Zero;
+const Mat3x3DEye_Manip Mat3x3DEye;
+const MatCross_Manip MatCross;
+const MatCrossCross_Manip MatCrossCross;
+
 /* Manipolatori */
 namespace CGR_Rot {
 const Param_Manip Param;

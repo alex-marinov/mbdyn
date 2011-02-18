@@ -196,15 +196,15 @@ pInv10(pInv10),
 pInv11(pInv11),
 Inv3jaj(Zero3),
 Inv3jaPj(Zero3),
-Inv8jaj(0.),
-Inv8jaPj(0.),
+Inv8jaj(Zero3x3),
+Inv8jaPj(Zero3x3),
 Inv5jaj(NModes, 0.),
 Inv5jaPj(NModes, 0.),
 VInv5jaj(Zero3),
 VInv5jaPj(Zero3),
-Inv8jTranspose(0.),
-Inv9jkajak(0.),
-Inv9jkajaPk(0.),
+Inv8jTranspose(Eye3),
+Inv9jkajak(Eye3),
+Inv9jkajaPk(Eye3),
 a(*aa),
 aPrime(NModes, 0.),
 b(*bb),
@@ -1089,8 +1089,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 	/* invarianti rotazionali */
 	if (pInv8 != 0) {
-		Inv8jaj = 0.;
-		Inv8jaPj = 0.;
+		Inv8jaj.Reset();
+		Inv8jaPj.Reset();
 	}
 	if (pInv5 != 0) {
 		Inv5jaj.Reset(0.);
@@ -1098,8 +1098,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	}
 	Mat3x3 MatTmp1(Zero3x3), MatTmp2(Zero3x3);
 	if (pInv9) {
-		Inv9jkajak = 0.;
-		Inv9jkajaPk = 0.;
+		Inv9jkajak.Reset();
+		Inv9jkajaPk.Reset();
 	}
 	Mat3x3 Inv10jaPj(Zero3x3);
 
@@ -1304,7 +1304,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		if (pInv8 != 0 || pInv9 != 0 || pInv10 != 0) {
-			Mat3x3 MTmp(0.);
+			Mat3x3 MTmp(Zero3x3);
 
 			if (pInv8 != 0) {
 				MTmp += (pInv8->GetMat3x3(jOffset)).Transpose();
@@ -2958,7 +2958,7 @@ ReadModal(DataManager* pDM,
 
 	doublereal dMass = 0;              /* massa totale */
 	Vec3 STmp(Zero3);                  /* momenti statici  */
-	Mat3x3 JTmp(0.);                   /* inerzia totale  */
+	Mat3x3 JTmp(Zero3x3);              /* inerzia totale  */
 	std::vector<doublereal> FEMMass;   /* masse nodali   */
 	std::vector<Vec3> FEMJ;            /* inerzie nodali (sono diagonali) */
 
@@ -4722,7 +4722,7 @@ ReadModal(DataManager* pDM,
 	if (bBuildInvariants) {
 		doublereal dMassInv = 0.;
 		Vec3 STmpInv(Zero3);
-		Mat3x3 JTmpInv(0.);
+		Mat3x3 JTmpInv(Zero3x3);
 
 		MatNxN GenMass(NModes, 0.);
 
@@ -4759,7 +4759,7 @@ ReadModal(DataManager* pDM,
 			Vec3 ui = pXYZFEMNodes->GetVec(iNode);
 	
 			Mat3x3 uivett(ui);
-			Mat3x3 JiNodeTmp(0.);
+			Mat3x3 JiNodeTmp(Zero3x3);
 	
 			JiNodeTmp.Put(1, 1, FEMJ[iNode - 1](1));
 			JiNodeTmp.Put(2, 2, FEMJ[iNode - 1](2));

@@ -171,9 +171,9 @@ void ComputeFullInterpolation(const Vec3 *const node_pos,
 		eta_xi_delta_1-=Theta_tilde*Theta_r_I*A2*xi;
 	//compute traslation wrenches at xi and at the nodes:
 	MatExp Trasl_n[NUMNODES];
-		Trasl_n[NODE1] = MatExp(1.,node_pos[NODE1]);
-		Trasl_n[NODE2] = MatExp(1.,node_pos[NODE2]);
-	MatExp Trasl_xi_bak(1.,-pos);
+	Trasl_n[NODE1] = MatExp(Eye3,node_pos[NODE1]);
+	Trasl_n[NODE2] = MatExp(Eye3,node_pos[NODE2]);
+	MatExp Trasl_xi_bak(Eye3,-pos);
 	//compute delta_kappa_i
 	MatExp Lambda(RoTrManip::Elle(eta_tilde,eta_r*dexi_des));
 	MatExp delta_kappa_2(Lambda*xi);

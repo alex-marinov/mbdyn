@@ -55,7 +55,7 @@ pNode(pN),
 tilde_f(tilde_f),
 tilde_Rh(tilde_Rh),
 od(od),
-tilde_kPrime(0.),
+tilde_kPrime(Zero6),
 bFirstRes(false)
 {
 	ASSERT(pNode != NULL);

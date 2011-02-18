@@ -350,11 +350,11 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Delta - deformazioni */
-		AzTmp[i] = Mat6x6(Mat3x3(dN2P[i]*dsdxi*dCoef),
+		AzTmp[i] = Mat6x6(mb_deye<Mat3x3>(dN2P[i]*dsdxi*dCoef),
 				Zero3x3,
 				Mat3x3(L*(dN2[i]*dCoef)
 					-fTmp[i]*(dN2P[i]*dsdxi*dCoef)),
-				Mat3x3(dN2P[i]*dsdxi*dCoef));
+				mb_deye<Mat3x3>(dN2P[i]*dsdxi*dCoef));
 		
 		/* Delta - azioni interne */
 		AzTmp[i] = DRef*AzTmp[i];
@@ -1356,10 +1356,10 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Delta - deformazioni */
-		AzTmp[i] = AzPrimeTmp[i] = Mat6x6(Mat3x3(dN2P[i]*dsdxi),
+		AzTmp[i] = AzPrimeTmp[i] = Mat6x6(mb_deye<Mat3x3>(dN2P[i]*dsdxi),
 				Zero3x3,
 				Mat3x3(L*(dN2[i])-fTmp[i]*(dN2P[i]*dsdxi)),
-				Mat3x3(dN2P[i]*dsdxi));
+				mb_deye<Mat3x3>(dN2P[i]*dsdxi));
 		
 		AzTmp[i] = DRef*AzTmp[i]*dCoef;
 		

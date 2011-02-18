@@ -54,8 +54,11 @@
 
 #include "matvecexp.h"
 
-const VecExp ZeroExp(0.);
-const MatExp EyeExp(0.);
+// NOTE: do not use Zero3, Zero3x3 or mb_zero<>()
+// because they might be not initialized yet
+const VecExp ZeroExp(0., 0., 0., 0., 0., 0.);
+const MatExp EyeExp(Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.),
+	Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.));
 
 
 

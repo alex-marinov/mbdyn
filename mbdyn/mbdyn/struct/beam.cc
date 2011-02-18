@@ -634,11 +634,11 @@ Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
 		for (unsigned int i = 0; i < NUMNODES; i++) {
 			/* Delta - deformazioni */
-			AzTmp[iSez][i] = Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef),
+			AzTmp[iSez][i] = Mat6x6(mb_deye<Mat3x3>(dN3P[iSez][i]*dsdxi[iSez]*dCoef),
 				Zero3x3,
 				Mat3x3(L[iSez]*(dN3[iSez][i]*dCoef)
 					- fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
-				Mat3x3(dN3P[iSez][i]*dsdxi[iSez]*dCoef));
+				mb_deye<Mat3x3>(dN3P[iSez][i]*dsdxi[iSez]*dCoef));
 			/* Delta - azioni interne */
 			AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i];
 			/* Correggo per la rotazione da locale a globale */
@@ -1927,11 +1927,11 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		for (unsigned int i = 0; i < NUMNODES; i++) {
 			/* Delta - deformazioni */
 			AzTmp[iSez][i] = AzPrimeTmp[iSez][i]
-				= Mat6x6(Mat3x3(dN3P[iSez][i]*dsdxi[iSez]),
+				= Mat6x6(mb_deye<Mat3x3>(dN3P[iSez][i]*dsdxi[iSez]),
 					Zero3x3,
 					Mat3x3(L[iSez]*(dN3[iSez][i])
 					- fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez])),
-					Mat3x3(dN3P[iSez][i]*dsdxi[iSez]));
+					mb_deye<Mat3x3>(dN3P[iSez][i]*dsdxi[iSez]));
 			AzTmp[iSez][i] = DRef[iSez]*AzTmp[iSez][i]*dCoef;
 			AzTmp[iSez][i] +=
 				ERef[iSez]*Mat6x6(Mat3x3(Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),

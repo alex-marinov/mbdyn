@@ -33,9 +33,21 @@
 
 #include <matvec6.h>
 
-const Vec6 Zero6(0.);
-const Mat6x6 Zero6x6(0.);
-const Mat6x6 Eye6(1.);
+// NOTE: do not use Zero3, Zero3x3 or mb_zero<>()
+// because they might be not initialized yet
+const Vec6 Zero6(0., 0., 0., 0., 0., 0.);
+const Mat6x6 Zero6x6(0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.,
+		0., 0., 0., 0., 0., 0.);
+const Mat6x6 Eye6(1., 0., 0., 0., 0., 0.,
+		0., 1., 0., 0., 0., 0.,
+		0., 0., 1., 0., 0., 0.,
+		0., 0., 0., 1., 0., 0.,
+		0., 0., 0., 0., 1., 0.,
+		0., 0., 0., 0., 0., 1.);
 
 
 std::ostream&

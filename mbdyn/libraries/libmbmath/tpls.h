@@ -31,7 +31,17 @@
 #ifndef TPLS_H
 #define TPLS_H
 
+// returns a reference to the static `zero' object of type T
 template <class T>
-inline const T& mbzero(void);
+inline const T& mb_zero(void);
+
+// returns the `identity' object of type T times the scalar d
+template <class T>
+inline T mb_deye(const doublereal d);
+
+// sets the first argument to the `identity' object
+// of type T times the scalar d, and returns it
+template <class T>
+inline T& mb_deye(T&, const doublereal d);
 
 #endif // TPLS_H

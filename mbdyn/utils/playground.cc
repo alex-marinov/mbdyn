@@ -35,12 +35,13 @@
 #include <iostream>
 
 #include "matvec3.h"
+#include "matvec6.h"
 #include "matvecexp.h"
 #include "Rot.hh"
 
 int 
 main(int argn, const char* const argv[])
-{ 
+{
    	static doublereal d[3];
    	while (true) {
       		std::cin >> d[0];

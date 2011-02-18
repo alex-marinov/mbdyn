@@ -61,9 +61,11 @@
 class MBDynErrBase : public std::exception {
 private:
 	std::string s;
+
 public:
 	MBDynErrBase(MBDYN_EXCEPT_ARGS_DECL);
 	virtual ~MBDynErrBase(void) throw() {};
+	void Set(const std::string& s);
 	const char * what(void) const throw();
 };
 
@@ -84,6 +86,22 @@ public:
 class ErrOutOfRange : public MBDynErrBase {
 public:
 	ErrOutOfRange(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrIndexOutOfRange : public ErrOutOfRange {
+protected:
+	ErrIndexOutOfRange(const char *type, int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL);
+public:
+	ErrIndexOutOfRange(int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL);
+};
+class ErrRowIndexOutOfRange : public ErrIndexOutOfRange {
+public:
+	ErrRowIndexOutOfRange(int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL)
+		: ErrIndexOutOfRange("row ", idx, imin, imax, MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+};
+class ErrColIndexOutOfRange : public ErrIndexOutOfRange {
+public:
+	ErrColIndexOutOfRange(int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL)
+		: ErrIndexOutOfRange("col ", idx, imin, imax, MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 };
 class ErrDivideByZero : public MBDynErrBase {
 public:

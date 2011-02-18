@@ -91,7 +91,7 @@ Theta(Zero3),
 pNode1(pN1), pNode2(pN2), 
 R1h(R1t), //R2h(R2t),
 f1(f1Tmp), f2(f2Tmp),
-GammaInv(1.),
+GammaInv(Eye3),
 F1(Zero3), C1(Zero3), C2(Zero3),
 Sh_c(sh),
 fc(f)

@@ -507,10 +507,10 @@ ReadJoint(DataManager* pDM,
 		out << "clamp: " << uLabel
 			<< " " << pNode->GetLabel()
 			<< " " << Zero3
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< " " << pNode->GetLabel()
 			<< " " << Zero3
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< std::endl;
 		} break;
 
@@ -579,10 +579,10 @@ ReadJoint(DataManager* pDM,
 		out << "sphericalpin: " << uLabel
 			<< " " << pNode->GetLabel()
 			<< " " << d
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< " " << pNode->GetLabel()
 			<< " " << d
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< std::endl;
 		} break;
 
@@ -1124,7 +1124,7 @@ ReadJoint(DataManager* pDM,
 			<< " " << (pNode1->GetRCurr().Transpose())*RotManip::Rot(relrot)
 			<< " " << pNode2->GetLabel()
 			<< " " << q
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< std::endl;
 
 		} break;
@@ -1202,7 +1202,7 @@ ReadJoint(DataManager* pDM,
 			<< " " << R
 			<< " " << pNode2->GetLabel()
 			<< " " << q
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< std::endl;
 
 		} break;
@@ -3375,7 +3375,7 @@ ReadJoint(DataManager* pDM,
 			<< " " << R
 			<< " " << pNode2->GetLabel()
 			<< " " << q
-			<< " " << Mat3x3(1.)
+			<< " " << Eye3
 			<< std::endl;
 	} break;
 #endif // MBDYN_DEVEL

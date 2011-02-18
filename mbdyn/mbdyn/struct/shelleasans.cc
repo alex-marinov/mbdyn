@@ -115,7 +115,7 @@ doublereal Shell4EASANS::xi_0[2] = {0., 0.};
 void
 Shell4EASANS::UpdateNodalAndAveragePosAndOrientation(void)
 {
-	Mat3x3 T_avg(0.);
+	Mat3x3 T_avg(Zero3x3);
 	Mat3x3 Tn[NUMNODES];
 	Mat3x3 R_tilde_n[NUMNODES];
 	for (integer i = 0; i < NUMNODES; i++) {
@@ -151,10 +151,10 @@ Shell4EASANS::ComputeInitialNodeOrientation(void)
 		iTa[i] = (pNode[i]->GetRCurr()).MulTM(Mat3x3(t1, t2, t3));
 	}
 	for (integer i = 0; i < NUMIP; i++) {
-		iTa_i[i] = Mat3x3(1.);
+		iTa_i[i] = Eye3;
 	}
 	for (integer i = 0; i < NUMSSEP; i++) {
-		iTa_A[i] = Mat3x3(1.);
+		iTa_A[i] = Eye3;
 	}
 	UpdateNodalAndAveragePosAndOrientation();
 	InterpolateOrientation();
@@ -554,10 +554,10 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			);
 
 			// delta y_alpha_1
-			D_overline_i[i].Put(1, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 1)));
+			D_overline_i[i].Put(1, 1 + n * 6, mb_deye<Mat3x3>(L_alpha_beta_i[i](n + 1, 1)));
 
 			// delta y_alpha_2
-			D_overline_i[i].Put(4, 1 + n * 6, Mat3x3(L_alpha_beta_i[i](n + 1, 2)));
+			D_overline_i[i].Put(4, 1 + n * 6, mb_deye<Mat3x3>(L_alpha_beta_i[i](n + 1, 2)));
 
 			// delta k_1_i
 			D_overline_i[i].Put(7, 4 + n * 6, Kappa_delta_i_1[i][n]);
@@ -679,10 +679,10 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 		Vec3 Tn2 = T_i[i] * n2;
 		Vec3 Tm1 = T_i[i] * m1;
 		Vec3 Tm2 = T_i[i] * m2;
-		Hh = Tn1.Tens(y_i_1[i]) - Mat3x3(Tn1.Dot(y_i_1[i]))
-			+ Tn2.Tens(y_i_2[i]) - Mat3x3(Tn2.Dot(y_i_2[i]))
-			+ Tm1.Tens(k_1_i[i]) - Mat3x3(Tm1.Dot(k_1_i[i]))
-			+ Tm2.Tens(k_2_i[i]) - Mat3x3(Tm2.Dot(k_2_i[i]))
+		Hh = Tn1.Tens(y_i_1[i]) - mb_deye<Mat3x3>(Tn1.Dot(y_i_1[i]))
+			+ Tn2.Tens(y_i_2[i]) - mb_deye<Mat3x3>(Tn2.Dot(y_i_2[i]))
+			+ Tm1.Tens(k_1_i[i]) - mb_deye<Mat3x3>(Tm1.Dot(k_1_i[i]))
+			+ Tm2.Tens(k_2_i[i]) - mb_deye<Mat3x3>(Tm2.Dot(k_2_i[i]))
 			;
 
 		// NOTE: use PutCross()?

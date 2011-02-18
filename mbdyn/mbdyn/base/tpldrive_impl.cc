@@ -187,7 +187,7 @@ class SingleTDCR : public TplDriveCallerRead<T> {
 public:
 	virtual TplDriveCaller<T> *
 	Read(const DataManager* pDM, MBDynParser& HP) {
-		T t(mbzero<T>());
+		T t(mb_zero<T>());
 
 		t = GetT(HP, t);
 
@@ -421,7 +421,7 @@ public:
 	};
 
 	inline T Get(const doublereal& dVar) const {
-		T v = mbzero<T>();
+		T v = mb_zero<T>();
 		for (unsigned i = 0; i < m_dc.size(); i++) {
 			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGet(dVar));
 		}
@@ -429,7 +429,7 @@ public:
 	};
 
 	inline T Get(void) const {
-		T v = mbzero<T>();
+		T v = mb_zero<T>();
 		for (unsigned i = 0; i < m_dc.size(); i++) {
 			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGet());
 		}
@@ -446,7 +446,7 @@ public:
 	};
 
 	inline T GetP(void) const {
-		T v = mbzero<T>();
+		T v = mb_zero<T>();
 		for (unsigned i = 0; i < m_dc.size(); i++) {
 			v += (m_dc[i].t)*(m_dc[i].pDriveCaller->dGetP());
 		}
@@ -550,7 +550,7 @@ public:
 		std::vector<DrivesArray<T> > dc(iNumDr);
 
 		for (unsigned short int i = 0; i < iNumDr; i++) {
-			T t(mbzero<T>());
+			T t(mb_zero<T>());
 			dc[i].t = GetT(HP, t);
 			dc[i].pDriveCaller = HP.GetDriveCaller();
 		}

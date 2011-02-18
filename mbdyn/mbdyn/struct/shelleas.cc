@@ -100,7 +100,7 @@ doublereal Shell4EAS::xi_0[2] = {0., 0.};
 void
 Shell4EAS::UpdateNodalAndAveragePosAndOrientation(void)
 {
-	Mat3x3 T_avg(0.);
+	Mat3x3 T_avg(Zero3x3);
 	Mat3x3 Tn[NUMNODES];
 	Mat3x3 R_tilde_n[NUMNODES];
 	for (integer i = 0; i < NUMNODES; i++) {
@@ -136,7 +136,7 @@ Shell4EAS::ComputeInitialNodeAndIptOrientation(void)
 		iTa[i] = (pNode[i]->GetRCurr()).MulTM(Mat3x3(t1, t2, t3));
 	}
 	for (integer i = 0; i < NUMIP; i++) {
-		iTa_i[i] = Mat3x3(1.);
+		iTa_i[i] = Eye3;
 	}
 	UpdateNodalAndAveragePosAndOrientation();
 	InterpolateOrientation();

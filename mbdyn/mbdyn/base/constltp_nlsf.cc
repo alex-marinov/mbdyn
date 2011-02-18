@@ -333,7 +333,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		/* stiffness */
-		Tder FDE0(0.);
+		Tder FDE0(mb_zero<Tder>());
 		bool bElastic(false);
 		std::vector<const DifferentiableScalarFunction *> FDEsc(dim);
 		for (unsigned i = 0; i < dim; i++) {
@@ -362,7 +362,7 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		/* damping */
-		Tder FDEPrime0(0.);
+		Tder FDEPrime0(mb_zero<Tder>());
 		bool bViscous(false);
 		std::vector<const DifferentiableScalarFunction *> FDEPrimesc(dim);
 		for (unsigned i = 0; i < dim; i++) {
@@ -395,9 +395,9 @@ struct NLSFViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		}
 
 		/* Prestress and prestrain */
-		T PreStress(mbzero<T>());
+		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mbzero<T>());
+		T PreStrain(mb_zero<T>());
 		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
 
 		if (bElastic && bViscous) {

@@ -170,7 +170,7 @@ public:
 	LinearElasticIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
 			const T& PStress, doublereal dStiff)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress), dStiffness(dStiff) {
-		ConstitutiveLaw<T, Tder>::FDE = dStiffness;
+		mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDE, dStiffness);
 	};
 
 	virtual ~LinearElasticIsotropicConstitutiveLaw(void) {
@@ -194,7 +194,7 @@ public:
 		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */  = 0.) {
+	virtual void Update(const T& Eps, const T& /* EpsPrime */  = mb_zero<T>()) {
 		ElasticConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 			+ (ElasticConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get())*dStiffness;
@@ -242,7 +242,7 @@ public:
 		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = mb_zero<T>()) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 			+ ConstitutiveLaw<T, Tder>::FDE*(ConstitutiveLaw<T, Tder>::Epsilon - ElasticConstitutiveLaw<T, Tder>::Get());
@@ -264,7 +264,7 @@ class LinearElasticGenericAxialTorsionCouplingConstitutiveLaw
 public:
 	LinearElasticGenericAxialTorsionCouplingConstitutiveLaw(const TplDriveCaller<T>* pDC,
 			const T& PStress,
-			const Tder& = 0.,
+			const Tder& = mb_zero<Tder>(),
 			doublereal = 0.)
 	: ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
 		throw (typename ConstitutiveLaw<T, Tder>::Err(std::cerr, "axial-torsion coupling constitutive law "
@@ -283,7 +283,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -331,7 +331,7 @@ public:
 		return Restart_int(out);
 	};
 
-	virtual void Update(const Vec6& Eps, const Vec6& /* EpsPrime */ = 0.) {
+	virtual void Update(const Vec6& Eps, const Vec6& /* EpsPrime */ = mb_zero<Vec6>()) {
 		Epsilon = Eps;
 		doublereal d = Epsilon.dGet(1);
 		FDE.Put(4, 4, dRefTorsion + d*dAxialTorsionCoupling);
@@ -367,7 +367,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -533,7 +533,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -624,7 +624,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -727,7 +727,7 @@ public:
 	dUpperLimitStrain(dUppLimStrain),
 	dLowerLimitStrain(dLowLimStrain),
 	dSecondStiffness(dSecondStiff) {
-		FDE = dStiffness;
+		Mat3x3DEye.Manipulate(FDE, dStiffness);
 	};
 
 	virtual ~DoubleLinearElasticConstitutiveLaw(void) {
@@ -858,7 +858,7 @@ public:
 		doublereal dDen = 1. + dAlpha*dx2;
 		ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
 			+ x*(dStiffness*(dBeta + dAlpha*dx2)/dDen);
-		ConstitutiveLaw<T, Tder>::FDE = dStiffness*(dBeta + (3. - dBeta + dAlpha*dx2)*dAlpha*dx2)/(dDen*dDen);
+		mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDE, dStiffness*(dBeta + (3. - dBeta + dAlpha*dx2)*dAlpha*dx2)/(dDen*dDen));
 	};
 };
 
@@ -897,7 +897,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -1047,7 +1047,7 @@ class LinearViscousIsotropicConstitutiveLaw
 					 doublereal dStiffPrime)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
      dStiffnessPrime(dStiffPrime) {
-      ConstitutiveLaw<T, Tder>::FDEPrime = dStiffnessPrime;
+      mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDEPrime, dStiffnessPrime);
    };
 
    virtual ~LinearViscousIsotropicConstitutiveLaw(void) {
@@ -1077,7 +1077,7 @@ class LinearViscousIsotropicConstitutiveLaw
       return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
-   virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
+   virtual void Update(const T& /* Eps */ , const T& EpsPrime = mb_zero<T>()) {
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
       ConstitutiveLaw<T, Tder>::F = ConstitutiveLaw<T, Tder>::EpsilonPrime*dStiffnessPrime;
    };
@@ -1126,7 +1126,7 @@ class LinearViscousGenericConstitutiveLaw
       return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
-   virtual void Update(const T& /* Eps */ , const T& EpsPrime = 0.) {
+   virtual void Update(const T& /* Eps */ , const T& EpsPrime = mb_zero<T>()) {
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
       ConstitutiveLaw<T, Tder>::F = ConstitutiveLaw<T, Tder>::FDEPrime*ConstitutiveLaw<T, Tder>::EpsilonPrime;
    };
@@ -1151,8 +1151,8 @@ class LinearViscoElasticIsotropicConstitutiveLaw
 					      doublereal dStiffPrime)
      : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
      dStiffness(dStiff), dStiffnessPrime(dStiffPrime) {
-      ConstitutiveLaw<T, Tder>::FDE = dStiffness;
-      ConstitutiveLaw<T, Tder>::FDEPrime = dStiffnessPrime;
+      mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDE, dStiffness);
+      mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDEPrime, dStiffnessPrime);
    };
 
    virtual ~LinearViscoElasticIsotropicConstitutiveLaw(void) {
@@ -1184,7 +1184,7 @@ class LinearViscoElasticIsotropicConstitutiveLaw
       return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
-   virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+   virtual void Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
       ConstitutiveLaw<T, Tder>::Epsilon = Eps;
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 
@@ -1244,7 +1244,7 @@ class LinearViscoElasticGenericConstitutiveLaw
        return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
    };
 
-   virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+   virtual void Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
       ConstitutiveLaw<T, Tder>::Epsilon = Eps;
       ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
       ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress
@@ -1320,7 +1320,7 @@ public:
 		return ElasticConstitutiveLaw<T, Tder>::Restart_int(out);
 	};
 
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 		doublereal dCurrScaleFactor = FDECoef.dGet();
@@ -1377,7 +1377,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -1434,7 +1434,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const Vec6& Eps, const Vec6& EpsPrime = 0.) {
+	virtual void Update(const Vec6& Eps, const Vec6& EpsPrime = mb_zero<Vec6>()) {
 		ConstitutiveLaw<Vec6, Mat6x6>::Epsilon = Eps;
 		ConstitutiveLaw<Vec6, Mat6x6>::EpsilonPrime = EpsPrime;
 		doublereal d = Epsilon.dGet(1);
@@ -1476,7 +1476,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.) {
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -1661,7 +1661,7 @@ class DoubleLinearViscoElasticConstitutiveLaw
       return out;
    };
 
-   virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+   virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
       NO_OP;
    };
 };
@@ -1791,8 +1791,8 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
      dStiffnessPrime(dStiffPrime),
      dSecondStiffnessPrime(dSecondStiffPrime)
    {
-      FDE = dStiffness;
-      FDEPrime = dStiffnessPrime;
+      Mat3x3DEye.Manipulate(FDE, dStiffness);
+      Mat3x3DEye.Manipulate(FDEPrime, dStiffnessPrime);
    };
 
    virtual ~DoubleLinearViscoElasticConstitutiveLaw(void) {
@@ -1903,7 +1903,7 @@ class TurbulentViscoElasticConstitutiveLaw
       return out;
    };
 
-   virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = 0.) {
+   virtual void Update(const T& /* Eps */ , const T& /* EpsPrime */ = mb_zero<T>()) {
       NO_OP;
    };
 };
@@ -2011,7 +2011,7 @@ public:
 			const DriveCaller *pD
 	) : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
 	status(initialStatus),
-	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(mbzero<T>()) {
+	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(mb_zero<T>()) {
 		ASSERT(pActivatingCondition != NULL);
 		ASSERT(pDeactivatingCondition != NULL);
 		FDECurr = Stiff;
@@ -2067,7 +2067,7 @@ public:
 	};
 
 	virtual void
-	Update(const T& Eps, const T& EpsPrime = 0.) {
+	Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 		bool ChangeJac(false);
@@ -2089,8 +2089,8 @@ public:
 			if (pDeactivatingCondition->dGet() != 0.) {
 				/* disactivates: reset data and ask for jacobian rigeneration */
 				status = INACTIVE;
-				ConstitutiveLaw<T, Tder>::FDE = 0.;
-				ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+				ConstitutiveLaw<T, Tder>::FDE = mb_zero<Tder>();
+				ConstitutiveLaw<T, Tder>::FDEPrime = mb_zero<Tder>();
 				ConstitutiveLaw<T, Tder>::F = ElasticConstitutiveLaw<T, Tder>::PreStress;
 				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 			}
