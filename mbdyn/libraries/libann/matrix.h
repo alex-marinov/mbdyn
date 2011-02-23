@@ -83,6 +83,7 @@ mat_res_t matrix_copy( matrix *, matrix *, double );
 mat_res_t vector_copy( vector *, vector *, double );
 mat_res_t vector_null( vector * );
 mat_res_t matrix_prod( matrix * , matrix *, matrix *, double );
+mat_res_t matrix_prod_sym( matrix * , matrix *, matrix *, double );
 mat_res_t matrix_prod_transpose( matrix * , matrix *, matrix *, double );
 mat_res_t matrix_transpose_prod( matrix * , matrix *, matrix *, double );
 mat_res_t matrix_vector_prod( matrix *, vector *, vector *);

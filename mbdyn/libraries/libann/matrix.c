@@ -208,7 +208,32 @@ mat_res_t matrix_prod( matrix *MAT1 ,matrix *MAT2, matrix *MAT_R, double K ){
 
 	return MAT_OK;
 }
+/* prodotto tra matrici MAT_R = K*MAT1*MAT2*/
+mat_res_t matrix_prod_sym( matrix *MAT1 ,matrix *MAT2, matrix *MAT_R, double K ){
 
+	unsigned i,j,k;
+	
+	/* controllo dimensionale */
+	if( MAT1->Ncolumn != MAT2->Nrow || MAT_R->Nrow != MAT1->Nrow || MAT_R->Ncolumn != MAT2->Ncolumn  ){
+		matrix_error( MAT_DIMENSION, "matrix_prod" );
+		return MAT_DIMENSION;
+	}
+	/* azzero la matrice del risultato */
+	if( matrix_null(MAT_R) != MAT_OK ){
+		matrix_error( MAT_GEN_ERROR, "matrix_prod" );
+		return MAT_GEN_ERROR;
+	}
+	for( i=0; i<MAT1->Nrow; i++ ){
+		for( j=i; j<MAT2->Ncolumn; j++ ){
+			for( k=0; k<MAT1->Ncolumn; k++ ){
+				MAT_R->mat[i][j] += K*MAT1->mat[i][k]*MAT2->mat[k][j];
+			}
+			MAT_R->mat[j][i] = MAT_R->mat[i][j];
+		}
+	}
+
+	return MAT_OK;
+}
 
 /* matrice trasposta MAT1 = MAT2^T */
 mat_res_t matrix_transpose( matrix *MAT1 ,matrix *MAT2){
