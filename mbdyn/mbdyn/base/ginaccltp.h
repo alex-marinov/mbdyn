@@ -101,7 +101,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 		gExprDEps[row].resize(dim);
 	}
 
-	ConstitutiveLaw<T, Tder>::FDE = 0.;
+	ConstitutiveLaw<T, Tder>::FDE = mb_zero<Tder>();
 
 	GiNaC::lst l; 
 
@@ -398,8 +398,8 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 		gExprDEpsPrime[row].resize(dim);
 	}
 
-	ConstitutiveLaw<T, Tder>::FDE = 0.;
-	ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+	ConstitutiveLaw<T, Tder>::FDE = mb_zero<Tder>();
+	ConstitutiveLaw<T, Tder>::FDEPrime = mb_zero<Tder>();
 
 	GiNaC::lst l; 
 
@@ -657,7 +657,7 @@ public:
      	virtual ~GiNaCViscoElasticConstitutiveLaw(void);
      	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
-	virtual void Update(const T& Eps, const T& /* EpsPrime */ = 0.);
+	virtual void Update(const T& Eps, const T& /* EpsPrime */ = mb_zero<T>());
 };
 
 typedef GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal> 
@@ -697,8 +697,8 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 		gExprDEpsPrime[row].resize(dim);
 	}
 
-	ConstitutiveLaw<T, Tder>::FDE = 0.;
-	ConstitutiveLaw<T, Tder>::FDEPrime = 0.;
+	ConstitutiveLaw<T, Tder>::FDE = mb_zero<Tder>();
+	ConstitutiveLaw<T, Tder>::FDEPrime = mb_zero<Tder>();
 
 	GiNaC::lst l; 
 
