@@ -93,7 +93,9 @@ main(int argc, char *argv[])
 {
         ANN net = { 0 };
 	matrix INPUT, DES_OUTPUT, NN_OUTPUT;
-        int N_sample,i;
+	matrix INPUT2, DES_OUTPUT2;
+	vector ERR2;
+        int N_sample,i,j,ind;
 	int Niter, CNT;
 	double err1, err2;
 	ANN_vector_matrix W1, W2, dWold, dWnew;
@@ -201,6 +203,18 @@ main(int argc, char *argv[])
 		fprintf(stderr, "Error in NN_output matrix initialization\n");
 		return 1;
 	}
+	if (matrix_init(&DES_OUTPUT2, N_sample, net.N_output)) {
+		fprintf(stderr, "Error in NN_output matrix initialization\n");
+		return 1;
+	}
+	if (matrix_init(&INPUT2, N_sample, net.N_input)) {
+		fprintf(stderr, "Error in NN_output matrix initialization\n");
+		return 1;
+	}
+	if (vector_init(&ERR2, MAXITER)) {
+		fprintf(stderr, "Error in NN_output matrix initialization\n");
+		return 1;
+	}
 
         ANN_write(&net, stdout, ANN_W_A_TEXT);
 	fprintf(stdout, "TRAINING....\n");
@@ -253,14 +267,35 @@ main(int argc, char *argv[])
 				ANN_TotalError(&DES_OUTPUT, &NN_OUTPUT, &err2);
 			}
 			ANN_vector_matrix_ass(&dWold, &net.dW, net.N_neuron, net.N_layer, 1.);
-                        if (CNT == 10) {
-                                net.eta = 1.5*net.eta;
+                        if (CNT == 20) {
+                                net.eta = 1.1*net.eta;
                                 if (verbose) {
 					fprintf(stdout, "Network's learning rate increasing (eta = %lf)\n", net.eta);
 				}
                                 CNT = 0;
                         }
 		}
+		/* randimize training example */
+		/*matrix_write(&INPUT, stdout, W_M_BIN);
+		matrix_write(&DES_OUTPUT, stdout, W_M_BIN);*/
+		matrix_copy( &INPUT2, &INPUT, 1. );
+		matrix_copy( &DES_OUTPUT2, &DES_OUTPUT, 1. );
+		for ( i=0; i<N_sample; i++ ){
+			ind = floor(rand()%(N_sample-i));
+			for ( j=0; j< INPUT2.Ncolumn; j++){
+				INPUT.mat[i][j] = INPUT2.mat[ind][j];
+				INPUT2.mat[ind][j] = INPUT2.mat[N_sample-1-i][j];
+			}
+			for ( j=0; j< DES_OUTPUT2.Ncolumn; j++){
+
+				DES_OUTPUT.mat[i][j] = DES_OUTPUT2.mat[ind][j];
+				DES_OUTPUT2.mat[ind][j] = DES_OUTPUT2.mat[N_sample-1-i][j];
+			}
+		}
+		/*matrix_write(&INPUT, stdout, W_M_BIN);
+		matrix_write(&DES_OUTPUT, stdout, W_M_BIN);
+		getchar();*/
+
                 if (!(Niter%PRINTSTEP)) {
                         fprintf(stdout, "TRAINING:    iter:%d       ", Niter);
                 	fprintf(stdout, "Square error: :%le\n", err2);
@@ -275,6 +310,7 @@ main(int argc, char *argv[])
                         }
 			fclose(fh);
                 }
+		ERR2.vec[Niter-1] = err2;
 
         } while ((err2>TOLL) && (Niter<MAXITER));
 
@@ -287,11 +323,17 @@ main(int argc, char *argv[])
         }
 	fclose(fh);
 	ANN_DataWrite(&NN_OUTPUT, NN_OUTPUTfile);
+	fh = fopen("ERR.txt", "w");
+	vector_write(&ERR2,fh,W_M_BIN );
+	fclose(fh);
 
         /* dynamic memory free*/
 	matrix_destroy(&INPUT);
 	matrix_destroy(&DES_OUTPUT);
+	matrix_destroy(&INPUT2);
+	matrix_destroy(&DES_OUTPUT2);
 	matrix_destroy(&NN_OUTPUT);
+	vector_destroy(&ERR2);
 	if (TRAINING_MODE == ANN_TM_BATCH) {
 		for (i = 0; i < net.N_layer + 1; i++) {
 			matrix_destroy(&W1[i]);

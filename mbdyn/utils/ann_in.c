@@ -184,9 +184,8 @@ int main( int argc, char **argv ){
         }       
 
         fprintf( fh, "%d\n", r );
-
 	N_neuron = (int *)malloc( (N_layer+2) * sizeof(int) );
-	if (N_neuron) {
+	if (N_neuron==NULL) {
 		return 1;
         }
         N_neuron[0] = 0;

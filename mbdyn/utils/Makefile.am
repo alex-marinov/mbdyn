@@ -48,7 +48,8 @@ trim
 
 if MBDYN_DEVEL
 bin_PROGRAMS += \
-s2sctrl
+s2s_gpc \
+s2s_dss
 endif
 endif
 
@@ -103,8 +104,10 @@ rot2eup_SOURCES = rot2eup.cc
 rot2eu_SOURCES = rot2eu.cc
 rot2phi_SOURCES = rot2phi.cc
 rotrel_SOURCES = rotrel.cc
-s2sctrl_SOURCES = s2s.cc s2s.h
-nodist_s2sctrl_SOURCES = s2sctrl.cc GPC.c GPC.h udu.c udu.h
+s2s_dss_SOURCES = s2s.cc s2s.h
+nodist_s2s_dss_SOURCES = s2s_dss.cc
+s2s_gpc_SOURCES = s2s.cc s2s.h
+nodist_s2s_gpc_SOURCES = s2s_gpc.cc GPC.c GPC.h udu.c udu.h
 sockdrive_SOURCES = sockdrive.c
 socket2stream_SOURCES = socket2stream.cc s2s.cc s2s.h
 stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
@@ -177,7 +180,8 @@ rot2eup_LDADD = $(MYLIBS)
 rot2eu_LDADD = $(MYLIBS)
 rot2phi_LDADD = $(MYLIBS)
 rotrel_LDADD = $(MYLIBS)
-s2sctrl_LDADD = $(MYLIBS)
+s2s_dss_LDADD = $(MYLIBS)
+s2s_gpc_LDADD = $(MYLIBS)
 sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)

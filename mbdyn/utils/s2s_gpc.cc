@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2011
+ * Copyright (C) 1996-2010
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -29,21 +29,23 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- * Copyright (C) 2009-2011
+ * Copyright (C) 2010
  *
  * Mattia Mattaboni	<mattaboni@aero.polimi.it>
  */
 
+#ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+#endif /* HAVE_CONFIG_H */
 
-#include <cstring>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <cstdio>
-#include <cstdlib>
-#include <cerrno>
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -51,7 +53,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <signal.h>
-#include <cmath>
+#include <math.h>
 #include <time.h>
 #include <sys/time.h>
 
@@ -98,6 +100,7 @@ main(int argc, char *argv[])
 	s2s_t	s2s_controls;
 	GPC_data_struct GPCdata;
 	ARX_Model ARX_m;
+	ARMAX_Model ARMAX_m;
 	GPC_Model GPC_m;
 	unsigned  iStepCONCounter, NstepXsec;
 	matrix IDinput, MeasNoise;
@@ -125,8 +128,13 @@ main(int argc, char *argv[])
 	} 
 	
 #ifdef VERBOSE
-	fprintf( stdout, "\nMODEL PROPERTIES:\n");
-	fprintf( stdout, "- order: %d\n", GPCdata.n);
+	if (GPCdata.n > 0){
+		fprintf( stdout, "\nARX MODEL PROPERTIES:\n");
+		fprintf( stdout, "- order: %d\n", GPCdata.n);
+	} else {
+		fprintf( stdout, "\nARMAX MODEL PROPERTIES:\n");
+		fprintf( stdout, "- order: %d\n", -GPCdata.n);
+	}
 	fprintf( stdout, "- inputs number: %d\n", GPCdata.m);
 	fprintf( stdout, "- outputs number: %d\n", GPCdata.p);
 	if (GPCdata.FlagSimplyProper == 1){
@@ -135,7 +143,7 @@ main(int argc, char *argv[])
 		fprintf( stdout, "- strictly proper model\n");
 	}
 	fprintf( stdout, "- discretization frequency: %le\n", GPCdata.fc);
-	fprintf( stdout, "\nARX MODEL IDENTIFICATION:\n");
+	fprintf( stdout, "\nMODEL IDENTIFICATION:\n");
 	fprintf( stdout, "- forgetting factor: %le\n", GPCdata.mu);
 	fprintf( stdout, "- P matrix initialization: P = %leI\n", GPCdata.delta);
 	fprintf( stdout, "\nCONTROLLER:\n");
@@ -187,8 +195,20 @@ main(int argc, char *argv[])
 	GPCdata.ControlOFF4 = GPCdata.ControlOFF4*NstepXsec;
 
 	/* identifier and controller initialization*/
-	ARX_Initialize( &ARX_m, GPCdata.n, GPCdata.n, GPCdata.m, GPCdata.p, GPCdata.mu, GPCdata.delta, GPCdata.FlagSimplyProper);
-	GPC_Initialize( &GPC_m, GPCdata.n, GPCdata.n, GPCdata.m, GPCdata.p, GPCdata.s, GPCdata.rho1);
+	if ( GPCdata.n > 0 ) {
+		ARX_Initialize( &ARX_m, GPCdata.n, GPCdata.n, GPCdata.m, GPCdata.p, GPCdata.mu, GPCdata.delta, GPCdata.FlagSimplyProper);
+		GPC_Initialize( &GPC_m, GPCdata.n, GPCdata.n, 0 , GPCdata.m, GPCdata.p, GPCdata.s, GPCdata.rho1);
+	} else {
+		ARMAX_Initialize( &ARMAX_m, -GPCdata.n, -GPCdata.n, -GPCdata.n, GPCdata.m, GPCdata.p, GPCdata.mu, GPCdata.delta, GPCdata.FlagSimplyProper);
+		GPC_Initialize( &GPC_m, -GPCdata.n, -GPCdata.n, -GPCdata.n, GPCdata.m, GPCdata.p, GPCdata.s, GPCdata.rho1);
+	}
+
+	/* THETA MATRIX initiailization */
+	//fh = fopen("thetaGPC_175C.txt","r");
+	//matrix_read( &ARX_m.theta, fh, 1);
+	//fprintf(stdout,"!!!!!! MATRIX THETA INITIALIZATION !!!!!!\n\n");
+	//fclose(fh);
+	
 
 	/* Pre-conditioning initialization  */
 	WindowLength = GPCdata.PreConditioningWindowLength;
@@ -201,7 +221,7 @@ main(int argc, char *argv[])
 	vector_init( &u_k, GPCdata.m);
 	vector_init( &y_k, GPCdata.p);
 	vector_init( &u_CON_k, GPCdata.m);
-	vector_init( &Us_ID, GPCdata.m*(GPCdata.s+1));
+	vector_init( &Us_ID, GPCdata.m*(GPCdata.s));
 
 	/* Inputs files reading */
 	fh = fopen(GPCdata.IDinputFileName,"r");
@@ -266,7 +286,6 @@ main(int argc, char *argv[])
 	#endif
 
 	while (true) {
-
 		// read new measures
 		int len = s2s_measures.recv(0);
 
@@ -280,25 +299,37 @@ main(int argc, char *argv[])
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
 		}
-		case 0:
-			goto done;
-		default:
-			break;
+		case 0:{
+			goto done;}
+		default:{
+			break;}
 		}
 		
 		/* new measures */
 		for( int i=0; i< s2s_measures.nChannels; i++){
-			y_k.vec[i] = s2s_measures.dbuf[i];
+			y_k.vec[i] = (s2s_measures.dbuf[i]);
 		}
-		#ifdef COMPUTE_TIME
-		gettimeofday( &t1, 0 );
-    		time1 = ( t1.tv_sec + t1.tv_usec*1e-6 );
-		#endif
+		/* sommo all'ingresso di controllo u_CON_k l'identification input IDinput */	
+		for( int i= 0; i < s2s_controls.nChannels ; i++){
+			if( iStepCONCounter < GPCdata.IdentificationOFF){
+			//if( iStepCONCounter < 8.*NstepXsec ){
+				u_k.vec[i] = u_CON_k.vec[i] + GPCdata.IDENTIFICATIONINPUT_AMPLITUDE*IDinput.mat[iStepCONCounter][i];
+			} else { 
+				u_k.vec[i] = u_CON_k.vec[i];
+			}
+		}
+		//u_k.vec[0] = 0.;
+		// send new controls
+		for (int i = 0; i < s2s_controls.nChannels ; i++) {
+			s2s_controls.dbuf[i] = u_k.vec[i];
+		}
+		s2s_controls.send(0);
 
 		/* add measurement noise */
 		for( int i=0; i< s2s_measures.nChannels; i++){
 			y_k.vec[i] += GPCdata.NOISE_AMPLITUDE*MeasNoise.mat[iStepCONCounter][i];
 		}
+		//printf("AA %e\n",ARX_m.theta.mat[0][0]);
 #ifdef VERBOSE
 		if( iStepCONCounter%NstepXsec == 0){
 			printf("time: %e s\n", (double)iStepCONCounter/(double)NstepXsec);
@@ -329,24 +360,47 @@ main(int argc, char *argv[])
 			}
 		}
 			
-		/* calcolo l'ingresso di controllo al passo K 
+		/* calcolo l'ingresso di controllo al passo K+1 
 		   a partire dalla misura dell'uscita al passo K 
 		*/
 		/* uscita misurata al passo K tolto il suo valor medio */
 		vector_sum( &y_k, &Mean, &y_k, -1. );
 		/* aggiorno il modello ARX */
 		if ((iStepCONCounter >= GPCdata.IdentificationON) && (iStepCONCounter <= GPCdata.IdentificationOFF))  {
-			ARX_RLS( &ARX_m, &y_k);
+			if ( GPCdata.n > 0 ) {
+				ARX_RLS( &ARX_m, &y_k);
+			} else {
+				ARMAX_ELS( &ARMAX_m, &y_k);
+				//ARMAX_RML( &ARMAX_m, &y_k);
+			}
 		}
-		/* aggiorno i vettori con U(K-1) e Ym(K)*/
-		GPC_VectorUpdate2( &GPC_m, &y_k, &u_k);
+		/* aggiorno i vettori con Ym(K) e U(K) che ho alcolato al passo precedente */
+		if ( GPCdata.n > 0 ) {
+			ARX_UpdatePhi( &ARX_m, &y_k, &u_k);
+		} else {
+			ARMAX_UpdatePhi( &ARMAX_m, &y_k, &u_k, &ARMAX_m.eps);
+		}
+		/* aggiorno i vettori con U(K) e Ym(K)*/
+		if ( GPCdata.n > 0 ) {
+			GPC_VectorUpdate( &GPC_m, &y_k, &u_k, &u_k);
+		} else {
+			GPC_VectorUpdate( &GPC_m, &y_k, &u_k, &ARMAX_m.eps);
+		}
+		#ifdef COMPUTE_TIME
+		gettimeofday( &t1, 0 );
+    		time1 = ( t1.tv_sec + t1.tv_usec*1e-6 );
+		#endif
 		vector_null(&u_CON_k);
 		if (  ((iStepCONCounter >= GPCdata.ControlON1) && (iStepCONCounter <= GPCdata.ControlOFF1)) ||
 					((iStepCONCounter >= GPCdata.ControlON2) && (iStepCONCounter <= GPCdata.ControlOFF2)) ||
 					((iStepCONCounter >= GPCdata.ControlON3) && (iStepCONCounter <= GPCdata.ControlOFF3)) ||
 					((iStepCONCounter >= GPCdata.ControlON4) && (iStepCONCounter <= GPCdata.ControlOFF4)) ){
 			/* assemblo le matrici dell'equazione di predizione delle uscite */
-			GPC_PredictionFunction( &GPC_m, &ARX_m.theta, ARX_m.SimplyProper, 1 );
+			if ( GPCdata.n > 0 ) {
+				GPC_PredictionFunction( &GPC_m, &ARX_m.theta, ARX_m.SimplyProper, 0 );
+			} else {
+				GPC_PredictionFunction( &GPC_m, &ARMAX_m.theta, ARMAX_m.SimplyProper, 0 );
+			}
 			/* calcolo le variabili di controllo */
 			/* A). lambda variabile per evitare una brusca applicazione del controllo */
 			if (iStepCONCounter < GPCdata.ControlON1+GPCdata.rhoLength){
@@ -355,58 +409,59 @@ main(int argc, char *argv[])
 				GPC_m.lambda = GPCdata.rho2;
 			}
 			/* B). considero il contributo dei futuri ingressi di identificazione */
-			for( int i=0; i<(GPCdata.s+1); i++ ){
+			for( int i=0; i<(GPCdata.s); i++ ){
 				for( int j=0; j<GPCdata.m; j++ ){
 					if( iStepCONCounter < GPCdata.IdentificationOFF){
-						Us_ID.vec[(GPCdata.s-i)*GPCdata.m+j] = GPCdata.IDENTIFICATIONINPUT_AMPLITUDE*IDinput.mat[iStepCONCounter+i][j];
+					//if( iStepCONCounter < 8.*NstepXsec ){
+						Us_ID.vec[(GPCdata.s-i-1)*GPCdata.m+j] = GPCdata.IDENTIFICATIONINPUT_AMPLITUDE*IDinput.mat[iStepCONCounter+i+1][j];
 					} else {
-						Us_ID.vec[(GPCdata.s-i)*GPCdata.m+j] = 0.;
+						Us_ID.vec[(GPCdata.s-i-1)*GPCdata.m+j] = 0.;
 					}
 				}
 			}
 			/* calcolo le future s variabili di controllo */
-			GPC_Control2( &GPC_m, &Us_ID );
+			//GPC_Control( &GPC_m, &Us_ID );
+			GPC_ControlW( &GPC_m, &Us_ID );
 			/* REciding horizon */
 			for( int i= 0; i < GPCdata.m ; i++){
-				u_CON_k.vec[i] = GPC_m.Us2.vec[GPC_m.m*(GPC_m.s-1)+i];
+				u_CON_k.vec[i] = GPC_m.Us.vec[GPC_m.m*(GPC_m.s-1)+i];
 			}
 		}
-		/* sommo all'ingresso di controllo u_CON_k l'identification input IDinput */	
-		for( int i= 0; i < s2s_controls.nChannels ; i++){
-			if( iStepCONCounter < GPCdata.IdentificationOFF){
-				u_k.vec[i] = u_CON_k.vec[i] + GPCdata.IDENTIFICATIONINPUT_AMPLITUDE*IDinput.mat[iStepCONCounter][i];
-			} else { 
-				u_k.vec[i] = u_CON_k.vec[i];
-			}
-		}
-		/* aggiorno i vettori con Ym(K) e U(K) che ho appena calcolato */
-		ARX_UpdatePhi( &ARX_m, &y_k, &u_k);
-		/* incremento il contatore dei passi del controllore */
-		iStepCONCounter++;
-		// send new controls
-		for (int i = 0; i < s2s_controls.nChannels ; i++) {
-			s2s_controls.dbuf[i] = u_k.vec[i];
-		}
-		s2s_controls.send(0);
-		/* save outputs*/
-		if (GPCdata.FlagSaveOutputs == 1 ){
-			vector_write( &u_CON_k, fh_ComputedControlInputs, W_M_BIN_ROW);
-			vector_write( &ARX_m.yp, fh_IdentifiedOutputs, W_M_BIN_ROW);
-			vector_write( &y_k, fh_MeasuredOutputs, W_M_BIN_ROW);
-			matrix_write( &ARX_m.theta, fh_ARXParameters, W_M_BIN);
-		}
+	
 		#ifdef COMPUTE_TIME
 		gettimeofday( &t2, 0 );
     		time2 = ( t2.tv_sec + t2.tv_usec*1e-6 );
 		delta_time = time2 - time1;
 		fprintf(fh_time, "%le\n", delta_time);
 		#endif
+		/* incremento il contatore dei passi del controllore */
+		iStepCONCounter++;
+		if (GPCdata.FlagSaveOutputs == 1 ){
+			vector_write( &u_CON_k, fh_ComputedControlInputs, W_M_BIN_ROW);
+			vector_write( &y_k, fh_MeasuredOutputs, W_M_BIN_ROW);
+			if ( GPCdata.n > 0 ){
+				vector_write( &ARX_m.yp, fh_IdentifiedOutputs, W_M_BIN_ROW);
+				matrix_write( &ARX_m.theta, fh_ARXParameters, W_M_BIN);
+			} else {
+				vector_write( &ARMAX_m.yp, fh_IdentifiedOutputs, W_M_BIN_ROW);
+				matrix_write( &ARMAX_m.theta, fh_ARXParameters, W_M_BIN);
+			}
+		}
 	}
 
 done:	{
+	fh = fopen("thetaGPC.txt","w");
+	if ( GPCdata.n > 0 ){
+		matrix_write( &ARX_m.theta, stdout, W_M_BIN);
+		matrix_write( &ARX_m.theta, fh, W_M_BIN);
+	} else {
+		matrix_write( &ARMAX_m.theta, stdout, W_M_BIN);
+		matrix_write( &ARX_m.theta, fh, W_M_BIN);
+	}
+	fclose(fh);
 	#ifdef COMPUTE_TIME
 	fclose(fh_time);
-	#endif
+	#endif	
 	if (GPCdata.FlagSaveOutputs == 1 ){
 		fclose( fh_ComputedControlInputs);
 		fclose( fh_IdentifiedOutputs);
@@ -415,7 +470,14 @@ done:	{
 	}	
 	s2s_measures.shutdown();
 	s2s_controls.shutdown();
-	ARX_Destroy( &ARX_m);
+	//fh = fopen("C2.txt","w");
+	//matrix_write(&GPC_m.C2, fh, W_M_BIN);
+	//fclose(fh);
+	if ( GPCdata.n > 0 ){
+		ARX_Destroy( &ARX_m);
+	} else {
+		ARMAX_Destroy( &ARMAX_m);
+	}
 	GPC_Destroy( &GPC_m);
 	vector_destroy( &u_k);
 	vector_destroy( &y_k);
@@ -449,8 +511,8 @@ if (fh == NULL){
 /* Read MODEL ORDER n */
 a = fgets(line, MAX_STR_LENGTH, fh);
 sscanf(line,"%s%d", name, &data->n);
-if ( data->n <= 0 ){
-	fprintf( stderr, "Model order must be positive \nerror: n = %d\n", data->n);
+if ( data->n == 0 ){
+	fprintf( stderr, "Model order must be different from zero \nerror: n = %d\n", data->n);
 	return 0;
 } 
 /* Read SYSTEM INPUTS NUMBER m */

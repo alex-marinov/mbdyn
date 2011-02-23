@@ -117,6 +117,7 @@ main(int argc, char *argv[])
 		fprintf(stderr, "MAtrix initailization error\n");
 		return 1;
 	}
+	matrix_write(&INPUT, stdout, W_M_BIN);
 
         ANN_write(&net, stdout, ANN_W_A_TEXT);
 	fprintf(stdout, "SIMULATION....\n");
