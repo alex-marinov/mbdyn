@@ -1204,7 +1204,7 @@ Solver::Run(void)
 		Out
 			<< "# Key for lines starting with \"Step\":"
 				<< std::endl
-			<< "# Step Time TStep NIter ResErr SolErr SolConv"
+			<< "# Step Time TStep NIter ResErr SolErr SolConv Out"
 				<< std::endl
 			<< "Step " << 0
 			<< " " << dTime+dCurrTimeStep
