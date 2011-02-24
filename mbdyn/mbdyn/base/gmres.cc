@@ -178,7 +178,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	std::cout << " Gmres New Step " << std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-	doublereal dOldErr;
+	doublereal dOldErr = 0.;
 	doublereal dErrFactor = 1.;
 	while (true) {
 
