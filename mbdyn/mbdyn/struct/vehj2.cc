@@ -88,11 +88,11 @@ DeformableDispJoint::AssMatF(FullSubMatrixHandler& WMA,
 	WMA.Add(4, 6 + 1, MTmp);
 
 	/* [ di x ] [ F x ] * dCoef */
-	WMA.Add(4, 4, Mat3x3(d1, FTmp));
-	WMA.Sub(6 + 4, 4, Mat3x3(d2, FTmp));
+	WMA.Add(4, 4, Mat3x3(MatCrossCross, d1, FTmp));
+	WMA.Sub(6 + 4, 4, Mat3x3(MatCrossCross, d2, FTmp));
 
 	/* [ F x ] [ d2 x ] * dCoef */
-	MTmp = Mat3x3(FTmp, d2);
+	MTmp = Mat3x3(MatCrossCross, FTmp, d2);
 	WMA.Sub(4, 6 + 4, MTmp);
 	WMA.Add(6 + 4, 6 + 4, MTmp);
 }
@@ -219,7 +219,7 @@ DeformableDispJoint::AssMatFDEPrime(FullSubMatrixHandler& WMA,
 	Vec3 d1Prime(pNode2->GetVCurr()
 		+ pNode2->GetWCurr().Cross(d2)
 		- pNode1->GetVCurr());
-	MTmp = FDEPrime*(Mat3x3(MatCross, d1Prime*dCoef) - Mat3x3(pNode1->GetWCurr(), d1*dCoef));
+	MTmp = FDEPrime*(Mat3x3(MatCross, d1Prime*dCoef) - Mat3x3(MatCrossCross, pNode1->GetWCurr(), d1*dCoef));
 	WMA.Sub(1, 4, MTmp);
 	WMA.Add(6 + 1, 4, MTmp);
 
@@ -229,7 +229,7 @@ DeformableDispJoint::AssMatFDEPrime(FullSubMatrixHandler& WMA,
 	/* F/dot{d} * ( [ ( w2 x d2 ) x ] - [ w1 x ] [ d2 x ] ) * dCoef */
 	Vec3 d2Prime(pNode2->GetWCurr().Cross(d2));
 	MTmp = FDEPrime*(Mat3x3(MatCross, d2Prime*dCoef)
-		- Mat3x3(pNode1->GetWCurr(), d2*dCoef));
+		- Mat3x3(MatCrossCross, pNode1->GetWCurr(), d2*dCoef));
 	WMA.Add(1, 6 + 4, MTmp);
 	WMA.Sub(6 + 1, 6 + 4, MTmp);
 

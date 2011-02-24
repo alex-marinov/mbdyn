@@ -136,7 +136,7 @@ InLineJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.PutCross(42+1, iNode1FirstMomIndex+3,
 		iNode1FirstPosIndex, -FTmp);
    WM.PutMat3x3(48+1, iNode1FirstMomIndex+3,		
-		iNode1FirstPosIndex+3, Mat3x3(x2mx1, FTmp));
+		iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, x2mx1, FTmp));
    WM.PutCross(57+1, iNode1FirstMomIndex+3,
 		iNode2FirstPosIndex, FTmp);
    WM.PutCross(63+1, iNode2FirstMomIndex,
@@ -332,21 +332,21 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(19, 10, MTmp);           
    WM.Sub(10, 7, MTmp);            
    
-   MTmp = Mat3x3(x2mx1, FTmp);
+   MTmp = Mat3x3(MatCrossCross, x2mx1, FTmp);
    WM.Add(4, 4, MTmp);             
 
    WM.Add(10, 10, MTmp);           
  
-   MTmp = Mat3x3(Omega, FTmp) + Mat3x3(MatCross, FPrimeTmp);
+   MTmp = Mat3x3(MatCrossCross, Omega, FTmp) + Mat3x3(MatCross, FPrimeTmp);
    WM.Add(7, 4, MTmp);             
-   WM.Add(19, 4, -MTmp);           
+   WM.Sub(19, 4, MTmp);
    
    MTmp = Mat3x3(MatCross, Omega.Cross(FTmp) + FPrimeTmp);
-   WM.Add(10, 1, -MTmp);
+   WM.Sub(10, 1, MTmp);
    WM.Add(10, 13, MTmp);
    
-   MTmp = Mat3x3((Mat3x3(MatCross, xp2mxp1) + Mat3x3(x2mx1, Omega))*Mat3x3(MatCross, FTmp)
-		 + Mat3x3(x2mx1, FPrimeTmp));
+   MTmp = Mat3x3((Mat3x3(MatCross, xp2mxp1) + Mat3x3(MatCrossCross, x2mx1, Omega))*Mat3x3(MatCross, FTmp)
+		 + Mat3x3(MatCrossCross, x2mx1, FPrimeTmp));
    WM.Add(10, 4, MTmp);
 
    return WorkMat;
@@ -529,20 +529,20 @@ InLineWithOffsetJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.PutCross(54+1, iNode1FirstMomIndex+3,
 		iNode1FirstPosIndex, -FTmp);
    WM.PutMat3x3(60+1, iNode1FirstMomIndex+3,		
-		iNode1FirstPosIndex+3, Mat3x3(x2qmx1, FTmp));
+		iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, x2qmx1, FTmp));
    WM.PutCross(69+1, iNode1FirstMomIndex+3,
 		iNode2FirstPosIndex, FTmp);
    WM.PutCross(75+1, iNode2FirstMomIndex,
 		iNode2FirstPosIndex+3, -FTmp);
 
-   Mat3x3 MTmp(FTmp, qTmp);
+   Mat3x3 MTmp(MatCrossCross, FTmp, qTmp);
    WM.PutMat3x3(81+1, iNode1FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, -MTmp);
    WM.PutMat3x3(90+1, iNode2FirstMomIndex+3,
 		 iNode2FirstPosIndex+3, -MTmp);
 
    WM.PutMat3x3(99+1, iNode2FirstMomIndex+3,		
-		 iNode1FirstPosIndex+3, Mat3x3(-qTmp, FTmp));
+		 iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, -qTmp, FTmp));
    
    return WorkMat;
 }
@@ -785,12 +785,12 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(19, 10, MTmp);           
    WM.Sub(10, 7, MTmp);            
    
-   MTmp = Mat3x3(x2qmx1, FTmp);
+   MTmp = Mat3x3(MatCrossCross, x2qmx1, FTmp);
    WM.Add(4, 4, MTmp);             
 
    WM.Add(10, 10, MTmp);           
  
-   MTmp = Mat3x3(Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp);
+   MTmp = Mat3x3(MatCrossCross, Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp);
    WM.Add(7, 4, MTmp);             
    WM.Sub(19, 4, MTmp);           
    
@@ -798,11 +798,11 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(10, 1, MTmp);
    WM.Add(10, 13, MTmp);
    
-   MTmp = Mat3x3((Mat3x3(MatCross, xp2qmxp1) + Mat3x3(x2qmx1, Omega1))*Mat3x3(MatCross, FTmp)
-		 + Mat3x3(x2qmx1, FPrimeTmp));
+   MTmp = Mat3x3((Mat3x3(MatCross, xp2qmxp1) + Mat3x3(MatCrossCross, x2qmx1, Omega1))*Mat3x3(MatCross, FTmp)
+		 + Mat3x3(MatCrossCross, x2qmx1, FPrimeTmp));
    WM.Add(10, 4, MTmp);
 
-   MTmp = Mat3x3(FTmp, qTmp);
+   MTmp = Mat3x3(MatCrossCross, FTmp, qTmp);
    WM.Add(16, 16, MTmp);
    WM.Add(22, 22, MTmp);
    
@@ -813,12 +813,12 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(16, 4, MTmp);
    WM.Add(22, 10, MTmp);
    
-   MTmp = (Mat3x3(FTmp, Omega2) + Mat3x3(MatCross, Omega1.Cross(FTmp) + FPrimeTmp))*Mat3x3(MatCross, qTmp);
+   MTmp = (Mat3x3(MatCrossCross, FTmp, Omega2) + Mat3x3(MatCross, Omega1.Cross(FTmp) + FPrimeTmp))*Mat3x3(MatCross, qTmp);
    WM.Add(22, 16, MTmp);
    WM.Sub(10, 16, MTmp);
    
-   MTmp = Mat3x3(qTmp.Cross(Omega2), FTmp)
-     - Mat3x3(MatCross, qTmp)*(Mat3x3(Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp));
+   MTmp = Mat3x3(MatCrossCross, qTmp.Cross(Omega2), FTmp)
+     - Mat3x3(MatCross, qTmp)*(Mat3x3(MatCrossCross, Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp));
    WM.Add(22, 4, MTmp);
 
    return WorkMat;

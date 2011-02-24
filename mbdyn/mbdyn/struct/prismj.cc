@@ -157,15 +157,15 @@ PrismaticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 e2b(R2hTmp.GetVec(2));
    Vec3 e3b(R2hTmp.GetVec(3));
    
-   Mat3x3 MWedge(Mat3x3(e3b, e2a*MTmp.dGet(1))
-		 +Mat3x3(e1b, e3a*MTmp.dGet(2))
-		 +Mat3x3(e2b, e1a*MTmp.dGet(3)));
+   Mat3x3 MWedge(Mat3x3(MatCrossCross, e3b, e2a*MTmp(1))
+		 +Mat3x3(MatCrossCross, e1b, e3a*MTmp(2))
+		 +Mat3x3(MatCrossCross, e2b, e1a*MTmp(3)));
    Mat3x3 MWedgeT(MWedge.Transpose());
    
    WM.Add(1, 1, MWedge);
    WM.Sub(1, 4, MWedgeT);
-   
-   WM.Add(4, 1, MWedgeT);   
+ 
+   WM.Add(4, 1, MWedgeT); 
    WM.Sub(4, 4, MWedge);
 
    Vec3 v1(e2a.Cross(e3b));
@@ -387,9 +387,9 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 e3b(R2hTmp.GetVec(3));
    
    /* */
-   Mat3x3 MWedge(Mat3x3(e3b, e2a*M(1))
-		 + Mat3x3(e1b, e3a*M(2))
-		 + Mat3x3(e2b, e1a*M(3)));
+   Mat3x3 MWedge(Mat3x3(MatCrossCross, e3b, e2a*M(1))
+	 + Mat3x3(MatCrossCross, e1b, e3a*M(2))
+	 + Mat3x3(MatCrossCross, e2b, e1a*M(3)));
    Mat3x3 MWedgeT(MWedge.Transpose());
    
    /* Equilibrio */
@@ -408,22 +408,22 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    
    
    MWedge = 
-     ( (Mat3x3(e3b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e3b*M(1))))
+     ( (Mat3x3(MatCrossCross, e3b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e3b*M(1))))
       + Mat3x3(MatCross, e3b*MPrime(1)) )*Mat3x3(MatCross, e2a)
-     +( (Mat3x3(e1b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e1b*M(2))))
+     +( (Mat3x3(MatCrossCross, e1b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e1b*M(2))))
        +Mat3x3(MatCross, e1b*MPrime(2)) )*Mat3x3(MatCross, e3a)
-     +( (Mat3x3(e2b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e2b*M(3))))
+     +( (Mat3x3(MatCrossCross, e2b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e2b*M(3))))
        +Mat3x3(MatCross, e2b*MPrime(3)) )*Mat3x3(MatCross, e1a);
 
    WM.Add(4, 1, MWedge);
    WM.Sub(10, 1, MWedge);
      
    MWedge =
-     ( (Mat3x3(e2a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e2a*M(1))))
+     ( (Mat3x3(MatCrossCross, e2a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e2a*M(1))))
       + Mat3x3(MatCross, e2a*MPrime(1)) )*Mat3x3(MatCross, e3b)
-     +( (Mat3x3(e3a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e3a*M(2))))
+     +( (Mat3x3(MatCrossCross, e3a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e3a*M(2))))
        + Mat3x3(MatCross, e3a*MPrime(2)) )*Mat3x3(MatCross, e1b)
-     +( (Mat3x3(e1a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e1a*M(3))))
+     +( (Mat3x3(MatCrossCross, e1a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e1a*M(3))))
        + Mat3x3(MatCross, e1a*MPrime(3)) )*Mat3x3(MatCross, e2b);
  
    WM.Sub(4, 7, MWedge);
@@ -442,41 +442,41 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	      "first and second node hinge axes are (nearly) orthogonal"
 	      << std::endl);
       throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-   }      
+   }
    
    MWedge = Mat3x3(v1, v2, v3);
    
    /* Equilibrio */
    WM.Add(1, 13, MWedge);
-   WM.Add(7, 13, -MWedge);
+   WM.Sub(7, 13, MWedge);
 
    /* Derivate dell'equilibrio */
    WM.Add(4, 16, MWedge);
-   WM.Add(10, 16, -MWedge);
+   WM.Sub(10, 16, MWedge);
    
 
    MWedge = MWedge.Transpose();
    
    /* Equaz. di vincolo */
    WM.Add(13, 1, MWedge);
-   WM.Add(13, 7, -MWedge);
+   WM.Sub(13, 7, MWedge);
       
    /* Devivate delle equaz. di vincolo */
    WM.Add(16, 4, MWedge);
-   WM.Add(16, 10, -MWedge);
+   WM.Sub(16, 10, MWedge);
       
-   v1 = e3b.Cross(e2a.Cross(Omega1))+e2a.Cross(Omega2.Cross(e3b));
-   v2 = e1b.Cross(e3a.Cross(Omega1))+e3a.Cross(Omega2.Cross(e1b));
-   v3 = e2b.Cross(e1a.Cross(Omega1))+e1a.Cross(Omega2.Cross(e2b));
+   v1 = e3b.Cross(e2a.Cross(Omega1)) + e2a.Cross(Omega2.Cross(e3b));
+   v2 = e1b.Cross(e3a.Cross(Omega1)) + e3a.Cross(Omega2.Cross(e1b));
+   v3 = e2b.Cross(e1a.Cross(Omega1)) + e1a.Cross(Omega2.Cross(e2b));
    
    MWedge = Mat3x3(v1, v2, v3);
    
    /* Derivate dell'equilibrio */
    WM.Add(4, 13, MWedge);
-   WM.Add(10, 13, -MWedge);
+   WM.Sub(10, 13, MWedge);
    
    /* Devivate delle equaz. di vincolo */
-   Omega1 = Omega1-Omega2;
+   Omega1 = Omega1 - Omega2;
    
    v1 = e2a.Cross(e3b.Cross(Omega1));
    Vec3 v1p(e3b.Cross(Omega1.Cross(e2a)));
@@ -486,17 +486,17 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 v3p(e2b.Cross(Omega1.Cross(e1a)));
    
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
-      doublereal d = v1.dGet(iCnt);
+      doublereal d = v1(iCnt);
       WM.PutCoef(16, 0+iCnt, d);
       d = v1p.dGet(iCnt);
       WM.PutCoef(16, 6+iCnt, d);
 
-      d = v2.dGet(iCnt);
+      d = v2(iCnt);
       WM.PutCoef(17, 0+iCnt, d);
       d = v2p.dGet(iCnt);
       WM.PutCoef(17, 6+iCnt, d);
       
-      d = v3.dGet(iCnt);
+      d = v3(iCnt);
       WM.PutCoef(18, 0+iCnt, d);
       d = v3p.dGet(iCnt);
       WM.PutCoef(18, 6+iCnt, d);

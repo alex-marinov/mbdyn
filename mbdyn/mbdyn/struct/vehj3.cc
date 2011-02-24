@@ -392,16 +392,16 @@ DeformableJoint::AssMatCommon(FullSubMatrixHandler& WM, doublereal dCoef)
 	WM.Add(4, 6 + 1, FCross);
 	WM.Sub(6 + 1, 4, FCross);
 
-	Mat3x3 MTmp(FTmp, d2);
+	Mat3x3 MTmp(MatCrossCross, FTmp, d2);
 
 	WM.Add(6 + 4, 6 + 4, MTmp);
 	WM.Sub(4, 6 + 4, MTmp);
 
-	MTmp = Mat3x3(d2, FTmp) + MCross;
+	MTmp = Mat3x3(MatCrossCross, d2, FTmp) + MCross;
 
 	WM.Sub(6 + 4, 4, MTmp);
 
-	MTmp = Mat3x3(d1, FTmp) + MCross;
+	MTmp = Mat3x3(MatCrossCross, d1, FTmp) + MCross;
 
 	WM.Add(4, 4, MTmp);
 }
@@ -529,8 +529,8 @@ DeformableJoint::AssMatViscous(FullSubMatrixHandler& WMA,
 	Mat3x3 A1tPw((d1.Cross(F_thetaPrime) + M_thetaPrime)*Mat3x3(MatCross, Omega2*dCoef));
 	Mat3x3 A2tPw((d2.Cross(F_thetaPrime) + M_thetaPrime)*Mat3x3(MatCross, Omega2*dCoef));
 
-	Mat3x3 D1(Mat3x3(MatCross, d1Prime*dCoef) - Mat3x3(Omega1, d1*dCoef));
-	Mat3x3 D2(Mat3x3(MatCross, d2Prime*dCoef) - Mat3x3(Omega1, d2*dCoef));
+	Mat3x3 D1(Mat3x3(MatCross, d1Prime*dCoef) - Mat3x3(MatCrossCross, Omega1, d1*dCoef));
+	Mat3x3 D2(Mat3x3(MatCross, d2Prime*dCoef) - Mat3x3(MatCrossCross, Omega1, d2*dCoef));
 
 	MTmp = A1dP*Mat3x3(MatCross, Omega1*dCoef);
 

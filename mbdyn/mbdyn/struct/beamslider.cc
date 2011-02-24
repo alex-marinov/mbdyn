@@ -304,7 +304,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(6*(1+Beam::NUMNODES)+1+1, 3+1, MTmp);
 
 	/* corpo: Delta gb (momento) */
-	Mat3x3 Ffb(F, fb*(dCoef));
+	Mat3x3 Ffb(MatCrossCross, F, fb*dCoef);
 	WM.Sub(3+1, 3+1, Ffb);
 
 	/* trave: Delta gb (momento) */
@@ -399,7 +399,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			Vec3 mmTmp(mm*(dNp[iN]*dCoef));
 			Mat3x3 mmTmp2(MatCross, mmTmp);
-			Mat3x3 mmTmp3(mmTmp, fTmp[iN]);
+			Mat3x3 mmTmp3(MatCrossCross, mmTmp, fTmp[iN]);
 
 #if 0
 			Vec3 MTmp(M*(dNp[iN]*dCoef));
@@ -490,7 +490,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 				6*(1+Beam::NUMNODES)+1, d);
 
 		/* Reazione vincolare: Delta gb */
-		Mat3x3 mmTmp(l, mm*dCoef);
+		Mat3x3 mmTmp(MatCrossCross, l, mm*dCoef);
 		WM.Sub(3+1, 3+1, mmTmp);
 		if (dW[1] == 0) {
 			WM.Add(6*activeNode+3+1, 3+1, mmTmp);

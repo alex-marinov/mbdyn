@@ -132,14 +132,14 @@ SphericalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    WM.PutCross(4, iNode1FirstMomIndex+3, iFirstReactionIndex, dTmp1);
    
    WM.PutMat3x3(10, iNode1FirstMomIndex+3,
-		 iNode1FirstPosIndex+3, Mat3x3(FTmp, dTmp1));
+		 iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, FTmp, dTmp1));
 
    /* termini di reazione sul nodo 2 */
    WM.PutDiag(19, iNode2FirstMomIndex, iFirstReactionIndex, -1.);
    WM.PutCross(22, iNode2FirstMomIndex+3, iFirstReactionIndex, -dTmp2);
 
    WM.PutMat3x3(28, iNode2FirstMomIndex+3,
-		 iNode2FirstPosIndex+3, Mat3x3(FTmp, -dTmp2));
+		 iNode2FirstPosIndex+3, Mat3x3(MatCrossCross, FTmp, -dTmp2));
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
@@ -360,8 +360,8 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 d2Tmp(R2*d2);
 
    /* Matrici F/\d1/\, -F/\d2/\ */
-   Mat3x3 FWedged1Wedge(F, d1Tmp);
-   Mat3x3 FWedged2Wedge(F, -d2Tmp);
+   Mat3x3 FWedged1Wedge(MatCrossCross, F, d1Tmp);
+   Mat3x3 FWedged2Wedge(MatCrossCross, F, -d2Tmp);
    
    /* Matrici (omega1/\d1)/\, -(omega2/\d2)/\ */
    Mat3x3 O1Wedged1Wedge(MatCross, Omega1.Cross(d1Tmp));
@@ -376,13 +376,13 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Sub(16, 25, Mat3x3(MatCross, d2Tmp));
    
    /* Derivata dell'equazione di momento, nodo 1 */
-   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega1))*Mat3x3(MatCross, d1Tmp));
+   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(MatCrossCross, F, Omega1))*Mat3x3(MatCross, d1Tmp));
    WM.Add(10, 10, FWedged1Wedge);
    WM.Add(10, 25, O1Wedged1Wedge);
    WM.Add(10, 28, Mat3x3(MatCross, d1Tmp));
    
    /* Derivata dell'equazione di momento, nodo 2 */
-   WM.Sub(22, 16, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega2))*Mat3x3(MatCross, d2Tmp));
+   WM.Sub(22, 16, (Mat3x3(MatCross, FPrime) + Mat3x3(MatCrossCross, F, Omega2))*Mat3x3(MatCross, d2Tmp));
    WM.Add(22, 22, FWedged2Wedge);
    WM.Add(22, 25, O2Wedged2Wedge);
    WM.Sub(22, 28, Mat3x3(MatCross, d2Tmp));
@@ -562,7 +562,7 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    /* Termini diagonali del tipo: c*F/\d/\Delta_g 
     * nota: la forza e' gia' moltiplicata per dCoef */      
    WM.PutMat3x3(10, iFirstMomentumIndex+3,
-		 iFirstPositionIndex+3, Mat3x3(F*dCoef, dTmp));
+		 iFirstPositionIndex+3, Mat3x3(MatCrossCross, F*dCoef, dTmp));
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
    
@@ -698,7 +698,7 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 dTmp(R*d);
 
    /* Matrici F/\d/\ */
-   Mat3x3 FWedgedWedge(F, dTmp);
+   Mat3x3 FWedgedWedge(MatCrossCross, F, dTmp);
    
    /* Matrici (omega/\d)/\ */
    Mat3x3 OWedgedWedge(MatCross, Omega.Cross(dTmp));
@@ -708,7 +708,7 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(4, 13, Mat3x3(MatCross, dTmp));
    
    /* Derivata dell'equazione di momento */
-   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega))*Mat3x3(MatCross, dTmp));
+   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(MatCrossCross, F, Omega))*Mat3x3(MatCross, dTmp));
    WM.Add(10, 10, FWedgedWedge);
    WM.Add(10, 13, OWedgedWedge);
    WM.Add(10, 16, Mat3x3(MatCross, dTmp));

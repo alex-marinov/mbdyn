@@ -426,11 +426,11 @@ DriveDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	/* node 2 constraint */
 	WM.Sub(12 + 1, 9 + 1, MTmp);
 
-	MTmp = Mat3x3(F, dRef*dCoef);
+	MTmp = Mat3x3(MatCrossCross, F, dRef*dCoef);
 	/* node 1 moment */
 	WM.Sub(3 + 1, 3 + 1, MTmp);
 	
-	MTmp = Mat3x3(F, f2Ref*dCoef);
+	MTmp = Mat3x3(MatCrossCross, F, f2Ref*dCoef);
 	/* node 2 moment */
 	WM.Add(9 + 1, 9 + 1, MTmp);
 }
@@ -580,27 +580,27 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* node 2 constraint derivative */
 	WM.Sub(27 + 1, 21 + 1, MTmp);
 
-	MTmp = Mat3x3(F, dRef);
+	MTmp = Mat3x3(MatCrossCross, F, dRef);
 	/* node 1 moment */
 	WM.Sub(3 + 1, 3 + 1, MTmp);
 	
-	MTmp = Mat3x3(FPrime, dRef);
+	MTmp = Mat3x3(MatCrossCross, FPrime, dRef);
 	/* node 1 moment derivative */
 	WM.Sub(9 + 1, 9 + 1, MTmp);
 	
-	MTmp = Mat3x3(F, f2Ref);
+	MTmp = Mat3x3(MatCrossCross, F, f2Ref);
 	/* node 2 moment */
 	WM.Add(15 + 1, 15 + 1, MTmp);
 
-	MTmp = Mat3x3(FPrime, f2Ref);
+	MTmp = Mat3x3(MatCrossCross, FPrime, f2Ref);
 	/* node 2 moment derivative */
 	WM.Add(21 + 1, 21 + 1, MTmp);
 
-	MTmp = Mat3x3(pNode1->GetWRef(), dRef);
+	MTmp = Mat3x3(MatCrossCross, pNode1->GetWRef(), dRef);
 	/* node 2 constraint derivative */
 	WM.Sub(27 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(pNode2->GetWRef(), f2Ref);
+	MTmp = Mat3x3(MatCrossCross, pNode2->GetWRef(), f2Ref);
 	/* node 2 constraint derivative */
 	WM.Add(27 + 1, 15 + 1, MTmp);
 
@@ -1032,7 +1032,7 @@ DriveDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 	/* node constraint */
 	WM.Sub(6 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(F, fRef*dCoef);
+	MTmp = Mat3x3(MatCrossCross, F, fRef*dCoef);
 
 	/* node moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
@@ -1147,15 +1147,15 @@ DriveDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* node 2 constraint derivative */
 	WM.Sub(15 + 1, 9 + 1, MTmp);
 
-	MTmp = Mat3x3(F, fRef);
+	MTmp = Mat3x3(MatCrossCross, F, fRef);
 	/* node 2 moment */
 	WM.Add(3 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(FPrime, fRef);
+	MTmp = Mat3x3(MatCrossCross, FPrime, fRef);
 	/* node 2 moment derivative */
 	WM.Add(9 + 1, 9 + 1, MTmp);
 
-	MTmp = Mat3x3(pNode->GetWRef(), fRef);
+	MTmp = Mat3x3(MatCrossCross, pNode->GetWRef(), fRef);
 	/* node 2 constraint derivative */
 	WM.Add(15 + 1, 3 + 1, MTmp);
 

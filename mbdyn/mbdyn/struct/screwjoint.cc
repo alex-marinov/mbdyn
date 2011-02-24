@@ -568,10 +568,10 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 					HorridusMatrix +
 					R1GammaInvT * Mat3x3(MatCross, e1hz)
 			) * (dPitch / ( 2. * M_PI )) -
-			Mat3x3(e1hz, R1f1) - 
-			Mat3x3(D, e1hz) +
-			Mat3x3(e1hz, R1f1) -
-			Mat3x3(R1f1, e1hz)
+			Mat3x3(MatCrossCross, e1hz, R1f1) - 
+			Mat3x3(MatCrossCross, D, e1hz) +
+			Mat3x3(MatCrossCross, e1hz, R1f1) -
+			Mat3x3(MatCrossCross, R1f1, e1hz)
 		) * dLambdadCoef
 	);
 	//C1 - g2
@@ -580,7 +580,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 				e1hz.Cross(R1GammaInvT.Transpose()) -
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) +
-			Mat3x3(e1hz, R2f2)
+			Mat3x3(MatCrossCross, e1hz, R2f2)
 		) * dLambdadCoef
 	);
 	//C1 - lambda
@@ -591,7 +591,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 				- Mat3x3(MatCross, R1GammaInvT*e1hz) - 
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) +
-			Mat3x3(R2f2, e1hz)
+			Mat3x3(MatCrossCross, R2f2, e1hz)
 		) * dLambdadCoef
 	);
 	//C2 - g2
@@ -599,7 +599,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 			(
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) -
-			Mat3x3(e1hz, R2f2)
+			Mat3x3(MatCrossCross, e1hz, R2f2)
 		) * dLambdadCoef
 	); 
 	//C2 - lambda

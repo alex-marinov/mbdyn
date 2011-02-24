@@ -667,7 +667,7 @@ Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[0].Cross(AzTmp[iSez][i].GetMat11()));
 			WMA.Sub(iRow1 + 3, 6*i + 4,
 				AzTmp[iSez][i].GetMat22()
-				- Mat3x3(Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
+				- Mat3x3(MatCrossCross, Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 				+ bTmp[0].Cross(AzTmp[iSez][i].GetMat12()));
 
 			/* Equazione in avanti: */
@@ -680,7 +680,7 @@ Beam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[1].Cross(AzTmp[iSez][i].GetMat11()));
 			WMA.Add(iRow2 + 3, 6*i + 4,
 				AzTmp[iSez][i].GetMat22()
-				+ Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
+				+ Mat3x3(MatCrossCross, Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 				+ bTmp[1].Cross(AzTmp[iSez][i].GetMat12()));
 		}
 
@@ -1935,8 +1935,8 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 			AzTmp[iSez][i] +=
 				ERef[iSez]*Mat6x6(Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)),
 					Zero3x3,
-					(Mat3x3(MatCross, LPrime[iSez]) - Mat3x3(Omega[iSez], L[iSez]))*(dN3[iSez][i]*dCoef)
-						+ Mat3x3(Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
+					(Mat3x3(MatCross, LPrime[iSez]) - Mat3x3(MatCrossCross, Omega[iSez], L[iSez]))*(dN3[iSez][i]*dCoef)
+						+ Mat3x3(MatCrossCross, Omega[iSez], fTmp[i]*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))
 						+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
 					Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
 			AzPrimeTmp[iSez][i] = ERef[iSez]*AzPrimeTmp[iSez][i];
@@ -1969,7 +1969,7 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[0].Cross(AzTmp[iSez][i].GetMat11()));
 			WMA.Sub(iRow1 + 3, 6*i + 4,
 				 AzTmp[iSez][i].GetMat22()
-				- Mat3x3(Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
+				- Mat3x3(MatCrossCross, Az[iSez].GetVec1()*(-dCoef*dN3[iSez][i]), fTmp[i])
 				+ bTmp[0].Cross(AzTmp[iSez][i].GetMat12()));
 
 			/* Equazione in avanti: */
@@ -1982,7 +1982,7 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[1].Cross(AzTmp[iSez][i].GetMat11()));
 			WMA.Add(iRow2 + 3, 6*i + 4,
 				AzTmp[iSez][i].GetMat22()
-				+ Mat3x3(Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
+				+ Mat3x3(MatCrossCross, Az[iSez].GetVec1()*(dCoef*dN3[iSez][i]), fTmp[i])
 				+ bTmp[1].Cross(AzTmp[iSez][i].GetMat12()));
 
 

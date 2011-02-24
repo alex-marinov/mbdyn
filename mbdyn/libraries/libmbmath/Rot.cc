@@ -65,7 +65,7 @@ Mat3x3 RotManip::Rot(const Vec3 & phi) {
 	CoeffB(phi,phi,coeff);
 
 	Mat3x3 Phi(1., phi*coeff[0]);		/* I + c[0] * phi x */
-	Phi += Mat3x3(phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
+	Phi += Mat3x3(MatCrossCross, phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
 
 	return Phi;
 };
@@ -77,7 +77,7 @@ Mat3x3 RotManip::DRot(const Vec3 & phi) {
 	CoeffC(phi,phi,coeff);
 
 	Mat3x3 Ga(1., phi*coeff[1]);		/* I + c[0] * phi x */
-	Ga += Mat3x3(phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
+	Ga += Mat3x3(MatCrossCross, phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
 
 	return Ga;
 };
@@ -89,10 +89,10 @@ void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
 	CoeffC(phi,phi,coeff);
 
 	Phi = Mat3x3(1., phi*coeff[0]);
-	Phi += Mat3x3(phi, phi*coeff[1]);
+	Phi += Mat3x3(MatCrossCross, phi, phi*coeff[1]);
 
 	Ga = Mat3x3(1., phi*coeff[1]);
-	Ga += Mat3x3(phi, phi*coeff[2]);
+	Ga += Mat3x3(MatCrossCross, phi, phi*coeff[2]);
 
 	return;
 };
@@ -104,7 +104,7 @@ Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 	CoeffCStar(phi,phi,coeff,coeffs);
 
 	Mat3x3 GaIT(1., phi*.5);
-	GaIT += Mat3x3(phi, phi*coeffs[0]);
+	GaIT += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return GaIT;
 };
@@ -115,7 +115,7 @@ Mat3x3 RotManip::DRot_I(const Vec3 & phi) {
 	CoeffCStar(phi,phi,coeff,coeffs);
 
 	Mat3x3 GaI(1., phi*(-.5));
-	GaI += Mat3x3(phi, phi*coeffs[0]);
+	GaI += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return GaI;
 };
@@ -127,10 +127,10 @@ void RotManip::RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT) {
 	CoeffCStar(phi,phi,coeff,coeffs);
 
 	PhiIT = Mat3x3(1., phi*coeff[0]);
-	PhiIT += Mat3x3(phi, phi*coeff[1]);
+	PhiIT += Mat3x3(MatCrossCross, phi, phi*coeff[1]);
 
 	GaIT = Mat3x3(1., phi*.5);
-	GaIT += Mat3x3(phi, phi*coeffs[0]);
+	GaIT += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return;
 };
@@ -184,10 +184,10 @@ Mat3x3 RotManip::Elle
     CoeffE(phi,phi,coeff);
     
     Mat3x3 L(MatCross, a*(-coeff[1]));
-    L -= Mat3x3(phi, a*coeff[2]);
+    L -= Mat3x3(MatCrossCross, phi, a*coeff[2]);
     L -= Mat3x3(MatCross, phi.Cross(a*coeff[2]));
     L += (phi.Cross(a)).Tens(phi*coeff[3]);
-    L += (Mat3x3(phi,phi)*a).Tens(phi*coeff[4]);
+    L += (Mat3x3(MatCrossCross, phi, phi)*a).Tens(phi*coeff[4]);
 
     return L;
 };

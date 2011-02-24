@@ -674,7 +674,9 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		}
 
 		/* momenti statici J[1,2] = -[S/\] + c[-2w/\S/\ + S/\w/\] */
-		WM.Add(6 + 1, 9 + 1, Mat3x3(S, wr*dCoef) - Mat3x3(wr, S*(2.*dCoef)) - Mat3x3(MatCross, S));
+		WM.Add(6 + 1, 9 + 1, Mat3x3(MatCrossCross, S, wr*dCoef)
+			- Mat3x3(MatCrossCross, wr, S*(2.*dCoef))
+			- Mat3x3(MatCross, S));
 
 		/* J[2,1] = [S/\] */
 		WM.Add(9 + 1, 6 + 1, Mat3x3(MatCross, S));
@@ -1620,9 +1622,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 d2Tmp(R2*d2);
 
 		/* Matrici F/\d1/\, -F/\d2/\ , F/\omega1/\ */
-		Mat3x3 FWedged1Wedge(F, d1Tmp);
-		Mat3x3 FWedged2Wedge(F, d2Tmp);
-		Mat3x3 FWedgeO1Wedge(F, Omega1);
+		Mat3x3 FWedged1Wedge(MatCrossCross, F, d1Tmp);
+		Mat3x3 FWedged2Wedge(MatCrossCross, F, d2Tmp);
+		Mat3x3 FWedgeO1Wedge(MatCrossCross, F, Omega1);
 
 		/* Matrici (omega1/\d1)/\, -(omega2/\d2)/\ */
 		Mat3x3 O1Wedged1Wedge(MatCross, Omega1.Cross(d1Tmp));
@@ -1659,8 +1661,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		if (pModalNode) {
 			/* derivata dell'equazione di momento, nodo 1 */
 			WM.Add(9 + 1, 3 + 1,
-				Mat3x3(FPrime, d1Tmp) + F.Cross(Mat3x3(Omega1, d1Tmp))
-				+ Mat3x3(F, R*(PHIt*b)));
+				Mat3x3(MatCrossCross, FPrime, d1Tmp) + F.Cross(Mat3x3(MatCrossCross, Omega1, d1Tmp))
+				+ Mat3x3(MatCrossCross, F, R*(PHIt*b)));
 			WM.Add(9 + 1, 9 + 1, FWedged1Wedge);
 			WM.Add(9 + 1, iOffset1 + 1, O1Wedged1Wedge + Mat3x3(MatCross, R*(PHIt*b)));
 			WM.Add(9 + 1, iOffset1 + 6 + 1, Mat3x3(MatCross, d1Tmp));
@@ -1683,7 +1685,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* Derivata dell'equazione di momento, nodo 2 */
 		WM.Add(iOffset2 + 9 + 1, iOffset2 + 3 + 1,
-				Mat3x3(FPrime, -d2Tmp) - F.Cross(Mat3x3(Omega2, d2Tmp)));
+			Mat3x3(MatCrossCross, FPrime, -d2Tmp)
+			- F.Cross(Mat3x3(MatCrossCross, Omega2, d2Tmp)));
 		WM.Sub(iOffset2 + 9 + 1, iOffset2 + 9 + 1, FWedged2Wedge);
 		WM.Add(iOffset2 + 9 + 1, iOffset1 + 1, O2Wedged2Wedge);
 		WM.Sub(iOffset2 + 9 + 1, iOffset1 + 6 + 1, Mat3x3(MatCross, d2Tmp));
@@ -1723,9 +1726,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 e3b(R2.GetVec(3));
 
 		/* */
-		Mat3x3 MWedge(Mat3x3(e3b, e2tota*M.dGet(1))
-				+ Mat3x3(e1b, e3tota*M.dGet(2))
-				+ Mat3x3(e2b, e1tota*M.dGet(3)));
+		Mat3x3 MWedge(Mat3x3(MatCrossCross, e3b, e2tota*M.dGet(1))
+			+ Mat3x3(MatCrossCross, e1b, e3tota*M.dGet(2))
+			+ Mat3x3(MatCrossCross, e2b, e1tota*M.dGet(3)));
 		Mat3x3 MWedgeT(MWedge.Transpose());
 
 		/* Equilibrio */
@@ -1741,9 +1744,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		Vec3 e1ra(R.GetVec(1));
 		Vec3 e2ra(R.GetVec(2));
 		Vec3 e3ra(R.GetVec(3));
-		Mat3x3 M1Wedge(Mat3x3(e3b, e2ra*M.dGet(1))
-				+ Mat3x3(e1b, e3ra*M.dGet(2))
-				+ Mat3x3(e2b, e1ra*M.dGet(3)));
+		Mat3x3 M1Wedge(Mat3x3(MatCrossCross, e3b, e2ra*M.dGet(1))
+			+ Mat3x3(MatCrossCross, e1b, e3ra*M.dGet(2))
+			+ Mat3x3(MatCrossCross, e2b, e1ra*M.dGet(3)));
 
 		SubMat1.LeftMult(M1Wedge, PHIr);
 		if (pModalNode) {
@@ -1789,24 +1792,24 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		}
 		WM.Sub(iOffset2 + 9 + 1, iOffset2 + 9 + 1, MWedge);
 
-		MWedge = ((Mat3x3(e3b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e3b*M(1))))
-				+ Mat3x3(MatCross, e3b*MPrime(1)))*Mat3x3(MatCross, e2tota)
-				+ ((Mat3x3(e1b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e1b*M(2))))
-				+ Mat3x3(MatCross, e1b*MPrime(2)))*Mat3x3(MatCross, e3tota)
-				+ ((Mat3x3(e2b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e2b*M(3))))
-				+ Mat3x3(MatCross, e2b*MPrime(3)))*Mat3x3(MatCross, e1tota);
+		MWedge = ((Mat3x3(MatCrossCross, e3b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e3b*M(1))))
+			+ Mat3x3(MatCross, e3b*MPrime(1)))*Mat3x3(MatCross, e2tota)
+			+ ((Mat3x3(MatCrossCross, e1b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e1b*M(2))))
+			+ Mat3x3(MatCross, e1b*MPrime(2)))*Mat3x3(MatCross, e3tota)
+			+ ((Mat3x3(MatCrossCross, e2b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e2b*M(3))))
+			+ Mat3x3(MatCross, e2b*MPrime(3)))*Mat3x3(MatCross, e1tota);
 		
 		if (pModalNode) {
 			WM.Add(9 + 1, 3 + 1, MWedge);
 			WM.Sub(iOffset2 + 9 + 1, 3 + 1, MWedge);
 		}
 
-		MWedge = ((Mat3x3(e2tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e2tota*M(1))))
-				+ Mat3x3(MatCross, e2tota*MPrime(1)))*Mat3x3(MatCross, e3b)
-				+ ((Mat3x3(e3tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e3tota*M(2))))
-				+ Mat3x3(MatCross, e3tota*MPrime(2)))*Mat3x3(MatCross, e1b)
-				+ ((Mat3x3(e1tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e1tota*M(3))))
-				+ Mat3x3(MatCross, e1tota*MPrime(3)))*Mat3x3(MatCross, e2b);
+		MWedge = ((Mat3x3(MatCrossCross, e2tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e2tota*M(1))))
+			+ Mat3x3(MatCross, e2tota*MPrime(1)))*Mat3x3(MatCross, e3b)
+			+ ((Mat3x3(MatCrossCross, e3tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e3tota*M(2))))
+			+ Mat3x3(MatCross, e3tota*MPrime(2)))*Mat3x3(MatCross, e1b)
+			+ ((Mat3x3(MatCrossCross, e1tota, Omega2) + Mat3x3(MatCross, Omega1.Cross(e1tota*M(3))))
+			+ Mat3x3(MatCross, e1tota*MPrime(3)))*Mat3x3(MatCross, e2b);
 
 		if (pModalNode) {
 			WM.Sub(9 + 1, iOffset2 + 3 + 1, MWedge);
@@ -2538,7 +2541,7 @@ Modal::dGetPrivData(unsigned int i) const
 				XPP += W0.Cross(R*(XPn*2.));
 
 				Vec3 X(R*Xn);
-				XPP += Mat3x3(W0, W0)*X;
+				XPP += W0.Cross(W0.Cross(X));
 				XPP += pModalNode->GetWPCurr().Cross(X);
 				XPP += pModalNode->GetXPPCurr();
 			}
@@ -2669,9 +2672,9 @@ Modal::GetJ_int(void) const
 	}
 
 	return R*JTmp.MulMT(R)
-		- Mat3x3(x, x*dMass)
-		- Mat3x3(x, s)
-		- Mat3x3(s, x);
+		- Mat3x3(MatCrossCross, x, x*dMass)
+		- Mat3x3(MatCrossCross, x, s)
+		- Mat3x3(MatCrossCross, s, x);
 }
 
 // momentum
@@ -4761,7 +4764,7 @@ ReadModal(DataManager* pDM,
 			JiNodeTmp(2, 2) = FEMJ[iNode - 1](2);
 			JiNodeTmp(3, 3) = FEMJ[iNode - 1](3);
 	
-			JTmpInv += JiNodeTmp - Mat3x3(ui, ui*mi);
+			JTmpInv += JiNodeTmp - Mat3x3(MatCrossCross, ui, ui*mi);
 			STmpInv += ui*mi;
 	
 			/* estrae le forme modali del nodo i-esimo */

@@ -623,7 +623,8 @@ class Mat3x3 {
       pdMat[M33] = 0.;
    };
 #endif
- 
+
+#if 0 
    // will be replaced by MatCrossCross_Manip 
    /*
     Costruttore doppio prodotto vettore.
@@ -640,7 +641,7 @@ class Mat3x3 {
       pdMat[M23] = a.pdVec[V3]*b.pdVec[V2];
       pdMat[M33] = -a.pdVec[V1]*b.pdVec[V1]-a.pdVec[V2]*b.pdVec[V2];
    };
-   
+#endif 
    
    /*
     Costruttore che piglia tre vettori e li affianca a dare la matrice
@@ -1679,7 +1680,7 @@ class MatR_Manip : public Mat3x3_Manip {
       m = Mat3x3(1., g*d);
       
       /* Alla fine sommo il termine d/2*g/\g/\, che e' una matrice piena */
-      m += Mat3x3(g, g*(d/2.));
+      m += Mat3x3(MatCrossCross, g, g*(d/2.));
    };
 };
 

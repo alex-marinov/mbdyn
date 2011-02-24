@@ -55,7 +55,7 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	}
 
 	Vec3 Xcg = S/m;
-	Mat3x3 Jcg = J + Mat3x3(Xcg, S);
+	Mat3x3 Jcg = J + Mat3x3(MatCrossCross, Xcg, S);
 	const Vec3& V = pNode->GetVCurr();
 	const Vec3& W = pNode->GetWCurr();
 	WP = Jcg.LDLSolve(GP - Xcg.Cross(BP) - W.Cross(Jcg*W) + V.Cross(B));

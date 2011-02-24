@@ -379,7 +379,7 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[0].Cross(AzTmp[i].GetMat11()));
 		WMA.Sub(3 + 1, 6*i + 4, 
 				AzTmp[i].GetMat22()
-				- Mat3x3(Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
+				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
 				+ bTmp[0].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
@@ -392,7 +392,7 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[1].Cross(AzTmp[i].GetMat11()));
 		WMA.Add(9 + 1, 6*i + 4, 
 				AzTmp[i].GetMat22()
-				+ Mat3x3(Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
+				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
 				+ bTmp[1].Cross(AzTmp[i].GetMat12()));
 	}
 	
@@ -1362,8 +1362,8 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		
 		AzTmp[i] += ERef*Mat6x6(Mat3x3(MatCross, Omega*(-dN2P[i]*dsdxi*dCoef)),
 				Zero3x3, 
-				(Mat3x3(MatCross, LPrime) - Mat3x3(Omega, L))*(dN2[i]*dCoef)
-					+ Mat3x3(Omega, fTmp[i]*(dN2P[i]*dsdxi*dCoef))
+				(Mat3x3(MatCross, LPrime) - Mat3x3(MatCrossCross, Omega, L))*(dN2[i]*dCoef)
+					+ Mat3x3(MatCrossCross, Omega, fTmp[i]*(dN2P[i]*dsdxi*dCoef))
 					+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN2P[i]*dsdxi*dCoef))),
 				Mat3x3(MatCross, Omega*(-dN2P[i]*dsdxi*dCoef)));
 		
@@ -1390,7 +1390,7 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[0].Cross(AzTmp[i].GetMat11()));
 		WMA.Sub(4, 6*i+4, 
 				AzTmp[i].GetMat22()
-				- Mat3x3(Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
+				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
 				+ bTmp[0].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
@@ -1403,7 +1403,7 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 				+ bTmp[1].Cross(AzTmp[i].GetMat11()));
 		WMA.Add(10, 6*i+4, 
 				AzTmp[i].GetMat22()
-				+ Mat3x3(Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
+				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
 				+ bTmp[1].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione viscosa all'indietro: */

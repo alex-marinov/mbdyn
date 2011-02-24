@@ -91,7 +91,7 @@ CenterOfMass::Collect_int(void)
 		 * FIXME: should also rotate it in the principal
 		 * reference frame, and log the angles
 		 */
-		J_cm += Mat3x3(S, X_cm);
+		J_cm += Mat3x3(MatCrossCross, S, X_cm);
 		J_cm = J_cm.Symm();
 
 		Omega_cm = J_cm.LDLSolve(G - X_cm.Cross(B));
@@ -232,7 +232,9 @@ Inertia::Collect_int(void)
 	if (flags) {
 		if (flags & 1) {
 			Vec3 DX = X_cm - X0;
-			J0 = J + Mat3x3(X0, X0*dMass) + Mat3x3(DX, X0*dMass) + Mat3x3(X0, DX*dMass);
+			J0 = J + Mat3x3(MatCrossCross, X0, X0*dMass)
+				+ Mat3x3(MatCrossCross, DX, X0*dMass)
+				+ Mat3x3(MatCrossCross, X0, DX*dMass);
 		}
 
 		if (flags & 2) {

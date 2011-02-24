@@ -221,8 +221,8 @@ Brake::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 e2b(R2hTmp.GetVec(2));
    MTmp = e2b*MTmp.dGet(1)-e1b*MTmp.dGet(2);
    
-   Mat3x3 MWedgee3aWedge(MTmp, e3a);
-   Mat3x3 e3aWedgeMWedge(e3a, MTmp);
+   Mat3x3 MWedgee3aWedge(MatCrossCross, MTmp, e3a);
+   Mat3x3 e3aWedgeMWedge(MatCrossCross, e3a, MTmp);
    
    
    /* Contributo del momento alle equazioni di equilibrio dei nodi */

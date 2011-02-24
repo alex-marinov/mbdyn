@@ -810,9 +810,9 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
       Vec3 Tmp(v*(dAlpha*dCoef));
       
       WM.PutMat3x3(34, iNode1FirstMomIndex+3,
-		    iNode1FirstPosIndex+3, Mat3x3(Tmp, -f1Tmp));      
+		    iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, Tmp, -f1Tmp));      
       WM.PutMat3x3(43, iNode2FirstMomIndex+3,
-		    iNode2FirstPosIndex+3, Mat3x3(Tmp, f2Tmp));
+		    iNode2FirstPosIndex+3, Mat3x3(MatCrossCross, Tmp, f2Tmp));
 
       
       WM.PutCross(52, iNode1FirstMomIndex+3,
@@ -1024,7 +1024,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       
       Tmp = f1Tmp*(-dAlpha);
       
-      Mat3x3 MTmp(v, Tmp);
+      Mat3x3 MTmp(MatCrossCross, v, Tmp);
       WM.Add(4, 4, MTmp);
       WM.Add(10, 10, MTmp);
       
@@ -1033,7 +1033,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(10, 29, MTmp);
       
       Tmp = f2Tmp*dAlpha;
-      MTmp = Mat3x3(v, Tmp);
+      MTmp = Mat3x3(MatCrossCross, v, Tmp);
       WM.Add(16, 16, MTmp);
       WM.Add(22, 22, MTmp);
       
@@ -1041,12 +1041,12 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(16, 25, MTmp);
       WM.Add(22, 29, MTmp);
       
-      MTmp = (Mat3x3(v*dAlpha, Omega1) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f1Tmp);
+      MTmp = (Mat3x3(MatCrossCross, v*dAlpha, Omega1) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f1Tmp);
       WM.Sub(10, 4, MTmp);
       MTmp = Mat3x3(MatCross, f1Tmp.Cross(Omega1*dAlpha) - f1Tmp*dAlphaP);
       WM.Add(10, 25, MTmp);
       
-      MTmp = (Mat3x3(v*dAlpha, Omega2) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f2Tmp);
+      MTmp = (Mat3x3(MatCrossCross, v*dAlpha, Omega2) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f2Tmp);
       WM.Add(22, 16, MTmp);
       MTmp = Mat3x3(MatCross, f2Tmp.Cross(Omega2*(-dAlpha)) + f2Tmp*dAlphaP);
       WM.Add(22, 25, MTmp);            
@@ -1072,11 +1072,11 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Sub(25, 16, MTmp);
       WM.Sub(29, 22, MTmp);
       
-      MTmp = Mat3x3(Omega1, f1Tmp);
+      MTmp = Mat3x3(MatCrossCross, Omega1, f1Tmp);
       WM.Add(29, 4, MTmp);
       
-      MTmp = Mat3x3(Omega2, -f2Tmp);
-      WM.Add(29, 16, MTmp);
+      MTmp = Mat3x3(MatCrossCross, Omega2, f2Tmp);
+      WM.Sub(29, 16, MTmp);
       
       doublereal d = v.Dot();
       ASSERT(d > std::numeric_limits<doublereal>::epsilon());

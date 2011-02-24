@@ -688,13 +688,13 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 	if (nVelConstraints > 0) {
 		Mat3x3 Omega1Cross_R1(pNode1->GetWCurr().Cross(R1));
 		Mat3x3 	Tmp12 =	(
-				Mat3x3(pNode1->GetWCurr(), -b1)
-				+ Mat3x3(b2, pNode1->GetWCurr())
+				Mat3x3(MatCrossCross, pNode1->GetWCurr(), -b1)
+				+ Mat3x3(MatCrossCross, b2, pNode1->GetWCurr())
 				- Mat3x3(MatCross, pNode2->GetVCurr())
-				- Mat3x3(pNode2->GetWCurr(), b2)
+				- Mat3x3(MatCrossCross, pNode2->GetWCurr(), b2)
 				+ Mat3x3(MatCross, pNode1->GetVCurr())
 				) * R1;
-		Mat3x3 Tmp22(pNode2->GetWCurr(), b2);
+		Mat3x3 Tmp22(MatCrossCross, pNode2->GetWCurr(), b2);
 
 		for (unsigned iCnt = 0 ; iCnt < nVelConstraints; iCnt++) {
 			Vec3 vR1(R1.GetVec(iVelIncid[iCnt]));
@@ -1677,7 +1677,7 @@ TotalReaction::AssJac(VariableSubMatrixHandler& WorkMat,
  	WM.Sub(6 + 1, 3 + 1, Tmp);
  
  	/* [ F x ] [ b2 x ] */
- 	Tmp = Mat3x3(FTmp, b2);
+ 	Tmp = Mat3x3(MatCrossCross, FTmp, b2);
  
  	/* Lines 4->6: */
  	WM.Sub(3 + 1, 9 + 1, Tmp);
@@ -1688,12 +1688,12 @@ TotalReaction::AssJac(VariableSubMatrixHandler& WorkMat,
  	/* [ b1 x ] [ F x ] + [ M x ] */
  
  	/* Lines 4->6: */
- 	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MatCross, MTmp));
+ 	WM.Add(3 + 1, 3 + 1, Mat3x3(MatCrossCross, b1, FTmp) + Mat3x3(MatCross, MTmp));
  
  	/* [ b2 x ] [ F x ] + [ M x ] */
  
  	/* Lines 10->12: */
- 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));
+ 	WM.Sub(9 + 1, 3 + 1, Mat3x3(MatCrossCross, b2, FTmp) + Mat3x3(MatCross, MTmp));
 
 /* Phi/q and (Phi/q)^T */
 
@@ -1937,7 +1937,7 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(18 + 1 , 9 + 1, Tmp);	// * Delta_W1
 	
 	/* [ F x ] [ b2 x ] */
-	Tmp = Mat3x3(FTmp, b2);
+	Tmp = Mat3x3(MatCrossCross, FTmp, b2);
 
 	/* Moment, Node1, Lines 4->6: */
 	WM.Sub(3 + 1, 15 + 1, Tmp);	// * Delta_g2
@@ -1946,7 +1946,7 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(15 + 1, 15 + 1, Tmp);	// * Delta_g2
 	
 	/* [ FP x ] [ b2 x ] */
-	Tmp = Mat3x3(FPrimeTmp, b2);
+	Tmp = Mat3x3(MatCrossCross, FPrimeTmp, b2);
 
 	/* d/dt(Moment), Node1, Lines 10->12: */
 	WM.Sub(9 + 1, 21 + 1, Tmp);	// * Delta_W2
@@ -1957,18 +1957,18 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* [ b1 x ] [ F x ] + [ M x ] */
 
 	/* Moment, Node1, Lines 4->6: */
-	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MatCross, MTmp));	// *Delta_g1
+	WM.Add(3 + 1, 3 + 1, Mat3x3(MatCrossCross, b1, FTmp) + Mat3x3(MatCross, MTmp));	// *Delta_g1
 
 	/* d/dt(Moment), Node1, Lines 10->12: */
-	WM.Add(9 + 1, 9 + 1, Mat3x3(b1, FPrimeTmp) + Mat3x3(MatCross, MPrimeTmp));// *Delta_W1
+	WM.Add(9 + 1, 9 + 1, Mat3x3(MatCrossCross, b1, FPrimeTmp) + Mat3x3(MatCross, MPrimeTmp));// *Delta_W1
 	
 	/* [ b2 x ] [ F x ] + [ M x ] */
 
 	/* Moment, Node2, Lines 16->18: */
-	WM.Sub(15 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_g1
+	WM.Sub(15 + 1, 3 + 1, Mat3x3(MatCrossCross, b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_g1
 	
 	/* d/dt(Moment), Node2, Lines 22->24: */
-	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_W1
+	WM.Sub(21 + 1, 9 + 1, Mat3x3(MatCrossCross, b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_W1
 	
 	/* Constraints: Add only active rows/columns*/	
 	
