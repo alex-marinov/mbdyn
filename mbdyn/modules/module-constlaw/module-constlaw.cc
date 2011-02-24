@@ -46,7 +46,7 @@ private:
 public:
 	DummyConstitutiveLaw(doublereal dStiff)
 	: dStiffness(dStiff) {
-		ConstitutiveLaw<T, Tder>::FDE = dStiffness;
+		ConstitutiveLaw<T, Tder>::FDE = mb_deye<Tder>(dStiffness);
 	};
 
 	virtual ~DummyConstitutiveLaw(void) {

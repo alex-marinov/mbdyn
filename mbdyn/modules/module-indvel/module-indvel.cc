@@ -168,8 +168,8 @@ ModuleIndVel::bSectionalForces(void) const
 }
 
 Vec3
-ModuleIndVel::GetInducedVelocityElem::Type type,
-		unsigned uLabel, unsigned uPnt, (const Vec3& X) const
+ModuleIndVel::GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	return Zero3;
 }

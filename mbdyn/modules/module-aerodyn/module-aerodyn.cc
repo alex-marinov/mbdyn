@@ -598,8 +598,8 @@ AeroDynModule::AssRes(
 	}
 
 
-	TF = Vec3(0.);
-	TM = Vec3(0.);
+	TF = Vec3(Zero3);
+	TM = Vec3(Zero3);
 	for (elem = 0; elem < nblades*nelems; elem++) {
 		/*
 		 * set indices where force/moment need to be put

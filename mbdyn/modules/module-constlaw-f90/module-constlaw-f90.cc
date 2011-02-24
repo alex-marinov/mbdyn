@@ -64,12 +64,12 @@ public:
 		return out;
 	};
 
-	virtual void Update(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 	};
 
-	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = 0.) {
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		NO_OP;
 	};
 };
@@ -184,7 +184,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
+	virtual void Update(const Vec3& Eps, const Vec3& EpsPrime = mb_zero<Vec3>()) {
 		ConstitutiveLaw<Vec3, Mat3x3>::Epsilon = Eps;
 
 		doublereal dF[3], dFDE[3*3], dFDEP[3*3];
@@ -198,7 +198,7 @@ public:
 		ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime = Mat3x3(dFDEP, 3);
 	};
 
-	virtual void AfterConvergence(const Vec3& Eps, const Vec3& EpsPrime = 0.) {
+	virtual void AfterConvergence(const Vec3& Eps, const Vec3& EpsPrime = mb_zero<Vec3>()) {
 		us3aftc_(&size, &m_v[0], Eps.pGetVec(), EpsPrime.pGetVec(),
 			&err);
 		if (err != 0) {
@@ -251,7 +251,7 @@ public:
 		return out;
 	};
 
-	virtual void Update(const Vec6& Eps, const Vec6& EpsPrime = 0.) {
+	virtual void Update(const Vec6& Eps, const Vec6& EpsPrime = mb_zero<Vec6>()) {
 		ConstitutiveLaw<Vec6, Mat6x6>::Epsilon = Eps;
 
 		doublereal dE[6], dEP[6], dF[6], dFDE[6*6], dFDEP[6*6];
@@ -266,7 +266,7 @@ public:
 		ConstitutiveLaw<Vec6, Mat6x6>::FDEPrime = Mat6x6(dFDEP, 6);
 	};
 
-	virtual void AfterConvergence(const Vec6& Eps, const Vec6& EpsPrime = 0.) {
+	virtual void AfterConvergence(const Vec6& Eps, const Vec6& EpsPrime = mb_zero<Vec6>()) {
 		doublereal dE[6], dEP[6];
 		Eps.PutTo(dE);
 		EpsPrime.PutTo(dEP);
