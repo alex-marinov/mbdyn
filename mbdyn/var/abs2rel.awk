@@ -289,7 +289,7 @@ function output() {
 
 		if (NumBlades > 0) {
 			# Note: blades must be defined with local axis 1
-			# along the blade axis, axis 3 alomg the flapwise
+			# along the blade axis, axis 3 along the flapwise
 			# direction, axis 2 according to a right triad
 			# (chordwise trail to lead for counter-clockwise
 			# rotors)
