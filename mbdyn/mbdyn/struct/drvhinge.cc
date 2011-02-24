@@ -413,7 +413,7 @@ DriveHingeJoint::AfterPredict(VectorHandler& /* X */ ,
 void
 DriveHingeJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 {
-	Mat3x3 MCross(R1Ref*(M*dCoef));
+	Mat3x3 MCross(MatCross, R1Ref*(M*dCoef));
 
 	WM.Add(1, 1, MCross);
 	WM.Sub(4, 1, MCross);
@@ -530,15 +530,15 @@ DriveHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Wa(pNode1->GetWRef());
 	Vec3 Wb(pNode2->GetWRef());
 
-	Mat3x3 MTmp(M);
-	Mat3x3 MPrimeTmp(Ra*Vec3(XCurr, iReactionPrimeIndex + 1));
+	Mat3x3 MTmp(MatCross, M);
+	Mat3x3 MPrimeTmp(MatCross, Ra*Vec3(XCurr, iReactionPrimeIndex + 1));
 
 	WM.Add(1, 1, MTmp);
 	WM.Add(3 + 1, 3 + 1, MTmp);
 	WM.Sub(6 + 1, 1, MTmp);
 	WM.Sub(9 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(Wa)*MTmp + MPrimeTmp;
+	MTmp = Wa.Cross(MTmp) + MPrimeTmp;
 	WM.Add(3 + 1, 1, MTmp);
 	WM.Sub(9 + 1, 1, MTmp);
 
@@ -547,7 +547,7 @@ DriveHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(1, 12 + 1, Ra);
 	WM.Sub(3 + 1, 15 + 1, Ra);
 
-	MTmp = Mat3x3(Wa)*Ra;
+	MTmp = Wa.Cross(Ra);
 	WM.Add(9 + 1, 12 + 1, MTmp);
 	WM.Sub(3 + 1, 12 + 1, MTmp);
 
@@ -555,7 +555,7 @@ DriveHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(12 + 1, 1, RaT);
 	WM.Sub(15 + 1, 3 + 1, RaT);
 	WM.Add(15 + 1, 9 + 1, RaT);
-	WM.Add(15 + 1, 1, RaT*Mat3x3(Wb - Wa));
+	WM.Add(15 + 1, 1, RaT*Mat3x3(MatCross, Wb - Wa));
 
 	return WorkMat;
 }

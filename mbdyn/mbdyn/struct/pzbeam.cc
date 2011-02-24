@@ -53,21 +53,21 @@ void PiezoActuatorBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    tmp1.LeftMult(R[S_I]*dCoef, PiezoMat[STRAIN][S_I]);
    WMA.Sub(1, 19, tmp1);
    WMA.Add(7, 19, tmp1);
-   tmp2.LeftMult(Mat3x3(p[S_I]-pNode[NODE1]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[S_I] - pNode[NODE1]->GetXCurr()), tmp1);
    WMA.Add(4, 19, tmp2); 
-   tmp2.LeftMult(Mat3x3(p[S_I]-pNode[NODE2]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[S_I] - pNode[NODE2]->GetXCurr()), tmp1);
    WMA.Sub(10, 19, tmp2);
    
    tmp1.LeftMult(R[S_I]*dCoef, PiezoMat[CURVAT][S_I]);
    WMA.Sub(4, 19, tmp1);
-   WMA.Add(10, 19, tmp1);   
+   WMA.Add(10, 19, tmp1);
 
    tmp1.LeftMult(R[SII]*dCoef, PiezoMat[STRAIN][SII]);
    WMA.Sub(7, 19, tmp1);
    WMA.Add(13, 19, tmp1);
-   tmp2.LeftMult(Mat3x3(p[SII]-pNode[NODE2]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[SII] - pNode[NODE2]->GetXCurr()), tmp1);
    WMA.Add(10, 19, tmp2);
-   tmp2.LeftMult(Mat3x3(p[SII]-pNode[NODE3]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[SII] - pNode[NODE3]->GetXCurr()), tmp1);
    WMA.Sub(16, 19, tmp2);
 
    tmp1.LeftMult(R[SII]*dCoef, PiezoMat[CURVAT][SII]);
@@ -293,9 +293,9 @@ void PiezoActuatorVEBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    tmp1.LeftMult(R[S_I]*dCoef, PiezoMat[STRAIN][S_I]);
    WMA.Sub(1, 19, tmp1);
    WMA.Add(7, 19, tmp1);
-   tmp2.LeftMult(Mat3x3(p[S_I]-pNode[NODE1]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[S_I] - pNode[NODE1]->GetXCurr()), tmp1);
    WMA.Add(4, 19, tmp2); 
-   tmp2.LeftMult(Mat3x3(p[S_I]-pNode[NODE2]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[S_I] - pNode[NODE2]->GetXCurr()), tmp1);
    WMA.Sub(10, 19, tmp2);
    
    tmp1.LeftMult(R[S_I]*dCoef, PiezoMat[CURVAT][S_I]);
@@ -305,9 +305,9 @@ void PiezoActuatorVEBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
    tmp1.LeftMult(R[SII]*dCoef, PiezoMat[STRAIN][SII]);
    WMA.Sub(7, 19, tmp1);
    WMA.Add(13, 19, tmp1);
-   tmp2.LeftMult(Mat3x3(p[SII]-pNode[NODE2]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[SII] - pNode[NODE2]->GetXCurr()), tmp1);
    WMA.Add(10, 19, tmp2);
-   tmp2.LeftMult(Mat3x3(p[SII]-pNode[NODE3]->GetXCurr()), tmp1);
+   tmp2.LeftMult(Mat3x3(MatCross, p[SII] - pNode[NODE3]->GetXCurr()), tmp1);
    WMA.Sub(16, 19, tmp2);
 
    tmp1.LeftMult(R[SII]*dCoef, PiezoMat[CURVAT][SII]);

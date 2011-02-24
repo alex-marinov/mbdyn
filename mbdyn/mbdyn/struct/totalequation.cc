@@ -658,8 +658,8 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Phi/q is the only contribution... */
 
-	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
-	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
+	Mat3x3 b1Cross_R1(b1.Cross(R1)); // = [ b1 x ] * R1
+	Mat3x3 b2Cross_R1(b2.Cross(R1)); // = [ b2 x ] * R1
 
 	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
@@ -686,21 +686,21 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	if (nVelConstraints > 0) {
-		Mat3x3 Omega1Cross_R1(Mat3x3(pNode1->GetWCurr()) * R1);
+		Mat3x3 Omega1Cross_R1(pNode1->GetWCurr().Cross(R1));
 		Mat3x3 	Tmp12 =	(
-				- Mat3x3(pNode1->GetWCurr()) * Mat3x3(b1)
-				+ Mat3x3(b2) * Mat3x3(pNode1->GetWCurr())
-				- Mat3x3(pNode2->GetVCurr())
-				- Mat3x3(pNode2->GetWCurr()) * Mat3x3(b2)
-				+ Mat3x3(pNode1->GetVCurr())
+				Mat3x3(pNode1->GetWCurr(), -b1)
+				+ Mat3x3(b2, pNode1->GetWCurr())
+				- Mat3x3(MatCross, pNode2->GetVCurr())
+				- Mat3x3(pNode2->GetWCurr(), b2)
+				+ Mat3x3(MatCross, pNode1->GetVCurr())
 				) * R1;
-		Mat3x3 Tmp22(Mat3x3(pNode2->GetWCurr()) * Mat3x3(b2));
+		Mat3x3 Tmp22(pNode2->GetWCurr(), b2);
 
 		for (unsigned iCnt = 0 ; iCnt < nVelConstraints; iCnt++) {
 			Vec3 vR1(R1.GetVec(iVelIncid[iCnt]));
 			Vec3 vb1Cross_R1(b1Cross_R1.GetVec(iVelIncid[iCnt]));
 			Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iVelIncid[iCnt]));
-			
+
 			Vec3 vOmega1Cross_R1(Omega1Cross_R1.GetVec(iVelIncid[iCnt]));
 			Vec3 vTmp12(Tmp12.GetVec(iVelIncid[iCnt]));	
 			Vec3 vTmp22(Tmp22.GetVec(iVelIncid[iCnt]));	
@@ -724,7 +724,7 @@ TotalEquation::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 	
 	if(nAgvConstraints > 0)	{
-		Mat3x3 DeltaWCross_R1(Mat3x3(pNode1->GetWCurr() - pNode2->GetWCurr()) * R1r);
+		Mat3x3 DeltaWCross_R1((pNode1->GetWCurr() - pNode2->GetWCurr()).Cross(R1r));
 		for (unsigned iCnt = 0 ; iCnt < nAgvConstraints; iCnt++) {
 			Vec3 vR1(R1r.GetVec(iAgvIncid[iCnt]));
 			Vec3 vDeltaWCross_R1(DeltaWCross_R1.GetVec(iAgvIncid[iCnt]));
@@ -774,10 +774,10 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 
 	Vec3 XDelta = R1.MulTV(b1) - tilde_f1 - XDrv.Get();
 	Vec3 VDelta = R1.MulTV(
-			Mat3x3(b1)*pNode1->GetWCurr()
-			+ pNode2->GetVCurr()
-			- Mat3x3(b2)*pNode2->GetWCurr()
+			pNode2->GetVCurr()
+			- b2.Cross(pNode2->GetWCurr())
 			- pNode1->GetVCurr()
+			+ b1.Cross(pNode1->GetWCurr())
 			) 
 			- XDrv.Get(); 	
 			
@@ -910,8 +910,8 @@ TotalEquation::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	
 	/* Positions contribution:*/
 
-	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
-	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
+	Mat3x3 b1Cross_R1(b1.Cross(R1)); // = [ b1 x ] * R1
+	Mat3x3 b2Cross_R1(b2.Cross(R1)); // = [ b2 x ] * R1
 
 	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
@@ -1002,8 +1002,6 @@ TotalEquation::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 Omega1(pNode1->GetWCurr());
 	Vec3 Omega2(pNode2->GetWCurr());
 	
-	Mat3x3 Omega2Cross(Omega2);
-	Vec3 Omega2Crossb2(Omega2Cross*b2);
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
 
@@ -1665,7 +1663,7 @@ TotalReaction::AssJac(VariableSubMatrixHandler& WorkMat,
  	Mat3x3 Tmp;
  
  	/* [ F x ] */
- 	Tmp = Mat3x3(FTmp);
+ 	Tmp = Mat3x3(MatCross, FTmp);
  
  	/* Lines 1->3: */
  	WM.Add(1, 3 + 1, Tmp);
@@ -1690,17 +1688,17 @@ TotalReaction::AssJac(VariableSubMatrixHandler& WorkMat,
  	/* [ b1 x ] [ F x ] + [ M x ] */
  
  	/* Lines 4->6: */
- 	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));
+ 	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MatCross, MTmp));
  
  	/* [ b2 x ] [ F x ] + [ M x ] */
  
  	/* Lines 10->12: */
- 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));
+ 	WM.Sub(9 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));
 
 /* Phi/q and (Phi/q)^T */
 
-	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
-	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
+	Mat3x3 b1Cross_R1(b1.Cross(R1)); // = [ b1 x ] * R1
+	Mat3x3 b2Cross_R1(b2.Cross(R1)); // = [ b2 x ] * R1
 
 	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
@@ -1911,7 +1909,7 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 Tmp;
 
 	/* [ F x ] */
-	Tmp = Mat3x3(FTmp);
+	Tmp = Mat3x3(MatCross, FTmp);
 
 	/* Force, Node 1, Lines 1->3: */
 	WM.Add(1, 3 + 1, Tmp);	// * Delta_g1
@@ -1925,7 +1923,7 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(12 + 1, 3 + 1, Tmp);	// * Delta_g1
 	
 	/* [ FP x ] */
-	Tmp = Mat3x3(FPrimeTmp);
+	Tmp = Mat3x3(MatCross, FPrimeTmp);
 
 	/* d/dt(Force), Node 1, Lines 7->9: */
 	WM.Add(6 + 1, 9 + 1, Tmp);	// * Delta_W1
@@ -1959,25 +1957,25 @@ TotalReaction::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* [ b1 x ] [ F x ] + [ M x ] */
 
 	/* Moment, Node1, Lines 4->6: */
-	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MTmp));	// *Delta_g1
+	WM.Add(3 + 1, 3 + 1, Mat3x3(b1, FTmp) + Mat3x3(MatCross, MTmp));	// *Delta_g1
 
 	/* d/dt(Moment), Node1, Lines 10->12: */
-	WM.Add(9 + 1, 9 + 1, Mat3x3(b1, FPrimeTmp) + Mat3x3(MPrimeTmp));// *Delta_W1
+	WM.Add(9 + 1, 9 + 1, Mat3x3(b1, FPrimeTmp) + Mat3x3(MatCross, MPrimeTmp));// *Delta_W1
 	
 	/* [ b2 x ] [ F x ] + [ M x ] */
 
 	/* Moment, Node2, Lines 16->18: */
-	WM.Sub(15 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_g1
+	WM.Sub(15 + 1, 3 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_g1
 	
 	/* d/dt(Moment), Node2, Lines 22->24: */
-	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + Mat3x3(MTmp));	// * Delta_W1
+	WM.Sub(21 + 1, 9 + 1, Mat3x3(b2, FTmp) + Mat3x3(MatCross, MTmp));	// * Delta_W1
 	
 	/* Constraints: Add only active rows/columns*/	
 	
 	/* Positions contribution:*/
 
-	Mat3x3 b1Cross_R1(Mat3x3(b1)*R1); // = [ b1 x ] * R1
-	Mat3x3 b2Cross_R1(Mat3x3(b2)*R1); // = [ b2 x ] * R1
+	Mat3x3 b1Cross_R1(b1.Cross(R1)); // = [ b1 x ] * R1
+	Mat3x3 b2Cross_R1(b2.Cross(R1)); // = [ b2 x ] * R1
 
 	for (unsigned iCnt = 0 ; iCnt < nPosConstraints; iCnt++) {
 		Vec3 vR1(R1.GetVec(iPosIncid[iCnt]));
@@ -2096,8 +2094,6 @@ TotalReaction::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 Omega1(pNode1->GetWCurr());
 	Vec3 Omega2(pNode2->GetWCurr());
 	
-	Mat3x3 Omega2Cross(Omega2);
-	Vec3 Omega2Crossb2(Omega2Cross*b2);
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 	
 	Vec3 FPrime(Zero3);

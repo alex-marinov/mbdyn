@@ -1005,12 +1005,12 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(6 + 1, 6 + 1, Tmp1);
 
 	/* Termini di coppia, nodo 1 */
-	Mat3x3 Tmp2 = Mat3x3(f1Tmp)*Tmp1;
+	Mat3x3 Tmp2 = f1Tmp.Cross(Tmp1);
 	WM.Add(3 + 1, 1, Tmp2);
 	WM.Sub(3 + 1, 6 + 1, Tmp2);
 
 	/* Termini di coppia, nodo 2 */
-	Tmp2 = Mat3x3(f2Tmp)*Tmp1;
+	Tmp2 = f2Tmp.Cross(Tmp1);
 	WM.Add(9 + 1, 6 + 1, Tmp2);
 	WM.Sub(9 + 1, 1, Tmp2);
 
@@ -1019,31 +1019,31 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(6 + 1, 1, Tmp1);
 
 	/* Termini di rotazione, Delta g1 */
-	Mat3x3 Tmp3 = Tmp1*Mat3x3(-f1Tmp);
+	Mat3x3 Tmp3 = Tmp1*Mat3x3(MatCross, -f1Tmp);
 	if (dFDEPrime != 0.) {
-		Tmp3 += KPrime*Mat3x3(f1Tmp.Cross(Omega1*dCoef));
+		Tmp3 += KPrime*Mat3x3(MatCross, f1Tmp.Cross(Omega1*dCoef));
 	}
 	WM.Add(1, 3 + 1, Tmp3);
 	WM.Sub(6 + 1, 3 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g1 */
-	Tmp2 = Mat3x3(f1Tmp)*Tmp3 + Mat3x3(F, f1Tmp*dCoef);
+	Tmp2 = f1Tmp.Cross(Tmp3) + Mat3x3(F, f1Tmp*dCoef);
 	WM.Add(3 + 1, 3 + 1, Tmp2);
-	Tmp2 = Mat3x3(f2Tmp)*Tmp3;
+	Tmp2 = f2Tmp.Cross(Tmp3);
 	WM.Sub(9 + 1, 3 + 1, Tmp2);
 
 	/* Termini di rotazione, Delta g2 */
-	Tmp3 = Tmp1*Mat3x3(-f2Tmp);
+	Tmp3 = Tmp1*Mat3x3(MatCross, -f2Tmp);
 	if (dFDEPrime != 0.) {
-		Tmp3 += KPrime*Mat3x3(f2Tmp.Cross(Omega2*dCoef));
+		Tmp3 += KPrime*Mat3x3(MatCross, f2Tmp.Cross(Omega2*dCoef));
 	}
 	WM.Add(6 + 1, 9 + 1, Tmp3);
 	WM.Sub(1, 9 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g2 */
-	Tmp2 = Mat3x3(f2Tmp)*Tmp3 + Mat3x3(F, f2Tmp*dCoef);
+	Tmp2 = f2Tmp.Cross(Tmp3) + Mat3x3(F, f2Tmp*dCoef);
 	WM.Add(9 + 1, 9 + 1, Tmp2);
-	Tmp2 = Mat3x3(f1Tmp)*Tmp3;
+	Tmp2 = f1Tmp.Cross(Tmp3);
 	WM.Sub(3 + 1, 9 + 1, Tmp2);
 
 	return WorkMat;
@@ -1344,12 +1344,12 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(6 + 1, 12 + 1, K);
 
 	/* Termini di coppia, nodo 1 */
-	Mat3x3 Tmp2 = Mat3x3(f1Tmp)*K;
+	Mat3x3 Tmp2 = f1Tmp.Cross(K);
 	WM.Add(3 + 1, 1, Tmp2);
 	WM.Sub(3 + 1, 12 + 1, Tmp2);
 
 	/* Termini di coppia, nodo 2 */
-	Tmp2 = Mat3x3(f2Tmp)*K;
+	Tmp2 = f2Tmp.Cross(K);
 	WM.Add(9 + 1, 12 + 1, Tmp2);
 	WM.Sub(9 + 1, 1, Tmp2);
 
@@ -1363,12 +1363,12 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Add(6 + 1, 18 + 1, KPrime);
 
 		/* Termini di coppia, nodo 1 */
-		Tmp2 = Mat3x3(f1Tmp)*KPrime;
+		Tmp2 = f1Tmp.Cross(KPrime);
 		WM.Add(3 + 1, 6 + 1, Tmp2);
 		WM.Sub(3 + 1, 18 + 1, Tmp2);
 
 		/* Termini di coppia, nodo 2 */
-		Tmp2 = Mat3x3(f2Tmp)*KPrime;
+		Tmp2 = f2Tmp.Cross(KPrime);
 		WM.Add(9 + 1, 18 + 1, Tmp2);
 		WM.Sub(9 + 1, 6 + 1, Tmp2);
 
@@ -1378,7 +1378,7 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Termini di rotazione, Delta g1 */
-	Mat3x3 Tmp3 = K*Mat3x3(-f1Tmp);
+	Mat3x3 Tmp3 = K*Mat3x3(MatCross, -f1Tmp);
 	if (dFDEPrime != 0.) {
 		Tmp3 -= KPrime*Mat3x3(Omega1, f1Tmp);
 	}
@@ -1386,13 +1386,13 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(6 + 1, 3 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g1 */
-	Tmp2 = Mat3x3(f1Tmp)*Tmp3 + Mat3x3(F, f1Tmp);
+	Tmp2 = f1Tmp.Cross(Tmp3) + Mat3x3(F, f1Tmp);
 	WM.Add(3 + 1, 3 + 1, Tmp2);
-	Tmp2 = Mat3x3(f2Tmp)*Tmp3;
+	Tmp2 = f2Tmp.Cross(Tmp3);
 	WM.Sub(9 + 1, 3 + 1, Tmp2);
 
 	/* Termini di rotazione, Delta g2 */
-	Tmp3 = K*Mat3x3(-f2Tmp);
+	Tmp3 = K*Mat3x3(MatCross, -f2Tmp);
 	if (dFDEPrime != 0.) {
 		Tmp3 -= KPrime*Mat3x3(Omega2, f2Tmp);
 	}
@@ -1400,32 +1400,32 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Sub(1, 15 + 1, Tmp3);
 
 	/* Termini di coppia, Delta g2 */
-	Tmp2 = Mat3x3(f2Tmp)*Tmp3 + Mat3x3(F, f2Tmp);
+	Tmp2 = f2Tmp.Cross(Tmp3) + Mat3x3(F, f2Tmp);
 	WM.Add(9 + 1, 15 + 1, Tmp2);
-	Tmp2 = Mat3x3(f1Tmp)*Tmp3;
+	Tmp2 = f1Tmp.Cross(Tmp3);
 	WM.Sub(3 + 1, 15 + 1, Tmp2);
 
 	if (dFDEPrime != 0.) {
 		/* Termini di rotazione, Delta w1 */
-		Tmp3 = KPrime*Mat3x3(-f1Tmp);
+		Tmp3 = KPrime*Mat3x3(MatCross, -f1Tmp);
 		WM.Add(1, 9 + 1, Tmp3);
 		WM.Sub(6 + 1, 9 + 1, Tmp3);
 
 		/* Termini di coppia, Delta w1 */
-		Tmp2 = Mat3x3(f1Tmp)*Tmp3;
+		Tmp2 = f1Tmp.Cross(Tmp3);
 		WM.Add(3 + 1, 9 + 1, Tmp2);
-		Tmp2 = Mat3x3(f2Tmp)*Tmp3;
+		Tmp2 = f2Tmp.Cross(Tmp3);
 		WM.Sub(9 + 1, 9 + 1, Tmp2);
 
 		/* Termini di rotazione, Delta w2 */
-		Tmp3 = KPrime*Mat3x3(-f2Tmp);
+		Tmp3 = KPrime*Mat3x3(MatCross, -f2Tmp);
 		WM.Add(6 + 1, 21 + 1, Tmp3);
 		WM.Sub(1, 21 + 1, Tmp3);
 
 		/* Termini di coppia, Delta w2 */
-		Tmp2 = Mat3x3(f2Tmp)*Tmp3;
+		Tmp2 = f2Tmp.Cross(Tmp3);
 		WM.Add(9 + 1, 21 + 1, Tmp2);
-		Tmp2 = Mat3x3(f1Tmp)*Tmp3;
+		Tmp2 = f1Tmp.Cross(Tmp3);
 		WM.Sub(3 + 1, 21 + 1, Tmp2);
 	}
 

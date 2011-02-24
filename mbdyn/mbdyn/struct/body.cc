@@ -208,7 +208,7 @@ Body::AssMatsRBK_int(
 	}
 
 	// f: delta x
-	MTmp = Mat3x3(pRBK->GetWP());
+	MTmp = Mat3x3(MatCross, pRBK->GetWP());
 	MTmp += Mat3x3(pRBK->GetW(), pRBK->GetW());
 
 	WMA.Add(iIdx + 1, 1, MTmp*(dMass*dCoef));
@@ -216,12 +216,12 @@ Body::AssMatsRBK_int(
 
 	// f: theta delta
 
-	WMA.Sub(iIdx + 1, 3 + 1, MTmp*Mat3x3(Sc));
+	WMA.Sub(iIdx + 1, 3 + 1, MTmp*Mat3x3(MatCross, Sc));
 
 
 	// m: delta x
 	MTmp = Mat3x3(Sc, pRBK->GetWP());
-	MTmp += Mat3x3(Sc)*Mat3x3(pRBK->GetW(), pRBK->GetW());
+	MTmp += Sc.Cross(Mat3x3(pRBK->GetW(), pRBK->GetW()));
 
 	WMA.Add(iIdx + 3 + 1, 1, MTmp);
 
@@ -237,22 +237,22 @@ Body::AssMatsRBK_int(
 
 	VTmp = (pRBK->GetW() + pNode->GetWCurr())*dCoef;
 
-	Mat3x3 MTmp2(JTmp*Mat3x3(pRBK->GetW()) - Mat3x3(JTmp*pRBK->GetW()));
-	MTmp += Mat3x3(VTmp)*MTmp2;
+	Mat3x3 MTmp2(JTmp*Mat3x3(MatCross, pRBK->GetW()) - Mat3x3(MatCross, JTmp*pRBK->GetW()));
+	MTmp += VTmp.Cross(MTmp2);
 
 	VTmp = (pRBK->GetWP() + pRBK->GetW().Cross(pNode->GetWCurr()))*dCoef;
 
-	MTmp += JTmp*Mat3x3(VTmp);
-	MTmp -= Mat3x3(JTmp*VTmp);
+	MTmp += JTmp*Mat3x3(MatCross, VTmp);
+	MTmp -= Mat3x3(MatCross, JTmp*VTmp);
 
-	MTmp -= Mat3x3(pNode->GetVCurr())*Mat3x3(pRBK->GetW(), Sc);
+	MTmp -= pNode->GetVCurr().Cross(Mat3x3(pRBK->GetW(), Sc));
 
 	WMA.Add(iIdx + 3 + 1, 3 + 1, MTmp);
 
 
 	// m: delta dot x
 	MTmp = Mat3x3(STmp, pRBK->GetW());
-	MTmp -= Mat3x3(pRBK->GetW().Cross(STmp));
+	MTmp -= Mat3x3(MatCross, pRBK->GetW().Cross(STmp));
 
 	WMB.Add(iIdx + 3 + 1, 1, MTmp);
 
@@ -415,7 +415,7 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	// STmp = R*S0;
 	// JTmp = R*J0.MulMT(R);
 
-	Mat3x3 SWedge(STmp);			/* S /\ */
+	Mat3x3 SWedge(MatCross, STmp);			/* S /\ */
 	Vec3 Sc(STmp*dCoef);
 
 	/*
@@ -428,7 +428,7 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	WMB.IncCoef(3, 3, dMass);
 
 	WMB.Sub(1, 3 + 1, SWedge);
-	WMA.Add(1, 3 + 1, Mat3x3(Sc.Cross(W)));
+	WMA.Add(1, 3 + 1, Mat3x3(MatCross, Sc.Cross(W)));
 
 	/*
 	 * momenta moment:
@@ -438,7 +438,7 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	WMB.Add(3 + 1, 1, SWedge);
 
 	WMB.Add(3 + 1, 3 + 1, JTmp);
-	WMA.Add(3 + 1, 3 + 1, Mat3x3(V, Sc) - Mat3x3(JTmp*(W*dCoef)));
+	WMA.Add(3 + 1, 3 + 1, Mat3x3(V, Sc) - Mat3x3(MatCross, JTmp*(W*dCoef)));
 
 	if (bGravity) {
 		WMA.Sub(9 + 1, 3 + 1, Mat3x3(GravityAcceleration, Sc));
@@ -552,15 +552,15 @@ DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 SWedgeW(STmp.Cross(W));
 	Mat3x3 WWedgeSWedge(-W, STmp);
-	Mat3x3 WWedge(W);
-	Mat3x3 WWedgeWWedgeSWedge(WWedge*WWedgeSWedge);
-	Mat3x3 FDeltaW(Mat3x3(SWedgeW) + WWedgeSWedge);
+	Mat3x3 WWedge(MatCross, W);
+	Mat3x3 WWedgeWWedgeSWedge(W.Cross(WWedgeSWedge));
+	Mat3x3 FDeltaW(Mat3x3(MatCross, SWedgeW) + WWedgeSWedge);
 
 	// STmp, JTmp computed by InitialAssRes()
 	Vec3 JW(JTmp*W);
-	Mat3x3 JWWedge(JW);
-	Mat3x3 MDeltag(WWedge*(JTmp*WWedge - JWWedge));
-	Mat3x3 MDeltaW(WWedge*JTmp - JWWedge);
+	Mat3x3 JWWedge(MatCross, JW);
+	Mat3x3 MDeltag(W.Cross(JTmp*WWedge - JWWedge));
+	Mat3x3 MDeltaW(W.Cross(JTmp) - JWWedge);
 
 	/* Forza */
 	WM.Add(1, 1, WWedgeWWedgeSWedge);
@@ -571,12 +571,12 @@ DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(4, 4, MDeltaW);
 
 	/* Derivata forza */
-	WM.Add(7, 1, Mat3x3(W.Cross(SWedgeW))+WWedge*FDeltaW);
-	WM.Add(7, 4, WWedge*WWedgeWWedgeSWedge);
+	WM.Add(7, 1, Mat3x3(MatCross, W.Cross(SWedgeW)) + W.Cross(FDeltaW));
+	WM.Add(7, 4, W.Cross(WWedgeWWedgeSWedge));
 
 	/* Derivata Momento */
-	WM.Add(4, 1, WWedge*MDeltag);
-	WM.Add(4, 4, WWedge*MDeltaW-Mat3x3(W.Cross(JW)));
+	WM.Add(4, 1, W.Cross(MDeltag));
+	WM.Add(4, 4, W.Cross(MDeltaW) - Mat3x3(MatCross, W.Cross(JW)));
 
 	return WorkMat;
 }

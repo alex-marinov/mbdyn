@@ -364,38 +364,38 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 FWedged2Wedge(F, -d2Tmp);
    
    /* Matrici (omega1/\d1)/\, -(omega2/\d2)/\ */
-   Mat3x3 O1Wedged1Wedge(Omega1.Cross(d1Tmp));
-   Mat3x3 O2Wedged2Wedge(d2Tmp.Cross(Omega2));
+   Mat3x3 O1Wedged1Wedge(MatCross, Omega1.Cross(d1Tmp));
+   Mat3x3 O2Wedged2Wedge(MatCross, d2Tmp.Cross(Omega2));
    
    /* Equazione di momento, nodo 1 */
    WM.Add(4, 4, FWedged1Wedge);
-   WM.Add(4, 25, Mat3x3(d1Tmp));
+   WM.Add(4, 25, Mat3x3(MatCross, d1Tmp));
    
    /* Equazione di momento, nodo 2 */
    WM.Add(16, 16, FWedged2Wedge);
-   WM.Add(16, 25, Mat3x3(-d2Tmp));
+   WM.Sub(16, 25, Mat3x3(MatCross, d2Tmp));
    
    /* Derivata dell'equazione di momento, nodo 1 */
-   WM.Add(10, 4, (Mat3x3(FPrime)+Mat3x3(F, Omega1))*Mat3x3(d1Tmp));
+   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega1))*Mat3x3(MatCross, d1Tmp));
    WM.Add(10, 10, FWedged1Wedge);
    WM.Add(10, 25, O1Wedged1Wedge);
-   WM.Add(10, 28, Mat3x3(d1Tmp));
+   WM.Add(10, 28, Mat3x3(MatCross, d1Tmp));
    
    /* Derivata dell'equazione di momento, nodo 2 */
-   WM.Add(22, 16, (Mat3x3(FPrime)+Mat3x3(F, Omega2))*Mat3x3(-d2Tmp));
+   WM.Sub(22, 16, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega2))*Mat3x3(MatCross, d2Tmp));
    WM.Add(22, 22, FWedged2Wedge);
    WM.Add(22, 25, O2Wedged2Wedge);
-   WM.Add(22, 28, Mat3x3(-d2Tmp));
+   WM.Sub(22, 28, Mat3x3(MatCross, d2Tmp));
       
    /* Equazione di vincolo */
-   WM.Add(25, 4, Mat3x3(d1Tmp));
-   WM.Add(25, 16, Mat3x3(-d2Tmp));
+   WM.Add(25, 4, Mat3x3(MatCross, d1Tmp));
+   WM.Sub(25, 16, Mat3x3(MatCross, d2Tmp));
    
    /* Derivata dell'equazione di vincolo */
    WM.Add(28, 4, O1Wedged1Wedge);
-   WM.Add(28, 10, Mat3x3(d1Tmp));
+   WM.Add(28, 10, Mat3x3(MatCross, d1Tmp));
    WM.Add(28, 16, O2Wedged2Wedge);
-   WM.Add(28, 22, Mat3x3(-d2Tmp));
+   WM.Sub(28, 22, Mat3x3(MatCross, d2Tmp));
    
    return WorkMat;
 }
@@ -701,24 +701,24 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Mat3x3 FWedgedWedge(F, dTmp);
    
    /* Matrici (omega/\d)/\ */
-   Mat3x3 OWedgedWedge(Omega.Cross(dTmp));
+   Mat3x3 OWedgedWedge(MatCross, Omega.Cross(dTmp));
    
    /* Equazione di momento */
    WM.Add(4, 4, FWedgedWedge);
-   WM.Add(4, 13, Mat3x3(dTmp));
+   WM.Add(4, 13, Mat3x3(MatCross, dTmp));
    
    /* Derivata dell'equazione di momento */
-   WM.Add(10, 4, (Mat3x3(FPrime)+Mat3x3(F, Omega))*Mat3x3(dTmp));
+   WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega))*Mat3x3(MatCross, dTmp));
    WM.Add(10, 10, FWedgedWedge);
    WM.Add(10, 13, OWedgedWedge);
-   WM.Add(10, 16, Mat3x3(dTmp));
+   WM.Add(10, 16, Mat3x3(MatCross, dTmp));
    
    /* Equazione di vincolo */
-   WM.Add(13, 4, Mat3x3(dTmp));
+   WM.Add(13, 4, Mat3x3(MatCross, dTmp));
    
    /* Derivata dell'equazione di vincolo */
    WM.Add(16, 4, OWedgedWedge);
-   WM.Add(16, 10, Mat3x3(dTmp));
+   WM.Add(16, 10, Mat3x3(MatCross, dTmp));
    
    return WorkMat;
 }

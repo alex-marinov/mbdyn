@@ -80,7 +80,7 @@ DeformableHingeJoint::AssMatM(FullSubMatrixHandler& WMA,
 	doublereal dCoef)
 {
 	/* M was updated by AssRes */
-	Mat3x3 MTmp(M*dCoef);
+	Mat3x3 MTmp(MatCross, M*dCoef);
 
 	WMA.Add(1, 1, MTmp);
 	WMA.Sub(4, 1, MTmp);
@@ -127,7 +127,7 @@ DeformableHingeJoint::AssMatMDEPrime(FullSubMatrixHandler& WMA,
 	WMB.Sub(4, 1, MDEPrime);
 	WMB.Add(4, 4, MDEPrime);
 
-	Mat3x3 MTmp(MDEPrime*Mat3x3(pNode2->GetWCurr()*dCoef));
+	Mat3x3 MTmp(MDEPrime*Mat3x3(MatCross, pNode2->GetWCurr()*dCoef));
 	WMA.Sub(1, 1, MTmp);
 	WMA.Add(1, 4, MTmp);
 	WMA.Add(4, 1, MTmp);
@@ -1081,11 +1081,11 @@ ViscousHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime().MulMT(R1h);
 
-	Mat3x3 Tmp(MDEPrime*Mat3x3(W2));
+	Mat3x3 Tmp(MDEPrime*Mat3x3(MatCross, W2));
 	WM.Add(4, 7, Tmp);
 	WM.Sub(1, 7, Tmp);
 
-	Tmp += Mat3x3(R1h*ConstitutiveLaw3DOwner::GetF());
+	Tmp += Mat3x3(MatCross, R1h*ConstitutiveLaw3DOwner::GetF());
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
@@ -1514,11 +1514,11 @@ ViscoElasticHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE().MulMT(R1h);
 	MDEPrime = R1h*ConstitutiveLaw3DOwner::GetFDEPrime().MulMT(R1h);
 
-	Mat3x3 Tmp(MDE + MDEPrime*Mat3x3(W2));
+	Mat3x3 Tmp(MDE + MDEPrime*Mat3x3(MatCross, W2));
 	WM.Add(4, 7, Tmp);
 	WM.Sub(1, 7, Tmp);
 
-	Tmp += Mat3x3(R1h*ConstitutiveLaw3DOwner::GetF());
+	Tmp += Mat3x3(MatCross, R1h*ConstitutiveLaw3DOwner::GetF());
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
@@ -1780,7 +1780,7 @@ InvAngularConstitutiveLaw::Update(const Vec3& Eps, const Vec3& EpsPrime)
 	Mat3x3 Gx(RotManip::DRot(Tx));
 
 	// re-orientation of moment
-	ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(ConstitutiveLaw<Vec3, Mat3x3>::F*(-dXi))*Gx;
+	ConstitutiveLaw<Vec3, Mat3x3>::FDE = Mat3x3(MatCross, ConstitutiveLaw<Vec3, Mat3x3>::F*(-dXi))*Gx;
 
 	// stiffness, if any
 	if (pCL->GetConstLawType() & ConstLawType::ELASTIC) {

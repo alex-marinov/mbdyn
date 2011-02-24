@@ -546,7 +546,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 	Mat3x3 HorridusMatrix = R1GammaInvT * (
 					RotManip::Elle(-Theta, GammaInv.Transpose() * e1hz) * GammaInv.MulMT(R1)
 				);
-	Mat3x3 e1hzxdLambdadCoef(e1hz * dLambdadCoef);
+	Mat3x3 e1hzxdLambdadCoef(MatCross, e1hz * dLambdadCoef);
 	//F1 - g1
 	WM.Sub(1, 4, e1hzxdLambdadCoef );
 	//F1 - lambda
@@ -562,16 +562,16 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 	WM.Sub(4, 7, e1hzxdLambdadCoef );
 	//C1 - g1
 	WM.Add(4, 4, (
-			(Theta.Cross(Mat3x3(e1hz)) -
+			(Theta.Cross(Mat3x3(MatCross, e1hz)) -
 					e1hz.Cross(R1GammaInvT.Transpose()) +
-					Mat3x3(R1GammaInvT*e1hz) +
+					Mat3x3(MatCross, R1GammaInvT*e1hz) +
 					HorridusMatrix +
-					R1GammaInvT * Mat3x3(e1hz)
+					R1GammaInvT * Mat3x3(MatCross, e1hz)
 			) * (dPitch / ( 2. * M_PI )) -
-			e1hz.Cross(Mat3x3(R1f1)) - 
-			D.Cross(Mat3x3(e1hz)) +
-			e1hz.Cross(Mat3x3(R1f1)) -
-			R1f1.Cross(Mat3x3(e1hz))
+			Mat3x3(e1hz, R1f1) - 
+			Mat3x3(D, e1hz) +
+			Mat3x3(e1hz, R1f1) -
+			Mat3x3(R1f1, e1hz)
 		) * dLambdadCoef
 	);
 	//C1 - g2
@@ -580,7 +580,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 				e1hz.Cross(R1GammaInvT.Transpose()) -
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) +
-			e1hz.Cross(Mat3x3(R2f2))
+			Mat3x3(e1hz, R2f2)
 		) * dLambdadCoef
 	);
 	//C1 - lambda
@@ -588,10 +588,10 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 	//C2 - g1
 	WM.Add(10, 4, (
 			(
-				- Mat3x3(R1GammaInvT*e1hz) - 
+				- Mat3x3(MatCross, R1GammaInvT*e1hz) - 
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) +
-			R2f2.Cross(Mat3x3(e1hz))
+			Mat3x3(R2f2, e1hz)
 		) * dLambdadCoef
 	);
 	//C2 - g2
@@ -599,7 +599,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 			(
 				HorridusMatrix
 			) * (dPitch / ( 2. * M_PI )) -
-			e1hz.Cross(Mat3x3(R2f2))
+			Mat3x3(e1hz, R2f2)
 		) * dLambdadCoef
 	); 
 	//C2 - lambda
@@ -660,18 +660,18 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 			 //variation of relative velocity
 		dv.ReDim(6);
 		
-		Mat3x3 tempmat1(R1.MulTV(Omega2 - Omega1));
-		tempmat1 += R1.MulTM(Mat3x3(Omega2 - Omega1));
+		Mat3x3 tempmat1(MatCross, R1.MulTV(Omega2 - Omega1));
+		tempmat1 += R1.MulTM(Mat3x3(MatCross, Omega2 - Omega1));
 		Vec3 tempvec(tempmat1.MulTV(e1hz));
 		dv.Set(tempvec * cos_pitch_angle_r * (dCoef * F_sign) - 
-			(e1hz + Mat3x3(Omega1r) * e1hz * dCoef) * (cos_pitch_angle_r * F_sign), 1, 4);
-		dv.Set((e1hz + Mat3x3(Omega2r) * e1hz * dCoef) * (cos_pitch_angle_r * F_sign), 4, 6+4);
+			(e1hz + Omega1r.Cross(e1hz * dCoef)) * (cos_pitch_angle_r * F_sign), 1, 4);
+		dv.Set((e1hz + Omega2r.Cross(e1hz * dCoef)) * (cos_pitch_angle_r * F_sign), 4, 6+4);
 
 		ExpandableMatrix de1hz;
 		de1hz.ReDim(3,1);
 			de1hz.SetBlockDim(1, 3);
 			de1hz.SetBlockIdx(1, 4);
-		de1hz.Set(-Mat3x3(e1hz) * dCoef, 1, 1);
+		de1hz.Set(Mat3x3(MatCross, e1hz * (-dCoef)), 1, 1);
 
 		//assemble friction states
 		fc->AssJac(WM,dfc,12+1,iFirstReactionIndex+1,dCoef,modF,v,
@@ -691,7 +691,7 @@ ScrewJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
 		
 		dM3diff.Set(e1hz*shc, 1, 1); dM3diff.Link(1, &dF);
 		dM3diff.Set(e1hz*modF, 1, 2); dM3diff.Link(2, &dShc);
-		dM3diff.Set(-Mat3x3(e1hz) * dCoef * shc * modF, 1, 3); 
+		dM3diff.Set(Mat3x3(MatCross, e1hz * (-dCoef * shc * modF)), 1, 3); 
 		//dM3diff.Set(Mat3x3(1.) * shc * modF[0], 1, 3); 
 // 		std::cerr << "Ci siamo\n";
 		

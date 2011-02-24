@@ -392,8 +392,8 @@ ViscousBody::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB, doublereal dCoef)
 {
 	// common
-	WMA.Sub(1, 4, Mat3x3(F.GetVec1()*dCoef));
-	WMA.Sub(4, 4, Mat3x3(F.GetVec2()*dCoef));
+	WMA.Sub(1, 4, Mat3x3(MatCross, F.GetVec1()*dCoef));
+	WMA.Sub(4, 4, Mat3x3(MatCross, F.GetVec2()*dCoef));
 
 	// viscous
 	const Mat3x3& F_dPrime = FDEPrime.GetMat11();
@@ -404,11 +404,11 @@ ViscousBody::AssMats(FullSubMatrixHandler& WMA,
 	WMB.Add(1, 1, F_dPrime);
 	Mat3x3 MTmp2(M_dPrime + f.Cross(F_dPrime));
 	WMB.Add(4, 1, MTmp2);
-	Mat3x3 MTmp(F_thetaPrime - F_dPrime*Mat3x3(f));
+	Mat3x3 MTmp(F_thetaPrime - F_dPrime*Mat3x3(MatCross, f));
 	WMB.Add(1, 4, MTmp);
-	WMB.Add(4, 4, M_thetaPrime - M_dPrime*Mat3x3(f) + f.Cross(MTmp));
+	WMB.Add(4, 4, M_thetaPrime - M_dPrime*Mat3x3(MatCross, f) + f.Cross(MTmp));
 
-	MTmp = Mat3x3(f.Cross(pNode->GetWCurr()*dCoef));
+	MTmp = Mat3x3(MatCross, f.Cross(pNode->GetWCurr()*dCoef));
 	WMA.Add(1, 4, F_dPrime*MTmp);
 	WMA.Add(4, 4, MTmp2*MTmp);
 }

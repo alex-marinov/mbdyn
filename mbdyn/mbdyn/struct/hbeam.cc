@@ -389,15 +389,15 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		/* Delta - deformazioni */
 		AzTmp[i] = Mat6x6(Ldp[i]*dCoef,
 				Zero3x3,
-				(LdP[i]+Mat3x3(L)*RdP[i])*dCoef,
-				(RhodP[i]+Mat3x3(Rho)*RdP[i])*dCoef);
+				(LdP[i] + L.Cross(RdP[i]))*dCoef,
+				(RhodP[i] + Rho.Cross(RdP[i]))*dCoef);
 		
 		/* Delta - azioni interne */
 		AzTmp[i] = DRef*AzTmp[i];
 		
 		/* Correggo per la rotazione da locale a globale */
-		AzTmp[i].SubMat12(Mat3x3(AzRef.GetVec1()*dCoef)*RdP[i]);
-		AzTmp[i].SubMat22(Mat3x3(AzRef.GetVec2()*dCoef)*RdP[i]);
+		AzTmp[i].SubMat12((AzRef.GetVec1()*dCoef).Cross(RdP[i]));
+		AzTmp[i].SubMat22((AzRef.GetVec2()*dCoef).Cross(RdP[i]));
 	}
    
 	Vec3 bTmp[2];
@@ -410,34 +410,35 @@ HBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		WMA.Sub(1, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Sub(1, 6*i + 4, 
 			AzTmp[i].GetMat12()
-			- Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
+			- (AzRef.GetVec1()*dCoef).Cross(pdP[i]));
 		
 		WMA.Sub(4, 6*i + 1,
 			AzTmp[i].GetMat21()
-			- Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
-			+ Mat3x3(bTmp[0])*AzTmp[i].GetMat11());
+			- (AzRef.GetVec1()*dCoef).Cross(pdp[i])
+			+ bTmp[0].Cross(AzTmp[i].GetMat11()));
 		WMA.Sub(4, 6*i + 4, 
 			AzTmp[i].GetMat22()
-			+ Mat3x3(bTmp[0])*AzTmp[i].GetMat12());
+			+ bTmp[0].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
 		WMA.Add(7, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Add(7, 6*i + 4,
 			AzTmp[i].GetMat12()
-			- Mat3x3(AzRef.GetVec1()*dCoef)*pdP[i]);
+			- (AzRef.GetVec1()*dCoef).Cross(pdP[i]));
 		
 		WMA.Add(10, 6*i + 1,
 			AzTmp[i].GetMat21()
-			- Mat3x3(AzRef.GetVec1()*dCoef)*pdp[i]
-			+ Mat3x3(bTmp[1])*AzTmp[i].GetMat11());
+			- (AzRef.GetVec1()*dCoef).Cross(pdp[i])
+			+ bTmp[1].Cross(AzTmp[i].GetMat11()));
 		WMA.Add(10, 6*i + 4,
 			AzTmp[i].GetMat22()
-			+ Mat3x3(bTmp[1])*AzTmp[i].GetMat12());
+			+ bTmp[1].Cross(AzTmp[i].GetMat12()));
 	}
 	
 	/* correzione alle equazioni */
-	WMA.Sub(4, 1, Mat3x3(AzRef.GetVec1()*dCoef));
-	WMA.Add(10, 7, Mat3x3(AzRef.GetVec1()*dCoef));
+	Mat3x3 FTmp(MatCross, AzRef.GetVec1()*dCoef);
+	WMA.Sub(4, 1, FTmp);
+	WMA.Add(10, 7, FTmp);
 };
 
 

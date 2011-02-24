@@ -163,11 +163,11 @@ protected:
     const bool bConsistentInertia;
         
     const doublereal dMass_I;
-    const Mat3x3 S0_I;
+    const Vec3 S0_I;
     const Mat3x3 J0_I;
    
     const doublereal dMassII;
-    const Mat3x3 S0II;
+    const Vec3 S0II;
     const Mat3x3 J0II;
    
     /* Velocita' angolare delle sezioni */
@@ -280,9 +280,9 @@ protected:
 	 const Mat3x3& r_I, const Mat3x3& rII,
 	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
 	 doublereal dM_I,
-	 const Mat3x3& s0_I, const Mat3x3& j0_I,
+	 const Vec3& s0_I, const Mat3x3& j0_I,
 	 doublereal dMII,
-	 const Mat3x3& s0II, const Mat3x3& j0II,
+	 const Vec3& s0II, const Mat3x3& j0II,
 	 unsigned uFlags, OrientationDescription ood,
 	 flag fOut);
 
@@ -525,10 +525,10 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     const ConstitutiveLaw6D* pD_I,
 		     const ConstitutiveLaw6D* pDII,
 		     doublereal dM_I,
-		     const Mat3x3& s0_I,
+		     const Vec3& s0_I,
 		     const Mat3x3& j0_I,
 		     doublereal dMII,
-		     const Mat3x3& s0II,
+		     const Vec3& s0II,
 		     const Mat3x3& j0II,
 		     unsigned uFlags, OrientationDescription ood,
 		     flag fOut);

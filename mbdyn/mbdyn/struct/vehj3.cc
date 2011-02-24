@@ -384,8 +384,8 @@ DeformableJoint::AssMatCommon(FullSubMatrixHandler& WM, doublereal dCoef)
 	d1 = pNode2->GetXCurr() + d2 - pNode1->GetXCurr();
 
 	Vec3 FTmp(F.GetVec1()*dCoef);
-	Mat3x3 FCross(FTmp);
-	Mat3x3 MCross(F.GetVec2()*dCoef);
+	Mat3x3 FCross(MatCross, FTmp);
+	Mat3x3 MCross(MatCross, F.GetVec2()*dCoef);
 
 	WM.Add(1, 4, FCross);
 	WM.Sub(4, 1, FCross);
@@ -422,37 +422,37 @@ DeformableJoint::AssMatElastic(FullSubMatrixHandler& WM, doublereal dCoef,
 	WM.Add(6 + 1, 6 + 1, F_d);
 
 	/* D11 * [d1 x] */
-	Mat3x3 FTmp = F_d*Mat3x3(d1) - F_theta;
+	Mat3x3 FTmp = F_d*Mat3x3(MatCross, d1) - F_theta;
 
 	WM.Sub(1, 4, FTmp);
 	WM.Add(6 + 1, 4, FTmp);
 
 	/* */
-	Mat3x3 MTmp(M_d*Mat3x3(d1) - M_theta);
+	Mat3x3 MTmp(M_d*Mat3x3(MatCross, d1) - M_theta);
 
-	WM.Sub(4, 4, Mat3x3(d1)*FTmp + MTmp);
-	WM.Add(6 + 4, 4, Mat3x3(d2)*FTmp + MTmp);
+	WM.Sub(4, 4, d1.Cross(FTmp) + MTmp);
+	WM.Add(6 + 4, 4, d2.Cross(FTmp) + MTmp);
 
 	/* D11 * [d2 x] */
-	FTmp = F_d*Mat3x3(d2) - F_theta;
+	FTmp = F_d*Mat3x3(MatCross, d2) - F_theta;
 
 	WM.Add(1, 6 + 4, FTmp);
 	WM.Sub(6 + 1, 6 + 4, FTmp);
 
 	/* */
-	MTmp = M_d*Mat3x3(d2) - M_theta;
+	MTmp = M_d*Mat3x3(MatCross, d2) - M_theta;
 
-	WM.Add(4, 6 + 4, Mat3x3(d1)*FTmp + MTmp);
-	WM.Sub(6 + 4, 6 + 4, Mat3x3(d2)*FTmp + MTmp);
+	WM.Add(4, 6 + 4, d1.Cross(FTmp) + MTmp);
+	WM.Sub(6 + 4, 6 + 4, d2.Cross(FTmp) + MTmp);
 
 	/* [d1 x] * D11 */
-	FTmp = Mat3x3(d1)*F_d + M_d;
+	FTmp = d1.Cross(F_d) + M_d;
 
 	WM.Add(4, 1, FTmp);
 	WM.Sub(4, 6 + 1, FTmp);
 
 	/* [d2 x] * D11 */
-	FTmp = Mat3x3(d2)*F_d + M_d;
+	FTmp = d2.Cross(F_d) + M_d;
 
 	WM.Sub(6 + 4, 1, FTmp);
 	WM.Add(6 + 4, 6 + 1, FTmp);
@@ -479,70 +479,70 @@ DeformableJoint::AssMatViscous(FullSubMatrixHandler& WMA,
 	WMB.Add(6 + 1, 6 + 1, F_dPrime);
 
 	/* D11 * [d1 x] */
-	Mat3x3 FTmp = F_dPrime*Mat3x3(d1) - F_thetaPrime;
+	Mat3x3 FTmp = F_dPrime*Mat3x3(MatCross, d1) - F_thetaPrime;
 
 	WMB.Sub(1, 4, FTmp);
 	WMB.Add(6 + 1, 4, FTmp);
 
 	/* */
-	Mat3x3 MTmp(M_dPrime*Mat3x3(d1) - M_thetaPrime);
+	Mat3x3 MTmp(M_dPrime*Mat3x3(MatCross, d1) - M_thetaPrime);
 
-	WMB.Sub(4, 4, Mat3x3(d1)*FTmp + MTmp);
-	WMB.Add(6 + 4, 4, Mat3x3(d2)*FTmp + MTmp);
+	WMB.Sub(4, 4, d1.Cross(FTmp) + MTmp);
+	WMB.Add(6 + 4, 4, d2.Cross(FTmp) + MTmp);
 
 	/* D11 * [d2 x] */
-	FTmp = F_dPrime*Mat3x3(d2) - F_thetaPrime;
+	FTmp = F_dPrime*Mat3x3(MatCross, d2) - F_thetaPrime;
 
 	WMB.Add(1, 6 + 4, FTmp);
 	WMB.Sub(6 + 1, 6 + 4, FTmp);
 
 	/* */
-	MTmp = M_dPrime*Mat3x3(d2) - M_thetaPrime;
+	MTmp = M_dPrime*Mat3x3(MatCross, d2) - M_thetaPrime;
 
-	WMB.Add(4, 6 + 4, Mat3x3(d1)*FTmp + MTmp);
-	WMB.Sub(6 + 4, 6 + 4, Mat3x3(d2)*FTmp + MTmp);
+	WMB.Add(4, 6 + 4, d1.Cross(FTmp) + MTmp);
+	WMB.Sub(6 + 4, 6 + 4, d2.Cross(FTmp) + MTmp);
 
 	/* [d1 x] * D11 */
-	FTmp = Mat3x3(d1)*F_dPrime + M_dPrime;
+	FTmp = d1.Cross(F_dPrime) + M_dPrime;
 
 	WMB.Add(4, 1, FTmp);
 	WMB.Sub(4, 6 + 1, FTmp);
 
 	/* [d2 x] * D11 */
-	FTmp = Mat3x3(d2)*F_dPrime + M_dPrime;
+	FTmp = d2.Cross(F_dPrime) + M_dPrime;
 
 	WMB.Sub(6 + 4, 1, FTmp);
 	WMB.Add(6 + 4, 6 + 1, FTmp);
 
 	// ~~~ o ~~~ o ~~~ o ~~~
 
-	MTmp = F_dPrime*Mat3x3(Omega1*dCoef);
+	MTmp = F_dPrime*Mat3x3(MatCross, Omega1*dCoef);
 
 	WMA.Sub(1, 1, MTmp);
 	WMA.Add(6 + 1, 1, MTmp);
 	WMA.Add(1, 6 + 1, MTmp);
 	WMA.Sub(6 + 1, 6 + 1, MTmp);
 
-	Mat3x3 A1dP(Mat3x3(d1)*F_dPrime + M_dPrime);
-	Mat3x3 A2dP(Mat3x3(d2)*F_dPrime + M_dPrime);
+	Mat3x3 A1dP(d1.Cross(F_dPrime) + M_dPrime);
+	Mat3x3 A2dP(d2.Cross(F_dPrime) + M_dPrime);
 	
-	Mat3x3 A1tPw((Mat3x3(d1)*F_thetaPrime + M_thetaPrime)*Mat3x3(Omega2*dCoef));
-	Mat3x3 A2tPw((Mat3x3(d2)*F_thetaPrime + M_thetaPrime)*Mat3x3(Omega2*dCoef));
+	Mat3x3 A1tPw((d1.Cross(F_thetaPrime) + M_thetaPrime)*Mat3x3(MatCross, Omega2*dCoef));
+	Mat3x3 A2tPw((d2.Cross(F_thetaPrime) + M_thetaPrime)*Mat3x3(MatCross, Omega2*dCoef));
 
-	Mat3x3 D1(Mat3x3(d1Prime*dCoef) - Mat3x3(Omega1, d1*dCoef));
-	Mat3x3 D2(Mat3x3(d2Prime*dCoef) - Mat3x3(Omega1, d2*dCoef));
+	Mat3x3 D1(Mat3x3(MatCross, d1Prime*dCoef) - Mat3x3(Omega1, d1*dCoef));
+	Mat3x3 D2(Mat3x3(MatCross, d2Prime*dCoef) - Mat3x3(Omega1, d2*dCoef));
 
-	MTmp = A1dP*Mat3x3(Omega1*dCoef);
+	MTmp = A1dP*Mat3x3(MatCross, Omega1*dCoef);
 
 	WMA.Sub(4, 1, MTmp);
 	WMA.Add(4, 6 + 1, MTmp);
 
-	MTmp = A2dP*Mat3x3(Omega1*dCoef);
+	MTmp = A2dP*Mat3x3(MatCross, Omega1*dCoef);
 
 	WMA.Add(6 + 4, 1, MTmp);
 	WMA.Sub(6 + 4, 6 + 1, MTmp);
 
-	FTmp = F_thetaPrime*Mat3x3(Omega2*dCoef);
+	FTmp = F_thetaPrime*Mat3x3(MatCross, Omega2*dCoef);
 
 	MTmp = F_dPrime*D1 + FTmp;
 

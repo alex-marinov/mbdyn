@@ -140,8 +140,8 @@ UniversalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutCoef(6 + iCnt, 12 + iCnt, -1.);
 	}
 
-	WM.Add(4, 13, Mat3x3(d1Tmp));
-	WM.Sub(10, 13, Mat3x3(d2Tmp));
+	WM.Add(4, 13, Mat3x3(MatCross, d1Tmp));
+	WM.Sub(10, 13, Mat3x3(MatCross, d2Tmp));
 
 	/* Moltiplica la forza ed il momento per il coefficiente del metodo */
 	Vec3 FTmp(F*dCoef);
@@ -176,8 +176,8 @@ UniversalHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutCoef(12 + iCnt, 6 + iCnt, -1.);
 	}
 
-	WM.Sub(13, 4, Mat3x3(d1Tmp));
-	WM.Add(13, 10, Mat3x3(d2Tmp));
+	WM.Sub(13, 4, Mat3x3(MatCross, d1Tmp));
+	WM.Add(13, 10, Mat3x3(MatCross, d2Tmp));
 
 	/* Equazione di vincolo del momento
 	 *
@@ -392,14 +392,14 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 FWedged2Wedge(F, -d2Tmp);
 
 	/* Matrici (omega1/\d1)/\, -(omega2/\d2)/\ */
-	Mat3x3 O1Wedged1Wedge(Omega1.Cross(d1Tmp));
-	Mat3x3 O2Wedged2Wedge(d2Tmp.Cross(Omega2));
+	Mat3x3 O1Wedged1Wedge(MatCross, Omega1.Cross(d1Tmp));
+	Mat3x3 O2Wedged2Wedge(MatCross, d2Tmp.Cross(Omega2));
 
-	Mat3x3 MDeltag1((Mat3x3(Omega2.Cross(MTmp) + MPrimeTmp)
-		+ Mat3x3(MTmp, Omega1))*Mat3x3(e3a));
+	Mat3x3 MDeltag1((Mat3x3(MatCross, Omega2.Cross(MTmp) + MPrimeTmp)
+		+ Mat3x3(MTmp, Omega1))*Mat3x3(MatCross, e3a));
 	Mat3x3 MDeltag2(Mat3x3(Omega1.Cross(e3a), MTmp)
 		+ Mat3x3(e3a, MPrimeTmp)
-		+ Mat3x3(e3a)*Mat3x3(Omega2, MTmp));
+		+ e3a.Cross(Mat3x3(Omega2, MTmp)));
 
 	/* Vettori temporanei */
 	Vec3 Tmp(e2b.Cross(e3a));
@@ -422,7 +422,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* Equazione di momento, nodo 1 */
 	WM.Add(4, 4, FWedged1Wedge - Mat3x3(MTmp, e3a));
 	WM.Add(4, 16, Mat3x3(e3a, MTmp));
-	WM.Add(4, 25, Mat3x3(d1Tmp));
+	WM.Add(4, 25, Mat3x3(MatCross, d1Tmp));
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.PutCoef(3 + iCnt, 28, Tmp(iCnt));
 	}
@@ -430,18 +430,18 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* Equazione di momento, nodo 2 */
 	WM.Add(16, 4, Mat3x3(MTmp, e3a));
 	WM.Add(16, 16, FWedged2Wedge - Mat3x3(e3a, MTmp));
-	WM.Sub(16, 25, Mat3x3(d2Tmp));
+	WM.Sub(16, 25, Mat3x3(MatCross, d2Tmp));
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.DecCoef(15 + iCnt, 28, Tmp(iCnt));
 	}
 
 	/* Derivata dell'equazione di momento, nodo 1 */
-	WM.Add(10, 4, (Mat3x3(FPrime) + Mat3x3(F, Omega1))*Mat3x3(d1Tmp) - MDeltag1);
+	WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega1))*Mat3x3(MatCross, d1Tmp) - MDeltag1);
 	WM.Add(10, 10, FWedged1Wedge - Mat3x3(MTmp, e3a));
 	WM.Add(10, 16, MDeltag2);
 	WM.Add(10, 22, Mat3x3(e3a, MTmp));
 	WM.Add(10, 25, O1Wedged1Wedge);
-	WM.Add(10, 29, Mat3x3(d1Tmp));
+	WM.Add(10, 29, Mat3x3(MatCross, d1Tmp));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.PutCoef(9 + iCnt, 28, TmpPrime(iCnt));
@@ -451,10 +451,10 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	/* Derivata dell'equazione di momento, nodo 2 */
 	WM.Add(22, 4, MDeltag1);
 	WM.Add(22, 10, Mat3x3(MTmp, e3a));
-	WM.Sub(22, 16, (Mat3x3(FPrime) + Mat3x3(F, Omega2))*Mat3x3(d2Tmp) + MDeltag2);
+	WM.Sub(22, 16, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega2))*Mat3x3(MatCross, d2Tmp) + MDeltag2);
 	WM.Add(22, 22, FWedged2Wedge - Mat3x3(e3a, MTmp));
 	WM.Add(22, 25, O2Wedged2Wedge);
-	WM.Sub(22, 29, Mat3x3(d2Tmp));
+	WM.Sub(22, 29, Mat3x3(MatCross, d2Tmp));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		WM.DecCoef(21 + iCnt, 28, TmpPrime(iCnt));
@@ -462,14 +462,14 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Equazione di vincolo di posizione */
-	WM.Add(25, 4, Mat3x3(d1Tmp));
-	WM.Sub(25, 16, Mat3x3(d2Tmp));
+	WM.Add(25, 4, Mat3x3(MatCross, d1Tmp));
+	WM.Sub(25, 16, Mat3x3(MatCross, d2Tmp));
 
 	/* Derivata dell'equazione di vincolo di posizione */
 	WM.Add(29, 4, O1Wedged1Wedge);
-	WM.Add(29, 10, Mat3x3(d1Tmp));
+	WM.Add(29, 10, Mat3x3(MatCross, d1Tmp));
 	WM.Add(29, 16, O2Wedged2Wedge);
-	WM.Sub(29, 22, Mat3x3(d2Tmp));
+	WM.Sub(29, 22, Mat3x3(MatCross, d2Tmp));
 
 	/* Equazioni di vincolo di rotazione: e2b~e3a */
 
@@ -859,11 +859,11 @@ UniversalRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 MPrimeTmp(e2b*dMPrime);
 
 	/* Matrici (omega1/\d1)/\, -(omega2/\d2)/\ */
-	Mat3x3 MDeltag1((Mat3x3(Omega2.Cross(MTmp) + MPrimeTmp)
-		+ Mat3x3(MTmp, Omega1))*Mat3x3(e3a));
+	Mat3x3 MDeltag1((Mat3x3(MatCross, Omega2.Cross(MTmp) + MPrimeTmp)
+		+ Mat3x3(MTmp, Omega1))*Mat3x3(MatCross, e3a));
 	Mat3x3 MDeltag2(Mat3x3(Omega1.Cross(e3a), MTmp)
 		+ Mat3x3(e3a, MPrimeTmp)
-		+ Mat3x3(e3a)*Mat3x3(Omega2, MTmp));
+		+ e3a.Cross(Mat3x3(Omega2, MTmp)));
 
 	/* Vettori temporanei */
 	Vec3 Tmp(e2b.Cross(e3a));
@@ -1103,7 +1103,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutCoef(iCnt, 6 + iCnt, -1.);
 	}
 
-	WM.Sub(4, 7, Mat3x3(dTmp));
+	WM.Sub(4, 7, Mat3x3(MatCross, dTmp));
 
 	/* Note: F and dM updated by AssRes */
    	Vec3 e3(R0.GetVec(3));
@@ -1118,7 +1118,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Tmp(e2.Cross(e3));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
-		doublereal d = Tmp.dGet(iCnt);
+		doublereal d = Tmp(iCnt);
 		WM.PutCoef(3 + iCnt, 10, -d);
 	}
 
@@ -1135,7 +1135,7 @@ UniversalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	// position, delta g
-	WM.Add(6 + 1, 3 + 1, Mat3x3(dTmp));
+	WM.Add(6 + 1, 3 + 1, Mat3x3(MatCross, dTmp));
 
 	return WorkMat;
 }
@@ -1295,23 +1295,23 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 MTmp(e2*dM);
 	Vec3 MPrimeTmp(e2*dMPrime);
 
-	Mat3x3 MDeltag(Mat3x3(e3, MPrimeTmp) + Mat3x3(e3)*Mat3x3(Omega, MTmp));
+	Mat3x3 MDeltag(Mat3x3(e3, MPrimeTmp) + e3.Cross(Mat3x3(Omega, MTmp)));
 
 	/* Matrici F/\d/\ */
 	Mat3x3 FWedgedWedge(F, dTmp);
 
 	/* Matrici (omega/\d)/\ */
-	Mat3x3 OWedgedWedge(Omega.Cross(dTmp));
+	Mat3x3 OWedgedWedge(MatCross, Omega.Cross(dTmp));
 
 	/* Equazione di momento */
 	WM.Add(4, 4, FWedgedWedge + Mat3x3(e3, MTmp));
-	WM.Add(4, 13, Mat3x3(dTmp));
+	WM.Add(4, 13, Mat3x3(MatCross, dTmp));
 
 	/* Derivata dell'equazione di momento */
-	WM.Add(10, 4, (Mat3x3(FPrime) + Mat3x3(F, Omega))*Mat3x3(dTmp) + MDeltag);
+	WM.Add(10, 4, (Mat3x3(MatCross, FPrime) + Mat3x3(F, Omega))*Mat3x3(MatCross, dTmp) + MDeltag);
 	WM.Add(10, 10, FWedgedWedge + Mat3x3(e3, MTmp));
 	WM.Add(10, 13, OWedgedWedge);
-	WM.Add(10, 17, Mat3x3(dTmp));
+	WM.Add(10, 17, Mat3x3(MatCross, dTmp));
 
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		doublereal d = Tmp(iCnt);
@@ -1322,11 +1322,11 @@ UniversalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Equazione di vincolo */
-	WM.Add(13, 4, Mat3x3(dTmp));
+	WM.Add(13, 4, Mat3x3(MatCross, dTmp));
 
 	/* Derivata dell'equazione di vincolo */
 	WM.Add(17, 4, OWedgedWedge);
-	WM.Add(17, 10, Mat3x3(dTmp));
+	WM.Add(17, 10, Mat3x3(MatCross, dTmp));
 
 	/* Equazioni di vincolo di rotazione: e2b~e3a */
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {

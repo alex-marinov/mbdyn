@@ -280,7 +280,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* xc - x = 0: Delta g */
 		WM.Sub(6*(1+Beam::NUMNODES)+1+1, 
-				6*(1+iN)+3+1, Mat3x3(fTmp[iN]*dN[iN]));
+				6*(1+iN)+3+1, Mat3x3(MatCross, fTmp[iN]*dN[iN]));
 	}
 
 	/* l^T F = 0 : Delta s */
@@ -297,10 +297,11 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* corpo: Delta F (momento) */
-	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, Mat3x3(fb));
+	Mat3x3 MTmp(MatCross, fb);
+	WM.Sub(3+1, 6*(1+Beam::NUMNODES)+1+1, MTmp);
 
 	/* vincolo posizione: Delta gb */
-	WM.Add(6*(1+Beam::NUMNODES)+1+1, 3+1, Mat3x3(fb));
+	WM.Add(6*(1+Beam::NUMNODES)+1+1, 3+1, MTmp);
 
 	/* corpo: Delta gb (momento) */
 	Mat3x3 Ffb(F, fb*(dCoef));
@@ -310,9 +311,9 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.Add(6*activeNode+3+1, 3+1, Ffb*dW[0]);
 
 	/* trave: Delta F (momento) */
-	Mat3x3 MTmp(F*(dCoef*dW[0]));
+	MTmp = Mat3x3(MatCross, F*(dCoef*dW[0]));
 	WM.Add(6*activeNode+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-			Mat3x3((xc-xNod[activeNode-1])*dW[0]));
+			Mat3x3(MatCross, (xc - xNod[activeNode-1])*dW[0]));
 	WM.Sub(6*activeNode+3+1, 1, MTmp);
 	WM.Add(6*activeNode+3+1, 6*activeNode+1, MTmp);
 
@@ -355,9 +356,9 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		}
 
 		/* trave: Delta F (momento) */
-		Mat3x3 MTmp(F*(dCoef*dW[1]));
+		Mat3x3 MTmp(MatCross, F*(dCoef*dW[1]));
 		WM.Add(6*(activeNode+1)+3+1, 6*(1+Beam::NUMNODES)+1+1, 
-				Mat3x3((xc-xNod[activeNode]))*dW[1]);
+				Mat3x3(MatCross, (xc-xNod[activeNode]))*dW[1]);
 		WM.Sub(6*(activeNode+1)+3+1, 1, MTmp);
 		WM.Add(6*(activeNode+1)+3+1, 6*(activeNode+1)+1, MTmp);
 	}
@@ -397,7 +398,7 @@ BeamSliderJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 
 			Vec3 mmTmp(mm*(dNp[iN]*dCoef));
-			Mat3x3 mmTmp2(mmTmp);
+			Mat3x3 mmTmp2(MatCross, mmTmp);
 			Mat3x3 mmTmp3(mmTmp, fTmp[iN]);
 
 #if 0

@@ -465,13 +465,13 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 			// delta epsilon_tilde_1_i
 			B_overline_i[i].PutT(1, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 1));
 			B_overline_i[i].Put(1, 4 + 6 * n, 
-				T_i[i].MulTM(y_i_1[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, y_i_1[i])) * Phi_Delta_i_n_LI_i
 			);
 
 			// delta epsilon_tilde_2_i
 			B_overline_i[i].PutT(4, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 2));
 			B_overline_i[i].Put(4, 4 + 6 * n, 
-				T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, y_i_2[i])) * Phi_Delta_i_n_LI_i
 			);
 
 			// delta k_tilde_1_i
@@ -479,14 +479,14 @@ SubVectorHandler& Shell4EAS::AssRes(SubVectorHandler& WorkVec,
 			Vec3 phi_tilde_2_i(Zero3);
 			InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
 			B_overline_i[i].Put(7, 4 + 6 * n, 
-				T_i[i].MulTM(k_1_i[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, k_1_i[i])) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_1[i][n])
 			);
 
 			// delta k_tilde_2_i
 			B_overline_i[i].Put(10, 4 + 6 * n, 
-				T_i[i].MulTM(k_2_i[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, k_2_i[i])) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_2[i][n])
 			);
@@ -1005,36 +1005,36 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 					// forze
 					WM.Add(4 + 6 * n, 4 + 6 * m, 
 						// 1
-						Phi_Delta_i[i][n].MulTM(y_i_1[i]) *
-							Mat3x3(Tn1) * Phi_Delta_i[i][m] * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, y_i_1[i])) *
+							Tn1.Cross(Phi_Delta_i[i][m]) * 
 							LI[m](xi_i[i]) * LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
 						+
 						// 2
-						Phi_Delta_i[i][n].MulTM(y_i_2[i]) *
-							Mat3x3(Tn2) * Phi_Delta_i[i][m] * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, y_i_2[i])) *
+							Tn2.Cross(Phi_Delta_i[i][m]) * 
 							LI[m](xi_i[i]) * LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
 					);
 					WM.Add(4 + 6 * n, 1 + 6 * m,
 						// 1
-						Phi_Delta_i[i][n].MulTM(Tn1) * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, Tn1)) * 
 							L_alpha_beta_i[i](m + 1, 1) * LI[n](xi_i[i])
 							* alpha_i[i] * dCoef
 						+
 						// 2
-						Phi_Delta_i[i][n].MulTM(Tn2) * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, Tn2)) * 
 							L_alpha_beta_i[i](m + 1, 2) * LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * w_i[i] * dCoef
 					);
 					WM.Sub(1 + 6 * n, 4 + 6 * m,
 						// 1
-						Mat3x3(Tn1) * Phi_Delta_i[i][m] * 
+						Tn1.Cross(Phi_Delta_i[i][m]) * 
 							LI[m](xi_i[i]) * L_alpha_beta_i[i](n + 1, 1)
 							* alpha_i[i] * w_i[i] * dCoef
 						+
 						// 2
-						Mat3x3(Tn2) * Phi_Delta_i[i][m] * 
+						Tn2.Cross(Phi_Delta_i[i][m]) * 
 							LI[m](xi_i[i]) * L_alpha_beta_i[i](n + 1, 2)
 							* alpha_i[i] * w_i[i] * dCoef
 					);
@@ -1044,7 +1044,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 						-ToverGammaITn * 
 							RotManip::Elle(
 								-phi_tilde_i[i], 
-								T_overline.MulTM(Tn1) * y_i_1[i]
+								T_overline.MulTM(Mat3x3(MatCross, Tn1)) * y_i_1[i]
 							).MulMT(ToverGammaITm)
 							* LI[n](xi_i[i]) * LI[m](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
@@ -1052,7 +1052,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 						-ToverGammaITn * 
 							RotManip::Elle(
 								-phi_tilde_i[i], 
-								T_overline.MulTM(Tn2) * y_i_2[i]
+								T_overline.MulTM(Mat3x3(MatCross, Tn2)) * y_i_2[i]
 							).MulMT(ToverGammaITm)
 							* LI[n](xi_i[i]) * LI[m](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
@@ -1061,24 +1061,24 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 					// momenti
 					WM.Add(4 + 6 * n, 4 + 6 * m, 
 						// 1
-						Phi_Delta_i[i][n].MulTM(k_1_i[i]) * Mat3x3(Tm1) *
-							Phi_Delta_i[i][m] * LI[m](xi_i[i]) * LI[n](xi_i[i])
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, k_1_i[i])) *
+							Tm1.Cross(Phi_Delta_i[i][m]) * LI[m](xi_i[i]) * LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
 						+
 						// 2
-						Phi_Delta_i[i][n].MulTM(k_2_i[i]) * Mat3x3(Tm2) *
-							Phi_Delta_i[i][m] * LI[m](xi_i[i]) 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, k_2_i[i])) *
+					       		Tm2.Cross(Phi_Delta_i[i][m]) * LI[m](xi_i[i]) 
 							* LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
 						+
 						// 1
-						Phi_Delta_i[i][n].MulTM(Tm1) * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, Tm1)) * 
 							Kappa_delta_i_1[i][m]
 							* LI[n](xi_i[i])
 							* alpha_i[i] * dCoef
 						// 2
 						+
-						Phi_Delta_i[i][n].MulTM(Tm2) * 
+						Phi_Delta_i[i][n].MulTM(Mat3x3(MatCross, Tm2)) * 
 							Kappa_delta_i_2[i][m]
 							* LI[n](xi_i[i])
 							* alpha_i[i] * w_i[i] * dCoef
@@ -1135,7 +1135,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 							-phi_tilde_n[n], 
 							RotManip::DRot_IT(phi_tilde_n[n]).MulMT(
 								RotManip::DRot(phi_tilde_i[i])
-							).MulMT(T_overline) * Mat3x3(Tn1) * y_i_1[i]
+							).MulMT(T_overline) * Tn1.Cross(y_i_1[i])
 						).MulMT(ToverGammaITn)
 						* LI[n](xi_i[i])
 						* alpha_i[i] * w_i[i] * dCoef
@@ -1146,7 +1146,7 @@ Shell4EAS::AssJac(VariableSubMatrixHandler& WorkMat,
 							-phi_tilde_n[n], 
 							RotManip::DRot_IT(phi_tilde_n[n]).MulMT(
 								RotManip::DRot(phi_tilde_i[i])
-							).MulMT(T_overline) * Mat3x3(Tn2) * y_i_2[i]
+							).MulMT(T_overline) * Tn2.Cross(y_i_2[i])
 						).MulMT(ToverGammaITn)
 						* LI[n](xi_i[i])
 						* alpha_i[i] * w_i[i] * dCoef

@@ -183,9 +183,9 @@ Mat3x3 RotManip::Elle
     doublereal coeff[COEFF_E];
     CoeffE(phi,phi,coeff);
     
-    Mat3x3 L(a*-coeff[1]);    
-    L -= Mat3x3(phi,a*coeff[2]);
-    L -= Mat3x3(phi.Cross(a*coeff[2]));
+    Mat3x3 L(MatCross, a*(-coeff[1]));
+    L -= Mat3x3(phi, a*coeff[2]);
+    L -= Mat3x3(MatCross, phi.Cross(a*coeff[2]));
     L += (phi.Cross(a)).Tens(phi*coeff[3]);
     L += (Mat3x3(phi,phi)*a).Tens(phi*coeff[4]);
 

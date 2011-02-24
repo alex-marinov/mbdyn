@@ -413,14 +413,14 @@ DriveDisplacementJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 		WM.IncCoef(12 + iCnt, 6 + iCnt, 1.);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Mat3x3 MTmp(MatCross, dRef);
 
 	/* node 1 moment */
 	WM.Sub(3 + 1, 12 + 1, MTmp);
 	/* node 1 constraint */
 	WM.Add(12 + 1, 3 + 1, MTmp);
 
-	MTmp = Mat3x3(f2Ref);
+	MTmp = Mat3x3(MatCross, f2Ref);
 	/* node 2 moment */
 	WM.Add(9 + 1, 12 + 1, MTmp);
 	/* node 2 constraint */
@@ -554,7 +554,7 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.IncCoef(27 + iCnt, 18 + iCnt, 1.);
 	}
 
-	Mat3x3 MTmp(dRef);
+	Mat3x3 MTmp(MatCross, dRef);
 
 	/* node 1 moment */
 	WM.Sub(3 + 1, 24 + 1, MTmp);
@@ -567,10 +567,10 @@ DriveDisplacementJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* in case the drive is differentiable... */
 	if (bIsDifferentiable()) {
-		WM.Add(27 + 1, 3 + 1, Mat3x3(pNode1->GetRCurr()*GetP()));
+		WM.Add(27 + 1, 3 + 1, Mat3x3(MatCross, pNode1->GetRCurr()*GetP()));
 	}
 
-	MTmp = Mat3x3(f2Ref);
+	MTmp = Mat3x3(MatCross, f2Ref);
 	/* node 2 moment */
 	WM.Add(15 + 1, 24 + 1, MTmp);
 	/* node 2 moment derivatives */
@@ -1024,7 +1024,7 @@ DriveDisplacementPinJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 		WM.IncCoef(6 + iCnt, iCnt, 1.);
 	}
 
-	Mat3x3 MTmp(fRef);
+	Mat3x3 MTmp(MatCross, fRef);
 
 	/* node moment */
 	WM.Add(3 + 1, 6 + 1, MTmp);
@@ -1137,9 +1137,7 @@ DriveDisplacementPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.IncCoef(15 + iCnt, 6 + iCnt, 1.);
 	}
 
-	Mat3x3 MTmp(dRef);
-
-	MTmp = Mat3x3(fRef);
+	Mat3x3 MTmp(MatCross, fRef);
 	/* node 2 moment */
 	WM.Add(3 + 1, 12 + 1, MTmp);
 	/* node 2 moment derivatives */

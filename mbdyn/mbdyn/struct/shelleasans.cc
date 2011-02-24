@@ -530,25 +530,25 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 
 			// delta epsilon_tilde_1_i
 			B_overline_i[i].PutT(1, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 1));
-			B_overline_i[i].Put(1, 4 + 6 * n, T_i[i].MulTM(y_i_1[i]) * Phi_Delta_i_n_LI_i);
+			B_overline_i[i].Put(1, 4 + 6 * n, T_i[i].MulTM(Mat3x3(MatCross, y_i_1[i])) * Phi_Delta_i_n_LI_i);
 
 			// delta epsilon_tilde_2_i
 			B_overline_i[i].PutT(4, 1 + 6 * n, T_i[i] * L_alpha_beta_i[i](n + 1, 2));
-			B_overline_i[i].Put(4, 4 + 6 * n, T_i[i].MulTM(y_i_2[i]) * Phi_Delta_i_n_LI_i);
+			B_overline_i[i].Put(4, 4 + 6 * n, T_i[i].MulTM(Mat3x3(MatCross, y_i_2[i])) * Phi_Delta_i_n_LI_i);
 
 			// delta k_tilde_1_i
 			Vec3 phi_tilde_1_i(Zero3);
 			Vec3 phi_tilde_2_i(Zero3);
 			InterpDeriv(phi_tilde_n, L_alpha_beta_i[i], phi_tilde_1_i, phi_tilde_2_i);
 			B_overline_i[i].Put(7, 4 + 6 * n,
-				T_i[i].MulTM(k_1_i[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, k_1_i[i])) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_1[i][n])
 			);
 
 			// delta k_tilde_2_i
 			B_overline_i[i].Put(10, 4 + 6 * n, 
-				T_i[i].MulTM(k_2_i[i]) * Phi_Delta_i_n_LI_i
+				T_i[i].MulTM(Mat3x3(MatCross, k_2_i[i])) * Phi_Delta_i_n_LI_i
 				+
 				T_i[i].MulTM(Kappa_delta_i_2[i][n])
 			);
@@ -587,13 +587,13 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 				// delta epsilon_tilde_1_A
 				B_overline_A.PutT(1, 1 + 6 * n, T_A[i] * L_alpha_beta_A[i](n + 1, 1));
 				B_overline_A.Put(1, 4 + 6 * n, 
-					T_A[i].MulTM(y_A_1) * Phi_Delta_A_n_LI_i
+					T_A[i].MulTM(Mat3x3(MatCross, y_A_1)) * Phi_Delta_A_n_LI_i
 				);
 
 				// delta epsilon_tilde_2_A
 				B_overline_A.PutT(4, 1 + 6 * n, T_A[i] * L_alpha_beta_A[i](n + 1, 2));
 				B_overline_A.Put(4, 4 + 6 * n, 
-					T_A[i].MulTM(y_A_2) * Phi_Delta_A_n_LI_i
+					T_A[i].MulTM(Mat3x3(MatCross, y_A_2)) * Phi_Delta_A_n_LI_i
 				);
 			}
 #if 0
@@ -686,12 +686,12 @@ SubVectorHandler& Shell4EASANS::AssRes(SubVectorHandler& WorkVec,
 			;
 
 		// NOTE: use PutCross()?
-		G_i[i].PutT(1, 13, Mat3x3(Tn1));
-		G_i[i].PutT(4, 13, Mat3x3(Tn2));
-		G_i[i].Put(13, 7, Mat3x3(Tm1));
-		G_i[i].Put(13, 10, Mat3x3(Tm2));
-		G_i[i].Put(13, 1, Mat3x3(Tn1));
-		G_i[i].Put(13, 4, Mat3x3(Tn2));
+		G_i[i].PutT(1, 13, Mat3x3(MatCross, Tn1));
+		G_i[i].PutT(4, 13, Mat3x3(MatCross, Tn2));
+		G_i[i].Put(13, 7, Mat3x3(MatCross, Tm1));
+		G_i[i].Put(13, 10, Mat3x3(MatCross, Tm2));
+		G_i[i].Put(13, 1, Mat3x3(MatCross, Tn1));
+		G_i[i].Put(13, 4, Mat3x3(MatCross, Tn2));
 		G_i[i].Put(13, 13, Hh);
 	}
 	

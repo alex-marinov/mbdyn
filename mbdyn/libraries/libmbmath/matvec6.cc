@@ -225,7 +225,7 @@ Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R, const doublereal& c)
  * [I   0] [     ]
  * [     ] [  m  ]
  * [vx  I] [     ] */
-Mat6x6 MultVM(const Mat6x6& m, const Vec3& v)
+Mat6x6 MultVCrossMat(const Mat6x6& m, const Vec3& v)
 {
    return Mat6x6(m.GetMat11(), 
 		 v.Cross(m.GetMat11())+m.GetMat21(),
@@ -238,7 +238,7 @@ Mat6x6 MultVM(const Mat6x6& m, const Vec3& v)
  * [I  vx] [     ]
  * [     ] [  m  ]
  * [0   I] [     ] */
-Mat6x6 MultVtM(const Mat6x6& m, const Vec3& v)
+Mat6x6 MultVCrossTMat(const Mat6x6& m, const Vec3& v)
 {
    return Mat6x6(m.GetMat11()+v.Cross(m.GetMat21()),
 		 m.GetMat21(),
@@ -251,12 +251,14 @@ Mat6x6 MultVtM(const Mat6x6& m, const Vec3& v)
  * [     ] [I  vx] 
  * [  m  ] [     ] 
  * [     ] [0   I] */
-Mat6x6 MultMV(const Mat6x6& m, const Vec3& v)
+Mat6x6 MultMatVCross(const Mat6x6& m, const Vec3& v)
 {
-   return Mat6x6(m.GetMat11(),
-		 m.GetMat21(),
-		 m.GetMat11()*Mat3x3(v)+m.GetMat12(),
-		 m.GetMat21()*Mat3x3(v)+m.GetMat22());
+	Mat3x3 vCross(MatCross, v);
+
+	return Mat6x6(m.GetMat11(),
+		m.GetMat21(),
+		m.GetMat11()*vCross + m.GetMat12(),
+		m.GetMat21()*vCross + m.GetMat22());
 }
 
 
@@ -264,10 +266,12 @@ Mat6x6 MultMV(const Mat6x6& m, const Vec3& v)
  * [     ] [I   0] 
  * [  m  ] [     ] 
  * [     ] [vx  I] */
-Mat6x6 MultMVt(const Mat6x6& m, const Vec3& v)
+Mat6x6 MultMatVCrossT(const Mat6x6& m, const Vec3& v)
 {
-   return Mat6x6(m.GetMat11()+m.GetMat12()*Mat3x3(v),
-		 m.GetMat21()+m.GetMat22()*Mat3x3(v),
-		 m.GetMat12(),
-		 m.GetMat22());
+	Mat3x3 vCross(MatCross, v);
+
+	return Mat6x6(m.GetMat11() + m.GetMat12()*vCross,
+		m.GetMat21() + m.GetMat22()*vCross,
+		m.GetMat12(),
+		m.GetMat22());
 }

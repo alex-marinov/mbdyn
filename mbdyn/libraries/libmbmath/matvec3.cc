@@ -566,6 +566,46 @@ Mat3x3::MulTMT(const Mat3x3& m) const
 			+ pdMat[M33]*m.pdMat[M33]);
 }
 
+/**
+ * multiply self times vCross
+ */
+Mat3x3
+Mat3x3::MulVCross(const Vec3& v) const
+{
+	return Mat3x3(
+		pdMat[M12]*v.pdVec[V3] - pdMat[M13]*v.pdVec[V2],
+		pdMat[M22]*v.pdVec[V3] - pdMat[M23]*v.pdVec[V2],
+		pdMat[M32]*v.pdVec[V3] - pdMat[M33]*v.pdVec[V2],
+
+		pdMat[M13]*v.pdVec[V1] - pdMat[M11]*v.pdVec[V3],
+		pdMat[M23]*v.pdVec[V1] - pdMat[M21]*v.pdVec[V3],
+		pdMat[M33]*v.pdVec[V1] - pdMat[M31]*v.pdVec[V3],
+
+		pdMat[M11]*v.pdVec[V2] - pdMat[M12]*v.pdVec[V1],
+		pdMat[M21]*v.pdVec[V2] - pdMat[M22]*v.pdVec[V1],
+		pdMat[M31]*v.pdVec[V2] - pdMat[M32]*v.pdVec[V1]);
+}
+
+/**
+ * multiply self transposed times vCross
+ */
+Mat3x3
+Mat3x3::MulTVCross(const Vec3& v) const
+{
+	return Mat3x3(
+		pdMat[M21]*v.pdVec[V3] - pdMat[M31]*v.pdVec[V2],
+		pdMat[M22]*v.pdVec[V3] - pdMat[M32]*v.pdVec[V2],
+		pdMat[M23]*v.pdVec[V3] - pdMat[M33]*v.pdVec[V2],
+
+		pdMat[M31]*v.pdVec[V1] - pdMat[M11]*v.pdVec[V3],
+		pdMat[M32]*v.pdVec[V1] - pdMat[M12]*v.pdVec[V3],
+		pdMat[M33]*v.pdVec[V1] - pdMat[M13]*v.pdVec[V3],
+
+		pdMat[M11]*v.pdVec[V2] - pdMat[M21]*v.pdVec[V1],
+		pdMat[M12]*v.pdVec[V2] - pdMat[M22]*v.pdVec[V1],
+		pdMat[M13]*v.pdVec[V2] - pdMat[M23]*v.pdVec[V1]);
+}
+
 void
 Mat3x3::Reset(void)
 {
@@ -580,6 +620,12 @@ Mat3x3::Reset(void)
 	pdMat[M31] = 0.;
 	pdMat[M32] = 0.;
 	pdMat[M33] = 0.;
+}
+
+Mat3x3
+Mat3x3::Skew(void) const
+{
+	return Mat3x3(MatCross, this->Ax());
 }
 
 /* Mat3x3 - end */

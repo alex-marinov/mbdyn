@@ -319,7 +319,7 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutCoef(9+iCnt, 27, d);   
    }   
 
-   Mat3x3 MTmp(FTmp);
+   Mat3x3 MTmp(MatCross, FTmp);
    WM.Add(1, 4, MTmp);             
    WM.Add(4, 13, MTmp);            
    
@@ -337,16 +337,16 @@ InLineJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    WM.Add(10, 10, MTmp);           
  
-   MTmp = Mat3x3(Omega, FTmp)+Mat3x3(FPrimeTmp);
+   MTmp = Mat3x3(Omega, FTmp) + Mat3x3(MatCross, FPrimeTmp);
    WM.Add(7, 4, MTmp);             
    WM.Add(19, 4, -MTmp);           
    
-   MTmp = Mat3x3(Omega.Cross(FTmp)+FPrimeTmp);
+   MTmp = Mat3x3(MatCross, Omega.Cross(FTmp) + FPrimeTmp);
    WM.Add(10, 1, -MTmp);
    WM.Add(10, 13, MTmp);
    
-   MTmp = Mat3x3((Mat3x3(xp2mxp1)+Mat3x3(x2mx1, Omega))*Mat3x3(FTmp)
-		 +Mat3x3(x2mx1, FPrimeTmp));
+   MTmp = Mat3x3((Mat3x3(MatCross, xp2mxp1) + Mat3x3(x2mx1, Omega))*Mat3x3(MatCross, FTmp)
+		 + Mat3x3(x2mx1, FPrimeTmp));
    WM.Add(10, 4, MTmp);
 
    return WorkMat;
@@ -772,7 +772,7 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutCoef(21+iCnt, 26, d);
    }   
 
-   Mat3x3 MTmp(FTmp);
+   Mat3x3 MTmp(MatCross, FTmp);
    WM.Add(1, 4, MTmp);             
    WM.Add(4, 13, MTmp);            
    
@@ -790,16 +790,16 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    WM.Add(10, 10, MTmp);           
  
-   MTmp = Mat3x3(Omega1, FTmp)+Mat3x3(FPrimeTmp);
+   MTmp = Mat3x3(Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp);
    WM.Add(7, 4, MTmp);             
-   WM.Add(19, 4, -MTmp);           
+   WM.Sub(19, 4, MTmp);           
    
-   MTmp = Mat3x3(Omega1.Cross(FTmp)+FPrimeTmp);
-   WM.Add(10, 1, -MTmp);
+   MTmp = Mat3x3(MatCross, Omega1.Cross(FTmp) + FPrimeTmp);
+   WM.Sub(10, 1, MTmp);
    WM.Add(10, 13, MTmp);
    
-   MTmp = Mat3x3((Mat3x3(xp2qmxp1)+Mat3x3(x2qmx1, Omega1))*Mat3x3(FTmp)
-		 +Mat3x3(x2qmx1, FPrimeTmp));
+   MTmp = Mat3x3((Mat3x3(MatCross, xp2qmxp1) + Mat3x3(x2qmx1, Omega1))*Mat3x3(MatCross, FTmp)
+		 + Mat3x3(x2qmx1, FPrimeTmp));
    WM.Add(10, 4, MTmp);
 
    MTmp = Mat3x3(FTmp, qTmp);
@@ -813,12 +813,12 @@ InLineWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(16, 4, MTmp);
    WM.Add(22, 10, MTmp);
    
-   MTmp = (Mat3x3(FTmp, Omega2)+Mat3x3(Omega1.Cross(FTmp)+FPrimeTmp))*Mat3x3(qTmp);
+   MTmp = (Mat3x3(FTmp, Omega2) + Mat3x3(MatCross, Omega1.Cross(FTmp) + FPrimeTmp))*Mat3x3(MatCross, qTmp);
    WM.Add(22, 16, MTmp);
-   WM.Add(10, 16, -MTmp);
+   WM.Sub(10, 16, MTmp);
    
    MTmp = Mat3x3(qTmp.Cross(Omega2), FTmp)
-     -Mat3x3(qTmp)*(Mat3x3(Omega1, FTmp)+Mat3x3(FPrimeTmp));
+     - Mat3x3(MatCross, qTmp)*(Mat3x3(Omega1, FTmp) + Mat3x3(MatCross, FPrimeTmp));
    WM.Add(22, 4, MTmp);
 
    return WorkMat;

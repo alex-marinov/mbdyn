@@ -60,7 +60,7 @@ CenterOfMass::Collect_int(void)
 {
 	dMass = 0.;
 	S = Zero3;
-	J = Zero3;
+	J = Zero3x3;
 
 	Vec3 B(Zero3), G(Zero3);
 

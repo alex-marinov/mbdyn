@@ -153,8 +153,9 @@ Motor::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 C(Cdi*i);
 	Vec3 Tmp((TmpDir + pStrNode2->GetWRef().Cross(TmpDir*dCoef))*dGain);
 
-	WM.Sub(1, 1, Mat3x3(C));
-	WM.Add(4, 1, Mat3x3(C));
+	Mat3x3 CTmp(MatCross, C);
+	WM.Sub(1, 1, CTmp);
+	WM.Add(4, 1, CTmp);
 
 	for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
 		doublereal d = Cdi(iCnt);

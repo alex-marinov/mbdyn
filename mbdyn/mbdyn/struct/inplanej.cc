@@ -254,7 +254,7 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutCoef(9+iCnt, 25, d);   
    }   
 
-   Mat3x3 MTmp(F);
+   Mat3x3 MTmp(MatCross, F);
    WM.Add(1, 4, MTmp);             
    WM.Add(4, 13, MTmp);            
    
@@ -273,17 +273,17 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    WM.Add(10, 10, MTmp);           
  
-   MTmp = Mat3x3(Omega, F)+Mat3x3(FPrime);
+   MTmp = Mat3x3(Omega, F) + Mat3x3(MatCross, FPrime);
    WM.Add(7, 4, MTmp);             
    WM.Add(19, 4, -MTmp);           
    
-   MTmp = Mat3x3(Omega.Cross(F)+FPrime);
+   MTmp = Mat3x3(MatCross, Omega.Cross(F) + FPrime);
    WM.Add(10, 1, -MTmp);           
    WM.Add(10, 13, MTmp);           
    
-   MTmp = Mat3x3((Mat3x3(xp2mxp1)+Mat3x3(x2mx1, Omega))*Mat3x3(F)
-		 +Mat3x3(x2mx1, FPrime));
-   WM.Add(10, 4, MTmp);            
+   MTmp = Mat3x3((Mat3x3(MatCross, xp2mxp1) + Mat3x3(x2mx1, Omega))*Mat3x3(MatCross, F)
+		 + Mat3x3(x2mx1, FPrime));
+   WM.Add(10, 4, MTmp); 
       
    return WorkMat;
 }
@@ -560,12 +560,12 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    Vec3 Tmp1(vTmp.Cross(x2pqmx1));
    Vec3 Tmp2(Omega1.Cross(vTmp));
-   Vec3 Tmp3((Omega1.Cross(x2pqmx1)-xp2pqpmxp1).Cross(vTmp));
-   Vec3 Tmp4(-(xp2pqpmxp1.Cross(vTmp)+x2pqmx1.Cross(Tmp2)));
+   Vec3 Tmp3((Omega1.Cross(x2pqmx1) - xp2pqpmxp1).Cross(vTmp));
+   Vec3 Tmp4(-(xp2pqpmxp1.Cross(vTmp) + x2pqmx1.Cross(Tmp2)));
    
    Vec3 Tmp5(qTmp.Cross(vTmp));
    Vec3 Tmp6(qTmp.Cross(vTmp.Cross(Omega2-Omega1)));
-   Vec3 Tmp7(qTmp.Cross(Omega1.Cross(vTmp))-vTmp.Cross(Omega2.Cross(qTmp)));
+   Vec3 Tmp7(qTmp.Cross(Omega1.Cross(vTmp)) - vTmp.Cross(Omega2.Cross(qTmp)));
    for(int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = vTmp.dGet(iCnt);
       WM.PutCoef(iCnt, 25, -d);    
@@ -614,7 +614,7 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.PutCoef(21+iCnt, 25, d);   
    }   
 
-   Mat3x3 MTmp(F);
+   Mat3x3 MTmp(MatCross, F);
    WM.Add(1, 4, MTmp);             
    WM.Add(4, 13, MTmp);            
    
@@ -632,16 +632,16 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    WM.Add(10, 10, MTmp);
  
-   MTmp = Mat3x3(Omega1, F)+Mat3x3(FPrime);
+   MTmp = Mat3x3(Omega1, F) + Mat3x3(MatCross, FPrime);
    WM.Add(7, 4, MTmp);   
-   WM.Add(19, 4, -MTmp);
+   WM.Sub(19, 4, MTmp);
       
-   MTmp = Mat3x3(Omega1.Cross(F)+FPrime);
-   WM.Add(10, 1, -MTmp);           
-   WM.Add(10, 13, MTmp);           
+   MTmp = Mat3x3(MatCross, Omega1.Cross(F) + FPrime);
+   WM.Sub(10, 1, MTmp);
+   WM.Add(10, 13, MTmp);
    
-   MTmp = (Mat3x3(xp2pqpmxp1)+Mat3x3(x2pqmx1, Omega1))*Mat3x3(F)
-     +Mat3x3(x2pqmx1, FPrime);
+   MTmp = (Mat3x3(MatCross, xp2pqpmxp1) + Mat3x3(x2pqmx1, Omega1))*Mat3x3(MatCross, F)
+     + Mat3x3(x2pqmx1, FPrime);
    WM.Add(10, 4, MTmp);    
    
    MTmp = Mat3x3(F, qTmp);
@@ -655,12 +655,12 @@ InPlaneWithOffsetJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(16, 4, MTmp);
    WM.Add(22, 10, MTmp);
    
-   MTmp = (Mat3x3(F, Omega2)+Mat3x3(Omega1.Cross(F)+FPrime))*Mat3x3(qTmp);
+   MTmp = (Mat3x3(F, Omega2) + Mat3x3(MatCross, Omega1.Cross(F) + FPrime))*Mat3x3(MatCross, qTmp);
    WM.Add(22, 16, MTmp);
-   WM.Add(10, 16, -MTmp);
+   WM.Sub(10, 16, MTmp);
    
    MTmp = Mat3x3(qTmp.Cross(Omega2), F)
-     -Mat3x3(qTmp)*(Mat3x3(Omega1, F)+Mat3x3(FPrime));
+     - qTmp.Cross(Mat3x3(Omega1, F) + Mat3x3(MatCross, FPrime));
    WM.Add(22, 4, MTmp);
    
    return WorkMat;

@@ -603,7 +603,8 @@ class Mat3x3 {
       pdMat[M33] = m.pdMat[M33];
    };
 
-   // will be replaced by Mat3x3Cross_Manip 
+#if 0
+   // will be replaced by MatCross_Manip 
    /*
     Costruttore prodotto vettore.
     La matrice viene inizializzata con il vettore v disposto a dare 
@@ -621,8 +622,9 @@ class Mat3x3 {
       pdMat[M23] = -v.pdVec[V1];
       pdMat[M33] = 0.;
    };
+#endif
  
-   // will be replaced by Mat3x3CrossCross_Manip 
+   // will be replaced by MatCrossCross_Manip 
    /*
     Costruttore doppio prodotto vettore.
     restituisce la matrice data dal prodotto di due matrici prodotto vettore.
@@ -861,9 +863,7 @@ class Mat3x3 {
       return *this;
    };
 
-   Mat3x3 Skew(void) const {
-      return Mat3x3(this->Ax());
-   };
+   Mat3x3 Skew(void) const;
 
    const Mat3x3& Skew(const Mat3x3& m) {
       pdMat[M11] = pdMat[M22] = pdMat[M13] = 0.;
@@ -1338,6 +1338,16 @@ class Mat3x3 {
 	 * multiply self transposed by another matrix, transposed: this^T * m^T
 	 */
 	Mat3x3 MulTMT(const Mat3x3& m) const;
+
+	/**
+	 * multiply self times vCross
+	 */
+	Mat3x3 MulVCross(const Vec3& v) const;
+
+	/**
+	 * multiply self transposed times vCross
+	 */
+	Mat3x3 MulTVCross(const Vec3& v) const;
 
    doublereal Tr(void) const {
       return pdMat[M11]+pdMat[M22]+pdMat[M33];

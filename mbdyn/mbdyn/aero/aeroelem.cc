@@ -1084,7 +1084,7 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3 RRlocT(RRloc.Transpose());
 
 			vx.PutMat3x3(1, RRlocT);
-			vx.PutMat3x3(4, RRloc.MulTM(Mat3x3((Vr + Xr.Cross(Wn))*dCoef - Xr)));
+			vx.PutMat3x3(4, RRloc.MulTM(Mat3x3(MatCross, (Vr + Xr.Cross(Wn))*dCoef - Xr)));
 			wx.PutMat3x3(4, RRlocT);
 
 			// equations from iFirstEq on are dealt with by aerodata
@@ -1119,15 +1119,15 @@ AerodynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 		// compute submatrices (see tecman.pdf)
 		Mat3x3 Mat21(Xr.Cross(JFaR.GetMat11()) + JFaR.GetMat21());
 
-		Mat3x3 Mat12(JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(Xr));
+		Mat3x3 Mat12(JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, Xr));
 
-		Mat3x3 Mat22(Xr.Cross(JFaR.GetMat12()) + JFaR.GetMat22() - Mat21*Mat3x3(Xr));
+		Mat3x3 Mat22(Xr.Cross(JFaR.GetMat12()) + JFaR.GetMat22() - Mat21*Mat3x3(MatCross, Xr));
 
-		Mat3x3 MatV((Vr + Xr.Cross(Wn))*dCoef);
+		Mat3x3 MatV(MatCross, (Vr + Xr.Cross(Wn))*dCoef);
 
-		Mat12 += JFaR.GetMat11()*MatV - Mat3x3(fTmp);
+		Mat12 += JFaR.GetMat11()*MatV - Mat3x3(MatCross, fTmp);
 
-		Mat22 += Mat21*MatV - Mat3x3(cTmp);
+		Mat22 += Mat21*MatV - Mat3x3(MatCross, cTmp);
 
 		// add (actually, sub) contributions, scaled by weight
 		WM.Sub(1, 1, JFaR.GetMat11());
@@ -2017,27 +2017,27 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3x3 Theta2(Eye3 - Theta1 - Theta3);
 
 			Vec3 Vrc(Vr*dCoef);
-			Mat3x3 Bv1(Vrc.Cross(Theta1) - Mat3x3(Omega1Crossf1*(dN1*dCoef)));
-			Mat3x3 Bv2(Vrc.Cross(Theta2) - Mat3x3(Omega2Crossf2*(dN2*dCoef)));
-			Mat3x3 Bv3(Vrc.Cross(Theta3) - Mat3x3(Omega3Crossf3*(dN3*dCoef)));
+			Mat3x3 Bv1(Vrc.Cross(Theta1) - Mat3x3(MatCross, Omega1Crossf1*(dN1*dCoef)));
+			Mat3x3 Bv2(Vrc.Cross(Theta2) - Mat3x3(MatCross, Omega2Crossf2*(dN2*dCoef)));
+			Mat3x3 Bv3(Vrc.Cross(Theta3) - Mat3x3(MatCross, Omega3Crossf3*(dN3*dCoef)));
 
 			Vec3 Wrc(Wr*dCoef);
-			Mat3x3 Bw1(Wrc.Cross(Theta1) - Mat3x3(Wn1*(dN1*dCoef)));
-			Mat3x3 Bw2(Wrc.Cross(Theta2) - Mat3x3(Wn2*(dN2*dCoef)));
-			Mat3x3 Bw3(Wrc.Cross(Theta3) - Mat3x3(Wn3*(dN3*dCoef)));
+			Mat3x3 Bw1(Wrc.Cross(Theta1) - Mat3x3(MatCross, Wn1*(dN1*dCoef)));
+			Mat3x3 Bw2(Wrc.Cross(Theta2) - Mat3x3(MatCross, Wn2*(dN2*dCoef)));
+			Mat3x3 Bw3(Wrc.Cross(Theta3) - Mat3x3(MatCross, Wn3*(dN3*dCoef)));
 
 			if (iNumDof) {
 				// prepare (v/dot{x} + dCoef*v/x) and so
 				Mat3x3 RRlocT(RRloc.Transpose());
 	
 				vx.PutMat3x3(1, RRlocT*dN1);
-				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(f1Tmp*dN1)));
+				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(MatCross, f1Tmp*dN1)));
 
 				vx.PutMat3x3(6 + 1, RRlocT*dN2);
-				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(f2Tmp*dN2)));
+				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(MatCross, f2Tmp*dN2)));
 
 				vx.PutMat3x3(12 + 1, RRlocT*dN3);
-				vx.PutMat3x3(12 + 4, RRloc.MulTM(Bv3 - Mat3x3(f3Tmp*dN3)));
+				vx.PutMat3x3(12 + 4, RRloc.MulTM(Bv3 - Mat3x3(MatCross, f3Tmp*dN3)));
 
 				wx.PutMat3x3(4, RRlocT + Bw1);
 				wx.PutMat3x3(6 + 4, RRlocT + Bw2);
@@ -2086,39 +2086,39 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			// c <-> x
 			delta = (iNode == NODE1) ? 1. : 0.;
-			WM_M[DELTAx1] += JFaR.GetMat21()*dN1 - Mat3x3(fTmp*(dN1 - delta));
+			WM_M[DELTAx1] += JFaR.GetMat21()*dN1 - Mat3x3(MatCross, fTmp*(dN1 - delta));
 
 			delta = (iNode == NODE2) ? 1. : 0.;
-			WM_M[DELTAx2] += JFaR.GetMat21()*dN2 - Mat3x3(fTmp*(dN2 - delta));
+			WM_M[DELTAx2] += JFaR.GetMat21()*dN2 - Mat3x3(MatCross, fTmp*(dN2 - delta));
 
 			delta = (iNode == NODE3) ? 1. : 0.;
-			WM_M[DELTAx3] += JFaR.GetMat21()*dN3 - Mat3x3(fTmp*(dN3 - delta));
+			WM_M[DELTAx3] += JFaR.GetMat21()*dN3 - Mat3x3(MatCross, fTmp*(dN3 - delta));
 
 			// f <-> g
-			WM_F2[DELTAg1] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(f1Tmp))*dN1;
+			WM_F2[DELTAg1] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, f1Tmp))*dN1;
 			WM_F2[DELTAg1] += JFaR.GetMat11()*Bv1 + JFaR.GetMat12()*Bw1;
 			WM_F2[DELTAg1] -= fTmp.Cross(Theta1);
 		
-			WM_F2[DELTAg2] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(f2Tmp))*dN2;
+			WM_F2[DELTAg2] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, f2Tmp))*dN2;
 			WM_F2[DELTAg2] += JFaR.GetMat11()*Bv2 + JFaR.GetMat12()*Bw2;
 			WM_F2[DELTAg2] -= fTmp.Cross(Theta2);
 		
-			WM_F2[DELTAg3] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(f3Tmp))*dN3;
+			WM_F2[DELTAg3] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, f3Tmp))*dN3;
 			WM_F2[DELTAg3] += JFaR.GetMat11()*Bv3 + JFaR.GetMat12()*Bw3;
 			WM_F2[DELTAg3] -= fTmp.Cross(Theta3);
 
 			// c <-> g
-			WM_M[DELTAg1] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(f1Tmp))*dN1;
+			WM_M[DELTAg1] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(MatCross, f1Tmp))*dN1;
 			WM_M[DELTAg1] += JFaR.GetMat21()*Bv1 + JFaR.GetMat22()*Bw1;
 			WM_M[DELTAg1] -= cTmp.Cross(Theta1);
 			WM_M[DELTAg1] += Mat3x3(fTmp, f1Tmp*dN1);
 
-			WM_M[DELTAg2] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(f2Tmp))*dN2;
+			WM_M[DELTAg2] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(MatCross, f2Tmp))*dN2;
 			WM_M[DELTAg2] += JFaR.GetMat21()*Bv2 + JFaR.GetMat22()*Bw2;
 			WM_M[DELTAg2] -= cTmp.Cross(Theta2);
 			WM_M[DELTAg2] += Mat3x3(fTmp, f2Tmp*dN2);
 
-			WM_M[DELTAg3] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(f3Tmp))*dN3;
+			WM_M[DELTAg3] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(MatCross, f3Tmp))*dN3;
 			WM_M[DELTAg3] += JFaR.GetMat21()*Bv3 + JFaR.GetMat22()*Bw3;
 			WM_M[DELTAg3] -= cTmp.Cross(Theta3);
 			WM_M[DELTAg3] += Mat3x3(fTmp, f3Tmp*dN3);
@@ -2959,21 +2959,21 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			Vec3 d(Xr - Xn[iNode]);
 
-			Mat3x3 Bv1((Vr - Omega1Crossf1)*(dN1*dCoef));
-			Mat3x3 Bv2((Vr - Omega2Crossf2)*(dN2*dCoef));
+			Mat3x3 Bv1(MatCross, (Vr - Omega1Crossf1)*(dN1*dCoef));
+			Mat3x3 Bv2(MatCross, (Vr - Omega2Crossf2)*(dN2*dCoef));
 
-			Mat3x3 Bw1((Wr - Wn1)*(dN1*dCoef));
-			Mat3x3 Bw2((Wr - Wn2)*(dN2*dCoef));
+			Mat3x3 Bw1(MatCross, (Wr - Wn1)*(dN1*dCoef));
+			Mat3x3 Bw2(MatCross, (Wr - Wn2)*(dN2*dCoef));
 
 			if (iNumDof) {
 				// prepare (v/dot{x} + dCoef*v/x) and so
 				Mat3x3 RRlocT(RRloc.Transpose());
 	
 				vx.PutMat3x3(1, RRlocT*dN1);
-				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(f1Tmp*dN1)));
+				vx.PutMat3x3(4, RRloc.MulTM(Bv1 - Mat3x3(MatCross, f1Tmp*dN1)));
 
 				vx.PutMat3x3(6 + 1, RRlocT*dN2);
-				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(f2Tmp*dN2)));
+				vx.PutMat3x3(6 + 4, RRloc.MulTM(Bv2 - Mat3x3(MatCross, f2Tmp*dN2)));
 
 				wx.PutMat3x3(4, RRlocT + Bw1);
 				wx.PutMat3x3(6 + 4, RRlocT + Bw2);
@@ -3019,29 +3019,29 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			// c <-> x
 			delta = (iNode == NODE1) ? 1. : 0.;
-			WM_M[DELTAx1] += JFaR.GetMat21()*dN1 - Mat3x3(fTmp*(dN1 - delta));
+			WM_M[DELTAx1] += JFaR.GetMat21()*dN1 - Mat3x3(MatCross, fTmp*(dN1 - delta));
 
 			delta = (iNode == NODE2) ? 1. : 0.;
-			WM_M[DELTAx2] += JFaR.GetMat21()*dN2 - Mat3x3(fTmp*(dN2 - delta));
+			WM_M[DELTAx2] += JFaR.GetMat21()*dN2 - Mat3x3(MatCross, fTmp*(dN2 - delta));
 
 			// f <-> g
-			WM_F2[DELTAg1] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(f1Tmp))*dN1;
+			WM_F2[DELTAg1] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, f1Tmp))*dN1;
 			WM_F2[DELTAg1] += JFaR.GetMat11()*Bv1 + JFaR.GetMat12()*Bw1;
-			WM_F2[DELTAg1] -= Mat3x3(fTmp*dN1);
+			WM_F2[DELTAg1] -= Mat3x3(MatCross, fTmp*dN1);
 		
-			WM_F2[DELTAg2] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(f2Tmp))*dN2;
+			WM_F2[DELTAg2] = (JFaR.GetMat12() - JFaR.GetMat11()*Mat3x3(MatCross, f2Tmp))*dN2;
 			WM_F2[DELTAg2] += JFaR.GetMat11()*Bv2 + JFaR.GetMat12()*Bw2;
-			WM_F2[DELTAg2] -= Mat3x3(fTmp*dN2);
+			WM_F2[DELTAg2] -= Mat3x3(MatCross, fTmp*dN2);
 		
 			// c <-> g
-			WM_M[DELTAg1] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(f1Tmp))*dN1;
+			WM_M[DELTAg1] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(MatCross, f1Tmp))*dN1;
 			WM_M[DELTAg1] += JFaR.GetMat21()*Bv1 + JFaR.GetMat22()*Bw1;
-			WM_M[DELTAg1] -= Mat3x3(cTmp*dN1);
+			WM_M[DELTAg1] -= Mat3x3(MatCross, cTmp*dN1);
 			WM_M[DELTAg1] += Mat3x3(fTmp, f1Tmp*dN1);
 
-			WM_M[DELTAg2] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(f2Tmp))*dN2;
+			WM_M[DELTAg2] += (JFaR.GetMat22() - JFaR.GetMat21()*Mat3x3(MatCross, f2Tmp))*dN2;
 			WM_M[DELTAg2] += JFaR.GetMat21()*Bv2 + JFaR.GetMat22()*Bw2;
-			WM_M[DELTAg2] -= Mat3x3(cTmp*dN2);
+			WM_M[DELTAg2] -= Mat3x3(MatCross, cTmp*dN2);
 			WM_M[DELTAg2] += Mat3x3(fTmp, f2Tmp*dN2);
 
 			for (int iCnt = 0; iCnt < 2*LASTNODE; iCnt++) {

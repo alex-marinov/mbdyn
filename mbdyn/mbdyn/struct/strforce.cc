@@ -263,7 +263,7 @@ AbsoluteForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	Mat3x3 MTmp(Mat3x3(TmpDir, TmpArm));
 
 	WM.Sub(1, 1, MTmp);
-	WM.Sub(4, 1, Mat3x3(TmpDir, Omega)*Mat3x3(TmpArm));
+	WM.Sub(4, 1, Mat3x3(TmpDir, Omega)*Mat3x3(MatCross, TmpArm));
 	WM.Sub(4, 4, MTmp);
 
 	return WorkMat;
@@ -393,8 +393,8 @@ FollowerForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
-	WM.Add(4, 1, Mat3x3(TmpArm.Cross(TmpDir)));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
+	WM.Add(4, 1, Mat3x3(MatCross, TmpArm.Cross(TmpDir)));
 
 	return WorkMat;
 }
@@ -515,12 +515,12 @@ FollowerForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
-	WM.Add(4, 1, Mat3x3(TmpArm.Cross(TmpDir)));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
+	WM.Add(4, 1, Mat3x3(MatCross, TmpArm.Cross(TmpDir)));
 	WM.Add(7, 1, Mat3x3(Omega, TmpDir));
-	WM.Add(7, 4, Mat3x3(TmpDir));
+	WM.Add(7, 4, Mat3x3(MatCross, TmpDir));
 	WM.Add(10, 1, Mat3x3(Omega, TmpArm.Cross(TmpDir)));
-	WM.Add(10, 4, Mat3x3(TmpArm.Cross(TmpDir)));
+	WM.Add(10, 4, Mat3x3(MatCross, TmpArm.Cross(TmpDir)));
 
 	return WorkMat;
 }
@@ -771,7 +771,7 @@ FollowerCouple::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* Dati */
 	const Mat3x3& R(pNode->GetRRef());
-	Mat3x3 MWedge(R*(f.Get()*dCoef));
+	Mat3x3 MWedge(MatCross, R*(f.Get()*dCoef));
 
 	/* | M /\| Delta_g = | M | */
 
@@ -880,9 +880,9 @@ FollowerCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
 	WM.Add(4, 1, Mat3x3(Omega, TmpDir));
-	WM.Add(4, 4, Mat3x3(TmpDir));
+	WM.Add(4, 4, Mat3x3(MatCross, TmpDir));
 
 	return WorkMat;
 }
@@ -1191,10 +1191,10 @@ AbsoluteInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 */
 
 	WM.Sub(1, 1, Mat3x3(TmpDir, TmpArm1));
-	WM.Sub(4, 1, Mat3x3(TmpDir, Omega1)*Mat3x3(TmpArm1));
+	WM.Sub(4, 1, Mat3x3(TmpDir, Omega1)*Mat3x3(MatCross, TmpArm1));
 	WM.Sub(4, 4, Mat3x3(TmpDir, TmpArm1));
 	WM.Add(7, 7, Mat3x3(TmpDir, TmpArm2));
-	WM.Add(10, 7, Mat3x3(TmpDir, Omega2)*Mat3x3(TmpArm2));
+	WM.Add(10, 7, Mat3x3(TmpDir, Omega2)*Mat3x3(MatCross, TmpArm2));
 	WM.Add(10, 10, Mat3x3(TmpDir, TmpArm2));
 
 	return WorkMat;
@@ -1352,9 +1352,9 @@ FollowerInternalForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * | -F/\d2/\  d2/\F/\ |             | d2/\F |
 	 */
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
-	WM.Add(4, 1, Mat3x3(TmpArm1.Cross(TmpDir)));
-	WM.Sub(7, 1, Mat3x3(TmpDir));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
+	WM.Add(4, 1, Mat3x3(MatCross, TmpArm1.Cross(TmpDir)));
+	WM.Sub(7, 1, Mat3x3(MatCross, TmpDir));
 	WM.Sub(7, 1, Mat3x3(TmpArm2, TmpDir));
 	WM.Add(7, 4, Mat3x3(TmpDir, TmpArm2));
 
@@ -1501,25 +1501,25 @@ FollowerInternalForce::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Vec3& Omega1(pNode1->GetWRef());
 	const Vec3& Omega2(pNode2->GetWRef());
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
-	WM.Add(4, 1, Mat3x3(TmpArm1.Cross(TmpDir)));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
+	WM.Add(4, 1, Mat3x3(MatCross, TmpArm1.Cross(TmpDir)));
 
 	WM.Add(7, 1, Mat3x3(Omega1, TmpDir));
-	WM.Add(7, 4, Mat3x3(TmpDir));
+	WM.Add(7, 4, Mat3x3(MatCross, TmpDir));
 	WM.Add(10, 1, Mat3x3(Omega1, TmpArm1.Cross(TmpDir)));
-	WM.Add(10, 4, Mat3x3(TmpArm1.Cross(TmpDir)));
+	WM.Add(10, 4, Mat3x3(MatCross, TmpArm1.Cross(TmpDir)));
 
-	WM.Sub(13, 1, Mat3x3(TmpDir));
+	WM.Sub(13, 1, Mat3x3(MatCross, TmpDir));
 	WM.Add(16, 1, Mat3x3(TmpArm2, TmpDir));
 	WM.Sub(16, 7, Mat3x3(TmpDir, TmpArm2));
 
 	WM.Sub(19, 1, Mat3x3(Omega1, TmpDir));
-	WM.Sub(19, 4, Mat3x3(TmpDir));
+	WM.Sub(19, 4, Mat3x3(MatCross, TmpDir));
 
-	WM.Add(22, 1, Mat3x3(TmpArm2, Omega1)*Mat3x3(TmpDir)
+	WM.Add(22, 1, Mat3x3(TmpArm2, Omega1)*Mat3x3(MatCross, TmpDir)
 		- Mat3x3(Omega2.Cross(TmpArm2), TmpDir));
 	WM.Add(22, 4, Mat3x3(TmpArm2, TmpDir));
-	WM.Add(22, 7, Mat3x3(TmpDir, Omega2)*Mat3x3(TmpArm2)
+	WM.Add(22, 7, Mat3x3(TmpDir, Omega2)*Mat3x3(MatCross, TmpArm2)
 		- Mat3x3(Omega1.Cross(TmpDir), TmpArm2));
 	WM.Add(22, 10, Mat3x3(TmpDir, TmpArm2));
 
@@ -1815,7 +1815,7 @@ FollowerInternalCouple::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Dati */
-	Mat3x3 MWedge(pNode1->GetRRef()*(f.Get()*dCoef));
+	Mat3x3 MWedge(MatCross, pNode1->GetRRef()*(f.Get()*dCoef));
 
 	/* | M /\| Delta_g = | M | */
 
@@ -1941,13 +1941,13 @@ FollowerInternalCouple::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 * | (d/\F)/\ |           | d/\F |
 	 */
 
-	WM.Add(1, 1, Mat3x3(TmpDir));
+	WM.Add(1, 1, Mat3x3(MatCross, TmpDir));
 	WM.Add(4, 1, Mat3x3(Omega1, TmpDir));
-	WM.Add(4, 4, Mat3x3(TmpDir));
+	WM.Add(4, 4, Mat3x3(MatCross, TmpDir));
 
-	WM.Sub(7, 1, Mat3x3(TmpDir));
+	WM.Sub(7, 1, Mat3x3(MatCross, TmpDir));
 	WM.Sub(10, 1, Mat3x3(Omega1, TmpDir));
-	WM.Sub(10, 4, Mat3x3(TmpDir));
+	WM.Sub(10, 4, Mat3x3(MatCross, TmpDir));
 
 	return WorkMat;
 }

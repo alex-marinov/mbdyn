@@ -250,7 +250,7 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    
    /* prima equazione & terza equazione
     * moltiplica deltagpuntonodo1 */
-   Mat3x3 JacMatWedge1(FHyd*dCoef);
+   Mat3x3 JacMatWedge1(MatCross, FHyd*dCoef);
    WM.Sub(1, 4, JacMatWedge1);
    WM.Add(7, 4, JacMatWedge1);
    
@@ -269,11 +269,11 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    }
 
    /* seconda equazione moltiplica deltagpuntonodo1 */
-   WM.Sub(4, 4, Mat3x3(f1Tmp.Cross(FHyd*dCoef)));
+   WM.Sub(4, 4, Mat3x3(MatCross, f1Tmp.Cross(FHyd*dCoef)));
    
    /* moltiplica deltaP1 e deltaP2 */
    Vec3 JacVec = f1Tmp.Cross(TmpAxis);
-   for (int iCnt = 1; iCnt <=3; iCnt++) {
+   for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = JacVec.dGet(iCnt);
       
       WM.PutCoef(3+iCnt, 13, d*area1);
@@ -281,7 +281,7 @@ Actuator::AssJac(VariableSubMatrixHandler& WorkMat,
    }
  
    /* quarta equazione moltiplica deltagpuntonodo1 */
-   Mat3x3 TmpMat(f2Tmp.Cross(FHyd*dCoef));
+   Mat3x3 TmpMat(MatCross, f2Tmp.Cross(FHyd*dCoef));
    WM.Add(4, 4, TmpMat);
    WM.Sub(4, 10, TmpMat);
 

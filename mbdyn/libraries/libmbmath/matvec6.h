@@ -602,25 +602,25 @@ extern Mat6x6 MultRMRt(const Mat6x6& m, const Mat3x3& R, const doublereal& c);
  * [I   0] [     ]
  * [     ] [  m  ]
  * [vx  I] [     ] */
-extern Mat6x6 MultV(const Mat6x6& m, const Vec3& v); 
+extern Mat6x6 MultVCrossMat(const Mat6x6& m, const Vec3& v); 
 
 /* esegue l'operazione:
  * [I vxT] [     ]
  * [     ] [  m  ]
  * [0   I] [     ] */
-extern Mat6x6 MultVt(const Mat6x6& m, const Vec3& v); 
+extern Mat6x6 MultVCrossTMat(const Mat6x6& m, const Vec3& v); 
 
 /* esegue l'operazione:
  * [     ] [I  vx] 
  * [  m  ] [     ] 
  * [     ] [0   I] */
-extern Mat6x6 MultMV(const Mat6x6& m, const Vec3& v); 
+extern Mat6x6 MultMatVCross(const Mat6x6& m, const Vec3& v); 
 
 /* esegue l'operazione:
  * [     ] [I   0] 
  * [  m  ] [     ] 
  * [     ] [vx  I] */
-extern Mat6x6 MultMVt(const Mat6x6& m, const Vec3& v); 
+extern Mat6x6 MultMatVCrossT(const Mat6x6& m, const Vec3& v); 
 
 
 extern const Vec6 Zero6;

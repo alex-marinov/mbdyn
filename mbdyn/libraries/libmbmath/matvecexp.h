@@ -339,8 +339,8 @@ public:
 	};
 
 	MatExp(const VecExp& vin) {
-		vec = Mat3x3(vin.GetVec());
-		mom = Mat3x3(vin.GetMom());
+		vec = Mat3x3(MatCross, vin.GetVec());
+		mom = Mat3x3(MatCross, vin.GetMom());
 	};
 
 	MatExp(const VecExp& v1, const VecExp& v2) {
@@ -351,7 +351,7 @@ public:
 
 	MatExp(const doublereal& d, const VecExp& v2) {
 		vec = Mat3x3(d,v2.GetVec());
-		mom = Mat3x3(v2.GetMom());
+		mom = Mat3x3(MatCross, v2.GetMom());
 	};
 
 	MatExp(const Mat3x3& ma, const Mat3x3& mxa) {
@@ -425,7 +425,7 @@ public:
 
 inline MatExp
 VecExp::Cross(void) const {
-	return MatExp(Mat3x3(vec), Mat3x3(mom));
+	return MatExp(Mat3x3(MatCross, vec), Mat3x3(MatCross, mom));
 }
 
 

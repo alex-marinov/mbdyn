@@ -207,7 +207,7 @@ GimbalRotationJoint::AssMat(FullSubMatrixHandler& WM, doublereal dCoef)
 
 	/* termini in Delta g_a */
 	Vec3 Lambda(Ra*M);
-	Mat3x3 MTmp(Lambda*dCoef);
+	Mat3x3 MTmp(MatCross, Lambda*dCoef);
 	WM.Sub(1, 1, MTmp);
 	WM.Add(3 + 1, 1, MTmp);
 

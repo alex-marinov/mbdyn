@@ -1028,7 +1028,7 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(4, 4, MTmp);
       WM.Add(10, 10, MTmp);
       
-      MTmp = Mat3x3(Tmp);
+      MTmp = Mat3x3(MatCross, Tmp);
       WM.Add(4, 25, MTmp);
       WM.Add(10, 29, MTmp);
       
@@ -1037,20 +1037,18 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
       WM.Add(16, 16, MTmp);
       WM.Add(22, 22, MTmp);
       
-      MTmp = Mat3x3(Tmp);
+      MTmp = Mat3x3(MatCross, Tmp);
       WM.Add(16, 25, MTmp);
       WM.Add(22, 29, MTmp);
       
-      MTmp = (Mat3x3(v*dAlpha, Omega1)+
-	      Mat3x3(vP*dAlpha+v*dAlphaP))*Mat3x3(-f1Tmp);
-      WM.Add(10, 4, MTmp);
-      MTmp = Mat3x3(f1Tmp.Cross(Omega1*dAlpha)-f1Tmp*dAlphaP);
+      MTmp = (Mat3x3(v*dAlpha, Omega1) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f1Tmp);
+      WM.Sub(10, 4, MTmp);
+      MTmp = Mat3x3(MatCross, f1Tmp.Cross(Omega1*dAlpha) - f1Tmp*dAlphaP);
       WM.Add(10, 25, MTmp);
       
-      MTmp = (Mat3x3(v*dAlpha, Omega2)+
-	      Mat3x3(vP*dAlpha+v*dAlphaP))*Mat3x3(f2Tmp);
+      MTmp = (Mat3x3(v*dAlpha, Omega2) + Mat3x3(MatCross, vP*dAlpha + v*dAlphaP))*Mat3x3(MatCross, f2Tmp);
       WM.Add(22, 16, MTmp);
-      MTmp = Mat3x3(f2Tmp.Cross(Omega2*(-dAlpha))+f2Tmp*dAlphaP);
+      MTmp = Mat3x3(MatCross, f2Tmp.Cross(Omega2*(-dAlpha)) + f2Tmp*dAlphaP);
       WM.Add(22, 25, MTmp);            
 
       /* Equazioni di vincolo */
@@ -1066,13 +1064,13 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 WM.PutCoef(28+iCnt, 28+iCnt, -dDistance);
       }
       
-      MTmp = Mat3x3(f1Tmp);
+      MTmp = Mat3x3(MatCross, f1Tmp);
       WM.Add(25, 4, MTmp);
       WM.Add(29, 10, MTmp);
       
-      MTmp = Mat3x3(-f2Tmp);
-      WM.Add(25, 16, MTmp);
-      WM.Add(29, 22, MTmp);
+      MTmp = Mat3x3(MatCross, f2Tmp);
+      WM.Sub(25, 16, MTmp);
+      WM.Sub(29, 22, MTmp);
       
       MTmp = Mat3x3(Omega1, f1Tmp);
       WM.Add(29, 4, MTmp);

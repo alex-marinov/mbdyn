@@ -109,8 +109,8 @@ inline void Compute(const Vec3 *const node_pos,
 		VecExp& kappa,
 		VecExp& eta_tilde
 		) {
-	A1 = MatExp(node_or[NODE1],Mat3x3(node_pos[NODE1])*node_or[NODE1]);
-	A2 = MatExp(node_or[NODE2],Mat3x3(node_pos[NODE2])*node_or[NODE2]);
+	A1 = MatExp(node_or[NODE1], node_pos[NODE1].Cross(node_or[NODE1]));
+	A2 = MatExp(node_or[NODE2], node_pos[NODE2].Cross(node_or[NODE2]));
 	A12 = A2*(A1.Transpose());
 	//VecExp e1(0.);
 	eta_r = RoTrManip::Helix(A12);
@@ -171,9 +171,9 @@ void ComputeFullInterpolation(const Vec3 *const node_pos,
 		eta_xi_delta_1-=Theta_tilde*Theta_r_I*A2*xi;
 	//compute traslation wrenches at xi and at the nodes:
 	MatExp Trasl_n[NUMNODES];
-	Trasl_n[NODE1] = MatExp(Eye3,node_pos[NODE1]);
-	Trasl_n[NODE2] = MatExp(Eye3,node_pos[NODE2]);
-	MatExp Trasl_xi_bak(Eye3,-pos);
+	Trasl_n[NODE1] = MatExp(Eye3, Mat3x3(MatCross, node_pos[NODE1]));
+	Trasl_n[NODE2] = MatExp(Eye3, Mat3x3(MatCross, node_pos[NODE2]));
+	MatExp Trasl_xi_bak(Eye3, Mat3x3(MatCross, -pos));
 	//compute delta_kappa_i
 	MatExp Lambda(RoTrManip::Elle(eta_tilde,eta_r*dexi_des));
 	MatExp delta_kappa_2(Lambda*xi);
@@ -219,13 +219,12 @@ void ComputeFullInterpolation(const Vec3 *const node_pos,
 	//viene passato node_pos=x_node+node_or*f
 	Mat3x3 fodo;
 	
-	fodo = Mat3x3(node_f[NODE1])*or_delta_w_or[NODE1];
+	fodo = node_f[NODE1].Cross(or_delta_w_or[NODE1]);
 	delta_pos_w_or[NODE1] -= delta_pos_w_pos[NODE1]*fodo;
 	delta_F_ws_or[NODE1] -=	delta_F_ws_pos[NODE1]*fodo;
 	
-	fodo = Mat3x3(node_f[NODE2])*or_delta_w_or[NODE2];
+	fodo = node_f[NODE2].Cross(or_delta_w_or[NODE2]);
 	delta_pos_w_or[NODE2] -= delta_pos_w_pos[NODE2]*fodo;
 	delta_F_ws_or[NODE2] -=	delta_F_ws_pos[NODE2]*fodo;
-
-};
+}
 

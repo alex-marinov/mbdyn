@@ -387,49 +387,48 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 e3b(R2hTmp.GetVec(3));
    
    /* */
-   Mat3x3 MWedge(Mat3x3(e3b, e2a*M.dGet(1))
-		 +Mat3x3(e1b, e3a*M.dGet(2))
-		 +Mat3x3(e2b, e1a*M.dGet(3)));
+   Mat3x3 MWedge(Mat3x3(e3b, e2a*M(1))
+		 + Mat3x3(e1b, e3a*M(2))
+		 + Mat3x3(e2b, e1a*M(3)));
    Mat3x3 MWedgeT(MWedge.Transpose());
    
    /* Equilibrio */
    WM.Add(1, 1, MWedge);
-   WM.Add(1, 7, -MWedgeT);
+   WM.Sub(1, 7, MWedgeT);
    
    WM.Add(7, 1, MWedgeT);   
-   WM.Add(7, 7, -MWedge);
+   WM.Sub(7, 7, MWedge);
 
    /* Derivate dell'equilibrio */
    WM.Add(4, 4, MWedge);
-   WM.Add(4, 10, -MWedgeT);
+   WM.Sub(4, 10, MWedgeT);
    
    WM.Add(10, 4, MWedgeT);   
-   WM.Add(10, 10, -MWedge);
+   WM.Sub(10, 10, MWedge);
    
    
    MWedge = 
-     ( (Mat3x3(e3b, Omega1)+Mat3x3(Omega2.Cross(e3b))*M.dGet(1))
-      +Mat3x3(e3b)*MPrime.dGet(1) )*Mat3x3(e2a)
-     +( (Mat3x3(e1b, Omega1)+Mat3x3(Omega2.Cross(e1b))*M.dGet(2))
-       +Mat3x3(e1b)*MPrime.dGet(2) )*Mat3x3(e3a)
-     +( (Mat3x3(e2b, Omega1)+Mat3x3(Omega2.Cross(e2b))*M.dGet(3))
-       +Mat3x3(e2b)*MPrime.dGet(3) )*Mat3x3(e1a);
-   
+     ( (Mat3x3(e3b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e3b*M(1))))
+      + Mat3x3(MatCross, e3b*MPrime(1)) )*Mat3x3(MatCross, e2a)
+     +( (Mat3x3(e1b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e1b*M(2))))
+       +Mat3x3(MatCross, e1b*MPrime(2)) )*Mat3x3(MatCross, e3a)
+     +( (Mat3x3(e2b, Omega1) + Mat3x3(MatCross, Omega2.Cross(e2b*M(3))))
+       +Mat3x3(MatCross, e2b*MPrime(3)) )*Mat3x3(MatCross, e1a);
+
    WM.Add(4, 1, MWedge);
-   WM.Add(10, 1, -MWedge);
+   WM.Sub(10, 1, MWedge);
      
    MWedge =
-     ( (Mat3x3(e2a, Omega2)+Mat3x3(Omega1.Cross(e2a))*M.dGet(1))
-      +Mat3x3(e2a)*MPrime.dGet(1) )*Mat3x3(e3b)
-     +( (Mat3x3(e3a, Omega2)+Mat3x3(Omega1.Cross(e3a))*M.dGet(2))
-       +Mat3x3(e3a)*MPrime.dGet(2) )*Mat3x3(e1b)
-     +( (Mat3x3(e1a, Omega2)+Mat3x3(Omega1.Cross(e1a))*M.dGet(3))
-       +Mat3x3(e1a)*MPrime.dGet(3) )*Mat3x3(e2b);
-   
-   WM.Add(4, 7, -MWedge);
+     ( (Mat3x3(e2a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e2a*M(1))))
+      + Mat3x3(MatCross, e2a*MPrime(1)) )*Mat3x3(MatCross, e3b)
+     +( (Mat3x3(e3a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e3a*M(2))))
+       + Mat3x3(MatCross, e3a*MPrime(2)) )*Mat3x3(MatCross, e1b)
+     +( (Mat3x3(e1a, Omega2) + Mat3x3(MatCross, Omega1.Cross(e1a*M(3))))
+       + Mat3x3(MatCross, e1a*MPrime(3)) )*Mat3x3(MatCross, e2b);
+ 
+   WM.Sub(4, 7, MWedge);
    WM.Add(10, 7, MWedge);
 
-   
    Vec3 v1(e2a.Cross(e3b)); 
    Vec3 v2(e3a.Cross(e1b)); 
    Vec3 v3(e1a.Cross(e2b));
