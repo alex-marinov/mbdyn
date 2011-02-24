@@ -2372,7 +2372,8 @@ if test $ol_with_ginac != no ; then
 	fi
 
 	if test $have_ginac = yes ; then
-		AC_DEFINE(HAVE_GINAC,1,[define if GiNaC is available])
+		ol_link_ginac=yes
+		AC_DEFINE(USE_GINAC,1,[define if GiNaC is available])
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
@@ -2536,12 +2537,13 @@ AC_SUBST(DATE)
 
 dnl conditional build declarations
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
+AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
+AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
-AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])

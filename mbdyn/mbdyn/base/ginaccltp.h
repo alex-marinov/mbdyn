@@ -31,11 +31,8 @@
 
 /* GiNaC constitutive law */
 
-
 #ifndef GINACCLTP_H
 #define GINACCLTP_H
-
-#ifdef HAVE_GINAC
 
 #include <typeinfo>
 
@@ -991,8 +988,6 @@ GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::Update(
 }
 
 /* GiNaCViscoElasticConstitutiveLaw - end */
-
-#endif /* HAVE_GINAC */
 
 #endif /* GINACCLTP_H */
 

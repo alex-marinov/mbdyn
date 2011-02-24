@@ -47,6 +47,10 @@
 #include "ddrive.h"
 #include "shdrive.h"
 
+#ifdef USE_GINAC
+#include "ginacdrive.h"
+#endif // USE_GINAC
+
 /* StringDriveCaller - begin */
 
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
@@ -2544,6 +2548,9 @@ InitDriveData(void)
 	SetDriveData("fourier" "series", new FourierSeriesDCR);
 	SetDriveData("frequency" "sweep", new FrequencySweepDCR);
 	SetDriveData("function", new FunctionDCR);
+#ifdef USE_GINAC
+	SetDriveData("ginac", new GiNaCDCR);
+#endif // USE_GINAC
 	SetDriveData("linear", new LinearDCR);
 	SetDriveData("meter", new MeterDCR);
 	SetDriveData("mult", new MultDCR);

@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		  create_mls_interface
 		- added multiple flavors of Glauert inflow
 		- added output flag to .out file
+		- added GiNaC-based symbolic drive caller
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

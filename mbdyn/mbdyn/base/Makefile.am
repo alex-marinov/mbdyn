@@ -66,7 +66,6 @@ fixedstep.cc \
 fixedstep.h \
 force.cc \
 force.h \
-ginaccltp.h \
 gmres.cc \
 gmres.h \
 hint.h \
@@ -182,6 +181,13 @@ $(srcdir)/../../modules/module-wheel2/module-wheel2.cc \
 $(srcdir)/../../modules/module-wheel2/module-wheel2.h
 
 # add more...
+endif
+
+if USE_GINAC
+libbase_la_SOURCES += \
+ginaccltp.h \
+ginacdrive.cc \
+ginacdrive.h
 endif
 
 if USE_RTAI
