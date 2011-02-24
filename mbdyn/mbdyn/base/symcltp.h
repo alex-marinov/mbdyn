@@ -35,7 +35,7 @@
 #ifndef SYMCLTP_H
 #define SYMCLTP_H
 
-#include <constltp.h>
+#include "constltp.h"
 
 /* SymbolicElasticConstitutiveLaw - begin */
 
