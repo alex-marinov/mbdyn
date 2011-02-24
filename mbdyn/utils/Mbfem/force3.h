@@ -19,7 +19,7 @@ class CLoad {
 		
 	public:
 	
-		CLoad(int id,const Vec3& L,bool c=false,const Vec3& P = Vec3(0.)): labelMb(id),labelFem(0),Loa(L),posMb(P),posFem(),couple(c){};
+		CLoad(int id,const Vec3& L,bool c=false,const Vec3& P = Zero3): labelMb(id),labelFem(0),Loa(L),posMb(P),posFem(),couple(c){};
 		
 		~CLoad(void) {};
 		

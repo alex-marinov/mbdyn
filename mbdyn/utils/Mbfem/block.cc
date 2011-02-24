@@ -331,7 +331,7 @@ Vec3 Block::GetFemRAcc(int i_lc,int id){
 		return temp;
 	} else {
 		// Return null vector
-		Vec3 temp(0.);
+		Vec3 temp(Zero3);
 		return temp;
 	}
 }
@@ -343,7 +343,7 @@ Vec3 Block::GetMbRAcc(int i_lc,int id_0){
 		return temp;
 	} else {
 		// Return null vector
-		Vec3 temp(0.);
+		Vec3 temp(Zero3);
 		return temp;
 	}
 }
@@ -366,7 +366,7 @@ Vec3 Block::GetFemRot(int i_lc,int id){
 		return temp;
 	} else {
 		// Return null vector
-		Vec3 temp(0.);
+		Vec3 temp(Zero3);
 		return temp;
 	}
 }
@@ -378,7 +378,7 @@ Vec3 Block::GetMbRot(int i_lc,int id_0){
 		return temp;
 	} else {
 		// Return null vector
-		Vec3 temp(0.);
+		Vec3 temp(Zero3);
 		return temp;
 	}
 }

@@ -62,7 +62,7 @@ map<int,int> read_mov(char* InFileName,map<int,int> iminMb,
 			istringstream iss(buf,istringstream::in);
 			int label;
 			double dummy;
-			Vec3 Pos(0.),Rot(0.),Acc(0.),AngVel(0.),AngAcc(0.);
+			Vec3 Pos(Zero3),Rot(Zero3),Acc(Zero3),AngVel(Zero3),AngAcc(Zero3);
 			if (iss >> label >> Pos(1) >> Pos(2) >> Pos(3) /*poszioni*/ >> Rot(1) >> Rot(2) >> Rot(3) >> /*rotazioni*/ dummy >> dummy >> dummy >> /*velocità*/ AngVel(1) >> AngVel(2) >> AngVel(3) /*velangolari*/ >> Acc(1) >> Acc(2) >> Acc(3) >> /*AccAngolari*/ AngAcc(1) >> AngAcc(2) >> AngAcc(3)){
 			// Inseriamo l'accelerazione nel blocco
 				if (nodeblock.find(label)!=nodeblock.end()){
@@ -131,7 +131,7 @@ void read_frc(char* InFileName,map<int,int> idblock,vector<int> step_list,
 			istringstream iss(buf,istringstream::in);
 			int node_label,lab_force;
 			double dummy;
-			Vec3 Load(0.);
+			Vec3 Load(Zero3);
 			if (iss >> lab_force >> node_label >> dummy >> Load(1) >> Load(2) >> Load(3) >> dummy >> dummy >> dummy){
 				// E' una forza
 				if (loads.find(node_label) != loads.end()){

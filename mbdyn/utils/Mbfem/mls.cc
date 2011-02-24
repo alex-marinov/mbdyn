@@ -200,7 +200,6 @@ void MLSP::Interpolate(std::vector<Node>& FemNodes, std::vector<Node>& MbNodes, 
 	unsigned int dim = 3; 			/* dimensioni dello spazio a cui appatengono i punti */
 	
 	unsigned int MbNadj = H->iGetNumCols();           /* il numero di nodi strutturali e' pari alle colonne di H */
-	unsigned int FemN = H->iGetNumRows();           /* il numero di nodi aerodinamici e' pari alle righe di H */
 	
 	ANNpointArray data_complete;	/* struttura che contiene le coord dei nodi */
 	ANNidxArray idx_complete;
@@ -268,7 +267,7 @@ void MLSP::Interpolate(std::vector<Node>& FemNodes, std::vector<Node>& MbNodes, 
 		// Ciclo di ricerca del numero di nodi presenti nel raggio
 		// Associamo ai nodi individuati i nodi adjoint associati
 		if (nadj != 0){
-			for (int i_node = 0; i_node < k ; i_node++){
+			for (unsigned i_node = 0; i_node < k ; i_node++){
 				idx_complete[i_node*(nadj+1)] = idx[i_node]*(nadj+1);
 				dist_complete[i_node*(nadj+1)] = dist[i_node];
 				// Recupero il nodo associato all'id
@@ -295,10 +294,10 @@ void MLSP::Interpolate(std::vector<Node>& FemNodes, std::vector<Node>& MbNodes, 
 		MyVectorHandler r(N);
 		if (nadj != 0){
 			double dm = sqrt(dist_complete[N-1]);
-			for(int j=0; j<N; j++) r(j+1) = sqrt(dist_complete[j])/(1.05*dm);
+			for(unsigned j=0; j<N; j++) r(j+1) = sqrt(dist_complete[j])/(1.05*dm);
 		} else {
 			double dm = sqrt(dist[N-1]);
-			for(int j=0; j<N; j++) r(j+1) = sqrt(dist[j])/(1.05*dm);
+			for(unsigned j=0; j<N; j++) r(j+1) = sqrt(dist[j])/(1.05*dm);
 		}
 		/* calcolo dei pesi con le funzioni RBF */			
 		pWg->SetWeight(r,pW);
@@ -326,9 +325,9 @@ void MLSP::Interpolate(std::vector<Node>& FemNodes, std::vector<Node>& MbNodes, 
 		MyVectorHandler h(N);
 		B.MatTVecMul(h,pp);
 		if (nadj != 0){
-			for (int i=0;i<N;i++) H->PutCoef(iFemCount, idx_complete[i]+1,h(i+1));
+			for (unsigned i=0;i<N;i++) H->PutCoef(iFemCount, idx_complete[i]+1,h(i+1));
 		} else {
-			for (int i=0;i<N;i++) H->PutCoef(iFemCount, idx[i]+1,h(i+1));
+			for (unsigned i=0;i<N;i++) H->PutCoef(iFemCount, idx[i]+1,h(i+1));
 		}
 		iFemCount++; 
 	}

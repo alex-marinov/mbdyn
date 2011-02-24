@@ -61,7 +61,7 @@ class Node {
 		double N = 10.;
     		switch (Nadj) {
     			case 3: {
-    				Vec3 a1(1.),a2(0.,1.),a3 = a1.Cross(a2);
+    				Vec3 a1(1., 0., 0.),a2(0., 1., 0.),a3 = a1.Cross(a2);
     				PosAdj.push_back(Pos+a1*dL/N);
 				PosAdj.push_back(Pos+a2*dL/N);
 				PosAdj.push_back(Pos+a3*dL/N);
@@ -69,7 +69,7 @@ class Node {
 				}
 			case 4: {
 				// Porcata
-				Vec3 a1(0.,1.),a2(0.,0.,1.);
+				Vec3 a1(0., 1., 0.),a2(0., 0., 1.);
 				PosAdj.push_back(Pos+a1*dL/N);
 				PosAdj.push_back(Pos-a1*dL/N);
 				PosAdj.push_back(Pos+a2*dL/N);
@@ -77,7 +77,7 @@ class Node {
 				break;
 				}
 			case 6: {
-				Vec3 a1(1.),a2(0.,1.),a3 = a1.Cross(a2);
+				Vec3 a1(1., 0., 0.),a2(0., 1., 0.),a3 = a1.Cross(a2);
     				PosAdj.push_back(Pos+a1*dL/N);
     				PosAdj.push_back(Pos-a1*dL/N);
 				PosAdj.push_back(Pos+a2*dL/N);
@@ -97,8 +97,8 @@ class Node {
     	};
     	
     	std::vector<Vec3> AdjAcc(const Vec3& AngVel,const Vec3& AngAcc){
-    		Mat3x3 omegap(AngAcc);
-    		Mat3x3 omegaomega(AngVel,AngVel);
+    		Mat3x3 omegap(MatCross, AngAcc);
+    		Mat3x3 omegaomega(MatCrossCross, AngVel, AngVel);
     		std::vector<Vec3> delta_acc(Nadj);
     		for (int i_adj = 0; i_adj < Nadj; i_adj++){
     			// Calcolo del vettore distanza
@@ -109,7 +109,7 @@ class Node {
     	};
 
 	std::vector<Vec3> AdjPos(const Vec3& Rot){
-		Mat3x3 theta(Rot);
+		Mat3x3 theta(MatCross, Rot);
 		std::vector<Vec3> delta_pos(Nadj);
 		for (int i_adj = 0; i_adj < Nadj; i_adj++){
 			// Vettore distanza

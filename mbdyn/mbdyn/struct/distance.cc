@@ -591,7 +591,7 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 
 	Mat3x3 Tmp;
 
-	Tmp = Mat3x3(f1Tmp*dd);
+	Tmp = Mat3x3(MatCross, f1Tmp*dd);
 
 	/* F1: - lambda f1 Cross Delta g_1 */
 	WorkMatA.Sub(0 + 1, 3 + 1, Tmp);
@@ -605,7 +605,7 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 	/* M1: - lambda f1 Cross Delta x_2 */
 	WorkMatA.Sub(3 + 1, 6 + 1, Tmp);
 	
-	Tmp = Mat3x3(f2Tmp*dd);
+	Tmp = Mat3x3(MatCross, f2Tmp*dd);
 
 	/* F1: lambda f2 Cross Delta g_2 */
 	WorkMatA.Add(0 + 1, 9 + 1, Tmp);
@@ -619,22 +619,22 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 	/* M2: lambda f2 Cross Delta x_2 */
 	WorkMatA.Add(9 + 1, 6 + 1, Tmp);
 
-	Tmp = Mat3x3(f1Tmp, f2Tmp*dd);
+	Tmp = Mat3x3(MatCrossCross, f1Tmp, f2Tmp*dd);
 	
 	/* M1: lambda f1 Cross f2 Cross Delta g_2 */
 	WorkMatA.Add(3 + 1, 9 + 1, Tmp);
 
-	Tmp = Mat3x3(f2Tmp, f1Tmp*dd);
+	Tmp = Mat3x3(MatCrossCross, f2Tmp, f1Tmp*dd);
 	
 	/* M2: lambda f2 Cross f1 Cross Delta g_1 */
 	WorkMatA.Add(9 + 1, 3 + 1, Tmp);
 
-	Tmp = Mat3x3(Vec + f1Tmp, f1Tmp*dd);
+	Tmp = Mat3x3(MatCrossCross, Vec + f1Tmp, f1Tmp*dd);
 
 	/* M1: - lambda (x2 + f2 - x1) Cross f1 Cross Delta g_1 */
 	WorkMatA.Sub(3 + 1, 3 + 1, Tmp);
       
-	Tmp = Mat3x3(Vec - f2Tmp, f2Tmp*dd);
+	Tmp = Mat3x3(MatCrossCross, Vec - f2Tmp, f2Tmp*dd);
 
 	/* M2: - lambda (x2 - x1 - f1) Cross f2 Cross Delta g_2 */
 	WorkMatA.Add(9 + 1, 9 + 1, Tmp);

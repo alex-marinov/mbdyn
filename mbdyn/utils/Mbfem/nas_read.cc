@@ -828,13 +828,13 @@ void readmat(char* InFileName, vector<int> femidblock, map<int,Block>* BlList){
 	if ((*BlList)[femidblock[nfem-1]].BeOnBe()){
 		switch (rem){
 			case 4:{
-				Vec3 tmp(col[3]);
+				Vec3 tmp(col[3], 0., 0.);
 				(*BlList)[femidblock[nfem-1]].SetFemMM(tmp,nblock[femidblock[nfem-1]]+1);
 				nblock[femidblock[nfem-1]]++;
 				break;
 				}
 			case 5:{
-				Vec3 tmp(col[3],col[4]);
+				Vec3 tmp(col[3],col[4], 0.);
 				(*BlList)[femidblock[nfem-1]].SetFemMM(tmp,nblock[femidblock[nfem-1]]+1);
 				nblock[femidblock[nfem-1]]++;
 				break;
@@ -846,7 +846,7 @@ void readmat(char* InFileName, vector<int> femidblock, map<int,Block>* BlList){
 				break;
 				}
 			default:{
-				Vec3 tmp(0.);
+				Vec3 tmp(Zero3);
 				(*BlList)[femidblock[nfem-1]].SetFemMM(tmp,nblock[femidblock[nfem-1]]+1);
 				nblock[femidblock[nfem-1]]++;
 				break;
