@@ -2099,11 +2099,14 @@ and the amplitude of the oscillation. Any drive can be used.
 \subsection{GiNaC}\label{sec:DRIVE:GINAC}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{drive_caller} ::= \kw{ginac} , " \bnt{expression} "
+    \bnt{drive_caller} ::= \kw{ginac} ,
+        [ \kw{symbol} , " \bnt{symbol} " , ]
+        " \bnt{expression} "
 \end{Verbatim}
 %\end{verbatim}
 The function \nt{expression} is evaluated and differentiated, if needed,
-as a function of the var \texttt{Var}.
+as a function of the variable passed as the optional \nt{symbol}.
+If none is passed, \texttt{Var} is used.
 Currently there is no way to share the variables of the math parser
 used by the \kw{string} drive caller.
 Not to be confused with the \kw{string} drive caller.
@@ -2111,6 +2114,7 @@ Not to be confused with the \kw{string} drive caller.
 \paragraph{Example.} \
 \begin{verbatim}
     ..., ginac, "10*log(1 + Var)" ...
+    ..., ginac, symbol, "x", "10*log(1 + x)" ...
 \end{verbatim}
 
 \subsection{Linear drive}\label{sec:DRIVE:LINEAR}

@@ -59,7 +59,7 @@ private:
 
 public:
 	GiNaCDriveCaller(const DriveHandler* pDH,
-		const std::string& expression);
+		const std::string& var, const std::string& expression);
 	virtual ~GiNaCDriveCaller(void);
 
 	/* Copia */

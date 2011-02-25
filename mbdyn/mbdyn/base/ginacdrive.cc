@@ -34,14 +34,15 @@
 #include "dataman.h"
 #include "ginacdrive.h"
 
+#include <sstream>
 
 GiNaCDriveCaller::GiNaCDriveCaller(const DriveHandler* pDH, 
-	const std::string& expression)
+	const std::string& var, const std::string& expression)
 : DriveCaller(pDH)
 {
 	GiNaC::lst l; 
 
-	gVar = new GiNaC::symbol("Var");
+	gVar = new GiNaC::symbol(var);
 	l.append(*gVar);
 
 	try {
@@ -63,6 +64,8 @@ GiNaCDriveCaller::GiNaCDriveCaller(const DriveHandler* pDH,
 			<< std::endl);
 		throw e;
 	}
+
+	pedantic_cout("GiNacDriveCaller: symbol=\"" << *gVar << "\" expression=\"" << gExpr << "\" derivative=\"" << gExprDVar << "\"" << std::endl);
 }
 
 GiNaCDriveCaller::~GiNaCDriveCaller(void)
@@ -76,12 +79,13 @@ GiNaCDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = NULL;
 
-	std::ostringstream expr;
+	std::ostringstream var, expr;
+	var << gVar;
 	expr << gExpr;
 
 	SAFENEWWITHCONSTRUCTOR(pDC, 
 		GiNaCDriveCaller,
-		GiNaCDriveCaller(pDrvHdl, expr.str()));
+		GiNaCDriveCaller(pDrvHdl, var.str(), expr.str()));
  
 	return pDC;
 }
@@ -90,7 +94,7 @@ GiNaCDriveCaller::pCopy(void) const
 std::ostream&
 GiNaCDriveCaller::Restart(std::ostream& out) const
 {
-	out << " ginac, \"" << gExpr << "\"";
+	out << " ginac, symbol, \"" << *gVar << "\", \"" << gExpr << "\"";
 
 	return out;
 }
@@ -121,18 +125,30 @@ GiNaCDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		pDrvHdl = pDM->pGetDrvHdl();
 	}
 
-	DriveCaller *pDC = 0;
+	std::string var;
+	if (HP.IsKeyWord("symbol")) {
+		var = HP.GetStringWithDelims();
+		if (var.empty()) {
+			silent_cerr("unable to read ginac drive caller symbol at line "
+				<< HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
-	const char *expression = HP.GetStringWithDelims();
-	if (expression == 0) {
-		silent_cerr("unable read ginac drive caller expression at line "
+	} else {
+		var = "Var";
+	}
+
+	std::string expression = HP.GetStringWithDelims();
+	if (expression.empty()) {
+		silent_cerr("unable to read ginac drive caller expression at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	DriveCaller *pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		GiNaCDriveCaller,
-		GiNaCDriveCaller(pDrvHdl, expression));
+		GiNaCDriveCaller(pDrvHdl, var, expression));
 
 	return pDC;
 }

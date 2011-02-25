@@ -6079,29 +6079,31 @@ parameters within curly brackets.
 For instance, the hint that instructs a joint to compute the offset
 with respect to the second node when it is activated is
 \begin{verbatim}
-    driven: 10, string, "Time>1.", hint, "offset{2}",
+    driven: 10, string, "Time > 1.", hint, "offset{2}",
     joint: 10, ...
 \end{verbatim}
 A similar form is used to instruct a joint to compute the relative
 orientation with respect to node 1:
 \begin{verbatim}
-    driven: 20, string, "Time>1.", hint, "hinge{1}",
+    driven: 20, string, "Time > 1.", hint, "hinge{1}",
     joint: 20, ...
 \end{verbatim}
 A \kw{distance} joint may be fed a new drive by using:
 \begin{verbatim}
-    driven: 30, string, "Time>1.",
-        hint, "drive{cosine,0.,pi/.1,-.9/2.,half,model::distance(1,2)}",
+    set: const real T0 = 1.;
+    driven: 30, string, "Time > T0",
+        hint, "drive{cosine, T0, pi/.1, -.9/2., half, model::distance(1,2)}",
     joint: 30, distance, ... 
 \end{verbatim}
 A \kw{drive hinge} joint may be fed a new drive by using:
 \begin{verbatim}
-    driven: 40, string, "Time>1.",
+    set: const real T0 = 1.;
+    driven: 40, string, "Time > T0",
         # note: the lines wrap for typographical reasons
         # in the actual file, the string has to be a single line
-        hint, "drive3{model::xdistance(1,2),\
-            model::ydistance(1,2), model::zdistance(1,2),\
-            cosine,0.,pi/.1,-.9/2.,half,model::distance(1,2)}",
+        hint, "drive3{model::xdistance(1,2), \
+            model::ydistance(1,2), model::zdistance(1,2), \
+            cosine, T0, pi/.1, -.9/2., half, model::distance(1,2)}",
     joint: 30, drive hinge, ... 
 \end{verbatim}
 
