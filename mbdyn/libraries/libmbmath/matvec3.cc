@@ -632,6 +632,7 @@ Mat3x3::Skew(void) const
 
 const Mat3x3Zero_Manip Mat3x3Zero;
 const Mat3x3DEye_Manip Mat3x3DEye;
+const Mat3x3Diag_Manip Mat3x3Diag;
 const MatCross_Manip MatCross;
 const MatCrossCross_Manip MatCrossCross;
 

@@ -1463,7 +1463,10 @@ public:
 		pdm[M32] = 0.;
 		pdm[M33] = d;
 	};
+};
 
+class Mat3x3Diag_Manip : public Mat3x3_Manip {
+public:
 	inline void Manipulate(Mat3x3& m, const Vec3& v) const {
 		doublereal *pdm = m.pGetMat();
 		const doublereal *pdv = v.pGetVec();
@@ -1525,6 +1528,7 @@ public:
 
 extern const Mat3x3Zero_Manip Mat3x3Zero;
 extern const Mat3x3DEye_Manip Mat3x3DEye;
+extern const Mat3x3Diag_Manip Mat3x3Diag;
 extern const MatCross_Manip MatCross;
 extern const MatCrossCross_Manip MatCrossCross;
 
