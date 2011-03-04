@@ -481,7 +481,8 @@ The default behavior is to ignore such requests\footnote{See note above}.
 \end{Verbatim}
 %\end{verbatim}
 Performs the direct eigenanalysis of the problem.
-This functionality is experimental.
+This functionality is experimental;
+see \cite{MASARATI-2009} for theoretical aspects.
 Direct eigenanalysis based on the matrices of the system
 only makes sense when the system is in a steady configuration,
 so the user needs to ensure this configuration has been reached.
@@ -599,15 +600,37 @@ an array of three columns containing
 $\alpha_r = \texttt{alpha(:, 1)}$,
 $\alpha_i = \texttt{alpha(:, 2)}$
 and $\beta = \texttt{alpha(:, 3)}$,
-such that the $k$-th eigenvalue $\lambda_k$ is
+such that the $k$-th discrete-time eigenvalue $\Lambda_k$ is
 \begin{align}
-	\lambda_k
+	\Lambda_k
 	&=
-	\frac{\alpha_r(k) + i \alpha_i(k)}{\beta(k)}
+	\frac{\alpha_r(k) + \text{i} \alpha_i(k)}{\beta(k)}
 	.
 \end{align}
 Note that $\alpha_r$, $\alpha_i$ and $\beta$ can be all zero;
 only a fraction of the eigenvalues may be output;
+the corresponding continuous time domain eigenvalue $\lambda_k$ is
+\begin{align}
+	\lambda_k
+	&=
+	\frac{1}{\texttt{dCoef}}
+	\frac{\Lambda_k - 1}{\Lambda_k + 1}
+	=
+	\frac{1}{\texttt{dCoef}}
+	\frac{
+		\alpha_r(k)^2
+		+
+		\alpha_i(k)^2
+		-
+		\beta(k)^2
+		+
+		\text{i} 2 \alpha_i(k) \beta(k)
+	}{
+		\plbr{\alpha_r(k) + \beta(k)}^2 + \alpha_i(k)^2
+	}
+	,
+\end{align}
+where $\texttt{dCoef}$ is defined in the \texttt{.m} file;
 
 \item \texttt{VR}: the right eigenvectors, solution of the problem
 $\plbr{\TT{J}_{(+c)} + \Lambda \TT{J_{(-c)}}}\T{V_R}=\T{0}$;
