@@ -34,6 +34,7 @@
 
 #include <stdlib.h>
 #include <assert.h>
+#include <cstring>
 #include "mbcxx.h"
 
 MBCBase::Rot
@@ -423,6 +424,7 @@ MBCNodal::Initialize(MBCBase::Rot refnode_rot, unsigned nodes,
        	bool labels, MBCBase::Rot rot, bool accels)
 {
 	if (GetStatus() != NOT_READY) return -1;
+	memset(&mbc, 0, sizeof(mbc));
 	int rc = mbc_nodal_init(&mbc, refnode_rot, nodes, labels,
 		unsigned(rot) | MBC_U_ROT_2_REF_NODE_ROT(unsigned(refnode_rot)),
 		accels);
@@ -914,6 +916,7 @@ int
 MBCModal::Initialize(MBCBase::Rot refnode_rot, unsigned modes)
 {
 	if (GetStatus() != NOT_READY) return -1;
+	memset(&mbc, 0, sizeof(mbc));
 	int rc = mbc_modal_init(&mbc, refnode_rot, modes);
 	if (rc == 0) const_cast<MBCModal *>(this)->SetStatus(INITIALIZED);
 	return rc;

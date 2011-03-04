@@ -486,8 +486,6 @@ int
 mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels)
 {
-	memset(mbc, 0, sizeof(*mbc));
-
 	mbc->nodes = nodes;
 	MBC_F_SET(mbc, MBC_NODAL);
 
@@ -994,8 +992,6 @@ int
 mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes)
 {
 	unsigned rot = MBC_ROT_MAT;
-
-	memset(mbc, 0, sizeof(*mbc));
 
 	MBC_F_SET(mbc, MBC_MODAL);
 	mbc->modes = modes;
