@@ -254,11 +254,11 @@ mbc_destroy(mbc_t *mbc)
 }
 
 /*
- * rigid stuff
+ * rigid body stuff
  */
 
 static int
-mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
+mbc_rigid_init(mbc_rigid_t *mbc, unsigned refnode,
 	unsigned labels, unsigned *rotp, unsigned accels)
 {
 	uint32_t offset = 0;
@@ -279,7 +279,7 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned rigid,
 	mbc->r_d_f = -1;
 	mbc->r_d_m = -1;
 	
-	if (!rigid) {
+	if (!refnode) {
 		return 0;
 	}
 
@@ -361,7 +361,8 @@ retry:;
 
 /* get nodal motion from peer
  *
- * if "rigid", access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if "rigid", access reference node motion
+ * using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
  */
 int
@@ -471,7 +472,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (rigid != 0),
+ * at least rigid body motion must be defined (refnode != 0),
  * or nodes must be > 0
  *
  * if nodes > 0, mallocs memory that needs to be freed calling
@@ -482,13 +483,15 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  * if accelerations != 0 accelerations are also output
  */
 int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels)
 {
+	memset(mbc, 0, sizeof(*mbc));
+
 	mbc->nodes = nodes;
 	MBC_F_SET(mbc, MBC_NODAL);
 
-	if (rigid) {
+	if (refnode) {
 		MBC_F_SET_REF_NODE(mbc);
 	}
 
@@ -526,7 +529,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
 		MBC_F_SET_LABELS(mbc);
 	}
 
-	if (mbc_rigid_init(&mbc->mbcr, rigid, labels, &rot, accels)) {
+	if (mbc_rigid_init(&mbc->mbcr, refnode, labels, &rot, accels)) {
 		return -1;
 	}
 	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
@@ -830,7 +833,8 @@ mbc_nodal_destroy(mbc_nodal_t *mbc)
 
 /* get modal motion from peer
  *
- * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if mbc->rigid, access rigid body motion
+ * using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
  */
 int
@@ -926,7 +930,7 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 	}
 
 	if (mbc->mbc.cmd != ES_GOTO_NEXT_STEP) {
-		/* rigid */
+		/* reference node */
 		if (MBC_F_REF_NODE(mbc)) {
 			ssize_t	rc;
 
@@ -987,14 +991,16 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
  * mbc_modal_destroy()
  */
 int
-mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes)
+mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes)
 {
 	unsigned rot = MBC_ROT_MAT;
+
+	memset(mbc, 0, sizeof(*mbc));
 
 	MBC_F_SET(mbc, MBC_MODAL);
 	mbc->modes = modes;
 
-	if (rigid) {
+	if (refnode) {
 		MBC_F_SET_REF_NODE(mbc);
 	}
 
@@ -1004,7 +1010,7 @@ mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes)
 	}
 
 	/* FIXME: rotation configurable? */
-	if (mbc_rigid_init(&mbc->mbcr, rigid, 0, &rot, 0)) {
+	if (mbc_rigid_init(&mbc->mbcr, refnode, 0, &rot, 0)) {
 		return -1;
 	}
 	MBC_F_SET(mbc, (rot & MBC_REF_NODE_ROT_MASK));
