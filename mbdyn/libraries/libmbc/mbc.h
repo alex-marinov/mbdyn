@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2011
+ * Copyright (C) 1996-2010
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -159,7 +159,11 @@ typedef struct {
 #define MBC_F_SET_ROT_EULER_123(mbc)	MBC_F_SET(mbc, MBC_ROT_EULER_123)
 
 	/* reference node data */
-	char		r_ptr[(1 + 1)*sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3)*sizeof(double)];
+	union {
+		char		char_r_ptr[(1 + 1) * sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
+		uint32_t	uint32_t_r_ptr[(1 + 1) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double) / sizeof(uint32_t)];
+		double		double_r_ptr[(1 + 1) * sizeof(uint32_t) / sizeof(double) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
+	} r_ptr;
 	uint32_t	k_size;
 	int32_t		r_k_label;
 	int32_t		r_k_x;
@@ -174,7 +178,7 @@ typedef struct {
 	int32_t		r_d_label;
 	int32_t		r_d_f;
 	int32_t		r_d_m;
-#define MBC_R_PTR(mbc, type, off)	((off) < 0 ? NULL : ((type *)&((mbc)->mbcr.r_ptr[(off)])))
+#define MBC_R_PTR(mbc, type, off)	((off) < 0 ? NULL : ((type *)&((mbc)->mbcr.r_ptr.type ## _r_ptr[(off)])))
 #define	MBC_R_K_LABEL(mbc)		(MBC_R_PTR((mbc), uint32_t, (mbc)->mbcr.r_k_label)[0])
 #define	MBC_R_X(mbc)			(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_x))
 #define	MBC_R_THETA(mbc)		(MBC_R_PTR((mbc), double, (mbc)->mbcr.r_k_theta))
@@ -190,7 +194,7 @@ typedef struct {
 #define MBC_R_KINEMATICS_SIZE(mbc)	((mbc)->mbcr.k_size)
 #define MBC_R_DYNAMICS_SIZE(mbc)	((mbc)->mbcr.d_size)
 #define MBC_R_SIZE(mbc)			(MBC_R_KINEMATICS_SIZE(mbc) + MBC_R_DYNAMICS_SIZE(mbc))
-#define MBC_R_KINEMATICS(mbc)		((void *)(mbc)->mbcr.r_ptr)
+#define MBC_R_KINEMATICS(mbc)		((void *)(mbc)->mbcr.r_ptr.char_r_ptr)
 #define MBC_R_DYNAMICS(mbc)		((void *)(MBC_R_KINEMATICS(mbc) + MBC_R_KINEMATICS_SIZE(mbc)))
 } mbc_rigid_t;
 
