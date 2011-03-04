@@ -98,6 +98,8 @@ public:
 	virtual int GetMotion(void) const = 0;
 	virtual int Close(void) const = 0;
 
+	int GetCmd(void) const;
+
 	uint32_t GetRefNodeKinematicsLabel(void) const;
 
 	uint32_t KinematicsLabel(void) const;

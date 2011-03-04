@@ -140,6 +140,12 @@ MBCBase::Init(const char *const host, short unsigned port)
 	return rc;
 }
 
+int
+MBCBase::GetCmd(void) const
+{
+	return GetBasePtr()->cmd;
+}
+
 uint32_t
 MBCBase::GetRefNodeKinematicsLabel(void) const
 {
