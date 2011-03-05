@@ -687,7 +687,8 @@ pEFH(pEFH),
 bSendAfterPredict(bSendAfterPredict),
 iCoupling(iCoupling),
 iCouplingCounter(0),
-bFirstSend(true)
+bFirstSend(true),
+bFirstRecv(true)
 {
 	NO_OP;
 }
@@ -705,6 +706,7 @@ ExtForce::SetValue(DataManager *pDM,
 	SimulationEntity::Hints* h)
 {
 	bFirstSend = true;
+	bFirstRecv = true;
 
 	bool ok = false;
 	if (pEFH->Prepare_pre()) {
@@ -714,6 +716,10 @@ ExtForce::SetValue(DataManager *pDM,
 	if (!ok) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	if (iCoupling < COUPLING_TIGHT) {
+		Send(ExtFileHandlerBase::SEND_AFTER_CONVERGENCE);
+	}
 }
 
 void
@@ -722,9 +728,19 @@ ExtForce::Update(const VectorHandler& XCurr,
 {
 	/* If running tight coupling, send kinematics every iteration */
 	/* NOTE: tight coupling may need relaxation */
-	if (iCoupling >= COUPLING_TIGHT && !((++iCouplingCounter)%iCoupling)) {
-		Send(bFirstSend ? ExtFileHandlerBase::SEND_FIRST_TIME
-			: ExtFileHandlerBase::SEND_REGULAR);
+	if ((iCoupling >= COUPLING_TIGHT && !((++iCouplingCounter)%iCoupling))
+		|| (iCoupling == COUPLING_LOOSE && bSendAfterPredict))
+	{
+		ExtFileHandlerBase::SendWhen when;
+		if (iCoupling == COUPLING_LOOSE) {
+			when = ExtFileHandlerBase::SEND_AFTER_CONVERGENCE;
+		} else if (bFirstSend) {
+			when = ExtFileHandlerBase::SEND_FIRST_TIME;
+		} else {
+			when = ExtFileHandlerBase::SEND_REGULAR;
+		}
+
+		Send(when);
 	}
 }
 
@@ -737,6 +753,7 @@ ExtForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	/* After prediction, mark next residual as first */
 	iCouplingCounter = 0;
 	bFirstSend = true;
+	bFirstRecv = true;
 
 	pEFH->AfterPredict();
 
@@ -754,7 +771,7 @@ ExtForce::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	/* If not running tight coupling, send kinematics only at convergence */
-	if (iCoupling != COUPLING_TIGHT) {
+	if (iCoupling != COUPLING_TIGHT && !bSendAfterPredict) {
 		Send(ExtFileHandlerBase::SEND_AFTER_CONVERGENCE);
 #if 0
 		if (bRemoveIn) {
@@ -781,10 +798,11 @@ void
 ExtForce::Recv(void)
 {
 	if ((iCoupling >= COUPLING_TIGHT && !bFirstSend && !(iCouplingCounter%iCoupling))
-		|| ((iCoupling == COUPLING_LOOSE || iCoupling == COUPLING_STAGGERED) && bFirstSend))
+		|| ((iCoupling == COUPLING_LOOSE || iCoupling == COUPLING_STAGGERED) && bFirstRecv))
 	{
 		if (pEFH->Recv_pre()) {
 			Recv(pEFH);
+			bFirstRecv = false;
 		}
 
 		if (pEFH->Recv_post()) {
@@ -1130,7 +1148,7 @@ ReadExtForce(DataManager* pDM,
 		}
 	}
 
-	if (iCoupling >= ExtForce::COUPLING_TIGHT) {
+	if (iCoupling >= ExtForce::COUPLING_LOOSE) {
 		bSendAfterPredict = true;
 		if (HP.IsKeyWord("send" "after" "predict")) {
 			if (!HP.GetYesNo(bSendAfterPredict)) {

@@ -207,6 +207,7 @@ protected:
 
 	// whether the current residual is the first or not...
 	mutable bool bFirstSend;
+	mutable bool bFirstRecv;
 
 	void Send(ExtFileHandlerBase::SendWhen when);
 	void Recv(void);
