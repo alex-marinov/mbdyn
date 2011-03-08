@@ -1515,13 +1515,13 @@ public:
 		double d33 = pdv1[V3]*pdv2[V3];
 
 		pdm[M11] = -d22 - d33;
-		pdm[M12] = pdv1[V1]*pdv2[V2];
-		pdm[M13] = pdv1[V1]*pdv2[V3];
-		pdm[M21] = pdv1[V2]*pdv2[V1];
+		pdm[M12] = pdv2[V1]*pdv1[V2];
+		pdm[M13] = pdv2[V1]*pdv1[V3];
+		pdm[M21] = pdv2[V2]*pdv1[V1];
 		pdm[M22] = -d33 - d11;
-		pdm[M23] = pdv1[V2]*pdv2[V3];
-		pdm[M31] = pdv1[V3]*pdv2[V1];
-		pdm[M32] = pdv1[V3]*pdv2[V2];
+		pdm[M23] = pdv2[V2]*pdv1[V3];
+		pdm[M31] = pdv2[V3]*pdv1[V1];
+		pdm[M32] = pdv2[V3]*pdv1[V2];
 		pdm[M33] = -d11 - d22;
 	};
 };
