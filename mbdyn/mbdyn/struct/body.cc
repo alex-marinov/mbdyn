@@ -1038,17 +1038,33 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Vec3 Xgc(Zero3);
 	Vec3 STmp(Zero3);
 	Mat3x3 J(Zero3x3);
+	bool bNegative(false);
+
+	if (HP.IsKeyWord("allow" "negative" "mass")) {
+		bNegative = true;
+	}
 
 	for (int iCnt = 1; iCnt <= iNumMasses; iCnt++) {
 		/* massa */
 		doublereal dMTmp = HP.GetReal();
+		if (!bNegative && dMTmp < 0.) {
+			silent_cerr("Body(" << uLabel << "): "
+				"negative mass is not allowed at line "
+				<< HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
 		DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dMTmp << std::endl);
 		dm += dMTmp;
 
 		/* posiz. c.g. */
 		Vec3 XgcTmp(HP.GetPosRel(RF));
-		STmp += XgcTmp*dMTmp;
+		if (iNumMasses == 1) {
+			Xgc = XgcTmp;
+
+		} else {
+			STmp += XgcTmp*dMTmp;
+		}
 
 		DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt
 			<< ") center of gravity = " << XgcTmp << std::endl);
@@ -1092,13 +1108,23 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		J += JTmp - Mat3x3(MatCrossCross, XgcTmp, XgcTmp*dMTmp);
 	}
 
-	if (dm < std::numeric_limits<doublereal>::epsilon()) {
+	if (!bNegative && dm < 0.) {
 		silent_cerr("Body(" << uLabel << "): "
-			"mass value " << dm << " is too small" << std::endl);
+			"negative mass is not allowed at line "
+			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Xgc = STmp/dm;
+	if (iNumMasses > 1) {
+		if (dm < std::numeric_limits<doublereal>::epsilon()) {
+			silent_cerr("Body(" << uLabel << "): "
+				"mass value " << dm << " is too small at line "
+				<< HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		Xgc = STmp/dm;
+	}
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "Total mass: " << dm << std::endl
 		<< "Center of mass: " << Xgc << std::endl
