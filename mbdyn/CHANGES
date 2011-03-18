@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- added multiple flavors of Glauert inflow
 		- added output flag to .out file
 		- added GiNaC-based symbolic drive caller
+		- log "body" data (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

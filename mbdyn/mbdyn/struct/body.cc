@@ -1171,6 +1171,14 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				dm, Xgc, J, fOut));
 	}
 
+	pDM->GetLogFile()
+		<< "body: " << uLabel
+		<< ' ' << pStrNode->GetLabel()
+		<< ' ' << dm
+		<< ' ' << Xgc
+		<< ' ' << J
+		<< std::endl;
+
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected "
