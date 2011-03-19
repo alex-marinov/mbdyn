@@ -1098,6 +1098,10 @@ ModuleCHARM::Set_int(void)
 		}
 		silent_cout("ModuleCHARM(" << GetLabel() << "): "
 			"Time=" << dTime << " trim_flag=" << m_chglobal.trim_flag << std::endl);
+
+#ifdef CHARM_DEBUG
+		__FC_DECL__(charmdebug)(&m_wpoptions.noutsim);
+#endif // CHARN_DEBUG
 	}
 
 	// update aircraft data
