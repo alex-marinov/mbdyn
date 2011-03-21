@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		- fix swig detection (noted by Ria Malhan)
 		- fix initialization of mbc handlers in C++ wrappers
 		- fix loose coupling in external force
+		  (noted by Tingnan Zhang)
 
 MBDyn 1.3.18
 	Enhancements:
