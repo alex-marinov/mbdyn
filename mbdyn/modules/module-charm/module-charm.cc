@@ -373,12 +373,16 @@ private:
 	std::vector<chOffRotorEval> m_eval_pts;
 
 	// absolute v_MBDyn = m_R_world * v_CHARM
-	Mat3x3 m_R_world;
+	// transformation MBDyn_global <- CHARM_world
+	const Mat3x3 m_R_world;
 
 	// aircraft v_MBDyn = m_Rh_ac * v_CHARM
-	Mat3x3 m_Rh_ac;
+	// transformation MBDyn_aircraft <- CHARM_aircraft
+	const Mat3x3 m_Rh_ac;
 
-	// m_Rac = R_aircraft * m_Rh; save for future reference
+	// m_Rac = R_aircraft * m_Rh_ac
+	// transformation MBDyn_global <- CHARM_aircraft
+	// save for future reference
 	Mat3x3 m_Rac;
 
 	wpAircraft m_wpaircraft;
@@ -477,16 +481,23 @@ iFirstAssembly(2)
 
 	// NOTE: ignore ground by now
 	m_chglobal.ground_flag = 0;
+	m_chglobal.ground_position[0] = 0.;
+	m_chglobal.ground_position[1] = 0.;
+	m_chglobal.ground_position[2] = 0.;
+	m_chglobal.ground_orientation[0] = 0.;
+	m_chglobal.ground_orientation[1] = 0.;
+	m_chglobal.ground_orientation[2] = 0.;
+	m_chglobal.ground_center[0] = 0.;
+	m_chglobal.ground_center[1] = 0.;
+	m_chglobal.ground_center[2] = 0.;
 
 	// NOTE: ignore filters
 	m_chglobal.iv_filter_order[0] = 0;
 	m_chglobal.iv_filter_order[1] = 0;
-#if 0
-	m_chglobal.iv_filter_freq[0];
-	m_chglobal.iv_filter_freq[1];
-	m_chglobal.iv_filter_damp[0];
-	m_chglobal.iv_filter_damp[1];
-#endif
+	m_chglobal.iv_filter_freq[0] = 0.;
+	m_chglobal.iv_filter_freq[1] = 0.;
+	m_chglobal.iv_filter_damp[0] = 0.;
+	m_chglobal.iv_filter_damp[1] = 0.;
 
 	m_chglobal.inertial_winds[0] = 0.;
 	m_chglobal.inertial_winds[1] = 0.;
@@ -533,7 +544,7 @@ iFirstAssembly(2)
 	m_wpoptions.nupsim = 0;
 
 	if (HP.IsKeyWord("world" "orientation")) {
-		m_R_world = HP.GetRotAbs(AbsRefFrame);
+		const_cast<Mat3x3&>(m_R_world) = HP.GetRotAbs(AbsRefFrame);
 
 	} else {
 		/*
@@ -541,7 +552,10 @@ iFirstAssembly(2)
 		 * y == y
 		 * z == -z
 		 */
-		m_R_world = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+		const_cast<Mat3x3&>(m_R_world) = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+
+		silent_cout("ModuleCHARM(" << uLabel << "): "
+			"\"world orientation\" not given; using default R=" << m_R_world << std::endl);
 	}
 
 	// aircraft
@@ -555,10 +569,13 @@ iFirstAssembly(2)
 
 	ReferenceFrame RF(pCraft);
 	if (HP.IsKeyWord("aircraft" "orientation")) {
-		m_Rh_ac = HP.GetRotRel(RF);
+		const_cast<Mat3x3&>(m_Rh_ac) = HP.GetRotRel(RF);
 
 	} else {
-		m_Rh_ac = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+		const_cast<Mat3x3&>(m_Rh_ac) = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+
+		silent_cout("ModuleCHARM(" << uLabel << "): "
+			"\"aircraft orientation\" not given; using default R=" << m_Rh_ac << std::endl);
 	}
 
 	if (!HP.IsKeyWord("rotors")) {
@@ -598,6 +615,9 @@ iFirstAssembly(2)
 
 		} else {
 			m_Rotors[ir].rotation_dir = 1;
+
+			silent_cout("ModuleCHARM(" << uLabel << "): "
+				"\"rotation direction\" not given; using counter-clockwise" << std::endl);
 		}
 
 		if (!HP.IsKeyWord("radius")) {
@@ -663,6 +683,9 @@ iFirstAssembly(2)
 
 		} else {
 			m_Rotors[ir].nominal_thrust_coeff = 0.;
+
+			silent_cout("ModuleCHARM(" << uLabel << "): "
+				"nominal thrust coefficient not given" << std::endl);
 		}
 
 		if (!HP.IsKeyWord("hub" "node")) {
@@ -678,6 +701,10 @@ iFirstAssembly(2)
 
 		} else {
 			m_Rotors[ir].Rh_hub = Mat3x3(1., 0., 0., 0., -1., 0., 0., 0., -1.);
+
+			silent_cout("ModuleCHARM(" << uLabel << "): "
+				"\"rotor orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
+				" using R=" << m_Rotors[ir].Rh_hub << std::endl);
 		}
 
 		if (HP.IsKeyWord("shaft" "node")) {
@@ -690,12 +717,21 @@ iFirstAssembly(2)
 				// construct Rh from aircraft and hub nodes
 				Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 				m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
+
+				silent_cout("ModuleCHARM(" << uLabel << "): "
+					"\"shaft orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
+					" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
 			}
 
 		} else {
 			m_Rotors[ir].pShaft = pCraft;
 			Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 			m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
+
+			silent_cout("ModuleCHARM(" << uLabel << "): "
+				"\"shaft node\" not given for rotor " << ir << "/" << num_rotors << ";"
+				" using craft node " << pCraft->GetLabel() << ";"
+				" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
 		}
 
 		if (!HP.IsKeyWord("blades")) {
@@ -777,6 +813,8 @@ iFirstAssembly(2)
 
 	} else {
 		m_TrimTime.resize(1);
+
+		silent_cout("ModuleCHARM(" << uLabel << "): \"trim times\" not given (ignored)" << std::endl);
 	}
 	m_TrimTime[m_TrimTime.size() - 1] = std::numeric_limits<doublereal>::max();
 	m_TrimTimeIter = m_TrimTime.begin();
@@ -787,7 +825,16 @@ iFirstAssembly(2)
 ModuleCHARM::~ModuleCHARM(void)
 {
 	// destroy private data
-	NO_OP;
+	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
+		for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
+			for (unsigned ie = 0; ie < m_Rotors[ir].Blades[ib].Elems.size(); ie++) {
+				if (m_Rotors[ir].Blades[ib].Elems[ie].pRB) {
+					delete m_Rotors[ir].Blades[ib].Elems[ie].pRB;
+					m_Rotors[ir].Blades[ib].Elems[ie].pRB = 0;
+				}
+			}
+		}
+	}
 }
 
 Elem::Type
@@ -907,10 +954,18 @@ ModuleCHARM::Init_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	// ORACSIM (not used; silence warning)
+	m_wpaircraft.euler_angles[0] = 0.;
+	m_wpaircraft.euler_angles[1] = 0.;
+	m_wpaircraft.euler_angles[2] = 0.;
+
 #if 0
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::Init_int: "
 		"num_rotors_or_surfaces=" << m_wpaircraft.number_rotors_or_surfaces << std::endl;
 #endif
+
+	// orientation of aircraft frame in CHARM's world frame
+	Mat3x3 Rac(m_R_world.MulTM(pCraft->GetRCurr()*m_Rh_ac));
 
 	for (int ir = 0; ir < num_rotors; ir++) {
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
@@ -943,22 +998,8 @@ ModuleCHARM::Init_int(void)
 		rotor->radius = m_Rotors[ir].radius;
 		rotor->average_chord = m_Rotors[ir].average_chord;
 		rotor->root_cutout = m_Rotors[ir].root_cutout;
-		// T_body_to_hub = Rh^T
-		// NOTE: C indexes need to be exchanged
-		// orientation of aircraft frame in inertial frame
-		Mat3x3 Rac(pCraft->GetRCurr()*m_Rh_ac);
 		// orientation of shaft frame in inertial frame
 		Mat3x3 Rshaft(m_Rotors[ir].pShaft->GetRCurr()*m_Rotors[ir].Rh_shaft);
-		Mat3x3 Rb2h(Rac.MulTM(Rshaft));
-		rotor->T_body_to_hub[0][0] = Rb2h(1, 1);
-		rotor->T_body_to_hub[1][0] = Rb2h(1, 2);
-		rotor->T_body_to_hub[2][0] = Rb2h(1, 3);
-		rotor->T_body_to_hub[0][1] = Rb2h(2, 1);
-		rotor->T_body_to_hub[1][1] = Rb2h(2, 2);
-		rotor->T_body_to_hub[2][1] = Rb2h(2, 3);
-		rotor->T_body_to_hub[0][2] = Rb2h(3, 1);
-		rotor->T_body_to_hub[1][2] = Rb2h(3, 2);
-		rotor->T_body_to_hub[2][2] = Rb2h(3, 3);
 		// relative rotation between hub and shaft
 		Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 		Mat3x3 Rh2s(Rshaft.MulTM(Rhub));
@@ -997,6 +1038,12 @@ ModuleCHARM::Init_int(void)
 			m_data_iter->tangential_velocity_p = &m_wpaircraft.rotors[ir].blades[ib].tangential_velocity[ip];
 			m_data_iter->spanwise_lift_p = &m_wpaircraft.rotors[ir].blades[ib].spanwise_lift[ip];
 
+			Mat3x3 RTmp(m_Rotors[ir].pHub->GetRPrev()*m_Rotors[ir].Blades[ib].Rh_surf);
+
+			m_data_iter->X = RTmp.MulTV(m_data_iter->X - m_Rotors[ir].pHub->GetXPrev());
+			m_data_iter->X(1) -= m_Rotors[ir].root_cutout;
+			m_data_iter->X(2) *= m_Rotors[ir].rotation_dir;
+
 		} else {
 			unsigned idx = m_eval_pts.size();
 			m_eval_pts.resize(idx + 1);
@@ -1006,6 +1053,10 @@ ModuleCHARM::Init_int(void)
 			m_data_iter->iOff = idx;
 			m_data_iter->pos = &m_eval_pts[idx].xyz[0];
 			m_data_iter->vel = &m_eval_pts[idx].uvw[0];
+
+			Mat3x3 RTmp(pCraft->GetRPrev()*m_Rh_ac);
+
+			m_data_iter->X = RTmp.MulTV(m_data_iter->X - pCraft->GetXPrev());
 		}
 
 #if 1
@@ -1028,12 +1079,7 @@ ModuleCHARM::Init_int(void)
 		}
 	}
 
-	m_chglobal.current_time = pDM->pGetDrvHdl()->dGetTime();
-	m_chglobal.time_increment = pDM->pGetDrvHdl()->dGetTimeStep();
-
-	silent_cout("ModuleCHARM::Init_int: current_time=" << m_chglobal.current_time << " time_increment=" << m_chglobal.time_increment << std::endl);
-
-	silent_cout("ModuleCHARM::Init_int: calling initWPModule()" <<std::endl);
+	silent_cout("ModuleCHARM::Init_int: current_time=" << m_chglobal.current_time << " time_increment=" << m_chglobal.time_increment << " calling initWPModule()" <<std::endl);
 
 	// FIXME: one aircraft only
 	initWPModule(1,
@@ -1053,10 +1099,6 @@ ModuleCHARM::Set_int(void)
 	doublereal rho, c, p, T;
 	GetAirProps(Xac, rho, c, p, T);
 	Vec3 Vac(pCraft->GetVCurr());
-	Vec3 XCac(m_R_world.MulTV(Xac));
-	Vec3 VCac(m_R_world.MulTV(Vac));
-	Vec3 VBac(m_Rac.MulTV(Vac));
-	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
 
 	// update global data
 	Vec3 Vinf(::Zero3);
@@ -1070,6 +1112,14 @@ ModuleCHARM::Set_int(void)
 #endif
 		Vac -= Vinf;
 	}
+
+	// data in CHARM's world frame
+	Vec3 XCac(m_R_world.MulTV(Xac));
+	Vec3 VCac(m_R_world.MulTV(Vac));
+
+	// data in CHARM's aircraft frame
+	Vec3 VBac(m_Rac.MulTV(Vac));
+	Vec3 WBac(m_Rac.MulTV(pCraft->GetWCurr()));
 
 	doublereal dTime = pDM->pGetDrvHdl()->dGetTime();
 	m_chglobal.current_time = dTime;
@@ -1128,15 +1178,17 @@ ModuleCHARM::Set_int(void)
 
 	// T_inertial_to_body = m_Rac^T
 	// NOTE: C indexes need to be exchanged
-	m_wpaircraft.T_inertial_to_body[0][0] = m_Rac(1, 1);
-	m_wpaircraft.T_inertial_to_body[1][0] = m_Rac(1, 2);
-	m_wpaircraft.T_inertial_to_body[2][0] = m_Rac(1, 3);
-	m_wpaircraft.T_inertial_to_body[0][1] = m_Rac(2, 1);
-	m_wpaircraft.T_inertial_to_body[1][1] = m_Rac(2, 2);
-	m_wpaircraft.T_inertial_to_body[2][1] = m_Rac(2, 3);
-	m_wpaircraft.T_inertial_to_body[0][2] = m_Rac(3, 1);
-	m_wpaircraft.T_inertial_to_body[1][2] = m_Rac(3, 2);
-	m_wpaircraft.T_inertial_to_body[2][2] = m_Rac(3, 3);
+	Mat3x3 Rac(m_R_world.MulTM(m_Rac));
+	// T_inertial_to_body: TIBSIM
+	m_wpaircraft.T_inertial_to_body[0][0] = Rac(1, 1);
+	m_wpaircraft.T_inertial_to_body[1][0] = Rac(1, 2);
+	m_wpaircraft.T_inertial_to_body[2][0] = Rac(1, 3);
+	m_wpaircraft.T_inertial_to_body[0][1] = Rac(2, 1);
+	m_wpaircraft.T_inertial_to_body[1][1] = Rac(2, 2);
+	m_wpaircraft.T_inertial_to_body[2][1] = Rac(2, 3);
+	m_wpaircraft.T_inertial_to_body[0][2] = Rac(3, 1);
+	m_wpaircraft.T_inertial_to_body[1][2] = Rac(3, 2);
+	m_wpaircraft.T_inertial_to_body[2][2] = Rac(3, 3);
 
 	// TODO: rotor(s)
 	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
@@ -1144,13 +1196,28 @@ ModuleCHARM::Set_int(void)
 
 		// hub position
 		Vec3 Xhb(m_Rac.MulTV(m_Rotors[ir].pHub->GetXCurr() - Xac));
+		// XROTSIM
 		rotor->hub_position[0] = Xhb(1);
 		rotor->hub_position[1] = Xhb(2);
 		rotor->hub_position[2] = Xhb(3);
 
-		// azimuth
 		// orientation of shaft frame in inertial frame
 		Mat3x3 Rshaft(m_Rotors[ir].pShaft->GetRCurr()*m_Rotors[ir].Rh_shaft);
+
+		// NOTE: C indexes need to be exchanged
+		Mat3x3 Rb2h(m_Rac.MulTM(Rshaft));
+		// T_body_to_hub: THBSIM
+		rotor->T_body_to_hub[0][0] = Rb2h(1, 1);
+		rotor->T_body_to_hub[1][0] = Rb2h(1, 2);
+		rotor->T_body_to_hub[2][0] = Rb2h(1, 3);
+		rotor->T_body_to_hub[0][1] = Rb2h(2, 1);
+		rotor->T_body_to_hub[1][1] = Rb2h(2, 2);
+		rotor->T_body_to_hub[2][1] = Rb2h(2, 3);
+		rotor->T_body_to_hub[0][2] = Rb2h(3, 1);
+		rotor->T_body_to_hub[1][2] = Rb2h(3, 2);
+		rotor->T_body_to_hub[2][2] = Rb2h(3, 3);
+
+		// azimuth
 		// relative rotation between hub and shaft
 		Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 		Vec3 Psi(RotManip::VecRot(Rshaft.MulTM(Rhub)));
@@ -1251,7 +1318,8 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			m_data[idx].counter = uPnt;
 
 			// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
-			m_data[idx].X = m_Rac.MulTV(X - pCraft->GetXCurr());
+			// m_data[idx].X = m_Rac.MulTV(X - pCraft->GetXCurr());
+			m_data[idx].X = X;
 		}
 
 		V = Zero3;
@@ -1276,7 +1344,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			std::cerr << "*** ib=" << ib << std::endl;
 			std::cerr << "*** m_Rac=" << m_Rac << std::endl;
 			std::cerr << "*** m_Rotors[" << ir << "].Blades[" << ib << "].Rh=" << m_Rotors[ir].Blades[ib].Rh_surf << std::endl;
-			std::cerr << "*** X={" << X << "} -> X={" << RTmp.MulTV(X - m_Rotors[ir].pHub->GetX()) << "}" << std::endl;
+			std::cerr << "*** X={" << X << "} -> X={" << RTmp.MulTV(X - m_Rotors[ir].pHub->GetXCurr()) << "}" << std::endl;
 #endif
 
 			// blade points (XSIM) are in the blade frame
@@ -1285,14 +1353,16 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			// axis 1 points outwards radially
 			// axis 2 points from leading to trailing edge
 			// axis 3 is 1 cross 2 (down)
-			m_data_frc_iter->X = RTmp.MulTV(X - m_Rotors[ir].pHub->GetX());
+			m_data_frc_iter->X = RTmp.MulTV(X - m_Rotors[ir].pHub->GetXCurr());
 			m_data_frc_iter->X(1) -= m_Rotors[ir].root_cutout;
 			m_data_frc_iter->X(2) *= iRotationDir;
 
 			V = RTmp*Vec3(-m_data_vel_iter->vel[0], -iRotationDir*m_data_vel_iter->vel[1], -m_data_vel_iter->vel[2]);
 
 #if 0
-			std::cerr << "*** V=" << V << std::endl;
+			std::cerr << "*** ir=" << ir << " ib=" << ib << " ie=" << m_data_vel_iter->pRB->iElem << std::endl;
+			std::cerr << "*** X={" << X << "} -> X={" << m_data_frc_iter->X << "}" << std::endl;
+			std::cerr << "*** V={" << Vec3(m_data_vel_iter->vel) << "} -> V={" << V << "}" << std::endl;
 #endif
 
 		} else {
@@ -1438,6 +1508,10 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 		std::cerr << "*** Floc={" << Floc << "}" << std::endl;
 #endif
 
+		// NOTE: tangential_velocity is computed as the norm
+		// of the velocity in the plane of the airfoil
+		// according to CHARM's documentation, it should only be
+		// the chordwise component
 		Floc(3) = 0.;
 		m_data_frc_iter->tangential_velocity = Vloc.Norm();
 		if (m_data_frc_iter->tangential_velocity > std::numeric_limits<doublereal>::epsilon()) {

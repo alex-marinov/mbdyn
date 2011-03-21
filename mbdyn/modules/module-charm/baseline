@@ -42,6 +42,7 @@ begin: initial value;
 	tolerance: 1.e-3;
 	max iterations: 20;
 
+	# method: bdf;
 	method: ms, .6;
 
 	# derivatives coefficient: 1.e-12;
@@ -290,7 +291,7 @@ begin: elements;
 			hub node, ROTOR_1,
 			rotor orientation, reference, ROTOR_1, 1, 1., 0., 0., 2, 0., -1., 0.,
 			shaft node, GROUND,
-				shaft orientation, reference, GROUND, 1, 1., 0., 0., 2, 0., -1., 0.,
+				shaft orientation, reference, GROUND, 1, -1., 0., 0., 2, 0., 1., 0.,
 			blades, 2,	# number of blades of rotor #0
 				elements, 10,	# number of elements per blade of rotor #0
 				ROTOR_1 + BLADE_1 + 1,	# elements of rotor #0, blade #0
@@ -313,7 +314,7 @@ begin: elements;
 				ROTOR_1 + BLADE_2 + 8,
 				ROTOR_1 + BLADE_2 + 9,
 				ROTOR_1 + BLADE_2 + 10,
-		trim times, .9999, 1.9999, 2.9999, 3.9999,
+		trim times, .4999, .9999, 1.4999, 1.9999,
 		output, yes;
 
 	/*
