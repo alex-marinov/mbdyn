@@ -102,12 +102,14 @@ Numeric(0)
 
 KLUSolver::~KLUSolver(void)
 {
-	if (Symbolic)
+	if (Symbolic) {
 		klu_free_symbolic(&Symbolic, &Control);
+	}
 	ASSERT(Symbolic == 0);
 	
-	if (Numeric)
+	if (Numeric) {
 		klu_free_numeric(&Numeric, &Control);
+	}
 	ASSERT(Numeric == 0);
 }
 
@@ -116,7 +118,7 @@ KLUSolver::Reset(void)
 {
 	if (Numeric) {
 		//klu_free_numeric(&Numeric, &Control);
-		ASSERT(Numeric == 0);
+		//ASSERT(Numeric == 0);
 	}
 
 	bHasBeenReset = true;
@@ -126,7 +128,7 @@ void
 KLUSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
-      		((KLUSolver *)this)->Factor();
+      		const_cast<KLUSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 		
@@ -135,14 +137,15 @@ KLUSolver::Solve(void) const
 	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
 	 */
 		
-	klu_solve(Symbolic, Numeric, iSize, 1, LinearSolver::pdRhs, 
+	int ok = klu_solve(Symbolic, Numeric, iSize, 1, LinearSolver::pdRhs, 
 			&Control);
-	if (Control.status != KLU_OK) {
+	if (!ok || Control.status != KLU_OK) {
 		silent_cerr("KLUWRAP_solve failed" << std::endl);
 		
 		/* de-allocate memory */
-		if (Numeric)
+		if (Numeric) {
 			klu_free_numeric(&Numeric, &Control);
+		}
 		ASSERT(Numeric == 0);
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -166,8 +169,13 @@ KLUSolver::Factor(void)
 		int ok;
 		ok = klu_refactor(App, Aip, Axp, Symbolic, 
 			Numeric, &Control);
-		if (ok == KLU_OK) {
+		if (!ok) {
+			// FIXME: might be too late!
 			klu_free_numeric(&Numeric, &Control);
+			klu_free_symbolic(&Symbolic, &Control);
+			if (!bPrepareSymbolic()) {
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 	
@@ -177,23 +185,15 @@ KLUSolver::Factor(void)
 	}
 			
 	if (Control.status != KLU_OK) {
-		if (Symbolic)
-			klu_free_symbolic(&Symbolic, &Control);
-		if (Numeric)
-			klu_free_numeric(&Numeric, &Control);
-		if (!bPrepareSymbolic()) {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
-	if (Control.status != KLU_OK) {
 		silent_cerr("KLUWRAP_numeric failed" << std::endl);
 
 		/* de-allocate memory */
-		if (Symbolic)
+		if (Symbolic) {
 			klu_free_symbolic(&Symbolic, &Control);
-		if (Numeric)
+		}
+		if (Numeric) {
 			klu_free_numeric(&Numeric, &Control);
+		}
 		ASSERT(Symbolic == 0);
 		ASSERT(Numeric == 0);
 
@@ -227,8 +227,9 @@ KLUSolver::bPrepareSymbolic(void)
 		silent_cerr("KLUWRAP_symbolic failed" << std::endl);
 
 		/* de-allocate memory */
-		if (Symbolic)
+		if (Symbolic) {
 			klu_free_symbolic(&Symbolic, &Control);
+		}
 		ASSERT(Symbolic == 0);
 
 		return false;
