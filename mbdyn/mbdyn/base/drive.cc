@@ -352,13 +352,18 @@ doublereal
 DriveHandler::dGet(InputStream& InStr) const
 {
 	doublereal d;
+
 #ifdef USE_MULTITHREAD
+	// FIXME: risk recursive lock
 	pthread_mutex_lock(&parser_mutex);
 #endif /* USE_MULTITHREAD */
+
 	d = Parser.GetLastStmt(InStr);
+
 #ifdef USE_MULTITHREAD
 	pthread_mutex_unlock(&parser_mutex);
 #endif /* USE_MULTITHREAD */
+
 	return d;
 }
 
