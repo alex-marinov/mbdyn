@@ -42,15 +42,13 @@
 #include <map>
 #include <string>
 
-#include <myassert.h>
-#include <mynewmem.h>
-#include <except.h>
+#include "myassert.h"
+#include "mynewmem.h"
+#include "except.h"
 
-#include <mathtyp.h>
-#include <table.h>
-#include <input.h>
-
-#include <stack.h>
+#include "mathtyp.h"
+#include "table.h"
+#include "input.h"
 
 class MathParser {
 public:
@@ -325,9 +323,6 @@ protected:
 	/* operazioni sulla stack */
 	void TokenPush(enum Token t);
 	int TokenPop(void);
-
-	/* lista di valori per l'elevamento a potenza (associa da destra) */
-	Stack<TypedValue> powerstack;
 
 	TypedValue::Type GetType(const char* const s) const;
 	TypedValue::TypeModifier GetTypeModifier(const char*) const;

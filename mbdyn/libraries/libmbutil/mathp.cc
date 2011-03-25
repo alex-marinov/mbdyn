@@ -3633,8 +3633,7 @@ namebuf(0),
 namebuflen(default_namebuflen),
 value(),
 currtoken(UNKNOWNTOKEN),
-tokenlist(NULL),
-powerstack()
+tokenlist(NULL)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 
@@ -3661,8 +3660,7 @@ namebuf(0),
 namebuflen(default_namebuflen),
 value(),
 currtoken(UNKNOWNTOKEN),
-tokenlist(0),
-powerstack()
+tokenlist(0)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 

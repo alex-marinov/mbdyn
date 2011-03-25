@@ -42,7 +42,6 @@ parser.h \
 parsinc.cc \
 parsinc.h \
 search.h \
-stack.h \
 table.cc \
 table.h \
 task2cpu.cc \
