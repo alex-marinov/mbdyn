@@ -30,6 +30,7 @@ MBDyn 1.X-Devel
 		- fix loose coupling in external force
 		  (noted by Tingnan Zhang)
 		- fix handling of KLU refactor (noted by Romuald Noret)
+		- fix math parser recursive call (noted by Doug Baldwin)
 
 MBDyn 1.3.18
 	Enhancements:

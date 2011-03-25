@@ -1733,7 +1733,7 @@ MathParser::TokenList::~TokenList(void)
 }
 
 void
-MathParser::TokenPush(enum Token t)
+MathParser::TokenPush(Token t)
 {
 	TokenList* p = 0;
 
@@ -2551,7 +2551,7 @@ MathParser::IsKeyWord(MathParser::NameSpace *ns, const char* const s) const
 	return false;
 }
 
-enum MathParser::Token
+MathParser::Token
 MathParser::GetToken(void)
 {
 	ASSERT(in != NULL);
@@ -3786,10 +3786,17 @@ MathParser::GetLastStmt(Real d, Token t)
 Real
 MathParser::GetLastStmt(const InputStream& strm, Real d, Token t)
 {
-	const InputStream* p = in;
-	in = (InputStream*)&strm;
+	const InputStream* save_in = in;
+	Token save_currtoken = currtoken;
+
+	in = const_cast<InputStream *>(&strm);
+	currtoken = UNKNOWNTOKEN;
+
 	d = GetLastStmt(d, t);
-	in = (InputStream*)p;
+
+	in = const_cast<InputStream *>(save_in);
+	currtoken = save_currtoken;
+
 	return d;
 }
 
