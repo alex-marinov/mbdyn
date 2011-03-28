@@ -684,18 +684,17 @@ DataManager::InitialJointAssembly(void)
 	}
 
 	/* mette a posto i dof */
-	DofOwner* pFDO = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
 	NodeMapType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeMap.begin();
 
 	iIndex = 0;
-	for (int iDOm1 = 0; iDOm1 <  DofData[DofOwner::STRUCTURALNODE].iNum;
-		iDOm1++, iNode++)
-	{
+	for (; iNode != NodeData[Node::STRUCTURAL].NodeMap.end(); iNode++) {
 		// numero di dof di un owner
 		const StructNode *pNode = dynamic_cast<const StructNode *>(iNode->second);
-		unsigned int iNumDofs = pFDO[iDOm1].iNumDofs = pNode->iGetInitialNumDof();
+		unsigned int iNumDofs = pNode->iGetInitialNumDof();
 		if (iNumDofs > 0) {
-			pFDO[iDOm1].iFirstIndex = iIndex;
+			DofOwner* pFDO = const_cast<DofOwner *>(pNode->pGetDofOwner());
+			pFDO->iNumDofs = iNumDofs;
+			pFDO->iFirstIndex = iIndex;
 			if (pds) {
 				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
@@ -764,7 +763,7 @@ DataManager::InitialJointAssembly(void)
 
 		} else {
 			pedantic_cerr(psNodeNames[pNode->GetNodeType()]
-				<< "(" << (iDOm1 + 1) << ") has 0 dofs"
+				<< "(" << iNode->second->GetLabel() << ") has 0 dofs"
 				<< std::endl);
 		}
 	}
@@ -1187,17 +1186,12 @@ endofcycle:
 		{
 			/* Se possiede dofs, se deve essere usato nell'assemblaggio
 			 * e se ne sono presenti */
-
-			/* Tipo di dof dell'elemento corrente */
-			DofOwner::Type CurrDofType = ElemData[iCnt1].DofOwnerType;
-
-			/* Puntatore al primo DofOwner */
-			DofOwner *pDO = DofData[CurrDofType].pFirstDofOwner;
-
 			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
 				p != ElemData[iCnt1].ElemMap.end();
 				p++)
 			{
+				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
+				DofOwner *pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
 				pDO->iNumDofs = p->second->iGetNumDof();
 			}
 		}
