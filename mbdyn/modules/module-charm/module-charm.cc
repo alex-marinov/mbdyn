@@ -1530,7 +1530,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 		ASSERT(m_data_frc_iter->pRB->iRotor >= 0);
-		ASSERT(m_data_frc_iter->pRB->iRotor < m_Rotors.size());
+		ASSERT(unsigned(m_data_frc_iter->pRB->iRotor) < m_Rotors.size());
 		m_Rotors[m_data_frc_iter->pRB->iRotor].Res.AddForces(F*dW, M*dW, X);
 
 		m_data_frc_iter++;
@@ -1655,7 +1655,7 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 	m_data_vel_iter = m_data.begin();
 
 	// should do something useful
-	WorkVec.ResizeReset(0);
+	WorkVec.Resize(0);
 
 	return WorkVec;
 }

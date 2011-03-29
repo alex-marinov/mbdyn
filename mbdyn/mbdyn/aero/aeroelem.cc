@@ -191,12 +191,6 @@ bJacobian(bUseJacobian)
 
 	ASSERT(iNN >= 1 && iNN <= 3);
 	ASSERT(aerodata != 0);
-
-#ifdef DEBUG
-	if (pIndVel != 0) {
-		ASSERT(pIndVel->GetElemType() == Elem::INDUCEDVELOCITY);
-	}
-#endif /* DEBUG */
 }
 
 template <unsigned iNN>
