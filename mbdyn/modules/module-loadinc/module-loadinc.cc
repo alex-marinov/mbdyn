@@ -815,7 +815,7 @@ LoadIncForce::AssJac(VariableSubMatrixHandler& WorkMat,
 		} else {
 			Vec3 TmpArm(R*m_b);
 
-			WM.Sub(3 + 1, 1, Mat3x3(m_F, TmpArm*dCoef));
+			WM.Sub(3 + 1, 1, Mat3x3(MatCrossCross, m_F, TmpArm*dCoef));
 
 			Vec3 TmpM(TmpArm.Cross(m_Dir));
 
