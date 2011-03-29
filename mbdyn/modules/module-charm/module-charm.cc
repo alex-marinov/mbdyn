@@ -357,6 +357,9 @@ private:
 		// hub v_MBDyn = Rh_hub * v_CHARM
 		Mat3x3 Rh_hub;
 
+		// thrust, moment, pole
+		ExternResForces Res;
+
 		std::vector<SurfaceMapping> Blades;
 	};
 
@@ -1192,6 +1195,8 @@ ModuleCHARM::Set_int(void)
 
 	// TODO: rotor(s)
 	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
+		m_Rotors[ir].Res.PutPole(m_Rotors[ir].pHub->GetXCurr());
+
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
 
 		// hub position
@@ -1399,7 +1404,6 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 	if (iFirstAssembly == 1) {
-
 		ASSERT(uLabel != unsigned(-1));
 		if (m_e2b_map.find(uLabel) == m_e2b_map.end()) {
 			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
@@ -1480,9 +1484,6 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 	} else {
-		// TODO: maybe this can be computed once for all at each AssRes?
-		// Mat3x3 Rac(pCraft->GetRCurr()*m_Rh);
-
 		while (m_data_frc_iter->pRB == 0) {
 			if (m_data_frc_iter == m_data.end()) {
 				silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
@@ -1528,6 +1529,10 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			<< " X={" << m_data_frc_iter->X << "}" << std::endl;
 #endif
 
+		ASSERT(m_data_frc_iter->pRB->iRotor >= 0);
+		ASSERT(m_data_frc_iter->pRB->iRotor < m_Rotors.size());
+		m_Rotors[m_data_frc_iter->pRB->iRotor].Res.AddForces(F*dW, M*dW, X);
+
 		m_data_frc_iter++;
 	}
 }
@@ -1544,11 +1549,9 @@ ModuleCHARM::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	// NO_OP;
-	if (iFirstAssembly) {
-		return;
+	if (!iFirstAssembly) {
+		Update_int();
 	}
-
-	Update_int();
 }
 
 void
@@ -1561,6 +1564,13 @@ ModuleCHARM::Output(OutputHandler& OH) const
 	// should do something useful
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Loadable();
+
+		for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
+			out << GetLabel() << "#" << ir
+				<< " " << m_Rotors[ir].pHub->GetRCurr().MulTV(m_Rotors[ir].Res.Force())
+				<< " " << m_Rotors[ir].pHub->GetRCurr().MulTV(m_Rotors[ir].Res.Moment())
+				<< std::endl;
+		}
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
 			out << GetLabel() << "#" << i->label << "#" << i->counter
@@ -1620,6 +1630,10 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 #endif
 
 	m_Rac = pCraft->GetRCurr()*m_Rh_ac;
+
+	for (std::vector<RotorMapping>::iterator i = m_Rotors.begin(); i != m_Rotors.end(); i++) {
+		i->Res.Reset(i->pHub->GetXCurr());
+	}
 
 	if (iFirstAssembly) {
 		if (iFirstAssembly == 1) {
