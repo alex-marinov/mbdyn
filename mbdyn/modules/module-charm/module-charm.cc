@@ -567,6 +567,9 @@ iDebug(0), iDebugCount(0)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
+#ifndef CHARM_DEBUG
+		silent_cerr("ModuleCHARM(" << uLabel << "): debug flag is ignored" << std::endl);
+#endif // CHARM_DEBUG
 	}
 
 	m_wpoptions.nupsim = 0;
