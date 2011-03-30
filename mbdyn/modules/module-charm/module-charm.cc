@@ -375,9 +375,9 @@ private:
 	wpOptions m_wpoptions;
 	std::vector<chOffRotorEval> m_eval_pts;
 
-	// absolute v_MBDyn = m_R_world * v_CHARM
+	// absolute v_MBDyn = m_Rh_world * v_CHARM
 	// transformation MBDyn_global <- CHARM_world
-	const Mat3x3 m_R_world;
+	const Mat3x3 m_Rh_world;
 
 	// aircraft v_MBDyn = m_Rh_ac * v_CHARM
 	// transformation MBDyn_aircraft <- CHARM_aircraft
@@ -392,6 +392,8 @@ private:
 
 	// add private data
 	int iFirstAssembly;
+
+	int iDebug, iDebugCount;
 
 	void Init_int(void);
 	void Set_int(void);
@@ -453,7 +455,8 @@ ModuleCHARM::ModuleCHARM(
 UserDefinedElem(uLabel, pDO),
 InducedVelocity(uLabel, 0, 0, flag(0)),
 pDM(pDM),
-iFirstAssembly(2)
+iFirstAssembly(2),
+iDebug(0), iDebugCount(0)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -544,10 +547,32 @@ iFirstAssembly(2)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+
+	if (HP.IsKeyWord("debug")) {
+		if (HP.IsKeyWord("yes")) {
+			iDebug = 1;
+
+		} else if (HP.IsKeyWord("no")) {
+			iDebug = 0;
+
+		} else if (HP.IsKeyWord("ktrsim")) {
+			iDebug = -1;
+
+		} else {
+			iDebug = HP.GetInt();
+			if (iDebug < 0) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"invalid debug flag "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+	}
+
 	m_wpoptions.nupsim = 0;
 
 	if (HP.IsKeyWord("world" "orientation")) {
-		const_cast<Mat3x3&>(m_R_world) = HP.GetRotAbs(AbsRefFrame);
+		const_cast<Mat3x3&>(m_Rh_world) = HP.GetRotAbs(AbsRefFrame);
 
 	} else {
 		/*
@@ -555,10 +580,10 @@ iFirstAssembly(2)
 		 * y == y
 		 * z == -z
 		 */
-		const_cast<Mat3x3&>(m_R_world) = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+		const_cast<Mat3x3&>(m_Rh_world) = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
 
 		silent_cout("ModuleCHARM(" << uLabel << "): "
-			"\"world orientation\" not given; using default R=" << m_R_world << std::endl);
+			"\"world orientation\" not given; using default R=" << m_Rh_world << std::endl);
 	}
 
 	// aircraft
@@ -968,7 +993,7 @@ ModuleCHARM::Init_int(void)
 #endif
 
 	// orientation of aircraft frame in CHARM's world frame
-	Mat3x3 Rac(m_R_world.MulTM(pCraft->GetRCurr()*m_Rh_ac));
+	Mat3x3 Rac(m_Rh_world.MulTM(pCraft->GetRCurr()*m_Rh_ac));
 
 	for (int ir = 0; ir < num_rotors; ir++) {
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
@@ -1117,8 +1142,8 @@ ModuleCHARM::Set_int(void)
 	}
 
 	// data in CHARM's world frame
-	Vec3 XCac(m_R_world.MulTV(Xac));
-	Vec3 VCac(m_R_world.MulTV(Vac));
+	Vec3 XCac(m_Rh_world.MulTV(Xac));
+	Vec3 VCac(m_Rh_world.MulTV(Vac));
 
 	// data in CHARM's aircraft frame
 	Vec3 VBac(m_Rac.MulTV(Vac));
@@ -1153,8 +1178,10 @@ ModuleCHARM::Set_int(void)
 			"Time=" << dTime << " trim_flag=" << m_chglobal.trim_flag << std::endl);
 
 #ifdef CHARM_DEBUG
-		__FC_DECL__(charmdebug)(&m_wpoptions.noutsim);
-#endif // CHARN_DEBUG
+		if (iDebug == -1) {
+			__FC_DECL__(charmdebug)(&m_wpoptions.noutsim);
+		}
+#endif // CHARM_DEBUG
 	}
 
 	// update aircraft data
@@ -1164,7 +1191,7 @@ ModuleCHARM::Set_int(void)
 	cvc3_.sspsim[0] = c;
 
 	// NOTE: CHARM's inertial frame is "z" down, while MBDyn's is usually "z" up
-	// we use m_R_world to map the two worlds
+	// we use m_Rh_world to map the two worlds
 	m_wpaircraft.inertial_position[0] = XCac(1);
 	m_wpaircraft.inertial_position[1] = XCac(2);
 	m_wpaircraft.inertial_position[2] = XCac(3);
@@ -1181,7 +1208,7 @@ ModuleCHARM::Set_int(void)
 
 	// T_inertial_to_body = m_Rac^T
 	// NOTE: C indexes need to be exchanged
-	Mat3x3 Rac(m_R_world.MulTM(m_Rac));
+	Mat3x3 Rac(m_Rh_world.MulTM(m_Rac));
 	// T_inertial_to_body: TIBSIM
 	m_wpaircraft.T_inertial_to_body[0][0] = Rac(1, 1);
 	m_wpaircraft.T_inertial_to_body[1][0] = Rac(1, 2);
@@ -1285,6 +1312,15 @@ ModuleCHARM::Update_int(void)
 	chStatus status;
 	updateWake(isTrimming, &status);
 	// FIXME: test status?
+
+#ifdef CHARM_DEBUG
+	if (iDebug > 0) {
+		__FC_DECL__(charmdebug)(&m_wpoptions.noutsim);
+		if (++iDebugCount == iDebug) {
+			iDebugCount = 0;
+		}
+	}
+#endif // CHARM_DEBUG
 }
 
 Vec3

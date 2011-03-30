@@ -279,6 +279,7 @@ begin: elements;
 	user defined: 1, charm,
 		units, si,
 			# output unit, 98,
+			debug, yes,
 		aircraft, GROUND,
 			aircraft orientation, 1, -1., 0., 0., 2, 0., 1., 0.,
 		rotors, 1,	# number of rotors
