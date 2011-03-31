@@ -1505,7 +1505,7 @@ with the file communicator
 \end{verbatim}
 
 \subsubsection{Output}
-An external modal element writes one line for each connected node
+An external structural element writes one line for each connected node
 at each time step in the \texttt{.frc} file.
 Each line contains:
 \begin{itemize}
@@ -1519,15 +1519,20 @@ containing:
 \begin{itemize}
 \item in column 1 the label of the element and that of the corresponding node;
 	the format of this field is \nt{element\_label}\texttt{\#}\nt{node\_label};
-\item in columns 2--4 the three components of the force,
-	in the global reference frame;
-\item in columns 5--7 the three components of the moment
-	with respect to the reference node,
-	in the global reference frame;
-\item in columns 8--10 the three components of the force,
+\item in columns 2--4 the three components of the force applied to the reference node,
 	as received from the peer;
-\item in columns 11--13 the three components of the moment,
+\item in columns 5--7 the three components of the moment applied to the reference node,
 	as received from the peer.
+\item in columns 8--10 the three components of the force that are actually applied to the reference node,
+	in the global reference frame;
+\item in columns 11--13 the three components of the moment
+	with respect to the reference node that are actually applied to the reference node,
+	in the global reference frame;
+\item in columns 14--16 the three components of the force resulting from the combination
+	of all nodal forces, in the global reference frame;
+\item in columns 17--19 the three components of the moment
+	with respect to the reference node resulting from the combination
+	of all nodal forces and moments, in the global reference frame;
 \end{itemize}
 
 

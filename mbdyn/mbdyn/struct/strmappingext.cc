@@ -68,6 +68,7 @@ bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 F0(Zero3), M0(Zero3),
 F1(Zero3), M1(Zero3),
+F2(Zero3), M2(Zero3),
 pH(pH),
 uPoints(nodes.size()),
 uMappedPoints(pH ? unsigned(pH->iGetNumRows())/3 : 0),
@@ -918,6 +919,8 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 			}
 		}
 
+		F2 = Zero3;
+		M2 = Zero3;
 		for (unsigned n = 0; n < Nodes.size(); n++) {
 			integer iFirstIndex = Nodes[n].pNode->iGetFirstMomentumIndex();
 			for (int r = 1; r <= 6; r++) {
@@ -927,15 +930,11 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.Add(n*6 + 1, Nodes[n].F);
 			WorkVec.Add(n*6 + 4, Nodes[n].M);
 
-			//if (bUseReferenceNodeForces) {
-			// compute Global Reference Node Forces, even if they are not used, for output only :)
-			F1 -= Nodes[n].F;
-			M1 -= Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
-			//}
-		}
-		if !(bUseReferenceNodeForces) {
-			F1 = -F1;
-			M1 = -M1; 
+			if (bUseReferenceNodeForces || fToBeOutput()) {
+				// compute Global Reference Node Forces, even if they are not used, for output only :)
+				F2 += Nodes[n].F;
+				M2 += Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
+			}
 		}
 
 		if (bUseReferenceNodeForces) {
@@ -945,6 +944,8 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.PutRowIndex(n*6 + r, iFirstIndex + r);
 			}
 
+			F1 -= F2;
+			M1 -= M2;
 			WorkVec.Add(n*6 + 1, F1);
 			WorkVec.Add(n*6 + 4, M1);
 		}
@@ -973,10 +974,12 @@ StructMappingExtForce::Output(OutputHandler& OH) const
 
 	if (pRefNode) {
 		out << GetLabel() << "#" << pRefNode->GetLabel()
-			<< " " << F1
-			<< " " << M1
 			<< " " << F0
 			<< " " << M0
+			<< " " << F1
+			<< " " << M1
+			<< " " << F2
+			<< " " << M2
 			<< std::endl;
 	}
 
