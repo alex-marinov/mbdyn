@@ -63,6 +63,7 @@ bUseReferenceNodeForces(bUseReferenceNodeForces),
 bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 F0(Zero3), M0(Zero3),
 F1(Zero3), M1(Zero3),
+F2(Zero3), M2(Zero3),
 bLabels(bLabels),
 bSorted(bSorted),
 uRot(uRot),
@@ -1136,6 +1137,8 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 			}
 		}
 
+		F2 = Zero3;
+		M2 = Zero3;
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
 			for (int r = 1; r <= iOffset; r++) {
@@ -1151,10 +1154,10 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.Add(i*iOffset + 4, m);
 			}
 
-			if (bUseReferenceNodeForces) {
-				F1 -= f;
+			if (bUseReferenceNodeForces || fToBeOutput()) {
+				F2 += f;
 				if (uRot != MBC_ROT_NONE) {
-					M1 -= m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+					M2 += m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
 				}
 			}
 		}
@@ -1165,6 +1168,9 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 			for (int r = 1; r <= iOffset; r++) {
 				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
+
+			F1 -= F2;
+			M1 -= M2;
 
 			WorkVec.Add(i*iOffset + 1, F1);
 			if (uRot != MBC_ROT_NONE) {
@@ -1198,10 +1204,12 @@ StructExtForce::Output(OutputHandler& OH) const
 
 	if (pRefNode) {
 		out << GetLabel() << "#" << pRefNode->GetLabel()
-			<< " " << F1
-			<< " " << M1
 			<< " " << F0
 			<< " " << M0
+			<< " " << F1
+			<< " " << M1
+			<< " " << F2
+			<< " " << M2
 			<< std::endl;
 	}
 

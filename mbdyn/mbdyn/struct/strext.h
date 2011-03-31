@@ -48,6 +48,7 @@ protected:
 	bool bRotateReferenceNodeForces;
 	Vec3 F0, M0;
 	Vec3 F1, M1;
+	Vec3 F2, M2;
 
 	std::vector<StructNode *> Nodes;
 	std::vector<Vec3> Offsets, F, M;
