@@ -929,9 +929,13 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 
 			//if (bUseReferenceNodeForces) {
 			// compute Global Reference Node Forces, even if they are not used, for output only :)
-				F1 -= Nodes[n].F;
-				M1 -= Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
+			F1 -= Nodes[n].F;
+			M1 -= Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
 			//}
+		}
+		if !(bUseReferenceNodeForces) {
+			F1 = -F1;
+			M1 = -M1; 
 		}
 
 		if (bUseReferenceNodeForces) {
