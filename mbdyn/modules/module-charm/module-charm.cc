@@ -1036,6 +1036,7 @@ ModuleCHARM::Init_int(void)
 		Mat3x3 Rh2s(Rshaft.MulTM(Rhub));
 		Vec3 Psi(RotManip::VecRot(Rh2s));
 		rotor->azimuthal_offset = 0.;
+		// PSISIM
 		rotor->azimuth = Psi(3)*rotor->rotation_dir;
 		silent_cout("ModuleCHARM(" << uLabel << "): "
 			"rotor " << ir << "/" << num_rotors
@@ -1256,6 +1257,7 @@ ModuleCHARM::Set_int(void)
 		// relative rotation between hub and shaft
 		Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 		Vec3 Psi(RotManip::VecRot(Rshaft.MulTM(Rhub)));
+		// PSISIM
 		rotor->azimuth = -Psi(3);
 		while (rotor->azimuth < 0.) {
 			rotor->azimuth += 2.*M_PI;
@@ -1442,6 +1444,10 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << std::endl;
 #endif
 
+	doublereal *tangential_velocity_p = 0;
+	doublereal *spanwise_lift_p = 0;
+	ExternResForces *erf_p = 0;
+
 	if (iFirstAssembly == 1) {
 		ASSERT(uLabel != unsigned(-1));
 		if (m_e2b_map.find(uLabel) == m_e2b_map.end()) {
@@ -1475,9 +1481,6 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			m_data[idx].counter = m_data[idx - 1].counter + 1;
 		}
 #endif
-
-		m_data[idx].spanwise_lift = 0.;
-		m_data[idx].tangential_velocity = 0.;
 
 #if 0
 		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
@@ -1515,6 +1518,10 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 		m_data[idx].pRB = m_e2b_map[uLabel];
 		m_data[idx].iOff = m_e2b_map[uLabel]->iCount - 1;
 
+		spanwise_lift_p = &m_data[idx].spanwise_lift;
+		tangential_velocity_p = &m_data[idx].tangential_velocity;
+		erf_p = &m_Rotors[ir].Res;
+
 #if 0
 		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
 				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
@@ -1533,47 +1540,51 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			m_data_frc_iter++;
 		}
 
-		// resolve force, moment and point in craft's reference frame
-		Vec3 Vloc(R.MulTV(V));
-
-#if 0
-		std::cerr << "*** Vloc={" << Vloc << "}" << std::endl;
-#endif
-
-		Vloc(3) = 0.;
-
-		Vec3 Floc(R.MulTV(F));
-
-#if 0
-		std::cerr << "*** Floc={" << Floc << "}" << std::endl;
-#endif
-
-		// NOTE: tangential_velocity is computed as the norm
-		// of the velocity in the plane of the airfoil
-		// according to CHARM's documentation, it should only be
-		// the chordwise component
-		Floc(3) = 0.;
-		m_data_frc_iter->tangential_velocity = Vloc.Norm();
-		if (m_data_frc_iter->tangential_velocity > std::numeric_limits<doublereal>::epsilon()) {
-			Vloc /= m_data_frc_iter->tangential_velocity;
-			m_data_frc_iter->spanwise_lift = (Vloc.Cross(Floc))(3);
-
-		} else {
-			m_data_frc_iter->spanwise_lift = 0.;
-		}
-
-#if 0
-		std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
-			<< " dF=" << m_data_frc_iter->spanwise_lift
-			<< " X={" << m_data_frc_iter->X << "}" << std::endl;
-#endif
-
+		spanwise_lift_p = &m_data_frc_iter->spanwise_lift;
+		tangential_velocity_p = &m_data_frc_iter->tangential_velocity;
 		ASSERT(m_data_frc_iter->pRB->iRotor >= 0);
 		ASSERT(unsigned(m_data_frc_iter->pRB->iRotor) < m_Rotors.size());
-		m_Rotors[m_data_frc_iter->pRB->iRotor].Res.AddForces(F*dW, M*dW, X);
+		erf_p = &m_Rotors[m_data_frc_iter->pRB->iRotor].Res;
 
 		m_data_frc_iter++;
 	}
+
+	// resolve force, moment and point in craft's reference frame
+	Vec3 Vloc(R.MulTV(V));
+
+#if 0
+	std::cerr << "*** Vloc={" << Vloc << "}" << std::endl;
+#endif
+
+	Vloc(3) = 0.;
+
+	Vec3 Floc(R.MulTV(F));
+
+#if 0
+	std::cerr << "*** Floc={" << Floc << "}" << std::endl;
+#endif
+
+	// NOTE: tangential_velocity is computed as the norm
+	// of the velocity in the plane of the airfoil
+	// according to CHARM's documentation, it should only be
+	// the chordwise component
+	Floc(3) = 0.;
+	doublereal v = *tangential_velocity_p = Vloc.Norm();
+	if (v > std::numeric_limits<doublereal>::epsilon()) {
+		Vloc /= v;
+		*spanwise_lift_p = (Vloc.Cross(Floc))(3);
+
+	} else {
+		*spanwise_lift_p = 0.;
+	}
+
+#if 0
+	std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
+		<< " dF=" << m_data_frc_iter->spanwise_lift
+		<< " X={" << m_data_frc_iter->X << "}" << std::endl;
+#endif
+
+	erf_p->AddForces(F*dW, M*dW, X);
 }
 
 void
