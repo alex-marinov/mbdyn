@@ -190,7 +190,7 @@ class md_ordering;
 // #ifdef USE_METIS
 class metis_ordering;
 // #endif USE_METIS
-// #ifdef HAVE_UMFPACK4_1
+// #ifdef HAVE_UMFPACK
 class amd_ordering;
 // #endif
 

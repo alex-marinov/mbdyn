@@ -1373,71 +1373,29 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([no])
 		fi
 
-		try_umfpack_LIBS="-lumfpack $try_umfpack_LIBS"
-		AC_MSG_CHECKING([for umfpack library])
-		LIBS="$try_umfpack_LIBS $BLAS_LIBS $save_LIBS"
-		
-		AC_TRY_LINK([
+		have_umfpack_version="no"
+		have_umfpack="no"
+		AC_MSG_CHECKING([for umfpack library version])
+		AC_TRY_COMPILE([
+#include <sys/types.h>
 #include <umfpack.h>
-],[
-#define SIZE 2
-	int n_row = SIZE, n_col = SIZE;
-	int Ap[SIZE], Ai[SIZE];
-	double Ax[SIZE];
-	void *Symbolic;
-	double Control[UMFPACK_CONTROL];
-	double Info[UMFPACK_INFO];
-
-	umfpack_di_symbolic(n_row, n_col, Ap, Ai, Ax, &Symbolic, Control, Info);
 		],[
-			have_umfpack4_1="yes"
-			have_umfpack4="yes"
-			have_umfpack="yes"
-			AC_MSG_RESULT([(>= 4.1) yes])
+#ifndef UMFPACK_MAIN_VERSION
+#error "UMFPACK_MAIN_VERSION not defined (less than 5?)"
+#endif // UMFPACK_MAIN_VERSION
+#if UMFPACK_MAIN_VERSION < 5
+#error "UMFPACK_MAIN_VERSION less than 5?"
+#endif // UMFPACK_MAIN_VERSION
 		],[
-			have_umfpack4_1="no"
-			have_umfpack4="notfound"
-			have_umfpack="notfound"
+			have_umfpack_version="yes"
+			AC_MSG_RESULT([5 or greater])
+		],[
+			AC_MSG_RESULT([less than 5?])
 		])
-		
-		if test "$have_umfpack4" != "yes" ; then
 
-			AC_TRY_LINK([
-#include <umfpack.h>
-			],[
-	double Control[UMFPACK_CONTROL];
-	umfpack_dl_defaults(Control);
-			],[
-				have_umfpack4="yes"
-				have_umfpack="yes"
-				AC_MSG_RESULT([(>= 4.0) yes])
-			],[
-				have_umfpack4="no"
-				have_umfpack="notfound"
-			])
-
-			if test "$have_umfpack" != "yes" ; then
-				AC_TRY_LINK([
-#include <umfpack.h>
-				],[
-	double t;
-	t = umfpack_timer();
-				],[
-					have_umfpack="yes"
-					AC_MSG_RESULT([yes])
-				],[
-					have_umfpack="no"
-				])
-			fi
-		fi
-
-		if test "$have_umfpack4_1" = "yes" ; then
-			AC_DEFINE(HAVE_UMFPACK4_1,1,[define if Umfpack4.1 is available])
-		fi
-
-		if test "$have_umfpack4" = "yes" ; then
-			AC_DEFINE(HAVE_UMFPACK4,1,[define if Umfpack4 is available])
-
+		if test "$have_umfpack_version" = "yes" ; then
+			umfpack_use_long="no"
+			AC_MSG_CHECKING([if umfpack library needs long])
 			AC_LANG_CPLUSPLUS
 			AC_TRY_COMPILE([
 #include <sys/types.h>
@@ -1466,11 +1424,29 @@ if test "$ol_with_umfpack" != "no" ; then
 	umfpack_dl_solve(sys, Ap, Ai, Ax, X, B, &Numeric, Control, Info);
 				],[
 					AC_DEFINE(USE_UMFPACK_LONG,1,[define if need to use umfpack_dl_* calls])
+					umfpack_use_long="yes"
 				],[
 					AC_MSG_ERROR([umfpack might be broken])
 				]) 
 			])
 			AC_LANG_C
+
+			AC_MSG_RESULT([$umfpack_use_long])
+
+			try_umfpack_LIBS="-lumfpack $try_umfpack_LIBS"
+			LIBS="$try_umfpack_LIBS $BLAS_LIBS $save_LIBS"
+			AC_MSG_CHECKING([for umfpack library])
+			AC_TRY_LINK([
+#include <umfpack.h>
+			],[
+	double t;
+	t = umfpack_timer();
+			],[
+				have_umfpack="yes"
+				AC_MSG_RESULT([yes])
+			],[
+				AC_MSG_RESULT([no])
+			])
 		fi
 
 		if test "$have_umfpack" = "yes" ; then

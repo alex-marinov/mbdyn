@@ -73,16 +73,7 @@
 #include "dirccmh.h"
 #include "umfpackwrap.h"
 
-#ifdef HAVE_UMFPACK4
-
-/*
- * Wrap of the required functions; (mostly) uses the calling convention 
- * of umfpack 3.0 so the matrix must be square
- */
-
-/* in some cases, int and int32_t differ; then, define UMFPACK_LONG
- * (will be automated in the future ...)
- */
+/* in some cases, int and int32_t differ */
 
 #ifdef USE_UMFPACK_LONG
 
@@ -90,65 +81,33 @@
 #define UMFPACKWRAP_free_symbolic 	umfpack_dl_free_symbolic
 #define UMFPACKWRAP_free_numeric 	umfpack_dl_free_numeric
 
-#ifdef HAVE_UMFPACK4_1
 #define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
 	umfpack_dl_symbolic(size, size, app, aip, axp, sym, ctrl, info)
-#else /* !HAVE_UMFPACK4_1 */
-#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
-	umfpack_dl_symbolic(size, size, app, aip, sym, ctrl, info)
-#endif /* !HAVE_UMFPACK4_1 */
 
 #define UMFPACKWRAP_report_info 	umfpack_dl_report_info
 #define UMFPACKWRAP_report_status 	umfpack_dl_report_status
 #define UMFPACKWRAP_numeric 		umfpack_dl_numeric
 #define UMFPACKWRAP_solve 		umfpack_dl_solve
 
-#else /* ! UMFPACK_LONG */
+#else // ! USE_UMFPACK_LONG
 
 #define UMFPACKWRAP_defaults 		umfpack_di_defaults
 #define UMFPACKWRAP_free_symbolic 	umfpack_di_free_symbolic
 #define UMFPACKWRAP_free_numeric 	umfpack_di_free_numeric
 
-#ifdef HAVE_UMFPACK4_1
 #define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
 	umfpack_di_symbolic(size, size, app, aip, axp, sym, ctrl, info)
-#else /* !HAVE_UMFPACK4_1 */
-#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
-	umfpack_di_symbolic(size, size, app, aip, sym, ctrl, info)
-#endif /* !HAVE_UMFPACK4_1 */
 
 #define UMFPACKWRAP_report_info 	umfpack_di_report_info
 #define UMFPACKWRAP_report_status 	umfpack_di_report_status
 #define UMFPACKWRAP_numeric 		umfpack_di_numeric
 #define UMFPACKWRAP_solve 		umfpack_di_solve
 
-#endif
+#endif // ! USE_UMFPACK_LONG
 
 /* required factorization type (A * x = b) */
 #define SYS_VALUE 			UMFPACK_A
 #define SYS_VALUET 			UMFPACK_Aat
-
-#else /* !HAVE_UMFPACK4 */
-
-/*
- * Wrap of the required functions; uses the calling convention 
- * of umfpack 3.0
- */
-#define UMFPACKWRAP_defaults 		umfpack_defaults
-#define UMFPACKWRAP_free_symbolic 	umfpack_free_symbolic
-#define UMFPACKWRAP_free_numeric 	umfpack_free_numeric
-#define UMFPACKWRAP_symbolic(size, app, aip, axp, sym, ctrl, info) \
-	umfpack_symbolic(size, app, aip, sym, ctrl, info)
-#define UMFPACKWRAP_report_info 	umfpack_report_info
-#define UMFPACKWRAP_report_status 	umfpack_report_status
-#define UMFPACKWRAP_numeric 		umfpack_numeric
-#define UMFPACKWRAP_solve 		umfpack_solve
-
-/* required factorization type (A * x = b) */
-#define SYS_VALUE 			"Ax=b"
-#define SYS_VALUET 			"Aatx=b"	/* TODO: check (or drop Umfpack < 4) */
-
-#endif /* HAVE_UMFPACK4 */
 
 /* UmfpackSolver - begin */
 	

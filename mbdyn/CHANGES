@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added output flag to .out file
 		- added GiNaC-based symbolic drive caller
 		- log "body" data (Reinhard Resch)
+		- improve umfpack version detection (supports >= 5 only)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

@@ -719,7 +719,7 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 
 #endif //USE_METIS
 
-// #ifdef HAVE_UMFPACK4_1
+// #ifdef HAVE_UMFPACK
 // extern "C" {
 // #include "amd.h"
 // }
@@ -745,7 +745,7 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 // 
 // 
 // }
-// #endif //HAVE_UMFPACK4_1
+// #endif //HAVE_UMFPACK
 
 
 //explicit instantiations:
@@ -767,7 +767,7 @@ template class NaiveSparsePermSolutionManager<sloan_ordering>;
 #ifdef USE_METIS
 template class NaiveSparsePermSolutionManager<metis_ordering>;
 #endif //USE_METIS
-// #ifdef HAVE_UMFPACK4_1
+// #ifdef HAVE_UMFPACK
 // template class NaiveSparsePermSolutionManager<amd_ordering>;
-// #endif //HAVE_UMFPACK4_1
+// #endif //HAVE_UMFPACK
 
