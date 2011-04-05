@@ -53,6 +53,9 @@ skip_again:;
 	}
 
 	switch (cIn) {
+	case -1:
+		return -1;
+	
 	case MathParser::ONE_LINE_REMARK:
 		for (cIn = In.get(); cIn != '\n'; cIn = In.get()) {
 			if (cIn == '\\') {
