@@ -314,7 +314,7 @@ public:
 	template <class T>
 	class RefTplManip : public TplManip<T> {
 	protected:
-		mutable MBDynParser& HP;
+		MBDynParser& HP;
 		const ReferenceFrame& rf;
 		VecMatOpType type;
 

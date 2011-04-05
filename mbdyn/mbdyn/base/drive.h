@@ -167,7 +167,7 @@ private:
 #ifdef USE_MULTITHREAD
 	mutable pthread_mutex_t parser_mutex;
 #endif /* USE_MULTITHREAD */
-	mutable MathParser& Parser;
+	MathParser& Parser;
 
 	/* variabili predefinite: tempo e variabile generica */
 	Var* pTime;

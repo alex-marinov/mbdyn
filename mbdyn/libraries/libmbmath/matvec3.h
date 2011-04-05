@@ -1432,6 +1432,7 @@ extern std::ostream& Write(std::ostream& out,
 // replaces Mat3x3(const doublereal&) used as Mat3x3(0.)
 class Mat3x3Zero_Manip : public Mat3x3_Manip {
 public:
+	Mat3x3Zero_Manip() {};
 	inline void Manipulate(Mat3x3& m) const {
 		doublereal *pdm = m.pGetMat();
 
@@ -1450,6 +1451,7 @@ public:
 // replaces Mat3x3(const doublereal&) used as Mat3x3(d) with d != 0.
 class Mat3x3DEye_Manip : public Mat3x3_Manip {
 public:
+	Mat3x3DEye_Manip() {};
 	inline void Manipulate(Mat3x3& m, const doublereal d) const {
 		doublereal *pdm = m.pGetMat();
 
@@ -1467,6 +1469,7 @@ public:
 
 class Mat3x3Diag_Manip : public Mat3x3_Manip {
 public:
+	Mat3x3Diag_Manip() {};
 	inline void Manipulate(Mat3x3& m, const Vec3& v) const {
 		doublereal *pdm = m.pGetMat();
 		const doublereal *pdv = v.pGetVec();
@@ -1486,6 +1489,7 @@ public:
 // will replace Mat3x3(const Vec3&)
 class MatCross_Manip : public Mat3x3_Manip {
 public:
+	MatCross_Manip() {};
 	inline void Manipulate(Mat3x3& m, const Vec3& v) const {
 		doublereal *pdm = m.pGetMat();
 		const doublereal *pdv = v.pGetVec();
@@ -1505,6 +1509,7 @@ public:
 // will replace Mat3x3(const Vec3&, const Vec3&)
 class MatCrossCross_Manip : public Mat3x3_Manip {
 public:
+	MatCrossCross_Manip() {};
 	inline void Manipulate(Mat3x3& m, const Vec3& v1, const Vec3& v2) const {
 		doublereal *pdm = m.pGetMat();
 		const doublereal *pdv1 = v1.pGetVec();
@@ -1650,6 +1655,7 @@ namespace CGR_Rot {
 
 class Param_Manip : public Vec3_Manip {
 public:
+	Param_Manip() {};
 	inline void Manipulate(Vec3& v, const Mat3x3& m) const {
 		// singularity test
 		doublereal d = 1. + m.Trace();
@@ -1669,6 +1675,7 @@ public:
 // Manipolatore per matrice R con parametri di Rodrigues.
 class MatR_Manip : public Mat3x3_Manip {   
  public:
+   MatR_Manip() {}
    /*
     Crea in m la matrice R corrispondente ai parametri g.
     */
@@ -1696,6 +1703,7 @@ class MatR_Manip : public Mat3x3_Manip {
 // Manipolatore per matrice G con parametri di Rodrigues.
 class MatG_Manip : public Mat3x3_Manip {
  public:
+   MatG_Manip() {};
    /*
     Crea in m la matrice G corrispondente ai parametri g.
     */
@@ -1713,6 +1721,7 @@ class MatG_Manip : public Mat3x3_Manip {
 // Manipolatore per inversa della matrice G con parametri di Rodrigues */
 class MatGm1_Manip : public Mat3x3_Manip {
  public:
+   MatGm1_Manip() {};
    /*
     Crea in m l'inversa della matrice G corrispondente ai parametri g.
     */
