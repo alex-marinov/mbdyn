@@ -254,6 +254,23 @@ shipwake_(
 
 #endif // ! NEED_CHARM_SHIPWAKE
 
+static doublereal
+azimuth_unwrap(doublereal azimuth)
+{
+#define	AZIMUTH_MAX	(2.*M_PI)
+#define	AZIMUTH_MIN	(0.)
+//#define	AZIMUTH_MAX	(M_PI)
+//#define	AZIMUTH_MIN	(-M_PI)
+
+	while (azimuth < AZIMUTH_MIN) {
+		azimuth += 2.*M_PI;
+	}
+	while (azimuth >= AZIMUTH_MAX) {
+		azimuth -= 2.*M_PI;
+	}
+	return azimuth;
+}
+
 class ModuleCHARM
 : virtual public Elem,
 	public UserDefinedElem,
@@ -1052,7 +1069,9 @@ ModuleCHARM::Init_int(void)
 		Vec3 Psi(RotManip::VecRot(Rh2s));
 		rotor->azimuthal_offset = 0.;
 		// PSISIM
-		rotor->azimuth = -Psi(3)*rotor->rotation_dir;
+		// NOTE: Psi(3) == 0 when Hub and Shaft are coincident
+		// but when Blade #1 is aligned with Shaft PSISIM == pi
+		rotor->azimuth = azimuth_unwrap(-(Psi(3) + M_PI)*rotor->rotation_dir);
 		silent_cout("ModuleCHARM(" << uLabel << "): "
 			"rotor " << ir << "/" << num_rotors
 			<< " azimuth=" << rotor->azimuth
@@ -1277,19 +1296,11 @@ ModuleCHARM::Set_int(void)
 		Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 		Vec3 Psi(RotManip::VecRot(Rshaft.MulTM(Rhub)));
 		// PSISIM
-		rotor->azimuth = -Psi(3)*rotor->rotation_dir;
-#define	AZIMUTH_MAX	(2.*M_PI)
-#define	AZIMUTH_MIN	(0.)
-//#define	AZIMUTH_MAX	(M_PI)
-//#define	AZIMUTH_MIN	(-M_PI)
-		while (rotor->azimuth < AZIMUTH_MIN) {
-			rotor->azimuth += 2.*M_PI;
-		}
-		while (rotor->azimuth >= AZIMUTH_MAX) {
-			rotor->azimuth -= 2.*M_PI;
-		}
-
+		// NOTE: Psi(3) == 0 when Hub and Shaft are coincident
+		// but when Blade #1 is aligned with Shaft PSISIM == pi
+		rotor->azimuth = azimuth_unwrap(-(Psi(3) + M_PI)*rotor->rotation_dir);
 		// rotor velocity
+		// FIXME: abs() is an assumption of mine
 		Vec3 ehb3(m_Rotors[ir].pHub->GetRCurr().GetVec(3));
 		rotor->rotor_speed = std::abs(ehb3*(m_Rotors[ir].pHub->GetWCurr() - pCraft->GetWCurr()));
 	}
