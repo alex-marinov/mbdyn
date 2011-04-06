@@ -795,6 +795,76 @@ UniformRotor::GetInducedVelocity(Elem::Type type,
 	return RRot3*dUMeanPrev;
 };
 
+UniformRotor2::UniformRotor2(unsigned int uLabel,
+	const DofOwner* pDO,
+	const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	DriveCaller *pdW,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	flag fOut)
+: Elem(uLabel, fOut),
+UniformRotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dOR, dR, pdW, iMaxIt, dTol, dE, dCH, dCFF, fOut)
+{
+	NO_OP;
+}
+
+UniformRotor2::~UniformRotor2(void)
+{
+	NO_OP;
+}
+
+bool
+UniformRotor2::bSectionalForces(void) const
+{
+	return true;
+}
+
+/* Somma alla trazione il contributo di forza di un elemento generico */
+void
+UniformRotor2::AddSectionalForce(Elem::Type type,
+		unsigned int uLabel, unsigned uPnt,
+		const Vec3& F, const Vec3& M, doublereal dW,
+		const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W)
+{
+#ifdef USE_MPI
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) {
+			MYSLEEP(mysleeptime);
+		}
+	}
+#endif /* USE_MPI */
+
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
+
+	/* Solo se deve fare l'output calcola anche il momento */
+	if (fToBeOutput()) {
+		Vec3 FTmp(F*dW);
+		Vec3 MTmp(M*dW);
+		Res.AddForces(FTmp, MTmp, X);
+		InducedVelocity::AddForce(uLabel, FTmp, MTmp, X);
+
+	} else {
+		Res.AddForce(F*dW);
+	}
+
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+}
+
 /* UniformRotor - end */
 
 
@@ -1766,6 +1836,7 @@ ReadRotor(DataManager* pDM,
 	  	"induced" "velocity",
 			"no",
 			"uniform",
+				"uniform" "sectional",
 			"glauert",
 			"mangler",
 			"dynamic" "inflow",
@@ -1780,6 +1851,7 @@ ReadRotor(DataManager* pDM,
 		INDUCEDVELOCITY = 0,
 			NO,
 			UNIFORM,
+				UNIFORM_SECTIONAL,
 			GLAUERT,
 			MANGLER,
 			DYNAMICINFLOW,
@@ -1853,6 +1925,7 @@ ReadRotor(DataManager* pDM,
 		break;
 
     	case UNIFORM:
+    	case UNIFORM_SECTIONAL:
     	case GLAUERT:
     	case MANGLER:
     	case DYNAMICINFLOW: {
@@ -2126,11 +2199,23 @@ ReadRotor(DataManager* pDM,
 
 		// create element
       		switch (InducedType) {
-	     	case UNIFORM:
+		case UNIFORM:
 	  		DEBUGCOUT("Uniform induced velocity" << std::endl);
 			SAFENEWWITHCONSTRUCTOR(pEl,
    					UniformRotor,
    					UniformRotor(uLabel, pDO, pCraft, rrot,
+   						pRotor, pGround,
+   						ppres, dOR, dR, pdW,
+						iMaxIter, dTolerance, dEta,
+						dCH, dCFF,
+   						fOut));
+	  		break;
+
+		case UNIFORM_SECTIONAL:
+	  		DEBUGCOUT("Uniform induced velocity" << std::endl);
+			SAFENEWWITHCONSTRUCTOR(pEl,
+   					UniformRotor2,
+   					UniformRotor2(uLabel, pDO, pCraft, rrot,
    						pRotor, pGround,
    						ppres, dOR, dR, pdW,
 						iMaxIter, dTolerance, dEta,

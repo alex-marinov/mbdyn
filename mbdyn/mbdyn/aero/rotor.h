@@ -281,6 +281,34 @@ public:
 		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
 };
 
+class UniformRotor2 : virtual public Elem, public UniformRotor {
+public:
+	UniformRotor2(unsigned int uLabel,
+		const DofOwner* pDO,
+		const StructNode* pCraft,
+	   	const Mat3x3& rrot,
+		const StructNode* pRotor,
+		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		DriveCaller *pdW,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		flag fOut);
+	virtual ~UniformRotor2(void);
+
+	virtual bool bSectionalForces(void) const;
+	virtual void AddSectionalForce(Elem::Type type,
+		unsigned int uLabel, unsigned uPnt,
+		const Vec3& F, const Vec3& M, doublereal dW,
+		const Vec3& X, const Mat3x3& R,
+		const Vec3& V, const Vec3& W);
+};
+
 /* UniformRotor - end */
 
 
