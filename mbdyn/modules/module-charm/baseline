@@ -38,9 +38,11 @@ begin: initial value;
 	final time: 10.;
 	# final time: .001;
 	time step: 1.e-3;
+	# time step: 2.6e-3;
 
-	tolerance: 1.e-3;
-	max iterations: 20;
+	tolerance: 1.e-2;
+	#tolerance: 1.e2;
+	max iterations: 20, at most;
 
 	# method: bdf;
 	method: ms, .6;
@@ -274,6 +276,7 @@ begin: elements;
 
 	c81data: 1, "../../var/naca0012.c81";
 
+	#/*
 	# create a symlink to libmodule-charm.so in this folder
 	# module load: "./libmodule-charm.so";
 	user defined: 1, charm,
@@ -316,7 +319,10 @@ begin: elements;
 				ROTOR_1 + BLADE_2 + 9,
 				ROTOR_1 + BLADE_2 + 10,
 		trim times, .4999, .9999, 1.4999, 1.9999,
+		# freeze vortex strength, yes,
+		freeze vortex strength, no,
 		output, yes;
+	#*/
 
 	/*
 	induced velocity: 1, rotor,
@@ -324,7 +330,8 @@ begin: elements;
 		ROTOR_1,
 		induced velocity,
 			# no;
-			glauert, OMEGA, R, delay, .6;
+			# glauert, OMEGA, R, delay, .6;
+			uniform sectional, OMEGA, R, delay, .6;
 	*/
 
 	# rotor 1

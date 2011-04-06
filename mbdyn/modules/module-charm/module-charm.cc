@@ -334,6 +334,9 @@ private:
 	struct SurfaceMapping {
 		Mat3x3 Rh_surf;
 
+		// thrust, moment, pole
+		ExternResForces Res;
+
 		std::vector<ElemMapping> Elems;
 	};
 
@@ -370,6 +373,8 @@ private:
 	// TODO: use azimuth instead of time (number of revolutions)
 	std::vector<double> m_TrimTime;
 	std::vector<double>::const_iterator m_TrimTimeIter;
+	// KUPDGAM
+	bool bFreezeVortexStrength;
 
 	chGlobal m_chglobal;
 	wpOptions m_wpoptions;
@@ -455,6 +460,7 @@ ModuleCHARM::ModuleCHARM(
 UserDefinedElem(uLabel, pDO),
 InducedVelocity(uLabel, 0, 0, flag(0)),
 pDM(pDM),
+bFreezeVortexStrength(false),
 iFirstAssembly(2),
 iDebug(0), iDebugCount(0)
 {
@@ -850,6 +856,15 @@ iDebug(0), iDebugCount(0)
 	m_TrimTime[m_TrimTime.size() - 1] = std::numeric_limits<doublereal>::max();
 	m_TrimTimeIter = m_TrimTime.begin();
 
+	if (HP.IsKeyWord("freeze" "vortex" "strength")) {
+		if (!HP.GetYesNo(bFreezeVortexStrength)) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"unable to parse \"freeze vortex strength\" "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
 
@@ -1037,7 +1052,7 @@ ModuleCHARM::Init_int(void)
 		Vec3 Psi(RotManip::VecRot(Rh2s));
 		rotor->azimuthal_offset = 0.;
 		// PSISIM
-		rotor->azimuth = Psi(3)*rotor->rotation_dir;
+		rotor->azimuth = -Psi(3)*rotor->rotation_dir;
 		silent_cout("ModuleCHARM(" << uLabel << "): "
 			"rotor " << ir << "/" << num_rotors
 			<< " azimuth=" << rotor->azimuth
@@ -1174,7 +1189,7 @@ ModuleCHARM::Set_int(void)
 	while (dTime >= *m_TrimTimeIter) {
 		m_TrimTimeIter++;
 		m_chglobal.trim_flag++;
-		if (m_chglobal.trim_flag == 4) {
+		if (m_chglobal.trim_flag == 4 && bFreezeVortexStrength) {
 			// FIXME: kupdgam may need to remain 1
 			m_wpoptions.kupdgam = 0;
 		}
@@ -1224,9 +1239,13 @@ ModuleCHARM::Set_int(void)
 	m_wpaircraft.T_inertial_to_body[1][2] = Rac(3, 2);
 	m_wpaircraft.T_inertial_to_body[2][2] = Rac(3, 3);
 
-	// TODO: rotor(s)
+	// rotor(s)
 	for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
 		m_Rotors[ir].Res.PutPole(m_Rotors[ir].pHub->GetXCurr());
+
+		for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
+			m_Rotors[ir].Blades[ib].Res.PutPole(m_Rotors[ir].pHub->GetXCurr());
+		}
 
 		wpRotorSurface *rotor = &m_wpaircraft.rotors[ir];
 
@@ -1258,14 +1277,17 @@ ModuleCHARM::Set_int(void)
 		Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
 		Vec3 Psi(RotManip::VecRot(Rshaft.MulTM(Rhub)));
 		// PSISIM
-		rotor->azimuth = -Psi(3);
-		while (rotor->azimuth < 0.) {
+		rotor->azimuth = -Psi(3)*rotor->rotation_dir;
+#define	AZIMUTH_MAX	(2.*M_PI)
+#define	AZIMUTH_MIN	(0.)
+//#define	AZIMUTH_MAX	(M_PI)
+//#define	AZIMUTH_MIN	(-M_PI)
+		while (rotor->azimuth < AZIMUTH_MIN) {
 			rotor->azimuth += 2.*M_PI;
 		}
-		while (rotor->azimuth > 2.*M_PI) {
+		while (rotor->azimuth >= AZIMUTH_MAX) {
 			rotor->azimuth -= 2.*M_PI;
 		}
-		rotor->azimuth *= rotor->rotation_dir;
 
 		// rotor velocity
 		Vec3 ehb3(m_Rotors[ir].pHub->GetRCurr().GetVec(3));
@@ -1415,6 +1437,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			// set for later...
 			m_data_vel_iter->X = m_Rac.MulTV(X - pCraft->GetXCurr());
 
+			// TODO: check
 			V = m_Rac*Vec3(-m_data_vel_iter->vel[0], -m_data_vel_iter->vel[1], -m_data_vel_iter->vel[2]);
 
 #if 0
@@ -1446,7 +1469,8 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 
 	doublereal *tangential_velocity_p = 0;
 	doublereal *spanwise_lift_p = 0;
-	ExternResForces *erf_p = 0;
+	ExternResForces *erf_rotor_p = 0;
+	ExternResForces *erf_blade_p = 0;
 
 	if (iFirstAssembly == 1) {
 		ASSERT(uLabel != unsigned(-1));
@@ -1472,15 +1496,6 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
-#if 0
-		m_data[idx].label = uLabel;
-		if (idx == 0 || (idx > 0 && uLabel != m_data[idx - 1].label)) {
-			m_data[idx].counter = 0;
-		} else {
-			m_data[idx].counter = m_data[idx - 1].counter + 1;
-		}
-#endif
 
 #if 0
 		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
@@ -1520,7 +1535,8 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 
 		spanwise_lift_p = &m_data[idx].spanwise_lift;
 		tangential_velocity_p = &m_data[idx].tangential_velocity;
-		erf_p = &m_Rotors[ir].Res;
+		erf_rotor_p = &m_Rotors[ir].Res;
+		erf_blade_p = &m_Rotors[ir].Blades[ib].Res;
 
 #if 0
 		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
@@ -1540,11 +1556,23 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			m_data_frc_iter++;
 		}
 
-		spanwise_lift_p = &m_data_frc_iter->spanwise_lift;
-		tangential_velocity_p = &m_data_frc_iter->tangential_velocity;
+		// sanity checks
 		ASSERT(m_data_frc_iter->pRB->iRotor >= 0);
 		ASSERT(unsigned(m_data_frc_iter->pRB->iRotor) < m_Rotors.size());
-		erf_p = &m_Rotors[m_data_frc_iter->pRB->iRotor].Res;
+
+		// prepare pointers to: spanwise lift, tangential velocity, rotor forces
+		spanwise_lift_p = &m_data_frc_iter->spanwise_lift;
+		tangential_velocity_p = &m_data_frc_iter->tangential_velocity;
+		erf_rotor_p = &m_Rotors[m_data_frc_iter->pRB->iRotor].Res;
+		erf_blade_p = &m_Rotors[m_data_frc_iter->pRB->iRotor].Blades[m_data_frc_iter->pRB->iBlade].Res;
+
+#if 0
+		std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce:"
+			<< " rotor=" << m_data_frc_iter->pRB->iRotor
+			<< " blade=" << m_data_frc_iter->pRB->iBlade
+			<< " elem=" << m_data_frc_iter->pRB->iElem
+			<< std::endl;
+#endif
 
 		m_data_frc_iter++;
 	}
@@ -1569,7 +1597,8 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 	// according to CHARM's documentation, it should only be
 	// the chordwise component
 	Floc(3) = 0.;
-	doublereal v = *tangential_velocity_p = Vloc.Norm();
+	doublereal v = Vloc.Norm();
+	*tangential_velocity_p = Vloc(1);
 	if (v > std::numeric_limits<doublereal>::epsilon()) {
 		Vloc /= v;
 		*spanwise_lift_p = (Vloc.Cross(Floc))(3);
@@ -1579,12 +1608,13 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 	}
 
 #if 0
-	std::cerr << "    dV=" << m_data_frc_iter->tangential_velocity
-		<< " dF=" << m_data_frc_iter->spanwise_lift
-		<< " X={" << m_data_frc_iter->X << "}" << std::endl;
+	std::cerr << "    dV=" << *tangential_velocity_p
+		<< " dF=" << *spanwise_lift_p
+		<< " X={" << X << "}" << std::endl;
 #endif
 
-	erf_p->AddForces(F*dW, M*dW, X);
+	erf_rotor_p->AddForces(F*dW, M*dW, X);
+	erf_blade_p->AddForces(F*dW, M*dW, X);
 }
 
 void
@@ -1617,9 +1647,17 @@ ModuleCHARM::Output(OutputHandler& OH) const
 
 		for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {
 			out << GetLabel() << "#" << ir
-				<< " " << m_Rotors[ir].pHub->GetRCurr().MulTV(m_Rotors[ir].Res.Force())
-				<< " " << m_Rotors[ir].pHub->GetRCurr().MulTV(m_Rotors[ir].Res.Moment())
+				<< " " << m_Rotors[ir].pShaft->GetRCurr().MulTV(m_Rotors[ir].Res.Force())
+				<< " " << m_Rotors[ir].pShaft->GetRCurr().MulTV(m_Rotors[ir].Res.Moment())
+				<< " " << m_wpaircraft.rotors[ir].azimuth
 				<< std::endl;
+
+			for (unsigned ib = 0; ib < m_Rotors[ir].Blades.size(); ib++) {
+				out << GetLabel() << "#" << ir << "#" << ib
+					<< " " << m_Rotors[ir].pShaft->GetRCurr().MulTV(m_Rotors[ir].Blades[ib].Res.Force())
+					<< " " << m_Rotors[ir].pShaft->GetRCurr().MulTV(m_Rotors[ir].Blades[ib].Res.Moment())
+					<< std::endl;
+			}
 		}
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
@@ -1681,8 +1719,11 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 
 	m_Rac = pCraft->GetRCurr()*m_Rh_ac;
 
-	for (std::vector<RotorMapping>::iterator i = m_Rotors.begin(); i != m_Rotors.end(); i++) {
-		i->Res.Reset(i->pHub->GetXCurr());
+	for (std::vector<RotorMapping>::iterator ir = m_Rotors.begin(); ir != m_Rotors.end(); ir++) {
+		ir->Res.Reset(ir->pHub->GetXCurr());
+		for (std::vector<SurfaceMapping>::iterator is = ir->Blades.begin(); is != ir->Blades.end(); is++) {
+			is->Res.Reset(ir->pHub->GetXCurr());
+		}
 	}
 
 	if (iFirstAssembly) {
