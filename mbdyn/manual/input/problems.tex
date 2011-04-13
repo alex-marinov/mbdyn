@@ -698,10 +698,13 @@ usually output.
             \{ \kw{naive} | \kw{umfpack} | \kw{klu} | \kw{y12} | \kw{lapack} | \kw{superlu} | \kw{taucs} | \kw{watson} \}
         [ , \{ \kw{map} | \kw{cc} | \kw{dir} \} ]
         [ , \{ \kw{colamd} | \kw{mmdata} \} ]
-        [ , \kw{mt} , \bnt{threads} ]
+        [ , \{ \kw{mt} | \kw{multithread} \} , \bnt{threads} ]
         [ , \kw{workspace size} , \bnt{workspace_size} ] 
         [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
-        [ , \kw{block size} , \bnt{block_size} ] ;
+        [ , \kw{drop tolerance} , \bnt{drop\_tolerance} ]
+        [ , \kw{block size} , \bnt{block_size} ]
+        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} \} ]
+    ;
 \end{Verbatim}
 %\end{verbatim}
 
@@ -807,6 +810,21 @@ can be regarded as the threshold for the ratio between two coefficients
 below which they are switched, so $ 0.0 $ means no pivoting, 
 while $ 1.0 $ means switch as soon as the norm of the ratio 
 is less than unity.
+
+The keyword \kw{drop tolerance} enables incomplete factorization.
+Elements of the factorization whose absolute value is below
+the \nt{drop\_tolerance} threshold are discarded.
+By default it is 0.
+Only \kw{umfpack} allows this setting.
+
+The keyword \kw{block size} is specific to \kw{umfpack}.
+See the related documentation for the meaning.
+
+The keyword \kw{scale} indicates whether the matrix and the right-hand side
+must be scaled before linear solution.
+By default no scaling takes place (\kw{no}).
+Only \kw{naive} allows this setting.
+It is experimental; it should only be used for development purposes.
 
 Table~\ref{tab:linear-solvers-props} summarizes the properties that can be set
 for each type of linear solver; Table~\ref{tab:linear-solvers-memory}
