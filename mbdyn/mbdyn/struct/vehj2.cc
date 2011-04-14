@@ -1208,7 +1208,7 @@ ViscousDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WM.PutColIndex(6+iCnt, iNode1FirstVelIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
 
 		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 		WM.PutColIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
@@ -1247,13 +1247,13 @@ ViscousDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
@@ -1460,30 +1460,29 @@ ViscoElasticDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(iNumRows, iNumCols);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstVelIndex = iNode1FirstPosIndex + 6;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
 	integer iNode2FirstVelIndex = iNode2FirstPosIndex + 6;
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WM.PutColIndex(3 + iCnt, iNode1FirstVelIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode1FirstVelIndex + iCnt);
 
-		WM.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
-		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-		WM.PutColIndex(9 + iCnt, iNode2FirstVelIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(12 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
 	}
 
 	Mat3x3 R1h(pNode1->GetRRef()*tilde_R1h);
-	Mat3x3 R1hT(R1h.Transpose());
 	Vec3 Omega1(pNode1->GetWRef());
 	Vec3 Omega2(pNode2->GetWRef());
 
 	Vec3 F(R1h*GetF());
-	Mat3x3 FDE(R1h*GetFDE()*R1hT);
-	Mat3x3 FDEPrime(R1h*GetFDEPrime()*R1hT);
+	Mat3x3 FDE(R1h*GetFDE().MulMT(R1h));
+	Mat3x3 FDEPrime(R1h*GetFDEPrime().MulMT(R1h));
 
 	Mat3x3 Tmp(Mat3x3(MatCross, F) - FDEPrime*Mat3x3(MatCross, Omega2 - Omega1) + FDE);
 
@@ -1514,13 +1513,13 @@ ViscoElasticDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(iNumRows);
 
 	/* Recupera gli indici */
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex() + 3;
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex() + 3;
+	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
+	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
 
 	/* Setta gli indici della matrice */
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
-		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
@@ -1539,7 +1538,7 @@ ViscoElasticDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Vec3 F(R1h*GetF());
 
 	WorkVec.Add(1, F);
-	WorkVec.Sub(4, F);
+	WorkVec.Sub(6 + 1, F);
 
 	return WorkVec;
 }

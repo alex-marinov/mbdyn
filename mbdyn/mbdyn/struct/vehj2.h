@@ -511,7 +511,7 @@ public:
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 6;
+		*piNumRows = 12;
 		*piNumCols = 12;
 	};
 

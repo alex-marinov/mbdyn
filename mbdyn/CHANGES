@@ -33,6 +33,8 @@ MBDyn 1.X-Devel
 		- fix handling of KLU refactor (noted by Romuald Noret)
 		- fix math parser recursive call (noted by Doug Baldwin)
 		- fix initial assembly dof init (noted by Doug Baldwin)
+		- fix residual initial assembly of deformable displacement
+		  joint; Jacobian still broken (noted by Louis Gagnon)
 
 MBDyn 1.3.18
 	Enhancements:
