@@ -96,7 +96,7 @@ function euler313_2R(Alpha, Beta, Gamma, R,   dCosAlpha, dSinAlpha, dCosBeta, dS
 	R[3, 1] = dSinBeta*dSinGamma;
 	R[1, 2] = -dCosAlpha*dSinGamma - dSinAlpha*dCosBeta*dCosGamma;
 	R[2, 2] = -dSinAlpha*dSinGamma + dCosAlpha*dCosBeta*dCosGamma;
-	R[3, 2] = dSinBeta*dSinGamma;
+	R[3, 2] = dSinBeta*dCosGamma;
 	R[1, 3] = dSinAlpha*dSinBeta;
 	R[2, 3] = -dCosAlpha*dSinBeta;
 	R[3, 3] = dCosBeta;
