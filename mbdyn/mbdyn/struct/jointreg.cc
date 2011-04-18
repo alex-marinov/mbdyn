@@ -35,6 +35,7 @@
 
 #include "jointreg.h"
 #include "dataman.h"
+#include "driven.h"
 
 /* JointRegularization - begin */
 
@@ -553,7 +554,15 @@ ReadJointRegularization(DataManager* pDM,
 	case DYNAMIC:
 	case JACOBIAN:
 	{
-		Joint *pJ = dynamic_cast<Joint *>(pDM->pFindElem(Elem::JOINT, uLabel));
+		Elem *pTmpEl = pDM->pFindElem(Elem::JOINT, uLabel);
+		Joint *pJ = dynamic_cast<Joint *>(pTmpEl);
+		if (pJ == 0) {
+			DrivenElem *pDE = dynamic_cast<DrivenElem *>(pTmpEl);
+			if (pDE != 0) {
+				pJ = dynamic_cast<Joint *>(pDE->pGetElem());
+			}
+		}
+
 		if (pJ == 0) {
 			silent_cerr(psElemNames[Elem::JOINT_REGULARIZATION]
 				<< "(" << uLabel << "): "
