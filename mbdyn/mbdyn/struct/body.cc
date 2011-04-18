@@ -128,6 +128,11 @@ Body::iGetPrivDataIdx(const char *s) const
 		return 1;
 	}
 
+	if (strcmp(s, "V") == 0) {
+		// potential energy
+		return 2;
+	}
+
 	return 0;
 }
 
@@ -147,6 +152,16 @@ Body::dGetPrivData(unsigned int i) const
 		Mat3x3 Jgc = J0 + Mat3x3(MatCrossCross, Xgc, Xgc*dMass);
 
 		return ((V*V)*dMass + W*(Jgc*W))/2.;
+	}
+
+	if (i == 2) {
+		// potential energy
+		const Vec3& Xn = pNode->GetXCurr();
+
+		Vec3 GravityAcceleration;
+		if (GravityOwner::bGetGravity(pNode->GetXCurr(), GravityAcceleration)) {
+			return -Xn.Dot(GravityAcceleration)*dMass;
+		}
 	}
 
 	return 0.;

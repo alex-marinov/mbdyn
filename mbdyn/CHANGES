@@ -20,6 +20,8 @@ MBDyn 1.X-Devel
 		- added GiNaC-based symbolic drive caller
 		- log "body" data (Reinhard Resch)
 		- improve umfpack version detection (supports >= 5 only)
+		- potential energy private data for rigid bodies
+		  (Louis Gagnon)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
