@@ -296,7 +296,7 @@ anglerel(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Vec3 phi(RotManip::VecRot(pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()));
+	Vec3 phi(RotManip::VecRot(pNode1->GetRCurr().MulTM(pNode2->GetRCurr())));
 
 	switch (IDX) {
 	case NORM:
