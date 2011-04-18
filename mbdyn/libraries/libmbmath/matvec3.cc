@@ -902,9 +902,29 @@ MatR2EulerAngles123(const Mat3x3& R)
 			dCosAlpha*R(2, 2) + dSinAlpha*R(3, 2)));   
 }
 
+/*
+ R_313 = R_a * R_b * R_c
+
+       [  ca -sa   0 ]
+ R_a = [  sa  ca   0 ]
+       [   0   0   1 ]
+
+       [   1   0   0 ]
+ R_a = [   0  cb -sb ]
+       [   0  sb  cb ]
+
+       [  cc -sc   0 ]
+ R_c = [  sc  cc   0 ]
+       [   0   0   1 ]
+
+         [  ca*cc-cb*sa*sc -ca*sc-cb*cc*sa  sa*sb ]
+ R_313 = [  cb*sa+ca*cb*sc  ca*cb*cc-sa*sc -ca*sb ]
+         [           sb*sc           cc*sb     cb ]
+ */
+
 Vec3
 MatR2EulerAngles313(const Mat3x3& R)
-{  
+{
 	doublereal dAlpha = atan2(R(1, 3), -R(2, 3));
 	doublereal dCosAlpha = cos(dAlpha);
 	doublereal dSinAlpha = sin(dAlpha);
@@ -1033,7 +1053,7 @@ EulerAngles313_2MatR(const Vec3& v)
 		dSinBeta*dSinGamma,
 		-dCosAlpha*dSinGamma - dSinAlpha*dCosBeta*dCosGamma,
 		-dSinAlpha*dSinGamma + dCosAlpha*dCosBeta*dCosGamma,
-		dSinBeta*dSinGamma,
+		dSinBeta*dCosGamma,
 		dSinAlpha*dSinBeta,
 		-dCosAlpha*dSinBeta,
 		dCosBeta);
