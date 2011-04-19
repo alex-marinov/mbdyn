@@ -653,9 +653,9 @@ BEGIN {
 			A0[2] = $(offset + 8);
 			A0[3] = $(offset + 9);
 
-			WP[1] = $(offset + 10);
-			WP[2] = $(offset + 11);
-			WP[3] = $(offset + 12);
+			WP0[1] = $(offset + 10);
+			WP0[2] = $(offset + 11);
+			WP0[3] = $(offset + 12);
 
 			acc = 1;
 		}

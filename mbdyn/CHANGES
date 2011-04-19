@@ -40,6 +40,8 @@ MBDyn 1.X-Devel
 		- fix Euler 313 matrix computation (noted by Doug Baldwin)
 		- fix joint regularization when joint is driven
 		  (noted by Romuald Noret)
+		- fix reference angular acceleration in abs2rel.awk
+		  (Patrick Rix)
 
 MBDyn 1.3.18
 	Enhancements:
