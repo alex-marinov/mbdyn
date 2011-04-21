@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- improve umfpack version detection (supports >= 5 only)
 		- potential energy private data for rigid bodies
 		  (Louis Gagnon)
+		- allow meta-data in fixed-step file drive input file
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

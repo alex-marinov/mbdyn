@@ -43,6 +43,7 @@
 /* FixedStepFileDrive - begin */
 
 static const std::vector<doublereal> v0;
+static const doublereal dFromFile = -std::numeric_limits<doublereal>::max();
 
 FixedStepFileDrive::FixedStepFileDrive(unsigned int uL,
 		const DriveHandler* pDH,
@@ -60,36 +61,83 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 
 	std::ifstream in(sFileName);
 	if (!in) {
-		silent_cerr("can't open file \""
-			<< sFileName << "\"" << std::endl);
+		silent_cerr("FixedStepFileDrive(" << uL << "): "
+			"can't open file \"" << sFileName << "\""
+			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/*
 	 * Mangia gli eventuali commenti iniziali
 	 */
-	char c = '\0';
-	while (in.get(c), c == '#') {
-		char buf[1024];
+	char cTmp = '\0';
+	while (in.get(cTmp), cTmp == '#') {
+		char tmpbuf[1024];
 
 		do {
-			in.getline(buf, sizeof(buf));
-		} while (strlen(buf) == STRLENOF(buf) && buf[STRLENOF(buf)] != '\n');
+			in.getline(tmpbuf, sizeof(tmpbuf));
+			int idx = 0;
+			while (isspace(tmpbuf[idx])) {
+				idx++;
+			}
+
+			if (dT0 == dFromFile && strncasecmp(&tmpbuf[idx], "initial time:", STRLENOF("initial time:")) == 0) {
+				double d;
+				if (sscanf(&tmpbuf[idx + STRLENOF("initial time:")], "%le", &d) != 1) {
+					silent_cerr("FixedStepFileDrive(" << uL << "): "
+						"can't parse \"initial time\" line \"" << &tmpbuf[idx] << "\" "
+						"from file \"" << sFileName << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				dT0 = d;
+
+			} else if (dDT == dFromFile && strncasecmp(&tmpbuf[idx], "time step:", STRLENOF("time step:")) == 0) {
+				double d;
+				if (sscanf(&tmpbuf[idx + STRLENOF("time step:")], "%le", &d) != 1) {
+					silent_cerr("FixedStepFileDrive(" << uL << "): "
+						"can't parse \"time step\" line \"" << &tmpbuf[idx] << "\" "
+						"from file \"" << sFileName << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				if (d <= 0.) {
+					silent_cerr("FixedStepFileDrive(" << uL << "): "
+						"invalid time step value " << d << " "
+						"in file \"" << sFileName << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				dDT = d;
+			}
+		} while (strlen(tmpbuf) == STRLENOF(tmpbuf) && tmpbuf[STRLENOF(tmpbuf)] != '\n');
 	}
 
-	if (c != '#') {
-		in.putback(c);
+	if (dT0 == dFromFile) {
+		silent_cerr("FixedStepFileDrive(" << uL << "): "
+			"expecting \"initial time\" line in file \"" << sFileName << "\""
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (dDT == dFromFile) {
+		silent_cerr("FixedStepFileDrive(" << uL << "): "
+			"expecting \"time step\" line in file \"" << sFileName << "\""
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (cTmp != '#') {
+		in.putback(cTmp);
 	}
 
 	if (ins == -1) {
 		std::streampos pos = in.tellg();
 
 		for (ins = 0; !in.eof(); ins++) {
-			char buf[1024];
+			char tmpbuf[1024];
 
 			do {
-				in.getline(buf, sizeof(buf));
-			} while (strlen(buf) == STRLENOF(buf) && buf[STRLENOF(buf)] != '\n');
+				in.getline(tmpbuf, sizeof(tmpbuf));
+			} while (strlen(tmpbuf) == STRLENOF(tmpbuf) && tmpbuf[STRLENOF(tmpbuf)] != '\n');
 		}
 		iNumSteps = --ins;
 
@@ -256,14 +304,31 @@ ReadFixedStepFileDrive(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	doublereal t0 = HP.GetReal();
-	doublereal dt = HP.GetReal();
-	if (dt <= 0) {
+	if (!HP.IsKeyWord("initial" "time")) {
 		silent_cerr("FixedStepFileDrive(" << uLabel << "): "
-			"invalid time step " << dt
-			<< " at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			"warning, keyword \"initial time\" expected at line "
+		<< HP.GetLineData() << std::endl);
+	}
+	doublereal t0 = dFromFile;
+	if (!HP.IsKeyWord("from" "file")) {
+		t0 = HP.GetReal();
+	}
+
+	if (!HP.IsKeyWord("time" "step")) {
+		silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+			"warning, keyword \"time step\" expected at line "
+		<< HP.GetLineData() << std::endl);
+	}
+	doublereal dt = dFromFile;
+	if (!HP.IsKeyWord("from" "file")) {
+		dt = HP.GetReal();
+		if (dt <= 0.) {
+			silent_cerr("FixedStepFileDrive(" << uLabel << "): "
+				"invalid time step " << dt
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
 	bool bl(true);

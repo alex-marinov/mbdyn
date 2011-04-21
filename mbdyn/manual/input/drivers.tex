@@ -67,16 +67,31 @@ The following \kw{file} drivers are supported:
     \bnt{normal_arglist} ::= \kw{fixed step} , 
         \{ \kw{count} | \bnt{steps_number} \} ,
         \bnt{columns_number} ,
-        \bnt{initial_time} ,
-        \bnt{time_step} ,
+        \kw{initial time} , \{ \kw{from file} | \bnt{initial_time} \} ,
+        \kw{time step} , \{ \kw{from file} | \bnt{time_step} \} ,
         [ \kw{interpolation} , \{ \kw{linear} | \kw{const} \} , ]
         [ \{ \kw{pad zeroes} , \{ \kw{yes} | \kw{no} \}
             | \kw{bailout} , \{ \kw{none} | \kw{upper} | \kw{lower} | \kw{any} \} \} , ]
         " \bnt{file_name} "
 \end{Verbatim}
 %\end{verbatim}
-The value at an arbitrary time is interpolated from the available data.
+If the keyword \kw{count} is used instead of the \nt{steps\_number},
+the number of time records provided by the file is obtained
+by counting the valid records.
 
+If the keyword \kw{from file} is used instead of either 
+\nt{initial\_time} or \nt{time\_step},
+the value is read from the file.
+In this case, comment lines of the form
+\begin{verbatim}
+# initial time: <initial_time>
+# time step: <time_step>
+\end{verbatim}
+are expected; the corresponding values are parsed and checked.
+A valid value provided in the input file always overrides
+any corresponding value provided in the corresponding comment line.
+
+The value at an arbitrary time is interpolated from the available data.
 If the requested value is out of time bounds, zero is returned,
 unless \kw{pad zeroes} is set to \kw{no}, which means that the first
 or the last set of values is respectively used.
@@ -91,11 +106,39 @@ of the time step that includes the current time is used.
 
 The file format is
 \begin{verbatim}
-# an arbitrary number of lines starting with `#'
+# an arbitrary number of comment lines starting with `#'
+#
+# comment lines may provide special parameters
+# like "initial time", "time step" as indicated above; for example
+#
+# initial time: 0
+# time step: 0.01
 #
 # channel #1 channel #2 ... channel #n
   1.         2.         ... 100.
 ...
+\end{verbatim}
+
+
+\paragraph{Example.} \
+\begin{verbatim}
+    begin: drivers;
+        file: 100,
+            fixed step,
+            100,       # n. steps
+            1,         # n. channels
+            0,         # initial_time
+            0.01,      # time_step
+            "input.dat";
+
+        file: 200,
+            fixed step,
+            count,     # n. steps
+            1,         # n. channels
+            from file, # initial_time
+            from file, # time_step
+            "input.dat";
+    end: drivers;
 \end{verbatim}
 
 \subsection{Variable Step}
