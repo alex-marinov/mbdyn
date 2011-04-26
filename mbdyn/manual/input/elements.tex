@@ -5069,6 +5069,41 @@ the hint is passed to the Vec3 drive hint parser.
 
 
 
+\paragraph{Example.} \
+This example mimicks an instance of NASTRAN's \texttt{RBE2} element
+that constrains displacement in $x$ and $y$, and rotation about $z$:
+\begin{verbatim}
+    set: const integer EID = 100;
+    set: const integer GN = 200;
+    set: const integer GM1 = 300;
+
+    # ...
+
+    # $.......2.......3.......4.......5.......
+    # RBE2    EID     GN      CM      GM1
+    joint: EID, total joint,
+        GN,
+            position, reference, node, null,
+            position orientation, reference, node, eye,
+            rotation orientation, reference, node, eye,
+        GM1,
+            position, reference, other node, null,
+            position orientation, reference, other node, eye,
+            rotation orientation, reference, other node, eye,
+         position constraint,
+            active,   # "active" if CM includes "1"; "inactive" otherwise
+            active,   # "active" if CM includes "2"; "inactive" otherwise
+            inactive, # "active" if CM includes "3"; "inactive" otherwise
+            null,
+         orientation constraint,
+            inactive, # "active" if CM includes "4"; "inactive" otherwise
+            inactive, # "active" if CM includes "5"; "inactive" otherwise
+            active,   # "active" if CM includes "6"; "inactive" otherwise
+            null;
+\end{verbatim}
+
+
+
 \subsection{Total pin joint}
 This element allows to arbitrarily constrain specific components
 of the absolute position and orientation of a node.
