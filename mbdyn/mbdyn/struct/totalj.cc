@@ -1024,8 +1024,8 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	if (nRotConstraints) {
 		Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
-		Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-		Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+		Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 		ThetaDelta = RotManip::VecRot(RDelta);
 	}
 
@@ -1213,8 +1213,8 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 				Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 				Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
-				Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-				Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+				Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+				Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 				ThetaDelta = RotManip::VecRot(RDelta);
 	
 				/* Rotation constraint  */
@@ -1240,8 +1240,8 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 		
-			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-			Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 	
 			/*This name is only for clarity...*/
 			Vec3 WDelta = RDelta * OmegaDrv.Get();
@@ -1281,10 +1281,10 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
-			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-			Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 		
-			Tmp = R0T * OmegaDrv.Get();
+			Tmp = R0.MulTV(OmegaDrv.Get());
 			Tmp2 = R2r * Tmp;
 			Tmp = (pNode2->GetWCurr() - pNode1->GetWCurr()).Cross(Tmp2);
 			Tmp += pNode1->GetWCurr().Cross(pNode2->GetWCurr());
@@ -1678,8 +1678,8 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		XDeltaPrime -= XDrv.GetP();
 	}
 	
-	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-	Mat3x3 RDelta = R1r.MulTM(R2r*R0T);
+	Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+	Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 	ThetaDelta = RotManip::VecRot(RDelta);
 	Vec3 ThetaDeltaPrime = R1r.MulTV(Omega2 - Omega1);
 
@@ -2690,8 +2690,8 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 	if (nRotConstraints > 0) {
 		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-		Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-		Mat3x3 RDelta = RchrT*Rnhr*R0T;
+		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 		ThetaDelta = RotManip::VecRot(RDelta);
 	}
 
@@ -2834,8 +2834,8 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	
 			Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
 		
-			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-			Mat3x3 RDelta = RchrT*Rnhr*R0T;
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 			ThetaDelta = RotManip::VecRot(RDelta);
 		
 			/* Position constraint:  */
@@ -2864,8 +2864,8 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 			}
 		
 			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-			Mat3x3 RDelta = RchrT*Rnhr*R0T;
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 		
 			/*This name is only for clarity...*/
 			Tmp = RDelta * OmegaDrv.Get();
@@ -2894,10 +2894,10 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 		
 									//Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr; 	//Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
-			Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-			Mat3x3 RDelta = RchrT*Rnhr*R0T;
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 		
-			Tmp = R0T * OmegaDrv.Get();
+			Tmp = R0.MulTV(OmegaDrv.Get());
 			Vec3 Tmp2 = Rnhr * Tmp;
 			
 			Tmp = pNode->GetWCurr().Cross(Tmp2);
@@ -3160,8 +3160,8 @@ TotalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		XDeltaPrime -= XDrv.GetP();
 	}
 	
-	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-	Mat3x3 RDelta = RchrT*Rnhr*R0T;
+	Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+	Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 	ThetaDelta = RotManip::VecRot(RDelta);
 	Vec3 ThetaDeltaPrime = RchrT*Omega;
 
