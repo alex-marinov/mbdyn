@@ -357,6 +357,15 @@ in Section~\ref{sec:GENERAL:MODULE-LOAD}.
 The namespace that refers to the current model is loaded by default.
 Its name is \kw{model}, and contains the functions 
 defined in Table~\ref{tab:MODEL-NS-FUNCS}.
+With the exception of the \kw{drive} and \kw{sf} functions,
+all functions in the \kw{model} namespace
+with the suffix \kw{\_prev} (e.g.\ \kw{position\_prev})
+use the configuration at the previous time step.
+They may be useful, for example, when parsing hints
+(see Section~\ref{sec:GENERAL:DRIVE:HINT}),
+since their parsing occurs after prediction,
+but often need to refer to the configuration
+at the previous time step.
 
 \begin{table}
 	\begin{center}
@@ -418,6 +427,7 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 				$Y$ component of rel.\ angular velocity between structural nodes \\
 		\kw{zangvrel}	& Real	& Integer, Integer	&
 				$Z$ component of rel.\ angular velocity between structural nodes \\
+\hline
 		\kw{drive}	& Real	& Integer, Real		&
 				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
 				indicated by its label (the first argument)

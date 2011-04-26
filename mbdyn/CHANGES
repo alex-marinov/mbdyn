@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		  (Louis Gagnon)
 		- allow meta-data in fixed-step file drive input file
 		- added more functions to model namespace
+		- added previous time step functions to model namespace
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
