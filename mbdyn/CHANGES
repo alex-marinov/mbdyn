@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 		- potential energy private data for rigid bodies
 		  (Louis Gagnon)
 		- allow meta-data in fixed-step file drive input file
+		- added more functions to model namespace
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

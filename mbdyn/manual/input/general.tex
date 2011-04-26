@@ -382,6 +382,10 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 		\kw{xunitvec}	& Real	& Integer, Integer	& $X$ component of unit vector between structural nodes \\
 		\kw{yunitvec}	& Real	& Integer, Integer	& $Y$ component of unit vector between structural nodes \\
 		\kw{zunitvec}	& Real	& Integer, Integer	& $Z$ component of unit vector between structural nodes \\
+		\kw{angle}	& Real	& Integer,		& angle between structural nodes (norm of angular vector) \\
+		\kw{xangle}	& Real	& Integer,		& $X$ component of angular vector between structural nodes \\
+		\kw{yangle}	& Real	& Integer,		& $Y$ component of angular vector between structural nodes \\
+		\kw{zangle}	& Real	& Integer,		& $Z$ component of angular vector between structural nodes \\
 		\kw{anglerel}	& Real	& Integer, Integer	& angle between structural nodes (norm of angular vector) \\
 		\kw{xanglerel}	& Real	& Integer, Integer	& $X$ component of angular vector between structural nodes \\
 		\kw{yanglerel}	& Real	& Integer, Integer	& $Y$ component of angular vector between structural nodes \\
@@ -400,6 +404,20 @@ defined in Table~\ref{tab:MODEL-NS-FUNCS}.
 				$Y$ component of relative velocity between structural nodes \\
 		\kw{zvrel}	& Real	& Integer, Integer	&
 				$Z$ component of relative velocity between structural nodes \\
+		\kw{angvel}	& Real	& Integer		& norm of structural node angular velocity \\
+		\kw{angvel}	& Real	& Integer		& square norm of structural node angular velocity \\
+		\kw{xangvel}	& Real	& Integer		& $X$ component of structural node angular velocity \\
+		\kw{yangvel}	& Real	& Integer		& $Y$ component of structural node angular velocity \\
+		\kw{zangvel}	& Real	& Integer		& $Z$ component of structural node angular velocity \\
+		\kw{angvrel}	& Real	& Integer, Integer	& norm of relative angular velocity between structural nodes \\
+		\kw{angvrel2}	& Real	& Integer, Integer	&
+				square norm of rel.\ angular velocity between structural nodes \\
+		\kw{xangvrel}	& Real	& Integer, Integer	&
+				$X$ component of rel.\ angular velocity between structural nodes \\
+		\kw{yangvrel}	& Real	& Integer, Integer	&
+				$Y$ component of rel.\ angular velocity between structural nodes \\
+		\kw{zangvrel}	& Real	& Integer, Integer	&
+				$Z$ component of rel.\ angular velocity between structural nodes \\
 		\kw{drive}	& Real	& Integer, Real		&
 				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}
 				indicated by its label (the first argument)

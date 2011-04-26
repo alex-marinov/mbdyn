@@ -251,6 +251,53 @@ unitvec(const MathParser::MathArgs& args)
 }
 
 /*
+ * Computes the orientation of a structural node
+ */
+template <IDX_t IDX>
+static int
+angle(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel = unsigned((*arg1)());
+
+	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	if (pNode == 0) {
+		silent_cerr("model::angle" << IDX2str(IDX)
+				<< "(" << uLabel << "): "
+				"unable to find StructNode(" << uLabel << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	Vec3 phi(RotManip::VecRot(pNode->GetRCurr()));
+
+	switch (IDX) {
+	case NORM:
+		*out = phi.Norm();
+		break;
+
+	default:
+		*out = phi(IDX);
+		break;
+	}
+
+	return 0;
+}
+
+/*
  * Computes the orientation between two structural nodes
  */
 template <IDX_t IDX>
@@ -280,7 +327,7 @@ anglerel(const MathParser::MathArgs& args)
 
 	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
 	if (pNode1 == 0) {
-		silent_cerr("model::angle" << IDX2str(IDX)
+		silent_cerr("model::anglerel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel1 << ")"
 				<< std::endl);
@@ -289,7 +336,7 @@ anglerel(const MathParser::MathArgs& args)
 
 	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
 	if (pNode2 == 0) {
-		silent_cerr("model::angle" << IDX2str(IDX)
+		silent_cerr("model::anglerel" << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
 				"unable to find StructNode(" << uLabel2 << ")"
 				<< std::endl);
@@ -407,6 +454,120 @@ vrel(const MathParser::MathArgs& args)
 	}
 
 	Vec3 d = pNode2->GetVCurr() - pNode1->GetVCurr();
+
+	switch (IDX) {
+	case NORM:
+		*out = d.Norm();
+		break;
+
+	case SQUARE:
+		*out = d.Dot();
+		break;
+
+	default:
+		*out = d(IDX);
+		break;
+	}
+
+	return 0;
+}
+
+/*
+ * Computes the angular velocity of a structural node
+ */
+template <IDX_t IDX>
+static int
+angvel(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel = unsigned((*arg1)());
+
+	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	if (pNode == 0) {
+		silent_cerr("model::angvel" << IDX2str(IDX)
+				<< "(" << uLabel << "): "
+				"unable to find StructNode(" << uLabel << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	switch (IDX) {
+	case NORM:
+		*out = pNode->GetWCurr().Norm();
+		break;
+
+	case SQUARE:
+		*out = pNode->GetWCurr().Dot();
+		break;
+
+	default:
+		*out = pNode->GetWCurr()(IDX);
+		break;
+	}
+
+	return 0;
+}
+
+/*
+ * Computes the relative angular velocity between two structural nodes
+ */
+template <IDX_t IDX>
+static int
+angvrel(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
+	ASSERT(arg2 != 0);
+
+	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
+	ASSERT(dm != 0);
+
+	unsigned uLabel1 = unsigned((*arg1)());
+	unsigned uLabel2 = unsigned((*arg2)());
+
+	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	if (pNode1 == 0) {
+		silent_cerr("model::angvrel" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel1 << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	if (pNode2 == 0) {
+		silent_cerr("model::angvrel" << IDX2str(IDX)
+				<< "(" << uLabel1 << "," << uLabel2 << "): "
+				"unable to find StructNode(" << uLabel2 << ")"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	Vec3 d = pNode2->GetWCurr() - pNode1->GetWCurr();
 
 	switch (IDX) {
 	case NORM:
@@ -744,6 +905,74 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	// angle
+	f = new MathParser::MathFunc_t;
+	f->fname = "angle";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angle<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// xangle
+	f = new MathParser::MathFunc_t;
+	f->fname = "xangle";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angle<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// yangle
+	f = new MathParser::MathFunc_t;
+	f->fname = "yangle";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angle<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// zangle
+	f = new MathParser::MathFunc_t;
+	f->fname = "zangle";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angle<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	// anglerel
 	f = new MathParser::MathFunc_t;
 	f->fname = "anglerel";
@@ -982,6 +1211,181 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	f->args[2] = new MathParser::MathArgInt_t;
 	f->args[3] = new MathArgDM;
 	f->f = vrel<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// angvel
+	f = new MathParser::MathFunc_t;
+	f->fname = "angvel";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angvel<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// angvel
+	f = new MathParser::MathFunc_t;
+	f->fname = "angvel2";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angvel<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// xangvel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xangvel";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angvel<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// yangvel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yangvel";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angvel<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// zangvel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zangvel";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathArgDM;
+	f->f = angvel<IDX3>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// angvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "angvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = angvrel<NORM>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// angvrel2
+	f = new MathParser::MathFunc_t;
+	f->fname = "angvrel2";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = angvrel<SQUARE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// xangvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "xangvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = angvrel<IDX1>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// yangvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "yangvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = angvrel<IDX2>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// zangvrel
+	f = new MathParser::MathFunc_t;
+	f->fname = "zangvrel";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgInt_t;
+	f->args[3] = new MathArgDM;
+	f->f = angvrel<IDX3>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
