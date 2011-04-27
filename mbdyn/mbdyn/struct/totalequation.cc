@@ -60,7 +60,7 @@ XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
-tilde_f1(R1h.Transpose()*f1),
+tilde_f1(R1h.MulTV(f1)),
 M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
@@ -401,33 +401,37 @@ TotalEquation::SetValue(DataManager *pDM,
 			if (pjh) {
 
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					Mat3x3 R1T(pNode1->GetRCurr().Transpose());
+					const Mat3x3& R1(pNode1->GetRCurr());
 					Vec3 fTmp2(pNode2->GetRCurr()*f2);
 
-					f1 = R1T*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
-					tilde_f1 = R1h.Transpose()*f1 - XDrv.Get();
+					f1 = R1.MulTV(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
+					tilde_f1 = R1h.MulTV(f1) - XDrv.Get();
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-					Mat3x3 R2T(pNode2->GetRCurr().Transpose());
+					const Mat3x3& R2(pNode2->GetRCurr());
 					Mat3x3 R1(pNode1->GetRCurr()*R1h);
 					Vec3 fTmp1(pNode1->GetRCurr()*f1);
 
-					f2 = R2T*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr() + R1*XDrv.Get());
+					f2 = R2.MulTV(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr() + R1*XDrv.Get());
 
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
-						R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+						const Mat3x3& R1(pNode1->GetRCurr());
+						R1h = R1.MulTM(pNode2->GetRCurr()*R2h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<1> *>(pjh)) {
-						R1hr = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2hr;
+						const Mat3x3& R1(pNode1->GetRCurr());
+						R1hr = R1.MulTM(pNode2->GetRCurr()*R2hr);
 					}
 
 				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<2> *>(pjh)) {
-						R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+						const Mat3x3& R2(pNode2->GetRCurr());
+						R2h = R2.MulTM(pNode1->GetRCurr()*R1h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<2> *>(pjh)) {
-						R2hr = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1hr;
+						const Mat3x3& R2(pNode2->GetRCurr());
+						R2hr = R2.MulTM(pNode1->GetRCurr()*R1hr);
 					}
 
 				} else if (dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh)) {
@@ -1213,7 +1217,7 @@ pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
-tilde_f1(R1h.Transpose()*f1),
+tilde_f1(R1h.MulTV(f1)),
 M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3),
 total_equation_element(t_elm)
 {
@@ -1360,74 +1364,81 @@ TotalReaction::SetValue(DataManager *pDM,
 			if (pjh) {
 
 				if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-					Mat3x3 R1T(pNode1->GetRCurr().Transpose());
+					const Mat3x3& R1(pNode1->GetRCurr());
 					Vec3 fTmp2(pNode2->GetRCurr()*f2);
 
-					f1 = R1T*(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
-					tilde_f1 = R1h.Transpose()*f1;
+					f1 = R1.MulTV(pNode2->GetXCurr() + fTmp2 - pNode1->GetXCurr());
+					tilde_f1 = R1h.MulTV(f1);
 					
 
 				} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-					Mat3x3 R2T(pNode2->GetRCurr().Transpose());
+					const Mat3x3& R2(pNode2->GetRCurr());
 					Vec3 fTmp1(pNode1->GetRCurr()*f1);
 
-					f2 = R2T*(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr());
+					f2 = R2.MulTV(pNode1->GetXCurr() + fTmp1 - pNode2->GetXCurr());
 
 				} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<1> *>(pjh)) {
-						R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+						const Mat3x3& R1(pNode1->GetRCurr());
+						R1h = R1.MulTM(pNode2->GetRCurr()*R2h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<1> *>(pjh)) {
-						R1hr = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2hr;
+						const Mat3x3& R1(pNode1->GetRCurr());
+						R1hr = R1.MulTM(pNode2->GetRCurr()*R2hr);
 					}
 
 				} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
 					if (dynamic_cast<Joint::PositionHingeHint<2> *>(pjh)) {
-						R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+						const Mat3x3& R2(pNode2->GetRCurr());
+						R2h = R2.MulTM(pNode1->GetRCurr()*R1h);
 
 					} else if (dynamic_cast<Joint::OrientationHingeHint<2> *>(pjh)) {
-						R2hr = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1hr;
+						const Mat3x3& R2(pNode2->GetRCurr());
+						R2hr = R2.MulTM(pNode1->GetRCurr()*R1hr);
 					}
 
-// 				} else if (dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh)) {
-// 					Joint::JointDriveHint<Vec3> *pjdh
-// 						= dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh);
-// 					pedantic_cout("TotalReaction(" << uLabel << "): "
-// 						"creating drive from hint[" << i << "]..." << std::endl);
-// 
-// 					TplDriveCaller<Vec3> *pDC = pjdh->pTDH->pCreateDrive(pDM);
-// 					if (pDC == 0) {
-// 						silent_cerr("TotalReaction(" << uLabel << "): "
-// 							"unable to create drive "
-// 							"after hint #" << i << std::endl);
-// 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-// 					}
-// 
-// 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
-// 						XDrv.Set(pDC);
-// 
-// 					} else if (dynamic_cast<Joint::VelocityDriveHint<Vec3> *>(pjdh)) {
-// 						XPDrv.Set(pDC);
-// 
-// 					} else if (dynamic_cast<Joint::AccelerationDriveHint<Vec3> *>(pjdh)) {
-// 						XPPDrv.Set(pDC);
-// 
-// 					} else if (dynamic_cast<Joint::OrientationDriveHint<Vec3> *>(pjdh)) {
-// 						ThetaDrv.Set(pDC);
-// 
-// 					} else if (dynamic_cast<Joint::AngularVelocityDriveHint<Vec3> *>(pjdh)) {
-// 						OmegaDrv.Set(pDC);
-// 
-// 					} else if (dynamic_cast<Joint::AngularAccelerationDriveHint<Vec3> *>(pjdh)) {
-// 						OmegaPDrv.Set(pDC);
-// 
-// 					} else {
-// 						delete pDC;
-// 					}
-// 
+#if 0
+ 				} else if (dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh)) {
+ 					Joint::JointDriveHint<Vec3> *pjdh
+ 						= dynamic_cast<Joint::JointDriveHint<Vec3> *>(pjh);
+ 					pedantic_cout("TotalReaction(" << uLabel << "): "
+ 						"creating drive from hint[" << i << "]..." << std::endl);
+ 
+ 					TplDriveCaller<Vec3> *pDC = pjdh->pTDH->pCreateDrive(pDM);
+ 					if (pDC == 0) {
+ 						silent_cerr("TotalReaction(" << uLabel << "): "
+ 							"unable to create drive "
+ 							"after hint #" << i << std::endl);
+ 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+ 					}
+ 
+ 					if (dynamic_cast<Joint::PositionDriveHint<Vec3> *>(pjdh)) {
+ 						XDrv.Set(pDC);
+ 
+ 					} else if (dynamic_cast<Joint::VelocityDriveHint<Vec3> *>(pjdh)) {
+ 						XPDrv.Set(pDC);
+ 
+ 					} else if (dynamic_cast<Joint::AccelerationDriveHint<Vec3> *>(pjdh)) {
+ 						XPPDrv.Set(pDC);
+ 
+ 					} else if (dynamic_cast<Joint::OrientationDriveHint<Vec3> *>(pjdh)) {
+ 						ThetaDrv.Set(pDC);
+ 
+ 					} else if (dynamic_cast<Joint::AngularVelocityDriveHint<Vec3> *>(pjdh)) {
+ 						OmegaDrv.Set(pDC);
+ 
+ 					} else if (dynamic_cast<Joint::AngularAccelerationDriveHint<Vec3> *>(pjdh)) {
+ 						OmegaPDrv.Set(pDC);
+ 
+ 					} else {
+ 						delete pDC;
+ 					}
+#endif
+ 
 				} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 					/* TODO */
 				}
+
 				continue;
 			}
 		}
@@ -1801,14 +1812,13 @@ TotalReaction::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 R1rTmp(pNode1->GetRCurr()*R1hr);
-		Mat3x3 R1rTmpT(R1rTmp.Transpose());
 		Mat3x3 R2rTmp(pNode2->GetRCurr()*R2hr);
-		Mat3x3 RTmp(R1rTmpT*R2rTmp);
+		Mat3x3 RTmp(R1rTmp.MulTM(R2rTmp));
 
 		Joint::Output(OH.Joints(), "TotalReaction", GetLabel(),
 			F, M, R1Tmp*F, R1rTmp*M)
 			<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-			<< " " << R1rTmpT*(pNode2->GetWCurr() - pNode1->GetWCurr())
+			<< " " << R1rTmp.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
 			<< " " << ThetaDeltaPrev << std::endl;
 	}
 }
@@ -2131,38 +2141,7 @@ TotalReaction::InitialAssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(18 + 1, FPrimeTmp);
 	WorkVec.Sub(21 + 1, b2.Cross(FPrimeTmp) + MPrimeTmp);
 
-	/* Constraint Equations */
-	
-// 	Vec3 XDelta = R1.Transpose()*b1 - tilde_f1 - XDrv.Get();
-// 	Vec3 XDeltaPrime = R1.Transpose()*(b1Prime + b1.Cross(Omega1));
-// 	
-// 	if(XDrv.bIsDifferentiable())	{
-// 		XDeltaPrime -= XDrv.GetP();
-// 	}
-// 	
-// 	Mat3x3 R0T = RotManip::Rot(-ThetaDrv.Get());	// -Theta0 to get R0 transposed
-// 	Mat3x3 RDelta = R1r.Transpose()*R2r*R0T;
-// 	ThetaDelta = RotManip::VecRot(RDelta);
-// 	Vec3 ThetaDeltaPrime = R1r.Transpose()*(Omega2 - Omega1);
-// 
-// 	if(ThetaDrv.bIsDifferentiable())	{
-// 		ThetaDeltaPrime -= RDelta*ThetaDrv.GetP();
-// 	}
-// 
-// 
-// 	/* Position constraint:  */
-// 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-// 		WorkVec.PutCoef(24 + 1 + iCnt, -XDelta(iPosIncid[iCnt]));
-// 		WorkVec.PutCoef(24 + 1 + nConstraints + iCnt, -XDeltaPrime(iPosIncid[iCnt]));
-// 	}
-// 
-// 	/* Rotation constraints: */
-// 	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-// 		WorkVec.PutCoef(24 + 1 + nPosConstraints + iCnt, -ThetaDelta(iRotIncid[iCnt]));
-// 		WorkVec.PutCoef(24 + 1 + nPosConstraints + nConstraints +  iCnt, -ThetaDeltaPrime(iRotIncid[iCnt]));
-// 	}
-
-return WorkVec;
+	return WorkVec;
 }
 
 
@@ -2239,17 +2218,17 @@ TotalReaction::dGetPrivData(unsigned int i) const
 	case 1:
 	case 2:
 	case 3: {
-		Vec3 x(pNode1->GetRCurr().Transpose()*(
-			pNode2->GetXCurr() + pNode2->GetRCurr()*f2
-				- pNode1->GetXCurr()) - f1);
+		Vec3 x(pNode1->GetRCurr().MulTV(pNode2->GetXCurr() + pNode2->GetRCurr()*f2 - pNode1->GetXCurr()) - f1);
 			return R1h.GetVec(i)*x;
 		}
 
 	case 4:
 	case 5:
 	case 6: {
-// 		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDelta) + ThetaDrv.Get());
-// 		return Theta(i - 3);
+#if 0
+ 		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDelta) + ThetaDrv.Get());
+ 		return Theta(i - 3);
+#endif
 		return 0.;
 		}
 
