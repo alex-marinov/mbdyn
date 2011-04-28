@@ -2080,14 +2080,21 @@ If \kw{type} is \kw{ridig} or \kw{all}, the line contains:
 \item in column 1 the label of the element and that of the corresponding node;
 	the format of this field is \nt{element\_label}\texttt{@}\nt{node\_label};
 \item in columns 2--4 the three components of the force,
+	as received from the peer;
+\item in columns 5--7 the three components of the moment,
+	as received from the peer;
+\item in columns 8--10 the three components of the force,
 	in the global reference frame;
-\item in columns 5--7 the three components of the moment
+\item in columns 11--13 the three components of the moment
 	with respect to the reference node,
 	in the global reference frame;
 \item in columns 8--10 the three components of the force,
-	as received from the peer;
-\item in columns 11--13 the three components of the moment,
-	as received from the peer.
+	in the global reference frame, resulting from the combination
+	of the mapped forces;
+\item in columns 11--13 the three components of the moment
+	with respect to the reference node,
+	in the global reference frame, resulting from the combination
+	of the mapped forces and moments.
 \end{itemize}
 If \kw{type} is \kw{modal} or \kw{all}, two types of output are generated:
 \begin{itemize}

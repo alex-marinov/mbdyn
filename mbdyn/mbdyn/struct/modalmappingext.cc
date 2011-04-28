@@ -50,22 +50,21 @@ ModalMappingExt::ModalMappingExt(unsigned int uL,
 	bool bSendAfterPredict,
 	int iCoupling,
 	ExtModalForceBase::BitMask bm,
-	bool bUseRigidBodyForces,
-	bool bRotateRigidBodyForces,
+	bool bUseReferenceNodeForces,
+	bool bRotateReferenceNodeForces,
 	flag fOut)
 : Elem(uL, fOut),
 ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pEMF(pEMF),
 uFlags(ExtModalForceBase::EMF_NONE),
 bOutputAccelerations(bOutputAccelerations),
-bUseRigidBodyForces(bUseRigidBodyForces),
-bRotateRigidBodyForces(bRotateRigidBodyForces),
+bUseReferenceNodeForces(bUseReferenceNodeForces),
+bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 pRefNode(pRefNode),
 pH(pH),
-F0(Zero3),
-M0(Zero3),
-F(Zero3),
-M(Zero3)
+F0(Zero3), M0(Zero3),
+F1(Zero3), M1(Zero3),
+F2(Zero3), M2(Zero3)
 {
 	ASSERT(pEMF != 0);
 
@@ -223,19 +222,21 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 		const Vec3& XRef(pRefNode->GetXCurr());
 		const Mat3x3& RRef(pRefNode->GetRCurr());
 
-		if (bUseRigidBodyForces) {
+		if (bUseReferenceNodeForces) {
 			// initialize rigid body forces with values provided by peer
-			if (bRotateRigidBodyForces) {
-				F = RRef*F0;
-				M = RRef*M0;
+			if (bRotateReferenceNodeForces) {
+				F1 = RRef*F0;
+				M1 = RRef*M0;
 			}
 
 		} else {
 			// ignore rigid body forces
-			F = Zero3;
-			M = Zero3;
+			F1 = Zero3;
+			M1 = Zero3;
 		}
 
+		F2 = Zero3;
+		M2 = Zero3;
 		for (unsigned i = 0; i < Nodes.size(); i++) {
 			Vec3 FTmp(&f[6*i]);
 			Vec3 MTmp(&f[6*i + 3]);
@@ -243,13 +244,16 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			Nodes[i].F = RRef*FTmp;
 			Nodes[i].M = RRef*MTmp;
 
-			if (bUseRigidBodyForces && Nodes[i].pNode != pRefNode) {
-				F -= Nodes[i].F;
-				M -= Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
+			if ((bUseReferenceNodeForces || fToBeOutput()) && Nodes[i].pNode != pRefNode) {
+				F2 += Nodes[i].F;
+				M2 += Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
 			}
 		}
 
-		
+		if (bUseReferenceNodeForces) {
+			F1 -= F2;
+			M1 -= M2;
+		}
 
 	} else {
 		for (unsigned i = 0; i < Nodes.size(); i++) {
@@ -303,8 +307,8 @@ ModalMappingExt::AssRes(SubVectorHandler& WorkVec,
 			WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 		}
 
-		WorkVec.Put(1, F);
-		WorkVec.Put(4, M);
+		WorkVec.Put(1, F1);
+		WorkVec.Put(4, M1);
 	}
 
 	if (pRefNode) {
@@ -336,8 +340,9 @@ ModalMappingExt::Output(OutputHandler& OH) const
 
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
 			out << GetLabel() << "@" << pRefNode->GetLabel()
-				<< " " << F << " " << M
 				<< " " << F0 << " " << M0
+				<< " " << F1 << " " << M1
+				<< " " << F2 << " " << M2
 				<< std::endl;
 		}
 
@@ -596,18 +601,18 @@ ReadModalMappingExtForce(DataManager* pDM,
 		}
 	}
 
-	bool bUseRigidBodyForces(pRefNode != 0 ? true : false);
-	bool bRotateRigidBodyForces(true);
+	bool bUseReferenceNodeForces(pRefNode != 0 ? true : false);
+	bool bRotateReferenceNodeForces(true);
 	if (pRefNode != 0 && HP.IsKeyWord("use" "rigid" "body" "forces")) {
-		if (!HP.GetYesNo(bUseRigidBodyForces)) {
+		if (!HP.GetYesNo(bUseReferenceNodeForces)) {
 			silent_cerr("ModalMappingExt(" << uLabel << "): "
 				"\"use rigid body forces\" must be either \"yes\" or \"no\" "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (bUseRigidBodyForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
-			if (!HP.GetYesNo(bRotateRigidBodyForces)) {
+		if (bUseReferenceNodeForces && HP.IsKeyWord("rotate" "rigid" "body" "forces")) {
+			if (!HP.GetYesNo(bRotateReferenceNodeForces)) {
 				silent_cerr("ModalMappingExt(" << uLabel << "): "
 					"\"rotate rigid body forces\" must be either \"yes\" or \"no\" "
 					"at line " << HP.GetLineData() << std::endl);
@@ -738,7 +743,7 @@ ReadModalMappingExtForce(DataManager* pDM,
 		ModalMappingExt(uLabel, pDM, pRefNode, n, pH,
 			bOutputAccelerations,
 			pEFH, pEMF, bSendAfterPredict, iCoupling, bm,
-			bUseRigidBodyForces, bRotateRigidBodyForces, fOut));
+			bUseReferenceNodeForces, bRotateReferenceNodeForces, fOut));
 
 	return pEl;
 }

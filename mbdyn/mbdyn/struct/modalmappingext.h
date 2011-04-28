@@ -48,8 +48,8 @@ protected:
 	ExtModalForceBase *pEMF;
 	unsigned uFlags;
 	bool bOutputAccelerations;
-	bool bUseRigidBodyForces;
-	bool bRotateRigidBodyForces;
+	bool bUseReferenceNodeForces;
+	bool bRotateReferenceNodeForces;
 
 	StructNode *pRefNode;
 
@@ -69,7 +69,8 @@ protected:
 
 	// rigid-body forces
 	Vec3 F0, M0;
-	Vec3 F, M;
+	Vec3 F1, M1;
+	Vec3 F2, M2;
 
 	STLVectorHandler f;
 	STLVectorHandler p;
@@ -96,8 +97,8 @@ public:
 		bool bSendAfterPredict,
 		int iCoupling,
 		ExtModalForceBase::BitMask bm,
-		bool bUseRigidBodyForces,
-		bool bRotateRigidBodyForces,
+		bool bUseReferenceNodeForces,
+		bool bRotateReferenceNodeForces,
 		flag fOut);
 
 	virtual ~ModalMappingExt(void);
