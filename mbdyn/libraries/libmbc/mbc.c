@@ -284,11 +284,12 @@ mbc_rigid_init(mbc_rigid_t *mbc, unsigned refnode,
 	}
 
 	if (labels) {
-		mbc->r_k_label = offset;
-		offset += sizeof(uint32_t);
+		mbc->r_k_label = offset/sizeof(uint32_t);
+		/* skip 2 uint32_t to ensure alignment of double */
+		offset += 2*sizeof(uint32_t);
 	}
 
-	mbc->r_k_x = offset;
+	mbc->r_k_x = offset/sizeof(double);
 	offset += 3*sizeof(double);
 
 retry:;
@@ -303,17 +304,17 @@ retry:;
 		return -1;
 
 	case MBC_ROT_THETA:
-		mbc->r_k_theta = offset;
+		mbc->r_k_theta = offset/sizeof(double);
 		offset += 3*sizeof(double);
 		break;
 
 	case MBC_ROT_MAT:
-		mbc->r_k_r = offset;
+		mbc->r_k_r = offset/sizeof(double);
 		offset += 9*sizeof(double);
 		break;
 
 	case MBC_ROT_EULER_123:
-		mbc->r_k_euler_123 = offset;
+		mbc->r_k_euler_123 = offset/sizeof(double);
 		offset += 3*sizeof(double);
 		break;
 
@@ -322,33 +323,34 @@ retry:;
 		return -1;
 	}
 
-	mbc->r_k_xp = offset;
+	mbc->r_k_xp = offset/sizeof(double);
 	offset += 3*sizeof(double);
 
-	mbc->r_k_omega = offset;
+	mbc->r_k_omega = offset/sizeof(double);
 	offset += 3*sizeof(double);
 
 	if (accels) {
-		mbc->r_k_xpp = offset;
+		mbc->r_k_xpp = offset/sizeof(double);
 		offset += 3*sizeof(double);
 
-		mbc->r_k_omegap = offset;
+		mbc->r_k_omegap = offset/sizeof(double);
 		offset += 3*sizeof(double);
 	}
 
 	mbc->k_size = offset;
 
 	if (labels) {
-		mbc->r_d_label = offset;
-		offset += sizeof(uint32_t);
-		mbc->d_size += sizeof(uint32_t);
+		mbc->r_d_label = offset/sizeof(uint32_t);
+		/* skip 2 uint32_t to ensure alignment of double */
+		offset += 2*sizeof(uint32_t);
+		mbc->d_size += 2*sizeof(uint32_t);
 	}
 
-	mbc->r_d_f = offset;
+	mbc->r_d_f = offset/sizeof(double);
 	offset += 3*sizeof(double);
 	mbc->d_size += 3*sizeof(double);
 
-	mbc->r_d_m = offset;
+	mbc->r_d_m = offset/sizeof(double);
 	offset += 3*sizeof(double);
 	mbc->d_size += 3*sizeof(double);
 

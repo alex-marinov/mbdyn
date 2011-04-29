@@ -160,9 +160,10 @@ typedef struct {
 
 	/* reference node data */
 	union {
-		char		char_r_ptr[(1 + 1) * sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
-		uint32_t	uint32_t_r_ptr[(1 + 1) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double) / sizeof(uint32_t)];
-		double		double_r_ptr[(1 + 1) * sizeof(uint32_t) / sizeof(double) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
+		/* NOTE: wasting an uint32_t for each uint32_t to make sure alignment is on double */
+		char		char_r_ptr[(2 + 2) * sizeof(uint32_t) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
+		uint32_t	uint32_t_r_ptr[(2 + 2) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double) / sizeof(uint32_t)];
+		double		double_r_ptr[(2 + 2) * sizeof(uint32_t) / sizeof(double) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
 	} r_ptr;
 	uint32_t	k_size;
 	int32_t		r_k_label;
