@@ -227,22 +227,18 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			if (bRotateReferenceNodeForces) {
 				F1 = RRef*F0;
 				M1 = RRef*M0;
-			}
 
-		} else {
-			// ignore rigid body forces
-			F1 = Zero3;
-			M1 = Zero3;
+			} else {
+				F1 = F0;
+				M1 = M0;
+			}
 		}
 
 		F2 = Zero3;
 		M2 = Zero3;
 		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 FTmp(&f[6*i]);
-			Vec3 MTmp(&f[6*i + 3]);
-
-			Nodes[i].F = RRef*FTmp;
-			Nodes[i].M = RRef*MTmp;
+			Nodes[i].F = RRef*Vec3(&f[6*i]);
+			Nodes[i].M = RRef*Vec3(&f[6*i + 3]);
 
 			if ((bUseReferenceNodeForces || fToBeOutput()) && Nodes[i].pNode != pRefNode) {
 				F2 += Nodes[i].F;
