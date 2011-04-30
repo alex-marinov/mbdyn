@@ -270,7 +270,7 @@ public:
 	Mat3xN* GetCurrFEMNodesPosition(void);
 	Mat3xN* GetCurrFEMNodesVelocity(void);
 
-	integer uGetNModes(void) {
+	integer uGetNModes(void) const {
 		return NModes;
 	};
 

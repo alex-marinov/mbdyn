@@ -32,11 +32,14 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "dataman.h"
+#include "extedge.h"
 #include "strext.h"
+#include "stredge.h"
 #include "Rot.hh"
 
 #include <fstream>
 #include <cerrno>
+#include <algorithm>
 
 /* StructExtForce - begin */
 
@@ -46,6 +49,7 @@ StructExtForce::StructExtForce(unsigned int uL,
 	StructNode *pRefNode,
 	bool bUseReferenceNodeForces,
 	bool bRotateReferenceNodeForces,
+	std::vector<unsigned >& labels,
 	std::vector<StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	bool bSorted,
@@ -81,10 +85,9 @@ iobuf_f(0),
 iobuf_m(0)
 {
 	ASSERT(nodes.size() == offsets.size());
-	Nodes.resize(nodes.size());
-	Offsets.resize(nodes.size());
-	F.resize(nodes.size());
-	M.resize(nodes.size());
+	ASSERT((!bLabels) || (nodes.size() == offsets.size()));
+
+	m_Points.resize(nodes.size());
 
 	switch (uRot) {
 	case MBC_ROT_NONE:
@@ -101,10 +104,16 @@ iobuf_m(0)
 	}
 
 	for (unsigned i = 0; i < nodes.size(); i++) {
-		Nodes[i] = nodes[i];
-		Offsets[i] = offsets[i];
-		F[i] = Zero3;
-		M[i] = Zero3;
+		m_Points[i].pNode = nodes[i];
+		m_Points[i].Offset = offsets[i];
+		m_Points[i].F = Zero3;
+		m_Points[i].M = Zero3;
+	}
+
+	if (bLabels) {
+		for (unsigned i = 0; i < nodes.size(); i++) {
+			m_Points[i].uLabel = labels[i];
+		}
 	}
 
 	ASSERT(!(!bLabels && !bSorted));
@@ -113,12 +122,12 @@ iobuf_m(0)
 	}
 
 	if (bOutputAccelerations) {
-		for (unsigned i = 0; i < nodes.size(); i++) {
-			DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(Nodes[i]);
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(m_Points[i].pNode);
 			if (pDSN == 0) {
 				silent_cerr("StructExtForce"
 					"(" << GetLabel() << "): "
-					"StructNode(" << Nodes[i]->GetLabel() << ") "
+					"point #" << i << " StructNode(" << m_Points[i].pNode->GetLabel() << ") "
 					"is not dynamic"
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -170,17 +179,17 @@ iobuf_m(0)
 			dynamics_size += sizeof(uint32_t);
 		}
 
-		iobuf.resize(node_kinematics_size*Nodes.size());
-		dynamics_size *= Nodes.size();
+		iobuf.resize(node_kinematics_size*m_Points.size());
+		dynamics_size *= m_Points.size();
 
 		char *ptr = &iobuf[0];
 		if (bLabels) {
 			iobuf_labels = (uint32_t *)ptr;
-			ptr += sizeof(uint32_t)*Nodes.size();
+			ptr += sizeof(uint32_t)*m_Points.size();
 		}
 
 		iobuf_x = (doublereal *)ptr;
-		ptr += 3*sizeof(doublereal)*Nodes.size();
+		ptr += 3*sizeof(doublereal)*m_Points.size();
 
 		switch (uRot) {
 		case MBC_ROT_NONE:
@@ -188,46 +197,46 @@ iobuf_m(0)
 
 		case MBC_ROT_MAT:
 			iobuf_R = (doublereal *)ptr;
-			ptr += 9*sizeof(doublereal)*Nodes.size();
+			ptr += 9*sizeof(doublereal)*m_Points.size();
 			break;
 
 		case MBC_ROT_THETA:
 			iobuf_theta = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			ptr += 3*sizeof(doublereal)*m_Points.size();
 			break;
 
 		case MBC_ROT_EULER_123:
 			iobuf_euler_123 = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			ptr += 3*sizeof(doublereal)*m_Points.size();
 			break;
 		}
 
 		iobuf_xp = (doublereal *)ptr;
-		ptr += 3*sizeof(doublereal)*Nodes.size();
+		ptr += 3*sizeof(doublereal)*m_Points.size();
 
 		if (uRot != MBC_ROT_NONE) {
 			iobuf_omega = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			ptr += 3*sizeof(doublereal)*m_Points.size();
 		}
 
 		if (bOutputAccelerations) {
 			iobuf_xpp = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			ptr += 3*sizeof(doublereal)*m_Points.size();
 
 			if (uRot != MBC_ROT_NONE) {
 				iobuf_omegap = (doublereal *)ptr;
-				ptr += 3*sizeof(doublereal)*Nodes.size();
+				ptr += 3*sizeof(doublereal)*m_Points.size();
 			}
 		}
 
 		ptr = (char *)iobuf_x;
 
 		iobuf_f = (doublereal *)ptr;
-		ptr += 3*sizeof(doublereal)*Nodes.size();
+		ptr += 3*sizeof(doublereal)*m_Points.size();
 
 		if (uRot != MBC_ROT_NONE) {
 			iobuf_m = (doublereal *)ptr;
-			ptr += 3*sizeof(doublereal)*Nodes.size();
+			ptr += 3*sizeof(doublereal)*m_Points.size();
 		}
 	}
 }
@@ -245,7 +254,7 @@ StructExtForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 		*piNumCols = 0;
 
 	} else {
-		*piNumRows = (pRefNode ? 6 : 0) + 6*Nodes.size();
+		*piNumRows = (pRefNode ? 6 : 0) + 6*m_Points.size();
 		*piNumCols = 1;
 	}
 }
@@ -282,7 +291,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 				uint32_ptr[0] |= MBC_ACCELS;
 			}
 
-			uint32_ptr[1] = Nodes.size();
+			uint32_ptr[1] = m_Points.size();
 
 			ssize_t rc = send(pEFH->GetOutFileDes(),
 				(const void *)buf, sizeof(buf),
@@ -395,10 +404,10 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 			bResult = false;
 		}
 
-		if (uN != Nodes.size()) {
+		if (uN != m_Points.size()) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: node number mismatch "
-				"(local=" << Nodes.size() << ", remote=" << uN << ")"
+				"(local=" << m_Points.size() << ", remote=" << uN << ")"
 				<< std::endl);
 			bResult = false;
 		}
@@ -485,20 +494,20 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		}
 		outf << std::endl;
 
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
-			Vec3 x(Nodes[i]->GetXCurr() + f);
+		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+			Vec3 f(point->pNode->GetRCurr()*point->Offset);
+			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 Dx(x - xRef);
-			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
-			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
+			Mat3x3 DR(RRef.MulTM(point->pNode->GetRCurr()));
+			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
 			Vec3 Dv(v - xpRef - wRef.Cross(Dx));
-			const Vec3& w(Nodes[i]->GetWCurr());
+			const Vec3& w(point->pNode->GetWCurr());
 
 			// manipulate
 
 			if (bLabels) {
 				outf
-					<< Nodes[i]->GetLabel()
+					<< point->pNode->GetLabel()
 					<< " ";
 			}
 
@@ -534,8 +543,8 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			}
 
 			if (bOutputAccelerations) {
-				const Vec3& xpp(Nodes[i]->GetXPPCurr());
-				const Vec3& wp(Nodes[i]->GetWPCurr());
+				const Vec3& xpp(point->pNode->GetXPPCurr());
+				const Vec3& wp(point->pNode->GetWPCurr());
 
 				outf
 					<< " " << RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
@@ -550,7 +559,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		}
 
 	} else {
-		for (unsigned i = 0; i < Nodes.size(); i++) {
+		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
 			/*
 				p = x + f
 				R = R
@@ -561,16 +570,16 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			 */
 
 			// Optimization of the above formulas
-			const Mat3x3& R = Nodes[i]->GetRCurr();
-			Vec3 f = R*Offsets[i];
-			Vec3 x = Nodes[i]->GetXCurr() + f;
-			const Vec3& w = Nodes[i]->GetWCurr();
+			const Mat3x3& R = point->pNode->GetRCurr();
+			Vec3 f = R*point->Offset;
+			Vec3 x = point->pNode->GetXCurr() + f;
+			const Vec3& w = point->pNode->GetWCurr();
 			Vec3 wCrossf = w.Cross(f);
-			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
+			Vec3 v = point->pNode->GetVCurr() + wCrossf;
 
 			if (bLabels) {
 				outf
-					<< Nodes[i]->GetLabel()
+					<< point->pNode->GetLabel()
 					<< " ";
 			}
 
@@ -605,8 +614,8 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			}
 
 			if (bOutputAccelerations) {
-				const Vec3& wp = Nodes[i]->GetWPCurr();
-				Vec3 a = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
+				const Vec3& wp = point->pNode->GetWPCurr();
+				Vec3 a = point->pNode->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
 				outf
 					<< " " << a;
@@ -669,18 +678,19 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 		}
 
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			Vec3 f(Nodes[i]->GetRCurr()*Offsets[i]);
-			Vec3 x(Nodes[i]->GetXCurr() + f);
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			const PointData& point = m_Points[i];
+			Vec3 f(point.pNode->GetRCurr()*point.Offset);
+			Vec3 x(point.pNode->GetXCurr() + f);
 			Vec3 Dx(x - xRef);
-			Mat3x3 DR(RRef.MulTM(Nodes[i]->GetRCurr()));
-			Vec3 v(Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(f));
+			Mat3x3 DR(RRef.MulTM(point.pNode->GetRCurr()));
+			Vec3 v(point.pNode->GetVCurr() + point.pNode->GetWCurr().Cross(f));
 			Vec3 Dv(v - xpRef - wRef.Cross(Dx));
-			const Vec3& w(Nodes[i]->GetWCurr());
+			const Vec3& w(point.pNode->GetWCurr());
 
 			// manipulate
 			if (bLabels) {
-				uint32_t l = Nodes[i]->GetLabel();
+				uint32_t l = point.pNode->GetLabel();
 				iobuf_labels[i] = l;
 			}
 
@@ -715,8 +725,8 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 
 			if (bOutputAccelerations) {
-				const Vec3& xpp = Nodes[i]->GetXPPCurr();
-				const Vec3& wp = Nodes[i]->GetWPCurr();
+				const Vec3& xpp = point.pNode->GetXPPCurr();
+				const Vec3& wp = point.pNode->GetWPCurr();
 
 				Vec3 xppTilde(RRef.MulTV(xpp - xppRef - wpRef.Cross(Dx)
 					- wRef.Cross(wRef.Cross(Dx) + Dv*2)
@@ -731,7 +741,7 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		}
 
 	} else {
-		for (unsigned i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < m_Points.size(); i++) {
 			/*
 				p = x + f
 				R = R
@@ -742,15 +752,16 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			 */
 
 			// Optimization of the above formulas
-			const Mat3x3& R = Nodes[i]->GetRCurr();
-			Vec3 f = R*Offsets[i];
-			Vec3 x = Nodes[i]->GetXCurr() + f;
-			const Vec3& w = Nodes[i]->GetWCurr();
+			const PointData& point = m_Points[i];
+			const Mat3x3& R = point.pNode->GetRCurr();
+			Vec3 f = R*point.Offset;
+			Vec3 x = point.pNode->GetXCurr() + f;
+			const Vec3& w = point.pNode->GetWCurr();
 			Vec3 wCrossf = w.Cross(f);
-			Vec3 v = Nodes[i]->GetVCurr() + wCrossf;
+			Vec3 v = point.pNode->GetVCurr() + wCrossf;
 
 			if (bLabels) {
-				uint32_t l = Nodes[i]->GetLabel();
+				uint32_t l = point.pNode->GetLabel();
 				iobuf_labels[i] = l;
 			}
 			memcpy(&iobuf_x[3*i], x.pGetVec(), 3*sizeof(doublereal));
@@ -778,8 +789,8 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 			}
 
 			if (bOutputAccelerations) {
-				const Vec3& wp = Nodes[i]->GetWPCurr();
-				Vec3 xpp = Nodes[i]->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
+				const Vec3& wp = point.pNode->GetWPCurr();
+				Vec3 xpp = point.pNode->GetXPPCurr() + wp.Cross(f) + w.Cross(wCrossf);
 
 				memcpy(&iobuf_xpp[3*i], xpp.pGetVec(), 3*sizeof(doublereal));
 				if (uRot != MBC_ROT_NONE) {
@@ -827,11 +838,8 @@ StructExtForce::RecvFromStream(std::istream& inf)
 	if (!bSorted) {
 		ASSERT(bLabels);
 
-		done.resize(Nodes.size());
-
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			done[i] = false;
-		}
+		done.resize(m_Points.size());
+		fill(done.begin(), done.end(), false);
 
 		unsigned cnt;
 		for (cnt = 0; inf; cnt++) {
@@ -849,13 +857,13 @@ StructExtForce::RecvFromStream(std::istream& inf)
 				break;
 			}
 
-			for (i = 0; i < Nodes.size(); i++) {
-				if (Nodes[i]->GetLabel() == l) {
+			for (i = 0; i < m_Points.size(); i++) {
+				if (m_Points[i].uLabel == l) {
 					break;
 				}
 			}
 
-			if (i == Nodes.size()) {
+			if (i == m_Points.size()) {
 				silent_cerr("StructExtForce"
 					"(" << GetLabel() << "): "
 					"unknown label " << l
@@ -874,22 +882,22 @@ StructExtForce::RecvFromStream(std::istream& inf)
 
 			done[i] = true;
 
-			F[i] = Vec3(f);
+			m_Points[i].F = Vec3(f);
 			if (uRot != MBC_ROT_NONE) {
-				M[i] = Vec3(m);
+				m_Points[i].M = Vec3(m);
 			}
 		}
 
-		if (cnt != Nodes.size()) {
+		if (cnt != m_Points.size()) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"invalid number of nodes " << cnt
 				<< std::endl);
 
-			for (unsigned i = 0; i < Nodes.size(); i++) {
+			for (unsigned i = 0; i < m_Points.size(); i++) {
 				if (!done[i]) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
-						"node " << Nodes[i]->GetLabel()
+						"label " << m_Points[i].uLabel << " node " << m_Points[i].pNode->GetLabel()
 						<< " not done" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -899,7 +907,10 @@ StructExtForce::RecvFromStream(std::istream& inf)
 		}
 
 	} else {
-		for (unsigned i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			PointData& point = m_Points[i];
+
+
 			/* assume unsigned int label */
 			unsigned l;
 			doublereal f[3], m[3];
@@ -907,7 +918,7 @@ StructExtForce::RecvFromStream(std::istream& inf)
 			if (bLabels) {
 				inf >> l;
 
-				if (Nodes[i]->GetLabel() != l) {
+				if (point.pNode->GetLabel() != l) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
 						"invalid " << i << "-th label " << l
@@ -926,9 +937,9 @@ StructExtForce::RecvFromStream(std::istream& inf)
 				break;
 			}
 
-			F[i] = Vec3(f);
+			point.F = Vec3(f);
 			if (uRot != MBC_ROT_NONE) {
-				M[i] = Vec3(m);
+				point.M = Vec3(m);
 			}
 		}
 	}
@@ -1006,21 +1017,22 @@ StructExtForce::RecvFromFileDes(int infd)
 	if (!bSorted) {
 		ASSERT(bLabels);
 
-		done.resize(Nodes.size());
+		done.resize(m_Points.size());
 		fill(done.begin(), done.end(), false);
 
 		unsigned cnt;
-		for (cnt = 0; cnt < Nodes.size(); cnt++) {
-			unsigned i = cnt;
+		for (cnt = 0; cnt < m_Points.size(); cnt++) {
+			PointData& point = m_Points[cnt];
+
 			unsigned l = iobuf_labels[cnt];
-			std::vector<StructNode *>::const_iterator n;
-			for (n = Nodes.begin(); n != Nodes.end(); n++) {
-				if ((*n)->GetLabel() == l) {
+			std::vector<PointData>::const_iterator p;
+			for (p = m_Points.begin(); p != m_Points.end(); p++) {
+				if (p->uLabel == l) {
 					break;
 				}
 			}
 
-			if (n == Nodes.end()) {
+			if (p == m_Points.end()) {
 				silent_cerr("StructExtForce"
 					"(" << GetLabel() << "): "
 					"unknown label " << l
@@ -1029,7 +1041,7 @@ StructExtForce::RecvFromFileDes(int infd)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			i = n - Nodes.begin();
+			unsigned i = p - m_Points.begin();
 
 			if (done[i]) {
 				silent_cerr("StructExtForce"
@@ -1041,22 +1053,22 @@ StructExtForce::RecvFromFileDes(int infd)
 
 			done[i] = true;
 
-			F[i] = &iobuf_f[3*i];
+			point.F = &iobuf_f[3*i];
 			if (uRot != MBC_ROT_NONE) {
-				M[i] = &iobuf_m[3*i];
+				point.M = &iobuf_m[3*i];
 			}
 		}
 
-		if (cnt != Nodes.size()) {
+		if (cnt != m_Points.size()) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"invalid node number " << cnt
 				<< std::endl);
 
-			for (unsigned i = 0; i < Nodes.size(); i++) {
+			for (unsigned i = 0; i < m_Points.size(); i++) {
 				if (!done[i]) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
-						"node " << Nodes[i]->GetLabel()
+						"label " << m_Points[i].uLabel << "node " << m_Points[i].pNode->GetLabel()
 						<< " not done" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -1066,10 +1078,12 @@ StructExtForce::RecvFromFileDes(int infd)
 		}
 
 	} else {
-		for (unsigned i = 0; i < Nodes.size(); i++) {
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			PointData& point = m_Points[i];
+
 			if (bLabels) {
 				unsigned l = iobuf_labels[i];
-				if (Nodes[i]->GetLabel() != l) {
+				if (point.pNode->GetLabel() != l) {
 					silent_cerr("StructExtForce"
 						"(" << GetLabel() << "): "
 						"invalid " << i << "-th label " << l
@@ -1078,9 +1092,9 @@ StructExtForce::RecvFromFileDes(int infd)
 				}
 			}
 
-			F[i] = Vec3(&iobuf_f[3*i]);
+			point.F = Vec3(&iobuf_f[3*i]);
 			if (uRot != MBC_ROT_NONE) {
-				M[i] = Vec3(&iobuf_m[3*i]);
+				point.M = Vec3(&iobuf_m[3*i]);
 			}
 		}
 	}
@@ -1111,7 +1125,7 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	if (pRefNode) {
-		integer iSize = Nodes.size();
+		integer iSize = m_Points.size();
 		if (bUseReferenceNodeForces) {
 			iSize++;
 		}
@@ -1139,31 +1153,33 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 
 		F2 = Zero3;
 		M2 = Zero3;
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			const PointData& point = m_Points[i];
+
+			integer iFirstIndex = point.pNode->iGetFirstMomentumIndex();
 			for (int r = 1; r <= iOffset; r++) {
 				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
 
-			Vec3 f(RRef*F[i]);
+			Vec3 f(RRef*point.F);
 			WorkVec.Add(i*iOffset + 1, f);
 
 			Vec3 m;
 			if (uRot != MBC_ROT_NONE) {
-				m = RRef*M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(f);
+				m = RRef*point.M + (point.pNode->GetRCurr()*point.Offset).Cross(f);
 				WorkVec.Add(i*iOffset + 4, m);
 			}
 
 			if (bUseReferenceNodeForces || fToBeOutput()) {
 				F2 += f;
 				if (uRot != MBC_ROT_NONE) {
-					M2 += m + (Nodes[i]->GetXCurr() - xRef).Cross(f);
+					M2 += m + (point.pNode->GetXCurr() - xRef).Cross(f);
 				}
 			}
 		}
 
 		if (bUseReferenceNodeForces) {
-			unsigned i = Nodes.size();
+			unsigned i = m_Points.size();
 			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
 			for (int r = 1; r <= iOffset; r++) {
 				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
@@ -1179,17 +1195,19 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 		}
 
 	} else {
-		WorkVec.ResizeReset(iOffset*Nodes.size());
+		WorkVec.ResizeReset(iOffset*m_Points.size());
 
-		for (unsigned i = 0; i < Nodes.size(); i++) {
-			integer iFirstIndex = Nodes[i]->iGetFirstMomentumIndex();
+		for (unsigned i = 0; i < m_Points.size(); i++) {
+			const PointData& point = m_Points[i];
+
+			integer iFirstIndex = point.pNode->iGetFirstMomentumIndex();
 			for (int r = 1; r <= iOffset; r++) {
 				WorkVec.PutRowIndex(i*iOffset + r, iFirstIndex + r);
 			}
 
-			WorkVec.Add(i*iOffset + 1, F[i]);
+			WorkVec.Add(i*iOffset + 1, point.F);
 			if (uRot != MBC_ROT_NONE) {
-				WorkVec.Add(i*iOffset + 4, M[i] + (Nodes[i]->GetRCurr()*Offsets[i]).Cross(F[i]));
+				WorkVec.Add(i*iOffset + 4, point.M + (point.pNode->GetRCurr()*point.Offset).Cross(point.F));
 			}
 		}
 	}
@@ -1213,19 +1231,19 @@ StructExtForce::Output(OutputHandler& OH) const
 			<< std::endl;
 	}
 
-	for (unsigned i = 0; i < Nodes.size(); i++) {
-		out << GetLabel() << "@" << Nodes[i]->GetLabel()
-			<< " " << F[i]
-			<< " " << M[i]
+	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+		out << GetLabel() << "@" << point->uLabel
+			<< " " << point->F
+			<< " " << point->M
 			<< std::endl;
 	}
 }
  
 void
 StructExtForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-	connectedNodes.resize(Nodes.size());
-	for (unsigned int i = 0; i < Nodes.size(); i++) {
-		connectedNodes[i] = Nodes[i];
+	connectedNodes.resize(m_Points.size());
+	for (unsigned int i = 0; i < m_Points.size(); i++) {
+		connectedNodes[i] = m_Points[i].pNode;
 	}
 }
 
@@ -1422,6 +1440,12 @@ ReadStructExtForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	std::vector<unsigned> Labels;
+	std::vector<unsigned>::iterator curr_label;
+	if (bLabels) {
+		Labels.resize(n);
+ 		curr_label = Labels.begin();
+	}
 	std::vector<StructNode *> Nodes(n);
 	std::vector<Vec3> Offsets(n);
 
@@ -1430,8 +1454,36 @@ ReadStructExtForce(DataManager* pDM,
 		
 		ReferenceFrame RF(Nodes[i]);
 
+		if (bLabels) {
+			unsigned ul;
+			if (HP.IsKeyWord("label")) {
+				int l = HP.GetInt();
+				if (l < 0) {
+					silent_cerr("StructExtForce(" << uLabel << "): "
+						"invalid label for point #" << i << " at line "
+						<< HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				ul = unsigned(l);
+
+			} else {
+				ul = Nodes[i]->GetLabel();
+			}
+
+			if (std::find(Labels.begin(), curr_label, ul) < curr_label) {
+				silent_cerr("StructExtForce(" << uLabel << "): "
+					"duplicate label for point #" << i << " at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			*curr_label = ul;
+			curr_label++;
+		}
+
 		if (HP.IsKeyWord("offset")) {
 			Offsets[i] = HP.GetPosRel(RF);
+
 		} else {
 			Offsets[i] = Vec3(Zero3);
 		}
@@ -1439,12 +1491,23 @@ ReadStructExtForce(DataManager* pDM,
 
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 	Elem *pEl = 0;
-	SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
-		StructExtForce(uLabel, pDM, pRefNode,
-			bUseReferenceNodeForces, bRotateReferenceNodeForces,
-			Nodes, Offsets,
-			bSorted, bLabels, bOutputAccelerations, uRot,
-			pEFH, bSendAfterPredict, iCoupling, fOut));
+
+	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH)) {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructExtEDGEForce,
+			StructExtEDGEForce(uLabel, pDM, pRefNode,
+				bUseReferenceNodeForces, bRotateReferenceNodeForces,
+				Labels, Nodes, Offsets,
+				bSorted, bLabels, bOutputAccelerations, uRot,
+				pEFH, bSendAfterPredict, iCoupling, fOut));
+
+	} else {
+		SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
+			StructExtForce(uLabel, pDM, pRefNode,
+				bUseReferenceNodeForces, bRotateReferenceNodeForces,
+				Labels, Nodes, Offsets,
+				bSorted, bLabels, bOutputAccelerations, uRot,
+				pEFH, bSendAfterPredict, iCoupling, fOut));
+	}
 
 	return pEl;
 }

@@ -143,7 +143,9 @@ protected:
 
 class ModalExt : virtual public Elem, public ExtForce {
 protected:
-	Modal *pModal;
+	const Modal *pModal;
+	// if pModal != 0 then pNode == pModal->pGetModalNode()
+	const StructNode *pNode;
 	bool bOutputAccelerations;
 	ExtModalForceBase *pEMF;
 	unsigned uFlags;
@@ -164,6 +166,7 @@ public:
 	ModalExt(unsigned int uL,
 		DataManager *pDM,
 		Modal *pmodal,
+		const StructNode *pnode,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,
 		ExtModalForceBase *pEMF,

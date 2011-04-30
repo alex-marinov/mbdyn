@@ -79,6 +79,8 @@ socketstreammotionelem.cc \
 socketstreammotionelem.h \
 spherj.cc \
 spherj.h \
+stredge.cc \
+stredge.h \
 strext.cc \
 strext.h \
 strmappingext.cc \

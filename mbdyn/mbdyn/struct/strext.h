@@ -50,8 +50,17 @@ protected:
 	Vec3 F1, M1;
 	Vec3 F2, M2;
 
-	std::vector<StructNode *> Nodes;
-	std::vector<Vec3> Offsets, F, M;
+public:
+	struct PointData {
+		unsigned uLabel;
+		StructNode *pNode;
+		Vec3 Offset;
+		Vec3 F;
+		Vec3 M;
+	};
+
+protected:
+	std::vector<PointData> m_Points;
 
 	bool bLabels;
 	bool bSorted;
@@ -80,10 +89,10 @@ protected:
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
    
-	void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
-	void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
-	void RecvFromStream(std::istream& inf);
-	void RecvFromFileDes(int infd);
+	virtual void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
+	virtual void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
+	virtual void RecvFromStream(std::istream& inf);
+	virtual void RecvFromFileDes(int infd);
    
 public:
 	/* Costruttore */
@@ -92,6 +101,7 @@ public:
 		StructNode *pRefNode,
 		bool bUseReferenceNodeForces,
 		bool bRotateReferenceNodeForces,
+		std::vector<unsigned>& Labels,
 		std::vector<StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bSorted,

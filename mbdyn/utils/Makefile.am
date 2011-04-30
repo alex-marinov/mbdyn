@@ -57,7 +57,8 @@ endif
 noinst_PROGRAMS = \
 playground \
 test_modalext \
-test_modalext_edge
+test_modalext_edge \
+test_strext_edge
 
 if USE_SOCKET
 noinst_PROGRAMS += \
@@ -114,6 +115,7 @@ stream2socket_SOURCES = stream2socket.cc s2s.cc s2s.h
 test_modalext_SOURCES = test_modalext.cc
 test_modalext_edge_SOURCES = test_modalext_edge.c
 test_modalext_socket_SOURCES = test_modalext_socket.c
+test_strext_edge_SOURCES = test_strext_edge.c
 test_strext_socket_SOURCES = \
 test_strext_socket.c \
 test_strext_socket_lib.c \

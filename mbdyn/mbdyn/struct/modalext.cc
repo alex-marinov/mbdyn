@@ -333,6 +333,7 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 ModalExt::ModalExt(unsigned int uL,
 	DataManager *pDM,
 	Modal *pmodal,
+	const StructNode *pnode,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
 	ExtModalForceBase* pEMF,
@@ -343,13 +344,14 @@ ModalExt::ModalExt(unsigned int uL,
 : Elem(uL, fOut),
 ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut),
 pModal(pmodal),
+pNode(pnode),
 bOutputAccelerations(bOutputAccelerations),
 pEMF(pEMF),
 uFlags(ExtModalForceBase::EMF_NONE),
 F(Zero3),
 M(Zero3)
 {
-	ASSERT(pModal != 0);
+	ASSERT((pModal != 0) || (pNode != 0));
 	ASSERT(pEMF != 0);
 
 	ASSERT((bm & ExtModalForceBase::EMF_ALL) != 0);
@@ -372,7 +374,7 @@ M(Zero3)
 	}
 
 	if (bm & ExtModalForceBase::EMF_RIGID) {
-		ASSERT(pModal->pGetModalNode() != 0);
+		ASSERT(pNode != 0);
 		uFlags |= ExtModalForceBase::EMF_RIGID;
 	}
 }
@@ -389,7 +391,7 @@ ModalExt::Prepare(ExtFileHandlerBase *pEFH)
 {
 	return pEMF->Prepare(pEFH, GetLabel(),
 		uFlags & ExtModalForceBase::EMF_RIGID,
-		pModal->uGetNModes());
+		pModal ? pModal->uGetNModes() : 0);
 }
 
 /*
@@ -404,8 +406,6 @@ ModalExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when)
 	Vec3 w;
 
 	if (uFlags & ExtModalForceBase::EMF_RIGID) {
-		const StructNode *pNode = pModal->pGetModalNode();
-
 		x = pNode->GetXCurr();
 		R = pNode->GetRCurr();
 		v = pNode->GetVCurr();
@@ -419,11 +419,13 @@ ModalExt::Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when)
 	}
 
 	// Temporary?
-	const VecN& a = pModal->GetA();
-	const VecN& b = pModal->GetB();
-	for (unsigned i = 0; i < q.size(); i++) {
-		q[i] = a(i + 1);
-		qP[i] = b(i + 1);
+	if (uFlags & ExtModalForceBase::EMF_MODAL) {
+		const VecN& a = pModal->GetA();
+		const VecN& b = pModal->GetB();
+		for (unsigned i = 0; i < q.size(); i++) {
+			q[i] = a(i + 1);
+			qP[i] = b(i + 1);
+		}
 	}
 
 	pEMF->Send(pEFH, uFlags, GetLabel(), x, R, v, w, q, qP);
@@ -496,8 +498,7 @@ ModalExt::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 		*piNumCols = 0;
 
 	} else {
-		*piNumRows = (pModal->pGetModalNode() ? 6 : 0)
-			+ pModal->uGetNModes();
+		*piNumRows = (pNode ? 6 : 0) + (pModal ? pModal->uGetNModes() : 0);
 		*piNumCols = 1;
 	}
 }
@@ -519,7 +520,6 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iR, &iC);
 	WorkVec.ResizeReset(iR);
 
-	const StructNode *pNode = pModal->pGetModalNode();
 	integer iIdx = 1;
 	if (uFlags & ExtModalForceBase::EMF_RIGID) {
 		integer iFirstIndex = pNode->iGetFirstMomentumIndex();
@@ -553,7 +553,7 @@ ModalExt::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Forces();
 
 		if (uFlags & ExtModalForceBase::EMF_RIGID) {
-			out << GetLabel() << "#" << pModal->pGetModalNode()->GetLabel()
+			out << GetLabel() << "#" << pNode->GetLabel()
 				<< " " << F << " " << M
 				<< std::endl;
 		}
@@ -572,9 +572,9 @@ ModalExt::Output(OutputHandler& OH) const
 void
 ModalExt::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
-	if (pModal->pGetModalNode()) {
+	if (pNode) {
 		connectedNodes.resize(1);
-		connectedNodes[0] = pModal->pGetModalNode();
+		connectedNodes[0] = pNode;
 	} else {
 		connectedNodes.resize(0);
 	}
@@ -591,11 +591,24 @@ ReadModalExtForce(DataManager* pDM,
 	bool bSendAfterPredict;
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
-	Modal *pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
-	if (pModal == 0) {
-		silent_cerr("ModalExt(" << uLabel << "): illegal Modal joint "
-			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	const StructNode *pNode = 0;
+	Modal *pModal = 0;
+	if (HP.IsKeyWord("reference" "node")) {
+		pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		if (pNode == 0) {
+			silent_cerr("ModalExt(" << uLabel << "): illegal reference node "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+	} else {
+		pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
+		if (pModal == 0) {
+			silent_cerr("ModalExt(" << uLabel << "): illegal Modal joint "
+				" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		pNode = pModal->pGetModalNode();
 	}
 
 	bool bOutputAccelerations(false);
@@ -603,8 +616,15 @@ ReadModalExtForce(DataManager* pDM,
 		bOutputAccelerations = true;
 	}
 
-	// safe default: both rigid and modal
+	// safe default: both rigid and modal, if possible
 	ExtModalForceBase::BitMask bm = ExtModalForceBase::EMF_ALL;
+	if (pNode == 0) {
+		bm = ExtModalForceBase::EMF_MODAL;
+		
+	} else if (pModal == 0) {
+		bm = ExtModalForceBase::EMF_RIGID;
+	}
+
 	if (HP.IsKeyWord("type")) {
 		if (HP.IsKeyWord("rigid")) {
 			bm = ExtModalForceBase::EMF_RIGID;
@@ -617,6 +637,18 @@ ReadModalExtForce(DataManager* pDM,
 				" at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+	}
+
+	if ((bm & ExtModalForceBase::EMF_RIGID) && pNode == 0) {
+		silent_cerr("ModalExt(" << uLabel << "): \"rigid\" needs rigid body motion "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if ((bm & ExtModalForceBase::EMF_MODAL) && pModal == 0) {
+		silent_cerr("ModalExt(" << uLabel << "): \"modal\" needs modal joint "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ExtModalForceBase *pEMF = 0;
@@ -669,7 +701,7 @@ ReadModalExtForce(DataManager* pDM,
 
 	Elem *pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl, ModalExt,
-		ModalExt(uLabel, pDM, pModal, bOutputAccelerations,
+		ModalExt(uLabel, pDM, pModal, pNode, bOutputAccelerations,
 			pEFH, pEMF, bSendAfterPredict, iCoupling, bm, fOut));
 
 	return pEl;
