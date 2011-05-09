@@ -40,6 +40,10 @@
 
 class StructExtEDGEForce : virtual public Elem, public StructExtForce {
 protected:
+	// temporary, to avoid recomputing too much
+	std::vector<Vec3> m_x;
+	std::vector<Vec3> m_v;
+
 	virtual void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
 	virtual void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
 	virtual void RecvFromStream(std::istream& inf);

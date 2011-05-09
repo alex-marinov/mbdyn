@@ -62,7 +62,9 @@ StructExtEDGEForce::StructExtEDGEForce(unsigned int uL,
 : Elem(uL, fOut), 
 StructExtForce(uL, pDM, pRefNode, bUseReferenceNodeForces, bRotateReferenceNodeForces,
 	labels, nodes, offsets, bSorted, bLabels, bOutputAccelerations, uRot,
-	pEFH, bSendAfterPredict, iCoupling, fOut)
+	pEFH, bSendAfterPredict, iCoupling, fOut),
+m_x(nodes.size()),
+m_v(nodes.size())
 {
 	ASSERT(dynamic_cast<ExtFileHandlerEDGE *>(pEFH) != 0);
 	ASSERT(bLabels);
@@ -78,14 +80,14 @@ void
 StructExtEDGEForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when)
 {
 	/* header:
-ext_model, N, 0, 0, 2
+ext_model, N, 0, 0, 3
 *
 grid_idents, IF, 1, 121, 0
 1 2 3 4 5 6
 ...
 115 116 117 118 119 120
 121
-displacement, RF, 3, 121, 0
+str_coordinates, RF, 3, 121, 0
 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
 ...
 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
@@ -100,6 +102,21 @@ displacement, RF, 3, 121, 0
 ...
 0.035062 0.036876 0.037783 0.039294 0.040654 0.042014
 0.043526
+velocity, RF, 3, 121, 0
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+...
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+0.000000
+
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+...
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+0.000000
+
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+...
+0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
+0.000000
 	 */
 
 	if (pRefNode) {
@@ -108,307 +125,109 @@ displacement, RF, 3, 121, 0
 		const Vec3& vRef = pRefNode->GetVCurr();
 		const Vec3& wRef = pRefNode->GetWCurr();
 
-		outf <<
-			"ext_model, N, 0, 0, 2\n"
-			"*\n";
+		/*
+			p = x + f
+			R = R
+			v = xp + w cross f
+			w = w
+			a = xpp + wp cross f + w cross w cross f
+			wp = wp
+		 */
 
-		// labels - TODO: check
-		outf <<
-			"grid_idents, IF, 1, " << m_Points.size() << ", 0\n";
-
-		int cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-			outf << point->uLabel;
-		}
-		outf << "\n";
-
-			/*
-				p = x + f
-				R = R
-				v = xp + w cross f
-				w = w
-				a = xpp + wp cross f + w cross w cross f
-				wp = wp
-			 */
-
-		// displacement
-		outf <<
-			"displacement, RF, 3, " << m_Points.size() << ", 0\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			Vec3 Dx(RRef.MulTV(x - xRef));
-			outf << Dx(1);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			Vec3 Dx(RRef.MulTV(x - xRef));
-			outf << Dx(2);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			Vec3 Dx(RRef.MulTV(x - xRef));
-			outf << Dx(3);
-		}
-		outf << "\n";
-
-		// velocity
-		outf <<
-			"velocity, RF, 3, " << m_Points.size() << ", 0\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
+		std::vector<PointData>::const_iterator point;
+		std::vector<Vec3>::iterator ix;
+		std::vector<Vec3>::iterator iv;
+		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); point++, ix++, iv++) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			Vec3 xr = x - xRef;
-			Vec3 Dv(RRef.MulTV(v - vRef - wRef.Cross(xr)));
-			outf << Dv(1);
+
+			*ix = RRef.MulTV(x - xRef);
+			*iv = RRef.MulTV(v - vRef - wRef.Cross(x - xRef));
 		}
-		outf << "\n";
 
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			Vec3 xr = x - xRef;
-			Vec3 Dv(RRef.MulTV(v - vRef - wRef.Cross(xr)));
-			outf << Dv(2);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			Vec3 xr = x - xRef;
-			Vec3 Dv(RRef.MulTV(v - vRef - wRef.Cross(xr)));
-			outf << Dv(3);
-		}
-		outf << "\n";
-
-		// TODO: other stuff?
 	} else {
-
-		outf <<
-			"ext_model, N, 0, 0, 2\n"
-			"*\n";
-
-		// labels - TODO: check
-		outf <<
-			"grid_idents, IF, 1, " << m_Points.size() << ", 0\n";
-
-		int cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-			outf << point->uLabel;
-		}
-		outf << "\n";
-
-			/*
-				p = x + f
-				R = R
-				v = xp + w cross f
-				w = w
-				a = xpp + wp cross f + w cross w cross f
-				wp = wp
-			 */
-
-		// displacement
-		outf <<
-			"displacement, RF, 3, " << m_Points.size() << ", 0\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
+		std::vector<PointData>::const_iterator point;
+		std::vector<Vec3>::iterator ix;
+		std::vector<Vec3>::iterator iv;
+		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); point++, ix++, iv++) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			outf << x(1);
+
+			*ix = point->pNode->GetXCurr() + f;
+			*iv = point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f);
 		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			outf << x(2);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 x(point->pNode->GetXCurr() + f);
-			outf << x(3);
-		}
-		outf << "\n";
-
-		// velocity
-		outf <<
-			"velocity, RF, 3, " << m_Points.size() << ", 0\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			outf << v(1);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			outf << v(2);
-		}
-		outf << "\n";
-
-		outf << "\n";
-
-		cnt = 0;
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
-			if (cnt > 0) {
-				if ((cnt%6) == 0) {
-					outf << "\n";
-				} else {
-					outf << " ";
-				}
-			}
-
-			Vec3 f(point->pNode->GetRCurr()*point->Offset);
-			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-			outf << v(3);
-		}
-		outf << "\n";
-
-		// TODO: other stuff?
 	}
+
+	outf <<
+		"ext_model, N, 0, 0, 3\n"
+		"*\n";
+
+	// labels - TODO: check
+	outf <<
+		"grid_idents, IF, 1, " << m_Points.size() << ", 0\n";
+
+	int cnt = 0;
+	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
+		if (cnt > 0) {
+			if ((cnt%6) == 0) {
+				outf << "\n";
+			} else {
+				outf << " ";
+			}
+		}
+		outf << point->uLabel;
+	}
+	outf << "\n";
+
+	// position
+	outf <<
+		"str_coordinates, RF, 3, " << m_Points.size() << ", 0\n";
+
+	for (int c = 1; c <= 3; c++) {
+		int cnt = 0;
+		for (std::vector<Vec3>::const_iterator i = m_x.begin(); i != m_x.end(); i++, cnt++) {
+			if (cnt > 0) {
+				if ((cnt%6) == 0) {
+					outf << "\n";
+				} else {
+					outf << " ";
+				}
+			}
+
+			outf << (*i)(c);
+		}
+		outf << "\n";
+
+		if (c < 3) {
+			outf << "\n";
+		}
+	}
+
+	// velocity
+	outf <<
+		"velocity, RF, 3, " << m_Points.size() << ", 0\n";
+
+	for (int c = 1; c <= 3; c++) {
+		int cnt = 0;
+		for (std::vector<Vec3>::const_iterator i = m_v.begin(); i != m_v.end(); i++, cnt++) {
+			if (cnt > 0) {
+				if ((cnt%6) == 0) {
+					outf << "\n";
+				} else {
+					outf << " ";
+				}
+			}
+
+			outf << (*i)(c);
+		}
+		outf << "\n";
+
+		if (c < 3) {
+			outf << "\n";
+		}
+	}
+
+	// TODO: other stuff?
 }
 
 void
@@ -431,7 +250,7 @@ grid_idents, IF, 1, 121, 0
 ...
 115 116 117 118 119 120
 121
-displacement, RF, 3, 121, 0
+force, RF, 3, 121, 0
 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
 ...
 0.000000 0.000000 0.000000 0.000000 0.000000 0.000000
