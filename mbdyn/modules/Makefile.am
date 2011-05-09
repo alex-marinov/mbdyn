@@ -17,7 +17,7 @@ export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
 	-I../$(top_srcdir)/mbdyn/aero \
 	-I../$(top_srcdir)/mbdyn/elec \
 	-I../$(top_srcdir)/mbdyn/hydr \
-	-fPIC \
+	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CXXFLAGS) @CXXFLAGS@
 CXXLD = @CXX@
 export CXXLINK = @LIBTOOL@ --mode=link $(CXXLD) $(AM_CXXFLAGS) \
@@ -36,12 +36,12 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I../$(top_srcdir)/mbdyn/aero \
 	-I../$(top_srcdir)/mbdyn/elec \
 	-I../$(top_srcdir)/mbdyn/hydr \
-	-fPIC \
+	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
 export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
-	-fPIC
+	-prefer-pic
 export LTFCCOMPILE = @LIBTOOL@ --mode=compile @FC@ $(AM_FFLAGS) @FFLAGS@ \
-	-fPIC
+	-prefer-pic
 export LIBTOOL = @LIBTOOL@
 export MODULES_DIRS=@MODULES_DIRS@
 export INSTALL_PROGRAM=${INSTALL}
@@ -66,9 +66,9 @@ all__:
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) MBDYN_MODULE_SRCDIR=../$$isrc ) ; \
@@ -84,9 +84,9 @@ install: all__
 			export MBDYN_MODULE=$$i ; \
 			isrc=$(srcdir)/$$i ; \
 			if test -d $$isrc ; then mkdir -p $$i ; fi ; \
-			for fsrc in $$isrc/*.{c,cc,f,f90} ; do \
+			for fsrc in $$isrc/*.{c,cc,f,f90,f95} ; do \
 				f=`basename $$fsrc` ; \
-				case $$f in \*.c|\*.cc|\*.f|\*.f90) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
+				case $$f in \*.c|\*.cc|\*.f|\*.f90|\*.f95) ;; *) if test ! -f $$i/$$f ; then ( cd $$i && ln -sf ../$$isrc/$$f $$f ) ; fi ; ;; esac ; \
 			done ; \
 			cp $(srcdir)/Makefile.module $$i/Makefile ; \
 			( cd $$i && $(MAKE) install ) ; \
@@ -127,6 +127,11 @@ module-constlaw-f90/Makefile.inc \
 module-constlaw-f90/module-constlaw-f90.cc \
 module-constlaw-f90/README \
 module-constlaw-f90/usrsub.f90 \
+module-constlaw-f90/usrsub.h \
+module-constlaw-f95/Makefile.inc \
+module-constlaw-f95/module-constlaw-f95.cc \
+module-constlaw-f95/README \
+module-constlaw-f95/usrsub.f95 \
 module-constlaw-f90/usrsub.h \
 module-drive/module-drive.cc \
 module-drive/README \
