@@ -527,7 +527,9 @@ public:
 	};
 
 	typedef std::map<std::string, DataManager::ElemRead *, ltstrcase> ElemReadType;
-	typedef std::map<unsigned, Elem *> ElemMapType;
+	typedef std::pair<unsigned, Elem*> KeyElemPair;
+	typedef std::list<KeyElemPair> ElemContainerType;
+	typedef std::map<unsigned, ElemContainerType::iterator> ElemMapToListType;
 
 protected:
 
@@ -567,8 +569,15 @@ protected:
 
 		/* element read map */
 		ElemReadType ElemRead;
-		ElemMapType ElemMap;
+		ElemContainerType ElemContainer;
+		ElemMapToListType ElemMapToList;
 	} ElemData[Elem::LASTELEMTYPE];
+
+	Elem ** InsertElem(ElemDataStructure& eldata, unsigned int uLabel, Elem * pE) {
+		eldata.ElemContainer.push_back(ElemContainerType::value_type(uLabel, pE));
+		eldata.ElemMapToList[uLabel] = --eldata.ElemContainer.end();
+		return &eldata.ElemContainer.back().second;
+	};
 
 #if 0
 	/* element type map; will replace ElemData */
@@ -644,8 +653,8 @@ public:
 	void ElemOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
 
-	DataManager::ElemMapType::const_iterator begin(Elem::Type t) const;
-	DataManager::ElemMapType::const_iterator end(Elem::Type t) const;
+	DataManager::ElemContainerType::const_iterator begin(Elem::Type t) const;
+	DataManager::ElemContainerType::const_iterator end(Elem::Type t) const;
 
 #if 0
 	void ElemOutput_pch(std::ostream& pch) const;
@@ -665,13 +674,15 @@ public:
 	};
 
 	typedef std::map<std::string, DataManager::NodeRead *, ltstrcase> NodeReadType;
-	typedef std::map<unsigned, Node *> NodeMapType;
+	typedef std::pair<unsigned, Node*> KeyNodePair;
+	typedef std::list<KeyNodePair> NodeContainerType;
+	typedef std::map<unsigned, NodeContainerType::iterator> NodeMapToListType;
 
 protected:
 
 	/* struttura dei dati dei nodi. Per ogni tipo:
 	 * puntatore al puntatore al primo dato, numero degli item per tipo */
-	struct {
+	struct NodeDataStructure {
 #if 0
 		Node** ppFirstNode;
 		unsigned int iNum;
@@ -690,8 +701,15 @@ protected:
 
 		/* element read map */
 		NodeReadType NodeRead;
-		NodeMapType NodeMap;
+		NodeContainerType NodeContainer;
+		NodeMapToListType NodeMapToList;
 	} NodeData[Node::LASTNODETYPE];
+	
+	Node ** InsertNode(NodeDataStructure& nodedata, unsigned int uLabel, Node * pN) {
+		nodedata.NodeContainer.push_back(NodeContainerType::value_type(uLabel, pN));
+		nodedata.NodeMapToList[uLabel] = --nodedata.NodeContainer.end();
+		return &nodedata.NodeContainer.back().second;
+	};
 
 	/* array of nodes */
 	typedef std::vector<Node *> NodeVecType;
@@ -726,8 +744,8 @@ public:
 	/* inizializza le matrici ed alloca memoria */
 	void NodeDataInit(void);
 
-	DataManager::NodeMapType::const_iterator begin(Node::Type t) const;
-	DataManager::NodeMapType::const_iterator end(Node::Type t) const;
+	DataManager::NodeContainerType::const_iterator begin(Node::Type t) const;
+	DataManager::NodeContainerType::const_iterator end(Node::Type t) const;
 
 	/* scrive i dati dei nodi */
 	void NodeOutputPrepare(OutputHandler& OH);
@@ -822,7 +840,7 @@ class InitialAssemblyIterator {
 private:
 	const DataManager::ElemDataStructure (*pElemData)[Elem::LASTELEMTYPE];
 	mutable Elem::Type FirstType;
-	mutable DataManager::ElemMapType::const_iterator pCurr;
+	mutable DataManager::ElemContainerType::const_iterator pCurr;
 	mutable Elem::Type CurrType;
 
 public:

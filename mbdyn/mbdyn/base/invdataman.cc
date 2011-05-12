@@ -100,8 +100,8 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 
 	JacHdl.Reset();
 
-	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-		j != ElemData[Elem::JOINT].ElemMap.end();
+	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+		j != ElemData[Elem::JOINT].ElemContainer.end();
 		j++)
 	{
 		JacHdl += j->second->AssJac(WorkMat, *pXCurr);
@@ -127,8 +127,8 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
 	bool ChangedEqStructure(false);
-	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-		j != ElemData[Elem::JOINT].ElemMap.end();
+	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+		j != ElemData[Elem::JOINT].ElemContainer.end();
 		j++)
 	{
 		try {
@@ -177,8 +177,8 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	bool ChangedEqStructure(false);
 	
 	for (int et = 0; ElemType[et] != Elem::LASTELEMTYPE; et++) {
-		for (ElemMapType::iterator j = ElemData[ElemType[et]].ElemMap.begin();
-			j != ElemData[ElemType[et]].ElemMap.end();
+		for (ElemContainerType::iterator j = ElemData[ElemType[et]].ElemContainer.begin();
+			j != ElemData[ElemType[et]].ElemContainer.end();
 			j++)
 		{
 			try {
@@ -193,8 +193,8 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		}
 	}
 
-	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-		j != ElemData[Elem::JOINT].ElemMap.end();
+	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+		j != ElemData[Elem::JOINT].ElemContainer.end();
 		j++)
 	{
 		// cast to Joint *
@@ -275,8 +275,8 @@ DataManager::Update(int iOrder) const
 
 	case -1:
 		// Update constraints reactions (for output only...)*/
-		for (ElemMapType::const_iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-			j != ElemData[Elem::JOINT].ElemMap.end(); j++)
+		for (ElemContainerType::const_iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+			j != ElemData[Elem::JOINT].ElemContainer.end(); j++)
 		{
 			j->second->Update(*pLambdaCurr, iOrder);
 		}
@@ -340,8 +340,8 @@ DataManager::InverseDofOwnerSet(void)
 		iNodeTotNumDofs += pDO->iNumDofs;
 	}
 
-	for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-                j != ElemData[Elem::JOINT].ElemMap.end(); j++)
+	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+                j != ElemData[Elem::JOINT].ElemContainer.end(); j++)
         {
 		ElemWithDofs* pEWD = CastElemWithDofs(j->second);
 		iJointTotNumDofs += pEWD->iGetNumDof();
@@ -356,8 +356,8 @@ DataManager::InverseDofOwnerSet(void)
 					<< " (" << psElemNames[iCnt] << ")"
 					<< std::endl);
 
-			for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-				p != ElemData[iCnt].ElemMap.end();
+			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+				p != ElemData[iCnt].ElemContainer.end();
 				p++)
 			{
 				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
@@ -406,7 +406,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 		/* contatore dei Dof dei nodi */
       		integer iNodeIndex = 0;
 
-		NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
+		NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 		for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
 			iDOm1++, i++)
 		{
@@ -435,8 +435,8 @@ void DataManager::InverseDofInit(bool bIsSquare)
 			iJointIndex = iNodeIndex;
 		}
 
-		for (ElemMapType::iterator j = ElemData[Elem::JOINT].ElemMap.begin();
-			j != ElemData[Elem::JOINT].ElemMap.end();
+		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+			j != ElemData[Elem::JOINT].ElemContainer.end();
 			j++)
 		{
 			DofOwner *pDO = const_cast<DofOwner *>((dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner());

@@ -122,10 +122,10 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
 	for (unsigned nt = 0; nt < Node::LASTNODETYPE; nt++) {
-		if (!NodeData[nt].NodeMap.empty() && OH.UseNetCDF(NodeData[nt].OutFile)) {
+		if (!NodeData[nt].NodeContainer.empty() && OH.UseNetCDF(NodeData[nt].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			integer iNumNodes = NodeData[nt].NodeMap.size();
+			integer iNumNodes = NodeData[nt].NodeContainer.size();
 
 			NcFile *pBinFile = OH.pGetBinFile();
 
@@ -151,7 +151,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			NodeMapType::const_iterator p = NodeData[nt].NodeMap.begin();
+			NodeContainerType::const_iterator p = NodeData[nt].NodeContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumNodes); i++, p++) {
 				VarLabels->set_cur(i);
 				const long l = p->second->GetLabel();
@@ -221,12 +221,12 @@ DataManager::fGetDefaultOutputFlag(const Node::Type& t) const
 Node*
 DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 {
-	NodeMapType::const_iterator p = NodeData[Typ].NodeMap.find(uL);
-	if (p == NodeData[Typ].NodeMap.end()) {
+	NodeMapToListType::const_iterator p = NodeData[Typ].NodeMapToList.find(uL);
+	if (p == NodeData[Typ].NodeMapToList.end()) {
 		return 0;
 	}
 
-	return p->second;
+	return p->second->second;
 }
 
 /* cerca un nodo strutturale*/

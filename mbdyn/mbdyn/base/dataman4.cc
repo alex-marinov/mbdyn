@@ -231,9 +231,8 @@ DataManager::ReadElems(MBDynParser& HP)
 
 	/* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
 	if (ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum > 0) {
-		ElemMapType &ElemMap = ElemData[Elem::AUTOMATICSTRUCTURAL].ElemMap;
-		for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 		{
 			const DynamicStructNode *pN = dynamic_cast<const DynamicStructNode *>(i->second);
 			if (pN != 0) {
@@ -246,7 +245,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				SAFENEWWITHCONSTRUCTOR(pTmpEl,
 					AutomaticStructElem,
 					AutomaticStructElem(pN));
-				ElemMap.insert(ElemMapType::value_type(pN->GetLabel(), pTmpEl));
+				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pN->GetLabel(), pTmpEl);
 
 				ASSERT(iNumTypes[Elem::AUTOMATICSTRUCTURAL] > 0);
 
@@ -438,13 +437,13 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			if (HP.IsKeyWord("air" "properties")) {
 				t = Elem::AIRPROPERTIES;
-				if (ElemData[t].ElemMap.empty()) {
+				if (ElemData[t].ElemContainer.empty()) {
 					silent_cerr("air properties not defined; "
 						"cannot bind at line "
 						<< HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-				ElemMapType::iterator ap = ElemData[t].ElemMap.begin();
+				ElemContainerType::iterator ap = ElemData[t].ElemContainer.begin();
 				pEl = ap->second;
 
 			} else {
@@ -610,13 +609,13 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		/* Gust is attached to air properties... */
 		} else if (CurrDesc == GUST) {
-			if (ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
+			if (ElemData[Elem::AIRPROPERTIES].ElemContainer.empty()) {
 				silent_cerr("air properties not defined; "
 					"cannot add gust at line "
 					<< HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			ElemMapType::iterator ap = ElemData[Elem::AIRPROPERTIES].ElemMap.begin();
+			ElemContainerType::iterator ap = ElemData[Elem::AIRPROPERTIES].ElemContainer.begin();
 			dynamic_cast<AirProperties *>(ap->second)->AddGust(ReadGustData(this, HP));
 
 		/* gestisco a parte gli elementi automatici strutturali, perche'
@@ -688,7 +687,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				SAFENEWWITHCONSTRUCTOR(pE, Gravity, Gravity(pDC, fOut));
 
-				ElemData[Elem::GRAVITY].ElemMap.insert(ElemMapType::value_type(uLabel, pE));
+				InsertElem(ElemData[Elem::GRAVITY], uLabel, pE);
 
 				break;
 			}
@@ -710,7 +709,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				pE = ReadAirProperties(this, HP);
 				if (pE != 0) {
-					ElemData[Elem::AIRPROPERTIES].ElemMap.insert(ElemMapType::value_type(uLabel, pE));
+					InsertElem(ElemData[Elem::AIRPROPERTIES], uLabel, pE);
 				}
 
 				break;
@@ -1116,16 +1115,16 @@ DataManager::ReadElems(MBDynParser& HP)
 
 	/* Linka gli elementi che generano forze d'inerzia all'elemento
 	 * accelerazione di gravita' */
-	if (!ElemData[Elem::GRAVITY].ElemMap.empty()) {
-		Gravity* pGrav = dynamic_cast<Gravity *>(ElemData[Elem::GRAVITY].ElemMap.begin()->second);
+	if (!ElemData[Elem::GRAVITY].ElemContainer.empty()) {
+		Gravity* pGrav = dynamic_cast<Gravity *>(ElemData[Elem::GRAVITY].ElemContainer.begin()->second);
 		ASSERT(pGrav != 0);
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bGeneratesInertiaForces()
-				&& !ElemData[iCnt].ElemMap.empty())
+				&& !ElemData[iCnt].ElemContainer.empty())
 			{
-				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-					p != ElemData[iCnt].ElemMap.end();
+				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+					p != ElemData[iCnt].ElemContainer.end();
 					p++)
 				{
 					ElemGravityOwner *pGO = CastElemGravityOwner(p->second);
@@ -1139,16 +1138,16 @@ DataManager::ReadElems(MBDynParser& HP)
 
 	/* Linka gli elementi che usano le proprieta' dell'aria all'elemento
 	 * proprieta' dell'aria */
-	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
-		AirProperties* pProp = dynamic_cast<AirProperties *>(ElemData[Elem::AIRPROPERTIES].ElemMap.begin()->second);
+	if (!ElemData[Elem::AIRPROPERTIES].ElemContainer.empty()) {
+		AirProperties* pProp = dynamic_cast<AirProperties *>(ElemData[Elem::AIRPROPERTIES].ElemContainer.begin()->second);
 		ASSERT(pProp != 0);
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bUsesAirProperties()
-				&& !ElemData[iCnt].ElemMap.empty())
+				&& !ElemData[iCnt].ElemContainer.empty())
 			{
-				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-					p != ElemData[iCnt].ElemMap.end();
+				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+					p != ElemData[iCnt].ElemContainer.end();
 					p++)
 				{
 					AerodynamicElem *pAE = CastAerodynamicElem(p->second);
@@ -1167,10 +1166,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 		for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 			if (ElemData[iCnt].bUsesAirProperties()
-				&& !ElemData[iCnt].ElemMap.empty())
+				&& !ElemData[iCnt].ElemContainer.empty())
 			{
-				for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-					p != ElemData[iCnt].ElemMap.end();
+				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+					p != ElemData[iCnt].ElemContainer.end();
 					p++)
 				{
 					if (dynamic_cast<AerodynamicElem *>(p->second)->NeedsAirProperties()) {
@@ -1182,7 +1181,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					}
 				}
 
-				silent_cerr(ElemData[iCnt].ElemMap.size() << " "
+				silent_cerr(ElemData[iCnt].ElemContainer.size() << " "
 					<< psElemNames[iCnt] << std::endl);
 			}
 		}
@@ -1198,12 +1197,12 @@ DataManager::ReadElems(MBDynParser& HP)
 	/* count & initialize element array */
 	unsigned iNumElems = 0;
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		iNumElems += ElemData[iCnt].ElemMap.size();
+		iNumElems += ElemData[iCnt].ElemContainer.size();
 	}
 	Elems.resize(iNumElems);
 	for (int iCnt = 0, iElem = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-			p != ElemData[iCnt].ElemMap.end();
+		for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+			p != ElemData[iCnt].ElemContainer.end();
 			p++, iElem++)
 		{
 			Elems[iElem] = p->second;
@@ -1255,7 +1254,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* allocazione e creazione */
 		pE = ReadForce(this, HP, uLabel, bCouple);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::FORCE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::FORCE], uLabel, pE);
 		}
 
 		break;
@@ -1286,7 +1285,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* allocazione e creazione */
 		pE = ReadBody(this, HP, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::BODY].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::BODY], uLabel, pE);
 		}
 
 		break;
@@ -1322,7 +1321,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadJoint(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::JOINT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::JOINT], uLabel, pE);
 		}
 
 		/* attenzione: i Joint aggiungono DofOwner e quindi devono
@@ -1359,7 +1358,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* allocazione e creazione */
 		pE = ReadJointRegularization(this, HP, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::JOINT_REGULARIZATION].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::JOINT_REGULARIZATION], uLabel, pE);
 		}
 
 		/* attenzione: i Joint aggiungono DofOwner e quindi devono
@@ -1413,7 +1412,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		if (pE != 0) {
-			ppE = &ElemData[Elem::BEAM].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::BEAM], uLabel, pE);
 		}
 
 		break;
@@ -1471,7 +1470,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		if (pE != 0) {
-			ppE = &ElemData[Elem::PLATE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::PLATE], uLabel, pE);
 		}
 
 		break;
@@ -1526,7 +1525,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadRotor(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::INDUCEDVELOCITY].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::INDUCEDVELOCITY], uLabel, pE);
 		}
 
 		break;
@@ -1562,7 +1561,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadAerodynamicModal(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::AEROMODAL].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::AEROMODAL], uLabel, pE);
 		}
 
 		break;
@@ -1611,7 +1610,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			break;
 		}
 		if (pE != 0) {
-			ppE = &ElemData[Elem::EXTERNAL].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::EXTERNAL], uLabel, pE);
 		}
 #else /* !USE_EXTERNAL */
 		silent_cerr("You need mpi and -DUSE_AERODYNAMIC_EXTERNAL "
@@ -1681,7 +1680,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			break;
 		}
 		if (pE != 0) {
-			ppE = &ElemData[Elem::AERODYNAMIC].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::AERODYNAMIC], uLabel, pE);
 		}
 
 		break;
@@ -1717,7 +1716,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadGenel(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::GENEL].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::GENEL], uLabel, pE);
 		}
 
 		break;
@@ -1753,7 +1752,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadHydraulicElem(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::HYDRAULIC].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::HYDRAULIC], uLabel, pE);
 		}
 
 		/* attenzione: gli elementi elettrici aggiungono DofOwner
@@ -1792,7 +1791,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadElectric(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::ELECTRIC].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::ELECTRIC], uLabel, pE);
 		}
 
 		/* attenzione: gli elementi elettrici aggiungono DofOwner
@@ -1831,7 +1830,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		pE = ReadThermal(this, HP, pDO, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::THERMAL].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::THERMAL], uLabel, pE);
 		}
 
 		/* attenzione: gli elementi termici aggiungono DofOwner
@@ -1866,7 +1865,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* allocazione e creazione */
 		pE = ReadBulk(this, HP, uLabel);
 		if (pE != 0) {
-			ppE = &ElemData[Elem::BULK].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::BULK], uLabel, pE);
 		}
 
 		break;
@@ -1908,7 +1907,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		if (pE != 0) {
-			ppE = &ElemData[Elem::LOADABLE].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::LOADABLE], uLabel, pE);
 		}
 
 		break;
@@ -1970,7 +1969,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		if (pE != 0) {
-			ppE = &ElemData[Elem::SOCKETSTREAM_OUTPUT].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+			ppE = InsertElem(ElemData[Elem::SOCKETSTREAM_OUTPUT], uLabel, pE);
 		}
 		break;
 	}
@@ -2057,8 +2056,8 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			 */
 
 			if (HP.IsKeyWord("all")) {
-				for (ElemMapType::const_iterator i = ElemData[Type].ElemMap.begin();
-					i != ElemData[Type].ElemMap.end();
+				for (ElemContainerType::const_iterator i = ElemData[Type].ElemContainer.begin();
+					i != ElemData[Type].ElemContainer.end();
 					i++)
 				{
 					ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(i->second);
@@ -2150,7 +2149,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			Inertia(uLabel, elements, x, R, OutHdl.Log(), fOut));
 		if (pE != 0) {
 			if (bAlways) {
-				ppE = &ElemData[Elem::INERTIA].ElemMap.insert(ElemMapType::value_type(uLabel, pE)).first->second;
+				ppE = InsertElem(ElemData[Elem::INERTIA], uLabel, pE);
 			} else {
 				SAFEDELETE(pE);
 				pE = 0;

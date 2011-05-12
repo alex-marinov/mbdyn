@@ -260,7 +260,7 @@ DataManager::DofOwnerInit(void)
 	}
 
 	/* per ogni nodo strutturale */
-	if (!NodeData[Node::STRUCTURAL].NodeMap.empty()) {
+	if (!NodeData[Node::STRUCTURAL].NodeContainer.empty()) {
 
 		/*
 		 * used by POD stuff: if any, output
@@ -275,8 +275,8 @@ DataManager::DofOwnerInit(void)
 		 */
 		OutHdl.Log() << "struct node dofs:";
 
-		for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			ASSERT(pNode != 0);
@@ -595,8 +595,8 @@ DataManager::InitialJointAssembly(void)
 #endif
 
 #if 0
-	integer iNumNodes = NodeData[Node::STRUCTURAL].NodeMap.size();
-	NodeMapType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeMap.begin();
+	integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size();
+	NodeContainerType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 #endif
 
 	bool pds =
@@ -611,8 +611,8 @@ DataManager::InitialJointAssembly(void)
 
 	/* Numero totale di Dof durante l'assemblaggio iniziale */
 	integer iInitialNumDofs = 0;
-	for (NodeMapType::const_iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-		i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+	for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 	{
 		iInitialNumDofs += dynamic_cast<const StructNode*>(i->second)->iGetInitialNumDof();
 	}
@@ -620,7 +620,7 @@ DataManager::InitialJointAssembly(void)
 	/* Elementi: mette gli indici agli eventuali DofOwner */
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Per ogni tipo di elemento */
-		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemMap.empty()) {
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemContainer.empty()) {
 			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
 
 			/* Tipo di dof dell'elemento corrente */
@@ -628,11 +628,11 @@ DataManager::InitialJointAssembly(void)
 				ElemData[iCnt1].DofOwnerType;
 
 			if (CurrDofType != DofOwner::UNKNOWN) {
-				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
+				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemContainer.size());
 
 				/* Iterazione sugli Elem */
-				for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
-					p != ElemData[iCnt1].ElemMap.end();
+				for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
+					p != ElemData[iCnt1].ElemContainer.end();
 					p++)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
@@ -684,10 +684,10 @@ DataManager::InitialJointAssembly(void)
 	}
 
 	/* mette a posto i dof */
-	NodeMapType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeMap.begin();
+	NodeContainerType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 
 	iIndex = 0;
-	for (; iNode != NodeData[Node::STRUCTURAL].NodeMap.end(); iNode++) {
+	for (; iNode != NodeData[Node::STRUCTURAL].NodeContainer.end(); iNode++) {
 		// numero di dof di un owner
 		const StructNode *pNode = dynamic_cast<const StructNode *>(iNode->second);
 		unsigned int iNumDofs = pNode->iGetInitialNumDof();
@@ -771,7 +771,7 @@ DataManager::InitialJointAssembly(void)
 	/* Elementi: mette gli indici agli eventuali DofOwner */
 	for (int iCnt1 = 0; iCnt1 < Elem::LASTELEMTYPE; iCnt1++) {
 		/* Pre ogni tipo di elemento */
-		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemMap.empty()) {
+		if (ElemData[iCnt1].bToBeUsedInAssembly() && !ElemData[iCnt1].ElemContainer.empty()) {
 			/* Se deve essere usato nell'assemblaggio e ne sono definiti */
 
 			/* Tipo di dof dell'elemento corrente */
@@ -779,11 +779,11 @@ DataManager::InitialJointAssembly(void)
 				ElemData[iCnt1].DofOwnerType;
 
 			if (CurrDofType != DofOwner::UNKNOWN) {
-				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemMap.size());
+				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemContainer.size());
 
 				/* Iterazione sugli Elem */
-				for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
-					p != ElemData[iCnt1].ElemMap.end();
+				for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
+					p != ElemData[iCnt1].ElemContainer.end();
 					p++)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
@@ -929,8 +929,8 @@ DataManager::InitialJointAssembly(void)
 
 	/* Setta i valori iniziali dei gradi di liberta' dei nodi strutturali
 	 * durante l'assemblaggio iniziale */
-	for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-		i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+	for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 	{
 		dynamic_cast<StructNode *>(i->second)->SetInitialValue(X);
 	}
@@ -941,10 +941,10 @@ DataManager::InitialJointAssembly(void)
 		/* Pre ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 			ElemData[iCnt1].bToBeUsedInAssembly() &&
-			!ElemData[iCnt1].ElemMap.empty())
+			!ElemData[iCnt1].ElemContainer.empty())
 		{
-			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
-				p != ElemData[iCnt1].ElemMap.end();
+			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
+				p != ElemData[iCnt1].ElemContainer.end();
 				p++)
 			{
 				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
@@ -970,8 +970,8 @@ DataManager::InitialJointAssembly(void)
 		pResHdl->Reset();
 
 		/* Contributo dei nodi */
-		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -1081,8 +1081,8 @@ DataManager::InitialJointAssembly(void)
 		pSM->MatrReset();
 
 		/* Contributo dei nodi */
-		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -1167,8 +1167,8 @@ DataManager::InitialJointAssembly(void)
 		X += *pSolHdl;
 
 		/* Correggo i nodi */
-		for (NodeMapType::iterator i = NodeData[Node::STRUCTURAL].NodeMap.begin();
-			i != NodeData[Node::STRUCTURAL].NodeMap.end(); i++)
+		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
 		{
 			dynamic_cast<StructNode *>(i->second)->InitialUpdate(X);
 		}
@@ -1182,12 +1182,12 @@ endofcycle:
 		/* Per ogni tipo di elemento */
 		if (ElemData[iCnt1].DofOwnerType != DofOwner::UNKNOWN &&
 			ElemData[iCnt1].bToBeUsedInAssembly() &&
-			!ElemData[iCnt1].ElemMap.empty())
+			!ElemData[iCnt1].ElemContainer.empty())
 		{
 			/* Se possiede dofs, se deve essere usato nell'assemblaggio
 			 * e se ne sono presenti */
-			for (ElemMapType::const_iterator p = ElemData[iCnt1].ElemMap.begin();
-				p != ElemData[iCnt1].ElemMap.end();
+			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
+				p != ElemData[iCnt1].ElemContainer.end();
 				p++)
 			{
 				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
@@ -1230,8 +1230,8 @@ DataManager::DofOwnerSet(void)
 					<< " (" << psElemNames[iCnt] << ")"
 					<< std::endl);
 
-			for (ElemMapType::const_iterator p = ElemData[iCnt].ElemMap.begin();
-				p != ElemData[iCnt].ElemMap.end();
+			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
+				p != ElemData[iCnt].ElemContainer.end();
 				p++)
 			{
 				ElemWithDofs* pEWD = CastElemWithDofs(p->second);

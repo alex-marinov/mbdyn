@@ -421,14 +421,14 @@ DofIter()
 		HP.OutputFrames(OutHdl.ReferenceFrames());
 	}
 
-	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
+	if (!ElemData[Elem::AIRPROPERTIES].ElemContainer.empty()) {
 		OutHdl.Open(OutputHandler::AIRPROPS);
 	}
 
 	/* fine lettura elementi */
 
 	for (int i = 0; i < Node::LASTNODETYPE; i++) {
-		if (!NodeData[i].NodeMap.empty()
+		if (!NodeData[i].NodeContainer.empty()
 			&& NodeData[i].OutFile != OutputHandler::UNKNOWN)
 		{
 			OutHdl.Open(NodeData[i].OutFile);
@@ -436,7 +436,7 @@ DofIter()
 	}
 
 	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-		if (!ElemData[i].ElemMap.empty()
+		if (!ElemData[i].ElemContainer.empty()
 			&& ElemData[i].OutFile != OutputHandler::UNKNOWN)
 		{
 			OutHdl.Open(ElemData[i].OutFile);
@@ -699,9 +699,9 @@ void DataManager::MakeRestart(void)
 
 	/* Nodi */
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		if (!NodeData[iCnt].NodeMap.empty()) {
+		if (!NodeData[iCnt].NodeContainer.empty()) {
 			OutHdl.Restart() << "  " << psReadControlNodes[iCnt] << ": "
-				<< NodeData[iCnt].NodeMap.size() << ';' << std::endl;
+				<< NodeData[iCnt].NodeContainer.size() << ';' << std::endl;
 		}
 	}
 
@@ -716,13 +716,13 @@ void DataManager::MakeRestart(void)
 
 	/* Elementi */
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
-		if (!ElemData[iCnt].ElemMap.empty()) {
+		if (!ElemData[iCnt].ElemContainer.empty()) {
 			if (ElemData[iCnt].bIsUnique()) {
 				OutHdl.Restart() << "  " << psReadControlElems[iCnt]
 					<< ';' << std::endl;
 			} else {
 				OutHdl.Restart() << "  " << psReadControlElems[iCnt] << ": "
-					<< ElemData[iCnt].ElemMap.size() << ';' << std::endl;
+					<< ElemData[iCnt].ElemContainer.size() << ';' << std::endl;
 			}
 		}
 	}
@@ -796,8 +796,8 @@ void DataManager::MakeRestart(void)
 		(*p)->Restart(OutHdl.Restart());
 	}
 
-	for (NodeMapType::const_iterator i = NodeData[Node::PARAMETER].NodeMap.begin();
-		i != NodeData[Node::PARAMETER].NodeMap.end(); i++)
+	for (NodeContainerType::const_iterator i = NodeData[Node::PARAMETER].NodeContainer.begin();
+		i != NodeData[Node::PARAMETER].NodeContainer.end(); i++)
 	{
 		dynamic_cast<const Elem2Param *>(i->second)->RestartBind(OutHdl.Restart());
 	}
@@ -861,28 +861,28 @@ DataManager::bOutputAccelerations(void) const
 	return bOutputAccels;
 }
 
-DataManager::NodeMapType::const_iterator
+DataManager::NodeContainerType::const_iterator
 DataManager::begin(Node::Type t) const
 {
-	return NodeData[t].NodeMap.begin();
+	return NodeData[t].NodeContainer.begin();
 }
 
-DataManager::NodeMapType::const_iterator
+DataManager::NodeContainerType::const_iterator
 DataManager::end(Node::Type t) const
 {
-	return NodeData[t].NodeMap.end();
+	return NodeData[t].NodeContainer.end();
 }
 
-DataManager::ElemMapType::const_iterator
+DataManager::ElemContainerType::const_iterator
 DataManager::begin(Elem::Type t) const
 {
-	return ElemData[t].ElemMap.begin();
+	return ElemData[t].ElemContainer.begin();
 }
 
-DataManager::ElemMapType::const_iterator
+DataManager::ElemContainerType::const_iterator
 DataManager::end(Elem::Type t) const
 {
-	return ElemData[t].ElemMap.end();
+	return ElemData[t].ElemContainer.end();
 }
 
 extern "C" int

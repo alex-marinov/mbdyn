@@ -1794,7 +1794,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 				Node *pN = ReadStructNode(this, HP, pDO, uLabel);
 				if (pN != 0) {
-					ppN = &NodeData[Node::STRUCTURAL].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::STRUCTURAL], uLabel, pN);
 				}
 			} break;
 
@@ -1834,7 +1834,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					ElectricNode,
 					ElectricNode(uLabel, pDO, dx, dxp, fOut));
 				if (pN != 0) {
-					ppN = &NodeData[Node::ELECTRIC].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::ELECTRIC], uLabel, pN);
 				}
 
 			} break;
@@ -1874,7 +1874,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					ThermalNode,
 					ThermalNode(uLabel, pDO, dx, dxp, fOut));
 				if (pN != 0) {
-					ppN = &NodeData[Node::THERMAL].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::THERMAL], uLabel, pN);
 				}
 
 			} break;
@@ -1940,7 +1940,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 				}
 
 				if (pN != 0) {
-					ppN = &NodeData[Node::ABSTRACT].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::ABSTRACT], uLabel, pN);
 				}
 			} break;
 
@@ -2063,7 +2063,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 				}
 
 				if (pN != 0) {
-					ppN = &NodeData[Node::PARAMETER].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::PARAMETER], uLabel, pN);
 				}
 				} break;
 
@@ -2102,7 +2102,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 					PressureNode(uLabel, pDO, dx, fOut));
 
 				if (pN != 0) {
-					ppN = &NodeData[Node::HYDRAULIC].NodeMap.insert(NodeMapType::value_type(uLabel, pN)).first->second;
+					ppN = InsertNode(NodeData[Node::HYDRAULIC], uLabel, pN);
 				}
 			} break;
 
@@ -2180,12 +2180,12 @@ DataManager::ReadNodes(MBDynParser& HP)
 	/* count & initialize node array */
 	unsigned iNumNodes = 0;
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		iNumNodes += NodeData[iCnt].NodeMap.size();
+		iNumNodes += NodeData[iCnt].NodeContainer.size();
 	}
 	Nodes.resize(iNumNodes);
 	for (int iCnt = 0, iNode = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		for (NodeMapType::const_iterator p = NodeData[iCnt].NodeMap.begin();
-			p != NodeData[iCnt].NodeMap.end();
+		for (NodeContainerType::const_iterator p = NodeData[iCnt].NodeContainer.begin();
+			p != NodeData[iCnt].NodeContainer.end();
 			p++, iNode++)
 		{
 			Nodes[iNode] = p->second;

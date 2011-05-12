@@ -248,7 +248,7 @@ DataManager::ElemDataInit(void)
 	DEBUGCOUT("iTotElem = " << iTotElem << std::endl);
 
 	/* FIXME: reverse this:
-	 * - read and populate ElemData[iCnt].ElemMap first
+	 * - read and populate ElemData[iCnt].ElemContainer first
 	 * - then create Elems and fill it with Elem*
 	 */
 	if (iTotElem > 0) {
@@ -502,10 +502,10 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 {
 #ifdef USE_NETCDF
 	for (unsigned et = 0; et < Elem::LASTELEMTYPE; et++) {
-		if (ElemData[et].ElemMap.size() && OH.UseNetCDF(ElemData[et].OutFile)) {
+		if (ElemData[et].ElemContainer.size() && OH.UseNetCDF(ElemData[et].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			integer iNumElems = ElemData[et].ElemMap.size();
+			integer iNumElems = ElemData[et].ElemContainer.size();
 
 			NcFile *pBinFile = OH.pGetBinFile();
 
@@ -535,7 +535,7 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			ElemMapType::const_iterator p = ElemData[et].ElemMap.begin();
+			ElemContainerType::const_iterator p = ElemData[et].ElemContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumElems); i++, p++) {
 				VarLabels->set_cur(i);
 				const long l = p->second->GetLabel();
@@ -622,12 +622,12 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
-	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
-	if (p == ElemData[Typ].ElemMap.end()) {
+	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
+	if (p == ElemData[Typ].ElemMapToList.end()) {
 		return 0;
 	}
 
-	return p->second;
+	return p->second->second;
 }
 
 
@@ -637,12 +637,12 @@ DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 {
 	ASSERT(uL > 0);
 
-	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
-	if (p == ElemData[Typ].ElemMap.end()) {
+	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
+	if (p == ElemData[Typ].ElemMapToList.end()) {
 		return 0;
 	}
 
-	return const_cast<Elem **>(&p->second);
+	return const_cast<Elem **>(&p->second->second);
 }
 
 /* cerca un elemento qualsiasi */
@@ -653,12 +653,12 @@ DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 	ASSERT(uL > 0);
 	ASSERT(iDeriv == int(ELEM) || ElemData[Typ].iDerivation & iDeriv);
 
-	ElemMapType::const_iterator p = ElemData[Typ].ElemMap.find(uL);
-	if (p == ElemData[Typ].ElemMap.end()) {
+	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
+	if (p == ElemData[Typ].ElemMapToList.end()) {
 		return 0;
 	}
 
-	return pChooseElem(p->second, iDeriv);
+	return pChooseElem(p->second->second, iDeriv);
 }
 
 /* Usata dalle due funzioni precedenti */
@@ -736,7 +736,7 @@ CurrType(Elem::UNKNOWN)
 	int iCnt = 0;
 
 	while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-			|| (*pElemData)[iCnt].ElemMap.empty())
+			|| (*pElemData)[iCnt].ElemContainer.empty())
 	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
 			break;
@@ -762,7 +762,7 @@ InitialAssemblyIterator::GetFirst(void) const
 	}
 
 	CurrType = FirstType;
-	pCurr = (*pElemData)[FirstType].ElemMap.begin();
+	pCurr = (*pElemData)[FirstType].ElemContainer.begin();
 
 	/* La variabile temporanea e' necessaria per il debug. */
 	InitialAssemblyElem* p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
@@ -785,7 +785,7 @@ InitialAssemblyIterator::GetNext(void) const
 	InitialAssemblyElem* p = 0;
 	do {
 		pCurr++;
-		if (pCurr == (*pElemData)[CurrType].ElemMap.end()) {
+		if (pCurr == (*pElemData)[CurrType].ElemContainer.end()) {
 			int iCnt = int(CurrType);
 
 			do {
@@ -793,11 +793,11 @@ InitialAssemblyIterator::GetNext(void) const
 					return 0;
 				}
 			} while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-					|| (*pElemData)[iCnt].ElemMap.empty());
+					|| (*pElemData)[iCnt].ElemContainer.empty());
 
-			ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
+			ASSERT((*pElemData)[iCnt].ElemContainer.begin() != (*pElemData)[iCnt].ElemContainer.end());
 			CurrType = Elem::Type(iCnt);
-			pCurr = (*pElemData)[iCnt].ElemMap.begin();
+			pCurr = (*pElemData)[iCnt].ElemContainer.begin();
 		}
 
 		/* La variabile temporanea e' necessaria per il debug. */

@@ -4089,8 +4089,8 @@ output_eigenvectors(const VectorHandler *pBeta,
 static void
 output_geometry(DataManager* pDM, std::ostream& o)
 {
-	DataManager::NodeMapType::const_iterator i = pDM->begin(Node::STRUCTURAL);
-	DataManager::NodeMapType::const_iterator e = pDM->end(Node::STRUCTURAL);
+	DataManager::NodeContainerType::const_iterator i = pDM->begin(Node::STRUCTURAL);
+	DataManager::NodeContainerType::const_iterator e = pDM->end(Node::STRUCTURAL);
 
 	// no structural nodes!
 	if (i == e) {
