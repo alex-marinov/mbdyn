@@ -34,7 +34,7 @@
 # options:
 #		option name	expected value
 #		NumBlades	number of blades (required)
-#		BladeSeq	sequence of blades
+#		BladeSeq	sequence of blades ([counter]clockwise)
 #		HubNode		label of reference rotating node (required)
 #		ShaftNode	label of reference non-rotating node (required)
 #		RotorAxis	{x|y|z} (required)
