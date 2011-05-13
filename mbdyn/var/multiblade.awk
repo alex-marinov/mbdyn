@@ -34,13 +34,13 @@
 # options:
 #		option name	expected value
 #		NumBlades	number of blades (required)
+#		BladeSeq	sequence of blades
 #		HubNode		label of reference rotating node (required)
 #		ShaftNode	label of reference non-rotating node (required)
 #		RotorAxis	{x|y|z} (required)
 #		BladeLabelOff	offset of blade labels (required)
 #		BladeLabelDelta	delta of blade labels (default: BladeLabelOff)
 #		PsiOff		azimuth offset (default: 0)
-#		PsiDelta	azimuth increment (default: 2*pi/NumBlades)
 #		InputMode	{euler123|vector|matrix} (default: euler123)
 #
 # R matrix from Euler 123 angles
@@ -227,15 +227,6 @@ function skip_label(l)
 
 # Output
 function output() {
-	mat3T_mul_mat3(Rs, R0, DR);
-	R2vec(DR, Psi);
-	psi = Psi[RotorAxis];
-	Delta_psi = 2*3.14159265358979323846/NumBlades;
-
-	CurrBladeLabelMax = BladeLabelOff;
-	psi_m = psi
-	m1m = 1;
-
 	for (node2 = 0; node2 < num_labels/NumBlades; node2++) {
 		X[node2, 0, 1] = 0;
 		X[node2, 0, 2] = 0;
@@ -306,20 +297,30 @@ function output() {
 		}
 	}
 
+	mat3T_mul_mat3(Rs, R0, DR);
+	R2vec(DR, Psi);
+	psi = Psi[RotorAxis];
+
+	CurrBladeLabelMax = BladeLabelOff;
+	psi_m = psi
+	m1m = 1;
+
 	blade = 0;
+	theta[1] = 0.;
+	theta[2] = 0.;
+	theta[3] = 0.;
+	theta[RotorAxis] = PsiOff;
+
 	for (node = 0; node < num_labels; node++) {
 		if (label[node] >= CurrBladeLabelMax) {
 			blade++;
 			CurrBladeLabelMax += BladeLabelDelta;
-			psi_m += Delta_psi;
+			psi_m += PsiDelta;
 			cospsi_m = cos(psi_m);
 			sinpsi_m = sin(psi_m);
 			m1m *= -1;
 
-			theta[1] = 0.;
-			theta[2] = 0.;
-			theta[3] = 0.;
-			theta[RotorAxis] = psi + PsiOff + blade*PsiDelta;
+			theta[RotorAxis] += PsiDelta;
 
 			# printf("### blade=%d theta[RotorAxis]=%e\n", blade, theta[RotorAxis]);
 
@@ -360,6 +361,7 @@ function output() {
 		mat3T_mul_mat3(Rb, Rn, R);
 		R2vec(R, T);
 
+		# printf("### label=%d X={%e %e %e}\n", label[node], X[1], X[2], X[3]);
 		# printf("### label=%d theta={%e %e %e}\n", label[node], T[1], T[2], T[3]);
 
 		# velocity
@@ -587,9 +589,18 @@ BEGIN {
 		exit;
 	}
 
-	if (PsiDelta == "" || PsiDelta == 0) {
-		PsiDelta = 2*3.14159265358979323846/NumBlades;
+	if (BladeSeq == "" || BladeSeq == "counterclockwise" || BladeSeq == 1) {
+		BladeSeq = 0 + 1;
+
+	} else if (BladeSeq == "clockwise" || BladeSeq == -1) {
+		BladeSeq = 0 - 1;
+
+	} else {
+		printf("Invalid BladeSeq\n");
+		exit;
 	}
+
+	PsiDelta = BladeSeq*2*3.14159265358979323846/NumBlades;
 
 	if (int(NumBlades/2)*2 == NumBlades) {
 		Even = NumBlades/2;
