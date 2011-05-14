@@ -115,7 +115,7 @@ the time step is never changed.
 However, this prevents simulation termination when the maximum number
 of iterations is reached.
 As a consequence, its use only makes sense when repeating a time step
-results in soem modification of the analysis related to some user-defined
+results in some modification of the analysis related to some user-defined
 function.
 
 \item \kw{factor}
@@ -151,7 +151,7 @@ are performed without converging.
     \bnt{strategy_data} ::= (\ty{DriveCaller}) \bnt{time_step_pattern}
 \end{Verbatim}
 %\end{verbatim}
-the time step is change according to the \nt{time\_step\_pattern} pattern.
+the time step is changed according to the \nt{time\_step\_pattern} pattern.
 If the time step returned by the drive caller does not change
 when a step needs to be repeated, the analysis is interrupted.
 
