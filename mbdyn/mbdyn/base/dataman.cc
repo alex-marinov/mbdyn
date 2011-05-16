@@ -458,7 +458,7 @@ DofIter()
 		for (int i = 0; i < Node::LASTNODETYPE; i++) {
 			std::cout << "NodeType " << i << " "
 				"(" << psNodeNames[i] << "), "
-				"n. of nodes: " << NodeData[i].NodeMap.size()
+				"n. of nodes: " << NodeData[i].NodeContainer.size()
 				<< std::endl;
 		}
 
@@ -466,7 +466,7 @@ DofIter()
 		for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
 			std::cout << "Element Type " << i << " "
 				"(" << psElemNames[i] << "), "
-				"n. of elems: " << ElemData[i].ElemMap.size()
+				"n. of elems: " << ElemData[i].ElemContainer.size()
 				<< std::endl;
 		}
 

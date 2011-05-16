@@ -746,7 +746,7 @@ CurrType(Elem::UNKNOWN)
 	// NOTE: this fails if by chance there's no element
 	// that participates in initial assembly
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
-	ASSERT((*pElemData)[iCnt].ElemMap.begin() != (*pElemData)[iCnt].ElemMap.end());
+	ASSERT((*pElemData)[iCnt].ElemContainer.begin() != (*pElemData)[iCnt].ElemContainer.end());
 
 	FirstType = CurrType = Elem::Type(iCnt);
 }
