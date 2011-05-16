@@ -63,7 +63,7 @@ FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
    		}
 
 	} else {
-		ASSERT(v0.size() == nd );
+		ASSERT(v0.size() == unsigned(nd));
 		pdVal[0] = 0.;
 		for (int iCnt = 0; iCnt < nd; iCnt++) {
 			pdVal[iCnt + 1] = v0[iCnt];
