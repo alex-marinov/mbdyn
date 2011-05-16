@@ -31,7 +31,7 @@ bin_PROGRAMS += \
 logproc
 endif
 
-if USE_X_ANN
+if USE_ANN
 if MBDYN_DEVEL
 bin_PROGRAMS += \
 mbfem
@@ -73,7 +73,7 @@ MYLIBS = \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
 ../libraries/libmbc/libmbc.la \
-../libraries/libann/libann.la \
+../libraries/libann/libmbann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 @KLU_LIBS@ \
@@ -194,7 +194,7 @@ test_strext_socket_cxx_LDADD = $(MYLIBS)
 test_strext_socket_f_cxx_LDADD = $(MYLIBS)
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
-mbfem_LDADD = $(MYLIBS) @X_ANN_LIBS@
+mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
 
 logproc_LDFLAGS = -static
 

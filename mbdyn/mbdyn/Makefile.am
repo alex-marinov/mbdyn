@@ -30,7 +30,7 @@ hydr/libhydr.la \
 base/libbase.la  \
 ../libraries/libmbc/libmbc_static.la \
 ../libraries/libmbwrap/libmbwrap.la \
-../libraries/libann/libann.la \
+../libraries/libann/libmbann.la \
 $(GINACLIB_LIBS) \
 @Y12_LIBS@ \
 @HARWELL_LIBS@ \
@@ -52,7 +52,7 @@ $(GINACLIB_LIBS) \
 @NETCDF_LIBS@ \
 @UDUNITS_LIBS@ \
 @RT_LIBS@ \
-@X_ANN_LIBS@ \
+@ANN_LIBS@ \
 @LIBS@ \
 $(GINACLIB_LIBS)
 

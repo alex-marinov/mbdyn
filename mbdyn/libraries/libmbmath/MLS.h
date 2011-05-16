@@ -3,7 +3,7 @@
 #ifndef MLS_H
 #define MLS_H
 
-#ifdef USE_X_ANN
+#ifdef USE_ANN
 
 #if defined(HAVE_ANN_H)
 #include <ANN.h>
@@ -103,6 +103,6 @@ public:
 	void Interpolate_Adj(const GeometryData&, const GeometryData&, SpMapMatrixHandler*,const std::vector<Vec3>&);
 };
 
-#endif // USE_X_ANN
+#endif // USE_ANN
 
 #endif // MLS_H

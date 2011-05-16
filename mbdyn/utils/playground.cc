@@ -48,11 +48,21 @@ main(int argn, const char* const argv[])
       		if (std::cin) {
 	 		std::cin >> d[1] >> d[2];
 
+#if 0
 			Mat3x3 Gamma_m1 = RotManip::DRot_I(Vec3(d));
 			Mat3x3 Gamma = Gamma_m1.Inv();
 			doublereal dDet = Gamma.dDet();
-
 	 		std::cout << "Gamma=" << Gamma << " det(Gamma)=" << dDet << std::endl;
+#endif
+
+			Mat3x3 R(RotManip::Rot(d));
+			Vec3 Theta(RotManip::VecRot(R));
+			Mat3x3 Rcheck(RotManip::Rot(Theta));
+			std::cout << "R={" << R << "}" << std::endl
+				<< "  V={" << Theta << "}" << std::endl
+				<< "  R={" << Rcheck << "}" << std::endl
+				<< "  I={" << R.MulMT(Rcheck) << "}"
+				<< std::endl;
       		} else {
 	 		break;
       		}

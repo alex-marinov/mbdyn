@@ -34,7 +34,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#ifdef USE_X_ANN
+#ifdef USE_ANN
 
 #include "ac/lapack.h"
 #include "MLS.h"
@@ -317,4 +317,4 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
 	}
 }
 
-#endif // USE_X_ANN
+#endif // USE_ANN

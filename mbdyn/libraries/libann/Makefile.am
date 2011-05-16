@@ -2,10 +2,10 @@ include $(top_srcdir)/build/top.mk
 ## $Header$
 ## Process this file with automake to produce Makefile.in
 
-# Build libann.a library
-noinst_LTLIBRARIES = libann.la
+# Build libmbann.a library
+noinst_LTLIBRARIES = libmbann.la
 
-libann_la_SOURCES = \
+libmbann_la_SOURCES = \
 ActivationFunction.c \
 ActivationFunction.h \
 ann.c \
@@ -13,8 +13,8 @@ ann.h \
 matrix.c \
 matrix.h
 
-libann_la_LIBADD = @LIBS@
-libann_la_LDFLAGS =
+libmbann_la_LIBADD = @LIBS@
+libmbann_la_LDFLAGS =
 
 INCLUDES = \
 -I../../include \

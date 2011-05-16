@@ -68,7 +68,7 @@ schurmh.h \
 schurmh.cc
 endif
 
-libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @X_ANN_LIBS@
+libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
 noinst_PROGRAMS = matmultest itertest dgeequtest

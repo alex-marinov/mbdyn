@@ -211,7 +211,7 @@ OL_ARG_WITH(threads,[  --with-threads          with threads],auto,[auto yes no])
 OL_ARG_WITH(rt,[  --with-rt               with POSIX realtime support],auto,[auto yes no])
 OL_ARG_WITH(rtai,[  --with-rtai             with RTAI support],no,[auto yes no])
 OL_ARG_WITH(boost,[  --with-boost            with BOOST support],no,[auto yes no])
-OL_ARG_WITH(ANN,[  --with-ANN              with ANN support],no,[auto yes no])
+OL_ARG_WITH(ann,[  --with-ann              with ANN support],no,[auto yes no])
 OL_ARG_WITH(bullet,[  --with-bullet           with bullet support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
@@ -366,7 +366,7 @@ SECURITY_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
 RT_LIBS=
-X_ANN_LIBS=
+ANN_LIBS=
 BULLET_LIBS=
 
 dnl GINACLIB_CONFIG=
@@ -1936,9 +1936,9 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for ANN
 dnl
-ol_link_ANN=no
-if test "$ol_with_ANN" != "no" ; then
-	ol_have_ANN=no
+ol_link_ann=no
+if test "$ol_with_ann" != "no" ; then
+	ol_have_ann=no
 	AC_LANG_CPLUSPLUS
 	ANN_H=
 	ANN_ANN_H=
@@ -1946,22 +1946,22 @@ if test "$ol_with_ANN" != "no" ; then
 	AC_CHECK_HEADERS(ANN/ANN.h, [ANN_H="ANN/ANN.h"])
 	if test "$ac_cv_header_ANN_h" = "yes" -o "$ac_cv_header_ANN_ANN_h" = "yes" ; then
 		SAVE_LIBS="$LIBS"
-		LIBS="$LIBS -lANN"
+		LIBS="$LIBS -lann"
 		AC_TRY_LINK(
 	#include <$ANN_H>
 			,[
 	ANNkd_tree x(0,0);
-			],[have_ANN=yes],[have_ANN=no])
+			],[have_ann=yes],[have_ann=no])
 		LIBS="$save_LIBS"
-		if test "$have_ANN" != "no" ; then
-			X_ANN_LIBS="-lANN"
-			AC_DEFINE(HAVE_X_ANN,1,[define to use ANN])
-			ol_have_ANN="yes"
+		if test "$have_ann" != "no" ; then
+			ANN_LIBS="-lann"
+			AC_DEFINE(HAVE_ANN,1,[define to use ANN])
+			ol_have_ann="yes"
 		fi
 	fi
 
-	if test "$ol_have_ANN" != "yes" ; then
-		if test "$ol_with_ANN" = "yes" ; then
+	if test "$ol_have_ann" != "yes" ; then
+		if test "$ol_with_ann" = "yes" ; then
 			AC_MSG_ERROR([ANN library headers not available])
 		fi
 	else
@@ -1972,9 +1972,9 @@ if test "$ol_with_ANN" != "no" ; then
 	fi
 	AC_LANG_C
 
-	if test "$ol_have_ANN" = "yes" ; then
-		ol_link_ANN="yes"
-		AC_DEFINE(USE_X_ANN,1,[define to use ANN])
+	if test "$ol_have_ann" = "yes" ; then
+		ol_link_ann="yes"
+		AC_DEFINE(USE_ANN,1,[define to use ANN])
 	fi
 fi
 
@@ -2499,7 +2499,7 @@ AC_SUBST(SECURITY_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
 AC_SUBST(RT_LIBS)
-AC_SUBST(X_ANN_LIBS)
+AC_SUBST(ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
 
 AC_SUBST(MODULES_DIRS)
@@ -2519,7 +2519,7 @@ AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
-AM_CONDITIONAL(USE_X_ANN,[test "$ol_link_ANN" = yes])
+AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
