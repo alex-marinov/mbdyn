@@ -421,25 +421,37 @@ DofIter()
 		HP.OutputFrames(OutHdl.ReferenceFrames());
 	}
 
-	if (!ElemData[Elem::AIRPROPERTIES].ElemContainer.empty()) {
-		OutHdl.Open(OutputHandler::AIRPROPS);
-	}
-
 	/* fine lettura elementi */
 
+	// if output is defined and at least one node wants to output,
+	// open file
 	for (int i = 0; i < Node::LASTNODETYPE; i++) {
-		if (!NodeData[i].NodeContainer.empty()
-			&& NodeData[i].OutFile != OutputHandler::UNKNOWN)
+		if (NodeData[i].OutFile != OutputHandler::UNKNOWN)
 		{
-			OutHdl.Open(NodeData[i].OutFile);
+			for (NodeContainerType::const_iterator n = NodeData[i].NodeContainer.begin();
+				n != NodeData[i].NodeContainer.end(); n++)
+			{
+				if (n->second->fToBeOutput()) {
+					OutHdl.Open(NodeData[i].OutFile);
+					break;
+				}
+			}
 		}
 	}
 
+	// if output is defined and at least one element wants to output,
+	// open file
 	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
-		if (!ElemData[i].ElemContainer.empty()
-			&& ElemData[i].OutFile != OutputHandler::UNKNOWN)
+		if (ElemData[i].OutFile != OutputHandler::UNKNOWN)
 		{
-			OutHdl.Open(ElemData[i].OutFile);
+			for (ElemContainerType::const_iterator e = ElemData[i].ElemContainer.begin();
+				e != ElemData[i].ElemContainer.end(); e++)
+			{
+				if (e->second->fToBeOutput()) {
+					OutHdl.Open(ElemData[i].OutFile);
+					break;
+				}
+			}
 		}
 	}
 
