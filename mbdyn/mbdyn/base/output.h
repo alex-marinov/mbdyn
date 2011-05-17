@@ -91,8 +91,9 @@ public:
 		THERMALNODES,
 		THERMALELEMENTS,
 		PLATES,
+		GRAVITY,			// 30
 
-		LASTFILE			// 30
+		LASTFILE			// 31
 	};
 
 private:
@@ -180,6 +181,7 @@ private:
 	std::ofstream ofThermalNodes;
 	std::ofstream ofThermalElements;
 	std::ofstream ofPlates;
+	std::ofstream ofGravity;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -264,6 +266,7 @@ public:
 	inline std::ostream& ThermalNodes(void) const;
 	inline std::ostream& ThermalElements(void) const;
 	inline std::ostream& Plates(void) const;
+	inline std::ostream& Gravity(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -572,6 +575,13 @@ OutputHandler::Plates(void) const
 {
 	ASSERT(IsOpen(PLATES));
 	return (std::ostream&)ofPlates;
+}
+
+inline std::ostream&
+OutputHandler::Gravity(void) const
+{
+	ASSERT(IsOpen(GRAVITY));
+	return (std::ostream&)ofGravity;
 }
 
 inline int

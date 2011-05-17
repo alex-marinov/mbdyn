@@ -26,6 +26,7 @@ MBDyn 1.X-Devel
 		- added more functions to model namespace
 		- added previous time step functions to model namespace
 		- added support for f95 modules (Reinhard Resch)
+		- added gravity element output
 	Backward compatibility issues:
 		- output of reference node forces changed in modal mapping
 	Known issues:

@@ -118,6 +118,8 @@ class Gravity : public Elem, public TplDriveOwner<Vec3> {
 				    const VectorHandler& XCurr, 
 				    const VectorHandler& XPrimeCurr);
 
+	virtual void Output(OutputHandler& OH) const;
+
    virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const { 
        return Acc;
    };

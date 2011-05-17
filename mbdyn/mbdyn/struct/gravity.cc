@@ -90,6 +90,17 @@ SubVectorHandler& Gravity::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void
+Gravity::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::GRAVITY)) {
+			OH.Gravity() << std::setw(8) << GetLabel()
+				<< " " << Acc << std::endl;
+		}
+	}
+}
+
 /* Gravity - end */
 
 

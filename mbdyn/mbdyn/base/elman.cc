@@ -94,7 +94,16 @@ DataManager::ElemManager(void)
 
 	ElemData[Elem::PLATE].OutFile = OutputHandler::PLATES;
 	ElemData[Elem::PLATE].Desc = "Plate";
-	ElemData[Elem::PLATE].ShortDesc = "Plate";
+	ElemData[Elem::PLATE].ShortDesc = "plate";
+
+	ElemData[Elem::AIRPROPERTIES].OutFile = OutputHandler::AIRPROPS;
+	ElemData[Elem::AIRPROPERTIES].Desc = "AirProperties";
+	ElemData[Elem::AIRPROPERTIES].ShortDesc = "airprops";
+
+	ElemData[Elem::GRAVITY].OutFile = OutputHandler::GRAVITY;
+	ElemData[Elem::GRAVITY].Desc = "Gravity";
+	ElemData[Elem::GRAVITY].ShortDesc = "gravity";
+	ElemData[Elem::GRAVITY].DefaultOut(false);
 
 	ElemData[Elem::INDUCEDVELOCITY].OutFile = OutputHandler::ROTORS;
 	ElemData[Elem::INDUCEDVELOCITY].Desc = "InducedVelocity";

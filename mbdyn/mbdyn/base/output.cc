@@ -75,7 +75,9 @@ const char* psExt[] = {
 	".thn",
 	".the",
 	".pla",
-	NULL
+	".grv",
+
+	NULL		// 31
 };
 
 /* Costruttore senza inizializzazione */
@@ -230,6 +232,10 @@ OutputHandler::OutputHandler_int(void)
 		| OUTPUT_MAY_USE_TEXT
 		| OUTPUT_MAY_USE_NETCDF;
 	OutData[PLATES].pof = &ofPlates;
+
+	OutData[GRAVITY].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+	OutData[GRAVITY].pof = &ofGravity;
 
 	OutData[NETCDF].flags = 0
 		| OUTPUT_MAY_USE_NETCDF;
