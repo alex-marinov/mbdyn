@@ -729,8 +729,8 @@ SchurDataManager::CreatePartition(void)
 	int GravityPos = 0, AirPropPos = 0;
 	int* pRotPos = NULL;
 	unsigned int* pRotLab = NULL;
-	if (!ElemData[Elem::INDUCEDVELOCITY].ElemMap.empty()) {
-		unsigned iNum = ElemData[Elem::INDUCEDVELOCITY].ElemMap.size();
+	if (!ElemData[Elem::INDUCEDVELOCITY].ElemContainer.empty()) {
+		unsigned iNum = ElemData[Elem::INDUCEDVELOCITY].ElemContainer.size();
 		SAFENEWARR(pRotPos, int, iNum);
 		SAFENEWARR(pRotLab, unsigned int, iNum);
 		memset(pRotPos, 0, iNum*sizeof(int));
@@ -1092,7 +1092,7 @@ SchurDataManager::CreatePartition(void)
 	int move = 0;
 
 	/* Gravity */
-	if (!ElemData[Elem::GRAVITY].ElemMap.empty()) {
+	if (!ElemData[Elem::GRAVITY].ElemContainer.empty()) {
 		/* FIXME: there's a better way to find GravityPos and so on... */
 		ppMyElems[iNumLocElems] = Elems[GravityPos];
 		iNumLocElems++;
@@ -1101,7 +1101,7 @@ SchurDataManager::CreatePartition(void)
 	}
 
 	/* Air Properties */
-	if (!ElemData[Elem::AIRPROPERTIES].ElemMap.empty()) {
+	if (!ElemData[Elem::AIRPROPERTIES].ElemContainer.empty()) {
 		ppMyElems[iNumLocElems] = Elems[AirPropPos];
 		iNumLocElems++;
 		pParAmgProcs[AirPropPos + iTotNodes] = -1;
@@ -1114,8 +1114,8 @@ SchurDataManager::CreatePartition(void)
 	integer iIVIsMine = 0;
 	if (iNumRt  != 0) {
 		SAFENEWARR(pMyRot, integer, iNumRt);
-		for (ElemMapType::const_iterator i = ElemData[Elem::AERODYNAMIC].ElemMap.begin();
-			i != ElemData[Elem::AERODYNAMIC].ElemMap.end();
+		for (ElemMapType::const_iterator i = ElemData[Elem::AERODYNAMIC].ElemContainer.begin();
+			i != ElemData[Elem::AERODYNAMIC].ElemContainer.end();
 			i++)
 		{
 			const AerodynamicElem *pAero = dynamic_cast<AerodynamicElem *>(i->second);
