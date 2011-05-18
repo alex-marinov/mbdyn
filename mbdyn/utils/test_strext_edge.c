@@ -96,20 +96,29 @@ check_flag(const char *flag, int sleeptime)
 			return 1;
 		}
 
-		fgets(buf, sizeof(buf), f);
+		if (fgets(buf, sizeof(buf), f) == NULL) {
+			fprintf(stderr, "test_strext_edge: expecting \"UPDATE,N,0,0,1\", got nothing from file \"%s\"\n", flag);
+			return -1;
+		}
+
 		if (strcmp(buf, "UPDATE,N,0,0,1\n") != 0) {
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_strext_edge: expecting \"UPDATE,N,0,0,1\", got \"%s\" from file \"%s\"\n", buf, flag);
 			return -1;
 		}
-		fgets(buf, sizeof(buf), f);
+
+		if (fgets(buf, sizeof(buf), f) == NULL) {
+			fprintf(stderr, "test_strext_edge: expecting \"FLAG,I,1,1,0\", got nothing from file \"%s\"\n", flag);
+			return -1;
+		}
 		if (strcmp(buf, "FLAG,I,1,1,0\n") != 0) {
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_strext_edge: expecting \"FLAG,I,1,1,0\", got \"%s\" from file \"%s\"\n", buf, flag);
 			return -1;
 		}
+
 		rc = fread((void *)&c, 1, 1, f);
 		fclose(f);
 		if (rc == 1) {
@@ -275,12 +284,10 @@ put_ndata(const char *ndata, int nodes, unsigned *ul, double *fg)
 		fprintf(f, "%e", fg[i]);
 	}
 	fputc('\n', f);
-	fputc('\n', f);
 	for (i = 0; i < nodes; i++) {
 		if (i > 0) fputc(((i%6) == 0) ? '\n' : ' ', f);
 		fprintf(f, "%e", fg[nodes + i]);
 	}
-	fputc('\n', f);
 	fputc('\n', f);
 	for (i = 0; i < nodes; i++) {
 		if (i > 0) fputc(((i%6) == 0) ? '\n' : ' ', f);
@@ -392,7 +399,7 @@ do_nodal0(const char *nflag, const char *ndata, int nodes, unsigned **ulp, doubl
 		if (*fgp == NULL) {
 			*fgp = (double *)malloc(3*sizeof(double)*nodes);
 			for (i = 0; i < 3*nodes; i++) {
-				(*fgp)[i] = ((double)i)/10.0;
+				(*fgp)[i] = ((double)i)*1e1;
 			}
 		}
 
@@ -535,8 +542,9 @@ usage(void)
 		"\t-r [flag|data]=<file>\trigid-body file names (set both)\n"
 		"\t-s <sleeptime>\t\tsleep time between tries\n"
 		"\t-v\t\t\tverbose\n"
+	      	"\t-w f[x,fy,fz[,fx2,fy2,fz2,...]]\n"
 		"\t-x [flag|data]=<file>\tnodal file names (set both)\n"
-		"\t-X <modes>\t\tnodes number\n" );
+		"\t-X <nodes>[:<label>[,<label>]]\t\tnodes number (labels)\n" );
 	exit(EXIT_FAILURE);
 }
 
@@ -559,7 +567,7 @@ main(int argc, char *argv[])
 	double *fg = NULL;
 
 	while (1) {
-		int opt = getopt(argc, argv, "c:m:M:no:r:s:vx:X:");
+		int opt = getopt(argc, argv, "c:m:M:no:r:s:vw:x:X:");
 
 		if (opt == EOF) {
 			break;
@@ -659,6 +667,75 @@ main(int argc, char *argv[])
 
 		case 'v':
 			verbose++;
+			break;
+
+		case 'w':
+			if (nodes == 0) {
+				fprintf(stderr, "test_strext_edge: "
+					"-w needs -W first\n");
+				usage();
+
+			} else if (fg != NULL) {
+				fprintf(stderr, "test_strext_edge: "
+					"-w already provided\n");
+				usage();
+
+			} else {
+				char *value = optarg, *next;
+				int i;
+
+				fg = (double *)malloc(3*sizeof(double)*nodes);
+
+				fg[0] = strtod(value, &next);
+				if (next == value || next == NULL) {
+					fprintf(stderr, "test_strext_edge: "
+							"unable to parse first value\n");
+					usage();
+				}
+
+				if (next[0] == ',') {
+					value = next + 1;
+					fg[nodes] = strtod(value, &next);
+					if (next == value || next == NULL || next[0] != ',') {
+						fprintf(stderr, "test_strext_edge: "
+								"unable to parse second value\n");
+						usage();
+					}
+
+					value = next + 1;
+					fg[2*nodes] = strtod(value, &next);
+					if (next == value || next == NULL) {
+						fprintf(stderr, "test_strext_edge: "
+								"unable to parse third value\n");
+						usage();
+					}
+
+					if (next[0] == ',') {
+						for (i = 3; i < 3*nodes; i++) {
+							value = next + 1;
+							fg[(i%3)*nodes + i/3] = strtod(value, &next);
+							if (next == value || next == NULL || next[0] != ( i == 3*nodes - 1 ? '\0' : ',' )) {
+								fprintf(stderr, "test_strext_edge: "
+										"unable to parse value #%d\n", i);
+								usage();
+							}
+						}
+
+					} else {
+						for (i = 1; i < nodes; i++) {
+							fg[i] = fg[0];
+							fg[nodes + i] = fg[nodes];
+							fg[2*nodes + i] = fg[2*nodes];
+						}
+					}
+
+				} else {
+					for (i = 1; i < 3*nodes; i++) {
+						fg[i] = fg[0];
+					}
+				}
+			}
+
 			break;
 
 		case 'x':

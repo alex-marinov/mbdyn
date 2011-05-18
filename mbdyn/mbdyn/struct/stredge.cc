@@ -197,10 +197,6 @@ velocity, RF, 3, 121, 0
 			outf << (*i)(c);
 		}
 		outf << "\n";
-
-		if (c < 3) {
-			outf << "\n";
-		}
 	}
 
 	// velocity
@@ -221,10 +217,6 @@ velocity, RF, 3, 121, 0
 			outf << (*i)(c);
 		}
 		outf << "\n";
-
-		if (c < 3) {
-			outf << "\n";
-		}
 	}
 
 	// TODO: other stuff?
@@ -564,7 +556,6 @@ force, RF, 3, 121, 0
 			}
 
 			mbedge_goto_eol(inf, buf, sizeof(buf));
-			mbedge_goto_eol(inf, buf, sizeof(buf));
 
 			for (RIndexType::const_iterator p = points.begin(); p != points.end(); p++) {
 				double d;
@@ -574,7 +565,6 @@ force, RF, 3, 121, 0
 				(*p)->F(2) = d;
 			}
 
-			mbedge_goto_eol(inf, buf, sizeof(buf));
 			mbedge_goto_eol(inf, buf, sizeof(buf));
 
 			for (RIndexType::const_iterator p = points.begin(); p != points.end(); p++) {
