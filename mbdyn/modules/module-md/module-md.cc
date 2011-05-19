@@ -28,8 +28,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- * Authors:	Yang Ding <dingyang@gatech.edu>
- *		Pierangelo Masarati <masarati@aero.polimi.it>
+ * Authors:	Pierangelo Masarati <masarati@aero.polimi.it>
+ * 		Tingnan Zhang <tingnan1986@gatech.edu>
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
@@ -41,27 +41,59 @@
 #include "dataman.h"
 #include "userelem.h"
 
-class MD
+// data structure and container declarations
+struct NodeData {
+	StructNode *pNode;
+	Vec3 F;
+	Vec3 M;
+};
+
+typedef std::vector<NodeData> NodeContainer;
+
+// examples of MD-specific handlers (they could also be member functions
+// of the MBMD module class
+static int
+MD_init(void)
+{
+	// do something useful
+	return 0;
+}
+
+static int
+MD_get_loads(NodeContainer& nodeData)
+{
+	// do something useful
+	for (NodeContainer::iterator n = nodeData.begin();
+		n != nodeData.end(); n++)
+	{
+		std::cout << "Node(" << n->pNode->GetLabel() << ") X={" << n->pNode->GetXCurr() << "} V={" << n->pNode->GetVCurr() << "}" << std::endl;
+
+		n->F = Vec3(0., 0., 0.);
+		n->M = Vec3(0., 0., 0.);
+	}
+
+	return 0;
+}
+
+static void
+MD_destroy(void)
+{
+	return;
+}
+
+class MBMD
 : virtual public Elem, public UserDefinedElem {
 private:
-	// add private data
-	struct NodeData {
-		StructNode *pNode;
-		Vec3 F;
-		Vec3 M;
-	};
-
 	int iCoupling;
 	int iCouplingCounter;
 
-	std::vector<NodeData> m_nodeData;
+	NodeContainer m_nodeData;
 
 public:
-	MD(unsigned uLabel, const DofOwner *pDO,
+	MBMD(unsigned uLabel, const DofOwner *pDO,
 		DataManager* pDM, MBDynParser& HP);
-	virtual ~MD(void);
+	virtual ~MBMD(void);
 
-	virtual void Output(OutputHandler& OH) const;
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 	VariableSubMatrixHandler& 
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -73,6 +105,7 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
+	virtual void Output(OutputHandler& OH) const;
 	unsigned int iGetNumPrivData(void) const;
 	int iGetNumConnectedNodes(void) const;
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
@@ -90,7 +123,7 @@ public:
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 };
 
-MD::MD(
+MBMD::MBMD(
 	unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
@@ -103,11 +136,14 @@ iCouplingCounter(0)
 		silent_cout(
 "\n"
 "Module:        md\n"
-"Author:        Yang Ding <dingyang@gatech.edu>\n"
-"               Pierangelo Masarati <masarati@aero.polimi.it>\n"
+"Author:        Pierangelo Masarati <masarati@aero.polimi.it>\n"
+"		Tingnan Zhang <tingnan1986@gatech.edu>\n"
 "Organization:	Dipartimento di Ingegneria Aerospaziale\n"
 "               Politecnico di Milano\n"
-"               http://www.aero.polimi.it/\n"
+"               <http://www.aero.polimi.it/>\n"
+"		\"Crab Lab\"\n"
+"		Georgia Institute of Technology\n"
+"		<http://www.physics.gatech.edu/research/goldman/>\n"
 "\n"
 "               All rights reserved\n"
 			<< std::endl);
@@ -120,7 +156,6 @@ iCouplingCounter(0)
 		}
 	}
 
-	// do something useful
 	if (HP.IsKeyWord("coupling")) {
 		if (HP.IsKeyWord("tight")) {
 			iCoupling = 1;
@@ -131,7 +166,7 @@ iCouplingCounter(0)
 		} else {
 			iCoupling = HP.GetInt();
 			if (iCoupling < 0) {
-				silent_cerr("MD(" << uLabel << "): invalid coupling "
+				silent_cerr("MBMD(" << uLabel << "): invalid coupling "
 					" at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -140,7 +175,7 @@ iCouplingCounter(0)
 
 	int n = HP.GetInt();
 	if (n <= 0) {
-		silent_cerr("MD(" << uLabel << "): invalid node number " << n
+		silent_cerr("MBMD(" << uLabel << "): invalid node number " << n
 			<< " at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -148,11 +183,10 @@ iCouplingCounter(0)
 	m_nodeData.resize(n);
 	for (unsigned i = 0; i < unsigned(n); i++) {
 		m_nodeData[i].pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-		ASSERT(m_nodeData[i].pNode != 0);
 
 		for (unsigned c = 0; c < i; c++) {
 			if (m_nodeData[c].pNode == m_nodeData[i].pNode) {
-				silent_cerr("MD(" << uLabel << "): "
+				silent_cerr("MBMD(" << uLabel << "): "
 					"StructNode(" << m_nodeData[i].pNode->GetLabel() << "), "
 					"#" << i << "/" << n << ", "
 					"already provided as #" << c << "/" << n
@@ -163,23 +197,35 @@ iCouplingCounter(0)
 	}
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
+
+	if (MD_init() != 0) {
+		silent_cerr("MBMD(" << uLabel << "): "
+			"MD_init() failed"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
-MD::~MD(void)
+MBMD::~MBMD(void)
 {
 	// destroy private data
-	NO_OP;
+	MD_destroy();
 }
 
 void
-MD::Output(OutputHandler& OH) const
+MBMD::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
-		for (std::vector<NodeData>::const_iterator n = m_nodeData.begin();
+		for (NodeContainer::const_iterator n = m_nodeData.begin();
 			n != m_nodeData.end(); n++)
 		{
+			// format:
+			// - for each node
+			//   - element label "@" node label
+			//   - three components of force
+			//   - three components of moment
 			out << GetLabel() << "@" << n->pNode->GetLabel()
 				<< " " << n->F
 				<< " " << n->M
@@ -189,54 +235,61 @@ MD::Output(OutputHandler& OH) const
 }
 
 void
-MD::AfterPredict(VectorHandler& X, VectorHandler& XP)
+MBMD::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	iCouplingCounter = 0;
 }
 
 void
-MD::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+MBMD::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
+	// 6 rows for each node; 1 column since only residual is assembled
 	*piNumRows = 6*m_nodeData.size();
 	*piNumCols = 1;
 }
 
 VariableSubMatrixHandler& 
-MD::AssJac(VariableSubMatrixHandler& WorkMat,
+MBMD::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef, 
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	// should do something useful
+	// no contribution to Jacobian matrix
 	WorkMat.SetNullMatrix();
 
 	return WorkMat;
 }
 
 SubVectorHandler& 
-MD::AssRes(SubVectorHandler& WorkVec,
+MBMD::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-	// should do something useful
 	WorkVec.ResizeReset(6*m_nodeData.size());
 
-	/*
-	 * two possible approaches:
-	 *   1) loose coupling: pass predicted kinematics,
-	 *	receive forces once, reuse them for all iterations
-	 *   2) tight coupling: pass actual kinematics,
-	 *      receive forces at each iteration
-	 */
+	// two possible approaches:
+	//   1) loose coupling: pass predicted kinematics,
+	//	receive forces once, reuse them for all iterations
+	//   2) tight coupling: pass actual kinematics,
+	//      receive forces at each iteration
 
-	if ((iCoupling == 0 && iCouplingCounter == 0) || (iCouplingCounter%iCoupling) == 0) {
-		// get forces from MD
+	if ((iCoupling == 0 && iCouplingCounter == 0)
+		|| (iCoupling > 0 && (iCouplingCounter%iCoupling) == 0))
+	{
+		// get loads from MD
+		// this helper fills F and M of each node
+		if (MD_get_loads(m_nodeData) != 0) {
+			silent_cerr("MBMD(" << uLabel << "): "
+				"MD_get_loads() failed"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 	iCouplingCounter++;
 
 	integer r = 0;
-	for (std::vector<NodeData>::const_iterator n = m_nodeData.begin();
+	for (NodeContainer::const_iterator n = m_nodeData.begin();
 		n != m_nodeData.end(); n++)
 	{
 		integer iFirstIndex = n->pNode->iGetFirstMomentumIndex();
@@ -255,50 +308,50 @@ MD::AssRes(SubVectorHandler& WorkVec,
 }
 
 unsigned int
-MD::iGetNumPrivData(void) const
+MBMD::iGetNumPrivData(void) const
 {
 	return 0;
 }
 
 int
-MD::iGetNumConnectedNodes(void) const
+MBMD::iGetNumConnectedNodes(void) const
 {
 	return m_nodeData.size();
 }
 
 void
-MD::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+MBMD::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(m_nodeData.size());
 
-	for (unsigned n = 0; n < m_nodeData.size(); n++)
-	{
+	for (unsigned n = 0; n < m_nodeData.size(); n++) {
 		connectedNodes[n] = m_nodeData[n].pNode;
 	}
 }
 
 void
-MD::SetValue(DataManager *pDM,
+MBMD::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
-	NO_OP;
+	// initialize X and XP according to the initial state of MD as needed
 }
 
 std::ostream&
-MD::Restart(std::ostream& out) const
+MBMD::Restart(std::ostream& out) const
 {
-	return out << "# MD: not implemented" << std::endl;
+	// don't worry about "soft" restart by now
+	return out << "# MBMD: not implemented" << std::endl;
 }
 
 unsigned int
-MD::iGetInitialNumDof(void) const
+MBMD::iGetInitialNumDof(void) const
 {
 	return 0;
 }
 
 void 
-MD::InitialWorkSpaceDim(
+MBMD::InitialWorkSpaceDim(
 	integer* piNumRows,
 	integer* piNumCols) const
 {
@@ -307,26 +360,20 @@ MD::InitialWorkSpaceDim(
 }
 
 VariableSubMatrixHandler&
-MD::InitialAssJac(
+MBMD::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat, 
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
-
 	WorkMat.SetNullMatrix();
 
 	return WorkMat;
 }
 
 SubVectorHandler& 
-MD::InitialAssRes(
+MBMD::InitialAssRes(
 	SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
-
 	WorkVec.ResizeReset(0);
 
 	return WorkVec;
@@ -335,7 +382,7 @@ MD::InitialAssRes(
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
-	UserDefinedElemRead *rf = new UDERead<MD>;
+	UserDefinedElemRead *rf = new UDERead<MBMD>;
 
 	if (!SetUDE("md", rf)) {
 		delete rf;
