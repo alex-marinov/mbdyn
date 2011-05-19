@@ -624,19 +624,20 @@ const char*
 IncludeParser::GetFileName(enum Delims Del)
 {
    	const char *s = GetStringWithDelims(Del);
+	if (s == 0) {
+		return 0;
+	}
+
    	const char *stmp = resolve_filename(s);
-	
    	if (stmp == NULL) {
-      		return s;
+      		return 0;
 
    	} else {
       		if (strlen(stmp) >= iDefaultBufSize) {
-	 		/* errore */
-	 		strncpy(sStringBuf, stmp, iDefaultBufSize-1);
-	 		sStringBuf[iDefaultBufSize-1] = '\0';
-      		} else {
-	 		strcpy(sStringBuf, stmp);
+      			SAFEDELETEARR(stmp);
+			return 0;
       		}
+	 	strcpy(sStringBuf, stmp);
       		SAFEDELETEARR(stmp);
    	}
 	

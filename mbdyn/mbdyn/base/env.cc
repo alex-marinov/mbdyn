@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2011
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -60,16 +60,16 @@ GetEnviron(MathParser& MP)
    	SAFENEWARR(p, char, l);
    	sprintf(p, "%s%s", MBDYNPREFIX, s);
    	char* e = getenv(p);
-   	SAFEDELETEARR(p);     
-   
+   	SAFEDELETEARR(p);
+
    	if (e != NULL) {
       		DEBUGCOUT("GetEnv: reading variable <" << e << ">" << std::endl);
 		std::istringstream in(e);
-      		InputStream In(in);	 
+      		InputStream In(in);
       		MP.GetLastStmt(In);
       		DEBUGCOUT("GetEnv: variable <" << e << "> read" << std::endl);
    	}
-   
+
    	/* cerca le variabili definite singolarmente */
    	Table& T = MP.GetSymbolTable();
    	char** env = environ;
@@ -81,23 +81,23 @@ GetEnviron(MathParser& MP)
 	 		char* p = NULL;
 	 		char* v = NULL;
 	 		char* n = NULL;
-	 
+
 	 		SAFESTRDUP(p, *env);
 	 		v = std::strchr(p, '=');
 	 		if (v == NULL) {
-	    			silent_cerr("parse error in envvar <" 
+	    			silent_cerr("parse error in envvar <"
 					<< p << ">" << std::endl);
 	    			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	 		}
 
 	 		*v = '\0';
 	 		v++;
-	 
-	 		if (strncmp(&p[STRLENOF("MBDYN")], "VARS", STRLENOF("VARS")) == 0) {
+
+	 		if (strncmp(p, "MBDYNVARS", STRLENOF("MBDYNVARS")) == 0) {
 				NO_OP;
 
-			} else if (strncmp(&p[STRLENOF("MBDYN")], "_real_", STRLENOF("_real_")) == 0) {
-	    			n = p+11;
+			} else if (strncmp(p, "MBDYN_real_", STRLENOF("MBDYN_real_")) == 0) {
+	    			n = p + STRLENOF("MBDYN_real_");
 				char *endptr = NULL;
 				errno = 0;
 	    			d = strtod(v, &endptr);
@@ -115,11 +115,11 @@ GetEnviron(MathParser& MP)
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-	    			DEBUGCOUT("setting real var <" 
+	    			DEBUGCOUT("setting real var <"
 					<< n << "=" << d << ">" << std::endl);
-	    
-	    			if ((T.Get(n)) == NULL) {	   
-	       				if (T.Put(n, Real(d))  == NULL) {      
+
+	    			if ((T.Get(n)) == NULL) {
+	       				if (T.Put(n, Real(d))  == NULL) {
 		  				silent_cerr("SetEnv:"
 							" error in insertion"
 							" of real symbol <"
@@ -127,9 +127,9 @@ GetEnviron(MathParser& MP)
 		  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	       				}
 	    			}
-	    
-	 		} else if (strncmp(&p[STRLENOF("MBDYN")], "_integer_", STRLENOF("_integer_")) == 0) {
-	    			n = p+14;
+
+	 		} else if (strncmp(p, "MBDYN_integer_", STRLENOF("MBDYN_integer_")) == 0) {
+	    			n = p + STRLENOF("MBDYN_integer_");
 #ifdef HAVE_STRTOL
 				char *endptr = NULL;
 				errno = 0;
@@ -151,10 +151,10 @@ GetEnviron(MathParser& MP)
 #else /* !HAVE_STRTOL */
 	    			i = atol(v);
 #endif /* !HAVE_STRTOL */
-	    			DEBUGCOUT("setting integer var <" 
+	    			DEBUGCOUT("setting integer var <"
 					<< n << "=" << i << ">" << std::endl);
-	    
-	    			if ((T.Get(n)) == NULL) {	   
+
+	    			if ((T.Get(n)) == NULL) {
 	       				if (T.Put(n, Int(i))  == NULL) {
 		  				silent_cerr("SetEnv:"
 							" error in insertion"
@@ -163,15 +163,27 @@ GetEnviron(MathParser& MP)
 		  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	       				}
 	    			}
-	    
+
+	 		} else if (strncmp(p, "MBDYN_string_", STRLENOF("MBDYN_string_")) == 0) {
+	    			n = p + STRLENOF("MBDYN_string_");
+	    			if ((T.Get(n)) == NULL) {
+	       				if (T.Put(n, TypedValue(std::string(v)))  == NULL) {
+		  				silent_cerr("SetEnv:"
+							" error in insertion"
+							" of string symbol <"
+		    					<< n << ">" << std::endl);
+		  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	       				}
+	    			}
+
 	 		} else {
-	    			silent_cerr("unknown var type <" 
+	    			silent_cerr("unknown var type <"
 					<< p << ">; skipping ..." << std::endl);
 	 		}
       		}
       		env++;
    	}
-   
+
    	/* altro ... */
 }
 
