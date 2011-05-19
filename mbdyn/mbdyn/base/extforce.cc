@@ -908,7 +908,7 @@ ReadExtSocketHandler(DataManager* pDM,
 		if (m == 0) {
 			silent_cerr("ExtSocketHandler"
 				"(" << uLabel << "): "
-				"unable to read local path"
+				"unable to read local path "
 				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
