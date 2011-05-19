@@ -60,5 +60,5 @@ METIS_NodeND(int *,
 	int *,
 	int *);
 
-#endif /* METISWRAP_H */
+#endif // METISWRAP_H
 

@@ -28,7 +28,6 @@
 
 #include "chacowrap.h"
 
-#ifdef USE_CHACO
 extern "C" {
 /*
  * NOTE: the name "interface" has been reported (by Patrick Rix) 
@@ -57,7 +56,6 @@ int       interface(
 		long      seed			/* for random graph mutations */
 	);
 }
-#endif /* USE_CHACO */
 
 extern "C" int FREE_GRAPH;
 
@@ -73,7 +71,6 @@ chaco_interface(
 		int		*pParAmgProcs
 	)
 {
-#ifdef USE_CHACO
 	std::vector<short> set_assignment(iTotVertices);
 
 	const int architecture(1),	/* The computers are connected as a
@@ -164,6 +161,5 @@ chaco_interface(
 	for (int i = 0; i < iTotVertices; i++) {
 		pParAmgProcs[i] = set_assignment[i];
     	}
-#endif /* USE_CHACO */
 }
 

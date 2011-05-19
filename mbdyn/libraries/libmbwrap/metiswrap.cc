@@ -32,15 +32,9 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 /* libreria per il calcolo delle partizioni */
-#ifdef USE_METIS
-extern "C" {
 #include <metis.h>
-}
-
 #undef ASSERT /* kill annoying redefiniton message */
 #include "mynewmem.h"
-
-#endif /* !USE_METIS */
 
 int
 mbdyn_METIS_PartGraph(int iTotVertices,
@@ -52,7 +46,6 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 		int DataCommSize,
 		int *pParAmgProcs)
 {
-#ifdef USE_METIS
 	/* required by METIS_PartGraphVKway API, but otherwise ignored */
 	/* 0: C-style numbering [0..n-1]; 1: F77-style numbering (1..n) */
 	int	numflag = 0;
@@ -153,8 +146,6 @@ mbdyn_METIS_PartGraph(int iTotVertices,
 
 	/* NOTE: the manual suggests to use
 	 * METIS_PartGraphRecursive if DataCommSize < 8 */
-
-#endif /* USE_METIS */
 
 	return 0;
 }

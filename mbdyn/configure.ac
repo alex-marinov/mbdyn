@@ -1269,6 +1269,80 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Check for LAPACK
+dnl
+ol_link_lapack=no
+if test $ol_with_lapack != no ; then
+	AC_MSG_CHECKING([for lapack])
+
+	save_LIBS="$LIBS"
+	try_lapack_LIBS="-llapack"
+	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
+	AC_TRY_LINK([
+	extern double dgesvd(double *);
+		],[
+	double i = 1., o;
+	o = dgesvd(&i);
+		],[have_lapack=yes
+		   have_lapack_=no],[
+		AC_TRY_LINK([
+	extern double dgesvd_(double *);
+			],[
+	double i = 1., o;
+	o = dgesvd_(&i);
+		],[have_lapack=yes
+		   have_lapack_=yes],[have_lapack=no
+				      have_lapack_=no])])
+	
+	if test $have_lapack != no ; then
+		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
+		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
+		LAPACK_LIBS="$try_lapack_LIBS"
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dggev_(double *);
+			],[
+	double i = 1., o;
+	o = dggev_(&i);
+			],[AC_DEFINE(HAVE_DGGEV,1,[define to use LAPACK's dggev in Eig])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dggev(double *);
+			],[
+	double i = 1., o;
+	o = dggev(&i);
+			],[AC_DEFINE(HAVE_DGGEV_,1,[define to use LAPACK's dggev in Eig])])
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgegv_(double *);
+			],[
+	double i = 1., o;
+	o = dgegv_(&i);
+			],[AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgegv(double *);
+			],[
+	double i = 1., o;
+	o = dgegv(&i);
+			],[AC_DEFINE(HAVE_DGEGV_,1,[define to use LAPACK's dgegv in Eig])])
+	fi
+
+	if test "$have_lapack" = "yes" ; then
+		ol_link_lapack=yes
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])	
+	fi
+	LIBS="$save_LIBS"
+fi
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Check for Umfpack
 dnl
 ol_link_umfpack=no
@@ -1748,80 +1822,6 @@ if test $ol_with_harwell != no ; then
 			AC_MSG_WARN([Harwell lib (-lhsl) not supported])
 		fi
 	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for LAPACK
-dnl
-ol_link_lapack=no
-if test $ol_with_lapack != no ; then
-	AC_MSG_CHECKING([for lapack])
-
-	save_LIBS="$LIBS"
-	try_lapack_LIBS="-llapack"
-	LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
-	AC_TRY_LINK([
-	extern double dgesvd(double *);
-		],[
-	double i = 1., o;
-	o = dgesvd(&i);
-		],[have_lapack=yes
-		   have_lapack_=no],[
-		AC_TRY_LINK([
-	extern double dgesvd_(double *);
-			],[
-	double i = 1., o;
-	o = dgesvd_(&i);
-		],[have_lapack=yes
-		   have_lapack_=yes],[have_lapack=no
-				      have_lapack_=no])])
-	
-	if test $have_lapack != no ; then
-		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
-		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
-		LAPACK_LIBS="$try_lapack_LIBS"
-	fi
-
-	if test "$have_lapack_" = "yes" ; then
-		AC_TRY_LINK([
-	extern double dggev_(double *);
-			],[
-	double i = 1., o;
-	o = dggev_(&i);
-			],[AC_DEFINE(HAVE_DGGEV,1,[define to use LAPACK's dggev in Eig])])
-	elif test "$have_lapack" = "yes" ; then
-		AC_TRY_LINK([
-	extern double dggev(double *);
-			],[
-	double i = 1., o;
-	o = dggev(&i);
-			],[AC_DEFINE(HAVE_DGGEV_,1,[define to use LAPACK's dggev in Eig])])
-	fi
-
-	if test "$have_lapack_" = "yes" ; then
-		AC_TRY_LINK([
-	extern double dgegv_(double *);
-			],[
-	double i = 1., o;
-	o = dgegv_(&i);
-			],[AC_DEFINE(HAVE_DGEGV,1,[define to use LAPACK's dgegv in Eig])])
-	elif test "$have_lapack" = "yes" ; then
-		AC_TRY_LINK([
-	extern double dgegv(double *);
-			],[
-	double i = 1., o;
-	o = dgegv(&i);
-			],[AC_DEFINE(HAVE_DGEGV_,1,[define to use LAPACK's dgegv in Eig])])
-	fi
-
-	if test "$have_lapack" = "yes" ; then
-		ol_link_lapack=yes
-		AC_MSG_RESULT([yes])
-	else
-		AC_MSG_RESULT([no])	
-	fi
-	LIBS="$save_LIBS"
 fi
 
 dnl ----------------------------------------------------------------
@@ -2513,8 +2513,10 @@ AC_SUBST(DATE)
 
 dnl conditional build declarations
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
+AM_CONDITIONAL(USE_CHACO,[test "$ol_link_chaco" = yes])
 AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
+AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])

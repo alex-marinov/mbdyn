@@ -6,8 +6,6 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libmbwrap.la
 
 libmbwrap_la_SOURCES = \
-chacowrap.cc \
-chacowrap.h \
 harwlib.h \
 harwout.c \
 harwout.h \
@@ -20,8 +18,6 @@ lapackwrap.cc \
 lapackwrap.h \
 linsol.cc \
 linsol.h \
-metiswrap.cc \
-metiswrap.h \
 mschwrap.cc \
 mschwrap.h \
 naivewrap.cc \
@@ -40,6 +36,18 @@ y12wrap.cc \
 y12wrap.h \
 wsmpwrap.cc \
 wsmpwrap.h
+
+if USE_CHACO
+libmbwrap_la_SOURCES += \
+chacowrap.cc \
+chacowrap.h
+endif
+
+if USE_METIS
+libmbwrap_la_SOURCES += \
+metiswrap.cc \
+metiswrap.h
+endif
 
 libmbwrap_la_LIBADD = \
 ../libmbmath/libmbmath.la \

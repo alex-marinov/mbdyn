@@ -36,5 +36,5 @@ chaco_interface(
 		int		*pParAmgProcs
 	);
 
-#endif /* CHACOWRAP_H */
+#endif // CHACOWRAP_H
 
