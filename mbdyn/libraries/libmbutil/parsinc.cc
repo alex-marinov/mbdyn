@@ -383,7 +383,7 @@ IncludeParser::GetDescription_int(const char *s)
 /*
  * returns a dynamically allocated string with environment variables expanded
  */
-char *
+static char *
 expand_environment(const char *in)
 {
 	char		*out = NULL;
@@ -526,7 +526,7 @@ expand_environment(const char *in)
 	return out;
 }
 
-char *
+static char *
 resolve_filename(const char *filename_in)
 {
 	char	*res = NULL,
