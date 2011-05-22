@@ -116,34 +116,48 @@ distclean:
 
 # Add distributed modules below
 EXTRA_DIST = Makefile.module Makefile.template \
+ \
 module-aerodyn/NREL_AeroDyn.h \
 module-aerodyn/Makefile.inc \
 module-aerodyn/mbdyn_ad.f90 \
 module-aerodyn/module-aerodyn.cc \
 module-aerodyn/README \
+ \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README \
+ \
 module-constlaw-f90/Makefile.inc \
 module-constlaw-f90/module-constlaw-f90.cc \
 module-constlaw-f90/README \
 module-constlaw-f90/usrsub.f90 \
 module-constlaw-f90/usrsub.h \
+ \
 module-constlaw-f95/Makefile.inc \
 module-constlaw-f95/module-constlaw-f95.cc \
 module-constlaw-f95/README \
 module-constlaw-f95/usrsub.f95 \
-module-constlaw-f90/usrsub.h \
+module-constlaw-f95/usrsub.h \
+ \
 module-drive/module-drive.cc \
 module-drive/README \
+ \
+module-mds/mds \
+module-mds/module-mds.cc \
+ \
 module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README \
+ \
 module-tclpgin/Makefile.inc \
 module-tclpgin/module-tclpgin.cc \
+ \
 module-template/module-template.cc \
+ \
 module-template2/module-template2.cc \
+ \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
 module-udunits/README \
+ \
 module-wheel2/module-wheel2.cc \
 module-wheel2/module-wheel2.h
 
