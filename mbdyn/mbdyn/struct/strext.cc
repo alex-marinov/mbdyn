@@ -494,7 +494,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		}
 		outf << std::endl;
 
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 Dx(x - xRef);
@@ -559,7 +559,7 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		}
 
 	} else {
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 			/*
 				p = x + f
 				R = R
@@ -822,10 +822,11 @@ void
 StructExtForce::RecvFromStream(std::istream& inf)
 {
 	if (pRefNode) {
-		unsigned l;
 		doublereal *f = F0.pGetVec(), *m = M0.pGetVec();
 
 		if (bLabels) {
+			// TODO: implement "unsorted"
+			unsigned l;
 			inf >> l;
 		}
 
@@ -912,10 +913,10 @@ StructExtForce::RecvFromStream(std::istream& inf)
 
 
 			/* assume unsigned int label */
-			unsigned l;
 			doublereal f[3], m[3];
 
 			if (bLabels) {
+				unsigned l;
 				inf >> l;
 
 				if (point.pNode->GetLabel() != l) {
@@ -950,7 +951,6 @@ StructExtForce::RecvFromFileDes(int infd)
 {
 #ifdef USE_SOCKET
 	if (pRefNode) {
-		unsigned l;
 		size_t ulen = 0;
 		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
 		doublereal *f;
@@ -978,14 +978,21 @@ StructExtForce::RecvFromFileDes(int infd)
 
 		} else if (unsigned(len) != ulen) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
-				"recv() failed " "(got " << len << " of "
+				"recv() failed (got " << len << " of "
 				<< ulen << " bytes)" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		if (bLabels) {
 			uint32_t *uint32_ptr = (uint32_t *)buf;
-			l = uint32_ptr[0];
+			unsigned l = uint32_ptr[0];
+			if (l != pRefNode->GetLabel()) {
+				silent_cerr("StructExtForce(" << GetLabel() << "): "
+					"invalid reference node label "
+					"(wanted " << pRefNode->GetLabel() << ", got " << l << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			f = (doublereal *)&uint32_ptr[1];
 
 		} else {
@@ -1026,7 +1033,7 @@ StructExtForce::RecvFromFileDes(int infd)
 
 			unsigned l = iobuf_labels[cnt];
 			std::vector<PointData>::const_iterator p;
-			for (p = m_Points.begin(); p != m_Points.end(); p++) {
+			for (p = m_Points.begin(); p != m_Points.end(); ++p) {
 				if (p->uLabel == l) {
 					break;
 				}
@@ -1231,7 +1238,7 @@ StructExtForce::Output(OutputHandler& OH) const
 			<< std::endl;
 	}
 
-	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 		out << GetLabel() << "@" << point->uLabel
 			<< " " << point->F
 			<< " " << point->M
@@ -1478,7 +1485,7 @@ ReadStructExtForce(DataManager* pDM,
 			}
 
 			*curr_label = ul;
-			curr_label++;
+			++curr_label;
 		}
 
 		if (HP.IsKeyWord("offset")) {

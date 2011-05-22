@@ -2308,13 +2308,13 @@ FullMatrixHandler::const_iterator::operator ++ (void) const
 }
 
 const SparseMatrixHandler::SparseMatrixElement *
-FullMatrixHandler::const_iterator::operator -> (void)
+FullMatrixHandler::const_iterator::operator -> (void) const
 {
 	return &elem;
 }
 
 const SparseMatrixHandler::SparseMatrixElement&
-FullMatrixHandler::const_iterator::operator * (void)
+FullMatrixHandler::const_iterator::operator * (void) const
 {
 	return elem;
 }

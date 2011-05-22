@@ -39,7 +39,7 @@ class RotorTrim : virtual public Elem, public Genel {
 protected:
 	Rotor* pRotor;
 	ScalarDifferentialNode* pvNodes[3];
-	DriveOwner pvDrives[3];
+	DriveOwner Thrust, RollMoment, PitchMoment;
 	DriveOwner Trigger;
 	
 	doublereal dGamma;

@@ -51,7 +51,7 @@ PointSurfaceContact::PointSurfaceContact(unsigned int uL,
 			const DofOwner* pDO,
 			const StructNode* pN1, 
 			const StructNode* pNs,
-			const Vec3 SDir, const doublereal Ek,
+			const Vec3& SDir, const doublereal Ek,
 			flag fOut)
 : Elem(uL,fOut),
 Joint(uL, pDO, fOut), pNode1(pN1), pSup(pNs), SupDirection(SDir)		// assegnamento campi

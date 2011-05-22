@@ -276,7 +276,7 @@ DataManager::DofOwnerInit(void)
 		OutHdl.Log() << "struct node dofs:";
 
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			ASSERT(pNode != 0);
@@ -290,7 +290,7 @@ DataManager::DofOwnerInit(void)
 	}
 
 	/* per ogni nodo */
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
 				psNodeNames[(*i)->GetNodeType()]
 				<< "(" << (*i)->GetLabel() << ")"
@@ -516,8 +516,7 @@ DataManager::DofOwnerInit(void)
 						<< "(" << pEl->GetLabel() << ") connecting" << std::endl);
 				}
 				for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
-					i != connectedNodes.end();
-					i++)
+					i != connectedNodes.end(); ++i)
 				{
 					const Node *real_i = (*i)->GetNode();
 					if (uPrintFlags & PRINT_EL_CONNECTION) {
@@ -548,16 +547,14 @@ DataManager::DofOwnerInit(void)
 		}
 		for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
 			for (nodemap::iterator n = connectedElems[t].begin();
-				n != connectedElems[t].end();
-				n++)
+				n != connectedElems[t].end(); ++n)
 			{
 				if (uPrintFlags & PRINT_NODE_CONNECTION) {
 					silent_cout(psNodeNames[n->first->GetNodeType()]
 						<< "(" << n->first->GetLabel() << ") connected to" << std::endl);
 				}
 				for (elmap::const_iterator e = n->second->begin();
-					e != n->second->end();
-					e++)
+					e != n->second->end(); ++e)
 				{
 					if (uPrintFlags & PRINT_NODE_CONNECTION) {
 						silent_cout("        "
@@ -612,7 +609,7 @@ DataManager::InitialJointAssembly(void)
 	/* Numero totale di Dof durante l'assemblaggio iniziale */
 	integer iInitialNumDofs = 0;
 	for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 	{
 		iInitialNumDofs += dynamic_cast<const StructNode*>(i->second)->iGetInitialNumDof();
 	}
@@ -631,11 +628,10 @@ DataManager::InitialJointAssembly(void)
 				ASSERT((unsigned)DofData[CurrDofType].iNum == ElemData[iCnt1].ElemContainer.size());
 
 				/* Iterazione sugli Elem */
-				for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
-					p != ElemData[iCnt1].ElemContainer.end();
-					p++)
+				for (ElemContainerType::const_iterator e = ElemData[iCnt1].ElemContainer.begin();
+					e != ElemData[iCnt1].ElemContainer.end(); ++e)
 				{
-					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
+					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(e->second);
 					if (pEl == 0) {
 						/* Ignore elements
 						 * not subjected
@@ -643,7 +639,7 @@ DataManager::InitialJointAssembly(void)
 						continue;
 					}
 
-					ElemWithDofs *pDOEl = dynamic_cast<ElemWithDofs *>(p->second);
+					ElemWithDofs *pDOEl = dynamic_cast<ElemWithDofs *>(e->second);
 					if (pDOEl == 0) {
 						/* Ignore elements subjected
 						 * to initial assembly
@@ -684,12 +680,12 @@ DataManager::InitialJointAssembly(void)
 	}
 
 	/* mette a posto i dof */
-	NodeContainerType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-
 	iIndex = 0;
-	for (; iNode != NodeData[Node::STRUCTURAL].NodeContainer.end(); iNode++) {
+	for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+		n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
+	{
 		// numero di dof di un owner
-		const StructNode *pNode = dynamic_cast<const StructNode *>(iNode->second);
+		const StructNode *pNode = dynamic_cast<const StructNode *>(n->second);
 		unsigned int iNumDofs = pNode->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			DofOwner* pFDO = const_cast<DofOwner *>(pNode->pGetDofOwner());
@@ -763,7 +759,7 @@ DataManager::InitialJointAssembly(void)
 
 		} else {
 			pedantic_cerr(psNodeNames[pNode->GetNodeType()]
-				<< "(" << iNode->second->GetLabel() << ") has 0 dofs"
+				<< "(" << n->second->GetLabel() << ") has 0 dofs"
 				<< std::endl);
 		}
 	}
@@ -784,7 +780,7 @@ DataManager::InitialJointAssembly(void)
 				/* Iterazione sugli Elem */
 				for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
 					p != ElemData[iCnt1].ElemContainer.end();
-					p++)
+					++p)
 				{
 					InitialAssemblyElem *pEl = dynamic_cast<InitialAssemblyElem *>(p->second);
 					if (pEl == 0) {
@@ -930,7 +926,7 @@ DataManager::InitialJointAssembly(void)
 	/* Setta i valori iniziali dei gradi di liberta' dei nodi strutturali
 	 * durante l'assemblaggio iniziale */
 	for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 	{
 		dynamic_cast<StructNode *>(i->second)->SetInitialValue(X);
 	}
@@ -944,8 +940,7 @@ DataManager::InitialJointAssembly(void)
 			!ElemData[iCnt1].ElemContainer.empty())
 		{
 			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
-				p != ElemData[iCnt1].ElemContainer.end();
-				p++)
+				p != ElemData[iCnt1].ElemContainer.end(); ++p)
 			{
 				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
 				pEWD->SetInitialValue(X);
@@ -971,7 +966,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo dei nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -1082,7 +1077,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Contributo dei nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -1168,7 +1163,7 @@ DataManager::InitialJointAssembly(void)
 
 		/* Correggo i nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			dynamic_cast<StructNode *>(i->second)->InitialUpdate(X);
 		}
@@ -1188,7 +1183,7 @@ endofcycle:
 			 * e se ne sono presenti */
 			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
 				p != ElemData[iCnt1].ElemContainer.end();
-				p++)
+				++p)
 			{
 				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
 				DofOwner *pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
@@ -1217,7 +1212,7 @@ DataManager::DofOwnerSet(void)
 	DEBUGCOUTFNAME("DataManager::DofOwnerSet");
 
 	/* Setta i DofOwner dei nodi */
-	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		DofOwner* pDO = const_cast<DofOwner *>((*i)->pGetDofOwner());
 		pDO->iNumDofs = (*i)->iGetNumDof();
 	}
@@ -1231,8 +1226,7 @@ DataManager::DofOwnerSet(void)
 					<< std::endl);
 
 			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-				p != ElemData[iCnt].ElemContainer.end();
-				p++)
+				p != ElemData[iCnt].ElemContainer.end(); ++p)
 			{
 				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
@@ -1252,7 +1246,7 @@ void
 DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 {
 	/* Nodi */
-	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->SetValue(this, X, XP);
 	}
 
@@ -1527,7 +1521,7 @@ DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 	VectorHandler& XPrev,
 	VectorHandler& XPPrev) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->BeforePredict(X, XP, XPrev, XPPrev);
 	}
 
@@ -1546,13 +1540,12 @@ DataManager::AfterPredict(void) const
 	/* reset any external convergence requirement before starting
 	 * a new step */
 	for (Converged_t::iterator i = m_IsConverged.begin();
-		i != m_IsConverged.end();
-		i++)
+		i != m_IsConverged.end(); ++i)
 	{
 		*i = Converged::NOT_CONVERGED;
 	}
 
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->AfterPredict(*pXCurr, *pXPrimeCurr);
 	}
 
@@ -1567,7 +1560,7 @@ DataManager::AfterPredict(void) const
 void
 DataManager::Update(void) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->Update(*pXCurr, *pXPrimeCurr);
 	}
 
@@ -1583,7 +1576,7 @@ DataManager::Update(void) const
 void
 DataManager::AfterConvergence(void) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->AfterConvergence(*pXCurr, *pXPrimeCurr);
 	}
 
@@ -1643,7 +1636,7 @@ DataManager::AfterConvergence(void) const
 void
 DataManager::DerivativesUpdate(void) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->DerivativesUpdate(*pXCurr, *pXPrimeCurr);
 	}
 
@@ -1721,8 +1714,7 @@ bool
 DataManager::IsConverged(void) const
 {
 	for (Converged_t::const_iterator i = m_IsConverged.begin();
-		i != m_IsConverged.end();
-		i++)
+		i != m_IsConverged.end(); ++i)
 	{
 		if (*i == Converged::NOT_CONVERGED) {
 			return false;
@@ -1736,8 +1728,7 @@ bool
 DataManager::EndOfSimulation(void) const
 {
 	for (Converged_t::const_iterator i = m_IsConverged.begin();
-		i != m_IsConverged.end();
-		i++)
+		i != m_IsConverged.end(); ++i)
 	{
 		if (*i == Converged::END_OF_SIMULATION) {
 			return true;

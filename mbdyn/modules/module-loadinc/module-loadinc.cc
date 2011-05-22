@@ -194,7 +194,7 @@ m_iDofOffset(6)
 	// initialize data structures
 	unsigned uCnt;
 	DataManager::NodeMapType::const_iterator i;
-	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); i++) {
+	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); ++i) {
 		StructNode *pNode(dynamic_cast<StructNode *>(i->second));
 		ASSERT(pNode != 0);
 		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -205,7 +205,7 @@ m_iDofOffset(6)
 
 	m_Nodes.resize(uCnt);
 
-	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); i++) {
+	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); ++i) {
 		StructNode *pNode(dynamic_cast<StructNode *>(i->second));
 		ASSERT(pNode != 0);
 		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
@@ -317,7 +317,7 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoefTheta = dCoefX*m_dRefLen*m_dRefLen;
 
 		integer iNodeOffset = 0;
-		for (std::vector<NodeData>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
+		for (std::vector<NodeData>::const_iterator i = m_Nodes.begin(); i != m_Nodes.end(); ++i) {
 			integer iFirstPositionIndex = i->pNode->iGetFirstIndex();
 
 			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
@@ -378,7 +378,7 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 	} else {
 		d = 0.;
 
-		for (std::vector<NodeData>::iterator i = m_Nodes.begin(); i != m_Nodes.end(); i++) {
+		for (std::vector<NodeData>::iterator i = m_Nodes.begin(); i != m_Nodes.end(); ++i) {
 			i->DX = i->pNode->GetXCurr() - i->pNode->GetXPrev();
 			d += i->DX.Dot();
 

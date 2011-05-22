@@ -137,7 +137,7 @@ velocity, RF, 3, 121, 0
 		std::vector<PointData>::const_iterator point;
 		std::vector<Vec3>::iterator ix;
 		std::vector<Vec3>::iterator iv;
-		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); point++, ix++, iv++) {
+		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); ++point, ++ix, ++iv) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 			Vec3 x(point->pNode->GetXCurr() + f);
 			Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
@@ -150,7 +150,7 @@ velocity, RF, 3, 121, 0
 		std::vector<PointData>::const_iterator point;
 		std::vector<Vec3>::iterator ix;
 		std::vector<Vec3>::iterator iv;
-		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); point++, ix++, iv++) {
+		for (point = m_Points.begin(), ix = m_x.begin(), iv = m_v.begin(); point != m_Points.end(); ++point, ++ix, ++iv) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
 
 			*ix = point->pNode->GetXCurr() + f;
@@ -167,7 +167,7 @@ velocity, RF, 3, 121, 0
 		"grid_idents, IF, 1, " << m_Points.size() << ", 0\n";
 
 	int cnt = 0;
-	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); point++, cnt++) {
+	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point, ++cnt) {
 		if (cnt > 0) {
 			if ((cnt%6) == 0) {
 				outf << "\n";
@@ -185,7 +185,7 @@ velocity, RF, 3, 121, 0
 
 	for (int c = 1; c <= 3; c++) {
 		int cnt = 0;
-		for (std::vector<Vec3>::const_iterator i = m_x.begin(); i != m_x.end(); i++, cnt++) {
+		for (std::vector<Vec3>::const_iterator i = m_x.begin(); i != m_x.end(); ++i, ++cnt) {
 			if (cnt > 0) {
 				if ((cnt%6) == 0) {
 					outf << "\n";
@@ -205,7 +205,7 @@ velocity, RF, 3, 121, 0
 
 	for (int c = 1; c <= 3; c++) {
 		int cnt = 0;
-		for (std::vector<Vec3>::const_iterator i = m_v.begin(); i != m_v.end(); i++, cnt++) {
+		for (std::vector<Vec3>::const_iterator i = m_v.begin(); i != m_v.end(); ++i, ++cnt) {
 			if (cnt > 0) {
 				if ((cnt%6) == 0) {
 					outf << "\n";
@@ -430,7 +430,7 @@ grid_idents, IF, 1, 121, 0
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			for (std::vector<unsigned>::iterator id = labels.begin(); id != labels.end(); id++) {
+			for (std::vector<unsigned>::iterator id = labels.begin(); id != labels.end(); ++id) {
 				long idx;
 
 				inf >> idx;
@@ -452,7 +452,7 @@ grid_idents, IF, 1, 121, 0
 
 			mbedge_goto_eol(inf, buf, sizeof(buf));
 
-			for (std::vector<PointData>::iterator point = m_Points.begin(); point != m_Points.end(); point++) {
+			for (std::vector<PointData>::iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 				std::vector<unsigned>::iterator id = std::find(labels.begin(), labels.end(), point->uLabel);
 				if (id == labels.end()) {
 					silent_cerr("StructExtEDGEForce(" << GetLabel() << "): "

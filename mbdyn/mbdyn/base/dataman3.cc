@@ -306,15 +306,16 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di corpi rigidi attesi */
 		case AUTOMATICSTRUCTURAL: {
-			int iDmy = HP.GetInt();
+#ifdef DEBUG
+			int iDmy =
+#endif // DEBUG
+			HP.GetInt();
 #ifdef DEBUG
 #if 0
 	  ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum = iDmy;
-#endif /* 0 */
+#endif // 0
 			DEBUGLCOUT(MYDEBUG_INPUT, "Automatic structural elements expected: "
 				<< iDmy << std::endl);
-#else
-			iDmy = 0;
 #endif
 		} break;
 
@@ -1715,11 +1716,10 @@ DataManager::ReadNodes(MBDynParser& HP)
 			}
 
 			/* Nome del nodo */
-			const char *sName = NULL;
+			std::string sName;
 			if (HP.IsKeyWord("name")) {
 				const char *sTmp = HP.GetStringWithDelims();
-
-				SAFESTRDUP(sName, sTmp);
+				sName = sTmp;
 			}
 
 			/* in base al tipo, avviene l'allocazione */
@@ -2136,9 +2136,8 @@ DataManager::ReadNodes(MBDynParser& HP)
 				throw ErrMemory(MBDYN_EXCEPT_ARGS);
 			}
 
-			if (sName != NULL) {
+			if (!sName.empty()) {
 				(*ppN)->PutName(sName);
-				SAFEDELETEARR(sName);
 			}
 
 			/* Decrementa i nodi attesi */
@@ -2186,7 +2185,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 	for (int iCnt = 0, iNode = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 		for (NodeContainerType::const_iterator p = NodeData[iCnt].NodeContainer.begin();
 			p != NodeData[iCnt].NodeContainer.end();
-			p++, iNode++)
+			++p, ++iNode)
 		{
 			Nodes[iNode] = p->second;
 		}

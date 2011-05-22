@@ -108,36 +108,36 @@ MBDynParser::~MBDynParser(void)
 	DestroyCL();
 	DestroySF();
 
-	for (SFType::iterator i = SF.begin(); i != SF.end(); i++) {
+	for (SFType::iterator i = SF.begin(); i != SF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (RFType::iterator i = RF.begin(); i != RF.end(); i++) {
+	for (RFType::iterator i = RF.begin(); i != RF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (HFType::iterator i = HF.begin(); i != HF.end(); i++) {
+	for (HFType::iterator i = HF.begin(); i != HF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (ADType::iterator i = AD.begin(); i != AD.end(); i++) {
+	for (ADType::iterator i = AD.begin(); i != AD.end(); ++i) {
 		destroy_c81_data(i->second);
 		SAFEDELETE(i->second);
 	}
 
-	for (C1DType::iterator i = C1D.begin(); i != C1D.end(); i++) {
+	for (C1DType::iterator i = C1D.begin(); i != C1D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (C3DType::iterator i = C3D.begin(); i != C3D.end(); i++) {
+	for (C3DType::iterator i = C3D.begin(); i != C3D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (C6DType::iterator i = C6D.begin(); i != C6D.end(); i++) {
+	for (C6DType::iterator i = C6D.begin(); i != C6D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
-	for (DCType::iterator i = DC.begin(); i != DC.end(); i++) {
+	for (DCType::iterator i = DC.begin(); i != DC.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
 
@@ -159,7 +159,7 @@ MBDynParser::SetDataManager(DataManager *pdm)
 
 	} else {
 		/* add the drive handler to the drive callers... */
-		for (DCType::const_iterator i = DC.begin(); i != DC.end(); i++) {
+		for (DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
 			const_cast<DriveCaller *>(i->second)->SetDrvHdl(pDH);
 		}
 	}
@@ -181,10 +181,10 @@ MBDynParser::Reference_int(void)
 	unsigned int uLabel(GetInt());
 	
 	/* Nome del reference */
-	const char *sName = NULL;
+	std::string sName;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp);
+		sName = sTmp;
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << std::endl);
@@ -222,7 +222,7 @@ MBDynParser::Reference_int(void)
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after reference " << uLabel
-			<< " (" << (sName ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -246,9 +246,8 @@ MBDynParser::Reference_int(void)
 		throw MBDynParser::ErrReferenceAlreadyDefined(MBDYN_EXCEPT_ARGS);
 	}
 	
-	if (sName != NULL) {
+	if (!sName.empty()) {
 		pRF->PutName(sName);
-		SAFEDELETEARR(sName);
 	}
 }
 
@@ -265,10 +264,10 @@ MBDynParser::HydraulicFluid_int(void)
 	unsigned int uLabel(GetInt());
 	
 	/* Nome del fluido */
-	const char *sName = NULL;
+	std::string sName;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp);
+		sName = sTmp;
 	}
 	
 	HydraulicFluid* pHF = ReadHydraulicFluid(*this, uLabel);
@@ -280,7 +279,7 @@ MBDynParser::HydraulicFluid_int(void)
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after hydraulic fluid " << uLabel
-			<< " (" << (sName ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -292,9 +291,8 @@ MBDynParser::HydraulicFluid_int(void)
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
-	if (sName != NULL) {
+	if (!sName.empty()) {
 		pHF->PutName(sName);
-		SAFEDELETEARR(sName);
 	}
 }
 
@@ -466,7 +464,7 @@ MBDynParser::C81Data_int(void)
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after c81 data " << uLabel
-			<< " (" << (!sName.empty() ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -503,10 +501,10 @@ MBDynParser::ConstitutiveLaw_int(void)
 	unsigned int uLabel(GetInt());
 	
 	/* Constitutive law name */
-	const char *sName = NULL;
+	std::string sName;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp);
+		sName = sTmp;
 	}
 
 	int dim = GetInt();
@@ -519,7 +517,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 1D " 
 					<< uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" at line " << GetLineData()
@@ -528,13 +526,13 @@ MBDynParser::ConstitutiveLaw_int(void)
 		}
 
 		pCL->PutLabel(uLabel);
-		if (sName) {
+		if (!sName.empty()) {
 			pCL->PutName(sName);
 		}
 	
 		if (!C1D.insert(C1DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 1D " << uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" already defined at line " 
@@ -551,7 +549,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 3D " 
 					<< uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" at line " << GetLineData()
@@ -560,13 +558,13 @@ MBDynParser::ConstitutiveLaw_int(void)
 		}
 	
 		pCL->PutLabel(uLabel);
-		if (sName) {
+		if (!sName.empty()) {
 			pCL->PutName(sName);
 		}
 	
 		if (!C3D.insert(C3DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 3D " << uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" already defined at line " 
@@ -583,7 +581,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 		if (pCL == NULL) {
 			silent_cerr("unable to read constitutive law 6D " 
 					<< uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" at line " << GetLineData()
@@ -592,13 +590,13 @@ MBDynParser::ConstitutiveLaw_int(void)
 		}
 	
 		pCL->PutLabel(uLabel);
-		if (sName) {
+		if (!sName.empty()) {
 			pCL->PutName(sName);
 		}
 	
 		if (!C6D.insert(C6DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 6D " << uLabel);
-			if (sName) {
+			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
 			}
 			silent_cerr(" already defined at line " 
@@ -617,13 +615,9 @@ MBDynParser::ConstitutiveLaw_int(void)
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after constitutive law " << uLabel
-			<< " (" << (sName ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (sName) {
-		SAFEDELETEARR(sName);
 	}
 }
 
@@ -640,10 +634,10 @@ MBDynParser::DriveCaller_int(void)
 	unsigned int uLabel(GetInt());
 	
 	/* drive name */
-	const char *sName = NULL;
+	std::string sName;
 	if (IsKeyWord("name")) {
 		const char *sTmp = GetStringWithDelims();
-		SAFESTRDUP(sName, sTmp);
+		sName = sTmp;
 	}
 
 	bool bDeferred(false);
@@ -655,35 +649,31 @@ MBDynParser::DriveCaller_int(void)
 	DriveCaller *pDC = GetDriveCaller(bDeferred);
 	if (pDC == NULL) {
 		silent_cerr("unable to read drive caller " << uLabel
-			<< " (" << (sName ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after drive caller " << uLabel
-			<< " (" << (sName ? sName : "unknown" ) << ") "
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	pDC->PutLabel(uLabel);
-	if (sName) {
+	if (!sName.empty()) {
 		pDC->PutName(sName);
 	}
 	
 	if (!DC.insert(DCType::value_type(uLabel, pDC)).second) {
 		silent_cerr("drive caller " << uLabel);
-		if (sName) {
+		if (!sName.empty()) {
 			silent_cerr(" (" << sName << ")");
 		}
 		silent_cerr(" already defined at line " 
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (sName) {
-		SAFEDELETEARR(sName);
 	}
 }
 
@@ -907,7 +897,7 @@ MBDynParser::GetRef(ReferenceFrame& rf)
 void 
 MBDynParser::OutputFrames(std::ostream& out) const
 {
-	for (RFType::const_iterator i = RF.begin(); i != RF.end(); i++) {
+	for (RFType::const_iterator i = RF.begin(); i != RF.end(); ++i) {
 		i->second->Output(out);
 	}
 }
@@ -1172,7 +1162,8 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 			silent_cerr("'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl);
 			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			
+
+#if 0
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 
@@ -1188,6 +1179,7 @@ MBDynParser::GetVecRel(const ReferenceFrame& rf)
 
 			Vec3 v = pNode2->GetXCurr() - pNode1->GetXCurr();
 			return rf.GetR().MulTV(v);
+#endif // 0
 		} /* else local */
 	case NODE:
 		return GetVec3();
@@ -1224,7 +1216,8 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 			silent_cerr("'from node' at line " << GetLineData()
 				<< " not implemented yet :)" << std::endl);
 			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			
+
+#if 0
 			unsigned int uLabel = GetInt();
 			StructNode *pNode1 = NULL; /* get node 1 */
 			if (IsKeyWord("to" "node")) {
@@ -1236,6 +1229,7 @@ MBDynParser::GetVecAbs(const ReferenceFrame& rf)
 			StructNode *pNode2 = NULL; /* get node 2 */
 
 			return pNode2->GetXCurr() - pNode1->GetXCurr();
+#endif // 0
 		} /* else global: fallthru */
 
 	case GLOBAL:

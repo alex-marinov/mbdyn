@@ -31,12 +31,101 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include "dataman.h"
+#include "userelem.h"
+
 #include <iostream>
 #include <limits>
 #include <cfloat>
 #include <limits>
 
 #include "module-wheel2.h"
+
+class Wheel2
+: virtual public Elem, public UserDefinedElem
+{
+private:
+
+	// wheel node
+	StructNode *pWheel;
+
+	// wheel axle direction (wrt/ wheel node)
+	Vec3 WheelAxle;
+
+	// (flat) ground node
+	StructNode *pGround;
+
+	// ground position/orientation (wrt/ ground node)
+	Vec3 GroundPosition;
+	Vec3 GroundDirection;
+
+	// wheel geometry
+	doublereal dRadius;
+	doublereal dInternalRadius;
+	doublereal dVolCoef;
+
+	doublereal dRefArea;
+	doublereal dRNP;		/* R+nG'*pG */
+	doublereal dV0;
+
+	// tyre properties
+	doublereal dP0;
+	doublereal dGamma;
+	doublereal dHystVRef;
+
+	// friction data
+	bool bSlip;
+	DriveCaller *pMuX0;
+	DriveCaller *pMuY0;
+	DriveCaller *pMuY1;
+	doublereal dvThreshold;
+
+	// output data
+	Vec3 F;
+	Vec3 M;
+	doublereal dInstRadius;
+	doublereal dDeltaL;
+	doublereal dVn;
+	doublereal dSr;
+	doublereal dAlpha;
+	doublereal dAlphaThreshold;
+	doublereal dMuX;
+	doublereal dMuY;
+	doublereal dVa;
+	doublereal dVc;
+
+public:
+	Wheel2(unsigned uLabel, const DofOwner *pDO,
+		DataManager* pDM, MBDynParser& HP);
+	virtual ~Wheel2(void);
+
+	virtual void Output(OutputHandler& OH) const;
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler& 
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef, 
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+	SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+	unsigned int iGetNumPrivData(void) const;
+	int iGetNumConnectedNodes(void) const;
+	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph);
+	std::ostream& Restart(std::ostream& out) const;
+	virtual unsigned int iGetInitialNumDof(void) const;
+	virtual void 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+   	VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+		      const VectorHandler& XCurr);
+   	SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+};
 
 Wheel2::Wheel2(unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
@@ -480,23 +569,29 @@ Wheel2::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 	return WorkVec;
 }
 
-// #ifdef STATIC_MODULES, the function is registered by InitUDE()
-#ifndef STATIC_MODULES
-extern "C" int
-module_init(const char *module_name, void *pdm, void *php)
+bool
+wheel2_set(void)
 {
 	UserDefinedElemRead *rf = new UDERead<Wheel2>;
 
 	if (!SetUDE("wheel2", rf)) {
 		delete rf;
-
-		silent_cerr("Wheel2: "
-			"module_init(" << module_name << ") "
-			"failed" << std::endl);
-
 		return -1;
 	}
 
+	return 0;
+}
+
+#ifndef STATIC_MODULES
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	if (!wheel2_set()) {
+		silent_cerr("Wheel2: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+		return -1;
+	}
 	return 0;
 }
 #endif // ! STATIC_MODULES

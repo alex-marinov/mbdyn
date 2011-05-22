@@ -429,7 +429,7 @@ DofIter()
 		if (NodeData[i].OutFile != OutputHandler::UNKNOWN)
 		{
 			for (NodeContainerType::const_iterator n = NodeData[i].NodeContainer.begin();
-				n != NodeData[i].NodeContainer.end(); n++)
+				n != NodeData[i].NodeContainer.end(); ++n)
 			{
 				if (n->second->fToBeOutput()) {
 					OutHdl.Open(NodeData[i].OutFile);
@@ -445,7 +445,7 @@ DofIter()
 		if (ElemData[i].OutFile != OutputHandler::UNKNOWN)
 		{
 			for (ElemContainerType::const_iterator e = ElemData[i].ElemContainer.begin();
-				e != ElemData[i].ElemContainer.end(); e++)
+				e != ElemData[i].ElemContainer.end(); ++e)
 			{
 				if (e->second->fToBeOutput()) {
 					OutHdl.Open(ElemData[i].OutFile);
@@ -778,8 +778,8 @@ void DataManager::MakeRestart(void)
 
 	/* Dati dei nodi */
 	OutHdl.Restart() << "begin: nodes;" << std::endl;
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
-		(*i)->Restart(OutHdl.Restart());
+	for (NodeVecType::const_iterator n = Nodes.begin(); n != Nodes.end(); ++n) {
+		(*n)->Restart(OutHdl.Restart());
 	}
 	OutHdl.Restart() << "end: nodes;" << std::endl << std::endl;
 
@@ -802,16 +802,16 @@ void DataManager::MakeRestart(void)
 
 	/* Dati degli elementi */
 	OutHdl.Restart() << "begin: elements;" << std::endl;
-	for (ElemVecType::const_iterator p = Elems.begin();
-		p != Elems.end(); p++)
+	for (ElemVecType::const_iterator e = Elems.begin();
+		e != Elems.end(); ++e)
 	{
-		(*p)->Restart(OutHdl.Restart());
+		(*e)->Restart(OutHdl.Restart());
 	}
 
-	for (NodeContainerType::const_iterator i = NodeData[Node::PARAMETER].NodeContainer.begin();
-		i != NodeData[Node::PARAMETER].NodeContainer.end(); i++)
+	for (NodeContainerType::const_iterator n = NodeData[Node::PARAMETER].NodeContainer.begin();
+		n != NodeData[Node::PARAMETER].NodeContainer.end(); ++n)
 	{
-		dynamic_cast<const Elem2Param *>(i->second)->RestartBind(OutHdl.Restart());
+		dynamic_cast<const Elem2Param *>(n->second)->RestartBind(OutHdl.Restart());
 	}
 		
 	OutHdl.Restart() << "end: elements;" << std::endl;

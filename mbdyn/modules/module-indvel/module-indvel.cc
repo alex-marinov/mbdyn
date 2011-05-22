@@ -208,7 +208,7 @@ ModuleIndVel::AddSectionalForce(Elem::Type type,
 		m_data_iter->dW = dW;
 		m_data_iter->X = R.MulTV(X - pCraft->GetXCurr());
 
-		m_data_iter++;
+		++m_data_iter;
 	}
 }
 
@@ -221,7 +221,7 @@ ModuleIndVel::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
-		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
+		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); ++i) {
 			out << GetLabel() << "#" << i->label << "#" << i->counter
 				<< " " << i->F
 				<< " " << i->M

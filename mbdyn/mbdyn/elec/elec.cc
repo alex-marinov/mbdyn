@@ -717,6 +717,7 @@ ReadElectric(DataManager* pDM,
 					"not allowed as input #" << i + 1 << " "
 					"at line " << HP.GetLineData()
 					<< std::endl);
+				SAFEDELETEARR(pInputs);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}

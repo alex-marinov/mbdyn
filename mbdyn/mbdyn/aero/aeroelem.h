@@ -95,8 +95,8 @@ protected:
 		NcVar *Var_X, *Var_Phi, *Var_V, *Var_W, *Var_F, *Var_M;
 	} AeroNetCDFOutput;
 
-	std::vector<AeroNetCDFOutput> pNetCDFOutput;
-	std::vector<AeroNetCDFOutput>::iterator pTmpNetCDFOutput;
+	std::vector<AeroNetCDFOutput> NetCDFOutputData;
+	std::vector<AeroNetCDFOutput>::iterator NetCDFOutputIter;
 #endif /* USE_NETCDF */
 
 	// specific for AEROD_OUT_PGAUSS
@@ -105,8 +105,8 @@ protected:
 		doublereal alpha;
 	} Aero_output;
 
-	std::vector<Aero_output> pOutput;
-	std::vector<Aero_output>::iterator pTmpOutput;
+	std::vector<Aero_output> OutputData;
+	std::vector<Aero_output>::iterator OutputIter;
 
 public:
 	AerodynamicOutput(flag f, int iNP,

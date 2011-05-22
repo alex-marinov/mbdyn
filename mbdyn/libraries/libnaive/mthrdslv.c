@@ -81,7 +81,10 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	integer i, j, k, pvr, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *prik;
-	doublereal den, mul, mulpiv, fapvr, fari;
+	doublereal den, mul, mulpiv, fari;
+#if 0
+	doublereal fapvr;
+#endif
 	doublereal *par, *papvr;
 
 	if (neq <= 0 || (unsigned long)neq > NAIVE_MAX) {
@@ -102,23 +105,25 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 		pri = ri[i];
 		pvr = pri[0];
 		mulpiv = 0.;
+#if 0
 		fapvr = 0.;
-// 		for (k = 0; k < nr; k++) {
-// 			r = pri[k];
-// 			if (todo[r]) {
-// 				fari = fabs(a[r][i]);
-// 				if (fari > mul) {
-// 					mulpiv = fari*minpiv;
-// 					if (nzc[r] <= nc  || mulpiv > fapvr) {
-// 						nc = nzc[pvr = r];
-// 						fapvr = fari;
-// 					}
-// 					mul = fari;
-// 				} else if (nzc[r] < nc && fari > mulpiv) {
-// 					nc = nzc[pvr = r];
-// 				}
-// 			}
-// 		}
+ 		for (k = 0; k < nr; k++) {
+ 			r = pri[k];
+ 			if (todo[r]) {
+ 				fari = fabs(a[r][i]);
+ 				if (fari > mul) {
+ 					mulpiv = fari*minpiv;
+ 					if (nzc[r] <= nc  || mulpiv > fapvr) {
+ 						nc = nzc[pvr = r];
+ 						fapvr = fari;
+ 					}
+ 					mul = fari;
+ 				} else if (nzc[r] < nc && fari > mulpiv) {
+ 					nc = nzc[pvr = r];
+ 				}
+ 			}
+ 		}
+#endif
 		for (k = 0; k < nr; k++) {
 			r = pri[k];
 			if (todo[r]) {

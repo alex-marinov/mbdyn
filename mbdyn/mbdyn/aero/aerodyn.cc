@@ -82,7 +82,7 @@ gust(g),
 pRBK(pRBK)
 {
 	for (std::vector<Gust *>::iterator i = gust.begin();
-		i != gust.end(); i++)
+		i != gust.end(); ++i)
 	{
 		(*i)->SetAirProperties(this);
 	}
@@ -91,7 +91,7 @@ pRBK(pRBK)
 AirProperties::~AirProperties(void)
 {
 	for (std::vector<Gust *>::iterator i = gust.begin();
-		i != gust.end(); i++)
+		i != gust.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
@@ -111,7 +111,7 @@ AirProperties::Restart(std::ostream& out) const
 	pGetDriveCaller()->Restart(out);
 	if (!gust.empty()) {
 		for (std::vector<Gust *>::const_iterator i = gust.begin();
-			i != gust.end(); i++)
+			i != gust.end(); ++i)
 		{
 			out << ", ", (*i)->Restart(out);
 		}
@@ -230,7 +230,7 @@ AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 
 	V = Velocity;
 	for (std::vector<Gust *>::const_iterator i = gust.begin();
-		i != gust.end(); i++)
+		i != gust.end(); ++i)
 	{
 		Vec3 VV;
 		if ((*i)->GetVelocity(Xabs, VV)) {

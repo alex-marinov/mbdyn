@@ -368,12 +368,15 @@ InverseSolver::Run(void)
 	}
 
 	ASSERT(iNumDofs > 0);
-	
+
+#if 0
 	/* sono i passi precedenti usati dall'integratore */
 	integer iRSteps = pRegularSteps->GetIntegratorNumPreviousStates();
 	integer iRUnkStates = pRegularSteps->GetIntegratorNumUnknownStates();
+#endif // 0
 
 	/* FIXME: pdWorkspace?*/
+
 #if 1	
 	/* allocate workspace for previous time steps */
 	SAFENEWARR(pdWorkSpace, doublereal,
@@ -1118,9 +1121,6 @@ InverseSolver::ReadData(MBDynParser& HP)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	bool bMethod(false);
-	bool bDummyStepsMethod(false);
-
 	/* dati letti qui ma da passare alle classi
 	 *	StepIntegration e NonlinearSolver
 	 */
@@ -1130,18 +1130,9 @@ InverseSolver::ReadData(MBDynParser& HP)
 	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
-	/* Dati dei passi fittizi di trimmaggio iniziale */
-	doublereal dDummyStepsTolerance = ::dDefaultDummyStepsTolerance;
-	integer iDummyStepsMaxIterations = ::iDefaultMaxIterations;
-
-	/* Dati del passo iniziale di calcolo delle derivate */
-
-	doublereal dDerivativesTol = ::dDefaultTol;
-	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
-
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
-	unsigned nSolverThreads = 0;
+	unsigned nSolverThreads(0);
 #endif /* USE_MULTITHREAD */
 
 
@@ -1857,21 +1848,30 @@ InverseSolver::ReadData(MBDynParser& HP)
 #endif /* USE_MULTITHREAD */
 
 			} else {
+#ifdef USE_MULTITHREAD
 				bool bAssembly = false;
 				bool bSolver = false;
 				bool bAll = true;
 				unsigned nt;
+#endif // USE_MULTITHREAD
 
 				if (HP.IsKeyWord("assembly")) {
+#ifdef USE_MULTITHREAD
 					bAll = false;
 					bAssembly = true;
+#endif // USE_MULTITHREAD
 
 				} else if (HP.IsKeyWord("solver")) {
+#ifdef USE_MULTITHREAD
 					bAll = false;
 					bSolver = true;
+#endif // USE_MULTITHREAD
 				}
 
-				nt = HP.GetInt();
+#ifdef USE_MULTITHREAD
+				nt =
+#endif // USE_MULTITHREAD
+				HP.GetInt();
 
 #ifdef USE_MULTITHREAD
 				if (bAll || bAssembly) {

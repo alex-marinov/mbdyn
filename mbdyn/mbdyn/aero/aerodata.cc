@@ -182,6 +182,14 @@ AeroData::AeroData(int i_p, int i_dim,
 	AeroData::UnsteadyModel u, DriveCaller *ptime)
 : AeroMemory(ptime), unsteadyflag(u), Omega(0.)
 {
+	// silence static analyzers
+	VAM.density = -1.;
+	VAM.sound_celerity = -1.;
+	VAM.chord = -1.;
+	VAM.force_position = 0.;
+	VAM.bc_position = 0.;
+	VAM.twist = 0.;
+
 	if (u != AeroData::STEADY) {
 		if (ptime == 0) {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);

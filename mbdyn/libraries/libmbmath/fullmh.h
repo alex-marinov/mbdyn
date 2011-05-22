@@ -89,8 +89,8 @@ public:
 		const_iterator(const FullMatrixHandler& m, bool is_end = false);
 		~const_iterator(void);
 		const FullMatrixHandler::const_iterator& operator ++ (void) const;
-		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
-		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void) const;
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void) const;
 		bool operator == (const FullMatrixHandler::const_iterator& op) const;
 		bool operator != (const FullMatrixHandler::const_iterator& op) const;
 	};

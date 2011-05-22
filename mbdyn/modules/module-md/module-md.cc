@@ -64,7 +64,7 @@ MD_get_loads(NodeContainer& nodeData)
 {
 	// do something useful
 	for (NodeContainer::iterator n = nodeData.begin();
-		n != nodeData.end(); n++)
+		n != nodeData.end(); ++n)
 	{
 		std::cout << "Node(" << n->pNode->GetLabel() << ") X={" << n->pNode->GetXCurr() << "} V={" << n->pNode->GetVCurr() << "}" << std::endl;
 
@@ -219,7 +219,7 @@ MBMD::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Loadable();
 
 		for (NodeContainer::const_iterator n = m_nodeData.begin();
-			n != m_nodeData.end(); n++)
+			n != m_nodeData.end(); ++n)
 		{
 			// format:
 			// - for each node
@@ -290,7 +290,7 @@ MBMD::AssRes(SubVectorHandler& WorkVec,
 
 	integer r = 0;
 	for (NodeContainer::const_iterator n = m_nodeData.begin();
-		n != m_nodeData.end(); n++)
+		n != m_nodeData.end(); ++n)
 	{
 		integer iFirstIndex = n->pNode->iGetFirstMomentumIndex();
 

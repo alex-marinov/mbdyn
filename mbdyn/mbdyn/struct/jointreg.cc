@@ -241,7 +241,7 @@ DynamicRegularization::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
 	for (std::vector<doublereal>::iterator i = dLambda.begin();
-		i != dLambda.end(); i++ )
+		i != dLambda.end(); ++i )
 	{
 		*i = 0.;
 	}
@@ -338,7 +338,7 @@ DynamicRegularization::InitialAssRes(SubVectorHandler& WorkVec,
 	std::vector<doublereal> dInitialLambda(iNumDofs);
 
 	for (std::vector<doublereal>::iterator i = dInitialLambda.begin();
-		i != dInitialLambda.end(); i++ )
+		i != dInitialLambda.end(); ++i )
 	{
 		*i = 0.;
 	}

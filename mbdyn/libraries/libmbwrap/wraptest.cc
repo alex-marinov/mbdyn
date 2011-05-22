@@ -303,7 +303,7 @@ void SetupSystem(
 static inline unsigned long long rd_CPU_ts(void)
 {
 	// See <http://www-unix.mcs.anl.gov/~kazutomo/rdtsc.html>
-	unsigned long long time;
+	unsigned long long time = 0;
 #if defined(__i386__)
 	__asm__ __volatile__( "rdtsc" : "=A" (time));
 #elif defined(__x86_64__)
@@ -322,7 +322,7 @@ static inline unsigned long long rd_CPU_ts(void)
 		: "=r"(upper),"=r"(lower),"=r"(tmp)
 	);
 	time = upper;
-	time = result<<32;
+	time = result << 32;
 	time = result|lower;
 #endif
 	return time;

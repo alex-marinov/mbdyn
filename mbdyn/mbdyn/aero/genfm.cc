@@ -253,6 +253,8 @@ tilde_F(Zero3),
 tilde_M(Zero3),
 F(Zero3),
 M(Zero3),
+dAlpha(0.),
+dBeta(0.),
 pData(pD)
 {
 	NO_OP;
@@ -395,7 +397,7 @@ ReadGenericAerodynamicForce(DataManager* pDM,
 
 GenericAerodynamicData::GenericAerodynamicCoef::GenericAerodynamicCoef(void)
 {
-	NO_OP;
+	memset(&dCoef[0], 0, sizeof(dCoef));
 }
 
 GenericAerodynamicData::GenericAerodynamicCoef::GenericAerodynamicCoef(
@@ -592,6 +594,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 					"differs from previous, "
 						<< pData->Alpha[iAlpha]
 						<< std::endl);
+				delete pData;
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -625,6 +628,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 					"differs from previous, "
 						<< pData->Beta[iBeta]
 						<< std::endl);
+				delete pData;
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -644,6 +648,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 						"unable to read data past "
 						"iAlpha=" << iAlpha << ", "
 						"iBeta=" << iBeta << std::endl);
+					delete pData;
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
@@ -664,6 +669,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 				"strict ordering violated between "
 				"Alpha #" << iAlpha - 1 << " and "
 				"Alpha #" << iAlpha << std::endl);
+			delete pData;
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
@@ -682,6 +688,7 @@ ReadGenericAerodynamicData(const std::string& fname,
 				"strict ordering violated between "
 				"Beta #" << iBeta - 1 << " and "
 				"Beta #" << iBeta << std::endl);
+			delete pData;
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}

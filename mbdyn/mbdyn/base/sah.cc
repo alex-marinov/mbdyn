@@ -46,9 +46,11 @@ pNode(pN),
 Time(pDC),
 dSamplePeriod(dSP)
 {
-	ASSERT(pN != NULL);
-	ASSERT(pDC != NULL);
+	ASSERT(pN != 0);
+	ASSERT(pDC != 0);
 	ASSERT(dSP > 0.);
+
+	dSampleTime = Time.dGet() + dSamplePeriod;
 }
 
 SampleAndHold::~SampleAndHold(void)

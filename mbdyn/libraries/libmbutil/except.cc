@@ -56,21 +56,27 @@ MBDynErrBase::what(void) const throw()
 	return s.c_str();
 }
 
-ErrIndexOutOfRange::ErrIndexOutOfRange(const char *type, int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL_NODEF)
-: ErrOutOfRange(MBDYN_EXCEPT_ARGS_PASSTHRU)
+void
+ErrIndexOutOfRange::WriteMsg(const char *idx_type, int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL_NODEF)
 {
 	std::stringstream ss;
 	ss << "[" << file << ":" << line << ",func=" << func << "]";
 	if (!r.empty()) {
 		ss << " (" << r << ")";
 	}
-	ss << ": " << type << "index=" << idx << " out of range (" << imin << ":" << imax << ")";
+	ss << ": " << idx_type << "index=" << idx << " out of range (" << imin << ":" << imax << ")";
 	Set(ss.str());
+}
+
+ErrIndexOutOfRange::ErrIndexOutOfRange(const char *idx_type, int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL_NODEF)
+: ErrOutOfRange(MBDYN_EXCEPT_ARGS_PASSTHRU)
+{
+	WriteMsg(idx_type, idx, imin, imax, MBDYN_EXCEPT_ARGS);
 }
 
 ErrIndexOutOfRange::ErrIndexOutOfRange(int idx, int imin, int imax, MBDYN_EXCEPT_ARGS_DECL_NODEF)
 : ErrOutOfRange(MBDYN_EXCEPT_ARGS_PASSTHRU)
 {
-	ErrIndexOutOfRange("", idx, imin, imax, MBDYN_EXCEPT_ARGS);
+	WriteMsg("", idx, imin, imax, MBDYN_EXCEPT_ARGS);
 }
 

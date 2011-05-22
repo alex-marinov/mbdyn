@@ -283,7 +283,7 @@ private:
 	// forward declaration
 	struct RotorBlade;
 
-	// TODO: define per-point structure
+	// Per-point structure
 	struct PointData {
 		Elem::Type type;
 		unsigned label;
@@ -319,7 +319,7 @@ private:
 	PD::iterator m_data_frc_iter;
 	mutable PD::iterator m_data_vel_iter;
 
-	// element -> rotor, blade
+	// element -> rotor, blade (or wing)
 	struct RotorBlade {
 		int iRotor;
 		int iBlade;
@@ -1092,7 +1092,7 @@ ModuleCHARM::Init_int(void)
 		rotor->nominal_thrust_coeff = m_Rotors[ir].nominal_thrust_coeff;
 	}
 
-	for (PD::iterator m_data_iter = m_data.begin(); m_data_iter != m_data.end(); m_data_iter++) {
+	for (PD::iterator m_data_iter = m_data.begin(); m_data_iter != m_data.end(); ++m_data_iter) {
 		if (m_data_iter->pRB) {
 			int ir = m_data_iter->pRB->iRotor;
 			int ib = m_data_iter->pRB->iBlade;
@@ -1206,7 +1206,7 @@ ModuleCHARM::Set_int(void)
 
 	// time-driven trim flag
 	while (dTime >= *m_TrimTimeIter) {
-		m_TrimTimeIter++;
+		++m_TrimTimeIter;
 		m_chglobal.trim_flag++;
 		if (m_chglobal.trim_flag == 4 && bFreezeVortexStrength) {
 			// FIXME: kupdgam may need to remain 1
@@ -1307,7 +1307,7 @@ ModuleCHARM::Set_int(void)
 
 	// loop on all data points, regardless of their type
 	// to set X; blade points also set tangential velocity and lift
-	for (PD::iterator i = m_data.begin(); i != m_data.end(); i++) {
+	for (PD::iterator i = m_data.begin(); i != m_data.end(); ++i) {
 		i->X.PutTo(i->pos);
 		if (i->pRB) {
 			*(i->tangential_velocity_p) = i->tangential_velocity;
@@ -1375,7 +1375,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 
 	if (iFirstAssembly == 1) {
 		bool bGotIt(false);
-		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
+		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); ++i) {
 			if (i->type == type && i->label == uLabel && i->counter == uPnt) {
 
 #if 0
@@ -1461,7 +1461,7 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 			"X={" << X << "} V={" << V << "} Xloc={" << m_data_vel_iter->X <<"}" << std::endl;
 #endif
 
-		m_data_vel_iter++;
+		++m_data_vel_iter;
 	}
 
 	return V;
@@ -1564,7 +1564,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 					"unexpected end of iterator" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			m_data_frc_iter++;
+			++m_data_frc_iter;
 		}
 
 		// sanity checks
@@ -1585,7 +1585,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 			<< std::endl;
 #endif
 
-		m_data_frc_iter++;
+		++m_data_frc_iter;
 	}
 
 	// resolve force, moment and point in craft's reference frame
@@ -1671,7 +1671,7 @@ ModuleCHARM::Output(OutputHandler& OH) const
 			}
 		}
 
-		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); i++) {
+		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); ++i) {
 			out << GetLabel() << "#" << i->label << "#" << i->counter
 				<< " " << i->spanwise_lift
 				<< " " << i->tangential_velocity
@@ -1710,7 +1710,7 @@ ModuleCHARM::AssJac(VariableSubMatrixHandler& WorkMat,
 	// when AddSectionalForces() and GetInducedVelocity() are called
 	m_data_frc_iter = m_data.begin();
 	while (m_data_frc_iter != m_data.end() && m_data_frc_iter->pRB == 0) {
-		m_data_frc_iter++;
+		++m_data_frc_iter;
 	}
 
 	m_data_vel_iter = m_data.begin();
@@ -1730,9 +1730,9 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 
 	m_Rac = pCraft->GetRCurr()*m_Rh_ac;
 
-	for (std::vector<RotorMapping>::iterator ir = m_Rotors.begin(); ir != m_Rotors.end(); ir++) {
+	for (std::vector<RotorMapping>::iterator ir = m_Rotors.begin(); ir != m_Rotors.end(); ++ir) {
 		ir->Res.Reset(ir->pHub->GetXCurr());
-		for (std::vector<SurfaceMapping>::iterator is = ir->Blades.begin(); is != ir->Blades.end(); is++) {
+		for (std::vector<SurfaceMapping>::iterator is = ir->Blades.begin(); is != ir->Blades.end(); ++is) {
 			is->Res.Reset(ir->pHub->GetXCurr());
 		}
 	}
@@ -1751,7 +1751,7 @@ ModuleCHARM::AssRes(SubVectorHandler& WorkVec,
 	// when AddSectionalForces() and GetInducedVelocity() are called
 	m_data_frc_iter = m_data.begin();
 	while (m_data_frc_iter != m_data.end() && m_data_frc_iter->pRB == 0) {
-		m_data_frc_iter++;
+		++m_data_frc_iter;
 	}
 
 	m_data_vel_iter = m_data.begin();

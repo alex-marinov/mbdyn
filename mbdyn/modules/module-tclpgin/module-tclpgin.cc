@@ -122,6 +122,7 @@ TclPlugIn::Read(int argc, char *argv[])
 
 		if (!fgets(buf, sizeof(buf), fin)) {
 			silent_cerr("TclPlugIn::Read: unable to read from file \"" << fname << "\"" << std::endl);
+			fclose(fin);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -130,6 +131,7 @@ TclPlugIn::Read(int argc, char *argv[])
 		while (fgets(buf, sizeof(buf), fin)) {
 			s += buf;
 		}
+		fclose(fin);
 		
 		cmd = Tcl_NewStringObj(s.c_str(), s.length());
 

@@ -185,7 +185,7 @@ NaiveSparseSolutionManager::Solve(void)
 		if (pLS->bReset()) {
 			if (msr.empty() || ms == SolutionManager::ALWAYS) {
 				// (re)compute
-				doublereal rowcnd, colcnd, amax;
+				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
 				dgeequ<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(*A, msr, msc, rowcnd, colcnd, amax);
 			}
 			// in any case scale matrix and right-hand-side

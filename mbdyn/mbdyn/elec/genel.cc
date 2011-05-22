@@ -983,6 +983,7 @@ ReadGenel(DataManager* pDM,
 					"(y[" << i << "]) "
 					"at line " << HP.GetLineData()
 					<< std::endl);
+				SAFEDELETEARR(pvSD_y);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
@@ -993,6 +994,7 @@ ReadGenel(DataManager* pDM,
 					"(y[" << i << "]) "
 					"at line " << HP.GetLineData()
 					<< std::endl);
+				SAFEDELETEARR(pvSD_y);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
@@ -1003,6 +1005,7 @@ ReadGenel(DataManager* pDM,
 				"illegal number of inputs "
 				"at line " << HP.GetLineData()
 				<< std::endl);
+			SAFEDELETEARR(pvSD_y);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -1028,6 +1031,7 @@ ReadGenel(DataManager* pDM,
 				"matrix A expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
+			SAFEDELETEARR(pvSD_y);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -1043,6 +1047,7 @@ ReadGenel(DataManager* pDM,
 				"matrix B expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
+			SAFEDELETEARR(pvSD_y);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -1058,6 +1063,7 @@ ReadGenel(DataManager* pDM,
 				"matrix C expected "
 				"at line " << HP.GetLineNumber()
 				<< std::endl);
+			SAFEDELETEARR(pvSD_y);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -1076,6 +1082,7 @@ ReadGenel(DataManager* pDM,
 					"while in descriptor form "
 					"at line " << HP.GetLineData()
 					<< std::endl);
+				SAFEDELETEARR(pvSD_y);
 			}
 			SAFENEWARR(pdD, doublereal, iNumOutputs*iNumInputs);
 			pd = pdD;
@@ -1105,6 +1112,7 @@ ReadGenel(DataManager* pDM,
 					"unknown balance mode at line "
 					<< HP.GetLineData()
 					<< std::endl);
+				SAFEDELETEARR(pvSD_y);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}

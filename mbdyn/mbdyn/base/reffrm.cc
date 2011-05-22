@@ -39,7 +39,8 @@
 #include "Rot.hh"
 
 ReferenceFrame::ReferenceFrame(void)
-: WithLabel(0), x(Zero3), R(Eye3), v(Zero3), w(Zero3)
+: WithLabel(0), x(Zero3), R(Eye3), v(Zero3), w(Zero3),
+od(UNKNOWN_ORIENTATION_DESCRIPTION)
 {
 	NO_OP;
 }

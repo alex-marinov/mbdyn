@@ -66,10 +66,10 @@ AerodynamicOutput::SetOutputFlag(flag f, int iNP)
 	m_eOutput = f;
 
 	if (IsOutput() && IsPGAUSS()) {
-		pOutput.resize(iNP);
+		OutputData.resize(iNP);
 
 	} else {
-		pOutput.resize(0);
+		OutputData.resize(0);
 	}
 }
 
@@ -77,13 +77,13 @@ void
 AerodynamicOutput::ResetIterator(void)
 {
 	if (IsOutput() && IsPGAUSS()) {
-		ASSERT(!pOutput.empty());
-		pTmpOutput = pOutput.begin();
+		ASSERT(!OutputData.empty());
+		OutputIter = OutputData.begin();
 	}
 
 #ifdef USE_NETCDF
-	if (!pNetCDFOutput.empty()) {
-		pTmpNetCDFOutput = pNetCDFOutput.begin();
+	if (!NetCDFOutputData.empty()) {
+		NetCDFOutputIter = NetCDFOutputData.begin();
 	}
 #endif // USE_NETCDF
 }
@@ -93,30 +93,30 @@ AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd,
 	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W, const Vec3& F, const Vec3& M)
 {
 	if (IsPGAUSS()) {
-		ASSERT(!pOutput.empty());
-		ASSERT(pTmpOutput >= pOutput.begin());
-		ASSERT(pTmpOutput < pOutput.end());
+		ASSERT(!OutputData.empty());
+		ASSERT(OutputIter >= OutputData.begin());
+		ASSERT(OutputIter < OutputData.end());
 
-		pTmpOutput->alpha = 180./M_PI*atan2(-v(2), v(1));
-		pTmpOutput->f = Vec3(pd[1], pd[0], pd[5]);
+		OutputIter->alpha = 180./M_PI*atan2(-v(2), v(1));
+		OutputIter->f = Vec3(pd[1], pd[0], pd[5]);
 
 		// move iterator forward
-		pTmpOutput++;
+		++OutputIter;
 	}
 
 #ifdef USE_NETCDF
-	if (!pNetCDFOutput.empty()) {
-		ASSERT(pTmpNetCDFOutput >= pNetCDFOutput.begin());
-		ASSERT(pTmpNetCDFOutput < pNetCDFOutput.end());
+	if (!NetCDFOutputData.empty()) {
+		ASSERT(NetCDFOutputIter >= NetCDFOutputData.begin());
+		ASSERT(NetCDFOutputIter < NetCDFOutputData.end());
 
-		if (pTmpNetCDFOutput->Var_X) pTmpNetCDFOutput->X = X;
-		if (pTmpNetCDFOutput->Var_Phi) pTmpNetCDFOutput->R = R;
-		if (pTmpNetCDFOutput->Var_V) pTmpNetCDFOutput->V = V;
-		if (pTmpNetCDFOutput->Var_W) pTmpNetCDFOutput->W = W;
-		if (pTmpNetCDFOutput->Var_F) pTmpNetCDFOutput->F = F;
-		if (pTmpNetCDFOutput->Var_M) pTmpNetCDFOutput->M = M;
+		if (NetCDFOutputIter->Var_X) NetCDFOutputIter->X = X;
+		if (NetCDFOutputIter->Var_Phi) NetCDFOutputIter->R = R;
+		if (NetCDFOutputIter->Var_V) NetCDFOutputIter->V = V;
+		if (NetCDFOutputIter->Var_W) NetCDFOutputIter->W = W;
+		if (NetCDFOutputIter->Var_F) NetCDFOutputIter->F = F;
+		if (NetCDFOutputIter->Var_M) NetCDFOutputIter->M = M;
 
-		pTmpNetCDFOutput++;
+		++NetCDFOutputIter;
 	}
 #endif // USE_NETCDF
 }
@@ -486,11 +486,11 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 			buf[l++] = '.';
 
 			int totgp = iNN*GDI.iGetNum();
-			pNetCDFOutput.resize(totgp);
+			NetCDFOutputData.resize(totgp);
 
 			int j = 0;
-			for (std::vector<AeroNetCDFOutput>::iterator i = pNetCDFOutput.begin();
-				i != pNetCDFOutput.end(); i++, j++)
+			for (std::vector<AeroNetCDFOutput>::iterator i = NetCDFOutputData.begin();
+				i != NetCDFOutputData.end(); ++i, ++j)
 			{
 				/* Add NetCDF (output) variables to the BinFile object
 				 * and save the NcVar* pointer returned from add_var
@@ -748,8 +748,8 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 {
 #ifdef USE_NETCDF
 	if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
-		for (std::vector<AeroNetCDFOutput>::const_iterator i = pNetCDFOutput.begin();
-			i != pNetCDFOutput.end(); i++)
+		for (std::vector<AeroNetCDFOutput>::const_iterator i = NetCDFOutputData.begin();
+			i != NetCDFOutputData.end(); ++i)
 		{
 			if (i->Var_X) {
 				i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
@@ -1381,9 +1381,9 @@ AerodynamicBody::Output(OutputHandler& OH) const
 				break;
 
 			case AEROD_OUT_PGAUSS:
-				ASSERT(!pOutput.empty());
-				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-					i != pOutput.end(); i++)
+				ASSERT(!OutputData.empty());
+				for (std::vector<Aero_output>::const_iterator i = OutputData.begin();
+					i != OutputData.end(); ++i)
 				{
 	 				out << " " << i->alpha
 						<< " " << i->f;
@@ -2436,10 +2436,10 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 				break;
 	
 			case AEROD_OUT_PGAUSS:
-				ASSERT(!pOutput.empty());
+				ASSERT(!OutputData.empty());
 	
-				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-					i != pOutput.end(); i++)
+				for (std::vector<Aero_output>::const_iterator i = OutputData.begin();
+					i != OutputData.end(); ++i)
 				{
 					out << " " << i->alpha
 						<< " " << i->f;
@@ -3338,10 +3338,10 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 				break;
 	
 			case AEROD_OUT_PGAUSS:
-				ASSERT(!pOutput.empty());
+				ASSERT(!OutputData.empty());
 	
-				for (std::vector<Aero_output>::const_iterator i = pOutput.begin();
-					i != pOutput.end(); i++)
+				for (std::vector<Aero_output>::const_iterator i = OutputData.begin();
+					i != OutputData.end(); ++i)
 				{
 					out << " " << i->alpha
 						<< " " << i->f;

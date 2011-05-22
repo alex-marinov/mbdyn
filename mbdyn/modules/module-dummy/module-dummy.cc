@@ -36,41 +36,41 @@
 static void *
 read(LoadableElem*, DataManager*, MBDynParser&)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return NULL;
 }
 
 static unsigned int
 i_get_num_dof(const LoadableElem* pEl)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return 0;
 }
 
 static DofOrder::Order
 set_dof(const LoadableElem*, unsigned int i)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return DofOrder::UNKNOWN;
 }
 
 static void 
 output(const LoadableElem* pEl, OutputHandler& OH)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl); 
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl); 
 }
 
-static ostream&
-restart(const LoadableElem* pEl, ostream& out)
+static std::ostream&
+restart(const LoadableElem* pEl, std::ostream& out)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
-   return out << "not implemented yet;" << endl;
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
+   return out << "not implemented yet;" << std::endl;
 }
 
 static void
 work_space_dim(const LoadableElem* pEl, integer* piNumRows, integer* piNumCols)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    *piNumRows = 0;
    *piNumCols = 0;
 }
@@ -82,7 +82,7 @@ ass_jac(LoadableElem* pEl,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    WorkMat.SetNullMatrix();
    return WorkMat;
 }
@@ -94,7 +94,7 @@ ass_mats(LoadableElem* pEl,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    WorkMatA.SetNullMatrix();  
    WorkMatB.SetNullMatrix();  
 }
@@ -106,7 +106,7 @@ ass_res(LoadableElem* pEl,
 	const VectorHandler& XCurr, 
 	const VectorHandler& XPrimeCurr)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    WorkVec.Resize(0);
    return WorkVec;
 }
@@ -118,25 +118,25 @@ before_predict(const LoadableElem* pEl,
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);  
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);  
 }
 
 static void
 after_predict(const LoadableElem* pEl, VectorHandler& X, VectorHandler& XP)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);  
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);  
 }
 
 static void
 update(LoadableElem* pEl, const VectorHandler& X, const VectorHandler& XP)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);  
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);  
 }
 
 static unsigned int
 i_get_initial_num_dof(const LoadableElem* pEl)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return 0;
 }
 
@@ -145,7 +145,7 @@ initial_work_space_dim(const LoadableElem* pEl,
 		integer* piNumRows, 
 		integer* piNumCols)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    *piNumRows = 0;
    *piNumCols = 0;   
 }
@@ -155,7 +155,7 @@ initial_ass_jac(LoadableElem* pEl,
 		VariableSubMatrixHandler& WorkMat, 
 		const VectorHandler& XCurr)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    WorkMat.SetNullMatrix();
    return WorkMat;
 }
@@ -165,7 +165,7 @@ initial_ass_res(LoadableElem* pEl,
 		SubVectorHandler& WorkVec, 
 		const VectorHandler& XCurr)
 {  
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    WorkVec.Resize(0);
    return WorkVec;
 }
@@ -175,46 +175,46 @@ set_value(const LoadableElem* pEl, DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
 }
    
 static void
 set_initial_value(const LoadableElem* pEl, VectorHandler& X)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
 }
 
 static unsigned int
 i_get_num_priv_data(const LoadableElem* pEl)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return 0;
 }
 
 static unsigned int
 i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return 0;
 }
 
 static doublereal
 d_get_priv_data(const LoadableElem* pEl, unsigned int i)
 {
-   cerr << "You shouldn't be here!" << endl;
+   std::cerr << "You shouldn't be here!" << std::endl;
    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 static void
 destroy(LoadableElem* pEl)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
 }
 
 static int
 i_get_num_connected_nodes(const LoadableElem* pEl)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    return 0;
 }
 
@@ -222,7 +222,7 @@ static void
 get_connected_nodes(const LoadableElem* pEl, 
 		int& NumNodes, Node::Type* NdTyp, unsigned int* NdLabels)
 {
-   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << endl);
+   DEBUGCOUT("Dummy Elem: " << __PRETTY_FUNCTION__ << std::endl);
    NumNodes = i_get_num_connected_nodes(pEl);
 }
 

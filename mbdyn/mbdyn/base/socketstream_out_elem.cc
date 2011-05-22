@@ -336,7 +336,6 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			<< std::endl);
 	}
 
-	int flags = 0;
 	bool bNonBlocking = false;
 	bool bNoSignal = false;
 	bool bSendFirst = true;
@@ -435,11 +434,19 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 				<< std::endl);
 		}
 
-		unsigned long node;
-#if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
-		/* resolve host
-	 	 * FIXME: non-reentrant ... */
-#if defined(HAVE_GETHOSTBYNAME)
+		unsigned long node = (unsigned long)-1;
+#if defined(HAVE_GETADDRINFO)
+		struct addrinfo hints = { 0 }, *res = NULL;
+		int rc;
+
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM; // FIXME: SOCK_DGRAM?
+		rc = getaddrinfo(host.c_str(), NULL, &hints, &res);
+		if (rc == 0) {
+			node = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+			freeaddrinfo(res);
+		}
+#elif defined(HAVE_GETHOSTBYNAME)
 		struct hostent *he = gethostbyname(host.c_str());
 		if (he != NULL) {
 			node = ((unsigned long *)he->h_addr_list[0])[0];
@@ -448,23 +455,19 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		struct in_addr addr;
 		if (inet_aton(host.c_str(), &addr)) {
 			node = addr.s_addr;
-
 		}
-#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
-		else {
-			silent_cerr("SocketStreamElem(" << uLabel << "): "
-				"unable to convert host "
-				"\"" << host << "\" "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-#else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+#else // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"host (RTAI RPC) not supported "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+#endif // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
+
+		if (node == (unsigned long)-1) {
+			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+				"unable to convert host \"" << host << "\" to node" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
 		silent_cerr("starting RTMBDynOutputElement(" << uLabel << ")..."
 			<< std::endl);
@@ -474,6 +477,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 #endif // USE_RTAI
 
 	} else {
+		int flags = 0;
+
 #ifdef USE_SOCKET
 		/* costruzione del nodo */
 		UseSocket *pUS = 0;

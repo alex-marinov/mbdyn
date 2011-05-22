@@ -106,7 +106,7 @@ public:
 		T m_val;
 	public:
 		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
-		MathArgPriv_t(void) { NO_OP; };
+		MathArgPriv_t(void) : MathArg_t(AF_NONE), m_val(0) { NO_OP; };
 		virtual ~MathArgPriv_t(void) { NO_OP; };
 		virtual ArgType Type(void) const { return TT; };
 		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };
@@ -220,7 +220,7 @@ protected:
 		struct PlugInRegister *next; 
 
 		PlugInRegister(void)
-		: name(NULL), constructor(NULL), arg(NULL) {};
+		: name(NULL), constructor(0), arg(0), next(0) {};
 	} *PlugIns;
 
 public:

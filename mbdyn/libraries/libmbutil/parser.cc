@@ -219,14 +219,14 @@ is_digit:;
 
 
 doublereal
-LowParser::dGetReal(void)
+LowParser::dGetReal(void) const
 {
 	return dCurrNumber;
 }
 
 
 integer
-LowParser::iGetInt(void)
+LowParser::iGetInt(void) const
 {
 	return integer(dCurrNumber);
 }
@@ -337,7 +337,7 @@ HighParser::GetLineData(void) const
 
 
 bool
-HighParser::IsDescription(void)
+HighParser::IsDescription(void) const
 {
      	if (CurrToken != HighParser::DESCRIPTION) {
 	  	return false;

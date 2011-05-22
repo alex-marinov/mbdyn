@@ -98,6 +98,7 @@ check_flag(const char *flag, int sleeptime)
 
 		if (fgets(buf, sizeof(buf), f) == NULL) {
 			fprintf(stderr, "test_strext_edge: expecting \"UPDATE,N,0,0,1\", got nothing from file \"%s\"\n", flag);
+			fclose(f);
 			return -1;
 		}
 
@@ -105,17 +106,20 @@ check_flag(const char *flag, int sleeptime)
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_strext_edge: expecting \"UPDATE,N,0,0,1\", got \"%s\" from file \"%s\"\n", buf, flag);
+			fclose(f);
 			return -1;
 		}
 
 		if (fgets(buf, sizeof(buf), f) == NULL) {
 			fprintf(stderr, "test_strext_edge: expecting \"FLAG,I,1,1,0\", got nothing from file \"%s\"\n", flag);
+			fclose(f);
 			return -1;
 		}
 		if (strcmp(buf, "FLAG,I,1,1,0\n") != 0) {
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_strext_edge: expecting \"FLAG,I,1,1,0\", got \"%s\" from file \"%s\"\n", buf, flag);
+			fclose(f);
 			return -1;
 		}
 

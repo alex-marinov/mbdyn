@@ -68,7 +68,7 @@ Mat3x3 RotManip::Rot(const Vec3 & phi) {
 	Phi += Mat3x3(MatCrossCross, phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
 
 	return Phi;
-};
+}
 
 
 Mat3x3 RotManip::DRot(const Vec3 & phi) {
@@ -80,7 +80,7 @@ Mat3x3 RotManip::DRot(const Vec3 & phi) {
 	Ga += Mat3x3(MatCrossCross, phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
 
 	return Ga;
-};
+}
 
 
 void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
@@ -95,8 +95,7 @@ void RotManip::RotAndDRot(const Vec3 & phi, Mat3x3 & Phi, Mat3x3 & Ga) {
 	Ga += Mat3x3(MatCrossCross, phi, phi*coeff[2]);
 
 	return;
-};
-
+}
 
 Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
@@ -107,7 +106,7 @@ Mat3x3 RotManip::DRot_IT(const Vec3 & phi) {
 	GaIT += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return GaIT;
-};
+}
 
 Mat3x3 RotManip::DRot_I(const Vec3 & phi) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
@@ -118,8 +117,7 @@ Mat3x3 RotManip::DRot_I(const Vec3 & phi) {
 	GaI += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return GaI;
-};
-
+}
 
 void RotManip::RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT) {
 	doublereal coeff[COEFF_D], coeffs[COEFF_C_STAR];
@@ -133,10 +131,10 @@ void RotManip::RotAndDRot_IT(const Vec3 & phi, Mat3x3 & PhiIT, Mat3x3 & GaIT) {
 	GaIT += Mat3x3(MatCrossCross, phi, phi*coeffs[0]);
 
 	return;
-};
+}
 
 Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
-	doublereal phi, a, cosphi, sinphi;
+	doublereal a, cosphi, sinphi;
 	Vec3 unit;
 
 	// Modified from Appendix 2.4 of
@@ -152,9 +150,9 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 	if (cosphi > 0.) {
 		unit = Phi.Ax();
 		sinphi = unit.Norm();
-		phi = atan2(sinphi, cosphi);
-		CoeffA(phi, Vec3(phi, 0, 0), &a);
-		unit = unit/a;
+		doublereal phi = atan2(sinphi, cosphi);
+		CoeffA(phi, Vec3(phi, 0., 0.), &a);
+		unit /= a;
 	} else {
 		// -1 <= cosphi <= 0
 		Mat3x3 eet(Phi.Symm());
@@ -175,7 +173,7 @@ Vec3 RotManip::VecRot(const Mat3x3 & Phi) {
 		unit *= atan2(sinphi, cosphi);
 	}
 	return unit;
-};
+}
 
 Mat3x3 RotManip::Elle
         (const Vec3 & phi,
@@ -190,7 +188,7 @@ Mat3x3 RotManip::Elle
     L += (Mat3x3(MatCrossCross, phi, phi)*a).Tens(phi*coeff[4]);
 
     return L;
-};
+}
 
 MatExp RoTrManip::Elle
         (const VecExp & phi,
@@ -205,7 +203,7 @@ MatExp RoTrManip::Elle
     L += (MatExp(phi,phi)*a).Tens(phi*coeff[4]);
 
     return L;
-};
+}
 
 MatExp RoTrManip::RoTr(const VecExp & phi) {
 	ScalExp coeff[COEFF_B];
@@ -216,7 +214,7 @@ MatExp RoTrManip::RoTr(const VecExp & phi) {
 	Phi += MatExp(phi, phi*coeff[1]);	/* += c[1] * phi x phi x */
 
 	return Phi;
-};
+}
 
 MatExp RoTrManip::DRoTr(const VecExp & phi) {
 	ScalExp coeff[COEFF_C];
@@ -227,7 +225,7 @@ MatExp RoTrManip::DRoTr(const VecExp & phi) {
 	Ga += MatExp(phi, phi*coeff[2]);	/* += c[1] * phi x phi x */
 
 	return Ga;
-};
+}
 
 void RoTrManip::RoTrAndDRoTr(const VecExp & phi, MatExp & Phi, MatExp & Ga) {
 	ScalExp coeff[COEFF_C];
@@ -241,7 +239,7 @@ void RoTrManip::RoTrAndDRoTr(const VecExp & phi, MatExp & Phi, MatExp & Ga) {
 	Ga += MatExp(phi, phi*coeff[2]);
 
 	return;
-};
+}
 
 MatExp RoTrManip::DRoTr_It(const VecExp & phi) {
 	ScalExp coeff[COEFF_D], coeffs[COEFF_C_STAR];
@@ -252,7 +250,7 @@ MatExp RoTrManip::DRoTr_It(const VecExp & phi) {
 	GaIT += MatExp(phi, phi*coeffs[0]);
 
 	return GaIT;
-};
+}
 
 MatExp RoTrManip::DRoTr_I(const VecExp & phi) {
 	ScalExp coeff[COEFF_D], coeffs[COEFF_C_STAR];
@@ -263,7 +261,7 @@ MatExp RoTrManip::DRoTr_I(const VecExp & phi) {
 	GaIT += MatExp(phi, phi*coeffs[0]);
 
 	return GaIT;
-};
+}
 
 void RoTrManip::RoTrAndDRoTr_It(const VecExp & phi, 
 				MatExp & PhiIT,
@@ -279,7 +277,7 @@ void RoTrManip::RoTrAndDRoTr_It(const VecExp & phi,
 	GaIT += MatExp(phi, phi*coeffs[0]);
 
 	return;
-};
+}
 
 VecExp RoTrManip::Helix(const MatExp & H)  {
 	Vec3 phi(RotManip::VecRot(H.GetVec()));
@@ -287,7 +285,7 @@ VecExp RoTrManip::Helix(const MatExp & H)  {
 			RotManip::DRot_IT(phi).Transpose()*(
 				(H.GetMom()*(H.GetVec().Transpose())).Ax())
 			);
-};
+}
 
 namespace ER_Rot {
 Param_Manip Param;

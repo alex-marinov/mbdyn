@@ -65,8 +65,7 @@ CenterOfMass::Collect_int(void)
 	Vec3 B(Zero3), G(Zero3);
 
 	for (std::set<const ElemGravityOwner *>::const_iterator i = elements.begin();
-		i != elements.end();
-		i++)
+		i != elements.end(); ++i)
 	{
 		dMass += (*i)->dGetM();
 		S += (*i)->GetS();

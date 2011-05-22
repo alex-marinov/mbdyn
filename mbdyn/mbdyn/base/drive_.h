@@ -1239,7 +1239,6 @@ RandDriveCaller::dGet(const doublereal& dVar) const
 
 class MeterDriveCaller : public DriveCaller {
 private:
-	long int iBase;
 	doublereal dStartTime;
 	doublereal dEndTime;
 	integer iSteps;
@@ -1492,7 +1491,7 @@ DriveArrayCaller::dGet(const doublereal& dVar) const
 {
 	doublereal d = 0.;
 
-	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); ++i) {
 		ASSERT(*i != 0);
 
 		d += (*i)->dGet(dVar);
@@ -1506,7 +1505,7 @@ DriveArrayCaller::dGet(void) const
 {
 	doublereal d = 0.;
 
-	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); ++i) {
 		ASSERT(*i != 0);
 
 		d += (*i)->dGet();
@@ -1518,7 +1517,7 @@ DriveArrayCaller::dGet(void) const
 inline bool
 DriveArrayCaller::bIsDifferentiable(void) const
 {
-	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); ++i) {
 		ASSERT(*i != 0);
 
 		if (!(*i)->bIsDifferentiable()) {
@@ -1534,7 +1533,7 @@ DriveArrayCaller::dGetP(const doublereal& dVar) const
 {
 	doublereal dP = 0.;
 
-	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); ++i) {
 		ASSERT(*i != 0);
 		ASSERT((*i)->bIsDifferentiable());
 

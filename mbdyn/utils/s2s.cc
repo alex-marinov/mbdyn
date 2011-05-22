@@ -216,6 +216,11 @@ s2s_t::parse(int argc, char *argv[])
 		next = argv[0];
 	}
 
+	// libtool paranoia
+	if (strncmp(next, "lt-", STRLENOF("lt-")) == 0) {
+		next += STRLENOF("lt-");
+	}
+
 	if (strcmp(next, "socket2stream") == 0) {
 		this->stream2socket = false;
 		this->progname = "socket2stream";

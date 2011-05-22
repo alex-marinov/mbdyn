@@ -78,7 +78,6 @@ pdX(0), pdXP(0)
 #ifdef USE_LAPACK
 	// try balancing the matrix?
 	if (bBalance) {
-		int rc;
 		char JOB = 'S';
 		integer N = Order;
 		integer LDA = Order;
@@ -93,12 +92,12 @@ pdX(0), pdXP(0)
 		if (pdE != 0) {
 			std::vector<doublereal> WORK(6*Order);
 
-			rc = __FC_DECL__(dggbal)(&JOB, &N, pdA, &LDA,
+			(void)__FC_DECL__(dggbal)(&JOB, &N, pdA, &LDA,
 				pdE, &LDB, &ILO, &IHI,
 				&LSCALE[0], &RSCALE[0], &WORK[0], &INFO);
 
 		} else {
-			rc = __FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
+			(void)__FC_DECL__(dgebal)(&JOB, &N, pdA, &LDA,
 				&ILO, &IHI, &RSCALE[0], &INFO);
 
 			for (unsigned i = 0; i < Order; i++) {
@@ -552,7 +551,7 @@ GenelStateSpaceMIMO::~GenelStateSpaceMIMO(void)
 	}
 
 	for (std::vector<ScalarValue *>::iterator i = SV_u.begin();
-		i != SV_u.end(); i++)
+		i != SV_u.end(); ++i)
 	{
 		delete *i;
 	}
@@ -835,7 +834,7 @@ GenelStateSpaceMIMO::GetConnectedNodes(
 	std::vector<const Node *>& connectedNodes) const {
 	unsigned i, iNodes = iNumOutputs;
 	for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
-		u != SV_u.end(); u++)
+		u != SV_u.end(); ++u)
 	{
 		if (dynamic_cast<NodeDof *>(*u)) {
 			iNodes++;
@@ -848,7 +847,7 @@ GenelStateSpaceMIMO::GetConnectedNodes(
 	}
 
 	for (std::vector<ScalarValue *>::const_iterator u = SV_u.begin();
-		u != SV_u.end(); u++)
+		u != SV_u.end(); ++u)
 	{
 		NodeDof* ndp = dynamic_cast<NodeDof *>(*u);
 		if (ndp) {

@@ -101,6 +101,7 @@ check_flag(const char *flag, int sleeptime)
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_modalext_edge: expecting \"UPDATE,N,0,0,1\", got \"%s\" from file \"%s\"\n", buf, flag);
+			fclose(f);
 			return -1;
 		}
 		fgets(buf, sizeof(buf), f);
@@ -108,6 +109,7 @@ check_flag(const char *flag, int sleeptime)
 			size_t len = strlen(buf);
 			buf[len - 1] = '\0';
 			fprintf(stderr, "test_modalext_edge: expecting \"FLAG,I,1,1,0\", got \"%s\" from file \"%s\"\n", buf, flag);
+			fclose(f);
 			return -1;
 		}
 		rc = fread((void *)&c, 1, 1, f);

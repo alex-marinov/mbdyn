@@ -404,6 +404,7 @@ MBCNodal::GetRigidPtr(void) const
 
 MBCNodal::MBCNodal(void)
 {
+	memset(&mbc, 0, sizeof(mbc));
 }
 
 MBCNodal::MBCNodal(MBCBase::Rot refnode_rot, unsigned nodes,
@@ -898,6 +899,7 @@ MBCModal::GetRigidPtr(void) const
 
 MBCModal::MBCModal(void)
 {
+	memset(&mbc, 0, sizeof(mbc));
 }
 
 MBCModal::MBCModal(MBCBase::Rot refnode_rot, unsigned modes)

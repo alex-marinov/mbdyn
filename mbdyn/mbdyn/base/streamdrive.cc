@@ -43,14 +43,13 @@ StreamDrive::StreamDrive(unsigned int uL,
 	integer nd, const std::vector<doublereal>& v0,
 	bool c)
 : FileDrive(uL, pDH, sFileName, nd, v0),
+size(sizeof(doublereal)*nd),
+buf(0),
 create(c)
 {
    	ASSERT(nd > 0);
 	
-	/*
-	 * initialize mailbox and so on
-	 */
-	size = sizeof(doublereal)*nd;
+	// initialize mailbox and so on
 	SAFENEWARR(buf, char, size);
 }
 

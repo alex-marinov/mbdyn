@@ -56,9 +56,7 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int dobind, int *perrno)
 {
    	int sock = -1;
-
 	struct sockaddr_in tmpname;
-	socklen_t size;
 
 	if (name == NULL) {
 		name = &tmpname;
@@ -66,6 +64,58 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 
 	if (perrno) {
 		*perrno = 0;
+	}
+
+   	/* Give the socket a name. */
+   	name->sin_family = AF_INET;
+   	name->sin_port = htons(port);
+	
+	if (hostname) {
+#if defined(HAVE_GETADDRINFO)
+		char portbuf[sizeof("65535")];
+		struct addrinfo hints = { 0 }, *res = NULL;
+		int rc;
+
+		rc = snprintf(portbuf, sizeof(portbuf), "%d", port);
+		if (rc > STRLENOF("65535")) {
+			return -4;
+		}
+
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		rc = getaddrinfo(hostname, portbuf, &hints, &res);
+		if (rc != 0) {
+			*perrno = errno;
+			return -3;
+		}
+
+		name->sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+
+		freeaddrinfo(res);
+
+#elif defined(HAVE_GETHOSTBYNAME)
+		struct hostent *hostinfo;
+
+		/* TODO: use getnameinfo() if available */
+		hostinfo = gethostbyname(hostname);
+		if (hostinfo == NULL) {
+			*perrno = h_errno;
+			return -3;
+		}
+
+		name->sin_addr = *(struct in_addr *)hostinfo->h_addr;
+#elif defined(HAVE_INET_ATON)
+		struct in_addr addr;
+		if (inet_aton(hostname, &addr) == 0) {
+			*perrno = errno;
+			return -3;
+		}
+		name->sin_addr = addr.s_addr;
+#else
+		return -3;
+#endif
+	} else {
+		name->sin_addr.s_addr = htonl(INADDR_ANY);
 	}
 
    	/* Create the socket. */
@@ -77,29 +127,9 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
       		return -1;
    	}
 
-   	/* Give the socket a name. */
-   	name->sin_family = AF_INET;
-   	name->sin_port = htons(port);
-	
-	if (hostname) {
-		struct hostent *hostinfo;
-
-		hostinfo = gethostbyname(hostname);
-		if (hostinfo == NULL) {
-			*perrno = h_errno;
-			return -3;
-		}
-
-		name->sin_addr = *(struct in_addr *)hostinfo->h_addr;
-	} else {
-		name->sin_addr.s_addr = htonl(INADDR_ANY);
-	}
-
-	size = sizeof(struct sockaddr_in);
-	
 	if (dobind) {
 		int rc = -1;
-		rc = bind(sock, (struct sockaddr *) name, size);
+		rc = bind(sock, (struct sockaddr *) name, sizeof(struct sockaddr_in));
 		if (rc < 0) {
 			if (perrno) {
 				*perrno = errno;

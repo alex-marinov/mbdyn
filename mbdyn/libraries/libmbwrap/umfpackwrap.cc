@@ -73,6 +73,8 @@
 #include "dirccmh.h"
 #include "umfpackwrap.h"
 
+#include <cstring>
+
 /* in some cases, int and int32_t differ */
 
 #ifdef USE_UMFPACK_LONG
@@ -123,6 +125,8 @@ App(0),
 Symbolic(0),
 Numeric(0)
 {
+	// silence static analyzers
+	memset(&Info[0], 0, sizeof(Info));
 	UMFPACKWRAP_defaults(Control);
 
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {

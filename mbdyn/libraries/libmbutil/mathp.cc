@@ -773,6 +773,7 @@ TypedValue::operator = (const TypedValue& var)
 		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
 	}
 
+	bConst = false;
 	if (type == TypedValue::VAR_STRING) {
 		char buf[BUFSIZ];
 
@@ -1697,7 +1698,7 @@ MathParser::GetSymbolTable(void) const
 void
 MathParser::PutSymbolTable(Table& T)
 {
-	(Table&)table = T;
+	table = T;
 }
 
 int
@@ -2432,10 +2433,10 @@ MathParser::StaticNameSpace::StaticNameSpace()
 
 MathParser::StaticNameSpace::~StaticNameSpace(void)
 {
-	for (funcType::iterator f = func.begin(); f != func.end(); f++) {
+	for (funcType::iterator f = func.begin(); f != func.end(); ++f) {
 		for (MathParser::MathArgs::iterator i = f->second->args.begin();
 			i != f->second->args.end();
-			i++)
+			++i)
 		{
 			delete *i;
 		}
@@ -3766,7 +3767,7 @@ MathParser::~MathParser(void)
 		PlugIns = next;
 	}
 
-	for (NameSpaceMap::iterator i = nameSpaceMap.begin(); i != nameSpaceMap.end(); i++) {
+	for (NameSpaceMap::iterator i = nameSpaceMap.begin(); i != nameSpaceMap.end(); ++i) {
 		delete i->second;
 	}
 }

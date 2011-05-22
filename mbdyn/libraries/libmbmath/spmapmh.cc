@@ -88,7 +88,7 @@ SpMapMatrixHandler::MakeCompressedColumnForm(doublereal *const Ax,
 	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			Ax[x_ptr] = ri->second;
 			Ai[x_ptr] = ri->first + offset;
 			x_ptr++;
@@ -128,7 +128,7 @@ SpMapMatrixHandler::MakeIndexForm(doublereal *const Ax,
 	for (integer col = 0; col < NCols; col++) {
 		Ap[col] = x_ptr + offset;
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			Ax[x_ptr] = ri->second;
 			Arow[x_ptr] = ri->first + offset;
 			Acol[x_ptr] = col + offset;
@@ -164,7 +164,7 @@ SpMapMatrixHandler::Reset(void)
 	row_cont_type::iterator ri;
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			ri->second = 0.;
 		}
 	}
@@ -199,7 +199,7 @@ SpMapMatrixHandler::GetCol(integer icol, VectorHandler& out) const
 
 	row_cont_type::const_iterator ri, re;
 	re = col_indices[icol].end();
-	for (ri = col_indices[icol].begin(); ri != re; ri++) {
+	for (ri = col_indices[icol].begin(); ri != re; ++ri) {
 		out(ri->first + 1) = ri->second;
 	}
 	return out;
@@ -224,7 +224,7 @@ SpMapMatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow,
 	for (integer row_in = 0; row_in < NCols; row_in++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[row_in].end();
-		for (ri = col_indices[row_in].begin(); ri != re; ri++) {
+		for (ri = col_indices[row_in].begin(); ri != re; ++ri) {
 			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
 				(out.*op)(ri->first + 1, col_in,
 						ri->second*in(row_in + 1, col_in));
@@ -253,8 +253,8 @@ SpMapMatrixHandler::MatTMatMul_base(void (MatrixHandler::*op)(integer iRow,
 	for (integer row_out = 0; row_out < NCols; row_out++) {
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[row_out].end();
-		for (ri = col_indices[row_out].begin(); ri != re; ri++) {
-			for (integer col_in = 1; col_in <= ncols_in;  col_in++) {
+		for (ri = col_indices[row_out].begin(); ri != re; ++ri) {
+			for (integer col_in = 1; col_in <= ncols_in; col_in++) {
 				(out.*op)(row_out + 1, col_in,
 						ri->second*in(ri->first + 1, col_in));
 			}
@@ -284,7 +284,7 @@ SpMapMatrixHandler::MulAndSumWithShift(MatrixHandler& out, doublereal s ,
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		integer newcol = col + dcol + 1;
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			out.IncCoef(ri->first + drow, newcol, ri->second*s);
 		}
 	}
@@ -312,7 +312,7 @@ SpMapMatrixHandler::FakeThirdOrderMulAndSumWithShift(MatrixHandler& out,
 		row_cont_type::const_iterator ri, re;
 		re = col_indices[col].end();
 		integer newcol = col + dcol + 1;
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			if (b[ri->first]) {
 				out.IncCoef(ri->first + drow,
 						newcol, ri->second*s);
@@ -338,7 +338,7 @@ SpMapMatrixHandler::MatVecMul_base(void (VectorHandler::*op)(integer iRow,
 
 	for (integer col = 0; col < NCols; col++) {
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			doublereal d = ri->second*in(col + 1);
 			(out.*op)(ri->first + 1, d);
 		}
@@ -363,7 +363,7 @@ SpMapMatrixHandler::MatTVecMul_base(void (VectorHandler::*op)(integer iRow,
 	for (integer col = 0; col < NCols; col++) {
 		doublereal d = 0.;
 		re = col_indices[col].end();
-		for (ri = col_indices[col].begin(); ri != re; ri++) {
+		for (ri = col_indices[col].begin(); ri != re; ++ri) {
 			d += ri->second*in(ri->first + 1);
 		}
 		(out.*op)(col+1, d);
@@ -418,13 +418,13 @@ SpMapMatrixHandler::const_iterator::operator ++ (void) const
 }
 
 const SparseMatrixHandler::SparseMatrixElement *
-SpMapMatrixHandler::const_iterator::operator -> (void)
+SpMapMatrixHandler::const_iterator::operator -> (void) const
 {
 	return &elem;
 }
 
 const SparseMatrixHandler::SparseMatrixElement&
-SpMapMatrixHandler::const_iterator::operator * (void)
+SpMapMatrixHandler::const_iterator::operator * (void) const
 {
 	return elem;
 }

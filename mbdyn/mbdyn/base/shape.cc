@@ -411,6 +411,8 @@ ReadShape(MBDynParser& HP)
 				<< " for first point abscissa (must be -1. < x < 1.) "
 				"in " << sType << " shape at line "
 				<< HP.GetLineData() << std::endl);
+			SAFEDELETEARR(px);
+			SAFEDELETEARR(pv);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pv[0] = HP.GetReal();
@@ -423,6 +425,8 @@ ReadShape(MBDynParser& HP)
 					"(must be " << px[i - 1] << " < x < 1.) "
 					"in " << sType << " shape at line "
 					<< HP.GetLineData() << std::endl);
+				SAFEDELETEARR(px);
+				SAFEDELETEARR(pv);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			pv[i] = HP.GetReal();

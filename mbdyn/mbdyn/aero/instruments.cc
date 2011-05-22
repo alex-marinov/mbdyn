@@ -44,7 +44,7 @@ AerodynamicElem(uLabel, pDO, fOut),
 pNode(pN),
 Rh(R)
 {
-	NO_OP;
+	memset(&dMeasure[0], 0, sizeof(dMeasure));
 }
 
 AircraftInstruments::~AircraftInstruments(void)

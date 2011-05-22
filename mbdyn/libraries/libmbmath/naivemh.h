@@ -84,8 +84,8 @@ public:
 		const_iterator(const NaiveMatrixHandler& m, bool is_end = false);
 		~const_iterator(void);
 		const NaiveMatrixHandler::const_iterator& operator ++ (void) const;
-		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
-		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void) const;
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void) const;
 		bool operator == (const NaiveMatrixHandler::const_iterator& op) const;
 		bool operator != (const NaiveMatrixHandler::const_iterator& op) const;
 	};
@@ -236,8 +236,8 @@ public:
 		const_iterator(const NaivePermMatrixHandler& m, bool);
 		~const_iterator(void);
 		const NaivePermMatrixHandler::const_iterator& operator ++ (void) const;
-		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
-		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void) const;
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void) const;
 		bool operator == (const NaivePermMatrixHandler::const_iterator& op) const;
 		bool operator != (const NaivePermMatrixHandler::const_iterator& op) const;
 	};

@@ -816,7 +816,7 @@ Solver::Run(void)
 	EigAn.currAnalysis = std::find_if(EigAn.Analyses.begin(), EigAn.Analyses.end(),
 		bind2nd(std::greater<doublereal>(), dTime));
 	if (EigAn.currAnalysis != EigAn.Analyses.end() && EigAn.currAnalysis != EigAn.Analyses.begin()) {
-		EigAn.currAnalysis--;
+		--EigAn.currAnalysis;
 	}
 
 	// if eigenanalysis is requested and currAnalysis points
@@ -829,7 +829,7 @@ Solver::Run(void)
 	{
 		Eig();
 		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
-			EigAn.currAnalysis++;
+			++EigAn.currAnalysis;
 		}
 	}
 
@@ -1361,8 +1361,7 @@ IfFirstStepIsToBeRepeated:
 		std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
 			EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
 		if (i != EigAn.Analyses.end()) {
-			i--;
-			EigAn.currAnalysis = i;
+			EigAn.currAnalysis = --i;
 		}
 		Eig();
 		EigAn.currAnalysis++;
@@ -1587,11 +1586,10 @@ IfStepIsToBeRepeated:
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
 				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
 			if (i != EigAn.Analyses.end()) {
-				i--;
-				EigAn.currAnalysis = i;
+				EigAn.currAnalysis = --i;
 			}
 			Eig();
-			EigAn.currAnalysis++;
+			++EigAn.currAnalysis;
 		}
 
 		/* Calcola il nuovo timestep */
@@ -2979,7 +2977,7 @@ Solver::ReadData(MBDynParser& HP)
 
 				EigAn.Analyses.resize(iNumTimes);
 				for (std::vector<doublereal>::iterator i = EigAn.Analyses.begin();
-					i != EigAn.Analyses.end(); i++)
+					i != EigAn.Analyses.end(); ++i)
 				{
 					*i = HP.GetReal();
 					if (i > EigAn.Analyses.begin() && *i <= *(i-1)) {
@@ -3530,21 +3528,30 @@ Solver::ReadData(MBDynParser& HP)
 #endif /* USE_MULTITHREAD */
 
 			} else {
+#ifdef USE_MULTITHREAD
 				bool bAssembly = false;
 				bool bSolver = false;
 				bool bAll = true;
 				unsigned nt;
+#endif // USE_MULTITHREAD
 
 				if (HP.IsKeyWord("assembly")) {
+#ifdef USE_MULTITHREAD
 					bAll = false;
 					bAssembly = true;
+#endif // USE_MULTITHREAD
 
 				} else if (HP.IsKeyWord("solver")) {
+#ifdef USE_MULTITHREAD
 					bAll = false;
 					bSolver = true;
+#endif // USE_MULTITHREAD
 				}
 
-				nt = HP.GetInt();
+#ifdef USE_MULTITHREAD
+				nt =
+#endif // USE_MULTITHREAD
+				HP.GetInt();
 
 #ifdef USE_MULTITHREAD
 				if (bAll || bAssembly) {
@@ -4101,7 +4108,7 @@ output_geometry(DataManager* pDM, std::ostream& o)
 		<< "% structural nodes base index" << std::endl
 		<< "idx = [" << std::endl;
 
-	for (; i != e; i++) {
+	for (; i != e; ++i) {
 		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
 		ASSERT(pN != 0);
 
@@ -4118,7 +4125,7 @@ output_geometry(DataManager* pDM, std::ostream& o)
 		<< "% structural nodes reference configuration (X, Phi)" << std::endl
 		<< "X0 = [" << std::endl;
 
-	for (i = pDM->begin(Node::STRUCTURAL); i != e; i++) {
+	for (i = pDM->begin(Node::STRUCTURAL); i != e; ++i) {
 		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
 		ASSERT(pN != 0);
 

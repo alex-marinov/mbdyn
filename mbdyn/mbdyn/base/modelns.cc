@@ -2253,10 +2253,9 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 
 ModelNameSpace::~ModelNameSpace(void)
 {
-	for (funcType::iterator f = func.begin(); f != func.end(); f++) {
+	for (funcType::iterator f = func.begin(); f != func.end(); ++f) {
 		for (MathParser::MathArgs::iterator i = f->second->args.begin();
-			i != f->second->args.end();
-			i++)
+			i != f->second->args.end(); ++i)
 		{
 			delete *i;
 		}
@@ -2265,8 +2264,7 @@ ModelNameSpace::~ModelNameSpace(void)
 	}
 
 	for (MathParser::MathArgs::iterator i = sf_func.args.begin();
-		i != sf_func.args.end();
-		i++)
+		i != sf_func.args.end(); ++i)
 	{
 		delete *i;
 	}

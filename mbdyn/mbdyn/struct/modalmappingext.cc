@@ -731,6 +731,7 @@ ReadModalMappingExtForce(DataManager* pDM,
 		silent_cerr("ModalMappingExt(" << uLabel << "): "
 			"semicolon expected at line "
 			<< HP.GetLineData() << std::endl);
+		SAFEDELETE(pH);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

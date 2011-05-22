@@ -134,7 +134,7 @@ ModalForce::Output(OutputHandler& OH) const
 			out << " " << F << " " << M;
 		}
 
-		for (std::vector<DriveCaller *>::const_iterator i = f.begin(); i != f.end(); i++) {
+		for (std::vector<DriveCaller *>::const_iterator i = f.begin(); i != f.end(); ++i) {
 			out << " " << (*i)->dGet();
 		}
 		out << std::endl;

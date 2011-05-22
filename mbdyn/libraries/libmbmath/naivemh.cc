@@ -506,13 +506,13 @@ NaiveMatrixHandler::const_iterator::operator ++ (void) const
 }
 
 const SparseMatrixHandler::SparseMatrixElement *
-NaiveMatrixHandler::const_iterator::operator -> (void)
+NaiveMatrixHandler::const_iterator::operator -> (void) const
 {
 	return &elem;
 }
 
 const SparseMatrixHandler::SparseMatrixElement&
-NaiveMatrixHandler::const_iterator::operator * (void)
+NaiveMatrixHandler::const_iterator::operator * (void) const
 {
 	return elem;
 }
@@ -711,13 +711,13 @@ NaivePermMatrixHandler::const_iterator::operator ++ (void) const
 }
 
 const SparseMatrixHandler::SparseMatrixElement *
-NaivePermMatrixHandler::const_iterator::operator -> (void)
+NaivePermMatrixHandler::const_iterator::operator -> (void) const
 {
 	return &elem;
 }
 
 const SparseMatrixHandler::SparseMatrixElement&
-NaivePermMatrixHandler::const_iterator::operator * (void)
+NaivePermMatrixHandler::const_iterator::operator * (void) const
 {
 	return elem;
 }

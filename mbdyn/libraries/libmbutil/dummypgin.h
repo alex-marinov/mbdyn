@@ -35,10 +35,6 @@
 #include <mathp.h>
 
 class DummyPlugIn : public MathParser::PlugIn {
-protected:
-	char *name;
-	char *message;
-
 public:
 	DummyPlugIn(MathParser& mp, void *arg);
 	~DummyPlugIn(void);

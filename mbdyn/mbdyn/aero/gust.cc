@@ -242,7 +242,7 @@ DestroyGustData(void)
 	}
 
 	/* free stuff */
-	for (GustFuncMapType::iterator i = GustFuncMap.begin(); i != GustFuncMap.end(); i++) {
+	for (GustFuncMapType::iterator i = GustFuncMap.begin(); i != GustFuncMap.end(); ++i) {
 		delete i->second;
 	}
 }

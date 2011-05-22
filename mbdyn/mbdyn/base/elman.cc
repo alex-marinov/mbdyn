@@ -213,7 +213,7 @@ DataManager::ElemManagerDestructor(void)
 		SAFEDELETE(pWorkVec);
 	}
 
-	for (ElemVecType::iterator p = Elems.begin(); p != Elems.end(); p++) {
+	for (ElemVecType::iterator p = Elems.begin(); p != Elems.end(); ++p) {
 		DEBUGCOUT("deleting element "
 			<< psElemNames[(*p)->GetElemType()]
 			<< "(" << (*p)->GetLabel() << ")"
@@ -736,16 +736,15 @@ DataManager::fGetDefaultOutputFlag(const Elem::Type& t) const
 /* InitialAssemblyIterator - begin */
 
 InitialAssemblyIterator::InitialAssemblyIterator(
-		const DataManager::ElemDataStructure (*pED)[Elem::LASTELEMTYPE]
-		)
+	const DataManager::ElemDataStructure (*pED)[Elem::LASTELEMTYPE])
 : pElemData(pED),
-FirstType(Elem::UNKNOWN),
-CurrType(Elem::UNKNOWN)
+m_FirstType(Elem::UNKNOWN),
+m_CurrType(Elem::UNKNOWN)
 {
 	int iCnt = 0;
 
 	while (!(*pElemData)[iCnt].bToBeUsedInAssembly()
-			|| (*pElemData)[iCnt].ElemContainer.empty())
+		|| (*pElemData)[iCnt].ElemContainer.empty())
 	{
 		if (++iCnt >= Elem::LASTELEMTYPE) {
 			break;
@@ -757,7 +756,8 @@ CurrType(Elem::UNKNOWN)
 	ASSERT(iCnt < Elem::LASTELEMTYPE);
 	ASSERT((*pElemData)[iCnt].ElemContainer.begin() != (*pElemData)[iCnt].ElemContainer.end());
 
-	FirstType = CurrType = Elem::Type(iCnt);
+	m_FirstType = m_CurrType = Elem::Type(iCnt);
+	m_CurrElem = (*pElemData)[m_FirstType].ElemContainer.begin();
 }
 
 InitialAssemblyElem *
@@ -766,17 +766,17 @@ InitialAssemblyIterator::GetFirst(void) const
 	// FIXME: this should not happen: if there are no elements
 	// that need initial assembly, we shouldn't get here in the
 	// first place
-	if (FirstType == Elem::LASTELEMTYPE) {
+	if (m_FirstType == Elem::LASTELEMTYPE) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	CurrType = FirstType;
-	pCurr = (*pElemData)[FirstType].ElemContainer.begin();
+	m_CurrType = m_FirstType;
+	m_CurrElem = (*pElemData)[m_FirstType].ElemContainer.begin();
 
 	/* La variabile temporanea e' necessaria per il debug. */
-	InitialAssemblyElem* p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
+	InitialAssemblyElem* p = dynamic_cast<InitialAssemblyElem *>(m_CurrElem->second);
 	if (p == 0) {
-		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pCurr->second);
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(m_CurrElem->second);
 		if (pDE != 0) {
 			p = dynamic_cast<InitialAssemblyElem *>(pDE->pGetElem());
 		}
@@ -793,9 +793,9 @@ InitialAssemblyIterator::GetNext(void) const
 {
 	InitialAssemblyElem* p = 0;
 	do {
-		pCurr++;
-		if (pCurr == (*pElemData)[CurrType].ElemContainer.end()) {
-			int iCnt = int(CurrType);
+		++m_CurrElem;
+		if (m_CurrElem == (*pElemData)[m_CurrType].ElemContainer.end()) {
+			int iCnt = int(m_CurrType);
 
 			do {
 				if (++iCnt >= Elem::LASTELEMTYPE) {
@@ -805,15 +805,15 @@ InitialAssemblyIterator::GetNext(void) const
 					|| (*pElemData)[iCnt].ElemContainer.empty());
 
 			ASSERT((*pElemData)[iCnt].ElemContainer.begin() != (*pElemData)[iCnt].ElemContainer.end());
-			CurrType = Elem::Type(iCnt);
-			pCurr = (*pElemData)[iCnt].ElemContainer.begin();
+			m_CurrType = Elem::Type(iCnt);
+			m_CurrElem = (*pElemData)[iCnt].ElemContainer.begin();
 		}
 
 		/* La variabile temporanea e' necessaria per il debug. */
-		p = dynamic_cast<InitialAssemblyElem *>(pCurr->second);
+		p = dynamic_cast<InitialAssemblyElem *>(m_CurrElem->second);
 
 		if (p == 0) {
-			DrivenElem *pDE = dynamic_cast<DrivenElem *>(pCurr->second);
+			DrivenElem *pDE = dynamic_cast<DrivenElem *>(m_CurrElem->second);
 			if (pDE != 0) {
 				p = dynamic_cast<InitialAssemblyElem *>(pDE->pGetElem());
 			}
@@ -821,8 +821,8 @@ InitialAssemblyIterator::GetNext(void) const
 
 #ifdef DEBUG
 		if (p == 0) {
-			silent_cerr(psElemNames[pCurr->second->GetElemType()]
-				<< "(" << pCurr->second->GetLabel() << ")"
+			silent_cerr(psElemNames[m_CurrElem->second->GetElemType()]
+				<< "(" << m_CurrElem->second->GetLabel() << ")"
 				" is not subjected to initial assembly"
 				<< std::endl);
 		}

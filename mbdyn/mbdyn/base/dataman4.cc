@@ -232,7 +232,7 @@ DataManager::ReadElems(MBDynParser& HP)
 	/* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
 	if (ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum > 0) {
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const DynamicStructNode *pN = dynamic_cast<const DynamicStructNode *>(i->second);
 			if (pN != 0) {
@@ -925,8 +925,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					SimulationEntity::Hints *pHints = 0;
 					if (!hints.empty()) {
 						for (std::vector<std::string>::const_iterator i = hints.begin();
-								i != hints.end();
-								i++)
+							i != hints.end(); ++i)
 						{
 							Hint *ph = pE->ParseHint(this, i->c_str());
 							if (ph != 0) {
@@ -1124,8 +1123,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				&& !ElemData[iCnt].ElemContainer.empty())
 			{
 				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-					p != ElemData[iCnt].ElemContainer.end();
-					p++)
+					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
 					ElemGravityOwner *pGO = CastElemGravityOwner(p->second);
 
@@ -1147,8 +1145,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				&& !ElemData[iCnt].ElemContainer.empty())
 			{
 				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-					p != ElemData[iCnt].ElemContainer.end();
-					p++)
+					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
 					AerodynamicElem *pAE = CastAerodynamicElem(p->second);
 
@@ -1169,8 +1166,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				&& !ElemData[iCnt].ElemContainer.empty())
 			{
 				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-					p != ElemData[iCnt].ElemContainer.end();
-					p++)
+					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
 					if (dynamic_cast<AerodynamicElem *>(p->second)->NeedsAirProperties()) {
 						if (bStop == 0) {
@@ -1200,10 +1196,9 @@ DataManager::ReadElems(MBDynParser& HP)
 		iNumElems += ElemData[iCnt].ElemContainer.size();
 	}
 	Elems.resize(iNumElems);
-	for (int iCnt = 0, iElem = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
+	for (int iCnt = 0, iElem = 0; iCnt < Elem::LASTELEMTYPE; ++iCnt) {
 		for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-			p != ElemData[iCnt].ElemContainer.end();
-			p++, iElem++)
+			p != ElemData[iCnt].ElemContainer.end(); ++p, ++iElem)
 		{
 			Elems[iElem] = p->second;
 		}
@@ -2057,8 +2052,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 			if (HP.IsKeyWord("all")) {
 				for (ElemContainerType::const_iterator i = ElemData[Type].ElemContainer.begin();
-					i != ElemData[Type].ElemContainer.end();
-					i++)
+					i != ElemData[Type].ElemContainer.end(); ++i)
 				{
 					ElemGravityOwner *pEl = dynamic_cast<ElemGravityOwner *>(i->second);
 					if (pEl == 0) {

@@ -102,7 +102,8 @@ public:
 		ExpandableColBlock(void) : rows(0) {}; //, idx(0) {};
 		void Zero(void) {
 			for (std::vector<ExpandableRowVector>::iterator i = rows.begin();
-				i!= rows.end(); i++) {
+				i != rows.end(); ++i)
+			{
 				i->Zero();
 			}
 		};
@@ -111,7 +112,8 @@ public:
 		};
 		void SetBlockDim(const integer nrows, const integer ncols) {
 			for (std::vector<ExpandableRowVector>::iterator i = rows.begin();
-				i!= rows.end(); i++) {
+				i != rows.end(); ++i)
+			{
 				i->ReDim(ncols);
 			}
 		};
@@ -127,7 +129,8 @@ public:
 		};
 		void Reset() {
 			for (std::vector<ExpandableRowVector>::iterator i = rows.begin();
-				i != rows.end(); i++) {
+				i != rows.end(); ++i)
+			{
 				i->Reset();
 			}
 		};

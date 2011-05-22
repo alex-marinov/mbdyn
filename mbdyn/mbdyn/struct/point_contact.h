@@ -77,7 +77,7 @@ public:
 			const DofOwner* pDO,
 			const StructNode* pN1, 
 			const StructNode* pNs,
-			const Vec3 SDir, const doublereal Ek,
+			const Vec3& SDir, const doublereal Ek,
 			flag fOut);
 
 	/* Distruttore */

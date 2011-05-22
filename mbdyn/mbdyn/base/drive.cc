@@ -175,25 +175,25 @@ DriveHandler::~DriveHandler(void)
 #endif /* USE_MULTITHREAD */
 
 	for (std::vector<MyMeter *>::iterator i = Meter.begin();
-		i != Meter.end(); i++)
+		i != Meter.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
 
 	for (std::vector<MyRand *>::iterator i = Rand.begin();
-		i != Rand.end(); i++)
+		i != Rand.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
 
 	for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
-		i != ClosestNext.end(); i++)
+		i != ClosestNext.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
 
 	for (std::vector<MySH *>::iterator i = SH.begin();
-		i != SH.end(); i++)
+		i != SH.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
@@ -224,25 +224,25 @@ DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
 			iCurrStep = s;
 
 			for (std::vector<MyMeter *>::iterator i = Meter.begin();
-				i != Meter.end(); i++)
+				i != Meter.end(); ++i)
 			{
 				(*i)->Set();
 			}
 
 			for (std::vector<MyRand *>::iterator i = Rand.begin();
-				i != Rand.end(); i++)
+				i != Rand.end(); ++i)
 			{
 				(*i)->Set();
 			}
 
 			for (std::vector<MyClosestNext*>::iterator i = ClosestNext.begin();
-				i != ClosestNext.end(); i++)
+				i != ClosestNext.end(); ++i)
 			{
 				(*i)->Set();
 			}
 
 			for (std::vector<MySH *>::iterator i = SH.begin();
-				i != SH.end(); i++)
+				i != SH.end(); ++i)
 			{
 				(*i)->Set();
 			}

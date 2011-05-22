@@ -44,7 +44,7 @@ class RTMBDynInDrive : public StreamDrive {
 protected:
 	
 	/* FIXME: store restart info as well */
-	const char *host;
+	std::string host;
 	unsigned long node;
 	int port;
 	bool bNonBlocking;
@@ -57,8 +57,8 @@ protected:
 public:
    	RTMBDynInDrive(unsigned int uL,
 		const DriveHandler* pDH,
-		const char* const sFileName,
-		const char *h,
+		const std::string& sFileName,
+		const std::string& host,
 		integer nd, bool c, unsigned long /*int*/ n,
 		bool bNonBlocking);
    

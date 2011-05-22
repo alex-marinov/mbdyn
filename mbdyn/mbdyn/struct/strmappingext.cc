@@ -108,7 +108,7 @@ m_p(3*uMappedPoints)
 	StructNode *pNode = 0;
 	unsigned uNodes = 0;
 	std::vector<StructNode *>::const_iterator p;
-	for (p = nodes.begin(); p != nodes.end(); p++) {
+	for (p = nodes.begin(); p != nodes.end(); ++p) {
 		if (*p != pNode) {
 			pNode = *p;
 			uNodes++;
@@ -120,14 +120,14 @@ m_p(3*uMappedPoints)
 	std::vector<StructNode *>::const_iterator pPrev = p;
 	std::vector<NodeData>::iterator n = Nodes.begin();
 	do {
-		p++;
+		++p;
 		if (*p != *pPrev) {
 			n->pNode = *pPrev;
 			n->Offsets.resize(p - pPrev);
 			n->F = Zero3;
 			n->M = Zero3;
 
-			n++;
+			++n;
 			pPrev = p;
 		}
 	} while (p != nodes.end());
@@ -136,9 +136,9 @@ m_p(3*uMappedPoints)
 	n = Nodes.begin();
 	std::vector<Vec3>::const_iterator o = offsets.begin();
 	std::vector<uint32_t>::iterator l = labels.begin();
-	for (; o != offsets.end(); o++, uPts++) {
+	for (; o != offsets.end(); ++o, uPts++) {
 		if (uPts == n->Offsets.size()) {
-			n++;
+			++n;
 			uPts = 0;
 		}
 
@@ -149,7 +149,7 @@ m_p(3*uMappedPoints)
 
 		if (bLabels) {
 			n->Offsets[uPts].uLabel = *l;
-			l++;
+			++l;
 		}
 	}
 
@@ -750,7 +750,6 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 {
 #ifdef USE_SOCKET
 	if (pRefNode) {
-		unsigned l;
 		size_t ulen = 0;
 		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
 		doublereal *f;
@@ -780,7 +779,14 @@ StructMappingExtForce::RecvFromFileDes(int infd)
 
 		if (bLabels) {
 			uint32_t *uint32_ptr = (uint32_t *)buf;
-			l = uint32_ptr[0];
+			unsigned l = uint32_ptr[0];
+			if (l != pRefNode->GetLabel()) {
+				silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
+					"invalid reference node label "
+					"(wanted " << pRefNode->GetLabel() << ", got " << l << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			f = (doublereal *)&uint32_ptr[1];
 
 		} else {
@@ -1466,10 +1472,10 @@ ReadStructMappingExtForce(DataManager* pDM,
 		}
 	}
 
-	int nMappedPoints = 0;
 	SpMapMatrixHandler *pH = 0;
 	std::vector<uint32_t> MappedLabels;
 	if (HP.IsKeyWord("mapped" "points" "number")) {
+		int nMappedPoints = 0;
 		if (HP.IsKeyWord("from" "file")) {
 			nMappedPoints = -1;
 

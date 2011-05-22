@@ -125,8 +125,8 @@ private:
 	bool doNotExtrapolate;
 public:
 	CubicSplineScalarFunction(
-		const std::vector<doublereal> y_i,
-		const std::vector<doublereal> x_i,
+		const std::vector<doublereal>& y_i,
+		const std::vector<doublereal>& x_i,
 		bool doNotExtrapolate = false);
 	virtual ~CubicSplineScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
@@ -140,8 +140,8 @@ private:
 	bool doNotExtrapolate;
 public:
 	MultiLinearScalarFunction(
-		const std::vector<doublereal> y_i,
-		const std::vector<doublereal> x_i,
+		const std::vector<doublereal>& y_i,
+		const std::vector<doublereal>& x_i,
 		bool doNotExtrapolate = false);
 	virtual ~MultiLinearScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;

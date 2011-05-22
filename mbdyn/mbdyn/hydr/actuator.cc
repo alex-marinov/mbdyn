@@ -115,6 +115,16 @@ pNodeHyd1(p1), pNodeHyd2(p2),
 HF2(hf2),
 area1(A_1), area2(A_2),
 dl(l), axis(axisTmp),
+dp1(0.),
+dp2(0.),
+dpP1(0.),
+dpP2(0.),
+flow1(0.),
+flow2(0.),
+Vol1(0.),
+Vol2(0.),
+density1(0.),
+density2(0.),
 pNodeStr1(pN1), pNodeStr2(pN2), f1(f1Tmp), f2(f2Tmp)
 {
    ASSERT(pNodeHyd1 != NULL);

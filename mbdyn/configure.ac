@@ -2374,6 +2374,7 @@ AC_CHECK_FUNCS([ \
 	get_ncpus \
 	get_nprocs \
 	get_nprocs_conf \
+	getaddrinfo \
 	getcwd \
 	gethostbyname \
 	gethostbyname2 \

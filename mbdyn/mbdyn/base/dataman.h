@@ -816,7 +816,7 @@ public:
 #endif /* 0 */
 
 public:
-	const VectorHandler* GetpXCurr(void) {
+	const VectorHandler* GetpXCurr(void) const {
 		return pXCurr;
 	};
 
@@ -839,9 +839,9 @@ public:
 class InitialAssemblyIterator {
 private:
 	const DataManager::ElemDataStructure (*pElemData)[Elem::LASTELEMTYPE];
-	mutable Elem::Type FirstType;
-	mutable DataManager::ElemContainerType::const_iterator pCurr;
-	mutable Elem::Type CurrType;
+	mutable Elem::Type m_FirstType;
+	mutable DataManager::ElemContainerType::const_iterator m_CurrElem;
+	mutable Elem::Type m_CurrType;
 
 public:
 	InitialAssemblyIterator(const DataManager::ElemDataStructure

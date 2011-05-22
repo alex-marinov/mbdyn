@@ -234,7 +234,7 @@ ExtModalForce::RecvFromStream(std::istream& inf, unsigned uFlags, unsigned& uLab
 	}
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
-		for (std::vector<doublereal>::iterator i = fv.begin(); i != fv.end(); i++) {
+		for (std::vector<doublereal>::iterator i = fv.begin(); i != fv.end(); ++i) {
 			doublereal d;
 			inf >> d;
 			*i = d;
@@ -560,7 +560,7 @@ ModalExt::Output(OutputHandler& OH) const
 
 		if (uFlags & ExtModalForceBase::EMF_MODAL) {
 			unsigned cnt = 1;
-			for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); i++) {
+			for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); ++i) {
 				out << GetLabel() << '.' << cnt
 					<< " " << *i << std::endl;
 				cnt++;

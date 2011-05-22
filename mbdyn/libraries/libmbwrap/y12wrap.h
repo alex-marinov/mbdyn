@@ -176,8 +176,6 @@ private:
 	doublereal dAFLAG[8];		/* vettore di lavoro */
 	doublereal* pdPIVOT;    	/* vettore di lavoro */
 
-	mutable bool bFirstSol;		/* true se prima backsubst */
-
 	void PutError(integer rc) const; /* scrive l'errore */
 
 	/* Fattorizza la matrice */

@@ -112,7 +112,7 @@ InitUDE(void)
 	b = SetUDE("loadable", new LoadableElemRead);
 	ASSERT(b != false);
 #ifdef STATIC_MODULES
-	b = SetUDE("wheel2", new UDERead<Wheel2>);
+	b = wheel2_set();
 	ASSERT(b != false);
 #ifdef HAVE_CHARM
 	b = mbcharm_set();
@@ -133,8 +133,7 @@ DestroyUDE(void)
 		return;
 	}
 
-	for (UDEMapType::iterator i = UDEMap.begin(); i != UDEMap.end(); i++)
-	{
+	for (UDEMapType::iterator i = UDEMap.begin(); i != UDEMap.end(); ++i) {
 		delete i->second;
 	}
 }

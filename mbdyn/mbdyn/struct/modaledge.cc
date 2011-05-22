@@ -421,7 +421,7 @@ ExtModalForceEDGE::Recv(
 
 			if (uFlags & ExtModalForceBase::EMF_MODAL_DETECT_MASK) {
 				for (std::vector<doublereal>::iterator i = a.begin();
-					i != a.end(); i++)
+					i != a.end(); ++i)
 				{
 					fin >> *i;
 				}
@@ -474,7 +474,7 @@ ExtModalForceEDGE::Send(
 		"modal_coordinate,R," << q.size() << ",1,0\n"
 		<< q[0];
 	for (std::vector<doublereal>::const_iterator i = q.begin() + 1;
-		i < q.end(); i++)
+		i < q.end(); ++i)
 	{
 		fout << " " << *i;
 	}
@@ -482,7 +482,7 @@ ExtModalForceEDGE::Send(
 		"modal_velocity,R," << qP.size() << ",1,0\n"
 		<< qP[0];
 	for (std::vector<doublereal>::const_iterator i = qP.begin() + 1;
-		i < qP.end(); i++)
+		i < qP.end(); ++i)
 	{
 		fout << " " << *i;
 	}

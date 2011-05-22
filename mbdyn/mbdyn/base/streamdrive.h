@@ -40,8 +40,6 @@
 
 class StreamDrive : public FileDrive {
 protected:
-	unsigned int NumChannels;
-
 	/* MBox buffer */
 	int size;
 	char *buf;

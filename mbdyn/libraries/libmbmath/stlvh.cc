@@ -276,7 +276,7 @@ STLVectorHandler::operator -= (const VectorHandler& VH)
 VectorHandler&
 STLVectorHandler::operator *= (const doublereal &d)
 {
-	for (std::vector<doublereal>::iterator i = begin(); i != end(); i++) {
+	for (std::vector<doublereal>::iterator i = begin(); i != end(); ++i) {
 		*i *= d;
 	}
 
@@ -310,7 +310,7 @@ STLVectorHandler::Dot(void) const
 	doublereal d2 = 0.;
 
 	for (std::vector<doublereal>::const_iterator i = begin();
-		i != end(); i++)
+		i != end(); ++i)
 	{
 		doublereal d = *i;
 		d2 += d*d;

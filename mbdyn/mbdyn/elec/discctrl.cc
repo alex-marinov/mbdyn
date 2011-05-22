@@ -518,7 +518,7 @@ DAC_Process_Debug::~DAC_Process_Debug(void)
 
 	// can be null (no desired output
 	for (std::vector<DriveOwner *>::iterator i = vDesiredOut.begin();
-		i != vDesiredOut.end(); i++)
+		i != vDesiredOut.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
@@ -728,13 +728,13 @@ dIn(iNumInputs)
 	}
 
 	for (std::vector<doublereal>::iterator i = dIn.begin();
-		i != dIn.end(); i++)
+		i != dIn.end(); ++i)
 	{
 		*i = 0.;
 	}
 
 	for (std::vector<doublereal>::iterator i = dOut.begin();
-		i != dOut.end(); i++)
+		i != dOut.end(); ++i)
 	{
 		*i = 0.;
 	}
@@ -743,13 +743,13 @@ dIn(iNumInputs)
 DiscreteControlElem::~DiscreteControlElem(void)
 {
 	for (std::vector<DriveOwner *>::iterator i = vOutScaleFact.begin();
-		i != vOutScaleFact.end(); i++)
+		i != vOutScaleFact.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}
 
 	for (std::vector<ScalarValue *>::iterator i = vOutputs.begin();
-		i != vOutputs.end(); i++)
+		i != vOutputs.end(); ++i)
 	{
 		SAFEDELETE(*i);
 	}

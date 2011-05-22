@@ -266,19 +266,20 @@ MLSP::Interpolate_Adj(const GeometryData& fem_data, const GeometryData& mb_data,
 		// Search
 		pTree->annkSearch(query, k, idx_temp, dist_temp);
 		// Inflating with adjoint nodes
-		for (unsigned i_node = 0; i_node < k ; i_node++){
+		for (unsigned i_node = 0; i_node < k ; i_node++) {
 			idx[i_node*(Nadj+1)] = idx_temp[i_node]*(Nadj+1);
 			dist[i_node*(Nadj+1)] = dist_temp[i_node];
 			unsigned count_a = 1;
 			for (std::vector<Vec3>::const_iterator it_adj = Adj.begin(); 
-			     it_adj != Adj.end() ; it_adj++){
+				it_adj != Adj.end(); ++it_adj)
+			{
 			     	ANNpoint adj = annAllocPt(dim);
 				for (unsigned int d = 0 ; d < dim ; d++) {
 					adj[d] = data_temp[idx_temp[i_node]][d]+it_adj->dGet(d+1);
 				}
 				ANNdist dist_adj = annDist(dim,query,adj);
 				idx[i_node*(Nadj+1)+count_a] = idx_temp[i_node]*(Nadj+1)+count_a;
-				dist[i_node*(Nadj+1)+count_a] =  dist_adj;
+				dist[i_node*(Nadj+1)+count_a] = dist_adj;
 			}
 		}
 		pOr->SetP(query, data, idx, N, pp, pP);

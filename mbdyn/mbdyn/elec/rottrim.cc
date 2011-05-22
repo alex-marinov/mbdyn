@@ -48,9 +48,9 @@ RotorTrim::RotorTrim(unsigned int uL,
 		ScalarDifferentialNode* pNode1,
 		ScalarDifferentialNode* pNode2,
 		ScalarDifferentialNode* pNode3,
-		DriveCaller* pDrive1,
-		DriveCaller* pDrive2,
-		DriveCaller* pDrive3,
+		DriveCaller* pThrust,
+		DriveCaller* pRollMoment,
+		DriveCaller* pPitchMoment,
 		const doublereal& dG,
 		const doublereal& dp,
 		const doublereal& dT0,
@@ -74,18 +74,18 @@ dKappa0(dK0),
 dKappa1(dK1)
 {
 	ASSERT(pRotor != NULL);
-	ASSERT(pNode1 != NULL);
-	ASSERT(pNode2 != NULL);
-	ASSERT(pNode3 != NULL);
+	ASSERT(pNodeThrust != NULL);
+	ASSERT(pNodeRoll != NULL);
+	ASSERT(pNodePitch != NULL);
 	ASSERT(dGamma > 0.);
 	ASSERT(dP > 0.);
 
 	pvNodes[0] = pNode1;
 	pvNodes[1] = pNode2;
 	pvNodes[2] = pNode3;
-	pvDrives[0].Set(pDrive1);
-	pvDrives[1].Set(pDrive2);
-	pvDrives[2].Set(pDrive3);
+	Thrust.Set(pThrust);
+	RollMoment.Set(pRollMoment);
+	PitchMoment.Set(pPitchMoment);
 
 	if (iRotorTz == 0) {
 		/* first RotorTrim */
@@ -197,7 +197,7 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dMu2 = dMu*dMu;
 
 	doublereal d = M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega;
-	doublereal dTraction = pRotor->dGetPrivData(iRotorTz)/d;
+	doublereal dThrust = pRotor->dGetPrivData(iRotorTz)/d;
 	d *= dRadius;
 	doublereal dRollMoment = pRotor->dGetPrivData(iRotorMx)/d;
 	doublereal dPitchMoment = pRotor->dGetPrivData(iRotorMy)/d;
@@ -213,9 +213,9 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		0.,
 		-f/16.,
 		-f/16.*(1. + 1./2.*dMu2));
-	Vec3 v(pvDrives[0].dGet() - dTraction,
-		pvDrives[1].dGet() - dRollMoment,
-		pvDrives[2].dGet() - dPitchMoment);
+	Vec3 v(Thrust.dGet() - dThrust,
+		RollMoment.dGet() - dRollMoment,
+		PitchMoment.dGet() - dPitchMoment);
 	v = m.Solve(v);
 
 	WorkVec.PutCoef(1, v(1)*dKappa0 - dX1 - dTau0*dX1Prime);

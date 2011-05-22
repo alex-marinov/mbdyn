@@ -227,7 +227,7 @@ ExtractMat3x3(Mat3x3& dest, const FullMatrixHandler & source,
 }
 
 static inline void
-RotateForward(MyVectorHandler & e, const Mat3x3 R)
+RotateForward(MyVectorHandler & e, const Mat3x3& R)
 {
 	//TODO. error checking: check dimensions!
 	//check da fare: e.iGetNumRows() == 12
@@ -241,7 +241,7 @@ RotateForward(MyVectorHandler & e, const Mat3x3 R)
 }
 
 static inline void
-RotateBackward(MyVectorHandler & e, const Mat3x3 R)
+RotateBackward(MyVectorHandler & e, const Mat3x3& R)
 {
 	//TODO. error checking: check dimensions!
 	//check da fare: e.iGetNumRows() == 12
@@ -255,7 +255,7 @@ RotateBackward(MyVectorHandler & e, const Mat3x3 R)
 }
 
 static inline void
-RotateForward(FullMatrixHandler & C, const Mat3x3 R)
+RotateForward(FullMatrixHandler & C, const Mat3x3& R)
 {
 	//TODO. error checking: check dimensions!
 	//check da fare: C.iGetNumRows() == 12

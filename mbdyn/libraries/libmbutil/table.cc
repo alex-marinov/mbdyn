@@ -95,7 +95,7 @@ Table::Table(bool bSetConstants)
 
 Table::~Table(void)
 {
-	for (VM::iterator i = vm.begin(); i != vm.end(); i++) {
+	for (VM::iterator i = vm.begin(); i != vm.end(); ++i) {
 		delete i->second;
 	}
 }
@@ -153,7 +153,7 @@ Table::Get(const char* const name) const
 std::ostream&
 operator << (std::ostream& out, Table& T)
 {
-	for (Table::VM::const_iterator i = T.vm.begin(); i != T.vm.end(); i++) {
+	for (Table::VM::const_iterator i = T.vm.begin(); i != T.vm.end(); ++i) {
 		out << "  ";
 		if (i->second->Const()) {
 			out << "const ";

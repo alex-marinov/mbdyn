@@ -47,7 +47,7 @@ SHDriveCaller::SHDriveCaller(const DriveHandler* pDH,
 	integer iSHDriveNumber)
 : DriveCaller(pDH), iSHDriveNumber(iSHDriveNumber)
 {
-	NO_OP;
+	dVal0 = pDrvHdl->dGetSHVal0(iSHDriveNumber);
 }
 
 SHDriveCaller::~SHDriveCaller(void)

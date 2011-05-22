@@ -58,7 +58,7 @@ integer ExpandableRowVector::GetDim(void) const {
 	return v.size();
 };
 void ExpandableRowVector::Zero(void) {
-	for (std::vector<ExpandableRowElement>::iterator i = v.begin(); i != v.end(); i++) {
+	for (std::vector<ExpandableRowElement>::iterator i = v.begin(); i != v.end(); ++i) {
 		i->x = 0.;
 	}
 }
@@ -289,7 +289,7 @@ void ExpandableMatrix::ReDim(const integer n, const integer m) {
 	ASSERTMSGBREAK(n>=0, "ExpandableMatrix:ReDim(), n shold be >= 0");
 	ASSERTMSGBREAK(m>=0, "ExpandableMatrix:ReDim(), m shold be >= 0");
 	v.resize(m, ecb_Zero);
-	for (std::vector<ExpandableColBlock>::iterator i = v.begin(); i != v.end(); i++) {
+	for (std::vector<ExpandableColBlock>::iterator i = v.begin(); i != v.end(); ++i) {
 		i->ReDim(n);
 	}
 }
@@ -300,14 +300,15 @@ void ExpandableMatrix::SetBlockDim(const integer block, const integer ncols) {
 // 	std::cerr << "ExpandableMatrix::SetBlockDim(" << block <<", " << ncols << ")" << std::endl;
 	int pippo = 0;
 	for (std::vector<ExpandableRowVector>::iterator i = v[block-1].rows.begin();
-		i != v[block-1].rows.end(); i++) {
+		i != v[block-1].rows.end(); ++i)
+	{
 			pippo++;
 // 			std::cerr << "\t" << pippo << std::endl;
 			i->ReDim(ncols);
 	}
 }
 void ExpandableMatrix::Zero(void) {
-	for (std::vector<ExpandableColBlock>::iterator i = v.begin(); i != v.end(); i++) {
+	for (std::vector<ExpandableColBlock>::iterator i = v.begin(); i != v.end(); ++i) {
 		i->Zero();
 	}
 }
@@ -330,7 +331,8 @@ integer ExpandableMatrix::GetBlockNCols(const integer block) const {
 }
 void ExpandableMatrix::Reset(void) {
 	for (std::vector<ExpandableColBlock>::iterator i = v.begin();
-		i != v.end(); i++) {
+		i != v.end(); ++i)
+	{
 		i->Reset();
 	}
 }

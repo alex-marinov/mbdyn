@@ -51,7 +51,10 @@ Minor_loss::Minor_loss(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
-dKappa1(dK1), dKappa2(dK2), area(A)
+dKappa1(dK1), dKappa2(dK2), area(A),
+flow(0.),
+vel(0.),
+dKappa(0.)
 {
    ASSERT(pNode1 != NULL);
    ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);
@@ -212,7 +215,11 @@ ThreeWayMinorLoss::ThreeWayMinorLoss(
 : Elem(uL, fOut),
 HydraulicElem(uL, pDO, hf, fOut),
 pNode0(p0), pNode1(p1), pNode2(p2), pNodeN(NULL),
-dKappa1(dK1), dKappa2(dK2), area1(A1), area2(A2)
+dKappa1(dK1), dKappa2(dK2), area1(A1), area2(A2),
+area(0.),
+flow(0.),
+vel(0.),
+dKappa(0.)
 {
 	ASSERT(pNode0 != NULL);
 	ASSERT(pNode0->GetNodeType() == Node::HYDRAULIC);
@@ -401,7 +408,11 @@ Orifice::Orifice(unsigned int uL, const DofOwner* pDO,
 HydraulicElem(uL, pDO, hf, fOut),
 pNode1(p1), pNode2(p2),
 diameter(Dh), area_diaf(A_diaf),
-area_pipe(A_pipe),  ReCr(ReCr), turbulent(false)
+area_pipe(A_pipe), ReCr(ReCr),
+flow(0.),
+vel(0.),
+Re(0.),
+turbulent(false)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode1->GetNodeType() == Node::HYDRAULIC);

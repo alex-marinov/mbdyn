@@ -124,7 +124,7 @@ UserDefinedElem(uLabel, pDO)
 
 	measures.resize(nm);
 	for (std::vector<DriveCaller *>::iterator i = measures.begin();
-		i != measures.end(); i++)
+		i != measures.end(); ++i)
 	{
 		*i = HP.GetDriveCaller(false);
 	}
@@ -157,7 +157,7 @@ ModuleController::~ModuleController(void)
 {
 	// destroy private data
 	for (std::vector<DriveCaller *>::iterator i = measures.begin();
-		i != measures.end(); i++)
+		i != measures.end(); ++i)
 	{
 		delete *i;
 	}
@@ -172,7 +172,7 @@ ModuleController::Output(OutputHandler& OH) const
 		out << std::setw(8) << GetLabel();
 
 		for (std::vector<DriveCaller *>::const_iterator i = measures.begin();
-			i != measures.end(); i++)
+			i != measures.end(); ++i)
 		{
 			out << " " << (*i)->dGet();
 		}

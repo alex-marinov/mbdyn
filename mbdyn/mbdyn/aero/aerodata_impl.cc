@@ -366,6 +366,10 @@ TheodorsenAeroData::TheodorsenAeroData(
 	DriveCaller *ptime)
 : AeroData(i_p, i_dim, STEADY, ptime),
 iParam(0),
+d14(0.), d34(0.),
+chord(-1.),
+a(0.),
+A1(0.), A2(0.), b1(0.), b2(0.),
 alpha_pivot(0), dot_alpha_pivot(0), dot_alpha(0), ddot_alpha(0),
 cfx_0(0), cfy_0(0), cmz_0(0), clalpha(0),
 prev_alpha_pivot(0), prev_dot_alpha(0),
@@ -600,20 +604,29 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	const Mat3xN& vx, const Mat3xN& wx, Mat3xN& fq, Mat3xN& cq,
 	int i, const doublereal* W, doublereal* TNG, Mat6x6& J, outa_t& OUTA)
 {
-
+#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal q1 = XCurr(iFirstIndex + 1);
 	doublereal q2 = XCurr(iFirstIndex + 2);
+#endif // DEBUG_JACOBIAN_UNSTEADY
 
 	doublereal Uinf = sqrt(W[VX]*W[VX] + W[VY]*W[VY]);
 	doublereal d = 2*Uinf/chord;
+#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal UUinf2 = Uinf*Uinf + W[VZ]*W[VZ];
+#endif // DEBUG_JACOBIAN_UNSTEADY
+#if 0
 	doublereal qD = .5*VAM.density*UUinf2;
+#endif
 
 	// doublereal u1 = atan2(- W[VY] - W[WZ]*d14, W[VX]);
+#ifdef DEBUG_JACOBIAN_UNSTEADY
 	doublereal u2 = atan2(- W[VY] - W[WZ]*d34, W[VX]);
+#endif // DEBUG_JACOBIAN_UNSTEADY
 
+#if 0
 	doublereal y1 = (A1 + A2)*b1*b2*d*d*q1 + (A1*b1 + A2*b2)*d*q2
 		+ (1 - A1 - A2)*u2;
+#endif
 
 	WorkMat.IncCoef(iFirstSubIndex + 1, iFirstSubIndex + 1, 1.);
 	WorkMat.IncCoef(iFirstSubIndex + 2, iFirstSubIndex + 2, 1.);
@@ -798,7 +811,6 @@ TheodorsenAeroData::AssJac(FullSubMatrixHandler& WorkMat,
 	}
 #endif
 #ifdef  DEBUG_JACOBIAN_UNSTEADY	
-
 	printf("G/v matrix\n");
 	printf("%lf %lf %lf\n", 0., 0., 0.);
 	printf("%lf %lf %lf\n", dG_V_21, dG_V_22, 0.);

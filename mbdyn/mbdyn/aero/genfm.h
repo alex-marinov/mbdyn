@@ -90,6 +90,7 @@ protected:
 	Vec3 F;
 	Vec3 M;
 
+	// persistent
 	doublereal dAlpha, dBeta;
 
 	/* aerodynamic data */

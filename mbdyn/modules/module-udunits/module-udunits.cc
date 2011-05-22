@@ -191,8 +191,7 @@ UDUnitsNameSpace::~UDUnitsNameSpace(void)
 	utTerm();
 
 	for (MathParser::MathArgs::iterator i = f.args.begin();
-		i != f.args.end();
-		i++)
+		i != f.args.end(); ++i)
 	{
 		delete *i;
 	}

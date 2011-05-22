@@ -167,10 +167,10 @@ private:
 public:
 	LowParser(HighParser& hp);
 	~LowParser(void);
-	Token GetToken(InputStream& In);      
-	doublereal dGetReal(void);
-	integer iGetInt(void);   
-	char* sGetWord(void);      
+	Token GetToken(InputStream& In);
+	doublereal dGetReal(void) const;
+	integer iGetInt(void) const;
+	char* sGetWord(void);
 };
 
 /* LowParser - end */
@@ -338,7 +338,7 @@ public:
 	/* "Chiude" i flussi */
 	virtual void Close(void);
 	/* verifica se il token successivo e' una description (ambiguo ...) */
-	bool IsDescription(void);
+	bool IsDescription(void) const;
 	/* Legge una parola chiave */
 	int GetDescription(void);
 	/* si attende una descrizione */

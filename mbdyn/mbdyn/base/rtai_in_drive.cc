@@ -39,19 +39,20 @@
 
 RTMBDynInDrive::RTMBDynInDrive(unsigned int uL,
 	const DriveHandler* pDH,
-	const char* const sFileName,
-	const char *h,
+	const std::string& sFileName,
+	const std::string& host,
 	integer nd, bool c, unsigned long /*int*/ n,
 	bool bNonBlocking)
 : StreamDrive(uL, pDH, sFileName, nd, c),
-host(h), node(n), port(-1), bNonBlocking(bNonBlocking),
+host(host), node(n), port(-1), bNonBlocking(bNonBlocking),
 mbx(NULL)
 {
-	ASSERT(sFileName != NULL);
+	ASSERT(!sFileName.empty());
+
 	if (create) {
 		ASSERT(node == 0);
 
-		if (rtmbdyn_rt_mbx_init(sFileName, size, &mbx)) {
+		if (rtmbdyn_rt_mbx_init(sFileName.c_str(), size, &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -63,7 +64,7 @@ mbx(NULL)
 			/* FIXME: what in case of failure? */
 		}
 
-		if (rtmbdyn_RT_get_adr(node, port, sFileName, &mbx)) {
+		if (rtmbdyn_RT_get_adr(node, port, sFileName.c_str(), &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << sFileName << ") "
 				"get_adr failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -85,10 +86,6 @@ RTMBDynInDrive::~RTMBDynInDrive(void)
 	 */
 	if (mbx) {
 		rtmbdyn_rt_mbx_delete(&mbx);
-	}
-	
-	if (host) {
-		SAFEDELETEARR(host);
 	}
 }
 
@@ -127,9 +124,9 @@ RTMBDynInDrive::Restart(std::ostream& out) const
 Drive *
 ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
-	unsigned long node = 0;
-	const char *host = NULL;
-	const char *name = NULL;
+	unsigned long node = (unsigned long)-1;
+	std::string host;
+	std::string name;
 	bool create = false;
 
 	if (HP.IsKeyWord("stream" "drive" "name")) {
@@ -148,7 +145,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		SAFESTRDUP(name, m);
+		name = m;
 
 	} else {
 		silent_cerr("RTMBDynInDrive(" << uLabel << "): "
@@ -188,7 +185,6 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 	
 	if (HP.IsKeyWord("host")) {
-#if defined(HAVE_GETHOSTBYNAME) || defined(HAVE_INET_ATON)
 		const char *h;
 		
 		h = HP.GetStringWithDelims();
@@ -204,37 +200,45 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 				"host name \"" << h << "\" silently ignored"
 				<< std::endl);
 		} else {
+			host = h;
 
-			SAFESTRDUP(host, h);
+			// resolve host
+			// TODO: add support for getnameinfo()
+#if defined(HAVE_GETADDRINFO)
+			struct addrinfo hints = { 0 }, *res = NULL;
+			int rc;
 
-			/* resolve host
-			 * FIXME: non-reentrant ... */
-#if defined(HAVE_GETHOSTBYNAME)
-			struct hostent *he = gethostbyname(host);
+			hints.ai_family = AF_INET;
+			hints.ai_socktype = SOCK_STREAM; // FIXME: SOCK_DGRAM?
+			rc = getaddrinfo(host.c_str(), NULL, &hints, &res);
+			if (rc == 0) {
+				node = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
+				freeaddrinfo(res);
+			}
+#elif defined(HAVE_GETHOSTBYNAME)
+			// FIXME: non-reentrant
+			struct hostent *he = gethostbyname(host.c_str());
 			if (he != NULL)
 			{
 				node = ((unsigned long *)he->h_addr_list[0])[0];
 			} 
 #elif defined(HAVE_INET_ATON)
 			struct in_addr addr;
-			if (inet_aton(host, &addr)) {
+			if (inet_aton(host.c_str(), &addr)) {
 				node = addr.s_addr;
 			}
-#endif /* ! HAVE_GETHOSTBYNAME && HAVE_INET_ATON */
-			else {
-				silent_cerr("RTMBDynInDrive(" << uLabel << "): "
-					"unable to convert host "
-					"\"" << host << "\" "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-#else /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+#else // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
 			silent_cerr("RTMBDynInDrive(" << uLabel << "): "
 				"host (RTAI RPC) not supported "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON */
+#endif // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
+
+			if (node == (unsigned long)-1) {
+				silent_cerr("RTMBDynInDrive(" << uLabel << "): "
+					"unable to convert host \"" << host << "\" to node" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 

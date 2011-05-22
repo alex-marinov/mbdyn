@@ -129,7 +129,7 @@ StreamContentValue::StreamContentValue(const std::vector<ScalarValue *>& v)
 StreamContentValue::~StreamContentValue(void)
 {
 	for (std::vector<ScalarValue *>::iterator i = Values.begin();
-		i != Values.end(); i++)
+		i != Values.end(); ++i)
 	{
 		delete *i;
 	}
@@ -139,7 +139,7 @@ void
 StreamContentValue::Prepare(void)
 {
 	char *curbuf = &buf[0];
-	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); i++) {
+	for (std::vector<ScalarValue *>::iterator i = Values.begin(); i != Values.end(); ++i) {
 		/* assign value somewhere into mailbox buffer */
 		doublereal v = (*i)->dGetValue();
 

@@ -456,19 +456,18 @@ struct ExpSFR: public ScalarFunctionRead {
 
 // CubicSplineScalarFunction
 CubicSplineScalarFunction::CubicSplineScalarFunction(
-	const std::vector<doublereal> y_i,
-	const std::vector<doublereal> x_i,
+	const std::vector<doublereal>& y_i,
+	const std::vector<doublereal>& x_i,
 	bool doNotExtrapolate)
-: doNotExtrapolate(doNotExtrapolate)
+: Y_i(y_i), X_i(x_i),
+doNotExtrapolate(doNotExtrapolate)
 {
-	Y_i = y_i;
-	X_i = x_i;
 	ASSERTMSGBREAK(Y_i.size() == X_i.size(),
 		"CubicSplineScalarFunction error, Y_i.size() != X_i.size()");
 	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
 	xe = X_i.end() - 1;
-	for (unsigned i = 0; xi != xe; xi++, i++) {
+	for (unsigned i = 0; xi != xe; ++xi, ++i) {
 		if (*xi >= *(xi + 1)) {
 			silent_cerr("CubicSplineScalarFunction error, "
 				"X is not ordered: "
@@ -556,19 +555,18 @@ struct CubicSplineSFR: public ScalarFunctionRead {
 
 // MultiLinearScalarFunction
 MultiLinearScalarFunction::MultiLinearScalarFunction(
-	const std::vector<doublereal> y_i,
-	const std::vector<doublereal> x_i,
+	const std::vector<doublereal>& y_i,
+	const std::vector<doublereal>& x_i,
 	bool doNotExtrapolate)
-: doNotExtrapolate(doNotExtrapolate)
+: Y_i(y_i), X_i(x_i),
+doNotExtrapolate(doNotExtrapolate)
 {
-	Y_i = y_i;
-	X_i = x_i;
 	ASSERTMSGBREAK(X_i.size() == Y_i.size(),
 		"MultiLinearScalarFunction error, Y_i.size() != X_i.size()");
 	std::vector<doublereal>::iterator xi, xe;
 	xi = X_i.begin();
 	xe = X_i.end()-1;
-	for (unsigned i = 0; xi != xe; xi++, i++) {
+	for (unsigned i = 0; xi != xe; ++xi, ++i) {
 		if (*xi >= *(xi + 1)) {
 			silent_cerr("MultiLinearScalarFunction error, "
 				"X is not ordered: "
@@ -1537,7 +1535,7 @@ DestroySF(void)
 		return;
 	}
 
-	for (SFReadType::iterator i = SFRead.begin(); i != SFRead.end(); i++) {
+	for (SFReadType::iterator i = SFRead.begin(); i != SFRead.end(); ++i) {
 		delete i->second;
 	}
 }

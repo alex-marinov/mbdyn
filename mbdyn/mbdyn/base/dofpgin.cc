@@ -205,22 +205,16 @@ DofPlugIn::GetVal(void) const
 unsigned int 
 DofPlugIn::ReadLabel(const char* s) 
 {
-	unsigned int rc;
-	char *stmp = NULL;
-
-	/*
-	 * deve essere terminato da ';' per essere letto da math parser :(
-	 */
-	int l = strlen(s)+2;
-	SAFENEWARR(stmp, char, l);
-	strcpy(stmp, s);
-	strcat(stmp, ";");
-	std::istringstream in(stmp);
+	// must be semicolon-terminated to be read by math parser
+	std::istringstream in(std::string(s) + ";");
 	InputStream In(in);
-	rc = (unsigned int)mp.Get(In);
-	SAFEDELETEARR(stmp);
+	int i = mp.Get(In);
+	if (i < 0) {
+		silent_cerr("DofPlugIn::ReadLabel(" << s << "): invalid negative label" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-	return rc;
+	return unsigned(i);
 }
 
 Node *

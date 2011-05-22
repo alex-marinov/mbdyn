@@ -144,13 +144,13 @@ doublereal seval(const doublereal& u,
 *    x,y = the arrays of data abscissas and ordinates
 *    b,c,d = arrays of spline coefficients computed by spline
 */
-	int i, j, k, n;
+	int n;
 	doublereal dx;
 
-      ASSERTMSGBREAK(x.size() == y.size(), "Error in seval, x.size()!=y.size()");
-      ASSERTMSGBREAK(x.size() == b.size(), "Error in seval, x.size()!=b.size()");
-      ASSERTMSGBREAK(x.size() == c.size(), "Error in seval, x.size()!=c.size()");
-      ASSERTMSGBREAK(x.size() == d.size(), "Error in seval, x.size()!=d.size()");
+	ASSERTMSGBREAK(x.size() == y.size(), "Error in seval, x.size()!=y.size()");
+	ASSERTMSGBREAK(x.size() == b.size(), "Error in seval, x.size()!=b.size()");
+	ASSERTMSGBREAK(x.size() == c.size(), "Error in seval, x.size()!=c.size()");
+	ASSERTMSGBREAK(x.size() == d.size(), "Error in seval, x.size()!=d.size()");
 
 	n = x.size();
 
@@ -172,6 +172,7 @@ doublereal seval(const doublereal& u,
 			return 0.;
 			break;
 		}
+
 	} else if (u >= x[n-1]) {
 		dx = u-x[n-1];
 		switch (diff) {
@@ -185,8 +186,9 @@ doublereal seval(const doublereal& u,
 			return 0.;
 			break;
 		}
+
 	} else {
-	
+		int i, j;
 /*
 *  binary search
 */
@@ -194,6 +196,8 @@ doublereal seval(const doublereal& u,
 		i = 0;
 		j = n;
 		do {
+			int k;
+
 			k = (i+j)/2;
 			if ( u < x[k] ) {
 				j = k;

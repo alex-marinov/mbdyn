@@ -101,8 +101,7 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 	JacHdl.Reset();
 
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-		j != ElemData[Elem::JOINT].ElemContainer.end();
-		j++)
+		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
 		JacHdl += j->second->AssJac(WorkMat, *pXCurr);
 	}
@@ -128,8 +127,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 
 	bool ChangedEqStructure(false);
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-		j != ElemData[Elem::JOINT].ElemContainer.end();
-		j++)
+		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
 		try {
 			ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
@@ -178,8 +176,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	
 	for (int et = 0; ElemType[et] != Elem::LASTELEMTYPE; et++) {
 		for (ElemContainerType::iterator j = ElemData[ElemType[et]].ElemContainer.begin();
-			j != ElemData[ElemType[et]].ElemContainer.end();
-			j++)
+			j != ElemData[ElemType[et]].ElemContainer.end(); ++j)
 		{
 			try {
 				ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
@@ -194,8 +191,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	}
 
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-		j != ElemData[Elem::JOINT].ElemContainer.end();
-		j++)
+		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
 		// cast to Joint *
 		Joint *pj = dynamic_cast<Joint *>(j->second);
@@ -203,12 +199,15 @@ DataManager::AssRes(VectorHandler& ResHdl,
 			// In case of failure, must be driven...
 			NestedElem *pn = dynamic_cast<NestedElem *>(j->second);
 			if (pn == 0) {
-				// error
+				silent_cerr("DataManager::AssRes: Joint(" << j->second->GetLabel() << ") is not a joint and is not driven" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
+
 			// ... and the driven element must be a joint!
 			pj = dynamic_cast<Joint *>(pn->pGetElem());
 			if (pj == 0) {
-				// error
+				silent_cerr("DataManager::AssRes: Joint(" << j->second->GetLabel() << ") is driven element is not a joint" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
@@ -254,29 +253,29 @@ DataManager::Update(int iOrder) const
 	switch(iOrder){
 	case 0:
 		// Update nodes positions
-		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXCurr, iOrder);
 		}
 		break;
 
 	case 1:
 		// Update nodes velocities
-		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXPrimeCurr, iOrder);
 		}
 		break;
 
 	case 2:
 		// Update nodes accelerations
-		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXPrimePrimeCurr, iOrder);
 		}
 		break;
 
 	case -1:
-		// Update constraints reactions (for output only...)*/
+		// Update constraints reactions (for output only...)
 		for (ElemContainerType::const_iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-			j != ElemData[Elem::JOINT].ElemContainer.end(); j++)
+			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
 			j->second->Update(*pLambdaCurr, iOrder);
 		}
@@ -285,45 +284,24 @@ DataManager::Update(int iOrder) const
 	default:
 		break;
 	}
-
-#if 0
-	/* Versione con iteratore: */
-	Elem* pEl = NULL;
-	if (ElemIter.bGetFirst(pEl)) {
-		do {
-			pEl->Update(*pXCurr, *pXPrimeCurr);
-		} while (ElemIter.bGetNext(pEl));
-	}
-#endif
 }
 
 void
 DataManager::IDAfterConvergence(void) const
 {	
-	/* Nodes: */
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	// Nodes:
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->AfterConvergence(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
 	}
 
-	/* Versione con iteratore: */
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->AfterConvergence(*(VectorHandler*)pXCurr,
-				*(VectorHandler*)pXPrimeCurr, *(VectorHandler*)pXPrimePrimeCurr);
+			pEl->AfterConvergence(*const_cast<VectorHandler *>(pXCurr),
+				*const_cast<VectorHandler *>(pXPrimeCurr),
+				*const_cast<VectorHandler *>(pXPrimePrimeCurr));
 		} while (ElemIter.bGetNext(pEl));
 	}
-
-	/* Restart condizionato */
-#if 0
-	/* Versione con iteratore: */
-	Elem* pEl = NULL;
-	if (ElemIter.bGetFirst(pEl)) {
-		do {
-			pEl->Update(*pXCurr, *pXPrimeCurr);
-		} while (ElemIter.bGetNext(pEl));
-	}
-#endif
 }
 
 bool
@@ -334,14 +312,14 @@ DataManager::InverseDofOwnerSet(void)
 	int iJointTotNumDofs = 0;
 	
 	/* Setta i DofOwner dei nodi */
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		DofOwner* pDO = const_cast<DofOwner *>((*i)->pGetDofOwner());
 		pDO->iNumDofs = (*i)->iGetNumDof();
 		iNodeTotNumDofs += pDO->iNumDofs;
 	}
 
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-                j != ElemData[Elem::JOINT].ElemContainer.end(); j++)
+                j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
         {
 		ElemWithDofs* pEWD = CastElemWithDofs(j->second);
 		iJointTotNumDofs += pEWD->iGetNumDof();
@@ -357,8 +335,7 @@ DataManager::InverseDofOwnerSet(void)
 					<< std::endl);
 
 			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-				p != ElemData[iCnt].ElemContainer.end();
-				p++)
+				p != ElemData[iCnt].ElemContainer.end(); ++p)
 			{
 				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
@@ -372,18 +349,13 @@ DataManager::InverseDofOwnerSet(void)
 		}
 	}
 	
-	if(iNodeTotNumDofs == iJointTotNumDofs)	{
-		return true;
-	} else	{
-		return false;
-	}
-
+	return (iNodeTotNumDofs == iJointTotNumDofs);
 }
 
-
-void DataManager::InverseDofInit(bool bIsSquare)
+void
+DataManager::InverseDofInit(bool bIsSquare)
 {  
-   	if( iTotDofOwners > 0) {	
+   	if ( iTotDofOwners > 0) {	
       
       		/* Di ogni DofOwner setta il primo indice
       		 * e calcola il numero totale di Dof:
@@ -408,7 +380,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 
 		NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 		for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
-			iDOm1++, i++)
+			++iDOm1, ++i)
 		{
 			DofOwner *pDO = const_cast<DofOwner *>(i->second->pGetDofOwner());
       			unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
@@ -436,8 +408,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 		}
 
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-			j != ElemData[Elem::JOINT].ElemContainer.end();
-			j++)
+			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
 			DofOwner *pDO = const_cast<DofOwner *>((dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner());
 			if (pDO) {
@@ -462,6 +433,7 @@ void DataManager::InverseDofInit(bool bIsSquare)
 		}
 
 	      	DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
+
    	} else {
      	 	DEBUGCERR("");
      	 	silent_cerr("no dof owners are defined" << std::endl);

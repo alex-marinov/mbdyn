@@ -43,8 +43,8 @@
 class BasicFriction : public SimulationEntity{
 private:
 	void SetValue(DataManager *pDM,
-			VectorHandler&X, VectorHandler&XP,
-			SimulationEntity::Hints *ph = 0) {};
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints *ph = 0) { NO_OP; };
 public:
 /*
  * 	unsigned int iGetNumDof(void) const;

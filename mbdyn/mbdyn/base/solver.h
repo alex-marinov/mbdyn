@@ -172,6 +172,7 @@ public:
 			integer iNEV;
 			integer iNCV;
 			doublereal dTOL;
+			ARPACK(void) : iNEV(0), iNCV(0), dTOL(0.) { NO_OP; };
 		} arpack;
 
 		// JDQZ specific

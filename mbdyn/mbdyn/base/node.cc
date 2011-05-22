@@ -564,6 +564,7 @@ ParameterNode::AfterPredict(VectorHandler& /* X */ ,
 /* Node2Scalar - begin */
 
 NodeDof::NodeDof(void)
+: iDofNumber(-1), pNode(0)
 {
 	NO_OP;
 }

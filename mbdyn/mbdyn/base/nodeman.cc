@@ -85,7 +85,7 @@ DataManager::NodeManagerDestructor(void)
 {
 	DEBUGCOUT("Entering DataManager::NodeManagerDestructor()" << std::endl);
 
-	for (NodeVecType::iterator p = Nodes.begin(); p != Nodes.end(); p++) {
+	for (NodeVecType::iterator p = Nodes.begin(); p != Nodes.end(); ++p) {
 		DEBUGCOUT("deleting node "
 			<< psNodeNames[(*p)->GetNodeType()]
 			<< "(" << (*p)->GetLabel() << ")"
@@ -108,7 +108,7 @@ DataManager::NodeDataInit(void)
 
 		NodeIter.Init(&Nodes[0], iTotNodes);
 
-		for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+		for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			*i = 0;
 		}
 
@@ -186,7 +186,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 #endif
 #endif // USE_NETCDF
 
-	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->OutputPrepare(OH);
 	}
 }
@@ -194,7 +194,7 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 void
 DataManager::NodeOutput(OutputHandler& OH) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->Output(OH);
 	}
 }
@@ -205,7 +205,7 @@ DataManager::NodeOutput(
 	const VectorHandler& X,
 	const VectorHandler& XP) const
 {
-	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); i++) {
+	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->Output(OH, X, XP);
 	}
 }
