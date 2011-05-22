@@ -74,9 +74,9 @@ dKappa0(dK0),
 dKappa1(dK1)
 {
 	ASSERT(pRotor != NULL);
-	ASSERT(pNodeThrust != NULL);
-	ASSERT(pNodeRoll != NULL);
-	ASSERT(pNodePitch != NULL);
+	ASSERT(pNode1 != NULL);
+	ASSERT(pNode2 != NULL);
+	ASSERT(pNode3 != NULL);
 	ASSERT(dGamma > 0.);
 	ASSERT(dP > 0.);
 
