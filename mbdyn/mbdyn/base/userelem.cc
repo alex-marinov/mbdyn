@@ -39,6 +39,7 @@
 
 #ifdef STATIC_MODULES
 #include "module-wheel2/module-wheel2.h"
+#include "module-asynchronous_machine/module-asynchronous_machine.h"
 #ifdef HAVE_CHARM
 #include "module-charm/mbcharm.h"
 #endif // HAVE_CHARM
@@ -113,6 +114,8 @@ InitUDE(void)
 	ASSERT(b != false);
 #ifdef STATIC_MODULES
 	b = wheel2_set();
+	ASSERT(b != false);
+	b = asynchronous_machine_set();
 	ASSERT(b != false);
 #ifdef HAVE_CHARM
 	b = mbcharm_set();

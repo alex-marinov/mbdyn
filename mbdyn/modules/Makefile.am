@@ -123,6 +123,12 @@ module-aerodyn/mbdyn_ad.f90 \
 module-aerodyn/module-aerodyn.cc \
 module-aerodyn/README \
  \
+module-asynchronous_machine/asynchronous_machine.mbdyn \
+module-asynchronous_machine/module-asynchronous_machine.cc \
+module-asynchronous_machine/module-asynchronous_machine.h \
+module-asynchronous_machine/doc/Doxyfile \
+module-asynchronous_machine/doc/Makefile \
+ \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README \
  \

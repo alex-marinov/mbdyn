@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		- added previous time step functions to model namespace
 		- added support for f95 modules (Reinhard Resch)
 		- added gravity element output
+		- added module-asynchronous_machine (Reinhard Resch)
 		- added getaddrinfo support
 	Backward compatibility issues:
 		- output of reference node forces changed in modal mapping
