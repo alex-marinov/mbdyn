@@ -393,7 +393,18 @@ time steps, as dictated by the \kw{output frequency} statement
 The list of structural nodes (excluding dummy nodes).
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-\kw{struct node dofs}: \bnt{label} [...]
+\kw{struct node dofs}: \bnt{idx} [...]
+\end{Verbatim}
+%\end{verbatim}
+where \nt{idx} is the off-by-one index of the location of the first
+state associated to a node (for example, $X(\nt{idx} + i)$, with $i = 1,2,3$,
+is the component of the position along axis $i$).
+
+\subsection{struct node labels}
+The list of structural nodes labels (excluding dummy nodes).
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{struct node label}: \bnt{label} [...]
 \end{Verbatim}
 %\end{verbatim}
 

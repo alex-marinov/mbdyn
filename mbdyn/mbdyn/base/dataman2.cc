@@ -287,6 +287,21 @@ DataManager::DofOwnerInit(void)
 		}
 
 		OutHdl.Log() << std::endl;
+
+		OutHdl.Log() << "struct node labels:";
+
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+		{
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			ASSERT(pNode != 0);
+			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+			OutHdl.Log() << " " << pNode->GetLabel();
+		}
+
+		OutHdl.Log() << std::endl;
 	}
 
 	/* per ogni nodo */
