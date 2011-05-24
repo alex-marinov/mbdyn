@@ -66,7 +66,7 @@
 // CHARM's header file (apparently it is experimental)
 #undef __stdcall
 #define __stdcall
-#include <CharmWP.h>
+#include "CharmWP.h"
 
 extern "C" int __FC_DECL__(charmdebug)(integer *nout);
 
@@ -1515,11 +1515,10 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 #endif
 
 		// sanity check
-		Vec3 Xloc(m_Rac.MulTV(X - pCraft->GetXCurr()));
-		if (!m_data[idx].X.IsSame(Xloc, 1e-15)) {
+		if (!m_data[idx].X.IsSame(X, 1e-15)) {
 			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
 				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
-				"Xloc = {" << Xloc << "}, GetInducedVelocity({" << m_data[idx].X << "}) "
+				"Xloc = {" << X << "}, GetInducedVelocity({" << m_data[idx].X << "}) "
 				"possible mismatch" << std::endl);
 		}
 
