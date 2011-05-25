@@ -52,6 +52,7 @@ MBDyn 1.X-Devel
 		- fix reference angular acceleration in abs2rel.awk
 		  (Patrick Rix)
 		- clean up after scanning with cppckeck
+		- fix total (pin) joint private data
 
 MBDyn 1.3.18
 	Enhancements:

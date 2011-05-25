@@ -1715,6 +1715,10 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
+	if (strlen(s) != 2) {
+		return 0;
+	}
+
 	unsigned int off = 0;
 
 	switch (s[0]) {
@@ -1756,7 +1760,6 @@ TotalJoint::iGetPrivDataIdx(const char *s) const
 		/* relative angular velocity */
 		off += 21;
 		break;
-
 
 	default:
 		return 0;
@@ -1822,6 +1825,7 @@ TotalJoint::dGetPrivData(unsigned int i) const
 			return 0.;
 		}
 		return ThetaDrv.Get()(i - 15);
+
 	case 19:
 	case 20:
 	case 21:
@@ -1837,6 +1841,7 @@ TotalJoint::dGetPrivData(unsigned int i) const
 		
 			return R1h.GetVec(i-18)*v;
 		}
+
 	case 22:
 	case 23:
 	case 24:
@@ -1846,8 +1851,6 @@ TotalJoint::dGetPrivData(unsigned int i) const
 		
 			return R1hr.GetVec(i-21)*W;
 		}
-
-
 
 	default:
 		ASSERT(0);
@@ -3187,13 +3190,17 @@ TotalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 unsigned int
 TotalPinJoint::iGetNumPrivData(void) const
 {
-	return 18;
+	return 24;
 }
 
 unsigned int
 TotalPinJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
+
+	if (strlen(s) != 2) {
+		return 0;
+	}
 
 	unsigned int off = 0;
 
@@ -3227,9 +3234,14 @@ TotalPinJoint::iGetPrivDataIdx(const char *s) const
 		off += 15;
 		break;
 
+	case 'v':
+		/* relative linear velocity */
+		off += 18;
+		break;
+
 	case 'w':
 		/* relative angular velocity */
-		off += 18;
+		off += 21;
 		break;
 
 	default:
@@ -3294,12 +3306,22 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 			return 0.;
 		}
 		return ThetaDrv.Get()(i - 15);
+
 	case 19: 
 	case 20: 
 	case 21: 
 		{
+		Vec3 v(RchrT*(pNode->GetVCurr() + pNode->GetWCurr().Cross(pNode->GetRCurr()*tilde_fn)));
+		
+			return v(i-18);
+		}
+
+	case 22: 
+	case 23: 
+	case 24: 
+		{
 		Vec3 W(RchrT*pNode->GetWCurr());
-			return W(i-18);
+			return W(i-21);
 		}
 
 	default:
