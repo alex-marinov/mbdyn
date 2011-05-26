@@ -193,7 +193,7 @@ m_iDofOffset(6)
 
 	// initialize data structures
 	unsigned uCnt;
-	DataManager::NodeMapType::const_iterator i;
+	DataManager::NodeContainerType::const_iterator i;
 	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); ++i) {
 		StructNode *pNode(dynamic_cast<StructNode *>(i->second));
 		ASSERT(pNode != 0);
