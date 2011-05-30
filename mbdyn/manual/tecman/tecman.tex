@@ -112,16 +112,16 @@ The Developers committed themselves to keeping it at least up to date
 with new developments; undocumented stuff should be documented
 as soon as it needs modifications or refactoring.
 
-Alessandro Fumagalli and Marco Morandini contributed significantly
-to this document.
+Alessandro Fumagalli, Marco Morandini and Mattia Mattaboni
+contributed significantly to this document.
 
 
 
 \chapter{Parsing}
 In MBDyn there are different levels of parsing.
 Input file parsing suffers from a scattered and occasionally outdated design.
-The need to preserver backwards compatibility with existing models
-restrains from entirely redesign it, although selected improvements
+The need to preserve backwards compatibility with existing models
+restrained so far from entirely redesign it, although selected improvements
 occur over time.
 
 MBDyn provides support for the implementation of new functionalities,
@@ -1009,7 +1009,8 @@ where
 \end{equation}
 is the distance between the node and the CM of the body,
 which is constant in the reference frame of the node
-for a rigid body.
+for a rigid body,
+and $\TT{J} = \TT{J}_\text{CM} + m \T{f}\times \T{f} \times{}^T$.
 
 The contribution to the equations of motion (Newton-Euler) is
 \begin{subequations}
@@ -1026,6 +1027,7 @@ The contribution to the equations of motion (Newton-Euler) is
 
 The perturbation of the momentum and momenta moment definitions yields
 \begin{subequations}
+\label{eq:nodes:delta-beta-gamma}
 \begin{align}
 	\delta\T{\beta}
 	&= m \delta\dot{\T{x}}
@@ -1038,7 +1040,7 @@ The perturbation of the momentum and momenta moment definitions yields
 	+ \plbr{
 		\dot{\T{x}}\times\T{s}\times{}
 		- \plbr{\TT{J} \T{\omega}}\times{}
-		- \TT{J} \T{\omega}\times{}
+		+ \TT{J} \T{\omega}\times{}
 	}\T{\theta}_{\delta}
 \end{align}
 \end{subequations}
@@ -1054,7 +1056,6 @@ The perturbation of the inertia force and moment yields
 \end{align}
 \end{subequations}
 
-
 \subsubsection{Accelerations}
 \label{sec:nodes:structural nodes:dynamic structural nodes:accelerations}
 Since momentum and momenta moments are used as the unknowns
@@ -1066,12 +1067,23 @@ of the definitions of the momentum and the momenta moment.
 The differentiation of Equations~(\ref{eq:body:momenta}) yields
 \begin{subequations}
 \begin{align}
-	\dot{\T{\beta}} &= m \ddot{\T{x}} + \dot{\T{\omega}} \times \T{s}
-		+ \T{\omega} \times \T{\omega} \times \T{s} \\
-	\dot{\T{\gamma}} &= \plbr{\T{\omega}\times \T{s}} \times \dot{\T{x}}
-		+ \T{s} \times \ddot{\T{x}}
-		+ \T{\omega} \times \TT{J} \T{\omega}
-		+ \TT{J} \dot{\T{\omega}} .
+	\dot{\T{\beta}}
+	&=
+	m \ddot{\T{x}}
+	+
+	\dot{\T{\omega}} \times \T{s}
+	+
+	\T{\omega} \times \T{\omega} \times \T{s}
+	\\
+	\dot{\T{\gamma}}
+	&=
+	\plbr{\T{\omega}\times \T{s}} \times \dot{\T{x}}
+	+
+	\T{s} \times \ddot{\T{x}}
+	+
+	\T{\omega} \times \TT{J} \T{\omega}
+	+
+	\TT{J} \dot{\T{\omega}} .
 \end{align}
 \end{subequations}
 As a consequence, the linear and angular accelerations are computed as
@@ -1088,8 +1100,220 @@ As a consequence, the linear and angular accelerations are computed as
 		\dot{\T{\beta}}
 		- \dot{\T{\omega}} \times \T{s}
 		- \T{\omega} \times \T{\omega} \times \T{s}
-	} .
+	}
+	\nonumber \\
+	&= \plbr{
+		\cfrac{1}{m} \TT{I}
+		+
+		\T{f}\times^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+	} \dot{\T{\beta}}
+	-
+	\T{f}\times^T \TT{J}_\text{CM}^{-1} \dot{\T{\gamma}}
+	-
+	\T{f}\times^T \TT{J}_\text{CM}^{-1} \plbr{
+		\dot{\T{x}}\times\T{\beta}
+		- \T{\omega}\times\TT{J}_\text{CM} \T{\omega}
+	}
 \end{align}
+
+
+\subsubsection{Note on the inverse of the mass matrix}
+The mass matrix is
+\begin{align}
+	\TT{M}
+	&=
+	\sqbr{\matr{cc}{
+		m \TT{I} & \T{s}\times{}^T
+		\\
+		\T{s}\times{} & \TT{J}
+	}}
+\end{align}
+Its inverse is
+\begin{align}
+	\TT{M}^{-1}
+	&=
+	\sqbr{\matr{cc}{
+		\plbr{
+			m \TT{I}
+			-
+			\T{s}\times{}^T \TT{J}^{-1} \TT{s}\times{}
+		}^{-1}
+		&
+		-\cfrac{1}{m}\T{s}\times{}^T \plbr{
+			\TT{J}
+			-
+			\cfrac{1}{m} \T{s}\times \T{s} \times{}^T
+		}^{-1}
+		\\
+		-\cfrac{1}{m} \plbr{
+			\TT{J}
+			-
+			\cfrac{1}{m} \T{s}\times \T{s} \times{}^T
+		}^{-1} \T{s}\times{}
+		&
+		\plbr{
+			\TT{J}
+			-
+			\cfrac{1}{m} \T{s}\times \T{s}\times{}^T
+		}^{-1}
+	}}
+	\nonumber \\
+	&=
+	\sqbr{\matr{cc}{
+		\cfrac{1}{m} \TT{I}
+		+
+		\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+		&
+		-\T{f}\times{}^T \TT{J}_\text{CM}^{-1}
+		\\
+		- \TT{J}_\text{CM}^{-1}\T{f}\times{}
+		&
+		\TT{J}_\text{CM}^{-1}
+	}}
+	.
+\end{align}
+In fact, according to the matrix inversion lemma,
+\begin{align}
+	\plbr{
+		m \TT{I}
+		-
+		\T{s} \times{}^T \TT{J}^{-1} \T{s}\times{}
+	}^{-1}
+	&=
+	\cfrac{1}{m} \TT{I}
+	+
+	\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+	.
+\end{align}
+
+\subsubsection{Perturbation of momentum and momenta moment derivatives}
+According to Eqs.~(\ref{eq:nodes:delta-beta-gamma}),
+the perturbation of the linear and angular velocity is
+\begin{subequations}
+\begin{align}
+	\cubr{\cvvect{
+		\delta\dot{\T{x}}
+		\\
+		\delta\T{\omega}
+	}}
+	&=
+	\TT{M}^{-1} \plbr{
+		\cubr{\cvvect{
+			\delta\T{\beta}
+			\\
+			\delta\T{\gamma}
+		}}
+		-
+		\sqbr{\cvvect{
+			-\T{\omega} \times \T{s} \times{}
+			\\
+			\dot{\T{x}} \times \T{s} \times{}
+			-
+			\plbr{\TT{J} \T{\omega}} \times{}
+			+
+			\TT{J} \T{\omega} \times{}
+		}} \T{\theta}_{\delta}
+	}
+\end{align}
+\end{subequations}
+The perturbation of the momentum and momenta moment derivatives is
+\begin{subequations}
+\begin{align}
+	\delta\dot{\T{\beta}}
+	&=
+	m \delta\ddot{\T{x}}
+	-
+	\T{s} \times \delta\dot{\T{\omega}}
+	-
+	\plbr{\T{\omega} \times \T{s}} \times \delta \T{\omega}
+	-
+	\T{\omega} \times \T{s} \times \delta\T{\omega}
+	-
+	\dot{\T{\omega}} \times \T{s} \times \T{\theta}_{\delta}
+	-
+	\T{\omega} \times \T{\omega} \times \T{s} \times \T{\theta}_{\delta}
+	\\
+	\delta\dot{\T{\gamma}}
+	&=
+	\T{s} \times \delta\ddot{\T{x}}
+	+
+	\TT{J} \delta\dot{\T{\omega}}
+	+
+	\plbr{\T{\omega}\times \T{s}} \times \delta\dot{\T{x}}
+	+
+	\dot{\T{x}} \times \T{s} \times \delta\T{\omega}
+	+
+	\T{\omega} \times \TT{J} \delta\T{\omega}
+	-
+	\plbr{\TT{J} \T{\omega}} \times \delta\T{\omega}
+	\nonumber \\ &\mbox{\hphantom{= }}
+	+
+	\dot{\T{x}} \times \T{\omega} \times \T{s} \times \T{\theta}_{\delta}
+	+
+	\ddot{\T{x}} \times \T{s} \times \T{\theta}_{\delta}
+	-
+	\T{\omega} \times \plbr{\TT{J} \T{\omega}} \times \T{\theta}_{\delta}
+	+
+	\T{\omega} \times \TT{J} \T{\omega} \times \T{\theta}_{\delta}
+	-
+	\plbr{\TT{J} \dot{\T{\omega}}} \times \T{\theta}_{\delta}
+	+
+	\TT{J} \dot{\T{\omega}} \times \T{\theta}_{\delta}
+	.
+\end{align}
+\end{subequations}
+As a consequence,
+\begin{align}
+	\cubr{\cvvect{
+		\delta\ddot{\T{x}}
+		\\
+		\delta\dot{\T{\omega}}
+	}}
+	&=
+	\TT{M}^{-1} \lplbr{
+		\cubr{\cvvect{
+			\dot{\T{\beta}}
+			\\
+			\dot{\T{\gamma}}
+		}}
+		-
+		\sqbr{\cvvect{
+			\T{0}
+			\\
+			\plbr{\T{\omega} \times \T{s}}\times{}
+		}} \delta\dot{\T{x}}
+		-
+		\sqbr{\cvvect{
+			- \plbr{\T{\omega} \times \T{s}} \times{}
+			- \T{\omega} \times \T{s} \times{}
+			\\
+			\dot{\T{x}} \times \T{s} \times{}
+			+
+			\T{\omega} \times \TT{J}
+			-
+			\plbr{\TT{J} \T{\omega}} \times {}
+		}} \delta\T{\omega}
+	}
+	\nonumber \\ &\rplbr{\mbox{\hphantom{= }}
+		- \sqbr{\cvvect{
+			-\dot{\T{\omega}} \times \T{s} \times{}
+			- \T{\omega} \times \T{\omega} \times \T{s} \times{}
+			\\
+			\dot{\T{x}} \times \T{\omega} \times \T{s} \times{}
+			+
+			\ddot{\T{x}} \times \T{s} \times{}
+			-
+			\T{\omega} \times \plbr{\TT{J} \T{\omega}} \times{}
+			+
+			\T{\omega} \times \T{J} \T{\omega} \times{}
+			-
+			\plbr{\TT{J} \dot{\T{\omega}}} \times{}
+			+
+			\TT{J} \dot{\T{\omega}} \times{}
+		}}\T{\theta}_{\delta}
+	}
+\end{align}
+(NOTE: simplifications when using updated-updated formulas).
 
 
 \subsection{Static Structural Nodes}
