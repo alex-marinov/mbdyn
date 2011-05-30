@@ -69,6 +69,8 @@ M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 	unsigned int index = 0;
 
 	for (unsigned int i = 0; i < 3; i++) {
+		ASSERT(bPos[i] == false || bVel[i] == false);
+
 		bPosActive[i] = bPos[i];
 		bVelActive[i] = bVel[i];
 		
@@ -89,6 +91,8 @@ M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 	
 	index = 0;
 	for (unsigned int i = 0; i < 3; i++) {
+		ASSERT(bRot[i] == false || bAgv[i] == false);
+
 		bRotActive[i] = bRot[i];
 		bAgvActive[i] = bAgv[i];
 		
