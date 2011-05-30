@@ -54,6 +54,7 @@ if BUILD_CHARM
 nodist_libaero_la_SOURCES += \
 $(srcdir)/../../modules/module-charm/module-charm.cc \
 $(srcdir)/../../modules/module-charm/mbcharm.h \
+$(srcdir)/../../modules/module-charm/mbcharm_f.f \
 $(srcdir)/../../modules/module-charm/charmdebug.f \
 $(srcdir)/../../modules/module-charm/charm_common.c \
 $(srcdir)/../../modules/module-charm/CharmWP.c
