@@ -90,6 +90,18 @@ public:
 	virtual void AddInertia(const doublereal& dm, const Vec3& dS,
 		const Mat3x3& dJ);
    
+	virtual doublereal dGetM(void) const {
+		return m;
+	};
+
+	const Vec3& GetS(void) const {
+		return S;
+	};
+
+	const Mat3x3& GetJ(void) const {
+		return J;
+	};
+
 	/* funzioni di servizio */
 
 	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
