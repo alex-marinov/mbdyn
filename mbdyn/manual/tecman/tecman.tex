@@ -1092,8 +1092,8 @@ As a consequence, the linear and angular accelerations are computed as
 	&= \TT{J}_{\text{CM}}^{-1} \plbr{
 		\dot{\T{\gamma}}
 		- \T{f} \times \dot{\T{\beta}}
-		- \T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
 		+ \dot{\T{x}} \times \T{\beta}
+		- \T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
 	} \\
 	\ddot{\T{x}}
 	&= \cfrac{1}{m}\plbr{
@@ -1113,6 +1113,31 @@ As a consequence, the linear and angular accelerations are computed as
 	\T{f}\times^T \TT{J}_\text{CM}^{-1} \plbr{
 		\dot{\T{x}}\times\T{\beta}
 		- \T{\omega}\times\TT{J}_\text{CM} \T{\omega}
+	}
+	,
+\end{align}
+namely
+\begin{align}
+	\cubr{\cvvect{
+		\ddot{\T{x}}
+		\\
+		\dot{\T{\omega}}
+	}}
+	&=
+	\TT{M}^{-1} \cubr{\cvvect{
+		\dot{\T{\beta}}
+		\\
+		\dot{\T{\gamma}}
+	}}
+	+
+	\sqbr{\cvvect{
+		- \T{f}\times^T
+		\\
+		\TT{I}
+	}} \TT{J}_\text{CM}^{-1} \plbr{
+		\dot{\T{x}}\times\T{\beta}
+		-
+		\T{\omega}\times\TT{J}_\text{CM} \T{\omega}
 	}
 \end{align}
 
@@ -1183,8 +1208,8 @@ In fact, according to the matrix inversion lemma,
 	\cfrac{1}{m} \TT{I}
 	+
 	\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
-	.
 \end{align}
+(NOTE: simplifications when using updated-updated formulas).
 
 \subsubsection{Perturbation of momentum and momenta moment derivatives}
 According to Eqs.~(\ref{eq:nodes:delta-beta-gamma}),
@@ -3880,6 +3905,12 @@ There exists a pinned version of this joint that imposes
 the absolute position and orientation of a node (\texttt{TotalPinJoint}).
 It is discussed in Section~\ref{sec:TotalPinJoint}.
 
+%Note: this joint directly obsoletes the \texttt{DriveHinge},
+%the \texttt{DriveDisplacement} and the \texttt{ImposedDisplacement}.
+%However, in many senses, it obsoletes all joints that implement
+%lower mechanical pairs (except the \emph{screw} joint, in the current
+%implementation), and more.
+
 \paragraph{Files.} \
 It is implemented in files\\
 \begin{tabular}{l}
@@ -5305,6 +5336,101 @@ with the kinematic relationship
 A foreseen improvement consists in adding friction based on empirical
 formulas for screws.
 \end{comment}
+
+
+
+
+\subsection{Strapdown Sensor}
+This constraint imposes the acceleration and the angular velocity
+of a node in a relative frame attached to the node itself.
+
+\begin{subequations}
+\begin{align}
+	\ddot{\T{x}}
+	&=
+	\ddot{\T{x}}_n
+	+
+	\dot{\T{\omega}}_n \times \T{b}
+	+
+	\T{\omega}_n \times \T{\omega}_n \times \T{b}
+	\\
+	\T{\omega}
+	&=
+	\T{\omega}_n
+\end{align}
+\end{subequations}
+where $\T{b} = \TT{R}_n \tilde{\T{b}}$ is the offset of the accelerometer
+from the node.
+
+The acceleration and the angular velocity in the reference frame
+of the node, as output from the strapdown sensor, respectively are
+$\overline{\ddot{\T{x}}}$ and $\overline{\T{\omega}}$.
+The constraint equations are
+\begin{subequations}
+\begin{align}
+	\ddot{\T{x}}
+	&=
+	\TT{R}_n \overline{\ddot{\T{x}}}
+	\\
+	\T{\omega}
+	&=
+	\TT{R}_n \overline{\T{\omega}}
+\end{align}
+\end{subequations}
+
+The acceleration of the point where the strapdown sensor is placed is
+\begin{align}
+	\ddot{\T{x}}
+	&=
+	\plbr{
+		\cfrac{1}{m} \TT{I}
+		+
+		\T{f} \times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+	} \dot{\T{\beta}}
+	-
+	\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \dot{\T{\gamma}}
+	-
+	\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \plbr{
+		\dot{\T{x}}_n \times \T{\beta}
+		-
+		\T{\omega}_n \times \TT{J}_\text{CM} \T{\omega}_n
+	}
+	\nonumber \\ &\mbox{\hphantom{= }}
+	+ \T{b}\times{}^T \TT{J}_\text{CM}^{-1} \plbr{
+		\dot{\T{\gamma}}
+		-
+		\T{f}\times\dot{\T{\beta}}
+		+
+		\dot{\T{x}}_n \times \T{\beta}
+		-
+		\T{\omega}_n \times \TT{J}_\text{CM} \T{\omega}_n
+	}
+	+
+	\T{\omega}_n \times \T{\omega}_n \times \T{b}
+	\nonumber \\
+	&=
+	\plbr{
+		\cfrac{1}{m} \TT{I}
+		+
+		\plbr{\T{f} - \T{b}}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+	} \dot{\T{\beta}}
+	-
+	\plbr{\T{f} - \T{b}}\times{}^T \TT{J}_\text{CM}^{-1} \dot{\T{\gamma}}
+	\nonumber \\ &\mbox{\hphantom{= }}
+	-
+	\plbr{\T{f} - \T{b}}\times{}^T \TT{J}_\text{CM}^{-1} \plbr{
+		\dot{\T{x}}_n \times \T{\beta}
+		-
+		\T{\omega}_n \times \TT{J}_\text{CM} \T{\omega}_n
+	}
+	+
+	\T{\omega}_n \times \T{\omega}_n \times \T{b}
+\end{align}
+
+Note: this constraint is \underline{extremely simpler}
+when the node is in the center of mass ($\T{f} = \T{0}$),
+and the strapdown sensor is in the node ($\T{b} = \T{0}$).
+
 
 
 
