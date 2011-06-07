@@ -187,7 +187,7 @@ ExtFileHandler::Send_pre(SendWhen when)
 						"try #" << cnt << "; "
 						"sleeping " << SleepTime << " s"
 						<< std::endl);
-					mbsleep(SleepTime);
+					mbsleep(&SleepTime);
 
 				} else {
 					silent_cout("output file "
@@ -245,7 +245,7 @@ ExtFileHandler::Recv_pre(void)
 			return (bOK = false);
 		}
 
-		mbsleep(SleepTime);
+		mbsleep(&SleepTime);
 		inf.clear();
 		inf.open(fin.c_str());
 	}
@@ -548,7 +548,7 @@ ExtSocketHandler::Recv_pre(void)
 				return (bOK = false);
 			}
 
-			mbsleep(SleepTime);
+			mbsleep(&SleepTime);
 		}
 
 	} else {

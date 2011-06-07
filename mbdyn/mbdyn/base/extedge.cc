@@ -205,7 +205,7 @@ retry:;
 				goto done;
 			}
 
-			mbsleep(SleepTime);
+			mbsleep(&SleepTime);
 
 			infile.clear();
 			infile.open(fflagname.c_str());
@@ -529,7 +529,7 @@ retry:;
 		case EBUSY: {
 			mbsleep_t timeout = mbsleep_init(1);
 			// TODO: configurable?
-			mbsleep(timeout);
+			mbsleep(&timeout);
 
 			if (mbdyn_stop_at_end_of_iteration()) {
 				// ultimately give up
@@ -598,7 +598,7 @@ retry:;
 				" try #" << cnt << "; "
 				"sleeping " << SleepTime << " s" << std::endl); 
 
-			mbsleep(SleepTime);
+			mbsleep(&SleepTime);
 		}
 
 		if (mbdyn_stop_at_end_of_iteration()) {
@@ -704,7 +704,7 @@ ExtFileHandlerEDGE::Recv_pre(void)
 				" try #" << cnt << "; "
 				"sleeping " << SleepTime << " s" << std::endl); 
 
-			mbsleep(SleepTime);
+			mbsleep(&SleepTime);
 		} else {
 			silent_cout("flag file \"" << fflagname.c_str() << "\": "
 				"cmd=" << cmd << " (" << EDGEcmd2str(cmd) << ")"

@@ -156,7 +156,7 @@ UseSocket::Connect(void)
 			case ECONNREFUSED:	// inet
 			case ENOENT:		// unix
 				/* Socket does not exist yet; retry */
-				mbsleep(timeout);
+				mbsleep(&timeout);
 				continue;
 			}
 

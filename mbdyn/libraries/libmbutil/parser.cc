@@ -890,7 +890,7 @@ mbsleep_t
 HighParser::GetTimeout(const mbsleep_t& DefVal)
 {
 	doublereal d;
-	mbsleep_sleep2real(DefVal, &d);
+	mbsleep_sleep2real(&DefVal, &d);
 	TypedValue v(d);
 	v = GetValue(v);
 	mbsleep_t newval;

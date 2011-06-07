@@ -37,8 +37,12 @@
 mbsleep_t
 mbsleep_init(long t)
 {
+#if defined(HAVE_NANOSLEEP)
 	mbsleep_t v = { t, 0 };
 	return v;
+#else /* ! HAVE_NANOSLEEP */
+	return t;
+#endif /* ! HAVE_NANOSLEEP */
 }
 
 int
@@ -67,14 +71,14 @@ mbsleep_real2sleep(doublereal d, mbsleep_t *t)
 }
 
 int
-mbsleep_sleep2real(mbsleep_t t, doublereal *d)
+mbsleep_sleep2real(const mbsleep_t *t, doublereal *d)
 {
 #if defined(HAVE_NANOSLEEP)
-	*d = ((doublereal)(t.tv_nsec))/1000000000 + t.tv_sec;
+	*d = ((doublereal)(t->tv_nsec))/1000000000 + t->tv_sec;
 #elif defined(HAVE_USLEEP)
-	*d = ((doublereal)t)/1000000;
+	*d = ((doublereal)*t)/1000000;
 #elif defined(HAVE_SLEEP)
-	*d = (doublereal)t;
+	*d = (doublereal)*t;
 #else /* ! SLEEP */
 	*d = 0.;
 #endif /* ! SLEEP */
@@ -83,14 +87,14 @@ mbsleep_sleep2real(mbsleep_t t, doublereal *d)
 }
 
 int
-mbsleep(mbsleep_t t)
+mbsleep(const mbsleep_t *t)
 {
 #if defined(HAVE_NANOSLEEP)
-	return nanosleep(&t, NULL);
+	return nanosleep(t, NULL);
 #elif defined(HAVE_USLEEP)
-	return usleep(t);
+	return usleep(*t);
 #elif defined(HAVE_SLEEP)
-	return sleep(t);
+	return sleep(*t);
 #endif /* ! SLEEP */
 
 	return -1;

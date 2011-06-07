@@ -32,165 +32,118 @@
 
 #include <stdlib.h>
 
+#include "myassert.h"
 #include "mbsleep.h"
 
+#ifdef HAVE_NANOSLEEP
 std::ostream&
 operator << (std::ostream& out, const mbsleep_t& t)
 {
-#if defined(HAVE_NANOSLEEP)
 	out << t.tv_sec;
 	if (t.tv_nsec) {
 		out << '.' << t.tv_nsec;
 	}
-#else // ! HAVE_NANOSLEEP
-	out << t;
-#endif // ! HAVE_NANOSLEEP
 	return out;
 }
 
 bool
 operator < (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2.tv_sec) {
 		return t1.tv_sec < t2.tv_sec;
 	}
 	return t1.tv_nsec < t2.tv_nsec;
-#else // ! HAVE_NANOSLEEP
-	return t1 < t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator > (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2.tv_sec) {
 		return t1.tv_sec > t2.tv_sec;
 	}
 	return t1.tv_nsec > t2.tv_nsec;
-#else // ! HAVE_NANOSLEEP
-	return t1 > t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator <= (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2.tv_sec) {
 		return t1.tv_sec <= t2.tv_sec;
 	}
 	return t1.tv_nsec <= t2.tv_nsec;
-#else // ! HAVE_NANOSLEEP
-	return t1 <= t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator >= (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2.tv_sec) {
 		return t1.tv_sec >= t2.tv_sec;
 	}
 	return t1.tv_nsec >= t2.tv_nsec;
-#else // ! HAVE_NANOSLEEP
-	return t1 >= t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator == (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	return (t1.tv_sec == t2.tv_sec) && (t1.tv_nsec == t2.tv_nsec);
-#else // ! HAVE_NANOSLEEP
-	return t1 == t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator != (const mbsleep_t& t1, const mbsleep_t& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	return (t1.tv_sec != t2.tv_sec) || (t1.tv_nsec != t2.tv_nsec);
-#else // ! HAVE_NANOSLEEP
-	return t1 != t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator < (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2) {
 		return t1.tv_sec < t2;
 	}
 	// NOTE: we assume that tv_nsec >= 0
+	ASSERT(t1.tv_nsec >= 0);
 	return false;
-#else // ! HAVE_NANOSLEEP
-	return t1 < t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator > (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2) {
 		return t1.tv_sec > t2;
 	}
 	return t1.tv_sec > 0;
-#else // ! HAVE_NANOSLEEP
-	return t1 > t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator <= (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2) {
 		return t1.tv_sec < t2;
 	}
 	// NOTE: we assume that tv_nsec >= 0
+	ASSERT(t1.tv_nsec >= 0);
 	return t1.tv_sec == 0;
-#else // ! HAVE_NANOSLEEP
-	return t1 <= t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator >= (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	if (t1.tv_sec != t2) {
 		return t1.tv_sec > t2;
 	}
 	return t1.tv_sec > 0;
-#else // ! HAVE_NANOSLEEP
-	return t1 >= t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator == (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	return (t1.tv_sec == t2) && (t1.tv_nsec == 0);
-#else // ! HAVE_NANOSLEEP
-	return t1 == t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
 bool
 operator != (const mbsleep_t& t1, const long& t2)
 {
-#if defined(HAVE_NANOSLEEP)
 	return (t1.tv_sec != t2) || (t1.tv_nsec != 0);
-#else // ! HAVE_NANOSLEEP
-	return t1 != t2;
-#endif // ! HAVE_NANOSLEEP
 }
 
+#endif // HAVE_NANOSLEEP

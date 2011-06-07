@@ -51,12 +51,13 @@ typedef unsigned long mbsleep_t;
 
 extern mbsleep_t mbsleep_init(long t);
 extern int mbsleep_real2sleep(doublereal d, mbsleep_t *t);
-extern int mbsleep_sleep2real(mbsleep_t t, doublereal *d);
-extern int mbsleep(mbsleep_t t);
+extern int mbsleep_sleep2real(const mbsleep_t *t, doublereal *d);
+extern int mbsleep(const mbsleep_t *t);
 
 #ifdef __cplusplus
 }
 
+#ifdef HAVE_NANOSLEEP
 extern std::ostream& operator << (std::ostream& out, const mbsleep_t& t);
 
 extern bool operator < (const mbsleep_t& t1, const mbsleep_t& t2);
@@ -72,6 +73,8 @@ extern bool operator <= (const mbsleep_t& t1, const long& t2);
 extern bool operator >= (const mbsleep_t& t1, const long& t2);
 extern bool operator == (const mbsleep_t& t1, const long& t2);
 extern bool operator != (const mbsleep_t& t1, const long& t2);
+/* otherwise operators are not needed */
+#endif /* HAVE_NANOSLEEP */
 
 #endif /* __cplusplus */
 
