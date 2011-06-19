@@ -1,3 +1,34 @@
+/* $Header$ */
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2011
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 /*
  AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
         Copyright (C) 2011(-2011) all rights reserved.
@@ -97,15 +128,15 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 	DataManager* pDM, MBDynParser& HP)
 : 	Elem(uLabel, flag(0)),
 	UserDefinedElem(uLabel, pDO),
-	m_pShaft(NULL),
-	m_pBearing(NULL),
+	m_pShaft(0),
+	m_pBearing(0),
 	m_o1_R1(0.,0.,0.),
 	m_o2_R2(0.,0.,0.),
-	m_InitialAssemblyFactor(NULL),
 	m_b(0.),
 	m_d(0.),
 	m_Psi(0.),
 	m_eta(0.),
+	m_InitialAssemblyFactor(0),
 	m_fcontact(false),
 	m_sP(0.),
 	m_DL(0.),
@@ -173,7 +204,7 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	m_pShaft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT(m_pShaft != NULL);
+	ASSERT(m_pShaft != 0);
 
 	if ( HP.IsKeyWord("offset") )
 		m_o1_R1 = HP.GetPosRel(ReferenceFrame(m_pShaft));
@@ -184,7 +215,7 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	m_pBearing = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT( m_pBearing != NULL );
+	ASSERT( m_pBearing != 0 );
 
 	if ( HP.IsKeyWord("offset") )
 		m_o2_R2 = HP.GetPosRel(ReferenceFrame(m_pBearing));
@@ -429,7 +460,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * d1_dot_R2(3);
 
 	Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
-							+ lambda_dot * R1.GetCol(3) + lambda * omega1.Cross(R1.GetCol(3)));
+							+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
 
 	// FIXME: nan values if e_dot_R2(1) == 0 && e_dot_R2(2) == 0
 	if ( e_dot_R2(1) == 0.0 && e_dot_R2(2) == 0.0 )
@@ -576,7 +607,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Vec3 F1_I = -F2_I;
 	const Vec3 M1_I = -l1_I.Cross( F2_I ) - R2 * M2_R2;
 
-	const Mat3x3 dv_dot_R2_dX1 = -R2.MulTM(Mat3x3(omega2));	// diff(diff(v^(R2),t),X1)
+	const Mat3x3 dv_dot_R2_dX1 = -R2.MulTM(Mat3x3(MatCross, omega2));	// diff(diff(v^(R2),t),X1)
 	const Mat3x3& dv_R2_dX1 = R2_T;				// diff(v^(R2),X1)
 	const Vec3 dlambda_dot_dX1 = -dv_dot_R2_dX1.GetRow(3) / d1_R2(3) + dv_R2_dX1.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3); // diff(diff(lambda,t),X1)
 
@@ -584,75 +615,75 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Mat3x3 de_dot_R2_dX1 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX1) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX1) );
 
-	const Mat3x3 dv_dot_R2_domega1 = -R2.MulTM(Mat3x3( R1 * m_o1_R1 ));
-	const Mat3x3 domega1_dg1 = -Mat3x3(omega1_ref);
-	const Mat3x3 dv_R2_dg1 = -R2.MulTM( Mat3x3( R1_0 * m_o1_R1 ) );
-	const Mat3x3 dv_dot_R2_dg1 = dv_dot_R2_domega1 * domega1_dg1 - R2.MulTM( ( omega1 - omega2 ).Cross(Mat3x3( R1_0 * m_o1_R1 )) );
-	const Mat3x3 dd1_R2_dg1 = -R2.MulTM(Mat3x3( R1_0.GetCol(3) ));
-	const Mat3x3 dd1_dot_R2_dg1 = R2.MulTM( R1.GetCol(3).Cross(Mat3x3(omega1_ref)) - ( omega1 - omega2 ).Cross(Mat3x3(R1_0.GetCol(3))) );
+	const Mat3x3 dv_dot_R2_domega1 = -R2.MulTM(Mat3x3(MatCross, R1 * m_o1_R1));
+	const Mat3x3 domega1_dg1 = -Mat3x3(MatCross, omega1_ref);
+	const Mat3x3 dv_R2_dg1 = -R2.MulTM( Mat3x3(MatCross, R1_0 * m_o1_R1) );
+	const Mat3x3 dv_dot_R2_dg1 = dv_dot_R2_domega1 * domega1_dg1 - R2.MulTM( ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0 * m_o1_R1)) );
+	const Mat3x3 dd1_R2_dg1 = -R2.MulTM(Mat3x3(MatCross, R1_0.GetCol(3)));
+	const Mat3x3 dd1_dot_R2_dg1 = R2.MulTM( R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) - ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0.GetCol(3))) );
 	const Vec3 dlambda_dot_dg1 = -dv_dot_R2_dg1.GetRow(3) / d1_R2(3)
-				    + v_dot_R2(3) / pow(d1_R2(3),2) * dd1_R2_dg1.GetRow(3)
-				    + dv_R2_dg1.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3)
-				    - 2. * v_R2(3) / pow(d1_R2(3),3) * dd1_R2_dg1.GetRow(3) * d1_dot_R2(3)
-				    + v_R2(3) / pow(d1_R2(3),2) * dd1_dot_R2_dg1.GetRow(3);
-	const Vec3 dlambda_dg1 = -dv_R2_dg1.GetRow(3) / d1_R2(3) + v_R2(3) / pow( d1_R2(3), 2 ) * dd1_R2_dg1.GetRow(3);
+				    + dd1_R2_dg1.GetRow(3) * (v_dot_R2(3) / pow(d1_R2(3), 2))
+				    + dv_R2_dg1.GetRow(3) / pow(d1_R2(3), 2) * d1_dot_R2(3)
+				    - dd1_R2_dg1.GetRow(3) * (2. * v_R2(3) / pow(d1_R2(3), 3) * d1_dot_R2(3))
+				    + dd1_dot_R2_dg1.GetRow(3) * (v_R2(3) / pow(d1_R2(3), 2));
+	const Vec3 dlambda_dg1 = -dv_R2_dg1.GetRow(3) / d1_R2(3) + dd1_R2_dg1.GetRow(3) * (v_R2(3) / pow( d1_R2(3), 2 ));
 
-	const Mat3x3 de_dot_R2_dg1 = R2.MulTM( -omega1.Cross(Mat3x3( R1_0 * m_o1_R1 )) + ( R1 * m_o1_R1 ).Cross(Mat3x3(omega1_ref))
-								+ R1.GetCol(3).Tens(dlambda_dot_dg1) - lambda_dot * Mat3x3( R1_0.GetCol(3) )
-								+ omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dg1) + lambda * R1.GetCol(3).Cross(Mat3x3(omega1_ref))
-								- lambda * omega1.Cross(Mat3x3( R1_0.GetCol(3) )) );
-	const Mat3x3 dv_dot_R2_dX2 = R2.MulTM(Mat3x3(omega2));
+	const Mat3x3 de_dot_R2_dg1 = R2.MulTM( -omega1.Cross(Mat3x3( MatCross, R1_0 * m_o1_R1 )) + ( R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega1_ref))
+								+ R1.GetCol(3).Tens(dlambda_dot_dg1) - Mat3x3( MatCross, R1_0.GetCol(3) ) * lambda_dot
+								+ omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dg1) + R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) * lambda
+								- omega1.Cross(Mat3x3( MatCross, R1_0.GetCol(3) )) * lambda );
+	const Mat3x3 dv_dot_R2_dX2 = R2.MulTM(Mat3x3(MatCross, omega2));
 	const Mat3x3 dv_R2_dX2 = -R2_T;
 	const Vec3 dlambda_dot_dX2 = -dv_dot_R2_dX2.GetRow(3) / d1_R2(3) + dv_R2_dX2.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3);
 
 	const Vec3 dlambda_dX2 = -dv_R2_dX2.GetRow(3) / d1_R2(3);
 	const Mat3x3 de_dot_R2_dX2 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX2) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX2) );
-	const Mat3x3 dv_R2_dg2 = R2_0.MulTM( Mat3x3( X1 - X2 + R1 * m_o1_R1 ) );
-	const Mat3x3 dd1_R2_dg2 = R2_0.MulTM( Mat3x3( R1 * m_o1_R1 ) );
-	const Mat3x3 dv_dot_R2_dg2 = R2_0.MulTM( Mat3x3( X1_dot - X2_dot + omega2.Cross( X2 - X1 ) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) ) )
-				   + R2.MulTM( ( X2 - X1 - R1 * m_o1_R1 ).Cross(Mat3x3(omega2_ref)) );
-	const Vec3 dlambda_dg2 = -dv_R2_dg2.GetRow(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * dd1_R2_dg2.GetRow(3);
+	const Mat3x3 dv_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1 - X2 + R1 * m_o1_R1 ) );
+	const Mat3x3 dd1_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
+	const Mat3x3 dv_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega2.Cross( X2 - X1 ) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) ) )
+				   + R2.MulTM( ( X2 - X1 - R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega2_ref)) );
+	const Vec3 dlambda_dg2 = -dv_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
 
-	const Mat3x3 dd1_dot_R2_dg2 = R2_0.MulTM( Mat3x3( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) ) )
-								- R2.MulTM( Mat3x3( R1.GetCol(3) ) * Mat3x3(omega2_ref) );
-	const Vec3 dlambda_dot_dg2 = -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + v_dot_R2(3) / pow(d1_R2(3),2) * dd1_R2_dg2.GetRow(3)
+	const Mat3x3 dd1_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, ( omega1 - omega2 ).Cross( R1.GetCol(3) ) ) )
+								- R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) * Mat3x3(MatCross, omega2_ref) );
+	const Vec3 dlambda_dot_dg2 = -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_dot_R2(3) / pow(d1_R2(3), 2))
 				    + dv_R2_dg2.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3)
-				    - 2 * v_R2(3) / pow( d1_R2(3), 3) * dd1_R2_dg2.GetRow(3) * d1_dot_R2(3)
-				    + v_R2(3) / pow(d1_R2(3),2) * dd1_dot_R2_dg2.GetRow(3);
+				    - dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / pow( d1_R2(3), 3) * d1_dot_R2(3))
+				    + dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
 
-	const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( X1_dot - X2_dot + omega1.Cross(R1 * m_o1_R1) - omega2.Cross( R2 * m_o2_R2 )
-								+ lambda_dot * R1.GetCol(3) + lambda * omega1.Cross(R1.GetCol(3))))
-								+ R2.MulTM( -( R2 * m_o2_R2 ).Cross(Mat3x3(omega2_ref)) + omega2.Cross(Mat3x3( R2_0 * m_o2_R2 ))
+	const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * m_o1_R1) - omega2.Cross( R2 * m_o2_R2 )
+								+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda))
+								+ R2.MulTM( -( R2 * m_o2_R2 ).Cross(Mat3x3(MatCross, omega2_ref)) + omega2.Cross(Mat3x3( MatCross, R2_0 * m_o2_R2 ))
 								+ R1.GetCol(3).Tens(dlambda_dot_dg2) + omega1.Cross(R1.GetCol(3)).Tens(dlambda_dg2));
 	const Mat3x3& dv_dot_R2_dX1_dot = R2_T;
 	const Vec3 dlambda_dot_dX1_dot = -dv_dot_R2_dX1_dot.GetRow(3) / d1_R2(3);
 
-	const Mat3x3 de_dot_R2_dX1_dot = R2.MulTM( Mat3x3(1.) + R1.GetCol(3).Tens(dlambda_dot_dX1_dot));
+	const Mat3x3 de_dot_R2_dX1_dot = R2.MulTM( Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX1_dot));
 
-	const Mat3x3 dv_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( R1 * m_o1_R1 ) );
-	const Mat3x3 dd1_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( R1.GetCol(3) ) );
-	const Vec3 dlambda_dot_dg1_dot = -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * dd1_dot_R2_dg1_dot.GetRow(3);
+	const Mat3x3 dv_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
+	const Mat3x3 dd1_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) );
+	const Vec3 dlambda_dot_dg1_dot = -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg1_dot.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
 
-	const Mat3x3 de_dot_R2_dg1_dot = R2.MulTM( -Mat3x3( R1 * m_o1_R1 ) + R1.GetCol(3).Tens(dlambda_dot_dg1_dot) - lambda * Mat3x3(R1.GetCol(3)) );
+	const Mat3x3 de_dot_R2_dg1_dot = R2.MulTM( -Mat3x3( MatCross, R1 * m_o1_R1 ) + R1.GetCol(3).Tens(dlambda_dot_dg1_dot) - Mat3x3(MatCross, R1.GetCol(3) * lambda) );
 
 	const Mat3x3 dv_dot_dX2_dot = -R2_T;
 	const Vec3 dlambda_dot_dX2_dot = -dv_dot_dX2_dot.GetRow(3) / d1_R2(3);
 
-	const Mat3x3 de_dot_R2_dX2_dot = R2.MulTM( Mat3x3(-1.) + R1.GetCol(3).Tens(dlambda_dot_dX2_dot));
+	const Mat3x3 de_dot_R2_dX2_dot = R2.MulTM( -Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX2_dot));
 
-	const Mat3x3 dv_dot_R2_dg2_dot = R2.MulTM( Mat3x3( R1 * m_o1_R1 + X1 - X2 ));
-	const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(R1.GetCol(3)));
-	const Vec3 dlambda_dot_dg2_dot = -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * dd1_dot_R2_dg2_dot.GetRow(3);
+	const Mat3x3 dv_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 + X1 - X2 ));
+	const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(MatCross, R1.GetCol(3)));
+	const Vec3 dlambda_dot_dg2_dot = -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
 
-	const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
+	const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
 
 	const Mat3x3 de_R2_dX1 = dv_R2_dX1 + d1_R2.Tens( dlambda_dX1 );
 
-	const Mat3x3 de_R2_dg1 = dv_R2_dg1 + d1_R2.Tens(dlambda_dg1) + lambda * dd1_R2_dg1;
+	const Mat3x3 de_R2_dg1 = dv_R2_dg1 + d1_R2.Tens(dlambda_dg1) + dd1_R2_dg1 * lambda;
 
 	const Mat3x3 de_R2_dX2 = dv_R2_dX2 + d1_R2.Tens(dlambda_dX2);
 
-	const Mat3x3 de_R2_dg2 = dv_R2_dg2 + d1_R2.Tens( dlambda_dg2 ) + lambda * dd1_R2_dg2;
+	const Mat3x3 de_R2_dg2 = dv_R2_dg2 + d1_R2.Tens( dlambda_dg2 ) + dd1_R2_dg2 * lambda;
 
 	const Vec3 domega1_proj_dg1 = omega1_ref.Cross( R2.GetCol(3) );
 	const Vec3 domega1_proj_dg1_dot = R2.GetCol(3);
@@ -671,7 +702,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Mat3x3 dF2_I_dX1 = R2 * dF2_R2_dX1;
 	const Mat3x3 dF2_I_dg1 = R2 * dF2_R2_dg1;
 	const Mat3x3 dF2_I_dX2 = R2 * dF2_R2_dX2;
-	const Mat3x3 dF2_I_dg2 = -Mat3x3( R2_0 * F2_R2 ) + R2 * dF2_R2_dg2;
+	const Mat3x3 dF2_I_dg2 = -Mat3x3( MatCross, R2_0 * F2_R2 ) + R2 * dF2_R2_dg2;
 
 	const Mat3x3 dF1_I_dX1 = -dF2_I_dX1;
 	const Mat3x3 dF1_I_dg1 = -dF2_I_dg1;
@@ -689,21 +720,21 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Mat3x3 dM2_R2_dg2 = dM2_R2_de_R2 * de_R2_dg2 + dM2_R2_de_dot_R2 * de_dot_R2_dg2
 	                        + dM2_R2_domega1_proj.Tens(domega1_proj_dg2) + dM2_R2_domega2_proj.Tens(domega2_proj_dg2);
-	const Mat3x3 dM2_I_dg2 = -Mat3x3( R2_0 * ( l2_R2.Cross(F2_R2) + M2_R2 ) )
+	const Mat3x3 dM2_I_dg2 = -Mat3x3( MatCross, R2_0 * ( l2_R2.Cross(F2_R2) + M2_R2 ) )
 	                        + R2 * ( -F2_R2.Cross(de_R2_dg2) + l2_R2.Cross(dF2_R2_dg2) + dM2_R2_dg2 );
 
 	const Mat3x3 dM1_I_dX1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3) ).Tens( dlambda_dX1 )
 	                       - l1_I.Cross( R2 * dF2_R2_dX1 ) - R2 * dM2_R2_dX1;
 
-	const Mat3x3 dM1_I_dg1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg1) - Mat3x3( R1_0 * l1_R1 ) )
+	const Mat3x3 dM1_I_dg1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg1) - Mat3x3( MatCross, R1_0 * l1_R1 ) )
 	                        - l1_I.Cross( R2 * dF2_R2_dg1 ) - R2 * dM2_R2_dg1;
 
 	const Mat3x3 dM1_I_dX2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dX2) )
 	                       - l1_I.Cross( R2 * dF2_R2_dX2 ) - R2 * dM2_R2_dX2;
 
 	const Mat3x3 dM1_I_dg2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg2) )
-	                       + l1_I.Cross( Mat3x3( R2_0 * F2_R2 ) - R2 * dF2_R2_dg2 )
-	                       + Mat3x3( R2_0 * M2_R2 ) - R2 * dM2_R2_dg2;
+	                       + l1_I.Cross( Mat3x3( MatCross, R2_0 * F2_R2 ) - R2 * dF2_R2_dg2 )
+	                       + Mat3x3( MatCross, R2_0 * M2_R2 ) - R2 * dM2_R2_dg2;
 
 	const Mat3x3 dF2_R2_dX1_dot = dF2_R2_de_dot_R2 * de_dot_R2_dX1_dot;
 	const Mat3x3 dF2_I_dX1_dot = R2 * dF2_R2_dX1_dot;
@@ -747,25 +778,25 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
          *        | dF2/dX1_dot, dF2/dg1_dot, dF2/dX2_dot, dF2/dg2_dot |          | dF2/dX1, dF2/dg1, dF2/dX2, dF2/dg2 |  7
          *        | dM2/dX1_dot, dM2/dg1_dot, dM2/dX2_dot, dM2/dg2_dot |          | dM2/dX1, dM2/dg1, dM2/dX2, dM2/dg2 | 10
         */
-	WorkMat.Put(  1,  1, -dF1_I_dX1_dot - dCoef * dF1_I_dX1 );
-	WorkMat.Put(  1,  4, -dF1_I_dg1_dot - dCoef * dF1_I_dg1 );
-	WorkMat.Put(  1,  7, -dF1_I_dX2_dot - dCoef * dF1_I_dX2 );
-	WorkMat.Put(  1, 10, -dF1_I_dg2_dot - dCoef * dF1_I_dg2 );
+	WorkMat.Put(  1,  1, -dF1_I_dX1_dot - dF1_I_dX1 * dCoef );
+	WorkMat.Put(  1,  4, -dF1_I_dg1_dot - dF1_I_dg1 * dCoef );
+	WorkMat.Put(  1,  7, -dF1_I_dX2_dot - dF1_I_dX2 * dCoef );
+	WorkMat.Put(  1, 10, -dF1_I_dg2_dot - dF1_I_dg2 * dCoef );
 
-	WorkMat.Put(  4,  1, -dM1_I_dX1_dot - dCoef * dM1_I_dX1 );
-	WorkMat.Put(  4,  4, -dM1_I_dg1_dot - dCoef * dM1_I_dg1 );
-	WorkMat.Put(  4,  7, -dM1_I_dX2_dot - dCoef * dM1_I_dX2 );
-	WorkMat.Put(  4, 10, -dM1_I_dg2_dot - dCoef * dM1_I_dg2 );
+	WorkMat.Put(  4,  1, -dM1_I_dX1_dot - dM1_I_dX1 * dCoef );
+	WorkMat.Put(  4,  4, -dM1_I_dg1_dot - dM1_I_dg1 * dCoef );
+	WorkMat.Put(  4,  7, -dM1_I_dX2_dot - dM1_I_dX2 * dCoef );
+	WorkMat.Put(  4, 10, -dM1_I_dg2_dot - dM1_I_dg2 * dCoef );
 
-	WorkMat.Put(  7,  1, -dF2_I_dX1_dot - dCoef * dF2_I_dX1 );
-	WorkMat.Put(  7,  4, -dF2_I_dg1_dot - dCoef * dF2_I_dg1 );
-	WorkMat.Put(  7,  7, -dF2_I_dX2_dot - dCoef * dF2_I_dX2 );
-	WorkMat.Put(  7, 10, -dF2_I_dg2_dot - dCoef * dF2_I_dg2 );
+	WorkMat.Put(  7,  1, -dF2_I_dX1_dot - dF2_I_dX1 * dCoef );
+	WorkMat.Put(  7,  4, -dF2_I_dg1_dot - dF2_I_dg1 * dCoef );
+	WorkMat.Put(  7,  7, -dF2_I_dX2_dot - dF2_I_dX2 * dCoef );
+	WorkMat.Put(  7, 10, -dF2_I_dg2_dot - dF2_I_dg2 * dCoef );
 
-	WorkMat.Put( 10,  1, -dM2_I_dX1_dot - dCoef * dM2_I_dX1 );
-	WorkMat.Put( 10,  4, -dM2_I_dg1_dot - dCoef * dM2_I_dg1 );
-	WorkMat.Put( 10,  7, -dM2_I_dX2_dot - dCoef * dM2_I_dX2 );
-	WorkMat.Put( 10, 10, -dM2_I_dg2_dot - dCoef * dM2_I_dg2 );
+	WorkMat.Put( 10,  1, -dM2_I_dX1_dot - dM2_I_dX1 * dCoef );
+	WorkMat.Put( 10,  4, -dM2_I_dg1_dot - dM2_I_dg1 * dCoef );
+	WorkMat.Put( 10,  7, -dM2_I_dX2_dot - dM2_I_dX2 * dCoef );
+	WorkMat.Put( 10, 10, -dM2_I_dg2_dot - dM2_I_dg2 * dCoef );
 
 #ifdef DEBUG
 	std::cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":" <<  "Jac=" << std::endl << WorkMat << std::endl;
@@ -843,7 +874,7 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
 
         // e_dot_R2 = R2^T * e_dot_I
         e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
-        					+ lambda_dot * R1.GetCol(3) + lambda * omega1.Cross(R1.GetCol(3)));
+        					+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
         const Vec3 l2_R2 = m_o2_R2 + e_R2;
         const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
         const Vec3 l1_I = R1 * ( m_o1_R1 + lambda_d1_R1 );
@@ -1027,7 +1058,7 @@ int module_init(const char *module_name, void *pdm, void *php)
 
 #ifdef __CYGWIN__
 	//FIXME: dynamic linking does not work on cygwin
-	volatile int g_module_init = module_init("hydrodynamic_plain_bearing",NULL,NULL);
+	volatile int g_module_init = module_init("hydrodynamic_plain_bearing",0,0);
 }
 #else
 }
