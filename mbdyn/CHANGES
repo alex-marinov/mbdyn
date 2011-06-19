@@ -30,6 +30,7 @@ MBDyn 1.X-Devel
 		- added module-asynchronous_machine (Reinhard Resch)
 		- added getaddrinfo support
 		- added struct node labels logging (Reinhard Resch)
+		- added module-hydrodynamic_plain_bearing (Reinhard Resch)
 	Backward compatibility issues:
 		- output of reference node forces changed in modal mapping
 	Known issues:
