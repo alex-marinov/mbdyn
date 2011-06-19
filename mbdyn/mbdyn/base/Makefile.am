@@ -175,14 +175,9 @@ ScalarFunctionsImpl.cc
 nodist_libbase_la_SOURCES =
 
 if BUILD_STATIC_MODULES
-# wheel2
-nodist_libbase_la_SOURCES += \
-$(srcdir)/../../modules/module-wheel2/module-wheel2.cc \
-$(srcdir)/../../modules/module-wheel2/module-wheel2.h \
-$(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.cc \
-$(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.h
-
-# add more...
+#nodist_libbase_la_SOURCES +=
+#
+## add more...
 endif
 
 if USE_GINAC

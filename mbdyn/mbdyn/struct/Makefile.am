@@ -109,6 +109,24 @@ vehj3.h
 
 nodist_libstruct_la_SOURCES =
 
+if BUILD_STATIC_MODULES
+# wheel2 and more
+nodist_libstruct_la_SOURCES += \
+$(srcdir)/../../modules/module-wheel2/module-wheel2.cc \
+$(srcdir)/../../modules/module-wheel2/module-wheel2.h \
+\
+$(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.cc \
+$(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.h \
+\
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/diffsizes.f95 \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95
+
+# add more...
+endif
+
 # screw
 if MBDYN_DEVEL
 nodist_libstruct_la_SOURCES += \

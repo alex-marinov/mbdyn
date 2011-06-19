@@ -146,6 +146,15 @@ module-constlaw-f95/usrsub.h \
  \
 module-drive/module-drive.cc \
 module-drive/README \
+\
+modules/module-hydrodynamic_plain_bearing/diffsizes.f95 \
+modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
+modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
+modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.h \
+modules/module-hydrodynamic_plain_bearing/Makefile.inc \
+modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
+modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
+modules/module-hydrodynamic_plain_bearing/rigid_shaft_with_hydrodynamic_plain_bearing.mbdyn \
  \
 module-mds/mds \
 module-mds/module-mds.cc \
