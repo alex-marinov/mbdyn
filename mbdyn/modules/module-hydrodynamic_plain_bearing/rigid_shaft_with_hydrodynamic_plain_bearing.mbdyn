@@ -1,0 +1,475 @@
+#FIXME: cannot load user defined modules at runtime on cygwin!
+module load: "libmodule-hydrodynamic_plain_bearing";
+
+#######################################################
+# NODE NUMBERS
+#######################################################
+
+set: integer node_id_rotor = 1003;
+
+set: integer node_id_shaft11 = 1004;
+
+set: integer node_id_shaft21 = 1005;
+
+set: integer node_id_rotor_dummy1 = 1008;
+
+set: integer node_id_rotor_dummy2 = 1009;
+
+set: integer node_id_unbalanced_mass = 1010;
+
+set: integer node_id_ground = 1011;
+
+#######################################################
+# BODY NUMBERS
+#######################################################
+
+set: integer body_id_shaft11 = 2001;
+
+set: integer body_id_shaft12 = 2002;
+
+set: integer body_id_rotor = 2003;
+
+set: integer body_id_shaft22 = 2004;
+
+set: integer body_id_shaft21 = 2005;
+
+#######################################################
+# JOINT NUMBERS
+#######################################################
+
+set: integer joint_id_ground_clamp = 4001;
+
+set: integer joint_id_axial_bearing2 = 4004;
+
+set: integer joint_id_drive = 4007;
+
+#######################################################
+# BEARING NUMBERS
+#######################################################
+
+set: integer elem_id_plain_bearing1 = 5001;
+set: integer elem_id_plain_bearing2 = 5002;
+
+#######################################################
+# REFERENCE FRAME NUMBERS
+#######################################################
+
+set: integer ref_id_bearing2 = 6001;
+set: integer ref_id_rotor = 6002;
+set: integer ref_id_bearing1 = 6003;
+set: integer ref_id_shaft21 = 6004;
+set: integer ref_id_shaft11 = 6005;
+
+#######################################################
+# FORCE NUMBERS
+#######################################################
+
+set: integer force_id_unbalance_F1 = 7001;
+set: integer force_id_drive_Ma = 7002;
+
+#######################################################
+# DRIVE NUMBERS
+#######################################################
+
+set: integer drive_id_motor = 8001;
+
+#######################################################
+# GEOMETRY
+#######################################################
+
+set: real rotor_D = 49.1e-3;	# rotor diameter
+set: real shaft1_l = 20e-3;	# length of shaft 1
+set: real shaft2_l = 100e-3;	# length of shaft 2
+set: real shaft_d = 10.5e-3;	# shaft diameter
+set: real bearing_D = 10.51e-3;	# bearing diameter
+set: real bearing_b = 1e-3;	# bearing width
+set: real bearing_eta = 2.14e-3; # dynamic oil viscosity
+
+set: real bearing_t0 = 0;	# initial assembly time delay
+set: real bearing_tau = 1e-20;	# initial assembly time constant
+
+set: real bearing_s = bearing_D - shaft_d;				# radial clearance
+set: real bearing_Psi = bearing_s / shaft_d;				# relative clearance
+
+set: real bearing_sP = 1e12;
+set: real bearing_DL = 1;
+set: real bearing_abs_FPrs1 = 1000;
+set: real bearing_myP = 0;
+set: real bearing_signum_delta_omega = 1e-5;
+
+#######################################################
+# CROSS SECTION PROPERTIES
+#######################################################
+
+set: real shaft_A = shaft_d^2 * pi / 4;
+set: real shaft_Ix = shaft_d^4 * pi / 64.;
+set: real shaft_Iy = shaft_Ix;
+set: real shaft_Ip = shaft_Ix + shaft_Iy;
+
+#######################################################
+# MATERIAL DATA
+#######################################################
+
+set: real shaft_roh = 7150;
+
+#######################################################
+# INITIAL STATE
+#######################################################
+
+set: real shaft_omega0 = 2. * pi * 50000./60.;	# initial angular velocitiy of the shaft
+set: real shaft_Phi0 = 22.*pi/180.*0;		# initial angle of rotation of the shaft
+set: real shaft_ex = bearing_s / 2 * 1./5.*0;			# initial radial eccentricity (x) of the shaft
+set: real shaft_ey = bearing_s / 2 * 1./5.*0;		# initial radial eccentricity (y) of the shaft
+set: real shaft_ex_dot = 1e-5*0;		# initial radial velocitiy (x) of the shaft
+set: real shaft_ey_dot = 1e-8*0;	# initial radial velocity (y) of the shaft
+
+
+#########################################################
+# MASS PROPERTIES
+#########################################################
+
+set: real rotor_m1 = 0.5204;			# mass at node 2
+set: real rotor_Jxx1 = 2.108e-004;		# radial momentum of inertia
+set: real rotor_Jyy1 = 2.108e-004;		# 
+set: real rotor_Jzz1 = 1.533e-4;			# axial momentum of inertia
+
+#########################################################
+# EXTERNAL FORCE
+#########################################################
+
+set: real unbalanced_mass = 0.5204;
+set: real unbalanced_radius = 0.01e-3;
+set: real unbalanced_angle = pi/2;
+set: real unbalanced_tau = 1e-15;
+
+#########################################################
+# GRAVITY
+#########################################################
+
+set: real gravity_g = 9.81;
+set: real gravity_tau = 1e-8;
+
+#########################################################
+# INITIAL TIME AND FINAL TIME
+#########################################################
+
+set: real initial_time = 0;
+set: real final_time = 10 * 2 * pi / abs(shaft_omega0);
+set: integer number_of_time_steps = 10000;
+
+begin: data;
+	problem: initial value; # the default
+end: data;
+
+print symbol table;
+
+begin: initial value;
+	initial time: initial_time;
+	final time: final_time;
+
+	time step: (final_time-initial_time)/number_of_time_steps;
+        min time step: (final_time-initial_time)/number_of_time_steps/1000;
+        max time step: (final_time-initial_time)/number_of_time_steps;
+	
+        strategy: factor, 
+			# reduction_factor
+				0.5, 
+			# steps_before_reduction
+				5,
+			# raise_factor
+				2, 
+			# steps_before_raise
+				5, 
+			# min_iterations
+				5, 
+			# max_iterations
+				20;
+	max iterations: 1000;
+	tolerance: 1.e-8;
+	#~ method: bdf;
+	#~ method: crank nicolson;
+	#~ method: hope, 0.4,0.4;
+	#~ method: implicit euler;
+        derivatives tolerance: 1e-6;
+        derivatives max iterations: 1000;
+        derivatives coefficient: 1e-6;
+	
+	linear solver: naive, colamd, mt, 1;
+        nonlinear solver: newton raphson;
+end: initial value;
+
+begin: control data;
+	#~ model: static;
+	structural nodes: 7;
+	rigid bodies: 5;
+	loadable elements: 2;
+	beams: 0;
+	joints: 3;
+	forces: 1;
+	gravity;
+	output frequency: 10;
+	output precision: 16;
+end: control data;
+
+reference: ref_id_bearing2,
+	# position
+	reference, global, null,
+	# orientation
+	reference, global, eye,
+	# velocity
+	reference, global, null,
+	# angular velocity
+	reference, global, null;
+
+reference: ref_id_bearing1,
+	# position
+	reference, ref_id_bearing2, 0., 0., shaft1_l + shaft2_l,
+	# orientation
+	reference, ref_id_bearing2, eye,
+	# velocity
+	reference, ref_id_bearing2, null,
+	# angular velocity
+	reference, ref_id_bearing2, null;
+
+reference: ref_id_shaft21,
+        # position
+        reference, ref_id_bearing2, shaft_ex, shaft_ey, 0.,
+        # orientation
+        reference, ref_id_bearing2, matr,
+					cos(shaft_Phi0), -sin(shaft_Phi0),   0.,
+					sin(shaft_Phi0),  cos(shaft_Phi0),   0.,
+						     0.,               0.,   1.,
+							      
+        # velocity
+        reference, ref_id_bearing2, shaft_ex_dot, shaft_ey_dot, 0.,
+        # angular velocity
+        reference, ref_id_bearing2, 0., 0., shaft_omega0;
+
+reference: ref_id_shaft11,
+	# position
+	reference, ref_id_shaft21, 0., 0., shaft1_l + shaft2_l,
+	# orientation
+	reference, ref_id_shaft21, eye,
+	# velocity
+	reference, ref_id_shaft21, null,
+	# angular velocity
+	reference, ref_id_shaft21, null;
+	
+reference: ref_id_rotor,
+	# position
+	reference, ref_id_shaft21, 0., 0., shaft2_l, 
+	# orientation
+	reference, ref_id_shaft21, eye,
+	# velocity
+	reference, ref_id_shaft21, null,
+	# angular velocity
+	reference, ref_id_shaft21, null;	
+
+begin: nodes;
+
+	structural: node_id_ground, static, 
+		# absolute position
+		reference, global, null, 
+		# absolute orientation matrix
+		reference, global, eye, 
+		# absolute velocity
+		reference, global, null,
+		# absolute angular velocity
+		reference, global, null; 
+		
+	structural: node_id_rotor, dynamic, 
+		# absolute position
+		reference, ref_id_rotor, null,
+		# absolute orientation matrix
+		reference, ref_id_rotor,eye, 
+		# absolute velocity
+		reference, ref_id_rotor,null,
+		# absolute angular velocity
+		reference, ref_id_rotor,null; 
+
+	structural: node_id_shaft11, dummy, 
+		node_id_rotor,
+		offset,
+		# absolute position
+		reference,ref_id_shaft11, null, 
+		# absolute orientation matrix
+		reference,ref_id_shaft11,eye; 	
+
+	structural: node_id_shaft21, dummy, 
+		node_id_rotor,
+		offset,
+		# absolute position
+		reference,ref_id_shaft21, null, 
+		# absolute orientation matrix
+		reference,ref_id_shaft21,eye; 	
+
+	structural: node_id_rotor_dummy1, dummy, 
+		node_id_rotor,
+		offset,
+		# absolute position
+		reference,ref_id_rotor, rotor_D / 2., 0., 0., 
+		# absolute orientation matrix
+		reference,ref_id_rotor,eye; 		
+		
+	structural: node_id_rotor_dummy2, dummy, 
+		node_id_rotor,
+		offset,
+		# absolute position
+		reference,ref_id_rotor, -rotor_D / 2., 0., 0., 
+		# absolute orientation matrix
+		reference,ref_id_rotor,eye; 		
+
+	structural: node_id_unbalanced_mass, dummy,
+		node_id_rotor,
+		offset,
+		# absolute position
+		reference,ref_id_rotor, unbalanced_radius * cos(unbalanced_angle), unbalanced_radius * sin(unbalanced_angle), 0., 
+		# absolute orientation matrix
+		reference,ref_id_rotor,eye; 		
+end: nodes;
+
+begin: elements;
+	body: body_id_shaft11, 
+		# node
+		node_id_rotor,
+		# mass
+		shaft_roh * shaft_A * shaft1_l / 3., 
+		# relative center of mass
+		reference, node, null, 
+		# inertia matrix
+		diag, 	shaft_roh * shaft_Ix * shaft1_l / 3., 
+			shaft_roh * shaft_Iy * shaft1_l / 3., 
+			shaft_roh * shaft_Ip * shaft1_l / 3.,
+		# reference for inertia matrix
+		inertial, reference, node, eye;	
+
+	body: body_id_shaft12, 
+		# node
+		node_id_rotor,
+		# mass
+		shaft_roh * shaft_A * shaft1_l / 3., 
+		# relative center of mass
+		reference, node, null, 
+		# inertia matrix
+		diag, 	shaft_roh * shaft_Ix * shaft1_l / 3., 
+			shaft_roh * shaft_Iy * shaft1_l / 3., 
+			shaft_roh * shaft_Ip * shaft1_l / 3.,
+		# reference for inertia matrix
+		inertial, reference, node, eye;
+		
+	body: body_id_rotor, 
+		# node
+		node_id_rotor,
+		# mass
+		rotor_m1 + shaft_roh * shaft_A * ( shaft1_l + shaft2_l ) / 3., 
+		# relative center of mass
+		reference, node, null, 
+		# inertia matrix
+		diag, 	rotor_Jxx1 + shaft_roh * shaft_Ix * ( shaft1_l + shaft2_l ) / 3., 
+			rotor_Jyy1 + shaft_roh * shaft_Iy * ( shaft1_l + shaft2_l ) / 3., 
+			rotor_Jzz1 + shaft_roh * shaft_Ip * ( shaft1_l + shaft2_l ) / 3.,
+		# reference for inertia matrix
+		inertial, reference, node, eye;		
+
+	body: body_id_shaft22, 
+		# node
+		node_id_rotor,
+		# mass
+		shaft_roh * shaft_A * shaft2_l / 3., 
+		# relative center of mass
+		reference, node, null, 
+		# inertia matrix
+		diag, 	shaft_roh * shaft_Ix * shaft2_l / 3., 
+			shaft_roh * shaft_Iy * shaft2_l / 3., 
+			shaft_roh * shaft_Ip * shaft2_l / 3.,
+		# reference for inertia matrix
+		inertial, reference, node, eye;
+		
+	body: body_id_shaft21, 
+		# node
+		node_id_rotor,
+		# mass
+		shaft_roh * shaft_A * shaft2_l / 3., 
+		# relative center of mass
+		reference, node, null, 
+		# inertia matrix
+		diag, 	shaft_roh * shaft_Ix * shaft2_l / 3., 
+			shaft_roh * shaft_Iy * shaft2_l / 3., 
+			shaft_roh * shaft_Ip * shaft2_l / 3.,
+		# reference for inertia matrix
+		inertial, reference, node, eye;		
+		
+	joint: joint_id_axial_bearing2, total joint,
+			node_id_ground,
+				position,		reference, ref_id_bearing2, null,
+				position orientation, 	reference, ref_id_bearing2, eye,
+				rotation orientation, 	reference, ref_id_bearing2, eye,
+			node_id_rotor,
+				position,		reference, ref_id_bearing2, null,
+				position orientation, 	reference, ref_id_bearing2, eye,
+				rotation orientation, 	reference, ref_id_bearing2, eye,
+			position constraint, 
+					inactive, 
+					inactive, 
+					active,
+				component, const, 0.,
+					   const, 0.,
+					   const, 0.,
+			orientation constraint,
+					inactive,
+					inactive,
+					inactive,
+				component, const, 0.,
+					   const, 0.,
+					   const, 0.;		
+					   
+	joint: joint_id_drive, angular velocity,
+		# node label
+		node_id_rotor, 
+		# direction
+		0.,0.,1.,
+		# angular velocity
+		const, shaft_omega0;
+
+	joint: joint_id_ground_clamp, clamp,
+		node_id_ground, node, node;		
+						
+	user defined: elem_id_plain_bearing1,
+		hydrodynamic_plain_bearing_with_offset, 			
+		shaft, node_id_rotor,
+		offset, reference,ref_id_shaft11,null, 
+		bearing, node_id_ground,
+		offset, reference,ref_id_bearing1, null, 
+		bearing width, bearing_b,					
+		bearing diameter, shaft_d,					
+		relative clearance, bearing_Psi, 				
+		oil viscosity, bearing_eta;
+		#~ initial_assembly_factor, string,"1 - exp( -(Time - bearing_t0) / bearing_tau)";
+		
+	user defined: elem_id_plain_bearing2,
+		hydrodynamic_plain_bearing_with_offset, 			
+		shaft, node_id_rotor,
+		offset, reference,ref_id_shaft21,null, 
+		bearing, node_id_ground, 
+		offset, reference,ref_id_bearing2, null, 
+		bearing width, bearing_b,					
+		bearing diameter, shaft_d,					
+		relative clearance, bearing_Psi, 				
+		oil viscosity, bearing_eta;					
+		#~ initial_assembly_factor, string,"1 - exp( -(Time - bearing_t0) / bearing_tau)";
+		
+	set: [ dof, omega_rotor, node_id_rotor, structural, 6, differential ];
+	set: [ node, Phi_rotor, node_id_rotor, structural, string="Phi[3]" ];
+	
+		
+	force: force_id_unbalance_F1, absolute,
+		node_id_rotor, 
+		position, reference, node, null, 
+		component, string, "( 1 - exp( -(Time - initial_time) / unbalanced_tau ) ) * unbalanced_mass * unbalanced_radius * omega_rotor^2 * cos( Phi_rotor + unbalanced_angle )",
+			   string, "( 1 - exp( -(Time - initial_time) / unbalanced_tau ) ) * unbalanced_mass * unbalanced_radius * omega_rotor^2 * sin( Phi_rotor + unbalanced_angle )",
+			   const, 0;
+		
+	gravity: -1., 0., 0.,
+		string, "( 1 - exp( -(Time - initial_time) / gravity_tau ) ) * gravity_g";
+end: elements;
+
