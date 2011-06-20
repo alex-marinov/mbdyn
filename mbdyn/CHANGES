@@ -34,6 +34,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- output of reference node forces changed in modal mapping
 	Known issues:
+		- Schur solver is broken
 	Bug fixes:
 		- fix numpy include path in libmbc (Olivier Ricou)
 		- import fixes to kd_* by Ilia Zveda
