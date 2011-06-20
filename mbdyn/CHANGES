@@ -26,7 +26,7 @@ MBDyn 1.X-Devel
 		- added more functions to model namespace
 		- added previous time step functions to model namespace
 		- added support for f95 modules (Reinhard Resch)
-		- added gravity element output
+		- added gravity element output (noted by Patrick Rix)
 		- added module-asynchronous_machine (Reinhard Resch)
 		- added getaddrinfo support
 		- added struct node labels logging (Reinhard Resch)
@@ -42,7 +42,8 @@ MBDyn 1.X-Devel
 		- fix initialization of mbc handlers in C++ wrappers
 		- fix loose coupling in external force
 		  (noted by Tingnan Zhang)
-		- fix handling of KLU refactor (noted by Romuald Noret)
+		- fix handling of KLU refactor (partial)
+		  (noted by Romuald Noret)
 		- fix math parser recursive call (noted by Doug Baldwin)
 		- fix initial assembly dof init (noted by Doug Baldwin)
 		- fix residual initial assembly of deformable displacement
