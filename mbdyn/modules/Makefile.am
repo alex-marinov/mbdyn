@@ -154,7 +154,7 @@ module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.h \
 module-hydrodynamic_plain_bearing/Makefile.inc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
-module-hydrodynamic_plain_bearing/rigid_shaft_with_hydrodynamic_plain_bearing.mbdyn \
+module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
  \
 module-mds/mds \
 module-mds/module-mds.cc \
