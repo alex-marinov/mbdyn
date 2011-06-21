@@ -866,7 +866,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 
 	if (!g && !pRBK) {
-		WorkVec.ResizeReset(0);
+		WorkVec.Resize(0);
 		return WorkVec;
 	}
 
