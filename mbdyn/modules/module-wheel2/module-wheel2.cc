@@ -576,10 +576,10 @@ wheel2_set(void)
 
 	if (!SetUDE("wheel2", rf)) {
 		delete rf;
-		return -1;
+		return false;
 	}
 
-	return 0;
+	return true;
 }
 
 #ifndef STATIC_MODULES
