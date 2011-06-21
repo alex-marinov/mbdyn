@@ -85,9 +85,7 @@
 #include "socketstream_out_elem.h"
 #include "socketstreammotionelem.h"
 
-#ifdef MBDYN_DEVEL
 #include "shell.h"
-#endif // MBDYN_DEVEL
 
 static int iNumTypes[Elem::LASTELEMTYPE];
 
