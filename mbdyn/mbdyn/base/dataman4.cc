@@ -1445,20 +1445,12 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		/* allocazione e creazione */
 		switch (KeyWords(CurrType)) {
 		case SHELL4EAS:
-#ifdef MBDYN_DEVEL
 			pE = ReadShell4EAS(this, HP, pDO, uLabel);
 			break;
-#else // MBDYN_DEVEL
-			silent_cerr("Shell4EAS: not distributed yet" << std::endl);
-#endif // MBDYN_DEVEL
 
 		case SHELL4EASANS:
-#ifdef MBDYN_DEVEL
 			pE = ReadShell4EASANS(this, HP, pDO, uLabel);
 			break;
-#else // MBDYN_DEVEL
-			silent_cerr("Shell4EASANS: not distributed yet" << std::endl);
-#endif // MBDYN_DEVEL
 
 		default:
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
