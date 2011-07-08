@@ -97,7 +97,7 @@ mp_asin_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	Real a1 = (*arg1)();
+	const Real a1 = (*arg1)();
 	if (a1 > 1. || a1 < -1.) {
 		return 1;
 	}
@@ -114,7 +114,8 @@ mp_acos_t(const MathParser::MathArgs& args)
 	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if ((*arg1)() < 0.) {
+	const Real a1 = (*arg1)();
+	if (a1 > 1. || a1 < -1.) {
 		return 1;
 	}
 
