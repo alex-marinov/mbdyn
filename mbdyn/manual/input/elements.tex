@@ -1599,9 +1599,12 @@ the linear mapping matrix.
 The optional keyword \kw{precision} allows to set \nt{precision}
 digits in the logged data; the other optional keywords refer to values
 that are written verbatim to the file.
-In detail, \nt{order} is an integer ($1 \le \nt{order} \le 3$),
+In detail, \nt{surface\_file\_name} is the name of the file that contains
+the coordinates of the peer's points, \nt{output\_file\_name}
+is the name of the file that will contain the mapping matrix,
+\nt{order} is an integer ($1 \le \nt{order} \le 3$),
 \nt{basenode} is the number of nodes for each region ($\nt{basenode} > 0$),
-\nt{weight} is a weighting coefficient ($\nt{weight} \ge -2$ or \kw{inf}).
+\nt{weight} is a weighting coefficient ($\nt{weight} \ge -2$ or \kw{inf})
 
 When the \kw{reference node} keyword is present, the kinematics
 of the points is formulated in the reference frame of node
@@ -1614,13 +1617,17 @@ if \kw{rotate reference node forces} is set to \kw{yes},
 they are first rotated in the global reference frame.
 
 When the \kw{mapped points number} keyword is present,
-a mapping matrix is read from the file named \nt{mapping\_file\_name}.
+a mapping matrix is read from the file named \nt{mapping\_file\_name}
+(same as \nt{output\_file\_name} when the \kw{echo} keyword is used).
 If the keyword \kw{from file} is used, the number of \nt{mapped\_points}
 is computed from the number of rows of the matrix
 in file \nt{mapping\_file\_name}.
 The matrix must be
 $(3 \times \nt{mapped\_points}) \times (3 \times \nt{num\_points})$.
-Otherwise, the element behaves as if the mapping were the identity matrix.
+If the \kw{mapped points number} keyword is not present,
+the element behaves as if the mapping were the identity matrix,
+namely the position and the velocity of the points rigidly offsed
+from MBDyn's nodes are directly passed to the peer solver.
 See the \htmlref{\kw{modal}}{sec:EL:FORCE:EXTERNAL:MODAL_MAPPING}
 variant for a description of the mapping file format.
 
@@ -1634,39 +1641,39 @@ when \kw{labels} is set to \kw{yes}.
 
 \paragraph{Mapping.} \
 The mapping consists in a constant matrix that allows to compute
-the positions and the velocity of the mapped points (subscript `out')
-as functions of the points rigidly offset from MBDyn's nodes
-(subscript `in'),
+the position and the velocity of the mapped points (subscript `peer')
+as functions of a set of points rigidly offset from MBDyn's nodes
+(subscript `mbdyn'),
 \begin{subequations}
 \begin{align}
-	\T{x}_\text{out}
+	\T{x}_\text{peer}
 	&=
-	\TT{H} \T{x}_\text{in}
+	\TT{H} \T{x}_\text{mbdyn}
 	\\
-	\dot{\T{x}}_\text{out}
+	\dot{\T{x}}_\text{peer}
 	&=
-	\TT{H} \dot{\T{x}}_\text{in}
+	\TT{H} \dot{\T{x}}_\text{mbdyn}
 \end{align}
 \end{subequations}
 The same matrix is used to map back the forces onto MBDyn's nodes
 based on the preservation of the work done in the two domains,
 \begin{align}
-	\delta\T{x}_\text{in}^T \T{f}_\text{in}
+	\delta\T{x}_\text{mbdyn}^T \T{f}_\text{mbdyn}
 	&=
-	\delta\T{x}_\text{out}^T \T{f}_\text{out}
+	\delta\T{x}_\text{peer}^T \T{f}_\text{peer}
 	=
-	\delta\T{x}_\text{in}^T \TT{H}^T \T{f}_\text{out}
+	\delta\T{x}_\text{mbdyn}^T \TT{H}^T \T{f}_\text{peer}
 \end{align}
 which implies
 \begin{align}
-	\T{f}_\text{in}
+	\T{f}_\text{mbdyn}
 	&=
-	\TT{H}^T \T{f}_\text{out}
+	\TT{H}^T \T{f}_\text{peer}
 \end{align}
 To compute matrix $\TT{H}$ one needs to:
 \begin{enumerate}
 \item gather the coordinates of the set of points used by the peer process
-(subscript `out') in a file, formatted as
+(subscript `peer' in the formulas above) in a file, formatted as
 \begin{Verbatim}[commandchars=\\\{\}]
 \bnt{num_points}
 \bnt{x_1} \bnt{y_2} \bnt{z_1}
@@ -1676,9 +1683,10 @@ To compute matrix $\TT{H}$ one needs to:
 If \kw{reference node} is defined, the points need to be expressed
 in a reference frame coincident with that of node \nt{ref\_node\_label}.
 
-\item execute MBDyn's input file with the \kw{echo} line uncommented,
+\item execute MBDyn's input file after uncommenting the \kw{echo} line
+in the definition of the external structural mapping force element,
 terminated by the \kw{stop} keyword, to generate the \nt{echo\_file\_name}
-file with MBDyn's points coordinates (subscript `in').
+file with MBDyn's points coordinates (subscript `mbdyn' in the formulas above).
 
 \item start \texttt{octave}
 
@@ -1691,12 +1699,17 @@ file with MBDyn's points coordinates (subscript `in').
 \begin{Verbatim}[commandchars=\\\{\}]
     create_mls_interface('\nt{echo_file_name}');
 \end{Verbatim}
-This generates the mapping matrix $\TT{H}$ and stores it in
-the file \nt{output\_file\_name}.
-The \kw{sparse} storage is recommended, since the file for usual problems
-is significantly sparse.
+This generates the mapping matrix $\TT{H}$, using the files \nt{echo\_file\_name}
+and \nt{surface\_file\_name} (the latter is written in \nt{echo\_file\_name}
+by the \kw{surface} keyword). The matrix is stored in the file \nt{output\_file\_name}.
+The \kw{sparse} storage is recommended, since for usual problems
+the matrix is significantly sparse.
+\\
+\emph{NOTE: this operation can take minutes when the mapped domains consist
+of thousands of points.}
 
-\item comment the \kw{echo} line.
+\item comment the \kw{echo} line
+in the definition of the external structural mapping force element.
 \end{enumerate}
 From this point on, when MBDyn is executed it loads the mapping matrix
 from file \nt{output\_file\_name} using sparse storage, automatically
@@ -1722,7 +1735,7 @@ The parameters of the mapping, as documented in
 %               The value must be in the range [1,3]. Default is 2
 %
 %       # basenode: number of nodes included in the local MLS support
-%               shold be higher than 0
+%               should be higher than 0
 %
 %       # weight: continuity order of the RBF weight function
 %               The value must be in the range [-2,inf]
@@ -1757,7 +1770,8 @@ The parameters of the mapping, as documented in
                 offset, null,
                 offset, 0., 1., 0.,
                 offset, 0., 0., 1.,
-        # echo, "points.dat", stop,
+        # NOTE: uncomment the line below to generate data required for the mapping
+        # echo, "points.dat", surface, "surf.dat", output, "mapping.dat", stop,
         mapped points number, 27,
         sparse mapping file, "mapping.dat";
 \end{verbatim}
