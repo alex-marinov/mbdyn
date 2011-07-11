@@ -17,7 +17,7 @@ module-aerodyn:
   contrib/Patches/ of MBDyn's source tree
 - execute
 
-	gfortran -ffixed-line-length-none -ffree-line-length-none -O -c *.f90
+	gfortran -ffixed-line-length-none -ffree-line-length-none -fPIC -O -c *.f90
 	ar ru libAeroDyn.a *.o
 
 - copy libAeroDyn.a where it can be found by the linker, or directly
