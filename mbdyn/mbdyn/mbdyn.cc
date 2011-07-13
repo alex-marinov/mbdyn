@@ -133,7 +133,7 @@ struct mbdyn_proc_t {
 	std::ifstream FileStreamIn;
 	std::istream* pIn;
 	char* sInputFileName;
-	char* sOutputFileName;
+	std::string sOutputFileName;
 	bool bException;
 	bool bRedefine;
 	bool bTable;
@@ -402,7 +402,18 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			break;
 
 		case int('o'):
-			mbp.sOutputFileName = optarg;
+			if (optarg[0] == '/') {
+				mbp.sOutputFileName = optarg;
+
+			} else {
+				char buf[PATH_MAX];
+				char *cwd = getcwd(buf, sizeof(buf));
+				if (cwd == NULL) {
+					silent_cerr("Unable to set output file: getcwd failed" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				mbp.sOutputFileName = std::string(cwd) + '/' + optarg;
+			}
 			break;
 
 		case int('d'):
@@ -709,7 +720,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName);
 
 			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
-				mbp.sOutputFileName, 
+				mbp.sOutputFileName.c_str(), 
 				mbp.using_mpi, mbp.bException);
 			if (mbp.FileStreamIn.is_open()) {
 				mbp.FileStreamIn.close();
@@ -819,7 +830,6 @@ main(int argc, char* argv[])
        	mbp.bShowSymbolTable = false;
 	mbp.pIn = NULL;
        	mbp.sInputFileName = (char *)sDefaultInputFileName;
-       	mbp.sOutputFileName = NULL;
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = FILE_UNKNOWN;
