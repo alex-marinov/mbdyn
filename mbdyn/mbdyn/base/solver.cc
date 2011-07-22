@@ -344,7 +344,7 @@ pNLS(NULL)
 
 	SAFESTRDUP(sInputFileName, sInFName);
 
-	if (sOutFName != NULL) {
+	if (sOutFName != NULL && sOutFName[0] != '\0') {
 		SAFESTRDUP(sOutputFileName, sOutFName);
 	}
 
@@ -3013,6 +3013,10 @@ Solver::ReadData(MBDynParser& HP)
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
 
 				} else if (HP.IsKeyWord("output" "eigenvectors")) {
+#ifndef USE_EIG
+					silent_cerr("\"output eigenvectors\" needs eigenanalysis support" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_EIG
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_EIGENVECTORS;
 
 				} else if (HP.IsKeyWord("output" "geometry")) {
@@ -3111,7 +3115,7 @@ Solver::ReadData(MBDynParser& HP)
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
-#ifdef USE_ARPACK
+#ifdef USE_JDQZ
 					EigAn.uFlags |= EigenAnalysis::EIG_USE_JDQZ;
 
 					EigAn.jdqz.kmax = HP.GetInt();
@@ -3142,13 +3146,13 @@ Solver::ReadData(MBDynParser& HP)
 							<< std::endl);
 						EigAn.jdqz.eps = std::numeric_limits<doublereal>::epsilon();
 					}
-#else // !USE_ARPACK
+#else // !USE_JDQZ
 					silent_cerr("\"use jdqz\" "
 						"needs to configure --with-jdqz "
 						"at line " << HP.GetLineData()
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif // !USE_ARPACK
+#endif // !USE_JDQZ
 
 				} else if (HP.IsKeyWord("balance")) {
 					if (HP.IsKeyWord("no")) {
