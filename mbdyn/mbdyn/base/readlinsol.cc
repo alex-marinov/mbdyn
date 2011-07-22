@@ -503,6 +503,14 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			break;
 		}
 	}
+
+	switch (cs.GetSolver()) {
+	case LinSol::NAIVE_SOLVER:
+		if (!(cs.GetSolverFlags() & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD)) {
+			silent_cout("warning: \"naive\" solver should be used with \"colamd\"" << std::endl);
+		}
+		break;
+	}
 }
 
 std::ostream & RestartLinSol(std::ostream& out, const LinSol& cs)
