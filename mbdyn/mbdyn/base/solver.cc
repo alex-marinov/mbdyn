@@ -1967,7 +1967,7 @@ Solver::ReadData(MBDynParser& HP)
 			"change",
 
 		"pod",
-		"eigen" "analysis",	/* EXPERIMENTAL */
+		"eigen" "analysis",
 
 		/* DEPRECATED */
 		"solver",
@@ -2964,7 +2964,6 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case EIGENANALYSIS:
-#ifdef USE_EIG
 			// read eigenanalysis time (to be changed)
 			if (HP.IsKeyWord("list")) {
 				int iNumTimes = HP.GetInt();
@@ -3236,6 +3235,7 @@ Solver::ReadData(MBDynParser& HP)
 				break;
 			}
 
+#ifdef USE_EIG
 			// if an eigenanalysis routine is selected
 			// or sparse matrix output is not requested,
 			// force direct eigensolution
@@ -3256,50 +3256,7 @@ Solver::ReadData(MBDynParser& HP)
 				}
 			}
 #else // !USE_EIG
-			HP.GetReal();
-			if (HP.IsKeyWord("parameter")) {
-				HP.GetReal();
-			}
-
-			while (HP.IsArg()) {
-				if (HP.IsKeyWord("output" "matrices")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("output" "full" "matrices")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("output" "sparse" "matrices")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("output" "eigenvectors")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("use" "lapack")) {
-					NO_OP;
-
-				} else if (HP.IsKeyWord("use" "arpack")) {
-					(void)HP.GetInt();
-					(void)HP.GetInt();
-					(void)HP.GetReal();
-
-				} else if (HP.IsKeyWord("lower" "frequency" "limit")) {
-					(void)HP.GetReal();
-
-				} else if (HP.IsKeyWord("upper" "frequency" "limit")) {
-					(void)HP.GetReal();
-
-				} else {
-					silent_cerr("unknown option "
-						"in \"eigenanalysis\" statement "
-						"at line " << HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
-			silent_cerr(HP.GetLineData()
-				<< ": eigenanalysis not supported (ignored)"
-				<< std::endl);
+			silent_cerr("warning: \"eigenanalysis\" not supported; ignored" << std::endl);
 #endif // !USE_EIG
 			break;
 
