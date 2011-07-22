@@ -3007,6 +3007,10 @@ Solver::ReadData(MBDynParser& HP)
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_MATRICES;
 
 				} else if (HP.IsKeyWord("output" "full" "matrices")) {
+#ifndef USE_EIG
+					silent_cerr("\"output full matrices\" needs eigenanalysis support" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // !USE_EIG
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_FULL_MATRICES;
 
 				} else if (HP.IsKeyWord("output" "sparse" "matrices")) {
@@ -3260,6 +3264,9 @@ Solver::ReadData(MBDynParser& HP)
 				}
 			}
 #else // !USE_EIG
+			if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_MATRICES) {
+				EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES;
+			}
 			silent_cerr("warning: \"eigenanalysis\" not supported; ignored" << std::endl);
 #endif // !USE_EIG
 			break;
@@ -5099,8 +5106,8 @@ Solver::Eig(void)
 #endif // USE_JDQZ
 
 	default:
-		// can't get here!
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		// only output matrices, use external eigenanalysis
+		break;
 	}
 
 	if (o) {
