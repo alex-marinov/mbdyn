@@ -510,6 +510,11 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			silent_cout("warning: \"naive\" solver should be used with \"colamd\"" << std::endl);
 		}
 		break;
+
+	// add more warnings...
+
+	default:
+		break;
 	}
 }
 
