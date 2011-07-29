@@ -3272,6 +3272,214 @@ $
 
 
 
+\subsection{Inline}
+This joint forces a point rigidly attached to node $b$ to slide
+along a line rigidly attached to node $a$, thus removing 2 degrees of freedom.
+
+\paragraph{Files.} \
+It is implemented in files
+
+\begin{tabular}{l}
+\texttt{mbdyn/struct/inline.h} \\
+\texttt{mbdyn/struct/inline.cc}
+\end{tabular}
+
+\paragraph{Definitions.} \
+Orientation of line
+\begin{align}
+	\TT{R}_v
+	&=
+	\TT{R}_a \tilde{\TT{R}}_v
+\end{align}
+the axis is along local axis 3 of matrix $\tilde{\TT{R}}_v$,
+$\tilde{\T{e}}_3$, while directions $\tilde{\T{e}}_1$, $\tilde{\T{e}}_2$
+are constrained.
+
+Origin of line
+\begin{align}
+	\T{x}_p
+	&=
+	\T{x}_a + \T{p}
+	=
+	\T{x}_a + \TT{R}_a \tilde{\T{p}}
+\end{align}
+Sliding point
+\begin{align}
+	\T{x}_q
+	&=
+	\T{x}_b + \T{q}
+	=
+	\T{x}_b + \TT{R}_b \tilde{\T{q}}
+\end{align}
+
+Constraint equations:
+distance between sliding point $\T{x}_q$ and axis null in local directions
+$\tilde{\T{e}}_1$, $\tilde{\T{e}}_2$, namely
+\begin{align}
+	\T{e}_i^T \T{d}
+	&=
+	0
+	,
+\end{align}
+with $i=1,2$ and $\T{d} = \T{x}_q - \T{x}_p$.
+After simple manipulation,
+\begin{align}
+	\T{e}_i^T \plbr{\T{x}_b + \T{q} - \T{x}_a} - \tilde{\T{e}}_i^T \tilde{\T{p}}
+	&=
+	0
+	.
+\end{align}
+Perturbation:
+\begin{align}
+	\plbr{\T{e}_i \times \plbr{\T{x}_b + \T{q} - \T{x}_a}}^T \T{\theta}_{a\delta}
+	+ \T{e}_i^T \plbr{
+		\delta\T{x}_b
+		-
+		\T{q} \times \T{\theta}_{b\delta}
+		-
+		\delta\T{x}_a
+	}
+	&=
+	0
+\end{align}
+Forces and moments:
+\begin{subequations}
+\begin{align}
+	\T{f}_a
+	&=
+	- \sum_{i=1,2} \T{e}_i \lambda_i
+	\\
+	\T{m}_a
+	&=
+	\sum_{i=1,2} \T{e}_i \times \plbr{\T{x}_b + \T{q} - \T{x}_a} \lambda_i
+	\\
+	\T{f}_b
+	&=
+	\sum_{i=1,2} \T{e}_i \lambda_i
+	\\
+	\T{m}_b
+	&=
+	- \sum_{i=1,2} \T{e}_i \times \T{q} \lambda_i
+\end{align}
+\end{subequations}
+Linearization
+\begin{align}
+	\sqbr{\matr{cccc}{
+		-\T{e}_i^T
+		&
+		\plbr{\T{e}_i \times \plbr{\T{x}_b + \T{q} - \T{x}_a}}^T
+		&
+		\T{e}_i^T
+		&
+		-\plbr{\T{e}_i \times \T{q}}^T
+	}} \cubr{\cvvect{
+		\delta\T{x}_a
+		\\
+		\T{\theta}_{a\delta}
+		\\
+		\delta\T{x}_b
+		\\
+		\T{\theta}_{b\delta}
+	}}
+	&=
+	0
+\end{align}
+\begin{subequations}
+\begin{align}
+	\delta\T{f}_a
+	&=
+	-\sum_{i=1,2} \plbr{
+		\T{e}_i \delta\lambda_i
+		-
+		\lambda_i \T{e}_i \times \T{\theta}_{a\delta}
+	}
+	\\
+	\delta\T{m}_a
+	&=
+	\sum_{i=1,2} \plbr{
+		\T{e}_i \times \plbr{\T{x}_b + \T{q} - \T{x}_a} \delta\lambda_i
+		+
+		\lambda_i \plbr{\T{x}_b + \T{q} - \T{x}_a} \times \T{e}_i \times \T{\theta}_{a\delta}
+		+
+		\lambda_i \T{e}_i \times \plbr{
+			\delta\T{x}_b
+			-
+			\T{q} \times \T{\theta}_{b\delta}
+			-
+			\delta\T{x}_a
+		}
+	}
+	\\
+	\delta\T{f}_b
+	&=
+	\sum_{i=1,2} \plbr{
+		\T{e}_i \delta\lambda_i
+		-
+		\lambda_i \T{e}_i \times \T{\theta}_{a\delta}
+	}
+	\\
+	\delta\T{m}_b
+	&=
+	- \sum_{i=1,2} \plbr{
+		\T{e}_i \times \T{q} \delta\lambda_i
+		+
+		\lambda_i \T{q} \times \T{e}_i \times \T{\theta}_{a\delta}
+		-
+		\lambda_i \T{e}_i \times \T{q} \times \T{\theta}_{b\delta}
+	}
+\end{align}
+\end{subequations}
+or
+\begin{align}
+	&\cubr{\cvvect{
+		\delta\T{f}_a
+		\\
+		\delta\T{m}_a
+		\\
+		\delta\T{f}_b
+		\\
+		\delta\T{m}_b
+	}}
+	=
+	\sqbr{\matr{cc}{
+		-\T{e}_1 & -\T{e}_2
+		\\
+		\T{e}_1 \times \plbr{\T{x}_b + \T{q} - \T{x}_a} & \T{e}_2 \times \plbr{\T{x}_b + \T{q} - \T{x}_a}
+		\\
+		\T{e}_1 & \T{e}_2
+		\\
+		-\T{e}_1 \times \T{q} & -\T{e}_2 \times \T{q}
+	}} \cubr{\cvvect{
+		\delta\lambda_1
+		\\
+		\delta\lambda_2
+	}}
+	\nonumber \\
+	&\mbox{}+ \sqbr{\matr{cccc}{
+		\TT{0} & \sum_{i=1,2} \lambda_i \T{e}_i\times{} & \TT{0} & \TT{0}
+		\\
+		-\sum_{i=1,2} \lambda_i \T{e}_i\times{}
+			& \sum_{i=1,2} \lambda_i \plbr{\T{x}_b + \T{q} - \T{x}_a} \times \T{e}_i\times{}
+			& \sum_{i=1,2} \lambda_i \T{e}_i\times{}
+			& -\sum_{i=1,2} \lambda_i \T{e}_i\times\T{q}\times{}
+		\\
+		\TT{0} & -\sum_{i=1,2} \lambda_i \T{e}_i\times{} & \TT{0} & \TT{0}
+		\\
+		\TT{0}
+			& -\sum_{i=1,2} \lambda_i \T{q}\times\T{e}_i\times{}
+			& \TT{0}
+			& \sum_{i=1,2} \lambda_i \T{e}_i\times\T{q}\times{}
+	}} \cubr{\cvvect{
+		\delta\T{x}_a
+		\\
+		\T{\theta}_{a\delta}
+		\\
+		\delta\T{x}_b
+		\\
+		\T{\theta}_{b\delta}
+	}}
+\end{align}
+
 
 \subsection{Drive Hinge}
 This joint (\texttt{DriveHingeJoint}) forces two nodes to assume a relative orientation
