@@ -242,6 +242,7 @@ INCLUDES = \
 %.so: %.o
 	$(CXXLINK) -shared -o $@ $<
 
+if USE_OCTAVE
 install-exec-local-oct:
 	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(octavedir)
 	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct $(DESTDIR)$(octavedir)
@@ -249,6 +250,9 @@ install-exec-local-oct:
 	@for f in $(OCTAVE_FUNCS) ; do \
 		ln -s $(DESTDIR)$(octavedir)/mbdyn_util_oct.oct $(DESTDIR)$(octavedir)/$$f ; \
 	done
+else
+install-exec-local-oct:
+endif
 
 install-exec-local: install-exec-local-oct
 
