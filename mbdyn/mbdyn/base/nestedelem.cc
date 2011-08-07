@@ -39,7 +39,7 @@
 NestedElem::NestedElem(const Elem* pE)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
 InitialAssemblyElem(pE->GetLabel(), pE->fToBeOutput()),
-AerodynamicElem(pE->GetLabel(), dynamic_cast<const AerodynamicElem *>(pE) ? dynamic_cast<const AerodynamicElem *>(pE)->pGetDofOwner() : 0, pE->fToBeOutput()),
+AerodynamicElem(pE->GetLabel(), dynamic_cast<const ElemWithDofs *>(pE) ? dynamic_cast<const ElemWithDofs *>(pE)->pGetDofOwner() : 0, pE->fToBeOutput()),
 ElemGravityOwner(pE->GetLabel(), pE->fToBeOutput()),
 pElem(const_cast<Elem *>(pE))
 {
