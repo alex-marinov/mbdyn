@@ -366,7 +366,7 @@ BEGIN {
 	sideprop_add("aero", 14);
 }
 
-isvan == 0 && /structural node:/ {
+isvan == 0 && /^structural node:/ {
 	strnode_label[strnode_num] = $3;
 	strnode[$3] = strnode_num;
 	strnode[$3, 1] = $4;
@@ -465,7 +465,7 @@ isvan == 0 && (/sphericalhinge:/ || /revolutehinge/ || /universalhinge/) && show
 	}
 }
 
-isvan == 0 && /distance:/ && show["distance"] {
+isvan == 0 && /^distance:/ && show["distance"] {
 	if (!exclude["joint", $2]) {
 		j_distance_label[j_distance_num] = $2;
 		j_distance[$2] = j_distance_num;
@@ -514,7 +514,7 @@ isvan == 0 && /distance:/ && show["distance"] {
 	}
 }
 
-isvan == 0 && /rod:/ && show["rod"]{
+isvan == 0 && /^rod:/ && show["rod"]{
 	if (!exclude["joint", $2]) {
 		j_rod_label[j_rod_num] = $2;
 		j_rod[$2] = j_rod_num;
@@ -612,7 +612,7 @@ isvan == 0 && (/deformablejoint:/ || /deformabledisplacementjoint:/) && show["de
 	}
 }
 
-isvan == 0 && /totaljoint:/ && show["totaljoint"] {
+isvan == 0 && /^totaljoint:/ && show["totaljoint"] {
 	if (!exclude["joint", $2]) {
 		j_totaljoint_label[j_totaljoint_num] = $2;
 		j_totaljoint[$2] = j_totaljoint_num;
@@ -661,7 +661,7 @@ isvan == 0 && /totaljoint:/ && show["totaljoint"] {
 	}
 }
 
-isvan == 0 && /totalpinjoint:/ && show["totalpinjoint"] {
+isvan == 0 && /^totalpinjoint:/ && show["totalpinjoint"] {
 	if (!exclude["joint", $2]) {
 		j_totalpinjoint_label[j_totalpinjoint_num] = $2;
 		j_totalpinjoint[$2] = j_totalpinjoint_num;
@@ -698,7 +698,7 @@ isvan == 0 && /totalpinjoint:/ && show["totalpinjoint"] {
 	}
 }
 
-isvan == 0 && /beam2:/ && show["beam"] {
+isvan == 0 && /^beam2:/ && show["beam"] {
 	if (!exclude["beam", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by beam2("$2") as node 1 not found" > "/dev/stderr";
@@ -754,7 +754,7 @@ isvan == 0 && /beam2:/ && show["beam"] {
 	}
 }
 
-isvan == 0 && /beam3:/ && show["beam"] {
+isvan == 0 && /^beam3:/ && show["beam"] {
 	if (!exclude["beam", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by beam3("$2") as node 1 not found" > "/dev/stderr";
@@ -834,7 +834,7 @@ isvan == 0 && /beam3:/ && show["beam"] {
 	}
 }
 
-isvan == 0 && /shell4:/ && show["shell"] {
+isvan == 0 && /^shell4:/ && show["shell"] {
 	if (!exclude["shell", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by shell4("$2") as node 1 not found" > "/dev/stderr";
@@ -876,7 +876,7 @@ isvan == 0 && /shell4:/ && show["shell"] {
 	}
 }
 
-isvan == 0 && /aero0:/ && show["aero"] {
+isvan == 0 && /^aero0:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero0("$2") as node not found" > "/dev/stderr";
@@ -944,7 +944,7 @@ isvan == 0 && /aero0:/ && show["aero"] {
 	}
 }
 
-isvan == 0 && /aero2:/ && show["aero"] {
+isvan == 0 && /^aero2:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero2("$2") as node 1 not found" > "/dev/stderr";
@@ -1017,7 +1017,7 @@ isvan == 0 && /aero2:/ && show["aero"] {
 	}
 }
 
-isvan == 0 && /aero3:/ && show["aero"] {
+isvan == 0 && /^aero3:/ && show["aero"] {
 	if (!exclude["aerodynamic element", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by aero3("$2") as node 1 not found" > "/dev/stderr";

@@ -3149,57 +3149,56 @@ ReadStructNode(DataManager* pDM,
 		}
 	}
 
-	switch (CurrType) {
+	std::ostream& out = pDM->GetLogFile();
+
+	const char* description = "structural node: ";
+
+	switch (CurrType){
 	case DUMMY:
-		switch (DummyType) {
+		switch (DummyType){
 		case RELATIVEFRAME:
-			goto done;
-
-		default:
+			description = "relative frame structural node: ";
 			break;
 		}
-
-	default:
-		std::ostream& out = pDM->GetLogFile();
-		out << "structural node: " << uLabel
-			<< " ", pNd->GetXCurr().Write(out, " ")
-			<< " ";
-		switch (od) {
-		case EULER_123:
-			out << "euler123 ",
-				(MatR2EulerAngles123(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-			break;
-
-		case EULER_313:
-			out << "euler313 ",
-				(MatR2EulerAngles313(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-			break;
-
-		case EULER_321:
-			out << "euler321 ",
-				(MatR2EulerAngles321(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-			break;
-
-		case ORIENTATION_VECTOR:
-			out << "phi ",
-				RotManip::VecRot(pNd->GetRCurr()).Write(out, " ");
-			break;
-
-		case ORIENTATION_MATRIX:
-			out << "mat ",
-				pNd->GetRCurr().Write(out, " ");
-			break;
-
-		default:
-			/* impossible */
-			break;
-		}
-
-		out << std::endl;
 		break;
 	}
 
-done:;
+	out << description << uLabel
+		<< " ", pNd->GetXCurr().Write(out, " ")
+		<< " ";
+	switch (od) {
+	case EULER_123:
+		out << "euler123 ",
+			(MatR2EulerAngles123(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+		break;
+
+	case EULER_313:
+		out << "euler313 ",
+			(MatR2EulerAngles313(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+		break;
+
+	case EULER_321:
+		out << "euler321 ",
+			(MatR2EulerAngles321(pNd->GetRCurr())*dRaDegr).Write(out, " ");
+		break;
+
+	case ORIENTATION_VECTOR:
+		out << "phi ",
+			RotManip::VecRot(pNd->GetRCurr()).Write(out, " ");
+		break;
+
+	case ORIENTATION_MATRIX:
+		out << "mat ",
+			pNd->GetRCurr().Write(out, " ");
+		break;
+
+	default:
+		/* impossible */
+		break;
+	}
+
+	out << std::endl;
+
 	ASSERT(pNd != NULL);
 
 	return pNd;

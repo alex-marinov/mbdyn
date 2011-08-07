@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- log relative frame dummy nodes (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
