@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- log relative frame dummy nodes (Reinhard Resch)
+		- log struct node momentum dofs (Reinhard Resch)
 		- added support for octave (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
