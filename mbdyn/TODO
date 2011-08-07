@@ -247,6 +247,9 @@ E. Bugs/missing features:
 	- add "output" flag to .out (DONE)
 	- support float instead of double in NetCDF output
 	- support "med" in output
+	- reject "mt" from naive when configured without support
+	- allow "mt" from command-line
+	- allow make of mod-* and moddae-* modules
 
 
 
