@@ -194,6 +194,7 @@ OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output],no)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output],no)dnl
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
+OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -603,6 +604,32 @@ if test "$ol_enable_python" != no ; then
 	AX_SWIG_PYTHON
 
 	use_python=yes
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable Octave support <http://www.octave.org/>
+dnl
+use_octave=no
+if test "$ol_enable_octave" != no ; then
+	AC_LANG_CPLUSPLUS
+	AC_CHECK_HEADER(octave/oct.h,[have_octave_oct_h=yes],[have_octave_oct_h=no])
+	AC_LANG_C
+
+	have_mkoctfile=no
+	which mkoctfile > /dev/null 2>&1
+	RC=$?
+	if test "$RC" = 0 ; then
+		have_mkoctfile=yes
+	fi
+
+	if test "$have_octave_oct_h" = "yes" -a "$have_mkoctfile" = "yes" ; then
+		use_octave=yes
+	else
+		if test "$ol_enable_octave" = "yes" ; then
+			AC_MSG_ERROR([octave support not available])
+		fi
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -2518,6 +2545,7 @@ AM_CONDITIONAL(USE_CHACO,[test "$ol_link_chaco" = yes])
 AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
+AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])

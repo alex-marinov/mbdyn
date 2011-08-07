@@ -26,6 +26,11 @@ rot2phi \
 rotrel \
 vec2rot
 
+if USE_OCTAVE
+bin_PROGRAMS += \
+mbdyn_util_oct.oct
+endif
+
 if USE_RTAI
 bin_PROGRAMS += \
 logproc
@@ -149,11 +154,24 @@ Mbfem/nas_read.cc \
 Mbfem/nas_read.h \
 Mbfem/node3.h
 
+#mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
+if USE_OCTAVE
+OCTAVE_INCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
+OCTAVE_LIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
+
+mbdyn_util_oct.o: mbdyn_util_oct.cc
+	mkoctfile $(OCTAVE_INCLUDE) -c -o $@ $<
+
+mbdyn_util_oct.oct: mbdyn_util_oct.o
+	mkoctfile -o $@ $< $(OCTAVE_LIBS)
+endif
+
 ann_in_LDADD = $(MYLIBS)
 ann_sf_LDADD = $(MYLIBS)
 ann_sim_LDADD = $(MYLIBS)
 ann_tr_LDADD = $(MYLIBS)
 autopilot_LDADD = $(MYLIBS) @SECURITY_LIBS@
+mbdyn_util_oct_oct_LDADD = $(MYLIBS)
 
 # need to fool libtool in getting libbase linked twice ;)
 # hope this is not fixed for a while...
