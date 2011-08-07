@@ -26,11 +26,6 @@ rot2phi \
 rotrel \
 vec2rot
 
-if USE_OCTAVE
-bin_PROGRAMS += \
-mbdyn_util_oct.oct
-endif
-
 if USE_RTAI
 bin_PROGRAMS += \
 logproc
@@ -64,6 +59,11 @@ playground \
 test_modalext \
 test_modalext_edge \
 test_strext_edge
+
+if USE_OCTAVE
+noinst_PROGRAMS += \
+mbdyn_util_oct.oct
+endif
 
 if USE_SOCKET
 noinst_PROGRAMS += \
@@ -154,7 +154,7 @@ Mbfem/nas_read.cc \
 Mbfem/nas_read.h \
 Mbfem/node3.h
 
-#mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
+mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
 if USE_OCTAVE
 OCTAVE_INCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
 OCTAVE_LIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
@@ -232,6 +232,12 @@ INCLUDES = \
 # NOTE: this is a GNU make extension
 %.so: %.o
 	$(CXXLINK) -shared -o $@ $<
+
+install-exec-local-oct:
+	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(octavedir)
+	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct $(DESTDIR)$(octavedir)
+
+install-exec-local: install-exec-local-oct
 
 include $(top_srcdir)/build/bot.mk
 

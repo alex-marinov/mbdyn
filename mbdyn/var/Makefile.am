@@ -13,10 +13,6 @@ mbdyn2easyanim.sh.in \
 pod.m \
 mbd.vim
 
-octavedir = "$(datarootdir)/octave"
-c81dir = "$(datarootdir)/c81"
-awkdir = "$(datarootdir)/awk"
-
 generated = mbdyn2easyanim.sh
 
 all-local: $(generated)

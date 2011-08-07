@@ -3,6 +3,12 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
+octavedir = "$(datarootdir)/octave"
+c81dir = "$(datarootdir)/c81"
+awkdir = "$(datarootdir)/awk"
+
+export octavedir c81dir awkdir
+
 codeaster_dir = "$(datarootdir)/Aster"
 codeaster_srcdir = contrib/CodeAster
 codeaster_files = \
