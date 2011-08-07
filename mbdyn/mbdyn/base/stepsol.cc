@@ -538,10 +538,18 @@ Step1Integrator::Advance(Solver* pS,
 #ifdef DEBUG
       	integer iNumDofs = pDM->iGetNumDofs();
 	if (outputPred) {
-		std::cout << "Dof:      XCurr  ,    XPrev  "
-			",   XPrime  ,   XPPrev" << std::endl;
+		std::cout << "After prediction, time=" << pDM->dGetTime() << std::endl;
+		std::cout << "Dof:      |    XCurr  ";
+		for (unsigned idx = 0; idx < qX.size(); idx++) {
+			std::cout << "|  XPrev[" << idx << "] ";
+		}
+		std::cout << "|   XPrime  ";
+		for (unsigned idx = 0; idx < qXPrime.size(); idx++) {
+			std::cout << "| XPPrev[" << idx << "] ";
+		}
+		std::cout << "|" << std::endl;
 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-    			std::cout << std::setw(4) << iTmpCnt << ": ";
+    			std::cout << std::setw(8) << iTmpCnt << ": ";
 			std::cout << std::setw(12) << pX->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {  
 				std::cout << std::setw(12)
@@ -551,8 +559,8 @@ Step1Integrator::Advance(Solver* pS,
 			for (unsigned int ivec = 0; ivec < qXPrime.size(); ivec++) {  
 				std::cout << std::setw(12)
 				<< (qXPrime[ivec])->operator()(iTmpCnt);
-			} 
-			std::cout << std::endl;
+			}
+			std::cout << " " << pDM->DataManager::GetDofDescription(iTmpCnt) << std::endl;
  		}
 	}
 #endif /* DEBUG */
@@ -679,10 +687,18 @@ Step2Integrator::Advance(Solver* pS,
 #ifdef DEBUG
 	integer iNumDofs = pDM->iGetNumDofs();
 	if (outputPred) {
-		std::cout << "Dof:      XCurr  ,    XPrev  ,   XPrev2  "
-			",   XPrime  ,   XPPrev  ,   XPPrev2" << std::endl;
+		std::cout << "After prediction, time=" << pDM->dGetTime() << std::endl;
+		std::cout << "Dof:      |    XCurr  ";
+		for (unsigned idx = 0; idx < qX.size(); idx++) {
+			std::cout << "|  XPrev[" << idx << "] ";
+		}
+		std::cout << "|   XPrime  ";
+		for (unsigned idx = 0; idx < qXPrime.size(); idx++) {
+			std::cout << "| XPPrev[" << idx << "] ";
+		}
+		std::cout << "|" << std::endl;
 		for (int iTmpCnt = 1; iTmpCnt <= iNumDofs; iTmpCnt++) {
-    			std::cout << std::setw(4) << iTmpCnt << ": ";
+    			std::cout << std::setw(8) << iTmpCnt << ": ";
 			std::cout << std::setw(12) << pX->operator()(iTmpCnt);
 			for (unsigned int ivec = 0; ivec < qX.size(); ivec++) {
 				std::cout << std::setw(12)
@@ -693,7 +709,7 @@ Step2Integrator::Advance(Solver* pS,
 				std::cout << std::setw(12)
 					<< (qXPrime[ivec])->operator()(iTmpCnt);
 			} 
-			std::cout << std::endl;
+			std::cout << " " << pDM->DataManager::GetDofDescription(iTmpCnt) << std::endl;
  		}
 	}
 #endif /* DEBUG */
