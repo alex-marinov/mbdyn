@@ -158,6 +158,15 @@ mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
 if USE_OCTAVE
 OCTAVE_INCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
 OCTAVE_LIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
+OCTAVE_FUNCS = \
+rotation_matrix_to_rotation_vector.oct \
+rotation_vector_to_rotation_matrix.oct \
+rotation_matrix_to_euler123.oct \
+euler123_to_rotation_matrix.oct \
+rotation_matrix_to_euler313.oct \
+euler313_to_rotation_matrix.oct \
+rotation_matrix_to_euler321.oct \
+euler321_to_rotation_matrix.oct
 
 mbdyn_util_oct.o: mbdyn_util_oct.cc
 	mkoctfile $(OCTAVE_INCLUDE) -c -o $@ $<
@@ -236,6 +245,10 @@ INCLUDES = \
 install-exec-local-oct:
 	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(octavedir)
 	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct $(DESTDIR)$(octavedir)
+	@echo "creating symlinks..."
+	@for f in $(OCTAVE_FUNCS) ; do \
+		ln -s $(DESTDIR)$(octavedir)/mbdyn_util_oct.oct $(DESTDIR)$(octavedir)/$$f ; \
+	done
 
 install-exec-local: install-exec-local-oct
 
