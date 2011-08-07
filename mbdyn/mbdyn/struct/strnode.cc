@@ -3151,7 +3151,7 @@ ReadStructNode(DataManager* pDM,
 
 	std::ostream& out = pDM->GetLogFile();
 
-	const char* description = "structural node: ";
+	const char *description = "structural node: ";
 
 	switch (CurrType){
 	case DUMMY:
@@ -3159,7 +3159,13 @@ ReadStructNode(DataManager* pDM,
 		case RELATIVEFRAME:
 			description = "relative frame structural node: ";
 			break;
+
+		default:
+			break;
 		}
+		break;
+
+	default:
 		break;
 	}
 
