@@ -223,6 +223,18 @@ while the \nt{orientation\_*} matrices indicate the orientation
 of the joint in the reference frame of the respective nodes.
 All data is in on one line, without continuation.
 
+\subsection{relative frame structural node}
+The \kw{relative frame} variant of \kw{dummy} structural nodes
+is logged separately, as it cannot be intermixed with regular structural nodes
+and the \kw{offset} variant of \kw{dummy} structural nodes.
+The syntax is the same of the \kw{structural node}
+(Section~\ref{sec:APP:LOGFILE:STRUCTURAL_NODE}), namely
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{relative frame structural node}: \bnt{label} (\ty{Vec3}) \bnt{X} \bnt{orientation_description}
+\end{Verbatim}
+%\end{verbatim}
+
 \subsection{revolute hinge}
 The \kw{revolute hinge} joint
 %\begin{verbatim}
@@ -285,12 +297,13 @@ while the matrix \nt{orientation} is the identity matrix.
 All data is in on one line, without continuation.
 
 \subsection{structural node}
+\label{sec:APP:LOGFILE:STRUCTURAL_NODE}
 The \kw{structural node}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \kw{structural node}: \bnt{label} (\ty{Vec3}) \bnt{X} \bnt{orientation}
+    \kw{structural node}: \bnt{label} (\ty{Vec3}) \bnt{X} \bnt{orientation_description}
 
-    \bnt{orientation} ::=
+    \bnt{orientation_description} ::=
         \{ \kw{euler123} (\ty{Vec3}) \bnt{euler123_angles}
             | \kw{euler313} (\ty{Vec3}) \bnt{euler313_angles}
             | \kw{euler321} (\ty{Vec3}) \bnt{euler321_angles}
@@ -398,6 +411,18 @@ The list of structural nodes (excluding dummy nodes).
 %\end{verbatim}
 where \nt{idx} is the off-by-one index of the location of the first
 state associated to a node (for example, $X(\nt{idx} + i)$, with $i = 1,2,3$,
+is the component of the position along axis $i$).
+
+\subsection{struct node momentum dofs}
+The list of structural nodes (excluding static and dummy nodes).
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+\kw{struct node momentum dofs}: \bnt{idx} [...]
+\end{Verbatim}
+%\end{verbatim}
+where \nt{idx} is the off-by-one index of the location of the first
+state associated to a node's momentum and momenta moment
+(for example, $X(\nt{idx} + i)$, with $i = 1,2,3$,
 is the component of the position along axis $i$).
 
 \subsection{struct node labels}
