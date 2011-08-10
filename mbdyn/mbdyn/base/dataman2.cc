@@ -1728,6 +1728,18 @@ DataManager::GetEqDescription(int i) const
 	return pDofs[i - 1].EqDescription;
 }
 
+#ifdef MBDYN_FDJAC
+bool
+DataManager::bFDJac(void) const
+{
+	if (pFDJacMeter) {
+		return (pFDJacMeter->dGet() != 0.);
+	}
+
+	return true;
+}
+#endif // MBDYN_FDJAC
+
 unsigned
 DataManager::ConvergedRegister(void)
 {

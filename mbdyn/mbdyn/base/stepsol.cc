@@ -372,42 +372,42 @@ StepNIntegrator::Jacobian(MatrixHandler* pJac) const
 	ASSERT(pDM != NULL);
 	pDM->AssJac(*pJac, db0Differential);
 
-
+#ifdef MBDYN_FDJAC
 	// Finite difference check of Jacobian matrix
 	// Uncomment this whenever you need to debug your new Jacobian
 	// NOTE: might not be safe!
-#if 0
- 	NaiveMatrixHandler fdjac(pJac->iGetNumRows());
- 	fdjac.Reset();
- 	MyVectorHandler basesol(pJac->iGetNumRows());
- 	MyVectorHandler incsol(pJac->iGetNumRows());
- 	MyVectorHandler inc(pJac->iGetNumRows());
- 	Residual(&basesol);
- 	doublereal ddd = 0.001;
- 	for (integer i = 1; i <= pJac->iGetNumRows(); i++) {
- 		incsol.Reset();
- 		inc.Reset();
- 		inc.PutCoef(i, ddd);
- 		Update(&inc);
- 		// std::cerr << pXPrimeCurr->operator()(30) << std::endl;
- 		pDM->AssRes(incsol, db0Differential);
- 		inc.Reset();
- 		inc.PutCoef(i, -ddd);
- 		Update(&inc);
- 		incsol -= basesol;
- 		incsol *= (1./(-ddd));
- 		for (integer j = 1; j <= pJac->iGetNumCols(); j++) {
- 			fdjac.PutCoef(j, i,
-				std::abs(incsol(j)) > 1.E-100 ? incsol(j):0.);
+	if (pDM->bFDJac()) {
+ 		NaiveMatrixHandler fdjac(pJac->iGetNumRows());
+ 		fdjac.Reset();
+ 		MyVectorHandler basesol(pJac->iGetNumRows());
+ 		MyVectorHandler incsol(pJac->iGetNumRows());
+ 		MyVectorHandler inc(pJac->iGetNumRows());
+ 		Residual(&basesol);
+ 		doublereal ddd = 0.001;
+ 		for (integer i = 1; i <= pJac->iGetNumRows(); i++) {
+ 			incsol.Reset();
+ 			inc.Reset();
+ 			inc.PutCoef(i, ddd);
+ 			Update(&inc);
+ 			// std::cerr << pXPrimeCurr->operator()(30) << std::endl;
+ 			pDM->AssRes(incsol, db0Differential);
+ 			inc.Reset();
+ 			inc.PutCoef(i, -ddd);
+ 			Update(&inc);
+ 			incsol -= basesol;
+ 			incsol *= (1./(-ddd));
+ 			for (integer j = 1; j <= pJac->iGetNumCols(); j++) {
+ 				fdjac.PutCoef(j, i, std::abs(incsol(j)) > 1.E-100 ? incsol(j) : 0.);
+ 			}
  		}
- 	}
 
- 	std::cerr << "\nxxxxxxxxxxxxxxx\n" << std::endl;
- 	std::cerr << *pJac << std::endl;
- 	std::cerr << "\n---------------\n" << std::endl;
- 	std::cerr << fdjac << std::endl;
- 	std::cerr << "\n===============\n" << std::endl;
-#endif
+ 		std::cerr << "\nxxxxxxxxxxxxxxx\n" << std::endl;
+ 		std::cerr << *pJac << std::endl;
+ 		std::cerr << "\n---------------\n" << std::endl;
+ 		std::cerr << fdjac << std::endl;
+ 		std::cerr << "\n===============\n" << std::endl;
+	}
+#endif // MBDYN_FDJAC
 }
 
 void

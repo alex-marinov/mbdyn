@@ -169,6 +169,14 @@ protected:
 	DriveCaller *pOutputMeter;
 	mutable integer iOutputCount;
 
+#ifdef MBDYN_FDJAC
+protected:
+	DriveCaller *pFDJacMeter;
+
+public:
+	bool bFDJac(void) const;
+#endif // MBDYN_FDJAC
+
 	/* specialized output stuff */
 public:
 	enum ResType {

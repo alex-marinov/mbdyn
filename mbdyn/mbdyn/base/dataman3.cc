@@ -149,6 +149,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		"default" "aerodynamic" "output",
 		"default" "scale",
 
+		"finite" "difference" "jacobian" "meter",
+
 		"read" "solution" "array",
 
 		"select" "timeout",
@@ -236,6 +238,8 @@ DataManager::ReadControl(MBDynParser& HP,
 		DEFAULTBEAMOUTPUT,
 		DEFAULTAERODYNAMICOUTPUT,
 		DEFAULTSCALE,
+
+		FDJAC_METER,
 
 		READSOLUTIONARRAY,
 
@@ -1209,7 +1213,22 @@ EndOfUse:
 			}
 			break;
 
-			/* add more entries ... */
+		case FDJAC_METER: {
+#ifdef MBDYN_FDJAC
+			if (pFDJacMeter != 0) {
+				silent_cerr("\"finite difference jacobian meter\" already defined" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+#endif // MBDYN_FDJAC
+			DriveCaller *pTmp = HP.GetDriveCaller(false);
+#ifdef MBDYN_FDJAC
+			pFDJacMeter = pTmp;
+#else // !MBDYN_FDJAC
+			silent_cerr("warning, \"finite difference jacobian meter\" not supported (ignored)" << std::endl);
+			SAFEDELETE(pTmp);
+#endif // !MBDYN_FDJAC
+		} break;
+
 		case READSOLUTIONARRAY:{
 			int len = strlen(sInputFileName) + sizeof(".X");
 			SAFENEWARR(solArrFileName, char, len);
