@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- Schur solver is broken
 	Bug fixes:
 		- fix node label in external structural force output
+		- fix typo in eigenanalysis documentation (Patrick Rix)
 
 MBDyn 1.4.0
 	Enhancements:
