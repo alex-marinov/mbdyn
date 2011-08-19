@@ -4162,7 +4162,18 @@ Finally there are some miscellaneous points:
 	expression.
     
     \end{enumerate}
-    
+
+    \textbf{Example:} \
+    sample code to execute MBDyn from within a python script,
+    passing it the time step in the \kw{real} variable \texttt{DT}:
+\begin{verbatim}
+    import os;
+    dt = 1.e-3;
+    os.environ['MBDYNVARS'] = 'real DT = ' + str(dt) + ';';
+    os.system('mbdyn -f input.mbd -o output > output.txt 2>&1 &');
+    # use 'dt' in the python peer's analysis as appropriate...
+\end{verbatim}
+
     \item Newlines and indentations are not meaningful. But good indentation
     habits can lead to better and more readable input files.
     
@@ -4191,6 +4202,56 @@ Finally there are some miscellaneous points:
 \end{verbatim}
     namely, it must begin with a letter or an underscore, and can be
     made of underscores, letters and digits.
+
+    \item (UN*X systems) Whenever a file name is required, if the string
+    containing the file name starts with '\texttt{\$}', shell environment
+    variable expansion occurs.
+
+    \textbf{Example:} \
+    expand the local socket's name in \kw{external} forces
+\begin{verbatim}
+        # ...
+        path, "$MBSOCK",
+        # ...
+\end{verbatim}
+
+    \textbf{Example:} \
+    sample code to execute MBDyn from within a python script,
+    passing it the name of the local socket to be used
+    for an \kw{external} force:
+\begin{verbatim}
+    import os;
+    import tempfile;
+    tmpdir = tempfile.mkdtemp('', '.mbdyn_');
+    path = tmpdir + '/mbdyn.sock';
+    os.environ['MBSOCK'] = path;
+    os.system('mbdyn -f input.mbd -o output > output.txt 2>&1 &');
+    # use 'path' as the name of the socket as shown in the previous example
+    # ...
+    # when done...
+    os.rmdir(tmpdir);
+\end{verbatim}
+    This code:
+    \begin{itemize}
+    \item creates a uniquely named temporary directory
+    in the default temporary directory (e.g.\ \texttt{/tmp})
+    only accessible to the owner of the process, according
+    to \texttt{/tmp/.mbdyn\_XXXXXX}, where \texttt{XXXXXX}
+    are six random chars (see \texttt{mkdtemp(3)} for details);
+
+    \item appends the name \texttt{/mbdyn.sock} to form
+    the full path of the socket;
+
+    \item sets the full path of the socket in the environment
+    under the name \texttt{MBSOCK};
+
+    \item executes MBDyn; its input file is supposed to use
+    "\texttt{\$MBSOCK}" as path name of a local socket.
+    \end{itemize}
+    This procedure guarantees that a co-simulation performed
+    between MBDyn and the peer Python script uses a unique,
+    protected socket and thus does not interfere with other
+    co-simulations running on the same system.
 
     \item (UN*X systems) Whenever a file name is required, the shell-like
     syntax for home directories (i.e.\ \verb1~/filename1
