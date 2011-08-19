@@ -564,6 +564,7 @@ method_multistep(const char* module, integration_data* d,
 	 		/* correct */
 	 		sm->MatrReset();
 	 		J.Reset();
+	 		JP.Reset();
 	 		::ff->grad(p_data, J, JP, *pX, *pXP, t);
 	 		for (int ir = 1; ir <= size; ir++) {
 	    			for (int ic = 1; ic <= size; ic++) {
