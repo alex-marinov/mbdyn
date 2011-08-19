@@ -708,29 +708,65 @@ usually output.
 \end{Verbatim}
 %\end{verbatim}
 
+\paragraph{Umfpack.}
 The default, when available, is \kw{umfpack}.
 Since it dynamically allocates memory as required, the \kw{workspace size} 
-parameter, if given, is ignored.
+parameter is ignored.
 The \kw{umfpack} linear solver honors the \kw{block size} keyword,
 which refers to an internal parameter.
 The default value (32) is usually good for most problems; however,
 it has been observed that a lower value can slightly improve
 performances on small problems (e.g.\ a rigid rotorcraft model
 with some 180 degrees of freedom showed a 10\% speedup with 
-a block size of 4, while a rigid robot showed eve higher speedups,
-in the 30\%, with a block size between 4 and 16).
+a block size of 4, while a rigid robot showed even higher speedups,
+of the order of 30\%, with a block size between 4 and 16).
 
+\paragraph{Naive.}
 The \kw{naive} solver is built-in, so it is always present.
-If \kw{umfpack} is not available, it is the default solver.
+When \kw{umfpack} is not available, it is used by default.
 The naive solver uses a full storage but keeps track of the non-zeros.
 This allows a very efficient solution of sparse matrices, with
 a $O(1)$ access cost to the coefficients.
 It ignores the \kw{workspace size} parameter.
 See \cite{NAIVE-2007} for details.
 
-The \kw{klu} solver is provided by University of Florida's SparseSuite.
+\bigskip
+\begin{minipage}{.9\textwidth}
+\textbf{Important note:} the naive solver should always be used
+with some reordering option.
+The \kw{colamd} option is always available (see discussion below),
+since it is built-in.
+Other options are experimental, and should be used with care.
+If this option is not used, the factorization may not be robust.
+If the \kw{linear solver} statement is \underline{not used},
+and the \kw{naive} solver \underline{is used by default}
+(because no other solver with higher priority is present),
+\textbf{no reordering option is set by default.}
+In this case, it is safe to explicitly force the linear solver
+with a valid reordering option.  For example
+\begin{verbatim}
+    linear solver: naive, colamd;
+\end{verbatim}
+\end{minipage}
 
-The \kw{y12} linear solver requires static allocation of the workspace;
+\bigskip
+
+\paragraph{Klu.}
+The \kw{klu} solver is provided by University of Florida's SparseSuite.
+It is very efficient (usually faster than \kw{umfpack}),
+but it should be used with care, because in the current implementation,
+to exploit its efficiency, the symbolic factorization is reused across
+factorizations.
+Whenever the solver realizes that the symbolic factorization
+needs to be regenerated, because the structure of the matrix changed
+(e.g.\ when using \kw{driven} elements, but not only in that case),
+the matrix is already invalidated, and should be regenerated.
+This is not handled correctly yet.
+
+\paragraph{Y12.}
+The \kw{y12} linear solver is provided for historical reasons
+and should not be used for practical purposes.
+It requires static allocation of the workspace;
 the optimal size \nt{workspace\_size} is between 3 and 5 times
 the number of nonzero coefficients of the sparse matrix.
 By default, twice the size of the full matrix is allocated
@@ -740,10 +776,15 @@ based on the results of the previous factorization; this could
 result in a failure if the filling of the matrix changes 
 dramatically between two factorizations.
 
-The \kw{lapack} linear solver uses LAPACK's \texttt{dgetrf()} and \texttt{dgetrs()}
-functions with a dense storage, and thus ignores the \kw{workspace size}
-parameter.
+\paragraph{Lapack.}
+The \kw{lapack} linear solver uses LAPACK's \texttt{dgetrf()}
+and \texttt{dgetrs()} functions with a dense storage,
+and thus ignores the \kw{workspace size} parameter.
+It is fairly inefficient for most practical applications,
+when compared to sparse solvers, except when problems are very small
+(less than 60 equations) and very dense.
 
+\paragraph{SuperLU.}
 Finally, \kw{superlu} is an experimental linear solver that is able to perform
 the factorization in a multi-threaded environment.
 If more than one CPU is available, it automatically uses all the CPUs;
@@ -761,10 +802,14 @@ full, a little more space is required, due to extra storage needs when
 the matrix fills up.
 \end{comment}
 
+\paragraph{Other.}
 Historically, MBDyn supported the \kw{meschach} and \kw{harwell} solvers.
 They are now deprecated and undocumented.
+Other linear solvers may be supported for experimental reasons
+(for example, \kw{taucs}, \kw{watson});
+however, they are not documented as they are not intended for general use.
 
-
+\paragraph{Miscellaneous keywords.}
 The keywords \kw{map} (Sparse Map), \kw{cc} (Column Compressed)
 and \kw{dir} (Direct Access) can be used to modify the way
 the sparse matrix is handled:
@@ -775,7 +820,8 @@ in the form required by each linear solver, usually Column Compressed
 (also known as Harwell-Boeing format) or Index (as used by \kw{y12}).
 The matrix is regenerated each time an assembly is required.
 \item \kw{cc} uses the compact format resulting from the transformation
-required by the linear solver to store the coefficients in subsequent assemblies,
+required by the linear solver to store the coefficients
+in subsequent assemblies,
 thus saving the time required to transform the matrix.
 If the profile of the matrix changes, the compact form is invalidated,
 and the matrix is reset to \kw{map} form.  As a consequence, this matrix
@@ -851,16 +897,16 @@ summarizes how each linear solver deals with pivoting policies.
 	& \multicolumn{1}{c}{\textbf{\emph{Factor}}}
 	& \multicolumn{1}{c}{\textbf{\emph{Size}}} \\
 \hline\hline
-	Naive		& 	&	&	&	&	& x	&	\\
-	Umfpack		& x	& x	& x	&	&	& x	& x	\\
-	KLU		& x	& x	& x	&	&	& x	&	\\
-	Y12m		& x	& x	& x	&	& x	& x	&	\\
-	Lapack		&	&	&	&	&	& x	&	\\
-%	Harwell		&	&	&	&	&	& x	&	\\
-%	Meschach	&	&	&	&	&	& x	&	\\
-	SuperLU		& x	& x	& x	& x	&	& x	&	\\
-%	TAUCS		& x	& x	& x	&	&	&	&	\\
-	Watson		& x	& x	& x	& x	&	& x	&	\\
+	Naive		&         &         &         & ($\surd$) &         & $\surd$ &	        \\
+	Umfpack		& $\surd$ & $\surd$ & $\surd$ &           &         & $\surd$ & $\surd$ \\
+	KLU		& $\surd$ & $\surd$ & $\surd$ &           &         & $\surd$ &	        \\
+	Y12m		& $\surd$ & $\surd$ & $\surd$ &	          & $\surd$ & $\surd$ &	        \\
+	Lapack		&         &         &         &           &         & $\surd$ &         \\
+%	Harwell		&         &         &         &           &         & $\surd$ &         \\
+%	Meschach	&         &         &         &           &         & $\surd$ &         \\
+	SuperLU		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
+	TAUCS		& ?       & ?       & ?       & ?         & ?       & ?       & $\surd$ \\
+	Watson		& $\surd$ & $\surd$ & $\surd$ & $\surd$   &         & $\surd$ &	        \\
 \hline
 \end{tabular}
 \end{table}
