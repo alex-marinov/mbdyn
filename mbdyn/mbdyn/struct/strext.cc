@@ -108,11 +108,10 @@ iobuf_m(0)
 		m_Points[i].Offset = offsets[i];
 		m_Points[i].F = Zero3;
 		m_Points[i].M = Zero3;
-	}
-
-	if (bLabels) {
-		for (unsigned i = 0; i < nodes.size(); i++) {
+		if (bLabels) {
 			m_Points[i].uLabel = labels[i];
+		} else {
+			m_Points[i].uLabel = m_Points[i].pNode->GetLabel();
 		}
 	}
 
