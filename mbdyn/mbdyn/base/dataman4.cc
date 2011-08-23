@@ -1475,7 +1475,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			if (HP.IsKeyWord("rotor")) {
 				// continue
 			} else {
-				silent_cerr("InducedVelocity(" << uLabel << "): unknown induced velocity type at line " << HP.GetLineData() << std::endl);
+				silent_cerr("InducedVelocity(" << uLabel << "): unknown \"induced velocity\" type at line " << HP.GetLineData() << " (missing \"rotor\"?)" << std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
