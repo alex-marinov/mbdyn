@@ -105,8 +105,8 @@ protected:
 		FACTOR
 	} CurrStrategy;
 
-   	const char *sInputFileName;
-   	const char *sOutputFileName;
+	std::string sInputFileName;
+	std::string sOutputFileName;
    	MBDynParser& HP;
 	 
    	/* Dati per strategia FACTOR */
@@ -350,8 +350,8 @@ protected:
 public:   
    	/* costruttore */
    	Solver(MBDynParser& HP, 
-		const char* sInputFileName, 
-		const char* sOutputFileName,
+		const std::string& sInputFileName, 
+		const std::string& sOutputFileName,
 		bool bParallel = false);
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */

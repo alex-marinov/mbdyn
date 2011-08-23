@@ -75,8 +75,8 @@ protected:
 public:   
    	/* costruttore */
    	InverseSolver(MBDynParser& HP, 
-		const char* sInputFileName, 
-		const char* sOutputFileName,
+		const std::string& sInputFileName, 
+		const std::string& sOutputFileName,
 		bool bParallel = false);
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */

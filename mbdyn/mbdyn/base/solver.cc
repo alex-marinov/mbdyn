@@ -261,16 +261,16 @@ mbdyn_reserve_stack(unsigned long size)
 
 /* Costruttore: esegue la simulazione */
 Solver::Solver(MBDynParser& HPar,
-		const char* sInFName,
-		const char* sOutFName,
+		const std::string& sInFName,
+		const std::string& sOutFName,
 		bool bPar)
 :
 #ifdef USE_MULTITHREAD
 nThreads(0),
 #endif /* USE_MULTITHREAD */
 CurrStrategy(NOCHANGE),
-sInputFileName(NULL),
-sOutputFileName(NULL),
+sInputFileName(sInFName),
+sOutputFileName(sOutFName),
 HP(HPar),
 pStrategyChangeDrive(NULL),
 EigAn(),
@@ -340,13 +340,7 @@ pNLS(NULL)
 {
 	DEBUGCOUTFNAME("Solver::Solver");
 
-	ASSERT(sInFName != NULL);
-
-	SAFESTRDUP(sInputFileName, sInFName);
-
-	if (sOutFName != NULL && sOutFName[0] != '\0') {
-		SAFESTRDUP(sOutputFileName, sOutFName);
-	}
+	ASSERT(!sInFName.empty());
 
 	StrategyFactor.iMinIters = 1;
 	StrategyFactor.iMaxIters = 0;
@@ -384,18 +378,18 @@ Solver::Run(void)
 	}
 
 	/* Nome del file di output */
-	if (sOutputFileName == 0) {
-		if (sInputFileName != 0) {
-			SAFESTRDUP(sOutputFileName, sInputFileName);
+	if (sOutputFileName.empty()) {
+		if (!sInputFileName.empty()) {
+			sOutputFileName = sInputFileName;
 
 		} else {
-			SAFESTRDUP(sOutputFileName, ::sDefaultOutputFileName);
+			sOutputFileName = ::sDefaultOutputFileName;
 		}
 
 	} else {
 		struct stat	s;
 
-		if (stat(sOutputFileName, &s) != 0) {
+		if (stat(sOutputFileName.c_str(), &s) != 0) {
 			int	save_errno = errno;
 
 			/* if does not exist, check path */
@@ -407,14 +401,13 @@ Solver::Run(void)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			char	*sOutputFilePath = 0;
-			SAFESTRDUP(sOutputFilePath, sOutputFileName );
-
-			char	*path = std::strrchr(sOutputFilePath, '/');
+			// note: use a reverse iterator find?
+			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
 			if (path != NULL) {
-				path[0] = '\0';
+				std::string sOutputFilePath = sOutputFileName;
+				sOutputFilePath.erase(path - sOutputFileName.c_str());
 
-				if (stat(sOutputFilePath, &s) != 0) {
+				if (stat(sOutputFilePath.c_str(), &s) != 0) {
 					save_errno = errno;
 					char	*errmsg = strerror(save_errno);
 
@@ -429,16 +422,16 @@ Solver::Run(void)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
-			SAFEDELETEARR(sOutputFilePath);
 
 		} else if (S_ISDIR(s.st_mode)) {
-			unsigned 	lOld, lNew;
-			char		*tmpOut = 0;
-			const char	*tmpIn;
+			std::string tmpIn;
 
-			if (sInputFileName) {
-				tmpIn = std::strrchr(sInputFileName, '/');
-				if (tmpIn == 0) {
+			if (!sInputFileName.empty()) {
+				const char *p = std::strrchr(sInputFileName.c_str(), '/');
+				if (p != 0) {
+					tmpIn = p;
+
+				} else {
 					tmpIn = sInputFileName;
 				}
 
@@ -446,21 +439,10 @@ Solver::Run(void)
 				tmpIn = ::sDefaultOutputFileName;
 			}
 
-			lOld = strlen(sOutputFileName);
-			if (sOutputFileName[lOld - 1] == '/') {
-				lOld--;
+			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
+				sOutputFileName += '/';
 			}
-			lNew = lOld + strlen(tmpIn) + 2;
-
-			SAFENEWARR(tmpOut, char, lNew);
-			memcpy(tmpOut, sOutputFileName, lOld);
-			if (sOutputFileName[lOld - 1] != '/') {
-				tmpOut[lOld] = '/';
-				lOld++;
-			}
-			memcpy(&tmpOut[lOld], tmpIn, lNew - lOld);
-			SAFEDELETEARR(sOutputFileName);
-			sOutputFileName = tmpOut;
+			sOutputFileName += tmpIn;
 		}
 	}
 
@@ -486,17 +468,9 @@ Solver::Run(void)
 		ASSERT(MPI::COMM_WORLD.Get_size() > 1);
 		int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
 
-		char* sNewOutName = NULL;
-		int iOutLen = strlen(sOutputFileName)
-			+ STRLENOF(".")
-			+ iRankLength
-			+ 1;
-
-		SAFENEWARR(sNewOutName, char, iOutLen);
-		snprintf(sNewOutName, iOutLen, "%s.%.*d",
-				sOutputFileName, iRankLength, MyRank);
-		SAFEDELETEARR(sOutputFileName);
-		sOutputFileName = sNewOutName;
+		char buf[STRLENOF(".") + iRankLength + 1];
+		snprintf(buf, sizeof(buf), ".%.*d", iRankLength, MyRank);
+		sOutputFileName += buf;
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
@@ -507,8 +481,8 @@ Solver::Run(void)
 				OutputFlags,
 				this,
 				dInitialTime,
-				sOutputFileName,
-				sInputFileName,
+				sOutputFileName.c_str(),
+				sInputFileName.c_str(),
 				eAbortAfter == AFTER_INPUT));
 
 		/* FIXME: who frees sNewOutname? */
@@ -556,8 +530,8 @@ Solver::Run(void)
 						OutputFlags,
 						this,
 						dInitialTime,
-						sOutputFileName,
-						sInputFileName,
+						sOutputFileName.c_str(),
+						sInputFileName.c_str(),
 						eAbortAfter == AFTER_INPUT,
 						nThreads));
 
@@ -579,8 +553,8 @@ Solver::Run(void)
 						OutputFlags,
 						this,
 						dInitialTime,
-						sOutputFileName,
-						sInputFileName,
+						sOutputFileName.c_str(),
+						sInputFileName.c_str(),
 						eAbortAfter == AFTER_INPUT));
 		}
 	}
@@ -1602,14 +1576,6 @@ IfStepIsToBeRepeated:
 Solver::~Solver(void)
 {
 	DEBUGCOUTFNAME("Solver::~Solver");
-
-	if (sInputFileName != NULL) {
-		SAFEDELETEARR(sInputFileName);
-	}
-
-	if (sOutputFileName != NULL) {
-		SAFEDELETEARR(sOutputFileName);
-	}
 
 	if (!qX.empty()) {
 		for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
@@ -5028,7 +4994,7 @@ Solver::Eig(void)
 	std::ofstream o;
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT) {
 		std::string tmpFileName;
-		if (sOutputFileName == NULL) {
+		if (sOutputFileName.empty()) {
 			tmpFileName = sInputFileName;
 
 		} else {

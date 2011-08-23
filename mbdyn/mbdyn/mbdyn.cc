@@ -132,7 +132,7 @@ struct mbdyn_proc_t {
 	bool bShowSymbolTable;
 	std::ifstream FileStreamIn;
 	std::istream* pIn;
-	char* sInputFileName;
+	std::string sInputFileName;
 	std::string sOutputFileName;
 	bool bException;
 	bool bRedefine;
@@ -317,11 +317,11 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 
-Solver* RunMBDyn(MBDynParser&, const char* const, const char* const, bool, bool);
+static Solver* RunMBDyn(MBDynParser&, const std::string&, const std::string&, bool, bool);
 
 #ifdef USE_MPI
 static int
-parse_args(mbdyn_proc_t& mbp, int argc, char *argv[])
+parse_parallel_args(mbdyn_proc_t& mbp, int argc, char *argv[])
 {
 	for (int i = 1; i < argc; i++) {
 		if (!mbp.using_mpi && strncmp(argv[i], "-p", 2) == 0) {
@@ -383,7 +383,7 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.CurrInputFormat = MBDYN;
 			mbp.CurrInputSource = FILE_OPT;
  			mbp.sInputFileName = optarg;
-			mbp.FileStreamIn.open(mbp.sInputFileName);
+			mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 			if (!mbp.FileStreamIn) {
 				silent_cerr(std::endl 
 					<< "Unable to open file \""
@@ -687,7 +687,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			{
 				mbp.CurrInputFormat = MBDYN;
 
-				mbp.FileStreamIn.open(mbp.sInputFileName);
+				mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 				if (!mbp.FileStreamIn) {
 					silent_cerr(std::endl 
 						<< "Unable to open file "
@@ -717,10 +717,10 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			/* stream in ingresso */
 			InputStream In(*mbp.pIn);
 			MBDynParser HP(*mbp.pMP, In, 
-				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName);
+				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName.c_str());
 
 			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
-				mbp.sOutputFileName.c_str(), 
+				mbp.sOutputFileName, 
 				mbp.using_mpi, mbp.bException);
 			if (mbp.FileStreamIn.is_open()) {
 				mbp.FileStreamIn.close();
@@ -858,7 +858,7 @@ main(int argc, char* argv[])
 	 * the check is on the first two chars because "most" of
 	 * the mpirun/MPI extra args start with -p<something>
 	 */
-	parse_args(mbp, argc, argv);
+	parse_parallel_args(mbp, argc, argv);
 
 	::fSilent = mbp.parallel_fSilent;
 	::fPedantic = mbp.parallel_fPedantic;
@@ -874,7 +874,7 @@ main(int argc, char* argv[])
 			 * restores the inital args, so if Get_rank() > 0
 			 * the eventual -s/-P flags have been restored
 			 */
-			parse_args(mbp, argc, argv);
+			parse_parallel_args(mbp, argc, argv);
 
 			::fSilent = mbp.parallel_fSilent;
 			::fPedantic = mbp.parallel_fPedantic;
@@ -958,10 +958,10 @@ main(int argc, char* argv[])
 } // main() end
 
 
-Solver* 
+static Solver* 
 RunMBDyn(MBDynParser& HP, 
-	 const char* const sInputFileName,
-	 const char* const sOutputFileName,
+	 const std::string& sInputFileName,
+	 const std::string& sOutputFileName,
 	 bool using_mpi,
 	 bool bException)
 {

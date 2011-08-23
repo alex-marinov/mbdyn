@@ -78,8 +78,8 @@
 #include "solver_impl.h"
 
 InverseSolver::InverseSolver(MBDynParser& HPar,
-		const char* sInFName,
-		const char* sOutFName,
+		const std::string& sInFName,
+		const std::string& sOutFName,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, bPar),
 pXPrimePrime(NULL), pLambda(NULL)
@@ -122,18 +122,18 @@ InverseSolver::Run(void)
 	}
 
 	/* Nome del file di output */
-	if (sOutputFileName == 0) {
-		if (sInputFileName != 0) {
-			SAFESTRDUP(sOutputFileName, sInputFileName);
+	if (sOutputFileName.empty()) {
+		if (!sInputFileName.empty()) {
+			sOutputFileName = sInputFileName;
 
 		} else {
-			SAFESTRDUP(sOutputFileName, ::sDefaultOutputFileName);
+			sOutputFileName = ::sDefaultOutputFileName;
 		}
 		
 	} else {
 		struct stat	s;
 		
-		if (stat(sOutputFileName, &s) != 0) {
+		if (stat(sOutputFileName.c_str(), &s) != 0) {
 			int	save_errno = errno;
 
 			/* if does not exist, check path */
@@ -145,17 +145,16 @@ InverseSolver::Run(void)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			char	*sOutputFilePath = 0;
-			SAFESTRDUP(sOutputFilePath, sOutputFileName);
-
-			char	*path = std::strrchr(sOutputFilePath, '/');
+			// note: use a reverse iterator find?
+			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
 			if (path != NULL) {
-				path[0] = '\0';
+				std::string sOutputFilePath = sOutputFileName;
+				sOutputFilePath.erase(path - sOutputFileName.c_str());
 
-				if (stat(sOutputFilePath, &s) != 0) {
+				if (stat(sOutputFilePath.c_str(), &s) != 0) {
 					save_errno = errno;
 					char	*errmsg = strerror(save_errno);
-						
+
 					silent_cerr("stat(" << sOutputFileName << ") failed because "
 							"stat(" << sOutputFilePath << ") failed "
 						"(" << save_errno << ": " << errmsg << ")" << std::endl);
@@ -167,38 +166,24 @@ InverseSolver::Run(void)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
-			SAFEDELETEARR(sOutputFilePath);
 
 		} else if (S_ISDIR(s.st_mode)) {
-			unsigned 	lOld, lNew;
-			char		*tmpOut = 0;
-			const char	*tmpIn;
+			std::string tmpIn;
 
-			if (sInputFileName) {
-				tmpIn = std::strrchr(sInputFileName, '/');
-				if (tmpIn == 0) {
+			if (!sInputFileName.empty()) {
+				tmpIn = std::strrchr(sInputFileName.c_str(), '/');
+				if (tmpIn.empty()) {
 					tmpIn = sInputFileName;
 				}
 
 			} else {
-				tmpIn = sDefaultOutputFileName;
+				tmpIn = ::sDefaultOutputFileName;
 			}
 
-			lOld = strlen(sOutputFileName);
-			if (sOutputFileName[lOld - 1] == '/') {
-				lOld--;
+			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
+				sOutputFileName += '/';
 			}
-			lNew = lOld + strlen(tmpIn) + 2;
-
-			SAFENEWARR(tmpOut, char, lNew);
-			memcpy(tmpOut, sOutputFileName, lOld);
-			if (sOutputFileName[lOld - 1] != '/') {
-				tmpOut[lOld] = '/';
-				lOld++;
-			}
-			memcpy(&tmpOut[lOld], tmpIn, lNew - lOld);
-			SAFEDELETEARR(sOutputFileName);
-			sOutputFileName = tmpOut;
+			sOutputFileName += tmpIn;
 		}
 	}
 
@@ -224,17 +209,9 @@ InverseSolver::Run(void)
 		ASSERT(MPI::COMM_WORLD.Get_size() > 1);
 		int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
 
-		char* sNewOutName = NULL;
-		int iOutLen = strlen(sOutputFileName)
-			+ STRLENOF(".")
-			+ iRankLength
-			+ 1;
-
-		SAFENEWARR(sNewOutName, char, iOutLen);
-		snprintf(sNewOutName, iOutLen, "%s.%.*d",
-				sOutputFileName, iRankLength, MyRank);
-		SAFEDELETEARR(sOutputFileName);
-		sOutputFileName = sNewOutName;
+		char buf[STRLENOF(".") + iRankLength + 1];
+		snprintf(buf, sizeof(buf), ".%.*d", iRankLength, MyRank);
+		sOutputFileName += buf;
 
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
@@ -245,8 +222,8 @@ InverseSolver::Run(void)
 				OutputFlags,
 				this,
 				dInitialTime,
-				sOutputFileName,
-				sInputFileName,
+				sOutputFileName.c_str(),
+				sInputFileName.c_str(),
 				eAbortAfter == AFTER_INPUT));
 
 		/* FIXME: who frees sNewOutname? */
@@ -294,8 +271,8 @@ InverseSolver::Run(void)
 						OutputFlags,
 						this,
 						dInitialTime,
-						sOutputFileName,
-						sInputFileName,
+						sOutputFileName.c_str(),
+						sInputFileName.c_str(),
 						eAbortAfter == AFTER_INPUT,
 						nThreads));
 
@@ -317,8 +294,8 @@ InverseSolver::Run(void)
 						OutputFlags,
 						this,
 						dInitialTime,
-						sOutputFileName,
-						sInputFileName,
+						sOutputFileName.c_str(),
+						sInputFileName.c_str(),
 						eAbortAfter == AFTER_INPUT));
 		}
 	}
@@ -812,14 +789,6 @@ IfStepIsToBeRepeated:
 InverseSolver::~InverseSolver(void)
 {
 	DEBUGCOUTFNAME("Solver::~Solver");
-
-	if (sInputFileName != NULL) {
-		SAFEDELETEARR(sInputFileName);
-	}
-
-	if (sOutputFileName != NULL) {
-		SAFEDELETEARR(sOutputFileName);
-	}
 
 	SAFEDELETE(pX);
 	SAFEDELETE(pXPrime);
