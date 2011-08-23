@@ -21,6 +21,8 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix node label in external structural force output
 		- fix typo in eigenanalysis documentation (Patrick Rix)
+		- fix working directory setting
+		- fix input/output file name inconsistencies
 
 MBDyn 1.4.0
 	Enhancements:

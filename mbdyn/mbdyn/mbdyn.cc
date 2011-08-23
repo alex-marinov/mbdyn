@@ -409,17 +409,19 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			break;
 
 		case int('o'):
-			if (optarg[0] == '/') {
-				mbp.sOutputFileName = optarg;
-
-			} else {
-				char buf[PATH_MAX];
-				char *cwd = getcwd(buf, sizeof(buf));
-				if (cwd == NULL) {
+#ifdef HAVE_GETCWD
+			if (optarg[0] != '/') {
+				char cwd[PATH_MAX];
+				if (getcwd(cwd, sizeof(cwd)) == 0) {
 					silent_cerr("Unable to set output file: getcwd failed" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 				mbp.sOutputFileName = std::string(cwd) + '/' + optarg;
+
+			} else
+#endif // HAVE_GETCWD
+			{
+				mbp.sOutputFileName = optarg;
 			}
 			break;
 
@@ -558,7 +560,9 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		case int('W'):
 #ifdef HAVE_CHDIR
 			if (chdir(optarg)) {
-				silent_cerr("Error in chdir(\"" << optarg << "\")"
+				int save_errno = errno;
+				silent_cerr("Error in chdir(\"" << optarg << "\") "
+					"(" << save_errno << ": " << strerror(save_errno) << ")"
 					<< std::endl);
 				throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
 			}
@@ -598,6 +602,107 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	currarg = optind;
 #endif /* HAVE_GETOPT */
 }
+
+static int
+mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileName)
+{
+	// fix output file name
+	if (sOutputFileName.empty()) {
+		if (!sInputFileName.empty()) {
+			sOutputFileName = sInputFileName;
+
+		} else {
+			sOutputFileName = ::sDefaultOutputFileName;
+		}
+
+	} else {
+		struct stat	s;
+
+		if (stat(sOutputFileName.c_str(), &s) != 0) {
+			int	save_errno = errno;
+
+			/* if does not exist, check path */
+			if (save_errno != ENOENT) {
+				char	*errmsg = strerror(save_errno);
+
+				silent_cerr("stat(" << sOutputFileName << ") failed "
+					"(" << save_errno << ": " << errmsg << ")" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// note: use a reverse iterator find?
+			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
+			if (path != NULL) {
+				std::string sOutputFilePath(sOutputFileName, 0, path - sOutputFileName.c_str());
+				// sOutputFilePath.erase(path - sOutputFileName.c_str());
+
+				if (stat(sOutputFilePath.c_str(), &s) != 0) {
+					save_errno = errno;
+					char	*errmsg = strerror(save_errno);
+
+					silent_cerr("stat(" << sOutputFileName << ") failed because "
+							"stat(" << sOutputFilePath << ") failed "
+						"(" << save_errno << ": " << errmsg << ")" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				} else if (!S_ISDIR(s.st_mode)) {
+					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
+							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+		} else if (S_ISDIR(s.st_mode)) {
+			std::string tmpIn;
+
+			if (!sInputFileName.empty()) {
+				const char *p = std::strrchr(sInputFileName.c_str(), '/');
+				if (p != 0) {
+					tmpIn = p;
+
+				} else {
+					tmpIn = sInputFileName;
+				}
+
+			} else {
+				tmpIn = ::sDefaultOutputFileName;
+			}
+
+			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
+				sOutputFileName += '/';
+			}
+			sOutputFileName += tmpIn;
+		}
+	}
+
+#ifdef HAVE_GETCWD
+	if (sOutputFileName[0] != '/') {
+   		char cwd[PATH_MAX];
+   		if (getcwd(cwd, sizeof(cwd)) == 0) {
+			silent_cerr("Error in getcwd()" << std::endl);
+      			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+   		}
+		sOutputFileName = std::string(cwd) + '/' + sOutputFileName;
+	}
+#endif // HAVE_GETCWD
+
+	// chdir to input file's folder
+	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
+	if (dirsep != 0) {
+		std::string sInputDir(sInputFileName.c_str(), dirsep - sInputFileName.c_str());
+#ifdef HAVE_CHDIR
+		if (chdir(sInputDir.c_str())) {
+			int save_errno = errno;
+			silent_cerr("Error in chdir(" << sInputDir << ") (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+		}
+#else // !HAVE_CHDIR
+		silent_cerr("warning: chdir(2) not available; chdir(" << sInputDir.c_str() << ") not performed" << std::endl);
+#endif // !HAVE_CHDIR
+	}
+
+	return 0;
+}   
 
 static int
 mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
@@ -719,7 +824,20 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		
 					/* legge l'environment */
 				GetEnviron(*mbp.pMP);
-			} 
+			}
+
+#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+			char buf[PATH_MAX];
+			if (getcwd(buf, sizeof(buf)) == 0) {
+				int save_errno = errno;
+				silent_cerr("getcwd() failed (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+				throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+			}
+			std::string sOrigCWD(buf);
+#endif // HAVE_GETCWD && HAVE_CHDIR
+
+			std::string sOutputFileName = mbp.sOutputFileName;
+			mbdyn_prepare_files(mbp.sInputFileName, sOutputFileName);
 		
 			/* stream in ingresso */
 			InputStream In(*mbp.pIn);
@@ -727,11 +845,18 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName.c_str());
 
 			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
-				mbp.sOutputFileName, 
+				sOutputFileName, 
 				mbp.using_mpi, mbp.bException);
 			if (mbp.FileStreamIn.is_open()) {
 				mbp.FileStreamIn.close();
 			}
+#if defined(HAVE_GETCWD) && defined(HAVE_CHDIR)
+			if (chdir(sOrigCWD.c_str())) {
+				int save_errno = errno;
+				silent_cerr("chdir(" << sOrigCWD.c_str() << ") failed (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+				throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+			}
+#endif // HAVE_GETCWD && HAVE_CHDIR
 			break;
 		}
 
@@ -968,102 +1093,12 @@ main(int argc, char* argv[])
 static Solver* 
 RunMBDyn(MBDynParser& HP, 
 	 const std::string& sInputFileName,
-	 const std::string& sOutFName,
+	 const std::string& sOutputFileName,
 	 bool using_mpi,
 	 bool bException)
 {
     	DEBUGCOUTFNAME("RunMBDyn");
 
-	// fix output file name
-	std::string sOutputFileName = sOutFName;
-	if (sOutputFileName.empty()) {
-		if (!sInputFileName.empty()) {
-			sOutputFileName = sInputFileName;
-
-		} else {
-			sOutputFileName = ::sDefaultOutputFileName;
-		}
-
-	} else {
-		struct stat	s;
-
-		if (stat(sOutputFileName.c_str(), &s) != 0) {
-			int	save_errno = errno;
-
-			/* if does not exist, check path */
-			if (save_errno != ENOENT) {
-				char	*errmsg = strerror(save_errno);
-
-				silent_cerr("stat(" << sOutputFileName << ") failed "
-					"(" << save_errno << ": " << errmsg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			// note: use a reverse iterator find?
-			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
-			if (path != NULL) {
-				std::string sOutputFilePath(sOutputFileName, 0, path - sOutputFileName.c_str());
-				// sOutputFilePath.erase(path - sOutputFileName.c_str());
-
-				if (stat(sOutputFilePath.c_str(), &s) != 0) {
-					save_errno = errno;
-					char	*errmsg = strerror(save_errno);
-
-					silent_cerr("stat(" << sOutputFileName << ") failed because "
-							"stat(" << sOutputFilePath << ") failed "
-						"(" << save_errno << ": " << errmsg << ")" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-				} else if (!S_ISDIR(s.st_mode)) {
-					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
-							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
-		} else if (S_ISDIR(s.st_mode)) {
-			std::string tmpIn;
-
-			if (!sInputFileName.empty()) {
-				const char *p = std::strrchr(sInputFileName.c_str(), '/');
-				if (p != 0) {
-					tmpIn = p;
-
-				} else {
-					tmpIn = sInputFileName;
-				}
-
-			} else {
-				tmpIn = ::sDefaultOutputFileName;
-			}
-
-			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
-				sOutputFileName += '/';
-			}
-			sOutputFileName += tmpIn;
-		}
-	}
-
-	if (sOutputFileName[0] != '/') {
-   		char cwd[PATH_MAX];
-   		if (getcwd(cwd, sizeof(cwd)) == NULL) {
-			silent_cerr("Error in getcwd()" << std::endl);
-      			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
-   		}
-		sOutputFileName = std::string(cwd) + '/' + sOutputFileName;
-	}
-
-	// chdir to input file's folder
-	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
-	if (dirsep != 0) {
-		std::string sInputDir(sInputFileName.c_str(), dirsep - sInputFileName.c_str());
-		if (chdir(sInputDir.c_str())) {
-			int save_errno = errno;
-			silent_cerr("Error in chdir(" << sInputDir << ") (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
-			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
-		}
-	}
-   
     	Solver* pSolv(0);
 
     	/* NOTE: the flag "bParallel" states whether the analysis 
