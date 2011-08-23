@@ -30,6 +30,74 @@
 This chapter gives a global overview of the structure of the input file.
 
 
+\section{Execution}
+MBDyn is a command-line tool.
+This means that in order to execute it, one needs to start the executable
+from a terminal, and, as a minimum, pass it some indications about the problem
+it must analyze.
+
+Usually, this is done by preparing one or more input files that describe
+the model and the analysis that needs to be performed.
+
+\subsection{Passing the Input}
+The input file can be passed either using a specific switch
+(\texttt{-f}, preferred),
+or by listing multiple input file names on the command line.
+In the latter case, the analyses are executed in sequence.
+The format of the input file is the topic of most of this manual.
+If no input file is defined, MBDyn as a last resort tries to read
+from the standard input.
+As a consequence, the following commands are equivalent:
+\begin{verbatim}
+    # assuming file "input" exists in the current working directory and is readable...
+    $ mbdyn -f input
+    $ mbdyn input
+    $ mbdyn < input
+\end{verbatim}
+They are listed in order of preference.
+
+If the input file name consists of a path, either absolute or relative,
+the file can reside anywhere in the file system.
+In this case, MBDyn changes its current working directory
+(see \texttt{chdir(2)} for details)
+to the directory where the input file resides.
+As a consequence, the path of any included file is seen as relative
+to the directory where the file containing the \kw{include} directive
+is located (see Section~\ref{sec:INCLUDE} for details).
+
+
+
+\subsection{Passing the Output File Name}
+The output is stored in a family of files whose common name is passed
+through another switch (\texttt{-o}).
+Those files are formed by adding an extension specific to their contents
+to the output file name.
+If none is defined, the output file name defaults to \texttt{MBDyn}.
+
+If the argument of the \texttt{-o} switch consists of a path,
+either absolute or relative, and a file name,
+the full path up to the file name excluded must exist and be write-accessible.
+The output files are stored in the corresponding directory.
+Otherwise they are stored in the current working directory of the process
+at the time of its execution.
+
+If the argument of the \texttt{-o} switch consists of exactly a directory,
+either absolute or relative, without any file name,
+the name of the input file is used,
+but the output files are placed in the directory indicated in the argument
+of the \texttt{-o} switch.
+
+For example:
+\begin{verbatim}
+    $ mbdyn -f input                    # output in "input.<extension>"
+    $ mbdyn -f input -o output          # output in "output.<extension>"
+    $ mbdyn -f input -o folder/output   # output in "folder/output.<extension>"
+    $ mbdyn -f input -o folder/         # output in "folder/input.<extension>"
+    $ mbdyn < input                     # output in "MBDyn.<extension>"
+\end{verbatim}
+
+
+
 \section{Input File Structure}
 The input is divided in blocks.
 This is a consequence of the fact that almost every module of the code 
