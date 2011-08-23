@@ -248,6 +248,7 @@ install-exec-local-oct:
 	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct $(DESTDIR)$(octavedir)
 	@echo "creating symlinks..."
 	@for f in $(OCTAVE_FUNCS) ; do \
+		rm -f $(DESTDIR)$(octavedir)/$$f ; \
 		ln -s $(DESTDIR)$(octavedir)/mbdyn_util_oct.oct $(DESTDIR)$(octavedir)/$$f ; \
 	done
 else
