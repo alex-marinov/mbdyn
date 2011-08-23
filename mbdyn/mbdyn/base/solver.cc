@@ -57,7 +57,6 @@
 
 #include <unistd.h>
 #include <errno.h>
-#include <sys/stat.h>
 
 #include <cfloat>
 #include <cmath>
@@ -84,8 +83,6 @@
 #include "ac/lapack.h"
 #include "ac/arpack.h"
 #include "eigjdqz.h"
-
-const char sDefaultOutputFileName[] = "MBDyn";
 
 #ifdef HAVE_SIGNAL
 /*
@@ -377,101 +374,10 @@ Solver::Run(void)
 		pRTSolver->Setup();
 	}
 
-	/* Nome del file di output */
-	if (sOutputFileName.empty()) {
-		if (!sInputFileName.empty()) {
-			sOutputFileName = sInputFileName;
-
-		} else {
-			sOutputFileName = ::sDefaultOutputFileName;
-		}
-
-	} else {
-		struct stat	s;
-
-		if (stat(sOutputFileName.c_str(), &s) != 0) {
-			int	save_errno = errno;
-
-			/* if does not exist, check path */
-			if (save_errno != ENOENT) {
-				char	*errmsg = strerror(save_errno);
-
-				silent_cerr("stat(" << sOutputFileName << ") failed "
-					"(" << save_errno << ": " << errmsg << ")" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			// note: use a reverse iterator find?
-			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
-			if (path != NULL) {
-				std::string sOutputFilePath = sOutputFileName;
-				sOutputFilePath.erase(path - sOutputFileName.c_str());
-
-				if (stat(sOutputFilePath.c_str(), &s) != 0) {
-					save_errno = errno;
-					char	*errmsg = strerror(save_errno);
-
-					silent_cerr("stat(" << sOutputFileName << ") failed because "
-							"stat(" << sOutputFilePath << ") failed "
-						"(" << save_errno << ": " << errmsg << ")" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-				} else if (!S_ISDIR(s.st_mode)) {
-					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
-							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
-		} else if (S_ISDIR(s.st_mode)) {
-			std::string tmpIn;
-
-			if (!sInputFileName.empty()) {
-				const char *p = std::strrchr(sInputFileName.c_str(), '/');
-				if (p != 0) {
-					tmpIn = p;
-
-				} else {
-					tmpIn = sInputFileName;
-				}
-
-			} else {
-				tmpIn = ::sDefaultOutputFileName;
-			}
-
-			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
-				sOutputFileName += '/';
-			}
-			sOutputFileName += tmpIn;
-		}
-	}
-
 #ifdef USE_SCHUR
 	int mpi_finalize = 0;
 
-	int MyRank = 0;
 	if (bParallel) {
-
-		/*
-		 * E' necessario poter determinare in questa routine
-		 * quale e' il master in modo da far calcolare la soluzione
-		 * solo su di esso
-		 */
-		MyRank = MBDynComm.Get_rank();
-		/* chiama il gestore dei dati generali della simulazione */
-
-		/*
-		 * I file di output vengono stampati localmente
-		 * da ogni processo aggiungendo al termine
-		 * dell'OutputFileName il rank del processo
-		 */
-		ASSERT(MPI::COMM_WORLD.Get_size() > 1);
-		int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
-
-		char buf[STRLENOF(".") + iRankLength + 1];
-		snprintf(buf, sizeof(buf), ".%.*d", iRankLength, MyRank);
-		sOutputFileName += buf;
-
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);
 
@@ -484,8 +390,6 @@ Solver::Run(void)
 				sOutputFileName.c_str(),
 				sInputFileName.c_str(),
 				eAbortAfter == AFTER_INPUT));
-
-		/* FIXME: who frees sNewOutname? */
 
 		pDM = pSDM;
 

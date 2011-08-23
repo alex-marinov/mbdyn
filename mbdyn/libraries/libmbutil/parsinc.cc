@@ -44,7 +44,9 @@
 
 #include "parsinc.h"
 
-const int PATHBUFSIZE = 1024;
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif // !PATH_MAX
 
 /* IncludeParser - begin */
 
@@ -58,8 +60,8 @@ sCurrFile(NULL)
 {   
 	ASSERT(sInitialFile != NULL);
 #ifdef USE_INCLUDE_PARSER
-   	char s[PATHBUFSIZE];
-   	if (getcwd(s, PATHBUFSIZE) == NULL) {
+   	char s[PATH_MAX];
+   	if (getcwd(s, sizeof(s)) == NULL) {
 		silent_cerr("Error in getcwd()" << std::endl);
       		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
    	}
@@ -294,8 +296,8 @@ IncludeParser::Include_int()
 					<< stmp << std::endl);
 	    			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
 	 		}
-	 		char p[PATHBUFSIZE];
-	 		if (getcwd(p, PATHBUFSIZE) == NULL) {
+	 		char p[PATH_MAX];
+	 		if (getcwd(p, sizeof(p)) == NULL) {
 				silent_cerr("Error in getcwd()" << std::endl);
 	    			SAFEDELETEARR(stmp);
 	    			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
@@ -315,8 +317,8 @@ IncludeParser::Include_int()
    	SAFEDELETEARR(stmp);
    
    	if (sCurrPath == NULL) {
-      		char s[PATHBUFSIZE];
-      		if (getcwd(s, PATHBUFSIZE) == NULL) {
+      		char s[PATH_MAX];
+      		if (getcwd(s, sizeof(s)) == NULL) {
 			silent_cerr("Error in getcwd()" << std::endl);
 	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}

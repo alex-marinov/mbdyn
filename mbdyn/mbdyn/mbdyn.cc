@@ -104,6 +104,13 @@ std::list<MPI::Intercomm>  InterfaceComms;
 void *rtmbdyn_rtai_task = NULL;
 #endif /* USE_RTAI */
 
+#include <sys/stat.h>
+#ifndef PATH_MAX
+#define PATH_MAX 4096
+#endif // !PATH_MAX
+
+const char sDefaultOutputFileName[] = "MBDyn";
+
 #include "myassert.h"
 #include "mynewmem.h"
 #include "except.h"
@@ -829,7 +836,7 @@ main(int argc, char* argv[])
 	mbp.pMP = 0;
        	mbp.bShowSymbolTable = false;
 	mbp.pIn = NULL;
-       	mbp.sInputFileName = (char *)sDefaultInputFileName;
+       	mbp.sInputFileName = sDefaultInputFileName;
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = FILE_UNKNOWN;
@@ -961,11 +968,101 @@ main(int argc, char* argv[])
 static Solver* 
 RunMBDyn(MBDynParser& HP, 
 	 const std::string& sInputFileName,
-	 const std::string& sOutputFileName,
+	 const std::string& sOutFName,
 	 bool using_mpi,
 	 bool bException)
 {
     	DEBUGCOUTFNAME("RunMBDyn");
+
+	// fix output file name
+	std::string sOutputFileName = sOutFName;
+	if (sOutputFileName.empty()) {
+		if (!sInputFileName.empty()) {
+			sOutputFileName = sInputFileName;
+
+		} else {
+			sOutputFileName = ::sDefaultOutputFileName;
+		}
+
+	} else {
+		struct stat	s;
+
+		if (stat(sOutputFileName.c_str(), &s) != 0) {
+			int	save_errno = errno;
+
+			/* if does not exist, check path */
+			if (save_errno != ENOENT) {
+				char	*errmsg = strerror(save_errno);
+
+				silent_cerr("stat(" << sOutputFileName << ") failed "
+					"(" << save_errno << ": " << errmsg << ")" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// note: use a reverse iterator find?
+			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
+			if (path != NULL) {
+				std::string sOutputFilePath(sOutputFileName, 0, path - sOutputFileName.c_str());
+				// sOutputFilePath.erase(path - sOutputFileName.c_str());
+
+				if (stat(sOutputFilePath.c_str(), &s) != 0) {
+					save_errno = errno;
+					char	*errmsg = strerror(save_errno);
+
+					silent_cerr("stat(" << sOutputFileName << ") failed because "
+							"stat(" << sOutputFilePath << ") failed "
+						"(" << save_errno << ": " << errmsg << ")" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+
+				} else if (!S_ISDIR(s.st_mode)) {
+					silent_cerr("path to file \"" << sOutputFileName << "\" is invalid ("
+							"\"" << sOutputFilePath << "\" is not a dir)" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+		} else if (S_ISDIR(s.st_mode)) {
+			std::string tmpIn;
+
+			if (!sInputFileName.empty()) {
+				const char *p = std::strrchr(sInputFileName.c_str(), '/');
+				if (p != 0) {
+					tmpIn = p;
+
+				} else {
+					tmpIn = sInputFileName;
+				}
+
+			} else {
+				tmpIn = ::sDefaultOutputFileName;
+			}
+
+			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
+				sOutputFileName += '/';
+			}
+			sOutputFileName += tmpIn;
+		}
+	}
+
+	if (sOutputFileName[0] != '/') {
+   		char cwd[PATH_MAX];
+   		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+			silent_cerr("Error in getcwd()" << std::endl);
+      			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+   		}
+		sOutputFileName = std::string(cwd) + '/' + sOutputFileName;
+	}
+
+	// chdir to input file's folder
+	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
+	if (dirsep != 0) {
+		std::string sInputDir(sInputFileName.c_str(), dirsep - sInputFileName.c_str());
+		if (chdir(sInputDir.c_str())) {
+			int save_errno = errno;
+			silent_cerr("Error in chdir(" << sInputDir << ") (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+		}
+	}
    
     	Solver* pSolv(0);
 
@@ -1167,6 +1264,28 @@ endofcycle:
 					<< std::endl);
 		}
        		bParallel = (MBDynComm.Get_size() != 1);
+
+		if (bParallel) {
+			/*
+			 * E' necessario poter determinare in questa routine
+			 * quale e' il master in modo da far calcolare la soluzione
+			 * solo su di esso
+			 */
+			MyRank = MBDynComm.Get_rank();
+			/* chiama il gestore dei dati generali della simulazione */
+
+			/*
+			 * I file di output vengono stampati localmente
+			 * da ogni processo aggiungendo al termine
+			 * dell'OutputFileName il rank del processo
+			 */
+			ASSERT(MPI::COMM_WORLD.Get_size() > 1);
+			int iRankLength = 1 + (int)log10(MPI::COMM_WORLD.Get_size() - 1);
+
+			char buf[STRLENOF(".") + iRankLength + 1];
+			snprintf(buf, sizeof(buf), ".%.*d", iRankLength, MyRank);
+			sOutputFileName += buf;
+		}
 	}
 #endif /* USE_MPI */
 

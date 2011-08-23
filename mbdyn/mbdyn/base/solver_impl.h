@@ -65,8 +65,6 @@
 #include <sys/mman.h>
 #endif /* HAVE_SYS_MMAN_H */
 
-extern const char sDefaultOutputFileName[];
-
 #if 0
 #ifdef HAVE_SIGNAL
 extern volatile sig_atomic_t mbdyn_keep_going;
