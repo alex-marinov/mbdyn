@@ -1384,13 +1384,16 @@ DestroyCL(void)
 	/* free stuff */
 	for (CL1DFuncMapType::iterator i = CL1DFuncMap.begin(); i != CL1DFuncMap.end(); ++i) {
 		delete i->second;
+		CL1DFuncMap.erase(i);
 	}
 
 	for (CL3DFuncMapType::iterator i = CL3DFuncMap.begin(); i != CL3DFuncMap.end(); ++i) {
 		delete i->second;
+		CL3DFuncMap.erase(i);
 	}
 
 	for (CL6DFuncMapType::iterator i = CL6DFuncMap.begin(); i != CL6DFuncMap.end(); ++i) {
 		delete i->second;
+		CL6DFuncMap.erase(i);
 	}
 }

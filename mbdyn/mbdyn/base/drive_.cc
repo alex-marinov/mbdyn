@@ -2594,5 +2594,6 @@ DestroyDriveData(void)
 	/* free stuff */
 	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); ++i) {
 		delete i->second;
+		DrvFuncMap.erase(i);
 	}
 }
