@@ -141,6 +141,7 @@ class IncludeParser : public HighParser {
    
    std::stack<MyInput *> myinput;
    char* sCurrPath;
+   char* sInitialPath;
    char* sCurrFile;
 
    flag fCheckStack(void);

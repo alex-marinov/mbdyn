@@ -53,6 +53,7 @@ IncludeParser::IncludeParser(MathParser& MP,
 			     const char *sInitialFile)
 : HighParser(MP, streamIn),
 sCurrPath(NULL),
+sInitialPath(NULL),
 sCurrFile(NULL)
 {   
 	ASSERT(sInitialFile != NULL);
@@ -63,6 +64,7 @@ sCurrFile(NULL)
       		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
    	}
 	SAFESTRDUP(sCurrPath, s);
+	sInitialPath = sCurrPath;
    	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
    
    	SAFESTRDUP(sCurrFile, sInitialFile);
@@ -649,6 +651,7 @@ IncludeParser::GetLineData(void) const
 {      
    	ErrOut LineData;
    	LineData.sFileName = sCurrFile;
+   	LineData.sPathName = (strcmp(sCurrPath, sInitialPath) == 0) ? 0 : sCurrPath;
    	LineData.iLineNumber = GetLineNumber();
    	return LineData;
 }

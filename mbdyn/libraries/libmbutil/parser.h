@@ -269,6 +269,7 @@ public:
 public:
 	struct ErrOut {
 		const char* sFileName;
+		const char* sPathName;
 		unsigned int iLineNumber;
 	};
 

@@ -332,6 +332,7 @@ HighParser::GetLineData(void) const
 	ErrOut LineData;
 	LineData.iLineNumber = GetLineNumber();
 	LineData.sFileName = NULL;
+	LineData.sPathName = NULL;
 	return LineData;
 }
 
@@ -1200,8 +1201,14 @@ std::ostream&
 operator << (std::ostream& out, const HighParser::ErrOut& err)
 {
 	out << err.iLineNumber;
-		if (err.sFileName != NULL) {
-			out << ", file <" << err.sFileName << '>';
+
+	if (err.sFileName != 0) {
+		out << ", file <";
+		if (err.sPathName != 0) {
+			out << err.sPathName << '/';
 		}
+		out << err.sFileName << '>';
+	}
+
 	return out;
 }
