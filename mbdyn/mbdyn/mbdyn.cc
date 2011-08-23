@@ -398,7 +398,7 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			mbp.pIn = (std::istream*)&mbp.FileStreamIn;
+			mbp.pIn = dynamic_cast<std::istream *>(&mbp.FileStreamIn);
 			break;
 
 		case int('o'):
@@ -641,7 +641,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.CurrInputSource = FILE_STDIN;
 			mbp.CurrInputFormat = MBDYN;
 			ASSERT(mbp.pIn == NULL);
-			mbp.pIn = (std::istream*)&std::cin;
+			mbp.pIn = dynamic_cast<std::istream *>(&std::cin);
 		}
 	}
 
