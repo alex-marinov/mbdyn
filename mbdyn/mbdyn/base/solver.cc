@@ -4426,7 +4426,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 		 * calculated, but ALPHAR(j), ALPHAI(j), and BETA(j)
 		 * should be correct for j=INFO+1,...,N. */
 		Out << "the QZ iteration failed, but eigenvalues "
-			<< iInfo + 1 << "->" << iSize << "should be correct"
+			<< iInfo + 1 << "->" << iSize << " should be correct"
 			<< std::endl;
 
 	} else if (iInfo > iSize) {
