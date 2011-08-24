@@ -234,19 +234,29 @@ Chebychev polynomials of the first kind are defined as
 \end{equation}
 with
 \begin{equation}
-	\xi = 2 \frac{x}{b - a} + \frac{b + a}{b - a} ,
+	\xi = 2 \frac{x}{b - a} - \frac{b + a}{b - a} ,
 \end{equation}
+where $a = \nt{lower\_bound}$ and $b = \nt{upper\_bound}$,
 which corresponds to the series
 \begin{align}
 	T_0\plbr{\xi} &= 1 \\
-	T_1\plbr{\xi} &= x \\
+	T_1\plbr{\xi} &= \xi \\
 	\ldots \nonumber \\
 	T_n\plbr{\xi} &= 2 \xi T_{n-1}\plbr{\xi} - T_{n-2}\plbr{\xi} .
 \end{align}
+For example, the first five coefficients are
+\begin{align}
+	T_0\plbr{\xi} &= 1 \\
+	T_1\plbr{\xi} &= \xi \\
+	T_2\plbr{\xi} &= 2\xi^2 - 1 \\
+	T_3\plbr{\xi} &= 4\xi^3 - 3\xi \\
+	T_4\plbr{\xi} &= 8\xi^4 - 8\xi^2 + 1
+\end{align}
 This scalar function implements the truncated series in the form
 \begin{equation}
-	f\plbr{x} = \sum_{k=0,n} a_k T_k\plbr{\xi} .
+	f\plbr{x} = \sum_{k=0,n} c_k T_k\plbr{\xi} ,
 \end{equation}
+where $c_k = \nt{coef\_}\texttt{<k>}$.
 The first derivative of the series is obtained by considering
 \begin{align}
 	\frac{\mathrm{d}}{\mathrm{d}\xi}T_0\plbr{\xi} &= 0 \\
@@ -259,7 +269,7 @@ The first derivative of the series is obtained by considering
 \end{align}
 so the first derivative of the scalar function is
 \begin{equation}
-	\frac{\mathrm{d}}{\mathrm{d}x}f\plbr{x} = \frac{\mathrm{d}\xi}{\mathrm{d}x} \sum_{k=1,n} a_k \frac{\mathrm{d}}{\mathrm{d}\xi} T_k\plbr{\xi} .
+	\frac{\mathrm{d}}{\mathrm{d}x}f\plbr{x} = \frac{\mathrm{d}\xi}{\mathrm{d}x} \sum_{k=1,n} c_k \frac{\mathrm{d}}{\mathrm{d}\xi} T_k\plbr{\xi} .
 \end{equation}
 Subsequent derivatives follow the rule
 \begin{equation}
