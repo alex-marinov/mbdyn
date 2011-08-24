@@ -134,9 +134,13 @@ Inertia::Output_int(std::ostream& out) const
 		<< "inertia: " << GetLabel()
 		<< " (" << ( GetName().empty() ? "unnamed" : GetName() ) << ")"
 		<< std::endl;
+	Vec3 DX(X_cm - X0);
+	Mat3x3 JX(J_cm - Mat3x3(MatCrossCross, DX, DX*dMass));
 	CenterOfMass::Output_int(out)
-		<< "    Xcg-X:       " << (X_cm - X0) << std::endl
-		<< "    R^T*(Xcg-X): " << R0.MulTV(X_cm - X0) << std::endl
+		<< "    Xcg-X:       " << DX << std::endl
+		<< "    R^T*(Xcg-X): " << R0.MulTV(DX) << std::endl
+		<< "    J(X):        " << JX << std::endl
+		<< "    R^T*J(X)*R:  " << R0.MulTM(JX)*R0 << std::endl
 		<< "    Rp:          " << R_princ << std::endl
 		<< "    Thetap:      " << RotManip::VecRot(R_princ) << std::endl
 		<< "    Jp:          " << J_princ << std::endl;
