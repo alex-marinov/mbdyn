@@ -3818,6 +3818,18 @@ output_eigenvectors(const VectorHandler *pBeta,
 	integer iSize = VR.iGetNumRows();
 	integer iNVec = VR.iGetNumCols();
 
+	integer iEigenvalues = 0;
+
+	for (integer r = 1; r <= iNVec; r++) {
+		if (!vOut[r - 1]) {
+			continue;
+		}
+		++iEigenvalues;
+	}
+
+	if ( iEigenvalues == 0 )
+		return; // this is allows it to load the .m file into Matlab/Octave even if no eigenvalues have converged
+
 	// alphar, alphai, beta
 	o
 		<< "% alphar, alphai, beta" << std::endl
@@ -4924,6 +4936,9 @@ Solver::Eig(void)
 		// header
 		o
 			<< "% time: " << dTime << std::endl;
+
+		o
+			<< "dTime = " << dTime << ';' << std::endl;
 
 		/* coefficient */
 		o

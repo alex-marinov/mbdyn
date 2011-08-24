@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- log relative frame dummy nodes (Reinhard Resch)
 		- log struct node momentum dofs (Reinhard Resch)
 		- added support for octave (Reinhard Resch)
+		- improved modal analysis output (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
