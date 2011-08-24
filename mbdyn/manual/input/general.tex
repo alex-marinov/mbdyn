@@ -178,9 +178,9 @@ MBDyn terminated normally
 \end{figure}
 
 The variable \kw{Time} is declared, defined and initialized\footnote{
-    A variable is \emph{declared} when its name enters the namespace;
+    Note: a variable is \emph{declared} when its name enters the namespace;
     it is \emph{defined} when it can be referenced;
-    it is \emph{initialized} when it is first assigned a value
+    it is \emph{initialized} when it is first assigned a value.
 } from the beginning of the control data section, and during the solution 
 phase it is assigned the value of the current time. 
 
@@ -363,9 +363,9 @@ with the suffix \kw{\_prev} (e.g.\ \kw{position\_prev})
 use the configuration at the previous time step.
 They may be useful, for example, when parsing hints
 (see Section~\ref{sec:GENERAL:DRIVE:HINT}),
-since their parsing occurs after prediction,
-but often need to refer to the configuration
-at the previous time step.
+since \kw{hint} parsing occurs after prediction,
+but often needs to refer to the configuration
+at the previous, just completed time step.
 
 \begin{table}
 	\begin{center}
@@ -2557,17 +2557,37 @@ drive caller parameters depends on the configuration of the system when the
 entity that uses it is waken up.
 For example, a \kw{distance joint}, an element that enforces the distance
 between two nodes, may be waken up by some event.
-In the case detailed below, the initial value of the \kw{cosine} drive caller
+In the example reported below, the initial value of the \kw{cosine} drive caller
 is computed by extracting the current distance between the nodes at the time
 the element is waken up:
 \begin{verbatim}
     driven: 1, string, "Time > 10.",
-        hint, "drive{cosine, 10., 2., .25, half, model::distance(10, 20)}",
+        hint, "drive{cosine, 10., 2., .25, half, model::distance_prev(10, 20)}",
     joint: 1, distance,
         10,
         20,
-        const, 1;
+        const, 1; # this length is not actually used,
+                  # since the element is inactive until "Time > 10.";
+                  # subsequently, the length is replaced by the hint
 \end{verbatim}
+Note that the function \kw{distance\_prev}
+(from the built-in \kw{model} namespace)
+is used instead of the function \kw{distance}.
+This is needed because hints are parsed \emph{after} the prediction
+of the state of the model for a subsequent new time step,
+i.e.\ they extract information from the model
+\emph{after} its current state has been modified by the prediction
+for the next time step.
+As a consequence, unless an exactly steady state was reached
+for a sufficient number of steps to result in a prediction
+that does not change the state of that part of model,
+unexpected valued could result from a call to a function that returns
+information based on the \emph{current} state of the model.
+On the contrary, to access the last converged state of the model
+within a \kw{hint} one needs to call \kw{mode} namespace functions
+that refer to the \emph{previous} time step.
+See Section~\ref{sec:GENERAL:NAMESPACE} for further details
+on the functions of the \kw{model} namespace.
 
 
 
@@ -2575,33 +2595,41 @@ the element is waken up:
 A particular \ty{DriveCaller} is the template drive caller,
 indicated as \ty{TplDriveCaller}\bnt{type}.
 It basically consists in a drive with dimensionality other than scalar.
-Typically, it is made of a constant entity, with the dimensionality
-of \nt{type}, that multiplies a conventional 
-\hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
-to give a drive entity of dimensionality different from that 
-of a simple scalar drive.
+%Typically, it is made of a constant entity, with the dimensionality
+%of \nt{type}, that multiplies a conventional 
+%\hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
+%to give a drive entity of dimensionality different from that 
+%of a simple scalar drive.
 
 There are four types of template drive callers:
 \begin{itemize}
-\item the \kw{null} template drive caller, a shortcut for nothing;
-\item the \kw{single} template drive caller;
-\item the \kw{component} template drive caller;
-\item the \kw{array} template drive caller,
-which linearly combines a set of template drive callers.
-\end{itemize}
-They are entered as follows:
-%\begin{verbatim}
+\item the \kw{null} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{null}
-
+\end{Verbatim}
+a shortcut for nothing;
+\item the \kw{single} template drive caller:
+\begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{single} ,
         \bnt{entity} , (\ty{DriveCaller}) \bnt{drive_caller}
+\end{Verbatim}
+corresponding to $\nt{entity}\times\nt{drive\_caller}$,
+where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
+vector, $6 \times 1$ vector are the types currently defined, but, since 
+a C++ template has been used, the implementation of new ones 
+is straightforward);
 
+\item the \kw{component} template drive caller:
+\begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{component} ,
         \bnt{component_drive_caller}
         [ , ... ]
         # as many \nt{component_drive_caller} as the dimensionality of \nt{entity}
+\end{Verbatim}
+where each element consists of the corresponding drive caller;
 
+\item the \kw{array} template drive caller:
+\begin{Verbatim}[commandchars=\\\{\}]
     \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\ty{DriveCaller}) \bnt{drive_caller} \}
 
     \bnt{tpl_drive_caller} ::= \kw{array} ,
@@ -2610,14 +2638,10 @@ They are entered as follows:
             [ , ... ]
             # \nt{num_template_drive_callers} instances of \nt{tpl_drive_caller}
 \end{Verbatim}
-%\end{verbatim}
-where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
-vector, $6 \times 1$ vector are the types currently defined, but, since 
-a C++ template has been used, the implementation of new ones 
-is straightforward).
-
-In case of scalar values, the template reverts by default to a normal 
-drive caller, so no overhead is added.
+which linearly combines a set of arbitrary template drive callers.
+\end{itemize}
+In case of scalar values, a normal drive caller is actually instantiated,
+so no overhead is added.
 
 In the case of the \kw{component} template drive caller,
 as many instances of a \ty{DriveCaller} as the dimensionality
@@ -2627,7 +2651,7 @@ At least one \nt{tpl\_drive\_caller} is expected in the case of the \kw{array}
 template drive caller. 
 If \nt{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
-related to the handling of the drive caller array.    
+related to handling the template drive caller array.    
 
 The template drive can be re-parsed as a consequence of a
 \hyperref{\kw{hint}}{\kw{hint} (see Section~}{)}{sec:GENERAL:DRIVE:HINT}.
