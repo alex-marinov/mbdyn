@@ -3910,8 +3910,11 @@ output_eigenvectors(const VectorHandler *pBeta,
 				ASSERT(I(c) > 0.);
 
 				doublereal re = VR(r, c);
-				doublereal im = VR(r, c + 1);
-				if (im < 0 ) {
+				// NOTE: we cannot assume that if c == iNVec
+				// it corresponds to a real-valued eigenvalue;
+				// "im" will be wrong, but at least we do not sigsegv
+				doublereal im = (c < iNVec) ? VR(r, c + 1): 0.;
+				if (im < 0.) {
 					isign = 0;
 					im = -im;
 
