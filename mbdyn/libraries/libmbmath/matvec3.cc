@@ -429,7 +429,7 @@ Mat3x3::EigSym(Vec3& EigenValues, Mat3x3& EigenVectors) const
 
 	Vec3 v2(w1.Cross(v1));
 	EigenVectors.PutVec(idx2, v2);
-	EigenVectors.PutVec(idx3, v2.Cross(v1));
+	EigenVectors.PutVec(idx3, v1.Cross(v2));
 
 	return true;
 }
