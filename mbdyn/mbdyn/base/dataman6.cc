@@ -58,8 +58,8 @@ DataManager::DeleteSocketUsers(void)
 	while (!SocketUsers.empty()) {
 		std::map<int, UseSocket *>::iterator i = SocketUsers.begin();
 		delete i->second;
-		SocketUsers.erase(i);
 	}
+	SocketUsers.clear();
 }
 
 void

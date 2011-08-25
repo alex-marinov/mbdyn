@@ -1537,7 +1537,7 @@ DestroySF(void)
 
 	for (SFReadType::iterator i = SFRead.begin(); i != SFRead.end(); ++i) {
 		delete i->second;
-		SFRead.erase(i);
 	}
+	SFRead.clear();
 }
 

@@ -765,17 +765,17 @@ DestroyTplDC(void)
 	/* free stuff */
 	for (DC1DFuncMapType::iterator i = DC1DFuncMap.begin(); i != DC1DFuncMap.end(); ++i) {
 		delete i->second;
-		DC1DFuncMap.erase(i);
 	}
+	DC1DFuncMap.clear();
 
 	for (DC3DFuncMapType::iterator i = DC3DFuncMap.begin(); i != DC3DFuncMap.end(); ++i) {
 		delete i->second;
-		DC3DFuncMap.erase(i);
 	}
+	DC3DFuncMap.clear();
 
 	for (DC6DFuncMapType::iterator i = DC6DFuncMap.begin(); i != DC6DFuncMap.end(); ++i) {
 		delete i->second;
-		DC6DFuncMap.erase(i);
 	}
+	DC6DFuncMap.clear();
 }
 

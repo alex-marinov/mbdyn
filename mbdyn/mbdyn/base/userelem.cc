@@ -141,8 +141,8 @@ DestroyUDE(void)
 
 	for (UDEMapType::iterator i = UDEMap.begin(); i != UDEMap.end(); ++i) {
 		delete i->second;
-		UDEMap.erase(i);
 	}
+	UDEMap.clear();
 }
 
 // base class for user-defined elements
