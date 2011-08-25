@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- log struct node momentum dofs (Reinhard Resch)
 		- added support for octave (Reinhard Resch)
 		- improved modal analysis output (Reinhard Resch)
+		- added basic support for NREL airfoil data format
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

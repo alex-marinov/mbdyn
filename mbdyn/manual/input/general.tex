@@ -905,14 +905,14 @@ airfoil tables that are used by aerodynamic elements.
     \bnt{card} ::= \kw{c81 data} : \bnt{label} [ , \kw{name} , " \bnt{name} " ]
         " \bnt{filename} "
         [ , \kw{tolerance} , \bnt{tolerance} ]
-        [ , \{ \kw{fc511} | \kw{free format} \} ]
+        [ , \{ \kw{free format} | \kw{nrel} | \kw{fc511} \} ]
         [ , \kw{echo} , " \bnt{output_filename} " [ , \kw{free format} ] ] ;
 \end{Verbatim}
 %\end{verbatim}
 Data is read from file \nt{filename} according to the format specified
 in the following.
-The traditional format is used unless a format is specified using either
-of the keywords \kw{free format} or \kw{fc511}
+The traditional format is used unless a format is specified using any
+of the keywords \kw{free format}, \kw{nrel} or \kw{fc511}
 (the latter is intentionally not documented).
 The format is automatically inferred by reading the heading line
 of the input file.
@@ -981,10 +981,6 @@ with \texttt{MD} \emph{Mach} points and \texttt{ND} angle of attack records;
 with \texttt{MM} \emph{Mach} points and \texttt{NM} angle of attack records.
 \end{itemize}
 
-\subsubsection{Alternative Format}
-An alternative format, required by some projects, can be used by supplying
-the optional switch \kw{fc511}; it is intentionally not documented.
-
 \subsubsection{Free Format}
 Finally, to allow higher precision whenever available, a native format,
 based on \texttt{c81}, called \kw{free format}, is available.
@@ -1013,6 +1009,24 @@ this is the header; 2 8 2 2 2 2
 -180.0  0.0   0.0
  180.0  0.0   0.0
 \end{verbatim}
+
+\subsubsection{NREL}
+The \kw{nrel} format is used to provide airfoil data for wind turbines.
+The format is very compact, but does not allow to account for Mach
+dependence, and requires the same angle of attack resolution
+for all three coefficients.
+See AeroDyn's User Guide \cite{AERODYN-UG-2002} for a description
+of the format.
+Please note that MBDyn only supports one airfoil per file,
+and only considers static coefficients from line 15 on.
+
+\emph{To be completed.}
+
+\subsubsection{Alternative Format}
+An alternative format, required by some projects, can be used by supplying
+the optional switch \kw{fc511}; it is intentionally not documented.
+
+\subsubsection{Format Conversion}
 
 Traditional format files can be automatically converted in free format
 using the \texttt{c81test(1)} utility:

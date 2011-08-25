@@ -43,6 +43,7 @@ extern int merge_c81_data(unsigned ndata, const c81_data **data, const doublerea
 	doublereal dCsi, doublereal dcltol, c81_data *i_data);
 extern int do_c81_data_stall(c81_data *data, const doublereal dcltol);
 extern int read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int read_nrel_data(std::istream& in, c81_data* data, const doublereal dcptol);
 extern int read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
 extern int write_c81_data(std::ostream& out, c81_data* data);
 extern int write_c81_data_free_format(std::ostream& out, c81_data* data);

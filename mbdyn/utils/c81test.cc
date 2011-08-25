@@ -56,6 +56,7 @@ usage(int rc)
 "\t-d {<dump>|-}\t"	"dump contents (to optional file <dump>, if given)\n"
 "\t-f\t\t"		"interpret <file> as free format\n"
 "\t-m <mach>\t"		"dump coefficients for Mach number <mach>\n"
+"\t-n\t\t"		"interpret <file> as NREL format\n"
 "\t-o\t\t"		"interpret <file> as fc511 format\n"
 "\t-t <tolerance>\t"	"use <tolerance> to determine end of linearity\n"
 		<< std::endl;
@@ -85,7 +86,7 @@ main(int argc, char *argv[])
 	doublereal	tol = 1e-6;
 	
 	while (true) {
-		int opt = getopt(argc, argv, "a:cC:d:fm:ot:");
+		int opt = getopt(argc, argv, "a:cC:d:fm:not:");
 
 		if (opt == EOF) {
 			break;
@@ -134,8 +135,9 @@ main(int argc, char *argv[])
 			got |= GOT_MACH;
 			break;
 
+		case 'n':
 		case 'o':
-			mode = 'o';
+			mode = char(opt);
 			break;
 
 		case 't':
@@ -172,8 +174,8 @@ main(int argc, char *argv[])
 		case GOT_MACH:
 			if (coef == '\0') {
 				std::cerr << "need to select a coefficient "
-					"when both alpha and mach "
-					"are not selected"
+					"when alpha and mach "
+					"are not selected altogether"
 					<< std::endl;
 				usage(EXIT_FAILURE);
 			}
@@ -209,6 +211,10 @@ main(int argc, char *argv[])
 
 	case 'f':
 		rc = read_c81_data_free_format(in, data, tol);
+		break;
+
+	case 'n':
+		rc = read_nrel_data(in, data, tol);
 		break;
 
 	case 'o':

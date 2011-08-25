@@ -871,6 +871,93 @@ read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 }
 
 extern "C" int
+read_nrel_data(std::istream& in, c81_data* data, const doublereal dcltol)
+{
+   	char buf[128];	// 81 should suffice; let's make it 128
+
+   	// header
+   	in.getline(buf, sizeof(buf));
+
+	// keep the first one
+	memcpy(data->header, buf, sizeof(data->header));
+	data->header[STRLENOF(data->header)] = '\0';
+
+	// discard the second one
+	in.getline(buf, sizeof(buf));
+
+	int n;
+	in >> n;
+	if (n != 1) {
+		silent_cerr("NREL format: can only handle one airfoil per file (got " << n << ")" << std::endl);
+		return -1;
+	}
+
+	// discard remaining lines
+	for (int i = 0; i < 12; i++) {
+		// discard
+		in.getline(buf, sizeof(buf));
+	}
+
+	std::streampos pos = in.tellg();
+	for (n = 0; in; n++) {
+		in.getline(buf, sizeof(buf));
+	}
+
+	in.clear();
+	in.seekg(pos);
+	n--;
+
+	if (n < 2) {
+		silent_cerr("insufficient number of data points n=" << n << " in NREL data format (n >= 2 required)" << std::endl);
+		return -1;
+	}
+
+	/* lift */
+	data->NML = 1;
+	data->ml = new doublereal[data->NML];
+	data->ml[0] = 0.;
+	data->NAL = n;
+	data->al = new doublereal[2*data->NAL];
+
+	/* drag */
+	data->NMD = 1;
+	data->md = new doublereal[data->NMD];
+	data->md[0] = 0.;
+	data->NAD = n;
+	data->ad = new doublereal[2*data->NAD];
+
+	/* moment */
+	data->NMM = 1;
+	data->mm = new doublereal[data->NMM];
+	data->mm[0] = 0.;
+	data->NAM = n;
+	data->am = new doublereal[2*data->NAM];
+
+	for (int i = 0; i < n; i++) {
+		doublereal alpha, cl, cd, cm;
+		in >> alpha >> cl >> cd >> cm;
+
+		if (i == 0 && alpha != -180.) {
+			silent_cerr("warning: NREL data format: first alpha=" << alpha << " != -180.)" << std::endl);
+		} else if (i == n - 1 && alpha != 180.) {
+			silent_cerr("warning: NREL data format: last alpha=" << alpha << " != 180.)" << std::endl);
+		}
+
+		data->al[i] = alpha;
+		data->al[data->NAL + i] = cl;
+		data->ad[i] = alpha;
+		data->ad[data->NAD + i] = cd;
+		data->am[i] = alpha;
+		data->am[data->NAM + i] = cm;
+	}
+
+	/* FIXME: maybe this is not the best place */
+	do_c81_data_stall(data, dcltol);
+
+   	return 0;
+}
+
+extern "C" int
 read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128

@@ -357,6 +357,15 @@ MBDynParser::C81Data_int(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+	} else if (IsKeyWord("nrel")) {
+		if (read_nrel_data(in, data, dcptol) != 0) {
+			silent_cerr("C81Data(" << uLabel << "): "
+				"unable to read c81 data " << uLabel 
+				<< " from file '" << filename << "' "
+				"in NREL format at line " << GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 	} else if (IsKeyWord("free" "format")) {
 		if (read_c81_data_free_format(in, data, dcptol) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
