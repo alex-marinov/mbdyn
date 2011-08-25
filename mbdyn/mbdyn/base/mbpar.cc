@@ -121,7 +121,7 @@ MBDynParser::~MBDynParser(void)
 	}
 
 	for (ADType::iterator i = AD.begin(); i != AD.end(); ++i) {
-		destroy_c81_data(i->second);
+		c81_data_destroy(i->second);
 		SAFEDELETE(i->second);
 	}
 
@@ -349,7 +349,7 @@ MBDynParser::C81Data_int(void)
 
 	bool bFF(false);
 	if (IsKeyWord("fc511")) {
-		if (read_fc511_data(in, data, dcptol) != 0) {
+		if (c81_data_fc511_read(in, data, dcptol) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
 				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
@@ -358,7 +358,7 @@ MBDynParser::C81Data_int(void)
 		}
 
 	} else if (IsKeyWord("nrel")) {
-		if (read_nrel_data(in, data, dcptol) != 0) {
+		if (c81_data_nrel_read(in, data, dcptol) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
 				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
@@ -367,7 +367,7 @@ MBDynParser::C81Data_int(void)
 		}
 
 	} else if (IsKeyWord("free" "format")) {
-		if (read_c81_data_free_format(in, data, dcptol) != 0) {
+		if (c81_data_read_free_format(in, data, dcptol) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
 				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
@@ -379,7 +379,7 @@ MBDynParser::C81Data_int(void)
 
 	} else {
 		int ff = 0;
-		if (read_c81_data(in, data, dcptol, &ff) != 0) {
+		if (c81_data_read(in, data, dcptol, &ff) != 0) {
 			silent_cerr("C81Data(" << uLabel << "): "
 				"unable to read c81 data " << uLabel 
 				<< " from file '" << filename << "' "
@@ -390,6 +390,10 @@ MBDynParser::C81Data_int(void)
 		if (ff) {
 			bFF = true;
 		}
+	}
+
+	if (IsKeyWord("flip")) {
+		(void)c81_data_flip(data);
 	}
 
 	// CL
@@ -453,14 +457,14 @@ MBDynParser::C81Data_int(void)
 		}
 
 		if (IsKeyWord("free" "format")) {
-			write_c81_data_free_format(out, data);
+			c81_data_write_free_format(out, data);
 
 		} else if (!IsArg()) {
 			if (bFF) {
-				write_c81_data_free_format(out, data);
+				c81_data_write_free_format(out, data);
 
 			} else {
-				write_c81_data(out, data);
+				c81_data_write(out, data);
 			}
 
 		} else {

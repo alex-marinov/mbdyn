@@ -97,13 +97,13 @@ main(int argc, char* argv[])
 	 exit(EXIT_FAILURE);
       }
 
-      read_c81_data(in, &data, 1e-6, 0);
+      c81_data_read(in, &data, 1e-6, 0);
                   
       in.close();
       
       // echo
       if (echo) {
-	 write_c81_data(cout, &data);
+	 c81_data_write(cout, &data);
       }
       
       argc--;

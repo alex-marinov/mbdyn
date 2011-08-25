@@ -32,23 +32,29 @@
 #ifndef C81DATA_H
 #define C81DATA_H
 
+#ifdef __cplusplus
 #include <iostream>
 
 extern "C" {
-extern void destroy_c81_data(c81_data* data);
-extern c81_data* get_c81_data(long int jpro);
-extern int set_c81_data(long int jpro, c81_data* data);
-extern int read_c81_data(std::istream& in, c81_data* data, const doublereal dcptol, int *ff);
-extern int merge_c81_data(unsigned ndata, const c81_data **data, const doublereal *upper_bounds,
+#endif /* __cplusplus */
+extern void c81_data_destroy(c81_data* data);
+extern c81_data* c81_data_get(long int jpro);
+extern int c81_data_set(long int jpro, c81_data* data);
+extern int c81_data_merge(unsigned ndata, const c81_data **data, const doublereal *upper_bounds,
 	doublereal dCsi, doublereal dcltol, c81_data *i_data);
-extern int do_c81_data_stall(c81_data *data, const doublereal dcltol);
-extern int read_fc511_data(std::istream& in, c81_data* data, const doublereal dcptol);
-extern int read_nrel_data(std::istream& in, c81_data* data, const doublereal dcptol);
-extern int read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
-extern int write_c81_data(std::ostream& out, c81_data* data);
-extern int write_c81_data_free_format(std::ostream& out, c81_data* data);
-extern doublereal get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach);
+extern int c81_data_do_stall(c81_data *data, const doublereal dcltol);
+extern doublereal c81_data_get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach);
+extern int c81_data_flip(c81_data *data);
+
+#ifdef __cplusplus
+extern int c81_data_read(std::istream& in, c81_data* data, const doublereal dcptol, int *ff);
+extern int c81_data_fc511_read(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int c81_data_nrel_read(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int c81_data_read_free_format(std::istream& in, c81_data* data, const doublereal dcptol);
+extern int c81_data_write(std::ostream& out, c81_data* data);
+extern int c81_data_write_free_format(std::ostream& out, c81_data* data);
 }
+#endif /* __cplusplus */
 
 #endif /* C81DATA_H */
 

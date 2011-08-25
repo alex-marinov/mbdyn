@@ -37,6 +37,7 @@
 #include "ac/f2c.h"
 #include "aerodc81.h"
 #include "bisec.h"
+#include "c81data.h"
 
 /*
 cC*************************          AEROD          *********************
@@ -69,14 +70,14 @@ C 3 direzione lungo l'apertura,
 C DM*W da' la velocita' nel punto a 3/4 della corda      
 */
 
-extern c81_data *get_c81_data(int jpro);
-
 static int
 get_coef(int nm, doublereal* m, int na, doublereal* a,
 		doublereal alpha, doublereal mach,
 		doublereal* c, doublereal* c0);
+
 static doublereal
 get_dcla(int nm, doublereal* m, doublereal* s, doublereal mach);
+
 #ifdef USE_GET_STALL
 static int
 get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
@@ -86,7 +87,7 @@ get_stall(int nm, doublereal* m, doublereal* s, doublereal mach,
 const outa_t outa_Zero;
 
 doublereal
-get_c81_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach)
+c81_data_get_coef(int nm, doublereal* m, int na, doublereal* a, doublereal alpha, doublereal mach)
 {
 	doublereal c;
 	

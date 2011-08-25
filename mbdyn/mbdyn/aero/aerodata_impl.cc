@@ -281,7 +281,7 @@ i_data(i_p*i_dim)
 			doublereal bm = bs[i_dim - 1][b + 1] + bs[i_dim - 1][b];
 			dCsi = (bm + dCsi*bl)/2.;
 
-			if (merge_c81_data(data.size(), &data[0], &upper_bounds[0],
+			if (c81_data_merge(data.size(), &data[0], &upper_bounds[0],
 				dCsi, dcltol, &i_data[i_point]))
 			{
 				// function logs error
@@ -296,7 +296,7 @@ i_data(i_p*i_dim)
 C81InterpolatedAeroData::~C81InterpolatedAeroData(void)
 {
 	for (unsigned i = 0; i < i_data.size(); i++) {
-		destroy_c81_data(&i_data[i]);
+		c81_data_destroy(&i_data[i]);
 	}
 }
 

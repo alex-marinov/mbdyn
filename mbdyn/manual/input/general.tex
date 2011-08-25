@@ -906,20 +906,28 @@ airfoil tables that are used by aerodynamic elements.
         " \bnt{filename} "
         [ , \kw{tolerance} , \bnt{tolerance} ]
         [ , \{ \kw{free format} | \kw{nrel} | \kw{fc511} \} ]
+        [ , flip ]
         [ , \kw{echo} , " \bnt{output_filename} " [ , \kw{free format} ] ] ;
 \end{Verbatim}
 %\end{verbatim}
 Data is read from file \nt{filename} according to the format specified
 in the following.
+
+The optional keyword \kw{tolerance} allows to specify the tolerance
+that is used to determine the boundaries of the linear portion
+of the lift curve slope.
+
 The traditional format is used unless a format is specified using any
 of the keywords \kw{free format}, \kw{nrel} or \kw{fc511}
 (the latter is intentionally not documented).
 The format is automatically inferred by reading the heading line
 of the input file.
 
-The optional keyword \kw{tolerance} allows to specify the tolerance
-that is used to determine the boundaries of the linear portion
-of the lift curve slope.
+The optional keyword \kw{flip} instructs MBDyn to ``flip'' the data,
+i.e.\ treat the airfoil data as if the sign of the angle of attack
+changed along with that of the lift and moment coefficients,
+but not that of the drag coefficient.
+This corresponds to considering the airfoil ``upside down''.
 
 The optional keyword \kw{echo} allows to specify the name of the file
 that will be generated with the data just read, for cross-checking purposes.

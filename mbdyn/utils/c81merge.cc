@@ -104,7 +104,7 @@ merge_data_from(int NA, int NM, int NM_to,
 }
 
 static int
-merge_c81_data_from(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
+c81_data_merge_from(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
 {
 	*data = *data_from;
 
@@ -154,7 +154,7 @@ merge_c81_data_from(c81_data *data_from, doublereal wfrom, c81_data *data_to, do
 	NM_to = data_to->NMM;
 	merge_data_from(NA, NM, NM_to, wfrom, wto, workv, m_from, m_to, m_dst, a_from, a_to, a_dst);
 
-	// do_c81_data_stall(data);
+	// c81_do_data_stall(data);
 
 	return 0;
 }
@@ -211,7 +211,7 @@ merge_data_to(int NA, int NM, int NM_from,
 }
 
 static int
-merge_c81_data_to(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
+c81_data_merge_to(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
 {
 	*data = *data_to;
 
@@ -261,13 +261,13 @@ merge_c81_data_to(c81_data *data_from, doublereal wfrom, c81_data *data_to, doub
 	NM_from = data_from->NMM;
 	merge_data_to(NA, NM, NM_from, wfrom, wto, workv, m_from, m_to, m_dst, a_from, a_to, a_dst);
 
-	// do_c81_data_stall(data);
+	// c81_do_data_stall(data);
 
 	return 0;
 }
 
 static int
-merge_c81_data_both(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
+c81_data_merge_both(c81_data *data_from, doublereal wfrom, c81_data *data_to, doublereal wto, c81_data *data)
 {
 	return -1;
 }
@@ -432,7 +432,7 @@ main(int argc, char *argv[])
 	}
 
 	int ff_from = 0;
-	if (read_c81_data(in, &data_from, tol, &ff_from)) {
+	if (c81_data_read(in, &data_from, tol, &ff_from)) {
 		silent_cerr("unable to read c81 data from file \"" << name_from << "\"" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -446,7 +446,7 @@ main(int argc, char *argv[])
 	}
 
 	int ff_to = 0;
-	if (read_c81_data(in, &data_to, tol, &ff_to)) {
+	if (c81_data_read(in, &data_to, tol, &ff_to)) {
 		silent_cerr("unable to read c81 data from file \"" << name_to << "\"" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -507,15 +507,15 @@ main(int argc, char *argv[])
 	/* merge */
 	switch (mode) {
 	case MODE_FROM:
-		rc = merge_c81_data_from(&data_from, dFrom, &data_to, dTo, &data);
+		rc = c81_data_merge_from(&data_from, dFrom, &data_to, dTo, &data);
 		break;
 
 	case MODE_TO:
-		rc = merge_c81_data_to(&data_from, dFrom, &data_to, dTo, &data);
+		rc = c81_data_merge_to(&data_from, dFrom, &data_to, dTo, &data);
 		break;
 
 	case MODE_BOTH:
-		rc = merge_c81_data_both(&data_from, dFrom, &data_to, dTo, &data);
+		rc = c81_data_merge_both(&data_from, dFrom, &data_to, dTo, &data);
 		break;
 
 	default:
@@ -535,10 +535,10 @@ main(int argc, char *argv[])
 			silent_cerr("unable to open file \"" << name << "\"" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		rc = write_c81_data(fout, &data);
+		rc = c81_data_write(fout, &data);
 
 	} else {
-		rc = write_c81_data(std::cout, &data);
+		rc = c81_data_write(std::cout, &data);
 	}
 
 	if (rc) {

@@ -55,6 +55,7 @@ usage(int rc)
 "\t-C <coef>\t"		"only dump coefficient <coef> (must be cl, cd or cm)\n"
 "\t-d {<dump>|-}\t"	"dump contents (to optional file <dump>, if given)\n"
 "\t-f\t\t"		"interpret <file> as free format\n"
+"\t-F\t\t"		"\"flip\" coefficients\n"
 "\t-m <mach>\t"		"dump coefficients for Mach number <mach>\n"
 "\t-n\t\t"		"interpret <file> as NREL format\n"
 "\t-o\t\t"		"interpret <file> as fc511 format\n"
@@ -73,6 +74,7 @@ main(int argc, char *argv[])
 	char		mode = 'x';
 	char		*dump_fname = NULL;
 	bool		dump(false);
+	bool		flip(false);
 	doublereal	alpha;
 	doublereal	mach;
 	enum {
@@ -86,7 +88,7 @@ main(int argc, char *argv[])
 	doublereal	tol = 1e-6;
 	
 	while (true) {
-		int opt = getopt(argc, argv, "a:cC:d:fm:not:");
+		int opt = getopt(argc, argv, "a:cC:d:fFm:not:");
 
 		if (opt == EOF) {
 			break;
@@ -128,6 +130,10 @@ main(int argc, char *argv[])
 
 		case 'f':
 			mode = 'f';
+			break;
+
+		case 'F':
+			flip = true;
 			break;
 
 		case 'm':
@@ -202,23 +208,23 @@ main(int argc, char *argv[])
 	int ff = 0;
 	switch (mode) {
 	case 'x':
-		rc = read_c81_data(in, data, tol, &ff);
+		rc = c81_data_read(in, data, tol, &ff);
 		break;
 
 	case 'c':
-		rc = read_c81_data(in, data, tol, 0);
+		rc = c81_data_read(in, data, tol, 0);
 		break;
 
 	case 'f':
-		rc = read_c81_data_free_format(in, data, tol);
+		rc = c81_data_read_free_format(in, data, tol);
 		break;
 
 	case 'n':
-		rc = read_nrel_data(in, data, tol);
+		rc = c81_data_nrel_read(in, data, tol);
 		break;
 
 	case 'o':
-		rc = read_fc511_data(in, data, tol);
+		rc = c81_data_fc511_read(in, data, tol);
 		break;
 
 	default:
@@ -233,35 +239,39 @@ main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 	}
 
+	if (flip) {
+		c81_data_flip(data);
+	}
+
 	if (dump_fname) {
 		std::ofstream out(dump_fname);
-		write_c81_data_free_format(out, data);
+		c81_data_write_free_format(out, data);
 		out.close();
-		destroy_c81_data(data);
+		c81_data_destroy(data);
 		exit(EXIT_SUCCESS);
 
 	} else if (dump) {
-		write_c81_data_free_format(std::cout, data);
-		destroy_c81_data(data);
+		c81_data_write_free_format(std::cout, data);
+		c81_data_destroy(data);
 		exit(EXIT_SUCCESS);
 	}
 
 	if ((got & GOT_ALPHAMACH) == GOT_ALPHAMACH) {
 		switch (coef) {
 		case 'l':
-			std::cout << get_c81_coef(data->NML, data->ml,
+			std::cout << c81_data_get_coef(data->NML, data->ml,
 				data->NAL, data->al, alpha, mach)
 				<< std::endl;
 			break;
 
 		case 'd':
-			std::cout << get_c81_coef(data->NMD, data->md,
+			std::cout << c81_data_get_coef(data->NMD, data->md,
 				data->NAD, data->ad, alpha, mach)
 				<< std::endl;
 			break;
 
 		case 'm':
-			std::cout << get_c81_coef(data->NMM, data->mm,
+			std::cout << c81_data_get_coef(data->NMM, data->mm,
 				data->NAM, data->am, alpha, mach)
 				<< std::endl;
 			break;
@@ -270,13 +280,13 @@ main(int argc, char *argv[])
 			std::cout 
 				<< "alpha: " << alpha << std::endl
 				<< "mach: " << mach << std::endl
-				<< "cl: " << get_c81_coef(data->NML, data->ml,
+				<< "cl: " << c81_data_get_coef(data->NML, data->ml,
 					data->NAL, data->al, alpha, mach)
 					<< std::endl
-				<< "cd: " << get_c81_coef(data->NMD, data->md,
+				<< "cd: " << c81_data_get_coef(data->NMD, data->md,
 					data->NAD, data->ad, alpha, mach)
 					<< std::endl
-				<< "cm: " << get_c81_coef(data->NMM, data->mm,
+				<< "cm: " << c81_data_get_coef(data->NMM, data->mm,
 					data->NAM, data->am, alpha, mach)
 					<< std::endl;
 			break;
@@ -319,7 +329,7 @@ main(int argc, char *argv[])
 				for (int i = 0; i < NM; i++) {
 					std::cout
 						<< m[i] << " "
-						<< get_c81_coef(NM, m,
+						<< c81_data_get_coef(NM, m,
 						NA, a, alpha, m[i])
 						<< std::endl;
 				}
@@ -329,7 +339,7 @@ main(int argc, char *argv[])
 				for (int i = 0; i < NA; i++) {
 					std::cout
 						<< a[i] << " "
-						<< get_c81_coef(NM, m,
+						<< c81_data_get_coef(NM, m,
 						NA, a, a[i], mach)
 						<< std::endl;
 				}
@@ -339,11 +349,11 @@ main(int argc, char *argv[])
 
 	} else {
 		std::cerr << "don't know what to do..." << std::endl;
-		destroy_c81_data(data);
+		c81_data_destroy(data);
 		usage(EXIT_FAILURE);
 	}
 
-	destroy_c81_data(data);
+	c81_data_destroy(data);
 
 	return 0;
 }

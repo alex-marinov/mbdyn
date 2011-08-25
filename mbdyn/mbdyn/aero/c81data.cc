@@ -65,7 +65,7 @@ extern "C" {
  */
 
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol);
+do_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol);
 
 static int
 get_int(const char *const from, int &i)
@@ -273,7 +273,7 @@ put_c81_mat(std::ostream& out, doublereal* m, int nrows, int ncols)
 }
 
 extern "C" void
-destroy_c81_data(c81_data* data)
+c81_data_destroy(c81_data* data)
 {
 	delete[] data->ml;
 	delete[] data->al;
@@ -289,7 +289,7 @@ destroy_c81_data(c81_data* data)
 }
 
 extern "C" int
-read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff)
+c81_data_read(std::istream& in, c81_data* data, const doublereal dcltol, int *ff)
 {
    	char buf[BUFSIZ];	// 81 should suffice
 
@@ -304,7 +304,7 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
 			*ff = 1;
 		}
 
-		return read_c81_data_free_format(in, data, dcltol);
+		return c81_data_read_free_format(in, data, dcltol);
 	}
 
    	buf[42] = '\0';
@@ -387,13 +387,13 @@ read_c81_data(std::istream& in, c81_data* data, const doublereal dcltol, int *ff
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcltol);
+	c81_data_do_stall(data, dcltol);
 
    	return 0;
 }
 
 extern "C" int
-merge_c81_data(
+c81_data_merge(
 	unsigned ndata,
 	const c81_data **data,
 	const doublereal *upper_bounds,
@@ -601,13 +601,13 @@ merge_c81_data(
 	}
 
 	// FIXME: maybe this is not the best place
-	do_c81_data_stall(i_data, dcltol);
+	c81_data_do_stall(i_data, dcltol);
 
 	return 0;
 }
 
 extern "C" int
-write_c81_data(std::ostream& out, c81_data* data)
+c81_data_write(std::ostream& out, c81_data* data)
 {
 	if (data == 0) {
 		return -1;
@@ -807,7 +807,7 @@ read_fc511_block(std::istream& in, int &NA, int &NM, doublereal *&da, doublereal
 }
 
 extern "C" int
-read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
+c81_data_fc511_read(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
 
@@ -865,13 +865,13 @@ read_fc511_data(std::istream& in, c81_data* data, const doublereal dcltol)
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcltol);
+	c81_data_do_stall(data, dcltol);
 
    	return 0;
 }
 
 extern "C" int
-read_nrel_data(std::istream& in, c81_data* data, const doublereal dcltol)
+c81_data_nrel_read(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
 
@@ -952,13 +952,13 @@ read_nrel_data(std::istream& in, c81_data* data, const doublereal dcltol)
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcltol);
+	c81_data_do_stall(data, dcltol);
 
    	return 0;
 }
 
 extern "C" int
-read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
+c81_data_read_free_format(std::istream& in, c81_data* data, const doublereal dcltol)
 {
    	char buf[128];	// 81 should suffice; let's make it 128
 
@@ -1056,13 +1056,13 @@ read_c81_data_free_format(std::istream& in, c81_data* data, const doublereal dcl
 	}
 
 	/* FIXME: maybe this is not the best place */
-	do_c81_data_stall(data, dcltol);
+	c81_data_do_stall(data, dcltol);
 
    	return 0;
 }
 
 extern "C" int
-write_c81_data_free_format(std::ostream& out, c81_data* data)
+c81_data_write_free_format(std::ostream& out, c81_data* data)
 {
 	if (data == 0) {
 		return -1;
@@ -1134,7 +1134,7 @@ get_c81_data(long int jpro)
 }
 
 extern "C" int
-set_c81_data(long int jpro, c81_data* data)
+c81_data_set(long int jpro, c81_data* data)
 {
    	if (__c81_pdata == NULL || jpro >= c81_ndata) {
       		c81_data** pp = NULL;
@@ -1167,7 +1167,7 @@ set_c81_data(long int jpro, c81_data* data)
  * sistema i dati di stallo
  */
 static int
-do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol)
+do_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal dcltol)
 {
 	for (int nm = 0; nm < NM; nm++) {
 		int start = NA*(nm + 1);
@@ -1177,7 +1177,7 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 		while (a[na] > 0.) {
 			na--;
 			if (na <= 0) {
-				silent_cerr("do_c81_stall: "
+				silent_cerr("do_stall: "
 					"unable to find negative alpha range "
 					"for Mach #" << nm + 1 << std::endl);
 				return -1;
@@ -1187,7 +1187,7 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 		while (a[na] < 0.) {
 			na++;
 			if (na >= NA) {
-				silent_cerr("do_c81_stall: "
+				silent_cerr("do_stall: "
 					"unable to find positive alpha range "
 					"for Mach #" << nm + 1 << std::endl);
 				return -1;
@@ -1241,18 +1241,63 @@ do_c81_stall(int NM, int NA, doublereal *a, doublereal *stall, const doublereal 
 }
 
 int
-do_c81_data_stall(c81_data *data, const doublereal dcltol)
+c81_data_do_stall(c81_data *data, const doublereal dcltol)
 {
 	if (data == NULL || data->NML <= 0 || data->NMM <= 0) {
 		return -1;
 	}
 
 	data->stall = new doublereal[3*data->NML];
-	do_c81_stall(data->NML, data->NAL, data->al, data->stall, dcltol);
+	do_stall(data->NML, data->NAL, data->al, data->stall, dcltol);
 
 	data->mstall = new doublereal[3*data->NMM];
-	do_c81_stall(data->NMM, data->NAM, data->am, data->mstall, dcltol);
+	do_stall(data->NMM, data->NAM, data->am, data->mstall, dcltol);
 
 	return 0;
+}
+
+static int
+flip_one(int NM, int NA, doublereal *v, int ss)
+{
+	int s = -1;
+	for (int m = 0; m <= NM; m++) {
+		if (m > 0) {
+			s = ss;
+		}
+
+		for (int a = 0; a < NA/2; a++) {
+			doublereal d = v[a];
+			v[a] = s*v[NA - a - 1];
+			v[NA - a - 1] = s*d;
+		}
+
+		// NA odd: change sign
+		if (NA%2) {
+			v[NA/2] *= s;
+		}
+
+		v += NA;
+	}
+
+	return 0;
+}
+
+extern "C" int 
+c81_data_flip(c81_data *data)
+{
+	int rc;
+
+	rc = flip_one(data->NML, data->NAL, data->al, -1);
+	if (rc) {
+		return rc;
+	}
+
+	rc = flip_one(data->NMD, data->NAD, data->ad, 1);
+	if (rc) {
+		return rc;
+	}
+
+	rc = flip_one(data->NMM, data->NAM, data->am, -1);
+	return rc;
 }
 
