@@ -1321,10 +1321,14 @@ IfFirstStepIsToBeRepeated:
 			pRTSolver->Wait();
 		}
 
+		int retries = -1;
 IfStepIsToBeRepeated:
 		try {
-
+			retries++;
 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
+			if (outputStep()) {
+ 				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+			}
 			dTest = pRegularSteps->Advance(this, dRefTimeStep,
 					dCurrTimeStep/dRefTimeStep, CurrStep,
 					qX, qXPrime, pX, pXPrime, iStIter,

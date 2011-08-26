@@ -46,6 +46,9 @@ protected:
 		OUTPUT_RES		= 0x0002,
 		OUTPUT_SOL		= 0x0004,
 		OUTPUT_JAC		= 0x0008,
+
+		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC),
+
 		OUTPUT_BAILOUT		= 0x0010,
 
 		OUTPUT_MSG		= 0x0020,
@@ -85,6 +88,10 @@ public:
  
 	inline bool outputJac(void) const {
 		return outputMeter() && (OutputFlags & OUTPUT_JAC);
+	};
+
+	inline bool outputStep(void) const {
+		return outputMeter() && (OutputFlags & OUTPUT_STEP);
 	};
 
 	inline bool outputBailout(void) const {
