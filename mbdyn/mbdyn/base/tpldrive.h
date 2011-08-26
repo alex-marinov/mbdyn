@@ -125,7 +125,7 @@ public:
 
 /* TplDriveOwner - end */
 
-/* functions that read a constitutive law */
+/* functions that read a template drive caller */
 extern TplDriveCaller<doublereal> *
 ReadDC1D(const DataManager* pDM, MBDynParser& HP);
 extern TplDriveCaller<Vec3> *
@@ -138,7 +138,7 @@ ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf);
 extern TplDriveCaller<Vec3> *
 ReadDCVecAbs(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf);
 
-/* prototype of the template functional object: reads a constitutive law */
+/* prototype of the template functional object: reads a template drive caller */
 template <class T>
 struct TplDriveCallerRead {
 	virtual ~TplDriveCallerRead<T>( void ) { NO_OP; };
@@ -146,7 +146,7 @@ struct TplDriveCallerRead {
 	Read(const DataManager* pDM, MBDynParser& HP) = 0;
 };
 
-/* constitutive law registration functions: call to register one */
+/* template drive caller registration functions: call to register one */
 extern bool
 SetDC1D(const char *name, TplDriveCallerRead<doublereal> *rf);
 extern bool

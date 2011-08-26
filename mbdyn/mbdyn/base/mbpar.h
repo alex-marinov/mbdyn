@@ -178,12 +178,12 @@ protected:
 
 	void C81Data_int(void);
 
-	typedef std::map<unsigned, const ConstitutiveLaw1D *> C1DType;
-	typedef std::map<unsigned, const ConstitutiveLaw3D *> C3DType;
-	typedef std::map<unsigned, const ConstitutiveLaw6D *> C6DType;
-	C1DType C1D;
-	C3DType C3D;
-	C6DType C6D;
+	typedef std::map<unsigned, const ConstitutiveLaw1D *> CL1DType;
+	typedef std::map<unsigned, const ConstitutiveLaw3D *> CL3DType;
+	typedef std::map<unsigned, const ConstitutiveLaw6D *> CL6DType;
+	CL1DType CL1D;
+	CL3DType CL3D;
+	CL6DType CL6D;
 
 	void ConstitutiveLaw_int(void);
 
@@ -192,6 +192,16 @@ protected:
 	DCType DC;
 
 	void DriveCaller_int(void);
+
+	/* Template drives */
+	typedef std::map<unsigned, const TplDriveCaller<doublereal> *> DC1DType;
+	DC1DType DC1D;
+	typedef std::map<unsigned, const TplDriveCaller<Vec3> *> DC3DType;
+	DC3DType DC3D;
+	typedef std::map<unsigned, const TplDriveCaller<Vec6> *> DC6DType;
+	DC6DType DC6D;
+
+	void TplDriveCaller_int(void);
 
 	/* Scalar functions */
 	typedef std::map<std::string, const BasicScalarFunction *> SFType;
@@ -360,6 +370,8 @@ public:
 
 	const DriveCaller* GetDrive(unsigned uLabel) const;
 	DriveCaller* GetDriveCaller(bool bDeferred = false);
+	template <class T> const TplDriveCaller<T> *GetTplDrive(unsigned uLabel) const;
+	template <class T> TplDriveCaller<T> *GetTplDriveCaller(void);
 
 	const BasicScalarFunction* GetScalarFunction(void);
 	const BasicScalarFunction* GetScalarFunction(const std::string &s);

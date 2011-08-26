@@ -250,7 +250,7 @@ E. Bugs/missing features:
 	- reject "mt" from naive when configured without support
 	- allow "mt" from command-line
 	- allow make of mod-* and moddae-* modules
-	- implement referenceable template drive callers (much like regular drive callers)
+	- implement referenceable template drive callers (much like regular drive callers) (DONE)
 
 
 

@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- improved modal analysis output (Reinhard Resch)
 		- added basic support for NREL airfoil data format
 		- added airfoil "flip" capability
+		- added referenceable template drive callers
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

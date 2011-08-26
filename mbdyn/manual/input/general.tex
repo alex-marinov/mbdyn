@@ -1203,6 +1203,19 @@ as this would help making MBDyn more portable.
 
 
 
+\subsection{Print symbol table}
+The \kw{print symbol table} directive:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{print symbol table} ;
+\end{Verbatim}
+%\end{verbatim}
+allows to print to standard output the contents of the parser's symbol
+table at any stage of the input phase.
+This may be useful for model debugging purposes.
+
+
+
 \subsection{Reference}
 The \kw{reference} directive:
 %\begin{verbatim}
@@ -1424,19 +1437,6 @@ in Section~\ref{sec:CONTROLDATA:DEFAULTOUTPUT}.
 
 
 
-\subsection{Print symbol table}
-The \kw{print symbol table} directive:
-%\begin{verbatim}
-\begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{print symbol table} ;
-\end{Verbatim}
-%\end{verbatim}
-allows to print to standard output the contents of the parser's symbol
-table at any stage of the input phase.
-This may be useful for model debugging purposes.
-
-
-
 \subsection{Remark}
 The \kw{remark} directive:
 %\begin{verbatim}
@@ -1536,6 +1536,35 @@ if already set.
     setenv: "FILE=";
 \end{verbatim}
 See \texttt{setenv(3)} and \texttt{unsetenv(3)} man pages for details.
+
+
+
+
+\subsection{Template Drive Caller}\label{sec:TPL-DRIVE-CALLER}
+The \kw{template drive caller} directive
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{template drive caller} : \bnt{label} , (\ty{int}) \bnt{dim} ,
+        (\ty{TplDriveCaller<Entity>}) \bnt{tpl_drive_caller} ;
+
+    \bnt{dim} ::= \{ \kw{1} | \kw{3} | \kw{6} \}
+\end{Verbatim}
+%\end{verbatim}
+allows to define
+a \hyperref{\kw{template drive caller}}{\kw{template drive caller} (see Section~}{)}{sec:TPL-DRIVE}
+that can be subsequently reused.
+It is useful essentially in two cases:
+\begin{enumerate}
+	\renewcommand{\labelenumi}{\alph{enumi})}
+	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE}
+	that will be used many times throughout a model;
+	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE} 
+	that needs to be used in a later defined part of a model, 
+	in order to make it parametric.
+\end{enumerate}
+
+
+
 
 
 
@@ -2613,15 +2642,30 @@ on the functions of the \kw{model} namespace.
 
 
 
-\subsection{Template drive}\label{sec:TPL-DRIVE}
+\subsection{Template Drive}\label{sec:TPL-DRIVE}
 A particular \ty{DriveCaller} is the template drive caller,
-indicated as \ty{TplDriveCaller}\bnt{type}.
+indicated as \ty{TplDriveCaller<Entity>}.
 It basically consists in a drive with dimensionality other than scalar.
 %Typically, it is made of a constant entity, with the dimensionality
 %of \nt{type}, that multiplies a conventional 
 %\hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
 %to give a drive entity of dimensionality different from that 
 %of a simple scalar drive.
+The family of the \ty{TplDriveCaller<Entity>} object is very large.
+The type of the \ty{TplDriveCaller<Entity>} is declared as
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{tpl_drive_caller} ::=
+        \{ \bnt{tpl_drive_caller_type} [ , \bnt{arglist} ]
+            | \kw{reference} , \bnt{label} \}
+\end{Verbatim}    
+%\end{verbatim}    
+where \nt{arglist}, if any, is a comma-separated list of arguments
+that depends on \nt{tpl\_drive\_caller\_type}.
+
+If the alternative format is used, the keyword \kw{reference} 
+must be followed by the label of an already defined, valid drive caller
+(See Section~\ref{sec:TPL-DRIVE-CALLER}).
 
 There are four types of template drive callers:
 \begin{itemize}

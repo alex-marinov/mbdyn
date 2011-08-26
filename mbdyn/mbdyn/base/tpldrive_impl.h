@@ -226,22 +226,9 @@ DC2TDC(DriveCaller *pDC, T& t)
 
 template <class T>
 TplDriveCaller<T> *
-ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T& t)
+ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T&)
 {
-	// FIXME: ugly!
-	if (typeid(T) == typeid(doublereal)) {
-		return static_cast<TplDriveCaller<T> *>((void *)ReadDC1D(pDM, HP));
-
-	} else if (typeid(T) == typeid(Vec3)) {
-		return static_cast<TplDriveCaller<T> *>((void *)ReadDC3D(pDM, HP));
-
-	} else if (typeid(T) == typeid(Vec6)) {
-		return static_cast<TplDriveCaller<T> *>((void *)ReadDC6D(pDM, HP));
-	}
-
-	silent_cerr("unknown type in ReadTplDC "
-		"at line " << HP.GetLineData() << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	return HP.GetTplDriveCaller<T>();
 }
 
 #endif // TPLDRIVE_IMPL_H

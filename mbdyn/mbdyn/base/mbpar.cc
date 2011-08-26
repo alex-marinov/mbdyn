@@ -36,6 +36,7 @@
 #include <limits>
 #include <cfloat>
 #include <limits>
+#include <typeinfo>
 
 #if defined(USE_RUNTIME_LOADING) && defined(HAVE_LTDL_H)
 #include <ltdl.h>
@@ -111,35 +112,43 @@ MBDynParser::~MBDynParser(void)
 	for (SFType::iterator i = SF.begin(); i != SF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	SF.clear();
 
 	for (RFType::iterator i = RF.begin(); i != RF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	RF.clear();
 
 	for (HFType::iterator i = HF.begin(); i != HF.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	HF.clear();
 
 	for (ADType::iterator i = AD.begin(); i != AD.end(); ++i) {
 		c81_data_destroy(i->second);
 		SAFEDELETE(i->second);
 	}
+	AD.clear();
 
-	for (C1DType::iterator i = C1D.begin(); i != C1D.end(); ++i) {
+	for (CL1DType::iterator i = CL1D.begin(); i != CL1D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	CL1D.clear();
 
-	for (C3DType::iterator i = C3D.begin(); i != C3D.end(); ++i) {
+	for (CL3DType::iterator i = CL3D.begin(); i != CL3D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	CL3D.clear();
 
-	for (C6DType::iterator i = C6D.begin(); i != C6D.end(); ++i) {
+	for (CL6DType::iterator i = CL6D.begin(); i != CL6D.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	CL6D.clear();
 
 	for (DCType::iterator i = DC.begin(); i != DC.end(); ++i) {
 		SAFEDELETE(i->second);
 	}
+	DC.clear();
 
 	if (!bEmptyManip()) {
 		silent_cerr("MBDynParser::~MBDynParser: "
@@ -543,7 +552,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (!C1D.insert(C1DType::value_type(uLabel, pCL)).second) {
+		if (!CL1D.insert(CL1DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 1D " << uLabel);
 			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
@@ -575,7 +584,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (!C3D.insert(C3DType::value_type(uLabel, pCL)).second) {
+		if (!CL3D.insert(CL3DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 3D " << uLabel);
 			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
@@ -607,7 +616,7 @@ MBDynParser::ConstitutiveLaw_int(void)
 			pCL->PutName(sName);
 		}
 	
-		if (!C6D.insert(C6DType::value_type(uLabel, pCL)).second) {
+		if (!CL6D.insert(CL6DType::value_type(uLabel, pCL)).second) {
 			silent_cerr("constitutive law 6D " << uLabel);
 			if (!sName.empty()) {
 				silent_cerr(" (" << sName << ")");
@@ -686,6 +695,115 @@ MBDynParser::DriveCaller_int(void)
 		}
 		silent_cerr(" already defined at line " 
 				<< GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+void 
+MBDynParser::TplDriveCaller_int(void)
+{
+	if (FirstToken() == UNKNOWN) {
+		silent_cerr("Parser error in MBDynParser::TplDriveCaller_int(), "
+			" colon expected at line "
+			<< GetLineData() << std::endl);
+		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	unsigned int uLabel(GetInt());
+	
+	/* drive name */
+	std::string sName;
+	if (IsKeyWord("name")) {
+		const char *sTmp = GetStringWithDelims();
+		sName = sTmp;
+	}
+
+	int dim = GetInt();
+	std::string type;
+	switch (dim) {
+	case 1: {
+		type = "doublereal ";
+		TplDriveCaller<doublereal> *pDC = GetTplDriveCaller<doublereal>();
+		if (pDC == NULL) {
+			silent_cerr("unable to read doublereal template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		pDC->PutLabel(uLabel);
+		if (!sName.empty()) {
+			pDC->PutName(sName);
+		}
+#endif
+	
+		if (!DC1D.insert(DC1DType::value_type(uLabel, pDC)).second) {
+			silent_cerr("doublereal template drive caller" << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"already defined at line " 
+				<< GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		} break;
+
+	case 3: {
+		type = "Vec3 ";
+		TplDriveCaller<Vec3> *pDC = GetTplDriveCaller<Vec3>();
+		if (pDC == NULL) {
+			silent_cerr("unable to read Vec3 template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		pDC->PutLabel(uLabel);
+		if (!sName.empty()) {
+			pDC->PutName(sName);
+		}
+#endif
+	
+		if (!DC3D.insert(DC3DType::value_type(uLabel, pDC)).second) {
+			silent_cerr("Vec3 template drive caller" << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"already defined at line " 
+				<< GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		} break;
+
+	case 6: {
+		type = "Vec6 ";
+		TplDriveCaller<Vec6> *pDC = GetTplDriveCaller<Vec6>();
+		if (pDC == NULL) {
+			silent_cerr("unable to read Vec6 template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		pDC->PutLabel(uLabel);
+		if (!sName.empty()) {
+			pDC->PutName(sName);
+		}
+#endif
+	
+		if (!DC6D.insert(DC6DType::value_type(uLabel, pDC)).second) {
+			silent_cerr("Vec6 template drive caller" << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"already defined at line " 
+				<< GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		} break;
+	}
+
+	if (IsArg()) {
+		silent_cerr("semicolon expected after " << type << "template drive caller " << uLabel
+			<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
@@ -820,6 +938,11 @@ MBDynParser::GetDescription_int(const char *s)
 	/* Reads a drive caller */
 	} else if (!strcmp(s, "drive" "caller")) {
 		DriveCaller_int();
+		return true;
+
+	/* Reads a template drive caller */
+	} else if (!strcmp(s, "template" "drive" "caller")) {
+		TplDriveCaller_int();
 		return true;
 
 	/* Reads a scalar function */
@@ -1526,8 +1649,8 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	C1DType::const_iterator i = C1D.find(uLabel);
-	if (i == C1D.end()) {
+	CL1DType::const_iterator i = CL1D.find(uLabel);
+	if (i == CL1D.end()) {
 		silent_cerr("constitutive law 1D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
@@ -1553,8 +1676,8 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	C3DType::const_iterator i = C3D.find(uLabel);
-	if (i == C3D.end()) {
+	CL3DType::const_iterator i = CL3D.find(uLabel);
+	if (i == CL3D.end()) {
 		silent_cerr("constitutive law 3D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
@@ -1580,8 +1703,8 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 	}
 
 	unsigned int uLabel = GetInt();
-	C6DType::const_iterator i = C6D.find(uLabel);
-	if (i == C6D.end()) {
+	CL6DType::const_iterator i = CL6D.find(uLabel);
+	if (i == CL6D.end()) {
 		silent_cerr("constitutive law 6D " << uLabel
 				<< " is undefined at line "
 				<< GetLineData() << std::endl);
@@ -1625,6 +1748,80 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 	const DriveCaller *pDC = GetDrive(uLabel);
 	if (pDC == 0) {
 		silent_cerr("drive caller " << uLabel
+			<< " is undefined at line "
+			<< GetLineData() << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pDC->pCopy();
+}
+
+template <class T>
+const TplDriveCaller<T> *
+MBDynParser::GetTplDrive(unsigned uLabel) const
+{
+	if (typeid(T) == typeid(doublereal)) {
+		DC1DType::const_iterator i = DC1D.find(uLabel);
+		if (i == DC1D.end()) {
+			return 0;
+		}
+
+		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
+
+	} else if (typeid(T) == typeid(Vec3)) {
+		DC3DType::const_iterator i = DC3D.find(uLabel);
+		if (i == DC3D.end()) {
+			return 0;
+		}
+
+		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
+
+	} else if (typeid(T) == typeid(Vec6)) {
+		DC6DType::const_iterator i = DC6D.find(uLabel);
+		if (i == DC6D.end()) {
+			return 0;
+		}
+
+		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
+	}
+
+	return 0;
+}
+
+template <class T>
+TplDriveCaller<T> *
+MBDynParser::GetTplDriveCaller(void)
+{
+	if (!IsKeyWord("reference")) {
+		TplDriveCaller<T> *pDC = 0;
+		try {
+			if (typeid(T) == typeid(doublereal)) {
+				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC1D(pDM, *this));
+
+			} else if (typeid(T) == typeid(Vec3)) {
+				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC3D(pDM, *this));
+
+			} else if (typeid(T) == typeid(Vec6)) {
+				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC6D(pDM, *this));
+
+			} else {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+		catch (DataManager::ErrNeedDataManager) {
+			silent_cerr("the required drive caller must appear "
+					"inside or after the \"control data\" "
+					"block"
+					<< std::endl);
+			throw DataManager::ErrNeedDataManager(MBDYN_EXCEPT_ARGS);
+		}
+		return pDC;
+	}
+
+	unsigned int uLabel = GetInt();
+	const TplDriveCaller<T> *pDC = GetTplDrive<T>(uLabel);
+	if (pDC == 0) {
+		silent_cerr("template drive caller " << uLabel
 			<< " is undefined at line "
 			<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
