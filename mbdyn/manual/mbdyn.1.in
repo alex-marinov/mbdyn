@@ -63,11 +63,38 @@ is a multibody analysis tool released under GPL
 <http://www.gnu.org/licenses/gpl.html>.
 It solves initial value problems for multibody, multidisciplinary systems
 including, but not limited to, the mechanical and aeroservoelastic fields.
+
+The most important and most widely used options are
+.B \-f
+to pass the name of the
+.IR "input file" ,
+and
+.B \-o
+to pass the name of the
+.IR "output file" .
+
 .SH OPTIONS
+.TP
+.B \-d, \-\-debug <level[:level[...]]>
+Enable specific debug levels (only when compiled with \-\-enable\-debug).
+.TP
+.B \-e, \-\-exceptions
+Do not trap (some) exceptions, to ease debugging.
 .TP
 .B \-f, \-\-input\-file \ <input\-file>
 Read model and analysis data from file \fIinput\-file\fP; default is 
 \fIstandard input\fP.
+The current working directory is set to the path to
+.I input\-file
+(see
+.BR chdir (2)
+for details).
+As a consequence, any sub-file included using the 
+.I include
+directive needs to be referred to either with the full path,
+or relative to the folder where
+.I input\-file
+resides.
 .TP
 .B \-H, \-\-show\-table
 Shows a list of the symbols defined in the symbol table of the mathematical

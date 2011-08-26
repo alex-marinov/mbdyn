@@ -206,60 +206,52 @@ mbdyn_usage(const char *sShortOpts)
 		<< std::endl
 		<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << std::endl 
 		<< std::endl
-		<< "  -f, --input-file {file}  :"
-		" reads from 'file' instead of stdin" << std::endl
-		<< "  -o, --output-file {file} : writes to '{file}.xxx'" << std::endl
-		<< "                             instead of '{input-file}.xxx'" << std::endl
-		<< "                            "
-		" (or 'Mbdyn.xxx' if input from stdin)" << std::endl
-		<< "  -W, --working-dir {dir}  :"
-		" sets the working directory" << std::endl
-		<< "  -m, --mail {address}     :"
-		" mails to {address} at job completion" << std::endl
-		<< "  -n, --nice [level]       :"
-		" change the execution priority of the process" << std::endl);
+		<< "  -f, --input-file {file}   reads from 'file' instead of stdin" << std::endl
+		<< "  -o, --output-file {file}  writes to '{file}.<ext>'" << std::endl
+		<< "                             instead of '{input-file}.<ext>'" << std::endl
+		<< "                             (or 'Mbdyn.<ext>' when input from stdin)" << std::endl
+		<< std::endl);
 #ifdef DEBUG
-	silent_cout("  -d, --debug {level[:level[...]]} :"
-		" when using the debug version of the code," << std::endl
-		<< "                            "
-		" enables debug levels; available:" << std::endl
-		<< "                                 none" << std::endl);
+	silent_cout(
+		   "  -d, --debug {level[:level[...]]}  when using the debug version of the code," << std::endl
+		<< "                            enables debug levels; available:" << std::endl
+		<< "                                none" << std::endl);
 	for (int i = 0; da[i].s != NULL; i++) {
-		silent_cout("                                 " << da[i].s << std::endl);
+		silent_cout(
+		   "                                " << da[i].s << std::endl);
 	}
-	silent_cout("                                 any" << std::endl);
+	silent_cout(
+		   "                                any" << std::endl);
 #endif /* DEBUG */
 	silent_cout(
-		"  -e, --exceptions          :"
-		" don't trap exceptions in order to allow easier debugging" << std::endl
-		<< "  -t, --same-table" << std::endl
-		<< "  -T, --no-same-table      :"
-		" use/don't use same symbol table for multiple runs" << std::endl
-		<< "  -r, --redefine" << std::endl
-		<< "  -R, --no-redefine        :"
-		" redefine/don't redefine symbols in table" << std::endl
-		<< "  -H, --show-table         :"
-		" print symbol table and exit" << std::endl
-		<< "  -s, --silent             :"
-		" runs quietly" << std::endl
-		<< "  -P, --pedantic           :"
-		" pedantic warning messages" << std::endl);
+		   "  -e, --exceptions          don't trap exceptions to ease debugging" << std::endl
+		<< "  -h, --help                prints this message" << std::endl
+		<< "  -H, --show-table          print symbol table and exit" << std::endl
+		<< "  -l, --license             prints the licensing terms" << std::endl
+		/*
+		<< "  -N, --threads             number of threads (need multithread support)" << std::endl
+		 */
+		);
 #ifdef USE_MPI
-	silent_cout("  -p, --parallel           :"
-		" required when run in parallel (invoked by mpirun)" << std::endl);
+	silent_cout(
+		   "  -p, --parallel            required when run in parallel (invoked by mpirun)" << std::endl);
 #endif /* USE_MPI */
-	silent_cout("  -h, --help               :"
-		" prints this message" << std::endl
-		<< "  -l, --license            :"
-		" prints the licensing terms" << std::endl
-		<< "  -w, --warranty           :"
-		" prints the warranty conditions" << std::endl
+	silent_cout(
+		   "  -P, --pedantic            pedantic warning messages (more p's: noisier)" << std::endl
+		<< "  -r, --redefine" << std::endl
+		<< "  -R, --no-redefine         redefine/don't redefine symbols in table" << std::endl
+		<< "  -s, --silent              runs quietly (more s': quieter)" << std::endl
+		<< "  -S, --sleep [rank={n}] {time}  sleep {time} (on process {n}) before" << std::endl
+		<< "                            starting the analysis" << std::endl
+		<< "  -t, --same-table" << std::endl
+		<< "  -T, --no-same-table       use/don't use same symbol table for multiple runs" << std::endl
+		<< "  -v, --version             show version and exit" << std::endl
+		<< "  -w, --warranty            prints the warranty conditions" << std::endl
+		<< "  -W, --working-dir {dir}   sets the working directory" << std::endl
 		<< std::endl
-		<< "Usually mbdyn reads the input from stdin"
-		" and writes messages on stdout; a log" << std::endl
-		<< "is put in '{file}.out', and data output"
-		" is sent to various '{file}.xxx' files" << std::endl
-		<< "('Mbdyn.xxx' if input from stdin)" << std::endl
+		<< "Usually mbdyn reads the input from stdin and writes messages on stdout; a log" << std::endl
+		<< "is put in '{file}.out', and data output is sent to various '{file}.<ext>'" << std::endl
+		<< "files ('Mbdyn.<ext>' if input from stdin)" << std::endl
 		<< std::endl
 		<< std::endl);
 }
@@ -289,7 +281,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "a:d:ef:hHln:N::o:pPrRsS:tTvwW:";
+static char sShortOpts[] = "d:ef:hHlN::o:pPrRsS:tTvwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -382,8 +374,23 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		}
 
 		switch (iCurrOpt) {
-		case int('N'):
-			/* TODO */
+		case int('d'):
+#ifdef DEBUG
+			if (get_debug_options(optarg, da)) {
+				silent_cerr("Unable to interpret debug"
+					" option argument;"
+					" using default" << std::endl);
+				::debug_level = DEFAULT_DEBUG_LEVEL;
+				/* throw ErrGeneric(MBDYN_EXCEPT_ARGS); */
+			}
+#else /* !DEBUG */
+			silent_cerr("Compile with '-DDEBUG'"
+				" to use debug features" << std::endl);
+#endif /* !DEBUG */
+			break;
+
+		case int('e'):
+			mbp.bException = true;
 			break;
 
 		case int('f'):
@@ -408,6 +415,23 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.pIn = dynamic_cast<std::istream *>(&mbp.FileStreamIn);
 			break;
 
+		case int('h'):
+			mbdyn_usage(sShortOpts);
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+	
+		case int('H'):
+			mbp.bShowSymbolTable = true;
+			break;
+
+		case int('l'):
+			mbdyn_welcome();
+			mbdyn_license();
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+	
+		case int('N'):
+			/* TODO */
+			break;
+
 		case int('o'):
 #ifdef HAVE_GETCWD
 			if (optarg[0] != '/') {
@@ -423,33 +447,6 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			{
 				mbp.sOutputFileName = optarg;
 			}
-			break;
-
-		case int('d'):
-#ifdef DEBUG
-			if (get_debug_options(optarg, da)) {
-				silent_cerr("Unable to interpret debug"
-					" option argument;"
-					" using default" << std::endl);
-				::debug_level = DEFAULT_DEBUG_LEVEL;
-				/* throw ErrGeneric(MBDYN_EXCEPT_ARGS); */
-			}
-#else /* !DEBUG */
-			silent_cerr("Compile with '-DDEBUG'"
-				" to use debug features" << std::endl);
-#endif /* !DEBUG */
-			break;
-
-		case int('e'):
-			mbp.bException = true;
-			break;
-
-		case int('t'):
-			mbp.bTable = true;
-			break;
-
-		case int('T'):
-			mbp.bTable = false;
 			break;
 
 		case int('p'):
@@ -547,11 +544,18 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 			break;
 
-		case int('l'):
-			mbdyn_welcome();
-			mbdyn_license();
+		case int('t'):
+			mbp.bTable = true;
+			break;
+
+		case int('T'):
+			mbp.bTable = false;
+			break;
+
+		case int('v'):
+			mbdyn_version();
 			throw NoErr(MBDYN_EXCEPT_ARGS);
-	
+
 		case int('w'):
 			mbdyn_welcome();
 			mbdyn_warranty();
@@ -573,21 +577,10 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			break;
 
 		case int('?'):
-			silent_cerr("Unknown option -"
-				<< char(optopt) << std::endl);
-
-		case int('h'):
+			silent_cerr("Unknown option -" << char(optopt) << std::endl);
 			mbdyn_usage(sShortOpts);
 			throw NoErr(MBDYN_EXCEPT_ARGS);
-	
-		case int('H'):
-			mbp.bShowSymbolTable = true;
-			break;
 
-		case int('v'):
-			mbdyn_version();
-			throw NoErr(MBDYN_EXCEPT_ARGS);
-	
 		default:
 			silent_cerr(std::endl 
 				<< "Unrecoverable error; aborting..."
