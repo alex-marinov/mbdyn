@@ -55,8 +55,9 @@ DataManager::RegisterSocketUser(UseSocket *pUS)
 void
 DataManager::DeleteSocketUsers(void)
 {
-	while (!SocketUsers.empty()) {
-		std::map<int, UseSocket *>::iterator i = SocketUsers.begin();
+	for (std::map<int, UseSocket *>::iterator i = SocketUsers.begin();
+			i != SocketUsers.end(); i++)
+	{
 		delete i->second;
 	}
 	SocketUsers.clear();
