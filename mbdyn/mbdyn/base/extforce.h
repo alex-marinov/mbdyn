@@ -62,6 +62,15 @@ public:
 		NEGOTIATE_SERVER
 	};
 
+	enum OutputFlags {
+		OUTPUT_KIN = 0x1000,
+		OUTPUT_DYN = 0x2000,
+		OUTPUT_REF = 0x4000,
+
+		OUTPUT_REF_KIN = (OUTPUT_REF | OUTPUT_KIN),
+		OUTPUT_REF_DYN = (OUTPUT_REF | OUTPUT_DYN)
+	};
+
 protected:
 	std::streamsize Precision;
 	mbsleep_t SleepTime;

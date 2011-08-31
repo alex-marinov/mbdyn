@@ -59,6 +59,7 @@ StructExtForce::StructExtForce(unsigned int uL,
 	ExtFileHandlerBase *pEFH,
 	bool bSendAfterPredict,
 	int iCoupling,
+	unsigned uOutputFlags,
 	flag fOut)
 : Elem(uL, fOut), 
 ExtForce(uL, pDM, pEFH, bSendAfterPredict, iCoupling, fOut), 
@@ -68,6 +69,7 @@ bRotateReferenceNodeForces(bRotateReferenceNodeForces),
 F0(Zero3), M0(Zero3),
 F1(Zero3), M1(Zero3),
 F2(Zero3), M2(Zero3),
+uOutputFlags(uOutputFlags),
 bLabels(bLabels),
 bSorted(bSorted),
 uRot(uRot),
@@ -445,6 +447,8 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		const Vec3& xppRef = pRefNode->GetXPPCurr();
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
+		outf << "# reference node" << std::endl;
+
 		if (bLabels) {
 			outf
 				<< pRefNode->GetLabel()
@@ -492,6 +496,8 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 			}
 		}
 		outf << std::endl;
+
+		outf << "# regular nodes" << std::endl;
 
 		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 			Vec3 f(point->pNode->GetRCurr()*point->Offset);
@@ -558,6 +564,8 @@ StructExtForce::SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen wh
 		}
 
 	} else {
+		outf << "# regular nodes" << std::endl;
+
 		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
 			/*
 				p = x + f
@@ -1226,7 +1234,7 @@ StructExtForce::Output(OutputHandler& OH) const
 {
 	std::ostream& out = OH.Forces();
 
-	if (pRefNode) {
+	if (pRefNode && (uOutputFlags & ExtFileHandlerBase::OUTPUT_REF_DYN)) {
 		out << GetLabel() << "#" << pRefNode->GetLabel()
 			<< " " << F0
 			<< " " << M0
@@ -1237,11 +1245,87 @@ StructExtForce::Output(OutputHandler& OH) const
 			<< std::endl;
 	}
 
-	for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
-		out << GetLabel() << "@" << point->uLabel
-			<< " " << point->F
-			<< " " << point->M
-			<< std::endl;
+	if (uOutputFlags & ExtFileHandlerBase::OUTPUT_DYN) {
+		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+			out << GetLabel() << "@" << point->uLabel
+				<< " " << point->F
+				<< " " << point->M
+				<< std::endl;
+		}
+	}
+
+	if (uOutputFlags & ExtFileHandlerBase::OUTPUT_KIN) {
+		if (pRefNode) {
+			const Vec3& xRef = pRefNode->GetXCurr();
+			const Mat3x3& RRef = pRefNode->GetRCurr();
+			const Vec3& xpRef = pRefNode->GetVCurr();
+			const Vec3& wRef = pRefNode->GetWCurr();
+			//const Vec3& xppRef = pRefNode->GetXPPCurr();
+			//const Vec3& wpRef = pRefNode->GetWPCurr();
+
+			for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+				Vec3 f(point->pNode->GetRCurr()*point->Offset);
+				Vec3 x(point->pNode->GetXCurr() + f);
+				Vec3 Dx(x - xRef);
+				Mat3x3 DR(RRef.MulTM(point->pNode->GetRCurr()));
+				Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
+				Vec3 Dv(v - xpRef - wRef.Cross(Dx));
+				const Vec3& w(point->pNode->GetWCurr());
+
+				out << GetLabel() << "." << point->uLabel
+					<< " " << RRef.MulTV(Dx);
+
+				switch (uRot) {
+				case MBC_ROT_MAT:
+					out << " " << DR;
+					break;
+
+				case MBC_ROT_THETA:
+					out << " " << RotManip::VecRot(DR);
+					break;
+
+				case MBC_ROT_NONE:
+				case MBC_ROT_EULER_123:
+					out << " " << MatR2EulerAngles123(DR)*dRaDegr;
+					break;
+				}
+
+				out << " " << RRef.MulTV(Dv)
+					<< " " << RRef.MulTV(w - wRef)
+					<< std::endl;
+			}
+
+		} else {
+			for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+				const Mat3x3& R = point->pNode->GetRCurr();
+				Vec3 f = R*point->Offset;
+				Vec3 x = point->pNode->GetXCurr() + f;
+				const Vec3& w = point->pNode->GetWCurr();
+				Vec3 wCrossf = w.Cross(f);
+				Vec3 v = point->pNode->GetVCurr() + wCrossf;
+
+				out << GetLabel() << "." << point->uLabel
+					<< " " << x;
+
+				switch (uRot) {
+				case MBC_ROT_MAT:
+					out << " " << R;
+					break;
+
+				case MBC_ROT_THETA:
+					out << " " << RotManip::VecRot(R);
+					break;
+
+				case MBC_ROT_NONE:
+				case MBC_ROT_EULER_123:
+					out << " " << MatR2EulerAngles123(R)*dRaDegr;
+					break;
+				}
+				out << " " << v
+					<< " " << w
+					<< std::endl;
+			}
+		}
 	}
 }
  
@@ -1485,6 +1569,7 @@ ReadStructExtForce(DataManager* pDM,
 
 			*curr_label = ul;
 			++curr_label;
+
 		}
 
 		if (HP.IsKeyWord("offset")) {
@@ -1493,10 +1578,87 @@ ReadStructExtForce(DataManager* pDM,
 		} else {
 			Offsets[i] = Vec3(Zero3);
 		}
+
+		for (int j = 0; j < i; j++) {
+			if (Nodes[j] == Nodes[i]) {
+				if (Offsets[j].IsExactlySame(Offsets[i])) {
+					silent_cerr("StructExtForce(" << uLabel << "): "
+						"warning, point #" << i << " is identical to point #" << j << " (same node, same offset)" << std::endl);
+				} else {
+					silent_cerr("StructExtForce(" << uLabel << "): "
+						"warning, point #" << i << " is based on same node of point #" << j << " (offsets differ)" << std::endl);
+				}
+			}
+		}
 	}
 
+	std::ofstream out;
+	if (HP.IsKeyWord("echo")) {
+		const char *s = HP.GetFileName();
+		if (s == NULL) {
+			silent_cerr("StructMappingExtForce(" << uLabel << "): "
+				"unable to parse echo file name "
+				"at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		out.open(s);
+		if (!out) {
+			int save_errno = errno;
+			silent_cerr("StructMappingExtForce(" << uLabel << "): "
+				"unable to open file \"" << s << "\" (" << save_errno << ": " << strerror(save_errno) << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+#if 0
+
+		std::ofstream out(s);
+
+		out.setf(std::ios::scientific);
+
+		for (unsigned i = 0; i < Nodes.size(); i++) {
+			if (bLabels) {
+				out << Labels[i];
+			} else {
+				out << Nodes[i]->GetLabel();
+			}
+
+			out << " " << (Nodes[i]->GetXCurr() + Offsets[i]) << " ";
+			switch (uRot) {
+			case MBC_ROT_MAT:
+				out << Nodes[i]->GetRCurr();
+				break;
+
+			case MBC_ROT_THETA:
+				out << RotManip::VecRot(Nodes[i]->GetRCurr());
+				break;
+
+			case MBC_ROT_NONE:
+			case MBC_ROT_EULER_123:
+				out << MatR2EulerAngles123(Nodes[i]->GetRCurr())*dRaDegr;
+				break;
+			}
+			out << " " << Nodes[i]->GetVCurr() + Nodes[i]->GetWCurr().Cross(Offsets[i])
+				<< " " << Nodes[i]->GetWCurr()
+				<< std::endl;
+		}
+#endif
+	}
+
+	unsigned uOutputFlags = ExtFileHandlerBase::OUTPUT_REF_DYN;
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
-	Elem *pEl = 0;
+	if (HP.IsArg()) {
+		if (HP.IsKeyWord("kinematics")) {
+			uOutputFlags |= ExtFileHandlerBase::OUTPUT_KIN;
+			fOut = 1;
+		} else {
+			silent_cerr("StructMappingExtForce(" << uLabel << "): "
+				"unexpected arg at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	StructExtForce *pEl = 0;
 
 	if (dynamic_cast<ExtFileHandlerEDGE *>(pEFH)) {
 		SAFENEWWITHCONSTRUCTOR(pEl, StructExtEDGEForce,
@@ -1504,7 +1666,7 @@ ReadStructExtForce(DataManager* pDM,
 				bUseReferenceNodeForces, bRotateReferenceNodeForces,
 				Labels, Nodes, Offsets,
 				bSorted, bLabels, bOutputAccelerations, uRot,
-				pEFH, bSendAfterPredict, iCoupling, fOut));
+				pEFH, bSendAfterPredict, iCoupling, uOutputFlags, fOut));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, StructExtForce,
@@ -1512,7 +1674,11 @@ ReadStructExtForce(DataManager* pDM,
 				bUseReferenceNodeForces, bRotateReferenceNodeForces,
 				Labels, Nodes, Offsets,
 				bSorted, bLabels, bOutputAccelerations, uRot,
-				pEFH, bSendAfterPredict, iCoupling, fOut));
+				pEFH, bSendAfterPredict, iCoupling, uOutputFlags, fOut));
+	}
+
+	if (out.is_open()) {
+		pEl->SendToStream(out, ExtFileHandlerBase::SEND_FIRST_TIME);
 	}
 
 	return pEl;

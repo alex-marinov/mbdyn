@@ -1384,7 +1384,7 @@ Something like
 
 
 
-\subsection{External structural}
+\subsection{External Structural}
 \label{sec:EL:FORCE:EXTERNAL:STRUCTURAL}
 This element allows to communicate with an external software that computes
 forces applied to a pool of nodes and may depend on the kinematics of those
@@ -1409,6 +1409,7 @@ Communication occurs by means of the communicators illustrated earlier.
         \bnt{num_nodes} ,
             \bnt{node_label} [ , \kw{offset} , (\ty{Vec3}) \bnt{offset} ]
             [ , ... ]
+        [ , \kw{echo} , \bnt{echo_file_name} ]
 \end{Verbatim}
 %\end{verbatim}
 \begin{itemize}
@@ -1426,6 +1427,11 @@ will be ignored.
 \item The orientation style \kw{none} implies that only positions, velocities 
 and accelerations will be output (the latter only if \kw{accelerations}
 is set to \kw{yes}).
+
+\item \kw{echo} causes the output of the reference configuration
+to be produced in a file called \nt{echo\_file\_name}.
+If the file exists, it is overwritten, if allowed by file system permissions.
+The format is that of the communicator in stream form.
 \end{itemize}
 
 

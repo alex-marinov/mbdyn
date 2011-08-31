@@ -66,6 +66,7 @@ public:
 		ExtFileHandlerBase *pEFH,
 		bool bSendAfterPredict,
 		int iCoupling,
+		unsigned uOutputFlags,
 		flag fOut);
 
 	virtual ~StructExtEDGEForce(void);

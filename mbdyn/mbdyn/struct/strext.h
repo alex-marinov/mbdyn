@@ -42,6 +42,9 @@
 /* StructExtForce - begin */
 
 class StructExtForce : virtual public Elem, public ExtForce {
+	// hack to recycle SendToStream for echo
+	friend Elem* ReadStructExtForce(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
+
 protected:
 	StructNode *pRefNode;
 	bool bUseReferenceNodeForces;
@@ -49,6 +52,7 @@ protected:
 	Vec3 F0, M0;
 	Vec3 F1, M1;
 	Vec3 F2, M2;
+	unsigned uOutputFlags;
 
 public:
 	struct PointData {
@@ -111,6 +115,7 @@ public:
 		ExtFileHandlerBase *pEFH,
 		bool bSendAfterPredict,
 		int iCoupling,
+		unsigned uOutputFlags,
 		flag fOut);
 
 	virtual ~StructExtForce(void);

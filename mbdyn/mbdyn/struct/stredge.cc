@@ -58,11 +58,12 @@ StructExtEDGEForce::StructExtEDGEForce(unsigned int uL,
 	ExtFileHandlerBase *pEFH,
 	bool bSendAfterPredict,
 	int iCoupling,
+	unsigned uOutputFlags,
 	flag fOut)
 : Elem(uL, fOut), 
 StructExtForce(uL, pDM, pRefNode, bUseReferenceNodeForces, bRotateReferenceNodeForces,
 	labels, nodes, offsets, bSorted, bLabels, bOutputAccelerations, uRot,
-	pEFH, bSendAfterPredict, iCoupling, fOut),
+	pEFH, bSendAfterPredict, iCoupling, uOutputFlags, fOut),
 m_x(nodes.size()),
 m_v(nodes.size())
 {
