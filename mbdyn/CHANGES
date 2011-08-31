@@ -27,7 +27,7 @@ MBDyn 1.X-Devel
 		- fix typo in eigenanalysis documentation (Patrick Rix)
 		- fix working directory setting
 		- fix input/output file name inconsistencies
-		- fix crash in output eigenvectors (noted by Reinhard Resch)
+		- fix crash in eigenvectors output (noted by Reinhard Resch)
 
 MBDyn 1.4.0
 	Enhancements:
