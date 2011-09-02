@@ -549,7 +549,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	mbc->n_d_m = NULL;
 
 	if (mbc->nodes > 0) {
-		void *ptr;
+		char *ptr;
 
 		mbc->k_size = (3 + 3); /* x, xp */
 
