@@ -456,7 +456,12 @@ test_init(int argc, char *argv[])
 
 	/* initialize data structure:
 	 */
-	mbc = new MBCNodal(rigidrot, nodes, labels, rot, accelerations);
+	mbc = new MBCNodal;
+	if (mbc->Initialize(rigidrot, nodes, labels, rot, accelerations)) {
+		fprintf(stderr, "test_strext_socket: "
+			"MBCNodal::Initialize() failed\n");
+		usage();
+	}
 
 	if (path) {
 		/* initialize UNIX socket (path) */
