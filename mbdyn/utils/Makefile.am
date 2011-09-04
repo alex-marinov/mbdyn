@@ -72,6 +72,9 @@ test_strext_socket \
 test_strext_socket_f \
 test_strext_socket_cxx \
 test_strext_socket_f_cxx
+
+# fake library to tweak the selected linker
+noinst_LTLIBRARIES = libstrext_socket_f.la
 endif
 
 MYLIBS = \
@@ -125,19 +128,21 @@ test_strext_socket_SOURCES = \
 test_strext_socket.c \
 test_strext_socket_lib.c \
 test_strext_socket_lib.h
-test_strext_socket_f_SOURCES = \
-test_strext_socket_f.f \
-test_strext_socket_f_main.c \
-test_strext_socket_lib.c \
-test_strext_socket_lib.h
 test_strext_socket_cxx_SOURCES = \
 test_strext_socket.c \
 test_strext_socket_lib_cxx.cc \
 test_strext_socket_lib.h
+# most of the code is in libstrext_socket_f.la to force linking with C linker
+test_strext_socket_f_SOURCES = \
+test_strext_socket_lib.c \
+test_strext_socket_lib.h
+# most of the code is in libstrext_socket_f.la to force linking with C++ linker
 test_strext_socket_f_cxx_SOURCES = \
+test_strext_socket_lib_cxx.cc \
+test_strext_socket_lib.h
+libstrext_socket_f_la_SOURCES = \
 test_strext_socket_f.f \
 test_strext_socket_f_main.c \
-test_strext_socket_lib_cxx.cc \
 test_strext_socket_lib.h
 trim_SOURCES = trim.cc s2s.cc s2s.h
 vec2rot_SOURCES = vec2rot.cc
@@ -216,21 +221,14 @@ socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
 test_modalext_socket_LDADD = $(MYLIBS)
 test_strext_socket_LDADD = $(MYLIBS)
-test_strext_socket_f_LDADD = $(MYLIBS)
+test_strext_socket_f_LDADD = $(MYLIBS) libstrext_socket_f.la
 test_strext_socket_cxx_LDADD = $(MYLIBS)
-test_strext_socket_f_cxx_LDADD = $(MYLIBS)
+test_strext_socket_f_cxx_LDADD = $(MYLIBS) libstrext_socket_f.la
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
 
 logproc_LDFLAGS = -static
-
-if USE_IFORT
-# ifort-specific switches, because linking is done using ifort since
-# at least one .f source is present
-test_strext_socket_f_LDFLAGS = -nofor-main
-test_strext_socket_f_cxx_LDFLAGS = -nofor-main
-endif
 
 INCLUDES = \
 -I../include \

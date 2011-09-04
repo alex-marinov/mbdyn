@@ -2540,8 +2540,6 @@ AC_SUBST(GINACLIB_LIBS)
 AC_SUBST(DATE)
 
 dnl conditional build declarations
-AM_CONDITIONAL(USE_IFORT,[test `basename "$FC"` = ifort]) dnl use Intel fortran compiler
-
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 AM_CONDITIONAL(USE_CHACO,[test "$ol_link_chaco" = yes])
 AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
