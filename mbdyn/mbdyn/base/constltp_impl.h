@@ -2125,10 +2125,10 @@ GetPreStress(MBDynParser& HP, T& PreStress)
 
 template <class T>
 TplDriveCaller<T>*
-GetPreStrain(const DataManager* pDM, MBDynParser& HP, T& PreStrain)
+GetPreStrain(const DataManager* pDM, MBDynParser& HP)
 {
 	if (HP.IsKeyWord("prestrain")) {
-		return ReadTplDC(pDM, HP, PreStrain);
+		return HP.GetTplDriveCaller<T>();
 	}
 
 	TplDriveCaller<T> *pTplDC = 0;

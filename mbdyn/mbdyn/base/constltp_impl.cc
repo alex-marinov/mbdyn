@@ -216,8 +216,7 @@ struct LinearElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef LinearElasticIsotropicConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS));
@@ -241,8 +240,7 @@ struct LinearElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef LinearElasticGenericConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S));
@@ -270,8 +268,7 @@ struct LinearElasticGenericAxialTorsionCouplingCLR : public ConstitutiveLawRead<
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, dCoupl));
@@ -306,8 +303,7 @@ struct LinearViscoElasticGenericAxialTorsionCouplingCLR : public ConstitutiveLaw
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S, SP, dCoupl));
@@ -334,8 +330,7 @@ struct LogElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef LogConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS));
@@ -381,8 +376,7 @@ struct DoubleLinearElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef DoubleLinearElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -426,8 +420,7 @@ struct IsotropicHardeningCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef IsotropicHardeningConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dS, dS0, dE));
@@ -464,8 +457,7 @@ struct ContactElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef ContactConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dK, dGamma));
@@ -563,11 +555,10 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
 #ifdef USE_GINAC
 		TplDriveCaller<T>* pTplDC =
 #endif /* ! USE_GINAC */
-			GetPreStrain(pDM, HP, PreStrain);
+			GetPreStrain<T>(pDM, HP);
 
 		switch (CLType) {
 		case ConstLawType::ELASTIC: {
@@ -733,8 +724,7 @@ struct LinearViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 #if 0	// TODO: implement a "null" constitutive law that does nothing
 		if (dS == 0. && dSP == 0.) {
@@ -789,8 +779,7 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 #if 0	// TODO: implement a "null" constitutive law that does nothing
 		if (IsNull(S) && IsNull(SP)) {
@@ -849,8 +838,7 @@ struct LTVViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 #if 0	// TODO: implement a "null" constitutive law that does nothing
 		if (IsNull(S) && IsNull(SP)) {
@@ -907,8 +895,7 @@ struct CubicElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef CubicElasticGenericConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S1, S2, S3));
@@ -940,8 +927,7 @@ struct CubicViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef CubicViscoElasticGenericConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, S1, S2, S3, SP));
@@ -1006,8 +992,7 @@ struct DoubleLinearViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef DoubleLinearViscoElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1073,8 +1058,7 @@ struct TurbulentViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef TurbulentViscoElasticConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1130,8 +1114,7 @@ struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, mb_deye<Tder>(dS), mb_deye<Tder>(dSp), s, pA, pD));
 
@@ -1205,8 +1188,7 @@ struct ShockAbsorberCLR : public ConstitutiveLawRead<T, Tder> {
 
 		CLType = ConstLawType::VISCOELASTIC;
 
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		typedef ShockAbsorberConstitutiveLaw<T, Tder> L;
 		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pDM, pTplDC, HP));

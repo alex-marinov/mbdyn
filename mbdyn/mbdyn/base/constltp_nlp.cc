@@ -410,8 +410,7 @@ struct NLPViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 		/* Prestress and prestrain */
 		T PreStress(mb_zero<T>());
 		GetPreStress(HP, PreStress);
-		T PreStrain(mb_zero<T>());
-		TplDriveCaller<T>* pTplDC = GetPreStrain(pDM, HP, PreStrain);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
 
 		if (bElastic && bViscous) {
 			CLType = ConstLawType::VISCOELASTIC;

@@ -224,12 +224,5 @@ DC2TDC(DriveCaller *pDC, T& t)
 
 /* SingleTplDriveCaller - end */
 
-template <class T>
-TplDriveCaller<T> *
-ReadTplDC(const DataManager* pDM, MBDynParser& HP, const T&)
-{
-	return HP.GetTplDriveCaller<T>();
-}
-
 #endif // TPLDRIVE_IMPL_H
 

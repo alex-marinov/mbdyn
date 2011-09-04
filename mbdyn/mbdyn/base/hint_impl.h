@@ -59,19 +59,16 @@ public:
 
 template <class T>
 class TplVecHint : public ParsableHint {
-protected:
-	T t;
-
 public:
-	TplVecHint(const char *s, const T& t = mb_zero<T>());
+	TplVecHint(const char *s);
 	virtual ~TplVecHint(void);
 
 	T pCreateVec(DataManager *pDM) const;
 };
 
 template <class T>
-TplVecHint<T>::TplVecHint(const char *s, const T& t)
-: ParsableHint(s), t(t)
+TplVecHint<T>::TplVecHint(const char *s)
+: ParsableHint(s)
 {
 	NO_OP;
 }
@@ -103,18 +100,15 @@ typedef TplVecHint<Vec6> TplVecHint6;
 
 template <class T>
 class TplDriveHint : public DriveHint {
-protected:
-	T	t;
-
 public:
-	TplDriveHint(const char *s, const T& t = mb_zero<T>());
+	TplDriveHint(const char *s);
 	virtual ~TplDriveHint(void);
 	TplDriveCaller<T> *pCreateDrive(DataManager *pDM) const;
 };
 
 template <class T>
-TplDriveHint<T>::TplDriveHint(const char *s, const T& t)
-: DriveHint(s), t(t)
+TplDriveHint<T>::TplDriveHint(const char *s)
+: DriveHint(s)
 {
 	NO_OP;
 }
@@ -136,7 +130,7 @@ TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 
-	return ReadTplDC(pDM, HP, t);
+	return HP.GetTplDriveCaller<T>();
 }
 
 typedef TplDriveHint<Vec3> TplDriveHint3;
