@@ -193,7 +193,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 
 	if (!bGotIt) {
 		silent_cerr(currSolver.s_name << " solver "
-			"not available at line " << HP.GetLineData()
+			"not available; requested at line " << HP.GetLineData()
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
