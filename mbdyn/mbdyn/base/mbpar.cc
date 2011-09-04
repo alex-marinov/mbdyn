@@ -1810,9 +1810,8 @@ MBDynParser::GetTplDriveCaller(void)
 		}
 		catch (DataManager::ErrNeedDataManager) {
 			silent_cerr("the required drive caller must appear "
-					"inside or after the \"control data\" "
-					"block"
-					<< std::endl);
+				"inside or after the \"control data\" block"
+				<< std::endl);
 			throw DataManager::ErrNeedDataManager(MBDYN_EXCEPT_ARGS);
 		}
 		return pDC;
@@ -2698,6 +2697,23 @@ MBDynParser::VecAbsManip::~VecAbsManip(void)
 {
 	NO_OP;
 }
+
+// icc hack
+#if defined(__ICC)
+static Table dummy_t(false);
+static MathParser dummy_mp(dummy_t);
+static InputStream dummy_in(std::cin);
+static MBDynParser dummy_hp(dummy_mp, dummy_in, "dummy initialization");
+
+void
+MBDynParser_dummy_init(void)
+{
+	TplDriveCaller<doublereal> *dummy_tpldc1d(dummy_hp.GetTplDriveCaller<doublereal>());
+	TplDriveCaller<Vec3> *dummy_tpldc3d(dummy_hp.GetTplDriveCaller<Vec3>());
+	TplDriveCaller<Vec6> *dummy_tpldc6d(dummy_hp.GetTplDriveCaller<Vec6>());
+}
+#endif // __ICC
+// end of icc hack
 
 /* MBDynParser - end */
 

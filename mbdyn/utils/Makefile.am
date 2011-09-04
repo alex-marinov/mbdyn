@@ -225,6 +225,13 @@ mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
 
 logproc_LDFLAGS = -static
 
+if USE_IFORT
+# ifort-specific switches, because linking is done using ifort since
+# at least one .f source is present
+test_strext_socket_f_LDFLAGS = -nofor-main
+test_strext_socket_f_cxx_LDFLAGS = -nofor-main
+endif
+
 INCLUDES = \
 -I../include \
 -I$(srcdir)/../include \
