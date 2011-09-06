@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		- fix working directory setting
 		- fix input/output file name inconsistencies
 		- fix crash in eigenvectors output (noted by Reinhard Resch)
+		- fix build with Intel's icpc
 
 MBDyn 1.4.0
 	Enhancements:
