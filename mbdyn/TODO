@@ -252,6 +252,7 @@ E. Bugs/missing features:
 	- allow make of mod-* and moddae-* modules
 	- implement referenceable template drive callers (much like regular drive callers) (DONE)
 	- implement support for pardiso linear solver when compiled with icc
+	- check "new" distance
 
 
 
