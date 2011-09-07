@@ -38,8 +38,8 @@ s2s_gpc: AR(MA)X-based adaptive Generalized Predictive Control tool (author: Mat
 
 s2s_dss usage:
 
-	s2s_dss implemets a SISO discrete-time state-space (DSS) controller scheduled with respect a 
-	parameter (colled velocity). It requires an input file:
+	s2s_dss implements a SISO discrete-time state-space (DSS) controller scheduled with respect to a 
+	parameter (called velocity). It requires an input file:
 
 	./s2s_dss DSSdata.txt
 
