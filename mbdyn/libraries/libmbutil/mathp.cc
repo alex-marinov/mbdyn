@@ -3240,7 +3240,7 @@ MathParser::expr(void)
 		if (currtoken == OBR) {
 			/* in futuro ci potranno essere magari i dati strutturati */
 			if (!currNameSpace->IsFunc(namebuf)) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "user-defined functions not supported yet!");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found; user-defined functions not supported yet!");
 			}
 
 			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
