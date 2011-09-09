@@ -807,6 +807,40 @@ during the initial steps of the simulation.
 
 
 \chapter{Data Structure}
+This chapter is a mess.
+
+
+\section{Constitutive Laws}
+Code that uses constitutive laws requires
+\begin{align}
+	\T{f}
+	&=
+	\T{f}\plbr{ \T{\epsilon}, \dot{\T{\epsilon}}, t, \ldots }
+\end{align}
+where $\T{f}$ can be 1, 3, and 6 dimensional.
+Similarly, $\T{\epsilon}$ and $\dot{\T{\epsilon}}$
+respectively are 1, 3, and 6 dimensional
+(scalar, \texttt{Vec3}, and \texttt{Vec6}).
+
+The \texttt{ConstitutiveLaw} provides
+\begin{subequations}
+\begin{align}
+	\texttt{GetF()}
+	&=
+	\T{f}\plbr{ \T{\epsilon}, \dot{\T{\epsilon}}, t, \ldots }
+	\\
+	\texttt{GetFDE()}
+	&=
+	\frac{\partial \T{f}}{\partial \T{\epsilon}}
+	\\
+	\texttt{GetFDEPrime()}
+	&=
+	\frac{\partial \T{f}}{\partial \dot{\T{\epsilon}}}
+\end{align}
+\end{subequations}
+The values returned by these methods are updated by a call to
+\texttt{Update()}.
+
 
 
 \section{ExpandableRowVector}
