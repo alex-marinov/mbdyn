@@ -2911,7 +2911,7 @@ Solver::ReadData(MBDynParser& HP)
 
 				} else if (HP.IsKeyWord("lower" "frequency" "limit")) {
 					EigAn.dLowerFreq = HP.GetReal();
-					if (EigAn.dUpperFreq < 0.) {
+					if (EigAn.dLowerFreq < 0.) {
 						silent_cerr("invalid \"lower frequency limit\" "
 							"at line " << HP.GetLineData()
 							<< std::endl);
