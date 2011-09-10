@@ -253,15 +253,19 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
+#if 0
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
 	};
+
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return DeformableHingeJoint::dGetPrivData(i);
 	};
+#endif
 };
 
 /* ElasticHingeJoint - end */
@@ -320,16 +324,14 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
-	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
-		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
 
-/* ElasticHingeJoint - end */
+/* ElasticHingeJointInv - end */
 
 
 /* ViscousHingeJoint - begin */
@@ -424,15 +426,19 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
+#if 0
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
 	};
+
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return DeformableHingeJoint::dGetPrivData(i);
 	};
+#endif
 };
 
 /* ViscousHingeJoint - end */
@@ -492,11 +498,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
-	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
-		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
@@ -600,15 +604,19 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
+#if 0
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
 	};
+
 	virtual doublereal dGetPrivData(unsigned int i) const {
 		return DeformableHingeJoint::dGetPrivData(i);
 	};
+#endif
 };
 
 /* ViscoElasticHingeJoint - end */
@@ -668,11 +676,9 @@ public:
 	virtual unsigned int iGetNumPrivData(void) const {
 		return DeformableHingeJoint::iGetNumPrivData();
 	};
+
 	virtual unsigned int iGetPrivDataIdx(const char *s) const {
 		return DeformableHingeJoint::iGetPrivDataIdx(s);
-	};
-	virtual doublereal dGetPrivData(unsigned int i) const {
-		return DeformableHingeJoint::dGetPrivData(i);
 	};
 #endif /* MBDYN_X_WORKAROUND_GCC_3_2 */
 };
