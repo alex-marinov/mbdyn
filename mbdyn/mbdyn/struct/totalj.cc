@@ -1170,7 +1170,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */,
 	int iOrder)
 {
-	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder<< ")" << std::endl);
+	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder << ")" << std::endl);
 
 	if (iGetNumDof() == 0) {
 		WorkVec.ResizeReset(0);

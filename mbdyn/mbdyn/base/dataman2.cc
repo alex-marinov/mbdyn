@@ -1014,8 +1014,10 @@ DataManager::InitialJointAssembly(void)
 			doublereal dPosStiff = pNode->dGetPositionStiffness();
 			doublereal dVelStiff = pNode->dGetVelocityStiffness();
 
+			Vec3 TmpVec;
+
 			/* Posizione: k*Delta_x = k(x_0-x) + F */
-			Vec3 TmpVec = pNode->GetXPrev() - pNode->GetXCurr();
+			TmpVec = pNode->GetXPrev() - pNode->GetXCurr();
 			pResHdl->Add(iFirstIndex + 1, TmpVec*dPosStiff);
 
 			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
@@ -1029,8 +1031,8 @@ DataManager::InitialJointAssembly(void)
 
 			/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
 			 *                                    k*(R_Delta*w0-w) + M */
-			Vec3 wPrev(pNode->GetWPrev());
-			Vec3 wCurr(pNode->GetWCurr());
+			const Vec3& wPrev(pNode->GetWPrev());
+			const Vec3& wCurr(pNode->GetWCurr());
 
 			if (pNode->bOmegaRotates()) {
 				/* con questa la velocita' angolare e' solidale
@@ -1139,23 +1141,23 @@ DataManager::InitialJointAssembly(void)
 				/* con questi la velocita' angolare e' solidale con il nodo */
 
 				/* Velocita' angolare - termine di rotazione: R_Delta*w0/\ */
-				Mat3x3 R0 = pNode->GetRPrev();
-				Mat3x3 R = pNode->GetRCurr();
-				Vec3 W0 = pNode->GetWPrev();
-				Vec3 TmpVec = R*(R0.Transpose()*(W0*dVelStiff));
+				const Mat3x3& R0 = pNode->GetRPrev();
+				const Mat3x3& R = pNode->GetRCurr();
+				const Vec3& W0 = pNode->GetWPrev();
+				Vec3 TmpVec = R*(R0.MulTV(W0*dVelStiff));
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
-				doublereal d = TmpVec.dGet(1);
+				doublereal d = TmpVec(1);
 				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 5, d);
 				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 6, -d);
 
 				/* W2 in m(1, 3), -W2 in m(3, 1) */
-				d = TmpVec.dGet(2);
+				d = TmpVec(2);
 				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 6, d);
 				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 4, -d);
 
 				/* W3 in m(2, 1), -W3 in m(1, 2) */
-				d = TmpVec.dGet(3);
+				d = TmpVec(3);
 				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 4, d);
 				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 5, -d);
 			} /* altrimenti la velocita' angolare e' solidale con il nodo */
