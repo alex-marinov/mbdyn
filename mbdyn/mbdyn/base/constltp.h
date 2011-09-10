@@ -110,6 +110,14 @@ public:
 		NO_OP;
 	};
    
+	virtual const T& GetEpsilon(void) const {
+		return Epsilon;
+	};
+
+	virtual const T& GetEpsilonPrime(void) const {
+		return EpsilonPrime;
+	};
+
 	virtual const T& GetF(void) const {
 		return F;
 	};
