@@ -8756,6 +8756,196 @@ so $\hat{\TT{C}}_2 = - \hat{\TT{C}}_1$.
 
 
 
+
+
+\subsection{Deformable Axial Joint}
+\label{sec:constraints:deformable:deformable axial joint}
+Strain:
+\begin{align}
+	\T{\theta}
+	&=
+	\text{ax}\plbr{\text{exp}^{-1}\plbr{\TT{R}_{1h}^T \TT{R}_{2h}}}
+	\\
+	\epsilon
+	&=
+	\tilde{\T{e}}_z \cdot \T{\theta}
+\end{align}
+Strain rate:
+\begin{align}
+	\dot{\epsilon}
+	&=
+	\tilde{\T{e}}_z \cdot \TT{R}_{1h}^T\plbr{\T{\omega}_2 - \T{\omega}_1}
+\end{align}
+Virtual perturbation/linearization of strain:
+\begin{align}
+	\delta\epsilon
+	&=
+	\tilde{\T{e}}_z \cdot \TT{R}_{1h}^T\plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+	=
+	\T{e}_z^T \plbr{\T{\theta}_{2\delta} - \T{\theta}_{1\delta}}
+\end{align}
+Linearization of strain rate:
+\begin{align}
+	\delta\dot{\epsilon}
+	&=
+	\tilde{\T{e}}_z \cdot \TT{R}_{1h}^T\plbr{
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
+		+
+		\delta\T{\omega}_2
+		-
+		\delta\T{\omega}_1
+	}
+	=
+	\T{e}_z^T \plbr{
+		\plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{\theta}_{1\delta}
+		+
+		\delta\T{\omega}_2
+		-
+		\delta\T{\omega}_1
+	}
+\end{align}
+Virtual work:
+\begin{align}
+	\delta\mathcal{L}
+	&=
+	\delta\epsilon m\plbr{\epsilon, \dot{\epsilon}}
+	=
+	\plbr{
+		\T{\theta}_{2\delta}
+		-
+		\T{\theta}_{1\delta}
+	}^T
+	\TT{R}_{1h}
+	\tilde{\T{e}}_z
+	m
+	=
+	\plbr{
+		\T{\theta}_{2\delta}
+		-
+		\T{\theta}_{1\delta}
+	}^T
+	\T{e}_z
+	m
+\end{align}
+Loads (residual contribution):
+\begin{subequations}
+\begin{align}
+	\T{m}_1
+	&=
+	\T{e}_z m
+	\\
+	\T{m}_2
+	&=
+	- \T{e}_z m
+\end{align}
+\end{subequations}
+Linearization:
+\begin{align}
+	\delta\plbr{\T{e}_z m}
+	&=
+	- m \T{e}_z \times \T{\theta}_{1\delta}
+	+
+	\T{e}_z \plbr{
+		m_{/\epsilon} \delta\epsilon
+		+
+		m_{/\dot{\epsilon}} \delta\dot{\epsilon}
+	}
+\end{align}
+Jacobian matrix contributions:
+\begin{align}
+	m \sqbr{\matr{c}{
+		\T{e}_z \times{}
+		\\
+		-\T{e}_z \times{}
+	}} \T{\theta}_{1\delta}
+	+
+	m_{/\epsilon} \sqbr{\matr{cc}{
+		\T{e}_z \T{e}_z^T & -\T{e}_z \T{e}_z^T
+		\\
+		-\T{e}_z \T{e}_z^T & \T{e}_z \T{e}_z^T
+	}} \cubr{\cvvect{
+		\T{\theta}_{1\delta}
+		\\
+		\T{\theta}_{2\delta}
+	}}
+	& \nonumber \\
+	\mbox{} +
+	m_{/\dot{\epsilon}} \plbr{
+	\sqbr{\matr{cc}{
+		\T{e}_z \T{e}_z^T & -\T{e}_z \T{e}_z^T
+		\\
+		-\T{e}_z \T{e}_z^T & \T{e}_z \T{e}_z^T
+	}} \cubr{\cvvect{
+		\delta\T{\omega}_1
+		\\
+		\delta\T{\omega}_2
+	}}
+	+
+	\sqbr{\matr{c}{
+		-\T{e}_z \T{e}_z^T \plbr{\T{\omega}_2 - \T{\omega}_1}\times{}
+		\\
+		\T{e}_z \T{e}_z^T \plbr{\T{\omega}_2 - \T{\omega}_1}\times{}
+	}} \T{\theta}_{1\delta}
+	}
+	&=
+	\cubr{\cvvect{
+		\T{e}_z
+		\\
+		-\T{e}_z
+	}} m
+\end{align}
+With the updated-updated approximation:
+\begin{align}
+	m \sqbr{\matr{c}{
+		\T{e}_z \times{}
+		\\
+		-\T{e}_z \times{}
+	}} \delta\T{g}_1
+	+
+	m_{/\epsilon} \sqbr{\matr{cc}{
+		\T{e}_z \T{e}_z^T & -\T{e}_z \T{e}_z^T
+		\\
+		-\T{e}_z \T{e}_z^T & \T{e}_z \T{e}_z^T
+	}} \cubr{\cvvect{
+		\delta\T{g}_1
+		\\
+		\delta\T{g}_2
+	}}
+	& \nonumber \\
+	\mbox{} +
+	m_{/\dot{\epsilon}} \plbr{
+	\sqbr{\matr{cc}{
+		\T{e}_z \T{e}_z^T & -\T{e}_z \T{e}_z^T
+		\\
+		-\T{e}_z \T{e}_z^T & \T{e}_z \T{e}_z^T
+	}} \cubr{\cvvect{
+		\delta\dot{\T{g}}_1
+		\\
+		\delta\dot{\T{g}}_2
+	}}
+	+
+	\sqbr{\matr{cc}{
+		\T{e}_z \T{e}_z^T \T{\omega}_2\times{} & -\T{e}_z \T{e}_z^T \T{\omega}_2\times{}
+		\\
+		-\T{e}_z \T{e}_z^T \T{\omega}_2\times{} & \T{e}_z \T{e}_z^T \T{\omega}_2\times{}
+	}} \cubr{\cvvect{
+		\delta\T{g}_1
+		\\
+		\delta\T{g}_2
+	}}
+	}
+	&\equu
+	\cubr{\cvvect{
+		\T{e}_z
+		\\
+		-\T{e}_z
+	}} m
+\end{align}
+Note: $\T{e}_z \T{e}_z^T \T{\omega}_2\times{} = \T{e}_z \plbr{\T{e}_z\times\T{\omega}_2}^T$.
+
+
+
+
 % Viscous Body
 \input{tecman-vb}
 

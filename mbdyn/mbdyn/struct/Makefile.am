@@ -112,7 +112,9 @@ vehj.h \
 vehj2.cc \
 vehj2.h \
 vehj3.cc \
-vehj3.h
+vehj3.h \
+vehj4.cc \
+vehj4.h
 
 nodist_libstruct_la_SOURCES =
 

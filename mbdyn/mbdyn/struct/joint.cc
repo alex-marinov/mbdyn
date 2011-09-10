@@ -72,6 +72,7 @@
 #include "vehj.h"      /* Giunti deformabili */
 #include "vehj2.h"     /* "" */
 #include "vehj3.h"     /* "" */
+#include "vehj4.h"     /* "" */
 #include "vb.h"		// viscous body
 
 #define MBDYN_X_COMPATIBLE_INPUT
@@ -169,6 +170,7 @@ ReadJoint(DataManager* pDM,
 		"deformable" "displacement" "hinge",	// deprecated
 		"deformable" "displacement" "joint",
 		"deformable" "joint",
+		"deformable" "axial" "joint",
 		"viscous" "body",
 		"invariant" "deformable" "hinge",
 		"invariant" "deformable" "displacement" "joint",
@@ -234,6 +236,7 @@ ReadJoint(DataManager* pDM,
 		DEFORMABLEDISPHINGE,		// deprecated
 		DEFORMABLEDISPJOINT,
 		DEFORMABLEJOINT,
+		DEFORMABLEAXIALJOINT,
 		VISCOUSBODY,
 		INVARIANTDEFORMABLEHINGE,
 		INVARIANTDEFORMABLEDISPJOINT,
@@ -1450,6 +1453,7 @@ ReadJoint(DataManager* pDM,
 	case DEFORMABLEHINGE:
 	case DEFORMABLEDISPHINGE:	// deprecated
 	case DEFORMABLEDISPJOINT:
+	case DEFORMABLEAXIALJOINT:
 	case INVARIANTDEFORMABLEHINGE:
 	case INVARIANTDEFORMABLEDISPJOINT:
 		{
@@ -1482,6 +1486,7 @@ ReadJoint(DataManager* pDM,
 			break;
 
 		case DEFORMABLEHINGE:
+		case DEFORMABLEAXIALJOINT:
 		case INVARIANTDEFORMABLEHINGE:
 			if (HP.IsKeyWord("position")) {
 				// ignored
@@ -1535,6 +1540,7 @@ ReadJoint(DataManager* pDM,
 			break;
 
 		case DEFORMABLEHINGE:
+		case DEFORMABLEAXIALJOINT:
 		case INVARIANTDEFORMABLEHINGE:
 			if (HP.IsKeyWord("position")) {
 				// ignored
@@ -1563,12 +1569,25 @@ ReadJoint(DataManager* pDM,
 
 		/* Legame costitutivo */
 		ConstLawType::Type CLType;
-		ConstitutiveLaw3D* pCL = HP.GetConstLaw3D(CLType);
+		ConstitutiveLaw1D* pCL1 = 0;
+		ConstitutiveLaw3D* pCL3 = 0;
+		unsigned iCLNumDof = 0;
+		switch (CurrKeyWord) {
+		case DEFORMABLEAXIALJOINT:
+			pCL1 = HP.GetConstLaw1D(CLType);
+			iCLNumDof = pCL1->iGetNumDof();
+			break;
 
-		if (pCL->iGetNumDof() != 0) {
+		default:
+			pCL3 = HP.GetConstLaw3D(CLType);
+			iCLNumDof = pCL3->iGetNumDof();
+			break;
+		}
+
+		if (iCLNumDof != 0) {
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"\"deformable hinge\" joint does not support "
-				"dynamic constitutive laws yet"
+				"generic deformable joint does not support "
+				"constitutive laws with internal degrees of freedom yet"
 				<< std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1594,7 +1613,7 @@ ReadJoint(DataManager* pDM,
 			case DEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticHingeJoint,
-					ElasticHingeJoint(uLabel, pDO, pCL,
+					ElasticHingeJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1603,7 +1622,7 @@ ReadJoint(DataManager* pDM,
 			case INVARIANTDEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticHingeJointInv,
-					ElasticHingeJointInv(uLabel, pDO, pCL,
+					ElasticHingeJointInv(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1613,7 +1632,7 @@ ReadJoint(DataManager* pDM,
 			case DEFORMABLEDISPJOINT:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticDispJoint,
-					ElasticDispJoint(uLabel, pDO, pCL,
+					ElasticDispJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 
@@ -1630,13 +1649,23 @@ ReadJoint(DataManager* pDM,
 #if 1
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ElasticDispJointInv,
-					ElasticDispJointInv(uLabel, pDO, pCL,
+					ElasticDispJointInv(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 
 				sJointLogName = "deformabledisplacementjoint";
 #endif
 				break;
+
+			case DEFORMABLEAXIALJOINT:
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ElasticAxialJoint,
+					ElasticAxialJoint(uLabel, pDO, pCL1,
+						pNode1, pNode2,
+						R1, R2, fOut));
+				sJointLogName = "deformableaxialjoint";
+				break;
+
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1649,7 +1678,7 @@ ReadJoint(DataManager* pDM,
 			case DEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousHingeJoint,
-					ViscousHingeJoint(uLabel, pDO, pCL,
+					ViscousHingeJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1658,7 +1687,7 @@ ReadJoint(DataManager* pDM,
 			case INVARIANTDEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousHingeJointInv,
-					ViscousHingeJointInv(uLabel, pDO, pCL,
+					ViscousHingeJointInv(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1668,7 +1697,7 @@ ReadJoint(DataManager* pDM,
 			case DEFORMABLEDISPJOINT:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousDispJoint,
-					ViscousDispJoint(uLabel, pDO, pCL,
+					ViscousDispJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
@@ -1682,12 +1711,22 @@ ReadJoint(DataManager* pDM,
 #if 0
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscousDispJoint,
-					ViscousDispJoint(uLabel, pDO, pCL,
+					ViscousDispJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
 #endif
 				break;
+
+			case DEFORMABLEAXIALJOINT:
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscousAxialJoint,
+					ViscousAxialJoint(uLabel, pDO, pCL1,
+						pNode1, pNode2,
+						R1, R2, fOut));
+				sJointLogName = "deformableaxialjoint";
+				break;
+
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1700,7 +1739,7 @@ ReadJoint(DataManager* pDM,
 			case DEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticHingeJoint,
-					ViscoElasticHingeJoint(uLabel, pDO, pCL,
+					ViscoElasticHingeJoint(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1709,7 +1748,7 @@ ReadJoint(DataManager* pDM,
 			case INVARIANTDEFORMABLEHINGE:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticHingeJointInv,
-					ViscoElasticHingeJointInv(uLabel, pDO, pCL,
+					ViscoElasticHingeJointInv(uLabel, pDO, pCL3,
 						pNode1, pNode2,
 						R1, R2, od, fOut));
 				sJointLogName = "deformablehinge";
@@ -1720,7 +1759,7 @@ ReadJoint(DataManager* pDM,
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticDispJoint,
 					ViscoElasticDispJoint(uLabel,
-						pDO, pCL,
+						pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
@@ -1735,12 +1774,22 @@ ReadJoint(DataManager* pDM,
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticDispJointInv,
 					ViscoElasticDispJointInv(uLabel,
-						pDO, pCL,
+						pDO, pCL3,
 						pNode1, pNode2,
 						f1, f2, R1, R2, fOut));
 				sJointLogName = "deformabledisplacementjoint";
 #endif
 				break;
+
+			case DEFORMABLEAXIALJOINT:
+				SAFENEWWITHCONSTRUCTOR(pEl,
+					ViscoElasticAxialJoint,
+					ViscoElasticAxialJoint(uLabel, pDO, pCL1,
+						pNode1, pNode2,
+						R1, R2, fOut));
+				sJointLogName = "deformableaxialjoint";
+				break;
+
 			default:
 				ASSERTMSG(0, "You shouldn't have reached this point");
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);

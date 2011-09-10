@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added basic support for NREL airfoil data format
 		- added airfoil "flip" capability
 		- added referenceable template drive callers
+		- added "deformable axial joint"
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
