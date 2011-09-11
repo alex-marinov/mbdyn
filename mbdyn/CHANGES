@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- added airfoil "flip" capability
 		- added referenceable template drive callers
 		- added "deformable axial joint"
+		- added elastomeric damper (from Gandhi, Chopra, JAHS 1994)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
