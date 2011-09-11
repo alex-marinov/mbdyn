@@ -43,7 +43,6 @@ static int count;
 void
 module_initialize(void)
 {
-	std::cerr << "module_initialize: count=" << ::count << std::endl;
 	if (::count++ > 0) {
 		return;
 	}
@@ -67,7 +66,6 @@ module_initialize(void)
 void
 module_finalize(void)
 {
-	std::cerr << "module_finalize: count=" << ::count << std::endl;
 	if (::count == 0) {
 		silent_cerr("module_finalize: called too many times" << std::endl);
 		return;
