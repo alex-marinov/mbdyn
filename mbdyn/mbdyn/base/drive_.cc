@@ -1066,7 +1066,7 @@ DriveArrayCaller::DriveArrayCaller(const DriveHandler* pDH, dcv_t& DC)
 {
 #ifdef DEBUG
 	ASSERT(!m_dc.empty());
-	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); i++) {
+	for (dcv_t::const_iterator i = m_dc.begin(); i != m_dc.end(); ++i) {
 		ASSERT((*i) != 0);
 	}
 #endif /* DEBUG */
@@ -2592,7 +2592,7 @@ DestroyDriveData(void)
 	}
 
 	/* free stuff */
-	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); i++) {
+	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); ++i) {
 		delete i->second;
 	}
 	DrvFuncMap.clear();
