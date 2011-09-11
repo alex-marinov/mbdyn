@@ -205,7 +205,7 @@ DamperGandhi::Update_int(const VectorHandler& XCurr, const VectorHandler& XPrime
 	doublereal abs_f = std::abs(m_f);
 
 	m_g = m_f*(m_c_1 + abs_f*(m_c_2 + abs_f*(m_c_3 + abs_f*m_c_4)));
-	m_dg_df = m_c_1 + abs_f*(2*m_c_2 + abs_f*(3*m_c_3 + 4*m_c_4*abs_f));
+	m_dg_df = m_c_1 + abs_f*(2*m_c_2 + abs_f*(3*m_c_3 + abs_f*4*m_c_4));
 }
 
 void
@@ -261,6 +261,8 @@ m_pCL(0)
 	m_c_2 = HP.GetReal();
 	m_c_3 = HP.GetReal();
 	m_c_4 = HP.GetReal();
+
+	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
 
 DamperGandhi::~DamperGandhi(void)
