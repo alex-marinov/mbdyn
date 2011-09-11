@@ -126,7 +126,7 @@ protected:
 	bool bInverseDynamics;
 
 #ifdef USE_RUNTIME_LOADING
-	bool loadableElemInitialized;
+	bool moduleInitialized;
 #endif // USE_RUNTIME_LOADING
 
 	enum PrintFlags {

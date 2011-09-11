@@ -1011,10 +1011,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 #ifdef USE_RUNTIME_LOADING
 					if ((CurrDesc == LOADABLE || CurrDesc == USER_DEFINED)
-						&& !loadableElemInitialized)
+						&& !moduleInitialized)
 					{
 						module_initialize();
-						loadableElemInitialized = true;
+						moduleInitialized = true;
 					}
 #endif // USE_RUNTIME_LOADING
 

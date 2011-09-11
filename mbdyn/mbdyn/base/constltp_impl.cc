@@ -1365,6 +1365,7 @@ DestroyCL(void)
 
 	/* free stuff */
 	for (CL1DFuncMapType::iterator i = CL1DFuncMap.begin(); i != CL1DFuncMap.end(); ++i) {
+		std::cerr << "deleting CL1D=" << i->first << std::endl;
 		delete i->second;
 	}
 	CL1DFuncMap.clear();

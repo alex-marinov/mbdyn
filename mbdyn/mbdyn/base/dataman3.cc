@@ -483,9 +483,9 @@ DataManager::ReadControl(MBDynParser& HP,
 #if defined(USE_RUNTIME_LOADING)
 			bool add(false);
 
-			if (!loadableElemInitialized) {
+			if (!moduleInitialized) {
 				module_initialize();
-				loadableElemInitialized = true;
+				moduleInitialized = true;
 			}
 
 			if (HP.IsKeyWord("set")) {

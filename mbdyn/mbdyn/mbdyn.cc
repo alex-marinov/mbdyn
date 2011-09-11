@@ -1075,8 +1075,6 @@ main(int argc, char* argv[])
 	}
 #endif /* USE_RTAI */
 
-	module_finalize();
-
 	mbdyn_cleanup();
    
     	MB_EXIT(rc);

@@ -210,6 +210,7 @@ protected:
 	void ScalarFunction_int(void);
 
 	/* Dynamic modules */
+	bool moduleInitialized;
 	void ModuleLoad_int(void);
 
 	/* Legge una parola chiave */

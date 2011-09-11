@@ -124,7 +124,7 @@ bStaticModel(false),
 /* auto-detect if running inverse dynamics */
 bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),
 #if defined(USE_RUNTIME_LOADING)
-loadableElemInitialized(false),
+moduleInitialized(false),
 #endif // USE_RUNTIME_LOADING
 uPrintFlags(PRINT_NONE),		/* Morandini, 2003-11-17 */
 sSimulationTitle(0),
@@ -672,7 +672,7 @@ DataManager::~DataManager(void)
 	DestroyGustData();
 
 #if defined(USE_RUNTIME_LOADING)
-	if (loadableElemInitialized) {
+	if (moduleInitialized) {
 		module_finalize();
 	}
 #endif // USE_RUNTIME_LOADING

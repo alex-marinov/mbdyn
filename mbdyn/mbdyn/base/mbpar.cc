@@ -93,6 +93,7 @@ MBDynParser::MBDynParser(MathParser& MP,
 		InputStream& streamIn,
 		const char *initial_file)
 : IncludeParser(MP, streamIn, initial_file),
+moduleInitialized(false),
 pDM(0)
 {
 	/* make sure this is init'ed */
@@ -154,6 +155,12 @@ MBDynParser::~MBDynParser(void)
 		silent_cerr("MBDynParser::~MBDynParser: "
 			"manipulators' stack not empty" << std::endl);
 	}
+
+#if defined(USE_RUNTIME_LOADING)
+	if (moduleInitialized) {
+		module_finalize();
+	}
+#endif // USE_RUNTIME_LOADING
 }
 
 void
@@ -851,12 +858,14 @@ MBDynParser::ModuleLoad_int(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	char *module_name = 0;
-   	SAFESTRDUP(module_name, s);
+	std::string module_name(s);
 
-	module_initialize();
+	if (!moduleInitialized) {
+		module_initialize();
+		moduleInitialized = true;
+	}
 
-	lt_dlhandle handle = lt_dlopenext(module_name);
+	lt_dlhandle handle = lt_dlopenext(module_name.c_str());
 
 	if (handle == NULL) {
       		const char* err = lt_dlerror();
@@ -891,7 +900,7 @@ MBDynParser::ModuleLoad_int(void)
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
 
-	if ((*sym)(module_name, (void *)pDM, (void *)this)) {
+	if ((*sym)(module_name.c_str(), (void *)pDM, (void *)this)) {
 		silent_cerr("ModuleLoad_int: module_init() "
 				"of module <" << module_name
 				<< "> failed at line " << GetLineData()
@@ -907,8 +916,6 @@ MBDynParser::ModuleLoad_int(void)
 	}
 
 	silent_cout("module \"" << module_name << "\" loaded" << std::endl);
-
-   	SAFEDELETEARR(module_name);
 #endif // USE_RUNTIME_LOADING
 }
 

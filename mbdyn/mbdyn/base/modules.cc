@@ -38,20 +38,19 @@
 #include "dataman.h"
 #include "mbdefs.h"
 
-static bool done = false;
+static int count;
 
 void
 module_initialize(void)
 {
-	if (::done) {
+	std::cerr << "module_initialize: count=" << ::count << std::endl;
+	if (::count++ > 0) {
 		return;
 	}
 
-	::done = true;
-
 #ifdef USE_RUNTIME_LOADING
 	if (lt_dlinit()) {
-		silent_cerr("unable to initialize run-time loading" << std::endl);
+		silent_cerr("module_initialize: unable to initialize run-time loading" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -59,7 +58,7 @@ module_initialize(void)
 	 * NOTE: this macro is defined in mbdefs.h
 	 */
 	if (lt_dlsetsearchpath(MODULE_LOADPATH) != 0) {
-		silent_cerr("unable to initialize load path" << std::endl);
+		silent_cerr("module_initialize: unable to initialize load path" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 #endif // USE_RUNTIME_LOADING
@@ -68,13 +67,18 @@ module_initialize(void)
 void
 module_finalize(void)
 {
-	if (!::done) {
+	std::cerr << "module_finalize: count=" << ::count << std::endl;
+	if (::count == 0) {
+		silent_cerr("module_finalize: called too many times" << std::endl);
 		return;
 	}
 
-	::done = false;
+	if (::count-- > 0) {
+		return;
+	}
 
 #ifdef USE_RUNTIME_LOADING
 	lt_dlexit();
 #endif // USE_RUNTIME_LOADING
 }
+
