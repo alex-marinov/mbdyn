@@ -311,7 +311,7 @@ DataManager::DofOwnerInit(void)
 		OutHdl.Log() << "struct node labels:";
 
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); i++)
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
 			ASSERT(pNode != 0);

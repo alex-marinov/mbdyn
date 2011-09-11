@@ -1578,9 +1578,6 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		}
 
 		/* allocazione e creazione */
-		int i = ElemData[Elem::EXTERNAL].iExpectedNum
-			- iNumTypes[Elem::EXTERNAL] - 1;
-
 		switch (KeyWords(CurrType)) {
 		case AERODYNAMICEXTERNAL:
 			pE = ReadAerodynamicExternal(this, HP, uLabel);

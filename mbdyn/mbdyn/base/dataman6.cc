@@ -56,7 +56,7 @@ void
 DataManager::DeleteSocketUsers(void)
 {
 	for (std::map<int, UseSocket *>::iterator i = SocketUsers.begin();
-			i != SocketUsers.end(); i++)
+			i != SocketUsers.end(); ++i)
 	{
 		delete i->second;
 	}
@@ -82,7 +82,7 @@ DataManager::WaitSocketUsers(void)
 	std::map<int, UseSocket *>::iterator ri;
 	std::map<int, UseSocket *>::const_iterator re = SocketUsers.end();
 	int n;
-	for (n = 0, ri = SocketUsers.begin(); ri != re; n++, ri++) {
+	for (n = 0, ri = SocketUsers.begin(); ri != re; ++n, ++ri) {
 		FD_SET(ri->first, &active_set);
 	}
 

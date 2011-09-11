@@ -381,7 +381,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
                    throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (int i = 0; i++ < comm; iComm++) {
+	for (int i = 0; i++ < comm; ++iComm) {
 		if (iComm == iComm_end) {
                    std::cerr << "Aerodynamic External(" << uLabel
                                 << "): external communicator " << comm 
@@ -638,7 +638,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
 	}
 	
 	std::list<MPI::Intercomm>::iterator iComm =  InterfaceComms.begin();
-	for (int i = 0; i++ < comm; iComm++) {}
+	for (int i = 0; i++ < comm; ++iComm) {}
 	MPI::Intercomm* pInterC = &(*(iComm));
 
 	bool VelFlag = false;
