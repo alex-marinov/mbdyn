@@ -52,6 +52,8 @@ protected:
 
 	bool bFirstRes;
 
+	doublereal dTol;
+
 	// from constitutive law
 	doublereal dM;
 

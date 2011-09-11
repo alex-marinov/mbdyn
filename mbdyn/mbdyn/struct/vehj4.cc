@@ -101,7 +101,8 @@ pNode1(pN1),
 pNode2(pN2),
 tilde_R1h(tilde_R1h),
 tilde_R2h(tilde_R2h),
-bFirstRes(false)
+bFirstRes(false),
+dTol(0.)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -227,7 +228,7 @@ DeformableAxialJoint::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
 
-	if (s[1] == '\0') {
+	if (s[1] == 'z' && s[2] == '\0') {
 		switch (s[0]) {
 		case 'r':
 			return 1;
@@ -504,8 +505,18 @@ ElasticAxialJoint::AssVec(SubVectorHandler& WorkVec)
 
 	} else {
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
-		dThetaCurr = RotManip::VecRot(R1h.MulTM(R2h))(3);
+		Vec3 ThetaCurr(RotManip::VecRot(R1h.MulTM(R2h)));
+		dThetaCurr = ThetaCurr(3);
 		ConstitutiveLaw1DOwner::Update(dThetaCurr);
+
+		// sanity check
+		if (dTol > 0.) {
+			ThetaCurr(3) = 0.;
+			doublereal dErr = ThetaCurr.Norm();
+			if (dErr > dTol) {
+				silent_cerr("ElasticAxialJoint(" << GetLabel() << "): axes non-colinear (err=" << dErr << ")" << std::endl);
+			}
+		}
 	}
 
 	/* Couple attached to node 1 */
