@@ -137,6 +137,7 @@ public:
 	DamperGandhiConstitutiveLaw(DamperGandhi *pElem)
 	: m_pElem(pElem)
 	{
+		ASSERT(m_pElem != 0);
 		m_pElem->SetDGCL(this);
 		Update(0., 0.);
 	};
@@ -179,6 +180,10 @@ struct DamperGandhiCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		CLType = ConstLawType::VISCOELASTIC;
+
+		if (HP.IsKeyWord("help")) {
+			silent_cout("DamperGandhiConstitutiveLaw\n        \"damper gandhi\" , <damper_gandhi_elem_label>" << std::endl);
+		}
 
 		DamperGandhi *pElem = dynamic_cast<DamperGandhi *>(const_cast<DataManager *>(pDM)->ReadElem(HP, Elem::LOADABLE));
 
@@ -243,7 +248,7 @@ m_pCL(0)
 "\n"
 "               All rights reserved\n"
 "\n"
-"		user defined : <label> , <K1> , <C1> , <c1> , <c2> , <c3> , <c4> ;\n"
+"               user defined : <label> , <K1> , <C1> , <c1> , <c2> , <c3> , <c4> ;\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -492,7 +497,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 		silent_cerr("module-damper-gandhi: "
 			"module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"damper gandhi\" user-defined element" << std::endl);
 
 		return -1;
 	}
@@ -501,9 +506,9 @@ module_init(const char *module_name, void *pdm, void *php)
 	if (!SetCL1D("damper" "gandhi", rf1D)) {
 		delete rf1D;
 
-		silent_cerr("DamperGandhiConstitutiveLaw1D: "
+		silent_cerr("module-damper-gandhi: "
 			"module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"damper gandhi\" 1D constitutive law" << std::endl);
 
 		return -1;
 	}
