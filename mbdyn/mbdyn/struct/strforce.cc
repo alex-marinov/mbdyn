@@ -2146,6 +2146,31 @@ ReadStructuralForce(DataManager* pDM,
 		}
 	}
 
+	std::ostream& os = pDM->GetLogFile();
+
+	os << "structural";
+	if (bInternal) {
+		os << " internal";
+	}
+	if (bFollower) {
+		os << " follower";
+	} else {
+		os << " absolute";
+	}
+	if (bCouple) {
+		os << " couple";
+	} else {
+		os << " force";
+	}
+	os << ": " << uLabel << ' ' << pNode->GetLabel()
+		<< ' ' << Arm;
+
+	if (pNode2 != 0) {
+		os << ' ' << pNode2->GetLabel() << ' ' << Arm2;
+	}
+
+	os << std::endl;
+
 	return pEl;
 }
 
