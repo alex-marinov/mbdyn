@@ -98,6 +98,21 @@ The points are expressed as 3D vectors (\ty{Vec3}), whose origin and orientation
 is expressed in the reference frame of the respective nodes.
 All data is in on one line, without continuation.
 
+\subsection{axial rotation}
+The \kw{axialrotation} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{axialrotation}: \bnt{label}
+        \bnt{node_1_label} (\ty{Vec3}) \bnt{position_1} (\ty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\ty{Vec3}) \bnt{position_2} (\ty{Mat3x3}) \bnt{orientation_2}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{position\_*} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the \nt{orientation\_*} matrices indicate the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
 \subsection{beam2}
 The two-node \kw{beam}.
 %\begin{verbatim}
@@ -121,6 +136,21 @@ The three-node \kw{beam}.
 \end{Verbatim}
 %\end{verbatim}
 The beam \kw{label} is followed by the label and the offset of each node.
+All data is in on one line, without continuation.
+
+\subsection{brake}
+The \kw{brake} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{brake}: \bnt{label}
+        \bnt{node_1_label} (\ty{Vec3}) \bnt{position_1} (\ty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\ty{Vec3}) \bnt{position_2} (\ty{Mat3x3}) \bnt{orientation_2}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{position\_*} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the \nt{orientation\_*} matrices indicate the orientation of the joint
+in the reference frame of the respective node.
 All data is in on one line, without continuation.
 
 \subsection{clamp}
@@ -174,6 +204,21 @@ in the reference frame of the node.
 All data is in on one line, without continuation.
 Both \kw{distance} and \kw{distance with offset} joints are logged
 in this form.
+
+\subsection{gimbal rotation}
+The \kw{gimbal rotation} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{gimbalrotation}: \bnt{label}
+        \bnt{node_1_label} (\ty{Vec3}) \bnt{position_1} (\ty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\ty{Vec3}) \bnt{position_2} (\ty{Mat3x3}) \bnt{orientation_2}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{position\_*} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the \nt{orientation\_*} matrices indicate the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
 
 \subsection{inline}
 The \kw{inline} joint
@@ -250,6 +295,21 @@ while the \nt{orientation\_*} matrices indicate the orientation of the joint
 in the reference frame of the respective node.
 All data is in on one line, without continuation.
 
+\subsection{revolute rotation}
+The \kw{revolute rotation} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{revoluterotation}: \bnt{label}
+        \bnt{node_1_label} (\ty{Vec3}) \bnt{position_1} (\ty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\ty{Vec3}) \bnt{position_2} (\ty{Mat3x3}) \bnt{orientation_2}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{position\_*} vectors indicates the location of the joint
+in the reference frame of the respective node,
+while the \nt{orientation\_*} matrices indicate the orientation of the joint
+in the reference frame of the respective node.
+All data is in on one line, without continuation.
+
 \subsection{rod}
 The \kw{rod} joint
 %\begin{verbatim}
@@ -295,6 +355,18 @@ are repeated twice.
 The vector \nt{position} indicates the location of the joint,
 while the matrix \nt{orientation} is the identity matrix.
 All data is in on one line, without continuation.
+
+\subsection{structural forces}
+The structural forces elements
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{force_type}: \bnt{force_label}
+        \bnt{node1_label} (\ty{Vec3})<arm1>
+        [ \bnt{node2_label} (\ty{Vec3})<arm2> ]
+
+    \bnt{force_type} ::= \kw{structural} [ \kw{internal} ] \{ \kw{absolute} | \kw{follower} \} \{ \kw{force} | \kw{couple} \}
+\end{Verbatim}
+When \kw{internal} is present \nt{node2\_label} and \nt{arm2} must be present
+as well, otherwise they must be omitted.
 
 \subsection{structural node}
 \label{sec:APP:LOGFILE:STRUCTURAL_NODE}
