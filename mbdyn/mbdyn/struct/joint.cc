@@ -826,6 +826,15 @@ ReadJoint(DataManager* pDM,
 					d1, d2, R1h, R2h, fOut,
 					r, preload, bsh, bf,
 					/* isForce, Dir, */ pDC));
+			std::ostream& out = pDM->GetLogFile();
+			out << "brake: " << uLabel
+				<< " " << pNode1->GetLabel()
+				<< " " << d1
+				<< " " << R1h
+				<< " " << pNode2->GetLabel()
+				<< " " << d2
+				<< " " << R2h
+				<< std::endl;
 			} break;
 
 		/* allocazione e creazione cerniera piana senza vincolo in pos. */
@@ -835,6 +844,15 @@ ReadJoint(DataManager* pDM,
 				PlaneRotationJoint,
 				PlaneRotationJoint(uLabel, pDO,
 					pNode1, pNode2, R1h, R2h, fOut));
+			std::ostream& out = pDM->GetLogFile();
+			out << "revoluterotation: " << uLabel
+				<< " " << pNode1->GetLabel()
+				<< " " << Zero3
+				<< " " << R1h
+				<< " " << pNode2->GetLabel()
+				<< " " << Zero3
+				<< " " << R2h
+				<< std::endl;
 			} break;
 
 		/* allocazione e creazione cerniera universale */
@@ -899,6 +917,15 @@ ReadJoint(DataManager* pDM,
 					d1, d2, R1h, R2h, pDC,
 					fOut,
 					r, preload, bsh, bf));
+			std::ostream& out = pDM->GetLogFile();
+			out << "axialrotation: " << uLabel
+				<< " " << pNode1->GetLabel()
+				<< " " << d1
+				<< " " << R1h
+				<< " " << pNode2->GetLabel()
+				<< " " << d2
+				<< " " << R2h
+				<< std::endl;
 			} break;
 
 		/* allocazione e creazione vincolo gimbal */
@@ -908,6 +935,15 @@ ReadJoint(DataManager* pDM,
 				GimbalRotationJoint,
 				GimbalRotationJoint(uLabel, pDO,
 					pNode1, pNode2, R1h, R2h, od, fOut));
+			std::ostream& out = pDM->GetLogFile();
+			out << "gimbalrotation: " << uLabel
+				<< " " << pNode1->GetLabel()
+				<< " " << Zero3
+				<< " " << R1h
+				<< " " << pNode2->GetLabel()
+				<< " " << Zero3
+				<< " " << R2h
+				<< std::endl;
 			} break;
 
 		/* allocazione e creazione pattino */
@@ -1023,6 +1059,15 @@ ReadJoint(DataManager* pDM,
 				PlanePinJoint(uLabel, pDO, pNode,
 					X0, R0, d, Rh, fOut,
 					calcInitdTheta, initDTheta));
+			std::ostream& out = pDM->GetLogFile();
+			out << "revolutepin: " << uLabel
+				<< " " << pNode->GetLabel()
+				<< " " << d
+				<< " " << Rh
+				<< " " << pNode->GetLabel()
+				<< " " << pNode->GetRCurr().MulTV(X0 - pNode->GetXCurr())
+				<< " " << R0.MulMT(pNode->GetRCurr())
+				<< std::endl;
 			} break;
 
 		case UNIVERSALPIN:
@@ -1038,8 +1083,8 @@ ReadJoint(DataManager* pDM,
 				<< " " << d
 				<< " " << Rh
 				<< " " << pNode->GetLabel()
-				<< " " << pNode->GetRCurr().Transpose()*(X0-pNode->GetXCurr())
-				<< " " << R0*(pNode->GetRCurr().Transpose())
+				<< " " << pNode->GetRCurr().MulTV(X0 - pNode->GetXCurr())
+				<< " " << R0.MulMT(pNode->GetRCurr())
 				<< std::endl;
 			} break;
 
@@ -1124,7 +1169,7 @@ ReadJoint(DataManager* pDM,
 		out << "inplane: " << uLabel
 			<< " " << pNode1->GetLabel()
 			<< " " << p
-			<< " " << (pNode1->GetRCurr().Transpose())*RotManip::Rot(relrot)
+			<< " " << pNode1->GetRCurr().MulTM(RotManip::Rot(relrot))
 			<< " " << pNode2->GetLabel()
 			<< " " << q
 			<< " " << Eye3
