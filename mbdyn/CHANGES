@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- added referenceable template drive callers
 		- added "deformable axial joint"
 		- added elastomeric damper (from Gandhi, Chopra, JAHS 1994)
+		- added muscle constitutive laws (from Pennestri, JB 2007)
 		- log structural forces (Reinhard Resch)
 		- log missing joint types
 	Backward compatibility issues:
