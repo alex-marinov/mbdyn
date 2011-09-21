@@ -44,57 +44,6 @@
 #include "matvecexp.h"
 #include "Rot.hh"
 
-/*
- * StructNodeOutput - begin
- */
-StructNodeOutput::~StructNodeOutput(void)
-{
-	NO_OP;
-}
-
-BasicStructNodeOutput::~BasicStructNodeOutput(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-BasicStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
-{
-	return out << pN->GetXCurr()
-		<< " " << MatR2EulerAngles(pN->GetRCurr())*dRaDegr
-		<< " " << pN->GetVCurr()
-		<< " " << pN->GetWCurr()
-		<< std::endl;
-}
-
-RelativeStructNodeOutput::RelativeStructNodeOutput(StructNode *pN)
-: pBaseNode(pN)
-{
-	ASSERT(pBaseNode != NULL);
-}
-
-RelativeStructNodeOutput::~RelativeStructNodeOutput(void)
-{
-	NO_OP;
-}
-
-std::ostream&
-RelativeStructNodeOutput::Output(std::ostream& out, const StructNode *pN) const
-{
-	Vec3 Xr = pN->GetXCurr() - pBaseNode->GetXCurr();
-	const Mat3x3& R = pBaseNode->GetRCurr();
-
-	return out << R.MulTV(Xr)
-		<< " " << MatR2EulerAngles(R.MulTM(pN->GetRCurr()))*dRaDegr
-		<< " " << R.MulTV(pN->GetVCurr() - pBaseNode->GetVCurr() - pBaseNode->GetWCurr().Cross(Xr))
-		<< " " << R.MulTV(pN->GetWCurr() - pBaseNode->GetWCurr())
-		<< std::endl;
-}
-
-/*
- * StructNodeOutput - end
- */
-
 /* StructNode - begin */
 
 /* Costruttore definitivo */
@@ -517,7 +466,6 @@ StructNode::SetDofValue(const doublereal& dValue,
 	}
 }
 
-
 DofOrder::Order
 StructNode::GetDofType(unsigned int i) const
 {
@@ -789,7 +737,6 @@ StructNode::OutputPrepare(OutputHandler &OH)
 		}
 #endif // USE_NETCDF
 	}
-
 }
 
 /* Output del nodo strutturale (da mettere a punto) */
@@ -1164,13 +1111,7 @@ StructNode::InitialUpdate(const VectorHandler& X)
 	/* Nota: g viene incrementato */
 	gCurr = Vec3(X, iFirstIndex + 4);
 
-#if 1
-	/* Questo manipolatore e' piu' efficiente */
 	Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
-#else
-	/* Nuovo manipolatore (e' meno efficiente) */
-	Mat3x3 RDelta(CGR_Rot::MatR << gCurr);
-#endif
 
 	RCurr = RDelta*RRef;
 	WCurr = Vec3(X, iFirstIndex + 10);
@@ -1180,7 +1121,6 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void 
 StructNode::Update(const VectorHandler& X, int iOrder)
 {
-
 	integer iFirstIndex = iGetFirstIndex();
 	switch(iOrder)	{
 		case 0: {
@@ -1205,16 +1145,6 @@ StructNode::Update(const VectorHandler& X, int iOrder)
 			WPCurr = Vec3(X, iFirstIndex + 4);
 		} break;
 	}
-
-
-#if 0
-	/* Questo e' meno efficiente anche se sembra piu' elegante.
-	 * Il problema e' che per scrivere il manipolatore in forma
-	 * elegante bisogna aggiungere alla matrice le informazioni
-	 * di memorizzazione della funzione di manipolazione.
-	 * Oppure occorre un operatore ternario */
-	RDelta = CGR_Rot::MatR << gCurr;
-#endif
 }
 
 /* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
@@ -1460,7 +1390,10 @@ StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 #if 0
 	/* Ortho check */
-	Mat3x3 RRT = RCurr.MulTM(RCurr) - Eye3;
+	Mat3x3 RRT = RCurr.MulTM(RCurr);
+	RRT(1, 1) -= 1.;
+	RRT(2, 2) -= 1.;
+	RRT(3, 3) -= 1.;
 	doublereal dmax = 0.;
 	for (int r = 1; r <= 3; r++) {
 		for (int c = 1; c <= 3; c++) {
@@ -2392,8 +2325,8 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* aggiorno XPP e WP (servono solo a modal.cc) */
-	XPPCurr = Vec3(XP, iFirstIndex+7);
-	WPCurr  = Vec3(XP, iFirstIndex+10);
+	XPPCurr = Vec3(XP, iFirstIndex + 7);
+	WPCurr  = Vec3(XP, iFirstIndex + 10);
 }
 
 /* ModalNode - end */
@@ -2854,17 +2787,15 @@ ReadStructNode(DataManager* pDM,
 	DofOwner* pDO,
 	unsigned int uLabel)
 {
-	const char sFuncName[] = "ReadStructNode()";
-	DEBUGCOUT("Entering " << sFuncName << std::endl);
+	DEBUGCOUT("Entering ReadStructNode(" << uLabel << ")" << std::endl);
 
 	const char* sKeyWords[] = {
 		"static",
 		"dynamic",
 		"modal",
 		"dummy",
-
-		"offset",
-		"relative" "frame",   /* temporary */
+			"offset",
+			"relative" "frame",
 		0
 	};
 
@@ -2990,6 +2921,7 @@ ReadStructNode(DataManager* pDM,
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
 	} else {
 		/* posizione (vettore di 3 elementi) */
 		if (!HP.IsKeyWord("position")) {
@@ -3109,7 +3041,7 @@ ReadStructNode(DataManager* pDM,
 
 		/* Se non c'e' il punto e virgola finale */
 		if (HP.IsArg()) {
-			silent_cerr(sFuncName << ": semicolon expected "
+			silent_cerr("ReadStructNode(" << uLabel << "): semicolon expected "
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}

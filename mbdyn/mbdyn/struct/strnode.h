@@ -55,31 +55,6 @@ extern const char* psStructNodeNames[];
 
 const int iStructNodeInitialDofNumber = 12;
 
-class StructNode;
-
-class StructNodeOutput {
-public:
-	virtual ~StructNodeOutput(void);
-	virtual std::ostream&
-		Output(std::ostream& out, const StructNode *pN) const = 0;
-};
-
-class BasicStructNodeOutput : public StructNodeOutput {
-public:
-	virtual ~BasicStructNodeOutput(void);
-	std::ostream& Output(std::ostream& out, const StructNode *pN) const;
-};
-
-class RelativeStructNodeOutput : public StructNodeOutput {
-private:
-	StructNode *pBaseNode;
-
-public:
-	RelativeStructNodeOutput(StructNode *pN);
-	virtual ~RelativeStructNodeOutput(void);
-	std::ostream& Output(std::ostream& out, const StructNode *pN) const;
-};
-
 class StructNode : public Node, public RigidBodyKinematics {
 public:
 	class ErrGeneric : public MBDynErrBase {
@@ -793,7 +768,7 @@ ModalNode::iGetNumDof(void) const
 inline integer
 ModalNode::iGetFirstMomentumIndex(void) const
 {
-	return DofOwnerOwner::iGetFirstIndex()+6;
+	return DofOwnerOwner::iGetFirstIndex() + 6;
 }
 
 /* ModalNode - end */
