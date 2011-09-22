@@ -74,6 +74,12 @@ begin: elements;
 		0,
 		1,
 		from nodes,
-		muscle Pennestri, initial length, L0, L0, F0,
-		cosine, 0., pi/2., .5, half, 0.;
+		muscle Pennestri, help,
+			initial length, L0,
+			reference length, L0,
+			reference velocity, 2.5,
+			reference force, F0,
+			activation,
+				cosine, 0., pi/2., .5, half, 0.,
+			activation check, yes;
 end: elements;

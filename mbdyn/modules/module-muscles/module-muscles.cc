@@ -46,12 +46,14 @@ private:
 	// define parameters
 	doublereal Li;
 	doublereal L0;
+	doublereal V0;
 	doublereal F0;
 	DriveOwner Activation;
+	bool bActivationOverflow;
 
 public:
-	MusclePennestriCL(doublereal Li, doublereal L0, doublereal F0, const DriveCaller *pAct)
-	: Li(Li), L0(L0), F0(F0), Activation(pAct) {
+	MusclePennestriCL(doublereal Li, doublereal L0, doublereal V0, doublereal F0, const DriveCaller *pAct, bool bActivationOverflow)
+	: Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct),bActivationOverflow(bActivationOverflow) {
 		// pass parameters via constructor and initialize
 	};
 
@@ -68,13 +70,18 @@ public:
 
 		typedef MusclePennestriCL cl;
 		// pass parameters to copy constructor
-		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(Li, L0, F0, Activation.pGetDriveCaller()));
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(Li, L0, V0, F0, Activation.pGetDriveCaller(), bActivationOverflow));
 		return pCL;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "muscle, initial length, " << Li << ", " << L0 << ", " << F0 << ", ",
-		       Activation.pGetDriveCaller()->Restart(out);
+		out << "muscle"
+			", initial length, " << Li
+			<< ", reference length, " << L0
+			<< ", reference velocity, " << V0
+			<< ", reference force, " << F0
+			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
+			<< ", activation check, " << bActivationOverflow;
 		return out;
 	};
 
@@ -83,18 +90,26 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
 		doublereal a = Activation.dGet();
-		if (a < 0. || a > 1.) {
+		if (a < 0.) {
+			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
+			if (bActivationOverflow) {
+				a = 0.;
+			}
+
+		} else if (a > 1.) {
 			silent_cerr("MusclePennestriCL: activation overflow (a=" << a << ")" << std::endl);
-			// error out?
+			if (bActivationOverflow) {
+				a = 1.;
+			}
 		}
 
 		doublereal dxdEps = Li/L0;
-		doublereal dvdEpsPrime = dxdEps/2.5; // ?!?
+		doublereal dvdEpsPrime = Li/V0;
 		doublereal x = (1. + ConstitutiveLaw<doublereal, doublereal>::Epsilon)*dxdEps;
 		doublereal v = ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime*dvdEpsPrime;
 
 		doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
-		doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4));
+		doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
 		doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
 
 		doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
@@ -115,38 +130,85 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 
 		CLType = ConstLawType::VISCOELASTIC;
 
+		if (HP.IsKeyWord("help")) {
+			silent_cerr("MusclePennestriCL:\n"
+				"        muscle Pennestri ,\n"
+				"                [ initial length , <Li> , ]\n"
+				"                reference length , <L0> ,\n"
+				"                [ reference velocity , <V0> , ]\n"
+				"                reference force , <F0> ,\n"
+				"                activation , (DriveCaller)<activation>\n"
+				"                [ , activation check , (bool)<activation_check> ]\n"
+				<< std::endl);
+
+			if (!HP.IsArg()) {
+				throw NoErr(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
 		doublereal Li = -1.;
 		if (HP.IsKeyWord("initial" "length")) {
 			Li = HP.GetReal();
 			if (Li <= 0.) {
-				silent_cerr("null or negative initial length "
+				silent_cerr("MusclePennestriCL: null or negative initial length "
 					"at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
+		if (!HP.IsKeyWord("reference" "length")) {
+			silent_cerr("MusclePennestriCL: \"reference length\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		doublereal L0 = HP.GetReal();
 		if (L0 <= 0.) {
-			silent_cerr("null or negative reference length "
+			silent_cerr("MusclePennestriCL: null or negative reference length "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		// default (mm/s? m/s?)
+		doublereal V0 = 2.5;
+		if (HP.IsKeyWord("reference" "velocity")) {
+			V0 = HP.GetReal();
+			if (V0 <= 0.) {
+				silent_cerr("MusclePennestriCL: null or negative reference velocity "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		if (!HP.IsKeyWord("reference" "force")) {
+			silent_cerr("MusclePennestriCL: \"reference force\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		doublereal F0 = HP.GetReal();
 		if (F0 <= 0.) {
-			silent_cerr("null or negative reference force "
+			silent_cerr("MusclePennestriCL: null or negative reference force "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		if (!HP.IsKeyWord("activation")) {
+			silent_cerr("MusclePennestriCL: \"activation\" expected "
+				"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 		const DriveCaller *pAct = HP.GetDriveCaller();
+
+		bool bActivationOverflow(false);
+		if (HP.IsKeyWord("activation" "check")) {
+			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflow);
+		}
 
 		if (Li == -1.) {
 			Li = L0;
 		}
 
 		typedef MusclePennestriCL L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(Li, L0, F0, pAct));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(Li, L0, V0, F0, pAct, bActivationOverflow));
 
 		return pCL;
 	};
