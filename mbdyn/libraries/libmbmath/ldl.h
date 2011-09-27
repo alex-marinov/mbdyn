@@ -31,7 +31,11 @@
 #ifndef LDL_H
 #define LDL_H
 
-#include <ac/f2c.h>
+#include "ac/f2c.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /*
  **********************     UPDLDL_ADD       ***********************
@@ -86,5 +90,8 @@ extern int __FC_DECL__(ldlsol) (doublereal* ldl,
 				   integer* n, 
 				   integer* nvet);
 
+#ifdef __cplusplus
+}
+#endif /* __cplusplus */
 
-#endif
+#endif /* LDL_H */
