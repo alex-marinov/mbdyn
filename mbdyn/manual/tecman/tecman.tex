@@ -673,8 +673,8 @@ the time derivatives of a constraint.
 Implementation issues are still open as well.
 
 
-
-\section{Initial Derivatives}
+\section{Initial Value Problem}
+\subsection{Initial Derivatives}
 The so-called ``derivatives'' phase can be thought as computing
 the initial value of the highest order derivatives at $t=t_0$
 before any iteration starts.
@@ -800,14 +800,127 @@ during the initial steps of the simulation.
 
 
 
-\section{Dummy Steps}
-\section{Regular Steps}
+\subsection{Dummy Steps}
+TODO
+
+\subsection{Regular Steps}
+TODO
+
+
+\section{Inverse Dynamics Problem}
+TODO
+
+
+\section{Inverse Kinematics Problem}
+
+\textbf{(NOTE: currently not implemented)}
+
+\subsection{Fully Actuated Problem}
+Constraint equation:
+\begin{align}
+	\T{\psi}\plbr{\T{x}}
+	&=
+	\T{\alpha}(t)
+	\label{eq:ikp:fap:psi}
+\end{align}
+with $\T{\psi}_{/\T{x}}$ square, full rank.
+This nonlinear problem is solved for $\T{x}$ to convergence.
+Without excessive loss in generality,
+the dependence of Eq.~(\ref{eq:ikp:fap:psi}) on $\T{x}$ and $t$
+is assumed to be separable.
+
+Constraint derivatives:
+\begin{subequations}
+\begin{align}
+	\T{\psi}_{/\T{x}} \dot{\T{x}}
+	&=
+	\dot{\T{\alpha}}
+	\\
+	\T{\psi}_{/\T{x}} \ddot{\T{x}}
+	&=
+	\ddot{\T{\alpha}}
+	-
+	\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
+\end{align}
+\end{subequations}
+the two problems are linear respectively in $\dot{\T{x}}$ and $\ddot{\T{x}}$;
+they can be solved sequentially.
+Moreover, they require the same matrix $\T{\psi}_{/\T{x}}$
+which was already factorized to solve the problem
+of Eq.~(\ref{eq:ikp:fap:psi}) using a Newton-Raphson iteration.
+
+
+
+\subsection{Underactuated Problem}
+Constraint equation:
+\begin{align}
+	\T{\psi}\plbr{\T{x}}
+	&=
+	\T{\alpha}(t)
+	\label{eq:ikp:up:psi}
+\end{align}
+with $\T{\psi}_{/\T{x}}$ rectangular, full row rank.
+The problem is augmented by
+\begin{align}
+	\TT{K} \plbr{\T{x} - \T{x}_0}
+	+
+	\T{\psi}_{/\T{x}}^T \T{\lambda}
+	&=
+	\T{0}
+\end{align}
+This nonlinear problem is solved for $\T{x}$ and $\T{\lambda}$
+to convergence ($\TT{K}$ and $\T{\psi}_{/\T{x}}$ may further depend
+on $\T{x}$).
+It corresponds to a least-squares solution for $\T{x} - \T{x}_0$,
+where $\T{x}_0$ is the reference solution,
+subjected to $\T{\psi} = \T{\alpha}$ and weighted by matrix $\T{K}$.
+
+Constraint derivatives:
+\begin{subequations}
+\begin{align}
+	\TT{R} \plbr{\dot{\T{x}} - \dot{\T{x}}_0}
+	+
+	\T{\psi}_{/\T{x}}^T \T{\lambda}
+	&=
+	\T{0}
+	\\
+	\T{\psi}_{/\T{x}} \dot{\T{x}}
+	&=
+	\dot{\T{\alpha}}
+\end{align}
+\end{subequations}
+and
+\begin{subequations}
+\begin{align}
+	\TT{M} \plbr{\ddot{\T{x}} - \ddot{\T{x}}_0}
+	+
+	\T{\psi}_{/\T{x}}^T \T{\lambda}
+	&=
+	\T{0}
+	\\
+	\T{\psi}_{/\T{x}} \ddot{\T{x}}
+	&=
+	\ddot{\T{\alpha}}
+	-
+	\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
+	.
+\end{align}
+\end{subequations}
+The two problems are linear respectively in $\dot{\T{x}}$ and $\ddot{\T{x}}$;
+the same multiplier $\T{\lambda}$ is used since it is ineffective
+(its value is never used).
+The problems can be solved sequentially.
+Only in case $\TT{K}$, $\TT{R}$ and $\TT{M}$ are identical
+all problems use the same matrix and thus the same factorization
+can be reused.
+
+
 
 
 
 
 \chapter{Data Structure}
-This chapter is a mess.
+(This chapter is a mess.)
 
 
 \section{Constitutive Laws}
