@@ -5122,6 +5122,29 @@ if the keyword \kw{angular velocity} is used,
 the constraint imposed the angular velocity of that component
 of the relative orientation, resulting in a non-holonomic constraint.
 
+\subsubsection{Output}
+The output occurs in the \texttt{.jnt} file, which contains:
+\begin{itemize}
+\item column 1: the label
+
+\item columns 2--4: the three components of the internal force in the reference frame of the element
+
+\item columns 5--7: the three components of the internal moment in the reference frame of the element
+
+\item columns 8--10: the three components of the internal force in the global reference frame
+
+\item columns 11--13: the three components of the internal moment in the global reference frame
+
+\item columns 14--16: the three components of the relative displacement in the reference frame of the element
+
+\item columns 17--19: the three components of the relative rotation vector in the reference frame of the element
+
+\item columns 20--22: the three components of the relative velocity in the reference frame of the element
+
+\item columns 23--25: the three components of the relative angular velocity in the reference frame of the element
+
+\end{itemize}
+
 \subsubsection{Private Data}
 The following data is available:
 \begin{enumerate}
@@ -5251,6 +5274,29 @@ ideal constraints that ground one node.
 \end{Verbatim}
 %\end{verbatim}
 The non-holonomic variant is not implemented yet.
+
+\subsubsection{Output}
+The output occurs in the \texttt{.jnt} file, which contains:
+\begin{itemize}
+\item column 1: the label
+
+\item columns 2--4: the three components of the internal force in the reference frame of the element
+
+\item columns 5--7: the three components of the internal moment in the reference frame of the element
+
+\item columns 8--10: the three components of the internal force in the global reference frame
+
+\item columns 11--13: the three components of the internal moment in the global reference frame
+
+\item columns 14--16: the three components of the absolute displacement in the reference frame of the element
+
+\item columns 17--19: the three components of the absolute rotation vector in the reference frame of the element
+
+\item columns 20--22: the three components of the absolute velocity in the reference frame of the element
+
+\item columns 23--25: the three components of the absolute angular velocity in the reference frame of the element
+
+\end{itemize}
 
 \subsubsection{Private Data}
 The following data is available:

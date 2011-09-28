@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		- log structural forces (Reinhard Resch)
 		- log missing joint types
 	Backward compatibility issues:
+		- the (undocumented) output of the total (pin) joint changed
 	Known issues:
 		- Schur solver is broken
 	Bug fixes:
