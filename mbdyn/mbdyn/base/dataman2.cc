@@ -35,9 +35,9 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <set>
+
 #include <cmath>
 #include <sstream>
-// #include <typeinfo>
 
 #include "dataman.h"
 #include "dataman_.h"
@@ -225,27 +225,6 @@ DataManager::CastAerodynamicElem(Elem *pEl)
 	}
 
 	return pAEL;
-}
-
-template <class T> T*
-DataManager::Cast(Elem *pEl)
-{
-	ASSERT(pEl != NULL);
-
-	T *pT = dynamic_cast<T *>(pEl);
-
-	if (pT == 0) {
-		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
-		if (pDE == 0) {
-			silent_cerr("unable to cast "
-				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ")" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pT = dynamic_cast<T *>(pDE->pGetElem());
-	}
-
-	return pT;
 }
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */
@@ -454,8 +433,7 @@ DataManager::DofOwnerInit(void)
 			/* chiede all'elemento quanti dof possiede */
 			unsigned int iNumDof = pEl->iGetNumDof();
 			if (iNumDof > 0) {
-				// ElemWithDofs* pEWD = CastElemWithDofs(pEl);
-				ElemWithDofs* pEWD = Cast<ElemWithDofs>(pEl);
+				ElemWithDofs* pEWD = CastElemWithDofs(pEl);
 
 				ASSERT(pEWD->iGetFirstIndex() >= 0);
 
@@ -865,8 +843,7 @@ DataManager::InitialJointAssembly(void)
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
-							// ElemWithDofs* pEWD = CastElemWithDofs(p->second);
-							ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
+							ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
 							silent_cout(psElemNames[pEl->GetElemType()]
 								<< "(" << pEl->GetLabel()
@@ -1000,8 +977,7 @@ DataManager::InitialJointAssembly(void)
 			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
 				p != ElemData[iCnt1].ElemContainer.end(); ++p)
 			{
-				// ElemWithDofs *pEWD = CastElemWithDofs(p->second);
-				ElemWithDofs *pEWD = Cast<ElemWithDofs>(p->second);
+				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
 				pEWD->SetInitialValue(X);
 			}
 		}
@@ -1246,8 +1222,7 @@ endofcycle:
 				p != ElemData[iCnt1].ElemContainer.end();
 				++p)
 			{
-				// ElemWithDofs *pEWD = CastElemWithDofs(p->second);
-				ElemWithDofs *pEWD = Cast<ElemWithDofs>(p->second);
+				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
 				DofOwner *pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
 				pDO->iNumDofs = p->second->iGetNumDof();
 			}
@@ -1290,8 +1265,7 @@ DataManager::DofOwnerSet(void)
 			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
 				p != ElemData[iCnt].ElemContainer.end(); ++p)
 			{
-				// ElemWithDofs* pEWD = CastElemWithDofs(p->second);
-				ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
+				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
 
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << ")" << std::endl);
