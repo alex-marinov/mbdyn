@@ -832,16 +832,31 @@ void
 TotalEquation::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
-		Mat3x3 R1rTmp(pNode1->GetRCurr()*R1hr);
-		Mat3x3 R2rTmp(pNode2->GetRCurr()*R2hr);
+		const Vec3& X1(pNode1->GetXCurr());
+		const Vec3& X2(pNode2->GetXCurr());
+		const Mat3x3& R1(pNode1->GetRCurr());
+		const Mat3x3& R2(pNode2->GetRCurr());
+		const Vec3& V1(pNode1->GetVCurr());
+		const Vec3& V2(pNode2->GetVCurr());
+		const Vec3& Omega1(pNode1->GetWCurr());
+		const Vec3& Omega2(pNode2->GetWCurr());
+
+		Mat3x3 R1Tmp(R1*R1h);
+		Mat3x3 R1rTmp(R1*R1hr);
+		Mat3x3 R2rTmp(R2*R2hr);
 		Mat3x3 RTmp(R1rTmp.MulTM(R2rTmp));
+		Vec3 b2(R2*f2);
+		Vec3 b1(X2 + b2 - X1);
+		Vec3 X(R1Tmp.MulTV(b1) - tilde_f1);
 
 		Joint::Output(OH.Joints(), "TotalEquation", GetLabel(),
 			Zero3, Zero3, Zero3, Zero3)
-			<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-			<< " " << R1rTmp.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
-			<< " " << ThetaDeltaPrev << std::endl;
+			<< " " << X
+			<< " " << RotManip::VecRot(RTmp)
+			<< " " << R1Tmp.MulTV(V2 + Omega2.Cross(b2) - V1 - Omega1.Cross(b1))
+			<< " " << R1rTmp.MulTV(Omega2 - Omega1)
+			<< std::endl;
+			// accelerations?
 	}
 }
 
@@ -1814,16 +1829,31 @@ void
 TotalReaction::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
-		Mat3x3 R1rTmp(pNode1->GetRCurr()*R1hr);
-		Mat3x3 R2rTmp(pNode2->GetRCurr()*R2hr);
+		const Vec3& X1(pNode1->GetXCurr());
+		const Vec3& X2(pNode2->GetXCurr());
+		const Mat3x3& R1(pNode1->GetRCurr());
+		const Mat3x3& R2(pNode2->GetRCurr());
+		const Vec3& V1(pNode1->GetVCurr());
+		const Vec3& V2(pNode2->GetVCurr());
+		const Vec3& Omega1(pNode1->GetWCurr());
+		const Vec3& Omega2(pNode2->GetWCurr());
+
+		Mat3x3 R1Tmp(R1*R1h);
+		Mat3x3 R1rTmp(R1*R1hr);
+		Mat3x3 R2rTmp(R2*R2hr);
 		Mat3x3 RTmp(R1rTmp.MulTM(R2rTmp));
+		Vec3 b2(R2*f2);
+		Vec3 b1(X2 + b2 - X1);
+		Vec3 X(R1Tmp.MulTV(b1) - tilde_f1);
 
 		Joint::Output(OH.Joints(), "TotalReaction", GetLabel(),
 			F, M, R1Tmp*F, R1rTmp*M)
-			<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-			<< " " << R1rTmp.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr())
-			<< " " << ThetaDeltaPrev << std::endl;
+			<< " " << X
+			<< " " << RotManip::VecRot(RTmp)
+			<< " " << R1Tmp.MulTV(V2 + Omega2.Cross(b2) - V1 - Omega1.Cross(b1))
+			<< " " << R1rTmp.MulTV(Omega2 - Omega1)
+			<< std::endl;
+			// accelerations?
 	}
 }
 
