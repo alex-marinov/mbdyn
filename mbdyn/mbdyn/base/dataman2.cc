@@ -35,9 +35,9 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <set>
-
 #include <cmath>
 #include <sstream>
+// #include <typeinfo>
 
 #include "dataman.h"
 #include "dataman_.h"
@@ -45,7 +45,6 @@
 #include "gravity.h"
 #include "aerodyn.h"
 #include "solver.h"
-#include "driven.h"
 #include "ls.h"
 
 const LoadableCalls *
@@ -160,72 +159,6 @@ DataManager::dGetTime(void) const
 {
 	return DrvHdl.dGetTime();
 } /* End of DataManager::dGetTime() */
-
-ElemWithDofs *
-DataManager::CastElemWithDofs(Elem *pEl)
-{
-	ASSERT(pEl != NULL);
-
-	ElemWithDofs *pEWD = dynamic_cast<ElemWithDofs *>(pEl);
-
-	if (pEWD == 0) {
-		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
-		if (pDE == 0) {
-			silent_cerr("unable to cast "
-				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ") "
-				"to ElemWithDofs" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pEWD = dynamic_cast<ElemWithDofs *>(pDE->pGetElem());
-	}
-
-	return pEWD;
-}
-
-ElemGravityOwner *
-DataManager::CastElemGravityOwner(Elem *pEl)
-{
-	ASSERT(pEl != NULL);
-
-	ElemGravityOwner *pEGO = dynamic_cast<ElemGravityOwner *>(pEl);
-
-	if (pEGO == 0) {
-		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
-		if (pDE == 0) {
-			silent_cerr("unable to cast "
-				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ") "
-				"to ElemGravityOwner" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pEGO = dynamic_cast<ElemGravityOwner *>(pDE->pGetElem());
-	}
-
-	return pEGO;
-}
-
-AerodynamicElem *
-DataManager::CastAerodynamicElem(Elem *pEl)
-{
-	ASSERT(pEl != NULL);
-
-	AerodynamicElem *pAEL = dynamic_cast<AerodynamicElem *>(pEl);
-
-	if (pAEL == 0) {
-		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
-		if (pDE == 0) {
-			silent_cerr("unable to cast "
-				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ") "
-				"to AerodynamicElem" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		pAEL = dynamic_cast<AerodynamicElem *>(pDE->pGetElem());
-	}
-
-	return pAEL;
-}
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */
 void
@@ -433,7 +366,7 @@ DataManager::DofOwnerInit(void)
 			/* chiede all'elemento quanti dof possiede */
 			unsigned int iNumDof = pEl->iGetNumDof();
 			if (iNumDof > 0) {
-				ElemWithDofs* pEWD = CastElemWithDofs(pEl);
+				ElemWithDofs* pEWD = Cast<ElemWithDofs>(pEl);
 
 				ASSERT(pEWD->iGetFirstIndex() >= 0);
 
@@ -843,7 +776,7 @@ DataManager::InitialJointAssembly(void)
 						if (pds) {
 							unsigned int nd = iNumDofs;
 							integer fd = iIndex;
-							ElemWithDofs* pEWD = CastElemWithDofs(p->second);
+							ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
 
 							silent_cout(psElemNames[pEl->GetElemType()]
 								<< "(" << pEl->GetLabel()
@@ -977,7 +910,7 @@ DataManager::InitialJointAssembly(void)
 			for (ElemContainerType::const_iterator p = ElemData[iCnt1].ElemContainer.begin();
 				p != ElemData[iCnt1].ElemContainer.end(); ++p)
 			{
-				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
+				ElemWithDofs *pEWD = Cast<ElemWithDofs>(p->second);
 				pEWD->SetInitialValue(X);
 			}
 		}
@@ -1222,7 +1155,7 @@ endofcycle:
 				p != ElemData[iCnt1].ElemContainer.end();
 				++p)
 			{
-				ElemWithDofs *pEWD = CastElemWithDofs(p->second);
+				ElemWithDofs *pEWD = Cast<ElemWithDofs>(p->second);
 				DofOwner *pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
 				pDO->iNumDofs = p->second->iGetNumDof();
 			}
@@ -1265,7 +1198,7 @@ DataManager::DofOwnerSet(void)
 			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
 				p != ElemData[iCnt].ElemContainer.end(); ++p)
 			{
-				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
+				ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
 
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << ")" << std::endl);

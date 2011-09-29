@@ -322,7 +322,7 @@ DataManager::InverseDofOwnerSet(void)
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
                 j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
         {
-		ElemWithDofs* pEWD = CastElemWithDofs(j->second);
+		ElemWithDofs* pEWD = Cast<ElemWithDofs>(j->second);
 		iJointTotNumDofs += pEWD->iGetNumDof();
 
         }
@@ -338,7 +338,7 @@ DataManager::InverseDofOwnerSet(void)
 			for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
 				p != ElemData[iCnt].ElemContainer.end(); ++p)
 			{
-				ElemWithDofs* pEWD = CastElemWithDofs(p->second);
+				ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
 
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << ")" << std::endl);

@@ -1123,7 +1123,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
 					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
-					ElemGravityOwner *pGO = CastElemGravityOwner(p->second);
+					ElemGravityOwner *pGO = Cast<ElemGravityOwner>(p->second);
 
 					ASSERT(pGO != 0);
 					pGO->PutGravity(pGrav);
@@ -1145,7 +1145,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
 					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
-					AerodynamicElem *pAE = CastAerodynamicElem(p->second);
+					AerodynamicElem *pAE = Cast<AerodynamicElem>(p->second);
 
 					ASSERT(pAE != 0);
 					pAE->PutAirProperties(pProp);

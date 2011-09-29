@@ -53,6 +53,7 @@
 #include "veciter.h"
 
 #include "elem.h"      /* Classe di base di tutti gli elementi */
+#include "driven.h"
 #include "output.h"
 
 #include "drive.h"     /* Drive vari */
@@ -227,10 +228,7 @@ protected:
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);
 
-	
-	AerodynamicElem *CastAerodynamicElem(Elem *pEl);
-	ElemGravityOwner *CastElemGravityOwner(Elem *pEl);
-	ElemWithDofs *CastElemWithDofs(Elem *pEl);
+	template <class T> T* Cast(Elem *pEl);
 
 public:
 	flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
@@ -838,6 +836,27 @@ public:
 	virtual const std::string& GetDofDescription(int i) const;
 	virtual const std::string& GetEqDescription(int i) const;
 };
+
+template <class T> T*
+DataManager::Cast(Elem *pEl)
+{
+	ASSERT(pEl != NULL);
+
+	T *pT = dynamic_cast<T *>(pEl);
+
+	if (pT == 0) {
+		DrivenElem *pDE = dynamic_cast<DrivenElem *>(pEl);
+		if (pDE == 0) {
+			silent_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ")" << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		pT = dynamic_cast<T *>(pDE->pGetElem());
+	}
+
+	return pT;
+}
 
 /* DataManager - end */
 
