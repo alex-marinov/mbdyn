@@ -180,7 +180,7 @@ DrivenElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 
 /* Inverse Dynamics: */
 void
-DrivenElem::Update(const VectorHandler& XCurr, int iOrder)
+DrivenElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 {
 	ASSERT(pElem != NULL);
 	if (dGet() != 0.) {

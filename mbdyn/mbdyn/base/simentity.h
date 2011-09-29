@@ -42,6 +42,7 @@
 #include "dofown.h"
 #include "drive.h"
 #include "hint.h"
+#include "invdyn.h"
 
 /* SimulationEntity - begin */
 
@@ -184,7 +185,7 @@ public:
 	
 	/* Inverse Dynamics:*/
 	virtual void Update(const VectorHandler& XCurr, 
-		       const int iOrder);
+		       InverseDynamics::Order iOrder);
 	/*
 	 * Elaborazione stato interno dopo la convergenza
 	 */

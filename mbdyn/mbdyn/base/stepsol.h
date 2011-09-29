@@ -60,7 +60,7 @@
 #include <unistd.h>
 #include <cfloat>
 #include <cmath>
-
+#include <deque>
 
 /* per il debugging */
 #include "myassert.h"
@@ -72,7 +72,6 @@
 #include "drive.h"
 #include "nonlinpb.h"
 #include "nonlin.h"
-#include <deque>
 
 /* Needed for callback declaration; defined in <mbdyn/base/solver.h> */
 class Solver;
@@ -662,16 +661,16 @@ class InverseDynamicsStepSolver:
 	public StepIntegrator,
 	public NonlinearProblem
 {
-   
 private:
 	/* needed by EvalProd */
 	mutable MyVectorHandler XTau;
 	mutable MyVectorHandler SavedState;
-/* FIXME: Need this? */
+
+	/* FIXME: Need this? */
 	mutable MyVectorHandler SavedDerState;
 	mutable bool bEvalProdCalledFirstTime;
 
-	int iOrder;
+	InverseDynamics::Order iOrder;
 
 protected:
 	VectorHandler *pXCurr;
@@ -697,7 +696,7 @@ public:
 	/* scale factor for tests */
 	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
 
-	/* Needed for compatibility with class StepIntegrator*/	
+	/* Needed for compatibility with class StepIntegrator */
 	virtual doublereal
 	Advance(Solver* pS, 
 			const doublereal TStep, 
@@ -734,7 +733,7 @@ public:
 	
 	void Update(const VectorHandler* pSol) const  ;
 	
-	void SetOrder(int iOrd);
+	void SetOrder(InverseDynamics::Order iOrd);
 };
 
 /* InverseDynamics - End*/

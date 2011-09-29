@@ -206,7 +206,7 @@ public:
 	};
 
 	/* inverse dynamics update */
-	virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
+	virtual void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 	
 	/* per la lettura dei dati dell'elemento modale */
 

@@ -42,6 +42,7 @@
 #include "totalj.h"
 #include "Rot.hh"
 #include "hint_impl.h"
+#include "invdyn.h"
 
 static const char idx2xyz[] = { 'x', 'y', 'z' };
 
@@ -291,7 +292,7 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 						cnt++;
 					}
 				}
-			}	
+			}
 		}
 
 		ASSERT(cnt == ndof);
@@ -1168,11 +1169,11 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr */,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUT("Entering TotalJoint::AssRes(" << iOrder << ")" << std::endl);
+	DEBUGCOUT("Entering TotalJoint::AssRes(" << invdyn2s(iOrder) << ")" << std::endl);
 
-	if (iGetNumDof() == 0) {
+	if (iGetNumDof() == 0 || iOrder == InverseDynamics::INVERSE_DYNAMICS) {
 		WorkVec.ResizeReset(0);
 		return WorkVec;
 	}
@@ -1301,7 +1302,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			}
 		} // end case 2:
 		break;
-	
+
 	default:
 		/*
 		 * higher-order derivatives make no sense right now
@@ -1316,7 +1317,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Inverse Dynamics update */
 void 
-TotalJoint::Update(const VectorHandler& XCurr, int /*iOrder*/)
+TotalJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order /* iOrder */)
 {
 	integer iFirstReactionIndex = iGetFirstIndex();
 	
@@ -2824,7 +2825,7 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler&  XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr*/,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering TotalPinJoint::AssRes()" << std::endl);
 
@@ -2845,107 +2846,101 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 	
 	switch (iOrder) {
-	case 0: // Position - Orientation
-		/*
-		 * Identical to regular AssRes' lower block
-		 */
-		{
-			Vec3 fn(pNode->GetRCurr()*tilde_fn);
-	
-			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-	
-			Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
-		
-			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
-			ThetaDelta = RotManip::VecRot(RDelta);
-		
-			/* Position constraint:  */
-			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, -(XDelta(iPosIncid[iCnt])));
-			}
+	case InverseDynamics::POSITION: {
+		// Identical to regular AssRes' lower block
+		Vec3 fn(pNode->GetRCurr()*tilde_fn);
 
-			/* Rotation constraints: */
-			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + nPosConstraints + iCnt, -(ThetaDelta(iRotIncid[iCnt])));
-			}
-			
-		}// end case 0
-		break;
+		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
 
-	case 1: // Velocity
-		/*
-		 * First derivetive of regular AssRes' lower block
-		 */
-		{	
-			Vec3 Tmp = XPDrv.Get(); 	
-			
-			/* Position constraint derivative  */
-			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
-			}
+		Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
+	
+		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+		ThetaDelta = RotManip::VecRot(RDelta);
+	
+		/* Position constraint:  */
+		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + iCnt, -(XDelta(iPosIncid[iCnt])));
+		}
+
+		/* Rotation constraints: */
+		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + nPosConstraints + iCnt, -(ThetaDelta(iRotIncid[iCnt])));
+		}
+		} break;
+
+	case InverseDynamics::VELOCITY: {	
+		// First derivetive of regular AssRes' lower block
+		Vec3 Tmp = XPDrv.Get(); 	
 		
-			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
-		
-			/*This name is only for clarity...*/
-			Tmp = RDelta * OmegaDrv.Get();
-			
-			/* Rotation constraints: */
-			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp(iRotIncid[iCnt]));
-			}
+		/* Position constraint derivative  */
+		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
 		}
 	
-	case 2: // Acceleration
-		/* 
-		 * Second derivative of regular AssRes' lower block
-		 */
-		{
-			Vec3 Tmp = XPPDrv.Get(); 	
-			
-			Vec3 fn(pNode->GetRCurr()*tilde_fn);
-			
-			Tmp -=  pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(fn));
-
-			/* Position constraint second derivative  */
-			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
-			}
+		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
+		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+	
+		/* This name is only for clarity... */
+		Tmp = RDelta * OmegaDrv.Get();
 		
-									//Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
-			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr; 	//Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
-			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
-		
-			Tmp = R0.MulTV(OmegaDrv.Get());
-			Vec3 Tmp2 = Rnhr * Tmp;
-			
-			Tmp = pNode->GetWCurr().Cross(Tmp2);
-		
-			Tmp2 = RchrT*Tmp;
-			Tmp2 += RDelta * OmegaPDrv.Get();
-			
-			/* Rotation constraint second derivative */
-			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-				WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp2(iRotIncid[iCnt]));
-			}
+		/* Rotation constraints: */
+		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp(iRotIncid[iCnt]));
 		}
-		break;
+		} break;
+
+	case InverseDynamics::ACCELERATION: {
+		// Second derivative of regular AssRes' lower block
+		Vec3 Tmp = XPPDrv.Get(); 	
+		
+		Vec3 fn(pNode->GetRCurr()*tilde_fn);
+		
+		Tmp -=  pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(fn));
+
+		/* Position constraint second derivative  */
+		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + iCnt, Tmp(iPosIncid[iCnt]));
+		}
+	
+								//Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
+		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr; 	//Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+	
+		Tmp = R0.MulTV(OmegaDrv.Get());
+		Vec3 Tmp2 = Rnhr * Tmp;
+		
+		Tmp = pNode->GetWCurr().Cross(Tmp2);
+	
+		Tmp2 = RchrT*Tmp;
+		Tmp2 += RDelta * OmegaPDrv.Get();
+		
+		/* Rotation constraint second derivative */
+		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+			WorkVec.PutCoef(1 + nPosConstraints + iCnt, Tmp2(iRotIncid[iCnt]));
+		}
+		} break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
 	return WorkVec;
 }
 
 
 /* Inverse Dynamics update */
 void 
-TotalPinJoint::Update(const VectorHandler& XCurr, int iOrder)
+TotalPinJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 {
-	integer iFirstReactionIndex = iGetFirstIndex();
-	
-	/* Get constraint reactions */
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
+	integer iFirstReactionIndex = iGetFirstIndex();
+
+	/* Get constraint reactions */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		F(iPosIncid[iCnt]) = XCurr(iFirstReactionIndex + 1 + iPosEqIndex[iCnt]);
 	}
@@ -3550,11 +3545,11 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUT("Entering TotalForce::AssRes()" << std::endl);
+	DEBUGCOUT("Entering TotalForce::AssRes(" << invdyn2s(iOrder) << ")" << std::endl);
 
-	ASSERT(iOrder = -1);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;

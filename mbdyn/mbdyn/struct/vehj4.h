@@ -224,7 +224,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr,
 		const VectorHandler& XPrimePrimeCurr,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {
@@ -333,7 +333,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const  {
@@ -446,7 +446,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	virtual void InitialWorkSpaceDim(integer* piNumRows,
 			integer* piNumCols) const {

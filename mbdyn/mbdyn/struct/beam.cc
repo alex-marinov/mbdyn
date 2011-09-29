@@ -933,7 +933,7 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler&  XCurr ,
 	const VectorHandler&  XPrimeCurr ,
 	const VectorHandler&  XPrimePrimeCurr ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUTFNAME("Beam::AssRes => AssStiffnessVec");
 

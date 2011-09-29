@@ -32,7 +32,6 @@
 #ifndef DATAMANFORWARD_H
 #define DATAMANFORWARD_H
 
-
 /* used by maps to compare strings case-insensitive */
 struct ltstrcase {
 	/* case-insensitive string comparison */

@@ -46,6 +46,7 @@
 #include "friction.h"
 
 #include "solver.h"
+#include "invdyn.h"
 #include "invsolver.h"
 #include "constltp.h"
 #include "dataman_.h"
@@ -109,7 +110,7 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 
 /* Constraint residual assembly: */
 void
-DataManager::AssConstrRes(VectorHandler& ResHdl, int iOrder) 
+DataManager::AssConstrRes(VectorHandler& ResHdl, InverseDynamics::Order iOrder) 
 	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
@@ -120,7 +121,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl, int iOrder)
 void
 DataManager::AssConstrRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec, int iOrder)
+		SubVectorHandler& WorkVec, InverseDynamics::Order iOrder)
 	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
@@ -180,8 +181,8 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		{
 			try {
 				ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-							*pXPrimeCurr, *pXPrimePrimeCurr, 
-							-1);
+					*pXPrimeCurr, *pXPrimePrimeCurr, 
+					InverseDynamics::INVERSE_DYNAMICS);
 			}
 			catch (Elem::ChangedEquationStructure) {
 				ResHdl += WorkVec;
@@ -217,8 +218,8 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		case Joint::DEFORMABLEJOINT:
 			try {
 				ResHdl += pj->AssRes(WorkVec, *pXCurr, 
-							*pXPrimeCurr, *pXPrimePrimeCurr, 
-							-1);
+					*pXPrimeCurr, *pXPrimePrimeCurr, 
+					InverseDynamics::INVERSE_DYNAMICS);
 			}
 			catch (Elem::ChangedEquationStructure) {
 				ResHdl += WorkVec;
@@ -233,7 +234,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		try {
 			ResHdl += pj->AssRes(WorkVec, *pXCurr, 
 				*pXPrimeCurr, *pXPrimePrimeCurr, 
-				-1);
+				InverseDynamics::INVERSE_DYNAMICS);
 		}
 		catch (Elem::ChangedEquationStructure) {
 			ResHdl += WorkVec;
@@ -247,32 +248,32 @@ DataManager::AssRes(VectorHandler& ResHdl,
 }
 
 void
-DataManager::Update(int iOrder) const
+DataManager::Update(InverseDynamics::Order iOrder) const
 {
 	/* Nodes: */
-	switch(iOrder){
-	case 0:
+	switch (iOrder) {
+	case InverseDynamics::POSITION:
 		// Update nodes positions
 		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXCurr, iOrder);
 		}
 		break;
 
-	case 1:
+	case InverseDynamics::VELOCITY:
 		// Update nodes velocities
 		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXPrimeCurr, iOrder);
 		}
 		break;
 
-	case 2:
+	case InverseDynamics::ACCELERATION:
 		// Update nodes accelerations
 		for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			(*i)->Update(*pXPrimePrimeCurr, iOrder);
 		}
 		break;
 
-	case -1:
+	case InverseDynamics::INVERSE_DYNAMICS:
 		// Update constraints reactions (for output only...)
 		for (ElemContainerType::const_iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)

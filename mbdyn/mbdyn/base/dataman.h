@@ -66,6 +66,7 @@
 #include "solverdiagnostics.h"
 #include "linsol.h"
 #include "converged.h"
+#include "invdyn.h"
 
 #ifdef USE_SOCKET
 #include "usesock.h"
@@ -360,7 +361,8 @@ public:
 	/* Inverse Dynamics: */
 	
 	/* Constraints residual, switch iOrder*/
-	virtual void AssConstrRes(VectorHandler& ResHdl, int iOrder) 
+	virtual void AssConstrRes(VectorHandler& ResHdl,
+		InverseDynamics::Order iOrder) 
 		throw(ChangedEquationStructure) ;
 
 	/* Elem residual, equilibrium with no constraints */
@@ -391,7 +393,8 @@ protected:
 
 	void AssConstrRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec, int iOrder)
+		SubVectorHandler& WorkVec,
+		InverseDynamics::Order iOrder)
 	throw(ChangedEquationStructure);
 	
 	void AssRes(VectorHandler& ResHdl,
@@ -458,7 +461,7 @@ public:
 	virtual void AfterConvergence(void) const;
 	
 	/* Inverse Dynamics: */
-	virtual void Update(int iOrder) const;
+	virtual void Update(InverseDynamics::Order iOrder) const;
 	virtual void IDAfterConvergence(void) const;
 
 	void bSetStaticModel(bool b) {

@@ -191,10 +191,10 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Inverse Dynamics update */
-	void Update(const VectorHandler& XCurr, int iOrder = -1);
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 	
 	DofOrder::Order GetEqType(unsigned int i) const;
 
@@ -390,10 +390,11 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Inverse Dynamics update */
-	virtual void Update(const VectorHandler& XCurr, int iOrder = -1);
+	virtual void Update(const VectorHandler& XCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	
 	DofOrder::Order GetEqType(unsigned int i) const;
@@ -510,7 +511,7 @@ public:
 			const VectorHandler& /* XCurr */ ,
 			const VectorHandler& /* XPrimeCurr */ ,
 			const VectorHandler& /* XPrimePrimeCurr */ ,
-			int iOrder);
+			InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	virtual void Output(OutputHandler& OH) const;
 

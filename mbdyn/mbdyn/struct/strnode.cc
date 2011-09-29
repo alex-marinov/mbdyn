@@ -1119,31 +1119,35 @@ StructNode::InitialUpdate(const VectorHandler& X)
 
 /* Inverse Dynamics: */
 void 
-StructNode::Update(const VectorHandler& X, int iOrder)
+StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
 	integer iFirstIndex = iGetFirstIndex();
-	switch(iOrder)	{
-		case 0: {
-			XCurr = Vec3(X, iFirstIndex + 1);
-			gCurr = Vec3(X, iFirstIndex + 4);
-			Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
-			RCurr = RDelta*RRef;
+	switch (iOrder)	{
+	case InverseDynamics::POSITION: {
+		XCurr = Vec3(X, iFirstIndex + 1);
+		gCurr = Vec3(X, iFirstIndex + 4);
+		Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+		RCurr = RDelta*RRef;
 		} break;
 		
-		case 1:	{
-			VCurr = Vec3(X, iFirstIndex + 1);
+	case InverseDynamics::VELOCITY: {
+		VCurr = Vec3(X, iFirstIndex + 1);
 #if 0
-			gPCurr = Vec3(X, iFirstIndex + 4);
-			Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
-			WCurr = Mat3x3(CGR_Rot::MatG, gCurr)*gPCurr + RDelta*WRef;
+		gPCurr = Vec3(X, iFirstIndex + 4);
+		Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+		WCurr = Mat3x3(CGR_Rot::MatG, gCurr)*gPCurr + RDelta*WRef;
 #endif
-			WCurr = Vec3(X, iFirstIndex + 4);
+		WCurr = Vec3(X, iFirstIndex + 4);
 		} break;
 
-		case 2:	{
-			XPPCurr = Vec3(X, iFirstIndex + 1);
-			WPCurr = Vec3(X, iFirstIndex + 4);
+	case InverseDynamics::ACCELERATION: {
+		XPPCurr = Vec3(X, iFirstIndex + 1);
+		WPCurr = Vec3(X, iFirstIndex + 4);
 		} break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
 

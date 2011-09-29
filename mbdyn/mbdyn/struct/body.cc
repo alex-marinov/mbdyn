@@ -900,11 +900,11 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUTFNAME("DynamicBody::AssRes");
 	
-	ASSERT(iOrder == -1);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Se e' definita l'accelerazione di gravita', la aggiunge */
 	Vec3 GravityAcceleration;

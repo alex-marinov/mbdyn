@@ -111,7 +111,7 @@ SimulationEntity::DerivativesUpdate(const VectorHandler& XCurr,
 /* Inverse Dynamics: */
 void
 SimulationEntity::Update(const VectorHandler& /* XCurr */ , 
-		const int /* iOrder */ )
+		InverseDynamics::Order /* iOrder */ )
 {
 	NO_OP;
 }

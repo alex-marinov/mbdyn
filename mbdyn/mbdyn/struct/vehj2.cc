@@ -642,9 +642,9 @@ ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {	
-	ASSERT( iOrder = -1 );
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 
@@ -885,9 +885,9 @@ ElasticDispJointInv::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {	
-	ASSERT( iOrder = -1 );
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 
@@ -1106,9 +1106,9 @@ ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {	
-	ASSERT( iOrder = -1 );
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 
@@ -1365,9 +1365,9 @@ ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {	
-	ASSERT( iOrder = -1 );
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 	

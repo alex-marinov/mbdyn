@@ -636,11 +636,11 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */,
 		const VectorHandler& /* XPrimeCurr */, 
 		const VectorHandler& /* XPrimePrimeCurr */, 
-		int iOrder)
+		InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering ElasticHingeJoint::AssRes()" << std::endl);
 
-	ASSERT(iOrder = -1);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 	
 	/* There is no need to call AfterPredict, everything is done in AssVec*/
 	bFirstRes = false;
@@ -1006,9 +1006,9 @@ ViscousHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */,
 		const VectorHandler& /* XPrimeCurr */, 
 		const VectorHandler& /* XPrimePrimeCurr */, 
-		int iOrder)
+		InverseDynamics::Order iOrder)
 {
-	ASSERT(iOrder = -1);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 
@@ -1432,9 +1432,9 @@ ViscoElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */,
 		const VectorHandler& /* XPrimeCurr */, 
 		const VectorHandler& /* XPrimePrimeCurr */, 
-		int iOrder)
+		InverseDynamics::Order iOrder)
 {
-	ASSERT(iOrder = -1);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 

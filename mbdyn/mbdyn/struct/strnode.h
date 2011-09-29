@@ -35,6 +35,7 @@
 #include "node.h"
 #include "matvec3.h"
 #include "rbk.h"
+#include "invdyn.h"
 
 extern const char* psStructNodeNames[];
 
@@ -277,7 +278,7 @@ public:
 	/* Inverse Dynamics: */
 	/* Do Update on node position, velocity or acceleration 
 	 * depending on iOrder */
-	void Update(const VectorHandler& X, int iOrder);
+	void Update(const VectorHandler& X, InverseDynamics::Order iOrder);
 
 	/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
 	virtual void SetInitialValue(VectorHandler& X);

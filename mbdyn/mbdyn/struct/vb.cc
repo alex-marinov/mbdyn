@@ -338,9 +338,9 @@ ViscousBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
 	const VectorHandler& /* XPrimeCurr */, 
 	const VectorHandler& /* XPrimePrimeCurr */, 
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {	
-	ASSERT( iOrder = -1 );
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
 	bFirstRes = false;
 

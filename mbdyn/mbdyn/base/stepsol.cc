@@ -1260,11 +1260,11 @@ HopeSolver::dPredStateAlg(const doublereal& dXm1,
 
 /* Hope - end */
 
-/* Inverse Dynamics - Begin*/
+/* Inverse Dynamics - Begin */
 
 /* 
  *
- * Copyright (C) 2008
+ * Portions Copyright (C) 2008
  * Alessandro Fumagalli
  * 
  * <alessandro.fumagalli@polimi.it>
@@ -1282,7 +1282,7 @@ XTau(0),
 SavedState(0),
 SavedDerState(0),
 bEvalProdCalledFirstTime(true),
-iOrder(0),
+iOrder(InverseDynamics::UNDEFINED),
 pXCurr(0),
 pXPrimeCurr(0),
 pXPrimePrimeCurr(0),
@@ -1400,7 +1400,7 @@ InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest) const
 }
 
 void 
-InverseDynamicsStepSolver::SetOrder(int iOrd)
+InverseDynamicsStepSolver::SetOrder(InverseDynamics::Order iOrd)
 {
 	iOrder = iOrd;
 }
@@ -1430,7 +1430,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	NonlinearSolver *pNLSolver = pS->pGetNonlinearSolver();
 	
 	/* Position */
-	SetOrder(0);
+	SetOrder(InverseDynamics::POSITION);
 
 	/* Setting iOrder = 0, the residual is called only 
 	 * for constraints, on positions */
@@ -1442,7 +1442,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	VectorHandler *pSol = pSM->pSolHdl();
 
 	/* Velocity */
-	SetOrder(1);
+	SetOrder(InverseDynamics::VELOCITY);
 	
 	pRes->Reset();
 	pSol->Reset();
@@ -1450,7 +1450,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	 * equation structure... it is already
 	 * performed by NonlinearSolver->Solve()*/
 	Residual(pRes);
-	if(iLocalIter == EffIter) {
+	if (iLocalIter == EffIter) {
 		pSM->MatrReset();
 		Jacobian(pSM->pMatHdl());
 		EffIter++;
@@ -1460,13 +1460,13 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	Update(pSol);
 
 	/* Acceleration */
-	SetOrder(2);
+	SetOrder(InverseDynamics::ACCELERATION);
 
 	pRes->Reset();
 	pSol->Reset();
 	Residual(pRes);
 
-	if(iLocalIter == EffIter) {
+	if (iLocalIter == EffIter) {
 		pSM->MatrReset();
 		Jacobian(pSM->pMatHdl());
 		EffIter++;
@@ -1476,13 +1476,13 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	Update(pSol);
 
 	/* Forces */
-	SetOrder(-1);
+	SetOrder(InverseDynamics::INVERSE_DYNAMICS);
 	
 	pRes->Reset();
 	pSol->Reset();
 	Residual(pRes);
 	
-	if(iLocalIter == EffIter) {
+	if (iLocalIter == EffIter) {
 		pSM->MatrReset();
 		Jacobian(pSM->pMatHdl());
 		EffIter++;
@@ -1500,7 +1500,7 @@ InverseDynamicsStepSolver::Residual(VectorHandler* pRes) const
 {
 	ASSERT(pDM != NULL);
 	switch (iOrder) {
-	case -1:
+	case InverseDynamics::INVERSE_DYNAMICS:
 		pDM->AssRes(*pRes);
 		break;
 
@@ -1522,32 +1522,30 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 {
 	DEBUGCOUTFNAME("InverseDynamicsStepSolver::Update");
 	ASSERT(pDM != NULL);
-	switch( iOrder ) {
-		case 0:	{
-			*pXCurr += *pSol;
-			pDM->Update(iOrder);
-			break;
-		}
-		case 1: {
-			*pXPrimeCurr = *pSol;
-			pDM->Update(iOrder);
-			break;
-		}
-		case 2: {
-			*pXPrimePrimeCurr = *pSol;
-			pDM->Update(iOrder);
-			break;
-		}
-		case -1:{
-			*pLambdaCurr = *pSol;
-			pDM->Update(iOrder);
-			break;
-		}
-		default:{
-			ASSERT(0);
-			break;
-		}
 
+	switch (iOrder) {
+	case InverseDynamics::POSITION:
+		*pXCurr += *pSol;
+		break;
+
+	case InverseDynamics::VELOCITY:
+		*pXPrimeCurr = *pSol;
+		break;
+
+	case InverseDynamics::ACCELERATION:
+		*pXPrimePrimeCurr = *pSol;
+		break;
+
+	case InverseDynamics::INVERSE_DYNAMICS:
+		*pLambdaCurr = *pSol;
+		break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	pDM->Update(iOrder);
 }
-/* Inverse Dynamics - End*/
+
+/* Inverse Dynamics - End */

@@ -473,7 +473,7 @@ InverseSolver::Run(void)
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-	lStep = 1; /* Resetto di nuovo lStep */
+	lStep = 0; /* Resetto di nuovo lStep */
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	if (mbdyn_stop_at_end_of_time_step()) {

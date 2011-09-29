@@ -851,16 +851,19 @@ of Eq.~(\ref{eq:ikp:fap:psi}) using a Newton-Raphson iteration.
 
 
 
-\subsection{Underactuated Problem}
+\subsection{Overactuated Problem}
 Constraint equation:
 \begin{align}
 	\T{\psi}\plbr{\T{x}}
 	&=
 	\T{\alpha}(t)
-	\label{eq:ikp:up:psi}
+	\label{eq:ikp:op:psi}
 \end{align}
 with $\T{\psi}_{/\T{x}}$ rectangular, full row rank.
-The problem is augmented by
+The problem is underdetermined;
+as a consequence, some criteria are needed to find an optimal solution.
+
+The problem can be augmented by
 \begin{align}
 	\TT{K} \plbr{\T{x} - \T{x}_0}
 	+
@@ -872,8 +875,35 @@ This nonlinear problem is solved for $\T{x}$ and $\T{\lambda}$
 to convergence ($\TT{K}$ and $\T{\psi}_{/\T{x}}$ may further depend
 on $\T{x}$).
 It corresponds to a least-squares solution for $\T{x} - \T{x}_0$,
-where $\T{x}_0$ is the reference solution,
-subjected to $\T{\psi} = \T{\alpha}$ and weighted by matrix $\T{K}$.
+where the functional
+\begin{align}
+	J_{\T{x}}
+	&=
+	\frac{1}{2} \plbr{\T{x} - \T{x}_0}^T \TT{K} \plbr{\T{x} - \T{x}_0}
+\end{align}
+is minimized subjected to $\T{\psi} = \T{\alpha}$
+and weighted by matrix $\T{K}$;
+$\T{x}_0$ is a reference solution.
+Matrix $\TT{K}$ can further depend on $\T{x}$.
+
+The reference solution $\T{x}_0$ can be used to further control
+the quality of the solution.
+For example, it may represent a prescribed tentative,
+although possibly incompatible, trajectory.
+Another option consists in augmenting $J_{\T{x}}$
+with another quadratic form
+\begin{align}
+	J_{\T{x}}
+	&=
+	\frac{1}{2} \plbr{\T{x} - \T{x}_0}^T \TT{K} \plbr{\T{x} - \T{x}_0}
+	+
+	\frac{1}{2} \plbr{\T{x} - \T{x}_\text{prev}}^T \TT{M} \plbr{\T{x} - \T{x}_\text{prev}}
+\end{align}
+where $\T{x}_\text{prev}$ is the value of $\T{x}$ at the previous time step.
+This modified functional weights the rate of change of $\T{x}$ within
+two consecutive steps.
+As a consequence, minimal position changes (i.e.\ velocities),
+weighted by the mass of the system, are sought.
 
 Constraint derivatives:
 \begin{subequations}

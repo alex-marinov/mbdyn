@@ -199,7 +199,7 @@ NestedElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 
 /* Inverse Dynamics: */
 void
-NestedElem::Update(const VectorHandler& XCurr, int iOrder)
+NestedElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 {
 	ASSERT(pElem != NULL);
 	pElem->Update(XCurr, iOrder);

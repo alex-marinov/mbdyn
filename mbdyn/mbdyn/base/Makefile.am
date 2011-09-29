@@ -72,6 +72,8 @@ hint.h \
 hint_impl.cc \
 hint_impl.h \
 invdataman.cc \
+invdyn.h \
+invdyn.cc \
 invsolver.cc \
 invsolver.h \
 j2p.cc \

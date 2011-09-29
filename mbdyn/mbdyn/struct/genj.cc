@@ -1656,29 +1656,32 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr, 
 	const VectorHandler& /* XPrimeCurr */,
 	const VectorHandler& /* XPrimePrimeCurr */,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
    	DEBUGCOUT("Entering ClampJoint::AssRes()" << std::endl);
 
-   	WorkVec.ResizeReset(6);
-
-   	/* FIXME: Indici delle incognite */
-   	integer iFirstReactionIndex = iGetFirstIndex();
-   	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-     		WorkVec.PutRowIndex(iCnt, iFirstReactionIndex+iCnt);
-   	}   
- 
 	/* The residual is != 0 only for position */
-   	if (iOrder == 0) {
-   		/* Calcola posizione e parametri di rotazione */
-   		const Vec3& x(pNode->GetXCurr());
-   		const Mat3x3& R(pNode->GetRCurr());
+   	if (iOrder == InverseDynamics::POSITION) {
+   		WorkVec.ResizeReset(6);
 
-   		Vec3 theta_c(RotManip::VecRot(R.MulMT(RClamp)));
+		/* FIXME: Indici delle incognite */
+		integer iFirstReactionIndex = iGetFirstIndex();
+		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+			WorkVec.PutRowIndex(iCnt, iFirstReactionIndex+iCnt);
+		}   
+ 
+		/* Calcola posizione e parametri di rotazione */
+		const Vec3& x(pNode->GetXCurr());
+		const Mat3x3& R(pNode->GetRCurr());
 
-      		/* Residuo dell'equazione di vincolo */
-      		WorkVec.Sub(1, x - XClamp);
-      		WorkVec.Sub(3 + 1, theta_c);   
+		Vec3 theta_c(RotManip::VecRot(R.MulMT(RClamp)));
+
+		/* Residuo dell'equazione di vincolo */
+		WorkVec.Sub(1, x - XClamp);
+		WorkVec.Sub(3 + 1, theta_c);   
+
+	} else {
+   		WorkVec.Resize(0);
 	}
 
 	return WorkVec;
@@ -1686,8 +1689,10 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 
 /* Inverse Dynamics update */
 void 
-ClampJoint::Update(const VectorHandler& XCurr, int iOrder)
+ClampJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 {
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+
 	integer iFirstReactionIndex = iGetFirstIndex();
 
    	/* Aggiorna le reazioni vincolari */

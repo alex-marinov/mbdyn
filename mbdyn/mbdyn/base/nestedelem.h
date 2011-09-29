@@ -128,7 +128,8 @@ public:
 			const VectorHandler& XPrimeCurr);
    	
 	/* Inverse Dynamics: */
-	virtual void Update(const VectorHandler& XCurr, int iOrder);
+	virtual void Update(const VectorHandler& XCurr,
+			InverseDynamics::Order iOrder);
    
 	virtual void AfterConvergence(const VectorHandler& X, 
      			const VectorHandler& XP);

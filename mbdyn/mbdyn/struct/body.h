@@ -244,7 +244,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder = -1);
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Dimensione del workspace durante l'assemblaggio iniziale.
 	 * Occorre tener conto del numero di dof che l'elemento definisce
