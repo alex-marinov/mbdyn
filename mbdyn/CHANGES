@@ -35,6 +35,7 @@ MBDyn 1.X-Devel
 		- fix input/output file name inconsistencies
 		- fix crash in eigenvectors output (noted by Reinhard Resch)
 		- fix build with Intel's icpc
+		- fix parameter node use in elems (noted by Reinhard Resch)
 
 MBDyn 1.4.0
 	Enhancements:
