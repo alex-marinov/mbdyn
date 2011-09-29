@@ -710,16 +710,7 @@ ReadElectric(DataManager* pDM,
 
 		// Allocazione nodi e connessioni
 		for (int i = 0; i < iNumInputs; i++) {
-			pInputs[i] = ReadScalarDof(pDM, HP, true);
-			if (pInputs[i].pNode->GetNodeType() ==  Node::PARAMETER) {
-				silent_cerr("DiscreteControl(" << uLabel << "): "
-					"ParameterNode(" << pInputs[i].pNode->GetLabel() << ") "
-					"not allowed as input #" << i + 1 << " "
-					"at line " << HP.GetLineData()
-					<< std::endl);
-				SAFEDELETEARR(pInputs);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			pInputs[i] = ReadScalarDof(pDM, HP, false, true);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);

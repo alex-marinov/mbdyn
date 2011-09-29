@@ -867,7 +867,7 @@ extern "C" int
 datamanager_cleanup(void *);
 
 extern ScalarDof
-ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder);
+ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bDof, bool bOrder);
 
 extern OrientationDescription
 ReadOrientationDescription(MBDynParser& HP);

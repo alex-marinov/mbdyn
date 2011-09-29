@@ -2012,7 +2012,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 						psNodeNames[Node::PARAMETER] << "(" << uLabel << ") "
 						"is a sample-and-hold" << std::endl);
 
-					ScalarDof SD(ReadScalarDof(this, HP, false));
+					ScalarDof SD(ReadScalarDof(this, HP, false, false));
 
 					DriveCaller *pDC = NULL;
 					SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller,
@@ -2464,20 +2464,27 @@ GetDofOrder(MBDynParser& HP, Node* pNode, int iIndex)
 }
 
 ScalarDof
-ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder)
+ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bDof, bool bOrder)
 {
 	/* tabella delle parole chiave */
 	KeyTable KDof(HP, psReadNodesNodes);
 
 	/* Label del nodo */
-	unsigned int uNode = (unsigned int)HP.GetInt();
+	int iNode = HP.GetInt();
+	if (iNode < 0) {
+		silent_cerr("ReadScalarDof: invalid node label " << iNode
+			<< " at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	unsigned uNode = unsigned(iNode);
 	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
 
 	/* Tipo del nodo */
 	Node::Type Type = Node::Type(HP.GetWord());
 	if (Type == Node::UNKNOWN) {
-		silent_cerr("line " << HP.GetLineData() << ": "
-			"unknown node type" << std::endl);
+		silent_cerr("ReadScalarDof: unknown node type "
+			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	DEBUGLCOUT(MYDEBUG_INPUT, "Node type: " << psNodeNames[Type] << std::endl);
@@ -2493,6 +2500,12 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bOrder)
 	/* si procura il numero di dof del nodo */
 	unsigned int iMaxIndex = pNode->iGetNumDof();
 	DEBUGLCOUT(MYDEBUG_INPUT, "max index: " << iMaxIndex << std::endl);
+
+	if (bDof && iMaxIndex == 0) {
+		silent_cerr(psNodeNames[Type] << "(" << uNode << ") must have dofs "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	/* se il nodo ha piu' di un dof, chiede quale dof si desidera */
 	unsigned int iIndex = 1;

@@ -284,7 +284,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case CLAMP: {
-		ScalarDof SD = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD = ReadScalarDof(pDM, HP, true, true);
 		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelClamp(" << uLabel << "): "
 				"parameter nodes are not allowed "
@@ -312,7 +312,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case DISTANCE: {
-		ScalarDof SD1 = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, true, true);
 		if (SD1.pNode->GetNodeType() == Node::PARAMETER) {
 			silent_cerr("GenelDistance(" << uLabel << "): "
 				"parameter nodes not allowed "
@@ -331,7 +331,7 @@ ReadGenel(DataManager* pDM,
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		ScalarDof SD2 = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, true, true);
 		if (SD2.pNode->GetNodeType() == Node::PARAMETER) {
 			silent_cerr("GenelDistance(" << uLabel << "): "
 				"parameter nodes not allowed "
@@ -361,7 +361,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case SPRING: {
-		ScalarDof SD1 = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, true, true);
 		if (SD1.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelSpring(" << uLabel << "): "
 				"parameter nodes not allowed for ScalarDof 1 "
@@ -379,7 +379,7 @@ ReadGenel(DataManager* pDM,
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		ScalarDof SD2 = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, true, true);
 		if (SD2.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelSpring(" << uLabel << "): "
 				"parameter nodes not allowed for ScalarDof 2 "
@@ -426,7 +426,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case SPRINGSUPPORT: {
-		ScalarDof SD = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD = ReadScalarDof(pDM, HP, true, true);
 		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelSpringSupport(" << uLabel << "): "
 				"parameter nodes not allowed for ScalarDof "
@@ -483,7 +483,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case CROSSSPRINGSUPPORT: {
-		ScalarDof SDRow = ReadScalarDof(pDM, HP, true);
+		ScalarDof SDRow = ReadScalarDof(pDM, HP, true, true);
 		if (SDRow.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr(
 				"GenelCrossSpringSupport(" << uLabel << "): "
@@ -503,7 +503,7 @@ ReadGenel(DataManager* pDM,
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		ScalarDof SDCol = ReadScalarDof(pDM, HP, true);
+		ScalarDof SDCol = ReadScalarDof(pDM, HP, true, true);
 		if (SDCol.iOrder != 0 ||
 			SDCol.pNode->GetDofType(0) != DofOrder::DIFFERENTIAL)
 		{
@@ -566,7 +566,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case MASS: {
-		ScalarDof SD = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD = ReadScalarDof(pDM, HP, true, true);
 		if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelMass(" << uLabel << "): "
 				"parameter nodes not allowed for ScalarDof "
@@ -603,7 +603,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case STATESPACESISO: {
-		ScalarDof SD_y = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD_y = ReadScalarDof(pDM, HP, true, true);
 		if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("GenelStateSpaceSISO(" << uLabel << "): "
 				"parameter nodes not allowed "
@@ -753,7 +753,7 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case SCALARFILTER: {
-		ScalarDof SD_y = ReadScalarDof(pDM, HP, true);
+		ScalarDof SD_y = ReadScalarDof(pDM, HP, true, true);
 		if (SD_y.pNode->GetNodeType() ==  Node::PARAMETER) {
 			silent_cerr("ScalarFilter(" << uLabel << "): "
 				"parameter nodes not allowed "
@@ -974,7 +974,7 @@ ReadGenel(DataManager* pDM,
 		ScalarDof* pvSD_y = 0;
 		SAFENEWARRNOFILL(pvSD_y, ScalarDof, iNumOutputs);
 		for (int i = 0; i < iNumOutputs; i++) {
-			pvSD_y[i] = ReadScalarDof(pDM, HP, true);
+			pvSD_y[i] = ReadScalarDof(pDM, HP, true, true);
 			if (pvSD_y[i].pNode->GetNodeType() ==  Node::PARAMETER)
 			{
 				silent_cerr("GenelStateSpaceMIMO(" << uLabel << "): "

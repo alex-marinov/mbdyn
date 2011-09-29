@@ -90,7 +90,7 @@ ReadScalarValue(DataManager *pDM, MBDynParser& HP)
 				"at line " << HP.GetLineData() << std::endl);
 		}
 
-		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, true));
+		svp = new ScalarDofValue(ReadScalarDof(pDM, HP, false, true));
 	}
 
 	return svp;

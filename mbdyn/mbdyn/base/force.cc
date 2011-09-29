@@ -349,7 +349,7 @@ ReadForce(DataManager* pDM,
 	case ABSTRACT: {
 		/* tabella delle parole chiave */
 		KeyTable KDof(HP, psReadNodesNodes);
-		ScalarDof SD = ReadScalarDof(pDM, HP, false);
+		ScalarDof SD = ReadScalarDof(pDM, HP, true, false);
 		DriveCaller* pDC = HP.GetDriveCaller();
 		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 
@@ -361,8 +361,8 @@ ReadForce(DataManager* pDM,
 	case ABSTRACTINTERNAL: {
 		/* tabella delle parole chiave */
 		KeyTable KDof(HP, psReadNodesNodes);
-		ScalarDof SD1 = ReadScalarDof(pDM, HP, false);
-		ScalarDof SD2 = ReadScalarDof(pDM, HP, false);
+		ScalarDof SD1 = ReadScalarDof(pDM, HP, true, false);
+		ScalarDof SD2 = ReadScalarDof(pDM, HP, true, false);
 		DriveCaller* pDC = HP.GetDriveCaller();
 		flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
 

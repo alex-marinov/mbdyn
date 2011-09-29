@@ -70,19 +70,7 @@ Elem* ReadBulk(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
    switch (CurrKeyWord) {
       /*  */
     case SPRINGSUPPORT: {       
-       ScalarDof SD = ReadScalarDof(pDM, HP, true);
-       if (SD.pNode->GetNodeType() ==  Node::PARAMETER) {
-	  silent_cerr("BulkSpringSupport(" << uLabel << "): parameter nodes "
-		  "are not allowed" << std::endl);
-	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);	      
-       }
-
-       if (SD.iOrder > 1) {
-	  silent_cerr("BulkSpringSupport(" << uLabel << "): illegal order "
-			  << SD.iOrder << " for ScalarDof" << std::endl);
-	  throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);	      
-       }
-       
+       ScalarDof SD = ReadScalarDof(pDM, HP, true, false);
        DriveCaller* pDC = HP.GetDriveCaller();
        flag fOut = pDM->fReadOutput(HP, Elem::BULK);
        
