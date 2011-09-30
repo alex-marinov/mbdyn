@@ -482,6 +482,11 @@ The following data is available:
 
 \section{Parameter Node}
 \label{sec:NODE:PARAMETER}
+
+\emph{NOTE: \kw{parameter} nodes are essentially obsolete;
+in most cases their purpose can be better fulfilled
+by \kw{element} and \kw{node} drive callers.}
+
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= \{ [ , \kw{value} , \bnt{initial_value} ]
@@ -492,13 +497,13 @@ The following data is available:
 %\end{verbatim}
 The parameter node is derived from the class scalar algebraic node, but it
 is used in a rather peculiar way: it doesn't own any degree of freedom,
-so it does not participate in the solution, but is used as a sort of
+so it does not participate in the solution; it is rather used as a sort of
 placeholder for those elements that require to be connected to a scalar node
 that is not otherwise significant to the analysis.
 Thanks to the availability of the \kw{parameter} node, these elements
 do not need be reformulated with a grounded node, while the parameter
-node value can be changed during the solution by means of a proper driving 
-force.
+node value can be changed during the solution by several means,
+listed in the following.
 
 \paragraph{Element.}
 \label{sec:NODE:PARAMETER:ELEMENT}
