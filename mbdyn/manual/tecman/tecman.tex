@@ -830,12 +830,14 @@ Constraint derivatives:
 	\T{\psi}_{/\T{x}} \dot{\T{x}}
 	&=
 	\dot{\T{\alpha}}
+	\label{eq:id:iks:fa:dpsi}
 	\\
 	\T{\psi}_{/\T{x}} \ddot{\T{x}}
 	&=
 	\ddot{\T{\alpha}}
 	-
 	\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
+	\label{eq:id:iks:fa:ddpsi}
 \end{align}
 \end{subequations}
 the two problems are linear respectively in $\dot{\T{x}}$ and $\ddot{\T{x}}$;
@@ -900,7 +902,7 @@ two consecutive steps.
 As a consequence, minimal position changes (i.e.\ velocities),
 weighted by the mass of the system, are sought.
 
-Constraint derivatives:
+Constraint first derivative:
 \begin{subequations}
 \begin{align}
 	\TT{R} \plbr{\dot{\T{x}} - \dot{\T{x}}_0}
@@ -912,9 +914,16 @@ Constraint derivatives:
 	\T{\psi}_{/\T{x}} \dot{\T{x}}
 	&=
 	\dot{\T{\alpha}}
+	.
 \end{align}
 \end{subequations}
-and
+The second derivative of the constraint cannot be resolved
+as in the fully actuated case, otherwise it could yield accelerations
+that cannot be imposed by the constraints.
+On the contrary, the inverse dynamics problem is solved
+without explicitly computing the accelerations,
+as shown in Section~\ref{sec:id:ids}.
+\begin{comment}
 \begin{subequations}
 \begin{align}
 	\TT{M} \plbr{\ddot{\T{x}} - \ddot{\T{x}}_0}
@@ -922,14 +931,12 @@ and
 	\T{\psi}_{/\T{x}}^T \T{\lambda}
 	&=
 	\T{0}
-	\label{eq:id:iks:dpsi}
 	\\
 	\T{\psi}_{/\T{x}} \ddot{\T{x}}
 	&=
 	\ddot{\T{\alpha}}
 	-
 	\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
-	\label{eq:id:iks:ddpsi}
 	.
 \end{align}
 \end{subequations}
@@ -940,8 +947,18 @@ The problems can be solved sequentially.
 Only in case $\TT{K}$, $\TT{R}$ and $\TT{M}$ are identical
 all problems use the same matrix and thus the same factorization
 can be reused.
+\end{comment}
+The constraint derivative problem is linear in $\dot{\T{x}}$;
+the same symbol $\T{\lambda}$ is used for the multiplier since it is ineffective
+(its value is never used).
+The problems can be solved sequentially.
+Only in case $\TT{K}$ and $\TT{R}$ are identical
+both problems use the same matrix and thus the same factorization
+can be reused.
+
 
 \subsection{Inverse Dynamics Subproblem}
+\label{sec:id:ids}
 
 \subsubsection{Fully Actuated Problem}
 The equation
@@ -1009,7 +1026,7 @@ considering the multipliers $\T{\lambda}$
 given by Eq.~(\ref{eq:id:ids:oa:lambda}).
 One can easily prove that in case of fully actuated problems
 Eq.~(\ref{eq:id:ids:oa:lambda}),
-considering Eq.~(\ref{eq:id:iks:ddpsi}),
+considering Eq.~(\ref{eq:id:iks:fa:ddpsi}),
 is exactly Eq.~(\ref{eq:id:ids:fa:lambda}).
 
 
