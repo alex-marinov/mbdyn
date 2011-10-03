@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- added muscle constitutive laws (from Pennestri, JB 2007)
 		- log structural forces (Reinhard Resch)
 		- log missing joint types
+		- allow boolean in node/element output flag
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 	Known issues:

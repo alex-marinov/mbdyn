@@ -1463,61 +1463,6 @@ EndOfUse:
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of control data" << std::endl);
 } /* End of DataManager::ReadControl() */
 
-
-/* Legge se un item deve scrivere sull'output handler */
-
-flag
-DataManager::fReadOutput(MBDynParser& HP, enum Elem::Type t)
-{
-	flag fDef = fGetDefaultOutputFlag(t);
-	if (!HP.IsKeyWord("output")) {
-		return fDef;
-	}
-
-	if (HP.IsKeyWord("no")) {
-		return flag(0);
-	}
-
-	if (HP.IsKeyWord("yes")) {
-		return flag(1);
-	}
-
-	if (HP.IsKeyWord("default")) {
-		return fDef;
-	}
-
-	silent_cerr("Unknown output flag for element \""
-		<< psElemNames[t] << "\" at line " << HP.GetLineData()
-		<< std::endl);
-	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-} /* End of DataManager::fReadOutput */
-
-flag
-DataManager::fReadOutput(MBDynParser& HP, enum Node::Type t)
-{
-	flag fDef = fGetDefaultOutputFlag(t);
-	if (!HP.IsKeyWord("output")) {
-		return fDef;
-	}
-
-	if (HP.IsKeyWord("no")) {
-		return flag(0);
-	}
-
-	if (HP.IsKeyWord("yes")) {
-		return flag(1);
-	}
-
-	if (HP.IsKeyWord("default")) {
-		return fDef;
-	}
-
-	silent_cerr("Unknown output flag for node \""
-		<< psNodeNames[t] << "\" at line " << HP.GetLineData()
-		<< std::endl);
-	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-} /* End of DataManager::fReadOutput */
-
 doublereal
 DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t)
 {

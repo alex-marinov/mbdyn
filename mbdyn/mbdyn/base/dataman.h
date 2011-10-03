@@ -231,9 +231,8 @@ protected:
 	template <class T> T* Cast(Elem *pEl);
 
 public:
-	flag fReadOutput(MBDynParser& HP, enum Elem::Type t);
-	flag fReadOutput(MBDynParser& HP, enum Node::Type t);
-
+	template <class T>
+	flag fReadOutput(MBDynParser& HP, const T& t);
 	doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t);
 
 	bool bOutputAccelerations(void) const;
@@ -837,7 +836,8 @@ public:
 	virtual const std::string& GetEqDescription(int i) const;
 };
 
-template <class T> T*
+template <class T>
+T*
 DataManager::Cast(Elem *pEl)
 {
 	ASSERT(pEl != NULL);
@@ -856,6 +856,30 @@ DataManager::Cast(Elem *pEl)
 	}
 
 	return pT;
+}
+
+template <class T>
+flag
+DataManager::fReadOutput(MBDynParser& HP, const T& t)
+{
+	flag fDef = fGetDefaultOutputFlag(t);
+	if (!HP.IsKeyWord("output")) {
+		return fDef;
+	}
+
+	if (HP.IsKeyWord("no")) {
+		return flag(0);
+	}
+
+	if (HP.IsKeyWord("yes")) {
+		return flag(1);
+	}
+
+	if (HP.IsKeyWord("default")) {
+		return fDef;
+	}
+
+	return HP.GetBool(fDef);
 }
 
 /* DataManager - end */
