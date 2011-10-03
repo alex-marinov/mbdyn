@@ -41,7 +41,7 @@ Every node card has the format:
     \bnt{card} ::= \bnt{node_type} : \bnt{node_label}
         \bnt{additional_args}
         [ , \kw{scale} , \{ \kw{default} | \bnt{scale} \} ]
-        [ , \kw{output} , \{ \kw{yes} | \kw{no} \} ]
+        [ , \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag} \} ]
         [ , \bnt{extra_arglist} ] ;
 \end{Verbatim}
 %\end{verbatim}
