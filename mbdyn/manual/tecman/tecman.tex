@@ -808,14 +808,9 @@ TODO
 
 
 \section{Inverse Dynamics Problem}
-TODO
+\subsection{Inverse Kinematics Subproblem}
 
-
-\section{Inverse Kinematics Problem}
-
-\textbf{(NOTE: currently not implemented)}
-
-\subsection{Fully Actuated Problem}
+\subsubsection{Fully Actuated Problem}
 Constraint equation:
 \begin{align}
 	\T{\psi}\plbr{\T{x}}
@@ -851,7 +846,7 @@ of Eq.~(\ref{eq:ikp:fap:psi}) using a Newton-Raphson iteration.
 
 
 
-\subsection{Overactuated Problem}
+\subsubsection{Overactuated Problem}
 Constraint equation:
 \begin{align}
 	\T{\psi}\plbr{\T{x}}
@@ -927,22 +922,95 @@ and
 	\T{\psi}_{/\T{x}}^T \T{\lambda}
 	&=
 	\T{0}
+	\label{eq:id:iks:dpsi}
 	\\
 	\T{\psi}_{/\T{x}} \ddot{\T{x}}
 	&=
 	\ddot{\T{\alpha}}
 	-
 	\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
+	\label{eq:id:iks:ddpsi}
 	.
 \end{align}
 \end{subequations}
 The two problems are linear respectively in $\dot{\T{x}}$ and $\ddot{\T{x}}$;
-the same multiplier $\T{\lambda}$ is used since it is ineffective
+the same symbol $\T{\lambda}$ is used for the multiplier since it is ineffective
 (its value is never used).
 The problems can be solved sequentially.
 Only in case $\TT{K}$, $\TT{R}$ and $\TT{M}$ are identical
 all problems use the same matrix and thus the same factorization
 can be reused.
+
+\subsection{Inverse Dynamics Subproblem}
+
+\subsubsection{Fully Actuated Problem}
+The equation
+\begin{align}
+	\TT{M} \ddot{\T{x}}
+	+
+	\T{\psi}_{/\T{x}}^T \T{\lambda}
+	&=
+	\T{f}\plbr{\T{x}, \dot{\T{x}}, t}
+	\label{eq:id:ids:fa:equil}
+\end{align}
+yields
+\begin{align}
+	\T{\lambda}
+	&=
+	\T{\psi}_{/\T{x}}^{-T} \plbr{
+		\T{f}
+		-
+		\TT{M} \ddot{\T{x}}
+	}
+	\label{eq:id:ids:fa:lambda}
+	.
+\end{align}
+
+\subsubsection{Overactuated Problem}
+The overactuated problem cannot be resolved in this manner;
+on the contrary, Eq.~(\ref{eq:id:ids:fa:equil}), when $\T{\psi}_{/\T{x}}$
+is rectangular full row rank, must be used to determine the accelerations
+of the inverse kinematics problem simultaneously with the multipliers
+that solve the inverse dynamics problem.
+Otherwise, an arbitrary solution of the inverse kinematics problem
+at the acceleration level could yield an acceleration
+that cannot be imposed by the constraints.
+Eq.~(\ref{eq:id:ids:fa:equil}) yields
+\begin{align}
+	\ddot{\T{x}}
+	&=
+	\TT{M}^{-1} \plbr{
+		\T{f}
+		-
+		\T{\psi}_{/\T{x}}^T \T{\lambda}
+	}
+	\label{eq:id:ids:oa:ddot_x}
+	.
+\end{align}
+The constraint equation, at the acceleration level, yields
+\begin{align}
+	\T{\lambda}
+	&=
+	\plbr{
+		\T{\psi}_{/\T{x}} \TT{M}^{-1} \T{\psi}_{/\T{x}}^T
+	}^{-1} \plbr{
+		\T{\psi}_{/\T{x}} \TT{M}^{-1} \T{f}
+		-
+		\ddot{\T{\alpha}}
+		+
+		\plbr{\T{\psi}_{/\T{x}} \dot{\T{x}}}_{/\T{x}} \dot{\T{x}}
+	}
+	\label{eq:id:ids:oa:lambda}
+	.
+\end{align}
+The acceleration, although not strictly needed,
+is given by Eq.~(\ref{eq:id:ids:oa:ddot_x})
+considering the multipliers $\T{\lambda}$
+given by Eq.~(\ref{eq:id:ids:oa:lambda}).
+One can easily prove that in case of fully actuated problems
+Eq.~(\ref{eq:id:ids:oa:lambda}),
+considering Eq.~(\ref{eq:id:iks:ddpsi}),
+is exactly Eq.~(\ref{eq:id:ids:fa:lambda}).
 
 
 
