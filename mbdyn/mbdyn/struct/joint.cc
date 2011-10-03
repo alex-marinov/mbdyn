@@ -124,7 +124,7 @@ Joint::Output(std::ostream& out, const char* /* sJointName */ ,
 void Joint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 { 
 	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
-		"Elem::Update(" << int(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
+		"Elem::Update(" << invdyn2str(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
 };
 
 /* Joint - end */

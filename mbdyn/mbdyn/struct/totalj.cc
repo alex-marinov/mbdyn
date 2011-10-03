@@ -1171,7 +1171,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */,
 	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUT("Entering TotalJoint::AssRes(" << invdyn2s(iOrder) << ")" << std::endl);
+	DEBUGCOUT("Entering TotalJoint::AssRes(" << invdyn2str(iOrder) << ")" << std::endl);
 
 	if (iGetNumDof() == 0 || iOrder == InverseDynamics::INVERSE_DYNAMICS) {
 		WorkVec.ResizeReset(0);
@@ -3547,7 +3547,7 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */, 
 	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUT("Entering TotalForce::AssRes(" << invdyn2s(iOrder) << ")" << std::endl);
+	DEBUGCOUT("Entering TotalForce::AssRes(" << invdyn2str(iOrder) << ")" << std::endl);
 
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 

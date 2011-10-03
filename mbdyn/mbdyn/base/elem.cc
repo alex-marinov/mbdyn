@@ -79,7 +79,7 @@ Elem::AssRes(SubVectorHandler& WorkVec,
 		InverseDynamics::Order iOrder) 
 { 
 	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
-		"Elem::AssRes(" << int(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
+		"Elem::AssRes(" << invdyn2str(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
 	return WorkVec;
 };
 	

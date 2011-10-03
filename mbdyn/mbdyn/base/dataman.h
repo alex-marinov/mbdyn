@@ -271,7 +271,7 @@ protected:
 	void DofOwnerInit(void);
 	
 	/* Inverse Dynamics: */
-	bool InverseDofOwnerSet(void);
+	bool IDDofOwnerSet(void);
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	DataManager(MBDynParser& HP,
@@ -804,7 +804,7 @@ public:
 	void DofInit(void);
 
 	/* Inverse Dynamics: */
-	void InverseDofInit(bool bIsSquare);
+	void IDDofInit(bool bIsSquare);
 
 	void SetScale(VectorHandler& XScale) const;
 

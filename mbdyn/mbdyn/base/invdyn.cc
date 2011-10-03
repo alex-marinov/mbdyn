@@ -33,7 +33,7 @@
 #include "invdyn.h"
 
 const char *
-invdyn2s(InverseDynamics::Order iOrder)
+invdyn2str(InverseDynamics::Order iOrder)
 {
 	switch (iOrder) {
 	case InverseDynamics::UNDEFINED:

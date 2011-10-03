@@ -120,8 +120,9 @@ DataManager::AssConstrRes(VectorHandler& ResHdl, InverseDynamics::Order iOrder)
 
 void
 DataManager::AssConstrRes(VectorHandler& ResHdl,
-		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec, InverseDynamics::Order iOrder)
+	VecIter<Elem *> &Iter,
+	SubVectorHandler& WorkVec,
+	InverseDynamics::Order iOrder)
 	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
@@ -132,8 +133,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 	{
 		try {
 			ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-						*pXPrimeCurr, *pXPrimePrimeCurr, 
-						iOrder);
+				*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
 		}
 		catch (Elem::ChangedEquationStructure) {
 			ResHdl += WorkVec;
@@ -158,8 +158,8 @@ DataManager::AssRes(VectorHandler& ResHdl)
 
 void
 DataManager::AssRes(VectorHandler& ResHdl,
-		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec)
+	VecIter<Elem *> &Iter,
+	SubVectorHandler& WorkVec)
 	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
@@ -194,28 +194,15 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
-		// cast to Joint *
-		Joint *pj = dynamic_cast<Joint *>(j->second);
-		if (pj == 0) {
-			// In case of failure, must be driven...
-			NestedElem *pn = dynamic_cast<NestedElem *>(j->second);
-			if (pn == 0) {
-				silent_cerr("DataManager::AssRes: Joint(" << j->second->GetLabel() << ") is not a joint and is not driven" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+		Joint *pj = Cast<Joint>(j->second);
 
-			// ... and the driven element must be a joint!
-			pj = dynamic_cast<Joint *>(pn->pGetElem());
-			if (pj == 0) {
-				silent_cerr("DataManager::AssRes: Joint(" << j->second->GetLabel() << ") is driven element is not a joint" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
+		ASSERT(pj != 0);
 
 		switch (pj->GetJointType()) {
 		case Joint::DEFORMABLEHINGE:
 		case Joint::DEFORMABLEDISPJOINT:
 		case Joint::DEFORMABLEJOINT:
+		case Joint::DEFORMABLEAXIALJOINT:
 			try {
 				ResHdl += pj->AssRes(WorkVec, *pXCurr, 
 					*pXPrimeCurr, *pXPrimePrimeCurr, 
@@ -231,6 +218,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 			continue;
 		}
 
+#if 0 // needed?
 		try {
 			ResHdl += pj->AssRes(WorkVec, *pXCurr, 
 				*pXPrimeCurr, *pXPrimePrimeCurr, 
@@ -240,6 +228,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 			ResHdl += WorkVec;
 			ChangedEqStructure = true;
 		}
+#endif
 	}
 
 	if (ChangedEqStructure) {
@@ -289,7 +278,9 @@ DataManager::Update(InverseDynamics::Order iOrder) const
 
 void
 DataManager::IDAfterConvergence(void) const
-{	
+{
+	DEBUGCOUTFNAME("DataManager::IDAfterConvergence");
+
 	// Nodes:
 	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 		(*i)->AfterConvergence(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr);
@@ -306,9 +297,10 @@ DataManager::IDAfterConvergence(void) const
 }
 
 bool
-DataManager::InverseDofOwnerSet(void)
+DataManager::IDDofOwnerSet(void)
 {
-	DEBUGCOUTFNAME("DataManager::DofOwnerSet");
+	DEBUGCOUTFNAME("DataManager::IDDofOwnerSet");
+
 	int iNodeTotNumDofs = 0;
 	int iJointTotNumDofs = 0;
 	
@@ -324,7 +316,6 @@ DataManager::InverseDofOwnerSet(void)
         {
 		ElemWithDofs* pEWD = Cast<ElemWithDofs>(j->second);
 		iJointTotNumDofs += pEWD->iGetNumDof();
-
         }
 	
 	/* Setta i DofOwner degli elementi (chi li possiede) */
@@ -354,12 +345,12 @@ DataManager::InverseDofOwnerSet(void)
 }
 
 void
-DataManager::InverseDofInit(bool bIsSquare)
+DataManager::IDDofInit(bool bIsSquare)
 {  
-   	if ( iTotDofOwners > 0) {	
+	if (iTotDofOwners > 0) {	
       
-      		/* Di ogni DofOwner setta il primo indice
-      		 * e calcola il numero totale di Dof:
+		/* Di ogni DofOwner setta il primo indice
+		 * e calcola il numero totale di Dof:
 		 * poichè per il problema inverso non si 
 		 * possono aggiungere incognite diverse
 		 * da posizione (velocità e accelerazione)
@@ -375,25 +366,27 @@ DataManager::InverseDofInit(bool bIsSquare)
 		 * */
 
 		
-      		/* Mette gli indici ai DofOwner dei nodi strutturali: */
+		/* Mette gli indici ai DofOwner dei nodi strutturali: */
 		/* contatore dei Dof dei nodi */
-      		integer iNodeIndex = 0;
+		integer iNodeIndex = 0;
 
 		NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 		for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
 			++iDOm1, ++i)
 		{
 			DofOwner *pDO = const_cast<DofOwner *>(i->second->pGetDofOwner());
-      			unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
+			unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
 			if (iNumDofs > 0) {
 				pDO->iFirstIndex = iNodeIndex;
 				iNodeIndex += iNumDofs;
 
-		 	} else {
-		    		pDO->iFirstIndex = -1;
-		    		DEBUGCERR("warning, item " << (iDOm1 + 1) << " has 0 dofs" << std::endl);
-		 	}
-      		}
+			} else {
+				// note: this could only be possible for dummy nodes?
+				pDO->iFirstIndex = -1;
+				DEBUGCERR("warning, Structural(" << i->second->GetLabel() << ") "
+					"(DofOwner #" << (iDOm1 + 1) << ") has 0 dofs" << std::endl);
+			}
+		}
 		
 		/* Gli indici dei nodi sono ok */
 		
@@ -403,7 +396,7 @@ DataManager::InverseDofInit(bool bIsSquare)
 		 * peso nello jacobiano) */
 
 		/* contatore dei Dof dei joint */
-      		integer iJointIndex = 0;
+		integer iJointIndex = 0;
 		if (!bIsSquare) {
 			iJointIndex = iNodeIndex;
 		}
@@ -411,18 +404,18 @@ DataManager::InverseDofInit(bool bIsSquare)
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
-			DofOwner *pDO = const_cast<DofOwner *>((dynamic_cast<ElemWithDofs *>(j->second))->pGetDofOwner());
+			DofOwner *pDO = const_cast<DofOwner *>(Cast<ElemWithDofs>(j->second)->pGetDofOwner());
 			if (pDO) {
 				unsigned iNumDofs = pDO->iNumDofs;
 				if (iNumDofs > 0) {
 					pDO->iFirstIndex = iJointIndex;
 					iJointIndex += iNumDofs;
 
-		 		} else {
-		    			pDO->iFirstIndex = -1;
-		    			DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
+				} else {
+					pDO->iFirstIndex = -1;
+					DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
 						"has 0 dofs" << std::endl);
-		 		}
+				}
 			}
 				
 		}
@@ -433,54 +426,55 @@ DataManager::InverseDofInit(bool bIsSquare)
 			iTotDofs = iJointIndex;
 		}
 
-	      	DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
+		DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
 
-   	} else {
-     	 	DEBUGCERR("");
-     	 	silent_cerr("no dof owners are defined" << std::endl);
-    	  
-      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}	   	
-  	 
-  	 	
-  	/* Crea la struttura dinamica dei Dof */
-  	if (iTotDofs > 0) {
+	} else {
+		DEBUGCERR("");
+		silent_cerr("no dof owners are defined" << std::endl);
+
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+ 
+	/* Crea la struttura dinamica dei Dof */
+	if (iTotDofs > 0) {
 		if (bIsSquare)	{
-  	    		SAFENEWARRNOFILL(pDofs, Dof, 2*iTotDofs);
-  	      	    	/* Inizializza l'iteratore sui Dof */
-  	    		DofIter.Init(pDofs, 2*iTotDofs);
-  	    
-  	   	 	/* Inizializza la struttura dinamica dei Dof */
+			SAFENEWARRNOFILL(pDofs, Dof, 2*iTotDofs);
+			/* Inizializza l'iteratore sui Dof */
+			DofIter.Init(pDofs, 2*iTotDofs);
+
+			/* Inizializza la struttura dinamica dei Dof */
 		 
-		 	/*FIXME:*/
-	   	 	Dof* pTmp = pDofs;
-	   	 	integer iIndex = pDofOwners[0].iFirstIndex;
-     				 while(pTmp < pDofs+2*iTotDofs) {
-					 pTmp->iIndex = iIndex++;
-					 pTmp->Order = DofOrder::DIFFERENTIAL;
-					 pTmp++;
-      				}		
+			/*FIXME:*/
+			Dof* pTmp = pDofs;
+			integer iIndex = pDofOwners[0].iFirstIndex;
+			while (pTmp < pDofs + 2*iTotDofs) {
+				 pTmp->iIndex = iIndex++;
+				 pTmp->Order = DofOrder::DIFFERENTIAL;
+				 pTmp++;
+			}		
+
 		} else {
 			SAFENEWARRNOFILL(pDofs, Dof, iTotDofs);/* Inizializza l'iteratore sui Dof */
-  	    		DofIter.Init(pDofs, iTotDofs);
-  	    
-  	   	 	/* Inizializza la struttura dinamica dei Dof */
+			DofIter.Init(pDofs, iTotDofs);
+ 
+			/* Inizializza la struttura dinamica dei Dof */
 		 
-		 	/*FIXME:*/
-	   	 	Dof* pTmp = pDofs;
-	   	 	integer iIndex = pDofOwners[0].iFirstIndex;
-     				 while(pTmp < pDofs+iTotDofs) {
-					 pTmp->iIndex = iIndex++;
-					 pTmp->Order = DofOrder::DIFFERENTIAL;
-					 pTmp++;
-      				}
+			/*FIXME:*/
+			Dof* pTmp = pDofs;
+			integer iIndex = pDofOwners[0].iFirstIndex;
+			while (pTmp < pDofs + iTotDofs) {
+				 pTmp->iIndex = iIndex++;
+				 pTmp->Order = DofOrder::DIFFERENTIAL;
+				 pTmp++;
+			}
 		}
 	
-  	} else {
+	} else {
 		DEBUGCERR("");
-      		silent_cerr("no dofs are defined" << std::endl);
-     	 
-      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}	   	
+		silent_cerr("no dofs are defined" << std::endl);
+
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }  
 

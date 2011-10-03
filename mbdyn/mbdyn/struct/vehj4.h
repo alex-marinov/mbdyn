@@ -95,7 +95,7 @@ public:
 
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {
-		return Joint::DEFORMABLEHINGE;
+		return Joint::DEFORMABLEAXIALJOINT;
 	};
 
 	/* Contributo al file di restart */

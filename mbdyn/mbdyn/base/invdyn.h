@@ -42,6 +42,6 @@ public:
 	};
 };
 
-extern const char *invdyn2s(InverseDynamics::Order iOrder);
+extern const char *invdyn2str(InverseDynamics::Order iOrder);
 
 #endif // INVDYN_H

@@ -544,8 +544,8 @@ DofIter()
 	bool bIsSquare = false;
 
 	/* Aggiornamento DofOwner degli elementi (e dei nodi) */
-	if(bInverseDynamics)	{
-		bIsSquare = InverseDofOwnerSet();
+	if (bInverseDynamics) {
+		bIsSquare = IDDofOwnerSet();
 	} else	{
 		DofOwnerSet();
 	}
@@ -570,7 +570,7 @@ DofIter()
 
 	/* Costruzione array DofOwner e Dof */
 	if(bInverseDynamics)	{
-		InverseDofInit(bIsSquare);
+		IDDofInit(bIsSquare);
 	} else	{
 		DofInit();
 	}
