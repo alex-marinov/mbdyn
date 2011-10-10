@@ -1418,9 +1418,9 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 		doublereal& SolErr) 
 {
 	ASSERT(pDM != NULL);
-	pXCurr  = pX;
-	pXPrimeCurr  = pXPrime;
-	pXPrimePrimeCurr  = pXPrimePrime;
+	pXCurr = pX;
+	pXPrimeCurr = pXPrime;
+	pXPrimePrimeCurr = pXPrimePrime;
 	pLambdaCurr = pLambda;
 	
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr, *pXPrimePrimeCurr, *pLambdaCurr);
@@ -1448,7 +1448,7 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	pSol->Reset();
 	/* there's no need to check changes in
 	 * equation structure... it is already
-	 * performed by NonlinearSolver->Solve()*/
+	 * performed by NonlinearSolver->Solve() */
 	Residual(pRes);
 	if (iLocalIter == EffIter) {
 		pSM->MatrReset();

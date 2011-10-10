@@ -714,7 +714,7 @@ public:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
 	
-	/* Real Advancer*/
+	/* Real Advancer */
 	virtual doublereal
 	Advance(InverseSolver* pS, 
 			const doublereal TStep, 

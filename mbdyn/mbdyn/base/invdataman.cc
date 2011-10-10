@@ -334,7 +334,7 @@ DataManager::IDDofOwnerSet(void)
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << ")" << std::endl);
 
-				DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
+				DofOwner* pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
 				pDO->iNumDofs = pEWD->iGetNumDof();
 				DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << std::endl);
 			}
@@ -347,93 +347,91 @@ DataManager::IDDofOwnerSet(void)
 void
 DataManager::IDDofInit(bool bIsSquare)
 {  
-	if (iTotDofOwners > 0) {	
-      
-		/* Di ogni DofOwner setta il primo indice
-		 * e calcola il numero totale di Dof:
-		 * poichè per il problema inverso non si 
-		 * possono aggiungere incognite diverse
-		 * da posizione (velocità e accelerazione)
-		 * dei nodi e reazioni vincolari, viene
-		 * controllato che gli elementi che aggiungono 
-		 * dof siano solo nodi e vincoli.
-		 * 
-		 * Per problemi mal posti (DoF nodi != Dof vincoli): 
-		 * iTotDofs = (DoF nodi) + (Dof vincoli), altrimenti
-		 * 
-		 * Per problemi ben posti:
-		 * iTotDofs = DoF nodi (= DoF vincoli)
-		 * */
-
-		
-		/* Mette gli indici ai DofOwner dei nodi strutturali: */
-		/* contatore dei Dof dei nodi */
-		integer iNodeIndex = 0;
-
-		NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-		for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
-			++iDOm1, ++i)
-		{
-			DofOwner *pDO = const_cast<DofOwner *>(i->second->pGetDofOwner());
-			unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
-			if (iNumDofs > 0) {
-				pDO->iFirstIndex = iNodeIndex;
-				iNodeIndex += iNumDofs;
-
-			} else {
-				// note: this could only be possible for dummy nodes?
-				pDO->iFirstIndex = -1;
-				DEBUGCERR("warning, Structural(" << i->second->GetLabel() << ") "
-					"(DofOwner #" << (iDOm1 + 1) << ") has 0 dofs" << std::endl);
-			}
-		}
-		
-		/* Gli indici dei nodi sono ok */
-		
-		/* Se il problema è ben posto, gli indici delle equazioni di vincolo
-		 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
-		 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
-		 * peso nello jacobiano) */
-
-		/* contatore dei Dof dei joint */
-		integer iJointIndex = 0;
-		if (!bIsSquare) {
-			iJointIndex = iNodeIndex;
-		}
-
-		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
-			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
-		{
-			DofOwner *pDO = const_cast<DofOwner *>(Cast<ElemWithDofs>(j->second)->pGetDofOwner());
-			if (pDO) {
-				unsigned iNumDofs = pDO->iNumDofs;
-				if (iNumDofs > 0) {
-					pDO->iFirstIndex = iJointIndex;
-					iJointIndex += iNumDofs;
-
-				} else {
-					pDO->iFirstIndex = -1;
-					DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
-						"has 0 dofs" << std::endl);
-				}
-			}
-				
-		}
-		
-		if (bIsSquare)	{
-			iTotDofs = iNodeIndex;
-		} else {
-			iTotDofs = iJointIndex;
-		}
-
-		DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
-
-	} else {
+	if (iTotDofOwners == 0) {	
 		DEBUGCERR("");
 		silent_cerr("no dof owners are defined" << std::endl);
 
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+      
+	/* Di ogni DofOwner setta il primo indice
+	 * e calcola il numero totale di Dof:
+	 * poichè per il problema inverso non si 
+	 * possono aggiungere incognite diverse
+	 * da posizione (velocità e accelerazione)
+	 * dei nodi e reazioni vincolari, viene
+	 * controllato che gli elementi che aggiungono 
+	 * dof siano solo nodi e vincoli.
+	 * 
+	 * Per problemi mal posti (DoF nodi != Dof vincoli): 
+	 * iTotDofs = (DoF nodi) + (Dof vincoli), altrimenti
+	 * 
+	 * Per problemi ben posti:
+	 * iTotDofs = DoF nodi (= DoF vincoli)
+	 */
+
+	
+	/* Mette gli indici ai DofOwner dei nodi strutturali: */
+	/* contatore dei Dof dei nodi */
+	integer iNodeIndex = 0;
+
+	NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+	for (int iDOm1 = 0; iDOm1 < DofData[DofOwner::STRUCTURALNODE].iNum;
+		++iDOm1, ++i)
+	{
+		DofOwner *pDO = const_cast<DofOwner *>(i->second->pGetDofOwner());
+		unsigned iNumDofs = pDO->iNumDofs = i->second->iGetNumDof();
+		if (iNumDofs > 0) {
+			pDO->iFirstIndex = iNodeIndex;
+			iNodeIndex += iNumDofs;
+
+		} else {
+			// note: this could only be possible for dummy nodes?
+			pDO->iFirstIndex = -1;
+			DEBUGCERR("warning, Structural(" << i->second->GetLabel() << ") "
+				"(DofOwner #" << (iDOm1 + 1) << ") has 0 dofs" << std::endl);
+		}
+	}
+		
+	/* Gli indici dei nodi sono ok */
+	
+	/* Se il problema è ben posto, gli indici delle equazioni di vincolo
+	 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
+	 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
+	 * peso nello jacobiano) */
+
+	/* contatore dei Dof dei joint */
+	integer iJointIndex = 0;
+	if (!bIsSquare) {
+		iJointIndex = iNodeIndex;
+	}
+
+	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
+		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
+	{
+		DofOwner *pDO = const_cast<DofOwner *>(Cast<ElemWithDofs>(j->second)->pGetDofOwner());
+		if (pDO) {
+			unsigned iNumDofs = pDO->iNumDofs;
+			if (iNumDofs > 0) {
+				pDO->iFirstIndex = iJointIndex;
+				iJointIndex += iNumDofs;
+
+			} else {
+				pDO->iFirstIndex = -1;
+				DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
+					"has 0 dofs" << std::endl);
+			}
+		}
+			
+	}
+		
+	if (bIsSquare)	{
+		iTotDofs = iNodeIndex;
+	} else {
+		iTotDofs = iJointIndex;
+	}
+
+	DEBUGLCOUT(MYDEBUG_INIT, "iTotDofs = " << iTotDofs << std::endl);
 
  
 	/* Crea la struttura dinamica dei Dof */
