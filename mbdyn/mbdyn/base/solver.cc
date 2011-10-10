@@ -1249,6 +1249,10 @@ IfFirstStepIsToBeRepeated:
 		pRTSolver->Init();
 	}
 
+	bool bOutputCounter = outputCounter() && isatty(fileno(stderr));
+	const char *outputCounterPrefix = bOutputCounter ? "\n" : "";
+	const char *outputCounterPostfix = outputStep() ? "\n" : "\r";
+
 	/* Altri passi regolari */
 	ASSERT(pRegularSteps != NULL);
 
@@ -1262,7 +1266,8 @@ IfFirstStepIsToBeRepeated:
 			if (pRTSolver) {
 				pRTSolver->StopCommanded();
 			}
-			silent_cout("End of simulation at time "
+			silent_cout(outputCounterPrefix
+				<< "End of simulation at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "output in file \"" << sOutputFileName << "\"" << std::endl
@@ -1277,7 +1282,8 @@ IfFirstStepIsToBeRepeated:
 			return;
 
 		} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
-			silent_cout("Simulation is stopped by RTAI task" << std::endl
+			silent_cout(outputCounterPrefix
+				<< "Simulation is stopped by RTAI task" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
@@ -1297,7 +1303,8 @@ IfFirstStepIsToBeRepeated:
 				pRTSolver->StopCommanded();
 			}
 
-			silent_cout("Interrupted!" << std::endl
+			silent_cout(outputCounterPrefix
+				<< "Interrupted!" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
@@ -1354,7 +1361,8 @@ IfStepIsToBeRepeated:
 				}
 			}
 
-			silent_cerr("Max iterations number "
+			silent_cerr(outputCounterPrefix
+				<< "Max iterations number "
 				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
 				<< " has been reached during "
 				"Step=" << lStep << ", "
@@ -1384,7 +1392,8 @@ IfStepIsToBeRepeated:
 				}
 			}
 
-			silent_cerr("Simulation diverged after "
+			silent_cerr(outputCounterPrefix
+				<< "Simulation diverged after "
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
 				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
@@ -1400,7 +1409,8 @@ IfStepIsToBeRepeated:
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
 			 */
-			silent_cerr("Simulation failed because no pivot element "
+			silent_cerr(outputCounterPrefix
+				<< "Simulation failed because no pivot element "
 				"could be found for column " << err.iCol
 				<< " (" << pDM->GetDofDescription(err.iCol) << ") "
 				"after " << iStIter << " iterations "
@@ -1412,7 +1422,8 @@ IfStepIsToBeRepeated:
 			bSolConv = true;
 		}
 		catch (EndOfSimulation& eos) {
-			silent_cerr("Simulation ended during a regular step:\n"
+			silent_cerr(outputCounterPrefix
+				<< "Simulation ended during a regular step:\n"
 				<< eos.what() << "\n");
 #ifdef USE_MPI
 			MBDynComm.Abort(0);
@@ -1442,7 +1453,7 @@ IfStepIsToBeRepeated:
 
 		if (outputMsg()) {
 			Out << "Step " << lStep
-				<< " " << dTime+dCurrTimeStep
+				<< " " << dTime + dCurrTimeStep
 				<< " " << dCurrTimeStep
 				<< " " << iStIter
 				<< " " << dTest
@@ -1450,6 +1461,18 @@ IfStepIsToBeRepeated:
 				<< " " << bSolConv
 				<< " " << bOut
 				<< std::endl;
+		}
+
+		if (bOutputCounter) {
+			silent_cout("Step " << std::setw(5) << lStep
+				<< " " << std::setw(13) << dTime + dCurrTimeStep
+				<< " " << std::setw(13) << dCurrTimeStep
+				<< " " << std::setw(4) << iStIter
+				<< " " << std::setw(13) << dTest
+				<< " " << std::setw(13) << dSolTest
+				<< " " << bSolConv
+				<< " " << bOut
+				<< outputCounterPostfix);
 		}
 
 		DEBUGCOUT("Step " << lStep
@@ -1811,6 +1834,7 @@ Solver::ReadData(MBDynParser& HP)
 			"jacobian" "matrix",
 			"bailout",
 			"messages",
+			"counter",
 		"output" "meter",
 
 		"method",
@@ -1915,6 +1939,7 @@ Solver::ReadData(MBDynParser& HP)
 			JACOBIANMATRIX,
 			BAILOUT,
 			MESSAGES,
+			COUNTER,
 		OUTPUTMETER,
 
 		METHOD,
@@ -2233,6 +2258,10 @@ Solver::ReadData(MBDynParser& HP)
 
 				case MESSAGES:
 					OF |= OUTPUT_MSG;
+					break;
+
+				case COUNTER:
+					OF |= OUTPUT_COUNTER;
 					break;
 
 				default:

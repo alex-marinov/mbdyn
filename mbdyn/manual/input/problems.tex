@@ -1126,9 +1126,15 @@ This command requests special output related to the solution phase.
             | \kw{solution}
             | \kw{jacobian matrix}
             | \kw{messages}
+            | \kw{counter}
+            | \kw{bailout}
             | \kw{none} \}
 \end{Verbatim}
 %\end{verbatim}
+The keyword \kw{counter} logs on the standard output a string
+that summarizes the statistics of the time step just completed.
+By default it is off; the same information, by default,
+is logged in the \texttt{.out} file.
 The keyword \kw{iterations} logs on \texttt{stdout}
 a detailed output of the error at each iteration inside a time step.
 The keywords \kw{residual}, \kw{solution} and \kw{jacobian matrix}
@@ -1137,6 +1143,8 @@ they are mainly intended for last resort debugging purposes,
 as the output can be extremely verbose.
 The item \kw{messages} refers to all messaging on the \texttt{.out} file;
 by default, it is on.
+The special item \kw{bailout} instructs the solver to output the residual
+(as with \kw{residual}) only in case of no convergence, before bailing out.
 The special item \kw{none} clears the output flags; the items
 are additive, so, for instance, to clear out the default 
 and add the iterations output, use:

@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		- log structural forces (Reinhard Resch)
 		- log missing joint types
 		- allow boolean in node/element output flag (Reinhard Resch)
+		- added support for 'counter' output flag (Reinhard Resch)
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 	Known issues:

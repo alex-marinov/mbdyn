@@ -50,8 +50,8 @@ protected:
 		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC),
 
 		OUTPUT_BAILOUT		= 0x0010,
-
 		OUTPUT_MSG		= 0x0020,
+		OUTPUT_COUNTER		= 0x0040,
 
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
 
@@ -99,10 +99,12 @@ public:
 		return (OutputFlags & OUTPUT_BAILOUT);
 	};
 
-        /*
-	 * all messages not protected behind any other condition
-	 * must be protected by a "if (outputMsg())" condition
-	 */
+	inline bool outputCounter(void) const {
+		return (OutputFlags & OUTPUT_COUNTER);
+	};
+
+	// all messages not protected behind any other condition
+	// must be protected by a "if (outputMsg())" condition
 	inline bool outputMsg(void) const {
 		return (OutputFlags & OUTPUT_MSG);
 	};
