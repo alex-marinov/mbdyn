@@ -1488,6 +1488,7 @@ IfStepIsToBeRepeated:
 			&& EigAn.currAnalysis != EigAn.Analyses.end()
 			&& *EigAn.currAnalysis <= dTime)
 		{
+			silent_cerr(std::endl);
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
 				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
 			if (i != EigAn.Analyses.end()) {
@@ -4437,6 +4438,9 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	INFO = 0;
 
 	int cnt = 0;
+
+	const bool bOutputStatus = isatty(fileno(stderr));
+
 	do {
 		__FC_DECL__(dnaupd)(&IDO, &BMAT[0], &N, &WHICH[0], &NEV,
 			&TOL, &RESID[0], &NCV, &V[0], &LDV, &IPARAM[0], &IPNTR[0],
@@ -4495,9 +4499,9 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 		Y = *sm.pSolHdl();
 
-#define CNT (100)
+		static const int CNT = 100;
 		cnt++;
-		if (!(cnt % CNT)) {
+		if (bOutputStatus && !(cnt % CNT)) {
 			silent_cerr("\r" "cnt=" << cnt);
 		}
 
@@ -4508,7 +4512,9 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		}
 	} while (IDO == 1 || IDO == -1);
 
-	silent_cerr("\r" "cnt=" << cnt << std::endl);
+	if (bOutputStatus) {
+		silent_cerr("\r" "cnt=" << cnt << std::endl);
+	}
 
 	// NOTE: improve diagnostics
 	if (INFO < 0) {
