@@ -138,6 +138,9 @@ iobuf_m(0)
 		}
 	}
 
+	unsigned node_kinematics_size = 0;
+	unsigned labels_size = 0;
+
 	// I/O will use filedes
 	if (!pEFH->GetOutStream()) {
 		node_kinematics_size = 3 + 3;
@@ -176,17 +179,16 @@ iobuf_m(0)
 		dynamics_size *= sizeof(doublereal);
 
 		if (bLabels) {
-			node_kinematics_size += sizeof(uint32_t);
-			dynamics_size += sizeof(uint32_t);
+			labels_size = sizeof(uint32_t)*(m_Points.size() + m_Points.size()%2);
 		}
 
-		iobuf.resize(node_kinematics_size*m_Points.size());
-		dynamics_size *= m_Points.size();
+		iobuf.resize(node_kinematics_size*m_Points.size() + labels_size);
+		dynamics_size = dynamics_size*m_Points.size() + labels_size;
 
 		char *ptr = &iobuf[0];
 		if (bLabels) {
 			iobuf_labels = (uint32_t *)ptr;
-			ptr += sizeof(uint32_t)*m_Points.size();
+			ptr += labels_size;
 		}
 
 		iobuf_x = (doublereal *)ptr;
@@ -651,8 +653,10 @@ StructExtForce::SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when)
 		const Vec3& wpRef = pRefNode->GetWPCurr();
 
 		if (bLabels) {
-			uint32_t l = pRefNode->GetLabel();
-			send(outfd, (void *)&l, sizeof(l), 0);
+			uint32_t l[2];
+			l[0] = pRefNode->GetLabel();
+			l[1] = 0;
+         		send(outfd, (void *)&l[0], sizeof(l), 0);
 		}
 
 		send(outfd, (void *)xRef.pGetVec(), 3*sizeof(doublereal), 0);
@@ -959,12 +963,12 @@ StructExtForce::RecvFromFileDes(int infd)
 #ifdef USE_SOCKET
 	if (pRefNode) {
 		size_t ulen = 0;
-		char buf[sizeof(uint32_t) + 6*sizeof(doublereal)];
+		char buf[2*sizeof(uint32_t) + 6*sizeof(doublereal)];
 		doublereal *f;
 		ssize_t len;
 
 		if (bLabels) {
-			ulen = sizeof(uint32_t);
+			ulen = 2*sizeof(uint32_t);
 		}
 
 		if (uRot != MBC_ROT_NONE) {
@@ -1000,7 +1004,7 @@ StructExtForce::RecvFromFileDes(int infd)
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			f = (doublereal *)&uint32_ptr[1];
+			f = (doublereal *)&uint32_ptr[2];
 
 		} else {
 			f = (doublereal *)buf;

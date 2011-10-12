@@ -74,7 +74,6 @@ protected:
 	bool bOutputAccelerations;
 
 	// buffer for filedes I/O
-	unsigned node_kinematics_size;
 	unsigned dynamics_size;
 	std::vector<char> iobuf;
 	uint32_t *iobuf_labels;

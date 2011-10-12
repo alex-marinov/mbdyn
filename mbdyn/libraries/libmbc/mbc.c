@@ -596,7 +596,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 
 		if (MBC_F_LABELS(mbc)) {
 			mbc->n_k_labels = (uint32_t *)ptr;
-			ptr += nodes*sizeof(uint32_t);
+			ptr += (nodes + nodes%2)*sizeof(uint32_t);
 		}
 
 		mbc->n_k_x = (double *)ptr;
@@ -642,7 +642,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 
 		if (MBC_F_LABELS(mbc)) {
 			mbc->n_d_labels = (uint32_t *)ptr;
-			ptr += nodes*sizeof(uint32_t);
+			ptr += (nodes + nodes%2)*sizeof(uint32_t);
 		}
 
 		mbc->n_d_f = (double *)ptr;
