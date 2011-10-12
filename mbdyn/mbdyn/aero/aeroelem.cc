@@ -826,13 +826,13 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 // 3) the induced velocity model does not require sectional forces
 template <unsigned iNN>
 void 
-Aerodynamic2DElem<iNN>::AddForce_int(const Vec3& F,
-	const Vec3& M, const Vec3& X) const
+Aerodynamic2DElem<iNN>::AddForce_int(const StructNode* pN,
+	const Vec3& F, const Vec3& M, const Vec3& X) const
 {
 	if (pIndVel != 0 && !bPassiveInducedVelocity
 		&& !pIndVel->bSectionalForces())
 	{
-		pIndVel->AddForce(GetLabel(), F, M, X);
+		pIndVel->AddForce(this, pN, F, M, X);
 	}
 }
 
@@ -850,7 +850,7 @@ Aerodynamic2DElem<iNN>::AddSectionalForce_int(unsigned uPnt,
 	if (pIndVel != 0 && !bPassiveInducedVelocity
 		&& pIndVel->bSectionalForces())
 	{
-		pIndVel->AddSectionalForce(GetElemType(), GetLabel(), uPnt,
+		pIndVel->AddSectionalForce(GetElemType(), this, uPnt,
 			F, M, dW, X, R, V, W);
 	}
 }
@@ -1352,7 +1352,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 	} while (GDI.fGetNext(PW));
 
 	// Se e' definito il rotore, aggiungere il contributo alla trazione
-	AddForce_int(F, M, Xn);
+	AddForce_int(pNode, F, M, Xn);
 
 	/* Sommare il termine al residuo */
 	WorkVec.Add(1, F);
@@ -1712,16 +1712,12 @@ Ra3_3(Ra3Tmp.GetVec(3))
 	ASSERT(pBeam != 0);
 	ASSERT(pBeam->GetElemType() == Elem::BEAM);
 
-	pNode1 = pBeam->pGetNode(1);
-	pNode2 = pBeam->pGetNode(2);
-	pNode3 = pBeam->pGetNode(3);
+	for (int iNode = 0; iNode < 3; iNode++) {
+		pNode[iNode] = pBeam->pGetNode(iNode + 1);
 
-	ASSERT(pNode1 != 0);
-	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode2 != 0);
-	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode3 != 0);
-	ASSERT(pNode3->GetNodeType() == Node::STRUCTURAL);
+		ASSERT(pNode[iNode] != 0);
+		ASSERT(pNode[iNode]->GetNodeType() == Node::STRUCTURAL);
+	}
 }
 
 AerodynamicBeam::~AerodynamicBeam(void)
@@ -1785,12 +1781,12 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
-	integer iNode3FirstIndex = pNode3->iGetFirstMomentumIndex();
-	integer iNode3FirstPosIndex = pNode3->iGetFirstPositionIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
+	integer iNode3FirstIndex = pNode[NODE3]->iGetFirstMomentumIndex();
+	integer iNode3FirstPosIndex = pNode[NODE3]->iGetFirstPositionIndex();
 
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
@@ -1807,20 +1803,20 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Xn[3];
 
 	/* Dati dei nodi */
-	Xn[NODE1] = pNode1->GetXCurr();
-	const Mat3x3& Rn1(pNode1->GetRCurr());
-	const Vec3& Vn1(pNode1->GetVCurr());
-	const Vec3& Wn1(pNode1->GetWCurr());
+	Xn[NODE1] = pNode[NODE1]->GetXCurr();
+	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
+	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
+	const Vec3& Wn1(pNode[NODE1]->GetWCurr());
 
-	Xn[NODE2] = pNode2->GetXCurr();
-	const Mat3x3& Rn2(pNode2->GetRCurr());
-	const Vec3& Vn2(pNode2->GetVCurr());
-	const Vec3& Wn2(pNode2->GetWCurr());
+	Xn[NODE2] = pNode[NODE2]->GetXCurr();
+	const Mat3x3& Rn2(pNode[NODE2]->GetRCurr());
+	const Vec3& Vn2(pNode[NODE2]->GetVCurr());
+	const Vec3& Wn2(pNode[NODE2]->GetWCurr());
 
-	Xn[NODE3] = pNode3->GetXCurr();
-	const Mat3x3& Rn3(pNode3->GetRCurr());
-	const Vec3& Vn3(pNode3->GetVCurr());
-	const Vec3& Wn3(pNode3->GetWCurr());
+	Xn[NODE3] = pNode[NODE3]->GetXCurr();
+	const Mat3x3& Rn3(pNode[NODE3]->GetRCurr());
+	const Vec3& Vn3(pNode[NODE3]->GetVCurr());
+	const Vec3& Wn3(pNode[NODE3]->GetWCurr());
 
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
@@ -2149,9 +2145,9 @@ AerodynamicBeam::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
-	integer iNode3FirstIndex = pNode3->iGetFirstMomentumIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+	integer iNode3FirstIndex = pNode[NODE3]->iGetFirstMomentumIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
@@ -2171,9 +2167,9 @@ AerodynamicBeam::InitialAssRes(SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("AerodynamicBeam::InitialAssRes");
 	WorkVec.ResizeReset(18);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
-	integer iNode3FirstIndex = pNode3->iGetFirstPositionIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstPositionIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstPositionIndex();
+	integer iNode3FirstIndex = pNode[NODE3]->iGetFirstPositionIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
@@ -2199,20 +2195,20 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 	Vec3 Xn[3];
 
 	/* Dati dei nodi */
-	Xn[NODE1] = pNode1->GetXCurr();
-	const Mat3x3& Rn1(pNode1->GetRCurr());
-	const Vec3& Vn1(pNode1->GetVCurr());
-	const Vec3& Wn1(pNode1->GetWCurr());
+	Xn[NODE1] = pNode[NODE1]->GetXCurr();
+	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
+	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
+	const Vec3& Wn1(pNode[NODE1]->GetWCurr());
 
-	Xn[NODE2] = pNode2->GetXCurr();
-	const Mat3x3& Rn2(pNode2->GetRCurr());
-	const Vec3& Vn2(pNode2->GetVCurr());
-	const Vec3& Wn2(pNode2->GetWCurr());
+	Xn[NODE2] = pNode[NODE2]->GetXCurr();
+	const Mat3x3& Rn2(pNode[NODE2]->GetRCurr());
+	const Vec3& Vn2(pNode[NODE2]->GetVCurr());
+	const Vec3& Wn2(pNode[NODE2]->GetWCurr());
 
-	Xn[NODE3] = pNode3->GetXCurr();
-	const Mat3x3& Rn3(pNode3->GetRCurr());
-	const Vec3& Vn3(pNode3->GetVCurr());
-	const Vec3& Wn3(pNode3->GetWCurr());
+	Xn[NODE3] = pNode[NODE3]->GetXCurr();
+	const Mat3x3& Rn3(pNode[NODE3]->GetRCurr());
+	const Vec3& Vn3(pNode[NODE3]->GetVCurr());
+	const Vec3& Wn3(pNode[NODE3]->GetWCurr());
 
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
@@ -2404,7 +2400,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 		} while (GDI.fGetNext(PW));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
-		AddForce_int(F[iNode], M[iNode], Xn[iNode]);
+		AddForce_int(pNode[iNode], F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
 		WorkVec.Add(6*iNode + 1, F[iNode]);
@@ -2689,13 +2685,13 @@ Ra2_3(Ra2Tmp.GetVec(3))
 	ASSERT(pBeam != 0);
 	ASSERT(pBeam->GetElemType() == Elem::BEAM);
 
-	pNode1 = pBeam->pGetNode(1);
-	pNode2 = pBeam->pGetNode(2);
+	pNode[NODE1] = pBeam->pGetNode(1);
+	pNode[NODE2] = pBeam->pGetNode(2);
 
-	ASSERT(pNode1 != 0);
-	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pNode2 != 0);
-	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode[NODE1] != 0);
+	ASSERT(pNode[NODE1]->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode[NODE2] != 0);
+	ASSERT(pNode[NODE2]->GetNodeType() == Node::STRUCTURAL);
 }
 
 AerodynamicBeam2::~AerodynamicBeam2(void)
@@ -2755,10 +2751,10 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WM.ResizeReset(iNumRows, iNumCols);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
-	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstMomentumIndex();
+	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
 
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
@@ -2773,15 +2769,15 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 Xn[2];
 
 	/* Dati dei nodi */
-	Xn[NODE1] = pNode1->GetXCurr();
-	const Mat3x3& Rn1(pNode1->GetRCurr());
-	const Vec3& Vn1(pNode1->GetVCurr());
-	const Vec3& Wn1(pNode1->GetWCurr());
+	Xn[NODE1] = pNode[NODE1]->GetXCurr();
+	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
+	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
+	const Vec3& Wn1(pNode[NODE1]->GetWCurr());
 
-	Xn[NODE2] = pNode2->GetXCurr();
-	const Mat3x3& Rn2(pNode2->GetRCurr());
-	const Vec3& Vn2(pNode2->GetVCurr());
-	const Vec3& Wn2(pNode2->GetWCurr());
+	Xn[NODE2] = pNode[NODE2]->GetXCurr();
+	const Mat3x3& Rn2(pNode[NODE2]->GetRCurr());
+	const Vec3& Vn2(pNode[NODE2]->GetVCurr());
+	const Vec3& Wn2(pNode[NODE2]->GetWCurr());
 
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
@@ -3071,8 +3067,8 @@ AerodynamicBeam2::AssRes(
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstMomentumIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstMomentumIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstMomentumIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstMomentumIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
@@ -3091,8 +3087,8 @@ AerodynamicBeam2::InitialAssRes( SubVectorHandler& WorkVec,
 	DEBUGCOUTFNAME("AerodynamicBeam2::InitialAssRes");
 	WorkVec.ResizeReset(12);
 
-	integer iNode1FirstIndex = pNode1->iGetFirstPositionIndex();
-	integer iNode2FirstIndex = pNode2->iGetFirstPositionIndex();
+	integer iNode1FirstIndex = pNode[NODE1]->iGetFirstPositionIndex();
+	integer iNode2FirstIndex = pNode[NODE2]->iGetFirstPositionIndex();
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstIndex + iCnt);
@@ -3118,15 +3114,15 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 	Vec3 Xn[LASTNODE];
 
 	/* Dati dei nodi */
-	Xn[NODE1] = pNode1->GetXCurr();
-	const Mat3x3& Rn1(pNode1->GetRCurr());
-	const Vec3& Vn1(pNode1->GetVCurr());
-	const Vec3& Wn1(pNode1->GetWCurr());
+	Xn[NODE1] = pNode[NODE1]->GetXCurr();
+	const Mat3x3& Rn1(pNode[NODE1]->GetRCurr());
+	const Vec3& Vn1(pNode[NODE1]->GetVCurr());
+	const Vec3& Wn1(pNode[NODE1]->GetWCurr());
 
-	Xn[NODE2] = pNode2->GetXCurr();
-	const Mat3x3& Rn2(pNode2->GetRCurr());
-	const Vec3& Vn2(pNode2->GetVCurr());
-	const Vec3& Wn2(pNode2->GetWCurr());
+	Xn[NODE2] = pNode[NODE2]->GetXCurr();
+	const Mat3x3& Rn2(pNode[NODE2]->GetRCurr());
+	const Vec3& Vn2(pNode[NODE2]->GetVCurr());
+	const Vec3& Wn2(pNode[NODE2]->GetWCurr());
 
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
@@ -3306,7 +3302,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 		} while (GDI.fGetNext(PW));
 
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
-		AddForce_int(F[iNode], M[iNode], Xn[iNode]);
+		AddForce_int(pNode[iNode], F[iNode], M[iNode], Xn[iNode]);
 
 		/* Somma il termine al residuo */
 		WorkVec.Add(6*iNode + 1, F[iNode]);

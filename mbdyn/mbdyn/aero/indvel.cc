@@ -242,11 +242,11 @@ InducedVelocity::ExchangeVelocity(void)
 
 // Somma alla trazione il contributo di forza di un elemento generico
 void
-InducedVelocity::AddForce(unsigned int uL,
+InducedVelocity::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	for (int i = 0; ppRes && ppRes[i]; i++) {
-		if (ppRes[i]->is_in(uL)) {
+		if (ppRes[i]->is_in(pEl->GetLabel())) {
 			ppRes[i]->pRes->AddForces(F, M, X);
 		}
 	}
@@ -256,13 +256,13 @@ InducedVelocity::AddForce(unsigned int uL,
 // usando la forza e il momento per unita' di apertura e il peso
 void
 InducedVelocity::AddSectionalForce(Elem::Type type,
-	unsigned int uLabel, unsigned uPnt,
+	const Elem *pEl, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R,
 	const Vec3& V, const Vec3& W)
 {
 	ASSERT(bSectionalForces() == true);
-	InducedVelocity::AddForce(uLabel, F*dW, M*dW, X);
+	InducedVelocity::AddForce(pEl, 0, F*dW, M*dW, X);
 }
 
 void

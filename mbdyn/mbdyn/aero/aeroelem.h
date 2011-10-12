@@ -176,7 +176,7 @@ protected:
 	 */
 	virtual void SetOutputFlag(flag f = flag(1));
 	void Output_int(OutputHandler& OH) const;
-	void AddForce_int(const Vec3& F, const Vec3& M, const Vec3& X) const;
+	void AddForce_int(const StructNode *pN, const Vec3& F, const Vec3& M, const Vec3& X) const;
 	void AddSectionalForce_int(unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
@@ -348,9 +348,7 @@ protected:
 	enum { DELTAx1 = 0, DELTAg1, DELTAx2, DELTAg2, DELTAx3, DELTAg3 };
 
 	const Beam* pBeam;
-	const StructNode* pNode1;
-	const StructNode* pNode2;
-	const StructNode* pNode3;
+	const StructNode* pNode[3];
 
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -436,9 +434,9 @@ public:
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(3);
-		connectedNodes[0] = pNode1;
-		connectedNodes[1] = pNode2;
-		connectedNodes[2] = pNode3;
+		connectedNodes[0] = pNode[NODE1];
+		connectedNodes[1] = pNode[NODE2];
+		connectedNodes[2] = pNode[NODE3];
 	};
    	/* ************************************************ */
 };
@@ -456,8 +454,7 @@ protected:
 	enum { DELTAx1 = 0, DELTAg1, DELTAx2, DELTAg2 };
 
 	const Beam2* pBeam;
-	const StructNode* pNode1;
-	const StructNode* pNode2;
+	const StructNode* pNode[2];
 
 	const Vec3 f1;		/* Offset del punto di riferimento */
 	const Vec3 f2;		/* Offset del punto di riferimento */
@@ -538,8 +535,8 @@ public:
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(2);
-		connectedNodes[0] = pNode1;
-		connectedNodes[1] = pNode2;
+		connectedNodes[0] = pNode[NODE1];
+		connectedNodes[1] = pNode[NODE2];
 	};
    	/* ************************************************ */
 };

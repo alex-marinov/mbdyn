@@ -224,7 +224,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -273,7 +273,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -303,7 +303,7 @@ public:
 
 	virtual bool bSectionalForces(void) const;
 	virtual void AddSectionalForce(Elem::Type type,
-		unsigned int uLabel, unsigned uPnt,
+		const Elem *pEl, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
@@ -375,7 +375,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -424,7 +424,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -532,7 +532,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento */
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale

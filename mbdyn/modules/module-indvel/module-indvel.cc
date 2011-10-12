@@ -42,7 +42,7 @@ class ModuleIndVel
 private:
 	// TODO: define per-point structure
 	struct PointData {
-		unsigned label;
+		const Elem *pEl;
 		unsigned counter;
 		Vec3 F;
 		Vec3 M;
@@ -74,7 +74,7 @@ public:
 	virtual Vec3 GetInducedVelocity(Elem::Type type,
 		unsigned uLabel, unsigned uPnt, const Vec3&) const;
 	virtual void AddSectionalForce(Elem::Type type,
-		unsigned int uLabel, unsigned uPnt,
+		const Elem *pEl, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
@@ -176,19 +176,19 @@ ModuleIndVel::GetInducedVelocity(Elem::Type type,
 
 void
 ModuleIndVel::AddSectionalForce(Elem::Type type,
-	unsigned int uLabel, unsigned uPnt,
+	const Elem *pEl, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R,
 	const Vec3& V, const Vec3& W)
 {
 	std::cerr << "ModuleIndVel(" << GetLabel() << ")::AddSectionalForce: "
-		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << std::endl;
+		<< psElemNames[type] << "(" << pEl->GetLabel() << "):" << uPnt << std::endl;
 
 	if (iFirstAssembly == 1) {
 		unsigned idx = m_data.size();
 		m_data.resize(idx + 1);
-		m_data[idx].label = uLabel;
-		if (idx == 0 || (idx > 0 && uLabel != m_data[idx - 1].label)) {
+		m_data[idx].pEl = pEl;
+		if (idx == 0 || (idx > 0 && pEl != m_data[idx - 1].pEl)) {
 			m_data[idx].counter = 0;
 		} else {
 			m_data[idx].counter = m_data[idx - 1].counter + 1;
@@ -222,7 +222,7 @@ ModuleIndVel::Output(OutputHandler& OH) const
 		std::ostream& out = OH.Loadable();
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); ++i) {
-			out << GetLabel() << "#" << i->label << "#" << i->counter
+			out << GetLabel() << "#" << i->pEl->GetLabel() << "#" << i->counter
 				<< " " << i->F
 				<< " " << i->M
 				<< " " << i->dW

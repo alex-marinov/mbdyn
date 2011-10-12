@@ -180,7 +180,7 @@ public:
 	// multiple contributions in one iteration.
 	// Elements must not call this function when bSectionalForces() 
 	// returns "true"
-	virtual void AddForce(unsigned int uL,
+	virtual void AddForce(const Elem *pEl, const StructNode *pNode,
 		const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Elements use this function to pass induced velocity models
@@ -191,7 +191,7 @@ public:
 	// Elements should not call this function when bSectionalForces() 
 	// returns "false"
 	virtual void AddSectionalForce(Elem::Type type,
-		unsigned int uLabel, unsigned uPnt,
+		const Elem *pEl, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);

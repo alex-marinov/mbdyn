@@ -187,12 +187,12 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-CyclocopterNoInflow::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterNoInflow::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
 }
 
@@ -378,7 +378,7 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterUniform1D::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	
 	/* colcolo la posizione azimutale della prima pala */
@@ -394,7 +394,7 @@ CyclocopterUniform1D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -628,7 +628,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterUniform2D::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	
 	/* colcolo la posizione azimutale della prima pala */
@@ -644,7 +644,7 @@ CyclocopterUniform2D::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, co
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 
 	} else {
 		Res.AddForce(F);
@@ -857,7 +857,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
-CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterPolimi::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	
 	/* colcolo la posizione azimutale della prima pala */
@@ -872,7 +872,7 @@ CyclocopterPolimi::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const
 	/* Sole se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F,M,X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -958,7 +958,7 @@ CyclocopterKARI::AssRes(SubVectorHandler& WorkVec,
 
 #if 0
 void
-CyclocopterKARI::AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X)
+CyclocopterKARI::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	NO_OP;
 }

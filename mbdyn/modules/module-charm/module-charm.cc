@@ -434,7 +434,7 @@ public:
 	virtual Vec3 GetInducedVelocity(Elem::Type type,
 		unsigned uLabel, unsigned uPnt, const Vec3&) const;
 	virtual void AddSectionalForce(Elem::Type type,
-		unsigned int uLabel, unsigned uPnt,
+		const Elem *pEl, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W);
@@ -484,17 +484,18 @@ iDebug(0), iDebugCount(0)
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
-"									\n"
-"Module: 	CHARM							\n"
-"Author: 	Pierangelo Masarati <masarati@aero.polimi.it>		\n"
-"Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
-"		Politecnico di Milano					\n"
-"		http://www.aero.polimi.it/				\n"
-" Description:	This module implements an induced velocity model	\n"
-"		based on CHARM's free wake, distributed by CDI.		\n"
-"		Sponsored by Baldwin Technologies Company, LLC.		\n"
-"									\n"
-"	All rights reserved.						\n"
+"\n"
+"Module:        CHARM\n"
+"Author:        Pierangelo Masarati <masarati@aero.polimi.it>\n"
+"Organization:  Dipartimento di Ingegneria Aerospaziale\n"
+"               Politecnico di Milano\n"
+"               http://www.aero.polimi.it/\n"
+"Description:   This module implements an induced velocity model\n"
+"               based on CHARM's free wake, distributed by\n"
+"               Continuum Dynamics Inc. (CDI).\n"
+"               Sponsored by Baldwin Technologies Company, LLC.\n"
+"\n"
+"All rights reserved.\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -632,23 +633,42 @@ iDebug(0), iDebugCount(0)
 			"\"aircraft orientation\" not given; using default R=" << m_Rh_ac << std::endl);
 	}
 
-	if (!HP.IsKeyWord("rotors")) {
-		silent_cerr("ModuleCHARM(" << uLabel << "): "
-			"\"rotors\" (number of rotors) expected "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	int num_rt = 0;
+	int num_fw = 0;
+	int num_rotors = 0;
+	if (HP.IsKeyWord("rotors")) {
+		num_rt = HP.GetInt();
+		if (num_rt < 0) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid number of rotors " << num_rt
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		num_rotors += num_rt;
 	}
 
-	int num_rotors = HP.GetInt();
-	if (num_rotors < 1) {
+	if (HP.IsKeyWord("fixed" "wings")) {
+		num_fw = HP.GetInt();
+		if (num_fw < 0) {
+			silent_cerr("ModuleCHARM(" << uLabel << "): "
+				"invalid number of fixed wings " << num_fw
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		num_rotors += num_fw;
+	}
+
+	if (num_rotors == 0) {
 		silent_cerr("ModuleCHARM(" << uLabel << "): "
-			"invalid number of rotors " << num_rotors
-			<< " at line " << HP.GetLineData() << std::endl);
+			"need at least one rotor or fixed wing "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	m_Rotors.resize(num_rotors);
 
+	int i_rt = 0;
+	int i_fw = 0;
 	for (int ir = 0; ir < num_rotors; ir++) {
 		if (HP.IsKeyWord("rotation" "direction")) {
 			if (HP.IsKeyWord("counter" "clockwise")) {
@@ -667,6 +687,9 @@ iDebug(0), iDebugCount(0)
 				}
 			}
 
+		} else if (HP.IsKeyWord("fixed" "wing")) {
+			m_Rotors[ir].rotation_dir = 0;
+
 		} else {
 			m_Rotors[ir].rotation_dir = 1;
 
@@ -674,20 +697,49 @@ iDebug(0), iDebugCount(0)
 				"\"rotation direction\" not given; using counter-clockwise" << std::endl);
 		}
 
-		if (!HP.IsKeyWord("radius")) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"\"radius\" expected "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		if (m_Rotors[ir].rotation_dir == 0) {
+			if (++i_fw > num_fw) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"fixed wing " << i_fw << " exceeds expected number "
+					<< num_fw << " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+		} else {
+			if (++i_rt > num_rt) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"rotor " << i_rt << " exceeds expected number "
+					<< num_rt << " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
+
+		if (m_Rotors[ir].rotation_dir == 0) {
+			if (!HP.IsKeyWord("span")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"span\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+		} else {
+			if (!HP.IsKeyWord("radius")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"radius\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
 		m_Rotors[ir].radius = HP.GetReal();
 		if (m_Rotors[ir].radius <= 0.) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid \"radius\" " << m_Rotors[ir].radius
+				"invalid \"" << (m_Rotors[ir].rotation_dir == 0 ? "span" : "radius" )
+				<< "\" " << m_Rotors[ir].radius
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
+	
 		if (!HP.IsKeyWord("chord")) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
 				"\"chord\" expected "
@@ -702,106 +754,110 @@ iDebug(0), iDebugCount(0)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!HP.IsKeyWord("root" "cutout")) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"\"root cutout\" expected "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_Rotors[ir].root_cutout = HP.GetReal();
-		if (m_Rotors[ir].root_cutout <= 0.
-			|| m_Rotors[ir].root_cutout >= m_Rotors[ir].radius)
-		{
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid \"root cutout\" " << m_Rotors[ir].root_cutout
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!HP.IsKeyWord("omega")) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"\"omega\" expected "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_Rotors[ir].omega100 = HP.GetReal();
-		if (m_Rotors[ir].omega100 <= 0.) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid \"root cutout\" " << m_Rotors[ir].omega100
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (HP.IsKeyWord("thrust" "coefficient")) {
-			m_Rotors[ir].nominal_thrust_coeff = HP.GetReal();
-
-		} else {
-			m_Rotors[ir].nominal_thrust_coeff = 0.;
-
-			silent_cout("ModuleCHARM(" << uLabel << "): "
-				"nominal thrust coefficient not given" << std::endl);
-		}
-
-		if (!HP.IsKeyWord("hub" "node")) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"\"hub node\" expected "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_Rotors[ir].pHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-
-		if (HP.IsKeyWord("rotor" "orientation")) {
-			m_Rotors[ir].Rh_hub = HP.GetRotRel(ReferenceFrame(m_Rotors[ir].pHub));
-
-		} else {
-			m_Rotors[ir].Rh_hub = Mat3x3(1., 0., 0., 0., -1., 0., 0., 0., -1.);
-
-			silent_cout("ModuleCHARM(" << uLabel << "): "
-				"\"rotor orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
-				" using R=" << m_Rotors[ir].Rh_hub << std::endl);
-		}
-
-		if (HP.IsKeyWord("shaft" "node")) {
-			m_Rotors[ir].pShaft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-
-			if (HP.IsKeyWord("shaft" "orientation")) {
-				m_Rotors[ir].Rh_shaft = HP.GetRotRel(ReferenceFrame(m_Rotors[ir].pShaft));
-
-			} else {
-				// construct Rh from aircraft and hub nodes
-				Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
-				m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
-
-				silent_cout("ModuleCHARM(" << uLabel << "): "
-					"\"shaft orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
-					" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
+		int iNumBlades = 1;
+		if (m_Rotors[ir].rotation_dir != 0) {
+			if (!HP.IsKeyWord("root" "cutout")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"root cutout\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			m_Rotors[ir].root_cutout = HP.GetReal();
+			if (m_Rotors[ir].root_cutout <= 0.
+				|| m_Rotors[ir].root_cutout >= m_Rotors[ir].radius)
+			{
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"invalid \"root cutout\" " << m_Rotors[ir].root_cutout
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-		} else {
-			m_Rotors[ir].pShaft = pCraft;
-			Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
-			m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
+			if (!HP.IsKeyWord("omega")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"omega\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			m_Rotors[ir].omega100 = HP.GetReal();
+			if (m_Rotors[ir].omega100 <= 0.) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"invalid \"root cutout\" " << m_Rotors[ir].omega100
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-			silent_cout("ModuleCHARM(" << uLabel << "): "
-				"\"shaft node\" not given for rotor " << ir << "/" << num_rotors << ";"
-				" using craft node " << pCraft->GetLabel() << ";"
-				" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
+			if (HP.IsKeyWord("thrust" "coefficient")) {
+				m_Rotors[ir].nominal_thrust_coeff = HP.GetReal();
+	
+			} else {
+				m_Rotors[ir].nominal_thrust_coeff = 0.;
+	
+				silent_cout("ModuleCHARM(" << uLabel << "): "
+					"nominal thrust coefficient not given" << std::endl);
+			}
+		
+			if (!HP.IsKeyWord("hub" "node")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"hub node\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			m_Rotors[ir].pHub = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	
+			if (HP.IsKeyWord("rotor" "orientation")) {
+				m_Rotors[ir].Rh_hub = HP.GetRotRel(ReferenceFrame(m_Rotors[ir].pHub));
+	
+			} else {
+				m_Rotors[ir].Rh_hub = Mat3x3(1., 0., 0., 0., -1., 0., 0., 0., -1.);
+	
+				silent_cout("ModuleCHARM(" << uLabel << "): "
+					"\"rotor orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
+					" using R=" << m_Rotors[ir].Rh_hub << std::endl);
+			}
+	
+			if (HP.IsKeyWord("shaft" "node")) {
+				m_Rotors[ir].pShaft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	
+				if (HP.IsKeyWord("shaft" "orientation")) {
+					m_Rotors[ir].Rh_shaft = HP.GetRotRel(ReferenceFrame(m_Rotors[ir].pShaft));
+	
+				} else {
+					// construct Rh from aircraft and hub nodes
+					Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
+					m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
+	
+					silent_cout("ModuleCHARM(" << uLabel << "): "
+						"\"shaft orientation\" not given for rotor " << ir << "/" << num_rotors << ";"
+						" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
+				}
+	
+			} else {
+				m_Rotors[ir].pShaft = pCraft;
+				Mat3x3 Rhub(m_Rotors[ir].pHub->GetRCurr()*m_Rotors[ir].Rh_hub);
+				m_Rotors[ir].Rh_shaft = m_Rotors[ir].pShaft->GetRCurr().MulTM(Rhub);
+	
+				silent_cout("ModuleCHARM(" << uLabel << "): "
+					"\"shaft node\" not given for rotor " << ir << "/" << num_rotors << ";"
+					" using craft node " << pCraft->GetLabel() << ";"
+					" computed orientation is R=" << m_Rotors[ir].Rh_shaft << std::endl);
+			}
+	
+			if (!HP.IsKeyWord("blades")) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"\"blades\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			iNumBlades = HP.GetInt();
+			if (iNumBlades < 1) {
+				silent_cerr("ModuleCHARM(" << uLabel << "): "
+					"invalid number of blades " << iNumBlades
+					<< " for rotor #" << ir << " of " << num_rotors
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 
-		if (!HP.IsKeyWord("blades")) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"\"blades\" expected "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		int iNumBlades = HP.GetInt();
-		if (iNumBlades < 1) {
-			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid number of blades " << iNumBlades
-				<< " for rotor #" << ir << " of " << num_rotors
-				<< " at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 		m_Rotors[ir].Blades.resize(iNumBlades);
 
 		if (!HP.IsKeyWord("elements")) {
@@ -813,7 +869,7 @@ iDebug(0), iDebugCount(0)
 		int iNumElems = HP.GetInt();
 		if (iNumElems < 1) {
 			silent_cerr("ModuleCHARM(" << uLabel << "): "
-				"invalid number of elements " << iNumElems
+				"invalid number of blade elements " << iNumElems
 				<< " for rotor #" << ir << " of " << num_rotors
 				<< " at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1469,13 +1525,13 @@ ModuleCHARM::GetInducedVelocity(Elem::Type type,
 
 void
 ModuleCHARM::AddSectionalForce(Elem::Type type,
-	unsigned int uLabel, unsigned uPnt,
+	const Elem *pEl, unsigned uPnt,
 	const Vec3& F, const Vec3& M, doublereal dW,
 	const Vec3& X, const Mat3x3& R, const Vec3& V, const Vec3& W)
 {
 #if 0
 	std::cerr << "ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
-		<< psElemNames[type] << "(" << uLabel << "):" << uPnt << std::endl;
+		<< psElemNames[type] << "(" << pEl->GetLabel() << "):" << uPnt << std::endl;
 #endif
 
 	doublereal *tangential_velocity_p = 0;
@@ -1484,7 +1540,8 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 	ExternResForces *erf_blade_p = 0;
 
 	if (iFirstAssembly == 1) {
-		ASSERT(uLabel != unsigned(-1));
+		ASSERT(pEl != 0);
+		unsigned uLabel = pEl->GetLabel();
 		if (m_e2b_map.find(uLabel) == m_e2b_map.end()) {
 			silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
 				<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
@@ -1559,7 +1616,7 @@ ModuleCHARM::AddSectionalForce(Elem::Type type,
 		while (m_data_frc_iter->pRB == 0) {
 			if (m_data_frc_iter == m_data.end()) {
 				silent_cerr("ModuleCHARM(" << GetLabel() << ")::AddSectionalForce: "
-					<< psElemNames[type] << "(" << uLabel << "):" << uPnt << ": "
+					<< psElemNames[type] << "(" << pEl->GetLabel() << "):" << uPnt << ": "
 					"unexpected end of iterator" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}

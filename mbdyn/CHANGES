@@ -28,6 +28,7 @@ MBDyn 1.X-Devel
 		- added support for 'counter' output flag (Reinhard Resch)
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
+		- the induced velocity element internal API changed
 	Known issues:
 		- Schur solver is broken
 	Bug fixes:

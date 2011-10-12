@@ -582,7 +582,7 @@ NoRotor::Restart(std::ostream& out) const
 
 // Somma alla trazione il contributo di forza di un elemento generico
 void
-NoRotor::AddForce(unsigned int uL,
+NoRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	// Non gli serve in quanto non calcola velocita' indotta.
@@ -602,7 +602,7 @@ NoRotor::AddForce(unsigned int uL,
 
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -753,7 +753,7 @@ UniformRotor::Restart(std::ostream& out) const
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void
-UniformRotor::AddForce(unsigned int uL,
+UniformRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
@@ -772,7 +772,7 @@ UniformRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -831,7 +831,7 @@ UniformRotor2::bSectionalForces(void) const
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void
 UniformRotor2::AddSectionalForce(Elem::Type type,
-		unsigned int uLabel, unsigned uPnt,
+		const Elem *pEl, unsigned uPnt,
 		const Vec3& F, const Vec3& M, doublereal dW,
 		const Vec3& X, const Mat3x3& R,
 		const Vec3& V, const Vec3& W)
@@ -854,7 +854,7 @@ UniformRotor2::AddSectionalForce(Elem::Type type,
 		Vec3 FTmp(F*dW);
 		Vec3 MTmp(M*dW);
 		Res.AddForces(FTmp, MTmp, X);
-		InducedVelocity::AddForce(uLabel, FTmp, MTmp, X);
+		InducedVelocity::AddForce(pEl, 0, FTmp, MTmp, X);
 
 	} else {
 		Res.AddForce(F*dW);
@@ -987,7 +987,7 @@ GlauertRotor::Restart(std::ostream& out) const
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void
-GlauertRotor::AddForce(unsigned int uL,
+GlauertRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
@@ -1006,7 +1006,7 @@ GlauertRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -1230,7 +1230,7 @@ ManglerRotor::Restart(std::ostream& out) const
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void
-ManglerRotor::AddForce(unsigned int uL,
+ManglerRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 #ifdef USE_MPI
@@ -1249,7 +1249,7 @@ ManglerRotor::AddForce(unsigned int uL,
 	/* Solo se deve fare l'output calcola anche il momento */
 	if (fToBeOutput()) {
 		Res.AddForces(F, M, X);
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
 		Res.AddForce(F);
 	}
@@ -1768,7 +1768,7 @@ DynamicInflowRotor::Restart(std::ostream& out) const
 
 /* Somma alla trazione il contributo di forza di un elemento generico */
 void
-DynamicInflowRotor::AddForce(unsigned int uL,
+DynamicInflowRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	/*
@@ -1790,7 +1790,7 @@ DynamicInflowRotor::AddForce(unsigned int uL,
 
 	Res.AddForces(F, M, X);
 	if (fToBeOutput()) {
-		InducedVelocity::AddForce(uL, F, M, X);
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)

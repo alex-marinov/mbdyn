@@ -128,7 +128,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -220,7 +220,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -307,7 +307,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -409,7 +409,7 @@ public:
 
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 
 	// Restituisce ad un elemento la velocita' indotta
 	// in base alla posizione azimuthale
@@ -494,7 +494,7 @@ public:
 #if 0
 	// Somma alla trazione il contributo di un elemento
 	virtual void
-	AddForce(unsigned int uL, const Vec3& F, const Vec3& M, const Vec3& X);
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
 #endif
 
 	// Restituisce ad un elemento la velocita' indotta
