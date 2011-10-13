@@ -212,20 +212,61 @@ ReadGenel(DataManager* pDM,
 		} break;
 
 	case ROTORTRIM: {
-		Rotor* pRot = dynamic_cast<Rotor *>(pDM->ReadElem(HP, Elem::INDUCEDVELOCITY));
-		if (pRot == 0) {
-			silent_cerr("RotorTrim(" << uLabel << "): "
-				"unable to read rotor "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		// "rotor" (traditional)
+		const Rotor* pRot = 0;
 
-		doublereal dRadius = pRot->dGetRadius();
-		if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
-			silent_cerr("RotorTrim(" << uLabel << "): "
-				"invalid rotor radius for Rotor(" << pRot->GetLabel() << ") "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		// "generic" 
+		const StructNode *pStrNode = 0;
+		const DriveCaller *pThrust = 0;
+		const DriveCaller *pRollMoment = 0;
+		const DriveCaller *pPitchMoment = 0;
+		const AirProperties *pAP = 0;
+		doublereal dRadius = -1.;
+		const DriveCaller *pOmega = 0;
+		const DriveCaller *pMu = 0;
+
+		if (HP.IsKeyWord("generic")) {
+			if (HP.IsKeyWord("reference" "node")) {
+				pStrNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			}
+
+			pThrust = HP.GetDriveCaller();
+			pRollMoment = HP.GetDriveCaller();
+			pPitchMoment = HP.GetDriveCaller();
+
+			pAP = dynamic_cast<const AirProperties *>(pDM->pFindElem(Elem::AIRPROPERTIES, 1));
+
+			dRadius = HP.GetReal();
+			if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
+				silent_cerr("RotorTrim(" << uLabel << "): "
+					"invalid rotor radius at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			pOmega = HP.GetDriveCaller();
+			pMu = HP.GetDriveCaller();
+
+		} else {
+			if (!HP.IsKeyWord("rotor")) {
+				silent_cout("RotorTrim(" << uLabel << "): "
+					"keyword \"rotor\" expected at line " << HP.GetLineData() << std::endl);
+			}
+
+			pRot = dynamic_cast<const Rotor *>(pDM->ReadElem(HP, Elem::INDUCEDVELOCITY));
+			if (pRot == 0) {
+				silent_cerr("RotorTrim(" << uLabel << "): "
+					"unable to read rotor "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			dRadius = pRot->dGetRadius();
+			if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
+				silent_cerr("RotorTrim(" << uLabel << "): "
+					"invalid rotor radius for Rotor(" << pRot->GetLabel() << ") "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 
 		ScalarDifferentialNode* pvNodes[3];
@@ -273,14 +314,29 @@ ReadGenel(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
-		SAFENEWWITHCONSTRUCTOR(pEl,
-			RotorTrim,
-			RotorTrim(uLabel, pDO, pRot,
-				pvNodes[0], pvNodes[1], pvNodes[2],
-				pvDrives[0], pvDrives[1], pvDrives[2],
-				dGamma, dP,
-				dTau0, dTau1, dKappa0, dKappa1,
-				pTrigger, fOut));
+		if (pRot) {
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				RotorTrim,
+				RotorTrim(uLabel, pDO, pRot,
+					pvNodes[0], pvNodes[1], pvNodes[2],
+					pvDrives[0], pvDrives[1], pvDrives[2],
+					dGamma, dP,
+					dTau0, dTau1, dKappa0, dKappa1,
+					pTrigger, fOut));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pEl,
+				RotorTrimGeneric,
+				RotorTrimGeneric(uLabel, pDO,
+					pStrNode,
+					pThrust, pRollMoment, pPitchMoment,
+					pAP, dRadius, pOmega, pMu,
+					pvNodes[0], pvNodes[1], pvNodes[2],
+					pvDrives[0], pvDrives[1], pvDrives[2],
+					dGamma, dP,
+					dTau0, dTau1, dKappa0, dKappa1,
+					pTrigger, fOut));
+		}
 		} break;
 
 	case CLAMP: {

@@ -26,6 +26,7 @@ MBDyn 1.X-Devel
 		- log missing joint types
 		- allow boolean in node/element output flag (Reinhard Resch)
 		- added support for 'counter' output flag (Reinhard Resch)
+		- added generic rotor trim genel
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed

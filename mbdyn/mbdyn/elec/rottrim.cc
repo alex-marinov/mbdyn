@@ -38,30 +38,28 @@
 #include "strnode.h"
 #include "rottrim.h"
 
-static unsigned iRotorTz = 0;
-static unsigned iRotorMx = 0;
-static unsigned iRotorMy = 0;
-
-RotorTrim::RotorTrim(unsigned int uL,
-		const DofOwner* pDO,
-		Rotor* pRot,
-		ScalarDifferentialNode* pNode1,
-		ScalarDifferentialNode* pNode2,
-		ScalarDifferentialNode* pNode3,
-		DriveCaller* pThrust,
-		DriveCaller* pRollMoment,
-		DriveCaller* pPitchMoment,
-		const doublereal& dG,
-		const doublereal& dp,
-		const doublereal& dT0,
-		const doublereal& dT1,
-		const doublereal& dK0,
-		const doublereal& dK1,
-		DriveCaller *pTrigger,
-		flag fOut)
+RotorTrimBase::RotorTrimBase(unsigned int uL,
+	const DofOwner* pDO,
+	ScalarDifferentialNode* pNode1,
+	ScalarDifferentialNode* pNode2,
+	ScalarDifferentialNode* pNode3,
+	const DriveCaller* pDThrust,
+	const DriveCaller* pDRollMoment,
+	const DriveCaller* pDPitchMoment,
+	const doublereal& dG,
+	const doublereal& dp,
+	const doublereal& dT0,
+	const doublereal& dT1,
+	const doublereal& dK0,
+	const doublereal& dK1,
+	const DriveCaller *pTrigger,
+	flag fOut)
 : Elem(uL, fOut),
 Genel(uL, pDO, fOut),
-pRotor(pRot),
+dRadius(-1.),
+DThrust(pDThrust),
+DRollMoment(pDRollMoment),
+DPitchMoment(pDPitchMoment),
 Trigger(pTrigger),
 dGamma(dG),
 dP(dp),
@@ -73,7 +71,6 @@ dTau1(dT1),
 dKappa0(dK0),
 dKappa1(dK1)
 {
-	ASSERT(pRotor != NULL);
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
 	ASSERT(pNode3 != NULL);
@@ -83,53 +80,35 @@ dKappa1(dK1)
 	pvNodes[0] = pNode1;
 	pvNodes[1] = pNode2;
 	pvNodes[2] = pNode3;
-	Thrust.Set(pThrust);
-	RollMoment.Set(pRollMoment);
-	PitchMoment.Set(pPitchMoment);
-
-	if (iRotorTz == 0) {
-		/* first RotorTrim */
-		iRotorTz = pRotor->iGetPrivDataIdx("Tz");
-		iRotorMx = pRotor->iGetPrivDataIdx("Mx");
-		iRotorMy = pRotor->iGetPrivDataIdx("My");
-	}
 }
 
-RotorTrim::~RotorTrim(void)
+RotorTrimBase::~RotorTrimBase(void)
 {
 	NO_OP;
 }
 
 unsigned int
-RotorTrim::iGetNumDof(void) const
+RotorTrimBase::iGetNumDof(void) const
 {
  	return 0;
 }
 
-/* Scrive il contributo dell'elemento al file di restart */
-std::ostream&
-RotorTrim::Restart(std::ostream& out) const
-{
-	return out << " /* rotor trim not implemented yet */ ";
-}
-
 /* Dimensioni del workspace */
 void
-RotorTrim::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+RotorTrimBase::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 3;
 	*piNumCols = 3;
 }
 
-
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
-RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
-		  doublereal dCoef,
-		  const VectorHandler& /* XCurr */ ,
-		  const VectorHandler& /* XPrimeCurr */ )
+RotorTrimBase::AssJac(VariableSubMatrixHandler& WorkMat,
+	  doublereal dCoef,
+	  const VectorHandler& /* XCurr */ ,
+	  const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering RotorTrim::AssJac()" << std::endl);
+	DEBUGCOUT("Entering RotorTrimBase::AssJac()" << std::endl);
 
 	SparseSubMatrixHandler& WM = WorkMat.SetSparse();
 	WM.Resize(3, 0);
@@ -139,6 +118,7 @@ RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 		d[0] = dCoef;
 		d[1] = dCoef;
 		d[2] = dCoef;
+
 	} else {
 		d[0] = dTau0 + dCoef;
 		d[1] = dTau1 + dCoef;
@@ -156,12 +136,12 @@ RotorTrim::AssJac(VariableSubMatrixHandler& WorkMat,
 
 /* assemblaggio residuo */
 SubVectorHandler&
-RotorTrim::AssRes(SubVectorHandler& WorkVec,
+RotorTrimBase::AssRes(SubVectorHandler& WorkVec,
 		  doublereal dCoef,
 		  const VectorHandler& /* XCurr */ ,
 		  const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUT("Entering RotorTrim::AssRes()" << std::endl);
+	DEBUGCOUT("Entering RotorTrimBase::AssRes()" << std::endl);
 
 	WorkVec.Resize(3);
 
@@ -185,22 +165,22 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	doublereal dX2Prime = pvNodes[1]->dGetXPrime();
 	doublereal dX3Prime = pvNodes[2]->dGetXPrime();
 
-	doublereal dRho, dc, dp, dT;
-	pRotor->GetAirProps(pRotor->GetXCurr(), dRho, dc, dp, dT);
+	doublereal dThrust;
+	doublereal dRollMoment;
+	doublereal dPitchMoment;
+	doublereal dRho;
+	doublereal dOmega;
+	doublereal dMu;
 
-	doublereal dOmega = pRotor->dGetOmega();
-	doublereal dRadius = pRotor->dGetRadius();
-	if (fabs(dOmega) < 1.e-6) {
-		dOmega = 1.e-6;
-	}
-	doublereal dMu = pRotor->dGetMu();
-	doublereal dMu2 = dMu*dMu;
+	GetData(dThrust, dRollMoment, dPitchMoment, dRho, dOmega, dMu);
 
 	doublereal d = M_PI*pow(dRadius, 4)*dRho*dOmega*dOmega;
-	doublereal dThrust = pRotor->dGetPrivData(iRotorTz)/d;
+	dThrust /= d;
 	d *= dRadius;
-	doublereal dRollMoment = pRotor->dGetPrivData(iRotorMx)/d;
-	doublereal dPitchMoment = pRotor->dGetPrivData(iRotorMy)/d;
+	dRollMoment /= d;
+	dPitchMoment /= d;
+
+	doublereal dMu2 = dMu*dMu;
 
 	doublereal f = dC/(1. + dC2);
 
@@ -213,9 +193,9 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 		0.,
 		-f/16.,
 		-f/16.*(1. + 1./2.*dMu2));
-	Vec3 v(Thrust.dGet() - dThrust,
-		RollMoment.dGet() - dRollMoment,
-		PitchMoment.dGet() - dPitchMoment);
+	Vec3 v(DThrust.dGet() - dThrust,
+		DRollMoment.dGet() - dRollMoment,
+		DPitchMoment.dGet() - dPitchMoment);
 	v = m.Solve(v);
 
 	WorkVec.PutCoef(1, v(1)*dKappa0 - dX1 - dTau0*dX1Prime);
@@ -223,5 +203,159 @@ RotorTrim::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutCoef(3, v(3)*dKappa1 - dX3 - dTau1*dX3Prime);
 
 	return WorkVec;
+}
+
+void
+RotorTrimBase::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(3);
+	for (int i = 0; i < 3; i++) {
+		connectedNodes[i] = pvNodes[i];
+	}
+}
+
+static unsigned iRotorTz = 0;
+static unsigned iRotorMx = 0;
+static unsigned iRotorMy = 0;
+
+RotorTrim::RotorTrim(unsigned int uL,
+	const DofOwner* pDO,
+	const Rotor* pRot,
+	ScalarDifferentialNode* pNode1,
+	ScalarDifferentialNode* pNode2,
+	ScalarDifferentialNode* pNode3,
+	const DriveCaller* pDThrust,
+	const DriveCaller* pDRollMoment,
+	const DriveCaller* pDPitchMoment,
+	const doublereal& dG,
+	const doublereal& dp,
+	const doublereal& dT0,
+	const doublereal& dT1,
+	const doublereal& dK0,
+	const doublereal& dK1,
+	const DriveCaller *pTrigger,
+	flag fOut)
+: Elem(uL, fOut),
+RotorTrimBase(uL, pDO, pNode1, pNode2, pNode3,
+	pDThrust, pDRollMoment, pDPitchMoment,
+	dG, dp, dT0, dT1, dK0, dK1, pTrigger, fOut),
+pRotor(pRot)
+{
+	ASSERT(pRotor != NULL);
+
+	dRadius = pRotor->dGetRadius();
+
+	if (iRotorTz == 0) {
+		/* first RotorTrim */
+		iRotorTz = pRotor->iGetPrivDataIdx("Tz");
+		iRotorMx = pRotor->iGetPrivDataIdx("Mx");
+		iRotorMy = pRotor->iGetPrivDataIdx("My");
+	}
+}
+
+RotorTrim::~RotorTrim(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+RotorTrim::Restart(std::ostream& out) const
+{
+	return out << " /* rotor trim not implemented yet */ ";
+}
+
+void
+RotorTrim::GetData(doublereal &dThrust,
+	doublereal &dRollMoment,
+	doublereal &dPitchMoment,
+	doublereal &dRho,
+	doublereal &dOmega,
+	doublereal &dMu) const
+{
+	dThrust = pRotor->dGetPrivData(iRotorTz);
+	dRollMoment = pRotor->dGetPrivData(iRotorMx);
+	dPitchMoment = pRotor->dGetPrivData(iRotorMy);
+	dRho = pRotor->dGetAirDensity(pRotor->GetXCurr());
+	dOmega = pRotor->dGetOmega();
+	dMu = pRotor->dGetMu();
+}
+
+void
+RotorTrim::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	pRotor->GetConnectedNodes(connectedNodes);
+	int NumNodes = connectedNodes.size();
+	connectedNodes.resize(NumNodes + 3);
+	for (int i = 0; i < 3; i++) {
+		connectedNodes[NumNodes + i] = pvNodes[i];
+	}
+}
+
+RotorTrimGeneric::RotorTrimGeneric(unsigned int uL,
+	const DofOwner *pDO,
+	const StructNode *pStrNode,
+	const DriveCaller *pThrust,
+	const DriveCaller *pRollMoment,
+	const DriveCaller *pPitchMoment,
+	const AirProperties *pAP,
+	doublereal dRadius,
+	const DriveCaller *pOmega,
+	const DriveCaller *pMu,
+	ScalarDifferentialNode* pNode1,
+	ScalarDifferentialNode* pNode2,
+	ScalarDifferentialNode* pNode3,
+	const DriveCaller* pDThrust,
+	const DriveCaller* pDRollMoment,
+	const DriveCaller* pDPitchMoment,
+	const doublereal& dG,
+	const doublereal& dp,
+	const doublereal& dT0,
+	const doublereal& dT1,
+	const doublereal& dK0,
+	const doublereal& dK1,
+	const DriveCaller *pTrigger,
+	flag fOut)
+: Elem(uL, fOut),
+RotorTrimBase(uL, pDO, pNode1, pNode2, pNode3,
+	pDThrust, pDRollMoment, pDPitchMoment,
+	dG, dp, dT0, dT1, dK0, dK1, pTrigger, fOut),
+pStrNode(pStrNode),
+Thrust(pThrust),
+RollMoment(pRollMoment),
+PitchMoment(pPitchMoment),
+pAP(pAP),
+Omega(pOmega),
+Mu(pMu)
+{
+	this->dRadius = dRadius;
+}
+
+RotorTrimGeneric::~RotorTrimGeneric(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+RotorTrimGeneric::Restart(std::ostream& out) const
+{
+	return out << " /* rotor trim not implemented yet */ ";
+}
+
+void
+RotorTrimGeneric::GetData(doublereal &dThrust,
+	doublereal &dRollMoment,
+	doublereal &dPitchMoment,
+	doublereal &dRho,
+	doublereal &dOmega,
+	doublereal &dMu) const
+{
+	dThrust = Thrust.dGet();
+	dRollMoment = RollMoment.dGet();
+	dPitchMoment = PitchMoment.dGet();
+	dRho = pAP->dGetAirDensity(pStrNode ? pStrNode->GetXCurr() : Zero3);
+	dOmega = Omega.dGet();
+	dMu = Mu.dGet();
 }
 

@@ -2667,7 +2667,8 @@ The syntax of the \kw{rotor trim} is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{genel_type} ::= \kw{rotor trim}
 
-    \bnt{genel_arglist} ::= \bnt{rotor_label} ,
+    \bnt{genel_arglist} ::= [ \bnt{rotor_trim_type} ] ,
+        \bnt{type_specific_rotor_trim_data} ,
         \bnt{thrust_node_label} ,
         \bnt{longitudinal_moment_node_label} ,
         \bnt{lateral_moment_node_label} ,
@@ -2679,6 +2680,22 @@ The syntax of the \kw{rotor trim} is
         \bnt{thrust_time_constant} , \bnt{moments_time_constant} ,
 	\bnt{thrust_gain} , \bnt{moments_gain}
 	[ , \kw{trigger} , (\ty{DriveCaller}) \bnt{trigger} ]
+
+    \bnt{rotor_trim_type} ::= \{ \kw{rotor} | \kw{generic} \}
+
+    # for \kw{rotor}
+    \bnt{type_specific_rotor_trim_data} ::=
+        \bnt{rotor_label}
+
+    # for \kw{generic}
+    \bnt{type_specific_rotor_trim_data} ::=
+        [ \kw{reference node} , \bnt{ref_node_label} , ]
+        (\ty{DriveCaller}) \bnt{thrust} ,
+        (\ty{DriveCaller}) \bnt{longitudinal_moment} ,
+        (\ty{DriveCaller}) \bnt{lateral_moment} ,
+        \bnt{rotor_radius} ,
+        (\ty{DriveCaller}) \bnt{angular_velocity} ,
+        (\ty{DriveCaller}) \bnt{advance_ratio}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{rotor trim} is experimental; it allows to set the controls 
