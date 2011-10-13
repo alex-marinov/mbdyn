@@ -11,7 +11,7 @@ As a consequence, an inverse kinematics problem needs to be solved first,
 to determine the configuration of the system up to the acceleration level
 as a function of the motion prescribed to the end effector
 up to the acceleration level.
-Section~\ref{sec:id:fap} deals with the case of a fully actuated problem,
+Section~\ref{sec:id:facp} deals with the case of a fully actuated problem,
 i.e.\ a problem whose motion is completely prescribed in terms
 of joint coordinates.
 Section~\ref{sec:id:uucp} deals with the case of an underactuated problem,
@@ -61,8 +61,8 @@ In some cases, a partial overlap may exist between the two sets of equations.
 
 
 
-\subsection{Fully Actuated Problem}
-\label{sec:id:fap}
+\subsection{Fully Actuated, Collocated Problem}
+\label{sec:id:facp}
 In this case, $\T{\psi}(\T{x}) \equiv \T{\vartheta}(\T{x})$
 and $c = j = n - b$.
 
@@ -165,7 +165,7 @@ or
 	\T{\psi}_{/\T{x}}^T \T{c}
 	&=
 	\T{f}
-	\label{eq:id:fap:ids}
+	\label{eq:id:facp:ids}
 \end{align}
 or
 \begin{align}
@@ -182,13 +182,57 @@ or
 	\T{f}
 	-
 	\TT{M} \ddot{\T{x}}
-	\label{eq:id:fdp}
+	\label{eq:id:facp}
 	.
 \end{align}
 The matrix of the Newton-Raphson problem for the position
 is identical to the matrices of the linear problems for the velocity
 and the acceleration, while the inverse dynamics problem uses its transpose,
 so the same factorization can be easily reused.
+
+
+
+\subsection{Fully Actuated, Non-Collocated Problem}
+\label{sec:id:fancp}
+In this case, $\T{\psi}(\T{x}) \neq \T{\vartheta}(\T{x})$,
+but still $c = j = n - b$.
+
+\subsubsection{Inverse Kinematics: Position, Velocity and Acceleration Subproblems}
+The position, velocity and acceleration subproblems
+that define the inverse kinematics problem are identical
+to those of the collocated case of Section~\ref{sec:id:facp}.
+
+\subsubsection{Inverse Dynamics Subproblem}
+\begin{align}
+	\TT{M} \ddot{\T{x}}
+	+
+	\T{\phi}_{/\T{x}}^T \T{\lambda}
+	+
+	\T{\vartheta}_{/\T{x}}^T \T{c}
+	&=
+	\T{f}
+	\label{eq:id:fancp:ids}
+\end{align}
+or
+\begin{align}
+	\sqbr{\cvvect{
+		\T{\phi}_{/\T{x}}
+		\\
+		\T{\vartheta}_{/\T{x}}
+	}}^T \cubr{\cvvect{
+		\T{\lambda}
+		\\
+		\T{c}
+	}}
+	&=
+	\T{f}
+	-
+	\TT{M} \ddot{\T{x}}
+	\label{eq:id:fancp}
+	.
+\end{align}
+The inverse dynamics problem uses a different matrix from the transpose
+of that that was used for the inverse kinematics subproblems.
 
 
 
@@ -434,7 +478,7 @@ can be reused.
 The second derivative of the constraint cannot be resolved
 as in the fully actuated case, otherwise it could yield accelerations
 that cannot be imposed by the constraints.
-On the contrary, the inverse dynamics problem of Eq.~(\ref{eq:id:fap:ids})
+On the contrary, the inverse dynamics problem of Eq.~(\ref{eq:id:facp:ids})
 is directly solved, yielding both the accelerations and the torques,
 \begin{subequations}
 \begin{align}
@@ -494,7 +538,7 @@ directly yields both accelerations and multipliers.
 \subsection{Underdetermined, Overcontrolled Problem}
 \label{sec:id:uop}
 In this case, $\T{\psi}(\T{x}) \neq \T{\vartheta}(\T{x})$,
-$c < j$, $c < n - b$, $j = n - b$.
+$c < n - b$, $j = n - b$, which implies $c < j$.
 This is the case, for example, of an inverse biomechanics problem,
 where each degree of freedom is a joint commanded by a set of muscles.
 The inverse kinematics problem is solved by prescribing the motion
@@ -605,6 +649,58 @@ or
 
 \subsubsection{Inverse Dynamics Subproblem}
 The inverse dynamics subproblem is identical to that
-of the fully determined case, Eq.~(\ref{eq:id:fdp}).
+of the fully determined, non-collocated case, Eq.~(\ref{eq:id:fancp:ids}).
 
 
+
+\subsubsection{Implementation}
+\begin{itemize}
+\item during `position' inverse kinematics substep:
+\begin{itemize}
+\item assemble $\T{\phi}_{/\T{x}}$ and $\T{\phi}_{/\T{x}}^T$
+for passive constraints
+\item assemble $\T{\psi}_{/\T{x}}$ and $\T{\psi}_{/\T{x}}^T$
+for prescribed motion
+\item assemble equations related to $\T{\vartheta}_{/\T{x}}$
+as $\T{c} = \T{0}$ to neutralize them
+\item assemble dummy springs
+\item optionally assemble mass matrix contribution weighted by $w_{/\T{x}}$
+\end{itemize}
+
+
+\item during `velocity' inverse kinematics substep:
+\begin{itemize}
+\item assemble $\T{\phi}_{/\T{x}}$ and $\T{\phi}_{/\T{x}}^T$
+for passive constraints
+\item assemble $\T{\psi}_{/\T{x}}$ and $\T{\psi}_{/\T{x}}^T$
+for prescribed motion
+\item assemble equations related to $\T{\vartheta}_{/\T{x}}$
+as $\T{c} = \T{0}$ to neutralize them
+\item assemble dummy dampers
+\item optionally assemble mass matrix contribution weighted by $w_{/\dot{\T{x}}}$
+\end{itemize}
+
+
+\item during `acceleration' inverse kinematics substep:
+\begin{itemize}
+\item assemble $\T{\phi}_{/\T{x}}$ and $\T{\phi}_{/\T{x}}^T$
+for passive constraints
+\item assemble $\T{\psi}_{/\T{x}}$ and $\T{\psi}_{/\T{x}}^T$
+for prescribed motion
+\item assemble equations related to $\T{\vartheta}_{/\T{x}}$
+as $\T{c} = \T{0}$ to neutralize them
+\item assemble mass matrix contribution, optionally weighted by $(1 + w_{/\ddot{\T{x}}})$
+\end{itemize}
+
+
+\item during inverse dynamics substep:
+\begin{itemize}
+\item assemble $\T{\phi}_{/\T{x}}$ and $\T{\phi}_{/\T{x}}^T$
+for passive constraints
+\item assemble $\T{\vartheta}_{/\T{x}}$ and $\T{\vartheta}_{/\T{x}}^T$
+for torques
+\item assemble equations related to $\T{\psi}_{/\T{x}}$
+as $\T{\mu} = \T{0}$ to neutralize them
+\item assemble other elements (external forces, springs, etc.)
+\end{itemize}
+\end{itemize}
