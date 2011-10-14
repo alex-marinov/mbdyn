@@ -1282,6 +1282,38 @@ public:
 	};
 
 	/*
+	 * Si somma ad una matrice completa con metodi per matrici piene.
+	 */
+	MatrixHandler& AddTo(FullMatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::AddTo(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::AddTo(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
+	 * Si somma, trasposta, ad una matrice completa con metodi per matrici piene.
+	 */
+	MatrixHandler& AddToT(FullMatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::AddToT(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::AddToT(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
 	 * Si sottrae da una matrice completa con metodi generici.
 	 */
 	MatrixHandler& SubFrom(MatrixHandler& MH) const {
@@ -1301,6 +1333,38 @@ public:
 	 * Si sottrae, trasposta, da una matrice completa con metodi generici.
 	 */
 	MatrixHandler& SubFromT(MatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::SubFromT(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::SubFromT(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
+	 * Si sottrae da una matrice completa con metodi per matrici piene.
+	 */
+	MatrixHandler& SubFrom(FullMatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::SubFrom(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::SubFrom(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
+	 * Si sottrae, trasposta, da una matrice completa con metodi per matrici piene.
+	 */
+	MatrixHandler& SubFromT(FullMatrixHandler& MH) const {
 		switch (eStatus) {
 		case FULL:
 			return FullSubMatrixHandler::SubFromT(MH);

@@ -246,6 +246,12 @@ public:
 	/* Overload di -= usato per l'assemblaggio delle matrici */
 	virtual MatrixHandler& operator -=(const SubMatrixHandler& SubMH);
 
+	/* Overload di += usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator +=(const VariableSubMatrixHandler& SubMH);
+
+	/* Overload di -= usato per l'assemblaggio delle matrici */
+	virtual MatrixHandler& operator -=(const VariableSubMatrixHandler& SubMH);
+
 	/* Esegue il prodotto tra due matrici e se lo memorizza */
 	void MatMul(const FullMatrixHandler& m1, const FullMatrixHandler& m2);
 

@@ -414,6 +414,20 @@ FullMatrixHandler::operator -= (const SubMatrixHandler& SubMH)
 	return SubMH.SubFrom(*this);
 }
 
+/* Overload di += usato per l'assemblaggio delle matrici */
+MatrixHandler&
+FullMatrixHandler::operator += (const VariableSubMatrixHandler& SubMH)
+{
+	return SubMH.AddTo(*this);
+}
+
+/* Overload di -= usato per l'assemblaggio delle matrici */
+MatrixHandler&
+FullMatrixHandler::operator -= (const VariableSubMatrixHandler& SubMH)
+{
+	return SubMH.SubFrom(*this);
+}
+
 /* Esegue il prodotto tra due matrici e se lo memorizza */
 void
 FullMatrixHandler::MatMul(const FullMatrixHandler& m1,
