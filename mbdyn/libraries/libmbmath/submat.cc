@@ -631,7 +631,7 @@ FullSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 			ASSERT(piRowm1[r] > 0);
 			ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
-			ppd[piColm1[r]][piRowm1[c]] += ppdColsm1[c][r];
+			ppd[piColm1[c]][piRowm1[r]] += ppdColsm1[c][r];
 		}
 	}
 
