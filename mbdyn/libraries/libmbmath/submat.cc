@@ -609,6 +609,34 @@ FullSubMatrixHandler::AddTo(MatrixHandler& MH) const
 }
 
 
+/* somma la matrice, trasposta, ad un matrix handler usando i metodi generici */
+MatrixHandler&
+FullSubMatrixHandler::AddToT(MatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	ASSERT(MH.iGetNumRows() >= iNumCols);
+	ASSERT(MH.iGetNumCols() >= iNumRows);
+
+	for (integer c = iNumCols; c > 0; c--) {
+		ASSERT(piColm1[c] > 0);
+		ASSERT(piColm1[c] <= MH.iGetNumRows());
+
+		for (integer r = iNumRows; r > 0; r--) {
+			ASSERT(piRowm1[r] > 0);
+			ASSERT(piRowm1[r] <= MH.iGetNumCols());
+
+			MH(piColm1[c], piRowm1[r]) += ppdColsm1[c][r];
+		}
+	}
+
+	return MH;
+}
+
+
 /* somma la matrice ad un FullMatrixHandler */
 MatrixHandler&
 FullSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
@@ -632,6 +660,36 @@ FullSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 			ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
 			ppd[piColm1[c]][piRowm1[r]] += ppdColsm1[c][r];
+		}
+	}
+
+	return MH;
+}
+
+
+/* somma la matrice, trasposta, ad un FullMatrixHandler */
+MatrixHandler&
+FullSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	ASSERT(MH.iGetNumRows() >= iNumCols);
+	ASSERT(MH.iGetNumCols() >= iNumRows);
+
+	doublereal **ppd = MH.ppdColsm1;
+
+	for (integer c = iNumCols; c > 0; c--) {
+		ASSERT(piColm1[c] > 0);
+		ASSERT(piColm1[c] <= MH.iGetNumRows());
+
+		for (integer r = iNumRows; r > 0; r--) {
+			ASSERT(piRowm1[r] > 0);
+			ASSERT(piRowm1[r] <= MH.iGetNumCols());
+
+			ppd[piRowm1[r]][piColm1[c]] += ppdColsm1[c][r];
 		}
 	}
 
@@ -667,6 +725,34 @@ FullSubMatrixHandler::SubFrom(MatrixHandler& MH) const
 }
 
 
+/* sottrae la matrice, trasposta, da un matrix handler usando i metodi generici */
+MatrixHandler&
+FullSubMatrixHandler::SubFromT(MatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	ASSERT(MH.iGetNumRows() >= iNumCols);
+	ASSERT(MH.iGetNumCols() >= iNumRows);
+
+	for (integer c = iNumCols; c > 0; c--) {
+		ASSERT(piColm1[c] > 0);
+		ASSERT(piColm1[c] <= MH.iGetNumRows());
+
+		for (integer r = iNumRows; r > 0; r--) {
+			ASSERT(piRowm1[r] > 0);
+			ASSERT(piRowm1[r] <= MH.iGetNumCols());
+
+			MH(piColm1[c], piRowm1[r]) -= ppdColsm1[c][r];
+		}
+	}
+
+	return MH;
+}
+
+
 /* sottrae la matrice da un FullMatrixHandler */
 MatrixHandler&
 FullSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
@@ -690,6 +776,36 @@ FullSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
 			ASSERT(piRowm1[r] <= MH.iGetNumRows());
 
 			ppd[piColm1[c]][piRowm1[r]] -= ppdColsm1[c][r];
+		}
+	}
+
+	return MH;
+};
+
+
+/* sottrae la matrice, trasposta, da un FullMatrixHandler */
+MatrixHandler&
+FullSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	ASSERT(MH.iGetNumRows() >= iNumCols);
+	ASSERT(MH.iGetNumCols() >= iNumRows);
+
+	doublereal **ppd = MH.ppdColsm1;
+
+	for (integer c = iNumCols; c > 0; c--) {
+		ASSERT(piColm1[c] > 0);
+		ASSERT(piColm1[c] <= MH.iGetNumRows());
+
+		for (integer r = iNumRows; r > 0; r--) {
+			ASSERT(piRowm1[r] > 0);
+			ASSERT(piRowm1[r] <= MH.iGetNumCols());
+
+			ppd[piRowm1[r]][piColm1[c]] -= ppdColsm1[c][r];
 		}
 	}
 
@@ -1298,6 +1414,28 @@ SparseSubMatrixHandler::AddTo(MatrixHandler& MH) const
 }
 
 
+/* somma la matrice, trasposta, ad un matrix handler usando i metodi generici */
+MatrixHandler&
+SparseSubMatrixHandler::AddToT(MatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	for (integer i = iNumItems; i > 0; i--) {
+		ASSERT(piRowm1[i] > 0);
+		ASSERT(piRowm1[i] <= MH.iGetNumCols());
+		ASSERT(piColm1[i] > 0);
+		ASSERT(piColm1[i] <= MH.iGetNumRows());
+
+		MH(piColm1[i], piRowm1[i]) += pdMatm1[i];
+	}
+
+	return MH;
+}
+
+
 /* somma la matrice ad un FullMatrixHandler */
 MatrixHandler&
 SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
@@ -1316,6 +1454,30 @@ SparseSubMatrixHandler::AddTo(FullMatrixHandler& MH) const
 		ASSERT(piColm1[i] <= MH.iGetNumCols());
 
 		ppd[piColm1[i]][piRowm1[i]] += pdMatm1[i];
+	}
+
+	return MH;
+}
+
+
+/* somma la matrice, trasposta, ad un FullMatrixHandler */
+MatrixHandler&
+SparseSubMatrixHandler::AddToT(FullMatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	doublereal **ppd = MH.ppdColsm1;
+
+	for (integer i = iNumItems; i > 0; i--) {
+		ASSERT(piRowm1[i] > 0);
+		ASSERT(piRowm1[i] <= MH.iGetNumCols());
+		ASSERT(piColm1[i] > 0);
+		ASSERT(piColm1[i] <= MH.iGetNumRows());
+
+		ppd[piRowm1[i]][piColm1[i]] += pdMatm1[i];
 	}
 
 	return MH;
@@ -1344,6 +1506,28 @@ SparseSubMatrixHandler::SubFrom(MatrixHandler& MH) const
 }
 
 
+/* sottrae la matrice, trasposta, da un matrix handler usando i metodi generici */
+MatrixHandler&
+SparseSubMatrixHandler::SubFromT(MatrixHandler& MH) const 
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	for (integer i = iNumItems; i > 0; i--) {
+		ASSERT(piRowm1[i] > 0);
+		ASSERT(piRowm1[i] <= MH.iGetNumCols());
+		ASSERT(piColm1[i] > 0);
+		ASSERT(piColm1[i] <= MH.iGetNumRows());
+
+		MH(piColm1[i], piRowm1[i]) -= pdMatm1[i];
+	}
+
+	return MH;
+}
+
+
 /* sottrae la matrice da un FullMatrixHandler */
 MatrixHandler&
 SparseSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
@@ -1362,6 +1546,29 @@ SparseSubMatrixHandler::SubFrom(FullMatrixHandler& MH) const
 		ASSERT(piColm1[i] <= MH.iGetNumCols());
 
 		ppd[piColm1[i]][piRowm1[i]] -= pdMatm1[i];
+	}
+
+	return MH;
+}
+
+/* sottrae la matrice, trasposta, da un FullMatrixHandler */
+MatrixHandler&
+SparseSubMatrixHandler::SubFromT(FullMatrixHandler& MH) const
+{
+#ifdef DEBUG
+	IsValid();
+	MH.IsValid();
+#endif /* DEBUG */
+
+	doublereal **ppd = MH.ppdColsm1;
+
+	for (integer i = iNumItems; i > 0; i--) {
+		ASSERT(piRowm1[i] > 0);
+		ASSERT(piRowm1[i] <= MH.iGetNumCols());
+		ASSERT(piColm1[i] > 0);
+		ASSERT(piColm1[i] <= MH.iGetNumRows());
+
+		ppd[piRowm1[i]][piColm1[i]] -= pdMatm1[i];
 	}
 
 	return MH;

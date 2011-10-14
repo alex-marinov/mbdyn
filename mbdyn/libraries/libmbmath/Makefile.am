@@ -71,7 +71,7 @@ endif
 libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
-noinst_PROGRAMS = matmultest itertest dgeequtest
+noinst_PROGRAMS = matmultest itertest dgeequtest subtest
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
@@ -113,6 +113,25 @@ libmbmath.la \
 
 dgeequtest_SOURCES = dgeequtest.cc
 dgeequtest_LDADD = \
+libmbmath.la \
+../libmbutil/libmbutil.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@FCLIBS@ \
+@LIBS@ \
+@THREAD_LIBS@
+
+subtest_SOURCES = subtest.cc
+subtest_LDADD = \
 libmbmath.la \
 ../libmbutil/libmbutil.la \
 ../libcolamd/libmbdyncolamd.la \

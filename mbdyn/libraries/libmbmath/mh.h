@@ -138,7 +138,7 @@ public:
 	virtual MatrixHandler& operator -= (const SubMatrixHandler& SubMH);
 
 	/* Overload di += usato per l'assemblaggio delle matrici
-	 * questi li vuole ma non so bene perche'; force per la doppia
+	 * questi li vuole ma non so bene perche'; forse per la doppia
 	 * derivazione di VariableSubMatrixHandler */
 	virtual MatrixHandler&
 	operator += (const VariableSubMatrixHandler& SubMH);

@@ -138,10 +138,22 @@ public:
 	virtual MatrixHandler& AddTo(MatrixHandler& MH) const = 0;
 
 	/*
+	 * Si somma ad una matrice, trasposta.
+	 * Nota: le dimensioni devono essere compatibili.
+	 */
+	virtual MatrixHandler& AddToT(MatrixHandler& MH) const = 0;
+
+	/*
 	 * Si sottrae da una matrice.
 	 * Nota: le dimensioni devono essere compatibili.
 	 */
 	virtual MatrixHandler& SubFrom(MatrixHandler& MH) const = 0;
+
+	/*
+	 * Si sottrae da una matrice, trasposta.
+	 * Nota: le dimensioni devono essere compatibili.
+	 */
+	virtual MatrixHandler& SubFromT(MatrixHandler& MH) const = 0;
 };
 
 /* SubMatrixHandler - end */
@@ -614,9 +626,19 @@ public:
 	MatrixHandler& AddTo(MatrixHandler& MH) const;
 
 	/*
+	 * Somma la matrice, trasposta, ad un matrix handler usando i metodi generici
+	 */
+	MatrixHandler& AddToT(MatrixHandler& MH) const;
+
+	/*
 	 * Somma la matrice ad un FullMatrixHandler
 	 */
 	MatrixHandler& AddTo(FullMatrixHandler& MH) const;
+
+	/*
+	 * Somma la matrice, trasposta, ad un FullMatrixHandler
+	 */
+	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
@@ -624,10 +646,19 @@ public:
 	MatrixHandler& SubFrom(MatrixHandler& MH) const;
 
 	/*
+	 * Sottrae la matrice, trasposta, da un matrix handler usando i metodi generici
+	 */
+	MatrixHandler& SubFromT(MatrixHandler& MH) const;
+
+	/*
 	 * Sottrae la matrice da un FullMatrixHandler
 	 */
 	MatrixHandler& SubFrom(FullMatrixHandler& MH) const;
 
+	/*
+	 * Sottrae la matrice, trasposta, da un FullMatrixHandler
+	 */
+	MatrixHandler& SubFromT(FullMatrixHandler& MH) const;
 };
 
 /* Inserisce un coefficiente */
@@ -1025,9 +1056,19 @@ public:
 	MatrixHandler& AddTo(MatrixHandler& MH) const;
 
 	/*
+	 * Somma la matrice, trasposta, ad un matrix handler usando i metodi generici
+	 */
+	MatrixHandler& AddToT(MatrixHandler& MH) const;
+
+	/*
 	 * Somma la matrice ad un FullMatrixHandler
 	 */
 	MatrixHandler& AddTo(FullMatrixHandler& MH) const;
+
+	/*
+	 * Somma la matrice, trasposta, ad un FullMatrixHandler
+	 */
+	MatrixHandler& AddToT(FullMatrixHandler& MH) const;
 
 	/*
 	 * Sottrae la matrice da un matrix handler usando i metodi generici
@@ -1035,9 +1076,19 @@ public:
 	MatrixHandler& SubFrom(MatrixHandler& MH) const;
 
 	/*
+	 * Sottrae la matrice, trasposta, da un matrix handler usando i metodi generici
+	 */
+	MatrixHandler& SubFromT(MatrixHandler& MH) const;
+
+	/*
 	 * Sottrae la matrice da un FullMatrixHandler
 	 */
 	MatrixHandler& SubFrom(FullMatrixHandler& MH) const;
+
+	/*
+	 * Sottrae la matrice, trasposta, da un FullMatrixHandler
+	 */
+	MatrixHandler& SubFromT(FullMatrixHandler& MH) const;
 };
 
 /* SparseSubMatrixHandler - end */
@@ -1215,6 +1266,22 @@ public:
 	};
 
 	/*
+	 * Si somma, trasposta, ad una matrice completa con metodi generici.
+	 */
+	MatrixHandler& AddToT(MatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::AddToT(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::AddToT(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
 	 * Si sottrae da una matrice completa con metodi generici.
 	 */
 	MatrixHandler& SubFrom(MatrixHandler& MH) const {
@@ -1224,6 +1291,22 @@ public:
 
 		case SPARSE:
 			return SparseSubMatrixHandler::SubFrom(MH);
+
+		default:
+			return MH;
+		}
+	};
+
+	/*
+	 * Si sottrae, trasposta, da una matrice completa con metodi generici.
+	 */
+	MatrixHandler& SubFromT(MatrixHandler& MH) const {
+		switch (eStatus) {
+		case FULL:
+			return FullSubMatrixHandler::SubFromT(MH);
+
+		case SPARSE:
+			return SparseSubMatrixHandler::SubFromT(MH);
 
 		default:
 			return MH;
