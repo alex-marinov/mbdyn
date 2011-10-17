@@ -43,7 +43,7 @@ MBDyn 1.X-Devel
 		- fix parameter node use in elems (noted by Reinhard Resch)
 		- fix arpack counter for non terminal (Reinhard Resch)
 		- fix label alignment in strext (noted by Mirco Valentini)
-		- fix index in full submatrix add to full matrix
+		- fix index in full submatrix add to full matrix (unused)
 
 MBDyn 1.4.0
 	Enhancements:
