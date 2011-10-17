@@ -49,6 +49,8 @@
 #ifndef SOLVER_IMPL_H
 #define SOLVER_IMPL_H
 
+#include <limits>
+
 #if defined(HAVE_SIGNAL) && defined(HAVE_SIGNAL_H)
 #include <signal.h>
 #endif /* HAVE_SIGNAL && HAVE_SIGNAL_H */
@@ -96,7 +98,7 @@ static const doublereal defaultIterativeTau = 1.e-7;
 
 static const integer iDefaultMaxIterations = 1;
 static const doublereal dDefaultMinTimeStep = -1.;
-static const doublereal dDefaultMaxTimeStep = -1.;
+static const doublereal dDefaultMaxTimeStep = std::numeric_limits<doublereal>::max();
 static const doublereal dDefaultDummyStepsTolerance = dDefaultTol;
 
 #endif /* ! SOLVER_IMPL_H */
