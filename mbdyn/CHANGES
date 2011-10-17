@@ -32,6 +32,7 @@ MBDyn 1.X-Devel
 		- the induced velocity element internal API changed
 	Known issues:
 		- Schur solver is broken
+		- TotalPinJoint inverse dynamics support is broken
 	Bug fixes:
 		- fix node label in external structural force output
 		- fix typo in eigenanalysis documentation (Patrick Rix)
