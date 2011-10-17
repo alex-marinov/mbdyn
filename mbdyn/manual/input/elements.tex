@@ -3439,11 +3439,11 @@ in an arbitrary position and orientation that remains fixed.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{joint_type} ::= \kw{clamp}
 
-    \bnt{joint_arglist} ::= \bnt{node_label}
-        [ [ , \kw{position} ] ,
-            \{ \kw{node} | (\ty{Vec3}) \bnt{absolute_position} \} ]
-        [ [ , \kw{orientation} ] ,
-            \{ \kw{node} | (\ty{OrientationMatrix}) \bnt{absolute_orientation_matrix} \} ]
+    \bnt{joint_arglist} ::= \bnt{node_label} ,
+        [ \kw{position} , ]
+            \{ \kw{node} | (\ty{Vec3}) \bnt{absolute_position} \} ,
+        [ \kw{orientation} , ]
+            \{ \kw{node} | (\ty{OrientationMatrix}) \bnt{absolute_orientation_matrix} \}
 \end{Verbatim}
 %\end{verbatim}
 The keyword \kw{node} forces the joint to use
