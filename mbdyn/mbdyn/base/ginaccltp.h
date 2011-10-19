@@ -129,6 +129,28 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 			}
 		}
 	}
+
+	silent_cout("\tGiNaCElasticConstitutiveLaw:" << std::endl);
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tEps[" << row << "]:              \"" << *gEps[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tConstitutive law[" << row << "]: \"" << gExpr[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		for (unsigned col = 0; col < dim; col++) {
+			silent_cout("\t\tDer/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
+		}
+	}
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<T, Tder>::Epsilon, ElasticConstitutiveLaw<T, Tder>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 }	
  
 template <class T, class Tder>
@@ -271,6 +293,15 @@ gEps(epsilon[0])
 		<< "\t\tEps:              \"" << gEps << "\"" << std::endl
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
 		<< "\t\tDer/Eps:          \"" << gExprDEps << "\"" << std::endl);
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon, ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCElasticConstitutiveLaw<doublereal, doublereal>::GiNaCElasticConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 }
  
 GiNaCElasticConstitutiveLaw<doublereal, doublereal>::~GiNaCElasticConstitutiveLaw(void)
@@ -427,6 +458,28 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 			}
 		}
 	}
+
+	silent_cout("\tGiNaCViscousConstitutiveLaw:" << std::endl);
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tEpsPrime[" << row << "]:         \"" << *gEpsPrime[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tConstitutive law[" << row << "]: \"" << gExpr[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		for (unsigned col = 0; col < dim; col++) {
+			silent_cout("\t\tDer/EpsPrime[" << row << "][" << col << "]:  \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
+		}
+	}
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<T, Tder>::Epsilon, ElasticConstitutiveLaw<T, Tder>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 };
 
 template <class T, class Tder>
@@ -563,6 +616,15 @@ gEpsPrime(epsilonPrime[0])
 		<< "\t\tEpsPrime:         \"" << gEpsPrime << "\"" << std::endl
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
 		<< "\t\tDer/EpsPrime:     \"" << gExprDEpsPrime << "\"" << std::endl);
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon, ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCViscousConstitutiveLaw<doublereal, doublereal>::GiNaCViscousConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 }
  
 GiNaCViscousConstitutiveLaw<doublereal, doublereal>::~GiNaCViscousConstitutiveLaw(void)
@@ -738,6 +800,36 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 			}
 		}
 	}
+
+	silent_cout("\tGiNaCViscoElasticConstitutiveLaw:" << std::endl);
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tEps[" << row << "]:              \"" << *gEps[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tEpsPrime[" << row << "]:              \"" << *gEpsPrime[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		silent_cout("\t\tConstitutive law[" << row << "]: \"" << gExpr[row] << "\"" << std::endl);
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		for (unsigned col = 0; col < dim; col++) {
+			silent_cout("\t\tDer/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
+		}
+	}
+	for (unsigned row = 0; row < dim; row++) {
+		for (unsigned col = 0; col < dim; col++) {
+			silent_cout("\t\tDer/EpsPrime[" << row << "][" << col << "]:          \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
+		}
+	}
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<T, Tder>::Epsilon, ElasticConstitutiveLaw<T, Tder>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 }
  
 template <class T, class Tder>
@@ -909,6 +1001,15 @@ gEps(epsilon[0]), gEpsPrime(epsilonPrime[0])
 		<< "\t\tConstitutive law: \"" << gExpr << "\"" << std::endl
 		<< "\t\tDer/Eps:          \"" << gExprDEps << "\"" << std::endl
 		<< "\t\tDer/EpsPrime:     \"" << gExprDEpsPrime << "\"" << std::endl);
+
+	// try and evaluate the constitutive law
+	try {
+		Update(ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon, ElasticConstitutiveLaw<doublereal, doublereal>::Epsilon);
+	}
+	catch (std::exception e) {
+		silent_cerr("GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::GiNaCViscoElasticConstitutiveLaw: Update() failed (" << e.what() << ")" << std::endl);
+		throw e;
+	}
 }
  
 GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>::~GiNaCViscoElasticConstitutiveLaw(void)
