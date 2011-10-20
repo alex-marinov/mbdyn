@@ -1274,6 +1274,8 @@ ReadShell4EAS(DataManager* pDM,
 	const DofOwner* pDO,
 	unsigned int uLabel)
 {
+	silent_cout("Shell4EAS(" << uLabel << "): warning, \"shell4eas\" is deprecated; use \"shell4easans\" instead" << std::endl);
+
 	StructNode* pN[4];
 	Mat3x3 R[4];
 	for (unsigned i = 0; i < 4; i++) {
