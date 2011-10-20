@@ -66,10 +66,13 @@ class InverseSolver;
 
 class InverseSolver : public Solver {
 protected:
+	InverseDynamics::Type ProblemType;
+	doublereal dw1[3];
+	doublereal dw2[3];
 	MyVectorHandler* pXPrimePrime;
 	MyVectorHandler* pLambda;
-   	/* Lettura dati */
 
+   	/* Lettura dati */
    	void ReadData(MBDynParser& HP);
 
 public:   
@@ -86,6 +89,9 @@ public:
    	virtual void Run(void);
 
 	std::ostream& Restart(std::ostream& out, DataManager::eRestart type) const;
+
+	InverseDynamics::Type GetProblemType(void) const;
+	void GetWeight(InverseDynamics::Order iOrder, doublereal& dw1, doublereal& dw2) const;
 };
 
 /* InverseSolver - end */

@@ -160,6 +160,33 @@ public:
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 };
 
+class NonlinearSolverTestRange : public NonlinearSolverTest {
+protected:
+	integer m_iFirstIndex;
+	integer m_iLastIndex;
+	NonlinearSolverTest *m_pTest;
+
+	bool bIsValid(const integer& iIndex) const;
+
+public:
+	NonlinearSolverTestRange(NonlinearSolverTest *pTest, integer iFirstIndex = -1, integer iLastIndex = -1);
+	virtual ~NonlinearSolverTestRange(void);
+
+#if 0
+	virtual doublereal MakeTest(Solver *pS, const integer& Size,
+		const VectorHandler& Vec, bool bResidual = false);
+#endif
+
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex) const;
+
+	virtual void TestMerge(doublereal& dResCurr, const doublereal& dResNew) const;
+
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+
+	void SetRange(integer iFirstIndex, integer iLastIndex);
+};
+
 class NonlinearSolver : public SolverDiagnostics
 {
 public:

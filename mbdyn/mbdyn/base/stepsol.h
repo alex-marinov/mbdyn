@@ -671,6 +671,7 @@ private:
 	mutable bool bEvalProdCalledFirstTime;
 
 	InverseDynamics::Order iOrder;
+	mutable bool m_bJacobian;
 
 protected:
 	VectorHandler *pXCurr;
@@ -733,7 +734,11 @@ public:
 	
 	void Update(const VectorHandler* pSol) const  ;
 	
-	void SetOrder(InverseDynamics::Order iOrd);
+	void SetOrder(InverseDynamics::Order iOrder);
+
+	InverseDynamics::Order GetOrder(void) const;
+
+	bool bJacobian(void) const;
 };
 
 /* InverseDynamics - End*/

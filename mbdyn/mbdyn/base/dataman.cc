@@ -123,6 +123,8 @@ pRBK(0),
 bStaticModel(false),
 /* auto-detect if running inverse dynamics */
 bInverseDynamics(dynamic_cast<InverseSolver *>(pS) != 0),
+iIDNodeTotNumDofs(0),
+iIDJointTotNumDofs(0),
 #if defined(USE_RUNTIME_LOADING)
 moduleInitialized(false),
 #endif // USE_RUNTIME_LOADING

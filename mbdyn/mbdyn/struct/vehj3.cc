@@ -200,6 +200,13 @@ DeformableJoint::SetValue(DataManager *pDM,
 	}
 }
 
+/* inverse dynamics capable element */
+bool
+DeformableJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 Hint *
 DeformableJoint::ParseHint(DataManager *pDM, const char *s) const
 {

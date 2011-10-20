@@ -126,7 +126,10 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-   	
+   
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
 	/* Inverse Dynamics: */
 	virtual void Update(const VectorHandler& XCurr,
 			InverseDynamics::Order iOrder);

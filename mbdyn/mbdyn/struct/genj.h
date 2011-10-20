@@ -334,6 +334,9 @@ class ClampJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
+
+   /* inverse dynamics capable element */
+   virtual bool bInverseDynamics(void) const;
    
    /* Inverse Dynamics: AssRes */
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,

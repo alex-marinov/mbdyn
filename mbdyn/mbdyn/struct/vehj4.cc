@@ -195,6 +195,13 @@ DeformableAxialJoint::SetInitialValue(VectorHandler& /* X */ )
 	AfterPredict();
 }
 
+/* inverse dynamics capable element */
+bool
+DeformableAxialJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 Hint *
 DeformableAxialJoint::ParseHint(DataManager *pDM, const char *s) const
 {

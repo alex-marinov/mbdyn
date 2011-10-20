@@ -1082,6 +1082,13 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+TotalJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 /* Inverse Dynamics Jacobian matrix assembly */
 VariableSubMatrixHandler&
 TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
@@ -2766,11 +2773,18 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+TotalPinJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 /* Inverse Dynamics: Jacobian Assembly */
 
 VariableSubMatrixHandler&
 TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
-	const VectorHandler& XCurr) 
+	const VectorHandler& XCurr)
 
 {
 	/*
@@ -3549,12 +3563,19 @@ TotalForce::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+TotalForce::bInverseDynamics(void) const
+{
+	return true;
+}
+
 /* Inverse Dynamics Residual Assembly */
 SubVectorHandler&
 TotalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */,
-	const VectorHandler& /* XPrimeCurr */, 
-	const VectorHandler& /* XPrimePrimeCurr */, 
+	const VectorHandler& /* XPrimeCurr */,
+	const VectorHandler& /* XPrimePrimeCurr */,
 	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering TotalForce::AssRes(" << invdyn2str(iOrder) << ")" << std::endl);

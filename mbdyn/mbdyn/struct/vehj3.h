@@ -124,6 +124,9 @@ public:
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+ 
 	/* Tipo di DeformableJoint */
 	virtual ConstLawType::Type GetConstLawType(void) const = 0;
 

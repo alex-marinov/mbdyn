@@ -299,6 +299,13 @@ DeformableHingeJoint::SetValue(DataManager *pDM,
 	}
 }
 
+/* inverse dynamics capable element */
+bool
+DeformableHingeJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 void
 DeformableHingeJoint::SetInitialValue(VectorHandler& /* X */ )
 {

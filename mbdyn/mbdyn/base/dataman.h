@@ -65,6 +65,7 @@
 #include "elecnode.h"
 
 #include "solverdiagnostics.h"
+#include "nonlin.h"
 #include "linsol.h"
 #include "converged.h"
 #include "invdyn.h"
@@ -125,7 +126,11 @@ protected:
 
 	RigidBodyKinematics *pRBK;
 	bool bStaticModel;
+
+	// inverse dynamics
 	bool bInverseDynamics;
+	int iIDNodeTotNumDofs;
+	int iIDJointTotNumDofs;
 
 #ifdef USE_RUNTIME_LOADING
 	bool moduleInitialized;
@@ -270,8 +275,9 @@ protected:
 	void DofOwnerSet(void);
 	void DofOwnerInit(void);
 	
-	/* Inverse Dynamics: */
-	bool IDDofOwnerSet(void);
+	/* inverse dynamics: */
+	void IDDofOwnerSet(void);
+
 public:
 	/* costruttore - legge i dati e costruisce le relative strutture */
 	DataManager(MBDynParser& HP,
@@ -344,6 +350,7 @@ public:
 	const DriveHandler* pGetDrvHdl(void) const { return &DrvHdl; };
 	MathParser& GetMathParser(void) const { return MathPar; };
 	MBDynParser& GetMBDynParser(void) const { return MBPar; };
+	const Solver *GetSolver(void) const { return pSolver; };
 
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
@@ -355,19 +362,19 @@ public:
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
 		throw(ChangedEquationStructure);
 
-	/* Inverse Dynamics: */
-	
+	// inverse dynamics
 	/* Constraints residual, switch iOrder*/
 	virtual void AssConstrRes(VectorHandler& ResHdl,
 		InverseDynamics::Order iOrder) 
 		throw(ChangedEquationStructure) ;
 
 	/* Elem residual, equilibrium with no constraints */
-	virtual void AssRes(VectorHandler &ResHdl)
+	virtual void AssRes(VectorHandler& ResHdl)
 		throw(ChangedEquationStructure);
 	
 	/* Constraint Jacobian matrix*/	
 	virtual void AssConstrJac(MatrixHandler& JacHdl);
+	// end of inverse dynamics
 
 protected:
 	/* specialized functions, called by above general helpers */
@@ -383,7 +390,7 @@ protected:
 			SubVectorHandler& WorkVec)
 		throw(ChangedEquationStructure);
 
-	/* Inverse Dynamics: */
+	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
 		VecIter<Elem *> &Iter,
 		VariableSubMatrixHandler& WorkMat);
@@ -398,6 +405,7 @@ protected:
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec)
 	throw(ChangedEquationStructure);
+	// end of inverse dynamics
 
 protected:
 	typedef std::vector<Converged::State> Converged_t;
@@ -460,6 +468,7 @@ public:
 	/* Inverse Dynamics: */
 	virtual void Update(InverseDynamics::Order iOrder) const;
 	virtual void IDAfterConvergence(void) const;
+	virtual void IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRange *pSolTest);
 
 	void bSetStaticModel(bool b) {
 		bStaticModel = b;
@@ -804,7 +813,11 @@ public:
 	void DofInit(void);
 
 	/* Inverse Dynamics: */
-	void IDDofInit(bool bIsSquare);
+	void IDDofInit(void);
+
+	int iIDGetNodeTotNumDofs(void) const;
+	int iIDGetJointTotNumDofs(void) const;
+	int iIDGetTotNumDofs(void) const;
 
 	void SetScale(VectorHandler& XScale) const;
 

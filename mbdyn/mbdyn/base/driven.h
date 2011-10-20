@@ -82,7 +82,7 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-   	
+   
 	/* Inverse Dynamics: */
 	virtual void Update(const VectorHandler& XCurr,
 			InverseDynamics::Order iOrder);

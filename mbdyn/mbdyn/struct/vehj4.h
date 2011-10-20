@@ -111,6 +111,9 @@ public:
 		SimulationEntity::Hints *ph = 0);
 	virtual void SetInitialValue(VectorHandler& /* X */ );
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+ 
 	virtual Hint *
 	ParseHint(DataManager *pDM, const char *s) const;
 	         

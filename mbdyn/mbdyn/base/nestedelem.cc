@@ -197,6 +197,14 @@ NestedElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 	pElem->Update(XCurr, XPrimeCurr);
 }
 
+/* inverse dynamics capable element */
+bool
+NestedElem::bInverseDynamics(void) const
+{
+	ASSERT(pElem != NULL);
+	pElem->bInverseDynamics();
+}
+
 /* Inverse Dynamics: */
 void
 NestedElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)

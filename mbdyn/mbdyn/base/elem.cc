@@ -60,6 +60,12 @@ Elem::AssMats(VariableSubMatrixHandler& /* WorkMatA */ ,
 		"AssMats() not implemented yet" << std::endl);
 }
 
+bool
+Elem::bInverseDynamics(void) const
+{
+	return false;
+}
+
 /* inverse dynamics Jacobian matrix assembly */
 VariableSubMatrixHandler&
 Elem::AssJac(VariableSubMatrixHandler& WorkMat,

@@ -300,6 +300,7 @@ pFirstDummyStep(0),
 pDummySteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
+pCurrStepIntegrator(0),
 pRhoRegular(NULL),
 pRhoAlgebraicRegular(NULL),
 pRhoDummy(NULL),
@@ -761,6 +762,7 @@ Solver::Run(void)
 	SetupSolmans(pDerivativeSteps->GetIntegratorNumUnknownStates());
 
 	/* Derivative steps */
+	pCurrStepIntegrator = pDerivativeSteps;
 	try {
 		dTest = pDerivativeSteps->Advance(this,
 			0., 1., StepIntegrator::NEWSTEP,
@@ -887,6 +889,7 @@ Solver::Run(void)
 		/* Setup SolutionManager(s) */
 		SetupSolmans(pFirstDummyStep->GetIntegratorNumUnknownStates());
 		/* pFirstDummyStep */
+		pCurrStepIntegrator = pFirstDummyStep;
 		try {
 			dTest = pFirstDummyStep->Advance(this,
 				dRefTimeStep, 1.,
@@ -976,6 +979,7 @@ Solver::Run(void)
 				<< "; current time step: " << dCurrTimeStep
 				<< std::endl);
 
+			pCurrStepIntegrator = pDummySteps;
 			ASSERT(pDummySteps!= NULL);
 			try {
 				pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
@@ -1134,6 +1138,7 @@ Solver::Run(void)
 
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
+	pCurrStepIntegrator = pFirstRegularStep;
 IfFirstStepIsToBeRepeated:
 	try {
 		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
@@ -1258,6 +1263,7 @@ IfFirstStepIsToBeRepeated:
 
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
+	pCurrStepIntegrator = pRegularSteps;
 	while (true) {
 		StepIntegrator::StepChange CurrStep
 				= StepIntegrator::NEWSTEP;

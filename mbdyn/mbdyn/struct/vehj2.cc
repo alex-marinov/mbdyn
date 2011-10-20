@@ -421,6 +421,13 @@ DeformableDispJoint::ParseHint(DataManager *pDM, const char *s) const
 	return ConstitutiveLaw3DOwner::ParseHint(pDM, s);
 }
 
+/* inverse dynamics capable element */
+bool
+DeformableDispJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+
 unsigned int
 DeformableDispJoint::iGetNumPrivData(void) const
 {

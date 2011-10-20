@@ -81,6 +81,7 @@ InverseSolver::InverseSolver(MBDynParser& HPar,
 		const std::string& sOutFName,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, bPar),
+ProblemType(InverseDynamics::FULLY_ACTUATED_COLLOCATED),
 pXPrimePrime(NULL), pLambda(NULL)
 {
 	DEBUGCOUTFNAME("InverseSolver::InverseSolver");
@@ -393,6 +394,22 @@ InverseSolver::Run(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	// pippero
+	switch (GetProblemType()) {
+	case InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED:
+	case InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED:
+		{
+			NonlinearSolverTestRange *pRT = new NonlinearSolverTestRange(pResTest);
+			NonlinearSolverTestRange *pST = new NonlinearSolverTestRange(pSolTest);
+			pDM->IDSetTest(pRT, pST);
+			pResTest = pRT;
+			pSolTest = pST;
+		} break;
+
+	default:
+		break;
+	}
+
 	/* registers tests in nonlinear solver */
 	pNLS->SetTest(pResTest, pSolTest);
 
@@ -516,8 +533,8 @@ InverseSolver::Run(void)
 	 * since we need to explicitly SetTime() to the next time step */
 	pDM->SetValue(*pX, *pXPrime);
 
+	pCurrStepIntegrator = pRegularSteps;
 	while (true) {
-
 		StepIntegrator::StepChange CurrStep
 				= StepIntegrator::NEWSTEP;
 
@@ -858,6 +875,36 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 	return out;
 }
 
+InverseDynamics::Type
+InverseSolver::GetProblemType(void) const
+{
+	return ProblemType;
+}
+
+void
+InverseSolver::GetWeight(InverseDynamics::Order iOrder, doublereal& dw1, doublereal& dw2) const
+{
+	switch (iOrder) {
+	case InverseDynamics::POSITION:
+		dw1 = this->dw1[0];
+		dw2 = this->dw2[0];
+		break;
+
+	case InverseDynamics::VELOCITY:
+		dw1 = this->dw1[1];
+		dw2 = this->dw2[1];
+		break;
+
+	case InverseDynamics::ACCELERATION:
+		dw1 = 0.;
+		dw2 = this->dw1[2] + this->dw2[2];
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
 /* Dati dell'integratore */
 void
 InverseSolver::ReadData(MBDynParser& HP)
@@ -939,6 +986,12 @@ InverseSolver::ReadData(MBDynParser& HP)
 		/* multithread stuff */
 		"threads",
 
+		"problem" "type",
+			"fully" "actuated" "collocated",
+			"fully" "actuated" "non" "collocated",
+			"underdetermined" "underactuated" "collocated",
+			"underdetermined" "fully" "actuated",
+
 		NULL
 	};
 
@@ -1013,6 +1066,12 @@ InverseSolver::ReadData(MBDynParser& HP)
 		REALTIME,
 
 		THREADS,
+
+		PROBLEMTYPE,
+			FAC,
+			FANC,
+			UDUAC,
+			UDFA,
 
 		LASTKEYWORD
 	};
@@ -1803,6 +1862,62 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			break;
 
+		case PROBLEMTYPE:
+			switch (KeyWords(HP.GetWord())) {
+			case FAC:
+				// default
+				ProblemType = InverseDynamics::FULLY_ACTUATED_COLLOCATED;
+				break;
+
+			case FANC:
+				ProblemType = InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED;
+				break;
+
+			case UDUAC:
+				ProblemType = InverseDynamics::UNDERDETERMINED_UNDERACTUATED_COLLOCATED;
+				if (HP.IsKeyWord("weights")) {
+					for (int iCnt = 0; iCnt <= InverseDynamics::VELOCITY; iCnt++) {
+						dw1[iCnt] = HP.GetReal();
+						dw2[iCnt] = HP.GetReal();
+					}
+					dw1[InverseDynamics::ACCELERATION] = 0.;
+					dw2[InverseDynamics::ACCELERATION] = 0.;
+
+				} else {
+					for (int iCnt = 0; iCnt <= InverseDynamics::ACCELERATION; iCnt++) {
+						dw1[iCnt] = 1.;
+						dw2[iCnt] = 0.;
+					}
+				}
+
+				break;
+
+			case UDFA:
+				ProblemType = InverseDynamics::UNDERDETERMINED_FULLY_ACTUATED;
+				if (HP.IsKeyWord("weights")) {
+					for (int iCnt = 0; iCnt <= InverseDynamics::ACCELERATION; iCnt++) {
+						dw1[iCnt] = HP.GetReal();
+						dw2[iCnt] = HP.GetReal();
+					}
+
+				} else {
+					for (int iCnt = 0; iCnt <= InverseDynamics::ACCELERATION; iCnt++) {
+						dw1[iCnt] = 1.;
+						dw2[iCnt] = 0.;
+					}
+				}
+				break;
+
+			default:
+				silent_cerr("inverse dynamics: unrecognized problem type at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (HP.IsArg()) {
+				silent_cerr("inverse dynamics: semicolon expected at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
 
 		default:
 			silent_cerr("unknown description at line "

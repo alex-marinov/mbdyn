@@ -1650,6 +1650,13 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+ClampJoint::bInverseDynamics(void) const
+{
+	return true;
+}
+   
 /* Inverse Dynamics: AssRes()*/
 SubVectorHandler&
 ClampJoint::AssRes(SubVectorHandler& WorkVec,

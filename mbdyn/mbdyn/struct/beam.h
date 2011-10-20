@@ -341,7 +341,7 @@ protected:
 	   const VectorHandler& XCurr, 
 	   const VectorHandler& XPrimeCurr);
    
-   /* Inverse Dynamics: */
+    /* Inverse Dynamics: */
     virtual SubVectorHandler& 
     AssRes(SubVectorHandler& WorkVec,
 	   const VectorHandler&  XCurr , 
@@ -349,6 +349,8 @@ protected:
 	   const VectorHandler&  XPrimePrimeCurr ,
 	   InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
    
+    /* inverse dynamics capable element */
+    virtual bool bInverseDynamics(void) const;
 
     /* assemblaggio jacobiano */
     virtual VariableSubMatrixHandler&

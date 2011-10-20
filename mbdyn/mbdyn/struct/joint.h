@@ -51,6 +51,9 @@ class Joint
 : virtual public Elem, public ElemGravityOwner,
 	public ElemWithDofs, public InitialAssemblyElem
 {
+protected:
+	unsigned m_uInverseDynamicsFlags;
+
 public:
 	/* Tipi di Joint */
 	enum Type {
@@ -206,8 +209,15 @@ public:
 		NO_OP;
 	};
 
+	// inverse dynamics
 	/* inverse dynamics update */
 	virtual void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	void SetInverseDynamicsFlags(unsigned uIDF);
+	unsigned GetInverseDynamicsFlags(void) const;
+	bool bIsPrescribedMotion(void) const;
+	bool bIsTorque(void) const;
+	// end of inverse dynamics
 	
 	/* per la lettura dei dati dell'elemento modale */
 

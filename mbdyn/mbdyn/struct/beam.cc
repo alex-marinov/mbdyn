@@ -955,6 +955,12 @@ Beam::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+Beam::bInverseDynamics(void) const
+{
+	return true;
+}
 
 /* Settings iniziali, prima della prima soluzione */
 void

@@ -269,13 +269,14 @@ protected:
 			INT_IMPLICITEULER,
 			INT_UNKNOWN
 	};
-	StepIntegratorType RegularType,  DummyType;
+	StepIntegratorType RegularType, DummyType;
 	
    	StepIntegrator* pDerivativeSteps;
    	StepIntegrator* pFirstDummyStep;
 	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
    	StepIntegrator* pRegularSteps;
+	StepIntegrator* pCurrStepIntegrator;
 	
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
@@ -375,6 +376,9 @@ public:
 	};
 	virtual NonlinearSolver *pGetNonlinearSolver(void) const {
 		return pNLS;
+	};
+	virtual StepIntegrator *pGetStepIntegrator(void) const {
+		return pCurrStepIntegrator;
 	};
 	virtual doublereal GetDInitialTimeStep(void) const {
 		return dInitialTimeStep;

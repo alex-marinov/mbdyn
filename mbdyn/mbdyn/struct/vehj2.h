@@ -126,6 +126,9 @@ public:
 		*piNumCols = 12;
 	};
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+ 
 	/* funzioni usate nell'assemblaggio iniziale */
 	virtual unsigned int iGetInitialNumDof(void) const {
 		return 0;

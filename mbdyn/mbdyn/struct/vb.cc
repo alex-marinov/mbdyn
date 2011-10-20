@@ -332,6 +332,13 @@ ViscousBody::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+ViscousBody::bInverseDynamics(void) const
+{
+	return true;
+}
+
 /* Inverse Dynamics Residual Assembly */
 SubVectorHandler&
 ViscousBody::AssRes(SubVectorHandler& WorkVec,

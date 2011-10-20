@@ -148,6 +148,9 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+ 
 	/* Inverse Dynamics residual assembly */
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,

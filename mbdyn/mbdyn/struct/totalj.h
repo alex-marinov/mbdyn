@@ -180,6 +180,9 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
 	/* Inverse Dynamics Jacobian matrix assembly */
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -378,6 +381,8 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
 
 	/* inverse dynamics Jacobian matrix assembly */
 	VariableSubMatrixHandler&
@@ -505,6 +510,9 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
 
 	/* Inverse Dynamics*/
 	SubVectorHandler& AssRes(SubVectorHandler& WorkVec,

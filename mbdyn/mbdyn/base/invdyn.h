@@ -40,6 +40,25 @@ public:
 		VELOCITY = 1,
 		ACCELERATION = 2
 	};
+
+	enum Type {
+		FULLY_ACTUATED = 0x01U,
+		FULLY_DETERMINED = 0x02U,
+		COLLOCATED = 0x04U,
+
+		// fully actuated collocated
+		FULLY_ACTUATED_COLLOCATED = (FULLY_ACTUATED|FULLY_DETERMINED|COLLOCATED),
+		// fully actuated non collocated
+		FULLY_ACTUATED_NON_COLLOCATED = (FULLY_ACTUATED|FULLY_DETERMINED),
+		// underdetermined underactuated collocated
+		UNDERDETERMINED_UNDERACTUATED_COLLOCATED = (COLLOCATED),
+		// underdetermined fully actuated
+		UNDERDETERMINED_FULLY_ACTUATED = (FULLY_ACTUATED),
+
+
+		PRESCRIBED_MOTION = 0x10U,
+		TORQUE = 0x20U
+	};
 };
 
 extern const char *invdyn2str(InverseDynamics::Order iOrder);

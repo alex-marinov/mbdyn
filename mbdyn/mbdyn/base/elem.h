@@ -200,6 +200,9 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) = 0;
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
 	/* inverse dynamics Jacobian matrix assembly */
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,

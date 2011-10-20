@@ -112,6 +112,33 @@ Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	JTmp = R*J0.MulMT(R);
 }
 
+/* massa totale */
+doublereal
+Body::dGetM(void) const
+{
+	return dMass;
+}
+
+/* momento statico */
+Vec3
+Body::GetS(void) const
+{
+	return GetS_int();
+}
+
+/* momento d'inerzia */
+Mat3x3
+Body::GetJ(void) const
+{
+	return GetJ_int();
+}
+
+/* nodo */
+const StructNode *
+Body::pGetNode(void) const
+{
+	return pNode;
+}
 
 /* Accesso ai dati privati */
 unsigned int
@@ -892,6 +919,14 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	return WorkVec;
+}
+
+
+/* inverse dynamics capable element */
+bool
+StaticBody::bInverseDynamics(void) const
+{
+	return true;
 }
 
 

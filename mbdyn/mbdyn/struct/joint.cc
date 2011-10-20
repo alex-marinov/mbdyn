@@ -121,11 +121,36 @@ Joint::Output(std::ostream& out, const char* /* sJointName */ ,
 
 /* Inverse Dynamics update */
 
-void Joint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+void
+Joint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 { 
 	silent_cerr(psElemNames[GetElemType()] << "(" << GetLabel() << "): "
 		"Elem::Update(" << invdyn2str(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
-};
+}
+
+void
+Joint::SetInverseDynamicsFlags(unsigned uIDF)
+{
+	m_uInverseDynamicsFlags = uIDF;
+}
+
+unsigned
+Joint::GetInverseDynamicsFlags(void) const
+{
+	return m_uInverseDynamicsFlags;
+}
+
+bool
+Joint::bIsPrescribedMotion(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::PRESCRIBED_MOTION);
+}
+
+bool
+Joint::bIsTorque(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::TORQUE);
+}
 
 /* Joint - end */
 
@@ -282,6 +307,8 @@ ReadJoint(DataManager* pDM,
 #endif // DEBUG
 
 	Joint* pEl = NULL;
+	bool bIsTorque(true);
+	bool bIsPrescribedMotion(true);
 
 	switch (CurrKeyWord) {
 
@@ -3490,6 +3517,30 @@ ReadJoint(DataManager* pDM,
 			<< uLabel << std::endl);
 
 		throw ErrMemory(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (HP.IsKeyWord("inverse" "dynamics")) {
+		bIsTorque = false;
+		if (HP.IsKeyWord("torque")) {
+			bIsTorque = HP.GetYesNoOrBool(bIsTorque);
+		}
+
+		bIsPrescribedMotion = false;
+		if (HP.IsKeyWord("prescribed" "motion")) {
+			bIsPrescribedMotion = HP.GetYesNoOrBool(bIsPrescribedMotion);
+		}
+	}
+
+	// set flags for inverse dynamics
+	if (pDM->bIsInverseDynamics() && pEl->bInverseDynamics()) {
+		unsigned flags = 0;
+		if (bIsTorque) {
+			flags |= InverseDynamics::TORQUE;
+		}
+		if (bIsPrescribedMotion) {
+			flags |= InverseDynamics::PRESCRIBED_MOTION;
+		}
+		pEl->SetInverseDynamicsFlags(flags);
 	}
 
 	if (HP.IsKeyWord("initial" "state")) {

@@ -82,10 +82,17 @@ public:
 	virtual ~Body(void);
  
 	/* massa totale */
-	doublereal dGetM(void) const {
-		return dMass;
-	};
+	doublereal dGetM(void) const;
  
+	/* momento statico */
+	Vec3 GetS(void) const;
+
+	/* momento d'inerzia */
+	Mat3x3 GetJ(void) const;
+
+	/* nodo */
+	const StructNode *pGetNode(void) const;
+
 	/* Tipo dell'elemento (usato solo per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const {
 		return Elem::BODY; 
@@ -237,8 +244,11 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
-	
-	/* Inverse Dynamics:*/
+
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+ 
+	/* Inverse Dynamics: */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XCurr */ ,

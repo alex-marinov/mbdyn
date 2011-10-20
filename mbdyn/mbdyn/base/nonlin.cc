@@ -314,6 +314,77 @@ NonlinearSolverTestScaleMinMax::dScaleCoef(const integer& iIndex) const
 
 /* NonlinearSolverTestScaleMinMax - end */
 
+bool
+NonlinearSolverTestRange::bIsValid(const integer& iIndex) const
+{
+	ASSERT(m_iFirstIndex > 0);
+	ASSERT(m_iLastIndex > m_iFirstIndex);
+	return (iIndex >= m_iFirstIndex && iIndex <= m_iLastIndex);
+}
+
+NonlinearSolverTestRange::NonlinearSolverTestRange(NonlinearSolverTest *pTest, integer iFirstIndex, integer iLastIndex)
+: m_iFirstIndex(iFirstIndex), m_iLastIndex(iLastIndex), m_pTest(pTest)
+{
+	NO_OP;
+}
+
+NonlinearSolverTestRange::~NonlinearSolverTestRange(void)
+{
+	delete m_pTest;
+}
+
+#if 0
+doublereal
+NonlinearSolverTestRange::MakeTest(Solver *pS, const integer& Size,
+	const VectorHandler& Vec, bool bResidual)
+{
+	// return m_pTest->MakeTest(pS, Size, Vec, bResidual);
+	return NonlinearSolverTest::MakeTest(pS, Size, Vec, bResidual);
+}
+#endif
+
+void
+NonlinearSolverTestRange::TestOne(doublereal& dRes, const VectorHandler& Vec,
+	const integer& iIndex) const
+{
+	if (bIsValid(iIndex)) {
+		m_pTest->TestOne(dRes, Vec, iIndex);
+	}
+}
+
+void
+NonlinearSolverTestRange::TestMerge(doublereal& dResCurr, const doublereal& dResNew) const
+{
+	m_pTest->TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestRange::dScaleCoef(const integer& iIndex) const
+{
+	if (bIsValid(iIndex)) {
+		return m_pTest->dScaleCoef(iIndex);
+	}
+
+	return ::Zero1;
+}
+
+void
+NonlinearSolverTestRange::SetRange(integer iFirstIndex, integer iLastIndex)
+{
+	if (iFirstIndex <= 0) {
+		silent_cerr("NonlinearSolverTestRange: invalid iFirstIndex=" << iFirstIndex << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (iLastIndex <= iFirstIndex) {
+		silent_cerr("NonlinearSolverTestRange: invalid iLastIndex=" << iLastIndex << " (iFirstIndex=" << iFirstIndex << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	m_iFirstIndex = iFirstIndex;
+	m_iLastIndex = iLastIndex;
+}
+
 /* NonlinearSolver - begin */
 
 NonlinearSolver::NonlinearSolver(bool JacReq)
