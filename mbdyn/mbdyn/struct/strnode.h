@@ -237,8 +237,11 @@ public:
 	virtual inline const Vec3& GetWRef(void) const;
 	virtual inline const Vec3& GetWCurr(void) const;
 
-	inline const Vec3& GetXPPCurr(void) const;
-	inline const Vec3& GetWPCurr(void) const;
+	virtual inline const Vec3& GetXPPCurr(void) const;
+	virtual inline const Vec3& GetXPPPrev(void) const;
+
+	virtual inline const Vec3& GetWPCurr(void) const;
+	virtual inline const Vec3& GetWPPrev(void) const;
 
 	virtual inline const doublereal& dGetPositionStiffness(void) const;
 	virtual inline const doublereal& dGetVelocityStiffness(void) const;
@@ -425,9 +428,21 @@ StructNode::GetWCurr(void) const
 }
 
 inline const Vec3&
+StructNode::GetXPPPrev(void) const
+{
+	return XPPPrev;
+}
+
+inline const Vec3&
 StructNode::GetXPPCurr(void) const
 {
 	return XPPCurr;
+}
+
+inline const Vec3&
+StructNode::GetWPPrev(void) const
+{
+	return WPPrev;
 }
 
 inline const Vec3&
