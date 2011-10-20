@@ -1162,7 +1162,7 @@ IfFirstStepIsToBeRepeated:
 		}
 
 		silent_cerr("Max iterations number "
-			<< std::abs(pRegularSteps->GetIntegratorMaxIters())
+			<< std::abs(pFirstRegularStep->GetIntegratorMaxIters())
 			<< " has been reached during "
 			"first step, Time=" << dTime << "; "
 			<< "TimeStep=" << dCurrTimeStep

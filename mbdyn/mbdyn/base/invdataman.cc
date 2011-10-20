@@ -67,18 +67,18 @@
 
 /* deformable joint */
 #include "joint.h"
-#include "nestedelem.h"
 
 void 
-DataManager::LinkToSolution(const VectorHandler& XCurr,
-                    const VectorHandler& XPrimeCurr,
-                    const VectorHandler& XPrimePrimeCurr,
-                    const VectorHandler& LambdaCurr)
+DataManager::LinkToSolution(VectorHandler& XCurr,
+	VectorHandler& XPrimeCurr,
+	VectorHandler& XPrimePrimeCurr,
+	VectorHandler& LambdaCurr)
 {
-	pXCurr = const_cast<VectorHandler*>(&XCurr);
-	pXPrimeCurr = const_cast<VectorHandler*>(&XPrimeCurr);
-	pXPrimePrimeCurr = const_cast<VectorHandler*>(&XPrimePrimeCurr);
+	pXCurr = &XCurr;
+	pXPrimeCurr = &XPrimeCurr;
+	pXPrimePrimeCurr = &XPrimePrimeCurr;
 	pLambdaCurr = &LambdaCurr;
+
 	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 void

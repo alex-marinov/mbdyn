@@ -82,8 +82,9 @@ SolutionManager::SolveT(void)
 }
 
 void
-SolutionManager::LinkToSolution(const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr) {
+SolutionManager::LinkToSolution(VectorHandler& XCurr,
+	VectorHandler& XPrimeCurr)
+{
 	NO_OP;
 }
 

@@ -162,11 +162,11 @@ DataManager::dGetTime(void) const
 
 /* Collega il DataManager ed il DriveHandler alla soluzione */
 void
-DataManager::LinkToSolution(const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr)
+DataManager::LinkToSolution(VectorHandler& XCurr,
+	VectorHandler& XPrimeCurr)
 {
-	pXCurr = const_cast<VectorHandler*>(&XCurr);
-	pXPrimeCurr = const_cast<VectorHandler*>(&XPrimeCurr);
+	pXCurr = &XCurr;
+	pXPrimeCurr = &XPrimeCurr;
 	DrvHdl.LinkToSolution(XCurr, XPrimeCurr);
 }
 

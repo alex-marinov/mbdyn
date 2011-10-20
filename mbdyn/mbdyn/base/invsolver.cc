@@ -419,7 +419,7 @@ InverseSolver::Run(void)
 	 * have not been ServePending'd
 	 */
 	dTime = dInitialTime;
-	pDM->SetTime(dTime, 0., 0);
+	pDM->SetTime(dTime, dInitialTimeStep, 0);
 	
 	integer iTotIter = 0;
 	integer iStIter = 0;
@@ -427,6 +427,7 @@ InverseSolver::Run(void)
 	doublereal dTest = std::numeric_limits<double>::max();
 	doublereal dSolTest = std::numeric_limits<double>::max();
 	bool bSolConv = false;
+	bool bOut = false;
 
 	dTest = 0.;
 	dSolTest = 0.;
@@ -502,6 +503,10 @@ InverseSolver::Run(void)
 		pRTSolver->Init();
 	}
 
+	bool bOutputCounter = outputCounter() && isatty(fileno(stderr));
+	const char *outputCounterPrefix = bOutputCounter ? "\n" : "";
+	const char *outputCounterPostfix = outputStep() ? "\n" : "\r";
+
 	ASSERT(pRegularSteps != NULL);
 	
 	/* Setup SolutionManager(s) */
@@ -521,7 +526,8 @@ InverseSolver::Run(void)
 				pRTSolver->StopCommanded();
 			}
 
-			silent_cout("End of simulation at time "
+			silent_cout(outputCounterPrefix
+				<< "End of simulation at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "output in file \"" << sOutputFileName << "\"" << std::endl
@@ -536,7 +542,8 @@ InverseSolver::Run(void)
 			return;
 
 		} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
-			silent_cout("Simulation is stopped by RTAI task" << std::endl
+			silent_cout(outputCounterPrefix
+				<< "Simulation is stopped by RTAI task" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
@@ -556,7 +563,8 @@ InverseSolver::Run(void)
 				pRTSolver->StopCommanded();
 			}
 
-			silent_cout("Interrupted!" << std::endl
+			silent_cout(outputCounterPrefix
+				<< "Interrupted!" << std::endl
 				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
@@ -577,9 +585,14 @@ InverseSolver::Run(void)
 			pRTSolver->Wait();
 		}
 
+		int retries = -1;
 IfStepIsToBeRepeated:
 		try {
+			retries++;
 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
+			if (outputStep()) {
+ 				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+			}
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
 					CurrStep, pX, pXPrime, pXPrimePrime, pLambda, 
 					iStIter, dTest, dSolTest);
@@ -589,28 +602,32 @@ IfStepIsToBeRepeated:
 			if (dCurrTimeStep > dMinTimeStep) {
 				/* Riduce il passo */
 				CurrStep = StepIntegrator::REPEATSTEP;
+				doublereal dOldCurrTimeStep = dCurrTimeStep;
 				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
 						iStIter,
 						CurrStep);
-				DEBUGCOUT("Changing time step"
-					" during step "
-					<< lStep << " after "
-					<< iStIter << " iterations"
-					<< std::endl);
-				goto IfStepIsToBeRepeated;
-			} else {
-				silent_cerr("Max iterations number "
-					<< pRegularSteps->GetIntegratorMaxIters()
-					<< " has been reached during"
-					" step " << lStep << ';'
-					<< std::endl
-					<< "time step dt="
-					<< dCurrTimeStep
-					<< " cannot be reduced"
-					" further;" << std::endl
-					<< "aborting..." << std::endl);
-				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+				if (dCurrTimeStep < dOldCurrTimeStep) {
+					DEBUGCOUT("Changing time step"
+						" during step "
+						<< lStep << " after "
+						<< iStIter << " iterations"
+						<< std::endl);
+					goto IfStepIsToBeRepeated;
+				}
 			}
+
+			silent_cerr(outputCounterPrefix
+				<< "Max iterations number "
+				<< pRegularSteps->GetIntegratorMaxIters()
+				<< " has been reached during"
+				" step " << lStep << ';'
+				<< std::endl
+				<< "time step dt="
+				<< dCurrTimeStep
+				<< " cannot be reduced"
+				" further;" << std::endl
+				<< "aborting..." << std::endl);
+			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
 
 		catch (NonlinearSolver::ErrSimulationDiverged) {
@@ -618,7 +635,8 @@ IfStepIsToBeRepeated:
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
 			 */
-			silent_cerr("Simulation diverged after "
+			silent_cerr(outputCounterPrefix
+				<< "Simulation diverged after "
 				<< iStIter << " iterations, before "
 				"reaching max iteration number "
 				<< pRegularSteps->GetIntegratorMaxIters()
@@ -647,7 +665,8 @@ IfStepIsToBeRepeated:
 				pRTSolver->StopCommanded();
 			}
 
-			silent_cout("Simulation ended at time "
+			silent_cout(outputCounterPrefix
+				<< "Simulation ended at time "
 				<< dTime << " after "
 				<< lStep << " steps;" << std::endl
 				<< "total iterations: " << iTotIter << std::endl
@@ -667,7 +686,7 @@ IfStepIsToBeRepeated:
 		dTotErr += dTest;
 		iTotIter += iStIter;
 
-		pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+		bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
 		if (outputMsg()) {
 			Out << "Step " << lStep
@@ -677,7 +696,20 @@ IfStepIsToBeRepeated:
 				<< " " << dTest
 				<< " " << dSolTest
 				<< " " << bSolConv
+				<< " " << bOut
 				<< std::endl;
+		}
+
+		if (bOutputCounter) {
+			silent_cout("Step " << std::setw(5) << lStep
+				<< " " << std::setw(13) << dTime + dCurrTimeStep
+				<< " " << std::setw(13) << dCurrTimeStep
+				<< " " << std::setw(4) << iStIter
+				<< " " << std::setw(13) << dTest
+				<< " " << std::setw(13) << dSolTest
+				<< " " << bSolConv
+				<< " " << bOut
+				<< outputCounterPostfix);
 		}
 
 		DEBUGCOUT("Step " << lStep

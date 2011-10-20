@@ -84,8 +84,8 @@ public:
 	
 	/* Collega il DataManager ed il DriveHandler ai vettori soluzione */
 	virtual void
-	LinkToSolution(const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr) = 0;
+	LinkToSolution(VectorHandler& XCurr,
+		VectorHandler& XPrimeCurr) = 0;
 
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef) 
@@ -116,8 +116,8 @@ public:
 	virtual ~SolutionManager(void);
 
 	virtual void
-	LinkToSolution(const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+	LinkToSolution(VectorHandler& XCurr,
+		VectorHandler& XPrimeCurr);
 
 #ifdef DEBUG
 	virtual void IsValid(void) const = 0;

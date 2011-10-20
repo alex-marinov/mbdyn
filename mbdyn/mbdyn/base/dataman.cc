@@ -541,11 +541,9 @@ DofIter()
 
 	/* Costruzione dei dati dei Dof definitivi da usare nella simulazione */
 
-	bool bIsSquare = false;
-
 	/* Aggiornamento DofOwner degli elementi (e dei nodi) */
 	if (bInverseDynamics) {
-		bIsSquare = IDDofOwnerSet();
+		IDDofOwnerSet();
 	} else	{
 		DofOwnerSet();
 	}
@@ -570,7 +568,7 @@ DofIter()
 
 	/* Costruzione array DofOwner e Dof */
 	if(bInverseDynamics)	{
-		IDDofInit(bIsSquare);
+		IDDofInit();
 	} else	{
 		DofInit();
 	}

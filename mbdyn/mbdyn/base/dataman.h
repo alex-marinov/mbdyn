@@ -106,9 +106,9 @@ protected:
 	mutable VectorHandler* pXCurr;
 	mutable VectorHandler* pXPrimeCurr;
 	
-	/* Inverse Dynamics: */
-	const VectorHandler* pXPrimePrimeCurr;
-	const VectorHandler* pLambdaCurr;
+	/* used by inverse dynamics: */
+	mutable VectorHandler* pXPrimePrimeCurr;
+	mutable VectorHandler* pLambdaCurr;
 
 	/* Parametri usati durante l'assemblaggio iniziale */
 	bool bInitialJointAssemblyToBeDone;
@@ -309,14 +309,14 @@ public:
 			int redefine = 0);
 
 	/* Collega il DataManager ed il DriveHandler ai vettori soluzione */
-	void LinkToSolution(const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr);
+	void LinkToSolution(VectorHandler& XCurr,
+		VectorHandler& XPrimeCurr);
 
-	/* Inverse Dynamics: */
-	void LinkToSolution(const VectorHandler& XCurr,
-			const VectorHandler& XPrimeCurr,
-			const VectorHandler& XPrimePrimeCurr,
-			const VectorHandler& LambdaCurr);
+	/* inverse dynamics: */
+	void LinkToSolution(VectorHandler& XCurr,
+		VectorHandler& XPrimeCurr,
+		VectorHandler& XPrimePrimeCurr,
+		VectorHandler& LambdaCurr);
 	
 	/* Restituisce il numero di dof per la costruzione delle matrici ecc. */
 	integer iGetNumDofs(void) const { return iTotDofs; };
