@@ -320,6 +320,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				doublereal h = DrvHdl.dGetTimeStep();
 
 				// xp_k = xp_km1/3 + 2/3*(x_k - x_km1)/h
+				// xp_k = 2*(x_k - x_km1)/h - xp_km1
 				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
 				{
@@ -333,6 +334,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& XCurr(pNode->GetXCurr());
 
 					Vec3 VRef(VPrev/3. + (XCurr - XPrev)*(2./3./h));
+					// Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) += dw1*VRef(iCnt);
 					}
@@ -342,6 +344,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Mat3x3& RCurr(pNode->GetRCurr());
 
 					Vec3 WRef(WPrev/3. + RotManip::VecRot(RCurr.MulMT(RPrev))*(2./3./h));
+					// Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./h) - WPrev);
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += dw1*WRef(iCnt);
 					}
@@ -379,6 +382,9 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 			if (dw1 > 0.) {
 				doublereal h = DrvHdl.dGetTimeStep();
 
+				// xpp_k = xpp_km1/3 + 2/3*(xp_k - xp_km1)/h
+				// xpp_k = 2*(xp_k - xp_km1)/h - xpp_km1
+				// xpp_k = xpp_km1 + 6*(xp_k + xp_km1)/h - 12*(x_k - x_km1)/h^2
 				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 					n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
 				{
@@ -392,6 +398,13 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& VCurr(pNode->GetVCurr());
 
 					Vec3 XPPRef(XPPPrev/3. + (VCurr - VPrev)*(2./3./h));
+					// Vec3 XPPRef((VCurr - VPrev)*(2./h) - XPPPrev);
+#if 0
+					const Vec3& XPrev(pNode->GetXPrev());
+					const Vec3& XCurr(pNode->GetXCurr());
+
+					Vec3 XPPRef(XPPPrev + (VCurr + VPrev)*(6./h) - (XCurr - XPrev)*(12./h/h));
+#endif
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) += dw1*XPPRef(iCnt);
 					}
@@ -401,6 +414,13 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& WCurr(pNode->GetWCurr());
 
 					Vec3 WPRef(WPPrev/3. + (WCurr - WPrev)*(2./3./h));
+					// Vec3 WPRef((WCurr - WPrev)*(2./h) - WPPrev);
+#if 0
+					const Mat3x3& RPrev(pNode->GetRPrev());
+					const Mat3x3& RCurr(pNode->GetRCurr());
+
+					Vec3 WPRef(WPPrev + (WCurr + WPrev)*(6./h) - RotManip::VecRot(RCurr.MulMT(RPrev))*(12./h/h));
+#endif
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += dw1*WPRef(iCnt);
 					}

@@ -880,8 +880,12 @@ InverseSolver::GetWeight(InverseDynamics::Order iOrder, doublereal& dw1, doubler
 		break;
 
 	case InverseDynamics::ACCELERATION:
+#if 0
 		dw1 = 0.;
 		dw2 = this->dw1[2] + this->dw2[2];
+#endif
+		dw1 = this->dw1[2];
+		dw2 = this->dw2[2];
 		break;
 
 	default:
