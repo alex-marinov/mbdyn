@@ -40,7 +40,7 @@
 /*
  *
  * Copyright (C) 2008
- * Alessandro Fumagalli <alessandro.fumagalli@polimi.it> 
+ * Alessandro Fumagalli <alessandro.fumagalli@polimi.it>
  *
  */
 
@@ -97,7 +97,7 @@ InverseSolver::Run(void)
 	/* Legge i dati relativi al metodo di integrazione */
 	ReadData(HP);
 
-/*FIXME:*/	
+/*FIXME:*/
 //	bParallel = false;
 
 #ifdef USE_MULTITHREAD
@@ -266,7 +266,7 @@ InverseSolver::Run(void)
 
 	/* FIXME: pdWorkspace?*/
 
-#if 1	
+#if 1
 	/* allocate workspace for previous time steps */
 	SAFENEWARR(pdWorkSpace, doublereal,
 		2*(iNumPreviousVectors)*iNumDofs);
@@ -311,7 +311,7 @@ InverseSolver::Run(void)
 	 * this should work as long as the last unknown time step is put
 	 * at the beginning of pX, pXPrime
 	 */
-   	
+
 	pDM->LinkToSolution(*pX, *pXPrime, *pXPrimePrime, *pLambda);
 
 	/* a questo punto si costruisce il nonlinear solver */
@@ -435,9 +435,9 @@ InverseSolver::Run(void)
 	/* FIXME: the time is already set by DataManager, but FileDrivers
 	 * have not been ServePending'd
 	 */
-	dTime = dInitialTime;
-	pDM->SetTime(dTime, dInitialTimeStep, 0);
-	
+	dTime = dInitialTime - dInitialTimeStep;
+	pDM->SetTime(dTime + dInitialTimeStep, dInitialTimeStep, 0);
+
 	integer iTotIter = 0;
 	integer iStIter = 0;
 	doublereal dTotErr = 0.;
@@ -475,7 +475,6 @@ InverseSolver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
-	long lStep = 0;                      
 	doublereal dCurrTimeStep = 0.;
 
 #ifdef USE_EXTERNAL
@@ -483,15 +482,12 @@ InverseSolver::Run(void)
 	External::SendInitial();
 #endif /* USE_EXTERNAL */
 
-	/* Output delle "condizioni iniziali" */
-	pDM->Output(lStep, dTime, dCurrTimeStep);
-
 #ifdef USE_EXTERNAL
 	/* il prossimo passo e' un regular */
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-	lStep = 0; /* Resetto di nuovo lStep */
+	long lStep = -1;
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	if (mbdyn_stop_at_end_of_time_step()) {
@@ -500,18 +496,6 @@ InverseSolver::Run(void)
 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (outputMsg()) {
-		Out
-			<< "Step " << lStep
-			<< " " << dTime+dCurrTimeStep
-			<< " " << dCurrTimeStep
-			<< " " << iStIter
-			<< " " << dTest
-			<< " " << dSolTest
-			<< " " << bSolConv
-			<< std::endl;
-	}
-	
 	bSolConv = false;
 	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
@@ -525,7 +509,7 @@ InverseSolver::Run(void)
 	const char *outputCounterPostfix = outputStep() ? "\n" : "\r";
 
 	ASSERT(pRegularSteps != NULL);
-	
+
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
 
@@ -608,10 +592,10 @@ IfStepIsToBeRepeated:
 			retries++;
 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
 			if (outputStep()) {
- 				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
 			}
 			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
-					CurrStep, pX, pXPrime, pXPrimePrime, pLambda, 
+					CurrStep, pX, pXPrime, pXPrimePrime, pLambda,
 					iStIter, dTest, dSolTest);
 		}
 
@@ -669,9 +653,9 @@ IfStepIsToBeRepeated:
 		catch (NonlinearSolver::ConvergenceOnSolution) {
 			bSolConv = true;
 		}
-		
+
 		catch (EndOfSimulation& eos) {
-			silent_cerr("Simulation ended during a regular step:\n" 
+			silent_cerr("Simulation ended during a regular step:\n"
 				<< eos.what() << "\n");
 			mbdyn_set_stop_at_end_of_time_step();
 #ifdef USE_MPI
@@ -737,7 +721,7 @@ IfStepIsToBeRepeated:
 		dTime += dRefTimeStep;
 
 		bSolConv = false;
-		
+
 		/* Calcola il nuovo timestep */
 		dCurrTimeStep =
 			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
@@ -777,7 +761,7 @@ InverseSolver::~InverseSolver(void)
 }
 
 /* scrive il contributo al file di restart */
-std::ostream & 
+std::ostream &
 InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 {
 #if 0
@@ -788,7 +772,7 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 			<< std::endl
 			<< "  #  final time: " << dFinalTime << ";"
 			<< std::endl
-			<< "  #  time step: " << dInitialTimeStep << ";" 
+			<< "  #  time step: " << dInitialTimeStep << ";"
 			<< std::endl;
 		break;
 	case DataManager::ITERATIONS:
@@ -796,13 +780,13 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 	case DataManager::TIMES:
 		out << "  initial time: " << pDM->dGetTime()<< ";" << std::endl
 			<< "  final time: " << dFinalTime << ";" << std::endl
-			<< "  time step: " << dInitialTimeStep << ";" 
+			<< "  time step: " << dInitialTimeStep << ";"
 			<< std::endl;
 		break;
 	default:
 		ASSERT(0);
 	}
-	
+
 	out << "  max iterations: " << pRegularSteps->GetIntegratorMaxIters()
 		<< ";" << std::endl
 		<< "  tolerance: " << pRegularSteps->GetIntegratorDTol();
@@ -870,7 +854,7 @@ InverseSolver::Restart(std::ostream& out,DataManager::eRestart type) const
 	}
 	out << "  solver: ";
 	RestartLinSol(out, CurrLinearSolver);
-	out << "end: multistep;" << std::endl << std::endl;	
+	out << "end: multistep;" << std::endl << std::endl;
 #endif
 	return out;
 }
@@ -916,7 +900,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 		"begin",
 		"inverse" "dynamics",
 		"end",
-		
+
 		"initial" "time",
 		"final" "time",
 		"time" "step",
@@ -1043,7 +1027,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 		STRATEGYCHANGE,
 
 		/* DEPRECATED */
-		SOLVER,	
+		SOLVER,
 		INTERFACESOLVER,
 		/* END OF DEPRECATED */
 		LINEARSOLVER,
@@ -1222,7 +1206,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
-		}	
+		}
 
 		case OUTPUT: {
 			unsigned OF = OUTPUT_DEFAULT;
@@ -1407,7 +1391,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			break;
 		}
 
-		case MODIFY_RES_TEST:	
+		case MODIFY_RES_TEST:
 			if (bParallel) {
 				silent_cerr("\"modify residual test\" "
 					"not supported by schur data manager "
@@ -1420,7 +1404,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			break;
 
-		
+
 
 
 		case NEWTONRAPHSON: {
@@ -1938,7 +1922,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< "is <= minimum: "
 				<< StrategyFactor.iMaxIters << " <= "
 				<< StrategyFactor.iMinIters << "; "
-				<< "the maximum global iteration value " 
+				<< "the maximum global iteration value "
 				<< iMaxIterations << " "
 				<< "will be used"
 				<< std::endl);
