@@ -726,6 +726,14 @@ DataManager::IDDofInit(void)
 		}
 	}
 
+	if (bOutputAccels) {
+		for (NodeContainerType::iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
+		{
+			dynamic_cast<StructNode *>(n->second)->OutputAccelerations(true);
+		}
+	}
+
 	ASSERT(iNodeIndex == iIDNodeTotNumDofs);
 
 	/* Gli indici dei nodi sono ok */

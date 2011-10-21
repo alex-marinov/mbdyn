@@ -250,6 +250,7 @@ public:
 	virtual bool ComputeAccelerations(bool b);
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual inline bool bOutputAccelerations(void) const;
+	virtual void OutputAccelerations(bool bOut);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 
@@ -479,6 +480,12 @@ inline bool
 StructNode::bOutputAccelerations(void) const
 {
 	return bOutputAccels;
+}
+
+inline void
+StructNode::OutputAccelerations(bool bOut)
+{
+	bOutputAccels = bOut;
 }
 
 /* StructNode - end */
