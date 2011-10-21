@@ -114,7 +114,7 @@ position(const MathParser::MathArgs& args)
 
 	unsigned uLabel = unsigned((*arg1)());
 
-	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	const StructNode *pNode = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel));
 	if (pNode == 0) {
 		silent_cerr("model::position" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -179,7 +179,7 @@ distance(const MathParser::MathArgs& args)
 	unsigned uLabel1 = unsigned((*arg1)());
 	unsigned uLabel2 = unsigned((*arg2)());
 
-	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	const StructNode *pNode1 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel1));
 	if (pNode1 == 0) {
 		silent_cerr("model::distance" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -188,7 +188,7 @@ distance(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	const StructNode *pNode2 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel2));
 	if (pNode2 == 0) {
 		silent_cerr("model::distance" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -253,7 +253,7 @@ unitvec(const MathParser::MathArgs& args)
 	unsigned uLabel1 = unsigned((*arg1)());
 	unsigned uLabel2 = unsigned((*arg2)());
 
-	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	const StructNode *pNode1 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel1));
 	if (pNode1 == 0) {
 		silent_cerr("model::unitvec" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -262,7 +262,7 @@ unitvec(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	const StructNode *pNode2 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel2));
 	if (pNode2 == 0) {
 		silent_cerr("model::unitvec" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -323,7 +323,7 @@ angle(const MathParser::MathArgs& args)
 
 	unsigned uLabel = unsigned((*arg1)());
 
-	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	const StructNode *pNode = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel));
 	if (pNode == 0) {
 		silent_cerr("model::angle" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -384,7 +384,7 @@ anglerel(const MathParser::MathArgs& args)
 	unsigned uLabel1 = unsigned((*arg1)());
 	unsigned uLabel2 = unsigned((*arg2)());
 
-	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	const StructNode *pNode1 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel1));
 	if (pNode1 == 0) {
 		silent_cerr("model::anglerel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -393,7 +393,7 @@ anglerel(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	const StructNode *pNode2 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel2));
 	if (pNode2 == 0) {
 		silent_cerr("model::anglerel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -449,7 +449,7 @@ velocity(const MathParser::MathArgs& args)
 
 	unsigned uLabel = unsigned((*arg1)());
 
-	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	const StructNode *pNode = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel));
 	if (pNode == 0) {
 		silent_cerr("model::velocity" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -514,7 +514,7 @@ vrel(const MathParser::MathArgs& args)
 	unsigned uLabel1 = unsigned((*arg1)());
 	unsigned uLabel2 = unsigned((*arg2)());
 
-	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	const StructNode *pNode1 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel1));
 	if (pNode1 == 0) {
 		silent_cerr("model::vrel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -523,7 +523,7 @@ vrel(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	const StructNode *pNode2 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel2));
 	if (pNode2 == 0) {
 		silent_cerr("model::vrel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -583,7 +583,7 @@ angvel(const MathParser::MathArgs& args)
 
 	unsigned uLabel = unsigned((*arg1)());
 
-	StructNode *pNode = (*dm)()->pFindStructNode(uLabel);
+	const StructNode *pNode = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel));
 	if (pNode == 0) {
 		silent_cerr("model::angvel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel << "): "
@@ -648,7 +648,7 @@ angvrel(const MathParser::MathArgs& args)
 	unsigned uLabel1 = unsigned((*arg1)());
 	unsigned uLabel2 = unsigned((*arg2)());
 
-	StructNode *pNode1 = (*dm)()->pFindStructNode(uLabel1);
+	const StructNode *pNode1 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel1));
 	if (pNode1 == 0) {
 		silent_cerr("model::angvrel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "
@@ -657,7 +657,7 @@ angvrel(const MathParser::MathArgs& args)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode *pNode2 = (*dm)()->pFindStructNode(uLabel2);
+	const StructNode *pNode2 = dynamic_cast<const StructNode *>((*dm)()->pFindNode(Node::STRUCTURAL, uLabel2));
 	if (pNode2 == 0) {
 		silent_cerr("model::angvrel" << when2str(when) << IDX2str(IDX)
 				<< "(" << uLabel1 << "," << uLabel2 << "): "

@@ -1739,7 +1739,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 				}
 
 				/* verifica di esistenza del nodo */
-				if (pFindStructNode(uLabel) != NULL) {
+				if (pFindNode(Node::STRUCTURAL, uLabel) != NULL) {
 					DEBUGCERR("");
 					silent_cerr("line " << HP.GetLineData() << ": "
 						<< psNodeNames[Node::STRUCTURAL] << "(" << uLabel << ") "

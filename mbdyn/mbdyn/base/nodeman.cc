@@ -229,18 +229,4 @@ DataManager::pFindNode(Node::Type Typ, unsigned int uL) const
 	return p->second->second;
 }
 
-/* cerca un nodo strutturale*/
-StructNode*
-DataManager::pFindStructNode(unsigned int uL) const
-{
-	return dynamic_cast<StructNode *>(pFindNode(Node::STRUCTURAL, uL));
-}
-
-/* cerca un nodo elettrico */
-ElectricNode*
-DataManager::pFindElectricNode(unsigned int uL) const
-{
-	return dynamic_cast<ElectricNode *>(pFindNode(Node::ELECTRIC, uL));
-}
-
 /* DataManager - end */

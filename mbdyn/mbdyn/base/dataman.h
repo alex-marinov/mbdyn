@@ -630,7 +630,7 @@ protected:
 	VariableSubMatrixHandler *pWorkMat;
 	MySubVectorHandler *pWorkVec;
 
-	/* ricerca elementi*/
+	/* ricerca elementi */
 	Elem* pFindElem(Elem::Type Typ, unsigned int uL,
 			unsigned int iDeriv) const;
 	Elem* pChooseElem(Elem* p, unsigned int iDeriv) const;
@@ -638,6 +638,7 @@ protected:
 	Elem** ppFindElem(Elem::Type Typ, unsigned int uL) const;
 
 	flag fGetDefaultOutputFlag(const Elem::Type& t) const;
+
 	Elem** ReadOneElem(MBDynParser& HP,
 			unsigned int uLabel,
 			const std::string& sName,
@@ -746,9 +747,6 @@ public:
 	Node** ppFindNode(Node::Type Typ, unsigned int uL) const;
 	/* ricerca di nodi */
 	Node* pFindNode(Node::Type Typ, unsigned int uL) const;
-	StructNode* pFindStructNode(unsigned int uL) const;
-
-	ElectricNode* pFindElectricNode(unsigned int uL) const;
 
 protected:
 	flag fGetDefaultOutputFlag(const Node::Type& t) const;

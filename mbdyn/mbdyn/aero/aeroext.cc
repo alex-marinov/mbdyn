@@ -329,10 +329,10 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 	const StructNode** ppNodeList = NULL;
 	SAFENEWARR(ppNodeList, const StructNode*, NodeN);
 	
-	StructNode* pTmpNode; 
    	for (unsigned int iN=0; iN < NodeN; iN++) {
 		unsigned int NodeL = HP.GetInt(); 
-   		if ((pTmpNode = pDM->pFindStructNode(NodeL)) == NULL) {
+		const StructNode* pTmpNode = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, NodeL));
+		if (pTmpNode == 0) {
       			std::cerr << "Aerodynamic External(" << uLabel 
 				<< "): structural node " << NodeL
 				<< " at line " << HP.GetLineData()

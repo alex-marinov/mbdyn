@@ -2698,14 +2698,14 @@ Modal::GetG_int(void) const
 
 Joint *
 ReadModal(DataManager* pDM,
-		MBDynParser& HP,
-		const DofOwner* pDO,
-		unsigned int uLabel)
+	MBDynParser& HP,
+	const DofOwner* pDO,
+	unsigned int uLabel)
 {
 	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
 	Joint* pEl = NULL;
 	
-	ModalNode* pModalNode = 0;
+	const ModalNode *pModalNode = 0;
 	Vec3 X0(Zero3);
 	Mat3x3 R(Eye3);
 
@@ -2729,8 +2729,8 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);
 
 		/* verifica di esistenza del nodo */
-		StructNode* pTmpNode = pDM->pFindStructNode(uNode);
-		if (pTmpNode == NULL) {
+		const StructNode* pTmpNode = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, uNode));
+		if (pTmpNode == 0) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode << ") "
 				"at line " << HP.GetLineData()
@@ -2746,7 +2746,7 @@ ReadModal(DataManager* pDM,
 				<< std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		pModalNode = dynamic_cast<ModalNode *>(pTmpNode);
+		pModalNode = dynamic_cast<const ModalNode *>(pTmpNode);
 
 		/* la posizione del nodo modale e' quella dell'origine del SdR
 		 * del corpo flessibile */
@@ -4672,7 +4672,7 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
 
 		/* verifica di esistenza del nodo 2 */
-		pInterfaceNodes[iStrNode - 1] = pDM->pFindStructNode(uNode2);
+		pInterfaceNodes[iStrNode - 1] = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, uNode2));
 		if (pInterfaceNodes[iStrNode - 1] == NULL) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode2 << ") "
