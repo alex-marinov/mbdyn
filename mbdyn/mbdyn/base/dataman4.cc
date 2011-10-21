@@ -402,7 +402,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 					for ( ; uL <= uEndL; uL++) {
-						Elem* pE = (Elem*)pFindElem(Typ, uL);
+						Elem* pE = dynamic_cast<Elem *>(pFindElem(Typ, uL));
 						if (pE != 0) {
 							DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 							pE->SetOutputFlag(flag(1));
@@ -414,7 +414,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				} else {
 					unsigned int uL = (unsigned int)HP.GetInt();
-					Elem* pE = (Elem*)pFindElem(Typ, uL);
+					Elem* pE = dynamic_cast<Elem *>(pFindElem(Typ, uL));
 					if (pE == 0) {
 						silent_cerr(psElemNames[Typ] << "(" << uL << ") "
 							"is not defined; output cannot be modified"

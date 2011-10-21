@@ -2334,7 +2334,7 @@ DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 	/* verifica di esistenza dell'elemento */
 	Elem* pElem;
 
-	if ((pElem = (Elem*)pFindElem(type, uElem)) == NULL) {
+	if ((pElem = dynamic_cast<Elem *>(pFindElem(type, uElem))) == NULL) {
 		silent_cerr(": " << psElemNames[type] << uElem
 			<< " not defined at line "
 			<< HP.GetLineData() << std::endl);
