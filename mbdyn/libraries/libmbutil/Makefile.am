@@ -10,6 +10,8 @@ cleanup.cc \
 cleanup.h \
 crypt.cc \
 crypt.h \
+demangle.cc \
+demangle.h \
 destr.h \
 dummypgin.cc \
 dummypgin.h \

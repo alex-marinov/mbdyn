@@ -42,6 +42,7 @@
 #include "myassert.h"
 #include "mynewmem.h"
 #include "except.h"
+#include "demangle.h"
 
 #include "mbpar.h"
 #include "constltp.h"
@@ -860,7 +861,7 @@ DataManager::Cast(Elem *pEl)
 		if (pDE == 0) {
 			silent_cerr("unable to cast "
 				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ")" << std::endl);
+				<< "(" << pEl->GetLabel() << ") as \"" << mbdyn_demangle<T>() << "\"" << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		pT = dynamic_cast<T *>(pDE->pGetElem());
