@@ -1190,6 +1190,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			silent_cerr("Body(" << uLabel << "): "
 				"illegal structural node type "
 				"for StructNode(" << pStrNode->GetLabel() << ") "
+				"in " << (bStaticModel ? "static model" : "inverse dynamics") << " analysis "
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
