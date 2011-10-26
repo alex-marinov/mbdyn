@@ -1622,8 +1622,9 @@ DataManager::DerivativesUpdate(void) const
 void
 DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
 {
- 	silent_cout("Residual(" << iIterCnt << "):"
-		<< std::endl);
+ 	silent_cout("Residual(" << DrvHdl.iGetStep() << ":" << iIterCnt << ") "
+		"t=" << DrvHdl.dGetTime()
+		<< " dt=" << DrvHdl.dGetTimeStep() << std::endl);
 	integer iSize = Res.iGetSize();
  	for (int iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Eq  " << std::setw(8)
@@ -1637,8 +1638,9 @@ DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
 void
 DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 {
- 	silent_cout("Solution(" << iIterCnt << "):"
-		<< std::endl);
+ 	silent_cout("Solution(" << DrvHdl.iGetStep() << ":" << iIterCnt << ") "
+		"t=" << DrvHdl.dGetTime()
+		<< " dt=" << DrvHdl.dGetTimeStep() << std::endl);
 	integer iSize = Sol.iGetSize();
  	for (integer iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Dof " << std::setw(8)
