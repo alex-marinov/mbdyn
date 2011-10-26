@@ -110,9 +110,11 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
-			JacHdl += j->second->AssJac(WorkMat, *pXCurr);
-
-			// FIXME: do not allow deformable joints, after implementing AssJac()
+			Joint *pJ = Cast<Joint>(j->second);
+			if (pJ->bIsPrescribedMotion()) {
+				ASSERT(pJ->bIsTorque());
+				JacHdl += j->second->AssJac(WorkMat, *pXCurr);
+			}
 		}
 		break;
 
@@ -135,7 +137,7 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 					WorkMat.AddToT(JacHdl);
 
-				} else {
+				} else if (pJ->bIsPrescribedMotion()) {
 					integer iNumDof = pJ->iGetNumDof();
 					integer iFirstIndex = pJ->iGetFirstIndex();
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
@@ -172,15 +174,27 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					ASSERT(pNode->iGetNumDof() == 6);
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
-					JacHdl(iFirstIndex + 1, iFirstIndex + 1) += dm;
-					JacHdl(iFirstIndex + 2, iFirstIndex + 2) += dm;
-					JacHdl(iFirstIndex + 3, iFirstIndex + 3) += dm;
+					for (int iRow = 1; iRow <= 3; iRow++) {
+						JacHdl(iFirstIndex + iRow, iFirstIndex + iRow) += dm;
 
-					JacHdl(iFirstIndex + 4, iFirstIndex + 4) += J(1, 1);
-					JacHdl(iFirstIndex + 5, iFirstIndex + 5) += J(2, 2);
-					JacHdl(iFirstIndex + 6, iFirstIndex + 6) += J(3, 3);
+						for (int iCol = 1; iCol <= 3; iCol++) {
+							JacHdl(iFirstIndex + 3 + iRow, iFirstIndex + 3 + iCol) += J(iRow, iCol);
+						}
+					}
 
-					// TODO: add complete mass matrix
+					JacHdl(iFirstIndex + 3 + 1, iFirstIndex + 2) = -S(3);	// 1, 2
+					JacHdl(iFirstIndex + 3 + 1, iFirstIndex + 3) = S(2);	// 1, 3
+					JacHdl(iFirstIndex + 3 + 2, iFirstIndex + 3) = -S(1);	// 2, 3
+					JacHdl(iFirstIndex + 3 + 2, iFirstIndex + 1) = S(3);	// 2, 1
+					JacHdl(iFirstIndex + 3 + 3, iFirstIndex + 1) = -S(2);	// 3, 1
+					JacHdl(iFirstIndex + 3 + 3, iFirstIndex + 2) = S(1);	// 3, 2
+
+					JacHdl(iFirstIndex + 2, iFirstIndex + 3 + 1) = -S(3);	// 2, 1
+					JacHdl(iFirstIndex + 3, iFirstIndex + 3 + 1) = S(2);	// 3, 1
+					JacHdl(iFirstIndex + 3, iFirstIndex + 3 + 2) = -S(1);	// 3, 2
+					JacHdl(iFirstIndex + 1, iFirstIndex + 3 + 2) = S(3);	// 1, 2
+					JacHdl(iFirstIndex + 1, iFirstIndex + 3 + 3) = -S(2);	// 1, 3
+					JacHdl(iFirstIndex + 2, iFirstIndex + 3 + 3) = S(1);	// 2, 3
 				}
 			}
 
@@ -192,10 +206,10 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 					WorkMat.AddToT(JacHdl);
 
-				} else if (pIDSS->GetOrder() == InverseDynamics::POSITION && pJ->bIsErgonomy()) {
+				} else if (pJ->bIsErgonomy() && pIDSS->GetOrder() == InverseDynamics::POSITION) {
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 
-				} else {
+				} else if (pJ->bIsTorque()) {
 					integer iNumDof = pJ->iGetNumDof();
 					integer iFirstIndex = pJ->iGetFirstIndex();
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
@@ -241,13 +255,17 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
-			try {
-				ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
-					*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
-			}
-			catch (Elem::ChangedEquationStructure) {
-				ResHdl += WorkVec;
-				ChangedEqStructure = true;
+			Joint *pJ = Cast<Joint>(j->second);
+			if (pJ->bIsPrescribedMotion()) {
+				ASSERT(pJ->bIsTorque());
+				try {
+					ResHdl += pJ->AssRes(WorkVec, *pXCurr, 
+						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
+				}
+				catch (Elem::ChangedEquationStructure) {
+					ResHdl += WorkVec;
+					ChangedEqStructure = true;
+				}
 			}
 		}
 		break;
@@ -299,15 +317,18 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ASSERT(pNode->iGetNumDof() == 6);
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
-					Vec3 DX((pNode->GetXPrev() - pNode->GetXCurr())*dm);
+					Vec3 DX(pNode->GetXPrev() - pNode->GetXCurr());
+					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
+					Vec3 DTheta(RotManip::VecRot(pNode->GetRPrev().MulMT(pNode->GetRCurr())));
+
+					Vec3 XRes(DX*dm - S.Cross(DTheta));
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + iCnt) += DX(iCnt);
+						ResHdl(iFirstIndex + iCnt) += XRes(iCnt);
 					}
 
-					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
-					Vec3 DTheta(J*RotManip::VecRot(pNode->GetRPrev().MulMT(pNode->GetRCurr())));
+					Vec3 ThetaRes(S.Cross(DX) + J*DTheta);
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-						ResHdl(iFirstIndex + 3 + iCnt) += DTheta(iCnt);
+						ResHdl(iFirstIndex + 3 + iCnt) += ThetaRes(iCnt);
 					}
 
 					// TODO: add complete mass matrix
@@ -332,9 +353,17 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& VPrev(pNode->GetVPrev());
 					const Vec3& XPrev(pNode->GetXPrev());
 					const Vec3& XCurr(pNode->GetXCurr());
+// #define USE_2XmV 1
+// #define USE_2XpVd3 1
+#define USE_X 1
 
-					Vec3 VRef(VPrev/3. + (XCurr - XPrev)*(2./3./h));
-					// Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
+#if USE_2XmV
+					Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
+#elif USE_2XpVd3
+					Vec3 VRef((XCurr - XPrev)*(2./3./h) + VPrev/3.);
+#elif USE_X
+					Vec3 VRef((XCurr - XPrev)/h);
+#endif
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) += dw1*VRef(iCnt);
 					}
@@ -343,8 +372,13 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Mat3x3& RPrev(pNode->GetRPrev());
 					const Mat3x3& RCurr(pNode->GetRCurr());
 
-					Vec3 WRef(WPrev/3. + RotManip::VecRot(RCurr.MulMT(RPrev))*(2./3./h));
-					// Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./h) - WPrev);
+#if USE_2XmV
+					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./h) - WPrev);
+#elif USE_2XpVd3
+					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./3./h) + WPrev/3.);
+#elif USE_X
+					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))/h);
+#endif
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += dw1*WRef(iCnt);
 					}
@@ -363,12 +397,12 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ASSERT(pNode->iGetNumDof() == 6);
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
-					Vec3 BPrev(pNode->GetVPrev()*dm);
+					Vec3 BPrev(pNode->GetVPrev()*dm - S.Cross(pNode->GetWPrev()));
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) += BPrev(iCnt);
 					}
 
-					Vec3 GPrev(J*pNode->GetWPrev());
+					Vec3 GPrev(S.Cross(pNode->GetVPrev()) + J*pNode->GetWPrev());
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += GPrev(iCnt);
 					}
@@ -397,8 +431,13 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& VPrev(pNode->GetVPrev());
 					const Vec3& VCurr(pNode->GetVCurr());
 
-					Vec3 XPPRef(XPPPrev/3. + (VCurr - VPrev)*(2./3./h));
-					// Vec3 XPPRef((VCurr - VPrev)*(2./h) - XPPPrev);
+#if USE_2XmV
+					Vec3 XPPRef((VCurr - VPrev)*(2./h) - XPPPrev);
+#elif USE_2XpVd3
+					Vec3 XPPRef((VCurr - VPrev)*(2./3./h) + XPPPrev/3.);
+#elif USE_X
+					Vec3 XPPRef((VCurr - VPrev)/h);
+#endif
 #if 0
 					const Vec3& XPrev(pNode->GetXPrev());
 					const Vec3& XCurr(pNode->GetXCurr());
@@ -413,8 +452,13 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& WPrev(pNode->GetWPrev());
 					const Vec3& WCurr(pNode->GetWCurr());
 
-					Vec3 WPRef(WPPrev/3. + (WCurr - WPrev)*(2./3./h));
-					// Vec3 WPRef((WCurr - WPrev)*(2./h) - WPPrev);
+#if USE_2XmV
+					Vec3 WPRef((WCurr - WPrev)*(2./h) - WPPrev);
+#elif USE_2XpVd3
+					Vec3 WPRef((WCurr - WPrev)*(2./3./h) + WPPrev/3.);
+#elif USE_X
+					Vec3 WPRef((WCurr - WPrev)/h);
+#endif
 #if 0
 					const Mat3x3& RPrev(pNode->GetRPrev());
 					const Mat3x3& RCurr(pNode->GetRCurr());
@@ -439,17 +483,15 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ASSERT(pNode->iGetNumDof() == 6);
 					integer iFirstIndex = pNode->iGetFirstIndex();
 
-					Vec3 BPPrev(pNode->GetXPPPrev()*dm);
+					Vec3 BPPrev(pNode->GetXPPPrev()*dm - S.Cross(pNode->GetWPPrev()));
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) += BPPrev(iCnt);
 					}
 
-					Vec3 GPPrev(J*pNode->GetWPPrev());
+					Vec3 GPPrev(S.Cross(pNode->GetXPPPrev()) + J*pNode->GetWPPrev());
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += GPPrev(iCnt);
 					}
-
-					// TODO: add complete mass matrix
 				}
 			}
 			break;
@@ -474,7 +516,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ChangedEqStructure = true;
 				}
 
-			} else {
+			} else if (pJ->bIsTorque()) {
 				integer iNumDof = pJ->iGetNumDof();
 				integer iFirstIndex = pJ->iGetFirstIndex();
 				if (iOrder == InverseDynamics::POSITION) {
@@ -554,7 +596,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
 		Joint *pJ = Cast<Joint>(j->second);
-		if (pJ != 0 && pJ->bIsRightHandSide()) {
+		if (pJ->bIsRightHandSide()) {
 			try {
 				ResHdl += pJ->AssRes(WorkVec, *pXCurr, 
 					*pXPrimeCurr, *pXPrimePrimeCurr, 
