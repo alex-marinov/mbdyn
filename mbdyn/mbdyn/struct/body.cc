@@ -1038,7 +1038,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	KeyTable K(HP, sKeyWords);
 
 	/* nodo collegato */
-	Node* pStrNode = pDM->ReadNode(HP, Node::STRUCTURAL);
+	const StructNode* pStrNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 	/* may be determined by a special DataManager parameter... */
 	bool bStaticModel = pDM->bIsStaticModel();
@@ -1084,7 +1084,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	doublereal dm = 0.;
-	ReferenceFrame RF(dynamic_cast<StructNode *>(pStrNode));
+	ReferenceFrame RF(pStrNode);
 	Vec3 Xgc(Zero3);
 	Vec3 STmp(Zero3);
 	Mat3x3 J(Zero3x3);
@@ -1180,12 +1180,12 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		<< "Center of mass: " << Xgc << std::endl
 		<< "Inertia matrix:" << std::endl << J << std::endl);
 
-	DynamicStructNode* pDynamicNode = 0;
-	StaticStructNode* pStaticNode = 0;
+	const DynamicStructNode* pDynamicNode = 0;
+	const StaticStructNode* pStaticNode = 0;
 
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
-		pStaticNode = dynamic_cast<StaticStructNode*>(pStrNode);
+		pStaticNode = dynamic_cast<const StaticStructNode *>(pStrNode);
 		if (pStaticNode == 0 || pStaticNode->GetStructNodeType() != StructNode::STATIC) {
 			silent_cerr("Body(" << uLabel << "): "
 				"illegal structural node type "
@@ -1195,7 +1195,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 
 	} else {
-		pDynamicNode = dynamic_cast<DynamicStructNode*>(pStrNode);
+		pDynamicNode = dynamic_cast<const DynamicStructNode*>(pStrNode);
 		if (pDynamicNode == 0 || pDynamicNode->GetStructNodeType() != StructNode::DYNAMIC) {
 			silent_cerr("Body(" << uLabel << "): "
 				"illegal structural node type "
