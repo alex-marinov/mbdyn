@@ -2069,11 +2069,11 @@ ReadStructuralForce(DataManager* pDM,
 
 		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
 		if (HP.IsKeyWord("position")) {
-			Arm2 = HP.GetPosRel(rf2);
+			Arm2 = HP.GetPosRel(rf2, rf, Arm);
 			DEBUGCOUT("Node 2 arm is supplied" << std::endl);
 
 		} else if (bLegacy) {
-			Arm2 = HP.GetPosRel(rf2);
+			Arm2 = HP.GetPosRel(rf2, rf, Arm);
 		}
 	}
 
