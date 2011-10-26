@@ -14,6 +14,27 @@ codeaster_srcdir = contrib/CodeAster
 codeaster_files = \
 $(codeaster_srcdir)/cms/cms.py
 
+mls_dir = $(octavedir)
+mls_srcdir = contrib/MLS
+mls_files = \
+$(mls_srcdir)/COPYING.kd \
+$(mls_srcdir)/create_mls_interface.m \
+$(mls_srcdir)/example_MLS.m \
+$(mls_srcdir)/f_polyn_basis_derivatives.m \
+$(mls_srcdir)/f_polyn_basis.m \
+$(mls_srcdir)/f_regression_derivatives_kdtree.m \
+$(mls_srcdir)/f_weight_function_derivatives.m \
+$(mls_srcdir)/f_weight_function_givendist.m \
+$(mls_srcdir)/kd_buildtree.m \
+$(mls_srcdir)/kd_closestpointfast.m \
+$(mls_srcdir)/kd_closestpointgood.m \
+$(mls_srcdir)/kd_demo.m \
+$(mls_srcdir)/kd_knn.m \
+$(mls_srcdir)/kd_nclosestpoints.m \
+$(mls_srcdir)/kd_plotbox.m \
+$(mls_srcdir)/kd_rangequery.m \
+$(mls_srcdir)/README
+
 scicos_dir = "$(datarootdir)/Scicos"
 scicos_srcdir = contrib/ScicosInterface
 scicos_files = \
@@ -47,6 +68,7 @@ $(simulink_srcdir)/sfun_mbdyn_start.c \
 EXTRA_DIST = CHANGES \
 contrib/Patches \
 $(codeaster_files) \
+$(mls_files) \
 $(scicos_files) \
 $(simulink_files)
 
