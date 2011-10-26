@@ -603,6 +603,9 @@ ElasticHingeJoint::AssMat(FullSubMatrixHandler& WMA, doublereal dCoef)
 	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaCurrm1.MulMT(R1h);
 #endif
 
+	// HACK?  Need to call AfterPredict() here to update MDE and so
+	AfterPredict();
+
 	AssMatM(WMA, dCoef);
 	AssMatMDE(WMA, dCoef);
 }
@@ -637,6 +640,14 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr)
+{
+	return AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
 /* Inverse Dynamics Residual Assembly */
 SubVectorHandler&
 ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
@@ -647,7 +658,8 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUT("Entering ElasticHingeJoint::AssRes()" << std::endl);
 
-	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
 	
 	/* There is no need to call AfterPredict, everything is done in AssVec*/
 	bFirstRes = false;
@@ -673,6 +685,20 @@ ElasticHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics update */
+void
+ElasticHingeJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+ElasticHingeJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(ThetaCurr);
+}
 
 void
 ElasticHingeJoint::AssVec(SubVectorHandler& WorkVec)

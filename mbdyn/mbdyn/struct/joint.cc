@@ -152,6 +152,18 @@ Joint::bIsTorque(void) const
 	return (m_uInverseDynamicsFlags & InverseDynamics::TORQUE);
 }
 
+bool
+Joint::bIsErgonomy(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::ERGONOMY);
+}
+
+bool
+Joint::bIsRightHandSide(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::RIGHT_HAND_SIDE);
+}
+
 /* Joint - end */
 
 
@@ -306,9 +318,12 @@ ReadJoint(DataManager* pDM,
 	}
 #endif // DEBUG
 
+	// Inverse dynamics
 	Joint* pEl = NULL;
 	bool bIsTorque(true);
 	bool bIsPrescribedMotion(true);
+	bool bIsErgonomy(false);
+	bool bIsRightHandSide(false);
 
 	switch (CurrKeyWord) {
 
@@ -1285,6 +1300,9 @@ ReadJoint(DataManager* pDM,
 	/* asta con pin alle estremita' */
 	case ROD:
 		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;
 
 		/*
 		 * lettura dei dati specifici:
@@ -1419,6 +1437,9 @@ ReadJoint(DataManager* pDM,
 
 	case RODWITHOFFSET:
 		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;
 
 		/*
 		 * lettura dei dati specifici:
@@ -1529,6 +1550,10 @@ ReadJoint(DataManager* pDM,
 	case INVARIANTDEFORMABLEHINGE:
 	case INVARIANTDEFORMABLEDISPJOINT:
 		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;
+
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
@@ -1888,6 +1913,10 @@ ReadJoint(DataManager* pDM,
 	case DEFORMABLEJOINT:
 	case INVARIANTDEFORMABLEJOINT:
 		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;
+
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
@@ -2051,6 +2080,10 @@ ReadJoint(DataManager* pDM,
 
 	case VISCOUSBODY:
 		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;
+
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
@@ -3381,6 +3414,7 @@ ReadJoint(DataManager* pDM,
 		} break;
 
 	case MODAL:
+		// FIXME: check whether it can be used in inverse dynamics
 		pEl = ReadModal(pDM, HP, pDO, uLabel);
 		break;
 
@@ -3529,6 +3563,41 @@ ReadJoint(DataManager* pDM,
 		if (HP.IsKeyWord("prescribed" "motion")) {
 			bIsPrescribedMotion = HP.GetYesNoOrBool(bIsPrescribedMotion);
 		}
+
+		if (HP.IsKeyWord("right" "hand" "side")) {
+			bIsRightHandSide = HP.GetYesNoOrBool(bIsRightHandSide);
+		}
+
+		if (HP.IsKeyWord("ergonomy")) {
+			bIsErgonomy = HP.GetYesNoOrBool(bIsErgonomy);
+			if (bIsErgonomy) {
+				ConstLawType::Type type = ConstLawType::UNKNOWN;
+
+				const ConstitutiveLaw1DOwner *pC1DO = dynamic_cast<const ConstitutiveLaw1DOwner *>(pEl);
+				const ConstitutiveLaw3DOwner *pC3DO = dynamic_cast<const ConstitutiveLaw3DOwner *>(pEl);
+				const ConstitutiveLaw6DOwner *pC6DO = dynamic_cast<const ConstitutiveLaw6DOwner *>(pEl);
+
+				if (pC1DO) {
+					type = pC1DO->pGetConstLaw()->GetConstLawType();
+				} else if (pC3DO) {
+					type = pC3DO->pGetConstLaw()->GetConstLawType();
+				} else if (pC6DO) {
+					type = pC6DO->pGetConstLaw()->GetConstLawType();
+				} else {
+					silent_cerr("Joint(" << uLabel << "): is \"ergonomy\" but cannot infer constitutive law type" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (type != ConstLawType::ELASTIC) {
+					silent_cerr("Joint(" << uLabel << "): invalid constitutive law type (must be ELASTIC)" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bIsRightHandSide) {
+					silent_cerr("warning, Joint(" << uLabel << ") is both \"ergonomy\" and \"right hand side\"" << std::endl);
+				}
+			}
+		}
 	}
 
 	// set flags for inverse dynamics
@@ -3539,6 +3608,12 @@ ReadJoint(DataManager* pDM,
 		}
 		if (bIsPrescribedMotion) {
 			flags |= InverseDynamics::PRESCRIBED_MOTION;
+		}
+		if (bIsRightHandSide) {
+			flags |= InverseDynamics::RIGHT_HAND_SIDE;
+		}
+		if (bIsErgonomy) {
+			flags |= InverseDynamics::ERGONOMY;
 		}
 		pEl->SetInverseDynamicsFlags(flags);
 	}

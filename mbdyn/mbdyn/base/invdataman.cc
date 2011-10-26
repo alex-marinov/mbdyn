@@ -192,6 +192,9 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 					WorkMat.AddToT(JacHdl);
 
+				} else if (pIDSS->GetOrder() == InverseDynamics::POSITION && pJ->bIsErgonomy()) {
+					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
+
 				} else {
 					integer iNumDof = pJ->iGetNumDof();
 					integer iFirstIndex = pJ->iGetFirstIndex();
@@ -199,8 +202,6 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 						JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) = 1.;
 					}
 				}
-
-				//FIXME: allow deformable joints, after implementing AssJac()
 			}
 		}
 		} break;
@@ -260,10 +261,9 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		// NOTE: in this case, the name of the function is misleading,
 		// since it assembles the entire problem's residual
 		// and not only the residual of the constraints
-		InverseDynamicsStepSolver *pIDSS = dynamic_cast<InverseDynamicsStepSolver *>(pSolver->pGetStepIntegrator());
 		doublereal dw1, dw2;
-		pIDS->GetWeight(pIDSS->GetOrder(), dw1, dw2);
-		switch (pIDSS->GetOrder()) {
+		pIDS->GetWeight(iOrder, dw1, dw2);
+		switch (iOrder) {
 		case InverseDynamics::POSITION:
 			if (dw1 > 0.) {
 				for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
@@ -462,7 +462,9 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
 			Joint *pJ = Cast<Joint>(j->second);
-			if (pJ->bIsPrescribedMotion()) {
+			if (pJ->bIsPrescribedMotion()
+				|| (iOrder == InverseDynamics::POSITION && pJ->bIsErgonomy()))
+			{
 				try {
 					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
 						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
@@ -475,7 +477,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 			} else {
 				integer iNumDof = pJ->iGetNumDof();
 				integer iFirstIndex = pJ->iGetFirstIndex();
-				if (pIDSS->GetOrder() == InverseDynamics::POSITION) {
+				if (iOrder == InverseDynamics::POSITION) {
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
 						ResHdl(iFirstIndex + iCnt) = -(*pXCurr)(iFirstIndex + iCnt);
 					}
@@ -551,18 +553,10 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
-		Joint *pj = Cast<Joint>(j->second);
-
-		ASSERT(pj != 0);
-
-		switch (pj->GetJointType()) {
-		case Joint::DEFORMABLEHINGE:
-		case Joint::DEFORMABLEDISPJOINT:
-		case Joint::DEFORMABLEJOINT:
-		case Joint::DEFORMABLEAXIALJOINT:
-		// FIXME: <Fumagalli> add rod?
+		Joint *pJ = Cast<Joint>(j->second);
+		if (pJ != 0 && pJ->bIsRightHandSide()) {
 			try {
-				ResHdl += pj->AssRes(WorkVec, *pXCurr, 
+				ResHdl += pJ->AssRes(WorkVec, *pXCurr, 
 					*pXPrimeCurr, *pXPrimePrimeCurr, 
 					InverseDynamics::INVERSE_DYNAMICS);
 			}
@@ -570,23 +564,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
 			}
-			break;
-
-		default:
-			continue;
 		}
-
-#if 0 // FIXME: <Fumagalli> needed?
-		try {
-			ResHdl += pj->AssRes(WorkVec, *pXCurr, 
-				*pXPrimeCurr, *pXPrimePrimeCurr, 
-				InverseDynamics::INVERSE_DYNAMICS);
-		}
-		catch (Elem::ChangedEquationStructure) {
-			ResHdl += WorkVec;
-			ChangedEqStructure = true;
-		}
-#endif
 	}
 
 	if (ChangedEqStructure) {
@@ -746,6 +724,10 @@ DataManager::IDDofInit(void)
 		}
 	}
 
+	ASSERT(iNodeIndex == iIDNodeTotNumDofs);
+
+	/* Gli indici dei nodi sono ok */
+	
 	if (bOutputAccels) {
 		for (NodeContainerType::iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
@@ -754,10 +736,6 @@ DataManager::IDDofInit(void)
 		}
 	}
 
-	ASSERT(iNodeIndex == iIDNodeTotNumDofs);
-
-	/* Gli indici dei nodi sono ok */
-	
 	/* Se il problema è ben posto, gli indici delle equazioni di vincolo
 	 * hanno numerazione indipendente dai nodi. Altrimenti la numerazione 
 	 * è a partire dagli indici dei nodi (per fare spazio alla matrice 
@@ -816,7 +794,13 @@ DataManager::IDDofInit(void)
 			DEBUGCERR("warning, Joint(" << j->second->GetLabel() << ") "
 				"has 0 dofs" << std::endl);
 		}
-			
+
+		const char *sTorque = pJ->bIsTorque() ? "T" : "_";
+		const char *sPrescribedMotion = pJ->bIsPrescribedMotion() ? "P" : "_";
+		const char *sErgonomy = pJ->bIsErgonomy() ? "E" : "_";
+		const char *sRightHandSide = pJ->bIsRightHandSide() ? "R" : "_";
+
+		silent_cout("Joint(" << pJ->GetLabel() << "): " << sTorque << sPrescribedMotion << sErgonomy << sRightHandSide << std::endl);
 	}
 
 	switch (dynamic_cast<InverseSolver *>(pSolver)->GetProblemType()) {
@@ -921,7 +905,12 @@ DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRa
 	for (ElemContainerType::const_iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
                 j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
         {
-		ElemWithDofs* pEWD = Cast<ElemWithDofs>(j->second);
+		const Joint *pJ = Cast<Joint>(j->second);
+		if (!pJ->bIsTorque() && !pJ->bIsPrescribedMotion()) {
+			continue;
+		}
+
+		const ElemWithDofs* pEWD = Cast<ElemWithDofs>(j->second);
 		integer iIndex = pEWD->iGetFirstIndex();
 		integer iNumDofs = pEWD->iGetNumDof();
 

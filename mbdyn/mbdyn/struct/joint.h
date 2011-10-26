@@ -217,6 +217,8 @@ public:
 	unsigned GetInverseDynamicsFlags(void) const;
 	bool bIsPrescribedMotion(void) const;
 	bool bIsTorque(void) const;
+	bool bIsErgonomy(void) const;
+	bool bIsRightHandSide(void) const;
 	// end of inverse dynamics
 	
 	/* per la lettura dei dati dell'elemento modale */

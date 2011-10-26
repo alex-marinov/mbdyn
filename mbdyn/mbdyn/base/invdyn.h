@@ -57,7 +57,9 @@ public:
 
 
 		PRESCRIBED_MOTION = 0x10U,
-		TORQUE = 0x20U
+		TORQUE = 0x20U,
+		ERGONOMY = 0x40U,
+		RIGHT_HAND_SIDE = 0x80U
 	};
 };
 
