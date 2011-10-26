@@ -1430,6 +1430,13 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	gRef = Vec3(X, iFirstIndex + 4);
 	gCurr = Zero3;
 	RRef = RCurr;
+
+	XPrev = XCurr;
+	RPrev = RCurr;
+	VPrev = VCurr;
+	WPrev = WCurr;
+	XPPPrev = XPPCurr;
+	WPPrev = WPCurr;
 }
 
 bool
