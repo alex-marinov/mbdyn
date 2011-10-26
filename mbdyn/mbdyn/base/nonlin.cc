@@ -358,6 +358,12 @@ NonlinearSolverTestRange::TestMerge(doublereal& dResCurr, const doublereal& dRes
 	m_pTest->TestMerge(dResCurr, dResNew);
 }
 
+doublereal
+NonlinearSolverTestRange::TestPost(const doublereal& dRes) const
+{
+	return m_pTest->TestPost(dRes);
+}
+
 const doublereal&
 NonlinearSolverTestRange::dScaleCoef(const integer& iIndex) const
 {

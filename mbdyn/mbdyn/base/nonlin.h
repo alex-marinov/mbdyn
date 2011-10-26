@@ -182,6 +182,8 @@ public:
 
 	virtual void TestMerge(doublereal& dResCurr, const doublereal& dResNew) const;
 
+	virtual doublereal TestPost(const doublereal& dRes) const;
+
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
 
 	void SetRange(integer iFirstIndex, integer iLastIndex);
