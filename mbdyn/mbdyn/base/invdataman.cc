@@ -355,13 +355,16 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& XCurr(pNode->GetXCurr());
 
 // #define USE_2XmV 1	// 2nd order, a-stable, oscillations
-// #define USE_2XpVd3 1	// 1st order, a/l-stable, less accurate
-#define USE_X 1		// 1st order, l-stable, more accurate
+// #define USE_2XpVd3 1	// 1st order, a/l-stable, more accurate
+#define USE_X 1		// 1st order, l-stable (implicit Euler), less accurate (alpha == 1.)
+// #define USE_alphaX_betaV	(1.0)	// alpha = 1. + |rho|; beta = (1 - alpha) for 1st order accuracy
 
 #if USE_2XmV
 					Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
 #elif USE_2XpVd3
 					Vec3 VRef((XCurr - XPrev)*(2./3./h) + VPrev/3.);
+#elif defined(USE_alphaX_betaV)
+					Vec3 VRef((XCurr - XPrev)*(USE_alphaX_betaV/h) + VPrev*(1 - USE_alphaX_betaV));
 #elif USE_X
 					Vec3 VRef((XCurr - XPrev)/h);
 #endif
@@ -377,6 +380,8 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./h) - WPrev);
 #elif USE_2XpVd3
 					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(2./3./h) + WPrev/3.);
+#elif defined(USE_alphaX_betaV)
+					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))*(USE_alphaX_betaV/h) + WPrev*(1 - USE_alphaX_betaV));
 #elif USE_X
 					Vec3 WRef(RotManip::VecRot(RCurr.MulMT(RPrev))/h);
 #endif
@@ -436,6 +441,8 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					Vec3 XPPRef((VCurr - VPrev)*(2./h) - XPPPrev);
 #elif USE_2XpVd3
 					Vec3 XPPRef((VCurr - VPrev)*(2./3./h) + XPPPrev/3.);
+#elif defined(USE_alphaX_betaV)
+					Vec3 XPPRef((VCurr - VPrev)*(USE_alphaX_betaV/h) + XPPPrev*(1 - USE_alphaX_betaV));
 #elif USE_X
 					Vec3 XPPRef((VCurr - VPrev)/h);
 #endif
@@ -457,6 +464,8 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					Vec3 WPRef((WCurr - WPrev)*(2./h) - WPPrev);
 #elif USE_2XpVd3
 					Vec3 WPRef((WCurr - WPrev)*(2./3./h) + WPPrev/3.);
+#elif defined(USE_alphaX_betaV)
+					Vec3 WPRef((WCurr - WPrev)*(USE_alphaX_betaV/h) + WPPrev*(1 - USE_alphaX_betaV));
 #elif USE_X
 					Vec3 WPRef((WCurr - WPrev)/h);
 #endif
