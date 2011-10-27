@@ -603,9 +603,6 @@ ElasticHingeJoint::AssMat(FullSubMatrixHandler& WMA, doublereal dCoef)
 	MDE = R1h*ConstitutiveLaw3DOwner::GetFDE()*GammaCurrm1.MulMT(R1h);
 #endif
 
-	// HACK?  Need to call AfterPredict() here to update MDE and so
-	AfterPredict();
-
 	AssMatM(WMA, dCoef);
 	AssMatMDE(WMA, dCoef);
 }
@@ -645,6 +642,9 @@ VariableSubMatrixHandler&
 ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
+	// HACK?  Need to call AfterPredict() here to update MDE and so
+	AfterPredict();
+
 	return AssJac(WorkMat, 1., XCurr, XCurr);
 }
 
