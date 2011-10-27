@@ -44,18 +44,6 @@ extern const char* psRodNames[];
 
 class Rod : 
 virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
-public:
-	/* Tipi di rods */
-	enum Type {
-		UNKNOWN = -1,
-	
-		ELASTIC = 0,
-		VISCOELASTIC,
-		VISCOELASTICWITHOFFSET,
-	
-		LASTRODTYPE
-	};
-
 protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
@@ -99,11 +87,6 @@ public:
 
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
-
-	/* Tipo di Rod */
-	virtual Rod::Type GetRodType(void) const {
-		return Rod::ELASTIC; 
-	};
 
 	virtual unsigned int iGetNumDof(void) const { 
 		return 0;
@@ -213,11 +196,6 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-	/* Tipo di Rod */
-	virtual Rod::Type GetRodType(void) const {
-		return Rod::VISCOELASTIC; 
-	};
-
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 			const VectorHandler& XCurr, 
@@ -287,11 +265,6 @@ public:
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-	/* Tipo di Rod */
-	virtual Rod::Type GetRodType(void) const { 
-		return Rod::VISCOELASTICWITHOFFSET; 
-	};
-   
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 12;
