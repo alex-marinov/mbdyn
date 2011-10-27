@@ -642,6 +642,19 @@ ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+ElasticDispJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	ASSERT(bIsErgonomy());
+
+	// HACK?  Need to call AfterPredict() here to update MDE and so
+	// const_cast because AfterPredict() does not modify X, XP
+	AfterPredict(const_cast<VectorHandler&>(XCurr), const_cast<VectorHandler&>(XCurr));
+
+	return DeformableDispJoint::AssJac(WorkMat, 1., XCurr, XCurr);
+}
 
 /* Inverse Dynamics Residual Assembly */
 SubVectorHandler&
@@ -651,7 +664,8 @@ ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */, 
 	InverseDynamics::Order iOrder)
 {	
-	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
 
 	bFirstRes = false;
 
@@ -674,6 +688,21 @@ ElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	AssVec(WorkVec);
 
 	return WorkVec;
+}
+
+/* Inverse Dynamics update */
+void
+ElasticDispJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+ElasticDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(tilde_d);
 }
 
 void

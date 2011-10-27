@@ -679,7 +679,8 @@ DeformableJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */, 
 	InverseDynamics::Order iOrder)
 {	
-	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
 
 	bFirstRes = false;
 
@@ -811,6 +812,35 @@ ElasticJoint::AssMats(FullSubMatrixHandler& WMA,
 	AssMatElastic(WMA, dCoef, FDE);
 }
 
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+ElasticJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr)
+{
+	ASSERT(bIsErgonomy());
+
+	// HACK?  Need to call AfterPredict() here to update MDE and so
+	// const_cast because AfterPredict() does not modify X, XP
+	AfterPredict(const_cast<VectorHandler&>(XCurr), const_cast<VectorHandler&>(XCurr));
+
+	return DeformableJoint::AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
+/* Inverse Dynamics update */
+void
+ElasticJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+ElasticJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw6DOwner::AfterConvergence(tilde_k);
+}
+ 
 void
 ElasticJoint::AssVec(SubVectorHandler& WorkVec)
 {

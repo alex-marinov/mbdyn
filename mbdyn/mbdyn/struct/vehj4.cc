@@ -435,6 +435,19 @@ ElasticAxialJoint::AssMat(FullSubMatrixHandler& WMA, doublereal dCoef)
 	AssMatMDE(WMA, dCoef);
 }
 
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+ElasticAxialJoint::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	ASSERT(bIsErgonomy());
+
+	// HACK?  Need to call AfterPredict() here to update MDE and so
+	AfterPredict();
+
+	return AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
 /* assemblaggio residuo */
 SubVectorHandler&
 ElasticAxialJoint::AssRes(SubVectorHandler& WorkVec,
@@ -475,7 +488,8 @@ ElasticAxialJoint::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUT("Entering ElasticAxialJoint::AssRes()" << std::endl);
 
-	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
 	
 	/* There is no need to call AfterPredict, everything is done in AssVec*/
 	bFirstRes = false;
@@ -501,6 +515,21 @@ ElasticAxialJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics update */
+void
+ElasticAxialJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+ElasticAxialJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw1DOwner::AfterConvergence(dThetaCurr);
+}
+ 
 
 void
 ElasticAxialJoint::AssVec(SubVectorHandler& WorkVec)

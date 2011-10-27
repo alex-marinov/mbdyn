@@ -642,6 +642,8 @@ VariableSubMatrixHandler&
 ElasticHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
+	ASSERT(bIsErgonomy());
+
 	// HACK?  Need to call AfterPredict() here to update MDE and so
 	AfterPredict();
 

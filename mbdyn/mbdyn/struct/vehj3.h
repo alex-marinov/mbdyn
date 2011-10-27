@@ -243,8 +243,20 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* Inverse Dynamics Jacobian matrix assembly */
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
 	/* Aggiorna le deformazioni ecc. */
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+	/* Inverse Dynamics update */
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
+			const VectorHandler& XPP);
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
