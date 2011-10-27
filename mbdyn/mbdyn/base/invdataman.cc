@@ -353,9 +353,10 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					const Vec3& VPrev(pNode->GetVPrev());
 					const Vec3& XPrev(pNode->GetXPrev());
 					const Vec3& XCurr(pNode->GetXCurr());
-// #define USE_2XmV 1
-// #define USE_2XpVd3 1
-#define USE_X 1
+
+// #define USE_2XmV 1	// 2nd order, a-stable, oscillations
+// #define USE_2XpVd3 1	// 1st order, a/l-stable, less accurate
+#define USE_X 1		// 1st order, l-stable, more accurate
 
 #if USE_2XmV
 					Vec3 VRef((XCurr - XPrev)*(2./h) - VPrev);
