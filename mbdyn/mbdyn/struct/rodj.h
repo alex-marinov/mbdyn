@@ -147,6 +147,30 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 
+	/* Inverse dynamics */
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
+	/* Inverse Dynamics Jacobian matrix assembly */
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics update */
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	virtual void AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP,
+		const VectorHandler& XPP);
+
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */

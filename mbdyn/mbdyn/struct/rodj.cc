@@ -450,6 +450,55 @@ Rod::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* inverse dynamics capable element */
+bool
+Rod::bInverseDynamics(void) const
+{
+	return true;
+}
+
+
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+Rod::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	ASSERT(bIsErgonomy());
+
+	return AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+Rod::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr, 
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	InverseDynamics::Order iOrder)
+{
+	DEBUGCOUT("Entering Rod::AssRes()" << std::endl);
+
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
+	
+	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
+}
+
+/* Inverse Dynamics update */
+void
+Rod::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+Rod::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	AfterConvergence(X, XP);
+}
+
 void
 Rod::GetDummyPartPos(unsigned int part,
 	Vec3& x,
