@@ -147,7 +147,7 @@ ExternResForces::Pole(void) const
 	return X;
 }
 
-NodeResForces::NodeResForces(StructNode *n)
+NodeResForces::NodeResForces(const StructNode *n)
 : pNode(n)
 {
 	NO_OP;
@@ -165,7 +165,7 @@ NodeResForces::Pole(void) const
 	return pNode->GetXCurr(); 
 }
 
-LocalNodeResForces::LocalNodeResForces(StructNode *n)
+LocalNodeResForces::LocalNodeResForces(const StructNode *n)
 : NodeResForces(n)
 {
 	NO_OP;
@@ -215,8 +215,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		SAFENEW(pres, ExternResForces);
 		
 	} else if (HP.IsKeyWord("node")) {
-		StructNode *pNode = 
-			(StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+		const StructNode *pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 		
 		if (pNode == NULL) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);

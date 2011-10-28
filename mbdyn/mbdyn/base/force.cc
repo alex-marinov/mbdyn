@@ -412,7 +412,7 @@ ReadForce(DataManager* pDM,
 	case TOTAL:
 	case TOTALINTERNAL: {
 		/* nodo collegato 1 */
-		StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 		Vec3 f1(Zero3);
 		Mat3x3 R1h(Eye3);
 		Mat3x3 R1hr(Eye3);
@@ -433,14 +433,14 @@ ReadForce(DataManager* pDM,
 			R1hr = HP.GetRotRel(RF);
 		}
 
-		StructNode* pNode2 = 0;
+		const StructNode* pNode2 = 0;
 		Vec3 f2(Zero3);
 		Mat3x3 R2h(Eye3);
 		Mat3x3 R2hr(Eye3);
 
 		if (CurrType == TOTALINTERNAL) {
 		/* nodo collegato 2 */
-			pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+			pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 			RF = ReferenceFrame(pNode2);
 
 			if (HP.IsKeyWord("position")) {

@@ -80,10 +80,10 @@ public:
 
 class NodeResForces : public ResForces {
 protected:
-	StructNode *pNode;
+	const StructNode *pNode;
 
 public:
-	NodeResForces(StructNode *n = 0);
+	NodeResForces(const StructNode *n = 0);
 	virtual ~NodeResForces(void);
 
 	const Vec3& Pole(void) const;
@@ -95,7 +95,7 @@ protected:
 	mutable Vec3 Cr;
 
 public:
-	LocalNodeResForces(StructNode *n = 0);
+	LocalNodeResForces(const StructNode *n = 0);
 	virtual ~LocalNodeResForces(void);
 
 	const Vec3& Force(void) const;

@@ -38,7 +38,7 @@
 /* StreamContentMotion - begin */
 
 StreamContentMotion::StreamContentMotion(unsigned uFlags,
-	std::vector<StructNode *>& n)
+	std::vector<const StructNode *>& n)
 : uFlags(uFlags), nodes(n)
 {
 	/* FIXME: size depends on the type of the output signals */

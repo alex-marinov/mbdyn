@@ -43,11 +43,11 @@
 class StreamContentMotion : public StreamContent {
 protected:
 	unsigned uFlags;
-	std::vector<StructNode *> nodes;
+	std::vector<const StructNode *> nodes;
 
 public:
 	StreamContentMotion( unsigned uFlags,
-		std::vector<StructNode *>& n);
+		std::vector<const StructNode *>& n);
 	virtual ~StreamContentMotion(void);
 
 	void Prepare(void);

@@ -158,19 +158,19 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        /* due nodi idraulici e due nodi strutturali */
        
        /* nodo idraulico 1 */
-       PressureNode* pNodeHyd1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNodeHyd1 = dynamic_cast<const PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        /* nodo idraulico 2 */
-       PressureNode* pNodeHyd2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNodeHyd2 = dynamic_cast<const PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        /* nodo strutturale 1 */
-       StructNode* pNodeStr1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       const StructNode* pNodeStr1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
        
        Vec3 f1(HP.GetPosRel(ReferenceFrame(pNodeStr1)));
        DEBUGCOUT("Offset 1: " << f1 << std::endl);
        
        /* nodo strutturale 2 */
-       StructNode* pNodeStr2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+       const StructNode* pNodeStr2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
        
        Vec3 f2(HP.GetPosRel(ReferenceFrame(pNodeStr2)));
        DEBUGCOUT("Offset 2: " << f2 << std::endl);  

@@ -263,13 +263,13 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 			}
 		}
 	
-		std::vector<StructNode *> nodes;
+		std::vector<const StructNode *> nodes;
 		if (HP.IsKeyWord("all")) {
 			/* FIXME: todo */
 	
 		} else {
 			while (HP.IsArg()) {
-				nodes.insert(nodes.end(), (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL));
+				nodes.insert(nodes.end(), dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL)));
 			}
 		}
 	

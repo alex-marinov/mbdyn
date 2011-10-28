@@ -1161,7 +1161,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	KeyTable K(HP, sKeyWords);
 	
 	/* Nodo 1 */
-	StructNode* pNode1 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	if (HP.IsKeyWord("position")) {
 		/* just eat it! */
 		NO_OP;
@@ -1179,7 +1179,7 @@ ReadHBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< pNode1->GetXCurr()+pNode1->GetRCurr()*R1*f1 << std::endl);
 	
 	/* Nodo 2 */
-	StructNode* pNode2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+	const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 	if (HP.IsKeyWord("position")) {
 		/* just eat it! */
 		NO_OP;
