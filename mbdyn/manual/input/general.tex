@@ -1697,6 +1697,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{null} & $\surd$ & \\
 %\kw{one} & $\surd$ & \\
 \kw{parabolic} & $\surd$ & \\
+\kw{periodic} & $\surd$ & depends on subordinate drive caller \\
 \kw{piecewise linear} & $\surd$ & \\
 \kw{ramp} & $\surd$ & \\
 \kw{random} & $\surd$ & \\ %
@@ -2316,6 +2317,33 @@ The function
 	f\plbr{t} &= \nt{const\_coef} \nonumber \\
 		&+ \nt{linear\_coef} \cdot t \nonumber \\
 		&+ \nt{parabolic\_coef} \cdot t^2
+\end{align}
+
+\subsection{Periodic drive}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{periodic} ,
+        \bnt{initial_time} ,
+        \bnt{period} ,
+        (\ty{DriveCaller})\bnt{func_drive}
+\end{Verbatim}
+The function
+\begin{align}
+	f\plbr{t}
+	&=
+	0
+	& t < \nt{initial\_time}
+	\nonumber \\
+	f\plbr{t}
+	&=
+	\nt{func\_drive}\plbr{
+		t
+		-
+		\nt{initial\_time}
+		-
+		\nt{period} \cdot \textrm{floor}\plbr{\frac{t - \nt{initial\_time}}{\nt{period}}}
+	}
+	&
+	t \ge \nt{initial\_time}
 \end{align}
 
 \subsection{Piecewise linear drive}

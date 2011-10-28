@@ -1545,5 +1545,74 @@ DriveArrayCaller::dGetP(const doublereal& dVar) const
 
 /* DriveArrayCaller - end */
 
+/* PeriodicDriveCaller - begin */
+
+class PeriodicDriveCaller : public DriveCaller {
+protected:
+	DriveOwner DO;
+	doublereal dT0;
+	doublereal dPeriod;
+
+public:
+	PeriodicDriveCaller(const DriveHandler* pDH,
+		const DriveCaller *pDC, doublereal dT0, doublereal dPeriod);
+	virtual ~PeriodicDriveCaller(void);
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	inline doublereal dGet(void) const;
+	inline doublereal dGet(const doublereal& dVar) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+};
+
+inline doublereal
+PeriodicDriveCaller::dGet(void) const
+{
+	doublereal dTime = pDrvHdl->dGetTime();
+	if (dTime < dT0) {
+		return 0.;
+	}
+	dTime -= dT0;
+	dTime -= floor(dTime/dPeriod)*dPeriod;
+	return DO.pGetDriveCaller()->dGet(dTime);
+}
+
+inline doublereal
+PeriodicDriveCaller::dGet(const doublereal& dVar) const
+{
+	if (dVar < dT0) {
+		return 0.;
+	}
+	doublereal dTime = dVar - dT0;
+	dTime -= floor(dTime/dPeriod)*dPeriod;
+	return DO.pGetDriveCaller()->dGet(dTime);
+}
+
+inline bool
+PeriodicDriveCaller::bIsDifferentiable(void) const
+{
+	return DO.pGetDriveCaller()->bIsDifferentiable();
+}
+
+inline doublereal 
+PeriodicDriveCaller::dGetP(const doublereal& dVar) const
+{
+	if (dVar < dT0) {
+		return 0.;
+	}
+	doublereal dTime = dVar - dT0;
+	dTime -= floor(dTime/dPeriod)*dPeriod;
+	return DO.pGetDriveCaller()->dGetP(dTime);
+}
+
+/* PeriodicDriveCaller - end */
+
 #endif /* DRIVE__H */
 

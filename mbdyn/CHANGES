@@ -29,6 +29,7 @@ MBDyn 1.X-Devel
 		- added generic rotor trim genel
 		- added basic support for underdetermined inverse dynamics
 		- added MLS files for domain mapping (Giuseppe Quaranta)
+		- added periodic drive caller
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed

@@ -1118,6 +1118,43 @@ DriveArrayCaller::Restart(std::ostream& out) const
 
 /* DriveArrayCaller - end */
 
+/* PeriodicDriveCaller - begin */
+
+PeriodicDriveCaller::PeriodicDriveCaller(const DriveHandler *pDH,
+	const DriveCaller* pDC, doublereal dT0, doublereal dPeriod)
+: DriveCaller(pDH),
+DO(pDC), dT0(dT0), dPeriod(dPeriod)
+{
+	NO_OP;
+}
+
+PeriodicDriveCaller::~PeriodicDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+PeriodicDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC, PeriodicDriveCaller,
+		PeriodicDriveCaller(pDrvHdl,
+			DO.pGetDriveCaller()->pCopy(), dT0, dPeriod));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+PeriodicDriveCaller::Restart(std::ostream& out) const
+{
+	return out << "periodic, " << dT0 << ", " << dPeriod << ", ",
+		DO.pGetDriveCaller()->Restart(out);
+}
+
+/* PeriodicDriveCaller - end */
+
+
 /* bag that contains functions to parse drive callers */
 
 typedef std::map<std::string, DriveCallerRead *, ltstrcase> DrvFuncMapType;
@@ -2523,6 +2560,46 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct PeriodicDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+PeriodicDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "periodic");
+
+	/* driver legato ai driver */
+	if (pDM == 0) {
+		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+			<< "no driver dependent drivers are allowed;" << std::endl
+			<< "aborting..." << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
+	DriveCaller *pDC = 0;
+
+	doublereal dT0 = HP.GetReal();
+	doublereal dPeriod = HP.GetReal();
+	if (dPeriod <= 0.) {
+		silent_cerr("PeriodicDriveCaller: invalid negative or null period at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const DriveCaller *pDC1 = HP.GetDriveCaller();
+
+	/* allocazione e creazione */
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		PeriodicDriveCaller,
+		PeriodicDriveCaller(pDrvHdl, pDC1, dT0, dPeriod));
+
+	return pDC;
+}
+
+
+
 static unsigned done;
 
 void
@@ -2558,6 +2635,7 @@ InitDriveData(void)
 	SetDriveData("null", new NullDCR);
 	SetDriveData("one", new OneDCR);	/* deprecated */
 	SetDriveData("parabolic", new ParabolicDCR);
+	SetDriveData("periodic", new PeriodicDCR);
 	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
 	SetDriveData("ramp", new RampDCR);
 	SetDriveData("random", new RandomDCR);
