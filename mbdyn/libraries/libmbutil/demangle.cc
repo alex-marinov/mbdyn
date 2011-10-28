@@ -33,7 +33,7 @@
 
 #include "demangle.h"
 
-#include <malloc.h>
+#include <cstdlib>
 #ifdef HAVE_CXXABI_H
 #include <cxxabi.h>
 #endif
