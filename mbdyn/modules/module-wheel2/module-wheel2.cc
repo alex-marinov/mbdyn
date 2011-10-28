@@ -47,13 +47,13 @@ class Wheel2
 private:
 
 	// wheel node
-	StructNode *pWheel;
+	const StructNode *pWheel;
 
 	// wheel axle direction (wrt/ wheel node)
 	Vec3 WheelAxle;
 
 	// (flat) ground node
-	StructNode *pGround;
+	const StructNode *pGround;
 
 	// ground position/orientation (wrt/ ground node)
 	Vec3 GroundPosition;
@@ -75,9 +75,9 @@ private:
 
 	// friction data
 	bool bSlip;
-	DriveCaller *pMuX0;
-	DriveCaller *pMuY0;
-	DriveCaller *pMuY1;
+	const DriveCaller *pMuX0;
+	const DriveCaller *pMuY0;
+	const DriveCaller *pMuY1;
 	doublereal dvThreshold;
 
 	// output data
@@ -206,14 +206,14 @@ UserDefinedElem(uLabel, pDO)
 	}
 
 	// read wheel node
-	pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	pWheel = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 	// read wheel axle
 	ReferenceFrame RF = ReferenceFrame(pWheel);
 	WheelAxle = HP.GetVecRel(RF);
 
 	// read ground node
-	pGround = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL);
+	pGround = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 	// read ground position/orientation
 	RF = ReferenceFrame(pGround);
