@@ -1038,7 +1038,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	KeyTable K(HP, sKeyWords);
 
 	/* nodo collegato */
-	const StructNode* pStrNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pStrNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	/* may be determined by a special DataManager parameter... */
 	bool bStaticModel = pDM->bIsStaticModel();

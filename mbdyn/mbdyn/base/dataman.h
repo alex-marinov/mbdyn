@@ -302,6 +302,15 @@ public:
 	Node* ReadNode(MBDynParser& HP, Node::Type type);
 	Elem* ReadElem(MBDynParser& HP, Elem::Type type);
 
+	template <class T1, Node::Type type>
+	T1 *ReadNode(MBDynParser& HP);
+	template <class T1, Node::Type type, class T2>
+	T2 *ReadNode(MBDynParser& HP);
+	template <class T1, Elem::Type type>
+	T1 *ReadElem(MBDynParser& HP);
+	template <class T1, Elem::Type type, class T2>
+	T2 *ReadElem(MBDynParser& HP);
+
 	/* Funzioni usate dal metodo di integrazione */
 
 	/* Setta il valore della variabile tempo nella tabella dei simboli
@@ -868,6 +877,76 @@ DataManager::Cast(Elem *pEl)
 	}
 
 	return pT;
+}
+
+template <class T1, Node::Type type>
+T1 *
+DataManager::ReadNode(MBDynParser& HP)
+{
+	Node *pNode = ReadNode(HP, type);
+	ASSERT(pNode != 0);
+
+	T1 *pNode1 = dynamic_cast<T1 *>(pNode);
+	if (pNode1 == 0) {
+		silent_cerr("ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<T1>() << "\" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pNode1;
+}
+
+template <class T1, Node::Type type, class T2>
+T2 *
+DataManager::ReadNode(MBDynParser& HP)
+{
+	T1 *pNode1 = ReadNode<T1, type>(HP);
+	ASSERT(pNode1 != 0);
+
+	T2 *pNode2 = dynamic_cast<T2 *>(pNode1);
+	if (pNode2 == 0) {
+		silent_cerr("ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode1->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<T1>() << "\" "
+			"to \"" << mbdyn_demangle<T2>() << "\" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pNode2;
+}
+
+template <class T1, Elem::Type type>
+T1 *
+DataManager::ReadElem(MBDynParser& HP)
+{
+	Elem *pElem = ReadElem(HP, type);
+	ASSERT(pElem != 0);
+
+	T1 *pElem1 = dynamic_cast<T1 *>(pElem);
+	if (pElem1 == 0) {
+		silent_cerr("ReadElem: unable to cast " << psElemNames[type] << "(" << pElem->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<T1>() << "\" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pElem1;
+}
+
+template <class T1, Elem::Type type, class T2>
+T2 *
+DataManager::ReadElem(MBDynParser& HP)
+{
+	T1 *pElem1 = ReadElem<T1, type>(HP);
+	ASSERT(pElem1 != 0);
+
+	T2 *pElem2 = dynamic_cast<T2 *>(pElem1);
+	if (pElem2 == 0) {
+		silent_cerr("ReadElem: unable to cast " << psElemNames[type] << "(" << pElem1->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<T1>() << "\" "
+			"to \"" << mbdyn_demangle<T2>() << "\" at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pElem2;
 }
 
 template <class T>

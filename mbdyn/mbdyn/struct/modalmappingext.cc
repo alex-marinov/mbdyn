@@ -41,8 +41,8 @@
 /* Costruttore */
 ModalMappingExt::ModalMappingExt(unsigned int uL,
 	DataManager *pDM,
-	StructNode *pRefNode,
-	std::vector<StructNode *>& n,
+	const StructNode *pRefNode,
+	std::vector<const StructNode *>& n,
 	SpMapMatrixHandler *pH,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
@@ -586,9 +586,9 @@ ReadModalMappingExtForce(DataManager* pDM,
 	bool bSendAfterPredict = false;
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
-	StructNode *pRefNode = 0;
+	const StructNode *pRefNode = 0;
 	if (HP.IsKeyWord("reference" "node")) {
-		pRefNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		if (pRefNode == 0) {
 			silent_cerr("ModalMappingExt(" << uLabel << "): "
 				"illegal reference node "
@@ -693,9 +693,9 @@ ReadModalMappingExtForce(DataManager* pDM,
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	std::vector<StructNode *> n(nNodes);
+	std::vector<const StructNode *> n(nNodes);
 	for (int i = 0; i < nNodes; i++) {
-		n[i] = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		n[i] = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		if (n[i] == 0) {
 			silent_cerr("ModalMappingExt(" << uLabel << "): "
 				"illegal node #" << i << "/" << nNodes << " "

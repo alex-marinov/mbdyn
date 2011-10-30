@@ -45,7 +45,7 @@
 
 class StructMappingExtForce : virtual public Elem, public ExtForce {
 protected:
-	StructNode *pRefNode;
+	const StructNode *pRefNode;
 	bool bUseReferenceNodeForces;
 	bool bRotateReferenceNodeForces;
 	Vec3 F0, M0;
@@ -62,7 +62,7 @@ protected:
 	};
 
 	struct NodeData {
-		StructNode *pNode;
+		const StructNode *pNode;
 		std::vector<OffsetData> Offsets;
 		Vec3 F;
 		Vec3 M;
@@ -102,10 +102,10 @@ public:
 	/* Costruttore */
 	StructMappingExtForce(unsigned int uL,
 		DataManager *pDM,
-		StructNode *pRefNode,
+		const StructNode *pRefNode,
 		bool bUseReferenceNodeForces,
 		bool bRotateReferenceNodeForces,
-		std::vector<StructNode *>& Nodes,
+		std::vector<const StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		std::vector<unsigned>& Labels,
 		SpMapMatrixHandler *pH,

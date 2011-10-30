@@ -58,7 +58,7 @@
 class RotorTrimBase : virtual public Elem, public Genel {
 protected:
 	doublereal dRadius;
-	ScalarDifferentialNode* pvNodes[3];
+	const ScalarDifferentialNode* pvNodes[3];
 	DriveOwner DThrust, DRollMoment, DPitchMoment;
 	DriveOwner Trigger;
 	
@@ -86,9 +86,9 @@ protected:
 public:
 	RotorTrimBase(unsigned int uL,
 		const DofOwner* pDO,
-		ScalarDifferentialNode* pNode1,
-		ScalarDifferentialNode* pNode2,
-		ScalarDifferentialNode* pNode3,
+		const ScalarDifferentialNode* pNode1,
+		const ScalarDifferentialNode* pNode2,
+		const ScalarDifferentialNode* pNode3,
 		const DriveCaller* pDThrust,
 		const DriveCaller* pDRollMoment,
 		const DriveCaller* pDPitchMoment,
@@ -154,9 +154,9 @@ public:
 	RotorTrim(unsigned int uL,
 		const DofOwner* pDO,
 		const Rotor* pRot, 
-		ScalarDifferentialNode* pNode1,
-		ScalarDifferentialNode* pNode2,
-		ScalarDifferentialNode* pNode3,
+		const ScalarDifferentialNode* pNode1,
+		const ScalarDifferentialNode* pNode2,
+		const ScalarDifferentialNode* pNode3,
 		const DriveCaller* pDThrust,
 		const DriveCaller* pDRollMoment,
 		const DriveCaller* pDPitchMoment,
@@ -210,9 +210,9 @@ public:
 		doublereal dRadius,
 		const DriveCaller *pOmega,
 		const DriveCaller *pMu,
-		ScalarDifferentialNode* pNode1,
-		ScalarDifferentialNode* pNode2,
-		ScalarDifferentialNode* pNode3,
+		const ScalarDifferentialNode* pNode1,
+		const ScalarDifferentialNode* pNode2,
+		const ScalarDifferentialNode* pNode3,
 		const DriveCaller* pDThrust,
 		const DriveCaller* pDRollMoment,
 		const DriveCaller* pDPitchMoment,

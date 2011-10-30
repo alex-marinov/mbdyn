@@ -41,7 +41,7 @@
 
 /* Costruttore */
 ModalForce::ModalForce(unsigned int uL,
-	Modal *pmodal,
+	const Modal *pmodal,
 	const std::vector<unsigned int>& modeList,
 	std::vector<DriveCaller *>& f,
 	const Mat3xN *mt,
@@ -146,7 +146,7 @@ ReadModalForce(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
-	Modal *pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
+	const Modal *pModal = pDM->ReadElem<const Joint, Elem::JOINT, const Modal>(HP);
 	if (pModal == 0) {
 		silent_cerr("ModalForce(" << uLabel << "): illegal Modal joint "
 			" at line " << HP.GetLineData() << std::endl);

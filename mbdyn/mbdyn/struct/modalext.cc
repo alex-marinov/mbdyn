@@ -332,7 +332,7 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 /* Costruttore */
 ModalExt::ModalExt(unsigned int uL,
 	DataManager *pDM,
-	Modal *pmodal,
+	const Modal *pmodal,
 	const StructNode *pnode,
 	bool bOutputAccelerations,
 	ExtFileHandlerBase *pEFH,
@@ -592,9 +592,9 @@ ReadModalExtForce(DataManager* pDM,
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
 	const StructNode *pNode = 0;
-	Modal *pModal = 0;
+	const Modal *pModal = 0;
 	if (HP.IsKeyWord("reference" "node")) {
-		pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		if (pNode == 0) {
 			silent_cerr("ModalExt(" << uLabel << "): illegal reference node "
 				"at line " << HP.GetLineData() << std::endl);
@@ -602,7 +602,7 @@ ReadModalExtForce(DataManager* pDM,
 		}
 
 	} else {
-		pModal = dynamic_cast<Modal *>(pDM->ReadElem(HP, Elem::JOINT));
+		pModal = pDM->ReadElem<const Modal, Elem::JOINT>(HP);
 		if (pModal == 0) {
 			silent_cerr("ModalExt(" << uLabel << "): illegal Modal joint "
 				" at line " << HP.GetLineData() << std::endl);

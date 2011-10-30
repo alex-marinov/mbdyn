@@ -46,11 +46,11 @@
 /* Costruttore */
 StructExtForce::StructExtForce(unsigned int uL,
 	DataManager *pDM,
-	StructNode *pRefNode,
+	const StructNode *pRefNode,
 	bool bUseReferenceNodeForces,
 	bool bRotateReferenceNodeForces,
 	std::vector<unsigned >& labels,
-	std::vector<StructNode *>& nodes,
+	std::vector<const StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	bool bSorted,
 	bool bLabels,
@@ -124,7 +124,7 @@ iobuf_m(0)
 
 	if (bOutputAccelerations) {
 		for (unsigned i = 0; i < m_Points.size(); i++) {
-			DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(m_Points[i].pNode);
+			const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(m_Points[i].pNode);
 			if (pDSN == 0) {
 				silent_cerr("StructExtForce"
 					"(" << GetLabel() << "): "
@@ -134,7 +134,7 @@ iobuf_m(0)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			pDSN->ComputeAccelerations(true);
+			const_cast<DynamicStructNode *>(pDSN)->ComputeAccelerations(true);
 		}
 	}
 
@@ -1352,9 +1352,9 @@ ReadStructExtForce(DataManager* pDM,
 	bool bSendAfterPredict;
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
-	StructNode *pRefNode(0);
+	const StructNode *pRefNode(0);
 	if (HP.IsKeyWord("reference" "node")) {
-		pRefNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		if (pRefNode == 0) {
 			silent_cerr("StructExtForce(" << uLabel << "): "
 				"illegal reference node "
@@ -1540,11 +1540,11 @@ ReadStructExtForce(DataManager* pDM,
 		Labels.resize(n);
  		curr_label = Labels.begin();
 	}
-	std::vector<StructNode *> Nodes(n);
+	std::vector<const StructNode *> Nodes(n);
 	std::vector<Vec3> Offsets(n);
 
 	for (int i = 0; i < n; i++ ) {
-		Nodes[i] = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		Nodes[i] = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		
 		ReferenceFrame RF(Nodes[i]);
 

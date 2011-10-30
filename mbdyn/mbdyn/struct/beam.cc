@@ -2379,7 +2379,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* Per ogni nodo: */
 
 	/* Nodo 1 */
-	const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	const Mat3x3& R1(pNode1->GetRCurr());
 	if (HP.IsKeyWord("position")) {
@@ -2398,7 +2398,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << std::endl);
 
 	/* Nodo 2 */
-	const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	Mat3x3 R2(pNode2->GetRCurr());
 	if (HP.IsKeyWord("position")) {
@@ -2417,7 +2417,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		<< pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << std::endl);
 
 	/* Nodo 3 */
-	const StructNode* pNode3 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode3 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	Mat3x3 R3(pNode3->GetRCurr());
 	if (HP.IsKeyWord("position")) {

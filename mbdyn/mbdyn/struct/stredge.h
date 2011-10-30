@@ -53,11 +53,11 @@ public:
 	/* Costruttore */
 	StructExtEDGEForce(unsigned int uL,
 		DataManager *pDM,
-		StructNode *pRefNode,
+		const StructNode *pRefNode,
 		bool bUseReferenceNodeForces,
 		bool bRotateReferenceNodeForces,
 		std::vector<unsigned>& Labels,
-		std::vector<StructNode *>& Nodes,
+		std::vector<const StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bSorted,
 		bool bLabels,

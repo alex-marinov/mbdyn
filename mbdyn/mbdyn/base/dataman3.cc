@@ -2308,15 +2308,21 @@ DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T) const
 Node*
 DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 {
-	unsigned int uNode = (unsigned int)HP.GetInt();
+	integer iNode = HP.GetInt();
+	if (iNode < 0) {
+		silent_cerr("ReadNode: invalid node label " << iNode
+			<< " at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	unsigned int uNode = (unsigned int)iNode;
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "Linked to Node " << uNode << std::endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "ReadNode: " << psNodeNames[type] << "(" << uNode << ")" << std::endl);
 
 	/* verifica di esistenza del nodo */
-	Node* pNode;
-	if ((pNode = pFindNode(type, uNode)) == NULL) {
-		silent_cerr(": " << psNodeNames[type] << " node " << uNode
-			<< " not defined at line "
+	Node* pNode = pFindNode(type, uNode);
+	if (pNode == 0) {
+		silent_cerr("ReadNode: " << psNodeNames[type] << "(" << uNode << ")"
+			" not defined at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -2327,16 +2333,21 @@ DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 Elem*
 DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 {
-	unsigned int uElem = (unsigned int)HP.GetInt();
+	integer iElem = HP.GetInt();
+	if (iElem < 0) {
+		silent_cerr("ReadElem: invalid node label " << iElem
+			<< " at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	unsigned int uElem = (unsigned int)iElem;
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "Element " << uElem << std::endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "ReadElem: " << psNodeNames[type] << "(" << uNode << ")" << std::endl);
 
 	/* verifica di esistenza dell'elemento */
-	Elem* pElem;
-
-	if ((pElem = dynamic_cast<Elem *>(pFindElem(type, uElem))) == NULL) {
-		silent_cerr(": " << psElemNames[type] << uElem
-			<< " not defined at line "
+	Elem* pElem = dynamic_cast<Elem *>(pFindElem(type, uElem));
+	if (pElem == 0) {
+		silent_cerr("ReadElem: " << psElemNames[type] << "(" << uElem << ")"
+			" not defined at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

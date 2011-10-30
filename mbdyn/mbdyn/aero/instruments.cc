@@ -259,7 +259,7 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 {
 	Elem *pEl = NULL;
 
-	StructNode* pNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 	Mat3x3 R = Eye3;
 	if (HP.IsKeyWord("orientation")) {
 		R = HP.GetRotRel(ReferenceFrame(pNode));

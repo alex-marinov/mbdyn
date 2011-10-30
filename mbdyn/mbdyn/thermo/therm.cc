@@ -122,8 +122,8 @@ Elem* ReadThermal(DataManager* pDM,
 		/*  */
 
 		case THERMALRESISTANCE: {
-			ThermalNode* pThNode1 = dynamic_cast<ThermalNode *>(pDM->ReadNode(HP, Node::THERMAL));
-			ThermalNode* pThNode2 = dynamic_cast<ThermalNode *>(pDM->ReadNode(HP, Node::THERMAL));
+			const ThermalNode* pThNode1 = pDM->ReadNode<const ThermalNode, Node::THERMAL>(HP);
+			const ThermalNode* pThNode2 = pDM->ReadNode<const ThermalNode, Node::THERMAL>(HP);
 			doublereal r = HP.GetReal();
 			flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -141,7 +141,7 @@ Elem* ReadThermal(DataManager* pDM,
 		}
 
 		case THERMALCAPACITANCE: {
-			ThermalNode* pThNode1 = dynamic_cast<ThermalNode *>(pDM->ReadNode(HP, Node::THERMAL));
+			const ThermalNode* pThNode1 = pDM->ReadNode<const ThermalNode, Node::THERMAL>(HP);
 			doublereal c = HP.GetReal();
 			flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -156,7 +156,7 @@ Elem* ReadThermal(DataManager* pDM,
 		}
 
 		case THERMALSOURCE: {
-			ThermalNode* pThNode1 = dynamic_cast<ThermalNode *>(pDM->ReadNode(HP, Node::THERMAL));
+			const ThermalNode* pThNode1 = pDM->ReadNode<const ThermalNode, Node::THERMAL>(HP);
 			DriveCaller* pDC = HP.GetDriveCaller();
 			flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 			SAFENEWWITHCONSTRUCTOR(pEl,

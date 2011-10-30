@@ -701,7 +701,7 @@ ReadGenericAerodynamicForce(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)
 {
    	/* Nodo */
-	StructNode* pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	/* The offset is in the reference frame of the node */
 	ReferenceFrame RF(pNode);

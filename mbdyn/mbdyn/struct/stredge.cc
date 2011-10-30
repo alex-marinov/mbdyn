@@ -45,11 +45,11 @@
 /* Costruttore */
 StructExtEDGEForce::StructExtEDGEForce(unsigned int uL,
 	DataManager *pDM,
-	StructNode *pRefNode,
+	const StructNode *pRefNode,
 	bool bUseReferenceNodeForces,
 	bool bRotateReferenceNodeForces,
 	std::vector<unsigned>& labels,
-	std::vector<StructNode *>& nodes,
+	std::vector<const StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	bool bSorted,
 	bool bLabels,

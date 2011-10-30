@@ -269,7 +269,7 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 	
 		} else {
 			while (HP.IsArg()) {
-				nodes.insert(nodes.end(), dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL)));
+				nodes.insert(nodes.end(), pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP));
 			}
 		}
 	

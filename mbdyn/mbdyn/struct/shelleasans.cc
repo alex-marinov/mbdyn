@@ -871,10 +871,10 @@ ReadShell4EASANS(DataManager* pDM,
 	const DofOwner* pDO,
 	unsigned int uLabel)
 {
-	StructNode* pN[4];
+	const StructNode* pN[4];
 	Mat3x3 R[4];
 	for (unsigned i = 0; i < 4; i++) {
-		pN[i] = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		pN[i] = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF(pN[i]);
 		if (HP.IsKeyWord("orientation")) {
 			R[i] = HP.GetRotRel(RF);

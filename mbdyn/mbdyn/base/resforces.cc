@@ -215,7 +215,7 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		SAFENEW(pres, ExternResForces);
 		
 	} else if (HP.IsKeyWord("node")) {
-		const StructNode *pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode *pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		
 		if (pNode == NULL) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);

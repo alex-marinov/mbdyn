@@ -165,7 +165,7 @@ public:
 	/* Costruttore */
 	ModalExt(unsigned int uL,
 		DataManager *pDM,
-		Modal *pmodal,
+		const Modal *pmodal,
 		const StructNode *pnode,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,

@@ -1865,7 +1865,7 @@ ReadRotor(DataManager* pDM,
      	KeyTable K(HP, sKeyWords);
 
      	/* aircraft node */
-	StructNode* pCraft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pCraft = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	/* rotor orientation with respect to aircraft */
      	Mat3x3 rrot(Eye3);
@@ -1881,7 +1881,7 @@ ReadRotor(DataManager* pDM,
      	}
 
      	/* rotor node */
-     	StructNode* pRotor = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+     	const StructNode* pRotor = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	KeyWords InducedType = NO;
      	if (HP.IsArg() && HP.IsKeyWord("induced" "velocity")) {
@@ -1989,7 +1989,7 @@ ReadRotor(DataManager* pDM,
 	 	doublereal dVSine = 0.;
 	 	doublereal dVCosine = 0.;
 	 	DriveCaller *pdW = 0;
-		StructNode *pGround = 0;
+		const StructNode *pGround = 0;
 		unsigned iMaxIter = unsigned(-1);
 		doublereal dTolerance = std::numeric_limits<double>::max();
 		doublereal dEta = -1.;
@@ -2010,7 +2010,7 @@ ReadRotor(DataManager* pDM,
 				}
 
 				/* ground node */
-     				pGround = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+     				pGround = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 			} else if (HP.IsKeyWord("initial" "value")) {
 	 			if (InducedType != DYNAMICINFLOW) {

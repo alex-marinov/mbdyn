@@ -1569,7 +1569,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	DEBUGCOUTFNAME("ReadAerodynamicBody");
 
 	/* Nodo */
-	StructNode* pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 	InducedVelocity* pIndVel = 0;
 	bool bPassive(false);

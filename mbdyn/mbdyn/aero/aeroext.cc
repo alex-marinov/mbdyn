@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2011
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +31,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#ifdef USE_EXTERNAL 
+#ifdef USE_EXTERNAL
 #include "aeroext.h"
 #include "myassert.h"
 #include "except.h"
@@ -40,7 +40,7 @@
 
 /* le label delle comunicazioni vengono costruite in questo modo:
  *
- *	blockID*10   +  1   label e numero nodi aggiuntivi 
+ *	blockID*10   +  1   label e numero nodi aggiuntivi
  *			2   posizioni
  *			3   velocita'
  *			4   forze
@@ -59,7 +59,7 @@ AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
 	flag fOut,
 	bool VF,
 	bool MF)
-:Elem(uLabel, fOut), 
+:Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
@@ -95,7 +95,7 @@ AerodynamicExternal::AerodynamicExternal(unsigned int uLabel,
 	flag fOut,
 	bool VF,
 	bool MF)
-:Elem(uLabel, fOut), 
+:Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
@@ -112,9 +112,9 @@ SentFlag(false),
 pForce(NULL),
 pMoms(NULL),
 pLabList(NULL)
-{	
+{
 	ConstructAndInitialize();
-}	
+}
 
 AerodynamicExternal::~AerodynamicExternal(void)
 {
@@ -124,10 +124,11 @@ AerodynamicExternal::~AerodynamicExternal(void)
 	if (pRefLength != NULL) SAFEDELETEARR(pRefLength);
 	if (pForce != NULL) SAFEDELETEARR(pForce);
 	if (pMoms != NULL) SAFEDELETEARR(pMoms);
-	if (pLabList != NULL) SAFEDELETEARR(pLabList);	
+	if (pLabList != NULL) SAFEDELETEARR(pLabList);
 }
-		
-void AerodynamicExternal::ConstructAndInitialize(void) 
+
+void
+AerodynamicExternal::ConstructAndInitialize(void)
 {
 	/* dimensiona l'array per il buffer */
 	DEBUGCOUTFNAME("AerodynamicExternal::ConstructAndInitialize");
@@ -139,7 +140,7 @@ void AerodynamicExternal::ConstructAndInitialize(void)
 			MyVectorHandler(8+3*NodeN*(OffN+1)));
 	if (VelFlag || MomFlag) SAFENEWWITHCONSTRUCTOR(pdBufferVel, MyVectorHandler,
 			MyVectorHandler(3*NodeN*(OffN+1)));
-	
+
 	/* invio delle posizioni iniziali dei nodi per il calcolo della matrice di interpolazione */
 	SAFENEWARR(pLabList, unsigned int, 2*NodeN);
 	Mat3xN MatTmp(OffN,0.);
@@ -155,25 +156,25 @@ void AerodynamicExternal::ConstructAndInitialize(void)
 			pdBuffer->Put(i*(OffN+1)*3+j*3+1, X + MatTmp.GetVec(j));
 		}
 	}
-	/* il rank del processo con cui si comunica e' zero perche' il comuncatire del 
+	/* il rank del processo con cui si comunica e' zero perche' il comuncatire del
 	codice di interfaccia e' sempre fatto da una macchina sola */
-	pInterfComm->Send(pLabList, 2*NodeN, MPI::UNSIGNED, 0,(this->GetLabel())*10+1); 
+	pInterfComm->Send(pLabList, 2*NodeN, MPI::UNSIGNED, 0,(this->GetLabel())*10+1);
 	pInterfComm->Send(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
 }
 
 
-/* invia posizione e velocita' predetti */ 
-void AerodynamicExternal::AfterPredict(VectorHandler& X  , 
-					VectorHandler&  XP  )
+/* invia posizione e velocita' predetti */
+void
+AerodynamicExternal::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::AfterPredict");
 	//std::cout << "AerodynamicExternal::AfterPredict" << std::endl;
 	Send(X, XP);
 }
 
-/* invia posizione e velocita' predetti */ 
-void AerodynamicExternal::Update(const VectorHandler& X  , 
-					const VectorHandler&  XP  )
+/* invia posizione e velocita' predetti */
+void
+AerodynamicExternal::Update(const VectorHandler& X, const VectorHandler& XP)
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::Update");
 	//std::cout << "AerodynamicExternal::Update" << std::endl;
@@ -181,17 +182,17 @@ void AerodynamicExternal::Update(const VectorHandler& X  ,
 	//std::cout << "done" << std::endl;
 }
 
-void AerodynamicExternal::Send(const VectorHandler& X  , 
-					const VectorHandler&  XP  )
+void
+AerodynamicExternal::Send(const VectorHandler& X, const VectorHandler& XP)
 {
-	if(!SentFlag) {
+	if (!SentFlag) {
 		//std::cout << "AerodynamicExternal::Send " <<  SentFlag << std::endl;
 		Vec3 Vinf(0.);
 		Vec3 Xc(0.), V, W, Xt;
 		Mat3x3 R;
 		doublereal rho, c, p, T;
-		GetAirProps(Xc, rho, c, p, T); 
-		fGetAirVelocity(Vinf,Xc); 
+		GetAirProps(Xc, rho, c, p, T);
+		fGetAirVelocity(Vinf,Xc);
 		/* current time */
 		pdBuffer->PutCoef(1, DriveOwner::dGet());
 		pdBuffer->Put(2, Vinf);
@@ -199,7 +200,7 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 		pdBuffer->PutCoef(6,c);
 		pdBuffer->PutCoef(7,p);
 		pdBuffer->PutCoef(8,T);
- 		
+
 		Mat3xN MatTmp(OffN,0.);
 		for (int i=0; i < NodeN; i++) {
 			Xc = ppNode[i]->GetXCurr();
@@ -218,41 +219,41 @@ void AerodynamicExternal::Send(const VectorHandler& X  ,
 				Xt = MatTmp.GetVec(j);
 				pdBuffer->Put(8+i*(OffN+1)*3+j*3+1, Xc + Xt);
 				if (VelFlag) pdBufferVel->Put(i*(OffN+1)*3+j*3+1, V + W.Cross(Xt));
-				//std::cout << " OffVec " << j << ": Pos " << Xt << " Vel " << V + W.Cross(Xt) << std::endl; 
+				//std::cout << " OffVec " << j << ": Pos " << Xt << " Vel " << V + W.Cross(Xt) << std::endl;
 			}
 		}
 		pInterfComm->Send(pdBuffer->pdGetVec(), 8+3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+2);
 		if (VelFlag) pInterfComm->Send(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+3);
 		SentFlag = true;
-	} 
+	}
 }
 
 SubVectorHandler&
 AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
-	       		 	doublereal dCoef,
-	       			const VectorHandler& XCurr,
-	       			const VectorHandler& XPrimeCurr)
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicExternal::AssRes");
 	/* verifica il completamento dei send */
 	//std::cout << "AerodynamicExternal::AssRes " <<  SentFlag << std::endl;
-	
+
 	Send(XCurr, XPrimeCurr);
-	
+
 	WorkVec.ResizeReset(6*NodeN);
-	
+
 	for (int i=0; i < NodeN; i++) {
 		integer iFirstIndex = ppNode[i]->iGetFirstMomentumIndex();
-   		for (int iCnt = 1; iCnt <= 6; iCnt++) {
-      			WorkVec.PutRowIndex(i*6 + iCnt, iFirstIndex + iCnt);
-   		}
+		for (int iCnt = 1; iCnt <= 6; iCnt++) {
+			WorkVec.PutRowIndex(i*6 + iCnt, iFirstIndex + iCnt);
+		}
 	}
-		
+
 	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+4);
 	if(MomFlag) pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	/* calcola le forze su ciascun nodo */
 	/* le forze e i momenti sono gia' espressi nel sistema di riferimento global */
-	if (fToBeOutput()) { 
+	if (fToBeOutput()) {
 		pForce->Reset();
 		pMoms->Reset();
 	}
@@ -271,7 +272,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 		for (int j=1; j <= OffN; j++) {
 			Fo[0] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+1);
 			Fo[1] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+2);
-			Fo[2] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+3);			
+			Fo[2] =  pdBuffer->operator()(i*(OffN+1)*3+j*3+3);
 			F += Fo;
 			if (MomFlag) {
 				M[0] +=  pdBufferVel->operator()(i*(OffN+1)*3+j*3+1);
@@ -280,20 +281,20 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 			}
 			M -= Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
 		}
-		if (fToBeOutput()) { 
+		if (fToBeOutput()) {
 			pForce->AddVec(1,F);
 			pMoms->AddVec(1,M);
 			pForce->PutVec(i+2,F);
 			pMoms->PutVec(i+2,M);
 		}
 		WorkVec.Add(i*6+1, F);
-   		WorkVec.Add(i*6+4, M);
+		WorkVec.Add(i*6+4, M);
 	}
 	//std::cout << "FT " <<  pForce->GetVec(1) << std::endl;
 	//std::cout << "MT " <<  pMoms->GetVec(1) << std::endl;
 
-	SentFlag = false; 
-	return WorkVec;			
+	SentFlag = false;
+	return WorkVec;
 }
 
 void
@@ -302,7 +303,7 @@ AerodynamicExternal::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		integer lab = -1*GetLabel();
 		std::ostream& out = OH.Externals()
-                        << std::setw(8) << lab 
+                        << std::setw(8) << lab
 			<< " " << pForce->GetVec(1)
 			<< " " << pMoms->GetVec(1) << std::endl;
 		if (NodeN > 1) {
@@ -319,42 +320,42 @@ Elem *
 ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)
 {
-   	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
-   	AerodynamicExternal* pEl = NULL;
-   
-   	unsigned int NodeN = HP.GetInt(); 
-   
-   	std::cout << "Aerodynamic External Block made of  " << NodeN << " Nodes." << std::endl;    
-   	
+	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
+	AerodynamicExternal* pEl = NULL;
+
+	unsigned int NodeN = HP.GetInt();
+
+	std::cout << "Aerodynamic External Block made of  " << NodeN << " Nodes." << std::endl;
+
 	const StructNode** ppNodeList = NULL;
 	SAFENEWARR(ppNodeList, const StructNode*, NodeN);
-	
-   	for (unsigned int iN=0; iN < NodeN; iN++) {
-		unsigned int NodeL = HP.GetInt(); 
+
+	for (unsigned int iN=0; iN < NodeN; iN++) {
+		unsigned int NodeL = HP.GetInt();
 		const StructNode* pTmpNode = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, NodeL));
 		if (pTmpNode == 0) {
-      			std::cerr << "Aerodynamic External(" << uLabel 
+			std::cerr << "Aerodynamic External(" << uLabel
 				<< "): structural node " << NodeL
 				<< " at line " << HP.GetLineData()
 				<< " not defined" << std::endl;
-      			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		} else {
-		 	ppNodeList[iN] = pTmpNode;
+			ppNodeList[iN] = pTmpNode;
 		}
 	}
 	doublereal* pRefLenght = NULL;
 	SAFENEWARR(pRefLenght, doublereal, NodeN);
 	if (HP.IsKeyWord("list")) {
-   		for (unsigned int iN=0; iN < NodeN; iN++) {
+		for (unsigned int iN=0; iN < NodeN; iN++) {
 			pRefLenght[iN] = HP.GetReal();
 		}
 	} else {
 		pRefLenght[0] = HP.GetReal();
-   		for (unsigned int iN=1; iN < NodeN; iN++) {
+		for (unsigned int iN=1; iN < NodeN; iN++) {
 			pRefLenght[iN] = pRefLenght[iN-1];
 		}
 	}
-	
+
 	int OffN = 0;
 	Mat3xN* pOffVec = NULL;
 	if (HP.IsKeyWord("offset")) {
@@ -367,7 +368,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 		}
 	}
 
-	
+
 	int comm = 0;
 	if (HP.IsKeyWord("comm")) {
 		comm = HP.GetInt();
@@ -376,7 +377,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 	std::list<MPI::Intercomm>::iterator iComm_end =  InterfaceComms.end();
 	if (iComm == iComm_end) {
                    std::cerr << "Aerodynamic External(" << uLabel
-                                << "): there are no external communicators " 
+                                << "): there are no external communicators "
                                 << "Aborting." << std::endl;
                    throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -384,8 +385,8 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 	for (int i = 0; i++ < comm; ++iComm) {
 		if (iComm == iComm_end) {
                    std::cerr << "Aerodynamic External(" << uLabel
-                                << "): external communicator " << comm 
-				<< "does not exist. Last communicator is " << i-1     
+                                << "): external communicator " << comm
+				<< "does not exist. Last communicator is " << i-1
                                 << ". Aborting." << std::endl;
                    throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -394,16 +395,16 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 
 	bool VelFlag = false;
 	bool MomFlag = false;
-	
+
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
-		  
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	DriveCaller* pDC = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDM->pGetDrvHdl()));
-	
-   	if (OffN) {
-		SAFENEWWITHCONSTRUCTOR(pEl, 
+
+	if (OffN) {
+		SAFENEWWITHCONSTRUCTOR(pEl,
 			AerodynamicExternal,
 			AerodynamicExternal(uLabel,
 				pDO,
@@ -418,7 +419,7 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 				VelFlag,
 				MomFlag));
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pEl, 
+		SAFENEWWITHCONSTRUCTOR(pEl,
 			AerodynamicExternal,
 			AerodynamicExternal(uLabel,
 				pDO,
@@ -431,12 +432,11 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 				VelFlag,
 				MomFlag));
 	}
-						
- 	return pEl;   	
-	
+
+	return pEl;
 }
 
-   
+
 /* Aerodynamic External - end */
 
 
@@ -450,7 +450,7 @@ AerodynamicExternalModal::AerodynamicExternalModal(unsigned int uLabel,
 	flag fOut,
 	bool VF,
 	bool MF)
-:Elem(uLabel, fOut), 
+:Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 DriveOwner(pDC),
 pdBuffer(NULL),
@@ -465,24 +465,24 @@ pForce(NULL)
 {
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
 		MyVectorHandler(8+3*ModalNodes));
-	
+
 	if (fToBeOutput()) {
 		integer NModes = pModal->uGetNModes();
 		SAFENEWWITHCONSTRUCTOR(pForce, MyVectorHandler,
 			MyVectorHandler(NModes));
-	}	
-	
+	}
+
 	if (VelFlag || MomFlag) SAFENEWWITHCONSTRUCTOR(pdBufferVel, MyVectorHandler,
 			MyVectorHandler(3*ModalNodes));
-	
-	unsigned int*  pLabList = NULL; 
+
+	unsigned int*  pLabList = NULL;
 	SAFENEWARR(pLabList, unsigned int, 2);
 	pLabList[0] = pModal->GetLabel();
 	pLabList[1] = ModalNodes;
-	/* il rank del processo con cui si comunica e' zero perche' il comuncatore del 
+	/* il rank del processo con cui si comunica e' zero perche' il comuncatore del
 	codice di interfaccia e' sempre fatto da una macchina sola */
-	pInterfComm->Send(pLabList, 2, MPI::UNSIGNED, 0,(this->GetLabel())*10+1); 
-	
+	pInterfComm->Send(pLabList, 2, MPI::UNSIGNED, 0,(this->GetLabel())*10+1);
+
 	Mat3xN* pNodePos = pModal->GetCurrFemNodesPosition();
 	for (int i=0; i < ModalNodes; i++) {
 		pdBuffer->Put(i*3, pNodePos->GetVec(i+1));
@@ -497,7 +497,7 @@ AerodynamicExternalModal::~AerodynamicExternalModal(void)
 	if (pForce != NULL) SAFEDELETE(pForce);
 }
 
-/* invia posizione e velocita' predetti */ 
+/* invia posizione e velocita' predetti */
 void
 AerodynamicExternalModal::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
@@ -505,21 +505,21 @@ AerodynamicExternalModal::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	Send(X, XP);
 }
 
-/* invia posizione e velocita' predetti */ 
-void AerodynamicExternalModal::Update(const VectorHandler& X  , 
+/* invia posizione e velocita' predetti */
+void AerodynamicExternalModal::Update(const VectorHandler& X  ,
 					const VectorHandler&  XP  )
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::Update");
 	Send(X, XP);
 }
 
-void AerodynamicExternalModal::Send(const VectorHandler& X  , 
+void AerodynamicExternalModal::Send(const VectorHandler& X  ,
 					const VectorHandler&  XP  )
-{	
+{
 
 	Vec3 Vinf(0.);
 	doublereal rho, c, p, T;
-	GetAirProps(Vinf, rho, c, p, T); 
+	GetAirProps(Vinf, rho, c, p, T);
 	/* current time */
 	pdBuffer->PutCoef(1, DriveOwner::dGet());
 	pdBuffer->Put(2, Vinf);
@@ -537,41 +537,41 @@ void AerodynamicExternalModal::Send(const VectorHandler& X  ,
 	}
 	pInterfComm->Send(pdBuffer->pdGetVec(), 8+3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+2);
 	if (VelFlag) pInterfComm->Send(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0,(this->GetLabel())*10+3);
-	SentFlag = true; 
- 
+	SentFlag = true;
+
 }
 
 
 SubVectorHandler&
 AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
-	       			doublereal dCoef,
-	       			const VectorHandler& XCurr,
-	       			const VectorHandler& XPrimeCurr)
+				doublereal dCoef,
+				const VectorHandler& XCurr,
+				const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("AerodynamicExternalModal::AssRes");
 	if (!SentFlag) {
 		Send(XCurr, XPrimeCurr);
 	}
-   	integer NModes = pModal->uGetNModes();
+	integer NModes = pModal->uGetNModes();
 	WorkVec.ResizeReset(NModes);
 
-	
+
 	integer iFirstIndex = pModal->iGetFirstIndex() + NModes;
 	for (int iCnt = 0; iCnt < NModes; iCnt++) {
-      		WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
+		WorkVec.PutRowIndex(iCnt, iFirstIndex + iCnt);
 	}
-		
+
 	pInterfComm->Recv(pdBuffer->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0, GetLabel()*10 + 4);
 	if (MomFlag) {
 		pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*ModalNodes, MPI::DOUBLE, 0, GetLabel()*10 + 5);
 	}
-	
-	/* calcola le forze su ciascun nodo 
-	 * le forze e i momenti sono espressi nel sistema di riferimento global 
+
+	/* calcola le forze su ciascun nodo
+	 * le forze e i momenti sono espressi nel sistema di riferimento global
 	 * vanno quindi riportati nel sistema di riferimento del nodo modal e
-	 * poi proiettati sulla base modale				
+	 * poi proiettati sulla base modale
 	 */
-		
+
 	Vec3 F(0.);
 	Vec3 M(0.);
 	Mat3x3 RT(pModal->pGetModalNode()->GetRCurr().Transpose());
@@ -591,17 +591,17 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 			if (MomFlag) {
 				WorkVec.Add(iMode + 1, RT*M*(pModal->pGetPHIr().GetVec(iMode*ModalNodes + iNode + 1)));
 			}
-		}	
+		}
 	}
 
 	if (fToBeOutput()) {
 		*pForce = WorkVec;
 	}
 
-	SentFlag = false; 
-	return WorkVec;			
+	SentFlag = false;
+	return WorkVec;
 }
-	
+
 
 void
 AerodynamicExternalModal::Output(OutputHandler& OH) const
@@ -611,7 +611,7 @@ AerodynamicExternalModal::Output(OutputHandler& OH) const
                         << std::setw(8) << -1*GetLabel();
 		int size = pForce->iGetSize();
 		for (int i = 0; i < size; i++) {
-			out << std::setw(8) 
+			out << std::setw(8)
 				<< " " << pForce->operator()(i+1) << std::endl;
 		}
 	}
@@ -621,37 +621,31 @@ Elem *
 ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)
 {
-   	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
-   	AerodynamicExternalModal* pEl = NULL;
-	
-      	/* giunto modale collegato */		     
-   	Elem* pM = pDM->ReadElem(HP, Elem::JOINT);
-   	Modal* pModalJoint = dynamic_cast<Modal *>(pM);
-   	if (pModalJoint == 0 || pModalJoint->GetJointType() != Joint::MODAL) {
-      		std::cerr << "Joint(" << pM->GetLabel() << ") "
-	      		" must be a ModalJoint" << std::endl;
-      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-   	}
+	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
+	AerodynamicExternalModal* pEl = NULL;
+
+	/* giunto modale collegato */
+	const Modal *pModalJoint = pDM->ReadElem<const Joint, Elem::JOINT, const Modal>(HP);
 	int comm = 0;
 	if (HP.IsKeyWord("comm")) {
 		comm = HP.GetInt();
 	}
-	
+
 	std::list<MPI::Intercomm>::iterator iComm =  InterfaceComms.begin();
 	for (int i = 0; i++ < comm; ++iComm) {}
 	MPI::Intercomm* pInterC = &(*(iComm));
 
 	bool VelFlag = false;
 	bool MomFlag = false;
-	
+
 	if (HP.IsKeyWord("velocity")) VelFlag = true;
 	if (HP.IsKeyWord("moment")) MomFlag = true;
-		  
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 	DriveCaller* pDC = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDC, TimeDriveCaller, TimeDriveCaller(pDM->pGetDrvHdl()));
 
-	SAFENEWWITHCONSTRUCTOR(pEl, 
+	SAFENEWWITHCONSTRUCTOR(pEl,
 		AerodynamicExternalModal,
 		AerodynamicExternalModal(uLabel,
 			pDO,
@@ -661,8 +655,8 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
 			fOut,
 			VelFlag,
 			MomFlag));
-						
- 	return pEl;   		
+
+	return pEl;
 }
 
 /* Aerodynamic External Modal - end */

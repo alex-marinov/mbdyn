@@ -158,19 +158,19 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        /* due nodi idraulici e due nodi strutturali */
        
        /* nodo idraulico 1 */
-       const PressureNode* pNodeHyd1 = dynamic_cast<const PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
+       const PressureNode* pNodeHyd1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo idraulico 2 */
-       const PressureNode* pNodeHyd2 = dynamic_cast<const PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
+       const PressureNode* pNodeHyd2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo strutturale 1 */
-       const StructNode* pNodeStr1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+       const StructNode* pNodeStr1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
        
        Vec3 f1(HP.GetPosRel(ReferenceFrame(pNodeStr1)));
        DEBUGCOUT("Offset 1: " << f1 << std::endl);
        
        /* nodo strutturale 2 */
-       const StructNode* pNodeStr2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+       const StructNode* pNodeStr2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
        
        Vec3 f2(HP.GetPosRel(ReferenceFrame(pNodeStr2)));
        DEBUGCOUT("Offset 2: " << f2 << std::endl);  
@@ -247,10 +247,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case MINOR_LOSS: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Kappa1 diretto */
        doublereal dKappa1 = HP.GetReal();
@@ -296,13 +296,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case THREEWAYMINORLOSS: {
        
        /* nodo 0 */
-       PressureNode* pNode0 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode0 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Kappa1 diretto */
        doublereal dKappa1 = HP.GetReal();
@@ -360,16 +360,16 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case CONTROL_VALVE2: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 3 */
-       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode3 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 4 */
-       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode4 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Area massima della valvola */
        doublereal area_max = HP.GetReal();
@@ -429,16 +429,16 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case DYNAMIC_CONTROL_VALVE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 3 */
-       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode3 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 4 */
-       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode4 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Forza */
        DriveCaller* pDC = HP.GetDriveCaller();
@@ -534,22 +534,22 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PRESSURE_FLOW_CONTROL_VALVE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 3 */
-       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode3 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 4 */
-       PressureNode* pNode4 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode4 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
          /* nodo 5 */
-       PressureNode* pNode5 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode5 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
          /* nodo 6 */
-       PressureNode* pNode6 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode6 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
               
        /* Forza */
        DriveCaller* pDC = HP.GetDriveCaller();
@@ -654,10 +654,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PRESSURE_VALVE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Area diaframma */
        doublereal area_diaf = HP.GetReal();
@@ -760,13 +760,13 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case FLOW_VALVE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 3 */
-       PressureNode* pNode3 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode3 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Area diaframma */
        doublereal area_diaf = HP.GetReal();
@@ -880,10 +880,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case ORIFICE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Diametro */
        doublereal diameter = HP.GetReal();
@@ -951,7 +951,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case ACCUMULATOR: {
        
        /* nodo */
-       PressureNode* pNode = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Corsa pistone */
        doublereal stroke = HP.GetReal();
@@ -1136,10 +1136,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case TANK: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Pressione serbatoio */
        doublereal press = HP.GetReal();
@@ -1228,10 +1228,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case PIPE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode1 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* nodo 2 */
-       PressureNode* pNode2 = (PressureNode*)pDM->ReadNode(HP, Node::HYDRAULIC);
+       const PressureNode* pNode2 = pDM->ReadNode<const PressureNode, Node::HYDRAULIC>(HP);
        
        /* Diametro */
        doublereal diameter = HP.GetReal();
@@ -1296,10 +1296,10 @@ Elem* ReadHydraulicElem(DataManager* pDM,
     case DYNAMIC_PIPE: {
        
        /* nodo 1 */
-       PressureNode* pNode1 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
+       const PressureNode* pNode1 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        /* nodo 2 */
-       PressureNode* pNode2 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
+       const PressureNode* pNode2 = dynamic_cast<PressureNode *>(pDM->ReadNode(HP, Node::HYDRAULIC));
        
        doublereal diameter = HP.GetReal();
        if (diameter <= 0.) {		  

@@ -122,7 +122,7 @@ ReadGenel(DataManager* pDM,
 	/* genel piatto oscillante */
 	case SWASHPLATE: {
 		/* nodo Collettivo */
-		ScalarDifferentialNode* pCollIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pCollIn = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pCollIn != 0);
 
 		flag fCollLimits(0);
@@ -135,7 +135,7 @@ ReadGenel(DataManager* pDM,
 		}
 
 		/* nodo Longitudinale */
-		ScalarDifferentialNode* pLongIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pLongIn = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pLongIn != 0);
 
 		flag fForeAftLimits(0);
@@ -148,7 +148,7 @@ ReadGenel(DataManager* pDM,
 		}
 
 		/* nodo Laterale */
-		ScalarDifferentialNode* pLatIn = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pLatIn = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pLatIn != 0);
 
 		flag fLatLimits(0);
@@ -161,15 +161,15 @@ ReadGenel(DataManager* pDM,
 		}
 
 		/* nodo collegato 1 */
-		ScalarDifferentialNode* pNode1 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pNode1 = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pNode1 != 0);
 
 		/* nodo collegato 2 */
-		ScalarDifferentialNode* pNode2 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pNode2 = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pNode2 != 0);
 
 		/* nodo collegato 3 */
-		ScalarDifferentialNode* pNode3 = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pNode3 = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		ASSERT(pNode3 != 0);
 
 		doublereal dDynCoef = 0.;
@@ -252,7 +252,7 @@ ReadGenel(DataManager* pDM,
 					"keyword \"rotor\" expected at line " << HP.GetLineData() << std::endl);
 			}
 
-			pRot = dynamic_cast<const Rotor *>(pDM->ReadElem(HP, Elem::INDUCEDVELOCITY));
+			pRot = pDM->ReadElem<const InducedVelocity, Elem::INDUCEDVELOCITY, const Rotor>(HP);
 			if (pRot == 0) {
 				silent_cerr("RotorTrim(" << uLabel << "): "
 					"unable to read rotor "
@@ -269,10 +269,10 @@ ReadGenel(DataManager* pDM,
 			}
 		}
 
-		ScalarDifferentialNode* pvNodes[3];
-		pvNodes[0] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
-		pvNodes[1] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
-		pvNodes[2] = dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pvNodes[3];
+		pvNodes[0] = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
+		pvNodes[1] = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
+		pvNodes[2] = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 
 		DEBUGCOUT("Rotor trim " << uLabel
 			<< " linked to rotor " << pRot->GetLabel() << std::endl

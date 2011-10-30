@@ -46,7 +46,7 @@ class StructExtForce : virtual public Elem, public ExtForce {
 	friend Elem* ReadStructExtForce(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
 
 protected:
-	StructNode *pRefNode;
+	const StructNode *pRefNode;
 	bool bUseReferenceNodeForces;
 	bool bRotateReferenceNodeForces;
 	Vec3 F0, M0;
@@ -57,7 +57,7 @@ protected:
 public:
 	struct PointData {
 		unsigned uLabel;
-		StructNode *pNode;
+		const StructNode *pNode;
 		Vec3 Offset;
 		Vec3 F;
 		Vec3 M;
@@ -101,11 +101,11 @@ public:
 	/* Costruttore */
 	StructExtForce(unsigned int uL,
 		DataManager *pDM,
-		StructNode *pRefNode,
+		const StructNode *pRefNode,
 		bool bUseReferenceNodeForces,
 		bool bRotateReferenceNodeForces,
 		std::vector<unsigned>& Labels,
-		std::vector<StructNode *>& Nodes,
+		std::vector<const StructNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		bool bSorted,
 		bool bLabels,

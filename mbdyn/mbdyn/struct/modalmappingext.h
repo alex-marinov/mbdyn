@@ -51,14 +51,14 @@ protected:
 	bool bUseReferenceNodeForces;
 	bool bRotateReferenceNodeForces;
 
-	StructNode *pRefNode;
+	const StructNode *pRefNode;
 
 	// Moore-Penrose Generalized Inverse of MSD nodes to modes mapping
 	SpMapMatrixHandler *pH;
 
 	// Mapped nodes data
 	struct NodeData {
-		StructNode* pNode;
+		const StructNode* pNode;
 		Vec3 X0;
 		Mat3x3 R0;
 		Vec3 F;
@@ -88,8 +88,8 @@ public:
 	/* Costruttore */
 	ModalMappingExt(unsigned int uL,
 		DataManager *pDM,
-		StructNode *pRefNode,
-		std::vector<StructNode *>& n,
+		const StructNode *pRefNode,
+		std::vector<const StructNode *>& n,
 		SpMapMatrixHandler *pH,
 		bool bOutputAccelerations,
 		ExtFileHandlerBase *pEFH,

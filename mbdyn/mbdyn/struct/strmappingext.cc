@@ -46,10 +46,10 @@
 /* Costruttore */
 StructMappingExtForce::StructMappingExtForce(unsigned int uL,
 	DataManager *pDM,
-	StructNode *pRefNode,
+	const StructNode *pRefNode,
 	bool bUseReferenceNodeForces,
 	bool bRotateReferenceNodeForces,
-	std::vector<StructNode *>& nodes,
+	std::vector<const StructNode *>& nodes,
 	std::vector<Vec3>& offsets,
 	std::vector<unsigned>& labels,
 	SpMapMatrixHandler *pH,
@@ -105,9 +105,9 @@ m_p(3*uMappedPoints)
 		}
 	}
 
-	StructNode *pNode = 0;
+	const StructNode *pNode = 0;
 	unsigned uNodes = 0;
-	std::vector<StructNode *>::const_iterator p;
+	std::vector<const StructNode *>::const_iterator p;
 	for (p = nodes.begin(); p != nodes.end(); ++p) {
 		if (*p != pNode) {
 			pNode = *p;
@@ -117,7 +117,7 @@ m_p(3*uMappedPoints)
 
 	Nodes.resize(uNodes);
 	p = nodes.begin();
-	std::vector<StructNode *>::const_iterator pPrev = p;
+	std::vector<const StructNode *>::const_iterator pPrev = p;
 	std::vector<NodeData>::iterator n = Nodes.begin();
 	do {
 		++p;
@@ -155,7 +155,7 @@ m_p(3*uMappedPoints)
 
 	if (bOutputAccelerations) {
 		for (unsigned i = 0; i < nodes.size(); i++) {
-			DynamicStructNode *pDSN = dynamic_cast<DynamicStructNode *>(Nodes[i].pNode);
+			const DynamicStructNode *pDSN = dynamic_cast<const DynamicStructNode *>(Nodes[i].pNode);
 			if (pDSN == 0) {
 				silent_cerr("StructMappingExtForce"
 					"(" << GetLabel() << "): "
@@ -165,7 +165,7 @@ m_p(3*uMappedPoints)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			pDSN->ComputeAccelerations(true);
+			const_cast<DynamicStructNode *>(pDSN)->ComputeAccelerations(true);
 		}
 
 		m_xPP.resize(3*uPoints);
@@ -1026,9 +1026,9 @@ ReadStructMappingExtForce(DataManager* pDM,
 	bool bSendAfterPredict;
 	ReadExtForce(pDM, HP, uLabel, pEFH, bSendAfterPredict, iCoupling);
 
-	StructNode *pRefNode(0);
+	const StructNode *pRefNode(0);
 	if (HP.IsKeyWord("reference" "node")) {
-		pRefNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		if (pRefNode == 0) {
 			silent_cerr("StructMappingExtForce(" << uLabel << "): "
 				"illegal reference node "
@@ -1176,7 +1176,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	std::vector<StructNode *> Nodes(nPoints);
+	std::vector<const StructNode *> Nodes(nPoints);
 	std::vector<Vec3> Offsets(nPoints);
 	std::vector<uint32_t> Labels;
 	if (bLabels) {
@@ -1186,7 +1186,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 	std::map<unsigned, bool> Got;
 
 	for (unsigned n = 0, p = 0; p < unsigned(nPoints); n++) {
-		StructNode *pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode *pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		unsigned uL(pNode->GetLabel());
 		if (Got[uL]) {
 			silent_cerr("StructMappingExtForce(" << uLabel << "): "

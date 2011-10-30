@@ -208,12 +208,12 @@ ReadElectric(DataManager* pDM,
 			// TODO: check if downgradable to ScalarNode
 
 			// nodo strutturale collegato
-			StructNode* pStrNode
-				= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			const StructNode* pStrNode
+				= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 			// nodo astratto collegato
-			ScalarDifferentialNode* pAbsNode
-				= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+			const ScalarDifferentialNode* pAbsNode
+				= pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 
 			// Direzione
 			Vec3 Dir;
@@ -258,12 +258,12 @@ ReadElectric(DataManager* pDM,
 		} else {
 
 			// nodo strutturale collegato
-			StructNode* pStrNode
-				= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			const StructNode* pStrNode
+				= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 			// nodo astratto collegato
-			ScalarDifferentialNode* pAbsNode
-				= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+			const ScalarDifferentialNode* pAbsNode
+				= pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 
 			// Direzione
 			Vec3 Dir;
@@ -333,8 +333,8 @@ ReadElectric(DataManager* pDM,
 
 	case DISPLACEMENT: {
 		// nodo strutturale collegato 1
-		StructNode* pStrNode1
-			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pStrNode1
+			= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		// offset 1
 		Vec3 Tmpf1(Zero3);
@@ -344,8 +344,8 @@ ReadElectric(DataManager* pDM,
 		Tmpf1 = HP.GetPosRel(ReferenceFrame(pStrNode1));
 
 		// nodo strutturale collegato 2
-		StructNode* pStrNode2
-			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pStrNode2
+			= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		// offset 2
 		Vec3 Tmpf2(Zero3);
@@ -355,8 +355,8 @@ ReadElectric(DataManager* pDM,
 		Tmpf2 = HP.GetPosRel(ReferenceFrame(pStrNode2));
 
 		// nodo astratto collegato
-		ScalarDifferentialNode* pAbsNode
-			= dynamic_cast<ScalarDifferentialNode *>(pDM->ReadNode(HP, Node::ABSTRACT));
+		const ScalarDifferentialNode* pAbsNode
+			= pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 
 		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
@@ -368,12 +368,12 @@ ReadElectric(DataManager* pDM,
 
 	case MOTOR: {
 		// nodo strutturale collegato 1
-		StructNode* pStrNode1
-			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pStrNode1
+			= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		// nodo strutturale collegato 2
-		StructNode* pStrNode2
-			= dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pStrNode2
+			= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		// direzione
 		Vec3 TmpDir;

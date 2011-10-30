@@ -336,7 +336,7 @@ ReadJoint(DataManager* pDM,
 		bool bOffset(false);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
@@ -346,7 +346,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
@@ -406,7 +406,7 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
@@ -428,7 +428,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
@@ -495,7 +495,7 @@ ReadJoint(DataManager* pDM,
 		/* lettura dei dati specifici */
 
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		/* posizione (vettore di 3 elementi) */
 		ReferenceFrame RF(pNode);
@@ -565,7 +565,7 @@ ReadJoint(DataManager* pDM,
 		/* lettura dei dati specifici */
 
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF(pNode);
 
@@ -647,7 +647,7 @@ ReadJoint(DataManager* pDM,
 	case PLANEDISPLACEMENT:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF1(pNode1);
 		Vec3 d1(Zero3);
@@ -702,7 +702,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		/* Stessa cosa per il nodo 2 */
 
@@ -1010,7 +1010,7 @@ ReadJoint(DataManager* pDM,
 	case PLANEDISPLACEMENTPIN:
 		{
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF(pNode);
 		Vec3 d(Zero3);
@@ -1148,7 +1148,7 @@ ReadJoint(DataManager* pDM,
 	case INPLANE:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF(pNode1);
 		Vec3 p(Zero3);
@@ -1178,7 +1178,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 q(Zero3);
 		bool bOffset(false);
@@ -1222,7 +1222,7 @@ ReadJoint(DataManager* pDM,
 	case J_INLINE:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF(pNode1);
 		Vec3 p(Zero3);
@@ -1259,7 +1259,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 q(Zero3);
 		bool bOffset(false);
@@ -1312,7 +1312,7 @@ ReadJoint(DataManager* pDM,
 		bool bOffset(false);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
 		Vec3 f1(Zero3);
@@ -1323,7 +1323,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
 
 		Vec3 f2(Zero3);
@@ -1455,7 +1455,7 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
@@ -1478,7 +1478,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
@@ -1557,7 +1557,7 @@ ReadJoint(DataManager* pDM,
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF1(pNode1);
 
@@ -1611,7 +1611,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF2(pNode2);
 
@@ -1920,7 +1920,7 @@ ReadJoint(DataManager* pDM,
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		/* Offset if displacement hinge */
 		ReferenceFrame RF1(pNode1);
@@ -1935,7 +1935,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		/* Offset */
 		ReferenceFrame RF2(pNode2);
@@ -2087,7 +2087,7 @@ ReadJoint(DataManager* pDM,
 		/* lettura dei dati specifici */
 
 		/* nodo collegato 1 */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		/* Offset if displacement hinge */
 		ReferenceFrame RF(pNode);
@@ -2153,7 +2153,7 @@ ReadJoint(DataManager* pDM,
 	case ANGULARVELOCITY:
 		{
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 Dir;
 		try {
@@ -2192,7 +2192,7 @@ ReadJoint(DataManager* pDM,
 	case ANGULARACCELERATION:
 		{
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		Vec3 Dir;
 		try {
@@ -2231,7 +2231,7 @@ ReadJoint(DataManager* pDM,
 	case PRISMATIC:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Mat3x3 R1h(Eye3);
@@ -2250,7 +2250,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		/* Stessa cosa per il nodo 2 */
@@ -2291,7 +2291,7 @@ ReadJoint(DataManager* pDM,
 	case DRIVEHINGE:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Mat3x3 R1h(Eye3);
@@ -2311,7 +2311,7 @@ ReadJoint(DataManager* pDM,
 
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		/* Stessa cosa per il nodo 2 */
@@ -2346,7 +2346,7 @@ ReadJoint(DataManager* pDM,
 	case DRIVEDISPLACEMENT:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF(pNode1);
 
 		Vec3 f1(Zero3);
@@ -2366,7 +2366,7 @@ ReadJoint(DataManager* pDM,
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		RF = ReferenceFrame(pNode2);
 
 		/* Stessa cosa per il nodo 2 */
@@ -2398,7 +2398,7 @@ ReadJoint(DataManager* pDM,
 	case DRIVEDISPLACEMENTPIN:
 		{
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF(pNode);
 
 		Vec3 f(Zero3);
@@ -2448,7 +2448,7 @@ ReadJoint(DataManager* pDM,
 			"deprecated; using \"total joint\" instead" << std::endl);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Vec3 f1(HP.GetPosRel(RF1));
@@ -2456,7 +2456,7 @@ ReadJoint(DataManager* pDM,
 		Mat3x3 R1hr(Eye3);
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		Vec3 f2(HP.GetPosRel(RF2, RF1, f1));
@@ -2501,7 +2501,7 @@ ReadJoint(DataManager* pDM,
 			"deprecated; using \"total pin joint\" instead" << std::endl);
 
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF(pNode);
 
 		Vec3 fn(HP.GetPosRel(RF));
@@ -2550,7 +2550,7 @@ ReadJoint(DataManager* pDM,
 			"using \"total joint\" instead" << std::endl);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Vec3 f1(Zero3);
@@ -2558,7 +2558,7 @@ ReadJoint(DataManager* pDM,
 		Mat3x3 R1hr(HP.GetRotRel(RF1));
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		Vec3 f2(Zero3);
@@ -2603,7 +2603,7 @@ ReadJoint(DataManager* pDM,
 	case TOTALEQUATION:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Vec3 f1(Zero3);
@@ -2624,7 +2624,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		Vec3 f2(Zero3);
@@ -2755,7 +2755,7 @@ ReadJoint(DataManager* pDM,
 	case TOTALINTERNALREACTION:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Vec3 f1(Zero3);
@@ -2776,7 +2776,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		Vec3 f2(Zero3);
@@ -2895,7 +2895,7 @@ ReadJoint(DataManager* pDM,
 	case TOTALJOINT:
 		{
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF1(pNode1);
 
 		Vec3 f1(Zero3);
@@ -2916,7 +2916,7 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF2(pNode2);
 
 		Vec3 f2(Zero3);
@@ -3051,7 +3051,7 @@ ReadJoint(DataManager* pDM,
 	case TOTALPINJOINT:
 		{
 		/* nodo collegato */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 		ReferenceFrame RF(pNode);
 
 		Vec3 fn(Zero3);
@@ -3207,7 +3207,7 @@ ReadJoint(DataManager* pDM,
 	case BEAMSLIDER:
 		{
 		/* Corpo slittante */
-		const StructNode* pNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		ReferenceFrame RF(pNode);
 		Vec3 f(HP.GetPosRel(RF));
