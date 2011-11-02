@@ -47,6 +47,8 @@ MBDyn 1.X-Devel
 		- fix arpack counter for non terminal (Reinhard Resch)
 		- fix label alignment in strext (noted by Mirco Valentini)
 		- fix index in full submatrix add to full matrix (unused)
+		- fix rigid-body inertia of modal joint (record 12)
+		  when modal node is not in CM (noted by Paolo Zaltron)
 
 MBDyn 1.4.0
 	Enhancements:
