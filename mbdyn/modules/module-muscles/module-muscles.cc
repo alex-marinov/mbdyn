@@ -53,7 +53,7 @@ private:
 
 public:
 	MusclePennestriCL(doublereal Li, doublereal L0, doublereal V0, doublereal F0, const DriveCaller *pAct, bool bActivationOverflow)
-	: Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct),bActivationOverflow(bActivationOverflow) {
+	: Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct), bActivationOverflow(bActivationOverflow) {
 		// pass parameters via constructor and initialize
 	};
 
@@ -70,7 +70,7 @@ public:
 
 		typedef MusclePennestriCL cl;
 		// pass parameters to copy constructor
-		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(Li, L0, V0, F0, Activation.pGetDriveCaller(), bActivationOverflow));
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(Li, L0, V0, F0, Activation.pGetDriveCaller()->pCopy(), bActivationOverflow));
 		return pCL;
 	};
 
