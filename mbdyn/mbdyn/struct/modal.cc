@@ -3617,7 +3617,7 @@ ReadModal(DataManager* pDM,
 				unsigned int iCnt = 1;
 				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
 					fdat.getline(str, sizeof(str));
-					if (strncmp("**", str, STRLENOF("**")) != 0)
+					if (str[0] != '\0' && strncmp("**", str, STRLENOF("**")) != 0)
 					{
 						if (NRejModes) {
 							silent_cerr("Modal(" << uLabel << "): "
@@ -3886,6 +3886,8 @@ ReadModal(DataManager* pDM,
 
 				dMass = d;
 
+				// NOTE: the CM location is read and temporarily stored in STmp
+				// later, it will be multiplied by the mass
 				for (int iRow = 1; iRow <= 3; iRow++) {
 					fdat >> d;
 
@@ -3893,7 +3895,6 @@ ReadModal(DataManager* pDM,
 						fbin.write((char *)&d, sizeof(d));
 					}
 
-					/* NOTE: need to multiply by dMass later */
 					STmp(iRow) = d;
 				}
 
@@ -3908,6 +3909,8 @@ ReadModal(DataManager* pDM,
 						JTmp(iRow, iCol) = d;
 					}
 				}
+
+				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
 				bRecordGroup[12] = true;
 				
@@ -4482,6 +4485,8 @@ ReadModal(DataManager* pDM,
 			fbin.read((char *)&d, sizeof(d));
 			dMass = d;
 
+			// NOTE: the CM location is read and temporarily stored in STmp
+			// later, it will be multiplied by the mass
 			for (int iRow = 1; iRow <= 3; iRow++) {
 				fbin.read((char *)&d, sizeof(d));
 
@@ -4495,6 +4500,8 @@ ReadModal(DataManager* pDM,
 					JTmp(iRow, iCol) = d;
 				}
 			}
+
+			JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
 			bRecordGroup[12] = true;
 
@@ -4840,24 +4847,25 @@ ReadModal(DataManager* pDM,
 
 		if (bRecordGroup[12]) {
 			Mat3x3 DJ = JTmp - JTmpInv;
-			pedantic_cerr("Rigid-body mass: "
+			pedantic_cerr("  Rigid-body mass: "
 				"input - computed" << std::endl
-				<< dMass - dMassInv << std::endl);
-			pedantic_cerr("Rigid-body CM location: "
+				<< "    " << dMass - dMassInv << std::endl);
+			pedantic_cerr("  Rigid-body CM location: "
 				"input - computed" << std::endl
-				<< STmp - STmpInv/dMassInv << std::endl);
-			pedantic_cerr("Rigid-body inertia: "
+				<< "    " << STmp - STmpInv/dMassInv << std::endl);
+			pedantic_cerr("  Rigid-body inertia: "
 				"input - computed" << std::endl
-				<< DJ.GetVec(1) << std::endl
-				<< DJ.GetVec(2) << std::endl
-				<< DJ.GetVec(3) << std::endl);
+				<< "    " << DJ.GetVec(1) << std::endl
+				<< "    " << DJ.GetVec(2) << std::endl
+				<< "    " << DJ.GetVec(3) << std::endl);
 		}
 
 		/*
 		 * TODO: check modal mass
 		 */
-		pedantic_cerr("Generalized mass: input - computed" << std:: endl);
+		pedantic_cerr("  Generalized mass: input - computed" << std:: endl);
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+			pedantic_cerr("   ");
 			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
 				pedantic_cerr(" " << pGenMass->dGet(jMode, kMode) - GenMass(jMode, kMode));
 			}
@@ -4900,101 +4908,114 @@ ReadModal(DataManager* pDM,
 		}
 	}
 
-#if 0 // def DEBUG
-	silent_cout("Total Mass : " << dMass << std::endl);
-	silent_cout("Inertia Matrix : " << std::endl << JTmp << std::endl);
-	silent_cout("Static Moment Vector : " << STmp << std::endl);
+#if 1 // def DEBUG
+	if (pedantic_output) {
+		std::ostream &out = std::cout;
 
-	silent_cout("Generalized Stiffness: " << std::endl);
-	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-			silent_cout(" " << pGenStiff->dGet(iCnt, jCnt));
-		}
-		silent_cout(std::endl);
-	}
+		out << "  Total Mass: " << dMass << std::endl;
+		out << "  Inertia Matrix: " << std::endl
+			<< "    " << JTmp << std::endl;
+		out << "  Static Moment Vector: " << STmp << std::endl;
 
-	silent_cout("Generalized Mass: " << std::endl);
-	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-			silent_cout(" " << pGenMass->dGet(iCnt, jCnt));
-		}
-		silent_cout(std::endl);
-	}
-
-	silent_cout("Generalized Damping: " << std::endl);
-	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-			silent_cout(" " << pGenDamp->dGet(iCnt, jCnt));
-		}
-		silent_cout(std::endl);
-	}
-
-	if (pInv3 != 0) {
-		silent_cout("Inv3 : " << std::endl);
-		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+		out << "  Generalized Stiffness: " << std::endl;
+		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			out << "   ";
 			for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-				silent_cout(" " << pInv3->dGet(iCnt, jCnt));
+				out << " " << pGenStiff->dGet(iCnt, jCnt);
 			}
-			silent_cout(std::endl);
+			out << std::endl;
 		}
-	} else {
-		silent_cout("Inv3: unused" << std::endl);
-	}
 
-	if (pInv4 != 0) {
-		silent_cout("Inv4 : " << std::endl);
-		for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+		out << "  Generalized Mass: " << std::endl;
+		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			out << "   ";
 			for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
-				silent_cout(" " << pInv4->dGet(iCnt, jCnt));
+				out << " " << pGenMass->dGet(iCnt, jCnt);
 			}
-			silent_cout(std::endl);
+			out << std::endl;
 		}
-	} else {
-		silent_cout("Inv4: unused" << std::endl);
-	}
 
-	if (pInv5 != 0) {
-		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			silent_cout("Inv5j(j=" << jMode << "): " << std::endl);
+		out << "  Generalized Damping: " << std::endl;
+		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			out << "   ";
+			for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+				out << " " << pGenDamp->dGet(iCnt, jCnt);
+			}
+			out << std::endl;
+		}
+
+		if (pInv3 != 0) {
+			out << "  Inv3: " << std::endl;
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
-					silent_cout(" " << pInv5->dGet(iCnt, (jMode - 1)*NModes + kMode));
+				out << "   ";
+				for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+					out << " " << pInv3->dGet(iCnt, jCnt);
 				}
-				silent_cout(std::endl);
+				out << std::endl;
 			}
+		} else {
+			out << "  Inv3: unused" << std::endl;
 		}
-	} else {
-		silent_cout("Inv5: unused" << std::endl);
-	}
 
-	if (pInv8 != 0) {
-		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			silent_cout("Inv8j(j=" << jMode << "): " << std::endl);
+		if (pInv4 != 0) {
+			out << "  Inv4: " << std::endl;
 			for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-				for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-					silent_cout(" " << pInv8->dGet(iCnt, (jMode - 1)*3 + jCnt));
+				out << "   ";
+				for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
+					out << " " << pInv4->dGet(iCnt, jCnt);
 				}
-				silent_cout(std::endl);
+				out << std::endl;
 			}
+		} else {
+			out << "  Inv4: unused" << std::endl;
 		}
-	} else {
-		silent_cout("Inv8: unused" << std::endl);
-	}
 
-	if (pInv9 != 0) {
-		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
-			for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
-				silent_cout("Inv9jk(j=" << jMode << ",k=" << kMode << "): " << std::endl);
+		if (pInv5 != 0) {
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				out << "  Inv5j(j=" << jMode << "): " << std::endl;
 				for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
-					for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
-						silent_cout(" " << pInv9->dGet(iCnt, (jMode - 1)*3*NModes + (kMode - 1)*3 + jCnt));
+					out << "   ";
+					for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+						out << " " << pInv5->dGet(iCnt, (jMode - 1)*NModes + kMode);
 					}
-					silent_cout(std::endl);
+					out << std::endl;
 				}
 			}
+		} else {
+			out << "  Inv5: unused" << std::endl;
 		}
-	} else {
-		silent_cout("Inv9: unused" << std::endl);
+
+		if (pInv8 != 0) {
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				out << "  Inv8j(j=" << jMode << "): " << std::endl;
+				for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+					out << "   ";
+					for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
+						out << " " << pInv8->dGet(iCnt, (jMode - 1)*3 + jCnt);
+					}
+					out << std::endl;
+				}
+			}
+		} else {
+			out << "  Inv8: unused" << std::endl;
+		}
+
+		if (pInv9 != 0) {
+			for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
+				for (unsigned int kMode = 1; kMode <= NModes; kMode++) {
+					out << "  Inv9jk(j=" << jMode << ",k=" << kMode << "): " << std::endl;
+					for (unsigned int iCnt = 1; iCnt <= 3; iCnt++) {
+						out << "   ";
+						for (unsigned int jCnt = 1; jCnt <= 3; jCnt++) {
+							out << " " << pInv9->dGet(iCnt, (jMode - 1)*3*NModes + (kMode - 1)*3 + jCnt);
+						}
+						out << std::endl;
+					}
+				}
+			}
+		} else {
+			out << "  Inv9: unused" << std::endl;
+		}
 	}
 #endif /* DEBUG */
 
