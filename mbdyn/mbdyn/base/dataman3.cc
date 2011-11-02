@@ -2279,30 +2279,6 @@ DataManager::ReadDrivers(MBDynParser& HP)
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of drivers data" << std::endl);
 } /* End of ReadDrivers */
 
-
-/* Legge un legame costitutivo monodimensionale */
-ConstitutiveLaw1D*
-DataManager::ReadConstLaw1D(MBDynParser& HP, ConstLawType::Type& T) const
-{
-	return ReadCL1D(this, HP, T);
-}
-
-
-/* Legge un legame costitutivo tridimensionale */
-ConstitutiveLaw3D*
-DataManager::ReadConstLaw3D(MBDynParser& HP, ConstLawType::Type& T) const
-{
-	return ReadCL3D(this, HP, T);
-}
-
-
-/* Legge un legame costitutivo esadimensionale */
-ConstitutiveLaw6D*
-DataManager::ReadConstLaw6D(MBDynParser& HP, ConstLawType::Type& T) const
-{
-	return ReadCL6D(this, HP, T);
-}
-
 /* DataManager - end */
 
 Node*

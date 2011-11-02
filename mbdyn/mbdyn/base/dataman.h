@@ -249,21 +249,6 @@ public:
 
 	void IncElemCount(Elem::Type type);
 
-	/* legge i legami costitutivi */
-	ConstitutiveLaw1D* ReadConstLaw1D(MBDynParser& HP,
-			ConstLawType::Type& T) const;
-	ConstitutiveLaw3D* ReadConstLaw3D(MBDynParser& HP,
-			ConstLawType::Type& T) const;
-	ConstitutiveLaw6D* ReadConstLaw6D(MBDynParser& HP,
-			ConstLawType::Type& T) const;
-
-	enum ConstLawDim {
-		SCALAR = 0,
-		DIM3,
-		DIM6,
-		LASTDIM
-	};
-
 	/* additional CPU time, if any */
 	virtual clock_t GetCPUTime(void) const {
 		return 0;

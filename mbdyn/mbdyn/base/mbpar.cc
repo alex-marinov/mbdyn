@@ -1652,7 +1652,7 @@ MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 	}
 
 	if (!IsKeyWord("reference")) {
-		return pDM->ReadConstLaw1D(*this, clt);
+		return ReadCL1D(pDM, *this, clt);
 	}
 
 	unsigned int uLabel = GetInt();
@@ -1679,7 +1679,7 @@ MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 	}
 
 	if (!IsKeyWord("reference")) {
-		return pDM->ReadConstLaw3D(*this, clt);
+		return ReadCL3D(pDM, *this, clt);
 	}
 
 	unsigned int uLabel = GetInt();
@@ -1706,7 +1706,7 @@ MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 	}
 
 	if (!IsKeyWord("reference")) {
-		return pDM->ReadConstLaw6D(*this, clt);
+		return ReadCL6D(pDM, *this, clt);
 	}
 
 	unsigned int uLabel = GetInt();
