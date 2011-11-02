@@ -2317,7 +2317,7 @@ DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 	}
 	unsigned int uElem = (unsigned int)iElem;
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "ReadElem: " << psNodeNames[type] << "(" << uNode << ")" << std::endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "ReadElem: " << psNodeNames[type] << "(" << uElem << ")" << std::endl);
 
 	/* verifica di esistenza dell'elemento */
 	Elem* pElem = dynamic_cast<Elem *>(pFindElem(type, uElem));
