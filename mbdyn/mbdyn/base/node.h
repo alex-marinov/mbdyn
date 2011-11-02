@@ -77,7 +77,7 @@ public:
 
 		STRUCTURAL,
 		ELECTRIC,
-	THERMAL,
+		THERMAL,
 		PARAMETER,
 		HYDRAULIC,
 
@@ -204,8 +204,9 @@ public:
 	
 };
 
-/* Node - end */
+Node::Type str2nodetype(const char *const s);
 
+/* Node - end */
 
 /* ScalarNode - begin */
 

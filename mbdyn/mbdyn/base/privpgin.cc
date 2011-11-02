@@ -185,13 +185,9 @@ NodePrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 			memmove(&s[i], &s[i + 1], strlen(&s[i]));
 		}
 	}
-	
-	for (i = 0; i < Node::LASTNODETYPE; i++) {
-		if (strcasecmp(s, psReadNodesNodes[i]) == 0) {
-			break;
-		}
-	}
 
+	i = str2nodetype(s);
+	
 	SAFEDELETEARR(s);
 	
 	if (i == Node::LASTNODETYPE) {
@@ -250,12 +246,8 @@ ElemPrivPlugIn::ReadSE(unsigned int uLabel, const char *ss)
 			memmove(&s[i], &s[i + 1], strlen(&s[i]));
 		}
 	}
-	
-	for (i = 0; i < Elem::LASTELEMTYPE; i++) {
-		if (strcasecmp(s, psReadElemsElems[i]) == 0) {
-			break;
-		}
-	}
+
+	i = str2elemtype(s);
 
 	SAFEDELETEARR(s);
 	

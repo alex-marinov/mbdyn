@@ -273,6 +273,8 @@ Elem::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int 
 }
 #endif /* USE_ADAMS */
 
+Elem::Type str2elemtype(const char *const s);
+
 /* Elem - end */
 
 

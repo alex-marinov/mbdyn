@@ -646,6 +646,8 @@ public:
 	/* ricerca elementi*/
 	Elem* pFindElem(Elem::Type Typ, unsigned int uL) const;
 
+	const DataManager::ElemDataStructure& GetElemDataStructure(Elem::Type Typ) const { return ElemData[Typ]; };
+
 	/* pseudocostruttore */
 	void ElemManager(void);
 	void ElemManagerDestructor(void);

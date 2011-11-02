@@ -42,6 +42,8 @@ protected:
 public:
 	typedef MathParser::MathArgPriv_t<DataManager *> MathArgDM;
 	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
+	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
+	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
 
 	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
 
@@ -49,6 +51,9 @@ protected:
 	funcType func;
 
 	MathParser::MathFunc_t sf_func;
+	MathParser::MathFunc_t node_func;
+	MathParser::MathFunc_t elem_func;
+	MathParser::MathFunc_t unique_elem_func;
 
 public:
 	ModelNameSpace(DataManager *pdm);

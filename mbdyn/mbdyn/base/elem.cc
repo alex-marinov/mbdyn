@@ -130,6 +130,18 @@ Elem::GetDofType(unsigned int) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+Elem::Type
+str2elemtype(const char *const s)
+{
+	for (int i = 0; i < Elem::LASTELEMTYPE; i++) {
+		if (strcasecmp(s, psReadElemsElems[i]) == 0) {
+			return Elem::Type(i);
+		}
+	}
+
+	return Elem::UNKNOWN;
+}
+
 /* Elem - end */
 
 /* database of registered element types */

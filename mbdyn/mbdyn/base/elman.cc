@@ -631,6 +631,13 @@ DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
 Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 {
+	if (ElemData[Typ].bIsUnique() && uL == (unsigned)(-1)) {
+		if (!ElemData[Typ].ElemMapToList.empty()) {
+			return ElemData[Typ].ElemMapToList.begin()->second->second;
+		}
+		return 0;
+	}
+
 	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
 	if (p == ElemData[Typ].ElemMapToList.end()) {
 		return 0;
@@ -644,6 +651,13 @@ DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
 Elem **
 DataManager::ppFindElem(Elem::Type Typ, unsigned int uL) const
 {
+	if (ElemData[Typ].bIsUnique() && uL == (unsigned)(-1)) {
+		if (!ElemData[Typ].ElemMapToList.empty()) {
+			return &ElemData[Typ].ElemMapToList.begin()->second->second;
+		}
+		return 0;
+	}
+
 	ASSERT(uL > 0);
 
 	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
@@ -659,8 +673,16 @@ Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL,
 		unsigned int iDeriv) const
 {
-	ASSERT(uL > 0);
 	ASSERT(iDeriv == int(ELEM) || ElemData[Typ].iDerivation & iDeriv);
+
+	if (ElemData[Typ].bIsUnique() && uL == (unsigned)(-1)) {
+		if (!ElemData[Typ].ElemMapToList.empty()) {
+			return pChooseElem(ElemData[Typ].ElemMapToList.begin()->second->second, iDeriv);
+		}
+		return 0;
+	}
+
+	ASSERT(uL > 0);
 
 	ElemMapToListType::const_iterator p = ElemData[Typ].ElemMapToList.find(uL);
 	if (p == ElemData[Typ].ElemMapToList.end()) {

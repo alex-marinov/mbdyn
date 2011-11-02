@@ -83,7 +83,7 @@ const char* psReadElemsElems[] = {
    "automatic" "structural",
 
    "gravity",
-   "rigid" "body",
+   "body",
    "joint",
 	"joint" "regularization",
    "beam",

@@ -90,6 +90,18 @@ Node::iGetFirstColIndex(void) const
 	return iGetFirstIndex();
 }
 
+Node::Type
+str2nodetype(const char *const s)
+{
+	for (int i = 0; i < Node::LASTNODETYPE; i++) {
+		if (strcasecmp(s, psReadNodesNodes[i]) == 0) {
+			return Node::Type(i);
+		}
+	}
+
+	return Node::UNKNOWN;
+}
+
 /* Node - end */
 
 

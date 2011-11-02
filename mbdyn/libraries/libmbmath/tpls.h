@@ -31,6 +31,8 @@
 #ifndef TPLS_H
 #define TPLS_H
 
+#include "ac/f2c.h"
+
 // returns a reference to the static `zero' object of type T
 template <class T>
 inline const T& mb_zero(void);

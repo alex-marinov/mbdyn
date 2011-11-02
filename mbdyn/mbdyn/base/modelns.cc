@@ -108,6 +108,7 @@ position(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
 	ASSERT(dm != 0);
@@ -169,9 +170,11 @@ distance(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
+	ASSERT((*arg2)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
 	ASSERT(dm != 0);
@@ -243,9 +246,11 @@ unitvec(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
+	ASSERT((*arg2)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
 	ASSERT(dm != 0);
@@ -317,6 +322,7 @@ angle(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
 	ASSERT(dm != 0);
@@ -374,9 +380,11 @@ anglerel(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
+	ASSERT((*arg2)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
 	ASSERT(dm != 0);
@@ -443,6 +451,7 @@ velocity(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
 	ASSERT(dm != 0);
@@ -504,9 +513,11 @@ vrel(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
+	ASSERT((*arg2)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
 	ASSERT(dm != 0);
@@ -577,6 +588,7 @@ angvel(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[2]);
 	ASSERT(dm != 0);
@@ -638,9 +650,11 @@ angvrel(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
+	ASSERT((*arg2)() >= 0);
 
 	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
 	ASSERT(dm != 0);
@@ -711,6 +725,7 @@ drive(const MathParser::MathArgs& args)
 
 	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
+	ASSERT((*arg1)() >= 0);
 
 	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t *>(args[2]);
 	ASSERT(arg2 != 0);
@@ -745,20 +760,25 @@ model_sf(const MathParser::MathArgs& args)
 	ASSERT(args[2]->Type() == MathParser::AT_INT);
 	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 
-	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
 	ASSERT(out != 0);
 
-	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 	doublereal v = (*arg1)();
 
-	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t*>(args[2]);
+	MathParser::MathArgInt_t *arg2 = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(arg2 != 0);
 	int order = (*arg2)();
 	ASSERT(order >= 0);
 
-	ModelNameSpace::MathArgSF *sf = dynamic_cast<ModelNameSpace::MathArgSF*>(args[3]);
+	ModelNameSpace::MathArgSF *sf = dynamic_cast<ModelNameSpace::MathArgSF *>(args[3]);
 	ASSERT(sf != 0);
+
+	if (order < 0 || order > 1) {
+		silent_cerr("model::sf invalid derivative order " << order << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (order == 0) {
 		*out = (*(*sf)())(v);
@@ -775,6 +795,124 @@ model_sf(const MathParser::MathArgs& args)
 
 		*out = dsf->ComputeDiff(v, order);
 	}
+
+	return 0;
+}
+
+/*
+ * Computes the value of a node's private data
+ */
+static int
+model_node(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2 + 2);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_STRING);
+	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
+	ASSERT(args[4]->Type() == MathParser::AT_PRIVATE);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+	ASSERT(arg_label != 0);
+	int iLabel = (*arg_label)();
+
+	MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[2]);
+	ASSERT(arg_val != 0);
+	std::string v = (*arg_val)();
+
+	ModelNameSpace::MathArgNode *arg_type = dynamic_cast<ModelNameSpace::MathArgNode *>(args[3]);
+	ASSERT(arg_type != 0);
+	Node::Type type = (*arg_type)();
+
+	ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[4]);
+	ASSERT(arg_dm != 0);
+	const DataManager *pDM = (*arg_dm)();
+
+	if (iLabel < 0) {
+		silent_cerr("model::node: invalid node label " << iLabel << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	unsigned uLabel = unsigned(iLabel);
+
+	const Node *pNode = pDM->pFindNode(type, uLabel);
+	if (pNode == 0) {
+		silent_cerr("model::node: unable to find " << psNodeNames[type] << "(" << uLabel << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	int idx = pNode->iGetPrivDataIdx(v.c_str());
+	if (idx == 0) {
+		silent_cerr("model::node: " << psNodeNames[type] << "(" << pNode->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	*out = pNode->dGetPrivData(idx);
+
+	return 0;
+}
+
+/*
+ * Computes the value of an element's private data
+ */
+template <bool unique>
+static int
+model_elem(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2 - unique + 2);
+
+	int idx = 0;
+	ASSERT(args[idx]->Type() == MathParser::AT_REAL);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[idx]);
+	ASSERT(out != 0);
+
+	unsigned uLabel(-1);
+	if (!unique) {
+		++idx;
+		ASSERT(args[idx]->Type() == MathParser::AT_INT);
+		MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[idx]);
+		ASSERT(arg_label != 0);
+		int iLabel = (*arg_label)();
+		if (iLabel < 0) {
+			silent_cerr("model::element: invalid element label " << iLabel << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		uLabel = unsigned(iLabel);
+	}
+
+	++idx;
+	ASSERT(args[idx]->Type() == MathParser::AT_STRING);
+	MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[idx]);
+	ASSERT(arg_val != 0);
+	std::string v = (*arg_val)();
+
+	++idx;
+	ASSERT(args[idx]->Type() == MathParser::AT_PRIVATE);
+	ModelNameSpace::MathArgElem *arg_elem = dynamic_cast<ModelNameSpace::MathArgElem *>(args[idx]);
+	ASSERT(arg_elem != 0);
+	Elem::Type type = (*arg_elem)();
+
+	++idx;
+	ASSERT(args[idx]->Type() == MathParser::AT_PRIVATE);
+	ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[idx]);
+	ASSERT(arg_dm != 0);
+	const DataManager *pDM = (*arg_dm)();
+
+	const Elem *pElem = pDM->pFindElem(type, uLabel);
+	if (pElem == 0) {
+		silent_cerr("model::element: unable to find " << psElemNames[type] << "(" << uLabel << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	idx = pElem->iGetPrivDataIdx(v.c_str());
+	if (idx == 0) {
+		silent_cerr("model::element: " << psElemNames[type] << "(" << pElem->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	*out = pElem->dGetPrivData(idx);
 
 	return 0;
 }
@@ -2249,6 +2387,38 @@ ModelNameSpace::ModelNameSpace(DataManager *pdm)
 	sf_func.args[3] = new MathArgSF;
 	sf_func.f = model_sf;
 	sf_func.t = 0;
+
+	// node functions
+	node_func.fname = "node";
+	node_func.args.resize(1 + 2 + 2);
+	node_func.args[0] = new MathParser::MathArgReal_t;
+	node_func.args[1] = new MathParser::MathArgInt_t;
+	node_func.args[2] = new MathParser::MathArgString_t;
+	node_func.args[3] = new MathArgNode;
+	node_func.args[4] = new MathArgDM;
+	node_func.f = model_node;
+	node_func.t = 0;
+
+	// element functions
+	elem_func.fname = "element";
+	elem_func.args.resize(1 + 2 + 2);
+	elem_func.args[0] = new MathParser::MathArgReal_t;
+	elem_func.args[1] = new MathParser::MathArgInt_t;
+	elem_func.args[2] = new MathParser::MathArgString_t;
+	elem_func.args[3] = new MathArgElem;
+	elem_func.args[4] = new MathArgDM;
+	elem_func.f = model_elem<false>;
+	elem_func.t = 0;
+
+	// unique element functions
+	unique_elem_func.fname = "uniqueElement";
+	unique_elem_func.args.resize(1 + 1 + 2);
+	unique_elem_func.args[0] = new MathParser::MathArgReal_t;
+	unique_elem_func.args[1] = new MathParser::MathArgString_t;
+	unique_elem_func.args[2] = new MathArgElem;
+	unique_elem_func.args[3] = new MathArgDM;
+	unique_elem_func.f = model_elem<true>;
+	unique_elem_func.t = 0;
 }
 
 ModelNameSpace::~ModelNameSpace(void)
@@ -2265,6 +2435,24 @@ ModelNameSpace::~ModelNameSpace(void)
 
 	for (MathParser::MathArgs::iterator i = sf_func.args.begin();
 		i != sf_func.args.end(); ++i)
+	{
+		delete *i;
+	}
+
+	for (MathParser::MathArgs::iterator i = node_func.args.begin();
+		i != node_func.args.end(); ++i)
+	{
+		delete *i;
+	}
+
+	for (MathParser::MathArgs::iterator i = elem_func.args.begin();
+		i != elem_func.args.end(); ++i)
+	{
+		delete *i;
+	}
+
+	for (MathParser::MathArgs::iterator i = unique_elem_func.args.begin();
+		i != unique_elem_func.args.end(); ++i)
 	{
 		delete *i;
 	}
@@ -2286,9 +2474,47 @@ ModelNameSpace::GetFunc(const char* const s) const
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		(*dynamic_cast<MathArgSF*>(sf_func.args[3]))() = sf;
+		(*dynamic_cast<MathArgSF *>(sf_func.args[3]))() = sf;
 
-		return const_cast<MathParser::MathFunc_t*>(&sf_func);
+		return const_cast<MathParser::MathFunc_t *>(&sf_func);
+	}
+
+	if (strncmp(s, "node::", STRLENOF("node::")) == 0) {
+		const char *const type = &s[STRLENOF("node::")];
+		const Node::Type t = str2nodetype(type);
+		if (t == Node::UNKNOWN) {
+			silent_cerr("ModelNameSpace::GetFunc(" << s << "): unable to find node type \"" << type << "\"" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		(*dynamic_cast<MathParser::MathArgInt_t *>(node_func.args[1]))() = -1;
+		(*dynamic_cast<MathArgNode *>(node_func.args[3]))() = t;
+		(*dynamic_cast<MathArgDM *>(node_func.args[4]))() = pDM;
+
+		return const_cast<MathParser::MathFunc_t *>(&node_func);
+	}
+
+	if (strncmp(s, "element::", STRLENOF("element::")) == 0) {
+		const char *const type = &s[STRLENOF("element::")];
+		Elem::Type t = str2elemtype(type);
+		if (t == Elem::UNKNOWN) {
+			silent_cerr("ModelNameSpace::GetFunc(" << s << "): unable to find element type \"" << type << "\"" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (pDM->GetElemDataStructure(t).bIsUnique()) {
+			(*dynamic_cast<MathArgElem *>(unique_elem_func.args[2]))() = t;
+			(*dynamic_cast<MathArgDM *>(unique_elem_func.args[3]))() = pDM;
+
+			return const_cast<MathParser::MathFunc_t *>(&unique_elem_func);
+
+		} else {
+			(*dynamic_cast<MathParser::MathArgInt_t *>(elem_func.args[1]))() = -1;
+			(*dynamic_cast<MathArgElem *>(elem_func.args[3]))() = t;
+			(*dynamic_cast<MathArgDM *>(elem_func.args[4]))() = pDM;
+
+			return const_cast<MathParser::MathFunc_t *>(&elem_func);
+		}
 	}
 
 	funcType::const_iterator i = func.find(std::string(s));
@@ -2319,10 +2545,10 @@ ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& 
 		return TypedValue(0);
 
 	case MathParser::AT_INT:
-		return TypedValue((*dynamic_cast<MathParser::MathArgInt_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathParser::MathArgInt_t *>(args[0]))());
 
 	case MathParser::AT_REAL:
-		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t *>(args[0]))());
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
