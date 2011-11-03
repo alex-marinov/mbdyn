@@ -95,7 +95,7 @@ public:
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
-		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps;
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
 		doublereal a = Activation.dGet();
@@ -125,7 +125,7 @@ public:
 		doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
 		doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
 
-		ConstitutiveLaw<doublereal, doublereal>::F = F0*(f1*f2*a + f3);
+		ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
 		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*(df1dx*f2*a + df3dx)*dxdEps;
 		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*df2dv*a*dvdEpsPrime;
 	};
