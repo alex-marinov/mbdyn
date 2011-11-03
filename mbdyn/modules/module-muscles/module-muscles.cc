@@ -38,10 +38,10 @@
 #include <cfloat>
 
 #include "dataman.h"
-#include "constltp.h"
+#include "constltp_impl.h"
 
 class MusclePennestriCL
-: public ConstitutiveLaw<doublereal, doublereal> {
+: public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:
 	// define parameters
 	doublereal Li;
@@ -52,8 +52,12 @@ private:
 	bool bActivationOverflow;
 
 public:
-	MusclePennestriCL(doublereal Li, doublereal L0, doublereal V0, doublereal F0, const DriveCaller *pAct, bool bActivationOverflow)
-	: Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct), bActivationOverflow(bActivationOverflow) {
+	MusclePennestriCL(TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow)
+	: ElasticConstitutiveLaw(pTplDC, dPreStress),
+	Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct), bActivationOverflow(bActivationOverflow)
+	{
 		// pass parameters via constructor and initialize
 	};
 
@@ -68,9 +72,13 @@ public:
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
 		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
 
-		typedef MusclePennestriCL cl;
 		// pass parameters to copy constructor
-		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(Li, L0, V0, F0, Activation.pGetDriveCaller()->pCopy(), bActivationOverflow));
+		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
+			MusclePennestriCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow));
 		return pCL;
 	};
 
@@ -81,7 +89,8 @@ public:
 			<< ", reference velocity, " << V0
 			<< ", reference force, " << F0
 			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
-			<< ", activation check, " << bActivationOverflow;
+			<< ", activation check, " << bActivationOverflow
+			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
 		return out;
 	};
 
@@ -207,8 +216,15 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			Li = L0;
 		}
 
-		typedef MusclePennestriCL L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(Li, L0, V0, F0, pAct, bActivationOverflow));
+		/* Prestress and prestrain */
+		doublereal PreStress(0.);
+		GetPreStress(HP, PreStress);
+		TplDriveCaller<doublereal> *pTplDC = GetPreStrain<doublereal>(pDM, HP);
+
+		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
+			MusclePennestriCL(pTplDC, PreStress,
+				Li, L0, V0, F0, pAct,
+				bActivationOverflow));
 
 		return pCL;
 	};
