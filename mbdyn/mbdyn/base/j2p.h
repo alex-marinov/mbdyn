@@ -39,7 +39,7 @@
 
 class Elem2Param : public ParameterNode {
 protected:   
-	Elem* pElem;  
+	const Elem* pElem;  
 	unsigned int iNum;
 
 public:
@@ -149,9 +149,9 @@ StrainGageParam::dGetX(void) const
 {  
 	unsigned int i = 6 * (iNum - 1);
 
-	return ((doublereal&)dX = pElem->dGetPrivData(i+1)
-		+dZ*pElem->dGetPrivData(i+5)
-		-dY*pElem->dGetPrivData(i+6));
+	return ((doublereal&)dX = pElem->dGetPrivData(i + 1)
+		+ dZ*pElem->dGetPrivData(i + 5)
+		- dY*pElem->dGetPrivData(i + 6));
 }
 
 /* StrainGageParam - end */

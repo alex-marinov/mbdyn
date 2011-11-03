@@ -2286,21 +2286,21 @@ DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 {
 	integer iNode = HP.GetInt();
 	if (iNode < 0) {
-		silent_cerr("ReadNode: invalid node label " << iNode
+		silent_cerr("DataManager::ReadNode: invalid node label " << iNode
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		return 0;
 	}
 	unsigned int uNode = (unsigned int)iNode;
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "ReadNode: " << psNodeNames[type] << "(" << uNode << ")" << std::endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "DataManager::ReadNode: " << psNodeNames[type] << "(" << uNode << ")" << std::endl);
 
 	/* verifica di esistenza del nodo */
 	Node* pNode = pFindNode(type, uNode);
 	if (pNode == 0) {
-		silent_cerr("ReadNode: " << psNodeNames[type] << "(" << uNode << ")"
+		silent_cerr("DataManager::ReadNode: " << psNodeNames[type] << "(" << uNode << ")"
 			" not defined at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		return 0;
 	}
 
 	return pNode;
@@ -2311,21 +2311,21 @@ DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 {
 	integer iElem = HP.GetInt();
 	if (iElem < 0) {
-		silent_cerr("ReadElem: invalid node label " << iElem
+		silent_cerr("DataManager::ReadElem: invalid node label " << iElem
 			<< " at line " << HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		return 0;
 	}
 	unsigned int uElem = (unsigned int)iElem;
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "ReadElem: " << psNodeNames[type] << "(" << uElem << ")" << std::endl);
+	DEBUGLCOUT(MYDEBUG_INPUT, "DataManager::ReadElem: " << psNodeNames[type] << "(" << uElem << ")" << std::endl);
 
 	/* verifica di esistenza dell'elemento */
 	Elem* pElem = dynamic_cast<Elem *>(pFindElem(type, uElem));
 	if (pElem == 0) {
-		silent_cerr("ReadElem: " << psElemNames[type] << "(" << uElem << ")"
+		silent_cerr("DataManager::ReadElem: " << psElemNames[type] << "(" << uElem << ")"
 			" not defined at line "
 			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		return 0;
 	}
 
 	return pElem;

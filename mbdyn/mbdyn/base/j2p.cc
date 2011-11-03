@@ -77,7 +77,7 @@ Elem2Param::Bind(const Elem* pEl, unsigned int i)
 			<< " (" << pEl->GetLabel() << ')' << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	pElem = (Elem*)pEl;
+	pElem = pEl;
 
 	dGetDofValue(1, 0);
 }

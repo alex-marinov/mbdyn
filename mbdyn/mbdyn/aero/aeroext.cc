@@ -330,9 +330,9 @@ ReadAerodynamicExternal(DataManager* pDM, MBDynParser& HP,
 	const StructNode** ppNodeList = NULL;
 	SAFENEWARR(ppNodeList, const StructNode*, NodeN);
 
-	for (unsigned int iN=0; iN < NodeN; iN++) {
+	for (unsigned int iN = 0; iN < NodeN; iN++) {
 		unsigned int NodeL = HP.GetInt();
-		const StructNode* pTmpNode = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, NodeL));
+		const StructNode* pTmpNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(NodeL);
 		if (pTmpNode == 0) {
 			std::cerr << "Aerodynamic External(" << uLabel
 				<< "): structural node " << NodeL
@@ -625,7 +625,7 @@ ReadAerodynamicExternalModal(DataManager* pDM, MBDynParser& HP,
 	AerodynamicExternalModal* pEl = NULL;
 
 	/* giunto modale collegato */
-	const Modal *pModalJoint = pDM->ReadElem<const Joint, Elem::JOINT, const Modal>(HP);
+	const Modal *pModalJoint = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
 	int comm = 0;
 	if (HP.IsKeyWord("comm")) {
 		comm = HP.GetInt();

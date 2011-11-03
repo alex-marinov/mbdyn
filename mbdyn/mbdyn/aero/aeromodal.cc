@@ -604,7 +604,7 @@ Elem* ReadAerodynamicModal(DataManager* pDM,
 
 
    /* giunto modale collegato */
-   const Modal *pModalJoint = pDM->ReadElem<const Joint, Elem::JOINT, const Modal>(HP);
+   const Modal *pModalJoint = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
    ReferenceFrame RF;
    const StructNode* pModalNode = pModalJoint->pGetModalNode();
    if (pModalNode) {

@@ -146,7 +146,7 @@ ReadModalForce(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
 {
-	const Modal *pModal = pDM->ReadElem<const Joint, Elem::JOINT, const Modal>(HP);
+	const Modal *pModal = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
 	if (pModal == 0) {
 		silent_cerr("ModalForce(" << uLabel << "): illegal Modal joint "
 			" at line " << HP.GetLineData() << std::endl);

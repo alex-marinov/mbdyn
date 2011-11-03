@@ -2729,7 +2729,7 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Modal Node: " << uNode << std::endl);
 
 		/* verifica di esistenza del nodo */
-		const StructNode* pTmpNode = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, uNode));
+		const StructNode* pTmpNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode);
 		if (pTmpNode == 0) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode << ") "
@@ -4679,7 +4679,7 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
 
 		/* verifica di esistenza del nodo 2 */
-		pInterfaceNodes[iStrNode - 1] = dynamic_cast<const StructNode *>(pDM->pFindNode(Node::STRUCTURAL, uNode2));
+		pInterfaceNodes[iStrNode - 1] = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
 		if (pInterfaceNodes[iStrNode - 1] == NULL) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode2 << ") "

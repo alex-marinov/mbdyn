@@ -234,7 +234,7 @@ ReadGenel(DataManager* pDM,
 			pRollMoment = HP.GetDriveCaller();
 			pPitchMoment = HP.GetDriveCaller();
 
-			pAP = dynamic_cast<const AirProperties *>(pDM->pFindElem(Elem::AIRPROPERTIES, 1));
+			pAP = pDM->pFindElem<const AirProperties, Elem::AIRPROPERTIES>();
 
 			dRadius = HP.GetReal();
 			if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
@@ -252,7 +252,7 @@ ReadGenel(DataManager* pDM,
 					"keyword \"rotor\" expected at line " << HP.GetLineData() << std::endl);
 			}
 
-			pRot = pDM->ReadElem<const InducedVelocity, Elem::INDUCEDVELOCITY, const Rotor>(HP);
+			pRot = pDM->ReadElem<const Rotor, const InducedVelocity, Elem::INDUCEDVELOCITY>(HP);
 			if (pRot == 0) {
 				silent_cerr("RotorTrim(" << uLabel << "): "
 					"unable to read rotor "

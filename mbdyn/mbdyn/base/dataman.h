@@ -287,14 +287,14 @@ public:
 	Node* ReadNode(MBDynParser& HP, Node::Type type);
 	Elem* ReadElem(MBDynParser& HP, Elem::Type type);
 
-	template <class T1, Node::Type type>
-	T1 *ReadNode(MBDynParser& HP);
-	template <class T1, Node::Type type, class T2>
-	T2 *ReadNode(MBDynParser& HP);
-	template <class T1, Elem::Type type>
-	T1 *ReadElem(MBDynParser& HP);
-	template <class T1, Elem::Type type, class T2>
-	T2 *ReadElem(MBDynParser& HP);
+	template <class Tbase, Node::Type type>
+	Tbase *ReadNode(MBDynParser& HP);
+	template <class Tder, class Tbase, Node::Type type>
+	Tder *ReadNode(MBDynParser& HP);
+	template <class Tbase, Elem::Type type>
+	Tbase *ReadElem(MBDynParser& HP);
+	template <class Tder, class Tbase, Elem::Type type>
+	Tder *ReadElem(MBDynParser& HP);
 
 	/* Funzioni usate dal metodo di integrazione */
 
@@ -626,11 +626,11 @@ protected:
 	MySubVectorHandler *pWorkVec;
 
 	/* ricerca elementi */
-	Elem* pFindElem(Elem::Type Typ, unsigned int uL,
+	Elem* pFindElem(Elem::Type Typ, unsigned int uElem,
 			unsigned int iDeriv) const;
 	Elem* pChooseElem(Elem* p, unsigned int iDeriv) const;
 
-	Elem** ppFindElem(Elem::Type Typ, unsigned int uL) const;
+	Elem** ppFindElem(Elem::Type Typ, unsigned int uElem) const;
 
 	flag fGetDefaultOutputFlag(const Elem::Type& t) const;
 
@@ -644,7 +644,12 @@ public:
 	Drive* pFindDrive(Drive::Type Typ, unsigned int uL) const;
 
 	/* ricerca elementi*/
-	Elem* pFindElem(Elem::Type Typ, unsigned int uL) const;
+	Elem* pFindElem(Elem::Type Typ, unsigned int uElem = unsigned(-1)) const;
+
+	template <class Tbase, Elem::Type type>
+	Tbase *pFindElem(unsigned int uElem = unsigned(-1));
+	template <class Tder, class Tbase, Elem::Type type>
+	Tder *pFindElem(unsigned int uElem = unsigned(-1));
 
 	const DataManager::ElemDataStructure& GetElemDataStructure(Elem::Type Typ) const { return ElemData[Typ]; };
 
@@ -741,9 +746,14 @@ protected:
 #endif
 
 public:
-	Node** ppFindNode(Node::Type Typ, unsigned int uL) const;
+	Node** ppFindNode(Node::Type Typ, unsigned int uNode) const;
 	/* ricerca di nodi */
-	Node* pFindNode(Node::Type Typ, unsigned int uL) const;
+	Node* pFindNode(Node::Type Typ, unsigned int uNode) const;
+
+	template <class Tbase, Node::Type type>
+	Tbase *pFindNode(unsigned int uNode);
+	template <class Tder, class Tbase, Node::Type type>
+	Tder *pFindNode(unsigned int uNode);
 
 protected:
 	flag fGetDefaultOutputFlag(const Node::Type& t) const;
@@ -866,74 +876,164 @@ DataManager::Cast(Elem *pEl)
 	return pT;
 }
 
-template <class T1, Node::Type type>
-T1 *
+template <class Tbase, Node::Type type>
+Tbase *
+DataManager::pFindNode(unsigned int uNode)
+{
+	/* verifica di esistenza del nodo */
+	Node* pNode = pFindNode(type, uNode);
+	if (pNode == 0) {
+		silent_cerr("DataManager::pFindNode: " << psNodeNames[type] << "(" << uNode << ") not found" << std::endl);
+		return 0;
+	}
+
+	Tbase *pNodeBase = dynamic_cast<Tbase *>(pNode);
+	if (pNodeBase == 0) {
+		silent_cerr("DataManager::pFindNode: unable to cast " << psNodeNames[type] << "(" << pNode->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<Tbase>() << "\"" << std::endl);
+		return 0;
+	}
+
+	return pNodeBase;
+}
+
+template <class Tder, class Tbase, Node::Type type>
+Tder *
+DataManager::pFindNode(unsigned int uNode)
+{
+	Tbase *pNodeBase = pFindNode<Tbase, type>(uNode);
+	if (pNodeBase == 0) {
+		return 0;
+	}
+
+	Tder *pNodeDer = dynamic_cast<Tder *>(pNodeBase);
+	if (pNodeDer == 0) {
+		silent_cerr("DataManager::pFindNode: unable to cast " << psNodeNames[type] << "(" << pNodeBase->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<Tbase>() << "\" "
+			"to \"" << mbdyn_demangle<Tder>() << "\"" << std::endl);
+		return 0;
+	}
+
+	return pNodeDer;
+}
+
+template <class Tbase, Elem::Type type>
+Tbase *
+DataManager::pFindElem(unsigned int uElem)
+{
+	/* verifica di esistenza dell'elemento */
+	Elem* pElem = pFindElem(type, uElem);
+	if (pElem == 0) {
+		silent_cerr("DataManager::pFindElem: " << psElemNames[type] << "(" << uElem << ") not found" << std::endl);
+		return 0;
+	}
+
+	Tbase *pElemBase = dynamic_cast<Tbase *>(pElem);
+	if (pElemBase == 0) {
+		silent_cerr("DataManager::pFindElem: unable to cast " << psElemNames[type] << "(" << pElem->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<Tbase>() << "\"" << std::endl);
+		return 0;
+	}
+
+	return pElemBase;
+}
+
+template <class Tder, class Tbase, Elem::Type type>
+Tder *
+DataManager::pFindElem(unsigned int uElem)
+{
+	Tbase *pElemBase = pFindElem<Tbase, type>(uElem);
+	if (pElemBase == 0) {
+		return 0;
+	}
+
+	Tder *pElemDer = dynamic_cast<Tder *>(pElemBase);
+	if (pElemDer == 0) {
+		silent_cerr("DataManager::pFindElem: unable to cast " << psElemNames[type] << "(" << pElemBase->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<Tbase>() << "\" "
+			"to \"" << mbdyn_demangle<Tder>() << "\"" << std::endl);
+		return 0;
+	}
+
+	return pElemDer;
+}
+
+template <class Tbase, Node::Type type>
+Tbase *
 DataManager::ReadNode(MBDynParser& HP)
 {
 	Node *pNode = ReadNode(HP, type);
-	ASSERT(pNode != 0);
-
-	T1 *pNode1 = dynamic_cast<T1 *>(pNode);
-	if (pNode1 == 0) {
-		silent_cerr("ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode->GetLabel() << ") "
-			"to \"" << mbdyn_demangle<T1>() << "\" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	if (pNode == 0) {
+		return 0;
 	}
 
-	return pNode1;
+	Tbase *pNodeBase = dynamic_cast<Tbase *>(pNode);
+	if (pNodeBase == 0) {
+		silent_cerr("DataManager::ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<Tbase>() << "\" at line " << HP.GetLineData() << std::endl);
+		return 0;
+	}
+
+	return pNodeBase;
 }
 
-template <class T1, Node::Type type, class T2>
-T2 *
+template <class Tder, class Tbase, Node::Type type>
+Tder *
 DataManager::ReadNode(MBDynParser& HP)
 {
-	T1 *pNode1 = ReadNode<T1, type>(HP);
-	ASSERT(pNode1 != 0);
-
-	T2 *pNode2 = dynamic_cast<T2 *>(pNode1);
-	if (pNode2 == 0) {
-		silent_cerr("ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode1->GetLabel() << ") "
-			"from \"" << mbdyn_demangle<T1>() << "\" "
-			"to \"" << mbdyn_demangle<T2>() << "\" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	Tbase *pNodeBase = ReadNode<Tbase, type>(HP);
+	if (pNodeBase == 0) {
+		return 0;
 	}
 
-	return pNode2;
+	Tder *pNodeDer = dynamic_cast<Tder *>(pNodeBase);
+	if (pNodeDer == 0) {
+		silent_cerr("DataManager::ReadNode: unable to cast " << psNodeNames[type] << "(" << pNodeBase->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<Tbase>() << "\" "
+			"to \"" << mbdyn_demangle<Tder>() << "\" at line " << HP.GetLineData() << std::endl);
+		return 0;
+	}
+
+	return pNodeDer;
 }
 
-template <class T1, Elem::Type type>
-T1 *
+template <class Tbase, Elem::Type type>
+Tbase *
 DataManager::ReadElem(MBDynParser& HP)
 {
 	Elem *pElem = ReadElem(HP, type);
-	ASSERT(pElem != 0);
-
-	T1 *pElem1 = dynamic_cast<T1 *>(pElem);
-	if (pElem1 == 0) {
-		silent_cerr("ReadElem: unable to cast " << psElemNames[type] << "(" << pElem->GetLabel() << ") "
-			"to \"" << mbdyn_demangle<T1>() << "\" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	if (pElem == 0) {
+		return 0;
 	}
 
-	return pElem1;
+	Tbase *pElemBase = dynamic_cast<Tbase *>(pElem);
+	if (pElemBase == 0) {
+		silent_cerr("DataManager::ReadElem: unable to cast " << psElemNames[type] << "(" << pElem->GetLabel() << ") "
+			"to \"" << mbdyn_demangle<Tbase>() << "\" at line " << HP.GetLineData() << std::endl);
+		return 0;
+	}
+
+	return pElemBase;
 }
 
-template <class T1, Elem::Type type, class T2>
-T2 *
+template <class Tder, class Tbase, Elem::Type type>
+Tder *
 DataManager::ReadElem(MBDynParser& HP)
 {
-	T1 *pElem1 = ReadElem<T1, type>(HP);
-	ASSERT(pElem1 != 0);
-
-	T2 *pElem2 = dynamic_cast<T2 *>(pElem1);
-	if (pElem2 == 0) {
-		silent_cerr("ReadElem: unable to cast " << psElemNames[type] << "(" << pElem1->GetLabel() << ") "
-			"from \"" << mbdyn_demangle<T1>() << "\" "
-			"to \"" << mbdyn_demangle<T2>() << "\" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	Tbase *pElemBase = ReadElem<Tbase, type>(HP);
+	if (pElemBase == 0) {
+		return 0;
 	}
 
-	return pElem2;
+	Tder *pElemDer = dynamic_cast<Tder *>(pElemBase);
+	if (pElemBase == 0) {
+		silent_cerr("DataManager::ReadElem: unable to cast " << psElemNames[type] << "(" << pElemBase->GetLabel() << ") "
+			"from \"" << mbdyn_demangle<Tbase>() << "\" "
+			"to \"" << mbdyn_demangle<Tder>() << "\" at line " << HP.GetLineData() << std::endl);
+		return 0;
+	}
+
+	return pElemDer;
 }
 
 template <class T>

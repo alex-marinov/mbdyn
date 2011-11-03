@@ -406,7 +406,7 @@ DataManager::ReadElems(MBDynParser& HP)
 						if (pE != 0) {
 							DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 							pE->SetOutputFlag(flag(1));
-							if (dynamic_cast<Modal *>(pE)) {
+							if (dynamic_cast<const Modal *>(pE)) {
 								OutputOpen(OutputHandler::MODAL);
 							}
 						}
@@ -422,7 +422,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					} else {
 						DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
 						pE->SetOutputFlag(flag(1));
-						if (dynamic_cast<Modal *>(pE)) {
+						if (dynamic_cast<const Modal *>(pE)) {
 							OutputOpen(OutputHandler::MODAL);
 						}
 					}
@@ -542,9 +542,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				} /* end switch (KeyWords(HP.GetWord())) */
 
-				pEl = dynamic_cast<Elem*>(pFindElem(t, uL));
-				if (pEl == 0) {
-					silent_cerr("can't find " << psElemNames[t] << " (" << uL << ") "
+				if (!dynamic_cast<Elem*>(pFindElem(t, uL))) {
+					silent_cerr("cannot find " << psElemNames[t] << " (" << uL << ") "
 						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -553,7 +552,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			/* Label del nodo parameter */
 			unsigned uL = HP.GetInt();
 
-			Elem2Param* pNd = dynamic_cast<Elem2Param*>(pFindNode(Node::PARAMETER, uL));
+			Elem2Param* pNd = pFindNode<Elem2Param, ParameterNode, Node::PARAMETER>(uL);
 			if (pNd == 0) {
 				silent_cerr("can't find parameter node (" << uL << ") "
 					"at line " << HP.GetLineData() << std::endl);
@@ -620,16 +619,8 @@ DataManager::ReadElems(MBDynParser& HP)
 		 * sono gia' stati costruiti altrove e li devo solo inizializzare;
 		 * eventualmente si puo' fare altrimenti */
 		} else if (CurrDesc == AUTOMATICSTRUCTURAL) {
-			unsigned int uLabel = HP.GetInt();
-			Elem* pEl = pFindElem(Elem::AUTOMATICSTRUCTURAL, uLabel);
-			if (pEl == 0) {
-				silent_cerr("line " << HP.GetLineData()
-					<< ": unable to find automatic structural element "
-					<< uLabel << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			DEBUGCOUT("reading automatic structural element " << uLabel << std::endl);
+			AutomaticStructElem* pAuto = ReadElem<AutomaticStructElem, Elem::AUTOMATICSTRUCTURAL>(HP);
+			DEBUGCOUT("reading AutomaticStrucElem(" << uLabel << ")" << std::endl);
 
 			/* forse e' il caso di usare il riferimento del nodo? */
 
@@ -645,13 +636,6 @@ DataManager::ReadElems(MBDynParser& HP)
 				<< "Qp = " << qp << std::endl
 				<< "Gp = " << gp << std::endl);
 
-			AutomaticStructElem* pAuto = dynamic_cast<AutomaticStructElem *>(pEl);
-			if (pAuto == 0) {
-				silent_cerr("line " << HP.GetLineData()
-					<< ": Elem(" << uLabel << ") is not AutomaticStructural"
-					<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
 			pAuto->Init(q, g, qp, gp);
 
         /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
