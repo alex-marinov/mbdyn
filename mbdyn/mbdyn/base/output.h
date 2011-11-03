@@ -622,26 +622,6 @@ public:
 	virtual void Output(OutputHandler& OH,
 	const VectorHandler& X, const VectorHandler& XP) const;
 
-	/* Output of modes in NASTRAN's pch/f06 format */
-	enum {
-		NASTRAN_FORMAT_FIXED	= 1,
-		NASTRAN_FORMAT_FIXED16	= 2,
-		NASTRAN_FORMAT_FREE	= 3
-	};
-
-#if 0
-	/* TODO: NASTRAN-like output? */
-	virtual void Output_pch(std::ostream &pch) const;
-	virtual void Output_f06(std::ostream &f06, const VectorHandler& X) const;
-	virtual void Output_f06(std::ostream &f06,
-		const VectorHandler& Xr, const VectorHandler& Xi) const;
-#endif
-
-#if 0
-	/* TODO: ADAMS-like output? */
-	virtual void AdamsOutput(void) const;
-#endif
-
 	virtual flag fToBeOutput(void) const;
 	virtual void SetOutputFlag(flag f = flag(1));
 };

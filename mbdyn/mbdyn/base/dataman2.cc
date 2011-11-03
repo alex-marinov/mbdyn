@@ -1441,51 +1441,6 @@ DataManager::Output(const VectorHandler& X, const VectorHandler& XP) const
 	ElemOutput(OutHdl, X, XP);
 }
 
-#if 0
-/* Output dati pch */
-void
-DataManager::Output_pch(std::ostream& pch) const
-{
-	/* Dati dei nodi */
-	NodeOutput_pch(pch);
-
-	/* Dati degli elementi */
-	ElemOutput_pch(pch);
-}
-
-/* Output dati f06 */
-void
-DataManager::Output_f06(std::ostream& f06, const VectorHandler& X) const
-{
-	/* Dati dei nodi */
-	NodeOutput_f06(f06, X);
-
-	/* Dati degli elementi */
-	ElemOutput_f06(f06, X);
-}
-
-/* Output dati f06 */
-void
-DataManager::Output_f06(std::ostream& f06, const VectorHandler& Xr,
-		const VectorHandler& Xi) const
-{
-	/* Dati dei nodi */
-	NodeOutput_f06(f06, Xr, Xi);
-
-	/* Dati degli elementi */
-	ElemOutput_f06(f06, Xr, Xi);
-}
-#endif
-
-#if 0
-/* OpenDX output (tbi) */
-void
-DataManager::Output_OpenDX(std::ostream& dx, const VectorHandler& Xr, const VectorHandler& Xi) const
-{
-	NO_OP;
-}
-#endif
-
 void
 DataManager::BeforePredict(VectorHandler& X, VectorHandler& XP,
 	VectorHandler& XPrev,

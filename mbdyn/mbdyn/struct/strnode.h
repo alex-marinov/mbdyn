@@ -261,13 +261,6 @@ public:
 	virtual void Output(OutputHandler& OH,
 		const VectorHandler& X, const VectorHandler& XP) const;
 
-#if 0
-	/* Output di un modello NASTRAN equivalente nella configurazione corrente */
-	virtual void Output_pch(std::ostream& out) const;
-	virtual void Output_f06(std::ostream& out, const VectorHandler& X) const;
-	virtual void Output_f06(std::ostream& out, const VectorHandler& Xr, const VectorHandler& Xi) const;
-#endif
-
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& X,
 		const VectorHandler& XP);

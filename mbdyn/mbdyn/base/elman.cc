@@ -587,46 +587,6 @@ DataManager::ElemOutput( OutputHandler& OH, const VectorHandler& X,
 	}
 }
 
-#if 0
-void
-DataManager::ElemOutput_pch( std::ostream& pch) const
-{
-	Elem* pTmpEl = NULL;
-
-	if (ElemIter.bGetFirst(pTmpEl)) {
-		do {
-			pTmpEl->Output_pch(pch);
-		} while (ElemIter.bGetNext(pTmpEl));
-	}
-}
-
-void
-DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& X) const
-{
-	Elem* pTmpEl = NULL;
-
-	if (ElemIter.bGetFirst(pTmpEl)) {
-		do {
-			pTmpEl->Output_f06(f06, X);
-		} while (ElemIter.bGetNext(pTmpEl));
-	}
-}
-
-void
-DataManager::ElemOutput_f06( std::ostream& f06, const VectorHandler& Xr,
-		const VectorHandler& Xi) const
-{
-	Elem* pTmpEl = NULL;
-
-	if (ElemIter.bGetFirst(pTmpEl)) {
-		do {
-			pTmpEl->Output_f06(f06, Xr, Xi);
-		} while (ElemIter.bGetNext(pTmpEl));
-	}
-}
-#endif
-
-
 /* cerca un elemento qualsiasi */
 Elem *
 DataManager::pFindElem(Elem::Type Typ, unsigned int uL) const
