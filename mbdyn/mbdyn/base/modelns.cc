@@ -2489,7 +2489,6 @@ ModelNameSpace::GetFunc(const char* const s) const
 
 		(*dynamic_cast<MathParser::MathArgInt_t *>(node_func.args[1]))() = -1;
 		(*dynamic_cast<MathArgNode *>(node_func.args[3]))() = t;
-		(*dynamic_cast<MathArgDM *>(node_func.args[4]))() = pDM;
 
 		return const_cast<MathParser::MathFunc_t *>(&node_func);
 	}
@@ -2504,14 +2503,12 @@ ModelNameSpace::GetFunc(const char* const s) const
 
 		if (pDM->GetElemDataStructure(t).bIsUnique()) {
 			(*dynamic_cast<MathArgElem *>(unique_elem_func.args[2]))() = t;
-			(*dynamic_cast<MathArgDM *>(unique_elem_func.args[3]))() = pDM;
 
 			return const_cast<MathParser::MathFunc_t *>(&unique_elem_func);
 
 		} else {
 			(*dynamic_cast<MathParser::MathArgInt_t *>(elem_func.args[1]))() = -1;
 			(*dynamic_cast<MathArgElem *>(elem_func.args[3]))() = t;
-			(*dynamic_cast<MathArgDM *>(elem_func.args[4]))() = pDM;
 
 			return const_cast<MathParser::MathFunc_t *>(&elem_func);
 		}
