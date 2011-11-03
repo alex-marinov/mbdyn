@@ -75,11 +75,7 @@ public:
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 inline const doublereal&
-#ifdef DEBUG
 Elem2Param::dGetDofValue(int iDof, int iOrder) const
-#else /* !DEBUG */
-Elem2Param::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
-#endif /* !DEBUG */
 {
 	ASSERT(iDof == 1);
 	ASSERT(iOrder == 0);
@@ -130,11 +126,7 @@ public:
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
 inline const doublereal&
-#ifdef DEBUG
 StrainGageParam::dGetDofValue(int iDof, int iOrder) const
-#else /* !DEBUG */
-StrainGageParam::dGetDofValue(int /* iDof */ , int /* iOrder */ ) const
-#endif /* !DEBUG */
 {
 	ASSERT(iDof == 1);
 	ASSERT(iOrder == 0);
