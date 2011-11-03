@@ -29,7 +29,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- * Author: Andrea Zanoni <>
+ * Author: Andrea Zanoni <a.zanoni.mbdyn@gmail.com>
+ *         Pierangelo Masarati <masarati@aero.polimi.it>
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
@@ -43,7 +44,6 @@
 class MusclePennestriCL
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 private:
-	// define parameters
 	doublereal Li;
 	doublereal L0;
 	doublereal V0;
@@ -56,9 +56,10 @@ public:
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
 		const DriveCaller *pAct, bool bActivationOverflow)
 	: ElasticConstitutiveLaw(pTplDC, dPreStress),
-	Li(Li), L0(L0), V0(V0), F0(F0), Activation(pAct), bActivationOverflow(bActivationOverflow)
+	Li(Li), L0(L0), V0(V0), F0(F0),
+	Activation(pAct), bActivationOverflow(bActivationOverflow)
 	{
-		// pass parameters via constructor and initialize
+		NO_OP;
 	};
 
 	virtual ~MusclePennestriCL(void) {
@@ -70,7 +71,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		// pass parameters to copy constructor
 		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
@@ -148,6 +149,8 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                reference force , <F0> ,\n"
 				"                activation , (DriveCaller)<activation>\n"
 				"                [ , activation check , (bool)<activation_check> ]\n"
+				"                [ , prestress, <prestress> ]\n"
+				"                [ , prestrain, (DriveCaller)<prestrain> ]\n"
 				<< std::endl);
 
 			if (!HP.IsArg()) {
