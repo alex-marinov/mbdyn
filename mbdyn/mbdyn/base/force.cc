@@ -413,6 +413,7 @@ ReadForce(DataManager* pDM,
 	case TOTALINTERNAL: {
 		/* nodo collegato 1 */
 		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
 		Vec3 f1(Zero3);
 		Mat3x3 R1h(Eye3);
 		Mat3x3 R1hr(Eye3);
@@ -439,8 +440,9 @@ ReadForce(DataManager* pDM,
 		Mat3x3 R2hr(Eye3);
 
 		if (CurrType == TOTALINTERNAL) {
-		/* nodo collegato 2 */
+			/* nodo collegato 2 */
 			pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
 			RF = ReferenceFrame(pNode2);
 
 			if (HP.IsKeyWord("position")) {

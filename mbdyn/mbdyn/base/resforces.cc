@@ -216,10 +216,6 @@ ReadResSet(DataManager* pDM, MBDynParser& HP, unsigned int uL)
 		
 	} else if (HP.IsKeyWord("node")) {
 		const StructNode *pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		
-		if (pNode == NULL) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 
 		if (HP.IsKeyWord("local")) {
 			SAFENEWWITHCONSTRUCTOR(pres, LocalNodeResForces, 

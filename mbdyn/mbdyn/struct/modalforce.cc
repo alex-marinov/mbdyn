@@ -147,11 +147,6 @@ ReadModalForce(DataManager* pDM,
 	unsigned int uLabel)
 {
 	const Modal *pModal = pDM->ReadElem<const Modal, const Joint, Elem::JOINT>(HP);
-	if (pModal == 0) {
-		silent_cerr("ModalForce(" << uLabel << "): illegal Modal joint "
-			" at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
 
 	std::vector<unsigned int> modeList;
 	if (HP.IsKeyWord("list")) {

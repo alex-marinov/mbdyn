@@ -595,19 +595,9 @@ ReadModalExtForce(DataManager* pDM,
 	const Modal *pModal = 0;
 	if (HP.IsKeyWord("reference" "node")) {
 		pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		if (pNode == 0) {
-			silent_cerr("ModalExt(" << uLabel << "): illegal reference node "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 
 	} else {
 		pModal = pDM->ReadElem<const Modal, Elem::JOINT>(HP);
-		if (pModal == 0) {
-			silent_cerr("ModalExt(" << uLabel << "): illegal Modal joint "
-				" at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 		pNode = pModal->pGetModalNode();
 	}
 

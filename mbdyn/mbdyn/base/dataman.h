@@ -939,15 +939,13 @@ Tbase *
 DataManager::ReadNode(MBDynParser& HP)
 {
 	Node *pNode = ReadNode(HP, type);
-	if (pNode == 0) {
-		return 0;
-	}
+	ASSERT(pNode != 0);
 
 	Tbase *pNodeBase = dynamic_cast<Tbase *>(pNode);
 	if (pNodeBase == 0) {
 		silent_cerr("DataManager::ReadNode: unable to cast " << psNodeNames[type] << "(" << pNode->GetLabel() << ") "
 			"to \"" << mbdyn_demangle<Tbase>() << "\" at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pNodeBase;
@@ -958,16 +956,14 @@ Tder *
 DataManager::ReadNode(MBDynParser& HP)
 {
 	Tbase *pNodeBase = ReadNode<Tbase, type>(HP);
-	if (pNodeBase == 0) {
-		return 0;
-	}
+	ASSERT(pNodeBase != 0);
 
 	Tder *pNodeDer = dynamic_cast<Tder *>(pNodeBase);
 	if (pNodeDer == 0) {
 		silent_cerr("DataManager::ReadNode: unable to cast " << psNodeNames[type] << "(" << pNodeBase->GetLabel() << ") "
 			"from \"" << mbdyn_demangle<Tbase>() << "\" "
 			"to \"" << mbdyn_demangle<Tder>() << "\" at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pNodeDer;
@@ -978,15 +974,13 @@ Tbase *
 DataManager::ReadElem(MBDynParser& HP)
 {
 	Elem *pElem = ReadElem(HP, type);
-	if (pElem == 0) {
-		return 0;
-	}
+	ASSERT(pElem != 0);
 
 	Tbase *pElemBase = dynamic_cast<Tbase *>(pElem);
 	if (pElemBase == 0) {
 		silent_cerr("DataManager::ReadElem: unable to cast " << psElemNames[type] << "(" << pElem->GetLabel() << ") "
 			"to \"" << mbdyn_demangle<Tbase>() << "\" at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pElemBase;
@@ -997,16 +991,14 @@ Tder *
 DataManager::ReadElem(MBDynParser& HP)
 {
 	Tbase *pElemBase = ReadElem<Tbase, type>(HP);
-	if (pElemBase == 0) {
-		return 0;
-	}
+	ASSERT(pElemBase != 0);
 
 	Tder *pElemDer = dynamic_cast<Tder *>(pElemBase);
 	if (pElemBase == 0) {
 		silent_cerr("DataManager::ReadElem: unable to cast " << psElemNames[type] << "(" << pElemBase->GetLabel() << ") "
 			"from \"" << mbdyn_demangle<Tbase>() << "\" "
 			"to \"" << mbdyn_demangle<Tder>() << "\" at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pElemDer;

@@ -1029,12 +1029,6 @@ ReadStructMappingExtForce(DataManager* pDM,
 	const StructNode *pRefNode(0);
 	if (HP.IsKeyWord("reference" "node")) {
 		pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		if (pRefNode == 0) {
-			silent_cerr("StructMappingExtForce(" << uLabel << "): "
-				"illegal reference node "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 	}
 
 	bool bLabels(false);

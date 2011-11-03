@@ -2288,7 +2288,7 @@ DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 	if (iNode < 0) {
 		silent_cerr("DataManager::ReadNode: invalid node label " << iNode
 			<< " at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	unsigned int uNode = (unsigned int)iNode;
 
@@ -2300,7 +2300,7 @@ DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 		silent_cerr("DataManager::ReadNode: " << psNodeNames[type] << "(" << uNode << ")"
 			" not defined at line "
 			<< HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pNode;
@@ -2313,7 +2313,7 @@ DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 	if (iElem < 0) {
 		silent_cerr("DataManager::ReadElem: invalid node label " << iElem
 			<< " at line " << HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	unsigned int uElem = (unsigned int)iElem;
 
@@ -2325,7 +2325,7 @@ DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
 		silent_cerr("DataManager::ReadElem: " << psElemNames[type] << "(" << uElem << ")"
 			" not defined at line "
 			<< HP.GetLineData() << std::endl);
-		return 0;
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pElem;

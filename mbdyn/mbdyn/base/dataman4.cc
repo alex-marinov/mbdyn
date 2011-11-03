@@ -620,9 +620,6 @@ DataManager::ReadElems(MBDynParser& HP)
 		 * eventualmente si puo' fare altrimenti */
 		} else if (CurrDesc == AUTOMATICSTRUCTURAL) {
 			AutomaticStructElem* pAuto = ReadElem<AutomaticStructElem, Elem::AUTOMATICSTRUCTURAL>(HP);
-			if (pAuto == 0) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
 			DEBUGCOUT("reading AutomaticStrucElem(" << pAuto->GetLabel() << ")" << std::endl);
 
 			/* forse e' il caso di usare il riferimento del nodo? */

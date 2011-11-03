@@ -589,12 +589,6 @@ ReadModalMappingExtForce(DataManager* pDM,
 	const StructNode *pRefNode = 0;
 	if (HP.IsKeyWord("reference" "node")) {
 		pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		if (pRefNode == 0) {
-			silent_cerr("ModalMappingExt(" << uLabel << "): "
-				"illegal reference node "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 	}
 
 	bool bUseReferenceNodeForces(pRefNode != 0 ? true : false);
@@ -696,12 +690,6 @@ ReadModalMappingExtForce(DataManager* pDM,
 	std::vector<const StructNode *> n(nNodes);
 	for (int i = 0; i < nNodes; i++) {
 		n[i] = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		if (n[i] == 0) {
-			silent_cerr("ModalMappingExt(" << uLabel << "): "
-				"illegal node #" << i << "/" << nNodes << " "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 	}
 
 	if (!HP.IsKeyWord("modes" "number")) {

@@ -253,12 +253,6 @@ ReadGenel(DataManager* pDM,
 			}
 
 			pRot = pDM->ReadElem<const Rotor, const InducedVelocity, Elem::INDUCEDVELOCITY>(HP);
-			if (pRot == 0) {
-				silent_cerr("RotorTrim(" << uLabel << "): "
-					"unable to read rotor "
-					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
 
 			dRadius = pRot->dGetRadius();
 			if (dRadius < std::numeric_limits<doublereal>::epsilon()) {
