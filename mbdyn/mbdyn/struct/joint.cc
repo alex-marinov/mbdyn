@@ -3573,16 +3573,12 @@ ReadJoint(DataManager* pDM,
 			if (bIsErgonomy) {
 				ConstLawType::Type type = ConstLawType::UNKNOWN;
 
-				const ConstitutiveLaw1DOwner *pC1DO = dynamic_cast<const ConstitutiveLaw1DOwner *>(pEl);
-				const ConstitutiveLaw3DOwner *pC3DO = dynamic_cast<const ConstitutiveLaw3DOwner *>(pEl);
-				const ConstitutiveLaw6DOwner *pC6DO = dynamic_cast<const ConstitutiveLaw6DOwner *>(pEl);
-
-				if (pC1DO) {
-					type = pC1DO->pGetConstLaw()->GetConstLawType();
-				} else if (pC3DO) {
-					type = pC3DO->pGetConstLaw()->GetConstLawType();
-				} else if (pC6DO) {
-					type = pC6DO->pGetConstLaw()->GetConstLawType();
+				if (const ConstitutiveLaw1DOwner *pCLDO = dynamic_cast<const ConstitutiveLaw1DOwner *>(pEl)) {
+					type = pCLDO->pGetConstLaw()->GetConstLawType();
+				} else if (const ConstitutiveLaw3DOwner *pCLDO = dynamic_cast<const ConstitutiveLaw3DOwner *>(pEl)) {
+					type = pCLDO->pGetConstLaw()->GetConstLawType();
+				} else if (const ConstitutiveLaw6DOwner *pCLDO = dynamic_cast<const ConstitutiveLaw6DOwner *>(pEl)) {
+					type = pCLDO->pGetConstLaw()->GetConstLawType();
 				} else {
 					silent_cerr("Joint(" << uLabel << "): is \"ergonomy\" but cannot infer constitutive law type" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
