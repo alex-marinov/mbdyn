@@ -43,7 +43,7 @@
 
 class MusclePennestriCL
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
-private:
+protected:
 	doublereal Li;
 	doublereal L0;
 	doublereal V0;
@@ -66,7 +66,7 @@ public:
 		NO_OP;
 	};
 
-	ConstLawType::Type GetConstLawType(void) const {
+	virtual ConstLawType::Type GetConstLawType(void) const {
 		return ConstLawType::VISCOELASTIC;
 	};
 
@@ -84,7 +84,7 @@ public:
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "muscle"
+		out << "muscle pennestri"
 			", initial length, " << Li
 			<< ", reference length, " << L0
 			<< ", reference velocity, " << V0
@@ -132,6 +132,55 @@ public:
 	};
 };
 
+class MusclePennestriErgoCL
+: public MusclePennestriCL {
+public:
+	MusclePennestriErgoCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow)
+	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow)
+	{
+		NO_OP;
+	};
+
+	virtual ~MusclePennestriErgoCL(void) {
+		NO_OP;
+	};
+
+	virtual ConstLawType::Type GetConstLawType(void) const {
+		return ConstLawType::ELASTIC;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriErgoCL,
+			MusclePennestriErgoCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "muscle pennestri, ergonomy, yes"
+			", initial length, " << Li
+			<< ", reference length, " << L0
+			<< ", reference velocity, " << V0
+			<< ", reference force, " << F0
+			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
+			<< ", activation check, " << bActivationOverflow
+			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
+		return out;
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
+		MusclePennestriCL::Update(Eps, 0.);
+	};
+};
+
 /* specific functional object(s) */
 struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 	virtual ConstitutiveLaw<doublereal, doublereal> *
@@ -143,6 +192,7 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		if (HP.IsKeyWord("help")) {
 			silent_cerr("MusclePennestriCL:\n"
 				"        muscle Pennestri ,\n"
+				"                [ ergonomy , { yes | no } , ]\n"
 				"                [ initial length , <Li> , ]\n"
 				"                reference length , <L0> ,\n"
 				"                [ reference velocity , <V0> , ]\n"
@@ -156,6 +206,11 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			if (!HP.IsArg()) {
 				throw NoErr(MBDYN_EXCEPT_ARGS);
 			}
+		}
+
+		bool bErgo(false);
+		if (HP.IsKeyWord("ergonomy")) {
+			bErgo = HP.GetYesNoOrBool(bErgo);
 		}
 
 		doublereal Li = -1.;
@@ -224,10 +279,18 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		GetPreStress(HP, PreStress);
 		TplDriveCaller<doublereal> *pTplDC = GetPreStrain<doublereal>(pDM, HP);
 
-		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
-			MusclePennestriCL(pTplDC, PreStress,
-				Li, L0, V0, F0, pAct,
-				bActivationOverflow));
+		if (bErgo) {
+			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriErgoCL,
+				MusclePennestriErgoCL(pTplDC, PreStress,
+					Li, L0, V0, F0, pAct,
+					bActivationOverflow));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
+				MusclePennestriCL(pTplDC, PreStress,
+					Li, L0, V0, F0, pAct,
+					bActivationOverflow));
+		}
 
 		return pCL;
 	};

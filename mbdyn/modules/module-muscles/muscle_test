@@ -75,6 +75,7 @@ begin: elements;
 		1,
 		from nodes,
 		muscle Pennestri, help,
+			# ergonomy, yes,
 			initial length, L0,
 			reference length, L0,
 			reference velocity, 2.5,
