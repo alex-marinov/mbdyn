@@ -965,15 +965,17 @@ DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRa
 		}
 
 		const ElemWithDofs* pEWD = Cast<ElemWithDofs>(j->second);
-		integer iIndex = pEWD->iGetFirstIndex();
 		integer iNumDofs = pEWD->iGetNumDof();
+		if (iNumDofs > 0) {
+			integer iIndex = pEWD->iGetFirstIndex();
 
-		if (iFirstIndex > iIndex) {
-			iFirstIndex = iIndex;
-		}
+			if (iFirstIndex > iIndex) {
+				iFirstIndex = iIndex;
+			}
 
-		if (iLastIndex < iIndex + iNumDofs) {
-			iLastIndex = iIndex + iNumDofs;
+			if (iLastIndex < iIndex + iNumDofs) {
+				iLastIndex = iIndex + iNumDofs;
+			}
 		}
 	}
 
