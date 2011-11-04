@@ -799,8 +799,11 @@ DataManager::IDDofInit(void)
 	integer iTorqueJointIndex;
 	switch (dynamic_cast<InverseSolver *>(pSolver)->GetProblemType()) {
 	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
-		ASSERT(iIDNodeTotNumDofs == iIDJointTotNumDofs);
-		// fall thru
+		if (iIDNodeTotNumDofs != iIDJointTotNumDofs) {
+			silent_cerr("DataManager::IDDofInit: nodeDoFs=" << iIDNodeTotNumDofs
+				<< " jointDoFs=" << iIDJointTotNumDofs << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
 	case InverseDynamics::FULLY_ACTUATED_NON_COLLOCATED:
 		iJointIndex = 0;
