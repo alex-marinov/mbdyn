@@ -52,10 +52,10 @@ private:
 	bool bActivationOverflow;
 
 public:
-	MusclePennestriCL(TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
 		const DriveCaller *pAct, bool bActivationOverflow)
-	: ElasticConstitutiveLaw(pTplDC, dPreStress),
+	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
 	Li(Li), L0(L0), V0(V0), F0(F0),
 	Activation(pAct), bActivationOverflow(bActivationOverflow)
 	{
