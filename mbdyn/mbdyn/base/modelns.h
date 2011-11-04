@@ -37,10 +37,10 @@
 
 class ModelNameSpace: public MathParser::NameSpace {
 protected:
-	DataManager *pDM;
+	const DataManager *pDM;
 
 public:
-	typedef MathParser::MathArgPriv_t<DataManager *> MathArgDM;
+	typedef MathParser::MathArgPriv_t<const DataManager *> MathArgDM;
 	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
 	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
 	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
@@ -56,7 +56,7 @@ protected:
 	MathParser::MathFunc_t unique_elem_func;
 
 public:
-	ModelNameSpace(DataManager *pdm);
+	ModelNameSpace(const DataManager *pDM);
 	~ModelNameSpace(void);
 
 	bool IsFunc(const char* const s) const;

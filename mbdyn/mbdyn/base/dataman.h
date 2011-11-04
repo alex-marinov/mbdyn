@@ -643,9 +643,9 @@ public:
 	Elem* pFindElem(Elem::Type Typ, unsigned int uElem = unsigned(-1)) const;
 
 	template <class Tbase, Elem::Type type>
-	Tbase *pFindElem(unsigned int uElem = unsigned(-1));
+	Tbase *pFindElem(unsigned int uElem = unsigned(-1)) const;
 	template <class Tder, class Tbase, Elem::Type type>
-	Tder *pFindElem(unsigned int uElem = unsigned(-1));
+	Tder *pFindElem(unsigned int uElem = unsigned(-1)) const;
 
 	const DataManager::ElemDataStructure& GetElemDataStructure(Elem::Type Typ) const { return ElemData[Typ]; };
 
@@ -733,9 +733,9 @@ public:
 	Node* pFindNode(Node::Type Typ, unsigned int uNode) const;
 
 	template <class Tbase, Node::Type type>
-	Tbase *pFindNode(unsigned int uNode);
+	Tbase *pFindNode(unsigned int uNode) const;
 	template <class Tder, class Tbase, Node::Type type>
-	Tder *pFindNode(unsigned int uNode);
+	Tder *pFindNode(unsigned int uNode) const;
 
 protected:
 	flag fGetDefaultOutputFlag(const Node::Type& t) const;
@@ -854,7 +854,7 @@ DataManager::Cast(Elem *pEl)
 
 template <class Tbase, Node::Type type>
 Tbase *
-DataManager::pFindNode(unsigned int uNode)
+DataManager::pFindNode(unsigned int uNode) const
 {
 	/* verifica di esistenza del nodo */
 	Node* pNode = pFindNode(type, uNode);
@@ -875,7 +875,7 @@ DataManager::pFindNode(unsigned int uNode)
 
 template <class Tder, class Tbase, Node::Type type>
 Tder *
-DataManager::pFindNode(unsigned int uNode)
+DataManager::pFindNode(unsigned int uNode) const
 {
 	Tbase *pNodeBase = pFindNode<Tbase, type>(uNode);
 	if (pNodeBase == 0) {
@@ -895,7 +895,7 @@ DataManager::pFindNode(unsigned int uNode)
 
 template <class Tbase, Elem::Type type>
 Tbase *
-DataManager::pFindElem(unsigned int uElem)
+DataManager::pFindElem(unsigned int uElem) const
 {
 	/* verifica di esistenza dell'elemento */
 	Elem* pElem = pFindElem(type, uElem);
@@ -916,7 +916,7 @@ DataManager::pFindElem(unsigned int uElem)
 
 template <class Tder, class Tbase, Elem::Type type>
 Tder *
-DataManager::pFindElem(unsigned int uElem)
+DataManager::pFindElem(unsigned int uElem) const
 {
 	Tbase *pElemBase = pFindElem<Tbase, type>(uElem);
 	if (pElemBase == 0) {

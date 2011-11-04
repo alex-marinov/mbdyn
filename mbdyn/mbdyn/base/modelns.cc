@@ -917,8 +917,8 @@ model_elem(const MathParser::MathArgs& args)
 	return 0;
 }
 
-ModelNameSpace::ModelNameSpace(DataManager *pdm)
-: MathParser::NameSpace("model"), pDM(pdm)
+ModelNameSpace::ModelNameSpace(const DataManager *pDM)
+: MathParser::NameSpace("model"), pDM(pDM)
 {
 	MathParser::MathFunc_t *f;
 
