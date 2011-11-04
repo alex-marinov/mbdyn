@@ -1099,7 +1099,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 */
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
 
-	if (iGetNumDof() == 12) {
+	if (iGetNumDof() == 0) {
 		WorkMat.SetNullMatrix();
 		return WorkMat;
 	}
