@@ -67,8 +67,8 @@ begin: elements;
 			position, reference, node, null,
 		position, reference, global, null,
 		position constraint, 1, 1, 1, 0., 0., 1.,
-			# const, L0,
-			cosine, 2., pi/2., 1.e-2*L0, forever, L0,
+			const, L0,
+			# cosine, 2., pi/2., 1.e-2*L0, forever, L0,
 		orientation constraint, 1, 1, 1, null;
 	joint: 2, rod,
 		0,
@@ -80,6 +80,9 @@ begin: elements;
 			reference velocity, 2.5,
 			reference force, F0,
 			activation,
-				cosine, 0., pi/2., .5, half, 0.,
-			activation check, yes;
+				# cosine, 0., pi/2., .5, half, 0.,
+				const, 1.,
+			activation check, yes,
+		prestress, 0.,
+		prestrain, cosine, 0., pi/2., -.1, half, 0.;
 end: elements;

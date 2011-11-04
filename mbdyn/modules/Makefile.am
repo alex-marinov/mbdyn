@@ -159,6 +159,9 @@ module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
 module-mds/mds \
 module-mds/module-mds.cc \
  \
+module-muscles/muscle_test \
+module-muscles/module-muscles.cc \
+ \
 module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README \
  \
