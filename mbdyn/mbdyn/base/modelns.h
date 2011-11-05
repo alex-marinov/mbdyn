@@ -41,13 +41,13 @@ protected:
 
 public:
 	typedef MathParser::MathArgPriv_t<const DataManager *> MathArgDM;
+	typedef MathParser::MathArgPriv_t<const ModelNameSpace *> MathArgMNS;
 	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
 	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
 	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
 
-	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
-
 protected:
+	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
 	funcType func;
 
 	MathParser::MathFunc_t sf_func;
@@ -55,14 +55,21 @@ protected:
 	MathParser::MathFunc_t elem_func;
 	MathParser::MathFunc_t unique_elem_func;
 
+	typedef std::map<std::string, TypedValue> currDataType;
+	currDataType currData;
+
 public:
 	ModelNameSpace(const DataManager *pDM);
 	~ModelNameSpace(void);
 
-	bool IsFunc(const char* const s) const;
-	MathParser::MathFunc_t* GetFunc(const char* const s) const;
+	bool IsFunc(const std::string& fname) const;
+	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 	TypedValue EvalFunc(MathParser::MathFunc_t *f,
 		const MathParser::MathArgs& args) const;
+
+	bool PushCurrData(const std::string& name, const TypedValue& value);
+	bool PopCurrData(const std::string& name);
+	bool GetCurrData(const std::string& name, TypedValue& value) const;
 };
 
 #endif /* MODELNS_H */

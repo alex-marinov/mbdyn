@@ -347,6 +347,9 @@ public:
 	MBDynParser& GetMBDynParser(void) const { return MBPar; };
 	const Solver *GetSolver(void) const { return pSolver; };
 
+	bool PushCurrData(const std::string& name, const TypedValue& value);
+	bool PopCurrData(const std::string& name);
+
 	/* Assembla lo jacobiano */
 	virtual void AssJac(MatrixHandler& JacHdl, doublereal dCoef);
 

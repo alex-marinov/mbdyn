@@ -917,6 +917,39 @@ model_elem(const MathParser::MathArgs& args)
 	return 0;
 }
 
+/*
+ * Computes the value of the current simulation entity's private data
+ */
+static int
+model_curr(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1 + 2);
+
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
+	ASSERT(out != 0);
+
+	ASSERT(args[1]->Type() == MathParser::AT_STRING);
+	MathParser::MathArgString_t *arg_name = dynamic_cast<MathParser::MathArgString_t *>(args[1]);
+	ASSERT(arg_name != 0);
+	const std::string& name = (*arg_name)();
+
+	ASSERT(args[2]->Type() == MathParser::AT_PRIVATE);
+	ModelNameSpace::MathArgMNS *arg_mns = dynamic_cast<ModelNameSpace::MathArgMNS *>(args[2]);
+	ASSERT(arg_mns != 0);
+	const ModelNameSpace *pMNS = (*arg_mns)();
+
+	TypedValue value;
+	if (!pMNS->GetCurrData(name, value)) {
+		silent_cerr("model::current(" << name << ") not defined" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	*out = value.GetReal();
+
+	return 0;
+}
+
 ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 : MathParser::NameSpace("model"), pDM(pDM)
 {
@@ -2378,6 +2411,23 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	// current simulation entity function
+	f = new MathParser::MathFunc_t;
+	f->fname = "current";
+	f->args.resize(1 + 1 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgString_t;
+	f->args[2] = new MathArgMNS(this);
+	f->f = model_curr;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	// scalar functions
 	sf_func.fname = "sf";
 	sf_func.args.resize(1 + 2 + 1);
@@ -2459,16 +2509,18 @@ ModelNameSpace::~ModelNameSpace(void)
 }
 
 bool
-ModelNameSpace::IsFunc(const char* const s) const
+ModelNameSpace::IsFunc(const std::string& fname) const
 {
-	return GetFunc(s) != 0;
+	return GetFunc(fname) != 0;
 }
 
 MathParser::MathFunc_t*
-ModelNameSpace::GetFunc(const char* const s) const
+ModelNameSpace::GetFunc(const std::string& fname) const
 {
-	if (strncmp(s, "sf::", STRLENOF("sf::")) == 0) {
-		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(&s[STRLENOF("sf::")]);
+	static const std::string sf_prefix("sf::");
+	if (fname.compare(0, sf_prefix.size(), sf_prefix) == 0) {
+		std::string sfname(fname, sf_prefix.size());
+		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(sfname);
 
 		if (sf == 0) {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2479,11 +2531,12 @@ ModelNameSpace::GetFunc(const char* const s) const
 		return const_cast<MathParser::MathFunc_t *>(&sf_func);
 	}
 
-	if (strncmp(s, "node::", STRLENOF("node::")) == 0) {
-		const char *const type = &s[STRLENOF("node::")];
-		const Node::Type t = str2nodetype(type);
+	static const std::string node_prefix = "node::";
+	if (fname.compare(0, node_prefix.size(), node_prefix) == 0) {
+		std::string type(fname, node_prefix.size());
+		const Node::Type t = str2nodetype(type.c_str());
 		if (t == Node::UNKNOWN) {
-			silent_cerr("ModelNameSpace::GetFunc(" << s << "): unable to find node type \"" << type << "\"" << std::endl);
+			silent_cerr("ModelNameSpace::GetFunc(" << fname << "): unable to find node type \"" << type << "\"" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -2493,11 +2546,12 @@ ModelNameSpace::GetFunc(const char* const s) const
 		return const_cast<MathParser::MathFunc_t *>(&node_func);
 	}
 
-	if (strncmp(s, "element::", STRLENOF("element::")) == 0) {
-		const char *const type = &s[STRLENOF("element::")];
-		Elem::Type t = str2elemtype(type);
+	static const std::string elem_prefix = "element::";
+	if (fname.compare(0, elem_prefix.size(), elem_prefix) == 0) {
+		std::string type(fname, elem_prefix.size());
+		Elem::Type t = str2elemtype(type.c_str());
 		if (t == Elem::UNKNOWN) {
-			silent_cerr("ModelNameSpace::GetFunc(" << s << "): unable to find element type \"" << type << "\"" << std::endl);
+			silent_cerr("ModelNameSpace::GetFunc(" << fname << "): unable to find element type \"" << type << "\"" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -2514,7 +2568,7 @@ ModelNameSpace::GetFunc(const char* const s) const
 		}
 	}
 
-	funcType::const_iterator i = func.find(std::string(s));
+	funcType::const_iterator i = func.find(fname);
 
 	if (i != func.end()) {
 		return i->second;
@@ -2550,5 +2604,37 @@ ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+}
+
+bool
+ModelNameSpace::PushCurrData(const std::string& name, const TypedValue& value)
+{
+	return currData.insert(currDataType::value_type(name, value)).second;
+}
+
+bool
+ModelNameSpace::PopCurrData(const std::string& name)
+{
+	currDataType::iterator i = currData.find(name);
+	if (i == currData.end()) {
+		return false;
+	}
+
+	currData.erase(i);
+
+	return true;
+}
+
+bool
+ModelNameSpace::GetCurrData(const std::string& name, TypedValue& value) const
+{
+	currDataType::const_iterator i = currData.find(name);
+	if (i == currData.end()) {
+		return false;
+	}
+
+	value = i->second;
+
+	return true;
 }
 

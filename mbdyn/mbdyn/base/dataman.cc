@@ -217,6 +217,7 @@ DofIter()
 	HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
 
 	/* registra il namespace del modello */
+	
 	HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
 
 	/* Setta il tempo al valore iniziale */
@@ -924,5 +925,27 @@ datamanager_cleanup(void *data)
 	}
 
 	return rc;
+}
+
+bool
+DataManager::PushCurrData(const std::string& name, const TypedValue& value)
+{
+	ModelNameSpace *pMNS = dynamic_cast<ModelNameSpace *>(MathPar.GetNameSpace("model"));
+	if (pMNS == 0) {
+		return false;
+	}
+
+	return pMNS->PushCurrData(name, value);
+}
+
+bool
+DataManager::PopCurrData(const std::string& name)
+{
+	ModelNameSpace *pMNS = dynamic_cast<ModelNameSpace *>(MathPar.GetNameSpace("model"));
+	if (pMNS == 0) {
+		return false;
+	}
+
+	return pMNS->PopCurrData(name);
 }
 

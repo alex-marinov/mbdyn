@@ -141,14 +141,14 @@ public:
 
 	/* Namespace */
 	class NameSpace {
-		const char	*name;
+		std::string name;
 
 	public:
-		NameSpace(const char *n);
+		NameSpace(const std::string& name);
 		virtual ~NameSpace(void);
-		virtual const char *sGetName(void) const;
-		virtual bool IsFunc(const char* const s) const = 0;
-		virtual MathParser::MathFunc_t* GetFunc(const char* const s) const = 0;
+		virtual const std::string& sGetName(void) const;
+		virtual bool IsFunc(const std::string& fname) const = 0;
+		virtual MathParser::MathFunc_t* GetFunc(const std::string& fname) const = 0;
 		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const = 0;
 	};
 
@@ -162,8 +162,8 @@ public:
 		StaticNameSpace(void);
 		~StaticNameSpace(void);
 
-		bool IsFunc(const char* const s) const;
-		MathParser::MathFunc_t* GetFunc(const char* const s) const;
+		bool IsFunc(const std::string& fname) const;
+		MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const;
 	};
 
@@ -394,6 +394,8 @@ public:
 			void *arg);
 
 	int RegisterNameSpace(NameSpace *ns);
+
+	NameSpace *GetNameSpace(const std::string& name) const;
 };
 
 extern std::ostream&

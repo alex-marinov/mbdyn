@@ -1771,21 +1771,18 @@ MathParser::TokenPop(void)
 	return 1;
 }
 
-MathParser::NameSpace::NameSpace(const char *const n)
-: name(0)
+MathParser::NameSpace::NameSpace(const std::string& name)
+: name(name)
 {
-	ASSERT(n != 0);
-	SAFESTRDUP(name, n);
+	NO_OP;
 }
 
 MathParser::NameSpace::~NameSpace(void)
 {
-	if (name) {
-		SAFEDELETEARR(name);
-	}
+	NO_OP;
 }
 
-const char *
+const std::string&
 MathParser::NameSpace::sGetName(void) const
 {
 	return name;
@@ -2447,9 +2444,9 @@ MathParser::StaticNameSpace::~StaticNameSpace(void)
 }
 
 bool
-MathParser::StaticNameSpace::IsFunc(const char* const s) const
+MathParser::StaticNameSpace::IsFunc(const std::string& fname) const
 {
-	if (func.find(std::string(s)) != func.end()) {
+	if (func.find(fname) != func.end()) {
 		return true;
 	}
 
@@ -2457,9 +2454,9 @@ MathParser::StaticNameSpace::IsFunc(const char* const s) const
 }
 
 MathParser::MathFunc_t*
-MathParser::StaticNameSpace::GetFunc(const char* const s) const
+MathParser::StaticNameSpace::GetFunc(const std::string& fname) const
 {
-	funcType::const_iterator i = func.find(std::string(s));
+	funcType::const_iterator i = func.find(fname);
 
 	if (i != func.end()) {
 		return i->second;
@@ -2502,6 +2499,7 @@ MathParser::GetType(const char* const s) const
 			return TypeNames[i].type;
 		}
 	}
+
 	return TypedValue::VAR_UNKNOWN;
 }
 
@@ -3644,7 +3642,7 @@ tokenlist(NULL)
 	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
-				"\"", defaultNameSpace->sGetName(), "\"");
+				"\"", defaultNameSpace->sGetName().c_str(), "\"");
 	}
 
 	time_t tm;
@@ -3671,7 +3669,7 @@ tokenlist(0)
 	defaultNameSpace = new StaticNameSpace();
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
-				"\"", defaultNameSpace->sGetName(), "\"");
+				"\"", defaultNameSpace->sGetName().c_str(), "\"");
 	}
 
 	time_t tm;
@@ -3894,17 +3892,27 @@ MathParser::RegisterNameSpace(MathParser::NameSpace *ns)
 {
 	ASSERT(ns != 0);
 
-	pedantic_cout("registering namespace \"" << ns->sGetName() << "\""
-			<< std::endl);
+	pedantic_cout("MathParser::RegisterNameSpace: "
+		"registering namespace \"" << ns->sGetName() << "\""
+		<< std::endl);
 
-	std::string name(ns->sGetName());
-
-	if (nameSpaceMap.find(name) != nameSpaceMap.end()) {
+	if (nameSpaceMap.find(ns->sGetName()) != nameSpaceMap.end()) {
 		return 1;
 	}
 
-	nameSpaceMap[name] = ns;
+	nameSpaceMap[ns->sGetName()] = ns;
 
 	return 0;
+}
+
+MathParser::NameSpace *
+MathParser::GetNameSpace(const std::string& name) const
+{
+	NameSpaceMap::const_iterator i = nameSpaceMap.find(name);
+	if (i == nameSpaceMap.end()) {
+		return 0;
+	}
+
+	return i->second;
 }
 

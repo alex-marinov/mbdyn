@@ -1333,14 +1333,14 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* Lunghezza iniziale */
-		doublereal dL = 0.;
+		doublereal dL0 = 0.;
 		bool bFromNodes(false);
 		if (HP.IsKeyWord("from" "nodes")) {
 			bFromNodes = true;
 			DEBUGCOUT("Initial length will be computed from nodes position" << std::endl);
 		} else {
-			dL = HP.GetReal();
-			DEBUGCOUT("Initial length = " << dL << std::endl);
+			dL0 = HP.GetReal();
+			DEBUGCOUT("Initial length = " << dL0 << std::endl);
 		}
 
 		/* Se si tratta di Rod con Offset, legge gli offset e poi passa
@@ -1369,27 +1369,27 @@ ReadJoint(DataManager* pDM,
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
-		if (bFromNodes) {
-			Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
-			if (bOffset) {
-				v += pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
-			}
-			dL = v.Norm();
-
-			if (bOffset) {
-				pedantic_cout("RodWithOffset(" << uLabel << "): "
-					"length from nodes = " << dL << std::endl);
-			} else {
-				pedantic_cout("Rod(" << uLabel << "): "
-					"length from nodes = " << dL << std::endl);
-			}
-
-			DEBUGCOUT("Initial length = " << dL << std::endl);
+		Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
+		if (bOffset) {
+			v += pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
 		}
+		doublereal dL1 = v.Norm();
+
+		if (bFromNodes) {
+			dL0 = dL1;
+			pedantic_cout("Rod[WithOffset](" << uLabel << "): "
+				"length from nodes = " << dL1 << std::endl);
+		}
+
+		DEBUGCOUT("Initial length = " << dL0 << std::endl);
 
 		/* Legame costitutivo */
 		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		pDM->PushCurrData("L0", dL0);
+		pDM->PushCurrData("L", dL1);
 		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+		pDM->PopCurrData("L");
+		pDM->PopCurrData("L0");
 
 		if (pCL->iGetNumDof() != 0) {
 			silent_cerr("line " << HP.GetLineData() << ": "
@@ -1413,7 +1413,7 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				RodWithOffset,
 				RodWithOffset(uLabel, pDO, pCL,
-					pNode1, pNode2, f1, f2, dL, fOut));
+					pNode1, pNode2, f1, f2, dL0, fOut));
 		} else {
 			switch (CLType) {
 			case ConstLawType::VISCOUS:
@@ -1421,14 +1421,14 @@ ReadJoint(DataManager* pDM,
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticRod,
 					ViscoElasticRod(uLabel, pDO, pCL,
-						pNode1, pNode2, dL, fOut));
+						pNode1, pNode2, dL0, fOut));
 				break;
 
 			default:
 				SAFENEWWITHCONSTRUCTOR(pEl,
 					Rod,
 					Rod(uLabel, pDO, pCL,
-						pNode1, pNode2, dL, fOut));
+						pNode1, pNode2, dL0, fOut));
 				break;
 			}
 		}
@@ -1498,25 +1498,32 @@ ReadJoint(DataManager* pDM,
 		DEBUGCOUT("Linked to Node " << pNode2->GetLabel()
 			<< "with offset " << f2 << std::endl);
 
-		/* Lunghezza iniziale */
-		doublereal dL = 0.;
-		if (HP.IsKeyWord("from" "nodes")) {
-			dL = (pNode2->GetXCurr()
-				+ pNode2->GetRCurr()*f2
-				- pNode1->GetXCurr()
-				- pNode1->GetRCurr()*f1).Norm();
+		doublereal dL1 = (pNode2->GetXCurr()
+			+ pNode2->GetRCurr()*f2
+			- pNode1->GetXCurr()
+			- pNode1->GetRCurr()*f1).Norm();
 
-			pedantic_cout("RodWithOffset(" << uLabel << "): "
-				"length from nodes = " << dL << std::endl);
+		pedantic_cout("RodWithOffset(" << uLabel << "): "
+			"length from nodes = " << dL1 << std::endl);
+
+		/* Lunghezza iniziale */
+		doublereal dL0 = 0.;
+		if (HP.IsKeyWord("from" "nodes")) {
+			dL0 = dL1;
 
 		} else {
-			dL = HP.GetReal();
+			dL0 = HP.GetReal();
 		}
-		DEBUGCOUT("Initial length = " << dL << std::endl);
+
+		DEBUGCOUT("Initial length = " << dL0 << std::endl);
 
 		/* Legame costitutivo */
 		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		pDM->PushCurrData("L0", dL0);
+		pDM->PushCurrData("L", dL1);
 		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+		pDM->PopCurrData("L");
+		pDM->PopCurrData("L0");
 
 		if (pCL->iGetNumDof() != 0) {
 			silent_cerr("line " << HP.GetLineData() << ": "
@@ -1539,7 +1546,7 @@ ReadJoint(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl,
 			RodWithOffset,
 			RodWithOffset(uLabel, pDO, pCL,
-				pNode1, pNode2, f1, f2, dL, fOut));
+				pNode1, pNode2, f1, f2, dL0, fOut));
 
 		} break;
 

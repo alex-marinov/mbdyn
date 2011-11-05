@@ -52,8 +52,8 @@ public:
 	UDUnitsNameSpace(const char *path);
 	~UDUnitsNameSpace(void);
 
-	bool IsFunc(const char* const s) const;
-	MathParser::MathFunc_t* GetFunc(const char* const s) const;
+	bool IsFunc(const std::string& fname) const;
+	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 	TypedValue EvalFunc(MathParser::MathFunc_t *f,
 		const MathParser::MathArgs& args) const;
 };
@@ -198,15 +198,15 @@ UDUnitsNameSpace::~UDUnitsNameSpace(void)
 }
 
 bool
-UDUnitsNameSpace::IsFunc(const char* const s) const
+UDUnitsNameSpace::IsFunc(const std::string& fname) const
 {
-	return GetFunc(s) != 0;
+	return GetFunc(fname) != 0;
 }
 
 MathParser::MathFunc_t*
-UDUnitsNameSpace::GetFunc(const char* const s) const
+UDUnitsNameSpace::GetFunc(const std::string& fname) const
 {
-	if (strcmp(s, f.fname.c_str()) == 0) {
+	if (fname.compare(f.fname) == 0) {
 		return const_cast<MathParser::MathFunc_t*>(&f);
 	}
 
