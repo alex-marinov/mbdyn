@@ -30,7 +30,8 @@ MBDyn 1.X-Devel
 		- added basic support for underdetermined inverse dynamics
 		- added MLS files for domain mapping (Giuseppe Quaranta)
 		- added periodic drive caller
-		- added node/element private data funcs in model namespace
+		- added node/element private data funcs to model namespace
+		- added "current" func to model namespace
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed
