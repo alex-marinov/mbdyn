@@ -744,6 +744,11 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	DEBUGCOUT("Entering TotalJoint::AssJac()" << std::endl);
 
+	if (iGetNumDof() == 0) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
+
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Ridimensiona la sottomatrice in base alle esigenze */
@@ -963,6 +968,11 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering TotalJoint::AssRes()" << std::endl);
+
+	if (iGetNumDof() == 0) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -1389,6 +1399,10 @@ VariableSubMatrixHandler&
 TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
+	if (iGetInitialNumDof() == 0) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
 
 	/* Per ora usa la matrice piena; eventualmente si puo'
 	 * passare a quella sparsa quando si ottimizza */
@@ -1622,6 +1636,10 @@ SubVectorHandler&
 TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
+	if (iGetInitialNumDof() == 0) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
 
 	DEBUGCOUT("Entering TotalJoint::InitialAssRes()" << std::endl);
 
@@ -2596,6 +2614,11 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	DEBUGCOUT("Entering TotalPinJoint::AssJac()" << std::endl);
 
+	if (iGetNumDof() == 0) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
+
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
 	/* Ridimensiona la sottomatrice in base alle esigenze */
@@ -2672,6 +2695,11 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering TotalPinJoint::AssRes()" << std::endl);
+
+	if (iGetNumDof() == 0) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	integer iNumRows = 0;
@@ -2792,6 +2820,11 @@ TotalPinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	 */
 
 	DEBUGCOUT("Entering TotalPinJoint::AssJac()" << std::endl);
+
+	if (iGetNumDof() == 0) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
 
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 
@@ -3014,6 +3047,10 @@ VariableSubMatrixHandler&
 TotalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
+	if (iGetInitialNumDof() == 0) {
+		WorkMat.SetNullMatrix();
+		return WorkMat;
+	}
 
 	/* Per ora usa la matrice piena; eventualmente si puo'
 	 * passare a quella sparsa quando si ottimizza */
@@ -3144,6 +3181,10 @@ SubVectorHandler&
 TotalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
+	if (iGetInitialNumDof() == 0) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
 
 	DEBUGCOUT("Entering TotalPinJoint::InitialAssRes()" << std::endl);
 
