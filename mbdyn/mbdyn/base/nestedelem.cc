@@ -197,36 +197,12 @@ NestedElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 	pElem->Update(XCurr, XPrimeCurr);
 }
 
-/* inverse dynamics capable element */
-bool
-NestedElem::bInverseDynamics(void) const
-{
-	ASSERT(pElem != NULL);
-	pElem->bInverseDynamics();
-}
-
-/* Inverse Dynamics: */
-void
-NestedElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
-{
-	ASSERT(pElem != NULL);
-	pElem->Update(XCurr, iOrder);
-}
- 
-   
+  
 void
 NestedElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
 	ASSERT(pElem != NULL);
 	pElem->AfterConvergence(X, XP);
-}
-
-/* Inverse Dynamics: */
-void
-NestedElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP, const VectorHandler& XPP)
-{
-	ASSERT(pElem != NULL);
-	pElem->AfterConvergence(X, XP, XPP);
 }
 
 /* assemblaggio jacobiano */
@@ -309,6 +285,51 @@ void
 NestedElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 	ASSERT(pElem != NULL);
 	pElem->GetConnectedNodes(connectedNodes);
+}
+
+/* inverse dynamics capable element */
+bool
+NestedElem::bInverseDynamics(void) const
+{
+	ASSERT(pElem != NULL);
+	pElem->bInverseDynamics();
+}
+
+/* Inverse Dynamics: */
+void
+NestedElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	ASSERT(pElem != NULL);
+	pElem->Update(XCurr, iOrder);
+}
+ 
+/* Inverse Dynamics: */
+void
+NestedElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ASSERT(pElem != NULL);
+	pElem->AfterConvergence(X, XP, XPP);
+}
+
+/* inverse dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+NestedElem::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	ASSERT(pElem != NULL);
+	return pElem->AssJac(WorkMat, XCurr);
+}
+
+/* inverse dynamics residual assembly */
+SubVectorHandler&
+NestedElem::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr,
+	const VectorHandler& XPrimePrimeCurr,
+	InverseDynamics::Order iOrder)
+{
+	ASSERT(pElem != NULL);
+	return pElem->AssRes(WorkVec, XCurr, XPrimeCurr, XPrimePrimeCurr, iOrder);
 }
 
 /* InitialAssemblyElem */

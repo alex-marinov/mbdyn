@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2011
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -46,9 +46,9 @@ public InitialAssemblyElem,
 public AerodynamicElem,
 public ElemGravityOwner
 {
-protected: 
+protected:
 	Elem* pElem;
- 
+
 public:
 	NestedElem(const Elem* pE);
 	~NestedElem(void);
@@ -74,7 +74,7 @@ public:
 	 * di liberta' propri che l'elemento definisce. Non e' virtuale
 	 * in quanto serve a ritornare 0 per gli elementi che non possiedono
 	 * gradi di liberta'.
-	 * Viene usato nella costruzione dei DofOwner e quindi deve essere 
+	 * Viene usato nella costruzione dei DofOwner e quindi deve essere
 	 * indipendente da essi. In genere non comporta overhead in quanto
 	 * il numero di dof aggiunti da un tipo e' una costante e non
 	 * richede dati propri.
@@ -86,13 +86,13 @@ public:
 	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
 	 * E' usato per completare i singoli Dof relativi all'elemento.
 	 */
-   
+
 	/*
 	 * ritorna il numero di Dofs per gli elementi che sono
 	 * anche DofOwners
 	 */
 	virtual unsigned int iGetNumDof(void) const;
- 
+
 	/* inherited from SimulationEntity */
 	virtual std::ostream& DescribeDof(std::ostream& out,
 		const char *prefix = "", bool bInitial = false) const;
@@ -105,11 +105,11 @@ public:
 
 	/* esegue operazioni sui dof di proprieta' dell'elemento */
 	virtual DofOrder::Order GetDofType(unsigned int i) const;
-	
+
 	virtual DofOrder::Order GetEqType(unsigned int i) const;
-   
+
 	/* funzioni proprie */
- 
+
 	/* Dimensioni del workspace */
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
@@ -126,24 +126,14 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-   
-	/* inverse dynamics capable element */
-	virtual bool bInverseDynamics(void) const;
 
-	/* Inverse Dynamics: */
-	virtual void Update(const VectorHandler& XCurr,
-			InverseDynamics::Order iOrder);
-   
-	virtual void AfterConvergence(const VectorHandler& X, 
+	virtual void AfterConvergence(const VectorHandler& X,
      			const VectorHandler& XP);
-	/* Inverse Dynamics: */
-	virtual void AfterConvergence(const VectorHandler& X, 
-     			const VectorHandler& XP, const VectorHandler& XPP);
-	
+
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef, 
+			doublereal dCoef,
 	    		const VectorHandler& XCurr,
 	    		const VectorHandler& XPrimeCurr);
 
@@ -155,7 +145,7 @@ public:
 	/* assemblaggio residuo */
      	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
 	/*
@@ -167,7 +157,7 @@ public:
 
 	/*
 	 * Maps a string (possibly with substrings) to a private data;
-	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+	 * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0
 	 * in case of unrecognized data; error must be handled by caller
 	 */
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -185,6 +175,32 @@ public:
 	virtual int GetNumConnectedNodes(void) const;
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 
+	// inverse dynamics
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
+	/* Inverse Dynamics: */
+	virtual void Update(const VectorHandler& XCurr,
+			InverseDynamics::Order iOrder);
+
+	/* inverse dynamics Jacobian matrix assembly */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* inverse dynamics residual assembly */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics: */
+	virtual void AfterConvergence(const VectorHandler& X,
+     			const VectorHandler& XP, const VectorHandler& XPP);
+
+	// end of inverse dynamics
 
 	/* InitialAssemblyElem */
 public:
@@ -194,16 +210,16 @@ public:
 	 * conto del numero di dof che l'elemento definisce in questa fase e dei
 	 * dof dei nodi che vengono utilizzati. Sono considerati dof indipendenti
 	 * la posizione e la velocita' dei nodi */
-	virtual void InitialWorkSpaceDim(integer* piNumRows, 
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
 		integer* piNumCols) const;
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr);
 

@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2011
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +31,7 @@
 
 /* Driven elements:
  * elements that are used depending on the (boolean) value
- * of a driver. Example: a driven joint is assembled only 
+ * of a driver. Example: a driven joint is assembled only
  * if the driver is true, otherwise there is no joint and
  * the reaction unknowns are set to zero
  */
@@ -39,8 +39,9 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "driven.h"
+#include "joint.h"
 
-DrivenElem::DrivenElem(DataManager *pdm, 
+DrivenElem::DrivenElem(DataManager *pdm,
 		const DriveCaller* pDC, const Elem* pE,
 		SimulationEntity::Hints *ph)
 : Elem(pE->GetLabel(), pE->fToBeOutput()),
@@ -50,7 +51,7 @@ pDM(pdm),
 pHints(ph),
 bActive(false)
 {
-	ASSERT(pDC != NULL);
+	ASSERT(pDC != 0);
 
 	bActive = (pDC->dGet() != 0.);
 }
@@ -78,17 +79,17 @@ DrivenElem::bIsActive(void) const
 void
 DrivenElem::Output(OutputHandler& OH) const
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		pElem->Output(OH);
-	}	 
+	}
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream&
 DrivenElem::Restart(std::ostream& out) const
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 
 	out << "driven: " << GetLabel() << ", ",
 		pGetDriveCaller()->Restart(out) << ", ";
@@ -118,7 +119,7 @@ DrivenElem::BeforePredict(VectorHandler& X,
 		VectorHandler& XPrev,
 		VectorHandler& XPPrev) const
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
      		pElem->BeforePredict(X, XP, XPrev, XPPrev);
 	}
@@ -127,7 +128,7 @@ DrivenElem::BeforePredict(VectorHandler& X,
 void
 DrivenElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		if (!bActive) {
 			bActive = true;
@@ -147,7 +148,7 @@ DrivenElem::SetValue(DataManager *pdm,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 
 	if (dGet() != 0.) {
 		pElem->SetValue(pdm, X, XP, ph);
@@ -158,7 +159,7 @@ DrivenElem::SetValue(DataManager *pdm,
 void
 DrivenElem::SetInitialValue(VectorHandler& X)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		ElemWithDofs*	pEwD = dynamic_cast<ElemWithDofs *>(pElem);
 		if (pEwD) {
@@ -172,7 +173,7 @@ DrivenElem::SetInitialValue(VectorHandler& X)
 void
 DrivenElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		pElem->Update(XCurr, XPrimeCurr);
 	}
@@ -182,40 +183,78 @@ DrivenElem::Update(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr)
 void
 DrivenElem::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		pElem->Update(XCurr, iOrder);
 	}
 }
- 
-   
-void
-DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+
+/* inverse dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
+
+	// must be a joint
+	ASSERT(dynamic_cast<const Joint *>(pElem) != 0);
+	// must either be torque, prescribed motion or ergonomy
+	ASSERT(dynamic_cast<const Joint *>(pElem)->bIsTorque()
+		|| dynamic_cast<const Joint *>(pElem)->bIsPrescribedMotion()
+		|| dynamic_cast<const Joint *>(pElem)->bIsErgonomy());
+	// dGet() must not be zero, otherwise AssJac() would not be called
+	ASSERT(dGet() != 0.);
+
+	return pElem->AssJac(WorkMat, XCurr);
+}
+
+/* inverse dynamics residual assembly */
+SubVectorHandler&
+DrivenElem::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr,
+	const VectorHandler& XPrimePrimeCurr,
+	InverseDynamics::Order iOrder)
+{
+	ASSERT(pElem != 0);
+
 	if (dGet() != 0.) {
-		pElem->AfterConvergence(X, XP);
+		return pElem->AssRes(WorkVec, XCurr, XPrimeCurr, XPrimePrimeCurr, iOrder);
 	}
+
+	WorkVec.Resize(0);
+
+	return WorkVec;
 }
 
 /* Inverse Dynamics: */
 void
-DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP, const VectorHandler& XPP)
+DrivenElem::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP, const VectorHandler& XPP)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		pElem->AfterConvergence(X, XP, XPP);
 	}
 }
 
+void
+DrivenElem::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
+{
+	ASSERT(pElem != 0);
+	if (dGet() != 0.) {
+		pElem->AfterConvergence(X, XP);
+	}
+}
+
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 
 	if (dGet() != 0.) {
 		return pElem->AssJac(WorkMat, dCoef, XCurr, XPrimeCurr);
@@ -231,7 +270,7 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
 		/* NOTE: must not fail, since iNumDofs != 0 */
 		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
-  		
+
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WM.PutItem(iCnt, iFirstIndex+iCnt,
 	   				iFirstIndex+iCnt, 1.);
@@ -240,14 +279,14 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	return WorkMat;
 }
- 
+
 void
 DrivenElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 
 	if (dGet() != 0.) {
 		pElem->AssMats(WorkMatA, WorkMatB, XCurr, XPrimeCurr);
@@ -265,22 +304,22 @@ DrivenElem::AssMats(VariableSubMatrixHandler& WorkMatA,
 
 		/* NOTE: must not fail, since iNumDofs != 0 */
 		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
-  		
+
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
 			WM.PutItem(iCnt, iFirstIndex+iCnt,
 	   				iFirstIndex+iCnt, 1.);
  		}
 	}
 };
- 
+
 /* assemblaggio residuo */
 SubVectorHandler&
 DrivenElem::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
-	ASSERT(pElem != NULL);
+	ASSERT(pElem != 0);
 	if (dGet() != 0.) {
 		return pElem->AssRes(WorkVec, dCoef, XCurr, XPrimeCurr);
 	}
@@ -337,7 +376,7 @@ DrivenElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 	}
 }
 
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DrivenElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
@@ -349,7 +388,7 @@ DrivenElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
-SubVectorHandler& 
+SubVectorHandler&
 DrivenElem::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {

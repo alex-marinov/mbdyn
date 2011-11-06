@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2011
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,7 +31,7 @@
 
 /* Driven elements:
  * elements that are used depending on the (boolean) value
- * of a driver. Example: a driven joint is assembled only 
+ * of a driver. Example: a driven joint is assembled only
  * if the driver is true, otherwise there is no joint and
  * the reaction unknowns are set to zero
  */
@@ -46,11 +46,11 @@
 
 class DrivenElem : virtual public Elem,
 	public NestedElem, protected DriveOwner {
-protected: 
+protected:
 	DataManager *pDM;
 	SimulationEntity::Hints *pHints;
 	bool bActive;
- 
+
 public:
 	DrivenElem(DataManager *pDM, const DriveCaller* pDC,
 			const Elem* pE, SimulationEntity::Hints *ph = 0);
@@ -68,7 +68,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* funzioni proprie */
- 
+
 	/*
 	 * Elaborazione vettori e dati prima e dopo la predizione
 	 * per MultiStepIntegrator */
@@ -82,21 +82,14 @@ public:
 	/* Aggiorna dati in base alla soluzione */
 	virtual void Update(const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-   
-	/* Inverse Dynamics: */
-	virtual void Update(const VectorHandler& XCurr,
-			InverseDynamics::Order iOrder);
-   
-	virtual void AfterConvergence(const VectorHandler& X, 
+
+	virtual void AfterConvergence(const VectorHandler& X,
      			const VectorHandler& XP);
-	/* Inverse Dynamics: */
-	virtual void AfterConvergence(const VectorHandler& X, 
-     			const VectorHandler& XP, const VectorHandler& XPP);
-	
+
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-			doublereal dCoef, 
+			doublereal dCoef,
 	    		const VectorHandler& XCurr,
 	    		const VectorHandler& XPrimeCurr);
 
@@ -108,7 +101,7 @@ public:
 	/* assemblaggio residuo */
      	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
 	/*
@@ -116,6 +109,27 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+	/* Inverse Dynamics: */
+	virtual void Update(const VectorHandler& XCurr,
+			InverseDynamics::Order iOrder);
+
+	/* inverse dynamics Jacobian matrix assembly */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* inverse dynamics residual assembly */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics: */
+	virtual void AfterConvergence(const VectorHandler& X,
+     		const VectorHandler& XP, const VectorHandler& XPP);
 
 	/* InitialAssemblyElem */
 public:
@@ -125,16 +139,16 @@ public:
 	 * conto del numero di dof che l'elemento definisce in questa fase e dei
 	 * dof dei nodi che vengono utilizzati. Sono considerati dof indipendenti
 	 * la posizione e la velocita' dei nodi */
-	virtual void InitialWorkSpaceDim(integer* piNumRows, 
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
 		integer* piNumCols) const;
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr);
 

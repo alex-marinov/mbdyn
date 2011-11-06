@@ -132,12 +132,18 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 			for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 				j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 			{
-				Joint *pJ = Cast<Joint>(j->second);
-				if (pJ->bIsTorque()) {
+				bool bActive(true);
+				Joint *pJ = Cast<Joint>(j->second, true);
+				if (pJ == 0) {
+					bActive = false;
+					pJ = Cast<Joint>(j->second, false);
+				}
+
+				if (pJ->bIsTorque() && bActive) {
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 					WorkMat.AddToT(JacHdl);
 
-				} else if (pJ->bIsPrescribedMotion()) {
+				} else if (pJ->bIsPrescribedMotion() || (pJ->bIsTorque() && !bActive)) {
 					integer iNumDof = pJ->iGetNumDof();
 					integer iFirstIndex = pJ->iGetFirstIndex();
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
@@ -201,15 +207,21 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 			for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 				j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 			{
-				Joint *pJ = Cast<Joint>(j->second);
-				if (pJ->bIsPrescribedMotion()) {
+				bool bActive(true);
+				Joint *pJ = Cast<Joint>(j->second, true);
+				if (pJ == 0) {
+					bActive = false;
+					pJ = Cast<Joint>(j->second, false);
+				}
+
+				if (pJ->bIsPrescribedMotion() && bActive) {
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 					WorkMat.AddToT(JacHdl);
 
-				} else if (pJ->bIsErgonomy() && pIDSS->GetOrder() == InverseDynamics::POSITION) {
+				} else if (pJ->bIsErgonomy() && bActive && pIDSS->GetOrder() == InverseDynamics::POSITION) {
 					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
 
-				} else if (pJ->bIsTorque()) {
+				} else if (pJ->bIsTorque() || (pJ->bIsPrescribedMotion() && !bActive)) {
 					integer iNumDof = pJ->iGetNumDof();
 					integer iFirstIndex = pJ->iGetFirstIndex();
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
@@ -513,9 +525,15 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 		for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 			j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 		{
-			Joint *pJ = Cast<Joint>(j->second);
-			if (pJ->bIsPrescribedMotion()
-				|| (iOrder == InverseDynamics::POSITION && pJ->bIsErgonomy()))
+			bool bActive(true);
+			Joint *pJ = Cast<Joint>(j->second, true);
+			if (pJ == 0) {
+				bActive = false;
+				pJ = Cast<Joint>(j->second, false);
+			}
+
+			if ((pJ->bIsPrescribedMotion()
+				|| (iOrder == InverseDynamics::POSITION && pJ->bIsErgonomy())) && bActive)
 			{
 				try {
 					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
@@ -526,7 +544,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ChangedEqStructure = true;
 				}
 
-			} else if (pJ->bIsTorque()) {
+			} else if (pJ->bIsTorque() || (pJ->bIsPrescribedMotion() && !bActive)) {
 				integer iNumDof = pJ->iGetNumDof();
 				integer iFirstIndex = pJ->iGetFirstIndex();
 				if (iOrder == InverseDynamics::POSITION) {
@@ -605,8 +623,14 @@ DataManager::AssRes(VectorHandler& ResHdl,
 	for (ElemContainerType::iterator j = ElemData[Elem::JOINT].ElemContainer.begin();
 		j != ElemData[Elem::JOINT].ElemContainer.end(); ++j)
 	{
-		Joint *pJ = Cast<Joint>(j->second);
-		if (pJ->bIsRightHandSide()) {
+		bool bActive(true);
+		Joint *pJ = Cast<Joint>(j->second, true);
+		if (pJ == 0) {
+			bActive = false;
+			pJ = Cast<Joint>(j->second, false);
+		}
+
+		if (bActive && pJ->bIsRightHandSide()) {
 			try {
 				ResHdl += pJ->AssRes(WorkVec, *pXCurr, 
 					*pXPrimeCurr, *pXPrimePrimeCurr, 

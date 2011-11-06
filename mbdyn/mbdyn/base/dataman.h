@@ -234,7 +234,7 @@ protected:
 	void ReadDrivers(MBDynParser& HP);
 	void ReadElems(MBDynParser& HP);
 
-	template <class T> T* Cast(Elem *pEl);
+	template <class T> T* Cast(Elem *pEl, bool bActive = false);
 
 public:
 	template <class T>
@@ -833,9 +833,11 @@ public:
 	virtual const std::string& GetEqDescription(int i) const;
 };
 
+// if bActive is true, the cast only succeeds when driven element is active
+// otherwise it always succeeds
 template <class T>
 T*
-DataManager::Cast(Elem *pEl)
+DataManager::Cast(Elem *pEl, bool bActive)
 {
 	ASSERT(pEl != NULL);
 
@@ -846,10 +848,25 @@ DataManager::Cast(Elem *pEl)
 		if (pDE == 0) {
 			silent_cerr("unable to cast "
 				<< psElemNames[pEl->GetElemType()]
-				<< "(" << pEl->GetLabel() << ") as \"" << mbdyn_demangle<T>() << "\"" << std::endl);
+				<< "(" << pEl->GetLabel() << ") as \"" << mbdyn_demangle<T>() << "\" (not driven)" << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		if (bActive && !pDE->bIsActive()) {
+			pedantic_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ") as \"" << mbdyn_demangle<T>() << "\""
+				" (driven but currently inactive)" << std::endl);
+			return 0;
+		}
+
 		pT = dynamic_cast<T *>(pDE->pGetElem());
+		if (pT == 0) {
+			pedantic_cerr("unable to cast "
+				<< psElemNames[pEl->GetElemType()]
+				<< "(" << pEl->GetLabel() << ") as \"" << mbdyn_demangle<T>() << "\""
+				" (driven but cast failed)" << std::endl);
+		}
 	}
 
 	return pT;
