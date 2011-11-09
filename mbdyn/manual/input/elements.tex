@@ -805,15 +805,16 @@ The syntax of the \kw{force} element is:
     \bnt{normal_arglist} ::= \bnt{force_type} , \bnt{force_arglist}
 
     \bnt{force_type} ::=
-        \{ \kw{abstract} [ \kw{internal} ]                             # \kw{force}
-            | \{ \kw{absolute} | \kw{follower} \} [ \kw{internal} ]          # \kw{force}, \kw{couple}
-            | \kw{modal}                                         # \kw{force}
-            | \kw{external} \{ \kw{structural} | \kw{modal} \} [ \kw{mapping} ] \} # \kw{force}
+        \{ \kw{abstract} [ \kw{internal} ]                                 # \kw{force}
+            | \{ \kw{absolute} | \kw{follower} | \kw{total} \} [ \kw{internal} ]      # \kw{force}, \kw{couple}
+            | \kw{modal}                                             # \kw{force}
+            | \kw{external} \{ \kw{structural} | \kw{modal} \} [ \kw{mapping} ] \}     # \kw{force}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{abstract} \nt{force\_type} applies to generic equations;
 
-The \kw{structural} force type only applies to equilibrium equations
+The structural force types (\kw{absolute}, \kw{follower}, \kw{total})
+only apply to equilibrium equations
 related to \kw{structural} nodes.
 The \kw{couple} element can only be structural.
 It is discussed in this section because of its input syntax commonality 
@@ -904,12 +905,25 @@ The format is:
         \bnt{node_label} , 
         \kw{position} , (\ty{Vec3}) \bnt{relative_arm} ,
         (\ty{TplDriveCaller<Vec3>}) \bnt{force_value}
+
+    \bnt{force_type} ::= \kw{total}
+
+    \bnt{force_arglist} ::=
+        \bnt{node_label} ,
+        [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm} , ]
+        [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation} , ]
+        [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation} , ]
+        (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ,
+        (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value}
 \end{Verbatim}
 %\end{verbatim}
 The vector \nt{relative\_arm} defines the offset with respect
 to the node of the point where the force is applied.
 The drive \nt{force\_value} defines the value of the force
 as a function of time.
+The \kw{total} force is intrinsically follower.
+See also the 
+\hyperref{\kw{total joint}}{\kw{total joint} (Section~}{)}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
 
 The force and the moment applied to node \nt{node\_label} are thus
 \begin{itemize}
@@ -928,6 +942,20 @@ The force and the moment applied to node \nt{node\_label} are thus
 	\T{m} & = \TT{R} \plbr{\nt{relative\_arm} \times \nt{force\_value}} ;
 \end{align}
 \end{subequations}
+
+\item \kw{total} force element:
+\begin{subequations}
+\begin{align}
+	\T{f} & = \TT{R} \ \nt{force\_orientation} \cdot \nt{force\_value} \\
+	\T{m} & = \TT{R} \lplbr{
+		\nt{relative\_arm} \times \plbr{ \nt{force\_orientation} \cdot \nt{force\_value}}
+	} \nonumber \\
+	& \rplbr{\hphantom{= } \mbox{} +
+		\nt{moment\_orientation} \nt{moment\_value}
+	};
+\end{align}
+\end{subequations}
+
 \end{itemize}
 $\TT{R}$ is the orientation matrix of the node \nt{node\_label}.
 
@@ -941,6 +969,17 @@ $\TT{R}$ is the orientation matrix of the node \nt{node\_label}.
     force: 20, follower,
         2000,
             position, null,
+        component,
+            const, 0.,
+            ramp, 10., 0., 1., 0.,
+            file, 5, 2;
+    force: 30, total,
+        2000,
+            position, .5, 0., 0.,
+            force orientation, eye,
+            moment orientation, eye,
+        1., 0., 0.,
+            const, 25.,
         component,
             const, 0.,
             ramp, 10., 0., 1., 0.,
@@ -971,6 +1010,20 @@ The format is:
         \bnt{node_2_label} ,
         \kw{position} , (\ty{Vec3}) \bnt{relative_arm_2} ,
         (\ty{TplDriveCaller<Vec3>}) \bnt{force_value}
+
+    \bnt{force_type} ::= \kw{total internal}
+
+    \bnt{force_arglist} ::=
+        \bnt{node_1_label} ,
+        [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm_1} , ]
+        [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation_1} , ]
+        [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation_1} , ]
+        \bnt{node_2_label} ,
+        [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm_2} , ]
+        [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation_2} , ]
+        [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation_2} , ]
+        (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ,
+        (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value}
 \end{Verbatim}
 %\end{verbatim}
 The format is basically identical to the previous case,
