@@ -971,7 +971,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 		+ STmp.Cross(pNode->GetXPPCurr())
 		+ STmp.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp)));
 	if (g) {
-		M -= GravityAcceleration*dMass;
+		M -= STmp.Cross(GravityAcceleration);
 	}
 
 	WorkVec.Sub(4, M);
