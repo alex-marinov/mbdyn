@@ -185,6 +185,7 @@ The following data is available:
 
     \bnt{normal_arglist} ::= \bnt{node_label} ,
         \{ \bnt{one_body}
+            | \kw{variable mass} , \bnt{one_vm_body}
             | \kw{condense} , \bnt{num_masses} , \bnt{one_body} [ , ... ] \}
 
     \bnt{one_body} ::=
@@ -193,6 +194,11 @@ The following data is available:
         (\ty{Mat3x3}) \bnt{inertia_matrix}
         [ , \kw{inertial} , 
             \{ \kw{node} | (\ty{OrientationMatrix}) \bnt{orientation_matrix} \} ]
+
+    \bnt{one_vm_body} ::=
+        (\ty{DriveCaller})            \bnt{mass} ,
+        (\ty{TplDriveCaller<Vec3>})   \bnt{relative_center_of_mass} ,
+        (\ty{TplDriveCaller<Mat3x3>}) \bnt{inertia_matrix}
 \end{Verbatim}
 %\end{verbatim}
 If only one mass is defined, the first method should be used. Otherwise,

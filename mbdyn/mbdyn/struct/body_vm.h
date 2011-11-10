@@ -31,8 +31,8 @@
 
 /* elementi di massa, tipo: Elem::Type BODY */
 
-#ifndef BODY_H
-#define BODY_H
+#ifndef BODY_VM_H
+#define BODY_VM_H
 
 /* include per derivazione della classe */
 
@@ -40,17 +40,18 @@
 #include "strnode.h"
 #include "gravity.h"
 
-/* Body - begin */
+/* VariableBody - begin */
 
-class Body : 
+class VariableBody : 
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem {   
 protected:
 	const StructNode *pNode;
-	doublereal dMass;
-	Vec3 Xgc;
-	Vec3 S0;
-	Mat3x3 J0;
- 
+
+	DriveOwner m_Mass;
+	TplDriveOwner<Vec3> m_Xgc;
+	TplDriveOwner<Mat3x3> m_Jgc;
+
+	mutable doublereal dMTmp;
 	mutable Vec3 STmp;
 	mutable Mat3x3 JTmp;
 
@@ -72,11 +73,13 @@ protected:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	Body(unsigned int uL, const StructNode *pNode,
-		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+	VariableBody(unsigned int uL, const StructNode *pNode,
+		const DriveCaller *pDCMass,
+		const TplDriveCaller<Vec3> *pDCXgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc,
 		flag fOut);
 
-	virtual ~Body(void);
+	virtual ~VariableBody(void);
  
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -111,12 +114,12 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
-/* Body - end */
+/* VariableBody - end */
 
-/* DynamicBody - begin */
+/* DynamicVariableBody - begin */
 
-class DynamicBody : 
-virtual public Elem, public Body {
+class DynamicVariableBody : 
+virtual public Elem, public VariableBody {
 private:
 
 	Vec3 GetB_int(void) const;
@@ -132,11 +135,13 @@ private:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	DynamicBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
-		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+	DynamicVariableBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
+		const DriveCaller *pDCMass,
+		const TplDriveCaller<Vec3> *pDCXgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc,
 		flag fOut);
 
-	virtual ~DynamicBody(void);
+	virtual ~DynamicVariableBody(void);
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 12; 
@@ -196,12 +201,12 @@ public:
 	/**************************************************/
 };
 
-/* DynamicBody - end */
+/* DynamicVariableBody - end */
 
-/* StaticBody - begin */
+/* StaticVariableBody - begin */
 
-class StaticBody : 
-virtual public Elem, public Body {   
+class StaticVariableBody : 
+virtual public Elem, public VariableBody {   
 private:
 	/* Assembla le due matrici necessarie per il calcolo degli
 	 * autovalori e per lo jacobiano */  
@@ -211,11 +216,13 @@ private:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	StaticBody(unsigned int uL, const StaticStructNode* pNode,
-		doublereal dMass, const Vec3& Xgc, const Mat3x3& J, 
+	StaticVariableBody(unsigned int uL, const StaticStructNode* pNode,
+		const DriveCaller *pDCMass,
+		const TplDriveCaller<Vec3> *pDCXgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc,
 		flag fOut);
 
-	virtual ~StaticBody(void);
+	virtual ~StaticVariableBody(void);
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 6; 
@@ -286,12 +293,14 @@ public:
 	/**************************************************/
 };
 
-/* StaticBody - end */
+extern Elem*
+ReadVariableBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	const StructNode* pStrNode);
+
+/* StaticVariableBody - end */
 
 class DataManager;
 class MBDynParser;
 
-extern Elem* ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel);
-
-#endif /* BODY_H */
+#endif /* BODY_VM_H */
 

@@ -35,35 +35,32 @@
 
 #include <limits>
 
-#include "body.h"
 #include "body_vm.h"
 #include "dataman.h"
 
-/* Body - begin */
+/* VariableBody - begin */
 
-Body::Body(unsigned int uL,
+VariableBody::VariableBody(unsigned int uL,
 	const StructNode *pNode,
-	doublereal dMass,
-	const Vec3& Xgc,
-	const Mat3x3& J,
+	const DriveCaller *pDCMass,
+	const TplDriveCaller<Vec3> *pDCXgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 pNode(pNode),
-dMass(dMass),
-Xgc(Xgc),
-S0(Xgc*dMass),
-J0(J)
+m_Mass(pDCMass),
+m_Xgc(pDCXgc),
+m_Jgc(pDCJgc)
 {
-	ASSERT(pNode != NULL);
+	ASSERT(pNode != 0);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(dMass > 0.);
 }
 
 
 /* distruttore */
-Body::~Body(void)
+VariableBody::~VariableBody(void)
 {
 	NO_OP;
 }
@@ -71,86 +68,84 @@ Body::~Body(void)
 
 /* momento statico */
 Vec3
-Body::GetS_int(void) const
+VariableBody::GetS_int(void) const
 {
-	return pNode->GetXCurr()*dMass + pNode->GetRCurr()*S0;
+	return (pNode->GetXCurr() + pNode->GetRCurr()*m_Xgc.Get())*m_Mass.dGet();
 }
 
 
 /* momento d'inerzia */
 Mat3x3
-Body::GetJ_int(void) const
+VariableBody::GetJ_int(void) const
 {
-	Vec3 s = pNode->GetRCurr()*S0;
-	const Vec3& x = pNode->GetXCurr();
+	Vec3 x = pNode->GetXCurr() + pNode->GetRCurr()*m_Xgc.Get();
 
-	return pNode->GetRCurr()*J0.MulMT(pNode->GetRCurr())
-		- Mat3x3(MatCrossCross, x, x*dMass)
-		- Mat3x3(MatCrossCross, s, x)
-		- Mat3x3(MatCrossCross, x, s);
+	return pNode->GetRCurr()*m_Jgc.Get().MulMT(pNode->GetRCurr())
+		- Mat3x3(MatCrossCross, x, x*m_Mass.dGet());
 }
 
 
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream&
-Body::Restart(std::ostream& out) const
+VariableBody::Restart(std::ostream& out) const
 {
 	out << "  body: " << GetLabel() << ", "
-		<< pNode->GetLabel() << ", " << dMass << ", "
-		<< "reference, node, ", Xgc.Write(out, ", ") << ", "
-		<< "reference, node, ", (J0 + Mat3x3(MatCrossCross, S0, Xgc)).Write(out, ", ")
-		<< ";" << std::endl;
+		<< pNode->GetLabel() << ", variable mass, ", m_Mass.pGetDriveCaller()->Restart(out) << ", "
+		<< "reference, node, ", m_Xgc.pGetDriveCaller()->Restart(out) << ", "
+		<< "reference, node, ", m_Jgc.pGetDriveCaller()->Restart(out) << ";" << std::endl;
 
 	return out;
 }
 
 
 void
-Body::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
+VariableBody::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 {
 	const Mat3x3& R = pNode->GetRRef();
 
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
+	dMTmp = m_Mass.dGet();
+	Vec3 x(m_Xgc.Get());
+	STmp = (R*x)*dMTmp;
+	JTmp = R*(m_Jgc.Get() + Mat3x3(MatCrossCross, x, x*dMTmp)).MulMT(R);
 }
 
 /* massa totale */
 doublereal
-Body::dGetM(void) const
+VariableBody::dGetM(void) const
 {
-	return dMass;
+	return m_Mass.dGet();
 }
 
 /* momento statico */
 Vec3
-Body::GetS(void) const
+VariableBody::GetS(void) const
 {
 	return GetS_int();
 }
 
 /* momento d'inerzia */
 Mat3x3
-Body::GetJ(void) const
+VariableBody::GetJ(void) const
 {
 	return GetJ_int();
 }
 
 /* nodo */
 const StructNode *
-Body::pGetNode(void) const
+VariableBody::pGetNode(void) const
 {
 	return pNode;
 }
 
 /* Accesso ai dati privati */
 unsigned int
-Body::iGetNumPrivData(void) const
+VariableBody::iGetNumPrivData(void) const
 {
 	return 1;
 }
 
 unsigned int
-Body::iGetPrivDataIdx(const char *s) const
+VariableBody::iGetPrivDataIdx(const char *s) const
 {
 	if (strcmp(s, "E") == 0) {
 		// kinetic energy
@@ -166,7 +161,7 @@ Body::iGetPrivDataIdx(const char *s) const
 }
 
 doublereal
-Body::dGetPrivData(unsigned int i) const
+VariableBody::dGetPrivData(unsigned int i) const
 {
 	if (i == 1) {
 		// kinetic energy
@@ -174,22 +169,21 @@ Body::dGetPrivData(unsigned int i) const
 		const Vec3& Vn = pNode->GetVCurr();
 		const Vec3& Wn = pNode->GetWCurr();
 
-		Vec3 X = Rn*Xgc;
-		Vec3 V = Vn + Wn.Cross(X);
+		Vec3 DXgc = Rn*m_Xgc.Get();
+		Vec3 V = Vn + Wn.Cross(DXgc);
 		Vec3 W = Rn*Wn;
 
-		Mat3x3 Jgc = J0 + Mat3x3(MatCrossCross, Xgc, Xgc*dMass);
-
-		return ((V*V)*dMass + W*(Jgc*W))/2.;
+		return ((V*V)*m_Mass.dGet() + W*(m_Jgc.Get()*W))/2.;
 	}
 
 	if (i == 2) {
 		// potential energy
-		const Vec3& Xn = pNode->GetXCurr();
+		// NOTE: it is only valid for uniform gravity field
+		Vec3 Xgc = pNode->GetXCurr() + pNode->GetRCurr()*m_Xgc.Get();
 
 		Vec3 GravityAcceleration;
-		if (GravityOwner::bGetGravity(pNode->GetXCurr(), GravityAcceleration)) {
-			return -Xn.Dot(GravityAcceleration)*dMass;
+		if (GravityOwner::bGetGravity(Xgc, GravityAcceleration)) {
+			return -Xgc.Dot(GravityAcceleration)*m_Mass.dGet();
 		}
 	}
 
@@ -197,22 +191,24 @@ Body::dGetPrivData(unsigned int i) const
 }
 
 void
-Body::AssVecRBK_int(SubVectorHandler& WorkVec)
+VariableBody::AssVecRBK_int(SubVectorHandler& WorkVec)
 {
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	// NOTE: dMTmp, STmp, JTmp updated earlier
 
 	Vec3 s0;
 
 	integer iIdx = 0;
-	if (dynamic_cast<DynamicBody *>(this)) {
+	if (dynamic_cast<DynamicVariableBody *>(this)) {
 		iIdx = 6;
 	}
 
-	s0 = pNode->GetXCurr()*dMass + STmp;
+	s0 = pNode->GetXCurr()*m_Mass.dGet() + STmp;
 
 	// force
 	Vec3 f;
-	f = pRBK->GetXPP()*dMass;
+	f = pRBK->GetXPP()*dMTmp;
 	f += pRBK->GetWP().Cross(s0);
 	f += pRBK->GetW().Cross(pRBK->GetW().Cross(s0));
 
@@ -237,7 +233,7 @@ Body::AssVecRBK_int(SubVectorHandler& WorkVec)
 }
 
 void
-Body::AssMatsRBK_int(
+VariableBody::AssMatsRBK_int(
 	FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
 	const doublereal& dCoef,
@@ -249,7 +245,7 @@ Body::AssMatsRBK_int(
 	Vec3 VTmp;
 
 	integer iIdx = 0;
-	if (dynamic_cast<DynamicBody *>(this)) {
+	if (dynamic_cast<DynamicVariableBody *>(this)) {
 		iIdx = 6;
 	}
 
@@ -257,7 +253,7 @@ Body::AssMatsRBK_int(
 	MTmp = Mat3x3(MatCross, pRBK->GetWP());
 	MTmp += Mat3x3(MatCrossCross, pRBK->GetW(), pRBK->GetW());
 
-	WMA.Add(iIdx + 1, 1, MTmp*(dMass*dCoef));
+	WMA.Add(iIdx + 1, 1, MTmp*(dMTmp*dCoef));
 
 
 	// f: theta delta
@@ -306,38 +302,38 @@ Body::AssMatsRBK_int(
 	WMB.Add(iIdx + 3 + 1, 3 + 1, MTmp2);
 }
 
-/* Body - end */
+/* VariableBody - end */
 
 
-/* DynamicBody - begin */
+/* DynamicVariableBody - begin */
 
-DynamicBody::DynamicBody(unsigned int uL,
+DynamicVariableBody::DynamicVariableBody(unsigned int uL,
 	const DynamicStructNode* pNode,
-	doublereal dMass,
-	const Vec3& Xgc,
-	const Mat3x3& J,
+	const DriveCaller *pDCMass,
+	const TplDriveCaller<Vec3> *pDCXgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc,
 	flag fOut)
 : Elem(uL, fOut),
-Body(uL, pNode, dMass, Xgc, J, fOut)
+VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc, fOut)
 {
 	NO_OP;
 }
 
 
 /* distruttore */
-DynamicBody::~DynamicBody(void)
+DynamicVariableBody::~DynamicVariableBody(void)
 {
 	NO_OP;
 }
 
 
 VariableSubMatrixHandler&
-DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
+DynamicVariableBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("DynamicBody::AssJac");
+	DEBUGCOUTFNAME("DynamicVariableBody::AssJac");
 
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -382,12 +378,12 @@ DynamicBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
+DynamicVariableBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	VariableSubMatrixHandler& WorkMatB,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("DynamicBody::AssMats");
+	DEBUGCOUTFNAME("DynamicVariableBody::AssMats");
 
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
@@ -435,13 +431,13 @@ DynamicBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 
 
 void
-DynamicBody::AssMats(FullSubMatrixHandler& WMA,
+DynamicVariableBody::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
 	doublereal dCoef,
 	bool bGravity,
 	const Vec3& GravityAcceleration)
 {
-	DEBUGCOUTFNAME("DynamicBody::AssMats");
+	DEBUGCOUTFNAME("DynamicVariableBody::AssMats");
 
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
@@ -459,9 +455,9 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 	 *
 	 * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag
 	 */
-	WMB.IncCoef(1, 1, dMass);
-	WMB.IncCoef(2, 2, dMass);
-	WMB.IncCoef(3, 3, dMass);
+	WMB.IncCoef(1, 1, dMTmp);
+	WMB.IncCoef(2, 2, dMTmp);
+	WMB.IncCoef(3, 3, dMTmp);
 
 	WMB.Sub(1, 3 + 1, SWedge);
 	WMA.Add(1, 3 + 1, Mat3x3(MatCross, Sc.Cross(W)));
@@ -488,12 +484,12 @@ DynamicBody::AssMats(FullSubMatrixHandler& WMA,
 
 
 SubVectorHandler&
-DynamicBody::AssRes(SubVectorHandler& WorkVec,
+DynamicVariableBody::AssRes(SubVectorHandler& WorkVec,
 	doublereal /* dCoef */ ,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUTFNAME("Body::DynamicAssRes");
+	DEBUGCOUTFNAME("VariableBody::DynamicAssRes");
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
@@ -520,17 +516,20 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 
 	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
 	const Mat3x3& R(pNode->GetRCurr());
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
+
+	dMTmp = m_Mass.dGet();
+	Vec3 DXgc(R*m_Xgc.Get());
+	STmp = DXgc*dMTmp;
+	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
-	WorkVec.Sub(1, V*dMass + W.Cross(STmp));
+	WorkVec.Sub(1, V*dMTmp + W.Cross(STmp));
 
 	/* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
 	WorkVec.Sub(3 + 1, JTmp*W + STmp.Cross(V));
 
 	if (g) {
-		WorkVec.Add(6 + 1, GravityAcceleration*dMass);
+		WorkVec.Add(6 + 1, GravityAcceleration*dMTmp);
 		/* FIXME: this should go into Jacobian matrix
 		 * as Gravity /\ S /\ Delta g */
 		WorkVec.Add(9 + 1, STmp.Cross(GravityAcceleration));
@@ -543,7 +542,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	const DynamicStructNode *pDN = dynamic_cast<const DynamicStructNode *>(pNode);
 	ASSERT(pDN != 0);
 
-	pDN->AddInertia(dMass, STmp, JTmp);
+	pDN->AddInertia(dMTmp, STmp, JTmp);
 
 	return WorkVec;
 }
@@ -551,10 +550,10 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+DynamicVariableBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& /* XCurr */ )
 {
-	DEBUGCOUTFNAME("DynamicBody::InitialAssJac");
+	DEBUGCOUTFNAME("DynamicVariableBody::InitialAssJac");
 
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -574,11 +573,11 @@ DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
 	 * e' dato da iGetFirstPositionIndex()+i */
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-	integer iFirstVelocityIndex = iFirstPositionIndex+6;
+	integer iFirstVelocityIndex = iFirstPositionIndex + 6;
 	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iFirstPositionIndex+iCnt);
-		WM.PutRowIndex(6+iCnt, iFirstVelocityIndex+iCnt);
-		WM.PutColIndex(iCnt, iFirstPositionIndex+iCnt);
+		WM.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iFirstVelocityIndex + iCnt);
+		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
 	/* Prepara matrici e vettori */
@@ -620,10 +619,10 @@ DynamicBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
+DynamicVariableBody::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ )
 {
-	DEBUGCOUTFNAME("DynamicBody::InitialAssRes");
+	DEBUGCOUTFNAME("DynamicVariableBody::InitialAssRes");
 
 	integer iNumRows;
 	integer iNumCols;
@@ -640,8 +639,11 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 	// Aggiorna i suoi dati (saranno pronti anche per InitialAssJac)
 	const Mat3x3& R(pNode->GetRCurr());
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
+
+	dMTmp = m_Mass.dGet();
+	Vec3 DXgc(R*m_Xgc.Get());
+	STmp = DXgc*dMTmp;
+	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
 
 	Vec3 FC(-W.Cross(W.Cross(STmp)));
 	Vec3 MC(-W.Cross(JTmp*W));
@@ -661,8 +663,8 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 GravityAcceleration;
-	if (GravityOwner::bGetGravity(X, GravityAcceleration)) {
-		WorkVec.Add(1, GravityAcceleration*dMass);
+	if (GravityOwner::bGetGravity(X + DXgc, GravityAcceleration)) {
+		WorkVec.Add(1, GravityAcceleration*dMTmp);
 		WorkVec.Add(3 + 1, STmp.Cross(GravityAcceleration));
 		WorkVec.Add(9 + 1, (W.Cross(STmp)).Cross(GravityAcceleration));
 	}
@@ -673,7 +675,7 @@ DynamicBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Usata per inizializzare la quantita' di moto */
 void
-DynamicBody::SetValue(DataManager *pDM,
+DynamicVariableBody::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& /* XP */ ,
 	SimulationEntity::Hints *ph)
 {
@@ -682,73 +684,75 @@ DynamicBody::SetValue(DataManager *pDM,
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
-	X.Add(iFirstIndex + 1, V*dMass + W.Cross(STmp));
+
+	// FIXME: HACK!
+	dMTmp = m_Mass.dGet();
+	Vec3 DXgc(R*m_Xgc.Get());
+	STmp = DXgc*dMTmp;
+	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
+	X.Add(iFirstIndex + 1, V*dMTmp + W.Cross(STmp));
 	X.Add(iFirstIndex + 4, STmp.Cross(V) + JTmp*W);
 }
 
 /* momentum */
 Vec3
-DynamicBody::GetB_int(void) const
+DynamicVariableBody::GetB_int(void) const
 {
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
 
-	return V*dMass + W.Cross(R*S0);
+	return (V + W.Cross(R*m_Xgc.Get()))*m_Mass.dGet();
 }
 
 
 /* momenta moment */
 Vec3
-DynamicBody::GetG_int(void) const
+DynamicVariableBody::GetG_int(void) const
 {
 	const Vec3& X(pNode->GetXCurr());
 	const Mat3x3& R(pNode->GetRCurr());
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 
-	Vec3 STmp(R*S0);
+	Vec3 DXgc(R*m_Xgc.Get());
 
 	// NOTE: with respect to the origin of the global reference frame!
-	return (STmp + X*dMass).Cross(V) + R*(J0*(R.MulTV(W)))
-		- X.Cross(STmp.Cross(W));
+	return (X + DXgc).Cross((V + W.Cross(R*DXgc))*m_Mass.dGet()) + m_Jgc.Get()*W;
 }
 
+/* DynamicVariableBody - end */
 
-/* DynamicBody - end */
 
+/* StaticVariableBody - begin */
 
-/* StaticBody - begin */
-
-StaticBody::StaticBody(unsigned int uL,
+StaticVariableBody::StaticVariableBody(unsigned int uL,
 	const StaticStructNode* pNode,
-	doublereal dMass,
-	const Vec3& Xgc,
-	const Mat3x3& J,
+	const DriveCaller *pDCMass,
+	const TplDriveCaller<Vec3> *pDCXgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc,
 	flag fOut)
 : Elem(uL, fOut),
-Body(uL, pNode, dMass, Xgc, J, fOut)
+VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc, fOut)
 {
 	NO_OP;
 }
 
 
 /* distruttore */
-StaticBody::~StaticBody(void)
+StaticVariableBody::~StaticVariableBody(void)
 {
 	NO_OP;
 }
 
 
 VariableSubMatrixHandler&
-StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
+StaticVariableBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("StaticBody::AssJac");
+	DEBUGCOUTFNAME("StaticVariableBody::AssJac");
 
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
@@ -780,12 +784,12 @@ StaticBody::AssJac(VariableSubMatrixHandler& WorkMat,
 
 
 void
-StaticBody::AssMats(VariableSubMatrixHandler& WorkMatA,
+StaticVariableBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	VariableSubMatrixHandler& WorkMatB,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("StaticBody::AssMats");
+	DEBUGCOUTFNAME("StaticVariableBody::AssMats");
 
 	/* Casting di WorkMat */
 	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
@@ -819,13 +823,12 @@ StaticBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	}
 }
 
-
 bool
-StaticBody::AssMats(FullSubMatrixHandler& WMA,
+StaticVariableBody::AssMats(FullSubMatrixHandler& WMA,
 	FullSubMatrixHandler& WMB,
 	doublereal dCoef)
 {
-	DEBUGCOUTFNAME("StaticBody::AssMats");
+	DEBUGCOUTFNAME("StaticVariableBody::AssMats");
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
@@ -857,17 +860,21 @@ StaticBody::AssMats(FullSubMatrixHandler& WMA,
 
 
 SubVectorHandler&
-StaticBody::AssRes(SubVectorHandler& WorkVec,
+StaticVariableBody::AssRes(SubVectorHandler& WorkVec,
 	doublereal /* dCoef */ ,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUTFNAME("StaticBody::AssRes");
+	DEBUGCOUTFNAME("StaticVariableBody::AssRes");
+
+	const Vec3& X(pNode->GetXCurr());
+	const Mat3x3& R(pNode->GetRCurr());
+	Vec3 DXgc(R*m_Xgc.Get());
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
 	Vec3 Acceleration(Zero3);
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
+	bool g = GravityOwner::bGetGravity(X + DXgc, Acceleration);
 
 	/* W is uninitialized because its use is conditioned by w */
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
@@ -884,13 +891,12 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
 	}
 
-	/* Aggiorna i suoi dati (saranno pronti anche per AssJac) */
-	const Mat3x3& R(pNode->GetRCurr());
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
+	dMTmp = m_Mass.dGet();
+	STmp = DXgc*dMTmp;
+	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	if (g) {
-		WorkVec.Add(1, Acceleration*dMass);
+		WorkVec.Add(1, Acceleration*dMTmp);
 		WorkVec.Add(3 + 1, STmp.Cross(Acceleration));
 	}
 
@@ -904,27 +910,30 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 /* inverse dynamics capable element */
 bool
-StaticBody::bInverseDynamics(void) const
+StaticVariableBody::bInverseDynamics(void) const
 {
 	return true;
 }
 
 
 SubVectorHandler&
-StaticBody::AssRes(SubVectorHandler& WorkVec,
+StaticVariableBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
 	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUTFNAME("DynamicBody::AssRes");
+	DEBUGCOUTFNAME("DynamicVariableBody::AssRes");
 	
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
+	const Vec3& X(pNode->GetXCurr());
+	const Mat3x3& R(pNode->GetRCurr());
+	Vec3 DXgc(R*m_Xgc.Get());
+
 	/* Se e' definita l'accelerazione di gravita', la aggiunge */
 	Vec3 GravityAcceleration;
-	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
-		GravityAcceleration);
+	bool g = GravityOwner::bGetGravity(X + DXgc, GravityAcceleration);
 
 	WorkVec.ResizeReset(6);
 
@@ -933,23 +942,22 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
 	}
 
-	const Mat3x3& R(pNode->GetRCurr());
-	Vec3 XgcTmp = R*Xgc;
-	STmp = R*S0;
-	JTmp = R*J0.MulMT(R);
+	dMTmp = m_Mass.dGet();
+	STmp = DXgc*dMTmp;
+	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	Vec3 Acceleration = pNode->GetXPPCurr()
-		+ pNode->GetWPCurr().Cross(XgcTmp)
-		+ pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp));
+		+ pNode->GetWPCurr().Cross(DXgc)
+		+ pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(DXgc));
 	if (g) {
 		Acceleration -= GravityAcceleration;
 	}
 
-	WorkVec.Sub(1, Acceleration*dMass);
+	WorkVec.Sub(1, Acceleration*dMTmp);
 
 	Vec3 M = JTmp*pNode->GetWPCurr()
 		+ STmp.Cross(pNode->GetXPPCurr())
-		+ STmp.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(XgcTmp)));
+		+ STmp.Cross(pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(DXgc)));
 	if (g) {
 		M -= STmp.Cross(GravityAcceleration);
 	}
@@ -962,10 +970,10 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
 VariableSubMatrixHandler&
-StaticBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+StaticVariableBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& /* XCurr */ )
 {
-	DEBUGCOUTFNAME("StaticBody::InitialAssJac");
+	DEBUGCOUTFNAME("StaticVariableBody::InitialAssJac");
 
 	WorkMat.SetNullMatrix();
 
@@ -975,10 +983,10 @@ StaticBody::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 /* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
-StaticBody::InitialAssRes(SubVectorHandler& WorkVec,
+StaticVariableBody::InitialAssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ )
 {
-	DEBUGCOUTFNAME("StaticBody::InitialAssRes");
+	DEBUGCOUTFNAME("StaticVariableBody::InitialAssRes");
 
 	WorkVec.ResizeReset(0);
 
@@ -988,181 +996,32 @@ StaticBody::InitialAssRes(SubVectorHandler& WorkVec,
 
 /* Usata per inizializzare la quantita' di moto */
 void
-StaticBody::SetValue(DataManager *pDM,
+StaticVariableBody::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& /* XP */ ,
 	SimulationEntity::Hints *ph)
 {
 	NO_OP;
 }
 
-/* StaticBody - end */
+/* StaticVariableBody - end */
 
 
 /* Legge un corpo rigido */
 Elem*
-ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
+ReadVariableBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
+	const StructNode* pStrNode)
 {
-	DEBUGCOUTFNAME("ReadBody");
-
-	const char* sKeyWords[] = {
-		NULL
-	};
-
-	/* enum delle parole chiave */
-	enum KeyWords {
-		UNKNOWN = -1,
-		LASTKEYWORD = 0
-	};
-
-	/* tabella delle parole chiave */
-	KeyTable K(HP, sKeyWords);
-
-	/* nodo collegato */
-	const StructNode* pStrNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+	DEBUGCOUTFNAME("ReadVariableBody");
 
 	/* may be determined by a special DataManager parameter... */
 	bool bStaticModel = pDM->bIsStaticModel();
 	bool bInverseDynamics = pDM->bIsInverseDynamics();
 
-	if (HP.IsKeyWord("variable" "mass")) {
-		return ReadVariableBody(pDM, HP, uLabel, pStrNode);
-	}
-
-	integer iNumMasses = 1;
-	if (HP.IsKeyWord("condense")) {
-		iNumMasses = HP.GetInt();
-		if (iNumMasses < 1) {
-			silent_cerr("Body(" << uLabel << "): "
-				"at least one mass is required in \"condense\" "
-				"at line " << HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		DEBUGLCOUT(MYDEBUG_INPUT,
-			iNumMasses << " masses will be condensed" << std::endl);
-
-		/* The inertia is calculated as follows:
-		 *
-		 * dm = Sum(dm_i)
-		 *
-		 * Xgc = Sum(Xgc_i*dm_i)/Sum(dm_i)
-		 *
-		 * J = Sum(J_i)-Sum(dm_i*(Xgc_i-Xgc)/\(Xgc_i-Xgc)/\)
-		 *
-		 * and it can be accomplished by accumulating:
-		 *
-		 * dm = Sum(dm_i)
-		 *
-		 * ~S = Sum(Xgc_i*dm_i)
-		 *
-		 * ~J = Sum(J_i)-Sum(dm_i*Xgc_i/\*Xgc_i/\)
-		 *
-		 * then calculating
-		 *
-		 * Xgc = S/dm
-		 *
-		 * and finally:
-		 *
-		 * J = ~J-Xgc/\(dm*Xgc/\-2*~S)
-		 *
-		 */
-	}
-
-	doublereal dm = 0.;
 	ReferenceFrame RF(pStrNode);
-	Vec3 Xgc(Zero3);
-	Vec3 STmp(Zero3);
-	Mat3x3 J(Zero3x3);
-	bool bNegative(false);
 
-	if (HP.IsKeyWord("allow" "negative" "mass")) {
-		bNegative = true;
-	}
-
-	for (int iCnt = 1; iCnt <= iNumMasses; iCnt++) {
-		/* massa */
-		doublereal dMTmp = HP.GetReal();
-		if (!bNegative && dMTmp < 0.) {
-			silent_cerr("Body(" << uLabel << "): "
-				"negative mass is not allowed at line "
-				<< HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dMTmp << std::endl);
-		dm += dMTmp;
-
-		/* posiz. c.g. */
-		Vec3 XgcTmp(HP.GetPosRel(RF));
-		if (iNumMasses == 1) {
-			Xgc = XgcTmp;
-
-		} else {
-			STmp += XgcTmp*dMTmp;
-		}
-
-		DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt
-			<< ") center of gravity = " << XgcTmp << std::endl);
-
-		/*
-		 * matrice del mom. d'inerzia
-		 *
-		 * Usa la funzione che legge una matrice qualsiasi con parole chiave
-		 * per forme abbreviate:
-		 *   - null: matrice vuota
-		 *   - eye:  matrice identita'
-		 *   - diag: matrice diagonale, seguita da 3 reali
-		 *   - sym:  matrice simmetrica, seguita da 6 reali,
-		 *           letta come triangolare superiore ordinata per righe:
-		 *           m11, m12, m13,    m22, m23,    m33
-		 *   - matrice generica, costituita da 9 reali, letta per righe:
-		 *           m11, m12, m13,    m21, m22, m23,   m31, m32, m33
-		 *
-		 * Si assume inoltre che la matrice dei momenti di inerzia
-		 * sia espressa nel centro di massa del corpo, quindi viene
-		 * corretta per l'eventuale offset rispetto al nodo
-		 */
-		Mat3x3 JTmp(HP.GetMatRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
-			<< ") =" << std::endl << JTmp << std::endl);
-
-		if (HP.IsKeyWord("inertial")) {
-			DEBUGLCOUT(MYDEBUG_INPUT,
-				"supplied in inertial reference frame" << std::endl);
-			if (HP.IsKeyWord("node")) {
-				NO_OP;
-			} else {
-				Mat3x3 RTmp(HP.GetRotRel(RF));
-				JTmp = RTmp*JTmp.MulMT(RTmp);
-			}
-			DEBUGLCOUT(MYDEBUG_INPUT,
-				"Inertia matrix of mass(" << iCnt << ") "
-				"in current frame =" << JTmp << std::endl);
-		}
-
-		J += JTmp - Mat3x3(MatCrossCross, XgcTmp, XgcTmp*dMTmp);
-	}
-
-	if (!bNegative && dm < 0.) {
-		silent_cerr("Body(" << uLabel << "): "
-			"negative mass is not allowed at line "
-			<< HP.GetLineData() << std::endl);
-		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (iNumMasses > 1) {
-		if (dm < std::numeric_limits<doublereal>::epsilon()) {
-			silent_cerr("Body(" << uLabel << "): "
-				"mass value " << dm << " is too small at line "
-				<< HP.GetLineData() << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		Xgc = STmp/dm;
-	}
-
-	DEBUGLCOUT(MYDEBUG_INPUT, "Total mass: " << dm << std::endl
-		<< "Center of mass: " << Xgc << std::endl
-		<< "Inertia matrix:" << std::endl << J << std::endl);
+	const DriveCaller *pDCMass = HP.GetDriveCaller();
+	const TplDriveCaller<Vec3> *pDCXgc = HP.GetTplDriveCaller<Vec3>();
+	const TplDriveCaller<Mat3x3> *pDCJgc = HP.GetTplDriveCaller<Mat3x3>();
 
 	const DynamicStructNode* pDynamicNode = 0;
 	const StaticStructNode* pStaticNode = 0;
@@ -1171,7 +1030,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		/* static */
 		pStaticNode = dynamic_cast<const StaticStructNode *>(pStrNode);
 		if (pStaticNode == 0 || pStaticNode->GetStructNodeType() != StructNode::STATIC) {
-			silent_cerr("Body(" << uLabel << "): "
+			silent_cerr("VariableBody(" << uLabel << "): "
 				"illegal structural node type "
 				"for StructNode(" << pStrNode->GetLabel() << ") "
 				"in " << (bStaticModel ? "static model" : "inverse dynamics") << " analysis "
@@ -1182,7 +1041,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	} else {
 		pDynamicNode = dynamic_cast<const DynamicStructNode*>(pStrNode);
 		if (pDynamicNode == 0 || pDynamicNode->GetStructNodeType() != StructNode::DYNAMIC) {
-			silent_cerr("Body(" << uLabel << "): "
+			silent_cerr("VariableBody(" << uLabel << "): "
 				"illegal structural node type "
 				"for StructNode(" << pStrNode->GetLabel() << ") "
 				"at line " << HP.GetLineData() << std::endl);
@@ -1193,34 +1052,34 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	flag fOut = pDM->fReadOutput(HP, Elem::BODY);
 
 	/* Allocazione e costruzione */
-	Elem* pEl = NULL;
+	Elem *pEl = 0;
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
-		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
-			StaticBody(uLabel, pStaticNode,
-				dm, Xgc, J, fOut));
+		SAFENEWWITHCONSTRUCTOR(pEl, StaticVariableBody,
+			StaticVariableBody(uLabel, pStaticNode,
+				pDCMass, pDCXgc, pDCJgc, fOut));
 
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
-			DynamicBody(uLabel, pDynamicNode,
-				dm, Xgc, J, fOut));
+		SAFENEWWITHCONSTRUCTOR(pEl, DynamicVariableBody,
+			DynamicVariableBody(uLabel, pDynamicNode,
+				pDCMass, pDCXgc, pDCJgc, fOut));
 	}
 
 	pDM->GetLogFile()
-		<< "body: " << uLabel
+		<< "variable body: " << uLabel
 		<< ' ' << pStrNode->GetLabel()
-		<< ' ' << dm
-		<< ' ' << Xgc
-		<< ' ' << J
+		<< ' ' << pDCMass->dGet()
+		<< ' ' << pDCXgc->Get()
+		<< ' ' << pDCJgc->Get()
 		<< std::endl;
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
-		silent_cerr("semicolon expected "
+		silent_cerr("VariableBody(" << uLabel << "): semicolon expected "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pEl;
-} /* End of ReadBody() */
+} /* End of ReadVariableBody() */
 

@@ -201,6 +201,11 @@ protected:
 	typedef std::map<unsigned, const TplDriveCaller<Vec6> *> DC6DType;
 	DC6DType DC6D;
 
+	typedef std::map<unsigned, const TplDriveCaller<Mat3x3> *> DC3x3DType;
+	DC3x3DType DC3x3D;
+	typedef std::map<unsigned, const TplDriveCaller<Mat6x6> *> DC6x6DType;
+	DC6x6DType DC6x6D;
+
 	void TplDriveCaller_int(void);
 
 	/* Scalar functions */

@@ -725,10 +725,66 @@ MBDynParser::TplDriveCaller_int(void)
 		sName = sTmp;
 	}
 
-	int dim = GetInt();
+	enum {
+		DIM_1,
+		DIM_3,
+		DIM_6,
+		DIM_3x3,
+		DIM_6x6
+	} Dim;
+
+	if (IsStringWithDelims()) {
+		const char *s = GetStringWithDelims();
+		if (strcasecmp(s, "1") == 0) {
+			Dim = DIM_1;
+
+		} else if (strcasecmp(s, "3") == 0) {
+			Dim = DIM_3;
+
+		} else if (strcasecmp(s, "6") == 0) {
+			Dim = DIM_6;
+
+		} else if (strcasecmp(s, "3x3") == 0) {
+			Dim = DIM_3x3;
+
+		} else if (strcasecmp(s, "6x6") == 0) {
+			Dim = DIM_6x6;
+
+		} else {
+			silent_cerr("unable to read template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"unsupported type \"" << s << "\" "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+	} else {
+		int dim = GetInt();
+		switch (dim) {
+		case 1:
+			Dim = DIM_1;
+			break;
+
+		case 3:
+			Dim = DIM_3;
+			break;
+
+		case 6:
+			Dim = DIM_6;
+			break;
+
+		default:
+			silent_cerr("unable to read template drive caller " << uLabel 
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"unsupported order " << dim << " "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	std::string type;
-	switch (dim) {
-	case 1: {
+	switch (Dim) {
+	case DIM_1: {
 		type = "doublereal ";
 		TplDriveCaller<doublereal> *pDC = GetTplDriveCaller<doublereal>();
 		if (pDC == NULL) {
@@ -754,7 +810,7 @@ MBDynParser::TplDriveCaller_int(void)
 		}
 		} break;
 
-	case 3: {
+	case DIM_3: {
 		type = "Vec3 ";
 		TplDriveCaller<Vec3> *pDC = GetTplDriveCaller<Vec3>();
 		if (pDC == NULL) {
@@ -780,7 +836,7 @@ MBDynParser::TplDriveCaller_int(void)
 		}
 		} break;
 
-	case 6: {
+	case DIM_6: {
 		type = "Vec6 ";
 		TplDriveCaller<Vec6> *pDC = GetTplDriveCaller<Vec6>();
 		if (pDC == NULL) {
@@ -799,6 +855,58 @@ MBDynParser::TplDriveCaller_int(void)
 	
 		if (!DC6D.insert(DC6DType::value_type(uLabel, pDC)).second) {
 			silent_cerr("Vec6 template drive caller" << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"already defined at line " 
+				<< GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		} break;
+
+	case DIM_3x3: {
+		type = "Mat3x3 ";
+		TplDriveCaller<Mat3x3> *pDC = GetTplDriveCaller<Mat3x3>();
+		if (pDC == NULL) {
+			silent_cerr("unable to read Mat3x3 template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		pDC->PutLabel(uLabel);
+		if (!sName.empty()) {
+			pDC->PutName(sName);
+		}
+#endif
+	
+		if (!DC3x3D.insert(DC3x3DType::value_type(uLabel, pDC)).second) {
+			silent_cerr("Mat3x3 template drive caller" << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"already defined at line " 
+				<< GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		} break;
+
+	case DIM_6x6: {
+		type = "Mat6x6 ";
+		TplDriveCaller<Mat6x6> *pDC = GetTplDriveCaller<Mat6x6>();
+		if (pDC == NULL) {
+			silent_cerr("unable to read Mat6x6 template drive caller " << uLabel
+				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
+				"at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 0
+		pDC->PutLabel(uLabel);
+		if (!sName.empty()) {
+			pDC->PutName(sName);
+		}
+#endif
+	
+		if (!DC6x6D.insert(DC6x6DType::value_type(uLabel, pDC)).second) {
+			silent_cerr("Mat6x6 template drive caller" << uLabel
 				<< " (" << (sName.empty() ? "unknown" : sName.c_str()) << ") "
 				"already defined at line " 
 				<< GetLineData() << std::endl);
@@ -1790,6 +1898,22 @@ MBDynParser::GetTplDrive(unsigned uLabel) const
 		}
 
 		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
+
+	} else if (typeid(T) == typeid(Mat3x3)) {
+		DC3x3DType::const_iterator i = DC3x3D.find(uLabel);
+		if (i == DC3x3D.end()) {
+			return 0;
+		}
+
+		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
+
+	} else if (typeid(T) == typeid(Mat6x6)) {
+		DC6x6DType::const_iterator i = DC6x6D.find(uLabel);
+		if (i == DC6x6D.end()) {
+			return 0;
+		}
+
+		return dynamic_cast<const TplDriveCaller<T> *>(i->second);
 	}
 
 	return 0;
@@ -1810,6 +1934,12 @@ MBDynParser::GetTplDriveCaller(void)
 
 			} else if (typeid(T) == typeid(Vec6)) {
 				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC6D(pDM, *this));
+
+			} else if (typeid(T) == typeid(Mat3x3)) {
+				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC3x3D(pDM, *this));
+
+			} else if (typeid(T) == typeid(Mat6x6)) {
+				pDC = dynamic_cast<TplDriveCaller<T> *>(ReadDC6x6D(pDM, *this));
 
 			} else {
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2718,6 +2848,9 @@ MBDynParser_dummy_init(void)
 	TplDriveCaller<doublereal> *dummy_tpldc1d(dummy_hp.GetTplDriveCaller<doublereal>());
 	TplDriveCaller<Vec3> *dummy_tpldc3d(dummy_hp.GetTplDriveCaller<Vec3>());
 	TplDriveCaller<Vec6> *dummy_tpldc6d(dummy_hp.GetTplDriveCaller<Vec6>());
+
+	TplDriveCaller<Mat3x3> *dummy_tpldc3x3d(dummy_hp.GetTplDriveCaller<Mat3x3>());
+	TplDriveCaller<Mat6x6> *dummy_tpldc6x6d(dummy_hp.GetTplDriveCaller<Mat6x6>());
 }
 #endif // __ICC
 // end of icc hack

@@ -132,6 +132,10 @@ extern TplDriveCaller<Vec3> *
 ReadDC3D(const DataManager* pDM, MBDynParser& HP);
 extern TplDriveCaller<Vec6> *
 ReadDC6D(const DataManager* pDM, MBDynParser& HP);
+extern TplDriveCaller<Mat3x3> *
+ReadDC3x3D(const DataManager* pDM, MBDynParser& HP);
+extern TplDriveCaller<Mat6x6> *
+ReadDC6x6D(const DataManager* pDM, MBDynParser& HP);
 
 extern TplDriveCaller<Vec3> *
 ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf);

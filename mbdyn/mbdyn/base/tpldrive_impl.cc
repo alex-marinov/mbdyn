@@ -234,7 +234,9 @@ public:
 
 	~CompTplDriveCaller(void) {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			delete m_dc[i];
+			if (m_dc[i]) {
+				delete m_dc[i];
+			}
 		}
 	};
 
@@ -246,7 +248,11 @@ public:
 		std::vector<DriveCaller *> tmpdc(m_dc.size());
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			tmpdc[i] = m_dc[i]->pCopy();
+			if (m_dc[i]) {
+				tmpdc[i] = m_dc[i]->pCopy();
+			} else {
+				tmpdc[i] = 0;
+			}
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
@@ -259,7 +265,12 @@ public:
 		out << "component";
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ", m_dc[i]->Restart(out);
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
 		}
 
 		return out;
@@ -267,7 +278,12 @@ public:
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ", m_dc[i]->Restart(out);
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
 		}
 
 		return out;
@@ -277,7 +293,11 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			t(i + 1) = m_dc[i]->dGet(dVar);
+			if (m_dc[i]) {
+				t(i + 1) = m_dc[i]->dGet(dVar);
+			} else {
+				t(i + 1) = 0.;
+			}
 		}
 
 		return t;
@@ -287,7 +307,11 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			t(i + 1) = m_dc[i]->dGet();
+			if (m_dc[i]) {
+				t(i + 1) = m_dc[i]->dGet();
+			} else {
+				t(i + 1) = 0.;
+			}
 		}
 
 		return t;
@@ -296,7 +320,7 @@ public:
 	/* this is about drives that are differentiable */
 	inline bool bIsDifferentiable(void) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (!m_dc[i]->bIsDifferentiable()) {
+			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
 				return false;
 			}
 		}
@@ -308,7 +332,269 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			t(i + 1) = m_dc[i]->dGetP();
+			if (m_dc[i]) {
+				t(i + 1) = m_dc[i]->dGetP();
+			} else {
+				t(i + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	inline int getNDrives(void) const {
+		return m_dc.size();
+	};
+};
+
+template <>
+class CompTplDriveCaller<Mat3x3> : public TplDriveCaller<Mat3x3>, public DriveOwner {
+protected:
+	std::vector<DriveCaller *> m_dc;
+
+public:
+	CompTplDriveCaller(std::vector<DriveCaller *>& dc)
+	: m_dc(dc)
+	{
+		if (dc.size() != 9) {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	};
+
+	~CompTplDriveCaller(void) {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				delete m_dc[i];
+			}
+		}
+	};
+
+	/* copia */
+	virtual TplDriveCaller<Mat3x3>* pCopy(void) const {
+		typedef CompTplDriveCaller<Mat3x3> dc;
+		TplDriveCaller<Mat3x3>* pDC = 0;
+
+		std::vector<DriveCaller *> tmpdc(m_dc.size());
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				tmpdc[i] = m_dc[i]->pCopy();
+			} else {
+				tmpdc[i] = 0;
+			}
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
+
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "component";
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
+		}
+
+		return out;
+	};
+
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
+		}
+
+		return out;
+	};
+
+	inline Mat3x3 Get(const doublereal& dVar) const {
+		Mat3x3 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet(dVar);
+			} else {
+				t(i/3 + 1, i%3 + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	inline Mat3x3 Get(void) const {
+		Mat3x3 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet();
+			} else {
+				t(i/3 + 1, i%3 + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	/* this is about drives that are differentiable */
+	inline bool bIsDifferentiable(void) const {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	inline Mat3x3 GetP(void) const {
+		Mat3x3 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGetP();
+			} else {
+				t(i/3 + 1, i%3 + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	inline int getNDrives(void) const {
+		return m_dc.size();
+	};
+};
+
+template <>
+class CompTplDriveCaller<Mat6x6> : public TplDriveCaller<Mat6x6>, public DriveOwner {
+protected:
+	std::vector<DriveCaller *> m_dc;
+
+public:
+	CompTplDriveCaller(std::vector<DriveCaller *>& dc)
+	: m_dc(dc)
+	{
+		if (dc.size() != 36) {
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	};
+
+	~CompTplDriveCaller(void) {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				delete m_dc[i];
+			}
+		}
+	};
+
+	/* copia */
+	virtual TplDriveCaller<Mat6x6>* pCopy(void) const {
+		typedef CompTplDriveCaller<Mat6x6> dc;
+		TplDriveCaller<Mat6x6>* pDC = 0;
+
+		std::vector<DriveCaller *> tmpdc(m_dc.size());
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				tmpdc[i] = m_dc[i]->pCopy();
+			} else {
+				tmpdc[i] = 0;
+			}
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
+
+		return pDC;
+	};
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "component";
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
+		}
+
+		return out;
+	};
+
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			out << ", ";
+			if (m_dc[i]) {
+				m_dc[i]->Restart(out);
+			} else {
+				out << "inactive";
+			}
+		}
+
+		return out;
+	};
+
+	inline Mat6x6 Get(const doublereal& dVar) const {
+		Mat6x6 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet(dVar);
+			} else {
+				t(i/6 + 1, i%6 + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	inline Mat6x6 Get(void) const {
+		Mat6x6 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet();
+			} else {
+				t(i/6 + 1, i%6 + 1) = 0.;
+			}
+		}
+
+		return t;
+	};
+
+	/* this is about drives that are differentiable */
+	inline bool bIsDifferentiable(void) const {
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
+				return false;
+			}
+		}
+
+		return true;
+	};
+
+	inline Mat6x6 GetP(void) const {
+		Mat6x6 t;
+
+		for (unsigned i = 0; i < m_dc.size(); i++) {
+			if (m_dc[i]) {
+				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGetP();
+			} else {
+				t(i/6 + 1, i%6 + 1) = 0.;
+			}
 		}
 
 		return t;
@@ -330,6 +616,12 @@ public:
 
 		} else if (typeid(T) == typeid(Vec6)) {
 			dc.resize(6);
+
+		} else if (typeid(T) == typeid(Mat3x3)) {
+			dc.resize(9);
+
+		} else if (typeid(T) == typeid(Mat6x6)) {
+			dc.resize(36);
 
 		} else {
 			silent_cerr("component template drive used with unknown type" << std::endl);
@@ -580,9 +872,15 @@ typedef std::map<std::string, TplDriveCallerRead<doublereal> *, ltstrcase> DC1DF
 typedef std::map<std::string, TplDriveCallerRead<Vec3> *, ltstrcase> DC3DFuncMapType;
 typedef std::map<std::string, TplDriveCallerRead<Vec6> *, ltstrcase> DC6DFuncMapType;
 
+typedef std::map<std::string, TplDriveCallerRead<Mat3x3> *, ltstrcase> DC3x3DFuncMapType;
+typedef std::map<std::string, TplDriveCallerRead<Mat6x6> *, ltstrcase> DC6x6DFuncMapType;
+
 static DC1DFuncMapType DC1DFuncMap;
 static DC3DFuncMapType DC3DFuncMap;
 static DC6DFuncMapType DC6DFuncMap;
+
+static DC3x3DFuncMapType DC3x3DFuncMap;
+static DC6x6DFuncMapType DC6x6DFuncMap;
 
 struct DC1DWordSetType : public HighParser::WordSet {
 	bool IsWord(const std::string& s) const {
@@ -602,9 +900,24 @@ struct DC6DWordSetType : public HighParser::WordSet {
 	};
 };
 
+struct DC3x3DWordSetType : public HighParser::WordSet {
+	bool IsWord(const std::string& s) const {
+		return ::DC3x3DFuncMap.find(std::string(s)) != ::DC3x3DFuncMap.end();
+	};
+};
+
+struct DC6x6DWordSetType : public HighParser::WordSet {
+	bool IsWord(const std::string& s) const {
+		return ::DC6x6DFuncMap.find(std::string(s)) != ::DC6x6DFuncMap.end();
+	};
+};
+
 static DC1DWordSetType DC1DWordSet;
 static DC3DWordSetType DC3DWordSet;
 static DC6DWordSetType DC6DWordSet;
+
+static DC3x3DWordSetType DC3x3DWordSet;
+static DC6x6DWordSetType DC6x6DWordSet;
 
 /* template drive caller registration functions: call to register one */
 bool
@@ -629,6 +942,22 @@ SetDC6D(const char *name, TplDriveCallerRead<Vec6> *rf)
 	pedantic_cout("registering template drive caller 6D \"" << name << "\""
 		<< std::endl );
 	return DC6DFuncMap.insert(DC6DFuncMapType::value_type(name, rf)).second;
+}
+
+bool
+SetDC3x3D(const char *name, TplDriveCallerRead<Mat3x3> *rf)
+{
+	pedantic_cout("registering template drive caller 3x3D \"" << name << "\""
+		<< std::endl );
+	return DC3x3DFuncMap.insert(DC3x3DFuncMapType::value_type(name, rf)).second;
+}
+
+bool
+SetDC6x6D(const char *name, TplDriveCallerRead<Mat6x6> *rf)
+{
+	pedantic_cout("registering template drive caller 6x6D \"" << name << "\""
+		<< std::endl );
+	return DC6x6DFuncMap.insert(DC6x6DFuncMapType::value_type(name, rf)).second;
 }
 
 /* functions that read a template drive caller */
@@ -686,6 +1015,42 @@ ReadDC6D(const DataManager* pDM, MBDynParser& HP)
 	return func->second->Read(pDM, HP);
 }
 
+TplDriveCaller<Mat3x3> *
+ReadDC3x3D(const DataManager* pDM, MBDynParser& HP)
+{
+	const char *s = HP.IsWord(DC3x3DWordSet);
+	if (s == 0) {
+		s = "single";
+	}
+
+	DC3x3DFuncMapType::iterator func = DC3x3DFuncMap.find(std::string(s));
+	if (func == DC3x3DFuncMap.end()) {
+		silent_cerr("unknown template drive caller 3x3D type \"" << s << "\" "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return func->second->Read(pDM, HP);
+}
+
+TplDriveCaller<Mat6x6> *
+ReadDC6x6D(const DataManager* pDM, MBDynParser& HP)
+{
+	const char *s = HP.IsWord(DC6x6DWordSet);
+	if (s == 0) {
+		s = "single";
+	}
+
+	DC6x6DFuncMapType::iterator func = DC6x6DFuncMap.find(std::string(s));
+	if (func == DC6x6DFuncMap.end()) {
+		silent_cerr("unknown template drive caller 6x6D type \"" << s << "\" "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return func->second->Read(pDM, HP);
+}
+
 TplDriveCaller<Vec3> *
 ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
 {
@@ -728,15 +1093,24 @@ InitTplDC(void)
 	SetDC3D("null", new NullTDCR<Vec3>);
 	SetDC6D("null", new NullTDCR<Vec6>);
 
+	SetDC3x3D("null", new NullTDCR<Mat3x3>);
+	SetDC6x6D("null", new NullTDCR<Mat6x6>);
+
 	/* zero (deprecated) */
 	SetDC1D("zero", new ZeroTDCR<doublereal>);
 	SetDC3D("zero", new ZeroTDCR<Vec3>);
 	SetDC6D("zero", new ZeroTDCR<Vec6>);
 
+	SetDC3x3D("zero", new ZeroTDCR<Mat3x3>);
+	SetDC6x6D("zero", new ZeroTDCR<Mat6x6>);
+
 	/* single */
 	SetDC1D("single", new SingleTDCR<doublereal>);
 	SetDC3D("single", new SingleTDCR<Vec3>);
 	SetDC6D("single", new SingleTDCR<Vec6>);
+
+	SetDC3x3D("single", new SingleTDCR<Mat3x3>);
+	SetDC6x6D("single", new SingleTDCR<Mat6x6>);
 
 	/* component */
 	/* in the scalar case, "single" and "component" are identical */
@@ -744,10 +1118,16 @@ InitTplDC(void)
 	SetDC3D("component", new CompTDCR<Vec3>);
 	SetDC6D("component", new CompTDCR<Vec6>);
 
+	SetDC3x3D("component", new CompTDCR<Mat3x3>);
+	SetDC6x6D("component", new CompTDCR<Mat6x6>);
+
 	/* array */
 	SetDC1D("array", new ArrayTDCR<doublereal>);
 	SetDC3D("array", new ArrayTDCR<Vec3>);
 	SetDC6D("array", new ArrayTDCR<Vec6>);
+
+	SetDC3x3D("array", new ArrayTDCR<Mat3x3>);
+	SetDC6x6D("array", new ArrayTDCR<Mat6x6>);
 }
 
 void
@@ -777,5 +1157,15 @@ DestroyTplDC(void)
 		delete i->second;
 	}
 	DC6DFuncMap.clear();
+
+	for (DC3x3DFuncMapType::iterator i = DC3x3DFuncMap.begin(); i != DC3x3DFuncMap.end(); ++i) {
+		delete i->second;
+	}
+	DC3x3DFuncMap.clear();
+
+	for (DC6x6DFuncMapType::iterator i = DC6x6DFuncMap.begin(); i != DC6x6DFuncMap.end(); ++i) {
+		delete i->second;
+	}
+	DC6x6DFuncMap.clear();
 }
 

@@ -1550,8 +1550,10 @@ See \texttt{setenv(3)} and \texttt{unsetenv(3)} man pages for details.
 The \kw{template drive caller} directive
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{template drive caller} : \bnt{label} , (\ty{int}) \bnt{dim} ,
+    \bnt{card} ::= \kw{template drive caller} : \bnt{label} , \{ " \bnt{dim_name} " | (\ty{int}) \bnt{dim} \} ,
         (\ty{TplDriveCaller<Entity>}) \bnt{tpl_drive_caller} ;
+
+    \bnt{dim_name} ::= \{ \kw{1} | \kw{3} | \kw{6} | \kw{3x3} | \kw{6x6} \}
 
     \bnt{dim} ::= \{ \kw{1} | \kw{3} | \kw{6} \}
 \end{Verbatim}
@@ -1559,13 +1561,27 @@ The \kw{template drive caller} directive
 allows to define
 a \hyperref{\kw{template drive caller}}{\kw{template drive caller} (see Section~}{)}{sec:TPL-DRIVE}
 that can be subsequently reused.
-It is useful essentially in two cases:
+The type is defined according to
+\begin{center}
+\begin{tabular}{lcc}
+\hline
+\ty{Entity} & \nt{dim\_name} & \nt{dim} \\
+\hline
+\ty{doublereal} & \kw{1} & \kw{1} \\
+\ty{Vec3}	& \kw{3} & \kw{3} \\
+\ty{Vec6}	& \kw{6} & \kw{6} \\
+\ty{Mat3x3}	& \kw{3x3} & \\
+\ty{Mat6x6}	& \kw{6x6} & \\
+\hline
+\end{tabular}
+\end{center}
+Template drive callers are useful essentially in two cases:
 \begin{enumerate}
 	\renewcommand{\labelenumi}{\alph{enumi})}
 	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE}
 	that will be used many times throughout a model;
 	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE} 
-	that needs to be used in a later defined part of a model, 
+	that needs to be used in part of a model that is defined later, 
 	in order to make it parametric.
 \end{enumerate}
 
