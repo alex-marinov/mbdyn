@@ -2737,12 +2737,20 @@ is straightforward);
 
 \item the \kw{component} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{tpl_drive_caller} ::= \kw{component} ,
+    \bnt{tpl_drive_caller} ::= \kw{component} , [ \bnt{type} , ]
         \bnt{component_drive_caller}
         [ , ... ]
         # as many \nt{component_drive_caller} as the dimensionality of \nt{entity}
+
+    \bnt{type} ::= \{ \kw{sym} | \kw{diag} \}
 \end{Verbatim}
 where each element consists of the corresponding drive caller;
+the optional \nt{type} is used with matrix-type entities to specify
+special matrix layouts:
+\begin{itemize}
+\item \kw{sym} indicates that only the upper triangular components are expected;
+\item \kw{diag} indicates that only the diagonal components are expected;
+\end{itemize}
 
 \item the \kw{array} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]

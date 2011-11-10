@@ -234,9 +234,7 @@ public:
 
 	~CompTplDriveCaller(void) {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				delete m_dc[i];
-			}
+			delete m_dc[i];
 		}
 	};
 
@@ -248,11 +246,7 @@ public:
 		std::vector<DriveCaller *> tmpdc(m_dc.size());
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				tmpdc[i] = m_dc[i]->pCopy();
-			} else {
-				tmpdc[i] = 0;
-			}
+			tmpdc[i] = m_dc[i]->pCopy();
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
@@ -265,12 +259,7 @@ public:
 		out << "component";
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -278,12 +267,7 @@ public:
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -293,11 +277,7 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i + 1) = m_dc[i]->dGet(dVar);
-			} else {
-				t(i + 1) = 0.;
-			}
+			t(i + 1) = m_dc[i]->dGet(dVar);
 		}
 
 		return t;
@@ -307,11 +287,7 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i + 1) = m_dc[i]->dGet();
-			} else {
-				t(i + 1) = 0.;
-			}
+			t(i + 1) = m_dc[i]->dGet();
 		}
 
 		return t;
@@ -320,7 +296,7 @@ public:
 	/* this is about drives that are differentiable */
 	inline bool bIsDifferentiable(void) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
+			if (!m_dc[i]->bIsDifferentiable()) {
 				return false;
 			}
 		}
@@ -332,11 +308,7 @@ public:
 		T t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i + 1) = m_dc[i]->dGetP();
-			} else {
-				t(i + 1) = 0.;
-			}
+			t(i + 1) = m_dc[i]->dGetP();
 		}
 
 		return t;
@@ -363,9 +335,7 @@ public:
 
 	~CompTplDriveCaller(void) {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				delete m_dc[i];
-			}
+			delete m_dc[i];
 		}
 	};
 
@@ -377,11 +347,7 @@ public:
 		std::vector<DriveCaller *> tmpdc(m_dc.size());
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				tmpdc[i] = m_dc[i]->pCopy();
-			} else {
-				tmpdc[i] = 0;
-			}
+			tmpdc[i] = m_dc[i]->pCopy();
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
@@ -394,12 +360,7 @@ public:
 		out << "component";
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -407,12 +368,7 @@ public:
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -422,11 +378,7 @@ public:
 		Mat3x3 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet(dVar);
-			} else {
-				t(i/3 + 1, i%3 + 1) = 0.;
-			}
+			t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet(dVar);
 		}
 
 		return t;
@@ -436,11 +388,7 @@ public:
 		Mat3x3 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet();
-			} else {
-				t(i/3 + 1, i%3 + 1) = 0.;
-			}
+			t(i/3 + 1, i%3 + 1) = m_dc[i]->dGet();
 		}
 
 		return t;
@@ -449,7 +397,7 @@ public:
 	/* this is about drives that are differentiable */
 	inline bool bIsDifferentiable(void) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
+			if (!m_dc[i]->bIsDifferentiable()) {
 				return false;
 			}
 		}
@@ -461,11 +409,7 @@ public:
 		Mat3x3 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/3 + 1, i%3 + 1) = m_dc[i]->dGetP();
-			} else {
-				t(i/3 + 1, i%3 + 1) = 0.;
-			}
+			t(i/3 + 1, i%3 + 1) = m_dc[i]->dGetP();
 		}
 
 		return t;
@@ -492,9 +436,7 @@ public:
 
 	~CompTplDriveCaller(void) {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				delete m_dc[i];
-			}
+			delete m_dc[i];
 		}
 	};
 
@@ -506,11 +448,7 @@ public:
 		std::vector<DriveCaller *> tmpdc(m_dc.size());
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				tmpdc[i] = m_dc[i]->pCopy();
-			} else {
-				tmpdc[i] = 0;
-			}
+			tmpdc[i] = m_dc[i]->pCopy();
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pDC, dc, dc(tmpdc));
@@ -523,12 +461,7 @@ public:
 		out << "component";
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -536,12 +469,7 @@ public:
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			out << ", ";
-			if (m_dc[i]) {
-				m_dc[i]->Restart(out);
-			} else {
-				out << "inactive";
-			}
+			out << ", ", m_dc[i]->Restart(out);
 		}
 
 		return out;
@@ -551,11 +479,7 @@ public:
 		Mat6x6 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet(dVar);
-			} else {
-				t(i/6 + 1, i%6 + 1) = 0.;
-			}
+			t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet(dVar);
 		}
 
 		return t;
@@ -565,11 +489,7 @@ public:
 		Mat6x6 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet();
-			} else {
-				t(i/6 + 1, i%6 + 1) = 0.;
-			}
+			t(i/6 + 1, i%6 + 1) = m_dc[i]->dGet();
 		}
 
 		return t;
@@ -578,7 +498,7 @@ public:
 	/* this is about drives that are differentiable */
 	inline bool bIsDifferentiable(void) const {
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i] && !m_dc[i]->bIsDifferentiable()) {
+			if (!m_dc[i]->bIsDifferentiable()) {
 				return false;
 			}
 		}
@@ -590,11 +510,7 @@ public:
 		Mat6x6 t;
 
 		for (unsigned i = 0; i < m_dc.size(); i++) {
-			if (m_dc[i]) {
-				t(i/6 + 1, i%6 + 1) = m_dc[i]->dGetP();
-			} else {
-				t(i/6 + 1, i%6 + 1) = 0.;
-			}
+			t(i/6 + 1, i%6 + 1) = m_dc[i]->dGetP();
 		}
 
 		return t;
@@ -611,30 +527,71 @@ public:
 	virtual TplDriveCaller<T> *
 	Read(const DataManager* pDM, MBDynParser& HP) {
 		std::vector<DriveCaller *> dc;
+		unsigned nr = 0, nc = 1;
 		if (typeid(T) == typeid(Vec3)) {
-			dc.resize(3);
+			nr = 3;
 
 		} else if (typeid(T) == typeid(Vec6)) {
-			dc.resize(6);
+			nr = 6;
 
 		} else if (typeid(T) == typeid(Mat3x3)) {
-			dc.resize(9);
+			nr = 3;
+			nc = 3;
 
 		} else if (typeid(T) == typeid(Mat6x6)) {
-			dc.resize(36);
+			nr = 6;
+			nc = 6;
 
 		} else {
 			silent_cerr("component template drive used with unknown type" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		for (unsigned i = 0; i < dc.size(); i++) {
-			if (HP.IsKeyWord("inactive")) {
-				dc[i] = 0;
-				SAFENEW(dc[i], NullDriveCaller);
+		dc.resize(nr*nc);
 
-			} else {
-				dc[i] = HP.GetDriveCaller();
+		if (nc > 1 && HP.IsKeyWord("sym")) {
+			for (unsigned ir = 0; ir < nr; ir++) {
+				for (unsigned ic = ir; ic < nc; ic++) {
+					if (HP.IsKeyWord("inactive")) {
+						dc[nc*ir + ic] = 0;
+						SAFENEW(dc[nc*ir + ic], NullDriveCaller);
+
+					} else {
+						dc[nc*ir + ic] = HP.GetDriveCaller();
+					}
+
+					if (ic > ir) {
+						dc[nc*ic + ir] = dc[nc*ir + ic]->pCopy();
+					}
+				}
+			}
+
+		} else if (nc > 1 && HP.IsKeyWord("diag")) {
+			for (unsigned ir = 0; ir < nr; ir++) {
+				if (HP.IsKeyWord("inactive")) {
+					dc[nc*ir + ir] = 0;
+					SAFENEW(dc[nc*ir + ir], NullDriveCaller);
+
+				} else {
+					dc[nc*ir + ir] = HP.GetDriveCaller();
+				}
+
+				for (unsigned ic = ir + 1; ic < nc; ic++) {
+					dc[nc*ir + ic] = 0;
+					SAFENEW(dc[nc*ir + ic], NullDriveCaller);
+					dc[nc*ic + ir] = dc[nc*ir + ic]->pCopy();
+				}
+			}
+
+		} else {
+			for (unsigned i = 0; i < dc.size(); i++) {
+				if (HP.IsKeyWord("inactive")) {
+					dc[i] = 0;
+					SAFENEW(dc[i], NullDriveCaller);
+
+				} else {
+					dc[i] = HP.GetDriveCaller();
+				}
 			}
 		}
 
