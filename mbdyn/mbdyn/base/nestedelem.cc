@@ -292,7 +292,7 @@ bool
 NestedElem::bInverseDynamics(void) const
 {
 	ASSERT(pElem != NULL);
-	pElem->bInverseDynamics();
+	return pElem->bInverseDynamics();
 }
 
 /* Inverse Dynamics: */
