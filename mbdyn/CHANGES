@@ -55,6 +55,7 @@ MBDyn 1.X-Devel
 		- fix rigid-body inertia of modal joint (record 12)
 		  when modal node is not in CM (noted by Paolo Zaltron)
 		- fix gravity in inverse dynamics (noted by Andrea Zanoni)
+		- fix SIGSEGV when binding to loadable elem (Reinhard Resch)
 
 MBDyn 1.4.0
 	Enhancements:

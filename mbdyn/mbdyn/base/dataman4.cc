@@ -542,7 +542,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				} /* end switch (KeyWords(HP.GetWord())) */
 
-				if (!dynamic_cast<Elem*>(pFindElem(t, uL))) {
+				pEl = dynamic_cast<Elem*>(pFindElem(t, uL));
+
+				if (!pEl) {
 					silent_cerr("cannot find " << psElemNames[t] << " (" << uL << ") "
 						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
