@@ -76,6 +76,7 @@
 #include <cfloat>
 #include <iostream>
 #include <iomanip>
+#include <limits>
 
 #include "dataman.h"
 #include "userelem.h"
@@ -124,20 +125,24 @@ public:
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 private:
+	bool IsMotorOn(void) const;
+
+private:
 	StructNode* m_pRotorNode;	/**< node of the rotor where the torque \f$\boldsymbol{f}_3\f$ is imposed and the angular velocity \f$\dot{\boldsymbol{\varphi}}_1\f$ is determined */
 	StructNode* m_pStatorNode;	/**< node of the stator where the torque \f$\boldsymbol{f}_4\f$ is applied and the angular velocity \f$\dot{\boldsymbol{\varphi}}_2\f$ is determined (axis 3 of the stator node is assumed to be the axis of rotation) */
-	double m_MK;				/**< breakdown torque \f$M_K\f$	*/
-	double m_sK;				/**< slip at the breakdown torque \f$s_K\f$	*/
+	doublereal m_MK;				/**< breakdown torque \f$M_K\f$	*/
+	doublereal m_sK;				/**< slip at the breakdown torque \f$s_K\f$	*/
 	DriveOwner m_OmegaS;		/**< drive that returns the synchronous angular velocity \f$\Omega_S=2\,\pi\,\frac{f}{p}\f$ (might be a function of the time in case of an frequency inverter)	*/
 	DriveOwner m_MotorOn;		/**< drive that returns whether the power supply is turned on or off	\f$\gamma(t)\f$ */
-	double m_M;					/**< holds the motor torque \f$M\f$ after convergence for convenience	*/
-	double m_dM_dt;				/**< holds the first derivative of the motor torque \f$\dot{M}\f$ after convergence	*/
-	double m_dM_dt2;			/**< holds the second derivative of the motor torque \f$\ddot{M}\f$ after convergence	*/
-	double m_omega;				/**< holds the angular velocity \f$\dot{\varphi}\f$ of the rotor relative to the stator around axis 3 of the stator node after convergence	*/
-	double m_domega_dt;			/**< holds the angular acceleration \f$\ddot{\varphi}\f$ of the rotor node relative to the stator node after convergence	*/
-
-	bool IsMotorOn(void) const;
+	doublereal m_M;					/**< holds the motor torque \f$M\f$ after convergence for convenience	*/
+	doublereal m_dM_dt;				/**< holds the first derivative of the motor torque \f$\dot{M}\f$ after convergence	*/
+	doublereal m_dM_dt2;			/**< holds the second derivative of the motor torque \f$\ddot{M}\f$ after convergence	*/
+	doublereal m_omega;				/**< holds the angular velocity \f$\dot{\varphi}\f$ of the rotor relative to the stator around axis 3 of the stator node after convergence	*/
+	doublereal m_domega_dt;			/**< holds the angular acceleration \f$\ddot{\varphi}\f$ of the rotor node relative to the stator node after convergence	*/
+    static const doublereal sm_SingTol;
 };
+
+const doublereal asynchronous_machine::sm_SingTol = pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
 
 /**
  * \param uLabel the label assigned to this element in the input file
@@ -260,7 +265,7 @@ asynchronous_machine::asynchronous_machine(
 
 	m_omega = e3.Dot(omega1 - omega2);
 
-	const double OmegaS = m_OmegaS.dGet();
+	const doublereal OmegaS = m_OmegaS.dGet();
 
 	pDM->GetLogFile() << "asynchronous machine: "
 		<< uLabel << " "
@@ -527,7 +532,7 @@ asynchronous_machine::dGetPrivData(unsigned int i) const
 	// At user level the signs of M, dM/dt and d^2M/dt^2 are defined to be positive
 	// in positive coordinate system direction in the reference frame of the stator.
 
-	const double OmegaS = m_OmegaS.dGet();
+	const doublereal OmegaS = m_OmegaS.dGet();
 
 	switch (i) {
 	case 1:
@@ -698,22 +703,30 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 	const Vec3& omega1_ref = m_pRotorNode->GetWRef(); // predicted angular velocity of the rotor node
 	const Vec3& omega2_ref = m_pStatorNode->GetWRef(); // predicted angular velocity of the stator node
 
-	const double OmegaS = m_OmegaS.dGet(); // synchronous angular velocity
+	const doublereal OmegaS = m_OmegaS.dGet(); // synchronous angular velocity
 
-	const double y1 		= XCurr(intTorqueDerivativeRowIndex);
-	const double y2 		= XCurr(intTorqueRowIndex);
-	const double y5 		= XCurr(intOmegaRowIndex);
+	const doublereal y1 		= XCurr(intTorqueDerivativeRowIndex);
+	const doublereal y2 		= XCurr(intTorqueRowIndex);
+	const doublereal y5 		= XCurr(intOmegaRowIndex);
 #if 0 // unused
-	const double y1_dot 	= XPrimeCurr(intTorqueDerivativeRowIndex);
-	const double y2_dot 	= XPrimeCurr(intTorqueRowIndex);
+	const doublereal y1_dot 	= XPrimeCurr(intTorqueDerivativeRowIndex);
+	const doublereal y2_dot 	= XPrimeCurr(intTorqueRowIndex);
 #endif
-	const double y5_dot 	= XPrimeCurr(intOmegaRowIndex);
+	const doublereal y5_dot 	= XPrimeCurr(intOmegaRowIndex);
 
-	const double s = 1 - y5 / OmegaS; // slip of the rotor
+	doublereal s = 1 - y5 / OmegaS; // slip of the rotor
 
-	double df1_dy1, df1_dy2, df1_dy5;
-	double df1_dy1_dot, df1_dy2_dot, df1_dy5_dot;
-	double df2_dy1, df2_dy2_dot;
+    if ( std::abs(s) < sm_SingTol )
+    {
+        silent_cerr("\nasynchronous_machine(" << GetLabel() << "): warning slip rate s = " << s << " is close to machine precision!\n");
+        //FIXME: avoid division by zero
+        //FIXME: results might be inaccurate
+        s = copysign(sm_SingTol, s);
+    }
+
+	doublereal df1_dy1, df1_dy2, df1_dy5;
+	doublereal df1_dy1_dot, df1_dy2_dot, df1_dy5_dot;
+	doublereal df2_dy1, df2_dy2_dot;
 
 	if (IsMotorOn()) {
 		// power supply is turned on
@@ -729,7 +742,7 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 		// df2_dy2_dot = diff(f2,diff(y2,t))
 		df2_dy2_dot = 1.;
 		// df1_ds = diff(f1,s)
-		const double df1_ds = -y1 * y5_dot / ( pow(s,2) * OmegaS ) + ( 2 * s * pow(OmegaS,2) - copysign(1., OmegaS) * y5_dot * m_sK / pow(s,2) ) * y2 - 2 * m_MK * m_sK * pow(OmegaS,2);
+		const doublereal df1_ds = -y1 * y5_dot / ( pow(s,2) * OmegaS ) + ( 2 * s * pow(OmegaS,2) - copysign(1., OmegaS) * y5_dot * m_sK / pow(s,2) ) * y2 - 2 * m_MK * m_sK * pow(OmegaS,2);
 		// df1_dy5 = diff(f1,y5) = diff(f1,s) * diff(s,y5)
 		df1_dy5 = df1_ds * ( -1. / OmegaS );
 		// df1_dy5_dot = diff(f1,diff(y5,t))
@@ -757,7 +770,7 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 	// df4_dy4 = diff(f4,y4)
 	const Mat3x3 df4_dy4 = -df3_dy4;
 	// df5_dy5 = diff(f5,y5)
-	const double df5_dy5 = 1.;
+	const doublereal df5_dy5 = 1.;
 	// df5_dy3_dot_T = transpose(diff(f5,diff(y3,t)))
 	const Vec3 df5_dy3_dot_T = -e3; // diff(y5,diff(y3,t)) = -e3^T * R2^T
 	// df5_dy4_dot_T = transpose(diff(f5,diff(y4,t)))
@@ -878,18 +891,26 @@ asynchronous_machine::AssRes(SubVectorHandler& WorkVec,
 	const Vec3& omega1 = m_pRotorNode->GetWCurr();
 	const Vec3& omega2 = m_pStatorNode->GetWCurr();
 
-	const double OmegaS = m_OmegaS.dGet();
+	const doublereal OmegaS = m_OmegaS.dGet();
 
-	const double y1 		= XCurr(intTorqueDerivativeRowIndex); 				// y1 = diff(M,t)
-	const double y2 		= XCurr(intTorqueRowIndex);			  				// y2 = M
-	const double y5 		= XCurr(intOmegaRowIndex);							// y5 = omega
-	const double y1_dot 	= XPrimeCurr(intTorqueDerivativeRowIndex); 			// diff(y1,t) = diff(M,t,2)
-	const double y2_dot 	= XPrimeCurr(intTorqueRowIndex);					// diff(y2,t) = diff(M,t)
-	const double y5_dot 	= XPrimeCurr(intOmegaRowIndex); 					// diff(y5,t) = diff(omega,t)
+	const doublereal y1 		= XCurr(intTorqueDerivativeRowIndex); 				// y1 = diff(M,t)
+	const doublereal y2 		= XCurr(intTorqueRowIndex);			  				// y2 = M
+	const doublereal y5 		= XCurr(intOmegaRowIndex);							// y5 = omega
+	const doublereal y1_dot 	= XPrimeCurr(intTorqueDerivativeRowIndex); 			// diff(y1,t) = diff(M,t,2)
+	const doublereal y2_dot 	= XPrimeCurr(intTorqueRowIndex);					// diff(y2,t) = diff(M,t)
+	const doublereal y5_dot 	= XPrimeCurr(intOmegaRowIndex); 					// diff(y5,t) = diff(omega,t)
 
-	const double s = 1 - y5 / OmegaS;
+	doublereal s = 1 - y5 / OmegaS;
 
-	double f1, f2;
+    if ( std::abs(s) < sm_SingTol )
+    {
+        silent_cerr("\nasynchronous_machine(" << GetLabel() << "): warning slip rate s = " << s << " is close to machine precision!\n");
+        //FIXME: avoid division by zero
+        //FIXME: results might be inaccurate
+        s = copysign(sm_SingTol, s);
+    }
+
+	doublereal f1, f2;
 
 	if (IsMotorOn()) {
 		// power supply is switched on
@@ -906,7 +927,7 @@ asynchronous_machine::AssRes(SubVectorHandler& WorkVec,
 	const Vec3 f3 = e3 * (y2 * copysign(1., OmegaS));
 	// const Vec3 f4 = -f3;
 
-	const double f5 = y5 - e3.Dot( omega1 - omega2 );
+	const doublereal f5 = y5 - e3.Dot( omega1 - omega2 );
 
 	WorkVec.PutCoef( 1, f1 );
 	WorkVec.PutCoef( 2, f2 );
@@ -1072,11 +1093,9 @@ asynchronous_machine_set(void)
 }
 
 #ifndef STATIC_MODULES
-#ifdef __CYGWIN__
-namespace {
-#else
-extern "C" {
-#endif
+
+extern "C" 
+{
 
 /**
  * \brief This function registers our user defined element for the math parser.
@@ -1096,13 +1115,7 @@ module_init(const char *module_name, void *pdm, void *php)
 	return 0;
 }
 
-#ifdef __CYGWIN__
-// FIXME: dynamic linking does not work on cygwin
-volatile int g_module_init = module_init("asynchronous_machine", 0, 0);
-} // namespace
-#else
 } // extern "C"
-#endif
 
 #endif // ! STATIC_MODULES
 
