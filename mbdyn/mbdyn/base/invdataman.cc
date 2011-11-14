@@ -558,8 +558,6 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					}
 				}
 			}
-
-			//FIXME: allow deformable joints, after implementing AssJac()
 		}
 		} break;
 
@@ -976,7 +974,7 @@ DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRa
 		}
 	}
 
-	silent_cerr("DataManager::IDSetTest(): SolTest range=[" << iFirstIndex + 1 << ":" << iLastIndex << "]" << std::endl);
+	silent_cout("DataManager::IDSetTest(): SolTest range=[" << iFirstIndex + 1 << ":" << iLastIndex << "]" << std::endl);
 
 	pSolTest->SetRange(iFirstIndex + 1, iLastIndex);
 
@@ -1006,7 +1004,7 @@ DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRa
 		}
 	}
 
-	silent_cerr("DataManager::IDSetTest(): ResTest range=[" << iFirstIndex + 1 << ":" << iLastIndex << "]" << std::endl);
+	silent_cout("DataManager::IDSetTest(): ResTest range=[" << iFirstIndex + 1 << ":" << iLastIndex << "]" << std::endl);
 
 	pResTest->SetRange(iFirstIndex + 1, iLastIndex);
 }
