@@ -172,12 +172,6 @@ rotation_matrix_to_euler313.oct \
 euler313_to_rotation_matrix.oct \
 rotation_matrix_to_euler321.oct \
 euler321_to_rotation_matrix.oct
-
-mbdyn_util_oct.o: mbdyn_util_oct.cc
-	mkoctfile $(OCTAVE_INCLUDE) -c -o $@ $<
-
-mbdyn_util_oct.oct: mbdyn_util_oct.o
-	mkoctfile -o $@ $< $(OCTAVE_LIBS)
 endif
 
 ann_in_LDADD = $(MYLIBS)
@@ -248,13 +242,21 @@ INCLUDES = \
 	$(CXXLINK) -shared -o $@ $<
 
 if USE_OCTAVE
+mbdyn_util_oct.o: mbdyn_util_oct.cc
+	mkoctfile $(OCTAVE_INCLUDE) -c -o $@ $<
+
+mbdyn_util_oct.oct: mbdyn_util_oct.o
+	mkoctfile -o $@ $< $(OCTAVE_LIBS)
+endif
+
+if USE_OCTAVE
 install-exec-local-oct:
-	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(octavedir)
-	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct $(DESTDIR)$(octavedir)
+	$(mkinstalldirs) "$(DESTDIR)$(datarootdir)" "$(DESTDIR)$(bindir)"
+	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct "$(DESTDIR)$(bindir)"
 	@echo "creating symlinks..."
 	@for f in $(OCTAVE_FUNCS) ; do \
-		rm -f $(DESTDIR)$(octavedir)/$$f ; \
-		ln -s $(DESTDIR)$(octavedir)/mbdyn_util_oct.oct $(DESTDIR)$(octavedir)/$$f ; \
+		rm -f "$(DESTDIR)$(bindir)/$$f" ; \
+		ln -s "$(DESTDIR)$(bindir)/mbdyn_util_oct.oct" "$(DESTDIR)$(bindir)/$$f" ; \
 	done
 else
 install-exec-local-oct:
