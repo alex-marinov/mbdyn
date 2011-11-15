@@ -178,21 +178,39 @@ if (fid < 0)
 	error(sprintf('unable to open file "%s"', extfile));
 end
 
+ExtNodeN = [];
 while ~(feof(fid))
 	tline = fgetl(fid);
-	[token,rem] = strtok(tline);
-	if not(strcmp(token, '#'))  && not(isempty(token))
-		ExtNodeN = sscanf(tline, '%d');
-		ExtNodeList = zeros(ExtNodeN, 3);
-		for i = 1 : ExtNodeN 
-			if feof(fid)
-				error(sprintf('unexpected end of file "%s"', extfile));
-				fclose(fid);
-				return;
+	[token, rem] = strtok(tline);
+	if (not(isempty(token))),
+		if (strcmp(token, '#')),
+			% octave's save -text: '# rows: <nrows>'
+			[token, rem] = strtok(rem);
+			if (strcmp(token, 'rows:')),
+				n = sscanf(rem, '%d');
+				if (n > 0),
+					ExtNodeN = n;
+				end
 			end
-			ExtNodeList(i,:) = (fscanf(fid, '%g', 3))';
+		else
+			% legacy format: first non-comment row
+			if (isempty(ExtNodeN)),
+				ExtNodeN = sscanf(tline, '%d');
+
+			else
+				ExtNodeList = zeros(ExtNodeN, 3);
+				ExtNodeList(1, :) = (sscanf(tline, '%g', 3))';
+				for i = 2:ExtNodeN 
+					if feof(fid)
+						error(sprintf('unexpected end of file "%s"', extfile));
+						fclose(fid);
+						return;
+					end
+					ExtNodeList(i,:) = (fscanf(fid, '%g', 3))';
+				end
+				break;	
+			end
 		end
-		break;	
 	end
 end
 fclose(fid);
