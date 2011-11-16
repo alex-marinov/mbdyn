@@ -80,6 +80,7 @@
 
 #define NANO_SAMPLE_TIME	((long int)(SAMPLE_TIME*1000000000))
 
+#include <errno.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <sys/types.h>
