@@ -57,6 +57,8 @@ MBDyn 1.X-Devel
 		- fix gravity in inverse dynamics (noted by Andrea Zanoni)
 		- fix SIGSEGV when binding to loadable elem (Reinhard Resch)
 		- fix near-zero velocity in asynch. motor (Reinhard Resch)
+		- fix missing <errno.h> in Simulink interface
+		  (noted by Francesco Castellini)
 
 MBDyn 1.4.0
 	Enhancements:
