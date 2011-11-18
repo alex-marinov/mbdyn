@@ -117,6 +117,14 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+
+	/* Inverse Dynamics Jacobian matrix assembly */
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows,
 		integer* piNumCols) const;

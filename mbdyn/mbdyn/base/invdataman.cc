@@ -67,6 +67,7 @@
 
 /* deformable joint */
 #include "joint.h"
+#include "jointreg.h"
 #include "body.h"
 #include "Rot.hh"
 
@@ -151,6 +152,31 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					}
 				}
 			}
+
+			// FIXME: regularization could be needed also in other phases
+			// may need to be related to the state of the regularized joint
+			for (ElemContainerType::iterator j = ElemData[Elem::JOINT_REGULARIZATION].ElemContainer.begin();
+				j != ElemData[Elem::JOINT_REGULARIZATION].ElemContainer.end(); ++j)
+			{
+				JointRegularization *pJ = Cast<JointRegularization>(j->second, true);
+				if (pJ) {
+					JacHdl += pJ->AssJac(WorkMat, *pXCurr);
+				}
+			}
+
+#if 0
+			// this _should_ be harmless...
+			for (NodeContainerType::const_iterator n = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+				n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
+			{
+				ASSERT(n->second->iGetNumDof() == 6);
+				integer iFirstIndex = n->second->iGetFirstIndex();
+
+				for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+					JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) += 1.;
+				}
+			}
+#endif
 
 		} else {
 			doublereal dw1, dw2;

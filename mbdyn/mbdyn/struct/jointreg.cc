@@ -137,6 +137,21 @@ TikhonovRegularization::AssJac(VariableSubMatrixHandler& WorkMat,
 	return WorkMat;
 }
 
+/* inverse dynamics capable element */
+bool
+TikhonovRegularization::bInverseDynamics(void) const
+{
+	return true;
+}
+
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+TikhonovRegularization::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	return AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
 void
 TikhonovRegularization::InitialWorkSpaceDim(integer* piNumRows,
 	integer* piNumCols) const
