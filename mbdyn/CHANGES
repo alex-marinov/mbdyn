@@ -35,6 +35,7 @@ MBDyn 1.X-Devel
 		- added partial driven element support to inverse dynamics
 		- added support for Mat3x3 & Mat6x6 template drive callers
 		- added variable properties body
+		- allow Euler angles input in degrees
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed

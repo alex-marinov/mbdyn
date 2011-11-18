@@ -2117,27 +2117,42 @@ MBDynParser::GetMatR2vec(void)
 	}
 
 	if (IsKeyWord("euler") || IsKeyWord("euler" "123")) {
+		doublereal dScale = 1.;
+		if (IsKeyWord("degrees")) {
+			dScale = M_PI/180;
+		}
+
 		doublereal e1 = GetReal();
 		doublereal e2 = GetReal();
 		doublereal e3 = GetReal();
 
-		return EulerAngles123_2MatR(Vec3(e1, e2, e3));
+		return EulerAngles123_2MatR(Vec3(e1, e2, e3)*dScale);
 	}
 
 	if (IsKeyWord("euler" "313")) {
+		doublereal dScale = 1.;
+		if (IsKeyWord("degrees")) {
+			dScale = M_PI/180;
+		}
+
 		doublereal e1 = GetReal();
 		doublereal e2 = GetReal();
 		doublereal e3 = GetReal();
 
-		return EulerAngles313_2MatR(Vec3(e1, e2, e3));
+		return EulerAngles313_2MatR(Vec3(e1, e2, e3)*dScale);
 	}
 
 	if (IsKeyWord("euler" "321")) {
+		doublereal dScale = 1.;
+		if (IsKeyWord("degrees")) {
+			dScale = M_PI/180;
+		}
+
 		doublereal e1 = GetReal();
 		doublereal e2 = GetReal();
 		doublereal e3 = GetReal();
 
-		return EulerAngles321_2MatR(Vec3(e1, e2, e3));
+		return EulerAngles321_2MatR(Vec3(e1, e2, e3)*dScale);
 	}
 
 	if (IsKeyWord("vector")) {

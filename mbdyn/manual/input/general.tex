@@ -799,9 +799,16 @@ matrix, within the desired tolerance, is input}.
 values, as output by structural nodes.
 The keywords \kw{euler123}, \kw{euler313} and \kw{euler321}
 allow to use orientations in the sequence specified by the keyword.
-
-\fbox{Note: the output in the \texttt{.mov} file is in degrees,
-while in input MBDyn requires angles in radians.}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \{ \kw{euler} | \kw{euler123} | \kw{euler313} | \kw{euler321} \} ,
+        [ \kw{degrees} , ]
+        \bnt{angle_1} , \bnt{angle_2} , \bnt{angle_3}
+\end{Verbatim}
+\fbox{\begin{minipage}{.93\textwidth}%
+Note: the output in the \texttt{.mov} file is in degrees,
+while in input MBDyn requires angles in radians,
+unless the values are preceded by the keyword \kw{degrees}.
+\end{minipage}}
 
 \emph{Note: the definition of the three angles that are used 
 by the code to express orientations may vary between versions.
