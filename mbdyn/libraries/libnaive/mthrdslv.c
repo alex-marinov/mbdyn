@@ -173,6 +173,19 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 	return 0;
 }
 
+/*
+ * to solve A * x = b
+ *
+ * actually solve P * A * x = P *b
+ *
+ * compute P * L and P * U such that P * A = P * L * P^-1 * P * U
+ *
+ * and store P * L, P * U
+ *
+ * first step: P * L * f = P * b (but actually store P * f)
+ *
+ * second step: P * U * x = P * f
+ */
 int
 naivslv(RMAT a, integer neq, integer *nzc, IMAT ci, 
 		doublereal *rhs, doublereal * sol,
