@@ -494,6 +494,7 @@ ReadForce(DataManager* pDM,
 					pNode1, f1, R1h, R1hr,
 					pNode2, f2, R2h, R2hr,
 					fOut));
+			break;
 
 		default:
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);

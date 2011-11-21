@@ -60,6 +60,7 @@ MBDyn 1.X-Devel
 		- fix near-zero velocity in asynch. motor (Reinhard Resch)
 		- fix missing <errno.h> in Simulink interface
 		  (noted by Francesco Castellini)
+		- fix (and document) total internal force
 
 MBDyn 1.4.0
 	Enhancements:

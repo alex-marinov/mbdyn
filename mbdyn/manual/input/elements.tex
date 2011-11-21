@@ -915,12 +915,12 @@ The format is:
     \bnt{force_type} ::= \kw{total}
 
     \bnt{force_arglist} ::=
-        \bnt{node_label} ,
-        [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm} , ]
-        [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation} , ]
-        [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation} , ]
-        (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ,
-        (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value}
+        \bnt{node_label}
+        [ , \kw{position} , (\ty{Vec3}) \bnt{relative_arm} ]
+        [ , \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation} ]
+        [ , \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation} ]
+        [ , \kw{force} , (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ]
+        [ , \kw{moment} , (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value} ]
 \end{Verbatim}
 %\end{verbatim}
 The vector \nt{relative\_arm} defines the offset with respect
@@ -1024,12 +1024,12 @@ The format is:
         [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm_1} , ]
         [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation_1} , ]
         [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation_1} , ]
-        \bnt{node_2_label} ,
-        [ \kw{position} , (\ty{Vec3}) \bnt{relative_arm_2} , ]
-        [ \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation_2} , ]
-        [ \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation_2} , ]
-        (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ,
-        (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value}
+        \bnt{node_2_label}
+        [ , \kw{position} , (\ty{Vec3}) \bnt{relative_arm_2} ]
+        [ , \kw{force orientation} , (\ty{Mat3x3}) \bnt{force_orientation_2} ]
+        [ , \kw{moment orientation} , (\ty{Mat3x3}) \bnt{moment_orientation_2} ]
+        [ , \kw{force} , (\ty{TplDriveCaller<Vec3>}) \bnt{force_value} ]
+        [ , \kw{moment} , (\ty{TplDriveCaller<Vec3>}) \bnt{moment_value} ]
 \end{Verbatim}
 %\end{verbatim}
 The format is basically identical to the previous case,
