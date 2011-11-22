@@ -128,10 +128,10 @@ enum InputFormat {
 };
 
 enum InputSource {
-	FILE_UNKNOWN,
-	FILE_STDIN,
-	FILE_OPT,
-	FILE_ARGS
+	MBFILE_UNKNOWN,
+	MBFILE_STDIN,
+	MBFILE_OPT,
+	MBFILE_ARGS
 };
 
 struct mbdyn_proc_t {
@@ -395,7 +395,7 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 		case int('f'):
 			mbp.CurrInputFormat = MBDYN;
-			mbp.CurrInputSource = FILE_OPT;
+			mbp.CurrInputSource = MBFILE_OPT;
  			mbp.sInputFileName = optarg;
 			mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 			if (!mbp.FileStreamIn) {
@@ -734,16 +734,16 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #endif // USE_SLEEP
 
 	/* risolve l'input */
-	if (mbp.CurrInputSource == FILE_UNKNOWN) {
+	if (mbp.CurrInputSource == MBFILE_UNKNOWN) {
 		if (currarg < argc) {
-			mbp.CurrInputSource = FILE_ARGS;
+			mbp.CurrInputSource = MBFILE_ARGS;
 
 		} else {
 			/*
 			 * se non e' un argomento prende
 			 * lo standard input
 			 */
-			mbp.CurrInputSource = FILE_STDIN;
+			mbp.CurrInputSource = MBFILE_STDIN;
 			mbp.CurrInputFormat = MBDYN;
 			ASSERT(mbp.pIn == NULL);
 			mbp.pIn = dynamic_cast<std::istream *>(&std::cin);
@@ -753,17 +753,17 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	/* Gestione di input/output */
 	int last = 0;
 	while (last == 0) {
-		if (mbp.CurrInputSource == FILE_STDIN) {
+		if (mbp.CurrInputSource == MBFILE_STDIN) {
 			silent_cout("reading from stdin" << std::endl);
 			last = 1;
 
-		} else if (mbp.CurrInputSource == FILE_OPT) {
+		} else if (mbp.CurrInputSource == MBFILE_OPT) {
 			silent_cout("reading from file \"" 
 				<< mbp.sInputFileName 
 				<< "\"" << std::endl);
 			last = 1;
 
-		} else if (mbp.CurrInputSource == FILE_ARGS) {
+		} else if (mbp.CurrInputSource == MBFILE_ARGS) {
 			mbp.sInputFileName = argv[currarg];
 			silent_cout("reading from file \""
 				<< mbp.sInputFileName
@@ -957,7 +957,7 @@ main(int argc, char* argv[])
        	mbp.sInputFileName = sDefaultInputFileName;
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
-	mbp.CurrInputSource = FILE_UNKNOWN;
+	mbp.CurrInputSource = MBFILE_UNKNOWN;
 
 	atexit(mbdyn_cleanup_destroy);
 

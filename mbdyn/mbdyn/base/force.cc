@@ -270,7 +270,7 @@ ReadForce(DataManager* pDM,
 		UNKNOWN = -1,
 
 		CONSERVATIVE,			// deprecated
-		ABSOLUTE,
+		MB_ABSOLUTE,
 		FOLLOWER,
 
 		CONSERVATIVEINTERNAL,		// deprecated
@@ -306,7 +306,7 @@ ReadForce(DataManager* pDM,
 
 	switch (CurrType) {
 	case CONSERVATIVE:
-	case ABSOLUTE:
+	case MB_ABSOLUTE:
 	case FOLLOWER:
 	case CONSERVATIVEINTERNAL:
 	case ABSOLUTEINTERNAL:
@@ -392,7 +392,7 @@ ReadForce(DataManager* pDM,
 		break;
 
 	case CONSERVATIVE:
-	case ABSOLUTE:
+	case MB_ABSOLUTE:
 		pEl = ReadStructuralForce(pDM, HP, uLabel, bCouple, false, false);
 		break;
 
