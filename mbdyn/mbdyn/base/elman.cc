@@ -317,6 +317,26 @@ DataManager::ElemDataInit(void)
 void
 DataManager::ElemAssInit(void)
 {
+	Elem* pE = 0;
+	if (ElemIter.bGetFirst(pE)) {
+		do {
+			/* Aggiorna le dimensioni massime degli spazi di lavoro */
+			integer iNumRows = 0;
+			integer iNumCols = 0;
+			pE->WorkSpaceDim(&iNumRows, &iNumCols);
+			if (iNumRows > iMaxWorkNumRows) {
+				iMaxWorkNumRows = iNumRows;
+				DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
+					<< iMaxWorkNumRows << std::endl);
+			}
+			if (iNumCols > iMaxWorkNumCols) {
+				iMaxWorkNumCols = iNumCols;
+				DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
+					<< iMaxWorkNumCols << std::endl);
+			}
+		} while (ElemIter.bGetNext(pE));
+	}
+
 	ASSERT(iMaxWorkNumRows > 0);
 	ASSERT(iMaxWorkNumCols > 0);
 

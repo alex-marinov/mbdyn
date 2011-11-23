@@ -1040,22 +1040,6 @@ DataManager::ReadElems(MBDynParser& HP)
 
 			/* verifica dell'allocazione */
 			if (pE != 0) {
-				/* Aggiorna le dimensioni massime degli spazi di lavoro
-				 * (qui va bene perche' il puntatore e' gia' stato verificato) */
-				integer iNumRows = 0;
-				integer iNumCols = 0;
-				pE->WorkSpaceDim(&iNumRows, &iNumCols);
-				if (iNumRows > iMaxWorkNumRows) {
-					iMaxWorkNumRows = iNumRows;
-					DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
-						<< iMaxWorkNumRows << std::endl);
-				}
-				if (iNumCols > iMaxWorkNumCols) {
-					iMaxWorkNumCols = iNumCols;
-					DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
-						<< iMaxWorkNumCols << std::endl);
-				}
-
 				/* decrementa il totale degli elementi mancanti */
 				iMissingElems--;
 			}
