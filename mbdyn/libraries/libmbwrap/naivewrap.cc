@@ -127,7 +127,7 @@ throw(LinearSolver::ErrFactor)
 		case NAIVE_ENOPIV:
 			silent_cerr("NaiveSolver: ENOPIV(" << idx << ")"
 				<< std::endl);
-			throw LinearSolver::ErrNoPivot(idx, MBDYN_EXCEPT_ARGS);
+			throw LinearSolver::ErrNoPivot(idx + 1, MBDYN_EXCEPT_ARGS);
 	
 		case NAIVE_ERANGE:
 			silent_cerr("NaiveSolver: ERANGE"

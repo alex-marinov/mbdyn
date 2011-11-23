@@ -62,6 +62,7 @@ MBDyn 1.X-Devel
 		  (noted by Francesco Castellini)
 		- fix (and document) total internal force
 		- fix namespace clashes when building with mingw
+		- fix naive pivot error message (noted by Tommaso Solcia)
 
 MBDyn 1.4.0
 	Enhancements:
