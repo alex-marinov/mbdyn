@@ -550,22 +550,26 @@ void
 ModalExt::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		std::ostream& out = OH.Forces();
+		if (OH.UseText(OutputHandler::FORCES)) {
+			std::ostream& out = OH.Forces();
 
-		if (uFlags & ExtModalForceBase::EMF_RIGID) {
-			out << GetLabel() << "#" << pNode->GetLabel()
-				<< " " << F << " " << M
-				<< std::endl;
-		}
+			if (uFlags & ExtModalForceBase::EMF_RIGID) {
+				out << GetLabel() << "#" << pNode->GetLabel()
+					<< " " << F << " " << M
+					<< std::endl;
+			}
 
-		if (uFlags & ExtModalForceBase::EMF_MODAL) {
-			unsigned cnt = 1;
-			for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); ++i) {
-				out << GetLabel() << '.' << cnt
-					<< " " << *i << std::endl;
-				cnt++;
+			if (uFlags & ExtModalForceBase::EMF_MODAL) {
+				unsigned cnt = 1;
+				for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); ++i) {
+					out << GetLabel() << '.' << cnt
+						<< " " << *i << std::endl;
+					cnt++;
+				}
 			}
 		}
+
+		/* TODO: NetCDF */
 	}
 }
 

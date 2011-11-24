@@ -1236,100 +1236,106 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 void
 StructExtForce::Output(OutputHandler& OH) const
 {
-	std::ostream& out = OH.Forces();
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::FORCES)) {
+			std::ostream& out = OH.Forces();
 
-	if (pRefNode && (uOutputFlags & ExtFileHandlerBase::OUTPUT_REF_DYN)) {
-		out << GetLabel() << "#" << pRefNode->GetLabel()
-			<< " " << F0
-			<< " " << M0
-			<< " " << F1
-			<< " " << M1
-			<< " " << F2
-			<< " " << M2
-			<< std::endl;
-	}
-
-	if (uOutputFlags & ExtFileHandlerBase::OUTPUT_DYN) {
-		for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
-			out << GetLabel() << "@" << point->uLabel
-				<< " " << point->F
-				<< " " << point->M
-				<< std::endl;
-		}
-	}
-
-	if (uOutputFlags & ExtFileHandlerBase::OUTPUT_KIN) {
-		if (pRefNode) {
-			const Vec3& xRef = pRefNode->GetXCurr();
-			const Mat3x3& RRef = pRefNode->GetRCurr();
-			const Vec3& xpRef = pRefNode->GetVCurr();
-			const Vec3& wRef = pRefNode->GetWCurr();
-			//const Vec3& xppRef = pRefNode->GetXPPCurr();
-			//const Vec3& wpRef = pRefNode->GetWPCurr();
-
-			for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
-				Vec3 f(point->pNode->GetRCurr()*point->Offset);
-				Vec3 x(point->pNode->GetXCurr() + f);
-				Vec3 Dx(x - xRef);
-				Mat3x3 DR(RRef.MulTM(point->pNode->GetRCurr()));
-				Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
-				Vec3 Dv(v - xpRef - wRef.Cross(Dx));
-				const Vec3& w(point->pNode->GetWCurr());
-
-				out << GetLabel() << "." << point->uLabel
-					<< " " << RRef.MulTV(Dx);
-
-				switch (uRot) {
-				case MBC_ROT_MAT:
-					out << " " << DR;
-					break;
-
-				case MBC_ROT_THETA:
-					out << " " << RotManip::VecRot(DR);
-					break;
-
-				case MBC_ROT_NONE:
-				case MBC_ROT_EULER_123:
-					out << " " << MatR2EulerAngles123(DR)*dRaDegr;
-					break;
-				}
-
-				out << " " << RRef.MulTV(Dv)
-					<< " " << RRef.MulTV(w - wRef)
+			if (pRefNode && (uOutputFlags & ExtFileHandlerBase::OUTPUT_REF_DYN)) {
+				out << GetLabel() << "#" << pRefNode->GetLabel()
+					<< " " << F0
+					<< " " << M0
+					<< " " << F1
+					<< " " << M1
+					<< " " << F2
+					<< " " << M2
 					<< std::endl;
 			}
 
-		} else {
-			for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
-				const Mat3x3& R = point->pNode->GetRCurr();
-				Vec3 f = R*point->Offset;
-				Vec3 x = point->pNode->GetXCurr() + f;
-				const Vec3& w = point->pNode->GetWCurr();
-				Vec3 wCrossf = w.Cross(f);
-				Vec3 v = point->pNode->GetVCurr() + wCrossf;
-
-				out << GetLabel() << "." << point->uLabel
-					<< " " << x;
-
-				switch (uRot) {
-				case MBC_ROT_MAT:
-					out << " " << R;
-					break;
-
-				case MBC_ROT_THETA:
-					out << " " << RotManip::VecRot(R);
-					break;
-
-				case MBC_ROT_NONE:
-				case MBC_ROT_EULER_123:
-					out << " " << MatR2EulerAngles123(R)*dRaDegr;
-					break;
+			if (uOutputFlags & ExtFileHandlerBase::OUTPUT_DYN) {
+				for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+					out << GetLabel() << "@" << point->uLabel
+						<< " " << point->F
+						<< " " << point->M
+						<< std::endl;
 				}
-				out << " " << v
-					<< " " << w
-					<< std::endl;
+			}
+
+			if (uOutputFlags & ExtFileHandlerBase::OUTPUT_KIN) {
+				if (pRefNode) {
+					const Vec3& xRef = pRefNode->GetXCurr();
+					const Mat3x3& RRef = pRefNode->GetRCurr();
+					const Vec3& xpRef = pRefNode->GetVCurr();
+					const Vec3& wRef = pRefNode->GetWCurr();
+					//const Vec3& xppRef = pRefNode->GetXPPCurr();
+					//const Vec3& wpRef = pRefNode->GetWPCurr();
+
+					for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+						Vec3 f(point->pNode->GetRCurr()*point->Offset);
+						Vec3 x(point->pNode->GetXCurr() + f);
+						Vec3 Dx(x - xRef);
+						Mat3x3 DR(RRef.MulTM(point->pNode->GetRCurr()));
+						Vec3 v(point->pNode->GetVCurr() + point->pNode->GetWCurr().Cross(f));
+						Vec3 Dv(v - xpRef - wRef.Cross(Dx));
+						const Vec3& w(point->pNode->GetWCurr());
+
+						out << GetLabel() << "." << point->uLabel
+							<< " " << RRef.MulTV(Dx);
+
+						switch (uRot) {
+						case MBC_ROT_MAT:
+							out << " " << DR;
+							break;
+
+						case MBC_ROT_THETA:
+							out << " " << RotManip::VecRot(DR);
+							break;
+
+						case MBC_ROT_NONE:
+						case MBC_ROT_EULER_123:
+							out << " " << MatR2EulerAngles123(DR)*dRaDegr;
+							break;
+						}
+
+						out << " " << RRef.MulTV(Dv)
+							<< " " << RRef.MulTV(w - wRef)
+							<< std::endl;
+					}
+
+				} else {
+					for (std::vector<PointData>::const_iterator point = m_Points.begin(); point != m_Points.end(); ++point) {
+						const Mat3x3& R = point->pNode->GetRCurr();
+						Vec3 f = R*point->Offset;
+						Vec3 x = point->pNode->GetXCurr() + f;
+						const Vec3& w = point->pNode->GetWCurr();
+						Vec3 wCrossf = w.Cross(f);
+						Vec3 v = point->pNode->GetVCurr() + wCrossf;
+
+						out << GetLabel() << "." << point->uLabel
+							<< " " << x;
+
+						switch (uRot) {
+						case MBC_ROT_MAT:
+							out << " " << R;
+							break;
+
+						case MBC_ROT_THETA:
+							out << " " << RotManip::VecRot(R);
+							break;
+
+						case MBC_ROT_NONE:
+						case MBC_ROT_EULER_123:
+							out << " " << MatR2EulerAngles123(R)*dRaDegr;
+							break;
+						}
+						out << " " << v
+							<< " " << w
+							<< std::endl;
+					}
+				}
 			}
 		}
+
+		/* TODO: NetCDF */
 	}
 }
  

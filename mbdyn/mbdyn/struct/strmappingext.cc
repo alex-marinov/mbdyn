@@ -976,24 +976,30 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 void
 StructMappingExtForce::Output(OutputHandler& OH) const
 {
-	std::ostream& out = OH.Forces();
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::FORCES)) {
+			std::ostream& out = OH.Forces();
 
-	if (pRefNode) {
-		out << GetLabel() << "#" << pRefNode->GetLabel()
-			<< " " << F0
-			<< " " << M0
-			<< " " << F1
-			<< " " << M1
-			<< " " << F2
-			<< " " << M2
-			<< std::endl;
-	}
+			if (pRefNode) {
+				out << GetLabel() << "#" << pRefNode->GetLabel()
+					<< " " << F0
+					<< " " << M0
+					<< " " << F1
+					<< " " << M1
+					<< " " << F2
+					<< " " << M2
+					<< std::endl;
+			}
 
-	for (unsigned n = 0; n < Nodes.size(); n++) {
-		out << GetLabel() << "@" << Nodes[n].pNode->GetLabel()
-			<< " " << Nodes[n].F
-			<< " " << Nodes[n].M
-			<< std::endl;
+			for (unsigned n = 0; n < Nodes.size(); n++) {
+				out << GetLabel() << "@" << Nodes[n].pNode->GetLabel()
+					<< " " << Nodes[n].F
+					<< " " << Nodes[n].M
+					<< std::endl;
+			}
+		}
+
+		/* TODO: NetCDF */
 	}
 }
  

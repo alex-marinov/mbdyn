@@ -219,12 +219,16 @@ void
 AbsoluteForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode->GetLabel()
-			<< " " << f.Get()
-			<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel()
+				<< " " << f.Get()
+				<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -471,12 +475,16 @@ void
 FollowerForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode->GetLabel()
-			<< " " << pNode->GetRCurr()*f.Get()
-			<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel()
+				<< " " << pNode->GetRCurr()*f.Get()
+				<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -668,11 +676,15 @@ void
 AbsoluteCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode->GetLabel()
-			<< " " << f.Get()
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel()
+				<< " " << f.Get()
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -841,11 +853,15 @@ void
 FollowerCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode->GetLabel()
-			<< " " << pNode->GetRCurr()*f.Get()
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel()
+				<< " " << pNode->GetRCurr()*f.Get()
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -1131,16 +1147,20 @@ void
 AbsoluteInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 F(f.Get());
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode1->GetLabel()
-			<< " " << F
-			<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
-			<< " " << pNode2->GetLabel()
-			<< " " << -F
-			<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			Vec3 F(f.Get());
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel()
+				<< " " << F
+				<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+				<< " " << pNode2->GetLabel()
+				<< " " << -F
+				<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -1443,16 +1463,20 @@ void
 FollowerInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 F(pNode1->GetRCurr()*f.Get());
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode1->GetLabel()
-			<< " " << F
-			<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
-			<< " " << pNode2->GetLabel()
-			<< " " << -F
-			<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			Vec3 F(pNode1->GetRCurr()*f.Get());
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel()
+				<< " " << F
+				<< " " << pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1
+				<< " " << pNode2->GetLabel()
+				<< " " << -F
+				<< " " << pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -1701,14 +1725,18 @@ void
 AbsoluteInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 F(f.Get());
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode1->GetLabel()
-			<< " " << F
-			<< " " << pNode2->GetLabel()
-			<< " " << -F
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			Vec3 F(f.Get());
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel()
+				<< " " << F
+				<< " " << pNode2->GetLabel()
+				<< " " << -F
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -1896,14 +1924,18 @@ void
 FollowerInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		Vec3 F(pNode1->GetRCurr()*f.Get());
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode1->GetLabel()
-			<< " " << F
-			<< " " << pNode2->GetLabel()
-			<< " " << -F
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			Vec3 F(pNode1->GetRCurr()*f.Get());
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel()
+				<< " " << F
+				<< " " << pNode2->GetLabel()
+				<< " " << -F
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 

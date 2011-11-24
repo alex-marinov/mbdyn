@@ -332,46 +332,50 @@ void
 ModalMappingExt::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		std::ostream& out = OH.Forces();
+		if (OH.UseText(OutputHandler::FORCES)) {
+			std::ostream& out = OH.Forces();
 
-		if (uFlags & ExtModalForceBase::EMF_RIGID) {
-			out << GetLabel() << "@" << pRefNode->GetLabel()
-				<< " " << F0 << " " << M0
-				<< " " << F1 << " " << M1
-				<< " " << F2 << " " << M2
-				<< std::endl;
-		}
-
-		if (uFlags & ExtModalForceBase::EMF_MODAL) {
-			for (unsigned i = 0; i < p.size(); i++) {
-				out << GetLabel() << '.' << i + 1
-					<< " " << p[i]
-					<< " " << q[i]
-					<< " " << qP[i]
+			if (uFlags & ExtModalForceBase::EMF_RIGID) {
+				out << GetLabel() << "@" << pRefNode->GetLabel()
+					<< " " << F0 << " " << M0
+					<< " " << F1 << " " << M1
+					<< " " << F2 << " " << M2
 					<< std::endl;
 			}
 
-			for (unsigned i = 0; i < Nodes.size(); i++) {
-				const double *px = &x[6*i];
-				const double *pxP = &xP[6*i];
-				out << GetLabel() << '#' << Nodes[i].pNode->GetLabel()
-					<< " " << Nodes[i].F
-					<< " " << Nodes[i].M
-					<< " " << px[0]
-					<< " " << px[1]
-					<< " " << px[2]
-					<< " " << px[3]
-					<< " " << px[4]
-					<< " " << px[5]
-					<< " " << pxP[0]
-					<< " " << pxP[1]
-					<< " " << pxP[2]
-					<< " " << pxP[3]
-					<< " " << pxP[4]
-					<< " " << pxP[5]
-					<< std::endl;
+			if (uFlags & ExtModalForceBase::EMF_MODAL) {
+				for (unsigned i = 0; i < p.size(); i++) {
+					out << GetLabel() << '.' << i + 1
+						<< " " << p[i]
+						<< " " << q[i]
+						<< " " << qP[i]
+						<< std::endl;
+				}
+
+				for (unsigned i = 0; i < Nodes.size(); i++) {
+					const double *px = &x[6*i];
+					const double *pxP = &xP[6*i];
+					out << GetLabel() << '#' << Nodes[i].pNode->GetLabel()
+						<< " " << Nodes[i].F
+						<< " " << Nodes[i].M
+						<< " " << px[0]
+						<< " " << px[1]
+						<< " " << px[2]
+						<< " " << px[3]
+						<< " " << px[4]
+						<< " " << px[5]
+						<< " " << pxP[0]
+						<< " " << pxP[1]
+						<< " " << pxP[2]
+						<< " " << pxP[3]
+						<< " " << pxP[4]
+						<< " " << pxP[5]
+						<< std::endl;
+				}
 			}
 		}
+
+		/* TODO: NetCDF */
 	}
 }
 

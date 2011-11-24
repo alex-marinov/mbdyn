@@ -117,10 +117,14 @@ void
 AbstractForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode->GetLabel() << " " << dGet()
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel() << " " << dGet()
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
@@ -210,12 +214,16 @@ void
 AbstractInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-		doublereal d = dGet();
-		OH.Forces()
-			<< GetLabel()
-			<< " " << pNode1->GetLabel() << " " << d
-			<< " " << pNode2->GetLabel() << " " << -d
-			<< std::endl;
+		if (OH.UseText(OutputHandler::FORCES)) {
+			doublereal d = dGet();
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel() << " " << d
+				<< " " << pNode2->GetLabel() << " " << -d
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
 	}
 }
 
