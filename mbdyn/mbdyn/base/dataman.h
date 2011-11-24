@@ -204,6 +204,7 @@ protected:
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 	/* NetCDF stuff */
 	bool bNetCDFsync;
+	bool bNetCDFnoText;
 	NcVar *Var_Step;
 	NcVar *Var_Time;
 	NcVar *Var_TimeStep;

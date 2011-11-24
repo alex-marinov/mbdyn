@@ -966,6 +966,9 @@ EndOfUse:
 					if (HP.IsKeyWord("sync")) {
 						bNetCDFsync = true;
 					}
+					if (HP.IsKeyWord("no" "text")) {
+						bNetCDFnoText = true;
+					}
 #else /* ! USE_NETCDF */
 					silent_cerr("Please rebuild with NetCDF output enabled"
 						<< std::endl);
@@ -1431,7 +1434,11 @@ EndOfUse:
 	}
 
 	/* FIXME: from now on, NetCDF is enabled */
-	// OutHdl.ClearText();
+	if (bNetCDFnoText) {
+		// enables or disables text output
+		OutHdl.ClearText();
+	}
+
 	if (bOutput(RES_NETCDF)) {
 		OutHdl.SetNetCDF(OutputHandler::NETCDF);
 		OutHdl.SetNetCDF(OutputHandler::STRNODES);
@@ -1439,6 +1446,7 @@ EndOfUse:
 		OutHdl.SetNetCDF(OutputHandler::JOINTS);
 		OutHdl.SetNetCDF(OutputHandler::BEAMS);
 		OutHdl.SetNetCDF(OutputHandler::AERODYNAMIC);
+		OutHdl.SetNetCDF(OutputHandler::LOADABLE);
 	}
 
 	integer iOutputFrequency = 0;

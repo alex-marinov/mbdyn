@@ -149,6 +149,7 @@ ResMode(RES_TEXT),
 #ifdef USE_NETCDF
 // NetCDF stuff
 bNetCDFsync(false),
+bNetCDFnoText(false),
 Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),

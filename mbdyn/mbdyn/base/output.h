@@ -44,6 +44,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
+#include <vector>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>  
@@ -276,6 +277,21 @@ public:
 
 #ifdef USE_NETCDF
 	inline NcFile* pGetBinFile(void) const;
+
+	struct AttrVal {
+		std::string attr;
+		std::string val;
+		AttrVal(void) { NO_OP; };
+		AttrVal(const std::string& attr, const std::string& val) : attr(attr), val(val) { NO_OP; };
+	};
+
+	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
+	typedef std::vector<const NcDim *> NcDimVec;
+
+	NcVar *
+	pCreateVar(const std::string& name, NcType type,
+		const AttrValVec& attrs,
+		const NcDimVec& dims);
 
 	inline const NcDim* DimTime(void) const;
 	inline const NcDim* DimV1(void) const;

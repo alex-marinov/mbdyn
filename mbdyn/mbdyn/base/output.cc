@@ -181,7 +181,8 @@ OutputHandler::OutputHandler_int(void)
 	OutData[PRESNODES].pof = &ofPresNodes;
 
 	OutData[LOADABLE].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
+		| OUTPUT_MAY_USE_NETCDF;
 	OutData[LOADABLE].pof = &ofLoadable;
 
 	OutData[GENELS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
@@ -666,6 +667,31 @@ OutputHandler::SetPrecision(int iNewPrecision)
 		}
 	}
 }
+
+#ifdef USE_NETCDF
+NcVar *
+OutputHandler::pCreateVar(const std::string& name, NcType type,
+	const AttrValVec& attrs, const NcDimVec& dims)
+{
+	NcVar *var;
+
+	var = pBinFile->add_var(name.c_str(), type, dims.size(), const_cast<const NcDim **>(&dims[0]));
+	if (var == 0) {
+		silent_cerr("OutputHandler::pCreateVar(\"" << name << "\") failed" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); i++) {
+		if (!var->add_att(i->attr.c_str(), i->val.c_str())) {
+			silent_cerr("OutputHandler::pCreateVar(\"" << name << "\"): "
+				"add_att(\"" << i->attr << "\", \"" << i->val << "\") failed" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	return var;
+}
+#endif // USE_NETCDF
 
 /* OutputHandler - end */
 
