@@ -84,7 +84,6 @@ class SymbolicViscousConstitutiveLaw
 : public ElasticConstitutiveLaw<T, Tder> {
 public:
 	SymbolicViscousConstitutiveLaw(
-		const TplDriveCaller<T>* pDC,
 		const T& PStress,
 		std::vector<std::string>& epsilonPrime,
 		std::vector<std::string>& expression);
@@ -101,11 +100,10 @@ typedef SymbolicViscousConstitutiveLaw<Vec6, Mat6x6>
 
 template <class T, class Tder>
 SymbolicViscousConstitutiveLaw<T, Tder>::SymbolicViscousConstitutiveLaw(
-	const TplDriveCaller<T>* pDC,
 	const T& PStress,
 	std::vector<std::string>& epsilonPrime,
 	std::vector<std::string>& expression)
-: ElasticConstitutiveLaw<T, Tder>(pDC, PStress)
+: ElasticConstitutiveLaw<T, Tder>(0, PStress)
 {
 	NO_OP;
 }

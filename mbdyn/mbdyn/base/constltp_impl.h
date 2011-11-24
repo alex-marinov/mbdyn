@@ -1042,10 +1042,9 @@ class LinearViscousIsotropicConstitutiveLaw
    doublereal dStiffnessPrime;  /* Isotropa: Eye*dStiffnessPrime */
 
  public:
-   LinearViscousIsotropicConstitutiveLaw(const TplDriveCaller<T>* pDC,
-					 const T& PStress,
+   LinearViscousIsotropicConstitutiveLaw(const T& PStress,
 					 doublereal dStiffPrime)
-     : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
+     : ElasticConstitutiveLaw<T, Tder>(0, PStress),
      dStiffnessPrime(dStiffPrime) {
       mb_deye<Tder>(ConstitutiveLaw<T, Tder>::FDEPrime, dStiffnessPrime);
    };
@@ -1064,8 +1063,7 @@ class LinearViscousIsotropicConstitutiveLaw
       typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
                             cl,
-                            cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
-                               ElasticConstitutiveLaw<T, Tder>::PreStress,
+                            cl(ElasticConstitutiveLaw<T, Tder>::PreStress,
                                dStiffnessPrime));
 
       return pCL;
@@ -1092,10 +1090,9 @@ template <class T, class Tder>
 class LinearViscousGenericConstitutiveLaw
 : public ElasticConstitutiveLaw<T, Tder> {
  public:
-   LinearViscousGenericConstitutiveLaw(const TplDriveCaller<T>* pDC,
-				       const T& PStress,
+   LinearViscousGenericConstitutiveLaw(const T& PStress,
 				       const Tder& StiffPrime)
-     : ElasticConstitutiveLaw<T, Tder>(pDC, PStress) {
+     : ElasticConstitutiveLaw<T, Tder>(0, PStress) {
       ConstitutiveLaw<T, Tder>::FDEPrime = StiffPrime;
    };
 
@@ -1113,8 +1110,7 @@ class LinearViscousGenericConstitutiveLaw
       typedef LinearViscousGenericConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
                             cl,
-                            cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(),
-                               ElasticConstitutiveLaw<T, Tder>::PreStress,
+                            cl(ElasticConstitutiveLaw<T, Tder>::PreStress,
                                ConstitutiveLaw<T, Tder>::FDEPrime));
 
       return pCL;

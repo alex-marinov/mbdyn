@@ -580,9 +580,7 @@ struct SymbolicCLR : public ConstitutiveLawRead<T, Tder> {
 #ifdef USE_GINAC
 			typedef GiNaCViscousConstitutiveLaw<T, Tder> L;
 			SAFENEWWITHCONSTRUCTOR(pCL, L,
-					L(pTplDC, PreStress,
-						epsilonPrime,
-						expression));
+					L(PreStress, epsilonPrime, expression));
 #else /* ! USE_GINAC */
 			silent_cerr("symbolic constitutive law not supported "
 				"at line " << HP.GetLineData() << std::endl);
@@ -663,7 +661,7 @@ struct LinearViscousCLR : public ConstitutiveLawRead<T, Tder> {
 		GetPreStress(HP, PreStress);
 
 		typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, dSP));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(PreStress, dSP));
 
 		return pCL;
 	};
@@ -685,7 +683,7 @@ struct LinearViscousGenericCLR : public ConstitutiveLawRead<T, Tder> {
 		GetPreStress(HP, PreStress);
 
 		typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(NULL, PreStress, SP));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(PreStress, SP));
 
 		return pCL;
 	};
@@ -737,7 +735,10 @@ struct LinearViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 				<< std::endl);
 
 			typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, dSP));
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(PreStress, dSP));
+			if (pTplDC) {
+				delete pTplDC;
+			}
 
 		} else if (dSP == 0.) {
 			silent_cerr("warning, null stiffness prime, "
@@ -792,7 +793,10 @@ struct LinearViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 				<< std::endl);
 
 			typedef LinearViscousGenericConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP));
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(PreStress, SP));
+			if (pTplDC) {
+				delete pTplDC;
+			}
 
 		} else if (IsNull(SP)) {
 			silent_cerr("warning, null stiffness prime, "
@@ -851,7 +855,10 @@ struct LTVViscoElasticGenericCLR : public ConstitutiveLawRead<T, Tder> {
 			SAFEDELETE(pdc);
 
 			typedef LTVViscousGenericConstitutiveLaw<T, Tder> L;
-			SAFENEWWITHCONSTRUCTOR(pCL, L, L(pTplDC, PreStress, SP, pdcp));
+			SAFENEWWITHCONSTRUCTOR(pCL, L, L(PreStress, SP, pdcp));
+			if (pTplDC) {
+				delete pTplDC;
+			}
 
 		} else
 		if (IsNull(SP)) {

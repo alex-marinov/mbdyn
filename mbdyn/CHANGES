@@ -63,6 +63,7 @@ MBDyn 1.X-Devel
 		- fix (and document) total internal force
 		- fix namespace clashes when building with mingw
 		- fix naive pivot error message (noted by Tommaso Solcia)
+		- fix viscous constitutive laws input
 
 MBDyn 1.4.0
 	Enhancements:

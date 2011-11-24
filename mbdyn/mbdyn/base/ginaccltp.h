@@ -383,7 +383,6 @@ private:
 
 public:
 	GiNaCViscousConstitutiveLaw(
-		const TplDriveCaller<T>* pDC,
 		const T& PStress,
 		std::vector<std::string>& epsilon,
 		std::vector<std::string>& expression);
@@ -402,11 +401,10 @@ typedef GiNaCViscousConstitutiveLaw<Vec6, Mat6x6>
 
 template <class T, class Tder>
 GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
-	const TplDriveCaller<T>* pDC,
 	const T& PStress, 
 	std::vector<std::string>& epsilonPrime,
 	std::vector<std::string>& expression)
-: SymbolicViscousConstitutiveLaw<T, Tder>(pDC, PStress, epsilonPrime, expression)
+: SymbolicViscousConstitutiveLaw<T, Tder>(PStress, epsilonPrime, expression)
 { 
 	if (typeid(T) == typeid(Vec3)) {
 		dim = 3;
@@ -512,8 +510,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::pCopy(void) const
 	typedef GiNaCViscousConstitutiveLaw<T, Tder> cl;
 	SAFENEWWITHCONSTRUCTOR(pCL, 
 		cl, 
-		cl(ElasticConstitutiveLaw<T, Tder>::pGetDriveCaller()->pCopy(), 
-			ElasticConstitutiveLaw<T, Tder>::PreStress,
+		cl(ElasticConstitutiveLaw<T, Tder>::PreStress,
 			epsilonPrime, expression));
       
 	return pCL;
@@ -574,7 +571,6 @@ private:
 
 public:
 	GiNaCViscousConstitutiveLaw(
-		const TplDriveCaller<doublereal>* pDC,
 		const doublereal& PStress,
 		std::vector<std::string>& epsilonPrime,
 		std::vector<std::string>& expression);
@@ -585,11 +581,10 @@ public:
 };
 
 GiNaCViscousConstitutiveLaw<doublereal, doublereal>::GiNaCViscousConstitutiveLaw(
-	const TplDriveCaller<doublereal>* pDC,
 	const doublereal& PStress, 
 	std::vector<std::string>& epsilonPrime,
 	std::vector<std::string>& expression)
-: SymbolicViscousConstitutiveLaw<doublereal, doublereal>(pDC, PStress, epsilonPrime, expression),
+: SymbolicViscousConstitutiveLaw<doublereal, doublereal>(PStress, epsilonPrime, expression),
 gEpsPrime(epsilonPrime[0])
 { 
 	ConstitutiveLaw<doublereal, doublereal>::FDEPrime = 0.;
@@ -652,8 +647,7 @@ GiNaCViscousConstitutiveLaw<doublereal, doublereal>::pCopy(void) const
 	typedef GiNaCViscousConstitutiveLaw<doublereal, doublereal> cl;
 	SAFENEWWITHCONSTRUCTOR(pCL, 
 		cl, 
-		cl(ElasticConstitutiveLaw<doublereal, doublereal>::pGetDriveCaller()->pCopy(), 
-			ElasticConstitutiveLaw<doublereal, doublereal>::PreStress,
+		cl(ElasticConstitutiveLaw<doublereal, doublereal>::PreStress,
 			epsilonPrime, expression));
       
 	return pCL;
