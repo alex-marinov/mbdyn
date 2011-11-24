@@ -1282,69 +1282,9 @@ DataManager::OutputPrepare(void)
 		OutHdl.Open(OutputHandler::NETCDF);
 		ASSERT(OutHdl.IsOpen(OutputHandler::NETCDF));
 
-		/* get a pointer to binary NetCDF file  -->  pDM->OutHdl.BinFile */
-		NcFile *pBinFile = OutHdl.pGetBinFile();
-
-		/* Add general NetCDF (output) variables to the BinFile object
-		 * and save the NcVar* pointer returned from add_var as handle
-		 * for later write accesses. Define also variable attributes */
-		Var_Step = pBinFile->add_var("run.step", ncLong,
-			OutHdl.DimTime());
-		if (Var_Step == 0) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_Step->add_att("units", "-")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_Step->add_att("type", "integer")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_Step->add_att("description", "time step index")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		// NOTE: should be "run.time", but many browsers understand
-		// just "time"...
-		Var_Time = pBinFile->add_var("time", ncDouble,
-			OutHdl.DimTime());
-		if (Var_Time == 0) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		/* FIXME: needs to be configurable? */
-		if (!Var_Time->add_att("units", "s")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_Time->add_att("type", "doublereal")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_Time->add_att("description", "simulation time")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		Var_TimeStep = pBinFile->add_var("run.timestep", ncDouble,
-			OutHdl.DimTime());
-		if (Var_TimeStep == 0) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		/* FIXME: needs to be configurable? */
-		if (!Var_TimeStep->add_att("units", "s")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_TimeStep->add_att("type", "doublereal")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!Var_TimeStep->add_att("description", "integration time step")) {
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		Var_Step = OutHdl.CreateVar<integer>("run.step", "-", "time step index");
+		Var_Time = OutHdl.CreateVar<doublereal>("time", "s", "simulation time");
+		Var_TimeStep = OutHdl.CreateVar<doublereal>("run.timestep", "s", "integration time step");
 	}
 #endif /* USE_NETCDF */
 

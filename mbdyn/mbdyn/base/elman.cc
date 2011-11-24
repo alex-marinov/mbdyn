@@ -533,36 +533,18 @@ DataManager::ElemOutputPrepare(OutputHandler& OH)
 	for (unsigned et = 0; et < Elem::LASTELEMTYPE; et++) {
 		if (ElemData[et].ElemContainer.size() && OH.UseNetCDF(ElemData[et].OutFile)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-
-			integer iNumElems = ElemData[et].ElemContainer.size();
-
-			NcFile *pBinFile = OH.pGetBinFile();
-
-			char buf[BUFSIZ];
-			int l;
-
 			ASSERT(ElemData[et].Desc != 0);
 			ASSERT(ElemData[et].ShortDesc != 0);
 
-			l = snprintf(buf, sizeof(buf), "%s_elem_labels_dim", ElemData[et].ShortDesc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			NcDim *DimLabels = pBinFile->add_dim(buf, iNumElems);
+			integer iNumElems = ElemData[et].ElemContainer.size();
 
-			l = snprintf(buf, sizeof(buf), "elem.%s", ElemData[et].ShortDesc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
+			OutputHandler::AttrValVec attrs(1);
+			attrs[0] = OutputHandler::AttrVal("description", std::string(ElemData[et].Desc) + " elements labels");
 
-			l = snprintf(buf, sizeof(buf), "%s elements labels", ElemData[et].Desc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			if (!VarLabels->add_att("description", buf)) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			OutputHandler::NcDimVec dim(1);
+			dim[0] = OH.CreateDim(std::string(ElemData[et].ShortDesc) + "_elem_labels_dim", iNumElems);
+
+			NcVar *VarLabels = OH.CreateVar(std::string("elem.") + ElemData[et].ShortDesc, ncInt, attrs, dim);
 
 			ElemContainerType::const_iterator p = ElemData[et].ElemContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumElems); i++, p++) {

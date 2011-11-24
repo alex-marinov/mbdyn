@@ -84,7 +84,10 @@ const char* psExt[] = {
 OutputHandler::OutputHandler(void)
 : FileName(NULL),
 #ifdef USE_NETCDF
-pBinFile(0),
+m_DimTime(0),
+m_DimV1(0),
+m_DimV3(0),
+m_pBinFile(0),
 #endif /* USE_NETCDF */
 iCurrWidth(iDefaultWidth),
 iCurrPrecision(iDefaultPrecision),
@@ -97,7 +100,10 @@ nCurrRestartFile(0)
 OutputHandler::OutputHandler(const char* sFName, int iExtNum)
 : FileName(sFName, iExtNum),
 #ifdef USE_NETCDF
-pBinFile(0),
+m_DimTime(0),
+m_DimV1(0),
+m_DimV3(0),
+m_pBinFile(0),
 #endif /* USE_NETCDF */
 iCurrWidth(iDefaultWidth),
 iCurrPrecision(iDefaultPrecision),
@@ -251,13 +257,6 @@ OutputHandler::Init(const char* sFName, int iExtNum)
 {
 	FileName::iInit(sFName, iExtNum);
 
-#ifdef USE_NETCDF
-	/* NetCDF file */
-	for (int i = 0; i < DIM_LAST; i++) {
-		Dim[i] = 0;
-	}
-#endif /* USE_NETCDF */
-
 	OutputOpen();
 	LogOpen();
 }
@@ -269,7 +268,7 @@ OutputHandler::~OutputHandler(void)
 		if (IsOpen(iCnt)) {
 #ifdef USE_NETCDF
 			if (iCnt == NETCDF) {
-				delete pBinFile;
+				delete m_pBinFile;
 
 			} else
 #endif /* USE_NETCDF */
@@ -287,55 +286,18 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 	if (!IsOpen(out)) {
 #ifdef USE_NETCDF
 		if (out == NETCDF) {
-			pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
-			pBinFile->set_fill(NcFile::Fill);
+			m_pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
+			m_pBinFile->set_fill(NcFile::Fill);
 	
-         		if (!pBinFile->is_valid()) {
+         		if (!m_pBinFile->is_valid()) {
 				silent_cerr("NetCDF file is invalid" << std::endl);
 				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 
-			static const char *DimName[] = {
-				"time",		// THE UNLIMITED DIMENSION
-				"vec1",
-				"vec2",
-				"vec3",
-				"vec4",
-				"vec5",
-				"vec6",
-				"vec7",
-				"vec8",
-				"vec9",
-				NULL
-			};
-
 			// Let's define some dimensions which could be useful	       	     
-			Dim[DIM_TIME] = pBinFile->add_dim("time");
-			if (!Dim[DIM_TIME]) {
-				silent_cerr("Unable to create NetCDF "
-					"\"time\" dimension"
-					<< std::endl);
-				throw ErrFile(MBDYN_EXCEPT_ARGS);
-			}
-
-			for (int i = 1; i < DIM_LAST; i++) {
-				Dim[i] = pBinFile->add_dim(DimName[i], i);
-				if (!Dim[i]) {
-					silent_cerr("Unable to create NetCDF "
-						"\"" << DimName[i] << "\" "
-						"dimension" << std::endl);
-					throw ErrFile(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
-			/* TODO: add
-			 *	- version
-			 *	- model name
-			 *	- title
-			 *	- description
-			 *	- timestamp
-			 * from netcdf's configuration parameters
-			 */
+			m_DimTime = CreateDim("time");
+			m_DimV1 = CreateDim("vec1", 1);
+			m_DimV3 = CreateDim("vec3", 3);
 
 		} else
 #endif /* USE_NETCDF */
@@ -384,7 +346,7 @@ OutputHandler::IsOpen(const OutputHandler::OutFiles out) const
 {
 #ifdef USE_NETCDF
 	if (out == NETCDF) {
-		return pBinFile == 0 ? false : pBinFile->is_valid();
+		return m_pBinFile == 0 ? false : m_pBinFile->is_valid();
 	}
 #endif /* USE_NETCDF */
 
@@ -520,7 +482,7 @@ OutputHandler::Close(const OutputHandler::OutFiles out)
 
 #ifdef USE_NETCDF
 	if (out == NETCDF) {
-		pBinFile->close();
+		m_pBinFile->close();
 
 	} else
 #endif /* USE_NETCDF */
@@ -669,27 +631,161 @@ OutputHandler::SetPrecision(int iNewPrecision)
 }
 
 #ifdef USE_NETCDF
+const NcDim *
+OutputHandler::CreateDim(const std::string& name, integer size)
+{
+	ASSERT(m_pBinFile != 0);
+
+	NcDim *dim;
+	if (size == -1) {
+		dim = m_pBinFile->add_dim(name.c_str());
+
+	} else {
+		dim = m_pBinFile->add_dim(name.c_str(), size);
+	}
+
+	if (dim == 0) {
+		std::ostringstream os;
+		os << "OutputHandler::CreateDim(\"" << name << "\"";
+		if (size > -1) {
+			os << ", " << size;
+		}
+		os << "): unable to add dimension";
+		silent_cerr(os.str() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return dim;
+}
+
+const NcDim *
+OutputHandler::GetDim(const std::string& name) const
+{
+	ASSERT(m_pBinFile != 0);
+
+	return m_pBinFile->get_dim(name.c_str());
+}
+
 NcVar *
-OutputHandler::pCreateVar(const std::string& name, NcType type,
+OutputHandler::CreateVar(const std::string& name, NcType type,
 	const AttrValVec& attrs, const NcDimVec& dims)
 {
 	NcVar *var;
 
-	var = pBinFile->add_var(name.c_str(), type, dims.size(), const_cast<const NcDim **>(&dims[0]));
+	var = m_pBinFile->add_var(name.c_str(), type, dims.size(), const_cast<const NcDim **>(&dims[0]));
 	if (var == 0) {
-		silent_cerr("OutputHandler::pCreateVar(\"" << name << "\") failed" << std::endl);
+		silent_cerr("OutputHandler::CreateVar(\"" << name << "\") failed" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); i++) {
 		if (!var->add_att(i->attr.c_str(), i->val.c_str())) {
-			silent_cerr("OutputHandler::pCreateVar(\"" << name << "\"): "
+			silent_cerr("OutputHandler::CreateVar(\"" << name << "\"): "
 				"add_att(\"" << i->attr << "\", \"" << i->val << "\") failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
 	return var;
+}
+
+NcVar *
+OutputHandler::CreateVar(const std::string& name, const std::string& type)
+{
+	AttrValVec attrs(1);
+	attrs[0] = AttrVal("type", type);
+
+	NcDimVec dims(1);
+	dims[0] = DimV1();
+
+	return CreateVar(name, ncChar, attrs, dims);
+}
+
+NcVar *
+OutputHandler::CreateRotationVar(const std::string& name_prefix,
+	const std::string& name_postfix,
+	OrientationDescription od,
+	const std::string& description)
+{
+	NcDimVec dim;
+	AttrValVec attrs;
+	std::string name(name_prefix);
+
+	switch (od) {
+	case ORIENTATION_MATRIX:
+		dim.resize(3);
+		dim[0] = DimTime();
+		dim[1] = DimV3();
+		dim[2] = DimV3();
+
+		attrs.resize(3);
+		attrs[0] = AttrVal("units", "-");
+		attrs[1] = AttrVal("type", "Mat3x3");
+		attrs[2] = AttrVal("description",
+			description + " orientation matrix "
+			"(R11, R21, R31, R12, R22, R32, R13, R23, R33)");
+
+		name += "R";
+		break;
+
+	case ORIENTATION_VECTOR:
+		dim.resize(2);
+		dim[0] = DimTime();
+		dim[1] = DimV3();
+
+		attrs.resize(3);
+		attrs[0] = AttrVal("units", "radian");
+		attrs[1] = AttrVal("type", "Vec3");
+		attrs[2] = AttrVal("description",
+			description + " orientation vector "
+			"(Phi_X, Phi_Y, Phi_Z)");
+
+		name += "Phi";
+		break;
+
+	case EULER_123:
+	case EULER_313:
+	case EULER_321:
+		{
+		dim.resize(2);
+		dim[0] = DimTime();
+		dim[1] = DimV3();
+
+		attrs.resize(3);
+		attrs[0] = AttrVal("units", "radian");
+		attrs[1] = AttrVal("type", "Vec3");
+
+		std::string etype;
+		switch (od) {
+		case EULER_123:
+			etype = "123";
+			break;
+
+		case EULER_313:
+			etype = "313";
+			break;
+
+		case EULER_321:
+			etype = "321";
+			break;
+
+		default:
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		attrs[2] = AttrVal("description",
+			description + " orientation Euler angles (" + etype + ") "
+			"(E_X, E_Y, E_Z)");
+
+		name += "E";
+		} break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	name += name_postfix;
+	return CreateVar(name, ncDouble, attrs, dim);
 }
 #endif // USE_NETCDF
 

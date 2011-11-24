@@ -45,6 +45,7 @@
 #include <iomanip>
 #include <fstream>
 #include <vector>
+#include <typeinfo>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>  
@@ -134,22 +135,11 @@ private:
 	} OutData[LASTFILE];
 		
 	// NetCDF dimensions and global attributes related to the binary file
-	enum {
-		DIM_TIME = 0,
-		DIM_V1,
-		DIM_V2,
-		DIM_V3,
-		DIM_V4,
-		DIM_V5,
-		DIM_V6,
-		DIM_V7,
-		DIM_V8,
-		DIM_V9,
-		DIM_LAST
-	};
 #ifdef USE_NETCDF
-	NcDim	*Dim[DIM_LAST];
-	NcFile  *pBinFile;   /* ! one ! binary NetCDF data file */
+	const NcDim *m_DimTime;
+	const NcDim *m_DimV1;
+	const NcDim *m_DimV3;
+	NcFile *m_pBinFile;   /* ! one ! binary NetCDF data file */
 #endif /* USE_NETCDF */
 
 	/* handlers to streams */
@@ -288,89 +278,93 @@ public:
 	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
 	typedef std::vector<const NcDim *> NcDimVec;
 
-	NcVar *
-	pCreateVar(const std::string& name, NcType type,
-		const AttrValVec& attrs,
-		const NcDimVec& dims);
+	const NcDim *
+	CreateDim(const std::string& name, integer size = -1);
+
+	const NcDim *
+	GetDim(const std::string& name) const;
 
 	inline const NcDim* DimTime(void) const;
 	inline const NcDim* DimV1(void) const;
-	inline const NcDim* DimV2(void) const;
 	inline const NcDim* DimV3(void) const;
-	inline const NcDim* DimV4(void) const;
-	inline const NcDim* DimV5(void) const;
-	inline const NcDim* DimV6(void) const;
-	inline const NcDim* DimV7(void) const;
-	inline const NcDim* DimV8(void) const;
-	inline const NcDim* DimV9(void) const;
+
+	NcVar *
+	CreateVar(const std::string& name, NcType type,
+		const AttrValVec& attrs, const NcDimVec& dims);
+
+	NcVar *
+	CreateVar(const std::string& name, const std::string& type);
+
+	template <class T>
+	NcVar *
+	CreateVar(const std::string& name,
+		const std::string& units, const std::string& description);
+
+	NcVar *
+	CreateRotationVar(const std::string& name_prefix,
+		const std::string& name_postfix,
+		OrientationDescription od,
+		const std::string& description);
 #endif /* USE_NETCDF */
 }; /* End class OutputHandler */
+
+template <class T>
+NcVar *
+OutputHandler::CreateVar(const std::string& name,
+	const std::string& units, const std::string& description)
+{
+	AttrValVec attrs(3);
+	NcDimVec dims(1);
+
+	attrs[0] = AttrVal("units", units);
+	attrs[2] = AttrVal("description", description);
+	dims[0] = DimTime();
+
+	NcType type;
+	if (typeid(T) == typeid(integer)) {
+		attrs[1] = AttrVal("type", "integer");
+		type = ncLong;
+
+	} else if (typeid(T) == typeid(doublereal)) {
+		attrs[1] = AttrVal("type", "doublereal");
+		type = ncDouble;
+
+	} else if (typeid(T) == typeid(Vec3)) {
+		attrs[1] = AttrVal("type", "Vec3");
+		dims.resize(2);
+		dims[1] = DimV3();
+		type = ncDouble;
+
+	} else {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return CreateVar(name, type, attrs, dims);
+}
 
 #ifdef USE_NETCDF
 inline NcFile *
 OutputHandler::pGetBinFile(void) const
 {
-	return pBinFile;
+	return m_pBinFile;
 }
 
 inline const NcDim *
 OutputHandler::DimTime(void) const
 {
-	return Dim[DIM_TIME];
+	return m_DimTime;
 }
 
 inline const NcDim *
 OutputHandler::DimV1(void) const
 {
-	return Dim[DIM_V1];
-}
-
-inline const NcDim *
-OutputHandler::DimV2(void) const
-{
-	return Dim[DIM_V2];
+	return m_DimV1;
 }
 
 inline const NcDim *
 OutputHandler::DimV3(void) const
 {
-	return Dim[DIM_V3];
-}
-
-inline const NcDim *
-OutputHandler::DimV4(void) const
-{
-	return Dim[DIM_V4];
-}
-
-inline const NcDim *
-OutputHandler::DimV5(void) const
-{
-	return Dim[DIM_V5];
-}
-
-inline const NcDim *
-OutputHandler::DimV6(void) const
-{
-	return Dim[DIM_V6];
-}
-
-inline const NcDim *
-OutputHandler::DimV7(void) const
-{
-	return Dim[DIM_V7];
-}
-
-inline const NcDim *
-OutputHandler::DimV8(void) const
-{
-	return Dim[DIM_V8];
-}
-
-inline const NcDim *
-OutputHandler::DimV9(void) const
-{
-	return Dim[DIM_V9];
+	return m_DimV3;
 }
 #endif /* USE_NETCDF */
 

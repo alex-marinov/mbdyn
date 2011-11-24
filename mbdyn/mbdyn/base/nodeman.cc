@@ -127,29 +127,13 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 
 			integer iNumNodes = NodeData[nt].NodeContainer.size();
 
-			NcFile *pBinFile = OH.pGetBinFile();
+			OutputHandler::AttrValVec attrs(1);
+			attrs[0] = OutputHandler::AttrVal("description", std::string(NodeData[nt].Desc) + " nodes labels");
 
-			char buf[BUFSIZ];
-			int l = snprintf(buf, sizeof(buf), "%s_node_labels_dim", NodeData[nt].ShortDesc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			NcDim *DimLabels = 
-				pBinFile->add_dim(buf, iNumNodes);
+			OutputHandler::NcDimVec dim(1);
+			dim[0] = OH.CreateDim(std::string(NodeData[nt].ShortDesc) + "_node_labels_dim", iNumNodes);
 
-			l = snprintf(buf, sizeof(buf), "node.%s", NodeData[nt].ShortDesc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			NcVar *VarLabels = pBinFile->add_var(buf, ncInt, DimLabels);
-
-			l = snprintf(buf, sizeof(buf), "%s nodes labels", NodeData[nt].Desc);
-			if (l <= 0 || l >= int(sizeof(buf))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-			if (!VarLabels->add_att("description", buf)) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			NcVar *VarLabels = OH.CreateVar(std::string("node.") + NodeData[nt].ShortDesc, ncInt, attrs, dim);
 
 			NodeContainerType::const_iterator p = NodeData[nt].NodeContainer.begin();
 			for (unsigned i = 0; i < unsigned(iNumNodes); i++, p++) {
@@ -159,31 +143,6 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 			}
 		}
 	}
-
-#if 0
-	if (OH.UseNetCDF(OutputHandler::STRNODES)) {
-		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
-
-		// Structural nodes
-		integer iNumNodes = NodeData[Node::STRUCTURAL].iNum;
-		Node** ppFirstNode = NodeData[Node::STRUCTURAL].ppFirstNode;
-
-		NcFile *pBinFile = OH.pGetBinFile();
-		NcDim *DimLabels = 
-			pBinFile->add_dim("struct_node_labels_dim", iNumNodes);
-		NcVar *VarLabels = pBinFile->add_var("node.struct", ncInt,
-			DimLabels);
-		if (!VarLabels->add_att("description", "Structural nodes labels")) {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		for (unsigned i = 0; i < unsigned(iNumNodes); i++) {
-			VarLabels->set_cur(i);
-			const long l = ppFirstNode[i]->GetLabel();
-			VarLabels->put(&l, 1);
-		}
-	}
-#endif
 #endif // USE_NETCDF
 
 	for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {

@@ -481,201 +481,58 @@ StructNode::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			// helper structures
-			std::ostringstream os;
-			OutputHandler::AttrValVec attrs;
-			OutputHandler::NcDimVec dim;
-
 			// node
-			attrs.resize(1);
-			attrs[0].attr = "type";
+			const char *type;
 			switch (GetStructNodeType()) {
 			case STATIC:
-				attrs[0].val = "static";
+				type = "static";
 				break;
 
 			case DYNAMIC:
-				attrs[0].val = "dynamic";
+				type = "dynamic";
 				break;
 
 			case MODAL:
-				attrs[0].val = "modal";
+				type = "modal";
 				break;
 
 			case DUMMY:
-				attrs[0].val = "dummy";
+				type = "dummy";
 				break;
 
 			default:
 				pedantic_cerr("StructNode::OutputPrepare(" << GetLabel() << "): "
 					"warning, unknown node type?" << std::endl);
-				attrs[0].val = "unknown";
+				type = "unknown";
 				break;
 			}
 
-			dim.resize(1);
-			dim[0] = OH.DimV1();
-
+			std::ostringstream os;
 			os << "node.struct." << GetLabel();
-			OH.pCreateVar(os.str(), ncChar, attrs, dim);
+			(void)OH.CreateVar(os.str(), type);
 
 			// node sub-data
 			os << '.';
-			std::streampos pos = os.tellp();
+			std::string name = os.str();
 
-			// X
-			attrs.resize(3);
-			attrs[0] = OutputHandler::AttrVal("units", "m");
-			attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-			attrs[2] = OutputHandler::AttrVal("description", "global position vector (X, Y, Z)");
+			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+				"global position vector (X, Y, Z)");
 
-			dim.resize(2);
-			dim[0] = OH.DimTime();
-			dim[1] = OH.DimV3();
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
-			os.seekp(pos);
-			os << "X" << '\0';
-			Var_X = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
-
-			// orientation
-			os.seekp(pos);
-			switch (od) {
-			case ORIENTATION_MATRIX:
-				dim.resize(3);
-				dim[0] = OH.DimTime();
-				dim[1] = OH.DimV3();
-				dim[2] = OH.DimV3();
-
-				attrs.resize(3);
-				attrs[0] = OutputHandler::AttrVal("units", "-");
-				attrs[1] = OutputHandler::AttrVal("type", "Mat3x3");
-				attrs[2] = OutputHandler::AttrVal("description",
-					"global orientation matrix "
-					"(R11, R21, R31, R12, R22, R32, R13, R23, R33)");
-
-				os << "R" << '\0';
-				break;
-
-			case ORIENTATION_VECTOR:
-				dim.resize(2);
-				dim[0] = OH.DimTime();
-				dim[1] = OH.DimV3();
-				
-				attrs.resize(3);
-				attrs[0] = OutputHandler::AttrVal("units", "radian");
-				attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-				attrs[2] = OutputHandler::AttrVal("description",
-					"global orientation vector "
-					"(Phi_X, Phi_Y, Phi_Z)");
-
-				os << "Phi" << '\0';
-				break;
-
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-				{
-				dim.resize(2);
-				dim[0] = OH.DimTime();
-				dim[1] = OH.DimV3();
-
-				attrs.resize(3);
-				attrs[0] = OutputHandler::AttrVal("units", "radian");
-				attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-
-				std::string etype;
-				switch (od) {
-				case EULER_123:
-					etype = "123";
-					break;
-
-				case EULER_313:
-					etype = "313";
-					break;
-
-				case EULER_321:
-					etype = "321";
-					break;
-
-				default:
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				attrs[2] = OutputHandler::AttrVal("description",
-					std::string("global orientation Euler angles (") + etype + ") "
-					"(E_X, E_Y, E_Z)");
-
-				os << "E" << '\0';
-				} break;
-
-			default:
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			Var_Phi = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
-
-			// XP
-			dim.resize(2);
-			dim[0] = OH.DimTime();
-			dim[1] = OH.DimV3();
-
-			attrs.resize(3);
-			attrs[0] = OutputHandler::AttrVal("units", "m/s");
-			attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-			attrs[2] = OutputHandler::AttrVal("description",
+			Var_XP = OH.CreateVar<Vec3>(name + "XP", "m/s",
 				"global velocity vector (v_X, v_Y, v_Z)");
 
-			os.seekp(pos);
-			os << "XP" << '\0';
-			Var_XP = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
-
-			// Omega
-			dim.resize(2);
-			dim[0] = OH.DimTime();
-			dim[1] = OH.DimV3();
-
-			attrs.resize(3);
-			attrs[0] = OutputHandler::AttrVal("units", "radian/s");
-			attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-			attrs[2] = OutputHandler::AttrVal("description",
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
-
-			os.seekp(pos);
-			os << "Omega" << '\0';
-			Var_Omega = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
 
 			// accelerations
 			if (bOutputAccels) {
-				// XPP
-				dim.resize(2);
-				dim[0] = OH.DimTime();
-				dim[1] = OH.DimV3();
-
-				attrs.resize(3);
-				attrs[0] = OutputHandler::AttrVal("units", "m/s^2");
-				attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-				attrs[2] = OutputHandler::AttrVal("description",
+				Var_XPP = OH.CreateVar<Vec3>(name + "XPP", "m/s^2",
 					"global acceleration vector (a_X, a_Y, a_Z)");
 
-				os.seekp(pos);
-				os << "XPP" << '\0';
-				Var_XPP = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
-
-				// OmegaP
-				dim.resize(2);
-				dim[0] = OH.DimTime();
-				dim[1] = OH.DimV3();
-
-				attrs.resize(3);
-				attrs[0] = OutputHandler::AttrVal("units", "radian/s^2");
-				attrs[1] = OutputHandler::AttrVal("type", "Vec3");
-				attrs[2] = OutputHandler::AttrVal("description",
-					"global angular acceleration vector "
-					"(omegaP_X, omegaP_Y, omegaP_Z)");
-
-				os.seekp(pos);
-				os << "OmegaP" << '\0';
-				Var_OmegaP = OH.pCreateVar(os.str(), ncDouble, attrs, dim);
+				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP", "radian/s^2",
+					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
 #endif // USE_NETCDF

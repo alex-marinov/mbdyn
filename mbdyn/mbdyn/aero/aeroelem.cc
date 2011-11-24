@@ -455,32 +455,85 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file
-			 * -->  pDM->OutHdl.BinFile */
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
+			std::ostringstream os;
+			os << "elem.aerodynamic." << GetLabel();
+			(void)OH.CreateVar(os.str(), elemnames[iNN - 1]);
 
-			int l = snprintf(buf, sizeof(buf), "elem.aerodynamic.%lu",
-				(unsigned long)GetLabel());
+			os << '.';
+			std::string name = os.str();
 
-			// X_XX
-			// R_XX
-			// Phi_XX
-			// V_XX
-			// Omega_XX
-			// F_XX
-			// M_XX
-			
-			// NOTE: "Omega_XX" is the longest var name
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega_XX"))) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			int totgp = iNN*GDI.iGetNum();
+			NetCDFOutputData.resize(totgp);
+
+			int j = 0;
+			for (std::vector<AeroNetCDFOutput>::iterator i = NetCDFOutputData.begin();
+				i != NetCDFOutputData.end(); ++i, ++j)
+			{
+				os.str("");
+				os << "Gauss point #" << j << "/" << totgp;
+				std::string gp(os.str());
+
+				/* Add NetCDF (output) variables to the BinFile object
+				 * and save the NcVar* pointer returned from add_var
+				 * as handle for later write accesses.
+				 * Define also variable attributes */
+				i->Var_X = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_X) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "X_" << j;
+					i->Var_X = OH.CreateVar<Vec3>(os.str(), "m",
+						gp + " global position vector (X, Y, Z)");
+				}
+
+				i->Var_Phi = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_R) {
+					os.str("");
+					os << "_" << j;
+					i->Var_Phi = OH.CreateRotationVar(name, os.str(), od,
+						gp + " global");
+				}
+
+				i->Var_V = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_V) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "V_" << j;
+					i->Var_V = OH.CreateVar<Vec3>(os.str(), "m/s",
+						gp + " global frame (V_X, V_Y, V_Z)");
+				}
+
+				i->Var_W = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_W) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "Omega_" << j;
+					i->Var_W = OH.CreateVar<Vec3>(os.str(), "radian/s",
+						gp + " global frame (Omega_X, Omega_Y, Omega_Z)");
+				}
+
+				i->Var_F = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_F) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "F_" << j;
+					i->Var_F = OH.CreateVar<Vec3>(os.str(), "N",
+						gp + " force in local frame (F_X, F_Y, F_Z)");
+				}
+
+				i->Var_M = 0;
+				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_M) {
+					os.str(name);
+					os.seekp(0, std::ios_base::end);
+					os << "M_" << j;
+					i->Var_M = OH.CreateVar<Vec3>(os.str(), "Nm",
+						gp + " force in local frame (M_X, M_Y, M_Z)");
+				}
 			}
 
-			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
 
-			if (!Var_Type->add_att("type", elemnames[iNN - 1])) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+#if 0
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			// add var name separator
 			buf[l++] = '.';
@@ -735,6 +788,7 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 					}
 				}
 			}
+#endif
 		}
 #endif // USE_NETCDF
 	}
