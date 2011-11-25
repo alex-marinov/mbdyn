@@ -1052,33 +1052,7 @@ Beam::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file
-			 * -->  pDM->OutHdl.BinFile */
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
-
-			// NOTE: should be "elem.beam3."?
-			int l = snprintf(buf, sizeof(buf), "elem.beam.%lu",
-				(unsigned long)GetLabel());
-
-			// X_II
-			// R_II
-			// Phi_II
-			// F_II
-			// M_II
-			// nu_II
-			// k_II
-			// nuP_II
-			// kP_II
-			
-			// NOTE: "Phi_II" is the longest var name
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Phi_II"))) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
 			const char *type = 0;
-			char typebuf[BUFSIZ];
 			switch (GetBeamType()) {
 			case Beam::ELASTIC:
 				type = "elastic";
@@ -1101,300 +1075,58 @@ Beam::OutputPrepare(OutputHandler &OH)
 				break;
 			}
 
-			snprintf(typebuf, sizeof(typebuf), "%s beam3", type);
+			std::ostringstream os;
+			os << "elem.beam." << GetLabel();
 
-			if (!Var_Type->add_att("type", type)) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			(void)OH.CreateVar(os.str(), type);
 
-			// add var name separator
-			buf[l++] = '.';
-
-			/* Add NetCDF (output) variables to the BinFile object
-			 * and save the NcVar* pointer returned from add_var
-			 * as handle for later write accesses.
-			 * Define also variable attributes */
+			os << '.';
+			std::string name(os.str());
 
 			static const char *sez[] = { "I", "II" };
-
 			for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+				os.str("");
+				os << "evaluation point " << sez[iSez] << " ";
+				std::string ep(os.str());
+
 				if (uOutputFlags & Beam::OUTPUT_EP_X) {
-					strcpy(&buf[l], "X_");
-					strcpy(&buf[l + STRLENOF("X_")], sez[iSez]);
-					Var_X[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_X[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_X[iSez]->add_att("units", "m")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_X[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"global position vector (X, Y, Z) of evaluation point %s", sez[iSez]);
-					if (!Var_X[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_X[iSez] = OH.CreateVar<Vec3>(name + "X_" + sez[iSez], "m",
+						ep + "global position vector (X, Y, Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_R) {
-					char descbuf[BUFSIZ];
-
-					switch (od) {
-					case ORIENTATION_MATRIX:
-						strcpy(&buf[l], "R_");
-						strcpy(&buf[l + STRLENOF("R_")], sez[iSez]);
-						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
-							OH.DimTime(), OH.DimV3(), OH.DimV3());
-						if (Var_Phi[iSez] == 0) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("units", "-")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("type", "Mat3x3")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						snprintf(descbuf, sizeof(descbuf),
-							"global orientation matrix (R11, R21, R31, R12, R22, R32, R13, R23, R33) of evaluation point %s", sez[iSez]);
-						if (!Var_Phi[iSez]->add_att("description", descbuf)) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-						break;
-
-					case ORIENTATION_VECTOR:
-						strcpy(&buf[l], "Phi_");
-						strcpy(&buf[l + STRLENOF("Phi_")], sez[iSez]);
-						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
-							OH.DimTime(), OH.DimV3());
-						if (Var_Phi[iSez] == 0) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("units", "radian")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("type", "Vec3")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						snprintf(descbuf, sizeof(descbuf),
-							"global orientation vector (Phi_X, Phi_Y, Phi_Z) of evaluation point %s", sez[iSez]);
-						if (!Var_Phi[iSez]->add_att("description", descbuf)) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-						break;
-
-					case EULER_123:
-					case EULER_313:
-					case EULER_321:
-						{
-						strcpy(&buf[l], "E_");
-						strcpy(&buf[l + STRLENOF("E_")], sez[iSez]);
-						Var_Phi[iSez] = pBinFile->add_var(buf, ncDouble,
-							OH.DimTime(), OH.DimV3());
-						if (Var_Phi[iSez] == 0) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("units", "radian")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						if (!Var_Phi[iSez]->add_att("type", "Vec3")) {
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-
-						std::string desc;
-						switch (od) {
-						case EULER_123:
-							desc = "global orientation Euler angles (123) (E_X, E_Y, E_Z) ";
-							break;
-
-						case EULER_313:
-							desc = "global orientation Euler angles (313) (E_Z, E_X, E_Z') ";
-							break;
-
-						case EULER_321:
-							desc = "global orientation Euler angles (321) (E_Z, E_Y, E_X) ";
-							break;
-
-						default:
-							ASSERT(0);
-							break;
-						}
-
-						desc += sez[iSez];
-
-						if (!Var_Phi[iSez]->add_att("description", desc.c_str()))
-						{
-							throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-						}
-						} break;
-
-					default:
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_Phi[iSez] = OH.CreateRotationVar(name,
+						std::string("_") + sez[iSez], od, ep + "global");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_F) {
-					strcpy(&buf[l], "F_");
-					strcpy(&buf[l + STRLENOF("F_")], sez[iSez]);
-					Var_F[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_F[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_F[iSez]->add_att("units", "N")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_F[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"internal force in local frame (F_X, F_Y, F_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_F[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_F[iSez] = OH.CreateVar<Vec3>(name + "F_" + sez[iSez], "N",
+						ep + "internal force in local frame (F_X, F_Y, F_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_M) {
-					strcpy(&buf[l], "M_");
-					strcpy(&buf[l + STRLENOF("M_")], sez[iSez]);
-					Var_M[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_M[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_M[iSez]->add_att("units", "Nm")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_M[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"internal moment in local frame (M_X, M_Y, M_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_M[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_M[iSez] = OH.CreateVar<Vec3>(name + "M_" + sez[iSez], "Nm",
+						ep + "internal moment in local frame (M_X, M_Y, M_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
-					strcpy(&buf[l], "nu_");
-					strcpy(&buf[l + STRLENOF("nu_")], sez[iSez]);
-					Var_Nu[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_Nu[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_Nu[iSez]->add_att("units", "-")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_Nu[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"linear strain in local frame (nu_X, nu_Y, nu_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_Nu[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_Nu[iSez] = OH.CreateVar<Vec3>(name + "nu_" + sez[iSez], "-",
+						ep + "linear strain in local frame (nu_X, nu_Y, nu_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_K) {
-					strcpy(&buf[l], "k_");
-					strcpy(&buf[l + STRLENOF("k_")], sez[iSez]);
-					Var_K[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_K[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_K[iSez]->add_att("units", "1/m")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_K[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"angular strain in local frame (K_X, K_Y, K_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_K[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_K[iSez] = OH.CreateVar<Vec3>(name + "k_" + sez[iSez], "1/m",
+						ep + "angular strain in local frame (K_X, K_Y, K_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
-					strcpy(&buf[l], "nuP_");
-					strcpy(&buf[l + STRLENOF("nuP_")], sez[iSez]);
-					Var_NuP[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_NuP[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_NuP[iSez]->add_att("units", "1/s")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_NuP[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_NuP[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_NuP[iSez] = OH.CreateVar<Vec3>(name + "nuP_" + sez[iSez], "1/s",
+						ep + "linear strain rate in local frame (nuP_X, nuP_Y, nuP_Z)");
 				}
 
 				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
-					strcpy(&buf[l], "kP_");
-					strcpy(&buf[l + STRLENOF("kP_")], sez[iSez]);
-					Var_KP[iSez] = pBinFile->add_var(buf, ncDouble,
-						OH.DimTime(), OH.DimV3());
-					if (Var_KP[iSez] == 0) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_KP[iSez]->add_att("units", "1/ms")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					if (!Var_KP[iSez]->add_att("type", "Vec3")) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
-
-					char descbuf[BUFSIZ];
-					snprintf(descbuf, sizeof(descbuf),
-						"angular strain rate in local frame (KP_X, KP_Y, KP_Z) of evaluation point %s", sez[iSez]);
-					if (!Var_KP[iSez]->add_att("description", descbuf)) {
-						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-					}
+					Var_KP[iSez] = OH.CreateVar<Vec3>(name + "kP_" + sez[iSez], "1/ms",
+						ep + "angular strain rate in local frame (KP_X, KP_Y, KP_Z)");
 				}
 			}
 		}

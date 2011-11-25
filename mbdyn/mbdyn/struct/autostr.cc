@@ -264,107 +264,15 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file
-			 * -->  pDM->OutHdl.BinFile */
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
+			std::ostringstream os;
+			os << "node.struct." << GetLabel() << ".";
 
-			// NOTE: we hijack the structural nodes namespace
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu.",
-				(unsigned long)GetLabel());
-			// NOTE: "BP" is the longest var name
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF("BP"))) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			std::string name(os.str());
 
-			/* Add NetCDF (output) variables to the BinFile object
-			 * and save the NcVar* pointer returned from add_var
-			 * as handle for later write accesses.
-			 * Define also variable attributes */
-
-			strcpy(&buf[l], "B");
-			Var_B = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_B == 0) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_B->add_att("units", "kg m/s")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_B->add_att("type", "Vec3")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_B->add_att("description",
-				"momentum (X, Y, Z)"))
-			{
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "G");
-			Var_G = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_G == 0) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_G->add_att("units", "kg m^2/s")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_G->add_att("type", "Vec3")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_G->add_att("description",
-				"momenta moment (X, Y, Z)"))
-			{
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "BP");
-			Var_BP = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_BP == 0) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_BP->add_att("units", "kg m/s^2")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_BP->add_att("type", "Vec3")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_BP->add_att("description",
-				"momentum derivative (X, Y, Z)"))
-			{
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "GP");
-			Var_GP = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_GP == 0) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_GP->add_att("units", "kg m^2/s^2")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_GP->add_att("type", "Vec3")) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_GP->add_att("description",
-				"momenta moment derivative (X, Y, Z)"))
-			{
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			Var_B = OH.CreateVar<Vec3>(name + "B", "kg m/s", "momentum (X, Y, Z)");
+			Var_G = OH.CreateVar<Vec3>(name + "G", "kg m^2/s", "momenta moment (X, Y, Z)");
+			Var_BP = OH.CreateVar<Vec3>(name + "BP", "kg m/s^2", "momentum derivative (X, Y, Z)");
+			Var_GP = OH.CreateVar<Vec3>(name + "GP", "kg m^2/s^2", "momenta moment derivative (X, Y, Z)");
 		}
 #endif // USE_NETCDF
 	}
