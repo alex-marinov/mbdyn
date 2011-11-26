@@ -1252,6 +1252,57 @@ These routines are very general, and make intense use of the
 can be recursively defined by means of previously defined 
 \kw{reference} entries.
 
+Alternative form:
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
+        [ \kw{reference} , \{ \kw{global} | \bnt{ref_label} \} , ]
+        \bnt{d} , \bnt{theta} , \bnt{a} , \bnt{alpha} ;
+\end{Verbatim}
+%\end{verbatim}
+where:
+\begin{itemize}
+\item \nt{d}: offset $d$ along previous $z$ axis to the common normal (the current $x$ axis);
+
+\item \nt{theta}: the angle $\theta$ about previous $z$ from previous to current $x$ axis;
+
+\item \nt{a}: length $a$ of the common normal; for revolute joints, the radius of the previous $z$;
+
+\item \nt{alpha}: the angle $\alpha$ about the common normal, from previous to new $z$ axis.
+\end{itemize}
+The new reference data is
+\begin{subequations}
+\begin{align}
+	\T{x}_\text{new}
+	&=
+	\T{x}_\text{old}
+	+
+	\TT{R}_\text{old} \plbr{
+		d \T{e}_3
+		+
+		\text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \cdot \plbr{a \T{e}_1}
+	}
+	\\
+	\TT{R}_\text{new}
+	&=
+	\TT{R}_\text{old} \text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \text{exp}\plbr{\plbr{\alpha \T{e}_1} \times{}}
+	\\
+	\T{v}_\text{new}
+	&=
+	\T{v}_\text{old}
+	+
+	\T{\omega}_\text{old} \times \TT{R}_\text{old} \plbr{
+		d \T{e}_3
+		+
+		\text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \cdot \plbr{a \T{e}_1}
+	}
+	\\
+	\T{\omega}_\text{new}
+	&=
+	\T{\omega}_\text{old}
+\end{align}
+\end{subequations}
+
 \subsubsection{Use of Reference Frames}
 Every time an absolute or a relative geometric or physical entity is
 required, it is processed by a set of routines that allow the entity to be

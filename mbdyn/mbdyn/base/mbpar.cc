@@ -204,35 +204,71 @@ MBDynParser::Reference_int(void)
 	}
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "Reference frame " << uLabel << std::endl);
-	
-	if (!IsKeyWord("position")) {
-		pedantic_cerr("ReferenceFrame(" << uLabel
-			<< "): missing keyword \"position\" at line "
-			<< GetLineData() << std::endl);
-	}
-	Vec3 x(GetPosAbs(AbsRefFrame));
-	if (!IsKeyWord("orientation")) {
-		pedantic_cerr("ReferenceFrame(" << uLabel
-			<< "): missing keyword \"orientation\" at line "
-			<< GetLineData() << std::endl);
-	}
-	Mat3x3 R(GetRotAbs(AbsRefFrame));
-	Vec3 v(Zero3);
-	Vec3 w(Zero3);
-	if (IsArg()) {
-		if (!IsKeyWord("velocity")) {
+
+	Vec3 x(::Zero3);
+	Mat3x3 R(::Zero3x3);
+	Vec3 v(::Zero3);
+	Vec3 w(::Zero3);
+
+	if (IsKeyWord("denavit" "hartenberg")) {
+		ReferenceFrame rfOut;
+		switch (GetRef(rfOut)) {
+		case MBDynParser::UNKNOWNFRAME:
+		case MBDynParser::GLOBAL:
+			rfOut = AbsRefFrame;
+			break;
+
+		case MBDynParser::REFERENCE:
+			break;
+
+		default:
+			silent_cerr("ReferenceFrame(" << uLabel << "): invalid reference specification at line " << GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		doublereal d = GetReal();
+		doublereal theta = GetReal();
+		doublereal a = GetReal();
+		doublereal alpha = GetReal();
+
+		Mat3x3 Rtheta(RotManip::Rot(Vec3(0., 0., theta)));
+		Mat3x3 Ralpha(RotManip::Rot(Vec3(alpha, 0., 0.)));
+		Vec3 Xr = rfOut.GetR()*(Vec3(0., 0., d) + Rtheta*Vec3(a, 0., 0.));
+		x = rfOut.GetX() + Xr;
+		R = rfOut.GetR()*Rtheta*Ralpha;
+		v = rfOut.GetV() + rfOut.GetW().Cross(Xr);
+		w = rfOut.GetW();
+
+	} else {
+		if (!IsKeyWord("position")) {
 			pedantic_cerr("ReferenceFrame(" << uLabel
-				<< "): missing keyword \"velocity\" at line "
+				<< "): missing keyword \"position\" at line "
 				<< GetLineData() << std::endl);
 		}
-		v = GetVelAbs(AbsRefFrame, x);
+		x = GetPosAbs(AbsRefFrame);
+
+		if (!IsKeyWord("orientation")) {
+			pedantic_cerr("ReferenceFrame(" << uLabel
+				<< "): missing keyword \"orientation\" at line "
+				<< GetLineData() << std::endl);
+		}
+		R = GetRotAbs(AbsRefFrame);
+
 		if (IsArg()) {
-			if (!IsKeyWord("angular" "velocity")) {
+			if (!IsKeyWord("velocity")) {
 				pedantic_cerr("ReferenceFrame(" << uLabel
-					<< "): missing keyword \"angular velocity\" at line "
+					<< "): missing keyword \"velocity\" at line "
 					<< GetLineData() << std::endl);
 			}
-			w = GetOmeAbs(AbsRefFrame);
+			v = GetVelAbs(AbsRefFrame, x);
+			if (IsArg()) {
+				if (!IsKeyWord("angular" "velocity")) {
+					pedantic_cerr("ReferenceFrame(" << uLabel
+						<< "): missing keyword \"angular velocity\" at line "
+						<< GetLineData() << std::endl);
+				}
+				w = GetOmeAbs(AbsRefFrame);
+			}
 		}
 	}
 

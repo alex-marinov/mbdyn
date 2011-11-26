@@ -37,6 +37,7 @@ MBDyn 1.X-Devel
 		- added variable properties body
 		- allow Euler angles input in degrees
 		- refactor NetCDF support
+		- added support for references using Denavit-Hartenberg 
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed
