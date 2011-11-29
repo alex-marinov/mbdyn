@@ -47,40 +47,39 @@
 class AerodynamicOutput {
 public:
 	enum eOutput {
-		AEROD_OUT_UNKNOWN	= -1,
+		AEROD_OUT_NONE		= 0x0U,
 
-		AEROD_OUT_STD		= 0x2,
-		AEROD_OUT_PGAUSS	= 0x4,
-		AEROD_OUT_NODE		= 0x8,
+		AEROD_OUT_STD		= (ToBeOutput::OUTPUT_PRIVATE << 0),
+		AEROD_OUT_PGAUSS	= (ToBeOutput::OUTPUT_PRIVATE << 1),
+		AEROD_OUT_NODE		= (ToBeOutput::OUTPUT_PRIVATE << 2),
 
 		AEROD_OUT_MASK		= (AEROD_OUT_STD | AEROD_OUT_PGAUSS | AEROD_OUT_NODE)
 	};
 
 	// output mask
 	enum {
-		OUTPUT_NONE = 0x000U,
+		OUTPUT_NONE = 0x0U,
 
-		OUTPUT_GP_X = 0x001U,
-		OUTPUT_GP_R = 0x002U,
-		OUTPUT_GP_V = 0x004U,
-		OUTPUT_GP_W = 0x008U,
+		OUTPUT_GP_X = (ToBeOutput::OUTPUT_PRIVATE << 4),
+		OUTPUT_GP_R = (ToBeOutput::OUTPUT_PRIVATE << 5),
+		OUTPUT_GP_V = (ToBeOutput::OUTPUT_PRIVATE << 6),
+		OUTPUT_GP_W = (ToBeOutput::OUTPUT_PRIVATE << 7),
 		OUTPUT_GP_CONFIGURATION = (OUTPUT_GP_X | OUTPUT_GP_R | OUTPUT_GP_V | OUTPUT_GP_W),
 
-		OUTPUT_GP_F = 0x010U,
-		OUTPUT_GP_M = 0x020U,
+		OUTPUT_GP_F = (ToBeOutput::OUTPUT_PRIVATE << 8),
+		OUTPUT_GP_M = (ToBeOutput::OUTPUT_PRIVATE << 9),
 
 		OUTPUT_GP_FORCES = (OUTPUT_GP_F | OUTPUT_GP_M),
 
 		OUTPUT_DEFAULT = (OUTPUT_GP_F | OUTPUT_GP_M),
 
-		OUTPUT_GP_ALL = 0xFFFU
+		OUTPUT_GP_ALL = (ToBeOutput::OUTPUT_PRIVATE_MASK & (~AEROD_OUT_MASK))
 	};
 
 protected:
 	flag m_eOutput;
 
 	// output flags
-	unsigned uOutputFlags;
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
@@ -110,7 +109,7 @@ protected:
 
 public:
 	AerodynamicOutput(flag f, int iNP,
-		unsigned uFlags, OrientationDescription ood);
+		OrientationDescription ood);
 	~AerodynamicOutput(void);
 
 	void SetOutputFlag(flag f, int iNP);
@@ -192,7 +191,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
-		unsigned uFlags, OrientationDescription ood,
+		OrientationDescription ood,
 		flag fOut);
 	virtual ~Aerodynamic2DElem(void);
 
@@ -284,7 +283,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
-		unsigned uFlags, OrientationDescription ood,
+		OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBody(void);
 
@@ -389,7 +388,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
-		unsigned uFlags, OrientationDescription ood,
+		OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBeam(void);
 
@@ -490,7 +489,7 @@ public:
 		integer iN, AeroData* a,
 		const DriveCaller* pDC,
 		bool bUseJacobian,
-		unsigned uFlags, OrientationDescription ood,
+		OrientationDescription ood,
 		flag fOut);
 	virtual ~AerodynamicBeam2(void);
 

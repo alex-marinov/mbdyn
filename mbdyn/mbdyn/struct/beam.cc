@@ -75,13 +75,11 @@ Beam::Beam(unsigned int uL,
 	const Mat3x3& rII,
 	const ConstitutiveLaw6D* pD_I,
 	const ConstitutiveLaw6D* pDII,
-	unsigned uOF,
 	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
-uOutputFlags(uOF),
 od(ood),
 f(),
 RNode(),
@@ -148,13 +146,11 @@ Beam::Beam(unsigned int uL,
 	doublereal dMII,
 	const Vec3& s0II,
 	const Mat3x3& j0II,
-	unsigned uOF,
 	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
-uOutputFlags(uOF),
 od(ood),
 f(),
 RNode(),
@@ -1083,6 +1079,8 @@ Beam::OutputPrepare(OutputHandler &OH)
 			os << '.';
 			std::string name(os.str());
 
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 			static const char *sez[] = { "I", "II" };
 			for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
 				os.str("");
@@ -1368,11 +1366,10 @@ ViscoElasticBeam::ViscoElasticBeam(
 	const Mat3x3& rII,
 	const ConstitutiveLaw6D* pD_I,
 	const ConstitutiveLaw6D* pDII,
-	unsigned uOF,
 	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
-Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, uOF, ood, fOut)
+Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII, ood, fOut)
 {
 	Init();
 }
@@ -1397,12 +1394,11 @@ ViscoElasticBeam::ViscoElasticBeam(
 	const Vec3& s0_I, const Mat3x3& j0_I,
 	doublereal dMII,
 	const Vec3& s0II, const Mat3x3& j0II,
-	unsigned uOF,
 	OrientationDescription ood,
 	flag fOut)
 : Elem(uL, fOut),
 Beam(uL, pN1, pN2, pN3, F1, F2, F3, R1, R2, R3, r_I, rII, pD_I, pDII,
-	  dM_I, s0_I, j0_I, dMII, s0II, j0II, uOF, ood, fOut)
+	  dM_I, s0_I, j0_I, dMII, s0II, j0II, ood, fOut)
 {
 	Init();
 }
@@ -2135,6 +2131,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
+	fOut |= uFlags;
 
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (b_I || bII) {
@@ -2173,8 +2170,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Rn1, Rn2, Rn3,
 					R_I, RII,
 					pD_I, pDII,
-					uFlags, od,
-					fOut));
+					od, fOut));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorBeam,
@@ -2188,8 +2184,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					pvElecDofs,
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
-					uFlags, od,
-					fOut));
+					od, fOut));
 		}
 
 	} else /* At least one is VISCOUS or VISCOELASTIC */ {
@@ -2202,8 +2197,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					Rn1, Rn2, Rn3,
 					R_I, RII,
 					pD_I, pDII,
-					uFlags, od,
-					fOut));
+					od, fOut));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PiezoActuatorVEBeam,
@@ -2217,8 +2211,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 					pvElecDofs,
 					PiezoMat[0][0], PiezoMat[1][0],
 					PiezoMat[0][1], PiezoMat[1][1],
-					uFlags, od,
-					fOut));
+					od, fOut));
 		}
 	}
 

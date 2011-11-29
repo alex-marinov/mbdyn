@@ -48,8 +48,8 @@
 /* AerodynamicOutput - begin */
 
 AerodynamicOutput::AerodynamicOutput(flag f, int iNP,
-		unsigned uFlags, OrientationDescription ood)
-: uOutputFlags(uFlags),
+		OrientationDescription ood)
+: m_eOutput(f),
 od(ood)
 {
 	SetOutputFlag(f, iNP);
@@ -130,7 +130,7 @@ AerodynamicOutput::GetOutput(void) const
 bool
 AerodynamicOutput::IsOutput(void) const
 {
-	return (m_eOutput & 0x1);
+	return (m_eOutput & ToBeOutput::OUTPUT);
 }
 
 bool
@@ -168,13 +168,13 @@ Aerodynamic2DElem<iNN>::Aerodynamic2DElem(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
-	unsigned uFlags, OrientationDescription ood,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 InitialAssemblyElem(uLabel, fOut),
 DriveOwner(pDC),
-AerodynamicOutput(fOut, iNN*iN, uFlags, ood),
+AerodynamicOutput(fOut, iNN*iN, ood),
 aerodata(a),
 pIndVel(pR),
 bPassiveInducedVelocity(bPassive),
@@ -473,6 +473,8 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 				os << "Gauss point #" << j << "/" << totgp;
 				std::string gp(os.str());
 
+				unsigned uOutputFlags = (fToBeOutput() & OUTPUT_GP_ALL);
+
 				/* Add NetCDF (output) variables to the BinFile object
 				 * and save the NcVar* pointer returned from add_var
 				 * as handle for later write accesses.
@@ -666,11 +668,11 @@ AerodynamicBody::AerodynamicBody(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
-	unsigned uFlags, OrientationDescription ood,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
 Aerodynamic2DElem<1>(uLabel, pDO, pR, bPassive, pC, pF, pV, pT, pTL, iN,
-	a, pDC, bUseJacobian, uFlags, ood, fOut),
+	a, pDC, bUseJacobian, ood, fOut),
 pNode(pN),
 f(fTmp),
 dHalfSpan(dS/2.),
@@ -1429,6 +1431,7 @@ ReadAerodynamicBody(DataManager* pDM,
 	} else if (fOut) {
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
+	fOut |= uFlags;
 
 	Elem* pEl = 0;
 	SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1436,7 +1439,7 @@ ReadAerodynamicBody(DataManager* pDM,
 		AerodynamicBody(uLabel, pDO, pNode, pIndVel, bPassive,
 			f, dSpan, Ra,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -1486,11 +1489,11 @@ AerodynamicBeam::AerodynamicBeam(unsigned int uLabel,
 	integer iN, AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
-	unsigned uFlags, OrientationDescription ood,
+	OrientationDescription ood,
 	flag fOut)
 : Elem(uLabel, fOut),
 Aerodynamic2DElem<3>(uLabel, pDO, pR, bPassive,
-	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
+	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -2389,6 +2392,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 	} else if (fOut) {
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
+	fOut |= uFlags;
 
 	Elem* pEl = 0;
 
@@ -2397,7 +2401,7 @@ ReadAerodynamicBeam(DataManager* pDM,
 		AerodynamicBeam(uLabel, pDO, pBeam, pIndVel, bPassive,
 			f1, f2, f3, Ra1, Ra2, Ra3,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
@@ -2461,12 +2465,12 @@ AerodynamicBeam2::AerodynamicBeam2(
 	AeroData* a,
 	const DriveCaller* pDC,
 	bool bUseJacobian,
-	unsigned uFlags, OrientationDescription ood,
+	OrientationDescription ood,
 	flag fOut
 )
 : Elem(uLabel, fOut),
 Aerodynamic2DElem<2>(uLabel, pDO, pR, bPassive,
-	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, uFlags, ood, fOut),
+	pC, pF, pV, pT, pTL, iN, a, pDC, bUseJacobian, ood, fOut),
 pBeam(pB),
 f1(fTmp1),
 f2(fTmp2),
@@ -3277,6 +3281,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 	} else if (fOut) {
 		fOut |= AerodynamicOutput::AEROD_OUT_STD;
 	}
+	fOut |= uFlags;
 
 	Elem* pEl = 0;
 
@@ -3285,7 +3290,7 @@ ReadAerodynamicBeam2(DataManager* pDM,
 		AerodynamicBeam2(uLabel, pDO, pBeam, pIndVel, bPassive,
 			f1, f2, Ra1, Ra2,
 			pChord, pForce, pVelocity, pTwist, pTipLoss,
-			iNumber, aerodata, pDC, bUseJacobian, uFlags, od, fOut));
+			iNumber, aerodata, pDC, bUseJacobian, od, fOut));
 
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {

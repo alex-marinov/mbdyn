@@ -75,25 +75,25 @@ class Beam
 	enum {
 		OUTPUT_NONE = 0x000U,
 
-		OUTPUT_EP_X = 0x001U,
-		OUTPUT_EP_R = 0x002U,
+		OUTPUT_EP_X = (ToBeOutput::OUTPUT_PRIVATE << 0),
+		OUTPUT_EP_R = (ToBeOutput::OUTPUT_PRIVATE << 1),
 		OUTPUT_EP_CONFIGURATION = (OUTPUT_EP_X | OUTPUT_EP_R),
 
-		OUTPUT_EP_F = 0x010U,
-		OUTPUT_EP_M = 0x020U,
+		OUTPUT_EP_F = (ToBeOutput::OUTPUT_PRIVATE << 2),
+		OUTPUT_EP_M = (ToBeOutput::OUTPUT_PRIVATE << 3),
 		OUTPUT_EP_FORCES = (OUTPUT_EP_F | OUTPUT_EP_M ),
 
-		OUTPUT_EP_NU = 0x100U,
-		OUTPUT_EP_K = 0x200U,
+		OUTPUT_EP_NU = (ToBeOutput::OUTPUT_PRIVATE << 4),
+		OUTPUT_EP_K = (ToBeOutput::OUTPUT_PRIVATE << 5),
 		OUTPUT_EP_STRAINS = (OUTPUT_EP_NU | OUTPUT_EP_K),
 
-		OUTPUT_EP_NUP = 0x400U,
-		OUTPUT_EP_KP = 0x800U,
+		OUTPUT_EP_NUP = (ToBeOutput::OUTPUT_PRIVATE << 6),
+		OUTPUT_EP_KP = (ToBeOutput::OUTPUT_PRIVATE << 7),
 		OUTPUT_EP_STRAIN_RATES = (OUTPUT_EP_NUP | OUTPUT_EP_KP),
 
 		OUTPUT_DEFAULT = (OUTPUT_EP_F | OUTPUT_EP_M),
 
-		OUTPUT_EP_ALL = 0xFFFU
+		OUTPUT_EP_ALL = (ToBeOutput::OUTPUT_PRIVATE_MASK)
 	};
 
 protected:
@@ -113,7 +113,6 @@ protected:
 	ConstLawType::Type type);
 
 	// output flags
-	unsigned uOutputFlags;
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
@@ -269,7 +268,7 @@ protected:
 	 const Mat3x3& R1, const Mat3x3& R2, const Mat3x3& R3,
 	 const Mat3x3& r_I, const Mat3x3& rII,
 	 const ConstitutiveLaw6D* pD_I, const ConstitutiveLaw6D* pDII,
-	 unsigned uFlags, OrientationDescription ood,
+	 OrientationDescription ood,
 	 flag fOut);
    
     /* Costruttore per la trave con forze d'inerzia consistenti */
@@ -283,7 +282,7 @@ protected:
 	 const Vec3& s0_I, const Mat3x3& j0_I,
 	 doublereal dMII,
 	 const Vec3& s0II, const Mat3x3& j0II,
-	 unsigned uFlags, OrientationDescription ood,
+	 OrientationDescription ood,
 	 flag fOut);
 
     /* Distruttore banale */
@@ -508,7 +507,7 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     const Mat3x3& rII,
 	             const ConstitutiveLaw6D* pD_I, 
 		     const ConstitutiveLaw6D* pDII,
-		     unsigned uFlags, OrientationDescription ood,
+		     OrientationDescription ood,
 		     flag fOut);
    
     /* Costruttore per la trave con forze d'inerzia consistenti */
@@ -532,7 +531,7 @@ class ViscoElasticBeam : virtual public Elem, public Beam {
 		     doublereal dMII,
 		     const Vec3& s0II,
 		     const Mat3x3& j0II,
-		     unsigned uFlags, OrientationDescription ood,
+		     OrientationDescription ood,
 		     flag fOut);
 
     /* Distruttore banale */

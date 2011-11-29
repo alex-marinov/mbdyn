@@ -75,7 +75,7 @@ class PiezoActuatorBeam2 : public Beam2 {
 		     int iEl,
 		     ScalarDifferentialNode** pEDof,
 		     const Mat3xN& T_Ie, const Mat3xN& T_Ik,
-		     unsigned uFlags, OrientationDescription ood,
+		     OrientationDescription ood,
 		     flag fOut);
    
    /* Distruttore banale */
@@ -176,7 +176,7 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
 		       int iEl,
 		       ScalarDifferentialNode** pEDof,
 		       const Mat3xN& T_Ie, const Mat3xN& T_Ik,
-		       unsigned uFlags, OrientationDescription ood,
+		       OrientationDescription ood,
 		       flag fOut);
    
    /* Distruttore banale */

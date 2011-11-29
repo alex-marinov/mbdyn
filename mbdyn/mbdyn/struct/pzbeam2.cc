@@ -116,11 +116,10 @@ PiezoActuatorBeam2::PiezoActuatorBeam2(unsigned int uL,
 		int iEl,
 		ScalarDifferentialNode** pEDof,
 		const Mat3xN& Te, const Mat3xN& Tk,
-		unsigned uOF,
 		OrientationDescription ood,
 		flag fOut)
 : Elem(uL, fOut),
-Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, uOF, ood, fOut),
+Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, ood, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 {
 	ASSERT(iNumElec > 0);
@@ -338,11 +337,10 @@ PiezoActuatorVEBeam2::PiezoActuatorVEBeam2(unsigned int uL,
 		int iEl,
 		ScalarDifferentialNode** pEDof,
 		const Mat3xN& Te, const Mat3xN& Tk,
-		unsigned uOF,
 		OrientationDescription ood,
 		flag fOut)
 : Elem(uL, fOut),
-ViscoElasticBeam2(uL, pN1, pN2, F1, F2, R1, R2, r, pD, uOF, ood, fOut),
+ViscoElasticBeam2(uL, pN1, pN2, F1, F2, R1, R2, r, pD, ood, fOut),
 iNumElec(iEl), pvElecDofs(pEDof), V(iEl)
 {
 	ASSERT(iNumElec > 0);

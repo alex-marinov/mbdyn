@@ -196,7 +196,7 @@ class Beam2
 	 const Mat3x3& R1, const Mat3x3& R2,
 	 const Mat3x3& r,
 	 const ConstitutiveLaw6D* pd,
-	 unsigned uFlags, OrientationDescription ood,
+	 OrientationDescription ood,
 	 flag fOut);
    
     /* Distruttore banale */
@@ -384,7 +384,7 @@ class ViscoElasticBeam2 : virtual public Elem, public Beam2 {
 		     const Mat3x3& R2,
 	             const Mat3x3& r, 
 	             const ConstitutiveLaw6D* pd, 
-		     unsigned uFlags, OrientationDescription ood,
+		     OrientationDescription ood,
 		     flag fOut);
    
     /* Distruttore banale */

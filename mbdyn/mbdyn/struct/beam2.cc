@@ -71,13 +71,11 @@ Beam2::Beam2(unsigned int uL,
 		const Mat3x3& R2,
 		const Mat3x3& r,
 		const ConstitutiveLaw6D* pd,
-		unsigned uOF,
 		OrientationDescription ood,
 		flag fOut)
 : Elem(uL, fOut), 
 ElemGravityOwner(uL, fOut), 
 InitialAssemblyElem(uL, fOut),
-uOutputFlags(uOF),
 od(ood),
 #ifdef USE_NETCDF
 Var_X(0),
@@ -660,6 +658,8 @@ Beam2::OutputPrepare(OutputHandler &OH)
 			os << '.';
 			std::string name(os.str());
 
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 			if (uOutputFlags & Beam::OUTPUT_EP_X) {
 				Var_X = OH.CreateVar<Vec3>(name + "X", "m",
 					"evaluation point global position vector (X, Y, Z)");
@@ -923,11 +923,10 @@ ViscoElasticBeam2::ViscoElasticBeam2(unsigned int uL,
 		const Mat3x3& R2,
 		const Mat3x3& r,
 		const ConstitutiveLaw6D* pd, 
-		unsigned uOF,
 		OrientationDescription ood,
 		flag fOut)
 : Elem(uL, fOut),
-Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, uOF, ood, fOut)
+Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, ood, fOut)
 {
 	LPrimeRef = LPrime = Zero3;  
 	gPrime = Zero3;
@@ -1438,8 +1437,8 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
-	
-	
+	fOut |= uFlags;
+
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (f) {
 		Mat3x3 RR2 = R2*Rn2;
@@ -1467,7 +1466,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						Rn1, Rn2,
 						R,
 						pD,
-						uFlags, od,
+						od,
 						fOut));
 		} else {	 
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1481,7 +1480,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						iNumElec,
 						pvElecDofs,
 						PiezoMat[0], PiezoMat[1],
-						uFlags, od,
+						od,
 						fOut));
 		}
 		
@@ -1495,7 +1494,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						Rn1, Rn2,
 						R,
 						pD,
-						uFlags, od,
+						od,
 						fOut));
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
@@ -1509,7 +1508,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						iNumElec,
 						pvElecDofs,
 						PiezoMat[0], PiezoMat[1],
-						uFlags, od,
+						od,
 						fOut));
 		}
 	}

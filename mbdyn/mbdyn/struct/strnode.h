@@ -75,8 +75,8 @@ public:
 	};
 
 	enum Output {
-		OUTPUT_ACCELERATIONS = ToBeOutput::OUTPUT_PRIVATE,
-		OUTPUT_INERTIA = (ToBeOutput::OUTPUT_PRIVATE << 2)
+		OUTPUT_ACCELERATIONS = (ToBeOutput::OUTPUT_PRIVATE << 0),
+		OUTPUT_INERTIA = (ToBeOutput::OUTPUT_PRIVATE << 1)
 	};
 
 protected:
