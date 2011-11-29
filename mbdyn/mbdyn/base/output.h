@@ -308,6 +308,7 @@ public:
 #endif /* USE_NETCDF */
 }; /* End class OutputHandler */
 
+#ifdef USE_NETCDF
 template <class T>
 NcVar *
 OutputHandler::CreateVar(const std::string& name,
@@ -342,7 +343,6 @@ OutputHandler::CreateVar(const std::string& name,
 	return CreateVar(name, type, attrs, dims);
 }
 
-#ifdef USE_NETCDF
 inline NcFile *
 OutputHandler::pGetBinFile(void) const
 {

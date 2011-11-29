@@ -961,18 +961,20 @@ EndOfUse:
 #endif /* USE_MOTIONVIEW */
 
 				} else if (HP.IsKeyWord("netcdf")) {
-#ifdef USE_NETCDF
 					ResMode |= RES_NETCDF;
 					if (HP.IsKeyWord("sync")) {
+#ifdef USE_NETCDF
 						bNetCDFsync = true;
+#endif // USE_NETCDF
 					}
 					if (HP.IsKeyWord("no" "text")) {
+#ifdef USE_NETCDF
 						bNetCDFnoText = true;
+#endif // USE_NETCDF
 					}
-#else /* ! USE_NETCDF */
-					silent_cerr("Please rebuild with NetCDF output enabled"
+#ifndef USE_NETCDF
+					silent_cerr("\"netcdf\" ignored; please rebuild with NetCDF output enabled"
 						<< std::endl);
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* ! USE_NETCDF */
 
 				} else {
@@ -1433,11 +1435,13 @@ EndOfUse:
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+#ifdef USE_NETCDF
 	/* FIXME: from now on, NetCDF is enabled */
 	if (bNetCDFnoText) {
 		// enables or disables text output
 		OutHdl.ClearText();
 	}
+#endif // USE_NETCDF
 
 	if (bOutput(RES_NETCDF)) {
 		OutHdl.SetNetCDF(OutputHandler::NETCDF);
