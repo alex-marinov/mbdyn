@@ -38,7 +38,7 @@
 
 /* Costruttore */
 AutomaticStructElem::AutomaticStructElem(const DynamicStructNode* pN)
-: Elem(pN->GetLabel(), pN->fToBeOutput()),
+: Elem(pN->GetLabel(), (pN->fToBeOutput() & StructNode::OUTPUT_INERTIA) == StructNode::OUTPUT_INERTIA),
 pNode(const_cast<DynamicStructNode *>(pN)), B(Zero3), G(Zero3), BP(Zero3), GP(Zero3),
 m(0.), S(Zero3), J(Zero3x3)
 {

@@ -74,7 +74,10 @@ public:
 		LASTSTRUCTNODETYPE
 	};
 
-private:
+	enum Output {
+		OUTPUT_ACCELERATIONS = ToBeOutput::OUTPUT_PRIVATE,
+		OUTPUT_INERTIA = (ToBeOutput::OUTPUT_PRIVATE << 2)
+	};
 
 protected:
 	mutable Mat3x3 RPrev;   /* Matrice di rotazione da zero al passo prec. */

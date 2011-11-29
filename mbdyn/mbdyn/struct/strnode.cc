@@ -2635,27 +2635,80 @@ ReadStructNode(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 		if (CurrType == DYNAMIC || CurrType == MODAL) {
-			if (pDM->bOutputAccelerations()) {
-				fOut |= 2;
-			}
+			bool bGotAccels(false);
+			bool bAccels(pDM->bOutputAccelerations());
 
-			if (HP.IsArg()) {
+			bool bGotInertia(false);
+			bool bInertia(false);
+
+			while (HP.IsArg()) {
 				if (HP.IsKeyWord("accelerations")) {
+					if (bGotAccels) {
+						silent_cerr("StructNode(" << uLabel << "): "
+							"\"accelerations\" already set, "
+							"repeated at line " << HP.GetLineData()
+							<< std::endl);
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					bGotAccels = true;
+
 					if (HP.IsArg()) {
 						if (HP.GetYesNoOrBool(false)) {
-							fOut |= 2;
+							bAccels = true;
 
 						} else {
-							fOut &= ~2;
+							bAccels = false;
 						}
 
 					} else {
 						// deprecated
 						silent_cout("StructNode(" << uLabel << "): "
-							"warning, \"accelerations\" needs \"yes\" or \"no\" at line " << HP.GetLineData()
-						<< std::endl);
-						fOut |= 2;
+							"warning, \"accelerations\" needs \"yes\" or \"no\" "
+							"at line " << HP.GetLineData() << std::endl);
+						bAccels = true;
 					}
+
+				} else if (HP.IsKeyWord("output" "inertia")) {
+					if (bGotInertia) {
+						silent_cerr("StructNode(" << uLabel << "): "
+							"\"inertia\" already set, "
+							"repeated at line " << HP.GetLineData()
+							<< std::endl);
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					bGotInertia = true;
+
+					if (!HP.IsArg()) {
+						silent_cerr("StructNode(" << uLabel << "): "
+							"\"inertia\" needs \"yes\" or \"no\" "
+							"at line " << HP.GetLineData() << std::endl);
+						throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					if (HP.GetYesNoOrBool(true)) {
+						bInertia = true;
+
+					} else {
+						bInertia = false;
+					}
+
+				} else {
+					break;
+				}
+			}
+
+			if (fOut) {
+				// restore legacy behavior
+				if (!bGotInertia) {
+					bInertia = true;
+				}
+
+				if (bInertia) {
+					fOut |= StructNode::OUTPUT_INERTIA;
+				}
+
+				if (bAccels) {
+					fOut |= StructNode::OUTPUT_ACCELERATIONS;
 				}
 			}
 		}
