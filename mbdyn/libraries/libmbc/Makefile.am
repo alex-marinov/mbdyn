@@ -37,15 +37,15 @@ INCLUDES = \
 -I$(srcdir)/../../mbdyn
 
 if USE_PYTHON
-lib_LTLIBRARIES += libmbc_py.la
-libmbc_py_la_SOURCES = \
+lib_LTLIBRARIES += _mbc_py.la
+_mbc_py_la_SOURCES = \
 mbc_py.i \
 mbc_py.h \
 mbc_py.cc \
 mbc_py_global.i \
 mbc_py_global.h
 
-nodist_libmbc_py_la_SOURCES = \
+nodist__mbc_py_la_SOURCES = \
 mbc_py_wrap.cc
 
 SWIG_FLAGS = @SWIG_LIB@ $(AX_SWIG_PYTHON_OPT) $(AX_SWIG_PYTHON_CPPFLAGS)
@@ -58,17 +58,19 @@ $(srcdir)/mbc_py_global.h
 mbc_py_wrap.cc: $(mbc_py_wrap_dep)
 	$(SWIG) $(SWIG_FLAGS) -o $@ $<
 
-libmbc_py_la_LIBADD = @LIBS@ libmbc.la
-libmbc_py_la_LDFLAGS =
+_mbc_py_la_LIBADD = @LIBS@ libmbc.la
+_mbc_py_la_LDFLAGS = -module
 
 EXTRA_DIST = mbc_py_interface.py
 
 install-exec-local:
 	$(mkinstalldirs) $(libexecdir)/mbpy
-	if test -f .libs/libmbc_py.so ; then \
-		cp .libs/libmbc_py.so $(libexecdir)/mbpy/_mbc_py.so ; \
-	fi
+	$(install_sh_PROGRAM) .libs/_mbc_py.so $(libexecdir)/mbpy/
 	$(install_sh_DATA) mbc_py.py $(srcdir)/mbc_py_interface.py $(libexecdir)/mbpy/
+
+# remove _mbc_py.* because not directly usable; _mbc_py.so already in $(libexecdir)/mbpy/
+install-exec-hook:
+	rm -f $(libdir)/_mbc_py.*
 
 clean-local:
 	rm -f mbc_py_wrap.cc mbc_py.py
