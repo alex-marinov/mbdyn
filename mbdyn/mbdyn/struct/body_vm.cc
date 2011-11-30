@@ -44,7 +44,8 @@ VariableBody::VariableBody(unsigned int uL,
 	const StructNode *pNode,
 	const DriveCaller *pDCMass,
 	const TplDriveCaller<Vec3> *pDCXgc,
-	const TplDriveCaller<Mat3x3> *pDCJgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 	flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
@@ -52,7 +53,8 @@ InitialAssemblyElem(uL, fOut),
 pNode(pNode),
 m_Mass(pDCMass),
 m_Xgc(pDCXgc),
-m_Jgc(pDCJgc)
+m_Jgc_vm(pDCJgc_vm),
+m_Jgc_vg(pDCJgc_vg)
 {
 	ASSERT(pNode != 0);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -80,7 +82,7 @@ VariableBody::GetJ_int(void) const
 {
 	Vec3 x = pNode->GetXCurr() + pNode->GetRCurr()*m_Xgc.Get();
 
-	return pNode->GetRCurr()*m_Jgc.Get().MulMT(pNode->GetRCurr())
+	return pNode->GetRCurr()*(m_Jgc_vm.Get() + m_Jgc_vg.Get()).MulMT(pNode->GetRCurr())
 		- Mat3x3(MatCrossCross, x, x*m_Mass.dGet());
 }
 
@@ -92,7 +94,8 @@ VariableBody::Restart(std::ostream& out) const
 	out << "  body: " << GetLabel() << ", "
 		<< pNode->GetLabel() << ", variable mass, ", m_Mass.pGetDriveCaller()->Restart(out) << ", "
 		<< "reference, node, ", m_Xgc.pGetDriveCaller()->Restart(out) << ", "
-		<< "reference, node, ", m_Jgc.pGetDriveCaller()->Restart(out) << ";" << std::endl;
+		<< "reference, node, ", m_Jgc_vm.pGetDriveCaller()->Restart(out) << ", "
+		<< "reference, node, ", m_Jgc_vg.pGetDriveCaller()->Restart(out) << ";" << std::endl;
 
 	return out;
 }
@@ -106,7 +109,7 @@ VariableBody::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	dMTmp = m_Mass.dGet();
 	Vec3 x(m_Xgc.Get());
 	STmp = (R*x)*dMTmp;
-	JTmp = R*(m_Jgc.Get() + Mat3x3(MatCrossCross, x, x*dMTmp)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() + Mat3x3(MatCrossCross, x, x*dMTmp)).MulMT(R);
 }
 
 /* massa totale */
@@ -173,7 +176,7 @@ VariableBody::dGetPrivData(unsigned int i) const
 		Vec3 V = Vn + Wn.Cross(DXgc);
 		Vec3 W = Rn*Wn;
 
-		return ((V*V)*m_Mass.dGet() + W*(m_Jgc.Get()*W))/2.;
+		return ((V*V)*m_Mass.dGet() + W*((m_Jgc_vm.Get() + m_Jgc_vg.Get())*W))/2.;
 	}
 
 	if (i == 2) {
@@ -311,10 +314,11 @@ DynamicVariableBody::DynamicVariableBody(unsigned int uL,
 	const DynamicStructNode* pNode,
 	const DriveCaller *pDCMass,
 	const TplDriveCaller<Vec3> *pDCXgc,
-	const TplDriveCaller<Mat3x3> *pDCJgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 	flag fOut)
 : Elem(uL, fOut),
-VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc, fOut)
+VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc_vm, pDCJgc_vg, fOut)
 {
 	NO_OP;
 }
@@ -499,11 +503,7 @@ DynamicVariableBody::AssRes(SubVectorHandler& WorkVec,
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 
-	integer iNumRows = 6;
-	if (g || pRBK) {
-		iNumRows = 12;
-	}
-
+	integer iNumRows = 12;
 	WorkVec.ResizeReset(iNumRows);
 
 	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
@@ -520,13 +520,19 @@ DynamicVariableBody::AssRes(SubVectorHandler& WorkVec,
 	dMTmp = m_Mass.dGet();
 	Vec3 DXgc(R*m_Xgc.Get());
 	STmp = DXgc*dMTmp;
-	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
 	WorkVec.Sub(1, V*dMTmp + W.Cross(STmp));
 
 	/* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
 	WorkVec.Sub(3 + 1, JTmp*W + STmp.Cross(V));
+
+	Vec3 mp_Xp_cm((V + W.Cross(DXgc) + R*m_Xgc.GetP())*m_Mass.dGetP());
+
+	/* Variable mass correction */
+	WorkVec.Add(6 + 1, mp_Xp_cm);
+	WorkVec.Add(9 + 1, m_Jgc_vm.GetP()*W + DXgc.Cross(mp_Xp_cm));
 
 	if (g) {
 		WorkVec.Add(6 + 1, GravityAcceleration*dMTmp);
@@ -643,7 +649,7 @@ DynamicVariableBody::InitialAssRes(SubVectorHandler& WorkVec,
 	dMTmp = m_Mass.dGet();
 	Vec3 DXgc(R*m_Xgc.Get());
 	STmp = DXgc*dMTmp;
-	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
 
 	Vec3 FC(-W.Cross(W.Cross(STmp)));
 	Vec3 MC(-W.Cross(JTmp*W));
@@ -689,7 +695,7 @@ DynamicVariableBody::SetValue(DataManager *pDM,
 	dMTmp = m_Mass.dGet();
 	Vec3 DXgc(R*m_Xgc.Get());
 	STmp = DXgc*dMTmp;
-	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
 	X.Add(iFirstIndex + 1, V*dMTmp + W.Cross(STmp));
 	X.Add(iFirstIndex + 4, STmp.Cross(V) + JTmp*W);
 }
@@ -718,7 +724,7 @@ DynamicVariableBody::GetG_int(void) const
 	Vec3 DXgc(R*m_Xgc.Get());
 
 	// NOTE: with respect to the origin of the global reference frame!
-	return (X + DXgc).Cross((V + W.Cross(R*DXgc))*m_Mass.dGet()) + m_Jgc.Get()*W;
+	return (X + DXgc).Cross((V + W.Cross(R*DXgc))*m_Mass.dGet()) + (m_Jgc_vm.Get() + m_Jgc_vg.Get())*W;
 }
 
 /* DynamicVariableBody - end */
@@ -730,10 +736,11 @@ StaticVariableBody::StaticVariableBody(unsigned int uL,
 	const StaticStructNode* pNode,
 	const DriveCaller *pDCMass,
 	const TplDriveCaller<Vec3> *pDCXgc,
-	const TplDriveCaller<Mat3x3> *pDCJgc,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+	const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 	flag fOut)
 : Elem(uL, fOut),
-VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc, fOut)
+VariableBody(uL, pNode, pDCMass, pDCXgc, pDCJgc_vm, pDCJgc_vg, fOut)
 {
 	NO_OP;
 }
@@ -893,7 +900,7 @@ StaticVariableBody::AssRes(SubVectorHandler& WorkVec,
 
 	dMTmp = m_Mass.dGet();
 	STmp = DXgc*dMTmp;
-	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	if (g) {
 		WorkVec.Add(1, Acceleration*dMTmp);
@@ -944,7 +951,7 @@ StaticVariableBody::AssRes(SubVectorHandler& WorkVec,
 
 	dMTmp = m_Mass.dGet();
 	STmp = DXgc*dMTmp;
-	JTmp = R*(m_Jgc.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
+	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
 
 	Vec3 Acceleration = pNode->GetXPPCurr()
 		+ pNode->GetWPCurr().Cross(DXgc)
@@ -1020,8 +1027,36 @@ ReadVariableBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 	ReferenceFrame RF(pStrNode);
 
 	const DriveCaller *pDCMass = HP.GetDriveCaller();
+	if (!pDCMass->bIsDifferentiable()) {
+		silent_cerr("VariableBody(" << uLabel << "): "
+			"mass drive caller must be differentiable "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	const TplDriveCaller<Vec3> *pDCXgc = HP.GetTplDriveCaller<Vec3>();
-	const TplDriveCaller<Mat3x3> *pDCJgc = HP.GetTplDriveCaller<Mat3x3>();
+	if (!pDCXgc->bIsDifferentiable()) {
+		silent_cerr("VariableBody(" << uLabel << "): "
+			"center of mass drive caller must be differentiable "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const TplDriveCaller<Mat3x3> *pDCJgc_vm = HP.GetTplDriveCaller<Mat3x3>();
+	if (!pDCJgc_vm->bIsDifferentiable()) {
+		silent_cerr("VariableBody(" << uLabel << "): "
+			"mass-related inertia matrix drive caller must be differentiable "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const TplDriveCaller<Mat3x3> *pDCJgc_vg = HP.GetTplDriveCaller<Mat3x3>();
+	if (!pDCJgc_vg->bIsDifferentiable()) {
+		silent_cerr("VariableBody(" << uLabel << "): "
+			"geometry-related inertia matrix drive caller must be differentiable "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	const DynamicStructNode* pDynamicNode = 0;
 	const StaticStructNode* pStaticNode = 0;
@@ -1057,12 +1092,12 @@ ReadVariableBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 		/* static */
 		SAFENEWWITHCONSTRUCTOR(pEl, StaticVariableBody,
 			StaticVariableBody(uLabel, pStaticNode,
-				pDCMass, pDCXgc, pDCJgc, fOut));
+				pDCMass, pDCXgc, pDCJgc_vm, pDCJgc_vg, fOut));
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pEl, DynamicVariableBody,
 			DynamicVariableBody(uLabel, pDynamicNode,
-				pDCMass, pDCXgc, pDCJgc, fOut));
+				pDCMass, pDCXgc, pDCJgc_vm, pDCJgc_vg, fOut));
 	}
 
 	pDM->GetLogFile()
@@ -1070,7 +1105,8 @@ ReadVariableBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 		<< ' ' << pStrNode->GetLabel()
 		<< ' ' << pDCMass->dGet()
 		<< ' ' << pDCXgc->Get()
-		<< ' ' << pDCJgc->Get()
+		<< ' ' << pDCJgc_vm->Get()
+		<< ' ' << pDCJgc_vg->Get()
 		<< std::endl;
 
 	/* Se non c'e' il punto e virgola finale */

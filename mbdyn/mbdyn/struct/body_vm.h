@@ -49,7 +49,8 @@ protected:
 
 	DriveOwner m_Mass;
 	TplDriveOwner<Vec3> m_Xgc;
-	TplDriveOwner<Mat3x3> m_Jgc;
+	TplDriveOwner<Mat3x3> m_Jgc_vm;
+	TplDriveOwner<Mat3x3> m_Jgc_vg;
 
 	mutable doublereal dMTmp;
 	mutable Vec3 STmp;
@@ -76,7 +77,8 @@ public:
 	VariableBody(unsigned int uL, const StructNode *pNode,
 		const DriveCaller *pDCMass,
 		const TplDriveCaller<Vec3> *pDCXgc,
-		const TplDriveCaller<Mat3x3> *pDCJgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 		flag fOut);
 
 	virtual ~VariableBody(void);
@@ -138,7 +140,8 @@ public:
 	DynamicVariableBody(unsigned int uL, const DynamicStructNode* pNodeTmp, 
 		const DriveCaller *pDCMass,
 		const TplDriveCaller<Vec3> *pDCXgc,
-		const TplDriveCaller<Mat3x3> *pDCJgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 		flag fOut);
 
 	virtual ~DynamicVariableBody(void);
@@ -219,7 +222,8 @@ public:
 	StaticVariableBody(unsigned int uL, const StaticStructNode* pNode,
 		const DriveCaller *pDCMass,
 		const TplDriveCaller<Vec3> *pDCXgc,
-		const TplDriveCaller<Mat3x3> *pDCJgc,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vm,
+		const TplDriveCaller<Mat3x3> *pDCJgc_vg,
 		flag fOut);
 
 	virtual ~StaticVariableBody(void);
