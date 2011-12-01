@@ -1054,14 +1054,18 @@ and $\TT{J} = \TT{J}_\text{CM} + m \T{f}\times \T{f} \times{}^T$.
 
 The contribution to the equations of motion (Newton-Euler) is
 \begin{subequations}
+\label{eq:body:newton-euler}
 \begin{align}
-	\T{f}_{\text{in}} &= \dot{\T{\beta}} \\
+	\T{f}_{\text{in}} &= \dot{\T{\beta}}
+	\label{eq:body:newton-euler:f}
+	\\
 	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{\text{CM}} + \T{f}\times\T{f}_{\text{in}} \nonumber \\
 	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{f}}\times\T{\beta} \nonumber \\
 	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{f}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
 	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{f}} \nonumber \\
 	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
 	&= \dot{\T{\gamma}} + \dot{\T{x}}\times\T{\beta}
+	\label{eq:body:newton-euler:m}
 \end{align}
 \end{subequations}
 
@@ -1379,6 +1383,320 @@ As a consequence,
 	}
 \end{align}
 (NOTE: simplifications when using updated-updated formulas).
+
+
+
+\paragraph{Variable Mass}
+Momentum:
+\begin{align}
+	\T{\beta}
+	&=
+	m \dot{\T{x}}_\text{CM}
+\end{align}
+with
+\begin{align}
+	\dot{\T{x}}_\text{CM}
+	&=
+	\dot{\T{x}}
+	+
+	\T{\omega} \times \T{f}
+	+
+	\TT{R} \dot{\tilde{\T{f}}}
+	.
+\end{align}
+\begin{align}
+	\dot{\T{\beta}}
+	&=
+	m \ddot{\T{x}}_\text{CM}
+	+
+	\dot{m} \dot{\T{x}}_\text{CM}
+\end{align}
+Eq.~(\ref{eq:body:newton-euler:f}) becomes
+\begin{align}
+	\T{f}_\text{in}
+	&=
+	\dot{\T{\beta}}
+	-
+	\dot{m} \dot{\T{x}}_\text{CM}
+	.
+\end{align}
+Only the portion of $\dot{\T{\beta}}$ related to the change in mass
+is subtracted from the inertia forces; the portion related
+to the change in mass distribution, $\dot{\tilde{\T{f}}}$, is retained.
+
+Momenta moment:
+\begin{align}
+	\T{\gamma}
+	&=
+	\T{\gamma}_\text{CM}
+	+
+	\T{f} \times \T{\beta}
+	\nonumber \\
+	&=
+	\TT{J}_\text{CM} \T{\omega}
+	+
+	\T{f} \times m \dot{\T{x}}_\text{CM}
+\end{align}
+\begin{align}
+	\dot{\T{\gamma}}_\text{CM}
+	&=
+	\T{\omega} \times \TT{J}_\text{CM} \T{\omega}
+	+
+	\TT{J}_\text{CM} \dot{\T{\omega}}
+	+
+	\plbr{
+		\TT{J}_{\text{CM \ variable geometry}/t}
+		+
+		\TT{J}_{\text{CM \ variable mass}/t}
+	} \T{\omega}
+\end{align}
+
+\begin{align}
+	\dot{\T{\gamma}}
+	&=
+	\dot{\T{\gamma}}_\text{CM}
+	+
+	\dot{\T{f}} \times \T{\beta}
+	+
+	\T{f} \times \dot{\T{\beta}}
+	\nonumber \\
+	&=
+	\T{\omega} \times \TT{J}_\text{CM} \T{\omega}
+	+
+	\TT{J}_\text{CM} \dot{\T{\omega}}
+	+
+	\plbr{
+		\TT{J}_{\text{CM variable geometry}/t}
+		+
+		\TT{J}_{\text{CM variable mass}/t}
+	} \T{\omega}
+	\nonumber \\
+	&\mbox{}
+	+ \plbr{
+		\T{\omega} \times \T{f}
+		+
+		\TT{R} \dot{\tilde{\T{f}}}
+	} \times \T{\beta}
+	+
+	\T{f} \times \plbr{
+		m \ddot{\T{x}}_\text{CM}
+		+
+		\dot{m} \dot{\T{x}}_\text{CM}
+	}
+\end{align}
+
+Inertia moment of the whole body
+\begin{align}
+	\T{m}_\text{in}
+	&=
+	\dot{\T{\gamma}}_\text{CM}
+	+
+	\T{f} \times \dot{\T{\beta}}
+	\nonumber \\
+	&=
+	\dot{\T{\gamma}}
+	-
+	\dot{\T{f}} \times \T{\beta}
+	\nonumber \\
+	&=
+	\T{\omega} \times \TT{J}_\text{CM} \T{\omega}
+	+
+	\TT{J}_\text{CM} \dot{\T{\omega}}
+	+
+	\plbr{
+		\TT{J}_{\text{CM variable geometry}/t}
+		+
+		\TT{J}_{\text{CM variable mass}/t}
+	} \T{\omega}
+	\nonumber \\
+	&\mbox{}
+	+
+	\T{f} \times \plbr{
+		m \ddot{\T{x}}_\text{CM}
+		+
+		\dot{m} \dot{\T{x}}_\text{CM}
+	}
+\end{align}
+
+Inertia moment of the whole body minus the mass that is lost
+\begin{align}
+	\T{m}_\text{in}
+	&=
+	\dot{\T{\gamma}}
+	-
+	\dot{\T{f}} \times \T{\beta}
+	-
+	\TT{J}_{\text{CM variable mass}/t} \T{\omega}
+	-
+	\T{f} \times \dot{m} \dot{\T{x}}_\text{CM}
+\end{align}
+Only the portion of $\dot{\T{\gamma}}$ related to the change in mass
+is subtracted from the inertia forces; the portion related
+to the change in mass distribution,
+$\TT{J}_{\text{CM variable geometry}/t}$,
+is retained.
+
+Linearization:
+\begin{align}
+	\delta\T{f}_\text{in}
+	&=
+	\delta\dot{\T{\beta}}
+	-
+	\dot{m} \plbr{
+		\delta\dot{\T{x}}
+		-
+		\T{f} \times \delta\T{\omega}
+		-
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+	}
+	\nonumber \\
+	&\equu
+	\delta\dot{\T{\beta}}
+	-
+	\dot{m} \delta\dot{\T{x}}
+	-
+	\dot{m} \T{f}\times \delta\dot{\T{g}}
+	-
+	\dot{m} \plbr{
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times{}
+		-
+		\T{f} \times \T{\omega} \times{}
+	} \delta\T{g}
+	\\
+	\delta\T{m}_\text{in}
+	&=
+	\delta\dot{\T{\gamma}}
+	-
+	\plbr{
+		\delta\T{\omega} \times \T{f}
+		+
+		\T{\omega} \times \T{\theta}_{\delta} \times \T{f}
+		+
+		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{f}}}
+	} \times \T{\beta}
+	-
+	\dot{\T{f}} \times \delta\T{\beta}
+	\nonumber \\
+	&\mbox{}
+	-
+	\T{\theta}_{\delta} \times \TT{J}_{\text{CM variable mass}/t} \T{\omega}
+	-
+	\TT{J}_{\text{CM variable mass}/t} \T{\theta}_{\delta} \times{}^T \T{\omega}
+	-
+	\TT{J}_{\text{CM variable mass}/t} \delta\T{\omega}
+	\nonumber \\
+	&\mbox{}
+	-
+	\plbr{\T{\theta}_{\delta} \times \T{f}}\times \dot{m} \dot{\T{x}}_\text{CM}
+	-
+	\T{f} \times \dot{m} \plbr{
+		\delta\dot{\T{x}}
+		+
+		\delta\T{\omega} \times \T{f}
+		+
+		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{f}}}
+	}
+	\nonumber \\
+	&=
+	\delta\dot{\T{\gamma}}
+	-
+	\T{\beta} \times \plbr{
+		\T{f} \times \delta\T{\omega}
+		+
+		\T{\omega} \times \T{f} \times \T{\theta}_{\delta}
+		+
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+	}
+	-
+	\dot{\T{f}} \times \delta\T{\beta}
+	\nonumber \\
+	&\mbox{}
+	+
+	\plbr{
+		\plbr{\TT{J}_{\text{CM variable mass}/t} \T{\omega}} \times{}
+		-
+		\TT{J}_{\text{CM variable mass}/t} \T{\omega} \times{}
+	} \T{\theta}_{\delta}
+	-
+	\TT{J}_{\text{CM variable mass}/t} \delta\T{\omega}
+	\nonumber \\
+	&\mbox{}
+	-
+	\dot{m} \dot{\T{x}}_\text{CM} \times \T{f} \times \T{\theta}_{\delta}
+	-
+	\T{f} \times \dot{m} \plbr{
+		\delta\dot{\T{x}}
+		-
+		\T{f} \times \delta\T{\omega}
+		-
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+	}
+	\nonumber \\
+	&\equu
+	\delta\dot{\T{\gamma}}
+	-
+	\T{\beta} \times \plbr{
+		\T{f} \times \delta\dot{\T{g}}
+		+
+		\plbr{\T{\omega} \times \T{f}} \times \delta\T{g}
+		+
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \delta\T{g}
+	}
+	-
+	\dot{\T{f}} \times \delta\T{\beta}
+	\nonumber \\
+	&\mbox{}
+	+
+	\plbr{\TT{J}_{\text{CM variable mass}/t} \T{\omega}} \times \delta\T{g}
+	-
+	\TT{J}_{\text{CM variable mass}/t} \delta\dot{\T{g}}
+	\nonumber \\
+	&\mbox{}
+	-
+	\dot{m} \dot{\T{x}}_\text{CM} \times \T{f} \times \delta\T{g}
+	-
+	\T{f} \times \dot{m} \plbr{
+		\delta\dot{\T{x}}
+		-
+		\T{f} \times \delta\dot{\T{g}}
+		+
+		\T{f} \times \T{\omega} \times \delta\T{g}
+		-
+		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \delta\T{g}
+	}
+	\nonumber \\
+	&=
+	\delta\dot{\T{\gamma}}
+	-
+	\dot{\T{f}} \times \delta\T{\beta}
+	-
+	\T{f} \times \dot{m} \delta\dot{\T{x}}
+	-
+	\plbr{
+		\T{\beta} \times \T{f} \times{}
+		+
+		\TT{J}_{\text{CM variable mass}/t}
+		-
+		\dot{m} \T{f} \times \T{f} \times{}
+	}\delta\dot{\T{g}}
+	\nonumber \\
+	&\mbox{}
+	+ \plbr{
+		-\T{\beta}\times\dot{\T{f}}\times{}
+		+
+		\plbr{\TT{J}_{\text{CM variable mass}/t} \T{\omega}} \times{}
+		-
+		\dot{m} \plbr{
+			\dot{\T{x}}_\text{CM} \times \T{f} \times{}
+			+
+			\T{f} \times \plbr{
+				\T{f} \times \T{\omega} \times{}
+				-
+				\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times{}
+			}
+		}
+	} \delta\T{g}
+\end{align}
 
 
 \subsection{Static Structural Nodes}
