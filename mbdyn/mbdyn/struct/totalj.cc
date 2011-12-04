@@ -1380,7 +1380,7 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative ");
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
 			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
 				"local relative velocity (x, y, z)");
@@ -3088,7 +3088,7 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 				"local relative position (x, y, z)");
 
 			// NOTE: by now, force ORIENTATION_VECTOR
-			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative ");
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative");
 
 			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
 				"local relative velocity (x, y, z)");
