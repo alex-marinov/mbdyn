@@ -39,6 +39,7 @@ MBDyn 1.X-Devel
 		- refactor NetCDF support
 		- added support for references using Denavit-Hartenberg 
 		- added switch to suppress inertia output
+		- added simple hydraulic damper model (Giuseppe Quaranta)
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
 		- the induced velocity element internal API changed
