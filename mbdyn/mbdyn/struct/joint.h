@@ -52,7 +52,16 @@ class Joint
 	public ElemWithDofs, public InitialAssemblyElem
 {
 protected:
+#ifdef USE_NETCDF
+	NcVar *Var_F_local;
+	NcVar *Var_M_local;
+	NcVar *Var_F_global;
+	NcVar *Var_M_global;
+#endif // USE_NETCDF
+
 	unsigned m_uInverseDynamicsFlags;
+
+	virtual void OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string& name);
 
 public:
 	/* Tipi di Joint */

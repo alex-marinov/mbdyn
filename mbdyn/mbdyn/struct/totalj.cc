@@ -68,6 +68,12 @@ ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
 tilde_f1(R1h.MulTV(f1)),
+#ifdef USE_NETCDF
+Var_X(0),
+Var_Phi(0),
+Var_V(0),
+Var_Omega(0),
+#endif // USE_NETCDF
 M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
@@ -1361,6 +1367,31 @@ TotalJoint::GetEqType(unsigned int i) const
 	return DofOrder::ALGEBRAIC;
 }
 
+void
+TotalJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("total", OH, name);
+
+			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+				"local relative position (x, y, z)");
+
+			// NOTE: by now, force ORIENTATION_VECTOR
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative ");
+
+			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
+				"local relative velocity (x, y, z)");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto), per ora solo reazioni */
 void
 TotalJoint::Output(OutputHandler& OH) const
@@ -1379,18 +1410,40 @@ TotalJoint::Output(OutputHandler& OH) const
 		Mat3x3 R1rTmp(R1*R1hr);
 		Mat3x3 R2rTmp(R2*R2hr);
 		Mat3x3 RTmp(R1rTmp.MulTM(R2rTmp));
+		Vec3 ThetaTmp(RotManip::VecRot(RTmp));
 		Vec3 b2(R2*f2);
 		Vec3 b1(X2 + b2 - X1);
-		Vec3 X(R1Tmp.MulTV(b1) - tilde_f1);
+		Vec3 XTmp(R1Tmp.MulTV(b1) - tilde_f1);
+		Vec3 VTmp(R1Tmp.MulTV(V2 + Omega2.Cross(b2) - V1 - Omega1.Cross(b1)));
+		Vec3 OmegaTmp(R1rTmp.MulTV(Omega2 - Omega1));
 
-		Joint::Output(OH.Joints(), "TotalJoint", GetLabel(),
-			F, M, R1Tmp*F, R1rTmp*M)
-			<< " " << X
-			<< " " << RotManip::VecRot(RTmp)
-			<< " " << R1Tmp.MulTV(V2 + Omega2.Cross(b2) - V1 - Omega1.Cross(b1))
-			<< " " << R1rTmp.MulTV(Omega2 - Omega1)
-			<< std::endl;
-			// accelerations?
+		Vec3 FTmp(R1Tmp*F);
+		Vec3 MTmp(R1rTmp*M);
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(MTmp.pGetVec(), OH.GetCurrentStep());
+
+			Var_X->put_rec(XTmp.pGetVec(), OH.GetCurrentStep());
+			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
+			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "TotalJoint", GetLabel(),
+				F, M, FTmp, MTmp)
+				<< " " << XTmp
+				<< " " << ThetaTmp
+				<< " " << VTmp
+				<< " " << OmegaTmp
+				<< std::endl;
+				// accelerations?
+		}
 	}
 }
 
@@ -1932,6 +1985,12 @@ XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
+#ifdef USE_NETCDF
+Var_X(0),
+Var_Phi(0),
+Var_V(0),
+Var_Omega(0),
+#endif // USE_NETCDF
 M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 {
 	/* Equations 1->3: Positions
@@ -3016,6 +3075,31 @@ TotalPinJoint::GetEqType(unsigned int i) const
 	return DofOrder::ALGEBRAIC;
 }
 
+void
+TotalPinJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("totalpin", OH, name);
+
+			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+				"local relative position (x, y, z)");
+
+			// NOTE: by now, force ORIENTATION_VECTOR
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, "local relative ");
+
+			Var_V = OH.CreateVar<Vec3>(name + "V", "m/s",
+				"local relative velocity (x, y, z)");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void
 TotalPinJoint::Output(OutputHandler& OH) const
@@ -3029,16 +3113,38 @@ TotalPinJoint::Output(OutputHandler& OH) const
 		Vec3 fn(Rn*tilde_fn);
 		Mat3x3 RnhrTmp(Rn*tilde_Rnhr);
 		Mat3x3 RTmp(RchrT*RnhrTmp);
+		Vec3 ThetaTmp(RotManip::VecRot(RTmp));
+		Vec3 XTmp(RchT*(Xn + fn) - tilde_Xc);
+		Vec3 VTmp(RchT*(Vn + Omegan.Cross(fn)));
+		Vec3 OmegaTmp(RchrT*Omegan);
 
-		Vec3 X = RchT*(Xn + fn) - tilde_Xc;
+		Vec3 FTmp(Rch*F);
+		Vec3 MTmp(Rchr*M);
 
-		Joint::Output(OH.Joints(), "TotalPinJoint", GetLabel(),
-			F, M, Rch*F, Rchr*M)
-			<< " " << X
-			<< " " << RotManip::VecRot(RTmp)
-			<< " " << RchT*(Vn + Omegan.Cross(fn))
-			<< " " << RchrT*Omegan
-			<< std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(MTmp.pGetVec(), OH.GetCurrentStep());
+
+			Var_X->put_rec(XTmp.pGetVec(), OH.GetCurrentStep());
+			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
+			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "TotalPinJoint", GetLabel(),
+				F, M, FTmp, MTmp)
+				<< " " << XTmp
+				<< " " << ThetaTmp
+				<< " " << VTmp
+				<< " " << OmegaTmp
+				<< std::endl;
+				// accelerations?
+		}
 	}
 }
 

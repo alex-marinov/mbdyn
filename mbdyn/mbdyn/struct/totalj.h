@@ -85,6 +85,13 @@ private:
 	
 	Vec3 tilde_f1;
 
+#ifdef USE_NETCDF
+	NcVar *Var_X;
+	NcVar *Var_Phi;
+	NcVar *Var_V;
+	NcVar *Var_Omega;
+#endif // USE_NETCDF
+
 	mutable Vec3 M;
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
@@ -201,6 +208,7 @@ public:
 	
 	DofOrder::Order GetEqType(unsigned int i) const;
 
+	void OutputPrepare(OutputHandler &OH);
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */
@@ -288,6 +296,13 @@ private:
 	unsigned int iVelEqIndex[3];
 	unsigned int iAgvEqIndex[3];
 	
+#ifdef USE_NETCDF
+	NcVar *Var_X;
+	NcVar *Var_Phi;
+	NcVar *Var_V;
+	NcVar *Var_Omega;
+#endif // USE_NETCDF
+
 	mutable Vec3 M;
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
@@ -404,6 +419,7 @@ public:
 	
 	DofOrder::Order GetEqType(unsigned int i) const;
 
+	void OutputPrepare(OutputHandler &OH);
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */

@@ -84,7 +84,14 @@ Joint::Joint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 ElemWithDofs(uL, pDO, fOut),
-InitialAssemblyElem(uL, fOut)
+InitialAssemblyElem(uL, fOut),
+#ifdef USE_NETCDF
+Var_F_local(0),
+Var_M_local(0),
+Var_F_global(0),
+Var_M_global(0),
+#endif // USE_NETCDF
+m_uInverseDynamicsFlags(0)
 {
 	NO_OP;
 }
@@ -94,6 +101,36 @@ Joint::~Joint(void)
 	NO_OP;
 }
 
+
+void
+Joint::OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string& name)
+{
+#ifdef USE_NETCDF
+	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+	std::ostringstream os;
+	os << "elem.joint." << GetLabel();
+	(void)OH.CreateVar(os.str(), type);
+
+	// joint sub-data
+	os << '.';
+	name = os.str();
+
+	Var_F_local = OH.CreateVar<Vec3>(name + "f", "N",
+		"local reaction force (Fx, Fy, Fz)");
+
+	Var_M_local = OH.CreateVar<Vec3>(name + "m", "Nm",
+		"local reaction moment (Mx, My, Mz)");
+
+	Var_F_global = OH.CreateVar<Vec3>(name + "F", "N",
+		"global reaction force (FX, FY, FZ)");
+
+	Var_M_global = OH.CreateVar<Vec3>(name + "M", "Nm",
+		"global reaction moment (MX, MY, MZ)");
+
+	// elements can add further data
+#endif // USE_NETCDF
+}
 
 /* Output specifico dei vincoli */
 std::ostream&
