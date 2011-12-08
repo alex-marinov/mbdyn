@@ -1548,7 +1548,15 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 
 		EffIter++;
 	}
-	pSM->SolveT();
+
+	switch (dynamic_cast<const InverseSolver *>(pDM->GetSolver())->GetProblemType()) {
+	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
+		pSM->SolveT();
+		break;
+
+	default:
+		pSM->Solve();
+	}
 
 	if (pS->outputSol()) {
 		silent_cout("Solution(inverseDynamics):" << std::endl);
