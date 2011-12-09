@@ -85,6 +85,11 @@ public:
 
 	Shell(unsigned uLabel, const DofOwner* pDO, flag fOut);
 	virtual ~Shell(void);
+
+	// Element type
+	virtual Elem::Type GetElemType(void) const {
+		return Elem::PLATE;
+	};
 };
 
 // Shell - end

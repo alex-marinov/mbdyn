@@ -294,11 +294,6 @@ public:
 		return Shell::ELASTIC;
 	};
 
-	// Element type
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::PLATE;
-	};
-
 	virtual unsigned int iGetNumDof(void) const { 
 		//return 14;
 		return 13;
