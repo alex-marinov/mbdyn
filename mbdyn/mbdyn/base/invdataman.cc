@@ -368,8 +368,6 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += ThetaRes(iCnt);
 					}
-
-					// TODO: add complete mass matrix
 				}
 			}
 			break;
@@ -450,8 +448,6 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 						ResHdl(iFirstIndex + 3 + iCnt) += GPrev(iCnt);
 					}
-
-					// TODO: add complete mass matrix
 				}
 			}
 			break;
