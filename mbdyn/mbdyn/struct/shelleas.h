@@ -305,12 +305,12 @@ public:
 	};
 
 	virtual DofOrder::Order GetDofType(unsigned int i) const {
-		ASSERT(i >= 0 && i <= iGetNumDof());
+		ASSERT(i >= 0 && i < iGetNumDof());
 		return DofOrder::ALGEBRAIC;
 	};
 
 	virtual DofOrder::Order GetEqType(unsigned int i) const {
-		ASSERT(i >= 0 && i <= iGetNumDof());
+		ASSERT(i >= 0 && i < iGetNumDof());
 		return DofOrder::ALGEBRAIC;
 	};
 
