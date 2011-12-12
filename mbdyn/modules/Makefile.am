@@ -144,9 +144,11 @@ module-constlaw-f95/README \
 module-constlaw-f95/usrsub.f95 \
 module-constlaw-f95/usrsub.h \
  \
+module-damper-hydraulic/module-damper-hydraulic.cc \
+ \
 module-drive/module-drive.cc \
 module-drive/README \
-\
+ \
 module-hydrodynamic_plain_bearing/diffsizes.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
@@ -155,6 +157,9 @@ module-hydrodynamic_plain_bearing/Makefile.inc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
+ \
+module-hunt-crossley/module-hunt-crossley.cc \
+module-hunt-crossley/hunt_crossley \
  \
 module-mds/mds \
 module-mds/module-mds.cc \
