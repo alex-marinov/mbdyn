@@ -1179,7 +1179,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       			WM.SubT(1 + nPosConstraints + iCnt, 3 + 1, vR1);
 
 			/* Constraint, node 2 */
-      			WM.AddT(1 + nPosConstraints +  iCnt, 9 + 1, vR1);
+      			WM.AddT(1 + nPosConstraints + iCnt, 9 + 1, vR1);
 		}
 	}
 
