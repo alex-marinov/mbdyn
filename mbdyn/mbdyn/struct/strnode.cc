@@ -1366,7 +1366,7 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	flag fOut)
 : StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut),
-bComputeAccels((fOut & 2) ? true : false),
+bComputeAccels((fOut & OUTPUT_ACCELERATIONS) == OUTPUT_ACCELERATIONS),
 pAutoStr(0)
 {
 	bOutputAccels = bComputeAccels;
