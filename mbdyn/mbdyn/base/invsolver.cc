@@ -1392,6 +1392,9 @@ InverseSolver::ReadData(MBDynParser& HP)
 			DEBUGLCOUT(MYDEBUG_INPUT,
 					"Max iterations = "
 					<< iMaxIterations << std::endl);
+			if (HP.IsKeyWord("at" "most")) {
+				iMaxIterations = -iMaxIterations;
+			}
 			break;
 		}
 
