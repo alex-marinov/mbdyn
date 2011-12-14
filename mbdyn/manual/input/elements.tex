@@ -198,7 +198,8 @@ The following data is available:
     \bnt{one_vm_body} ::=
         (\ty{DriveCaller})            \bnt{mass} ,
         (\ty{TplDriveCaller<Vec3>})   \bnt{relative_center_of_mass} ,
-        (\ty{TplDriveCaller<Mat3x3>}) \bnt{inertia_matrix}
+        (\ty{TplDriveCaller<Mat3x3>}) \bnt{variable_mass_inertia_matrix} ,
+        (\ty{TplDriveCaller<Mat3x3>}) \bnt{variable_geometry_inertia_matrix}
 \end{Verbatim}
 %\end{verbatim}
 If only one mass is defined, the first method should be used. Otherwise,
@@ -265,6 +266,38 @@ So:
 	\texttt{i13} & = & - \texttt{I31} \\
 	\texttt{i23} & = & - \texttt{I32}
 \end{eqnarray*}
+
+The \kw{variable mass} variant requires the mass, \nt{mass},
+the location of the center of mass with respect to the node
+in the reference frame of the node, \nt{relative\_center\_of\_mass},
+and the inertia matrix about the center of mass must be provided
+in form of \emph{differentiable} drive callers of the specific dimension.
+The inertia matrix is logically split in two contributions:
+the first one, \nt{variable\_mass\_inertia\_matrix},
+is related to the variation of mass;
+the second one, \nt{variable\_geometry\_inertia\_matrix},
+is related to the change of geometry at fixed instantaneous value
+of the mass.
+The instantaneous inertia matrix with respect to the node,
+in the reference frame of the node, is computed as
+\begin{align}
+	\tilde{\TT{J}}_n
+	&=
+	\nt{variable\_mass\_inertia\_matrix}
+	\noindent \\
+	&\mbox{\hphantom{= }}
+	+
+	\nt{variable\_geometry\_inertia\_matrix}
+	\noindent \\
+	&\mbox{\hphantom{= }}
+	+
+	\nt{mass}
+	\cdot
+	\nt{relative\_center\_of\_mass} \times \nt{relative\_center\_of\_mass} \times{}^T
+	.
+\end{align}
+See the technical manual for more details.
+
 The inertia properties of the model can be logged and verified
 by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
