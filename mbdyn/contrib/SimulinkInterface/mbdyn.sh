@@ -36,25 +36,28 @@
 # to mbdyn-users@mbdyn.org
 
 # TODO: get values from configure...
-INSTALLDIR=/usr/local
+INSTALLDIR=/usr/local/mbdyn
+#INSTALLDIR=/usr/local
 BINDIR="${INSTALLDIR}/bin"
 
 # This is the location of MBDyn when run from within the build tree
-MBDYN=../../mbdyn/mbdyn
+#MBDYN=../../mbdyn/mbdyn
 
 # This is the location of MBDyn when installed in the default location
-#MBDYN="${BINDIR}/mbdyn"
+MBDYN="${BINDIR}/mbdyn"
 
 # Add further variable declarations
 # for example, if MBDyn is linked with a version of libstdc++ that differs
 # from the one distributed with matlab, put its location into LD_LIBRARY_PATH
 # in most cases:
-#LD_LIBRARY_PATH=/usr/lib
+LD_LIBRARY_PATH=/usr/lib
 # in most cases on x86_64:
 #LD_LIBRARY_PATH=/usr/lib64
 # but, usually, it's enough to let the system do its job!
-LD_LIBRARY_PATH=
+#LD_LIBRARY_PATH=
 
-#exec -a mbdyn "${MBDYN}" $@
 exec "${MBDYN}" $@
+#exec -a mbdyn "${MBDYN}" $@
+# log output in 'log.txt' (enable "verbose" from interface)
+#exec "${MBDYN}" $@ > log.txt 2>&1
 
