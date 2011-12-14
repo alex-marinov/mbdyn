@@ -521,18 +521,20 @@ DynamicVariableBody::AssRes(SubVectorHandler& WorkVec,
 	Vec3 DXgc(R*m_Xgc.Get());
 	STmp = DXgc*dMTmp;
 	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, STmp, DXgc)).MulMT(R);
+	Vec3 DXgcP(R*m_Xgc.GetP());
+	Vec3 XgcPTmp(V + W.Cross(DXgc) + DXgcP);
 
 	/* Quantita' di moto: R[1] = Q - M * V - W /\ S */
-	WorkVec.Sub(1, V*dMTmp + W.Cross(STmp));
+	WorkVec.Sub(1, XgcPTmp*dMTmp);
 
 	/* Momento della quantita' di moto: R[2] = G - S /\ V - J * W */
 	WorkVec.Sub(3 + 1, JTmp*W + STmp.Cross(V));
 
-	Vec3 mp_Xp_cm((V + W.Cross(DXgc) + R*m_Xgc.GetP())*m_Mass.dGetP());
+	Vec3 mp_Xp_cm(XgcPTmp*m_Mass.dGetP());
 
 	/* Variable mass correction */
 	WorkVec.Add(6 + 1, mp_Xp_cm);
-	WorkVec.Add(9 + 1, m_Jgc_vm.GetP()*W + DXgc.Cross(mp_Xp_cm));
+	WorkVec.Add(9 + 1, m_Jgc_vm.GetP()*W + DXgc.Cross(mp_Xp_cm) + V.Cross(DXgcP*dMTmp));
 
 	if (g) {
 		WorkVec.Add(6 + 1, GravityAcceleration*dMTmp);
@@ -687,16 +689,18 @@ DynamicVariableBody::SetValue(DataManager *pDM,
 {
 	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 
+	// TODO: make configurable
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());
 
-	// FIXME: HACK!
 	dMTmp = m_Mass.dGet();
 	Vec3 DXgc(R*m_Xgc.Get());
 	STmp = DXgc*dMTmp;
 	JTmp = R*(m_Jgc_vm.Get() + m_Jgc_vg.Get() - Mat3x3(MatCrossCross, DXgc, STmp)).MulMT(R);
 	X.Add(iFirstIndex + 1, V*dMTmp + W.Cross(STmp));
+	// NOTE: does not start correctly if m_Xgc.GetP() != 0 at initial time...
+	// X.Add(iFirstIndex + 1, (V + R*m_Xgc.GetP())*dMTmp + W.Cross(STmp));
 	X.Add(iFirstIndex + 4, STmp.Cross(V) + JTmp*W);
 }
 

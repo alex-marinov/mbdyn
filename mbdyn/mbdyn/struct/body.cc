@@ -679,6 +679,7 @@ DynamicBody::SetValue(DataManager *pDM,
 {
 	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
 
+	// TODO: make configurable
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& W(pNode->GetWCurr());
 	const Mat3x3& R(pNode->GetRCurr());

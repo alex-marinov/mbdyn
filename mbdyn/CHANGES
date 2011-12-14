@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- TotalPinJoint inverse dynamics support is broken
 	Bug fixes:
 		- fix structural nodes accel output (Reinhard Resch)
+		- fix variable mass body (noted by Francesco Castellini)
 
 MBDyn 1.4.1
 	Enhancements:

@@ -1536,7 +1536,59 @@ to the change in mass distribution,
 $\TT{J}_{\text{CM variable geometry}/t}$,
 is retained.
 
+Actually, in the constant mass code, the term $\dot{\T{f}} \times \T{\beta}$
+is written as $-\T{v}\times\T{\beta}$, exploiting its structure:
+\begin{align}
+	\dot{\T{f}} \times \T{\beta}
+	&=
+	m \plbr{\T{\omega} \times \T{f}} \times \plbr{\T{v} + \T{\omega} \times \T{f}}
+	\nonumber \\
+	&=
+	m \plbr{\T{\omega} \times \T{f}} \times \T{v}
+	\nonumber \\
+	&=
+	m \plbr{\T{v} + \T{\omega} \times \T{f}} \times \T{v}
+	\nonumber \\
+	&=
+	\T{\beta} \times \T{v}
+\end{align}
+In the variable mass case, this can be written as
+\begin{align}
+	\dot{\T{f}} \times \T{\beta}
+	&=
+	m \plbr{\T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}} \times
+		\plbr{\T{v} + \T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}}
+	\nonumber \\
+	&=
+	\T{\beta} \times \T{v}
+	+
+	m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times 
+		\plbr{\T{v} + \T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}}
+	+
+	m \plbr{\T{\omega} \times \T{f}} \times \TT{R} \dot{\tilde{\T{f}}}
+	\nonumber \\
+	&=
+	\T{\beta} \times \T{v}
+	+
+	m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{v}
+\end{align}
+The correction term $\T{\beta} \times \T{v}$ is already applied
+to the equations of motion by the \texttt{AutomaticStructuralElem}
+element associated to the underlying node;
+the correction term $m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{v}$
+must be explicitly applied by the \texttt{DynamicVariableBody} element.
+
+\bigskip
 Linearization:
+currently the \texttt{DynamicVariableBody} element does not contribute
+to the Jacobian matrix with respect to the variable inertia properties;
+only the original contribution of the constant inertia properties element
+is provided.
+This implies that the residual is exact to the required tolerance,
+while the Jacobian matrix is not; convergence should not be compromised
+as soon as moderate inertia variations are used.
+
+\begin{comment}
 \begin{align}
 	\delta\T{f}_\text{in}
 	&=
@@ -1697,6 +1749,7 @@ Linearization:
 		}
 	} \delta\T{g}
 \end{align}
+\end{comment}
 
 
 \subsection{Static Structural Nodes}
