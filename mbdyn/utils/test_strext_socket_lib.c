@@ -942,13 +942,13 @@ tsend_(float *RF, float *RM, float *NF, float *NM,
 		unsigned node;
 
 		for (node = 0; node < mbc->nodes; node++) {
-			f[node] = NF[node];
-			f[node + 1] = NF[node + 1];
-			f[node + 2] = NF[node + 2];
+			f[3*node] = NF[3*node];
+			f[3*node + 1] = NF[3*node + 1];
+			f[3*node + 2] = NF[3*node + 2];
 
-			m[node] = NM[node];
-			m[node + 1] = NM[node + 1];
-			m[node + 2] = NM[node + 2];
+			m[3*node] = NM[3*node];
+			m[3*node + 1] = NM[3*node + 1];
+			m[3*node + 2] = NM[3*node + 2];
 		}
 	}
 
