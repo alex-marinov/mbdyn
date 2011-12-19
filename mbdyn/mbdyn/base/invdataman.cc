@@ -195,6 +195,15 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 			}
 
 			if (dw2 > 0.) {
+// DO NOT ENABLE, BROKEN
+//#define TORQUE_OPTIMIZATION
+#ifdef TORQUE_OPTIMIZATION
+				if (pIDSS->GetOrder() == InverseDynamics::POSITION) {
+					doublereal h = DrvHdl.dGetTimeStep();
+					dw2 /= h*h;
+				}
+#endif // TORQUE_OPTIMIZATION
+
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
@@ -344,6 +353,36 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 			}
 
 			if (dw2 > 0.) {
+#ifdef TORQUE_OPTIMIZATION
+				doublereal h = DrvHdl.dGetTimeStep();
+				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
+					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
+				{
+					const Body *pBody(Cast<Body>(b->second));
+					doublereal dm(pBody->dGetM()*dw2);
+					Vec3 S(pBody->GetS()*dw2);
+					Mat3x3 J = (pBody->GetJ()*dw2);
+					const StructNode *pNode = pBody->pGetNode();
+					ASSERT(pNode->iGetNumDof() == 6);
+					integer iFirstIndex = pNode->iGetFirstIndex();
+
+					Vec3 DXP((pNode->GetXCurr() - pNode->GetXPrev())/h);
+					Vec3 DXPP((DXP - pNode->GetVPrev())/h);
+					// VecRot(Rp*Rc^T) = -VecRot(Rc*Rp^T)
+					Vec3 DW(RotManip::VecRot(pNode->GetRCurr().MulMT(pNode->GetRPrev()))/h);
+					Vec3 DWP((DW - pNode->GetWPrev())/h);
+
+					Vec3 XRes(DXPP*dm + DWP.Cross(S) + DW.Cross(DW.Cross(S)));
+					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+						ResHdl(iFirstIndex + iCnt) -= XRes(iCnt);
+					}
+
+					Vec3 ThetaRes(S.Cross(DXPP) + J*DWP + DW.Cross(J*DW));
+					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+						ResHdl(iFirstIndex + 3 + iCnt) -= ThetaRes(iCnt);
+					}
+				}
+#else // !TORQUE_OPTIMIZATION
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
@@ -369,6 +408,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 						ResHdl(iFirstIndex + 3 + iCnt) += ThetaRes(iCnt);
 					}
 				}
+#endif // !TORQUE_OPTIMIZATION
 			}
 			break;
 
