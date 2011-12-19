@@ -1183,6 +1183,7 @@ ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	const char *s = HP.IsWord(DriveWordSet);
 	if (s == 0) {
+		pedantic_cerr("ReadDriveData: warning, assuming \"const\" drive caller at line " << HP.GetLineData() << std::endl);
 		s = "const";
 	}
 
