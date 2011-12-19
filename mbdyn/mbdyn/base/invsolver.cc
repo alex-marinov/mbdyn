@@ -619,7 +619,7 @@ IfStepIsToBeRepeated:
 
 			silent_cerr(outputCounterPrefix
 				<< "Max iterations number "
-				<< pRegularSteps->GetIntegratorMaxIters()
+				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
 				<< " has been reached during"
 				" step " << lStep << ';'
 				<< std::endl
