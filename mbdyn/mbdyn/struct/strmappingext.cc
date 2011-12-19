@@ -87,7 +87,7 @@ m_p(3*uMappedPoints)
 {
 	ASSERT(nodes.size() == offsets.size());
 	if (pH) {
-		ASSERT(3*uPoints == pH->iGetNumCols());
+		ASSERT(3*uPoints == unsigned(pH->iGetNumCols()));
 		ASSERT(3*uMappedPoints == unsigned(pH->iGetNumRows()));
 	}
 
