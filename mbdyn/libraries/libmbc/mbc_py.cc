@@ -35,7 +35,7 @@
 #include <cstring>
 #include <vector>
 
-/* rigid body global data */
+/* reference node global data */
 
 uint32_t *mbc_r_k_label;
 double *mbc_r_x;
@@ -97,7 +97,7 @@ int
 mbc_py_nodal_initialize(const char *const path,
 	const char *const host, unsigned port,
 	int timeout, unsigned verbose, unsigned data_and_next,
-	unsigned rigid, unsigned nodes,
+	unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels)
 {
 	mbc_nodal_t mbc;
@@ -135,7 +135,7 @@ mbc_py_nodal_initialize(const char *const path,
 		return -1;
 	}
 
-	if (mbc_nodal_init(&mbc, rigid, nodes, labels, rot, accels)) {
+	if (mbc_nodal_init(&mbc, refnode, nodes, labels, rot, accels)) {
 		return -1;
 	}
 
@@ -312,7 +312,7 @@ int
 mbc_py_modal_initialize(const char *const path,
 	const char *const host, unsigned port,
 	int timeout, unsigned verbose, unsigned data_and_next,
-	unsigned rigid, unsigned modes)
+	unsigned refnode, unsigned modes)
 {
 	mbc_modal_t mbc;
 	std::memset(&mbc, 0, sizeof(mbc_modal_t));
@@ -349,7 +349,7 @@ mbc_py_modal_initialize(const char *const path,
 		return -1;
 	}
 
-	if (mbc_modal_init(&mbc, rigid, modes)) {
+	if (mbc_modal_init(&mbc, refnode, modes)) {
 		return -1;
 	}
 

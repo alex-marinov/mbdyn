@@ -58,7 +58,7 @@ usage(void)
 		"\t-c [random:]<c>\t\tnumber of iterations\n"
 		"\t-H <url>\tURL (file://path)\n"
 		"\t-M <modes>\tmodes number\n"
-		"\t-r\t\tuse rigid body data\n"
+		"\t-r\t\tuse reference node data\n"
 		"\t-s <sleeptime>\t\tsleep time between tries\n"
 		"\t-v\t\tverbose\n"
 		"\t-x\t\tdata_and_next\n");
@@ -75,7 +75,7 @@ main(int argc, char *argv[])
 
 	std::string fname_in, fname_out, tmpfname_out;
 	unsigned modes = 0;
-	unsigned rigid = 0;
+	unsigned refnode = 0;
 	char verbose = 0;
 	char data_and_next = 0;
 
@@ -126,7 +126,7 @@ main(int argc, char *argv[])
 			break;
 
 		case 'r':
-			rigid = 1;
+			refnode = 1;
 			break;
 
 		case 's':
@@ -195,7 +195,7 @@ retry_1:;
 			}
 
 			/* get motion */
-			if (rigid) {
+			if (refnode) {
 				fin
 					>> x[0] >> x[1] >> x[2]
 					>> R[0][0] >> R[0][1] >> R[0][2]
@@ -235,7 +235,7 @@ retry_1:;
 			/* set forces */
 			std::ofstream fout(tmpfname_out.c_str());
 
-			if (rigid) {
+			if (refnode) {
 				f[0] = 1.;
 				f[1] = 2.;
 				f[2] = 3.;

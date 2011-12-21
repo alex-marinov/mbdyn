@@ -41,34 +41,34 @@ MBCBase::Rot
 MBCBase::GetRot(void) const
 {
 	assert(GetStatus() >= INITIALIZED);
-	return MBCBase::Rot(MBC_F_ROT(GetRigidPtr()));
+	return MBCBase::Rot(MBC_F_ROT(GetRefNodePtr()));
 }
 
 bool
 MBCBase::bRefNode(void) const
 {
 	assert(GetStatus() >= INITIALIZED);
-	return MBC_F_REF_NODE(GetRigidPtr());
+	return MBC_F_REF_NODE(GetRefNodePtr());
 }
 
 MBCBase::Rot
 MBCBase::GetRefNodeRot(void) const {
 	assert(GetStatus() >= INITIALIZED);
-	return MBCBase::Rot(MBC_F_ROT_REF_NODE(GetRigidPtr()));
+	return MBCBase::Rot(MBC_F_ROT_REF_NODE(GetRefNodePtr()));
 }
 
 bool
 MBCBase::bAccelerations(void) const
 {
 	assert(GetStatus() >= INITIALIZED);
-	return MBC_F_ACCELS(GetRigidPtr());
+	return MBC_F_ACCELS(GetRefNodePtr());
 }
 
 bool
 MBCBase::bLabels(void) const
 {
 	assert(GetStatus() >= INITIALIZED);
-	return MBC_F_LABELS(GetRigidPtr());
+	return MBC_F_LABELS(GetRefNodePtr());
 }
 
 void
@@ -150,7 +150,7 @@ uint32_t
 MBCBase::GetRefNodeKinematicsLabel(void) const
 {
 	assert(GetStatus() == READY);
-	return MBC_R_K_LABEL(GetRigidPtr());
+	return MBC_R_K_LABEL(GetRefNodePtr());
 }
 
 uint32_t
@@ -158,7 +158,7 @@ MBCBase::KinematicsLabel(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bLabels());
-	return MBC_R_K_LABEL(GetRigidPtr());
+	return MBC_R_K_LABEL(GetRefNodePtr());
 }
 
 const double *const
@@ -166,7 +166,7 @@ MBCBase::GetRefNodeX(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_X(GetRigidPtr());
+	return MBC_R_X(GetRefNodePtr());
 }
 
 const double *const
@@ -175,7 +175,7 @@ MBCBase::GetRefNodeR(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(GetRefNodeRot() == MAT);
-	return MBC_R_R(GetRigidPtr());
+	return MBC_R_R(GetRefNodePtr());
 }
 
 const double *const
@@ -184,7 +184,7 @@ MBCBase::GetRefNodeTheta(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(GetRefNodeRot() == THETA);
-	return MBC_R_THETA(GetRigidPtr());
+	return MBC_R_THETA(GetRefNodePtr());
 }
 
 const double *const
@@ -193,7 +193,7 @@ MBCBase::GetRefNodeEuler123(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(GetRefNodeRot() == EULER_123);
-	return MBC_R_EULER_123(GetRigidPtr());
+	return MBC_R_EULER_123(GetRefNodePtr());
 }
 
 const double *const
@@ -201,7 +201,7 @@ MBCBase::GetRefNodeXP(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_XP(GetRigidPtr());
+	return MBC_R_XP(GetRefNodePtr());
 }
 
 const double *const
@@ -210,7 +210,7 @@ MBCBase::GetRefNodeOmega(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
-	return MBC_R_OMEGA(GetRigidPtr());
+	return MBC_R_OMEGA(GetRefNodePtr());
 }
 
 const double *const
@@ -219,7 +219,7 @@ MBCBase::GetRefNodeXPP(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(bAccelerations());
-	return MBC_R_XPP(GetRigidPtr());
+	return MBC_R_XPP(GetRefNodePtr());
 }
 
 const double *const
@@ -229,7 +229,7 @@ MBCBase::GetRefNodeOmegaP(void) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
 	assert(bAccelerations());
-	return MBC_R_OMEGAP(GetRigidPtr());
+	return MBC_R_OMEGAP(GetRefNodePtr());
 }
 
 const double&
@@ -238,7 +238,7 @@ MBCBase::X(uint8_t idx) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_X(GetRigidPtr()))[idx - 1];
+	return (MBC_R_X(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -248,7 +248,7 @@ MBCBase::R(uint8_t ir, uint8_t ic) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() == MAT);
 	if (ir < 1 || ir > 3 || ic < 1 || ic > 3) throw;
-	return (MBC_R_R(GetRigidPtr()))[3*(ic - 1) + ir - 1];
+	return (MBC_R_R(GetRefNodePtr()))[3*(ic - 1) + ir - 1];
 }
 
 const double&
@@ -258,7 +258,7 @@ MBCBase::Theta(uint8_t idx) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() == THETA);
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_THETA(GetRigidPtr()))[idx - 1];
+	return (MBC_R_THETA(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -268,7 +268,7 @@ MBCBase::Euler123(uint8_t idx) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() == EULER_123);
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_EULER_123(GetRigidPtr()))[idx - 1];
+	return (MBC_R_EULER_123(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -277,7 +277,7 @@ MBCBase::XP(uint8_t idx) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_XP(GetRigidPtr()))[idx - 1];
+	return (MBC_R_XP(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -287,7 +287,7 @@ MBCBase::Omega(uint8_t idx) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_OMEGA(GetRigidPtr()))[idx - 1];
+	return (MBC_R_OMEGA(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -297,7 +297,7 @@ MBCBase::XPP(uint8_t idx) const
 	assert(bRefNode());
 	assert(bAccelerations());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_XPP(GetRigidPtr()))[idx - 1];
+	return (MBC_R_XPP(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -308,7 +308,7 @@ MBCBase::OmegaP(uint8_t idx) const
 	assert(GetRefNodeRot() != NONE);
 	assert(bAccelerations());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_OMEGAP(GetRigidPtr()))[idx - 1];
+	return (MBC_R_OMEGAP(GetRefNodePtr()))[idx - 1];
 }
 
 uint32_t
@@ -316,7 +316,7 @@ MBCBase::GetRefNodeDynamicsLabel(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_D_LABEL(GetRigidPtr());
+	return MBC_R_D_LABEL(GetRefNodePtr());
 }
 
 const uint32_t&
@@ -324,7 +324,7 @@ MBCBase::DynamicsLabel(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_D_LABEL(GetRigidPtr());
+	return MBC_R_D_LABEL(GetRefNodePtr());
 }
 
 uint32_t&
@@ -332,7 +332,7 @@ MBCBase::DynamicsLabel(void)
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_D_LABEL(GetRigidPtr());
+	return MBC_R_D_LABEL(GetRefNodePtr());
 }
 
 const double *
@@ -340,7 +340,7 @@ MBCBase::GetRefNodeF(void) const
 {
 	assert(GetStatus() == READY);
 	assert(bRefNode());
-	return MBC_R_F(GetRigidPtr());
+	return MBC_R_F(GetRefNodePtr());
 }
 
 const double *
@@ -349,7 +349,7 @@ MBCBase::GetRefNodeM(void) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
-	return MBC_R_M(GetRigidPtr());
+	return MBC_R_M(GetRefNodePtr());
 }
 
 const double&
@@ -358,7 +358,7 @@ MBCBase::F(uint8_t idx) const
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_F(GetRigidPtr()))[idx - 1];
+	return (MBC_R_F(GetRefNodePtr()))[idx - 1];
 }
 
 double&
@@ -367,7 +367,7 @@ MBCBase::F(uint8_t idx)
 	assert(GetStatus() == READY);
 	assert(bRefNode());
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_F(GetRigidPtr()))[idx - 1];
+	return (MBC_R_F(GetRefNodePtr()))[idx - 1];
 }
 
 const double&
@@ -377,7 +377,7 @@ MBCBase::M(uint8_t idx) const
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_M(GetRigidPtr()))[idx - 1];
+	return (MBC_R_M(GetRefNodePtr()))[idx - 1];
 }
 
 double&
@@ -387,7 +387,7 @@ MBCBase::M(uint8_t idx)
 	assert(bRefNode());
 	assert(GetRefNodeRot() != NONE);
 	if (idx < 1 || idx > 3) throw;
-	return (MBC_R_M(GetRigidPtr()))[idx - 1];
+	return (MBC_R_M(GetRefNodePtr()))[idx - 1];
 }
 
 mbc_t *
@@ -397,7 +397,7 @@ MBCNodal::GetBasePtr(void) const
 }
 
 mbc_refnode_stub_t *
-MBCNodal::GetRigidPtr(void) const
+MBCNodal::GetRefNodePtr(void) const
 {
 	return (mbc_refnode_stub_t *)&mbc;
 }
@@ -892,7 +892,7 @@ MBCModal::GetBasePtr(void) const
 }
 
 mbc_refnode_stub_t *
-MBCModal::GetRigidPtr(void) const
+MBCModal::GetRefNodePtr(void) const
 {
 	return (mbc_refnode_stub_t *)&mbc;
 }

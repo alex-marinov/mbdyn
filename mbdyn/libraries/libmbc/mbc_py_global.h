@@ -40,7 +40,7 @@
 #define extern_t extern
 #endif // extern_t
 
-/* rigid body global data */
+/* reference node global data */
 
 extern_t unsigned *mbc_r_k_label;
 extern_t double *mbc_r_x;

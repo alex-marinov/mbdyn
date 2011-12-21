@@ -39,7 +39,7 @@ extern int
 mbc_py_nodal_initialize(const char *const path,
 	const char *const host, unsigned port,
 	int timeout, unsigned verbose, unsigned data_and_next,
-	unsigned rigid, unsigned nodes,
+	unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels);
 
 extern int
@@ -58,7 +58,7 @@ extern int
 mbc_py_modal_initialize(const char *const path,
 	const char *const host, unsigned port,
 	int timeout, unsigned verbose, unsigned data_and_next,
-	unsigned rigid, unsigned modes);
+	unsigned refnode, unsigned modes);
 
 extern int
 mbc_py_modal_negotiate(unsigned id);

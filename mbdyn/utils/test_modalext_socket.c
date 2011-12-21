@@ -58,11 +58,11 @@ usage(void)
 	fprintf(stderr,
 		"usage: testsocket [options]\n"
 		"\t-c [random:]<c>\tnumber of iterations\n"
-		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
+		"\t-f {fx,fy,fz,mx,my,mz} reference node force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-M <modes>\tmodes number\n"
 		"\t-p {p1,...,pM}\tmodal forces (need -M first)\n"
-		"\t-r\t\tuse rigid body data\n"
+		"\t-r\t\tuse reference node data\n"
 		"\t-s <sleeptime>\tsleep time between tries\n"
 		"\t-v\t\tverbose\n"
 		"\t-x\t\tdata_and_next\n");
@@ -81,7 +81,7 @@ main(int argc, char *argv[])
 	char *host = NULL;
 	unsigned short int port = -1;
 
-	int rigid = 0;
+	int refnode = 0;
 	unsigned modes = 0;
 
 	mbc_modal_t	mbcx = { { 0 } };
@@ -263,7 +263,7 @@ main(int argc, char *argv[])
 			} break;
 
 		case 'r':
-			rigid = 1;
+			refnode = 1;
 			break;
 
 		case 's':
@@ -303,7 +303,7 @@ main(int argc, char *argv[])
 		usage();
 	}
 
-	if (mbc_modal_init(mbc, rigid, modes)) {
+	if (mbc_modal_init(mbc, refnode, modes)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -331,7 +331,7 @@ main(int argc, char *argv[])
 				goto done;
 			}
 
-			if (rigid && mbc->mbc.verbose) {
+			if (refnode && mbc->mbc.verbose) {
 				double *x = MBC_R_X(mbc);
 				double *r;
 				double *v = MBC_R_XP(mbc);
@@ -375,7 +375,7 @@ main(int argc, char *argv[])
 			}
 
 			/* set forces */
-			if (rigid) {
+			if (refnode) {
 				double *f = MBC_R_F(mbc);
 				double *m = MBC_R_M(mbc);
 

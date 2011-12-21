@@ -254,7 +254,7 @@ mbc_destroy(mbc_t *mbc)
 }
 
 /*
- * rigid body stuff
+ * reference node stuff
  */
 
 static int
@@ -474,7 +474,7 @@ mbc_nodal_put_forces(mbc_nodal_t *mbc, int last)
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (refnode != 0),
+ * at least reference node motion must be defined (refnode != 0),
  * or nodes must be > 0
  *
  * if nodes > 0, mallocs memory that needs to be freed calling
@@ -496,7 +496,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	}
 
 	if (!MBC_F_REF_NODE(mbc) && mbc->nodes == 0) {
-		fprintf(stderr, "need at least 1 node or rigid body data\n");
+		fprintf(stderr, "need at least 1 node or reference node data\n");
 		return -1;
 	}
 
@@ -661,7 +661,7 @@ mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or nodes must be > 0
  *
  * the socket must be initialized and connected
@@ -675,7 +675,7 @@ mbc_nodal_negotiate_request(mbc_nodal_t *mbc)
 	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 
 	if (!MBC_F_REF_NODE(mbc) && mbc->nodes == 0) {
-		fprintf(stderr, "need at least 1 node or rigid body data\n");
+		fprintf(stderr, "need at least 1 node or reference node data\n");
 		return -1;
 	}
 
@@ -833,7 +833,7 @@ mbc_nodal_destroy(mbc_nodal_t *mbc)
 
 /* get modal motion from peer
  *
- * if mbc->rigid, access rigid body motion
+ * if MBC_F_REF_NODE(mbc), access reference node motion
  * using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
  */
@@ -865,13 +865,13 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 				const char *msg;
 
 				msg = strerror(save_errno);
-				fprintf(stderr, "recv(%lu) rigid failed (%ld: %s)\n",
+				fprintf(stderr, "recv(%lu) reference node failed (%ld: %s)\n",
 					(unsigned long)MBC_R_KINEMATICS_SIZE(mbc),
 					(long)save_errno, msg);
 				return -1;
 
 			} else if ((unsigned long)rc != MBC_R_KINEMATICS_SIZE(mbc)) {
-				fprintf(stderr, "recv(%lu) rigid failed (%ld)\n",
+				fprintf(stderr, "recv(%lu) reference node failed (%ld)\n",
 					(unsigned long)MBC_R_KINEMATICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
@@ -905,7 +905,7 @@ mbc_modal_get_motion(mbc_modal_t *mbc)
 
 /* put forces to peer
  *
- * if mbc->rigid, force and moment must be set in storage pointed to
+ * if MBC_F_REF_NODE(mbc), force and moment must be set in storage pointed to
  *	by macros MBC_F, MBC_M
  * if mbc->modes > 0, modal forces must be set in storage pointed to
  *	by macro MBC_P
@@ -941,13 +941,13 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
 				const char *msg;
 
 				msg = strerror(save_errno);
-				fprintf(stderr, "send(%lu) rigid failed (%ld: %s)\n",
+				fprintf(stderr, "send(%lu) reference node failed (%ld: %s)\n",
 					(unsigned long)MBC_R_DYNAMICS_SIZE(mbc),
 					(long)save_errno, msg);
 				return -1;
 
 			} else if ((unsigned long)rc != MBC_R_DYNAMICS_SIZE(mbc)) {
-				fprintf(stderr, "send(%lu) rigid failed (%ld)\n",
+				fprintf(stderr, "send(%lu) reference node failed (%ld)\n",
 					(unsigned long)MBC_R_DYNAMICS_SIZE(mbc), (long)rc);
 				return -1;
 			}
@@ -984,7 +984,7 @@ mbc_modal_put_forces(mbc_modal_t *mbc, int last)
  *
  * mbc must be a pointer to a valid mbc_modal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or modes must be > 0
  *
  * if modes > 0, mallocs memory that needs to be freed calling
@@ -1003,7 +1003,7 @@ mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes)
 	}
 
 	if (!MBC_F_REF_NODE(mbc) && modes == 0) {
-		fprintf(stderr, "need at least 1 mode or rigid body data\n");
+		fprintf(stderr, "need at least 1 mode or reference node data\n");
 		return -1;
 	}
 
@@ -1024,7 +1024,7 @@ mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes)
  *
  * mbc must be a pointer to a valid mbc_modal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or modes must be > 0
  *
  * the socket must be initialized and connected
@@ -1038,7 +1038,7 @@ mbc_modal_negotiate_request(mbc_modal_t *mbc)
 	char buf[sizeof(uint32_t) + sizeof(uint32_t)];
 
 	if (!MBC_F_REF_NODE(mbc) && mbc->modes == 0) {
-		fprintf(stderr, "need at least 1 mode or rigid body data\n");
+		fprintf(stderr, "need at least 1 mode or reference node data\n");
 		return -1;
 	}
 

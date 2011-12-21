@@ -130,7 +130,7 @@ extern int
 mbc_unix_init(mbc_t *mbc, const char *path);
 
 /*
- * rigid stuff
+ * reference node (AKA "rigid") stuff
  */
 typedef struct {
 	uint32_t	flags;
@@ -253,7 +253,7 @@ typedef struct {
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (rigid != 0),
+ * at least reference node motion must be defined (refnode != 0),
  * or nodes must be > 0
  *
  * if nodes > 0, mallocs memory that needs to be freed calling
@@ -264,7 +264,7 @@ typedef struct {
  * if accelerations != 0 accelerations are also output
  */
 extern int
-mbc_nodal_init(mbc_nodal_t *mbc, unsigned rigid, unsigned nodes,
+mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels);
 
 /* destroy nodal data
@@ -278,7 +278,7 @@ mbc_nodal_destroy(mbc_nodal_t *mbc);
  *
  * mbc must be a pointer to a valid mbc_nodal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or nodes must be > 0
  *
  * the socket must be initialized and connected
@@ -308,7 +308,7 @@ mbc_nodal_negotiate_response(mbc_nodal_t *mbc);
 
 /* get nodal motion from peer
  *
- * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if MBC_F_REF_NODE(mbc), access reference node motion using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
  */
 extern int
@@ -316,7 +316,7 @@ mbc_nodal_get_motion(mbc_nodal_t *mbc);
 
 /* put forces to peer
  *
- * if mbc->rigid, force and moment must be set in storage pointed to
+ * if MBC_F_REF_NODE(mbc), force and moment must be set in storage pointed to
  *	by macros MBC_F, MBC_M
  * if mbc->nodes > 0, nodal forces must be set in storage pointed to
  *	by macro MBC_N_F, MBC_N_M
@@ -352,14 +352,14 @@ typedef struct {
  *
  * mbc must be a pointer to a valid mbc_modal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or modes must be > 0
  *
  * if modes > 0, mallocs memory that needs to be freed calling
  * mbc_modal_destroy()
  */
 extern int
-mbc_modal_init(mbc_modal_t *mbc, int rigid, unsigned modes);
+mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes);
 
 /* destroy modal data
  *
@@ -372,7 +372,7 @@ mbc_modal_destroy(mbc_modal_t *mbc);
  *
  * mbc must be a pointer to a valid mbc_modal_t structure
  *
- * at least rigid body motion must be defined (mbc->rigid != 0),
+ * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
  * or modes must be > 0
  *
  * the socket must be initialized and connected
@@ -401,7 +401,7 @@ mbc_modal_negotiate_response(mbc_modal_t *mbc);
 
 /* get modal motion from peer
  *
- * if mbc->rigid, access rigid motion using macros MBC_X, MBC_R, MBC_V, MBC_W
+ * if MBC_F_REF_NODE(mbc), access reference node motion using macros MBC_X, MBC_R, MBC_V, MBC_W
  * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
  */
 extern int
@@ -409,7 +409,7 @@ mbc_modal_get_motion(mbc_modal_t *mbc);
 
 /* put forces to peer
  *
- * if mbc->rigid, force and moment must be set in storage pointed to
+ * if MBC_F_REF_NODE(mbc), force and moment must be set in storage pointed to
  *	by macros MBC_F, MBC_M
  * if mbc->modes > 0, modal forces must be set in storage pointed to
  *	by macro MBC_P

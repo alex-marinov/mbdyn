@@ -44,7 +44,7 @@ struct mbc_refnode_stub_t {
 class MBCBase {
 protected:
 	virtual mbc_t *GetBasePtr(void) const = 0;
-	virtual mbc_refnode_stub_t *GetRigidPtr(void) const = 0;
+	virtual mbc_refnode_stub_t *GetRefNodePtr(void) const = 0;
 
 public:
 	enum Type {
@@ -140,7 +140,7 @@ private:
 	mutable mbc_nodal_t mbc;
 
 	virtual mbc_t *GetBasePtr(void) const;
-	virtual mbc_refnode_stub_t *GetRigidPtr(void) const;
+	virtual mbc_refnode_stub_t *GetRefNodePtr(void) const;
 
 public:
 	MBCNodal(void);
@@ -230,7 +230,7 @@ private:
 	mutable mbc_modal_t mbc;
 
 	virtual mbc_t *GetBasePtr(void) const;
-	virtual mbc_refnode_stub_t *GetRigidPtr(void) const;
+	virtual mbc_refnode_stub_t *GetRefNodePtr(void) const;
 
 public:
 	MBCModal(void);

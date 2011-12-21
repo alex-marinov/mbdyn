@@ -60,7 +60,7 @@ usage(void)
 		"usage: testsocket [options]\n"
 		"\t-a\t\tuse accelerations\n"
 		"\t-c [random:]<c>\tnumber of iterations\n"
-		"\t-f {fx,fy,fz,mx,my,mz} rigid body force/moment\n"
+		"\t-f {fx,fy,fz,mx,my,mz} reference node force/moment\n"
 		"\t-H <url>\tURL (local://path | inet://host:port)\n"
 		"\t-l\t\tlabels\n"
 		"\t-i <filename>\tinput file\n"
@@ -68,7 +68,7 @@ usage(void)
 		"\t-N <nodes>\tnodes number\n"
 		"\t-o <filename>\t output file\n"
 		"\t-p {f0x,f0y,f0z,m0x,m0y,m0z,...}\tnodal forces (need -N first)\n"
-		"\t-r\t\tuse rigid body data\n"
+		"\t-r\t\tuse reference node data\n"
 		"\t-R {mat|theta|euler123}\torientation format\n"
 		"\t-s <sleeptime>\tsleep time between tries\n"
 		"\t-t <timeout>\thow long to wait for connection\n"
@@ -83,7 +83,7 @@ static int iters_random = 0;
 static unsigned steps;
 
 static int nomoments = 0;
-static int rigid = 0;
+static int refnode = 0;
 static int nodes = 0;
 static int labels = 0;
 static int accelerations = 0;
@@ -391,7 +391,7 @@ test_init(int argc, char *argv[])
 			} break;
 
 		case 'r':
-			rigid = 1;
+			refnode = 1;
 			break;
 
 		case 'R':
@@ -465,7 +465,7 @@ test_init(int argc, char *argv[])
 
 	/* initialize data structure:
 	 */
-	if (mbc_nodal_init(mbc, rigid, nodes, labels, rot, accelerations)) {
+	if (mbc_nodal_init(mbc, refnode, nodes, labels, rot, accelerations)) {
 		exit(EXIT_FAILURE);
 	}
 
@@ -509,7 +509,7 @@ test_run(void)
 				fprintf(outputfile, "STEP %u ITERATION %d\n", steps, iter);
 			}
 
-			if (rigid) {
+			if (refnode) {
 				double *x = MBC_R_X(mbc);
 				double *R;
 				double *v = MBC_R_XP(mbc);
@@ -709,7 +709,7 @@ test_run(void)
 						" is %u and shoul be %u\n", i, steps);
 					exit(EXIT_FAILURE);
 				}
-				if (rigid) {
+				if (refnode) {
 					if (fscanf(inputfile, "REF %lg %lg %lg %lg %lg %lg\n", 
 						&f0[0], &f0[1], &f0[2], &f0[3], &f0[4], &f0[5]) != 6) {
 						fprintf(stderr, "Step: %u. Error while reading Reference Node"
@@ -740,7 +740,7 @@ test_run(void)
 					}
 				}	
 			} 
-			if (rigid) {
+			if (refnode) {
 				double *f = MBC_R_F(mbc);
 				double *m = MBC_R_M(mbc);
 
@@ -828,7 +828,7 @@ done:;
  * specific to test_strext_socket_f
  */
 void
-tdata_(int32_t *RIGID, int32_t *NODES, int32_t *ROT, int32_t *ITERS, int32_t *VERB,
+tdata_(int32_t *REFNODE, int32_t *NODES, int32_t *ROT, int32_t *ITERS, int32_t *VERB,
 	int32_t *RC_P)
 {
 	switch (MBC_F_ROT(mbc)) {
@@ -859,7 +859,7 @@ tdata_(int32_t *RIGID, int32_t *NODES, int32_t *ROT, int32_t *ITERS, int32_t *VE
 		return;
 	}
 
-	*RIGID = MBC_F_REF_NODE(mbc);
+	*REFNODE = MBC_F_REF_NODE(mbc);
 	*NODES = mbc->nodes;
 	*VERB = mbc->mbc.verbose;
 
@@ -872,7 +872,7 @@ void
 tforce_(float *RF, float *RM, float *NF, float *NM)
 {
 	/* set forces */
-	if (rigid) {
+	if (refnode) {
 		if (f0 != NULL) {
 			RF[0] = f0[0];
 			RF[1] = f0[1];
