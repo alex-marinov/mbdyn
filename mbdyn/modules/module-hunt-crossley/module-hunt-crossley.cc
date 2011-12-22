@@ -46,12 +46,16 @@ protected:
 	doublereal dAlpha;
 	doublereal dK;
 	doublereal dExp;
+	bool m_bActive;			// is contact ongoing?
+	bool m_bToggling;		// toggle m_bActive
+	doublereal m_InitialEpsPrime;	// initial contact velocity
 
 public:
 	HuntCrossleyCL(const TplDriveCaller<doublereal> *pTplDC,
 		doublereal dAlpha, doublereal dK, doublereal dExp)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, 0.),
-	dAlpha(dAlpha), dK(dK), dExp(dExp)
+	dAlpha(dAlpha), dK(dK), dExp(dExp),
+	m_bActive(false), m_bToggling(false), m_InitialEpsPrime(0.)
 	{
 		NO_OP;
 	};
@@ -88,10 +92,24 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
 		if (ConstitutiveLaw<doublereal, doublereal>::Epsilon >= 0.) {
+			if (m_bActive) {
+				if (!m_bToggling) {
+					m_bToggling = true;
+				}
+			}
+
 			ConstitutiveLaw<doublereal, doublereal>::F = 0.;
 			ConstitutiveLaw<doublereal, doublereal>::FDE = 0.;
 			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = 0.;
+
 		} else {
+			if (!m_bActive) {
+				if (!m_bToggling) {
+					m_bToggling = true;
+					m_InitialEpsPrime = EpsPrime;
+				}
+			}
+
 			doublereal x = -ConstitutiveLaw<doublereal, doublereal>::Epsilon;
 			doublereal xp = -ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime;
 			doublereal xn = std::pow(x, dExp);
@@ -100,6 +118,30 @@ public:
 			ConstitutiveLaw<doublereal, doublereal>::F = -dK*xn - 1.5*dAlpha*dK*xn*xp;
 			ConstitutiveLaw<doublereal, doublereal>::FDE = -dExp*dK*xnm1 - 1.5*dExp*dAlpha*dK*xnm1*xp;
 			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = -1.5*dAlpha*dK*xn;
+		}
+	};
+
+	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
+		if (m_bToggling) {
+#if 0
+			silent_cout(">> HuntCrossleyCL::AfterConvergence() "
+				"m_bToggling=" << (m_bToggling ? "true" : "false") << " "
+				"m_bActive=" << (m_bActive ? "true" : "false") << " "
+				"m_InitialEpsPrime=" << m_InitialEpsPrime << std::endl);
+#endif
+			if (m_bActive) {
+				m_bActive = false;
+				m_InitialEpsPrime = 0.;
+			} else {
+				m_bActive = true;
+			}
+			m_bToggling = false;
+#if 0
+			silent_cout("<< HuntCrossleyCL::AfterConvergence() "
+				"m_bToggling=" << (m_bToggling ? "true" : "false") << " "
+				"m_bActive=" << (m_bActive ? "true" : "false") << " "
+				"m_InitialEpsPrime=" << m_InitialEpsPrime << std::endl);
+#endif
 		}
 	};
 };
