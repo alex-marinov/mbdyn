@@ -935,7 +935,5 @@ ReadShell4EASANS(DataManager* pDM,
 		<< " " << pN[3]->GetLabel()
 		<< std::endl;
 
- 	return pEl;
-
 	return pEl;
 }
