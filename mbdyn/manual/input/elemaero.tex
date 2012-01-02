@@ -304,7 +304,7 @@ the output is repeated on the same line for each portion of beam.
 
 
 \subsection{Aeromodal Element}
-\emph{Note: prepared by Alessandro Scotti.}
+\emph{Note: implemented by Giuseppe Quaranta; documented by Alessandro Scotti.}
 
 \noindent
 This element is used to model an aerodynamic modal element,
@@ -427,28 +427,30 @@ of the
 \hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE:ELEMENT}.
 
 \paragraph{Private Data}
-The following data is available:
+The following data are available:
 \begin{itemize}
-\item \kw{"airspeed"} the airspeed as seen by the reference 
+\item \kw{"airspeed"}: the airspeed as seen by the reference 
 	point on the aircraft, i.e. the combination 
 	of the airstream speed and of the node speed
-\item \kw{"groundspeed"} the absolute value of the projection
+\item \kw{"groundspeed"}: the absolute value of the projection
 	of the node speed in the $xy$ plane.
-\item \kw{"altitude"} the $z$ component of the node position
-\item \kw{"attitude"} $\tan^{-1}\plbr{r_{31}, r_{11}}$
+\item \kw{"altitude"}: the $z$ component of the node position
+\item \kw{"attitude"}: $\tan^{-1}\plbr{r_{31}, r_{11}}$
 	(FIXME: better $\arcsin\plbr{r_{31}}$?)
-\item \kw{"bank"} $\tan^{-1}\plbr{r_{32}, r_{22}}$
+\item \kw{"bank"}: $\tan^{-1}\plbr{r_{32}, r_{22}}$
 	(FIXME: better $\arcsin\plbr{r_{32}}$?)
-\item \kw{"turn"} (not available yet)
-\item \kw{"slip"} (not available yet)
-\item \kw{"verticalspeed"} the $z$ component of the node velocity
-\item \kw{"angleofattack"} the angle between the $z$ 
-\item \kw{"heading"} the angle between the $x$ axis of the aircraft 
+\item \kw{"turn"}: (not available yet)
+\item \kw{"slip"}: (not available yet)
+\item \kw{"verticalspeed"}: the $z$ component of the node velocity
+\item \kw{"angleofattack"}: the angle between the local $z$ and $x$ components
+	of the velocity (airstream plus node),
+	expressed in the reference frame of the aircraft
+\item \kw{"heading"}: the angle between the $x$ axis of the aircraft 
 	and the ``north'' (the global $x$ axis) about the global $z$ axis;
 	note: heading wraps about South
 	(+180 deg from East, -180 deg from West).
-\item \kw{"longitude"} (FIXME: not implemented yet)
-\item \kw{"latitude"} (FIXME: not implemented yet)
+\item \kw{"longitude"}: (FIXME: not implemented yet)
+\item \kw{"latitude"}: (FIXME: not implemented yet)
 \end{itemize}
 
 \noindent
@@ -483,8 +485,8 @@ in form of a drive caller, and of the sound celerity, e.g.:
         1.,0.,0., 150.;
 \end{verbatim}
 The second form uses standard air properties, both in the
-international system (SI) or in British units, possibly
-with a temperature deviation and an altitude offset, e.g.:
+international system (SI) or in British units.
+A temperature deviation and an altitude offset can be defined, e.g.:
 \begin{verbatim}
     air properties: std, SI, temperature deviation, -55,
         reference altitude, 1000.,
@@ -506,9 +508,9 @@ altitudes of the null temperature gradient region \nt{z1} and
 \nt{z2}; e.g., for SI units:
 \begin{verbatim}
     air properties: std,
-        101325.,       /* Pa */
+        101325.,       /* Pa, 1 bar */
         1.2250,        /* kg/m^3 */
-        288.16,        /* K */
+        288.16,        /* K, ISA: 15 C */
         -6.5e-3,       /* K/m */
         287.,          /* J/kgK */
         9.81,          /* m/s^2 */
@@ -518,8 +520,43 @@ altitudes of the null temperature gradient region \nt{z1} and
         reference altitude, 1000.,
         1.,0.,0., 150.;
 \end{verbatim}
-The asymptotic air properties are characterized by the \ty{TplDriveCaller<Vec3>}
-of the air speed, in the global reference frame.
+The air properties are defined according to the formulas
+\begin{subequations}
+\begin{align}
+	\rcubr{\lvvect{
+		T = \nt{T0} + \nt{dT/dz} \cdot z
+		\\
+		p = \nt{p0} \plbr{\cfrac{T}{\nt{T0}}}^{-\frac{\nt{g0}}{\nt{dT/dz} \cdot \nt{R}}}
+		\\
+		\rho = \nt{rho0} \plbr{\cfrac{T}{\nt{T0}}}^{-\plbr{\frac{\nt{g0}}{\nt{dT/dz} \cdot \nt{R}} + 1}}
+	}}
+	&&& z < \nt{z1}
+	\\
+	\rcubr{\lvvect{
+		T = \nt{T0} + \nt{dT/dz} \cdot \nt{z1}
+		\\
+		p = \plbr{\nt{p0}\plbr{\cfrac{T}{\nt{T0}}}^{-\frac{\nt{g0}}{\nt{dT/dz} \cdot \nt{R}}}}
+			\mathrm{e}^{-\nt{g0} \frac{z - \nt{z1}}{\nt{dT/dz} \cdot \nt{R}}}
+		\\
+		\rho = \nt{rho0} \plbr{\cfrac{T}{\nt{T0}}}^{-\plbr{\frac{\nt{g0}}{\nt{dT/dz} \cdot \nt{R}} + 1}}
+			\mathrm{e}^{-\nt{g0} \frac{z - \nt{z1}}{\nt{dT/dz} \cdot \nt{R}}}
+	}}
+	&&& \nt{z1} \le z < \nt{z2}
+\end{align}
+\end{subequations}
+The case of $z > \nt{z2}$ is not currenlty handled;
+the formulas for $z \ge \nt{z1}$ are actually used.
+The value of $z$ is computed by adding the $z$ component
+of the position where the air properties are computed
+to the reference altitude \nt{z0}.
+
+The asymptotic air properties are characterized by \nt{air\_speed},
+the \ty{TplDriveCaller<Vec3>} of the air speed,
+expressed in the global reference frame.
+The possibility to vary the density and the airspeed using a driver
+has little physical meaning, especially the former;
+is intended as a practical means to gradually introduce
+the desired air properties, and the related airloads, in the analysis.
 
 \subsubsection{Gust}
 If the optional \kw{gust} keyword is used, a gust model can be added.
@@ -549,7 +586,7 @@ The syntax of the \kw{front 1D} gust model is:
 %\end{verbatim}
 This model consists in a uniform front, defined as
 \begin{displaymath}
-	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{\T{f} \cdot \T{x} + V_{ref} \cdot t}
+	\T{v}\plbr{\T{x}, t} = \T{n} g\plbr{\T{f} \cdot \T{x} + V_\mathrm{ref} \cdot t}
 \end{displaymath}
 where
 \begin{itemize}
@@ -563,7 +600,7 @@ that defines the direction of the velocity perturbation;
 that defines the gust profile;
 \item $\T{f}$ is the unit vector \nt{front\_direction} 
 that defines the direction of propagation of the front;
-\item $V_{ref}$ is the velocity \nt{front\_velocity} 
+\item $V_\mathrm{ref}$ is the velocity \nt{front\_velocity} 
 of propagation of the front in direction $\T{f}$.
 \end{itemize}
 As an example, a transverse cosine-shaped gust, with a wavelength of 100 m
@@ -819,7 +856,7 @@ of the solution when aerodynamic forces dominate the problem.
 Moreover, it is not suitable for the direct computation of the eigenvalues
 of a problem about a steady solution.}
 
-\emph{Note: this element, by itself, is not enough to model
+\emph{Note: this element, by itself, may not be adequate to model
 the rigid body aerodynamics of an aircraft, since it does not
 account for the dependence of force and moment on angle rates.}
 
@@ -842,7 +879,25 @@ The following output is available:
 \end{enumerate}
 
 \paragraph{Private Data}
-The \kw{generic aerodynamic force} element does not output any private data.
+The \kw{generic aerodynamic force} element outputs the following private data:
+\begin{itemize}
+\item \kw{"Fx"}, \kw{"Fy"}, \kw{"Fz"}:
+	force components in the global reference frame;
+
+\item \kw{"Mx"}, \kw{"My"}, \kw{"Mz"}:
+	moment components in the global reference frame, about the node;
+
+\item \kw{"fx"}, \kw{"fy"}, \kw{"fz"}:
+	force components in the local reference frame;
+
+\item \kw{"mx"}, \kw{"my"}, \kw{"mz"}:
+	moment components in the local reference frame, about the reference point;
+
+\item \kw{"alpha"}: angle of attack (in radian)
+
+\item \kw{"beta"}: sideslip angle (in radian)
+\end{itemize}
+The values computed during the last residual assembly are returned.
 
 \subsubsection{Generic Aerodynamic Element Data}
 Data is stored in ASCII format in a file.

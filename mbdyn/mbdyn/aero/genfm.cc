@@ -376,6 +376,108 @@ GenericAerodynamicForce::Output(OutputHandler& OH) const
 	}
 }
 
+/* Dati privati */
+unsigned int
+GenericAerodynamicForce::iGetNumPrivData(void) const
+{
+	return 2 + 6 + 6;
+}
+
+unsigned int
+GenericAerodynamicForce::iGetPrivDataIdx(const char *s) const
+{
+	unsigned idx = 0;
+	switch (s[0]) {
+	case 'F':
+		break;
+
+	case 'M':
+		idx += 3;
+		break;
+
+	case 'f':
+		idx += 6;
+		break;
+
+	case 'm':
+		idx += 9;
+		break;
+
+	default:
+		if (strcmp(s, "alpha") == 0) {
+			return idx + 12 + 1;
+
+		} else if (strcmp(s, "beta") == 0) {
+			return idx + 12 + 2;
+
+		}
+		return 0;
+	}
+
+	if (s[2] != '\0') {
+		return 0;
+	}
+
+	switch (s[1]) {
+	case 'x':
+		idx += 1;
+		break;
+
+	case 'y':
+		idx += 2;
+		break;
+
+	case 'z':
+		idx += 3;
+		break;
+
+	default:
+		return 0;
+	}
+
+	return idx;
+}
+
+doublereal
+GenericAerodynamicForce::dGetPrivData(unsigned int i) const
+{
+	if (i <= 0 || i > iGetNumPrivData()) {
+		// error
+		return 0.;
+	}
+
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return F(i);
+
+	case 3 + 1:
+	case 3 + 2:
+	case 3 + 3:
+		return M(i - 3);
+
+	case 6 + 1:
+	case 6 + 2:
+	case 6 + 3:
+		return tilde_F(i - 6);
+
+	case 9 + 1:
+	case 9 + 2:
+	case 9 + 3:
+		return tilde_M(i - 9);
+
+	case 12 + 1:
+		return dAlpha;
+
+	case 12 + 2:
+		return dBeta;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
 /* assemblaggio residuo */
 SubVectorHandler&
 GenericAerodynamicForce::InitialAssRes(SubVectorHandler& WorkVec,

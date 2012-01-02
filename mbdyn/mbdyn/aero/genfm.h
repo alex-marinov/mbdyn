@@ -141,6 +141,11 @@ public:
 	 */
 	virtual void Output(OutputHandler& OH) const;
 
+	/* Dati privati */
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
+
 	/* Numero di GDL iniziali */
 	virtual unsigned int iGetInitialNumDof(void) const;
 

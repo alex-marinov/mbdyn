@@ -473,31 +473,29 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 	/* FIXME */
 	doublereal z = X.dGet(3) + z0;
 
+	doublereal rhoRef = RhoRef->dGet();
+	if (rhoRef < 0.) {
+		silent_cerr("StdAirProperties: illegal reference density "
+			<< rhoRef << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	if (z < z1) {
 		/* regione del gradiente (troposfera) */
 		T = TRef + a * z;
 		p = PRef * pow(T / TRef, -g0 / (a * R));
-		doublereal rhoRef = RhoRef->dGet();
-		if (rhoRef < 0.) {
-			silent_cerr("illegal reference density "
-				<< rhoRef << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
 		rho = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
+
 	} else {
 		/* regione a T = const. (stratosfera) */
 		T = TRef + a * z1;
 		doublereal p1 = PRef * pow(T / TRef, -g0 / (a * R));
-		p = p1*exp(-g0 / (R * T) * (z - z1));
-		doublereal rhoRef = RhoRef->dGet();
-		if (rhoRef < 0.) {
-			silent_cerr("illegal reference density "
-				<< rhoRef << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		doublereal e = exp(-g0 / (R * T) * (z - z1));
+		p = p1*e;
 		doublereal rho1 = rhoRef * pow(T / TRef, -(g0 / (a * R) + 1));
-		rho = rho1 * exp(-(g0 / (R*T) * (z - z1)));
+		rho = rho1*e;
 	}
+
 	c = sqrt(1.4 * R * T);
 
 	return true;
