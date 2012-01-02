@@ -9,14 +9,14 @@
 %3x3 symmetric matrices' W.M. Scherzinger, C.R. Dohrmann, Comput. Methods
 %Appl. Mech. Engrg. 2008 doi:10.1016/j.cma.2008.03.031
 %
-%Copyright 2008-2011 Pierangelo Masarati <masarati@aero.polimi.it>
+%Copyright 2008-2012 Pierangelo Masarati <masarati@aero.polimi.it>
 
 % $Header$
 %
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
 % 
-% Copyright (C) 1996-2011
+% Copyright (C) 1996-2012
 % 
 % Pierangelo Masarati	<masarati@aero.polimi.it>
 % Paolo Mantegazza	<mantegazza@aero.polimi.it>

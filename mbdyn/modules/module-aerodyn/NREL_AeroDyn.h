@@ -1,6 +1,6 @@
 /* $Header$ */
 /* 
- * Copyright (C) 2003-2011
+ * Copyright (C) 2003-2012
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>

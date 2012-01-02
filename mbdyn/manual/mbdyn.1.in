@@ -1,6 +1,6 @@
 .TH MBDYN 1 "@DATE@" "MBDyn @VERSION@"
 .\" $Header$
-.\" Copyright 1996-2011 The MBDyn Team All Rights Reserved.
+.\" Copyright 1996-2012 The MBDyn Team All Rights Reserved.
 .\" Copying restrictions apply.  See COPYRIGHT/LICENSE.
 .SH NAME
 mbdyn \- \fIM\fPulti\fIB\fPody \fIDyn\fPamics analysis system.
