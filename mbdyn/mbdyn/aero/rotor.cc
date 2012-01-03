@@ -89,9 +89,9 @@ iNumSteps(0)
 	if (R3C.Dot(R3R) < 1. - std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("warning, possible misalignment "
 			"of rotor StructNode(" << pRotor->GetLabel() << ") "
-			"axis {" << R3R << "} "
+			"axis Rr(3) = {" << R3R << "} "
 			"and craft StructNode(" << pCraft->GetLabel() << ") "
-			"axis {" << R3C << "} "
+			"axis Rc*Rh(3) = {" << R3C << "} "
 			<< "for Rotor(" << GetLabel() << ")"
 			<< std::endl);
 	}
