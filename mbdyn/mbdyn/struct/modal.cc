@@ -4438,8 +4438,7 @@ ReadModal(DataManager* pDM,
 
 		/* Lumped Masses */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		switch (checkPoint) {
-		case 11:
+		if (checkPoint == 11) {
 			pedantic_cout("Modal(" << uLabel << "): "
 				"reading block " << int(checkPoint) << std::endl);
 
@@ -4475,9 +4474,9 @@ ReadModal(DataManager* pDM,
 
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
-			break;
+		}
 
-		case 12: {
+		if (checkPoint == 12) {
 			pedantic_cout("Modal(" << uLabel << "): "
 				"reading block " << int(checkPoint) << std::endl);
 
@@ -4507,8 +4506,6 @@ ReadModal(DataManager* pDM,
 
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
-
-			} break;
 		}
 
 		if (currBinVersion != 1) {
