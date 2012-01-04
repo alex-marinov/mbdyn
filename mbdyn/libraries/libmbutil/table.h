@@ -40,8 +40,6 @@
 #include "except.h"
 #include "mathtyp.h"
 
-const int DEF_TABLE_SIZE = 127;
-
 class Table {
 	friend std::ostream& operator << (std::ostream& out, Table& T);
 
@@ -53,11 +51,6 @@ public:
 	};
 
 private:
-#if 0
-	int size;        /* dimensioni dell'array */
-	VarList** v;     /* array di VarList */
-	Int FindRow(const char* const name) const;
-#endif
 	typedef std::map<std::string, NamedValue *> VM;
 	VM vm;
 
