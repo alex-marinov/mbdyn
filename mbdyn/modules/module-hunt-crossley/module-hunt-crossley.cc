@@ -43,18 +43,19 @@
 class HuntCrossleyCL
 : public ElasticConstitutiveLaw<doublereal, doublereal> {
 protected:
-	doublereal dAlpha;
-	doublereal dK;
-	doublereal dExp;
+	doublereal m_dSign;
+	doublereal m_dAlpha;
+	doublereal m_dK;
+	doublereal m_dExp;
 	bool m_bActive;			// is contact ongoing?
 	bool m_bToggling;		// toggle m_bActive
 	doublereal m_InitialEpsPrime;	// initial contact velocity
 
 public:
 	HuntCrossleyCL(const TplDriveCaller<doublereal> *pTplDC,
-		doublereal dAlpha, doublereal dK, doublereal dExp)
+		doublereal dSign, doublereal dAlpha, doublereal dK, doublereal dExp)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, 0.),
-	dAlpha(dAlpha), dK(dK), dExp(dExp),
+	m_dSign(dSign), m_dAlpha(dAlpha), m_dK(dK), m_dExp(dExp),
 	m_bActive(false), m_bToggling(false), m_InitialEpsPrime(0.)
 	{
 		NO_OP;
@@ -74,15 +75,16 @@ public:
 		// pass parameters to copy constructor
 		SAFENEWWITHCONSTRUCTOR(pCL, HuntCrossleyCL,
 			HuntCrossleyCL(pGetDriveCaller()->pCopy(),
-				dAlpha, dK, dExp));
+				m_dSign, m_dAlpha, m_dK, m_dExp));
 		return pCL;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "hunt crossley"
-			<< ", alpha, " << dAlpha
-			<< ", kappa, " << dK
-			<< ", exp, " << dExp
+			<< ", sign, " << m_dSign
+			<< ", alpha, " << m_dAlpha
+			<< ", kappa, " << m_dK
+			<< ", exp, " << m_dExp
 			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
 		return out;
 	};
@@ -91,7 +93,8 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
-		if (ConstitutiveLaw<doublereal, doublereal>::Epsilon >= 0.) {
+		doublereal x = m_dSign*ConstitutiveLaw<doublereal, doublereal>::Epsilon;
+		if (x < 0.) {
 			if (m_bActive) {
 				if (!m_bToggling) {
 					m_bToggling = true;
@@ -103,21 +106,21 @@ public:
 			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = 0.;
 
 		} else {
+			doublereal xp = m_dSign*ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime;
+
 			if (!m_bActive) {
 				if (!m_bToggling) {
 					m_bToggling = true;
-					m_InitialEpsPrime = EpsPrime;
+					m_InitialEpsPrime = xp;
 				}
 			}
 
-			doublereal x = -ConstitutiveLaw<doublereal, doublereal>::Epsilon;
-			doublereal xp = -ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime;
-			doublereal xn = std::pow(x, dExp);
-			doublereal xnm1 = std::pow(x, dExp - 1.);
+			doublereal xn = std::pow(x, m_dExp);
+			doublereal xnm1 = std::pow(x, m_dExp - 1.);
 
-			ConstitutiveLaw<doublereal, doublereal>::F = -dK*xn - 1.5*dAlpha*dK*xn*xp;
-			ConstitutiveLaw<doublereal, doublereal>::FDE = -dExp*dK*xnm1 - 1.5*dExp*dAlpha*dK*xnm1*xp;
-			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = -1.5*dAlpha*dK*xn;
+			ConstitutiveLaw<doublereal, doublereal>::F = m_dSign*(m_dK*xn + 1.5*m_dAlpha*m_dK*xn*xp);
+			ConstitutiveLaw<doublereal, doublereal>::FDE = m_dSign*(m_dExp*m_dK*xnm1 + 1.5*m_dExp*m_dAlpha*m_dK*xnm1*xp);
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = m_dSign*(1.5*m_dAlpha*m_dK*xn);
 		}
 	};
 
@@ -132,6 +135,7 @@ public:
 			if (m_bActive) {
 				m_bActive = false;
 				m_InitialEpsPrime = 0.;
+
 			} else {
 				m_bActive = true;
 			}
@@ -157,6 +161,7 @@ struct HuntCrossleyCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		if (HP.IsKeyWord("help")) {
 			silent_cerr("HuntCrossleyCL:\n"
 				"        hunt crossley,\n"
+				"                [ , sign, { negative | positive | <sign> } , ]\n"
 				"                alpha, <alpha>,\n"
 				"                kappa, <kappa>,\n"
 				"                exp, <exp>,\n"
@@ -166,6 +171,23 @@ struct HuntCrossleyCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 
 			if (!HP.IsArg()) {
 				throw NoErr(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		doublereal dSign = -1.;
+		if (HP.IsKeyWord("sign")) {
+			if (HP.IsKeyWord("positive")) {
+				dSign = 1.;
+			} else if (HP.IsKeyWord("negative")) {
+				dSign = -1.;
+			} else {
+				doublereal d = HP.GetReal();
+				if (d == 0.) {
+					silent_cerr("HuntCrossleyCLR: invalid sign " << d
+						<< " at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				dSign = copysign(1., d);
 			}
 		}
 
@@ -205,7 +227,7 @@ struct HuntCrossleyCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		TplDriveCaller<doublereal> *pTplDC = GetPreStrain<doublereal>(pDM, HP);
 
 		SAFENEWWITHCONSTRUCTOR(pCL, HuntCrossleyCL,
-			HuntCrossleyCL(pTplDC, dAlpha, dK, dExp));
+			HuntCrossleyCL(pTplDC, dSign, dAlpha, dK, dExp));
 
 		return pCL;
 	};

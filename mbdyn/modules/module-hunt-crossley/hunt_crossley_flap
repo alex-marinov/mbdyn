@@ -37,6 +37,7 @@ end: data;
 begin: initial value;
 	initial time: 0.;
 	final time: 20.;
+	# final time: .01;
 	time step: 2*pi/40./200;
 
 	linear solver: naive, colamd;
@@ -47,8 +48,11 @@ begin: initial value;
 	derivatives tolerance: 1e-0;
 	derivatives max iterations: 20;
 
-	# output: residual;
-	output: iterations;
+	#output: solution;
+	#output: residual;
+	#output: iterations;
+
+	threads: disable;
 end: initial value;
 
 begin: control data;
@@ -182,6 +186,10 @@ begin: elements;
 		position constraint, active, active, active, null,
 		orientation constraint, active, inactive, active, null;
 
+	set: real ALPHA = 4e0;
+	set: real KAPPA = 1e9;
+	set: real EXPONENT = 3./2;
+
 	joint: CURR_BLADE + 2, deformable axial joint,
 		HUB,
 			position, reference, CURR_BLADE, null,
@@ -193,8 +201,13 @@ begin: elements;
 			orientation, reference, CURR_BLADE,
 				3, 0., -1., 0.,
 				1, 1., 0., 0.,
-		hunt crossley, alpha, 1e0, kappa, 1e8, exp, 1.5,
-			prestrain,
-				# const, -5.*deg2rad;
-				cosine, 0., 2*pi/1., -5.*deg2rad/2, half, 0.;
+		array, 2,
+			# upper limit
+			hunt crossley, sign, positive, alpha, ALPHA, kappa, KAPPA, exp, EXPONENT,
+				prestrain,
+					const, 5.*deg2rad,
+			# lower limit
+			hunt crossley, alpha, ALPHA, kappa, KAPPA, exp, EXPONENT,
+				prestrain,
+					cosine, 0., 2*pi/1., -5.*deg2rad/2, half, 0.;
 end: elements;
