@@ -408,6 +408,17 @@ NestedElem::NeedsAirProperties(void) const
 	return false;
 }
 
+void
+NestedElem::PutAirProperties(const AirProperties* pAP)
+{
+	ASSERT(pElem != NULL);
+	ASSERT(NeedsAirProperties());
+	AerodynamicElem *pAE = dynamic_cast<AerodynamicElem *>(pElem);
+	if (pAE) {
+		return pAE->PutAirProperties(pAP);
+	}
+}
+
 const InducedVelocity *
 NestedElem::pGetInducedVelocity(void) const
 {

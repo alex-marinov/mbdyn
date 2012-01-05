@@ -26,6 +26,7 @@ MBDyn 1.X-Devel
 		- fix variable mass body (noted by Francesco Castellini)
 		- fix 'use binary' in modal joint
 		- fix bug in deformable axial joint residual
+		- fix driven aerodynamic elements (noted by Phil Geoghegan)
 
 MBDyn 1.4.1
 	Enhancements:

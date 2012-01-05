@@ -718,7 +718,7 @@ AirPropOwner::PutAirProperties(const AirProperties* pAP)
 {
 	ASSERT(pAirProperties == NULL);
 
-	(AirProperties*&)pAirProperties = (AirProperties*)pAP;
+	pAirProperties = pAP;
 }
    
 flag

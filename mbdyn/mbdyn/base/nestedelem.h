@@ -228,6 +228,7 @@ public:
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const;
 	virtual bool NeedsAirProperties(void) const;
 	virtual const InducedVelocity *pGetInducedVelocity(void) const;
+	virtual void PutAirProperties(const AirProperties* pAP);
 
 	/* ElemGravityOwner */
 protected:
