@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added simple hydraulic damper model (Giuseppe Quaranta)
+		- added Hunt-Crossley impact model (Matteo Fancello)
 		- added private data to generic aerodynamic force
 		- added 'array' constitutive law wrapper
 		- added generic 'bistop' constitutive law wrapper
@@ -54,7 +56,6 @@ MBDyn 1.4.1
 		- refactor NetCDF support
 		- added support for references using Denavit-Hartenberg 
 		- added switch to suppress inertia output
-		- added simple hydraulic damper model (Giuseppe Quaranta)
 		- added NetCDF for total joint (Louis Gagnon, with changes)
 	Backward compatibility issues:
 		- the (undocumented) output of the total (pin) joint changed
