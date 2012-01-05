@@ -776,18 +776,16 @@ MatR2LinParam(const Mat3x3& m)
 Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va, 
 		unsigned short int ib, const Vec3& vb)
 {
-   const char sFuncName[] = "MatR2vec()";
-   
    ASSERT(ia >= 1 && ia <= 3); 
    ASSERT(ib >= 1 && ib <= 3); 
    
    Vec3 r[3];
 
-   DEBUGCOUT(sFuncName << ": ia = " << ia << " (" << va << "),"
+   DEBUGCOUT("MatR2vec: ia = " << ia << " (" << va << "),"
 	     << " ib = " << ib << " (" << vb << ")" << std::endl);
    
    if (ia < 1 || ia > 3) {
-      silent_cerr(sFuncName << ": first index is illegal" 
+      silent_cerr("MatR2vec: first index is illegal" 
 	      << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
@@ -799,19 +797,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    if (ib == (ia%3)+1) {
       doublereal d = va.Norm();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
+	 silent_cerr("MatR2vec: first vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
+	 silent_cerr("MatR2vec: second vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i3] = r[i1].Cross(vb);
       d = r[i3].Dot();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": vectors must be distinct" 
+	 silent_cerr("MatR2vec: vectors must be distinct" 
 		 << std::endl);
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }	
@@ -825,19 +823,19 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
    } else if (ib == ((ia+1)%3+1)) {
       doublereal d = va.Norm();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": first vector must be non-null" << std::endl );
+	 silent_cerr("MatR2vec: first vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i1] = va/d;
       d = vb.Norm();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": second vector must be non-null" << std::endl );
+	 silent_cerr("MatR2vec: second vector must be non-null" << std::endl );
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }
       r[i2] = vb.Cross(r[i1]);
       d = r[i2].Dot();
       if (d <= std::numeric_limits<doublereal>::epsilon()) {
-	 silent_cerr(sFuncName << ": vectors must be distinct" 
+	 silent_cerr("MatR2vec: vectors must be distinct" 
 		 << std::endl);
 	 throw ErrGeneric(MBDYN_EXCEPT_ARGS);
       }	
@@ -849,7 +847,7 @@ Mat3x3 MatR2vec(unsigned short int ia, const Vec3& va,
       
       return Mat3x3(r[0], r[1], r[2]);
    } else {
-      silent_cerr(sFuncName << ": second index is illegal" << std::endl);
+      silent_cerr("MatR2vec: second index is illegal" << std::endl);
       throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    }
    
