@@ -92,6 +92,19 @@ struct HydraulicDamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
 		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
+		if (HP.IsKeyWord("help")) {
+			silent_cerr("HydraulicDamperCL:\n"
+				"        hydraulic damper , <sigma> , <dotz_L> , <d>\n"
+				"# according to the formula\n"
+				"#     f = sigma*|dotz|*dotz                                  for |dotz| <= dotz_L\n"
+				"#     f = sign(dotz)*(d*(|dotz| - dotz_L) + sigma*dotz_L^2)  for |dotz| > dotz_L\n"
+				<< std::endl);
+
+			if (!HP.IsArg()) {
+				throw NoErr(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
 		CLType = ConstLawType::VISCOUS;
 
 		doublereal sigma = HP.GetReal();
