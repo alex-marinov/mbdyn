@@ -48,7 +48,6 @@ DeformableAxialJoint::AssMatM(FullSubMatrixHandler& WMA,
 	doublereal dCoef)
 {
 	/* M was updated by AssRes */
-	// Vec3 M(pNode1->GetRCurr()*(tilde_R1h.GetVec(3)*(dM*dCoef)));
 	Mat3x3 MTmp(MatCross, M*dCoef);
 
 	WMA.Add(1, 1, MTmp);
