@@ -213,6 +213,7 @@ D. Code:
 	- implement incremental load element inspired by Riks' method
 	  (DONE, module-loadinc)
 	- implement coaxial rotor inflow model (which?)
+	- implement constitutive law wrapper that combines (adds) constitutive laws
 
 
 
