@@ -2038,15 +2038,6 @@ ReadStructuralForce(DataManager* pDM,
 	Elem *pEl = 0;
 	const char *sType = bCouple ? "Couple" : "Force";
 
-	if (bCouple && bInternal) {
-		silent_cerr(sType << "(" << uLabel << ") "
-			"line " << HP.GetLineData() << ": "
-			"warning, the syntax changed; "
-			"you may safely ignore this warning if you used "
-			"the syntax documented for MBDyn >= 1.3.7"
-			<< std::endl);
-	}
-
 	/* nodo collegato */
 	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 	ReferenceFrame rf(pNode);
@@ -2055,10 +2046,12 @@ ReadStructuralForce(DataManager* pDM,
 	// FIXME: legacy...
 	Vec3 Dir(Zero3);
 	bool bLegacy(false);
+	bool bGotPosition(false);
 
 	/* distanza dal nodo (vettore di 3 elementi) (solo se e' una forza) */
 	if (HP.IsKeyWord("position")) {
 		Arm = HP.GetPosRel(rf);
+		bGotPosition = true;
 		DEBUGCOUT("Arm is supplied" << std::endl);
 
 	} else {
@@ -2102,11 +2095,21 @@ ReadStructuralForce(DataManager* pDM,
 		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
 		if (HP.IsKeyWord("position")) {
 			Arm2 = HP.GetPosRel(rf2, rf, Arm);
+			bGotPosition = true;
 			DEBUGCOUT("Node 2 arm is supplied" << std::endl);
 
 		} else if (bLegacy) {
 			Arm2 = HP.GetPosRel(rf2, rf, Arm);
 		}
+	}
+
+	if (bCouple && bInternal && !bGotPosition) {
+		silent_cerr(sType << "(" << uLabel << ") "
+			"line " << HP.GetLineData() << ": "
+			"warning, the syntax changed; "
+			"you may safely ignore this warning if you used "
+			"the syntax documented for MBDyn >= 1.3.7"
+			<< std::endl);
 	}
 
 	TplDriveCaller<Vec3>* pDC = 0;
