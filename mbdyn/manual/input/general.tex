@@ -4073,6 +4073,16 @@ Each underlying constitutive law can have a specific value
 of prestress and prestrain, as allowed by its own definition.
 No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
 
+\paragraph{Example.} \
+\begin{verbatim}
+    # the constitutive law
+    array, 2,
+        linear elastic, 1000.,
+        linear viscous, 10.
+
+    # is equivalent to
+    linear viscoelastic, 1000., 10.
+\end{verbatim}
 
 
 \subsection{invariant angular}
