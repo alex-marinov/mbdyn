@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added private data to generic aerodynamic force
+		- added 'array' constitutive law wrapper
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

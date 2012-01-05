@@ -196,6 +196,96 @@ ReadCL6D(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType)
 }
 
 /* specific functional object(s) */
+struct CLArray1DR : public ConstitutiveLawRead<doublereal, doublereal> {
+	virtual ConstitutiveLaw<doublereal, doublereal> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		unsigned n = HP.GetInt();
+		if (n <= 0) {
+			silent_cerr("constitutive law array 1D: invalid constitutive law number " << n
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (n == 1) {
+			return ReadCL1D(pDM, HP, CLType);
+		}
+
+		std::vector<ConstitutiveLaw<doublereal, doublereal> *> clv(n);
+		for (unsigned i = 0; i < n; i++) {
+			clv[i] = ReadCL1D(pDM, HP, CLType);
+		}
+
+		typedef ConstitutiveLawArray<doublereal, doublereal> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(clv));
+
+		CLType = pCL->GetConstLawType();
+
+		return pCL;
+	};
+};
+
+struct CLArray3DR : public ConstitutiveLawRead<Vec3, Mat3x3> {
+	virtual ConstitutiveLaw<Vec3, Mat3x3> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
+
+		unsigned n = HP.GetInt();
+		if (n <= 0) {
+			silent_cerr("constitutive law array 1D: invalid constitutive law number " << n
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (n == 1) {
+			return ReadCL3D(pDM, HP, CLType);
+		}
+
+		std::vector<ConstitutiveLaw<Vec3, Mat3x3> *> clv(n);
+		for (unsigned i = 0; i < n; i++) {
+			clv[i] = ReadCL3D(pDM, HP, CLType);
+		}
+
+		typedef ConstitutiveLawArray<Vec3, Mat3x3> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(clv));
+
+		CLType = pCL->GetConstLawType();
+
+		return pCL;
+	};
+};
+
+struct CLArray6DR : public ConstitutiveLawRead<Vec6, Mat6x6> {
+	virtual ConstitutiveLaw<Vec6, Mat6x6> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<Vec6, Mat6x6>* pCL = 0;
+
+		unsigned n = HP.GetInt();
+		if (n <= 0) {
+			silent_cerr("constitutive law array 1D: invalid constitutive law number " << n
+				<< " at line " << HP.GetLineData() << std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (n == 1) {
+			return ReadCL6D(pDM, HP, CLType);
+		}
+
+		std::vector<ConstitutiveLaw<Vec6, Mat6x6> *> clv(n);
+		for (unsigned i = 0; i < n; i++) {
+			clv[i] = ReadCL6D(pDM, HP, CLType);
+		}
+
+		typedef ConstitutiveLawArray<Vec6, Mat6x6> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(clv));
+
+		CLType = pCL->GetConstLawType();
+
+		return pCL;
+	};
+};
+
 template <class T, class Tder>
 struct LinearElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	virtual ConstitutiveLaw<T, Tder> *
@@ -1213,6 +1303,11 @@ InitCL(void)
 	if (::done++ > 0) {
 		return;
 	}
+
+	/* constitutive law array */
+	SetCL1D("array", new CLArray1DR);
+	SetCL3D("array", new CLArray3DR);
+	SetCL6D("array", new CLArray6DR);
 
 	/* linear elastic */
 	SetCL1D("linear" "elastic", new LinearElasticCLR<doublereal, doublereal>);

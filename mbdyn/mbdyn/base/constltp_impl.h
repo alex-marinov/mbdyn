@@ -44,6 +44,109 @@
 #include "hint_impl.h"
 #include "elem.h"
 
+/* ConstitutiveLawArray - begin */
+
+template <class T, class Tder>
+class ConstitutiveLawArray
+: public ConstitutiveLaw<T, Tder> {
+protected:
+	ConstLawType::Type m_type;
+	std::vector<ConstitutiveLaw<T, Tder> *> m_clv;
+
+public:
+	ConstitutiveLawArray(const std::vector<ConstitutiveLaw<T, Tder> *>& clv)
+	: m_clv(clv)
+	{
+		unsigned type = 0;
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			type |= (*i)->GetConstLawType();
+		}
+		m_type = ConstLawType::Type(type);
+	};
+
+	virtual ~ConstitutiveLawArray(void)
+	{
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return m_type;
+	};
+
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
+	{
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			(*i)->SetValue(pDM, X, XP, ph);
+		}
+	};
+
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = NULL;
+
+		std::vector<ConstitutiveLaw<T, Tder> *> clv(m_clv.size());
+		for (unsigned i = 0; i < m_clv.size(); i++) {
+			clv[i] = m_clv[i]->pCopy();
+		}
+
+		typedef ConstitutiveLawArray<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(clv));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "array, " << m_clv.size();
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			out << ", ", (*i)->Restart(out);
+		}
+		return out;
+	};
+
+	virtual void Update(const T& Eps, const T& EpsPrime = ::mb_zero<T>()) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+		ConstitutiveLaw<T, Tder>::F = ::mb_zero<T>();
+		if (m_type & ConstLawType::ELASTIC) {
+			ConstitutiveLaw<T, Tder>::FDE = ::mb_zero<Tder>();
+		}
+		if (m_type & ConstLawType::VISCOUS) {
+			ConstitutiveLaw<T, Tder>::FDEPrime = ::mb_zero<Tder>();
+		}
+
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			(*i)->Update(Eps, EpsPrime);
+			ConstitutiveLaw<T, Tder>::F += (*i)->GetF();
+			if (m_type & ConstLawType::ELASTIC) {
+				ConstitutiveLaw<T, Tder>::FDE += (*i)->GetFDE();
+			}
+
+			if (m_type & ConstLawType::VISCOUS) {
+				ConstitutiveLaw<T, Tder>::FDEPrime += (*i)->GetFDEPrime();
+			}
+		}
+	};
+
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			(*i)->AfterConvergence(Eps, EpsPrime);
+		}
+	};
+
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+			(*i)->OutputAppend(out);
+		}
+		return out;
+	};
+};
+
+/* ConstitutiveLawArray - end */
+
+
 /* ElasticConstitutiveLaw - begin */
 
 template <class T, class Tder>

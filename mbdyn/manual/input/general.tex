@@ -3145,7 +3145,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\kw{cubic viscoelastic generic}						& $\surd$ & $\surd$ &         \\
 	\kw{double linear viscoelastic}						& $\surd$ & $\surd$ &         \\
 	\kw{turbulent viscoelastic}						& $\surd$ &         &         \\
-	\kw{linear viscoelastic generic bistop}				& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscoelastic generic bistop}					& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{shock absorber}							& $\surd$ &         &         \\
 	\kw{symbolic elastic}							& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{symbolic viscous}							& $\surd$ & $\surd$ & $\surd$ \\
@@ -3166,6 +3166,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{3D}} &
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
+	\kw{array} (wrapper)							& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{invariant angular} (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
@@ -4049,6 +4050,29 @@ and that of the \kw{nlsf viscoelastic} one
 (Section~\ref{sec:CL:nlsf-syntax})
 is essentially identical, their behavior may be quite different,
 as indicated by Equations~(\ref{eq:nlsf-cl}) and~(\ref{eq:nlp-cl}).
+
+
+\subsection{array}
+This constitutive law wrapper linearly combines the output
+of multiple constitutive laws.
+The syntax is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{array} ,
+        \bnt{number} ,
+            \bnt{constitutive_law} [ , ... ]
+\end{Verbatim}
+%\end{verbatim}
+The type of the resulting constitutive law is computed by combining
+that of the underlying constitutive laws.
+For example, if an elastic and a viscous constitutive law are combined,
+the type of the resulting array is viscoelastic.
+If \nt{number} is 1, the underlying constitutive law is instantiated,
+and the array is ignored.
+Each underlying constitutive law can have a specific value
+of prestress and prestrain, as allowed by its own definition.
+No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
+
 
 
 \subsection{invariant angular}
