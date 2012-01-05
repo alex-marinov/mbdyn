@@ -214,6 +214,7 @@ D. Code:
 	  (DONE, module-loadinc)
 	- implement coaxial rotor inflow model (which?)
 	- implement constitutive law wrapper that combines (adds) constitutive laws
+	- allow strain sign in hunt-crossley module (in all constitutive laws?)
 
 
 
