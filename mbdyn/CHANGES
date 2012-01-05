@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- fix structural nodes accel output (Reinhard Resch)
 		- fix variable mass body (noted by Francesco Castellini)
 		- fix 'use binary' in modal joint
+		- fix bug in deformable axial joint residual
 
 MBDyn 1.4.1
 	Enhancements:

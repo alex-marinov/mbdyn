@@ -48,8 +48,8 @@ DeformableAxialJoint::AssMatM(FullSubMatrixHandler& WMA,
 	doublereal dCoef)
 {
 	/* M was updated by AssRes */
-	Vec3 M(pNode1->GetRCurr()*(tilde_R1h.GetVec(3)*(dM*dCoef)));
-	Mat3x3 MTmp(MatCross, M);
+	// Vec3 M(pNode1->GetRCurr()*(tilde_R1h.GetVec(3)*(dM*dCoef)));
+	Mat3x3 MTmp(MatCross, M*dCoef);
 
 	WMA.Add(1, 1, MTmp);
 	WMA.Sub(4, 1, MTmp);
@@ -917,7 +917,7 @@ ViscousAxialJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		ConstitutiveLaw1DOwner::Update(0., dOmega);
 	}
 
-	Vec3 M(e1z*ConstitutiveLaw1DOwner::GetF());
+	M = e1z*ConstitutiveLaw1DOwner::GetF();
 
 	WorkVec.Add(1, M);
 	WorkVec.Sub(4, M);
