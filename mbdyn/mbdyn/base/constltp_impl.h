@@ -83,7 +83,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		std::vector<ConstitutiveLaw<T, Tder> *> clv(m_clv.size());
 		for (unsigned i = 0; i < m_clv.size(); i++) {
@@ -281,7 +281,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		typedef LinearElasticIsotropicConstitutiveLaw<T, Tder> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -328,7 +328,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		typedef LinearElasticGenericConstitutiveLaw<T, Tder> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -379,7 +379,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -415,7 +415,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<Vec6, Mat6x6>* pCopy(void) const {
-		ConstitutiveLaw<Vec6, Mat6x6>* pCL = NULL;
+		ConstitutiveLaw<Vec6, Mat6x6>* pCL = 0;
 
 		typedef LinearElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -463,7 +463,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -498,7 +498,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw1D* pCopy(void) const {
-		ConstitutiveLaw1D* pCL = NULL;
+		ConstitutiveLaw1D* pCL = 0;
 
 		typedef CubicElasticGenericConstitutiveLaw<doublereal, doublereal> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -553,7 +553,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw3D* pCopy(void) const {
-		ConstitutiveLaw3D* pCL = NULL;
+		ConstitutiveLaw3D* pCL = 0;
 
 		typedef CubicElasticGenericConstitutiveLaw<Vec3, Mat3x3> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -629,7 +629,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -661,7 +661,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		typedef LogConstitutiveLaw<doublereal, doublereal> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -720,7 +720,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -762,7 +762,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		typedef DoubleLinearElasticConstitutiveLaw<doublereal, doublereal> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -838,7 +838,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const {
-		ConstitutiveLaw<Vec3, Mat3x3>* pCL = NULL;
+		ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
 
 		typedef DoubleLinearElasticConstitutiveLaw<Vec3, Mat3x3> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -931,7 +931,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		typedef IsotropicHardeningConstitutiveLaw<T, Tder> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -993,7 +993,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -1036,7 +1036,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-		ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
 		typedef ContactConstitutiveLaw<doublereal, doublereal> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1094,7 +1094,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const {
-		ConstitutiveLaw<Vec3, Mat3x3>* pCL = NULL;
+		ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
 
 		typedef ContactConstitutiveLaw<Vec3, Mat3x3> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1161,7 +1161,7 @@ class LinearViscousIsotropicConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      ConstitutiveLaw<T, Tder>* pCL = NULL;
+      ConstitutiveLaw<T, Tder>* pCL = 0;
 
       typedef LinearViscousIsotropicConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1208,7 +1208,7 @@ class LinearViscousGenericConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      ConstitutiveLaw<T, Tder>* pCL = NULL;
+      ConstitutiveLaw<T, Tder>* pCL = 0;
 
       typedef LinearViscousGenericConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1263,7 +1263,7 @@ class LinearViscoElasticIsotropicConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      ConstitutiveLaw<T, Tder>* pCL = NULL;
+      ConstitutiveLaw<T, Tder>* pCL = 0;
 
       typedef LinearViscoElasticIsotropicConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1323,7 +1323,7 @@ class LinearViscoElasticGenericConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      ConstitutiveLaw<T, Tder>* pCL = NULL;
+      ConstitutiveLaw<T, Tder>* pCL = 0;
 
       typedef LinearViscoElasticGenericConstitutiveLaw<T, Tder> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1395,7 +1395,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		typedef LTVViscoElasticGenericConstitutiveLaw<T, Tder> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1469,7 +1469,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -1510,7 +1510,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<Vec6, Mat6x6>* pCopy(void) const {
-		ConstitutiveLaw<Vec6, Mat6x6>* pCL = NULL;
+		ConstitutiveLaw<Vec6, Mat6x6>* pCL = 0;
 
 		typedef LinearViscoElasticGenericAxialTorsionCouplingConstitutiveLaw<Vec6, Mat6x6> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1568,7 +1568,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		return NULL;
+		return 0;
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
@@ -1604,7 +1604,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw1D* pCopy(void) const {
-		ConstitutiveLaw1D* pCL = NULL;
+		ConstitutiveLaw1D* pCL = 0;
 
 		typedef CubicViscoElasticGenericConstitutiveLaw<doublereal, doublereal> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1662,7 +1662,7 @@ public:
 	};
 
 	virtual ConstitutiveLaw3D* pCopy(void) const {
-		ConstitutiveLaw3D* pCL = NULL;
+		ConstitutiveLaw3D* pCL = 0;
 
 		typedef CubicViscoElasticGenericConstitutiveLaw<Vec3, Mat3x3> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1753,7 +1753,7 @@ class DoubleLinearViscoElasticConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      return NULL;
+      return 0;
    };
 
    virtual std::ostream& Restart(std::ostream& out) const {
@@ -1805,7 +1805,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal>
 	};
 
    virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-      ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+      ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
       typedef DoubleLinearViscoElasticConstitutiveLaw<doublereal, doublereal> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1903,7 +1903,7 @@ class DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3>
 	};
 
    virtual ConstitutiveLaw<Vec3, Mat3x3>* pCopy(void) const {
-      ConstitutiveLaw<Vec3, Mat3x3>* pCL = NULL;
+      ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
 
       typedef DoubleLinearViscoElasticConstitutiveLaw<Vec3, Mat3x3> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -1995,7 +1995,7 @@ class TurbulentViscoElasticConstitutiveLaw
 	};
 
    virtual ConstitutiveLaw<T, Tder>* pCopy(void) const {
-      return NULL;
+      return 0;
    };
 
    virtual std::ostream& Restart(std::ostream& out) const {
@@ -2039,7 +2039,7 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 	};
 
    virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
-      ConstitutiveLaw<doublereal, doublereal>* pCL = NULL;
+      ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
 
       typedef TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal> cl;
       SAFENEWWITHCONSTRUCTOR(pCL,
@@ -2084,7 +2084,7 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 
 /* TurbulentViscoElasticConstitutiveLaw - end */
 
-
+#if 0
 /* LinearViscoElasticBiStopConstitutiveLaw - begin */
 
 template <class T, class Tder>
@@ -2111,8 +2111,8 @@ public:
 	) : ElasticConstitutiveLaw<T, Tder>(pDC, PStress),
 	status(initialStatus),
 	pActivatingCondition(pA), pDeactivatingCondition(pD), EpsRef(mb_zero<T>()) {
-		ASSERT(pActivatingCondition != NULL);
-		ASSERT(pDeactivatingCondition != NULL);
+		ASSERT(pActivatingCondition != 0);
+		ASSERT(pDeactivatingCondition != 0);
 		FDECurr = Stiff;
 		FDEPrimeCurr = StiffPrime;
 		if (status == ACTIVE) {
@@ -2132,7 +2132,7 @@ public:
 
 	virtual
 	ConstitutiveLaw<T, Tder>* pCopy(void) const {
-		ConstitutiveLaw<T, Tder>* pCL = NULL;
+		ConstitutiveLaw<T, Tder>* pCL = 0;
 
 		typedef LinearViscoElasticBiStopConstitutiveLaw<T, Tder> cl;
 		SAFENEWWITHCONSTRUCTOR(pCL,
@@ -2211,6 +2211,125 @@ typedef LinearViscoElasticBiStopConstitutiveLaw<Vec3, Mat3x3> LinearViscoElastic
 typedef LinearViscoElasticBiStopConstitutiveLaw<Vec6, Mat6x6> LinearViscoElasticBiStopConstitutiveLaw6D;
 
 /* LinearViscoElasticBiStopConstitutiveLaw - end */
+#endif
+
+/* BiStopCLWrapper - begin */
+
+template <class T, class Tder>
+class BiStopCLWrapper
+: public ConstitutiveLaw<T, Tder> {
+public:
+	enum Status { INACTIVE, ACTIVE };
+
+private:
+	ConstitutiveLaw<T, Tder> *m_pCL;
+	enum Status m_status;
+	const DriveCaller *m_pActivatingCondition;
+	const DriveCaller *m_pDeactivatingCondition;
+	T m_EpsRef;
+
+public:
+	BiStopCLWrapper(
+			ConstitutiveLaw<T, Tder> *pCL,
+			enum Status initialStatus,
+			const DriveCaller *pA,
+			const DriveCaller *pD
+	) : 
+	m_pCL(pCL), m_status(initialStatus),
+	m_pActivatingCondition(pA), m_pDeactivatingCondition(pD),
+	m_EpsRef(mb_zero<T>()) {
+		ASSERT(m_pActivatingCondition != 0);
+		ASSERT(m_pDeactivatingCondition != 0);
+	};
+
+	virtual
+	~BiStopCLWrapper(void) {
+		NO_OP;
+	};
+
+	ConstLawType::Type GetConstLawType(void) const {
+		return m_pCL->GetConstLawType();
+	};
+
+	virtual
+	ConstitutiveLaw<T, Tder>* pCopy(void) const {
+		ConstitutiveLaw<T, Tder>* pCL = 0;
+
+		typedef BiStopCLWrapper<T, Tder> cl;
+		SAFENEWWITHCONSTRUCTOR(pCL,
+			cl,
+			cl(m_pCL->pCopy(),
+				m_status,
+				m_pActivatingCondition->pCopy(),
+				m_pDeactivatingCondition->pCopy()));
+
+		return pCL;
+	};
+
+	virtual std::ostream&
+	Restart(std::ostream& out) const {
+		out << "bistop, initial status, ";
+		if (m_status == INACTIVE) {
+			out << "inactive";
+
+		} else {
+			out << "active";
+		}
+		out << ", ",
+			m_pActivatingCondition->Restart(out) << ", ",
+			m_pDeactivatingCondition->Restart(out) << ", ";
+		return m_pCL->Restart(out);
+	};
+
+	virtual void
+	Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
+		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
+		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
+		bool ChangeJac(false);
+
+		switch (m_status) {
+		case INACTIVE:
+			if (m_pActivatingCondition->dGet() == 0.) {
+				/* remains inactive: nothing to do */
+				break;
+			}
+			/* activates: change data and ask for jacobian rigeneration */
+			m_status = ACTIVE;
+			m_EpsRef = ConstitutiveLaw<T, Tder>::Epsilon;
+			ChangeJac = true;
+
+		case ACTIVE:
+			if (m_pDeactivatingCondition->dGet() != 0.) {
+				/* disactivates: reset data and ask for jacobian rigeneration */
+				m_status = INACTIVE;
+				ConstitutiveLaw<T, Tder>::F = ::mb_zero<T>();
+				ConstitutiveLaw<T, Tder>::FDE = ::mb_zero<Tder>();
+				ConstitutiveLaw<T, Tder>::FDEPrime = ::mb_zero<Tder>();
+				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
+			}
+			/* change force as well */
+			m_pCL->Update(Eps - m_EpsRef, EpsPrime);
+			ConstitutiveLaw<T, Tder>::F = m_pCL->GetF();
+			ConstitutiveLaw<T, Tder>::FDE = m_pCL->GetFDE();
+			ConstitutiveLaw<T, Tder>::FDEPrime = m_pCL->GetFDEPrime();
+			if (ChangeJac) {
+				/* if activating, ask for jacobian rigeneration */
+				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+		}
+	};
+
+	virtual void AfterConvergence(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
+		if (m_status == ACTIVE) {
+			m_pCL->AfterConvergence(Eps - m_EpsRef, EpsPrime);
+		}
+	};
+
+	// FIXME: OutputAppend() ?
+};
+
+/* BiStopCLWrapper - end */
 
 /* helpers */
 template <class T>

@@ -1167,6 +1167,7 @@ struct TurbulentViscoElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	};
 };
 
+#if 0
 template <class T, class Tder>
 struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
 	virtual ConstitutiveLaw<T, Tder> *
@@ -1196,12 +1197,17 @@ struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
 		if (HP.IsKeyWord("initial" "status")) {
 			if (HP.IsKeyWord("active")) {
 				s = L::ACTIVE;
+
 			} else if (HP.IsKeyWord("inactive")) {
 				s = L::INACTIVE;
+
 			} else {
-				silent_cerr("unknown initial status at line "
-					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				if (HP.GetBool()) {
+					s = L::ACTIVE;
+
+				} else {
+					s = L::INACTIVE;
+				}
 			}
 		}
 
@@ -1234,6 +1240,186 @@ struct LinearViscoElasticBiStopCLR : public LinearBiStopCLR<T, Tder> {
 	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
 		CLType = ConstLawType::VISCOELASTIC;
 		return LinearBiStopCLR<T, Tder>::Read(pDM, HP, CLType);
+	};
+};
+#endif
+
+template <class T, class Tder>
+struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<T, Tder>* pCL = 0;
+
+		typedef BiStopCLWrapper<T, Tder> L;
+		typedef LinearElasticIsotropicConstitutiveLaw<T, Tder> LECL;
+		typedef LinearViscoElasticIsotropicConstitutiveLaw<T, Tder> LVECL;
+
+		DEBUGCOUT("Linear Viscoelastic Bi Stop Constitutive Law" << std::endl);
+		doublereal dS = HP.GetReal();
+		if (dS <= 0.) {
+			silent_cerr("warning, null or negative stiffness at line "
+				<< HP.GetLineData() << std::endl);
+		}
+
+		doublereal dSp = 0.;
+		if (CLType == ConstLawType::VISCOELASTIC) {
+			dSp = HP.GetReal();
+			if (dSp <= 0.) {
+				silent_cerr("warning, null or negative stiffness prime at line "
+					<< HP.GetLineData() << std::endl);
+			}
+		}
+
+		typedef typename L::Status LS;
+		LS s = L::INACTIVE;
+		if (HP.IsKeyWord("initial" "status")) {
+			if (HP.IsKeyWord("active")) {
+				s = L::ACTIVE;
+
+			} else if (HP.IsKeyWord("inactive")) {
+				s = L::INACTIVE;
+
+			} else {
+				if (HP.GetBool()) {
+					s = L::ACTIVE;
+
+				} else {
+					s = L::INACTIVE;
+				}
+			}
+		}
+
+		const DriveCaller *pA = HP.GetDriveCaller();
+		const DriveCaller *pD = HP.GetDriveCaller();
+
+		/* Prestress and prestrain */
+		T PreStress(mb_zero<T>());
+		GetPreStress(HP, PreStress);
+		TplDriveCaller<T>* pTplDC = GetPreStrain<T>(pDM, HP);
+
+		ConstitutiveLaw<T, Tder> *pWrappedCL = 0;
+		if (CLType == ConstLawType::VISCOELASTIC && dSp != 0.) {
+			SAFENEWWITHCONSTRUCTOR(pWrappedCL, LVECL, LVECL(pTplDC, PreStress, dS, dSp));
+
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pWrappedCL, LECL, LECL(pTplDC, PreStress, dS));
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+
+		return pCL;
+	};
+};
+
+template <class T, class Tder>
+struct LinearElasticBiStopCLR : public LinearBiStopCLR<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		CLType = ConstLawType::ELASTIC;
+		return LinearBiStopCLR<T, Tder>::Read(pDM, HP, CLType);
+	};
+};
+
+template <class T, class Tder>
+struct LinearViscoElasticBiStopCLR : public LinearBiStopCLR<T, Tder> {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		CLType = ConstLawType::VISCOELASTIC;
+		return LinearBiStopCLR<T, Tder>::Read(pDM, HP, CLType);
+	};
+};
+
+static void
+ReadBiStopBase(MBDynParser& HP, bool& bStatus, const DriveCaller *& pA, const DriveCaller *& pD)
+{
+	if (HP.IsKeyWord("initial" "status")) {
+		if (HP.IsKeyWord("active")) {
+			bStatus = true;
+
+		} else if (HP.IsKeyWord("inactive")) {
+			bStatus = false;
+
+		} else {
+			bStatus = HP.GetBool();
+		}
+	}
+
+	pA = HP.GetDriveCaller();
+	pD = HP.GetDriveCaller();
+}
+
+struct BiStopCLW1DR : public ConstitutiveLawRead<doublereal, doublereal> {
+	virtual ConstitutiveLaw<doublereal, doublereal> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		typedef BiStopCLWrapper<doublereal, doublereal> L;
+
+		const DriveCaller *pA = 0;
+		const DriveCaller *pD = 0;
+		bool bStatus(false);
+		ReadBiStopBase(HP, bStatus, pA, pD);
+
+		typedef typename L::Status LS;
+		LS s(L::INACTIVE);
+		if (bStatus) {
+			s = L::ACTIVE;
+		}
+
+		ConstitutiveLaw<doublereal, doublereal> *pWrappedCL = ReadCL1D(pDM, HP, CLType);
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+
+		return pCL;
+	};
+};
+
+struct BiStopCLW3DR : public ConstitutiveLawRead<Vec3, Mat3x3> {
+	virtual ConstitutiveLaw<Vec3, Mat3x3> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<Vec3, Mat3x3>* pCL = 0;
+
+		typedef BiStopCLWrapper<Vec3, Mat3x3> L;
+
+		const DriveCaller *pA = 0;
+		const DriveCaller *pD = 0;
+		bool bStatus(false);
+		ReadBiStopBase(HP, bStatus, pA, pD);
+
+		typedef typename L::Status LS;
+		LS s(L::INACTIVE);
+		if (bStatus) {
+			s = L::ACTIVE;
+		}
+
+		ConstitutiveLaw<Vec3, Mat3x3> *pWrappedCL = ReadCL3D(pDM, HP, CLType);
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+
+		return pCL;
+	};
+};
+
+struct BiStopCLW6DR : public ConstitutiveLawRead<Vec6, Mat6x6> {
+	virtual ConstitutiveLaw<Vec6, Mat6x6> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<Vec6, Mat6x6>* pCL = 0;
+
+		typedef BiStopCLWrapper<Vec6, Mat6x6> L;
+
+		const DriveCaller *pA = 0;
+		const DriveCaller *pD = 0;
+		bool bStatus(false);
+		ReadBiStopBase(HP, bStatus, pA, pD);
+
+		typedef typename L::Status LS;
+		LS s(L::INACTIVE);
+		if (bStatus) {
+			s = L::ACTIVE;
+		}
+
+		ConstitutiveLaw<Vec6, Mat6x6> *pWrappedCL = ReadCL6D(pDM, HP, CLType);
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+
+		return pCL;
 	};
 };
 
@@ -1422,6 +1608,11 @@ InitCL(void)
 	SetCL1D("linear" "viscoelastic" "bistop", new LinearViscoElasticBiStopCLR<doublereal, doublereal>);
 	SetCL3D("linear" "viscoelastic" "bistop", new LinearViscoElasticBiStopCLR<Vec3, Mat3x3>);
 	SetCL6D("linear" "viscoelastic" "bistop", new LinearViscoElasticBiStopCLR<Vec6, Mat6x6>);
+
+	/* bistop wrapper */
+	SetCL1D("bistop", new BiStopCLW1DR);
+	SetCL3D("bistop", new BiStopCLW3DR);
+	SetCL6D("bistop", new BiStopCLW6DR);
 
 #ifdef USE_GRAALLDAMPER
 	/* GRAALL damper */

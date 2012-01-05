@@ -3131,7 +3131,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\kw{linear elastic generic axial torsion coupling}			&         &         & $\surd$ \\
 	\kw{cubic elastic generic}						& $\surd$ & $\surd$ &         \\
 	\kw{log elastic}							& $\surd$ &         &         \\
-	\kw{linear elastic generic bistop}					& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear elastic bistop}						& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{double linear elastic}						& $\surd$ & $\surd$ &         \\
 	\kw{isotropic hardening elastic}					& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{scalar function elastic}, \kw{scalar function elastic isotropic}	& $\surd$ & $\surd$ & $\surd$ \\
@@ -3145,7 +3145,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\kw{cubic viscoelastic generic}						& $\surd$ & $\surd$ &         \\
 	\kw{double linear viscoelastic}						& $\surd$ & $\surd$ &         \\
 	\kw{turbulent viscoelastic}						& $\surd$ &         &         \\
-	\kw{linear viscoelastic generic bistop}					& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{linear viscoelastic bistop}						& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{shock absorber}							& $\surd$ &         &         \\
 	\kw{symbolic elastic}							& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{symbolic viscous}							& $\surd$ & $\surd$ & $\surd$ \\
@@ -3167,6 +3167,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
 	\kw{array} (wrapper)							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{bistop} (wrapper)							& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{invariant angular} (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
@@ -3256,9 +3257,11 @@ this is defined only for $6 \times 1$ vectors, where the torsion stiffness,
 coefficient $ a_{44} $ in the stiffness matrix, depends linearly on 
 the axial strain, $ \varepsilon_1 $, by means of 
 \nt{coupling\_coefficient}, i.e.\ the run-time torsion stiffness is 
-\begin{displaymath}
-	a_{44} = GJ + \nt{coupling\_coefficient} \cdot \varepsilon_1 .
-\end{displaymath}
+\begin{align}
+	a_{44}
+	&=
+	GJ + \nt{coupling\_coefficient} \cdot \varepsilon_1 .
+\end{align}
 This \nt{<coupling\_coefficient>}, in the classical nonlinear beam theory,
 is estimated according to some geometric property \cite{HOUBOLT-BROOKS-1957};
 a general approach to the computation of prestressed beam properties
@@ -3277,15 +3280,17 @@ of the ANBA software.
 %\end{verbatim}
 this is defined only for scalar and $3 \times 1$ vectors; the constitutive
 law is written according to the formula
-\begin{displaymath}
-	f = \nt{stiffness\_1} \cdot \varepsilon
+\begin{align}
+	f
+	&=
+	\nt{stiffness\_1} \cdot \varepsilon
 	+ \nt{stiffness\_2} \cdot \shbr{\varepsilon}\varepsilon
 	+ \nt{stiffness\_3} \cdot \varepsilon^3
-\end{displaymath}
-and it is mainly intended for use with human body models 
-where the stiffness of the joints is typically given in this form.
-
-\textbf{FIXME: check!}
+\end{align}
+%and it is mainly intended for use with human body models 
+%where the stiffness of the joints is typically given in this form.
+%
+%\textbf{FIXME: check!}
 
 \subsection{Log elastic}
 %\begin{verbatim}
@@ -3295,16 +3300,16 @@ where the stiffness of the joints is typically given in this form.
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for scalars. The force is defined as:
-\begin{displaymath}
-    f \ = \ \nt{stiffness} \ \llk{log}\plbr{1 + \varepsilon}
-\end{displaymath}
+\begin{align}
+    f &= \nt{stiffness} \cdot \llk{log}\plbr{1 + \varepsilon}
+\end{align}
   
-\subsection{Linear elastic bistop generic}
+\subsection{Linear elastic bistop}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear elastic bistop} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
-        [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
+        [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
         (\ty{DriveCaller}) \bnt{activating_condition} ,
         (\ty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
@@ -3590,13 +3595,13 @@ computed based on \nt{parabolic\_viscosity} and on
 Otherwise, it can be set by the user to give a discontinuous force curve,
 as observed in some fluids at intermediate Reynolds number.
 
-\subsection{Linear viscoelastic bistop generic}
+\subsection{Linear viscoelastic bistop}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscoelastic bistop} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         (\ty{DerivativeOfEntity}) \bnt{viscosity} ,
-        [ \kw{initial state} , \{ \kw{inactive} | \kw{active} \} , ]
+        [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
         (\ty{DriveCaller}) \bnt{activating_condition} ,
         (\ty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
@@ -4060,7 +4065,7 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{array} ,
         \bnt{number} ,
-            \bnt{constitutive_law} [ , ... ]
+            \bnt{wrapped_const_law} [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 The type of the resulting constitutive law is computed by combining
@@ -4085,6 +4090,22 @@ No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
 \end{verbatim}
 
 
+\subsection{bistop}
+This wrapper applies the logic of the bistop, that is activate or deactivate
+the constitutive property based on distinct conditions, with memory,
+to a generic underlying constitutive law.
+The syntax is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{bistop} ,
+        [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
+        (\ty{DriveCaller}) \bnt{activating_condition} ,
+        (\ty{DriveCaller}) \bnt{deactivating_condition} ,
+        (\ty{ConstitutiveLaw<Entity, DerivativeOfEntity>}) \bnt{wrapped_const_law}
+\end{Verbatim}
+%\end{verbatim}
+
+
 \subsection{invariant angular}
 This is not a constitutive law, but rather a wrapper
 for constitutive laws used within the ``attached'' variant
@@ -4096,7 +4117,7 @@ of the two connected nodes.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{invariant angular} ,
-        \bnt{xi} , \bnt{ancillary_const_law}
+        \bnt{xi} , \bnt{wrapped_const_law}
 \end{Verbatim}
 %\end{verbatim}
 \nt{xi} is the fraction of relative orientation the ancillary

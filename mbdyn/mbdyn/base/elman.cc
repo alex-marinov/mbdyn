@@ -427,6 +427,11 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 					<< std::endl);
 				throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
 			}
+
+#if 0
+			silent_cerr("### " << psElemNames[pTmpEl->GetElemType()] << "(" << pTmpEl->GetLabel() <<"):" << std::endl);
+			silent_cerr(JacHdl << std::endl);
+#endif
 		} while (Iter.bGetNext(pTmpEl));
 	}
 }
