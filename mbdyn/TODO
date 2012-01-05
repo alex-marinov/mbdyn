@@ -215,6 +215,7 @@ D. Code:
 	- implement coaxial rotor inflow model (which?)
 	- implement constitutive law wrapper that combines (adds) constitutive laws (DONE)
 	- allow strain sign in hunt-crossley module (DONE; in all constitutive laws?)
+	- implement bistop constitutive law as a wrapper
 
 
 
