@@ -1641,11 +1641,10 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(3 + 1, M);
  
 	/* Modifica: divido le equazioni di vincolo per dCoef */
-	if (dCoef != 0.) {	
-		/* Residuo dell'equazione di vincolo */
-		WorkVec.Sub(6 + 1, (x - XClamp)/dCoef);
-		WorkVec.Sub(9 + 1, theta_c/dCoef);   
-	}
+	ASSERT(dCoef != 0.);
+	/* Residuo dell'equazione di vincolo */
+	WorkVec.Sub(6 + 1, (x - XClamp)/dCoef);
+	WorkVec.Sub(9 + 1, theta_c/dCoef);   
 
 	return WorkVec;
 }

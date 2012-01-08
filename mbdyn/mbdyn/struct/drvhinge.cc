@@ -480,9 +480,8 @@ DriveHingeJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 	WorkVec.Add(1, MTmp);
 	WorkVec.Sub(3 + 1, MTmp);
 
-	if (dCoef != 0.) {
-		WorkVec.Add(6 + 1, (Get() - ThetaCurr)/dCoef);
-	}
+	ASSERT(dCoef != 0.);
+	WorkVec.Add(6 + 1, (Get() - ThetaCurr)/dCoef);
 }
 
 

@@ -796,10 +796,8 @@ ScrewJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef,
 	WorkVec.Sub(3 + 1, C1 * dLambda);
 	WorkVec.Add(6 + 1, F1 * dLambda);
 	WorkVec.Sub(6 + 3 + 1, C2 * dLambda);
-	if (dCoef != 0.) {
-		WorkVec.DecCoef(13, eq / dCoef);
-	}
-
+	ASSERT(dCoef != 0.);
+	WorkVec.DecCoef(13, eq / dCoef);
 
 	if (fc) {
 		bool ChangeJac(false);

@@ -797,32 +797,30 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 
 	/* Constraint equations are divided by dCoef
 	 * ONLY if the constraint is on position */
-	if (dCoef != 0.) {
+	ASSERT(dCoef != 0.);
 
-		/* Position constraint:  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iPosEqIndex[iCnt],
-				-(XDelta(iPosIncid[iCnt])/dCoef));
-		}
+	/* Position constraint:  */
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+		WorkVec.PutCoef(1 + iPosEqIndex[iCnt],
+			-(XDelta(iPosIncid[iCnt])/dCoef));
+	}
 
-		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iRotEqIndex[iCnt],
-				-(ThetaDelta(iRotIncid[iCnt])/dCoef));
-		}
+	/* Rotation constraints: */
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+		WorkVec.PutCoef(1 + iRotEqIndex[iCnt],
+			-(ThetaDelta(iRotIncid[iCnt])/dCoef));
+	}
 
-		/* Linear Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iVelEqIndex[iCnt],
-				-(VDelta(iVelIncid[iCnt])));
-		}
+	/* Linear Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+		WorkVec.PutCoef(1 + iVelEqIndex[iCnt],
+			-(VDelta(iVelIncid[iCnt])));
+	}
 		
-		/* Angular Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iAgvEqIndex[iCnt],
-				-(WDelta(iAgvIncid[iCnt])));
-		}
-
+	/* Angular Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+		WorkVec.PutCoef(1 + iAgvEqIndex[iCnt],
+			-(WDelta(iAgvIncid[iCnt])));
 	}
 
 	return WorkVec;

@@ -487,9 +487,8 @@ DriveDisplacementJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 	WorkVec.Sub(6 + 1, F);
 	WorkVec.Sub(9 + 1, f2Tmp.Cross(F));
 	
-	if (dCoef != 0.) {
-		WorkVec.Sub(12 + 1, (pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - d)/dCoef);
-	}
+	ASSERT(dCoef != 0.);
+	WorkVec.Sub(12 + 1, (pNode2->GetXCurr() + f2Tmp - pNode1->GetXCurr() - d)/dCoef);
 }
 
 
@@ -1084,9 +1083,8 @@ DriveDisplacementPinJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef)
 	WorkVec.Sub(1, F);
 	WorkVec.Sub(3 + 1, fTmp.Cross(F));
 	
-	if (dCoef != 0.) {
-		WorkVec.Sub(6 + 1, (pNode->GetXCurr() + fTmp - x - d)/dCoef);
-	}
+	ASSERT(dCoef != 0.);
+	WorkVec.Sub(6 + 1, (pNode->GetXCurr() + fTmp - x - d)/dCoef);
 }
 
 

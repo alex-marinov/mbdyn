@@ -181,11 +181,10 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, x2mx1.Cross(FTmp)); /* ( = -p/\F) */
    WorkVec.Sub(7, FTmp);
    
-   if (dCoef != 0.) {
-      WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1))/dCoef);
-      WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1))/dCoef);
-   }
-      
+   ASSERT(dCoef != 0.);
+   WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1))/dCoef);
+   WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1))/dCoef);
+
    return WorkVec;
 }
 
@@ -585,10 +584,9 @@ InLineWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Sub(7, FTmp);
    WorkVec.Sub(10, qTmp.Cross(FTmp));
    
-   if (dCoef != 0.) {
-      WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1))/dCoef);
-      WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1))/dCoef);
-   }
+   ASSERT(dCoef != 0.);
+   WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2qmx1))/dCoef);
+   WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2qmx1))/dCoef);
 
    return WorkVec;
 }

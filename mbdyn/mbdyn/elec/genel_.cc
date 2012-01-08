@@ -327,10 +327,10 @@ GenelDistance::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutItem(2, iNode2RowIndex, -dRct);
 
 	if ((SD1.iOrder == 0) && (SD2.iOrder == 0)) {
-		if (dCoef != 0.) {
-			WorkVec.PutItem(3, iFirstReactionIndex,
-				(dGet() - dVal2 + dVal1)/dCoef);
-		}
+		ASSERT(dCoef != 0.);
+		WorkVec.PutItem(3, iFirstReactionIndex,
+			(dGet() - dVal2 + dVal1)/dCoef);
+
 	} else {
 		WorkVec.PutItem(3, iFirstReactionIndex, dGet() - dVal2 + dVal1);
 	}

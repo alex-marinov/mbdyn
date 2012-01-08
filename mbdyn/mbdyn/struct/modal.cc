@@ -1405,9 +1405,8 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.Add(iStrNodeIndex + 3 + 1, dTmp2.Cross(pF[iStrNodem1]));
 
 		/* Eq. di vincolo */
-		if (dCoef != 0.) {
-			WorkVec.Add(iReactionIndex + 1, (x2 + dTmp2 - x - dTmp1)/dCoef);
-		}
+		ASSERT(dCoef != 0.);
+		WorkVec.Add(iReactionIndex + 1, (x2 + dTmp2 - x - dTmp1)/dCoef);
 
 		/* constraint reaction (moment) */
 		pM[iStrNodem1] = Vec3(XCurr,
@@ -1434,10 +1433,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		/* Modifica: divido le equazioni di vincolo per dCoef */
-		if (dCoef != 0.) {
-			/* Equazioni di vincolo di rotazione */
-			WorkVec.Sub(iReactionIndex + 3 + 1, ThetaCurr/dCoef);
-		}
+		ASSERT(dCoef != 0.);
+		/* Equazioni di vincolo di rotazione */
+		WorkVec.Sub(iReactionIndex + 3 + 1, ThetaCurr/dCoef);
 	}
 
 #if 0

@@ -248,13 +248,12 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, MTmp);
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
-      
-      /* Equazioni di vincolo di rotazione */
-      WorkVec.PutCoef(7, -(e3b.Dot(e2a)/dCoef));
-      WorkVec.PutCoef(8, -(e1b.Dot(e3a)/dCoef));
-      WorkVec.PutCoef(9, -(e2b.Dot(e1a)/dCoef));
-   }   
+   ASSERT(dCoef != 0.);
+
+   /* Equazioni di vincolo di rotazione */
+   WorkVec.PutCoef(7, -(e3b.Dot(e2a)/dCoef));
+   WorkVec.PutCoef(8, -(e1b.Dot(e3a)/dCoef));
+   WorkVec.PutCoef(9, -(e2b.Dot(e1a)/dCoef));
 
    return WorkVec;
 }

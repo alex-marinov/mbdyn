@@ -198,10 +198,9 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, dTmp2.Cross(F));
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
-      WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
-   }
-   
+   ASSERT(dCoef != 0.);
+   WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
+
    return WorkVec;
 }
 
@@ -617,10 +616,9 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, F.Cross(dTmp)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
-      WorkVec.Add(7, (x+dTmp-X0)/dCoef);
-   }
-   
+   ASSERT(dCoef != 0.);
+   WorkVec.Add(7, (x+dTmp-X0)/dCoef);
+
    return WorkVec;
 }
 

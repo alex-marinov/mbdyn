@@ -157,10 +157,9 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(1, F);
    WorkVec.Add(4, x2mx1.Cross(F)); /* ( = -p/\F) */
    WorkVec.Add(7, -F);
-   if (dCoef != 0.) {
-      WorkVec.PutCoef(13, (v.Dot(p)-vTmp.Dot(x2mx1))/dCoef);
-   }
-      
+   ASSERT(dCoef != 0.);
+   WorkVec.PutCoef(13, (v.Dot(p)-vTmp.Dot(x2mx1))/dCoef);
+
    return WorkVec;
 }
 

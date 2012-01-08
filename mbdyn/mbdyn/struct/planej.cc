@@ -868,17 +868,16 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, dTmp2.Cross(F)+MTmp);
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
+   ASSERT(dCoef != 0.);
 	
-      /* Equazione di vincolo di posizione */
-      WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
+   /* Equazione di vincolo di posizione */
+   WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
       
-      /* Equazioni di vincolo di rotazione */
-      Vec3 Tmp = R1hTmp.GetVec(3);
-      WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
+   /* Equazioni di vincolo di rotazione */
+   Vec3 Tmp = R1hTmp.GetVec(3);
+   WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+   WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
 
-   }   
    if (fc) {
       bool ChangeJac(false);
       Vec3 Omega1(pNode1->GetWCurr());
@@ -1878,13 +1877,12 @@ SubVectorHandler& PlaneRotationJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, MTmp);
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
+   ASSERT(dCoef != 0.);
       
-      /* Equazioni di vincolo di rotazione */
-      Vec3 Tmp = R1hTmp.GetVec(3);
-      WorkVec.PutCoef(7, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.PutCoef(8, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
-   }   
+   /* Equazioni di vincolo di rotazione */
+   Vec3 Tmp = R1hTmp.GetVec(3);
+   WorkVec.PutCoef(7, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+   WorkVec.PutCoef(8, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
    
    return WorkVec;
 }
@@ -3081,16 +3079,15 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(10, dTmp2.Cross(F)+MTmp+e3a*M.dGet(3));
 
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {
+   ASSERT(dCoef != 0.);
       
-      /* Equazione di vincolo di posizione */
-      WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
+   /* Equazione di vincolo di posizione */
+   WorkVec.Add(13, (x1+dTmp1-x2-dTmp2)/dCoef);
       
-      /* Equazioni di vincolo di rotazione */
-      Vec3 Tmp = Vec3(R1hTmp.GetVec(3));
-      WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
-      WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
-   }   
+   /* Equazioni di vincolo di rotazione */
+   Vec3 Tmp = Vec3(R1hTmp.GetVec(3));
+   WorkVec.PutCoef(16, Tmp.Dot(R2hTmp.GetVec(2))/dCoef);
+   WorkVec.PutCoef(17, Tmp.Dot(R2hTmp.GetVec(1))/dCoef);
    
    /* Questa equazione non viene divisa per dCoef */
    
@@ -4174,13 +4171,12 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(4, F.Cross(dTmp)-(e2*M.dGet(1)-e1*M.dGet(2)).Cross(e3)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
-   if (dCoef != 0.) {	
-      WorkVec.Add(7, (x+dTmp-X0)/dCoef);
-      
-      WorkVec.PutCoef(10, e3.Dot(e2)/dCoef);
-      WorkVec.PutCoef(11, e3.Dot(e1)/dCoef);
-   }   
-   
+   ASSERT(dCoef != 0.);
+   WorkVec.Add(7, (x+dTmp-X0)/dCoef);
+
+   WorkVec.PutCoef(10, e3.Dot(e2)/dCoef);
+   WorkVec.PutCoef(11, e3.Dot(e1)/dCoef);
+
    return WorkVec;
 }
 
