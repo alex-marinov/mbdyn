@@ -611,6 +611,10 @@ public:
 	virtual void SetDofValue(const doublereal& dValue,
 		unsigned int iDof, unsigned int iOrder = 0);
 
+	/* Aggiorna dati in base alla soluzione */
+	virtual void Update(const VectorHandler& X,
+		const VectorHandler& XP);
+
 	virtual inline bool bComputeAccelerations(void) const;
 	virtual bool ComputeAccelerations(bool b);
 	virtual void SetOutputFlag(flag f = flag(1));

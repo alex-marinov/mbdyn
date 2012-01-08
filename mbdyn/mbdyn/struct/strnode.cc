@@ -1587,6 +1587,21 @@ DynamicStructNode::SetOutputFlag(flag f)
 }
 
 void
+DynamicStructNode::Update(const VectorHandler& X, const VectorHandler& XP)
+{
+	StructNode::Update(X, XP);
+	if (bComputeAccelerations()) {
+		/* FIXME: pAutoStr is 0 in ModalNode */
+		if (pAutoStr == 0) {
+			return;
+		}
+		// FIXME: based on values set during previous
+		// of AutomaticStructural::AssRes()
+		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+	}
+}
+
+void
 DynamicStructNode::AfterConvergence(const VectorHandler& X,
 	const VectorHandler& XP)
 {
@@ -1595,6 +1610,8 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 		if (pAutoStr == 0) {
 			return;
 		}
+		// FIXME: based on values set during previous
+		// of AutomaticStructural::AssRes()
 		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
 	}
 }
@@ -1952,7 +1969,7 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 
 	/* aggiorno XPP e WP (servono solo a modal.cc) */
 	XPPCurr = Vec3(XP, iFirstIndex + 7);
-	WPCurr  = Vec3(XP, iFirstIndex + 10);
+	WPCurr = Vec3(XP, iFirstIndex + 10);
 }
 
 /* ModalNode - end */
