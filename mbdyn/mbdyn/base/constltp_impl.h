@@ -114,8 +114,14 @@ public:
 			ConstitutiveLaw<T, Tder>::FDEPrime = ::mb_zero<Tder>();
 		}
 
+		bool bChangeJac(false);
 		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
-			(*i)->Update(Eps, EpsPrime);
+			try {
+				(*i)->Update(Eps, EpsPrime);
+			}
+			catch (Elem::ChangedEquationStructure e) {
+				bChangeJac = true;
+			}
 			ConstitutiveLaw<T, Tder>::F += (*i)->GetF();
 			if (m_type & ConstLawType::ELASTIC) {
 				ConstitutiveLaw<T, Tder>::FDE += (*i)->GetFDE();
@@ -124,6 +130,10 @@ public:
 			if (m_type & ConstLawType::VISCOUS) {
 				ConstitutiveLaw<T, Tder>::FDEPrime += (*i)->GetFDEPrime();
 			}
+		}
+		if (bChangeJac) {
+			/* if activating, ask for jacobian rigeneration */
+			throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
 		}
 	};
 
@@ -2156,7 +2166,7 @@ public:
 	Update(const T& Eps, const T& EpsPrime = mb_zero<T>()) {
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
-		bool ChangeJac(false);
+		bool bChangeJac(false);
 
 		switch (m_status) {
 		case INACTIVE:
@@ -2168,7 +2178,7 @@ public:
 			/* activates: change data and ask for jacobian rigeneration */
 			m_status = ACTIVE;
 			m_EpsRef = ConstitutiveLaw<T, Tder>::Epsilon;
-			ChangeJac = true;
+			bChangeJac = true;
 
 		case ACTIVE:
 			if (m_pDeactivatingCondition->dGet() != 0.) {
@@ -2177,21 +2187,22 @@ public:
 				ConstitutiveLaw<T, Tder>::F = ::mb_zero<T>();
 				ConstitutiveLaw<T, Tder>::FDE = ::mb_zero<Tder>();
 				ConstitutiveLaw<T, Tder>::FDEPrime = ::mb_zero<Tder>();
-#if 0 // skip by now
 				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
-#endif
 			}
 
 			/* change force as well */
-			m_pCL->Update(Eps - m_EpsRef, EpsPrime);
+			try {
+				m_pCL->Update(Eps - m_EpsRef, EpsPrime);
+			}
+			catch (Elem::ChangedEquationStructure e) {
+				bChangeJac = true;
+			}
 			ConstitutiveLaw<T, Tder>::F = m_pCL->GetF();
 			ConstitutiveLaw<T, Tder>::FDE = m_pCL->GetFDE();
 			ConstitutiveLaw<T, Tder>::FDEPrime = m_pCL->GetFDEPrime();
-			if (ChangeJac) {
+			if (bChangeJac) {
 				/* if activating, ask for jacobian rigeneration */
-#if 0 // skip by now
 				throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
-#endif
 			}
 			break;
 		}

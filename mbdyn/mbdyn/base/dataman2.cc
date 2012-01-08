@@ -1411,13 +1411,23 @@ DataManager::AfterPredict(void) const
 	}
 
 	for (NodeVecType::const_iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
-		(*i)->AfterPredict(*pXCurr, *pXPrimeCurr);
+		try {
+			(*i)->AfterPredict(*pXCurr, *pXPrimeCurr);
+		}
+		catch (Elem::ChangedEquationStructure e) {
+			// ignore by now
+		}
 	}
 
 	Elem* pEl = NULL;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
-			pEl->AfterPredict(*pXCurr, *pXPrimeCurr);
+			try {
+				pEl->AfterPredict(*pXCurr, *pXPrimeCurr);
+			}
+			catch (Elem::ChangedEquationStructure e) {
+				// ignore by now
+			}
 		} while (ElemIter.bGetNext(pEl));
 	}
 }
