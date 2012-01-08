@@ -1606,9 +1606,8 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 {
 	if (bComputeAccelerations()) {
 		/* FIXME: pAutoStr is 0 in ModalNode */
-		if (pAutoStr == 0) {
-			return;
-		}
+		ASSERT(pAutoStr != 0);
+
 		// FIXME: based on values set during previous
 		// of AutomaticStructural::AssRes()
 		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
