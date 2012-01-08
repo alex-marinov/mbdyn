@@ -1,0 +1,14 @@
+module-imu.cc
+
+implements two uses of a IMU:
+
+ModuleIMU ("imu") mimicks an IMU by sending to the output
+the measures of a strapdown IMU (angular velocity and acceleration
+components in a reference frame attached to the chassis of the sensor),
+making them also available as private data.
+
+ModuleIMUConstraint ("imu constraint") prescribes the angular velocity
+and the acceleration of the point it is attached to.
+
+In both cases the IMU can be rigidly offset and oriented with respect
+to the structural node it is attached to.

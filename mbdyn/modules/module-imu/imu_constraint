@@ -1,0 +1,55 @@
+# $Header$
+
+module load: "./libmodule-imu.so";
+
+begin: data;
+	integrator: multistep;
+end: data;
+
+begin: multistep;
+	initial time: 0.;
+	final time: 2.;
+	time step: 1.e-3;
+
+	tolerance: 1e-6;
+	max iterations: 10;
+
+	derivatives tolerance: 1e6;
+	derivatives max iterations: 10;
+	derivatives coefficient: 1e-12;
+
+	nonlinear solver: newton raphson, modified, 5, keep jacobian;
+
+	method: ms, .6;
+
+	output: iterations;
+	# output: residual;
+end: multistep;
+
+begin: control data;
+	structural nodes: 1;
+	rigid bodies: 1;
+	loadable elements: 1;
+
+	skip initial joint assembly;
+end: control data;
+
+begin: nodes;
+	structural: 1, dynamic,
+		null,
+		eye,
+		null,
+		null;
+end: nodes;
+
+begin: elements;
+	body: 1, 1, 1., null, eye, scale, 1e-2;
+	user defined: 1, imu constraint,
+		1,
+		position, null,
+		orientation, eye,
+		null,
+		1., 0., 1., const, 1.,
+		output, yes;
+end: elements;
+

@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added private data to generic aerodynamic force
 		- added 'array' constitutive law wrapper
 		- added generic 'bistop' constitutive law wrapper
+		- added 'imu' and 'imu constraint' user-defined elements
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

@@ -161,6 +161,12 @@ module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
 module-hunt-crossley/module-hunt-crossley.cc \
 module-hunt-crossley/hunt_crossley \
  \
+module-imu/module-imu.cc \
+module-imu/imu \
+module-imu/imu_constraint \
+module-imu/imu.tex \
+module-imu/README \
+ \
 module-mds/mds \
 module-mds/module-mds.cc \
  \
