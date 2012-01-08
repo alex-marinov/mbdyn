@@ -539,6 +539,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 						<< " does not support bind" << std::endl);
 				default:
+					silent_cerr("DataManager::ReadElems: unknown element type (label=" << uL << ") "
+						"at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				} /* end switch (KeyWords(HP.GetWord())) */
 
