@@ -1592,7 +1592,7 @@ DynamicStructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 	StructNode::Update(X, XP);
 	if (bComputeAccelerations()) {
 		/* FIXME: pAutoStr is 0 in ModalNode */
-		ASSERT(pAutoStr == 0);
+		ASSERT(pAutoStr != 0);
 
 		// FIXME: based on values set during previous
 		// of AutomaticStructural::AssRes()
