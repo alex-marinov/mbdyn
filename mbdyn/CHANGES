@@ -27,6 +27,7 @@ MBDyn 1.X-Devel
 		- fix 'use binary' in modal joint
 		- fix bug in deformable axial joint residual
 		- fix driven aerodynamic elements (noted by Phil Geoghegan)
+		- fix total(pin)joint when orientations are partially imposed
 
 MBDyn 1.4.1
 	Enhancements:

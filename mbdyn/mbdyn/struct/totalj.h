@@ -97,6 +97,8 @@ private:
 	mutable Vec3 ThetaDelta;
 	mutable Vec3 ThetaDeltaPrev;
 
+	Vec3 ThetaDeltaRemnant;
+
 public:
 	/* Constructor */
 	TotalJoint(unsigned int uL, const DofOwner *pDO,
@@ -307,6 +309,8 @@ private:
 	mutable Vec3 F;
 	mutable Vec3 ThetaDelta;
 	mutable Vec3 ThetaDeltaPrev;
+
+	Vec3 ThetaDeltaRemnant;
 
 public:
 	/* Constructor */

@@ -74,7 +74,9 @@ Var_Phi(0),
 Var_V(0),
 Var_Omega(0),
 #endif // USE_NETCDF
-M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
+M(::Zero3), F(::Zero3),
+ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3),
+ThetaDeltaRemnant(::Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -124,6 +126,52 @@ M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 		}
 	}
 
+	// if only a fraction of the rotation degrees of freedom
+	// are constrained, store the incidence of the unconstrained ones
+	// in the remainder of array iRotIncid[] for later use
+	if (nRotConstraints > 0 && nRotConstraints < 3) {
+		switch (nRotConstraints) {
+		case 1:
+			switch (iRotIncid[0]) {
+			case 1:
+				iRotIncid[1] = 2;
+				iRotIncid[2] = 3;
+				break;
+
+			case 2:
+				iRotIncid[1] = 1;
+				iRotIncid[2] = 3;
+				break;
+
+			case 3:
+				iRotIncid[1] = 1;
+				iRotIncid[2] = 2;
+				break;
+
+			default:
+				ASSERT(0);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+
+		case 2:
+			switch (iRotIncid[0]) {
+			case 1:
+				iRotIncid[2] = 5 - iRotIncid[1];
+				break;
+
+			case 2:
+				iRotIncid[2] = 1;
+				break;
+			}
+			break;
+
+		default:
+			ASSERT(0);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	nConstraints = nPosConstraints + nVelConstraints
 		+ nRotConstraints + nAgvConstraints;
 }
@@ -133,7 +181,6 @@ TotalJoint::~TotalJoint(void)
 	NO_OP;
 };
 
-/* FIXME: velocity stuff not implemented yet */
 std::ostream&
 TotalJoint::DescribeDof(std::ostream& out,
 	const char *prefix, bool bInitial) const
@@ -232,7 +279,6 @@ void
 TotalJoint::DescribeDof(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
-	// FIXME: todo
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
@@ -309,7 +355,6 @@ TotalJoint::DescribeDof(std::vector<std::string>& desc,
 	}
 }
 
-/* FIXME: velocity stuff not implemented yet */
 std::ostream&
 TotalJoint::DescribeEq(std::ostream& out,
 	const char *prefix, bool bInitial) const
@@ -421,7 +466,6 @@ void
 TotalJoint::DescribeEq(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
-	// FIXME: todo
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
@@ -677,20 +721,30 @@ TotalJoint::ParseHint(DataManager *pDM, const char *s) const
 
 void
 TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */ )
+	const VectorHandler& /* XP */ )
 {
-	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
+	// "trick": correct ThetaDrv to keep ThetaDelta small
+	// See "A Vectorial Formulation of Generic Pair Constraints"
+	if (nRotConstraints < 3) {
+		Vec3 ThetaDeltaTmp(ThetaDelta);
+		for (unsigned i = 0; i < nRotConstraints; i++) {
+			// zero out constrained components
+			// NOTE: should already be zero within tolerance
+			ThetaDeltaTmp(iRotIncid[i]) = 0.;
+		}
+		ThetaDeltaRemnant += ThetaDeltaTmp;
+	}
+
+	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant);
 }
 
 void
-TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */, const VectorHandler& /* XP */)
+TotalJoint::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP, const VectorHandler& XPP)
 {
-	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
+	AfterConvergence(X, XP);
 }
 
-/* Contributo al file di restart */
-/* FIXME: velocity stuffs not implemented yet */
 std::ostream&
 TotalJoint::Restart(std::ostream& out) const
 {
@@ -712,29 +766,53 @@ TotalJoint::Restart(std::ostream& out) const
 				"1 , ", R2hr.GetVec(1).Write(out, ", ") << ", "
 				"2 , ", R2hr.GetVec(2).Write(out, ", ");
 
-	if (bPosActive[0] || bPosActive[1] || bPosActive[2]) {
+	if (bPosActive[0] || bPosActive[1] || bPosActive[2]
+		|| bVelActive[0] || bVelActive[1] || bVelActive[2])
+	{
 		out << ", position constraint";
 		for (unsigned i = 0; i < 3; i++) {
 			if (bPosActive[i]) {
 				out << ", active";
+
+			} else if (bVelActive[i]) {
+				out << ", velocity";
+
 			} else {
 				out << ", inactive";
 			}
 		}
+
+		out << ", ", XDrv.pGetDriveCaller()->Restart(out);
+		if (XPDrv.pGetDriveCaller()) {
+			out << ", ", XPDrv.pGetDriveCaller()->Restart(out)
+				<< ", ", XPPDrv.pGetDriveCaller()->Restart(out);
+		}
 	}
 
-	if (bRotActive[0] || bRotActive[1] || bRotActive[2]) {
+	if (bRotActive[0] || bRotActive[1] || bRotActive[2]
+		|| bAgvActive[0] || bAgvActive[1] || bAgvActive[2])
+	{
 		out << ", orientation constraint";
 		for (unsigned i = 0; i < 3; i++) {
 			if (bRotActive[i]) {
 				out << ", active";
+
+			} else if (bAgvActive[i]) {
+				out << ", angular velocity";
+
 			} else {
 				out << ", inactive";
 			}
 		}
+
+		out << ", ", ThetaDrv.pGetDriveCaller()->Restart(out);
+		if (OmegaDrv.pGetDriveCaller()) {
+			out << ", ", OmegaDrv.pGetDriveCaller()->Restart(out)
+				<< ", ", OmegaPDrv.pGetDriveCaller()->Restart(out);
+		}
 	}
 
-	return out << std::endl;
+	return out << ";" << std::endl;
 }
 
 /* Assemblaggio jacobiano */
@@ -784,22 +862,16 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	/* Recupera i dati che servono */
-	Mat3x3 R1(pNode1->GetRRef()*R1h);
-	Mat3x3 R1r(pNode1->GetRRef()*R1hr);
+	Mat3x3 R1(pNode1->GetRCurr()*R1h);
+	Mat3x3 R1r(pNode1->GetRCurr()*R1hr);
 	Vec3 b2(pNode2->GetRCurr()*f2);
 	Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 
 	/* Moltiplica il momento e la forza per il coefficiente del metodo
 	 * SOLO se il vincolo è in posizione */
 
-	Vec3 FTmp(R1*F);
-	Vec3 MTmp(R1r*M);
-	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++)	{
-		FTmp(iPosIncid[iCnt]) *= dCoef;
-	}
-	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++)	{
-		MTmp(iRotIncid[iCnt]) *= dCoef;
-	}
+	Vec3 FTmp(R1*(F*dCoef));
+	Vec3 MTmp(R1r*(M*dCoef));
 
 	/* Equilibrium: ((Phi/q)^T*Lambda)/q */
 
@@ -887,7 +959,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 			Vec3 vb1Cross_R1(b1Cross_R1.GetVec(iVelIncid[iCnt]));
 			Vec3 vb2Cross_R1(b2Cross_R1.GetVec(iVelIncid[iCnt]));
 
-			Vec3 vOmega1Cross_R1(Omega1Cross_R1.GetVec(iVelIncid[iCnt]));
+			Vec3 vOmega1Cross_R1(Omega1Cross_R1.GetVec(iVelIncid[iCnt])*dCoef);
 			Vec3 vTmp12(Tmp12.GetVec(iVelIncid[iCnt]));
 			Vec3 vTmp22(Tmp22.GetVec(iVelIncid[iCnt]));
 
@@ -902,7 +974,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vb1Cross_R1);		// delta_W1
 
 			/* New contributions, related to delta_x1 and delta_g1 */
-     			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vOmega1Cross_R1 * dCoef);	// delta_x1
+     			WM.SubT(12 + 1 + iVelEqIndex[iCnt], 1, vOmega1Cross_R1);		// delta_x1
      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 3 + 1, vTmp12 * dCoef);		// delta_g1
 
 			/* Equilibrium, node 2 */
@@ -916,7 +988,7 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vb2Cross_R1);		// delta_W2
 
 			/* New contributions, related to delta_x1 and delta_g1 */
-     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vOmega1Cross_R1 * dCoef);	// delta_x2
+     			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 6 + 1, vOmega1Cross_R1);		// delta_x2
      			WM.AddT(12 + 1 + iVelEqIndex[iCnt], 9 + 1, vTmp22 * dCoef);		// delta_g2
 		}
 	}
@@ -940,11 +1012,11 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	}
 
 	if (nAgvConstraints > 0) {
-		Mat3x3 DeltaWCross_R1((pNode1->GetWCurr() - pNode2->GetWCurr()).Cross(R1r));
+		Mat3x3 W2_Cross_R1(pNode2->GetWCurr().Cross(R1r));
 
 		for (unsigned iCnt = 0 ; iCnt < nAgvConstraints; iCnt++) {
 			Vec3 vR1(R1r.GetVec(iAgvIncid[iCnt]));
-			Vec3 vDeltaWCross_R1(DeltaWCross_R1.GetVec(iAgvIncid[iCnt]));
+			Vec3 vW2_Cross_R1(W2_Cross_R1.GetVec(iAgvIncid[iCnt])*dCoef);
 
 			/* Equilibrium, node 1 */
       			WM.Sub(3 + 1, 12 + 1 + iAgvEqIndex[iCnt], vR1);	// delta_M
@@ -953,13 +1025,16 @@ TotalJoint::AssJac(VariableSubMatrixHandler& WorkMat,
       			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vR1);	// delta_W1
 
 			/* New contribution, related to delta_g1 */
-      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vDeltaWCross_R1*dCoef);	// delta_g1
+      			WM.SubT(12 + 1 + iAgvEqIndex[iCnt], 3 + 1, vW2_Cross_R1);	// delta_g1
 
 			/* Equilibrium, node 2 */
       			WM.Add(9 + 1, 12 + 1 + iAgvEqIndex[iCnt], vR1);	// delta_M
 
 			/* Constraint, node 2 */
       			WM.AddT(12 + 1 + iAgvEqIndex[iCnt], 9 + 1, vR1);// delta_W2
+
+			/* New contribution, related to delta_g2 */
+      			WM.AddT(12 + 1 + iAgvEqIndex[iCnt], 9 + 1, vW2_Cross_R1);	// delta_g2
 		}
 	}
 
@@ -1043,10 +1118,20 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	}
 
 	if (nRotConstraints) {
-		Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
+		Mat3x3 R2r(pNode2->GetRCurr()*R2hr);
 
-		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-		Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
+		Vec3 ThetaDrvTmp(ThetaDrv.Get());
+		if (nRotConstraints < 3) {
+			for (int i = nRotConstraints; i < 3; i++) {
+				// zero out unconstrained components of drive
+				ThetaDrvTmp(iRotIncid[i]) = 0.;
+			}
+			// add remnant to make ThetaDelta as close to zero
+			// as possible
+			ThetaDrvTmp += ThetaDeltaRemnant;
+		}
+		Mat3x3 R0(RotManip::Rot(ThetaDrvTmp));
+		Mat3x3 RDelta(R1r.MulTM(R2r.MulMT(R0)));
 		ThetaDelta = RotManip::VecRot(RDelta);
 	}
 
@@ -1066,33 +1151,31 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(6 + 1, FTmp);
 	WorkVec.Sub(9 + 1, MTmp + b2.Cross(FTmp));
 
-	/* Constraint equations are divided by dCoef
-	 * ONLY if the constraint is on position */
-	if (dCoef != 0.) {
+	/* Holonomic constraint equations are divided by dCoef */
+	ASSERT(dCoef != 0.);
 
-		/* Position constraint:  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iPosEqIndex[iCnt],
-				-XDelta(iPosIncid[iCnt])/dCoef);
-		}
+	/* Position constraint:  */
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+		WorkVec.PutCoef(12 + 1 + iPosEqIndex[iCnt],
+			-XDelta(iPosIncid[iCnt])/dCoef);
+	}
 
-		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iRotEqIndex[iCnt],
-				-ThetaDelta(iRotIncid[iCnt])/dCoef);
-		}
+	/* Rotation constraints: */
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+		WorkVec.PutCoef(12 + 1 + iRotEqIndex[iCnt],
+			-ThetaDelta(iRotIncid[iCnt])/dCoef);
+	}
 
-		/* Linear Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iVelEqIndex[iCnt],
-				-VDelta(iVelIncid[iCnt]));
-		}
+	/* Linear Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+		WorkVec.PutCoef(12 + 1 + iVelEqIndex[iCnt],
+			-VDelta(iVelIncid[iCnt]));
+	}
 
-		/* Angular Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
-			WorkVec.PutCoef(12 + 1 + iAgvEqIndex[iCnt],
-				-WDelta(iAgvIncid[iCnt]));
-		}
+	/* Angular Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+		WorkVec.PutCoef(12 + 1 + iAgvEqIndex[iCnt],
+			-WDelta(iAgvIncid[iCnt]));
 	}
 
 	return WorkVec;
@@ -1240,7 +1323,17 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 			Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
 			Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
 
-			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Vec3 ThetaDrvTmp(ThetaDrv.Get());
+			if (nRotConstraints < 3) {
+				for (int i = nRotConstraints; i < 3; i++) {
+					// zero out unconstrained components of drive
+					ThetaDrvTmp(iRotIncid[i]) = 0.;
+				}
+				// add remnant to make ThetaDelta as close to zero
+				// as possible
+				ThetaDrvTmp += ThetaDeltaRemnant;
+			}
+			Mat3x3 R0(RotManip::Rot(ThetaDrvTmp));
 			Mat3x3 RDelta = R1r.MulTM(R2r.MulMT(R0));
 			ThetaDelta = RotManip::VecRot(RDelta);
 
@@ -1287,7 +1380,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 		/*
 		 * second derivative of regular AssRes' lower block
 		 */
-		if (nPosConstraints > 0) { /* need brackets to create a "block" */
+		if (nPosConstraints > 0) {
 			Vec3 b2(pNode2->GetRCurr()*f2);
 			Vec3 b1(pNode2->GetXCurr() + b2 - pNode1->GetXCurr());
 
@@ -1304,7 +1397,7 @@ TotalJoint::AssRes(SubVectorHandler& WorkVec,
 				);
 			Vec3 Tmp = R1.MulTV(Tmp2) - XPPDrv.Get();
 
-		/* Position constraint second derivative  */
+			/* Position constraint second derivative  */
 			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 				WorkVec.DecCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
 			}
@@ -1527,8 +1620,8 @@ TotalJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
 	 * Recupero FPrime e MPrime*/
-	Vec3 MPrime(Zero3);
-	Vec3 FPrime(Zero3);
+	Vec3 MPrime(::Zero3);
+	Vec3 FPrime(::Zero3);
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		FPrime(iPosIncid[iCnt]) = XCurr(iReactionPrimeIndex + 1 + iCnt);
@@ -1737,8 +1830,8 @@ TotalJoint::InitialAssRes(SubVectorHandler& WorkVec,
 
 	Vec3 b1Prime(pNode2->GetVCurr() + Omega2.Cross(b2) - pNode1->GetVCurr());
 
-	Vec3 FPrime(Zero3);
-	Vec3 MPrime(Zero3);
+	Vec3 FPrime(::Zero3);
+	Vec3 MPrime(::Zero3);
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -1898,8 +1991,7 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	case 4:
 	case 5:
 	case 6: {
-		// FIXME: check
-		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDelta) + ThetaDrv.Get());
+		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant));
 		return Theta(i - 3);
 		}
 
@@ -1991,7 +2083,8 @@ Var_Phi(0),
 Var_V(0),
 Var_Omega(0),
 #endif // USE_NETCDF
-M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
+M(::Zero3), F(::Zero3),
+ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3), ThetaDeltaRemnant(::Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -2037,6 +2130,52 @@ M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 		}
 	}
 
+	// if only a fraction of the rotation degrees of freedom
+	// are constrained, store the incidence of the unconstrained ones
+	// in the remainder of array iRotIncid[] for later use
+	if (nRotConstraints > 0 && nRotConstraints < 3) {
+		switch (nRotConstraints) {
+		case 1:
+			switch (iRotIncid[0]) {
+			case 1:
+				iRotIncid[1] = 2;
+				iRotIncid[2] = 3;
+				break;
+
+			case 2:
+				iRotIncid[1] = 1;
+				iRotIncid[2] = 3;
+				break;
+
+			case 3:
+				iRotIncid[1] = 1;
+				iRotIncid[2] = 2;
+				break;
+
+			default:
+				ASSERT(0);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+
+		case 2:
+			switch (iRotIncid[0]) {
+			case 1:
+				iRotIncid[2] = 5 - iRotIncid[1];
+				break;
+
+			case 2:
+				iRotIncid[2] = 1;
+				break;
+			}
+			break;
+
+		default:
+			ASSERT(0);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	nConstraints = nPosConstraints + nVelConstraints
 		+ nRotConstraints + nAgvConstraints;
 }
@@ -2044,7 +2183,7 @@ M(Zero3), F(Zero3), ThetaDelta(Zero3), ThetaDeltaPrev(Zero3)
 TotalPinJoint::~TotalPinJoint(void)
 {
 	NO_OP;
-};
+}
 
 std::ostream&
 TotalPinJoint::DescribeDof(std::ostream& out,
@@ -2144,7 +2283,6 @@ void
 TotalPinJoint::DescribeDof(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
-	// FIXME: todo
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
@@ -2330,7 +2468,6 @@ void
 TotalPinJoint::DescribeEq(std::vector<std::string>& desc,
 	bool bInitial, int i) const
 {
-	// FIXME: todo
 	int ndof = 1;
 	if (i == -1) {
 		if (bInitial) {
@@ -2585,18 +2722,30 @@ TotalPinJoint::ParseHint(DataManager *pDM, const char *s) const
 }
 
 void
-TotalPinJoint::AfterConvergence(const VectorHandler& /* X */ ,
-	const VectorHandler& /* XP */ )
+TotalPinJoint::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP)
 {
-	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
+	// "trick": correct ThetaDrv to keep ThetaDelta small
+	// See "A Vectorial Formulation of Generic Pair Constraints"
+	if (nRotConstraints < 3) {
+		Vec3 ThetaDeltaTmp(ThetaDelta);
+		for (unsigned i = 0; i < nRotConstraints; i++) {
+			// zero out constrained components
+			// NOTE: should already be zero within tolerance
+			ThetaDeltaTmp(iRotIncid[i]) = 0.;
+		}
+		ThetaDeltaRemnant += ThetaDeltaTmp;
+	}
+
+	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant);
 }
 
 /* Inverse Dynamics: */
 void
-TotalPinJoint::AfterConvergence(const VectorHandler& /* X */ ,
-	const VectorHandler& /* XP */, const VectorHandler& /* XPP */ )
+TotalPinJoint::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP, const VectorHandler& XPP)
 {
-	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDelta);
+	AfterConvergence(X, XP);
 }
 
 
@@ -2635,8 +2784,11 @@ TotalPinJoint::Restart(std::ostream& out) const
 			}
 		}
 
-		/* TODO: output drive(s) */
-		out << ", zero";
+		out << ", ", XDrv.pGetDriveCaller()->Restart(out);
+		if (XPDrv.pGetDriveCaller()) {
+			out << ", ", XPDrv.pGetDriveCaller()->Restart(out)
+				 << ", ", XPPDrv.pGetDriveCaller()->Restart(out);
+		}
 	}
 
 	if (bRotActive[0] || bRotActive[1] || bRotActive[2]
@@ -2653,8 +2805,11 @@ TotalPinJoint::Restart(std::ostream& out) const
 			}
 		}
 
-		/* TODO: output drive(s) */
-		out << ", zero";
+		out << ", ", ThetaDrv.pGetDriveCaller()->Restart(out);
+		if (OmegaDrv.pGetDriveCaller()) {
+			out << ", ", OmegaDrv.pGetDriveCaller()->Restart(out)
+				 << ", ", OmegaPDrv.pGetDriveCaller()->Restart(out);
+		}
 	}
 
 	return out << ";" << std::endl;
@@ -2812,7 +2967,18 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 	if (nRotConstraints > 0) {
 		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+
+		Vec3 ThetaDrvTmp(ThetaDrv.Get());
+		if (nRotConstraints < 3) {
+			for (int i = nRotConstraints; i < 3; i++) {
+				// zero out unconstrained components of drive
+				ThetaDrvTmp(iRotIncid[i]) = 0.;
+			}
+			// add remnant to make ThetaDelta as close to zero
+			// as possible
+			ThetaDrvTmp += ThetaDeltaRemnant;
+		}
+		Mat3x3 R0(RotManip::Rot(ThetaDrvTmp));
 		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 		ThetaDelta = RotManip::VecRot(RDelta);
 	}
@@ -2829,32 +2995,31 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.Sub(1, FTmp);
 	WorkVec.Sub(3 + 1, MTmp + fn.Cross(FTmp));
 
-	/* Constraint equations are divided by dCoef */
-	if (dCoef != 0.) {
+	/* Holonomic constraint equations are divided by dCoef */
+	ASSERT(dCoef != 0.);
 
-		/* Position constraint:  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(6 + 1 + iPosEqIndex[iCnt],
-				-XDelta(iPosIncid[iCnt])/dCoef);
-		}
+	/* Position constraint:  */
+	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+		WorkVec.PutCoef(6 + 1 + iPosEqIndex[iCnt],
+			-XDelta(iPosIncid[iCnt])/dCoef);
+	}
 
-		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(6 + 1 + iRotEqIndex[iCnt],
-				-ThetaDelta(iRotIncid[iCnt])/dCoef);
-		}
+	/* Rotation constraints: */
+	for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+		WorkVec.PutCoef(6 + 1 + iRotEqIndex[iCnt],
+			-ThetaDelta(iRotIncid[iCnt])/dCoef);
+	}
 
-		/* Linear Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
-			WorkVec.PutCoef(6 + 1 + iVelEqIndex[iCnt],
-				-VDelta(iVelIncid[iCnt]));
-		}
+	/* Linear Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nVelConstraints; iCnt++) {
+		WorkVec.PutCoef(6 + 1 + iVelEqIndex[iCnt],
+			-VDelta(iVelIncid[iCnt]));
+	}
 
-		/* Angular Velocity Constraint */
-		for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
-			WorkVec.PutCoef(6 + 1 + iAgvEqIndex[iCnt],
-				-WDelta(iAgvIncid[iCnt]));
-		}
+	/* Angular Velocity Constraint */
+	for (unsigned iCnt = 0; iCnt < nAgvConstraints; iCnt++) {
+		WorkVec.PutCoef(6 + 1 + iAgvEqIndex[iCnt],
+			-WDelta(iAgvIncid[iCnt]));
 	}
 
 	return WorkVec;
@@ -2963,79 +3128,98 @@ TotalPinJoint::AssRes(SubVectorHandler& WorkVec,
 
 	switch (iOrder) {
 	case InverseDynamics::POSITION: {
-		// Identical to regular AssRes' lower block
-		Vec3 fn(pNode->GetRCurr()*tilde_fn);
-
-		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-
-		Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
-
-		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
-		ThetaDelta = RotManip::VecRot(RDelta);
 
 		/* Position constraint:  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iPosEqIndex[iCnt], -(XDelta(iPosIncid[iCnt])));
+		if (nPosConstraints > 0) {
+			Vec3 fn(pNode->GetRCurr()*tilde_fn);
+			Vec3 XDelta = RchT*(pNode->GetXCurr() + fn) - tilde_Xc - XDrv.Get();
+
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iPosEqIndex[iCnt], -XDelta(iPosIncid[iCnt]));
+			}
 		}
 
 		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iRotEqIndex[iCnt], -(ThetaDelta(iRotIncid[iCnt])));
+		if (nRotConstraints > 0) {
+			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
+			Vec3 ThetaDrvTmp(ThetaDrv.Get());
+			if (nRotConstraints < 3) {
+				for (int i = nRotConstraints; i < 3; i++) {
+					// zero out unconstrained components of drive
+					ThetaDrvTmp(iRotIncid[i]) = 0.;
+				}
+				// add remnant to make ThetaDelta as close to zero
+				// as possible
+				ThetaDrvTmp += ThetaDeltaRemnant;
+			}
+			Mat3x3 R0(RotManip::Rot(ThetaDrvTmp));
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+			ThetaDelta = RotManip::VecRot(RDelta);
+
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iRotEqIndex[iCnt], -(ThetaDelta(iRotIncid[iCnt])));
+			}
 		}
 		} break;
 
 	case InverseDynamics::VELOCITY: {
-		// First derivative of regular AssRes' lower block
-		Vec3 Tmp = XPDrv.Get();
-
 		/* Position constraint derivative */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
+		if (nPosConstraints > 0) {
+			// First derivative of regular AssRes' lower block
+			Vec3 Tmp = XPDrv.Get();
+
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
+			}
 		}
 
-		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
-		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+		/* Rotation constraint derivative */
+		if (nRotConstraints > 0) {
+			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
 
-		/* This name is only for clarity... */
-		Tmp = RDelta * OmegaDrv.Get();
+			/* This name is only for clarity... */
+			Vec3 Tmp = RDelta * OmegaDrv.Get();
 
-		/* Rotation constraints: */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iRotEqIndex[iCnt], Tmp(iRotIncid[iCnt]));
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iRotEqIndex[iCnt], Tmp(iRotIncid[iCnt]));
+			}
 		}
 		} break;
 
 	case InverseDynamics::ACCELERATION: {
-		// Second derivative of regular AssRes' lower block
-		Vec3 Tmp = XPPDrv.Get();
-
-		Vec3 fn(pNode->GetRCurr()*tilde_fn);
-
-		Tmp -=  pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(fn));
-
 		/* Position constraint second derivative  */
-		for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
+		if (nPosConstraints > 0) {
+			// Second derivative of regular AssRes' lower block
+			Vec3 Tmp = XPPDrv.Get();
+
+			Vec3 fn(pNode->GetRCurr()*tilde_fn);
+
+			Tmp -= pNode->GetWCurr().Cross(pNode->GetWCurr().Cross(fn));
+
+			for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iPosEqIndex[iCnt], Tmp(iPosIncid[iCnt]));
+			}
 		}
 
-								//Mat3x3 R1r = pNode1->GetRCurr()*R1hr;
-		Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr; 	//Mat3x3 R2r = pNode2->GetRCurr()*R2hr;
-		Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
-		Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
-
-		Tmp = R0.MulTV(OmegaDrv.Get());
-		Vec3 Tmp2 = Rnhr * Tmp;
-
-		Tmp = pNode->GetWCurr().Cross(Tmp2);
-
-		Tmp2 = RchrT*Tmp;
-		Tmp2 += RDelta * OmegaPDrv.Get();
-
 		/* Rotation constraint second derivative */
-		for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
-			WorkVec.PutCoef(1 + iRotEqIndex[iCnt], Tmp2(iRotIncid[iCnt]));
+		if (nRotConstraints > 0) {
+			Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
+			Mat3x3 R0 = RotManip::Rot(ThetaDrv.Get());
+			Mat3x3 RDelta = RchrT*Rnhr.MulMT(R0);
+
+			Vec3 Tmp = R0.MulTV(OmegaDrv.Get());
+			Vec3 Tmp2 = Rnhr * Tmp;
+
+			Tmp = pNode->GetWCurr().Cross(Tmp2);
+
+			Tmp2 = RchrT*Tmp;
+			Tmp2 += RDelta * OmegaPDrv.Get();
+
+			for (unsigned iCnt = 0; iCnt < nRotConstraints; iCnt++) {
+				WorkVec.PutCoef(1 + iRotEqIndex[iCnt], Tmp2(iRotIncid[iCnt]));
+			}
 		}
 		} break;
 
@@ -3218,8 +3402,8 @@ TotalPinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	/* F ed M sono gia' state aggiornate da InitialAssRes;
 	 * Recupero FPrime e MPrime*/
-	Vec3 MPrime(Zero3);
-	Vec3 FPrime(Zero3);
+	Vec3 MPrime(::Zero3);
+	Vec3 FPrime(::Zero3);
 
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
 		FPrime(iPosIncid[iCnt]) = XCurr(iReactionPrimeIndex + 1 + iCnt);
@@ -3323,8 +3507,8 @@ TotalPinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	Mat3x3 Rnhr = pNode->GetRCurr()*tilde_Rnhr;
 	Vec3 Omega(pNode->GetWCurr());
 
-	Vec3 FPrime(Zero3);
-	Vec3 MPrime(Zero3);
+	Vec3 FPrime(::Zero3);
+	Vec3 MPrime(::Zero3);
 
 	/* Aggiorna F ed M, che restano anche per InitialAssJac */
 	for (unsigned iCnt = 0; iCnt < nPosConstraints; iCnt++) {
@@ -3471,8 +3655,7 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 	case 4:
 	case 5:
 	case 6: {
-		// FIXME: check
-		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDelta) + ThetaDrv.Get());
+		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant));
 		return Theta(i - 3);
 		}
 
@@ -3544,7 +3727,7 @@ pNode1(pN1), pNode2(pN2),
 f1(f1Tmp), R1h(R1hTmp), R1hr(R1hrTmp),
 f2(f2Tmp), R2h(R2hTmp), R2hr(R2hrTmp),
 FDrv(pDCForce), MDrv(pDCCouple),
-M(Zero3), F(Zero3)
+M(::Zero3), F(::Zero3)
 {
 	NO_OP;
 }
