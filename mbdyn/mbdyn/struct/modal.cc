@@ -3130,8 +3130,13 @@ ReadModal(DataManager* pDM,
 	std::vector<std::string> IdFEMNodes;
 	std::vector<bool> bActiveModes;
 
+	enum {
+		MODAL_VERSION_1 = 1,
+		MODAL_VERSION_2 = 2
+	};
+
 	/* NOTE: increment this each time the binary format changes! */
-	unsigned	BinVersion = 2;
+	unsigned	BinVersion = MODAL_VERSION_2;
 
 	unsigned	currBinVersion;
 	char		checkPoint;
@@ -3139,25 +3144,43 @@ ReadModal(DataManager* pDM,
 
 	bool		bBuildInvariants = false;
 
-	/* Note: to keep it readable, we use a base 1 array */
-	bool		bRecordGroup[] = {
-		false,		// use 1-based array
+	enum {
+		// note: we use 1-based array
+		MODAL_RECORD_1 = 1,
+		MODAL_RECORD_2 = 2,
+		MODAL_RECORD_3 = 3,
+		MODAL_RECORD_4 = 4,
+		MODAL_RECORD_5 = 5,
+		MODAL_RECORD_6 = 6,
+		MODAL_RECORD_7 = 7,
+		MODAL_RECORD_8 = 8,
+		MODAL_RECORD_9 = 9,
+		MODAL_RECORD_10 = 10,
+		MODAL_RECORD_11 = 11,
+		MODAL_RECORD_12 = 12,
+		MODAL_RECORD_13 = 13,
 
-		false,		// record 1: header
-		false,		// record 2: FEM node labels
-		false,		// record 3: initial modal amplitudes
-		false,		// record 4: initial modal amplitude rates
-		false,		// record 5: FEM node X
-		false,		// record 6: FEM node Y
-		false,		// record 7: FEM node Z
-		false,		// record 8: shapes
-		false,		// record 9: generalized mass matrix
-		false,		// record 10: generalized stiffness matrix
-		false,		// record 11: diagonal mass matrix
-		false,		// record 12: rigid body inertia
+		LAST_RECORD,
 
-		false		// record -1: end of file
+		MODAL_END_OF_FILE = -1
 	};
+
+	/* Note: to keep it readable, we use a base 1 array */
+	bool bRecordGroup[LAST_RECORD];
+
+	// record 1: header
+	// record 2: FEM node labels
+	// record 3: initial modal amplitudes
+	// record 4: initial modal amplitude rates
+	// record 5: FEM node X
+	// record 6: FEM node Y
+	// record 7: FEM node Z
+	// record 8: shapes
+	// record 9: generalized mass matrix
+	// record 10: generalized stiffness matrix
+	// record 11: (optional) diagonal mass matrix
+	// record 12: (optional) rigid body inertia
+	// record 13: (optional) damping matrix
 
 	if (bReadFEM) {
 		/* apre il file con i dati del modello FEM */
@@ -3201,7 +3224,7 @@ ReadModal(DataManager* pDM,
 			if (!strncmp("** RECORD GROUP 1,", str,
 				STRLENOF("** RECORD GROUP 1,")))
 			{
-				if (bRecordGroup[1]) {
+				if (bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" already parsed"
 						<< std::endl);
@@ -3306,26 +3329,26 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 1;
+					checkPoint = MODAL_RECORD_1;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 					fbin.write((char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
 					fbin.write((char *)&NModesFEM, sizeof(NModesFEM));
 				}
 
-				bRecordGroup[1] = true;
+				bRecordGroup[MODAL_RECORD_1] = true;
 
 			/* legge il secondo blocco (Id.nodi) */
 			} else if (!strncmp("** RECORD GROUP 2,", str,
 				STRLENOF("** RECORD GROUP 2,")))
 			{
-				if (bRecordGroup[2]) {
+				if (bRecordGroup[MODAL_RECORD_2]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 2\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3339,7 +3362,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 2;
+					checkPoint = MODAL_RECORD_2;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
 						size_t len = IdFEMNodes[iNode].size();
@@ -3354,14 +3377,14 @@ ReadModal(DataManager* pDM,
 			} else if (!strncmp("** RECORD GROUP 3,", str,
 				STRLENOF("** RECORD GROUP 3,")))
 			{
-				if (bRecordGroup[3]) {
+				if (bRecordGroup[MODAL_RECORD_3]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 3\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3379,7 +3402,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 3;
+					checkPoint = MODAL_RECORD_3;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3397,20 +3420,20 @@ ReadModal(DataManager* pDM,
 					iCnt++;
 				}
 
-				bRecordGroup[3] = true;
+				bRecordGroup[MODAL_RECORD_3] = true;
 	
 			/* velocita' iniziali dei modi */
 			} else if (!strncmp("** RECORD GROUP 4,", str,
 				STRLENOF("** RECORD GROUP 4,")))
 			{
-				if (bRecordGroup[4]) {
+				if (bRecordGroup[MODAL_RECORD_4]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 4\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3428,7 +3451,7 @@ ReadModal(DataManager* pDM,
 				}
 	
 				if (bWriteBIN) {
-					checkPoint = 4;
+					checkPoint = MODAL_RECORD_4;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3446,20 +3469,20 @@ ReadModal(DataManager* pDM,
 					iCnt++;
 				}
 
-				bRecordGroup[4] = true;
+				bRecordGroup[MODAL_RECORD_4] = true;
 	
 			/* Coordinate X dei nodi */
 			} else if (!strncmp("** RECORD GROUP 5,", str,
 				STRLENOF("** RECORD GROUP 5,")))
 			{
-				if (bRecordGroup[5]) {
+				if (bRecordGroup[MODAL_RECORD_5]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 5\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3467,7 +3490,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 5;
+					checkPoint = MODAL_RECORD_5;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3484,20 +3507,20 @@ ReadModal(DataManager* pDM,
 					pXYZFEMNodes->Put(1, iNode, d);
 				}
 
-				bRecordGroup[5] = true;
+				bRecordGroup[MODAL_RECORD_5] = true;
 
 			/* Coordinate Y dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 6,", str,
 				STRLENOF("** RECORD GROUP 6,")))
 			{
-				if (bRecordGroup[6]) {
+				if (bRecordGroup[MODAL_RECORD_6]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 6\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3505,7 +3528,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 6;
+					checkPoint = MODAL_RECORD_6;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3522,20 +3545,20 @@ ReadModal(DataManager* pDM,
 					pXYZFEMNodes->Put(2, iNode, d);
 				}
 
-				bRecordGroup[6] = true;
+				bRecordGroup[MODAL_RECORD_6] = true;
 	
 			/* Coordinate Z dei nodi*/
 			} else if (!strncmp("** RECORD GROUP 7,", str,
 				STRLENOF("** RECORD GROUP 7,")))
 			{
-				if (bRecordGroup[7]) {
+				if (bRecordGroup[MODAL_RECORD_7]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 7\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3543,7 +3566,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 7;
+					checkPoint = MODAL_RECORD_7;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3560,20 +3583,20 @@ ReadModal(DataManager* pDM,
 					pXYZFEMNodes->Put(3, iNode, d);
 				}
 
-				bRecordGroup[7] = true;
+				bRecordGroup[MODAL_RECORD_7] = true;
 	
 			/* Forme modali */
 			} else if (!strncmp("** RECORD GROUP 8,", str,
 				STRLENOF("** RECORD GROUP 8,")))
 			{
-				if (bRecordGroup[8]) {
+				if (bRecordGroup[MODAL_RECORD_8]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 8\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3581,7 +3604,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 8;
+					checkPoint = MODAL_RECORD_8;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3667,20 +3690,20 @@ ReadModal(DataManager* pDM,
 					fdat.getline(str, sizeof(str));
 				}
 
-				bRecordGroup[8] = true;
+				bRecordGroup[MODAL_RECORD_8] = true;
 
 			/* Matrice di massa  modale */
 			} else if (!strncmp("** RECORD GROUP 9,", str,
 				STRLENOF("** RECORD GROUP 9,")))
 			{
-				if (bRecordGroup[9]) {
+				if (bRecordGroup[MODAL_RECORD_9]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 9\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3696,7 +3719,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 9;
+					checkPoint = MODAL_RECORD_9;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3727,20 +3750,20 @@ ReadModal(DataManager* pDM,
 					}
 				}
 
-				bRecordGroup[9] = true;
+				bRecordGroup[MODAL_RECORD_9] = true;
 	
 			/* Matrice di rigidezza  modale */
 			} else if (!strncmp("** RECORD GROUP 10,", str,
 				STRLENOF("** RECORD GROUP 10,")))
 			{
-				if (bRecordGroup[10]) {
+				if (bRecordGroup[MODAL_RECORD_10]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 10\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3756,7 +3779,7 @@ ReadModal(DataManager* pDM,
 				}
 	
 				if (bWriteBIN) {
-					checkPoint = 10;
+					checkPoint = MODAL_RECORD_10;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3787,20 +3810,20 @@ ReadModal(DataManager* pDM,
 					}
 				}
 
-				bRecordGroup[10] = true;
+				bRecordGroup[MODAL_RECORD_10] = true;
 
 			/* Lumped Masses */
 			} else if (!strncmp("** RECORD GROUP 11,", str,
 				STRLENOF("** RECORD GROUP 11,")))
 			{
-				if (bRecordGroup[11]) {
+				if (bRecordGroup[MODAL_RECORD_11]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 11\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3808,7 +3831,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 11;
+					checkPoint = MODAL_RECORD_11;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3853,20 +3876,20 @@ ReadModal(DataManager* pDM,
 
 				bBuildInvariants = true;
 
-				bRecordGroup[11] = true;
+				bRecordGroup[MODAL_RECORD_11] = true;
 
 			/* Rigid body inertia */
 			} else if (!strncmp("** RECORD GROUP 12,", str,
 				STRLENOF("** RECORD GROUP 12,")))
 			{
-				if (bRecordGroup[12]) {
+				if (bRecordGroup[MODAL_RECORD_12]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 12\" already parsed"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				if (!bRecordGroup[1]) {
+				if (!bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
@@ -3874,7 +3897,7 @@ ReadModal(DataManager* pDM,
 				}
 
 				if (bWriteBIN) {
-					checkPoint = 12;
+					checkPoint = MODAL_RECORD_12;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
@@ -3912,14 +3935,14 @@ ReadModal(DataManager* pDM,
 
 				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
-				bRecordGroup[12] = true;
+				bRecordGroup[MODAL_RECORD_12] = true;
 				
 			} /* fine parser del file */
 		}
 
 		fdat.close();
 		if (bWriteBIN) {
-			checkPoint = -1;
+			checkPoint = MODAL_END_OF_FILE;
 			fbin.write(&checkPoint, sizeof(checkPoint));
 			fbin.close();
 		}
@@ -3934,7 +3957,7 @@ ReadModal(DataManager* pDM,
 			throw;
 		}
 
-		if (!bRecordGroup[1]) {
+		if (!bRecordGroup[MODAL_RECORD_1]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 1 missing "
@@ -3942,7 +3965,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[2]) {
+		if (!bRecordGroup[MODAL_RECORD_2]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 2 missing "
@@ -3950,7 +3973,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[3]) {
+		if (!bRecordGroup[MODAL_RECORD_3]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 3 missing "
@@ -3958,7 +3981,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[4]) {
+		if (!bRecordGroup[MODAL_RECORD_4]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 4 missing "
@@ -3966,7 +3989,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[5]) {
+		if (!bRecordGroup[MODAL_RECORD_5]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 5 missing "
@@ -3974,7 +3997,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[6]) {
+		if (!bRecordGroup[MODAL_RECORD_6]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 6 missing "
@@ -3982,7 +4005,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[7]) {
+		if (!bRecordGroup[MODAL_RECORD_7]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 7 missing "
@@ -3990,7 +4013,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[8]) {
+		if (!bRecordGroup[MODAL_RECORD_8]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 8 missing "
@@ -3998,7 +4021,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[9]) {
+		if (!bRecordGroup[MODAL_RECORD_9]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 9 missing "
@@ -4006,7 +4029,7 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (!bRecordGroup[10]) {
+		if (!bRecordGroup[MODAL_RECORD_10]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << sFileFEM << "\", "
 				"record group 10 missing "
@@ -4069,7 +4092,7 @@ ReadModal(DataManager* pDM,
 
 		/* legge il primo blocco (HEADER) */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 1) {
+		if (checkPoint != MODAL_RECORD_1) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 1)"
@@ -4139,7 +4162,7 @@ ReadModal(DataManager* pDM,
 
 		/* legge il secondo blocco (Id.nodi) */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 2) {
+		if (checkPoint != MODAL_RECORD_2) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 2)"
@@ -4150,7 +4173,7 @@ ReadModal(DataManager* pDM,
 		pedantic_cout("Modal(" << uLabel << "): "
 			"reading block " << int(checkPoint) << std::endl);
 
-		if (currBinVersion == 1) {
+		if (currBinVersion == MODAL_VERSION_1) {
 			// NOTE: accept unsigned int FEM labels (old binary format)
 			for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
 				unsigned uFEMLabel;
@@ -4170,12 +4193,12 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-		bRecordGroup[2] = true;
+		bRecordGroup[MODAL_RECORD_2] = true;
 
 		/* deformate iniziali dei modi */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 3) {
-			if (currBinVersion == 1) {
+		if (checkPoint != MODAL_RECORD_3) {
+			if (currBinVersion == MODAL_VERSION_1) {
 				silent_cerr("Modal(" << uLabel << "): "
 						"file \"" << sBinFileFEM << "\" "
 						"looks broken (expecting checkPoint 3)"
@@ -4205,14 +4228,14 @@ ReadModal(DataManager* pDM,
 				iCnt++;
 			}
 	
-			bRecordGroup[3] = true;
+			bRecordGroup[MODAL_RECORD_3] = true;
 
 			fbin.read(&checkPoint, sizeof(checkPoint));
 		}
 
 		/* velocita' iniziali dei modi */
-		if (checkPoint != 4) {
-			if (currBinVersion == 1) {
+		if (checkPoint != MODAL_RECORD_4) {
+			if (currBinVersion == MODAL_VERSION_1) {
 				silent_cerr("Modal(" << uLabel << "): "
 						"file \"" << sBinFileFEM << "\" "
 						"looks broken (expecting checkPoint 4)"
@@ -4242,13 +4265,13 @@ ReadModal(DataManager* pDM,
 				iCnt++;
 			}
 	
-			bRecordGroup[4] = true;
+			bRecordGroup[MODAL_RECORD_4] = true;
 
 			fbin.read(&checkPoint, sizeof(checkPoint));
 		}
 
 		/* Coordinate X dei nodi */
-		if (checkPoint != 5) {
+		if (checkPoint != MODAL_RECORD_5) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 5)"
@@ -4271,11 +4294,11 @@ ReadModal(DataManager* pDM,
 			pXYZFEMNodes->Put(1, iNode, d);
 		}
 
-		bRecordGroup[5] = true;
+		bRecordGroup[MODAL_RECORD_5] = true;
 
 		/* Coordinate Y dei nodi*/
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 6) {
+		if (checkPoint != MODAL_RECORD_6) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 6)"
@@ -4298,11 +4321,11 @@ ReadModal(DataManager* pDM,
 			pXYZFEMNodes->Put(2, iNode, d);
 		}
 
-		bRecordGroup[6] = true;
+		bRecordGroup[MODAL_RECORD_6] = true;
 
 		/* Coordinate Z dei nodi*/
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 7) {
+		if (checkPoint != MODAL_RECORD_7) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 7)"
@@ -4325,11 +4348,11 @@ ReadModal(DataManager* pDM,
 			pXYZFEMNodes->Put(3, iNode, d);
 		}
 
-		bRecordGroup[7] = true;
+		bRecordGroup[MODAL_RECORD_7] = true;
 
 		/* Forme modali */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 8) {
+		if (checkPoint != MODAL_RECORD_8) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 8)"
@@ -4364,7 +4387,7 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-		bRecordGroup[8] = true;
+		bRecordGroup[MODAL_RECORD_8] = true;
 
 		/* Matrice di massa modale */
 		fbin.read(&checkPoint, sizeof(checkPoint));
@@ -4399,11 +4422,11 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-		bRecordGroup[9] = true;
+		bRecordGroup[MODAL_RECORD_9] = true;
 
 		/* Matrice di rigidezza  modale */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 10) {
+		if (checkPoint != MODAL_RECORD_10) {
 			silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting checkpoint 10)"
@@ -4434,11 +4457,11 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-		bRecordGroup[10] = true;
+		bRecordGroup[MODAL_RECORD_10] = true;
 
 		/* Lumped Masses */
 		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint == 11) {
+		if (checkPoint == MODAL_RECORD_11) {
 			pedantic_cout("Modal(" << uLabel << "): "
 				"reading block " << int(checkPoint) << std::endl);
 
@@ -4470,13 +4493,13 @@ ReadModal(DataManager* pDM,
 
 			bBuildInvariants = true;
 
-			bRecordGroup[11] = true;
+			bRecordGroup[MODAL_RECORD_11] = true;
 
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
 		}
 
-		if (checkPoint == 12) {
+		if (checkPoint == MODAL_RECORD_12) {
 			pedantic_cout("Modal(" << uLabel << "): "
 				"reading block " << int(checkPoint) << std::endl);
 
@@ -4502,14 +4525,14 @@ ReadModal(DataManager* pDM,
 
 			JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
-			bRecordGroup[12] = true;
+			bRecordGroup[MODAL_RECORD_12] = true;
 
 			// read next checkpoint
 			fbin.read(&checkPoint, sizeof(checkPoint));
 		}
 
-		if (currBinVersion != 1) {
-			if (checkPoint != -1) {
+		if (currBinVersion != MODAL_VERSION_1) {
+			if (checkPoint != MODAL_END_OF_FILE) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (expecting final checkpoint)"
