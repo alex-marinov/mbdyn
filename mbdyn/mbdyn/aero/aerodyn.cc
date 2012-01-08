@@ -71,7 +71,7 @@
 /* AirProperties - begin */
 
 AirProperties::AirProperties(const TplDriveCaller<Vec3>* pDC,
-		std::vector<Gust *>& g,
+		std::vector<const Gust *>& g,
 		const RigidBodyKinematics *pRBK,
 		flag fOut)
 : Elem(1, fOut),
@@ -81,16 +81,16 @@ Velocity(Zero3),
 gust(g),
 pRBK(pRBK)
 {
-	for (std::vector<Gust *>::iterator i = gust.begin();
+	for (std::vector<const Gust *>::iterator i = gust.begin();
 		i != gust.end(); ++i)
 	{
-		(*i)->SetAirProperties(this);
+		const_cast<Gust *>(*i)->SetAirProperties(this);
 	}
 }
    
 AirProperties::~AirProperties(void)
 {
-	for (std::vector<Gust *>::iterator i = gust.begin();
+	for (std::vector<const Gust *>::iterator i = gust.begin();
 		i != gust.end(); ++i)
 	{
 		SAFEDELETE(*i);
@@ -98,10 +98,10 @@ AirProperties::~AirProperties(void)
 }
 
 void
-AirProperties::AddGust(Gust *pG)
+AirProperties::AddGust(const Gust *pG)
 {
 	gust.insert(gust.end(), pG);
-	pG->SetAirProperties(this);
+	const_cast<Gust *>(pG)->SetAirProperties(this);
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -110,7 +110,7 @@ AirProperties::Restart(std::ostream& out) const
 {
 	pGetDriveCaller()->Restart(out);
 	if (!gust.empty()) {
-		for (std::vector<Gust *>::const_iterator i = gust.begin();
+		for (std::vector<const Gust *>::const_iterator i = gust.begin();
 			i != gust.end(); ++i)
 		{
 			out << ", ", (*i)->Restart(out);
@@ -229,7 +229,7 @@ AirProperties::GetVelocity(const Vec3& X, Vec3& V) const
 	}
 
 	V = Velocity;
-	for (std::vector<Gust *>::const_iterator i = gust.begin();
+	for (std::vector<const Gust *>::const_iterator i = gust.begin();
 		i != gust.end(); ++i)
 	{
 		Vec3 VV;
@@ -310,7 +310,7 @@ AirProperties::dGetPrivData(unsigned int i) const
 /* BasicAirProperties - begin */
 
 BasicAirProperties::BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-	DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g,
+	const DriveCaller *pRho, doublereal dSS, std::vector<const Gust *>& g,
 	const RigidBodyKinematics *pRBK, flag fOut)
 : Elem(1, fOut),
 AirProperties(pDC, g, pRBK, fOut),
@@ -377,21 +377,21 @@ BasicAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 /* StdAirProperties - begin */
 
 StdAirProperties::StdAirProperties(const TplDriveCaller<Vec3>* pDC,
-	doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
-	doublereal a_, doublereal R_, doublereal g0_,
-	doublereal z0_, doublereal z1_, doublereal z2_,
-	std::vector<Gust *>& g, const RigidBodyKinematics *pRBK, flag fOut)
+	doublereal PRef, const DriveCaller *RhoRef, doublereal TRef,
+	doublereal a, doublereal R, doublereal g0,
+	doublereal z0, doublereal z1, doublereal z2,
+	std::vector<const Gust *>& g, const RigidBodyKinematics *pRBK, flag fOut)
 : Elem(1, fOut),
 AirProperties(pDC, g, pRBK, fOut),
-PRef(PRef_),
-RhoRef(RhoRef_),
-TRef(TRef_),
-a(a_),
-R(R_),
-g0(g0_),
-z0(z0_),
-z1(z1_),
-z2(z2_)
+PRef(PRef),
+RhoRef(RhoRef),
+TRef(TRef),
+a(a),
+R(R),
+g0(g0),
+z0(z0),
+z1(z1),
+z2(z2)
 {
 	ASSERT(PRef > 0.);
 	ASSERT(RhoRef != NULL);
@@ -505,7 +505,7 @@ StdAirProperties::GetAirProps(const Vec3& X, doublereal& rho,
 
 static void
 ReadAirstreamData(DataManager *pDM, MBDynParser& HP,
-		TplDriveCaller<Vec3>*& pDC, std::vector<Gust*>& gust)
+		TplDriveCaller<Vec3>*& pDC, std::vector<const Gust*>& gust)
 {
 	ASSERT(pDC == 0);
 
@@ -660,7 +660,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 
 	     	/* Driver multiplo */	   
 	     	TplDriveCaller<Vec3>* pDC = NULL;
-		std::vector<Gust *> gust;
+		std::vector<const Gust *> gust;
 		ReadAirstreamData(pDM, HP, pDC, gust);
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     
@@ -686,7 +686,7 @@ ReadAirProperties(DataManager* pDM, MBDynParser& HP)
 	     
 	     	/* Driver multiplo */	   
 	     	TplDriveCaller<Vec3>* pDC = NULL;
-		std::vector<Gust *> gust;
+		std::vector<const Gust *> gust;
 		ReadAirstreamData(pDM, HP, pDC, gust);
 	     	flag fOut = pDM->fReadOutput(HP, Elem::AIRPROPERTIES);
 	     

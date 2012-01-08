@@ -88,7 +88,7 @@ protected:
    
 public:
 	BasicAirProperties(const TplDriveCaller<Vec3>* pDC,
-		DriveCaller *pRho, doublereal dSS, std::vector<Gust *>& g,
+		const DriveCaller *pRho, doublereal dSS, std::vector<const Gust *>& g,
 		const RigidBodyKinematics *pRBK,
 		flag fOut);
    
@@ -125,21 +125,22 @@ class StdAirProperties
 : virtual public Elem, public AirProperties {
 protected:
 	doublereal PRef;
-	DriveCaller *RhoRef;
+	const DriveCaller *RhoRef;
 	doublereal TRef;
 	doublereal a;
 	doublereal R;
 	doublereal g0;
 	doublereal z0;
 	doublereal z1;
+	// NOTE: z2 unused right now
 	doublereal z2;
    
 public:
 	StdAirProperties(const TplDriveCaller<Vec3>* pDC,
-		doublereal PRef_, DriveCaller *RhoRef_, doublereal TRef_,
-		doublereal a_, doublereal R_, doublereal g0_,
-		doublereal z0_, doublereal z1_, doublereal z2_,
-		std::vector<Gust *>& g,
+		doublereal PRef, const DriveCaller *RhoRef, doublereal TRef,
+		doublereal a, doublereal R, doublereal g0,
+		doublereal z0, doublereal z1, doublereal z2,
+		std::vector<const Gust *>& g,
 		const RigidBodyKinematics *pRBK,
 		flag fOut);
    

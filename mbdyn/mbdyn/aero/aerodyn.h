@@ -89,19 +89,19 @@ class AirProperties
 : virtual public Elem, public InitialAssemblyElem, public TplDriveOwner<Vec3> {
 protected:
 	mutable Vec3 Velocity;
-	std::vector<Gust *> gust;
+	std::vector<const Gust *> gust;
 
 	// rigid body kinematics
 	const RigidBodyKinematics *pRBK;
    
 public:
 	AirProperties(const TplDriveCaller<Vec3>* pDC,
-		std::vector<Gust *>& pg,
+		std::vector<const Gust *>& pg,
 		const RigidBodyKinematics *pRBK,
 		flag fOut);
 	virtual ~AirProperties(void);
 
-	virtual void AddGust(Gust *pG);
+	virtual void AddGust(const Gust *pG);
 
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
