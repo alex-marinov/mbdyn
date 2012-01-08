@@ -1579,7 +1579,7 @@ DynamicStructNode::ComputeAccelerations(bool b)
 void
 DynamicStructNode::SetOutputFlag(flag f)
 {
-	if (f & 2) {
+	if (f & StructNode::OUTPUT_ACCELERATIONS) {
 		// ignore result
 		ComputeAccelerations(true);
 	}
