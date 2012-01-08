@@ -117,7 +117,7 @@ class VecN {
    inline void Sub(integer i, const doublereal& d);   
    inline const doublereal& dGet(integer i) const;
 
-   const VecN& Copy(const VectorHandler& vh, integer iFirstIndex);
+   const VecN& Copy(const VectorHandler& vh, integer iFirstIndex = 1);
  
    /* *this = n * v */ 
    void RightMult(const MatNx3& n, const Vec3& v);
@@ -503,6 +503,7 @@ class MatNxN {
    friend class Mat3xN;
    friend class MatNx3;
    friend class VecN;
+   friend std::ostream& operator << (std::ostream&, const MatNxN&);
    
  private:
    
@@ -534,6 +535,8 @@ class MatNxN {
    inline void Add(integer i, integer j, const doublereal& d);
    inline void Sub(integer i, integer j, const doublereal& d);
    inline const doublereal& dGet(integer i, integer j) const;
+
+   const MatNxN& Copy(const MatNxN& m);
 
    /* *this = m * n */
    const MatNxN& Mult(const MatNx3& m, const Mat3xN& n);
@@ -617,6 +620,8 @@ MatNxN::operator () (integer i, integer j) const
    ASSERT(j > 0 && j <= iNumRows);
    return pdMat[--j][--i];
 }
+
+std::ostream& operator << (std::ostream&, const MatNxN&);
 
 /* MatNxN - end */
 

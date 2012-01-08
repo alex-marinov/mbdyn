@@ -993,6 +993,27 @@ void MatNxN::Reset(const doublereal d)
    }
 }
 
+const MatNxN&
+MatNxN::Copy(const MatNxN& m) 
+{
+#ifdef DEBUG
+   m.IsValid();
+#endif /* DEBUG */
+   ASSERT(iMaxRows >= m.iNumRows);
+   iNumRows = m.iNumRows;
+	   
+   for (integer c = 0; c < iNumRows; c++) {
+#ifdef HAVE_MEMCPY
+      memcpy(pdMat[c], m.pdMat[c], sizeof(doublereal)*iNumRows);
+#else // ! HAVE_MEMCPY
+      for (integer r = 0; r < iNumRows; r++) {
+         pdMat[c][r] = m.pdMat[c][r];
+      }
+#endif // ! HAVE_MEMCPY
+   }
+   return *this;
+}
+
 const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
 {
 #ifdef DEBUG
@@ -1014,6 +1035,19 @@ const MatNxN& MatNxN::Mult(const MatNx3& m, const Mat3xN& n)
    }
 
    return *this;
+}
+
+std::ostream&
+operator << (std::ostream& out, const MatNxN& m)
+{
+	for (integer r = 0; r < m.iNumRows; r++) {
+		for (integer c = 0; c < m.iNumRows; c++) {
+			out << " " << m.pdMat[c][r];
+		}
+		out << std::endl;
+	}
+
+	return out;
 }
 
 /* MatNxN - end */
