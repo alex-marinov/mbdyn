@@ -142,7 +142,6 @@ begin: elements;
 
 	joint: GROUND, clamp, GROUND, node, node;
 
-	/*
 	joint: HUB, total joint,
 		GROUND,
 			position, reference, GROUND, null,
@@ -154,19 +153,10 @@ begin: elements;
 			rotation orientation, reference, GROUND, eye,
 		position constraint, active, active, active, null,
 		orientation constraint, active, active, angular velocity,
-			0., 0., 1., cosine, 0., 2*pi/1., (OMEGA - OMEGA_0)/2, half, OMEGA_0;
-	*/
-
-	joint: HUB, axial rotation,
-		GROUND,
-			position, reference, GROUND, null,
-			orientation, reference, GROUND, eye,
-		HUB,
-			position, reference, GROUND, null,
-			orientation, reference, GROUND, eye,
-		array, 2,
-		cosine, 2., 2*pi/10., (OMEGA - OMEGA_0)/2, half, OMEGA_0,
-		cosine, 10., 2*pi/10., -(OMEGA - OMEGA_0)/2, half, 0.;
+			0., 0., 1.,
+				array, 2,
+				 	cosine, 2., 2*pi/10., (OMEGA - OMEGA_0)/2, half, OMEGA_0,
+				 	cosine, 10., 2*pi/10., -(OMEGA - OMEGA_0)/2, half, 0.;
 
 	set: CURR_BLADE = BLADE_1;
 	body: CURR_BLADE, CURR_BLADE,
@@ -210,4 +200,5 @@ begin: elements;
 			hunt crossley, alpha, ALPHA, kappa, KAPPA, exp, EXPONENT,
 				prestrain,
 					cosine, 0., 2*pi/1., -5.*deg2rad/2, half, 0.;
+					# const, -5.*deg2rad;
 end: elements;
