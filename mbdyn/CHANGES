@@ -9,10 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.4.2
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
-		- added simple hydraulic damper model (Giuseppe Quaranta)
 		- added Hunt-Crossley impact model (Matteo Fancello)
 		- added private data to generic aerodynamic force
 		- added 'array' constitutive law wrapper
