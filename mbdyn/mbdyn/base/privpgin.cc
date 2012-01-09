@@ -129,13 +129,16 @@ PrivPlugIn::ReadLabel(const char* s)
 void
 PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s) 
 {
+	bool bRefresh(false);
 	if (strncasecmp(s, "string=", STRLENOF("string=")) == 0) {
 		sIndexName = &s[STRLENOF("string=")];
 		iIndex = pSE->iGetPrivDataIdx(sIndexName.c_str());
+		bRefresh = true;
 
 	} else if (strncasecmp(s, "name=", STRLENOF("name=")) == 0) {
 		sIndexName = &s[STRLENOF("name=")];
 		iIndex = pSE->iGetPrivDataIdx(sIndexName.c_str());
+		bRefresh = true;
 
 		silent_cerr("PrivPlugIn: "
 			"\"name=" << sIndexName << "\" is deprecated; "
@@ -146,6 +149,11 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 			s = &s[STRLENOF("index=")];
 		}
 		iIndex = ReadLabel(s);
+	}
+
+	if (bRefresh) {
+		// refresh, as iGetPrivDataIdx could have changed it
+		iMaxIndex = pSE->iGetNumPrivData();
 	}
 
 	if (iIndex == 0 || iIndex > iMaxIndex) {

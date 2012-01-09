@@ -28,6 +28,7 @@ MBDyn 1.4.2
 		- fix driven aerodynamic elements (noted by Phil Geoghegan)
 		- fix total(pin)joint when orientations are partially imposed
 		- fix struct node accels during update (noted by Camille Yvin)
+		- fix struct node accels computation when needed by plugins
 
 MBDyn 1.4.1
 	Enhancements:
