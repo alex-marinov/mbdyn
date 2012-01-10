@@ -968,6 +968,7 @@ StructExtForce::RecvFromFileDes(int infd)
 		ssize_t len;
 
 		if (bLabels) {
+			// to align with double
 			ulen = 2*sizeof(uint32_t);
 		}
 
