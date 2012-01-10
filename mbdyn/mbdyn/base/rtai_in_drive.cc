@@ -41,9 +41,10 @@ RTMBDynInDrive::RTMBDynInDrive(unsigned int uL,
 	const DriveHandler* pDH,
 	const std::string& sFileName,
 	const std::string& host,
-	integer nd, bool c, unsigned long /*int*/ n,
+	integer nd, const std::vector<doublereal>& v0,
+	bool c, unsigned long /*int*/ n,
 	bool bNonBlocking)
-: StreamDrive(uL, pDH, sFileName, nd, c),
+: StreamDrive(uL, pDH, sFileName, nd, v0, c),
 host(host), node(n), port(-1), bNonBlocking(bNonBlocking),
 mbx(NULL)
 {
@@ -57,6 +58,7 @@ mbx(NULL)
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
 	} else {
 		if (node) {
 			/* get port ... */
@@ -172,7 +174,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetStringWithDelims();
 		
-		silent_cout ( "RTMBDynInDrive(" << uLabel << "): "
+		silent_cout("RTMBDynInDrive(" << uLabel << "): "
 			"local path \"" << m << "\" silently ignored"
 			<< std::endl);
 	}
@@ -196,7 +198,7 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 
 		if (create) {
-			silent_cout ( "RTMBDynInDrive(" << uLabel << "): "
+			silent_cout("RTMBDynInDrive(" << uLabel << "): "
 				"host name \"" << h << "\" silently ignored"
 				<< std::endl);
 		} else {
@@ -269,11 +271,19 @@ ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
+	std::vector<doublereal> v0;
+	if (HP.IsKeyWord("initial" "values")) {
+		v0.resize(idrives);
+		for (int i = 0; i < idrives; i++) {
+			v0[i] = HP.GetReal();
+		}
+	}
+
 	Drive* pDr = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDr, RTMBDynInDrive,
 			RTMBDynInDrive(uLabel, 
 			pDM->pGetDrvHdl(),
-			name, host, idrives, create, node, bNonBlocking));
+			name, host, idrives, v0, create, node, bNonBlocking));
 	
 	return pDr;
 }

@@ -59,7 +59,8 @@ public:
 		const DriveHandler* pDH,
 		const std::string& sFileName,
 		const std::string& host,
-		integer nd, bool c, unsigned long /*int*/ n,
+		integer nd, const std::vector<doublereal>& v0,
+		bool c, unsigned long /*int*/ n,
 		bool bNonBlocking);
    
    	virtual ~RTMBDynInDrive(void);
