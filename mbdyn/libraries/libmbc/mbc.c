@@ -160,8 +160,8 @@ mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 
 			if (timeout != 0) {
 				switch (save_errno) {
-				case ECONNREFUSED:	// inet
-				case ENOENT:		// unix
+				case ECONNREFUSED:	/* inet */
+				case ENOENT:		/* unix */
 					/* Socket does not exist yet; retry */
 					usleep(useconds);
 					if (mbc->timeout > 0) {
