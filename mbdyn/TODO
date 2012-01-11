@@ -198,14 +198,14 @@ D. Code:
 	- add record for damping matrix to modal input format
 	- define a UserDefinedElem class; inherit LoadableElem from it;
 	  allow UserDefined elements to be loaded run-time
-	  (obsoletes LoadableElem; DONE)
+	  (obsoletes LoadableElem; UserDefinedElem, DONE)
 	- write macros to add items for mbdyn2easyanim (DONE)
 	- let symbolic constitutive law optionally know about "Time" & so
 	- allow math parser to generate expression tree (bison, ...)
 	- replace math parser symbol table with STL container (DONE)
 	- allow to switch on/off iteration, residual, ... output with meter
 	- NetCDF output of aerodynamic elements (DONE)
-	- eigenanalysis at different time steps, with output on separate files
+	- eigenanalysis at different time steps, with output on separate files (DONE)
 	- merge c81 data: interpolate data sets w/ same AoA/Mach resol. (DONE)
 	- allow multiple/interpolated c81 data in Theodorsen correction (DONE)
 	- allow configurable float, int, bool (string?) & hton in stream I/O
