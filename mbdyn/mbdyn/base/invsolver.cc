@@ -51,8 +51,6 @@
 /* required for configure time macros with paths */
 #include "mbdefs.h"
 
-#define RTAI_LOG
-
 #include <cstdlib>
 #include <cstring>
 #include <limits>

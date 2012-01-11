@@ -49,14 +49,13 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 /* required for configure time macros with paths */
-#include <cstring>
-#include <limits>
 #include "mbdefs.h"
 
-#define RTAI_LOG
-
+#include <cstdlib>
+#include <cstring>
+#include <limits>
 #include <unistd.h>
-#include <errno.h>
+#include <cerrno>
 
 #include <cfloat>
 #include <cmath>
