@@ -2099,10 +2099,9 @@ class TurbulentViscoElasticConstitutiveLaw<doublereal, doublereal>
 template <class T, class Tder>
 class BiStopCLWrapper
 : public ConstitutiveLaw<T, Tder> {
-public:
+private:
 	enum Status { INACTIVE, ACTIVE };
 
-private:
 	ConstitutiveLaw<T, Tder> *m_pCL;
 	enum Status m_status;
 	const DriveCaller *m_pActivatingCondition;
@@ -2112,11 +2111,11 @@ private:
 public:
 	BiStopCLWrapper(
 			ConstitutiveLaw<T, Tder> *pCL,
-			enum Status initialStatus,
+			bool bInitialStatus,
 			const DriveCaller *pA,
 			const DriveCaller *pD
 	) : 
-	m_pCL(pCL), m_status(initialStatus),
+	m_pCL(pCL), m_status(bInitialStatus ? ACTIVE : INACTIVE),
 	m_pActivatingCondition(pA), m_pDeactivatingCondition(pD),
 	m_EpsRef(mb_zero<T>()) {
 		ASSERT(m_pActivatingCondition != 0);
@@ -2140,7 +2139,7 @@ public:
 		SAFENEWWITHCONSTRUCTOR(pCL,
 			cl,
 			cl(m_pCL->pCopy(),
-				m_status,
+				m_status == ACTIVE,
 				m_pActivatingCondition->pCopy(),
 				m_pDeactivatingCondition->pCopy()));
 

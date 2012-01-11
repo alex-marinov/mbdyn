@@ -1193,22 +1193,16 @@ struct LinearBiStopCLR : public ConstitutiveLawRead<T, Tder> {
 			}
 		}
 
-		typedef typename L::Status LS;
-		LS s = L::INACTIVE;
+		bool s(false);
 		if (HP.IsKeyWord("initial" "status")) {
 			if (HP.IsKeyWord("active")) {
-				s = L::ACTIVE;
+				s = true;
 
 			} else if (HP.IsKeyWord("inactive")) {
-				s = L::INACTIVE;
+				s = false;
 
 			} else {
-				if (HP.GetBool()) {
-					s = L::ACTIVE;
-
-				} else {
-					s = L::INACTIVE;
-				}
+				s = HP.GetBool();
 			}
 		}
 
@@ -1283,14 +1277,8 @@ struct BiStopCLW1DR : public ConstitutiveLawRead<doublereal, doublereal> {
 		bool bStatus(false);
 		ReadBiStopBase(HP, bStatus, pA, pD);
 
-		typedef typename L::Status LS;
-		LS s(L::INACTIVE);
-		if (bStatus) {
-			s = L::ACTIVE;
-		}
-
 		ConstitutiveLaw<doublereal, doublereal> *pWrappedCL = ReadCL1D(pDM, HP, CLType);
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, bStatus, pA, pD));
 
 		return pCL;
 	};
@@ -1308,14 +1296,8 @@ struct BiStopCLW3DR : public ConstitutiveLawRead<Vec3, Mat3x3> {
 		bool bStatus(false);
 		ReadBiStopBase(HP, bStatus, pA, pD);
 
-		typedef typename L::Status LS;
-		LS s(L::INACTIVE);
-		if (bStatus) {
-			s = L::ACTIVE;
-		}
-
 		ConstitutiveLaw<Vec3, Mat3x3> *pWrappedCL = ReadCL3D(pDM, HP, CLType);
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, bStatus, pA, pD));
 
 		return pCL;
 	};
@@ -1333,14 +1315,8 @@ struct BiStopCLW6DR : public ConstitutiveLawRead<Vec6, Mat6x6> {
 		bool bStatus(false);
 		ReadBiStopBase(HP, bStatus, pA, pD);
 
-		typedef typename L::Status LS;
-		LS s(L::INACTIVE);
-		if (bStatus) {
-			s = L::ACTIVE;
-		}
-
 		ConstitutiveLaw<Vec6, Mat6x6> *pWrappedCL = ReadCL6D(pDM, HP, CLType);
-		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, s, pA, pD));
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(pWrappedCL, bStatus, pA, pD));
 
 		return pCL;
 	};
