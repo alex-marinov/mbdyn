@@ -53,6 +53,7 @@
 
 #define RTAI_LOG
 
+#include <cstdlib>
 #include <cstring>
 #include <limits>
 #include <unistd.h>
