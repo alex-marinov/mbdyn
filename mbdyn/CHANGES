@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- RTAI and multithread support incompatible
 	Bug fixes:
 		- fix build with RTAI support
+		- fix build with g++ < 4.5 (noted by Reinhard Resch)
 
 MBDyn 1.4.2
 	Enhancements:
