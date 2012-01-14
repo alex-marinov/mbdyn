@@ -1,5 +1,9 @@
 \section{Abstract Force}
 
+\subsection{Abstract}
+
+\subsection{Abstract Internal}
+
 \section{Structural Forces}
 
 \subsection{Force}
@@ -25,8 +29,350 @@
 \section{Modal}
 
 \section{External}
+The external structural force element allows MBDyn
+to cooperate with external solvers by defining a meta-element
+that applies forces and moments to a set of structural nodes.
+The forces and moments are provided by an external solver,
+called the \emph{peer}.
+MBDyn provides the peer information about the motion of the nodes
+participating in the set.
+
+Optionally, an additional layer of field mapping can be interposed.
+In this case, the motion of the nodes is transformed in the motion
+of a set of intermediate points, which is further mapped
+into the motion of the points known by the peer by means
+of a linear mapping.
+
+The forces at the mapped points returned by the peer
+are mapped back into forces and moments for the structural nodes
+participating in the set of the element.
 
 \subsection{External Structural}
+The external structural and external structural mapping forces
+can be formulated directly in the absolute frame, or referred
+to a reference node.
+In the former case, operations are straightforward;
+in the latter one, the kinematics are first expressed
+in the reference frame of the reference node and then sent
+to the peer along with the motion of the reference node.
+The latter returns nodal forces and moments oriented according
+to the reference frame of the reference node.
+The additional operations performed by the mapping variant
+are discussed separately in a subsequent section.
+The orientation of the reference node is $\TT{R}_r$;
+the position is $\T{x}_r$.
+
+The orientation of the generic node $i$ is
+\begin{align}
+	\TT{R}_i
+	&=
+	\TT{R}_r \overline{\TT{R}}_i
+	.
+\end{align}
+The relative orientation passed to the peer solver is
+\begin{align}
+	\overline{\TT{R}}_i
+	&=
+	\TT{R}_r^T \TT{R}_i
+	.
+\end{align}
+
+The position of the generic node $i$ is
+\begin{align}
+	\T{x}_i
+	&=
+	\T{x}_r
+	+
+	\TT{R}_r \overline{\T{x}}_i
+	.
+\end{align}
+The relative position passed to the peer solver is
+\begin{align}
+	\overline{\T{x}}_i
+	&=
+	\TT{R}_r^T \plbr{\T{x}_i - \T{x}_r}
+	.
+\end{align}
+
+The angular velocity of the generic node $i$ is
+\begin{align}
+	\T{\omega}_i\times{}
+	&=
+	\dot{\TT{R}}_i \TT{R}_i^T
+	=
+	\dot{\TT{R}}_r \TT{R}_r^T
+	+
+	\TT{R}_r \dot{\overline{\TT{R}}}_i \overline{\TT{R}}_i^T \TT{R}_r^T
+	=
+	\T{\omega}_r\times{}
+	+
+	\TT{R}_r \overline{\T{\omega}}_i\times \TT{R}_r^T
+	.
+\end{align}
+The relative angular velocity passed to the peer solver is
+\begin{align}
+	\overline{\T{\omega}}_i
+	&=
+	\TT{R}_r^T \plbr{\T{\omega}_i - \T{\omega}_r}
+	.
+\end{align}
+
+
+The velocity of the generic node $i$ is
+\begin{align}
+	\dot{\T{x}}_i
+	&=
+	\dot{\T{x}}_r
+	+
+	\T{\omega}_r \times \TT{R}_r \overline{\T{x}}_i
+	+
+	\TT{R}_r \dot{\overline{\T{x}}}_i
+	.
+\end{align}
+The relative velocity passed to the peer solver is
+\begin{align}
+	\dot{\overline{\T{x}}}_i
+	&=
+	\TT{R}_r^T \plbr{
+		\dot{\T{x}}_i
+		-
+		\dot{\T{x}}_r
+	}
+	-
+	\plbr{\TT{R}_r^T \T{\omega}_r} \times \overline{\T{x}}_i
+\end{align}
+
+\textbf{TODO: accelerations}
+
+The virtual work done by the forces applied to the nodes is
+\begin{align}
+	\delta\mathcal{L}
+	&=
+	\delta\T{x}_r \cdot \T{f}_r
+	+
+	\T{\theta}_{r\delta} \cdot \T{m}_r
+	+
+	\sum_i \plbr{
+		\delta\overline{\T{x}}_i \cdot \overline{\T{f}}_i
+		+
+		\overline{\T{\theta}}_{i\delta} \cdot \overline{\T{m}}_i
+	}
+	.
+\end{align}
+
+The virtual rotation of the generic node $i$ is
+\begin{align}
+	\delta\TT{R}_i \TT{R}_i^T
+	&=
+	\T{\theta}_{i\delta}\times{}
+	=
+	\delta\TT{R}_r \TT{R}_r^T
+	+
+	\TT{R}_r \delta\overline{\TT{R}}_i \overline{\TT{R}}_i^T \TT{R}_r^T
+	=
+	\T{\theta}_{r\delta}\times{}
+	+
+	\TT{R}_r \overline{\T{\theta}}_{i\delta}\times \TT{R}_r^T
+	.
+\end{align}
+The relative virtual rotation is thus
+\begin{align}
+	\overline{\T{\theta}}_{i\delta}
+	&=
+	\TT{R}_r^T \plbr{\T{\theta}_{i\delta} - \T{\theta}_{r\delta}}
+	.
+\end{align}
+
+The virtual displacement of the generic node $i$ is
+\begin{align}
+	\delta\T{x}_i
+	&=
+	\delta\T{x}_r
+	+
+	\T{\theta}_{r\delta}\times \TT{R}_r \overline{\T{x}}_i
+	+
+	\TT{R}_r\delta\overline{\T{x}}_i
+	.
+\end{align}
+The relative virtual displacement is thus
+\begin{align}
+	\delta\overline{\T{x}}_i
+	&=
+	\TT{R}_r^T \plbr{
+		\delta\T{x}_i
+		-
+		\delta\T{x}_r
+	}
+	+
+	\overline{\T{x}}_i \times \plbr{\TT{R}_r^T \T{\theta}_{r\delta}}
+	.
+\end{align}
+
+The virtual work becomes
+\begin{align}
+	\delta\mathcal{L}
+	&=
+	\delta\T{x}_r \cdot \T{f}_r
+	+
+	\T{\theta}_{r\delta} \cdot \T{m}_r
+	+
+	\sum_i \plbr{
+		\delta\T{x}_i \cdot \TT{R}_r \overline{\T{f}}_i
+		+
+		\T{\theta}_{i\delta} \cdot \TT{R}_r \overline{\T{m}}_i
+		-
+		\delta\T{x}_r \cdot \TT{R}_r \overline{\T{f}}_i
+		-
+		\T{\theta}_{r\delta} \cdot \TT{R}_r \plbr{
+			\overline{\T{m}}_i
+			+
+			\overline{\T{x}}_i \times \overline{\T{f}}_i
+		}
+	}
+	.
+\end{align}
+The force and moment acting on the generic node $i$ are
+\begin{align}
+	\T{f}_i
+	&=
+	\TT{R}_r \overline{\T{f}}_i
+	\\
+	\T{m}_i
+	&=
+	\TT{R}_r \overline{\T{m}}_i
+	.
+\end{align}
+The force and moment acting on the reference node are
+\begin{align}
+	\T{f}
+	&=
+	\T{f}_r - \sum_i \TT{R}_r \overline{\T{f}}_i
+	\\
+	\T{m}
+	&=
+	\T{m}_r - \sum_i \TT{R}_r \plbr{
+		\overline{\T{m}}_i
+		+
+		\overline{\T{x}}_i \times \overline{\T{f}}_i
+	}
+	.
+\end{align}
+In principle, $\T{f}$ and $\T{m}$ should be identically zero,
+unless the reference node is specifically loaded.
+This fact can be exploited by setting \texttt{use reference node forces}
+to \texttt{no}, which results in ignoring $\T{f}$ and $\T{m}$.
+
+
+
+\subsection{External Structural Mapping}
+The external structural mapping case differs from the previous one
+in the fact that two additional intermediate layers are added.
+The first layer computes the motion of a set of points
+rigidly connected to the nodes that participate in the set.
+Each node $n$ can have an arbitrary number of associated points $p$,
+whose position in the reference frame of the node is $\tilde{\T{o}}_{np}$.
+The position of point $p$ associated to node $n$ is
+\begin{align}
+	\T{x}_{np}
+	&=
+	\T{x}_n
+	+
+	\TT{R}_n \tilde{\T{o}}_{np}
+	\label{eq:forces:external-mapping:x_np}
+	.
+\end{align}
+The position $\T{x}_{np}$, instead of $\T{x}_i$, must be used to compute
+the relative position.
+Orientations are not mapped.
+
+As soon as the positions, velocities (and accelerations, if needed)
+of the points are computed and collected in vectors
+denoted by the subscript $(\cdot)_\text{mbdyn}$,
+they are mapped into the corresponding quantities
+of the peer, denoted by the subscript $(\cdot)_\text{peer}$,
+using a linear transformation $\TT{H}$, namely
+\begin{align}
+	\T{x}_\text{peer}
+	&=
+	\TT{H} \T{x}_\text{mbdyn}
+	\\
+	\dot{\T{x}}_\text{peer}
+	&=
+	\TT{H} \dot{\T{x}}_\text{mbdyn}
+	\\
+	\delta\T{x}_\text{peer}
+	&=
+	\TT{H} \delta\T{x}_\text{mbdyn}
+	.
+\end{align}
+The work done in the peer domain must be equal by the work done
+in MBDyn's; this implies
+\begin{align}
+	\delta\mathcal{L}_\text{mbdyn}
+	&=
+	\delta\T{x}_\text{mbdyn} \cdot \T{f}_\text{mbdyn}
+	=
+	\delta\T{x}_\text{peer} \cdot \T{f}_\text{peer}
+	=
+	\delta\mathcal{L}_\text{peer}
+	,
+\end{align}
+which yields
+\begin{align}
+	\delta\T{x}_\text{mbdyn} \cdot \T{f}_\text{mbdyn}
+	&=
+	\delta\T{x}_\text{mbdyn} \cdot \TT{H}^T \T{f}_\text{peer}
+	,
+\end{align}
+and thus, thanks to the arbitrariness of virtual displacements,
+\begin{align}
+	\T{f}_\text{mbdyn}
+	&=
+	\TT{H}^T \T{f}_\text{peer}
+	.
+\end{align}
+The forces $\T{f}_\text{mbdyn}$ corrrespond to the points
+of the intermediate mapping layer.
+They are transformed into the corresponding nodal forces and moments
+considering the work done by the virtual perturbation
+of Eq.~(\ref{eq:forces:external-mapping:x_np}),
+\begin{align}
+	\delta\T{x}_{np}
+	&=
+	\delta\T{x}_n
+	-
+	\plbr{\TT{R}_n \tilde{\T{o}}_{np}} \times \T{\theta}_{n\delta}
+	,
+\end{align}
+namely
+\begin{align}
+	\delta\mathcal{L}_n
+	&=
+	\sum_p \delta\T{x}_{np} \cdot \T{f}_{np}
+	=
+	\sum_p \plbr{
+		\delta\T{x}_n \cdot \T{f}_{np}
+		+
+		\T{\theta}_{n\delta} \cdot \plbr{\TT{R}_n \tilde{\T{o}}_{np}} \times \T{f}_{np}
+	}
+	.
+\end{align}
+The corresponding nodal force and moment are
+\begin{align}
+	\T{f}_n
+	&=
+	\sum_p \T{f}_{np}
+	\\
+	\T{m}_n
+	&=
+	\sum_p \plbr{\TT{R}_n \tilde{\T{o}}_{np}} \times \T{f}_{np}
+	.
+\end{align}
+When a reference node is defined, all symbols in the expressions
+of the nodal force and moment must bear an overbar $\overline{(\cdot)}$,
+to indicate that they are relative and thus need
+to be further transformed as previously shown
+for the external structural force element.
 
 \subsection{External Modal}
 
@@ -34,11 +380,23 @@
 
 \subsection{Client Library}
 
+The peer side of the communication protocol has been implemented
+in a set of client libraries.
+At the core there is \texttt{libmbc}, a library written in C
+that performs the core operations.
+Declarations are provided in the header file \texttt{mbc.h}.
+
+A high-level interface is provided in C++ in \texttt{libmbcxx}.
+Declarations are provided in the header file \texttt{mbcxx.h}.
+
+Another interface is provided in Python, in module \texttt{\_mbc\_py.so}.
+The corresponding Python code is defined in \texttt{mbc\_py\_interface.py}.
+
 \subsubsection{Socket-Based Protocol}
 Each communication is prefixed by a \texttt{uint8\_t} value
 that indicates the type of operation being performed.
 It is optionally followed by a message.
-Values are
+Legal values are
 \begin{itemize}
 \item \texttt{ES\_REGULAR\_DATA}
 \item \texttt{ES\_GOTO\_NEXT\_STEP}
@@ -52,6 +410,7 @@ The corresponding numerical value is defined in \texttt{mbc.h}.
 Operations are:
 \begin{itemize}
 \item negotiation: the client tells the server what
+\item kinematics exchange: the master sends the motion
+\item forces exchange: the peer receives the loads
 \end{itemize}
 
-The negotiation step
