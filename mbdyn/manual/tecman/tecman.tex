@@ -276,6 +276,7 @@ of a dedicated helper:
     {
         delete i->second;
     }
+    DatumMap.clear();
 \end{verbatim}
 The parsing function is something like
 \begin{verbatim}
@@ -599,11 +600,11 @@ the initial configuration.
 
 The problem can be stated as follows:
 \begin{align}
-	\T{k} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}} + \T{A}^T \T{\lambda}_{\T{A}}
-		& = \T{k} \T{x}_0 + \T{F} \\
-	\T{c} \T{v} + \T{\phi}_{/\T{x}}^T \T{\mu} & = \T{c} \T{v}_0 \\
+	\TT{K} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}} + \TT{A}^T \T{\lambda}_{\TT{A}}
+		& = \TT{K} \T{x}_0 + \T{f} \\
+	\TT{C} \T{v} + \T{\phi}_{/\T{x}}^T \T{\mu} & = \TT{C} \T{v}_0 \\
 	\T{\phi}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:holonomic} \\
-	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:non-holonomic} \\
+	\TT{A}\plbr{\T{x}, t} \T{v} + \T{b}\plbr{\T{x}, t} & = \T{0} \label{eq:in-ass:non-holonomic} \\
 	\T{\phi}_{/\T{x}} v + \T{\phi}_{/t} & = \T{0}
 \end{align}
 where Equation~(\ref{eq:in-ass:holonomic}) and (\ref{eq:in-ass:non-holonomic})
@@ -615,21 +616,33 @@ with the constraints.
 Unfortunately, this requires the implementation of more constraints
 than required by the regular solution phases, namely the time derivative
 of the algebraic constraints that depend only on the configuration.
+
+
+\textbf{NOTE: this is a work in progress.} \
 A new procedure is being considered, which requires only the use 
 of the constraint equation $\phi$ and its Jacobian matrix $\phi_{/x}$.
 
-The problem that is solved with the new procedure is (FIXME):
+The problem that is solved with the new procedure is:
+\begin{itemize}
+\item solve for configuration and holonomic constraints first
 \begin{align}
-	\T{k} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}} + \T{A}^T \T{\lambda}_{\T{A}} 
-		& = \T{k} \T{x}_0 + \T{F} \\
-	\T{c} \T{v} + \T{A}^T \T{\lambda}_{A} & = \T{c} \T{v}_0 \\
-	\T{\phi}\plbr{\T{x}, t} & = \T{0} \\
-	\T{A}\plbr{\T{x}, t} \T{v} + \T{B}\plbr{\T{x}, t} & = \T{0}
+	\TT{K} \T{x} + \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}}
+		& = \TT{K} \T{x}_0 + \T{f} \\
+	\T{\phi}\plbr{\T{x}, t} & = \T{0}
 \end{align}
+
+\item then solve for non-holonomic ones,
+\begin{align}
+	\TT{C} \T{v} + \TT{A}^T \T{\lambda}_{\TT{A}} & = \TT{C} \T{v}_0 \\
+	\TT{A}\plbr{\T{x}, t} \T{v} + \T{b}\plbr{\T{x}, t} & = \T{0}
+\end{align}
+keeping the configuration $\T{x}$ fixed,
 so that only the configuration is required to comply 
 with the constraint equations, and the same constraint 
 Jacobian matrix and residual of the regular steps are required;
-then, after convergence, the following equation is considered:
+
+\item
+finally, after convergence, the following equation is considered:
 \begin{equation}
 	\T{\phi}_{/\T{x}} \T{v} + \T{\phi}_{/t} = 0
 \end{equation}
@@ -665,6 +678,7 @@ e.g.:
 The initial assembly procedure can be repeated until 
 test~(\ref{eq:in-ass:test}) passes.
 \end{enumerate}
+\end{itemize}
 A consistent implementation of this approach is not available yet;
 it requires the availability of the time derivatives 
 of the constraint equations, which is an open issue since it is not
@@ -4882,7 +4896,137 @@ and activate/deactivate them based on some trigger.
 \end{itemize}
  
 
-\subsubsection{Future Development: Angular Velocity/Acceleration}
+\subsubsection{Future Development: Velocity/Acceleration}
+The time derivative of vector $\T{x}^{\delta}$ yields
+\begin{align}
+	\T{v}^{\delta}
+	&=
+	\dot{\T{x}}
+	-
+	\T{v}_0
+	=
+	\TT{R}_{1h}^T \plbr{
+		\dot{\T{x}}_2
+		+
+		\T{\omega}_2 \times \T{f}_2
+		-
+		\dot{\T{x}}_1
+		-
+		\T{\omega}_1 \times \plbr{
+			\T{x}_2
+			+
+			\T{f}_2
+			-
+			\T{x}_1
+		}
+	}
+	-
+	\T{v}_0
+	.
+\end{align}
+Its linearization yields
+\begin{align}
+	\delta\T{v}^{\delta}
+	&=
+	\delta\dot{\T{x}}
+	\nonumber \\
+	&=
+	\TT{R}_{1h}^T \delta\dot{\T{x}}_2
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \delta\dot{\T{x}}_1
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \T{f}_2 \times \delta\T{\omega}_2
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \plbr{
+		\T{x}_2
+		+
+		\T{f}_2
+		-
+		\T{x}_1
+	} \times \delta\T{\omega}_1
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \T{\omega}_1 \times \delta\T{x}_2
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \T{\omega}_1 \times \delta\T{x}_1
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \plbr{\T{\omega}_2 - \T{\omega}_1} \times \T{f}_2 \times \T{\theta}_{2\delta}
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \plbr{
+		\dot{\T{x}}_2
+		+
+		\T{\omega}_2 \times \T{f}_2
+		-
+		\dot{\T{x}}_1
+		-
+		\T{\omega}_1 \times \plbr{
+			\T{x}_2
+			+
+			\T{f}_2
+			-
+			\T{x}_1
+		}
+	} \times \T{\theta}_{1\delta}
+	\nonumber \\
+	&\equu
+	\TT{R}_{1h}^T \delta\dot{\T{x}}_2
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \delta\dot{\T{x}}_1
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \T{f}_2 \times \delta\dot{\T{g}}_2
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \plbr{
+		\T{x}_2
+		+
+		\T{f}_2
+		-
+		\T{x}_1
+	} \times \delta\dot{\T{g}}_1
+	\nonumber \\
+	&-
+	\TT{R}_{1h}^T \T{\omega}_1 \times \delta\T{x}_2
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \T{\omega}_1 \times \delta\T{x}_1
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \plbr{
+		\plbr{\T{f}_2 \times \T{\omega}_2} \times{}
+		+
+		\T{\omega}_1 \times \T{f}_2 \times{}
+	}
+	\T{\theta}_{2\delta}
+	\nonumber \\
+	&+
+	\TT{R}_{1h}^T \plbr{
+		\plbr{
+			\dot{\T{x}}_2
+			+
+			\T{\omega}_2 \times \T{f}_2
+			-
+			\dot{\T{x}}_1
+		} \times{}
+		-
+		\T{\omega}_1 \times \plbr{
+			\T{x}_2
+			+
+			\T{f}_2
+			-
+			\T{x}_1
+		} \times{}
+	} \T{\theta}_{1\delta}
+	.
+\end{align}
+
 The time derivative of matrix $\T{R}^{\delta}$ yields
 the constraint equation on the angular velocity
 \begin{align}
@@ -4930,6 +5074,7 @@ imposing the constraint of Equation~(\ref{eq:TOTAL-JOINT:omega_0}).
 
 
 The perturbation of Equation~(\ref{eq:TOTAL-JOINT:omega_0}) results in
+\begin{comment}
 \begin{align}
 	\delta\T{\omega}^{\delta}
 	&= \T{R}_{1hr}^T \plbr{
@@ -4963,6 +5108,52 @@ The perturbation of Equation~(\ref{eq:TOTAL-JOINT:omega_0}) results in
 		- \delta\T{\omega}_1
 	} + \plbr{\T{R}^{\delta}\T{\omega}_0}\times \T{R}_{1hr}^T \T{\theta}_{2\delta}
 	+ \T{\omega}^{\delta} \times \T{R}_{1hr}^T \T{\theta}_{1\delta} .
+\end{align}
+After applying the updated-updated approximations, it becomes
+\begin{align}
+	\delta\T{\omega}^{\delta}
+	&\equu
+	\T{R}_{1hr}^T \delta\dot{\T{g}}_2
+	-
+	\T{R}_{1hr}^T \delta\dot{\T{g}}_1
+	-
+	\plbr{
+		\T{R}_{1hr}^T \T{\omega}_2\times{}
+		-
+		\T{\omega}_0\times\T{R}_{1hr}^T
+	} \delta\T{g}_2
+	+
+	\T{R}_{1hr}^T \T{\omega}_1\times \delta\T{g}_1
+	.
+\end{align}
+\end{comment}
+\begin{align}
+	\delta\plbr{
+		\TT{R}_{1hr}^T \plbr{
+			\T{\omega}_2 - \T{\omega}_1
+		}
+	}
+	&=
+	\TT{R}_{1hr}^T \plbr{
+		\delta \T{\omega}_2
+		-
+		\delta \T{\omega}_1
+		+
+		\plbr{
+			\T{\omega}_2 - \T{\omega}_1
+		} \times \T{\theta}_{1\delta}
+	}
+	\nonumber \\
+	&\equu
+	\TT{R}_{1hr}^T \plbr{
+		\delta\dot{\T{g}}_2
+		-
+		\delta\dot{\T{g}}_1
+		-
+		\T{\omega}_2 \times \delta\T{g}_2
+		+
+		\T{\omega}_2 \times \delta\T{g}_1
+	}
 \end{align}
 
 Further time differentiation of the constraint equation results in
@@ -9353,13 +9544,13 @@ Note: $\T{e}_z \T{e}_z^T \T{\omega}_2\times{} = \T{e}_z \plbr{\T{e}_z\times\T{\o
 
 
 
-\chapter{Hydraulic Library}
-\input{tecman-hydr}
-
-
-
 \chapter{Forces}
 \input{tecman-forces}
+
+
+
+\chapter{Hydraulic Library}
+\input{tecman-hydr}
 
 
 
