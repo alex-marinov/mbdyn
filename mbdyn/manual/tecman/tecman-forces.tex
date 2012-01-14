@@ -242,6 +242,8 @@ The force and moment acting on the generic node $i$ are
 	\TT{R}_r \overline{\T{m}}_i
 	.
 \end{align}
+The moment is always intrinsically referred to the current position
+of the node.
 The force and moment acting on the reference node are
 \begin{align}
 	\T{f}
@@ -257,6 +259,9 @@ The force and moment acting on the reference node are
 	}
 	.
 \end{align}
+The moment is always intrinsically referred to the current position
+of the node.
+
 In principle, $\T{f}$ and $\T{m}$ should be identically zero,
 unless the reference node is specifically loaded.
 This fact can be exploited by setting \texttt{use reference node forces}
@@ -368,6 +373,9 @@ The corresponding nodal force and moment are
 	\sum_p \plbr{\TT{R}_n \tilde{\T{o}}_{np}} \times \T{f}_{np}
 	.
 \end{align}
+The moment is always intrinsically referred to the current position
+of the node.
+
 When a reference node is defined, all symbols in the expressions
 of the nodal force and moment must bear an overbar $\overline{(\cdot)}$,
 to indicate that they are relative and thus need
