@@ -41,10 +41,16 @@ extern "C" {
 
 #include <stdint.h>
 
-/* legal commands */
+/** \brief Legal commands
+ *
+ * The values of this enumeration appear as tags at the beginning
+ * of each communication.
+ */
 enum ESCmd {
 	ES_UNKNOWN				= -1,
+	/* 1 intentionally unused */
 	ES_REGULAR_DATA				= 2,
+	/* 3 intentionally unused */
 	ES_GOTO_NEXT_STEP			= 4,
 	ES_ABORT				= 5,
 	ES_REGULAR_DATA_AND_GOTO_NEXT_STEP	= 6,
@@ -54,6 +60,7 @@ enum ESCmd {
 	ES_LAST
 };
 
+/** \brief Parameters used to control the communication type and fields. */
 enum MBCType {
 	MBC_MODAL				= 0x0001U,
 	MBC_NODAL				= 0x0002U,
@@ -65,33 +72,72 @@ enum MBCType {
 
 	MBC_LABELS				= 0x0010U,
 
+	/** Regular nodes orientation: orientation vector */
 	MBC_ROT_THETA				= 0x0100U,
+	/** Regular nodes orientation: orientation matrix */
 	MBC_ROT_MAT				= 0x0200U,
+	/** Regular nodes orientation: Euler angles (123 sequence) */
 	MBC_ROT_EULER_123			= 0x0400U,
+
 	/* add more? */
+
+	/** Regular nodes orientation: suppress orientation
+	 * (also suppresses angular velocities and moments) */
 	MBC_ROT_NONE				= 0x0000U,
+
 	MBC_ROT_MASK				= (MBC_ROT_THETA | MBC_ROT_MAT | MBC_ROT_EULER_123),
 
+	/** Reference node orientation: orientation vector */
 	MBC_REF_NODE_ROT_THETA			= (MBC_ROT_THETA << 4),
+	/** Reference node orientation: orientation matrix */
 	MBC_REF_NODE_ROT_MAT			= (MBC_ROT_MAT << 4),
+	/** Reference node orientation: Euler angles (123 sequence) */
 	MBC_REF_NODE_ROT_EULER_123		= (MBC_ROT_EULER_123 << 4),
+
 	MBC_REF_NODE_ROT_MASK			= (MBC_ROT_MASK << 4),
 
 	MBC_LAST
 };
 
-/* command structure */
+/** \brief Connection data structure (partially opaque) */
 typedef struct {
+	/** Opaque. */
 	int		sock;
+
+	/** Opaque. */
 	unsigned	sock_flags;
+
+	/** Opaque. */
 	int		recv_flags;
+
+	/** Opaque. */
 	int		send_flags;
+
+	/** Opaque. */
 	uint8_t		cmd;
+
+	/** Flag that modifies response behavior:
+	 * - when 0, on convergence send(2) passes ES_GOTO_NEXT_STEP (convergence);
+	 * - when 1, on convergence send(2) passes ES_REGULAR_DATA_AND_GOTO_NEXT_STEP (convergence along with last set of new data).
+	 *
+	 * In most cases, should be set to 1.
+	 */
 	char		data_and_next;
+
+	/** Verbose on stdout */
 	int		verbose;
+
+	/** Connect(2) timeout.  When peer is not listening:
+	 * - a value of 0 results in immediate return with error;
+	 * - a positive value corresponds to a timeout in seconds;
+	 * - a negative value corresponds to never timing out.
+	 *
+	 * During timeout, connect(2) is periodically retried.
+	 */
 	int		timeout;
 } mbc_t;
 
+/** \brief Opaque. */
 /* validate command
  *
  * command needs to be set in mbc->cmd
@@ -99,6 +145,7 @@ typedef struct {
 extern int
 mbc_check_cmd(mbc_t *mbc);
 
+/** \brief Opaque. */
 /* get command from peer
  *
  * command is stored in mbc->cmd
@@ -106,6 +153,7 @@ mbc_check_cmd(mbc_t *mbc);
 extern int
 mbc_get_cmd(mbc_t *mbc);
 
+/** \brief Opaque. */
 /* put command to peer
  *
  * command needs to be set in mbc->cmd
@@ -113,24 +161,74 @@ mbc_get_cmd(mbc_t *mbc);
 extern int
 mbc_put_cmd(mbc_t *mbc);
 
-/* initialize communication using inet socket
+/** \brief Initialize communication using "inet" socket.
  *
- * mbc must be a pointer to a valid mbc_t structure
- * host and port must be defined
+ * \param [in,out] mbc a pointer to a valid mbc_t structure
+ * \param [in] host hostname
+ * \param [in] port port number
+ *
+ * Connects to peer "inet" socket using hostname and port number;
+ * host and port must be defined.  If peer is not listening,
+ * the behavior depends on mbc_t::timeout.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port);
 
-/* initialize communication using unix socket
+/** \brief Initialize communication using "unix" socket.
  *
- * mbc must be a pointer to a valid mbc_t structure
- * path must be defined
+ * \param [in,out] mbc a pointer to a valid mbc_t structure
+ * \param [in] path pathname
+ *
+ * Connects to peer "unix" socket using pathname;
+ * path must be defined.  If peer is not listening,
+ * the behavior depends on mbc::timeout.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_unix_init(mbc_t *mbc, const char *path);
 
-/*
- * reference node (AKA "rigid") stuff
+/**
+ * \brief Reference node (AKA "rigid") stuff (partially opaque).
+ *
+ * Users do not need to access members directly;
+ * macros documented in the following should be used instead.
+ *
+ * Flags:
+ * - MBC_F_REF_NODE(mbc): true when reference node is defined
+ * - MBC_F_LABELS(mbc): true when labels communication is enabled
+ * - MBC_F_ACCELS(mbc): true when accelerations communication is enabled
+ * - MBC_F_ROT(mbc): orientation mode (see MBC_ROT_* in ::MBCType)
+ * - MBC_F_ROT_THETA(mbc): true when orientation mode is orientation vector
+ * - MBC_F_ROT_MAT(mbc): true when orientation mode is orientation matrix
+ * - MBC_F_ROT_EULER_123(mbc): true when orientation mode is Euler angles (123 sequence)
+ * - MBC_F_ROT_REF_NODE(mbc): orientation mode of reference node (see MBC_ROT_* in ::MBCType; MBC_F_REF_NODE(mbc) must be true)
+ *
+ * Fields (MBC_F_REF_NODE(mbc) must be true):
+ * - MBC_R_K_LABEL(mbc): returns the (uint32_t) label of the reference node (MBC_F_LABELS(mbc) must be true)
+ * - MBC_R_X(mbc): returns a (double *) pointer to the three components of reference node position
+ * - MBC_R_THETA(mbc): returns a (double *) pointer to the three components of the reference node orientation vector
+ *   (MBC_F_ROT_THETA(mbc) must be true)
+ * - MBC_R_R(mbc): returns a (double *) pointer to the nine components of the reference node orientation matrix,
+ *   column-major (Fortran style; MBC_F_ROT_MAT(mbc) must be true)
+ * - MBC_R_EULER_123(mbc): returns a (double *) pointer to the three components of the reference node Euler angles
+ *   (123 sequence; MBC_F_ROT_EULER_123(mbc) must be true)
+ * - MBC_R_XP(mbc): returns a (double *) pointer to the three components of reference node velocity
+ * - MBC_R_OMEGA(mbc): returns a (double *) pointer to the three components of reference node angular velocity
+ * - MBC_R_XPP(mbc): returns a (double *) pointer to the three components of reference node acceleration
+ *   (MBC_F_ACCELS(mbc) must be true)
+ * - MBC_R_OMEGAP(mbc): returns a (double *) pointer to the three components of reference node angular acceleration
+ *   (MBC_F_ACCELS(mbc) must be true)
+ * - MBC_R_D_LABEL(mbc): the (uint32_t) label of the reference node (in the output buffer; MBC_F_LABELS(mbc) must be true)
+ * - MBC_R_F(mbc): returns a (double *) pointer to the three components of reference node force
+ * - MBC_R_M(mbc): returns a (double *) pointer to the three components of reference node moment
+ * - MBC_R_KINEMATICS_SIZE(mbc): returns the size of the input buffer
+ * - MBC_R_DYNAMICS_SIZE(mbc): returns the size of the output buffer
+ * - MBC_R_SIZE(mbc): returns the cumulative size of the buffers
+ * - MBC_R_KINEMATICS(mbc): returns a (void *) pointer to the input buffer
+ * - MBC_R_DYNAMICS(mbc): returns a (void *) pointer to the output buffer
  */
 typedef struct {
 	uint32_t	flags;
@@ -165,6 +263,7 @@ typedef struct {
 		uint32_t	uint32_t_r_ptr[(2 + 2) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double) / sizeof(uint32_t)];
 		double		double_r_ptr[(2 + 2) * sizeof(uint32_t) / sizeof(double) + (3 + 9 + 3 + 3 + 3 + 3 + 3 + 3) * sizeof(double)];
 	} r_ptr;
+
 	uint32_t	k_size;
 	int32_t		r_k_label;
 	int32_t		r_k_x;
@@ -199,8 +298,38 @@ typedef struct {
 #define MBC_R_DYNAMICS(mbc)		((void *)(MBC_R_KINEMATICS(mbc) + MBC_R_KINEMATICS_SIZE(mbc)))
 } mbc_rigid_t;
 
-/*
- * nodal stuff
+/**
+ * \brief Nodal stuff (partially opaque).
+ *
+ * Users do not need to access members directly;
+ * macros documented in the following should be used instead.
+ *
+ * Fields:
+ * - MBC_N_K_LABELS(mbc): returns a (uint32_t *) pointer to input node labels (MBC_F_LABELS(mbc) must be true)
+ * - MBC_N_X(mbc): returns a (double *) pointer to positions of nodes (first node x,y,z; second node x,y,z; ...)
+ * - MBC_N_THETA(mbc): returns a (double *) pointer to orientation vectors of nodes
+ *   (first node x,y,z; second node x,y,z; ...; MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_R(mbc): returns a (double *) pointer to orientation vectors of nodes
+ *   (first node r11,r21,r31,r12,r22,r32,r13,r23,r33; second node r11,...,r33; ...;
+ *   MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_EULER_123(mbc): returns a (double *) pointer to Euler angles of nodes
+ *   (first node x,y,z; second node x,y,z; ...; MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_XP(mbc): returns a (double *) pointer to velocities of nodes (first node x,y,z; second node x,y,z; ...)
+ * - MBC_N_OMEGA(mbc): returns a (double *) pointer to angular velocities of nodes
+ *   (first node x,y,z; second node x,y,z; ...; MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_XPP(mbc): returns a (double *) pointer to accelerations of nodes
+ *   (first node x,y,z; second node x,y,z; ...; MBC_F_ACCELS(mbc) must be true)
+ * - MBC_N_OMEGAP(mbc): returns a (double *) pointer to angular accelerations of nodes
+ *   (first node x,y,z; second node x,y,z; ...; MBC_F_ACCELS(mbc) must be true and MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_D_LABELS(mbc): returns a (uint32_t *) pointer to output node labels (MBC_F_LABELS(mbc) must be true)
+ * - MBC_N_F(mbc): returns a (double *) pointer to forces (first node x,y,z; second node x,y,z; ...)
+ * - MBC_N_M(mbc): returns a (double *) pointer to moments (first node x,y,z; second node x,y,z; ...;
+ *   MBC_F_ROT(mbc) must not be ::MBC_ROT_NONE)
+ * - MBC_N_KINEMATICS_SIZE(mbc): returns the size of the input buffer
+ * - MBC_N_DYNAMICS_SIZE(mbc): returns the size of the output buffer
+ * - MBC_N_SIZE(mbc): returns the cumulative size of the buffers
+ * - MBC_N_KINEMATICS(mbc): returns a (void *) pointer to the input buffer
+ * - MBC_N_DYNAMICS(mbc): returns a (void *) pointer to the output buffer
  */
 typedef struct {
 	mbc_t		mbc;
@@ -249,42 +378,60 @@ typedef struct {
 #define MBC_N_SIZE(mbc)			(MBC_N_KINEMATICS_SIZE(mbc) + MBC_N_DYNAMICS_SIZE(mbc))
 } mbc_nodal_t;
 
-/* initialize nodal data
+/** \brief Initialize nodal data.
  *
- * mbc must be a pointer to a valid mbc_nodal_t structure
+ * \param [in,out] mbc pointer to a valid mbc_nodal_t structure
+ * \param [in] refnode non-zero if reference node is defined
+ * \param [in] nodes number of nodes
+ * \param [in] labels true to enable labels
+ * \param [in] rot orientation type
+ * \param [in] accels true to enable accelerations
  *
- * at least reference node motion must be defined (refnode != 0),
- * or nodes must be > 0
+ * Either reference node motion must be defined (refnode != 0),
+ * or nodes must be > 0, or both.
  *
- * if nodes > 0, mallocs memory that needs to be freed calling
- * mbc_nodal_destroy()
+ * if nodes > 0, this function calls malloc(3) to alloc memory
+ * that needs to be freed by calling mbc_nodal_destroy()
  *
- * rot must be one of MBC_ROT_*
+ * if labels != 0, labels are handled as well
  *
- * if accelerations != 0 accelerations are also output
+ * rot must be one of ::MBCType MBC_ROT_*;
+ * if it is set to ::MBC_ROT_NONE, only positions and forces are handled.
+ *
+ * if accels != 0, accelerations are handled as well.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_nodal_init(mbc_nodal_t *mbc, unsigned refnode, unsigned nodes,
 	unsigned labels, unsigned rot, unsigned accels);
 
-/* destroy nodal data
+/** \brief Destroy nodal data.
  *
- * does NOT free the mbc structure
+ * \param [in,out] mbc pointer to a valid mbc_nodal_t structure
+ *
+ * NOTE: does NOT free mbc.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_nodal_destroy(mbc_nodal_t *mbc);
 
-/* negotiate nodal data
+/** \brief Negotiate nodal data.
  *
- * mbc must be a pointer to a valid mbc_nodal_t structure
+ * \param [in] mbc pointer to a valid mbc_nodal_t structure
  *
- * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
- * or nodes must be > 0
+ * At least reference node motion must be defined
+ * (MBC_F_REF_NODE(mbc) must be true),
+ * or nodes > 0
  *
- * the socket must be initialized and connected
+ * The socket must be initialized and connected.
  *
- * this function sends a negotiation request to the master
+ * This function sends a negotiation request to the master.
  *
+ * @return 0 on success, !0 on failure.
+ */
+/*
  * the protocol consists in:
  *
  * - negotiation request:
@@ -301,36 +448,64 @@ mbc_nodal_destroy(mbc_nodal_t *mbc);
 extern int
 mbc_nodal_negotiate_request(mbc_nodal_t *mbc);
 
-/* companion of above, provided for completeness; not used
+/** \brief Unused. */
+/*
+ * companion of above, provided for completeness; not used
  */
 extern int
 mbc_nodal_negotiate_response(mbc_nodal_t *mbc);
 
-/* get nodal motion from peer
+/** \brief Get nodal motion from peer.
  *
- * if MBC_F_REF_NODE(mbc), access reference node motion using macros MBC_X, MBC_R, MBC_V, MBC_W
- * if mbc->nodes > 0, access nodal motion using macros MBC_N_*
+ * \param [in,out] pointer to a valid mbc_nodal_t structure
+ *
+ * After the call to this function succeeds:
+ * - if MBC_F_REF_NODE(mbc) is true, reference node motion can be accessed using macros MBC_R_X(mbc) and similar;
+ * - if mbc_nodal_t::nodes > 0, nodal motion can be accessed using macros MBC_N_X(mbc) and similar.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_nodal_get_motion(mbc_nodal_t *mbc);
 
-/* put forces to peer
+/** \brief Put forces to peer.
  *
- * if MBC_F_REF_NODE(mbc), force and moment must be set in storage pointed to
- *	by macros MBC_F, MBC_M
- * if mbc->nodes > 0, nodal forces must be set in storage pointed to
- *	by macro MBC_N_F, MBC_N_M
+ * \param [in,out] pointer to a valid mbc_nodal_t structure
+ * \param [in] last true when at convergence
+ *
+* if last is false, before calling this function:
+ * - if MBC_F_REF_NODE(mbc) is true, force and moment must be set in storage pointed to by macros MBC_R_F(mbc), MBC_R_M(mbc)
+ * - if mbc_nodal_t::nodes > 0, nodal forces must be set in storage pointed to by macros MBC_N_F(mbc), MBC_N_M(mbc)
+ *   (the latter only if MBC_F_ROT(mbc) != ::MBC_ROT_NONE).
+ *
+ * if last is true and mbc_t::data_and_next is false, the output buffer is not sent;
+ * thus, there is no need to set forces and moments;
+ * otherwise, if mbc_t::data_and_next is true, the output buffer must be filled as described above.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_nodal_put_forces(mbc_nodal_t *mbc, int last);
 
 
 
-/*
- * modal stuff
+/**
+ * \brief nodal stuff (partially opaque).
+ *
+ * Users do not need to access members directly;
+ * macros documented in the following should be used instead.
+ *
+ * Fields:
+ *
+ * - MBC_Q(mbc): returns a (double *) pointer to the array of generalized coordinates
+ * - MBC_QP(mbc): returns a (double *) pointer to the array of generalized coordinates derivatives
+ * - MBC_P(mbc): returns a (double *) pointer to the array of generalized forces
+ * - MBC_M_KINEMATICS_SIZE(mbc): returns the size of the input buffer
+ * - MBC_M_DYNAMICS_SIZE(mbc): returns the size of the output buffer
+ * - MBC_M_SIZE(mbc): returns the cumulative size of the buffers
+ * - MBC_M_KINEMATICS(mbc): returns a (void *) pointer to the input buffer
+ * - MBC_M_DYNAMICS(mbc): returns a (void *) pointer to the output buffer
  */
-
-/* modal data structure */
 typedef struct {
 	mbc_t		mbc;
 	mbc_rigid_t	mbcr;
@@ -348,36 +523,49 @@ typedef struct {
 #define MBC_M_SIZE(mbc)			(3*(mbc)->modes*sizeof(double))
 } mbc_modal_t;
 
-/* initialize modal data
+/** \brief Initialize modal data.
  *
- * mbc must be a pointer to a valid mbc_modal_t structure
+ * \param [in,out] mbc pointer to a valid mbc_modal_t structure
+ * \param [in] refnode non-zero if reference node is defined
+ * \param [in] modes number of modes
  *
- * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
- * or modes must be > 0
+ * Either reference node motion must be defined (refnode != 0),
+ * or modes must be > 0, or both.
  *
- * if modes > 0, mallocs memory that needs to be freed calling
- * mbc_modal_destroy()
+ * if modes > 0, this function calls malloc(3) to alloc memory
+ * that needs to be freed by calling mbc_modal_destroy()
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_modal_init(mbc_modal_t *mbc, int refnode, unsigned modes);
 
-/* destroy modal data
+/** \brief Destroy modal data.
  *
- * does NOT free the mbc structure
+ * \param [in,out] mbc pointer to a valid mbc_modal_t structure
+ *
+ * NOTE: does NOT free mbc.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_modal_destroy(mbc_modal_t *mbc);
 
-/* negotiate modal data
+/** \brief Negotiate modal data.
  *
- * mbc must be a pointer to a valid mbc_modal_t structure
+ * \param [in] mbc pointer to a valid mbc_modal_t structure
  *
- * at least reference node motion must be defined (MBC_F_REF_NODE(mbc)),
- * or modes must be > 0
+ * At least reference node motion must be defined
+ * (MBC_F_REF_NODE(mbc) must be true),
+ * or modes > 0
  *
- * the socket must be initialized and connected
- * sends a negotiation request to the master
+ * The socket must be initialized and connected.
  *
+ * This function sends a negotiation request to the master.
+ *
+ * @return 0 on success, !0 on failure.
+ */
+/*
  * the protocol consists in:
  *
  * - negotiation request:
@@ -394,25 +582,39 @@ mbc_modal_destroy(mbc_modal_t *mbc);
 extern int
 mbc_modal_negotiate_request(mbc_modal_t *mbc);
 
+/** \brief Unused. */
 /* companion of above, provided for completeness; not used
  */
 extern int
 mbc_modal_negotiate_response(mbc_modal_t *mbc);
 
-/* get modal motion from peer
+/** \brief Get modal motion from peer.
  *
- * if MBC_F_REF_NODE(mbc), access reference node motion using macros MBC_X, MBC_R, MBC_V, MBC_W
- * if mbc->modes > 0, access modal motion using macros MBC_Q, MBC_QP
+ * \param [in,out] pointer to a valid mbc_modal_t structure
+ *
+ * After the call to this function succeeds:
+ * - if MBC_F_REF_NODE(mbc) is true, reference node motion can be accessed using macros MBC_R_X(mbc) and similar;
+ * - if mbc_modal_t::modes > 0, modal motion can be accessed using macros MBC_Q(mbc) and similar.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_modal_get_motion(mbc_modal_t *mbc);
 
-/* put forces to peer
+/** \brief Put forces to peer.
  *
- * if MBC_F_REF_NODE(mbc), force and moment must be set in storage pointed to
- *	by macros MBC_F, MBC_M
- * if mbc->modes > 0, modal forces must be set in storage pointed to
- *	by macro MBC_P
+ * \param [in,out] mbc pointer to a valid mbc_modal_t structure
+ * \param [in] last true when at convergence
+ *
+ * if last is false, before calling this function:
+ * - if MBC_F_REF_NODE(mbc) is true, force and moment must be set in storage pointed to by macros MBC_R_F(mbc), MBC_R_M(mbc)
+ * - if mbc_modal_t::modes > 0, nodal forces must be set in storage pointed to by macro MBC_P(mbc)
+ *
+ * if last is true and mbc_t::data_and_next is false, the output buffer is not sent;
+ * thus, there is no need to set generalized forces;
+ * otherwise, if mbc_t::data_and_next is true, the output buffer must be filled as described above.
+ *
+ * @return 0 on success, !0 on failure.
  */
 extern int
 mbc_modal_put_forces(mbc_modal_t *mbc, int last);
