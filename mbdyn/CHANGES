@@ -9,9 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.4.3
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
