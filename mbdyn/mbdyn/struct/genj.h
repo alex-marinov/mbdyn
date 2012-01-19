@@ -43,15 +43,15 @@
 
 class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
  private:
-   const StructNode* pNode1;
-   const StructNode* pNode2;
+   const StructDispNode* pNode1;
+   const StructDispNode* pNode2;
    mutable Vec3 v;
    doublereal dAlpha;
    
  public:
    /* Costruttore non banale */
    DistanceJoint(unsigned int uL, const DofOwner* pDO,
-		 const StructNode* pN1, const StructNode* pN2,
+		 const StructDispNode* pN1, const StructDispNode* pN2,
 		 const DriveCaller* pDC, flag fOut);
    
    ~DistanceJoint(void);
@@ -129,13 +129,13 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
+#ifdef USE_ADAMS
    /* Adams output stuff */
    virtual unsigned int iGetNumDummyParts(void) const {
       return 1;
    };
    virtual void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
    virtual void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS
    virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
 #endif /* USE_ADAMS */
 };

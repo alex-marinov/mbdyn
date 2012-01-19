@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added displacement-only nodes and selected basic elements
+		- added membrane element (Marco Morandini & Tommaso Solcia)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

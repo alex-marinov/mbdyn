@@ -38,6 +38,7 @@ extern Elem *
 ReadStructuralForce(DataManager* pDM,
 	MBDynParser& HP,
 	unsigned int uLabel,
+	bool bDisp,
 	bool bCouple,
 	bool bFollower,
 	bool bInternal);

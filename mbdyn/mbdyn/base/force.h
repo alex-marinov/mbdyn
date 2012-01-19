@@ -52,7 +52,10 @@ public:
 		ABSTRACTFORCE = 0,
 		ABSTRACTINTERNALFORCE,
 
-		// in mbdyn/struct/strforce.{h,cc}
+		// in mbdyn/struct/strforce[_impl].{h,cc}
+		ABSOLUTEDISPFORCE,
+		ABSOLUTEINTERNALDISPFORCE,
+
 		ABSOLUTEFORCE,
 		FOLLOWERFORCE,
 		ABSOLUTECOUPLE,

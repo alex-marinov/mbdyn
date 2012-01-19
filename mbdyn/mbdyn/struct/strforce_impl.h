@@ -38,6 +38,126 @@
 
 /* Force - begin */
 
+/* AbsoluteDispForce - begin */
+
+class AbsoluteDispForce : virtual public Elem, public Force {
+protected:
+	TplDriveOwner<Vec3> f;
+	const StructDispNode* pNode;
+
+public:
+	/* Costruttore non banale */
+	AbsoluteDispForce(unsigned int uL, const StructDispNode* pN,
+		const TplDriveCaller<Vec3>* pDC, flag fOut);
+
+	~AbsoluteDispForce(void);
+
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const {
+		return Force::ABSOLUTEDISPFORCE;
+	};
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* Inverse Dynamics*/
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ ,
+		const VectorHandler& /* XPrimePrimeCurr */ ,
+		int iOrder);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr);
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	   utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	/* ************************************************ */
+};
+
+/* AbsoluteDispForce - end */
+
+
+/* AbsoluteInternalDispForce - begin */
+
+class AbsoluteInternalDispForce : virtual public Elem, public Force {
+protected:
+	TplDriveOwner<Vec3> f;
+	const StructDispNode* pNode1;
+	const StructDispNode* pNode2;
+
+public:
+	/* Costruttore non banale */
+	AbsoluteInternalDispForce(unsigned int uL,
+		const StructDispNode* pN1, const StructDispNode* pN2,
+		const TplDriveCaller<Vec3>* pDC, flag fOut);
+
+	~AbsoluteInternalDispForce(void);
+
+	/* Tipo di forza */
+	virtual Force::Type GetForceType(void) const {
+		return Force::ABSOLUTEINTERNALDISPFORCE;
+	};
+
+	/* Contributo al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	/* Inverse Dynamics*/
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& /* XCurr */ ,
+		const VectorHandler& /* XPrimeCurr */ ,
+		const VectorHandler& /* XPrimePrimeCurr */ ,
+		int iOrder);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr);
+
+	/* *******PER IL SOLUTORE PARALLELO******** */
+	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
+	   utile per l'assemblaggio della matrice di connessione fra i dofs */
+	virtual void
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	/* ************************************************ */
+};
+
+/* AbsoluteInternalDispForce - end */
+
+
 /* StructuralForce - begin */
 
 class StructuralForce : virtual public Elem, public Force {

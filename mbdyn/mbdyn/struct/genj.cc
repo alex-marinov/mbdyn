@@ -47,7 +47,7 @@
 
 /* Costruttore non banale */
 DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
-			     const StructNode* pN1, const StructNode* pN2,
+			     const StructDispNode* pN1, const StructDispNode* pN2,
 			     const DriveCaller* pDC, flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
@@ -600,6 +600,7 @@ DistanceJoint::SetValue(DataManager *pDM,
 }
 
 
+#ifdef USE_ADAMS
 void 
 DistanceJoint::GetDummyPartPos(unsigned int part, 
 				 Vec3& x, 
@@ -620,7 +621,6 @@ DistanceJoint::GetDummyPartVel(unsigned int part,
    w = pNode1->GetWCurr();
 }
 
-#ifdef USE_ADAMS
 std::ostream& 
 DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 				      unsigned int part, 

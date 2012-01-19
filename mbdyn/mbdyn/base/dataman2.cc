@@ -206,54 +206,154 @@ DataManager::DofOwnerInit(void)
 		 * structural node, then the x coordinate
 		 * is X(v+1) and so forth
 		 */
-		OutHdl.Log() << "struct node dofs:";
 
+		OutHdl.Log() << "struct node dofs:";
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
-			ASSERT(pNode != 0);
-			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
-				continue;
+			if (pNode) {
+				if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstIndex();
 			}
-			OutHdl.Log() << " " << pNode->iGetFirstIndex();
 		}
+		OutHdl.Log() << std::endl;
 
+		OutHdl.Log() << "struct node eqs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			if (pNode) {
+				if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
+			}
+		}
 		OutHdl.Log() << std::endl;
 
 		OutHdl.Log() << "struct node momentum dofs:";
-
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
-			ASSERT(pNode != 0);
-			switch (pNode->GetStructNodeType()) {
-			case StructNode::STATIC:
-			case StructNode::DUMMY:
-				continue;
+			if (pNode) {
+				switch (pNode->GetStructNodeType()) {
+				case StructNode::STATIC:
+				case StructNode::DUMMY:
+					continue;
 
-			default:
-				break;
+				default:
+					break;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
 			}
-			OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
 		}
+		OutHdl.Log() << std::endl;
 
+		OutHdl.Log() << "struct node momentum eqs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
+			if (pNode) {
+				switch (pNode->GetStructNodeType()) {
+				case StructNode::STATIC:
+				case StructNode::DUMMY:
+					continue;
+
+				default:
+					break;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+			}
+		}
+		OutHdl.Log() << std::endl;
+
+		OutHdl.Log() << "struct displacement node dofs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (dynamic_cast<const StructNode *>(pNode) == 0) {
+				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+			}
+		}
+		OutHdl.Log() << std::endl;
+
+		OutHdl.Log() << "struct node eqs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (dynamic_cast<const StructNode *>(pNode) == 0) {
+				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
+			}
+		}
+		OutHdl.Log() << std::endl;
+
+		OutHdl.Log() << "struct node momentum dofs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (dynamic_cast<const StructNode *>(pNode) == 0) {
+				switch (pNode->GetStructDispNodeType()) {
+				case StructDispNode::STATIC:
+					continue;
+
+				default:
+					break;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
+			}
+		}
+		OutHdl.Log() << std::endl;
+
+		OutHdl.Log() << "struct node momentum eqs:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (dynamic_cast<const StructNode *>(pNode) == 0) {
+				switch (pNode->GetStructDispNodeType()) {
+				case StructNode::STATIC:
+					continue;
+
+				default:
+					break;
+				}
+				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+			}
+		}
 		OutHdl.Log() << std::endl;
 
 		OutHdl.Log() << "struct node labels:";
-
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
-			ASSERT(pNode != 0);
-			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
-				continue;
+			if (pNode) {
+				if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pNode->GetLabel();
 			}
-			OutHdl.Log() << " " << pNode->GetLabel();
 		}
+		OutHdl.Log() << std::endl;
 
+		OutHdl.Log() << "struct displacement node labels:";
+		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
+		{
+			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (dynamic_cast<const StructNode *>(pNode) == 0) {
+				OutHdl.Log() << " " << pNode->GetLabel();
+			}
+		}
 		OutHdl.Log() << std::endl;
 	}
 
@@ -551,19 +651,6 @@ DataManager::InitialJointAssembly(void)
 	ASSERT(DofData[DofOwner::STRUCTURALNODE].iNum > 0);
 
 	/* Nodi strutturali: mette gli indici ai DofOwner */
-#if 0
-	StructNode** ppFirstNode =
-		(StructNode**)NodeData[Node::STRUCTURAL].ppFirstNode;
-
-	StructNode** ppNode = ppFirstNode;
-	DofOwner* pTmp = DofData[DofOwner::STRUCTURALNODE].pFirstDofOwner;
-#endif
-
-#if 0
-	integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size();
-	NodeContainerType::const_iterator iNode = NodeData[Node::STRUCTURAL].NodeContainer.begin();
-#endif
-
 	bool pds =
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
@@ -579,7 +666,7 @@ DataManager::InitialJointAssembly(void)
 	for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 	{
-		iInitialNumDofs += dynamic_cast<const StructNode*>(i->second)->iGetInitialNumDof();
+		iInitialNumDofs += dynamic_cast<const StructDispNode*>(i->second)->iGetInitialNumDof();
 	}
 
 	/* Elementi: mette gli indici agli eventuali DofOwner */
@@ -653,7 +740,7 @@ DataManager::InitialJointAssembly(void)
 		n != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++n)
 	{
 		// numero di dof di un owner
-		const StructNode *pNode = dynamic_cast<const StructNode *>(n->second);
+		const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(n->second);
 		unsigned int iNumDofs = pNode->iGetInitialNumDof();
 		if (iNumDofs > 0) {
 			DofOwner* pFDO = const_cast<DofOwner *>(pNode->pGetDofOwner());
@@ -896,7 +983,7 @@ DataManager::InitialJointAssembly(void)
 	for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 		i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 	{
-		dynamic_cast<StructNode *>(i->second)->SetInitialValue(X);
+		dynamic_cast<StructDispNode *>(i->second)->SetInitialValue(X);
 	}
 
 	/* Setta i valori iniziali dei gradi di liberta' dei vincoli
@@ -936,48 +1023,60 @@ DataManager::InitialJointAssembly(void)
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
-			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+			if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
 
-			integer iFirstIndex = pNode->pGetDofOwner()->iFirstIndex;
+			int iOffset = 3;
+			if (pNode) {
+				iOffset = 6;
+			}
+
+			integer iFirstIndex = pDispNode->pGetDofOwner()->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
-			doublereal dPosStiff = pNode->dGetPositionStiffness();
-			doublereal dVelStiff = pNode->dGetVelocityStiffness();
+			doublereal dPosStiff = pDispNode->dGetPositionStiffness();
+			doublereal dVelStiff = pDispNode->dGetVelocityStiffness();
 
 			Vec3 TmpVec;
 
 			/* Posizione: k*Delta_x = k(x_0-x) + F */
-			TmpVec = pNode->GetXPrev() - pNode->GetXCurr();
+			TmpVec = pDispNode->GetXPrev() - pDispNode->GetXCurr();
 			pResHdl->Add(iFirstIndex + 1, TmpVec*dPosStiff);
 
 			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
-			Mat3x3 RDelta = pNode->GetRPrev().MulMT(pNode->GetRCurr());
-			TmpVec = Vec3(CGR_Rot::Param, RDelta);
-			pResHdl->Add(iFirstIndex + 4, TmpVec*dPosStiff);
+			Mat3x3 RDelta;
+			if (pNode) {
+				RDelta = pNode->GetRPrev().MulMT(pNode->GetRCurr());
+				TmpVec = Vec3(CGR_Rot::Param, RDelta);
+				pResHdl->Add(iFirstIndex + 4, TmpVec*dPosStiff);
+			}
 
 			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */
-			TmpVec = pNode->GetVPrev() - pNode->GetVCurr();
-			pResHdl->Add(iFirstIndex + 7, TmpVec*dVelStiff);
+			TmpVec = pDispNode->GetVPrev() - pDispNode->GetVCurr();
+			pResHdl->Add(iFirstIndex + iOffset + 1, TmpVec*dVelStiff);
+
 
 			/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
 			 *                                    k*(R_Delta*w0-w) + M */
-			const Vec3& wPrev(pNode->GetWPrev());
-			const Vec3& wCurr(pNode->GetWCurr());
+			if (pNode) {
+				const Vec3& wPrev(pNode->GetWPrev());
+				const Vec3& wCurr(pNode->GetWCurr());
 
-			if (pNode->bOmegaRotates()) {
-				/* con questa la velocita' angolare e' solidale
-				 * con il nodo */
-				TmpVec = RDelta*wPrev - wCurr;
-			} else {
-				/* con questa la velocita' angolare e' solidale
-				 * col riferimento assoluto */
-				TmpVec = wPrev - wCurr;
+				if (pNode->bOmegaRotates()) {
+					/* con questa la velocita' angolare e' solidale
+					 * con il nodo */
+					TmpVec = RDelta*wPrev - wCurr;
+				} else {
+					/* con questa la velocita' angolare e' solidale
+					 * col riferimento assoluto */
+					TmpVec = wPrev - wCurr;
+				}
+
+				pResHdl->Add(iFirstIndex + iOffset + 4, TmpVec*dVelStiff);
 			}
-
-			pResHdl->Add(iFirstIndex + 10, TmpVec*dVelStiff);
 		}
 
 		/* Elementi (con iteratore): */
@@ -1049,28 +1148,34 @@ DataManager::InitialJointAssembly(void)
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
 			const StructNode *pNode = dynamic_cast<const StructNode *>(i->second);
-			if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+			if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
 
-			integer iFirstIndex = pNode->pGetDofOwner()->iFirstIndex;
+			int iOffset = 3;
+			if (pNode) {
+				iOffset = 6;
+			}
+
+			integer iFirstIndex = pDispNode->pGetDofOwner()->iFirstIndex;
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
-			doublereal dPosStiff = pNode->dGetPositionStiffness();
-			doublereal dVelStiff = pNode->dGetVelocityStiffness();
+			doublereal dPosStiff = pDispNode->dGetPositionStiffness();
+			doublereal dVelStiff = pDispNode->dGetVelocityStiffness();
 
 			for (int iCnt = 1; iCnt <= 6; iCnt++) {
 				/* Posizione, rotazione */
-				integer iTmp = iFirstIndex+iCnt;
+				integer iTmp = iFirstIndex + iCnt;
 				pMatHdl->PutCoef(iTmp, iTmp, dPosStiff);
 
 				/* Velocita', velocita' angolare */
-				iTmp += 6;
+				iTmp += iOffset;
 				pMatHdl->PutCoef(iTmp, iTmp, dVelStiff);
 			}
 
-			if (pNode->bOmegaRotates()) {
+			if (pNode && pNode->bOmegaRotates()) {
 				/* con questi la velocita' angolare e' solidale con il nodo */
 
 				/* Velocita' angolare - termine di rotazione: R_Delta*w0/\ */
@@ -1081,18 +1186,18 @@ DataManager::InitialJointAssembly(void)
 
 				/* W1 in m(3, 2), -W1 in m(2, 3) */
 				doublereal d = TmpVec(1);
-				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 5, d);
-				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 6, -d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 6, iFirstIndex + 5, d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 5, iFirstIndex + 6, -d);
 
 				/* W2 in m(1, 3), -W2 in m(3, 1) */
 				d = TmpVec(2);
-				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 6, d);
-				pMatHdl->PutCoef(iFirstIndex + 12, iFirstIndex + 4, -d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 4, iFirstIndex + 6, d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 6, iFirstIndex + 4, -d);
 
 				/* W3 in m(2, 1), -W3 in m(1, 2) */
 				d = TmpVec(3);
-				pMatHdl->PutCoef(iFirstIndex + 11, iFirstIndex + 4, d);
-				pMatHdl->PutCoef(iFirstIndex + 10, iFirstIndex + 5, -d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 5, iFirstIndex + 4, d);
+				pMatHdl->PutCoef(iFirstIndex + iOffset + 4, iFirstIndex + 5, -d);
 			} /* altrimenti la velocita' angolare e' solidale con il nodo */
 		}
 
@@ -1135,7 +1240,7 @@ DataManager::InitialJointAssembly(void)
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			dynamic_cast<StructNode *>(i->second)->InitialUpdate(X);
+			dynamic_cast<StructDispNode *>(i->second)->InitialUpdate(X);
 		}
 	}
 
@@ -1238,20 +1343,6 @@ DataManager::SetValue(VectorHandler& X, VectorHandler& XP)
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 #endif /* HAVE_ISOPEN */
-#if 0
-		int count = 0;
-		while (!fp.eof()) {
-			char tmp;
-			count++;
-			fp.get(tmp);
-		}
-		count--;
-		if (count != (X.iGetSize()+XP.iGetSize())*sizeof(double)) {
-			silent_cerr("DataManager::SetValue(): "
-				"File(" << solArrFileName << ") too short!" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-#endif
 		fp.read((char*)X.pdGetVec() , X.iGetSize()*sizeof(double));
 		if (fp.gcount() != std::streamsize(X.iGetSize()*sizeof(double))) {
 			silent_cerr("DataManager::SetValue(): "

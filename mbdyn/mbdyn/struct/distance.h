@@ -44,8 +44,8 @@
 
 class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
 protected:
-	const StructNode	*pNode1;
-	const StructNode	*pNode2;
+	const StructDispNode	*pNode1;
+	const StructDispNode	*pNode2;
 	Vec3			Vec;
 	doublereal		dAlpha;
 	doublereal		dDistance;
@@ -67,7 +67,7 @@ protected:
 public:
 	/* Costruttore non banale */
 	DistanceJoint(unsigned int uL, const DofOwner* pDO,
-			const StructNode* pN1, const StructNode* pN2,
+			const StructDispNode* pN1, const StructDispNode* pN2,
 			const DriveCaller* pDC, flag fOut);
    
 	~DistanceJoint(void);

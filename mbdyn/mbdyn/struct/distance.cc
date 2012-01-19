@@ -45,7 +45,7 @@
 
 /* Costruttore non banale */
 DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
-		const StructNode* pN1, const StructNode* pN2,
+		const StructDispNode* pN1, const StructDispNode* pN2,
 		const DriveCaller* pDC, flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),

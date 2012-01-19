@@ -528,6 +528,7 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 			silent_cerr("### " << psElemNames[pTmpEl->GetElemType()] << "(" << pTmpEl->GetLabel() <<"):" << std::endl);
 			PrintResidual(ResHdl, -1);
 #endif
+
 		} while (Iter.bGetNext(pTmpEl));
 	}
 	if (ChangedEqStructure) {

@@ -39,6 +39,692 @@
 #include "body_vm.h"
 #include "dataman.h"
 
+/* Mass - begin */
+
+Mass::Mass(unsigned int uL,
+	const StructDispNode *pNode,
+	doublereal dMass,
+	flag fOut)
+: Elem(uL, fOut),
+ElemGravityOwner(uL, fOut),
+InitialAssemblyElem(uL, fOut),
+pNode(pNode),
+dMass(dMass)
+{
+	ASSERT(pNode != NULL);
+	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(dMass > 0.);
+}
+
+
+/* distruttore */
+Mass::~Mass(void)
+{
+	NO_OP;
+}
+
+
+/* momento statico */
+Vec3
+Mass::GetS_int(void) const
+{
+	return ::Zero3;
+}
+
+
+/* momento d'inerzia */
+Mat3x3
+Mass::GetJ_int(void) const
+{
+	return ::Zero3x3;
+}
+
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+Mass::Restart_int(std::ostream& out) const
+{
+	out << "  mass: " << GetLabel() << ", "
+		<< pNode->GetLabel() << ", " << dMass;
+
+	return out;
+}
+
+
+/* massa totale */
+doublereal
+Mass::dGetM(void) const
+{
+	return dMass;
+}
+
+/* momento statico */
+Vec3
+Mass::GetS(void) const
+{
+	return GetS_int();
+}
+
+/* momento d'inerzia */
+Mat3x3
+Mass::GetJ(void) const
+{
+	return GetJ_int();
+}
+
+/* nodo */
+const StructDispNode *
+Mass::pGetNode(void) const
+{
+	return pNode;
+}
+
+/* Accesso ai dati privati */
+unsigned int
+Mass::iGetNumPrivData(void) const
+{
+	return 2;
+}
+
+unsigned int
+Mass::iGetPrivDataIdx(const char *s) const
+{
+	if (strcmp(s, "E") == 0) {
+		// kinetic energy
+		return 1;
+	}
+
+	if (strcmp(s, "V") == 0) {
+		// potential energy
+		return 2;
+	}
+
+	return 0;
+}
+
+doublereal
+Mass::dGetPrivData(unsigned int i) const
+{
+	if (i == 1) {
+		// kinetic energy
+		const Vec3& Vn = pNode->GetVCurr();
+
+		return Vn.Dot()*dMass;
+	}
+
+	if (i == 2) {
+		// potential energy
+		const Vec3& Xn = pNode->GetXCurr();
+
+		Vec3 GravityAcceleration;
+		if (GravityOwner::bGetGravity(Xn, GravityAcceleration)) {
+			return -Xn.Dot(GravityAcceleration)*dMass;
+		}
+	}
+
+	return 0.;
+}
+
+void
+Mass::AssVecRBK_int(SubVectorHandler& WorkVec)
+{
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	Vec3 s0;
+
+	integer iIdx = 0;
+	if (dynamic_cast<DynamicMass *>(this)) {
+		iIdx = 3;
+	}
+
+	s0 = pNode->GetXCurr()*dMass;
+
+	// force
+	Vec3 f;
+	f = pRBK->GetXPP()*dMass;
+
+	WorkVec.Sub(iIdx + 1, f);
+}
+
+void
+Mass::AssMatsRBK_int(
+	FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB,
+	const doublereal& dCoef)
+{
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	integer iIdx = 0;
+	if (dynamic_cast<DynamicMass *>(this)) {
+		iIdx = 3;
+	}
+
+	// f: delta x
+	Mat3x3 MTmp(MatCross, pRBK->GetWP());
+	MTmp += Mat3x3(MatCrossCross, pRBK->GetW(), pRBK->GetW());
+
+	WMA.Add(iIdx + 1, 1, MTmp*(dMass*dCoef));
+}
+
+/* Mass - end */
+
+
+/* DynamicMass - begin */
+
+DynamicMass::DynamicMass(unsigned int uL,
+	const DynamicStructDispNode* pNode,
+	doublereal dMass,
+	flag fOut)
+: Elem(uL, fOut),
+Mass(uL, pNode, dMass, fOut)
+{
+	NO_OP;
+}
+
+
+/* distruttore */
+DynamicMass::~DynamicMass(void)
+{
+	NO_OP;
+}
+
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+DynamicMass::Restart(std::ostream& out) const
+{
+	Mass::Restart_int(out) << ';' << std::endl;
+
+	return out;
+}
+
+
+VariableSubMatrixHandler&
+DynamicMass::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("DynamicMass::AssJac");
+
+	/* Casting di WorkMat */
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	integer iNumRows = 3;
+	if (pNode->pGetRBK()) {
+		iNumRows = 6;
+	}
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	WM.ResizeReset(iNumRows, 3);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex()+i */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WM.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	if (iNumRows == 6) {
+		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+		for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+			WM.PutRowIndex(3 + iCnt, iFirstMomentumIndex + iCnt);
+		}
+	}
+
+	AssMats(WM, WM, dCoef, g, GravityAcceleration);
+
+	return WorkMat;
+}
+
+
+void
+DynamicMass::AssMats(VariableSubMatrixHandler& WorkMatA,
+	VariableSubMatrixHandler& WorkMatB,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("DynamicMass::AssMats");
+
+	/* Casting di WorkMat */
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	integer iNumRows = 3;
+	if (g) {
+		iNumRows = 6;
+	}
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	WMA.ResizeReset(iNumRows, 3);
+	WMB.ResizeReset(3, 3);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex()+i */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WMA.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WMA.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+
+		WMB.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+		WMB.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	if (g) {
+		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+		for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+			WMA.PutRowIndex(3 + iCnt, iFirstMomentumIndex + iCnt);
+		}
+	}
+
+	AssMats(WMA, WMB, 1., g, GravityAcceleration);
+}
+
+
+void
+DynamicMass::AssMats(FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB,
+	doublereal dCoef,
+	bool bGravity,
+	const Vec3& GravityAcceleration)
+{
+	DEBUGCOUTFNAME("DynamicMass::AssMats");
+
+	/*
+	 * momentum:
+	 *
+	 * m * I DeltaV - S /\ DeltagP + ( S /\ W ) /\ Deltag
+	 */
+	WMB.IncCoef(1, 1, dMass);
+	WMB.IncCoef(2, 2, dMass);
+	WMB.IncCoef(3, 3, dMass);
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+	if (pRBK) {
+		AssMatsRBK_int(WMA, WMB, dCoef);
+	}
+}
+
+
+SubVectorHandler&
+DynamicMass::AssRes(SubVectorHandler& WorkVec,
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUTFNAME("DynamicMass::AssRes");
+
+	/* Se e' definita l'accelerazione di gravita',
+	 * la aggiunge (solo al residuo) */
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	integer iNumRows = 3;
+	if (g || pRBK) {
+		iNumRows = 6;
+	}
+
+	WorkVec.ResizeReset(iNumRows);
+
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= iNumRows; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	const Vec3& V(pNode->GetVCurr());
+
+	/* Quantita' di moto: R[1] = Q */
+	WorkVec.Sub(1, V*dMass);
+
+	if (g) {
+		WorkVec.Add(3 + 1, GravityAcceleration*dMass);
+	}
+
+	if (pRBK) {
+		AssVecRBK_int(WorkVec);
+	}
+
+	const DynamicStructDispNode *pDN = dynamic_cast<const DynamicStructDispNode *>(pNode);
+	ASSERT(pDN != 0);
+
+	pDN->AddInertia(dMass);
+
+	return WorkVec;
+}
+
+
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler&
+DynamicMass::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUTFNAME("DynamicMass::InitialAssJac");
+
+	/* Casting di WorkMat */
+	WorkMat.SetNullMatrix();
+
+	return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+DynamicMass::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUTFNAME("DynamicMass::InitialAssRes");
+
+	WorkVec.Resize(0);
+
+	return WorkVec;
+}
+
+
+/* Usata per inizializzare la quantita' di moto */
+void
+DynamicMass::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* XP */ ,
+	SimulationEntity::Hints *ph)
+{
+	integer iFirstIndex = pNode->iGetFirstMomentumIndex();
+
+	const Vec3& V(pNode->GetVCurr());
+	X.Add(iFirstIndex + 1, V*dMass);
+}
+
+/* momentum */
+Vec3
+DynamicMass::GetB_int(void) const
+{
+	const Vec3& V(pNode->GetVCurr());
+
+	return V*dMass;
+}
+
+/* DynamicMass - end */
+
+
+/* StaticMass - begin */
+
+StaticMass::StaticMass(unsigned int uL,
+	const StaticStructDispNode* pNode,
+	doublereal dMass,
+	flag fOut)
+: Elem(uL, fOut),
+Mass(uL, pNode, dMass, fOut)
+{
+	NO_OP;
+}
+
+
+/* distruttore */
+StaticMass::~StaticMass(void)
+{
+	NO_OP;
+}
+
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+StaticMass::Restart(std::ostream& out) const
+{
+	Mass::Restart_int(out);
+
+	out << ';' << std::endl;
+
+	return out;
+}
+
+
+VariableSubMatrixHandler&
+StaticMass::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("StaticMass::AssJac");
+
+	/* Casting di WorkMat */
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	WM.ResizeReset(6, 6);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex() + i */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+		WM.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	if (AssMats(WM, WM, dCoef)) {
+		WorkMat.SetNullMatrix();
+	}
+
+	return WorkMat;
+}
+
+
+void
+StaticMass::AssMats(VariableSubMatrixHandler& WorkMatA,
+	VariableSubMatrixHandler& WorkMatB,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUTFNAME("StaticMass::AssMats");
+
+	/* Casting di WorkMat */
+	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
+	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
+
+	/* Dimensiona e resetta la matrice di lavoro */
+	WMA.ResizeReset(6, 6);
+	WMB.ResizeReset(6, 6);
+
+	/* Setta gli indici della matrice - le incognite sono ordinate come:
+	 *   - posizione (3)
+	 *   - parametri di rotazione (3)
+	 *   - quantita' di moto (3)
+	 *   - momento della quantita' di moto
+	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
+	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
+	 * e' dato da iGetFirstPositionIndex() + i */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
+		WMA.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		WMA.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+
+		WMB.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		WMB.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	if (AssMats(WMA, WMB, 1.)) {
+		WorkMatA.SetNullMatrix();
+		WorkMatB.SetNullMatrix();
+	}
+}
+
+
+bool
+StaticMass::AssMats(FullSubMatrixHandler& WMA,
+	FullSubMatrixHandler& WMB,
+	doublereal dCoef)
+{
+	DEBUGCOUTFNAME("StaticMass::AssMats");
+
+	/* Se e' definita l'accelerazione di gravita',
+	 * la aggiunge (solo al residuo) */
+	Vec3 Acceleration(Zero3);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
+
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	if (!g && !pRBK) {
+		/* Caller will set WMA & WMB to null matrix */
+		return true;
+	}
+
+	if (pRBK) {
+		AssMatsRBK_int(WMA, WMB, dCoef);
+	}
+
+	return false;
+}
+
+
+SubVectorHandler&
+StaticMass::AssRes(SubVectorHandler& WorkVec,
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUTFNAME("StaticMass::AssRes");
+
+	/* Se e' definita l'accelerazione di gravita',
+	 * la aggiunge (solo al residuo) */
+	Vec3 Acceleration(Zero3);
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(), Acceleration);
+
+	/* W is uninitialized because its use is conditioned by w */
+	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
+
+	if (!g && !pRBK) {
+		WorkVec.Resize(0);
+		return WorkVec;
+	}
+
+	WorkVec.ResizeReset(3);
+
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+	}
+
+	if (g) {
+		WorkVec.Add(1, Acceleration*dMass);
+	}
+
+	if (pRBK) {
+		AssVecRBK_int(WorkVec);
+	}
+
+	return WorkVec;
+}
+
+
+/* inverse dynamics capable element */
+bool
+StaticMass::bInverseDynamics(void) const
+{
+	return true;
+}
+
+
+SubVectorHandler&
+StaticMass::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ ,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	InverseDynamics::Order iOrder)
+{
+	DEBUGCOUTFNAME("DynamicMass::AssRes");
+	
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Se e' definita l'accelerazione di gravita', la aggiunge */
+	Vec3 GravityAcceleration;
+	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
+		GravityAcceleration);
+
+	WorkVec.ResizeReset(3);
+
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	Vec3 Acceleration = pNode->GetXPPCurr();
+	if (g) {
+		Acceleration -= GravityAcceleration;
+	}
+
+	WorkVec.Sub(1, Acceleration*dMass);
+
+	return WorkVec;
+}
+
+
+/* Contributo allo jacobiano durante l'assemblaggio iniziale */
+VariableSubMatrixHandler&
+StaticMass::InitialAssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUTFNAME("StaticMass::InitialAssJac");
+
+	WorkMat.SetNullMatrix();
+
+	return WorkMat;
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+StaticMass::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUTFNAME("StaticMass::InitialAssRes");
+
+	WorkVec.Resize(0);
+
+	return WorkVec;
+}
+
+
+/* Usata per inizializzare la quantita' di moto */
+void
+StaticMass::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* XP */ ,
+	SimulationEntity::Hints *ph)
+{
+	NO_OP;
+}
+
+/* StaticMass - end */
+
+
 /* Body - begin */
 
 Body::Body(unsigned int uL,
@@ -146,7 +832,7 @@ Body::pGetNode(void) const
 unsigned int
 Body::iGetNumPrivData(void) const
 {
-	return 1;
+	return 2;
 }
 
 unsigned int
@@ -185,11 +871,10 @@ Body::dGetPrivData(unsigned int i) const
 
 	if (i == 2) {
 		// potential energy
-		const Vec3& Xn = pNode->GetXCurr();
-
+		Vec3 X(pNode->GetXCurr() + pNode->GetRCurr()*Xgc);
 		Vec3 GravityAcceleration;
-		if (GravityOwner::bGetGravity(pNode->GetXCurr(), GravityAcceleration)) {
-			return -Xn.Dot(GravityAcceleration)*dMass;
+		if (GravityOwner::bGetGravity(X, GravityAcceleration)) {
+			return -X.Dot(GravityAcceleration)*dMass;
 		}
 	}
 
@@ -493,7 +1178,7 @@ DynamicBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ )
 {
-	DEBUGCOUTFNAME("Body::DynamicAssRes");
+	DEBUGCOUTFNAME("DynamicBody::AssRes");
 
 	/* Se e' definita l'accelerazione di gravita',
 	 * la aggiunge (solo al residuo) */
@@ -1019,7 +1704,8 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	KeyTable K(HP, sKeyWords);
 
 	/* nodo collegato */
-	const StructNode* pStrNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+	const StructDispNode *pStrDispNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+	const StructNode *pStrNode = dynamic_cast<const StructNode *>(pStrDispNode);
 
 	/* may be determined by a special DataManager parameter... */
 	bool bStaticModel = pDM->bIsStaticModel();
@@ -1069,10 +1755,10 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	}
 
 	doublereal dm = 0.;
-	ReferenceFrame RF(pStrNode);
-	Vec3 Xgc(Zero3);
-	Vec3 STmp(Zero3);
-	Mat3x3 J(Zero3x3);
+	ReferenceFrame RF(pStrDispNode);
+	Vec3 Xgc(::Zero3);
+	Vec3 STmp(::Zero3);
+	Mat3x3 J(::Zero3x3);
 	bool bNegative(false);
 
 	if (HP.IsKeyWord("allow" "negative" "mass")) {
@@ -1092,55 +1778,57 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		DEBUGLCOUT(MYDEBUG_INPUT, "Mass(" << iCnt << ") = " << dMTmp << std::endl);
 		dm += dMTmp;
 
-		/* posiz. c.g. */
-		Vec3 XgcTmp(HP.GetPosRel(RF));
-		if (iNumMasses == 1) {
-			Xgc = XgcTmp;
+		if (pStrNode) {
+			/* posiz. c.g. */
+			Vec3 XgcTmp(HP.GetPosRel(RF));
+			if (iNumMasses == 1) {
+				Xgc = XgcTmp;
 
-		} else {
-			STmp += XgcTmp*dMTmp;
-		}
-
-		DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt
-			<< ") center of gravity = " << XgcTmp << std::endl);
-
-		/*
-		 * matrice del mom. d'inerzia
-		 *
-		 * Usa la funzione che legge una matrice qualsiasi con parole chiave
-		 * per forme abbreviate:
-		 *   - null: matrice vuota
-		 *   - eye:  matrice identita'
-		 *   - diag: matrice diagonale, seguita da 3 reali
-		 *   - sym:  matrice simmetrica, seguita da 6 reali,
-		 *           letta come triangolare superiore ordinata per righe:
-		 *           m11, m12, m13,    m22, m23,    m33
-		 *   - matrice generica, costituita da 9 reali, letta per righe:
-		 *           m11, m12, m13,    m21, m22, m23,   m31, m32, m33
-		 *
-		 * Si assume inoltre che la matrice dei momenti di inerzia
-		 * sia espressa nel centro di massa del corpo, quindi viene
-		 * corretta per l'eventuale offset rispetto al nodo
-		 */
-		Mat3x3 JTmp(HP.GetMatRel(RF));
-		DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
-			<< ") =" << std::endl << JTmp << std::endl);
-
-		if (HP.IsKeyWord("inertial")) {
-			DEBUGLCOUT(MYDEBUG_INPUT,
-				"supplied in inertial reference frame" << std::endl);
-			if (HP.IsKeyWord("node")) {
-				NO_OP;
 			} else {
-				Mat3x3 RTmp(HP.GetRotRel(RF));
-				JTmp = RTmp*JTmp.MulMT(RTmp);
+				STmp += XgcTmp*dMTmp;
 			}
-			DEBUGLCOUT(MYDEBUG_INPUT,
-				"Inertia matrix of mass(" << iCnt << ") "
-				"in current frame =" << JTmp << std::endl);
-		}
 
-		J += JTmp - Mat3x3(MatCrossCross, XgcTmp, XgcTmp*dMTmp);
+			DEBUGLCOUT(MYDEBUG_INPUT, "position of mass(" << iCnt
+				<< ") center of gravity = " << XgcTmp << std::endl);
+
+			/*
+			 * matrice del mom. d'inerzia
+			 *
+			 * Usa la funzione che legge una matrice qualsiasi con parole chiave
+			 * per forme abbreviate:
+			 *   - null: matrice vuota
+			 *   - eye:  matrice identita'
+			 *   - diag: matrice diagonale, seguita da 3 reali
+			 *   - sym:  matrice simmetrica, seguita da 6 reali,
+			 *           letta come triangolare superiore ordinata per righe:
+			 *           m11, m12, m13,    m22, m23,    m33
+			 *   - matrice generica, costituita da 9 reali, letta per righe:
+			 *           m11, m12, m13,    m21, m22, m23,   m31, m32, m33
+			 *
+			 * Si assume inoltre che la matrice dei momenti di inerzia
+			 * sia espressa nel centro di massa del corpo, quindi viene
+			 * corretta per l'eventuale offset rispetto al nodo
+			 */
+			Mat3x3 JTmp(HP.GetMatRel(RF));
+			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
+				<< ") =" << std::endl << JTmp << std::endl);
+
+			if (HP.IsKeyWord("inertial")) {
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"supplied in inertial reference frame" << std::endl);
+				if (HP.IsKeyWord("node")) {
+					NO_OP;
+				} else {
+					Mat3x3 RTmp(HP.GetRotRel(RF));
+					JTmp = RTmp*JTmp.MulMT(RTmp);
+				}
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Inertia matrix of mass(" << iCnt << ") "
+					"in current frame =" << JTmp << std::endl);
+			}
+
+			J += JTmp - Mat3x3(MatCrossCross, XgcTmp, XgcTmp*dMTmp);
+		}
 	}
 
 	if (!bNegative && dm < 0.) {
@@ -1150,7 +1838,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (iNumMasses > 1) {
+	if (iNumMasses > 1 && pStrNode) {
 		if (dm < std::numeric_limits<doublereal>::epsilon()) {
 			silent_cerr("Body(" << uLabel << "): "
 				"mass value " << dm << " is too small at line "
@@ -1165,27 +1853,36 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		<< "Center of mass: " << Xgc << std::endl
 		<< "Inertia matrix:" << std::endl << J << std::endl);
 
-	const DynamicStructNode* pDynamicNode = 0;
-	const StaticStructNode* pStaticNode = 0;
+	const DynamicStructDispNode* pDynamicDispNode = 0;
+	const StaticStructDispNode* pStaticDispNode = 0;
+	const char *sElemName;
+	const char *sNodeName;
+	if (pStrNode) {
+		sElemName = "Body";
+		sNodeName = "StructNode";
+	} else {
+		sElemName = "Mass";
+		sNodeName = "StructDispNode";
+	}
 
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
-		pStaticNode = dynamic_cast<const StaticStructNode *>(pStrNode);
-		if (pStaticNode == 0 || pStaticNode->GetStructNodeType() != StructNode::STATIC) {
-			silent_cerr("Body(" << uLabel << "): "
+		pStaticDispNode = dynamic_cast<const StaticStructDispNode *>(pStrDispNode);
+		if (pStaticDispNode == 0 || pStaticDispNode->GetStructDispNodeType() != StructDispNode::STATIC) {
+			silent_cerr(sElemName << "(" << uLabel << "): "
 				"illegal structural node type "
-				"for StructNode(" << pStrNode->GetLabel() << ") "
+				"for " << sNodeName << "(" << pStrDispNode->GetLabel() << ") "
 				"in " << (bStaticModel ? "static model" : "inverse dynamics") << " analysis "
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 	} else {
-		pDynamicNode = dynamic_cast<const DynamicStructNode*>(pStrNode);
-		if (pDynamicNode == 0 || pDynamicNode->GetStructNodeType() != StructNode::DYNAMIC) {
-			silent_cerr("Body(" << uLabel << "): "
+		pDynamicDispNode = dynamic_cast<const DynamicStructDispNode*>(pStrDispNode);
+		if (pDynamicDispNode == 0 || pDynamicDispNode->GetStructDispNodeType() != StructDispNode::DYNAMIC) {
+			silent_cerr(sElemName << "(" << uLabel << "): "
 				"illegal structural node type "
-				"for StructNode(" << pStrNode->GetLabel() << ") "
+				"for " << sNodeName << "(" << pStrDispNode->GetLabel() << ") "
 				"at line " << HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1197,19 +1894,31 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	Elem* pEl = NULL;
 	if (bStaticModel || bInverseDynamics) {
 		/* static */
-		SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
-			StaticBody(uLabel, pStaticNode,
-				dm, Xgc, J, fOut));
+		if (pStrNode) {
+			SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
+				StaticBody(uLabel, dynamic_cast<const StaticStructNode *>(pStaticDispNode),
+					dm, Xgc, J, fOut));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pEl, StaticMass,
+				StaticMass(uLabel, pStaticDispNode,
+					dm, fOut));
+		}
 
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
-			DynamicBody(uLabel, pDynamicNode,
-				dm, Xgc, J, fOut));
+		if (pStrNode) {
+			SAFENEWWITHCONSTRUCTOR(pEl, DynamicBody,
+				DynamicBody(uLabel, dynamic_cast<const DynamicStructNode *>(pDynamicDispNode),
+					dm, Xgc, J, fOut));
+		} else {
+			SAFENEWWITHCONSTRUCTOR(pEl, DynamicMass,
+				DynamicMass(uLabel, pDynamicDispNode,
+					dm, fOut));
+		}
 	}
 
 	pDM->GetLogFile()
 		<< "body: " << uLabel
-		<< ' ' << pStrNode->GetLabel()
+		<< ' ' << pStrDispNode->GetLabel()
 		<< ' ' << dm
 		<< ' ' << Xgc
 		<< ' ' << J

@@ -62,11 +62,13 @@ protected:
 	};
 
 	struct NodeData {
-		const StructNode *pNode;
+		const StructDispNode *pNode;
 		std::vector<OffsetData> Offsets;
 		Vec3 F;
 		Vec3 M;
 	};
+
+	unsigned m_uResSize;
 
 	std::vector<NodeData> Nodes;
 	unsigned uPoints;
@@ -93,10 +95,10 @@ protected:
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);
    
-	void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
-	void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
-	void RecvFromStream(std::istream& inf);
-	void RecvFromFileDes(int infd);
+	virtual void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
+	virtual void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
+	virtual void RecvFromStream(std::istream& inf);
+	virtual void RecvFromFileDes(int infd);
 
 public:
 	/* Costruttore */
@@ -105,7 +107,7 @@ public:
 		const StructNode *pRefNode,
 		bool bUseReferenceNodeForces,
 		bool bRotateReferenceNodeForces,
-		std::vector<const StructNode *>& Nodes,
+		std::vector<const StructDispNode *>& Nodes,
 		std::vector<Vec3>& Offsets,
 		std::vector<unsigned>& Labels,
 		SpMapMatrixHandler *pH,
@@ -143,6 +145,50 @@ public:
 };
 
 /* StructMappingExtForce - end */
+
+/* StructMembraneMappingExtForce - begin */
+
+class StructMembraneMappingExtForce : virtual public Elem, public StructMappingExtForce {
+public:
+	struct NodeConnData {
+		const StructDispNode *pNode[4];
+		doublereal h1;
+		doublereal h2;
+	};
+
+protected:
+	std::vector<NodeConnData> NodesConn;
+
+	virtual void SendToStream(std::ostream& outf, ExtFileHandlerBase::SendWhen when);
+	virtual void SendToFileDes(int outfd, ExtFileHandlerBase::SendWhen when);
+	virtual void RecvFromStream(std::istream& inf);
+	virtual void RecvFromFileDes(int infd);
+
+public:
+	/* Costruttore */
+	StructMembraneMappingExtForce(unsigned int uL,
+		DataManager *pDM,
+		const StructNode *pRefNode,
+		bool bUseReferenceNodeForces,
+		bool bRotateReferenceNodeForces,
+		std::vector<const StructDispNode *>& Nodes,
+		std::vector<Vec3>& Offsets,
+		std::vector<unsigned>& Labels,
+		std::vector<NodeConnData>& NodesConn,
+		SpMapMatrixHandler *pH,
+		std::vector<uint32_t>& MappedLabels,
+		bool bLabels,
+		bool bOutputAccelerations,
+		unsigned uRRot,
+		ExtFileHandlerBase *pEFH,
+		bool bSendAfterPredict,
+		int iCoupling,
+		flag fOut);
+
+	virtual ~StructMembraneMappingExtForce(void);
+};
+
+/* StructMembraneMappingExtForce - end */
 
 class DataManager;
 class MBDynParser;

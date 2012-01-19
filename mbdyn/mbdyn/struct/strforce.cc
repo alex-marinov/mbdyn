@@ -40,6 +40,297 @@
 #include "strforce_impl.h"
 #include "tpldrive_impl.h"
 
+/* AbsoluteDispForce - begin */
+
+/* Costruttore non banale */
+
+AbsoluteDispForce::AbsoluteDispForce(unsigned int uL,
+	const StructDispNode* pN,
+	const TplDriveCaller<Vec3>* pDC,
+	flag fOut)
+: Elem(uL, fOut),
+Force(uL, fOut),
+f(pDC),
+pNode(pN)
+{
+	NO_OP;
+}
+
+
+AbsoluteDispForce::~AbsoluteDispForce(void)
+{
+	NO_OP;
+}
+
+void
+AbsoluteDispForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 3;
+	*piNumCols = 1;
+}
+
+void
+AbsoluteDispForce::InitialWorkSpaceDim(
+	integer* piNumRows,
+	integer* piNumCols) const
+{
+	*piNumRows = 3;
+	*piNumCols = 1;
+}
+
+/* Contributo al file di restart */
+std::ostream&
+AbsoluteDispForce::Restart(std::ostream& out) const
+{
+	Force::Restart(out) << ", absolute displacement, "
+		<< pNode->GetLabel() << ", ",
+		f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return out;
+}
+
+/* Assembla il residuo */
+SubVectorHandler&
+AbsoluteDispForce::AssRes(SubVectorHandler& WorkVec,
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
+
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici delle incognite del nodo */
+	integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+	}
+
+	WorkVec.Add(1, f.Get());
+
+	return WorkVec;
+}
+
+/* Inverse Dynamics*/
+SubVectorHandler&
+AbsoluteDispForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
+
+	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
+}
+
+void
+AbsoluteDispForce::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::FORCES)) {
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode->GetLabel()
+				<< " " << f.Get()
+				<< " " << pNode->GetXCurr()
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
+	}
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+AbsoluteDispForce::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::InitialAssRes()" << std::endl);
+
+	integer iNumRows;
+	integer iNumCols;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici delle incognite del nodo */
+	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	}
+
+	WorkVec.Add(1, f.Get());
+
+	return WorkVec;
+}
+
+void
+AbsoluteDispForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(1);
+	connectedNodes[0] = pNode;
+}
+
+/* AbsoluteDispForce - end */
+
+
+/* AbsoluteInternalDispForce - begin */
+
+/* Costruttore non banale */
+
+AbsoluteInternalDispForce::AbsoluteInternalDispForce(unsigned int uL,
+	const StructDispNode* pN1,
+	const StructDispNode* pN2,
+	const TplDriveCaller<Vec3>* pDC,
+	flag fOut)
+: Elem(uL, fOut),
+Force(uL, fOut),
+f(pDC),
+pNode1(pN1),
+pNode2(pN2)
+{
+	NO_OP;
+}
+
+
+AbsoluteInternalDispForce::~AbsoluteInternalDispForce(void)
+
+{
+	NO_OP;
+}
+
+void
+AbsoluteInternalDispForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
+	*piNumRows = 6;
+	*piNumCols = 1;
+}
+
+void
+AbsoluteInternalDispForce::InitialWorkSpaceDim(
+	integer* piNumRows,
+	integer* piNumCols) const
+{
+	*piNumRows = 6;
+	*piNumCols = 1;
+}
+
+/* Contributo al file di restart */
+std::ostream&
+AbsoluteInternalDispForce::Restart(std::ostream& out) const
+{
+	Force::Restart(out) << ", absolute internal displacement, "
+		<< pNode1->GetLabel() << ", "
+		<< pNode2->GetLabel() << ", ",
+		f.pGetDriveCaller()->Restart(out) << ';' << std::endl;
+	return out;
+}
+
+/* Assembla il residuo */
+SubVectorHandler&
+AbsoluteInternalDispForce::AssRes(SubVectorHandler& WorkVec,
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
+
+	integer iNumRows;
+	integer iNumCols;
+	WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici delle incognite del nodo */
+	integer iFirstMomentumIndex1 = pNode1->iGetFirstMomentumIndex();
+	integer iFirstMomentumIndex2 = pNode2->iGetFirstMomentumIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex1 + iCnt);
+		WorkVec.PutRowIndex(3 + iCnt, iFirstMomentumIndex2 + iCnt);
+	}
+
+	Vec3 fTmp(f.Get());
+	WorkVec.Add(1, fTmp);
+	WorkVec.Sub(3 + 1, fTmp);
+
+	return WorkVec;
+}
+
+/* Inverse Dynamics*/
+SubVectorHandler&
+AbsoluteInternalDispForce::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr,
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	int iOrder)
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
+
+	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
+}
+
+void
+AbsoluteInternalDispForce::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::FORCES)) {
+			Vec3 fTmp(f.Get());
+			OH.Forces()
+				<< GetLabel()
+				<< " " << pNode1->GetLabel()
+				<< " " << fTmp
+				<< " " << pNode1->GetXCurr()
+				<< " " << pNode2->GetLabel()
+				<< " " << -fTmp
+				<< " " << pNode2->GetXCurr()
+				<< std::endl;
+		}
+
+		/* TODO: NetCDF */
+	}
+}
+
+
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
+AbsoluteInternalDispForce::InitialAssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& /* XCurr */ )
+{
+	DEBUGCOUT("Entering AbsoluteDispForce::InitialAssRes()" << std::endl);
+
+	integer iNumRows;
+	integer iNumCols;
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+	WorkVec.ResizeReset(iNumRows);
+
+	/* Indici delle incognite del nodo */
+	integer iFirstPositionIndex1 = pNode1->iGetFirstPositionIndex();
+	integer iFirstPositionIndex2 = pNode2->iGetFirstPositionIndex();
+	for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+		WorkVec.PutRowIndex(iCnt, iFirstPositionIndex1 + iCnt);
+		WorkVec.PutRowIndex(3 + iCnt, iFirstPositionIndex2 + iCnt);
+	}
+
+	Vec3 fTmp(f.Get());
+	WorkVec.Add(1, fTmp);
+	WorkVec.Sub(3 + 1, fTmp);
+
+	return WorkVec;
+}
+
+void
+AbsoluteInternalDispForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(2);
+	connectedNodes[0] = pNode1;
+	connectedNodes[1] = pNode2;
+}
+
+/* AbsoluteDispForce - end */
+
+
 /* StructuralForce - begin */
 
 /* Costruttore */
@@ -2031,6 +2322,7 @@ Elem *
 ReadStructuralForce(DataManager* pDM,
 	MBDynParser& HP,
 	unsigned int uLabel,
+	bool bDisp,
 	bool bCouple,
 	bool bFollower,
 	bool bInternal)
@@ -2039,8 +2331,12 @@ ReadStructuralForce(DataManager* pDM,
 	const char *sType = bCouple ? "Couple" : "Force";
 
 	/* nodo collegato */
-	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-	ReferenceFrame rf(pNode);
+	const StructDispNode* pDispNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+	const StructNode* pNode = dynamic_cast<const StructNode *>(pDispNode);
+	ReferenceFrame rf;
+	if (pNode) {
+		rf = ReferenceFrame(pNode);
+	}
 	Vec3 Arm(Zero3);
 
 	// FIXME: legacy...
@@ -2049,57 +2345,76 @@ ReadStructuralForce(DataManager* pDM,
 	bool bGotPosition(false);
 
 	/* distanza dal nodo (vettore di 3 elementi) (solo se e' una forza) */
-	if (HP.IsKeyWord("position")) {
-		Arm = HP.GetPosRel(rf);
-		bGotPosition = true;
-		DEBUGCOUT("Arm is supplied" << std::endl);
-
-	} else {
-		if (!bCouple) {
+	if (!bDisp) {
+		if (pNode == 0) {
 			silent_cerr(sType << "(" << uLabel << "): "
-				"\"position\" keyword expected "
-				"at line " << HP.GetLineData() << "; "
-				"still using deprecated syntax?"
-				<< std::endl);
+				"invalid node type at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
-			if (bFollower) {
-				try {
-					Dir = HP.GetUnitVecRel(rf);
-				} catch (ErrNullNorm) {
-					silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
-					throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-				}
-
-			} else {
-				try {
-					Dir = HP.GetUnitVecAbs(rf);
-				} catch (ErrNullNorm) {
-					silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
-					throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
-				}
-			}
-
+		if (HP.IsKeyWord("position")) {
 			Arm = HP.GetPosRel(rf);
+			bGotPosition = true;
+			DEBUGCOUT("Arm is supplied" << std::endl);
 
-			bLegacy = true;
+		} else {
+			if (!bCouple) {
+				silent_cerr(sType << "(" << uLabel << "): "
+					"\"position\" keyword expected "
+					"at line " << HP.GetLineData() << "; "
+					"still using deprecated syntax?"
+					<< std::endl);
+
+				if (bFollower) {
+					try {
+						Dir = HP.GetUnitVecRel(rf);
+					} catch (ErrNullNorm) {
+						silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
+						throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+					}
+
+				} else {
+					try {
+						Dir = HP.GetUnitVecAbs(rf);
+					} catch (ErrNullNorm) {
+						silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
+						throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
+				Arm = HP.GetPosRel(rf);
+
+				bLegacy = true;
+			}
 		}
 	}
 
+	const StructDispNode *pDispNode2 = 0;
 	const StructNode *pNode2 = 0;
 	Vec3 Arm2(Zero3);
 	if (bInternal) {
 		/* nodo collegato */
-		pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-		ReferenceFrame rf2(pNode2);
+		pDispNode2 = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+		pNode2 = dynamic_cast<const StructNode *>(pDispNode2);
 
-		/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
-		if (HP.IsKeyWord("position")) {
-			Arm2 = HP.GetPosRel(rf2, rf, Arm);
-			bGotPosition = true;
-			DEBUGCOUT("Node 2 arm is supplied" << std::endl);
+		if (!bDisp) {
+			if (pNode2 == 0) {
+				silent_cerr(sType << "(" << uLabel << "): "
+					"invalid node type at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 
-		} else if (bLegacy) {
-			Arm2 = HP.GetPosRel(rf2, rf, Arm);
+			ReferenceFrame rf2(pNode2);
+
+			/* distanza dal nodo (vettore di 3 elementi) ( solo se e' una forza) */
+			if (HP.IsKeyWord("position")) {
+				Arm2 = HP.GetPosRel(rf2, rf, Arm);
+				bGotPosition = true;
+				DEBUGCOUT("Node 2 arm is supplied" << std::endl);
+
+			} else if (bLegacy) {
+				Arm2 = HP.GetPosRel(rf2, rf, Arm);
+			}
 		}
 	}
 
@@ -2131,14 +2446,28 @@ ReadStructuralForce(DataManager* pDM,
 	if (!bCouple) {
 		if (!bFollower) {
 			if (!bInternal) {
-				SAFENEWWITHCONSTRUCTOR(pEl,
-					AbsoluteForce,
-					AbsoluteForce(uLabel, pNode, pDC, Arm, fOut));
+				if (bDisp) {
+					SAFENEWWITHCONSTRUCTOR(pEl,
+						AbsoluteDispForce,
+						AbsoluteDispForce(uLabel, pDispNode, pDC, fOut));
+
+				} else {
+					SAFENEWWITHCONSTRUCTOR(pEl,
+						AbsoluteForce,
+						AbsoluteForce(uLabel, pNode, pDC, Arm, fOut));
+				}
 
 			} else {
-				SAFENEWWITHCONSTRUCTOR(pEl,
-					AbsoluteInternalForce,
-					AbsoluteInternalForce(uLabel, pNode, pNode2, pDC, Arm, Arm2, fOut));
+				if (bDisp) {
+					SAFENEWWITHCONSTRUCTOR(pEl,
+						AbsoluteInternalDispForce,
+						AbsoluteInternalDispForce(uLabel, pDispNode, pDispNode2, pDC, fOut));
+
+				} else {
+					SAFENEWWITHCONSTRUCTOR(pEl,
+						AbsoluteInternalForce,
+						AbsoluteInternalForce(uLabel, pNode, pNode2, pDC, Arm, Arm2, fOut));
+				}
 			}
 
 		} else {
@@ -2191,17 +2520,20 @@ ReadStructuralForce(DataManager* pDM,
 		os << " follower";
 	} else {
 		os << " absolute";
+		if (bDisp) {
+			os << " displacement";
+		}
 	}
 	if (bCouple) {
 		os << " couple";
 	} else {
 		os << " force";
 	}
-	os << ": " << uLabel << ' ' << pNode->GetLabel()
+	os << ": " << uLabel << ' ' << pDispNode->GetLabel()
 		<< ' ' << Arm;
 
-	if (pNode2 != 0) {
-		os << ' ' << pNode2->GetLabel() << ' ' << Arm2;
+	if (pDispNode2 != 0) {
+		os << ' ' << pDispNode2->GetLabel() << ' ' << Arm2;
 	}
 
 	os << std::endl;

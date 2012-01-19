@@ -85,6 +85,7 @@
 #include "socketstream_out_elem.h"
 #include "socketstreammotionelem.h"
 
+#include "membrane.h"
 #include "shell.h"
 
 static int iNumTypes[Elem::LASTELEMTYPE];
@@ -106,6 +107,7 @@ enum KeyWords {
 	BEAM2,
 	HBEAM,
 
+	MEMBRANE4EAS,
 	SHELL4EAS,
 	SHELL4EASANS,
 
@@ -172,6 +174,7 @@ DataManager::ReadElems(MBDynParser& HP)
 		"beam2",
 		"hbeam",
 
+		"membrane4eas",
 		"shell4eas",
 		"shell4easans",
 
@@ -252,6 +255,29 @@ DataManager::ReadElems(MBDynParser& HP)
 				DEBUGLCOUT(MYDEBUG_INPUT,
 					"Initializing automatic structural element linked to StructuralNode("
 					<< pN->GetLabel() << ")" << std::endl);
+				continue;
+			}
+
+			const DynamicStructDispNode *pDN = dynamic_cast<const DynamicStructDispNode *>(i->second);
+			if (pDN != 0) {
+				// NOTE: could be a modal node
+				if (pDN->GetStructDispNodeType() != StructDispNode::DYNAMIC) {
+					continue;
+				}
+
+				Elem *pTmpEl = 0;
+				SAFENEWWITHCONSTRUCTOR(pTmpEl,
+					AutomaticStructDispElem,
+					AutomaticStructDispElem(pDN));
+				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pDN->GetLabel(), pTmpEl);
+
+				ASSERT(iNumTypes[Elem::AUTOMATICSTRUCTURAL] > 0);
+
+				iMissingElems--;
+				iNumTypes[Elem::AUTOMATICSTRUCTURAL]--;
+				DEBUGLCOUT(MYDEBUG_INPUT,
+					"Initializing automatic structural element linked to StructDispNode(" << pDN->GetLabel() << ")" << std::endl);
+				continue;
 			}
 		}
 	}
@@ -289,7 +315,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				break;
 			}
 
-
+			case MEMBRANE4EAS:
 			case SHELL4EAS:
 			case SHELL4EASANS: {
 				DEBUGLCOUT(MYDEBUG_INPUT, "shells" << std::endl);
@@ -478,6 +504,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					t = Elem::BEAM;
 					break;
 
+				case MEMBRANE4EAS:
 				case SHELL4EAS:
 				case SHELL4EASANS:
 					t = Elem::PLATE;
@@ -820,6 +847,7 @@ DataManager::ReadElems(MBDynParser& HP)
 							ppE = ppFindElem(Elem::BEAM, uLabel);
 							break;
 
+						case MEMBRANE4EAS:
 						case SHELL4EAS:
 						case SHELL4EASANS:
 							ppE = ppFindElem(Elem::PLATE, uLabel);
@@ -948,6 +976,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BEAM3:		/* same as BEAM */
 				case BEAM2:
 				case HBEAM:
+				case MEMBRANE4EAS:
 				case SHELL4EAS:
 				case SHELL4EASANS:
 
@@ -1384,15 +1413,31 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	/* shell */
+	case MEMBRANE4EAS:
 	case SHELL4EAS:
 	case SHELL4EASANS: {
-		silent_cout("Reading Shell(" << uLabel << ")" << std::endl);
+		const char *sType;
+		switch (KeyWords(CurrType)) {
+		case MEMBRANE4EAS:
+			sType = "Membrane";
+			break;
+
+		case SHELL4EAS:
+		case SHELL4EASANS:
+			sType = "Shell";
+			break;
+
+		default:
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		silent_cout("Reading " << sType << "(" << uLabel << ")" << std::endl);
 
 		if (iNumTypes[Elem::PLATE]-- <= 0) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"Shell(" << uLabel << ") "
-				"exceeds shell elements number" << std::endl);
+				<< sType << "(" << uLabel << ") "
+				"exceeds plate elements number" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
@@ -1401,7 +1446,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		if (pFindElem(Elem::PLATE, uLabel) != NULL) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"Shell(" << uLabel << ") "
+				<< sType << "(" << uLabel << ") "
 				"already defined" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1414,6 +1459,10 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		/* allocazione e creazione */
 		switch (KeyWords(CurrType)) {
+		case MEMBRANE4EAS:
+			pE = ReadMembrane4EAS(this, HP, pDO, uLabel);
+			break;
+
 		case SHELL4EAS:
 			pE = ReadShell4EAS(this, HP, pDO, uLabel);
 			break;

@@ -251,10 +251,12 @@ ReadForce(DataManager* pDM,
 	const char* sKeyWords[] = {
 		"conservative",			// deprecated
 		"absolute",
+			"absolute" "displacement",
 		"follower",
 
 		"conservative" "internal",	// deprecated
 		"absolute" "internal",
+			"absolute" "internal" "displacement",
 		"follower" "internal",
 
 		"total",			// not implented
@@ -278,11 +280,13 @@ ReadForce(DataManager* pDM,
 		UNKNOWN = -1,
 
 		CONSERVATIVE,			// deprecated
-		MB_ABSOLUTE,
+		MB_ABSOLUTE,			// NOTE: "ABSOLUTE" conflicts with gcc 4.6.1 on MinGW
+			ABSOLUTEDISPLACEMENT,
 		FOLLOWER,
 
 		CONSERVATIVEINTERNAL,		// deprecated
 		ABSOLUTEINTERNAL,
+			ABSOLUTEINTERNALDISPLACEMENT,
 		FOLLOWERINTERNAL,
 
 		TOTAL,
@@ -399,22 +403,30 @@ ReadForce(DataManager* pDM,
 		pEl = ReadModalMappingExtForce(pDM, HP, uLabel);
 		break;
 
+	case ABSOLUTEDISPLACEMENT:
+		pEl = ReadStructuralForce(pDM, HP, uLabel, true, bCouple, false, false);
+		break;
+
 	case CONSERVATIVE:
 	case MB_ABSOLUTE:
-		pEl = ReadStructuralForce(pDM, HP, uLabel, bCouple, false, false);
+		pEl = ReadStructuralForce(pDM, HP, uLabel, false, bCouple, false, false);
 		break;
 
 	case FOLLOWER:
-		pEl = ReadStructuralForce(pDM, HP, uLabel, bCouple, true, false);
+		pEl = ReadStructuralForce(pDM, HP, uLabel, false, bCouple, true, false);
+		break;
+
+	case ABSOLUTEINTERNALDISPLACEMENT:
+		pEl = ReadStructuralForce(pDM, HP, uLabel, true, bCouple, false, true);
 		break;
 
 	case CONSERVATIVEINTERNAL:
 	case ABSOLUTEINTERNAL:
-		pEl = ReadStructuralForce(pDM, HP, uLabel, bCouple, false, true);
+		pEl = ReadStructuralForce(pDM, HP, uLabel, false, bCouple, false, true);
 		break;
 
 	case FOLLOWERINTERNAL:
-		pEl = ReadStructuralForce(pDM, HP, uLabel, bCouple, true, true);
+		pEl = ReadStructuralForce(pDM, HP, uLabel, false, bCouple, true, true);
 		break;
 
 	case TOTAL:

@@ -834,7 +834,7 @@ isvan == 0 && /^beam3:/ && show["beam"] {
 	}
 }
 
-isvan == 0 && /^shell4:/ && show["shell"] {
+isvan == 0 && (/^shell4:/ || /^membrane4:/) && show["shell"] {
 	if (!exclude["shell", $2]) {
 		if (!($3 in strnode)) {
 			print "structural node("$3") requested by shell4("$2") as node 1 not found" > "/dev/stderr";

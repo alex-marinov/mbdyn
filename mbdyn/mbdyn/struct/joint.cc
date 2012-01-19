@@ -373,7 +373,8 @@ ReadJoint(DataManager* pDM,
 		bool bOffset(false);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		const StructDispNode* pNode1 = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+		const StructNode *pN1 = dynamic_cast<const StructNode *>(pNode1);
 
 		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
@@ -383,7 +384,8 @@ ReadJoint(DataManager* pDM,
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		const StructDispNode* pNode2 = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+		const StructNode *pN2 = dynamic_cast<const StructNode *>(pNode2);
 
 		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
@@ -391,17 +393,37 @@ ReadJoint(DataManager* pDM,
 			bOffset = true;
 		}
 
+		if (bOffset) {
+			if (pN1 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"invalid StructNode(" << pNode1->GetLabel() << ") for node #1" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (pN2 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"invalid StructNode(" << pNode2->GetLabel() << ") for node #2" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
 		DriveCaller* pDC = NULL;
 		if (HP.IsKeyWord("from" "nodes")) {
-			doublereal l = (pNode2->GetXCurr()
-				+ pNode2->GetRCurr()*f2
-				- pNode1->GetXCurr()
-				- pNode1->GetRCurr()*f1).Norm();
+			doublereal l;
+			if (bOffset) {
+				l = (pN2->GetXCurr()
+					+ pN2->GetRCurr()*f2
+					- pN1->GetXCurr()
+					- pN1->GetRCurr()*f1).Norm();
+			} else {
+				l = (pNode2->GetXCurr() - pNode1->GetXCurr()).Norm();
+			}
 
 			pedantic_cout("Distance(" << uLabel << "): "
 				"length from nodes = " << l << std::endl);
 
 			SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(l));
+
 		} else {
 			pDC = HP.GetDriveCaller();
 		}
@@ -413,7 +435,8 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				DistanceJointWithOffset,
 				DistanceJointWithOffset(uLabel, pDO,
-					pNode1, pNode2, f1, f2, pDC, fOut));
+					pN1, pN2, f1, f2, pDC, fOut));
+
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				DistanceJoint,

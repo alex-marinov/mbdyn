@@ -53,6 +53,10 @@ joint.h \
 joint_.h \
 jointreg.cc \
 jointreg.h \
+membrane.h \
+membrane.cc \
+membraneeas.h \
+membraneeas.cc \
 modal.cc \
 modal.h \
 modaledge.cc \

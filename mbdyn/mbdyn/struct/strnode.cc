@@ -44,6 +44,1595 @@
 #include "matvecexp.h"
 #include "Rot.hh"
 
+static const char xyz[] = "xyz";
+
+static const char *sdn_dof[] = {
+	"position P",
+	"momentum B"
+};
+static const char *sdn_eq[] = {
+	"momentum definition B",
+	"force equilibrium F"
+};
+static const char *sdn_initial_dof[] = {
+	"position P",
+	"velocity v"
+};
+static const char *sdn_initial_eq[] = {
+	"position constraint P",
+	"position constraint derivative v"
+};
+
+static const char *sn_dof[] = {
+	sdn_dof[0], // "position P",
+	"incremental rotation parameter g",
+	sdn_dof[1], // "momentum B",
+	"momenta moment G"
+};
+static const char *sn_eq[] = {
+	sdn_eq[0], // "momentum definition B",
+	"momenta moment definition G",
+	sdn_eq[1], // "force equilibrium F",
+	"moment equilibrium M"
+};
+static const char *sn_modal_eq[] = {
+	"linear velocity definition v",
+	"angular velocity definition w",
+	"force equilibrium F",
+	"moment equilibrium M"
+};
+static const char *sn_initial_dof[] = {
+	sdn_initial_dof[0], // "position P",
+	"incremental rotation parameter g",
+	sdn_initial_dof[1], // "velocity v",
+	"angular velocity w"
+};
+static const char *sn_initial_eq[] = {
+	sdn_initial_eq[0], // "position constraint P",
+	"orientation constraint g",
+	sdn_initial_eq[1], // "position constraint derivative v",
+	"orientation constraint derivative w"
+};
+
+
+
+/* StructDispNode - begin */
+
+/* Costruttore definitivo */
+StructDispNode::StructDispNode(unsigned int uL,
+	const DofOwner* pDO,
+	const Vec3& X0,
+	const Vec3& V0,
+	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
+	doublereal dPosStiff,
+	doublereal dVelStiff,
+	OrientationDescription od,
+	flag fOut)
+: Node(uL, pDO, fOut),
+XPrev(X0),
+XCurr(X0),
+VPrev(V0),
+VCurr(V0),
+XPPCurr(Zero3),
+XPPPrev(Zero3),
+pRefNode(pRN),
+#ifdef USE_NETCDF
+Var_X(0),
+Var_Phi(0),
+Var_XP(0),
+Var_Omega(0),
+Var_XPP(0),
+Var_OmegaP(0),
+#endif /* USE_NETCDF */
+od(od),
+dPositionStiffness(dPosStiff),
+dVelocityStiffness(dVelStiff),
+pRefRBK(pRBK),
+bOutputAccels(false)
+{
+	NO_OP;
+}
+
+/* Distruttore (per ora e' banale) */
+StructDispNode::~StructDispNode(void)
+{
+	NO_OP;
+}
+
+/* Tipo di nodo */
+Node::Type
+StructDispNode::GetNodeType(void) const
+{
+	return Node::STRUCTURAL;
+}
+
+/* rigid-body kinematics */
+const RigidBodyKinematics *
+StructDispNode::pGetRBK(void) const
+{
+	return pRefRBK;
+}
+
+const Vec3&
+StructDispNode::GetX(void) const
+{
+	return GetXCurr();
+}
+
+const Mat3x3&
+StructDispNode::GetR(void) const
+{
+	return ::Eye3;
+}
+
+const Vec3&
+StructDispNode::GetV(void) const
+{
+	return GetVCurr();
+}
+
+const Vec3&
+StructDispNode::GetW(void) const
+{
+	return ::Zero3;
+}
+
+const Vec3&
+StructDispNode::GetXPP(void) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+const Vec3&
+StructDispNode::GetWP(void) const
+{
+	return ::Zero3;
+}
+
+bool
+StructDispNode::ComputeAccelerations(bool b)
+{
+	return false;
+}
+
+std::ostream&
+StructDispNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	out
+		<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+			"position [px,py,pz]" << std::endl;
+
+	if (bInitial) {
+		iIndex += 3;
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"linear velocity [vx,vy,vz]" << std::endl;
+	}
+
+	return out;
+}
+
+void
+StructDispNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (i == -1) {
+		if (bInitial) {
+			desc.resize(6);
+
+		} else {
+			desc.resize(3);
+		}
+
+	} else {
+		desc.resize(1);
+	}
+
+	std::ostringstream os;
+	os << "StructDispNode(" << GetLabel() << ")";
+
+	// always uses initial_dof[] becuase dof[]
+	// and initial_dof[] are the same up to 6
+	int iend = bInitial ? 6 : 3;
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 0; i < iend; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << sdn_initial_dof[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= iend) {
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		os << ": " << sdn_initial_dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
+std::ostream&
+StructDispNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	if (bInitial) {
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"position [Px,Py,Pz]" << std::endl
+			<< prefix << iIndex + 7 << "->" << iIndex + 9 << ": "
+				"linear velocity [vx,vy,vz]" << std::endl;
+	} else {
+		if (dynamic_cast<const DynamicStructDispNode*>(this) != 0) {
+			iIndex += 3;
+		}
+
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"force equilibrium [Fx,Fy,Fz]" << std::endl;
+	}
+
+	return out;
+}
+
+void
+StructDispNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (i == -1) {
+		if (bInitial) {
+			desc.resize(6);
+
+		} else {
+			desc.resize(3);
+		}
+
+	} else {
+		desc.resize(1);
+	}
+
+	std::ostringstream os;
+	os << "StructDispNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		if (bInitial) {
+			for (i = 0; i < 6; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << sdn_initial_eq[i/3] << xyz[i%3];
+				desc[i] = os.str();
+			}
+
+		} else {
+			for (i = 0; i < 3; i++) {
+				os.str(name);
+				os.seekp(0, std::ios_base::end);
+				os << ": " << sdn_eq[1 + i/3] << xyz[i%3];
+				desc[i] = os.str();
+			}
+		}
+
+	} else {
+		if (bInitial) {
+			if (i < 0 || i >= 6) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			os << ": " << sdn_initial_eq[i/3] << xyz[i%3];
+
+		} else {
+			if (i < 0 || i >= 3) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			os << ": " << sdn_eq[1 + i/3] << xyz[i%3];
+		}
+		desc[0] = os.str();
+	}
+}
+
+/* Contributo del nodo strutturale al file di restart */
+std::ostream&
+StructDispNode::Restart(std::ostream& out) const
+{
+	out << "  structural displacement: " << GetLabel() << ", ";
+	if (GetStructDispNodeType() == StructDispNode::DYNAMIC) {
+		out << "dynamic";
+	} else if (GetStructDispNodeType() == StructDispNode::STATIC) {
+		out << "static";
+	}
+	out << ", reference, global, ";
+	XCurr.Write(out, ", ")
+		<< ", reference, global, ",
+		VCurr.Write(out, ", ")
+		<< ", assembly, "
+		<< dPositionStiffness << ", "
+		<< dVelocityStiffness
+		<< ", scale, " << pGetDofOwner()->dGetScale() << ';' << std::endl;
+
+	return out;
+}
+
+DofOrder::Order
+StructDispNode::GetDofType(unsigned int i) const
+{
+	ASSERT(i >= 0 && i < iGetNumDof());
+	return DofOrder::DIFFERENTIAL;
+}
+
+
+/* Restituisce il valore del dof iDof;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+StructDispNode::dGetDofValue(int iDof, int iOrder) const
+{
+	ASSERT(iDof >= 1 && iDof <= 3);
+	ASSERT(iOrder == 0 || iOrder == 1);
+	if (iDof >= 1 && iDof <= 3) {
+		if (iOrder == 0) {
+			return XCurr(iDof);
+		} else if (iOrder == 1) {
+			return VCurr(iDof);
+		}
+	} else {
+		silent_cerr("StructDispNode(" << GetLabel() << "): "
+			"required dof " << iDof << " (order " << iOrder << ") "
+			"is not available." << std::endl);
+		throw StructDispNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* dummy return value to workaround compiler complains */
+	static doublereal dmy = 0.;
+	return dmy;
+}
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+StructDispNode::dGetDofValuePrev(int iDof, int iOrder) const
+{
+	ASSERT(iDof >= 1 && iDof <= 3);
+	ASSERT(iOrder == 0 || iOrder == 1);
+	if (iDof >= 1 && iDof <= 3) {
+		if (iOrder == 0) {
+			return XPrev(iDof);
+		} else if (iOrder == 1) {
+			return VPrev(iDof);
+		}
+	} else {
+		silent_cerr("StructDispNode(" << GetLabel() << "): "
+			"required dof " << iDof << " (order " << iOrder << ") "
+			"is not available." << std::endl);
+		throw StructDispNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* dummy return value to workaround compiler complains */
+	static doublereal dmy = 0.;
+	return dmy;
+}
+
+/* Setta il valore del dof iDof a dValue;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+void
+StructDispNode::SetDofValue(const doublereal& dValue,
+	unsigned int iDof,
+	unsigned int iOrder /* = 0 */ )
+{
+	ASSERT(iDof >= 1 && iDof <= 6);
+	ASSERT(iOrder == 0 || iOrder == 1);
+	if (iDof >= 1 && iDof <= 3) {
+		if (iOrder == 0) {
+			XCurr(iDof) = dValue;
+
+		} else if (iOrder == 1) {
+			VCurr(iDof) = dValue;
+		}
+
+	} else {
+		silent_cerr("StructDispNode(" << GetLabel() << "): "
+			"required dof " << iDof << " (order " << iOrder << ") "
+			"is not available." << std::endl);
+		throw StructDispNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+void
+StructDispNode::OutputPrepare(OutputHandler &OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			/* get a pointer to binary NetCDF file
+			 * -->  pDM->OutHdl.BinFile */
+			NcFile *pBinFile = OH.pGetBinFile();
+			char buf[BUFSIZ];
+
+			int l = snprintf(buf, sizeof(buf), "node.struct.%lu",
+				(unsigned long)GetLabel());
+			// NOTE: "Omega" is the longest var name
+			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega"))) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
+			const char *type = 0;
+			switch (GetStructDispNodeType()) {
+			case STATIC:
+				type = "static";
+				break;
+
+			case DYNAMIC:
+				type = "dynamic";
+				break;
+
+			default:
+				type = "unknown";
+				break;
+			}
+
+			if (!Var_Type->add_att("type", type)) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			// add var name separator
+			buf[l++] = '.';
+
+			/* Add NetCDF (output) variables to the BinFile object
+			 * and save the NcVar* pointer returned from add_var
+			 * as handle for later write accesses.
+			 * Define also variable attributes */
+
+			strcpy(&buf[l], "X");
+			Var_X = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_X == 0) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_X->add_att("units", "m")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_X->add_att("type", "Vec3")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_X->add_att("description",
+				"global position vector (X, Y, Z)"))
+			{
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			switch (od) {
+			case ORIENTATION_MATRIX:
+				strcpy(&buf[l], "R");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV3(), OH.DimV3());
+				if (Var_Phi == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("units", "-")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("type", "Mat3x3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("description",
+					"global orientation matrix "
+					"(R11, R21, R31, "
+					"R12, R22, R32, R13, R23, R33)" ))
+				{
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				break;
+
+			case ORIENTATION_VECTOR:
+				strcpy(&buf[l], "Phi");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV3());
+				if (Var_Phi == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("units", "radian")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("description",
+					"global orientation vector "
+					"(Phi_X, Phi_Y, Phi_Z)"))
+				{
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				break;
+
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+				{
+				strcpy(&buf[l], "E");
+				Var_Phi = pBinFile->add_var(buf, ncDouble,
+					OH.DimTime(), OH.DimV3());
+				if (Var_Phi == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("units", "radian")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_Phi->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				std::string desc;
+				switch (od) {
+				case EULER_123:
+					desc = "global orientation Euler angles (123) "
+						"(E_X, E_Y, E_Z)";
+					break;
+
+				case EULER_313:
+					desc = "global orientation Euler angles (313) "
+						"(E_Z, E_X, E_Z')";
+					break;
+
+				case EULER_321:
+					desc = "global orientation Euler angles (321) "
+						"(E_Z, E_Y, E_X)";
+					break;
+
+				default:
+					ASSERT(0);
+					break;
+				}
+
+				if (!Var_Phi->add_att("description", desc.c_str()))
+				{
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				} break;
+
+			default:
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			strcpy(&buf[l], "XP");
+			Var_XP = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_XP == 0) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_XP->add_att("units", "m/s")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_XP->add_att("type", "Vec3")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_XP->add_att("description",
+				"global velocity vector (v_X, v_Y, v_Z)"))
+			{
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			strcpy(&buf[l], "Omega");
+			Var_Omega = pBinFile->add_var(buf, ncDouble,
+				OH.DimTime(), OH.DimV3());
+			if (Var_Omega == 0) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_Omega->add_att("units", "radian/s")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_Omega->add_att("type", "Vec3")) {
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!Var_Omega->add_att("description",
+				"global angular velocity vector "
+				"(omega_X, omega_Y, omega_Z)"))
+			{
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (bOutputAccels) {
+				strcpy(&buf[l], "XPP");
+				Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+				if (Var_XPP == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("units", "m/s^2")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				strcpy(&buf[l], "OmegaP");
+				Var_OmegaP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
+				if (Var_OmegaP == 0) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("units", "radian/s^2")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("type", "Vec3")) {
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!Var_OmegaP->add_att("description",
+					"global angular acceleration vector "
+					"(omegaP_X, omegaP_Y, omegaP_Z)"))
+				{
+					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+		}
+#endif // USE_NETCDF
+	}
+}
+
+/* Output del nodo strutturale (da mettere a punto) */
+void
+StructDispNode::Output(OutputHandler& OH) const
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(::Eye3.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
+			Var_Omega->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
+
+			if (bOutputAccels) {
+				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
+				Var_OmegaP->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
+			}
+		}
+#endif /* USE_NETCDF */
+
+		if (OH.UseText(OutputHandler::STRNODES)) {
+			std::ostream& out = OH.StrNodes();
+			out
+				<< std::setw(8) << GetLabel()
+				<< " " << XCurr << " ";
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.StrNodes() << ::Zero3;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.StrNodes() << ::Eye3;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			OH.StrNodes() << " " << VCurr << " " << ::Zero3;
+
+			if (bOutputAccels) {
+				out
+					<< " " << XPPCurr
+					<< " " << ::Zero3;
+			}
+			out << std::endl;
+		}
+	}
+}
+
+/* Aggiorna dati in base alla soluzione */
+void
+StructDispNode::Update(const VectorHandler& X, const VectorHandler& XP)
+{
+	integer iFirstIndex = iGetFirstIndex();
+
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(XP, iFirstIndex + 1);
+}
+
+
+/* Aggiorna dati in base alla soluzione */
+void
+StructDispNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
+{
+	integer iFirstIndex = iGetFirstIndex();
+
+	/* Forza configurazione e velocita' al valore iniziale */
+	const_cast<VectorHandler &>(X).Put(iFirstIndex + 1, XCurr);
+	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 1, VCurr);
+}
+
+
+/* Aggiorna dati in base alla soluzione durante l'assemblaggio iniziale */
+void
+StructDispNode::InitialUpdate(const VectorHandler& X)
+{
+	integer iFirstIndex = iGetFirstIndex();
+
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(X, iFirstIndex + 4);
+}
+
+/* Inverse Dynamics: */
+void 
+StructDispNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
+{
+	integer iFirstIndex = iGetFirstIndex();
+	switch (iOrder)	{
+	case InverseDynamics::POSITION:
+		XCurr = Vec3(X, iFirstIndex + 1);
+		break;
+		
+	case InverseDynamics::VELOCITY:
+		VCurr = Vec3(X, iFirstIndex + 1);
+		break;
+
+	case InverseDynamics::ACCELERATION:
+		XPPCurr = Vec3(X, iFirstIndex + 1);
+		break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+/* Funzioni di inizializzazione, ereditate da DofOwnerOwner */
+void
+StructDispNode::SetInitialValue(VectorHandler& X)
+{
+	/* FIXME: why is this called? */
+	integer iIndex = iGetFirstIndex();
+
+	X.Put(iIndex + 1, XCurr);
+	X.Put(iIndex + 4, VCurr);
+}
+
+
+void
+StructDispNode::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	// FIXME
+	if (pRefNode) {
+		Vec3 Xtmp = XPrev - pRefNode->GetXCurr();
+		const Mat3x3& R0 = pRefNode->GetRCurr();
+		const Vec3& V0 = pRefNode->GetVCurr();
+		const Vec3& W0 = pRefNode->GetWCurr();
+
+		XPrev = R0.MulTV(Xtmp);
+		RPrev = R0.MulTM(RCurr);
+		VPrev = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
+		WPrev = R0.MulTV(WCurr - W0);
+
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"SetValue: X=" << XPrev
+			<< ", R=" << RPrev
+			<< ", V=" << VPrev
+			<< ", W=" << WPrev
+			<< std::endl;
+#endif
+
+	} else
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+	{
+		/* FIXME: in any case, we start with Crank-Nicolson ... */
+		XPrev = XCurr;
+		VPrev = VCurr;
+	}
+
+	integer iFirstIndex = iGetFirstIndex();
+	X.Put(iFirstIndex + 1, XPrev);
+	XP.Put(iFirstIndex + 1, VPrev);
+}
+
+
+void
+StructDispNode::BeforePredict(VectorHandler& X,
+	VectorHandler& XP,
+	VectorHandler& XPr,
+	VectorHandler& XPPr) const
+{
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	// FIXME
+	integer iFirstPos = iGetFirstIndex();
+
+	/* If pRefNode is defined, the prediction is made
+	 * on the data in the reference frame it provides */
+	if (pRefNode) {
+
+		/*
+		   x_r = R_0^T * ( x - x_0 )
+		   R_r = R_0^T * R
+		   v_r = R_0^T * ( v - v_0 - omega_0 \times ( x - x_0 ) )
+		   omega_r = R_0^T * ( omega - omega_0 )
+		 */
+		Vec3 Xtmp = XCurr - pRefNode->GetXCurr();
+		const Mat3x3& R0 = pRefNode->GetRCurr();
+		const Vec3& V0 = pRefNode->GetVCurr();
+		const Vec3& W0 = pRefNode->GetWCurr();
+
+		XCurr = R0.MulTV(Xtmp);
+		RCurr = R0.MulTM(RCurr);
+		VCurr = R0.MulTV(VCurr - V0 - W0.Cross(Xtmp));
+		WCurr = R0.MulTV(WCurr - W0);
+
+		/* update state vectors with relative position and velocity */
+		X.Put(iFirstPos + 1, XCurr);
+		XP.Put(iFirstPos + 1, VCurr);
+		XPr.Put(iFirstPos + 1, XPrev);
+		XPPr.Put(iFirstPos + 1, VPrev);
+
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"BeforePredict: X=" << XCurr
+			<< ", R=" << RCurr
+			<< ", V=" << VCurr
+			<< ", W=" << WCurr
+			<< std::endl;
+#endif
+	}
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+
+	XPrev = XCurr;
+	VPrev = VCurr;
+}
+
+void
+StructDispNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	integer iFirstIndex = iGetFirstIndex();
+
+	/* Spostamento e velocita' aggiornati */
+	XCurr = Vec3(X, iFirstIndex + 1);
+	VCurr = Vec3(XP, iFirstIndex + 1);
+
+#ifdef MBDYN_X_RELATIVE_PREDICTION
+	if (pRefNode) {
+		// FIXME
+
+		/*
+		   x = x_0 + R_0 * x_r
+		   R = R_0 * R_r
+		   v = v_0 + omega_0 \times ( R_0 * x_r ) + R_0 * v_r
+		   omega = omega_0 + R_0 * omega_r
+		 */
+		Vec3 X0 = pRefNode->GetXCurr();
+		Mat3x3 R0 = pRefNode->GetRCurr();
+		Vec3 V0 = pRefNode->GetVCurr();
+		Vec3 W0 = pRefNode->GetWCurr();
+
+		XCurr = R0*XCurr;	/* temporary */
+		RCurr = R0*RCurr;
+		VCurr = V0 + W0.Cross(XCurr) + R0*VCurr;
+		WCurr = W0 + R0*WCurr;
+		XCurr += X0;		/* plus reference */
+
+		/* alcuni usano anche le predizioni dei parametri
+		 * di rotazione e delle loro derivate come riferimento
+		 * (approccio updated-updated); quindi calcolo
+		 * i parametri di riferimento come i parametri
+		 * che danno una predizione pari alla variazione
+		 * di R0 piu' l'incremento relativo, e le derivate
+		 * dei parametri corrispondenti */
+		gRef = Vec3(CGR_Rot::Param, R0*RDelta.MulMT(pRefNode->GetRPrev()));
+		gPRef = Mat3x3(CGR_Rot::MatGm1, gRef)*WCurr;
+
+		/* to be safe, the correct values are put back
+		 * in the state vectors */
+		X.Put(iFirstIndex + 1, XCurr);
+		XP.Put(iFirstIndex + 1, VCurr);
+
+#if 0
+		std::cout << "StructNode(" << GetLabel() << "): "
+			"AfterPredict: X=" << XCurr
+			<< ", R=" << RCurr
+			<< ", V=" << VCurr
+			<< ", W=" << WCurr
+			<< std::endl;
+#endif
+	}
+#endif /* MBDYN_X_RELATIVE_PREDICTION */
+}
+
+/* Inverse Dynamics: */
+void
+StructDispNode::AfterConvergence(const VectorHandler& X, 
+	const VectorHandler& XP, 
+	const VectorHandler& XPP)
+{
+	XPrev = XCurr;
+	VPrev = VCurr;
+	XPPPrev = XPPCurr;
+}
+
+/*
+ * Metodi per l'estrazione di dati "privati".
+ * Si suppone che l'estrattore li sappia interpretare.
+ * Come default non ci sono dati privati estraibili
+ */
+unsigned int
+StructDispNode::iGetNumPrivData(void) const
+{
+	unsigned i =
+		3	// X
+		+ 3	// x (R^T * X)
+		+ 3	// Phi
+		+ 3	// XP
+		+ 3	// xP (R^T * XP)
+		+ 3	// Omega
+		+ 3	// omega (R^T * Omega)
+		+ 3	// Euler angles (123)
+		+ 3	// Euler angles (313)
+		+ 3	// Euler angles (321)
+		+ 4;	// Euler parameters
+
+	if (bComputeAccelerations()) {
+		i +=
+			3	// XPP
+			+ 3	// xPP (R^T * XPP)
+			+ 3	// OmegaP
+			+ 3;	// omegaP (R^T * OmegaP)
+	}
+
+	return i;
+}
+
+/*
+ * Maps a string (possibly with substrings) to a private data;
+ * returns a valid index ( > 0 && <= iGetNumPrivData()) or 0 
+ * in case of unrecognized data; error must be handled by caller
+ */
+unsigned int
+StructDispNode::iGetPrivDataIdx(const char *s) const
+{
+	long	idx;
+	char	*next;
+	std::string sDataName(s);
+
+	const char	*brk = std::strchr(s, '[' /*]*/ );
+	if (brk == 0) {
+		return 0;
+	}
+
+	size_t	len = brk - s;;
+	brk++;
+
+	errno = 0;
+	idx = strtol(brk, &next, 10);
+	int save_errno = errno;
+	if (next == brk || strcmp(next, /*[*/ "]") != 0) {
+		return 0;
+	}
+
+	if (save_errno == ERANGE) {
+		silent_cerr("StructNode(" << GetLabel() << "): "
+			"warning, private data index "
+			<< std::string(brk, next - brk)
+			<< " overflows" << std::endl);
+		return 0;
+	}
+
+	/*
+		X		 0 + idx	idx = {1,3}
+		x		 3 + idx	idx = {1,3}
+		Phi		 6 + idx	idx = {1,3}
+		XP		 9 + idx	idx = {1,3}
+		x		12 + idx	idx = {1,3}
+		Omega		15 + idx	idx = {1,3}
+		omega		18 + idx	idx = {1,3}
+		E | E123	21 + idx	idx = {1,3}
+		E313		24 + idx	idx = {1,3}
+		E321		27 + idx	idx = {1,3}
+		PE		31 + idx	idx = {0,3}
+		-------------------------------------------
+		XPP		34 + idx	idx = {1,3}
+		xPP		37 + idx	idx = {1,3}
+		OmegaP		40 + idx	idx = {1,3}
+		omegaP		43 + idx	idx = {1,3}
+	 */
+
+	if (strncmp(s, "PE", len) == 0) {
+		if (idx < 0 || idx > 3) {
+			return 0;
+		}
+
+		return 31 + idx;
+	}
+
+	if (idx < 1 || idx > 3) {
+		return 0;
+	}
+
+	if (strncmp(s, "X", len) == 0) {
+		return 0 + idx;
+	}
+
+	if (strncmp(s, "x", len) == 0) {
+		return 3 + idx;
+	}
+
+	if (strncmp(s, "Phi", len) == 0) {
+		return 6 + idx;
+	}
+
+	if (strncmp(s, "XP", len) == 0) {
+		return 9 + idx;
+	}
+
+	if (strncmp(s, "xP", len) == 0) {
+		return 12 + idx;
+	}
+
+	if (strncmp(s, "Omega", len) == 0) {
+		return 15 + idx;
+	}
+
+	if (strncmp(s, "omega", len) == 0) {
+		return 18 + idx;
+	}
+
+	if (strncmp(s, "E", len) == 0
+		|| strncmp(s, "E123", len) == 0)
+	{
+		return 21 + idx;
+	}
+
+	if (strncmp(s, "E313", len) == 0) {
+		return 24 + idx;
+	}
+
+	if (strncmp(s, "E321", len) == 0) {
+		return 27 + idx;
+	}
+
+	bool bca = false;
+	unsigned i;
+	if (strncmp(s, "XPP", len) == 0) {
+		bca = true;
+		i = 34 + idx;
+
+	} else if (strncmp(s, "xPP", len) == 0) {
+		bca = true;
+		i = 37 + idx;
+
+	} else if (strncmp(s, "OmegaP", len) == 0) {
+		bca = true;
+		i = 40 + idx;
+
+	} else if (strncmp(s, "omegaP", len) == 0) {
+		bca = true;
+		i = 43 + idx;
+
+	} else {
+		// error
+		return 0;
+	}
+
+	// NOTE: bComputeAccels is set only if iGetPrivDataIdx() is called
+	// first; it is not when the (deprecated) idx is directly used.
+	if (bca) {
+		if (!const_cast<StructDispNode *>(this)->ComputeAccelerations(true)) {
+			silent_cerr("StructNode(" << GetLabel() << "): "
+				"request to compute accelerations failed, requested by private data \"" << sDataName << "\""
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	return i;
+}
+
+/*
+ * Returns the current value of a private data
+ * with 0 < i <= iGetNumPrivData()
+ */
+doublereal
+StructDispNode::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1:
+	case 2:
+	case 3:
+		return XCurr(i);
+
+	case 4:
+	case 5:
+	case 6:
+		return XCurr(i - 3);
+
+	case 7:
+	case 8:
+	case 9: {
+		return 0.;
+	}
+
+	case 10:
+	case 11:
+	case 12:
+		return VCurr(i - 9);
+
+	case 13:
+	case 14:
+	case 15:
+		return VCurr(i - 12);
+
+	case 16:
+	case 17:
+	case 18:
+		return 0.;
+
+	case 19:
+	case 20:
+	case 21:
+		return 0.;
+
+	case 22:
+	case 23:
+	case 24:
+		return 0.;
+
+	case 25:
+	case 26:
+	case 27:
+		return 0.;
+
+	case 28:
+	case 29:
+	case 30:
+		return 0.;
+
+	case 31:
+	case 32:
+	case 33:
+	case 34:
+		return 0.;
+
+	case 35:
+	case 36:
+	case 37:
+		ASSERT(bComputeAccelerations() == true);
+		return XPPCurr(i - 34);
+
+	case 38:
+	case 39:
+	case 40:
+		ASSERT(bComputeAccelerations() == true);
+		return XPPCurr(i - 37);
+
+	case 41:
+	case 42:
+	case 43:
+		ASSERT(bComputeAccelerations() == true);
+		return 0.;
+
+	case 44:
+	case 45:
+	case 46:
+		ASSERT(bComputeAccelerations() == true);
+		return 0.;
+	}
+
+	throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+/* StructNode - end */
+
+
+
+/* StructDispNode - end */
+
+/* DynamicStructDispNode - begin */
+
+DynamicStructDispNode::DynamicStructDispNode(unsigned int uL,
+	const DofOwner* pDO,
+	const Vec3& X0,
+	const Vec3& V0,
+	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
+	doublereal dPosStiff,
+	doublereal dVelStiff,
+	OrientationDescription ood,
+	flag fOut)
+:
+StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+bComputeAccels((fOut & OUTPUT_ACCELERATIONS) == OUTPUT_ACCELERATIONS),
+pAutoStr(0)
+{
+	bOutputAccels = bComputeAccels;
+}
+
+/* Distruttore (per ora e' banale) */
+DynamicStructDispNode::~DynamicStructDispNode(void)
+{
+	NO_OP;
+}
+
+StructDispNode::Type
+DynamicStructDispNode::GetStructDispNodeType(void) const
+{
+	return StructDispNode::DYNAMIC;
+}
+
+/* rigid-body kinematics */
+const Vec3&
+DynamicStructDispNode::GetXPP(void) const
+{
+	return GetXPPCurr();
+}
+
+std::ostream&
+DynamicStructDispNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	integer iIndex = iGetFirstIndex();
+
+	StructDispNode::DescribeDof(out, prefix, bInitial);
+
+	if (bInitial == false) {
+		out
+			<< prefix << iIndex + 4 << "->" << iIndex + 6 << ": "
+				"momentum [Bx,By,Bz]" << std::endl;
+	}
+
+	return out;
+}
+
+void
+DynamicStructDispNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (bInitial || i == -1 || (i >= 0 && i < 3)) {
+		StructDispNode::DescribeDof(desc, bInitial, i);
+
+		if (bInitial || (i >= 0 && i < 3)) {
+			return;
+		}
+	}
+
+	if (i == -1) {
+		desc.resize(6);
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructDispNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name = os.str();
+
+		for (i = 3; i < 6; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << sdn_dof[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 3 || i >= 6) {
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		os << ": " << sdn_dof[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
+std::ostream&
+DynamicStructDispNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	if (bInitial == false) {
+		integer iIndex = iGetFirstIndex();
+
+		out
+			<< prefix << iIndex + 1 << "->" << iIndex + 3 << ": "
+				"momentum definition [Bx,By,Bz]" << std::endl;
+	}
+
+	StructDispNode::DescribeEq(out, prefix, bInitial);
+
+	return out;
+}
+
+void
+DynamicStructDispNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+	if (bInitial || i == -1 || (i >= 3 && i < 6)) {
+		int new_i = i;
+		if (!bInitial && i != -1) {
+			new_i = i - 3;
+		}
+		StructDispNode::DescribeEq(desc, bInitial, new_i);
+
+		if (bInitial || (i >= 3 && i < 6)) {
+			return;
+		}
+	}
+
+	if (i == -1) {
+		desc.resize(6);
+		for (int j = 0; j < 3; j++) {
+			desc[3 + j] = desc[j];
+		}
+
+	} else {
+		desc.resize(1);
+	}
+	
+	std::ostringstream os;
+	os << "StructDispNode(" << GetLabel() << ")";
+
+	if (i == -1) {
+		std::string name(os.str());
+
+		for (i = 0; i < 3; i++) {
+			os.str(name);
+			os.seekp(0, std::ios_base::end);
+			os << ": " << sdn_eq[i/3] << xyz[i%3];
+			desc[i] = os.str();
+		}
+
+	} else {
+		if (i < 0 || i >= 3) {
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		os << ": " << sdn_eq[i/3] << xyz[i%3];
+		desc[0] = os.str();
+	}
+}
+
+/* Usato dalle forze astratte, dai bulk ecc., per assemblare le forze
+ * al posto giusto */
+integer
+DynamicStructDispNode::iGetFirstRowIndex(void) const
+{
+	return iGetFirstMomentumIndex();
+}
+
+/* delegate to autostr node */
+void
+DynamicStructDispNode::AddInertia(const doublereal& dm) const
+{
+	/* FIXME: do it only if to be output... */
+	if (bComputeAccelerations()) {
+		pAutoStr->AddInertia(dm);
+	}
+}
+
+const Vec3&
+DynamicStructDispNode::GetBCurr(void) const
+{
+	return pAutoStr->GetBCurr();
+}
+
+const Vec3&
+DynamicStructDispNode::GetBPCurr(void) const
+{
+	return pAutoStr->GetBPCurr();
+}
+
+void
+DynamicStructDispNode::Update(const VectorHandler& X, const VectorHandler& XP)
+{
+	StructDispNode::Update(X, XP);
+	if (bComputeAccelerations()) {
+		ASSERT(pAutoStr != 0);
+
+		// FIXME: based on values set during previous
+		// of AutomaticStructural::AssRes()
+		pAutoStr->ComputeAccelerations(XPPCurr);
+	}
+}
+
+void
+DynamicStructDispNode::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	if (bComputeAccelerations()) {
+		ASSERT(pAutoStr != 0);
+		pAutoStr->ComputeAccelerations(XPPCurr);
+	}
+}
+
+void
+DynamicStructDispNode::BeforePredict(VectorHandler& X,
+	VectorHandler& XP,
+	VectorHandler& XPr,
+	VectorHandler& XPPr) const
+{
+	if (bComputeAccelerations()) {
+		XPPPrev = XPPCurr;
+	}
+
+	StructDispNode::BeforePredict(X, XP, XPr, XPPr);
+}
+
+/* Restituisce il valore del dof iDof;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+DynamicStructDispNode::dGetDofValue(int iDof, int iOrder) const
+{
+	ASSERT(iDof >= 1 && iDof <= 3);
+	ASSERT(iOrder >= 0 && iOrder <= 2);
+
+	if (iOrder == 2) {
+		/* FIXME: should not happen */
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
+			silent_cerr("DynamicStructDispNode::dGetDofValue("
+				<< iDof << "," << iOrder << "): "
+				"accelerations are not computed while they should"
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+#if 1
+		/* FIXME: might need to compute them in order to be
+		 * as up to date as possible; however, elements that contribute
+		 * to inertia should assemble first...
+		 */
+		pAutoStr->ComputeAccelerations(XPPCurr);
+#endif
+
+		return XPPCurr(iDof);
+	}
+
+	return StructDispNode::dGetDofValue(iDof, iOrder);
+}
+
+/* Restituisce il valore del dof iDof al passo precedente;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+const doublereal&
+DynamicStructDispNode::dGetDofValuePrev(int iDof, int iOrder) const
+{
+	ASSERT(iDof >= 1 && iDof <= 3);
+	ASSERT(iOrder == 0 || iOrder == 1);
+
+	if (iOrder == 2) {
+		/* FIXME: should not happen */
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
+			silent_cerr("DynamicStructDispNode::dGetDofValuePrev("
+				<< iDof << "," << iOrder << "): "
+				"accelerations are not computed while they should"
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		return XPPPrev(iDof);
+	}
+
+	return StructDispNode::dGetDofValuePrev(iDof, iOrder);
+}
+
+/* Setta il valore del dof iDof a dValue;
+ * se differenziale, iOrder puo' essere = 1 per la derivata */
+void
+DynamicStructDispNode::SetDofValue(const doublereal& dValue,
+	unsigned int iDof,
+	unsigned int iOrder /* = 0 */ )
+{
+	ASSERT(iDof >= 1 && iDof <= 3);
+	ASSERT(iOrder == 0 || iOrder == 1);
+
+	if (iOrder == 2) {
+		/* FIXME: should not happen */
+		ASSERT(bComputeAccelerations());
+		if (!bComputeAccelerations()) {
+			silent_cerr("DynamicStructNode::SetDofValue("
+				<< dValue << "," << iDof << "," << iOrder << "): "
+				"accelerations are not computed while they should"
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		XPPCurr(iDof) = dValue;
+
+	} else {
+		StructDispNode::SetDofValue(iDof, iOrder);
+	}
+}
+
+bool
+DynamicStructDispNode::ComputeAccelerations(bool b)
+{
+	bComputeAccels = b;
+	return true;
+}
+
+void
+DynamicStructDispNode::SetOutputFlag(flag f)
+{
+	if (f & StructDispNode::OUTPUT_ACCELERATIONS) {
+		// ignore result
+		ComputeAccelerations(true);
+	}
+	ToBeOutput::SetOutputFlag(f);
+}
+
+/* DynamicStructDispNode - end */
+
+/* StaticStructDispNode - begin */
+
+StaticStructDispNode::StaticStructDispNode(unsigned int uL,
+	const DofOwner* pDO,
+	const Vec3& X0,
+	const Vec3& V0,
+	const StructNode *pRN,
+	const RigidBodyKinematics *pRBK,
+	doublereal dPosStiff,
+	doublereal dVelStiff,
+	OrientationDescription ood,
+	flag fOut)
+:
+StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut)
+{
+	NO_OP;
+}
+
+StaticStructDispNode::~StaticStructDispNode(void)
+{
+	NO_OP;
+}
+
+StructDispNode::Type
+StaticStructDispNode::GetStructDispNodeType(void) const
+{
+	return StructDispNode::STATIC;
+}
+
+/* StaticStructDispNode - end */
+
 /* StructNode - begin */
 
 /* Costruttore definitivo */
@@ -60,7 +1649,7 @@ StructNode::StructNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: Node(uL, pDO, fOut),
+: StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
 RPrev(R0),
 RRef(R0),
 RCurr(R0),
@@ -68,32 +1657,12 @@ gRef(Zero3),
 gCurr(Zero3),
 gPRef(Zero3),
 gPCurr(Zero3),
-XPrev(X0),
-XCurr(X0),
-VPrev(V0),
-VCurr(V0),
 WPrev(W0),
 WRef(W0),
 WCurr(W0),
-XPPCurr(Zero3),
 WPCurr(Zero3),
-XPPPrev(Zero3),
 WPPrev(Zero3),
-pRefNode(pRN),
-#ifdef USE_NETCDF
-Var_X(0),
-Var_Phi(0),
-Var_XP(0),
-Var_Omega(0),
-Var_XPP(0),
-Var_OmegaP(0),
-#endif /* USE_NETCDF */
-od(ood),
-dPositionStiffness(dPosStiff),
-dVelocityStiffness(dVelStiff),
-bOmegaRot(bOmRot),
-pRefRBK(pRBK),
-bOutputAccels(false)
+bOmegaRot(bOmRot)
 {
 	NO_OP;
 }
@@ -104,26 +1673,6 @@ StructNode::~StructNode(void)
 	NO_OP;
 }
 
-/* Tipo di nodo */
-Node::Type
-StructNode::GetNodeType(void) const
-{
-	return Node::STRUCTURAL;
-}
-
-/* rigid-body kinematics */
-const RigidBodyKinematics *
-StructNode::pGetRBK(void) const
-{
-	return pRefRBK;
-}
-
-const Vec3&
-StructNode::GetX(void) const
-{
-	return GetXCurr();
-}
-
 const Mat3x3&
 StructNode::GetR(void) const
 {
@@ -131,21 +1680,9 @@ StructNode::GetR(void) const
 }
 
 const Vec3&
-StructNode::GetV(void) const
-{
-	return GetVCurr();
-}
-
-const Vec3&
 StructNode::GetW(void) const
 {
 	return GetWCurr();
-}
-
-const Vec3&
-StructNode::GetXPP(void) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 const Vec3&
@@ -177,38 +1714,6 @@ StructNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) co
 	return out;
 }
 
-static const char xyz[] = "xyz";
-static const char *dof[] = {
-	"position P",
-	"incremental rotation parameter g",
-	"momentum B",
-	"momenta moment G"
-};
-static const char *eq[] = {
-	"momentum definition B",
-	"momenta moment definition G",
-	"force equilibrium F",
-	"moment equilibrium M"
-};
-static const char *modal_eq[] = {
-	"linear velocity definition v",
-	"angular velocity definition w",
-	"force equilibrium F",
-	"moment equilibrium M"
-};
-static const char *initial_dof[] = {
-	"position P",
-	"incremental rotation parameter g",
-	"velocity v",
-	"angular velocity w"
-};
-static const char *initial_eq[] = {
-	"position constraint P",
-	"orientation constraint g",
-	"position constraint derivative v",
-	"orientation constraint derivative w"
-};
-
 void
 StructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 {
@@ -236,7 +1741,7 @@ StructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) co
 		for (i = 0; i < iend; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": " << initial_dof[i/3] << xyz[i%3];
+			os << ": " << sn_initial_dof[i/3] << xyz[i%3];
 			desc[i] = os.str();
 		}
 
@@ -244,7 +1749,7 @@ StructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) co
 		if (i < 0 || i >= iend) {
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		os << ": " << initial_dof[i/3] << xyz[i%3];
+		os << ": " << sn_initial_dof[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
 }
@@ -306,7 +1811,7 @@ StructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) con
 			for (i = 0; i < 12; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": " << initial_eq[i/3] << xyz[i%3];
+				os << ": " << sn_initial_eq[i/3] << xyz[i%3];
 				desc[i] = os.str();
 			}
 
@@ -314,7 +1819,7 @@ StructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) con
 			for (i = 0; i < 6; i++) {
 				os.str(name);
 				os.seekp(0, std::ios_base::end);
-				os << ": " << eq[2 + i/3] << xyz[i%3];
+				os << ": " << sn_eq[2 + i/3] << xyz[i%3];
 				desc[i] = os.str();
 			}
 		}
@@ -325,14 +1830,14 @@ StructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) con
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": " << initial_eq[i/3] << xyz[i%3];
+			os << ": " << sn_initial_eq[i/3] << xyz[i%3];
 
 		} else {
 			if (i < 0 || i >= 6) {
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": " << eq[2 + i/3] << xyz[i%3];
+			os << ": " << sn_eq[2 + i/3] << xyz[i%3];
 		}
 		desc[0] = os.str();
 	}
@@ -374,13 +1879,13 @@ StructNode::dGetDofValue(int iDof, int iOrder) const
 	ASSERT(iOrder == 0 || iOrder == 1);
 	if (iDof >= 1 && iDof <= 3) {
 		if (iOrder == 0) {
-			return XCurr.dGet(iDof);
+			return XCurr(iDof);
 		} else if (iOrder == 1) {
-			return VCurr.dGet(iDof);
+			return VCurr(iDof);
 		}
 	} else if (iDof >= 4 && iDof <= 6) {
 		if (iOrder == 1) {
-			return WCurr.dGet(iDof - 3);
+			return WCurr(iDof - 3);
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to return angles" << std::endl);
@@ -407,13 +1912,13 @@ StructNode::dGetDofValuePrev(int iDof, int iOrder) const
 	ASSERT(iOrder == 0 || iOrder == 1);
 	if (iDof >= 1 && iDof <= 3) {
 		if (iOrder == 0) {
-			return XPrev.dGet(iDof);
+			return XPrev(iDof);
 		} else if (iOrder == 1) {
-			return VPrev.dGet(iDof);
+			return VPrev(iDof);
 		}
 	} else if (iDof >= 4 && iDof <= 6) {
 		if (iOrder == 1) {
-			return WPrev.dGet(iDof - 3);
+			return WPrev(iDof - 3);
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
 				"unable to return angles" << std::endl);
@@ -442,15 +1947,15 @@ StructNode::SetDofValue(const doublereal& dValue,
 	ASSERT(iOrder == 0 || iOrder == 1);
 	if (iDof >= 1 && iDof <= 3) {
 		if (iOrder == 0) {
-			XCurr.Put(iDof, dValue);
+			XCurr(iDof) = dValue;
 
 		} else if (iOrder == 1) {
-			VCurr.Put(iDof, dValue);
+			VCurr(iDof) = dValue;
 		}
 
 	} else if (iDof >= 4 && iDof <= 6) {
 		if (iOrder == 1) {
-			WCurr.Put(iDof - 3, dValue);
+			WCurr(iDof - 3) = dValue;
 
 		} else if (iOrder == 0) {
 			silent_cerr("StructNode(" << GetLabel() << "): "
@@ -464,13 +1969,6 @@ StructNode::SetDofValue(const doublereal& dValue,
 			"is not available." << std::endl);
 		throw StructNode::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-}
-
-DofOrder::Order
-StructNode::GetDofType(unsigned int i) const
-{
-	ASSERT(i >= 0 && i < iGetNumDof());
-	return DofOrder::DIFFERENTIAL;
 }
 
 void
@@ -629,26 +2127,6 @@ StructNode::Output(OutputHandler& OH) const
 			}
 			out << std::endl;
 		}
-	}
-}
-
-
-/* Output della soluzione perturbata (modi ...) */
-void
-StructNode::Output(OutputHandler& OH,
-	const VectorHandler& X,
-	const VectorHandler& XP) const
-{
-	if (fToBeOutput()) {
-		integer iFirstIndex = iGetFirstIndex();
-		Vec3 DX(X, iFirstIndex + 1);
-		Vec3 Dg(X, iFirstIndex + 4);
-		Mat3x3 DR(CGR_Rot::MatR, Dg);
-
-		OH.StrNodes() << std::setw(8) << GetLabel()
-			<< " " << (XCurr + DX)
-			<< " " << MatR2EulerAngles(DR*RCurr)*dRaDegr
-			<< " " << "#" << std::endl;
 	}
 }
 
@@ -1054,12 +2532,6 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	WPPrev = WPCurr;
 }
 
-bool
-StructNode::ComputeAccelerations(bool b)
-{
-	return false;
-}
-
 /*
  * Metodi per l'estrazione di dati "privati".
  * Si suppone che l'estrattore li sappia interpretare.
@@ -1364,12 +2836,12 @@ DynamicStructNode::DynamicStructNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
-	ood, fOut),
-bComputeAccels((fOut & OUTPUT_ACCELERATIONS) == OUTPUT_ACCELERATIONS),
-pAutoStr(0)
+:
+StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+DynamicStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
-	bOutputAccels = bComputeAccels;
+	NO_OP;
 }
 
 
@@ -1385,13 +2857,6 @@ StructNode::Type
 DynamicStructNode::GetStructNodeType(void) const
 {
 	return StructNode::DYNAMIC;
-}
-
-/* rigid-body kinematics */
-const Vec3&
-DynamicStructNode::GetXPP(void) const
-{
-	return GetXPPCurr();
 }
 
 const Vec3&
@@ -1445,7 +2910,7 @@ DynamicStructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, in
 		for (i = 6; i < 12; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": " << dof[i/3] << xyz[i%3];
+			os << ": " << sn_dof[i/3] << xyz[i%3];
 			desc[i] = os.str();
 		}
 
@@ -1454,7 +2919,7 @@ DynamicStructNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, in
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		os << ": " << dof[i/3] << xyz[i%3];
+		os << ": " << sn_dof[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
 }
@@ -1511,7 +2976,7 @@ DynamicStructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int
 		for (i = 0; i < 6; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": " << eq[i/3] << xyz[i%3];
+			os << ": " << sn_eq[i/3] << xyz[i%3];
 			desc[i] = os.str();
 		}
 
@@ -1520,7 +2985,7 @@ DynamicStructNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		os << ": " << eq[i/3] << xyz[i%3];
+		os << ": " << sn_eq[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
 }
@@ -1540,17 +3005,11 @@ DynamicStructNode::AddInertia(const doublereal& dm, const Vec3& dS,
 {
 	/* FIXME: do it only if to be output... */
 	if (bComputeAccelerations()) {
-		pAutoStr->AddInertia(dm, dS, dJ);
+		dynamic_cast<AutomaticStructElem *>(pAutoStr)->AddInertia(dm, dS, dJ);
 	}
 }
 
 /* Accesso ai suoi dati */
-const Vec3&
-DynamicStructNode::GetBCurr(void) const
-{
-	return pAutoStr->GetBCurr();
-}
-
 const Vec3&
 DynamicStructNode::GetGCurr(void) const
 {
@@ -1558,32 +3017,9 @@ DynamicStructNode::GetGCurr(void) const
 }
 
 const Vec3&
-DynamicStructNode::GetBPCurr(void) const
-{
-	return pAutoStr->GetBPCurr();
-}
-
-const Vec3&
 DynamicStructNode::GetGPCurr(void) const
 {
 	return pAutoStr->GetGPCurr();
-}
-
-bool
-DynamicStructNode::ComputeAccelerations(bool b)
-{
-	bComputeAccels = b;
-	return true;
-}
-
-void
-DynamicStructNode::SetOutputFlag(flag f)
-{
-	if (f & StructNode::OUTPUT_ACCELERATIONS) {
-		// ignore result
-		ComputeAccelerations(true);
-	}
-	ToBeOutput::SetOutputFlag(f);
 }
 
 void
@@ -1596,7 +3032,7 @@ DynamicStructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 
 		// FIXME: based on values set during previous
 		// of AutomaticStructural::AssRes()
-		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+		dynamic_cast<const AutomaticStructElem *>(pAutoStr)->ComputeAccelerations(XPPCurr, WPCurr);
 	}
 }
 
@@ -1610,7 +3046,7 @@ DynamicStructNode::AfterConvergence(const VectorHandler& X,
 
 		// FIXME: based on values set during previous
 		// of AutomaticStructural::AssRes()
-		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+		dynamic_cast<const AutomaticStructElem *>(pAutoStr)->ComputeAccelerations(XPPCurr, WPCurr);
 	}
 }
 
@@ -1652,18 +3088,17 @@ DynamicStructNode::dGetDofValue(int iDof, int iOrder) const
 		 * as up to date as possible; however, elements that contribute
 		 * to inertia should assemble first...
 		 */
-		pAutoStr->ComputeAccelerations(XPPCurr, WPCurr);
+		dynamic_cast<const AutomaticStructElem *>(pAutoStr)->ComputeAccelerations(XPPCurr, WPCurr);
 #endif
 
 		if (iDof >= 1 && iDof <= 3) {
-			return XPPCurr.dGet(iDof);
+			return XPPCurr(iDof);
 		} else {
-			return WPCurr.dGet(iDof - 3);
+			return WPCurr(iDof - 3);
 		}
-
-	} else {
-		return StructNode::dGetDofValue(iDof, iOrder);
 	}
+
+	return StructNode::dGetDofValue(iDof, iOrder);
 }
 
 /* Restituisce il valore del dof iDof al passo precedente;
@@ -1686,13 +3121,13 @@ DynamicStructNode::dGetDofValuePrev(int iDof, int iOrder) const
 		}
 
 		if (iDof >= 1 && iDof <= 3) {
-			return XPPPrev.dGet(iDof);
+			return XPPPrev(iDof);
 		} else {
-			return WPPrev.dGet(iDof - 3);
+			return WPPrev(iDof - 3);
 		}
-	} else {
-		return StructNode::dGetDofValuePrev(iDof, iOrder);
 	}
+
+	return StructNode::dGetDofValuePrev(iDof, iOrder);
 }
 
 /* Setta il valore del dof iDof a dValue;
@@ -1717,10 +3152,10 @@ DynamicStructNode::SetDofValue(const doublereal& dValue,
 		}
 
 		if (iDof >= 1 && iDof <= 3) {
-			XPPCurr.Put(iDof, dValue);
+			XPPCurr(iDof) = dValue;
 
 		} else {
-			WPCurr.Put(iDof - 3, dValue);
+			WPCurr(iDof - 3) = dValue;
 		}
 
 	} else {
@@ -1747,7 +3182,10 @@ StaticStructNode::StaticStructNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
+:
+StructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+StaticStructDispNode(uL, pDO, X0, V0, pRN, pRBK, dPosStiff, dVelStiff, ood, fOut),
+StructNode(uL, pDO, X0, R0, V0, W0, pRN, pRBK, dPosStiff, dVelStiff, bOmRot,
 	ood, fOut)
 {
 	NO_OP;
@@ -1785,7 +3223,9 @@ ModalNode::ModalNode(unsigned int uL,
 	bool bOmRot,
 	OrientationDescription ood,
 	flag fOut)
-: DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
+:
+StructDispNode(uL, pDO, X0, V0, 0, pRBK, dPosStiff, dVelStiff, ood, fOut),
+DynamicStructNode(uL, pDO, X0, R0, V0, W0, 0, pRBK,
 	dPosStiff, dVelStiff, bOmRot, ood, fOut)
 {
 	/* XPP and WP are not known in ModalNode */
@@ -1868,7 +3308,7 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 		for (i = 6; i < 12; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": " << initial_dof[i/3] << xyz[i%3];
+			os << ": " << sn_initial_dof[i/3] << xyz[i%3];
 			desc[i] = os.str();
 		}
 
@@ -1877,7 +3317,7 @@ ModalNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) con
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		os << ": " << initial_dof[i/3] << xyz[i%3];
+		os << ": " << sn_initial_dof[i/3] << xyz[i%3];
 		desc[0] = os.str();
 	}
 	
@@ -1932,9 +3372,9 @@ ModalNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) cons
 	std::ostringstream os;
 	os << "ModalStructNode(" << GetLabel() << ")";
 
-	const char **xeq = modal_eq;
+	const char **xeq = sn_modal_eq;
 	if (bInitial) {
-		xeq = initial_eq;
+		xeq = sn_initial_eq;
 	}
 
 	if (i == -1) {
@@ -1970,6 +3410,14 @@ ModalNode::Update(const VectorHandler& X, const VectorHandler& XP)
 	WPCurr = Vec3(XP, iFirstIndex + 10);
 }
 
+void
+ModalNode::AfterConvergence(const VectorHandler& X,
+	const VectorHandler& XP)
+{
+	// override DynamicStructNode's function
+	NO_OP;
+}
+
 /* ModalNode - end */
 
 
@@ -1981,7 +3429,9 @@ DummyStructNode::DummyStructNode(unsigned int uL,
 	const StructNode* pN,
 	OrientationDescription ood,
 	flag fOut)
-: StructNode(uL, pDO, Zero3, Zero3x3, Zero3, Zero3, 0, 0, 0., 0., 0, ood, fOut),
+:
+StructDispNode(uL, pDO, ::Zero3, ::Zero3, 0, 0, 0., 0., ood, fOut),
+StructNode(uL, pDO, ::Zero3, ::Zero3x3, ::Zero3, ::Zero3, 0, 0, 0., 0., 0, ood, fOut),
 pNode(pN)
 {
 	ASSERT(pNode != NULL);
@@ -2002,6 +3452,11 @@ DummyStructNode::GetStructNodeType(void) const
 	return StructNode::DUMMY;
 }
 
+StructDispNode::Type
+DummyStructNode::GetStructDispNodeType(void) const
+{
+	return StructDispNode::UNKNOWN;
+}
 
 /* Restituisce il valore del dof iDof;
  * se differenziale, iOrder puo' essere = 1 per la derivata */
@@ -2111,13 +3566,17 @@ OffsetDummyStructNode::OffsetDummyStructNode(unsigned int uL,
 	const Mat3x3& R,
 	OrientationDescription ood,
 	flag fOut)
-: DummyStructNode(uL, pDO, pN, ood, fOut), f(f), R(R)
+:
+StructDispNode(uL, pDO, ::Zero3, ::Zero3, 0, 0, 0., 0., ood, fOut),
+DummyStructNode(uL, pDO, pN, ood, fOut), f(f), R(R)
 {
 	if (pNode->bOutputAccelerations()) {
 		bOutputAccels = true;
+		// const_cast<StructDispNode *>(this)->bOutputAccels = true;
 
 	} else {
 		bOutputAccels = false;
+		// const_cast<StructDispNode *>(this)->bOutputAccels = false;
 	}
 
 	/* forzo la ricostruzione del nodo strutturale sottostante */
@@ -2181,7 +3640,9 @@ RelFrameDummyStructNode::RelFrameDummyStructNode(unsigned int uL,
 	const Mat3x3& Rh,
 	OrientationDescription ood,
 	flag fOut)
-: DummyStructNode(uL, pDO, pN, ood, fOut),
+:
+StructDispNode(uL, pDO, ::Zero3, ::Zero3, 0, 0, 0., 0., ood, fOut),
+DummyStructNode(uL, pDO, pN, ood, fOut),
 pNodeRef(pNR),
 RhT(Rh.Transpose()),
 fhT(RhT*fh)
@@ -2304,7 +3765,9 @@ PivotRelFrameDummyStructNode::PivotRelFrameDummyStructNode(unsigned int uL,
 	const Mat3x3& Rh2,
 	OrientationDescription ood,
 	flag fOut)
-: RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, ood, fOut),
+:
+StructDispNode(uL, pDO, ::Zero3, ::Zero3, 0, 0, 0., 0., ood, fOut),
+RelFrameDummyStructNode(uL, pDO, pN, pNR, fh, Rh, ood, fOut),
 pNodeRef2(pNR2), Rh2(Rh2), fh2(fh2)
 {
 	ASSERT(pNodeRef2 != NULL);
@@ -2431,6 +3894,8 @@ ReadStructNode(DataManager* pDM,
 	DEBUGCOUT("Entering ReadStructNode(" << uLabel << ")" << std::endl);
 
 	const char* sKeyWords[] = {
+		"static" "displacement",
+		"dynamic" "displacement",
 		"static",
 		"dynamic",
 		"modal",
@@ -2444,7 +3909,9 @@ ReadStructNode(DataManager* pDM,
 	enum KeyWords {
 		UNKNOWN = -1,
 
-		STATIC = 0,
+		STATIC_DISP = 0,
+		DYNAMIC_DISP,
+		STATIC,
 		DYNAMIC,
 		MODAL,
 		DUMMY,
@@ -2472,24 +3939,36 @@ ReadStructNode(DataManager* pDM,
 	}
 
 #ifdef DEBUG
-	if (CurrType == STATIC) {
+	switch (CurrType) {
+	case STATIC_DISP:
+		std::cout << "Static structural displacement node" << std::endl;
+		break;
+	case DYNAMIC_DISP:
+		std::cout << "Dynamic structural displacement node" << std::endl;
+		break;
+	case STATIC:
 		std::cout << "Static structural node" << std::endl;
-	} else if (CurrType == DYNAMIC) {
+		break;
+	case DYNAMIC:
 		std::cout << "Dynamic structural node" << std::endl;
-	} else if (CurrType == DUMMY) {
+		break;
+	case DUMMY:
 		std::cout << "Dummy structural node" << std::endl;
-	} else if (CurrType == MODAL) {
+		break;
+	case MODAL:
 		std::cout << "Modal node" << std::endl;
-	} else {
+		break;
+	default:
 		std::cout << "Unknown structural node" << std::endl;
+		break;
 	}
 #endif /* DEBUG */
 
-	StructNode* pNd = NULL;
+	StructDispNode* pNd = NULL;
 	OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
 	KeyWords DummyType = UNKNOWN;
 	if (CurrType == DUMMY) {
-		StructNode* pNode = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		DummyType = KeyWords(HP.GetWord());
 		switch (DummyType) {
@@ -2508,7 +3987,7 @@ ReadStructNode(DataManager* pDM,
 		} break;
 
 		case RELATIVEFRAME: {
-			StructNode* pNodeRef = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+			const StructNode* pNodeRef = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 			ReferenceFrame RF(pNodeRef);
 
@@ -2524,11 +4003,11 @@ ReadStructNode(DataManager* pDM,
 
 			od = ReadOptionalOrientationDescription(pDM, HP);
 
-			StructNode *pNodeRef2 = 0;
+			const StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);
 			Mat3x3 Rh2(Eye3);
 			if (HP.IsKeyWord("pivot" "node")) {
-				pNodeRef2 = (StructNode*)pDM->ReadNode(HP, Node::STRUCTURAL);
+				pNodeRef2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 				if (HP.IsKeyWord("position")) {
 					fh2 = HP.GetPosRel(RF);
@@ -2564,6 +4043,12 @@ ReadStructNode(DataManager* pDM,
 		}
 
 	} else {
+		bool bDisp(false);
+
+		if (CurrType == STATIC_DISP || CurrType == DYNAMIC_DISP) {
+			bDisp = true;
+		}
+
 		/* posizione (vettore di 3 elementi) */
 		if (!HP.IsKeyWord("position")) {
 			pedantic_cerr("StructNode(" << uLabel << "): "
@@ -2574,13 +4059,16 @@ ReadStructNode(DataManager* pDM,
 		DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
 
 		/* sistema di riferimento (trucco dei due vettori) */
-		if (!HP.IsKeyWord("orientation")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"orientation\" at line "
-				<< HP.GetLineData() << std::endl);
+		Mat3x3 R0;
+		if (!bDisp) {
+			if (!HP.IsKeyWord("orientation")) {
+				pedantic_cerr("StructNode(" << uLabel << "): "
+					"missing keyword \"orientation\" at line "
+					<< HP.GetLineData() << std::endl);
+			}
+			R0 = HP.GetRotAbs(AbsRefFrame);
+			DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
 		}
-		Mat3x3 R0(HP.GetRotAbs(AbsRefFrame));
-		DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
 
 		/* Velocita' iniziali (due vettori di 3 elementi, con la possibilita'
 		 * di usare "null" per porli uguali a zero) */
@@ -2590,19 +4078,24 @@ ReadStructNode(DataManager* pDM,
 				<< HP.GetLineData() << std::endl);
 		}
 		Vec3 XPrime0(HP.GetVelAbs(AbsRefFrame, X0));
+		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
 
-		if (!HP.IsKeyWord("angular" "velocity")) {
-			pedantic_cerr("StructNode(" << uLabel << "): "
-				"missing keyword \"angular velocity\" at line "
-				<< HP.GetLineData() << std::endl);
+		Vec3 Omega0;
+		if (!bDisp) {
+			if (!HP.IsKeyWord("angular" "velocity")) {
+				pedantic_cerr("StructNode(" << uLabel << "): "
+					"missing keyword \"angular velocity\" at line "
+					<< HP.GetLineData() << std::endl);
+			}
+			Omega0 = HP.GetOmeAbs(AbsRefFrame);
+			DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
 		}
-		Vec3 Omega0(HP.GetOmeAbs(AbsRefFrame));
-		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl
-			<< "Omega0 =" << std::endl << Omega0 << std::endl);
 
 		const StructNode *pRefNode = 0;
 		if (HP.IsKeyWord("prediction" "node")) {
 			switch (CurrType) {
+			case STATIC_DISP:
+			case DYNAMIC_DISP:
 			case STATIC:
 			case DYNAMIC:
 				break;
@@ -2615,7 +4108,7 @@ ReadStructNode(DataManager* pDM,
 					<< std::endl);
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			pRefNode = dynamic_cast<const StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+			pRefNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 #ifndef MBDYN_X_RELATIVE_PREDICTION
 			silent_cerr("warning, relative prediction disabled; "
@@ -2636,11 +4129,14 @@ ReadStructNode(DataManager* pDM,
 				dPosStiff = HP.GetReal(dPosStiff);
 				dVelStiff = HP.GetReal(dVelStiff);
 
-				bOmRot = HP.GetYesNoOrBool(bOmRot);
-
 				DEBUGCOUT("Initial position stiffness: " << dPosStiff << std::endl);
 				DEBUGCOUT("Initial velocity stiffness: " << dVelStiff << std::endl);
-				DEBUGCOUT("Omega rotates? : " << (bOmRot ? "yes" : "no") << std::endl);
+
+				if (!bDisp) {
+					bOmRot = HP.GetYesNoOrBool(bOmRot);
+
+					DEBUGCOUT("Omega rotates? : " << (bOmRot ? "yes" : "no") << std::endl);
+				}
 			}
 		}
 
@@ -2649,7 +4145,11 @@ ReadStructNode(DataManager* pDM,
 		od = ReadOptionalOrientationDescription(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
-		if (CurrType == DYNAMIC || CurrType == MODAL) {
+		switch (CurrType) {
+		case DYNAMIC_DISP:
+		case DYNAMIC:
+		case MODAL:
+		{
 			bool bGotAccels(false);
 			bool bAccels(pDM->bOutputAccelerations());
 
@@ -2719,18 +4219,26 @@ ReadStructNode(DataManager* pDM,
 				}
 
 				if (bInertia) {
-					fOut |= StructNode::OUTPUT_INERTIA;
+					fOut |= StructDispNode::OUTPUT_INERTIA;
 				}
 
 				if (bAccels) {
-					fOut |= StructNode::OUTPUT_ACCELERATIONS;
+					fOut |= StructDispNode::OUTPUT_ACCELERATIONS;
 				}
 			}
+			} break;
+
+		default:
+			break;
 		}
 
 		if (CurrType == DYNAMIC && pDM->bIsStaticModel()) {
 			pedantic_cout("DynamicStructNode(" << uLabel << ") turned into static" << std::endl);
 			CurrType = STATIC;
+
+		} else if (CurrType == DYNAMIC_DISP && pDM->bIsStaticModel()) {
+			pedantic_cout("DynamicStructDispNode(" << uLabel << ") turned into static" << std::endl);
+			CurrType = STATIC_DISP;
 		}
 
 		/* Se non c'e' il punto e virgola finale */
@@ -2741,7 +4249,33 @@ ReadStructNode(DataManager* pDM,
 		}
 
 		/* costruzione del nodo */
-		if (CurrType == STATIC) {
+		switch (CurrType) {
+		case STATIC_DISP:
+			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructDispNode,
+				StaticStructDispNode(uLabel, pDO,
+					X0,
+					XPrime0,
+					pRefNode,
+					pRBK,
+					dPosStiff, dVelStiff,
+					od, fOut));
+			break;
+
+		case DYNAMIC_DISP:
+			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructDispNode,
+				DynamicStructDispNode(uLabel, pDO,
+					X0,
+					XPrime0,
+					pRefNode,
+					pRBK,
+					dPosStiff, dVelStiff,
+					od, fOut));
+
+			/* Incrementa il numero di elementi automatici dei nodi dinamici */
+			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
+			break;
+
+		case STATIC:
 			SAFENEWWITHCONSTRUCTOR(pNd, StaticStructNode,
 				StaticStructNode(uLabel, pDO,
 					X0, R0,
@@ -2750,8 +4284,9 @@ ReadStructNode(DataManager* pDM,
 					pRBK,
 					dPosStiff, dVelStiff,
 					bOmRot, od, fOut));
+			break;
 
-		} else if (CurrType == DYNAMIC) {
+		case DYNAMIC:
 			SAFENEWWITHCONSTRUCTOR(pNd, DynamicStructNode,
 				DynamicStructNode(uLabel, pDO,
 					X0, R0,
@@ -2763,8 +4298,9 @@ ReadStructNode(DataManager* pDM,
 
 			/* Incrementa il numero di elementi automatici dei nodi dinamici */
 			pDM->IncElemCount(Elem::AUTOMATICSTRUCTURAL);
+			break;
 
-		} else if (CurrType == MODAL) {
+		case MODAL:
 			SAFENEWWITHCONSTRUCTOR(pNd, ModalNode,
 				ModalNode(uLabel, pDO,
 					X0, R0,
@@ -2772,6 +4308,11 @@ ReadStructNode(DataManager* pDM,
 					pRBK,
 					dPosStiff, dVelStiff,
 					bOmRot, od, fOut));
+			break;
+
+		default:
+			ASSERT(false);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
@@ -2798,35 +4339,70 @@ ReadStructNode(DataManager* pDM,
 	out << description << uLabel
 		<< " ", pNd->GetXCurr().Write(out, " ")
 		<< " ";
-	switch (od) {
-	case EULER_123:
-		out << "euler123 ",
-			(MatR2EulerAngles123(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-		break;
+	const StructNode *pSN = dynamic_cast<const StructNode *>(pNd);
+	if (pSN) {
+		switch (od) {
+		case EULER_123:
+			out << "euler123 ",
+				(MatR2EulerAngles123(pSN->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
 
-	case EULER_313:
-		out << "euler313 ",
-			(MatR2EulerAngles313(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-		break;
+		case EULER_313:
+			out << "euler313 ",
+				(MatR2EulerAngles313(pSN->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
 
-	case EULER_321:
-		out << "euler321 ",
-			(MatR2EulerAngles321(pNd->GetRCurr())*dRaDegr).Write(out, " ");
-		break;
+		case EULER_321:
+			out << "euler321 ",
+				(MatR2EulerAngles321(pSN->GetRCurr())*dRaDegr).Write(out, " ");
+			break;
 
-	case ORIENTATION_VECTOR:
-		out << "phi ",
-			RotManip::VecRot(pNd->GetRCurr()).Write(out, " ");
-		break;
+		case ORIENTATION_VECTOR:
+			out << "phi ",
+				RotManip::VecRot(pSN->GetRCurr()).Write(out, " ");
+			break;
 
-	case ORIENTATION_MATRIX:
-		out << "mat ",
-			pNd->GetRCurr().Write(out, " ");
-		break;
+		case ORIENTATION_MATRIX:
+			out << "mat ",
+				pSN->GetRCurr().Write(out, " ");
+			break;
 
-	default:
-		/* impossible */
-		break;
+		default:
+			/* impossible */
+			break;
+		}
+
+	} else {
+		switch (od) {
+		case EULER_123:
+			out << "euler123 ",
+				::Zero3.Write(out, " ");
+			break;
+
+		case EULER_313:
+			out << "euler313 ",
+				::Zero3.Write(out, " ");
+			break;
+
+		case EULER_321:
+			out << "euler321 ",
+				::Zero3.Write(out, " ");
+			break;
+
+		case ORIENTATION_VECTOR:
+			out << "phi ",
+				::Zero3.Write(out, " ");
+			break;
+
+		case ORIENTATION_MATRIX:
+			out << "mat ",
+				::Eye3.Write(out, " ");
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
 	}
 
 	out << std::endl;
