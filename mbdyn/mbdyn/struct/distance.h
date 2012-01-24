@@ -162,6 +162,7 @@ public:
 	};
 	/* ************************************************ */
 
+#ifdef USE_ADAMS 
 	/* Adams output stuff */
 	virtual unsigned int iGetNumDummyParts(void) const {
 		return 1;
@@ -170,7 +171,6 @@ public:
 	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
 	virtual void
 	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS 
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;
@@ -263,12 +263,12 @@ public:
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
 
+#ifdef USE_ADAMS 
 	/* Adams output stuff */
 	virtual void
 	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
 	virtual void
 	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS 
 	virtual std::ostream&
 	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
 			unsigned int firstId) const;

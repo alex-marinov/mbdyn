@@ -376,6 +376,7 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+#ifdef USE_ADAMS
 void 
 DistanceJoint::GetDummyPartPos(unsigned int part, 
 		Vec3& x, 
@@ -396,7 +397,6 @@ DistanceJoint::GetDummyPartVel(unsigned int part,
 	w = pNode1->GetWCurr();
 }
 
-#ifdef USE_ADAMS
 std::ostream& 
 DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, 
@@ -510,8 +510,8 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 		Abort();
 	}
 
-	 Vec= pNode2->GetXCurr() + pNode2->GetRCurr()*f2
-		- pNode1->GetXCurr() - pNode1->GetRCurr()*f1;
+	 Vec = pNode2->GetXCurr() + dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2
+		- pNode1->GetXCurr() - dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
 	doublereal d = Vec.Dot();
 	if (d <= std::numeric_limits<doublereal>::epsilon()) {
 		silent_cerr("DistanceJoint(" << GetLabel() << ") "
@@ -533,8 +533,8 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 {
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssMat()" << std::endl);
  
-	Vec3 f1Tmp(pNode1->GetRRef()*f1);
-	Vec3 f2Tmp(pNode2->GetRRef()*f2);
+	Vec3 f1Tmp(dynamic_cast<const StructNode *>(pNode1)->GetRRef()*f1);
+	Vec3 f2Tmp(dynamic_cast<const StructNode *>(pNode2)->GetRRef()*f2);
 
 	Vec3 f1u(f1Tmp.Cross(Vec));
 	Vec3 f2u(f2Tmp.Cross(Vec));
@@ -743,8 +743,8 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	/* Indici del vincolo */
 	WorkVec.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
 
-	Vec3 f1Tmp(pNode1->GetRCurr()*f1);
-	Vec3 f2Tmp(pNode2->GetRCurr()*f2);
+	Vec3 f1Tmp(dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1);
+	Vec3 f2Tmp(dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2);
 
 	/* x2 + f2 - x1 - f1 */
 	Vec = pNode2->GetXCurr() + f2Tmp
@@ -800,15 +800,16 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 }
 
 
+#ifdef USE_ADAMS
 void 
 DistanceJointWithOffset::GetDummyPartPos(unsigned int part,
 		Vec3& x, 
 		Mat3x3& R) const 
 {
 	ASSERT(part == 1);
-	x = pNode1->GetXCurr()+pNode1->GetRCurr()*f1;
+	x = pNode1->GetXCurr()+dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
 	
-	Vec3 x2 = pNode2->GetXCurr()+pNode2->GetRCurr()*f2;
+	Vec3 x2 = pNode2->GetXCurr()+dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2;
 
 	Vec3 v1 = x2 - x;
 	doublereal l = v1.Norm();
@@ -862,10 +863,9 @@ DistanceJointWithOffset::GetDummyPartVel(unsigned int part,
 #endif
 
 	v = pNode1->GetVCurr();
-	w = pNode1->GetWCurr();
+	w = dynamic_cast<const StructNode *>(pNode1)->GetWCurr();
 }
 
-#ifdef USE_ADAMS
 std::ostream& 
 DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 		unsigned int part, 
