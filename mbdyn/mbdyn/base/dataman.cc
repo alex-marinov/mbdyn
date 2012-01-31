@@ -103,7 +103,7 @@ MBPar(HP),
 MathPar(HP.GetMathParser()),
 pSolver(pS),
 DrvHdl(HP.GetMathParser()),
-OutHdl(sOutputFileName, strcmp(sInputFileName, sOutputFileName) == 0 ? -1 : 0),
+OutHdl(sOutputFileName, 0),
 pXCurr(0), pXPrimeCurr(0), 
 /* Inverse Dynamics: */
 pXPrimePrimeCurr(0),

@@ -599,10 +599,20 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 static int
 mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileName)
 {
+	std::string sNormalizedInputFileName;
+	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
+	const char *dot = std::strrchr(sInputFileName.c_str(), '.');
+	if (dot != 0 && (dirsep == 0 || dot > dirsep)) {
+		sNormalizedInputFileName = std::string(sInputFileName, 0, dot - sInputFileName.c_str());
+
+	} else {
+		sNormalizedInputFileName = sInputFileName;
+	}
+
 	// fix output file name
 	if (sOutputFileName.empty()) {
 		if (!sInputFileName.empty()) {
-			sOutputFileName = sInputFileName;
+			sOutputFileName = sNormalizedInputFileName;
 
 		} else {
 			sOutputFileName = ::sDefaultOutputFileName;
@@ -649,12 +659,11 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 			std::string tmpIn;
 
 			if (!sInputFileName.empty()) {
-				const char *p = std::strrchr(sInputFileName.c_str(), '/');
-				if (p != 0) {
-					tmpIn = p;
+				if (dirsep != 0) {
+					tmpIn = dirsep;
 
 				} else {
-					tmpIn = sInputFileName;
+					tmpIn = sNormalizedInputFileName;
 				}
 
 			} else {
@@ -680,7 +689,6 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 #endif // HAVE_GETCWD
 
 	// chdir to input file's folder
-	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
 	if (dirsep != 0) {
 		std::string sInputDir(sInputFileName.c_str(), dirsep - sInputFileName.c_str());
 #ifdef HAVE_CHDIR
