@@ -98,6 +98,7 @@ private:
 	mutable Vec3 ThetaDeltaPrev;
 
 	Vec3 ThetaDeltaRemnant;
+	Vec3 ThetaDeltaTrue;
 
 public:
 	/* Constructor */
@@ -311,6 +312,7 @@ private:
 	mutable Vec3 ThetaDeltaPrev;
 
 	Vec3 ThetaDeltaRemnant;
+	Vec3 ThetaDeltaTrue;
 
 public:
 	/* Constructor */

@@ -76,7 +76,8 @@ Var_Omega(0),
 #endif // USE_NETCDF
 M(::Zero3), F(::Zero3),
 ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3),
-ThetaDeltaRemnant(::Zero3)
+ThetaDeltaRemnant(::Zero3),
+ThetaDeltaTrue(::Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -174,6 +175,8 @@ ThetaDeltaRemnant(::Zero3)
 
 	nConstraints = nPosConstraints + nVelConstraints
 		+ nRotConstraints + nAgvConstraints;
+
+	ThetaDeltaTrue = RotManip::VecRot((pNode1->GetRCurr()*R1hr).MulTM(pNode2->GetRCurr()*R2hr));
 }
 
 TotalJoint::~TotalJoint(void)
@@ -736,6 +739,7 @@ TotalJoint::AfterConvergence(const VectorHandler& /* X */ ,
 	}
 
 	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant);
+	ThetaDeltaTrue = Unwrap(ThetaDeltaTrue, RotManip::VecRot((pNode1->GetRCurr()*R1hr).MulTM(pNode2->GetRCurr()*R2hr)));
 }
 
 void
@@ -1991,7 +1995,7 @@ TotalJoint::dGetPrivData(unsigned int i) const
 	case 4:
 	case 5:
 	case 6: {
-		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant));
+		Vec3 Theta(Unwrap(ThetaDeltaTrue, RotManip::VecRot((pNode1->GetRCurr()*R1hr).MulTM(pNode2->GetRCurr()*R2hr))));
 		return Theta(i - 3);
 		}
 
@@ -2084,7 +2088,10 @@ Var_V(0),
 Var_Omega(0),
 #endif // USE_NETCDF
 M(::Zero3), F(::Zero3),
-ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3), ThetaDeltaRemnant(::Zero3)
+ThetaDelta(::Zero3),
+ThetaDeltaPrev(::Zero3),
+ThetaDeltaRemnant(::Zero3),
+ThetaDeltaTrue(::Zero3)
 {
 	/* Equations 1->3: Positions
 	 * Equations 4->6: Rotations */
@@ -2178,6 +2185,8 @@ ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3), ThetaDeltaRemnant(::Zero3)
 
 	nConstraints = nPosConstraints + nVelConstraints
 		+ nRotConstraints + nAgvConstraints;
+
+	ThetaDeltaTrue = RotManip::VecRot(RchT*pNode->GetRCurr()*tilde_Rnhr);
 }
 
 TotalPinJoint::~TotalPinJoint(void)
@@ -2738,6 +2747,7 @@ TotalPinJoint::AfterConvergence(const VectorHandler& X,
 	}
 
 	ThetaDeltaPrev = Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant);
+	ThetaDeltaTrue = Unwrap(ThetaDeltaTrue, RotManip::VecRot(RchT*pNode->GetRCurr()*tilde_Rnhr));
 }
 
 /* Inverse Dynamics: */
@@ -3655,7 +3665,7 @@ TotalPinJoint::dGetPrivData(unsigned int i) const
 	case 4:
 	case 5:
 	case 6: {
-		Vec3 Theta(Unwrap(ThetaDeltaPrev, ThetaDeltaRemnant));
+		Vec3 Theta(Unwrap(ThetaDeltaTrue, RotManip::VecRot(RchT*pNode->GetRCurr()*tilde_Rnhr)));
 		return Theta(i - 3);
 		}
 

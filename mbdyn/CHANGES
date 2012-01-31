@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- RTAI and multithread support incompatible
 	Bug fixes:
 		- fix output file name ext. issue (noted by Jens van Schelve)
+		- fix totalj rel. rot. priv data (noted by Jens van Schelve)
 
 MBDyn 1.4.3
 	Enhancements:
