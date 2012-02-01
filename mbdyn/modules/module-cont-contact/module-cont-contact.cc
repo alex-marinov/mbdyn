@@ -66,6 +66,7 @@ protected:
 	mutable bool m_bActive;			// is contact ongoing?
 	mutable bool m_bToggling;		// toggle m_bActive
 	mutable doublereal m_dInitialEpsPrime;	// initial contact velocity
+	mutable doublereal m_dDissCoef;		// actual dissipation coefficient
 
 public:
 	ContContactCL(const TplDriveCaller<doublereal> *pTplDC,
@@ -115,7 +116,7 @@ public:
 		}
 
 		out
-			<< ", rest, " << m_dRest
+			<< ", restitution, " << m_dRest
 			<< ", kappa, " << m_dK
 			<< ", exp, " << m_dExp
 			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
@@ -145,22 +146,21 @@ public:
 				if (!m_bToggling) {
 					m_bToggling = true;
 					m_dInitialEpsPrime = (xp > 1e-6 ? xp : 1e-6); // FIXME: threshold
+
+					switch (m_type) {
+					case CC_FLORES_ET_AL:
+						m_dDissCoef = 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
+						break;
+
+					case CC_HUNT_CROSSLEY:
+						m_dDissCoef = 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
+						break;
+
+					case CC_LANKARANI_NIKRAVESH:
+						m_dDissCoef =  m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
+						break;
+					}
 				}
-			}
-
-			doublereal m_dDissCoef;
-			switch (m_type) {
-			case CC_FLORES_ET_AL:
-				m_dDissCoef = 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
-				break;
-
-			case CC_HUNT_CROSSLEY:
-				m_dDissCoef = 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
-				break;
-
-			case CC_LANKARANI_NIKRAVESH:
-				m_dDissCoef =  m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
-				break;
 			}
 
 			doublereal xn = std::pow(x, m_dExp);
