@@ -447,7 +447,7 @@ DataManager::ReadElems(MBDynParser& HP)
 							<< std::endl);
 					} else {
 						DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);
-						pE->SetOutputFlag(flag(1));
+						pE->SetOutputFlag(flag(1) | ElemData[Typ].uOutputFlags);
 						if (dynamic_cast<const Modal *>(pE)) {
 							OutputOpen(OutputHandler::MODAL);
 						}

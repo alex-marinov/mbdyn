@@ -116,7 +116,7 @@ DataManager::ElemManager(void)
 	ElemData[Elem::AERODYNAMIC].OutFile = OutputHandler::AERODYNAMIC;
 	ElemData[Elem::AERODYNAMIC].Desc = "Aerodynamic";
 	ElemData[Elem::AERODYNAMIC].ShortDesc = "aero";
-	ElemData[Elem::BEAM].uOutputFlags = AerodynamicOutput::OUTPUT_DEFAULT;
+	ElemData[Elem::AERODYNAMIC].uOutputFlags = AerodynamicOutput::OUTPUT_DEFAULT;
 
 	ElemData[Elem::HYDRAULIC].OutFile = OutputHandler::HYDRAULIC;
 	ElemData[Elem::HYDRAULIC].Desc = "Hydraulic";

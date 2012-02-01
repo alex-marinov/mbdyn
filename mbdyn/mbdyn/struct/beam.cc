@@ -1864,6 +1864,9 @@ ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 		} else if (HP.IsKeyWord("all")) {
 			uFlag = Beam::OUTPUT_EP_ALL;
 
+		} else if (HP.IsKeyWord("none")) {
+			uFlag = Beam::OUTPUT_NONE;
+
 		} else {
 			break;
 		}
@@ -1888,6 +1891,11 @@ ReadBeamCustomOutput(DataManager* pDM, MBDynParser& HP, unsigned int uLabel,
 
 		if (uFlag & Beam::OUTPUT_EP_R) {
 			od = ReadOptionalOrientationDescription(pDM, HP);
+		}
+
+		if (uFlag == Beam::OUTPUT_NONE) {
+			// reset all
+			uFlags = Beam::OUTPUT_NONE;
 		}
 
 		uFlags |= uFlag;
@@ -2131,7 +2139,9 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
-	fOut |= uFlags;
+	if (fOut) {
+		fOut |= uFlags;
+	}
 
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (b_I || bII) {

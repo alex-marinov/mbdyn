@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix output file name ext. issue (noted by Jens van Schelve)
 		- fix totalj rel. rot. priv data (noted by Jens van Schelve)
+		- fix beam default output (noted by Reinhard Resch)
 
 MBDyn 1.4.3
 	Enhancements:

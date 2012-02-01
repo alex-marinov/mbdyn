@@ -1437,7 +1437,9 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
 	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
-	fOut |= uFlags;
+	if (fOut) {
+		fOut |= uFlags;
+	}
 
 	/* Se necessario, interpola i parametri di rotazione delle sezioni */
 	if (f) {
