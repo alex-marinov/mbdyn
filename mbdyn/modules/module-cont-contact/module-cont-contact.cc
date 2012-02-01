@@ -96,7 +96,7 @@ public:
 	};
 
 	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "hunt crossley"
+		out << "continuous contact"
 			<< ", sign, " << m_dSign
 			<< ", formulation, ";
 
@@ -175,7 +175,7 @@ public:
 
 	virtual void AfterConvergence(const doublereal& Eps, const doublereal& EpsPrime = 0.) {
 		if (m_bToggling) {
-#if 1
+#if 0
 			silent_cout(">> ContContactCL::AfterConvergence() "
 				"m_bToggling=" << (m_bToggling ? "true" : "false") << " "
 				"m_bActive=" << (m_bActive ? "true" : "false") << " "
@@ -189,7 +189,7 @@ public:
 				m_bActive = true;
 			}
 			m_bToggling = false;
-#if 1
+#if 0
 			silent_cout("<< ContContactCL::AfterConvergence() "
 				"m_bToggling=" << (m_bToggling ? "true" : "false") << " "
 				"m_bActive=" << (m_bActive ? "true" : "false") << " "
@@ -314,7 +314,7 @@ module_init(const char *module_name, void *pdm, void *php)
 #endif
 
 	ConstitutiveLawRead<doublereal, doublereal> *rf1D = new ContContactCLR;
-	if (!SetCL1D("cont" "contact", rf1D)) {
+	if (!SetCL1D("continuous" "contact", rf1D)) {
 		delete rf1D;
 
 		silent_cerr("ContContactCL: "
