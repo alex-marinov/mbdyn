@@ -337,9 +337,11 @@ the experimental support for NetCDF output, which eventually
 will replace the current textual output:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output results} : \kw{netcdf} ;
+    \bnt{card} ::= \kw{output results} : \kw{netcdf} [ , \kw{no text} ] ;
 \end{Verbatim}
 %\end{verbatim}
+If the optional keyword \kw{no text} is present,
+standard output in ASCII form is disabled.
 
 \subsection{Default Orientation}\label{sec:CONTROLDATA:DEFAULTORIENTATION}
 This statement is used to select the default format for orientation output.
