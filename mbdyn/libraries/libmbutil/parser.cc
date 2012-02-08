@@ -792,8 +792,7 @@ HighParser::IsWord(const HighParser::WordSet& ws)
 
 	PutbackWord();
 
-	return false;
-
+	return 0;
 }
 
 TypedValue

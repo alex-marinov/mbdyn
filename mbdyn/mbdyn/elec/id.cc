@@ -40,7 +40,7 @@
 Ident::Ident(integer size, integer nout, ForgettingFactor* pf, 
 	     const doublereal& ldl_init)
 : size(size), nout(nout), pdBase(NULL), ppdBase(NULL),
-ldl(NULL), vldl(NULL), z(z), vz(vz), theta(NULL), vtheta(NULL),
+ldl(NULL), vldl(NULL), z(0), vz(0), theta(NULL), vtheta(NULL),
 phi(NULL), y(NULL), err(NULL), pF(pf), k(0.), w(0.)
 {
    ASSERT(size > 0);
