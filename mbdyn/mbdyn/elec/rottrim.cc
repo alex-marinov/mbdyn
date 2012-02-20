@@ -182,7 +182,7 @@ RotorTrimBase::AssRes(SubVectorHandler& WorkVec,
 
 	doublereal dMu2 = dMu*dMu;
 
-	doublereal f = dC/(1. + dC2);
+	const doublereal f = dC/(1. + dC2);
 
 	Mat3x3 m((1. + 3./2.*dMu2)/6.,
 		-f*dMu/6.*(dC - dGamma/(16.*dP2)),
@@ -192,7 +192,7 @@ RotorTrimBase::AssRes(SubVectorHandler& WorkVec,
 		f/16.*((1. + 2.*dMu2) + 2./9.*dMu2*dC*dGamma/dP2),
 		0.,
 		-f/16.,
-		-f/16.*(1. + 1./2.*dMu2));
+		-f*dC/16.*(1. + 1./2.*dMu2));
 	Vec3 v(DThrust.dGet() - dThrust,
 		DRollMoment.dGet() - dRollMoment,
 		DPitchMoment.dGet() - dPitchMoment);
