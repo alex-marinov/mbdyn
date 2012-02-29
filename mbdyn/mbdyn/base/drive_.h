@@ -243,8 +243,8 @@ MultDriveCaller::bIsDifferentiable(void) const
 inline doublereal 
 MultDriveCaller::dGetP(const doublereal& dVar) const
 {
-	return DO1.pGetDriveCaller()->dGetP(dVar)*DO1.pGetDriveCaller()->dGet(dVar)
-		+ DO1.pGetDriveCaller()->dGet(dVar)*DO1.pGetDriveCaller()->dGetP(dVar);
+	return DO1.pGetDriveCaller()->dGetP(dVar)*DO2.pGetDriveCaller()->dGet(dVar)
+		+ DO1.pGetDriveCaller()->dGet(dVar)*DO2.pGetDriveCaller()->dGetP(dVar);
 }
 
 /* MultDriveCaller - end */
