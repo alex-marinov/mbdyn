@@ -179,8 +179,7 @@ AC_SUBST(mbdyn_subdir)dnl
 dnl ----------------------------------------------------------------
 dnl General "enable" options
 OL_ARG_ENABLE(debug,[  --enable-debug          enable debugging], no)dnl
-OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}]
-                          with debug mode {none|mem}],none,[none mem])
+OL_ARG_WITH(debug_mode,[  --with-debug-mode[={none|mem}] with debug mode {none|mem}],none,[none mem])
 OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime loading], auto)dnl
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
@@ -369,6 +368,7 @@ UDUNITS_LIBS=
 RT_LIBS=
 ANN_LIBS=
 BULLET_LIBS=
+PYTHON_NUMPY_HEADERS=
 
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -598,6 +598,14 @@ if test "$ol_enable_python" != no ; then
 
 	if test x"$SWIG" = x -a "$ol_enable_python" = yes ; then
 		AC_MSG_ERROR([python needs swig])
+	fi
+	if test "$ol_enable_python" = yes ; then
+	        PYTHON_NUMPY_HEADERS=`python -c "import numpy; print numpy.get_include()" 2>/dev/null`
+		if test x"$PYTHON_NUMPY_HEADERS" = x ; then
+			AC_MSG_ERROR([python needs numpy - including its development packages])
+		else
+			PYTHON_NUMPY_HEADERS="-I$PYTHON_NUMPY_HEADERS"
+		fi
 	fi
 
 	AX_SWIG_ENABLE_CXX
@@ -2530,6 +2538,7 @@ AC_SUBST(UDUNITS_LIBS)
 AC_SUBST(RT_LIBS)
 AC_SUBST(ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
+AC_SUBST(PYTHON_NUMPY_HEADERS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)

@@ -33,7 +33,7 @@
 %include "typemaps.i"
 %header
 %{
-        #include <arrayobject.h>
+        #include <numpy/arrayobject.h>
         #include "mbc_py_global.h"
 
         extern int

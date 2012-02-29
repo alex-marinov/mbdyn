@@ -49,7 +49,7 @@ nodist__mbc_py_la_SOURCES = \
 mbc_py_wrap.cc
 
 SWIG_FLAGS = @SWIG_LIB@ $(AX_SWIG_PYTHON_OPT) $(AX_SWIG_PYTHON_CPPFLAGS)
-INCLUDES += $(PYTHON_CPPFLAGS) -I$(PYTHON_SITE_PKG)/numpy/core/include/numpy
+INCLUDES += $(PYTHON_CPPFLAGS) $(PYTHON_NUMPY_HEADERS)
 
 mbc_py_wrap_dep = \
 $(srcdir)/mbc_py.i \
