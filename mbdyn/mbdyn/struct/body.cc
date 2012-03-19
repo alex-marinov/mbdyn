@@ -1603,7 +1603,7 @@ StaticBody::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
 	InverseDynamics::Order iOrder)
 {
-	DEBUGCOUTFNAME("DynamicBody::AssRes");
+	DEBUGCOUTFNAME("StaticBody::AssRes");
 	
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS);
 
@@ -1893,15 +1893,55 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* Allocazione e costruzione */
 	Elem* pEl = NULL;
 	if (bStaticModel || bInverseDynamics) {
+		StaticBody *pSB = 0;
+		StaticMass *pSM = 0;
+
 		/* static */
 		if (pStrNode) {
-			SAFENEWWITHCONSTRUCTOR(pEl, StaticBody,
+			SAFENEWWITHCONSTRUCTOR(pSB, StaticBody,
 				StaticBody(uLabel, dynamic_cast<const StaticStructNode *>(pStaticDispNode),
 					dm, Xgc, J, fOut));
+			pEl = pSB;
+
 		} else {
-			SAFENEWWITHCONSTRUCTOR(pEl, StaticMass,
+			SAFENEWWITHCONSTRUCTOR(pSM, StaticMass,
 				StaticMass(uLabel, pStaticDispNode,
 					dm, fOut));
+			pEl = pSM;
+		}
+
+		if (bInverseDynamics) {
+			bool bIsRightHandSide(true);
+			bool bIsErgonomy(true);
+
+			if (HP.IsKeyWord("inverse" "dynamics")) {
+				bIsRightHandSide = false;
+				if (HP.IsKeyWord("right" "hand" "side")) {
+					bIsRightHandSide = HP.GetYesNoOrBool(bIsRightHandSide);
+				}
+
+				bIsErgonomy = false;
+				if (HP.IsKeyWord("ergonomy")) {
+					bIsErgonomy = HP.GetYesNoOrBool(bIsErgonomy);
+				}
+			}
+
+			unsigned flags = 0;
+
+			if (bIsRightHandSide) {
+				flags |= InverseDynamics::RIGHT_HAND_SIDE;
+			}
+
+			if (bIsErgonomy) {
+				flags |= InverseDynamics::ERGONOMY;
+			}
+
+			if (pSB) {
+				pSB->SetInverseDynamicsFlags(flags);
+
+			} else {
+				pSM->SetInverseDynamicsFlags(flags);
+			}
 		}
 
 	} else {

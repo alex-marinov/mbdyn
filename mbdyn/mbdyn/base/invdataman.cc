@@ -207,6 +207,10 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
+					if (!b->second->bIsErgonomy()) {
+						continue;
+					}
+
 					const Body *pBody(Cast<Body>(b->second));
 					doublereal dm(pBody->dGetM()*dw2);
 					Vec3 S(pBody->GetS()*dw2);
@@ -358,6 +362,10 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
+					if (!b->second->bIsRightHandSide()) {
+						continue;
+					}
+
 					const Body *pBody(Cast<Body>(b->second));
 					doublereal dm(pBody->dGetM()*dw2);
 					Vec3 S(pBody->GetS()*dw2);
@@ -386,6 +394,10 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
+					if (!b->second->bIsErgonomy()) {
+						continue;
+					}
+
 					const Body *pBody(Cast<Body>(b->second));
 					doublereal dm(pBody->dGetM()*dw2);
 					Vec3 S(pBody->GetS()*dw2);
@@ -471,6 +483,10 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
+					if (!b->second->bIsErgonomy()) {
+						continue;
+					}
+
 					const Body *pBody(Cast<Body>(b->second));
 					doublereal dm(pBody->dGetM()*dw2);
 					Vec3 S(pBody->GetS()*dw2);
@@ -559,6 +575,10 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				for (ElemContainerType::const_iterator b = ElemData[Elem::BODY].ElemContainer.begin();
 					b != ElemData[Elem::BODY].ElemContainer.end(); ++b)
 				{
+					if (!b->second->bIsErgonomy()) {
+						continue;
+					}
+
 					const Body *pBody(Cast<Body>(b->second));
 					doublereal dm(pBody->dGetM()*dw2);
 					Vec3 S(pBody->GetS()*dw2);
@@ -668,6 +688,10 @@ DataManager::AssRes(VectorHandler& ResHdl,
 		for (ElemContainerType::iterator j = ElemData[ElemType[et]].ElemContainer.begin();
 			j != ElemData[ElemType[et]].ElemContainer.end(); ++j)
 		{
+			if (!j->second->bIsRightHandSide()) {
+				continue;
+			}
+
 			try {
 				ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
 					*pXPrimeCurr, *pXPrimePrimeCurr, 

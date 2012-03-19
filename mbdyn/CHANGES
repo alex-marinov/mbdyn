@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added displacement-only nodes and selected basic elements
 		- added membrane element (Marco Morandini & Tommaso Solcia)
 		- added continuous contact constitutive law (Matteo Fancello)
+		- added inverse dynamics body for weight tailoring
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

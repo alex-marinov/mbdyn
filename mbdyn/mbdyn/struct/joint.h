@@ -59,8 +59,6 @@ protected:
 	NcVar *Var_M_global;
 #endif // USE_NETCDF
 
-	unsigned m_uInverseDynamicsFlags;
-
 	virtual void OutputPrepare_int(const std::string& type, OutputHandler &OH, std::string& name);
 
 public:
@@ -222,12 +220,8 @@ public:
 	/* inverse dynamics update */
 	virtual void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
-	void SetInverseDynamicsFlags(unsigned uIDF);
-	unsigned GetInverseDynamicsFlags(void) const;
 	bool bIsPrescribedMotion(void) const;
 	bool bIsTorque(void) const;
-	bool bIsErgonomy(void) const;
-	bool bIsRightHandSide(void) const;
 	// end of inverse dynamics
 	
 	/* per la lettura dei dati dell'elemento modale */

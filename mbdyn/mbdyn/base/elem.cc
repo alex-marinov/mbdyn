@@ -39,7 +39,8 @@
 /* Elem - begin */
 
 Elem::Elem(unsigned int uL, flag fOut)
-: WithLabel(uL), ToBeOutput(fOut)
+: WithLabel(uL), ToBeOutput(fOut),
+m_uInverseDynamicsFlags(InverseDynamics::ERGONOMY|InverseDynamics::RIGHT_HAND_SIDE)
 {
 	NO_OP;
 }
@@ -64,6 +65,30 @@ bool
 Elem::bInverseDynamics(void) const
 {
 	return false;
+}
+
+void
+Elem::SetInverseDynamicsFlags(unsigned uIDF)
+{
+	m_uInverseDynamicsFlags = uIDF;
+}
+
+unsigned
+Elem::GetInverseDynamicsFlags(void) const
+{
+	return m_uInverseDynamicsFlags;
+}
+
+bool
+Elem::bIsErgonomy(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::ERGONOMY);
+}
+
+bool
+Elem::bIsRightHandSide(void) const
+{
+	return (m_uInverseDynamicsFlags & InverseDynamics::RIGHT_HAND_SIDE);
 }
 
 /* inverse dynamics Jacobian matrix assembly */

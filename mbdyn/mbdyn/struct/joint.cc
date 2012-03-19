@@ -84,14 +84,14 @@ Joint::Joint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
 ElemWithDofs(uL, pDO, fOut),
-InitialAssemblyElem(uL, fOut),
+InitialAssemblyElem(uL, fOut)
 #ifdef USE_NETCDF
+,
 Var_F_local(0),
 Var_M_local(0),
 Var_F_global(0),
-Var_M_global(0),
+Var_M_global(0)
 #endif // USE_NETCDF
-m_uInverseDynamicsFlags(0)
 {
 	NO_OP;
 }
@@ -165,40 +165,16 @@ Joint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 		"Elem::Update(" << invdyn2str(iOrder) << ") for inverse dynamics not implemented yet" << std::endl);
 }
 
-void
-Joint::SetInverseDynamicsFlags(unsigned uIDF)
-{
-	m_uInverseDynamicsFlags = uIDF;
-}
-
-unsigned
-Joint::GetInverseDynamicsFlags(void) const
-{
-	return m_uInverseDynamicsFlags;
-}
-
 bool
 Joint::bIsPrescribedMotion(void) const
 {
-	return (m_uInverseDynamicsFlags & InverseDynamics::PRESCRIBED_MOTION);
+	return (GetInverseDynamicsFlags() & InverseDynamics::PRESCRIBED_MOTION);
 }
 
 bool
 Joint::bIsTorque(void) const
 {
-	return (m_uInverseDynamicsFlags & InverseDynamics::TORQUE);
-}
-
-bool
-Joint::bIsErgonomy(void) const
-{
-	return (m_uInverseDynamicsFlags & InverseDynamics::ERGONOMY);
-}
-
-bool
-Joint::bIsRightHandSide(void) const
-{
-	return (m_uInverseDynamicsFlags & InverseDynamics::RIGHT_HAND_SIDE);
+	return (GetInverseDynamicsFlags() & InverseDynamics::TORQUE);
 }
 
 /* Joint - end */

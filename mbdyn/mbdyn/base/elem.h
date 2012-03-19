@@ -78,12 +78,16 @@ class Elem : public WithLabel, public SimulationEntity, public ToBeOutput
 , public InUse
 #endif /* USE_MULTITHREAD */
 {
+private:
+	unsigned m_uInverseDynamicsFlags;
+
 	/*
 	 * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
 	 * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
 	 * al numero di tipi definiti, quindi puo' essere usata come costante nel 
 	 * dimensionamento degli arrays e come flag di fine tipi. 
 	 */
+
 public:
 	enum Type {
 		UNKNOWN = -1,
@@ -202,6 +206,11 @@ public:
 
 	/* inverse dynamics capable element */
 	virtual bool bInverseDynamics(void) const;
+
+	void SetInverseDynamicsFlags(unsigned uIDF);
+	unsigned GetInverseDynamicsFlags(void) const;
+	bool bIsErgonomy(void) const;
+	bool bIsRightHandSide(void) const;
 
 	/* inverse dynamics Jacobian matrix assembly */
 	virtual VariableSubMatrixHandler&
