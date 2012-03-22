@@ -3116,19 +3116,20 @@ ReadJoint(DataManager* pDM,
 
 		Vec3 Xc(Zero3);
 		if (HP.IsKeyWord("position")) {
-			Xc = HP.GetPosAbs(AbsRefFrame);
+			DEBUGCOUT("Position vector is supplied" << std::endl);
+			Xc = HP.GetPosRel(AbsRefFrame, RF, fn);
 		}
 
 		Mat3x3 Rch(Eye3);
 		if (HP.IsKeyWord("position" "orientation")) {
 			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
-			Rch = HP.GetRotAbs(AbsRefFrame);
+			Rch = HP.GetRotRel(AbsRefFrame, RF, Rnh);
 		}
 
 		Mat3x3 Rchr(Eye3);
 		if (HP.IsKeyWord("rotation" "orientation")) {
 			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
-			Rchr = HP.GetRotAbs(AbsRefFrame);
+			Rchr = HP.GetRotRel(AbsRefFrame, RF, Rnhr);
 		}
 
 		bool bXActive[3] = { false, false, false };
