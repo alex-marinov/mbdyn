@@ -1,0 +1,136 @@
+\documentclass{article}
+
+\usepackage{amsmath,amssymb,bm}
+\usepackage{url}
+
+\begin{document}
+
+\title{The Muscles Module}
+\author{Pierangelo Masarati and Andrea Zanoni}
+\date{}
+\maketitle
+
+\begin{abstract}
+This document describes the implementation of the \texttt{module-muscles}
+run-time loadable module for MBDyn (\url{http://www.mbdyn.org/}).
+\end{abstract}
+
+\section{Introduction}
+
+
+
+\section{Formulation}
+
+
+
+\section{Implementation}
+The muscle model is implemented as a run-time loadable constitutive law
+intended to be used with the rod joint.
+The rod joint computes the axial strain $\varepsilon$
+from the distance $l$ between the two reference points it connects as
+\begin{align}
+	\varepsilon
+	&=
+	\frac{l}{l_i} - 1
+\end{align}
+where $l_i$ is the initial length of the rod.
+The rod also computes the strain rate as
+\begin{align}
+	\dot{\varepsilon}
+	&=
+	\frac{\dot{l}}{l_i}
+\end{align}
+The rod passes the strain and the strain rate to the constitutive law
+using the \texttt{Update()} member function.
+
+Subsequently, the rod joint can retrieve from the constitutive law
+the force $f$ and the equivalent stiffness $f_{/\varepsilon}$
+and damping $f_{/\dot{\varepsilon}}$ using specific methods.
+
+The muscles' constitutive law computes those parameters
+within the \texttt{Update()} member function.
+The muscle's non-dimensional elongation and elongation rate
+are computed from the strain and the strain rate as
+\begin{subequations}
+\begin{align}
+	x
+	&=
+	\frac{l}{l_0}
+	=
+	\frac{l_i}{l_0}(1 + \varepsilon)
+	\\
+	v
+	&=
+	\frac{\dot{l}}{V_0}
+	=
+	\frac{l_i}{V_0} \dot{\varepsilon}
+\end{align}
+\end{subequations}
+The equivalent stiffness and damping are computed as
+\begin{subequations}
+\begin{align}
+	f_{/\varepsilon}
+	&=
+	f_{m/x} x_{\varepsilon}
+	=
+	f_{m/x} \frac{l_i}{l_0}
+	\\
+	f_{/\dot{\varepsilon}}
+	&=
+	f_{m/v} v_{/\dot{\varepsilon}}
+	=
+	f_{m/v} \frac{l_i}{V_0}
+\end{align}
+\end{subequations}
+The activation $a$ is the result of evaluating a ``driver'';
+as such, the activation can be modified during the analysis.
+
+\paragraph{Ergonomy.}
+When the ``ergonomy'' variant is used, $f_{m/v} \equiv 0$.
+
+\paragraph{Reflexive.}
+When the ``reflexive'' variant is used, the actual activation
+is computed as
+\begin{align}
+	a
+	&=
+	a_\text{ref}
+	+
+	K_p \left( x - \frac{l_\text{ref}}{l_0} \right)
+	+
+	K_d \left( v - \frac{\dot{l}_\text{ref}}{V_0} \right)
+\end{align}
+While $l_\text{ref}$ is the result of evaluating a specific driver,
+$\dot{l}_\text{ref}$ is always zero in the current implementation.
+
+The force is computed using the actual value of $a$,
+while the equivalent stiffness and damping are computed as
+\begin{subequations}
+\begin{align}
+	f_{/\varepsilon}
+	&=
+	f_{/\varepsilon}(a_\text{ref})
+	+
+	f_{m/a} K_p x_{/\varepsilon}
+	=
+	f_{/\varepsilon}(a_\text{ref})
+	+
+	f_{m/a} K_p \frac{l_i}{l_0}
+	\\
+	f_{/\dot{\varepsilon}}
+	&=
+	f_{/\dot{\varepsilon}}(a_\text{ref})
+	+
+	f_{m/a} K_d v_{/\dot{\varepsilon}}
+	=
+	f_{/\dot{\varepsilon}}(a_\text{ref})
+	+
+	f_{m/a} K_d \frac{l_i}{V_0}
+\end{align}
+\end{subequations}
+
+
+\section{Concluding Remarks}
+
+
+\end{document}
