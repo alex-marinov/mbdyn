@@ -181,6 +181,99 @@ public:
 	};
 };
 
+class MusclePennestriReflexiveCL
+: public MusclePennestriCL {
+protected:
+	doublereal dKp;
+	doublereal dKd;
+	DriveOwner ReferenceLength;
+
+public:
+	MusclePennestriReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
+		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
+		const DriveCaller *pAct, bool bActivationOverflow,
+		doublereal dKp, doublereal dKd, const DriveCaller *pReferenceLength)
+	: MusclePennestriCL(pTplDC, dPreStress, Li, L0, V0, F0, pAct, bActivationOverflow),
+	dKp(dKp), dKd(dKd), ReferenceLength(pReferenceLength)
+	{
+		NO_OP;
+	};
+
+	virtual ~MusclePennestriReflexiveCL(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw<doublereal, doublereal>* pCopy(void) const {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		// pass parameters to copy constructor
+		SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCL,
+			MusclePennestriReflexiveCL(pGetDriveCaller()->pCopy(),
+				PreStress,
+				Li, L0, V0, F0,
+				Activation.pGetDriveCaller()->pCopy(),
+				bActivationOverflow,
+				dKp, dKd,
+				ReferenceLength.pGetDriveCaller()->pCopy()));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "muscle pennestri"
+			", initial length, " << Li
+			<< ", reference length, " << L0
+			<< ", reference velocity, " << V0
+			<< ", reference force, " << F0
+			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
+			<< ", activation check, " << bActivationOverflow
+			<< ", reflexive"
+			<< ", proportional gain, " << dKp
+			<< ", derivative gain, " << dKd
+			<< ", reference length, ", ReferenceLength.pGetDriveCaller()->Restart(out)
+			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
+		return out;
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
+		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
+		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
+
+		doublereal dxdEps = Li/L0;
+		doublereal dvdEpsPrime = Li/V0;
+		doublereal x = (1. + ConstitutiveLaw<doublereal, doublereal>::Epsilon)*dxdEps;
+		doublereal v = ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime*dvdEpsPrime;
+
+		doublereal dLRef = ReferenceLength.dGet()/L0;
+
+		doublereal aRef = Activation.dGet();
+		doublereal a = aRef + dKp*(x - dLRef) + dKd*v;
+		if (a < 0.) {
+			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
+			if (bActivationOverflow) {
+				a = 0.;
+			}
+
+		} else if (a > 1.) {
+			silent_cerr("MusclePennestriCL: activation overflow (a=" << a << ")" << std::endl);
+			if (bActivationOverflow) {
+				a = 1.;
+			}
+		}
+
+		doublereal f1 = std::exp(std::pow(x - 0.95, 2) - 40*std::pow(x - 0.95, 4));
+		doublereal f2 = 1.6 - 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1., 4));
+		doublereal f3 = 1.3*std::atan(0.1*std::pow(x - 0.22, 10));
+
+		doublereal df1dx = f1*(2*(x - 0.95) - 4*40.*std::pow(x - 0.95, 3));
+		doublereal df2dv = 1.6*std::exp(0.1/std::pow(v - 1., 2) - 1.1/std::pow(v - 1, 4))*(2*0.1/std::pow(v - 1., 3) - 4*1.1/std::pow(v - 1., 5));
+		doublereal df3dx = 1.3*std::pow(x - 0.22, 9)/(0.01*std::pow(x - 0.22, 20) + 1);
+
+		ConstitutiveLaw<doublereal, doublereal>::F = PreStress + F0*(f1*f2*a + f3);
+		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*dKp)*f2 + df3dx)*dxdEps;
+		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*dKd)*dvdEpsPrime;
+	};
+};
+
 /* specific functional object(s) */
 struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 	virtual ConstitutiveLaw<doublereal, doublereal> *
@@ -270,8 +363,36 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflow);
 		}
 
-		if (Li == -1.) {
-			Li = L0;
+		bool bReflexive(false);
+		doublereal dKp(0.);
+		doublereal dKd(0.);
+		const DriveCaller *pRefLen(0);
+		if (HP.IsKeyWord("reflexive")) {
+			if (bErgo) {
+				// error
+			}
+			bReflexive = true;
+
+			if (!HP.IsKeyWord("proportional" "gain")) {
+				silent_cerr("MusclePennestriCL: \"proportional gain\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			dKp = HP.GetReal();
+
+			if (!HP.IsKeyWord("derivative" "gain")) {
+				silent_cerr("MusclePennestriCL: \"derivative gain\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			dKd = HP.GetReal();
+
+			if (!HP.IsKeyWord("reference" "length")) {
+				silent_cerr("MusclePennestriCL: \"reference length\" expected "
+					"at line " << HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			pRefLen = HP.GetDriveCaller();
 		}
 
 		/* Prestress and prestrain */
@@ -279,11 +400,22 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		GetPreStress(HP, PreStress);
 		TplDriveCaller<doublereal> *pTplDC = GetPreStrain<doublereal>(pDM, HP);
 
+		if (Li == -1.) {
+			Li = L0;
+		}
+
 		if (bErgo) {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriErgoCL,
 				MusclePennestriErgoCL(pTplDC, PreStress,
 					Li, L0, V0, F0, pAct,
 					bActivationOverflow));
+
+		} else if (bReflexive) {
+			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriReflexiveCL,
+				MusclePennestriReflexiveCL(pTplDC, PreStress,
+					Li, L0, V0, F0, pAct,
+					bActivationOverflow,
+					dKp, dKd, pRefLen));
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pCL, MusclePennestriCL,
