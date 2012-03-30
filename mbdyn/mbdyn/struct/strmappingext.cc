@@ -364,7 +364,7 @@ StructMappingExtForce::Prepare(ExtFileHandlerBase *pEFH)
 
 		if (uRR != MBC_U_ROT_2_REF_NODE_ROT(uRRot)) {
 			silent_cerr("StructMappingExtForce(" << GetLabel() << "): "
-				"negotiation response failed: orientation output mismatch "
+				"negotiation response failed: reference node orientation output mismatch "
 				"(local=" << MBC_U_ROT_2_REF_NODE_ROT(uRRot) << ", remote=" << uR << ")"
 				<< std::endl);
 			bResult = false;
