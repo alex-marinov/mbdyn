@@ -171,6 +171,18 @@ void LinearAccelerationJoint::Output(OutputHandler& OH) const
      << " " << dGet() << std::endl;
 }
  
+void
+LinearAccelerationJoint::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* Xp */ ,
+	SimulationEntity::Hints *ph)
+{
+	// TODO: hints (e.g. get drive, get orientation)
+	integer iIndex = iGetFirstIndex();
+
+	// inherit initial velocity from node's
+	const Vec3& V(pNode->GetVCurr());
+	X(iIndex + 1) = Dir*V;
+}
 
 /* funzioni usate nell'assemblaggio iniziale */
 
@@ -386,6 +398,19 @@ void AngularAccelerationJoint::Output(OutputHandler& OH) const
      << " " << dGet() << std::endl;   
 }
  
+void
+AngularAccelerationJoint::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& /* Xp */ ,
+	SimulationEntity::Hints *ph)
+{
+	// TODO: hints (e.g. get drive, get orientation)
+	integer iIndex = iGetFirstIndex();
+
+	// inherit initial angular velocity from node's
+	const Vec3& W(pNode->GetWCurr());
+	Vec3 TmpDir(pNode->GetRCurr()*Dir);
+	X(iIndex + 1) = TmpDir*W;
+}
 
 /* funzioni usate nell'assemblaggio iniziale */
 unsigned int AngularAccelerationJoint::iGetInitialNumDof(void) const

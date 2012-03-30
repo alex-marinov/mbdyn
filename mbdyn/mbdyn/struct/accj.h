@@ -82,6 +82,9 @@ class LinearAccelerationJoint
    
    void Output(OutputHandler& OH) const;
  
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
+		SimulationEntity::Hints *ph = 0);
 
    /* funzioni usate nell'assemblaggio iniziale */
    
@@ -158,6 +161,9 @@ class AngularAccelerationJoint
    
    void Output(OutputHandler& OH) const;
  
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& /* X */ , VectorHandler& /* Xp */ ,
+		SimulationEntity::Hints *ph = 0);
 
    /* funzioni usate nell'assemblaggio iniziale */
    
