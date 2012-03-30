@@ -67,8 +67,8 @@ The compatible strains $\T{\epsilon}$ are defined as:
 \cubr{\vvect{c}{
  \tilde{\T{\epsilon}}_1 \\
  \tilde{\T{\epsilon}}_2 \\
- \tilde{\T{k} }_1 \\
- \tilde{\T{k} }_2 \\
+ \tilde{\T{\kappa} }_1 \\
+ \tilde{\T{\kappa} }_2 \\
 }}
 \end{equation}
 where:
@@ -81,13 +81,90 @@ where the comma followed by the index represents the derivation with respect to 
 $\TT{T}$ is the orientation and $\T{y}$ is the position vector both in the deformed configuration, and $\T{e}_k=\{e_{1k},e_{2k},e_{3k}\}$, with
 $e_{ik}=\delta_{ik}$.
 \begin{equation}
-\tilde{\T{k}}_k  =
-\TT{T}^ T \T{k}_k  - \TT{T}_0 ^ T  \T{k}^{0}_{k}
+\tilde{\T{\kappa}}_k  =
+\TT{T}^ T \T{\kappa}_k  - \TT{T}_0 ^ T  \T{\kappa}^{0}_k
 \end{equation}
 with:
 \begin{equation}
-\T{k}_k  \times = \TT{T}_{,k} \TT{T}^T
+\T{\kappa}_k  \times = \TT{T}_{,k} \TT{T}^T
 \end{equation}
+
+The compatible strain derivatives $\dot{\T{\epsilon}}$ are defined as:
+\begin{equation}
+\underset{ 12 \times 1 }{
+ \dot{\T{\epsilon}}
+ } =
+\cubr{\vvect{c}{
+ \dot{\tilde{\T{\epsilon}}}_1 \\
+ \dot{\tilde{\T{\epsilon}}}_2 \\
+ \dot{\tilde{\T{\kappa}}}_1 \\
+ \dot{\tilde{\T{\kappa}}}_2 \\
+}}
+\end{equation}
+where:
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} \tilde{\T{\epsilon}}_k
+	&=
+	\dot{\TT{T}}^T \T{y}_{,k}
+	+
+	\TT{T}^T \dot{\T{y}}_{,k}
+	=
+	-\TT{T}^T \T{\omega} \times \T{y}_{,k}
+	+
+	\TT{T}^T \dot{\T{y}}_{,k}
+\end{align}
+and
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} \tilde{\T{\kappa}}_k
+	&=
+	\dot{\TT{T}}^T \T{\kappa}_k
+	+
+	\TT{T}^T \dot{\T{\kappa}}_k
+	=
+	-\TT{T}^T \T{\omega} \times \T{\kappa}_k
+	+
+	\TT{T}^T \dot{\T{\kappa}}_k
+	.
+\end{align}
+Since
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} (\TT{T}_{,k})
+	&=
+	\frac{\mathrm{d}}{\mathrm{d}t} (\T{\kappa}_k \times \TT{T})
+	=
+	\dot{\T{\kappa}}_k \times \TT{T}
+	+
+	\T{\kappa}_k \times \T{\omega} \times \TT{T}
+	\\
+	(\dot{\TT{T}})_{,k}
+	&=
+	(\T{\omega} \times \TT{T})_{,k}
+	=
+	\T{\omega}_{,k} \times \TT{T}
+	+
+	\T{\omega} \times \T{\kappa}_k \times \TT{T}
+\end{align}
+then
+\begin{align}
+	\dot{\T{\kappa}}_k \times + \T{\kappa}_k \times \T{\omega} \times 
+	&=
+	\T{\omega}_{,k} \times + \T{\omega} \times \T{\kappa}_k \times
+\end{align}
+i.e.\
+\begin{align}
+	\dot{\T{\kappa}}_k
+	&=
+	\T{\omega}_{,k}
+	+
+	\T{\omega} \times \T{\kappa}_k
+\end{align}
+Thus
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} \tilde{\T{\kappa}}_k
+	&=
+	\TT{T}^T \T{\omega}_{,k}
+\end{align}
+
 The vector $\T{\sigma}$ is:
 \begin{equation}
  \T{\sigma} =
@@ -193,8 +270,8 @@ The virtual variation of the compatible strains $\T{\epsilon}$ is
 \cubr{\vvect{c}{
 \delta \tilde{\T{\epsilon} }_1 \\
 \delta \tilde{\T{\epsilon} }_2 \\
-\delta \tilde{\T{k} }_1 \\
-\delta \tilde{\T{k} }_2 \\
+\delta \tilde{\T{\kappa} }_1 \\
+\delta \tilde{\T{\kappa} }_2 \\
 }}
 \end{equation}
 In particular, the virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ is:
@@ -207,10 +284,10 @@ where:
 \begin{equation}
 \TT{\Phi}_{n} = \overline{\TT{T}}  \tilde{ \TT{\Gamma} } \tilde{ \TT{\Gamma} }_n^{-1} \overline{\TT{T}}^T
 \end{equation}
-The  virtual variations of the curvatures $\tilde{\T{k} }_k$ is:
+The  virtual variations of the curvatures $\tilde{\T{\kappa} }_k$ is:
 \begin{equation}
-\delta \tilde{\T{k} }_k = \delta \plbr{ \TT{T}^T \T{k}_k } =
-\sum_{i=1}^n \TT{T}^T \T{k}_k \times \TT{\Phi}_n L_n \T{\varphi}_{\delta n} + \sum_{i=1}^n \TT{T}^T \TT{K}_{kn} \T{\varphi}_{\delta n}
+\delta \tilde{\T{\kappa} }_k = \delta \plbr{ \TT{T}^T \T{\kappa}_k } =
+\sum_{i=1}^n \TT{T}^T \T{\kappa}_k \times \TT{\Phi}_n L_n \T{\varphi}_{\delta n} + \sum_{i=1}^n \TT{T}^T \TT{K}_{kn} \T{\varphi}_{\delta n}
 \label{eq:delta_k}
 \end{equation}
 where:
@@ -232,9 +309,9 @@ The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
 \end{equation}
 \begin{equation}
 \begin{split}
-\T{m}_k \cdot \Delta \delta \tilde{\T{k}}_k =
-\T{m}_k \cdot \Delta \delta \plbr{\TT{T}^T \T{k}_k} & =
-\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} L_n \TT{\Phi}_n^T \T{k}_k \times \plbr{\TT{T} \T{m}_k} \times \T{\Phi_{m}} L_m \T{\varphi}_{\Delta m} + \\
+\T{m}_k \cdot \Delta \delta \tilde{\T{\kappa}}_k =
+\T{m}_k \cdot \Delta \delta \plbr{\TT{T}^T \T{\kappa}_k} & =
+\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} L_n \TT{\Phi}_n^T \T{\kappa}_k \times \plbr{\TT{T} \T{m}_k} \times \T{\Phi_{m}} L_m \T{\varphi}_{\Delta m} + \\
 &+\sum_{m,n=1}^{4} \T{\varphi}_{\delta n} L_n \TT{\Phi}_n^T \plbr{\TT{T} \T{m}_k} \times \TT{\Phi}_m L_{m,k} \T{\varphi}_{\Delta m}
 \end{split}
 \label{eq:Deltadelta_k}
@@ -426,11 +503,11 @@ The virtual variations of the linear deformation $\tilde{\T{\epsilon} }_k $ at t
 \label{eq:delta_epsilon_i}
 \end{equation}
 where $\TT{L}_{\alpha \beta} \valxii \plbr{ n, k }$ denotes the element $\plbr{n, k}$ of the matrix $\TT{L}_{\alpha \beta} \valxii$.\\
-The  virtual variation of the curvatures $\tilde{\T{k} }_k$ at the $i$-th integration point is derived from Eq.~\ref{eq:delta_k}:
+The  virtual variation of the curvatures $\tilde{\T{\kappa} }_k$ at the $i$-th integration point is derived from Eq.~\ref{eq:delta_k}:
 \begin{equation}
 \begin{split}
-\delta \tilde{\T{k} }_k \valxii & = \delta \plbr{ \TT{T}\valxii^T \T{k}_k \valxii} =  \\
-& \sum_{i=1}^n \TT{T}\valxii^T \T{k}_k\valxii \times \TT{\Phi}_n\valxii L_n\valxii \T{\varphi}_{n \delta} + \sum_{i=1}^n \TT{T}\valxii^T \TT{K}_{kn}\valxii \T{\varphi}_{n \delta}
+\delta \tilde{\T{\kappa} }_k \valxii & = \delta \plbr{ \TT{T}\valxii^T \T{\kappa}_k \valxii} =  \\
+& \sum_{i=1}^n \TT{T}\valxii^T \T{\kappa}_k\valxii \times \TT{\Phi}_n\valxii L_n\valxii \T{\varphi}_{n \delta} + \sum_{i=1}^n \TT{T}\valxii^T \TT{K}_{kn}\valxii \T{\varphi}_{n \delta}
 \end{split}
 \label{eq:delta_k_i}
 \end{equation}
@@ -450,7 +527,7 @@ The derivative of the the vector $\tilde{\T{\varphi}}$ with respect to the $k$-t
 \end{equation}
 The curvatures are given by:
 \begin{equation}
-\T{k}_{k} \valxii  =
+\T{\kappa}_k \valxii  =
 \overline{\TT{T}} \tilde{\TT{\Gamma}} \plbr{ \tilde{\T{\varphi}} \valxii } \tilde{ \T{\varphi} }_{,k} \valxii
 \end{equation}
 and the derivative of the position vector is:
@@ -476,8 +553,8 @@ and:
 \sqbr{ \matr{ c c  }{
 \TT{T} \valxii^T \TT{L}_{\alpha \beta} \valxii \plbr{n,1} & \TT{T}\valxii^T \T{y}_{,1} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii \\
 \TT{T} \valxii^T \TT{L}_{\alpha \beta} \valxii \plbr{n,2} & \TT{T}\valxii^T \T{y}_{,2} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii \\
-0 & \TT{T}\valxii^T \T{k}_{1} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii + \TT{T} \valxii^T \TT{K}_{1n} \valxii \\
-0 & \TT{T}\valxii^T \T{k}_{2} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii + \TT{T} \valxii^T \TT{K}_{2n} \valxii
+0 & \TT{T}\valxii^T \T{\kappa}_{1} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii + \TT{T} \valxii^T \TT{K}_{1n} \valxii \\
+0 & \TT{T}\valxii^T \T{\kappa}_{2} \valxii \times \TT{\Phi}_{n} \valxii L_{n} \valxii + \TT{T} \valxii^T \TT{K}_{2n} \valxii
 }}
 \end{equation}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -580,10 +657,10 @@ Strains and curvatures can be calculated as:
 \TT{T} \valxii ^T \T{y}_{,k} \valxii - \T{e}_k
 \end{equation}
 \begin{equation}
-\tilde{\T{k}}_k  =
-\TT{T} \valxii ^ T \T{k}_k \valxii - \TT{T}_0 ^ T \valxii \T{k}^{0}_{k} \valxii
+\tilde{\T{\kappa}}_k  =
+\TT{T} \valxii ^ T \T{\kappa}_k \valxii - \TT{T}_0 ^ T \valxii \T{\kappa}^{0}_k \valxii
 \end{equation}
-where $\TT{T}_0$ and $\T{k}^{0}_{k}$ are calculated at the first step.\\
+where $\TT{T}_0$ and $\T{\kappa}^{0}_k$ are calculated at the first step.\\
 The total strain is the sum of the compatible and the enhancing strains:
 \begin{equation}
 \T{\epsilon}_t \valxii =
@@ -672,8 +749,8 @@ with:
 \TT{Hh} \valxii & =
 \TT{T} \valxii \T{n}_1 \valxii \otimes \T{y}_{,1} \valxii - \TT{T} \valxii \T{n}_1 \cdot \T{y}_{,1} \valxii \T{I} + \\
 & + \TT{T} \valxii \T{n}_2 \valxii \otimes \T{y}_{,2} \valxii - \TT{T} \valxii \T{n}_2 \cdot \T{y}_{,2} \valxii \T{I} + \\
-& + \TT{T} \valxii \T{m}_1 \valxii \otimes \T{k}_{1} \valxii - \TT{T} \valxii \T{m}_1 \cdot \T{k}_{1} \valxii \T{I} + \\
-& + \TT{T} \valxii \T{m}_2 \valxii \otimes \T{k}_{2} \valxii - \TT{T} \valxii \T{m}_2 \cdot \T{k}_{2} \valxii \T{I}
+& + \TT{T} \valxii \T{m}_1 \valxii \otimes \T{\kappa}_{1} \valxii - \TT{T} \valxii \T{m}_1 \cdot \T{\kappa}_{1} \valxii \T{I} + \\
+& + \TT{T} \valxii \T{m}_2 \valxii \otimes \T{\kappa}_{2} \valxii - \TT{T} \valxii \T{m}_2 \cdot \T{\kappa}_{2} \valxii \T{I}
 \end{split}
 \end{equation}
 \begin{equation}
