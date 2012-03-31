@@ -41,7 +41,7 @@ A linear (visco)elastic stress-strain relationship is considered,
 		\dot{\T{\epsilon}} + \dot{\hat{\T{\epsilon}}}
 	}
 \end{align}
-\textbf{FIXME: $\dot{\hat{\T{\epsilon}}}$?}
+\textbf{FIXME: $\dot{\hat{\T{\epsilon}}}$? Direi di no!}
 and:
 \begin{equation}
 \Delta \delta W = \int_A \plbr{
@@ -89,6 +89,7 @@ with:
 \T{\kappa}_k  \times = \TT{T}_{,k} \TT{T}^T
 \end{equation}
 
+\subsection{Strain Rate}
 The compatible strain derivatives $\dot{\T{\epsilon}}$ are defined as:
 \begin{equation}
 \underset{ 12 \times 1 }{
@@ -212,7 +213,7 @@ The following convention is adopted:
   \item $\T{\xi}_A$ means $\T{\xi}$ evaluated in one of the four shear evaluation points
   \item $\T{\xi}_0$ means $\T{\xi}$ evaluated at the origin
 \end{itemize}
-According to the numeration of the nodes, the bilinear shape functions defined at element level are:
+According to the numbering of the nodes, the bilinear shape functions defined at element level are:
 \begin{subequations}
 \begin{align}
 L_1(\T{\xi}) & = \frac{1}{4} \plbr{ 1 + \xi_1 } \plbr{ 1 + \xi_2 } \\
@@ -323,7 +324,26 @@ The last term of Eq.~\ref{eq:DeltadeltaW} requires the evaluation of the terms:
 Consistently formulated structural damping requires to express
 the time derivatives of strain and curvature.
 A linear contribution to internal force and moment fluxes is considered,
-\textbf{TODO}
+\begin{align}
+	\T{\sigma}
+	& \text{ += }
+	\TT{E} \dot{\T{\epsilon}}
+\end{align}
+The discretized strain rate is
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} \tilde{\T{\epsilon}}_k
+	&=
+	\TT{T}^T \T{y}_{,k} \times \sum_{i=1}^n \TT{\Phi}_i L_i \T{\omega}_i
+	+
+	\TT{T}^T \sum_{i=1}^n L_{n,k} \dot{\T{y}}_i
+\end{align}
+The discretized curvature rate is
+\begin{align}
+	\frac{\mathrm{d}}{\mathrm{d}t} \tilde{\T{\kappa}}_k
+	&=
+	\TT{T}^T \sum_{i=1}^n L_{n,k} \T{\omega}_i
+\end{align}
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%IMPLEMENTATION%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
