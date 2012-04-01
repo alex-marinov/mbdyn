@@ -178,6 +178,14 @@ DataManager::DofOwnerInit(void)
 	ASSERT(pDofs != NULL);
 	ASSERT(!Nodes.empty());
 
+	if ( uPrintFlags & PRINT_TO_FILE ) {
+		OutHdl.Open(OutputHandler::DOFSTATS);
+	}
+
+	std::ostream& out_ds = (uPrintFlags & PRINT_TO_FILE)
+							? OutHdl.DofStats()
+							: std::cout;
+
 	bool pds =
 #ifdef DEBUG
 			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
@@ -189,7 +197,7 @@ DataManager::DofOwnerInit(void)
 	 * tested in "pds".
 	 */
 	if (pds) {
-		std::cout << "Regular steps dof stats" << std::endl;
+		out_ds << "Regular steps dof stats" << std::endl;
 	}
 
 	/* per ogni nodo strutturale */
@@ -384,20 +392,20 @@ DataManager::DofOwnerInit(void)
 				unsigned int nd = (*i)->iGetNumDof();
 				integer fd = pDf->iIndex;
 
-				std::cout << psNodeNames[(*i)->GetNodeType()]
+				out_ds << psNodeNames[(*i)->GetNodeType()]
 					<< "(" << (*i)->GetLabel() << "): "
 					<< nd << " " << fd + 1;
 				if (nd > 1) {
-					std::cout << "->" << fd + nd;
+					out_ds << "->" << fd + nd;
 				}
-				std::cout << std::endl;
+				out_ds << std::endl;
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-					(*i)->DescribeDof(std::cout,
+					(*i)->DescribeDof(out_ds,
 							     "        ");
 				}
 
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-					(*i)->DescribeEq(std::cout,
+					(*i)->DescribeEq(out_ds,
 							     "        ");
 				}
 			}
@@ -485,20 +493,20 @@ DataManager::DofOwnerInit(void)
 					unsigned int nd = pEWD->iGetNumDof();
 					integer fd = pDf->iIndex;
 
-					std::cout << psElemNames[pEWD->GetElemType()]
+					out_ds << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << "): "
 						<< nd << " " << fd + 1;
 					if (nd > 1) {
-						std::cout << "->" << fd + nd;
+						out_ds << "->" << fd + nd;
 					}
-					std::cout << std::endl;
+					out_ds << std::endl;
 					if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-						pEWD->DescribeDof(std::cout,
+						pEWD->DescribeDof(out_ds,
 								"        ");
 					}
 
 					if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-						pEWD->DescribeEq(std::cout,
+						pEWD->DescribeEq(out_ds,
 								"        ");
 					}
 				}
@@ -572,7 +580,7 @@ DataManager::DofOwnerInit(void)
 		std::vector<const Node *> connectedNodes;
 
 		if (uPrintFlags & PRINT_EL_CONNECTION) {
-			silent_cout("Element connections" << std::endl);
+			out_ds << "Element connections" << std::endl;
 		}
 
 		do {
@@ -580,17 +588,17 @@ DataManager::DofOwnerInit(void)
 
 			if (connectedNodes.size() > 0) {
 				if (uPrintFlags & PRINT_EL_CONNECTION) {
-					silent_cout(psElemNames[pEl->GetElemType()]
-						<< "(" << pEl->GetLabel() << ") connecting" << std::endl);
+					out_ds << psElemNames[pEl->GetElemType()]
+						<< "(" << pEl->GetLabel() << ") connecting" << std::endl;
 				}
 				for (std::vector<const Node *>::const_iterator i = connectedNodes.begin();
 					i != connectedNodes.end(); ++i)
 				{
 					const Node *real_i = (*i)->GetNode();
 					if (uPrintFlags & PRINT_EL_CONNECTION) {
-						silent_cout("        "
+						out_ds << "        "
 							<< psNodeNames[real_i->GetNodeType()]
-							<< "(" << real_i->GetLabel() << ")" << std::endl);
+							<< "(" << real_i->GetLabel() << ")" << std::endl;
 					}
 	
 					nodemap::iterator n = connectedElems[real_i->GetNodeType()].find(real_i);
@@ -602,8 +610,8 @@ DataManager::DofOwnerInit(void)
 
 			} else {
 				if (uPrintFlags & PRINT_EL_CONNECTION) {
-					silent_cout(psElemNames[pEl->GetElemType()]
-						<< "(" << pEl->GetLabel() << ") not connected" << std::endl);
+					out_ds << psElemNames[pEl->GetElemType()]
+						<< "(" << pEl->GetLabel() << ") not connected" << std::endl;
 				}
 			}
 
@@ -611,23 +619,23 @@ DataManager::DofOwnerInit(void)
 
 
 		if (uPrintFlags & PRINT_NODE_CONNECTION) {
-			silent_cout("Node connections" << std::endl);
+			out_ds << "Node connections" << std::endl;
 		}
 		for (unsigned t = 0; t < Node::LASTNODETYPE; t++) {
 			for (nodemap::iterator n = connectedElems[t].begin();
 				n != connectedElems[t].end(); ++n)
 			{
 				if (uPrintFlags & PRINT_NODE_CONNECTION) {
-					silent_cout(psNodeNames[n->first->GetNodeType()]
-						<< "(" << n->first->GetLabel() << ") connected to" << std::endl);
+					out_ds << psNodeNames[n->first->GetNodeType()]
+						<< "(" << n->first->GetLabel() << ") connected to" << std::endl;
 				}
 				for (elmap::const_iterator e = n->second->begin();
 					e != n->second->end(); ++e)
 				{
 					if (uPrintFlags & PRINT_NODE_CONNECTION) {
-						silent_cout("        "
+						out_ds << "        "
 							<< psElemNames[(*e)->GetElemType()]
-							<< "(" << (*e)->GetLabel() << ")" << std::endl);
+							<< "(" << (*e)->GetLabel() << ")" << std::endl;
 					}
 				}
 
@@ -643,6 +651,14 @@ DataManager::DofOwnerInit(void)
 void
 DataManager::InitialJointAssembly(void)
 {
+	if ( uPrintFlags & PRINT_TO_FILE ) {
+		OutHdl.Open(OutputHandler::DOFSTATS);
+	}
+
+	std::ostream& out_ds = (uPrintFlags & PRINT_TO_FILE)
+							? OutHdl.DofStats()
+							: std::cout;
+
 	/* Costruisce la struttura temporanea dei Dof */
 
 	ASSERTMSG(DofData[DofOwner::JOINT].iNum > 0,
@@ -658,7 +674,7 @@ DataManager::InitialJointAssembly(void)
 			(!silent_output && (uPrintFlags & PRINT_DOF_STATS));
 
 	if (pds) {
-		silent_cout("Initial assembly dof stats" << std::endl);
+		out_ds << "Initial assembly dof stats" << std::endl;
 	}
 
 	/* Numero totale di Dof durante l'assemblaggio iniziale */
@@ -750,20 +766,20 @@ DataManager::InitialJointAssembly(void)
 				unsigned int nd = iNumDofs;
 				integer fd = iIndex;
 
-				std::cout << psNodeNames[pNode->GetNodeType()]
+				out_ds << psNodeNames[pNode->GetNodeType()]
 					<< "(" << pNode->GetLabel()
 					<< "): " << nd << " " << fd + 1;
 				if (nd > 1) {
-					std::cout << "->" << fd + nd;
+					out_ds << "->" << fd + nd;
 				}
-				std::cout << std::endl;
+				out_ds << std::endl;
 				if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-					pNode->DescribeDof(std::cout,
+					pNode->DescribeDof(out_ds,
 							     "        ", true);
 				}
 
 				if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-					pNode->DescribeEq(std::cout,
+					pNode->DescribeEq(out_ds,
 							     "        ", true);
 				}
 			}
@@ -865,20 +881,20 @@ DataManager::InitialJointAssembly(void)
 							integer fd = iIndex;
 							ElemWithDofs* pEWD = Cast<ElemWithDofs>(p->second);
 
-							silent_cout(psElemNames[pEl->GetElemType()]
+							out_ds << psElemNames[pEl->GetElemType()]
 								<< "(" << pEl->GetLabel()
-								<< "): " << nd << " " << fd + 1);
+								<< "): " << nd << " " << fd + 1;
 							if (nd > 1) {
-								silent_cout("->" << fd + nd);
+								out_ds << "->" << fd + nd;
 							}
-							silent_cout(std::endl);
+							out_ds << std::endl;
 							if (uPrintFlags & PRINT_DOF_DESCRIPTION) {
-								pEWD->DescribeDof(std::cout,
+								pEWD->DescribeDof(out_ds,
 										"        ", true);
 							}
 
 							if (uPrintFlags & PRINT_EQ_DESCRIPTION) {
-								pEWD->DescribeEq(std::cout,
+								pEWD->DescribeEq(out_ds,
 										"        ", true);
 							}
 						}

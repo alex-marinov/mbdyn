@@ -76,8 +76,9 @@ const char* psExt[] = {
 	".the",
 	".pla",
 	".grv",
+	".dof",		// 31
 
-	NULL		// 31
+	NULL		// 32
 };
 
 /* Costruttore senza inizializzazione */
@@ -243,6 +244,9 @@ OutputHandler::OutputHandler_int(void)
 	OutData[GRAVITY].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[GRAVITY].pof = &ofGravity;
+
+	OutData[DOFSTATS].flags = OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+	OutData[DOFSTATS].pof = &ofDofStats;
 
 	OutData[NETCDF].flags = 0
 		| OUTPUT_MAY_USE_NETCDF;

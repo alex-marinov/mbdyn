@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added continuous contact constitutive law (Matteo Fancello)
 		- added inverse dynamics body for weight tailoring
 		- added "other" specifier to total pin joint input
+		- added dof stats output to file (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

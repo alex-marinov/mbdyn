@@ -783,6 +783,9 @@ EndOfUse:
 				} else if (HP.IsKeyWord("none")) {
 					uPrintFlags = PRINT_NONE;
 
+				} else if (HP.IsKeyWord("to" "file")) {
+					uPrintFlags |= PRINT_TO_FILE;
+
 				} else {
 					silent_cerr("unknown print flag at line "
 						<< HP.GetLineData() << std::endl);
