@@ -532,12 +532,23 @@ DofIter()
 	 * che conosce gli aspetti fisici del problema
 	 */
 
+	if (!bInitialJointAssemblyToBeDone) {
+		for (int i = 0; i < Elem::LASTELEMTYPE; ++i) {
+			if (ElemData[i].bToBeUsedInAssembly() && !ElemData[i].ElemContainer.empty()) {
+				bInitialJointAssemblyToBeDone = true;
+				break;
+			}
+		}
+	}
+
 	if (bInitialJointAssemblyToBeDone) {
 		if (!bSkipInitialJointAssembly && !bInverseDynamics) {
 			InitialJointAssembly();
+
 		} else {
 			silent_cout("Skipping initial joints assembly" << std::endl);
 		}
+
 	} else {
 		silent_cout("No initial assembly is required since no joints are defined"
 			<< std::endl);
