@@ -979,7 +979,7 @@ TypedValue::GetBool(void) const
 		return v.r ? 1 : 0;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_BOOL);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_BOOL, type);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -998,7 +998,7 @@ TypedValue::GetInt(void) const
 		return Int(v.r);
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_INT);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_INT, type);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1017,7 +1017,7 @@ TypedValue::GetReal(void) const
  		return v.r;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_REAL);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_REAL, type);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1031,7 +1031,7 @@ TypedValue::GetString(void) const
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, type, VAR_STRING);
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_STRING, type);
 
 	case TypedValue::VAR_STRING:
  		return s;
@@ -1080,7 +1080,7 @@ TypedValue::Set(const bool& b)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_BOOL, GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), VAR_BOOL);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1110,7 +1110,7 @@ TypedValue::Set(const Int& i)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_INT, GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), VAR_INT);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1140,7 +1140,7 @@ TypedValue::Set(const Real& r)
 		break;
 
 	case TypedValue::VAR_STRING:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_REAL, GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), VAR_REAL);
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1160,7 +1160,7 @@ TypedValue::Set(const std::string& s)
 	case TypedValue::VAR_BOOL:
 	case TypedValue::VAR_INT:
 	case TypedValue::VAR_REAL:
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_STRING, GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), VAR_STRING);
 
 	case TypedValue::VAR_STRING:
 		this->s = s;

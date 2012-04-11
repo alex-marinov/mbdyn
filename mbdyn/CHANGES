@@ -29,6 +29,7 @@ MBDyn 1.X-Devel
 		- fix beam default output (noted by Reinhard Resch)
 		- fix linear/angular acceleration joint initialization
 		- fix initial assembly required by userelem (Reinhard Resch)
+		- fix "wrong type" diagnostics in math parser
 
 MBDyn 1.4.3
 	Enhancements:
