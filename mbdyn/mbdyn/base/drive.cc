@@ -358,7 +358,21 @@ DriveHandler::dGet(InputStream& InStr) const
 	pthread_mutex_lock(&parser_mutex);
 #endif /* USE_MULTITHREAD */
 
-	d = Parser.GetLastStmt(InStr);
+	try {
+		d = Parser.GetLastStmt(InStr);
+
+	} catch (MBDynErrBase e) {
+		silent_cerr("StringDrive: " << e.what() << std::endl);
+		throw e;
+
+	} catch (ErrGeneric e) {
+		silent_cerr("StringDrive: " << e.what() << std::endl);
+		throw e;
+
+	} catch (...) {
+		silent_cerr("StringDrive error" << std::endl);
+		throw;
+	}
 
 #ifdef USE_MULTITHREAD
 	pthread_mutex_unlock(&parser_mutex);
