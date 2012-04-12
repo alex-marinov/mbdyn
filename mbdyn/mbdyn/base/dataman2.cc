@@ -1181,7 +1181,8 @@ DataManager::InitialJointAssembly(void)
 			doublereal dPosStiff = pDispNode->dGetPositionStiffness();
 			doublereal dVelStiff = pDispNode->dGetVelocityStiffness();
 
-			for (int iCnt = 1; iCnt <= 6; iCnt++) {
+			/* NOTE: iOffset equal to number of position/velocity equations */
+			for (int iCnt = 1; iCnt <= iOffset; iCnt++) {
 				/* Posizione, rotazione */
 				integer iTmp = iFirstIndex + iCnt;
 				pMatHdl->PutCoef(iTmp, iTmp, dPosStiff);
