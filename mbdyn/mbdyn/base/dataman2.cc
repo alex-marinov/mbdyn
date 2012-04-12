@@ -1158,7 +1158,7 @@ DataManager::InitialJointAssembly(void)
 		}
 
 		/* Assemblo lo jacobiano e risolvo */
-		pSM->MatrReset();
+		pSM->MatrInitialize();
 
 		/* Contributo dei nodi */
 		for (NodeContainerType::iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();

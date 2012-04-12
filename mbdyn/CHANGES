@@ -30,6 +30,7 @@ MBDyn 1.X-Devel
 		- fix linear/angular acceleration joint initialization
 		- fix initial assembly required by userelem (Reinhard Resch)
 		- fix "wrong type" diagnostics in math parser
+		- fix initial assembly matrix reset (noted by Reinhard Resch)
 
 MBDyn 1.4.3
 	Enhancements:
