@@ -376,22 +376,22 @@ PlaneHingeJoint::SetValue(DataManager *pDM,
 			}
 
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+				const Mat3x3& R1(pNode1->GetRCurr());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1.MulTV(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+				const Mat3x3& R2(pNode2->GetRCurr());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2.MulTV(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().MulTM(pNode2->GetRCurr()*R2h);
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().MulTM(pNode1->GetRCurr()*R1h);
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -501,13 +501,14 @@ PlaneHingeJoint::AfterConvergence(const VectorHandler& X,
 void
 PlaneHingeJoint::ReadInitialState(MBDynParser& HP)
 {
-	F = Vec3(HP.GetVec3());
+	F = HP.GetVec3();
 	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
 }
 
 
 /* Contributo al file di restart */
-std::ostream& PlaneHingeJoint::Restart(std::ostream& out) const
+std::ostream&
+PlaneHingeJoint::Restart(std::ostream& out) const
 {
    Joint::Restart(out) << ", revolute hinge, "
      << pNode1->GetLabel() << ", reference, node, ",
@@ -566,8 +567,8 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    /* Recupera i dati che servono */
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());   
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());   
    Vec3 d1Tmp(R1*d1);
    Vec3 d2Tmp(R2*d2);
    Mat3x3 R1hTmp(R1*R1h);
@@ -687,10 +688,10 @@ PlaneHingeJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //shape function
       doublereal shc = Sh_c->Sh_c();
           //omega and omega rif
-      Vec3 Omega1(pNode1->GetWCurr());
-      Vec3 Omega2(pNode2->GetWCurr());
-      Vec3 Omega1r(pNode1->GetWRef());
-      Vec3 Omega2r(pNode2->GetWRef());   
+      const Vec3& Omega1(pNode1->GetWCurr());
+      const Vec3& Omega2(pNode2->GetWCurr());
+      // const Vec3& Omega1r(pNode1->GetWRef());
+      // const Vec3& Omega2r(pNode2->GetWRef());   
       //compute 
           //relative velocity
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
@@ -842,10 +843,10 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
     */
    
    /* Recupera i dati */
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
    
    /* Costruisce i dati propri nella configurazione corrente */
    Vec3 dTmp1(R1*d1);
@@ -880,8 +881,8 @@ SubVectorHandler& PlaneHingeJoint::AssRes(SubVectorHandler& WorkVec,
 
    if (fc) {
       bool ChangeJac(false);
-      Vec3 Omega1(pNode1->GetWCurr());
-      Vec3 Omega2(pNode2->GetWCurr());
+      const Vec3& Omega1(pNode1->GetWCurr());
+      const Vec3& Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
       doublereal modF = std::max(F.Norm(), preF);
       try {
@@ -941,13 +942,12 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
-      Mat3x3 R2TmpT(R2Tmp.Transpose());
+      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
       
       std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    R2TmpT*F, M, F, R2Tmp*M)
+		    R2Tmp.MulTV(F), M, F, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
+	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr());
       if (fc) {
           of << " " << M3 << " " << fc->fc();
       }
@@ -1022,10 +1022,10 @@ PlaneHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
    
    /* Recupera i dati */
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());
-   Vec3 Omega1(pNode1->GetWRef());
-   Vec3 Omega2(pNode2->GetWRef());
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());
+   const Vec3& Omega1(pNode1->GetWRef());
+   const Vec3& Omega2(pNode2->GetWRef());
    
    /* F ed M sono gia' state aggiornate da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
@@ -1244,14 +1244,14 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    }
 
    /* Recupera i dati */
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
-   Vec3 v1(pNode1->GetVCurr());
-   Vec3 v2(pNode2->GetVCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
-   Vec3 Omega1(pNode1->GetWCurr());
-   Vec3 Omega2(pNode2->GetWCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
+   const Vec3& v1(pNode1->GetVCurr());
+   const Vec3& v2(pNode2->GetVCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
+   const Vec3& Omega1(pNode1->GetWCurr());
+   const Vec3& Omega2(pNode2->GetWCurr());
    
    /* Aggiorna F ed M, che restano anche per InitialAssJac */
    F = Vec3(XCurr, iFirstReactionIndex+1);
@@ -1284,11 +1284,11 @@ PlaneHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		  e2b.Cross(e3a)*MPrime.dGet(1)+e3a.Cross(e1b)*MPrime.dGet(2)); 
    
    /* Equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(d1Tmp)-MTmp.Cross(e3a)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Derivate delle equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(7, -FPrime);
+   WorkVec.Sub(7, FPrime);
    WorkVec.Add(10, FPrime.Cross(d1Tmp)-O1Wedged1.Cross(F)-MPrimeTmp);
    
    /* Equazioni di equilibrio, nodo 2 */
@@ -1384,8 +1384,8 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
     }
       
     case 2: {
-       Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
-       Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+       Mat3x3 R2Tmp((pNode2->GetRCurr()*R2h));
+       Vec3 v(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
        return v(3);
     }
@@ -1603,10 +1603,10 @@ PlaneRotationJoint::SetValue(DataManager *pDM,
 			}
 
 			if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().MulTM(pNode2->GetRCurr()*R2h);
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().MulTM(pNode1->GetRCurr()*R1h);
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -1901,13 +1901,12 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
-      Mat3x3 R2TmpT(R2Tmp.Transpose());
+      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
       
       Joint::Output(OH.Joints(), "PlaneRotation", GetLabel(),
 		    Zero3, M, Zero3, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
+	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
    }
 }
 
@@ -2276,8 +2275,8 @@ doublereal PlaneRotationJoint::dGetPrivData(unsigned int i) const
     }
       
     case 2: {
-       Mat3x3 R2TmpT((pNode2->GetRCurr()*R2h).Transpose());
-       Vec3 v(R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+       Mat3x3 R2Tmp((pNode2->GetRCurr()*R2h));
+       Vec3 v(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
        
        return v(3);
     }
@@ -2650,22 +2649,22 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 			}
 
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+				const Mat3x3& R1(pNode1->GetRCurr());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1.MulTV(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+				const Mat3x3& R2(pNode2->GetRCurr());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2.MulTV(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				R1h = pNode1->GetRCurr().Transpose()*pNode2->GetRCurr()*R2h;
+				R1h = pNode1->GetRCurr().MulTM(pNode2->GetRCurr()*R2h);
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
-				R2h = pNode2->GetRCurr().Transpose()*pNode1->GetRCurr()*R1h;
+				R2h = pNode2->GetRCurr().MulTM(pNode1->GetRCurr()*R1h);
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -2673,7 +2672,7 @@ AxialRotationJoint::SetValue(DataManager *pDM,
 		}
 	}
 
-	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*(pNode2->GetRCurr()*R2h));
+	Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(pNode2->GetRCurr()*R2h));
 	Vec3 v(MatR2EulerAngles(RTmp));
 
 	dThetaWrapped = dTheta = v.dGet(3);
@@ -2746,11 +2745,11 @@ AxialRotationJoint::AfterConvergence(const VectorHandler& X,
 	dTheta = 2*M_PI*NTheta + dThetaWrapped;
 
 	if (fc) {
-		Mat3x3 R1(pNode1->GetRCurr());
+		const Mat3x3& R1(pNode1->GetRCurr());
 		Mat3x3 R1hTmp(R1*R1h);
 		Vec3 e3a(R1hTmp.GetVec(3));
-		Vec3 Omega1(pNode1->GetWCurr());
-		Vec3 Omega2(pNode2->GetWCurr());
+		const Vec3& Omega1(pNode1->GetWCurr());
+		const Vec3& Omega2(pNode2->GetWCurr());
 		//relative velocity
 		doublereal v = (Omega1-Omega2).Dot(e3a)*r;
 		//reaction norm
@@ -2804,9 +2803,9 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstReactionIndex = iGetFirstIndex();
 
    /* Recupera i dati che servono */
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());   
-   Vec3 Omega2(pNode2->GetWRef()); /* Serve dopo */
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());   
+   const Vec3& Omega2(pNode2->GetWRef()); /* Serve dopo */
    Vec3 d1Tmp(R1*d1);
    Vec3 d2Tmp(R2*d2);
    Mat3x3 R1hTmp(R1*R1h);
@@ -2956,10 +2955,10 @@ AxialRotationJoint::AssJac(VariableSubMatrixHandler& WorkMat,
           //shape function
       doublereal shc = Sh_c->Sh_c();
           //omega and omega rif
-      Vec3 Omega1(pNode1->GetWCurr());
-      Vec3 Omega2(pNode2->GetWCurr());
-      Vec3 Omega1r(pNode1->GetWRef());
-      Vec3 Omega2r(pNode2->GetWRef());   
+      const Vec3& Omega1(pNode1->GetWCurr());
+      const Vec3& Omega2(pNode2->GetWCurr());
+      // const Vec3& Omega1r(pNode1->GetWRef());
+      // const Vec3& Omega2r(pNode2->GetWRef());   
       //compute 
           //relative velocity
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
@@ -3053,10 +3052,10 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    M = Vec3(XCurr, iFirstReactionIndex+4);
    
    /* Recupera i dati */
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
    
    /* Costruisce i dati propri nella configurazione corrente */
    Vec3 dTmp1(R1*d1);
@@ -3071,7 +3070,7 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 MTmp(e2b.Cross(e3a)*M.dGet(1)+e3a.Cross(e1b)*M.dGet(2));
    
    /* Equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(dTmp1)-MTmp-e3a*M.dGet(3)); /* Sfrutto  F/\d = -d/\F */
    
    /* Equazioni di equilibrio, nodo 2 */
@@ -3092,15 +3091,13 @@ SubVectorHandler& AxialRotationJoint::AssRes(SubVectorHandler& WorkVec,
    /* Questa equazione non viene divisa per dCoef */
    
    /* Equazione di vincolo di velocita' di rotazione */
-   Vec3 Omega1(pNode1->GetWCurr());
-   Vec3 Omega2(pNode2->GetWCurr());
+   const Vec3& Omega1(pNode1->GetWCurr());
+   const Vec3& Omega2(pNode2->GetWCurr());
    doublereal dOmega0 = pGetDriveCaller()->dGet();
    WorkVec.PutCoef(18, dOmega0-e3a.Dot(Omega2-Omega1));
 
    if (fc) {
       bool ChangeJac(false);
-      Vec3 Omega1(pNode1->GetWCurr());
-      Vec3 Omega2(pNode2->GetWCurr());
       doublereal v = (Omega1-Omega2).Dot(e3a)*r;
       doublereal modF = std::max(F.Norm(), preF);
       try {
@@ -3144,13 +3141,12 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
-      Mat3x3 R2TmpT(R2Tmp.Transpose());
-      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
+      Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
       
       std::ostream &of = Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
-		    R2TmpT*F, M, F, R2Tmp*M) 
+		    R2Tmp.MulTV(F), M, F, R2Tmp*M) 
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << " " << dGet()
-	<< " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()); 
+	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()); 
         if (fc) {
             of << " " << M3 << " " << fc->fc();
         }
@@ -3230,10 +3226,10 @@ AxialRotationJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    }   
    
    /* Recupera i dati */
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());
-   Vec3 Omega1(pNode1->GetWRef());
-   Vec3 Omega2(pNode2->GetWRef());   
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());
+   const Vec3& Omega1(pNode1->GetWRef());
+   const Vec3& Omega2(pNode2->GetWRef());   
    /* F ed M sono gia' state aggiornate da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    Vec3 MPrime(XCurr, iReactionPrimeIndex+4);
@@ -3476,14 +3472,14 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
    }
 
    /* Recupera i dati */
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
-   Vec3 v1(pNode1->GetVCurr());
-   Vec3 v2(pNode2->GetVCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
-   Vec3 Omega1(pNode1->GetWCurr());
-   Vec3 Omega2(pNode2->GetWCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
+   const Vec3& v1(pNode1->GetVCurr());
+   const Vec3& v2(pNode2->GetVCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
+   const Vec3& Omega1(pNode1->GetWCurr());
+   const Vec3& Omega2(pNode2->GetWCurr());
    
    /* Aggiorna F ed M, che restano anche per InitialAssJac */
    F = Vec3(XCurr, iFirstReactionIndex+1);
@@ -3514,11 +3510,11 @@ AxialRotationJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		  e2b.Cross(e3a)*MPrime.dGet(1)+e3a.Cross(e1b)*MPrime.dGet(2)); 
    
    /* Equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(d1Tmp)-MTmp.Cross(e3a)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Derivate delle equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(7, -FPrime);
+   WorkVec.Sub(7, FPrime);
    WorkVec.Add(10, FPrime.Cross(d1Tmp)-O1Wedged1.Cross(F)-MPrimeTmp-
 	       e3a*MPrime.dGet(3));
    
@@ -3899,18 +3895,17 @@ PlanePinJoint::SetValue(DataManager *pDM,
 			}
 
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-				Mat3x3 Rt(pNode->GetRCurr().Transpose());
+				const Mat3x3& R(pNode->GetRCurr());
    
-				d = Rt*(X0 - pNode->GetXCurr());
+				d = R.MulTV(X0 - pNode->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<0> *>(pjh)) {
-				Mat3x3 Rt(R0.Transpose());
 				Vec3 dTmp(pNode->GetRCurr()*d);
    
-				X0 = Rt*(pNode->GetXCurr() + dTmp);
+				X0 = R0.MulTV(pNode->GetXCurr() + dTmp);
 
 			} else if (dynamic_cast<Joint::HingeHint<1> *>(pjh)) {
-				Rh = pNode->GetRCurr().Transpose()*R0;
+				Rh = pNode->GetRCurr().MulTM(R0);
 
 			} else if (dynamic_cast<Joint::HingeHint<2> *>(pjh)) {
 				R0 = pNode->GetRCurr()*Rh;
@@ -3999,7 +3994,7 @@ PlanePinJoint::AfterConvergence(const VectorHandler& X,
 void
 PlanePinJoint::ReadInitialState(MBDynParser& HP)
 {
-	F = Vec3(HP.GetVec3());
+	F = HP.GetVec3();
 	M = Vec3(HP.GetReal(), HP.GetReal(), 0.);
 }
 
@@ -4040,7 +4035,7 @@ PlanePinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
 
-   Mat3x3 R(pNode->GetRRef());
+   const Mat3x3& R(pNode->GetRRef());
    Vec3 dTmp(R*d);
    Mat3x3 RhTmp(R*Rh);
    
@@ -4157,8 +4152,8 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
 	    XCurr(iFirstReactionIndex+5),
 	    0.);
    
-   Vec3 x(pNode->GetXCurr());
-   Mat3x3 R(pNode->GetRCurr());
+   const Vec3& x(pNode->GetXCurr());
+   const Mat3x3& R(pNode->GetRCurr());
    
    Vec3 dTmp(R*d);
    Mat3x3 RhTmp(R*Rh);
@@ -4167,7 +4162,7 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    Vec3 e1(RhTmp.GetVec(1));
    Vec3 e2(RhTmp.GetVec(2));
    
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(dTmp)-(e2*M.dGet(1)-e1*M.dGet(2)).Cross(e3)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -4185,13 +4180,12 @@ void PlanePinJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
-      Mat3x3 RTmpT(RTmp.Transpose());
-      Mat3x3 R0Tmp(R0.Transpose()*RTmp);
+      Mat3x3 R0Tmp(R0.MulTM(RTmp));
       
       Joint::Output(OH.Joints(), "PlanePin", GetLabel(),
-		    RTmpT*F, M, F, RTmp*M) 
+		    RTmp.MulTV(F), M, F, RTmp*M) 
 	<< " " << MatR2EulerAngles(R0Tmp)*dRaDegr
-	<< " " << RTmpT*(pNode->GetWCurr()) << std::endl;      
+	<< " " << RTmp.MulTV(pNode->GetWCurr()) << std::endl;      
    }
 }
 
@@ -4247,8 +4241,8 @@ PlanePinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    /* Recupera i dati */
-   Mat3x3 R(pNode->GetRRef());
-   Vec3 Omega(pNode->GetWRef());
+   const Mat3x3& R(pNode->GetRRef());
+   const Vec3& Omega(pNode->GetWRef());
    /* F, M sono state aggiornate da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    Vec3 MPrime(XCurr(iReactionPrimeIndex+4),
@@ -4388,10 +4382,10 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    }
    
    /* Recupera i dati */
-   Vec3 x(pNode->GetXCurr());
-   Vec3 v(pNode->GetVCurr());
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 Omega(pNode->GetWCurr());
+   const Vec3& x(pNode->GetXCurr());
+   const Vec3& v(pNode->GetVCurr());
+   const Mat3x3& R(pNode->GetRCurr());
+   const Vec3& Omega(pNode->GetWCurr());
    
    Mat3x3 RhTmp(R*Rh);
    
@@ -4429,11 +4423,11 @@ PlanePinJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		  e2.Cross(e3)*MPrime.dGet(1)+e3.Cross(e1)*MPrime.dGet(2)); 
    
    /* Equazioni di equilibrio */
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(dTmp)-MTmp.Cross(e3)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Derivate delle equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(7, -FPrime);
+   WorkVec.Sub(7, FPrime);
    WorkVec.Add(10, FPrime.Cross(dTmp)-OWedged.Cross(F)-MPrimeTmp);
    
    /* Equazione di vincolo di posizione */
@@ -4521,8 +4515,8 @@ PlanePinJoint::dGetPrivData(unsigned int i) const
     }
       
     case 2: {
-       Mat3x3 RTmpT((pNode->GetRCurr()*Rh).Transpose());
-       Vec3 v(RTmpT*pNode->GetWCurr());
+       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
+       Vec3 v(RTmp.MulTV(pNode->GetWCurr()));
        
        return v(3);
     }

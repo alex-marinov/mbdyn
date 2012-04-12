@@ -186,8 +186,8 @@ SubVectorHandler& SphericalHingeJoint::AssRes(SubVectorHandler& WorkVec,
    
    F = Vec3(XCurr, iFirstReactionIndex+1);
    
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
    
    Vec3 dTmp1(pNode1->GetRCurr()*d1);
    Vec3 dTmp2(pNode2->GetRCurr()*d2);
@@ -216,11 +216,11 @@ DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      Mat3x3 R1TmpT((pNode1->GetRCurr()*R1h).Transpose());
-      Mat3x3 RTmp(R1TmpT*(pNode2->GetRCurr()*R2h));
+      Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
+      Mat3x3 RTmp(R1Tmp.MulTM(pNode2->GetRCurr()*R2h));
       
       Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
-		    R1TmpT*F, Zero3, F, Zero3) 
+		    R1Tmp.MulTV(F), Zero3, F, Zero3) 
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << std::endl;
    }   
 }
@@ -239,16 +239,16 @@ SphericalHingeJoint::SetValue(DataManager *pDM,
 			}
 
 			if (dynamic_cast<Joint::OffsetHint<1> *>(pjh)) {
-				Mat3x3 R1t(pNode1->GetRCurr().Transpose());
+				const Mat3x3& R1(pNode1->GetRCurr());
 				Vec3 dTmp2(pNode2->GetRCurr()*d2);
    
-				d1 = R1t*(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
+				d1 = R1.MulTV(pNode2->GetXCurr() + dTmp2 - pNode1->GetXCurr());
 
 			} else if (dynamic_cast<Joint::OffsetHint<2> *>(pjh)) {
-				Mat3x3 R2t(pNode2->GetRCurr().Transpose());
+				const Mat3x3& R2(pNode2->GetRCurr());
 				Vec3 dTmp1(pNode1->GetRCurr()*d1);
    
-				d2 = R2t*(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
+				d2 = R2.MulTV(pNode1->GetXCurr() + dTmp1 - pNode2->GetXCurr());
 
 			} else if (dynamic_cast<Joint::ReactionsHint *>(pjh)) {
 				/* TODO */
@@ -347,10 +347,10 @@ SphericalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    /* Recupera i dati */
-   Mat3x3 R1(pNode1->GetRRef());
-   Mat3x3 R2(pNode2->GetRRef());
-   Vec3 Omega1(pNode1->GetWRef());
-   Vec3 Omega2(pNode2->GetWRef());
+   const Mat3x3& R1(pNode1->GetRRef());
+   const Mat3x3& R2(pNode2->GetRRef());
+   const Vec3& Omega1(pNode1->GetWRef());
+   const Vec3& Omega2(pNode2->GetWRef());
    /* F e' stata aggiornata da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    
@@ -431,14 +431,14 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    }
    
    /* Recupera i dati */
-   Vec3 x1(pNode1->GetXCurr());
-   Vec3 x2(pNode2->GetXCurr());
-   Vec3 v1(pNode1->GetVCurr());
-   Vec3 v2(pNode2->GetVCurr());
-   Mat3x3 R1(pNode1->GetRCurr());
-   Mat3x3 R2(pNode2->GetRCurr());
-   Vec3 Omega1(pNode1->GetWCurr());
-   Vec3 Omega2(pNode2->GetWCurr());
+   const Vec3& x1(pNode1->GetXCurr());
+   const Vec3& x2(pNode2->GetXCurr());
+   const Vec3& v1(pNode1->GetVCurr());
+   const Vec3& v2(pNode2->GetVCurr());
+   const Mat3x3& R1(pNode1->GetRCurr());
+   const Mat3x3& R2(pNode2->GetRCurr());
+   const Vec3& Omega1(pNode1->GetWCurr());
+   const Vec3& Omega2(pNode2->GetWCurr());
    F = Vec3(XCurr, iFirstReactionIndex+1);
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    
@@ -451,11 +451,11 @@ SphericalHingeJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 O2Wedged2(Omega2.Cross(d2Tmp));
    
    /* Equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(d1Tmp)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Derivate delle equazioni di equilibrio, nodo 1 */
-   WorkVec.Add(7, -FPrime);
+   WorkVec.Sub(7, FPrime);
    WorkVec.Add(10, FPrime.Cross(d1Tmp)-O1Wedged1.Cross(F));
    
    /* Equazioni di equilibrio, nodo 2 */
@@ -525,7 +525,7 @@ PinJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
    integer iFirstReactionIndex = iGetFirstIndex();
 
-   Mat3x3 R(pNode->GetRRef());
+   const Mat3x3& R(pNode->GetRRef());
    Vec3 dTmp(R*d);
       
    /* 
@@ -607,12 +607,12 @@ SubVectorHandler& PinJoint::AssRes(SubVectorHandler& WorkVec,
 
    F = Vec3(XCurr, iFirstReactionIndex+1);
    
-   Vec3 x(pNode->GetXCurr());
-   Mat3x3 R(pNode->GetRCurr());
+   const Vec3& x(pNode->GetXCurr());
+   const Mat3x3& R(pNode->GetRCurr());
    
    Vec3 dTmp(R*d);
    
-   WorkVec.Add(1, -F);
+   WorkVec.Sub(1, F);
    WorkVec.Add(4, F.Cross(dTmp)); /* Sfrutto il fatto che F/\d = -d/\F */
    
    /* Modifica: divido le equazioni di vincolo per dCoef */
@@ -687,8 +687,8 @@ PinJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    }
    
    /* Recupera i dati */
-   Mat3x3 R(pNode->GetRRef());
-   Vec3 Omega(pNode->GetWRef());
+   const Mat3x3& R(pNode->GetRRef());
+   const Vec3& Omega(pNode->GetWRef());
    /* F e' stata aggiornata da InitialAssRes */
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    
@@ -749,10 +749,10 @@ PinJoint::InitialAssRes(SubVectorHandler& WorkVec,
    }
    
    /* Recupera i dati */
-   Vec3 x(pNode->GetXCurr());
-   Vec3 v(pNode->GetVCurr());
-   Mat3x3 R(pNode->GetRCurr());
-   Vec3 Omega(pNode->GetWCurr());
+   const Vec3& x(pNode->GetXCurr());
+   const Vec3& v(pNode->GetVCurr());
+   const Mat3x3& R(pNode->GetRCurr());
+   const Vec3& Omega(pNode->GetWCurr());
    F = Vec3(XCurr, iFirstReactionIndex+1);
    Vec3 FPrime(XCurr, iReactionPrimeIndex+1);
    
