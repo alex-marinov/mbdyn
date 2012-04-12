@@ -1754,10 +1754,10 @@ ClampJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		  iFirstVelocityIndex+iCnt, 1.);
    
       WM.PutItem(12+iCnt, iFirstPositionIndex+iCnt, 
-		  iFirstReactionIndex+iCnt, -1.);
+		  iFirstReactionIndex+iCnt, 1.);
    
       WM.PutItem(18+iCnt, iFirstVelocityIndex+iCnt, 
-		  iReactionPrimeIndex+iCnt, -1.);
+		  iReactionPrimeIndex+iCnt, 1.);
    }
    
    return WorkMat;
@@ -1788,24 +1788,23 @@ ClampJoint::InitialAssRes(SubVectorHandler& WorkVec,
    
    
    /* Forza */
-   WorkVec.Put(1, Vec3(XCurr, iFirstReactionIndex+1));
+   WorkVec.Put(1, -Vec3(XCurr, iFirstReactionIndex+1));
    
    /* Coppia */
-   WorkVec.Put(4, Vec3(XCurr, iFirstReactionIndex+4));
+   WorkVec.Put(4, -Vec3(XCurr, iFirstReactionIndex+4));
    
    /* Derivata della Forza */
-   WorkVec.Put(7, Vec3(XCurr, iReactionPrimeIndex+1));
+   WorkVec.Put(7, -Vec3(XCurr, iReactionPrimeIndex+1));
    
    /* Derivata della Coppia */
-   WorkVec.Put(10, Vec3(XCurr, iReactionPrimeIndex+4));
+   WorkVec.Put(10, -Vec3(XCurr, iReactionPrimeIndex+4));
    
    /* Posizione */
    WorkVec.Put(13, XClamp-pNode->GetXCurr());
    
-   /* Parametri di rotazione; 
-    * si sfrutta il fatto che g(R_Delta^T) = -g(R_Delta) */
+   /* Parametri di rotazione */
    Mat3x3 R(pNode->GetRCurr());
-   WorkVec.Put(16, Vec3(CGR_Rot::Param, RClamp.MulMT(R)));
+   WorkVec.Put(16, -Vec3(CGR_Rot::Param, R.MulMT(RClamp)));
    
    /* Velocita' */
    WorkVec.Put(19, -pNode->GetVCurr());
