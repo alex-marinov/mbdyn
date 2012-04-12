@@ -1050,7 +1050,7 @@ DataManager::InitialJointAssembly(void)
 				iOffset = 6;
 			}
 
-			integer iFirstIndex = pDispNode->pGetDofOwner()->iFirstIndex;
+			integer iFirstIndex = pDispNode->iGetFirstPositionIndex();
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
 			doublereal dPosStiff = pDispNode->dGetPositionStiffness();
@@ -1175,7 +1175,7 @@ DataManager::InitialJointAssembly(void)
 				iOffset = 6;
 			}
 
-			integer iFirstIndex = pDispNode->pGetDofOwner()->iFirstIndex;
+			integer iFirstIndex = pDispNode->iGetFirstPositionIndex();
 
 			/* Nuova feature: ogni nodo ha la sua stiffness */
 			doublereal dPosStiff = pDispNode->dGetPositionStiffness();
@@ -1224,6 +1224,16 @@ DataManager::InitialJointAssembly(void)
 			pEl = IAIter.GetNext();
 		}
 
+		if (
+#ifdef DEBUG
+				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY|MYDEBUG_JAC) ||
+#endif /* DEBUG */
+				outputJac())
+		{
+			silent_cout("Jacobian:" << std::endl
+					<< *pMatHdl);
+		}		
+		
 		/* Fattorizza e risolve con jacobiano e residuo appena calcolati */
 		try {
 			pSM->Solve();
