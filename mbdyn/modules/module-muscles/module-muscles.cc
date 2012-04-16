@@ -292,6 +292,10 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                reference force , <F0> ,\n"
 				"                activation , (DriveCaller)<activation>\n"
 				"                [ , activation check , (bool)<activation_check> ]\n"
+				"                [ , reflexive\n"
+				"                        , proportional gain , <kp>\n"
+				"                        , derivative gain , <kd>\n"
+				"                        , reference length, (DriveCaller)<lref> ]\n"
 				"                [ , prestress, <prestress> ]\n"
 				"                [ , prestrain, (DriveCaller)<prestrain> ]\n"
 				<< std::endl);

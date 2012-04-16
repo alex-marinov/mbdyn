@@ -83,6 +83,11 @@ begin: elements;
 	set: const real Kp = .1;
 	set: const real Kd = -.1;
 
+	drive caller: 2,
+		string, ".2 - Kp*(model::element::joint(2, L) - L0) - Kd*model::element::joint(2, LPrime)";
+	drive caller: 3,
+		string, ".2 - Kp*(model::element::joint(3, L) - L0) - Kd*model::element::joint(3, LPrime)";
+
 	joint: 2, rod,
 		0,
 			position, reference, node, 0., 0., L0/20.,
@@ -95,7 +100,9 @@ begin: elements;
 			reference length, L0,
 			reference velocity, 2.5,
 			reference force, F0,
-			activation, string, ".2 - Kp*(model::element::joint(2, L) - L0) - Kd*model::element::joint(2, LPrime)",
+			activation,
+				# string, ".2 - Kp*(model::element::joint(2, L) - L0) - Kd*model::element::joint(2, LPrime)",
+				reference, 2,
 			activation check, yes;
 
 	joint: 3, rod,
@@ -110,7 +117,9 @@ begin: elements;
 			reference length, L0,
 			reference velocity, 2.5,
 			reference force, F0,
-			activation, string, ".2 - Kp*(model::element::joint(3, L) - L0) - Kd*model::element::joint(3, LPrime)",
+			activation,
+				# string, ".2 - Kp*(model::element::joint(3, L) - L0) - Kd*model::element::joint(3, LPrime)",
+				reference, 3,
 			activation check, yes;
 
 	couple: 1, follower,
