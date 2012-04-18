@@ -50,8 +50,9 @@ public:
 			: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
 
-private:
 	typedef std::map<std::string, NamedValue *> VM;
+
+private:
 	VM vm;
 
 public:
@@ -60,6 +61,8 @@ public:
 	Var* Put(const char* const name, const TypedValue& v);
 	NamedValue* Put(NamedValue* p);
 	NamedValue* Get(const char* const name) const;
+	VM::const_iterator begin(void) const { return vm.begin(); };
+	VM::const_iterator end(void) const { return vm.end(); };
 };
 
 extern std::ostream& operator << (std::ostream& out, Table& T);
