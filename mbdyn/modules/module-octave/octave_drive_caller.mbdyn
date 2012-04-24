@@ -1,0 +1,28 @@
+set: real f = 10;
+
+begin: data;
+	problem: initial value; # the default
+end: data;
+
+begin: initial value;
+	initial time: 0;
+	final time: 1;
+	time step: 0.001;
+end: initial value;
+
+begin: control data;
+    abstract nodes: 3;
+    genels: 3;
+end: control data;
+
+begin: nodes;
+    abstract: 1, algebraic;
+    abstract: 2, algebraic;
+    abstract: 3, algebraic;
+end: nodes;
+
+begin: elements;
+    genel: 1, clamp, 1, abstract, string, "sin(2*pi*f*Time)";
+    genel: 2, clamp, 2, abstract, drive, octave, "sin", mult, 2*pi*f, time;
+    genel: 3, clamp, 3, abstract, octave, "my_func", octave search path, "/home/lagrange/work/mbdyn/modules/module-octave/";
+end: elements;

@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- added "other" specifier to total pin joint input
 		- added dof stats output to file (Reinhard Resch)
 		- added '-E' to enable fpe checking
+		- added module-octave (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
