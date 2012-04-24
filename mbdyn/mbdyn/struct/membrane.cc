@@ -44,6 +44,7 @@
 #include "membrane.h"
 #include "mynewmem.h"
 
+#if 0
 #define _GNU_SOURCE 1
 #include <fenv.h>
 static void __attribute__ ((constructor))
@@ -53,6 +54,7 @@ trapfpe ()
 
   feenableexcept (FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
 }
+#endif
 
 Membrane::Membrane(unsigned uLabel, const DofOwner* pDO, flag fOut)
 : Elem(uLabel, fOut),

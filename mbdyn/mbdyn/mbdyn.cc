@@ -109,6 +109,11 @@ void *rtmbdyn_rtai_task = NULL;
 #define PATH_MAX 4096
 #endif // !PATH_MAX
 
+#ifdef HAVE_FENV_H
+#define _GNU_SOURCE 1
+#include <fenv.h>
+#endif // HAVE_FENV_H
+
 const char sDefaultOutputFileName[] = "MBDyn";
 
 #include "myassert.h"
@@ -281,12 +286,13 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "d:ef:hHlN::o:pPrRsS:tTvwW:";
+static char sShortOpts[] = "d:eE::f:hHlN::o:pPrRsS:tTvwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
 	{ "debug",          required_argument, NULL,           int('d') },
 	{ "exceptions",     no_argument,       NULL,           int('e') },
+	{ "fp-mask",        optional_argument, NULL,           int('E') },
 	{ "input-file",     required_argument, NULL,           int('f') },
 	{ "help",           no_argument,       NULL,           int('h') },
 	{ "show-table",     no_argument,       NULL,           int('H') },
@@ -391,6 +397,15 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 		case int('e'):
 			mbp.bException = true;
+			break;
+
+		case int('E'):
+#ifdef HAVE_FENV_H
+			/* Enable some exceptions.  At startup all exceptions are masked.  */
+			feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
+#else // ! HAVE_FENV_H
+			silent_cerr("Option 'E' unsupported; ignored" << std::endl);
+#endif // ! HAVE_FENV_H
 			break;
 
 		case int('f'):

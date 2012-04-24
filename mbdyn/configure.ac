@@ -394,6 +394,7 @@ AC_STDC_HEADERS
 AC_CHECK_HEADERS(arpa/inet.h)
 AC_CHECK_HEADERS(atomic_ops.h)
 AC_CHECK_HEADERS(cxxabi.h)
+AC_CHECK_HEADERS(fenv.h)
 AC_CHECK_HEADERS(getopt.h)
 AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(netinet/in.h)

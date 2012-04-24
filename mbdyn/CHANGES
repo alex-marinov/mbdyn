@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- added inverse dynamics body for weight tailoring
 		- added "other" specifier to total pin joint input
 		- added dof stats output to file (Reinhard Resch)
+		- added '-E' to enable fpe checking
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
