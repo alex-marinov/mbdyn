@@ -41,6 +41,6 @@
 #ifndef ___MODULE_OCTAVE_H__INCLUDED___
 #define ___MODULE_OCTAVE_H__INCLUDED___
 
-extern bool octave_set(void);
+extern bool mbdyn_octave_set(void);
 
 #endif

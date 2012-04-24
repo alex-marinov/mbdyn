@@ -74,26 +74,26 @@ public:
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
 	virtual inline doublereal dGetP(void) const;
+
 private:
-    inline doublereal EvalExpr(doublereal dVar)const;
-private:
-    const std::string expr;
-    const DataManager* pDM;
-    MBDynParser& HP;
+	inline doublereal EvalExpr(doublereal dVar)const;
+	const std::string expr;
+	const DataManager* pDM;
+	MBDynParser& HP;
 };
 
 OctaveDriveCaller::OctaveDriveCaller(const std::string& expr, const DataManager* pDM, MBDynParser& HP)
 : DriveCaller(0),
-  expr(expr),
-  pDM(pDM),
-  HP(HP)
+expr(expr),
+pDM(pDM),
+HP(HP)
 {
-
+	NO_OP;
 }
 
 OctaveDriveCaller::~OctaveDriveCaller(void)
 {
-
+	NO_OP;
 }
 
 DriveCaller *
@@ -106,12 +106,13 @@ std::ostream&
 OctaveDriveCaller::Restart(std::ostream& out) const
 {
 	return out << "octave, \"" << expr << "\"";
+	// TODO: octave search path and so...
 }
 
 inline doublereal 
 OctaveDriveCaller::dGet(const doublereal& dVar) const 
 {
-    return EvalExpr(dVar);
+	return EvalExpr(dVar);
 }
 
 inline doublereal
@@ -141,109 +142,129 @@ OctaveDriveCaller::dGetP(void) const
 inline doublereal
 OctaveDriveCaller::EvalExpr(doublereal dVar)const
 {
-    octave_value_list args;
+	octave_value_list args;
 
-    args.append(octave_value(dVar));
+	args.append(octave_value(dVar));
 
 	octave_value_list ans = feval(expr, args, 1);
 
-	if ( error_state )
-	{
+	if (error_state) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-    if ( ans.length() < 1 )
-    {
-        silent_cerr("octave error: expression \"" << expr << "\" returned no value" << std::endl);
-        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
-
-	if ( !ans(0).is_defined() )
-	{
-        silent_cerr("octave error: result of expression \"" << expr << "\" is undefined" << std::endl);
-        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	if (ans.length() < 1) {
+		silent_cerr("octave error: expression \"" << expr << "\" returned no value" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-    if ( !ans(0).is_scalar_type() )
-    {
-        silent_cerr("octave error: result of expression \"" << expr << "\" is not a scalar value" << std::endl);
-        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
+	if (!ans(0).is_defined()) {
+		silent_cerr("octave error: result of expression \"" << expr << "\" is undefined" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!ans(0).is_scalar_type()) {
+		silent_cerr("octave error: result of expression \"" << expr << "\" is not a scalar value" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	return ans(0).scalar_value(); 
 }
 
 /* prototype of the functional object: reads a drive caller */
 struct OctaveDCR : public DriveCallerRead {
-    OctaveDCR()
-        :bFirstTime(true)
-    {
+private:
+	bool bFirstTime;
 
-    }
+public:
+	OctaveDCR(void)
+	: bFirstTime(true)
+	{
+		NO_OP;
+	};
 
-    virtual ~OctaveDCR()
-    {
-        if ( !bFirstTime )
-            do_octave_atexit();
-    }
+	virtual ~OctaveDCR(void)
+	{
+		if (!bFirstTime) {
+			do_octave_atexit();
+		}
+	};
 
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
-    {
-        if ( bFirstTime )
-        {
-            bFirstTime = false;
+	{
+		if (bFirstTime) {
+			bFirstTime = false;
 
-            int argc = 1;
-            char cmd[] = "octave";
-            char* argv[] = { cmd, 0 };
+			string_vector argv(2);
+			argv(0) = "mbdyn";
+			argv(1) = "-q";
+     
+			octave_main(argv.nelem(), argv.c_str_vec(), 1);
 
-            octave_main(argc, argv, 1);
+			const Table& symbolTable = pDM->GetMathParser().GetSymbolTable();
 
-            const Table& symbolTable = pDM->GetMathParser().GetSymbolTable();
+			for (Table::VM::const_iterator it = symbolTable.begin(); it != symbolTable.end(); ++it)
+			{
+				const std::string& mbName(it->first);
+				const NamedValue *const namedValue = it->second;
+				const TypedValue mbValue(namedValue->GetVal());
+				octave_value octValue;
 
-            for (Table::VM::const_iterator it = symbolTable.begin(); it != symbolTable.end(); ++it)
-            {
-            	const std::string& mbName(it->first);
-            	const NamedValue*const namedValue = it->second;
-            	const TypedValue mbValue(namedValue->GetVal());
-            	octave_value octValue;
+				switch (mbValue.GetType()) {
+				case TypedValue::VAR_BOOL:
+					octValue = mbValue.GetBool();
+					break;
 
-            	switch ( mbValue.GetType() )
-            	{
-					case TypedValue::VAR_BOOL:
-						octValue = mbValue.GetBool();
-						break;
-					case TypedValue::VAR_INT:
-						octValue = mbValue.GetInt();
-						break;
-					case TypedValue::VAR_REAL:
-						octValue = mbValue.GetReal();
-						break;
-					case TypedValue::VAR_STRING:
-						octValue = mbValue.GetString();
-						break;
-					default:
-						silent_cerr("octave error: data type of variable \"" << mbName << "\": not handled in switch statement " << mbValue.GetType() << std::endl);
-						ASSERT(0);
-            	}
+				case TypedValue::VAR_INT:
+					octValue = mbValue.GetInt();
+					break;
 
-            	if ( octValue.is_defined() )
-            		set_global_value(mbName, octValue);
-            }
-        }
+				case TypedValue::VAR_REAL:
+					octValue = mbValue.GetReal();
+					break;
+
+				case TypedValue::VAR_STRING:
+					octValue = mbValue.GetString();
+					break;
+
+				default:
+					silent_cerr("octave error: data type \"" << mbValue.GetType() << "\" of variable \"" << mbName << "\": not handled in switch statement " << std::endl);
+					ASSERT(0);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+          		  	}
+
+		            	if (octValue.is_defined()) {
+            				set_global_value(mbName, octValue);
+				}
+			}
+		}
 
 		const std::string expr(HP.GetStringWithDelims(HighParser::DOUBLEQUOTE));
 
-		if ( HP.IsKeyWord("octave" "search" "path") )
-		{
-			while ( HP.IsStringWithDelims(HighParser::DOUBLEQUOTE) )
-			{
-				const std::string path(HP.GetStringWithDelims(HighParser::DOUBLEQUOTE));
+		if (HP.IsKeyWord("octave" "search" "path")) {
+			while (HP.IsArg()) {
+				std::string path;
+				if (HP.IsKeyWord("cwd")) {
+					char buf[PATH_MAX];
+					if (getcwd(buf, sizeof(buf)) == NULL) {
+						silent_cerr("octave error: getcwd() failed at line " << HP.GetLineData() << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+					pedantic_cout("octave: adding cwd=\"" << path << "\" to octave search path at line " << HP.GetLineData() << std::endl);
+					path = buf;
+
+				} else if (HP.IsStringWithDelims(HighParser::DOUBLEQUOTE)) {
+					path = HP.GetStringWithDelims(HighParser::DOUBLEQUOTE);
+					pedantic_cout("octave: adding \"" << path << "\" to octave search path at line " << HP.GetLineData() << std::endl);
+
+				} else {
+					break;
+				}
+
 				feval("addpath", octave_value(path));
 
-				if ( error_state )
-				{
+				if (error_state) {
+					silent_cerr("octave error: addpath(\"" << path << "\") failed at line " << HP.GetLineData() << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 			}
@@ -251,20 +272,17 @@ struct OctaveDCR : public DriveCallerRead {
 
 		return new OctaveDriveCaller(expr, pDM, HP);
 	};
-private:
-    bool bFirstTime;
 };
 
-
 bool
-octave_set(void)
+mbdyn_octave_set(void)
 {
 	DriveCallerRead	*rf = new OctaveDCR;
 
 	if (!SetDriveData("octave", rf)) {
 		delete rf;
 
-        return false;
+		return false;
 	}
 
 	return true;
@@ -272,13 +290,10 @@ octave_set(void)
 
 #ifndef STATIC_MODULES
 
-extern "C" 
-{
-
-int
+extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
-	if (!octave_set()) {
+	if (!mbdyn_octave_set()) {
 		silent_cerr("octave: "
 			"module_init(" << module_name << ") "
 			"failed" << std::endl);
@@ -287,7 +302,5 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	return 0;
 }
-
-} // extern "C"
 
 #endif // ! STATIC_MODULES
