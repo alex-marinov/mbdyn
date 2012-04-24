@@ -180,6 +180,12 @@ if BUILD_STATIC_MODULES
 #nodist_libbase_la_SOURCES +=
 #
 ## add more...
+
+if USE_OCTAVE
+nodist_libbase_la_SOURCES += \
+$(srcdir)/../../modules/module-octave/module-octave.cc \
+$(srcdir)/../../modules/module-octave/module-octave.h
+endif
 endif
 
 if USE_GINAC

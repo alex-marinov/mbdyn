@@ -51,6 +51,12 @@
 #include "ginacdrive.h"
 #endif // USE_GINAC
 
+#ifdef STATIC_MODULES
+#ifdef USE_OCTAVE
+#include "module-octave/module-octave.h"
+#endif // USE_OCTAVE
+#endif // STATIC_MODULES
+
 /* StringDriveCaller - begin */
 
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
@@ -2656,6 +2662,11 @@ InitDriveData(void)
 	 *   called module_init(), and run-time load it using "module load"
 	 *   in the input file.
 	 */
+#ifdef STATIC_MODULES
+#ifdef USE_OCTAVE
+	mbdyn_octave_set();
+#endif // USE_OCTAVE
+#endif // STATIC_MODULES
 }
 
 void
