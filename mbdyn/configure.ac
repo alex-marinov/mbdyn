@@ -369,6 +369,7 @@ RT_LIBS=
 ANN_LIBS=
 BULLET_LIBS=
 PYTHON_NUMPY_HEADERS=
+OCTAVE_LIBS=
 
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
@@ -624,6 +625,15 @@ use_octave=no
 if test "$ol_enable_octave" != no ; then
 	AC_LANG_CPLUSPLUS
 	AC_CHECK_HEADER(octave/oct.h,[have_octave_oct_h=yes],[have_octave_oct_h=no])
+	AC_CHECK_HEADER(octave/parse.h,[have_octave_parse_h=yes],[have_octave_parse_h=no],[
+#include <octave/oct.h>
+		])
+	AC_CHECK_HEADER(octave/toplev.h,[have_octave_toplev_h=yes],[have_octave_toplev_h=no],[
+#include <octave/oct.h>
+		])
+	AC_CHECK_HEADER(octave/octave.h,[have_octave_octave_h=yes],[have_octave_octave_h=no],[
+#include <octave/oct.h>
+		])
 	AC_LANG_C
 
 	have_mkoctfile=no
@@ -633,8 +643,34 @@ if test "$ol_enable_octave" != no ; then
 		have_mkoctfile=yes
 	fi
 
-	if test "$have_octave_oct_h" = "yes" -a "$have_mkoctfile" = "yes" ; then
+	link_octave="no"
+	if test "$have_octave_oct_h" = "yes" \
+		-a "$have_octave_parse_h" = "yes" \
+		-a "$have_octave_toplev_h" = "yes" \
+		-a "$have_octave_octave_h" = "yes" \
+		-a "$have_mkoctfile" = "yes" ; \
+	then
+		save_LIBS="$LIBS"
+		try_LIBS="-loctinterp -loctave -lcruft"
+		LIBS="$try_LIBS $LIBS"
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
+#include <octave/oct.h>
+#include <octave/parse.h>
+#include <octave/toplev.h>
+#include <octave/octave.h>
+			],[
+		octave_main(0, NULL, 1);
+			],[link_octave="yes"])
+		AC_LANG_C
+		LIBS="$save_LIBS"
+		OCTAVE_LIBS="$try_LIBS"
+	fi
+
+	if test "$link_octave" = yes ; then
 		use_octave=yes
+		AC_DEFINE(USE_OCTAVE, 1, [define if octave can be used])
+
 	else
 		if test "$ol_enable_octave" = "yes" ; then
 			AC_MSG_ERROR([octave support not available])
@@ -2540,6 +2576,7 @@ AC_SUBST(RT_LIBS)
 AC_SUBST(ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
 AC_SUBST(PYTHON_NUMPY_HEADERS)
+AC_SUBST(OCTAVE_LIBS)
 
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
