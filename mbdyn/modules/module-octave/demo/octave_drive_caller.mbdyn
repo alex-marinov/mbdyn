@@ -101,7 +101,7 @@ begin: elements;
     joint: 1, clamp, 1, node, node;
     genel: 1, clamp, 1, abstract, string, "sin(2*pi*f*Time)";
     genel: 2, clamp, 2, abstract, drive, octave, "sin", mult, 2*pi*f, time;
-    genel: 3, clamp, 3, abstract, octave, "my_func" , octave search path, "${PWD}/..";
+    genel: 3, clamp, 3, abstract, octave, "my_func" , octave search path, "${PWD}/.."; # for mbdyn_derivative.m
     genel: 4, clamp, 4, abstract, octave, "my_func2", update global variables, yes;
     genel: 5, clamp, 5, abstract, octave, "my_func3", pass data manager, yes;
     genel: 6, clamp, 6, abstract, octave, "my_func4", pass data manager, yes;

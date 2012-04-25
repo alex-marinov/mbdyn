@@ -39,16 +39,10 @@
         in the GNU Public License version 2.1
 */
 
-#include <cmath>
-#include <cfloat>
-#include <string>
-#include <cassert>
-#include <limits>
-#include <set>
-
 // FIXME: there is a conflict between the MBDyn and octave real type
 #define real mbdyn_real_type
 #include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+#include <mbdefs.h>
 #include <matvec3.h>
 #include <matvec6.h>
 #include <dataman.h>
@@ -56,6 +50,13 @@
 #include <tpldrive.h>
 #include <userelem.h>
 #undef real
+
+#include <cmath>
+#include <cfloat>
+#include <string>
+#include <cassert>
+#include <limits>
+#include <set>
 
 #include <octave/oct.h>
 #include <octave/parse.h>
@@ -685,6 +686,12 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 	}
 
 	if (bFirstCall) {
+		// octave scripts by default are installed here
+		if (!AddOctaveSearchPath(BINPATH)) {
+			silent_cerr("OctaveInterface error: addpath(\"" << BINPATH << "\") failed" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		for (EmbedFileNameIter_t pFile = strEmbedFileNames.begin();
 			pFile != strEmbedFileNames.end(); ++pFile )
 		{

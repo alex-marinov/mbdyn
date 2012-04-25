@@ -89,9 +89,7 @@ begin: elements;
         null,
         diag, 0.01, 0.02, 0.03;
 
-    force: 1, absolute, 1, position, reference, node, null, octave, "my_func5",
-        octave search path, "/home/lagrange/work/mbdyn/modules/module-octave/", 
-                            "/home/lagrange/work/mbdyn/modules/module-octave/demo/";
+    force: 1, absolute, 1, position, reference, node, null, octave, "my_func5"; # octave search path, "${PWD}/..";
 
     user defined: 1, octave, "MyElem1", a, b, c;
 end: elements;
