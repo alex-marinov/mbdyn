@@ -157,6 +157,10 @@ extern bool
 SetDC3D(const char *name, TplDriveCallerRead<Vec3> *rf);
 extern bool
 SetDC6D(const char *name, TplDriveCallerRead<Vec6> *rf);
+extern bool
+SetDC3x3D(const char *name, TplDriveCallerRead<Mat3x3> *rf);
+extern bool
+SetDC6x6D(const char *name, TplDriveCallerRead<Mat6x6> *rf);
 
 /* create/destroy */
 extern void InitTplDC(void);
