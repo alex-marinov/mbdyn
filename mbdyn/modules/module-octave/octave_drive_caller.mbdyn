@@ -15,20 +15,21 @@ end: initial value;
 # module load: "./libmodule-octave.so";
 
 begin: control data;
-    abstract nodes: 3;
-    genels: 3;
+    abstract nodes: 4;
+    genels: 4;
 end: control data;
 
 begin: nodes;
     abstract: 1, algebraic;
     abstract: 2, algebraic;
     abstract: 3, algebraic;
+    abstract: 4, algebraic;
 end: nodes;
 
 begin: elements;
     genel: 1, clamp, 1, abstract, string, "sin(2*pi*f*Time)";
     genel: 2, clamp, 2, abstract, drive, octave, "sin", mult, 2*pi*f, time;
     genel: 3, clamp, 3, abstract, octave, "my_func", octave search path, cwd;
-	# "/home/masarati/Lavoro/mbdyn/mbdyn-src/modules/module-octave/";
-	#"/home/lagrange/work/mbdyn/modules/module-octave/";
+    drive caller: 4, octave, "my_func", octave search path, cwd;
+    genel: 4, clamp, 4, abstract, string, "model::drive(4, Time)";
 end: elements;
