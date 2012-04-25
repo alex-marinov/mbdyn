@@ -230,6 +230,7 @@ mbdyn_usage(const char *sShortOpts)
 #endif /* DEBUG */
 	silent_cout(
 		   "  -e, --exceptions          don't trap exceptions to ease debugging" << std::endl
+		<< "  -E, --fp-mask[=...]       enable some floating point checks" << std::endl
 		<< "  -h, --help                prints this message" << std::endl
 		<< "  -H, --show-table          print symbol table and exit" << std::endl
 		<< "  -l, --license             prints the licensing terms" << std::endl
