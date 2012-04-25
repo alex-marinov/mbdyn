@@ -1009,6 +1009,8 @@ MBDynParser::ModuleLoad_int(void)
 		moduleInitialized = true;
 	}
 
+	pedantic_cout("module \"" << module_name << "\" loading..." << std::endl);
+
 	lt_dlhandle handle = lt_dlopenext(module_name.c_str());
 
 	if (handle == NULL) {
