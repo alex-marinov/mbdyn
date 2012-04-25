@@ -64,6 +64,11 @@ public:
    
 	inline doublereal dGet(const doublereal& dVar) const;
 	inline doublereal dGet(void) const;
+
+	/* this is about drives that are differentiable */
+	virtual inline bool bIsDifferentiable(void) const;
+	virtual inline doublereal dGetP(const doublereal& dVar) const;
+	virtual inline doublereal dGetP(void) const;
 };
 
 inline doublereal
@@ -76,6 +81,25 @@ inline doublereal
 DriveDriveCaller::dGet(void) const
 {
 	return DO1.pGetDriveCaller()->dGet(DO2.pGetDriveCaller()->dGet());
+}
+
+/* this is about drives that are differentiable */
+inline bool
+DriveDriveCaller::bIsDifferentiable(void) const
+{
+	return DO1.bIsDifferentiable() && DO2.bIsDifferentiable();
+}
+
+inline doublereal
+DriveDriveCaller::dGetP(const doublereal& dVar) const
+{
+	return DO1.dGetP(DO2.dGet(dVar)) * DO2.dGetP(dVar);
+}
+
+inline doublereal
+DriveDriveCaller::dGetP(void) const
+{
+	return DO1.dGetP(DO2.dGet()) * DO2.dGetP();
 }
 
 #endif /* DDRIVE_H */
