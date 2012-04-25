@@ -1,0 +1,143 @@
+# $Header$
+#
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2012
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+#################################################################
+##
+## AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
+##        Copyright (C) 2011(-2012) all rights reserved.
+##
+##        The copyright of this code is transferred
+##        to Pierangelo Masarati and Paolo Mantegazza
+##        for use in the software MBDyn as described
+##        in the GNU Public License version 2.1
+##
+##################################################################
+
+# BEGIN OF MBDYN SECTION
+#{
+
+# module load: "libmodule-octave.la";
+
+set: real f = 3;
+set: real F0 = 1;
+set: real r = 15.5;
+
+set: real a = 750000;
+set: real b = 480000;
+set: real c = 320000;
+
+begin: data;
+	problem: initial value; # the default
+end: data;
+
+begin: initial value;
+	initial time: 0;
+	final time: 1;
+	time step: 0.01;
+#    derivatives coefficient: 1e-3;
+#    derivatives tolerance: 1e1;
+    derivatives max iterations: 10;
+end: initial value;
+
+begin: control data;
+    structural nodes: 1;
+    joints: 1;
+    rigid bodies: 1;
+    abstract nodes: 12;
+    genels: 12;
+    forces: 1;
+end: control data;
+
+begin: nodes;
+    structural: 1, dynamic,
+    position, null,
+    orientation, euler123, 45*pi/180*0, 30*pi/180*0, -15*pi/180*0,
+    velocity, null,
+    angular velocity, null, 
+    accelerations, yes;
+
+    abstract: 1, algebraic;
+    abstract: 2, algebraic;
+    abstract: 3, algebraic;
+    abstract: 4, algebraic;
+    abstract: 5, algebraic;
+    abstract: 6, algebraic;
+    abstract: 7, algebraic;
+    abstract: 8, algebraic;
+    abstract: 9, algebraic;
+    abstract: 10, algebraic;
+    abstract: 11, algebraic;
+    abstract: 12, algebraic;
+end: nodes;
+
+begin: elements;
+    joint: 1, clamp, 1, node, node;
+    genel: 1, clamp, 1, abstract, string, "sin(2*pi*f*Time)";
+    genel: 2, clamp, 2, abstract, drive, octave, "sin", mult, 2*pi*f, time;
+    genel: 3, clamp, 3, abstract, octave, "my_func" , octave search path, "${PWD}/..";
+    genel: 4, clamp, 4, abstract, octave, "my_func2", update global variables, yes;
+    genel: 5, clamp, 5, abstract, octave, "my_func3", pass data manager, yes;
+    genel: 6, clamp, 6, abstract, octave, "my_func4", pass data manager, yes;
+    genel: 7, clamp, 7, abstract, derivative, octave, "sin";
+    genel: 8, clamp, 8, abstract, derivative, octave, "my_func";
+    genel: 9, clamp, 9, abstract, derivative, drive, octave, "sin", mult, 2*pi*f, time;
+    genel: 10, clamp, 10, abstract, derivative, mult, drive, octave, "cos", mult, 2*pi*f, time, const, r;
+
+    scalar function: "my_func", octave, "my_func";
+
+    genel: 11, clamp, 11, abstract, scalar function, "my_func";
+    genel: 12, clamp, 12, abstract, octave, "my_func6", embed octave, yes;
+
+    template drive caller: 1, "1", octave, "my_tpl_drive1D";
+    template drive caller: 2, "3", octave, "my_tpl_drive3D";
+    template drive caller: 3, "6", octave, "my_tpl_drive6D";
+    template drive caller: 4, "3x3", octave, "my_tpl_drive3x3D";
+    template drive caller: 5, "6x6", octave, "my_tpl_drive6x6D";
+
+    body: 1, 1, variable mass, octave, "my_tpl_drive1D",
+                                null,
+                                reference, 4,
+                                component, diag, const, 1, const, 1, const, 1;
+
+    force: 1, absolute, 1, position, reference, node, null, octave, "my_func5";
+end: elements;
+
+#} 
+# END OF MBDYN SECTION
+
+# BEGIN OF OCTAVE SECTION /*
+
+printf("mboct: embed octave is enabled!\n");
+
+function y=my_func6(x)
+    y = 2 * x + 5;
+endfunction
+
+# END OF OCTAVE SECTION */

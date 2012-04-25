@@ -184,7 +184,9 @@ if BUILD_STATIC_MODULES
 if USE_OCTAVE
 nodist_libbase_la_SOURCES += \
 $(srcdir)/../../modules/module-octave/module-octave.cc \
-$(srcdir)/../../modules/module-octave/module-octave.h
+$(srcdir)/../../modules/module-octave/module-octave.h \
+$(srcdir)/../../modules/module-octave/octave_object.cc \
+$(srcdir)/../../modules/module-octave/octave_object.h
 endif
 endif
 
