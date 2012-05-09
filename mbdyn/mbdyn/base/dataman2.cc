@@ -224,7 +224,7 @@ DataManager::DofOwnerInit(void)
 				if (pNode->GetStructNodeType() == StructNode::DUMMY) {
 					continue;
 				}
-				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+				OutHdl.Log() << " " << pNode->iGetFirstPositionIndex();
 			}
 		}
 		OutHdl.Log() << std::endl;
@@ -285,56 +285,72 @@ DataManager::DofOwnerInit(void)
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
-			if (dynamic_cast<const StructNode *>(pNode) == 0) {
-				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (pDispNode) {
+				const StructNode* pNode = dynamic_cast<const StructNode*>(pDispNode);
+				if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pDispNode->iGetFirstPositionIndex();
 			}
 		}
 		OutHdl.Log() << std::endl;
 
-		OutHdl.Log() << "struct node eqs:";
+		OutHdl.Log() << "struct displacement node eqs:";
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
-			if (dynamic_cast<const StructNode *>(pNode) == 0) {
-				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (pDispNode) {
+				const StructNode* pNode = dynamic_cast<const StructNode*>(pDispNode);
+				if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pDispNode->iGetFirstMomentumIndex();
 			}
 		}
 		OutHdl.Log() << std::endl;
 
-		OutHdl.Log() << "struct node momentum dofs:";
+		OutHdl.Log() << "struct displacement node momentum dofs:";
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
-			if (dynamic_cast<const StructNode *>(pNode) == 0) {
-				switch (pNode->GetStructDispNodeType()) {
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (pDispNode) {
+				const StructNode* pNode = dynamic_cast<const StructNode*>(pDispNode);
+				if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				switch (pDispNode->GetStructDispNodeType()) {
 				case StructDispNode::STATIC:
 					continue;
 
 				default:
 					break;
 				}
-				OutHdl.Log() << " " << pNode->iGetFirstMomentumIndex();
+				OutHdl.Log() << " " << pDispNode->iGetFirstMomentumIndex();
 			}
 		}
 		OutHdl.Log() << std::endl;
 
-		OutHdl.Log() << "struct node momentum eqs:";
+		OutHdl.Log() << "struct displacement node momentum eqs:";
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
-			if (dynamic_cast<const StructNode *>(pNode) == 0) {
-				switch (pNode->GetStructDispNodeType()) {
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (pDispNode) {
+				const StructNode* pNode = dynamic_cast<const StructNode*>(pDispNode);
+				if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				switch (pDispNode->GetStructDispNodeType()) {
 				case StructNode::STATIC:
 					continue;
 
 				default:
 					break;
 				}
-				OutHdl.Log() << " " << pNode->iGetFirstIndex();
+				OutHdl.Log() << " " << pDispNode->iGetFirstIndex();
 			}
 		}
 		OutHdl.Log() << std::endl;
@@ -357,9 +373,13 @@ DataManager::DofOwnerInit(void)
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 			i != NodeData[Node::STRUCTURAL].NodeContainer.end(); ++i)
 		{
-			const StructDispNode *pNode = dynamic_cast<const StructDispNode *>(i->second);
-			if (dynamic_cast<const StructNode *>(pNode) == 0) {
-				OutHdl.Log() << " " << pNode->GetLabel();
+			const StructDispNode *pDispNode = dynamic_cast<const StructDispNode *>(i->second);
+			if (pDispNode) {
+				const StructNode* pNode = dynamic_cast<const StructNode*>(pDispNode);
+				if (pNode && pNode->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+				}
+				OutHdl.Log() << " " << pDispNode->GetLabel();
 			}
 		}
 		OutHdl.Log() << std::endl;
