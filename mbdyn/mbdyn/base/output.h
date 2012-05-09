@@ -383,10 +383,10 @@ inline std::ostream&
 OutputHandler::Output(void) const
 {
 #ifdef DEBUG_COUT
-	return (std::ostream&)cout;
+	return const_cast<std::ostream &>(cout);
 #else
 	ASSERT(IsOpen(OUTPUT));
-	return (std::ostream&)ofOutput;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofOutput));
 #endif
 }
 
@@ -394,164 +394,164 @@ inline std::ostream&
 OutputHandler::StrNodes(void) const
 {
 	ASSERT(IsOpen(STRNODES));
-	return (std::ostream&)ofStrNodes;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofStrNodes));
 }
 
 inline std::ostream&
 OutputHandler::Electric(void) const
 {
 	ASSERT(IsOpen(ELECTRIC));
-	return (std::ostream&)ofElectric;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofElectric));
 }
 
 inline std::ostream&
 OutputHandler::ThermalNodes(void) const
 {
 	ASSERT(IsOpen(THERMALNODES));
-	return (std::ostream&)ofThermalNodes;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofThermalNodes));
 }
 
 inline std::ostream&
 OutputHandler::ThermalElements(void) const
 {
 	ASSERT(IsOpen(THERMALELEMENTS));
-	return (std::ostream&)ofThermalElements;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofThermalElements));
 }
 
 inline std::ostream&
 OutputHandler::Abstract(void) const
 {
 	ASSERT(IsOpen(ABSTRACT));
-	return (std::ostream&)ofAbstract;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAbstract));
 }
 
 inline std::ostream&
 OutputHandler::Inertia(void) const
 {
 	ASSERT(IsOpen(INERTIA));
-	return (std::ostream&)ofInertia;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofInertia));
 }
 
 inline std::ostream&
 OutputHandler::Joints(void) const
 {
 	ASSERT(IsOpen(JOINTS));
-	return (std::ostream&)ofJoints;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofJoints));
 }
 
 inline std::ostream&
 OutputHandler::Forces(void) const
 {
 	ASSERT(IsOpen(FORCES));
-	return (std::ostream&)ofForces;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofForces));
 }
 
 inline std::ostream&
 OutputHandler::Beams(void) const
 {
 	ASSERT(IsOpen(BEAMS));
-	return (std::ostream&)ofBeams;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofBeams));
 }
 
 inline std::ostream&
 OutputHandler::Rotors(void) const
 {
 	ASSERT(IsOpen(ROTORS));
-	return (std::ostream&)ofRotors;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofRotors));
 }
 
 inline std::ostream&
 OutputHandler::Restart(void) const
 {
 	ASSERT(IsOpen(RESTART));
-	return (std::ostream&)ofRestart;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofRestart));
 }
 
 inline std::ostream&
 OutputHandler::RestartXSol(void) const
 {
 	ASSERT(IsOpen(RESTART));
-	return (std::ostream&)ofRestartXSol;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofRestartXSol));
 }
 
 inline std::ostream&
 OutputHandler::Aerodynamic(void) const
 {
 	ASSERT(IsOpen(AERODYNAMIC));
-	return (std::ostream&)ofAerodynamic;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAerodynamic));
 }
 
 inline std::ostream&
 OutputHandler::Hydraulic(void) const
 {
 	ASSERT(IsOpen(HYDRAULIC));
-	return (std::ostream&)ofHydraulic;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofHydraulic));
 }
 
 inline std::ostream&
 OutputHandler::PresNodes(void) const
 {
 	ASSERT(IsOpen(PRESNODES));
-	return (std::ostream&)ofPresNodes;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofPresNodes));
 }
 
 inline std::ostream&
 OutputHandler::Loadable(void) const
 {
 	ASSERT(IsOpen(LOADABLE));
-	return (std::ostream&)ofLoadable;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofLoadable));
 }
 
 inline std::ostream&
 OutputHandler::Genels(void) const
 {
 	ASSERT(IsOpen(GENELS));
-	return (std::ostream&)ofGenels;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofGenels));
 }
 
 inline std::ostream&
 OutputHandler::Partition(void) const
 {
 	ASSERT(IsOpen(PARTITION));
-	return (std::ostream&)ofPartition;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofPartition));
 }
 
 inline std::ostream&
 OutputHandler::AdamsRes(void) const
 {
 	ASSERT(IsOpen(ADAMSRES));
-	return (std::ostream&)ofAdamsRes;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAdamsRes));
 }
 
 inline std::ostream&
 OutputHandler::AdamsCmd(void) const
 {
 	ASSERT(IsOpen(ADAMSCMD));
-	return (std::ostream&)ofAdamsCmd;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAdamsCmd));
 }
 
 inline std::ostream&
 OutputHandler::AeroModals(void) const
 {
 	ASSERT(IsOpen(AEROMODALS));
-	return (std::ostream&)ofAeroModals;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAeroModals));
 }
 
 inline std::ostream&
 OutputHandler::ReferenceFrames(void) const
 {
 	ASSERT(IsOpen(REFERENCEFRAMES));
-	return (std::ostream&)ofReferenceFrames;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofReferenceFrames));
 }
 
 inline std::ostream&
 OutputHandler::Log(void) const
 {
 #ifdef DEBUG_COUT
-	return (std::ostream&)cout;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(cout));
 #else
 	ASSERT(IsOpen(LOG));
-	return (std::ostream&)ofLog;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofLog));
 #endif
 }
 
@@ -559,49 +559,49 @@ inline std::ostream&
 OutputHandler::AirProps(void) const
 {
 	ASSERT(IsOpen(AIRPROPS));
-	return (std::ostream&)ofAirProps;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAirProps));
 }
 
 inline std::ostream&
 OutputHandler::Parameters(void) const
 {
 	ASSERT(IsOpen(PARAMETERS));
-	return (std::ostream&)ofParameters;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofParameters));
 }
 
 inline std::ostream&
 OutputHandler::Externals(void) const
 {
 	ASSERT(IsOpen(EXTERNALS));
-	return (std::ostream&)ofExternals;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofExternals));
 }
 
 inline std::ostream&
 OutputHandler::Modal(void) const
 {
 	ASSERT(IsOpen(MODAL));
-	return (std::ostream&)ofModal;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofModal));
 }
 
 inline std::ostream&
 OutputHandler::Plates(void) const
 {
 	ASSERT(IsOpen(PLATES));
-	return (std::ostream&)ofPlates;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofPlates));
 }
 
 inline std::ostream&
 OutputHandler::Gravity(void) const
 {
 	ASSERT(IsOpen(GRAVITY));
-	return (std::ostream&)ofGravity;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofGravity));
 }
 
 inline std::ostream&
 OutputHandler::DofStats(void) const
 {
 	ASSERT(IsOpen(DOFSTATS));
-	return (std::ostream&)ofDofStats;
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofDofStats));
 }
 
 inline int
