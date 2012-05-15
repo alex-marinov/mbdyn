@@ -149,8 +149,9 @@ Also note that accelerations may be inaccurate, since they are reconstructed
 from the momentum and the momenta moment derivatives through the inertia
 properties associated to dynamic nodes.
 
-Also \kw{dummy} nodes allow the keyword \kw{accelerations},
-but honor it only if provided by the nodes they are related to.
+The keyword \kw{accelerations} can be used for \kw{dummy} nodes;
+however, the dummy node will compute and output the acceleration 
+only if the node it is connected to can provide it.
 
 Accelerations output can be controlled by means of the
 \hyperref{\kw{default output} statement}{\kw{default output} statement (see Section~}{)}{sec:CONTROLDATA:DEFAULTOUTPUT}.
