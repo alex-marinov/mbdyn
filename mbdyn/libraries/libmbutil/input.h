@@ -79,7 +79,8 @@ public:
 	inline bool eof(void) const;
    
 	/* Restituisce l'istream */
-	inline std::istream& GetStream(void) const;
+	inline const std::istream& GetStream(void) const;
+	inline std::istream& GetStream(void);
 };
 
 /* Overload dell'operatore di lettura */
@@ -141,8 +142,14 @@ InputStream::eof(void) const
 }
 
 /* Restituisce l'istream */
-inline std::istream&
+inline const std::istream&
 InputStream::GetStream(void) const
+{
+	return iStrm;
+}
+
+inline std::istream&
+InputStream::GetStream(void)
 {
 	return iStrm;
 }

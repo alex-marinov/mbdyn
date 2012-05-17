@@ -486,10 +486,9 @@ restart_parsing:;
 
 	CurrLowToken = LowP.GetToken(*pIn);
 	if (CurrLowToken != LowParser::WORD) {
-		if (pIn->GetStream().eof()) {
+		if (pIn->eof()) {
 			Eof();
 			goto restart_parsing;
-
 		}
 		
 		silent_cerr("Parser error in HighParser::GetDescription, "

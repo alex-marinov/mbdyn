@@ -194,6 +194,7 @@ void InLineJoint::Output(OutputHandler& OH) const
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
       Joint::Output(OH.Joints(), "inline", GetLabel(),
 		    F, Zero3, RvTmp*F, Zero3) << std::endl;
+      // TODO: output relative position and orientation
    }   
 }
  
