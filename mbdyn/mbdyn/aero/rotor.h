@@ -105,7 +105,17 @@ protected:
 	// Calcola la velocita' di traslazione del rotore
 	virtual void InitParam(bool bComputeMeanInducedVelocity = true);
 
+	virtual void Init(const StructNode* pC, const Mat3x3& rrot,
+		const StructNode* pR, const StructNode* pG,
+		ResForceSet **ppres,
+		const doublereal& dR,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		flag fOut);
+
 public:
+	Rotor(unsigned int uL, const DofOwner* pDO);
 	Rotor(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pC, const Mat3x3& rrot,
 		const StructNode* pR, const StructNode* pG,
@@ -197,7 +207,16 @@ public:
 /* NoRotor - begin */
 
 class NoRotor : virtual public Elem, public Rotor {
+protected:
+	virtual void Init(const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+		ResForceSet **ppres,
+		const doublereal& dR,
+		flag fOut);
+
 public:
+	NoRotor(unsigned int uLabel, const DofOwner* pDO);
 	NoRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -238,7 +257,24 @@ public:
 /* UniformRotor - begin */
 
 class UniformRotor : virtual public Elem, public Rotor {
+protected:
+	virtual void Init(const StructNode* pCraft,
+	   	const Mat3x3& rrot,
+		const StructNode* pRotor,
+		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		DriveCaller *pdW,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		flag fOut);
+
 public:
+	UniformRotor(unsigned int uLabel, const DofOwner* pDO);
 	UniformRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -282,7 +318,26 @@ public:
 };
 
 class UniformRotor2 : virtual public Elem, public UniformRotor {
+protected:
+#if 0 // not needed because identical to UniformRotor::Init()
+	virtual void Init(const StructNode* pCraft,
+	   	const Mat3x3& rrot,
+		const StructNode* pRotor,
+		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		DriveCaller *pdW,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		flag fOut);
+#endif
+
 public:
+	UniformRotor2(unsigned int uLabel, const DofOwner* pDO);
 	UniformRotor2(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -339,7 +394,24 @@ public:
 protected:
 	Type gtype;
 
+	virtual void Init(const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		DriveCaller *pdW,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		GlauertRotor::Type gtype,
+		flag fOut);
+
 public:
+	GlauertRotor(unsigned int uLabel, const DofOwner* pDO);
 	GlauertRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -389,7 +461,24 @@ public:
 /* ManglerRotor - begin */
 
 class ManglerRotor : virtual public Elem, public Rotor {
+protected:
+	virtual void Init(const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		DriveCaller *pdW,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		flag fOut);
+
 public:
+	ManglerRotor(unsigned int uLabel, const DofOwner* pDO);
 	ManglerRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,
@@ -464,7 +553,25 @@ protected:
 	doublereal dL31;
 	doublereal dL33;
 
+	virtual void Init(const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+      		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		const doublereal& dVConstTmp,
+		const doublereal& dVSineTmp,
+		const doublereal& dVCosineTmp,
+		flag fOut);
+
 public:
+	DynamicInflowRotor(unsigned int uLabel, const DofOwner* pDO);
 	DynamicInflowRotor(unsigned int uLabel,
 		const DofOwner* pDO,
 		const StructNode* pCraft,

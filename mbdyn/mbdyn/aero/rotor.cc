@@ -58,6 +58,29 @@ static const doublereal dVTipTreshold = 1e-6;
 
 /* Rotor - begin */
 
+Rotor::Rotor(unsigned int uL, const DofOwner* pDO)
+: Elem(uL, flag(0)),
+InducedVelocityElem(uL, pDO, 0, 0, flag(0)),
+pRotor(0), pGround(0),
+dOmegaRef(0.), dRadius(0), dVTipRef(0.), dArea(0.),
+dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
+iMaxIter(0),
+iCurrIter(0),
+dTolerance(0),
+dEta(0),
+bUMeanRefConverged(false),
+Weight(), dWeight(0.),
+dHoverCorrection(1.), dForwardFlightCorrection(1.),
+RRotTranspose(::Zero3x3), RRot(::Eye3), RRot3(::Zero3),
+VCraft(::Zero3),
+dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
+dMu(0.), dLambda(1.), dChi(0.),
+dVelocity(0.), dOmega(0.),
+iNumSteps(0)
+{
+	NO_OP;
+}
+
 Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	const StructNode* pC, const Mat3x3& rrot,
 	const StructNode* pR, const StructNode* pG,
@@ -66,31 +89,56 @@ Rotor::Rotor(unsigned int uL, const DofOwner* pDO,
 	unsigned int iMaxIt, const doublereal& dTol, const doublereal& dE,
 	flag fOut)
 : Elem(uL, fOut),
-InducedVelocityElem(uL, pDO, pC, ppres, fOut),
-pRotor(pR), pGround(pG),
-dOmegaRef(0.), dRadius(dR), dVTipRef(0.), dArea(0.),
+InducedVelocityElem(uL, pDO, 0, 0, flag(0)),
+pRotor(0), pGround(0),
+dOmegaRef(0.), dRadius(0), dVTipRef(0.), dArea(0.),
 dUMean(0.), dUMeanRef(0.), dUMeanPrev(0.),
-iMaxIter(iMaxIt),
+iMaxIter(0),
 iCurrIter(0),
-dTolerance(dTol),
-dEta(dE),
+dTolerance(0),
+dEta(0),
 bUMeanRefConverged(false),
 Weight(), dWeight(0.),
 dHoverCorrection(1.), dForwardFlightCorrection(1.),
-RRotTranspose(Zero3x3), RRot(rrot), RRot3(Zero3),
-VCraft(Zero3),
+RRotTranspose(::Zero3x3), RRot(::Eye3), RRot3(::Zero3),
+VCraft(::Zero3),
 dPsi0(0.), dSinAlphad(1.), dCosAlphad(0.),
 dMu(0.), dLambda(1.), dChi(0.),
 dVelocity(0.), dOmega(0.),
 iNumSteps(0)
 {
+	Init(pC, rrot, pR, pG, ppres, dR, iMaxIt, dTol, dE, fOut);
+}
+
+void
+Rotor::Init(const StructNode* pC, const Mat3x3& rrot,
+	const StructNode* pR, const StructNode* pG,
+	ResForceSet **ppres,
+	const doublereal& dR,
+	unsigned int iMaxIt, const doublereal& dTol, const doublereal& dE,
+	flag fOut)
+{
+	InducedVelocityElem::pCraft = pC;
+	InducedVelocityElem::ppRes = ppres;
+
+	pRotor = pR;
+	pGround = pG;
+	dRadius = dR;
+	iMaxIter = iMaxIt;
+	dTolerance = dTol;
+	dEta = dE;
+	RRot = rrot;
+
+	SetOutputFlag(fOut);
+
 	Vec3 R3C(pCraft->GetRCurr()*RRot.GetVec(3));
 	Vec3 R3R(pRotor->GetRCurr().GetVec(3));
 	if (R3C.Dot(R3R) < 1. - std::numeric_limits<doublereal>::epsilon()) {
-		silent_cerr("warning, possible misalignment "
-			"of rotor StructNode(" << pRotor->GetLabel() << ") "
+		silent_cerr("Rotor(" << GetLabel() << "): "
+			"warning, possible misalignment "
+			"of rotor node StructNode(" << pRotor->GetLabel() << ") "
 			"axis Rr(3) = {" << R3R << "} "
-			"and craft StructNode(" << pCraft->GetLabel() << ") "
+			"and craft node StructNode(" << pCraft->GetLabel() << ") "
 			"axis Rc*Rh(3) = {" << R3C << "} "
 			<< "for Rotor(" << GetLabel() << ")"
 			<< std::endl);
@@ -499,6 +547,14 @@ Rotor::Restart(std::ostream& out) const
 /* NoRotor - begin */
 
 NoRotor::NoRotor(unsigned int uLabel,
+	const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
+{
+	NO_OP;
+}
+
+NoRotor::NoRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
 	const Mat3x3& rrot,
@@ -506,9 +562,22 @@ NoRotor::NoRotor(unsigned int uLabel,
 	ResForceSet **ppres,
 	const doublereal& dR,
 	flag fOut)
-: Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, ppres, dR, 0, 0., 0., fOut)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
 {
+	Init(pCraft, rrot, pRotor, ppres, dR, fOut);
+}
+
+void
+NoRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	ResForceSet **ppres,
+	const doublereal& dR,
+	flag fOut)
+{
+	Rotor::Init(pCraft, rrot, pRotor, 0, ppres, dR, 0, 0., 0., fOut);
+
 #ifdef USE_MPI
 	if (is_parallel && fToBeOutput()) {
 		SAFENEWARR(pBlockLenght, int, 3);
@@ -520,7 +589,7 @@ Rotor(uLabel, pDO, pCraft, rrot, pRotor, 0, ppres, dR, 0, 0., 0., fOut)
 			pDispl[i] = MPI::Get_address(&(Res.Pole().pGetVec()[i]));
 		}
 		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
-				MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
+			MPI::Datatype(MPI::DOUBLE.Create_hindexed(3, pBlockLenght, pDispl)));
 		pIndVelDataType->Commit();
 	}
 #endif /* USE_MPI */
@@ -624,6 +693,13 @@ NoRotor::GetInducedVelocity(Elem::Type type,
 
 /* UniformRotor - begin */
 
+UniformRotor::UniformRotor(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
+{
+	NO_OP;
+}
+
 UniformRotor::UniformRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
@@ -640,12 +716,34 @@ UniformRotor::UniformRotor(unsigned int uLabel,
 	const doublereal& dCH,
 	const doublereal& dCFF,
 	flag fOut)
-: Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
+{
+	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR,
+		pdW, iMaxIt, dTol, dE, dCH, dCFF, fOut);
+}
+
+void
+UniformRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	DriveCaller *pdW,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	flag fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
+
+	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
 
 	dOmegaRef = dOR;
 	dVTipRef = dOmegaRef*dRadius;
@@ -795,6 +893,13 @@ UniformRotor::GetInducedVelocity(Elem::Type type,
 	return RRot3*dUMeanPrev;
 };
 
+UniformRotor2::UniformRotor2(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+UniformRotor(uLabel, pDO)
+{
+	NO_OP;
+}
+
 UniformRotor2::UniformRotor2(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
@@ -870,6 +975,14 @@ UniformRotor2::AddSectionalForce(Elem::Type type,
 
 /* GlauertRotor - begin */
 
+GlauertRotor::GlauertRotor(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
+gtype(GlauertRotor::UNKNOWN)
+{
+	NO_OP;
+}
+
 GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
@@ -887,13 +1000,37 @@ GlauertRotor::GlauertRotor(unsigned int uLabel,
 	const doublereal& dCFF,
 	GlauertRotor::Type gtype,
 	flag fOut)
-: Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut),
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
 gtype(gtype)
+{
+	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR,
+		pdW, iMaxIt, dTol, dE, dCH, dCFF, gtype, fOut);
+}
+
+void
+GlauertRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	DriveCaller *pdW,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	GlauertRotor::Type gtype,
+	flag fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
+
+	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
+	gtype = gtype;
 
 	dOmegaRef = dOR;
 	dVTipRef = dOmegaRef*dRadius;
@@ -1092,6 +1229,13 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 
 /* ManglerRotor - begin */
 
+ManglerRotor::ManglerRotor(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
+{
+	NO_OP;
+}
+
 ManglerRotor::ManglerRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
@@ -1108,12 +1252,33 @@ ManglerRotor::ManglerRotor(unsigned int uLabel,
 	const doublereal& dCH,
 	const doublereal& dCFF,
 	flag fOut)
-: Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO)
+{
+	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR, pdW, iMaxIt, dTol, dE, dCH, dCFF, fOut);
+}
+
+void
+ManglerRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	DriveCaller *pdW,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	flag fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
 	ASSERT(pdW != 0);
+
+	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
 
 	dOmegaRef = dOR;
 	dVTipRef = dOmegaRef*dRadius;
@@ -1267,7 +1432,7 @@ ManglerRotor::GetInducedVelocity(Elem::Type type,
 	unsigned uLabel, unsigned uPnt, const Vec3& X) const
 {
 	if (dUMeanPrev == 0.) {
-		return Zero3;
+		return ::Zero3;
 	}
 
 #if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
@@ -1340,6 +1505,15 @@ static const doublereal dM33 = -16./(45.*M_PI);
 
 /* DynamicInflowRotor - begin */
 
+DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
+dVConst(0), dVSine(0), dVCosine(0),
+dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
+{
+	NO_OP;
+}
+
 DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	const DofOwner* pDO,
 	const StructNode* pCraft,
@@ -1358,13 +1532,42 @@ DynamicInflowRotor::DynamicInflowRotor(unsigned int uLabel,
 	const doublereal& dVSineTmp,
 	const doublereal& dVCosineTmp,
 	flag fOut)
-: Elem(uLabel, fOut),
-Rotor(uLabel, pDO, pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut),
-dVConst(dVConstTmp), dVSine(dVSineTmp), dVCosine(dVCosineTmp),
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
+dVConst(0), dVSine(0), dVCosine(0),
 dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
+{
+	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR,
+		iMaxIt, dTol, dE, dCH, dCFF,
+		dVConstTmp, dVSineTmp, dVCosineTmp, fOut);
+}
+
+void
+DynamicInflowRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	const doublereal& dVConstTmp,
+	const doublereal& dVSineTmp,
+	const doublereal& dVCosineTmp,
+	flag fOut)
 {
 	ASSERT(dOR > 0.);
 	ASSERT(dR > 0.);
+
+	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
+
+	dVConst = dVConstTmp;
+	dVSine = dVSineTmp;
+	dVCosine = dVCosineTmp;
 
 	dOmegaRef = dOR;
 	dVTipRef = dOmegaRef*dRadius;
