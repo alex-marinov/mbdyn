@@ -34,6 +34,8 @@ MBDyn 1.X-Devel
 		- fix initial assembly required by userelem (Reinhard Resch)
 		- fix "wrong type" diagnostic message in math parser
 		- fix initial assembly matrix reset (noted by Reinhard Resch)
+		- fix uninitialized array in modal joint parsing
+		  (noted by Domenico Capobianco)
 
 MBDyn 1.4.3
 	Enhancements:

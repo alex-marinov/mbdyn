@@ -3164,7 +3164,7 @@ ReadModal(DataManager* pDM,
 	};
 
 	/* Note: to keep it readable, we use a base 1 array */
-	bool bRecordGroup[LAST_RECORD];
+	bool bRecordGroup[LAST_RECORD] = { false };
 
 	// record 1: header
 	// record 2: FEM node labels
