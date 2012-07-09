@@ -2443,6 +2443,7 @@ AC_CHECK_FUNCS([ \
 	atol \
 	chdir \
 	copysign \
+	feenableexcept \
 	finite \
 	get_ncpus \
 	get_nprocs \

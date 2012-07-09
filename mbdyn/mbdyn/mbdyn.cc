@@ -400,14 +400,44 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.bException = true;
 			break;
 
-		case int('E'):
-#ifdef HAVE_FENV_H
+		case int('E'): {
+#if defined(HAVE_FENV_H) && defined(HAVE_FEENABLEEXCEPT)
+			int excepts = FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW;
+			if (optarg != 0) {
+				excepts = 0;
+				char *start = optarg, *next;
+				do {
+					next = strchr(start, ',');
+					size_t len;
+					if (next != NULL) {
+						len = next - start;
+						next++;
+					} else {
+						len = strlen(start);
+					}
+
+					if (strncasecmp(start, "invalid", len) == 0) {
+						excepts |= FE_INVALID;
+					} else if (strncasecmp(start, "divbyzero", len) == 0) {
+						excepts |= FE_DIVBYZERO;
+					} else if (strncasecmp(start, "overflow", len) == 0) {
+						excepts |= FE_OVERFLOW;
+					} else {
+						silent_cerr("option 'E': unrecognized arg \"" << std::string(start, len) << "\"" << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+					start = next;
+				} while (next != 0);
+
+				pedantic_cout("Option 'E': exceptions=" << excepts << std::endl);
+			}
 			/* Enable some exceptions.  At startup all exceptions are masked.  */
-			feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
+			feenableexcept(excepts);
 #else // ! HAVE_FENV_H
 			silent_cerr("Option 'E' unsupported; ignored" << std::endl);
 #endif // ! HAVE_FENV_H
-			break;
+			} break;
 
 		case int('f'):
 			mbp.CurrInputFormat = MBDYN;
