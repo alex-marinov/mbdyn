@@ -1791,7 +1791,7 @@ ConstitutiveLaw1D *
 MBDynParser::GetConstLaw1D(ConstLawType::Type& clt)
 {
 	if (pDM == 0) {
-		silent_cerr("consitutive law parsing at line "
+		silent_cerr("constitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1818,7 +1818,7 @@ ConstitutiveLaw3D *
 MBDynParser::GetConstLaw3D(ConstLawType::Type& clt)
 {
 	if (pDM == 0) {
-		silent_cerr("consitutive law parsing at line "
+		silent_cerr("constitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1845,7 +1845,7 @@ ConstitutiveLaw6D *
 MBDynParser::GetConstLaw6D(ConstLawType::Type& clt)
 {
 	if (pDM == 0) {
-		silent_cerr("consitutive law parsing at line "
+		silent_cerr("constitutive law parsing at line "
 				<< GetLineData() << " allowed "
 				"only after control data block" << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);

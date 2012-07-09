@@ -112,7 +112,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 			gExpr[row] = GiNaC::ex(expression[row], l);
 
 		} catch (std::exception e) {
-			silent_cerr("expression #" << row << " parsing "
+			silent_cerr("GiNaCElasticConstitutiveLaw<T, Tder>: expression #" << row << " parsing "
 				"failed: " << e.what() << std::endl);
 			throw e;
 		}
@@ -122,7 +122,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 				gExprDEps[row][col] = gExpr[row].diff(*gEps[col]);
 
 			} catch (std::exception e) {
-				silent_cerr("expression #" << row << " differentiation "
+				silent_cerr("GiNaCElasticConstitutiveLaw<T, Tder>: expression #" << row << " differentiation "
 					"wrt/ Eps #" << col << "failed: "
 					<< e.what() << std::endl);
 				throw e;
@@ -277,7 +277,7 @@ gEps(epsilon[0])
 		gExpr = GiNaC::ex(expression[0], l);
 
 	} catch (std::exception &e) {
-		silent_cerr("expression parsing failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCElasticConstitutiveLaw<doublereal, doublereal>: expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
@@ -285,7 +285,7 @@ gEps(epsilon[0])
 		gExprDEps = gExpr.diff(gEps);
 
 	} catch (std::exception &e) {
-		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCElasticConstitutiveLaw<doublereal, doublereal>: expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
 
@@ -439,7 +439,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 			gExpr[row] = GiNaC::ex(expression[row], l);
 
 		} catch (std::exception e) {
-			silent_cerr("expression #" << row << " parsing "
+			silent_cerr("GiNaCViscousConstitutiveLaw<T, Tder>: expression #" << row << " parsing "
 				"failed: " << e.what() << std::endl);
 			throw e;
 		}
@@ -449,7 +449,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 				gExprDEpsPrime[row][col] = gExpr[row].diff(*gEpsPrime[col]);
 
 			} catch (std::exception e) {
-				silent_cerr("expression #" << row << " differentiation "
+				silent_cerr("GiNaCViscousConstitutiveLaw<T, Tder>: expression #" << row << " differentiation "
 					"wrt/ EpsPrime #" << col << " failed: " << e.what()
 					<< std::endl);
 				throw e;
@@ -596,14 +596,14 @@ gEpsPrime(epsilonPrime[0])
 	try {
 		gExpr = GiNaC::ex(expression[0], l);
 	} catch (std::exception e) {
-		silent_cerr("expression parsing failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCViscousConstitutiveLaw<doublereal, doublereal>: expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gExprDEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
-		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCViscousConstitutiveLaw<doublereal, doublereal>: expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
 	}
 
@@ -767,7 +767,7 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 			gExpr[row] = GiNaC::ex(expression[row], l);
 
 		} catch (std::exception e) {
-			silent_cerr("expression #" << row << " parsing "
+			silent_cerr("GiNaCViscoElasticConstitutiveLaw<T, Tder>: expression #" << row << " parsing "
 				"failed: " << e.what() << std::endl);
 			throw e;
 		}
@@ -777,7 +777,7 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 				gExprDEps[row][col] = gExpr[row].diff(*gEps[col]);
 
 			} catch (std::exception e) {
-				silent_cerr("expression #" << row << " differentiation "
+				silent_cerr("GiNaCViscoElasticConstitutiveLaw<T, Tder>: expression #" << row << " differentiation "
 					"wrt/ Eps #" << col << "failed: "
 					<< e.what() << std::endl);
 				throw e;
@@ -787,7 +787,7 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 				gExprDEpsPrime[row][col] = gExpr[row].diff(*gEpsPrime[col]);
 
 			} catch (std::exception e) {
-				silent_cerr("expression #" << row << " differentiation "
+				silent_cerr("GiNaCViscoElasticConstitutiveLaw<T, Tder>: expression #" << row << " differentiation "
 					"wrt/ EpsPrime #" << col << "failed: "
 					<< e.what() << std::endl);
 				throw e;
@@ -971,21 +971,21 @@ gEps(epsilon[0]), gEpsPrime(epsilonPrime[0])
 	try {
 		gExpr = GiNaC::ex(expression[0], l);
 	} catch (std::exception e) {
-		silent_cerr("expression parsing failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>: expression parsing failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gExprDEps = gExpr.diff(gEps);
 	} catch (std::exception e) {
-		silent_cerr("expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>: expression differentiation wrt/ Eps failed: " << e.what() << std::endl);
 		throw e;
 	}
 
 	try {
 		gExprDEpsPrime = gExpr.diff(gEpsPrime);
 	} catch (std::exception e) {
-		silent_cerr("expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
+		silent_cerr("GiNaCViscoElasticConstitutiveLaw<doublereal, doublereal>: expression differentiation wrt/ EpsPrime failed: " << e.what() << std::endl);
 		throw e;
 	}
 
