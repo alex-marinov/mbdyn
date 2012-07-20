@@ -123,20 +123,25 @@ Mass::pGetNode(void) const
 unsigned int
 Mass::iGetNumPrivData(void) const
 {
-	return 2;
+	return 3;
 }
 
 unsigned int
 Mass::iGetPrivDataIdx(const char *s) const
 {
-	if (strcmp(s, "E") == 0) {
-		// kinetic energy
-		return 1;
-	}
+	if (s[1] == '\0') {
+		switch (s[0]) {
+		case 'E':
+			// kinetic energy
+			return 1;
 
-	if (strcmp(s, "V") == 0) {
-		// potential energy
-		return 2;
+		case 'V':
+			// potential energy
+			return 2;
+
+		case 'm':
+			return 3;
+		}
 	}
 
 	return 0;
@@ -145,14 +150,15 @@ Mass::iGetPrivDataIdx(const char *s) const
 doublereal
 Mass::dGetPrivData(unsigned int i) const
 {
-	if (i == 1) {
+	switch (i) {
+	case 1: {
 		// kinetic energy
 		const Vec3& Vn = pNode->GetVCurr();
 
 		return Vn.Dot()*dMass;
-	}
+		}
 
-	if (i == 2) {
+	case 2: {
 		// potential energy
 		const Vec3& Xn = pNode->GetXCurr();
 
@@ -160,6 +166,12 @@ Mass::dGetPrivData(unsigned int i) const
 		if (GravityOwner::bGetGravity(Xn, GravityAcceleration)) {
 			return -Xn.Dot(GravityAcceleration)*dMass;
 		}
+		break;
+		}
+
+	case 3:
+ 		// mass
+ 		return dMass;
 	}
 
 	return 0.;
@@ -832,20 +844,25 @@ Body::pGetNode(void) const
 unsigned int
 Body::iGetNumPrivData(void) const
 {
-	return 2;
+	return 3;
 }
 
 unsigned int
 Body::iGetPrivDataIdx(const char *s) const
 {
-	if (strcmp(s, "E") == 0) {
-		// kinetic energy
-		return 1;
-	}
+	if (s[1] == '\0') {
+		switch (s[0]) {
+		case 'E':
+			// kinetic energy
+			return 1;
 
-	if (strcmp(s, "V") == 0) {
-		// potential energy
-		return 2;
+		case 'V':
+			// potential energy
+			return 2;
+
+		case 'm':
+			return 3;
+		}
 	}
 
 	return 0;
@@ -854,7 +871,8 @@ Body::iGetPrivDataIdx(const char *s) const
 doublereal
 Body::dGetPrivData(unsigned int i) const
 {
-	if (i == 1) {
+	switch (i) {
+	case 1: {
 		// kinetic energy
 		const Mat3x3& Rn = pNode->GetRCurr();
 		const Vec3& Vn = pNode->GetVCurr();
@@ -869,13 +887,18 @@ Body::dGetPrivData(unsigned int i) const
 		return ((V*V)*dMass + W*(Jgc*W))/2.;
 	}
 
-	if (i == 2) {
+	case 2: {
 		// potential energy
 		Vec3 X(pNode->GetXCurr() + pNode->GetRCurr()*Xgc);
 		Vec3 GravityAcceleration;
 		if (GravityOwner::bGetGravity(X, GravityAcceleration)) {
 			return -X.Dot(GravityAcceleration)*dMass;
 		}
+		break;
+	}
+
+	case 3:
+		return dMass;
 	}
 
 	return 0.;
