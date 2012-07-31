@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 		- added module-octave (Reinhard Resch)
 		- drive drive made differentiable (Reinhard Resch)
 		- added "m" (mass) to body private data (Louis Gagnon)
+		- added module-eu2phi TplDriveCaller wrapper
+		  (suggested by Tingnan Zhang)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
