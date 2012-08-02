@@ -4001,10 +4001,11 @@ output_geometry(DataManager* pDM, std::ostream& o)
 		<< "idx = [" << std::endl;
 
 	for (; i != e; ++i) {
-		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
+		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
 		ASSERT(pN != 0);
 
-		if (pN->GetStructNodeType() == StructNode::DUMMY) {
+		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
 			continue;
 		}
 
@@ -4018,15 +4019,19 @@ output_geometry(DataManager* pDM, std::ostream& o)
 		<< "X0 = [" << std::endl;
 
 	for (i = pDM->begin(Node::STRUCTURAL); i != e; ++i) {
-		const StructNode *pN = dynamic_cast<const StructNode *>(i->second);
+		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
 		ASSERT(pN != 0);
 
-		if (pN->GetStructNodeType() == StructNode::DUMMY) {
+		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
 			continue;
 		}
 
 		const Vec3& X(pN->GetX());
-		Vec3 Phi(RotManip::VecRot(pN->GetR()));
+		Vec3 Phi(mb_zero<Vec3>());
+		if (pSN) {
+			Phi = RotManip::VecRot(pSN->GetR());
+		}
 
 		o
 			<< std::setw(24) << X(1) << ";" << std::endl
