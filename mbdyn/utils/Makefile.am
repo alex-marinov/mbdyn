@@ -161,9 +161,9 @@ Mbfem/node3.h
 
 mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
 if USE_OCTAVE
-OCTAVE_INCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
-OCTAVE_LIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
-OCTAVE_FUNCS = \
+OCTAVE_XINCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
+OCTAVE_XLIBS = -L../libraries/libmbmath/.libs -L../libraries/libmbutil/.libs -lmbmath -lmbutil
+OCTAVE_XFUNCS = \
 rotation_matrix_to_rotation_vector.oct \
 rotation_vector_to_rotation_matrix.oct \
 rotation_matrix_to_euler123.oct \
@@ -243,10 +243,10 @@ INCLUDES = \
 
 if USE_OCTAVE
 mbdyn_util_oct.o: mbdyn_util_oct.cc
-	mkoctfile $(OCTAVE_INCLUDE) -c -o $@ $<
+	mkoctfile $(OCTAVE_XINCLUDE) -c -o $@ $<
 
 mbdyn_util_oct.oct: mbdyn_util_oct.o
-	mkoctfile -o $@ $< $(OCTAVE_LIBS)
+	mkoctfile -o $@ $< $(OCTAVE_XLIBS)
 endif
 
 if USE_OCTAVE
@@ -254,7 +254,7 @@ install-exec-local-oct:
 	$(mkinstalldirs) "$(DESTDIR)$(datarootdir)" "$(DESTDIR)$(bindir)"
 	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct "$(DESTDIR)$(bindir)"
 	@echo "creating symlinks..."
-	@for f in $(OCTAVE_FUNCS) ; do \
+	@for f in $(OCTAVE_XFUNCS) ; do \
 		rm -f "$(DESTDIR)$(bindir)/$$f" ; \
 		ln -s "$(DESTDIR)$(bindir)/mbdyn_util_oct.oct" "$(DESTDIR)$(bindir)/$$f" ; \
 	done
