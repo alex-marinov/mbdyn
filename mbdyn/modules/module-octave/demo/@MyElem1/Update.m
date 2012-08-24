@@ -40,8 +40,6 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function [elem] = Update(elemin, XCurr, XPrimeCurr)
+    elem = elemin;
 endfunction

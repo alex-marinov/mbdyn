@@ -40,8 +40,6 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function iNumConnectedNodes = iGetNumConnectedNodes(elem)
+    iNumConnectedNodes = int32(1);
 endfunction

@@ -40,8 +40,20 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function SetInitialValue(elem, XCurr)
+    ridx = elem.pMbElem.iGetFirstIndex() + int32(1:2).';
+    X = [0.5e3;
+        -0.7e6];
+%{
+    for i=1:length(ridx)
+        XCurr.PutCoef(ridx(i), X(i));
+    endfor
+%}
+    XCurr.PutVec(ridx, X);
+%{
+    elem
+    XCurr
+    pDM
+    pElem
+%}
 endfunction

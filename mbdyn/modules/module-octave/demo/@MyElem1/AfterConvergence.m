@@ -40,8 +40,30 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function [elem] = AfterConvergence(elemin, XCurr, XPrimeCurr)
+    elem = elemin;
+    iFirstIndex = elem.pMbElem.iGetFirstIndex() + int32(1);
+
+    elem.t(++elem.nIter) = elem.pDM.dGetTime();
+    elem.X2(elem.nIter) = XCurr.dGetCoef(iFirstIndex);
+    elem.XP2(elem.nIter) = XPrimeCurr.dGetCoef(iFirstIndex);
+
+    if ( false )
+        if ( 0 == mod(elem.nIter, 200) )
+            figure(1);
+            subplot(2,1,1);
+            plot(elem.t, elem.X2,'-;X2(t);1');
+            xlabel('t [s]');
+            ylabel('X');
+            grid on;
+            grid minor on;
+            subplot(2,1,2);
+            plot(elem.t, elem.XP2, '-;XP2(t);1');
+            xlabel('t [s]');
+            ylabel('XP');
+            grid on;
+            grid minor on;
+            drawnow();
+        endif
+    endif
 endfunction

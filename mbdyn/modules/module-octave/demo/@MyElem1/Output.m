@@ -40,8 +40,6 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function Output(elem, Loadable)
+    Loadable.printf("%d %e %e\n", elem.pMbElem.GetLabel(), elem.X2(max(1,elem.nIter)), elem.XP2(max(1,elem.nIter)));
 endfunction

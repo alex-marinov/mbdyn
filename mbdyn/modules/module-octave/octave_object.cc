@@ -1,3 +1,33 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2012
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+
 /*
  AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
         Copyright (C) 2011(-2012) all rights reserved.
@@ -7,6 +37,10 @@
         for use in the software MBDyn as described
         in the GNU Public License version 2.1
 */
+
+#include <mbconfig.h>
+
+#ifdef USE_OCTAVE
 
 #include <octave/oct.h>
 #include <octave/parse.h>
@@ -21,6 +55,8 @@
 using namespace std;
 
 #include "octave_object.h"
+
+namespace oct {
 
 octave_object::method_function* octave_object::class_object::lookup_method(const std::string& method_name)const
 {
@@ -146,7 +182,7 @@ octave_value_list octave_object::subsref (const std::string& type,
 
 		if ( method_pfn == NULL )
 		{
-			error("object has no member \'%s\'\n",method_name.c_str());
+			error("octave_object: class \"%s\" has no member \"%s\"", class_name().c_str(), method_name.c_str());
 			return retval;
 		}
 
@@ -162,7 +198,7 @@ octave_value_list octave_object::subsref (const std::string& type,
 
 			if (any_arg_is_magic_colon (*pidx))
 			{
-				error("invalid use of colon in method argument list");
+				error("octave object: invalid use of colon in method argument list");
 				return retval;
 			}
 			else
@@ -173,10 +209,20 @@ octave_value_list octave_object::subsref (const std::string& type,
 	}
 	break;
 	case '(':
+	{
+		if (idx.size() < 1)
+		{
+			error("octave object: invalid number of indices");
+			return retval;
+		}
+
+		retval = (*this)(idx.front());
+	}
+	break;
 	case '{':
 	{
 		std::string nm = type_name();
-		error("%s cannot be indexed with %c",nm.c_str(),operator_char);
+		error("%s cannot be indexed with %c", nm.c_str(), operator_char);
 		return retval;
 
 	}
@@ -194,6 +240,13 @@ octave_value_list octave_object::subsref (const std::string& type,
 	return retval;
 }
 
+octave_value octave_object::operator()(const octave_value_list& idx) const
+{
+	std::string nm = type_name();
+	error("%s cannot be indexed with %c", nm.c_str(), '(');
+	return octave_value();
+}
+
 octave_value octave_object::subsref(const std::string& type,
 	  	  	  	  	  	  	 const std::list<octave_value_list>& idx)
 {
@@ -205,3 +258,14 @@ octave_value octave_object::subsref(const std::string& type,
 	return ret_val(0);
 }
 
+void error(const char* fmt, ...)
+{
+	va_list va;
+	va_start(va, fmt);
+	::verror(fmt, va);
+	va_end(va);
+}
+
+} // namespace
+
+#endif // USE_OCTAVE

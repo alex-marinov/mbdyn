@@ -40,8 +40,12 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function constLawType = GetConstLawType(cl)
+    if ( norm(cl.S) == 0 && norm(cl.D) > 0 )
+        constLawType = "VISCOUS";
+    elseif ( norm(cl.S) > 0 && norm(cl.D) == 0 )
+        constLawType = "ELASTIC";
+    else
+        constLawType = "VISCOELASTIC";
+    endif
 endfunction

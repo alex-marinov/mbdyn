@@ -40,8 +40,32 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function [Jac, ridx, cidx, bSparse] = InitialAssJac(elem, XCurr)
+    ridx = elem.pMbElem.iGetFirstIndex() + int32(1:2).';
+    cidx = ridx;
+
+%{
+    for i=1:length(ridx)
+        X(i) = XCurr.dGetCoef(ridx(i));
+    endfor
+%}
+    X = XCurr(ridx);
+
+    bSparse = false;
+
+    if ( bSparse )
+        Jac = -[ 500; 1;
+                 1; 300 ];
+        ridx = [ repmat(ridx(1), 2, 1);
+                 repmat(ridx(2), 2, 1) ];
+        cidx = repmat(cidx, 2, 1);
+    else
+        Jac = -[ 500, 1; 
+                1, 300 ];
+    endif
+
+%    XCurr
+%    XPrimeCurr
+%    pDM
+%    pElem
 endfunction

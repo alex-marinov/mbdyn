@@ -40,8 +40,36 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function cl = MyConstLaw1(pDM, HP)
+    if ( ~HP.IsKeyWord("dimension") )
+        error("keyword dimension expected at line %s", HP.GetLineData());
+    endif
+
+    cl.N = HP.GetInt();
+
+    if ( cl.N < 1 )
+        error("dimension must be >= 1 at line %s", HP.GetLineData());
+    endif
+
+    cl.S = zeros(cl.N, cl.N);
+
+    if ( HP.IsKeyWord("stiffness") )
+        for i=1:cl.N
+            for j=1:cl.N
+                cl.S(i,j) = HP.GetReal();
+            endfor
+        endfor
+    endif
+
+    cl.D = zeros(cl.N, cl.N);
+
+    if ( HP.IsKeyWord("damping") )
+        for i=1:cl.N
+            for j=1:cl.N
+                cl.D(i,j) = HP.GetReal();
+            endfor
+        endfor          
+    endif
+
+    cl = class(cl,"MyConstLaw1");
 endfunction

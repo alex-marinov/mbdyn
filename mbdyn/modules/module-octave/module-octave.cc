@@ -39,9 +39,12 @@
         in the GNU Public License version 2.1
 */
 
+#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
+
+#ifdef USE_OCTAVE
+
 // FIXME: there is a conflict between the MBDyn and octave real type
 #define real mbdyn_real_type
-#include <mbconfig.h>           /* This goes first in every *.c,*.cc file */
 #include <mbdefs.h>
 #include <matvec3.h>
 #include <matvec6.h>
@@ -49,6 +52,7 @@
 #include <drive.h>
 #include <tpldrive.h>
 #include <userelem.h>
+#include <constltp.h>
 #undef real
 
 #include <cmath>
@@ -56,7 +60,9 @@
 #include <string>
 #include <cassert>
 #include <limits>
-#include <set>
+#include <map>
+#include <sstream>
+#include <cstdint>
 
 #include <octave/oct.h>
 #include <octave/parse.h>
@@ -70,68 +76,101 @@
 
 #ifdef DEBUG
 #define TRACE(msg) ((void)(std::cerr << __FILE__ << ":" << __LINE__ << ":" << __PRETTY_FUNCTION__ << ":" << msg << std::endl))
+#define ASSERT(expr) assert(expr)
 #else
 #define TRACE(msg) ((void)0)
 #endif
 
+namespace oct {
+
 class OctaveInterface {
 public:
 	enum OctaveCallFlags_t {
-		DEFAULT_CALL_FLAGS = 0x0,
-		PASS_DATA_MANAGER = 0x1,
-		UPDATE_GLOBAL_VARIABLES = 0x2
+		DEFAULT_CALL_FLAGS 		= 0x0,
+		PASS_DATA_MANAGER 		= 0x1,
+		UPDATE_OCTAVE_VARIABLES = 0x2,
+		UPDATE_MBDYN_VARIABLES  = 0x4,
+		UPDATE_GLOBAL_VARIABLES = UPDATE_OCTAVE_VARIABLES | UPDATE_MBDYN_VARIABLES,
+		OPTIONAL_OUTPUT_ARGS 	= 0x8
 	};
 
 private:
-	explicit OctaveInterface(const DataManager* pDM);
+	explicit OctaveInterface(const DataManager* pDM, MBDynParser* pHP);
 	virtual ~OctaveInterface(void);
 
 public:
-	static OctaveInterface* CreateInterface(const DataManager* pDM);
+	static OctaveInterface* CreateInterface(const DataManager* pDM, MBDynParser* pHP);
 	void Destroy();
 	static OctaveInterface* GetInterface(void) { return pOctaveInterface; };
-	void UpdateVariables(void);
-	const DataManager* GetDataManager(void) const { return pDM; };
-	octave_value GetDataManagerInterface(void) const { return pDataManager; };
+	void UpdateOctaveVariables(void);
+	void UpdateMBDynVariables(void);
+	const DataManager* GetDataManager(void) const{ return pDM; }
+	MBDynParser* GetMBDynParser(void) const { return pHP; }
+	const octave_value& GetDataManagerInterface(void) const { return octDM; }
+	const octave_value& GetMBDynParserInterface(void) const { return octHP; }
 	bool AddOctaveSearchPath(const std::string& path);
 	static bool ConvertMBDynToOctave(const TypedValue& mbValue, octave_value& octValue);
+	static bool ConvertMBDynToOctave(doublereal mbValue, octave_value& octValue); // useful mainly for templates
 	static bool ConvertMBDynToOctave(const Vec3& mbValue, octave_value& octValue);
+	static bool ConvertMBDynToOctave(const Vec6& mbValue, octave_value& octValue);
 	static bool ConvertMBDynToOctave(const Mat3x3& mbValue, octave_value& octValue);
+	static bool ConvertMBDynToOctave(const Mat6x6& mbValue, octave_value& octValue);
+	static bool ConvertOctaveToMBDyn(const ColumnVector& octValue, doublereal& mbValue);
+	static bool ConvertOctaveToMBDyn(const ColumnVector& octValue, Vec3& mbValue);
+	static bool ConvertOctaveToMBDyn(const ColumnVector& octValue, Vec6& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, doublereal& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Vec3& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Vec6& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Mat3x3& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Mat6x6& mbValue);
+	static bool ConvertOctaveToMBDyn(const octave_value& octValue, TypedValue& mbValue);
 	inline octave_value_list EvalFunction(const std::string& func, const octave_value_list& args, int nargout = 1, int flags = DEFAULT_CALL_FLAGS);
 	inline octave_value_list EvalFunctionDerivative(const std::string& func, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	inline octave_value_list EvalFunctionDerivative(const std::string& func, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
 	inline octave_value_list EvalFunction(const std::string& func, doublereal dVar, int nargout = 1, int flags = DEFAULT_CALL_FLAGS);
 	inline doublereal EvalScalarFunction(const std::string& func, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
+	inline doublereal EvalScalarFunction(const std::string& func, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	inline doublereal EvalScalarFunctionDerivative(const std::string& func, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
+	inline doublereal EvalScalarFunctionDerivative(const std::string& func, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	template<typename T>
 	inline void EvalMatrixFunction(const std::string& func, T& res, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
+	template <typename T>
+	inline void EvalMatrixFunction(const std::string& func, T& res, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	template<typename T>
 	inline void EvalMatrixFunctionDerivative(const std::string& func, T& res, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
+	template<typename T>
+	inline void EvalMatrixFunctionDerivative(const std::string& func, T& res, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	static bool HaveADPackage(void) { return bHaveADPackage; };
 	void AddEmbedFileName(const std::string& strFile);
-
+	bool bHaveMethod(const octave_value& octObject, const std::string& strClass, const std::string& strName);
+	inline octave_value_list MakeArgList(doublereal dVar, const octave_value_list& args, int iFlags) const;
 private:
+	template<typename T>
+	inline static bool ConvertOctaveToMBDyn(const ColumnVector& octValue, T& mbValue, int rows);
 	template<typename T>
 	inline static bool ConvertOctaveToMBDyn(const Matrix& octValue, T& mbValue, int rows);
 	template<typename T>
 	inline static bool ConvertOctaveToMBDyn(const Matrix& octValue, T& mbValue, int rows, int cols);
 	bool LoadADPackage(void);
+	template<typename T>
+	inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows);
+	template<typename T>
+	inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows, int cols);
 
 private:
-	typedef std::set<std::string> EmbedFileNameSet_t;
-	typedef EmbedFileNameSet_t::iterator EmbedFileNameIter_t;
-	const DataManager* pDM;
+	typedef std::map<std::string, bool> EmbedFileNameMap_t;
+	typedef EmbedFileNameMap_t::iterator EmbedFileNameIter_t;
 	bool bFirstCall;
-	octave_value pDataManager;
-	EmbedFileNameSet_t strEmbedFileNames;
+	bool bEmbedFileDirty;
+	const octave_value octDM;
+	const octave_value octHP;
+	const DataManager* const pDM;
+	MBDynParser* const pHP;
+	EmbedFileNameMap_t strEmbedFileNames;
 	static OctaveInterface* pOctaveInterface;
 	static int iRefCount;
 	static const std::string strADFunc;
+	static const std::string strIsMethod;
 	static bool bHaveADPackage;
 };
 
@@ -142,7 +181,6 @@ public:
 	explicit MBDynInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
 	virtual ~MBDynInterface(void);
 	virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
-
 protected:
 	BEGIN_METHOD_TABLE_DECLARE()
 		METHOD_DECLARE(GetVersion)
@@ -159,20 +197,163 @@ private:
 	OctaveInterface* const pInterface;
 };
 
-class StructNodeInterface : public MBDynInterface {
+class ConstVectorHandlerInterface : public MBDynInterface {
 public:
-	explicit StructNodeInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const StructNode* pNode = 0);
-	virtual ~StructNodeInterface();
+	explicit ConstVectorHandlerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const VectorHandler* pX=0);
+	virtual ~ConstVectorHandlerInterface();
+	void Set(const VectorHandler* pX){ this->pX = const_cast<VectorHandler*>(pX); }
 	virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
+	virtual octave_value operator()(const octave_value_list& idx) const;
+	virtual dim_vector dims (void) const;
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(dGetCoef)
+		METHOD_DECLARE(GetVec)
+		METHOD_DECLARE(iGetSize)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+protected:
+	VectorHandler* pX;
+};
+
+class VectorHandlerInterface : public ConstVectorHandlerInterface {
+public:
+	explicit VectorHandlerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), VectorHandler* X=0);
+	virtual ~VectorHandlerInterface();
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(PutCoef)
+		METHOD_DECLARE(PutVec)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+};
+
+class OStreamInterface : public MBDynInterface {
+public:
+	explicit OStreamInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), std::ostream* pOS = 0);
+	virtual ~OStreamInterface();
+	void Set(std::ostream* pOS){ this->pOS = pOS; }
+	std::ostream* Get()const{ return pOS; }
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(printf)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+private:
+	std::ostream* pOS;
+	static const std::string strsprintf;
+};
+
+class SimulationEntityInterface: public MBDynInterface {
+public:
+	explicit SimulationEntityInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
+	virtual ~SimulationEntityInterface();
+	virtual const SimulationEntity* Get()const=0;
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(iGetNumPrivData)
+		METHOD_DECLARE(iGetPrivDataIdx)
+		METHOD_DECLARE(dGetPrivData)
+	END_METHOD_TABLE_DECLARE()
+};
+
+class NodeInterface: public SimulationEntityInterface {
+public:
+	explicit NodeInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
+	virtual ~NodeInterface();
+	virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
+	virtual const Node* Get()const=0;
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(GetLabel)
+		METHOD_DECLARE(GetName)
+		METHOD_DECLARE(iGetFirstIndex)
+		METHOD_DECLARE(iGetFirstRowIndex)
+		METHOD_DECLARE(iGetFirstColIndex)
+		METHOD_DECLARE(dGetDofValue)
+		METHOD_DECLARE(dGetDofValuePrev)
+	END_METHOD_TABLE_DECLARE()
+};
+
+class ScalarNodeInterface: public NodeInterface {
+public:
+	explicit ScalarNodeInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), ScalarNode* pNode = 0);
+	virtual ~ScalarNodeInterface();
+	virtual const ScalarNode* Get()const;
 
 protected:
 	BEGIN_METHOD_TABLE_DECLARE()
-		METHOD_DECLARE(iGetFirstIndex)
+		METHOD_DECLARE(SetX)
+		METHOD_DECLARE(dGetX)
+		METHOD_DECLARE(SetXPrime)
+		METHOD_DECLARE(dGetXPrime)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+private:
+	ScalarNode* const pNode;
+};
+
+class StructDispNodeBaseInterface : public NodeInterface {
+public:
+	explicit StructDispNodeBaseInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
+	virtual ~StructDispNodeBaseInterface();
+	virtual const StructDispNode* Get()const=0;
+
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
 		METHOD_DECLARE(iGetFirstPositionIndex)
 		METHOD_DECLARE(iGetFirstMomentumIndex)
 		METHOD_DECLARE(GetLabel)
 		METHOD_DECLARE(GetXCurr)
 		METHOD_DECLARE(GetXPrev)
+		METHOD_DECLARE(GetVCurr)
+		METHOD_DECLARE(GetVPrev)
+		METHOD_DECLARE(GetXPPCurr)
+		METHOD_DECLARE(GetXPPPrev)
+	END_METHOD_TABLE_DECLARE()
+
+protected:
+	octave_value GetVec3(const Vec3& v, const octave_value_list& args) const;
+	octave_value GetMat3x3(const Mat3x3& m, const octave_value_list& args) const;
+};
+
+class StructDispNodeInterface: public StructDispNodeBaseInterface {
+public:
+	explicit StructDispNodeInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const StructDispNode* pNode = 0);
+	virtual ~StructDispNodeInterface();
+	virtual const StructDispNode* Get()const;
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+private:
+	const StructDispNode* const pNode;
+};
+
+class StructNodeInterface : public StructDispNodeBaseInterface {
+public:
+	explicit StructNodeInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const StructNode* pNode = 0);
+	virtual ~StructNodeInterface();
+	virtual const StructNode* Get()const;
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
 		METHOD_DECLARE(GetgCurr)
 		METHOD_DECLARE(GetgRef)
 		METHOD_DECLARE(GetgPCurr)
@@ -180,12 +361,9 @@ protected:
 		METHOD_DECLARE(GetRCurr)
 		METHOD_DECLARE(GetRPrev)
 		METHOD_DECLARE(GetRRef)
-		METHOD_DECLARE(GetVCurr)
-		METHOD_DECLARE(GetVPrev)
 		METHOD_DECLARE(GetWCurr)
 		METHOD_DECLARE(GetWPrev)
-		METHOD_DECLARE(GetXPPCurr)
-		METHOD_DECLARE(GetXPPPrev)
+		METHOD_DECLARE(GetWRef)
 		METHOD_DECLARE(GetWPCurr)
 		METHOD_DECLARE(GetWPPrev)
 	END_METHOD_TABLE_DECLARE()
@@ -195,26 +373,27 @@ private:
 	DECLARE_OCTAVE_ALLOCATOR
 
 private:
-	octave_value GetVec3(const Vec3& v, const octave_value_list& args) const;
-	octave_value GetMat3x3(const Mat3x3& m, const octave_value_list& args) const;
-
-private:
-	const StructNode *const pNode;
+	const StructNode* const pNode;
 };
 
 class DataManagerInterface : public MBDynInterface {
 public:
 	// An instance of this class might be created directly from within octave
 	// In this case pInterface must be defined
-	explicit DataManagerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface());
+	explicit DataManagerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const DataManager* pDM = 0);
 	virtual ~DataManagerInterface();
 	virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
+	inline const DataManager* GetDataManager(void)const;
+	inline const Table& GetSymbolTable(void)const;
 
 protected:
 	BEGIN_METHOD_TABLE_DECLARE()
 		METHOD_DECLARE(GetVariable)
 		METHOD_DECLARE(GetStructNodePos)
 		METHOD_DECLARE(GetStructNode)
+		METHOD_DECLARE(pFindNode)
+		METHOD_DECLARE(ReadNode)
+		METHOD_DECLARE(dGetTime)
 	END_METHOD_TABLE_DECLARE()
 
 private:
@@ -222,13 +401,61 @@ private:
 	DECLARE_OCTAVE_ALLOCATOR
 
 private:
-	const DataManager* GetDataManager(void);
-	const Table& GetSymbolTable(void);
+	Node* pFindNode_(const octave_value_list& args, Node::Type& Type) const;
+	Node::Type GetNodeType(const std::string& strType) const;
+	NodeInterface* CreateNodeInterface(Node* pNode, Node::Type Type) const;
+
+private:
+	const DataManager* const pDM;
+};
+
+class MBDynParserInterface : public MBDynInterface {
+public:
+	// An instance of this class might be created directly from within octave
+	// In this case pInterface must be defined
+	explicit MBDynParserInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), MBDynParser* pHP=0);
+	virtual ~MBDynParserInterface();
+	virtual void print(std::ostream& os, bool pr_as_read_syntax = false) const;
+	MBDynParser* Get()const{ return pHP; }
+
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(IsKeyWord)
+		METHOD_DECLARE(IsArg)
+		METHOD_DECLARE(IsStringWithDelims)
+		METHOD_DECLARE(GetReal)
+		METHOD_DECLARE(GetInt)
+		METHOD_DECLARE(GetBool)
+		METHOD_DECLARE(GetString)
+		METHOD_DECLARE(GetStringWithDelims)
+		METHOD_DECLARE(GetValue)
+		METHOD_DECLARE(GetPosRel)
+		METHOD_DECLARE(GetRotRel)
+		METHOD_DECLARE(GetLineData)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+private:
+	const StructDispNode* GetStructNode(const octave_value& arg)const;
+	static bool GetDelimsFromString(const std::string& strDelims, HighParser::Delims& delims);
+private:
+	MBDynParser* pHP;
+	static const struct MBDynStringDelims {
+		HighParser::Delims value;
+		char name[15];
+	} mbStringDelims[6];
 };
 
 class OctaveDriveCaller : public DriveCaller {
 public:
-	explicit OctaveDriveCaller(const std::string& strFunc, OctaveInterface* pInterface, int iFlags);
+	explicit
+	OctaveDriveCaller(const std::string& strFunc,
+			OctaveInterface* pInterface,
+			int iFlags,
+			const octave_value_list& args);
 	virtual ~OctaveDriveCaller(void);
  
 	/* Copia */
@@ -244,16 +471,21 @@ public:
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
 	virtual inline doublereal dGetP(void) const;
+
 private:
-	int iFlags;
+	inline octave_value_list MakeArgList(doublereal dVar) const;
+
+private:
+	const int iFlags;
 	const std::string strFunc;
-	OctaveInterface* pInterface;
+	OctaveInterface* const pInterface;
+	const octave_value_list args;
 };
 
 template <class T>
 class OctaveTplDriveCaller : public TplDriveCaller<T> {
 public:
-	OctaveTplDriveCaller(const std::string& strFunction, OctaveInterface* pInterface, int iFlags);
+	OctaveTplDriveCaller(const std::string& strFunction, OctaveInterface* pInterface, int iFlags, const octave_value_list& args);
 	~OctaveTplDriveCaller(void);
 	virtual TplDriveCaller<T>* pCopy(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -265,9 +497,13 @@ public:
 	virtual inline int getNDrives(void) const;
 
 private:
+	inline octave_value_list MakeArgList(doublereal dVar) const;
+
+private:
 	const std::string strFunction;
 	OctaveInterface* const pInterface;
 	const int iFlags;
+	const octave_value_list args;
 };
 
 class DerivativeDriveCaller : public DriveCaller {
@@ -295,22 +531,62 @@ private:
 
 class OctaveScalarFunction : public DifferentiableScalarFunction {
 public:
-	OctaveScalarFunction(const std::string& strFunc, OctaveInterface* pInterface, int iFlags);
+	OctaveScalarFunction(const std::string& strFunc, OctaveInterface* pInterface, int iFlags, const octave_value_list& args);
 	virtual ~OctaveScalarFunction(void);
 	virtual doublereal operator()(const doublereal x) const;
 	virtual doublereal ComputeDiff(const doublereal t, const integer order = 1) const;
 
 private:
+	inline octave_value_list MakeArgList(doublereal dVar) const;
+
+private:
 	const std::string strFunc;
 	OctaveInterface* const pInterface;
 	const int iFlags;
+	const octave_value_list args;
+};
+
+class OctaveConstitutiveLawBase
+{
+public:
+	explicit inline OctaveConstitutiveLawBase(const std::string& strClass, OctaveInterface* pInterface, int iFlags);
+	inline bool bHaveMethod(const std::string& strName) const;
+	OctaveInterface* GetInterface()const{ return pInterface; }
+	const std::string& GetClass()const{ return strClass; }
+	int GetFlags()const{ return iFlags; }
+
+protected:
+	octave_value octObject;
+
+private:
+	const std::string strClass;
+	OctaveInterface* const pInterface;
+	const int iFlags;
+	static const std::string strGetConstLawType;
+	static const std::string strUpdate;
+};
+
+template <class T, class Tder>
+class OctaveConstitutiveLaw
+: public ConstitutiveLaw<T, Tder>, private OctaveConstitutiveLawBase {
+	typedef ConstitutiveLaw<T, Tder> Base_t;
+public:
+	OctaveConstitutiveLaw(const std::string& strClass, OctaveInterface* pInterface, int iFlags);
+	virtual ~OctaveConstitutiveLaw(void);
+	ConstLawType::Type GetConstLawType(void) const;
+	virtual ConstitutiveLaw<T, Tder>* pCopy(void) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
+	virtual void Update(const T& mbEps, const T& mbEpsPrime);
+
+private:
+	mutable ConstLawType::Type clType;
 };
 
 class OctaveBaseDCR {
 public:
 	OctaveBaseDCR(void);
 	virtual ~OctaveBaseDCR(void);
-	void Read(const DataManager* pDM, MBDynParser& HP, bool bDefered = false) const;
+	void Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred = false) const;
 	OctaveInterface* GetInterface(void) const { return pInterface; };
 	const std::string& GetFunction(void) const { return strFunction; };
 	int GetFlags(void) const { return iFlags; };
@@ -322,14 +598,23 @@ private:
 	mutable int iFlags;
 };
 
-class OctaveDCR : public DriveCallerRead, public OctaveBaseDCR {
+class OctaveFunctionDCR: public OctaveBaseDCR {
+public:
+	void Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred = false) const;
+	const octave_value_list& GetArgs()const{ return args; }
+
+private:
+	mutable octave_value_list args;
+};
+
+class OctaveDCR : public DriveCallerRead, public OctaveFunctionDCR {
 public:
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 };
 
 template <class T>
-class OctaveTDCR : public TplDriveCallerRead<T>, public OctaveBaseDCR {
+class OctaveTDCR : public TplDriveCallerRead<T>, public OctaveFunctionDCR {
 public:
 	virtual TplDriveCaller<T> *
 	Read(const DataManager* pDM, MBDynParser& HP);
@@ -341,10 +626,27 @@ public:
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 };
 
-class OctaveSFR : public ScalarFunctionRead, public OctaveBaseDCR {
+class OctaveSFR : public ScalarFunctionRead, public OctaveFunctionDCR {
 public:
 	const BasicScalarFunction *
 	Read(DataManager* pDM, MBDynParser& HP) const;
+};
+
+template <class T, class Tder>
+struct OctaveCLR : public ConstitutiveLawRead<T, Tder>, public OctaveBaseDCR {
+	virtual ConstitutiveLaw<T, Tder> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<T, Tder>* pCL = 0;
+
+		OctaveBaseDCR::Read(pDM, HP);
+
+		typedef OctaveConstitutiveLaw<T, Tder> L;
+		SAFENEWWITHCONSTRUCTOR(pCL, L, L(GetFunction(), GetInterface(), GetFlags()));
+
+		CLType = pCL->GetConstLawType();
+
+		return pCL;
+	};
 };
 
 class OctaveElement: virtual public Elem, public UserDefinedElem {
@@ -366,10 +668,20 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 	unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 	int iGetNumConnectedNodes(void) const;
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph);
+	virtual unsigned int iGetNumDof(void) const;
+	virtual DofOrder::Order GetDofType(unsigned int i) const;
+	virtual DofOrder::Order GetEqType(unsigned int i) const;
+	virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
+	virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
+	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP);
 	std::ostream& Restart(std::ostream& out) const;
 	virtual unsigned int iGetInitialNumDof(void) const;
 	virtual void
@@ -379,24 +691,62 @@ public:
 		      const VectorHandler& XCurr);
    	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+   	virtual void SetInitialValue(VectorHandler& X);
    	OctaveInterface* GetInterface(void) const { return dcr.GetInterface(); };
    	int GetFlags(void) const { return dcr.GetFlags(); };
    	const std::string& GetClass(void) const { return dcr.GetFunction(); };
 
 private:
+   	inline VariableSubMatrixHandler&
+   	AssMatrix(VariableSubMatrixHandler& WorkMatVar, const octave_value_list& ans, bool bInitial);
+   	inline VariableSubMatrixHandler&
+   	AssMatrix(VariableSubMatrixHandler& WorkMatVar, const Matrix& Jac, const int32NDArray& ridx, const int32NDArray& cidx, bool bSparse, bool bInitial);
+   	bool bHaveMethod(const std::string& strName)const;
+private:
    	octave_value octObject;
    	octave_value mbdObject;
    	OctaveBaseDCR dcr;
-   	enum {
-   		JACOBIAN_NO = 0,
-   		JACOBIAN_FULL = 1,
-   		JACOBIAN_SPARSE = 2
-   	} haveJacobian;
+   	enum OctaveMethods_t {
+   		HAVE_DEFAULT		   = 0x000,
+   		HAVE_JACOBIAN		   = 0x001,
+   		HAVE_UPDATE			   = 0x002,
+   		HAVE_SET_VALUE		   = 0x004,
+   		HAVE_PRIVATE_DOF 	   = 0x008,
+   		HAVE_INITIAL_ASSEMBLY  = 0x010,
+   		HAVE_SET_INITIAL_VALUE = 0x020,
+   		HAVE_AFTER_CONVERGENCE = 0x040,
+   		HAVE_PRIVATE_DATA	   = 0x080,
+   		HAVE_CONNECTED_NODES   = 0x100,
+   		HAVE_OUTPUT			   = 0x200,
+   		HAVE_DESCRIBE_DOF	   = 0x400,
+   		HAVE_DESCRIBE_EQ	   = 0x800
+   	};
+   	int haveMethod;
+   	octave_object_ptr<ConstVectorHandlerInterface> X;
+   	octave_object_ptr<ConstVectorHandlerInterface> XP;
+   	octave_object_ptr<OStreamInterface> OS;
    	static const std::string strWorkSpaceDim;
    	static const std::string striGetNumDof;
    	static const std::string strAssRes;
    	static const std::string strAssJac;
-   	static const std::string strIsMethod;
+   	static const std::string strUpdate;
+   	static const std::string strSetValue;
+   	static const std::string striGetInitialNumDof;
+   	static const std::string strSetInitialValue;
+   	static const std::string strInitialAssRes;
+   	static const std::string strInitialAssJac;
+   	static const std::string strInitialWorkSpaceDim;
+   	static const std::string strGetDofType;
+   	static const std::string strGetEqType;
+   	static const std::string strAfterConvergence;
+   	static const std::string striGetNumPrivData;
+   	static const std::string striGetPrivDataIdx;
+   	static const std::string strdGetPrivData;
+   	static const std::string striGetNumConnectedNodes;
+   	static const std::string strGetConnectedNodes;
+   	static const std::string strOutput;
+   	static const std::string strDescribeDof;
+   	static const std::string strDescribeEq;
 };
 
 class OctaveElementInterface: public MBDynInterface {
@@ -407,6 +757,7 @@ public:
 
 protected:
 	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(GetLabel)
 		METHOD_DECLARE(iGetFirstIndex)
 	END_METHOD_TABLE_DECLARE()
 
@@ -421,15 +772,21 @@ private:
 OctaveInterface* OctaveInterface::pOctaveInterface = 0;
 int OctaveInterface::iRefCount = 0;
 const std::string OctaveInterface::strADFunc("mbdyn_derivative");
+const std::string OctaveInterface::strIsMethod("ismethod");
 bool OctaveInterface::bHaveADPackage = false;
 
-OctaveInterface::OctaveInterface(const DataManager* pDM)
-: pDM(pDM),
-bFirstCall(true),
-pDataManager(new DataManagerInterface(this))
+OctaveInterface::OctaveInterface(const DataManager* pDM, MBDynParser* pHP)
+: bFirstCall(true),
+bEmbedFileDirty(false),
+octDM(new DataManagerInterface(this, pDM)),
+octHP(new MBDynParserInterface(this, pHP)),
+pDM(pDM),
+pHP(pHP)
 {
 	TRACE("constructor");
 
+	ASSERT(pDM != 0);
+	ASSERT(pHP != 0);
 	ASSERT(pOctaveInterface == 0);
 
 	pOctaveInterface = this;
@@ -487,7 +844,7 @@ OctaveInterface::LoadADPackage(void)
 }
 
 OctaveInterface *
-OctaveInterface::CreateInterface(const DataManager* pDM)
+OctaveInterface::CreateInterface(const DataManager* pDM, MBDynParser* pHP)
 {
 	++iRefCount;
 
@@ -495,7 +852,7 @@ OctaveInterface::CreateInterface(const DataManager* pDM)
 		return pOctaveInterface;
 	}
 
-	return new OctaveInterface(pDM);
+	return new OctaveInterface(pDM, pHP);
 }
 
 void
@@ -509,11 +866,11 @@ OctaveInterface::Destroy(void)
 }
 
 void
-OctaveInterface::UpdateVariables(void)
+OctaveInterface::UpdateOctaveVariables(void)
 {
 	typedef Table::VM::const_iterator iterator;
 
-	const Table& symbolTable = pDM->GetMathParser().GetSymbolTable();
+	const Table& symbolTable = GetDataManager()->GetMathParser().GetSymbolTable();
 
 	for (iterator it = symbolTable.begin(); it != symbolTable.end(); ++it)
 	{
@@ -523,12 +880,48 @@ OctaveInterface::UpdateVariables(void)
 		octave_value octValue;
 
 		if (!ConvertMBDynToOctave(mbValue, octValue)) {
-			silent_cerr("octave error: data type \"" << mbValue.GetType() << "\" of variable \"" << mbName << "\": not handled in switch statement " << std::endl);
+			silent_cerr("octave error: data type \"" << mbValue.GetTypeName() << "\" of variable \"" << mbName << "\": not handled in switch statement " << std::endl);
 			ASSERT(0);
-    			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+    		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		set_global_value(mbName, octValue);
+	}
+}
+
+void
+OctaveInterface::UpdateMBDynVariables(void)
+{
+	typedef Table::VM::const_iterator iterator;
+
+	Table& symbolTable = GetDataManager()->GetMathParser().GetSymbolTable();
+
+	for (iterator it = symbolTable.begin(); it != symbolTable.end(); ++it)
+	{
+		Var* const varValue = dynamic_cast<Var*>(it->second);
+
+		if (!varValue || varValue->Const()) {
+			continue;
+		}
+
+		const std::string& mbName(it->first);
+		static const std::string type("any");
+
+		const octave_value octValue(get_global_value(mbName));
+
+		if (!octValue.is_defined()) {
+			pedantic_cerr("octave warning: global variable " << mbName << " is not defined in octave" << std::endl);
+			continue;
+		}
+
+		TypedValue mbValue;
+
+		if (!ConvertOctaveToMBDyn(octValue, mbValue)) {
+			silent_cerr("octave error: data type \"" << octValue.type_name() << "\" of variable \"" << mbName << "\": can not be converted into MBDyn format " << std::endl);
+    		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		varValue->SetVal(mbValue);
 	}
 }
 
@@ -564,31 +957,75 @@ OctaveInterface::ConvertMBDynToOctave(const TypedValue& mbValue, octave_value& o
 }
 
 bool
-OctaveInterface::ConvertMBDynToOctave(const Vec3& mbValue, octave_value& octValue)
+OctaveInterface::ConvertMBDynToOctave(doublereal mbValue, octave_value& octValue)
 {
-	ColumnVector V(3);
-
-	for (int i = 0; i < 3; ++i) {
-		V(i) = mbValue(i + 1);
-	}
-
-	octValue = V;
+	// This function is especially useful for template based constitutive laws
+	octValue = mbValue;
 
 	return true;
 }
 
 bool
+OctaveInterface::ConvertMBDynToOctave(const Vec3& mbValue, octave_value& octValue)
+{
+	return ConvertMBDynToOctave(mbValue, octValue, 3);
+}
+
+bool
+OctaveInterface::ConvertMBDynToOctave(const Vec6& mbValue, octave_value& octValue)
+{
+	return ConvertMBDynToOctave(mbValue, octValue, 6);
+}
+
+bool
 OctaveInterface::ConvertMBDynToOctave(const Mat3x3& mbValue, octave_value& octValue)
 {
-	Matrix M(3, 3);
+	return ConvertMBDynToOctave(mbValue, octValue, 3, 3);
+}
 
-	for (int i = 0; i < 3; ++i) {
-		for (int j = 0; j < 3; ++j) {
-			M(i, j) = mbValue(i + 1, j + 1);
-		}
+bool
+OctaveInterface::ConvertMBDynToOctave(const Mat6x6& mbValue, octave_value& octValue)
+{
+	return ConvertMBDynToOctave(mbValue, octValue, 6, 6);
+}
+
+bool
+OctaveInterface::ConvertOctaveToMBDyn(const ColumnVector& octValue, doublereal& mbValue)
+{
+	if (octValue.length() != 1) {
+		silent_cerr("octave error: invalid vector size " << octValue.length() << " expected 1" << std::endl);
+		return false;
 	}
 
-	octValue = M;
+	mbValue = octValue(0);
+
+	return true;
+}
+
+bool
+OctaveInterface::ConvertOctaveToMBDyn(const ColumnVector& octValue, Vec3& mbValue)
+{
+	return ConvertOctaveToMBDyn(octValue, mbValue, 3);
+}
+
+bool
+OctaveInterface::ConvertOctaveToMBDyn(const ColumnVector& octValue, Vec6& mbValue)
+{
+	return ConvertOctaveToMBDyn(octValue, mbValue, 6);
+}
+
+template<typename T>
+bool
+OctaveInterface::ConvertOctaveToMBDyn(const ColumnVector& octValue, T& mbValue, int rows)
+{
+	if (octValue.length() != rows) {
+		silent_cerr("octave error: invalid vector size " << octValue.length() << " expected " << rows << std::endl);
+		return false;
+	}
+
+	for (int i = 0; i < rows; ++i) {
+		mbValue(i + 1) = octValue(i);
+	}
 
 	return true;
 }
@@ -623,6 +1060,38 @@ OctaveInterface::ConvertOctaveToMBDyn(const Matrix& octValue, T& mbValue, int ro
 			mbValue(i + 1, j + 1) = octValue(i, j);
 		}
 	}
+
+	return true;
+}
+
+template<typename T>
+bool
+OctaveInterface::ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows)
+{
+	ColumnVector V(rows);
+
+	for (int i = 0; i < rows; ++i) {
+		V(i) = mbValue(i + 1);
+	}
+
+	octValue = V;
+
+	return true;
+}
+
+template<typename T>
+bool
+OctaveInterface::ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows, int cols)
+{
+	Matrix M(rows, cols);
+
+	for (int i = 0; i < rows; ++i) {
+		for (int j = 0; j < cols; ++j) {
+			M(i, j) = mbValue(i + 1, j + 1);
+		}
+	}
+
+	octValue = M;
 
 	return true;
 }
@@ -664,15 +1133,35 @@ OctaveInterface::ConvertOctaveToMBDyn(const Matrix& octValue, Mat6x6& mbValue)
 	return ConvertOctaveToMBDyn(octValue, mbValue, 6, 6);
 }
 
+bool
+OctaveInterface::ConvertOctaveToMBDyn(const octave_value& octValue, TypedValue& mbValue)
+{
+	if (!octValue.is_scalar_type()) {
+		return false;
+	}
+
+	if (octValue.is_bool_scalar()) {
+		mbValue = TypedValue(octValue.bool_value());
+	} else if (octValue.is_int32_type()) {
+		mbValue = TypedValue(static_cast<int32_t>(octValue.int32_scalar_value()));
+	} else if (octValue.is_real_scalar()) {
+		mbValue = TypedValue(octValue.scalar_value());
+	} else if (octValue.is_string()) {
+		mbValue = TypedValue(octValue.string_value());
+	} else {
+		return false;
+	}
+
+	return true;
+}
+
 octave_value_list
 OctaveInterface::EvalFunction(const std::string& func, doublereal dVar, int nargout, int flags)
 {
-	octave_value_list args;
-
-	args.append(octave_value(dVar));
+	octave_value_list args = octave_value(dVar);
 
 	if (flags & PASS_DATA_MANAGER) {
-		args.append(pDataManager);
+		args.append(octDM);
 	}
 
 	return EvalFunction(func, args, nargout, flags);
@@ -681,8 +1170,8 @@ OctaveInterface::EvalFunction(const std::string& func, doublereal dVar, int narg
 octave_value_list
 OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& args, int nargout, int flags)
 {
-	if ((flags & UPDATE_GLOBAL_VARIABLES) || bFirstCall) {
-		UpdateVariables();
+	if ((flags & UPDATE_OCTAVE_VARIABLES) || bFirstCall) {
+		UpdateOctaveVariables();
 	}
 
 	if (bFirstCall) {
@@ -691,36 +1180,57 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 			silent_cerr("OctaveInterface error: addpath(\"" << BINPATH << "\") failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
-		for (EmbedFileNameIter_t pFile = strEmbedFileNames.begin();
-			pFile != strEmbedFileNames.end(); ++pFile )
-		{
-			feval("source", octave_value(*pFile));
-
-			if (error_state) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
 	}
 
 	bFirstCall = false;
 
+	if ( bEmbedFileDirty ) {
+		for (EmbedFileNameIter_t pFile = strEmbedFileNames.begin();
+			pFile != strEmbedFileNames.end(); ++pFile )
+		{
+			if (!pFile->second) {
+				feval("source", octave_value(pFile->first));
+
+				if (error_state) {
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				pFile->second = true;
+			}
+		}
+		bEmbedFileDirty = false;
+	}
+
 	octave_value_list ans = feval(func, args, nargout);
 
 	if (error_state) {
+		// An error message has been displayed by octave
+		// There is no need to output further error information
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (ans.length() < nargout) {
-		silent_cerr("octave error: function \"" << func << "\" returned less than " << nargout << " values" << std::endl);
+	if (flags & OPTIONAL_OUTPUT_ARGS) {
+		if (ans.length() > nargout) {
+				silent_cerr("octave error: function \"" << func << "\" returned " << ans.length() << " output parameters\n"
+						"expected maximum " << nargout  << " output parameters" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+	else if (ans.length() != nargout) {
+		silent_cerr("octave error: function \"" << func << "\" returned " << ans.length() << " output parameters\n"
+				"expected " << nargout  << " output parameters" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (int i = 0; i < nargout; ++i) {
+	for (int i = 0; i < ans.length(); ++i) {
 		if (!ans(i).is_defined()) {
-			silent_cerr("octave error: result " << i + 1 << "of function \"" << func << "\" is undefined" << std::endl);
+			silent_cerr("octave error: result " << i + 1 << " of function \"" << func << "\" is undefined" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+	}
+
+	if (flags & UPDATE_MBDYN_VARIABLES) {
+		UpdateMBDynVariables();
 	}
 
 	return ans;
@@ -732,8 +1242,7 @@ OctaveInterface::EvalFunctionDerivative(const std::string& func, const octave_va
 	TRACE("func=" << func);
 	TRACE("flags=" << flags);
 
-	octave_value_list derivArgs;
-	derivArgs.append(func);
+	octave_value_list derivArgs = octave_value(func);
 	derivArgs.append(args);
 
 	return EvalFunction(strADFunc, derivArgs, 2, flags);
@@ -748,7 +1257,7 @@ OctaveInterface::EvalFunctionDerivative(const std::string& func, doublereal dVar
 	octave_value_list args = octave_value(dVar);
 
 	if (flags & PASS_DATA_MANAGER) {
-		args.append(pDataManager);
+		args.append(octDM);
 	}
 
 	return EvalFunctionDerivative(func, args, flags);
@@ -757,7 +1266,13 @@ OctaveInterface::EvalFunctionDerivative(const std::string& func, doublereal dVar
 inline doublereal
 OctaveInterface::EvalScalarFunction(const std::string& func, doublereal dVar, int flags)
 {
-	octave_value_list ans = EvalFunction(func, dVar, 1, flags);
+	return EvalScalarFunction(func, octave_value(dVar), flags);
+}
+
+inline doublereal
+OctaveInterface::EvalScalarFunction(const std::string& func, const octave_value_list& args, int flags)
+{
+	const octave_value_list ans = EvalFunction(func, args, 1, flags);
 
 	if (!ans(0).is_real_scalar()) {
 		silent_cerr("octave error: result of function \"" << func << "\" is not a scalar value" << std::endl);
@@ -767,13 +1282,19 @@ OctaveInterface::EvalScalarFunction(const std::string& func, doublereal dVar, in
 	return ans(0).scalar_value();
 }
 
-doublereal
+inline doublereal
 OctaveInterface::EvalScalarFunctionDerivative(const std::string& func, doublereal dVar, int flags)
+{
+	return EvalScalarFunctionDerivative(func, octave_value(dVar), flags);
+}
+
+inline doublereal
+OctaveInterface::EvalScalarFunctionDerivative(const std::string& func, const octave_value_list& args, int flags)
 {
 	TRACE("func=" << func);
 	TRACE("flags=" << flags);
 
-	octave_value_list ans = EvalFunctionDerivative(func, dVar, flags);
+	octave_value_list ans = EvalFunctionDerivative(func, args, flags);
 
 	ASSERT(ans.length() == 2);
 
@@ -789,14 +1310,23 @@ template <typename T>
 inline void
 OctaveInterface::EvalMatrixFunction(const std::string& func, T& res, doublereal dVar, int flags)
 {
-	octave_value_list ans = EvalFunction(func, dVar, 1, flags);
+	EvalMatrixFunction(func, res, octave_value(dVar), flags);
+}
 
-	if (!ans(0).is_real_matrix()) {
+template <typename T>
+inline void
+OctaveInterface::EvalMatrixFunction(const std::string& func, T& res, const octave_value_list& args, int flags)
+{
+	const octave_value_list ans = EvalFunction(func, args, 1, flags);
+
+	ASSERT(ans.length() == 1);
+	// accept also scalar values for scalar template drive caller
+	if (!(ans(0).is_real_matrix() || ans(0).is_real_scalar())) {
 		silent_cerr("octave error: result of function \"" << func << "\" is not a matrix value" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Matrix A(ans(0).matrix_value());
+	const Matrix A(ans(0).matrix_value());
 
 	if (!ConvertOctaveToMBDyn(A, res)) {
 		silent_cerr("octave error: conversion of octave matrix failed!" << std::endl);
@@ -808,21 +1338,28 @@ template <typename T>
 inline void
 OctaveInterface::EvalMatrixFunctionDerivative(const std::string& func, T& res, doublereal dVar, int flags)
 {
-	octave_value_list ans = EvalFunctionDerivative(func, dVar, flags);
+	EvalMatrixFunctionDerivative(func, res, octave_value(dVar), flags);
+}
+
+template<typename T>
+inline void
+OctaveInterface::EvalMatrixFunctionDerivative(const std::string& func, T& res, const octave_value_list& args, int flags)
+{
+	const octave_value_list ans = EvalFunctionDerivative(func, args, flags);
 
 	ASSERT(ans.length() == 2);
 
-	if (!ans(0).is_real_matrix()) {
+	if (!(ans(0).is_real_matrix() || ans(0).is_real_scalar())) {
 		silent_cerr("octave error: result of function \"" << func << "\" is not a matrix value" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (!ans(1).is_real_matrix()) {
+	if (!(ans(1).is_real_matrix() || ans(1).is_real_scalar())) {
 		silent_cerr("octave error: result of derivative of function \"" << func << "\" is not a matrix value" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Matrix A(ans(1).matrix_value());
+	const Matrix A(ans(1).matrix_value());
 
 	if (!ConvertOctaveToMBDyn(A, res)) {
 		silent_cerr("octave error: conversion of octave matrix failed!" << std::endl);
@@ -833,13 +1370,44 @@ OctaveInterface::EvalMatrixFunctionDerivative(const std::string& func, T& res, d
 void
 OctaveInterface::AddEmbedFileName(const std::string& strFile)
 {
-	strEmbedFileNames.insert(strFile);
+	strEmbedFileNames.insert(std::pair<std::string, bool>(strFile,false));
+	bEmbedFileDirty = true;
+}
+
+bool OctaveInterface::bHaveMethod(const octave_value& octObject, const std::string& strClass, const std::string& strName)
+{
+	octave_value_list args(octObject);
+	args.append(octave_value(strName));
+
+	octave_value_list ans = EvalFunction(strIsMethod, args, 1);
+
+	ASSERT(ans.length() == 1);
+
+	if (!ans(0).is_bool_scalar()) {
+		silent_cerr("octave error: unexpected error in function " << strIsMethod << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return ans(0).bool_value(true);
+}
+
+octave_value_list OctaveInterface::MakeArgList(doublereal dVar, const octave_value_list& args, int iFlags) const
+{
+	octave_value_list fargs = octave_value(dVar);
+	fargs.append(args);
+
+	if (iFlags & PASS_DATA_MANAGER) {
+		fargs.append(GetDataManagerInterface());
+	}
+
+	return fargs;
 }
 
 MBDynInterface::MBDynInterface(OctaveInterface* pInterface)
 : pInterface(pInterface)
 {
 	TRACE("constructor");
+	ASSERT(pInterface != 0);
 }
 
 MBDynInterface::~MBDynInterface(void)
@@ -850,7 +1418,7 @@ MBDynInterface::~MBDynInterface(void)
 void
 MBDynInterface::print(std::ostream& os, bool pr_as_read_syntax) const
 {
-	os << "MBDyn " << VERSION << " interface" << std::endl;
+	os << type_name() << ": MBDyn version" << VERSION << std::endl;
 }
 
 METHOD_DEFINE(MBDynInterface, GetVersion, args, nargout)
@@ -858,7 +1426,9 @@ METHOD_DEFINE(MBDynInterface, GetVersion, args, nargout)
 	octave_value octValue;
 
 	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
+		error("%s: invalid number of arguments: %ld",
+				type_name().c_str(),
+				long(args.length()));
 		return octValue;
 	}
 
@@ -874,8 +1444,1057 @@ END_METHOD_TABLE()
 DEFINE_OCTAVE_ALLOCATOR(MBDynInterface);
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(MBDynInterface, "MBDyn", "MBDyn");
 
+ConstVectorHandlerInterface::ConstVectorHandlerInterface(OctaveInterface* pInterface, const VectorHandler* X)
+	:MBDynInterface(pInterface),
+	 pX(const_cast<VectorHandler*>(X))
+{
+	TRACE("constructor");
+}
+
+ConstVectorHandlerInterface::~ConstVectorHandlerInterface()
+{
+	TRACE("destructor");
+}
+
+void
+ConstVectorHandlerInterface::print(std::ostream& os, bool pr_as_read_syntax) const
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return;
+	}
+
+	for ( int i = 1; i <= pX->iGetSize(); ++i ) {
+		os << '\t' << pX->dGetCoef(i) << std::endl;
+	}
+}
+
+octave_value ConstVectorHandlerInterface::operator()(const octave_value_list& idx) const
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (idx.length() != 1) {
+		error("%s: invalid number of indices %ld", type_name().c_str(), long(idx.length()));
+		return octave_value();
+	}
+
+	const integer iSize = pX->iGetSize();
+
+	ColumnVector X;
+
+	if (idx(0).is_magic_colon()) {
+		X.resize(iSize);
+
+		for (int i = 0; i < X.length(); ++i) {
+			X(i) = (*pX)(i + 1);
+		}
+	} else {
+		if (!(idx(0).is_range()
+				|| (idx(0).is_integer_type()
+					&& (idx(0).rows() == 1 || idx(0).columns() == 1)))) {
+			error("%s: invalid index type %dx%d (%s)\n"
+					"expected integer vector",
+					type_name().c_str(),
+					idx(0).rows(),
+					idx(0).columns(),
+					idx(0).type_name().c_str());
+			return octave_value();
+		}
+
+		const int32NDArray iRow(idx(0).int32_array_value());
+
+		if (error_state) {
+			return octave_value();
+		}
+
+		X.resize(iRow.length());
+
+		for (int i = 0; i < iRow.length(); ++i) {
+			if (int32_t(iRow(i)) < 1 || int32_t(iRow(i)) > iSize) {
+				error("%s: index %d out of range [%d-%d]",
+						type_name().c_str(),
+						int32_t(iRow(i)),
+						1,
+						int32_t(iSize));
+
+				return octave_value();
+			}
+
+			X(i) = (*pX)(int32_t(iRow(i)));
+		}
+	}
+
+	return octave_value(X);
+}
+
+dim_vector ConstVectorHandlerInterface::dims() const
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return dim_vector(-1, -1);
+	}
+
+	return dim_vector(pX->iGetSize(), 1);
+}
+
+METHOD_DEFINE(ConstVectorHandlerInterface, dGetCoef, args, nargout)
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if ( args.length() != 1 ) {
+		error("%s: invalid number of arguments %ld\n"
+			  "one argument expected",
+			  type_name().c_str(),
+			  long(args.length()));
+		return octave_value();
+	}
+
+	if ( !(args(0).is_integer_type() && args(0).is_scalar_type()) ) {
+		error("%s: invalid argument type \"%s\"\n"
+			  "iRow must be an integer",
+			  type_name().c_str(),
+			  args(0).type_name().c_str());
+		return octave_value();
+	}
+
+	const integer iRow = args(0).int32_scalar_value();
+
+	if ( iRow < 1 || iRow > pX->iGetSize() ) {
+		error("VectorHandler: index %ld out of range [%ld-%ld]", long(iRow), 1L, long(pX->iGetSize()));
+		return octave_value();
+	}
+
+	return octave_value(pX->dGetCoef(iRow));
+}
+
+METHOD_DEFINE(ConstVectorHandlerInterface, GetVec, args, nargout)
+{
+	if (pX == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments %ld\n"
+			  "one argument expected",
+			  type_name().c_str(),
+			  long(args.length()));
+		return octave_value();
+	}
+
+	if (!(args(0).is_integer_type() && args(0).columns() == 1)) {
+		error("%s: invalid argument type \"%s\"\n"
+			  "iRow must be an integer column vector",
+			  type_name().c_str(),
+			  args(0).type_name().c_str());
+		return octave_value();
+	}
+
+	const int32NDArray iRow(args(0).int32_array_value());
+
+	ColumnVector X(iRow.length());
+
+	const int32_t iSize = pX->iGetSize();
+
+	for (int i = 0; i < iRow.length(); ++i) {
+		if (int32_t(iRow(i)) < 1 || int32_t(iRow(i)) > iSize) {
+			error("%s: index %d out of range [%d-%d]",
+					type_name().c_str(),
+					int32_t(iRow(i)),
+					1,
+					iSize);
+
+			return octave_value();
+		}
+
+		X(i) = pX->dGetCoef(iRow(i));
+	}
+
+	return octave_value(X);
+}
+
+METHOD_DEFINE(ConstVectorHandlerInterface, iGetSize, args, nargout)
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if ( args.length() != 0 ) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pX->iGetSize()));
+}
+
+BEGIN_METHOD_TABLE(ConstVectorHandlerInterface, MBDynInterface)
+	METHOD_DISPATCH(ConstVectorHandlerInterface, dGetCoef)
+	METHOD_DISPATCH(ConstVectorHandlerInterface, GetVec)
+	METHOD_DISPATCH(ConstVectorHandlerInterface, iGetSize)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(ConstVectorHandlerInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(ConstVectorHandlerInterface, "ConstVectorHandler", "ConstVectorHandler");
+
+VectorHandlerInterface::VectorHandlerInterface(OctaveInterface* pInterface, VectorHandler* X)
+	:ConstVectorHandlerInterface(pInterface, X)
+{
+	TRACE("constructor");
+}
+
+VectorHandlerInterface::~VectorHandlerInterface()
+{
+	TRACE("destructor");
+}
+
+METHOD_DEFINE(VectorHandlerInterface, PutCoef, args, nargout)
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if ( args.length() != 2 ) {
+		error("%s: invalid number of arguments %ld\n"
+				"two arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	if (!(args(0).is_scalar_type() && args(0).is_integer_type())) {
+		error("%s: invalid argument type (%s)\n"
+				"iRow must be an integer",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const integer iRow = args(0).int32_scalar_value();
+
+	if ( iRow < 1 || iRow > pX->iGetSize() ) {
+		error("%s: index %ld out of range [%ld-%ld]",
+				type_name().c_str(),
+				long(iRow),
+				1L,
+				long(pX->iGetSize()));
+		return octave_value();
+	}
+
+	if ( !args(1).is_scalar_type() ) {
+		error("%s: invalid argument type \"%s\"\n"
+				"dCoef must be a scalar value",
+				type_name().c_str(),
+				args(1).type_name().c_str());
+		return octave_value();
+	}
+
+	const doublereal dCoef = args(1).scalar_value();
+
+	pX->PutCoef(iRow, dCoef);
+
+	return octave_value();
+}
+
+METHOD_DEFINE(VectorHandlerInterface, PutVec, args, nargout)
+{
+	if ( pX == 0 ) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if ( args.length() != 2 ) {
+		error("%s: invalid number of arguments %ld\n"
+				"two arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	if (!(args(0).is_integer_type() && args(0).columns() == 1)) {
+		error("%s: invalid argument type %ldx%ld (%s)\n"
+				"iRow must be an integer column vector",
+				type_name().c_str(),
+				long(args(0).rows()),
+				long(args(0).columns()),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const int32NDArray iRow(args(0).int32_array_value());
+
+	if (!(args(1).is_real_matrix()
+			&& args(1).columns() == 1
+			&& args(1).rows() == iRow.length())) {
+		error("%s: invalid argument type %ldx%ld (%s)\n"
+				"X must be a real column vector "
+				"with the same number of rows like iRow",
+				type_name().c_str(),
+				long(args(1).rows()),
+				long(args(1).columns()),
+				args(1).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const ColumnVector X(args(1).column_vector_value());
+
+	ASSERT(X.length() == iRow.length());
+
+	const int32_t iSize = pX->iGetSize();
+
+	for (int i = 0; i < iRow.length(); ++i) {
+		if (int32_t(iRow(i)) < 1 || int32_t(iRow(i)) > iSize) {
+			error("%s: index %d out of range [%d-%d]",
+					type_name().c_str(),
+					int32_t(iRow(i)),
+					1,
+					iSize);
+			return octave_value();
+		}
+
+		pX->PutCoef(iRow(i), X(i));
+	}
+
+	return octave_value();
+}
+
+BEGIN_METHOD_TABLE(VectorHandlerInterface, ConstVectorHandlerInterface)
+	METHOD_DISPATCH(VectorHandlerInterface, PutCoef)
+	METHOD_DISPATCH(VectorHandlerInterface, PutVec)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(VectorHandlerInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(VectorHandlerInterface, "VectorHandler", "VectorHandler");
+
+const std::string OStreamInterface::strsprintf("sprintf");
+
+OStreamInterface::OStreamInterface(OctaveInterface* pInterface, std::ostream* pOS)
+: MBDynInterface(pInterface),
+  pOS(pOS)
+{
+
+}
+
+OStreamInterface::~OStreamInterface()
+{
+
+}
+
+METHOD_DEFINE(OStreamInterface, printf, args, nargout)
+{
+	if (!pOS) {
+		error("ostream: not connected");
+		return octave_value();
+	}
+
+	const octave_value_list ans = feval(strsprintf, args, 1);
+
+	if (error_state) {
+		return octave_value();
+	}
+
+	if (!(ans.length() >= 1 && ans(0).is_string())) { // sprintf returns more than one output argument
+		error("ostream: %s failed", strsprintf.c_str());
+		return octave_value();
+	}
+
+	const std::string str(ans(0).string_value());
+
+	*pOS << str;
+
+	return octave_value(octave_int<size_t>(str.length()));
+}
+
+BEGIN_METHOD_TABLE(OStreamInterface, MBDynInterface)
+	METHOD_DISPATCH(OStreamInterface, printf)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(OStreamInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(OStreamInterface, "ostream", "ostream");
+
+
+SimulationEntityInterface::SimulationEntityInterface(OctaveInterface* pInterface)
+: MBDynInterface(pInterface)
+{
+
+}
+
+SimulationEntityInterface::~SimulationEntityInterface()
+{
+
+}
+
+METHOD_DEFINE(SimulationEntityInterface, iGetNumPrivData, args, nargout)
+{
+	const SimulationEntity* const pSimulationEntity = Get();
+
+	if (!pSimulationEntity) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments\n"
+				"expected no arguments", type_name().c_str());
+
+		return octave_value();
+	}
+
+	return octave_value(octave_int<unsigned int>(pSimulationEntity->iGetNumPrivData()));
+}
+
+METHOD_DEFINE(SimulationEntityInterface, iGetPrivDataIdx, args, nargout)
+{
+	const SimulationEntity* pSimulationEntity = Get();
+
+	if (!pSimulationEntity) {
+		error("%s: not connected",
+				type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments\n"
+				"expected one argument",
+				type_name().c_str());
+
+		return octave_value();
+	}
+
+	if ( !args(0).is_string() ) {
+		error("%s: invalid argument type (%s)\n"
+				"expected string",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const std::string name = args(0).string_value();
+
+	return octave_value(octave_int<unsigned int>(pSimulationEntity->iGetPrivDataIdx(name.c_str())));
+}
+
+METHOD_DEFINE(SimulationEntityInterface, dGetPrivData, args, nargout)
+{
+	const SimulationEntity* pSimulationEntity = Get();
+
+	if (!pSimulationEntity) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments\n"
+				"expected one arguments", type_name().c_str());
+
+		return octave_value();
+	}
+
+	if (!(args(0).is_integer_type() && args(0).is_scalar_type())) {
+		error("%s: invalid argument type (%s)\n"
+				"expected integer scalar",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+		return octave_value();
+	}
+
+	const int32_t idx = args(0).int32_scalar_value();
+
+	return octave_value(pSimulationEntity->dGetPrivData(idx));
+}
+
+BEGIN_METHOD_TABLE(SimulationEntityInterface, MBDynInterface)
+	METHOD_DISPATCH(SimulationEntityInterface, iGetNumPrivData)
+	METHOD_DISPATCH(SimulationEntityInterface, iGetPrivDataIdx)
+	METHOD_DISPATCH(SimulationEntityInterface, dGetPrivData)
+END_METHOD_TABLE()
+
+NodeInterface::NodeInterface(OctaveInterface* pInterface)
+: SimulationEntityInterface(pInterface)
+{
+
+}
+
+NodeInterface::~NodeInterface()
+{
+
+}
+
+void NodeInterface::print(std::ostream& os, bool pr_as_read_syntax) const
+{
+	const Node* const pNode = Get();
+
+	if (!pNode) {
+		error("%s: not connected", type_name().c_str());
+		return;
+	}
+
+	os << type_name() << "(" << pNode->GetLabel() << "):" << pNode->GetName() << std::endl;
+}
+
+METHOD_DEFINE(NodeInterface, GetLabel, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(octave_int<unsigned int>(pNode->GetLabel()));
+}
+
+METHOD_DEFINE(NodeInterface, GetName, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(pNode->GetName());
+}
+
+METHOD_DEFINE(NodeInterface, iGetFirstIndex, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->iGetFirstIndex()));
+}
+
+METHOD_DEFINE(NodeInterface, iGetFirstRowIndex, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->iGetFirstRowIndex()));
+}
+
+METHOD_DEFINE(NodeInterface, iGetFirstColIndex, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->iGetFirstColIndex()));
+}
+
+METHOD_DEFINE(NodeInterface, dGetDofValue, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 2) {
+		error("%s: invalid number of arguments %ld\n"
+				"%ld arguments expected",
+				type_name().c_str(),
+				long(args.length()),
+				2L);
+
+		return octave_value();
+	}
+
+	if (!(args(0).is_integer_type() && args(0).is_scalar_type())) {
+		error("%s: invalid argument type (%s) for argument 1\n"
+				"integer scalar expected",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const int32_t iDof = args(0).int32_scalar_value();
+
+	if (!(args(1).is_integer_type() && args(1).is_scalar_type())) {
+		error("%s: invalid argument type (%s) for argument 2\n"
+				"integer scalar expected",
+				type_name().c_str(),
+				args(1).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const int32_t iOrder = args(1).int32_scalar_value();
+
+	return octave_value(pNode->dGetDofValue(iDof, iOrder));
+}
+
+METHOD_DEFINE(NodeInterface, dGetDofValuePrev, args, nargout)
+{
+	const Node* const pNode = Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 2) {
+		error("%s: invalid number of arguments %ld\n"
+				"%ld arguments expected",
+				type_name().c_str(),
+				long(args.length()),
+				2L);
+
+		return octave_value();
+	}
+
+	if (!(args(0).is_integer_type() && args(0).is_scalar_type())) {
+		error("%s: invalid argument type (%s) for argument 1\n"
+				"integer scalar expected",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const int32_t iDof = args(0).int32_scalar_value();
+
+	if (!(args(1).is_integer_type() && args(1).is_scalar_type())) {
+		error("%s: invalid argument type (%s) for argument 2\n"
+				"integer scalar expected",
+				type_name().c_str(),
+				args(1).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const int32_t iOrder = args(1).int32_scalar_value();
+
+	return octave_value(pNode->dGetDofValuePrev(iDof, iOrder));
+}
+
+BEGIN_METHOD_TABLE(NodeInterface, SimulationEntityInterface)
+	METHOD_DISPATCH(NodeInterface, GetLabel)
+	METHOD_DISPATCH(NodeInterface, GetName)
+	METHOD_DISPATCH(NodeInterface, iGetFirstIndex)
+	METHOD_DISPATCH(NodeInterface, iGetFirstRowIndex)
+	METHOD_DISPATCH(NodeInterface, iGetFirstColIndex)
+	METHOD_DISPATCH(NodeInterface, dGetDofValue)
+	METHOD_DISPATCH(NodeInterface, dGetDofValuePrev)
+END_METHOD_TABLE()
+
+ScalarNodeInterface::ScalarNodeInterface(OctaveInterface* pInterface, ScalarNode* pNode)
+: NodeInterface(pInterface),
+pNode(pNode)
+{
+
+}
+
+ScalarNodeInterface::~ScalarNodeInterface()
+{
+
+}
+
+const ScalarNode* ScalarNodeInterface::Get()const
+{
+	return pNode;
+}
+
+METHOD_DEFINE(ScalarNodeInterface, SetX, args, nargout)
+{
+	if (!pNode) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected one argument",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	if (!args(0).is_real_scalar()) {
+		error("%s: invalid argument type (%s)\n"
+				"expected real scalar",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	pNode->SetX(args(0).scalar_value());
+
+	return octave_value();
+}
+
+METHOD_DEFINE(ScalarNodeInterface, dGetX, args, nargout)
+{
+	if (!pNode) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected no argument",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(pNode->dGetX());
+}
+
+METHOD_DEFINE(ScalarNodeInterface, SetXPrime, args, nargout)
+{
+	if (!pNode) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected one argument",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	if (!args(0).is_real_scalar()) {
+		error("%s: invalid argument type (%s)\n"
+				"expected real scalar",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	pNode->SetXPrime(args(0).scalar_value());
+
+	return octave_value();
+}
+
+METHOD_DEFINE(ScalarNodeInterface, dGetXPrime, args, nargout)
+{
+	if (!pNode) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected no argument",
+				type_name().c_str(),
+				long(args.length()));
+
+		return octave_value();
+	}
+
+	return octave_value(pNode->dGetXPrime());
+}
+
+BEGIN_METHOD_TABLE(ScalarNodeInterface, NodeInterface)
+	METHOD_DISPATCH(ScalarNodeInterface, SetX)
+	METHOD_DISPATCH(ScalarNodeInterface, dGetX)
+	METHOD_DISPATCH(ScalarNodeInterface, SetXPrime)
+	METHOD_DISPATCH(ScalarNodeInterface, dGetXPrime)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(ScalarNodeInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(ScalarNodeInterface, "ScalarNode", "ScalarNode");
+
+StructDispNodeBaseInterface::StructDispNodeBaseInterface(OctaveInterface* pInterface)
+: NodeInterface(pInterface)
+{
+	TRACE("constructor");
+}
+
+StructDispNodeBaseInterface::~StructDispNodeBaseInterface()
+{
+	TRACE("destructor");
+}
+
+octave_value
+StructDispNodeBaseInterface::GetVec3(const Vec3& V, const octave_value_list& args) const
+{
+	octave_value octValue;
+
+	if (args.length() != 0) {
+		error("StructNode: invalid number of arguments %ld"
+				"no arguments expected", long(args.length()));
+		return octValue;
+	}
+
+	if (!GetInterface()->ConvertMBDynToOctave(V, octValue)) {
+		error("StructNode: could not convert data");
+	}
+
+	return octValue;
+}
+
+octave_value
+StructDispNodeBaseInterface::GetMat3x3(const Mat3x3& M, const octave_value_list& args) const
+{
+	octave_value octValue;
+
+	if (args.length() != 0) {
+		error("StructNode: invalid number of arguments %ld"
+				"no arguments expected", long(args.length()));
+		return octValue;
+	}
+
+	if (!GetInterface()->ConvertMBDynToOctave(M, octValue)) {
+		error("StructNode: could not convert data");
+	}
+
+	return octValue;
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, iGetFirstPositionIndex, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("StructNode: invalid number of arguments %ld"
+				"no arguments expected", long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->iGetFirstPositionIndex()));
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, iGetFirstMomentumIndex, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("StructNode: invalid number of arguments %ld"
+				"no arguments expected", long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->iGetFirstMomentumIndex()));
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetLabel, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("StructNode: invalid number of arguments %ld\n"
+				"no arguments expected", long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pNode->GetLabel()));
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetXCurr, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetXCurr(), args);
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetXPrev, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetXPrev(), args);
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetVCurr, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetVCurr(), args);
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetVPrev, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetVPrev(), args);
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetXPPCurr, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	if (!pNode->bComputeAccelerations()) {
+		error("StructNode: accelerations are not available for node %u", pNode->GetLabel());
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetXPPCurr(), args);
+}
+
+METHOD_DEFINE(StructDispNodeBaseInterface, GetXPPPrev, args, nargout)
+{
+	const StructDispNode* const pNode = Get();
+
+	if (pNode == 0) {
+		error("StructNode: not connected");
+		return octave_value();
+	}
+
+	if (!pNode->bComputeAccelerations()) {
+		error("StructNode: accelerations are not available for node %u", pNode->GetLabel());
+		return octave_value();
+	}
+
+	return GetVec3(pNode->GetXPPPrev(), args);
+}
+
+BEGIN_METHOD_TABLE(StructDispNodeBaseInterface, NodeInterface)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, iGetFirstIndex)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, iGetFirstPositionIndex)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, iGetFirstMomentumIndex)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, GetLabel)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, GetXCurr)
+	METHOD_DISPATCH(StructDispNodeBaseInterface, GetXPrev)
+	METHOD_DISPATCH(StructNodeInterface, GetVCurr)
+	METHOD_DISPATCH(StructNodeInterface, GetVPrev)
+	METHOD_DISPATCH(StructNodeInterface, GetXPPCurr)
+	METHOD_DISPATCH(StructNodeInterface, GetXPPPrev)
+END_METHOD_TABLE()
+
+StructDispNodeInterface::StructDispNodeInterface(OctaveInterface* pInterface, const StructDispNode* pNode)
+: StructDispNodeBaseInterface(pInterface),
+  pNode(pNode)
+{
+
+}
+
+StructDispNodeInterface::~StructDispNodeInterface()
+{
+
+}
+
+const StructDispNode* StructDispNodeInterface::Get()const
+{
+	return pNode;
+}
+
+DEFINE_OCTAVE_ALLOCATOR(StructDispNodeInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(StructDispNodeInterface, "StructDispNode", "StructDispNode");
+
 StructNodeInterface::StructNodeInterface(OctaveInterface* pInterface, const StructNode* pNode)
-: MBDynInterface(pInterface), pNode(pNode)
+: StructDispNodeBaseInterface(pInterface),
+pNode(pNode)
 {
 	TRACE("constructor");
 }
@@ -885,130 +2504,16 @@ StructNodeInterface::~StructNodeInterface(void)
 	TRACE("destructor");
 }
 
-void
-StructNodeInterface::print(std::ostream& os, bool pr_as_read_syntax) const
+const StructNode*
+StructNodeInterface::Get()const
 {
-	os << "StructNode " << pNode->GetLabel() << ": " << pNode->GetName() << std::endl;
-}
-
-octave_value
-StructNodeInterface::GetVec3(const Vec3& V, const octave_value_list& args) const
-{
-	octave_value octValue;
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octValue;
-	}
-
-	if (!GetInterface()->ConvertMBDynToOctave(V, octValue)) {
-		error("could not convert data!\n");
-	}
-
-	return octValue;
-}
-
-octave_value
-StructNodeInterface::GetMat3x3(const Mat3x3& M, const octave_value_list& args) const
-{
-	octave_value octValue;
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octValue;
-	}
-
-	if (!GetInterface()->ConvertMBDynToOctave(M, octValue)) {
-		error("could not convert data!\n");
-	}
-
-	return octValue;
-}
-
-METHOD_DEFINE(StructNodeInterface, iGetFirstIndex, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octave_value();
-	}
-
-	return octave_value(pNode->iGetFirstIndex());
-}
-
-METHOD_DEFINE(StructNodeInterface, iGetFirstPositionIndex, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octave_value();
-	}
-
-	return octave_value(pNode->iGetFirstPositionIndex());
-}
-
-METHOD_DEFINE(StructNodeInterface, iGetFirstMomentumIndex, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octave_value();
-	}
-
-	return octave_value(pNode->iGetFirstMomentumIndex());
-}
-
-METHOD_DEFINE(StructNodeInterface, GetLabel, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
-		return octave_value();
-	}
-
-	return octave_value(pNode->GetLabel());
-}
-
-METHOD_DEFINE(StructNodeInterface, GetXCurr, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetXCurr(), args);
-}
-
-METHOD_DEFINE(StructNodeInterface, GetXPrev, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetXPrev(), args);
+	return pNode;
 }
 
 METHOD_DEFINE(StructNodeInterface, GetgCurr, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1018,7 +2523,7 @@ METHOD_DEFINE(StructNodeInterface, GetgCurr, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetgRef, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1028,7 +2533,7 @@ METHOD_DEFINE(StructNodeInterface, GetgRef, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetgPCurr, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1038,7 +2543,7 @@ METHOD_DEFINE(StructNodeInterface, GetgPCurr, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetgPRef, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1048,7 +2553,7 @@ METHOD_DEFINE(StructNodeInterface, GetgPRef, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetRCurr, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1058,7 +2563,7 @@ METHOD_DEFINE(StructNodeInterface, GetRCurr, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetRPrev, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1068,37 +2573,17 @@ METHOD_DEFINE(StructNodeInterface, GetRPrev, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetRRef, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
 	return GetMat3x3(pNode->GetRRef(), args);
 }
 
-METHOD_DEFINE(StructNodeInterface, GetVCurr, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetVCurr(), args);
-}
-
-METHOD_DEFINE(StructNodeInterface, GetVPrev, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetVPrev(), args);
-}
-
 METHOD_DEFINE(StructNodeInterface, GetWCurr, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
@@ -1108,52 +2593,32 @@ METHOD_DEFINE(StructNodeInterface, GetWCurr, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetWPrev, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
 	return GetVec3(pNode->GetWPrev(), args);
 }
 
-METHOD_DEFINE(StructNodeInterface, GetXPPCurr, args, nargout)
+METHOD_DEFINE(StructNodeInterface, GetWRef, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
-	if (!pNode->bComputeAccelerations()) {
-		error("accelerations are not available for node %u!\n", pNode->GetLabel());
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetXPPCurr(), args);
-}
-
-METHOD_DEFINE(StructNodeInterface, GetXPPPrev, args, nargout)
-{
-	if (pNode == 0) {
-		error("node data is not available!\n");
-		return octave_value();
-	}
-
-	if (!pNode->bComputeAccelerations()) {
-		error("accelerations are not available for node %u!\n", pNode->GetLabel());
-		return octave_value();
-	}
-
-	return GetVec3(pNode->GetXPPPrev(), args);
+	return GetVec3(pNode->GetWRef(), args);
 }
 
 METHOD_DEFINE(StructNodeInterface, GetWPCurr, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
 	if (!pNode->bComputeAccelerations()) {
-		error("accelerations are not available for node %u!\n", pNode->GetLabel());
+		error("StructNode: accelerations are not available for node %u", pNode->GetLabel());
 		return octave_value();
 	}
 
@@ -1163,25 +2628,19 @@ METHOD_DEFINE(StructNodeInterface, GetWPCurr, args, nargout)
 METHOD_DEFINE(StructNodeInterface, GetWPPrev, args, nargout)
 {
 	if (pNode == 0) {
-		error("node data is not available!\n");
+		error("StructNode: not connected");
 		return octave_value();
 	}
 
 	if (!pNode->bComputeAccelerations()) {
-		error("accelerations are not available for node %u!\n", pNode->GetLabel());
+		error("StructNode: accelerations are not available for node %u", pNode->GetLabel());
 		return octave_value();
 	}
 
 	return GetVec3(pNode->GetWPPrev(), args);
 }
 
-BEGIN_METHOD_TABLE(StructNodeInterface, MBDynInterface)
-	METHOD_DISPATCH(StructNodeInterface, iGetFirstIndex)
-	METHOD_DISPATCH(StructNodeInterface, iGetFirstPositionIndex)
-	METHOD_DISPATCH(StructNodeInterface, iGetFirstMomentumIndex)
-	METHOD_DISPATCH(StructNodeInterface, GetLabel)
-	METHOD_DISPATCH(StructNodeInterface, GetXCurr)
-	METHOD_DISPATCH(StructNodeInterface, GetXPrev)
+BEGIN_METHOD_TABLE(StructNodeInterface, StructDispNodeBaseInterface)
 	METHOD_DISPATCH(StructNodeInterface, GetgCurr)
 	METHOD_DISPATCH(StructNodeInterface, GetgRef)
 	METHOD_DISPATCH(StructNodeInterface, GetgPCurr)
@@ -1189,12 +2648,9 @@ BEGIN_METHOD_TABLE(StructNodeInterface, MBDynInterface)
 	METHOD_DISPATCH(StructNodeInterface, GetRCurr)
 	METHOD_DISPATCH(StructNodeInterface, GetRPrev)
 	METHOD_DISPATCH(StructNodeInterface, GetRRef)
-	METHOD_DISPATCH(StructNodeInterface, GetVCurr)
-	METHOD_DISPATCH(StructNodeInterface, GetVPrev)
 	METHOD_DISPATCH(StructNodeInterface, GetWCurr)
 	METHOD_DISPATCH(StructNodeInterface, GetWPrev)
-	METHOD_DISPATCH(StructNodeInterface, GetXPPCurr)
-	METHOD_DISPATCH(StructNodeInterface, GetXPPPrev)
+	METHOD_DISPATCH(StructNodeInterface, GetWRef)
 	METHOD_DISPATCH(StructNodeInterface, GetWPCurr)
 	METHOD_DISPATCH(StructNodeInterface, GetWPPrev)
 END_METHOD_TABLE()
@@ -1202,12 +2658,14 @@ END_METHOD_TABLE()
 DEFINE_OCTAVE_ALLOCATOR(StructNodeInterface);
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(StructNodeInterface, "StructNode", "StructNode");
 
-DataManagerInterface::DataManagerInterface(OctaveInterface* pInterface)
-	:MBDynInterface(pInterface)
+DataManagerInterface::DataManagerInterface(OctaveInterface* pInterface, const DataManager* pDM)
+	:MBDynInterface(pInterface),
+	 pDM(pDM)
 {
 	TRACE("constructor");
 
 	ASSERT(pInterface != 0);
+	ASSERT(pDM != 0);
 }
 
 DataManagerInterface::~DataManagerInterface()
@@ -1217,36 +2675,43 @@ DataManagerInterface::~DataManagerInterface()
 
 void DataManagerInterface::print(std::ostream& os, bool pr_as_read_syntax)const
 {
-	os << "a MBDyn DataManager interface" << std::endl;
+	os << "DataManager" << std::endl
+			<< "iTotDofs=" << GetDataManager()->iGetNumDofs() << std::endl;
 }
 
 METHOD_DEFINE(DataManagerInterface, GetVariable, args, nargout)
 {
 	octave_value octValue;
 
-	if (args.length() < 1) {
-		error("invalid number of arguments!\n");
+	if (args.length() != 1) {
+		error("DataManager: invalid number of arguments %ld\n"
+				"one argument expected", long(args.length()));
+		return octValue;
+	}
+
+	if (!args(0).is_string()) {
+		error("DataManager: invalid argument type \"%s\"\n"
+				"varName must be a string", args(0).type_name().c_str());
 		return octValue;
 	}
 
 	const std::string varName = args(0).string_value();
 
-	if (error_state) {
-		error("invalid argument type for argument number one!\n");
-		return octValue;
-	}
-
 	const NamedValue* const pVar = GetSymbolTable().Get(varName.c_str());
 
 	if (pVar == 0) {
-		error("Variable \"%s\" not found in symbol table!\n", varName.c_str());
+		error("DataManager: variable \"%s\" not found in symbol table", varName.c_str());
 		return octValue;
 	}
 
 	const TypedValue mbValue = pVar->GetVal();
 
 	if (!GetInterface()->ConvertMBDynToOctave(mbValue, octValue)) {
-		error("Failed to convert MBDyn variable \"%s\" value to octave value!\n", varName.c_str());
+		error("%s: failed to convert MBDyn variable %s"
+				" of type %s value into octave value",
+				type_name().c_str(),
+				varName.c_str(),
+				mbValue.GetTypeName());
 	}
 
 	return octValue;
@@ -1256,29 +2721,33 @@ METHOD_DEFINE(DataManagerInterface, GetStructNodePos, args, nargout)
 {
 	octave_value octValue;
 
-	if (args.length() < 1) {
-		error("invalid number of arguments!\n");
+	if (args.length() != 1) {
+		error("DataManager: invalid number of arguments\n"
+				"one argument expected");
+		return octValue;
+	}
+
+	if (!(args(0).is_scalar_type() && args(0).is_integer_type())) {
+		error("DataManager: invalid argument type \"%s\"\n"
+				"iNodeLabel must be an integer", args(0).type_name().c_str());
 		return octValue;
 	}
 
 	integer iNodeLabel = args(0).int32_scalar_value();
 
-	if (error_state) {
-		error("invalid argument type for argument number one!\n");
-		return octValue;
-	}
-
 	Node* pNode = GetDataManager()->pFindNode(Node::STRUCTURAL, iNodeLabel);
 
 	if (pNode == 0) {
-		error("could not find node %ld!\n", (long)iNodeLabel);
+		error("DataManager: invalid node label\n"
+				"could not find node %ld", long(iNodeLabel));
 		return octValue;
 	}
 
-	StructNode* pStructNode = dynamic_cast<StructNode*>(pNode);
+	StructDispNode* pStructNode = dynamic_cast<StructDispNode*>(pNode);
 
 	if (pStructNode == 0) {
-		error("invalid type of node %ld\n", (long)iNodeLabel);
+		error("DataManager: invalid node type\n"
+				"node %ld is not a structural displacement node", long(iNodeLabel));
 		return octValue;
 	}
 
@@ -1299,63 +2768,828 @@ METHOD_DEFINE(DataManagerInterface, GetStructNode, args, nargout)
 {
 	octave_value octValue;
 
-	if (args.length() < 1) {
-		error("invalid number of arguments!\n");
+	if (args.length() != 1) {
+		error("DataManager: invalid number of arguments\n"
+				"one argument expected");
 		return octValue;
 	}
 
-	integer iNodeLabel = args(0).int32_scalar_value();
-
-	if (error_state) {
-		error("invalid argument type for argument number one (node id)!\n");
+	if (!(args(0).is_scalar_type() && args(0).is_integer_type())) {
+		error("DataManager: invalid argument type \"%s\"\n"
+				"iNodeLabel must be an integer", args(0).type_name().c_str());
 		return octValue;
 	}
+
+	integer iNodeLabel = static_cast<int32_t>(args(0).int32_scalar_value());
 
 	Node* pNode = GetDataManager()->pFindNode(Node::STRUCTURAL, iNodeLabel);
 
 	if (pNode == 0) {
-		error("could not find node %ld!\n", (long)iNodeLabel);
+		error("DataManager: could not find node %ld", long(iNodeLabel));
 		return octValue;
 	}
 
 	StructNode* pStructNode = dynamic_cast<StructNode*>(pNode);
 
-	if (pStructNode == 0) {
-		error("invalid type of node %ld\n", (long)iNodeLabel);
+	if (pStructNode) {
+		octValue = new StructNodeInterface(GetInterface(), pStructNode);
 		return octValue;
 	}
 
-	octValue = new StructNodeInterface(GetInterface(), pStructNode);
+	StructDispNode* pStructDispNode = dynamic_cast<StructDispNode*>(pNode);
+
+	if (!pStructDispNode) {
+		error("%s: node %ld is not a structural node", type_name().c_str(), long(iNodeLabel));
+		return octValue;
+	}
+
+	octValue = new StructDispNodeInterface(GetInterface(), pStructDispNode);
 
 	return octValue;
 }
 
-const DataManager* DataManagerInterface::GetDataManager()
+METHOD_DEFINE(DataManagerInterface, pFindNode, args, nargout)
 {
-	ASSERT(GetInterface() != 0);
+	Node::Type Type;
 
-	return GetInterface()->GetDataManager();
+	Node* const pNode = pFindNode_(args, Type);
+
+	if (!pNode) {
+		return octave_value(); // error has been called
+	}
+
+	NodeInterface* const pNodeInterface = CreateNodeInterface(pNode, Type);
+
+	if (pNodeInterface == 0) {
+		error("%s: unknown node type %ld", type_name().c_str(), long(Type));
+		return octave_value();
+	}
+
+	return octave_value(pNodeInterface);
 }
 
-const Table& DataManagerInterface::GetSymbolTable()
+METHOD_DEFINE(DataManagerInterface, ReadNode, args, nargout)
+{
+	if (args.length() != 2) {
+		error("%s: invalid number of arguments (%ld)\n"
+				"arguments expected: %ld",
+				type_name().c_str(),
+				long(args.length()),
+				2L);
+
+		return octave_value();
+	}
+
+	const MBDynParserInterface* const pHPI =
+			dynamic_cast<const MBDynParserInterface*>(&args(0).get_rep());
+
+	if (pHPI == 0) {
+		error("%s: invalid argument type (%s)\n"
+				"expected MBDynParser",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return octave_value();
+	}
+
+	MBDynParser* const pHP = pHPI->Get();
+
+	if (pHP == 0) {
+		error("%s: not connected", pHPI->type_name().c_str());
+		return octave_value();
+	}
+
+	if (!args(1).is_string()) {
+		error("%s: invalid argument type (%s)\n"
+				"expected string",
+				type_name().c_str(),
+				args(1).type_name().c_str());
+
+		return octave_value();
+	}
+
+	const std::string strType(args(1).string_value());
+
+	const Node::Type Type = GetNodeType(strType);
+
+	if (Type == Node::UNKNOWN) {
+		error("%s: invalid node type (%s)", type_name().c_str(), strType.c_str());
+		return octave_value();
+	}
+
+	Node* pNode = 0;
+
+	try {
+		// FIXME: This function should not be called from a drive caller
+		// FIXME: because DataManager is assumed to be constant in this case?
+		pNode = const_cast<DataManager*>(pDM)->ReadNode(*pHP, Type);
+	} catch(...) { // do not throw across call back boundaries
+		error("%s: ReadNode failed", type_name().c_str());
+		return octave_value();
+	}
+
+	NodeInterface* const pNodeInterface = CreateNodeInterface(pNode, Type);
+
+	if (pNodeInterface == 0) {
+		error("%s: unknown node type %ld", type_name().c_str(), long(Type));
+		return octave_value();
+	}
+
+	return octave_value(pNodeInterface);
+}
+
+METHOD_DEFINE(DataManagerInterface, dGetTime, args, nargout)
+{
+	if (args.length() != 0) {
+		error("DataManager: invalid number of arguments\n"
+				"no argument expected");
+		return octave_value();
+	}
+
+	return octave_value(GetDataManager()->dGetTime());
+}
+
+const DataManager* DataManagerInterface::GetDataManager()const
+{
+	ASSERT(GetInterface() != 0);
+	ASSERT(pDM != 0);
+
+	return pDM;
+}
+
+const Table& DataManagerInterface::GetSymbolTable()const
 {
 	return GetDataManager()->GetMathParser().GetSymbolTable();
+}
+
+Node* DataManagerInterface::pFindNode_(const octave_value_list& args, Node::Type& Type) const
+{
+	if (args.length() != 2) {
+		error("%s: invalid number of arguments\n"
+				"arguments expected 2", type_name().c_str());
+
+		return 0;
+	}
+
+	if (!(args(0).is_string())) {
+		error("%s: invalid argument type (%s)\n"
+				"Type must be a string",
+				type_name().c_str(),
+				args(0).type_name().c_str());
+
+		return 0;
+	}
+
+	const std::string strType(args(0).string_value());
+
+	Type = GetNodeType(strType);
+
+	if (Type == Node::UNKNOWN) {
+		error("%s: unknown node type (%s)", type_name().c_str(), strType.c_str());
+		return 0;
+	}
+
+	if (!(args(1).is_scalar_type() && args(1).is_integer_type())) {
+		error("%s: invalid argument type (%s)\n"
+				"iNodeLabel must be an integer",
+				type_name().c_str(),
+				args(1).type_name().c_str());
+
+		return 0;
+	}
+
+	const int32_t iNodeLabel = args(1).int32_scalar_value();
+
+	Node* pNode = GetDataManager()->pFindNode(Type, iNodeLabel);
+
+	if (pNode == 0) {
+		error("%s: could not find node %ld", type_name().c_str(), long(iNodeLabel));
+		return 0;
+	}
+
+	return pNode;
+}
+
+Node::Type DataManagerInterface::GetNodeType(const std::string& strType) const
+{
+	static const struct {
+		char name[11];
+		Node::Type type;
+	}
+	nodeTypes[] = {
+			{ "ABSTRACT", 	Node::ABSTRACT },
+			{ "STRUCTURAL", Node::STRUCTURAL },
+			{ "ELECTRIC", 	Node::ELECTRIC },
+			{ "THERMAL", 	Node::THERMAL },
+			{ "PARAMETER",	Node::PARAMETER },
+			{ "HYDRAULIC",	Node::HYDRAULIC }
+	};
+
+	static const int count = sizeof(nodeTypes) / sizeof(nodeTypes[0]);
+
+	for (int i = 0; i < count; ++i) {
+		if (strType == nodeTypes[i].name) {
+			return nodeTypes[i].type;
+		}
+	}
+
+	return Node::UNKNOWN;
+}
+
+NodeInterface* DataManagerInterface::CreateNodeInterface(Node* pNode, Node::Type Type) const
+{
+	switch (Type) {
+		case Node::STRUCTURAL:
+		{
+			StructNode* const pStructNode = dynamic_cast<StructNode*>(pNode);
+
+			if (pStructNode == 0) {
+				StructDispNode* pStructDispNode = dynamic_cast<StructDispNode*>(pNode);
+				if (pStructDispNode == 0) {
+					ASSERT(0);
+					return 0;
+				}
+
+				return new StructDispNodeInterface(GetInterface(), pStructDispNode);
+			}
+			return new StructNodeInterface(GetInterface(), pStructNode);
+		}
+		case Node::ABSTRACT:
+		case Node::ELECTRIC:
+		case Node::THERMAL:
+		case Node::PARAMETER:
+		case Node::HYDRAULIC:
+		{
+			ScalarNode* const pScalarNode = dynamic_cast<ScalarNode*>(pNode);
+			ASSERT(pScalarNode != 0);
+			return new ScalarNodeInterface(GetInterface(), pScalarNode);
+		}
+		default:
+			ASSERT(0); // FIXME: add StructuralDisplacementNode
+			return 0;
+	}
 }
 
 BEGIN_METHOD_TABLE(DataManagerInterface, MBDynInterface)
 	METHOD_DISPATCH(DataManagerInterface, GetVariable)
 	METHOD_DISPATCH(DataManagerInterface, GetStructNodePos)
 	METHOD_DISPATCH(DataManagerInterface, GetStructNode)
+	METHOD_DISPATCH(DataManagerInterface, pFindNode)
+	METHOD_DISPATCH(DataManagerInterface, ReadNode)
+	METHOD_DISPATCH(DataManagerInterface, dGetTime)
 END_METHOD_TABLE()
 
 DEFINE_OCTAVE_ALLOCATOR(DataManagerInterface);
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(DataManagerInterface, "DataManager", "DataManager");
 
-OctaveDriveCaller::OctaveDriveCaller(const std::string& strFunc, OctaveInterface* pInterface, int iFlags)
+const MBDynParserInterface::MBDynStringDelims
+MBDynParserInterface::mbStringDelims[6] = {
+		{ HighParser::PLAINBRACKETS,	"PLAINBRACKETS" },
+		{ HighParser::SQUAREBRACKETS,	"SQUAREBRACKETS" },
+		{ HighParser::CURLYBRACKETS,	"CURLYBRACKETS" },
+		{ HighParser::SINGLEQUOTE,		"SINGLEQUOTE" },
+		{ HighParser::DOUBLEQUOTE,		"DOUBLEQUOTE" },
+		{ HighParser::DEFAULTDELIM,		"DEFAULTDELIM" }
+};
+
+MBDynParserInterface::MBDynParserInterface(OctaveInterface* pInterface, MBDynParser* pHP)
+	:MBDynInterface(pInterface),
+	 pHP(pHP)
+{
+	if (!pHP) {
+		if (pInterface) {
+			ASSERT(0); // should not happen
+			this->pHP = &pInterface->GetDataManager()->GetMBDynParser();
+		}
+	}
+}
+
+MBDynParserInterface::~MBDynParserInterface()
+{
+
+}
+
+void MBDynParserInterface::print(std::ostream& os, bool pr_as_read_syntax) const
+{
+	os << "MBDynParser";
+
+	if (pHP) {
+		const IncludeParser::ErrOut lineData(pHP->GetLineData());
+		os << " at " << lineData.sFileName << ":" << lineData.iLineNumber;
+	}
+
+	os << std::endl;
+}
+
+METHOD_DEFINE(MBDynParserInterface, IsKeyWord, args, nargout)
+{
+	if (!pHP) {
+		error("MBDynParser: not connected");
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("MBDynParser: invalid number of arguments %ld\n"
+				"expected %ld arguments", long(args.length()), 1L);
+		return octave_value();
+	}
+
+	if (!args(0).is_string()) {
+		error("MBDynParser: invalid argument type (%s)\n"
+				"expected string", args(0).type_name().c_str());
+		return octave_value();
+	}
+
+	const std::string strKeyWord = args(0).string_value();
+
+	bool bVal;
+
+	try {
+		bVal = pHP->IsKeyWord(strKeyWord.c_str());
+	} catch(...) {
+		error("%s: IsKeyWord failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(bVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, IsArg, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments %ld\n"
+				"no arguments expected",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(pHP->IsArg());
+}
+
+METHOD_DEFINE(MBDynParserInterface, IsStringWithDelims, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"one argument expected",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	}
+
+	HighParser::Delims delims = HighParser::DEFAULTDELIM;
+
+	if (args.length() >= 1) {
+		if (!args(0).is_string()) {
+			error("%s: invalid argument type %s\n"
+					"expected string",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+
+		const std::string strDelims(args(0).string_value());
+
+		if (!GetDelimsFromString(strDelims, delims)) {
+			error("%s: invalid argument %s",
+					type_name().c_str(),
+					strDelims.c_str());
+			return octave_value();
+		}
+	}
+
+	return octave_value(pHP->IsStringWithDelims(delims));
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetReal, args, nargout)
+{
+	if (!pHP) {
+		error("MBDynParser: not connected");
+		return octave_value();
+	}
+
+	doublereal dDefVal = 0.0;
+
+	if (args.length() > 1) {
+		error("MBDynParser: invalid number of arguments %ld\n"
+				"expected 0-1 arguments", long(args.length()));
+		return octave_value();
+	} else if (args.length() >= 1) {
+		if (!args(0).is_real_scalar()) {
+			error("MBDynParser: invalid argument type (%s)\n"
+					"expected real scalar", args(0).type_name().c_str());
+			return octave_value();
+		}
+		dDefVal = args(0).scalar_value();
+	}
+
+	doublereal dVal;
+
+	try {
+		dVal = pHP->GetReal(dDefVal);
+	} catch(...) {
+		error("%s: GetReal failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(dVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetInt, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	integer iDefVal = 0;
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected 0-1 arguments",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	} else if (args.length() >= 1) {
+		if (!args(0).is_integer_type() && args(0).is_scalar_type()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected integer scalar",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+		iDefVal = args(0).int_value();
+	}
+
+	integer iVal;
+
+	try {
+		iVal = pHP->GetInt(iDefVal);
+	} catch(...) {
+		error("%s: GetInt failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(iVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetBool, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	bool bDefVal = 0;
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected 0-1 arguments",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	} else if (args.length() >= 1) {
+		if (!args(0).is_bool_scalar()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected bool scalar",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+		bDefVal = args(0).bool_value();
+	}
+
+	bool bVal;
+
+	try {
+		bVal = pHP->GetBool(bDefVal);
+	} catch(...) {
+		error("%s: GetBool failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(bVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetString, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	std::string strDefVal;
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected 0-1 arguments",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	} else if (args.length() >= 1) {
+		if (!args(0).is_string()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected string",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+		strDefVal = args(0).string_value();
+	}
+
+	std::string strVal;
+
+	try {
+		strVal = pHP->GetString(strDefVal);
+	} catch(...) {
+		error("%s: GetString failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(strVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetStringWithDelims, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	std::string strDelims;
+
+	if (args.length() > 2) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected 0-2 arguments",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	}
+
+	HighParser::Delims delims = HighParser::DEFAULTDELIM;
+
+	if (args.length() >= 1) {
+		if (!args(0).is_string()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected string",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+
+		std::string strDelims(args(0).string_value());
+
+		if (!GetDelimsFromString(strDelims, delims)) {
+			error("%s: invalid argument %s",
+					type_name().c_str(),
+					strDelims.c_str());
+			return octave_value();
+		}
+	}
+
+	bool bEscape = true;
+
+	if (args.length() >= 2) {
+		if (!args(1).is_bool_scalar()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected bool",
+					type_name().c_str(),
+					args(1).type_name().c_str());
+			return octave_value();
+		}
+
+		bEscape = args(1).bool_value();
+	}
+
+	std::string strVal;
+
+	try {
+		strVal = pHP->GetStringWithDelims(delims, bEscape);
+	} catch(...) {
+		error("%s: GetStringWithDelims failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(strVal);
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetPosRel, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments\n"
+				"expected one argument", type_name().c_str());
+
+		return octave_value();
+	}
+
+	const StructDispNode* const pNode = GetStructNode(args(0));
+
+	if (pNode == 0) {
+		return octave_value();
+	}
+
+	Vec3 mbX;
+
+	try {
+		mbX = pHP->GetPosRel(ReferenceFrame(pNode));
+	} catch(...) { // do not throw across call back boundaries
+		error("%s: GetPosRel failed", type_name().c_str());
+		return octave_value();
+	}
+
+	octave_value octX;
+
+	if (!GetInterface()->ConvertMBDynToOctave(mbX, octX)) {
+		error("%s: could not convert data", type_name().c_str());
+		return octave_value();
+	}
+
+	return octX;
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetRotRel, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 1) {
+		error("%s: invalid number of arguments\n"
+				"expected one argument", type_name().c_str());
+
+		return octave_value();
+	}
+
+	const StructDispNode* const pNode = GetStructNode(args(0));
+
+	if (pNode == 0) {
+		return octave_value();
+	}
+
+	Mat3x3 mbR;
+
+	try {
+		mbR = pHP->GetRotRel(ReferenceFrame(pNode));
+	} catch(...) { // do not throw across call back boundaries
+		error("%s: GetRotRel failed", type_name().c_str());
+		return octave_value();
+	}
+
+	octave_value octR;
+
+	if (!GetInterface()->ConvertMBDynToOctave(mbR, octR)) {
+		error("%s: could not convert data", type_name().c_str());
+		return octave_value();
+	}
+
+	return octR;
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetValue, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments\n"
+				"expected 0-1 arguments", type_name().c_str());
+		return octave_value();
+	}
+
+	TypedValue mbDefValue;
+
+	if (args.length() >= 1) {
+		if (!GetInterface()->ConvertOctaveToMBDyn(args(0), mbDefValue)) {
+			error("%s: could not convert octave data type %s to MBDyn",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+	}
+
+	TypedValue mbValue;
+
+	try {
+		mbValue = pHP->GetValue(mbDefValue);
+	} catch (...) {
+		error("%s: GetValue failed", type_name().c_str());
+		return octave_value();
+	}
+
+	octave_value octValue;
+
+	if (!GetInterface()->ConvertMBDynToOctave(mbValue, octValue)) {
+		error("%s: could not convert data type %s into octave value",
+				type_name().c_str(),
+				mbValue.GetTypeName());
+	}
+
+	return octValue;
+}
+
+METHOD_DEFINE(MBDynParserInterface, GetLineData, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments\n"
+				"expected no argument", type_name().c_str());
+
+		return octave_value();
+	}
+
+	std::ostringstream os;
+
+	os << pHP->GetLineData();
+
+	return octave_value(os.str());
+}
+
+const StructDispNode* MBDynParserInterface::GetStructNode(const octave_value& arg) const
+{
+	const StructDispNodeBaseInterface* const pNodeInterface =
+			dynamic_cast<const StructDispNodeBaseInterface*>(&arg.get_rep());
+
+	if (pNodeInterface == 0) {
+		error("%s: invalid argument type (%s)\n"
+				"expected StructNode or StructDispNode",
+				type_name().c_str(),
+				arg.type_name().c_str());
+
+		return 0;
+	}
+
+	const StructDispNode* const pNode = pNodeInterface->Get();
+
+	if (pNode == 0) {
+		error("%s: not connected", pNodeInterface->type_name().c_str());
+		return 0;
+	}
+
+	return pNode;
+}
+
+bool MBDynParserInterface::GetDelimsFromString(const std::string& strDelims, HighParser::Delims& delims)
+{
+	const int count = sizeof(mbStringDelims) / sizeof(mbStringDelims[0]);
+
+	for (int i = 0; i < count; ++i) {
+		if (strDelims == mbStringDelims[i].name) {
+			delims = mbStringDelims[i].value;
+			return true;
+		}
+	}
+
+	delims = HighParser::DEFAULTDELIM;
+
+	return false;
+}
+
+BEGIN_METHOD_TABLE(MBDynParserInterface, MBDynInterface)
+	METHOD_DISPATCH(MBDynParserInterface, IsKeyWord)
+	METHOD_DISPATCH(MBDynParserInterface, IsArg)
+	METHOD_DISPATCH(MBDynParserInterface, IsStringWithDelims)
+	METHOD_DISPATCH(MBDynParserInterface, GetReal)
+	METHOD_DISPATCH(MBDynParserInterface, GetInt)
+	METHOD_DISPATCH(MBDynParserInterface, GetBool)
+	METHOD_DISPATCH(MBDynParserInterface, GetString)
+	METHOD_DISPATCH(MBDynParserInterface, GetStringWithDelims)
+	METHOD_DISPATCH(MBDynParserInterface, GetValue)
+	METHOD_DISPATCH(MBDynParserInterface, GetPosRel)
+	METHOD_DISPATCH(MBDynParserInterface, GetRotRel)
+	METHOD_DISPATCH(MBDynParserInterface, GetLineData)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(MBDynParserInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(MBDynParserInterface, "MBDynParser", "MBDynParser");
+
+OctaveDriveCaller::OctaveDriveCaller(const std::string& strFunc, OctaveInterface* pInterface, int iFlags, const octave_value_list& args)
 : DriveCaller(0),
   iFlags(iFlags),
   strFunc(strFunc),
-  pInterface(pInterface)
+  pInterface(pInterface),
+  args(args)
 {
 	TRACE("constructor");
 	TRACE("strFunc=" << strFunc);
@@ -1370,7 +3604,7 @@ OctaveDriveCaller::~OctaveDriveCaller(void)
 DriveCaller *
 OctaveDriveCaller::pCopy(void) const
 {
-	return new OctaveDriveCaller(strFunc, pInterface, iFlags);
+	return new OctaveDriveCaller(strFunc, pInterface, iFlags, args);
 }
 
 std::ostream&
@@ -1379,16 +3613,16 @@ OctaveDriveCaller::Restart(std::ostream& out) const
 	return out << "octave, \"" << strFunc << "\"";
 }
 
-inline doublereal 
-OctaveDriveCaller::dGet(const doublereal& dVar) const 
+inline doublereal
+OctaveDriveCaller::dGet(const doublereal& dVar) const
 {
-    return pInterface->EvalScalarFunction(strFunc, dVar, iFlags);
+	return pInterface->EvalScalarFunction(strFunc, MakeArgList(dVar), iFlags);
 }
 
 inline doublereal
 OctaveDriveCaller::dGet(void) const
 {
-	return pInterface->EvalScalarFunction(strFunc, pInterface->GetDataManager()->dGetTime(), iFlags);
+	return dGet(pInterface->GetDataManager()->dGetTime());
 }
 
 inline bool
@@ -1397,31 +3631,33 @@ OctaveDriveCaller::bIsDifferentiable(void) const
 	return pInterface->HaveADPackage();
 }
 
-inline doublereal 
+inline doublereal
 OctaveDriveCaller::dGetP(const doublereal& dVar) const
 {
-	if (!bIsDifferentiable()) {
-		return 0.;
-	}
-
-	return pInterface->EvalScalarFunctionDerivative(strFunc, dVar, iFlags);
+	return pInterface->EvalScalarFunctionDerivative(strFunc, MakeArgList(dVar), iFlags);
 }
 
-inline doublereal 
+inline doublereal
 OctaveDriveCaller::dGetP(void) const
 {
 	if (!bIsDifferentiable()) {
 		return 0.;
 	}
 
-	const doublereal t = pInterface->GetDataManager()->dGetTime();
+	return dGetP(pInterface->GetDataManager()->dGetTime());
+}
 
-	return pInterface->EvalScalarFunctionDerivative(strFunc, t, iFlags);
+octave_value_list OctaveDriveCaller::MakeArgList(doublereal dVar) const
+{
+	return pInterface->MakeArgList(dVar, args, iFlags);
 }
 
 template <class T>
-OctaveTplDriveCaller<T>::OctaveTplDriveCaller(const std::string& strFunction, OctaveInterface* pInterface, int iFlags)
-	:strFunction(strFunction), pInterface(pInterface), iFlags(iFlags)
+OctaveTplDriveCaller<T>::OctaveTplDriveCaller(const std::string& strFunction, OctaveInterface* pInterface, int iFlags, const octave_value_list& args)
+	:strFunction(strFunction),
+	 pInterface(pInterface),
+	 iFlags(iFlags),
+	 args(args)
 {
 	TRACE("constructor");
 };
@@ -1436,7 +3672,7 @@ OctaveTplDriveCaller<T>::~OctaveTplDriveCaller(void)
 template <class T>
 TplDriveCaller<T>* OctaveTplDriveCaller<T>::pCopy(void) const
 {
-	return new OctaveTplDriveCaller(strFunction, pInterface, iFlags);
+	return new OctaveTplDriveCaller(strFunction, pInterface, iFlags, args);
 };
 
 template <class T>
@@ -1455,17 +3691,14 @@ template <class T>
 T OctaveTplDriveCaller<T>::Get(const doublereal& dVar) const
 {
 	T X;
-	pInterface->EvalMatrixFunction(strFunction, X, dVar, iFlags);
+	pInterface->EvalMatrixFunction(strFunction, X, MakeArgList(dVar), iFlags);
 	return X;
 };
 
 template <class T>
 T OctaveTplDriveCaller<T>::Get(void) const
 {
-	doublereal t = pInterface->GetDataManager()->dGetTime();
-	T X;
-	pInterface->EvalMatrixFunction(strFunction, X, t, iFlags);
-	return X;
+	return Get(pInterface->GetDataManager()->dGetTime());
 };
 
 template <class T>
@@ -1479,7 +3712,7 @@ T OctaveTplDriveCaller<T>::GetP(void) const
 {
 	const doublereal t = pInterface->GetDataManager()->dGetTime();
 	T XP;
-	pInterface->EvalMatrixFunctionDerivative(strFunction, XP, t, iFlags);
+	pInterface->EvalMatrixFunctionDerivative(strFunction, XP, MakeArgList(t), iFlags);
 	return XP;
 };
 
@@ -1490,12 +3723,18 @@ int OctaveTplDriveCaller<T>::getNDrives(void) const
 };
 
 template <class T>
+octave_value_list OctaveTplDriveCaller<T>::MakeArgList(doublereal dVar) const
+{
+	return pInterface->MakeArgList(dVar, args, iFlags);
+}
+
+template <class T>
 TplDriveCaller<T> *
 OctaveTDCR<T>::Read(const DataManager* pDM, MBDynParser& HP)
 {
-	OctaveBaseDCR::Read(pDM, HP);
+	OctaveFunctionDCR::Read(pDM, HP);
 
-	return new OctaveTplDriveCaller<T>(GetFunction(), GetInterface(), GetFlags());
+	return new OctaveTplDriveCaller<T>(GetFunction(), GetInterface(), GetFlags(), GetArgs());
 };
 
 DerivativeDriveCaller::DerivativeDriveCaller(DriveCaller* pDriveCaller)
@@ -1545,8 +3784,11 @@ doublereal DerivativeDriveCaller::dGetP(void) const
 	return 0.;
 }
 
-OctaveScalarFunction::OctaveScalarFunction(const std::string& strFunc, OctaveInterface* pInterface, int iFlags)
-	:strFunc(strFunc), pInterface(pInterface), iFlags(iFlags)
+OctaveScalarFunction::OctaveScalarFunction(const std::string& strFunc, OctaveInterface* pInterface, int iFlags, const octave_value_list& args)
+	:strFunc(strFunc),
+	 pInterface(pInterface),
+	 iFlags(iFlags),
+	 args(args)
 {
 
 }
@@ -1558,7 +3800,7 @@ OctaveScalarFunction::~OctaveScalarFunction(void)
 
 doublereal OctaveScalarFunction::operator()(const doublereal x) const
 {
-	return pInterface->EvalScalarFunction(strFunc, x, iFlags);
+	return pInterface->EvalScalarFunction(strFunc, MakeArgList(x), iFlags);
 }
 
 doublereal OctaveScalarFunction::ComputeDiff(const doublereal t, const integer order) const
@@ -1568,8 +3810,234 @@ doublereal OctaveScalarFunction::ComputeDiff(const doublereal t, const integer o
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return pInterface->EvalScalarFunctionDerivative(strFunc, t, iFlags);
+	return pInterface->EvalScalarFunctionDerivative(strFunc, MakeArgList(t), iFlags);
 }
+
+octave_value_list OctaveScalarFunction::MakeArgList(doublereal dVar) const
+{
+	return pInterface->MakeArgList(dVar, args, iFlags);
+}
+
+OctaveConstitutiveLawBase::OctaveConstitutiveLawBase(const std::string& strClass, OctaveInterface* pInterface, int iFlags)
+		: strClass(strClass),
+		  pInterface(pInterface),
+		  iFlags(iFlags)
+{
+
+}
+
+bool OctaveConstitutiveLawBase::bHaveMethod(const std::string& strName) const
+{
+	return GetInterface()->bHaveMethod(octObject, strClass, strName);
+}
+
+const std::string OctaveConstitutiveLawBase::strGetConstLawType("GetConstLawType");
+const std::string OctaveConstitutiveLawBase::strUpdate("Update");
+
+template <class T, class Tder>
+OctaveConstitutiveLaw<T, Tder>::OctaveConstitutiveLaw(const std::string& strClass, OctaveInterface* pInterface, int iFlags)
+: OctaveConstitutiveLawBase(strClass, pInterface, iFlags),
+  clType(ConstLawType::UNKNOWN)
+{
+	octave_value_list args(GetInterface()->GetDataManagerInterface());
+	args.append(GetInterface()->GetMBDynParserInterface());
+
+	const int flags = GetFlags() | OctaveInterface::UPDATE_OCTAVE_VARIABLES;
+
+	octave_value_list ans = GetInterface()->EvalFunction(GetClass(), args, 1, flags);
+
+	ASSERT(ans.length() == 1);
+
+	octObject = ans(0);
+
+	if (!octObject.is_object()) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel() << "): result of constructor ("
+				<< ans(0).type_name() << ") is not an object at line "
+				<< GetInterface()->GetMBDynParser()->GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!bHaveMethod(strGetConstLawType)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): method " << GetClass() << "." << strGetConstLawType
+				<< " is undefined" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!bHaveMethod(strUpdate)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): method " << GetClass() << "." << strUpdate
+				<< " is undefined" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+};
+
+template <class T, class Tder>
+OctaveConstitutiveLaw<T, Tder>::~OctaveConstitutiveLaw(void) {
+	NO_OP;
+};
+
+template <class T, class Tder>
+ConstLawType::Type OctaveConstitutiveLaw<T, Tder>::GetConstLawType(void) const {
+
+	switch (clType) {
+	case ConstLawType::UNKNOWN:
+		break;
+	default:
+		return clType;
+	}
+
+	static const struct {
+		ConstLawType::Type value;
+		char name[13];
+	} types[] = {
+			{ ConstLawType::ELASTIC,		"ELASTIC" },
+			{ ConstLawType::VISCOUS,		"VISCOUS" },
+			{ ConstLawType::VISCOELASTIC,	"VISCOELASTIC" }
+	};
+
+	static const int count = sizeof(types)/sizeof(types[0]);
+
+	octave_value_list args(octObject);
+	const octave_value_list ans = GetInterface()->EvalFunction(strGetConstLawType, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (!ans(0).is_string()) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): " << GetClass() << "." << strGetConstLawType
+				<< " returned a invalid data type (" << ans(0).type_name() << std::endl
+				<< "expected string" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const std::string strCLType(ans(0).string_value());
+
+	for (int i = 0; i < count; ++i) {
+		if (strCLType == types[i].name) {
+			clType = types[i].value;
+			return clType;
+		}
+	}
+
+	silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+			<< "): " << GetClass() << "." << strGetConstLawType
+			<< " returned a invalid value (" << strCLType << ")" << std::endl);
+
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+};
+
+template <class T, class Tder>
+ConstitutiveLaw<T, Tder>* OctaveConstitutiveLaw<T, Tder>::pCopy(void) const {
+	Base_t* pCL = NULL;
+
+	typedef OctaveConstitutiveLaw<T, Tder> cl;
+	SAFENEWWITHCONSTRUCTOR(pCL, cl, cl(GetClass(), GetInterface(), GetFlags()));
+	return pCL;
+};
+
+template <class T, class Tder>
+std::ostream& OctaveConstitutiveLaw<T, Tder>::Restart(std::ostream& out) const {
+	return out << "# octave constitutive law not implemented" << std::endl;
+};
+
+template <class T, class Tder>
+void OctaveConstitutiveLaw<T, Tder>::Update(const T& mbEps, const T& mbEpsPrime) {
+
+	octave_value octEps, octEpsPrime;
+
+	if (!GetInterface()->ConvertMBDynToOctave(mbEps, octEps)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): failed to convert MBDyn data type to octave_value" << std::endl);
+
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!GetInterface()->ConvertMBDynToOctave(mbEpsPrime, octEpsPrime)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): failed to convert MBDyn data type to octave_value" << std::endl);
+
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octave_value_list args(octObject);
+	args.append(octEps);
+	args.append(octEpsPrime);
+
+	const octave_value_list ans = GetInterface()->EvalFunction(strUpdate, args, 4, GetFlags());
+
+	ASSERT(ans.length() == 4);
+
+	if (!ans(0).is_object()) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+					<< "): data type of first output argument is invalid (" << ans(0).type_name() << ")" << std::endl
+					<< "expected object" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octObject = ans(0);
+
+	if (!((ans(1).is_real_matrix() || ans(1).is_real_scalar()) && ans(1).columns() == 1)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument F is invalid (" << ans(1).type_name() << ")" << std::endl
+				<< "expected real vector" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const ColumnVector octF(ans(1).column_vector_value());
+
+	if (!(ans(2).is_real_matrix() || ans(2).is_real_scalar())) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument FDE is invalid (" << ans(2).type_name() << ")" << std::endl
+				<< "expected real matrix" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const Matrix octFDE(ans(2).matrix_value());
+
+	if (!(ans(3).is_real_matrix() || ans(3).is_real_scalar())) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument FDEPrime is invalid (" << ans(3).type_name() << ")" << std::endl
+				<< "expected real matrix" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const Matrix octFDEPrime(ans(3).matrix_value());
+
+	Base_t::Epsilon = mbEps;
+	Base_t::EpsilonPrime = mbEpsPrime;
+
+	if (!GetInterface()->ConvertOctaveToMBDyn(octF, Base_t::F)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument F is invalid "
+				<< octF.rows() << "x" << octF.columns() << " (" << ans(1).type_name() << ")" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!GetInterface()->ConvertOctaveToMBDyn(octFDE, Base_t::FDE)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument FDE is invalid "
+				<< octFDE.rows() << "x" << octFDE.columns() << " (" << ans(2).type_name() << ")" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!GetInterface()->ConvertOctaveToMBDyn(octFDEPrime, Base_t::FDEPrime)) {
+		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
+				<< "): data type of output argument FDEPrime is invalid "
+				<< octFDEPrime.rows() << "x" << octFDEPrime.columns() << " (" << ans(3).type_name() << ")" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+};
 
 OctaveBaseDCR::OctaveBaseDCR()
 	:pInterface(0), iFlags(OctaveInterface::DEFAULT_CALL_FLAGS)
@@ -1587,15 +4055,23 @@ OctaveBaseDCR::~OctaveBaseDCR()
 	}
 }
 
-void OctaveBaseDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDefered)const
+void OctaveBaseDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)const
 {
 	if (pInterface == 0) {
-	   pInterface = OctaveInterface::CreateInterface(pDM);
+	   pInterface = OctaveInterface::CreateInterface(pDM, &HP);
 	}
 
 	strFunction = HP.GetStringWithDelims(HighParser::DOUBLEQUOTE);
 
 	iFlags = OctaveInterface::DEFAULT_CALL_FLAGS;
+
+	if (HP.IsKeyWord("update" "octave" "variables") && HP.GetYesNoOrBool()) {
+		iFlags |= OctaveInterface::UPDATE_OCTAVE_VARIABLES;
+	}
+
+	if (HP.IsKeyWord("update" "mbdyn" "variables") && HP.GetYesNoOrBool()) {
+		iFlags |= OctaveInterface::UPDATE_MBDYN_VARIABLES;
+	}
 
 	if (HP.IsKeyWord("update" "global" "variables") && HP.GetYesNoOrBool()) {
 		iFlags |= OctaveInterface::UPDATE_GLOBAL_VARIABLES;
@@ -1625,12 +4101,34 @@ void OctaveBaseDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDefered)
 	TRACE("iFlags=" << iFlags);
 }
 
+void OctaveFunctionDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) const
+{
+	args.resize(0);
+
+	OctaveBaseDCR::Read(pDM, HP, bDeferred);
+
+	if (HP.IsKeyWord("arguments")) {
+		integer iNumArgs = HP.GetInt();
+		while (iNumArgs-- > 0) {
+			TypedValue mbVal(HP.GetValue(TypedValue()));
+			octave_value octVal;
+
+			if (!GetInterface()->ConvertMBDynToOctave(mbVal, octVal)) {
+				silent_cerr("octave error: could not convert MBDyn data type " << mbVal.GetTypeName() << " to octave" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			args.append(octVal);
+		}
+	}
+}
+
 DriveCaller *
 OctaveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
-	OctaveBaseDCR::Read(pDM, HP, bDeferred);
+	OctaveFunctionDCR::Read(pDM, HP, bDeferred);
 
-	return new OctaveDriveCaller(GetFunction(), GetInterface(), GetFlags());
+	return new OctaveDriveCaller(GetFunction(), GetInterface(), GetFlags(), GetArgs());
 };
 
 DriveCaller *
@@ -1653,8 +4151,8 @@ DerivativeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 const BasicScalarFunction *
 OctaveSFR::Read(DataManager* pDM, MBDynParser& HP) const
 {
-	OctaveBaseDCR::Read(pDM, HP);
-	return new OctaveScalarFunction(GetFunction(), GetInterface(), GetFlags());
+	OctaveFunctionDCR::Read(pDM, HP);
+	return new OctaveScalarFunction(GetFunction(), GetInterface(), GetFlags(), GetArgs());
 };
 
 
@@ -1662,14 +4160,31 @@ const std::string OctaveElement::strWorkSpaceDim("WorkSpaceDim");
 const std::string OctaveElement::striGetNumDof("iGetNumDof");
 const std::string OctaveElement::strAssRes("AssRes");
 const std::string OctaveElement::strAssJac("AssJac");
-const std::string OctaveElement::strIsMethod("ismethod");
+const std::string OctaveElement::strUpdate("Update");
+const std::string OctaveElement::strSetValue("SetValue");
+const std::string OctaveElement::striGetInitialNumDof("iGetInitialNumDof");
+const std::string OctaveElement::strSetInitialValue("SetInitialValue");
+const std::string OctaveElement::strInitialAssRes("InitialAssRes");
+const std::string OctaveElement::strInitialAssJac("InitialAssJac");
+const std::string OctaveElement::strInitialWorkSpaceDim("InitialWorkSpaceDim");
+const std::string OctaveElement::strGetDofType("GetDofType");
+const std::string OctaveElement::strGetEqType("GetEqType");
+const std::string OctaveElement::strAfterConvergence("AfterConvergence");
+const std::string OctaveElement::striGetNumPrivData("iGetNumPrivData");
+const std::string OctaveElement::striGetPrivDataIdx("iGetPrivDataIdx");
+const std::string OctaveElement::strdGetPrivData("dGetPrivData");
+const std::string OctaveElement::striGetNumConnectedNodes("iGetNumConnectedNodes");
+const std::string OctaveElement::strGetConnectedNodes("GetConnectedNodes");
+const std::string OctaveElement::strOutput("Output");
+const std::string OctaveElement::strDescribeDof("DescribeDof");
+const std::string OctaveElement::strDescribeEq("DescribeEq");
 
 OctaveElement::OctaveElement(
 	unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
   UserDefinedElem(uLabel, pDO),
-  haveJacobian(JACOBIAN_NO)
+  haveMethod(HAVE_DEFAULT)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -1686,22 +4201,17 @@ OctaveElement::OctaveElement(
 
 	dcr.Read(pDM, HP);
 
+	X = new ConstVectorHandlerInterface(GetInterface());
+	XP = new ConstVectorHandlerInterface(GetInterface());
 	mbdObject = new OctaveElementInterface(GetInterface(), this);
+	OS = new OStreamInterface(GetInterface());
 
-	octave_value_list args;
-
-	while (HP.IsArg()) {
-		const TypedValue vDef;
-		const TypedValue varValue(HP.GetValue(vDef));
-		octave_value octValue;
-		GetInterface()->ConvertMBDynToOctave(varValue, octValue);
-		args.append(octValue);
-	}
+	octave_value_list args(mbdObject);
 
 	args.append(GetInterface()->GetDataManagerInterface());
-	args.append(mbdObject);
+	args.append(GetInterface()->GetMBDynParserInterface());
 
-	const int flags = OctaveInterface::UPDATE_GLOBAL_VARIABLES | OctaveInterface::PASS_DATA_MANAGER;
+	const int flags = OctaveInterface::UPDATE_OCTAVE_VARIABLES;
 
 	octave_value_list ans = GetInterface()->EvalFunction(GetClass(), args, 1, flags);
 
@@ -1710,56 +4220,171 @@ OctaveElement::OctaveElement(
 	octObject = ans(0);
 
 	if (!octObject.is_object()) {
-		silent_cerr("octave(" << GetLabel() << "): result of constructor is not an object at line " << HP.GetLineData() << std::endl);
+		silent_cerr("octave(" << GetLabel() << "): result of constructor ("
+				<< ans(0).type_name() << ") is not an object at line "
+				<< HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	args.resize(0);
-	args.append(octObject);
-	args.append(octave_value(strAssJac));
+	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
-	ans = GetInterface()->EvalFunction(strIsMethod, args, 1);
+	if (bHaveMethod(strAssJac)) {
+		haveMethod |= HAVE_JACOBIAN;
+	} else {
+		pedantic_cerr("octave waring: method " << strAssJac << " not found in class " << GetClass() << std::endl);
+	}
 
-	ASSERT(ans.length() == 1);
+	if (bHaveMethod(strUpdate)) {
+		haveMethod |= HAVE_UPDATE;
+	} else {
+		pedantic_cerr("octave warning: method " << strUpdate << " not found in class " << GetClass() << std::endl);
+	}
 
-	haveJacobian = ans(0).bool_value(true) ? JACOBIAN_FULL : JACOBIAN_NO;
+	if (bHaveMethod(strAfterConvergence)) {
+		haveMethod |= HAVE_AFTER_CONVERGENCE;
+	} else {
+		pedantic_cerr("octave warning: method " << strAfterConvergence << " not found in class " << GetClass() << std::endl);
+	}
 
-	if (error_state) {
-		silent_cerr("octave(" << GetLabel() << "): unexpected error in function " << strIsMethod << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	if (bHaveMethod(strSetValue)) {
+		haveMethod |= HAVE_SET_VALUE;
+	} else {
+		pedantic_cerr("octave warning: method " << strSetValue << " not found in class " << GetClass() << std::endl);
+	}
+
+	if (bHaveMethod(striGetNumDof)) {
+		if (!bHaveMethod(strGetDofType)) {
+			silent_cerr("octave error: method " << strGetDofType << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bHaveMethod(strGetEqType)) {
+			silent_cerr("octave error: method " << strGetEqType << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		haveMethod |= HAVE_PRIVATE_DOF;
+
+		if (bHaveMethod(strDescribeDof)) {
+			haveMethod |= HAVE_DESCRIBE_DOF;
+		}
+
+		if (bHaveMethod(strDescribeEq)) {
+			haveMethod |= HAVE_DESCRIBE_EQ;
+		}
+	} else {
+		pedantic_cerr("octave warning: method " << striGetNumDof << " not found in class " << GetClass() << std::endl);
+	}
+
+	if (bHaveMethod(striGetNumPrivData)) {
+		if (!bHaveMethod(striGetPrivDataIdx)) {
+			silent_cerr("octave error: method " << striGetPrivDataIdx << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bHaveMethod(strdGetPrivData)) {
+			silent_cerr("octave error: method " << strdGetPrivData << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		haveMethod |= HAVE_PRIVATE_DATA;
+	} else {
+		pedantic_cerr("octave warning: method " << striGetNumPrivData << " not found in class " << GetClass() << std::endl);
+	}
+
+	if (bHaveMethod(striGetNumConnectedNodes)) {
+		if (!bHaveMethod(strGetConnectedNodes)) {
+			silent_cerr("octave error: method " << strGetConnectedNodes << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		haveMethod |= HAVE_CONNECTED_NODES;
+	} else {
+		pedantic_cerr("octave warning: method " << striGetNumConnectedNodes << " not found in class " << GetClass() << std::endl);
+	}
+
+	if (bHaveMethod(strInitialAssRes)) {
+		if (!bHaveMethod(strInitialAssJac)) {
+			silent_cerr("octave error: method " << strInitialAssJac << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bHaveMethod(strInitialWorkSpaceDim)) {
+			silent_cerr("octave error: method " << strInitialWorkSpaceDim << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!bHaveMethod(striGetInitialNumDof)) {
+			silent_cerr("octave error: method " << striGetInitialNumDof << " not found in class " << GetClass() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		haveMethod |= HAVE_INITIAL_ASSEMBLY;
+
+		if (bHaveMethod(strSetInitialValue)) {
+			haveMethod |= HAVE_SET_INITIAL_VALUE;
+		} else {
+			pedantic_cerr("octave warning: method " << strSetInitialValue << " not found in class " << GetClass() << std::endl);
+		}
+	} else {
+		pedantic_cerr("octave warning: method " << strInitialAssRes
+					  << " not found in class " << GetClass() << std::endl
+					  << " initial assembly has been disabled" << std::endl);
+	}
+
+	if (bHaveMethod(strOutput)) {
+		haveMethod |= HAVE_OUTPUT;
+	} else {
+		pedantic_cerr("octave warning: method " << strOutput << " not found in class " << GetClass() << std::endl);
 	}
 }
 
 OctaveElement::~OctaveElement(void)
 {
-	GetInterface()->Destroy();
+
 }
 
 void
 OctaveElement::Output(OutputHandler& OH) const
 {
-	// should do something useful
-	NO_OP;
+	if (!(fToBeOutput() && OH.UseText(OutputHandler::LOADABLE))) {
+		return;
+	}
+
+	if (!(haveMethod & HAVE_OUTPUT)) {
+		return;
+	}
+
+	OS->Set(&OH.Loadable());
+
+	octave_value_list args(octObject);
+	args.append(OS);
+
+	GetInterface()->EvalFunction(strOutput, args, 0, GetFlags());
+
+	OS->Set(0);
 }
 
 void
 OctaveElement::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	octave_value_list args(octObject);
-	args.append(GetInterface()->GetDataManagerInterface());
-	args.append(mbdObject);
 
 	octave_value_list ans = GetInterface()->EvalFunction(strWorkSpaceDim, args, 2, GetFlags());
 
 	ASSERT(ans.length() == 2);
 
-	*piNumRows = ans(0).int32_scalar_value();
-	*piNumCols = ans(1).int32_scalar_value();
-
-	if (error_state) {
-		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strWorkSpaceDim << " returned a incorrect data type" << std::endl);
+	if (!(ans(0).is_scalar_type()
+			&& ans(0).is_integer_type()
+			&& ans(1).is_scalar_type()
+			&& ans(1).is_integer_type())) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strWorkSpaceDim
+				<< " must return two integer values\nreturned(" << ans(0).type_name() << ", " << ans(1).type_name() << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	*piNumRows = static_cast<int32_t>(ans(0).int32_scalar_value());
+	*piNumCols = static_cast<int32_t>(ans(1).int32_scalar_value());
 }
 
 VariableSubMatrixHandler&
@@ -1768,86 +4393,32 @@ OctaveElement::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	if (haveJacobian == JACOBIAN_NO) {
+	if ( !(haveMethod & HAVE_JACOBIAN) ) {
 		WorkMatVar.SetNullMatrix();
 		return WorkMatVar;
-	}
-
-	octave_value_list args(octObject);
-
-	args.append(octave_value(dCoef));
-	args.append(GetInterface()->GetDataManagerInterface());
-	args.append(mbdObject);
-
-	octave_value_list ans = GetInterface()->EvalFunction(strAssJac, args, 3, GetFlags());
-
-	ASSERT(ans.length() == 3);
-
-	Matrix Jac = ans(0).matrix_value();
-	int32NDArray ridx = ans(1).int32_array_value();
-	int32NDArray cidx = ans(2).int32_array_value();
-
-	if (error_state) {
-		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssJac << " returned an incorrect data type" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	integer iNumRows, iNumCols;
 
 	WorkSpaceDim(&iNumRows, &iNumCols);
 
-	FullSubMatrixHandler& WorkMat = WorkMatVar.SetFull();
+	octave_value_list args(octObject);
 
-	WorkMat.ResizeReset(iNumRows, iNumCols);
+	X->Set(&XCurr);
+	XP->Set(&XPrimeCurr);
 
-	if (Jac.rows() != iNumRows
-		|| Jac.columns() != iNumCols
-		|| ridx.length() != iNumRows
-		|| cidx.length() != iNumCols)
-	{
-		silent_cerr("octave(" << GetLabel() << "):"
-			<< " rows(Jac)=" << Jac.rows()
-			<< " columns(Jac)= " << Jac.columns()
-			<< " length(ridx)= " << ridx.length()
-			<< " length(cidx)=" << cidx.length()
-			<< " are not consistent with iNumRows=" << iNumRows
-			<< " and iNumCols=" << iNumCols << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	args.append(octave_value(dCoef));
+	args.append(X);
+	args.append(XP);
 
-	integer iNumDof = GetInterface()->GetDataManager()->iGetNumDofs();
+	const octave_value_list ans = GetInterface()->EvalFunction(strAssJac, args, 4, GetFlags() | OctaveInterface::OPTIONAL_OUTPUT_ARGS);
 
-	for (int i = 0; i < iNumRows; ++i) {
-		if (int(ridx(i)) <= 0 || int(ridx(i)) > iNumDof) {
-			silent_cerr("octave(" << GetLabel() << "):"
-				<< " function " << GetClass() << "." << strAssJac
-				<< ": row index " << ridx(i)
-				<< " out of range [1:" << iNumDof << "]" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+	ASSERT(ans.length() <= 4);
 
-		WorkMat.PutRowIndex(i + 1, ridx(i));
-	}
+	X->Set(0);
+	XP->Set(0);
 
-	for (int j = 0; j < iNumCols; ++j) {
-		if (int(cidx(j)) <= 0 || int(cidx(j)) > iNumDof) {
-			silent_cerr("octave(" << GetLabel() << "):"
-				<< " function " << GetClass() << "." << strAssJac
-				<< ": column index " << cidx(j)
-				<< " out of range [1:" << iNumDof << "]" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		WorkMat.PutColIndex(j + 1, cidx(j));
-	}
-
-	for (int i = 0; i < iNumRows; ++i) {
-		for (int j = 0; j < iNumCols; ++j) {
-			WorkMat.PutCoef(i + 1, j + 1, Jac(i, j));
-		}
-	}
-
-	return WorkMatVar;
+	return AssMatrix(WorkMatVar, ans, false);
 }
 
 SubVectorHandler&
@@ -1862,29 +4433,608 @@ OctaveElement::AssRes(SubVectorHandler& WorkVec,
 
 	WorkVec.ResizeReset(iNumRows);
 
+	X->Set(&XCurr);
+	XP->Set(&XPrimeCurr);
+
 	octave_value_list args(octObject);
 	args.append(octave_value(dCoef));
-	args.append(GetInterface()->GetDataManagerInterface());
-	args.append(mbdObject);
+	args.append(X);
+	args.append(XP);
 
 	octave_value_list ans = GetInterface()->EvalFunction(strAssRes, args, 2, GetFlags());
 
+	X->Set(0);
+	XP->Set(0);
+
 	ASSERT(ans.length() == 2);
 
-	ColumnVector f = ans(0).column_vector_value();
-	int32NDArray ridx = ans(1).int32_array_value();
-
-	if (error_state) {
-		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes << " returned an incorrect data type" << std::endl);
+	if (!(ans(0).is_matrix_type()
+			&& ans(0).is_real_type()
+			&& ans(0).columns() == 1)) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strAssRes
+				<< ": output argument f (" << ans(0).type_name()
+				<< ") must be a real column vector" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	const ColumnVector f = ans(0).column_vector_value();
+
+	if (!(ans(1).is_integer_type()
+			&& ans(1).is_matrix_type()
+			&& ans(1).columns() == 1)) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strAssRes
+				<< ": output argument ridx (" << ans(1).type_name()
+				<< ") must be an integer column vector" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32NDArray ridx = ans(1).int32_array_value();
 
 	if (ridx.length() != iNumRows || f.length() != iNumRows) {
-		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes << ": length(f)=" << f.length() << " length(ridx)=" << ridx.length() << " is not equal to iNumRows=" << iNumRows << std::endl);
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes
+				<< "\nlength(f)=" << f.length()
+				<< " length(ridx)=" << ridx.length()
+				<< " is not equal to iNumRows=" << iNumRows << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	integer iNumDof = GetInterface()->GetDataManager()->iGetNumDofs();
+	const integer iNumDof = GetInterface()->GetDataManager()->iGetNumDofs();
+
+	for (octave_idx_type i = 0; i < f.length(); ++i) {
+		if (int(ridx(i)) <= 0 || int(ridx(i)) > iNumDof) {
+			silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes
+					<< ": row index " << ridx(i)
+					<< " out of range [1:" << iNumDof << "]" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		WorkVec.PutItem(i + 1, ridx(i), f(i));
+	}
+
+	return WorkVec;
+}
+
+unsigned int
+OctaveElement::iGetNumPrivData(void) const
+{
+	if ( !(haveMethod & HAVE_PRIVATE_DATA) ) {
+		return 0u;
+	}
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(striGetNumPrivData, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if ( !(ans(0).is_integer_type() && ans(0).is_scalar_type()) ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetNumPrivData
+				<< " returned (" << ans(0).type_name() << ")\n"
+				<< "expected integer scalar" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32_t iNumPrivData = ans(0).int32_scalar_value();
+
+	if ( iNumPrivData < 0 ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetNumPrivData
+				<< " returned a negative value" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return iNumPrivData;
+}
+
+unsigned int
+OctaveElement::iGetPrivDataIdx(const char *s) const
+{
+	if ( !(haveMethod & HAVE_PRIVATE_DATA) ) {
+		ASSERT(0); // We should not get here!
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_value(s));
+
+	octave_value_list ans = GetInterface()->EvalFunction(striGetPrivDataIdx, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if ( !(ans(0).is_integer_type() && ans(0).is_scalar_type()) ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetPrivDataIdx
+				<< " returned (" << ans(0).type_name() << ")\n"
+				<< "expected integer scalar" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32_t iPrivDataIdx = ans(0).int32_scalar_value();
+
+	if ( iPrivDataIdx <= 0 ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetPrivDataIdx
+				<< " returned a negative or zero value" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return iPrivDataIdx;
+}
+
+doublereal
+OctaveElement::dGetPrivData(unsigned int i) const
+{
+	if ( !(haveMethod & HAVE_PRIVATE_DATA) ) {
+		ASSERT(0); // We should not get here!
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_int32(i));
+
+	octave_value_list ans = GetInterface()->EvalFunction(strdGetPrivData, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if ( !(ans(0).is_real_scalar()) ) {
+		silent_cerr("octave error: method " << GetClass() << "." << strdGetPrivData
+				<< " returned (" << ans(0).type_name() << ")\n"
+				<< "expected real scalar" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return ans(0).scalar_value();
+}
+
+int
+OctaveElement::iGetNumConnectedNodes(void) const
+{
+	if (!(haveMethod & HAVE_CONNECTED_NODES)) {
+		return 0u;
+	}
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(striGetNumConnectedNodes, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if ( !(ans(0).is_integer_type() && ans(0).is_scalar_type()) ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetNumConnectedNodes
+				<< " returned (" << ans(0).type_name() << ")\n"
+				<< "expected integer scalar" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32_t iNumConnectedNodes = ans(0).int32_scalar_value();
+
+	if ( iNumConnectedNodes < 0 ) {
+		silent_cerr("octave error: method " << GetClass() << "." << striGetNumConnectedNodes
+				<< " returned a negative value" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return iNumConnectedNodes;
+}
+
+void
+OctaveElement::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	if (!(haveMethod & HAVE_CONNECTED_NODES)) {
+		connectedNodes.resize(0);
+		return;
+	}
+
+	connectedNodes.resize(iGetNumConnectedNodes());
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strGetConnectedNodes, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (!ans(0).is_cell()) {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetConnectedNodes
+				<< " returned (" << ans(0).type_name() << ")\n"
+				<< "expected cell" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const Cell nodes(ans(0).cell_value());
+
+	if (size_t(nodes.length()) != connectedNodes.size()) {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetConnectedNodes
+				<< " returned an object of size " << nodes.length()
+				<< " whereas " << GetClass() << "." << striGetNumConnectedNodes
+				<< " returned "<< connectedNodes.size() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (size_t i = 0; i < connectedNodes.size(); ++i) {
+		const NodeInterface* pNode = dynamic_cast<const NodeInterface*>(&nodes(i).get_rep());
+
+		if (pNode == 0) {
+			silent_cerr("octave error: cell(" << i + 1 << ") (data type " << nodes(i).type_name() << ") is not a node" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		connectedNodes[i] = pNode->Get();
+	}
+}
+
+void
+OctaveElement::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+	if (!(haveMethod & HAVE_SET_VALUE)) {
+		return;
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_value(new VectorHandlerInterface(GetInterface(), &X)));
+	args.append(octave_value(new VectorHandlerInterface(GetInterface(), &XP)));
+
+	GetInterface()->EvalFunction(strSetValue, args, 0, GetFlags());
+}
+
+unsigned int OctaveElement::iGetNumDof(void) const
+{
+	if (!(haveMethod & HAVE_PRIVATE_DOF)) {
+		return 0u;
+	}
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(striGetNumDof, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (!(ans(0).is_integer_type() && ans(0).is_scalar_type())){
+		silent_cerr("octave error: method " << GetClass() << "." << striGetNumDof
+				<< " returned (" << ans(0).type_name()
+				<< ")\nmethod must return an integer" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return static_cast<int32_t>(ans(0).int32_scalar_value());
+}
+
+DofOrder::Order OctaveElement::GetDofType(unsigned int i) const
+{
+	if (!(haveMethod & HAVE_PRIVATE_DOF)) {
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_int32(i + 1)); // FIXME: Why is this index zero based?
+
+	octave_value_list ans = GetInterface()->EvalFunction(strGetDofType, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (ans(0).is_integer_type() && ans(0).is_scalar_type()) {
+		const int32_t order = static_cast<int32_t>(ans(0).int32_scalar_value());
+
+		switch ( order ) {
+		case DofOrder::ALGEBRAIC:
+		case DofOrder::DIFFERENTIAL:
+			return static_cast<DofOrder::Order>(order);
+		default:
+			silent_cerr("octave error: method " << GetClass() << "." << strGetDofType
+					<< " returned an illegal value" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if ( !ans(0).is_string() ) {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetDofType
+				<< " returned (" << ans(0).type_name()
+				<< ")\nmethod must return integer or string values" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const std::string order = ans(0).string_value();
+
+	if ( order == "ALGEBRAIC" ) {
+		return DofOrder::ALGEBRAIC;
+	} else if ( order == "DIFFERENTIAL" ) {
+		return DofOrder::DIFFERENTIAL;
+	} else {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetDofType
+				<< " returned an illegal value (" << order << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+DofOrder::Order OctaveElement::GetEqType(unsigned int i) const
+{
+	if (!(haveMethod & HAVE_PRIVATE_DOF)) {
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_int32(i + 1)); // FIXME: Why is this index zero based?
+
+	octave_value_list ans = GetInterface()->EvalFunction(strGetEqType, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (ans(0).is_integer_type() && ans(0).is_scalar_type()) {
+		const int32_t order = static_cast<int32_t>(ans(0).int32_scalar_value());
+
+		switch ( order ) {
+		case DofOrder::ALGEBRAIC:
+		case DofOrder::DIFFERENTIAL:
+			return static_cast<DofOrder::Order>(order);
+		default:
+			silent_cerr("octave error: method " << GetClass() << "." << strGetEqType
+					<< " returned an illegal value" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if ( !ans(0).is_string() ) {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetEqType
+				<< " returned (" << ans(0).type_name()
+				<< ")\nmethod must return integer or string values" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const std::string order = ans(0).string_value();
+
+	if ( order == "ALGEBRAIC" ) {
+		return DofOrder::ALGEBRAIC;
+	} else if ( order == "DIFFERENTIAL" ) {
+		return DofOrder::DIFFERENTIAL;
+	} else {
+		silent_cerr("octave error: method " << GetClass() << "." << strGetEqType
+				<< " returned an illegal value (" << order << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+std::ostream& OctaveElement::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	if (!(haveMethod & HAVE_DESCRIBE_DOF)) {
+		return out;
+	}
+
+	OS->Set(&out);
+
+	octave_value_list args(octObject);
+	args.append(OS);
+	args.append(octave_value(prefix));
+	args.append(octave_value(bInitial));
+
+	GetInterface()->EvalFunction(strDescribeDof, args, 0, GetFlags());
+
+	OS->Set(0);
+
+	return out;
+}
+
+std::ostream& OctaveElement::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+	if (!(haveMethod & HAVE_DESCRIBE_EQ)) {
+		return out;
+	}
+
+	OS->Set(&out);
+
+	octave_value_list args(octObject);
+	args.append(OS);
+	args.append(octave_value(prefix));
+	args.append(octave_value(bInitial));
+
+	GetInterface()->EvalFunction(strDescribeEq, args, 0, GetFlags());
+
+	OS->Set(0);
+
+	return out;
+}
+
+void OctaveElement::Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr)
+{
+	if (!(haveMethod & HAVE_UPDATE)) {
+		return;
+	}
+
+	X->Set(&XCurr);
+	XP->Set(&XPrimeCurr);
+
+	octave_value_list args(octObject);
+	args.append(X);
+	args.append(XP);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strUpdate, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if ( !ans(0).is_object() ) {
+		silent_cerr("octave error: return value of " << strUpdate << " ("
+				<< ans(0).type_name() << ") is not an object" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octObject = ans(0);
+
+	X->Set(0);
+	XP->Set(0);
+}
+
+void OctaveElement::AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP)
+{
+	if ( !(haveMethod & HAVE_AFTER_CONVERGENCE) ) {
+		return;
+	}
+
+	this->X->Set(&X);
+	this->XP->Set(&XP);
+
+	octave_value_list args(octObject);
+	args.append(this->X);
+	args.append(this->XP);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strAfterConvergence, args, 1, GetFlags());
+
+	this->X->Set(0);
+	this->XP->Set(0);
+
+	ASSERT(ans.length() == 1);
+
+	if ( !ans(0).is_object() ) {
+		silent_cerr("octave error: return value of " << strAfterConvergence << " ("
+				<< ans(0).type_name() << ") is not an object" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octObject = ans(0);
+}
+
+std::ostream&
+OctaveElement::Restart(std::ostream& out) const
+{
+	return out << "# OctaveElement: not implemented" << std::endl;
+}
+
+unsigned int
+OctaveElement::iGetInitialNumDof(void) const
+{
+	if (!(haveMethod & HAVE_INITIAL_ASSEMBLY)) {
+		return 0u;
+	}
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(striGetInitialNumDof, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (!(ans(0).is_integer_type() && ans(0).is_scalar_type())){
+		silent_cerr("octave error: method " << GetClass() << "." << striGetInitialNumDof
+				<< " returned (" << ans(0).type_name()
+				<< ")\nmethod must return an integer" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return static_cast<int32_t>(ans(0).int32_scalar_value());
+}
+
+void
+OctaveElement::InitialWorkSpaceDim(
+	integer* piNumRows,
+	integer* piNumCols) const
+{
+	if (!(haveMethod & HAVE_INITIAL_ASSEMBLY)) {
+		*piNumRows = 0;
+		*piNumCols = 0;
+		return;
+	}
+
+	octave_value_list args(octObject);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strInitialWorkSpaceDim, args, 2, GetFlags());
+
+	ASSERT(ans.length() == 2);
+
+	if (!(ans(0).is_integer_type()
+			&& ans(0).is_scalar_type()
+			&& ans(1).is_integer_type()
+			&& ans(1).is_scalar_type())) {
+		silent_cerr("octave error: method " << GetClass() << "." << strInitialWorkSpaceDim
+				<< " must return two integer values\n"
+				<< "returned (" << ans(0).type_name() << ", " << ans(1).type_name() << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	*piNumRows = static_cast<int32_t>(ans(0).int32_scalar_value());
+	*piNumCols = static_cast<int32_t>(ans(1).int32_scalar_value());
+}
+
+VariableSubMatrixHandler&
+OctaveElement::InitialAssJac(
+	VariableSubMatrixHandler& WorkMatVar,
+	const VectorHandler& XCurr)
+{
+	if (!(haveMethod & HAVE_INITIAL_ASSEMBLY)) {
+		WorkMatVar.SetNullMatrix();
+		return WorkMatVar;
+	}
+
+	octave_value_list args(octObject);
+
+	X->Set(&XCurr);
+
+	args.append(X);
+
+	const octave_value_list ans = GetInterface()->EvalFunction(strInitialAssJac, args, 4, GetFlags() | OctaveInterface::OPTIONAL_OUTPUT_ARGS);
+
+	ASSERT(ans.length() <= 4);
+
+	X->Set(0);
+
+	return AssMatrix(WorkMatVar, ans, true);
+}
+
+SubVectorHandler&
+OctaveElement::InitialAssRes(
+	SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr)
+{
+	if ( !(haveMethod & HAVE_INITIAL_ASSEMBLY) ) {
+		WorkVec.ResizeReset(0);
+		return WorkVec;
+	}
+
+	int iNumRows, iNumCols;
+
+	InitialWorkSpaceDim(&iNumRows, &iNumCols);
+
+	WorkVec.ResizeReset(iNumRows);
+
+	X->Set(&XCurr);
+
+	octave_value_list args(octObject);
+	args.append(X);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strInitialAssRes, args, 2, GetFlags());
+
+	X->Set(0);
+
+	ASSERT(ans.length() == 2);
+
+	if (!(ans(0).is_matrix_type()
+			&& ans(0).is_real_type()
+			&& ans(0).columns() == 1)) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strInitialAssRes
+				<< " output argument f (" << ans(0).type_name() << ") must be a real column vector" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const ColumnVector f = ans(0).column_vector_value();
+
+	if (!(ans(1).is_integer_type()
+			&& ans(1).is_matrix_type()
+			&& ans(1).columns() == 1)) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strInitialAssRes
+				<< ": output argument ridx (" << ans(1).type_name() << ") must be an integer column vector" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32NDArray ridx = ans(1).int32_array_value();
+
+	if (ridx.length() != iNumRows || f.length() != iNumRows) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strInitialAssRes
+				<< ": length(f)=" << f.length()
+				<< " length(ridx)=" << ridx.length()
+				<< " is not equal to iNumRows=" << iNumRows << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const integer iNumDof = GetInterface()->GetDataManager()->iGetNumDofs();
 
 	for (octave_idx_type i = 0; i < f.length(); ++i) {
 		if (int(ridx(i)) <= 0 || int(ridx(i)) > iNumDof) {
@@ -1898,82 +5048,185 @@ OctaveElement::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-unsigned int
-OctaveElement::iGetNumPrivData(void) const
+void OctaveElement::SetInitialValue(VectorHandler& X)
 {
-	return 0;
+	if (!(haveMethod & HAVE_SET_INITIAL_VALUE)) {
+		return;
+	}
+
+	octave_value_list args(octObject);
+	args.append(octave_value(new VectorHandlerInterface(GetInterface(), &X)));
+
+	GetInterface()->EvalFunction(strSetInitialValue, args, 0, GetFlags());
 }
 
-int
-OctaveElement::iGetNumConnectedNodes(void) const
+bool OctaveElement::bHaveMethod(const std::string& strName)const
 {
-	return 0;
-}
-
-void
-OctaveElement::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
-{
-	connectedNodes.resize(0);
-}
-
-void
-OctaveElement::SetValue(DataManager *pDM,
-	VectorHandler& X, VectorHandler& XP,
-	SimulationEntity::Hints *ph)
-{
-	NO_OP;
-}
-
-std::ostream&
-OctaveElement::Restart(std::ostream& out) const
-{
-	return out << "# OctaveElement: not implemented" << std::endl;
-}
-
-unsigned int
-OctaveElement::iGetInitialNumDof(void) const
-{
-	return 0;
-}
-
-void
-OctaveElement::InitialWorkSpaceDim(
-	integer* piNumRows,
-	integer* piNumCols) const
-{
-	*piNumRows = 0;
-	*piNumCols = 0;
+	return GetInterface()->bHaveMethod(octObject, GetClass(), strName);
 }
 
 VariableSubMatrixHandler&
-OctaveElement::InitialAssJac(
-	VariableSubMatrixHandler& WorkMat,
-	const VectorHandler& XCurr)
+OctaveElement::AssMatrix(VariableSubMatrixHandler& WorkMatVar, const octave_value_list& ans, bool bInitial)
 {
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
+	const std::string& strFunction = bInitial ? strInitialAssJac : strAssJac;
 
-	WorkMat.SetNullMatrix();
+	ASSERT(ans.length() <= 4);
 
-	return WorkMat;
+	if (ans.length() < 3) {
+		silent_cerr("octave(" << GetLabel()
+					<< "): function " << GetClass() << "." << strFunction
+					<< " returned " << ans.length() << " output arguments\n"
+					<< "expected 3-4 output arguments" << std::endl);
+
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	ASSERT(ans.length() >= 3);
+
+	if (!ans(0).is_real_matrix()) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strFunction
+				<< " output argument Jac (" << ans(0).type_name()
+				<< ") must be a real matrix" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const Matrix Jac = ans(0).matrix_value();
+
+	if (!(ans(1).is_integer_type() && ans(1).is_matrix_type())) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strFunction
+				<< " output argument ridx (" << ans(1).type_name()
+				<< ") must be a vector of integer values" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32NDArray ridx = ans(1).int32_array_value();
+
+	if (!(ans(2).is_integer_type() && ans(2).is_matrix_type())) {
+		silent_cerr("octave(" << GetLabel()
+				<< "): function " << GetClass() << "." << strFunction
+				<< " output argument cidx (" << ans(2).type_name()
+				<< ") must be a vector of integer values" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	const int32NDArray cidx = ans(2).int32_array_value();
+
+	bool bSparse = false;
+
+	if (ans.length() >= 4) {
+		if (!ans(3).is_bool_scalar()) {
+			silent_cerr("octave(" << GetLabel()
+					<< "): invalid data type (" << ans(3).type_name() << ")\n"
+					<< "expected bool scalar" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		bSparse = ans(3).bool_value();
+	}
+
+	return AssMatrix(WorkMatVar, Jac, ridx, cidx, bSparse, bInitial);
 }
 
-SubVectorHandler&
-OctaveElement::InitialAssRes(
-	SubVectorHandler& WorkVec,
-	const VectorHandler& XCurr)
+VariableSubMatrixHandler&
+OctaveElement::AssMatrix(VariableSubMatrixHandler& WorkMatVar, const Matrix& Jac, const int32NDArray& ridx, const int32NDArray& cidx, bool bSparse, bool bInitial)
 {
-	// should not be called, since initial workspace is empty
-	ASSERT(0);
+	const std::string& strFunction = bInitial ? strInitialAssJac : strAssJac;
 
-	WorkVec.ResizeReset(0);
+	const integer iNumRows = Jac.rows();
+	const integer iNumCols = Jac.cols();
 
-	return WorkVec;
+	const integer iNumDof = GetInterface()->GetDataManager()->iGetNumDofs();
+
+	if (bSparse) {
+		if (iNumCols != 1
+				|| ridx.length() != iNumRows
+				|| cidx.length() != iNumRows) {
+			silent_cerr("octave(" << GetLabel() << "):"
+					<< " rows(Jac)=" << Jac.rows()
+					<< " columns(Jac)= " << Jac.columns()
+					<< " length(ridx)= " << ridx.length()
+					<< " length(cidx)=" << cidx.length()
+					<< " are not consistent for a sparse submatrix" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		SparseSubMatrixHandler& WorkMat = WorkMatVar.SetSparse();
+		WorkMat.ResizeReset(iNumRows, 1);
+
+		for (int i = 0; i < iNumRows; ++i) {
+			if (int32_t(ridx(i)) <= 0 || int32_t(ridx(i)) > iNumDof) {
+				silent_cerr("octave(" << GetLabel() << "):"
+						<< " function " << GetClass() << "." << strFunction
+						<< ": row index " << ridx(i)
+						<< " out of range [1:" << iNumDof << "]" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (int32_t(cidx(i)) <= 0 || int32_t(cidx(i)) > iNumDof) {
+				silent_cerr("octave(" << GetLabel() << "):"
+						<< " function " << GetClass() << "." << strFunction
+						<< ": column index " << cidx(i)
+						<< " out of range [1:" << iNumDof << "]" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			WorkMat.PutItem(i + 1, ridx(i), cidx(i), Jac(i, 0));
+		}
+	} else {
+		FullSubMatrixHandler& WorkMat = WorkMatVar.SetFull();
+
+		WorkMat.ResizeReset(iNumRows, iNumCols);
+
+		if (ridx.length() != iNumRows
+				|| cidx.length() != iNumCols) {
+			silent_cerr("octave(" << GetLabel() << "):"
+					<< " rows(Jac)=" << Jac.rows()
+					<< " columns(Jac)= " << Jac.columns()
+					<< " length(ridx)= " << ridx.length()
+					<< " length(cidx)=" << cidx.length()
+					<< " are not consistent for a full submatrix" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		for (int i = 0; i < iNumRows; ++i) {
+			if (int32_t(ridx(i)) <= 0 || int32_t(ridx(i)) > iNumDof) {
+				silent_cerr("octave(" << GetLabel() << "):"
+						<< " function " << GetClass() << "." << strFunction
+						<< ": row index " << ridx(i)
+						<< " out of range [1:" << iNumDof << "]" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			WorkMat.PutRowIndex(i + 1, ridx(i));
+		}
+
+		for (int j = 0; j < iNumCols; ++j) {
+			if (int32_t(cidx(j)) <= 0 || int32_t(cidx(j)) > iNumDof) {
+				silent_cerr("octave(" << GetLabel() << "):"
+						<< " function " << GetClass() << "." << strFunction
+						<< ": column index " << cidx(j)
+						<< " out of range [1:" << iNumDof << "]" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			WorkMat.PutColIndex(j + 1, cidx(j));
+		}
+
+		for (int i = 0; i < iNumRows; ++i) {
+			for (int j = 0; j < iNumCols; ++j) {
+				WorkMat.PutCoef(i + 1, j + 1, Jac(i, j));
+			}
+		}
+	}
+
+	return WorkMatVar;
 }
 
 OctaveElementInterface::OctaveElementInterface(OctaveInterface* pInterface, OctaveElement* pElem)
-	:MBDynInterface(pInterface),
-	 pElem(pElem)
+: MBDynInterface(pInterface),
+pElem(pElem)
 {
 
 }
@@ -1989,27 +5242,46 @@ OctaveElementInterface::print(std::ostream& os, bool pr_as_read_syntax) const
 	os << "MBDynElement(" << (pElem ? pElem->GetLabel() : (unsigned)(-1)) << ")" << std::endl;
 }
 
-METHOD_DEFINE(OctaveElementInterface, iGetFirstIndex, args, nargout)
+METHOD_DEFINE(OctaveElementInterface, GetLabel, args, nargout)
 {
 	if (args.length() != 0) {
-		error("invalid number of arguments!\n");
+		error("OctaveElement: invalid number of arguments %ld\n"
+				"expected no arguments", long(args.length()));
 		return octave_value();
 	}
 
-	return octave_value(pElem->iGetFirstIndex());
+	return octave_value(octave_int<unsigned int>(pElem->GetLabel()));
+}
+
+METHOD_DEFINE(OctaveElementInterface, iGetFirstIndex, args, nargout)
+{
+	if (args.length() != 0) {
+		error("OctaveElement: invalid number of arguments %ld\n"
+				"expected no arguments", long(args.length()));
+		return octave_value();
+	}
+
+	return octave_value(octave_int<integer>(pElem->iGetFirstIndex()));
 }
 
 BEGIN_METHOD_TABLE(OctaveElementInterface, MBDynInterface)
+	METHOD_DISPATCH(OctaveElementInterface, GetLabel)
 	METHOD_DISPATCH(OctaveElementInterface, iGetFirstIndex)
 END_METHOD_TABLE()
 
 DEFINE_OCTAVE_ALLOCATOR(OctaveElementInterface);
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(OctaveElementInterface, "MBDynElement", "MBDynElement");
 
+}
+
+#endif // USE_OCTAVE
 
 bool
 mbdyn_octave_set(void)
 {
+#ifdef USE_OCTAVE
+	using namespace oct;
+
 	DriveCallerRead	*rf = new OctaveDCR;
 	if (!SetDriveData("octave", rf)) {
 		delete rf;
@@ -2064,6 +5336,30 @@ mbdyn_octave_set(void)
 		return false;
 	}
 
+	ConstitutiveLawRead<doublereal, doublereal> *rfcl1D = new OctaveCLR<doublereal, doublereal>;
+	if (!SetCL1D("octave", rfcl1D)) {
+		delete rfcl1D;
+		return false;
+	}
+
+	ConstitutiveLawRead<Vec3, Mat3x3> *rfcl3D = new OctaveCLR<Vec3, Mat3x3>;
+	if (!SetCL3D("octave", rfcl3D)) {
+		delete rfcl3D;
+		return false;
+	}
+
+	ConstitutiveLawRead<Vec6, Mat6x6> *rfcl6D = new OctaveCLR<Vec6, Mat6x6>;
+	if (!SetCL6D("octave", rfcl6D)) {
+		delete rfcl6D;
+		return false;
+	}
+#else
+	pedantic_cerr("warning: MBDyn has been configured without octave support\n"
+				  "warning: module-octave is not available in this version of MBDyn" << std::endl);
+#endif
+
+	// Return true also if USE_OCTAVE is not enabled
+	// This prevents one assertion to fail in userelem.cc if built as a static module
 	return true;
 }
 

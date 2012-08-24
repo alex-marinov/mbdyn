@@ -40,8 +40,14 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function DescribeDof(elem, out, prefix, bInitial)
+    iFirstIndex = elem.pMbElem.iGetFirstIndex();
+
+    if (bInitial)
+        for i=1:2
+            out.printf("%s%d->X%d\n", prefix, iFirstIndex + i, i);
+        endfor
+    else
+        out.printf("%s%d->X2\n", prefix, iFirstIndex + 1);
+    endif        
 endfunction

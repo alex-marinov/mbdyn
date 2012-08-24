@@ -40,8 +40,11 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function order = GetEqType(elem, i)
+    switch (i)
+        case 1
+            order = "DIFFERENTIAL";
+        otherwise
+            error("MyElem1: unknown equation %d", i);
+    endswitch
 endfunction

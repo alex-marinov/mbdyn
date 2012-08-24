@@ -40,8 +40,11 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function iNumDof = iGetNumDof(elem)
+    iNumDof = int32(1);
+%{
+    elem
+    pDM
+    pElem
+%}
 endfunction

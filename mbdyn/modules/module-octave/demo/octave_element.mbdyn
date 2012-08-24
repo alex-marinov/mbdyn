@@ -40,15 +40,22 @@
 ##
 ##################################################################
 
+#{
+# BEGIN OF MBDYN SECTION
+
 # module load: "libmodule-octave.la";
+
+set: real tau1 = 1e-10;
+set: real tau2 = 0.1;
 
 set: real f = 3;
 set: real F0 = 130;
 set: real r = 15.5;
 
-set: real a = 7500;
-set: real b = 4800;
-set: real c = 3200;
+set: real sx = 7500;
+set: real sy = 4800;
+set: real sz = 3200;
+set: real ks = 0.003;
 
 begin: data;
 	problem: initial value; # the default
@@ -65,31 +72,179 @@ begin: initial value;
     derivatives tolerance: 1e-5;
     derivatives max iterations: 10;
     output: counter;
+#    output: residual;
 end: initial value;
 
 begin: control data;
-    structural nodes: 1;
-    rigid bodies: 1;
-    forces: 1;
-	loadable elements: 1;
+    structural nodes: 4;
+    rigid bodies: 2;
+    forces: 4;
+    joints: 2;
+    parameter nodes: 2;
+	loadable elements: 4;
+    use: loadable elements, in assembly;
+    max iterations: 100;
+    print: equation description, to file;
 end: control data;
 
+reference: 1,
+    position, reference, global, 0.2, 0.5, 0.3,
+    orientation, reference, global, 1, 0., 1., 0.,
+                                    2, -1., 0., 0.,
+    velocity, reference, global, null,
+    angular velocity, reference, global, null;
+    
 begin: nodes;
     structural: 1, dynamic,
-    position, null,
-    orientation, euler123, 45*pi/180*0, 30*pi/180*0, -15*pi/180*0,
-    velocity, null,
-    angular velocity, null, 
-    accelerations, yes;
+        position, reference, global, null,
+        orientation, reference, global, eye,
+        velocity, reference, global, null,
+        angular velocity, reference, global, null, 
+        accelerations, yes;
+
+    structural: 2, dynamic displacement,
+        position, reference, global, null,
+        velocity, reference, global, null,
+        accelerations, yes;
+
+    structural: 3, static,
+        position, reference, global, null,
+        orientation, reference, global, eye,
+        velocity, reference, global, null,
+        angular velocity, reference, global, null;
+
+    structural: 4, static displacement,
+        position, reference, global, null,
+        velocity, reference, global, null;
+ /**/
+    parameter: 1, element;
+    parameter: 2, element;
 end: nodes;
 
 begin: elements;
     body: 1, 1, 
-        1.4,
+        1.4/10,
         null,
         diag, 0.01, 0.02, 0.03;
 
-    force: 1, absolute, 1, position, reference, node, null, octave, "my_func5"; # octave search path, "${PWD}/..";
+    body: 2, 2, 
+        1.4/10;
 
-    user defined: 1, octave, "MyElem1", a, b, c;
+	joint: 1, total pin joint,
+			1,
+				position,				reference, global, null,
+				position orientation, 	reference, global, eye,
+				rotation orientation, 	reference, global, eye,
+			position, 			 reference, global, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,				
+			position constraint, 
+					inactive, 
+					inactive, 
+					inactive,
+				component, const, 0.,
+						    const, 0.,
+						    const, 0.,
+			orientation constraint,
+					active,
+					active,
+					active,
+				component, const, 0.,
+						    const, 0.,
+						    const, 0.,
+            output, no;
+
+	joint: 2, total pin joint,
+			3,
+				position,				reference, global, null,
+				position orientation, 	reference, global, eye,
+				rotation orientation, 	reference, global, eye,
+			position, 			 reference, global, null,
+			position orientation, reference, global, eye,
+			rotation orientation, reference, global, eye,				
+			position constraint, 
+					inactive, 
+					inactive, 
+					inactive,
+				component, const, 0.,
+						    const, 0.,
+						    const, 0.,
+			orientation constraint,
+					active,
+					active,
+					active,
+				component, const, 0.,
+						    const, 0.,
+						    const, 0.,
+            output, no;
+/**/
+    force: 1, absolute, 1, position, reference, node, null, octave, "my_force", embed octave, yes;
+
+    force: 2, absolute displacement, 2, octave, "my_force", embed octave, yes;
+
+    force: 3, absolute, 3, position, reference, node, null, octave, "my_force", embed octave, yes;
+
+    force: 4, absolute displacement, 4, octave, "my_force", embed octave, yes;
+/**/
+    user defined: 1, octave, "MyElem1", node1, 1,
+                                        offset, reference, 1, null,
+                                        orientation, reference, 1, eye,
+                                        stiffness x, sx, 
+                                        stiffness y, sy, 
+                                        stiffness z, sz,
+                                        damping coefficient, ks,
+                                        output, yes;
+
+    bind: 1, user defined, 1, string, "X2";
+    bind: 1, user defined, 2, string, "XP2";
+
+    user defined: 2, octave, "MyElem1", node1, 2,
+                                        offset, reference, 1, null,
+                                        orientation, reference, 1, eye,
+                                        stiffness x, sx, 
+                                        stiffness y, sy, 
+                                        stiffness z, sz,
+                                        damping coefficient, ks,
+                                        output, yes;
+
+    user defined: 3, octave, "MyElem1", node1, 3,
+                                        offset, reference, 1, null,
+                                        orientation, reference, 1, eye,
+                                        stiffness x, sx, 
+                                        stiffness y, sy, 
+                                        stiffness z, sz,
+                                        damping coefficient, ks,
+                                        output, yes;
+
+    user defined: 4, octave, "MyElem1", node1, 4,
+                                        offset, reference, 1, null,
+                                        orientation, reference, 1, eye,
+                                        stiffness x, sx, 
+                                        stiffness y, sy, 
+                                        stiffness z, sz,
+                                        damping coefficient, ks,
+                                        string value, "string 1",
+                                        bool value, 1,
+                                        int value, 17,
+                                        real value, 1.5,
+                                        string with delimiter, [string with delimiters 1],
+                                        output, yes;
+/**/
 end: elements;
+#} 
+# END OF MBDYN SECTION
+
+#/* BEGIN OF OCTAVE SECTION
+printf("mboct: embed octave is enabled!\n");
+
+function F = my_force(t)
+    global f;
+    global F0;
+    global tau1;
+    global tau2;
+    F = (1 - exp(-t/tau1) ) * exp(-t/tau2) * F0 * [ sin(2*pi*f*t); 
+               cos(2*pi*f*t); 
+               0 ];
+endfunction
+
+#*/ END OF OCTAVE SECTION

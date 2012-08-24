@@ -40,8 +40,8 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
+function [iRows, iCols] = InitialWorkSpaceDim(elem)
+    iRows = int32(2);
+    iCols = int32(2);
 %    disp(pElem);
 endfunction

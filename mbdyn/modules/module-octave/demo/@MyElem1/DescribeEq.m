@@ -40,8 +40,14 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function DescribeEq(elem, out, prefix, bInitial)
+    iFirstIndex = elem.pMbElem.iGetFirstIndex();
+
+    if (bInitial)
+        for i=1:2
+            out.printf("%s%d->algebraic equation%d\n", prefix, iFirstIndex + i, i);
+        endfor
+    else
+        out.printf("%s%d->first order differential equation\n", prefix, iFirstIndex + 1);
+    endif        
 endfunction

@@ -40,8 +40,28 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function [f, ridx] = InitialAssRes(elem, XCurr)
+
+    ridx = elem.pMbElem.iGetFirstIndex() + int32(1:2).';
+%{
+    for i=1:length(ridx)
+        X(i) = XCurr.dGetCoef(ridx(i));
+    endfor
+%}
+    X = XCurr.GetVec(ridx);
+
+    f = [ 500*X(1) + X(2) + 1; 
+          300*X(2) + X(1) - 3];
+%{
+    elem
+    XCurr
+    pDM
+    pElem
+%}
+
+%{
+    for i=1:XCurr.iGetSize()
+        printf("XCurr(i)=%g\n", XCurr.dGetCoef(i));
+    endfor
+%}
 endfunction

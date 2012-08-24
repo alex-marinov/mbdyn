@@ -40,8 +40,13 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function iPrivDataIdx = iGetPrivDataIdx(elem, name)
+    switch (name)
+    case "X2"
+        iPrivDataIdx = int32(1);
+    case "XP2"
+        iPrivDataIdx = int32(2);
+    otherwise
+        error("unknown private data name \"%s\"", name);
+    endswitch
 endfunction

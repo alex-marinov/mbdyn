@@ -40,8 +40,9 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function [cl, F, FDE, FDEPrime] = Update(clin, Eps, EpsPrime)
+    cl = clin;
+    F = cl.S * Eps + cl.D * EpsPrime;
+    FDE = cl.S;
+    FDEPrime = cl.D;
 endfunction

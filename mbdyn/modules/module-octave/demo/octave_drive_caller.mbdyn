@@ -53,6 +53,8 @@ set: real a = 750000;
 set: real b = 480000;
 set: real c = 320000;
 
+set: real X = 3.7;
+
 begin: data;
 	problem: initial value; # the default
 end: data;
@@ -61,17 +63,19 @@ begin: initial value;
 	initial time: 0;
 	final time: 1;
 	time step: 0.01;
+    max iterations: 10;
 #    derivatives coefficient: 1e-3;
 #    derivatives tolerance: 1e1;
     derivatives max iterations: 10;
+#    output: residual;
 end: initial value;
 
 begin: control data;
     structural nodes: 1;
     joints: 1;
     rigid bodies: 1;
-    abstract nodes: 12;
-    genels: 12;
+    abstract nodes: 16;
+    genels: 16;
     forces: 1;
 end: control data;
 
@@ -95,6 +99,10 @@ begin: nodes;
     abstract: 10, algebraic;
     abstract: 11, algebraic;
     abstract: 12, algebraic;
+    abstract: 13, algebraic;
+    abstract: 14, algebraic;
+    abstract: 15, algebraic;
+    abstract: 16, algebraic;
 end: nodes;
 
 begin: elements;
@@ -102,7 +110,7 @@ begin: elements;
     genel: 1, clamp, 1, abstract, string, "sin(2*pi*f*Time)";
     genel: 2, clamp, 2, abstract, drive, octave, "sin", mult, 2*pi*f, time;
     genel: 3, clamp, 3, abstract, octave, "my_func" , octave search path, "${PWD}/.."; # for mbdyn_derivative.m
-    genel: 4, clamp, 4, abstract, octave, "my_func2", update global variables, yes;
+    genel: 4, clamp, 4, abstract, octave, "my_func2", update octave variables, yes;
     genel: 5, clamp, 5, abstract, octave, "my_func3", pass data manager, yes;
     genel: 6, clamp, 6, abstract, octave, "my_func4", pass data manager, yes;
     genel: 7, clamp, 7, abstract, derivative, octave, "sin";
@@ -110,18 +118,33 @@ begin: elements;
     genel: 9, clamp, 9, abstract, derivative, drive, octave, "sin", mult, 2*pi*f, time;
     genel: 10, clamp, 10, abstract, derivative, mult, drive, octave, "cos", mult, 2*pi*f, time, const, r;
 
-    scalar function: "my_func", octave, "my_func";
+    scalar function: "my_func", octave, "my_func7", pass data manager, yes, arguments, 3, a, b, c;
 
     genel: 11, clamp, 11, abstract, scalar function, "my_func";
-    genel: 12, clamp, 12, abstract, octave, "my_func6", embed octave, yes;
+    genel: 12, clamp, 12, abstract, octave, "my_func6", update mbdyn variables, yes,
+                                                        pass data manager, yes, 
+                                                        embed octave, yes;
+    genel: 13, clamp, 13, abstract, string, "X";
+    genel: 14, clamp, 14, abstract, octave, "my_func7", pass data manager, yes,
+                                                        embed octave, yes,
+                                                        arguments, 3, a, b, c;
 
-    template drive caller: 1, "1", octave, "my_tpl_drive1D";
+    genel: 15, clamp, 15, abstract, derivative, octave, "my_func7", pass data manager, yes,
+                                                                    embed octave, yes,
+                                                                    arguments, 3, a, b, c;
+
+    genel: 16, clamp, 16, abstract, derivative, drive, octave, "my_func8", pass data manager, yes,
+                                                                           embed octave, yes,
+                                                                           arguments, 3, a, b, c, 
+                                                       mult, 2 * pi * f, time;
+
+    template drive caller: 1, "1", octave, "my_tpl_drive1D", pass data manager, yes, arguments, 3, a, b, c;
     template drive caller: 2, "3", octave, "my_tpl_drive3D";
     template drive caller: 3, "6", octave, "my_tpl_drive6D";
-    template drive caller: 4, "3x3", octave, "my_tpl_drive3x3D";
+    template drive caller: 4, "3x3", octave, "my_tpl_drive3x3D", pass data manager, yes, arguments, 3, a, b, c;
     template drive caller: 5, "6x6", octave, "my_tpl_drive6x6D";
 
-    body: 1, 1, variable mass, octave, "my_tpl_drive1D",
+    body: 1, 1, variable mass, octave, "my_tpl_drive1D", pass data manager, yes, arguments, 3, a, b, c,
                                 null,
                                 reference, 4,
                                 component, diag, const, 1, const, 1, const, 1;
@@ -133,11 +156,23 @@ end: elements;
 # END OF MBDYN SECTION
 
 # BEGIN OF OCTAVE SECTION /*
-
 printf("mboct: embed octave is enabled!\n");
 
-function y=my_func6(x)
+function y = my_func6(x, pDM)
+    global X;
     y = 2 * x + 5;
+    X = pDM.dGetTime();
+endfunction
+
+function y = my_func7(x, a, b, c, pDM)
+    global f;
+    y = (a + b) * sin(2 * pi * f * x) + c;
+    t = pDM.dGetTime();
+endfunction
+
+function y = my_func8(x, a, b, c, pDM)
+    y = (a + b) * sin(x) + c;
+    t = pDM.dGetTime();
 endfunction
 
 # END OF OCTAVE SECTION */

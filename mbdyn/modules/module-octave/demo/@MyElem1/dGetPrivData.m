@@ -40,8 +40,13 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function dPrivData = dGetPrivData(elem, i)
+    switch (i)
+    case 1
+        dPrivData = elem.X2(max(1, elem.nIter));
+    case 2
+        dPrivData = elem.XP2(max(1, elem.nIter));
+    otherwise
+        error("invalid index %d for private data", i);
+    endswitch
 endfunction

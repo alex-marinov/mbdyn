@@ -40,8 +40,11 @@
 ##
 ##################################################################
 
-function [iRows, iCols] = WorkSpaceDim(elem)
-    iRows = int32(4);
-    iCols = int32(4);
-%    disp(pElem);
+function order = GetDofType(elem, i)
+    switch (i)
+        case 1
+            order = "DIFFERENTIAL";
+        otherwise
+            error("MyElem1: unknown dof %d", i);
+    endswitch
 endfunction
