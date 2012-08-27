@@ -92,34 +92,42 @@ extern int fPedantic;
 
 #define silent_output \
 	(::fSilent > 0)
+#define silent_out \
+	(::fSilent < 1)
+#define silent_err \
+	(::fSilent < 2)
 
 #define silent_cout(arg) \
     	do { \
-        	if (::fSilent < 1) { \
+        	if (silent_out) { \
             		std::cout << arg; \
         	} \
     	} while (0)
 
 #define silent_cerr(arg) \
 	do { \
-		if (::fSilent < 2) { \
+		if (silent_err) { \
 			std::cerr << arg; \
 		} \
 	} while (0)
 
 #define pedantic_output \
 	(::fPedantic > 0)
+#define pedantic_out \
+	(::fPedantic > 1)
+#define pedantic_err \
+	(::fPedantic > 0)
 
 #define pedantic_cout(arg) \
     	do { \
-        	if (::fPedantic > 1) { \
+        	if (pedantic_out) { \
             		std::cout << arg; \
         	} \
     	} while (0)
 
 #define pedantic_cerr(arg) \
 	do { \
-		if (::fPedantic > 0) { \
+		if (pedantic_err) { \
 			std::cerr << arg; \
 		} \
 	} while (0)

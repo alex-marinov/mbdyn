@@ -217,7 +217,7 @@ public:
 protected:
 	struct EigenAnalysis EigAn;
 
-	void Eig(void);
+	void Eig(bool bNewLine = false);
 
 	RTSolverBase *pRTSolver;
 

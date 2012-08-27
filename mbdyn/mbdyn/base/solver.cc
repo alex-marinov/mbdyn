@@ -1493,15 +1493,12 @@ IfStepIsToBeRepeated:
 			&& EigAn.currAnalysis != EigAn.Analyses.end()
 			&& *EigAn.currAnalysis <= dTime)
 		{
-			if (!bOutputCounter) {
-				silent_cerr(std::endl);
-			}
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
 				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
 			if (i != EigAn.Analyses.end()) {
 				EigAn.currAnalysis = --i;
 			}
-			Eig();
+			Eig(bOutputCounter);
 			++EigAn.currAnalysis;
 		}
 
@@ -4052,7 +4049,8 @@ output_geometry(DataManager* pDM, std::ostream& o)
 // generalized non-symmetric eigenanalysis
 static void
 eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
+	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
+	bool bNewLine)
 {
 	const FullMatrixHandler& MatA = dynamic_cast<const FullMatrixHandler &>(*pMatA);
 	const FullMatrixHandler& MatB = dynamic_cast<const FullMatrixHandler &>(*pMatB);
@@ -4150,6 +4148,10 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	}
 
 	if (iInfo != 0) {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("dggev[x]() query for worksize failed "
 			"INFO=" << iInfo << std::endl);
 		iInfo = 0;
@@ -4157,6 +4159,10 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 
 	iWorkSize = (integer)dWV;
 	if (iWorkSize < iMinWorkSize) {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("dggev[x]() asked for a worksize " << iWorkSize
 			<< " less than the minimum, " << iMinWorkSize
 			<< "; using the minimum" << std::endl);
@@ -4393,7 +4399,8 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 // canonical non-symmetric eigenanalysis
 static void
 eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
+	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
+	bool bNewLine)
 {
 	NaiveSparsePermSolutionManager<Colamd_ordering>& sm
 		= dynamic_cast<NaiveSparsePermSolutionManager<Colamd_ordering> &>(*pSM);
@@ -4514,10 +4521,18 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		static const int CNT = 100;
 		cnt++;
 		if (bOutputStatus && !(cnt % CNT)) {
+			if (bNewLine && silent_err) {
+				silent_cerr(std::endl);
+				bNewLine = false;
+			}
 			silent_cerr("\r" "cnt=" << cnt);
 		}
 
 		if (mbdyn_stop_at_end_of_iteration()) {
+			if (bNewLine && silent_err) {
+				silent_cerr(std::endl);
+				bNewLine = false;
+			}
 			silent_cerr((cnt >= CNT ? "\n" : "")
 				<< "ARPACK: interrupted" << std::endl);
 			return;
@@ -4525,11 +4540,19 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 	} while (IDO == 1 || IDO == -1);
 
 	if (bOutputStatus) {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("\r" "cnt=" << cnt << std::endl);
 	}
 
 	// NOTE: improve diagnostics
 	if (INFO < 0) {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("ARPACK error after " << cnt << " iterations; "
 			"IDO=" << IDO << ", INFO=" << INFO << std::endl);
 		return;
@@ -4540,6 +4563,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		break;
 
 	case 1:
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("INFO=1: Maximum number of iterations taken. "
 			"All possible eigenvalues of OP have been found. IPARAM(5) "
 			"returns the number of wanted converged Ritz values "
@@ -4548,12 +4575,20 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		break;
 
 	case 2:
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("INFO=2: No longer an informational error. Deprecated starting "
 			"with release 2 of ARPACK."
 			<< std::endl);
 		break;
 
 	case 3:
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("INFO=3: No shifts could be applied during a cycle of the "
 			"implicitly restarted Arnoldi iteration. One possibility "
 			"is to increase the size of NCV (currently = " << NCV << ") "
@@ -4563,6 +4598,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		break;
 
 	default:
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("INFO=" << INFO << ": undocumented value." << std::endl);
 		break;
 	}
@@ -4639,6 +4678,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		}
 
 	} else {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("no converged Ritz coefficients" << std::endl);
 	}
 }
@@ -4649,7 +4692,8 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 // canonical non-symmetric eigenanalysis
 static void
 eig_jdqz(const MatrixHandler *pMatA, const MatrixHandler *pMatB,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o)
+	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
+	bool bNewLine)
 {
 	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
 	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
@@ -4758,6 +4802,10 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		&zwork[0],
 		&lwork);
 
+	if (bNewLine && silent_err) {
+		silent_cerr(std::endl);
+		bNewLine = false;
+	}
 	silent_cerr("\r" "cnt=" << mbjdqz.Cnt() << std::endl);
 
 	if (kmax > 0) {
@@ -4813,6 +4861,10 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		}
 
 	} else {
+		if (bNewLine && silent_err) {
+			silent_cerr(std::endl);
+			bNewLine = false;
+		}
 		silent_cerr("no converged eigenpairs" << std::endl);
 	}
 }
@@ -4900,7 +4952,7 @@ output_naive_matrix(std::ostream& o,
 
 // Driver for eigenanalysis
 void
-Solver::Eig(void)
+Solver::Eig(bool bNewLine)
 {
 	DEBUGCOUTFNAME("Solver::Eig");
 
@@ -5028,19 +5080,19 @@ Solver::Eig(void)
 	switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
 #ifdef USE_LAPACK
 	case EigenAnalysis::EIG_USE_LAPACK:
-		eig_lapack(pMatA, pMatB, pDM, &EigAn, o);
+		eig_lapack(pMatA, pMatB, pDM, &EigAn, o, bNewLine);
 		break;
 #endif // USE_LAPACK
 
 #ifdef USE_ARPACK
 	case EigenAnalysis::EIG_USE_ARPACK:
-		eig_arpack(pMatA, pSM, pDM, &EigAn, o);
+		eig_arpack(pMatA, pSM, pDM, &EigAn, o, bNewLine);
 		break;
 #endif // USE_ARPACK
 
 #ifdef USE_JDQZ
 	case EigenAnalysis::EIG_USE_JDQZ:
-		eig_jdqz(pMatA, pMatB, pDM, &EigAn, o);
+		eig_jdqz(pMatA, pMatB, pDM, &EigAn, o, bNewLine);
 		break;
 #endif // USE_JDQZ
 
