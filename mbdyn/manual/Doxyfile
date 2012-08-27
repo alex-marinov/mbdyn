@@ -375,6 +375,10 @@ INPUT                  = ../libraries/libcolamd \
                          ../mbdyn/elec \
                          ../mbdyn/hydr \
                          ../mbdyn/struct \
+                         ../modules/module-asynchronous_machine \
+                         ../modules/module-module-hydrodynamic_plain_bearing \
+                         ../modules/module-octave \
+                         ../modules/module-wheel2 \
                          ../utils
 
 # If the value of the INPUT tag contains directories, you can use the 
