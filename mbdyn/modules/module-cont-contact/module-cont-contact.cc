@@ -163,13 +163,12 @@ public:
 				}
 			}
 
-			doublereal xn = std::pow(x, m_dExp);
 			doublereal xnm1 = std::pow(x, m_dExp - 1.);
+			doublereal xn = xnm1*x;
 
-			ConstitutiveLaw<doublereal, doublereal>::F = m_dSign*(m_dK*xn + m_dDissCoef *xn*xp);
-			ConstitutiveLaw<doublereal, doublereal>::FDE = m_dSign*(m_dExp*m_dK*xnm1 + m_dDissCoef *m_dExp * xnm1*xp);
-			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = m_dSign*(m_dDissCoef * xn);
-
+			ConstitutiveLaw<doublereal, doublereal>::F = m_dSign*(m_dK*xn + m_dDissCoef*xn*xp);
+			ConstitutiveLaw<doublereal, doublereal>::FDE = m_dSign*(m_dExp*m_dK*xnm1 + m_dDissCoef *m_dExp*xnm1*xp);
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = m_dSign*(m_dDissCoef*xn);
 		}
 	};
 

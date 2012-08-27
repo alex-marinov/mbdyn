@@ -50,6 +50,7 @@ protected:
 	doublereal F0;
 	DriveOwner Activation;
 	bool bActivationOverflow;
+	doublereal a;
 
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
@@ -95,11 +96,15 @@ public:
 		return out;
 	};
 
+	virtual std::ostream& OutputAppend(std::ostream& out) const {
+		return out << " " << a;
+	};
+
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
 		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
-		doublereal a = Activation.dGet();
+		a = Activation.dGet();
 		if (a < 0.) {
 			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
 			if (bActivationOverflow) {
@@ -246,7 +251,7 @@ public:
 		doublereal dLRef = ReferenceLength.dGet()/L0;
 
 		doublereal aRef = Activation.dGet();
-		doublereal a = aRef + dKp*(x - dLRef) + dKd*v;
+		a = aRef + dKp*(x - dLRef) + dKd*v;
 		if (a < 0.) {
 			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
 			if (bActivationOverflow) {

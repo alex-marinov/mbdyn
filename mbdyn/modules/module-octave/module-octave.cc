@@ -62,7 +62,7 @@
 #include <limits>
 #include <map>
 #include <sstream>
-#include <cstdint>
+#include <stdint.h>
 
 #include <octave/oct.h>
 #include <octave/parse.h>

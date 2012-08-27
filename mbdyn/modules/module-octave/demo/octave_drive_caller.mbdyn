@@ -68,6 +68,7 @@ begin: initial value;
 #    derivatives tolerance: 1e1;
     derivatives max iterations: 10;
 #    output: residual;
+    output: counter;
 end: initial value;
 
 begin: control data;
