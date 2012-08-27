@@ -35,6 +35,7 @@
 
 #include <cstring>
 #include <stdlib.h>
+#include <stack>
 
 #include "mathtyp.h"
 #include "parser.h"
@@ -276,15 +277,15 @@ KeyTable::Find(const char* sToFind) const
 
 /* HighParser - begin */
 
-static const HighParser *pHP;
+static std::stack<const HighParser *> pHP;
 
 static const HighParser::ErrOut unknownErr = { "(unknown)", "(unknown)", 0 };
 
 HighParser::ErrOut
 mbdyn_get_line_data(void)
 {
-	if (pHP) {
-		return pHP->GetLineData();
+	if (!pHP.empty()) {
+		return pHP.top()->GetLineData();
 	}
 
 	return unknownErr;
@@ -293,8 +294,8 @@ mbdyn_get_line_data(void)
 std::ostream&
 mbdyn_print_line_data(std::ostream& out)
 {
-	if (pHP) {
-		out << pHP->GetLineData();
+	if (!pHP.empty()) {
+		out << pHP.top()->GetLineData();
 	}
 
 	return out;
@@ -311,12 +312,7 @@ KeyT(0)
 	DEBUGCOUTFNAME("HighParser::HighParser");
 	CurrToken = HighParser::DESCRIPTION;
 
-	// FIXME
-	ASSERT(pHP == 0);
-	if (pHP != 0) {
-		silent_cerr("HighParser::HighParser: pHP != 0" << std::endl);
-	}
-	pHP = this;
+	pHP.push(this);
 }
 
 
@@ -324,7 +320,8 @@ HighParser::~HighParser(void)
 {
 	DEBUGCOUTFNAME("HighParser::~HighParser");
 	Close();
-	pHP = 0;
+	ASSERT(pHP.top() == this);
+	pHP.pop();
 }
 
 
