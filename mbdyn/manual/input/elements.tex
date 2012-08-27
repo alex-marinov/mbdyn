@@ -142,11 +142,17 @@ The label must match that of the node it refers to.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{automatic structural}
 
+    # for 6 dof structural nodes
     \bnt{normal_arglist} ::=
         (\ty{Vec3}) \bnt{momentum} ,
         (\ty{Vec3}) \bnt{momenta_moment} ,
         (\ty{Vec3}) \bnt{momentum_derivative} ,
         (\ty{Vec3}) \bnt{momenta_moment_derivative}
+
+    # for 3 dof structural nodes
+    \bnt{normal_arglist} ::=
+        (\ty{Vec3}) \bnt{momentum} ,
+        (\ty{Vec3}) \bnt{momentum_derivative}
 \end{Verbatim}
 %\end{verbatim}
 All the provided values are recomputed during the initial derivatives phase,
@@ -157,7 +163,7 @@ configuration, with kinematic constraints that strongly affect
 the motion.
 
 \paragraph{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"beta[1]"} momentum in global direction 1
 \item \kw{"beta[2]"} momentum in global direction 2
@@ -179,14 +185,18 @@ The following data is available:
 
 
 \section{Body}
+The \kw{body} element describes a lumped rigid body when connected 
+to a regular, 6 degree of freedom structural node, or a point mass
+when connected to a rotationless, 3 degree of freedom structural node.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{body}
 
     \bnt{normal_arglist} ::= \bnt{node_label} ,
         \{ \bnt{one_body}
+            | \bnt{one_pointmass}
             | \kw{variable mass} , \bnt{one_vm_body}
-            | \kw{condense} , \bnt{num_masses} , \bnt{one_body} [ , ... ] \}
+            | \kw{condense} , \bnt{num_masses} , \{ \bnt{one_body} | \bnt{one_pointmass} \} [ , ... ] \}
 
     \bnt{one_body} ::=
         (\ty{Scalar}) \bnt{mass} , 
@@ -194,6 +204,9 @@ The following data is available:
         (\ty{Mat3x3}) \bnt{inertia_matrix}
         [ , \kw{inertial} , 
             \{ \kw{node} | (\ty{OrientationMatrix}) \bnt{orientation_matrix} \} ]
+
+    \bnt{one_pointmass} ::=
+        (\ty{Scalar}) \bnt{mass}      # when \bnt{node_label} is a \kw{displacement} node
 
     \bnt{one_vm_body} ::=
         (\ty{DriveCaller})            \bnt{mass} ,
@@ -303,10 +316,11 @@ by means of the \kw{inertia} keyword, as detailed
 in Section~\ref{sec:EL:MISC:INERTIA}.
 
 \paragraph{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"E"} kinetic energy
 \item \kw{"V"} potential (i.e.\ gravitational) energy
+\item \kw{"m"} mass
 \end{enumerate}
 
 \paragraph{Example.} \
@@ -741,7 +755,7 @@ option requires \nt{num\_outputs} drives to be defined.
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"u[\bnt{idx}]"} value of the \nt{idx}-th control output.
 \end{enumerate}
@@ -3251,7 +3265,7 @@ about a given axis.
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"M"} constraint reaction moment along joint direction
 \item \kw{"wp"} imposed angular acceleration along joint direction
@@ -3277,7 +3291,7 @@ it is internally normalized to unity.
 It rotates with the node indicated by \nt{node\_label}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"w"} imposed angular velocity about joint direction
 \end{enumerate}
@@ -3307,7 +3321,7 @@ This joint forces \nt{node\_1} and \nt{node\_2} to rotate about relative
 axis 3 with imposed angular velocity \nt{angular\_velocity}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
 \item \kw{"wz"} relative angular velocity about revolute axis
@@ -3427,7 +3441,7 @@ In addition to the standard output, the \kw{brake} joint outputs:
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about brake axis
 \item \kw{"wz"} relative angular velocity about brake axis
@@ -3545,7 +3559,7 @@ The default value for \kw{position} and \kw{orientation}
 are the position and the orientation of the clamped node.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"Fx"} constraint reaction force in global direction 1
 \item \kw{"Fy"} constraint reaction force in global direction 2
@@ -3590,7 +3604,7 @@ although no check is in place.
 %\end{verbatim}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation about axis 3, used as strain in the constitutive law
 \item \kw{"wz"} relative angular velocity about axis 3, used as strain rate in the constitutive law
@@ -3686,7 +3700,7 @@ See the
 
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"dx"} relative displacement in node 1 local direction 1
 \item \kw{"dy"} relative displacement in node 1 local direction 2
@@ -3806,7 +3820,7 @@ or any kind of joint that constrains the relative displacement
 of the nodes as appropriate.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rx"} relative rotation vector component in node 1 local direction 1
 \item \kw{"ry"} relative rotation vector component in node 1 local direction 2
@@ -3916,7 +3930,7 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
 %\end{verbatim}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"dx"} relative displacement in node 1 local direction 1
 \item \kw{"dy"} relative displacement in node 1 local direction 2
@@ -4002,7 +4016,7 @@ The extra output is:
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"d"} enforced distance
 \end{enumerate}
@@ -4045,7 +4059,7 @@ This element is superseded by the
 \hyperref{\kw{total joint}}{\kw{total joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"dx"} imposed displacement component along node 1 axis 1
 \item \kw{"dy"} imposed displacement component along node 1 axis 2
@@ -4089,7 +4103,7 @@ This element is superseded by the
 \hyperref{\kw{total pin joint}}{\kw{total pin joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"dx"} imposed displacement component along absolute axis 1
 \item \kw{"dy"} imposed displacement component along absolute axis 2
@@ -4137,7 +4151,7 @@ Note: this element is experimental; now it is more reliable,
 but it is limited to $\nrbr{\nt{hinge\_orientation}} < \pi$.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rx"} imposed relative rotation about node 1 hinge axis 1
 \item \kw{"ry"} imposed relative rotation about node 1 hinge axis 2
@@ -4211,7 +4225,7 @@ For a description of the formulation and of the angles describe above,
 see the Technical Manual.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"lambda[1]"} constraint reaction moment about node 1 local axis 1
 \item \kw{"lambda[2]"} constraint reaction moment about node 1 local axis 2
@@ -4243,7 +4257,7 @@ This element is superseded by the
 \hyperref{\kw{total joint}}{\kw{total joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_JOINT}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"d"} imposed displacement along \nt{direction},
 in node 1 reference frame;
@@ -4286,7 +4300,7 @@ This element is superseded by the
 \hyperref{\kw{total pin joint}}{\kw{total pin joint}, see Section~}{}{sec:EL:STRUCT:JOINT:TOTAL_PIN_JOINT}.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"x"} imposed displacement along \nt{direction},
 in the absolute reference frame;
@@ -4430,7 +4444,7 @@ along a given axis.
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"F"} constraint reaction force along joint direction
 \item \kw{"a"} imposed acceleration along joint direction
@@ -4452,7 +4466,7 @@ along a given axis.
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"v"} imposed velocity along joint direction
 \end{enumerate}
@@ -4679,7 +4693,7 @@ the output will look like
 \end{verbatim}
 
 \subsubsection{Private Data}
-The following data is available, for each mode:
+The following data are available, for each mode:
 \begin{enumerate}
 \item \kw{"q[\bnt{m}]"} mode \nt{m} value
 \item \kw{"qP[\bnt{m}]"} mode \nt{m} derivative value
@@ -4847,7 +4861,7 @@ If friction is present:
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
 \item \kw{"wz"} relative angular velocity about revolute axis
@@ -4900,7 +4914,7 @@ Note: this is equivalent to a
 when one node is grounded.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
 \item \kw{"wz"} relative angular velocity about revolute axis
@@ -4956,7 +4970,7 @@ with an \kw{inline} joint, should be used to constrain, for example,
 the two nodes of a hydraulic actuator.
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"rz"} relative rotation angle about revolute axis
 \item \kw{"wz"} relative angular velocity about revolute axis
@@ -5063,7 +5077,7 @@ reference frame (always zero)
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"F"} constraint force between the two nodes/connection points
 \item \kw{"L"} distance between the two nodes/connection points
@@ -5267,7 +5281,7 @@ The output occurs in the \texttt{.jnt} file, which contains:
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"px"} relative position along node 1 position orientation axis 1
 \item \kw{"py"} relative position along node 1 position orientation axis 2
@@ -5420,7 +5434,7 @@ The output occurs in the \texttt{.jnt} file, which contains:
 \end{itemize}
 
 \subsubsection{Private Data}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"px"} absolute position along absolute position orientation axis 1
 \item \kw{"py"} absolute position along absolute position orientation axis 2
@@ -5934,7 +5948,7 @@ when sending through a socket when the other end is broken
 do not block (or block, in case of \kw{blocking}, the default);
 
 \item the flag \kw{no send first} requests that no send occurs before
-the first time step (by default, data is always sent);
+the first time step (by default, data are always sent);
 
 \item the flag \kw{do not abort if broken} requests that the simulation
 continues in case the connection breaks.

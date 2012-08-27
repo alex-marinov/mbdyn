@@ -1271,7 +1271,7 @@ where:
 
 \item \nt{alpha}: the angle $\alpha$ about the common normal, from previous to new $z$ axis.
 \end{itemize}
-The new reference data is
+The new reference data are
 \begin{subequations}
 \begin{align}
 	\T{x}_\text{new}
@@ -1330,14 +1330,14 @@ So, depending on the caller, the entry can be in the following forms:
 	the data supplied in \nt{entity} is intended 
 	in the default reference frame
 \item \texttt{\kw{reference} , \bnt{reference\_type} , \bnt{entity}}: \\
-	the data is in \nt{reference\_type} reference frame, where
+	the data are in \nt{reference\_type} reference frame, where
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
         \bnt{reference_type} ::= \{ \kw{global} | \kw{node} | \kw{local} \}
 \end{Verbatim}
 %\end{verbatim}
 \item \texttt{\kw{reference} , \bnt{reference\_label} , \bnt{entity}}: \\
-	the data is in \nt{reference\_label} reference frame. 
+	the data are in \nt{reference\_label} reference frame. 
 	This reference frame must be already defined. 
 \end{enumerate}
 In some cases, significantly in case of joints that connect two nodes
@@ -2019,7 +2019,7 @@ The function
         \bnt{initial_time} , 
         \bnt{final_time} ,
         \bnt{step_value} , 
-        \bnt{<initial_value}
+        \bnt{initial_value}
 \end{Verbatim}
 %\end{verbatim}
 The function
@@ -2083,7 +2083,7 @@ is equivalent to
 %\end{verbatim}
 a reference to the private data of an element is read.
 This is made of: the element's \nt{label}, the element's \nt{type}
-and a specification of which private data is being referred;
+and a specification of which private data are being referred;
 the \nt{index} can be directly given, prepended by the keyword
 \kw{index}, or the symbolic name \nt{name} can be used, prepended by 
 the keyword \kw{string}.
@@ -2336,7 +2336,7 @@ The \kw{mult} drive multiplies the value of two subordinate drives.
 %\end{verbatim}
 a reference to the private data of a node is read.
 This is made of: the node's \nt{label}, the node's \nt{type}
-and a specification of which private data is being referred;
+and a specification of which private data are being referred;
 the \nt{index} can be directly given, prepended by the keyword
 \kw{index}, or the symbolic name \nt{name} can be used, prepended by 
 the keyword \kw{string}.
@@ -2741,10 +2741,10 @@ for the next time step.
 As a consequence, unless an exactly steady state was reached
 for a sufficient number of steps to result in a prediction
 that does not change the state of that part of model,
-unexpected valued could result from a call to a function that returns
+unexpected values could result from a call to a function that returns
 information based on the \emph{current} state of the model.
 On the contrary, to access the last converged state of the model
-within a \kw{hint} one needs to call \kw{mode} namespace functions
+within a \kw{hint} one needs to call \kw{model} namespace functions
 that refer to the \emph{previous} time step.
 See Section~\ref{sec:GENERAL:NAMESPACE} for further details
 on the functions of the \kw{model} namespace.

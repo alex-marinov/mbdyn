@@ -75,8 +75,28 @@ See Section~\ref{sec:CONTROLDATA:DEFAULTSCALE} for further details.
 
 \section{Structural Node}
 \label{sec:NODE:STRUCTURAL}
+Structural nodes can have 6 degrees of freedom (position and orientation),
+and thus describe the kinematics of rigid-body motion in space,
+or 3 degrees of freedom (position) and thus describe the kinematics
+of point mass motion in space.
+
+The former has been originally implemented in MBDyn;
+the latter has been added in MBDyn 1.5.0,
+mainly to support the implementation of membrane elements.
+
 The 6 dof structural node can be \kw{static},
 \kw{dynamic}, \kw{modal} or \kw{dummy}.
+
+The 3 dof structural node can be \kw{static} or \kw{dynamic}.
+
+Elements that only require displacement can be connected to either type
+of nodes; when connected to a 6 degree of freedom node, they only make use
+of position/velocity and only contribute to force equilibrium equations.
+
+Elements that require both displacement and orientation can only be connected
+to 6 degree of freedom nodes.
+
+
 
 \subsection{Static Node}
 \label{sec:NODE:STRUCTURAL:STATIC}
@@ -101,6 +121,7 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
 
 \subsection{Syntax}
 \label{sec:NODE:STRUCTURAL:SYNTAX}
+The syntax of 6 degrees of freedom rigid-body motion structural nodes is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
@@ -117,6 +138,18 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
     \bnt{orientation_description} ::=
         \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
              | \kw{orientation vector} | \kw{orientation matrix} \}
+\end{Verbatim}
+%\end{verbatim}
+
+The syntax of 3 degrees of freedom point mass motion structural nodes is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
+        (\ty{Vec3})              \bnt{absolute_position} ,
+        (\ty{Vec3})              \bnt{absolute_velocity} ,
+        [ , \kw{assembly}
+          , (\ty{Scalar}) \bnt{position_initial_stiffness}
+          , (\ty{Scalar}) \bnt{velocity_initial_stiffness} ]
 \end{Verbatim}
 %\end{verbatim}
 
@@ -241,6 +274,9 @@ Structural nodes generate two kinds of output files:
 \item the \texttt{.mov} file;
 \item the \texttt{.ine} file.
 \end{itemize}
+The output of displacement-only 3 degree of freedom nodes is identical
+to that of 6 degree of freedom nodes, with the meaningless fields
+filled with zeros.
 
 \textbf{The \texttt{.mov} Output File.} \\
 The first refers to the kinematics of the node; its extension is \texttt{.mov},
@@ -327,7 +363,7 @@ The rows contain: \vspace{2mm} \\
 
 \paragraph{Private Data.}
 \label{sec:NODE:STRUCTURAL:PRIV}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item[] all structural nodes:
 \item \kw{"X[1]"} position in global direction 1
@@ -413,7 +449,7 @@ node, so only \kw{value} is allowed.
 
 \paragraph{Private Data.}
 \label{sec:NODE:ELECTRIC:PRIV}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"x"} value
 \item \kw{"xP"} derivative value
@@ -450,7 +486,7 @@ The format of each row is
 
 \paragraph{Private Data.}
 \label{sec:NODE:ABSTRACT:PRIV}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"x"} value
 \item \kw{"xP"} derivative value
@@ -474,7 +510,7 @@ The syntax is
 
 \paragraph{Private Data.}
 \label{sec:NODE:HYDRAULIC:PRIV}
-The following data is available:
+The following data are available:
 \begin{enumerate}
 \item \kw{"x"} value
 \end{enumerate}
