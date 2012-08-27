@@ -21,6 +21,7 @@ input/faq.tex \
 input/general.tex \
 input/input.tex \
 input/logfile.tex \
+input/MatR2vec.eps \
 input/modal-fem-format.tex \
 input/netcdfout.tex \
 input/nodes.tex \
