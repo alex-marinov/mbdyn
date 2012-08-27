@@ -145,7 +145,6 @@ module-constlaw-f95/usrsub.f95 \
 module-constlaw-f95/usrsub.h \
  \
 module-cont-contact/module-cont-contact.cc \
-module-cont-contact/cont_contact_flap \
  \
 module-damper-hydraulic/module-damper-hydraulic.cc \
  \
