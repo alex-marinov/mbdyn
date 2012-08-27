@@ -650,24 +650,41 @@ DataManager::ReadElems(MBDynParser& HP)
 		 * sono gia' stati costruiti altrove e li devo solo inizializzare;
 		 * eventualmente si puo' fare altrimenti */
 		} else if (CurrDesc == AUTOMATICSTRUCTURAL) {
-			AutomaticStructElem* pAuto = ReadElem<AutomaticStructElem, Elem::AUTOMATICSTRUCTURAL>(HP);
-			DEBUGCOUT("reading AutomaticStrucElem(" << pAuto->GetLabel() << ")" << std::endl);
+			AutomaticStructDispElem* pASD = ReadElem<AutomaticStructDispElem, Elem::AUTOMATICSTRUCTURAL>(HP);
+			ASSERT(pASD != 0);
+			AutomaticStructElem* pAS = dynamic_cast<AutomaticStructElem *>(pASD);
+			if (pAS) {
+				DEBUGCOUT("reading AutomaticStructElem(" << pAS->GetLabel() << ")" << std::endl);
 
-			/* forse e' il caso di usare il riferimento del nodo? */
+				/* forse e' il caso di usare il riferimento del nodo? */
 
-			/* NOTE: i primi due sono gestiti direttamente
-			 * dagli elementi con inerzia, e quindi non sono usati */
-			Vec3 q(HP.GetVecAbs(AbsRefFrame));
-			Vec3 g(HP.GetVecAbs(AbsRefFrame));
-			Vec3 qp(HP.GetVecAbs(AbsRefFrame));
-			Vec3 gp(HP.GetVecAbs(AbsRefFrame));
+				/* NOTE: i primi due sono gestiti direttamente
+				 * dagli elementi con inerzia, e quindi non sono usati */
+				Vec3 q(HP.GetVecAbs(AbsRefFrame));
+				Vec3 g(HP.GetVecAbs(AbsRefFrame));
+				Vec3 qp(HP.GetVecAbs(AbsRefFrame));
+				Vec3 gp(HP.GetVecAbs(AbsRefFrame));
 
-			DEBUGCOUT("Q  = " << q << std::endl
-				<< "G  = " << g << std::endl
-				<< "Qp = " << qp << std::endl
-				<< "Gp = " << gp << std::endl);
+				DEBUGCOUT("Q  = " << q << std::endl
+					<< "G  = " << g << std::endl
+					<< "Qp = " << qp << std::endl
+					<< "Gp = " << gp << std::endl);
 
-			pAuto->Init(q, g, qp, gp);
+				pAS->Init(q, g, qp, gp);
+
+			} else {
+				DEBUGCOUT("reading AutomaticStructDispElem(" << pASD->GetLabel() << ")" << std::endl);
+
+				Vec3 q(HP.GetVecAbs(AbsRefFrame));
+				Vec3 qp(HP.GetVecAbs(AbsRefFrame));
+
+				DEBUGCOUT("Q  = " << q << std::endl
+					<< "G  = " << g << std::endl
+					<< "Qp = " << qp << std::endl
+					<< "Gp = " << gp << std::endl);
+
+				pASD->Init(q, qp);
+			}
 
         /*  <<<<  D E F A U L T  >>>>  :  Read one element and create it */ 
 		/* default: leggo un elemento e lo creo */
