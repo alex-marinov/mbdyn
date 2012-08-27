@@ -34,16 +34,12 @@
 #include <cstring>
 #include <string>
 #include <cmath>
+#include <limits>
 
 #include "myassert.h"
 #include "mynewmem.h"
 
 #include "table.h"
-
-enum {
-	TABLE_INT,
-	TABLE_REAL
-};
 
 struct tmp_sym {
 	const char* name;
@@ -51,9 +47,19 @@ struct tmp_sym {
 };
 
 tmp_sym consts[] = {
+	{ "TRUE",      true               },
+	{ "FALSE",     false              },
+
+	{ "RAND_MAX",  Int(RAND_MAX)      }, // 2147483647
+
+	{ "INT_MAX",   std::numeric_limits<Int>::max() },
+	{ "INT_MIN",   std::numeric_limits<Int>::min() },
+	{ "REAL_MAX",   std::numeric_limits<Real>::max() },
+	{ "REAL_MIN",   std::numeric_limits<Real>::min() },
+
 	{ "e",         Real(M_E)          },
 	{ "pi",        Real(M_PI)         },
-	{ "RAND_MAX",  Int(RAND_MAX)      }, // 2147483647
+
 	{ "in2m",      Real(.0254)        }, // inches -> meters
 	{ "m2in",      Real(1./.0254)     }, // meters -> inches
 	{ "in2mm",     Real(25.4)         }, // inches -> millimeters
