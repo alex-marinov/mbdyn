@@ -133,7 +133,36 @@ Simple example of run-time loadable user-defined scalar function.
 
 \noindent
 Implements support for octave-based user-defined entities, including
-drive callers, constitutive laws and elements.
+drive callers, constitutive laws, scalar functions, and elements.
+
+\subsubsection{Element}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{user defined}
+
+    \bnt{normal_arglist} ::= \kw{octave} , " \bnt{script_name} " [ , \bnt{elem_data} ]
+\end{Verbatim}
+
+\subsubsection{Drive Caller}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{octave} , " \bnt{script_name} "
+\end{Verbatim}
+
+\subsubsection{Template Drive Caller}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{tpl_drive_caller} ::= \kw{octave} , ???
+\end{Verbatim}
+
+\subsubsection{Scalar Function}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{octave} , ???
+\end{Verbatim}
+
+\subsubsection{Constitutive Law}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{octave} , " \bnt{script_name} " , \kw{dimension} , \bnt{dimension}
+\end{Verbatim}
+
+\textbf{TODO}
 
 
 
