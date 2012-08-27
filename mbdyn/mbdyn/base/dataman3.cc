@@ -778,7 +778,7 @@ EndOfUse:
 					uPrintFlags |= PRINT_CONNECTION;
 
 				} else if (HP.IsKeyWord("all")) {
-					uPrintFlags = ~PRINT_NONE;
+					uPrintFlags = ~PRINT_TO_FILE;
 
 				} else if (HP.IsKeyWord("none")) {
 					uPrintFlags = PRINT_NONE;
