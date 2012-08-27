@@ -679,9 +679,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				Vec3 qp(HP.GetVecAbs(AbsRefFrame));
 
 				DEBUGCOUT("Q  = " << q << std::endl
-					<< "G  = " << g << std::endl
-					<< "Qp = " << qp << std::endl
-					<< "Gp = " << gp << std::endl);
+					<< "Qp = " << qp << std::endl);
 
 				pASD->Init(q, qp);
 			}
