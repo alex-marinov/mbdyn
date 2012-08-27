@@ -10,8 +10,6 @@ mbdyn.1.in \
 mbdyn.bib \
 mybib.bib \
 stdmacro.tex \
-input/airfoil.eps \
-input/beamsect.eps \
 input/beam.tex \
 input/controldata.tex \
 input/data.tex \
@@ -19,12 +17,10 @@ input/drivers.tex \
 input/elemaero.tex \
 input/elements.tex \
 input/elemplate.tex \
-input/f77sub.f \
 input/faq.tex \
 input/general.tex \
 input/input.tex \
 input/logfile.tex \
-input/MatR2vec.eps \
 input/modal-fem-format.tex \
 input/modules.tex \
 input/netcdfout.tex \
@@ -33,6 +29,14 @@ input/outputresults.tex \
 input/overview.tex \
 input/problems.tex \
 input/scalarfunctions.tex \
+input/airfoil.eps \
+input/beam2.eps \
+input/beam3.eps \
+input/beamsect.eps \
+input/discctrl.eps \
+input/MatR2vec.eps \
+input/shellPic.eps \
+input/f77sub.f \
 install/install.tex
 
 include $(top_srcdir)/build/bot.mk
