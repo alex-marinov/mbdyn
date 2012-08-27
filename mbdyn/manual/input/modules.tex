@@ -1,0 +1,124 @@
+\chapter{Modules}
+
+\section{Element Modules}
+
+\subsection{Module-aerodyn}
+\emph{Authors: Fanzhong Meng and Pierangelo Masarati}
+
+\noindent
+Implements NREL's AeroDyn v 12.58 wind turbine aerodynamic loads.
+
+\subsection{Module-asynchronous\_machine}
+\emph{Author: Reinhard Resch}
+
+\noindent
+Implements an asynchronous electric motor.
+
+\subsection{Module-hydrodynamic\_plain\_bearing}
+\emph{Author: Reinhard Resch}
+
+\noindent
+Implements a lubricated bearing.
+
+\subsection{Module-imu}
+\emph{Author: Pierangelo Masarati}
+
+\noindent
+Implements an element that provides the motion of a structural node
+in the form of the output of an Inertial Measurement Unit
+(3 components of acceleration, 3 components of angular velocity in body axes)
+and an element that prescribes the motion of a structural node
+in terms of acceleration and angular velocity.
+
+\subsection{Module-mds}
+Simple example of run-time loadable user-defined element,
+implements a scalar mass-damper-spring system.
+
+\subsection{Module-template2}
+Template of user-defined element.
+
+\subsection{Module-wheel2}
+\emph{Authors: Marco Morandini, Stefania Gualdi and Pierangelo Masarati}
+
+\noindent
+Implements a simple tire model for aircraft landing and ground handling.
+
+
+
+\section{Constitutive Law Modules}
+
+\subsection{Module-constlaw}
+Simple example of run-time loadable user-defined constitutive law.
+
+\subsection{Module-constlaw-f90}
+Simple example of run-time loadable user-defined constitutive law in Fortran 90.
+
+\subsection{Module-constlaw-f95}
+Simple example of run-time loadable user-defined constitutive law in Fortran 95.
+
+\subsection{Module-cont-contact}
+\emph{Author: Matteo Fancello}
+
+\noindent
+Implements various formulas of 1D continuous contact models.
+
+\subsection{Module-damper-hydraulic}
+\emph{Author: Pierangelo Masarati}
+
+\noindent
+Implements a simple hydraulic damper with turbulent orifice and relief valve.
+
+\subsection{Module-muscles}
+\emph{Authors: Andrea Zanoni and Pierangelo Masarati}
+
+\noindent
+Implements a family of simple muscle constitutive laws.
+
+
+
+\section{Drive Caller Modules}
+
+\subsection{Module-drive}
+Simple example of run-time loadable user-defined drive caller.
+
+
+
+\section{Template Drive Caller Modules}
+
+\subsection{Module-eu2phi}
+Implements a \ty{TplDriveCaller<Vec3>} drive caller
+that converts three Euler angles into the corresponding Euler vector.
+
+
+
+\section{Scalar Function Modules}
+
+\subsection{Module-scalarfunc}
+Simple example of run-time loadable user-defined scalar function.
+
+
+
+\section{Miscellaneous Modules}
+
+\subsection{Module-octave}
+\emph{Author: Reinhard Resch}
+
+\noindent
+Implements support for octave-based user-defined entities, including
+drive callers, constitutive laws and elements.
+
+
+
+\subsection{Module-tclpgin}
+Implements the tcl pluging in form of run-time loadable module.
+ 
+\subsection{Module-template}
+Loadable element template (deprecated).
+
+\subsection{Module-udunits}
+\emph{Author: Pierangelo Masarati}
+
+\noindent
+Implements a namespace that provides unit-conversion capabilities
+to the mathematical parser, based on the UDUnits library.
+
