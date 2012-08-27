@@ -9,13 +9,6 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
-	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
-	Backward compatibility issues:
-	Known issues:
-	Bug fixes:
-
 MBDyn 1.5.0
 	Enhancements:
 		- added displacement-only nodes and selected basic elements
