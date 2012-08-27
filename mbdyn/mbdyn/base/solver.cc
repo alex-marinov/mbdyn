@@ -1493,7 +1493,9 @@ IfStepIsToBeRepeated:
 			&& EigAn.currAnalysis != EigAn.Analyses.end()
 			&& *EigAn.currAnalysis <= dTime)
 		{
-			silent_cerr(std::endl);
+			if (!bOutputCounter) {
+				silent_cerr(std::endl);
+			}
 			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
 				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
 			if (i != EigAn.Analyses.end()) {
