@@ -8,9 +8,16 @@ abs2rel.awk \
 mbdyn2easyanim.awk \
 mbdyn2pod.awk \
 periodize.awk \
+ \
 naca0012.c81 \
+ \
 mbdyn2easyanim.sh.in \
+ \
+gradnorm.m \
 pod.m \
+rotation_increment_gibbs_rodriguez.m \
+rotation_perturbation_matrix_gibbs_rodriguez.m \
+ \
 mbd.vim
 
 generated = mbdyn2easyanim.sh
