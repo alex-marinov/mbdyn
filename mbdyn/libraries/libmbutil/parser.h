@@ -415,5 +415,11 @@ public:
 extern std::ostream&
 operator << (std::ostream& out, const HighParser::ErrOut& err);
 
+extern HighParser::ErrOut
+mbdyn_get_line_data(void);
+
+extern std::ostream&
+mbdyn_print_line_data(std::ostream& out);
+
 #endif /* PARSER_H */
 

@@ -276,6 +276,30 @@ KeyTable::Find(const char* sToFind) const
 
 /* HighParser - begin */
 
+static const HighParser *pHP;
+
+static const HighParser::ErrOut unknownErr = { "(unknown)", "(unknown)", 0 };
+
+HighParser::ErrOut
+mbdyn_get_line_data(void)
+{
+	if (pHP) {
+		return pHP->GetLineData();
+	}
+
+	return unknownErr;
+}
+
+std::ostream&
+mbdyn_print_line_data(std::ostream& out)
+{
+	if (pHP) {
+		out << pHP->GetLineData();
+	}
+
+	return out;
+}
+
 HighParser::HighParser(MathParser& MP, InputStream& streamIn)
 : ESCAPE_CHAR('\\'),
 LowP(*this),
@@ -286,6 +310,13 @@ KeyT(0)
 {
 	DEBUGCOUTFNAME("HighParser::HighParser");
 	CurrToken = HighParser::DESCRIPTION;
+
+	// FIXME
+	ASSERT(pHP == 0);
+	if (pHP != 0) {
+		silent_cerr("HighParser::HighParser: pHP != 0" << std::endl);
+	}
+	pHP = this;
 }
 
 
@@ -293,6 +324,7 @@ HighParser::~HighParser(void)
 {
 	DEBUGCOUTFNAME("HighParser::~HighParser");
 	Close();
+	pHP = 0;
 }
 
 
@@ -1210,3 +1242,5 @@ operator << (std::ostream& out, const HighParser::ErrOut& err)
 
 	return out;
 }
+
+
