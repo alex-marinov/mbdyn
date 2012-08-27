@@ -144,10 +144,15 @@ module-constlaw-f95/README \
 module-constlaw-f95/usrsub.f95 \
 module-constlaw-f95/usrsub.h \
  \
+module-cont-contact/module-cont-contact.cc \
+module-cont-contact/cont_contact_flap \
+ \
 module-damper-hydraulic/module-damper-hydraulic.cc \
  \
 module-drive/module-drive.cc \
 module-drive/README \
+ \
+module-eu2phi/module-eu2phi.cc \
  \
 module-hydrodynamic_plain_bearing/diffsizes.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
@@ -172,6 +177,52 @@ module-mds/module-mds.cc \
  \
 module-muscles/muscle_test \
 module-muscles/module-muscles.cc \
+\
+module-octave/Makefile.inc \
+module-octave/mbdyn_derivative.m \
+module-octave/module-octave.cc \
+module-octave/module-octave.h \
+module-octave/octave_object.cc \
+module-octave/octave_object.h \
+module-octave/README \
+module-octave/demo/my_func2.m \
+module-octave/demo/my_func2.m \
+module-octave/demo/my_func3.m \
+module-octave/demo/my_func4.m \
+module-octave/demo/my_func5.m \
+module-octave/demo/my_func.m \
+module-octave/demo/my_tpl_drive1D.m \
+module-octave/demo/my_tpl_drive3x3D.m \
+module-octave/demo/octave_const_law.mbdyn \
+module-octave/demo/octave_drive_caller.mbdyn \
+module-octave/demo/octave_element.mbdyn \
+module-octave/demo/@MyConstLaw1/GetConstLawType.m \
+module-octave/demo/@MyConstLaw1/MyConstLaw1.m \
+module-octave/demo/@MyConstLaw1/Update.m \
+module-octave/demo/@MyElem1/AfterConvergence.m \
+module-octave/demo/@MyElem1/AssJac.m \
+module-octave/demo/@MyElem1/AssRes.m \
+module-octave/demo/@MyElem1/DescribeDof.m \
+module-octave/demo/@MyElem1/DescribeEq.m \
+module-octave/demo/@MyElem1/dGetPrivData.m \
+module-octave/demo/@MyElem1/display.m \
+module-octave/demo/@MyElem1/GetConnectedNodes.m \
+module-octave/demo/@MyElem1/GetDofType.m \
+module-octave/demo/@MyElem1/GetEqType.m \
+module-octave/demo/@MyElem1/iGetInitialNumDof.m \
+module-octave/demo/@MyElem1/iGetNumConnectedNodes.m \
+module-octave/demo/@MyElem1/iGetNumDof.m \
+module-octave/demo/@MyElem1/iGetNumPrivData.m \
+module-octave/demo/@MyElem1/iGetPrivDataIdx.m \
+module-octave/demo/@MyElem1/InitialAssJac.m \
+module-octave/demo/@MyElem1/InitialAssRes.m \
+module-octave/demo/@MyElem1/InitialWorkSpaceDim.m \
+module-octave/demo/@MyElem1/MyElem1.m \
+module-octave/demo/@MyElem1/Output.m \
+module-octave/demo/@MyElem1/SetInitialValue.m \
+module-octave/demo/@MyElem1/SetValue.m \
+module-octave/demo/@MyElem1/Update.m \
+module-octave/demo/@MyElem1/WorkSpaceDim.m \
  \
 module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README \
