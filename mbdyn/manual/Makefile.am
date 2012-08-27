@@ -12,10 +12,13 @@ mybib.bib \
 stdmacro.tex \
 input/airfoil.eps \
 input/beamsect.eps \
+input/beam.tex \
 input/controldata.tex \
 input/data.tex \
 input/drivers.tex \
+input/elemaero.tex \
 input/elements.tex \
+input/elemplate.tex \
 input/f77sub.f \
 input/faq.tex \
 input/general.tex \
@@ -23,6 +26,7 @@ input/input.tex \
 input/logfile.tex \
 input/MatR2vec.eps \
 input/modal-fem-format.tex \
+input/modules.tex \
 input/netcdfout.tex \
 input/nodes.tex \
 input/outputresults.tex \
