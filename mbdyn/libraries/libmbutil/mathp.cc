@@ -38,6 +38,7 @@
 #include <limits>
 
 #include "mathp.h"
+#include "parser.h"
 
 
 /* helper per le funzioni built-in */
@@ -881,6 +882,7 @@ TypedValue::Cast(const TypedValue& var)
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
 					<< " may alter its value"
+					<< " at line " << mbdyn_get_line_data()
 					<< std::endl);
 				break;
 
@@ -901,6 +903,7 @@ TypedValue::Cast(const TypedValue& var)
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
 					<< " may alter its value"
+					<< " at line " << mbdyn_get_line_data()
 					<< std::endl);
 				break;
 
