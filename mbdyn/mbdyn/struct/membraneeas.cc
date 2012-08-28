@@ -338,7 +338,7 @@ SubVectorHandler& Membrane4EAS::AssRes(SubVectorHandler& WorkVec,
 		eps_tilde_i[i](1) = 0.5*( FTF(1,1) - 1 );
 		eps_tilde_i[i](2) = 0.5*( FTF(2,2) - 1 );
 		eps_tilde_i[i](3) = FTF(1,2);
-		eps_tilde_i[i] = eps_tilde_i[i] - eps_tilde_0_i[i];
+		eps_tilde_i[i] -= eps_tilde_0_i[i];
 /*
 		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - eps_tilde_1_0_i[i];
 		eps_tilde_2_i[i] = T_i[i].MulTV(y_i_2[i]) - eps_tilde_2_0_i[i];
