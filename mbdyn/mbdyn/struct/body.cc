@@ -82,10 +82,10 @@ Mass::GetJ_int(void) const
 
 /* Scrive il contributo dell'elemento al file di restart */
 std::ostream&
-Mass::Restart_int(std::ostream& out) const
+Mass::Restart(std::ostream& out) const
 {
-	out << "  mass: " << GetLabel() << ", "
-		<< pNode->GetLabel() << ", " << dMass;
+	out << "  body: " << GetLabel() << ", "
+		<< pNode->GetLabel() << ", " << dMass << ';' << std::endl;
 
 	return out;
 }
@@ -238,16 +238,6 @@ Mass(uL, pNode, dMass, fOut)
 DynamicMass::~DynamicMass(void)
 {
 	NO_OP;
-}
-
-
-/* Scrive il contributo dell'elemento al file di restart */
-std::ostream&
-DynamicMass::Restart(std::ostream& out) const
-{
-	Mass::Restart_int(out) << ';' << std::endl;
-
-	return out;
 }
 
 
@@ -497,18 +487,6 @@ Mass(uL, pNode, dMass, fOut)
 StaticMass::~StaticMass(void)
 {
 	NO_OP;
-}
-
-
-/* Scrive il contributo dell'elemento al file di restart */
-std::ostream&
-StaticMass::Restart(std::ostream& out) const
-{
-	Mass::Restart_int(out);
-
-	out << ';' << std::endl;
-
-	return out;
 }
 
 

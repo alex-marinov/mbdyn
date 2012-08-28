@@ -55,7 +55,7 @@ protected:
 	Mat3x3 GetJ_int(void) const;
 
 	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart_int(std::ostream& out) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
  
 	void
 	AssVecRBK_int(SubVectorHandler& WorkVec);
@@ -136,9 +136,6 @@ public:
 
 	virtual ~DynamicMass(void);
  
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
- 
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 3; 
 		*piNumCols = 3; 
@@ -206,9 +203,6 @@ public:
 		doublereal dMass, flag fOut);
 
 	virtual ~StaticMass(void);
- 
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
  
 	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
 		*piNumRows = 3; 
