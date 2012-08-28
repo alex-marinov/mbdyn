@@ -567,7 +567,7 @@ if test "$ol_enable_netcdf" != no ; then
 		if test $have_netcdf_h = "yes" ; then
 			AC_DEFINE(HAVE_NETCDF_H,1,[<netcdf.h> suffices to use NetCDF C++ support])
 			save_LIBS="$LIBS"
-			try_NETCDF_LIBS="-lnetcdf_c++ -lnetcdf"
+			try_NETCDF_LIBS="-lnetcdf_c++4 -lnetcdf"
 			LIBS="$try_NETCDF_LIBS $LIBS"
 			AC_LANG_CPLUSPLUS
 			AC_TRY_LINK([
