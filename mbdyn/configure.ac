@@ -542,6 +542,7 @@ if test "$ol_enable_netcdf" != no ; then
 	AC_CHECK_HEADER(netcdfcpp.h,[have_netcdfcpp_h=yes],[have_netcdfcpp_h=no])
 	AC_LANG_C
 	if test $have_netcdfcpp_h = "yes" ; then
+		AC_DEFINE(HAVE_NETCDFCPP_H,1,[must include <netcdfcpp.h> to use NetCDF C++ support])
 		save_LIBS="$LIBS"
 		try_NETCDF_LIBS="-lnetcdf_c++ -lnetcdf"
 		LIBS="$try_NETCDF_LIBS $LIBS"
@@ -557,12 +558,36 @@ if test "$ol_enable_netcdf" != no ; then
 			])
 		AC_LANG_C
 		LIBS="$save_LIBS"
+	else
+		dnl apparently, NetCDF 4 only needs header <netcdf.h>
+		dnl and thus does not provide <netcdfcpp.h> any longer
+		AC_LANG_CPLUSPLUS
+		AC_CHECK_HEADER(netcdf.h,[have_netcdf_h=yes],[have_netcdf_h=no])
+		AC_LANG_C
+		if test $have_netcdf_h = "yes" ; then
+			AC_DEFINE(HAVE_NETCDF_H,1,[<netcdf.h> suffices to use NetCDF C++ support])
+			save_LIBS="$LIBS"
+			try_NETCDF_LIBS="-lnetcdf_c++ -lnetcdf"
+			LIBS="$try_NETCDF_LIBS $LIBS"
+			AC_LANG_CPLUSPLUS
+			AC_TRY_LINK([
+#include <netcdf.h>
+				],[
+		/* test for netcdf */
+		NcFile nc("foobar", NcFile::Replace); // Create and leave in define mode
+				],[
+					have_libnetcdf=yes
+					NETCDF_LIBS="$try_NETCDF_LIBS"
+				])
+			AC_LANG_C
+			LIBS="$save_LIBS"
+		fi
 	fi
 
 	if test $have_libnetcdf = yes ; then
 		AC_DEFINE(USE_NETCDF,1,[define this to enable NetCDF based output])
 	elif test $ol_enable_netcdf != auto ; then
-		AC_MSG_ERROR([Could not locate netcdfcpp.h header])
+		AC_MSG_ERROR([Could not locate netcdfcpp.h/netcdf.h header])
 	fi
 
 	have_udunits=no
