@@ -237,7 +237,7 @@ OutputHandler::OutputHandler_int(void)
 	OutData[MODAL].pof = &ofModal;
 
 	OutData[PLATES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT
+		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT
 		| OUTPUT_MAY_USE_NETCDF;
 	OutData[PLATES].pof = &ofPlates;
 
