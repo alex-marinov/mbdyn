@@ -649,6 +649,80 @@ mp_par(const MathParser::MathArgs& args)
 	return 0;
 }
 
+enum mp_in_e {
+	IN_LL,
+	IN_LE,
+	IN_EL,
+	IN_EE
+};
+
+template<mp_in_e IN>
+static int
+mp_in(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
+	ASSERT(args[3]->Type() == MathParser::AT_REAL);
+
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+	ASSERT(out != 0);
+
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
+	ASSERT(arg2 != 0);
+
+	MathParser::MathArgReal_t *arg3 = dynamic_cast<MathParser::MathArgReal_t*>(args[3]);
+	ASSERT(arg3 != 0);
+
+	Real l = (*arg1)();
+	Real x = (*arg2)();
+	Real u = (*arg3)();
+
+	switch (IN) {
+	case IN_LL:
+	case IN_LE:
+		if (x <= l) {
+			*out = 0;
+			return 0;
+		}
+		break;
+
+	case IN_EL:
+	case IN_EE:
+		if (x < l) {
+			*out = 0;
+			return 0;
+		}
+		break;
+	}
+
+	switch (IN) {
+	case IN_LL:
+	case IN_EL:
+		if (x >= u) {
+			*out = 0;
+			return 0;
+		}
+		break;
+
+	case IN_LE:
+	case IN_EE:
+		if (x > u) {
+			*out = 0;
+			return 0;
+		}
+		break;
+	}
+
+	*out = 1;
+
+	return 0;
+}
+
 /* tipi delle variabili */
 struct TypeName_t {
 	const char* name;
@@ -2382,13 +2456,82 @@ MathParser::StaticNameSpace::StaticNameSpace()
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	// sramp
+	// par
 	f = new MathFunc_t;
 	f->fname = std::string("par");
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_par;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// in
+	f = new MathFunc_t;
+	f->fname = std::string("in_ll");
+	f->args.resize(1 + 3);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->args[3] = new MathArgReal_t;
+	f->f = mp_in<IN_LL>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	f = new MathFunc_t;
+	f->fname = std::string("in_le");
+	f->args.resize(1 + 3);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->args[3] = new MathArgReal_t;
+	f->f = mp_in<IN_LE>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	f = new MathFunc_t;
+	f->fname = std::string("in_el");
+	f->args.resize(1 + 3);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->args[3] = new MathArgReal_t;
+	f->f = mp_in<IN_EL>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	f = new MathFunc_t;
+	f->fname = std::string("in_ee");
+	f->args.resize(1 + 3);
+	f->args[0] = new MathArgReal_t;
+	f->args[1] = new MathArgReal_t;
+	f->args[2] = new MathArgReal_t;
+	f->args[3] = new MathArgReal_t;
+	f->f = mp_in<IN_EE>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
