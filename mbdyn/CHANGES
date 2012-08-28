@@ -42,6 +42,7 @@ MBDyn 1.5.0
 		- fix uninitialized array in modal joint parsing
 		  (noted by Domenico Capobianco)
 		- fix 'print: all'
+		- fix link of NetCDF 4.X (noted by Patrick Rix)
 
 MBDyn 1.4.3
 	Enhancements:
