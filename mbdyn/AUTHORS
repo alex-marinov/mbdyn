@@ -130,6 +130,9 @@ Riccardo Vescovini, as Ph.D. student, is developing the shell element.
 Reinhard Resch, as an independent user, provided selected improvements,
 	mainly user-defined elements for special features.
 
+Louis Gagnon, as an independent user, developed the wheel4 module
+	during a stage at Politecnico di Milano
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 

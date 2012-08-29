@@ -25,6 +25,7 @@ MBDyn 1.5.0
 		  (suggested by Tingnan Zhang)
 		- added built-in 'TRUE' and 'FALSE' boolean const vars
 		- added built-in int/real limit const vars
+		- added module-wheel4 (Louis Gagnon)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
