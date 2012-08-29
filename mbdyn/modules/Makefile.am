@@ -239,5 +239,9 @@ module-udunits/README \
  \
 module-wheel2/module-wheel2.cc \
 module-wheel2/module-wheel2.h
+ \
+module-wheel4/module-wheel4.cc \
+module-wheel4/module-wheel4.h \
+module-wheel4/axleExampleNoData
 
 include $(top_srcdir)/build/bot.mk
