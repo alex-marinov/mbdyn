@@ -27,6 +27,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Author:	Louis Gagnon <louis.gagnon.10@ulaval.ca>
+ *		Departement de genie mecanique
+ *		Universite Laval
+ *		http://www.gmc.ulaval.ca
+ */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
@@ -40,17 +46,7 @@
 #include "dataman.h"
 #include "userelem.h"
 #include "simentity.h"
-
-/*
-#define _GNU_SOURCE 1
-#include <fenv.h>
-static void __attribute__ ((constructor))
-trapfpe ()
-{
-
-  feenableexcept (FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
-}
-*/
+#include "body.h"
 
 Wheel4::Wheel4(unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
@@ -63,12 +59,12 @@ firstRes(true)
 		silent_cout(
 "									\n"
 "Module: 	wheel4							\n"
-"Author: 	Louis Gagnon <louis.gagnon.10@ulaval.ca>			\n"
-"Organization:	Departement de genie mecanique			\n"
+"Author: 	Louis Gagnon <louis.gagnon.10@ulaval.ca>		\n"
+"Organization:	Departement de genie mecanique				\n"
 "		Universite Laval					\n"
 "		http://www.gmc.ulaval.ca				\n"
 "		Pierangelo Masarati <masarati@aero.polimi.it>		\n"
-"		Marco Morandini <morandini@aero.polimi.it>			\n"
+"		Marco Morandini <morandini@aero.polimi.it>		\n"
 "Organization:	Dipartimento di Ingegneria Aerospaziale			\n"
 "		Politecnico di Milano					\n"
 "		http://www.aero.polimi.it				\n"
@@ -76,9 +72,9 @@ firstRes(true)
 "L. Gagnon, M. J. Richard, P. Masarati, M. Morandini, and G. Dore. Multibody simulation of tires operating on an uneven road. In Multibody Dynamics 2011, 4-7 July 2011"
 				" And soon coming : L. Gagnon, M. J. Richard, P. Masarati, M. Morandini, and G. Dore. A Free Implicit Rigid Ring Tire Model"
 "	All rights reserved						\n"
-"	Wheel4 requires the ginac librairies to be installed			\n"
+"	Wheel4 requires the ginac libraries to be installed		\n"
 "									\n"
-"Nodes:								\n"
+"Nodes:									\n"
 "     -	Wheel								\n"
 "     -	Ring								\n"
 " 									\n"
@@ -103,8 +99,8 @@ firstRes(true)
 	k = Vec3(0.,0.,1.); // unit vector in z-dir
 
 	// read wheel node
-	pWheel = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL); // input 1, wheel node (or ring node if using swift)
-	pWheelB = (Elem *)pDM->ReadElem(HP, Elem::BODY); // input, wheel body
+	pWheel = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP); // input 1, wheel node (or ring node if using swift)
+	pWheelB = pDM->ReadElem<Body, Elem::BODY>(HP); // input, wheel body
 
 	// read wheel axle
 	ReferenceFrame RF = ReferenceFrame(pWheel); //makes reference frame from wheel node
@@ -126,8 +122,8 @@ firstRes(true)
 	bSwift = false;
 	if (HP.IsKeyWord("swift")) {
 		bSwift = true;
-	pRing = (StructNode *)pDM->ReadNode(HP, Node::STRUCTURAL); // get ring node if swift
-	pRingB = (Elem *)pDM->ReadElem(HP, Elem::BODY); // get ring body
+	pRing = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP); // get ring node if swift
+	pRingB = pDM->ReadElem<Body, Elem::BODY>(HP); // get ring body
 
 	Xpa = pRing->GetXCurr() - k*0.98*dR_0;
 	XpaPrev=Xpa;
@@ -707,7 +703,7 @@ Wheel4::AssJac(VariableSubMatrixHandler& WorkMat,
 	integer iRingFirstPosIndex = pRing->iGetFirstPositionIndex();
 	integer iWheelFirstPosIndex = pWheel->iGetFirstPositionIndex();
 	integer iRingFirstMomIndex = pRing->iGetFirstMomentumIndex();
-	integer iWheelFirstMomIndex = pWheel->iGetFirstMomentumIndex();
+	// integer iWheelFirstMomIndex = pWheel->iGetFirstMomentumIndex();
 
 	// patch x dir,
 	WM.PutRowIndex(1, iFirstIndex + 1);
@@ -1447,7 +1443,7 @@ Wheel4::AssRes(SubVectorHandler& WorkVec,
 		integer iNumCols = 0;
 		WorkSpaceDim(&iNumRows, &iNumCols);
 		WorkVec.ResizeReset(iNumRows);
-		integer iWheelFirstMomIndex = pWheel->iGetFirstMomentumIndex();
+		// integer iWheelFirstMomIndex = pWheel->iGetFirstMomentumIndex();
 		integer iRingFirstMomIndex = pRing->iGetFirstMomentumIndex();
 		// equations indexes
 		for (int iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1964,11 +1960,11 @@ TimeStep::iGetPrivDataIdx(const char *s) const
 
 doublereal TimeStep::dGetPrivData(unsigned int i) const
 {
-   ASSERT(i >= 1 && i <= iGetNumPrivData());
+	ASSERT(i >= 1 && i <= iGetNumPrivData());
 
 	doublereal dtMax = pWheelsE[0]->dGetPrivData(1);
-	for ( int iCnt=1; iCnt < pWheelsE.size(); iCnt++ ) {
-	dtMax = fmin(dtMax,pWheelsE[iCnt]->dGetPrivData(1));
+	for (unsigned iCnt=1; iCnt < pWheelsE.size(); iCnt++ ) {
+		dtMax = fmin(dtMax,pWheelsE[iCnt]->dGetPrivData(1));
 	}
     	return dtMax; // this should return the maximum timestep that this wheel is able to take (to be fed into the strategy:change cirective in the MBDyn input file)
 }

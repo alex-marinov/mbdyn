@@ -27,6 +27,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Author:	Louis Gagnon <louis.gagnon.10@ulaval.ca>
+ *		Departement de genie mecanique
+ *		Universite Laval
+ *		http://www.gmc.ulaval.ca
+ */
 
 #ifndef MODULE_WHEEL4_H
 #define MODULE_WHEEL4_H

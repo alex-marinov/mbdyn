@@ -97,7 +97,7 @@ begin: control data;
 	print: dof description;
 end: control data;
 
-module load: "libmodule-wheel4.so";
+module load: "libmodule-wheel4.la";
 
 set: integer GROUND = 0; 	#ground
 #set: integer MOVING_G = 4;	#moving ground
