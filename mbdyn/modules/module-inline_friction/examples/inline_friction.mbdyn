@@ -134,6 +134,8 @@ reference: ref_id_slider,
 
 begin: nodes;
 
+# module load: "libmodule-inline_friction.la";
+
 structural: node_id_slider, dynamic,
     position, reference, ref_id_slider, 0., 0., -15e-3,
 	orientation, reference, ref_id_slider, eye,

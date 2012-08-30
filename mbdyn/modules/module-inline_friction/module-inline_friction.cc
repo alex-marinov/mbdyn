@@ -59,9 +59,10 @@
 
 #include "module-inline_friction.h"
 
-#define FORCE_UPDATE_RES 1
-#define FORCE_UPDATE_JAC 1
-#define FORCE_UPDATE_AFTER 1
+#define FORCE_UPDATE_ASSRES 0
+#define FORCE_UPDATE_ASSJAC 0
+#define FORCE_UPDATE_AFTERCONVERGENCE 0
+#define FORCE_UPDATE_AFTERPREDICT 1
 
 class InlineFriction: virtual public Elem, public UserDefinedElem
 {
@@ -93,6 +94,7 @@ public:
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph);
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
 	virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 	std::ostream& Restart(std::ostream& out) const;
@@ -497,7 +499,7 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-#if FORCE_UPDATE_JAC == 1
+#if FORCE_UPDATE_ASSJAC == 1
 	Update(XCurr, XPrimeCurr);
 #endif
 
@@ -710,7 +712,7 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-#if	FORCE_UPDATE_RES == 1
+#if	FORCE_UPDATE_ASSRES == 1
 	Update(XCurr, XPrimeCurr);
 #endif
 
@@ -796,20 +798,27 @@ InlineFriction::SetValue(DataManager *pDM,
 	XP.PutCoef(iFirstIndex + 3, zP);
 }
 
+void InlineFriction::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+#if	FORCE_UPDATE_AFTERPREDICT == 1
+	Update(X, XP);
+#endif
+}
+
 void InlineFriction::Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr)
 {
 	const integer iFirstIndex = iGetFirstIndex();
 
 	for (int i = 1; i <= 2; ++i)
-		lambda[i - 1] = XCurr.dGetCoef(iFirstIndex + i);
+		lambda[i - 1] = XCurr(iFirstIndex + i);
 
-	z = XCurr.dGetCoef(iFirstIndex + 3);
-	zP = XPrimeCurr.dGetCoef(iFirstIndex + 3);
+	z = XCurr(iFirstIndex + 3);
+	zP = XPrimeCurr(iFirstIndex + 3);
 }
 
 void InlineFriction::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
-#if FORCE_UPDATE_AFTER == 1
+#if FORCE_UPDATE_AFTERCONVERGENCE == 1
 	Update(X, XP);
 #endif
 }
@@ -1172,7 +1181,7 @@ bool inline_friction_set(void)
 	return true;
 }
 
-#ifndef STATIC_MODULES
+//#ifndef STATIC_MODULES
 
 extern "C"
 {
@@ -1193,4 +1202,4 @@ int module_init(const char *module_name, void *pdm, void *php)
 
 }
 
-#endif // ! STATIC_MODULE
+//#endif // ! STATIC_MODULE
