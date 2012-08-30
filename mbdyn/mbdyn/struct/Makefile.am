@@ -137,7 +137,10 @@ $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_pl
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/diffsizes.f95 \
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
+\
+$(srcdir)/../../modules/module-inline_friction/module-inline_friction.cc \
+$(srcdir)/../../modules/module-inline_friction/module-inline_friction.h
 
 # add more...
 endif
