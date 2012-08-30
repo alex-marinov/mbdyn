@@ -89,9 +89,9 @@ begin: control data;
 	loadable elements:
 2
 	;
-	file drivers:
-1
-;
+#	file drivers:
+#1
+#;
 	gravity;
 	print: dof stats;
 	print: dof description;
@@ -106,9 +106,6 @@ set: integer RW = 3; 		#rear wheel
 set: integer RWNR = 51; 	#rear wheel non rotating hub
 set: integer RWR = 50; 		#rear wheel ring
 set: integer RWA = 55;		#real wheels axle (first)
-set: integer PATH = 15;		#file drive id for demanded steering
-set: integer PATHY = 16;	#drive id for demanded steering function
-set: integer SPEED = 17;	#file drive id for demanded velocity
 set: integer ROAD_LEFT = 7;	#road profile driver (based on position)
 set: integer ROAD_RIGHT = 8;	#road profile
 set: integer CE;
@@ -310,20 +307,22 @@ set: CEz = 0.;			#pos of wheel CE (Current Element) relative to reference
 
 end: nodes;
 
-begin: drivers;
-	file: 1, variable step,
-		1,
-		interpolation, linear,
-		pad zeroes, no,
-		"speedDrive.txt";
-	drive caller: SPEED, file, 1, 1;
+#begin: drivers;
 
+#end: drivers;
 
 
 ### road definition,
+
+###############################################################################
+## the following command can be useful when feeding a large profile,###########
 #include: "road_cleat10x20.dat"; #iterZ
+###############################################################################
+
+### or for a flat road,
 #drive caller: ROAD_LEFT, scalar function, "road_left", const, 0;
 
+### example road,
 drive caller: ROAD_LEFT, scalar function, "road_left",
 multilinear,
 0.000000, 0,
@@ -334,11 +333,12 @@ multilinear,
 0.025000, 9e-03,
 0.030000, 0.01,
 0.035000, 0.01001;
+
 ### ,road definition
 
 
 
-end: drivers;
+
 
 
 begin: elements;
@@ -367,7 +367,7 @@ begin: elements;
 
 set: integer ROAD_CE = ROAD_LEFT;
 
-	body: CE,
+	body: CE, #wheel
 		CE,
 			MW,
 			reference, node, 0.0, 0.0, 0.0, 
