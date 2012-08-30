@@ -46,12 +46,6 @@
 #ifdef USE_OCTAVE
 
 #include <octave/oct.h>
-#if 0
-#ifndef octave_Array_cc
-	#define octave_Array_cc
-	#include <octave/Array.cc>
-#endif
-#endif
 #include <cassert>
 #include <typeinfo>
 #include <stdarg.h>
@@ -171,36 +165,17 @@ public:
 		octave_value::operator=(rhs);
 		return *this;
 	}
-/*
-	const T& get_rep()const
-	{
-		return static_cast<const T&>(octave_value::get_rep());
-	}
-*/
+
 	T& get_rep()const
 	{
 		return static_cast<T&>(const_cast<octave_base_value&>(octave_value::get_rep()));
 	}
-/*
-	const T* operator->()const
-	{
-		return &get_rep();
-	}
-*/
+
 	T* operator->()const
 	{
 		return &get_rep();
 	}
-/*
-	const T& operator*()const
-	{
-		return get_rep();
-	}
 
-	T& operator*()
-	{
-		return get_rep();
-	}*/
 private:
 	static void check_type(const octave_base_value& ref) throw(std::bad_cast)
 	{
@@ -208,83 +183,6 @@ private:
 			throw std::bad_cast();
 	}
 };
-
-#if 0
-template<typename T>
-class octave_object_ptr_array: public Array<octave_object_ptr<T> >
-{
-	typedef Array<octave_object_ptr<T> > Array_t;
-public:
-	octave_object_ptr_array()
-	{
-
-	}
-
-	octave_object_ptr_array(const octave_object_ptr_array& oopa)
-		:Array_t(oopa)
-	{
-
-	}
-
-	template <typename U>
-	octave_object_ptr_array(const octave_object_ptr_array<U>& oopa)
-		:Array_t(oopa)
-	{
-
-	}
-
-	octave_object_ptr_array(const octave_value_list& ovl)
-		:Array_t(ovl.array_value())
-	{
-
-	}
-
-	~octave_object_ptr_array()
-	{
-
-	}
-
-	octave_object_ptr_array& operator=(const octave_object_ptr_array& rhs)
-	{
-		Array_t::operator=(rhs);
-		return *this;
-	}
-
-	template <typename U>
-	octave_object_ptr_array& append(const octave_object_ptr<U>& ptr)
-	{
-		resize_fill( this->length() + 1, ptr);
-		return *this;
-	}
-
-	octave_object_ptr_array& append(const octave_value& ptr)
-	{
-		append(octave_object_ptr<T>(ptr));
-		return *this;
-	}
-
-	template <typename U>
-	octave_object_ptr_array& append(const octave_object_ptr_array<U>& array)
-	{
-		for ( int i = 0; i < array.length(); ++i )
-			append(array(i));
-
-		return *this;
-	}
-
-	octave_object_ptr_array& append(const Array<octave_value>& array)
-	{
-		for ( int i = 0; i < array.length(); ++i )
-			append(array(i));
-
-		return *this;
-	}
-
-	Array<octave_value> array_value (void) const { return *this; }
-
-	Cell cell_value (void) const { return array_value(); }
-};
-#endif
 
 extern void error(const char* fmt, ...)
 #ifdef __GNUC__

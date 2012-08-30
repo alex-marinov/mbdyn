@@ -426,6 +426,7 @@ protected:
 		METHOD_DECLARE(GetReal)
 		METHOD_DECLARE(GetInt)
 		METHOD_DECLARE(GetBool)
+		METHOD_DECLARE(GetYesNoOrBool)
 		METHOD_DECLARE(GetString)
 		METHOD_DECLARE(GetStringWithDelims)
 		METHOD_DECLARE(GetValue)
@@ -1815,7 +1816,12 @@ METHOD_DEFINE(OStreamInterface, printf, args, nargout)
 
 	const std::string str(ans(0).string_value());
 
-	*pOS << str;
+	for (std::string::const_iterator p = str.begin(); p != str.end(); ++p) {
+		*pOS << *p;
+
+		if (*p == '\n') // conform to default behavior in C and octave
+			pOS->flush();
+	}
 
 	return octave_value(octave_int<size_t>(str.length()));
 }
@@ -3281,6 +3287,44 @@ METHOD_DEFINE(MBDynParserInterface, GetBool, args, nargout)
 	return octave_value(bVal);
 }
 
+METHOD_DEFINE(MBDynParserInterface, GetYesNoOrBool, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	bool bDefVal = 0;
+
+	if (args.length() > 1) {
+		error("%s: invalid number of arguments %ld\n"
+				"expected 0-1 arguments",
+				type_name().c_str(),
+				long(args.length()));
+		return octave_value();
+	} else if (args.length() >= 1) {
+		if (!args(0).is_bool_scalar()) {
+			error("%s: invalid argument type (%s)\n"
+					"expected bool scalar",
+					type_name().c_str(),
+					args(0).type_name().c_str());
+			return octave_value();
+		}
+		bDefVal = args(0).bool_value();
+	}
+
+	bool bVal;
+
+	try {
+		bVal = pHP->GetYesNoOrBool(bDefVal);
+	} catch(...) {
+		error("%s: GetYesNoOrBool failed", type_name().c_str());
+		return octave_value();
+	}
+
+	return octave_value(bVal);
+}
+
 METHOD_DEFINE(MBDynParserInterface, GetString, args, nargout)
 {
 	if (!pHP) {
@@ -3573,6 +3617,7 @@ BEGIN_METHOD_TABLE(MBDynParserInterface, MBDynInterface)
 	METHOD_DISPATCH(MBDynParserInterface, GetReal)
 	METHOD_DISPATCH(MBDynParserInterface, GetInt)
 	METHOD_DISPATCH(MBDynParserInterface, GetBool)
+	METHOD_DISPATCH(MBDynParserInterface, GetYesNoOrBool)
 	METHOD_DISPATCH(MBDynParserInterface, GetString)
 	METHOD_DISPATCH(MBDynParserInterface, GetStringWithDelims)
 	METHOD_DISPATCH(MBDynParserInterface, GetValue)
@@ -3971,10 +4016,9 @@ void OctaveConstitutiveLaw<T, Tder>::Update(const T& mbEps, const T& mbEpsPrime)
 
 	ASSERT(ans.length() == 4);
 
-	if (!ans(0).is_object()) {
+	if (!(ans(0).is_object() && ans(0).type_id() == octObject.type_id())) {
 		silent_cerr("octave constitutive law(" << Base_t::GetLabel()
-					<< "): data type of first output argument is invalid (" << ans(0).type_name() << ")" << std::endl
-					<< "expected object" << std::endl);
+					<< "): output argument 1 is not an instance of " << octObject.type_name() << std::endl);
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -4210,10 +4254,14 @@ OctaveElement::OctaveElement(
 
 	args.append(GetInterface()->GetDataManagerInterface());
 	args.append(GetInterface()->GetMBDynParserInterface());
-
+	args.append(OS);
 	const int flags = OctaveInterface::UPDATE_OCTAVE_VARIABLES;
 
+	OS->Set(&pDM->GetLogFile());
+
 	octave_value_list ans = GetInterface()->EvalFunction(GetClass(), args, 1, flags);
+
+	OS->Set(0);
 
 	ASSERT(ans.length() == 1);
 
@@ -4411,12 +4459,20 @@ OctaveElement::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	args.append(X);
 	args.append(XP);
 
-	const octave_value_list ans = GetInterface()->EvalFunction(strAssJac, args, 4, GetFlags() | OctaveInterface::OPTIONAL_OUTPUT_ARGS);
+	const octave_value_list ans = GetInterface()->EvalFunction(strAssJac, args, 5, GetFlags() | OctaveInterface::OPTIONAL_OUTPUT_ARGS);
 
-	ASSERT(ans.length() <= 4);
+	ASSERT(ans.length() <= 5);
 
 	X->Set(0);
 	XP->Set(0);
+
+	if (ans.length() >= 5) {
+		if (!(ans(4).is_object() && ans(4).type_id() == octObject.type_id())) {
+			silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes << ": output argument 5 is not an instance of " << octObject.type_name() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		octObject = ans(4);
+	}
 
 	return AssMatrix(WorkMatVar, ans, false);
 }
@@ -4441,13 +4497,19 @@ OctaveElement::AssRes(SubVectorHandler& WorkVec,
 	args.append(X);
 	args.append(XP);
 
-	octave_value_list ans = GetInterface()->EvalFunction(strAssRes, args, 2, GetFlags());
+	octave_value_list ans = GetInterface()->EvalFunction(strAssRes, args, 3, GetFlags() | OctaveInterface::OPTIONAL_OUTPUT_ARGS);
 
 	X->Set(0);
 	XP->Set(0);
 
-	ASSERT(ans.length() == 2);
+	ASSERT(ans.length() <= 3);
 
+	if (ans.length() < 2) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes << ": expected 2-3 output arguments" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	ASSERT(ans.length() >= 2);
 	if (!(ans(0).is_matrix_type()
 			&& ans(0).is_real_type()
 			&& ans(0).columns() == 1)) {
@@ -4491,6 +4553,14 @@ OctaveElement::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		WorkVec.PutItem(i + 1, ridx(i), f(i));
+	}
+
+	if (ans.length() >= 3) {
+		if (!(ans(2).is_object() && ans(2).type_id() == octObject.type_id())) {
+			silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAssRes << ": output argument 3 is not an instance of " << octObject.type_name() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		octObject = ans(2);
 	}
 
 	return WorkVec;
@@ -4851,9 +4921,8 @@ void OctaveElement::Update(const VectorHandler& XCurr,const VectorHandler& XPrim
 
 	ASSERT(ans.length() == 1);
 
-	if ( !ans(0).is_object() ) {
-		silent_cerr("octave error: return value of " << strUpdate << " ("
-				<< ans(0).type_name() << ") is not an object" << std::endl);
+	if (!(ans(0).is_object() && ans(0).type_id() == octObject.type_id())) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strUpdate << ": output argument 1 is not an instance of " << octObject.type_name() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -5070,7 +5139,7 @@ OctaveElement::AssMatrix(VariableSubMatrixHandler& WorkMatVar, const octave_valu
 {
 	const std::string& strFunction = bInitial ? strInitialAssJac : strAssJac;
 
-	ASSERT(ans.length() <= 4);
+	ASSERT(ans.length() <= 5);
 
 	if (ans.length() < 3) {
 		silent_cerr("octave(" << GetLabel()

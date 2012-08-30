@@ -48,7 +48,6 @@
 #include <octave/oct-map.h>
 #include <octave/oct-stream.h>
 #include <octave/ov-base-scalar.h>
-#include <octave/Array.h>
 
 #include <iostream>
 
