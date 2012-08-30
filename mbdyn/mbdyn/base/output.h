@@ -48,7 +48,11 @@
 #include <typeinfo>
 
 #ifdef USE_NETCDF
+#if defined(HAVE_NETCDFCPP_H)
 #include <netcdfcpp.h>  
+#elif defined(HAVE_NETCDF_H)
+#include <netcdf.h>  
+#endif
 #endif /* USE_NETCDF */
 
 #include "myassert.h"
