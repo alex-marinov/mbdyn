@@ -18,7 +18,7 @@ MBDyn 1.5.0
 		- added "other" specifier to total pin joint input
 		- added dof stats output to file (Reinhard Resch)
 		- added '-E' to enable fpe checking
-		- added module-octave (Reinhard Resch)
+		- added module-octave and related modules (Reinhard Resch)
 		- drive drive made differentiable (Reinhard Resch)
 		- added "m" (mass) to body private data (Louis Gagnon)
 		- added module-eu2phi TplDriveCaller wrapper
