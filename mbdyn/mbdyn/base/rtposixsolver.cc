@@ -90,6 +90,7 @@ RTPOSIXSolver::Setup(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
+#ifdef HAVE_SCHED_SETAFFINITY
 	if (RTCpuMap != 0xFF) {
 		cpu_set_t cpuset;
 
@@ -105,6 +106,7 @@ RTPOSIXSolver::Setup(void)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
+#endif // HAVE_SCHED_SETAFFINITY
 }
 
 // to be performed when stop is commanded by someone else

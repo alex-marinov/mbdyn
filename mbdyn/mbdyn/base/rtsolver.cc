@@ -179,6 +179,10 @@ ReadRTParams(Solver *pS, MBDynParser& HP,
 
 	RTCpuMap = 0xFF;
 	if (HP.IsKeyWord("cpu" "map")) {
+#ifndef HAVE_SCHED_SETAFFINITY
+		silent_cerr("warning: \"cpu map\" unsupported (ignored)" << std::endl);
+#endif // ! HAVE_SCHED_SETAFFINITY
+
 		int cpumap = HP.GetInt();
 		// NOTE: there is a hard limit at 4 CPU
 		int ncpu = std::min(get_nprocs(), 4);

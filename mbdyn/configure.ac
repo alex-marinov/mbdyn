@@ -401,6 +401,7 @@ AC_CHECK_HEADERS(netdb.h)
 AC_CHECK_HEADERS(netinet/in.h)
 AC_CHECK_HEADERS(pwd.h)
 AC_CHECK_HEADERS(pthread.h)
+AC_CHECK_HEADERS(sched.h)
 AC_CHECK_HEADERS(semaphore.h)
 AC_CHECK_HEADERS(signal.h)
 AC_CHECK_HEADERS(stdint.h)
@@ -2490,6 +2491,7 @@ AC_CHECK_FUNCS([ \
 	pstat_getdynamic \
 	pstat_getprocessor \
 	putenv \
+	sched_setaffinity \
 	setenv \
 	shmget \
 	signal \

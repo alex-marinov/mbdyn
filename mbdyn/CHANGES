@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fix build when sched_setaffinity() is unavailable
 
 MBDyn 1.5.0
 	Enhancements:
