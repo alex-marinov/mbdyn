@@ -1480,7 +1480,7 @@ EndOfUse:
 } /* End of DataManager::ReadControl() */
 
 doublereal
-DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t)
+DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t) const
 {
 	doublereal d = dGetDefaultScale(t);
 
@@ -1501,7 +1501,7 @@ DataManager::dReadScale(MBDynParser& HP, enum DofOwner::Type t)
 int
 DataManager::ReadScalarAlgebraicNode(MBDynParser& HP,
 	unsigned int uLabel, Node::Type type,
-	doublereal& dX)
+	doublereal& dX) const
 {
 	/* verifica di esistenza del nodo */
 	if (pFindNode(type, uLabel) != NULL) {
@@ -1530,7 +1530,7 @@ DataManager::ReadScalarAlgebraicNode(MBDynParser& HP,
 int
 DataManager::ReadScalarDifferentialNode(MBDynParser& HP,
 	unsigned int uLabel, Node::Type type,
-	doublereal& dX, doublereal& dXP)
+	doublereal& dX, doublereal& dXP) const
 {
 	if (ReadScalarAlgebraicNode(HP, uLabel, type, dX) == 1) {
 		if (HP.IsKeyWord("derivative")) {
@@ -2298,7 +2298,7 @@ DataManager::ReadDrivers(MBDynParser& HP)
 /* DataManager - end */
 
 Node*
-DataManager::ReadNode(MBDynParser& HP, Node::Type type)
+DataManager::ReadNode(MBDynParser& HP, Node::Type type) const
 {
 	integer iNode = HP.GetInt();
 	if (iNode < 0) {
@@ -2323,7 +2323,7 @@ DataManager::ReadNode(MBDynParser& HP, Node::Type type)
 }
 
 Elem*
-DataManager::ReadElem(MBDynParser& HP, Elem::Type type)
+DataManager::ReadElem(MBDynParser& HP, Elem::Type type) const
 {
 	integer iElem = HP.GetInt();
 	if (iElem < 0) {

@@ -239,8 +239,8 @@ protected:
 
 public:
 	template <class T>
-	flag fReadOutput(MBDynParser& HP, const T& t);
-	doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t);
+	flag fReadOutput(MBDynParser& HP, const T& t) const;
+	doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t) const;
 
 	bool bOutputAccelerations(void) const;
 
@@ -282,20 +282,20 @@ public:
 
 	/* helpers */
 	int ReadScalarAlgebraicNode(MBDynParser& HP, unsigned int uLabel,
-			Node::Type type, doublereal& dX);
+			Node::Type type, doublereal& dX) const;
 	int ReadScalarDifferentialNode(MBDynParser& HP, unsigned int uLabel,
-			Node::Type type, doublereal& dX, doublereal& dXP);
-	Node* ReadNode(MBDynParser& HP, Node::Type type);
-	Elem* ReadElem(MBDynParser& HP, Elem::Type type);
+			Node::Type type, doublereal& dX, doublereal& dXP) const;
+	Node* ReadNode(MBDynParser& HP, Node::Type type) const;
+	Elem* ReadElem(MBDynParser& HP, Elem::Type type) const;
 
 	template <class Tbase, Node::Type type>
-	Tbase *ReadNode(MBDynParser& HP);
+	Tbase *ReadNode(MBDynParser& HP) const;
 	template <class Tder, class Tbase, Node::Type type>
-	Tder *ReadNode(MBDynParser& HP);
+	Tder *ReadNode(MBDynParser& HP) const;
 	template <class Tbase, Elem::Type type>
-	Tbase *ReadElem(MBDynParser& HP);
+	Tbase *ReadElem(MBDynParser& HP) const;
 	template <class Tder, class Tbase, Elem::Type type>
-	Tder *ReadElem(MBDynParser& HP);
+	Tder *ReadElem(MBDynParser& HP) const;
 
 	/* Funzioni usate dal metodo di integrazione */
 
@@ -328,8 +328,8 @@ public:
 
 	/* Restituisce l'ostream al file di output,
 	 * usato dai vari metodi per scrivere il log del calcolo */
-	std::ostream& GetOutFile(void) { return OutHdl.Output(); };
-	std::ostream& GetLogFile(void) { return OutHdl.Log(); };
+	std::ostream& GetOutFile(void) const { return OutHdl.Output(); };
+	std::ostream& GetLogFile(void) const { return OutHdl.Log(); };
 
 	/* required for binary NetCDF output access */
 	const OutputHandler* pGetOutHdl(void) const { return &OutHdl; };
@@ -957,7 +957,7 @@ DataManager::pFindElem(unsigned int uElem) const
 
 template <class Tbase, Node::Type type>
 Tbase *
-DataManager::ReadNode(MBDynParser& HP)
+DataManager::ReadNode(MBDynParser& HP) const
 {
 	Node *pNode = ReadNode(HP, type);
 	ASSERT(pNode != 0);
@@ -974,7 +974,7 @@ DataManager::ReadNode(MBDynParser& HP)
 
 template <class Tder, class Tbase, Node::Type type>
 Tder *
-DataManager::ReadNode(MBDynParser& HP)
+DataManager::ReadNode(MBDynParser& HP) const
 {
 	Tbase *pNodeBase = ReadNode<Tbase, type>(HP);
 	ASSERT(pNodeBase != 0);
@@ -992,7 +992,7 @@ DataManager::ReadNode(MBDynParser& HP)
 
 template <class Tbase, Elem::Type type>
 Tbase *
-DataManager::ReadElem(MBDynParser& HP)
+DataManager::ReadElem(MBDynParser& HP) const
 {
 	Elem *pElem = ReadElem(HP, type);
 	ASSERT(pElem != 0);
@@ -1009,7 +1009,7 @@ DataManager::ReadElem(MBDynParser& HP)
 
 template <class Tder, class Tbase, Elem::Type type>
 Tder *
-DataManager::ReadElem(MBDynParser& HP)
+DataManager::ReadElem(MBDynParser& HP) const
 {
 	Tbase *pElemBase = ReadElem<Tbase, type>(HP);
 	ASSERT(pElemBase != 0);
@@ -1027,7 +1027,7 @@ DataManager::ReadElem(MBDynParser& HP)
 
 template <class T>
 flag
-DataManager::fReadOutput(MBDynParser& HP, const T& t)
+DataManager::fReadOutput(MBDynParser& HP, const T& t) const
 {
 	flag fDef = fGetDefaultOutputFlag(t);
 	if (!HP.IsKeyWord("output")) {
