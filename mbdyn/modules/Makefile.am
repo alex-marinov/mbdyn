@@ -211,7 +211,6 @@ module-inplane_friction/@InPlaneFriction/AssJac.m \
 module-inplane_friction/@InPlaneFriction/AssRes.m \
 module-inplane_friction/@InPlaneFriction/ComputeInitialResidual.m \
 module-inplane_friction/@InPlaneFriction/ComputeResidual.m \
-module-inplane_friction/@InPlaneFriction/CVS \
 module-inplane_friction/@InPlaneFriction/DescribeDof.m \
 module-inplane_friction/@InPlaneFriction/DescribeEq.m \
 module-inplane_friction/@InPlaneFriction/dGetPrivData.m \
@@ -242,8 +241,10 @@ module-mds/module-mds.cc \
 module-muscles/muscle_test \
 module-muscles/module-muscles.cc \
 \
+module-nodedistdrive/module-nodedistdrive.cc \
+module-nodedistdrive/module-nodedistdrive.h \
+\
 module-octave/Makefile.inc \
-module-octave/mbdyn_derivative.m \
 module-octave/module-octave.cc \
 module-octave/module-octave.h \
 module-octave/octave_object.cc \

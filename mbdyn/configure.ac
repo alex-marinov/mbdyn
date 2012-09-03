@@ -108,7 +108,7 @@ dnl aclocal.m4 should be built using aclocal from automake 1.4
 dnl libtool 1.3.3 should be installed.
 AC_PREREQ(2.13)dnl Required Autoconf version
 
-AC_CONFIG_HEADERS([include/mbconfig.h:include/mbconfig.h.in])
+AC_CONFIG_HEADERS([include/mbconfig.h])
 AH_TOP([
 /*
  * MBDyn (C) is a multibody analysis code.
@@ -439,8 +439,8 @@ dnl
 dnl Sort out defines
 dnl
 dnl !!! set to "no" before release !!!
-MBDYN_DEVEL=yes
-dnl MBDYN_DEVEL=no
+dnl MBDYN_DEVEL=yes
+MBDYN_DEVEL=no
 if test x"$MBDYN_DEVEL" = x"yes" ; then 
 	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
 fi
@@ -2648,37 +2648,34 @@ dnl ----------------------------------------------------------------
 dnl
 dnl final output
 dnl
-AC_OUTPUT([ \
-	Makefile:Makefile.in
-	./libraries/Makefile:libraries/Makefile.in
-	./libraries/libmbutil/Makefile:libraries/libmbutil/Makefile.in
-	./libraries/libobjs/Makefile:libraries/libobjs/Makefile.in
-	./libraries/libcolamd/Makefile:libraries/libcolamd/Makefile.in
-	./libraries/libnaive/Makefile:libraries/libnaive/Makefile.in
-	./libraries/liby12/Makefile:libraries/liby12/Makefile.in
-	./libraries/libmbmath/Makefile:libraries/libmbmath/Makefile.in
-	./libraries/libmbwrap/Makefile:libraries/libmbwrap/Makefile.in
-	./libraries/libann/Makefile:libraries/libann/Makefile.in
-	./libraries/libmbc/Makefile:libraries/libmbc/Makefile.in
-	./mbdyn/Makefile:mbdyn/Makefile.in
-	./mbdyn/base/Makefile:mbdyn/base/Makefile.in
-	./mbdyn/aero/Makefile:mbdyn/aero/Makefile.in
-	./mbdyn/elec/Makefile:mbdyn/elec/Makefile.in
-	./mbdyn/thermo/Makefile:mbdyn/thermo/Makefile.in
-	./mbdyn/hydr/Makefile:mbdyn/hydr/Makefile.in
-	./mbdyn/struct/Makefile:mbdyn/struct/Makefile.in
-	./modules/Makefile:modules/Makefile.in
-	./utils/Makefile:utils/Makefile.in
-	./etc/Makefile:etc/Makefile.in
-	./etc/modal.d/Makefile:etc/modal.d/Makefile.in
-	./etc/pam.d/Makefile:etc/pam.d/Makefile.in
-	./var/Makefile:var/Makefile.in
-	./manual/Makefile:manual/Makefile.in
-	./manual/mbdyn.1:manual/mbdyn.1.in
-	./include/Makefile:include/Makefile.in
-	./include/ac/Makefile:include/ac/Makefile.in
-	./build/Makefile:build/Makefile.in
-],[
-	date > stamp-h
-])
+AC_CONFIG_FILES([Makefile \
+ 	./libraries/Makefile \
+ 	./libraries/libmbutil/Makefile \
+ 	./libraries/libobjs/Makefile \
+ 	./libraries/libcolamd/Makefile \
+ 	./libraries/libnaive/Makefile \
+ 	./libraries/liby12/Makefile \
+ 	./libraries/libmbmath/Makefile \
+ 	./libraries/libmbwrap/Makefile \
+ 	./libraries/libann/Makefile \
+ 	./libraries/libmbc/Makefile \
+ 	./mbdyn/Makefile \
+ 	./mbdyn/base/Makefile \
+ 	./mbdyn/aero/Makefile \
+ 	./mbdyn/elec/Makefile \
+ 	./mbdyn/thermo/Makefile \
+ 	./mbdyn/hydr/Makefile \
+ 	./mbdyn/struct/Makefile \
+ 	./modules/Makefile \
+ 	./utils/Makefile \
+ 	./etc/Makefile \
+ 	./etc/modal.d/Makefile \
+ 	./etc/pam.d/Makefile \
+ 	./var/Makefile \
+ 	./manual/Makefile \
+ 	./manual/mbdyn.1 \
+ 	./include/Makefile \
+ 	./include/ac/Makefile 
+ 	./build/Makefile])
+AC_OUTPUT
 

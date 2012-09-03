@@ -61,7 +61,7 @@ distribution:
 	- check BUGS
 	- advance MBDYN_REL_ENG tag after running ./check_cvs.sh
 	- set MBDYN_REL_ENG_<version> tag
-	- run "make dist"
+	- run "make dist" && "make distcheck"
 	- update http://www.mbdyn.org/ web page
 
 

@@ -16,6 +16,9 @@ mbdefs.h: mbdefs.h.in Makefile
 		-e "s;%OCTAVEPATH%;${octavedir};" \
 		$(srcdir)/$@.in > $@
 
+uninstall-local: mbdefs.h
+	rm -f mbdefs.h
+
 FORCE:
 
 include $(top_srcdir)/build/bot.mk

@@ -10,12 +10,12 @@ awkdir = "$(datarootdir)/awk"
 export octavedir c81dir awkdir
 
 codeaster_dir = "$(datarootdir)/Aster"
-codeaster_srcdir = contrib/CodeAster
+codeaster_srcdir = $(top_srcdir)/contrib/CodeAster
 codeaster_files = \
 $(codeaster_srcdir)/cms/cms.py
 
 mls_dir = $(octavedir)
-mls_srcdir = contrib/MLS
+mls_srcdir = $(top_srcdir)/contrib/MLS
 mls_files = \
 $(mls_srcdir)/COPYING.kd \
 $(mls_srcdir)/create_mls_interface.m \
@@ -36,7 +36,7 @@ $(mls_srcdir)/kd_rangequery.m \
 $(mls_srcdir)/README
 
 scicos_dir = "$(datarootdir)/Scicos"
-scicos_srcdir = contrib/ScicosInterface
+scicos_srcdir = $(top_srcdir)/contrib/ScicosInterface
 scicos_files = \
 $(scicos_srcdir)/buildblocks.sci \
 $(scicos_srcdir)/loadblocks.sci \
@@ -50,7 +50,7 @@ $(scicos_srcdir)/examples/pendulum \
 $(scicos_srcdir)/examples/Pendulum.cosf
 
 simulink_dir = "$(datarootdir)/Simulink"
-simulink_srcdir = contrib/SimulinkInterface
+simulink_srcdir = $(top_srcdir)/contrib/SimulinkInterface
 simulink_files = \
 $(simulink_srcdir)/Makefile \
 $(simulink_srcdir)/MBDynCom.mdl \
@@ -66,7 +66,7 @@ $(simulink_srcdir)/sfun_mbdyn_start.c \
 	$(simulink_srcdir)/tmp/README
 
 EXTRA_DIST = CHANGES \
-contrib/Patches \
+$(srcdir)/contrib/Patches \
 $(codeaster_files) \
 $(mls_files) \
 $(scicos_files) \
@@ -76,7 +76,7 @@ install-data-local-codeaster: $(codeaster_files)
 	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(codeaster_dir)
 	@for f in $^ ; do \
 		case $$f in \
-		*.py) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(codeaster_dir)" ; $(INSTALL_SCRIPT) -m 444 $(srcdir)/$$f $(DESTDIR)$(codeaster_dir) ;; \
+		*.py) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(codeaster_dir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(codeaster_dir) ;; \
 		*) echo "($$f ignored)" ;; \
 		esac ; \
 	done
