@@ -61,7 +61,7 @@ install-exec-local: $(EXTRA_DIST) $(generated)
 
 # uninstall-local: $(EXTRA_DIST) $(generated)
 uninstall-local:
-	@for f in $^ ; do \
+	@for f in $(EXTRA_DIST) $(generated) ; do \
 		case $$f in \
 		*.awk) rm -f $(DESTDIR)$(awkdir)/$$f ;; \
 		*.c81) rm -f $(DESTDIR)$(c81dir)/$$f ;; \
