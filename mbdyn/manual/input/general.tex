@@ -142,7 +142,7 @@ Real values are stored with the maximum precision allowed by the underlying
 user@host:~> mbdyn -H
 
 MBDyn - MultiBody Dynamics 1.X-Devel
-compiled on Jul 25 2010 at 21:36:59
+compiled on Sep  3 2012 at 12:16:44
 
 Copyright 1996-2012 (C) Paolo Mantegazza and Pierangelo Masarati,
 Dipartimento di Ingegneria Aerospaziale <http://www.aero.polimi.it/>
@@ -155,7 +155,13 @@ There is absolutely no warranty for MBDyn.  Use "mbdyn --warranty"
 for details.
 
 default symbol table:
+  const bool FALSE = 0
+  const integer INT_MAX = 2147483647
+  const integer INT_MIN = -2147483648
   const integer RAND_MAX = 2147483647
+  const real REAL_MAX = 1.79769e+308
+  const real REAL_MIN = 2.22507e-308
+  const bool TRUE = 1
   const real deg2rad = 0.0174533
   const real e = 2.71828
   const real ft2m = 0.3048
@@ -325,7 +331,15 @@ can be reassigned.
 		\\
 		\kw{e} & Real & Neper's number \\
 		\kw{pi} & Real & $\pi$ \\
-		\kw{RAND\_MAX} & Integer & Maximum random integer \\
+		\\
+		\kw{FALSE} & Bool & `false' \\
+		\kw{TRUE} & Bool & `true' \\
+		\\
+		\kw{INT\_MAX} & Integer & Largest integer \\
+		\kw{INT\_MIN} & Integer & Smallest integer \\
+		\kw{RAND\_MAX} & Integer & Largest random integer \\
+		\kw{REAL\_MAX} & Real & Largest real \\
+		\kw{REAL\_MIN} & Real & Smallest real \\
 		\\
 		\kw{in2m} & Real & Inch to meter ratio (0.0254) \\
 		\kw{m2in} & Real & Meter to inch ratio (1.0/0.0254) \\
