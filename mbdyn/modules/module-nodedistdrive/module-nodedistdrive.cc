@@ -36,6 +36,7 @@ public:
 	virtual bool bIsDifferentiable(void) const;
 	inline virtual doublereal dGetP(void) const;
 	inline virtual doublereal dGetP(const doublereal& dVar) const;
+
 private:
 	const StructNode* const pNode1;
 	const Vec3 o1;
@@ -76,13 +77,7 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode* const pNode1 = dynamic_cast<StructNode*>(const_cast<DataManager*>(pDM)->ReadNode(HP, Node::STRUCTURAL));
-
-	if ( pNode1 == 0 )
-	{
-		silent_cerr("node distance drive caller: structural node expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	StructNode* const pNode1 = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP);
 
 	const Vec3 o1 = HP.IsKeyWord("offset") ? HP.GetPosRel(ReferenceFrame(pNode1)) : Zero3;
 
@@ -92,13 +87,7 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	StructNode* const pNode2 = dynamic_cast<StructNode*>(const_cast<DataManager*>(pDM)->ReadNode(HP,Node::STRUCTURAL));
-
-	if ( pNode2 == 0 )
-	{
-		silent_cerr("node distance drive caller: structural node expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	StructNode* const pNode2 = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP);
 
 	const Vec3 o2 = HP.IsKeyWord("offset") ? HP.GetPosRel(ReferenceFrame(pNode2)) : Zero3;
 
@@ -108,7 +97,7 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	Vec3 e1 = HP.GetPosRel(ReferenceFrame(pNode2));
+	Vec3 e1 = HP.GetVecRel(ReferenceFrame(pNode2));
 
 	e1 /= e1.Norm();
 
@@ -117,14 +106,14 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		NodeDistDriveCaller,
 		NodeDistDriveCaller(pDrvHdl, pNode1, o1, pNode2, o2, e1));
 
-	const_cast<DataManager*>(pDM)->GetLogFile()
-					  << "nodedistdrive: " << pDC->GetLabel()
-					  << " (" << pDC->GetName() << ") "
-					  << pNode1->GetLabel() << " "
-					  << o1 << " "
-					  << pNode2->GetLabel() << " "
-					  << o2 << " "
-					  << e1 << std::endl;
+	pDM->GetLogFile()
+		<< "nodedistdrive: " << pDC->GetLabel()
+		<< " (" << pDC->GetName() << ") "
+		<< pNode1->GetLabel() << " "
+		<< o1 << " "
+		<< pNode2->GetLabel() << " "
+		<< o2 << " "
+		<< e1 << std::endl;
 
 	return pDC;
 }
