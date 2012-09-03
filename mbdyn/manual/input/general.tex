@@ -42,7 +42,7 @@ in very different contexts.
 
 
 \subsection{Keywords}
-In MBDyn's input a lot of so-called ``keywords'' appear literarly
+In MBDyn's input a lot of so-called ``keywords'' appear literally
 in the input file.
 They are case-insensitive and may have an arbitrary amount of space
 in between.
@@ -94,6 +94,34 @@ and assignment (variable names and values are kept in memory throughout
 the input phase and the simulation) and simple math functions.
 Named variables and non-named constants are strongly typed; four types are
 currently available: \kw{bool}, \kw{integer}, \kw{real}, and \kw{string}.
+
+Variable declaration/definition:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{declaration} ::= [\bnt{declaration_modifier}] [\bnt{type_modifier}] \bnt{type} \bnt{name}
+    \bnt{definition} ::= [\bnt{declaration_modifier}] [\bnt{type_modifier}] \bnt{type} \bnt{name} = \bnt{value}
+
+    \bnt{declaration_modifier} ::= \kw{ifndef}
+    \bnt{type_modifier} ::= \kw{const}
+    \bnt{type} ::= \{ \kw{bool} | \kw{integer} | \kw{real} | \kw{string} \}
+    \bnt{name} ::= [_[:alpha:]][_[:alnum:]]*
+\end{Verbatim}
+The \nt{declaration\_modifier} \kw{ifndef} declares the variable only if it does not exist yet,
+otherwise it is ignored.
+
+The \nt{type\_modifier} \kw{const} requires the initialization by assigning a value,
+since the variable would remain uninitialized as \kw{const} variables cannot be assigned
+a value later.
+
+Examples:
+\begin{verbatim}
+    set: integer N;
+    set: const integer M = 100;
+    set: string welcome_message = "hello";
+    set: const real x = -1.e-3;
+    set: real y;
+    set: bool B;
+    set: const real z; # error!
+\end{verbatim}
 
 Operations are strongly typed and perform implicit cast when allowed.
 For instance \texttt{1+2.5} returns a \kw{real} whose value 
@@ -314,7 +342,7 @@ can be reassigned.
 
 \begin{table}
 	\begin{center}
-	\caption{Predefined variables and constantsin math parser}\label{tab:MATHP-VARS}
+	\caption{Predefined variables and constants in math parser}\label{tab:MATHP-VARS}
 	\begin{tabular}{lll}
 		\hline
 		\multicolumn{1}{c}{\textbf{Name}} &
