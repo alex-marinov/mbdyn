@@ -83,10 +83,11 @@ install-data-local-codeaster: $(codeaster_files)
 
 install-data-local: install-data-local-codeaster
 
-dist-hook:
-	rm -rf `find $(distdir) -name CVS`
+#dist-hook:
+#	rm -rf `find $(distdir) -name CVS`
 
-
+uninstall-local:
+	rm -f $(DESTDIR)$(codeaster_dir)/cms.py
 
 SUBDIRS = include build etc libraries manual mbdyn modules utils var
 
