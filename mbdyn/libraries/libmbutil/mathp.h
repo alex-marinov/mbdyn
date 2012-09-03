@@ -286,7 +286,13 @@ public:
 
 		LASTTOKEN	
 	};
-   
+
+   	enum DefinitionModifier {
+		DMOD_UNKNOWN = -1,
+		DMOD_IFNDEF,
+		DMOD_LAST
+	};
+
 protected:
 
 	StaticNameSpace* defaultNameSpace;
@@ -325,10 +331,12 @@ protected:
 	int TokenPop(void);
 
 	TypedValue::Type GetType(const char* const s) const;
-	TypedValue::TypeModifier GetTypeModifier(const char*) const;
+	TypedValue::TypeModifier GetTypeModifier(const char* const s) const;
+	MathParser::DefinitionModifier GetDefinitionModifier(const char* const s) const;
 
 	bool IsType(const char* const s) const;
 	bool IsTypeModifier(const char* const s) const;
+	bool IsDefinitionModifier(const char* const s) const;
 	bool IsKeyWord(NameSpace *ns, const char* const s) const;
    
 	/* lexer */

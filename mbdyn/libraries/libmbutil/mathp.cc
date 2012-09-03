@@ -748,6 +748,16 @@ static typemodifiernames TypeModifierNames[] = {
 	{ NULL,		TypedValue::MOD_UNKNOWN }
 };
 
+struct definitionmodifiernames {
+	const char* name;
+	MathParser::DefinitionModifier type;
+};
+
+static definitionmodifiernames DefinitionModifierNames[] = {
+	{ "ifndef",	MathParser::DMOD_IFNDEF },
+	{ NULL,		MathParser::DMOD_UNKNOWN }
+};
+
 TypedValue::ErrWrongType::ErrWrongType(const char *file, int line, const char *func,
 	const TypedValue::Type& to,
 	const TypedValue::Type& from)
@@ -2657,29 +2667,38 @@ MathParser::GetTypeModifier(const char* const s) const
 			return TypeModifierNames[i].type;
 		}
 	}
+
 	return TypedValue::MOD_UNKNOWN;
+}
+
+MathParser::DefinitionModifier
+MathParser::GetDefinitionModifier(const char* const s) const
+{
+	for (Int i = 0; DefinitionModifierNames[i].name != NULL; i++) {
+		if (strcmp(s, DefinitionModifierNames[i].name) == 0) {
+			return DefinitionModifierNames[i].type;
+		}
+	}
+
+	return DMOD_UNKNOWN;
 }
 
 bool
 MathParser::IsType(const char* const s) const
 {
-	for (int i = 0; TypeNames[i].name != NULL; i++) {
-		if (strcmp(s, TypeNames[i].name) == 0) {
-			return true;
-		}
-	}
-	return false;
+	return GetType(s) != TypedValue::VAR_UNKNOWN;
 }
 
 bool
 MathParser::IsTypeModifier(const char* const s) const
 {
-	for (int i = 0; TypeModifierNames[i].name != NULL; i++) {
-		if (strcmp(s, TypeModifierNames[i].name) == 0) {
-			return true;
-		}
-	}
-	return false;
+	return GetTypeModifier(s) != TypedValue::MOD_UNKNOWN;
+}
+
+bool
+MathParser::IsDefinitionModifier(const char* const s) const
+{
+	return GetDefinitionModifier(s) != DMOD_UNKNOWN;
 }
 
 bool
@@ -3423,30 +3442,46 @@ TypedValue
 MathParser::stmt(void)
 {
 	if (currtoken == NAME) {
-		bool isTypeModifier = false;
+		bool isIfndef = false;
 		bool isConst = false;
 
-		if (IsTypeModifier(namebuf)) {
-			isTypeModifier = true;
-			TypedValue::TypeModifier mod = GetTypeModifier(namebuf);
-			ASSERT(mod != TypedValue::MOD_UNKNOWN);
+		DefinitionModifier definitionmodifier = GetDefinitionModifier(namebuf);
+		if (definitionmodifier != DMOD_UNKNOWN) {
+			switch (definitionmodifier) {
+			case DMOD_IFNDEF:
+				isIfndef = true;
+				break;
 
-			if (mod == TypedValue::MOD_CONST) {
-				isConst = true;
+			default:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled definition modifier ", namebuf, "");
 			}
 
-			if (GetToken() != NAME || !IsType(namebuf)) {
+			if (GetToken() != NAME) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "type (modifier) expected "
+					"after definition modifier in declaration");
+			}
+		}
+
+		TypedValue::TypeModifier typemodifier = GetTypeModifier(namebuf);
+		if (typemodifier != TypedValue::MOD_UNKNOWN) {
+			switch (typemodifier) {
+			case TypedValue::MOD_CONST:
+				isConst = true;
+				break;
+
+			default:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled type modifier ", namebuf, "");
+			}
+
+			if (GetToken() != NAME) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "type expected "
-						"after type modifier "
-						"in declaration");
+					"after type modifier in declaration");
 			}
 		}
 
 		/* declaration? */
-		if (isTypeModifier || IsType(namebuf)) {
-			TypedValue::Type type = GetType(namebuf);
-			ASSERT(type != TypedValue::VAR_UNKNOWN);
-			
+		TypedValue::Type type = GetType(namebuf);
+		if (type != TypedValue::VAR_UNKNOWN) {
 			if (GetToken() != NAME) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected "
 						"after type in declaration");
@@ -3486,13 +3521,14 @@ MathParser::stmt(void)
 				} else {
 					/* altrimenti, se la posso ridefinire, mi limito
 					 * ad assegnarle il nuovo valore */
-					if (!bRedefineVars) {
+					if (!bRedefineVars && !isIfndef) {
 				   		throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"var \"", v->GetName(), "\"");
 					}
 
-					if (v->Const()) {
+					if (v->Const() && !isIfndef) {
+						// TODO: check redefinition of const'ness
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"a const named value "
@@ -3506,7 +3542,19 @@ MathParser::stmt(void)
 							"\"", v->GetName(), "\"");
 					}
 
-					dynamic_cast<Var *>(v)->SetVal(d);
+					if (!isIfndef) {
+						dynamic_cast<Var *>(v)->SetVal(d);
+
+					} else {
+						if (v->GetType() != type) {
+							silent_cerr("warning, skipping redefinition of \"" << v->GetName()
+								<< "\" from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type) << " at line " << mbdyn_get_line_data() << std::endl);
+
+						} else {
+							silent_cerr("warning, skipping redefinition of \"" << v->GetName()
+								<< "\" at line " << mbdyn_get_line_data() << std::endl);
+						}
+					}
 				}
 				
 				/* distruggo il temporaneo */
@@ -3534,6 +3582,16 @@ MathParser::stmt(void)
 				return v->GetVal();
 			}
 		} else {
+			if (definitionmodifier != DMOD_UNKNOWN) {
+			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+		      			"definition modifier without type");
+			}
+
+			if (typemodifier != TypedValue::MOD_UNKNOWN) {
+			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+		      			"type modifier without type");
+			}
+
 			/* assignment? */
 			NamedValue* v = table.Get(namebuf);
 			if (v != NULL) {
