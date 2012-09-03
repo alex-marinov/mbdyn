@@ -66,7 +66,7 @@ $(simulink_srcdir)/sfun_mbdyn_start.c \
 	$(simulink_srcdir)/tmp/README
 
 EXTRA_DIST = CHANGES \
-$(srcdir)/contrib/Patches \
+$(top_srcdir)/contrib/Patches \
 $(codeaster_files) \
 $(mls_files) \
 $(scicos_files) \
