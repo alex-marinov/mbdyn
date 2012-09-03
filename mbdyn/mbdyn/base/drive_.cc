@@ -55,6 +55,7 @@
 #ifdef USE_OCTAVE
 #include "module-octave/module-octave.h"
 #endif // USE_OCTAVE
+#include "module-nodedistdrive/module-nodedistdrive.h"
 #endif // STATIC_MODULES
 
 /* StringDriveCaller - begin */
@@ -2666,6 +2667,7 @@ InitDriveData(void)
 #ifdef USE_OCTAVE
 	mbdyn_octave_set();
 #endif // USE_OCTAVE
+	nodedistdrive_set();
 #endif // STATIC_MODULES
 }
 

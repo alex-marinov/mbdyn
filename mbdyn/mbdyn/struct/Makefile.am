@@ -140,7 +140,10 @@ $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bea
 $(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
 \
 $(srcdir)/../../modules/module-inline_friction/module-inline_friction.cc \
-$(srcdir)/../../modules/module-inline_friction/module-inline_friction.h
+$(srcdir)/../../modules/module-inline_friction/module-inline_friction.h \
+\
+$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.cc \
+$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.h
 
 # add more...
 endif

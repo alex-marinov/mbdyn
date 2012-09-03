@@ -1181,6 +1181,11 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 			silent_cerr("OctaveInterface error: addpath(\"" << BINPATH << "\") failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		if (!AddOctaveSearchPath(OCTAVEPATH)) {
+			silent_cerr("OctaveInterface error: addpath(\"" << OCTAVEPATH << "\") failed" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
 	bFirstCall = false;

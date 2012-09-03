@@ -86,7 +86,7 @@ syn cluster    mbdShCommentGroup	contains=mbdShTodo,@Spell
 syn keyword    mbdShTodo	contained	TODO
 syn match      mbdShComment	"#.*$" contains=@mbdShCommentGroup
 
-syn keyword	mbdType	bool integer real string
+syn keyword	mbdType	bool integer real string const ifndef
 
 syn keyword	mbdConstant pi
 

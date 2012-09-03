@@ -17,6 +17,7 @@ gradnorm.m \
 pod.m \
 rotation_increment_gibbs_rodriguez.m \
 rotation_perturbation_matrix_gibbs_rodriguez.m \
+mbdyn_derivative.m \
  \
 mbd.vim
 
