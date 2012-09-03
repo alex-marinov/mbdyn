@@ -13,6 +13,7 @@ mbdefs.h: mbdefs.h.in Makefile
 	sed \
 		-e "s;%MODULE_LOADPATH%;@MODULE_LOADPATH@;" \
 		-e "s;%BINPATH%;${bindir};" \
+		-e "s;%OCTAVEPATH%;${octavedir};" \
 		$(srcdir)/$@.in > $@
 
 FORCE:

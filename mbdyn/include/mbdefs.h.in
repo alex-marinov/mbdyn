@@ -37,6 +37,7 @@
 #endif /* MODULE_LOADPATH */
 
 #define BINPATH                 "%BINPATH%"
+#define OCTAVEPATH		"%OCTAVEPATH%"
 
 #endif /* MBDEFS_H */
 
