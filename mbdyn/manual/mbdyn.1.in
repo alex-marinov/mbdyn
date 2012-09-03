@@ -7,6 +7,12 @@ mbdyn \- \fIM\fPulti\fIB\fPody \fIDyn\fPamics analysis system.
 .SH SYNOPSIS
 .B mbdyn 
 [\c
+.BR \-E
+[exceptions]]
+[\c
+.BR \-e
+]
+[\c
 .BR \-f
 input\-file]
 [\c
@@ -77,6 +83,9 @@ to pass the name of the
 .TP
 .B \-d, \-\-debug <level[:level[...]]>
 Enable specific debug levels (only when compiled with \-\-enable\-debug).
+.TP
+.B \-E, \-\-fp\-mask [exception[,exception]]
+Mask some floating point exceptions; supported values of \fBexception\fP are \fIinvalid\fP, \fIdivbyzero\fP, \fIoverflow\fP.
 .TP
 .B \-e, \-\-exceptions
 Do not trap (some) exceptions, to ease debugging.
