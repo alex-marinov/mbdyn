@@ -59,7 +59,8 @@ install-exec-local: $(EXTRA_DIST) $(generated)
 		esac ; \
 	done
 
-uninstall-local: $(EXTRA_DIST) $(generated)
+# uninstall-local: $(EXTRA_DIST) $(generated)
+uninstall-local:
 	@for f in $^ ; do \
 		case $$f in \
 		*.awk) rm -f $(DESTDIR)$(awkdir)/$$f ;; \
