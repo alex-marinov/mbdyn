@@ -37,9 +37,9 @@ install-data-local: $(EXTRA_DIST) $(generated)
 	$(mkinstalldirs) $(DESTDIR)$(datarootdir) $(DESTDIR)$(awkdir) $(DESTDIR)$(c81dir) $(DESTDIR)$(octavedir) $(DESTDIR)$(bindir)
 	@for f in $^ ; do \
 		case $$f in \
-		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $(top_srcdir)/var/$$f $(DESTDIR)$(awkdir) ;; \
-		*.c81) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir)" ; $(INSTALL_SCRIPT) -m 444 $(top_srcdir)/var/$$f $(DESTDIR)$(c81dir) ;; \
-		*.m) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir)" ; $(INSTALL_SCRIPT) -m 444 $(top_srcdir)/var/$$f $(DESTDIR)$(octavedir) ;; \
+		*.awk) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(awkdir) ;; \
+		*.c81) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(c81dir) ;; \
+		*.m) echo "$(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir)" ; $(INSTALL_SCRIPT) -m 444 $$f $(DESTDIR)$(octavedir) ;; \
 		*.sh) ;; \
 		*.in) ;; \
 		*) echo "($$f ignored)" ;; \
