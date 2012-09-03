@@ -748,12 +748,12 @@ static typemodifiernames TypeModifierNames[] = {
 	{ NULL,		TypedValue::MOD_UNKNOWN }
 };
 
-struct definitionmodifiernames {
+struct declarationmodifiernames {
 	const char* name;
-	MathParser::DefinitionModifier type;
+	MathParser::DeclarationModifier type;
 };
 
-static definitionmodifiernames DefinitionModifierNames[] = {
+static declarationmodifiernames DeclarationModifierNames[] = {
 	{ "ifndef",	MathParser::DMOD_IFNDEF },
 	{ NULL,		MathParser::DMOD_UNKNOWN }
 };
@@ -2671,12 +2671,12 @@ MathParser::GetTypeModifier(const char* const s) const
 	return TypedValue::MOD_UNKNOWN;
 }
 
-MathParser::DefinitionModifier
-MathParser::GetDefinitionModifier(const char* const s) const
+MathParser::DeclarationModifier
+MathParser::GetDeclarationModifier(const char* const s) const
 {
-	for (Int i = 0; DefinitionModifierNames[i].name != NULL; i++) {
-		if (strcmp(s, DefinitionModifierNames[i].name) == 0) {
-			return DefinitionModifierNames[i].type;
+	for (Int i = 0; DeclarationModifierNames[i].name != NULL; i++) {
+		if (strcmp(s, DeclarationModifierNames[i].name) == 0) {
+			return DeclarationModifierNames[i].type;
 		}
 	}
 
@@ -2696,9 +2696,9 @@ MathParser::IsTypeModifier(const char* const s) const
 }
 
 bool
-MathParser::IsDefinitionModifier(const char* const s) const
+MathParser::IsDeclarationModifier(const char* const s) const
 {
-	return GetDefinitionModifier(s) != DMOD_UNKNOWN;
+	return GetDeclarationModifier(s) != DMOD_UNKNOWN;
 }
 
 bool
@@ -3445,9 +3445,9 @@ MathParser::stmt(void)
 		bool isIfndef = false;
 		bool isConst = false;
 
-		DefinitionModifier definitionmodifier = GetDefinitionModifier(namebuf);
-		if (definitionmodifier != DMOD_UNKNOWN) {
-			switch (definitionmodifier) {
+		DeclarationModifier declarationmodifier = GetDeclarationModifier(namebuf);
+		if (declarationmodifier != DMOD_UNKNOWN) {
+			switch (declarationmodifier) {
 			case DMOD_IFNDEF:
 				isIfndef = true;
 				break;
@@ -3582,7 +3582,7 @@ MathParser::stmt(void)
 				return v->GetVal();
 			}
 		} else {
-			if (definitionmodifier != DMOD_UNKNOWN) {
+			if (declarationmodifier != DMOD_UNKNOWN) {
 			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 		      			"definition modifier without type");
 			}
