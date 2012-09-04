@@ -1895,9 +1895,15 @@ dnl Check for Y12
 dnl
 ol_link_y12=no
 if test $ol_with_y12 != no ; then
-	ol_link_y12=yes
-	AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
-	Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
+	if test "x$F77" = "x" ; then
+		if test $ol_with_y12 = yes ; then
+			AC_MSG_ERROR([Y12 sparse LU library needs Fortran compiler])
+		fi
+	else
+		ol_link_y12=yes
+		AC_DEFINE(USE_Y12,1,[define to use Y12 sparse LU library])
+		Y12_LIBS="${top_builddir}/libraries/liby12/liby12.la -lm"
+	fi
 fi
 
 dnl ----------------------------------------------------------------

@@ -4,7 +4,10 @@ include $(top_srcdir)/build/top.mk
 # Build liby12.a library
 noinst_LTLIBRARIES = liby12.la
 
-liby12_la_SOURCES = \
+liby12_la_SOURCES =
+
+if BUILD_Y12
+liby12_la_SOURCES += \
 y12lib.h \
 y12mae.f \
 y12maf.f \
@@ -17,6 +20,7 @@ y12mdf.f \
 y12mfe.f \
 y12mge.f \
 y12mhe.f
+endif
 
 liby12_la_LIBADD = @LIBS@ @FCLIBS@
 liby12_la_LDFLAGS =

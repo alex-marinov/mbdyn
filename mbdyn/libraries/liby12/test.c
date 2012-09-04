@@ -35,6 +35,8 @@
 
 #include "y12lib.h"
 
+#ifdef USE_Y12
+
 int
 main(void)
 {
@@ -120,3 +122,14 @@ main(void)
 	return 0;
 }
 
+#else /* ! USE_Y12 */
+
+int
+main(void)
+{
+	printf("configure --with-y12 to enable Y12\n");
+
+	return 0;
+}
+
+#endif /* ! USE_Y12 */
