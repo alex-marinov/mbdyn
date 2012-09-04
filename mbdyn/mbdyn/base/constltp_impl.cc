@@ -1322,38 +1322,6 @@ struct BiStopCLW6DR : public ConstitutiveLawRead<Vec6, Mat6x6> {
 	};
 };
 
-#ifdef USE_GRAALLDAMPER
-#include "damper.h"
-
-struct GRAALLDamperCLR : public ConstitutiveLawRead<doublereal, doublereal> {
-	virtual ConstitutiveLaw<doublereal, doublereal> *
-	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
-		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
-
-		CLType = ConstLawType::VISCOELASTIC;
-
-		const char* filename = HP.GetFileName();
-		DEBUGCOUT("Graall damper input file: \""
-				<< filename << "\"" << std::endl);
-
-		doublereal rla = HP.GetReal();
-		DEBUGCOUT("Reference length: " << rla << std::endl);
-
-		DriveCaller* pDC = NULL;
-		SAFENEWWITHCONSTRUCTOR(pDC,
-				TimeDriveCaller,
-				TimeDriveCaller(pDM->pGetDrvHdl()));
-
-		typedef GRAALLDamperConstitutiveLaw L;
-		SAFENEWWITHCONSTRUCTOR(pCL,
-				L,
-				L(pDC, rla, filename));
-
-		return pCL;
-	};
-};
-#endif /* USE_GRAALLDAMPER */
-
 /*
  * Shock absorber per Stefy:
  *
@@ -1513,12 +1481,7 @@ InitCL(void)
 	SetCL3D("bistop", new BiStopCLW3DR);
 	SetCL6D("bistop", new BiStopCLW6DR);
 
-#ifdef USE_GRAALLDAMPER
-	/* GRAALL damper */
-	SetCL1D("GRAALL" "damper", new GRAALLDamperCLR);
-#endif /* USE_GRAALLDAMPER */
-
-	/* GRAALL damper */
+	/* shock absorber */
 	SetCL1D("shock" "absorber", new ShockAbsorberCLR<doublereal, doublereal>);
 
 	/* Artificial Neural Network */

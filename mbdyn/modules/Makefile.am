@@ -146,6 +146,10 @@ module-constlaw-f95/usrsub.h \
  \
 module-cont-contact/module-cont-contact.cc \
  \
+module-damper-graall/damper_graall.f \
+module-damper-graall/Makefile.inc \
+module-damper-graall/module-damper-graall.cc \
+ \
 module-damper-hydraulic/module-damper-hydraulic.cc \
  \
 module-drive/module-drive.cc \

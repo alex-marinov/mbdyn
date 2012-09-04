@@ -365,9 +365,11 @@ DriveHandler::dGet(InputStream& InStr) const
 		silent_cerr("StringDrive: " << e.what() << std::endl);
 		throw e;
 
+#if 0
 	} catch (ErrGeneric e) {
 		silent_cerr("StringDrive: " << e.what() << std::endl);
 		throw e;
+#endif
 
 	} catch (...) {
 		silent_cerr("StringDrive error" << std::endl);
