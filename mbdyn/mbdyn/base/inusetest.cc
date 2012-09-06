@@ -43,6 +43,7 @@
 
 #include "mbconfig.h"
 #include "veciter.h"
+#include "filename.h"
 
 unsigned dst = 100;
 unsigned rst = 10;
@@ -134,7 +135,7 @@ main(int argc, char* argv[])
 
 	if (argc == 1) {
 usage:;
-		char *s = std::strrchr(argv[0], '/');
+		char *s = std::strrchr(argv[0], DIR_SEP);
 
 		if (s) {
 			s++;

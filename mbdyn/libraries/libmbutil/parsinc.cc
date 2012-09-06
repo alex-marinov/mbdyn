@@ -43,6 +43,7 @@
 #include <errno.h>
 
 #include "parsinc.h"
+#include "filename.h"
 
 #ifndef PATH_MAX
 #define PATH_MAX 4096
@@ -286,9 +287,9 @@ IncludeParser::Include_int()
    	sCurrFile = NULL;
    	char* stmp = NULL;
    	SAFESTRDUP(stmp, sfname);
-   	char* s = (char*)stmp+strlen(sfname);
+   	char* s = (char*)stmp + strlen(sfname);
    	while (--s >= stmp) {
-      		if (s[0] == '/') {
+      		if (s[0] == DIR_SEP) {
 	 		char c = s[1];
 	 		s[1] = '\0';
 	 		if (chdir(stmp)) {
@@ -547,7 +548,7 @@ resolve_filename(const char *filename_in)
 	
    	if (filename[0] == '~') {
       		filename++;
-      		if (filename[0] == '/') {
+      		if (filename[0] == DIR_SEP) {
 	 		/* do environment stuff */
 	 		char *home;
 	 
@@ -573,7 +574,7 @@ resolve_filename(const char *filename_in)
       		} else {
 	 		const char *p;
 	 
-	 		p = std::strchr(filename, '/');
+	 		p = std::strchr(filename, DIR_SEP);
 	 		if (p == NULL) {
 	    			goto error_return;
 	 		} 

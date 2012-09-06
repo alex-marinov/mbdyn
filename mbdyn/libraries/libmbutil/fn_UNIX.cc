@@ -202,3 +202,21 @@ FileName::sGet(void) const
    	return ((FileName*)this)->_sPutExt(NULL); 
 }
 
+int
+is_abs_path(const char *const p)
+{
+	ASSERT(p != 0);
+
+#ifdef _WIN32
+	if ((strstr(p, ":\\") != 0) || (strstr(p, ":/") != 0)) {
+		return 1;
+	}
+#else // ! _WIN32
+	if (p[0] == '/') {
+		return 1;
+	}
+#endif // ! _WIN32
+
+	return 0;
+}
+

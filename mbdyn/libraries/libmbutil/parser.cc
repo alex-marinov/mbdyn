@@ -39,6 +39,7 @@
 
 #include "mathtyp.h"
 #include "parser.h"
+#include "filename.h"
 #include "Rot.hh"
 
 /* LowParser - begin */
@@ -1232,7 +1233,7 @@ operator << (std::ostream& out, const HighParser::ErrOut& err)
 	if (err.sFileName != 0) {
 		out << ", file <";
 		if (err.sPathName != 0) {
-			out << err.sPathName << '/';
+			out << err.sPathName << DIR_SEP;
 		}
 		out << err.sFileName << '>';
 	}

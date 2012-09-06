@@ -22,6 +22,7 @@ MBDyn 1.5.1
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fix build when sched_setaffinity() is unavailable
+		- fix file name handling in windows (mingw)
 
 MBDyn 1.5.0
 	Enhancements:

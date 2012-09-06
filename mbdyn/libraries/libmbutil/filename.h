@@ -56,15 +56,13 @@
 #ifndef FILENAME_H
 #define FILENAME_H
 
-extern "C" {
-#include <stdlib.h>
-#include <string.h>
-}
+#include <cstdlib>
+#include <cstring>
 
 
 const char EXT_SEP = '.';
 
-#ifdef USE_DOS_FILE
+#ifdef _WIN32
 
 const char DIR_SEP = '\\';
 
@@ -82,13 +80,7 @@ class FileName {
    const char *const sGet(void) const;               // Restituisce il nome del file con la vecchia estensione          
 };
 
-#endif /* USE_DOS_FILE */
-
-
-
-
-
-#ifdef USE_UNIX_FILE
+#else // ! _WIN32
 
 const char DIR_SEP = '/';
 
@@ -108,7 +100,9 @@ class FileName {
    const char *const sGet(void) const;
 };
 
-#endif /* USE_UNIX_FILE */
+#endif // ! _WIN32
 
-#endif /* FILENAME_H */
+extern int is_abs_path(const char *const p);
+
+#endif // FILENAME_H
 

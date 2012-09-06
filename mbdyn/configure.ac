@@ -198,7 +198,6 @@ OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
-OL_ARG_WITH(fs,[  --with-fs[={unix|dos}]    filesystem type],unix,[unix dos])
 OL_ARG_WITH(mpi,[  --with-mpi              with MPI support (=pmpi for profiling)],auto,[auto yes pmpi no])
 OL_ARG_ENABLE(debug_mpi,[  --enable-debug-mpi      enable MPI debugging], no)dnl
 OL_ARG_WITH(metis,[  --with-metis            with Metis model partitioning support],auto,[auto yes no])
@@ -830,23 +829,6 @@ else
 	AC_MSG_RESULT([no])
 fi
 AC_LANG_C
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for UNIX fs !?!
-dnl
-case "$ol_with_fs" in
-	unix)
-		AC_DEFINE(USE_UNIX_FILE,1,
-			[define this to use UNIX-style filenames])
-		;;
-	dnl dos)	AC_DEFINE(USE_DOS_FILE,1,
-	dnl	[define this to use DOS-style filenames])
-	dnl	;;
-	*)
-		AC_MSG_ERROR([only UNIX-stype filenames are allowed])
-		;;
-esac
 
 dnl ----------------------------------------------------------------
 dnl

@@ -480,13 +480,13 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 		case int('o'):
 #ifdef HAVE_GETCWD
-			if (optarg[0] != '/') {
+			if (!is_abs_path(optarg)) {
 				char cwd[PATH_MAX];
 				if (getcwd(cwd, sizeof(cwd)) == 0) {
 					silent_cerr("Unable to set output file: getcwd failed" << std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
-				mbp.sOutputFileName = std::string(cwd) + '/' + optarg;
+				mbp.sOutputFileName = std::string(cwd) + DIR_SEP + optarg;
 
 			} else
 #endif // HAVE_GETCWD
@@ -646,7 +646,7 @@ static int
 mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileName)
 {
 	std::string sNormalizedInputFileName;
-	const char *dirsep = std::strrchr(sInputFileName.c_str(), '/');
+	const char *dirsep = std::strrchr(sInputFileName.c_str(), DIR_SEP);
 	const char *dot = std::strrchr(sInputFileName.c_str(), '.');
 	if (dot != 0 && (dirsep == 0 || dot > dirsep)) {
 		sNormalizedInputFileName = std::string(sInputFileName, 0, dot - sInputFileName.c_str());
@@ -680,7 +680,7 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 			}
 
 			// note: use a reverse iterator find?
-			const char *path = std::strrchr(sOutputFileName.c_str(), '/');
+			const char *path = std::strrchr(sOutputFileName.c_str(), DIR_SEP);
 			if (path != NULL) {
 				std::string sOutputFilePath(sOutputFileName, 0, path - sOutputFileName.c_str());
 				// sOutputFilePath.erase(path - sOutputFileName.c_str());
@@ -716,21 +716,21 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 				tmpIn = ::sDefaultOutputFileName;
 			}
 
-			if (sOutputFileName[sOutputFileName.size() - 1] != '/') {
-				sOutputFileName += '/';
+			if (sOutputFileName[sOutputFileName.size() - 1] != DIR_SEP) {
+				sOutputFileName += DIR_SEP;
 			}
 			sOutputFileName += tmpIn;
 		}
 	}
 
 #ifdef HAVE_GETCWD
-	if (sOutputFileName[0] != '/') {
+	if (!is_abs_path(sOutputFileName.c_str())) {
    		char cwd[PATH_MAX];
    		if (getcwd(cwd, sizeof(cwd)) == 0) {
 			silent_cerr("Error in getcwd()" << std::endl);
       			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
    		}
-		sOutputFileName = std::string(cwd) + '/' + sOutputFileName;
+		sOutputFileName = std::string(cwd) + DIR_SEP + sOutputFileName;
 	}
 #endif // HAVE_GETCWD
 
