@@ -62,7 +62,7 @@
 
 const char EXT_SEP = '.';
 
-#ifdef _WIN32
+#if 0
 
 const char DIR_SEP = '\\';
 
@@ -80,9 +80,13 @@ class FileName {
    const char *const sGet(void) const;               // Restituisce il nome del file con la vecchia estensione          
 };
 
-#else // ! _WIN32
+#endif
 
+#ifdef _WIN32
+const char DIR_SEP = '\\';
+#else // ! _WIN32
 const char DIR_SEP = '/';
+#endif // ! _WIN32
 
 class FileName {
  private:
@@ -99,8 +103,6 @@ class FileName {
    const char *const _sPutExt(const char* n);
    const char *const sGet(void) const;
 };
-
-#endif // ! _WIN32
 
 extern int is_abs_path(const char *const p);
 
