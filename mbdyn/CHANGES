@@ -9,14 +9,17 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.5.1
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added "ifndef" declaration modifier for var redefinition
 		- added module-nodedistdrive (Reinhold Resch)
-		- moved GRAALL damper to module-damper-graall
 	Backward compatibility issues:
+		- moved GRAALL damper to module-damper-graall
 	Known issues:
+		- Schur solver is broken
+		- TotalPinJoint inverse dynamics support is broken
+		- RTAI and multithread support incompatible
+		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fix build when sched_setaffinity() is unavailable
 

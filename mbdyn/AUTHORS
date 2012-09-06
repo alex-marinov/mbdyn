@@ -133,6 +133,9 @@ Reinhard Resch, as an independent user, provided selected improvements,
 Louis Gagnon, as an independent user, developed the wheel4 module
 	during a stage at Politecnico di Milano
 
+Matteo Fancello, as an undergrad, contributed the continuous contact module
+	and is currently integrating MBDyn with INRIA's Siconos
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
