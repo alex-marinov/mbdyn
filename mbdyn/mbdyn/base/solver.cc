@@ -1752,10 +1752,15 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		ASSERT(0);
 	}
 	out
-		<< ";" << std::endl
-		<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
-		<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
-		<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl;
+		<< ";" << std::endl;
+
+	if ( pDerivativeSteps != 0 ) {
+		out
+			<< "  derivatives max iterations: " << pDerivativeSteps->GetIntegratorMaxIters() << ";" << std::endl
+			<< "  derivatives tolerance: " << pDerivativeSteps->GetIntegratorDTol() << ";" << std::endl
+			<< "  derivatives coefficient: " << dDerivativesCoef << ";" << std::endl;
+	}
+
 	if (iDummyStepsNumber) {
 		out
 			<< "  dummy steps max iterations: " << pDummySteps->GetIntegratorMaxIters() << ";" << std::endl
