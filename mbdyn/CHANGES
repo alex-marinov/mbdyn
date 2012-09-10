@@ -9,6 +9,20 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.X-Devel
+	Enhancements:
+		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added AfterPredict & Restart to module-octave
+		  (Reinhard Resch)
+	Backward compatibility issues:
+	Known issues:
+		- Schur solver is broken
+		- TotalPinJoint inverse dynamics support is broken
+		- RTAI and multithread support incompatible
+		- module-octave and multithread support incompatible
+	Bug fixes:
+		- fix restart bug (Reinhard Resch)
+
 MBDyn 1.5.1
 	Enhancements:
 		- added "ifndef" declaration modifier for var redefinition
