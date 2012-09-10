@@ -148,36 +148,128 @@ Simple example of run-time loadable user-defined scalar function.
 Implements support for octave-based user-defined entities, including
 drive callers, constitutive laws, scalar functions, and elements.
 
+\subsubsection{General octave flags}
+Every GNU Octave based entity supports the following flags:
+\begin{Verbatim}[commandchars=\\\{\}]
+	\bnt{octave_flags} ::= [ \kw{update octave variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+			   [ \kw{update mbdyn variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+			   [ \kw{update global variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+			   [ \kw{pass data manager}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+			   [ \kw{embed octave}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+			   [ \kw{octave search path}, (\ty{string}) \bnt{path1} [ , \ldots ] ]
+						   
+\end{Verbatim}
+\paragraph{Global variables}
+If the flag \kw{update octave variables} is enabled, MBDyn's symbol table is copied to the global Octave name space before each function call.
+This flag should be used only if the Octave function has to access things like plug in variables which depend on the state of the simulation.
+If this flag is not enabled (the default) MBDyn's symbol table is copied only before the first call of any Octave function.
+If the flag \kw{update mbdyn variables} is enabled, MBDyn's symbol table is updated by Octave's global variables after each function call.
+Only those variables that exist in MBDyn's symbol table are updated.
+The flag \kw{update global variables} is a combination of \kw{update octave variables} and \kw{update mbdyn variables}.
+
+\paragraph{Additional arguments}
+If the flag \kw{pass data manager} is enabled, a pointer to MBDyn's data manager is passed to the Octave function as the last argument.
+
+\paragraph{Embed octave}
+The flag \kw{embed octave} makes it possible to write Octave functions directly inside the MBDyn input file.
+This is especially useful for small models. If this flag is enabled, the MBDyn input file where \kw{embed octave} appears will be sourced into Octave before the first function call.
+In order to work it is necessary to put all MBDyn specific commands inside a $\#\lbrace$ \ldots $\#\rbrace$ comment, and to put all Octave specific code inside a \#/* \ldots \#*/ comment.
+
+\paragraph{Octave's search path}
+Directories which should be appended to Octave's search path should appear after \kw{octave search path}.
+This is rather a global option and is not specific to a particular element or drive caller.
+
 \subsubsection{Element}
+An Octave element is a full featured user defined MBDyn element written in GNU Octave scripting language.
+From Octave's point of view an Octave element is a special class.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{user defined}
 
-    \bnt{normal_arglist} ::= \kw{octave} , " \bnt{script_name} " [ , \bnt{elem_data} ]
+    \bnt{normal_arglist} ::= \kw{octave} , " \bnt{class\_name} " \\
+                         [ , \bnt{octave\_flags} ] \\
+                         [ , \bnt{elem\_data} ]
 \end{Verbatim}
+All member functions of this class must reside in a directory named "@\bnt{class\_name}".
+The parent directory of "@\bnt{class\_name}" must be on Octave's search path.
+Additional Element specific data in \bnt{elem\_data} like node labels, vectors and rotation matrices may be accessed from within the constructor of the Octave class. If the octave-ad package is installed, the $\textit{\textbf{D}}$ function can be used to in order to compute the Jacobian matrix.
+
+\paragraph{Octave element member functions}
+At the moment the following member functions are supported:
+\begin{itemize}
+\item $\left[elem\right] = \bnt{class\_name}\left(pMbElem,\,pDM,\,HP\right)$
+\item $\left[iRows,\,iCols\right] = \textit{\textbf{WorkSpaceDim}}\left(elem\right)$
+\item $\left[iNumDof\right] = \textit{\textbf{iGetNumDof}}\left(elem\right)\quad_{(optional)}$
+\item $\left[f,\,ridx\right] = \textit{\textbf{AssRes}}\left(elem,\,dCoef,\,XCurr,\,XPrimeCurr\right)$
+\item $\left[Jac,\,ridx,\,cidx,\,bSparse\right] = \textit{\textbf{AssJac}}\left(elem,\,dCoef,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
+\item $\left[elem\right] = \textit{\textbf{Update}}\left(elemin, XCurr, XPrimeCurr\right)\quad_{(optional)}$
+\item $\textit{\textbf{SetValue}}\left(elem,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
+\item $\left[iNumDof\right] = \textit{\textbf{iGetInitialNumDof}}\left(elem\right)\quad_{(optional)}$
+\item $\textit{\textbf{SetInitialValue}}\left(elem,\,XCurr\right)\quad_{(optional)}$
+\item $\left[f,\,ridx\right] = \textit{\textbf{InitialAssRes}}\left(elem,\,XCurr\right)\quad_{(optional)}$
+\item $\left[Jac,\,ridx,\,cidx,\,bSparse\right] = \textit{\textbf{InitialAssJac}}\left(elem,\,XCurr\right)\quad_{(optional)}$
+\item $\left[iRows,\,iCols\right] = \textit{\textbf{InitialWorkSpaceDim}}\left(elem\right)\quad_{(optional)}$
+\item $\left[order\right] = \textit{\textbf{GetDofType}}\left(elem,\,i\right)\quad_{(optional)}$
+\item $\left[order\right] = \textit{\textbf{GetEqType}}\left(elem,\,i\right)\quad_{(optional)}$
+\item $\left[elem\right] = \textit{\textbf{AfterConvergence}}\left(elemin,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
+\item $\left[iNumPrivData\right] = \textit{\textbf{iGetNumPrivData}}\left(elem\right)\quad_{(optional)}$
+\item $\left[iPrivDataIdx\right] = \textit{\textbf{iGetPrivDataIdx}}\left(elem,\,name\right)\quad_{(optional)}$
+\item $\left[dPrivData\right] = \textit{\textbf{dGetPrivData}}\left(elem,\,i\right)\quad_{(optional)}$
+\item $\left[iNumConnectedNodes\right] = \textit{\textbf{iGetNumConnectedNodes}}\left(elem\right)\quad_{(optional)}$
+\item $\left[connectedNodes\right] = \textit{\textbf{GetConnectedNodes}}\left(elem\right)\quad_{(optional)}$
+\item $\textit{\textbf{Output}}\left(elem,\,Loadable\right)\quad_{(optional)}$
+\item $\textit{\textbf{DescribeDof}}\left(elem,\,out,\,prefix,\,bInitial\right)\quad_{(optional)}$
+\item $\textit{\textbf{DescribeEq}}\left(elem,\,out,\,prefix,\,bInitial\right)\quad_{(optional)}$
+\item $\left[elem\right] = \textit{\textbf{AfterPredict}}\left(elemin, XCurr, XPrimeCurr\right)\quad_{(optional)}$
+\item $\textit{\textbf{Restart}}\left(elem,\,out\right)\quad_{(optional)}$
+\end{itemize}
+Semantic and parameters of these functions are almost the same like in C++. \\
+\textbf{TODO}: Describe the meaning of the parameters!
 
 \subsubsection{Drive Caller}
+An Octave drive caller could be used as an alternative to string drives or Ginac drives. 
+If the octave-ad package is installed, Octave based drive callers are differentiable by default.
+An arbitrary number of additional arguments can be passed to the Octave function \bnt{function\_name} after the \kw{arguments} keyword.
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{drive_caller} ::= \kw{octave} , " \bnt{script_name} "
+    \bnt{drive_caller} ::= \kw{octave} , " \bnt{function\_name} "
+                       [ , \bnt{octave\_flags} ] \\
+                       [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Template Drive Caller}
+The syntax of a template drive caller is the same like the scalar drive caller. Of course the Octave function must return a matrix or a vector according to the dimension of the drive caller. The template drive caller is also differentiable by default.
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{tpl_drive_caller} ::= \kw{octave} , ???
+    \bnt{tpl_drive_caller} ::= \kw{octave} , " \bnt{function\_name} "
+                           [ , \bnt{octave\_flags} ] \\
+                           [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Scalar Function}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{drive_caller} ::= \kw{octave} , ???
+    \bnt{scalar_function} ::= \kw{octave} , " \bnt{function\_name} "
+                          [ , \bnt{octave_flags} ] \\
+                          [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Constitutive Law}
+Octave constitutive laws are full featured user defined constitutive laws.
+Additional constitutive law specific data in \bnt{const\_law\_data} may be accessed from within the constructor of the Octave class.
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{specific_const_law} ::= \kw{octave} , " \bnt{script_name} " , \kw{dimension} , \bnt{dimension}
+    \bnt{specific_const_law} ::= \kw{octave} , " \bnt{class\_name} " \\
+                             [ , \bnt{octave\_flags} ] \\
+                             \kw{dimension} , \bnt{dimension} \\
+                             [ , \bnt{const\_law\_data} ]
 \end{Verbatim}
 
-\textbf{TODO}
-
-
+\paragraph{Octave constitutive law member functions}
+At the moment the following member functions are supported:
+\begin{itemize}
+\item $\left[cl\right] = \bnt{class\_name}\left(pDM,\,HP\right)$
+\item $\left[cl,\,F,\,FDE,\,FDEPrime\right] = \textit{\textbf{Update}}\left(clin,\,Eps,\,EpsPrime\right)$
+\item $\left[constLawType\right] = \textit{\textbf{GetConstLawType}}\left(cl\right)$
+\end{itemize}
+If the octave-ad package is installed, the $\textit{\textbf{D}}$ function can be used to compute $FDE$ and $FDEPrime$.
+Semantic and parameters of these functions are almost the same like in C++. \\
+\textbf{TODO}: Describe the meaning of the parameters!
 
 \subsection{Module-tclpgin}
 Implements the tcl pluging in form of run-time loadable module.
