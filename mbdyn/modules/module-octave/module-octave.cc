@@ -680,6 +680,7 @@ public:
 	virtual DofOrder::Order GetEqType(unsigned int i) const;
 	virtual std::ostream& DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const;
 	virtual std::ostream& DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const;
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
 	virtual void AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP);
@@ -708,19 +709,21 @@ private:
    	octave_value mbdObject;
    	OctaveBaseDCR dcr;
    	enum OctaveMethods_t {
-   		HAVE_DEFAULT		   = 0x000,
-   		HAVE_JACOBIAN		   = 0x001,
-   		HAVE_UPDATE			   = 0x002,
-   		HAVE_SET_VALUE		   = 0x004,
-   		HAVE_PRIVATE_DOF 	   = 0x008,
-   		HAVE_INITIAL_ASSEMBLY  = 0x010,
-   		HAVE_SET_INITIAL_VALUE = 0x020,
-   		HAVE_AFTER_CONVERGENCE = 0x040,
-   		HAVE_PRIVATE_DATA	   = 0x080,
-   		HAVE_CONNECTED_NODES   = 0x100,
-   		HAVE_OUTPUT			   = 0x200,
-   		HAVE_DESCRIBE_DOF	   = 0x400,
-   		HAVE_DESCRIBE_EQ	   = 0x800
+   		HAVE_DEFAULT		   = 0x0000,
+   		HAVE_JACOBIAN		   = 0x0001,
+   		HAVE_UPDATE			   = 0x0002,
+   		HAVE_SET_VALUE		   = 0x0004,
+   		HAVE_PRIVATE_DOF 	   = 0x0008,
+   		HAVE_INITIAL_ASSEMBLY  = 0x0010,
+   		HAVE_SET_INITIAL_VALUE = 0x0020,
+   		HAVE_AFTER_CONVERGENCE = 0x0040,
+   		HAVE_PRIVATE_DATA	   = 0x0080,
+   		HAVE_CONNECTED_NODES   = 0x0100,
+   		HAVE_OUTPUT			   = 0x0200,
+   		HAVE_DESCRIBE_DOF	   = 0x0400,
+   		HAVE_DESCRIBE_EQ	   = 0x0800,
+   		HAVE_AFTER_PREDICT	   = 0x1000,
+   		HAVE_RESTART		   = 0x2000
    	};
    	int haveMethod;
    	octave_object_ptr<ConstVectorHandlerInterface> X;
@@ -748,6 +751,8 @@ private:
    	static const std::string strOutput;
    	static const std::string strDescribeDof;
    	static const std::string strDescribeEq;
+   	static const std::string strAfterPredict;
+   	static const std::string strRestart;
 };
 
 class OctaveElementInterface: public MBDynInterface {
@@ -906,7 +911,7 @@ OctaveInterface::UpdateMBDynVariables(void)
 		}
 
 		const std::string& mbName(it->first);
-		static const std::string type("any");
+		//static const std::string type("any");
 
 		const octave_value octValue(get_global_value(mbName));
 
@@ -4227,6 +4232,8 @@ const std::string OctaveElement::strGetConnectedNodes("GetConnectedNodes");
 const std::string OctaveElement::strOutput("Output");
 const std::string OctaveElement::strDescribeDof("DescribeDof");
 const std::string OctaveElement::strDescribeEq("DescribeEq");
+const std::string OctaveElement::strAfterPredict("AfterPredict");
+const std::string OctaveElement::strRestart("Restart");
 
 OctaveElement::OctaveElement(
 	unsigned uLabel, const DofOwner *pDO,
@@ -4383,6 +4390,18 @@ OctaveElement::OctaveElement(
 		pedantic_cerr("octave warning: method " << strInitialAssRes
 					  << " not found in class " << GetClass() << std::endl
 					  << " initial assembly has been disabled" << std::endl);
+	}
+
+	if (bHaveMethod(strAfterPredict)) {
+		haveMethod |= HAVE_AFTER_PREDICT;
+	} else {
+		pedantic_cerr("octave warning: method " << strAfterPredict << " not found in class " << GetClass() << std::endl);
+	}
+
+	if (bHaveMethod(strRestart)) {
+		haveMethod |= HAVE_RESTART;
+	} else {
+		pedantic_cerr("octave warning: method " << strRestart << " not found in class " << GetClass() << std::endl);
 	}
 
 	if (bHaveMethod(strOutput)) {
@@ -4937,6 +4956,34 @@ void OctaveElement::Update(const VectorHandler& XCurr,const VectorHandler& XPrim
 	XP->Set(0);
 }
 
+void OctaveElement::AfterPredict(VectorHandler& XCurr, VectorHandler& XPrimeCurr)
+{
+	if (!(haveMethod & HAVE_AFTER_PREDICT)) {
+		return;
+	}
+
+	X->Set(&XCurr);
+	XP->Set(&XPrimeCurr);
+
+	octave_value_list args(octObject);
+	args.append(X);
+	args.append(XP);
+
+	octave_value_list ans = GetInterface()->EvalFunction(strAfterPredict, args, 1, GetFlags());
+
+	ASSERT(ans.length() == 1);
+
+	if (!(ans(0).is_object() && ans(0).type_id() == octObject.type_id())) {
+		silent_cerr("octave(" << GetLabel() << "): function " << GetClass() << "." << strAfterPredict << ": output argument 1 is not an instance of " << octObject.type_name() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	octObject = ans(0);
+
+	X->Set(0);
+	XP->Set(0);
+}
+
 void OctaveElement::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP)
 {
@@ -4970,7 +5017,21 @@ void OctaveElement::AfterConvergence(const VectorHandler& X,
 std::ostream&
 OctaveElement::Restart(std::ostream& out) const
 {
-	return out << "# OctaveElement: not implemented" << std::endl;
+	if (!(haveMethod & HAVE_RESTART)) {
+		out << "# OctaveElement(" << GetClass() << "): not implemented" << std::endl;
+		return out;
+	}
+
+	OS->Set(&out);
+
+	octave_value_list args(octObject);
+	args.append(OS);
+
+	GetInterface()->EvalFunction(strRestart, args, 0, GetFlags());
+
+	OS->Set(0);
+
+	return out;
 }
 
 unsigned int

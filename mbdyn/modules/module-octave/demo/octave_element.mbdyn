@@ -64,7 +64,7 @@ end: data;
 begin: initial value;
 	initial time: 0;
 	final time: 1;
-    time step: 0.0005;
+    time step: 0.002;
 	max time step: 0.0005;
     min time step: 0.00001;
 	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
@@ -85,6 +85,7 @@ begin: control data;
     use: loadable elements, in assembly;
     max iterations: 100;
     print: equation description, to file;
+    make restart file: time, 0.1;
 end: control data;
 
 reference: 1,
