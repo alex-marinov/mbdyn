@@ -130,6 +130,25 @@ Simple example of run-time loadable user-defined drive caller.
 Implements a \ty{TplDriveCaller<Vec3>} drive caller
 that converts three Euler angles into the corresponding Euler vector.
 
+Syntax:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{eu2phi} ,
+        [ \kw{help} , ]
+        [ \kw{format} , \{ \kw{euler123} | \kw{euler313} | \kw{euler321} \} , ]
+        (\ty{TplDriveCaller<Vec3>}) \bnt{drive}
+\end{Verbatim}
+Example:
+\begin{verbatim}
+    # assuming that file drive 1 provides Euler angles 1, 2 and 3 in channels 1, 2, 3:
+    joint: 10, total joint,
+        1001,
+        1002,
+        orientation constraint, active, active, active,
+            eu2phi, format, euler123,
+            component, file, 1, 1,
+            component, file, 1, 2,
+            component, file, 1, 3;
+\end{verbatim}
 
 
 \section{Scalar Function Modules}
