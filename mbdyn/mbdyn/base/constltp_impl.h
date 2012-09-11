@@ -621,6 +621,57 @@ public:
 /* CubicElasticGenericConstitutiveLaw - end */
 
 
+/* InverseSquareConstitutiveLaw - begin */
+
+class InverseSquareConstitutiveLaw
+: public ElasticConstitutiveLaw1D {
+private:
+	doublereal m_A;
+	doublereal m_L0;
+
+public:
+	InverseSquareConstitutiveLaw(const TplDriveCaller<doublereal>* pDC,
+			const doublereal& PStress,
+			const doublereal& A, const doublereal& L0)
+	: ElasticConstitutiveLaw1D(pDC, PStress),
+		m_A(A), m_L0(L0)
+	{
+		NO_OP;
+	};
+
+	virtual ~InverseSquareConstitutiveLaw(void) {
+		NO_OP;
+	};
+
+	virtual ConstitutiveLaw1D* pCopy(void) const {
+		ConstitutiveLaw1D* pCL = 0;
+
+		SAFENEWWITHCONSTRUCTOR(pCL,
+			InverseSquareConstitutiveLaw,
+			InverseSquareConstitutiveLaw(ElasticConstitutiveLaw1D::pGetDriveCaller()->pCopy(),
+				ElasticConstitutiveLaw1D::PreStress,
+				m_A, m_L0));
+		return pCL;
+	};
+
+	virtual std::ostream& Restart(std::ostream& out) const {
+		out << "inverse square, " << m_A << ", " << m_L0;
+		return ElasticConstitutiveLaw1D::Restart_int(out);
+	};
+
+	virtual void Update(const doublereal& Eps, const doublereal& /* EpsPrime */ = 0.) {
+		ConstitutiveLaw1D::Epsilon = Eps;
+		doublereal e1 = Eps - ElasticConstitutiveLaw1D::Get();
+		doublereal d = m_L0*(1 + e1);
+		doublereal d2 = d*d;
+		ConstitutiveLaw1D::F = ElasticConstitutiveLaw1D::PreStress + m_A/d2;
+		ConstitutiveLaw1D::FDE = -2.*m_A/(d2*d)*m_L0;
+	};
+};
+
+/* InverseSquareConstitutiveLaw - end */
+
+
 /* LogConstitutiveLaw - begin */
 
 template <class T, class Tder>

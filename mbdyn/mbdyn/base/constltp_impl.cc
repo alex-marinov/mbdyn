@@ -402,6 +402,40 @@ struct LinearViscoElasticGenericAxialTorsionCouplingCLR : public ConstitutiveLaw
 	};
 };
 
+struct InverseSquareElasticCLR : public ConstitutiveLawRead<doublereal, doublereal> {
+	virtual ConstitutiveLaw<doublereal, doublereal> *
+	Read(const DataManager* pDM, MBDynParser& HP, ConstLawType::Type& CLType) {
+		ConstitutiveLaw<doublereal, doublereal>* pCL = 0;
+
+		CLType = ConstLawType::ELASTIC;
+
+		DEBUGCOUT("Inverse Square Elastic Constitutive Law" << std::endl);
+		doublereal dA = HP.GetReal();
+		if (dA <= 0.) {
+			silent_cerr("warning, null or negative stiffness at line "
+				<< HP.GetLineData() << std::endl);
+		}
+
+		doublereal dL0 = HP.GetReal();
+		if (dL0 <= 0.) {
+			silent_cerr("warning, null or negative reference length at line "
+				<< HP.GetLineData() << std::endl);
+		}
+
+		/* Prestress and prestrain */
+		doublereal PreStress(mb_zero<doublereal>());
+		GetPreStress(HP, PreStress);
+		TplDriveCaller<doublereal>* pTplDC = GetPreStrain<doublereal>(pDM, HP);
+
+		
+		SAFENEWWITHCONSTRUCTOR(pCL,
+			InverseSquareConstitutiveLaw,
+			InverseSquareConstitutiveLaw(pTplDC, PreStress, dA, dL0));
+
+		return pCL;
+	};
+};
+
 template <class T, class Tder>
 struct LogElasticCLR : public ConstitutiveLawRead<T, Tder> {
 	virtual ConstitutiveLaw<T, Tder> *
@@ -1382,6 +1416,9 @@ InitCL(void)
 		new LinearElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
 	SetCL6D("linear" "viscoelastic" "generic" "axial" "torsion" "coupling",
 		new LinearViscoElasticGenericAxialTorsionCouplingCLR<Vec6, Mat6x6>);
+
+	/* inverse square elastic */
+	SetCL1D("inverse" "square" "elastic", new InverseSquareElasticCLR);
 
 	/* log elastic */
 	SetCL1D("log" "elastic", new LogElasticCLR<doublereal, doublereal>);

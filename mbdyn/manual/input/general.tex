@@ -3177,6 +3177,7 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\kw{linear elastic generic}						& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{linear elastic generic axial torsion coupling}			&         &         & $\surd$ \\
 	\kw{cubic elastic generic}						& $\surd$ & $\surd$ &         \\
+	\kw{inverse square elastic}						& $\surd$ &         &         \\
 	\kw{log elastic}							& $\surd$ &         &         \\
 	\kw{linear elastic bistop}						& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{double linear elastic}						& $\surd$ & $\surd$ &         \\
@@ -3339,6 +3340,18 @@ law is written according to the formula
 %
 %\textbf{FIXME: check!}
 
+\subsection{Inverse square elastic}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{inverse square elastic} ,
+        (\ty{real}) \bnt{stiffness} , (\ty{real}) \bnt{ref_length}
+\end{Verbatim}
+%\end{verbatim}
+this is defined only for scalars. The force is defined as:
+\begin{align}
+    f &= \frac{\nt{stiffness}}{\plbr{\nt{ref\_lenght} \cdot \plbr{1 + \varepsilon}}^2}
+\end{align}
+  
 \subsection{Log elastic}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]

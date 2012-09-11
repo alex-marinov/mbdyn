@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added AfterPredict & Restart to module-octave
 		  (Reinhard Resch)
+		- added inverse square constitutive law
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
