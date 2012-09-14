@@ -577,7 +577,7 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{plugin} ::= \kw{node}
     \bnt{arglist} ::= \bnt{label} , \bnt{type}
-        [ , \{ [ \kw{index=} ] \bnt{index} | \kw{string=} \bnt{name} \} ]
+        [ , \{ [ \kw{string=} ] \bnt{name} | \kw{index=} \bnt{index} \} ] # \kw{index} is deprecated
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -615,7 +615,7 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{plugin} ::= \kw{element}
     \bnt{arglist} ::= \bnt{label} , \bnt{type}
-        [ , \{ [ \kw{index=} ] \bnt{index} | \kw{string=} \bnt{name} \} ]
+        [ , \{ [ \kw{string=} ] \bnt{name} | \kw{index=} \bnt{index} \} ] # \kw{index} is deprecated
 \end{Verbatim}
 %\end{verbatim}
 where
@@ -2123,7 +2123,7 @@ is equivalent to
     \bnt{drive_caller} ::= \kw{element} ,
         \bnt{label} ,
         \bnt{type} ,
-        [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ]
+        [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
         (\ty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
@@ -2376,7 +2376,7 @@ The \kw{mult} drive multiplies the value of two subordinate drives.
     \bnt{drive_caller} ::= \kw{node} ,
         \bnt{label} ,
         \bnt{type} ,
-        [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ]
+        [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
         (\ty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
