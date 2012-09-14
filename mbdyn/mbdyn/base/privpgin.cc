@@ -143,6 +143,10 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 		iIndex = ReadLabel(s);
 
 	} else {
+		silent_cerr("PrivPlugIn: "
+			"index name without qualifier is deprecated; "
+			"use \"string=" << sIndexName << "\" instead" << std::endl);
+
 		iIndex = pSE->iGetPrivDataIdx(s);
 		if (iIndex > 0) {
 			bRefresh = true;
