@@ -40,19 +40,15 @@
 
 PrivDriveCaller::PrivDriveCaller(const DriveHandler* pDH, 
 		const DriveCaller* pDC,
-		SimulationEntity *p, unsigned int i, const char *s)
-: DriveCaller(pDH), DriveOwner(pDC), pSE(p), iIndex(i), sIndexName(0)
+		SimulationEntity *p, unsigned int i, const std::string& s)
+: DriveCaller(pDH), DriveOwner(pDC), pSE(p), iIndex(i), sIndexName(s)
 {
-	if (s) {
-		SAFESTRDUP(sIndexName, s);
-	}
+	NO_OP;
 };     	
 
 PrivDriveCaller::~PrivDriveCaller(void)
 {
-	if (sIndexName) {
-		SAFEDELETEARR(sIndexName);
-	}
+	NO_OP;
 }
 
 /* Copia */
@@ -92,7 +88,7 @@ PrivDriveCaller::Restart(std::ostream& out) const
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (sIndexName) {
+	if (!sIndexName.empty()) {
 		out << "string, " << sIndexName;
 	} else if (pElem->iGetNumPrivData() > 1) {
 		out << "index, " << iIndex;

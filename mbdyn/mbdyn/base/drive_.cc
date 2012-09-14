@@ -2277,20 +2277,28 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	DriveCaller *pDC = 0;
 
 	unsigned int iIndex = 0;
-	const char *sIndexName = 0;
+	std::string sIndexName;
 	if (HP.IsKeyWord("string")) {
-		const char *s = HP.GetStringWithDelims();
-		iIndex = pSE->iGetPrivDataIdx(s);
+		sIndexName = HP.GetStringWithDelims();
+		if (sIndexName.empty()) {
+			silent_cerr("empty string for " << msg
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		iIndex = pSE->iGetPrivDataIdx(sIndexName.c_str());
 		if (iIndex == 0) {
-			silent_cerr("illegal string \"" << s << "\""
+			silent_cerr("illegal string \"" << sIndexName << "\""
 				" for " << msg
 				<< " at line " << HP.GetLineData()
 				<< std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		SAFESTRDUP(sIndexName, s);
 
 	} else if (HP.IsKeyWord("index")) {
+		silent_cout("\"index\" deprecated for " << msg
+			<< "; use \"string\" instead at line " << HP.GetLineData() << std::endl);
+
 		iIndex = HP.GetInt();
 
 	} else if (pSE->iGetNumPrivData() == 1) {
@@ -2323,10 +2331,7 @@ SimulationEntityDCR::Read(const DataManager* pDM,
 	/* allocazione e creazione */
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		PrivDriveCaller,
-		PrivDriveCaller(pDrvHdl, pTmp, pSE, iIndex, sIndexName));
-	if (sIndexName) {
-		SAFEDELETEARR(sIndexName);
-	}
+		PrivDriveCaller(pDrvHdl, pTmp, pSE, iIndex, sIndexName.c_str()));
 
 	return pDC;
 }

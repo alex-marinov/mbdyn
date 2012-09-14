@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		  (Reinhard Resch)
 		- added inverse square constitutive law
 	Backward compatibility issues:
+		- "index" form for priv data is deprecated
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
