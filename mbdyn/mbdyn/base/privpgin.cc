@@ -109,19 +109,13 @@ unsigned int
 PrivPlugIn::ReadLabel(const char* s) 
 {
 	unsigned int rc;
-	char *stmp = 0;
 
 	/*
 	 * deve essere terminato da ';' per essere letto da math parser :(
 	 */
-	int l = strlen(s)+2;
-	SAFENEWARR(stmp, char, l);
-	strcpy(stmp, s);
-	strcat(stmp, ";");
-	std::istringstream in(stmp);
+	std::istringstream in(std::string(s) + ";");
 	InputStream In(in);
 	rc = (unsigned int)mp.Get(In);
-	SAFEDELETEARR(stmp);
 
 	return rc;
 }
@@ -144,11 +138,17 @@ PrivPlugIn::ReadIndex(unsigned int iMaxIndex, const char *s)
 			"\"name=" << sIndexName << "\" is deprecated; "
 			"use \"string=" << sIndexName << "\" instead" << std::endl);
 
-	} else {
-		if (strncasecmp(s, "index=", STRLENOF("index=")) == 0) {
-			s = &s[STRLENOF("index=")];
-		}
+	} else if (strncasecmp(s, "index=", STRLENOF("index=")) == 0) {
+		s = &s[STRLENOF("index=")];
 		iIndex = ReadLabel(s);
+
+	} else {
+		iIndex = pSE->iGetPrivDataIdx(s);
+		if (iIndex > 0) {
+			bRefresh = true;
+		} else {
+			iIndex = ReadLabel(s);
+		}
 	}
 
 	if (bRefresh) {
