@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fix restart bug (Reinhard Resch)
+		- fix initialization issues (Marco Morandini)
 
 MBDyn 1.5.1
 	Enhancements:
