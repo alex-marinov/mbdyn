@@ -660,7 +660,7 @@ template<mp_in_e IN>
 static int
 mp_in(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 1);
+	ASSERT(args.size() == 1 + 3);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 	ASSERT(args[2]->Type() == MathParser::AT_REAL);
