@@ -208,7 +208,7 @@ struct ContContactCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 
 		if (HP.IsKeyWord("help")) {
 			silent_cerr("ContContactCL:\n"
-				"        cont contact,\n"
+				"        continuous contact,\n"
 				"                [ , sign, { negative | positive | <sign> } , ]\n"
 				"                [ , formulation, { flores | lankarani nikravesh | hunt crossley } , ]\n"
 				"                restitution, <restitution_coefficient>, (0 -> 1)\n"
