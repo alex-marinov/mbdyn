@@ -620,8 +620,6 @@ OutputHandler::iP(void) const
 	return iCurrPrecision;
 }
 
-extern OutputHandler OutHdl;
-
 /* OutputHandler - end */
 
 
