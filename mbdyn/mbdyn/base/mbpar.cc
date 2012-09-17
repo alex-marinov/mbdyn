@@ -181,8 +181,12 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	}
 }
 
-const ReferenceFrame AbsRefFrame(0, Zero3, Eye3, Zero3, Zero3, EULER_123);
-
+const ReferenceFrame AbsRefFrame(0,
+	Vec3(0., 0., 0),
+	Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.),
+	Vec3(0., 0., 0),
+	Vec3(0., 0., 0),
+	EULER_123);
 
 void 
 MBDynParser::Reference_int(void)
