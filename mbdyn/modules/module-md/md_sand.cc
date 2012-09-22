@@ -1311,5 +1311,8 @@ MDSand::~MDSand()
     delete[]sand_array_;
     delete[]box_cell_;
     delete[]md_cell_nbr_;
+    for (int i = 0; i < num_particles_; i++) {
+	    delete slip_array_[i];
+    }
     delete[]slip_array_;
 }
