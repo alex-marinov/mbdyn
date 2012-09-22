@@ -79,6 +79,7 @@ struct Data {
 
 	Data(void)
 	: m_sandbox(24, 12, 15, 124270), // FIXME: do these data need to be configurable?
+	m_bSettle(false),
 	m_foc_vec(0, 0, 0), m_mom_vec(0, 0, 0),
 	m_m_ufac(1e3), m_l_ufac(1e2), m_steps(0)
 	{
@@ -221,7 +222,7 @@ MD_get_loads(Data& data)
 static void
 MD_destroy(Data& data)
 {
-	return;
+	delete[] data.m_shape_parser.pshape;
 }
 
 class MBDynMD
