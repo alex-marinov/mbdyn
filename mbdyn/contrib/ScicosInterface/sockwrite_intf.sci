@@ -75,7 +75,7 @@ case 'define' then
   model.ipar = [port; N_CH];
   model.opar = list(int8(asciimat(hostname)))
   model.blocktype = 'c';
-  model.dep_ut = [%T; %T];
+  model.dep_ut = [%T, %T];
   exprs = [hostname; string([port; N_CH])];
   gr_i=	['x=orig(1),y=orig(2),w=sz(1),h=sz(2)';
             'txt=[''MBDyn'';''WRITE'']';
