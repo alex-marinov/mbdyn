@@ -12,6 +12,16 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+	Backward compatibility issues:
+	Known issues:
+		- Schur solver is broken
+		- TotalPinJoint inverse dynamics support is broken
+		- RTAI and multithread support incompatible
+		- module-octave and multithread support incompatible
+	Bug fixes:
+
+MBDyn 1.5.2
+	Enhancements:
 		- added AfterPredict & Restart to module-octave
 		  (Reinhard Resch)
 		- added inverse square constitutive law
