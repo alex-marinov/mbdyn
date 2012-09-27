@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix restart bug (Reinhard Resch)
 		- fix initialization issues (Marco Morandini)
+		- fix dist of mbc_py_interface.py (noted by Gaël Ecorchard)
 
 MBDyn 1.5.1
 	Enhancements:
