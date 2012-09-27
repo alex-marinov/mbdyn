@@ -36,6 +36,8 @@ INCLUDES = \
 -I$(srcdir)/../../libraries/libmbc \
 -I$(srcdir)/../../mbdyn
 
+EXTRA_DIST = mbc_py_interface.py
+
 if USE_PYTHON
 lib_LTLIBRARIES += _mbc_py.la
 _mbc_py_la_SOURCES = \
@@ -60,8 +62,6 @@ mbc_py_wrap.cc: $(mbc_py_wrap_dep)
 
 _mbc_py_la_LIBADD = @LIBS@ libmbc.la
 _mbc_py_la_LDFLAGS = -module
-
-EXTRA_DIST = mbc_py_interface.py
 
 install-exec-local:
 	$(mkinstalldirs) $(libexecdir)/mbpy
