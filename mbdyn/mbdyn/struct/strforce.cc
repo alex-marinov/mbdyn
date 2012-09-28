@@ -52,6 +52,10 @@ AbsoluteDispForce::AbsoluteDispForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
+#ifdef USE_NETCDF
+,
+Var_F(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -127,9 +131,36 @@ AbsoluteDispForce::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "absolute displacement");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"force components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 AbsoluteDispForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -138,8 +169,6 @@ AbsoluteDispForce::Output(OutputHandler& OH) const
 				<< " " << pNode->GetXCurr()
 				<< std::endl;
 		}
-
-		/* TODO: NetCDF */
 	}
 }
 
@@ -191,6 +220,10 @@ Force(uL, fOut),
 f(pDC),
 pNode1(pN1),
 pNode2(pN2)
+#ifdef USE_NETCDF
+,
+Var_F(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -272,9 +305,36 @@ AbsoluteInternalDispForce::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "internal absolute displacement");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"force components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			Vec3 fTmp(f.Get());
 			OH.Forces()
@@ -342,6 +402,10 @@ StructuralForce::StructuralForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
+#ifdef USE_NETCDF
+,
+Var_F(0)
+#endif // USE_NETCDF
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -375,6 +439,10 @@ AbsoluteForce::AbsoluteForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
+#ifdef USE_NETCDF
+,
+Var_A(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -507,9 +575,40 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+AbsoluteForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "absolute");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"force components (x, y, z)");
+
+			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm", "m",
+				"arm in global frame (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 AbsoluteForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -613,6 +712,10 @@ FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
+#ifdef USE_NETCDF
+,
+Var_A(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -761,11 +864,41 @@ FollowerForce::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+FollowerForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "follower");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"force components (x, y, z)");
+
+			Var_A = OH.CreateVar<Vec3>(os.str() + "Arm", "m",
+				"arm in global frame (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 FollowerForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -774,8 +907,6 @@ FollowerForce::Output(OutputHandler& OH) const
 				<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
 				<< std::endl;
 		}
-
-		/* TODO: NetCDF */
 	}
 }
 
@@ -962,11 +1093,38 @@ AbsoluteCouple::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+AbsoluteCouple::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.couple." << GetLabel();
+			(void)OH.CreateVar(os.str(), "absolute");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "M", "Nm",
+				"couple components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 
 void
 AbsoluteCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -1141,9 +1299,38 @@ FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+FollowerCouple::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.couple." << GetLabel();
+			(void)OH.CreateVar(os.str(), "follower");
+
+			// joint sub-data
+			os << '.';
+
+			Var_F = OH.CreateVar<Vec3>(os.str() + "M", "Nm",
+				"couple components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
+void
 FollowerCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -1151,8 +1338,6 @@ FollowerCouple::Output(OutputHandler& OH) const
 				<< " " << pNode->GetRCurr()*f.Get()
 				<< std::endl;
 		}
-
-		/* TODO: NetCDF */
 	}
 }
 
@@ -1237,6 +1422,10 @@ StructuralInternalForce::StructuralInternalForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode1(pN1), pNode2(pN2)
+#ifdef USE_NETCDF
+,
+Var_F(0)
+#endif // USE_NETCDF
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
@@ -1274,6 +1463,11 @@ AbsoluteInternalForce::AbsoluteInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
+#ifdef USE_NETCDF
+,
+Var_A1(0),
+Var_A2(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -1433,11 +1627,45 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "internal absolute");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"couple components (x, y, z)");
+
+			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1", "m",
+				"node 1 arm in global frame (x, y, z)");
+
+			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2", "m",
+				"node 2 arm in global frame (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 AbsoluteInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
+			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			Vec3 F(f.Get());
 			OH.Forces()
@@ -1580,6 +1808,11 @@ FollowerInternalForce::FollowerInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
+#ifdef USE_NETCDF
+,
+Var_A1(0),
+Var_A2(0)
+#endif // USE_NETCDF
 {
 	NO_OP;
 }
@@ -1749,11 +1982,45 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+FollowerInternalForce::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.force." << GetLabel();
+			(void)OH.CreateVar(os.str(), "internal follower");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "F", "N",
+				"couple components (x, y, z)");
+
+			Var_A1 = OH.CreateVar<Vec3>(os.str() + "Arm1", "m",
+				"node 1 arm in global frame (x, y, z)");
+
+			Var_A2 = OH.CreateVar<Vec3>(os.str() + "Arm2", "m",
+				"node 2 arm in global frame (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 FollowerInternalForce::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
+			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			Vec3 F(pNode1->GetRCurr()*f.Get());
 			OH.Forces()
@@ -2011,11 +2278,37 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.couple." << GetLabel();
+			(void)OH.CreateVar(os.str(), "internal absolute");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "M", "Nm",
+				"couple components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 AbsoluteInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			Vec3 F(f.Get());
 			OH.Forces()
@@ -2212,9 +2505,36 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+			std::ostringstream os;
+			os << "elem.couple." << GetLabel();
+			(void)OH.CreateVar(os.str(), "internal follower");
+
+			// joint sub-data
+			os << '.';
+			Var_F = OH.CreateVar<Vec3>(os.str() + "M", "Nm",
+				"couple components (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 FollowerInternalCouple::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
 		if (OH.UseText(OutputHandler::FORCES)) {
 			Vec3 F(pNode1->GetRCurr()*f.Get());
 			OH.Forces()

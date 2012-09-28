@@ -203,6 +203,7 @@ Currently supported element types are:
 \item Automatic structural elements, indicated as \kw{autostruct}.
 \item Beam elements, indicated as \kw{beam2} and \kw{beam3}
 for 2- and 3-node beam elements, respectively.
+\item Force and couple elements, indicated as \kw{force} and \kw{couple}.
 \end{itemize}
 
 
@@ -326,6 +327,79 @@ to indicate the first (between nodes 1 and 2)
 or the second (between nodes 2 and 3)
 evaluation point.
 
+
+
+
+\subsubsection{Force}
+\label{sec:NetCDF:Elem:Force}
+
+The various flavors of force and couple elements allow different variables.
+
+\paragraph{Absolute displacement force:}
+the type is \kw{absolute displacement}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Internal absolute displacement force:}
+the type is \kw{internal absolute displacement}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Absolute force:}
+the type is \kw{absolute}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm} contains the three components of the arm, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Follower force:}
+the type is \kw{follower}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm} contains the three components of the arm, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Absolute couple:}
+the type is \kw{absolute}.
+\begin{itemize}
+\item \kw{elem.couple.}\bnt{label}\kw{.M} contains the three components of the couple, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Follower couple:}
+the type is \kw{follower}.
+\begin{itemize}
+\item \kw{elem.couple.}\bnt{label}\kw{.M} contains the three components of the couple, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Internal absolute force:}
+the type is \kw{internal absolute}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm1} contains the three components of the arm with respect to node 1, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm2} contains the three components of the arm with respect to node 2, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Internal follower force:}
+the type is \kw{internal follower}.
+\begin{itemize}
+\item \kw{elem.force.}\bnt{label}\kw{.F} contains the three components of the force, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm1} contains the three components of the arm with respect to node 1, in the absolute reference frame.
+\item \kw{elem.force.}\bnt{label}\kw{.Arm2} contains the three components of the arm with respect to node 2, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Internal absolute couple:}
+the type is \kw{internal absolute}.
+\begin{itemize}
+\item \kw{elem.couple.}\bnt{label}\kw{.M} contains the three components of the force, in the absolute reference frame.
+\end{itemize}
+
+\paragraph{Internal follower couple:}
+the type is \kw{internal follower}.
+\begin{itemize}
+\item \kw{elem.couple.}\bnt{label}\kw{.M} contains the three components of the force, in the absolute reference frame.
+\end{itemize}
 
 
 

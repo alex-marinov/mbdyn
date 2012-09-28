@@ -1454,6 +1454,7 @@ EndOfUse:
 		OutHdl.SetNetCDF(OutputHandler::BEAMS);
 		OutHdl.SetNetCDF(OutputHandler::AERODYNAMIC);
 		OutHdl.SetNetCDF(OutputHandler::LOADABLE);
+		OutHdl.SetNetCDF(OutputHandler::FORCES);
 		// OutHdl.SetNetCDF(OutputHandler::PLATES);
 	}
 

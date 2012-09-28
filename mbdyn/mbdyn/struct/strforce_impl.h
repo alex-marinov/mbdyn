@@ -45,6 +45,10 @@ protected:
 	TplDriveOwner<Vec3> f;
 	const StructDispNode* pNode;
 
+#ifdef USE_NETCDF
+	NcVar *Var_F;
+#endif // USE_NETCDF
+
 public:
 	/* Costruttore non banale */
 	AbsoluteDispForce(unsigned int uL, const StructDispNode* pN,
@@ -76,6 +80,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -104,6 +109,10 @@ protected:
 	TplDriveOwner<Vec3> f;
 	const StructDispNode* pNode1;
 	const StructDispNode* pNode2;
+
+#ifdef USE_NETCDF
+	NcVar *Var_F;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore non banale */
@@ -137,6 +146,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -165,6 +175,10 @@ protected:
 	TplDriveOwner<Vec3> f;
 	const StructNode* pNode;
 
+#ifdef USE_NETCDF
+	NcVar *Var_F;
+#endif // USE_NETCDF
+
 public:
 	/* Costruttore */
 	StructuralForce(unsigned int uL,
@@ -190,6 +204,10 @@ public:
 class AbsoluteForce : virtual public Elem, public StructuralForce {
 protected:
 	const Vec3 Arm;
+
+#ifdef USE_NETCDF
+	NcVar *Var_A;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore non banale */
@@ -230,6 +248,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -254,6 +273,10 @@ public:
 class FollowerForce : virtual public Elem, public StructuralForce {
 protected:
 	const Vec3 Arm;
+
+#ifdef USE_NETCDF
+	NcVar *Var_A;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore banale */
@@ -294,6 +317,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -348,6 +372,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -403,6 +428,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -431,6 +457,10 @@ protected:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 
+#ifdef USE_NETCDF
+	NcVar *Var_F;
+#endif // USE_NETCDF
+
 public:
 	/* Costruttore */
 	StructuralInternalForce(unsigned int uL,
@@ -458,6 +488,11 @@ class AbsoluteInternalForce
 protected:
 	const Vec3 Arm1;
 	const Vec3 Arm2;
+
+#ifdef USE_NETCDF
+	NcVar *Var_A1;
+	NcVar *Var_A2;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore non banale */
@@ -499,6 +534,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -525,6 +561,11 @@ class FollowerInternalForce
 protected:
 	const Vec3 Arm1;
 	const Vec3 Arm2;
+
+#ifdef USE_NETCDF
+	NcVar *Var_A1;
+	NcVar *Var_A2;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore banale */
@@ -566,6 +607,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -622,6 +664,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
@@ -679,6 +722,7 @@ public:
 		const VectorHandler& /* XPrimePrimeCurr */ ,
 		int iOrder);
 
+	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual void
