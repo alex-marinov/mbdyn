@@ -3981,9 +3981,17 @@ MathParser::GetLastStmt(Real d, Token t)
 	if (GetToken() == t) {
 		return d;
 	}
-	while (currtoken != ENDOFFILE && currtoken != t) {
+
+	for (;;) {
 		d = stmtlist().GetReal();
+		if (currtoken == ENDOFFILE || currtoken == t) {
+			break;
+		}
+		if (currtoken != STMTSEP) {
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "statement separator expected");
+		}
 	}
+
 	return d;
 }
 

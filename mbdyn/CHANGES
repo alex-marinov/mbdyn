@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- RTAI and multithread support incompatible
 		- module-octave and multithread support incompatible
 	Bug fixes:
+		- fix multiple statements bug in string drive caller
 
 MBDyn 1.5.2
 	Enhancements:
