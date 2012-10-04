@@ -260,7 +260,9 @@ E. Bugs/missing features:
 	- take care of nodes with output "off" in mbdyn2easyanim.sh
 	- allow "relative" node view in EasyAnim
 	- fix "use binary" in modal joint (DONE)
-	- string drive caller: "<stmt1> <stmt2>" is accepted; <stmt2> is used.
+	- string drive caller: "<stmt1> <stmt2>" is accepted; <stmt2> is used (DONE)
+	- GetPosAbs/GetRotAbs dependent on other (pos, rot, ...)
+	- print name of entities when present (DONE)
 
 
 
