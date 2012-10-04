@@ -1298,6 +1298,13 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 	}
 }
 
+#if 0 // TODO
+Vec3 
+MBDynParser::GetPosAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Vec3& other_X)
+{
+}
+#endif
+
 Vec3 
 MBDynParser::GetVelRel(const ReferenceFrame& rf, const Vec3& x)
 {
@@ -1742,6 +1749,13 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 }
+
+#if 0 // TODO
+Mat3x3 
+MBDynParser::GetRotAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R)
+{   
+}
+#endif
 
 HydraulicFluid* 
 MBDynParser::GetHydraulicFluid(void)
