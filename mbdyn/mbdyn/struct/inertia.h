@@ -92,7 +92,7 @@ protected:
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
-	Inertia(unsigned int uL, std::set<const ElemGravityOwner *>& elements,
+	Inertia(unsigned int uL, const std::string& sN, std::set<const ElemGravityOwner *>& elements,
 		const Vec3& x0, const Mat3x3& r0, std::ostream& log, flag fOut);
 
 	virtual ~Inertia(void);

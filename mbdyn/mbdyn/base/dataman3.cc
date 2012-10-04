@@ -1740,7 +1740,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			/* Nodi strutturali */
 			case STRUCTURAL: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::STRUCTURAL] << "(" << uLabel << ")"
+					<< psNodeNames[Node::STRUCTURAL] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				/* verifica che non siano gia' stati letti tutti
@@ -1782,7 +1782,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			/* nodi elettrici */
 			case ELECTRIC: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::ELECTRIC] << "(" << uLabel << ")"
+					<< psNodeNames[Node::ELECTRIC] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				/*
@@ -1822,7 +1822,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 
 			case THERMAL: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::THERMAL] << "(" << uLabel << ")"
+					<< psNodeNames[Node::THERMAL] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				/*
@@ -1863,7 +1863,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			/* nodi astratti */
 			case ABSTRACT: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::ABSTRACT] << "(" << uLabel << ")"
+					<< psNodeNames[Node::ABSTRACT] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				bool bAlgebraic(false);
@@ -1928,7 +1928,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			/* parametri */
 			case PARAMETER: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::PARAMETER] << "(" << uLabel << ")"
+					<< psNodeNames[Node::PARAMETER] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				/* verifica che non siano gia' stati letti tutti
@@ -2051,7 +2051,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			/* nodi idraulici */
 			case HYDRAULIC: {
 				silent_cout("Reading "
-					<< psNodeNames[Node::HYDRAULIC] << "(" << uLabel << ")"
+					<< psNodeNames[Node::HYDRAULIC] << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")"
 					<< std::endl);
 
 				/*
@@ -2229,7 +2229,7 @@ DataManager::ReadDrivers(MBDynParser& HP)
 		/* drivers */
 		case FILEDRIVE: {
 			silent_cout("Reading "
-				<< psDriveNames[Drive::FILEDRIVE] << "(" << uLabel << ")"
+				<< psDriveNames[Drive::FILEDRIVE] << ")"
 				<< std::endl);
 
 			if (iNumTypes[Drive::FILEDRIVE]-- <= 0) {

@@ -1054,7 +1054,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					if (ppE != 0) {
 						pE = *ppE;
-						if (!sName.empty()) {
+						if (!sName.empty() && sName != pE->GetName()) {
 							pE->PutName(sName);
 						}
 					}
@@ -1234,11 +1234,11 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	{
 		bool bCouple(false);
 		if (KeyWords(CurrType) == FORCE) {
-			silent_cout("Reading Force(" << uLabel << ")" << std::endl);
+			silent_cout("Reading Force(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		} else /* if(KeyWords(CurrType) == COUPLE) */ {
 			bCouple = true;
-			silent_cout("Reading Couple(" << uLabel << ")" << std::endl);
+			silent_cout("Reading Couple(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 		}
 
 		if (iNumTypes[Elem::FORCE]-- <= 0) {
@@ -1270,7 +1270,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	case BODY: {
-		silent_cout("Reading Body(" << uLabel << ")" << std::endl);
+		silent_cout("Reading Body(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::BODY]-- <= 0) {
 			DEBUGCERR("");
@@ -1302,7 +1302,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* vincoli */
 	case JOINT: {
-		silent_cout("Reading Joint(" << uLabel << ")" << std::endl);
+		silent_cout("Reading Joint(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::JOINT]-- <= 0) {
 			DEBUGCERR("");
@@ -1340,7 +1340,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* regolarizzazione vincoli */
 	case JOINT_REGULARIZATION: {
-		silent_cout("Reading JointRegularization(" << uLabel << ")" << std::endl);
+		silent_cout("Reading JointRegularization(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::JOINT_REGULARIZATION]-- <= 0) {
 			DEBUGCERR("");
@@ -1380,7 +1380,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	case BEAM3:		/* same as BEAM */
 	case BEAM2:
 	case HBEAM: {
-		silent_cout("Reading Beam(" << uLabel << ")" << std::endl);
+		silent_cout("Reading Beam(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::BEAM]-- <= 0) {
 			DEBUGCERR("");
@@ -1446,7 +1446,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		silent_cout("Reading " << sType << "(" << uLabel << ")" << std::endl);
+		silent_cout("Reading " << sType << "(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::PLATE]-- <= 0) {
 			DEBUGCERR("");
@@ -1500,7 +1500,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	/* Elementi aerodinamici: rotori */
 	case ROTOR:
 	case INDUCEDVELOCITY: {
-		silent_cout("Reading InducedVelocity(" << uLabel << ")" << std::endl);
+		silent_cout("Reading InducedVelocity(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		switch (KeyWords(CurrType)) {
 		case ROTOR:
@@ -1554,7 +1554,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* Elementi aerodinamici: modale */
 	case AEROMODAL: {
-		silent_cout("Reading AeroModal(" << uLabel << ")" << std::endl);
+		silent_cout("Reading AeroModal(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::AEROMODAL]-- <= 0) {
 			DEBUGCERR("");
@@ -1592,7 +1592,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	case AERODYNAMICEXTERNAL:
 	case AERODYNAMICEXTERNALMODAL: {
 #ifdef USE_EXTERNAL
-		silent_cout("Reading External(" << uLabel << ")" << std::endl);
+		silent_cout("Reading External(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::EXTERNAL]-- <= 0) {
 			DEBUGCERR("");
@@ -1644,7 +1644,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	case AERODYNAMICBEAM2:
 	case AIRCRAFTINSTRUMENTS:
 	case GENERICAERODYNAMICFORCE: {
-		silent_cout("Reading AerodynamicElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading AerodynamicElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::AERODYNAMIC]-- <= 0) {
 			DEBUGCERR("");
@@ -1706,7 +1706,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* genel */
 	case GENEL: {
-		silent_cout("Reading Genel(" << uLabel << ")" << std::endl);
+		silent_cout("Reading Genel(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::GENEL]-- <= 0) {
 			DEBUGCERR("");
@@ -1742,7 +1742,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* elementi idraulici */
 	case HYDRAULIC: {
-		silent_cout("Reading HydraulicElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading HydraulicElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::HYDRAULIC]-- <= 0) {
 			DEBUGCERR("");
@@ -1781,7 +1781,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* elementi elettrici */
 	case ELECTRIC: {
-		silent_cout("Reading ElectricElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading ElectricElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::ELECTRIC]-- <= 0) {
 			DEBUGCERR("");
@@ -1820,7 +1820,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* elementi termici */
 	case THERMAL: {
-		silent_cout("Reading ThermalElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading ThermalElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::THERMAL]-- <= 0) {
 			DEBUGCERR("");
@@ -1859,7 +1859,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 	/* elementi bulk */
 	case BULK: {
-		silent_cout("Reading BulkElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading BulkElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::BULK]-- <= 0) {
 			DEBUGCERR("");
@@ -1892,7 +1892,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	/* elementi loadable */
 	case USER_DEFINED:
 	case LOADABLE: {
-		silent_cout("Reading LoadableElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading LoadableElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::LOADABLE]-- <= 0) {
 			DEBUGCERR("");
@@ -1941,7 +1941,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	case SOCKETSTREAM_OUTPUT:
 	case SOCKETSTREAM_MOTION_OUTPUT:
 	{
-		silent_cout("Reading StreamOutputElement(" << uLabel << ")" << std::endl);
+		silent_cout("Reading StreamOutputElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
 			DEBUGCERR("");
@@ -1993,7 +1993,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 	}
 
 	case INERTIA: {
-		silent_cout("Reading Inertia(" << uLabel << ")" << std::endl);
+		silent_cout("Reading Inertia(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		Vec3 x(Zero3);
 		if (HP.IsKeyWord("position")) {
@@ -2163,7 +2163,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 
 		SAFENEWWITHCONSTRUCTOR(pE, Inertia,
-			Inertia(uLabel, elements, x, R, OutHdl.Log(), fOut));
+			Inertia(uLabel, sName, elements, x, R, OutHdl.Log(), fOut));
 		if (pE != 0) {
 			if (bAlways) {
 				ppE = InsertElem(ElemData[Elem::INERTIA], uLabel, pE);

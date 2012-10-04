@@ -132,7 +132,7 @@ Inertia::Output_int(std::ostream& out) const
 {
 	out
 		<< "inertia: " << GetLabel()
-		<< " (" << ( GetName().empty() ? "unnamed" : GetName() ) << ")"
+		<< ( GetName().empty() ? "" : ( std::string(" \"") + GetName() + "\"" ) )
 		<< std::endl;
 	Vec3 DX(X_cm - X0);
 	Mat3x3 JX(J_cm - Mat3x3(MatCrossCross, DX, DX*dMass));
@@ -156,7 +156,7 @@ Inertia::Output_int(std::ostream& out) const
 }
 
 /* Costruttore definitivo (da mettere a punto) */
-Inertia::Inertia(unsigned int uL, std::set<const ElemGravityOwner *>& elements,
+Inertia::Inertia(unsigned int uL, const std::string& sN, std::set<const ElemGravityOwner *>& elements,
 		const Vec3& x0, const Mat3x3& r0, std::ostream& log, flag fOut)
 : Elem(uL, fOut),
 ElemGravityOwner(uL, fOut),
@@ -164,6 +164,8 @@ InitialAssemblyElem(uL, fOut),
 CenterOfMass(elements),
 flags(0), X0(x0), R0(r0)
 {
+	this->PutName(sN);
+
 	if (!X0.IsNull()) {
 		flags |= 1;
 	}
