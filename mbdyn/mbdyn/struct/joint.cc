@@ -3114,6 +3114,7 @@ ReadJoint(DataManager* pDM,
 			Rnhr = HP.GetRotRel(RF);
 		}
 
+		// absolute
 		Vec3 Xc(Zero3);
 		if (HP.IsKeyWord("position")) {
 			DEBUGCOUT("Position vector is supplied" << std::endl);

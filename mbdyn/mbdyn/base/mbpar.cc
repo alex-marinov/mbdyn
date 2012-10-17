@@ -1298,7 +1298,7 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 	}
 }
 
-#if 0 // TODO
+#if 0 // TODO; not really needed: use MBDynParser::GetPosAbs(AbsRefFrame, ...) instead
 Vec3 
 MBDynParser::GetPosAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Vec3& other_X)
 {
@@ -1750,7 +1750,7 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 	}
 }
 
-#if 0 // TODO
+#if 0 // TODO; not really needed: use MBDynParser::GetRotAbs(AbsRefFrame, ...) instead
 Mat3x3 
 MBDynParser::GetRotAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R)
 {   
