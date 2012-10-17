@@ -261,7 +261,7 @@ E. Bugs/missing features:
 	- allow "relative" node view in EasyAnim
 	- fix "use binary" in modal joint (DONE)
 	- string drive caller: "<stmt1> <stmt2>" is accepted; <stmt2> is used (DONE)
-	- GetPosAbs/GetRotAbs dependent on other (pos, rot, ...)
+	- GetPosAbs/GetRotAbs dependent on other (pos, rot, ...) (use Get.*Rel(AbsRefFrame, ...) instead)
 	- print name of entities when present (DONE)
 
 
