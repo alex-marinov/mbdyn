@@ -124,9 +124,9 @@ m_p(3*uMappedPoints)
 	p = nodes.begin();
 	std::vector<const StructDispNode *>::const_iterator pPrev = p;
 	std::vector<NodeData>::iterator n = Nodes.begin();
-	do {
+	while (true) {
 		++p;
-		if (*p != *pPrev) {
+		if ((p == nodes.end()) || (*p != *pPrev)) {
 			n->pNode = *pPrev;
 			n->Offsets.resize(p - pPrev);
 			n->F = Zero3;
@@ -151,10 +151,14 @@ m_p(3*uMappedPoints)
 				m_uResSize += 6;
 			}
 
+			if (p == nodes.end()) {
+				break;
+			}
+
 			++n;
 			pPrev = p;
 		}
-	} while (p != nodes.end());
+	}
 
 	unsigned uPts = 0;
 	n = Nodes.begin();
@@ -1039,7 +1043,6 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		if (bUseReferenceNodeForces) {
-			unsigned n = Nodes.size();
 			integer iFirstIndex = pRefNode->iGetFirstMomentumIndex();
 			for (int r = 1; r <= 6; r++) {
 				WorkVec.PutRowIndex(iSize + r, iFirstIndex + r);
