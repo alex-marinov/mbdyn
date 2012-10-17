@@ -716,7 +716,7 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 				tmpIn = ::sDefaultOutputFileName;
 			}
 
-			if (sOutputFileName[sOutputFileName.size() - 1] != DIR_SEP) {
+			if (sOutputFileName[sOutputFileName.size() - 1] != DIR_SEP && tmpIn[0] != DIR_SEP) {
 				sOutputFileName += DIR_SEP;
 			}
 			sOutputFileName += tmpIn;
