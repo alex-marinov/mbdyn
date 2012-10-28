@@ -2229,7 +2229,7 @@ DataManager::ReadDrivers(MBDynParser& HP)
 		/* drivers */
 		case FILEDRIVE: {
 			silent_cout("Reading "
-				<< psDriveNames[Drive::FILEDRIVE] << ")"
+				<< psDriveNames[Drive::FILEDRIVE] << "(" << uLabel << ")"
 				<< std::endl);
 
 			if (iNumTypes[Drive::FILEDRIVE]-- <= 0) {
