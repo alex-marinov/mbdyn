@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fix multiple statements bug in string drive caller
+		- fix (harmless) memory issue in structural mapping force
 
 MBDyn 1.5.2
 	Enhancements:
