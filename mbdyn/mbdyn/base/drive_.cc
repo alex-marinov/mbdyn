@@ -61,21 +61,16 @@
 /* StringDriveCaller - begin */
 
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
-	const char* const sTmpStr)
-: DriveCaller(pDH), sEvalStr(0), iEvalStrLen(0)
+	const std::string& sTmpStr)
+: DriveCaller(pDH), sEvalStr(sTmpStr)
 {
-	ASSERT(sTmpStr != 0);
-	iEvalStrLen = strlen(sTmpStr);
-	SAFESTRDUP(sEvalStr, sTmpStr);
+	ASSERT(!sEvalStr.empty());
 }
 
 
 StringDriveCaller::~StringDriveCaller(void)
 {
-	ASSERT(sEvalStr != 0);
-	if (sEvalStr != 0) {
-		SAFEDELETEARR(sEvalStr);
-	}
+	NO_OP;
 }
 
 
@@ -2200,13 +2195,47 @@ StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* driver stringa da valutare */
 	/* lettura dei dati specifici */
-	const char* sTmp = HP.GetStringWithDelims();
-	DEBUGCOUT("String to evaluate: \"" << sTmp << '\"' << std::endl);
+	std::string s(HP.GetStringWithDelims());
+
+#define TRIM_ALL_SPACES
+// #define TRIM_ALL_SPACES_BUT_ONE
+
+#if defined(TRIM_ALL_SPACES)
+	for (std::string::iterator i = s.begin(); i != s.end();) {
+		if (isspace(*i)) {
+			i = s.erase(i);
+
+		} else {
+			++i;
+		}
+	}
+#elif defined(TRIM_ALL_SPACES_BUT_ONE)
+	bool bString(false);
+	for (std::string::iterator i = s.begin(); i != s.end();) {
+		if (isspace(*i)) {
+			if (!bString) {
+				bString = true;
+				++i;
+
+			} else {
+				i = s.erase(i);
+			}
+
+		} else {
+			if (bString) {
+				bString = false;
+			}
+			++i;
+		}
+	}
+#endif // TRIM_ALL_SPACES_BUT_ONE
+
+	DEBUGCOUT("String to evaluate: \"" << s << '\"' << std::endl);
 
 	/* allocazione e creazione */
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		StringDriveCaller,
-		StringDriveCaller(pDrvHdl, sTmp));
+		StringDriveCaller(pDrvHdl, s));
 
 	return pDC;
 }

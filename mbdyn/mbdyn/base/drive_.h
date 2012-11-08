@@ -53,11 +53,10 @@
 
 class StringDriveCaller : public DriveCaller {
 private:
-	char* sEvalStr;
-	size_t iEvalStrLen;
+	std::string sEvalStr;
 
 public:
-	StringDriveCaller(const DriveHandler* pDH, const char* const sTmpStr);
+	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr);
 	~StringDriveCaller(void);
 
 	/* Scrive il contributo del DriveCaller al file di restart */
