@@ -55,7 +55,7 @@ ReferenceFrame::ReferenceFrame(unsigned int uLabel,
 		const OrientationDescription& ood)
 : WithLabel(uLabel), x(xIn), R(RIn), v(vIn), w(wIn), od(ood)
 {
-	ASSERT(Eye3.IsSame(R.MulTM(R), 1e-12));
+	ASSERT(Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.).IsSame(R.MulTM(R), 1e-12));
 }
 
 ReferenceFrame::ReferenceFrame(const RigidBodyKinematics* pRBK)
