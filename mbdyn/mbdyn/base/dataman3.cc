@@ -1598,6 +1598,8 @@ DataManager::ReadNodes(MBDynParser& HP)
 	int iMissingNodes = iTotNodes;
 	DEBUGLCOUT(MYDEBUG_INPUT, "Expected nodes: " << iMissingNodes << std::endl);
 
+	NodeVecType::iterator ni = Nodes.begin();
+
 	KeyWords CurrDesc;
 	while ((CurrDesc = KeyWords(HP.GetDescription())) != END) {
 		if (CurrDesc == OUTPUT) {
@@ -2121,6 +2123,9 @@ DataManager::ReadNodes(MBDynParser& HP)
 				(*ppN)->PutName(sName);
 			}
 
+			*ni = *ppN;
+			ni++;
+
 			/* Decrementa i nodi attesi */
 			iMissingNodes--;
 		}
@@ -2162,6 +2167,11 @@ DataManager::ReadNodes(MBDynParser& HP)
 	for (int iCnt = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 		iNumNodes += NodeData[iCnt].NodeContainer.size();
 	}
+
+	ASSERT(ni == Nodes.end());
+	ASSERT(iNumNodes == Nodes.size());
+
+#if 0
 	Nodes.resize(iNumNodes);
 	for (int iCnt = 0, iNode = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
 		for (NodeContainerType::const_iterator p = NodeData[iCnt].NodeContainer.begin();
@@ -2171,6 +2181,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			Nodes[iNode] = p->second;
 		}
 	}
+#endif
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << std::endl);
 } /* End of DataManager::ReadNodes() */

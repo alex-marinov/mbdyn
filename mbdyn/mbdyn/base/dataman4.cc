@@ -230,6 +230,8 @@ DataManager::ReadElems(MBDynParser& HP)
 	int iMissingElems = Elems.size();
 	DEBUGLCOUT(MYDEBUG_INPUT, "Expected elements: " << iMissingElems << std::endl);
 
+	ElemVecType::iterator ei = Elems.begin();
+
 	/* Aggiunta degli elementi strutturali automatici legati ai nodi dinamici */
 	if (ElemData[Elem::AUTOMATICSTRUCTURAL].iExpectedNum > 0) {
 		for (NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
@@ -247,6 +249,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					AutomaticStructElem,
 					AutomaticStructElem(pN));
 				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pN->GetLabel(), pTmpEl);
+
+				*ei = pTmpEl;
+				++ei;
 
 				ASSERT(iNumTypes[Elem::AUTOMATICSTRUCTURAL] > 0);
 
@@ -717,6 +722,9 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				InsertElem(ElemData[Elem::GRAVITY], uLabel, pE);
 
+				*ei = pE;
+				ei++;
+
 				break;
 			}
 
@@ -738,6 +746,9 @@ DataManager::ReadElems(MBDynParser& HP)
 				pE = ReadAirProperties(this, HP);
 				if (pE != 0) {
 					InsertElem(ElemData[Elem::AIRPROPERTIES], uLabel, pE);
+
+					*ei = pE;
+					ei++;
 				}
 
 				break;
@@ -821,7 +832,9 @@ DataManager::ReadElems(MBDynParser& HP)
 #endif /* DEBUG */
 
 					Elem **ppE = 0;
+					bool bExisting(false);
 					if (CurrDriven == EXISTING) {
+						bExisting = true;
 						iMissingElems++;
 						CurrDriven = KeyWords(HP.GetWord());
 						unsigned int uL = (unsigned int)HP.GetInt();
@@ -972,6 +985,22 @@ DataManager::ReadElems(MBDynParser& HP)
 						DrivenElem,
 						DrivenElem(this, pDC, pE, pHints));
 
+					if (bExisting) {
+						ElemVecType::iterator eitmp = Elems.begin();
+						for (; eitmp != Elems.end(); ++eitmp) {
+							if (*eitmp == pE) {
+								*eitmp = pEl;
+								break;
+							}
+						}
+
+						ASSERT(eitmp != Elems.end());
+
+					} else {
+						*ei = pEl;
+						ei++;
+					}
+
 					/* Substitutes the element with the driver */
 					pE = *ppE = pEl;
 
@@ -1057,6 +1086,9 @@ DataManager::ReadElems(MBDynParser& HP)
 						if (!sName.empty() && sName != pE->GetName()) {
 							pE->PutName(sName);
 						}
+
+						*ei = *ppE;
+						++ei;
 					}
 
 					break;
@@ -1183,7 +1215,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					p != ElemData[iCnt].ElemContainer.end(); ++p)
 				{
 					if (dynamic_cast<AerodynamicElem *>(p->second)->NeedsAirProperties()) {
-						if (bStop == 0) {
+						if (!bStop) {
 							silent_cerr("The following aerodynamic elements "
 								"are defined: " << std::endl);
 							bStop = true;
@@ -1209,6 +1241,11 @@ DataManager::ReadElems(MBDynParser& HP)
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 		iNumElems += ElemData[iCnt].ElemContainer.size();
 	}
+
+	ASSERT(ei == Elems.end());
+	ASSERT(iNumElems == Elems.size());
+
+#if 0
 	Elems.resize(iNumElems);
 	for (int iCnt = 0, iElem = 0; iCnt < Elem::LASTELEMTYPE; ++iCnt) {
 		for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
@@ -1217,6 +1254,7 @@ DataManager::ReadElems(MBDynParser& HP)
 			Elems[iElem] = p->second;
 		}
 	}
+#endif
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << std::endl);
 } /*  End of DataManager::ReadElems()  */
