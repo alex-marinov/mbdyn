@@ -1716,15 +1716,15 @@ MathParser::trim_arg(char *const s)
 		NO_OP;
 	}
 
-	l = strlen(s+i);
+	l = strlen(&s[i]);
 	if (i > 0) {
-		memmove(s, s+i, l+1);
+		memmove(s, &s[i], l + 1);
 	}
 
-	for (i = l-1; isspace(s[i]); --i) {
+	for (i = l - 1; isspace(s[i]); --i) {
 		NO_OP;
 	}
-	s[i+1] = '\0';
+	s[i + 1] = '\0';
 }
 
 MathParser::PlugInVar::PlugInVar(const char *const s, MathParser::PlugIn *p)
