@@ -191,7 +191,7 @@ AerodynamicModal::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* doublereal CV=Chord/(2*nV); */
 	doublereal qd  = 0.5*rho*nV*nV;
    	doublereal qd1 = 0.25*rho*nV*Chord; /* qd*CV */
-   	doublereal qd2 = 1/8*rho*Chord*Chord; /* qd*CV*CV */
+   	doublereal qd2 = 0.125*rho*Chord*Chord; /* qd*CV*CV */
 
 	/* parte deformabile :
     	 *
@@ -473,7 +473,7 @@ void AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
    /* doublereal CV=Chord/(2*nV); */
    doublereal qd  = 0.5*rho*nV*nV;
    doublereal qd1 = 0.25*rho*nV*Chord; /* qd*CV */
-   doublereal qd2 = 1/8*rho*Chord*Chord; /* qd*CV*CV */
+   doublereal qd2 = 0.125*rho*Chord*Chord; /* qd*CV*CV */
 
 
 

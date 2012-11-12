@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix multiple statements bug in string drive caller
 		- fix (harmless) memory issue in structural mapping force
+		- fix integer division bug in aeromodal element
 
 MBDyn 1.5.2
 	Enhancements:
