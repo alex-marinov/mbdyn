@@ -14,7 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added forces NetCDF support (Louis Gagnon)
 	Backward compatibility issues:
-		- nodes and elements handled in strict input order
+		- nodes and elements now handled in strict input order
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
