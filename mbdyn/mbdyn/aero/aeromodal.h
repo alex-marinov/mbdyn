@@ -154,9 +154,8 @@ class AerodynamicModal :
    	ASSERT(i < NAeroStates+NGust*2);
       	if (i < NAeroStates+NGust*2) {
 		return DofOrder::DIFFERENTIAL;
-	} else {
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    };
 
    

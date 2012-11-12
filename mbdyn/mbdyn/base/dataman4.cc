@@ -723,7 +723,7 @@ DataManager::ReadElems(MBDynParser& HP)
 				InsertElem(ElemData[Elem::GRAVITY], uLabel, pE);
 
 				*ei = pE;
-				ei++;
+				++ei;
 
 				break;
 			}
@@ -748,7 +748,7 @@ DataManager::ReadElems(MBDynParser& HP)
 					InsertElem(ElemData[Elem::AIRPROPERTIES], uLabel, pE);
 
 					*ei = pE;
-					ei++;
+					++ei;
 				}
 
 				break;
@@ -998,7 +998,7 @@ DataManager::ReadElems(MBDynParser& HP)
 
 					} else {
 						*ei = pEl;
-						ei++;
+						++ei;
 					}
 
 					/* Substitutes the element with the driver */

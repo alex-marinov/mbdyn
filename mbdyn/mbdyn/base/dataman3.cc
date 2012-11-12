@@ -2124,7 +2124,7 @@ DataManager::ReadNodes(MBDynParser& HP)
 			}
 
 			*ni = *ppN;
-			ni++;
+			++ni;
 
 			/* Decrementa i nodi attesi */
 			iMissingNodes--;
