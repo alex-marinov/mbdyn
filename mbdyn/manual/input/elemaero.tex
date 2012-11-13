@@ -309,8 +309,8 @@ the output is repeated on the same line for each portion of beam.
 \noindent
 This element is used to model an aerodynamic modal element,
 i.e.\ an unsteady aerodynamic model that inherits the structural 
-motion from a  \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} element
-Its definition is very similar to that of the pure modal element, 
+motion from a \htmlref{\kw{modal joint}}{sec:EL:STRUCT:JOINT:MODAL} element.
+Its definition is very similar to that of the modal element, 
 but it also includes some data representing unsteady aerodynamics 
 in the time domain trough the residualization matrices.
 This element is defined as follows:
@@ -324,32 +324,50 @@ This element is defined as follows:
         \bnt{reference_chord} ,
         \bnt{number_of_aerodynamic_states} ,
         [ \kw{rigid} , ]
+        [ \kw{gust} , ]
         " \bnt{modal_matrices_file} "
 \end{Verbatim}
 %\end{verbatim}
-With this formulation, anytime an aeromodal element is defined, 
+With this formulation, anytime an \kw{aeromodal} element is defined, 
 the user needs to declare the number of modal aerodynamic elements 
 in use in the \kw{control data} section.
 An \htmlref{\kw{air properties}}{sec:EL:AERO:AIRPROPERTIES}
 card definition is also required.
 
+The label \nt{reference\_modal\_joint} indicates
+the \htmlref{\kw{modal joint}}{sec:EL:STRUCT:JOINT:MODAL}
+associated to the \kw{aeromodal} element.
+The modal joint must be connected to a \kw{modal} node;
+clamped modal joints are not supported.
+
 The keyword \kw{rigid} indicates that the generalized aerodynamic forces
 provided by the model include global forces and moments associated 
 to the rigid body motion of the underlying modal element (FIXME: untested).
 
-There is also an optional gust model which is totally undocumented;
+The keyword \kw{gust} activates an optional gust model,
+which is totally undocumented;
 for further information, please contact the Author(s).
 
-The \nt{modal\_matrices\_file} file includes the state space model in form 
-of matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
-according to the representation
+The \nt{modal\_matrices\_file} file is an ASCII file that contains
+the matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
+of a state space model according to the representation
 \begin{align*}
 	\dot{\T{x}} &= \T{A}\T{x} + \T{B}\T{q} \\	
 	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{2V_{\infty}}{c} \T{D}_1 \dot{\T{q}} + \plbr{\frac{2V_{\infty}}{c}}^2 \T{D}_2 \ddot{\T{q}}}
 \end{align*}
-where $\T{q}$ are the modal variables that describe the structural motion,
-and $\T{f}$ are the unsteady aerodynamic forces that apply to the structural
+where $\T{x}$ are the \nt{number\_of\_aerodynamic\_states} (\nt{na})
+aerodynamic state variables,
+$\T{q}$ are the \nt{ns} modal variables that describe the structural motion
+as defined in the related \htmlref{\kw{modal joint}}{sec:EL:STRUCT:JOINT:MODAL},
+$q = \rho V_{\infty}^2/2$ is the dynamic pressure,
+and $\T{f}$ are the unsteady aerodynamic forces applied to the structural
 dynamics equations.
+
+When the keyword \kw{rigid} is present, the number of modal variables \nt{ns}
+includes the modes provided
+by the \htmlref{\kw{modal joint}}{sec:EL:STRUCT:JOINT:MODAL}
+plus 6 rigid-body modes corresponding to rigid-body displacement
+and rotation of the \kw{modal node}.
 
 The file is formatted as follows:
 %\begin{verbatim}
@@ -396,7 +414,7 @@ frequency responce, computed by a double-lattice method at Mach 0.0.
 Data were extracted from the MSC-NASTRAN aeroelastic example file, 
 named \texttt{ha145b}, while the aerodynamic state-space fitting 
 has been computed using a Pad\'e polynomial approximation
-(by Pasinetti \& Mantegazza).
+(by Pasinetti \& Mantegazza, \cite{PASINETTI-MANTEGAZZA-1999}).
 All quantities are expressed in inches and pounds.
 
 
