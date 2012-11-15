@@ -499,6 +499,8 @@ public:
 	 */
 	void
 	Add(integer iRow, integer iCol, const Mat3xN& m);
+	void
+	AddT(integer iRow, integer iCol, const Mat3xN& m);
 
 	/*
 	 * Sottrae una matrice di tipo Mat3xN da una data posizione.
@@ -511,6 +513,8 @@ public:
 	 */
 	void
 	Sub(integer iRow, integer iCol, const Mat3xN& m);
+	void
+	SubT(integer iRow, integer iCol, const Mat3xN& m);
 
 	/*
 	 * Scrive una matrice di tipo Mat3xN in una data posizione.
@@ -523,6 +527,8 @@ public:
 	 */
 	void
 	Put(integer iRow, integer iCol, const Mat3xN& m);
+	void
+	PutT(integer iRow, integer iCol, const Mat3xN& m);
 
 	/* come sopra, ma per matrici Nx3 **/
 	void Add(integer iRow, integer iCol, const MatNx3& m);

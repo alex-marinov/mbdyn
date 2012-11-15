@@ -2153,6 +2153,84 @@ FullMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
 	}
 }
 
+/* somma una matrice di tipo Mat3xN in una data posizione, trasposta */
+void
+FullMatrixHandler::AddT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	/* iRow e iCol sono gli indici effettivi di riga e colonna
+	 * es. per il primo coefficiente:
+	 *     iRow = 1, iCol = 1 */
+
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow > 0);
+	ASSERT(iRow <= iNumRows - m.iGetNumCols() + 1);
+	ASSERT(iCol > 0);
+	ASSERT(iCol <= iNumCols - 2);
+#endif /* DEBUG */
+
+	--iRow;
+	--iCol;
+	for (int r = m.iGetNumCols(); r > 0; r--) {
+		for (integer c = 3; c > 0; c--) {
+			ppdColsm1[iCol + c][iRow + r] += m(c, r);
+		}
+	}
+}
+
+/* sottrae una matrice di tipo Mat3xN in una data posizione, trasposta */
+void
+FullMatrixHandler::SubT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	/* iRow e iCol sono gli indici effettivi di riga e colonna
+	 * es. per il primo coefficiente:
+	 *     iRow = 1, iCol = 1 */
+
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow > 0);
+	ASSERT(iRow <= iNumRows - m.iGetNumCols() + 1);
+	ASSERT(iCol > 0);
+	ASSERT(iCol <= iNumCols - 2);
+#endif /* DEBUG */
+
+	--iRow;
+	--iCol;
+	for (int r = m.iGetNumCols(); r > 0; r--) {
+		for (integer c = 3; c > 0; c--) {
+			ppdColsm1[iCol + c][iRow + r] -= m(c, r);
+		}
+	}
+}
+
+/* setta una matrice di tipo Mat3xN in una data posizione, trasposta */
+void
+FullMatrixHandler::PutT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	/* iRow e iCol sono gli indici effettivi di riga e colonna
+	 * es. per il primo coefficiente:
+	 *     iRow = 1, iCol = 1 */
+
+#ifdef DEBUG
+	IsValid();
+
+	ASSERT(iRow > 0);
+	ASSERT(iRow <= iNumRows - m.iGetNumCols() + 1);
+	ASSERT(iCol > 0);
+	ASSERT(iCol <= iNumCols - 2);
+#endif /* DEBUG */
+
+	--iRow;
+	--iCol;
+	for (int r = m.iGetNumCols(); r > 0; r--) {
+		for (integer c = 3; c > 0; c--) {
+			ppdColsm1[iCol + c][iRow + r] = m(c, r);
+		}
+	}
+}
+
 /* somma una matrice di tipo MatNx3 in una data posizione */
 void
 FullMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)

@@ -481,6 +481,24 @@ FullSubMatrixHandler::Put(integer iRow, integer iCol, const Mat3xN& m)
 }
 
 void
+FullSubMatrixHandler::AddT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	FullMatrixHandler::AddT(iRow, iCol, m);
+}
+
+void
+FullSubMatrixHandler::SubT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	FullMatrixHandler::SubT(iRow, iCol, m);
+}
+
+void
+FullSubMatrixHandler::PutT(integer iRow, integer iCol, const Mat3xN& m)
+{
+	FullMatrixHandler::PutT(iRow, iCol, m);
+}
+
+void
 FullSubMatrixHandler::Add(integer iRow, integer iCol, const MatNx3& m)
 {
 	FullMatrixHandler::Add(iRow, iCol, m);
