@@ -110,6 +110,11 @@ The format is:
 \bnt{J_YX} \bnt{J_YY} \bnt{J_YZ}
 \bnt{J_ZX} \bnt{J_ZY} \bnt{J_ZZ}
 <comments; the global inertia properties of the modal element>
+** \kw{RECORD GROUP 13},<any comment to EOL; "MODAL DAMPING MATRIX. COLUMN-MAJOR FORM">
+\bnt{C_1_1}      [...] \bnt{C_1_NMODES}
+[...]
+\bnt{C_NMODES_1} [...] \bnt{C_NMODES_NMODES}
+<comments; the modal damping matrix in column-major (symmetric?)>
 \end{Verbatim}
 %\end{verbatim}
 }
@@ -234,6 +239,18 @@ of the FEM model, and the $3\times{3}$ inertia matrix
 with respect to the center of mass, which is supposed
 to be symmetric and positive definite (or semi-definite,
 if the model is static).
+
+\item \kw{RECORD GROUP 13} contains the modal damping matrix,
+i.e.\ a square, $\nt{NMODES} \times \nt{NMODES}$ matrix that contains
+the reduced damping $\sqbr{c}$ resulting from the multiplication
+\begin{equation}
+	\sqbr{c} = \cubr{X}^T \sqbr{C} \cubr{X}
+\end{equation}
+It can be semi-definite positive, or even zero, if no damping is considered.
+This record is optional.
+If given, it is used in the analysis unless overridden by any damping
+specification indicated in the modal joint element definition.
+
 \end{itemize}
 
 Note that \kw{RECORD GROUP 11} and \kw{RECORD GROUP 12}

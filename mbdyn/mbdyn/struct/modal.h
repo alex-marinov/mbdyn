@@ -84,12 +84,15 @@ protected:
 	MatNxN *pModalStiff;
 	MatNxN *pModalDamp;
 	std::vector<std::string> IdFEMNodes;
-	std::vector<std::string> IntFEMNodes;
 	Mat3xN *pXYZFEMNodes;
+
+#if 0
+	std::vector<std::string> IntFEMNodes;
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
 	Mat3xN *pRotMBNodes;
 	std::vector<const StructNode *> InterfaceNodes;
+#endif
  
 	Mat3xN *pPHIt;
 	Mat3xN *pPHIr;
@@ -124,15 +127,26 @@ protected:
 	VecN b;
 	VecN bPrime;
 
+public:
 	struct StrNodeData {
+		// constant, defined once for all at input
+		const StructNode *pNode;
+		std::string FEMNode;
+		Vec3 OffsetFEM;
+		Vec3 OffsetMB;
+		Mat3x3 RotMB;
+
+		// variable, constructed during analysis
 		Vec3 d1tot;
-		Vec3 d2;
 		Mat3x3 R1tot;
 		Mat3x3 R2;
+
+		// variable, constructed during analysis
 		Vec3 F;
 		Vec3 M;
 	};
 
+protected:
 	std::vector<StrNodeData> SND;
 
 	integer iModalIndex;
@@ -165,12 +179,8 @@ public:
 			MatNxN *pGenStiff,
 			MatNxN *pGenDamp,
 			const std::vector<std::string>& IdFEMNodes,
-			const std::vector<std::string>& IntFEMNodes,
 			Mat3xN *pN,
-			Mat3xN *pOffsetfemNodes,
-			Mat3xN *pOffsetmbNodes,
-			Mat3xN *pRotmbNodes,
-			const std::vector<const StructNode *>& InterfNodes,
+			const std::vector<Modal::StrNodeData>& snd,
 			Mat3xN *pPHIt,
 			Mat3xN *pPHIr,
 			Mat3xN *pModeShapest,
@@ -263,16 +273,17 @@ public:
 	 * altri elementi (ad es. agli elementi aerodinamici modali)
 	 */
 
-	const Mat3xN& pGetPHIt(void) {
+	const Mat3xN& pGetPHIt(void) const {
 		return *pModeShapest;
 	};
 
-	const Mat3xN& pGetPHIr(void) {
+	const Mat3xN& pGetPHIr(void) const {
 		return *pModeShapesr;
 	};
 
-	Mat3xN* GetCurrFEMNodesPosition(void);
-	Mat3xN* GetCurrFEMNodesVelocity(void);
+	// NOTE: not 'const' because modify internal storage
+	const Mat3xN& GetCurrFEMNodesPosition(void);
+	const Mat3xN& GetCurrFEMNodesVelocity(void);
 
 	integer uGetNModes(void) const {
 		return NModes;
@@ -321,7 +332,7 @@ public:
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(NStrNodes + (pModalNode ? 1 : 0));
 		for (unsigned int j = 0; j < NStrNodes; j++) {
-			connectedNodes[j] = InterfaceNodes[j];
+			connectedNodes[j] = SND[j].pNode;
 		}
 		if (pModalNode) {
 			connectedNodes[NStrNodes] = pModalNode;

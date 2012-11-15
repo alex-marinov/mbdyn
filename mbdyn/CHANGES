@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added forces NetCDF support (Louis Gagnon)
+		- added support for modal damping matrix in modal joint db
 	Backward compatibility issues:
 		- nodes and elements now handled in strict input order
 	Known issues:

@@ -135,12 +135,8 @@ Modal::Modal(unsigned int uL,
 	MatNxN *pGenStiff,
 	MatNxN *pGenDamp,
 	const std::vector<std::string>& IdFEMNodes,	/* label nodi FEM */
-	const std::vector<std::string>& IntFEMNodes,	/* label nodi FEM d'interfaccia */
 	Mat3xN *pN,               /* posizione dei nodi FEM */
-	Mat3xN *pOffsetfemNodes,
-	Mat3xN *pOffsetmbNodes,
-	Mat3xN *pRotmbNodes,
-	const std::vector<const StructNode *>& InterfNodes,   /* nodi d'interfaccia */
+	const std::vector<Modal::StrNodeData>& snd,
 	Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
 	Mat3xN *pPHIrStrNode,
 	Mat3xN *pModeShapest,     /* autovettori: servono a aeromodal */
@@ -175,12 +171,7 @@ pModalMass(pGenMass),
 pModalStiff(pGenStiff),
 pModalDamp(pGenDamp),
 IdFEMNodes(IdFEMNodes),
-IntFEMNodes(IntFEMNodes),
 pXYZFEMNodes(pN),
-pOffsetFEMNodes(pOffsetfemNodes),
-pOffsetMBNodes(pOffsetmbNodes),
-pRotMBNodes(pRotmbNodes),
-InterfaceNodes(InterfNodes),
 pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
 pModeShapest(pModeShapest),
@@ -209,7 +200,7 @@ a(*aa),
 aPrime(NModes, 0.),
 b(*bb),
 bPrime(NModes, 0.),
-SND(NStrNodes)
+SND(snd)
 {
 	ASSERT(pModalNode->GetStructNodeType() == StructNode::MODAL);
 }
@@ -233,15 +224,6 @@ Modal::~Modal(void)
 	}
 	if (pModeShapesr) {
 		SAFEDELETE(pModeShapesr);
-	}
-	if (pOffsetFEMNodes) {
-		SAFEDELETE(pOffsetFEMNodes);
-	}
-	if (pOffsetMBNodes) {
-		SAFEDELETE(pOffsetMBNodes);
-	}
-	if (pRotMBNodes) {
-		SAFEDELETE(pRotMBNodes);
 	}
 	if (pPHIt) {
 		SAFEDELETE(pPHIt);
@@ -309,19 +291,19 @@ Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 				"reaction forces [Fx,Fy,Fz]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 				"reaction couples [Mx,My,Mz]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 					"reaction force derivatives [FPx,FPy,FPz]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 					"reaction couple derivatives [MPx,MPy,MPz]" << std::endl;
 		}
 	}
@@ -388,7 +370,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << SND[i/modulo].pNode->GetLabel() << ") "
 				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
 			desc[2*NModes + i] = os.str();
 		}
@@ -407,7 +389,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << SND[i/modulo].pNode->GetLabel() << ") "
 				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
 		}
 		desc[0] = os.str();
@@ -428,19 +410,19 @@ Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 				"position constraints [Px=PxN,Py=PyN,Pz=PzN]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 				"orientation constraints [gx=gxN,gy=gyN,gz=gzN]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 					"velocity constraints [vx=vxN,vy=vyN,vz=vzN]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << SND[iStrNodem1].pNode->GetLabel() << ") "
 					"angular velocity constraints [wx=wxN,wy=wyN,wz=wzN]" << std::endl;
 		}
 	}
@@ -485,7 +467,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << SND[i/modulo].pNode->GetLabel() << ") "
 				<< req[(i/3)%(modulo/3)] << xyz[i%3];
 			desc[2*NModes + i] = os.str();
 		}
@@ -504,7 +486,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << SND[i/modulo].pNode->GetLabel() << ") "
 				<< req[(i/3)%(modulo/3)] << xyz[i%3];
 		}
 		desc[0] = os.str();
@@ -593,9 +575,9 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* indici delle equazioni vincolari (solo per il nodo 2) */
 	for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstMomIndex =
-			InterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
+			SND[iStrNodem1].pNode->iGetFirstMomentumIndex();
 		integer iNodeFirstPosIndex =
-			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			SND[iStrNodem1].pNode->iGetFirstPositionIndex();
 
 		integer iOffset = iRigidOffset + iNumDof + 6*iStrNodem1;
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -690,11 +672,10 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			Mat3xN Jac13(NModes, 0.);
 			WM.Add(6 + 1, iRigidOffset + NModes + 1, Jac13.LeftMult(R, *pInv3));
 
-			MatNx3 Jac13T(NModes, 0.);
-			WM.Add(iRigidOffset + NModes + 1, 6 + 1, Jac13T.Transpose(Jac13));
+			WM.AddT(iRigidOffset + NModes + 1, 6 + 1, Jac13);
 
-			Mat3x3 Inv3jaPjWedge(MatCross, Inv3jaPj);
-			WM.Sub(6 + 1, 9 + 1, R*Inv3jaPjWedge*(RT*(2.*dCoef)));
+			Mat3x3 Inv3jaPjWedge(R*(Inv3jaPj*(2.*dCoef)).Cross(RT));
+			WM.Sub(6 + 1, 9 + 1, Inv3jaPjWedge);
 		}
 
 		if (pInv4 != 0) {
@@ -707,8 +688,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 			WM.Add(9 + 1, iRigidOffset + NModes + 1, Jac23);
 
-			MatNx3 Jac23T(NModes, 0.);
-			WM.Add(iRigidOffset + NModes + 1, 9 + 1, Jac23T.Transpose(Jac23));
+			WM.AddT(iRigidOffset + NModes + 1, 9 + 1, Jac23);
 		}
 
 
@@ -840,7 +820,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			/* pd1Tot e' il puntatore all'array
 			 * che contiene le posizioni del nodi FEM */
-			Mat3x3 dTmp1Wedge(MatCross, R*SND[iStrNodem1].d1tot);
+			Mat3x3 dTmp1Wedge(MatCross, SND[iStrNodem1].d1tot);
 
 			WM.Add(9 + 1, iReactionIndex + 1, dTmp1Wedge);
 			
@@ -862,7 +842,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Add(iReactionIndex + 1, iRigidOffset + 1, PHItR);
 
 		/* idem per pd2 e pR2 */
-		Mat3x3 dTmp2Wedge(MatCross, SND[iStrNodem1].R2*SND[iStrNodem1].d2);
+		Mat3x3 dTmp2Wedge(MatCross, SND[iStrNodem1].R2*SND[iStrNodem1].OffsetMB);
 		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 1, dTmp2Wedge);
 
 		/* termini del tipo: c*F/\*d/\*Deltag */
@@ -900,7 +880,6 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Sub(iRigidOffset + NModes + 1, iStrNodeIndex + 3 + 1, SubMat3);
 
 		/* */
-		Mat3x3 R2T = SND[iStrNodem1].R2.Transpose();
 		if (pModalNode) {
 			WM.AddT(iReactionIndex + 3 + 1, 3 + 1, SND[iStrNodem1].R2);
 			WM.Add(9 + 1, iReactionIndex + 3 + 1, SND[iStrNodem1].R2);
@@ -967,7 +946,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	integer iOffset = iRigidOffset + iNumDof;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstMomIndex =
-			InterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
+			SND[iStrNodem1].pNode->iGetFirstMomentumIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 			WorkVec.PutRowIndex(iOffset + iCnt,
@@ -1310,10 +1289,6 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		integer iReactionIndex = iRigidOffset + 2*NModes + 6*iStrNodem1;
 		integer iStrNodeIndex = iReactionIndex + 6*NStrNodes;
 
-		/* nodo 1 (FEM) e 2 (Multi - Body): recupera la posizione */
-		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
-		SND[iStrNodem1].d2 = pOffsetMBNodes->GetVec(iStrNode);
-
 		/* recupero le forme modali del nodo vincolato */
 		/* FIXME: what about using Blitz++ ? :) */
 		Mat3xN PHIt(NModes), PHIr(NModes);
@@ -1326,22 +1301,22 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/*
 		 * aggiorno d1 e R con il contributo dovuto
 		 * alla flessibilita':
-		 * d1tot = d1 + PHIt*a, R1tot = R*[I + (PHIr*a)/\]
+		 * d1tot = R*[d1 + PHIt*a], R1tot = R*[I + (PHIr*a)/\]
 		 */
-		SND[iStrNodem1].d1tot = d1rig + PHIt*a;
+		SND[iStrNodem1].d1tot = R*(SND[iStrNodem1].OffsetFEM + PHIt*a);
 		SND[iStrNodem1].R1tot = R*Mat3x3(1., PHIr*a);
 
 		/* constraint reaction (force) */
 		SND[iStrNodem1].F = Vec3(XCurr,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 1);
-		const Vec3& x2 = InterfaceNodes[iStrNodem1]->GetXCurr();
+		const Vec3& x2 = SND[iStrNodem1].pNode->GetXCurr();
 
 		/* FIXME: R2??? */
-		SND[iStrNodem1].R2 = InterfaceNodes[iStrNodem1]->GetRCurr();
+		SND[iStrNodem1].R2 = SND[iStrNodem1].pNode->GetRCurr();
 
 		/* cerniera sferica */
-		Vec3 dTmp1(R*SND[iStrNodem1].d1tot);
-		Vec3 dTmp2(SND[iStrNodem1].R2*SND[iStrNodem1].d2);
+		Vec3 dTmp1(SND[iStrNodem1].d1tot);
+		Vec3 dTmp2(SND[iStrNodem1].R2*SND[iStrNodem1].OffsetMB);
 
 		/* Eq. d'equilibrio, nodo 1 */
 		if (pModalNode) {
@@ -1467,7 +1442,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstPosIndex = 
-			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			SND[iStrNodem1].pNode->iGetFirstPositionIndex();
 		integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
 
 		integer iOffset = iRigidOffset + iGetInitialNumDof() + 12*iStrNodem1;
@@ -1496,7 +1471,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		for (unsigned int jCnt = 1; jCnt <= NModes; jCnt++) {
 			WM.PutCoef(iRigidOffset + iCnt, iRigidOffset + jCnt,
-					pModalStiff->dGet(iCnt,jCnt));
+					pModalStiff->dGet(iCnt, jCnt));
 			WM.PutCoef(iRigidOffset + iCnt, iRigidOffset + NModes + jCnt,
 					pModalDamp->dGet(iCnt, jCnt));
 		}
@@ -1509,12 +1484,12 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		unsigned int iStrNodem1 = iStrNode - 1;
 
 		/* recupera i dati */
-		const Mat3x3& R2(InterfaceNodes[iStrNodem1]->GetRRef());
+		const Mat3x3& R2(SND[iStrNodem1].pNode->GetRRef());
 		Vec3 Omega1(Zero3);
 		if (pModalNode) {
 			Omega1 = pModalNode->GetWRef();
 		}
-		const Vec3& Omega2(InterfaceNodes[iStrNodem1]->GetWRef());
+		const Vec3& Omega2(SND[iStrNodem1].pNode->GetWRef());
 		Vec3 F(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 1);
 		Vec3 FPrime(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 6 + 1);
 
@@ -1529,10 +1504,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		PHItT.Transpose(PHIt);
 		PHIrT.Transpose(PHIr);
 
-		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
-		Vec3 d2(pOffsetMBNodes->GetVec(iStrNode));
-
-		Vec3 d1tot = d1rig + PHIt*a;
+		Vec3 d1tot = R*(SND[iStrNodem1].OffsetFEM + PHIt*a);
 		Mat3x3 R1tot = R*Mat3x3(1., PHIr*a);
 		Mat3xN SubMat1(NModes, 0.);
 		MatNx3 SubMat2(NModes, 0.);
@@ -1574,8 +1546,8 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		}
 
 		/* Distanza nel sistema globale */
-		Vec3 d1Tmp(R*d1tot);
-		Vec3 d2Tmp(R2*d2);
+		const Vec3& d1Tmp(d1tot);
+		Vec3 d2Tmp(R2*SND[iStrNodem1].OffsetMB);
 
 		/* Matrici F/\d1/\, -F/\d2/\ , F/\omega1/\ */
 		Mat3x3 FWedged1Wedge(MatCrossCross, F, d1Tmp);
@@ -1640,9 +1612,9 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Add(iRigidOffset + NModes + 1, iRigidOffset + 2*NModes + 6 + 1, SubMat2);
 
 		/* Derivata dell'equazione di momento, nodo 2 */
-		WM.Add(iOffset2 + 9 + 1, iOffset2 + 3 + 1,
-			Mat3x3(MatCrossCross, FPrime, -d2Tmp)
-			- F.Cross(Mat3x3(MatCrossCross, Omega2, d2Tmp)));
+		WM.Sub(iOffset2 + 9 + 1, iOffset2 + 3 + 1,
+			Mat3x3(MatCrossCross, FPrime, d2Tmp)
+			+ F.Cross(Mat3x3(MatCrossCross, Omega2, d2Tmp)));
 		WM.Sub(iOffset2 + 9 + 1, iOffset2 + 9 + 1, FWedged2Wedge);
 		WM.Add(iOffset2 + 9 + 1, iOffset1 + 1, O2Wedged2Wedge);
 		WM.Sub(iOffset2 + 9 + 1, iOffset1 + 6 + 1, Mat3x3(MatCross, d2Tmp));
@@ -1926,7 +1898,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstPosIndex = 
-			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			SND[iStrNodem1].pNode->iGetFirstPositionIndex();
 		integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
 
 		integer iOffset2 = iRigidOffset + iGetInitialNumDof() + 12*iStrNodem1;
@@ -1989,24 +1961,21 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		PHItT.Transpose(PHIt);
 		PHIrT.Transpose(PHIr);
 
-		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
-		Vec3 d2(pOffsetMBNodes->GetVec(iStrNode));
-
-		Vec3 d1tot = d1rig + PHIt*a;
+		Vec3 d1tot = R*(SND[iStrNodem1].OffsetFEM + PHIt*a);
 		Mat3x3 R1tot = R*Mat3x3(1., PHIr*a);
 
-		const Vec3& x2(InterfaceNodes[iStrNodem1]->GetXCurr());
-		const Vec3& v2(InterfaceNodes[iStrNodem1]->GetVCurr());
-		const Mat3x3& R2(InterfaceNodes[iStrNodem1]->GetRCurr());
-		const Vec3& Omega2(InterfaceNodes[iStrNodem1]->GetWCurr());
+		const Vec3& x2(SND[iStrNodem1].pNode->GetXCurr());
+		const Vec3& v2(SND[iStrNodem1].pNode->GetVCurr());
+		const Mat3x3& R2(SND[iStrNodem1].pNode->GetRCurr());
+		const Vec3& Omega2(SND[iStrNodem1].pNode->GetWCurr());
 		Vec3 F(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 1);
 		Vec3 FPrime(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 6 + 1);
 
 		/* cerniera sferica */
 
 		/* Distanza nel sistema globale */
-		Vec3 d1Tmp(R*d1tot);
-		Vec3 d2Tmp(R2*d2);
+		const Vec3& d1Tmp(d1tot);
+		Vec3 d2Tmp(R2*SND[iStrNodem1].OffsetMB);
 
 		/* Vettori omega1/\d1, -omega2/\d2 */
 		Vec3 O1Wedged1(Omega1.Cross(d1Tmp));
@@ -2400,9 +2369,11 @@ Modal::dGetPrivData(unsigned int i) const
 	switch (p) {
 	case 0:
 		if (w) {
+			// TODO: orientation, somehow?
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		} else {
+			// x == 0, R == eye otherwise
 			if (pModalNode) {
 				R = pModalNode->GetRCurr();
 				x = pModalNode->GetXCurr();
@@ -2509,7 +2480,7 @@ Modal::dGetPrivData(unsigned int i) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-Mat3xN *
+const Mat3xN&
 Modal::GetCurrFEMNodesPosition(void)
 {
 	if (pCurrXYZ == NULL) {
@@ -2537,10 +2508,10 @@ Modal::GetCurrFEMNodesPosition(void)
       		}
    	}
 
-      	return pCurrXYZ;
+      	return *pCurrXYZ;
 }
 
-Mat3xN *
+const Mat3xN&
 Modal::GetCurrFEMNodesVelocity(void)
 {
 	if (pCurrXYZ == NULL) {
@@ -2576,7 +2547,7 @@ Modal::GetCurrFEMNodesVelocity(void)
       		}
    	}
 
-      	return pCurrXYZVel;
+      	return *pCurrXYZVel;
 }
 
 /* from gravity.h */
@@ -2844,17 +2815,20 @@ ReadModal(DataManager* pDM,
 #endif /* MODAL_SCALE_DATA */
 
 	/* Legge i coefficienti di smorzamento */
-	doublereal cdamp = 0.;
+	bool bGotDamp(false);
+	doublereal cdamp(0.);
 	VecN DampRatios(NModes, 0.);
-	bool bDampFlag = false;
+	bool bDampFlag(false);
 
 	if (HP.IsKeyWord("no" "damping")) {
-		cdamp = 0.;
+		bGotDamp = true;
 
 	} else if (HP.IsKeyWord("proportional" "damping")) {
+		bGotDamp = true;
 		cdamp = HP.GetReal();
 
 	} else if (HP.IsKeyWord("diag" "damping"))  {
+		bGotDamp = true;
 		bDampFlag = true;
 
 		if (HP.IsKeyWord("all")) {
@@ -2922,9 +2896,6 @@ ReadModal(DataManager* pDM,
 	Mat3xN PHIti(NModes, 0.);          /* forme nodo i-esimo: 3*nmodi */
 	Mat3xN PHIri(NModes, 0.);
 	Mat3xN *pXYZFEMNodes = NULL;       /* punt. alle coordinate nodali */
-	Mat3xN *pOffsetFEMNodes = NULL;    /* punt. offset FEM (per vincoli) */
-	Mat3xN *pOffsetMBNodes = NULL;     /* punt. offset MB (per vincoli) */
-	Mat3xN *pRotMBNodes = NULL;        /* punt. orient. MB (per vincoli) */
 	MatNxN *pGenMass = NULL;           /* punt. masse e rigidezze modali */
 	MatNxN *pGenStiff = NULL;
 	MatNxN *pGenDamp = NULL;
@@ -2952,6 +2923,7 @@ ReadModal(DataManager* pDM,
 	std::string sFileFEM(s);
 
 	doublereal dMassThreshold = 0.;
+	doublereal dDampingThreshold = 0.;
 	doublereal dStiffnessThreshold = 0.;
 	while (true) {
 		if (HP.IsKeyWord("threshold")) {
@@ -2963,13 +2935,23 @@ ReadModal(DataManager* pDM,
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
-			dMassThreshold = dStiffnessThreshold;
+			dMassThreshold = dDampingThreshold = dStiffnessThreshold;
 
 		} else if (HP.IsKeyWord("mass" "threshold")) {
 			dMassThreshold = HP.GetReal();
 			if (dMassThreshold < 0.) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"invalid mass threshold " << dMassThreshold
+					<< " at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+		} else if (HP.IsKeyWord("damping" "threshold")) {
+			dDampingThreshold = HP.GetReal();
+			if (dDampingThreshold < 0.) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"invalid damping threshold " << dDampingThreshold
 					<< " at line " << HP.GetLineData()
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3114,7 +3096,7 @@ ReadModal(DataManager* pDM,
 		MODAL_RECORD_10 = 10,
 		MODAL_RECORD_11 = 11,
 		MODAL_RECORD_12 = 12,
-		MODAL_RECORD_13 = 13,
+		MODAL_RECORD_13 = 13,	// reserved for damping
 
 		LAST_RECORD,
 
@@ -3893,6 +3875,70 @@ ReadModal(DataManager* pDM,
 
 				bRecordGroup[MODAL_RECORD_12] = true;
 				
+			/* Matrice di smorzamento modale */
+			} else if (!strncmp("** RECORD GROUP 13,", str,
+				STRLENOF("** RECORD GROUP 13,")))
+			{
+				if (bRecordGroup[MODAL_RECORD_13]) {
+					silent_cerr("file=\"" << sFileFEM << "\": "
+						"\"RECORD GROUP 13\" already parsed"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (!bRecordGroup[MODAL_RECORD_1]) {
+					silent_cerr("file=\"" << sFileFEM << "\": "
+						"\"RECORD GROUP 1\" not parsed yet"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bActiveModes.empty()) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFEM << "\" "
+						"is bogus (RECORD GROUP 13)"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bWriteBIN) {
+					checkPoint = MODAL_RECORD_13;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+				unsigned int iCnt = 1;
+				for (unsigned int jMode = 1; jMode <= NModesFEM; jMode++) {
+					unsigned int jCnt = 1;
+	
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+						fdat >> d;
+
+						if (dDampingThreshold > 0.0 && fabs(d) < dDampingThreshold) {
+							d = 0.0;
+						}
+
+						if (bWriteBIN) {
+							fbin.write((char *)&d, sizeof(d));
+						}
+						
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+							continue;
+						}
+
+						if (!bGotDamp) {
+							pGenDamp->Put(iCnt, jCnt, d);
+						}
+
+						jCnt++;
+					}
+	
+					if (bActiveModes[jMode]) {
+						iCnt++;
+					}
+				}
+
+				bRecordGroup[MODAL_RECORD_13] = true;
+	
 			} /* fine parser del file */
 		}
 
@@ -4487,6 +4533,40 @@ ReadModal(DataManager* pDM,
 			fbin.read(&checkPoint, sizeof(checkPoint));
 		}
 
+		if (checkPoint == MODAL_RECORD_13) {
+			pedantic_cout("Modal(" << uLabel << "): "
+				"reading block " << int(checkPoint) << std::endl);
+
+			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+				unsigned int jCnt = 1;
+	
+				for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+					doublereal	d;
+
+					fbin.read((char *)&d, sizeof(d));
+
+					if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+						continue;
+					}
+
+					if (!bGotDamp) {
+						pGenDamp->Put(iCnt, jCnt, d);
+					}
+
+					jCnt++;
+				}
+	
+				if (bActiveModes[jMode]) {
+					iCnt++;
+				}
+			}
+
+			bRecordGroup[MODAL_RECORD_13] = true;
+
+			// read next checkpoint
+			fbin.read(&checkPoint, sizeof(checkPoint));
+		}
+
 		if (currBinVersion != MODAL_VERSION_1) {
 			if (checkPoint != MODAL_END_OF_FILE) {
 				silent_cerr("Modal(" << uLabel << "): "
@@ -4572,18 +4652,12 @@ ReadModal(DataManager* pDM,
 	unsigned int NStrNodes = HP.GetInt();
 	DEBUGCOUT("Number of Interface Nodes : " << NStrNodes << std::endl);
 
-	SAFENEWWITHCONSTRUCTOR(pOffsetFEMNodes, Mat3xN, Mat3xN(NStrNodes, 0.));
-	SAFENEWWITHCONSTRUCTOR(pOffsetMBNodes, Mat3xN, Mat3xN(NStrNodes, 0.));
-	SAFENEWWITHCONSTRUCTOR(pRotMBNodes, Mat3xN, Mat3xN(3*NStrNodes, 0.));
 	SAFENEWWITHCONSTRUCTOR(pPHItStrNode, Mat3xN,
 			Mat3xN(NStrNodes*NModes, 0.));
 	SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN,
 			Mat3xN(NStrNodes*NModes, 0.));
 
-	/* puntatori ai nodi multibody */
-	std::vector<const StructNode *> InterfaceNodes(NStrNodes);
-	/* array contenente le label dei nodi d'interfaccia */
-	std::vector<std::string> IntFEMNodes(NStrNodes);
+	std::vector<Modal::StrNodeData> SND(NStrNodes);
 
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (e' il nodo FEM) */
@@ -4636,8 +4710,7 @@ ReadModal(DataManager* pDM,
 		 * 
 		 * nota: iNodeCurr contiene la posizione a cui si trova
 		 * il nodo FEM d'interfaccia nell'array pXYZNodes */
-		pOffsetFEMNodes->PutVec(iStrNode,
-				pXYZFEMNodes->GetVec(iNodeCurr));
+		SND[iStrNode-1].OffsetFEM = pXYZFEMNodes->GetVec(iNodeCurr);
 
 		/* salva le forme modali del nodo d'interfaccia
 		 * nell'array pPHIStrNode */
@@ -4653,8 +4726,8 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
 
 		/* verifica di esistenza del nodo 2 */
-		InterfaceNodes[iStrNode - 1] = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
-		if (InterfaceNodes[iStrNode - 1] == NULL) {
+		SND[iStrNode - 1].pNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
+		if (SND[iStrNode - 1].pNode == 0) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode2 << ") "
 				"at line " << HP.GetLineData()
@@ -4663,24 +4736,24 @@ ReadModal(DataManager* pDM,
 		}
 
 		/* offset del nodo Multi-Body */
-		ReferenceFrame RF = ReferenceFrame(InterfaceNodes[iStrNode - 1]);
+		ReferenceFrame RF = ReferenceFrame(SND[iStrNode - 1].pNode);
 		Vec3 d2(HP.GetPosRel(RF));
 		Mat3x3 R2(Eye3);
 		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
 			R2 = HP.GetRotRel(RF);
 		}
 
-		pOffsetMBNodes->PutVec(iStrNode, d2);
-		pRotMBNodes->PutMat3x3(3*(iStrNode - 1) + 1, R2);
+		SND[iStrNode - 1].OffsetMB = d2;
+		SND[iStrNode - 1].RotMB = R2;	// FIXME: not used (so far)
 
 		DEBUGCOUT("Multibody Node reference frame d2: " << std::endl
 				<< d2 << std::endl);
 
 		/* salva le label dei nodi vincolati nell'array IntNodes;
 		 * puo' servire per il restart? */
-		IntFEMNodes[iStrNode - 1] = Node1;
+		SND[iStrNode - 1].FEMNode = Node1;
 
-		const Vec3& xMB(InterfaceNodes[iStrNode - 1]->GetXCurr());
+		const Vec3& xMB(SND[iStrNode - 1].pNode->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
 				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
 		Vec3 xFEMRel(pXYZFEMNodes->GetVec(iNodeCurr));
@@ -4864,21 +4937,23 @@ ReadModal(DataManager* pDM,
 	/*
 	 * TODO: Check rank of modal stiffness matrix
 	 */
-	
-	/*
-	 * costruisce la matrice di smorzamento:
-	 * il termine diagonale i-esimo e' pari a
-	 * cii = 2*cdampi*(ki*mi)^.5
-	 */
-	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-		doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
-				*pGenMass->dGet(iCnt, iCnt));
 
-		if (bDampFlag) {
-			pGenDamp->Put(iCnt, iCnt, 2.*DampRatios.dGet(iCnt)*d);
+	if (bGotDamp) {
+		/*
+		 * costruisce la matrice di smorzamento:
+		 * il termine diagonale i-esimo e' pari a
+		 * cii = 2*cdampi*(ki*mi)^.5
+		 */
+		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+			doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
+					*pGenMass->dGet(iCnt, iCnt));
 
-		} else {
-			pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
+			if (bDampFlag) {
+				pGenDamp->Put(iCnt, iCnt, 2.*DampRatios(iCnt)*d);
+
+			} else {
+				pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
+			}
 		}
 	}
 
@@ -5027,12 +5102,8 @@ ReadModal(DataManager* pDM,
 				pGenStiff,
 				pGenDamp,
 				IdFEMNodes,
-				IntFEMNodes,
 				pXYZFEMNodes,
-				pOffsetFEMNodes,
-				pOffsetMBNodes,
-				pRotMBNodes,
-				InterfaceNodes,
+				SND,
 				pPHItStrNode,
 				pPHIrStrNode,
 				pModeShapest,
