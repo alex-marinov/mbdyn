@@ -2870,7 +2870,7 @@ ReadModal(DataManager* pDM,
 			}
 		}
 
-	} else {
+	} else if (!HP.IsKeyWord("damping" "from" "file")) {
 		silent_cout("Modal(" << uLabel << "): "
 				"no damping is assumed at line "
 				<< HP.GetLineData() << " (deprecated)"
@@ -3068,11 +3068,12 @@ ReadModal(DataManager* pDM,
 
 	enum {
 		MODAL_VERSION_1 = 1,
-		MODAL_VERSION_2 = 2
+		MODAL_VERSION_2 = 2,
+		MODAL_VERSION_3 = 3
 	};
 
 	/* NOTE: increment this each time the binary format changes! */
-	unsigned	BinVersion = MODAL_VERSION_2;
+	unsigned	BinVersion = MODAL_VERSION_3;
 
 	unsigned	currBinVersion;
 	char		checkPoint;
@@ -3157,9 +3158,22 @@ ReadModal(DataManager* pDM,
 			fdat.getline(str, sizeof(str));
 	
 			/* legge il primo blocco (HEADER) */
-			if (!strncmp("** RECORD GROUP 1,", str,
-				STRLENOF("** RECORD GROUP 1,")))
-			{
+			if (strncmp("** RECORD GROUP ", str,
+				STRLENOF("** RECORD GROUP ")) != 0) {
+				continue;
+			}
+
+			char *next;
+			long rg = std::strtol(&str[STRLENOF("** RECORD GROUP ")], &next, 10);
+			if (next == &str[STRLENOF("** RECORD GROUP ")]) {
+				silent_cerr("file=\"" << sFileFEM << "\": "
+					"unable to parse \"RECORD GROUP\" number <" << &str[STRLENOF("** RECORD GROUP ")] << ">"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			switch (rg) {
+			case 1: {
 				if (bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" already parsed"
@@ -3272,11 +3286,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_1] = true;
+				} break;
 
-			/* legge il secondo blocco (Id.nodi) */
-			} else if (!strncmp("** RECORD GROUP 2,", str,
-				STRLENOF("** RECORD GROUP 2,")))
-			{
+			case 2: {
+				/* legge il secondo blocco (Id.nodi) */
 				if (bRecordGroup[MODAL_RECORD_2]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 2\" already parsed"
@@ -3308,11 +3321,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[2] = true;
+				} break;
 
-			/* deformate iniziali dei modi */
-			} else if (!strncmp("** RECORD GROUP 3,", str,
-				STRLENOF("** RECORD GROUP 3,")))
-			{
+			case 3: {
+				/* deformate iniziali dei modi */
 				if (bRecordGroup[MODAL_RECORD_3]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 3\" already parsed"
@@ -3357,11 +3369,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_3] = true;
-	
-			/* velocita' iniziali dei modi */
-			} else if (!strncmp("** RECORD GROUP 4,", str,
-				STRLENOF("** RECORD GROUP 4,")))
-			{
+				} break;
+
+			case 4: {	
+				/* velocita' iniziali dei modi */
 				if (bRecordGroup[MODAL_RECORD_4]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 4\" already parsed"
@@ -3406,11 +3417,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_4] = true;
-	
-			/* Coordinate X dei nodi */
-			} else if (!strncmp("** RECORD GROUP 5,", str,
-				STRLENOF("** RECORD GROUP 5,")))
-			{
+				} break;
+
+			case 5: {
+				/* Coordinate X dei nodi */
 				if (bRecordGroup[MODAL_RECORD_5]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 5\" already parsed"
@@ -3444,11 +3454,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_5] = true;
+				} break;
 
-			/* Coordinate Y dei nodi*/
-			} else if (!strncmp("** RECORD GROUP 6,", str,
-				STRLENOF("** RECORD GROUP 6,")))
-			{
+			case 6: {
+				/* Coordinate Y dei nodi*/
 				if (bRecordGroup[MODAL_RECORD_6]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 6\" already parsed"
@@ -3482,11 +3491,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_6] = true;
-	
-			/* Coordinate Z dei nodi*/
-			} else if (!strncmp("** RECORD GROUP 7,", str,
-				STRLENOF("** RECORD GROUP 7,")))
-			{
+				} break;
+
+			case 7: {
+				/* Coordinate Z dei nodi*/
 				if (bRecordGroup[MODAL_RECORD_7]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 7\" already parsed"
@@ -3520,11 +3528,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_7] = true;
-	
-			/* Forme modali */
-			} else if (!strncmp("** RECORD GROUP 8,", str,
-				STRLENOF("** RECORD GROUP 8,")))
-			{
+				} break;
+
+			case 8: {
+				/* Forme modali */
 				if (bRecordGroup[MODAL_RECORD_8]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 8\" already parsed"
@@ -3627,11 +3634,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_8] = true;
+				} break;
 
-			/* Matrice di massa  modale */
-			} else if (!strncmp("** RECORD GROUP 9,", str,
-				STRLENOF("** RECORD GROUP 9,")))
-			{
+			case 9: {
+				/* Matrice di massa  modale */
 				if (bRecordGroup[MODAL_RECORD_9]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 9\" already parsed"
@@ -3687,11 +3693,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_9] = true;
-	
-			/* Matrice di rigidezza  modale */
-			} else if (!strncmp("** RECORD GROUP 10,", str,
-				STRLENOF("** RECORD GROUP 10,")))
-			{
+				} break;
+
+			case 10: {
+				/* Matrice di rigidezza  modale */
 				if (bRecordGroup[MODAL_RECORD_10]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 10\" already parsed"
@@ -3747,11 +3752,10 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_10] = true;
+				} break;
 
-			/* Lumped Masses */
-			} else if (!strncmp("** RECORD GROUP 11,", str,
-				STRLENOF("** RECORD GROUP 11,")))
-			{
+			case 11: {
+				/* Lumped Masses */
 				if (bRecordGroup[MODAL_RECORD_11]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 11\" already parsed"
@@ -3813,11 +3817,10 @@ ReadModal(DataManager* pDM,
 				bBuildInvariants = true;
 
 				bRecordGroup[MODAL_RECORD_11] = true;
+				} break;
 
-			/* Rigid body inertia */
-			} else if (!strncmp("** RECORD GROUP 12,", str,
-				STRLENOF("** RECORD GROUP 12,")))
-			{
+			case 12: {
+				/* Rigid body inertia */
 				if (bRecordGroup[MODAL_RECORD_12]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 12\" already parsed"
@@ -3872,11 +3875,10 @@ ReadModal(DataManager* pDM,
 				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
 				bRecordGroup[MODAL_RECORD_12] = true;
-				
-			/* Matrice di smorzamento modale */
-			} else if (!strncmp("** RECORD GROUP 13,", str,
-				STRLENOF("** RECORD GROUP 13,")))
-			{
+				} break;
+
+			case 13: {
+				/* Matrice di smorzamento modale */
 				if (bRecordGroup[MODAL_RECORD_13]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 13\" already parsed"
@@ -3936,8 +3938,14 @@ ReadModal(DataManager* pDM,
 				}
 
 				bRecordGroup[MODAL_RECORD_13] = true;
-	
-			} /* fine parser del file */
+				} break;
+
+			default:
+				silent_cerr("file=\"" << sFileFEM << "\": "
+					"\"RECORD GROUP " << rg << "\" unhandled"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 
 		fdat.close();

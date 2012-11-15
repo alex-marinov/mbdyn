@@ -4496,12 +4496,13 @@ and orientation of the corresponding FEM nodes.
                 | \bnt{q_1} , \bnt{qP_1} [ ... ] \} , ]
         \{ \bnt{fem_node_number} | \kw{from file} \} ,
         [ \{ \kw{no damping}
+            | \kw{damping from file}
             | \kw{proportional damping} , \bnt{damping_coef}
             | \kw{diag damping} ,
                 \{ \kw{all} , \bnt{damping_coef} [ , ...]
                 | \bnt{damped_modes} , \bnt{mode_damping} [ , ... ] \} \} , ]
         " \bnt{fem_data_file} " ,
-        [ [ \{ \kw{mass} | \kw{stiffness} \} ] \kw{threshold} , \bnt{threshold} , ]
+        [ [ \{ \kw{mass} | \kw{damping} | \kw{stiffness} \} ] \kw{threshold} , \bnt{threshold} , ]
         [ \{ \kw{create binary} | \kw{use binary} | \kw{update binary} \}
             [ , ... ] , ]
         [ \kw{use invariant 9} , ]
@@ -4567,11 +4568,11 @@ The strings must be enclosed in double quotes.
 For legacy reasons, a label not enclosed in double quotes
 is accepted, provided it is an integer.
 
-If any of \kw{mass threshold}, \kw{stiffness threshold} are given,
+If any of \kw{mass threshold}, \kw{damping threshold}, \kw{stiffness threshold} are given,
 elements whose absolute value is lower than the threshold
-are discarded from the mass and stiffness matrix, respectively.
-The keyword \kw{threshold} is a catchall for both,
-meaning that the same threshold must be used for both matrices.
+are discarded from the mass, damping and stiffness matrices, respectively.
+The keyword \kw{threshold} is a catchall for all,
+meaning that the same threshold is used for all matrices.
 
 The list of matchings between FEM and multibody nodes needs
 special care.
@@ -4637,7 +4638,8 @@ binary version when the ASCII version is more recent.
 
 \textbf{Note about the structural damping:}
 structural damping can be provided by specifying any of the
-\kw{no damping}, \kw{proportional damping} or \kw{diag damping}.
+\kw{no damping}, \kw{damping from file}, \kw{proportional damping}
+or \kw{diag damping}.
 In the last two cases, a damping factor is required.
 The corresponding damping for the $i$-th mode is computed as
 \begin{displaymath}
@@ -4657,8 +4659,10 @@ Each occurrence of \nt{mode\_damping} is made of the mode's index
 and the related damping value.
 
 A generalized damping matrix can be provided in the database;
-it is ignored and overridden by all the above specified forms
+it is used when \kw{damping from file} is specified, while it is ignored
+and overridden by all the other above specified forms
 of damping provided in the specification of the modal joint element.
+The generalized damping matrix appeared in MBDyn 1.5.3.
 
 
 \subsubsection{Output}

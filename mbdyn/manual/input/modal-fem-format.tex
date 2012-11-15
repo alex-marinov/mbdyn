@@ -32,8 +32,8 @@
 \label{sec:APP:EL:STRUCT:JOINT:MODAL:FORMAT}
 
 This section describes the format of the FEM input to the \kw{modal}
-joint of MBDyn.
-This data can be obtained, for example:
+joint of MBDyn (Section~\ref{sec:EL:STRUCT:JOINT:MODAL}).
+These data can be obtained, for example:
 \begin{itemize}
 \item from Code Aster
 (\htmladdnormallink{\texttt{http://www.code-aster.org/}}{http://www.code-aster.org/}),
@@ -250,6 +250,7 @@ It can be semi-definite positive, or even zero, if no damping is considered.
 This record is optional.
 If given, it is used in the analysis unless overridden by any damping
 specification indicated in the modal joint element definition.
+The generalized damping matrix appeared in MBDyn 1.5.3.
 
 \end{itemize}
 
