@@ -134,13 +134,13 @@ Modal::Modal(unsigned int uL,
 	MatNxN *pGenMass,
 	MatNxN *pGenStiff,
 	MatNxN *pGenDamp,
-	std::vector<std::string>& IdFEMNodes,	/* label nodi FEM */
-	std::vector<std::string>& IntFEMNodes,	/* label nodi FEM d'interfaccia */
+	const std::vector<std::string>& IdFEMNodes,	/* label nodi FEM */
+	const std::vector<std::string>& IntFEMNodes,	/* label nodi FEM d'interfaccia */
 	Mat3xN *pN,               /* posizione dei nodi FEM */
 	Mat3xN *pOffsetfemNodes,
 	Mat3xN *pOffsetmbNodes,
 	Mat3xN *pRotmbNodes,
-	std::vector<const StructNode *>& InterfNodes,   /* nodi d'interfaccia */
+	const std::vector<const StructNode *>& InterfNodes,   /* nodi d'interfaccia */
 	Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
 	Mat3xN *pPHIrStrNode,
 	Mat3xN *pModeShapest,     /* autovettori: servono a aeromodal */

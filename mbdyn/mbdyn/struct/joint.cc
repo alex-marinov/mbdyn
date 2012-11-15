@@ -3537,11 +3537,11 @@ ReadJoint(DataManager* pDM,
 		StructNode* pNode2 = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
 
 		Vec3 q(Zero3);
-		bool bOffset(false);
+		// bool bOffset(false);
        
 		if (HP.IsArg()) {
 			if (HP.IsKeyWord("offset")) {
-				bOffset = true;	     
+				// bOffset = true;	     
 				q = HP.GetPosRel(ReferenceFrame(pNode2), RF, p);
 				DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
 			}
