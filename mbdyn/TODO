@@ -173,11 +173,17 @@ D. Code:
 	- modal interface node: accelerations can be recovered
 	  for use in loose connections; design and implement a solution (DONE)
 	- turn the modal joint into sets of elements:
-		- modal database: FEM model
+		- modal database: FEM model; split const from local data;
+		  const in database, local in modal joint; avoid copying memory;
+		  for example, 
+			Mat3xN *pOffsetFEMNodes --> std::vector<Vec3> (same as d1rig?)
+		        Mat3xN *pOffsetMBNodes --> std::vector<Vec3> (same as d2?)
+		        Mat3xN *pRotMBNodes --> std::vector<Mat3x3> (not used???)
 		- modal dynamics as a "deformable body"
 		- modal clamp constraint (as now, but separate from dynamics)
-		- specialized modal constraints (as opposed to clamping
-		  a node with the clamp constraint plus a regular joint)
+		- total modal joint (Was: specialized modal constraints,
+		  as opposed to clamping a node with the clamp constraint
+		  plus a regular joint)
 		- modal force (DONE)
 	  this allows to add arbitrary elements connected to the modal element
 	- use getopt(3) in utils/*

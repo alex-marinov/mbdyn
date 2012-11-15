@@ -114,7 +114,7 @@ protected:
 	Mat3x3 Inv8jaj;
 	Mat3x3 Inv8jaPj;
 	Mat3xN Inv5jaj, Inv5jaPj;
-	Vec3 VInv5jaj, VInv5jaPj;
+	Vec3   VInv5jaj, VInv5jaPj;
 	Mat3x3 Inv8jTranspose;
 	Mat3x3 Inv9jkajak;
 	Mat3x3 Inv9jkajaPk;
@@ -124,13 +124,17 @@ protected:
 	VecN b;
 	VecN bPrime;
 
-	Vec3* pd1tot;
-	Vec3* pd2;
-	Mat3x3* pR1tot;
-	Mat3x3* pR2;
-	Vec3* pF;
-	Vec3* pM;
-   
+	struct StrNodeData {
+		Vec3 d1tot;
+		Vec3 d2;
+		Mat3x3 R1tot;
+		Mat3x3 R2;
+		Vec3 F;
+		Vec3 M;
+	};
+
+	std::vector<StrNodeData> SND;
+
 	integer iModalIndex;
  
 	/* from gravity.h */

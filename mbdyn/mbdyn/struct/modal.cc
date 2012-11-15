@@ -209,52 +209,13 @@ a(*aa),
 aPrime(NModes, 0.),
 b(*bb),
 bPrime(NModes, 0.),
-pd1tot(NULL),
-pd2(NULL),
-pR1tot(NULL),
-pR2(NULL),
-pF(NULL),
-pM(NULL)
+SND(NStrNodes)
 {
 	ASSERT(pModalNode->GetStructNodeType() == StructNode::MODAL);
-
-	SAFENEWARRNOFILL(pd1tot, Vec3, NStrNodes);
-	SAFENEWARRNOFILL(pd2, Vec3, NStrNodes);
-	SAFENEWARRNOFILL(pR1tot, Mat3x3, NStrNodes);
-	SAFENEWARRNOFILL(pR2, Mat3x3, NStrNodes);
-	SAFENEWARRNOFILL(pF, Vec3, NStrNodes);
-	SAFENEWARRNOFILL(pM, Vec3, NStrNodes);
-
-	for (unsigned int i = 0; i < NStrNodes; i++) {
-		pd1tot[i] = Zero3;
-		pd2[i] = Zero3;
-		pR1tot[i] = Eye3;
-		pR2[i] = Eye3;
-		pF[i] = Zero3;
-		pM[i] = Zero3;
-	}
 }
 
 Modal::~Modal(void)
 {
-	if (pd1tot != NULL) {
-		SAFEDELETEARR(pd1tot);
-	}
-	if (pd2 != NULL) {
-		SAFEDELETEARR(pd2);
-	}
-	if (pF != NULL) {
-		SAFEDELETEARR(pF);
-	}
-	if (pM != NULL) {
-		SAFEDELETEARR(pM);
-	}
-	if (pR1tot != NULL) {
-		SAFEDELETEARR(pR1tot);
-	}
-	if (pR2 != NULL) {
-		SAFEDELETEARR(pR2);
-	}
 	if (pXYZFEMNodes) {
 		SAFEDELETE(pXYZFEMNodes);
 	}
@@ -855,7 +816,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		integer iReactionIndex = iRigidOffset + 2*NModes + 6*iStrNodem1;
 		integer iStrNodeIndex = iRigidOffset + iNumDof + 6*iStrNodem1;
 
-		Mat3x3 FTmpWedge(MatCross, pF[iStrNodem1]*dCoef);
+		Mat3x3 FTmpWedge(MatCross, SND[iStrNodem1].F*dCoef);
 
 		Mat3xN PHItR(NModes);
 		PHItR.LeftMult(R, PHIt);
@@ -879,7 +840,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 
 			/* pd1Tot e' il puntatore all'array
 			 * che contiene le posizioni del nodi FEM */
-			Mat3x3 dTmp1Wedge(MatCross, R*pd1tot[iStrNodem1]);
+			Mat3x3 dTmp1Wedge(MatCross, R*SND[iStrNodem1].d1tot);
 
 			WM.Add(9 + 1, iReactionIndex + 1, dTmp1Wedge);
 			
@@ -901,7 +862,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Add(iReactionIndex + 1, iRigidOffset + 1, PHItR);
 
 		/* idem per pd2 e pR2 */
-		Mat3x3 dTmp2Wedge(MatCross, pR2[iStrNodem1]*pd2[iStrNodem1]);
+		Mat3x3 dTmp2Wedge(MatCross, SND[iStrNodem1].R2*SND[iStrNodem1].d2);
 		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 1, dTmp2Wedge);
 
 		/* termini del tipo: c*F/\*d/\*Deltag */
@@ -922,7 +883,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		/* equazioni di vincolo : giunto prismatico */
 
 		/* Vec3 M(XCurr, iModalIndex + 2*NModes + 6*iStrNodem1 + 3 + 1); */
-		Vec3 MTmp = pR2[iStrNodem1]*(pM[iStrNodem1]*dCoef);
+		Vec3 MTmp = SND[iStrNodem1].R2*(SND[iStrNodem1].M*dCoef);
 		Mat3x3 MTmpWedge(MatCross, MTmp);
 
 		/* Eq. dei momenti */
@@ -939,16 +900,16 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.Sub(iRigidOffset + NModes + 1, iStrNodeIndex + 3 + 1, SubMat3);
 
 		/* */
-		Mat3x3 R2T = pR2[iStrNodem1].Transpose();
+		Mat3x3 R2T = SND[iStrNodem1].R2.Transpose();
 		if (pModalNode) {
-			WM.Add(iReactionIndex + 3 + 1, 3 + 1, R2T);
-			WM.Add(9 + 1, iReactionIndex + 3 + 1, pR2[iStrNodem1]);
+			WM.AddT(iReactionIndex + 3 + 1, 3 + 1, SND[iStrNodem1].R2);
+			WM.Add(9 + 1, iReactionIndex + 3 + 1, SND[iStrNodem1].R2);
 		}
-		WM.Sub(iReactionIndex + 3 + 1, iStrNodeIndex + 3 + 1, R2T);
-		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 3 + 1, pR2[iStrNodem1]);
+		WM.SubT(iReactionIndex + 3 + 1, iStrNodeIndex + 3 + 1, SND[iStrNodem1].R2);
+		WM.Sub(iStrNodeIndex + 3 + 1, iReactionIndex + 3 + 1, SND[iStrNodem1].R2);
 
 		/* */
-		SubMat3.RightMult(PHIrT, RT*pR2[iStrNodem1]);
+		SubMat3.RightMult(PHIrT, RT*SND[iStrNodem1].R2);
 		WM.Add(iRigidOffset + NModes + 1, iReactionIndex + 3 + 1, SubMat3);
 		for (unsigned iMode = 1; iMode <= NModes; iMode++) {
 			for (unsigned jIdx = 1; jIdx <= 3; jIdx++) {
@@ -1351,7 +1312,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 		/* nodo 1 (FEM) e 2 (Multi - Body): recupera la posizione */
 		Vec3 d1rig(pOffsetFEMNodes->GetVec(iStrNode));
-		pd2[iStrNodem1] = pOffsetMBNodes->GetVec(iStrNode);
+		SND[iStrNodem1].d2 = pOffsetMBNodes->GetVec(iStrNode);
 
 		/* recupero le forme modali del nodo vincolato */
 		/* FIXME: what about using Blitz++ ? :) */
@@ -1367,30 +1328,30 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		 * alla flessibilita':
 		 * d1tot = d1 + PHIt*a, R1tot = R*[I + (PHIr*a)/\]
 		 */
-		pd1tot[iStrNodem1] = d1rig + PHIt*a;
-		pR1tot[iStrNodem1] = R*Mat3x3(1., PHIr*a);
+		SND[iStrNodem1].d1tot = d1rig + PHIt*a;
+		SND[iStrNodem1].R1tot = R*Mat3x3(1., PHIr*a);
 
 		/* constraint reaction (force) */
-		pF[iStrNodem1] = Vec3(XCurr,
+		SND[iStrNodem1].F = Vec3(XCurr,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 1);
 		const Vec3& x2 = InterfaceNodes[iStrNodem1]->GetXCurr();
 
 		/* FIXME: R2??? */
-		pR2[iStrNodem1] = InterfaceNodes[iStrNodem1]->GetRCurr();
+		SND[iStrNodem1].R2 = InterfaceNodes[iStrNodem1]->GetRCurr();
 
 		/* cerniera sferica */
-		Vec3 dTmp1(R*pd1tot[iStrNodem1]);
-		Vec3 dTmp2(pR2[iStrNodem1]*pd2[iStrNodem1]);
+		Vec3 dTmp1(R*SND[iStrNodem1].d1tot);
+		Vec3 dTmp2(SND[iStrNodem1].R2*SND[iStrNodem1].d2);
 
 		/* Eq. d'equilibrio, nodo 1 */
 		if (pModalNode) {
-			WorkVec.Sub(6 + 1, pF[iStrNodem1]);
-			WorkVec.Sub(9 + 1, dTmp1.Cross(pF[iStrNodem1]));
+			WorkVec.Sub(6 + 1, SND[iStrNodem1].F);
+			WorkVec.Sub(9 + 1, dTmp1.Cross(SND[iStrNodem1].F));
 		}
 
 		/* termine aggiuntivo dovuto alla deformabilita':
 		 * -PHItiT*RT*F */
-		Vec3 vtemp = RT*pF[iStrNodem1];
+		Vec3 vtemp = RT*SND[iStrNodem1].F;
 		for (unsigned int jMode = 1; jMode <= NModes; jMode++) {
 			/* PHItTranspose(jMode) * vtemp */
 			WorkVec.DecCoef(iRigidOffset + NModes + jMode,
@@ -1398,20 +1359,20 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		}
 
 		/* Eq. d'equilibrio, nodo 2 */
-		WorkVec.Add(iStrNodeIndex + 1, pF[iStrNodem1]);
-		WorkVec.Add(iStrNodeIndex + 3 + 1, dTmp2.Cross(pF[iStrNodem1]));
+		WorkVec.Add(iStrNodeIndex + 1, SND[iStrNodem1].F);
+		WorkVec.Add(iStrNodeIndex + 3 + 1, dTmp2.Cross(SND[iStrNodem1].F));
 
 		/* Eq. di vincolo */
 		ASSERT(dCoef != 0.);
 		WorkVec.Add(iReactionIndex + 1, (x2 + dTmp2 - x - dTmp1)/dCoef);
 
 		/* constraint reaction (moment) */
-		pM[iStrNodem1] = Vec3(XCurr,
+		SND[iStrNodem1].M = Vec3(XCurr,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 3 + 1);
 
 		/* giunto prismatico */
-		Vec3 ThetaCurr = RotManip::VecRot(pR2[iStrNodem1].MulTM(pR1tot[iStrNodem1]));
-		Vec3 MTmp = pR2[iStrNodem1]*pM[iStrNodem1];
+		Vec3 ThetaCurr = RotManip::VecRot(SND[iStrNodem1].R2.MulTM(SND[iStrNodem1].R1tot));
+		Vec3 MTmp = SND[iStrNodem1].R2*SND[iStrNodem1].M;
 
 		/* Equazioni di equilibrio, nodo 1 */
 		if (pModalNode) {
