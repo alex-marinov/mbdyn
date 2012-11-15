@@ -89,7 +89,7 @@ protected:
 	Mat3xN *pOffsetFEMNodes;   
 	Mat3xN *pOffsetMBNodes;   
 	Mat3xN *pRotMBNodes;
-	const StructNode** pInterfaceNodes;
+	std::vector<const StructNode *> InterfaceNodes;
  
 	Mat3xN *pPHIt;
 	Mat3xN *pPHIr;
@@ -166,7 +166,7 @@ public:
 			Mat3xN *pOffsetfemNodes,
 			Mat3xN *pOffsetmbNodes,
 			Mat3xN *pRotmbNodes,
-			const StructNode** pN2,
+			std::vector<const StructNode *>& InterfNodes,
 			Mat3xN *pPHIt,
 			Mat3xN *pPHIr,
 			Mat3xN *pModeShapest,
@@ -317,7 +317,7 @@ public:
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(NStrNodes + (pModalNode ? 1 : 0));
 		for (unsigned int j = 0; j < NStrNodes; j++) {
-			connectedNodes[j] = pInterfaceNodes[j];
+			connectedNodes[j] = InterfaceNodes[j];
 		}
 		if (pModalNode) {
 			connectedNodes[NStrNodes] = pModalNode;

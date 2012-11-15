@@ -140,7 +140,7 @@ Modal::Modal(unsigned int uL,
 	Mat3xN *pOffsetfemNodes,
 	Mat3xN *pOffsetmbNodes,
 	Mat3xN *pRotmbNodes,
-	const StructNode** pIN,   /* nodi d'interfaccia */
+	std::vector<const StructNode *>& InterfNodes,   /* nodi d'interfaccia */
 	Mat3xN *pPHItStrNode,     /* forme modali nodi d'interfaccia */
 	Mat3xN *pPHIrStrNode,
 	Mat3xN *pModeShapest,     /* autovettori: servono a aeromodal */
@@ -180,7 +180,7 @@ pXYZFEMNodes(pN),
 pOffsetFEMNodes(pOffsetfemNodes),
 pOffsetMBNodes(pOffsetmbNodes),
 pRotMBNodes(pRotmbNodes),
-pInterfaceNodes(pIN),
+InterfaceNodes(InterfNodes),
 pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
 pModeShapest(pModeShapest),
@@ -254,9 +254,6 @@ Modal::~Modal(void)
 	}
 	if (pR2 != NULL) {
 		SAFEDELETEARR(pR2);
-	}
-	if (pInterfaceNodes) {
-		SAFEDELETEARR(pInterfaceNodes);
 	}
 	if (pXYZFEMNodes) {
 		SAFEDELETE(pXYZFEMNodes);
@@ -351,19 +348,19 @@ Modal::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 				"reaction forces [Fx,Fy,Fz]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 				"reaction couples [Mx,My,Mz]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 					"reaction force derivatives [FPx,FPy,FPz]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 					"reaction couple derivatives [MPx,MPy,MPz]" << std::endl;
 		}
 	}
@@ -430,7 +427,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
 				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
 			desc[2*NModes + i] = os.str();
 		}
@@ -449,7 +446,7 @@ Modal::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
 				<< rdof[(i/3)%(modulo/3)] << xyz[i%3];
 		}
 		desc[0] = os.str();
@@ -470,19 +467,19 @@ Modal::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++, iModalIndex += 6) {
 		out
 			<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 				"position constraints [Px=PxN,Py=PyN,Pz=PzN]" << std::endl
 			<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-				"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+				"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 				"orientation constraints [gx=gxN,gy=gyN,gz=gzN]" << std::endl;
 		if (bInitial) {
 			iModalIndex += 6;
 			out
 				<< prefix << iModalIndex + 1 << "->" << iModalIndex + 3 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 					"velocity constraints [vx=vxN,vy=vyN,vz=vzN]" << std::endl
 				<< prefix << iModalIndex + 4 << "->" << iModalIndex + 6 << ": "
-					"StructNode(" << pInterfaceNodes[iStrNodem1]->GetLabel() << ") "
+					"StructNode(" << InterfaceNodes[iStrNodem1]->GetLabel() << ") "
 					"angular velocity constraints [wx=wxN,wy=wyN,wz=wzN]" << std::endl;
 		}
 	}
@@ -527,7 +524,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 		for (unsigned i = 0; i < modulo*NStrNodes; i++) {
 			os.str(name);
 			os.seekp(0, std::ios_base::end);
-			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
 				<< req[(i/3)%(modulo/3)] << xyz[i%3];
 			desc[2*NModes + i] = os.str();
 		}
@@ -546,7 +543,7 @@ Modal::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			os << ": StructNode(" << pInterfaceNodes[i/modulo]->GetLabel() << ") "
+			os << ": StructNode(" << InterfaceNodes[i/modulo]->GetLabel() << ") "
 				<< req[(i/3)%(modulo/3)] << xyz[i%3];
 		}
 		desc[0] = os.str();
@@ -635,9 +632,9 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 	/* indici delle equazioni vincolari (solo per il nodo 2) */
 	for (unsigned int iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstMomIndex =
-			pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
+			InterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
 		integer iNodeFirstPosIndex =
-			pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
 
 		integer iOffset = iRigidOffset + iNumDof + 6*iStrNodem1;
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -1009,7 +1006,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 	integer iOffset = iRigidOffset + iNumDof;
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstMomIndex =
-			pInterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
+			InterfaceNodes[iStrNodem1]->iGetFirstMomentumIndex();
 
 		for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 			WorkVec.PutRowIndex(iOffset + iCnt,
@@ -1180,11 +1177,11 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 
 		/* recupera i dati necessari */
 		x = pModalNode->GetXCurr();
-		Vec3 xP = pModalNode->GetVCurr();
-		Vec3 g = pModalNode->GetgCurr();
-		Vec3 gP = pModalNode->GetgPCurr();
+		const Vec3& xP = pModalNode->GetVCurr();
+		const Vec3& g = pModalNode->GetgCurr();
+		const Vec3& gP = pModalNode->GetgPCurr();
 		vP = pModalNode->GetXPPCurr();
-		Vec3 wr = pModalNode->GetWRef();
+		const Vec3& wr = pModalNode->GetWRef();
 		wP = pModalNode->GetWPCurr();
 		
 		Vec3 v(XCurr, iRigidIndex + 6 + 1);
@@ -1376,10 +1373,10 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		/* constraint reaction (force) */
 		pF[iStrNodem1] = Vec3(XCurr,
 				iModalIndex + 2*NModes + 6*iStrNodem1 + 1);
-		Vec3 x2 = pInterfaceNodes[iStrNodem1]->GetXCurr();
+		const Vec3& x2 = InterfaceNodes[iStrNodem1]->GetXCurr();
 
 		/* FIXME: R2??? */
-		pR2[iStrNodem1] = pInterfaceNodes[iStrNodem1]->GetRCurr();
+		pR2[iStrNodem1] = InterfaceNodes[iStrNodem1]->GetRCurr();
 
 		/* cerniera sferica */
 		Vec3 dTmp1(R*pd1tot[iStrNodem1]);
@@ -1509,7 +1506,7 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstPosIndex = 
-			pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
 		integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
 
 		integer iOffset = iRigidOffset + iGetInitialNumDof() + 12*iStrNodem1;
@@ -1551,12 +1548,12 @@ Modal::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		unsigned int iStrNodem1 = iStrNode - 1;
 
 		/* recupera i dati */
-		Mat3x3 R2(pInterfaceNodes[iStrNodem1]->GetRRef());
+		const Mat3x3& R2(InterfaceNodes[iStrNodem1]->GetRRef());
 		Vec3 Omega1(Zero3);
 		if (pModalNode) {
 			Omega1 = pModalNode->GetWRef();
 		}
-		Vec3 Omega2(pInterfaceNodes[iStrNodem1]->GetWRef());
+		const Vec3& Omega2(InterfaceNodes[iStrNodem1]->GetWRef());
 		Vec3 F(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 1);
 		Vec3 FPrime(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 6 + 1);
 
@@ -1968,7 +1965,7 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 
 	for (unsigned iStrNodem1 = 0; iStrNodem1 < NStrNodes; iStrNodem1++) {
 		integer iNodeFirstPosIndex = 
-			pInterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
+			InterfaceNodes[iStrNodem1]->iGetFirstPositionIndex();
 		integer iNodeFirstVelIndex = iNodeFirstPosIndex + 6;
 
 		integer iOffset2 = iRigidOffset + iGetInitialNumDof() + 12*iStrNodem1;
@@ -2037,10 +2034,10 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		Vec3 d1tot = d1rig + PHIt*a;
 		Mat3x3 R1tot = R*Mat3x3(1., PHIr*a);
 
-		Vec3 x2(pInterfaceNodes[iStrNodem1]->GetXCurr());
-		Vec3 v2(pInterfaceNodes[iStrNodem1]->GetVCurr());
-		Mat3x3 R2(pInterfaceNodes[iStrNodem1]->GetRCurr());
-		Vec3 Omega2(pInterfaceNodes[iStrNodem1]->GetWCurr());
+		const Vec3& x2(InterfaceNodes[iStrNodem1]->GetXCurr());
+		const Vec3& v2(InterfaceNodes[iStrNodem1]->GetVCurr());
+		const Mat3x3& R2(InterfaceNodes[iStrNodem1]->GetRCurr());
+		const Vec3& Omega2(InterfaceNodes[iStrNodem1]->GetWCurr());
 		Vec3 F(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 1);
 		Vec3 FPrime(XCurr, iFlexIndex + 2*NModes + 12*iStrNodem1 + 6 + 1);
 
@@ -2535,7 +2532,7 @@ Modal::dGetPrivData(unsigned int i) const
 			}
 			Vec3 XPP(R*XPPn);
 			if (pModalNode) {
-				Vec3 W0 = pModalNode->GetWCurr();
+				const Vec3& W0 = pModalNode->GetWCurr();
 				XPP += W0.Cross(R*(XPn*2.));
 
 				Vec3 X(R*Xn);
@@ -4551,10 +4548,6 @@ ReadModal(DataManager* pDM,
 	 * L'orientamento del nodo FEM e' quello del nodo modale, la
 	 * posizione e' la somma di quella modale e di quella FEM   */
 
-	/* puntatori ai nodi multibody */
-	const StructNode** pInterfaceNodes = NULL;
-	/* array contenente le label dei nodi d'interfaccia */
-	std::vector<std::string> IntFEMNodes;
 	/* array contenente le forme modali dei nodi d'interfaccia */
 	Mat3xN* pPHItStrNode = NULL;
 	Mat3xN* pPHIrStrNode = NULL;
@@ -4626,8 +4619,10 @@ ReadModal(DataManager* pDM,
 	SAFENEWWITHCONSTRUCTOR(pPHIrStrNode, Mat3xN,
 			Mat3xN(NStrNodes*NModes, 0.));
 
-	SAFENEWARR(pInterfaceNodes, const StructNode*, NStrNodes);
-	IntFEMNodes.resize(NStrNodes);
+	/* puntatori ai nodi multibody */
+	std::vector<const StructNode *> InterfaceNodes(NStrNodes);
+	/* array contenente le label dei nodi d'interfaccia */
+	std::vector<std::string> IntFEMNodes(NStrNodes);
 
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (e' il nodo FEM) */
@@ -4697,8 +4692,8 @@ ReadModal(DataManager* pDM,
 		DEBUGCOUT("Linked to Multi-Body Node " << uNode2 << std::endl);
 
 		/* verifica di esistenza del nodo 2 */
-		pInterfaceNodes[iStrNode - 1] = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
-		if (pInterfaceNodes[iStrNode - 1] == NULL) {
+		InterfaceNodes[iStrNode - 1] = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode2);
+		if (InterfaceNodes[iStrNode - 1] == NULL) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode2 << ") "
 				"at line " << HP.GetLineData()
@@ -4707,7 +4702,7 @@ ReadModal(DataManager* pDM,
 		}
 
 		/* offset del nodo Multi-Body */
-		ReferenceFrame RF = ReferenceFrame(pInterfaceNodes[iStrNode - 1]);
+		ReferenceFrame RF = ReferenceFrame(InterfaceNodes[iStrNode - 1]);
 		Vec3 d2(HP.GetPosRel(RF));
 		Mat3x3 R2(Eye3);
 		if (HP.IsKeyWord("hinge") || HP.IsKeyWord("orientation")) {
@@ -4724,7 +4719,7 @@ ReadModal(DataManager* pDM,
 		 * puo' servire per il restart? */
 		IntFEMNodes[iStrNode - 1] = Node1;
 
-		Vec3 xMB(pInterfaceNodes[iStrNode - 1]->GetXCurr());
+		const Vec3& xMB(InterfaceNodes[iStrNode - 1]->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
 				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
 		Vec3 xFEMRel(pXYZFEMNodes->GetVec(iNodeCurr));
@@ -5076,7 +5071,7 @@ ReadModal(DataManager* pDM,
 				pOffsetFEMNodes,
 				pOffsetMBNodes,
 				pRotMBNodes,
-				pInterfaceNodes,
+				InterfaceNodes,
 				pPHItStrNode,
 				pPHIrStrNode,
 				pModeShapest,
