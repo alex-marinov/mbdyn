@@ -80,11 +80,11 @@ protected:
 	Vec3 Inv2;
 	Mat3x3 Inv7;
 	std::vector<unsigned int> uModeNumber;
-	MatNxN *pModalMass;
-	MatNxN *pModalStiff;
-	MatNxN *pModalDamp;
+	const MatNxN *pModalMass;
+	const MatNxN *pModalStiff;
+	const MatNxN *pModalDamp;
 	std::vector<std::string> IdFEMNodes;
-	Mat3xN *pXYZFEMNodes;
+	const Mat3xN *pXYZFEMNodes;
 
 #if 0
 	std::vector<std::string> IntFEMNodes;
@@ -94,23 +94,23 @@ protected:
 	std::vector<const StructNode *> InterfaceNodes;
 #endif
  
-	Mat3xN *pPHIt;
-	Mat3xN *pPHIr;
+	const Mat3xN *pPHIt;
+	const Mat3xN *pPHIr;
    
-	Mat3xN *pModeShapest;
-	Mat3xN *pModeShapesr;
+	const Mat3xN *pModeShapest;
+	const Mat3xN *pModeShapesr;
 
 	Mat3xN *pCurrXYZ;
 	Mat3xN *pCurrXYZVel;
 
-	Mat3xN *pInv3;
-	Mat3xN *pInv4;
-	Mat3xN *pInv5;
-	Mat3xN *pInv8;
-	Mat3xN *pInv9;
+	const Mat3xN *pInv3;
+	const Mat3xN *pInv4;
+	const Mat3xN *pInv5;
+	const Mat3xN *pInv8;
+	const Mat3xN *pInv9;
 
-	Mat3xN *pInv10;
-	Mat3xN *pInv11;
+	const Mat3xN *pInv10;
+	const Mat3xN *pInv11;
 
 	Vec3   Inv3jaj;
 	Vec3   Inv3jaPj;
@@ -194,8 +194,6 @@ public:
 			Mat3xN *pInv11,
 			VecN *a,
 			VecN *aP,
-			DataManager* pDM,
-			MBDynParser& HP,
 			flag fOut);
 
 	/* Distruttore */

@@ -150,8 +150,6 @@ Modal::Modal(unsigned int uL,
 	Mat3xN *pInv11,
 	VecN *aa,
 	VecN *bb,
-	DataManager* pDM,  /* non serve */
-	MBDynParser& HP,   /* non serve */
 	flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
@@ -5117,8 +5115,6 @@ ReadModal(DataManager* pDM,
 				pInv11,
 				a,
 				aP,
-				pDM,
-				HP,
 				fOut));
 
 	if (fOut) {
