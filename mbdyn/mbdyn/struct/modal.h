@@ -86,14 +86,6 @@ protected:
 	std::vector<std::string> IdFEMNodes;
 	const Mat3xN *pXYZFEMNodes;
 
-#if 0
-	std::vector<std::string> IntFEMNodes;
-	Mat3xN *pOffsetFEMNodes;   
-	Mat3xN *pOffsetMBNodes;   
-	Mat3xN *pRotMBNodes;
-	std::vector<const StructNode *> InterfaceNodes;
-#endif
- 
 	const Mat3xN *pPHIt;
 	const Mat3xN *pPHIr;
    
