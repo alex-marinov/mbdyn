@@ -76,9 +76,9 @@ protected:
 	unsigned int NModes;
 	unsigned int NStrNodes;
 	unsigned int NFEMNodes;
-	doublereal dMass;
-	Vec3 Inv2;
-	Mat3x3 Inv7;
+	const doublereal dMass;
+	const Vec3 Inv2;
+	const Mat3x3 Inv7;
 	std::vector<unsigned int> uModeNumber;
 	const MatNxN *pModalMass;
 	const MatNxN *pModalStiff;
