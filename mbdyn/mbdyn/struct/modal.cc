@@ -4422,8 +4422,7 @@ ReadModal(DataManager* pDM,
 	size_t reqMR[] = {
 		MODAL_RECORD_1,
 		MODAL_RECORD_2,
-		MODAL_RECORD_3,
-		MODAL_RECORD_4,
+		// 3 & 4 no longer required; explicit check is present when currBinVersion == 1
 		MODAL_RECORD_5,
 		MODAL_RECORD_6,
 		MODAL_RECORD_7,
