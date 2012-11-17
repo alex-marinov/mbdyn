@@ -87,7 +87,7 @@ struct C81AirfoilStation {
 
 class C81MultipleAeroData : public AeroData {
 protected:
-	std::vector<integer> profiles;
+	std::vector<unsigned> profiles;
 	std::vector<doublereal> upper_bounds;
 	std::vector<const c81_data *> data;
 	integer curr_data;
@@ -96,7 +96,7 @@ public:
 	C81MultipleAeroData(
 		int i_p, int i_dim,
 		AeroData::UnsteadyModel u,
-		std::vector<integer>& p,
+		std::vector<unsigned>& p,
 		std::vector<doublereal>& ub,
 		std::vector<const c81_data*>& d,
 		DriveCaller *ptime = 0);
@@ -120,7 +120,7 @@ public:
 
 class C81InterpolatedAeroData : public AeroData {
 protected:
-	std::vector<integer> profiles;
+	std::vector<unsigned> profiles;
 	std::vector<doublereal> upper_bounds;
 	std::vector<const c81_data *> data;
 
@@ -130,7 +130,7 @@ public:
 	C81InterpolatedAeroData(
 		int i_p, int i_dim,
 		AeroData::UnsteadyModel u,
-		std::vector<integer>& p,
+		std::vector<unsigned>& p,
 		std::vector<doublereal>& ub,
 		std::vector<const c81_data *>& d,
 		doublereal dcltol,

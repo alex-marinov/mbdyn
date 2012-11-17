@@ -514,12 +514,12 @@ ReadC81MultipleAeroData(DataManager* pDM, MBDynParser& HP, AeroData** aerodata,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	
-	std::vector<integer> profiles(nProfiles);
+	std::vector<unsigned> profiles(nProfiles);
 	std::vector<doublereal> upper_bounds(nProfiles);
 	std::vector<const c81_data *> data(nProfiles);
 
 	for (int i = 0; i < nProfiles; i++) {
-		profiles[i] = HP.GetInt();
+		profiles[i] = (unsigned)HP.GetInt();
 		upper_bounds[i] = HP.GetReal();
 		if (upper_bounds[i] <= -1.) {
 			if (!bInterp || upper_bounds[i] < -1.) {
@@ -707,7 +707,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				ReadC81MultipleAeroData(pDM, HP, aerodata, *piNumber, iDim, true);
 
 			} else {
-	  			integer iProfile = HP.GetInt();
+	  			unsigned iProfile = (unsigned)HP.GetInt();
 		  		const c81_data* data = HP.GetC81Data(iProfile);
 
 		  		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -743,7 +743,7 @@ ReadAeroData(DataManager* pDM, MBDynParser& HP, int iDim,
 				ReadC81MultipleAeroData(pDM, HP, &pa, *piNumber, iDim, true);
 
 			} else {
-	  			integer iProfile = HP.GetInt();
+	  			unsigned iProfile = (unsigned)HP.GetInt();
 		  		const c81_data* data = HP.GetC81Data(iProfile);
 
 		  		DEBUGLCOUT(MYDEBUG_INPUT,

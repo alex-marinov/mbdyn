@@ -157,7 +157,7 @@ C81AeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, Mat6x6& J
 C81MultipleAeroData::C81MultipleAeroData(
 	int i_p, int i_dim,
 	AeroData::UnsteadyModel u,
-	std::vector<integer>& p,
+	std::vector<unsigned>& p,
 	std::vector<doublereal>& ub,
 	std::vector<const c81_data *>& d,
 	DriveCaller *ptime)
@@ -244,7 +244,7 @@ C81MultipleAeroData::GetForcesJac(int i, const doublereal* W, doublereal* TNG, M
 C81InterpolatedAeroData::C81InterpolatedAeroData(
 		integer i_p, int i_dim,
 		AeroData::UnsteadyModel u,
-		std::vector<integer>& p,
+		std::vector<unsigned>& p,
 		std::vector<doublereal>& ub,
 		std::vector<const c81_data *>& d,
 		doublereal dcltol,

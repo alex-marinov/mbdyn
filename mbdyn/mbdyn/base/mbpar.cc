@@ -1786,7 +1786,7 @@ MBDynParser::GetHydraulicFluid(void)
 }
 
 const c81_data* 
-MBDynParser::GetC81Data(integer profile)
+MBDynParser::GetC81Data(unsigned profile) const
 {
 	/* cerca i dati predefiniti, se li trova */
 	ADType::const_iterator i = AD.find(profile);

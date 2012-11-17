@@ -368,7 +368,7 @@ public:
    
 	HydraulicFluid* GetHydraulicFluid(void);
 
-	const c81_data* GetC81Data(integer profile);
+	const c81_data* GetC81Data(unsigned profile) const;
 
 	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
