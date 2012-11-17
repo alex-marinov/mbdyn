@@ -3120,6 +3120,7 @@ ReadModal(DataManager* pDM,
 	// record 12: (optional) rigid body inertia
 	// record 13: (optional) damping matrix
 
+	std::string fname;
 	if (bReadFEM) {
 		/* apre il file con i dati del modello FEM */
 		std::ifstream fdat(sFileFEM.c_str());
@@ -3966,85 +3967,7 @@ ReadModal(DataManager* pDM,
 			throw;
 		}
 
-		if (!bRecordGroup[MODAL_RECORD_1]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 1 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_2]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 2 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_3]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 3 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_4]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 4 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_5]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 5 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_6]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 6 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_7]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 7 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_8]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 8 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_9]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 9 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (!bRecordGroup[MODAL_RECORD_10]) {
-			silent_cerr("Modal(" << uLabel << "): "
-				"incomplete input file \"" << sFileFEM << "\", "
-				"record group 10 missing "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+		fname = sFileFEM;
 
 	} else {
 		std::ifstream fbin(sBinFileFEM.c_str());
@@ -4169,425 +4092,358 @@ ReadModal(DataManager* pDM,
 
 		bRecordGroup[1] = true;
 
-		/* legge il secondo blocco (Id.nodi) */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_2) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 2)"
+		for (;;) {
+			fbin.read(&checkPoint, sizeof(checkPoint));
+
+			if ((currBinVersion == MODAL_VERSION_1 && !fbin)
+				|| (currBinVersion > MODAL_VERSION_1 && checkPoint == MODAL_END_OF_FILE))
+			{
+				pedantic_cout("Modal(" << uLabel << "): "
+					"end of binary file \"" << sBinFileFEM << "\""
 					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		if (currBinVersion == MODAL_VERSION_1) {
-			// NOTE: accept unsigned int FEM labels (old binary format)
-			for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-				unsigned uFEMLabel;
-				fbin.read((char *)&uFEMLabel, sizeof(uFEMLabel));
-				std::ostringstream os;
-				os << uFEMLabel;
-				IdFEMNodes[iNode] = os.str();
+				fbin.close();
+				break;
 			}
 
-		} else {
-			for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-				size_t len;
-				fbin.read((char *)&len, sizeof(size_t));
-				ASSERT(len > 0);
-				IdFEMNodes[iNode].resize(len);
-				fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
-			}
-		}
-
-		bRecordGroup[MODAL_RECORD_2] = true;
-
-		/* deformate iniziali dei modi */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_3) {
-			if (currBinVersion == MODAL_VERSION_1) {
+			if (bRecordGroup[size_t(checkPoint)]) {
 				silent_cerr("Modal(" << uLabel << "): "
-						"file \"" << sBinFileFEM << "\" "
-						"looks broken (expecting checkPoint 3)"
-						<< std::endl);
+					"file \"" << sBinFileFEM << "\" "
+					"looks broken (block " << checkPoint << " already parsed)"
+					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			silent_cerr("Modal(" << uLabel << "): "
-					"warning: file \"" << sBinFileFEM << "\" "
-					"does not contain modal coordinate initial values"
-					<< std::endl);
-
-		} else {
 			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint) << std::endl);
+				"reading block " << int(checkPoint)
+				<< " from file \"" << sBinFileFEM << "\"" << std::endl);
 
-			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-				doublereal	d;
-	
-				fbin.read((char *)&d, sizeof(d));
-					
-				if (!bActiveModes[jMode]) {
-					continue;
-				}
-	
-				a->Put(iCnt, d);
-				iCnt++;
-			}
-	
-			bRecordGroup[MODAL_RECORD_3] = true;
+			switch (checkPoint) {
+			case MODAL_RECORD_2:
+				/* legge il secondo blocco (Id.nodi) */
+				if (currBinVersion == MODAL_VERSION_1) {
+					// NOTE: accept unsigned int FEM labels (old binary format)
+					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
+						unsigned uFEMLabel;
+						fbin.read((char *)&uFEMLabel, sizeof(uFEMLabel));
+						std::ostringstream os;
+						os << uFEMLabel;
+						IdFEMNodes[iNode] = os.str();
+					}
 
-			fbin.read(&checkPoint, sizeof(checkPoint));
-		}
-
-		/* velocita' iniziali dei modi */
-		if (checkPoint != MODAL_RECORD_4) {
-			if (currBinVersion == MODAL_VERSION_1) {
-				silent_cerr("Modal(" << uLabel << "): "
-						"file \"" << sBinFileFEM << "\" "
-						"looks broken (expecting checkPoint 4)"
-						<< std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			silent_cerr("Modal(" << uLabel << "): "
-					"warning: file \"" << sBinFileFEM << "\" "
-					"does not contain modal coordinate derivative initial values"
-					<< std::endl);
-
-		} else {
-			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint) << std::endl);
-
-			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-				doublereal	d;
-
-				fbin.read((char *)&d, sizeof(d));
-				
-				if (!bActiveModes[jMode]) {
-					continue;
-				}
-
-				aP->Put(iCnt, d);
-				iCnt++;
-			}
-	
-			bRecordGroup[MODAL_RECORD_4] = true;
-
-			fbin.read(&checkPoint, sizeof(checkPoint));
-		}
-
-		/* Coordinate X dei nodi */
-		if (checkPoint != MODAL_RECORD_5) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 5)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
-			doublereal	d;
-
-			fbin.read((char *)&d, sizeof(d));
-
-#ifdef MODAL_SCALE_DATA
-			d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-
-			pXYZFEMNodes->Put(1, iNode, d);
-		}
-
-		bRecordGroup[MODAL_RECORD_5] = true;
-
-		/* Coordinate Y dei nodi*/
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_6) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 6)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
-			doublereal	d;
-
-			fbin.read((char *)&d, sizeof(d));
-
-#ifdef MODAL_SCALE_DATA
-			d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-
-			pXYZFEMNodes->Put(2, iNode, d);
-		}
-
-		bRecordGroup[MODAL_RECORD_6] = true;
-
-		/* Coordinate Z dei nodi*/
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_7) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 7)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
-			doublereal	d;
-
-			fbin.read((char *)&d, sizeof(d));
-
-#ifdef MODAL_SCALE_DATA
-			d *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-
-			pXYZFEMNodes->Put(3, iNode, d);
-		}
-
-		bRecordGroup[MODAL_RECORD_7] = true;
-
-		/* Forme modali */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_8) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 8)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
-				doublereal n[6];
-	
-				fbin.read((char *)n, sizeof(n));
-	
-				if (!bActiveModes[jMode]) {
-					continue;
-				}
-
-#ifdef MODAL_SCALE_DATA
-				n[0] *= scalemodes;
-				n[1] *= scalemodes;
-				n[2] *= scalemodes;
-#endif /* MODAL_SCALE_DATA */
-				pModeShapest->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[0]));
-				pModeShapesr->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[3]));
-			}
-
-			if (bActiveModes[jMode]) {
-				iCnt++;
-			}
-		}
-
-		bRecordGroup[MODAL_RECORD_8] = true;
-
-		/* Matrice di massa modale */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != 9) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 9)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			unsigned int jCnt = 1;
-	
-			for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
-				doublereal	d;
-
-				fbin.read((char *)&d, sizeof(d));
-
-				if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
-					continue;
-				}
-				pGenMass->Put(iCnt, jCnt, d);
-				jCnt++;
-			}
-	
-			if (bActiveModes[jMode]) {
-				iCnt++;
-			}
-		}
-
-		bRecordGroup[MODAL_RECORD_9] = true;
-
-		/* Matrice di rigidezza  modale */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint != MODAL_RECORD_10) {
-			silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting checkpoint 10)"
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
-
-		for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-			unsigned int jCnt = 1;
-	
-			for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
-				doublereal	d;
-
-				fbin.read((char *)&d, sizeof(d));
-
-				if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
-					continue;
-				}
-				pGenStiff->Put(iCnt, jCnt, d);
-				jCnt++;
-			}
-	
-			if (bActiveModes[jMode]) {
-				iCnt++;
-			}
-		}
-
-		bRecordGroup[MODAL_RECORD_10] = true;
-
-		/* Lumped Masses */
-		fbin.read(&checkPoint, sizeof(checkPoint));
-		if (checkPoint == MODAL_RECORD_11) {
-			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint) << std::endl);
-
-			for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
-				for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
-					doublereal	d;
-
-					fbin.read((char *)&d, sizeof(d));
-						
-					switch (jCnt) {
-					case 1:
-#ifdef MODAL_SCALE_DATA
-						d *= scalemass;
-#endif /* MODAL_SCALE_DATA */
-						FEMMass[iNode - 1] = d;
-						break;
-
-					case 4:
-					case 5:
-					case 6:
-#ifdef MODAL_SCALE_DATA
-						d *= scaleinertia;
-#endif /* MODAL_SCALE_DATA */
-						FEMJ[iNode - 1](jCnt - 3) = d;
-						break;
+				} else {
+					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
+						size_t len;
+						fbin.read((char *)&len, sizeof(size_t));
+						ASSERT(len > 0);
+						IdFEMNodes[iNode].resize(len);
+						fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
 					}
 				}
-			}
+				break;
 
-			bBuildInvariants = true;
-
-			bRecordGroup[MODAL_RECORD_11] = true;
-
-			// read next checkpoint
-			fbin.read(&checkPoint, sizeof(checkPoint));
-		}
-
-		if (checkPoint == MODAL_RECORD_12) {
-			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint) << std::endl);
-
-			doublereal      d;
-			fbin.read((char *)&d, sizeof(d));
-			dMass = d;
-
-			// NOTE: the CM location is read and temporarily stored in STmp
-			// later, it will be multiplied by the mass
-			for (int iRow = 1; iRow <= 3; iRow++) {
-				fbin.read((char *)&d, sizeof(d));
-
-				STmp(iRow) = d;
-			}
-
-			for (int iRow = 1; iRow <= 3; iRow++) {
-				for (int iCol = 1; iCol <= 3; iCol++) {
-					fbin.read((char *)&d, sizeof(d));
-
-					JTmp(iRow, iCol) = d;
-				}
-			}
-
-			JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
-
-			bRecordGroup[MODAL_RECORD_12] = true;
-
-			// read next checkpoint
-			fbin.read(&checkPoint, sizeof(checkPoint));
-		}
-
-		if (checkPoint == MODAL_RECORD_13) {
-			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint) << std::endl);
-
-			for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
-				unsigned int jCnt = 1;
+			case MODAL_RECORD_3:
+				/* deformate iniziali dei modi */
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+					doublereal	d;
 	
-				for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+					fbin.read((char *)&d, sizeof(d));
+					
+					if (!bActiveModes[jMode]) {
+						continue;
+					}
+	
+					a->Put(iCnt, d);
+					iCnt++;
+				}
+				break;
+
+			case MODAL_RECORD_4:
+				/* velocita' iniziali dei modi */
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
 					doublereal	d;
 
 					fbin.read((char *)&d, sizeof(d));
-
-					if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+				
+					if (!bActiveModes[jMode]) {
 						continue;
 					}
 
-					if (!bGotDamp) {
-						pGenDamp->Put(iCnt, jCnt, d);
-					}
-
-					jCnt++;
-				}
-	
-				if (bActiveModes[jMode]) {
+					aP->Put(iCnt, d);
 					iCnt++;
 				}
-			}
+				break;
 
-			bRecordGroup[MODAL_RECORD_13] = true;
+			case MODAL_RECORD_5:
+				/* Coordinate X dei nodi */
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+					doublereal	d;
 
-			// read next checkpoint
-			fbin.read(&checkPoint, sizeof(checkPoint));
-		}
+					fbin.read((char *)&d, sizeof(d));
 
-		if (currBinVersion != MODAL_VERSION_1) {
-			if (checkPoint != MODAL_END_OF_FILE) {
+#ifdef MODAL_SCALE_DATA
+					d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+					pXYZFEMNodes->Put(1, iNode, d);
+				}
+				break;
+
+			case MODAL_RECORD_6:
+				/* Coordinate Y dei nodi*/
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+					doublereal	d;
+
+					fbin.read((char *)&d, sizeof(d));
+
+#ifdef MODAL_SCALE_DATA
+					d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+					pXYZFEMNodes->Put(2, iNode, d);
+				}
+				break;
+
+			case MODAL_RECORD_7:
+				/* Coordinate Z dei nodi*/
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+					doublereal	d;
+
+					fbin.read((char *)&d, sizeof(d));
+
+#ifdef MODAL_SCALE_DATA
+					d *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+
+					pXYZFEMNodes->Put(3, iNode, d);
+				}
+				break;
+
+			case MODAL_RECORD_8:
+				/* Forme modali */
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+					for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+						doublereal n[6];
+	
+						fbin.read((char *)n, sizeof(n));
+	
+						if (!bActiveModes[jMode]) {
+							continue;
+						}
+
+#ifdef MODAL_SCALE_DATA
+						n[0] *= scalemodes;
+						n[1] *= scalemodes;
+						n[2] *= scalemodes;
+#endif /* MODAL_SCALE_DATA */
+						pModeShapest->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[0]));
+						pModeShapesr->PutVec((iCnt - 1)*NFEMNodes + iNode, Vec3(&n[3]));
+					}
+
+					if (bActiveModes[jMode]) {
+						iCnt++;
+					}
+				}
+				break;
+
+			case MODAL_RECORD_9:
+				/* Matrice di massa modale */
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+					unsigned int jCnt = 1;
+	
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+						doublereal	d;
+
+						fbin.read((char *)&d, sizeof(d));
+
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+							continue;
+						}
+						pGenMass->Put(iCnt, jCnt, d);
+						jCnt++;
+					}
+	
+					if (bActiveModes[jMode]) {
+						iCnt++;
+					}
+				}
+				break;
+
+			case MODAL_RECORD_10:
+				/* Matrice di rigidezza  modale */
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+					unsigned int jCnt = 1;
+		
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+						doublereal	d;
+
+						fbin.read((char *)&d, sizeof(d));
+
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+							continue;
+						}
+						pGenStiff->Put(iCnt, jCnt, d);
+						jCnt++;
+					}
+	
+					if (bActiveModes[jMode]) {
+						iCnt++;
+					}
+				}
+				break;
+
+			case MODAL_RECORD_11:
+				/* Lumped Masses */
+				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
+					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
+						doublereal	d;
+
+						fbin.read((char *)&d, sizeof(d));
+						
+						switch (jCnt) {
+						case 1:
+#ifdef MODAL_SCALE_DATA
+							d *= scalemass;
+#endif /* MODAL_SCALE_DATA */
+							FEMMass[iNode - 1] = d;
+							break;
+
+						case 4:
+						case 5:
+						case 6:
+#ifdef MODAL_SCALE_DATA
+							d *= scaleinertia;
+#endif /* MODAL_SCALE_DATA */
+							FEMJ[iNode - 1](jCnt - 3) = d;
+							break;
+						}
+					}
+				}
+
+				bBuildInvariants = true;
+				break;
+
+			case MODAL_RECORD_12: {
+				doublereal      d;
+				fbin.read((char *)&d, sizeof(d));
+				dMass = d;
+
+				// NOTE: the CM location is read and temporarily stored in STmp
+				// later, it will be multiplied by the mass
+				for (int iRow = 1; iRow <= 3; iRow++) {
+					fbin.read((char *)&d, sizeof(d));
+
+					STmp(iRow) = d;
+				}
+
+				for (int iRow = 1; iRow <= 3; iRow++) {
+					for (int iCol = 1; iCol <= 3; iCol++) {
+						fbin.read((char *)&d, sizeof(d));
+
+						JTmp(iRow, iCol) = d;
+					}
+				}
+
+				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
+				} break;
+
+			case MODAL_RECORD_13:
+				for (unsigned int iCnt = 1, jMode = 1; jMode <= NModesFEM; jMode++) {
+					unsigned int jCnt = 1;
+	
+					for (unsigned int kMode = 1; kMode <= NModesFEM; kMode++) {
+						doublereal	d;
+
+						fbin.read((char *)&d, sizeof(d));
+
+						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
+							continue;
+						}
+
+						if (!bGotDamp) {
+							pGenDamp->Put(iCnt, jCnt, d);
+						}
+
+						jCnt++;
+					}
+	
+					if (bActiveModes[jMode]) {
+						iCnt++;
+					}
+				}
+				break;
+
+			default:
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
-					"looks broken (expecting final checkpoint)"
+					"looks broken (unknown block " << checkPoint << ")"
 					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			bRecordGroup[size_t(checkPoint)] = true;
+		}
+
+		// sanity checks
+		if (currBinVersion == MODAL_VERSION_1) {
+			bool bBailOut(false);
+
+			if (!bRecordGroup[MODAL_RECORD_3]) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFEM << "\" "
+					"looks broken (missing block " << MODAL_RECORD_3 << ", required by version 1)"
+					<< std::endl);
+				bBailOut = true;
+			}
+
+			if (!bRecordGroup[MODAL_RECORD_4]) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFEM << "\" "
+					"looks broken (missing block " << MODAL_RECORD_4 << ", required by version 1)"
+					<< std::endl);
+				bBailOut = true;
+			}
+
+			if (bRecordGroup[MODAL_RECORD_13]) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFEM << "\" "
+					"looks broken (block " << MODAL_RECORD_13 << " not supported by version 1)"
+					<< std::endl);
+				bBailOut = true;
+			}
+
+			if (bBailOut) {
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
 
-		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
+		fname = sBinFileFEM;
+	}
 
-		fbin.close();
+	size_t reqMR[] = {
+		MODAL_RECORD_1,
+		MODAL_RECORD_2,
+		MODAL_RECORD_3,
+		MODAL_RECORD_4,
+		MODAL_RECORD_5,
+		MODAL_RECORD_6,
+		MODAL_RECORD_7,
+		MODAL_RECORD_8,
+		MODAL_RECORD_9,
+		MODAL_RECORD_10
+	};
+	bool bBailOut(false);
+	for (size_t iCnt = 0; iCnt < sizeof(reqMR)/sizeof(size_t); iCnt++) {
+		if (!bRecordGroup[reqMR[iCnt]]) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"incomplete input file \"" << fname << "\", "
+				"record group " << reqMR[iCnt] << " missing "
+				"at line " << HP.GetLineData() << std::endl);
+			bBailOut = true;
+		}
+	}
+
+	if (bBailOut) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* lettura dati di vincolo:
