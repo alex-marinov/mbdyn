@@ -26,7 +26,7 @@ C You should have received a copy of the GNU General Public License
 C along with this program; if not, write to the Free Software
 C Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-      PROGRAM FEMGEN
+      SUBROUTINE FEMGEN(MODNAM)
 C
 C     this routine reads OUTPUT4 and OUTPUT2 binary files, and generates
 C     a "model.fem" ascii file that can be used as an input for the modal
@@ -38,7 +38,7 @@ C
 C
       integer maxnod, maxmod
       parameter(maxnod=20000,maxmod=1000)
-      character*72 modnam, name*8,filein*9
+      character*72 modnam, cname*8,filein*9
       dimension lab(2),t(7),nam(2)
       integer outfil,in2f,in4f,sysout
       integer ncol, nrow, nmodes, err, iret 
@@ -62,10 +62,15 @@ C
       print *, 'Files "mbdyn.mat" and "mbdyn.tab" must be present'
       print *, 'Maximum number of modes: ', maxmod
       print *, 'Maximum number of nodes: ', maxnod
+      print *, 'Recompile with larger maxmod, maxnod as needed'
       print *, ' '   
 
-      print*, 'Please enter the model name'
-      read '(A72)', modnam          
+      if (modnam(1:1).EQ.' ') then
+        print*, 'Please enter the model name'
+        read '(A72)', modnam          
+      endif
+
+      print*, 'Output to file ', modnam
 
 C     Cancella gli spazi dopo il nome per aggiungere l'estensione .fem 
 C     al file di uscita       
@@ -86,7 +91,7 @@ C     GPL BGPDT OUGV1
      *     err=900, iostat=iret)
       
 C     legge la prima matrice in modo da conoscere il numero di modi      
-      call GETIDS(m,ncol,nrow,name,maxmod,maxmod,m,1,in4f,err)
+      call GETIDS(m,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
       nmodes = nrow
       
       write(outfil,'(A24)') '** MBDyn MODAL DATA FILE'
@@ -190,7 +195,7 @@ C     stampa la matrice di massa
          write(outfil,'(500(1X,1PE17.10))')(m(j,i),i=1,ncol) 	  
       enddo
 C     legge la matrice di rigidezza     
-      call GETIDS(m,ncol,nrow,name,maxmod,maxmod,m,1,in4f,err)
+      call GETIDS(m,ncol,nrow,cname,maxmod,maxmod,m,1,in4f,err)
 C     stampa la matrice di rigidezza
       write(outfil,'(A2)') '**'
       write(outfil,'(A42)') '** RECORD GROUP 10, MODAL STIFFNESS MATRIX'  
@@ -198,7 +203,7 @@ C     stampa la matrice di rigidezza
          write(outfil,'(500(1X,1PE17.10))')(m(j,i),i=1,ncol) 	  
       enddo      
 C     legge il vettore lumped mass      
-      call GETIDS(b,ncol,nrow,name,6*maxnod,1,db,1,in4f,err)
+      call GETIDS(b,ncol,nrow,cname,6*maxnod,1,db,1,in4f,err)
 C     stampa il vettore lumped mass
       write(outfil,'(A2)') '**'
       write(outfil,'(A38,A12)') '** RECORD GROUP 11, DIAGONAL OF LUMPED'
