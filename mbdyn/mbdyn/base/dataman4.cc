@@ -1245,17 +1245,6 @@ DataManager::ReadElems(MBDynParser& HP)
 	ASSERT(ei == Elems.end());
 	ASSERT(iNumElems == Elems.size());
 
-#if 0
-	Elems.resize(iNumElems);
-	for (int iCnt = 0, iElem = 0; iCnt < Elem::LASTELEMTYPE; ++iCnt) {
-		for (ElemContainerType::const_iterator p = ElemData[iCnt].ElemContainer.begin();
-			p != ElemData[iCnt].ElemContainer.end(); ++p, ++iElem)
-		{
-			Elems[iElem] = p->second;
-		}
-	}
-#endif
-	
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << std::endl);
 } /*  End of DataManager::ReadElems()  */
 

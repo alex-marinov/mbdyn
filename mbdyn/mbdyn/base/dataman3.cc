@@ -2171,18 +2171,6 @@ DataManager::ReadNodes(MBDynParser& HP)
 	ASSERT(ni == Nodes.end());
 	ASSERT(iNumNodes == Nodes.size());
 
-#if 0
-	Nodes.resize(iNumNodes);
-	for (int iCnt = 0, iNode = 0; iCnt < Node::LASTNODETYPE; iCnt++) {
-		for (NodeContainerType::const_iterator p = NodeData[iCnt].NodeContainer.begin();
-			p != NodeData[iCnt].NodeContainer.end();
-			++p, ++iNode)
-		{
-			Nodes[iNode] = p->second;
-		}
-	}
-#endif
-
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of nodes data" << std::endl);
 } /* End of DataManager::ReadNodes() */
 
