@@ -173,7 +173,7 @@ protected:
 	void HydraulicFluid_int(void);
  
 	/* Struttura e dati per la linked list di c81 data */
-	typedef std::map<integer, C81Data *> ADType;
+	typedef std::map<unsigned, C81Data *> ADType;
 	ADType AD;
 
 	void C81Data_int(void);
