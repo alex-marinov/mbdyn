@@ -1505,7 +1505,7 @@ FullMatrixHandler::Add(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] += pdFrom[V1];
 
@@ -1534,7 +1534,7 @@ FullMatrixHandler::Sub(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] -= pdFrom[V1];
 
@@ -1563,7 +1563,7 @@ FullMatrixHandler::Put(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] = pdFrom[V1];
 
@@ -1592,7 +1592,7 @@ FullMatrixHandler::AddT(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] += pdFrom[V1];
 
@@ -1621,7 +1621,7 @@ FullMatrixHandler::SubT(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] -= pdFrom[V1];
 
@@ -1650,7 +1650,7 @@ FullMatrixHandler::PutT(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] = pdFrom[V1];
 
@@ -1680,7 +1680,7 @@ FullMatrixHandler::AddDiag(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] += pdFrom[V1];
 
@@ -1709,7 +1709,7 @@ FullMatrixHandler::SubDiag(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] -= pdFrom[V1];
 
@@ -1738,7 +1738,7 @@ FullMatrixHandler::PutDiag(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol][iRow] = pdFrom[V1];
 
@@ -1767,7 +1767,7 @@ FullMatrixHandler::AddCross(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol + 1][iRow] -= pdFrom[V3];
 	ppdColsm1[iCol + 2][iRow] += pdFrom[V2];
@@ -1799,7 +1799,7 @@ FullMatrixHandler::SubCross(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol + 1][iRow] += pdFrom[V3];
 	ppdColsm1[iCol + 2][iRow] -= pdFrom[V2];
@@ -1831,7 +1831,7 @@ FullMatrixHandler::PutCross(integer iRow, integer iCol, const Vec3& v)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN)
 	 */
-	doublereal* pdFrom = v.pGetVec();
+	const doublereal* pdFrom = v.pGetVec();
 
 	ppdColsm1[iCol + 1][iRow] = -pdFrom[V3];
 	ppdColsm1[iCol + 2][iRow] = pdFrom[V2];
@@ -1864,7 +1864,7 @@ FullMatrixHandler::Add(integer iRow, integer iCol, const Mat3x3& m)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN) e assume
 	 * che la matrice Mat3x3 sia organizzata anch'essa per colonne */
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] += pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] += pdFrom[M21];
@@ -1907,7 +1907,7 @@ FullMatrixHandler::AddT(integer iRow, integer iCol, const Mat3x3& m)
 	/* Nota: assume che la matrice sia organizzata
 	 * "per colonne" (stile FORTRAN) e assume
 	 * che la matrice Mat3x3 sia organizzata anch'essa per colonne */
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] += pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] += pdFrom[M12];
@@ -1942,7 +1942,7 @@ FullMatrixHandler::Sub(integer iRow, integer iCol, const Mat3x3& m)
 	ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] -= pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] -= pdFrom[M21];
@@ -1983,7 +1983,7 @@ FullMatrixHandler::SubT(integer iRow, integer iCol, const Mat3x3& m)
 	ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] -= pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] -= pdFrom[M12];
@@ -2018,7 +2018,7 @@ FullMatrixHandler::Put(integer iRow, integer iCol, const Mat3x3& m)
 	ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] = pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] = pdFrom[M21];
@@ -2059,7 +2059,7 @@ FullMatrixHandler::PutT(integer iRow, integer iCol, const Mat3x3& m)
 	ASSERT(iCol <= iNumCols - 2);
 #endif /* DEBUG */
 
-	doublereal* pdFrom = m.pGetMat();
+	const doublereal* pdFrom = m.pGetMat();
 
 	ppdColsm1[iCol][iRow] = pdFrom[M11];
 	ppdColsm1[iCol][iRow + 1] = pdFrom[M12];

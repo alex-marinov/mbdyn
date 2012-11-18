@@ -189,8 +189,12 @@ class Vec3 {
    /*
     Dirty job: restituisce il puntatore al vettore (deprecato).
     */
-   doublereal* pGetVec(void) const { 
-      return (doublereal*)pdVec; 
+   const doublereal* pGetVec(void) const { 
+      return pdVec;
+   };
+      
+   doublereal* pGetVec(void) { 
+      return pdVec;
    };
       
    /*Operatori su vettori e matrici */
@@ -736,8 +740,12 @@ class Mat3x3 {
    /*
     Dirty job: restituisce il puntatore alla matrice (deprecato).
     */
-   doublereal* pGetMat(void) const { 
-      return (doublereal*)pdMat;
+   const doublereal* pGetMat(void) const { 
+      return pdMat;
+   };
+
+   doublereal* pGetMat(void) { 
+      return pdMat;
    };
 
       

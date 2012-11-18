@@ -165,20 +165,20 @@ Mat3x3::Inv(void) const
 Vec3
 Mat3x3::Solve(const doublereal& d, const Vec3& v) const
 {
-   doublereal* p = (doublereal*)pdMat;
-   doublereal* pv = v.pGetVec();
+   const doublereal* p = pdMat;
+   const doublereal* pv = v.pGetVec();
 
    ASSERT(fabs(d) > std::numeric_limits<doublereal>::epsilon());
    
-   return Vec3((pv[V1]*(p[M22]*p[M33]-p[M23]*p[M32])
-		+pv[V2]*(p[M13]*p[M32]-p[M12]*p[M33])
-		+pv[V3]*(p[M12]*p[M23]-p[M13]*p[M22]))/d,
-	       (pv[V1]*(p[M23]*p[M31]-p[M21]*p[M33])
-		+pv[V2]*(p[M11]*p[M33]-p[M13]*p[M31])
-		+pv[V3]*(p[M13]*p[M21]-p[M11]*p[M23]))/d,
-	       (pv[V1]*(p[M21]*p[M32]-p[M22]*p[M31])
-		+pv[V2]*(p[M12]*p[M31]-p[M11]*p[M32])
-		+pv[V3]*(p[M11]*p[M22]-p[M12]*p[M21]))/d);
+   return Vec3((pv[V1]*(p[M22]*p[M33] - p[M23]*p[M32])
+		+pv[V2]*(p[M13]*p[M32] - p[M12]*p[M33])
+		+pv[V3]*(p[M12]*p[M23] - p[M13]*p[M22]))/d,
+	       (pv[V1]*(p[M23]*p[M31] - p[M21]*p[M33])
+		+pv[V2]*(p[M11]*p[M33] - p[M13]*p[M31])
+		+pv[V3]*(p[M13]*p[M21] - p[M11]*p[M23]))/d,
+	       (pv[V1]*(p[M21]*p[M32] - p[M22]*p[M31])
+		+pv[V2]*(p[M12]*p[M31] - p[M11]*p[M32])
+		+pv[V3]*(p[M11]*p[M22] - p[M12]*p[M21]))/d);
 }
 
 /* soluzione */
@@ -655,7 +655,7 @@ Vec3 operator - (const Vec3& v)
 
 Mat3x3 operator - (const Mat3x3& m)
 {
-   doublereal* pdMat = m.pGetMat();
+   const doublereal* pdMat = m.pGetMat();
    return Mat3x3(-pdMat[M11],
 		 -pdMat[M21],
 		 -pdMat[M31],
@@ -676,7 +676,7 @@ const char sDefFill[] = " ";
 std::ostream& 
 operator << (std::ostream& out, const Mat3x3& m)
 {
-   doublereal* pd = m.pGetMat();
+   const doublereal* pd = m.pGetMat();
 
    out
      << pd[M11] << sDefFill << pd[M12] << sDefFill << pd[M13] << sDefFill
@@ -699,7 +699,7 @@ Write(std::ostream& out, const Mat3x3& m, const char* s, const char* s2)
 std::ostream&
 operator << (std::ostream& out, const Vec3& v)
 {
-   doublereal* pd = v.pGetVec();
+   const doublereal* pd = v.pGetVec();
    
    out << pd[0] << sDefFill << pd[1] << sDefFill << pd[2];
    
