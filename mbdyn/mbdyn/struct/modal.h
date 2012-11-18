@@ -143,8 +143,6 @@ public:
 protected:
 	std::vector<StrNodeData> SND;
 
-	integer iModalIndex;
- 
 	/* from gravity.h */
 	/* momento statico */
 	Vec3 GetS_int(void) const;
