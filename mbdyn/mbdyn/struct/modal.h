@@ -75,16 +75,18 @@ protected:
 
 	unsigned int NModes;
 	unsigned int NStrNodes;
-	unsigned int NFEMNodes;
-	const doublereal dMass;
-	const Vec3 Inv2;
-	const Mat3x3 Inv7;
+
+	unsigned int NFEMNodes; // number of FEM nodes, common
+	std::vector<std::string> IdFEMNodes; // ID of FEM nodes, common
+	const Mat3xN *pXYZFEMNodes; // local position of FEM nodes, common
+	const doublereal dMass; // mass, common
+	const Vec3 Inv2; // undeformed static moment, common
+	const Mat3x3 Inv7; // undeformed inertia moment, common
+
 	std::vector<unsigned int> uModeNumber;
 	const MatNxN *pModalMass;
 	const MatNxN *pModalStiff;
 	const MatNxN *pModalDamp;
-	std::vector<std::string> IdFEMNodes;
-	const Mat3xN *pXYZFEMNodes;
 
 	const Mat3xN *pPHIt;
 	const Mat3xN *pPHIr;
