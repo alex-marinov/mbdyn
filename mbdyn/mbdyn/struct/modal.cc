@@ -3145,7 +3145,7 @@ ReadModal(DataManager* pDM,
 			}
 
 			currBinVersion = BinVersion;
-			fbin.write((char *)&currBinVersion, sizeof(currBinVersion));
+			fbin.write((const char *)&currBinVersion, sizeof(currBinVersion));
 		}
 
 		/* carica i dati relativi a coordinate nodali, massa, momenti statici
@@ -3283,8 +3283,8 @@ ReadModal(DataManager* pDM,
 				if (bWriteBIN) {
 					checkPoint = MODAL_RECORD_1;
 					fbin.write(&checkPoint, sizeof(checkPoint));
-					fbin.write((char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
-					fbin.write((char *)&NModesFEM, sizeof(NModesFEM));
+					fbin.write((const char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
+					fbin.write((const char *)&NModesFEM, sizeof(NModesFEM));
 				}
 
 				bRecordGroup[MODAL_RECORD_1] = true;
@@ -3317,8 +3317,8 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
 						size_t len = IdFEMNodes[iNode].size();
-						fbin.write((char *)&len, sizeof(size_t));
-						fbin.write((char *)IdFEMNodes[iNode].c_str(), len);
+						fbin.write((const char *)&len, sizeof(size_t));
+						fbin.write((const char *)IdFEMNodes[iNode].c_str(), len);
 					}
 				}
 
@@ -3360,7 +3360,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 					
 					if (!bActiveModes[jMode]) {
@@ -3408,7 +3408,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 					
 					if (!bActiveModes[jMode]) {
@@ -3446,7 +3446,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 					
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 
 #ifdef MODAL_SCALE_DATA
@@ -3483,7 +3483,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 
 #ifdef MODAL_SCALE_DATA
@@ -3520,7 +3520,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 
 #ifdef MODAL_SCALE_DATA
@@ -3613,7 +3613,7 @@ ReadModal(DataManager* pDM,
 							>> n[3] >> n[4] >> n[5];
 
 						if (bWriteBIN) {
-							fbin.write((char *)n, sizeof(n));
+							fbin.write((const char *)n, sizeof(n));
 						}
 	
 						if (!bActiveModes[jMode]) {
@@ -3679,7 +3679,7 @@ ReadModal(DataManager* pDM,
 						}
 
 						if (bWriteBIN) {
-							fbin.write((char *)&d, sizeof(d));
+							fbin.write((const char *)&d, sizeof(d));
 						}
 						
 						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
@@ -3738,7 +3738,7 @@ ReadModal(DataManager* pDM,
 						}
 
 						if (bWriteBIN) {
-							fbin.write((char *)&d, sizeof(d));
+							fbin.write((const char *)&d, sizeof(d));
 						}
 						
 						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
@@ -3783,7 +3783,7 @@ ReadModal(DataManager* pDM,
 						fdat >> d;
 
 						if (bWriteBIN) {
-							fbin.write((char *)&d, sizeof(d));
+							fbin.write((const char *)&d, sizeof(d));
 						}
 						
 						switch (jCnt) {
@@ -3845,7 +3845,7 @@ ReadModal(DataManager* pDM,
 				fdat >> d;
 
 				if (bWriteBIN) {
-					fbin.write((char *)&d, sizeof(d));
+					fbin.write((const char *)&d, sizeof(d));
 				}
 
 				dMass = d;
@@ -3856,7 +3856,7 @@ ReadModal(DataManager* pDM,
 					fdat >> d;
 
 					if (bWriteBIN) {
-						fbin.write((char *)&d, sizeof(d));
+						fbin.write((const char *)&d, sizeof(d));
 					}
 
 					STmp(iRow) = d;
@@ -3867,7 +3867,7 @@ ReadModal(DataManager* pDM,
 						fdat >> d;
 
 						if (bWriteBIN) {
-							fbin.write((char *)&d, sizeof(d));
+							fbin.write((const char *)&d, sizeof(d));
 						}
 
 						JTmp(iRow, iCol) = d;
@@ -3920,7 +3920,7 @@ ReadModal(DataManager* pDM,
 						}
 
 						if (bWriteBIN) {
-							fbin.write((char *)&d, sizeof(d));
+							fbin.write((const char *)&d, sizeof(d));
 						}
 						
 						if (!bActiveModes[jMode] || !bActiveModes[kMode]) {
