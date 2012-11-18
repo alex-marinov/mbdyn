@@ -3096,7 +3096,9 @@ ReadModal(DataManager* pDM,
 		MODAL_RECORD_10 = 10,
 		MODAL_RECORD_11 = 11,
 		MODAL_RECORD_12 = 12,
-		MODAL_RECORD_13 = 13,	// reserved for damping
+		MODAL_RECORD_13 = 13,
+
+		// NOTE: do not exceed 127
 
 		LAST_RECORD,
 
