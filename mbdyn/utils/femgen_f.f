@@ -59,7 +59,7 @@ C
       print *, 'FEMGEN: translation of Binary NASTRAN modal data'
       print *, '        for use in MBDyn''s modal joint element'
       print *, ' '
-      print *, 'Files "mbdyn.mat" and "mbdyn.tab" must be present'
+      print *, 'Files ''mbdyn.mat'' and ''mbdyn.tab'' must be present'
       print *, 'Maximum number of modes: ', maxmod
       print *, 'Maximum number of nodes: ', maxnod
       print *, 'Recompile with larger maxmod, maxnod as needed'
@@ -267,7 +267,7 @@ C     READ MATRIX DESCRIPTORS
 C
       ERR = 0
       READ (IU) NCOL,NROW,NF,NTYPE,CNAME
-      PRINT*, 'Reading Matrix ', CNAME,NCOL,NROW
+      PRINT*, 'Reading Matrix ''', CNAME,''' ncol=',NCOL,' nrow=',NROW
 C
 C     CHECK IF MATRIX IS TOO LARGE
 C
