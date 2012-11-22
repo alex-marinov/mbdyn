@@ -26,7 +26,7 @@ C You should have received a copy of the GNU General Public License
 C along with this program; if not, write to the Free Software
 C Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-      SUBROUTINE FEMGEN(MODNAM)
+      SUBROUTINE FEMGEN(MODNAM,IIMD,IIMV,IDXM)
 C
 C     this routine reads OUTPUT4 and OUTPUT2 binary files, and generates
 C     a "model.fem" ascii file that can be used as an input for the modal
@@ -50,6 +50,7 @@ C
 
       integer j,i
       integer nword,irtn
+      double precision dtmp
 
       data sysout /6/
       data outfil /10/
@@ -136,14 +137,18 @@ C     il secondo record DI GRT non serve
          call IREAD(in2f,sysout,ib,maxnod,0,nword,irtn)
       enddo
 
-      write(outfil,'(A2)') '**'
-      write(outfil,'(A33, A13)') '** RECORD GROUP 3, INITIAL MODAL ',
+      if (IIMD.NE.0) then
+        write(outfil,'(A2)') '**'
+        write(outfil,'(A33, A13)') '** RECORD GROUP 3, INITIAL MODAL ',
      *     'DISPLACEMENTS'
-      write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)
-      write(outfil,'(A2)') '**'
-      write(outfil,'(A32,A10)') '** RECORD GROUP 4, INITIAL MODAL ',
+        write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)
+      endif
+      if (IIMV.NE.0) then
+        write(outfil,'(A2)') '**'
+        write(outfil,'(A32,A10)') '** RECORD GROUP 4, INITIAL MODAL ',
      *     'VELOCITIES'
-      write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)
+        write(outfil,'(500(1X,1PE17.10))') (0.0*i, i=1,nmodes)
+      endif
 
 C     legge la matrice BGPDT che ha le posizioni dei nodi
       call IHEADR(in2f,sysout,nam,t)
@@ -205,6 +210,14 @@ C     stampa la matrice di rigidezza
       enddo
 C     legge il vettore lumped mass
       call GETIDS(b,ncol,nrow,cname,6*maxnod,1,db,1,in4f,err)
+      if (idxm.ne.0) then
+        do j = 0,nrow,6
+          dtmp = db(j+idxm)
+          do i = 1,3
+            db(j+i) = dtmp
+          enddo
+        enddo
+      endif
 C     stampa il vettore lumped mass
       write(outfil,'(A2)') '**'
       write(outfil,'(A38,A12)') '** RECORD GROUP 11, DIAGONAL OF LUMPED'

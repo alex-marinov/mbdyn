@@ -38,15 +38,17 @@
 
 #include "ac/f2c.h"
 
-extern int __FC_DECL__(femgen)(char outname[73]);
+extern int __FC_DECL__(femgen)(char outname[73], int32_t *iimd, int32_t *iimv, int32_t *idxm);
 
 static void
 usage(FILE *outf, int rc)
 {
 	fprintf(outf,
-"usage: femgen [-h] [[-f] <outfile>]\n"
-"\t-h\t\tthis message\n"
+"usage: femgen [-hd] [[-f] <outfile>]\n"
+"\t-d\t\tno initial modal displacements/velocities\n"
 "\t-f <outfile>\toutput file name (up to 72 characters long)\n"
+"\t-h\t\tthis message\n"
+"\t-m <idx>\tindex of \"mass\" component to be used (x, y, or z)\n"
 		);
 	exit(rc);
 
@@ -57,13 +59,20 @@ main(int argc, char *argv[])
 {
 	char outname[73] = { ' ' };
 
+	int32_t iimd = 1, iimv = 1, idxm = 0;
+
 	for (;;) {
-		int opt = getopt(argc, argv, "f:h");
+		int opt = getopt(argc, argv, "df:hm:");
 		if (opt == -1) {
 			break;
 		}
 
 		switch (opt) {
+		case 'd':
+			iimd = 0;
+			iimv = 0;
+			break;
+
 		case 'f': {
 			size_t len = strlen(optarg);
 			if (len >= sizeof(outname)) {
@@ -77,6 +86,29 @@ main(int argc, char *argv[])
 		case '?':
 		case 'h':
 			usage(stdout, EXIT_SUCCESS);
+
+		case 'm':
+			if (optarg[1] != '\0') {
+				usage(stderr, EXIT_FAILURE);
+			}
+
+			switch (optarg[0]) {
+			case 'x':
+				idxm = 1;
+				break;
+
+			case 'y':
+				idxm = 2;
+				break;
+
+			case 'z':
+				idxm = 3;
+				break;
+
+			default:
+				usage(stderr, EXIT_FAILURE);
+			}
+			break;
 
 		default:
 			fprintf(stderr, "femgen: unhandled option '%c'\n", opt);
@@ -105,6 +137,6 @@ main(int argc, char *argv[])
 		fprintf(stderr, "femgen: extra args ignored\n");
 	}
 
-	return __FC_DECL__(femgen)(outname);
+	return __FC_DECL__(femgen)(outname, &iimd, &iimv, &idxm);
 }
 
