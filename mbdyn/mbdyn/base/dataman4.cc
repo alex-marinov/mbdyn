@@ -276,6 +276,9 @@ DataManager::ReadElems(MBDynParser& HP)
 					AutomaticStructDispElem(pDN));
 				InsertElem(ElemData[Elem::AUTOMATICSTRUCTURAL], pDN->GetLabel(), pTmpEl);
 
+				*ei = pTmpEl;
+				++ei;
+
 				ASSERT(iNumTypes[Elem::AUTOMATICSTRUCTURAL] > 0);
 
 				iMissingElems--;
