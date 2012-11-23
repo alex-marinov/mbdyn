@@ -44,11 +44,12 @@ static void
 usage(FILE *outf, int rc)
 {
 	fprintf(outf,
-"usage: femgen [-hd] [[-f] <outfile>]\n"
+"usage: femgen [-hd] [-m {cxyz}] [[-o] <outfile>]\n"
 "\t-d\t\tno initial modal displacements/velocities\n"
-"\t-f <outfile>\toutput file name (up to 72 characters long)\n"
 "\t-h\t\tthis message\n"
-"\t-m <idx>\tindex of \"mass\" component to be used (x, y, or z)\n"
+"\t-m <idx>\tindex of \"mass\" component to be used\n"
+"\t\t\t('x', 'y', 'z'; 'c' to check consistency)\n"
+"\t-o <outfile>\toutput file name (up to 72 characters long)\n"
 		);
 	exit(rc);
 
@@ -62,7 +63,7 @@ main(int argc, char *argv[])
 	int32_t iimd = 1, iimv = 1, idxm = 0;
 
 	for (;;) {
-		int opt = getopt(argc, argv, "df:hm:");
+		int opt = getopt(argc, argv, "dhm:o:");
 		if (opt == -1) {
 			break;
 		}
@@ -72,16 +73,6 @@ main(int argc, char *argv[])
 			iimd = 0;
 			iimv = 0;
 			break;
-
-		case 'f': {
-			size_t len = strlen(optarg);
-			if (len >= sizeof(outname)) {
-				fprintf(stderr, "femgen: output file name '%s' too long; trim to 72 bytes or less\n", optarg);
-				exit(EXIT_FAILURE);
-			}
-
-			strncpy(outname, optarg, len + 1);
-			} break;
 
 		case '?':
 		case 'h':
@@ -93,6 +84,10 @@ main(int argc, char *argv[])
 			}
 
 			switch (optarg[0]) {
+			case 'c':
+				idxm = -1;
+				break;
+
 			case 'x':
 				idxm = 1;
 				break;
@@ -106,9 +101,20 @@ main(int argc, char *argv[])
 				break;
 
 			default:
+				fprintf(stderr, "femgen: unhandled parameter '%c' for option '-m'\n", optarg[0]);
 				usage(stderr, EXIT_FAILURE);
 			}
 			break;
+
+		case 'o': {
+			size_t len = strlen(optarg);
+			if (len >= sizeof(outname)) {
+				fprintf(stderr, "femgen: output file name '%s' too long; trim to 72 bytes or less\n", optarg);
+				exit(EXIT_FAILURE);
+			}
+
+			strncpy(outname, optarg, len + 1);
+			} break;
 
 		default:
 			fprintf(stderr, "femgen: unhandled option '%c'\n", opt);
@@ -118,7 +124,7 @@ main(int argc, char *argv[])
 
 	if (optind < argc) {
 		if (outname[0] != ' ') {
-			fprintf(stderr, "femgen: output file name already set using '-f' option\n");
+			fprintf(stderr, "femgen: output file name already set using '-o' option\n");
 			exit(EXIT_FAILURE);
 
 		} else {

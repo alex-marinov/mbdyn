@@ -210,7 +210,31 @@ C     stampa la matrice di rigidezza
       enddo
 C     legge il vettore lumped mass
       call GETIDS(b,ncol,nrow,cname,6*maxnod,1,db,1,in4f,err)
-      if (idxm.ne.0) then
+      if (idxm.eq.-1) then
+        do j = 0,nrow,6
+          if ((db(j+1).ne.db(j+2)).or.(db(j+1).ne.db(j+3))) then
+            dtmp = db(j+1)
+            if (dtmp.eq.0.0) then
+              dtmp = db(j+2)
+            endif
+            if (dtmp.eq.0.0) then
+              dtmp = db(j+3)
+            endif
+
+            do i = 1,3
+              if ((db(j+i).ne.0.0).and.(db(j+i).ne.dtmp)) then
+                print *,'Inconsistent lumped mass values for node #',
+     *            j/6+1
+                goto 902
+              endif
+            enddo
+
+            do i = 1,3
+              db(j+i) = dtmp
+            enddo
+          endif
+        enddo
+      elseif (idxm.ne.0) then
         do j = 0,nrow,6
           dtmp = db(j+idxm)
           do i = 1,3
