@@ -64,6 +64,10 @@
 #include <sstream>
 #include <stdint.h>
 
+// note: undef MPI_Comm and MPI_Info because of a conflict
+// between some mpi implementations and hdf5 (used by NetCDF)
+#undef MPI_Comm
+#undef MPI_Info
 #include <octave/oct.h>
 #include <octave/parse.h>
 #include <octave/toplev.h>
