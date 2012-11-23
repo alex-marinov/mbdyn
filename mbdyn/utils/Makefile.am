@@ -65,6 +65,8 @@ noinst_PROGRAMS += \
 mbdyn_util_oct.oct
 endif
 
+noinst_LTLIBRARIES = libfemgen.la
+
 if USE_SOCKET
 noinst_PROGRAMS += \
 test_modalext_socket \
@@ -74,7 +76,7 @@ test_strext_socket_cxx \
 test_strext_socket_f_cxx
 
 # fake library to tweak the selected linker
-noinst_LTLIBRARIES = libstrext_socket_f.la
+noinst_LTLIBRARIES += libstrext_socket_f.la
 endif
 
 MYLIBS = \
@@ -104,7 +106,8 @@ deriv_SOURCES = deriv.c
 printenv_SOURCES = env.c
 eu2rot_SOURCES = eu2rot.cc
 eu2phi_SOURCES = eu2phi.cc
-femgen_SOURCES = femgen.c femgen_f.f
+femgen_SOURCES = femgen.c
+libfemgen_la_SOURCES = femgen_f.f
 intg_SOURCES = intg.cc intg.h
 playground_SOURCES = playground.cc
 logproc_SOURCES = logproc.c
@@ -201,6 +204,7 @@ cl_LDADD = $(MYLIBS)
 dae_intg_LDADD = $(MYLIBS)
 eu2rot_LDADD = $(MYLIBS)
 eu2phi_LDADD = $(MYLIBS)
+femgen_LDADD = libfemgen.la
 intg_LDADD = $(MYLIBS)
 playground_LDADD = $(MYLIBS)
 posrel_LDADD = $(MYLIBS)
