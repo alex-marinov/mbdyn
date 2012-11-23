@@ -2661,6 +2661,7 @@ AC_CONFIG_FILES([Makefile \
  	./etc/pam.d/Makefile \
  	./var/Makefile \
  	./manual/Makefile \
+ 	./manual/femgen.1 \
  	./manual/mbdyn.1 \
  	./include/Makefile \
  	./include/ac/Makefile 
