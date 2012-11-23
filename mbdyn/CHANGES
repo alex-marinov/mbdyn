@@ -9,22 +9,11 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
-	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
-		- femgen(1) more user friendly (and documented)
-	Backward compatibility issues:
-	Known issues:
-		- Schur solver is broken
-		- TotalPinJoint inverse dynamics support is broken
-		- RTAI and multithread support incompatible
-		- module-octave and multithread support incompatible
-	Bug fixes:
-
 MBDyn 1.5.3
 	Enhancements:
 		- added forces NetCDF support (Louis Gagnon)
 		- added support for modal damping matrix in modal joint db
+		- femgen(1) more user friendly (and documented)
 	Backward compatibility issues:
 		- nodes and elements now handled in strict input order
 	Known issues:
