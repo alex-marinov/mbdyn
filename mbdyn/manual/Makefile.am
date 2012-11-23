@@ -3,9 +3,10 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
-man_MANS = mbdyn.1
+man_MANS = femgen.1 mbdyn.1
 
 EXTRA_DIST = \
+femgen.1.in \
 mbdyn.1.in \
 mbdyn.bib \
 mybib.bib \
