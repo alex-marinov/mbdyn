@@ -20,7 +20,7 @@ scale factor between the two units; for example
 
 returns 0.3048.
 
-When called with the thord optional argument as well, the function returns
+When called with the third optional argument as well, the function returns
 the optional argument converted according to the conversion arguments;
 for example
 
