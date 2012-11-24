@@ -208,9 +208,9 @@ From Octave's point of view an Octave element is a special class.
                          [ , \bnt{octave\_flags} ] \\
                          [ , \bnt{elem\_data} ]
 \end{Verbatim}
-All member functions of this class must reside in a directory named "@\bnt{class\_name}".
-The parent directory of "@\bnt{class\_name}" must be on Octave's search path.
-Additional Element specific data in \bnt{elem\_data} like node labels, vectors and rotation matrices may be accessed from within the constructor of the Octave class. If the octave-ad package is installed, the $\textit{\textbf{D}}$ function can be used to in order to compute the Jacobian matrix.
+All member functions of this class must reside in a directory named "\texttt{@}\bnt{class\_name}".
+The parent directory of "\texttt{@}\bnt{class\_name}" must be on Octave's search path.
+Additional Element specific data in \bnt{elem\_data} like node labels, vectors and rotation matrices may be accessed from within the constructor of the Octave class. If the \texttt{octave-ad} package is installed, the $\textit{\textbf{D}}$ function can be used to in order to compute the Jacobian matrix.
 
 \paragraph{Octave element member functions}
 At the moment the following member functions are supported:
@@ -246,7 +246,7 @@ Semantic and parameters of these functions are almost the same like in C++. \\
 
 \subsubsection{Drive Caller}
 An Octave drive caller could be used as an alternative to string drives or Ginac drives. 
-If the octave-ad package is installed, Octave based drive callers are differentiable by default.
+If the \texttt{octave-ad} package is installed, Octave based drive callers are differentiable by default.
 An arbitrary number of additional arguments can be passed to the Octave function \bnt{function\_name} after the \kw{arguments} keyword.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{octave} , " \bnt{function\_name} "
@@ -286,7 +286,7 @@ At the moment the following member functions are supported:
 \item $\left[cl,\,F,\,FDE,\,FDEPrime\right] = \textit{\textbf{Update}}\left(clin,\,Eps,\,EpsPrime\right)$
 \item $\left[constLawType\right] = \textit{\textbf{GetConstLawType}}\left(cl\right)$
 \end{itemize}
-If the octave-ad package is installed, the $\textit{\textbf{D}}$ function can be used to compute $FDE$ and $FDEPrime$.
+If the \texttt{octave-ad} package is installed, the $\textit{\textbf{D}}$ function can be used to compute $FDE$ and $FDEPrime$.
 Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
 
@@ -300,6 +300,64 @@ Loadable element template (deprecated).
 \emph{Author: Pierangelo Masarati}
 
 \noindent
-Implements a namespace that provides unit-conversion capabilities
+This module implements a namespace called \kw{units}
+that provides unit-conversion capabilities
 to the mathematical parser, based on the UDUnits library.
+The namespace provides only the function \kw{convert},
+which is thus invoked as \texttt{units::convert}.
+This function's prototype is
+\begin{Verbatim}[commandchars=\\\{\}]
+    (\ty{real}) \kw{units}::\kw{convert}( (\ty{string}) \bnt{from} , (\ty{string}) \bnt{to} [ , (\ty{real}) \bnt{val} ] )
+\end{Verbatim}
+where
+\begin{itemize}
+\item \nt{from} is a string indicating what units to convert from;
+\item \nt{to} is a string indicating what units to convert to;
+\item \nt{val} is an optional real argument that indicates what value should be converted.
+\end{itemize}
+When called with just the two mandatory arguments, the function returns the
+scale factor between the two units; for example
+\begin{Verbatim}[commandchars=\\\{\}]
+    units::convert("ft", "m")
+\end{Verbatim}
+returns 0.3048.
+
+When called with the third optional argument \nt{val} as well, the function returns
+the optional argument \nt{val} converted according to the conversion arguments;
+for example
+\begin{Verbatim}[commandchars=\\\{\}]
+    units::convert("ft", "m", 10.)
+\end{Verbatim}
+returns 3.048, corresponding to
+\begin{Verbatim}[commandchars=\\\{\}]
+    0.3048 m/ft * 10 ft
+\end{Verbatim}
+
+The first form may not be enough, for example, for those conversions
+that include an "intercept"; for example, when converting from degrees 
+Celsius to degrees Fahrenheit, the actual conversion would be
+\begin{Verbatim}[commandchars=\\\{\}]
+    F = 32 + 9 / 5 * C
+\end{Verbatim}
+In those cases, the conversion fails, unless the third argument 
+is specified; for example
+\begin{Verbatim}[commandchars=\\\{\}]
+    units::convert("Celsius", "Fahrenheit")
+\end{Verbatim}
+would fail, while
+\begin{Verbatim}[commandchars=\\\{\}]
+    units::convert("Celsius", "Fahrenheit", 0.)
+\end{Verbatim}
+would return 32.
+
+This module requires UNIDATA's \texttt{libudunits}; get it from
+\begin{center}
+\url{http://www.unidata.ucar.edu/software/udunits/}.
+\end{center}
+Some Linux distributions provide it packaged;
+for example, recent Ubuntu releases provide a library \texttt{libudunits2};
+to use it, tweak the configuration variables
+in \texttt{modules/module-udunits/Makefile.inc}.
+
+
 
