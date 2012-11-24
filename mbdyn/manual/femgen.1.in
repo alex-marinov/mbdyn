@@ -38,7 +38,7 @@ Skip output of initial modal displacement/velocities.
 When the argument is any of \fIx\fP, \fIy\fP, \fIz\fP,
 the corresponding value of NASTRAN's nodal mass matrix is used
 as the nodal mass for all nodes.
-When the argument is \fIc\fP, all non-zero mass values are identical;
+When the argument is \fIc\fP, all non-zero mass values must be identical;
 the non-zero value is used as the nodal mass for the corresponding node.
 .TP
 .B \-h, \-\-help
