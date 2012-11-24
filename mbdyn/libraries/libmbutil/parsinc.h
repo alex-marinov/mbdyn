@@ -160,7 +160,7 @@ class IncludeParser : public HighParser {
    
    virtual const char* GetFileName(enum Delims Del = DEFAULTDELIM);
    
-   virtual IncludeParser::ErrOut GetLineData(void) const;
+   virtual HighParser::ErrOut GetLineData(void) const;
 };
 
 /* Le funzioni:

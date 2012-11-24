@@ -89,7 +89,7 @@ unit_convert(const MathParser::MathArgs& args)
 
 	default:
 		/* TODO: handle specific errors */
-		silent_cerr("utScan could not interpret "
+		silent_cerr("module-udunits: utScan could not interpret "
 			"unit \"" << (*arg1)() << "\" in first arg"
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -102,7 +102,7 @@ unit_convert(const MathParser::MathArgs& args)
 		break;
 
 	default:
-		silent_cerr("utScan could not interpret "
+		silent_cerr("module-udunits: utScan could not interpret "
 			"unit \"" << (*arg2)() << "\" in second arg"
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -115,13 +115,13 @@ unit_convert(const MathParser::MathArgs& args)
 		break;
 
 	default:
-		silent_cerr("utConvert failed (rc=" << rc << ")" << std::endl);
+		silent_cerr("module-udunits: utConvert failed (rc=" << rc << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (arg3->IsFlag(MathParser::AF_OPTIONAL_NON_PRESENT)) {
 		if (intercept != 0) {
-			silent_cerr("conversion between \"" << (*arg1)() << "\" "
+			silent_cerr("module-udunits: conversion between \"" << (*arg1)() << "\" "
 				"and \"" << (*arg2)() << "\" "
 				"has non-zero intercept" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);

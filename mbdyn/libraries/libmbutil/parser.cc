@@ -485,10 +485,25 @@ HighParser::Remark_int(void)
 	/* eat it anyway ;) */
 	const char *s = GetStringWithDelims();
 	silent_cout("line " << GetLineData() << ": " << s);
+	bool bFirst(true);
 	while (IsArg()) {
+		if (bFirst) {
+			silent_cout(": ");
+			bFirst = false;
+		} else {
+			silent_cout(", ");
+		}
+
+#if 0
+		bool bIgnore(false);
+		if (IsKeyWord("ignore")) {
+			bIgnore = true;
+		}
+#endif
+
 		TypedValue v;
 		v = GetValue(v);
-		silent_cout(", " << v);
+		silent_cout(v);
 	}
 
 	silent_cout(std::endl);

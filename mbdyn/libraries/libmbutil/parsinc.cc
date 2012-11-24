@@ -649,7 +649,7 @@ IncludeParser::GetFileName(enum Delims Del)
    	return sStringBuf;
 }
 
-IncludeParser::ErrOut
+HighParser::ErrOut
 IncludeParser::GetLineData(void) const
 {      
    	ErrOut LineData;
