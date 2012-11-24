@@ -1153,7 +1153,7 @@ HighParser::GetStringWithDelims(enum Delims Del, bool escape)
 						}
 						cIn = pIn->get();
 
-					} else if ((cIn == ESCAPE_CHAR) || (cIn == cLdelim)) {
+					} else if ((cIn == ESCAPE_CHAR) || (cIn == cRdelim)) {
 						if (!escape) {
 							sTmp[0] = ESCAPE_CHAR;
 							++sTmp;
