@@ -165,9 +165,9 @@ of the current one.
 Issue a "warranty" message.
 .LP
 .SH AUTHOR
-The MBDyn Team <http://www.aero.polimi.it/~mbdyn/, http://www.mbdyn.org/>
+The MBDyn Team <http://www.mbdyn.org/>
 .SH ACKNOWLEDGEMENTS
 .B      MBDyn
-is developed and maintained by The MBDyn Team 
-(http://www.aero.polimi.it/~mbdyn/).
+is developed and maintained by The MBDyn Team <http://www.mbdyn.org/>,
+Politecnico di Milano, Dipartimento di Ingegneria Aerospaziale <http://www.aero.polimi.it/>.
 
