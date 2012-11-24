@@ -19,6 +19,7 @@ MBDyn 1.X-Devel
 		- RTAI and multithread support incompatible
 		- module-octave and multithread support incompatible
 	Bug fixes:
+		- simplify escaping of delimiter in input
 
 MBDyn 1.5.3
 	Enhancements:
