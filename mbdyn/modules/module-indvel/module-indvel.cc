@@ -138,7 +138,7 @@ iFirstAssembly(2)
 	}
 
 	// do something useful
-	pCraft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	pCraft = pDM->ReadNode<StructNode, Node::STRUCTURAL>(HP);
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
