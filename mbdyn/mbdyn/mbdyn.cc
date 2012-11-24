@@ -153,6 +153,7 @@ struct mbdyn_proc_t {
 	MathParser* pMP;
 	InputFormat CurrInputFormat;
 	InputSource CurrInputSource;
+	unsigned int nThreads;
 	bool using_mpi;
 #ifdef USE_MPI
 	int MyRank;
@@ -287,7 +288,7 @@ mbdyn_welcome(void)
 }
 
 /* Dati di getopt */
-static char sShortOpts[] = "d:eE::f:hHlN::o:pPrRsS:tTvwW:";
+static char sShortOpts[] = "d:eE::f:hHlN:o:pPrRsS:tTvwW:";
 
 #ifdef HAVE_GETOPT_LONG
 static struct option LongOpts[] = {
@@ -323,7 +324,7 @@ const char* sDefaultInputFileName = "MBDyn";
 
 
 
-static Solver* RunMBDyn(MBDynParser&, const std::string&, const std::string&, bool, bool);
+static Solver* RunMBDyn(MBDynParser&, const std::string&, const std::string&, unsigned int, bool, bool);
 
 #ifdef USE_MPI
 static int
@@ -358,7 +359,7 @@ parse_parallel_args(mbdyn_proc_t& mbp, int argc, char *argv[])
 
 
 void
-mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
+mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 {
 #ifdef HAVE_GETOPT
 	/* Dati acquisibili da linea di comando */
@@ -475,7 +476,24 @@ mbdyn_parse_arguments( mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 	
 		case int('N'):
-			/* TODO */
+			if (strcmp(optarg, "auto") == 0) {
+				mbp.nThreads = 0;
+
+			} else {
+				char *next;
+				long n = strtoul(optarg, &next, 10);
+				if (next[0] != '\0' || next == optarg) {
+					silent_cerr("Unable to parse threads number, option \"-N " << optarg << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (n < 1 || n >= std::numeric_limits<unsigned>::max()) {
+					silent_cerr("Invalid number of threads, option \"-N " << n << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				mbp.nThreads = unsigned(n);
+			}
 			break;
 
 		case int('o'):
@@ -893,7 +911,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
 				sOutputFileName, 
-				mbp.using_mpi, mbp.bException);
+				mbp.nThreads, mbp.using_mpi, mbp.bException);
 			if (mbp.FileStreamIn.is_open()) {
 				mbp.FileStreamIn.close();
 			}
@@ -1009,6 +1027,7 @@ main(int argc, char* argv[])
        	mbp.bShowSymbolTable = false;
 	mbp.pIn = NULL;
        	mbp.sInputFileName = sDefaultInputFileName;
+	mbp.nThreads = 0;
 	mbp.iSleepTime = -1;
 	mbp.CurrInputFormat = MBDYN;
 	mbp.CurrInputSource = MBFILE_UNKNOWN;
@@ -1139,6 +1158,7 @@ static Solver*
 RunMBDyn(MBDynParser& HP, 
 	 const std::string& sInputFileName,
 	 const std::string& sOutputFileName,
+	 unsigned int nThreads,
 	 bool using_mpi,
 	 bool bException)
 {
@@ -1375,7 +1395,7 @@ endofcycle:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				Solver,
 				Solver(HP, sInputFileName, 
-					sOutputFileName, bParallel));
+					sOutputFileName, nThreads, bParallel));
 		break;
 
     	case INVERSE_DYNAMICS:

@@ -259,10 +259,11 @@ mbdyn_reserve_stack(unsigned long size)
 Solver::Solver(MBDynParser& HPar,
 		const std::string& sInFName,
 		const std::string& sOutFName,
+		unsigned int nThreads,
 		bool bPar)
 :
 #ifdef USE_MULTITHREAD
-nThreads(0),
+nThreads(nThreads),
 #endif /* USE_MULTITHREAD */
 CurrStrategy(NOCHANGE),
 sInputFileName(sInFName),

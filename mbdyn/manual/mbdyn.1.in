@@ -25,6 +25,9 @@ input\-file]
 .BR \-l
 ]
 [\c
+.BR \-N
+threads\-number]
+[\c
 .BR \-o
 output\-file\-prefix]
 [\c
@@ -80,9 +83,10 @@ to pass the name of the
 .IR "output file" .
 
 .SH OPTIONS
-.TP
-.B \-d, \-\-debug <level[:level[...]]>
-Enable specific debug levels (only when compiled with \-\-enable\-debug).
+\"NOTE: undocumented because development-only
+\".TP
+\".B \-d, \-\-debug <level[:level[...]]>
+\"Enable specific debug levels (only when compiled with \-\-enable\-debug).
 .TP
 .B \-E, \-\-fp\-mask [exception[,exception]]
 Mask some floating point exceptions; supported values of \fBexception\fP are \fIinvalid\fP, \fIdivbyzero\fP, \fIoverflow\fP.
@@ -114,6 +118,11 @@ Displays usage information.
 .TP
 .B \-l, \-\-license
 Show licensing info.
+.TP
+.B \-N <threads-number>
+Number of threads used in multi-threaded simulations (an integer).
+When \fIthreads-number\fP is \fIauto\fP the number of available cores
+is auto-detected.
 .TP
 .B \-o, \-\-output\-file \ <output\-file\-prefix>
 Write results to files with prefix \fIoutput\-file\-prefix\fP 

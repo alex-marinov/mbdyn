@@ -47,9 +47,7 @@ class Solver;
 
 class MultiThreadDataManager : public DataManager {
 protected:
-	/* from input file, or auto-detected */
-	unsigned int nThreads;
-
+	// nThreads is now in DataManager
 	enum {
 		ASS_UNKNOWN = -1,
 

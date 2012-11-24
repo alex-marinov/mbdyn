@@ -125,10 +125,9 @@ MultiThreadDataManager::MultiThreadDataManager(MBDynParser& HP,
 		const char* sOutputFileName,
 		const char* sInputFileName,
 		bool bAbortAfterInput,
-		unsigned nt)
+		unsigned nThreads)
 :
 DataManager(HP, OF, pS, dInitialTime, sOutputFileName, sInputFileName, bAbortAfterInput),
-nThreads(nt),
 AssMode(ASS_UNKNOWN),
 CCReady(CC_NO),
 thread_data(0),
@@ -136,6 +135,8 @@ op(MultiThreadDataManager::OP_UNKNOWN),
 thread_count(0),
 propagate_ErrMatrixRebuild(AO_TS_INITIALIZER)
 {
+	DataManager::nThreads = nThreads;
+
 #if 0	/* no effects ... */
 	struct sched_param	sp;
 	int			policy = SCHED_FIFO;
