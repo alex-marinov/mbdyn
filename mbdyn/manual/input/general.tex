@@ -2662,21 +2662,36 @@ The function
 It is parsed by the math parser every time 
 the \htmlref{\kw{drive}}{sec:DRIVE} is invoked.
 The variable \kw{Time} is kept up to date and can be used in the 
-string to compute the return value.
+string to compute the return value, e.g.:
+\begin{verbatim}
+    ..., string, "e^(-Time)*cos(2.*pi*Time)" ...
+\end{verbatim}
+generates a cosine modulated by an exponential.
 Another variable, \kw{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
 in the \hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DRIVE:DOF};
 e.g.:
 \begin{verbatim}
-    ..., string, "e^(-Time)*cos(2.*pi*Time)" ...
+    ..., string, "e^(-Var)*cos(2.*pi*Time)" ...
 \end{verbatim}
-generates a cosine modulated by an exponential.
 
 \emph{Note: currently, the expression is parsed each time it is evaluated;
 this is not very efficient.
 A future version should build a tree-like form of the
 parsed expression, where non-symbolic branches are evaluated once for all,
 to speed up evaluation.}
+
+\emph{Note: all whitespace in the string is eaten up during input.}
+For example
+\begin{verbatim}
+    ..., string, "1 \
+        + cos(2 * pi * Time)", ...
+\end{verbatim}
+is internally stored as
+\begin{verbatim}
+    ..., string, "1+cos(2*pi*Time)", ...
+\end{verbatim}
+
 
 \subsection{Tanh drive}
 %\begin{verbatim}
