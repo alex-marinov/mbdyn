@@ -52,6 +52,10 @@ protected:
 	bool bActivationOverflow;
 	doublereal a;
 
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		return out;
+	};
+
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
@@ -91,7 +95,8 @@ public:
 			<< ", reference velocity, " << V0
 			<< ", reference force, " << F0
 			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
-			<< ", activation check, " << bActivationOverflow
+			<< ", activation check, " << bActivationOverflow,
+			Restart_int(out)
 			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
 		return out;
 	};
@@ -169,20 +174,14 @@ public:
 		return pCL;
 	};
 
-	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "muscle pennestri, ergonomy, yes"
-			", initial length, " << Li
-			<< ", reference length, " << L0
-			<< ", reference velocity, " << V0
-			<< ", reference force, " << F0
-			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
-			<< ", activation check, " << bActivationOverflow
-			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
-		return out;
-	};
-
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
 		MusclePennestriCL::Update(Eps, 0.);
+	};
+
+protected:
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		out << ", ergonomy, yes";
+		return out;
 	};
 };
 
@@ -223,22 +222,6 @@ public:
 		return pCL;
 	};
 
-	virtual std::ostream& Restart(std::ostream& out) const {
-		out << "muscle pennestri"
-			", initial length, " << Li
-			<< ", reference length, " << L0
-			<< ", reference velocity, " << V0
-			<< ", reference force, " << F0
-			<< ", activation, ", Activation.pGetDriveCaller()->Restart(out)
-			<< ", activation check, " << bActivationOverflow
-			<< ", reflexive"
-			<< ", proportional gain, " << dKp
-			<< ", derivative gain, " << dKd
-			<< ", reference length, ", ReferenceLength.pGetDriveCaller()->Restart(out)
-			<< ", ", ElasticConstitutiveLaw<doublereal, doublereal>::Restart_int(out);
-		return out;
-	};
-
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
 		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
@@ -277,6 +260,16 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*dKp)*f2 + df3dx)*dxdEps;
 		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*dKd)*dvdEpsPrime;
 	};
+
+protected:
+	virtual std::ostream& Restart_int(std::ostream& out) const {
+		out
+			<< ", reflexive"
+			<< ", proportional gain, " << dKp
+			<< ", derivative gain, " << dKd
+			<< ", reference length, ", ReferenceLength.pGetDriveCaller()->Restart(out);
+		return out;
+	};
 };
 
 /* specific functional object(s) */
@@ -290,13 +283,13 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 		if (HP.IsKeyWord("help")) {
 			silent_cerr("MusclePennestriCL:\n"
 				"        muscle Pennestri ,\n"
-				"                [ ergonomy , { yes | no } , ]\n"
 				"                [ initial length , <Li> , ]\n"
 				"                reference length , <L0> ,\n"
 				"                [ reference velocity , <V0> , ]\n"
 				"                reference force , <F0> ,\n"
 				"                activation , (DriveCaller)<activation>\n"
 				"                [ , activation check , (bool)<activation_check> ]\n"
+				"                [ ergonomy , { yes | no } , ]\n"
 				"                [ , reflexive\n"
 				"                        , proportional gain , <kp>\n"
 				"                        , derivative gain , <kd>\n"
@@ -308,11 +301,6 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			if (!HP.IsArg()) {
 				throw NoErr(MBDYN_EXCEPT_ARGS);
 			}
-		}
-
-		bool bErgo(false);
-		if (HP.IsKeyWord("ergonomy")) {
-			bErgo = HP.GetYesNoOrBool(bErgo);
 		}
 
 		doublereal Li = -1.;
@@ -372,20 +360,28 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflow);
 		}
 
+		bool bErgo(false);
+		if (HP.IsKeyWord("ergonomy")) {
+			bErgo = HP.GetYesNoOrBool(bErgo);
+		}
+
 		bool bReflexive(false);
 		doublereal dKp(0.);
 		doublereal dKd(0.);
 		const DriveCaller *pRefLen(0);
 		if (HP.IsKeyWord("reflexive")) {
 			if (bErgo) {
-				// error
+				silent_cerr("MusclePennestriCL: "
+					"\"reflexive\" and \"ergonomy\" incompatible "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			bReflexive = true;
 
 			if (!HP.IsKeyWord("proportional" "gain")) {
 				silent_cerr("MusclePennestriCL: \"proportional gain\" expected "
 					"at line " << HP.GetLineData() << std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			dKp = HP.GetReal();
 

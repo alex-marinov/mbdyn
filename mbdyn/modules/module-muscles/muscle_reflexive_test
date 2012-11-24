@@ -40,7 +40,7 @@ begin: initial value;
 	tolerance: 1e-9;
 	max iterations: 20;
 
-	linear solver: naive, colamd;
+	linear solver: naive;
 
 	output: iterations;
 	# output: residual;
@@ -59,7 +59,7 @@ set: real F0 = 63.;	# N
 module load: "./libmodule-muscles.so";
 
 begin: nodes;
-	structural: 0, static, null, eye, null, null;
+	structural: 0, static, null, eye, null, null, output, no;
 	structural: 1, dynamic, 0., 0., L0, eye, null, null;
 end: nodes;
 
@@ -78,21 +78,21 @@ begin: elements;
 		null,
 		diag, 0., 1.e-6, 0.;
 
-	set: const string L = "L";
-	set: const string LPrime = "LPrime";
-	set: const real Kp = .1;
-	set: const real Kd = -.1;
+	#set: const string L = "L";
+	#set: const string LPrime = "LPrime";
+	set: const real Kp = 0*.1;
+	set: const real Kd = .1;
 
 	drive caller: 2,
-		string, ".2 - Kp*(model::element::joint(2, L) - L0) - Kd*model::element::joint(2, LPrime)";
+		string, ".2 + Kp*(model::element::joint(2, \"L\") - L0)/L0 + Kd*model::element::joint(2, \"LPrime\")/2.5";
 	drive caller: 3,
-		string, ".2 - Kp*(model::element::joint(3, L) - L0) - Kd*model::element::joint(3, LPrime)";
+		string, ".2 + Kp*(model::element::joint(3, \"L\") - L0)/L0 + Kd*model::element::joint(3, \"LPrime\")/2.5";
 
 	joint: 2, rod,
 		0,
-			position, reference, node, 0., 0., L0/20.,
+			position, reference, node, L0/20., 0., 0.,
 		1,
-			position, reference, node, 0., 0., L0/20.,
+			position, reference, node, L0/20., 0., 0.,
 		from nodes,
 		muscle Pennestri, help,
 			# ergonomy, yes,
@@ -101,15 +101,15 @@ begin: elements;
 			reference velocity, 2.5,
 			reference force, F0,
 			activation,
-				# string, ".2 - Kp*(model::element::joint(2, L) - L0) - Kd*model::element::joint(2, LPrime)",
+				# string, ".2 + Kp*(model::element::joint(2, \"L\") - L0) + Kd*model::element::joint(2, \"LPrime\")",
 				reference, 2,
 			activation check, yes;
 
 	joint: 3, rod,
 		0,
-			position, reference, node, 0., 0., -L0/20.,
+			position, reference, node, -L0/20., 0., 0.,
 		1,
-			position, reference, node, 0., 0., -L0/20.,
+			position, reference, node, -L0/20., 0., 0.,
 		from nodes,
 		muscle Pennestri, help,
 			# ergonomy, yes,
@@ -118,7 +118,7 @@ begin: elements;
 			reference velocity, 2.5,
 			reference force, F0,
 			activation,
-				# string, ".2 - Kp*(model::element::joint(3, L) - L0) - Kd*model::element::joint(3, LPrime)",
+				# string, ".2 + Kp*(model::element::joint(3, \"L\") - L0) + Kd*model::element::joint(3, \"LPrime\")",
 				reference, 3,
 			activation check, yes;
 
