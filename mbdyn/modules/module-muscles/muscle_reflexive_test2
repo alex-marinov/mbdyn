@@ -84,9 +84,11 @@ begin: elements;
 	set: const real Kd = .1;
 
 	drive caller: 2,
-		string, ".2 + Kp*(model::element::joint(2, \"L\") - L0)/L0 + Kd*model::element::joint(2, \"LPrime\")/2.5";
+		# string, ".2 + Kp*(model::element::joint(2, \"L\") - L0) + Kd*model::element::joint(2, \"LPrime\")";
+		const, .2;
 	drive caller: 3,
-		string, ".2 + Kp*(model::element::joint(3, \"L\") - L0)/L0 + Kd*model::element::joint(3, \"LPrime\")/2.5";
+		# string, ".2 + Kp*(model::element::joint(3, \"L\") - L0) + Kd*model::element::joint(3, \"LPrime\")";
+		const, .2;
 
 	joint: 2, rod,
 		0,
@@ -103,7 +105,11 @@ begin: elements;
 			activation,
 				# string, ".2 + Kp*(model::element::joint(2, \"L\") - L0) + Kd*model::element::joint(2, \"LPrime\")",
 				reference, 2,
-			activation check, yes;
+			activation check, yes,
+			reflexive,
+				proportional gain, Kp,
+				derivative gain, Kd,
+				reference length, L0;
 
 	joint: 3, rod,
 		0,
@@ -120,7 +126,11 @@ begin: elements;
 			activation,
 				# string, ".2 + Kp*(model::element::joint(3, \"L\") - L0) + Kd*model::element::joint(3, \"LPrime\")",
 				reference, 3,
-			activation check, yes;
+			activation check, yes,
+			reflexive,
+				proportional gain, Kp,
+				derivative gain, Kd,
+				reference length, L0;
 
 	couple: 1, follower,
 		1,
