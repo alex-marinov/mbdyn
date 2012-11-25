@@ -32,6 +32,8 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include <cerrno>
+
 #include "aeromodal.h"
 #include "dataman.h"
 
