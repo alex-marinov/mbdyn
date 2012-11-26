@@ -45,6 +45,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sched.h>
+#include <errno.h>
 
 #define KEEP_STATIC_INLINE
 

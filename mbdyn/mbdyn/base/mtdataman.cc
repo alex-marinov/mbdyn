@@ -52,6 +52,8 @@ extern "C" {
 #include <stdio.h>
 }
 
+#include <cerrno>
+
 #include "mtdataman.h"
 #include "spmapmh.h"
 #include "task2cpu.h"

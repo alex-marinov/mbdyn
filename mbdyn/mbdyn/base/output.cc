@@ -75,8 +75,8 @@ const char* psExt[] = {
 	".thn",
 	".the",
 	".pla",
-	".grv",
-	".dof",		// 31
+	".grv",		// 30
+	".dof",
 
 	NULL		// 32
 };
