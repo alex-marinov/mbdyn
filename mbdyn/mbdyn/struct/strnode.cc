@@ -449,20 +449,8 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
-			/* get a pointer to binary NetCDF file
-			 * -->  pDM->OutHdl.BinFile */
-			NcFile *pBinFile = OH.pGetBinFile();
-			char buf[BUFSIZ];
-
-			int l = snprintf(buf, sizeof(buf), "node.struct.%lu",
-				(unsigned long)GetLabel());
-			// NOTE: "Omega" is the longest var name
-			if (l < 0 || l >= int(sizeof(buf) - STRLENOF(".Omega"))) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			NcVar *Var_Type = pBinFile->add_var(buf, ncChar, OH.DimV1());
-			const char *type = 0;
+			// node
+			const char *type;
 			switch (GetStructDispNodeType()) {
 			case STATIC:
 				type = "static";
@@ -473,226 +461,38 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 				break;
 
 			default:
+				pedantic_cerr("StructDispNode::OutputPrepare(" << GetLabel() << "): "
+					"warning, unknown node type?" << std::endl);
 				type = "unknown";
 				break;
 			}
 
-			if (!Var_Type->add_att("type", type)) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			std::ostringstream os;
+			os << "node.struct." << GetLabel();
+			(void)OH.CreateVar(os.str(), type);
 
-			// add var name separator
-			buf[l++] = '.';
+			// node sub-data
+			os << '.';
+			std::string name = os.str();
 
-			/* Add NetCDF (output) variables to the BinFile object
-			 * and save the NcVar* pointer returned from add_var
-			 * as handle for later write accesses.
-			 * Define also variable attributes */
+			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
+				"global position vector (X, Y, Z)");
 
-			strcpy(&buf[l], "X");
-			Var_X = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_X == 0) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 
-			if (!Var_X->add_att("units", "m")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			Var_XP = OH.CreateVar<Vec3>(name + "XP", "m/s",
+				"global velocity vector (v_X, v_Y, v_Z)");
 
-			if (!Var_X->add_att("type", "Vec3")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"global angular velocity vector (omega_X, omega_Y, omega_Z)");
 
-			if (!Var_X->add_att("description",
-				"global position vector (X, Y, Z)"))
-			{
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			switch (od) {
-			case ORIENTATION_MATRIX:
-				strcpy(&buf[l], "R");
-				Var_Phi = pBinFile->add_var(buf, ncDouble,
-					OH.DimTime(), OH.DimV3(), OH.DimV3());
-				if (Var_Phi == 0) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("units", "-")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("type", "Mat3x3")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("description",
-					"global orientation matrix "
-					"(R11, R21, R31, "
-					"R12, R22, R32, R13, R23, R33)" ))
-				{
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				break;
-
-			case ORIENTATION_VECTOR:
-				strcpy(&buf[l], "Phi");
-				Var_Phi = pBinFile->add_var(buf, ncDouble,
-					OH.DimTime(), OH.DimV3());
-				if (Var_Phi == 0) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("units", "radian")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("type", "Vec3")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("description",
-					"global orientation vector "
-					"(Phi_X, Phi_Y, Phi_Z)"))
-				{
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				break;
-
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-				{
-				strcpy(&buf[l], "E");
-				Var_Phi = pBinFile->add_var(buf, ncDouble,
-					OH.DimTime(), OH.DimV3());
-				if (Var_Phi == 0) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("units", "radian")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_Phi->add_att("type", "Vec3")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				std::string desc;
-				switch (od) {
-				case EULER_123:
-					desc = "global orientation Euler angles (123) "
-						"(E_X, E_Y, E_Z)";
-					break;
-
-				case EULER_313:
-					desc = "global orientation Euler angles (313) "
-						"(E_Z, E_X, E_Z')";
-					break;
-
-				case EULER_321:
-					desc = "global orientation Euler angles (321) "
-						"(E_Z, E_Y, E_X)";
-					break;
-
-				default:
-					ASSERT(0);
-					break;
-				}
-
-				if (!Var_Phi->add_att("description", desc.c_str()))
-				{
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-				} break;
-
-			default:
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "XP");
-			Var_XP = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_XP == 0) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XP->add_att("units", "m/s")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XP->add_att("type", "Vec3")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_XP->add_att("description",
-				"global velocity vector (v_X, v_Y, v_Z)"))
-			{
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			strcpy(&buf[l], "Omega");
-			Var_Omega = pBinFile->add_var(buf, ncDouble,
-				OH.DimTime(), OH.DimV3());
-			if (Var_Omega == 0) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_Omega->add_att("units", "radian/s")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_Omega->add_att("type", "Vec3")) {
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			if (!Var_Omega->add_att("description",
-				"global angular velocity vector "
-				"(omega_X, omega_Y, omega_Z)"))
-			{
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
+			// accelerations
 			if (bOutputAccels) {
-				strcpy(&buf[l], "XPP");
-				Var_XPP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-				if (Var_XPP == 0) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
+				Var_XPP = OH.CreateVar<Vec3>(name + "XPP", "m/s^2",
+					"global acceleration vector (a_X, a_Y, a_Z)");
 
-				if (!Var_XPP->add_att("units", "m/s^2")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_XPP->add_att("type", "Vec3")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_XPP->add_att("description", "global acceleration vector (a_X, a_Y, a_Z)")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				strcpy(&buf[l], "OmegaP");
-				Var_OmegaP = pBinFile->add_var(buf, ncDouble, OH.DimTime(), OH.DimV3());
-				if (Var_OmegaP == 0) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_OmegaP->add_att("units", "radian/s^2")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_OmegaP->add_att("type", "Vec3")) {
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!Var_OmegaP->add_att("description",
-					"global angular acceleration vector "
-					"(omegaP_X, omegaP_Y, omegaP_Z)"))
-				{
-					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
+				Var_OmegaP = OH.CreateVar<Vec3>(name + "OmegaP", "radian/s^2",
+					"global angular acceleration vector (omegaP_X, omegaP_Y, omegaP_Z)");
 			}
 		}
 #endif // USE_NETCDF
