@@ -481,7 +481,8 @@ ElasticHingeJoint::ElasticHingeJoint(unsigned int uL,
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
 ThetaRef(Zero3)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ElasticHingeJoint::~ElasticHingeJoint(void)
@@ -891,7 +892,8 @@ ViscousHingeJoint::ViscousHingeJoint(unsigned int uL,
 : Elem(uL, fOut),
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ViscousHingeJoint::~ViscousHingeJoint(void)
@@ -1302,7 +1304,8 @@ ViscoElasticHingeJoint::ViscoElasticHingeJoint(unsigned int uL,
 DeformableHingeJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, od, fOut),
 ThetaRef(Zero3)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ViscoElasticHingeJoint::~ViscoElasticHingeJoint(void)

@@ -21,6 +21,8 @@ MBDyn 1.X-Devel
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- simplify escaping of delimiter in input
+		- fix deformable hinge early Jacobian assembly
+		  (noted by Filippo Tunesi)
 
 MBDyn 1.5.3
 	Enhancements:
