@@ -258,7 +258,7 @@ E. Bugs/missing features:
 	- support float instead of double in NetCDF output
 	- support "med" in output
 	- reject "mt" from naive when configured without support
-	- allow "mt" from command-line
+	- allow "mt" from command-line (DONE; "-N" switch)
 	- allow make of mod-* and moddae-* modules
 	- implement referenceable template drive callers (much like regular drive callers) (DONE)
 	- implement support for pardiso linear solver when compiled with icc
