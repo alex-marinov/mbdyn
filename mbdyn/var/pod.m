@@ -256,7 +256,7 @@ if (ord > 1),
 	vv = C*vv;
 end
 X = zeros(ord*ns2, c);
-X(:, gt) = vv'*B(1:ns2, :);
+X(:, gt) = vv.'*B(1:ns2, :);
 BB = zeros(ns2, c);
 BB(:, gt) = B;
 
