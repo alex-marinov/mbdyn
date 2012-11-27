@@ -310,7 +310,8 @@ ElasticAxialJoint::ElasticAxialJoint(unsigned int uL,
 DeformableAxialJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
 dThetaRef(0.)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ElasticAxialJoint::~ElasticAxialJoint(void)
@@ -635,7 +636,8 @@ ViscousAxialJoint::ViscousAxialJoint(unsigned int uL,
 : Elem(uL, fOut),
 DeformableAxialJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ViscousAxialJoint::~ViscousAxialJoint(void)
@@ -941,7 +943,8 @@ ViscoElasticAxialJoint::ViscoElasticAxialJoint(unsigned int uL,
 DeformableAxialJoint(uL, pDO, pCL, pN1, pN2, tilde_R1h, tilde_R2h, fOut),
 dThetaRef(0.)
 {
-	NO_OP;
+	// force update of MDE/MDEPrime as needed
+	AfterPredict();
 }
 
 ViscoElasticAxialJoint::~ViscoElasticAxialJoint(void)
