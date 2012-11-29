@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 		- simplify escaping of delimiter in input
 		- fix deformable hinge early Jacobian assembly
 		  (noted by Filippo Tunesi)
+		- fix conjugate transpose of `X' in pod.m
 
 MBDyn 1.5.3
 	Enhancements:
