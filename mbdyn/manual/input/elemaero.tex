@@ -353,12 +353,13 @@ the matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
 of a state space model according to the representation
 \begin{align*}
 	\dot{\T{x}} &= \T{A}\T{x} + \T{B}\T{q} \\	
-	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{2V_{\infty}}{c} \T{D}_1 \dot{\T{q}} + \plbr{\frac{2V_{\infty}}{c}}^2 \T{D}_2 \ddot{\T{q}}}
+	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{c}{2V_{\infty}} \T{D}_1 \dot{\T{q}} + \plbr{\frac{c}{2V_{\infty}}}^2 \T{D}_2 \ddot{\T{q}}}
 \end{align*}
 where $\T{x}$ are the \nt{number\_of\_aerodynamic\_states} (\nt{na})
 aerodynamic state variables,
 $\T{q}$ are the \nt{ns} modal variables that describe the structural motion
 as defined in the related \htmlref{\kw{modal joint}}{sec:EL:STRUCT:JOINT:MODAL},
+$c$ is the reference length, $V_\infty$ is the free airstream velocity,
 $q = \rho V_{\infty}^2/2$ is the dynamic pressure,
 and $\T{f}$ are the unsteady aerodynamic forces applied to the structural
 dynamics equations.
