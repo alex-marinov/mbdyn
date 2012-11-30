@@ -546,9 +546,9 @@ private:
 	bool m_bCouple;
 	bool m_bFollower;
 
-	LoadIncNorm *m_pLoadIncNorm;
-	DrivenElem *m_pDrivenLoadIncNorm;
-	StructNode *m_pNode;
+	const LoadIncNorm *m_pLoadIncNorm;
+	const DrivenElem *m_pDrivenLoadIncNorm;
+	const StructNode *m_pNode;
 	Vec3 m_b;
 	Vec3 m_Dir;
 	Vec3 m_F;
@@ -648,7 +648,7 @@ m_pDrivenLoadIncNorm(0)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	m_pNode = dynamic_cast<StructNode*>(pDM->ReadNode(HP, Node::STRUCTURAL));
+	m_pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 	ASSERT(m_pNode != 0);
 
 	ReferenceFrame rf(m_pNode);
@@ -673,15 +673,15 @@ m_pDrivenLoadIncNorm(0)
 	// if m_pLoadIncNorm is driven, make sure the LoadIncForce
 	// and the LoadIncNorm are simultaneously active
 	Elem *pEl = pDM->ReadElem(HP, Elem::LOADABLE);
-	m_pLoadIncNorm = dynamic_cast<LoadIncNorm *>(pEl);
+	m_pLoadIncNorm = dynamic_cast<const LoadIncNorm *>(pEl);
 	if (m_pLoadIncNorm == 0) {
-		m_pDrivenLoadIncNorm = dynamic_cast<DrivenElem *>(pEl);
+		m_pDrivenLoadIncNorm = dynamic_cast<const DrivenElem *>(pEl);
 		if (m_pDrivenLoadIncNorm == 0) {
 			silent_cerr("LoadIncForce(" << uLabel << "): invalid \"load increment normalization\" UseDefined(" << pEl->GetLabel() << ") element at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		m_pLoadIncNorm = dynamic_cast<LoadIncNorm *>(m_pDrivenLoadIncNorm->pGetElem());
+		m_pLoadIncNorm = dynamic_cast<const LoadIncNorm *>(m_pDrivenLoadIncNorm->pGetElem());
 		if (m_pLoadIncNorm == 0) {
 			silent_cerr("LoadIncForce(" << uLabel << "): invalid \"load increment normalization\" UseDefined(" << pEl->GetLabel() << ") element at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
