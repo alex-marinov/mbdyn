@@ -271,6 +271,7 @@ E. Bugs/missing features:
 	- print name of entities when present (DONE)
 	- call nodes/elements in the order of definition (DONE)
 	- modal joint: binary file written in input order, but parsed in block ascending order (DONE)
+	- module-loadinc: improve initialization and handling of driven load increment element
 
 
 
