@@ -60,15 +60,17 @@ private:
 
 	// TODO: implement other strategies?
 
+	// TODO: handle StructDispNode
 	struct NodeData {
-		const StructNode *pNode;
+		const StructDispNode *pNode;
 		Vec3 DX;
 		Vec3 DTheta;
 	};
 	std::vector<NodeData> m_Nodes;
 	doublereal m_dCompliance;
 	doublereal m_dRefLen;
-	integer m_iDofOffset;
+	// integer m_iDofOffset;
+	unsigned m_iDim;
 	doublereal m_dDeltaP;
 
 	doublereal m_DeltaS2;
@@ -127,7 +129,7 @@ m_dS(0.),
 m_dPMax(1.),
 m_dCompliance(1.),
 m_dRefLen(1.),
-m_iDofOffset(6)
+m_iDim(0)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -181,9 +183,11 @@ m_iDofOffset(6)
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 
+#if 0
 		if (m_dRefLen == 0.) {
 			m_iDofOffset = 3;
 		}
+#endif
 	}
 
 	DriveCaller *pDC = HP.GetDriveCaller();
@@ -195,9 +199,10 @@ m_iDofOffset(6)
 	unsigned uCnt;
 	DataManager::NodeContainerType::const_iterator i;
 	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); ++i) {
-		StructNode *pNode(dynamic_cast<StructNode *>(i->second));
-		ASSERT(pNode != 0);
-		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+		const StructDispNode *pDNode(dynamic_cast<const StructDispNode *>(i->second));
+		ASSERT(pDNode != 0);
+		const StructNode *pNode(dynamic_cast<const StructNode *>(pDNode));
+		if (pNode != 0 && pNode->GetStructNodeType() == StructNode::DUMMY) {
 			continue;
 		}
 		uCnt++;
@@ -206,12 +211,19 @@ m_iDofOffset(6)
 	m_Nodes.resize(uCnt);
 
 	for (i = pDM->begin(Node::STRUCTURAL), uCnt = 0; i != pDM->end(Node::STRUCTURAL); ++i) {
-		StructNode *pNode(dynamic_cast<StructNode *>(i->second));
-		ASSERT(pNode != 0);
-		if (pNode->GetStructNodeType() == StructNode::DUMMY) {
+		const StructDispNode *pDNode(dynamic_cast<const StructDispNode *>(i->second));
+		ASSERT(pDNode != 0);
+		const StructNode *pNode(dynamic_cast<const StructNode *>(pDNode));
+		if (pNode != 0 && pNode->GetStructNodeType() == StructNode::DUMMY) {
 			continue;
 		}
-		m_Nodes[uCnt].pNode = pNode;
+		m_Nodes[uCnt].pNode = pDNode;
+		if (pNode != 0 && m_dRefLen > 0.) {
+			m_iDim += 6;
+
+		} else {
+			m_iDim += 3;
+		}
 		uCnt++;
 	}
 
@@ -276,7 +288,7 @@ void
 LoadIncNorm::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 1;
-	*piNumCols = m_iDofOffset*m_Nodes.size() + 1;
+	*piNumCols = m_iDim + 1;
 }
 
 VariableSubMatrixHandler& 
@@ -326,17 +338,25 @@ LoadIncNorm::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 
 			if (m_dRefLen > 0.) {
-				// FIXME: check linearization
-				Mat3x3 Gm1 = RotManip::DRot_I(i->DTheta);
-				Vec3 VTmp = Gm1.MulTV(i->DTheta);
+				const StructNode *pNode(dynamic_cast<const StructNode *>(i->pNode));
+				if (pNode != 0) {
+					// FIXME: check linearization
+					Mat3x3 Gm1 = RotManip::DRot_I(i->DTheta);
+					Vec3 VTmp = Gm1.MulTV(i->DTheta);
 
-				for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-					WM.PutColIndex(iNodeOffset + 3 + iCnt, iFirstPositionIndex + 3 + iCnt);
-					WM.PutCoef(1, iNodeOffset + 3 + iCnt, dCoefTheta*VTmp(iCnt));
+					for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+						WM.PutColIndex(iNodeOffset + 3 + iCnt, iFirstPositionIndex + 3 + iCnt);
+						WM.PutCoef(1, iNodeOffset + 3 + iCnt, dCoefTheta*VTmp(iCnt));
+					}
+					iNodeOffset += 6;
+
+				} else {
+					iNodeOffset += 3;
 				}
-			}
 
-			iNodeOffset += m_iDofOffset;
+			} else {
+				iNodeOffset += 3;
+			}
 		}
 	}
 
@@ -383,8 +403,11 @@ LoadIncNorm::AssRes(SubVectorHandler& WorkVec,
 			d += i->DX.Dot();
 
 			if (m_dRefLen > 0.) {
-				i->DTheta = RotManip::VecRot(i->pNode->GetRCurr().MulMT(i->pNode->GetRPrev()));
-				d += (m_dRefLen*m_dRefLen)*i->DTheta.Dot();
+				const StructNode *pNode(dynamic_cast<const StructNode *>(i->pNode));
+				if (pNode != 0) {
+					i->DTheta = RotManip::VecRot(pNode->GetRCurr().MulMT(pNode->GetRPrev()));
+					d += (m_dRefLen*m_dRefLen)*i->DTheta.Dot();
+				}
 			}
 		}
 
@@ -548,8 +571,9 @@ private:
 
 	const LoadIncNorm *m_pLoadIncNorm;
 	const DrivenElem *m_pDrivenLoadIncNorm;
+	const StructDispNode *m_pDNode;
 	const StructNode *m_pNode;
-	Vec3 m_b;
+	Vec3 m_o;
 	Vec3 m_Dir;
 	Vec3 m_F;
 	Vec3 m_M;
@@ -648,21 +672,32 @@ m_pDrivenLoadIncNorm(0)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	m_pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-	ASSERT(m_pNode != 0);
+	m_pDNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+	ASSERT(m_pDNode != 0);
+	m_pNode = dynamic_cast<const StructNode *>(m_pDNode);
 
-	ReferenceFrame rf(m_pNode);
+	m_o = ::Zero3;
+	if (m_pNode != 0) {
+		ReferenceFrame rf(m_pNode);
 
-	m_b = Zero3;
-	if (HP.IsKeyWord("position")) {
-		m_b = HP.GetPosRel(rf);
-	}
+		if (HP.IsKeyWord("position")) {
+			m_o = HP.GetPosRel(rf);
+		}
 
-	if (m_bFollower) {
-		m_Dir = HP.GetVecRel(rf);
+		if (m_bFollower) {
+			m_Dir = HP.GetVecRel(rf);
+
+		} else {
+			m_Dir = HP.GetVecAbs(rf);
+		}
 
 	} else {
-		m_Dir = HP.GetVecAbs(rf);
+		m_Dir = HP.GetVec3();
+	}
+
+	if (m_Dir.IsNull()) {
+		silent_cerr("LoadIncForce(" << uLabel << "): null direction at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (!HP.IsKeyWord("load" "increment" "normalization")) {
@@ -702,11 +737,14 @@ LoadIncForce::Output(OutputHandler& OH) const
 	if (fToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
-		out << GetLabel() << "@" << m_pNode->GetLabel();
+		out << GetLabel() << "@" << m_pDNode->GetLabel();
 		if (!m_bCouple) {
 			out << " " << m_F;
 		}
-		out << " " << m_M << std::endl;
+		if (m_pNode != 0) {
+			out << " " << m_M;
+		}
+		out << std::endl;
 	}
 }
 
@@ -719,13 +757,14 @@ LoadIncForce::AfterPredict(VectorHandler& X, VectorHandler& XP)
 void
 LoadIncForce::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	if (m_bCouple) {
+	if (m_bCouple || m_pNode == 0) {
 		*piNumRows = 3;
+
 	} else {
 		*piNumRows = 6;
 	}
 
-	if (m_bFollower || !m_bCouple) {
+	if (m_pNode != 0 && (m_bFollower || !m_bCouple)) {
 		*piNumCols = 3 + 1;
 
 	} else {
@@ -755,6 +794,7 @@ LoadIncForce::AssJac(VariableSubMatrixHandler& WorkMat,
 	// std::cerr << "### " << __PRETTY_FUNCTION__ << " iNumRows=" << iNumRows << " iNumCols=" << iNumCols << std::endl;
 
 	if (m_bCouple) {
+		ASSERT(m_pNode != 0);
 		integer iFirstPositionIndex = m_pNode->iGetFirstPositionIndex() + 3;
 		integer iFirstMomentumIndex = m_pNode->iGetFirstMomentumIndex() + 3;
 		integer iNormIndex = m_pLoadIncNorm->iGetFirstIndex() + 1;
@@ -769,21 +809,26 @@ LoadIncForce::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 			WM.PutColIndex(4, iNormIndex);
 
-			WM.Add(1, 1, m_M*dCoef);
-
-			const Mat3x3& R(m_pNode->GetRRef());
-			Vec3 TmpDir(R*m_Dir);
-			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-				WM.DecCoef(iCnt, 4, TmpDir(iCnt));
-			}
+			WM.Add(1, 1, Mat3x3(MatCross, m_M*dCoef));
+			WM.Sub(1, 4, m_pNode->GetRRef()*m_Dir);
 
 		} else {
 			WM.PutColIndex(1, iNormIndex);
-
-			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-				WM.DecCoef(iCnt, 1, m_Dir(iCnt));
-			}
+			WM.Sub(1, 1, m_Dir);
 		}
+
+	} else if (m_pNode == 0) {
+		// structural displacement node
+		integer iFirstMomentumIndex = m_pDNode->iGetFirstMomentumIndex();
+		integer iNormIndex = m_pLoadIncNorm->iGetFirstIndex() + 1;
+
+		WM.PutColIndex(1, iNormIndex);
+
+		for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+			WM.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		}
+
+		WM.Sub(1, 1, m_Dir);
 
 	} else {
 		integer iFirstPositionIndex = m_pNode->iGetFirstPositionIndex() + 3;
@@ -802,29 +847,19 @@ LoadIncForce::AssJac(VariableSubMatrixHandler& WorkMat,
 		const Mat3x3& R(m_pNode->GetRRef());
 
 		if (m_bFollower) {
-			WM.Add(1, 1, m_F*dCoef);
-			WM.Add(3 + 1, 1, m_M*dCoef);
+			WM.Add(1, 1, Mat3x3(MatCross, m_F*dCoef));
+			WM.Add(3 + 1, 1, Mat3x3(MatCross, m_M*dCoef));
 
-			Vec3 TmpDir(R*m_Dir);
-			Vec3 TmpM(R*m_b.Cross(m_Dir));
-			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-				WM.DecCoef(iCnt, 4, TmpDir(iCnt));
-				WM.DecCoef(3 + iCnt, 4, TmpM(iCnt));
-			}
+			WM.Sub(1, 4, R*m_Dir);
+			WM.Sub(3 + 1, 4, R*m_o.Cross(m_Dir));
 
 		} else {
-			Vec3 TmpArm(R*m_b);
+			Vec3 TmpArm(R*m_o);
 
 			WM.Sub(3 + 1, 1, Mat3x3(MatCrossCross, m_F, TmpArm*dCoef));
 
-			Vec3 TmpM(TmpArm.Cross(m_Dir));
-
-			// std::cerr << "### " << __PRETTY_FUNCTION__ << " TmpM=" << TmpM << std::endl;
-
-			for (integer iCnt = 1; iCnt <= 3; iCnt++) {
-				WM.DecCoef(iCnt, 4, m_Dir(iCnt));
-				WM.DecCoef(3 + iCnt, 4, TmpM(iCnt));
-			}
+			WM.Sub(1, 4, m_Dir);
+			WM.Sub(3 + 1, 4, TmpArm.Cross(m_Dir));
 		}
 	}
 
@@ -851,6 +886,7 @@ LoadIncForce::AssRes(SubVectorHandler& WorkVec,
 	doublereal dp = m_pLoadIncNorm->dGetP();
 
 	if (m_bCouple) {
+		ASSERT(m_pNode != 0);
 		integer iFirstMomentumIndex = m_pNode->iGetFirstMomentumIndex() + 3;
 		for (integer iCnt = 1; iCnt <= 3; iCnt++) {
 			WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
@@ -866,6 +902,16 @@ LoadIncForce::AssRes(SubVectorHandler& WorkVec,
 
 		WorkVec.Add(1, m_M);
 
+	} else if (m_pNode == 0) {
+		// structural displacement node
+		integer iFirstMomentumIndex = m_pDNode->iGetFirstMomentumIndex();
+		for (integer iCnt = 1; iCnt <= 3; iCnt++) {
+			WorkVec.PutRowIndex(iCnt, iFirstMomentumIndex + iCnt);
+		}
+
+		m_F = m_Dir*dp;
+		WorkVec.Add(1, m_F);
+
 	} else {
 		integer iFirstMomentumIndex = m_pNode->iGetFirstMomentumIndex();
 		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
@@ -878,11 +924,11 @@ LoadIncForce::AssRes(SubVectorHandler& WorkVec,
 			Vec3 FTmp(m_Dir*dp);
 
 			m_F = R*FTmp;
-			m_M = R*m_b.Cross(FTmp);
+			m_M = R*m_o.Cross(FTmp);
 
 		} else {
 			m_F = m_Dir*dp;
-			m_M = (R*m_b).Cross(m_F);
+			m_M = (R*m_o).Cross(m_F);
 		}
 
 		WorkVec.Add(1, m_F);
@@ -909,7 +955,7 @@ LoadIncForce::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(1);
 
-	connectedNodes[0] = m_pNode;
+	connectedNodes[0] = m_pDNode;
 }
 
 void
