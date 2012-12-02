@@ -237,7 +237,8 @@ E. Bugs/missing features:
 	  that are passed to the model element (e.g. no nodes without
 	  inertia that do not participate in the interface)
 	- clarify how to increase the size of models utils/femgen can handle
-	- introduce references for hints
+	  (change parameter(maxnod=20000,maxmod=1000) accordingly?)
+	- introduce references for hints (?)
 	- allow strings as mode names in modal elements (joint, force, ...)
 	- add SetInitialValue to modal element
 	- allow to override initial modal value and derivative in .fem (DONE)
