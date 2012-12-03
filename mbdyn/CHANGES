@@ -24,6 +24,8 @@ MBDyn 1.X-Devel
 		- fix deformable hinge early Jacobian assembly
 		  (noted by Filippo Tunesi)
 		- fix conjugate transpose of `X' in pod.m
+		- fix modal element when origin redefined
+		  (noted by Sebastiano Fichera)
 
 MBDyn 1.5.3
 	Enhancements:

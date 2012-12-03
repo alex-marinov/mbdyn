@@ -3176,8 +3176,15 @@ ReadModal(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			if (!bRecordGroup[MODAL_RECORD_1] && rg != MODAL_RECORD_1) {
+				silent_cerr("file=\"" << sFileFEM << "\": "
+					"\"RECORD GROUP 1\" not parsed yet; cannot parse \"RECORD GROUP " << rg << "\""
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
 			switch (rg) {
-			case 1: {
+			case MODAL_RECORD_1: {
 				if (bRecordGroup[MODAL_RECORD_1]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 1\" already parsed"
@@ -3292,18 +3299,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_1] = true;
 				} break;
 
-			case 2: {
+			case MODAL_RECORD_2: {
 				/* legge il secondo blocco (Id.nodi) */
 				if (bRecordGroup[MODAL_RECORD_2]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 2\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3327,18 +3327,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[2] = true;
 				} break;
 
-			case 3: {
+			case MODAL_RECORD_3: {
 				/* deformate iniziali dei modi */
 				if (bRecordGroup[MODAL_RECORD_3]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 3\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3375,18 +3368,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_3] = true;
 				} break;
 
-			case 4: {	
+			case MODAL_RECORD_4: {	
 				/* velocita' iniziali dei modi */
 				if (bRecordGroup[MODAL_RECORD_4]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 4\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3423,18 +3409,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_4] = true;
 				} break;
 
-			case 5: {
+			case MODAL_RECORD_5: {
 				/* Coordinate X dei nodi */
 				if (bRecordGroup[MODAL_RECORD_5]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 5\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3460,18 +3439,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_5] = true;
 				} break;
 
-			case 6: {
+			case MODAL_RECORD_6: {
 				/* Coordinate Y dei nodi*/
 				if (bRecordGroup[MODAL_RECORD_6]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 6\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3497,18 +3469,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_6] = true;
 				} break;
 
-			case 7: {
+			case MODAL_RECORD_7: {
 				/* Coordinate Z dei nodi*/
 				if (bRecordGroup[MODAL_RECORD_7]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 7\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3534,18 +3499,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_7] = true;
 				} break;
 
-			case 8: {
+			case MODAL_RECORD_8: {
 				/* Forme modali */
 				if (bRecordGroup[MODAL_RECORD_8]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 8\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3640,18 +3598,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_8] = true;
 				} break;
 
-			case 9: {
+			case MODAL_RECORD_9: {
 				/* Matrice di massa  modale */
 				if (bRecordGroup[MODAL_RECORD_9]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 9\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3699,18 +3650,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_9] = true;
 				} break;
 
-			case 10: {
+			case MODAL_RECORD_10: {
 				/* Matrice di rigidezza  modale */
 				if (bRecordGroup[MODAL_RECORD_10]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 10\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3758,18 +3702,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_10] = true;
 				} break;
 
-			case 11: {
+			case MODAL_RECORD_11: {
 				/* Lumped Masses */
 				if (bRecordGroup[MODAL_RECORD_11]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 11\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3823,18 +3760,11 @@ ReadModal(DataManager* pDM,
 				bRecordGroup[MODAL_RECORD_11] = true;
 				} break;
 
-			case 12: {
+			case MODAL_RECORD_12: {
 				/* Rigid body inertia */
 				if (bRecordGroup[MODAL_RECORD_12]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 12\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -3864,6 +3794,7 @@ ReadModal(DataManager* pDM,
 					STmp(iRow) = d;
 				}
 
+				// here JTmp is with respect to the center of mass
 				for (int iRow = 1; iRow <= 3; iRow++) {
 					for (int iCol = 1; iCol <= 3; iCol++) {
 						fdat >> d;
@@ -3876,23 +3807,17 @@ ReadModal(DataManager* pDM,
 					}
 				}
 
+				// here JTmp is with respect to the origin
 				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
 				bRecordGroup[MODAL_RECORD_12] = true;
 				} break;
 
-			case 13: {
+			case MODAL_RECORD_13: {
 				/* Matrice di smorzamento modale */
 				if (bRecordGroup[MODAL_RECORD_13]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 13\" already parsed"
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
-
-				if (!bRecordGroup[MODAL_RECORD_1]) {
-					silent_cerr("file=\"" << sFileFEM << "\": "
-						"\"RECORD GROUP 1\" not parsed yet"
 						<< std::endl);
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
@@ -4337,6 +4262,7 @@ ReadModal(DataManager* pDM,
 					STmp(iRow) = d;
 				}
 
+				// here JTmp is with respect to the center of mass
 				for (int iRow = 1; iRow <= 3; iRow++) {
 					for (int iCol = 1; iCol <= 3; iCol++) {
 						fbin.read((char *)&d, sizeof(d));
@@ -4345,6 +4271,7 @@ ReadModal(DataManager* pDM,
 					}
 				}
 
+				// here JTmp is with respect to the origin
 				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 				} break;
 
@@ -4508,7 +4435,10 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (!bBuildInvariants) {
+			// quick hack: restore JTmp, update STmp, update JTmp
+			JTmp += Mat3x3(MatCrossCross, STmp, STmp*dMass);
 			STmp -= Origin;
+			JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 		}
 	}
 
