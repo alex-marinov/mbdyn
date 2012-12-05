@@ -246,7 +246,7 @@ C     stampa il vettore lumped mass
       write(outfil,'(A2)') '**'
       write(outfil,'(A38,A12)') '** RECORD GROUP 11, DIAGONAL OF LUMPED'
      *     ,' MASS MATRIX'
-      do  j = 0,nrow,6
+      do  j = 0,nrow-1,6
          write(outfil,'(500(1X,1PE17.10))')(db(j+i),i=1,6)
       enddo
 

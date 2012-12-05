@@ -28,6 +28,8 @@ MBDyn 1.X-Devel
 		- fix conjugate transpose of `X' in pod.m
 		- fix modal element when origin redefined
 		  (noted by Sebastiano Fichera)
+		- fix block 11 one row too much in output of femgen
+		  (noted by Sebastiano Fichera)
 
 MBDyn 1.5.3
 	Enhancements:
