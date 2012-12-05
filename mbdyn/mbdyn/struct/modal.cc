@@ -3160,6 +3160,10 @@ ReadModal(DataManager* pDM,
 
 		while (fdat && !fdat.eof()) {        /* parsing del file */
 			fdat.getline(str, sizeof(str));
+
+			if (strncmp("** END OF FILE", str, STRLENOF("** END OF FILE")) == 0) {
+				break;
+			}
 	
 			/* legge il primo blocco (HEADER) */
 			if (strncmp("** RECORD GROUP ", str,

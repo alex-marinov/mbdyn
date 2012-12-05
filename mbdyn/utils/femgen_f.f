@@ -249,6 +249,7 @@ C     stampa il vettore lumped mass
       do  j = 0,nrow-1,6
          write(outfil,'(500(1X,1PE17.10))')(db(j+i),i=1,6)
       enddo
+      write(outfil,'(A14)') '** END OF FILE'
 
       stop
 C     Errors
