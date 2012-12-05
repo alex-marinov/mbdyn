@@ -27,6 +27,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Author: Matteo Fancello <matteo.fancello@gmail.com>
+ * Nonsmooth dynamics element;
+ * uses SICONOS <http://siconos.gforge.inria.fr/>
+ */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #include <iostream>
