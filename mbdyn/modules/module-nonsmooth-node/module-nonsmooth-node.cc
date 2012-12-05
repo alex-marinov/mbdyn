@@ -135,6 +135,7 @@ class ModuleNonsmoothNode
 
 		/* inherited from SimulationEntity */
 		virtual unsigned int iGetNumDof (void) const;
+#if 0
 		virtual std::ostream& DescribeDof (std::ostream& out,
 		                                   const char *prefix = "", bool bInitial = false) const;
 		virtual void DescribeDof (std::vector<std::string>& desc,
@@ -143,6 +144,7 @@ class ModuleNonsmoothNode
 		                                  const char *prefix = "", bool bInitial = false) const;
 		virtual void DescribeEq (std::vector<std::string>& desc,
 		                         bool bInitial = false, int i = -1) const;
+#endif
 		virtual DofOrder::Order GetDofType (unsigned int) const;
 
 		virtual void Output (OutputHandler& OH) const;
@@ -540,39 +542,46 @@ ModuleNonsmoothNode::~ModuleNonsmoothNode (void)
 
 
 unsigned int
-ModuleNonsmoothNode::iGetNumDof (void) const
+ModuleNonsmoothNode::iGetNumDof(void) const
 {
-	switch (NS_data.constraint_type)
-	{
-		case POSITION_ONLY:
-			return 3;
-			break;
-		case VELOCITY_ONLY:
-			return 3;
-			break;
-		case POSITION_AND_VELOCITY:
-			return 6;
-			break;
+	switch (NS_data.constraint_type) {
+	case POSITION_ONLY:
+		return 3;
+
+	case VELOCITY_ONLY:
+		return 3;
+
+	case POSITION_AND_VELOCITY:
+		return 6;
+
 	}
+
+	// impossible
+	ASSERT(0);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
 
-#if 1
+#if 0
 std::ostream&
-ModuleNonsmoothNode::DescribeDof (std::ostream& out, const char *prefix, bool bInitial) const
-{}
+ModuleNonsmoothNode::DescribeDof(std::ostream& out, const char *prefix, bool bInitial) const
+{
+}
 
 void
-ModuleNonsmoothNode::DescribeDof (std::vector<std::string>& desc, bool bInitial, int i) const
-{}
+ModuleNonsmoothNode::DescribeDof(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+}
 
 std::ostream&
-ModuleNonsmoothNode::DescribeEq (std::ostream& out, const char *prefix, bool bInitial) const
-{}
+ModuleNonsmoothNode::DescribeEq(std::ostream& out, const char *prefix, bool bInitial) const
+{
+}
 
 void
-ModuleNonsmoothNode::DescribeEq (std::vector<std::string>& desc, bool bInitial, int i) const
-{}
+ModuleNonsmoothNode::DescribeEq(std::vector<std::string>& desc, bool bInitial, int i) const
+{
+}
 #endif
 
 
@@ -587,20 +596,24 @@ ModuleNonsmoothNode::GetDofType (unsigned int) const
 void
 ModuleNonsmoothNode::WorkSpaceDim (integer* piNumRows, integer* piNumCols) const
 {
-	switch (NS_data.constraint_type)
-	{
-		case POSITION_ONLY:
-			*piNumRows = 6;
-			*piNumCols = 6;
-			break;
-		case VELOCITY_ONLY:
-			*piNumRows = 6;
-			*piNumCols = 6;
-			break;
-		case POSITION_AND_VELOCITY:
-			*piNumRows = 9;
-			*piNumCols = 9;
-			break;
+	switch (NS_data.constraint_type) {
+	case POSITION_ONLY:
+		*piNumRows = 6;
+		*piNumCols = 6;
+		break;
+
+	case VELOCITY_ONLY:
+		*piNumRows = 6;
+		*piNumCols = 6;
+		break;
+
+	case POSITION_AND_VELOCITY:
+		*piNumRows = 9;
+		*piNumCols = 9;
+		break;
+
+	default:
+		ASSERT(0);
 	}
 }
 
@@ -645,52 +658,56 @@ ModuleNonsmoothNode::AssJac (VariableSubMatrixHandler& WorkMat,
 	integer iNode1FirstMomentumIndex = m_pNode->iGetFirstMomentumIndex();
 	integer iFirstIndex = iGetFirstIndex();
 
-	switch (NS_data.constraint_type)
-	{
-		case POSITION_ONLY:
-			WM.ResizeReset (6, 1);
-			// add	  + I Dl = -lambda      to existing momentum equation
-			WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
-			WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
-			WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
-			// constraint equation on position: I dq  = q-q
-			WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1,  	1.);
-			WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2,  	1.);
-			WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3,  	1.);
-			return WorkMat;
-			break;
-		case VELOCITY_ONLY:
-			WM.ResizeReset (6, 1);
-			// add	  + I Dl = -lambda      to existing momentum equation
-			WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
-			WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
-			WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
-			// constraint equation on velocity:		I Dv = v-v
-			WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1, 	1.);
-			WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2, 	1.);
-			WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3, 	1.);
-			return WorkMat;
-			break;
-		case POSITION_AND_VELOCITY:
-			WM.ResizeReset (12, 1);
-			// add	  + I Dl = -lambda      to existing momentum equation
-			WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
-			WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
-			WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
-			// constraint equation on position, relaxed: I dq + I dmu = q-q -mu
-			WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1, dCoef);
-			WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2, dCoef);
-			WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3, dCoef);
-			WM.PutItem (7, iFirstIndex + 1, iFirstIndex + 4, 		1.);
-			WM.PutItem (8, iFirstIndex + 2, iFirstIndex + 5,		1.);
-			WM.PutItem (9, iFirstIndex + 3, iFirstIndex + 6, 		1.);
-			// constraint equation on velocity:		I Dv = v-v
-			WM.PutItem (10, iFirstIndex + 4, iNode1FirstPositionIndex + 1, 	1.);
-			WM.PutItem (11, iFirstIndex + 5, iNode1FirstPositionIndex + 2, 	1.);
-			WM.PutItem (12, iFirstIndex + 6, iNode1FirstPositionIndex + 3, 	1.);
-			return WorkMat;
-			break;
+	switch (NS_data.constraint_type) {
+	case POSITION_ONLY:
+		WM.ResizeReset (6, 1);
+		// add	  + I Dl = -lambda      to existing momentum equation
+		WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
+		WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
+		WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
+		// constraint equation on position: I dq  = q-q
+		WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1,  	1.);
+		WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2,  	1.);
+		WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3,  	1.);
+		break;
+
+	case VELOCITY_ONLY:
+		WM.ResizeReset (6, 1);
+		// add	  + I Dl = -lambda      to existing momentum equation
+		WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
+		WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
+		WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
+		// constraint equation on velocity:		I Dv = v-v
+		WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1, 	1.);
+		WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2, 	1.);
+		WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3, 	1.);
+		break;
+
+	case POSITION_AND_VELOCITY:
+		WM.ResizeReset (12, 1);
+		// add	  + I Dl = -lambda      to existing momentum equation
+		WM.PutItem (1, iNode1FirstMomentumIndex + 1, iFirstIndex + 1, 	1.);
+		WM.PutItem (2, iNode1FirstMomentumIndex + 2, iFirstIndex + 2, 	1.);
+		WM.PutItem (3, iNode1FirstMomentumIndex + 3, iFirstIndex + 3, 	1.);
+		// constraint equation on position, relaxed: I dq + I dmu = q-q -mu
+		WM.PutItem (4, iFirstIndex + 1, iNode1FirstPositionIndex + 1, dCoef);
+		WM.PutItem (5, iFirstIndex + 2, iNode1FirstPositionIndex + 2, dCoef);
+		WM.PutItem (6, iFirstIndex + 3, iNode1FirstPositionIndex + 3, dCoef);
+		WM.PutItem (7, iFirstIndex + 1, iFirstIndex + 4, 		1.);
+		WM.PutItem (8, iFirstIndex + 2, iFirstIndex + 5,		1.);
+		WM.PutItem (9, iFirstIndex + 3, iFirstIndex + 6, 		1.);
+		// constraint equation on velocity:		I Dv = v-v
+		WM.PutItem (10, iFirstIndex + 4, iNode1FirstPositionIndex + 1, 	1.);
+		WM.PutItem (11, iFirstIndex + 5, iNode1FirstPositionIndex + 2, 	1.);
+		WM.PutItem (12, iFirstIndex + 6, iNode1FirstPositionIndex + 3, 	1.);
+		break;
+
+	default:
+		// impossible
+		ASSERT(0);
 	}
+
+	return WorkMat;
 }
 
 SubVectorHandler&
@@ -945,7 +962,7 @@ int ModuleNonsmoothNode::mbs_get_force (NS_subsys * NS_passed)
 		NS.constr[i].H_k	=  NS.constr[i].AttNode->GetRPrev() * NS.constr[i].RotRel;
 
 		Vec3 Plane_point = NS.constr[i].AttNode->GetXCurr() + NS.constr[i].AttNode->GetRCurr() * NS.constr[i].Point;
-		NS.constr[i].Gap = (x_NS_predicted -  Plane_point) * NS.constr[i].H_kp1.GetVec(3); - NS.radius_ns ;
+		NS.constr[i].Gap = (x_NS_predicted - Plane_point) * NS.constr[i].H_kp1.GetVec(3) - NS.radius_ns ;
 		
 		// Valuto gap(xpredicted) e creo indice vincoli attivi
 		if (NS.constr[i].Gap<=0)
@@ -973,7 +990,7 @@ int ModuleNonsmoothNode::mbs_get_force (NS_subsys * NS_passed)
 		Mat3xN Hfull_kp1 ( Ia.size() );
 		Mat3xN Hfull_k ( Ia.size() );
 		
-		for (int i = 0; i < Ia.size() ; i++)
+		for (unsigned i = 0; i < Ia.size() ; i++)
 		{
 			Hfull_kp1.PutVec ( i+1, NS.constr[Ia[i]].H_kp1.GetVec(3) );
 			Hfull_k.PutVec ( i+1, NS.constr[Ia[i]].H_k.GetVec(3) );		
@@ -991,9 +1008,9 @@ int ModuleNonsmoothNode::mbs_get_force (NS_subsys * NS_passed)
 // 		Attenzione, matrici riempite alla FORTRAN! Passo a Siconos le matrici come le vuole lui.
 		double W_passed[Ia.size()*Ia.size()];
 		int indice=0;
-		for (int i = 1; i < Ia.size() +1 ; i++)
+		for (unsigned i = 1; i < Ia.size() +1 ; i++)
 		{
-			for (int j = 1; j < Ia.size() +1 ; j++)
+			for (unsigned j = 1; j < Ia.size() +1 ; j++)
 			{
 				W_passed[indice] = W_delassus (j,i);
 				indice++;
@@ -1001,7 +1018,7 @@ int ModuleNonsmoothNode::mbs_get_force (NS_subsys * NS_passed)
 		}
 
 		double bLCP_new[Ia.size()];
-		for (int i = 0; i < Ia.size() ; i++)
+		for (unsigned i = 0; i < Ia.size() ; i++)
 		{
 			bLCP_new[i]  = Hfull_kp1T.GetVec (i+1) * VfreeRel + Hfull_kT.GetVec (i+1) * VnskRel * NS.constr[Ia[i]].e_rest;
 		}
@@ -1025,7 +1042,7 @@ int ModuleNonsmoothNode::mbs_get_force (NS_subsys * NS_passed)
 			// (number of iterations and error, only for some solvers)	
 			NS.solparam = *lcpsp;
 			VecN P (Ia.size(), 0.);
-			for (int i = 0; i < Ia.size() ; i++)
+			for (unsigned i = 0; i < Ia.size() ; i++)
 					{	P (i+1) = Pkp1[i];
 					}
 		
@@ -1190,7 +1207,7 @@ int ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys * NS_passed)
 		FullMatrixHandler en(1,ac);
 	
 	
-		for (int i = 0; i < Ia.size() ; i++)
+		for (unsigned i = 0; i < Ia.size() ; i++)
 		{
 			en(1,i+1) = NS.constr[Ia[i]].e_rest; 
 
