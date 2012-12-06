@@ -119,6 +119,17 @@ class VecN {
 
    const VecN& Copy(const VectorHandler& vh, integer iFirstIndex = 1);
  
+   /*
+    Dirty job: restituisce il puntatore al vettore (deprecato).
+    */
+   const doublereal* pGetVec(void) const { 
+      return pdVec;
+   };
+      
+   doublereal* pGetVec(void) { 
+      return pdVec;
+   };
+      
    /* *this = n * v */ 
    void RightMult(const MatNx3& n, const Vec3& v);
 
