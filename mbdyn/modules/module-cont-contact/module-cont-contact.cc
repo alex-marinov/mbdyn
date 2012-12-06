@@ -79,9 +79,10 @@ public:
 		doublereal dSign, ContContactCL::Type type, doublereal dRest,
 		doublereal dK, doublereal dExp, doublereal dInitialEpsPrimeTol)
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, 0.),
-	m_dSign(dSign), m_dRest(dRest), m_type(type), m_dK(dK), m_dExp(dExp),
+	m_dSign(dSign), m_dInitialEpsPrimeTol(dInitialEpsPrimeTol),
+	m_dRest(dRest), m_type(type), m_dK(dK), m_dExp(dExp),
 	m_bActive(false), m_bToggling(false),
-	m_dInitialEpsPrime(0.), m_dInitialEpsPrimeTol(dInitialEpsPrimeTol)
+	m_dInitialEpsPrime(0.)
 	{
 		NO_OP;
 	};
@@ -388,9 +389,9 @@ public:
 		doublereal dSign, ContContact3DCL::Type type, doublereal dRest,
 		doublereal dK, doublereal dExp, doublereal dInitialEpsPrimeTol)
 	: ElasticConstitutiveLaw<Vec3, Mat3x3>(pTplDC, Zero3),
-	m_dSign(dSign), m_dRest(dRest), m_type(type), m_dK(dK), m_dExp(dExp),
-	m_bActive(false), m_bToggling(false), m_dInitialEpsPrime(0.),
-	m_dInitialEpsPrimeTol(dInitialEpsPrimeTol)
+	m_dSign(dSign), m_dInitialEpsPrimeTol(dInitialEpsPrimeTol),
+	m_dRest(dRest), m_type(type), m_dK(dK), m_dExp(dExp),
+	m_bActive(false), m_bToggling(false), m_dInitialEpsPrime(0.)
 	{
 		NO_OP;
 	};
