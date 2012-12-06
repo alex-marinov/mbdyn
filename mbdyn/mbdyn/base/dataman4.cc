@@ -1225,9 +1225,6 @@ DataManager::ReadElems(MBDynParser& HP)
 						}
 					}
 				}
-
-				silent_cerr(ElemData[iCnt].ElemContainer.size() << " "
-					<< psElemNames[iCnt] << std::endl);
 			}
 		}
 
