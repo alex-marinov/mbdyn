@@ -141,12 +141,28 @@ public:
 #endif /* DEBUG */
 
 	/* Used to access raw data by c functions */
-	doublereal* pdGetMat(void) const {
+	const doublereal* pdGetMat(void) const {
 		ASSERT(pdRaw != NULL);
 		return pdRaw;
 	};
 
-	virtual inline doublereal *pdGetVec(integer iCol) const {
+	doublereal* pdGetMat(void) {
+		ASSERT(pdRaw != NULL);
+		return pdRaw;
+	};
+
+	virtual inline const doublereal *pdGetVec(integer iCol) const {
+#ifdef DEBUG
+		ASSERT(pdRaw != NULL);
+		ASSERT(ppdColsm1 != NULL);
+		ASSERT(iCol > 0 && iCol <= iNumCols);
+		ASSERT(ppdColsm1[iCol] != NULL);
+#endif /* DEBUG */
+
+		return &ppdColsm1[iCol][1];
+	};
+
+	virtual inline doublereal *pdGetVec(integer iCol) {
 #ifdef DEBUG
 		ASSERT(pdRaw != NULL);
 		ASSERT(ppdColsm1 != NULL);

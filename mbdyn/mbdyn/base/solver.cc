@@ -4238,9 +4238,9 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			sL,			// JOBVL
 			sR,			// JOBVR
 			&iSize,			// N
-			MatA.pdGetMat(),	// A
+			const_cast<doublereal *>(MatA.pdGetMat()),	// A; remove const'ness (hack)
 			&iSize,			// LDA
-			MatB.pdGetMat(),	// B
+			const_cast<doublereal *>(MatB.pdGetMat()),	// B; remove const'ness (hack)
 			&iSize,			// LDB
 			AlphaR.pdGetVec(),	// ALPHAR
 			AlphaI.pdGetVec(),	// ALPHAI
@@ -4262,9 +4262,9 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 			sR,			// JOBVR
 			sS,			// SENSE
 			&iSize,			// N
-			MatA.pdGetMat(),	// A
+			const_cast<doublereal *>(MatA.pdGetMat()),	// A; remove const'ness (hack)
 			&iSize,			// LDA
-			MatB.pdGetMat(),	// B
+			const_cast<doublereal *>(MatB.pdGetMat()),	// B; remove const'ness (hack)
 			&iSize,			// LDB
 			AlphaR.pdGetVec(),	// ALPHAR
 			AlphaI.pdGetVec(),	// ALPHAI

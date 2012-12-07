@@ -175,7 +175,7 @@ public:
 	void AddUnchecked(const CompactSparseMatrixHandler& m);
 
 	/* Restituisce un puntatore all'array di reali della matrice */
-	virtual inline doublereal* pdGetMat(void) const {
+	virtual inline const doublereal* pdGetMat(void) const {
 		return &Ax[0];
 	};
 

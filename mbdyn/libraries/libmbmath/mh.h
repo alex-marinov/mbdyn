@@ -87,7 +87,8 @@ public:
 	virtual void ResizeReset(integer, integer);
 
 	/* Restituisce un puntatore all'array di reali della matrice */
-	virtual inline doublereal* pdGetMat(void) const;
+	virtual inline const doublereal* pdGetMat(void) const;
+	virtual inline doublereal* pdGetMat(void);
 
 	/* Restituisce un puntatore al vettore delle righe */
 	virtual inline integer* piGetRows(void) const;
@@ -200,8 +201,14 @@ public:
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */
-inline doublereal*
+inline const doublereal*
 MatrixHandler::pdGetMat(void) const
+{
+	return NULL;
+}
+
+inline doublereal*
+MatrixHandler::pdGetMat(void)
 {
 	return NULL;
 }
