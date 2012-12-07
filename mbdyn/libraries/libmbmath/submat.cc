@@ -1790,7 +1790,7 @@ operator << (std::ostream& out, const SubVectorHandler& v)
 
 	for (integer i = 1; i <= iRow; i++) {
 		out << std::setw(12) << v.iGetRowIndex(i)
-			<< std::setw(12) << v(i) << std::endl;
+			<< " " << std::setw(12) << v(i) << std::endl;
 	}
 
 	return out << std::endl;
