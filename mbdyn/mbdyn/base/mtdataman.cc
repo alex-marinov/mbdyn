@@ -420,11 +420,13 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].lock = 0;
 
 		/* SubMatrixHandlers */
+		thread_data[i].pWorkMatA = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iMaxWorkNumRows,
 					iMaxWorkNumCols));
 
+		thread_data[i].pWorkMatB = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
 				VariableSubMatrixHandler,
 				VariableSubMatrixHandler(iMaxWorkNumRows,
@@ -432,6 +434,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 
 		thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
+		thread_data[i].pWorkVec = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkVec,
 				MySubVectorHandler,
 				MySubVectorHandler(iMaxWorkNumRows));
