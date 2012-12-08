@@ -964,15 +964,15 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 	bStepToggle = true;
 }
 
-// Creo matrici fullmh IPa e IRa contenenti i vettori delle direzioni delle facets del friction con outer discretized
+// Creo matrici fullmh IPa e IRa contenenti i vettori delle direzioni delle facets del friction cone outer discretized
 static const doublereal dIPa[2][2] = {
-	{ 1., 0.},
-	{ 0., 1.}
+	{ 1., 0. },
+	{ 0., 1. }
 };
 
 static const doublereal dIRa[2][14] = {
-	{ 0.92388, 0.70711, 0.38268, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268, -0.00000, 0.38268, 0.70711, 0.92388},
-	{ 0.38268, 0.70711, 0.92388, 0.92388, 0.70711, 0.38268, 0.00000, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268}
+	{  0.92388,  0.70711,  0.38268, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268, -0.00000,  0.38268,  0.70711,  0.92388 },
+	{  0.38268,  0.70711,  0.92388,  0.92388,  0.70711,  0.38268,  0.00000, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268 }
 };
 
 static FullMatrixHandler IRa;
@@ -985,7 +985,9 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 {
 	// FIXME
 	// vanno messe nel costruttore, omega changeable ?-----------------------------
-	int omegan = 16;	// number of facets of the discretized friction cone
+
+	// number of facets of the discretized friction cone
+	int omegan = 16;
 
 	if (!bIRa) {
 		bIRa = true;
@@ -1188,26 +1190,20 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 		// FIXME: use STLVectorHandler?
 		FullMatrixHandler qlcp(ProbDim, 1);
 		FullMatrixHandler qlcp1(ac, 1);
-		FullMatrixHandler qlcp2(2*ac, 1);
 
-		// FIXME: use STLVectorHandler?
-		FullMatrixHandler VnskMinusVplane(3, 1);
-		VnskMinusVplane.Put(1, 1, NS.Vns_k - NS.constr[0].AttNode->GetVCurr());
+		STLVectorHandler VnskMinusVplane(3);
+		VnskMinusVplane.Put(1, NS.Vns_k - NS.constr[0].AttNode->GetVCurr());
 
-		// FIXME: use STLVectorHandler?
-		FullMatrixHandler U_N(ac, 1);
-		U_N.MatMul(H_NNt, VnskMinusVplane);
+		STLVectorHandler U_N(ac);
+		H_NNt.MatVecMul(U_N, VnskMinusVplane);
 
-		FullMatrixHandler en_U_N(ac, ac);
 		for (int ien = 1; ien < ac + 1; ien++) {
-			en_U_N(ien, ien) = en(1, ien);
+			qlcp1(ien, 1) = U_N(ien)*en(1, ien);
 		}
 
-		qlcp1.MatMul(en_U_N, U_N);
 		qlcp1.Add(1, 1, U_Nfree);
-		qlcp2.Sub(1, 1, U_Tfree);
 		qlcp.Put(1, 1, qlcp1);
-		qlcp.Put(ac + 1, 1, qlcp2);
+		qlcp.Sub(ac + 1, 1, U_Tfree);
 
 #if 0
 		// SOME OUTPUT TO DEBUG
@@ -1228,52 +1224,17 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 //		std::cout<< "qLCP" << std::endl << qLCP << std::endl;
 #endif
 
-		// Rimetto Mlcp e qlcp in forma di array di double per poterlo passare a siconos
-		// FIXME: check; perhaps Mlcp.pdGetMat() is already in the right format!
-		double Mlcp_passed[ProbDim*ProbDim];
-		int indicef = 0;
-		for (int i = 1; i <= ProbDim; i++) {
-			for (int j = 1; j <= ProbDim; j++) {
-				// nota: SiconosMatrix vuole le colonne in fila!!!
-				Mlcp_passed[indicef] = Mlcp(j, i);
-				//std::cerr << "Mlcp_passed[" << indicef << "]=" << Mlcp_passed[indicef] << std::endl;
-				indicef++;
-			}
-		}
-
-		double qlcp_passed[ProbDim];
-		indicef = 0;
-		for (int i = 1; i <= ProbDim; i++) {
-			qlcp_passed[indicef] = qlcp(i, 1);
-			//std::cerr << "qlcp_passed[" << indicef << "]=" << qlcp_passed[indicef] << std::endl;
-			indicef++;
-		}
-
-		// std::vector<double> Pkp1(ProbDim);
-		// std::vector<double> Unkp1(ProbDim);
 		double Pkp1[ProbDim];
 		double Unkp1[ProbDim];
 
+		// NOTE: resetting Pkp1, Unkp1 is mandatory because some times
+		// they are not (r)eset in mbdyn_siconos_LCP_call()
 		memset(Pkp1, 0, sizeof(Pkp1));
 		memset(Unkp1, 0, sizeof(Unkp1));
 
 		if ((NS.niter < NS.niterLCPmax) || (NS.niterLCPmax == 0)) {
 			// Solving the LCP with one of Siconos solvers
-			mbdyn_siconos_LCP_call(ProbDim, Mlcp_passed, qlcp_passed, &Pkp1[0], &Unkp1[0], NS.solparam);
-
-#if 0
-			std::cerr << "Pkp1[" << ProbDim << "]:";
-			for (int i = 0; i < ProbDim; i++) {
-				std::cerr << " " << Pkp1[i];
-			}
-			std::cerr << std::endl;
-
-			std::cerr << "Unkp1[" << ProbDim << "]:";
-			for (int i = 0; i < ProbDim; i++) {
-				std::cerr << " " << Unkp1[i];
-			}
-			std::cerr << std::endl;
-#endif
+			mbdyn_siconos_LCP_call(ProbDim, Mlcp.pdGetMat(), qlcp.pdGetMat(), &Pkp1[0], &Unkp1[0], NS.solparam);
 
 			STLVectorHandler PN(ac);
 			STLVectorHandler sigmaP(2*ac);
