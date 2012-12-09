@@ -287,20 +287,30 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 				"                reference length , <L0> ,\n"
 				"                [ reference velocity , <V0> , ]\n"
 				"                reference force , <F0> ,\n"
-				"                activation , (DriveCaller)<activation>\n"
+				"                activation , (DriveCaller) <activation>\n"
 				"                [ , activation check , (bool)<activation_check> ]\n"
-				"                [ ergonomy , { yes | no } , ]\n"
-				"                [ , reflexive\n"
-				"                        , proportional gain , <kp>\n"
-				"                        , derivative gain , <kd>\n"
-				"                        , reference length, (DriveCaller)<lref> ]\n"
+				"                [ , ergonomy , { yes | no } , ]\n"
+				"                [ , reflexive , # only when ergonomy == no\n"
+				"                        proportional gain , <kp> ,\n"
+				"                        derivative gain , <kd> ,\n"
+				"                        reference length, (DriveCaller) <lref> ]\n"
 				"                [ , prestress, <prestress> ]\n"
-				"                [ , prestrain, (DriveCaller)<prestrain> ]\n"
+				"                [ , prestrain, (DriveCaller) <prestrain> ]\n"
 				<< std::endl);
 
 			if (!HP.IsArg()) {
 				throw NoErr(MBDYN_EXCEPT_ARGS);
 			}
+		}
+
+		bool bErgo(false);
+		bool bGotErgo(false);
+		if (HP.IsKeyWord("ergonomy")) {
+			silent_cerr("MusclePennestriCL: deprecated, \"ergonomy\" "
+					"at line " << HP.GetLineData()
+					<< " should be at end of definition" << std::endl);
+			bErgo = HP.GetYesNoOrBool(bErgo);
+			bGotErgo = true;
 		}
 
 		doublereal Li = -1.;
@@ -360,8 +370,8 @@ struct MusclePennestriCLR : public ConstitutiveLawRead<doublereal, doublereal> {
 			bActivationOverflow = HP.GetYesNoOrBool(bActivationOverflow);
 		}
 
-		bool bErgo(false);
-		if (HP.IsKeyWord("ergonomy")) {
+		// FIXME: "ergonomy" must be here
+		if (!bGotErgo && HP.IsKeyWord("ergonomy")) {
 			bErgo = HP.GetYesNoOrBool(bErgo);
 		}
 
