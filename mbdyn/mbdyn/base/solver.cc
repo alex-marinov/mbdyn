@@ -2996,16 +2996,16 @@ Solver::ReadData(MBDynParser& HP)
 
 					EigAn.arpack.iNCV = HP.GetInt();
 					if (EigAn.arpack.iNCV <= 0
-						|| EigAn.arpack.iNCV < EigAn.arpack.iNEV + 2)
+						|| EigAn.arpack.iNCV <= EigAn.arpack.iNEV + 2)
 					{
 						silent_cerr("invalid number of Arnoldi vectors "
-							"(must be >= NEV+2) "
+							"(must be > NEV+2) "
 							"at line " << HP.GetLineData()
 							<< std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
-					if (EigAn.arpack.iNCV < 2*EigAn.arpack.iNEV) {
+					if (EigAn.arpack.iNCV <= 2*EigAn.arpack.iNEV) {
 						silent_cerr("warning, possibly incorrect number of Arnoldi vectors "
 							"(should be > 2*NEV) "
 							"at line " << HP.GetLineData()
@@ -3905,11 +3905,14 @@ output_eigenvectors(const VectorHandler *pBeta,
 				}
 
 				if (I(c) != 0.) {
-					ASSERT(c < iNVec);
+					ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of left eigenvector only");
 					ASSERT(I(c) > 0.);
 
 					doublereal re = (*pVL)(r, c);
-					doublereal im = (*pVL)(r, c + 1);
+					// NOTE: we cannot assume that if c == iNVec
+					// it corresponds to a real-valued eigenvalue;
+					// "im" will be wrong, but at least we do not sigsegv
+					doublereal im = (c < iNVec) ? (*pVL)(r, c + 1) : 0.;
 					if (im < 0 ) {
 						isign = 0;
 						im = -im;
@@ -3921,7 +3924,7 @@ output_eigenvectors(const VectorHandler *pBeta,
 						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im;
 					if (vOut[c]) {
 						o
-							<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+							<< std::setw(24) << re << signs[1 - isign] << "i*" << std::setw(24) << im;
 					}
 					c++;
 
@@ -3951,14 +3954,14 @@ output_eigenvectors(const VectorHandler *pBeta,
 			}
 
 			if (I(c) != 0.) {
-				ASSERT(c < iNVec);
+				ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of right eigenvector only");
 				ASSERT(I(c) > 0.);
 
 				doublereal re = VR(r, c);
 				// NOTE: we cannot assume that if c == iNVec
 				// it corresponds to a real-valued eigenvalue;
 				// "im" will be wrong, but at least we do not sigsegv
-				doublereal im = (c < iNVec) ? VR(r, c + 1): 0.;
+				doublereal im = (c < iNVec) ? VR(r, c + 1) : 0.;
 				if (im < 0.) {
 					isign = 0;
 					im = -im;
@@ -4452,7 +4455,10 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		silent_cerr("eig_arpack: invalid NCV=" << NCV << " > size of problem (=" << N << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	V.resize(N*NCV, 0.);
+	// NOTE: we accommodate NCV + 1 vectors to handle the case
+	// of a complex last eigenvalue which requires a vector
+	// for the real part and one for the imaginary part
+	V.resize(N*(NCV + 1), 0.);
 	LDV = N;
 	IPARAM[0] = 1;
 	IPARAM[2] = 300;		// configurable?
@@ -4477,6 +4483,8 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 #endif
 
 		// compute Y = OP*X
+		ASSERT(IPNTR[0] - 1 <= 2*N);
+		ASSERT(IPNTR[1] - 1 <= 2*N);
 		MyVectorHandler X(N, &WORKD[IPNTR[0] - 1]);
 		MyVectorHandler Y(N, &WORKD[IPNTR[1] - 1]);
 
@@ -4668,6 +4676,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 	int nconv = IPARAM[4];
 	if (nconv > 0) {
+		ASSERT(nconv <= NCV);
 		MyVectorHandler AlphaR(nconv, DR);
 		MyVectorHandler AlphaI(nconv, DI);
 		std::vector<bool> vOut(nconv);

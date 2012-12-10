@@ -32,6 +32,7 @@ MBDyn 1.X-Devel
 		  (noted by Sebastiano Fichera)
 		- fix block 11 one row too much in output of femgen
 		  (noted by Sebastiano Fichera)
+		- fix arpack memory issue (noted by Reinhard Resch)
 
 MBDyn 1.5.3
 	Enhancements:
