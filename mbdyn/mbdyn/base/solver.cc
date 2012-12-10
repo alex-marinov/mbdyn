@@ -704,7 +704,8 @@ Solver::Run(void)
 	if (EigAn.bAnalysis
 		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
 				&& EigAn.Analyses.back() < dTime)
-			|| *EigAn.currAnalysis < dTime))
+			|| (EigAn.currAnalysis != EigAn.Analyses.end()
+				&& *EigAn.currAnalysis < dTime)))
 	{
 		Eig();
 		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
