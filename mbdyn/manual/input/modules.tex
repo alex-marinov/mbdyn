@@ -62,6 +62,68 @@ in terms of acceleration and angular velocity.
 Simple example of run-time loadable user-defined element,
 implements a scalar mass-damper-spring system.
 
+\subsection{Module-nonsmooth-node}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{type} ::= \kw{nonsmooth node}
+
+    \bnt{args} ::=
+        [ \kw{frictional} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{frictional} \} , ]
+        (\ty{StructDispNode}) \bnt{NonsmoothNODELABEL} ,
+        \kw{mass} , (\ty{real}) \bnt{mass} ,
+        \kw{radius} , (\ty{real}) \bnt{radius} ,
+        \kw{planes} , (\ty{int}) \bnt{number_of_planes} ,
+            \bnt{PlaneDefiningNODELABEL} ,
+                \kw{position} , (\ty{Vec3}) \bnt{relative_plane_position} ,
+                \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
+                \kw{restitution} , (\ty{real}) \bnt{rest_coeff}
+                [ , \kw{frictional coefficient} , (\ty{real}) \bnt{mu} ] # only if \nt{frictional} is true
+                [ , ... ]
+        [ , \kw{constraint type} , \{ \kw{position} | \kw{velocity} | \kw{both} \} ] # default: both
+        [ , \kw{theta} , \bnt{theta} ]
+        [ , \kw{gamma} , \bnt{gamma} ]
+        [ , \kw{LCP solver} , \bnt{solver} ]
+        [ , \kw{tolerance} , \bnt{tolerance} ]
+        [ , \kw{max iterations} , \bnt{num_iter} ]
+            # these options depend on LCP solver support, see
+            # \url{http://siconos.gforge.inria.fr/Numerics/LCPSolvers.html}
+        [ , \kw{limit iterations} , \bnt{niterations} ]
+        [ , \kw{limit LCP iterations} , \bnt{niterations} ]
+        [ , \kw{verbose} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{verbose} \} ]
+
+    \bnt{solver} ::=
+        \kw{lexico lemke} # the default
+        | \kw{rpgs}
+        | \kw{qp}
+        | \kw{cpg}
+        | \kw{pgs}
+        | \kw{psor}
+        | \kw{nsqp}
+        | \kw{latin}
+        | \kw{latin_w}
+        | \kw{newton_min}
+        | \kw{newton_FB}
+\end{Verbatim}
+
+\subsubsection{Output}
+\begin{itemize}
+\item 1: element label
+\item 2-4:   impulse on nonsmooth node in global ref. frame
+\item 5-7:   position of nonsmooth node in global ref. frame
+\item 8-10:  velocity of nonsmooth node in global ref. frame
+\item 11-13: constraint reaction between multibody node and nonsmooth node
+\item 14:    norm of the impulse reaction in global ref. frame
+\item 15:    number of active constraints during step
+\end{itemize}
+if verbose, also:
+\begin{itemize}
+\item 16-18: position constraint relaxation factor (if any)
+\item 19:    LCP solver status: 0 indicates convergence, 1 indicates \nt{iter}=\nt{maxiter}, $>1$ indicates failure
+(only for some solvers)
+\item 20:    LCP solver \nt{resulting\_error}
+(only for some solvers)
+\end{itemize}
+
+
 \subsection{Module-template2}
 Template of user-defined element.
 
