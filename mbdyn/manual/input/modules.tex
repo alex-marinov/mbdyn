@@ -29,6 +29,13 @@
 \chapter{Modules}
 
 \section{Element Modules}
+Recall that element modules are invoked as \kw{user defined} elements,
+whose syntax is
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{elem_type} ::= \kw{user defined}
+
+    \bnt{normal_arglist} ::= \bnt{name} [ , \bnt{module_data} ]
+\end{Verbatim}
 
 \subsection{Module-aerodyn}
 \emph{Authors: Fanzhong Meng and Pierangelo Masarati}
@@ -64,9 +71,9 @@ implements a scalar mass-damper-spring system.
 
 \subsection{Module-nonsmooth-node}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{type} ::= \kw{nonsmooth node}
+    \bnt{name} ::= \kw{nonsmooth node}
 
-    \bnt{args} ::=
+    \bnt{module_data} ::=
         [ \kw{frictional} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{frictional} \} , ]
         (\ty{StructDispNode}) \bnt{NonsmoothNODELABEL} ,
         \kw{mass} , (\ty{real}) \bnt{mass} ,
