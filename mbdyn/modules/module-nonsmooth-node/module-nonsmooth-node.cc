@@ -247,7 +247,7 @@ iIter(0)
 "		[ , constraint type , { position | velocity | both } ] # default: both\n"
 "		[ , theta , <theta> ] [ , gamma , <gamma> ]\n"
 "		[ , LCP solver , <solver> ]\n"
-"		[ , tolerance , <tolerance> ][ , iteration max , <num_iter> ]\n"
+"		[ , tolerance , <tolerance> ][ , max iterations , <num_iter> ]\n"
 "			# these options depend on LCP solver support, see\n"
 "			# http://siconos.gforge.inria.fr/Numerics/LCPSolvers.html\n"
 "		[ , limit iterations , <niterations> ]\n"
@@ -429,7 +429,7 @@ iIter(0)
 	}
 
 	NS_data.solparam.solveritermax = 100;
-	if (HP.IsKeyWord("iteration" "max")) {
+	if (HP.IsKeyWord("max" "iterations")) {
 		NS_data.solparam.solveritermax = HP.GetInt();
 	}
 
