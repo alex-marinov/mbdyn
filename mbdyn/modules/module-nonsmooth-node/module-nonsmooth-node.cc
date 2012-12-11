@@ -252,7 +252,7 @@ iIter(0)
 "			# http://siconos.gforge.inria.fr/Numerics/LCPSolvers.html\n"
 "		[ , limit iterations , <niterations> ]\n"
 "		[ , limit LCP iterations , <niterations> ]\n"
-"		[ , verbose , { yes | no } ] ;\n"
+"		[ , verbose , { yes | no | (bool) <verbose> } ] ;\n"
 "\n"
 "        <solver> ::= lexico lemke # the default\n"
 "                   | rpgs\n"
