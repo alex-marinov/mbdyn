@@ -232,7 +232,7 @@ iIter(0)
 "	# in the \"elements\" block: add a user-defined element according to the syntax\n"
 "	user defined :\n"
 "		<element_label> , nonsmooth node ,\n"
-"		[ frictional , ]\n"
+"		[ frictional , { yes | no | (bool) <frictional> } , ]\n"
 "		(StructDispNode) <NonsmoothNODELABEL> ,\n"
 "		mass , (real) <mass> , radius , (real) <radius> ,\n"
 "		planes , (int) <number_of_planes> ,\n"
@@ -295,7 +295,7 @@ iIter(0)
 	m_pNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
 
 	if (HP.IsKeyWord("frictional")) {
-		bFrictional = true;
+		bFrictional = HP.GetYesNoOrBool(true);
 	}
 
 
