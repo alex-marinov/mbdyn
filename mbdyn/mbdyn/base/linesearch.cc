@@ -30,11 +30,14 @@
  */
  
  /* 
-  *
-  * Copyright (C) 2003-2012
+  * Portions Copyright (C) 2003-2012
   * Giuseppe Quaranta	<quaranta@aero.polimi.it>
   *
   * classi che implementano la risoluzione del sistema nonlineare 
+  */
+
+ /*
+  * Author: Reinhard Resch
   */
   
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
