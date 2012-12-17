@@ -18,6 +18,9 @@ MBDyn 1.X-Devel
 		  (Matteo Fancello)
 		- added 3D variant of continuous contact constitutive law
 		  (Matteo Fancello)
+		- added line search nonlinear solver (Reinhard Resch)
+		- added condition number output (Reinhard Resch)
+		- added scalar support genel private data (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
@@ -34,6 +37,8 @@ MBDyn 1.X-Devel
 		- fix block 11 one row too much in output of femgen
 		  (noted by Sebastiano Fichera)
 		- fix arpack memory issue (noted by Reinhard Resch)
+		- fixed NaivePermMatrixHandler resize
+		  (noted by Reinhard Resch)
 
 MBDyn 1.5.3
 	Enhancements:
