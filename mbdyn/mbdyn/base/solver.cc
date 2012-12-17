@@ -56,7 +56,7 @@
 #include <limits>
 #include <unistd.h>
 #include <cerrno>
-
+#include <csignal>
 #include <cfloat>
 #include <cmath>
 #include <vector>
@@ -68,6 +68,7 @@
 #include "mtdataman.h"
 #include "thirdorderstepsol.h"
 #include "nr.h"
+#include "linesearch.h"
 #include "bicg.h"
 #include "gmres.h"
 #include "solman.h"
@@ -1341,6 +1342,9 @@ IfStepIsToBeRepeated:
 			retries++;
 			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
 			if (outputStep()) {
+				if (outputCounter()) {
+					silent_cout(std::endl);
+				}
  				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
 			}
 			dTest = pRegularSteps->Advance(this, dRefTimeStep,
@@ -1847,6 +1851,8 @@ Solver::ReadData(MBDynParser& HP)
 			"bailout",
 			"messages",
 			"counter",
+			"matrix" "condition" "number",
+			"solver" "condition" "number",
 		"output" "meter",
 
 		"method",
@@ -1893,6 +1899,7 @@ Solver::ReadData(MBDynParser& HP)
 		"nonlinear" "solver",
 			"default",
 			"newton" "raphson",
+			"line" "search",
 			"matrix" "free",
 				"bicgstab",
 				"gmres",
@@ -1952,6 +1959,8 @@ Solver::ReadData(MBDynParser& HP)
 			BAILOUT,
 			MESSAGES,
 			COUNTER,
+			MATRIX_COND_NUM,
+			SOLVER_COND_NUM,
 		OUTPUTMETER,
 
 		METHOD,
@@ -1997,6 +2006,7 @@ Solver::ReadData(MBDynParser& HP)
 		NONLINEARSOLVER,
 			DEFAULT,
 			NEWTONRAPHSON,
+			LINESEARCH,
 			MATRIXFREE,
 				BICGSTAB,
 				GMRES,
@@ -2274,6 +2284,28 @@ Solver::ReadData(MBDynParser& HP)
 
 				case COUNTER:
 					OF |= OUTPUT_COUNTER;
+					break;
+
+				case MATRIX_COND_NUM:
+					DelOutputFlags(OUTPUT_MAT_COND_NUM);
+					if (HP.IsKeyWord("norm")) {
+						if (HP.IsKeyWord("inf")) {
+							OF |= OUTPUT_MAT_COND_NUM_INF;
+						} else {
+							const double P = HP.GetReal();
+							if (P != 1.) {
+								silent_cerr("Only inf or 1 norm are supported for condition numbers at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+							OF |= OUTPUT_MAT_COND_NUM_1;
+						}
+					} else {
+						OF |= OUTPUT_MAT_COND_NUM_1;
+					}
+					break;
+
+				case SOLVER_COND_NUM:
+					OF |= OUTPUT_SOLVER_COND_NUM;
 					break;
 
 				default:
@@ -3221,6 +3253,10 @@ Solver::ReadData(MBDynParser& HP)
 				NonlinearSolverType = NonlinearSolver::NEWTONRAPHSON;
 				break;
 
+			case LINESEARCH:
+				NonlinearSolverType = NonlinearSolver::LINESEARCH;
+				break;
+
 			case MATRIXFREE:
 				NonlinearSolverType = NonlinearSolver::MATRIXFREE;
 				break;
@@ -3234,6 +3270,7 @@ Solver::ReadData(MBDynParser& HP)
 
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
+			case NonlinearSolver::LINESEARCH:
 				bTrueNewtonRaphson = true;
 				bKeepJac = false;
 				iIterationsBeforeAssembly = 0;
@@ -3267,6 +3304,142 @@ Solver::ReadData(MBDynParser& HP)
 								"request to update "
 								"the preconditioner"
 								<< std::endl);
+					}
+				}
+
+				if (NonlinearSolver::LINESEARCH == NonlinearSolverType) {
+					while (HP.IsArg()) {
+						if (HP.IsKeyWord("tolerance" "x")) {
+							LineSearch.dTolX = HP.GetReal();
+							if (LineSearch.dTolX < 0.) {
+								silent_cerr("tolerance x must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("tolerance" "f")) {
+							LineSearch.dTolF = HP.GetReal();
+							if (LineSearch.dTolF < 0.) {
+								silent_cerr("tolerance f must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("tolerance" "min")) {
+							LineSearch.dTolMin = HP.GetReal();
+							if (LineSearch.dTolMin < 0.) {
+								silent_cerr("tolerance min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("max" "iterations")) {
+							LineSearch.iMaxIterations = HP.GetInt();
+							if (LineSearch.iMaxIterations < 0) {
+								silent_cerr("max iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("alpha")) {
+							LineSearch.dAlpha = HP.GetReal();
+							if (LineSearch.dAlpha < 0.) {
+								silent_cerr("alpha must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("lambda" "min")) {
+							LineSearch.dLambdaMin = HP.GetReal();
+							if (LineSearch.dLambdaMin < 0.) {
+								silent_cerr("lambda min must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+							if (HP.IsKeyWord("relative")) {
+								if (HP.GetYesNoOrBool()) {
+									LineSearch.uFlags |= LineSearchParameters::RELATIVE_LAMBDA_MIN;
+								} else {
+									LineSearch.uFlags &= ~LineSearchParameters::RELATIVE_LAMBDA_MIN;
+								}
+							}
+						} else if (HP.IsKeyWord("lambda" "factor" "min")) {
+							LineSearch.dLambdaFactMin = HP.GetReal();
+							if (LineSearch.dLambdaFactMin <= 0. || LineSearch.dLambdaFactMin >= 1.) {
+								silent_cerr("lambda factor min must be in between zero and one " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("max" "step")) {
+							LineSearch.dMaxStep = HP.GetReal();
+							if (LineSearch.dMaxStep <= 0.) {
+								silent_cerr("max step must be greater than zero at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("zero" "gradient")) {
+							if (HP.IsKeyWord("continue")) {
+								if (HP.GetYesNoOrBool()) {
+									LineSearch.uFlags |= LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+								} else {
+									LineSearch.uFlags &= ~LineSearchParameters::ZERO_GRADIENT_CONTINUE;
+								}
+							}
+							else {
+								silent_cerr("Keyword \"continue\" expected at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("divergence" "check")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::DIVERGENCE_CHECK;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::DIVERGENCE_CHECK;
+							}
+                            if (HP.IsKeyWord("factor")) {
+                                LineSearch.dDivergenceCheck = HP.GetReal();
+    							if (LineSearch.dDivergenceCheck <= 0.) {
+    								silent_cerr("divergence check factor must be greater than zero at line " << HP.GetLineData() << std::endl);
+    								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+    							}
+                            }
+                        } else if (HP.IsKeyWord("algorithm")) {
+                            LineSearch.uFlags &= ~LineSearchParameters::ALGORITHM;
+                            if (HP.IsKeyWord("cubic")) {
+                                LineSearch.uFlags |= LineSearchParameters::ALGORITHM_CUBIC;
+                            } else if (HP.IsKeyWord("factor")) {
+                                LineSearch.uFlags |= LineSearchParameters::ALGORITHM_FACTOR;
+                            } else {
+                                silent_cerr("Keyword \"cubic\" or \"factor\" expected at line " << HP.GetLineData() << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+                        } else if (HP.IsKeyWord("scale" "newton" "step")) {
+                        	if (HP.GetYesNoOrBool()) {
+                        		LineSearch.uFlags |= LineSearchParameters::SCALE_NEWTON_STEP;
+                        	} else {
+                        		LineSearch.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
+                        	}
+                        	if (HP.IsKeyWord("min" "scale")) {
+                        		LineSearch.dMinStepScale = HP.GetReal();
+                        		if (LineSearch.dMinStepScale < 0. || LineSearch.dMinStepScale > 1.) {
+                        			silent_cerr("min scale must be in range [0-1] at line " << HP.GetLineData() << std::endl);
+                        			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                        		}
+                        	}
+                        } else if (HP.IsKeyWord("print" "convergence" "info")) {
+                        	if (HP.GetYesNoOrBool()) {
+                        		LineSearch.uFlags |= LineSearchParameters::PRINT_CONVERGENCE_INFO;
+                        	} else {
+                        		LineSearch.uFlags &= ~LineSearchParameters::PRINT_CONVERGENCE_INFO;
+                        	}
+                        } else if (HP.IsKeyWord("verbose" "mode")) {
+                        	if (HP.GetYesNoOrBool()) {
+                        		LineSearch.uFlags |= LineSearchParameters::VERBOSE_MODE;
+                        	} else {
+                        		LineSearch.uFlags &= ~LineSearchParameters::VERBOSE_MODE;
+                        	}
+                        } else if (HP.IsKeyWord("abort" "at" "lambda" "min")) {
+                        	if (HP.GetYesNoOrBool()) {
+                        		LineSearch.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                        	} else {
+                        		LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+                        	}
+						} else {
+							silent_cerr("Keyword \"tolerance x\", \"tolerance f\", "
+										"\"tolerance min\", \"max iterations\", \"alpha\", "
+										"\"lambda min\" \"lambda factor min\", \"max step\" "
+                                        "\"divergence check\", \"algorithm\", \"scale newton step\" "
+										"\"print convergence info\", "
+										"\"abort at lambda min\" "
+										"or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
 					}
 				}
 				break;
@@ -5258,6 +5431,13 @@ Solver::AllocateNonlinearSolver()
 					bKeepJac,
 					iIterationsBeforeAssembly,
 					bHonorJacRequest));
+		break;
+	case NonlinearSolver::LINESEARCH:
+		SAFENEWWITHCONSTRUCTOR(pNLS,
+				LineSearchSolver,
+				LineSearchSolver(pDM, 
+                                 bHonorJacRequest,
+                                 LineSearch));
 		break;
 	}
 	return pNLS;

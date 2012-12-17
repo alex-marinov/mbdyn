@@ -256,6 +256,10 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	/* ************************************************ */
+
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
 };
 
 /* GenelSpringSupport - end */

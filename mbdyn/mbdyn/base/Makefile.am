@@ -76,6 +76,8 @@ invsolver.cc \
 invsolver.h \
 j2p.cc \
 j2p.h \
+linesearch.h \
+linesearch.cc \
 loadable.cc \
 loadable.h \
 mbpar.cc \

@@ -149,6 +149,8 @@ public:
    	/* sposta il puntatore al vettore della soluzione */
    	doublereal *pdSetSolVec(doublereal* pd);
 
+   	/* return true if the condition number is available */
+   	bool bGetConditionNumber(doublereal& dCond) const;
 };
 
 /* SolutionManager - end */

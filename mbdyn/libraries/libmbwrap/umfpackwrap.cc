@@ -123,7 +123,8 @@ Axp(0),
 Aip(0),
 App(0),
 Symbolic(0),
-Numeric(0)
+Numeric(0),
+bHaveCond(false)
 {
 	// silence static analyzers
 	memset(&Info[0], 0, sizeof(Info));
@@ -163,6 +164,8 @@ UmfpackSolver::~UmfpackSolver(void)
 void
 UmfpackSolver::Reset(void)
 {
+	bHaveCond = false;
+
 	if (Numeric) {
 		UMFPACKWRAP_free_numeric(&Numeric);
 		ASSERT(Numeric == 0);
@@ -206,8 +209,9 @@ UmfpackSolver::Solve(bool bTranspose) const
 			App, Aip, Axp,
 			LinearSolver::pdSol, LinearSolver::pdRhs, 
 			Numeric, Control, Info);
+
 	if (status != UMFPACK_OK) {
-		UMFPACKWRAP_report_info(Control, Info) ;
+		UMFPACKWRAP_report_info(Control, Info);
 		UMFPACKWRAP_report_status(Control, status) ;
 		silent_cerr("UMFPACKWRAP_solve failed" << std::endl);
 		
@@ -266,6 +270,8 @@ UmfpackSolver::Factor(void)
 		ASSERT(Numeric == 0);
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	} else {
+		bHaveCond = true;
 	}
 		
 #ifdef UMFPACK_REPORT
@@ -312,6 +318,17 @@ UmfpackSolver::bPrepareSymbolic(void)
 
 		return false;
 	}
+
+	return true;
+}
+
+bool UmfpackSolver::bGetConditionNumber(doublereal& dCond)
+{
+	if (!bHaveCond) {
+		return false;
+	}
+
+	dCond = 1. / Info[UMFPACK_RCOND];
 
 	return true;
 }

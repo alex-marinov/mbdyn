@@ -97,6 +97,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 	doublereal dOldErr;
 	doublereal dErrFactor = 1.;
+	bool bJacBuilt = false;
+
 	while (true) {
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
@@ -133,22 +135,36 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		}
 		dOldErr = dErr;
 
-		if (outputIters()) {
 #ifdef USE_MPI
-			if (!bParallel || MBDynComm.Get_rank() == 0)
+		if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
-			{
-				silent_cout("\tIteration(" << iIterCnt << ") " << dErr);
-				if (!bTest && (bTrueNewtonRaphson || (iPerformedIterations%IterationBeforeAssembly == 0))) {
-					silent_cout(" J");
+		{
+			if (outputIters() || outputSolverConditionNumber()) {
+				if (outputIters()) {
+					silent_cout("\tIteration(" << iIterCnt << ") " << dErr);
+
+					if (bJacBuilt) {
+						silent_cout(" J");
+					}
 				}
+
+				if (outputSolverConditionNumber()) {
+					silent_cout(" cond=");
+					doublereal dCond;
+					if (pSM->bGetConditionNumber(dCond)) {
+						silent_cout(dCond);
+					} else {
+						silent_cout("NA");
+					}
+				}
+
 				silent_cout(std::endl);
 			}
 		}
 		
-      		if (bTest) {
+      	if (bTest) {
 	 		return;
-      		}
+      	}
       		
 		if (iIterCnt >= std::abs(iMaxIter)) {
 			if (iMaxIter < 0 && dErrFactor < 1.) {
@@ -160,9 +176,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			throw NoConvergence(MBDYN_EXCEPT_ARGS);
 		}
           
-      		iIterCnt++;
+      	iIterCnt++;
+      	bJacBuilt = false;
 
-		bool bJacBuilt(false);
 		if (bTrueNewtonRaphson
 			|| (iPerformedIterations%IterationBeforeAssembly == 0)
 			|| forceJacobian)
@@ -171,7 +187,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 rebuild_matrix:;
 			try {
       				pNLP->Jacobian(pSM->pMatHdl());
-
 			} catch (MatrixHandler::ErrRebuildMatrix) {
 				silent_cout("NewtonRaphsonSolver: "
 						"rebuilding matrix..."
@@ -192,24 +207,34 @@ rebuild_matrix:;
 		
 		iPerformedIterations++;
 		
-		if (outputJac()) {
-			if (bJacBuilt) {
-				silent_cout("Jacobian:" << std::endl
-						<< *(pSM->pMatHdl()));
-			} else {
-				silent_cout("Jacobian: unchanged" << std::endl);
+#ifdef USE_MPI
+		if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+		{
+			if (outputJac()) {
+				if (bJacBuilt) {
+					silent_cout("Jacobian:" << std::endl
+							<< *(pSM->pMatHdl()));
+				} else {
+					silent_cout("Jacobian: unchanged" << std::endl);
+				}
 			}
-		}		
-		
+
+			if (bJacBuilt && outputMatrixConditionNumber()) {
+				silent_cout("cond=" << pSM->pMatHdl()->ConditionNumber(GetCondMatNorm()) << std::endl);
+			}
+		}
+
 		pSM->Solve();
 
-      		if (outputSol()) {
+      	if (outputSol()) {
 			pS->PrintSolution(*pSol, iIterCnt);
 		}		
 		
-      		pNLP->Update(pSol);
+      	pNLP->Update(pSol);
 		
 		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
+
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -219,6 +244,7 @@ rebuild_matrix:;
 					<< dSolErr << std::endl);
 			}
 		}
+
 		if (bTest) {
 			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
@@ -229,4 +255,3 @@ rebuild_matrix:;
 		}
 	}
 }
-

@@ -129,5 +129,10 @@ LinearSolver::MakeCompactForm(SparseMatrixHandler& mh,
 	NO_OP;
 }
 
+bool LinearSolver::bGetConditionNumber(doublereal& dCond)
+{
+	return false; // true means that the condition number was returned in dCond
+}
+
 /* LinearSolver - end */
 

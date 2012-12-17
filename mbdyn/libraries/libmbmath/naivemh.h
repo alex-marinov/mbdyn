@@ -210,8 +210,8 @@ NaiveMatrixHandler::operator () (integer iRow, integer iCol)
 /* Sparse Matrix with unknowns permutation*/
 class NaivePermMatrixHandler : public NaiveMatrixHandler {
 protected:
-	const integer* const perm;
-	const integer* const invperm;
+	const std::vector<integer>& perm;
+	const std::vector<integer>& invperm;
 
 #ifdef DEBUG
 	void IsValid(void) const {
@@ -257,18 +257,18 @@ public:
 public:
 	/* FIXME: always square? yes! */
 	NaivePermMatrixHandler(integer iSize,
-		const integer *const tperm,
-		const integer *const invperm);
+		const std::vector<integer>& tperm,
+		const std::vector<integer>& invperm);
 
 	NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
-		const integer *const tperm,
-		const integer *const invperm);
+		const std::vector<integer>& tperm,
+		const std::vector<integer>& invperm);
 
 	virtual ~NaivePermMatrixHandler(void);
 
-	const integer* const pGetPerm(void) const;
+	const std::vector<integer>& GetPerm(void) const;
 
-	const integer* const pGetInvPerm(void) const;
+	const std::vector<integer>& GetInvPerm(void) const;
 
 	virtual inline const doublereal&
 	operator () (integer iRow, integer iCol) const {

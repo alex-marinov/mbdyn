@@ -1399,6 +1399,38 @@ if test $ol_with_lapack != no ; then
 
 	if test "$have_lapack_" = "yes" ; then
 		AC_TRY_LINK([
+	extern double dgecon_(double *);
+			],[
+	double i = 1., o;
+	o = dgecon_(&i);
+			],[AC_DEFINE(HAVE_DGECON_,1,[define to use LAPACK's dgecon in newton raphson solver])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgecon(double *);
+			],[
+	double i = 1., o;
+	o = dgecon(&i);
+			],[AC_DEFINE(HAVE_DGECON,1,[define to use LAPACK's dgecon in newton raphson solver])])
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgetrf_(double *);
+			],[
+	double i = 1., o;
+	o = dgetrf_(&i);
+			],[AC_DEFINE(HAVE_DGETRF_,1,[define to use LAPACK's dgetrf in newton raphson solver])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dgetrf(double *);
+			],[
+	double i = 1., o;
+	o = dgetrf(&i);
+			],[AC_DEFINE(HAVE_DGETRF,1,[define to use LAPACK's dgetrf in newton raphson solver])])
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
 	extern double dgegv_(double *);
 			],[
 	double i = 1., o;

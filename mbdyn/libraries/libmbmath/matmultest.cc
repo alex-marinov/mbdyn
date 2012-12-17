@@ -105,7 +105,12 @@ check_vec_transpose(VectorHandler& vh, unsigned r)
 int
 main(void)
 {
-	integer perm[5] = { 4, 3, 2, 1, 0}, invperm[5];
+	std::vector<integer> perm(5), invperm(5);
+	perm[0] = 4;
+	perm[1] = 3;
+	perm[2] = 2;
+	perm[3] = 1;
+	perm[4] = 0;
 	for (int i = 0; i < 5; i++) {
 		invperm[perm[i]] = i;
 	}
@@ -133,11 +138,9 @@ main(void)
 	std::cout << "matrix in naive permuted form: " << std::endl
 		<< npm << std::endl;
 
-	std::vector<doublereal> Ax0, Ax1;
-	std::vector<integer> Ai0, Ai1, Ap0, Ap1;
-
+	std::vector<doublereal> Ax0;
+	std::vector<integer> Ai0, Ap0;
 	spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
-	spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
 
 	CColMatrixHandler<0> ccm0(Ax0, Ai0, Ap0);
 
@@ -150,6 +153,10 @@ main(void)
 		}
 		std::cout << std::endl;
 	}
+
+	std::vector<doublereal> Ax1;
+	std::vector<integer> Ai1, Ap1;
+	spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
 
 	CColMatrixHandler<1> ccm1(Ax1, Ai1, Ap1);
 

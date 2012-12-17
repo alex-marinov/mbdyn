@@ -59,6 +59,8 @@ class VariableSubMatrixHandler;
 
 class MatrixHandler {
 public:
+	enum Norm_t { NORM_1, NORM_INF };
+
 	class ErrGeneric : public MBDynErrBase {
 	public:
 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
@@ -198,6 +200,8 @@ public:
 	MatVecDecMul(VectorHandler& out, const VectorHandler& in) const;
 	virtual VectorHandler&
 	MatTVecDecMul(VectorHandler& out, const VectorHandler& in) const;
+	virtual doublereal ConditionNumber(enum Norm_t eNorm = NORM_1) const;
+	virtual doublereal Norm(enum Norm_t eNorm = NORM_1) const;
 };
 
 /* Restituisce un puntatore all'array di reali della matrice */

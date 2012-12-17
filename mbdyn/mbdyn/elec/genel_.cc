@@ -617,6 +617,32 @@ GenelSpringSupport::GetConnectedNodes(
 	connectedNodes.resize(1);
 	connectedNodes[0] = SD.pNode;
 }
+
+unsigned int GenelSpringSupport::iGetNumPrivData(void) const
+{
+	return 1u;
+}
+
+unsigned int GenelSpringSupport::iGetPrivDataIdx(const char *s) const
+{
+	if (0 == strcmp(s, "F")) {
+		return 1u;
+	}
+
+	silent_cerr("genel(" << GetLabel() << "): private data \"" << s << "\" not available" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+doublereal GenelSpringSupport::dGetPrivData(unsigned int i) const
+{
+	switch (i) {
+	case 1u:
+		return GetF();
+	default:
+		silent_cerr("genel(" << GetLabel() << "): private data index " << i << " out of range" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
 /* ************************************************ */
 
 /* GenelSpringSupport - end */

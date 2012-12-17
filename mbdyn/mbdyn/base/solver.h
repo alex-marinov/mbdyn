@@ -63,6 +63,7 @@ class Solver;
 #include "linsol.h"
 #include "stepsol.h"
 #include "nonlin.h"
+#include "linesearch.h"
 #include "mfree.h"
 #include "precond.h"
 #include "rtsolver.h"
@@ -305,6 +306,7 @@ protected:
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
 	bool bHonorJacRequest;
+	struct LineSearchParameters LineSearch;
 
 /* FOR PARALLEL SOLVERS */
 	bool bParallel;

@@ -37,10 +37,12 @@
 
 #include <iostream>
 #include <iomanip>
+#include <vector>
 
 #include "solman.h"
 #include "submat.h"
 #include "matvec3.h"
+#include "ac/lapack.h"
 
 /* MatrixHandler - begin */
 
@@ -386,6 +388,136 @@ MatrixHandler::PutCoef(integer ix, integer iy, const doublereal& val) {
 const doublereal& 
 MatrixHandler::dGetCoef(integer ix, integer iy) const {
 	return operator()(ix, iy);
+}
+
+#define HAVE_CONDITION_NUMBER ((defined(HAVE_DGETRF_) || defined(HAVE_DGETRF)) && (defined(HAVE_DGECON_) || defined(HAVE_DGECON)))
+
+namespace {
+	void LapackCopyMatrix(const MatrixHandler& MH, std::vector<doublereal>& A, integer& M, integer& N)
+	{
+		M = MH.iGetNumRows();
+		N = MH.iGetNumCols();
+		A.resize(M*N);
+
+		for (int i = 0; i < M; ++i) {
+			for (int j = 0; j < N; ++j) {
+				A[j * M + i] = MH(i + 1, j + 1);
+			}
+		}
+	}
+
+	doublereal LapackMatrixNorm(const std::vector<doublereal>& A, const integer M, const integer N, enum MatrixHandler::Norm_t eNorm)
+	{
+		doublereal norm = 0.;
+
+		switch (eNorm) {
+			case MatrixHandler::NORM_1:
+				for (int j = 0; j < N; ++j) {
+					doublereal csum = 0.;
+
+					for (int i = 0; i < M; ++i) {
+						csum += std::abs(A[j * M + i]);
+					}
+
+					if (csum > norm)
+						norm = csum;
+				}
+				break;
+
+			case MatrixHandler::NORM_INF:
+				for (int i = 0; i < N; ++i) {
+					doublereal rsum = 0.;
+
+					for (int j = 0; j < M; ++j) {
+						rsum += std::abs(A[j * M + i]);
+					}
+
+					if (rsum > norm)
+						norm = rsum;
+				}
+				break;
+
+			default:
+				ASSERT(0);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		return norm;
+	}
+}
+
+//#define DEBUG
+
+doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
+{
+#ifdef HAVE_CONDITION_NUMBER
+	integer M;
+	integer N;
+	std::vector<doublereal> A;
+
+	LapackCopyMatrix(*this, A, M, N);
+
+	const doublereal ANORM = LapackMatrixNorm(A, M, N, eNorm);
+
+#ifdef DEBUG
+	std::cerr << "ANORM=" << ANORM << std::endl;
+	std::cerr << "A=" << std::endl;
+	for (int i = 0; i < M; ++i) {
+		for (int j = 0; j < N; ++j) {
+			std::cerr << A[j * M + i] << '\t';
+		}
+		std::cerr << std::endl;
+	}
+#endif // DEBUG
+
+	integer INFO = 0;
+	std::vector<integer> IPIV(std::min(M,N));
+
+	__FC_DECL__(dgetrf)(&M, &N, &A[0], &M, &IPIV[0], &INFO);
+
+	ASSERT(INFO == 0); // should not fail because the Jacobian has already been factorised before
+
+	std::vector<doublereal> WORK(4*N);
+	std::vector<integer> IWORK(N);
+	doublereal RCOND = 0.;
+    char norm;
+
+    switch (eNorm) {
+        case NORM_1:
+            norm = '1';
+            break;
+        case NORM_INF:
+            norm = 'I';
+            break;
+        default:
+            ASSERT(0);
+            throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+    }
+
+	__FC_DECL__(dgecon)(&norm, &N, &A[0], &M, &ANORM, &RCOND, &WORK[0], &IWORK[0], &INFO);
+
+	ASSERT(INFO == 0); // should not fail
+
+#ifdef DEBUG
+	std::cerr << "RCOND=" << RCOND << std::endl;
+#endif // DEBUG
+
+	return 1. / RCOND;
+#else // ! HAVE_CONDITION_NUMBER
+	silent_cerr("Condition number is not available in this version of MBDyn" << std::endl);
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! HAVE_CONDITION_NUMBER
+}
+
+doublereal MatrixHandler::Norm(enum Norm_t eNorm)const
+{
+	integer M;
+	integer N;
+	std::vector<doublereal> A;
+
+	LapackCopyMatrix(*this, A, M, N);
+
+	return LapackMatrixNorm(A, M, N, eNorm);
 }
 
 std::ostream&

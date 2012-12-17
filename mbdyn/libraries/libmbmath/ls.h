@@ -99,6 +99,8 @@ public:
 			std::vector<integer>& Ac,
 			std::vector<integer>& Ap) const;
 	
+	/* returns true if the condition number is available, and sets dCond */
+	virtual bool bGetConditionNumber(doublereal& dCond);
 };
 
 /* LinearSolver - end */

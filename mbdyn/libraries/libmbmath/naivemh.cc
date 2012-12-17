@@ -34,7 +34,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cstring>
-
+#include <cassert>
 #include "myassert.h"
 #include "mh.h"
 #include "submat.h"
@@ -531,22 +531,35 @@ NaiveMatrixHandler::const_iterator::operator != (const NaiveMatrixHandler::const
 
 /* NaiveMatrixHandler end */
 
-
 /* NaivePermMatrixHandler begin */
 
 NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
-		const integer *const tperm,
-		const integer *const tinvperm)
+		const std::vector<integer>& tperm,
+		const std::vector<integer>& tinvperm)
 : NaiveMatrixHandler(iSize), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
 	NO_OP;
+
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 }
 
-NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler*const nmh, 
-		const integer *const tperm, 
-		const integer *const tinvperm)
+NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler *const nmh, 
+		const std::vector<integer>& tperm, 
+		const std::vector<integer>& tinvperm)
 : NaiveMatrixHandler(0, nmh), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
+
 	NO_OP;
 }
 
@@ -555,15 +568,27 @@ NaivePermMatrixHandler::~NaivePermMatrixHandler(void)
 	NO_OP;
 }
 
-const integer* const
-NaivePermMatrixHandler::pGetPerm(void) const
+const std::vector<integer>&
+NaivePermMatrixHandler::GetPerm(void) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 	return perm;
 }
 
-const integer* const
-NaivePermMatrixHandler::pGetInvPerm(void) const
+const std::vector<integer>&
+NaivePermMatrixHandler::GetInvPerm(void) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 	return invperm;
 }
 
@@ -573,6 +598,13 @@ NaivePermMatrixHandler::MatMatMul_base(
 	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
 	MatrixHandler& out, const MatrixHandler& in) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
+
 	ASSERT(in.iGetNumRows() == iSize);
 	ASSERT(out.iGetNumRows() == iSize);
 	ASSERT(out.iGetNumCols() == in.iGetNumCols());
@@ -596,6 +628,12 @@ NaivePermMatrixHandler::MatTMatMul_base(
 	void (MatrixHandler::*op)(integer iRow, integer iCol, const doublereal& dCoef),
 	MatrixHandler& out, const MatrixHandler& in) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 	ASSERT(in.iGetNumRows() == iSize);
 	ASSERT(out.iGetNumRows() == iSize);
 	ASSERT(out.iGetNumCols() == in.iGetNumCols());
@@ -620,6 +658,12 @@ NaivePermMatrixHandler::MatVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 	ASSERT(in.iGetSize() == iSize);
 	ASSERT(out.iGetSize() == iSize);
 
@@ -638,6 +682,12 @@ NaivePermMatrixHandler::MatTVecMul_base(
 	void (VectorHandler::*op)(integer iRow, const doublereal& dCoef),
 	VectorHandler& out, const VectorHandler& in) const
 {
+#ifdef DEBUG
+	for (integer i = 0; i < iSize; ++i) {
+		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
+		ASSERT(perm[i] >= 0 && perm[i] < iSize);
+	}
+#endif
 	ASSERT(in.iGetSize() == iSize);
 	ASSERT(out.iGetSize() == iSize);
 

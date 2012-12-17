@@ -245,7 +245,7 @@ ePermState(PERM_NO)
 	SAFEDELETE(A);
 	A = 0;
 	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler,
-			NaivePermMatrixHandler(Dim, &perm[0], &invperm[0]));
+			NaivePermMatrixHandler(Dim, perm, invperm));
 
 	dynamic_cast<NaiveSolver *>(pLS)->SetMat(A);
 
@@ -711,7 +711,7 @@ NaiveSparsePermSolutionManager<metis_ordering>::ComputePermutation(void)
 	int n = A->iGetNumCols();
 	int options[8] = {1, 3, 1, 3, 0, 1, 200, 3};
 //	METIS_EdgeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
- 	METIS_NodeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &(perm[0]), &(invperm[0]));
+ 	METIS_NodeND(&n, &(Ac[0]), &Ai[0], &numflag, options, &perm[0], &invperm[0]);
 
 	ePermState = PERM_INTERMEDIATE;
 

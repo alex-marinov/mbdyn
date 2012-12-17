@@ -156,8 +156,8 @@ __FC_DECL__(dgelsd)(
 
 /* Subroutine */ extern int
 __FC_DECL__(dgetrf)(
+	const integer *M,
 	const integer *N,
-	const integer *N2,
 	doublereal *A,
 	const integer *LDA,
 	integer *IPIV,
@@ -173,6 +173,18 @@ __FC_DECL__(dgetrs)(
 	const integer *IPIV,
 	doublereal *B,
 	const integer *LDB,
+	integer *INFO);
+
+/* Subroutine */ extern int
+__FC_DECL__(dgecon)(
+	const char *NORM,
+	const integer *N,
+	doublereal *A,
+	const integer *LDA,
+	const doublereal *ANORM,
+	doublereal *RCOND,
+	doublereal *WORK,
+	integer *IWORK,
 	integer *INFO);
 
 #if defined(__cplusplus)

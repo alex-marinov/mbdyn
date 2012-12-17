@@ -33,6 +33,7 @@
 #define SOLVERDIAGNOSTICS_H
 
 #include "drive.h"
+#include "mh.h"
 
 class SolverDiagnostics {
 protected:
@@ -47,15 +48,17 @@ protected:
 		OUTPUT_SOL		= 0x0004,
 		OUTPUT_JAC		= 0x0008,
 
-		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC),
-
 		OUTPUT_BAILOUT		= 0x0010,
 		OUTPUT_MSG		= 0x0020,
 		OUTPUT_COUNTER		= 0x0040,
-
+		OUTPUT_MAT_COND_NUM_1 = 0x0080,
+		OUTPUT_MAT_COND_NUM_INF = 0x0100,
+		OUTPUT_SOLVER_COND_NUM = 0x0200,
+		OUTPUT_MAT_COND_NUM = OUTPUT_MAT_COND_NUM_1 | OUTPUT_MAT_COND_NUM_INF,
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
+		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC | OUTPUT_MAT_COND_NUM | OUTPUT_SOLVER_COND_NUM),
 
-		OUTPUT_MASK		= 0x00FF
+		OUTPUT_MASK		= 0x01FF
 	};
 public:
 
@@ -69,6 +72,7 @@ public:
 	void SetOutputFlags(unsigned OF);
 	void AddOutputFlags(unsigned OF);
 	void DelOutputFlags(unsigned OF);
+	inline MatrixHandler::Norm_t GetCondMatNorm()const;
 
 	inline bool outputMeter(void) const {
 		return (!pOutputMeter || pOutputMeter->dGet());
@@ -103,12 +107,32 @@ public:
 		return (OutputFlags & OUTPUT_COUNTER);
 	};
 
+	inline bool outputMatrixConditionNumber(void) const {
+		return (OutputFlags & OUTPUT_MAT_COND_NUM);
+	};
+
+	inline bool outputSolverConditionNumber(void) const {
+		return (OutputFlags & OUTPUT_SOLVER_COND_NUM);
+	}
 	// all messages not protected behind any other condition
 	// must be protected by a "if (outputMsg())" condition
 	inline bool outputMsg(void) const {
 		return (OutputFlags & OUTPUT_MSG);
 	};
 };
+
+inline MatrixHandler::Norm_t SolverDiagnostics::GetCondMatNorm()const
+{
+	switch (OutputFlags & OUTPUT_MAT_COND_NUM) {
+		case OUTPUT_MAT_COND_NUM_1:
+			return MatrixHandler::NORM_1;
+		case OUTPUT_MAT_COND_NUM_INF:
+			return MatrixHandler::NORM_INF;
+		default:
+			ASSERT(0);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
 
 #endif /* SOLVERDIAGNOSTICS_H */
 

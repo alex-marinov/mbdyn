@@ -112,6 +112,8 @@ public:
 			std::vector<integer>& Ar,
 			std::vector<integer>& Ac,
 			std::vector<integer>& Ap) const;
+
+	virtual bool bGetConditionNumber(doublereal& dCond);
 };
 
 /* KLUSolver - end */

@@ -238,6 +238,19 @@ KLUSolver::bPrepareSymbolic(void)
 	return true;
 }
 
+bool KLUSolver::bGetConditionNumber(doublereal& dCond)
+{
+	if (Symbolic == 0 || Numeric == 0) { // FIXME: Is it really safe?
+		return false;
+	}
+
+	const bool bOK = klu_rcond(Symbolic, Numeric, &Control);
+
+	dCond = 1. / Control.rcond;
+
+	return bOK;
+}
+
 /* KLUSolver - end */
 
 /* KLUSparseSolutionManager - begin */

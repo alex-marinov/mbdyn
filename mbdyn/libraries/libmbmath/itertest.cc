@@ -51,7 +51,12 @@ static doublereal mat[5][5] = {
 int
 main(void)
 {
-	integer perm[5] = { 4, 3, 2, 1, 0}, invperm[5];
+	std::vector<integer> perm(5), invperm(5);
+	perm[0] = 4;
+	perm[1] = 3;
+	perm[2] = 2;
+	perm[3] = 1;
+	perm[4] = 0;
 	for (int i = 0; i < 5; i++) {
 		invperm[perm[i]] = i;
 	}

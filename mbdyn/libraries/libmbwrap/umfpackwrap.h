@@ -97,6 +97,7 @@ private:
 	mutable doublereal Control[UMFPACK_CONTROL];
 	mutable doublereal Info[UMFPACK_INFO];
 	mutable void *Numeric;
+	bool bHaveCond;
 
 	bool bPrepareSymbolic(void);
 	
@@ -119,6 +120,8 @@ public:
 			std::vector<integer>& Ar,
 			std::vector<integer>& Ac,
 			std::vector<integer>& Ap) const;
+
+	virtual bool bGetConditionNumber(doublereal& dCond);
 };
 
 /* UmfpackSolver - end */

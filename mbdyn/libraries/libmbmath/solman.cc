@@ -104,5 +104,10 @@ SolutionManager::pdSetSolVec(doublereal* pd)
 	return pLS->pdSetSolVec(pd);
 }
 
+bool SolutionManager::bGetConditionNumber(doublereal& dCond) const
+{
+	return pLS->bGetConditionNumber(dCond);
+}
+
 /* SolutionManager - end */
 
