@@ -754,7 +754,7 @@ usually output.
         [ , \kw{pivot factor} , \bnt{pivot\_factor} ]
         [ , \kw{drop tolerance} , \bnt{drop\_tolerance} ]
         [ , \kw{block size} , \bnt{block_size} ]
-        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} \} ]
+        [ , \kw{scale} , \{ \kw{no} | \kw{always} | \kw{once} | \kw{max} | \kw{sum} \} ]
     ;
 \end{Verbatim}
 %\end{verbatim}
@@ -771,6 +771,10 @@ performances on small problems (e.g.\ a rigid rotorcraft model
 with some 180 degrees of freedom showed a 10\% speedup with 
 a block size of 4, while a rigid robot showed even higher speedups,
 of the order of 30\%, with a block size between 4 and 16).
+With respect to scaling, the \kw{scale} option supports \kw{max} and \kw{sum}
+which respectively scale the matrix according to each row's
+largest absolute value and to the sum of the absolute values
+of the coefficients in the row (the latter is the default).
 
 \paragraph{Naive.}
 The \kw{naive} solver is built-in, so it is always present.
@@ -801,6 +805,13 @@ with a valid reordering option.  For example
 \end{minipage}
 
 \bigskip
+
+\noindent
+The Naive solver supports matrix scaling using Lapack's \texttt{dgeequ}'s
+function.
+Scaling may occur \kw{always}, i.e.\ for each factorization,
+or \kw{once}, thus preserving the scaling factors resulting
+from the analysis of the first matrix that is factored.
 
 \paragraph{Klu.}
 The \kw{klu} solver is provided by University of Florida's SparseSuite.
