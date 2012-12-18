@@ -87,6 +87,15 @@ extern "C" {
 /* UmfpackSolver - begin */
 
 class UmfpackSolver: public LinearSolver {
+public:
+	enum Scale {
+		SCALE_NONE = UMFPACK_SCALE_NONE,
+		SCALE_MAX = UMFPACK_SCALE_MAX,
+		SCALE_SUM = UMFPACK_SCALE_SUM,
+
+		SCALE_UNDEF
+	};
+
 private:
 	integer iSize;
 	mutable doublereal *Axp;
@@ -108,7 +117,8 @@ public:
 	UmfpackSolver(const integer &size,
 		const doublereal &dPivot,
 		const doublereal &dDropTolerance,
-		const unsigned blockSize);
+		const unsigned blockSize,
+		Scale scale = SCALE_UNDEF);
 	~UmfpackSolver(void);
 
 	void Reset(void);
@@ -153,7 +163,8 @@ public:
 	UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot = -1.,
 		doublereal dDropTolerance = 0.,
-		const unsigned blockSize = 0);
+		const unsigned blockSize = 0,
+		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -195,7 +206,8 @@ public:
 	UmfpackSparseCCSolutionManager(integer Dim,
 		doublereal dPivot = -1.,
 		doublereal dDropTolerance = 0.,
-		const unsigned& blockSize = 0);
+		const unsigned& blockSize = 0,
+		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF);
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

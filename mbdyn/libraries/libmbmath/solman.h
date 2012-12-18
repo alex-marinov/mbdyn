@@ -100,7 +100,7 @@ public:
 class SolutionManager {
 public:
 	// whether matrix scaling should be performed, and when, using dgeequ()
-	enum MatrixScale {
+	enum ScaleWhen {
 		NEVER = 0,
 		ONCE,
 		ALWAYS

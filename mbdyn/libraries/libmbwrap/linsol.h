@@ -79,6 +79,13 @@ public:
 			SOLVER_FLAGS_ALLOWS_SLOAN |
 			SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION
 	};
+
+	enum Scale {
+		SCALE_NONE,
+		SCALE_MAX,
+		SCALE_SUM,
+		SCALE_UNDEF
+	};
 	
 	/* solver data */
 	struct solver_t {
@@ -138,7 +145,14 @@ protected:
 	 * currently used by:
 	 *	Naive
 	 */
-	SolutionManager::MatrixScale ms;
+	SolutionManager::ScaleWhen ms;
+
+	/*
+	 * matrix scaling	NO, MAX, SUM
+	 * used only by:
+	 * 	Umfpack
+	 */
+	Scale scale;
 
 public:
 	static SolverType defaultSolver;
@@ -154,7 +168,8 @@ public:
 	const doublereal& dGetPivotFactor(void) const;
 	const doublereal& dGetDropTolerance(void) const;
 	unsigned GetBlockSize(void) const;
-	SolutionManager::MatrixScale GetScale(void) const;
+	SolutionManager::ScaleWhen GetScaleWhen(void) const;
+	LinSol::Scale GetScale(void) const;
 
 	const char *const GetSolverName(SolverType t) const;
 	unsigned GetSolverFlags(SolverType t) const;
@@ -168,7 +183,8 @@ public:
 	bool SetPivotFactor(const doublereal &d);
 	bool SetDropTolerance(const doublereal &d);
 	bool SetBlockSize(unsigned bs);
-	bool SetScale(SolutionManager::MatrixScale ms);
+	bool SetScaleWhen(SolutionManager::ScaleWhen ms);
+	bool SetScale(Scale s);
 
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;

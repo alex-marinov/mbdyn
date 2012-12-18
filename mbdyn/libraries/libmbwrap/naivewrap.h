@@ -77,13 +77,13 @@ protected:
 	mutable NaiveMatrixHandler *A;
 	mutable MyVectorHandler VH;
 
-	MatrixScale ms;
+	ScaleWhen ms;
 	std::vector<doublereal> msr;
 	std::vector<doublereal> msc;
 
 public:
 	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
-		SolutionManager::MatrixScale ms = SolutionManager::NEVER);
+		SolutionManager::ScaleWhen ms = SolutionManager::NEVER);
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -135,7 +135,7 @@ protected:
 	
 public:
 	NaiveSparsePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
-		SolutionManager::MatrixScale ms = SolutionManager::NEVER);
+		SolutionManager::ScaleWhen ms = SolutionManager::NEVER);
 	virtual ~NaiveSparsePermSolutionManager(void);
 
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */

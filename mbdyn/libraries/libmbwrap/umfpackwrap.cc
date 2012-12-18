@@ -116,7 +116,8 @@
 UmfpackSolver::UmfpackSolver(const integer &size,
 	const doublereal &dPivot,
 	const doublereal &dDropTolerance,
-	const unsigned blockSize)
+	const unsigned blockSize,
+	Scale scale)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -149,6 +150,10 @@ bHaveCond(false)
 
 	if (blockSize > 0) {
 		Control[UMFPACK_BLOCK_SIZE] = blockSize;
+	}
+
+	if (scale != SCALE_UNDEF) {
+		Control[UMFPACK_SCALE] = scale;
 	}
 }
 
@@ -340,7 +345,8 @@ bool UmfpackSolver::bGetConditionNumber(doublereal& dCond)
 UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot,
 		doublereal dDropTolerance,
-		const unsigned blockSize)
+		const unsigned blockSize,
+		UmfpackSolver::Scale scale)
 : A(Dim),
 x(Dim),
 b(Dim),
@@ -348,7 +354,7 @@ xVH(Dim, &x[0]),
 bVH(Dim, &b[0])
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
-			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize));
+			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, scale));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&x[0]);
@@ -415,8 +421,9 @@ template <class CC>
 UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
 		doublereal dPivot,
 		doublereal dDropTolerance,
-		const unsigned& blockSize)
-: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize),
+		const unsigned& blockSize,
+		UmfpackSolver::Scale scale)
+: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize, scale),
 CCReady(false),
 Ac(0)
 {

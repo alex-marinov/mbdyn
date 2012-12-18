@@ -149,7 +149,7 @@ throw(LinearSolver::ErrFactor)
 /* NaiveSparseSolutionManager - begin */
 
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
-	const doublereal dMP, SolutionManager::MatrixScale ms)
+	const doublereal dMP, SolutionManager::ScaleWhen ms)
 : A(0),
 VH(Dim),
 ms(ms)
@@ -232,7 +232,7 @@ template<class T>
 NaiveSparsePermSolutionManager<T>::NaiveSparsePermSolutionManager(
 	const integer Dim, 
 	const doublereal dMP,
-	SolutionManager::MatrixScale ms)
+	SolutionManager::ScaleWhen ms)
 : NaiveSparseSolutionManager(Dim, dMP, ms),
 dMinPiv(dMP < 0 ? 0 : dMP),
 TmpH(Dim),

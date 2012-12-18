@@ -427,7 +427,7 @@ main(int argc, char *argv[])
 	int size = 3;
 	long long tf;
 	unsigned preord = COLAMD_PREORD;
-	SolutionManager::MatrixScale ms = SolutionManager::NEVER;
+	SolutionManager::ScaleWhen ms = SolutionManager::NEVER;
 	
 	while (1) {
 		int opt = getopt(argc, argv, "cdf:m:oO:p:P:r::st:Tw:");

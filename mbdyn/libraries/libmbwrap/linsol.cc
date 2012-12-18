@@ -148,6 +148,7 @@ LinSol::SolverType LinSol::defaultSolver =
 #elif /* !USE_UMFPACK */ defined(USE_KLU)
 	LinSol::KLU_SOLVER
 #else /* !USE_KLU */
+	// Naive always present
 	LinSol::NAIVE_SOLVER
 #endif
 	;
@@ -160,7 +161,8 @@ iWorkSpaceSize(0),
 blockSize(0),
 dPivotFactor(-1.),
 dDropTolerance(0.),
-ms(SolutionManager::NEVER)
+ms(SolutionManager::NEVER),
+scale(SCALE_UNDEF)
 {
 	NO_OP;
 }
@@ -412,18 +414,39 @@ LinSol::SetBlockSize(unsigned bs)
 	return true;
 }
 
-SolutionManager::MatrixScale
-LinSol::GetScale(void) const
+SolutionManager::ScaleWhen
+LinSol::GetScaleWhen(void) const
 {
 	return ms;
 }
 
 bool
-LinSol::SetScale(SolutionManager::MatrixScale ms)
+LinSol::SetScaleWhen(SolutionManager::ScaleWhen ms)
 {
 	switch (currSolver) {
 	case LinSol::NAIVE_SOLVER:
 		this->ms = ms;
+		break;
+
+	default:
+		return false;
+	}
+
+	return true;
+}
+
+LinSol::Scale
+LinSol::GetScale(void) const
+{
+	return scale;
+}
+
+bool
+LinSol::SetScale(Scale s)
+{
+	switch (currSolver) {
+	case LinSol::UMFPACK_SOLVER:
+		this->scale = s;
 		break;
 
 	default:
@@ -617,20 +640,39 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_HARWELL */
 
-	case LinSol::UMFPACK_SOLVER:
+	case LinSol::UMFPACK_SOLVER: 
 #ifdef USE_UMFPACK
+		{
+		UmfpackSolver::Scale s = UmfpackSolver::SCALE_UNDEF;
+		switch (scale) {
+		case SCALE_NONE:
+			s = UmfpackSolver::SCALE_NONE;
+			break;
+
+		case SCALE_MAX:
+			s = UmfpackSolver::SCALE_MAX;
+			break;
+
+		case SCALE_SUM:
+			s = UmfpackSolver::SCALE_SUM;
+			break;
+
+		default:
+			ASSERT(0);
+		}
+
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s));
 			break;
 		}
 
@@ -638,10 +680,10 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
 				UmfpackSparseSolutionManager(iNLD,
-					dPivotFactor, dDropTolerance, blockSize));
+					dPivotFactor, dDropTolerance, blockSize, s));
 			break;
 		}
-      		break;
+		} break;
 #else /* !USE_UMFPACK */
       		silent_cerr("Configure with --with-umfpack "
 			"to enable Umfpack solver" << std::endl);
