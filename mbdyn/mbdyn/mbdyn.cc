@@ -67,7 +67,7 @@ std::list<MPI::Intercomm>  InterfaceComms;
 #include <external.h>
 #include <vector>
 
-#define MB_EXIT(err) \
+#define MB_EXIT(what, err) \
 	do { \
 		if (mbp.using_mpi) { \
 			External::SendClose();	\
@@ -76,12 +76,12 @@ std::list<MPI::Intercomm>  InterfaceComms;
 			} \
 			MPI::Finalize(); \
 		} \
-		exit((err)); \
+		what((err)); \
 	} while (0)
 
-#else /* USE_EXTERNAL */
+#else // !USE_EXTERNAL
 
-#define MB_EXIT(err) \
+#define MB_EXIT(what, err) \
 	do { \
 		if (mbp.using_mpi) { \
 			if ((err) != EXIT_SUCCESS) { \
@@ -89,15 +89,15 @@ std::list<MPI::Intercomm>  InterfaceComms;
 			} \
 			MPI::Finalize(); \
 		} \
-		exit((err)); \
+		what((err)); \
 	} while (0)
-#endif /* USE_EXTERNAL */
-#else /* !USE_MPI */
+#endif // !USE_EXTERNAL
+#else // !USE_MPI
 
-#define MB_EXIT(err) \
-	exit((err))
+#define MB_EXIT(what, err) \
+	what((err))
 
-#endif /* !USE_MPI */
+#endif // !USE_MPI
 
 #ifdef USE_RTAI
 #include "mbrtai_utils.h"
@@ -318,11 +318,9 @@ static struct option LongOpts[] = {
 #endif /* HAVE_GETOPT_LONG */
 #endif /* HAVE_GETOPT */
 
+const std::string sDefaultInputFileName("MBDyn");
 
 extern void GetEnviron(MathParser&);
-const char* sDefaultInputFileName = "MBDyn";
-
-
 
 static Solver* RunMBDyn(MBDynParser&, const std::string&, const std::string&, unsigned int, bool, bool);
 
@@ -1102,11 +1100,11 @@ main(int argc, char* argv[])
 	} catch (NoErr) {
 		silent_cout("MBDyn terminated normally" << std::endl);
 		rc = EXIT_SUCCESS;
-		MB_EXIT(rc);
+		MB_EXIT(return, rc);
 	} catch (ErrInterrupted) {
 		silent_cout("MBDyn was interrupted" << std::endl);
 		rc = 2;
-		MB_EXIT(rc);
+		MB_EXIT(exit, rc);
     	}
 
 	if (mbp.bException) {
@@ -1126,7 +1124,7 @@ main(int argc, char* argv[])
 			silent_cerr("An error occurred during the execution of MBDyn;"
 				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
-			MB_EXIT(rc);
+			MB_EXIT(exit, rc);
 			throw;
     		}
  	}
@@ -1150,7 +1148,7 @@ main(int argc, char* argv[])
 
 	mbdyn_cleanup();
    
-    	MB_EXIT(rc);
+    	MB_EXIT(return, rc);
 } // main() end
 
 
