@@ -480,19 +480,19 @@ doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 	std::vector<doublereal> WORK(4*N);
 	std::vector<integer> IWORK(N);
 	doublereal RCOND = 0.;
-    char norm;
+	char norm;
 
-    switch (eNorm) {
-        case NORM_1:
-            norm = '1';
-            break;
-        case NORM_INF:
-            norm = 'I';
-            break;
-        default:
-            ASSERT(0);
-            throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    }
+	switch (eNorm) {
+	case NORM_1:
+		norm = '1';
+		break;
+	case NORM_INF:
+		norm = 'I';
+		break;
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	__FC_DECL__(dgecon)(&norm, &N, &A[0], &M, &ANORM, &RCOND, &WORK[0], &IWORK[0], &INFO);
 
