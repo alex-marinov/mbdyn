@@ -395,20 +395,22 @@ The nonlinear solver solves a nonlinear problem $F(x)=0$.
 The syntax is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{nonlinear solver} : \bnt{nonlinear_solver_data} ;
+    \bnt{card} ::= \kw{nonlinear solver} : \bnt{nonlinear_solver_name}
+        [ , \bnt{nonlinear_solver_data} ] ;
 \end{Verbatim}
 %\end{verbatim}
-Two nonlinear solvers are currently available:
-a Newton-Raphson iterator and a matrix-free solver.
+Currently available nonlinear solvers are:
 
-The first nonlinear solver, a modified Newton-Raphson, 
-is well tested.
+\paragraph{Newton-Raphson.}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_data} ::= \kw{newton raphson} :
-        \{ \kw{true} | \kw{modified} , \bnt{iterations}
+    \bnt{nonlinear_solver_name} ::= \kw{newton raphson}
+
+    \bnt{nonlinear_solver_data} ::=
+        [ \{ \kw{true}
+        | \kw{modified} , \bnt{iterations}
             [ , \kw{keep jacobian matrix} ]
-            [ , \kw{honor element requests} ] \} ;
+            [ , \kw{honor element requests} ] \} ] ;
 \end{Verbatim}
 %\end{verbatim}
 if \kw{modified}, the number of \nt{iterations} the same Jacobian matrix 
@@ -425,12 +427,58 @@ The default behavior is to ignore such requests\footnote{
 	of the equations, or at least radically change the Jacobian matrix,
 	actually issue this request.
 }.
+This nonlinear solver is well tested.
 
-The second nonlinear solver, based on a
-matrix-free algorithm, is experimental.
+\paragraph{Line search.}
+\emph{Author: Reinhard Resch}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{nonlinear_solver_name} ::= \kw{line search}
+
+    \bnt{nonlinear_solver_data} ::= 
+        [ \{ \kw{true}
+        | \kw{modified} , \bnt{iterations}
+            [ , \kw{keep jacobian matrix} ]
+            [ , \kw{honor element requests} ] \} ]
+        [ , \kw{tolerance x} , \bnt{tolerance_x} ]
+        [ , \kw{tolerance f} , \bnt{tolerance_f} ]
+        [ , \kw{tolerance min} , \bnt{tolerance_min} ]
+        [ , \kw{max iterations} , \bnt{max_iterations} ]
+        [ , \kw{alpha} , \bnt{alpha} ]
+        [ , \kw{lambda min} , \bnt{lambda_min}
+            [ , \kw{relative} , \{ \kw{yes} | \kw{no} | (bool) \bnt{relative} \} ] ]
+        [ , \kw{lambda factor min} , \bnt{lambda_factor_min} ]
+        [ , \kw{max step} , \bnt{max_step} ]
+        [ , \kw{zero gradient} , \kw{continue} , \{ \kw{yes} | \kw{no} | (bool) \bnt{zero_gradient} \} ]
+        [ , \kw{divergence check} , \{ \kw{yes} | \kw{no} | (bool) \bnt{divergence_check} \}
+            [ , \kw{factor} , \bnt{factor} ] ]
+        [ , \kw{algorithm} , \{ \kw{cubic} | \kw{factor} \} ]
+        [ , \kw{scale newton step} , \{ \kw{yes} | \kw{no} | (bool) \bnt{zero_gradient} \}
+            [ , \kw{min scale} , \bnt{min_scale} ] ]
+        [ , \kw{print convergence info} , \{ \kw{yes} | \kw{no} | (bool) \bnt{print_convergence_info} \} ]
+        [ , \kw{verbose} , \{ \kw{yes} | \kw{no} | (bool) \bnt{verbose} \} ]
+        [ , \kw{abort at lambda min} , \{ \kw{yes} | \kw{no} | (bool) \bnt{abort_at_lambda_min} \} ] ;
+\end{Verbatim}
+\begin{itemize}
+\item $\nt{tolerance\_x} \ge 0$
+\item $\nt{tolerance\_f} \ge 0$
+\item $\nt{tolerance\_min} \ge 0$
+\item $\nt{max\_iterations} \ge 0$
+\item $\nt{alpha} \ge 0$
+\item $\nt{lambda\_min} \ge 0$
+\item $0 < \nt{lambda\_factor\_min} < 1$
+\item $\nt{max\_step} \ge 0$
+\item $\nt{factor} \ge 0$
+\item $0 \le \nt{min\_scale} \le 1$
+\end{itemize}
+\emph{TODO}
+
+\paragraph{Matrix free.}
+\emph{Author: Giuseppe Quaranta}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{nonlinear_solver_data} ::= \kw{matrix free} , \{ \kw{bicgstab} | \kw{gmres} \}
+    \bnt{nonlinear_solver_name} ::= \kw{matrix free}
+
+    \bnt{nonlinear_solver_data} ::= \{ \kw{bicgstab} | \kw{gmres} \}
         [ , \kw{tolerance} , \bnt{tolerance} ]
         [ , \kw{steps} , \bnt{steps} ]
         [ , \kw{tau} , \bnt{tau} ]
@@ -459,6 +507,7 @@ the performance of the matrix-free solver.
 If the option \kw{honor element requests} is selected, the preconditioner
 is updated also when an element changes the structure of its equations.
 The default behavior is to ignore such requests\footnote{See note above}.
+This nonlinear solver is experimental.
 
 
 \subsubsection{Eigenanalysis}
