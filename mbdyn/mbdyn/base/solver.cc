@@ -3382,62 +3382,62 @@ Solver::ReadData(MBDynParser& HP)
 							} else {
 								LineSearch.uFlags &= ~LineSearchParameters::DIVERGENCE_CHECK;
 							}
-                            if (HP.IsKeyWord("factor")) {
-                                LineSearch.dDivergenceCheck = HP.GetReal();
-    							if (LineSearch.dDivergenceCheck <= 0.) {
-    								silent_cerr("divergence check factor must be greater than zero at line " << HP.GetLineData() << std::endl);
-    								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-    							}
-                            }
-                        } else if (HP.IsKeyWord("algorithm")) {
-                            LineSearch.uFlags &= ~LineSearchParameters::ALGORITHM;
-                            if (HP.IsKeyWord("cubic")) {
-                                LineSearch.uFlags |= LineSearchParameters::ALGORITHM_CUBIC;
-                            } else if (HP.IsKeyWord("factor")) {
-                                LineSearch.uFlags |= LineSearchParameters::ALGORITHM_FACTOR;
-                            } else {
-                                silent_cerr("Keyword \"cubic\" or \"factor\" expected at line " << HP.GetLineData() << std::endl);
-                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                            }
-                        } else if (HP.IsKeyWord("scale" "newton" "step")) {
-                        	if (HP.GetYesNoOrBool()) {
-                        		LineSearch.uFlags |= LineSearchParameters::SCALE_NEWTON_STEP;
-                        	} else {
-                        		LineSearch.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
-                        	}
-                        	if (HP.IsKeyWord("min" "scale")) {
-                        		LineSearch.dMinStepScale = HP.GetReal();
-                        		if (LineSearch.dMinStepScale < 0. || LineSearch.dMinStepScale > 1.) {
-                        			silent_cerr("min scale must be in range [0-1] at line " << HP.GetLineData() << std::endl);
-                        			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-                        		}
-                        	}
-                        } else if (HP.IsKeyWord("print" "convergence" "info")) {
-                        	if (HP.GetYesNoOrBool()) {
-                        		LineSearch.uFlags |= LineSearchParameters::PRINT_CONVERGENCE_INFO;
-                        	} else {
-                        		LineSearch.uFlags &= ~LineSearchParameters::PRINT_CONVERGENCE_INFO;
-                        	}
-                        } else if (HP.IsKeyWord("verbose" "mode")) {
-                        	if (HP.GetYesNoOrBool()) {
-                        		LineSearch.uFlags |= LineSearchParameters::VERBOSE_MODE;
-                        	} else {
-                        		LineSearch.uFlags &= ~LineSearchParameters::VERBOSE_MODE;
-                        	}
-                        } else if (HP.IsKeyWord("abort" "at" "lambda" "min")) {
-                        	if (HP.GetYesNoOrBool()) {
-                        		LineSearch.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
-                        	} else {
-                        		LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
-                        	}
+							if (HP.IsKeyWord("factor")) {
+								LineSearch.dDivergenceCheck = HP.GetReal();
+								if (LineSearch.dDivergenceCheck <= 0.) {
+									silent_cerr("divergence check factor must be greater than zero at line " << HP.GetLineData() << std::endl);
+									throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+								}
+							}
+						} else if (HP.IsKeyWord("algorithm")) {
+							LineSearch.uFlags &= ~LineSearchParameters::ALGORITHM;
+							if (HP.IsKeyWord("cubic")) {
+								LineSearch.uFlags |= LineSearchParameters::ALGORITHM_CUBIC;
+							} else if (HP.IsKeyWord("factor")) {
+								LineSearch.uFlags |= LineSearchParameters::ALGORITHM_FACTOR;
+							} else {
+								silent_cerr("Keyword \"cubic\" or \"factor\" expected at line " << HP.GetLineData() << std::endl);
+								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+							}
+						} else if (HP.IsKeyWord("scale" "newton" "step")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::SCALE_NEWTON_STEP;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::SCALE_NEWTON_STEP;
+							}
+							if (HP.IsKeyWord("min" "scale")) {
+								LineSearch.dMinStepScale = HP.GetReal();
+								if (LineSearch.dMinStepScale < 0. || LineSearch.dMinStepScale > 1.) {
+									silent_cerr("min scale must be in range [0-1] at line " << HP.GetLineData() << std::endl);
+									throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+								}
+							}
+						} else if (HP.IsKeyWord("print" "convergence" "info")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::PRINT_CONVERGENCE_INFO;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::PRINT_CONVERGENCE_INFO;
+							}
+						} else if (HP.IsKeyWord("verbose")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::VERBOSE_MODE;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::VERBOSE_MODE;
+							}
+						} else if (HP.IsKeyWord("abort" "at" "lambda" "min")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+							}
 						} else {
 							silent_cerr("Keyword \"tolerance x\", \"tolerance f\", "
-										"\"tolerance min\", \"max iterations\", \"alpha\", "
-										"\"lambda min\" \"lambda factor min\", \"max step\" "
-                                        "\"divergence check\", \"algorithm\", \"scale newton step\" "
-										"\"print convergence info\", "
-										"\"abort at lambda min\" "
-										"or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
+								"\"tolerance min\", \"max iterations\", \"alpha\", "
+								"\"lambda min\" \"lambda factor min\", \"max step\" "
+								"\"divergence check\", \"algorithm\", \"scale newton step\" "
+								"\"print convergence info\", "
+								"\"abort at lambda min\" "
+								"or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 						}
 					}
