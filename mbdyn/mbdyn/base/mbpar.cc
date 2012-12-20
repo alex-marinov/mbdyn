@@ -986,7 +986,7 @@ void
 MBDynParser::ModuleLoad_int(void)
 {
 #ifndef USE_RUNTIME_LOADING
-	silent_cerr("ModuleLoad_int: dynamic modules not supported"
+	silent_cerr("ModuleLoad_int: dynamic modules not supported; libltdl support needed"
 			<< std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
