@@ -438,8 +438,8 @@ dnl
 dnl Sort out defines
 dnl
 dnl !!! set to "no" before release !!!
-dnl MBDYN_DEVEL=yes
-MBDYN_DEVEL=no
+MBDYN_DEVEL=yes
+dnl MBDYN_DEVEL=no
 if test x"$MBDYN_DEVEL" = x"yes" ; then 
 	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
 fi
@@ -1564,7 +1564,13 @@ if test "$ol_with_umfpack" != "no" ; then
 		have_umfpack="no"
 		AC_MSG_CHECKING([for umfpack library version])
 		AC_TRY_COMPILE([
+#if defined(HAVE_STDINT_H)
+#include <stdint.h>
+#elif defined(HAVE_SYS_TYPES_H)
 #include <sys/types.h>
+#else
+#error "need int32_t"
+#endif
 #include <umfpack.h>
 		],[
 #ifndef UMFPACK_MAIN_VERSION
@@ -1585,7 +1591,11 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_CHECKING([if umfpack library needs long])
 			AC_LANG_CPLUSPLUS
 			AC_TRY_COMPILE([
+#if defined(HAVE_STDINT_H)
+#include <stdint.h>
+#elif defined(HAVE_SYS_TYPES_H)
 #include <sys/types.h>
+#endif
 #include <umfpack.h>
 			],[
 #define SIZE 2
@@ -1598,7 +1608,11 @@ if test "$ol_with_umfpack" != "no" ; then
 	umfpack_di_solve(sys, Ap, Ai, Ax, X, B, &Numeric, Control, Info);
 			],[],[
 				AC_TRY_COMPILE([
+#if defined(HAVE_STDINT_H)
+#include <stdint.h>
+#elif defined(HAVE_SYS_TYPES_H)
 #include <sys/types.h>
+#endif
 #include <umfpack.h>
 				],[
 #define SIZE 2
