@@ -44,6 +44,7 @@
 #include <iomanip>
 #include <cfloat>
 #include <cassert>
+#include <cmath>
 
 #ifdef HAVE_CONFIG_H
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
@@ -70,20 +71,20 @@ public:
 		   const VectorHandler& XPrimeCurr);
 	void ComputeResidual(Vec3& e_R2,
 						 Vec3& e_dot_R2,
-						 double omega_proj[2],
+						 doublereal omega_proj[2],
 						 Vec3& F2_R2,
 						 Vec3& M2_R2,
 						 Vec3& F2_I,
 						 Vec3& M2_I,
 						 Vec3& F1_I,
 						 Vec3& M1_I,
-						 double& eps,
-						 double& eps_dot,
-						 double& delta,
-						 double& SoD,
-						 double& SoV,
-						 double& my,
-						 double& beta)const;
+						 doublereal& eps,
+						 doublereal& eps_dot,
+						 doublereal& delta,
+						 doublereal& SoD,
+						 doublereal& SoV,
+						 doublereal& my,
+						 doublereal& beta)const;
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -104,8 +105,8 @@ public:
    	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
   private:
-	StructNode* m_pShaft;
-	StructNode* m_pBearing;
+	const StructNode* m_pShaft;
+	const StructNode* m_pBearing;
 	Vec3 m_o1_R1;
 	Vec3 m_o2_R2;
 
@@ -203,8 +204,13 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"shaft\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_pShaft = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT(m_pShaft != 0);
+
+	m_pShaft = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	if (!m_pShaft) {
+		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if ( HP.IsKeyWord("offset") )
 		m_o1_R1 = HP.GetPosRel(ReferenceFrame(m_pShaft));
@@ -214,8 +220,13 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"bearing\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_pBearing = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT( m_pBearing != 0 );
+
+	m_pBearing = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	if (!m_pBearing) {
+		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if ( HP.IsKeyWord("offset") )
 		m_o2_R2 = HP.GetPosRel(ReferenceFrame(m_pBearing));
@@ -289,7 +300,7 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		}
 		m_myP = HP.GetReal();
 
-		if ( !( HP.IsKeyWord("angular velocity threshold") || HP.IsKeyWord("angular" "velocity" "threshold") ) )
+		if ( !( HP.IsKeyWord("angular_velocity_threshold") || HP.IsKeyWord("angular" "velocity" "threshold") ) )
 		{
 			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"angular velocity threshold\" expected at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -338,10 +349,10 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 {
 	if ( fToBeOutput() )
 	{
-		double eps, eps_dot, delta, SoD, SoV, my, beta;
+		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
 		Vec3 e_R2, e_dot_R2;
-		double omega_proj[2];
+		doublereal omega_proj[2];
 		Vec3 F2_R2, M2_R2;
 		Vec3 F2_I, M2_I, F1_I, M1_I;
 
@@ -457,7 +468,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) );
 	const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
-	const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * d1_dot_R2(3);
+	const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3);
 
 	Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
 							+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
@@ -470,29 +481,29 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Vec3 l1_R1 = m_o1_R1 + lambda_d1_R1;
 	const Vec3 l1_I = R1 * l1_R1;
 	const Vec3 l2_R2 = m_o2_R2 + e_R2;
-	const double omega_proj[2] = { R2.GetCol(3).Dot(omega1),
+	const doublereal omega_proj[2] = { R2.GetCol(3).Dot(omega1),
 				       R2.GetCol(3).Dot(omega2) };
 
-	const double e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
+	const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
 
 	//												  |	0   1   2   3   4   5  |
-	static const double ed[2][NBDIRSMAX] 	 	  = { { 1., 0., 0., 0., 0., 0. },	// 0 | inner derivative of the eccentricity of the shaft in direction 1 of the reference frame of the bearing (R2)
+	static const doublereal ed[2][NBDIRSMAX] 	 	  = { { 1., 0., 0., 0., 0., 0. },	// 0 | inner derivative of the eccentricity of the shaft in direction 1 of the reference frame of the bearing (R2)
 						     	 	 	 	 	 	  { 0., 1., 0., 0., 0., 0. } };	// 1 | inner derivative of the eccentricity of the shaft in direction 2 of the reference frame of the bearing (R2)
-	static const double e_dotd[2][NBDIRSMAX] 	  = { { 0., 0., 1., 0., 0., 0. },	// 0 | inner derivative of relative velocity of the shaft in direction 1 of the reference frame of the bearing (R2)
+	static const doublereal e_dotd[2][NBDIRSMAX] 	  = { { 0., 0., 1., 0., 0., 0. },	// 0 | inner derivative of relative velocity of the shaft in direction 1 of the reference frame of the bearing (R2)
 						     	 	 	 	 	 	  { 0., 0., 0., 1., 0., 0. } }; // 1 | inner derivative of relative velocity of the shaft in direction 2 of the reference frame of the bearing (R2)
-	static const double omega_projd[2][NBDIRSMAX] = { { 0., 0., 0., 0., 1., 0. },	// 0 | inner derivative of the angular velocity of the shaft in direction 3 of the reference frame of the bearing (R2)
+	static const doublereal omega_projd[2][NBDIRSMAX] = { { 0., 0., 0., 0., 1., 0. },	// 0 | inner derivative of the angular velocity of the shaft in direction 3 of the reference frame of the bearing (R2)
 												 	  { 0., 0., 0., 0., 0., 1. } }; // 1 | inner derivative of the angular velocity of the bearing in direction 3 of the reference frame of the bearing (R2)
 
-	double k[3];			// force vector at the bearing (not used for the evaluation of the jacobian matrix)
-	double kd[3][NBDIRSMAX];	// variation of the force vector at the bearing with respect to the eccentricity of the shaft e and the relative velocity of the shaft
+	doublereal k[3];			// force vector at the bearing (not used for the evaluation of the jacobian matrix)
+	doublereal kd[3][NBDIRSMAX];	// variation of the force vector at the bearing with respect to the eccentricity of the shaft e and the relative velocity of the shaft
 
 	// kd = { { diff(k[0],e[0]), diff(k[0],e[1]), diff(k[0],e_dot[0]), diff(k[0],e_dot[1]), diff(k[0],omega_proj[0]), diff(k[0],omega_proj[1]) },
 	//        { diff(k[1],e[0]), diff(k[1],e[1]), diff(k[1],e_dot[0]), diff(k[1],e_dot[1]), diff(k[1],omega_proj[0]), diff(k[1],omega_proj[1]) },
 	//        { diff(k[2],e[0]), diff(k[2],e[1]), diff(k[2],e_dot[0]), diff(k[2],e_dot[1]), diff(k[2],omega_proj[0]), diff(k[2],omega_proj[1]) } };
 
-	double eps, eps_dot, delta, SoD, SoV, my, beta;
+	doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
-	hydrodynamic_plain_bearing_force_dv_(m_b, m_d, m_Psi, m_eta, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k,kd, eps,eps_dot,delta,SoD,SoV,my,beta,NBDIRSMAX);
+	__FC_DECL__(hydrodynamic_plain_bearing_force_dv)(m_b, m_d, m_Psi, m_eta, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k, kd, eps, eps_dot, delta, SoD, SoV, my, beta, NBDIRSMAX);
 
 	Vec3 F2_R2;					// F2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
 
@@ -558,7 +569,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	{
 		// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
 
-		plain_bearing_contact_force_dv_( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, omega_projd,e_, ed, e_dot_,e_dotd, k, kd, NBDIRSMAX);
+		__FC_DECL__(plain_bearing_contact_force_dv)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, omega_projd,e_, ed, e_dot_,e_dotd, k, kd, NBDIRSMAX);
 
 		F2_R2(1) += k[0];
 		F2_R2(2) += k[1];
@@ -609,7 +620,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Mat3x3 dv_dot_R2_dX1 = -R2.MulTM(Mat3x3(MatCross, omega2));	// diff(diff(v^(R2),t),X1)
 	const Mat3x3& dv_R2_dX1 = R2_T;				// diff(v^(R2),X1)
-	const Vec3 dlambda_dot_dX1 = -dv_dot_R2_dX1.GetRow(3) / d1_R2(3) + dv_R2_dX1.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3); // diff(diff(lambda,t),X1)
+	const Vec3 dlambda_dot_dX1 = -dv_dot_R2_dX1.GetRow(3) / d1_R2(3) + dv_R2_dX1.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3); // diff(diff(lambda,t),X1)
 
 	const Vec3 dlambda_dX1 = -dv_R2_dX1.GetRow(3) / d1_R2(3);
 
@@ -622,11 +633,11 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Mat3x3 dd1_R2_dg1 = -R2.MulTM(Mat3x3(MatCross, R1_0.GetCol(3)));
 	const Mat3x3 dd1_dot_R2_dg1 = R2.MulTM( R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) - ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0.GetCol(3))) );
 	const Vec3 dlambda_dot_dg1 = -dv_dot_R2_dg1.GetRow(3) / d1_R2(3)
-				    + dd1_R2_dg1.GetRow(3) * (v_dot_R2(3) / pow(d1_R2(3), 2))
-				    + dv_R2_dg1.GetRow(3) / pow(d1_R2(3), 2) * d1_dot_R2(3)
-				    - dd1_R2_dg1.GetRow(3) * (2. * v_R2(3) / pow(d1_R2(3), 3) * d1_dot_R2(3))
-				    + dd1_dot_R2_dg1.GetRow(3) * (v_R2(3) / pow(d1_R2(3), 2));
-	const Vec3 dlambda_dg1 = -dv_R2_dg1.GetRow(3) / d1_R2(3) + dd1_R2_dg1.GetRow(3) * (v_R2(3) / pow( d1_R2(3), 2 ));
+				    + dd1_R2_dg1.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
+				    + dv_R2_dg1.GetRow(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3)
+				    - dd1_R2_dg1.GetRow(3) * (2. * v_R2(3) / std::pow(d1_R2(3), 3) * d1_dot_R2(3))
+				    + dd1_dot_R2_dg1.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3), 2));
+	const Vec3 dlambda_dg1 = -dv_R2_dg1.GetRow(3) / d1_R2(3) + dd1_R2_dg1.GetRow(3) * (v_R2(3) / std::pow( d1_R2(3), 2 ));
 
 	const Mat3x3 de_dot_R2_dg1 = R2.MulTM( -omega1.Cross(Mat3x3( MatCross, R1_0 * m_o1_R1 )) + ( R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega1_ref))
 								+ R1.GetCol(3).Tens(dlambda_dot_dg1) - Mat3x3( MatCross, R1_0.GetCol(3) ) * lambda_dot
@@ -634,7 +645,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 								- omega1.Cross(Mat3x3( MatCross, R1_0.GetCol(3) )) * lambda );
 	const Mat3x3 dv_dot_R2_dX2 = R2.MulTM(Mat3x3(MatCross, omega2));
 	const Mat3x3 dv_R2_dX2 = -R2_T;
-	const Vec3 dlambda_dot_dX2 = -dv_dot_R2_dX2.GetRow(3) / d1_R2(3) + dv_R2_dX2.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3);
+	const Vec3 dlambda_dot_dX2 = -dv_dot_R2_dX2.GetRow(3) / d1_R2(3) + dv_R2_dX2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3);
 
 	const Vec3 dlambda_dX2 = -dv_R2_dX2.GetRow(3) / d1_R2(3);
 	const Mat3x3 de_dot_R2_dX2 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX2) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX2) );
@@ -642,14 +653,14 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Mat3x3 dd1_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
 	const Mat3x3 dv_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega2.Cross( X2 - X1 ) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) ) )
 				   + R2.MulTM( ( X2 - X1 - R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega2_ref)) );
-	const Vec3 dlambda_dg2 = -dv_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
+	const Vec3 dlambda_dg2 = -dv_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
 
 	const Mat3x3 dd1_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, ( omega1 - omega2 ).Cross( R1.GetCol(3) ) ) )
 								- R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) * Mat3x3(MatCross, omega2_ref) );
-	const Vec3 dlambda_dot_dg2 = -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_dot_R2(3) / pow(d1_R2(3), 2))
-				    + dv_R2_dg2.GetRow(3) / pow(d1_R2(3),2) * d1_dot_R2(3)
-				    - dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / pow( d1_R2(3), 3) * d1_dot_R2(3))
-				    + dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
+	const Vec3 dlambda_dot_dg2 = -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
+				    + dv_R2_dg2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3)
+				    - dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / std::pow( d1_R2(3), 3) * d1_dot_R2(3))
+				    + dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
 
 	const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * m_o1_R1) - omega2.Cross( R2 * m_o2_R2 )
 								+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda))
@@ -662,7 +673,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Mat3x3 dv_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
 	const Mat3x3 dd1_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) );
-	const Vec3 dlambda_dot_dg1_dot = -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg1_dot.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
+	const Vec3 dlambda_dot_dg1_dot = -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg1_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
 
 	const Mat3x3 de_dot_R2_dg1_dot = R2.MulTM( -Mat3x3( MatCross, R1 * m_o1_R1 ) + R1.GetCol(3).Tens(dlambda_dot_dg1_dot) - Mat3x3(MatCross, R1.GetCol(3) * lambda) );
 
@@ -673,7 +684,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 	const Mat3x3 dv_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 + X1 - X2 ));
 	const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(MatCross, R1.GetCol(3)));
-	const Vec3 dlambda_dot_dg2_dot = -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / pow(d1_R2(3),2));
+	const Vec3 dlambda_dot_dg2_dot = -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
 
 	const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
 
@@ -831,14 +842,14 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt+6,intBearingMomentumIndex + iCnt);
 	}
 
-	double eps, eps_dot, delta, SoD, SoV, my, beta;
+	doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
 	Vec3 e_R2, e_dot_R2;
-	double omega_proj[2];
+	doublereal omega_proj[2];
 	Vec3 F2_R2, M2_R2;
 	Vec3 F2_I, M2_I, F1_I, M1_I;
 
-	ComputeResidual(e_R2,e_dot_R2,omega_proj,F2_R2,M2_R2,F2_I,M2_I,F1_I,M1_I,eps,eps_dot,delta,SoD,SoV,my,beta);
+	ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta);
 	// 1     2     3     4     5     6     7     8     9     10    11    12
 	// F1(1) F1(2) F1(3) M1(1) M1(2) M1(3) F2(1) F2(2) F2(3) M2(1) M2(2) M2(3)
 	WorkVec.Put(1,  F1_I);
@@ -853,7 +864,7 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,double omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,double& eps, double& eps_dot,double& delta,double& SoD,double& SoV,double& my,double& beta)const
+void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,doublereal omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,doublereal& eps, doublereal& eps_dot,doublereal& delta,doublereal& SoD,doublereal& SoV,doublereal& my,doublereal& beta)const
 {
         const Vec3& X1 = m_pShaft->GetXCurr();
         const Vec3& X2 = m_pBearing->GetXCurr();
@@ -870,7 +881,7 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
         e_R2 = v_R2 + d1_R2 * lambda;
         const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) );
         const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
-        const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / pow(d1_R2(3),2) * d1_dot_R2(3);
+        const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3);
 
         // e_dot_R2 = R2^T * e_dot_I
         e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
@@ -882,11 +893,11 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
         omega_proj[0] = R2.GetCol(3).Dot(omega1);
         omega_proj[1] = R2.GetCol(3).Dot(omega2);
 
-        const double e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
+        const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
 
-        double k[3];
+        doublereal k[3];
 
-        hydrodynamic_plain_bearing_force_(m_b, m_d, m_Psi, m_eta, omega_proj, e_, e_dot_,k,eps,eps_dot,delta,SoD,SoV,my,beta);
+        __FC_DECL__(hydrodynamic_plain_bearing_force)(m_b, m_d, m_Psi, m_eta, omega_proj, e_, e_dot_, k, eps, eps_dot, delta, SoD, SoV, my, beta);
 
         F2_R2(1) = k[0];
         F2_R2(2) = k[1];
@@ -900,7 +911,7 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
         {
                 // SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
 
-                plain_bearing_contact_force_( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, e_, e_dot_, k);
+                __FC_DECL__(plain_bearing_contact_force)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, e_, e_dot_, k);
                 F2_R2(1) += k[0];
                 F2_R2(2) += k[1];
                 M2_R2(3) += k[2];
@@ -997,9 +1008,6 @@ hydrodynamic_plain_bearing_with_offset::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	assert(0);
-
 	WorkMat.SetNullMatrix();
 
 	return WorkMat;
@@ -1010,9 +1018,6 @@ hydrodynamic_plain_bearing_with_offset::InitialAssRes(
 	SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	assert(0);
-
 	WorkVec.ResizeReset(0);
 
 	return WorkVec;
@@ -1033,14 +1038,8 @@ bool hydrodynamic_plain_bearing_set(void)
 
 #ifndef STATIC_MODULES
 
-#ifdef __CYGWIN__
-//FIXME: dynamic linking does not work on cygwin
-namespace
-{	
-#else
 extern "C"
 {
-#endif
 
 int module_init(const char *module_name, void *pdm, void *php)
 {
@@ -1056,13 +1055,7 @@ int module_init(const char *module_name, void *pdm, void *php)
 	return 0;
 }
 
-#ifdef __CYGWIN__
-	//FIXME: dynamic linking does not work on cygwin
-	volatile int g_module_init = module_init("hydrodynamic_plain_bearing",0,0);
 }
-#else
-}
-#endif
 
 #endif // ! STATIC_MODULE
 

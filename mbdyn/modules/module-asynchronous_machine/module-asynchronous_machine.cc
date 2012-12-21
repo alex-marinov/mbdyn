@@ -99,6 +99,7 @@ public:
 	virtual doublereal dGetPrivData(unsigned int i) const;
 	virtual void SetInitialValue(VectorHandler& X);
 	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
+	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 	VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -128,8 +129,8 @@ private:
 	bool IsMotorOn(void) const;
 
 private:
-	StructNode* m_pRotorNode;	/**< node of the rotor where the torque \f$\boldsymbol{f}_3\f$ is imposed and the angular velocity \f$\dot{\boldsymbol{\varphi}}_1\f$ is determined */
-	StructNode* m_pStatorNode;	/**< node of the stator where the torque \f$\boldsymbol{f}_4\f$ is applied and the angular velocity \f$\dot{\boldsymbol{\varphi}}_2\f$ is determined (axis 3 of the stator node is assumed to be the axis of rotation) */
+	const StructNode* m_pRotorNode;	/**< node of the rotor where the torque \f$\boldsymbol{f}_3\f$ is imposed and the angular velocity \f$\dot{\boldsymbol{\varphi}}_1\f$ is determined */
+	const StructNode* m_pStatorNode;	/**< node of the stator where the torque \f$\boldsymbol{f}_4\f$ is applied and the angular velocity \f$\dot{\boldsymbol{\varphi}}_2\f$ is determined (axis 3 of the stator node is assumed to be the axis of rotation) */
 	doublereal m_MK;				/**< breakdown torque \f$M_K\f$	*/
 	doublereal m_sK;				/**< slip at the breakdown torque \f$s_K\f$	*/
 	DriveOwner m_OmegaS;		/**< drive that returns the synchronous angular velocity \f$\Omega_S=2\,\pi\,\frac{f}{p}\f$ (might be a function of the time in case of an frequency inverter)	*/
@@ -142,7 +143,7 @@ private:
     static const doublereal sm_SingTol;
 };
 
-const doublereal asynchronous_machine::sm_SingTol = pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
+const doublereal asynchronous_machine::sm_SingTol = std::pow(std::numeric_limits<doublereal>::epsilon(), 0.9);
 
 /**
  * \param uLabel the label assigned to this element in the input file
@@ -215,15 +216,25 @@ asynchronous_machine::asynchronous_machine(
 		silent_cerr("asynchronous_machine(" << GetLabel() << "): keyword \"rotor\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_pRotorNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT(m_pRotorNode != 0);
+
+	m_pRotorNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	if (!m_pRotorNode) {
+		silent_cerr("asynchronous_machine(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (!HP.IsKeyWord("stator")) {
 		silent_cerr("asynchronous_machine(" << GetLabel() << "): keyword \"stator\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_pStatorNode = dynamic_cast<StructNode *>(pDM->ReadNode(HP, Node::STRUCTURAL));
-	ASSERT(m_pStatorNode != 0);
+
+	m_pStatorNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	if (!m_pStatorNode) {
+		silent_cerr("asynchronous_machine(" << GetLabel() << "): structural node expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (!HP.IsKeyWord("MK")) {
 		silent_cerr("asynchronous_machine(" << GetLabel() << "): keyword \"MK\" expected at line " << HP.GetLineData() << std::endl);
@@ -295,7 +306,7 @@ asynchronous_machine::asynchronous_machine(
  *
  * In our element this member function saves the current state of the private degrees of freedom.
  * This is needed for the implementation of the Output() and the dGetPrivData() member functions.
- * If the private degrees of freedom are needed just for Output(), the code that saves it's state should be moved to AfterConvergence() since this member function is called only once per time step.
+ * If the private degrees of freedom are needed just for Output(), the code that saves it's state should be moved to AfterPredict() since this member function is called only once per time step.
  */
 void
 asynchronous_machine::Update(const VectorHandler& X,const VectorHandler& XP)
@@ -312,6 +323,11 @@ asynchronous_machine::Update(const VectorHandler& X,const VectorHandler& XP)
 	m_dM_dt2	= XP(intTorqueDerivativeRowIndex);
 	m_omega 	= X(intOmegaRowIndex);
 	m_domega_dt = XP(intOmegaRowIndex);
+}
+
+void asynchronous_machine::AfterPredict(VectorHandler& X, VectorHandler& XP)
+{
+	Update(X, XP);
 }
 
 /**
@@ -732,9 +748,9 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 		// power supply is turned on
 
 		// df1_dy1 = diff(f1,y1)
-		df1_dy1 = ( 2 * m_sK + copysign(1., OmegaS) * y5_dot / ( s * pow(OmegaS,2) ) ) * abs(OmegaS);
+		df1_dy1 = ( 2 * m_sK + copysign(1., OmegaS) * y5_dot / ( s * std::pow(OmegaS,2) ) ) * abs(OmegaS);
 		// df1_dy2 = diff(f1,y2)
-		df1_dy2 = ( pow(m_sK,2) + pow(s,2) ) * pow(OmegaS,2) + copysign(1., OmegaS) * y5_dot * m_sK / s;
+		df1_dy2 = ( std::pow(m_sK,2) + std::pow(s,2) ) * std::pow(OmegaS,2) + copysign(1., OmegaS) * y5_dot * m_sK / s;
 		// df1_dy1_dot = diff(f1,diff(y1,t))
 		df1_dy1_dot = 1.;
 		// df2_dy1 = diff(f2,dy1)
@@ -742,7 +758,7 @@ asynchronous_machine::AssJac(VariableSubMatrixHandler& WorkMat_,
 		// df2_dy2_dot = diff(f2,diff(y2,t))
 		df2_dy2_dot = 1.;
 		// df1_ds = diff(f1,s)
-		const doublereal df1_ds = -y1 * y5_dot / ( pow(s,2) * OmegaS ) + ( 2 * s * pow(OmegaS,2) - copysign(1., OmegaS) * y5_dot * m_sK / pow(s,2) ) * y2 - 2 * m_MK * m_sK * pow(OmegaS,2);
+		const doublereal df1_ds = -y1 * y5_dot / ( std::pow(s,2) * OmegaS ) + ( 2 * s * std::pow(OmegaS,2) - copysign(1., OmegaS) * y5_dot * m_sK / std::pow(s,2) ) * y2 - 2 * m_MK * m_sK * std::pow(OmegaS,2);
 		// df1_dy5 = diff(f1,y5) = diff(f1,s) * diff(s,y5)
 		df1_dy5 = df1_ds * ( -1. / OmegaS );
 		// df1_dy5_dot = diff(f1,diff(y5,t))
@@ -914,8 +930,8 @@ asynchronous_machine::AssRes(SubVectorHandler& WorkVec,
 
 	if (IsMotorOn()) {
 		// power supply is switched on
-		f1 = y1_dot + ( 2 * m_sK + copysign(1., OmegaS) * y5_dot / ( s * pow(OmegaS,2) ) ) * y1 * abs(OmegaS)
-			+ ( ( pow(m_sK,2) + pow(s,2) ) * pow(OmegaS,2) + copysign(1., OmegaS) * y5_dot * m_sK / s ) * y2 - 2 * m_MK * m_sK * s * pow(OmegaS,2);
+		f1 = y1_dot + ( 2 * m_sK + copysign(1., OmegaS) * y5_dot / ( s * std::pow(OmegaS,2) ) ) * y1 * abs(OmegaS)
+			+ ( ( std::pow(m_sK,2) + std::pow(s,2) ) * std::pow(OmegaS,2) + copysign(1., OmegaS) * y5_dot * m_sK / s ) * y2 - 2 * m_MK * m_sK * s * std::pow(OmegaS,2);
 		f2 = y2_dot - y1;
 
 	} else {
@@ -1051,9 +1067,6 @@ asynchronous_machine::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	assert(0);
-
 	WorkMat.SetNullMatrix();
 
 	return WorkMat;
@@ -1067,9 +1080,6 @@ asynchronous_machine::InitialAssRes(
 	SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
-	// should not be called, since initial workspace is empty
-	assert(0);
-
 	WorkVec.ResizeReset(0);
 
 	return WorkVec;

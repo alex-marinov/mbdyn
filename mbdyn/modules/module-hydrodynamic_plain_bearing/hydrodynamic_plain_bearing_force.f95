@@ -34,7 +34,7 @@ END MODULE MATH_CONST
 
 SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_dot,delta,SoD,SoV,my,beta)
 !-------------------------------------------------------------------------------------------------------------------------
-!       hydrodynamic plain bearing calculation according to Buttenschöns theory
+!       hydrodynamic plain bearing calculation according to Butenschoen's theory
 !-------------------------------------------------------------------------------------------------------------------------
 !       COORDINATE SYSTEM:
 !       x ... axial direction
@@ -81,7 +81,7 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
         INTRINSIC DATAN2, DSQRT, SUM, DCOS, DSIN, DABS, DSIGN
         
         ! clearance of the shaft inside the bearing
-        s = d * Psi
+        s = d * Psi / ( 1 - Psi )
         
         ! angle of the position with minimum clearance between shaft and bearing
         delta = DATAN2(e(2),e(1))
@@ -120,7 +120,7 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
                 delta_dot = ( e(1) * e_dot(2) - e(2) * e_dot(1) ) / ( e(2)**2 + e(1)**2 )
         ENDIF
         
-        ! coefficients for SoD for rotation according to Butenschön
+        ! coefficients for SoD for rotation according to Butenschoen
         a1 = 1.1642D0 - 1.9456D0 * ( b / d ) +7.1161D0 * ( b / d )**2 - 10.1073D0 * ( b / d )**3 &
               &   +5.0141D0 * ( b / d )**4
               
@@ -145,26 +145,26 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
         a9 = -0.999935D0 + 0.0157434D0 * ( b / d ) - 0.74224D0 * ( b / d )**2 &
                 &  + 0.42278D0 * ( b / d )**3 - 0.368928 * ( b / d )**4
         
-        ! Sommerfeld number for rotation according to Butenschön 1976
+        ! Sommerfeld number for rotation according to Butenschoen 1976
         SoD = ( b / d )**2 * DABS(eps) / ( 2D0 * ( 1D0 - eps**2 )**2 ) & 
                 & * DSQRT( pi**2 * ( 1D0 - eps**2 ) + 16D0 * eps**2 ) * a1 &
                 & * ( DABS(eps) - 1D0 ) / ( a2 + DABS(eps) )
 
-        ! Sommerfeld number for displacement according to Butenschön 1976
+        ! Sommerfeld number for displacement according to Butenschoen 1976
         SoV= 4D0 * ( b / d )**2 * ( 1D0 - eps**2 )**( -5D0 / 2D0 ) &
                 & * ( ( pi / 2D0 - 1D0 / 2D0 * DACOS(eps) ) * ( 1D0 + 2D0 * eps**2 ) &
                 & +  3D0 / 2D0 * eps * DSQRT( 1D0 - eps**2 ) ) * a8 * ( 1D0 - eps ) / ( -a9 - eps )
 
-        ! angle between force for rotation and minimum clearance according to Butenschön 1976
+        ! angle between force for rotation and minimum clearance according to Butenschoen 1976
         beta= ATAN( pi * DSQRT( 1D0 - eps**2 ) / ( 2D0 * DABS(eps) ) ) &
                 & * ( a3 + a4 * DABS(eps) + a5 * eps**2 + a6 * DABS(eps)**3 + a7 * eps**4 )
 
         
-        ! friction coefficient according to Butenschön
+        ! friction coefficient according to Butenschoen
         my = Psi * ( DABS( ( omega(1) - omega(2) ) / ( omega(2) + omega(1) - 2D0 * delta_dot ) ) &
                   & * pi / ( DSQRT( 1D0 - eps**2 ) * SoD ) + DSIN(beta) * DABS(eps) / 2D0 )
         
-        ! effective hydrodynamic angular velocity according to Butenschön 1976
+        ! effective hydrodynamic angular velocity according to Butenschoen 1976
         omega_res = omega(1) + omega(2) - 2D0 * delta_dot
 
         ! angle of the force for rotation
@@ -179,7 +179,6 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
         IF ( DABS(eps) .LT. 1D-6 ) THEN
                 ! avoid division infinite by infinite in case of zero relative eccentricity
                 ! use analytical limit of abs_MR for eps going to zero
-                ! omega_res must be used here because the force by rotation is defined by omega_res
                 abs_MR = pi * b * d**2 * eta * DABS( omega(1) - omega(2) ) / Psi / 2D0
         ELSE
                 abs_MR = my * abs_FD * d / 2D0
@@ -255,7 +254,7 @@ SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( &
 !       INPUT PARAMETERS
 !---------------------------------------------------------------------------------------------------------------------------------------------------------------------
 !   d	                 shaft diameter       [m]
-!   Psi                  relative clearance s = d * Psi, D = d + s [m/m]
+!   Psi                  relative clearance s = d * Psi / ( 1 - Psi ), D = d + s [m/m]
 !   sP                   contact stiffness for wall contact ( epsilon == 1 ) 			[N/m]
 !   DL		             Lehr damping ratio for wall contact					[1]
 !   m		             rated mass for which DL is valid				[kg]
@@ -280,7 +279,7 @@ SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( &
         
         USE MATH_CONST
         IMPLICIT NONE
-        double PRECISION, INTENT(IN) :: d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot(2), e(2), e_dot(2)
+        DOUBLE PRECISION, INTENT(IN) :: d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot(2), e(2), e_dot(2)
         DOUBLE PRECISION, INTENT(OUT) :: k(3)
         DOUBLE PRECISION :: eps, eps_dot, delta, phi, kappa, abs_e, abs_e_dot, s
         DOUBLE PRECISION :: abs_FPrs, abs_FPrd, abs_FPr, FP23r(2), delta_Phi_dot, alpha, sign_MP
@@ -290,7 +289,7 @@ SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( &
         DOUBLE PRECISION SIGN_MOD
 
         ! clearance between shaft and bearing
-        s  = d * Psi 
+        s  = d * Psi / ( 1 - Psi )
 
         ! angle at minimum clearance
         delta = DATAN2(e(2),e(1))
@@ -329,7 +328,7 @@ SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( &
         ! The difference between the angular velocity of the shaft and the bearing is related to the circumference of the shaft.
         ! The term 1 + Psi * eps is needed because the sign of the torque
         ! must be related to the difference of the circumferential velocity.
-        delta_Phi_dot = Phi_dot(1) - ( 1D0 + Psi * eps ) * Phi_dot(2)
+        delta_Phi_dot = Phi_dot(1) - ( 1D0 + Psi * eps  / ( 1 - Psi ) ) * Phi_dot(2)
 
         ! angle between radial and tangential component of the the contact force
         ! 	Attention: the signum function must not be used here since this would lead to a wrong direction of the force
@@ -356,8 +355,19 @@ SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( &
         k(1:2) = FP23r + FP23t
         
         ! torque of the tangential component of the contact force around the x axis
-        k(3) = sign_MP * abs_MP * ( 1D0 + Psi * eps )
+        k(3) = sign_MP * abs_MP * ( 1D0 + Psi * eps / ( 1 - Psi ) )
         
+
+!    PRINT *,'e=',e
+!    PRINT *,'e_dot=',e_dot
+!    PRINT *,'eps=',eps
+!    PRINT *,'eps_dot=',eps_dot
+!    PRINT *,'abs_FPrs=',abs_FPrs
+!    PRINT *,'abs_FPrd=',abs_FPrd
+!    PRINT *,'abs_MP=',abs_MP
+!    PRINT *,'FP23r=',FP23r
+!    PRINT *,'FP23t=',FP23t
+!    PRINT *,'k=',k
 END SUBROUTINE PLAIN_BEARING_CONTACT_FORCE
 
 SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_AND_CONTACT_FORCE( &
