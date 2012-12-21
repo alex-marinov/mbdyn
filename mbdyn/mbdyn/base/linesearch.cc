@@ -37,7 +37,13 @@
   */
 
  /*
-  * Author: Reinhard Resch
+ AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
+        Copyright (C) 2011(-2012) all rights reserved.
+
+        The copyright of this code is transferred
+        to Pierangelo Masarati and Paolo Mantegazza
+        for use in the software MBDyn as described
+        in the GNU Public License version 2.1
   */
   
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
@@ -307,7 +313,7 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 		if (f <= fold + dAlpha * lambda * slope) {
 			TRACE("Sufficient decrease in f: backtrack" << std::endl);
 			return;
-		} else if (lambda < dLambdaMinEff) {
+		} else if (lambda <= dLambdaMinEff) {
 			TRACE("Checking for convergence: lambda=" << lambda << " < lambdaMin=" << dLambdaMinEff << std::endl);
 			check = true; // check for convergence
 			return;
