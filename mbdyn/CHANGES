@@ -39,6 +39,7 @@ MBDyn 1.X-Devel
 		- fix arpack memory issue (noted by Reinhard Resch)
 		- fixed NaivePermMatrixHandler resize
 		  (noted by Reinhard Resch)
+		- fix array drive caller derivative bug
 
 MBDyn 1.5.3
 	Enhancements:

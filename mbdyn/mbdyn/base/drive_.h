@@ -1536,7 +1536,7 @@ DriveArrayCaller::dGetP(const doublereal& dVar) const
 		ASSERT(*i != 0);
 		ASSERT((*i)->bIsDifferentiable());
 
-		dP += (*i)->dGetP();
+		dP += (*i)->dGetP(dVar);
 	}
 
 	return dP;
