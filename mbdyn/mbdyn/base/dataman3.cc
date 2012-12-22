@@ -2459,7 +2459,7 @@ ReadScalarDof(const DataManager* pDM, MBDynParser& HP, bool bDof, bool bOrder)
 	unsigned int iIndex = 1;
 	if (iMaxIndex > 1) {
 		iIndex = HP.GetInt();
-		if (iIndex > iMaxIndex) {
+		if (iIndex < 1 || iIndex > iMaxIndex) {
 			silent_cerr("Illegal index " << iIndex << ", "
 				<< psNodeNames[Type] << "(" << uNode << ") "
 				"has only " << iMaxIndex << " dofs "
