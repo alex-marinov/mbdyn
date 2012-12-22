@@ -89,11 +89,9 @@ main(void)
 	std::cout << "matrix in naive permuted form: " << std::endl
 		<< npm << std::endl;
 
-	std::vector<doublereal> Ax0, Ax1;
-	std::vector<integer> Ai0, Ai1, Ap0, Ap1;
-
+	std::vector<doublereal> Ax0;
+	std::vector<integer> Ai0, Ap0;
 	spm.MakeCompressedColumnForm(Ax0, Ai0, Ap0, 0);
-	spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
 
 	CColMatrixHandler<0> ccm0(Ax0, Ai0, Ap0);
 
@@ -102,10 +100,16 @@ main(void)
 	std::cout << "matrix in cc<0> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << ccm0(ir, ic);
+			// NOTE: need to const_cast because ostream::operator << (const double) does not exist,
+			// thus non-const double& CColMatrixHandler<0>::operator()(int, int) would be used
+			std::cout << std::setw(16) << const_cast<const CColMatrixHandler<0>& >(ccm0)(ir, ic);
 		}
 		std::cout << std::endl;
 	}
+
+	std::vector<doublereal> Ax1;
+	std::vector<integer> Ai1, Ap1;
+	spm.MakeCompressedColumnForm(Ax1, Ai1, Ap1, 1);
 
 	CColMatrixHandler<1> ccm1(Ax1, Ai1, Ap1);
 
@@ -114,7 +118,9 @@ main(void)
 	std::cout << "matrix in cc<1> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << ccm1(ir, ic);
+			// NOTE: need to const_cast because ostream::operator << (const double) does not exist,
+			// thus non-const double& CColMatrixHandler<1>::operator()(int, int) would be used
+			std::cout << std::setw(16) << const_cast<const CColMatrixHandler<1>& >(ccm1)(ir, ic);
 		}
 		std::cout << std::endl;
 	}
@@ -125,7 +131,9 @@ main(void)
 	std::cout << "matrix in dir<0> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << dirm0(ir, ic);
+			// NOTE: need to const_cast because ostream::operator << (const double) does not exist,
+			// thus non-const double& DirCColMatrixHandler<0>::operator()(int, int) would be used
+			std::cout << std::setw(16) << const_cast<const DirCColMatrixHandler<0>& >(dirm0)(ir, ic);
 		}
 		std::cout << std::endl;
 	}
@@ -136,7 +144,9 @@ main(void)
 	std::cout << "matrix in dir<1> form again: " << std::endl;
 	for (int ir = 1; ir <= 5; ir++) {
 		for (int ic = 1; ic <= 5; ic++) {
-			std::cout << std::setw(16) << dirm1(ir, ic);
+			// NOTE: need to const_cast because ostream::operator << (const double) does not exist,
+			// thus non-const double& DirCColMatrixHandler<1>::operator()(int, int) would be used
+			std::cout << std::setw(16) << const_cast<const DirCColMatrixHandler<1>& >(dirm1)(ir, ic);
 		}
 		std::cout << std::endl;
 	}
