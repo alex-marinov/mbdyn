@@ -90,6 +90,7 @@ PrivDriveCaller::Restart(std::ostream& out) const
 
 	if (!sIndexName.empty()) {
 		out << "string, " << sIndexName;
+
 	} else if (pElem->iGetNumPrivData() > 1) {
 		out << "index, " << iIndex;
 	}
