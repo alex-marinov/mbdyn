@@ -450,7 +450,7 @@ namespace {
 
 doublereal MatrixHandler::ConditionNumber(enum Norm_t eNorm) const
 {
-#ifdef HAVE_CONDITION_NUMBER
+#if HAVE_CONDITION_NUMBER
 	integer M;
 	integer N;
 	std::vector<doublereal> A;
