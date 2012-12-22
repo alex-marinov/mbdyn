@@ -38,7 +38,7 @@
 /* Elem2Param - begin */
 
 Elem2Param::Elem2Param(unsigned int uL, const DofOwner* pDO, flag fOut)
-: ParameterNode(uL, pDO, 0., fOut), pElem(NULL), iNum(0) 
+: ParameterNode(uL, pDO, 0., fOut), pElem(0), iNum(0) 
 {
 	NO_OP;
 }
@@ -52,7 +52,7 @@ Elem2Param::~Elem2Param(void)
 void
 Elem2Param::Bind(const Elem* pEl, unsigned int i)
 {
-	if (pElem != NULL) {
+	if (pElem != 0) {
 		silent_cerr("Elem2Param::Bind(): parameter (" << GetLabel()
 			<< ") is already bound to "
 			<< psElemNames[pElem->GetElemType()] 
@@ -117,7 +117,7 @@ Elem2Param::SetValue(DataManager *pDM,
 		VectorHandler& /* X */, VectorHandler& /* XP */ ,
 		SimulationEntity::Hints *ph)
 {
-	if (pElem == NULL) {
+	if (pElem == 0) {
 		silent_cerr("ParameterNode(" << GetLabel() 
 				<< "): never bound" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -146,7 +146,7 @@ StrainGageParam::~StrainGageParam(void)
 void
 StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 {
-	ASSERT(pEl != NULL);
+	ASSERT(pEl != 0);
 	if (pEl->GetElemType() != Elem::BEAM) {
 		silent_cerr("StrainGageParam::Bind(): must bind to a beam"
 			<< std::endl);

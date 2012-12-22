@@ -40,7 +40,7 @@
 
 PrivDriveCaller::PrivDriveCaller(const DriveHandler* pDH, 
 		const DriveCaller* pDC,
-		SimulationEntity *p, unsigned int i, const std::string& s)
+		const SimulationEntity *p, unsigned int i, const std::string& s)
 : DriveCaller(pDH), DriveOwner(pDC), pSE(p), iIndex(i), sIndexName(s)
 {
 	NO_OP;
@@ -71,8 +71,8 @@ PrivDriveCaller::pCopy(void) const
 std::ostream&
 PrivDriveCaller::Restart(std::ostream& out) const
 {
-	Elem *pElem = dynamic_cast<Elem *>(pSE);
-	Node *pNode = dynamic_cast<Node *>(pSE);
+	const Elem *pElem = dynamic_cast<const Elem *>(pSE);
+	const Node *pNode = dynamic_cast<const Node *>(pSE);
 
 	if (pElem != 0) {
 		out << " element, " 

@@ -48,13 +48,13 @@
 class PrivDriveCaller : public DriveCaller, public DriveOwner
 {
 protected:
-	SimulationEntity *pSE;
+	const SimulationEntity *pSE;
 	unsigned int iIndex;
 	std::string sIndexName;
    
 public:
 	PrivDriveCaller(const DriveHandler* pDH, const DriveCaller* pDC,
-			SimulationEntity *p, unsigned int i, const std::string& s);
+			const SimulationEntity *p, unsigned int i, const std::string& s);
 	virtual ~PrivDriveCaller(void);
 
 	/* Copia */

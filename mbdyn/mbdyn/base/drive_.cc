@@ -2295,12 +2295,12 @@ struct SimulationEntityDCR : public DriveCallerRead {
 protected:
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP,
-		SimulationEntity *pSE, char *msg);
+		const SimulationEntity *pSE, const std::string& msg);
 };
 
 DriveCaller *
 SimulationEntityDCR::Read(const DataManager* pDM,
-	MBDynParser& HP, SimulationEntity *pSE, char *msg)
+	MBDynParser& HP, const SimulationEntity *pSE, const std::string& msg)
 {
 	const DriveHandler* pDrvHdl = pDM->pGetDrvHdl();
 	DriveCaller *pDC = 0;
@@ -2395,17 +2395,17 @@ ElementDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	}
 
 	/* Type(Label) */
-	char msg[BUFSIZ];
-	snprintf(msg, sizeof(msg), "%s(%u)", psElemNames[Elem::Type(k)], uLabel);
+	std::ostringstream os;
+	os << psElemNames[Elem::Type(k)] << "(" << uLabel << ")";
 
-	Elem *pElem = (Elem*)pDM->pFindElem(Elem::Type(k), uLabel);
+	const Elem *pElem = pDM->pFindElem(Elem::Type(k), uLabel);
 	if (pElem == 0) {
-		silent_cerr("unable to find " << msg << " at line "
+		silent_cerr("unable to find " << os.str() << " at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return SimulationEntityDCR::Read(pDM, HP, pElem, msg);
+	return SimulationEntityDCR::Read(pDM, HP, pElem, os.str());
 }
 
 struct NodeDCR : public SimulationEntityDCR {
@@ -2438,17 +2438,17 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	}
 
 	/* Type(Label) */
-	char msg[BUFSIZ];
-	snprintf(msg, sizeof(msg), "%s(%u)", psNodeNames[Node::Type(k)], uLabel);
+	std::ostringstream os;
+	os << psElemNames[Elem::Type(k)] << "(" << uLabel << ")";
 
-	Node *pNode = (Node*)pDM->pFindNode(Node::Type(k), uLabel);
+	const Node *pNode = pDM->pFindNode(Node::Type(k), uLabel);
 	if (pNode == 0) {
-		silent_cerr("unable to find " << msg << " at line "
+		silent_cerr("unable to find " << os.str() << " at line "
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return SimulationEntityDCR::Read(pDM, HP, pNode, msg);
+	return SimulationEntityDCR::Read(pDM, HP, pNode, os.str());
 }
 
 struct DriveDCR : public DriveCallerRead {
