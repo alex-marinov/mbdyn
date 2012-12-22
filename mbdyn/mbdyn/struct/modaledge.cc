@@ -43,7 +43,7 @@
 ExtForceEDGE::ExtForceEDGE(DataManager *pDM)
 : pAP(0)
 {
-	pAP = pDM->pFindElem<AirProperties, Elem::AIRPROPERTIES>();
+	pAP = pDM->pFindElem<const AirProperties, Elem::AIRPROPERTIES>();
 	if (pAP == 0) {
 		silent_cerr("ExtForceEDGE::ExtForceEDGE: "
 			"warning, unable to link to air properties (no airstream contribution to velocity)" << std::endl);

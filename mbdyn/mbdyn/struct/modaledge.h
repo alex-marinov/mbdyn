@@ -41,7 +41,7 @@
 
 class ExtForceEDGE : public ExtModalForceBase {
 protected:
-	AirProperties *pAP;
+	const AirProperties *pAP;
 
 public:
 	ExtForceEDGE(DataManager *pDM);

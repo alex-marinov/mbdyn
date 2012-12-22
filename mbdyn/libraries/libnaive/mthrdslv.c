@@ -176,7 +176,7 @@ naivfct(RMAT a, integer neq, integer *nzr, IMAT ri,
 /*
  * to solve A * x = b
  *
- * actually solve P * A * x = P *b
+ * actually solve P * A * x = P * b
  *
  * compute P * L and P * U such that P * A = P * L * P^-1 * P * U
  *
