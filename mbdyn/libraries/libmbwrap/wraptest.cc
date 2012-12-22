@@ -221,7 +221,7 @@ void SetupSystem(
 				for (int i = 0; i < size; i++) {
 					(*spM)(i+1, i+1) = 1;
 				}
-				(*spM).MakeIndexForm(x_values, row_values, col_values, acol_values, 1);
+				spM->MakeIndexForm(x_values, row_values, col_values, acol_values, 1);
 				if (matrixfilename != 0) {
 					ofile.open(matrixfilename);
 					ofile << size << std::endl;
