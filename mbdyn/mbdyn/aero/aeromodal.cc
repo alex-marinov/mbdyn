@@ -36,6 +36,7 @@
 
 #include "aeromodal.h"
 #include "dataman.h"
+#include "Rot.hh"
 
 /* AerodynamicModal - begin */
 
@@ -295,16 +296,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 
 		// q
 		pq->Put(1, RR.MulTV(X0 - P0));
-
-		// FIXME: use orientation vector?
-		Vec3 g(CGR_Rot::Param, RR.MulMT(R0));
-		doublereal d(g.Norm());
-		if (d > std::numeric_limits<doublereal>::epsilon()) {
-			pq->Put(4, g*(2./d*atan(d/2.)));
-
-		} else {
-			pq->Put(4, Zero3);
-		}
+		pq->Put(4, RotManip::VecRot(RR.MulMT(R0))); // nota: wrappa; se serve si può eliminare
 
 		// dot{q}
 		const Vec3& V0(pModalNode->GetVCurr());
@@ -315,7 +307,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 		// ddot{q}
 		const Vec3& XPP0(pModalNode->GetXPPCurr());
 		const Vec3& WP0(pModalNode->GetWPCurr());
-		pqSec->Put(1, RR.MulTV(XPP0));	// verificare?
+		pqSec->Put(1, RR.MulTV(XPP0));	// verificare: non mancano i termini di trasporto ecc?
 		pqSec->Put(4, RR.MulTV(WP0));
 	}
 
