@@ -248,6 +248,11 @@ module-muscles/module-muscles.cc \
 module-nodedistdrive/module-nodedistdrive.cc \
 module-nodedistdrive/module-nodedistdrive.h \
 \
+module-nonsmooth-node/Makefile.inc \
+module-nonsmooth-node/mbdyn_siconos.cc \
+module-nonsmooth-node/mbdyn_siconos.h \
+module-nonsmooth-node/module-nonsmooth-node.cc \
+\
 module-octave/Makefile.inc \
 module-octave/module-octave.cc \
 module-octave/module-octave.h \
