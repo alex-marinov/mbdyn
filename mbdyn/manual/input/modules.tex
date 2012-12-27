@@ -124,11 +124,15 @@ implements a scalar mass-damper-spring system.
 \end{itemize}
 if verbose, also:
 \begin{itemize}
-\item 16-18: position constraint relaxation factor (if any)
-\item 19:    LCP solver status: 0 indicates convergence, 1 indicates \nt{iter}=\nt{maxiter}, $>1$ indicates failure
+\item 16-18: position constraint relaxation factor
+	(only when \kw{constraint type} is \kw{both})
+\item 19:    LCP solver status:
+	0 indicates convergence,
+	1 indicates \nt{iter} $\equiv$ \nt{maxiter},
+	$>1$ indicates failure
 (only for some solvers)
 \item 20:    LCP solver \nt{resulting\_error}
-(only for some solvers)
+(only meaningful for some solvers)
 \end{itemize}
 
 
@@ -215,9 +219,10 @@ Example:
         1002,
         orientation constraint, active, active, active,
             eu2phi, format, euler123,
-            component, file, 1, 1,
-            component, file, 1, 2,
-            component, file, 1, 3;
+                component,
+                    file, 1, 1,
+                    file, 1, 2,
+                    file, 1, 3;
 \end{verbatim}
 
 
@@ -278,38 +283,43 @@ From Octave's point of view an Octave element is a special class.
                          [ , \bnt{octave\_flags} ] \\
                          [ , \bnt{elem\_data} ]
 \end{Verbatim}
-All member functions of this class must reside in a directory named "\texttt{@}\bnt{class\_name}".
-The parent directory of "\texttt{@}\bnt{class\_name}" must be on Octave's search path.
-Additional Element specific data in \bnt{elem\_data} like node labels, vectors and rotation matrices may be accessed from within the constructor of the Octave class. If the \texttt{octave-ad} package is installed, the $\textit{\textbf{D}}$ function can be used to in order to compute the Jacobian matrix.
+All member functions of this class must reside in a directory named ``\texttt{@}\bnt{class\_name}''.
+The parent directory of ``\texttt{@}\bnt{class\_name}'' must be in Octave's search path.
+Additional Element specific data in \bnt{elem\_data} like node labels,
+vectors and rotation matrices may be accessed from within the constructor
+of the Octave class.
+If the \texttt{octave-ad} package is installed,
+the \texttt{D} function can be used to in order to compute
+the Jacobian matrix from the residual.
 
 \paragraph{Octave element member functions}
 At the moment the following member functions are supported:
 \begin{itemize}
-\item $\left[elem\right] = \bnt{class\_name}\left(pMbElem,\,pDM,\,HP\right)$
-\item $\left[iRows,\,iCols\right] = \textit{\textbf{WorkSpaceDim}}\left(elem\right)$
-\item $\left[iNumDof\right] = \textit{\textbf{iGetNumDof}}\left(elem\right)\quad_{(optional)}$
-\item $\left[f,\,ridx\right] = \textit{\textbf{AssRes}}\left(elem,\,dCoef,\,XCurr,\,XPrimeCurr\right)$
-\item $\left[Jac,\,ridx,\,cidx,\,bSparse\right] = \textit{\textbf{AssJac}}\left(elem,\,dCoef,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
-\item $\left[elem\right] = \textit{\textbf{Update}}\left(elemin, XCurr, XPrimeCurr\right)\quad_{(optional)}$
-\item $\textit{\textbf{SetValue}}\left(elem,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
-\item $\left[iNumDof\right] = \textit{\textbf{iGetInitialNumDof}}\left(elem\right)\quad_{(optional)}$
-\item $\textit{\textbf{SetInitialValue}}\left(elem,\,XCurr\right)\quad_{(optional)}$
-\item $\left[f,\,ridx\right] = \textit{\textbf{InitialAssRes}}\left(elem,\,XCurr\right)\quad_{(optional)}$
-\item $\left[Jac,\,ridx,\,cidx,\,bSparse\right] = \textit{\textbf{InitialAssJac}}\left(elem,\,XCurr\right)\quad_{(optional)}$
-\item $\left[iRows,\,iCols\right] = \textit{\textbf{InitialWorkSpaceDim}}\left(elem\right)\quad_{(optional)}$
-\item $\left[order\right] = \textit{\textbf{GetDofType}}\left(elem,\,i\right)\quad_{(optional)}$
-\item $\left[order\right] = \textit{\textbf{GetEqType}}\left(elem,\,i\right)\quad_{(optional)}$
-\item $\left[elem\right] = \textit{\textbf{AfterConvergence}}\left(elemin,\,XCurr,\,XPrimeCurr\right)\quad_{(optional)}$
-\item $\left[iNumPrivData\right] = \textit{\textbf{iGetNumPrivData}}\left(elem\right)\quad_{(optional)}$
-\item $\left[iPrivDataIdx\right] = \textit{\textbf{iGetPrivDataIdx}}\left(elem,\,name\right)\quad_{(optional)}$
-\item $\left[dPrivData\right] = \textit{\textbf{dGetPrivData}}\left(elem,\,i\right)\quad_{(optional)}$
-\item $\left[iNumConnectedNodes\right] = \textit{\textbf{iGetNumConnectedNodes}}\left(elem\right)\quad_{(optional)}$
-\item $\left[connectedNodes\right] = \textit{\textbf{GetConnectedNodes}}\left(elem\right)\quad_{(optional)}$
-\item $\textit{\textbf{Output}}\left(elem,\,Loadable\right)\quad_{(optional)}$
-\item $\textit{\textbf{DescribeDof}}\left(elem,\,out,\,prefix,\,bInitial\right)\quad_{(optional)}$
-\item $\textit{\textbf{DescribeEq}}\left(elem,\,out,\,prefix,\,bInitial\right)\quad_{(optional)}$
-\item $\left[elem\right] = \textit{\textbf{AfterPredict}}\left(elemin, XCurr, XPrimeCurr\right)\quad_{(optional)}$
-\item $\textit{\textbf{Restart}}\left(elem,\,out\right)\quad_{(optional)}$
+\item \verb![elem] = !\bnt{class\_name}\verb!(pMbElem, pDM, HP) !
+\item \verb![iRows, iCols] = !\kw{WorkSpaceDim}\verb!(elem) !
+\item \verb![iNumDof] = !\kw{iGetNumDof}\verb!(elem) # optional; iNumDof == 0 if missing !
+\item \kw{SetValue}\verb!(elem, XCurr, XPrimeCurr) # optional !
+\item \verb![f, ridx] = !\kw{AssRes}\verb!(elem, dCoef, XCurr, XPrimeCurr) !
+\item \verb![Jac, ridx, cidx, bSparse] = !\kw{AssJac}\verb!(elem, dCoef, XCurr, XPrimeCurr) # optional !
+\item \verb![elem] = !\kw{Update}\verb!(elemin, XCurr, XPrimeCurr) # optional !
+\item \verb![iRows, iCols] = !\kw{InitialWorkSpaceDim}\verb!(elem) # optional !
+\item \verb![iNumDof] = !\kw{iGetInitialNumDof}\verb!(elem) # optional !
+\item \kw{SetInitialValue}\verb!(elem, XCurr) # optional !
+\item \verb![f, ridx] = !\kw{InitialAssRes}\verb!(elem, XCurr) # optional !
+\item \verb![Jac, ridx, cidx, bSparse] = !\kw{InitialAssJac}\verb!(elem, XCurr) # optional !
+\item \verb![order] = !\kw{GetDofType}\verb!(elem, i) # optional !
+\item \verb![order] = !\kw{GetEqType}\verb!(elem, i) # optional !
+\item \verb![elem] = !\kw{AfterPredict}\verb!(elemin, XCurr, XPrimeCurr) # optional !
+\item \verb![elem] = !\kw{AfterConvergence}\verb!(elemin, XCurr, XPrimeCurr) # optonal !
+\item \verb![iNumPrivData] = !\kw{iGetNumPrivData}\verb!(elem) # optional !
+\item \verb![iPrivDataIdx] = !\kw{iGetPrivDataIdx}\verb!(elem, name) # optional !
+\item \verb![dPrivData] = !\kw{dGetPrivData}\verb!(elem, i) # optional !
+\item \verb![iNumConnectedNodes] = !\kw{iGetNumConnectedNodes}\verb!(elem) # optional !
+\item \verb![connectedNodes] = !\kw{GetConnectedNodes}\verb!(elem) # optional !
+\item \kw{Output}\verb!(elem, outStream) # optional !
+\item \kw{DescribeDof}\verb!(elem, out, prefix, bInitial) # optional !
+\item \kw{DescribeEq}\verb!(elem, out, prefix, bInitial) # optional !
+\item \kw{Restart}\verb!(elem, out) # optional !
 \end{itemize}
 Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
@@ -352,11 +362,13 @@ Additional constitutive law specific data in \bnt{const\_law\_data} may be acces
 \paragraph{Octave constitutive law member functions}
 At the moment the following member functions are supported:
 \begin{itemize}
-\item $\left[cl\right] = \bnt{class\_name}\left(pDM,\,HP\right)$
-\item $\left[cl,\,F,\,FDE,\,FDEPrime\right] = \textit{\textbf{Update}}\left(clin,\,Eps,\,EpsPrime\right)$
-\item $\left[constLawType\right] = \textit{\textbf{GetConstLawType}}\left(cl\right)$
+\item \verb![cl] = !\bnt{class\_name}\verb!(pDM, HP) !
+\item \verb![cl, F, FDE, FDEPrime] = !\kw{Update}\verb!(clin, Eps, EpsPrime) !
+\item \verb![constLawType] = !\kw{GetConstLawType}\verb!(cl) !
 \end{itemize}
-If the \texttt{octave-ad} package is installed, the $\textit{\textbf{D}}$ function can be used to compute $FDE$ and $FDEPrime$.
+If the \texttt{octave-ad} package is installed, the \texttt{D} function
+can be used to compute \texttt{FDE} and \texttt{FDEPrime}
+from function \texttt{F}.
 Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
 
@@ -404,7 +416,7 @@ returns 3.048, corresponding to
 \end{Verbatim}
 
 The first form may not be enough, for example, for those conversions
-that include an "intercept"; for example, when converting from degrees 
+that include an ``intercept''; for example, when converting from degrees 
 Celsius to degrees Fahrenheit, the actual conversion would be
 \begin{Verbatim}[commandchars=\\\{\}]
     F = 32 + 9 / 5 * C
