@@ -1162,23 +1162,23 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			+ (w.Cross(R*Inv3jaPj))*2 + R*Inv3jaPPj << std::endl;
 #endif
 
-		FTmp = S.Cross(vP) + J*wP + w.Cross(J*w);
+		Vec3 MTmp = S.Cross(vP) + J*wP + w.Cross(J*w);
 		if (pInv4 != 0) {
 			Mat3xN Inv4Curr(NModes, 0);
 			Inv4Curr.LeftMult(R, *pInv4);
-			FTmp += Inv4Curr*bPrime;
+			MTmp += Inv4Curr*bPrime;
 		}
 		if (pInv5 != 0) {
 			Mat3xN Inv5jajCurr(NModes, 0);
 			Inv5jajCurr.LeftMult(R, Inv5jaj);
-			FTmp += Inv5jajCurr*bPrime;
+			MTmp += Inv5jajCurr*bPrime;
 		}
 		if (pInv8 != 0) {
-			Mat3x3 MTmp = Inv8jaPj;
+			Mat3x3 Tmp = Inv8jaPj;
 			if (pInv9 != 0) {
-				MTmp -= Inv9jkajaPk;
+				Tmp -= Inv9jkajaPk;
 			}
-			FTmp += R*MTmp*(RTw*2.);
+			MTmp += R*Tmp*(RTw*2.);
 		}
 		/* termini dovuti alle inerzie rotazionali */
 		if (pInv10 != 0) {
@@ -1186,10 +1186,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			if (pInv11 != 0) {
 				VTmp += w.Cross(R*(*pInv11*b));
 			}
-			FTmp += R*VTmp;
+			MTmp += R*VTmp;
 		}
-		WorkVec.Sub(9 + 1, FTmp);
-
+		WorkVec.Sub(9 + 1, MTmp);
 
 #ifdef MODAL_USE_GRAVITY
 		/* forza di gravita' (decidere come inserire g) */
@@ -4760,7 +4759,7 @@ ReadModal(DataManager* pDM,
 		std::ostream &out = std::cout;
 
 		out << "  Total Mass: " << dMass << std::endl;
-		out << "  Inertia Matrix: " << std::endl
+		out << "  Inertia Matrix (referred to modal node): " << std::endl
 			<< "    " << JTmp << std::endl;
 		out << "  Static Moment Vector: " << STmp << std::endl;
 
