@@ -3165,7 +3165,7 @@ ReadModal(DataManager* pDM,
 
 		std::ofstream fbin;
 		if (bWriteBIN) {
-			fbin.open(sBinFileFEM.c_str());
+			fbin.open(sBinFileFEM.c_str(), std::ios::binary | std::ios::trunc);
 			if (!fbin) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"unable to open file \"" << sBinFileFEM << "\""
@@ -3926,7 +3926,7 @@ ReadModal(DataManager* pDM,
 		fname = sFileFEM;
 
 	} else {
-		std::ifstream fbin(sBinFileFEM.c_str());
+		std::ifstream fbin(sBinFileFEM.c_str(), std::ios::binary);
 		if (!fbin) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"unable to open file \"" << sBinFileFEM << "\""
@@ -3959,7 +3959,7 @@ ReadModal(DataManager* pDM,
 		// 3: November 2012
 		// 	- record 13, generalized damping matrix
 		// 4: December 2012; incompatible with previous ones
-		// 	- bin file portable (fixed size types)
+		// 	- bin file portable (fixed size types, magic signature)
 		char currMagic[5] = { 0 };
 		fbin.read((char *)&currMagic, sizeof(4));
 		if (memcmp(magic, currMagic, 4) != 0) {
@@ -4058,9 +4058,7 @@ ReadModal(DataManager* pDM,
 		for (;;) {
 			fbin.read(&checkPoint, sizeof(checkPoint));
 
-			if ((currBinVersion == MODAL_VERSION_1 && !fbin)
-				|| (currBinVersion > MODAL_VERSION_1 && checkPoint == MODAL_END_OF_FILE))
-			{
+			if (checkPoint == MODAL_END_OF_FILE) {
 				pedantic_cout("Modal(" << uLabel << "): "
 					"end of binary file \"" << sBinFileFEM << "\""
 					<< std::endl);
@@ -4091,24 +4089,12 @@ ReadModal(DataManager* pDM,
 			switch (checkPoint) {
 			case MODAL_RECORD_2:
 				/* legge il secondo blocco (Id.nodi) */
-				if (currBinVersion == MODAL_VERSION_1) {
-					// NOTE: accept unsigned int FEM labels (old binary format)
-					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-						unsigned uFEMLabel;
-						fbin.read((char *)&uFEMLabel, sizeof(uFEMLabel));
-						std::ostringstream os;
-						os << uFEMLabel;
-						IdFEMNodes[iNode] = os.str();
-					}
-
-				} else {
-					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-						uint32_t len;
-						fbin.read((char *)&len, sizeof(len));
-						ASSERT(len > 0);
-						IdFEMNodes[iNode].resize(len);
-						fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
-					}
+				for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
+					uint32_t len;
+					fbin.read((char *)&len, sizeof(len));
+					ASSERT(len > 0);
+					IdFEMNodes[iNode].resize(len);
+					fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
 				}
 				break;
 
@@ -4359,39 +4345,6 @@ ReadModal(DataManager* pDM,
 			bRecordGroup[unsigned(checkPoint)] = true;
 		}
 
-		// sanity checks
-		if (currBinVersion == MODAL_VERSION_1) {
-			bool bBailOut(false);
-
-			if (!bRecordGroup[MODAL_RECORD_3]) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (missing block " << MODAL_RECORD_3 << ", required by version 1)"
-					<< std::endl);
-				bBailOut = true;
-			}
-
-			if (!bRecordGroup[MODAL_RECORD_4]) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (missing block " << MODAL_RECORD_4 << ", required by version 1)"
-					<< std::endl);
-				bBailOut = true;
-			}
-
-			if (bRecordGroup[MODAL_RECORD_13]) {
-				silent_cerr("Modal(" << uLabel << "): "
-					"file \"" << sBinFileFEM << "\" "
-					"looks broken (block " << MODAL_RECORD_13 << " not supported by version 1)"
-					<< std::endl);
-				bBailOut = true;
-			}
-
-			if (bBailOut) {
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		}
-
 		fname = sBinFileFEM;
 	}
 
@@ -4482,10 +4435,10 @@ ReadModal(DataManager* pDM,
 		fecho
 			<< "**" << std::endl
 			<< "** RECORD GROUP 8, NON-ORTHOGONALIZED MODE SHAPES" << std::endl;
-		for (int m = 0; m < NModes; m++) {
+		for (unsigned m = 0; m < NModes; m++) {
 			fecho
 				<< "**    NORMAL MODE SHAPE # " << uModeNumber[m] << std::endl;
-			for (int n = 1; n <= NFEMNodes; n++) {
+			for (unsigned n = 1; n <= NFEMNodes; n++) {
 				fecho
 					<< (*pModeShapest)(1, m*NFEMNodes + n) << " "
 					<< (*pModeShapest)(2, m*NFEMNodes + n) << " "
@@ -4499,8 +4452,8 @@ ReadModal(DataManager* pDM,
 		fecho
 			<< "**" << std::endl
 			<< "** RECORD GROUP 9, MODAL MASS MATRIX.  COLUMN-MAJOR FORM" << std::endl;
-		for (int r = 1; r <= NModes; r++) {
-			for (int c = 1; c <= NModes; c++) {
+		for (unsigned r = 1; r <= NModes; r++) {
+			for (unsigned c = 1; c <= NModes; c++) {
 				fecho << (*pGenMass)(r, c) << " ";
 			}
 			fecho << std::endl;
@@ -4509,8 +4462,8 @@ ReadModal(DataManager* pDM,
 		fecho
 			<< "**" << std::endl
 			<< "** RECORD GROUP 10, MODAL STIFFNESS MATRIX.  COLUMN-MAJOR FORM" << std::endl;
-		for (int r = 1; r <= NModes; r++) {
-			for (int c = 1; c <= NModes; c++) {
+		for (unsigned r = 1; r <= NModes; r++) {
+			for (unsigned c = 1; c <= NModes; c++) {
 				fecho << (*pGenStiff)(r, c) << " ";
 			}
 			fecho << std::endl;
@@ -4540,8 +4493,8 @@ ReadModal(DataManager* pDM,
 			fecho
 				<< "**" << std::endl
 				<< "** RECORD GROUP 13, MODAL DAMPING MATRIX.  COLUMN-MAJOR FORM" << std::endl;
-			for (int r = 1; r <= NModes; r++) {
-				for (int c = 1; c <= NModes; c++) {
+			for (unsigned r = 1; r <= NModes; r++) {
+				for (unsigned c = 1; c <= NModes; c++) {
 					fecho << (*pGenDamp)(r, c) << " ";
 				}
 				fecho << std::endl;
