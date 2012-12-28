@@ -3070,11 +3070,14 @@ ReadModal(DataManager* pDM,
 	enum {
 		MODAL_VERSION_1 = 1,
 		MODAL_VERSION_2 = 2,
-		MODAL_VERSION_3 = 3
+		MODAL_VERSION_3 = 3, // after adding record 13 (generalized damping)
+		MODAL_VERSION_4 = 4, // after making sizes portable
+
+		MODAL_VERSION_LAST
 	};
 
 	/* NOTE: increment this each time the binary format changes! */
-	uint32_t	BinVersion = MODAL_VERSION_3;
+	uint32_t	BinVersion = MODAL_VERSION_4;
 
 	uint32_t	currBinVersion;
 	char		checkPoint;
@@ -3267,8 +3270,6 @@ ReadModal(DataManager* pDM,
 					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
-				FEMMass.resize(NFEMNodes);
-				FEMJ.resize(NFEMNodes);
 				IdFEMNodes.resize(NFEMNodes);
 
 				SAFENEWWITHCONSTRUCTOR(pXYZFEMNodes, Mat3xN, Mat3xN(NFEMNodes, 0.));
@@ -3716,6 +3717,9 @@ ReadModal(DataManager* pDM,
 					fbin.write(&checkPoint, sizeof(checkPoint));
 				}
 
+				FEMMass.resize(NFEMNodes);
+				FEMJ.resize(NFEMNodes);
+
 				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					doublereal tmpmass = 0.;
 					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
@@ -3927,6 +3931,10 @@ ReadModal(DataManager* pDM,
 		//	- 11 & 12 optional and no longer mutually exclusive
 		//	- -1 as the last checkpoint
 		//	- version 1 tolerated
+		// 3: November 2012
+		// 	- record 13, generalized damping matrix
+		// 4: December 2012; incompatible with previous ones
+		// 	- bin file portable (fixed size types)
 		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
 		if (currBinVersion > BinVersion) {
 			silent_cerr("Modal(" << uLabel << "): "
@@ -3991,19 +3999,13 @@ ReadModal(DataManager* pDM,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		FEMMass.resize(NFEMNodes);
-		FEMJ.resize(NFEMNodes);
 		IdFEMNodes.resize(NFEMNodes);
 
 		SAFENEWWITHCONSTRUCTOR(pXYZFEMNodes, Mat3xN, Mat3xN(NFEMNodes, 0.));
 		SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 		SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 
-		bActiveModes.resize(NModesFEM + 1);
-
-		for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
-			bActiveModes[iCnt] = false;
-		}
+		bActiveModes.resize(NModesFEM + 1, false);
 
 		for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 			if (uModeNumber[iCnt] > NModesFEM) {
@@ -4228,6 +4230,9 @@ ReadModal(DataManager* pDM,
 
 			case MODAL_RECORD_11:
 				/* Lumped Masses */
+				FEMMass.resize(NFEMNodes);
+				FEMJ.resize(NFEMNodes);
+
 				for (unsigned int iNode = 1; iNode <= NFEMNodes; iNode++) {
 					for (unsigned int jCnt = 1; jCnt <= 6; jCnt++) {
 						doublereal	d;
