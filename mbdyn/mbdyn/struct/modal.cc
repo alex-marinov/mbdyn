@@ -3963,7 +3963,7 @@ ReadModal(DataManager* pDM,
 		}
 
 		pedantic_cout("Modal(" << uLabel << "): "
-			"reading block " << int(checkPoint) << std::endl);
+			"reading block " << unsigned(checkPoint) << std::endl);
 
 		fbin.read((char *)&NFEMNodesFEM, sizeof(NFEMNodesFEM));
 		fbin.read((char *)&NModesFEM, sizeof(NModesFEM));
@@ -4046,13 +4046,13 @@ ReadModal(DataManager* pDM,
 			if (bRecordGroup[size_t(checkPoint)]) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
-					"looks broken (block " << checkPoint << " already parsed)"
+					"looks broken (block " << unsigned(checkPoint) << " already parsed)"
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			pedantic_cout("Modal(" << uLabel << "): "
-				"reading block " << int(checkPoint)
+				"reading block " << unsigned(checkPoint)
 				<< " from file \"" << sBinFileFEM << "\"" << std::endl);
 
 			switch (checkPoint) {
@@ -4315,7 +4315,7 @@ ReadModal(DataManager* pDM,
 			default:
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
-					"looks broken (unknown block " << checkPoint << ")"
+					"looks broken (unknown block " << unsigned(checkPoint) << ")"
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
