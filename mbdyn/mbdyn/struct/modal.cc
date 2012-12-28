@@ -3077,7 +3077,8 @@ ReadModal(DataManager* pDM,
 	};
 
 	/* NOTE: increment this each time the binary format changes! */
-	uint32_t	BinVersion = MODAL_VERSION_4;
+	const char	magic[5] = "bmod";
+	const uint32_t	BinVersion = MODAL_VERSION_4;
 
 	uint32_t	currBinVersion;
 	char		checkPoint;
@@ -3105,7 +3106,7 @@ ReadModal(DataManager* pDM,
 
 		MODAL_LAST_RECORD,
 
-		MODAL_END_OF_FILE = -1
+		MODAL_END_OF_FILE = char(-1)
 	};
 
 	/* Note: to keep it readable, we use a base 1 array */
@@ -3149,6 +3150,7 @@ ReadModal(DataManager* pDM,
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			fbin.write(&magic[0], sizeof(4));
 			currBinVersion = BinVersion;
 			fbin.write((const char *)&currBinVersion, sizeof(currBinVersion));
 		}
@@ -3935,6 +3937,15 @@ ReadModal(DataManager* pDM,
 		// 	- record 13, generalized damping matrix
 		// 4: December 2012; incompatible with previous ones
 		// 	- bin file portable (fixed size types)
+		char currMagic[5] = { 0 };
+		fbin.read((char *)&currMagic, sizeof(4));
+		if (memcmp(magic, currMagic, 4) != 0) {
+			silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFEM << "\" "
+					"unexpected signature" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
 		fbin.read((char *)&currBinVersion, sizeof(currBinVersion));
 		if (currBinVersion > BinVersion) {
 			silent_cerr("Modal(" << uLabel << "): "
