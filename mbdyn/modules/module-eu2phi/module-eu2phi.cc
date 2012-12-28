@@ -121,7 +121,7 @@ struct Eu2PhiDCR : public TplDriveCallerRead<Vec3> {
 "    eu2phi ,\n"
 "        [ help , ]\n"
 "        [ format , { euler123 | euler313 | euler321 } , ]\n"
-"        (TplDriveCaller<Vec3>)<drive>\n");
+"        (TplDriveCaller<Vec3>) <drive>\n");
 		}
 
 		OrientationDescription od(EULER_123);
