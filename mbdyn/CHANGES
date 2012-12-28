@@ -13,12 +13,14 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 	Backward compatibility issues:
+		- old binary modal joint databases no longer supported
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
 		- RTAI and multithread support incompatible
 		- module-octave and multithread support incompatible
 	Bug fixes:
+		- fix binary modal joint database in MinGW
 
 MBDyn 1.5.4
 	Enhancements:
