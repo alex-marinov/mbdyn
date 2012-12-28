@@ -2990,6 +2990,29 @@ ReadModal(DataManager* pDM,
 		}
 	}
 
+	std::string sEchoFileName;
+	int iEchoPrecision(13);
+	if (HP.IsKeyWord("echo")) {
+		const char *s = HP.GetFileName();
+		if (s == 0) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"unable to parse echo file name at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		sEchoFileName = s;
+
+		if (HP.IsKeyWord("precision")) {
+			iEchoPrecision = HP.GetInt();
+			if (iEchoPrecision <= 0) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"invalid precision at line " << HP.GetLineData()
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+	}
+
 	/* stuff for binary FEM file handling */
 	std::string	sBinFileFEM;
 	struct stat	stFEM, stBIN;
@@ -3602,7 +3625,7 @@ ReadModal(DataManager* pDM,
 				} break;
 
 			case MODAL_RECORD_9: {
-				/* Matrice di massa  modale */
+				/* Matrice di massa modale */
 				if (bRecordGroup[MODAL_RECORD_9]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 9\" already parsed"
@@ -3654,7 +3677,7 @@ ReadModal(DataManager* pDM,
 				} break;
 
 			case MODAL_RECORD_10: {
-				/* Matrice di rigidezza  modale */
+				/* Matrice di rigidezza modale */
 				if (bRecordGroup[MODAL_RECORD_10]) {
 					silent_cerr("file=\"" << sFileFEM << "\": "
 						"\"RECORD GROUP 10\" already parsed"
@@ -4396,6 +4419,134 @@ ReadModal(DataManager* pDM,
 
 	if (bBailOut) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (!sEchoFileName.empty()) {
+		std::ofstream fecho(sEchoFileName.c_str());
+
+		fecho.setf(std::ios::scientific);
+		fecho.precision(iEchoPrecision);
+
+		time_t t;
+		time(&t);
+
+		fecho
+			<< "** echo of file \"" << fname << "\" generated " << ctime(&t)
+			<< "** RECORD GROUP 1, HEADER" << std::endl
+			<< "**   REVISION.  NODES.  NORMAL, ATTACHMENT, CONSTRAINT, REJECTED MODES." << std::endl
+			<< "VER" << currBinVersion << " " << NFEMNodes << " " << NModes << " 0 0 0" << std::endl
+			<< "**" << std::endl
+			<< "** RECORD GROUP 2, FINITE ELEMENT NODE LIST" << std::endl;
+		for (unsigned r = 0; r <= (IdFEMNodes.size() - 1)/6; r++) {
+			for (unsigned c = 0; c < std::min(6U, unsigned(IdFEMNodes.size() - 6*r)); c++) {
+				fecho << IdFEMNodes[6*r + c] << " ";
+			}
+			fecho << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 3, INITIAL MODAL DISPLACEMENTS"<< std::endl;
+		for (int r = 1; r <= a->iGetNumRows(); r++) {
+			fecho << (*a)(r) << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 4, INITIAL MODAL VELOCITIES"<< std::endl;
+		for (int r = 1; r <= aP->iGetNumRows(); r++) {
+			fecho << (*aP)(r) << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 5, NODAL X COORDINATES" << std::endl;
+		for (int r = 1; r <= pXYZFEMNodes->iGetNumCols(); r++) {
+			fecho << (*pXYZFEMNodes)(1, r) << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 6, NODAL Y COORDINATES" << std::endl;
+		for (int r = 1; r <= pXYZFEMNodes->iGetNumCols(); r++) {
+			fecho << (*pXYZFEMNodes)(2, r) << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 7, NODAL Z COORDINATES" << std::endl;
+		for (int r = 1; r <= pXYZFEMNodes->iGetNumCols(); r++) {
+			fecho << (*pXYZFEMNodes)(3, r) << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 8, NON-ORTHOGONALIZED MODE SHAPES" << std::endl;
+		for (int m = 0; m < NModes; m++) {
+			fecho
+				<< "**    NORMAL MODE SHAPE # " << uModeNumber[m] << std::endl;
+			for (int n = 1; n <= NFEMNodes; n++) {
+				fecho
+					<< (*pModeShapest)(1, m*NFEMNodes + n) << " "
+					<< (*pModeShapest)(2, m*NFEMNodes + n) << " "
+					<< (*pModeShapest)(3, m*NFEMNodes + n) << " "
+					<< (*pModeShapesr)(1, m*NFEMNodes + n) << " "
+					<< (*pModeShapesr)(2, m*NFEMNodes + n) << " "
+					<< (*pModeShapesr)(3, m*NFEMNodes + n) << std::endl;
+			}
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 9, MODAL MASS MATRIX.  COLUMN-MAJOR FORM" << std::endl;
+		for (int r = 1; r <= NModes; r++) {
+			for (int c = 1; c <= NModes; c++) {
+				fecho << (*pGenMass)(r, c) << " ";
+			}
+			fecho << std::endl;
+		}
+
+		fecho
+			<< "**" << std::endl
+			<< "** RECORD GROUP 10, MODAL STIFFNESS MATRIX.  COLUMN-MAJOR FORM" << std::endl;
+		for (int r = 1; r <= NModes; r++) {
+			for (int c = 1; c <= NModes; c++) {
+				fecho << (*pGenStiff)(r, c) << " ";
+			}
+			fecho << std::endl;
+		}
+
+		if (bBuildInvariants) {
+			fecho
+				<< "**" << std::endl
+				<< "** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX" << std::endl;
+			for (unsigned r = 0; r < FEMMass.size(); r++) {
+				fecho
+					<< FEMMass[r] << " " << FEMMass[r] << " " << FEMMass[r] << " "
+					<< FEMJ[r] << std::endl;
+			}
+		}
+
+		if (bRecordGroup[MODAL_RECORD_12]) {
+			fecho
+				<< "**" << std::endl
+				<< "** RECORD GROUP 12, GLOBAL INERTIA" << std::endl
+				<< dMass << std::endl
+				<< STmp << std::endl,
+				JTmp.Write(fecho, "\n");
+		}
+
+		if (bRecordGroup[MODAL_RECORD_13]) {
+			fecho
+				<< "**" << std::endl
+				<< "** RECORD GROUP 13, MODAL DAMPING MATRIX.  COLUMN-MAJOR FORM" << std::endl;
+			for (int r = 1; r <= NModes; r++) {
+				for (int c = 1; c <= NModes; c++) {
+					fecho << (*pGenDamp)(r, c) << " ";
+				}
+				fecho << std::endl;
+			}
+		}
 	}
 
 	/* lettura dati di vincolo:
