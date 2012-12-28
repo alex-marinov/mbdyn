@@ -3099,13 +3099,13 @@ ReadModal(DataManager* pDM,
 
 		// NOTE: do not exceed 127
 
-		LAST_RECORD,
+		MODAL_LAST_RECORD,
 
 		MODAL_END_OF_FILE = -1
 	};
 
 	/* Note: to keep it readable, we use a base 1 array */
-	bool bRecordGroup[LAST_RECORD] = { false };
+	bool bRecordGroup[MODAL_LAST_RECORD] = { false };
 
 	// record 1: header
 	// record 2: FEM node labels
@@ -4033,6 +4033,14 @@ ReadModal(DataManager* pDM,
 					<< std::endl);
 				fbin.close();
 				break;
+			}
+
+			if (checkPoint < MODAL_RECORD_1 || checkPoint >= MODAL_LAST_RECORD) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"file \"" << sBinFileFEM << "\" "
+					"looks broken (unknown block " << unsigned(checkPoint) << ")"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
 			if (bRecordGroup[size_t(checkPoint)]) {
