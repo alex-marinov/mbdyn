@@ -110,6 +110,7 @@
 
 #include <cerrno>
 #include <cstring>
+#include <stdint.h>
 #include <sys/stat.h>
 #include <limits>
 #include <algorithm>
@@ -3073,11 +3074,11 @@ ReadModal(DataManager* pDM,
 	};
 
 	/* NOTE: increment this each time the binary format changes! */
-	unsigned	BinVersion = MODAL_VERSION_3;
+	uint32_t	BinVersion = MODAL_VERSION_3;
 
-	unsigned	currBinVersion;
+	uint32_t	currBinVersion;
 	char		checkPoint;
-	unsigned	NFEMNodesFEM = 0, NModesFEM = 0;
+	uint32_t	NFEMNodesFEM = 0, NModesFEM = 0;
 
 	bool		bBuildInvariants = false;
 
@@ -3317,8 +3318,8 @@ ReadModal(DataManager* pDM,
 					checkPoint = MODAL_RECORD_2;
 					fbin.write(&checkPoint, sizeof(checkPoint));
 					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-						size_t len = IdFEMNodes[iNode].size();
-						fbin.write((const char *)&len, sizeof(size_t));
+						uint32_t len = IdFEMNodes[iNode].size();
+						fbin.write((const char *)&len, sizeof(len));
 						fbin.write((const char *)IdFEMNodes[iNode].c_str(), len);
 					}
 				}
@@ -4039,7 +4040,7 @@ ReadModal(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			if (bRecordGroup[size_t(checkPoint)]) {
+			if (bRecordGroup[unsigned(checkPoint)]) {
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
 					"looks broken (block " << unsigned(checkPoint) << " already parsed)"
@@ -4066,8 +4067,8 @@ ReadModal(DataManager* pDM,
 
 				} else {
 					for (unsigned int iNode = 0; iNode < NFEMNodes; iNode++) {
-						size_t len;
-						fbin.read((char *)&len, sizeof(size_t));
+						uint32_t len;
+						fbin.read((char *)&len, sizeof(len));
 						ASSERT(len > 0);
 						IdFEMNodes[iNode].resize(len);
 						fbin.read((char *)IdFEMNodes[iNode].c_str(), len);
@@ -4316,7 +4317,7 @@ ReadModal(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			bRecordGroup[size_t(checkPoint)] = true;
+			bRecordGroup[unsigned(checkPoint)] = true;
 		}
 
 		// sanity checks
@@ -4355,7 +4356,7 @@ ReadModal(DataManager* pDM,
 		fname = sBinFileFEM;
 	}
 
-	size_t reqMR[] = {
+	unsigned reqMR[] = {
 		MODAL_RECORD_1,
 		MODAL_RECORD_2,
 		// 3 & 4 no longer required; explicit check is present when currBinVersion == 1
@@ -4367,7 +4368,7 @@ ReadModal(DataManager* pDM,
 		MODAL_RECORD_10
 	};
 	bool bBailOut(false);
-	for (size_t iCnt = 0; iCnt < sizeof(reqMR)/sizeof(size_t); iCnt++) {
+	for (unsigned iCnt = 0; iCnt < sizeof(reqMR)/sizeof(unsigned); iCnt++) {
 		if (!bRecordGroup[reqMR[iCnt]]) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"incomplete input file \"" << fname << "\", "
