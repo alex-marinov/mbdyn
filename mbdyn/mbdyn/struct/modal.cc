@@ -3274,11 +3274,7 @@ ReadModal(DataManager* pDM,
 				SAFENEWWITHCONSTRUCTOR(pModeShapest, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 				SAFENEWWITHCONSTRUCTOR(pModeShapesr, Mat3xN, Mat3xN(NFEMNodes*NModes, 0.));
 
-				bActiveModes.resize(NModesFEM + 1);
-
-				for (unsigned int iCnt = 1; iCnt <= NModesFEM; iCnt++) {
-					bActiveModes[iCnt] = false;
-				}
+				bActiveModes.resize(NModesFEM + 1, false);
 
 				for (unsigned int iCnt = 0; iCnt < NModes; iCnt++) {
 					if (uModeNumber[iCnt] > NModesFEM) {
