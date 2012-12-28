@@ -102,7 +102,7 @@ s2s_t::usage(int rc) const
 			*P = "",
 			*s = "";
 
-	b = "    -b {y|n}\t\t"		"blocking mode (default: yes\n";
+	b = "    -b {y|n}\t\t"		"blocking mode (default: yes)\n";
 	C = "    -C\t\t\t"		"create socket (default: connect to existing)\n";
 	h = "    -h <host>\t\t"		"host name (for INET sockets; default: \"localhost\")\n";
 	n = "    -n <channels>\t"	"number of channels (default: auto-detect)\n";
