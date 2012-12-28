@@ -658,7 +658,8 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			break;
 
 		default:
-			ASSERT(0);
+			// don't do anything
+			break;
 		}
 
 		switch (type) {
