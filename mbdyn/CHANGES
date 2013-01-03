@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fix binary modal joint database in MinGW
+		- fix undefined const error message bug
 
 MBDyn 1.5.4
 	Enhancements:

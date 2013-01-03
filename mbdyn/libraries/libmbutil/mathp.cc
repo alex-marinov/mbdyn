@@ -3569,7 +3569,7 @@ MathParser::stmt(void)
 						 * with no value */
 			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 		      						"cannot create const named value "
-								"\"", v->GetName(), "\" with no value");
+								"\"", namebuf, "\" with no value");
 					}
 					/* se la var non esiste, la inserisco;
 					 * se invece esiste e non vale 
