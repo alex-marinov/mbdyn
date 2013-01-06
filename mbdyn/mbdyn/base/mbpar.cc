@@ -2907,7 +2907,9 @@ MBDynParser::VecAbsManip::~VecAbsManip(void)
 }
 
 // icc hack
-#if defined(__ICC)
+// was needed with older c++ headers; not needed any more
+// (actually, causes sigsegv with g++ 4.6.1 headers)
+#if 0 // defined(__ICC)
 static Table dummy_t(false);
 static MathParser dummy_mp(dummy_t);
 static InputStream dummy_in(std::cin);
