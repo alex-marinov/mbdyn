@@ -1,7 +1,7 @@
 #!/bin/sh
 # $Header$
 
-OLD=2011
+OLD=2012
 NEW=`expr $OLD + 1`
 
 for i in `grep -ErIl 'Copyright.*-'${OLD} .`; do 

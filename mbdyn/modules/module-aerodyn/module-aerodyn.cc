@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2012
+ * Copyright (C) 1996-2013
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  *
@@ -30,7 +30,7 @@
 /* module-aerodyn
  * Authors: Fanzhong Meng, Pierangelo Masarati
  *
- * Copyright (C) 2008-2012
+ * Copyright (C) 2008-2013
  *
  * Fanzhong Meng <f.meng@tudelft.nl>
  * 
@@ -44,7 +44,7 @@
  *
  * Author: Pierangelo Masarati
  *
- * Copyright (C) 2008-2012 All rights reserved
+ * Copyright (C) 2008-2013 All rights reserved
  *
  * Refactoring of module-aerodyn using the UserDefinedElem interface.
  * Based on module-aerodyn.cc by Fanzhong Meng and Pierangelo Masarati.
