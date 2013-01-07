@@ -245,9 +245,9 @@ bool KLUSolver::bGetConditionNumber(doublereal& dCond)
 		return false;
 	}
 
-	const bool bOK = klu_rcond(Symbolic, Numeric, &Control);
+	const bool bOK = klu_condest(App, Axp, Symbolic, Numeric, &Control);
 
-	dCond = 1. / Control.rcond;
+	dCond = Control.condest;
 
 	return bOK;
 }
