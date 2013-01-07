@@ -364,7 +364,10 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 		SAFEDELETE(arg->pResHdl);
 
 	} else {
-		SAFEDELETEARR(arg->ppNaiveJacHdl);
+		if (arg->ppNaiveJacHdl) {
+			// can be nonzero only when in Naive form
+			SAFEDELETEARR(arg->ppNaiveJacHdl);
+		}
 	}
 	sem_destroy(&arg->sem);
 
