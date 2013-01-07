@@ -486,7 +486,7 @@ and $\delta\dot{\boldsymbol{x}}=\boldsymbol{J}^{-1}\,\boldsymbol{F}$ whereas $\d
 If the prediction for $\boldsymbol{x}$ is close enough to the solution of the problem, the convergence rate will be quadratic as long as $\boldsymbol{J}$ is exact and $\boldsymbol{F}$ is continuously differentiable in the neighbourhood of $\boldsymbol{x}$. Otherwise the rate of convergence will be not as good or even worse, the solution could diverge. The standard way to overcome such problems is to reduce the time step or to use adaptive time step control. If there are still convergence problems, the line search solver can be used.
 
 \subparagraph{The basic idea of line search}
-The line search solver from \cite{NumericalRecipes} uses the following modified strategy:
+The line search solver from \cite{NUMERICAL-RECIPES-IN-C} uses the following modified strategy:
 
 \begin{equation}
 \delta\boldsymbol{x}=\lambda\,\boldsymbol{J}^{-1}\,\boldsymbol{F}
@@ -499,15 +499,15 @@ The line search solver from \cite{NumericalRecipes} uses the following modified 
 In other words the direction of the increment $\delta\boldsymbol{x}$ is the same like with the Newton Raphson solver but the step size can be optionally reduced by the factor $\lambda$ in order to avoid divergence.
 
 \subparagraph{How to determine $\lambda$}
-The parameter $\lambda$ is chosen by the algorithm at each iteration in order to minimize the scalar function $\boldsymbol{f}=\frac{1}{2}\,\boldsymbol{F}^T\,\boldsymbol{F}$ during the line search along the Newton direction $\delta\boldsymbol{x}$. Since the Newton direction $\delta\boldsymbol{x}$ is a descent direction for $f$, it is guaranteed, that the residual will be decreased at each iteration as long as $\nabla f \neq \boldsymbol{0}$, $\boldsymbol{J}$ is exact and $\boldsymbol{F}\left(\boldsymbol{x}\right)$ is continuously differentiable in the neighbourhood of $\boldsymbol{x}$.
+The parameter $\lambda$ is chosen by the algorithm at each iteration in order to minimize the scalar function $f=\frac{1}{2}\,\boldsymbol{F}^T\,\boldsymbol{F}$ during the line search along the Newton direction $\delta\boldsymbol{x}$. Since the Newton direction $\delta\boldsymbol{x}$ is a descent direction for $f$, it is guaranteed that the residual will decrease at each iteration as long as $\nabla f \neq \boldsymbol{0}$, $\boldsymbol{J}$ is exact and $\boldsymbol{F}\left(\boldsymbol{x}\right)$ is continuously differentiable in the neighbourhood of $\boldsymbol{x}$.
 
 \subparagraph{Local minimum}
-However it could happen that the the solver converges to a local minimum of $f$ where $\nabla f = \boldsymbol{0}$ but $\boldsymbol{F} \neq \boldsymbol{0}$.
-The default behaviour of the solver is to bail out in such a situation unless \kw{zero gradient} , \kw{continue}, \kw{yes} has been specified. This flag has been added in order to test the solver but should not be used in general. If the solver bails out because the gradient $\nabla f$ is close to zero, it is recommended to decrease either $\bnt{tolerance\_min}$ or to reduce the time step.
+However it could happen that the solver converges to a local minimum of $f$ where $\nabla f = \boldsymbol{0}$ but $\boldsymbol{F} \neq \boldsymbol{0}$.
+The default behaviour of the solver is to bail out in such a situation unless \kw{zero gradient}, \kw{continue}, \kw{yes} has been specified. This flag has been added in order to test the solver but should not be used in general. If the solver bails out because the gradient $\nabla f$ is close to zero, it is recommended to decrease either $\bnt{tolerance\_min}$ or to reduce the time step.
 
 \subparagraph{Cubic interpolation of $f\left(\lambda\right)$}
 Two different strategies in order to determine $\lambda$ have been implemented.
-The original one published in \cite{NumericalRecipes} which uses a cubic interpolation of $f\left(\lambda\right)$ will be used if \kw{algorithm}, \kw{cubic} was specified in the input file.
+The original one published in \cite{NUMERICAL-RECIPES-IN-C} which uses a cubic interpolation of $f\left(\lambda\right)$ will be used if \kw{algorithm}, \kw{cubic} was specified in the input file.
 In order to avoid too small increments $\delta\boldsymbol{x}$, a value for $\nt{lambda\_factor\_min}$ can be specified.
 
 \begin{equation}
@@ -518,16 +518,17 @@ In order to avoid too small increments $\delta\boldsymbol{x}$, a value for $\nt{
 Also a simple algorithm, which multiplies $\lambda$ by the constant factor $\nt{lambda\_factor\_min}$ at each line search iteration, can be used if \kw{algorithm}, \kw{factor} is specified in the input file.
 
 \subparagraph{The condition for backtracking}
-According to \cite{NumericalRecipes} the line search is completed if
+According to \cite{NUMERICAL-RECIPES-IN-C} the line search is completed if
 
 \begin{eqnarray}
 f &<& f_{prev} + \nt{alpha} \, s \\ \nonumber
 \end{eqnarray}
 
 \begin{description}
-\item[$s=\left(\nabla f\right)^T\,\boldsymbol{J}^{-1}\,\boldsymbol{F} = -\boldsymbol{F}^T\,\boldsymbol{F} < 0$] The initial slope of decrease of $f$ is the projection of the gradient $\nabla f$ to the Newton direction $\delta\boldsymbol{x}$.
-\item[$\nabla f=-\boldsymbol{J}^T\,\boldsymbol{F}$] The gradient of $f$
-\item[$f_{prev}$] The value of $f$ at the previous iteration
+\item[$s=\left(\nabla f\right)^T\,\boldsymbol{J}^{-1}\,\boldsymbol{F} = -\boldsymbol{F}^T\,\boldsymbol{F} < 0$]:
+the initial slope of decrease of $f$ is the projection of the gradient $\nabla f$ to the Newton direction $\delta\boldsymbol{x}$.
+\item[$\nabla f=-\boldsymbol{J}^T\,\boldsymbol{F}$]: the gradient of $f$
+\item[$f_{prev}$]: the value of $f$ at the previous iteration
 \end{description}
 
 \subparagraph{If line search is not successful}
@@ -535,9 +536,9 @@ If $\lambda$ becomes excessively small during line search, the solution might be
 In that case the solver will bail out unless \kw{abort~at~lambda~min},~\kw{no} has been specified.
 
 \subparagraph{How to avoid excessively slow convergence}
-In order to avoid too small increments $\delta\boldsymbol{x}$, the minimum value for $\lambda$ can be specified by $\nt{lambda\_min}$ or $\nt{tolerance\_x}$ can be increased. In this case a reduction of the residual at each iteration is no longer guaranteed. For that reason \kw{abort~at~lambda~min},~\kw{no} should be specified and \kw{divergence~check},~$\bnt{factor}$ should be increased.
+In order to avoid too small increments $\delta\boldsymbol{x}$, the minimum value for $\lambda$ can be specified by $\nt{lambda\_min}$, or $\nt{tolerance\_x}$ can be increased. In this case a reduction of the residual at each iteration is no longer guaranteed. For that reason \kw{abort~at~lambda~min},~\kw{no} should be specified and $\nt{factor}$ in \kw{divergence~check} should be increased.
 
-By default also a relative test for $\lambda$ according to equation \ref{eqn:100} will be used unless \kw{lambda~min},~$\bnt{lambda\_min}$ \kw{relative},~\kw{no} has been specified.
+By default also a relative test for $\lambda$ according to equation \ref{eqn:100} will be used unless \kw{lambda~min},~$\bnt{lambda\_min}$, \kw{relative},~\kw{no} has been specified.
 
 \begin{eqnarray}
 \label{eqn:100}
@@ -545,11 +546,11 @@ By default also a relative test for $\lambda$ according to equation \ref{eqn:100
 t_{\lambda}&=&\max{\left[\frac{\left|\left(\boldsymbol{J}^{-1}\,\boldsymbol{F}\right)_{i}\right|}{\max{\left(\left|\boldsymbol{x}_i\right|,\, \left|\dot{\boldsymbol{x}}_i\right|,\, 1\right)}}\right]}_{i=1}^{n}
 \end{eqnarray}
 
-Equation \ref{eqn:100} was adapted from \cite{NumericalRecipes}.
+Equation \ref{eqn:100} was adapted from \cite{NUMERICAL-RECIPES-IN-C}.
 If one wishes only the relative test, $\nt{lambda\_min}=0$ should be specified.
 
 \subparagraph{How to avoid too large increments}
-In order to avoid too large increments $\delta\boldsymbol{x}$, a scale factor $\gamma$ has been introduced in \cite{NumericalRecipes}.
+In order to avoid too large increments $\delta\boldsymbol{x}$, a scale factor $\gamma$ has been introduced in \cite{NUMERICAL-RECIPES-IN-C}.
 \begin{eqnarray}
 \gamma &=& \max{\left[\nt{min\_step\_scale}, \, \min{\left(\frac{p}{\left|\left| \boldsymbol{J}^{-1} \, \boldsymbol{F} \right|\right|},\, 1\right)}\right]} \\ \nonumber
 p &=& \nt{max\_step\_size} \, \max{\left(\sqrt{\boldsymbol{x}^T\,\boldsymbol{x} + \dot{\boldsymbol{x}}^T\,\dot{\boldsymbol{x}}},\, n\right)} \\ \nonumber
@@ -569,9 +570,8 @@ Like for other nonlinear solvers, the convergence can be printed to the standard
 \subparagraph{General notes}
 If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behaviour like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behaviour will be similar to a damped Newton method.
 
-\begin{thebibliography}{References}
-\bibitem{NumericalRecipes}\href{http://www.haoli.org/nr/bookcpdf/c9-7.pdf}{Numerical Recipes in C, The Art of Scientific Computing, William H. Press, Saul A. Teukolsky, William T. Vetterling, Brian P. Flannery}
-\end{thebibliography}
+
+
 
 \paragraph{Matrix free.}
 \emph{Author: Giuseppe Quaranta}
