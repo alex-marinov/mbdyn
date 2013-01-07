@@ -48,6 +48,7 @@
 #include "dofown.h"
 #include "output.h"
 
+#include <limits>
 #include <unistd.h>
 
 /* NonlinearSolverTest - begin */
@@ -401,7 +402,11 @@ bHonorJacRequest(JacReq),
 bParallel(MPI::Is_initialized()),
 #endif /* USE_MPI */
 pResTest(0),
-pSolTest(0)
+pSolTest(0),
+iNumCond(0),
+dMaxCond(0.),
+dMinCond(std::numeric_limits<doublereal>::max()),
+dSumCond(0.)
 #ifdef USE_EXTERNAL
 , ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */

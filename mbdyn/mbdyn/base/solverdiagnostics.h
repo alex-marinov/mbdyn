@@ -54,11 +54,12 @@ protected:
 		OUTPUT_MAT_COND_NUM_1 = 0x0080,
 		OUTPUT_MAT_COND_NUM_INF = 0x0100,
 		OUTPUT_SOLVER_COND_NUM = 0x0200,
+		OUTPUT_SOLVER_COND_STAT = 0x400,
 		OUTPUT_MAT_COND_NUM = OUTPUT_MAT_COND_NUM_1 | OUTPUT_MAT_COND_NUM_INF,
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
 		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC | OUTPUT_MAT_COND_NUM | OUTPUT_SOLVER_COND_NUM),
 
-		OUTPUT_MASK		= 0x01FF
+		OUTPUT_MASK		= 0x07FF
 	};
 public:
 
@@ -113,6 +114,10 @@ public:
 
 	inline bool outputSolverConditionNumber(void) const {
 		return (OutputFlags & OUTPUT_SOLVER_COND_NUM);
+	}
+
+	inline bool outputSolverConditionStat(void) const {
+		return (OutputFlags & OUTPUT_SOLVER_COND_STAT);
 	}
 	// all messages not protected behind any other condition
 	// must be protected by a "if (outputMsg())" condition

@@ -82,8 +82,7 @@
 
 LineSearchParameters::LineSearchParameters(void)
 : dTolX(1e-7),
-dTolF(1e-4),
-dTolMin(1e-6),
+dTolMin(1e-8),
 iMaxIterations(200),
 dMaxStep(100.),
 dAlpha(1e-4),
@@ -221,6 +220,7 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 			if (uFlags & VERBOSE_MODE) {
 				silent_cerr("line search warning: "
 	    				"Newton increment is reduced by factor " << dScale
+                        << " at time step " << pDM->dGetTime()
 	    				<< " at iteration " << iIterCnt
 	    				<< " The time step is probably too large" << std::endl);
 			}
@@ -240,7 +240,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	if (slope >= 0.) {
 		if (uFlags & VERBOSE_MODE) {
 			silent_cerr("line search warning: slope=" << slope << " >= 0"
-						" at iteration " << iIterCnt << std::endl
+                        " at time step " << pDM->dGetTime()
+						<< " at iteration " << iIterCnt << std::endl
 						<< "This could be a roundoff problem" << std::endl);
 		}
 		throw SlopeNotNegative(MBDYN_EXCEPT_ARGS);
@@ -276,6 +277,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	TRACE_VAR(dLambdaMinEff);
 
 	do {
+		ASSERT(lambda <= dLambdaMax);
+
 		if (iIter > 0) {
 			TRACE("Start new step from Xold, XPold with lambda = " << lambda << " ..." << std::endl);
 			pNLP->Update(&dXneg); // restore the previous state
@@ -369,8 +372,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	if (uFlags & VERBOSE_MODE) {
 		silent_cerr("line search warning: Maximum number of line search iterations="
 			<< iMaxIterations
-			<< " exceeded in line search at iteration "
-			<< iIterCnt << std::endl);
+			<< " exceeded in line search at time step " << pDM->dGetTime() 
+            << " at iteration " << iIterCnt << std::endl);
 	}
 
 	throw MaxIterations(MBDYN_EXCEPT_ARGS);
@@ -476,16 +479,23 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 					doublereal dCond;
 					if (pSM->bGetConditionNumber(dCond)) {
 						silent_cout(dCond);
+						if (outputSolverConditionStat()) {
+							AddCond(dCond);
+							silent_cout(" " << dGetCondMin() << " " << dGetCondMax() << " " << dGetCondAvg());
+						}
 					} else {
 						silent_cout("NA");
 					}
 				}
 
 				if (uFlags & PRINT_CONVERGENCE_INFO) {
-					silent_cout(" f=" << std::setw(12) << f
-						<< " Err(n-1)=" << std::setw(12) << dPrevErr
-						<< " Err(n)/Err(n-1)=" << std::setw(12) << dErr / dPrevErr
-						<< " Err(n)/Err(1)=" << std::setw(12) << dErrFactor);
+					silent_cout(" f=" << std::setw(12) << f);
+
+					if (iIterCnt > 1) {
+						silent_cerr(" Err(n-1)=" << std::setw(12) << dPrevErr
+								 << " Err(n)/Err(n-1)=" << std::setw(12) << dErr / dPrevErr
+								 << " Err(n)/Err(1)=" << std::setw(12) << dErrFactor);
+					}
 				}
 
 				if (outputIters()
@@ -515,16 +525,22 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		if (bTest) {
 			if (uFlags & VERBOSE_MODE) {
 				silent_cerr("line search warning: Convergence on solution "
-					"at iteration " << iIterCnt
-					<< "\tErr(n)=" << dErr
-					<< "\tErr(n-1)=" << dPrevErr
+                    "at time step " << pDM->dGetTime()
+					<< "at iteration " << iIterCnt
+					<< "\tErr(n)=" << dErr);
+
+				if (iIterCnt >= 1) {
+					silent_cerr("\tErr(n-1)=" << dPrevErr
 					<< "\tErr(n)/Err(n-1)=" << dErr/dPrevErr
-					<< "\tErr(n)/Err(1) " << dErrFactor << std::endl);
+					<< "\tErr(n)/Err(1) " << dErrFactor);
+				}
+
+				silent_cerr(std::endl);
 			}
 			throw ConvergenceOnSolution(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (check) { // check for gradient zero
+		if (check) { // lambda <= dLambdaMinEff: check for gradient zero
 			doublereal test = 0.;
 			const doublereal den = std::max(f, 0.5 * Size);
 
@@ -539,7 +555,8 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 
 			if (test < dTolMin) { // we are at a local minimum of the function f
 				if (uFlags & VERBOSE_MODE) {
-					silent_cerr("line search warning: Zero gradient detected at iteration "
+					silent_cerr("line search warning: Zero gradient detected at time step "
+                        << pDM->dGetTime() << " at iteration "
 						<< iIterCnt << " (spurious convergence) test=" << test
 						<< " < tol=" << dTolMin
 						<< "\tErr(n)=" << dErr
@@ -554,8 +571,8 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 			} else {
 				if (uFlags & VERBOSE_MODE) {
 					silent_cerr("line search warning: lambda min"
-						" has been reached at iteration "
-						<< iIterCnt
+						" has been reached at time step " << pDM->dGetTime() 
+                        << " at iteration " << iIterCnt
 						<< " but the gradient is not zero" << std::endl);
 				}
 
@@ -563,17 +580,24 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 					throw NoConvergence(MBDYN_EXCEPT_ARGS);
 				}
 			}
+		} else if (dErr > dPrevErr) { // f <= fold + dAlpha * lambda * slope
+			ASSERT(0); // We should not get here since f was decreased also Err should be decreased
+			throw ResidualNotDecreased(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (dErr > dDivergenceCheck * dPrevErr) {
+		if (dErrFactor > dDivergenceCheck) {
 			if (uFlags & DIVERGENCE_CHECK) {
 				if (uFlags & VERBOSE_MODE) {
 					silent_cerr("line search warning: The residual could not be decreased"
-            					" at iteration " << iIterCnt << std::endl
-            					<< "Err(n-1)=" << dPrevErr
-            					<< "\tErr(n)=" << dErr
-            					<< "\tErr(n)/Err(n-1)=" << dErr/dPrevErr
-            					<< "\tErr(n)/Err(1)=" << dErrFactor << std::endl);
+            					" at time step " << pDM->dGetTime() 
+                                << " at iteration " << iIterCnt << std::endl);
+
+					if (iIterCnt > 1) {
+						silent_cerr("Err(n-1)=" << dPrevErr
+									<< "\tErr(n)=" << dErr
+									<< "\tErr(n)/Err(n-1)=" << dErr/dPrevErr
+									<< "\tErr(n)/Err(1)=" << dErrFactor << std::endl);
+					}
 				}
 				throw ResidualNotDecreased(MBDYN_EXCEPT_ARGS);
 			}

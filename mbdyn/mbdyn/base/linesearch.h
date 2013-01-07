@@ -55,7 +55,6 @@
 struct LineSearchParameters
 {
 	doublereal dTolX;
-	doublereal dTolF;
 	doublereal dTolMin;
 	integer iMaxIterations;
 	doublereal dMaxStep;

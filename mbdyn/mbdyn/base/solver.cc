@@ -2306,6 +2306,13 @@ Solver::ReadData(MBDynParser& HP)
 
 				case SOLVER_COND_NUM:
 					OF |= OUTPUT_SOLVER_COND_NUM;
+					if (HP.IsKeyWord("stat")) {
+						if (HP.GetYesNoOrBool()) {
+							OF |= OUTPUT_SOLVER_COND_STAT;
+						} else {
+							DelOutputFlags(OUTPUT_SOLVER_COND_STAT);
+						}
+					}
 					break;
 
 				default:
@@ -3315,12 +3322,6 @@ Solver::ReadData(MBDynParser& HP)
 								silent_cerr("tolerance x must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
 								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 							}
-						} else if (HP.IsKeyWord("tolerance" "f")) {
-							LineSearch.dTolF = HP.GetReal();
-							if (LineSearch.dTolF < 0.) {
-								silent_cerr("tolerance f must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-							}
 						} else if (HP.IsKeyWord("tolerance" "min")) {
 							LineSearch.dTolMin = HP.GetReal();
 							if (LineSearch.dTolMin < 0.) {
@@ -3355,7 +3356,7 @@ Solver::ReadData(MBDynParser& HP)
 						} else if (HP.IsKeyWord("lambda" "factor" "min")) {
 							LineSearch.dLambdaFactMin = HP.GetReal();
 							if (LineSearch.dLambdaFactMin <= 0. || LineSearch.dLambdaFactMin >= 1.) {
-								silent_cerr("lambda factor min must be in between zero and one " << HP.GetLineData() << std::endl);
+								silent_cerr("lambda factor min must be in between zero and one at line" << HP.GetLineData() << std::endl);
 								throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 							}
 						} else if (HP.IsKeyWord("max" "step")) {
@@ -3431,11 +3432,11 @@ Solver::ReadData(MBDynParser& HP)
 								LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
 							}
 						} else {
-							silent_cerr("Keyword \"tolerance x\", \"tolerance f\", "
+							silent_cerr("Keyword \"tolerance x\", "
 								"\"tolerance min\", \"max iterations\", \"alpha\", "
 								"\"lambda min\" \"lambda factor min\", \"max step\" "
 								"\"divergence check\", \"algorithm\", \"scale newton step\" "
-								"\"print convergence info\", "
+								"\"print convergence info\", \"verbose\", "
 								"\"abort at lambda min\" "
 								"or \"zero gradient\" expected at line " << HP.GetLineData() << std::endl);
 							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4059,8 +4060,8 @@ output_eigenvectors(const VectorHandler *pBeta,
 		}
 
 		o
-			<< std::setw(24) << R(r) + dShiftR
-			<< std::setw(24) << I(r)
+			<< std::setw(24) << R(r) + dShiftR << ' '
+			<< std::setw(24) << I(r) << ' '
 			<< std::setw(24) << (pBeta ? (*pBeta)(r) : 1.)
 			<< ";" << std::endl;
 	}
@@ -4094,16 +4095,16 @@ output_eigenvectors(const VectorHandler *pBeta,
 						isign = 1;
 					}
 					o
-						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im;
+						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im << ' ';
 					if (vOut[c]) {
 						o
-							<< std::setw(24) << re << signs[1 - isign] << "i*" << std::setw(24) << im;
+							<< std::setw(24) << re << signs[1 - isign] << "i*" << std::setw(24) << im << ' ';
 					}
 					c++;
 
 				} else {
 					o
-						<< std::setw(24) << (*pVL)(r, c);
+						<< std::setw(24) << (*pVL)(r, c) << ' ';
 				}
 			}
 
@@ -4143,16 +4144,16 @@ output_eigenvectors(const VectorHandler *pBeta,
 					isign = 1;
 				}
 				o
-					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im;
+					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im << ' ';
 				if (vOut[c]) {
 					o
-						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im;
+						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im << ' ';
 				}
 				c++;
 
 			} else {
 				o
-					<< std::setw(24) << VR(r, c);
+					<< std::setw(24) << VR(r, c) << ' ';
 			}
 		}
 
@@ -5077,7 +5078,7 @@ output_full_matrix(std::ostream& o,
 
 	for (integer r = 1; r <= nrows; r++) {
 		for (integer c = 1; c <= ncols; c++) {
-			o << std::setw(24) << m(r, c);
+			o << std::setw(24) << m(r, c) << ' ';
 		}
 
 		if (r == nrows) {

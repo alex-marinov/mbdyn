@@ -238,6 +238,17 @@ protected:
 		const doublereal& dTol,
 		doublereal& dTest);
 
+	doublereal dGetCondMax()const { return dMaxCond; }
+	doublereal dGetCondMin()const { return dMinCond; }
+	doublereal dGetCondAvg()const { return dSumCond / iNumCond; }
+	inline void AddCond(doublereal dCond);
+
+private:
+	integer iNumCond;
+	doublereal dMaxCond;
+	doublereal dMinCond;
+	doublereal dSumCond;
+
 public:
 	NonlinearSolver(bool JacReq = false);
 
@@ -276,6 +287,19 @@ protected:
 	void SendExternal(void);
 #endif /* USE_EXTERNAL */
 };
+
+inline void NonlinearSolver::AddCond(doublereal dCond) {
+	iNumCond++;
+	dSumCond += dCond;
+
+	if (dCond > dMaxCond) {
+		dMaxCond = dCond;
+	}
+
+	if (dCond < dMinCond) {
+		dMinCond = dCond;
+	}
+}
 
 #endif /* NONLIN_H */
 

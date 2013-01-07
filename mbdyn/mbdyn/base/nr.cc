@@ -153,6 +153,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 					doublereal dCond;
 					if (pSM->bGetConditionNumber(dCond)) {
 						silent_cout(dCond);
+						if (outputSolverConditionStat()) {
+							AddCond(dCond);
+							silent_cout(" " << dGetCondMin() << " " << dGetCondMax() << " " << dGetCondAvg());
+						}
 					} else {
 						silent_cout("NA");
 					}
