@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix binary modal joint database in MinGW
 		- fix undefined const error message bug
+		- fix libtool lang tag for run-time loadable modules
+		  (noted by Jens van Schelve)
 
 MBDyn 1.5.4
 	Enhancements:

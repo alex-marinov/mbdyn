@@ -3,7 +3,7 @@ include $(top_srcdir)/build/top.mk
 ## Process this file with automake to produce Makefile.in
 ## Do not forget to run automake ( --add-missing ) when you modify Makefile.am
 
-export LTCXXCOMPILE = @LIBTOOL@ --mode=compile @CXX@ @DEFS@ \
+export LTCXXCOMPILE = @LIBTOOL@ --tag=CXX --mode=compile @CXX@ @DEFS@ \
 	-I. -I@srcdir@ \
 	-I../../include \
 	-I../$(top_srcdir)/include \
@@ -38,9 +38,9 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I../$(top_srcdir)/mbdyn/hydr \
 	-prefer-pic \
 	$(AM_CPPFLAGS) @CPPFLAGS@ $(AM_CFLAGS) @CFLAGS@
-export LTF77COMPILE = @LIBTOOL@ --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
+export LTF77COMPILE = @LIBTOOL@ --tag=F77 --mode=compile @F77@ $(AM_FFLAGS) @FFLAGS@ \
 	-prefer-pic
-export LTFCCOMPILE = @LIBTOOL@ --mode=compile @FC@ $(AM_FFLAGS) @FFLAGS@ \
+export LTFCCOMPILE = @LIBTOOL@ --tag=FC --mode=compile @FC@ $(AM_FFLAGS) @FFLAGS@ \
 	-prefer-pic
 export LIBTOOL = @LIBTOOL@
 export MODULES_DIRS=@MODULES_DIRS@
