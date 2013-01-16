@@ -167,7 +167,8 @@ ReadElectric(DataManager* pDM,
 		"discrete" "control",
 			"identification",
 			"control",
-			"adaptive" "control"
+			"adaptive" "control",
+		NULL
 	};
 
 	// enum delle parole chiave

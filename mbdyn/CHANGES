@@ -24,6 +24,7 @@ MBDyn 1.X-Devel
 		- fix undefined const error message bug
 		- fix libtool lang tag for run-time loadable modules
 		  (noted by Jens van Schelve)
+		- fix electric elements parsing (noted by Morten Ketelsen)
 
 MBDyn 1.5.4
 	Enhancements:
