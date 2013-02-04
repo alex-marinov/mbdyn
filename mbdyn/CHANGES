@@ -25,6 +25,7 @@ MBDyn 1.X-Devel
 		- fix libtool lang tag for run-time loadable modules
 		  (noted by Jens van Schelve)
 		- fix electric elements parsing (noted by Morten Ketelsen)
+		- fix parsing on win32: MinGW/MSYS (Reinhard Resch)
 
 MBDyn 1.5.4
 	Enhancements:
