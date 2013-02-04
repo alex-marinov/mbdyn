@@ -257,7 +257,12 @@ IncludeParser::Include_int()
    	pf = NULL;
    	pIn = NULL;
 
+#ifdef _WIN32
+	// open the file in non translated mode in order not to break seek operations
+   	SAFENEWWITHCONSTRUCTOR(pf, std::ifstream, std::ifstream(sfname, std::ios::binary));
+#else
    	SAFENEWWITHCONSTRUCTOR(pf, std::ifstream, std::ifstream(sfname));
+#endif
    	if (!(*pf)) {
 #ifdef DEBUG
 		char *buf = getcwd(NULL, 0);

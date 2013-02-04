@@ -442,7 +442,12 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.CurrInputFormat = MBDYN;
 			mbp.CurrInputSource = MBFILE_OPT;
  			mbp.sInputFileName = optarg;
+#ifdef _WIN32
+			// open the file in non translated mode in order not to break seek operations
+			mbp.FileStreamIn.open(mbp.sInputFileName.c_str(), std::ios::binary);
+#else
 			mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
+#endif
 			if (!mbp.FileStreamIn) {
 				silent_cerr(std::endl 
 					<< "Unable to open file \""
@@ -861,8 +866,12 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #endif /* USE_ADAMS_PP */
 			{
 				mbp.CurrInputFormat = MBDYN;
-
+#ifdef _WIN32
+				// open the file in non translated mode in order not to break seek operations
+				mbp.FileStreamIn.open(mbp.sInputFileName.c_str(), std::ios::binary);
+#else
 				mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
+#endif
 				if (!mbp.FileStreamIn) {
 					silent_cerr(std::endl 
 						<< "Unable to open file "
