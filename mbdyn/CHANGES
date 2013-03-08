@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added Umfpack solver iterative refinement support
+		  (Reinhard Resch)
 	Backward compatibility issues:
 		- old binary modal joint databases no longer supported
 	Known issues:

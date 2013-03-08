@@ -118,7 +118,8 @@ public:
 		const doublereal &dPivot,
 		const doublereal &dDropTolerance,
 		const unsigned blockSize,
-		Scale scale = SCALE_UNDEF);
+		Scale scale = SCALE_UNDEF,
+		integer iMaxIter=-1);
 	~UmfpackSolver(void);
 
 	void Reset(void);
@@ -164,7 +165,8 @@ public:
 		doublereal dPivot = -1.,
 		doublereal dDropTolerance = 0.,
 		const unsigned blockSize = 0,
-		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF);
+		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF,
+		integer iMaxIter=-1);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {

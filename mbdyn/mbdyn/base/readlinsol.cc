@@ -524,6 +524,10 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		}
 	}
 
+	if (HP.IsKeyWord("max" "iterations")) {
+		cs.SetMaxIterations(HP.GetInt());
+	}
+
 	switch (cs.GetSolver()) {
 	case LinSol::NAIVE_SOLVER:
 		if (!(cs.GetSolverFlags() & LinSol::SOLVER_FLAGS_ALLOWS_COLAMD)) {

@@ -154,6 +154,13 @@ protected:
 	 */
 	Scale scale;
 
+	/*
+	 * maximum number of iterations for iterative refinement
+	 * used only by:
+	 *  Umfpack
+	 */
+	integer iMaxIter;
+
 public:
 	static SolverType defaultSolver;
 
@@ -170,6 +177,7 @@ public:
 	unsigned GetBlockSize(void) const;
 	SolutionManager::ScaleWhen GetScaleWhen(void) const;
 	LinSol::Scale GetScale(void) const;
+	integer GetMaxIterations(void) const;
 
 	const char *const GetSolverName(SolverType t) const;
 	unsigned GetSolverFlags(SolverType t) const;
@@ -185,7 +193,7 @@ public:
 	bool SetBlockSize(unsigned bs);
 	bool SetScaleWhen(SolutionManager::ScaleWhen ms);
 	bool SetScale(Scale s);
-
+	bool SetMaxIterations(integer iMaxIter);
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;
 };

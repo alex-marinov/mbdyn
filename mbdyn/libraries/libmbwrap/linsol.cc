@@ -162,7 +162,8 @@ blockSize(0),
 dPivotFactor(-1.),
 dDropTolerance(0.),
 ms(SolutionManager::NEVER),
-scale(SCALE_UNDEF)
+scale(SCALE_UNDEF),
+iMaxIter(0) // Restore the original behavior by default
 {
 	NO_OP;
 }
@@ -456,6 +457,20 @@ LinSol::SetScale(Scale s)
 	return true;
 }
 
+integer
+LinSol::GetMaxIterations(void) const
+{
+	return iMaxIter;
+}
+
+bool
+LinSol::SetMaxIterations(integer iMaxIterations)
+{
+	iMaxIter = iMaxIterations;
+
+	return true;
+}
+
 SolutionManager *const
 LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 {
@@ -681,7 +696,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
 				UmfpackSparseSolutionManager(iNLD,
-					dPivotFactor, dDropTolerance, blockSize, s));
+					dPivotFactor, dDropTolerance, blockSize, s, iMaxIter));
 			break;
 		}
 		} break;

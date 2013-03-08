@@ -117,7 +117,8 @@ UmfpackSolver::UmfpackSolver(const integer &size,
 	const doublereal &dPivot,
 	const doublereal &dDropTolerance,
 	const unsigned blockSize,
-	Scale scale)
+	Scale scale,
+	integer iMaxIter)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -154,6 +155,10 @@ bHaveCond(false)
 
 	if (scale != SCALE_UNDEF) {
 		Control[UMFPACK_SCALE] = scale;
+	}
+
+	if (iMaxIter >= 0) {
+		Control[UMFPACK_IRSTEP] = iMaxIter;
 	}
 }
 
@@ -209,7 +214,6 @@ UmfpackSolver::Solve(bool bTranspose) const
 	doublereal t = t_iniz;
 #endif /* UMFPACK_REPORT */
 
-	Control[UMFPACK_IRSTEP] = 0;
 	status = UMFPACKWRAP_solve((bTranspose ? SYS_VALUET : SYS_VALUE),
 			App, Aip, Axp,
 			LinearSolver::pdSol, LinearSolver::pdRhs, 
@@ -226,7 +230,13 @@ UmfpackSolver::Solve(bool bTranspose) const
 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	
+
+	if (Control[UMFPACK_IRSTEP] > 0 && Info[UMFPACK_IR_TAKEN] >= Control[UMFPACK_IRSTEP]) {
+		silent_cerr("warning: UMFPACK_IR_TAKEN = " << Info[UMFPACK_IR_TAKEN]
+		             << " >= UMFPACK_IRSTEP = " << Control[UMFPACK_IRSTEP] <<  std::endl
+		             << "\tThe flag \"max iterations\" of the linear solver is too small or the condition number of the Jacobian matrix is too high" << std::endl);
+	}
+
 #ifdef UMFPACK_REPORT
 	UMFPACKWRAP_report_info(Control, Info);
 	doublereal t1 = umfpack_timer() - t;	/* ?!? not used! */
@@ -346,7 +356,8 @@ UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot,
 		doublereal dDropTolerance,
 		const unsigned blockSize,
-		UmfpackSolver::Scale scale)
+		UmfpackSolver::Scale scale,
+		integer iMaxIter)
 : A(Dim),
 x(Dim),
 b(Dim),
@@ -354,7 +365,7 @@ xVH(Dim, &x[0]),
 bVH(Dim, &b[0])
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
-			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, scale));
+			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&x[0]);
