@@ -83,6 +83,18 @@ function elem = MyElem1(pMbElem, pDM, HP)
 
     elem.ks = HP.GetReal();
 
+    if ( ~HP.IsKeyWord("forcevalue") )
+        error("mboct: keyword force value expected at line %s", HP.GetLineData());
+    endif
+
+    elem.f1 = HP.GetDriveCaller();
+
+    if ( ~HP.IsKeyWord("forcedirection") )
+        error("mboct: keyword force direction expected at line %s", HP.GetLineData());
+    endif
+
+    elem.v1 = HP.GetPosRel(elem.pNode1);
+
     % Do some tests with the MBDyn parser ...
     if ( HP.IsKeyWord("stringvalue") && HP.IsArg() )
         fprintf(stderr, "mboct: string value = %s\n", HP.GetString(""));
@@ -102,6 +114,14 @@ function elem = MyElem1(pMbElem, pDM, HP)
 
     if ( HP.IsKeyWord("stringwithdelimiter") && HP.IsStringWithDelims("SQUAREBRACKETS") )
         fprintf(stderr, "mboct: string with delimiter = %s\n", HP.GetStringWithDelims("SQUAREBRACKETS"));
+    endif
+
+    if (HP.IsKeyWord("drive1"))
+        elem.drive1 = HP.GetDriveCaller();
+    endif
+
+    if (HP.IsKeyWord("drive2"))
+        elem.drive2 = HP.GetDriveCaller();
     endif
 
 %   elem.pNode1 = pDM.GetStructNode(int32(1));

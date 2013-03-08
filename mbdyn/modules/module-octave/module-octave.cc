@@ -128,6 +128,7 @@ public:
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Mat3x3& mbValue);
 	static bool ConvertOctaveToMBDyn(const Matrix& octValue, Mat6x6& mbValue);
 	static bool ConvertOctaveToMBDyn(const octave_value& octValue, TypedValue& mbValue);
+	static bool ConvertOctaveToMBDyn(const octave_value& octValue, doublereal& mbValue);
 	inline octave_value_list EvalFunction(const std::string& func, const octave_value_list& args, int nargout = 1, int flags = DEFAULT_CALL_FLAGS);
 	inline octave_value_list EvalFunctionDerivative(const std::string& func, const octave_value_list& args, int flags = DEFAULT_CALL_FLAGS);
 	inline octave_value_list EvalFunctionDerivative(const std::string& func, doublereal dVar, int flags = DEFAULT_CALL_FLAGS);
@@ -437,6 +438,7 @@ protected:
 		METHOD_DECLARE(GetPosRel)
 		METHOD_DECLARE(GetRotRel)
 		METHOD_DECLARE(GetLineData)
+		METHOD_DECLARE(GetDriveCaller)
 	END_METHOD_TABLE_DECLARE()
 
 private:
@@ -452,6 +454,25 @@ private:
 		HighParser::Delims value;
 		char name[15];
 	} mbStringDelims[6];
+};
+
+class DriveCallerInterface : public MBDynInterface {
+public:
+	explicit DriveCallerInterface(OctaveInterface* pInterface = OctaveInterface::GetInterface(), const DriveCaller* pDC=0);
+	virtual ~DriveCallerInterface();
+	void Set(const DriveCaller* pDC){ DC.Set(pDC); }
+protected:
+	BEGIN_METHOD_TABLE_DECLARE()
+		METHOD_DECLARE(dGet)
+		METHOD_DECLARE(dGetP)
+	END_METHOD_TABLE_DECLARE()
+
+private:
+	DECLARE_OV_TYPEID_FUNCTIONS_AND_DATA
+	DECLARE_OCTAVE_ALLOCATOR
+
+protected:
+	DriveOwner DC;
 };
 
 class OctaveDriveCaller : public DriveCaller {
@@ -1161,6 +1182,17 @@ OctaveInterface::ConvertOctaveToMBDyn(const octave_value& octValue, TypedValue& 
 	} else {
 		return false;
 	}
+
+	return true;
+}
+
+bool OctaveInterface::ConvertOctaveToMBDyn(const octave_value& octValue, doublereal& mbValue)
+{
+	if (!octValue.is_real_scalar()) {
+		return false;
+	}
+
+	mbValue = octValue.scalar_value();
 
 	return true;
 }
@@ -3624,6 +3656,34 @@ bool MBDynParserInterface::GetDelimsFromString(const std::string& strDelims, Hig
 	return false;
 }
 
+METHOD_DEFINE(MBDynParserInterface, GetDriveCaller, args, nargout)
+{
+	if (!pHP) {
+		error("%s: not connected", type_name().c_str());
+		return octave_value();
+	}
+
+	if (args.length() != 0) {
+		error("%s: invalid number of arguments\n"
+				"expected no argument", type_name().c_str());
+
+		return octave_value();
+	}
+
+	DriveCaller* pDC = 0;
+
+	try {
+		pDC = pHP->GetDriveCaller();
+	} catch (...) {
+		error("%s: GetDriveCaller failed", type_name().c_str());
+		return octave_value();
+	}
+
+	DriveCallerInterface* pInterface = new DriveCallerInterface(GetInterface(), pDC);
+
+	return octave_value(pInterface);
+}
+
 BEGIN_METHOD_TABLE(MBDynParserInterface, MBDynInterface)
 	METHOD_DISPATCH(MBDynParserInterface, IsKeyWord)
 	METHOD_DISPATCH(MBDynParserInterface, IsArg)
@@ -3638,10 +3698,106 @@ BEGIN_METHOD_TABLE(MBDynParserInterface, MBDynInterface)
 	METHOD_DISPATCH(MBDynParserInterface, GetPosRel)
 	METHOD_DISPATCH(MBDynParserInterface, GetRotRel)
 	METHOD_DISPATCH(MBDynParserInterface, GetLineData)
+	METHOD_DISPATCH(MBDynParserInterface, GetDriveCaller)
 END_METHOD_TABLE()
 
 DEFINE_OCTAVE_ALLOCATOR(MBDynParserInterface);
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(MBDynParserInterface, "MBDynParser", "MBDynParser");
+
+DriveCallerInterface::DriveCallerInterface(OctaveInterface* pInterface, const DriveCaller* pDC)
+:MBDynInterface(pInterface), DC(pDC)
+{
+
+}
+
+DriveCallerInterface::~DriveCallerInterface()
+{
+
+}
+
+
+METHOD_DEFINE(DriveCallerInterface, dGet, args, nargout)
+{
+	octave_value y;
+
+	if (!DC.pGetDriveCaller()) {
+		error("%s: not connected", type_name().c_str());
+		return y;
+	}
+
+	switch (args.length())
+	{
+	case 0:
+		y = DC.dGet();
+		break;
+
+	case 1:
+	{
+		doublereal x;
+
+		if (!GetInterface()->ConvertOctaveToMBDyn(args(0), x)) {
+			error("%s: invalid argument type %s", type_name().c_str(), args(0).type_name().c_str());
+			break;
+		}
+
+		y = DC.dGet(x);
+		break;
+	}
+	default:
+		error("%s: invalid number of arguments\n"
+				"expected zero or one argument", type_name().c_str());
+	};
+
+	return y;
+}
+
+METHOD_DEFINE(DriveCallerInterface, dGetP, args, nargout)
+{
+	octave_value y;
+
+	if (!DC.pGetDriveCaller()) {
+		error("%s: not connected", type_name().c_str());
+		return y;
+	}
+
+	if (!DC.pGetDriveCaller()->bIsDifferentiable()) {
+		error("%s: drive caller(%d %s) is not differentiable", type_name().c_str(), DC.pGetDriveCaller()->GetLabel(), DC.pGetDriveCaller()->GetName().c_str());
+		return y;
+	}
+
+	switch (args.length())
+	{
+	case 0:
+		y = DC.dGetP();
+		break;
+
+	case 1:
+	{
+		doublereal x;
+
+		if (!GetInterface()->ConvertOctaveToMBDyn(args(0), x)) {
+			error("%s: invalid argument type %s", type_name().c_str(), args(0).type_name().c_str());
+			break;
+		}
+
+		y = DC.dGetP(x);
+		break;
+	}
+	default:
+		error("%s: invalid number of arguments\n"
+				"expected zero or one argument", type_name().c_str());
+	};
+
+	return y;
+}
+
+BEGIN_METHOD_TABLE(DriveCallerInterface, MBDynInterface)
+	METHOD_DISPATCH(DriveCallerInterface, dGet)
+	METHOD_DISPATCH(DriveCallerInterface, dGetP)
+END_METHOD_TABLE()
+
+DEFINE_OCTAVE_ALLOCATOR(DriveCallerInterface);
+DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(DriveCallerInterface, "DriveCaller", "DriveCaller");
 
 OctaveDriveCaller::OctaveDriveCaller(const std::string& strFunc, OctaveInterface* pInterface, int iFlags, const octave_value_list& args)
 : DriveCaller(0),

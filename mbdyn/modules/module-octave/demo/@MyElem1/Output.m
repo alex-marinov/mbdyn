@@ -41,5 +41,5 @@
 ##################################################################
 
 function Output(elem, Loadable)
-    Loadable.printf("%d %e %e\n", elem.pMbElem.GetLabel(), elem.X2(max(1,elem.nIter)), elem.XP2(max(1,elem.nIter)));
+    Loadable.printf("%d %e %e %e %e\n", elem.pMbElem.GetLabel(), elem.X2(max(1,elem.nIter)), elem.XP2(max(1,elem.nIter)), elem.drive1.dGetP(), elem.drive2.dGetP(elem.pDM.dGetTime()));
 endfunction

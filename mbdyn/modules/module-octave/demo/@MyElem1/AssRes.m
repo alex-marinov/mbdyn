@@ -54,7 +54,7 @@ function [f, ridx] = AssRes(elem, dCoef, XCurr, XPrimeCurr)
     X2 = XCurr(iFirstIndex);
     XP2 = XPrimeCurr(iFirstIndex);
 
-    f = [ -elem.S * X1 - elem.D * V1;
+    f = [ -elem.S * X1 - elem.D * V1 + elem.v1 * elem.f1.dGet();
             X2 + 0.01*XP2 ];
 
 
