@@ -61,6 +61,8 @@ MBDyn 1.5.4
 		- fixed NaivePermMatrixHandler resize
 		  (noted by Reinhard Resch)
 		- fix array drive caller derivative bug
+		- fix missing space in mode output for matlab/octave
+		  (Reinhard Resch)
 
 MBDyn 1.5.3
 	Enhancements:
