@@ -429,7 +429,7 @@ SuperLUSparseCCSolutionManager<CC>::MatrReset(void)
 	pLS->Reset();
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 template <class CC>
 void
 SuperLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)

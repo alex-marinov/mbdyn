@@ -249,7 +249,7 @@ TaucsSparseSolutionManager::MakeCompressedColumnForm(void)
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 void
 TaucsSparseSolutionManager::Solve(void)
 {

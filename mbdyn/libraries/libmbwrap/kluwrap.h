@@ -102,7 +102,14 @@ private:
 	void Factor(void);
 
 public:
-	KLUSolver(const integer &size, const doublereal &dPivot);
+	enum Scale {
+		SCALE_NONE = 0,
+		SCALE_SUM = 1,
+		SCALE_MAX = 2,
+		SCALE_UNDEF
+	};
+
+	KLUSolver(const integer &size, const doublereal &dPivot, Scale scale = SCALE_UNDEF);
 	~KLUSolver(void);
 
 	void Reset(void);
@@ -129,6 +136,10 @@ protected:
 
 	mutable MyVectorHandler bVH;
 
+	ScaleWhen ms;
+	std::vector<doublereal> msr;
+	std::vector<doublereal> msc;
+
 	std::vector<doublereal> Ax;
 	std::vector<integer> Ai;
 	std::vector<integer> Adummy;
@@ -137,12 +148,15 @@ protected:
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
+	template <class MH>
+	void ScaleMatrixAndRightHandSide(MH& mh);
+	void ScaleSolution(void);
 	
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
    
 public:
-	KLUSparseSolutionManager(integer Dim, doublereal dPivot = -1.);
+	KLUSparseSolutionManager(integer Dim, doublereal dPivot = -1., KLUSolver::Scale s = KLUSolver::SCALE_UNDEF, ScaleWhen ms = NEVER);
 	virtual ~KLUSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -180,7 +194,7 @@ protected:
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	KLUSparseCCSolutionManager(integer Dim, doublereal dPivot = -1.);
+	KLUSparseCCSolutionManager(integer Dim, doublereal dPivot = -1., KLUSolver::Scale scale = KLUSolver::SCALE_UNDEF, ScaleWhen ms = NEVER);
 	virtual ~KLUSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

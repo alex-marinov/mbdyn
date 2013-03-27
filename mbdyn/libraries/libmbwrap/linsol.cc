@@ -426,6 +426,8 @@ LinSol::SetScaleWhen(SolutionManager::ScaleWhen ms)
 {
 	switch (currSolver) {
 	case LinSol::NAIVE_SOLVER:
+	case LinSol::UMFPACK_SOLVER:
+	case LinSol::KLU_SOLVER:
 		this->ms = ms;
 		break;
 
@@ -447,6 +449,7 @@ LinSol::SetScale(Scale s)
 {
 	switch (currSolver) {
 	case LinSol::UMFPACK_SOLVER:
+	case LinSol::KLU_SOLVER:
 		this->scale = s;
 		break;
 
@@ -466,7 +469,14 @@ LinSol::GetMaxIterations(void) const
 bool
 LinSol::SetMaxIterations(integer iMaxIterations)
 {
-	iMaxIter = iMaxIterations;
+	switch (currSolver) {
+	case LinSol::UMFPACK_SOLVER:
+		iMaxIter = iMaxIterations;
+		break;
+
+	default:
+		return false;
+	}
 
 	return true;
 }
@@ -659,6 +669,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 #ifdef USE_UMFPACK
 		{
 		UmfpackSolver::Scale s = UmfpackSolver::SCALE_UNDEF;
+
 		switch (scale) {
 		case SCALE_NONE:
 			s = UmfpackSolver::SCALE_NONE;
@@ -681,14 +692,14 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
 			break;
 		}
 
@@ -696,7 +707,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
 				UmfpackSparseSolutionManager(iNLD,
-					dPivotFactor, dDropTolerance, blockSize, s, iMaxIter));
+					dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
 			break;
 		}
 		} break;
@@ -708,28 +719,49 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 
 	case LinSol::KLU_SOLVER:
 #ifdef USE_KLU
+		{
+		KLUSolver::Scale s = KLUSolver::SCALE_UNDEF;
+
+		switch (scale) {
+		case SCALE_NONE:
+			s = KLUSolver::SCALE_NONE;
+			break;
+
+		case SCALE_MAX:
+			s = KLUSolver::SCALE_MAX;
+			break;
+
+		case SCALE_SUM:
+			s = KLUSolver::SCALE_SUM;
+			break;
+
+		default:
+			ASSERT(0);
+		}
+
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef KLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor));
+					CCSM(iNLD, dPivotFactor, s, ms));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef KLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor));
+					CCSM(iNLD, dPivotFactor, s, ms));
 			break;
 		}
 
 		default:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				KLUSparseSolutionManager,
-				KLUSparseSolutionManager(iNLD, dPivotFactor));
+				KLUSparseSolutionManager(iNLD, dPivotFactor, s, ms));
 			break;
 		}
-      		break;
+
+		} break;
 #else /* !USE_KLU */
       		silent_cerr("Configure with --with-klu "
 			"to enable KLU solver" << std::endl);

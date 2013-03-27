@@ -72,11 +72,11 @@
 #include "ccmh.h"
 #include "dirccmh.h"
 #include "kluwrap.h"
-
+#include "dgeequ.h"
 
 /* KLUSolver - begin */
 	
-KLUSolver::KLUSolver(const integer &size, const doublereal &dPivot)
+KLUSolver::KLUSolver(const integer &size, const doublereal &dPivot, Scale scale)
 : LinearSolver(0),
 iSize(size),
 Axp(0),
@@ -99,6 +99,13 @@ Numeric(0)
 	// Control.ordering = 1; /* colamd */
 	Control.ordering = 0; /* amd */
 
+	switch (scale) {
+	case SCALE_UNDEF:
+		// use the default value provided by KLU
+		break;
+	default:
+		Control.scale = scale;
+	}
 }
 
 KLUSolver::~KLUSolver(void)
@@ -257,17 +264,23 @@ bool KLUSolver::bGetConditionNumber(doublereal& dCond)
 /* KLUSparseSolutionManager - begin */
 
 KLUSparseSolutionManager::KLUSparseSolutionManager(integer Dim,
-		doublereal dPivot)
+		doublereal dPivot, KLUSolver::Scale scale, ScaleWhen ms)
 : A(Dim),
 b(Dim),
-bVH(Dim, &b[0])
+bVH(Dim, &b[0]),
+ms(ms)
 {
 	SAFENEWWITHCONSTRUCTOR(pLS, KLUSolver,
-			KLUSolver(Dim, dPivot));
+			KLUSolver(Dim, dPivot, scale));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&b[0]);
 	pLS->SetSolutionManager(this);
+
+	if (scale != KLUSolver::SCALE_NONE && ms != NEVER) {
+		ASSERT(0); // avoid double scaling
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }
 
 KLUSparseSolutionManager::~KLUSparseSolutionManager(void) 
@@ -284,15 +297,92 @@ KLUSparseSolutionManager::MatrReset(void)
 void
 KLUSparseSolutionManager::MakeCompressedColumnForm(void)
 {
+	ScaleMatrixAndRightHandSide<SpMapMatrixHandler>(A);
+
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 }
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+template <class MH>
+void KLUSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
+{
+#if defined(DEBUG)
+	static bool bPrintMat = true;
+#endif
+
+	if (ms != SolutionManager::NEVER) {
+		if (pLS->bReset()) {
+			if (msr.empty() || ms == SolutionManager::ALWAYS) {
+#if defined(DEBUG)
+				if (bPrintMat) {
+					silent_cout("% matrix before scaling:\n");
+					silent_cout("Apre=[");
+					for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+						if (i->dCoef != 0.) {
+							silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
+						}
+					}
+					silent_cout("];\n");
+				}
+#endif
+				// (re)compute
+				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
+				dgeequ<MH>(mh, msr, msc, rowcnd, colcnd, amax);
+#if defined(DEBUG)
+				if (bPrintMat) {
+					silent_cout("% scale factors:\n");
+					silent_cout("msr=[");
+					for (std::vector<doublereal>::const_iterator i = msr.begin(); i < msr.end(); ++i) {
+						silent_cout(*i << ";\n");
+					}
+
+					silent_cout("];\n");
+					silent_cout("msc=[");
+					for (std::vector<doublereal>::const_iterator i = msc.begin(); i < msc.end(); ++i) {
+						silent_cout(*i << ";\n");
+					}
+					silent_cout("];\n");
+				}
+#endif
+			}
+			// in any case scale matrix and right-hand-side
+			dgeequ_scale<MH>(mh, msr, msc);
+
+#if defined(DEBUG)
+			if (bPrintMat) {
+				silent_cout("% matrix after scaling:\n");
+				silent_cout("Apost=[");
+				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+					if (i->dCoef != 0.) {
+						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
+					}
+				}
+				silent_cout("];\n");
+			}
+
+			bPrintMat = false;
+#endif
+		}
+		dgeequ_scale(bVH, &msr[0]);
+	}
+}
+
+void KLUSparseSolutionManager::ScaleSolution(void)
+{
+	if (ms != SolutionManager::NEVER) {
+		// scale solution
+		dgeequ_scale(bVH, &msc[0]);
+	}
+}
+
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 void
 KLUSparseSolutionManager::Solve(void)
 {
 	MakeCompressedColumnForm();
+
 	pLS->Solve();
+
+	ScaleSolution();
 }
 
 /* Rende disponibile l'handler per la matrice */
@@ -320,8 +410,8 @@ KLUSparseSolutionManager::pSolHdl(void) const
 
 template <class CC>
 KLUSparseCCSolutionManager<CC>::KLUSparseCCSolutionManager(integer Dim,
-		doublereal dPivot)
-: KLUSparseSolutionManager(Dim, dPivot),
+		doublereal dPivot, KLUSolver::Scale scale, ScaleWhen ms)
+: KLUSparseSolutionManager(Dim, dPivot, scale, ms),
 CCReady(false),
 Ac(0)
 {
@@ -356,6 +446,9 @@ KLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 
 		CCReady = true;
 	}
+
+	ScaleMatrixAndRightHandSide<CC>(*dynamic_cast<CC *>(Ac));
+
 }
 
 /* Inizializzatore "speciale" */

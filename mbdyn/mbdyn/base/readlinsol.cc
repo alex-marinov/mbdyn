@@ -476,28 +476,11 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 
 	if (HP.IsKeyWord("scale")) {
 		switch (cs.GetSolver()) {
-		case LinSol::NAIVE_SOLVER: {
-			SolutionManager::ScaleWhen ms;
-
-			if (HP.IsKeyWord("no")) {
-				ms = SolutionManager::NEVER;
-
-			} else if (HP.IsKeyWord("always")) {
-				ms = SolutionManager::ALWAYS;
-
-			} else if (HP.IsKeyWord("once")) {
-				ms = SolutionManager::ONCE;
-
-			} else {
-				silent_cerr("unknown scale value at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-
-			cs.SetScaleWhen(ms);
-			} break;
-
+		case LinSol::NAIVE_SOLVER:
+		case LinSol::KLU_SOLVER:
 		case LinSol::UMFPACK_SOLVER: {
-			LinSol::Scale s(LinSol::SCALE_UNDEF);
+			LinSol::Scale s(LinSol::SCALE_UNDEF); // Umfpack and KLU built in row scaling
+			SolutionManager::ScaleWhen ms(SolutionManager::NEVER); // row and column scaling with dgeequ
 
 			if (HP.IsKeyWord("no")) {
 				s = LinSol::SCALE_NONE;
@@ -508,12 +491,27 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 			} else if (HP.IsKeyWord("sum")) {
 				s = LinSol::SCALE_SUM;
 
+			} else if (HP.IsKeyWord("once")) {
+				ms = SolutionManager::ONCE;
+				s = LinSol::SCALE_NONE; // do not scale twice!
+
+			} else if (HP.IsKeyWord("always")) {
+				ms = SolutionManager::ALWAYS;
+				s = LinSol::SCALE_NONE; // do not scale twice!
+
 			} else {
 				silent_cerr("unknown scale value at line " << HP.GetLineData() << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			cs.SetScale(s);
+			if (!cs.SetScale(s)) {
+				silent_cerr("Warning: builtin row scaling is not available for " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+			}
+
+			if (!cs.SetScaleWhen(ms)) {
+				silent_cerr("Warning: row and column scaling is not available for " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+			}
+
 			} break;
 
 		default:
@@ -525,7 +523,9 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	}
 
 	if (HP.IsKeyWord("max" "iterations")) {
-		cs.SetMaxIterations(HP.GetInt());
+		if (!cs.SetMaxIterations(HP.GetInt())) {
+			silent_cerr("Warning: iterative refinement is not supported by " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+		}
 	}
 
 	switch (cs.GetSolver()) {

@@ -148,6 +148,10 @@ protected:
 
 	mutable MyVectorHandler xVH, bVH;
 
+	ScaleWhen ms;
+	std::vector<doublereal> msr;
+	std::vector<doublereal> msc;
+
 	std::vector<doublereal> Ax;
 	std::vector<integer> Ai;
 	std::vector<integer> Adummy;
@@ -156,6 +160,9 @@ protected:
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
+	template <class MH>
+	void ScaleMatrixAndRightHandSide(MH &mh);
+	void ScaleSolution(void);
 	
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
@@ -166,7 +173,8 @@ public:
 		doublereal dDropTolerance = 0.,
 		const unsigned blockSize = 0,
 		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF,
-		integer iMaxIter=-1);
+		integer iMaxIter=-1,
+		ScaleWhen ms = NEVER);
 	virtual ~UmfpackSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -209,7 +217,9 @@ public:
 		doublereal dPivot = -1.,
 		doublereal dDropTolerance = 0.,
 		const unsigned& blockSize = 0,
-		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF);
+		UmfpackSolver::Scale scale = UmfpackSolver::SCALE_UNDEF,
+		integer iMaxIter=-1,
+		ScaleWhen ms = NEVER);
 	virtual ~UmfpackSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */

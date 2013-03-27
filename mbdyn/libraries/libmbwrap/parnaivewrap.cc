@@ -563,7 +563,7 @@ ParNaiveSparsePermSolutionManager::BackPerm(void)
 }
 
 
-/* Risolve il sistema  Fattorizzazione + Bacward Substitution*/
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
 void
 ParNaiveSparsePermSolutionManager::Solve(void)
 {
