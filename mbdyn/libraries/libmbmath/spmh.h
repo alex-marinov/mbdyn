@@ -205,41 +205,34 @@ public:
 			int offset = 0) const;
 };
 
-template <int off>
-class CompactSparseMatrixHandler_tpl;
-
-template <int off>
-class CompactSparseMatrixHandler_const_iterator {
-	friend class CompactSparseMatrixHandler_tpl<off>;
-
-private:
-	const CompactSparseMatrixHandler_tpl<off>& m;
-	mutable integer i_idx;
-	mutable SparseMatrixHandler::SparseMatrixElement elem;
-
-protected:
-	void reset(bool is_end = false);
-
-public:
-	CompactSparseMatrixHandler_const_iterator(const CompactSparseMatrixHandler_tpl<off>& m, bool is_end = false);
-	~CompactSparseMatrixHandler_const_iterator(void);
-	const CompactSparseMatrixHandler_const_iterator<off>& operator ++ (void) const;
-	const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
-	const SparseMatrixHandler::SparseMatrixElement& operator * (void);
-	bool operator == (const CompactSparseMatrixHandler_const_iterator<off>& op) const;
-	bool operator != (const CompactSparseMatrixHandler_const_iterator<off>& op) const;
-};
-
 /* Sparse Matrix in compact form */
 template <int off>
 class CompactSparseMatrixHandler_tpl : public CompactSparseMatrixHandler {
-	friend class CompactSparseMatrixHandler_const_iterator<off>;
 public:
 	CompactSparseMatrixHandler_tpl(const integer &n, const integer &nn,
 			std::vector<doublereal>& x,
 			const std::vector<integer>& i,
 			const std::vector<integer>& p);
 	virtual ~CompactSparseMatrixHandler_tpl(void);
+
+	class const_iterator {
+	private:
+		const CompactSparseMatrixHandler_tpl<off>& m;
+		mutable integer i_idx;
+		mutable SparseMatrixHandler::SparseMatrixElement elem;
+
+	protected:
+		void reset(bool is_end = false);
+
+	public:
+		const_iterator(const CompactSparseMatrixHandler_tpl<off>& m, bool is_end = false);
+		~const_iterator(void);
+		const CompactSparseMatrixHandler_tpl<off>::const_iterator& operator ++ (void) const;
+		const SparseMatrixHandler::SparseMatrixElement* operator -> (void);
+		const SparseMatrixHandler::SparseMatrixElement& operator * (void);
+		bool operator == (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const;
+		bool operator != (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const;
+	};
 
 protected:
 	/* Matrix Matrix product */
@@ -263,14 +256,14 @@ protected:
 			VectorHandler& out, const VectorHandler& in) const;
 
 protected:
-	CompactSparseMatrixHandler_const_iterator<off> m_end;
+	CompactSparseMatrixHandler_tpl<off>::const_iterator m_end;
 
 public:
-	CompactSparseMatrixHandler_const_iterator<off> begin(void) const {
-		return CompactSparseMatrixHandler_const_iterator<off>(*this);
+	CompactSparseMatrixHandler_tpl<off>::const_iterator begin(void) const {
+		return CompactSparseMatrixHandler_tpl<off>::const_iterator(*this);
 	};
 
-	const CompactSparseMatrixHandler_const_iterator<off>& end(void) const {
+	const CompactSparseMatrixHandler_tpl<off>::const_iterator& end(void) const {
 		return m_end;
 	};
 };

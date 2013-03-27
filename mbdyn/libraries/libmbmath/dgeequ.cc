@@ -117,7 +117,7 @@ void
 dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
 {
-	dgeequ<FullMatrixHandler, FullMatrixHandler::const_iterator>(mh, r, c, rowcnd, colcnd, amax);
+	dgeequ<FullMatrixHandler>(mh, r, c, rowcnd, colcnd, amax);
 }
 #endif // !USE_LAPACK
 

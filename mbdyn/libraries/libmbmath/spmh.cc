@@ -273,12 +273,9 @@ CompactSparseMatrixHandler_tpl<off>::MatTVecMul_base(
 	return out;
 }
 
-template class CompactSparseMatrixHandler_tpl<0>;
-template class CompactSparseMatrixHandler_tpl<1>;
-
 template <int off>
 void
-CompactSparseMatrixHandler_const_iterator<off>::reset(bool is_end)
+CompactSparseMatrixHandler_tpl<off>::const_iterator::reset(bool is_end)
 {
 	if (is_end) {
 		elem.iRow = m.iGetNumRows();
@@ -299,21 +296,21 @@ CompactSparseMatrixHandler_const_iterator<off>::reset(bool is_end)
 }
 
 template <int off>
-CompactSparseMatrixHandler_const_iterator<off>::CompactSparseMatrixHandler_const_iterator(const CompactSparseMatrixHandler_tpl<off>& m, bool is_end)
+CompactSparseMatrixHandler_tpl<off>::const_iterator::const_iterator(const CompactSparseMatrixHandler_tpl<off>& m, bool is_end)
 : m(m)
 {
 	reset(is_end);
 }
 
 template <int off>
-CompactSparseMatrixHandler_const_iterator<off>::~CompactSparseMatrixHandler_const_iterator(void)
+CompactSparseMatrixHandler_tpl<off>::const_iterator::~const_iterator(void)
 {
 	NO_OP;
 }
 
 template <int off>
-const CompactSparseMatrixHandler_const_iterator<off>&
-CompactSparseMatrixHandler_const_iterator<off>::operator ++ (void) const
+const typename CompactSparseMatrixHandler_tpl<off>::const_iterator&
+CompactSparseMatrixHandler_tpl<off>::const_iterator::operator ++ (void) const
 {
 	i_idx++;
 	while (i_idx == m.Ap[elem.iCol + 1] - off) {
@@ -331,31 +328,32 @@ CompactSparseMatrixHandler_const_iterator<off>::operator ++ (void) const
 
 template <int off>
 const SparseMatrixHandler::SparseMatrixElement*
-CompactSparseMatrixHandler_const_iterator<off>::operator -> (void)
+CompactSparseMatrixHandler_tpl<off>::const_iterator::operator -> (void)
 {
 	return &elem;
 }
 
 template <int off>
 const SparseMatrixHandler::SparseMatrixElement&
-CompactSparseMatrixHandler_const_iterator<off>::operator * (void)
+CompactSparseMatrixHandler_tpl<off>::const_iterator::operator * (void)
 {
 	return elem;
 }
 
 template <int off>
 bool
-CompactSparseMatrixHandler_const_iterator<off>::operator == (const CompactSparseMatrixHandler_const_iterator<off>& op) const
+CompactSparseMatrixHandler_tpl<off>::const_iterator::operator == (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const
 {
 	return elem == op.elem;
 }
 
 template <int off>
 bool
-CompactSparseMatrixHandler_const_iterator<off>::operator != (const CompactSparseMatrixHandler_const_iterator<off>& op) const
+CompactSparseMatrixHandler_tpl<off>::const_iterator::operator != (const CompactSparseMatrixHandler_tpl<off>::const_iterator& op) const
 {
 	return elem != op.elem;
 }
 
-template class CompactSparseMatrixHandler_const_iterator<0>;
-template class CompactSparseMatrixHandler_const_iterator<1>;
+template class CompactSparseMatrixHandler_tpl<0>;
+template class CompactSparseMatrixHandler_tpl<1>;
+

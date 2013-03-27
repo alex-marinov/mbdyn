@@ -44,9 +44,6 @@
 /* Sparse Matrix in columns form */
 template <int off>
 class DirCColMatrixHandler : public CompactSparseMatrixHandler_tpl<off> {
-public:
-	typedef CompactSparseMatrixHandler_const_iterator<off> const_iterator;
-
 private:
 #ifdef DEBUG
 	void IsValid(void) const {

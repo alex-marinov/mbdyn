@@ -48,7 +48,7 @@ dgeequ_prepare(const MatrixHandler& mh,
 
 // computes scaling factors for a matrix handler that has an iterator
 // based on lapack's dgeequ
-template <class T, class Titer>
+template <class T>
 void
 dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
@@ -63,7 +63,7 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 	doublereal rcmin;
 	doublereal rcmax;
 
-	for (Titer i = mh.begin(); i != mh.end(); ++i) {
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
 		doublereal d = std::abs(i->dCoef);
 		if (d > r[i->iRow]) {
 			r[i->iRow] = d;
@@ -94,7 +94,7 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 
 	rowcnd = std::max(rcmin, SMLNUM)/std::min(rcmax, BIGNUM);
 
-	for (Titer i = mh.begin(); i != mh.end(); ++i) {
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
 		doublereal d = std::abs(i->dCoef)*r[i->iRow];
 		if (d > c[i->iCol]) {
 			c[i->iCol] = d;
@@ -132,11 +132,11 @@ dgeequ(const FullMatrixHandler& mh,
 	doublereal& rowcnd, doublereal& colcnd, doublereal& amax);
 
 // scales matrix for a matrix handler with an iterator, in place
-template <class T, class Titer>
+template <class T>
 T&
 dgeequ_scale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
 {
-	for (Titer i = mh.begin(); i != mh.end(); ++i) {
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
 		// FIXME: were a non-const iterator available...
 #if 0
 		i->dCoef *= r[i->iRow] * c[i->iCol];

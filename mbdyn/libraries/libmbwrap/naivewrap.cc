@@ -186,10 +186,10 @@ NaiveSparseSolutionManager::Solve(void)
 			if (msr.empty() || ms == SolutionManager::ALWAYS) {
 				// (re)compute
 				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
-				dgeequ<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(*A, msr, msc, rowcnd, colcnd, amax);
+				dgeequ<NaiveMatrixHandler>(*A, msr, msc, rowcnd, colcnd, amax);
 			}
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<NaiveMatrixHandler, NaiveMatrixHandler::const_iterator>(*A, msr, msc);
+			dgeequ_scale<NaiveMatrixHandler>(*A, msr, msc);
 		}
 		dgeequ_scale(VH, &msr[0]);
 	}
@@ -297,10 +297,10 @@ NaiveSparsePermSolutionManager<T>::Solve(void)
 			if (msr.empty() || ms == SolutionManager::ALWAYS) {
 				// (re)compute
 				doublereal rowcnd, colcnd, amax;
-				dgeequ<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc, rowcnd, colcnd, amax);
+				dgeequ<NaivePermMatrixHandler>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc, rowcnd, colcnd, amax);
 			}
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<NaivePermMatrixHandler, NaivePermMatrixHandler::const_iterator>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc);
+			dgeequ_scale<NaivePermMatrixHandler>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc);
 		}
 		dgeequ_scale(VH, &msr[0]);
 	}
