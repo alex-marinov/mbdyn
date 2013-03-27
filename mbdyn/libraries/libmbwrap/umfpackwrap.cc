@@ -200,7 +200,7 @@ void
 UmfpackSolver::Solve(bool bTranspose) const
 {
 	if (bHasBeenReset) {
-      		((UmfpackSolver *)this)->Factor();
+      		const_cast<UmfpackSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 		
