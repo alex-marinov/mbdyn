@@ -875,7 +875,11 @@ of the order of 30\%, with a block size between 4 and 16).
 With respect to scaling, the \kw{scale} option supports \kw{max} and \kw{sum}
 which respectively scale the matrix according to each row's
 largest absolute value and to the sum of the absolute values
-of the coefficients in the row (the latter is the default).
+of the coefficients in the row (the latter is the default),
+and \kw{always} and \kw{once} which scale the matrix
+according to Lapack's \texttt{dgeequ(3)} algorithm
+respectively all times or with factors computed the first time
+the matrix is factored.
 
 \paragraph{Naive.}
 The \kw{naive} solver is built-in, so it is always present.
@@ -925,6 +929,10 @@ needs to be regenerated, because the structure of the matrix changed
 (e.g.\ when using \kw{driven} elements, but not only in that case),
 the matrix is already invalidated, and should be regenerated.
 This is not handled correctly yet.
+Matrix scaling can be performed \kw{always} or \kw{once} 
+according to Lapack's \texttt{dgeequ(3)} algorithm
+respectively all times or with factors computed the first time
+the matrix is factored
 
 \paragraph{Y12.}
 The \kw{y12} linear solver is provided for historical reasons
