@@ -506,7 +506,7 @@ ePermState(PERM_NO)
 
 	SAFEDELETE(A);
 	A = 0;
-	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, &perm[0], &invperm[0]));
+	SAFENEWWITHCONSTRUCTOR(A, NaivePermMatrixHandler, NaivePermMatrixHandler(Dim, perm, invperm));
 
 	dynamic_cast<ParNaiveSolver *>(pLS)->SetMat(A);
 
