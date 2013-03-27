@@ -111,7 +111,7 @@ pS(0),
 pDM(pDM)
 {
 	TRACE_VAR(dTolX);
-	TRACE_VAR(dTolF);
+	// TRACE_VAR(dTolF);
 	TRACE_VAR(dTolMin);
 	TRACE_VAR(iMaxIterations);
 	TRACE_VAR(dMaxStep);
@@ -277,8 +277,6 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	TRACE_VAR(dLambdaMinEff);
 
 	do {
-		ASSERT(lambda <= dLambdaMax);
-
 		if (iIter > 0) {
 			TRACE("Start new step from Xold, XPold with lambda = " << lambda << " ..." << std::endl);
 			pNLP->Update(&dXneg); // restore the previous state
