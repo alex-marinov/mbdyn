@@ -61,6 +61,8 @@ ppdRows(0), ppiRows(0), ppiCols(0), ppnonzero(0), piNzr(0), piNzc(0), m_end(*thi
 		piNzc = nmh->piNzc;
 		
 	} else {
+		ASSERT(iSize > 0);
+
 		SAFENEWARR(ppiRows, integer *, iSize);
 		ppiRows[0] = 0;
 		SAFENEWARR(ppiRows[0], integer, iSize*iSize);
@@ -538,7 +540,8 @@ NaivePermMatrixHandler::NaivePermMatrixHandler(integer iSize,
 		const std::vector<integer>& tinvperm)
 : NaiveMatrixHandler(iSize), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
-	NO_OP;
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
 
 #ifdef DEBUG
 	for (integer i = 0; i < iSize; ++i) {
@@ -553,6 +556,9 @@ NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler *const nmh,
 		const std::vector<integer>& tinvperm)
 : NaiveMatrixHandler(0, nmh), perm(tperm), invperm(tinvperm), m_end(*this, true)
 {
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
+
 #ifdef DEBUG
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
@@ -565,15 +571,16 @@ NaivePermMatrixHandler::NaivePermMatrixHandler(NaiveMatrixHandler *const nmh,
 
 NaivePermMatrixHandler::~NaivePermMatrixHandler(void)
 {
-	NO_OP;
+	DEBUGCOUTFNAME("NaivePermMatrixHandler::~NaivePermMatrixHandler");
 }
 
 const std::vector<integer>&
 NaivePermMatrixHandler::GetPerm(void) const
 {
 #ifdef DEBUG
+	ASSERT(perm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
-		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
 		ASSERT(perm[i] >= 0 && perm[i] < iSize);
 	}
 #endif
@@ -584,9 +591,10 @@ const std::vector<integer>&
 NaivePermMatrixHandler::GetInvPerm(void) const
 {
 #ifdef DEBUG
+	ASSERT(invperm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
-		ASSERT(perm[i] >= 0 && perm[i] < iSize);
 	}
 #endif
 	return invperm;
@@ -599,6 +607,9 @@ NaivePermMatrixHandler::MatMatMul_base(
 	MatrixHandler& out, const MatrixHandler& in) const
 {
 #ifdef DEBUG
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
 		ASSERT(perm[i] >= 0 && perm[i] < iSize);
@@ -629,6 +640,9 @@ NaivePermMatrixHandler::MatTMatMul_base(
 	MatrixHandler& out, const MatrixHandler& in) const
 {
 #ifdef DEBUG
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
 		ASSERT(perm[i] >= 0 && perm[i] < iSize);
@@ -659,6 +673,9 @@ NaivePermMatrixHandler::MatVecMul_base(
 	VectorHandler& out, const VectorHandler& in) const
 {
 #ifdef DEBUG
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
 		ASSERT(perm[i] >= 0 && perm[i] < iSize);
@@ -683,6 +700,9 @@ NaivePermMatrixHandler::MatTVecMul_base(
 	VectorHandler& out, const VectorHandler& in) const
 {
 #ifdef DEBUG
+	ASSERT(perm.size() == (size_t)iSize);
+	ASSERT(invperm.size() == (size_t)iSize);
+
 	for (integer i = 0; i < iSize; ++i) {
 		ASSERT(invperm[i] >= 0 && invperm[i] < iSize);
 		ASSERT(perm[i] >= 0 && perm[i] < iSize);

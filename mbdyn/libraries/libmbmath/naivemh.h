@@ -277,6 +277,9 @@ public:
 		ASSERT(iCol > 0);
 		ASSERT(iCol <= iGetNumCols());
 
+		ASSERT(perm.size() == (size_t)iGetNumRows());
+		ASSERT(perm.size() == (size_t)iGetNumCols());
+
 		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
 		return NaiveMatrixHandler::operator()(iRow, iCol);
@@ -288,6 +291,9 @@ public:
 		ASSERT(iRow <= iGetNumRows());
 		ASSERT(iCol > 0);
 		ASSERT(iCol <= iGetNumCols());
+
+		ASSERT(perm.size() == (size_t)iGetNumRows());
+		ASSERT(perm.size() == (size_t)iGetNumCols());
 
 		/* FIXME: stupid 0/1 based arrays... */
 		iCol = perm[iCol - 1] + 1;
