@@ -485,9 +485,33 @@ retry:;
 		break;
 
 	case ASS_NAIVE:
+		ASSERT(thread_data[0].ppNaiveJacHdl != 0);
 		if (&JacHdl == thread_data[0].ppNaiveJacHdl[0]) {
-			NaiveAssJac(JacHdl, dCoef);
-			break;
+			/*
+			 * NOTE: this test is here to detect whether JacHdl changed
+			 * (typically it changes any time Solver::SetupSolmans() is called)
+			 * However, just looking at the pointer does not suffice;
+			 * we also need to check that "perm" did not change.
+			 * For this purpose, we compare the address of "perm"
+			 * in JacHdl and in the MatrixHandler of the second thread.
+			 */
+			NaivePermMatrixHandler *pNaivePermJacHdl = dynamic_cast<NaivePermMatrixHandler *>(&JacHdl);
+			bool bDoAssemble(false);
+			if (!pNaivePermJacHdl) {
+				bDoAssemble = true;
+
+			} else {
+				NaivePermMatrixHandler *pNaivePermJacHdl2 = dynamic_cast<NaivePermMatrixHandler *>(thread_data[0].ppNaiveJacHdl[1]);
+				ASSERT(pNaivePermJacHdl2 != 0);
+				if (&pNaivePermJacHdl->GetPerm() == &pNaivePermJacHdl2->GetPerm()) {
+					bDoAssemble = true;
+				}
+			}
+
+			if (bDoAssemble) {
+				NaiveAssJac(JacHdl, dCoef);
+				break;
+			}
 		}
 
 		for (unsigned i = 1; i < nThreads; i++) {
