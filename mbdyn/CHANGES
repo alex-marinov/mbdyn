@@ -16,7 +16,7 @@ MBDyn 1.X-Devel
 		  (Reinhard Resch)
 		- added built in drive callers interface to module-octave
 		  (Reinhard Resch)
-		- added scaling support to Umfpack and KLU
+		- added scaling support to Naive, Umfpack and KLU solvers
 		  (based on patch by Reinhard Resch)
 	Backward compatibility issues:
 		- old binary modal joint databases no longer supported

@@ -177,29 +177,90 @@ NaiveSparseSolutionManager::MatrReset()
 	pLS->Reset();
 }
 
-/* Risolve il sistema  Fattorizzazione + Backward Substitution */
+
+template <class MH>
 void
-NaiveSparseSolutionManager::Solve(void)
+NaiveSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
 {
 	if (ms != SolutionManager::NEVER) {
 		if (pLS->bReset()) {
+#if defined(DEBUG)
+			static bool bPrintMat = true;
+			if (bPrintMat) {
+				silent_cout("% matrix before scaling:\n");
+				silent_cout("Apre=[");
+				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+					if (i->dCoef != 0.) {
+						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
+					}
+				}
+				silent_cout("];\n");
+			}
+#endif
+
 			if (msr.empty() || ms == SolutionManager::ALWAYS) {
 				// (re)compute
 				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
-				dgeequ<NaiveMatrixHandler>(*A, msr, msc, rowcnd, colcnd, amax);
+				dgeequ<MH>(mh, msr, msc, rowcnd, colcnd, amax);
+
+#if defined(DEBUG)
+				if (bPrintMat) {
+					silent_cout("% scale factors:\n");
+					silent_cout("msr=[");
+					for (std::vector<doublereal>::const_iterator i = msr.begin(); i < msr.end(); ++i) {
+						silent_cout(*i << ";\n");
+					}
+
+					silent_cout("];\n");
+					silent_cout("msc=[");
+					for (std::vector<doublereal>::const_iterator i = msc.begin(); i < msc.end(); ++i) {
+						silent_cout(*i << ";\n");
+					}
+					silent_cout("];\n");
+				}
+#endif
 			}
+
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<NaiveMatrixHandler>(*A, msr, msc);
+			dgeequ_scale<MH>(mh, msr, msc);
+
+#if defined(DEBUG)
+			if (bPrintMat) {
+				silent_cout("% matrix after scaling:\n");
+				silent_cout("Apost=[");
+				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+					if (i->dCoef != 0.) {
+						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
+					}
+				}
+				silent_cout("];\n");
+			}
+
+			bPrintMat = false;
+#endif
 		}
 		dgeequ_scale(VH, &msr[0]);
 	}
+}
 
-	pLS->Solve();
-
+void
+NaiveSparseSolutionManager::ScaleSolution(void)
+{
 	if (ms != SolutionManager::NEVER) {
 		// scale solution
 		dgeequ_scale(VH, &msc[0]);
 	}
+}
+
+/* Risolve il sistema  Fattorizzazione + Backward Substitution */
+void
+NaiveSparseSolutionManager::Solve(void)
+{
+	ScaleMatrixAndRightHandSide<NaiveMatrixHandler>(*A);
+
+	pLS->Solve();
+
+	ScaleSolution();
 }
 
 /* Rende disponibile l'handler per la matrice */
@@ -292,18 +353,7 @@ NaiveSparsePermSolutionManager<T>::Solve(void)
 {
 	doublereal *pd = 0;
 
-	if (ms != SolutionManager::NEVER) {
-		if (pLS->bReset()) {
-			if (msr.empty() || ms == SolutionManager::ALWAYS) {
-				// (re)compute
-				doublereal rowcnd, colcnd, amax;
-				dgeequ<NaivePermMatrixHandler>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc, rowcnd, colcnd, amax);
-			}
-			// in any case scale matrix and right-hand-side
-			dgeequ_scale<NaivePermMatrixHandler>(dynamic_cast<NaivePermMatrixHandler&>(*A), msr, msc);
-		}
-		dgeequ_scale(VH, &msr[0]);
-	}
+	ScaleMatrixAndRightHandSide<NaivePermMatrixHandler>(*dynamic_cast<NaivePermMatrixHandler *>(A));
 
 	if (ePermState == PERM_NO) {
 		ComputePermutation();
@@ -323,10 +373,7 @@ NaiveSparsePermSolutionManager<T>::Solve(void)
 		pLS->pdSetSolVec(pd);
 	}
 
-	if (ms != SolutionManager::NEVER) {
-		// scale solution
-		dgeequ_scale(VH, &msc[0]);
-	}
+	ScaleSolution();
 }
 
 /* Inizializzatore "speciale" */
@@ -343,7 +390,7 @@ NaiveSparsePermSolutionManager<T>::MatrInitialize()
 	MatrReset();
 }
 
-//explicit specializations
+// explicit specializations
 
 extern "C" {
 #include "colamd.h"

@@ -81,6 +81,10 @@ protected:
 	std::vector<doublereal> msr;
 	std::vector<doublereal> msc;
 
+	template <class MH>
+	void ScaleMatrixAndRightHandSide(MH& mh);
+	void ScaleSolution(void);
+
 public:
 	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
 		SolutionManager::ScaleWhen ms = SolutionManager::NEVER);
