@@ -1,0 +1,207 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2012
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+/*
+ * Nonsmooth dynamics element;
+ * uses SICONOS <http://siconos.gforge.inria.fr/>
+ */
+
+# NONSMOOTH-NODE MODULE USAGE EXAMPLE
+# Two masses connected with a compliant joint element fall vertically on a plane. 
+# The compliant element can be associated with a constitutive law of choice.
+# NOTE: in this version only MASS_NS is subject to the unilateral constraint
+#
+# Author contact: matteo.fancello@gmail.com
+
+
+module load: "libmodule-nonsmooth-node.so";
+
+begin: data;
+   problem: initial value;
+end: data;
+
+
+#-----------------------------------------------------------------------------
+# Design Variables
+#-----------------------------------------------------------------------------
+
+set: real MASS_NS  	= 1.0;		# Mass contact node
+set: real MASS_S  	= 1.0;		# Mass other node
+set: real REST_NS  	= 0.8;		# Newton's impact restitution coeff.
+set: real KAPPA_DEFDIS 	= 1e4;		# Constitutive law stiffness
+set: real RADIUS  	= 0.2;		# Radius contact node
+set: real HEIGHT 	= 1.0;		# initial height of the two masses
+set: real OFFSET 	= 1.0;		# distance between the two masses
+
+#-----------------------------------------------------------------------------
+# LABELS
+#-----------------------------------------------------------------------------
+
+set: integer NODE_GROUND		= 1;	# static node needed to reference the plane defining the unilateral contact
+set: integer NODE_CONTACT		= 2;	# node subject to the unilateral contact
+set: integer NODE_OTHER			= 3;	# rest of the model
+
+set: integer BODY			= 11;
+
+set: integer CLAMP_GROUND       	= 111;
+set: integer JOINT_DEFORMABLE	 	= 222;
+set: integer JOINT_PRISMATIC_1	 	= 333;
+set: integer JOINT_PRISMATIC_2	 	= 444;
+set: integer ELEMENT_NONSMOOTH		= 555;
+
+#-----------------------------------------------------------------------------
+
+
+begin: initial value;
+
+	initial time:   0.;
+	final time:     5.;
+	time step:      1e-3;
+	max iterations: 1000;
+	tolerance:      1.e-5;
+	method: ms, 0.6;
+   
+	derivatives tolerance : 1e-6;
+	derivatives max iterations : 1000 ;
+	derivatives coefficient : 1.e-6 ;
+
+	#output: bailout;
+	output: iterations;
+end: initial value;
+
+
+begin: control data;
+   			
+   structural nodes: 	+1	# GROUND
+   			+1	# CONTACT NODE (node associated with the contact, 
+				# 		and so associated to the nonsmooth co-simulated problem)
+   			+1	# OTHER NODE
+   			;
+
+   rigid bodies: 	1
+			;
+   			
+   joints:           	+1	# Clamp for GROUND 
+   			+1	# Deformable element with constitutive law
+   			+1	# prismatic 
+   			+1	# prismatic
+   			 ;
+   			    			 
+   loadable elements:	+1	# Nonsmooth contact element
+   			;	
+   
+#   default output: none;
+   
+   gravity;
+
+end: control data;
+
+
+#-----------------------------------------------------------------------------
+# Constitutive law example
+#-----------------------------------------------------------------------------
+constitutive law : 	1 , name , " Constitutive law example " , 3, 
+		   	# linear elastic, KAPPA_DEFDIS;
+		   	linear viscoelastic, KAPPA_DEFDIS, proportional, 1e-3;
+
+#-----------------------------------------------------------------------------
+
+
+begin: nodes;
+   
+   structural: NODE_GROUND, static,
+      0., 0., 0, 	# absolute position
+      eye,  		# absolute orientation
+      null, 		# absolute velocity
+      null; 		# absolute angular velocity
+
+   structural: NODE_OTHER, dynamic,
+      0., 0., HEIGHT+OFFSET,	# absolute position
+      eye,  		# absolute orientation
+      null, 		# absolute velocity
+      null; 		# absolute angular velocity
+
+   structural: NODE_CONTACT, static,
+      0., 0., HEIGHT,	# absolute position
+      eye,  		# absolute orientation
+      null, 		# absolute velocity
+      null; 		# absolute angular velocity
+
+end: nodes;
+
+
+
+begin: elements;
+
+	body:	BODY, 
+		NODE_OTHER,
+	   	MASS_S,
+	   	null,
+	   	null;
+
+	joint:	CLAMP_GROUND,
+	      	clamp,
+		NODE_GROUND,
+		0., 0., 0., 	# absolute position
+		eye;  		# absolute orientation
+
+	joint:	JOINT_DEFORMABLE, 
+		deformable displacement joint,
+	   	NODE_CONTACT,
+	   		position, null, orientation, eye,
+	   	NODE_OTHER,
+			position, reference, other node, null,
+			orientation, reference, other node, eye,
+		reference, 1;					# constitutive law of choice
+
+ 
+	user defined:	ELEMENT_NONSMOOTH, nonsmooth node, NODE_CONTACT,		     
+			mass, MASS_NS,
+			radius, RADIUS,
+			planes, 1,
+				NODE_GROUND,
+				position, 0., 0., 0., 
+				rotation orientation, eye,
+				restitution, REST_NS;
+		   
+	joint:	JOINT_PRISMATIC_1,
+		prismatic,  
+		NODE_GROUND,
+		NODE_CONTACT;
+
+	joint:	JOINT_PRISMATIC_2, 
+		prismatic,
+   		NODE_CONTACT,
+   		NODE_OTHER;
+
+	gravity: 0., 0., -1.,
+		# const, 9.81;
+   		cosine, 0., pi/.1, 9.81/2, half, 0.;
+end: elements;
+
