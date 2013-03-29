@@ -6,7 +6,7 @@ NPSI   IMKS
 IGROUND   HEIGHT    BLAYER    (Set IGROUND=1 for ground 6 meters below aircraft position)
   0        -6.0     0.2
 IBLPLT   MPLOT   NFRAMES (set IBLPLT=1 to animate all blades; IBLPLT=2 to animate one blade; re-run)
-  0        1        0
+  1        1        0
 IFV
  2
 IFVFW  IFVBL  IFVSU  IFVSC  IFVLS
