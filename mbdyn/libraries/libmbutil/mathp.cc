@@ -4067,7 +4067,8 @@ void
 MathParser::GetForever(std::ostream& out, const char* const sep)
 {
 	do {
-		out << Get(0.) << sep;
+		TypedValue val(0.);
+		out << Get(val) << sep;
 	} while (currtoken == STMTSEP);
 }
 
