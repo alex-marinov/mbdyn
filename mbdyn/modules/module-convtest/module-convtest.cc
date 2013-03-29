@@ -33,102 +33,125 @@
 #include <iostream>
 #include <cfloat>
 
-#include <dataman.h>
-#include <loadable.h>
+#include "dataman.h"
+#include "userelem.h"
 
 /*
- * user-defined struct
+ * user-defined
  */
-struct module_convtest {
+class ConvergenceTest
+: virtual public Elem, public UserDefinedElem {
+private:
 	int numIter; 
 	int curIter; 
+
+public:
+	ConvergenceTest(unsigned uLabel, const DofOwner *pDO,
+		DataManager* pDM, MBDynParser& HP);
+	virtual ~ConvergenceTest(void);
+
+	unsigned int iGetNumDof(void) const;
+	DofOrder::Order SetDof(unsigned int i);
+	void Output(OutputHandler& OH) const;
+	std::ostream& Restart(std::ostream& out) const;
+	void
+	SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph);
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef, 
+		const VectorHandler& XCurr, const VectorHandler& XPrimeCurr);
+	SubVectorHandler& 
+	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
+		const VectorHandler& XCurr, const VectorHandler& XPrimeCurr);
+	void AfterPredict(VectorHandler& X, VectorHandler& XP);
+	void Update( const VectorHandler& X, const VectorHandler& XP);
+	unsigned int iGetInitialNumDof(void) const;
+	void InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+	SubVectorHandler& 
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
 
-/* default funcs */
-static void *
-read( LoadableElem* pEl, DataManager* pDM, MBDynParser& HP)
+ConvergenceTest::ConvergenceTest(unsigned uLabel, const DofOwner *pDO,
+	DataManager* pDM, MBDynParser& HP)
+: Elem(uLabel, flag(0)),
+UserDefinedElem(uLabel, pDO)
 {
-	DEBUGCOUTFNAME("read");
-	
-	/*
-	 * allocation of user-defined struct
-	 */
-	module_convtest* p = NULL;
-	SAFENEW(p, module_convtest);
-	
-	/*
-	 * read data
-	 */
+	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout("Module convtest" << std::endl);
 	}
 
-	p->numIter = HP.GetInt();
-	p->curIter = 0;
-	
-	return (void *)p;
+	numIter = HP.GetInt();
+	curIter = 0;
 }
 
-static unsigned int
-i_get_num_dof(const LoadableElem* pEl)
+ConvergenceTest::~ConvergenceTest(void)
 {
-	DEBUGCOUTFNAME("i_get_num_dof");
+	NO_OP;
+}
+
+unsigned int
+ConvergenceTest::iGetNumDof(void) const
+{
 	return 1;
 }
 
-static DofOrder::Order
-set_dof(const LoadableElem*, unsigned int i)
+DofOrder::Order
+ConvergenceTest::SetDof(unsigned int i)
 {
-	DEBUGCOUTFNAME("set_dof");
 	return DofOrder::DIFFERENTIAL;
 }
 
-static void
-output(const LoadableElem* pEl, OutputHandler& OH)
+void
+ConvergenceTest::Output(OutputHandler& OH) const
 {
-	DEBUGCOUTFNAME("output");
+	return;
 }
 
-static std::ostream&
-restart(const LoadableElem* pEl, std::ostream& out)
+std::ostream&
+ConvergenceTest::Restart(std::ostream& out) const
 {
-	DEBUGCOUTFNAME("restart");
 	return out << "not implemented yet;" << std::endl;
 }
 
-static void
-work_space_dim(const LoadableElem* pEl, integer* piNumRows, integer* piNumCols)
+void 
+ConvergenceTest::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
 {
-	DEBUGCOUTFNAME("work_space_dim");
+   	NO_OP;
+}
+
+void
+ConvergenceTest::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+{
 	*piNumRows = 1;
 	*piNumCols = 1;
 }
 
-static VariableSubMatrixHandler& 
-ass_jac(
-		LoadableElem* pEl, 
-		VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr
-)
+VariableSubMatrixHandler& 
+ConvergenceTest::AssJac(
+	VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef, 
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {  
-	DEBUGCOUTFNAME("ass_jac");
 	integer iNumRows = 0;
 	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeReset(iNumRows, iNumCols);
 
-	integer iIndex = pEl->iGetFirstIndex() + 1;
+	integer iIndex = iGetFirstIndex() + 1;
 	WM.PutRowIndex(1, iIndex);
 	WM.PutColIndex(1, iIndex);
 
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-#endif /* 0 */
-	
 	/*
 	 * set sub-matrix indices and coefs
 	 */
@@ -138,334 +161,103 @@ ass_jac(
 	return WorkMat;
 }
 
-static void
-ass_mats(
-		LoadableElem* pEl, 
-		VariableSubMatrixHandler& WorkMatA,
-		VariableSubMatrixHandler& WorkMatB,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr
-)
-{  
-	DEBUGCOUTFNAME("ass_mats");
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
-	
-	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
-	WMA.ResizeReset(iNumRows, iNumCols);
-	
-	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
-	WMB.ResizeReset(iNumRows, iNumCols);
-
-	integer iIndex = pEl->iGetFirstIndex() + 1;
-	WMA.PutRowIndex(1, iIndex);
-	WMA.PutColIndex(1, iIndex);
-	WMB.PutRowIndex(1, iIndex);
-	WMB.PutColIndex(1, iIndex);
-
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-#endif /* 0 */
-	
-	/*
-	 * set sub-matrix indices and coefs
-	 */
-	WMA.PutCoef(1, 1, 1.);
-	WMB.PutCoef(1, 1, 0.);
-}
-
-static SubVectorHandler& 
-ass_res(
-		LoadableElem* pEl, 
+SubVectorHandler& 
+ConvergenceTest::AssRes(
 		SubVectorHandler& WorkVec,
 		doublereal dCoef,
 		const VectorHandler& XCurr, 
-		const VectorHandler& XPrimeCurr
-)
+		const VectorHandler& XPrimeCurr)
 {
-	DEBUGCOUTFNAME("ass_res");
 	integer iNumRows = 0;
 	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
+	WorkSpaceDim(&iNumRows, &iNumCols);
 	
 	WorkVec.Resize(iNumRows);
-	WorkVec.PutRowIndex(1, pEl->iGetFirstIndex() + 1);
+	WorkVec.PutRowIndex(1, iGetFirstIndex() + 1);
 
-	module_convtest* p = (module_convtest *)pEl->pGetData(); 
-	
 	/*
 	 * set sub-vector indices and coefs
 	 */
 
 	doublereal d;
 
-	if (p->curIter < p->numIter) {
+	if (curIter < numIter) {
 		/* force an error */
 		d = 1.;
 
 	} else {
 		/* force the exact solution */
-		d = - XCurr(pEl->iGetFirstIndex() + 1);
+		d = - XCurr(iGetFirstIndex() + 1);
 	}
-
-#if 0
-	std::cout << "d=" << d << std::endl;
-#endif
 
 	WorkVec(1) = d;
 	
 	return WorkVec;
 }
 
-static void
-before_predict(
-		const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP,
-		VectorHandler& XPrev,
-		VectorHandler& XPPrev
-)
+void
+ConvergenceTest::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-	DEBUGCOUTFNAME("before_predict");
-}
-
-static void
-after_predict(
-		const LoadableElem* pEl, 
-		VectorHandler& X,
-		VectorHandler& XP
-)
-{
-	DEBUGCOUTFNAME("after_predict");
-
-	module_convtest* p = (module_convtest *)pEl->pGetData(); 
-
 	/* reset counter */
-	p->curIter = 0;
+	curIter = 0;
 }
 
-static void
-update(
-		LoadableElem* pEl, 
-		const VectorHandler& X,
-		const VectorHandler& XP
-)
+void
+ConvergenceTest::Update( const VectorHandler& X, const VectorHandler& XP)
 {
-	DEBUGCOUTFNAME("update");
-
-	module_convtest* p = (module_convtest *)pEl->pGetData(); 
-
 	/* increment counter */
-	p->curIter++;
+	curIter++;
 }
 
-static void 
-after_convergence(const LoadableElem* /* pEl */ ,
-		const VectorHandler& /* X */ ,
-		const VectorHandler& /* XP */ )
+unsigned int
+ConvergenceTest::iGetInitialNumDof(void) const
 {
-	DEBUGCOUTFNAME("after_convergence");
-}
-
-static unsigned int
-i_get_initial_num_dof(const LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("i_get_initial_num_dof");
 	return 0;
 }
 
-static void
-initial_work_space_dim(
-		const LoadableElem* pEl, 
-		integer* piNumRows, 
-		integer* piNumCols
-)
+void
+ConvergenceTest::InitialWorkSpaceDim( integer* piNumRows,
+	integer* piNumCols) const
 {
-	DEBUGCOUTFNAME("initial_work_space_dim");
 	*piNumRows = 0;
 	*piNumCols = 0;   
 }
 
-static VariableSubMatrixHandler& 
-initial_ass_jac(
-		LoadableElem* pEl, 
-		VariableSubMatrixHandler& WorkMat, 
-		const VectorHandler& XCurr
-)
+VariableSubMatrixHandler& 
+ConvergenceTest::InitialAssJac(
+	VariableSubMatrixHandler& WorkMat, 
+	const VectorHandler& XCurr)
 {
-	DEBUGCOUTFNAME("initial_ass_jac");
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	pEl->InitialWorkSpaceDim(&iNumRows, &iNumCols);
-	
-	FullSubMatrixHandler& WM = WorkMat.SetFull();
-		WM.ResizeReset(iNumRows, iNumCols);
-	
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-#endif /* 0 */
-	
-	/*
-	 * set sub-matrix indices and coefs
-	 */
+	WorkMat.SetNullMatrix();
 	
 	return WorkMat;
 }
 
-static SubVectorHandler& 
-initial_ass_res(
-		LoadableElem* pEl, 
-		SubVectorHandler& WorkVec, 
-		const VectorHandler& XCurr
-)
+SubVectorHandler& 
+ConvergenceTest::InitialAssRes(
+	SubVectorHandler& WorkVec, 
+	const VectorHandler& XCurr)
 {
-	DEBUGCOUTFNAME("initial_ass_res");
-	integer iNumRows = 0;
-	integer iNumCols = 0;
-	pEl->WorkSpaceDim(&iNumRows, &iNumCols);
-	
-	WorkVec.Resize(iNumRows);
-	
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData(); 
-#endif /* 0 */
-	
-	/*
-	 * set sub-vector indices and coefs
-	 */
+	WorkVec.Resize(0);
 	
 	return WorkVec;
 }
 
-static void
-set_value(const LoadableElem* pEl, DataManager *pDM,
-		VectorHandler& X, VectorHandler& XP,
-		SimulationEntity::Hints *ph)
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
 {
-	DEBUGCOUTFNAME("set_value");
-}
-   
-static void
-set_initial_value(const LoadableElem* pEl, VectorHandler& X)
-{
-	DEBUGCOUTFNAME("set_initial_value");
-}
+	UserDefinedElemRead *rf = new UDERead<ConvergenceTest>;
 
-static unsigned int
-i_get_num_priv_data(const LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("i_get_num_priv_data");
-	return 0;
-}
+	if (!SetUDE("convtest", rf)) {
+		delete rf;
 
-static unsigned int
-i_get_priv_data_idx(const LoadableElem* pEl, const char *s)
-{
-	DEBUGCOUTFNAME("i_get_priv_data_idx");
-	silent_cerr("Module-convtest Elem(" << pEl->GetLabel() << "): "
-		"priv data \"" << s << "\" is unknown" << std::endl);
-	throw ErrGeneric();
+		silent_cerr("ConvergenceTest: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
 
-	return 0;
-}
-
-static doublereal
-d_get_priv_data(const LoadableElem* pEl, unsigned int i)
-{
-	DEBUGCOUTFNAME("d_get_priv_data");
-	ASSERT(pEl->iGetNumPrivData() > 0);
-	if (i > pEl->iGetNumPrivData()) {
-		silent_cerr("Module-convtest Elem(" << pEl->GetLabel() << "): "
-			"illegal private data index " << i << std::endl);
-		throw ErrGeneric();
+		return -1;
 	}
-   
-	/*
-	 * return i-th priv data
-	 */
-	return 0.;
-}
-
-static void
-destroy(LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("destroy");
-
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-
-	/*
-	 * delete private data
-	 */
-	
-	SAFEDELETE(p);
-}
-
-static int
-i_get_num_connected_nodes(const LoadableElem* pEl)
-{
-	DEBUGCOUTFNAME("i_get_num_connected_nodes");
-
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-#endif /* 0 */
 
 	return 0;
-}
-
-static void
-get_connected_nodes(const LoadableElem* pEl, 
-		std::vector<const Node *>& connectedNodes)
-{
-	DEBUGCOUTFNAME("get_connected_nodes");
-
-#if 0
-	module_convtest* p = (module_convtest *)pEl->pGetData();
-#endif /* 0 */
-
-	/*
-	 * set args according to element connections
-	 */
-	connectedNodes.resize(i_get_num_connected_nodes(pEl));
-}
-
-static struct
-LoadableCalls lc = {
-	LOADABLE_VERSION_SET(1, 5, 0),
-
-	"convtest",
-	"1.0",
-	"Dipartimento di Ingegneria Aerospaziale, Politecnico di Milano",
-	"convtest module; used to force conversion patterns for testing",
-
-	read,
-	i_get_num_dof,
-	set_dof,
-	output,
-	restart,
-	work_space_dim,
-	ass_jac,
-	ass_mats,
-	ass_res,
-	before_predict,
-	after_predict,
-	update,
-	after_convergence,
-	i_get_initial_num_dof,
-	initial_work_space_dim,
-	initial_ass_jac,
-	initial_ass_res,
-	set_value,
-	set_initial_value,
-	i_get_num_priv_data,
-	i_get_priv_data_idx,
-	d_get_priv_data,
-	i_get_num_connected_nodes,
-	get_connected_nodes,
-	destroy
-};
-
-extern "C" {
-void *calls = &lc;
 }
 
