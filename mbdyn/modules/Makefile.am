@@ -146,6 +146,9 @@ module-constlaw-f95/usrsub.h \
  \
 module-cont-contact/module-cont-contact.cc \
  \
+module-cyclocopter/module-cyclocopter.cc \
+module-cyclocopter/module-cyclocopter.h \
+ \
 module-damper-graall/damper_graall.f \
 module-damper-graall/Makefile.inc \
 module-damper-graall/module-damper-graall.cc \
