@@ -9,9 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.5.5
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added Umfpack solver iterative refinement support
 		  (Reinhard Resch)
 		- added built in drive callers interface to module-octave
