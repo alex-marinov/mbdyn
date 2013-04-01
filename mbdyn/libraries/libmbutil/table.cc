@@ -127,10 +127,10 @@ Table::Put(const char* const name, const TypedValue& x)
 	return pVar;
 }
 
-NamedValue *
+const NamedValue *
 Table::Put(NamedValue *p)
 {
-	NamedValue* pNV = Get(p->GetName());
+	const NamedValue* pNV = Get(p->GetName());
 	if (pNV != 0) {
 		silent_cerr("Table::Put(): name \"" << p->GetName()
 			<< "\" already defined" << std::endl);
