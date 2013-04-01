@@ -41,32 +41,62 @@ whose syntax is
 \emph{Authors: Fanzhong Meng and Pierangelo Masarati}
 
 \noindent
-Implements NREL's AeroDyn v 12.58 wind turbine aerodynamic loads.
+This module implements NREL's AeroDyn v 12.58 wind turbine aerodynamic loads.
 
 \subsection{Module-asynchronous\_machine}
 \emph{Author: Reinhard Resch}
 
 \noindent
-Implements an asynchronous electric motor.
+This module implements an asynchronous electric motor.
+
+\subsection{Module-cyclocopter}
+\emph{Author: Mattia Mattaboni (turned into module by Pierangelo Masarati)}
+
+\noindent
+This module implements inflow models for cycloidal rotors.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{cycloidal no inflow}
+
+    \bnt{module_data} ::=
+        \bnt{aircraft_node_label} ,
+        [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{orientation} , ]
+        \bnt{rotor_node_label}
+\end{Verbatim}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{cycloidal} \{ \kw{uniform 1D} | \kw{uniform 2D} | \kw{Polimi} \}
+
+    \bnt{module_data} ::=
+        \bnt{aircraft_node_label} ,
+        [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{orientation} , ]
+        \bnt{rotor_node_label}
+        (\ty{bool}) \bnt{average} ,
+        \bnt{rotor_radius} ,
+        \bnt{blade_span}
+        [ , \kw{delay} , (\ty{DriveCaller}) \bnt{delay} ]
+        [ , \kw{omegacut} , \bnt{cut_frequency} ]
+        [ , \kw{timestep} , \bnt{time_step} ]
+\end{Verbatim}
 
 \subsection{Module-hydrodynamic\_plain\_bearing}
 \emph{Author: Reinhard Resch}
 
 \noindent
-Implements a lubricated bearing.
+This module implements a lubricated bearing.
 
 \subsection{Module-imu}
 \emph{Author: Pierangelo Masarati}
 
 \noindent
-Implements an element that provides the motion of a structural node
+This module implements an element that provides the motion of a structural node
 in the form of the output of an Inertial Measurement Unit
 (3 components of acceleration, 3 components of angular velocity in body axes)
 and an element that prescribes the motion of a structural node
 in terms of acceleration and angular velocity.
 
 \subsection{Module-mds}
-Simple example of run-time loadable user-defined element,
+This module is a simple example of run-time loadable user-defined element,
 implements a scalar mass-damper-spring system.
 
 \subsection{Module-nonsmooth-node}
@@ -143,7 +173,7 @@ Template of user-defined element.
 \emph{Authors: Marco Morandini, Stefania Gualdi and Pierangelo Masarati}
 
 \noindent
-Implements a simple tire model for aircraft landing and ground handling.
+This module implements a simple tire model for aircraft landing and ground handling.
 
 
 
@@ -181,13 +211,13 @@ constitutive law.
 \emph{Author: Pierangelo Masarati}
 
 \noindent
-Implements a simple hydraulic damper with turbulent orifice and relief valve.
+This module implements a simple hydraulic damper with turbulent orifice and relief valve.
 
 \subsection{Module-muscles}
 \emph{Authors: Andrea Zanoni and Pierangelo Masarati}
 
 \noindent
-Implements a family of simple muscle constitutive laws.
+This module implements a family of simple muscle constitutive laws.
 
 
 
@@ -201,7 +231,7 @@ Simple example of run-time loadable user-defined drive caller.
 \section{Template Drive Caller Modules}
 
 \subsection{Module-eu2phi}
-Implements a \ty{TplDriveCaller<Vec3>} drive caller
+This module implements a \ty{TplDriveCaller<Vec3>} drive caller
 that converts three Euler angles into the corresponding Euler vector.
 
 Syntax:
@@ -239,7 +269,7 @@ Simple example of run-time loadable user-defined scalar function.
 \emph{Author: Reinhard Resch}
 
 \noindent
-Implements support for octave-based user-defined entities, including
+This module implements support for octave-based user-defined entities, including
 drive callers, constitutive laws, scalar functions, and elements.
 
 \subsubsection{General octave flags}
@@ -373,7 +403,7 @@ Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
 
 \subsection{Module-tclpgin}
-Implements the tcl pluging in form of run-time loadable module.
+This module implements the tcl pluging in form of run-time loadable module.
  
 \subsection{Module-template}
 Loadable element template (deprecated).
