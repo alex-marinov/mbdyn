@@ -50,8 +50,6 @@ extern "C" {
 #endif /* USE_MPI */
 
 #include "rotor.h"
-#include "cyclocopter.h"
-
 #include "dataman.h"
 
 static const doublereal dVTipTreshold = 1e-6;
@@ -2044,7 +2042,7 @@ ReadRotor(DataManager* pDM,
 			"mangler",
 			"dynamic" "inflow",
 
-			"cyclocopter",
+			// "cyclocopter",
 		NULL
      	};
 
@@ -2059,7 +2057,7 @@ ReadRotor(DataManager* pDM,
 			MANGLER,
 			DYNAMICINFLOW,
 
-			CYCLOCOPTER,
+			// CYCLOCOPTER,
 
 		LASTKEYWORD
      	};
@@ -2118,14 +2116,16 @@ ReadRotor(DataManager* pDM,
   				NoRotor,
   				NoRotor(uLabel, pDO, pCraft, rrot, pRotor,
   					ppres, dR, fOut));
-	 	break;
-	}
+		} break;
+	
 
+#if 0
 	case CYCLOCOPTER:
 		pEl = ReadCyclocopter(pDM, HP,
 			pDO, uLabel,
 			pCraft, rrot, pRotor);
 		break;
+#endif
 
     	case UNIFORM:
     	case UNIFORM_SECTIONAL:

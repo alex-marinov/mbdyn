@@ -28,6 +28,12 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Author: Mattia Mattaboni <mattia.mattaboni@mail.polimi.it>
+ *
+ * Reworked as runtime loadable module by
+ * Pierangelo Masarati <pierangelo.masarati@polimi.it>
+ */
 
 /* Elementi di rotore */
 
@@ -40,8 +46,6 @@
 #include "userelem.h"
 #include "indvel.h"
 
-#define EXTENDED_PLOT
-
 /* CyclocopterInflow - begin */
 
 /* Classe base per i modelli di influsso del ciclocottero:
@@ -50,7 +54,7 @@
 */
 
 class CyclocopterInflow
-: virtual public Elem, public UserDefinedElem, public InducedVelocityElem {
+: virtual public Elem, public UserDefinedElem, public InducedVelocity {
 protected:
 	const StructNode* pRotor;
 
@@ -76,9 +80,7 @@ protected:
 	doublereal a1, a2, b0, b1, b2;
 
 	// Coefficienti del filtro di butterworth del second'ordine
-	void
-	SetFilterCoefficients( const doublereal dOmegaFilter,
-		const doublereal dDeltaT );
+	void SetFilterCoefficients(doublereal dOmegaFilter, doublereal dDeltaT);
 
 public:
 	CyclocopterInflow(unsigned int uL, const DofOwner* pDO);
@@ -123,9 +125,9 @@ public:
 };
 
 CyclocopterInflow::CyclocopterInflow(unsigned int uL, const DofOwner* pDO)
-: Elem(uL, 0),
+: Elem(uL, flag(0)),
 UserDefinedElem(uL, pDO),
-InducedVelocityElem(uL, pDO, 0, 0, 0),
+InducedVelocity(uL, 0, 0, flag(0)),
 pRotor(0),
 bFlagAverage(false),
 dRadius(0.),
@@ -218,8 +220,9 @@ CyclocopterInflow::SetInitialValue(VectorHandler& X)
 void
 CyclocopterInflow::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
-	connectedNodes.resize(1);
+	connectedNodes.resize(2);
 	connectedNodes[0] = pCraft;
+	connectedNodes[1] = pRotor;
 }
 
 unsigned int
@@ -264,8 +267,8 @@ CyclocopterInflow::InitialAssRes(
 }
 
 void
-CyclocopterInflow::SetFilterCoefficients(const doublereal dOmegaFilter,
-	const doublereal dDeltaT)
+CyclocopterInflow::SetFilterCoefficients(doublereal dOmegaFilter,
+	doublereal dDeltaT)
 {
 	/* Butterworth discrete low-pass filter coefficients */
 	if (dDeltaT > 0. && dOmegaFilter > 0.) {
@@ -286,7 +289,29 @@ ReadRotorData(DataManager* pDM,
 	unsigned int uLabel,
 	const StructNode *& pCraft,
 	Mat3x3& rrot,
-	const StructNode *& pRotor);
+	const StructNode *& pRotor)
+{
+     	/* aircraft node */
+	pCraft = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	/* rotor orientation with respect to aircraft */
+     	rrot = ::Eye3;
+     	if (HP.IsKeyWord("orientation")) {
+     		ReferenceFrame RF(pCraft);
+     		rrot = HP.GetRotRel(RF);
+
+     	} else if (HP.IsKeyWord("hinge")) {
+		silent_cerr("InducedVelocity(" << uLabel << "): deprecated keyword \"hinge\"; use \"orientation\" instead at line " << HP.GetLineData() << std::endl);
+
+     		ReferenceFrame RF(pCraft);
+     		rrot = HP.GetRotRel(RF);
+     	}
+
+     	/* rotor node */
+     	pRotor = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+	return true;
+}
 
 static bool
 ReadUniform(DataManager* pDM,
@@ -297,7 +322,68 @@ ReadUniform(DataManager* pDM,
 	doublereal& dL,
 	DriveCaller *& pdW,
 	doublereal& dOmegaFilter,
-	doublereal& dDeltaT);
+	doublereal& dDeltaT)
+{
+	bFlagAve = HP.GetYesNoOrBool();
+
+	dR = HP.GetReal();
+	if (dR <= 0.) {
+		silent_cerr("ReadUniform(" << uLabel << "): "
+			"illegal null or negative radius"
+			"for rotor" << uLabel << " at line " << HP.GetLineData()
+			<< std::endl);
+		return false;
+	}
+
+	dL = HP.GetReal();
+	if (dL <= 0.) {
+		silent_cerr("ReadUniform(" << uLabel << "): "
+			"illegal null or negative blade"
+			"length for rotor" << uLabel
+			<< " at line " << HP.GetLineData()
+			<< std::endl);
+		return false;
+	}
+
+	pdW = 0;
+	if (HP.IsKeyWord("delay")) {
+		pdW = HP.GetDriveCaller();
+
+	} else {
+		SAFENEW(pdW, NullDriveCaller);
+	}
+
+	dOmegaFilter = 0.;
+	if (HP.IsKeyWord("omegacut")) {
+		dOmegaFilter = HP.GetReal();
+		if (dOmegaFilter <= 0) {
+			silent_cerr("Illegal null or negative filter"
+				"cut frequency for rotor" << uLabel
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			return false;
+		}
+	} else {
+		dOmegaFilter = 0.;
+	}
+
+	dDeltaT = 0.;
+	if (HP.IsKeyWord("timestep")) {
+		dDeltaT = HP.GetReal();
+		if (dDeltaT <= 0) {
+			silent_cerr("Illegal null or negative time"
+				"step for rotor" << uLabel
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			return false;
+		}
+
+	} else {
+		dDeltaT = 0.;
+	}
+
+	return true;
+}
 
 /* CyclocopterInflow - end */
 
@@ -332,27 +418,63 @@ public:
 	// iterare tra calcolo della valocità indotta e
 	// calcolo delle forze aerodinamiche - solo
 	// per il modello di influsso KARI per il ciclocottero)
-	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+#if 0
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {
+		NO_OP;
+	};
+#endif
 
 	// Restituisce la velocità indotta dalla metà superiore del rotore
 	// ( solo per KARI ciclocottero)
-	virtual doublereal GetW( const Vec3& X) const {
-		return 0;
+	virtual doublereal GetW(const Vec3& X) const {
+		return 0.;
 	}
-	virtual doublereal GetPsi( const Vec3& X) const {
-		return 0;
+	virtual doublereal GetPsi(const Vec3& X) const {
+		return 0.;
 	}
-	virtual Mat3x3 GetRRotor( const Vec3& X) const {
-		return Zero3x3;
+	virtual Mat3x3 GetRRotor(const Vec3& X) const {
+		return ::Zero3x3;
 	}
 
 };
 
 CyclocopterNoInflow::CyclocopterNoInflow(unsigned int uL, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP)
-: Elem(uL, 0),
+: Elem(uL, flag(0)),
 CyclocopterInflow(uL, pDO)
 {
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	Cyclocopter						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"based on work by							\n"
+"		Mattia Mattaboni <mattia.mattaboni@mail.polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+" Description:	This module implements induced velocity models		\n"
+"		for cycloidal rotors.					\n"
+"									\n"
+"	All rights reserved.						\n"
+"\n"
+" Usage:\n"
+"	user element: <label> , cycloidal no inflow ,\n"
+"		<aircraft_node_label> ,\n"
+"		[ orientation , (OrientationMatrix) <orientation> , ]\n"
+"		<rotor_node_label>\n"
+"		[ , <output_data> ]\n"
+"	;\n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	if (!ReadRotorData(pDM, HP, uLabel, pCraft, RRot, pRotor)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -373,7 +495,7 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	if (fToBeOutput() ){
+	if (fToBeOutput()) {
 		RRotorTranspose = pCraft->GetRCurr()*RRot;
 		RRotorTranspose = RRotorTranspose.Transpose();
 	}
@@ -472,26 +594,30 @@ public:
 	// iterare tra calcolo della valocità indotta e
 	// calcolo delle forze aerodinamiche - solo
 	// per il modello di influsso KARI per il ciclocottero)
-	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+#if 0
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {
+		NO_OP;
+	};
+#endif
 
 	// Restituisce la velocità indotta dalla metà superiore del rotore
 	// ( solo per KARI ciclocottero)
-	virtual doublereal GetW( const Vec3& X) const {
-		return 0;
+	virtual doublereal GetW(const Vec3& X) const {
+		return 0.;
 	};
 
-	virtual doublereal GetPsi( const Vec3& X) const {
-		return 0;
+	virtual doublereal GetPsi(const Vec3& X) const {
+		return 0.;
 	};
 
-	virtual Mat3x3 GetRRotor( const Vec3& X) const {
+	virtual Mat3x3 GetRRotor(const Vec3& X) const {
 		return ::Zero3x3;
 	};
 };
 
 CyclocopterUniform1D::CyclocopterUniform1D(unsigned int uL, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP)
-: Elem(uL, 0),
+: Elem(uL, flag(0)),
 CyclocopterInflow(uL, pDO),
 RRot3(::Zero3),
 RRotor(::Eye3),
@@ -503,6 +629,44 @@ F(::Zero3), FMean(::Zero3), FMeanOut(::Zero3),
 iStepCounter(0),
 Uk(0.), Uk_1(0.), Uk_2(0.), Yk(0.), Yk_1(0.), Yk_2(0.)
 {
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	Cyclocopter						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"based on work by							\n"
+"		Mattia Mattaboni <mattia.mattaboni@mail.polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+" Description:	This module implements induced velocity models		\n"
+"		for cycloidal rotors.					\n"
+"									\n"
+"	All rights reserved.						\n"
+"\n"
+" Usage:\n"
+"	user element: <label> , cycloidal uniform 1D ,\n"
+"		<aircraft_node_label> ,\n"
+"		[ orientation , (OrientationMatrix) <orientation> , ]\n"
+"		<rotor_node_label>\n"
+"		(bool) <average> ,\n"
+"		<rotor_radius> ,\n"
+"		<blade_span>\n"
+"		[ , delay , (DriveCaller) <delay> ]\n"
+"		[ , omegacut , <cut_frequency> ]\n"
+"		[ , timestep , <time_step> ]\n"
+"		[ , <output_data> ]\n"
+"	;\n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	if (!ReadRotorData(pDM, HP, uLabel, pCraft, RRot, pRotor)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -572,7 +736,7 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 		FMeanOut = FMean;
 		if (bFlagAverage) {
 			dTzMean = dTzMean/iStepCounter;
-			doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+			doublereal dRho = dGetAirDensity(GetXCurr());
 			dUindMean = copysign(std::sqrt(std::abs(dTzMean)/(2*dRho*dArea)), dTzMean);
 			dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 			dTzMean = 0.;
@@ -590,17 +754,15 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 
 	dUindMeanPrev = dUindMean;
 
-	if (Weight.pGetDriveCaller() != 0) {
-		dWeight = Weight.dGet();
-		if (dWeight < 0.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay < 0.0; using 0.0" << std::endl);
-			dWeight = 0.;
-		} else if (dWeight > 1.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay > 1.0; using 1.0" << std::endl);
-			dWeight = 1.;
-		}
+	dWeight = Weight.dGet();
+	if (dWeight < 0.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay < 0.0; using 0.0" << std::endl);
+		dWeight = 0.;
+	} else if (dWeight > 1.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay > 1.0; using 1.0" << std::endl);
+		dWeight = 1.;
 	}
 
 	InducedVelocity::AfterConvergence(X, XP);
@@ -625,7 +787,7 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 		Uk = dTz;
 		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
 		dTz = Yk;
-		doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+		doublereal dRho = dGetAirDensity(GetXCurr());
 		dUindMean = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
 
 		dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
@@ -674,10 +836,10 @@ CyclocopterUniform1D::GetInducedVelocity(Elem::Type type,
 
 /*
 
-Uniform inflow: the indiced velocity is opposite to
+Uniform inflow: the induced velocity is opposite to
 the force generated by the rotor in the plane
 perdendicular to the rotor rotation axis. The
-rotor reference must have the direction 1 aligned
+rotor reference must have direction 1 aligned
 with the rotor rotation axis!
 
 */
@@ -734,9 +896,11 @@ public:
 	// iterare tra calcolo della valocità indotta e
 	// calcolo delle forze aerodinamiche - solo
 	// per il modello di influsso KARI per il ciclocottero)
+#if 0
 	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {
 		NO_OP;
 	};
+#endif
 
 	// Restituisce la velocità indotta dalla metà superiore del rotore
 	// ( solo per KARI ciclocottero)
@@ -755,7 +919,7 @@ public:
 
 CyclocopterUniform2D::CyclocopterUniform2D(unsigned int uL, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP)
-: Elem(uL, 0),
+: Elem(uL, flag(0)),
 CyclocopterInflow(uL, pDO),
 RRotor(::Eye3),
 dUind(::Zero3), dUindPrev(::Zero3),
@@ -765,6 +929,44 @@ F(::Zero3), FMean(::Zero3), FMeanOut(::Zero3),
 iStepCounter(0),
 Uk(::Zero3), Uk_1(::Zero3), Uk_2(::Zero3), Yk(::Zero3), Yk_1(::Zero3), Yk_2(::Zero3)
 {
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	Cyclocopter						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"based on work by							\n"
+"		Mattia Mattaboni <mattia.mattaboni@mail.polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+" Description:	This module implements induced velocity models		\n"
+"		for cycloidal rotors.					\n"
+"									\n"
+"	All rights reserved.						\n"
+"\n"
+" Usage:\n"
+"	user element: <label> , cycloidal uniform 2D ,\n"
+"		<aircraft_node_label> ,\n"
+"		[ orientation , (OrientationMatrix) <orientation> , ]\n"
+"		<rotor_node_label>\n"
+"		(bool) <average> ,\n"
+"		<rotor_radius> ,\n"
+"		<blade_span>\n"
+"		[ , delay , (DriveCaller) <delay> ]\n"
+"		[ , omegacut , <cut_frequency> ]\n"
+"		[ , timestep , <time_step> ]\n"
+"		[ , <output_data> ]\n"
+"	;\n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	if (!ReadRotorData(pDM, HP, uLabel, pCraft, RRot, pRotor)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -828,13 +1030,13 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 		/* calcolo la forza media sul giro generata dal rotore */
 		FMean = FMean + F;
 		iStepCounter++;
-		//if( (dAzimuth>0. && dAzimuthPrev<0.) || (dAzimuth<0. && dAzimuthPrev>0.) ){
-		if( (dAzimuth>0. && dAzimuthPrev<0.) ){
+		// if ((dAzimuth > 0. && dAzimuthPrev < 0.) || (dAzimuth < 0. && dAzimuthPrev > 0.)) {
+		if ((dAzimuth > 0. && dAzimuthPrev < 0.)) {
 			FMean = FMean/iStepCounter;
 			/* Forza nel piano normale all'asse di rotazione */
-			doublereal dT= sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
+			doublereal dT = sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
 			/* Velocità indotta: calcolata in base alla dT */
-			doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+			doublereal dRho = dGetAirDensity(GetXCurr());
 			dUindMean = sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema
 	 		* rotore */
@@ -863,7 +1065,7 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			/* Forza nel piano normale all'asse di rotazione */
 			doublereal dT = sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
 			/* Velocità indotta: calcolata in base alla dT */
-			doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+			doublereal dRho = dGetAirDensity(GetXCurr());
 			dUindMean = sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema
 	 		* rotore */
@@ -891,18 +1093,16 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 	Uk_2 = Uk_1;
 	Uk_1 = Uk;
 
-	if (Weight.pGetDriveCaller() != 0) {
-		dWeight = Weight.dGet();
-		if (dWeight < 0.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay < 0.0; using 0.0" << std::endl);
-			dWeight = 0.;
+	dWeight = Weight.dGet();
+	if (dWeight < 0.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay < 0.0; using 0.0" << std::endl);
+		dWeight = 0.;
 
-		} else if (dWeight > 1.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay > 1.0; using 1.0" << std::endl);
-			dWeight = 1.;
-		}
+	} else if (dWeight > 1.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay > 1.0; using 1.0" << std::endl);
+		dWeight = 1.;
 	}
 
 	InducedVelocity::AfterConvergence(X, XP);
@@ -928,7 +1128,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 		/* Forza nel piano normale all'asse di rotazione */
 		doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 		/* Velocità indotta: calcolata in base alla dT */
-		doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+		doublereal dRho = dGetAirDensity(GetXCurr());
 		dUindMean = sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema
 	 	* rotore */
@@ -988,14 +1188,14 @@ CyclocopterUniform2D::GetInducedVelocity(Elem::Type type,
 
 /*
 
-The indiced velocity is opposite to
+The induced velocity is opposite to
 the force generated by the rotor in the plane
 perdendicular to the rotor rotation axis. The
-rotor reference must have the direction 1 aligned
+rotor reference must have direction 1 aligned
 with the rotor rotation axis!
-The inflow velocity distribution is constan along
+The inflow velocity distribution is constant along
 the cylinder span and is function of r:
-Vi(r) = Kc cos( (pi/2)*(r/R) ) + Ks sin( pi*(r/R) )
+Vi(r) = Kc*cos((pi/2)*(r/R)) + Ks*sin(pi*(r/R))
 where the cofficients Kc and Ks are based on the
 momentum theory
 
@@ -1062,26 +1262,30 @@ public:
 	// iterare tra calcolo della valocità indotta e
 	// calcolo delle forze aerodinamiche - solo
 	// per il modello di influsso KARI per il ciclocottero)
-	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {};
+#if 0
+	virtual void GetInducedVelocityIter(const Vec3& X, const Vec3& T, doublereal *UindM, doublereal dTn0, doublereal dTn_dUindM) {
+		NO_OP;
+	};
+#endif
 
 	// Restituisce la velocità indotta dalla metà superiore del rotore
 	// ( solo per KARI ciclocottero)
 	virtual doublereal GetW(const Vec3& X) const {
-		return 0;
+		return 0.;
 	};
 
 	virtual doublereal GetPsi(const Vec3& X) const {
-		return 0;
+		return 0.;
 	};
 
 	virtual Mat3x3 GetRRotor(const Vec3& X) const {
-		return Zero3x3;
+		return ::Zero3x3;
 	};
 };
 
 CyclocopterPolimi::CyclocopterPolimi(unsigned int uL, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP)
-: Elem(uL, 0),
+: Elem(uL, flag(0)),
 CyclocopterInflow(uL, pDO),
 RRotor(::Eye3),
 dUind(::Zero3), dUindPrev(::Zero3),
@@ -1095,6 +1299,44 @@ iCounter(0), iRotationCounter(0),
 dpPrev(0.), dp(0.),
 flag_print(true)
 {
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	Cyclocopter						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"based on work by							\n"
+"		Mattia Mattaboni <mattia.mattaboni@mail.polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+" Description:	This module implements induced velocity models		\n"
+"		for cycloidal rotors.					\n"
+"									\n"
+"	All rights reserved.						\n"
+"\n"
+" Usage:\n"
+"	user element: <label> , cycloidal Polimi ,\n"
+"		<aircraft_node_label> ,\n"
+"		[ orientation , (OrientationMatrix) <orientation> , ]\n"
+"		<rotor_node_label>\n"
+"		(bool) <average> ,\n"
+"		<rotor_radius> ,\n"
+"		<blade_span>\n"
+"		[ , delay , (DriveCaller) <delay> ]\n"
+"		[ , omegacut , <cut_frequency> ]\n"
+"		[ , timestep , <time_step> ]\n"
+"		[ , <output_data> ]\n"
+"	;\n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	if (!ReadRotorData(pDM, HP, uLabel, pCraft, RRot, pRotor)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -1128,7 +1370,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 	/* calcolo la forza media sul giro generata dal rotore */
 	FMean = FMean + F;;
 	iStepCounter++;
-	//if( (dAzimuth>0. && dAzimuthPrev<0.) || (dAzimuth<0. && dAzimuthPrev>0.) ){
+	// if ((dAzimuth > 0. && dAzimuthPrev < 0.) || (dAzimuth < 0. && dAzimuthPrev > 0.)) {
 	if ((dAzimuth > 0. && dAzimuthPrev < 0.)) {
 		FMean = FMean/iStepCounter;
 		FMeanOut = FMean;
@@ -1136,7 +1378,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 			/* Forza nel piano normale all'asse di rotazione */
 			doublereal dT = sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
 			/* Velocità indotta: calcolata in base alla dT */
-			doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+			doublereal dRho = dGetAirDensity(GetXCurr());
 			dUindMean = sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema
 	 		* rotore */
@@ -1166,18 +1408,16 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 	Uk_2 = Uk_1;
 	Uk_1 = Uk;
 
-	if (Weight.pGetDriveCaller() != 0) {
-		dWeight = Weight.dGet();
-		if (dWeight < 0.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay < 0.0; using 0.0" << std::endl);
-			dWeight = 0.;
+	dWeight = Weight.dGet();
+	if (dWeight < 0.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay < 0.0; using 0.0" << std::endl);
+		dWeight = 0.;
 
-		} else if (dWeight > 1.) {
-			silent_cout("Rotor(" << GetLabel() << "): "
-				"delay > 1.0; using 1.0" << std::endl);
-			dWeight = 1.;
-		}
+	} else if (dWeight > 1.) {
+		silent_cout("Rotor(" << GetLabel() << "): "
+			"delay > 1.0; using 1.0" << std::endl);
+		dWeight = 1.;
 	}
 
 	InducedVelocity::AfterConvergence(X, XP);
@@ -1222,7 +1462,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 	RRotorTranspose = RRotor.Transpose();
 	/* Forze nel sistema rotore */
 	F = RRotorTranspose*Res.Force();
-	if (!bFlagAverage){
+	if (!bFlagAverage) {
 		/* filtro le forze */
 		Uk = F;
 		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
@@ -1230,7 +1470,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 		/* Forza nel piano normale all'asse di rotazione */
 		doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 		/* Velocità indotta: calcolata in base alla dT */
-		doublereal dRho = InducedVelocityElem::dGetAirDensity(GetXCurr());
+		doublereal dRho = dGetAirDensity(GetXCurr());
 		dUindMean = sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema
 	 	* rotore */
@@ -1433,273 +1673,8 @@ CyclocopterKARI::GetConnectedNodes(std::vector<const Node *>& connectedNodes) co
 
 #endif // KARI NOT IMPLEMENTED YET!
 
-#if 0
-
-Elem *
-ReadCyclocopter(DataManager* pDM,
-	MBDynParser& HP,
-	const DofOwner* pDO,
-	unsigned int uLabel,
-	const StructNode* pCraft,
-	const Mat3x3& rrot,
-	const StructNode* pRotor)
-{
-	Elem *pEl = 0;
-
-	const char* sKeyWords[] = {
-		"type",
-		"no",
-		"uniform1D",
-		"uniform2D",
-		"polimi",
-		"KARI",
-		NULL
-	};
-
-	enum KeyWords {
-		UNKNOWN = -1,
-		type = 0,
-		NO,
-		uniform1D,
-		uniform2D,
-		polimi,
-		KARI,
-
-		LASTKEYWORD
-	};
-
-	KeyTable K(HP, sKeyWords);
-
-	KeyWords CyclocopterInducedType = NO;
-	if (HP.IsArg() && HP.IsKeyWord("type")) {
-        	CyclocopterInducedType = KeyWords(HP.GetWord());
-	}
-
-	switch( CyclocopterInducedType ) {
-	case NO: {
-		ResForceSet **ppres = ReadResSets(pDM, HP);
-
-	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-		pEl = new CyclocopterNoInflow(uLabel, pDO,
-			pCraft, rrot, pRotor,
-  			ppres, fOut);
-
-		break;
-	}
-	case uniform1D:
-	case uniform2D:
-	case polimi:	{
-		bool bFlagAve = HP.GetYesNoOrBool();
-
-		doublereal dR = HP.GetReal();
-		if (dR <= 0.) {
-			silent_cerr("Illegal null or negative radius"
-				"for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		doublereal dL = HP.GetReal();
-		if (dL <= 0.) {
-			silent_cerr("Illegal null or negative blade"
-				"length for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		DriveCaller *pdW = 0;
-		if (HP.IsKeyWord("delay")) {
-			pdW = HP.GetDriveCaller();
-		} else {
-			SAFENEW( pdW, NullDriveCaller);
-		}
-
-		doublereal dOmegaFilter = 0.;
-		if (HP.IsKeyWord("omegacut")) {
-			dOmegaFilter = HP.GetReal();
-			if (dOmegaFilter <= 0){
-				silent_cerr("Illegal null or negative filter"
-					"cut frequency for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dOmegaFilter = 0.;
-		}
-
-		doublereal dDeltaT = 0.;
-		if (HP.IsKeyWord("timestep")) {
-			dDeltaT = HP.GetReal();
-			if (dDeltaT <= 0){
-				silent_cerr("Illegal null or negative time"
-					"step for rotor" << uLabel
-					<< " at line " << HP.GetLineData()
-					<< std::endl);
-				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
-		} else {
-			dDeltaT = 0.;
-		}
-
-     		ResForceSet **ppres = ReadResSets(pDM, HP);
-
-	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-
-		switch( CyclocopterInducedType ) {
-		case uniform1D: {
-			pEl = new CyclocopterUniform1D(uLabel, pDO,
-				pCraft, rrot, pRotor,
-  				ppres, bFlagAve, dR, dL,
-				dOmegaFilter, dDeltaT, pdW, fOut);
-			break;
-		}
-		case uniform2D: {
-			pEl = new CyclocopterUniform2D(uLabel, pDO,
-				pCraft, rrot, pRotor,
-  				ppres, bFlagAve, dR, dL,
-				dOmegaFilter, dDeltaT, pdW, fOut);
-			break;
-		}
-		case polimi: {
-			pEl = new CyclocopterPolimi(uLabel, pDO,
-				pCraft, rrot, pRotor,
-  				ppres, bFlagAve, dR, dL,
-				dOmegaFilter, dDeltaT, pdW, fOut);
-			break;
-		}
-		}
-		break;
-
-	}
-	case KARI: {
-     		ResForceSet **ppres = ReadResSets(pDM, HP);
-
-	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
-		pEl = new CyclocopterKARI(uLabel, pDO,
-			pCraft, rrot, pRotor,
-  			ppres, fOut);
-		break;
-	}
-	default:
-		silent_cerr("Rotor(" << uLabel << "): "
-			"unknown cyclocopter inflow model "
-			"at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	return pEl;
-}
-
-#endif
-
-static bool
-ReadRotorData(DataManager* pDM,
-	MBDynParser& HP,
-	unsigned int uLabel,
-	const StructNode *& pCraft,
-	Mat3x3& rrot,
-	const StructNode *& pRotor)
-{
-     	/* aircraft node */
-	pCraft = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-
-	/* rotor orientation with respect to aircraft */
-     	rrot = ::Eye3;
-     	if (HP.IsKeyWord("orientation")) {
-     		ReferenceFrame RF(pCraft);
-     		rrot = HP.GetRotRel(RF);
-
-     	} else if (HP.IsKeyWord("hinge")) {
-		silent_cerr("InducedVelocity(" << uLabel << "): deprecated keyword \"hinge\"; use \"orientation\" instead at line " << HP.GetLineData() << std::endl);
-
-     		ReferenceFrame RF(pCraft);
-     		rrot = HP.GetRotRel(RF);
-     	}
-
-     	/* rotor node */
-     	pRotor = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-
-	return true;
-}
-
-static bool
-ReadUniform(DataManager* pDM,
-	MBDynParser& HP,
-	unsigned int uLabel,
-	bool& bFlagAve,
-	doublereal& dR,
-	doublereal& dL,
-	DriveCaller *& pdW,
-	doublereal& dOmegaFilter,
-	doublereal& dDeltaT)
-{
-	bFlagAve = HP.GetYesNoOrBool();
-
-	dR = HP.GetReal();
-	if (dR <= 0.) {
-		silent_cerr("ReadUniform(" << uLabel << "): "
-			"illegal null or negative radius"
-			"for rotor" << uLabel << " at line " << HP.GetLineData()
-			<< std::endl);
-		return false;
-	}
-
-	dL = HP.GetReal();
-	if (dL <= 0.) {
-		silent_cerr("ReadUniform(" << uLabel << "): "
-			"illegal null or negative blade"
-			"length for rotor" << uLabel
-			<< " at line " << HP.GetLineData()
-			<< std::endl);
-		return false;
-	}
-
-	pdW = 0;
-	if (HP.IsKeyWord("delay")) {
-		pdW = HP.GetDriveCaller();
-
-	} else {
-		SAFENEW(pdW, NullDriveCaller);
-	}
-
-	dOmegaFilter = 0.;
-	if (HP.IsKeyWord("omegacut")) {
-		dOmegaFilter = HP.GetReal();
-		if (dOmegaFilter <= 0){
-			silent_cerr("Illegal null or negative filter"
-				"cut frequency for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			return false;
-		}
-	} else {
-		dOmegaFilter = 0.;
-	}
-
-	dDeltaT = 0.;
-	if (HP.IsKeyWord("timestep")) {
-		dDeltaT = HP.GetReal();
-		if (dDeltaT <= 0){
-			silent_cerr("Illegal null or negative time"
-				"step for rotor" << uLabel
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			return false;
-		}
-
-	} else {
-		dDeltaT = 0.;
-	}
-
-	return true;
-}
-
-extern "C" int
-module_init(const char *module_name, void *pdm, void *php)
+bool
+mbdyn_cyclocopter_set(void)
 {
 	UserDefinedElemRead *rf;
 	
@@ -1708,10 +1683,10 @@ module_init(const char *module_name, void *pdm, void *php)
 		delete rf;
 
 		silent_cerr("module-cyclocopter: "
-			"\"cyclocopter no inflow\" module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"cyclocopter no inflow\""
+			<< std::endl);
 
-		return -1;
+		return false;
 	}
 
 	rf = new UDERead<CyclocopterUniform1D>;
@@ -1719,10 +1694,10 @@ module_init(const char *module_name, void *pdm, void *php)
 		delete rf;
 
 		silent_cerr("module-cyclocopter: "
-			"\"cyclocopter uniform 1D\" module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"cyclocopter uniform 1D\""
+			<< std::endl);
 
-		return -1;
+		return false;
 	}
 
 	rf = new UDERead<CyclocopterUniform2D>;
@@ -1730,10 +1705,10 @@ module_init(const char *module_name, void *pdm, void *php)
 		delete rf;
 
 		silent_cerr("module-cyclocopter: "
-			"\"cyclocopter uniform 2D\" module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"cyclocopter uniform 2D\""
+			<< std::endl);
 
-		return -1;
+		return false;
 	}
 
 	rf = new UDERead<CyclocopterPolimi>;
@@ -1741,10 +1716,10 @@ module_init(const char *module_name, void *pdm, void *php)
 		delete rf;
 
 		silent_cerr("module-cyclocopter: "
-			"\"cyclocopter Polimi\" module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"cyclocopter Polimi\""
+			<< std::endl);
 
-		return -1;
+		return false;
 	}
 
 #if 0
@@ -1753,13 +1728,29 @@ module_init(const char *module_name, void *pdm, void *php)
 		delete rf;
 
 		silent_cerr("module-cyclocopter: "
-			"\"cyclocopter KARI\" module_init(" << module_name << ") "
-			"failed" << std::endl);
+			"unable to register \"cyclocopter KARI\""
+			<< std::endl);
 
-		return -1;
+		return false;
 	}
 #endif
+
+	return true;
+}
+
+#ifdef MBDYN_MODULE
+
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	if (!mbdyn_cyclocopter_set()) {
+		silent_cerr("cyclocopter: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+		return -1;
+	}
 
 	return 0;
 }
 
+#endif // MBDYN_MODULE

@@ -24,8 +24,6 @@ aeromodal.cc \
 aeromodal.h \
 c81data.cc \
 c81data.h \
-cyclocopter.cc \
-cyclocopter.h \
 genfm.cc \
 genfm.h \
 gust.cc \
@@ -49,6 +47,10 @@ libaero_la_LIBADD = @LIBS@
 libaero_la_LDFLAGS = -static
 
 if BUILD_STATIC_MODULES
+nodist_libaero_la_SOURCES += \
+$(srcdir)/../../modules/module-cyclocopter/module-cyclocopter.cc \
+$(srcdir)/../../modules/module-cyclocopter/module-cyclocopter.h
+
 if BUILD_CHARM
 # charm
 nodist_libaero_la_SOURCES += \

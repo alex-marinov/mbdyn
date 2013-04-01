@@ -42,6 +42,7 @@
 #include "module-asynchronous_machine/module-asynchronous_machine.h"
 #include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-inline_friction/module-inline_friction.h"
+#include "module-cyclocopter/module-cyclocopter.h"
 #ifdef HAVE_CHARM
 #include "module-charm/mbcharm.h"
 #endif // HAVE_CHARM
@@ -122,6 +123,8 @@ InitUDE(void)
 	b = hydrodynamic_plain_bearing_set();
 	ASSERT(b != false);
 	b = inline_friction_set();
+	ASSERT(b != false);
+	b = mbdyn_cyclocopter_set();
 	ASSERT(b != false);
 #ifdef HAVE_CHARM
 	b = mbcharm_set();

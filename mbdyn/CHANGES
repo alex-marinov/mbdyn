@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		  (based on patch by Reinhard Resch)
 	Backward compatibility issues:
 		- old binary modal joint databases no longer supported
+		- cyclocopter inflow models moved to module-cyclocopter
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
