@@ -2042,7 +2042,6 @@ ReadRotor(DataManager* pDM,
 			"mangler",
 			"dynamic" "inflow",
 
-			// "cyclocopter",
 		NULL
      	};
 
@@ -2056,8 +2055,6 @@ ReadRotor(DataManager* pDM,
 			GLAUERT,
 			MANGLER,
 			DYNAMICINFLOW,
-
-			// CYCLOCOPTER,
 
 		LASTKEYWORD
      	};
@@ -2118,15 +2115,6 @@ ReadRotor(DataManager* pDM,
   					ppres, dR, fOut));
 		} break;
 	
-
-#if 0
-	case CYCLOCOPTER:
-		pEl = ReadCyclocopter(pDM, HP,
-			pDO, uLabel,
-			pCraft, rrot, pRotor);
-		break;
-#endif
-
     	case UNIFORM:
     	case UNIFORM_SECTIONAL:
     	case GLAUERT:
