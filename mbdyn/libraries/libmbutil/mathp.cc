@@ -3520,7 +3520,7 @@ MathParser::stmt(void)
 
 					if (isIfndef) {
 						silent_cerr("warning, ifndef variable " << v->GetTypeName() << " \"" << v->GetName()
-							<< "\" not yet defined at line " << mbdyn_get_line_data() << std::endl);
+							<< "\" not yet defined; set to \"" << newvar << "\" at line " << mbdyn_get_line_data() << std::endl);
 					}
 
 				} else {

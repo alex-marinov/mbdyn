@@ -424,7 +424,7 @@ HighParser::SetEnv_int(void)
 
 	int overwrite = 0;
 	if (IsKeyWord("overwrite")) {
-		bool b = HP.GetYesNoOrBool();
+		bool b = GetYesNoOrBool();
 		overwrite = b ? 1 : 0;
 	}
 
@@ -458,6 +458,7 @@ HighParser::SetEnv_int(void)
 
 		avasep[0] = '\0';
 		avasep++;
+		bool bPresent(getenv(ava) != NULL);
 		int rc = setenv(ava, avasep, overwrite);
 		if (rc) {
 			silent_cerr("unable to set the environment variable \""
@@ -465,6 +466,26 @@ HighParser::SetEnv_int(void)
 					<< "\" at line " << GetLineData()
 					<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (bPresent && overwrite == 0) {
+			silent_cout("Environment variable \"" << ava
+				<< "\" _not_ overwritten with \"" << avasep
+				<< "\" (current value is \"" << getenv(ava)
+				<< "\") at line " << GetLineData()
+				<< std::endl);
+
+		} else if (!bPresent) {
+			silent_cout("Environment variable \"" << ava
+				<< "\" set to \"" << avasep
+				<< "\" at line " << GetLineData()
+				<< std::endl);
+
+		} else {
+			silent_cout("Environment variable \"" << ava
+				<< "\" overwritten to \"" << avasep
+				<< "\" at line " << GetLineData()
+				<< std::endl);
 		}
 	}
 #endif // HAVE_SETENV
