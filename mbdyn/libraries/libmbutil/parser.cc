@@ -436,19 +436,16 @@ HighParser::SetEnv_int(void)
 
 	char *avasep = std::strchr(const_cast<char *>(ava), '=');
 	if (avasep == NULL) {
-		int	rc = 0;
 #ifdef HAVE_UNSETENV
 		unsetenv(ava);
 #elif defined(HAVE_PUTENV)
-		rc = putenv(ava);
-#endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
-		if (rc) {
+		if (putenv(ava)) {
 			silent_cerr("unable to unset the environment variable "
 					"\"" << ava << "\" at line "
 					<< GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
+#endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
 
 	} else {
 		if (avasep == ava) {
