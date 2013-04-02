@@ -3518,6 +3518,11 @@ MathParser::stmt(void)
 					newvar.Cast(d);
 					v = table.Put(varname, newvar);
 
+					if (isIfndef) {
+						silent_cerr("warning, ifndef variable " << v->GetTypeName() << " \"" << v->GetName()
+							<< "\" not yet defined at line " << mbdyn_get_line_data() << std::endl);
+					}
+
 				} else {
 					/* altrimenti, se la posso ridefinire, mi limito
 					 * ad assegnarle il nuovo valore */
@@ -3551,7 +3556,7 @@ MathParser::stmt(void)
 								<< "\" from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type) << " at line " << mbdyn_get_line_data() << std::endl);
 
 						} else {
-							silent_cerr("warning, skipping redefinition of \"" << v->GetName()
+							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << v->GetName()
 								<< "\" at line " << mbdyn_get_line_data() << std::endl);
 						}
 					}
