@@ -1629,25 +1629,31 @@ and to reuse generic model components.
 The \kw{setenv} directive:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{setenv} : [ \kw{overwrite} , ] " \bnt{varname} [ = \bnt{value} ] " ;
+    \bnt{card} ::= \kw{setenv} :
+        [ \kw{overwrite} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{overwrite} \} , ]
+        " \bnt{varname} [ = \bnt{value} ] " ;
 \end{Verbatim}
 %\end{verbatim}
 This directive sets the environment variable \nt{varname} 
 to \nt{value}, if given; otherwise, the variable
 is unset.
-If the keyword \kw{overwrite} is set, the variable is overwritten, 
+If \kw{overwrite} is set, the variable is overwritten, 
 if already set.
+By default, \kw{overwrite} is set according to \texttt{setenv(3)}'s
+overwrite parameter (\kw{no}).
 \begin{verbatim}
     # set FILE to "test", if it does not exist
     setenv: "FILE=test";
     # set FILE to "test", even if it exists
-    setenv: override, "FILE=test";
+    setenv: overwrite, yes, "FILE=test";
     # unset FILE
     setenv: "FILE";
     # set FILE to the empty string, if it does not exist
     setenv: "FILE=";
 \end{verbatim}
-See \texttt{setenv(3)} and \texttt{unsetenv(3)} man pages for details.
+See \texttt{setenv(3)} and \texttt{unsetenv(3)}
+(or \texttt{putenv(3)}, if the former is not available)
+man pages for details.
 
 
 

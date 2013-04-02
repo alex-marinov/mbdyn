@@ -424,7 +424,8 @@ HighParser::SetEnv_int(void)
 
 	int overwrite = 0;
 	if (IsKeyWord("overwrite")) {
-		overwrite = 1;
+		bool b = HP.GetYesNoOrBool();
+		overwrite = b ? 1 : 0;
 	}
 
 	const char *ava = GetStringWithDelims();
