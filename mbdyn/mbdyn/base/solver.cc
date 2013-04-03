@@ -48,17 +48,13 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#if defined(ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H) && !defined(_GNU_SOURCE)
-#define _GNU_SOURCE
-#endif // ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H
-
 /* required for configure time macros with paths */
 #include "mbdefs.h"
 
 #include <cstdlib>
 #include <cstring>
 #include <limits>
-#include <unistd.h>
+#include <ac/unistd.h>
 #include <cerrno>
 #include <csignal>
 #include <cfloat>
@@ -87,10 +83,6 @@
 #include "ac/lapack.h"
 #include "ac/arpack.h"
 #include "eigjdqz.h"
-
-#ifdef ENVIRON_NEEDS_DECLARATION
-extern char **environ;
-#endif // ENVIRON_NEEDS_DECLARATION
 
 #ifdef HAVE_SIGNAL
 /*

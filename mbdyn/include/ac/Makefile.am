@@ -13,6 +13,7 @@ lapack.h \
 mpi.h \
 pthread.h \
 spinlock.h \
-sys_sysinfo.h
+sys_sysinfo.h \
+unistd.h
 
 include $(top_srcdir)/build/bot.mk
