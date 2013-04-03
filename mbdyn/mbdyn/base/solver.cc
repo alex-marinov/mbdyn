@@ -48,7 +48,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#ifdef ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H
+#if defined(ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H) && !defined(_GNU_SOURCE)
 #define _GNU_SOURCE
 #endif // ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H
 
