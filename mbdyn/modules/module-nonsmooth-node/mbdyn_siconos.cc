@@ -42,8 +42,7 @@
 void
 mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], double wlem[], solver_parameters& solparam)
 {
-
-	int info = 0;
+	solparam.info = 0;
 
 	LCPsolver lcpsol = solparam.solver;
 	double tolerance = solparam.solvertol;
@@ -63,7 +62,7 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 
 	SolverOptions numerics_solver_options = { 0 };
 
-	int processed_iterations = 0.;
+	int processed_iterations = 0;
 	solparam.resulting_error = 0.;
 
   	// Solving LCP problem
@@ -72,7 +71,7 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 	case LEXICO_LEMKE:
 		linearComplementarity_lexicolemke_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
-		lcp_lexicolemke(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_lexicolemke(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		break;
 
@@ -80,7 +79,7 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_rpgs_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_rpgs(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_rpgs(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
@@ -89,14 +88,14 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_qp_setDefaultSolverOptions(&numerics_solver_options);
 //		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_qp(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_qp(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		break;
 
 	case CPG:
 		linearComplementarity_cpg_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_cpg(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_cpg(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
@@ -105,7 +104,7 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_pgs_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_pgs(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_pgs(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
@@ -114,7 +113,7 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_psor_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_psor(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_psor(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
@@ -123,28 +122,28 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_nsqp_setDefaultSolverOptions(&numerics_solver_options);
 //		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_nsqp(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_nsqp(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		break;
 
 	case LATIN:
 		linearComplementarity_latin_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_latin(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_latin(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		break;
 
 	case LATIN_W:
 		linearComplementarity_latin_w_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_latin_w(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_latin_w(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		break;
 
 	case NEWTON_MIN:
 		linearComplementarity_newton_min_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_newton_min(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_newton_min(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
@@ -153,14 +152,14 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		linearComplementarity_newton_FB_setDefaultSolverOptions(&numerics_solver_options);
 		numerics_solver_options.iparam[0] = maxiternum;
 		numerics_solver_options.dparam[0] = tolerance;
-		lcp_newton_FB(&OSNSProblem, Pkp1, wlem, &info, &numerics_solver_options);
+		lcp_newton_FB(&OSNSProblem, Pkp1, wlem, &solparam.info, &numerics_solver_options);
 		processed_iterations = numerics_solver_options.iparam[1];
 		solparam.resulting_error = numerics_solver_options.dparam[1];
 		break;
 	}
 
 	// analyzing the LCP solver final status
-	switch (info) {
+	switch (solparam.info) {
 	case 0:	// convergence
 		break;
 
@@ -181,9 +180,6 @@ mbdyn_siconos_LCP_call(int sizep, double W_NN[], double bLCP[], double Pkp1[], d
 		break;
 	}
 
-	solparam.info = info;
-
 	deleteSolverOptions(&numerics_solver_options);
 }
-
 

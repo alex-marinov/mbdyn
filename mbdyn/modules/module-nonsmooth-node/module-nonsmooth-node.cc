@@ -138,10 +138,10 @@ private:
 	int iIter;
 
 	// function timestepping a frictionless subsys
-	void mbs_get_force(NS_subsys& );
+	void mbs_get_force(NS_subsys&);
 
 	// function timestepping a frictional subsys
-	void mbs_get_force_frictional(NS_subsys& );
+	void mbs_get_force_frictional(NS_subsys&);
 
 public:
 	ModuleNonsmoothNode(unsigned uLabel, const DofOwner *pDO,
@@ -194,6 +194,26 @@ public:
 	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 };
+
+// number of facets of the discretized friction cone
+static const int omegan = 16;
+
+// Creo matrici fullmh IPa e IRa contenenti i vettori delle direzioni delle facets del friction cone outer discretized
+static const doublereal dIPa[2][omegan - 2] = {
+	{ 1., 0. },
+	{ 0., 1. }
+};
+
+// dIRa[2][omegan - 2]
+static const doublereal dIRa[2][omegan - 2] = {
+	{  0.92388,  0.70711,  0.38268, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268, -0.00000,  0.38268,  0.70711,  0.92388 },
+	{  0.38268,  0.70711,  0.92388,  0.92388,  0.70711,  0.38268,  0.00000, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268 }
+};
+
+static FullMatrixHandler IRa;
+static FullMatrixHandler IRat;
+static FullMatrixHandler IPa;
+static bool bIRa(false);
 
 
 ModuleNonsmoothNode::ModuleNonsmoothNode( unsigned uLabel, const DofOwner *pDO,
@@ -305,7 +325,7 @@ iIter(0)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	NS_data.mass_ns   = HP.GetReal();
+	NS_data.mass_ns = HP.GetReal();
 
 	if (!HP.IsKeyWord("radius")) {
 		silent_cerr("ModuleNonsmoothNode(" << uLabel << "): \"radius\" expected at line "
@@ -490,6 +510,33 @@ iIter(0)
 
 	if (NS_data.bVerbose) {
 		silent_cout("ModuleNonsmoothNode(" << GetLabel() << "): initial nonsmooth node position " << NS_data.Xns_kp1 << std::endl);
+	}
+
+	// Set-up approximated friction cone
+	// TODO: allow per-element discretization
+	if (bFrictional && !bIRa) {
+		bIRa = true;
+
+		IRa.Resize(2, omegan - 2);
+		for (int r = 0; r < 2; r++) {
+			for (int c = 0; c < omegan - 2; c++) {
+				IRa(r + 1, c + 1) = dIRa[r][c];
+			}
+		}
+
+		IRat.Resize(omegan - 2, 2);
+		for (int r = 0; r < omegan - 2; r++) {
+			for (int c = 0; c < 2; c++) {
+				IRat(r + 1, c + 1) = dIRa[c][r];
+			}
+		}
+
+		IPa.Resize(2, 2);
+		for (int r = 0; r < 2; r++) {
+			for (int c = 0; c < 2; c++) {
+				IPa(r + 1, c + 1) = dIPa[r][c];
+			}
+		}
 	}
 }
 
@@ -689,6 +736,7 @@ ModuleNonsmoothNode::AssRes(SubVectorHandler& WorkVec,
 	if (((NS_data.iterations > 0) && (iIter < NS_data.iterations)) || (NS_data.iterations == 0)) {
 		if (bFrictional) {
 			mbs_get_force_frictional(NS_data);
+
 		} else {
 			mbs_get_force(NS_data);
 		}
@@ -880,7 +928,7 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 		NS.constr[i].Gap = (x_NS_predicted - Plane_point) * NS.constr[i].H_kp1.GetVec(3) - NS.radius_ns;
 
 		// Valuto gap(xpredicted) e creo indice vincoli attivi
-		if (NS.constr[i].Gap <= 0) {
+		if (NS.constr[i].Gap <= 0.) {
 			Ia.push_back(i);
 		}
 	}
@@ -978,56 +1026,9 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 	bStepToggle = true;
 }
 
-// Creo matrici fullmh IPa e IRa contenenti i vettori delle direzioni delle facets del friction cone outer discretized
-static const doublereal dIPa[2][2] = {
-	{ 1., 0. },
-	{ 0., 1. }
-};
-
-static const doublereal dIRa[2][14] = {
-	{  0.92388,  0.70711,  0.38268, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268, -0.00000,  0.38268,  0.70711,  0.92388 },
-	{  0.38268,  0.70711,  0.92388,  0.92388,  0.70711,  0.38268,  0.00000, -0.38268, -0.70711, -0.92388, -1.00000, -0.92388, -0.70711, -0.38268 }
-};
-
-static FullMatrixHandler IRa;
-static FullMatrixHandler IRat;
-static FullMatrixHandler IPa;
-static bool bIRa(false);
-
 void
 ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 {
-	// FIXME
-	// vanno messe nel costruttore, omega changeable ?-----------------------------
-
-	// number of facets of the discretized friction cone
-	const int omegan = 16;
-
-	if (!bIRa) {
-		bIRa = true;
-
-		IRa.Resize(2, 14);
-		for (int r = 0; r < 2; r++) {
-			for (int c = 0; c < 14; c++) {
-				IRa(r + 1, c + 1) = dIRa[r][c];
-			}
-		}
-
-		IRat.Resize(14, 2);
-		for (int r = 0; r < 14; r++) {
-			for (int c = 0; c < 2; c++) {
-				IRat(r + 1, c + 1) = dIRa[c][r];
-			}
-		}
-
-		IPa.Resize(2, 2);
-		for (int r = 0; r < 2; r++) {
-			for (int c = 0; c < 2; c++) {
-				IPa(r + 1, c + 1) = dIPa[r][c];
-			}
-		}
-	}
-
 //------------------------------------------------------------------------------
 
 //	Mat3x3 M_ns = Eye3 * NS.mass_ns;
@@ -1056,7 +1057,7 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 		NS.constr[i].Gap = (x_NS_predicted -  Plane_point) * NS.constr[i].H_kp1.GetVec(3) - NS.radius_ns;
 
 		// Valuto gap(xpredicted) e creo indice vincoli attivi
-		if (NS.constr[i].Gap <= 0) {
+		if (NS.constr[i].Gap <= 0.) {
 			Ia.push_back(i);
 		}
 	}
