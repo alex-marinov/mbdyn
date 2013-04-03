@@ -476,6 +476,46 @@ if test "$ol_enable_debug" != no -o "$ol_enable_debug_mpi" != no ; then
 	fi
 fi
 
+have_environ=no
+AC_TRY_COMPILE([
+],[
+	environ;
+], [have_environ=yes], [have_environ=no])
+if test $have_environ != yes ; then
+	AC_TRY_COMPILE([
+#include <unistd.h>
+	],[
+	environ;
+	], [have_environ=yes], [have_environ=no])
+	if test $have_environ = yes ; then
+		AC_DEFINE(ENVIRON_NEEDS_UNISTD_H,1,[define if variable environ needs unistd.h])
+	fi
+fi
+if test $have_environ != yes ; then
+	AC_TRY_COMPILE([
+#define _GNU_SOURCE
+#include <unistd.h>
+	],[
+	environ;
+	], [have_environ=yes], [have_environ=no])
+	if test $have_environ = yes ; then
+		AC_DEFINE(ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H,1,[define if variable environ needs _GNU_SOURCE and unistd.h])
+	fi
+fi
+if test $have_environ != yes ; then
+	AC_TRY_LINK([
+extern char **environ;
+	],[
+	environ;
+	],[have_environ=yes],[have_environ=no])
+	if test $have_environ = yes ; then
+		AC_DEFINE(ENVIRON_NEEDS_DECLARATION,1,[define if variable environ needs to be declared])
+	fi
+fi
+if test $have_environ = yes; then
+	AC_DEFINE(HAVE_ENVIRON,1,[define if variable environ is declared])
+fi
+
 dnl try to detect MPI and either Metis or Chaco
 use_schur=no
 if test "$ol_enable_schur" = yes ; then

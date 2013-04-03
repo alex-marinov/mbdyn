@@ -48,6 +48,10 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#ifdef ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H
+#define _GNU_SOURCE
+#endif // ENVIRON_NEEDS_GNU_SOURCE_AND_UNISTD_H
+
 /* required for configure time macros with paths */
 #include "mbdefs.h"
 
@@ -83,6 +87,10 @@
 #include "ac/lapack.h"
 #include "ac/arpack.h"
 #include "eigjdqz.h"
+
+#ifdef ENVIRON_NEEDS_DECLARATION
+extern char **environ;
+#endif // ENVIRON_NEEDS_DECLARATION
 
 #ifdef HAVE_SIGNAL
 /*
@@ -466,7 +474,17 @@ Solver::Run(void)
 	}
 
 	// log symbol table
-	pDM->GetLogFile() << HP.GetMathParser().GetSymbolTable();
+	std::ostream& log = pDM->GetLogFile();
+	log << "Symbol table:" << std::endl;
+	log << HP.GetMathParser().GetSymbolTable();
+
+#ifdef HAVE_ENVIRON
+	// log environment
+	log << "Environment:" << std::endl;
+	for (int i = 0; environ[i] != NULL; i++) {
+		log << "  " << environ[i] << std::endl;
+	}
+#endif // HAVE_ENVIRON
 
 	// close input stream
 	HP.Close();
