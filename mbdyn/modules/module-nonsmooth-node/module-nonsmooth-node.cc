@@ -881,15 +881,25 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 
 		// Valuto gap(xpredicted) e creo indice vincoli attivi
 		if (NS.constr[i].Gap <= 0) {
-			int indice = i;
-			Ia.push_back(indice);
+			Ia.push_back(i);
 		}
 	}
 
+#if 0
+	// NOTE: if no active contact, directly integrate the dynamics of the mass
+	if (Ia.empty()) {
+	}
+#endif
+
 	// External forces: gravity and the reaction passed from the rest of the system integrated by MBDYN
-	Vec3 Fg = NS.bGravity ? NS.GravityAcceleration * NS.mass_ns : Zero3;
-	Vec3 F_k = NS.Lambda_k + Fg;
-	Vec3 F_kp1 = NS.Lambda_kp1 + Fg;
+	Vec3 F_k = NS.Lambda_k;
+	Vec3 F_kp1 = NS.Lambda_kp1;
+	Vec3 Fg;
+	if (NS.bGravity) {
+		Fg = NS.GravityAcceleration * NS.mass_ns;
+		F_k += Fg;
+		F_kp1 += Fg;
+	}
 
 	// Velocity of the non-smooth subsystem calculated without the contribute of contact impulse
 	// Vec3 vfree_kp1= NS.Vns_k + invMhat * ( - C_ns*NS.Vns_k*NS.hstep - K_ns*NS.Xns_k*NS.hstep - K_ns*NS.Vns_k*(NS.hstep*NS.hstep*NS.theta_ts) + (F_kp1*NS.theta_ts + F_k* (1.-NS.theta_ts) ) *NS.hstep);
@@ -899,7 +909,7 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 	Vec3 VnskRel = NS.Vns_k - NS.constr[0].AttNode->GetVCurr();
 
 	// Composing and solving the Linear Complementarity System to determine the contact impulse p_kp1
-	if (Ia.size() > 0) {
+	if (!Ia.empty()) {
 		Mat3xN Hfull_kp1(Ia.size());
 		Mat3xN Hfull_k(Ia.size());
 
@@ -952,7 +962,11 @@ ModuleNonsmoothNode::mbs_get_force(NS_subsys& NS)
 	NS.Vns_kp1 = vfree_kp1 + invMhat * NS.Piter;
 	NS.Xns_kp1  = NS.Xns_k + (NS.Vns_kp1 * NS.theta_ts + NS.Vns_k* (1. - NS.theta_ts)) * NS.hstep;
 	// Reaction force to be exchanged with the rest of the system in MBDYN
-	NS.Lambda_kp1 = - (Fg + p_kp1 / NS.hstep - M_ns * (NS.Vns_kp1 - NS.Vns_k) / NS.hstep + NS.Lambda_k*(1. - NS.theta_ts)) / NS.theta_ts;
+	NS.Lambda_kp1 = p_kp1 / NS.hstep - M_ns * (NS.Vns_kp1 - NS.Vns_k) / NS.hstep + NS.Lambda_k*(1. - NS.theta_ts);
+	if (NS.bGravity) {
+		NS.Lambda_kp1 += Fg;
+	}
+	NS.Lambda_kp1 /= -NS.theta_ts;
 
 	// Store output
 	NS.ia = Ia.size();
@@ -987,7 +1001,7 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 	// vanno messe nel costruttore, omega changeable ?-----------------------------
 
 	// number of facets of the discretized friction cone
-	int omegan = 16;
+	const int omegan = 16;
 
 	if (!bIRa) {
 		bIRa = true;
@@ -1043,15 +1057,25 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 
 		// Valuto gap(xpredicted) e creo indice vincoli attivi
 		if (NS.constr[i].Gap <= 0) {
-			int indice = i;
-			Ia.push_back(indice);
+			Ia.push_back(i);
 		}
 	}
 
+#if 0
+	// NOTE: if no active contact, directly integrate the dynamics of the mass
+	if (Ia.empty()) {
+	}
+#endif
+
 	// External forces: gravity and the reaction passed from the rest of the system integrated by MBDYN
-	Vec3 Fg = NS.bGravity ? NS.GravityAcceleration * NS.mass_ns : Zero3;
-	Vec3 F_k = NS.Lambda_k + Fg;
-	Vec3 F_kp1 = NS.Lambda_kp1 + Fg;
+	Vec3 F_k = NS.Lambda_k;
+	Vec3 F_kp1 = NS.Lambda_kp1;
+	Vec3 Fg;
+	if (NS.bGravity) {
+		Fg = NS.GravityAcceleration * NS.mass_ns;
+		F_k += Fg;
+		F_kp1 += Fg;
+	}
 
 	// Velocity of the non-smooth subsystem calculated without the contribute of contact impulse
 	// Vec3 vfree_kp1= NS.Vns_k + invMhat * ( - C_ns*NS.Vns_k*NS.hstep - K_ns*NS.Xns_k*NS.hstep - K_ns*NS.Vns_k*(NS.hstep*NS.hstep*NS.theta_ts) + (F_kp1*NS.theta_ts + F_k* (1.-NS.theta_ts) ) *NS.hstep);
@@ -1304,7 +1328,11 @@ ModuleNonsmoothNode::mbs_get_force_frictional(NS_subsys& NS)
 	NS.Xns_kp1 = NS.Xns_k + (NS.Vns_kp1 * NS.theta_ts + NS.Vns_k* (1. - NS.theta_ts)) * NS.hstep;
 
 	// Reaction force to be exchanged with the rest of the system in MBDYN
-	NS.Lambda_kp1 = - (Fg + p_kp1 / NS.hstep - M_ns * (NS.Vns_kp1 - NS.Vns_k) / NS.hstep + NS.Lambda_k*(1. - NS.theta_ts)) / NS.theta_ts;
+	NS.Lambda_kp1 = p_kp1 / NS.hstep - M_ns * (NS.Vns_kp1 - NS.Vns_k) / NS.hstep + NS.Lambda_k*(1. - NS.theta_ts);
+	if (NS.bGravity) {
+		NS.Lambda_kp1 += Fg;
+	}
+	NS.Lambda_kp1 /= -NS.theta_ts;
 
 	// Store Output
 	NS.ia = Ia.size();
