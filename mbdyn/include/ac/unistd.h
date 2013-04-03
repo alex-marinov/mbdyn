@@ -43,7 +43,7 @@ extern "C" {
 
 #ifdef ENVIRON_NEEDS_DECLARATION
 extern char **environ;
-#endif // ENVIRON_NEEDS_DECLARATION
+#endif /* ENVIRON_NEEDS_DECLARATION */
 
 #ifdef __cplusplus
 }
