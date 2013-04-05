@@ -188,7 +188,9 @@ begin: elements;
 				NODE_GROUND,
 				position, 0., 0., 0., 
 				rotation orientation, eye,
-				restitution, REST_NS;
+				restitution, REST_NS,
+			LCP solver, rpgs,
+			output, yes;
 		   
 	joint:	JOINT_PRISMATIC_1,
 		prismatic,  

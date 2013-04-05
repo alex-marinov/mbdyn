@@ -90,6 +90,7 @@ struct solver_parameters {
 	int info;
 
 	// only for: CPG, PGS, RPGS, NEWTON, LATIN, PSOR
+	int processed_iterations;
 	double resulting_error;
 };
 

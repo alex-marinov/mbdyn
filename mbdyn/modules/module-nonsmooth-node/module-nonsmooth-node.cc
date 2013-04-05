@@ -326,6 +326,11 @@ iIter(0)
 	}
 
 	NS_data.mass_ns = HP.GetReal();
+	if (NS_data.mass_ns <= std::numeric_limits<doublereal>::epsilon()) {
+		silent_cerr("ModuleNonsmoothNode(" << uLabel << "): \"mass\" too small at line "
+			<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	if (!HP.IsKeyWord("radius")) {
 		silent_cerr("ModuleNonsmoothNode(" << uLabel << "): \"radius\" expected at line "
@@ -401,12 +406,14 @@ iIter(0)
 
 	if (HP.IsKeyWord("theta")) {
 		NS_data.theta_ts = HP.GetReal();
+
 	} else {
 		NS_data.theta_ts = 0.5;
 	}
 
 	if (HP.IsKeyWord("gamma")) {
 		NS_data.gamma_pred = HP.GetReal();
+
 	} else {
 		NS_data.gamma_pred = 1.;
 	}
@@ -467,6 +474,7 @@ iIter(0)
 		NS_data.bVerbose = HP.GetYesNoOrBool(true);
 	}
 
+	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
 	//----------------------------------------------
 	//		CHECK GAP
@@ -507,6 +515,7 @@ iIter(0)
 
 	NS_data.solparam.info = 0;
 	NS_data.solparam.resulting_error = 0;
+	NS_data.solparam.processed_iterations = -1;
 
 	if (NS_data.bVerbose) {
 		silent_cout("ModuleNonsmoothNode(" << GetLabel() << "): initial nonsmooth node position " << NS_data.Xns_kp1 << std::endl);
@@ -889,7 +898,8 @@ ModuleNonsmoothNode::Output(OutputHandler& OH) const
 			out
 				<< " " << NS_data.mu
 				<< " " << NS_data.solparam.info
-				<< " " << NS_data.solparam.resulting_error;
+				<< " " << NS_data.solparam.resulting_error
+				<< " " << NS_data.solparam.processed_iterations;
 		}
 
 		out << std::endl;
