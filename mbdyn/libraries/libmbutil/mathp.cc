@@ -723,6 +723,43 @@ mp_in(const MathParser::MathArgs& args)
 	return 0;
 }
 
+static int
+mp_cast(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 1);
+	ASSERT(args[0]->Type() == MathParser::AT_ANY);
+
+	MathParser::MathArgAny_t *arg1 = dynamic_cast<MathParser::MathArgAny_t*>(args[1]);
+	ASSERT(arg1 != 0);
+
+	if (args[0]->Type() == MathParser::AT_BOOL) {
+		MathParser::MathArgBool_t *out = dynamic_cast<MathParser::MathArgBool_t*>(args[0]);
+		ASSERT(out != 0);
+		(*out)() = (*arg1)().GetBool();
+
+	} else if (args[0]->Type() == MathParser::AT_INT) {
+		MathParser::MathArgInt_t *out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
+		ASSERT(out != 0);
+		(*out)() = (*arg1)().GetInt();
+
+	} else if (args[0]->Type() == MathParser::AT_REAL) {
+		MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
+		ASSERT(out != 0);
+		(*out)() = (*arg1)().GetReal();
+
+	} else if (args[0]->Type() == MathParser::AT_STRING) {
+		MathParser::MathArgString_t *out = dynamic_cast<MathParser::MathArgString_t*>(args[0]);
+		ASSERT(out != 0);
+		TypedValue val(TypedValue::VAR_STRING);
+		val.Cast((*arg1)());
+		(*out)() = val.GetString();
+
+	} else {
+	}
+
+	return 0;
+}
+
 /* tipi delle variabili */
 struct TypeName_t {
 	const char* name;
@@ -2583,6 +2620,42 @@ MathParser::StaticNameSpace::StaticNameSpace()
 			"for function " << f->fname << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	// cast
+	{
+		struct {
+			TypedValue::Type type;
+			MathArg_t *arg;
+		} data[5] = {
+			{ TypedValue::VAR_BOOL },
+			{ TypedValue::VAR_INT },
+			{ TypedValue::VAR_REAL },
+			{ TypedValue::VAR_STRING },
+			{ TypedValue::VAR_UNKNOWN }
+		};
+
+		data[0].arg = new MathArgBool_t;
+		data[1].arg = new MathArgInt_t;
+		data[2].arg = new MathArgReal_t;
+		data[3].arg = new MathArgString_t;
+
+		for (int i = 0; data[i].type != TypedValue::VAR_UNKNOWN; i++) {
+			f = new MathFunc_t;
+			f->fname = std::string(TypedValue::GetTypeName(data[i].type));
+			f->args.resize(1 + 1);
+			f->args[0] = data[i].arg;
+			f->args[1] = new MathArgAny_t;
+			f->f = mp_cast;
+			f->t = 0;
+
+			if (!func.insert(funcType::value_type(f->fname, f)).second) {
+				silent_cerr("static namespace: "
+					"unable to insert handler "
+					"for function " << f->fname << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+	}
 }
 
 MathParser::StaticNameSpace::~StaticNameSpace(void)
@@ -3268,6 +3341,32 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 
 	for (unsigned i = 1; i < args.size(); i++) {
 		switch (args[i]->Type()) {
+		case MathParser::AT_ANY:
+			if (currtoken == CBR) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "argument expected");
+				}
+				(*dynamic_cast<MathArgAny_t*>(args[i]))() = (*dynamic_cast<MathArgAny_t*>(f->args[i]))();
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+
+			} else {
+				(*dynamic_cast<MathArgAny_t*>(args[i]))() = stmtlist();
+			}
+			break;
+
+		case MathParser::AT_BOOL:
+			if (currtoken == CBR) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "bool argument expected");
+				}
+				(*dynamic_cast<MathArgBool_t*>(args[i]))() = (*dynamic_cast<MathArgBool_t*>(f->args[i]))();
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+
+			} else {
+				(*dynamic_cast<MathArgBool_t*>(args[i]))() = stmtlist().GetBool();
+			}
+			break;
+
 		case MathParser::AT_INT:
 			if (currtoken == CBR) {
 				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
@@ -3401,37 +3500,22 @@ MathParser::expr(void)
 		}
 
 		if (currtoken == OBR) {
-			TypedValue d;
-			std::string fname;
-
-			/* explicit cast */
-			TypedValue::Type type = GetType(namebuf);
-			if (type != TypedValue::VAR_UNKNOWN) {
-				d = TypedValue(type);
-				fname = d.GetTypeName();
-				GetToken();
-				d.Cast(stmtlist());
-
-			} else if (currNameSpace->IsFunc(namebuf)) {
-				MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
-				if (f == NULL) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
-				}
-				fname = f->fname;
-				GetToken();
-				d = evalfunc(currNameSpace, f);
-
-			} else {
-				/* in futuro ci potranno essere magari i dati strutturati */
+			/* in futuro ci potranno essere magari i dati strutturati */
+			if (!currNameSpace->IsFunc(namebuf)) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found; user-defined functions not supported yet!");
 			}
 
+			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+			if (f == NULL) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
+			}
+			GetToken();
+			TypedValue d = evalfunc(currNameSpace, f);
 			if (currtoken != CBR) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
 						"expected after function "
-						"\"", fname.c_str(), "\" in expr()");
+						"\"", f->fname.c_str(), "\" in expr()");
 			}
-
 			GetToken();
 			return d;
 			
@@ -3499,6 +3583,7 @@ MathParser::stmt(void)
 		if (type != TypedValue::VAR_UNKNOWN) {
 			switch (GetToken()) {
 			case OBR:
+				// explicit cast?
 				TokenPush(currtoken);
 				currtoken = NAME;
 				return logical();
