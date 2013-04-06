@@ -3401,22 +3401,37 @@ MathParser::expr(void)
 		}
 
 		if (currtoken == OBR) {
-			/* in futuro ci potranno essere magari i dati strutturati */
-			if (!currNameSpace->IsFunc(namebuf)) {
+			TypedValue d;
+			std::string fname;
+
+			/* explicit cast */
+			TypedValue::Type type = GetType(namebuf);
+			if (type != TypedValue::VAR_UNKNOWN) {
+				d = TypedValue(type);
+				fname = d.GetTypeName();
+				GetToken();
+				d.Cast(stmtlist());
+
+			} else if (currNameSpace->IsFunc(namebuf)) {
+				MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+				if (f == NULL) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
+				}
+				fname = f->fname;
+				GetToken();
+				d = evalfunc(currNameSpace, f);
+
+			} else {
+				/* in futuro ci potranno essere magari i dati strutturati */
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found; user-defined functions not supported yet!");
 			}
 
-			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
-			if (f == NULL) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
-			}
-			GetToken();
-			TypedValue d = evalfunc(currNameSpace, f);
 			if (currtoken != CBR) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
 						"expected after function "
-						"\"", f->fname.c_str(), "\" in expr()");
+						"\"", fname.c_str(), "\" in expr()");
 			}
+
 			GetToken();
 			return d;
 			
@@ -3482,9 +3497,18 @@ MathParser::stmt(void)
 		/* declaration? */
 		TypedValue::Type type = GetType(namebuf);
 		if (type != TypedValue::VAR_UNKNOWN) {
-			if (GetToken() != NAME) {
+			switch (GetToken()) {
+			case OBR:
+				TokenPush(currtoken);
+				currtoken = NAME;
+				return logical();
+				
+			case NAME:
+				break;
+
+			default:
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected "
-						"after type in declaration");
+					"after type in declaration");
 			}
 
 			/* FIXME: need to specialize symbol table for namespaces */

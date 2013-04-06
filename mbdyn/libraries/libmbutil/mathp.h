@@ -64,6 +64,7 @@ public:
 		AT_PRIVATE,
 
 		AT_TYPE,
+		AT_ANY,
 		AT_VOID,
 		AT_BOOL,
 		AT_INT,
@@ -118,6 +119,7 @@ public:
 	// not used right now; could be used for casting and so
 	typedef MathArgPriv_t<ArgType, AT_TYPE> MathArgType_t;
 
+	typedef MathArgPriv_t<TypedValue, AT_ANY> MathArgAny_t;
 	typedef MathArgPriv_t<bool, AT_BOOL> MathArgBool_t;
 	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
 	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
