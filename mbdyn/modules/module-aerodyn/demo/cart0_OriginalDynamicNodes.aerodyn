@@ -7,6 +7,7 @@ user defined: 1000, aerodyn, help,
     TEETER,       # hub node label
     3.86,             # tower top to hub distance
     1.381,           # the hub radius
+    19.32,           # the rotor radius
     2,                 # number of blades
     17,                 # number of elements per blade
 
@@ -51,7 +52,10 @@ user defined: 1000, aerodyn, help,
     BLADE_2+9 , orientation, reference, node, 1, 1.,0.,0., 2, 0.,sin( -2.37 *deg2rad ),cos( -2.37 *deg2rad ),
     BLADE_2+10, orientation, reference, node, 1, 1.,0.,0., 2, 0.,sin( -3.31 *deg2rad ),cos( -3.31 *deg2rad ),
 
+  force scale factor, cosine, 0., pi/1., .5, half, 0.,
+
   output file name, "out.ad",
-  input file name, "aerodyn.ipt"
+  input file name, "aerodyn.ipt",
+  element file name, "aerodyn.elm"
 
 ;

@@ -61,7 +61,7 @@
 //#include "module-aerodyn.h"
 
 // uncomment to enable debug output
-#define MODULE_AERODYN_DEBUG
+// #define MODULE_AERODYN_DEBUG
 
 // keep this consistent with AeroDyn build
 // #define USE_DOUBLE_PRECISION
@@ -132,17 +132,20 @@ private:
 	 * common MODULEs of AeroDyn
 	 */
 	F_LOGICAL	FirstLoop;
-	F_INTEGER       elem;    // use to identify the current element in the interface module!
-	F_INTEGER       c_elem;  // use to identify the current element in AeroDyn!
+	F_INTEGER	elem;    // use to identify the current element in the interface module!
+	F_INTEGER	c_elem;  // use to identify the current element in AeroDyn!
 	F_INTEGER	c_blade; // use to identify the current blade in AeroDyn!
-        F_REAL          rlocal;  // use to identify the current element position 
-        F_REAL          r_hub;   // use to identify the hub radius.
+	F_REAL		rlocal;  // use to identify the current element position 
+	F_REAL		r_hub;   // use to identify the hub radius.
+	F_REAL		r_rotor; // use to identify the rotor radius.
 
 	bool bFirst;
 	DriveOwner	Time;		// time drive
 	doublereal	dOldTime;	// old time
 	doublereal      dCurTime;       // current time
 	F_REAL          dDT;		// time step
+
+	DriveOwner FSF;
 
 public:
 	// interface for AeroDyn callbacks
@@ -242,21 +245,27 @@ bFirst(true)
 		<< "forces acting on wind turbines" << std::endl
 		<< std::endl
 		<< "usage:" << std::endl
-		<< "Nacelle node; requirements:" << std::endl
-		<< "\t\t- axis 3 is the shaft axis" << std::endl
-		<< "\t\t- axis 3 in wind direction" << std::endl
+		<< "#Nacelle node; requirements:" << std::endl
+		<< "#\t\t- axis 3 is the shaft axis, pointing downstream the wind" << std::endl
 		<< "\t<nacelle node label> ," << std::endl
 		<< "\t<hub node label> ," << std::endl
 		<< "\t<pylon top-hub xy distance> ," << std::endl
 		<< "\t<hub radius> ," << std::endl
+		<< "\t<rotor radius> ," << std::endl
 		<< "\t<number of blades> ," << std::endl
 		<< "\t<number of elements per blade> ," << std::endl
-		<< "\t# for each blade... axis 1 must be the blade spanwise direction" << std::endl
+		<< "\t# for each blade..." << std::endl
+		<< "\t#\t- axis 1 in the blade spanwise direction, towards blade tip" << std::endl
+		<< "\t#\t- axis 2 in coord direction, towards leading edge" << std::endl
+		<< "\t#\t- axis 3 in thickness direction, towards low pressure side" << std::endl
 		<< "\t\t<i-th blade root orientation matrix> ," << std::endl
 		<< "\t\t# for each blade element..." << std::endl
-		<< "\t\t\t<i-th blade j-th node label> ," << std::endl
-		<< "\t\t\t[ orientation , <i-th blade j-th node orientation> , ]" << std::endl
-		<< "\t[ output file name , \" <file name> \" ]" << std::endl
+		<< "\t\t\t<i-th blade j-th node label>" << std::endl
+		<< "\t\t\t[ , orientation , <i-th blade j-th node orientation> ]" << std::endl
+		<< "\t[ , force scale factor , (DriveCaller)<factor> ]" << std::endl
+		<< "\t[ , output file name , \"<file name>\" ]" << std::endl
+		<< "\t[ , AeroDyn input file name , \"<file name>\" ]" << std::endl
+		<< "\t[ , element file name , \"<file name>\" ]" << std::endl
 		);
 	}
 
@@ -287,6 +296,8 @@ bFirst(true)
 	Hub_Tower_xy_distance = HP.GetReal();
 
 	r_hub = HP.GetReal();
+	
+	r_rotor = HP.GetReal();
 
 	/*
 	 * Initialize AeroDyn package
@@ -368,6 +379,13 @@ bFirst(true)
 		}
 	}
 
+	if (HP.IsKeyWord("force" "scale" "factor")) {
+		FSF.Set(HP.GetDriveCaller());
+
+	} else {
+		FSF.Set(new OneDriveCaller);
+	}
+
 	if (HP.IsKeyWord("output" "file" "name")) {
 		const char *ofname = HP.GetFileName();
 		if (ofname == 0) {
@@ -385,27 +403,45 @@ bFirst(true)
 				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		} else {
+			out << std::setw(16) << "Time s"
+			    << std::setw(16) << "Thrust kN"
+			    << std::setw(16) << "Torque kNm"
+			    << std::setw(16) << "R.Speed Rad/s"
+			    << std::setw(16) << "Power kW"
+			    << std::endl;
 		}
 	}
 
-	__FC_DECL__(mbdyn_init)(Version, &NBlades);
+	__FC_DECL__(mbdyn_init)(Version, &NBlades, &r_rotor);
 
-	int rc;
+	std::string input_file_name;
+	std::string elem_file_name;
+
 	if (HP.IsKeyWord("input" "file" "name")) {
-		const char *input_file_name = HP.GetStringWithDelims();
-		if (input_file_name == 0) {
+		const char *fname = HP.GetStringWithDelims();
+		if (fname == 0) {
 			silent_cerr("unable to get input file name "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-
-		F_INTEGER input_file_name_len = strlen(input_file_name);
-		rc = __FC_DECL__(mbdyn_ad_inputgate)((F_CHAR *)input_file_name, &input_file_name_len);
-
-	} else {
-		rc = __FC_DECL__(adinputgate)();
+		input_file_name = fname;
 	}
 
+	if (HP.IsKeyWord("element" "file" "name")) {
+		const char *fname = HP.GetStringWithDelims();
+		if (fname == 0) {
+			silent_cerr("unable to get element file name "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		elem_file_name = fname;
+	}
+
+	F_INTEGER input_file_name_len = input_file_name.size();
+	F_INTEGER elem_file_name_len = elem_file_name.size();
+	int rc = __FC_DECL__(mbdyn_ad_inputgate)((F_CHAR *)input_file_name.c_str(), &input_file_name_len,
+			(F_CHAR *)elem_file_name.c_str(), &elem_file_name_len);
 	if (rc != 0) {
 		silent_cerr("AeroDynModule(" << GetLabel() << "): "
 			"initialization failed "
@@ -456,27 +492,13 @@ void
 AeroDynModule::Output(OutputHandler& OH) const
 {
 	if (out) {
-#ifdef MODULE_AERODYN_DEBUG
-//		unsigned c = 0;
-//		for (unsigned b = 1; b <= unsigned(nblades); b++) {
-//			for (unsigned e = 1; e <= unsigned(nelems); e++, c++) {
-//				out
-//					<< b << '.' << e
-//					<< " " << nodes[c].F
-//					<< " " << nodes[c].M
-//					<< " " << nodes[c].FN
-//					<< " " << nodes[c].FT
-//					<< " " << nodes[c].AM
-//					<< std::endl;
-//			}
-//		}
-#endif // MODULE_AERODYN_DEBUG
-		out << dCurTime 
-		       << " " << Thrust 
-		       << " " << Torque 
-		       << " " << Rotor_speed
-		       << " " << Torque*Rotor_speed
-		       << std::endl; 
+		out << std::scientific
+		    << std::setw(16) << dCurTime 
+		    << std::setw(16) << Thrust/1000.0
+		    << std::setw(16) << Torque/1000.0
+		    << std::setw(16) << Rotor_speed
+		    << std::setw(16) << Torque*Rotor_speed/1000.0
+		    << std::endl; 
 	}
 }
 
@@ -527,6 +549,13 @@ AeroDynModule::AssRes(
 		Mat3x3 BladeR;
 		Vec3 BladeAxis;
 
+		// force scale factor to "ramp up" loads
+		doublereal dFSF = FSF.dGet();
+
+		// sanity check
+		ASSERT(dFSF >= 0.);
+		ASSERT(dFSF <= 1.);
+
 		for (elem = 0; elem < nelems*nblades; elem++) {
 			/*
 			 * get the current blade number.
@@ -555,6 +584,11 @@ AeroDynModule::AssRes(
 			 * not in the element's.
 			 */
 			__FC_DECL__(aerofrcintrface)(&FirstLoop, &c_elem, &DFN, &DFT, &PMA);
+			
+			// ramp forces in the very first second up to ease convergence
+			DFN *= dFSF;
+			DFT *= dFSF;
+			PMA *= dFSF;
 
  			nodes[elem].FN = DFN;
  			nodes[elem].FT = DFT;
@@ -577,17 +611,21 @@ AeroDynModule::AssRes(
 
 #ifdef MODULE_AERODYN_DEBUG
 
- 	               // silent_cerr("Moment on Node[" << elem << "]: " << nodes[elem].f.Cross(nodes[elem].F) << std::endl);
+ 	        silent_cerr("Moment on Node[" << elem << "]: " << nodes[elem].f.Cross(nodes[elem].F) << std::endl);
 
 #endif // MODULE_AERODYN_DEBUG
 
-#if 0 // def MODULE_AERODYN_DEBUG
-	        	silent_cerr("aerodyn[" << elem << "] in BEM frame: "
-				<< F_BEM << " " << PMA << " " << 0.0 << " " << 0.0 << std::endl
-				<< "aerodyn[" << elem << "] in global frame: "
-				<< nodes[elem].F << " " << nodes[elem].M
-				<< std::endl << std::endl);
+#ifdef MODULE_AERODYN_DEBUG
+			silent_cerr(std::setprecision(3) << std::fixed
+			          << " aerodyn[" << elem << "]"
+			          << " F = " << nodes[elem].F 
+			          << " M = " << nodes[elem].M
+			          << " FN = " << nodes[elem].FN
+			          << " FN = " << nodes[elem].FT
+			          << " AM = " << nodes[elem].AM
+			          << std::endl << std::endl);
 #endif // MODULE_AERODYN_DEBUG
+
 		}
 
 #ifdef MODULE_AERODYN_DEBUG
@@ -962,6 +1000,8 @@ __FC_DECL__(getrotorparams)(
 	/* See Emails by Fanzhong Meng August 27, 2010 */
 	const Vec3& nacelle_Omega = ::module_aerodyn->pGetNacelleNode()->GetWCurr();
 	*VHUB = nacelle_Omega(3)*::module_aerodyn->dGetHubTowerXYDistance();
+	
+	__FC_DECL__(elemout)();
 
 #ifdef MODULE_AERODYN_DEBUG
 	silent_cerr("getrotorparams: "

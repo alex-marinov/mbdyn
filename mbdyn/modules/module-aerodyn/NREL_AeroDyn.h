@@ -99,6 +99,10 @@ __FC_DECL__(ad_inputgate)(F_CHAR *input_file);
 extern int
 __FC_DECL__(adinputgate)(void);
 
+// ADDED BY JENS VAN SCHELVE TO PROVIDE AERODYN ELEMENT DATA OUTPUT
+extern int
+__FC_DECL__(elemout)(void);
+
 /*
  * Returns the force and moment for a given element.
  */
@@ -154,13 +158,13 @@ __FC_DECL__(ad_abort)(void);
  * MBDyn stuff initialization
  */
 extern int
-__FC_DECL__(mbdyn_init)(F_CHAR *Version, F_INTEGER *nblades);
+__FC_DECL__(mbdyn_init)(F_CHAR *Version, F_INTEGER *nblades, F_REAL *rotradius);
 
 /*
  * AeroDyn initialization wrapper
  */
 extern int
-__FC_DECL__(mbdyn_ad_inputgate)(F_CHAR *fname, F_INTEGER *fnamelen);
+__FC_DECL__(mbdyn_ad_inputgate)(F_CHAR *ifname, F_INTEGER *ifnamelen, F_CHAR *efname, F_INTEGER *efnamelen);
 
 /*
  * MBDyn logical true

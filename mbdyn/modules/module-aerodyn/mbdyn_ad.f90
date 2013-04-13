@@ -28,17 +28,19 @@
 ! 
 ! Interface to NREL's AeroDyn library
 
-SUBROUTINE MBDyn_init( Version, NBlades )
+SUBROUTINE MBDyn_init( Version, NBlades, RotRadius )
 
 USE Identify
 USE Blade
 USE Wind  ! Use Global variable VX,VY,VZ.
+USE Precision
 
 
 IMPLICIT NONE
 
 CHARACTER(26) Version
 INTEGER(4) NBlades
+REAL(ReKi) RotRadius
 
         DynProg = 'MBDyn '
         DynVer = Version
@@ -50,22 +52,37 @@ INTEGER(4) NBlades
 
         B = NB    ! Need this value when we swith on "WAKE"
                   ! or "SWIRL" options
+        R = RotRadius
         RETURN
 
 END SUBROUTINE MBDyn_init
 
-SUBROUTINE MBDyn_ad_inputgate( FileName, FileNameLen )
+SUBROUTINE MBDyn_ad_inputgate( FileName, FileNameLen, ElemFileName, ElemFileNameLen, * )
 
 IMPLICIT NONE
 
-INTEGER(4) FileNameLen
+INTEGER(4) FileNameLen,ElemFileNameLen
 CHARACTER(FileNameLen) FileName
+CHARACTER(ElemFileNameLen) ElemFileName
 
         !print *,'### FileName=',FileName(1:FileNameLen),' FileNameLen=',FileNameLen
 
-        CALL AD_inputgate(FileName)
+        !print *,'==> MBDyn_ad_inputgate(',FileName(1:FileNameLen),',',ElemFileName(1:ElemFileNameLen),')'
 
-        RETURN
+        if (FileNameLen .gt. 0) then
+                CALL AD_inputgate(FileName)
+        else
+                CALL ADInputGate
+        endif
+
+        if (ElemFileNameLen .gt. 0) then
+                !CALL ElemOpen('./aerodyn.elm')
+                CALL ElemOpen(ElemFileName)
+        endif
+
+        !print *,'<== MBDyn_ad_inputgate(',FileName(1:FileNameLen),',',ElemFileName(1:ElemFileNameLen),')'
+
+        RETURN 0
 
 END SUBROUTINE MBDyn_ad_inputgate
 
