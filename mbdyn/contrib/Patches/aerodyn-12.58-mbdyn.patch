@@ -51,10 +51,10 @@ Index: AeroSubs.f90
 ===================================================================
 RCS file: /var/cvs/mbdyn/NREL/AeroDyn/AD_v1258/Source/AeroSubs.f90,v
 retrieving revision 1.1
-retrieving revision 1.4
-diff -u -r1.1 -r1.4
+retrieving revision 1.5
+diff -u -r1.1 -r1.5
 --- AeroSubs.f90	4 Jan 2008 10:59:34 -0000	1.1
-+++ AeroSubs.f90	7 Sep 2008 21:28:23 -0000	1.4
++++ AeroSubs.f90	13 Apr 2013 23:30:53 -0000	1.5
 @@ -5,6 +5,11 @@
  
  !  UNIVERSITY OF UTAH, MECHANICAL ENGINEERING DEPARTMENT
@@ -103,7 +103,27 @@ diff -u -r1.1 -r1.4
  
  
   ! Open and read airfoil data file(s)
-@@ -1128,22 +1142,22 @@
+@@ -446,7 +460,8 @@
+ 
+ WndElIndex = 0
+ 
+-R = 0.0
++!!! Initialized elsewhere (Jens van Schelve)
++!R = 0.0
+ 
+  ! Read blade element data, check some inputs, convert twist to radians
+ READ(UnADin,'( )',IOSTAT=IOS) ! The table header line
+@@ -482,7 +497,8 @@
+    TWIST(IELM) = TWIST(IELM)*DtoR
+ 
+  ! Estimate rotor radius (value used only during initialization)
+-   R = R + DR(IELM)
++!!! Initialized elsewhere (Jens van Schelve)
++!   R = R + DR(IELM)
+ 
+    IndPrint = Index(LINE,"WIND")
+    IF ((IndPrint > 0) .AND. (LINE(IndPrint-2:IndPrint-1) /= "NO")) THEN
+@@ -1128,22 +1144,22 @@
   ! Allocate local arrays with NTables dimension
  
     ALLOCATE ( CLPosPI(NTables(NFOILID)) , STAT=Sttus )
@@ -132,7 +152,7 @@ diff -u -r1.1 -r1.4
  
  
   ! Read in airfoil data table identification array
-@@ -1721,10 +1735,10 @@
+@@ -1721,10 +1737,10 @@
     ! Allocate the array of time values.
  
  ALLOCATE ( Times4D(Num4Dt) , STAT=Sttus )
@@ -145,7 +165,7 @@ diff -u -r1.1 -r1.4
  
     ! Open, read, and close the times file.
  
-@@ -1816,25 +1830,25 @@
+@@ -1816,25 +1832,25 @@
     ! Allocate the wind arrays.
  
  ALLOCATE ( FDu(Num4DxD,Num4DyD,Num4DzD,2) , STAT=Sttus )
@@ -177,7 +197,7 @@ diff -u -r1.1 -r1.4
  
      CALL ReadALL4DData(UnWind)
  
-@@ -2527,7 +2541,7 @@
+@@ -2527,7 +2543,7 @@
  
  IF ( IOS /= 0 )  THEN
      Advect  = .FALSE.
@@ -186,7 +206,7 @@ diff -u -r1.1 -r1.4
  
  ELSE
  
-@@ -2561,7 +2575,7 @@
+@@ -2561,7 +2577,7 @@
           READ (Unit,*,IOSTAT=IOS) AdvFiles(I)
  
           IF ( IOS /= 0 )  THEN
@@ -195,7 +215,7 @@ diff -u -r1.1 -r1.4
  
              MESAGE = ' Error reading AdvFiles in 4D-wind-parameter file, "'//TRIM( FileName )//'".'
  
-@@ -3132,14 +3146,14 @@
+@@ -3132,14 +3148,14 @@
   ! Allocate and initialize the local array on the first pass
  IF ( .NOT. ALLOCATED (OLD_A_NS) ) THEN
     ALLOCATE ( OLD_A_NS ( NELM, NB) , STAT=Sttus )
@@ -212,7 +232,7 @@ diff -u -r1.1 -r1.4
     OLD_AP_NS(:,:) = 0.0
  ENDIF
  
-@@ -8202,13 +8216,13 @@
+@@ -8202,13 +8218,13 @@
     ! Allocate the array of time values.
  
  ALLOCATE ( TimesCT(NumCTt) , STAT=Sttus )
@@ -228,7 +248,7 @@ diff -u -r1.1 -r1.4
  
  
  DO IT=1,NumCTt
-@@ -8267,13 +8281,13 @@
+@@ -8267,13 +8283,13 @@
     ! Allocate the wind arrays.
  
  ALLOCATE ( CTu(NumCTyD,NumCTzD,2) , STAT=Sttus )
