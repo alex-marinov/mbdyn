@@ -12,14 +12,19 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added explicit cast to math parser
+		- added loads fade in in module-aerodyn
+		  (Jens van Schelve, Patrick Rix)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
+		- incompatible module-aerodyn syntax change
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
 		- RTAI and multithread support incompatible
 		- module-octave and multithread support incompatible
 	Bug fixes:
+		- fixed rotor radius in module-aerodyn (Jens van Schelve)
 
 MBDyn 1.5.5
 	Enhancements:
