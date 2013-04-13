@@ -46,8 +46,12 @@ begin: initial value;
 	derivatives tolerance: 1.e-3;
 	derivatives max iterations: 10;
 
+	# linear solver: umfpack, cc;
+
 	output: iterations;
-	# output: residual;
+	#output: residual;
+	#output: solution;
+	#output: jacobian;
 end: initial value;
 
 begin: control data;
@@ -61,7 +65,7 @@ set: real K = M*OMEGA^2;
 set: real D = 2*XI*M*OMEGA;
 
 begin: elements;
-	module load: "./libmodule-mds.so";
+	module load: "libmodule-mds";
 	user defined: 1, mds,
 		M, D, K,
 			# sine, 0., .2*OMEGA, 1., forever, 0.,
