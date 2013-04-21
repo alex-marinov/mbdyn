@@ -3677,7 +3677,7 @@ MathParser::stmt(void)
 
 			} else if (currtoken == STMTSEP) {
 				NamedValue* v = table.Get(namebuf);
-				if (v == NULL || !bRedefineVars) {
+				if (v == NULL || (!bRedefineVars && !isIfndef)) {
 					if (isConst) {
 						/* cannot insert a const var
 						 * with no value */

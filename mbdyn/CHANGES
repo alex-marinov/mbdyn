@@ -25,6 +25,8 @@ MBDyn 1.X-Devel
 		- module-octave and multithread support incompatible
 	Bug fixes:
 		- fixed rotor radius in module-aerodyn (Jens van Schelve)
+		- fixed redeclaration without definition of already defined
+		  ifndef vars
 
 MBDyn 1.5.5
 	Enhancements:
