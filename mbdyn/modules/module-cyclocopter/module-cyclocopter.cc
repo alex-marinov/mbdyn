@@ -170,7 +170,7 @@ void
 CyclocopterInflow::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-                OH.Rotors()
+                OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
                         << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
@@ -187,7 +187,7 @@ CyclocopterInflow::Output(OutputHandler& OH) const
 
                 /* FIXME: check for parallel stuff ... */
                 for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
+                        OH.Loadable()
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
@@ -697,7 +697,7 @@ void
 CyclocopterUniform1D::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-                OH.Rotors()
+                OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
                         << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
@@ -712,7 +712,7 @@ CyclocopterUniform1D::Output(OutputHandler& OH) const
 
                 /* FIXME: check for parallel stuff ... */
                 for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
+                        OH.Loadable()
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
@@ -728,11 +728,11 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 	bFlagIsFirstBlade = true;
 	/* calcolo la forza media sul giro generata dal rotore */
 	dTzMean += dTz;
-	FMean = FMean + F;
+	FMean += F;
 	iStepCounter++;
 	// if ((dAzimuth > 0. && dAzimuthPrev < 0.) || (dAzimuth < 0. && dAzimuthPrev > 0.)) {
 	if ((dAzimuth > 0. && dAzimuthPrev < 0.)) {
-		FMean = FMean/iStepCounter;
+		FMean /= iStepCounter;
 		FMeanOut = FMean;
 		if (bFlagAverage) {
 			dTzMean = dTzMean/iStepCounter;
@@ -741,7 +741,7 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 			dTzMean = 0.;
 		}
-		FMean = Zero3;
+		FMean = ::Zero3;
 		iStepCounter = 0;
 	}
 	dAzimuthPrev = dAzimuth;
@@ -997,7 +997,7 @@ void
 CyclocopterUniform2D::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-                OH.Rotors()
+                OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
                         << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
@@ -1010,7 +1010,7 @@ CyclocopterUniform2D::Output(OutputHandler& OH) const
 
                 /* FIXME: check for parallel stuff ... */
                 for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
+                        OH.Loadable()
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
@@ -1427,7 +1427,7 @@ void
 CyclocopterPolimi::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
-                OH.Rotors()
+                OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
                         << " " << RRotorTranspose*Res.Moment()    /* 5-7 */
@@ -1440,7 +1440,7 @@ CyclocopterPolimi::Output(OutputHandler& OH) const
 
                 /* FIXME: check for parallel stuff ... */
                 for (int i = 0; ppRes && ppRes[i]; i++) {
-                        OH.Rotors()
+                        OH.Loadable()
                                 << std::setw(8) << GetLabel()
                                 << ":" << ppRes[i]->GetLabel()
                                 << " " << ppRes[i]->pRes->Force()
