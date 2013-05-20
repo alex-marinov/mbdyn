@@ -4190,10 +4190,28 @@ output_geometry(DataManager* pDM, std::ostream& o)
 	}
 
 	o
+		<< "% structural nodes labels" << std::endl
+		<< "labels = [" << std::endl;
+
+	for (; i != e; ++i) {
+		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+		ASSERT(pN != 0);
+
+		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+			continue;
+		}
+
+		o << std::setw(8) << pN->GetLabel() << ";" << std::endl;
+	}
+
+	o << "];" << std::endl;
+
+	o
 		<< "% structural nodes base index" << std::endl
 		<< "idx = [" << std::endl;
 
-	for (; i != e; ++i) {
+	for (i = pDM->begin(Node::STRUCTURAL); i != e; ++i) {
 		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
 		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
 		ASSERT(pN != 0);
