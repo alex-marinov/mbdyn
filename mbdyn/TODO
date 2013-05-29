@@ -275,6 +275,7 @@ E. Bugs/missing features:
 	- module-loadinc: improve initialization and handling of driven load increment element
 	- math parser: handle uninitialized values
 	- handle .rfm files in mbdyn2easyanim
+	- use "dot" to generate model graph
 
 
 
