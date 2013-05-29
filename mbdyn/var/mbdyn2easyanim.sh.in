@@ -106,12 +106,15 @@ if test "x${FILENAME}.log" = "x" ; then
 	exit 1
 fi
 
+# TODO: if exists, handle .rfm
+
 # Check mov file
 MOVFILE=yes
 if test "x${FILENAME}.mov" = "x" ; then
 	echo "warning: missing mov file \"${FILENAME}.mov\""
 	NOMOVFILE=1
 	MOVFILE=`mktemp` 
+	# FIXME: check if Euler angles are used in output?
 	awk '/^structural node:/ {print $3, $4,$5,$6, $8,$9,$10}' \
 		"${FILENAME}.log" > "${MOVFILE}"
 else
