@@ -274,6 +274,7 @@ E. Bugs/missing features:
 	- modal joint: binary file written in input order, but parsed in block ascending order (DONE)
 	- module-loadinc: improve initialization and handling of driven load increment element
 	- math parser: handle uninitialized values
+	- handle .rfm files in mbdyn2easyanim
 
 
 
