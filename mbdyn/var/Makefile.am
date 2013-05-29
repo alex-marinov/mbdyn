@@ -6,6 +6,7 @@ include $(top_srcdir)/build/top.mk
 EXTRA_DIST = \
 abs2rel.awk \
 mbdyn_mov2ref.awk \
+mbdyn_ref2log.awk \
 mbdyn2easyanim.awk \
 mbdyn2pod.awk \
 periodize.awk \
