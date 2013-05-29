@@ -1047,24 +1047,24 @@ in terms of the inertia properties and the node's kinematics:
 \begin{align}
 	\T{\beta}
 	&= m \dot{\T{x}}_{\text{CM}} \nonumber \\
-	&= m \plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
+	&= m \plbr{\dot{\T{x}} + \T{\omega}\times\T{b}} \nonumber \\
 	&= m \dot{\T{x}} + \T{\omega} \times \T{s}
 	\label{eq:body:momentum} \\
 	\T{\gamma}
-	&= \T{\gamma}_{\text{CM}} + \T{f} \times\T{\beta} \nonumber \\
-	&= \TT{J}_{\text{CM}} \T{\omega} + \T{f} \times\T{\beta} \nonumber \\
+	&= \T{\gamma}_{\text{CM}} + \T{b} \times\T{\beta} \nonumber \\
+	&= \TT{J}_{\text{CM}} \T{\omega} + \T{b} \times\T{\beta} \nonumber \\
 	&= \T{s} \times \dot{\T{x}} + \TT{J} \T{\omega}
 	\label{eq:body:momenta-moment} ,
 \end{align}
 \end{subequations}
 where
 \begin{equation}
-	\T{f} = \frac{\T{s}}{m}
+	\T{b} = \frac{\T{s}}{m}
 \end{equation}
 is the distance between the node and the CM of the body,
 which is constant in the reference frame of the node
 for a rigid body,
-and $\TT{J} = \TT{J}_\text{CM} + m \T{f}\times \T{f} \times{}^T$.
+and $\TT{J} = \TT{J}_\text{CM} + m \T{b}\times \T{b} \times{}^T$.
 
 The contribution to the equations of motion (Newton-Euler) is
 \begin{subequations}
@@ -1073,11 +1073,11 @@ The contribution to the equations of motion (Newton-Euler) is
 	\T{f}_{\text{in}} &= \dot{\T{\beta}}
 	\label{eq:body:newton-euler:f}
 	\\
-	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{\text{CM}} + \T{f}\times\T{f}_{\text{in}} \nonumber \\
-	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{f}}\times\T{\beta} \nonumber \\
-	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{f}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
-	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{f}} \nonumber \\
-	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{f}} \nonumber \\
+	\T{m}_{\text{in}} &= \dot{\T{\gamma}}_{\text{CM}} + \T{b}\times\T{f}_{\text{in}} \nonumber \\
+	&= \dot{\T{\gamma}} - \plbr{\T{\omega}\times\T{b}}\times\T{\beta} \nonumber \\
+	&= \dot{\T{\gamma}} - m \plbr{\T{\omega}\times\T{b}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{b}} \nonumber \\
+	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\T{\omega}\times\T{b}} \nonumber \\
+	&= \dot{\T{\gamma}} + m \dot{\T{x}}\times\plbr{\dot{\T{x}} + \T{\omega}\times\T{b}} \nonumber \\
 	&= \dot{\T{\gamma}} + \dot{\T{x}}\times\T{\beta}
 	\label{eq:body:newton-euler:m}
 \end{align}
@@ -1149,7 +1149,7 @@ As a consequence, the linear and angular accelerations are computed as
 	\dot{\T{\omega}}
 	&= \TT{J}_{\text{CM}}^{-1} \plbr{
 		\dot{\T{\gamma}}
-		- \T{f} \times \dot{\T{\beta}}
+		- \T{b} \times \dot{\T{\beta}}
 		+ \dot{\T{x}} \times \T{\beta}
 		- \T{\omega} \times \TT{J}_{\text{CM}} \T{\omega}
 	} \\
@@ -1163,12 +1163,12 @@ As a consequence, the linear and angular accelerations are computed as
 	&= \plbr{
 		\cfrac{1}{m} \TT{I}
 		+
-		\T{f}\times^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+		\T{b}\times^T \TT{J}_\text{CM}^{-1} \T{b}\times{}
 	} \dot{\T{\beta}}
 	-
-	\T{f}\times^T \TT{J}_\text{CM}^{-1} \dot{\T{\gamma}}
+	\T{b}\times^T \TT{J}_\text{CM}^{-1} \dot{\T{\gamma}}
 	-
-	\T{f}\times^T \TT{J}_\text{CM}^{-1} \plbr{
+	\T{b}\times^T \TT{J}_\text{CM}^{-1} \plbr{
 		\dot{\T{x}}\times\T{\beta}
 		- \T{\omega}\times\TT{J}_\text{CM} \T{\omega}
 	}
@@ -1189,7 +1189,7 @@ namely
 	}}
 	+
 	\sqbr{\cvvect{
-		- \T{f}\times^T
+		- \T{b}\times^T
 		\\
 		\TT{I}
 	}} \TT{J}_\text{CM}^{-1} \plbr{
@@ -1245,11 +1245,11 @@ Its inverse is
 	\sqbr{\matr{cc}{
 		\cfrac{1}{m} \TT{I}
 		+
-		\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+		\T{b}\times{}^T \TT{J}_\text{CM}^{-1} \T{b}\times{}
 		&
-		-\T{f}\times{}^T \TT{J}_\text{CM}^{-1}
+		-\T{b}\times{}^T \TT{J}_\text{CM}^{-1}
 		\\
-		- \TT{J}_\text{CM}^{-1}\T{f}\times{}
+		- \TT{J}_\text{CM}^{-1}\T{b}\times{}
 		&
 		\TT{J}_\text{CM}^{-1}
 	}}
@@ -1265,7 +1265,7 @@ In fact, according to the matrix inversion lemma,
 	&=
 	\cfrac{1}{m} \TT{I}
 	+
-	\T{f}\times{}^T \TT{J}_\text{CM}^{-1} \T{f}\times{}
+	\T{b}\times{}^T \TT{J}_\text{CM}^{-1} \T{b}\times{}
 \end{align}
 (NOTE: simplifications when using updated-updated formulas).
 
@@ -1413,9 +1413,9 @@ with
 	&=
 	\dot{\T{x}}
 	+
-	\T{\omega} \times \T{f}
+	\T{\omega} \times \T{b}
 	+
-	\TT{R} \dot{\tilde{\T{f}}}
+	\TT{R} \dot{\tilde{\T{b}}}
 	.
 \end{align}
 \begin{align}
@@ -1436,7 +1436,7 @@ Eq.~(\ref{eq:body:newton-euler:f}) becomes
 \end{align}
 Only the portion of $\dot{\T{\beta}}$ related to the change in mass
 is subtracted from the inertia forces; the portion related
-to the change in mass distribution, $\dot{\tilde{\T{f}}}$, is retained.
+to the change in mass distribution, $\dot{\tilde{\T{b}}}$, is retained.
 
 Momenta moment:
 \begin{align}
@@ -1444,12 +1444,12 @@ Momenta moment:
 	&=
 	\T{\gamma}_\text{CM}
 	+
-	\T{f} \times \T{\beta}
+	\T{b} \times \T{\beta}
 	\nonumber \\
 	&=
 	\TT{J}_\text{CM} \T{\omega}
 	+
-	\T{f} \times m \dot{\T{x}}_\text{CM}
+	\T{b} \times m \dot{\T{x}}_\text{CM}
 \end{align}
 \begin{align}
 	\dot{\T{\gamma}}_\text{CM}
@@ -1470,9 +1470,9 @@ Momenta moment:
 	&=
 	\dot{\T{\gamma}}_\text{CM}
 	+
-	\dot{\T{f}} \times \T{\beta}
+	\dot{\T{b}} \times \T{\beta}
 	+
-	\T{f} \times \dot{\T{\beta}}
+	\T{b} \times \dot{\T{\beta}}
 	\nonumber \\
 	&=
 	\T{\omega} \times \TT{J}_\text{CM} \T{\omega}
@@ -1487,12 +1487,12 @@ Momenta moment:
 	\nonumber \\
 	&\mbox{}
 	+ \plbr{
-		\T{\omega} \times \T{f}
+		\T{\omega} \times \T{b}
 		+
-		\TT{R} \dot{\tilde{\T{f}}}
+		\TT{R} \dot{\tilde{\T{b}}}
 	} \times \T{\beta}
 	+
-	\T{f} \times \plbr{
+	\T{b} \times \plbr{
 		m \ddot{\T{x}}_\text{CM}
 		+
 		\dot{m} \dot{\T{x}}_\text{CM}
@@ -1505,12 +1505,12 @@ Inertia moment of the whole body
 	&=
 	\dot{\T{\gamma}}_\text{CM}
 	+
-	\T{f} \times \dot{\T{\beta}}
+	\T{b} \times \dot{\T{\beta}}
 	\nonumber \\
 	&=
 	\dot{\T{\gamma}}
 	-
-	\dot{\T{f}} \times \T{\beta}
+	\dot{\T{b}} \times \T{\beta}
 	\nonumber \\
 	&=
 	\T{\omega} \times \TT{J}_\text{CM} \T{\omega}
@@ -1525,7 +1525,7 @@ Inertia moment of the whole body
 	\nonumber \\
 	&\mbox{}
 	+
-	\T{f} \times \plbr{
+	\T{b} \times \plbr{
 		m \ddot{\T{x}}_\text{CM}
 		+
 		\dot{m} \dot{\T{x}}_\text{CM}
@@ -1538,11 +1538,11 @@ Inertia moment of the whole body minus the mass that is lost
 	&=
 	\dot{\T{\gamma}}
 	-
-	\dot{\T{f}} \times \T{\beta}
+	\dot{\T{b}} \times \T{\beta}
 	-
 	\TT{J}_{\text{CM variable mass}/t} \T{\omega}
 	-
-	\T{f} \times \dot{m} \dot{\T{x}}_\text{CM}
+	\T{b} \times \dot{m} \dot{\T{x}}_\text{CM}
 \end{align}
 Only the portion of $\dot{\T{\gamma}}$ related to the change in mass
 is subtracted from the inertia forces; the portion related
@@ -1550,46 +1550,46 @@ to the change in mass distribution,
 $\TT{J}_{\text{CM variable geometry}/t}$,
 is retained.
 
-Actually, in the constant mass code, the term $\dot{\T{f}} \times \T{\beta}$
+Actually, in the constant mass code, the term $\dot{\T{b}} \times \T{\beta}$
 is written as $-\T{v}\times\T{\beta}$, exploiting its structure:
 \begin{align}
-	\dot{\T{f}} \times \T{\beta}
+	\dot{\T{b}} \times \T{\beta}
 	&=
-	m \plbr{\T{\omega} \times \T{f}} \times \plbr{\T{v} + \T{\omega} \times \T{f}}
+	m \plbr{\T{\omega} \times \T{b}} \times \plbr{\T{v} + \T{\omega} \times \T{b}}
 	\nonumber \\
 	&=
-	m \plbr{\T{\omega} \times \T{f}} \times \T{v}
+	m \plbr{\T{\omega} \times \T{b}} \times \T{v}
 	\nonumber \\
 	&=
-	m \plbr{\T{v} + \T{\omega} \times \T{f}} \times \T{v}
+	m \plbr{\T{v} + \T{\omega} \times \T{b}} \times \T{v}
 	\nonumber \\
 	&=
 	\T{\beta} \times \T{v}
 \end{align}
 In the variable mass case, this can be written as
 \begin{align}
-	\dot{\T{f}} \times \T{\beta}
+	\dot{\T{b}} \times \T{\beta}
 	&=
-	m \plbr{\T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}} \times
-		\plbr{\T{v} + \T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}}
+	m \plbr{\T{\omega} \times \T{b} + \TT{R} \dot{\tilde{\T{b}}}} \times
+		\plbr{\T{v} + \T{\omega} \times \T{b} + \TT{R} \dot{\tilde{\T{b}}}}
 	\nonumber \\
 	&=
 	\T{\beta} \times \T{v}
 	+
-	m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times 
-		\plbr{\T{v} + \T{\omega} \times \T{f} + \TT{R} \dot{\tilde{\T{f}}}}
+	m \plbr{\TT{R} \dot{\tilde{\T{b}}}} \times 
+		\plbr{\T{v} + \T{\omega} \times \T{b} + \TT{R} \dot{\tilde{\T{b}}}}
 	+
-	m \plbr{\T{\omega} \times \T{f}} \times \TT{R} \dot{\tilde{\T{f}}}
+	m \plbr{\T{\omega} \times \T{b}} \times \TT{R} \dot{\tilde{\T{b}}}
 	\nonumber \\
 	&=
 	\T{\beta} \times \T{v}
 	+
-	m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{v}
+	m \plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \T{v}
 \end{align}
 The correction term $\T{\beta} \times \T{v}$ is already applied
 to the equations of motion by the \texttt{AutomaticStructuralElem}
 element associated to the underlying node;
-the correction term $m \plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{v}$
+the correction term $m \plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \T{v}$
 must be explicitly applied by the \texttt{DynamicVariableBody} element.
 
 \bigskip
@@ -1611,9 +1611,9 @@ as soon as moderate inertia variations are used.
 	\dot{m} \plbr{
 		\delta\dot{\T{x}}
 		-
-		\T{f} \times \delta\T{\omega}
+		\T{b} \times \delta\T{\omega}
 		-
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \T{\theta}_{\delta}
 	}
 	\nonumber \\
 	&\equu
@@ -1621,12 +1621,12 @@ as soon as moderate inertia variations are used.
 	-
 	\dot{m} \delta\dot{\T{x}}
 	-
-	\dot{m} \T{f}\times \delta\dot{\T{g}}
+	\dot{m} \T{b}\times \delta\dot{\T{g}}
 	-
 	\dot{m} \plbr{
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times{}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times{}
 		-
-		\T{f} \times \T{\omega} \times{}
+		\T{b} \times \T{\omega} \times{}
 	} \delta\T{g}
 	\\
 	\delta\T{m}_\text{in}
@@ -1634,14 +1634,14 @@ as soon as moderate inertia variations are used.
 	\delta\dot{\T{\gamma}}
 	-
 	\plbr{
-		\delta\T{\omega} \times \T{f}
+		\delta\T{\omega} \times \T{b}
 		+
-		\T{\omega} \times \T{\theta}_{\delta} \times \T{f}
+		\T{\omega} \times \T{\theta}_{\delta} \times \T{b}
 		+
-		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{f}}}
+		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{b}}}
 	} \times \T{\beta}
 	-
-	\dot{\T{f}} \times \delta\T{\beta}
+	\dot{\T{b}} \times \delta\T{\beta}
 	\nonumber \\
 	&\mbox{}
 	-
@@ -1653,28 +1653,28 @@ as soon as moderate inertia variations are used.
 	\nonumber \\
 	&\mbox{}
 	-
-	\plbr{\T{\theta}_{\delta} \times \T{f}}\times \dot{m} \dot{\T{x}}_\text{CM}
+	\plbr{\T{\theta}_{\delta} \times \T{b}}\times \dot{m} \dot{\T{x}}_\text{CM}
 	-
-	\T{f} \times \dot{m} \plbr{
+	\T{b} \times \dot{m} \plbr{
 		\delta\dot{\T{x}}
 		+
-		\delta\T{\omega} \times \T{f}
+		\delta\T{\omega} \times \T{b}
 		+
-		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{f}}}
+		\T{\theta}_{\delta} \times \TT{R} \dot{\tilde{\T{b}}}
 	}
 	\nonumber \\
 	&=
 	\delta\dot{\T{\gamma}}
 	-
 	\T{\beta} \times \plbr{
-		\T{f} \times \delta\T{\omega}
+		\T{b} \times \delta\T{\omega}
 		+
-		\T{\omega} \times \T{f} \times \T{\theta}_{\delta}
+		\T{\omega} \times \T{b} \times \T{\theta}_{\delta}
 		+
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \T{\theta}_{\delta}
 	}
 	-
-	\dot{\T{f}} \times \delta\T{\beta}
+	\dot{\T{b}} \times \delta\T{\beta}
 	\nonumber \\
 	&\mbox{}
 	+
@@ -1688,28 +1688,28 @@ as soon as moderate inertia variations are used.
 	\nonumber \\
 	&\mbox{}
 	-
-	\dot{m} \dot{\T{x}}_\text{CM} \times \T{f} \times \T{\theta}_{\delta}
+	\dot{m} \dot{\T{x}}_\text{CM} \times \T{b} \times \T{\theta}_{\delta}
 	-
-	\T{f} \times \dot{m} \plbr{
+	\T{b} \times \dot{m} \plbr{
 		\delta\dot{\T{x}}
 		-
-		\T{f} \times \delta\T{\omega}
+		\T{b} \times \delta\T{\omega}
 		-
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \T{\theta}_{\delta}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \T{\theta}_{\delta}
 	}
 	\nonumber \\
 	&\equu
 	\delta\dot{\T{\gamma}}
 	-
 	\T{\beta} \times \plbr{
-		\T{f} \times \delta\dot{\T{g}}
+		\T{b} \times \delta\dot{\T{g}}
 		+
-		\plbr{\T{\omega} \times \T{f}} \times \delta\T{g}
+		\plbr{\T{\omega} \times \T{b}} \times \delta\T{g}
 		+
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \delta\T{g}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \delta\T{g}
 	}
 	-
-	\dot{\T{f}} \times \delta\T{\beta}
+	\dot{\T{b}} \times \delta\T{\beta}
 	\nonumber \\
 	&\mbox{}
 	+
@@ -1719,46 +1719,46 @@ as soon as moderate inertia variations are used.
 	\nonumber \\
 	&\mbox{}
 	-
-	\dot{m} \dot{\T{x}}_\text{CM} \times \T{f} \times \delta\T{g}
+	\dot{m} \dot{\T{x}}_\text{CM} \times \T{b} \times \delta\T{g}
 	-
-	\T{f} \times \dot{m} \plbr{
+	\T{b} \times \dot{m} \plbr{
 		\delta\dot{\T{x}}
 		-
-		\T{f} \times \delta\dot{\T{g}}
+		\T{b} \times \delta\dot{\T{g}}
 		+
-		\T{f} \times \T{\omega} \times \delta\T{g}
+		\T{b} \times \T{\omega} \times \delta\T{g}
 		-
-		\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times \delta\T{g}
+		\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times \delta\T{g}
 	}
 	\nonumber \\
 	&=
 	\delta\dot{\T{\gamma}}
 	-
-	\dot{\T{f}} \times \delta\T{\beta}
+	\dot{\T{b}} \times \delta\T{\beta}
 	-
-	\T{f} \times \dot{m} \delta\dot{\T{x}}
+	\T{b} \times \dot{m} \delta\dot{\T{x}}
 	-
 	\plbr{
-		\T{\beta} \times \T{f} \times{}
+		\T{\beta} \times \T{b} \times{}
 		+
 		\TT{J}_{\text{CM variable mass}/t}
 		-
-		\dot{m} \T{f} \times \T{f} \times{}
+		\dot{m} \T{b} \times \T{b} \times{}
 	}\delta\dot{\T{g}}
 	\nonumber \\
 	&\mbox{}
 	+ \plbr{
-		-\T{\beta}\times\dot{\T{f}}\times{}
+		-\T{\beta}\times\dot{\T{b}}\times{}
 		+
 		\plbr{\TT{J}_{\text{CM variable mass}/t} \T{\omega}} \times{}
 		-
 		\dot{m} \plbr{
-			\dot{\T{x}}_\text{CM} \times \T{f} \times{}
+			\dot{\T{x}}_\text{CM} \times \T{b} \times{}
 			+
-			\T{f} \times \plbr{
-				\T{f} \times \T{\omega} \times{}
+			\T{b} \times \plbr{
+				\T{b} \times \T{\omega} \times{}
 				-
-				\plbr{\TT{R} \dot{\tilde{\T{f}}}} \times{}
+				\plbr{\TT{R} \dot{\tilde{\T{b}}}} \times{}
 			}
 		}
 	} \delta\T{g}
@@ -1788,18 +1788,18 @@ file much like if they were regular nodes.
 \paragraph{Offset Dummy Node.} \
 The \texttt{offset} dummy structural node outputs the configuration
 of a reference frame that is rigidly offset from a base node
-(subscript $b$) by $\T{f}_h$ and oriented by matrix $\T{R}_h$ according 
+(subscript $b$) by $\T{b}_h$ and oriented by matrix $\T{R}_h$ according 
 to the transformation
 \begin{subequations}
 \begin{align}
-	\T{x} &= \T{x}_b + \T{R}_b \T{f}_h \\
+	\T{x} &= \T{x}_b + \T{R}_b \T{b}_h \\
 	\T{R} &= \T{R}_b \T{R}_h \\
-	\dot{\T{x}} &= \dot{\T{x}}_b + \T{\omega}_b \times \T{R}_b \T{f}_h \\
+	\dot{\T{x}} &= \dot{\T{x}}_b + \T{\omega}_b \times \T{R}_b \T{b}_h \\
 	\T{\omega} &= \T{\omega}_b \\
 	\ddot{\T{x}} &= \ddot{\T{x}}_b + \plbr{
 		\dot{\T{\omega}}_b \times{}
 		+ \T{\omega}_b \times \T{\omega}_b \times{}
-	} \T{R}_b \T{f}_h \\
+	} \T{R}_b \T{b}_h \\
 	\dot{\T{\omega}} &= \dot{\T{\omega}}_b
 \end{align}
 \end{subequations}
@@ -1809,12 +1809,12 @@ to the transformation
 The \texttt{reference frame} dummy structural node
 outputs the configuration of the base node (subscript $b$)
 in the reference frame of a reference node (subscript $r$),
-optionally offset by $\T{f}_h$ and with an orientation relative 
+optionally offset by $\T{b}_h$ and with an orientation relative 
 to $r$ provided by matrix $\T{R}_h$,
 according to the transformation
 \begin{subequations}
 \begin{align}
-	\overline{\T{x}} &= \T{R}_h^T \plbr{\T{R}_r^T \plbr{\T{x}_b - \T{x}_r} - \T{f}_h}\\
+	\overline{\T{x}} &= \T{R}_h^T \plbr{\T{R}_r^T \plbr{\T{x}_b - \T{x}_r} - \T{b}_h}\\
 	\overline{\T{R}} &= \T{R}_h^T \T{R}_r^T \T{R}_b \\
 	\overline{\dot{\T{x}}} &= \T{R}_h^T \T{R}_r^T \plbr{
 		\dot{\T{x}}_b
@@ -1844,16 +1844,16 @@ The \texttt{pivot reference frame} dummy node is a variant
 of the \texttt{reference frame} dummy node that outputs
 the configuration of the base node, expressed in the reference
 frame of the reference node, as if it were attached to the pivot node
-(subscript $p$), optionally offset by $\T{f}_k$ and with
+(subscript $p$), optionally offset by $\T{b}_k$ and with
 an orientation relative to $p$ provided by matrix $\T{R}_k$,
 according to the transformation
 \begin{subequations}
 \begin{align}
-	\hat{\T{x}} &= \T{x}_p + \T{R}_p\plbr{\T{R}_k \overline{\T{x}} + \T{f}_k} \\
+	\hat{\T{x}} &= \T{x}_p + \T{R}_p\plbr{\T{R}_k \overline{\T{x}} + \T{b}_k} \\
 	\hat{\T{R}} &= \T{R}_p \T{R}_k \overline{\T{R}} \\
 	\dot{\hat{\T{x}}} &= \dot{\T{x}}_p
 		+ \T{\omega}_p \times\T{R}_p \plbr{
-			\T{R}_k \overline{\T{x}} + \T{f}_k
+			\T{R}_k \overline{\T{x}} + \T{b}_k
 		} + \T{R}_p \T{R}_k \dot{\overline{\T{x}}} \\
 	\hat{\T{\omega}} &= \T{\omega}_p + \T{R}_p \T{R}_k \overline{\T{\omega}} \\
 	\hat{\ddot{\T{x}}} &= \ddot{\T{x}}_p
@@ -1861,7 +1861,7 @@ according to the transformation
 			\dot{\T{\omega}}_p \times{}
 			+ \T{\omega}_p \times \T{\omega}_p \times{}
 		} \TT{R}_p \plbr{
-			\TT{R}_k \overline{\T{x}} + \T{f}_k
+			\TT{R}_k \overline{\T{x}} + \T{b}_k
 		}
 		+ 2 \T{\omega}_p \times \TT{R}_p \TT{R}_k \overline{\dot{\T{x}}}
 		+ \TT{R}_p \TT{R}_k \overline{\ddot{\T{x}}} \\
@@ -3307,7 +3307,7 @@ It is implemented in files
 
 \paragraph{Definitions.} \
 \begin{equation}
-	\T{d} = \T{x}_2 + \T{f}_2 - \T{x}_1 - \T{f}_1
+	\T{d} = \T{x}_2 + \T{b}_2 - \T{x}_1 - \T{b}_1
 \end{equation}
 \begin{equation}
 	d = \sqrt{\T{d}^T \T{d}}
@@ -3327,31 +3327,31 @@ Forces:
 \begin{subequations}
 \begin{align}
 	\T{F}_1 &= \alpha \T{u} \\
-	\T{M}_1 &= \alpha \T{f}_1 \times \T{u} \\
+	\T{M}_1 &= \alpha \T{b}_1 \times \T{u} \\
 	\T{F}_2 &= -\alpha \T{u} \\
-	\T{M}_2 &= -\alpha \T{f}_2 \times \T{u}
+	\T{M}_2 &= -\alpha \T{b}_2 \times \T{u}
 \end{align}
 \end{subequations}
 Linearization:
 \begin{align}
 	\sqbr{\matr{ccccc}{
-		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{f}_1\times{} &
-			-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{f}_2\times{} & -\T{u} \\
-		\cfrac{\alpha}{d}\T{f}_1\times{} & 
-			-\cfrac{\alpha}{d}\plbr{\T{f}_1 + \T{d}}\times\T{f}_1\times{} &
-			-\cfrac{\alpha}{d}\T{f}_1\times{} & 
-			\cfrac{\alpha}{d}\T{f}_1\times\T{f}_2\times{} & 
-			-\T{f}_1\times\T{u} \\
-		-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{f}_1\times{} &
-			\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{f}_2\times{} & \T{u} \\
-		-\cfrac{\alpha}{d}\T{f}_2\times{} &
-			\cfrac{\alpha}{d}\T{f}_2\times\T{f}_1\times{} &
-			\cfrac{\alpha}{d}\T{f}_2\times{} &
-			- \cfrac{\alpha}{d}\plbr{\T{f}_2 - \T{d}}\times{\T{f}_2\times{}} &
-			\T{f}_2\times\T{u} \\
+		\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{b}_1\times{} &
+			-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{b}_2\times{} & -\T{u} \\
+		\cfrac{\alpha}{d}\T{b}_1\times{} & 
+			-\cfrac{\alpha}{d}\plbr{\T{b}_1 + \T{d}}\times\T{b}_1\times{} &
+			-\cfrac{\alpha}{d}\T{b}_1\times{} & 
+			\cfrac{\alpha}{d}\T{b}_1\times\T{b}_2\times{} & 
+			-\T{b}_1\times\T{u} \\
+		-\cfrac{\alpha}{d}\T{I} & \cfrac{\alpha}{d}\T{b}_1\times{} &
+			\cfrac{\alpha}{d}\T{I} & -\cfrac{\alpha}{d}\T{b}_2\times{} & \T{u} \\
+		-\cfrac{\alpha}{d}\T{b}_2\times{} &
+			\cfrac{\alpha}{d}\T{b}_2\times\T{b}_1\times{} &
+			\cfrac{\alpha}{d}\T{b}_2\times{} &
+			- \cfrac{\alpha}{d}\plbr{\T{b}_2 - \T{d}}\times{\T{b}_2\times{}} &
+			\T{b}_2\times\T{u} \\
 		\\
-		-\T{u}^T & - \plbr{\T{f}_1\times\T{u}}^T & 
-			\T{u}^T & \plbr{\T{f}_2\times\T{u}}^T & 0
+		-\T{u}^T & - \plbr{\T{b}_1\times\T{u}}^T & 
+			\T{u}^T & \plbr{\T{b}_2\times\T{u}}^T & 0
 	}}\cubr{\cvvect{
 		\delta\T{x}_1 \\
 		\delta\T{g}_1 \\
@@ -3361,9 +3361,9 @@ Linearization:
 	}} & \nonumber \\
 	\mbox{} = \cubr{\cvvect{
 		\alpha \T{u} \\
-		\alpha \T{f}_1\times\T{u} \\
+		\alpha \T{b}_1\times\T{u} \\
 		-\alpha \T{u} \\
-		-\alpha \T{f}_2\times\T{u} \\
+		-\alpha \T{b}_2\times\T{u} \\
 		d\plbr{1 - \sqrt{\T{u}^T \T{u}}}
 	}} &
 \end{align}
@@ -3375,13 +3375,13 @@ Forces:
 \begin{subequations}
 \begin{align}
 	\dot{\T{F}}_1 &= \alpha \dot{\T{u}} + \dot{\alpha} \T{u} \\
-	\dot{\T{M}}_1 &= \alpha \plbr{\T{\omega}_1\times\T{f}_1} \times \T{u} 
-		+ \alpha \T{f}_1 \times \dot{\T{u}}
-		+ \dot{\alpha} \T{f}_1 \times \T{u} \\
+	\dot{\T{M}}_1 &= \alpha \plbr{\T{\omega}_1\times\T{b}_1} \times \T{u} 
+		+ \alpha \T{b}_1 \times \dot{\T{u}}
+		+ \dot{\alpha} \T{b}_1 \times \T{u} \\
 	\dot{\T{F}}_2 &= -\alpha \dot{\T{u}} - \dot{\alpha} \T{u} \\
-	\dot{\T{M}}_2 &= -\alpha \plbr{\T{\omega}_2 \times\T{f}_2} \times \T{u}
-		- \alpha \T{f}_2 \times \dot{\T{u}}
-		- \dot{\alpha} \T{f}_2 \times \T{u}
+	\dot{\T{M}}_2 &= -\alpha \plbr{\T{\omega}_2 \times\T{b}_2} \times \T{u}
+		- \alpha \T{b}_2 \times \dot{\T{u}}
+		- \dot{\alpha} \T{b}_2 \times \T{u}
 \end{align}
 \end{subequations}
 Linearization: TODO\copyright.
@@ -3407,13 +3407,13 @@ It is implemented in files
 
 \paragraph{Joint data.} \
 \begin{equation}
-	\tilde{\T{f}}_1, \tilde{\T{f}}_2
+	\tilde{\T{b}}_1, \tilde{\T{b}}_2
 \end{equation}
 where:
 
 \noindent
 \begin{tabular}{ll}
-$\tilde{\T{f}}_1$, $\tilde{\T{f}}_2$ & offset of connection point from nodes 1, 2 in node reference; \\
+$\tilde{\T{b}}_1$, $\tilde{\T{b}}_2$ & offset of connection point from nodes 1, 2 in node reference; \\
 \end{tabular}
 
 \noindent
@@ -3425,7 +3425,7 @@ in Equation~(\ref{eq:derivatives:dcoef}).
 %See \ref{sec:}.
 } by \texttt{dCoef})
 \begin{equation}
-	\plbr{\T{x}_2 + \T{f}_2} - \plbr{\T{x}_1 + \T{f}_1} = \T{0}
+	\plbr{\T{x}_2 + \T{b}_2} - \plbr{\T{x}_1 + \T{b}_1} = \T{0}
 \end{equation}
 where:
 
@@ -3433,7 +3433,7 @@ where:
 \begin{tabular}{ll}
 $\T{x}_1$, $\T{x}_2$ & position of nodes 1, 2; \\
 $\T{R}_1$, $\T{R}_2$ & orientation of nodes 1, 2.\\
-$\T{f}_1 = \T{R}_1 \tilde{\T{f}}_1$, $\T{f}_2 = \T{R}_2 \tilde{\T{f}}_2$ & offset of connection point from nodes 1, 2 in global frame
+$\T{b}_1 = \T{R}_1 \tilde{\T{b}}_1$, $\T{b}_2 = \T{R}_2 \tilde{\T{b}}_2$ & offset of connection point from nodes 1, 2 in global frame
 \end{tabular}
 
 \noindent
