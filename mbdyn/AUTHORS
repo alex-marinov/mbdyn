@@ -133,6 +133,9 @@ Reinhard Resch, as an independent user, provided selected improvements,
 Louis Gagnon, as an independent user, developed the wheel4 module
 	during a stage at Politecnico di Milano
 
+Andrea Zanoni, as an undergrad, contributed to inverse dynamics
+	of underdetermined systems and muscle modeling
+
 Matteo Fancello, as an undergrad, contributed the continuous contact module
 	and is currently integrating MBDyn with INRIA's Siconos
 
