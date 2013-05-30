@@ -28,7 +28,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-# usage: awk -f mbdyn_ref2log.awk [-v rot={euler123|euler313|euler321|phi|mat}] INPUT_FILE
+# usage: awk -f mbdyn_ref2log.awk [-v rot={euler123|euler313|euler321|phi|mat}] [-v ref_prefix=PREFIX] INPUT_FILE
 #
 # INPUT_FILE is a .rfm file
 
@@ -42,7 +42,7 @@ BEGIN {
 }
 
 {
-	printf "structural node: %s %s %s %s %s %s %s %s", $1, $2, $3, $4, rot, $5, $6, $7;
+	printf "structural node: %s%s %s %s %s %s %s %s %s", ref_prefix, $1, $2, $3, $4, rot, $5, $6, $7;
 	if (rot == "mat") {
 		printf " %s %s %s %s %s %s", $8, $9, $10, $11, $12, $13;
 	}
