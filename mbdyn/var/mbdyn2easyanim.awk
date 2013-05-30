@@ -360,6 +360,9 @@ BEGIN {
 	edgeprop_add("totaljoint_offset", 10, .5);
 	edgeprop_add("beam_edge", 14, 1.);
 	edgeprop_add("beam_offset", 12, .5);
+	edgeprop_add("triad_x", 4, 1.);
+	edgeprop_add("triad_y", 2, 1.);
+	edgeprop_add("triad_z", 1, 1.);
 
 	# side props
 	sideprop_add("shell", 12);
@@ -415,6 +418,16 @@ isvan == 0 && /^structural node:/ {
 
 	if (!exclude["structural node", $3]) {
 		node_absolute_add($3, $4, $5, $6, "default");
+
+		if (triad_length > 0.) {
+			node_add("triad_x_" $3, $3, triad_length, 0., 0., "hide");
+			node_add("triad_y_" $3, $3, 0., triad_length, 0., "hide");
+			node_add("triad_z_" $3, $3, 0., 0., triad_length, "hide");
+
+			edge_add("triad_x_" $3, $3, "triad_x_" $3, "triad_x");
+			edge_add("triad_y_" $3, $3, "triad_y_" $3, "triad_y");
+			edge_add("triad_z_" $3, $3, "triad_z_" $3, "triad_z");
+		}
 	}
 }
 
