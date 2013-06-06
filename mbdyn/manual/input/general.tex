@@ -2533,7 +2533,12 @@ The function
         [ , \kw{seed} , \{ \kw{time} | \bnt{seed_value} \} ]
 \end{Verbatim}
 %\end{verbatim}
-the first optional entry, \nt{steps\_to\_hold\_value},
+Generates pseudo-random numbers using the \texttt{rand(3)} call
+of the C standard library.
+Numbers are uniformly distributed in the interval
+$[\nt{mean\_value} - \nt{amplitude\_value}, \nt{mean\_value} + \nt{amplitude\_value})$.
+
+The first optional entry, \nt{steps\_to\_hold\_value},
 preceded by the keyword \kw{steps}, sets the
 number of steps a random value must be held before generating a new
 random number.
