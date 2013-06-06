@@ -1,6 +1,6 @@
 # $Header$
 
-module load: "./libmodule-imu.so";
+module load: "libmodule-imu";
 
 begin: data;
 	integrator: multistep;
@@ -34,6 +34,7 @@ begin: control data;
 	;
 	forces: 1;
 	loadable elements: 1;
+	output elements: 1;
 
 	skip initial joint assembly;
 end: control data;
@@ -82,5 +83,19 @@ begin: elements;
 		position, 1., 0., 0.,
 		orientation, eye,
 		output, yes;
+
+	stream output: 1,
+                stream name, "IMUOUT",
+                create, yes,
+                path, "./mbdyn.imu.sock",
+		no signal,
+                values, 6,
+                        drive, element, 1, loadable, string, "wx", direct,
+                        drive, element, 1, loadable, string, "wy", direct,
+                        drive, element, 1, loadable, string, "wz", direct,
+                        drive, element, 1, loadable, string, "ax", direct,
+                        drive, element, 1, loadable, string, "ay", direct,
+                        drive, element, 1, loadable, string, "az", direct;
+
 end: elements;
 
