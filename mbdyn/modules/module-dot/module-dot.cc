@@ -222,13 +222,22 @@ ModuleDOT::Output(OutputHandler& OH) const
 		DataManager::ElemContainerType::const_iterator e = m_pDM->begin(Elem::Type(Type));
 		DataManager::ElemContainerType::const_iterator e_last = m_pDM->end(Elem::Type(Type));
 		for (; e != e_last; ++e) {
+			out << "\"" << psElemNames[e->second->GetElemType()] << "(" << e->second->GetLabel() << ")\" --";
+
 			e->second->GetConnectedNodes(connectedNodes);
-			for (std::vector<const Node *>::const_iterator n = connectedNodes.begin();
-				n != connectedNodes.end(); ++n)
-			{
-				out << "\"" << psElemNames[e->second->GetElemType()] << "(" << e->second->GetLabel() << ")\""
-				       " -- "
-				       "\"" << psNodeNames[(*n)->GetNodeType()] << "(" << (*n)->GetLabel() << ")\";\n";
+
+			if (connectedNodes.size() == 1) {
+				out << " \"" << psNodeNames[connectedNodes[0]->GetNodeType()]
+					<< "(" << connectedNodes[0]->GetLabel() << ")\";\n";
+
+			} else {
+				std::vector<const Node *>::const_iterator n = connectedNodes.begin();
+				out << " {\"" << psNodeNames[(*n)->GetNodeType()]
+					<< "(" << (*n)->GetLabel() << ")\"";
+				for ( ++n; n != connectedNodes.end(); ++n) {
+					out << " \"" << psNodeNames[(*n)->GetNodeType()] << "(" << (*n)->GetLabel() << ")\"";
+				}
+				out << "};\n";
 			}
 		}
 	}
