@@ -39,28 +39,28 @@
 
 #include "preselem.h"
 
-/* Minor_loss - begin */
+/* MinorLoss - begin */
 
-class Minor_loss : virtual public Elem, public HydraulicElem {
+class MinorLoss : virtual public Elem, public HydraulicElem {
  private:
-   const PressureNode* pNode1;
-   const PressureNode* pNode2;
+   const PressureNode* m_pNode1;
+   const PressureNode* m_pNode2;
    
-   doublereal dKappa1;
-   doublereal dKappa2;
-   doublereal area;
+   doublereal m_dKappa12;
+   doublereal m_dKappa21;
+   doublereal m_Area;
 
    doublereal flow;  /* utilizzato per l'output */
    doublereal vel;   /* utilizzato per l'output */
-   doublereal dKappa;
+   doublereal m_dKappa;
  
  public:
-   Minor_loss(unsigned int uL, const DofOwner* pD,
+   MinorLoss(unsigned int uL, const DofOwner* pD,
 		HydraulicFluid* hf,
 		const PressureNode* p1, const PressureNode* p2,
-		doublereal dK1,	doublereal dK2,  doublereal A, flag fOut);
+		doublereal dK12, doublereal dK21, doublereal A, flag fOut);
    
-   ~Minor_loss(void);
+   ~MinorLoss(void);
    
    /* Tipo di elemento idraulico (usato solo per debug ecc.) */
    virtual HydraulicElem::Type GetHydraulicType(void) const;
@@ -90,39 +90,39 @@ class Minor_loss : virtual public Elem, public HydraulicElem {
       utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(2);
-		connectedNodes[0] = pNode1;
-		connectedNodes[1] = pNode2;
+		connectedNodes[0] = m_pNode1;
+		connectedNodes[1] = m_pNode2;
 	};
    /* ************************************************ */
 };
 
-/* Minor_loss - end */
+/* MinorLoss - end */
 
 
 /* ThreeWayMinorLoss - begin */
 
 class ThreeWayMinorLoss : virtual public Elem, public HydraulicElem {
 private:
-	const PressureNode* pNode0;
-	const PressureNode* pNode1;
-	const PressureNode* pNode2;
-	const PressureNode* pNodeN;
+	const PressureNode* m_pNode0;
+	const PressureNode* m_pNode1;
+	const PressureNode* m_pNode2;
+	const PressureNode* m_pNodeN;
 
-	doublereal dKappa1;
-	doublereal dKappa2;
-	doublereal area1;
-	doublereal area2;
-	doublereal area;
+	doublereal m_dKappa12;
+	doublereal m_dKappa21;
+	doublereal m_Area1;
+	doublereal m_Area2;
+	doublereal m_Area;
 	
 	doublereal flow;  /* utilizzato per l'output */
 	doublereal vel;   /* utilizzato per l'output */
-	doublereal dKappa;
+	doublereal m_dKappa;
 
 public:
 	ThreeWayMinorLoss(unsigned int uL, const DofOwner* pD,
 		HydraulicFluid* hf, const PressureNode* p0,
 		const PressureNode* p1, const PressureNode* p2,
-		doublereal dK1,	doublereal dK2, 
+		doublereal dK12, doublereal dK21, 
 		doublereal A1, doublereal A2, flag fOut);
 
 	~ThreeWayMinorLoss(void);
@@ -155,9 +155,9 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
 		connectedNodes.resize(3);
-		connectedNodes[0] = pNode0;
-		connectedNodes[1] = pNode1;
-		connectedNodes[2] = pNode2;
+		connectedNodes[0] = m_pNode0;
+		connectedNodes[1] = m_pNode1;
+		connectedNodes[2] = m_pNode2;
 	};
 	/* ************************************************ */
 };
@@ -169,12 +169,12 @@ public:
 
 class Orifice : virtual public Elem, public HydraulicElem {
  private:
-   const PressureNode* pNode1;
-   const PressureNode* pNode2;
+   const PressureNode* m_pNode1;
+   const PressureNode* m_pNode2;
    doublereal diameter;
    doublereal viscosity;
-   doublereal area_diaf;
-   doublereal area_pipe;
+   doublereal m_Area_diaf;
+   doublereal m_Area_pipe;
    doublereal ReCr;
   
    doublereal CriticJump;
@@ -222,8 +222,8 @@ class Orifice : virtual public Elem, public HydraulicElem {
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
      connectedNodes.resize(2);
-     connectedNodes[0] = pNode1;
-     connectedNodes[1] = pNode2;
+     connectedNodes[0] = m_pNode1;
+     connectedNodes[1] = m_pNode2;
    };
    /* ************************************************ */
 };

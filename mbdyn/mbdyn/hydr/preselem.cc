@@ -286,8 +286,8 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        flag fOut = pDM->fReadOutput(HP, Elem::HYDRAULIC);
        
        SAFENEWWITHCONSTRUCTOR(pEl, 
-			      Minor_loss,
-                              Minor_loss(uLabel, pDO, hf, pNode1, pNode2, 
+			      MinorLoss,
+                              MinorLoss(uLabel, pDO, hf, pNode1, pNode2, 
 					 dKappa1, dKappa2, area, fOut));
        
        break;

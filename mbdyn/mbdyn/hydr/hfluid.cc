@@ -129,8 +129,8 @@ ReadHydraulicFluid(MBDynParser& HP,
        }       
        
        SAFENEWWITHCONSTRUCTOR(pHF,
-			      UncompressibleHydraulicFluid,
-			      UncompressibleHydraulicFluid(uLabel, 
+			      IncompressibleHydraulicFluid,
+			      IncompressibleHydraulicFluid(uLabel, 
 							   dDensity, 
 							   dViscosity,
 							   dPres0,

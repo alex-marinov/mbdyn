@@ -39,15 +39,15 @@
 
 #include <hfluid.h>
 
-/* UncompressibleHydraulicFluid - begin */
+/* IncompressibleHydraulicFluid - begin */
 
-class UncompressibleHydraulicFluid : public HydraulicFluid {
+class IncompressibleHydraulicFluid : public HydraulicFluid {
  protected:
    const doublereal dDensity;
    const doublereal dViscosity;
    
  public:
-   UncompressibleHydraulicFluid(unsigned int Label, 
+   IncompressibleHydraulicFluid(unsigned int Label, 
 				const doublereal& dDensity,
 				const doublereal& dViscosity = 0.,
 				const doublereal& dPres0 = -1.,
@@ -56,13 +56,13 @@ class UncompressibleHydraulicFluid : public HydraulicFluid {
      dDensity(dDensity), dViscosity(dViscosity) {
 	NO_OP;
      };
-   UncompressibleHydraulicFluid(const UncompressibleHydraulicFluid& HF)
+   IncompressibleHydraulicFluid(const IncompressibleHydraulicFluid& HF)
      : HydraulicFluid(HF), 
      dDensity(HF.dDensity), dViscosity(HF.dViscosity) {
 	NO_OP;
      };
    
-   ~UncompressibleHydraulicFluid() {
+   ~IncompressibleHydraulicFluid() {
       NO_OP;
    };
    
@@ -70,8 +70,8 @@ class UncompressibleHydraulicFluid : public HydraulicFluid {
    HydraulicFluid* pCopy(void) const {
       HydraulicFluid* pHF = NULL;
       SAFENEWWITHCONSTRUCTOR(pHF, 
-			     UncompressibleHydraulicFluid,
-			     UncompressibleHydraulicFluid(*this));
+			     IncompressibleHydraulicFluid,
+			     IncompressibleHydraulicFluid(*this));
       return pHF;
    };
    
@@ -118,7 +118,7 @@ class UncompressibleHydraulicFluid : public HydraulicFluid {
    };   
 };
 
-/* UncompressibleHydraulicFluid - end */
+/* IncompressibleHydraulicFluid - end */
 
 
 /* LinearCompressibleHydraulicFluid - begin */
