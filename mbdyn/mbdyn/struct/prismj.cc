@@ -487,17 +487,17 @@ PrismaticJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    for (int iCnt = 1; iCnt <= 3; iCnt++) {
       doublereal d = v1(iCnt);
       WM.PutCoef(16, 0+iCnt, d);
-      d = v1p.dGet(iCnt);
+      d = v1p(iCnt);
       WM.PutCoef(16, 6+iCnt, d);
 
       d = v2(iCnt);
       WM.PutCoef(17, 0+iCnt, d);
-      d = v2p.dGet(iCnt);
+      d = v2p(iCnt);
       WM.PutCoef(17, 6+iCnt, d);
       
       d = v3(iCnt);
       WM.PutCoef(18, 0+iCnt, d);
-      d = v3p.dGet(iCnt);
+      d = v3p(iCnt);
       WM.PutCoef(18, 6+iCnt, d);
    }    
    
@@ -559,9 +559,9 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    Vec3 e2b(R2hTmp.GetVec(2));  
    Vec3 e3b(R2hTmp.GetVec(3));  
    
-   Vec3 MTmp(e2a.Cross(e3b*M.dGet(1))
-	     +e3a.Cross(e1b*M.dGet(2))
-	     +e1a.Cross(e2b*M.dGet(3)));
+   Vec3 MTmp(e2a.Cross(e3b*M(1))
+	     +e3a.Cross(e1b*M(2))
+	     +e1a.Cross(e2b*M(3)));
    
    /* Equazioni di equilibrio, nodo 1 */
    WorkVec.Add(1, -MTmp);
@@ -570,12 +570,12 @@ PrismaticJoint::InitialAssRes(SubVectorHandler& WorkVec,
    WorkVec.Add(7, MTmp);
    
    MTmp = 
-     (e2a.Cross(Omega2.Cross(e3b))-e3b.Cross(Omega1.Cross(e2a)))*M.dGet(1)
-     +(e3a.Cross(Omega2.Cross(e1b))-e1b.Cross(Omega1.Cross(e3a)))*M.dGet(1)
-     +(e1a.Cross(Omega2.Cross(e2b))-e2b.Cross(Omega1.Cross(e1a)))*M.dGet(1)
-     +e2a.Cross(e3b*MPrime.dGet(1))
-     +e3a.Cross(e1b*MPrime.dGet(2))
-     +e1a.Cross(e2b*MPrime.dGet(3));   
+     (e2a.Cross(Omega2.Cross(e3b)) - e3b.Cross(Omega1.Cross(e2a)))*M(1)
+     +(e3a.Cross(Omega2.Cross(e1b)) - e1b.Cross(Omega1.Cross(e3a)))*M(2)
+     +(e1a.Cross(Omega2.Cross(e2b)) - e2b.Cross(Omega1.Cross(e1a)))*M(3)
+     +e2a.Cross(e3b*MPrime(1))
+     +e3a.Cross(e1b*MPrime(2))
+     +e1a.Cross(e2b*MPrime(3));   
 
    /* Derivate delle equazioni di equilibrio, nodo 1 */
    WorkVec.Add(4, -MTmp);
