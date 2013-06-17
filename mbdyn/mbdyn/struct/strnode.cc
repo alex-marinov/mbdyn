@@ -2092,6 +2092,14 @@ StructNode::SetValue(DataManager *pDM,
 		RPrev = RCurr;
 		VPrev = VCurr;
 		WPrev = WCurr;
+		// Without the next line the Jacobian matrix of most elements
+		// will be incorrect during the initial derivatives calculation
+		// if RCurr has been changed during initial assembly!
+		// The reason is, that most elements assume that
+		// 		RCurr = RDelta * RRef
+		// and not RCurr = RDelta * RPrev
+		RRef = RCurr;
+		WRef = WCurr;
 	}
 
 	integer iFirstIndex = iGetFirstIndex();
@@ -2323,6 +2331,7 @@ StructNode::AfterConvergence(const VectorHandler& X,
 	gRef = Vec3(X, iFirstIndex + 4);
 	gCurr = Zero3;
 	RRef = RCurr;
+	WRef = WCurr;
 
 	XPrev = XCurr;
 	RPrev = RCurr;

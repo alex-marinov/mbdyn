@@ -27,6 +27,8 @@ MBDyn 1.X-Devel
 		- fixed rotor radius in module-aerodyn (Jens van Schelve)
 		- fixed redeclaration without definition of already defined
 		  ifndef vars
+		- fixed reference orientation reset after initial assembly
+		  (Reinhard Resch)
 
 MBDyn 1.5.5
 	Enhancements:
