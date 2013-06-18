@@ -159,15 +159,15 @@ public:
 
 				switch (m_type) {
 				case CC_FLORES_ET_AL:
-					m_dDissCoef = 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol)  * 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
 					break;
 
 				case CC_HUNT_CROSSLEY:
-					m_dDissCoef = 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol)  * 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
 					break;
 
 				case CC_LANKARANI_NIKRAVESH:
-					m_dDissCoef =  m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
+					m_dDissCoef =  (std::abs(xp) > m_dInitialEpsPrimeTol)  * m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
 					break;
 				}
 			}
