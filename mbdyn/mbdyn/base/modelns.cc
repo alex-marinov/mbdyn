@@ -711,6 +711,7 @@ angvrel(const MathParser::MathArgs& args)
 /*
  * Computes the value of a drive
  */
+template <bool p>
 static int
 drive(const MathParser::MathArgs& args)
 {
@@ -743,7 +744,18 @@ drive(const MathParser::MathArgs& args)
 	}
 
 	doublereal val = (*arg2)();
-	*out = pDC->dGet(val);
+	if (p) {
+		if (!pDC->bIsDifferentiable()) {
+			silent_cerr("model::drivep(" << uLabel << ") not differentiable"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		*out = pDC->dGetP(val);
+
+	} else {
+		*out = pDC->dGet(val);
+	}
 
 	return 0;
 }
@@ -2401,7 +2413,25 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgReal_t;
 	f->args[3] = new MathArgDM;
-	f->f = drive;
+	f->f = drive<false>;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("model namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// drivep
+	f = new MathParser::MathFunc_t;
+	f->fname = "drivep";
+	f->args.resize(1 + 2 + 1);
+	f->args[0] = new MathParser::MathArgReal_t;
+	f->args[1] = new MathParser::MathArgInt_t;
+	f->args[2] = new MathParser::MathArgReal_t;
+	f->args[3] = new MathArgDM;
+	f->f = drive<true>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {

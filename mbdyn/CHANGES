@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added explicit cast to math parser
 		- added loads fade in in module-aerodyn
 		  (Jens van Schelve, Patrick Rix)
+		- added "drivep" (derivative) function to model namespace
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change

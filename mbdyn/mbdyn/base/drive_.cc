@@ -2439,7 +2439,7 @@ NodeDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	/* Type(Label) */
 	std::ostringstream os;
-	os << psElemNames[Elem::Type(k)] << "(" << uLabel << ")";
+	os << psNodeNames[Elem::Type(k)] << "(" << uLabel << ")";
 
 	const Node *pNode = pDM->pFindNode(Node::Type(k), uLabel);
 	if (pNode == 0) {
