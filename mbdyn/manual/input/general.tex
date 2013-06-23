@@ -485,7 +485,7 @@ at the previous, just completed time step.
 				indicated by its label (the first argument)
 				for the input specified as second argument \\
 		\kw{sf}\texttt{::}\bnt{name}	& Real	& Real, (opt)Integer	&
-				evaluates the \htmlref{\kw{scalar function}}{sec:SCALARFUNCS}
+				evaluates the \htmlref{\kw{scalar function}}{sec:ScalarFunction}
 				\nt{name} for the input specified as argument (value, optional derivative order) \\
 		\kw{node}\texttt{::}\bnt{type} & Real & Integer, String	&
 				evaluates a private datum of a node (label, string) \\
@@ -658,7 +658,9 @@ mathematical expression.
 This is useful to rescale structure values by reassigning the value 
 of the scale factor.
 The main data structures are:
-\subsection{$3 \times 1$ vectors}
+\subsection{$3 \times 1$ Vector}
+\label{sec:Vec3}
+Implements the type \ty{Vec3}.
 \begin{enumerate}
     \item general case: a sequence of 3 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialized
@@ -678,13 +680,17 @@ The following rescales an arbitrary vector
     cos(pi/3.),0.,sin(pi/3.), scale, 100.
 \end{verbatim}
 
-\subsection{$6 \times 1$ vectors}
+\subsection{$6 \times 1$ Vector}
+\label{sec:Vec6}
+Implements the type \ty{Vec6}.
 \begin{enumerate}
     \item general case: a sequence of 6 reals, comma-separated.
     \item null vector: keyword \kw{null}; the vector is initialized 
     with zeros.	
 \end{enumerate}
-\subsection{$3 \times 3$ matrices}
+\subsection{$3 \times 3$ Matrix}
+\label{sec:Mat3x3}
+Implements the type \ty{Mat3x3}.
 \begin{enumerate}
     \item general case: a sequence of 9 reals, comma-separated, which
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -782,7 +788,9 @@ non-parallel vectors.}
 \label{fig:general:orientation-matrices:MatR2vec}
 \end{figure}
 
-\subsection{$3 \times 3$ orientation matrices}
+\subsection{($3 \times 3$) Orientation Matrix}
+\label{sec:OrientationMatrix}
+Implements the type \ty{OrientationMatrix}.
 \begin{enumerate}
 \item general case: two vectors that define an orthonormal reference
 system, each of them preceded by its index in the final orientation matrix.
@@ -879,7 +887,9 @@ The resulting matrix is computed as
 \end{equation}
 \end{enumerate}
 
-\subsection{$6 \times 6$ matrices}
+\subsection{$6 \times 6$ Matrix}
+\label{sec:Mat6x6}
+Implements the type \ty{Mat6x6}.
 \begin{enumerate}
     \item general case: a sequence of 36 reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -914,7 +924,9 @@ The resulting matrix is computed as
     \item null matrix: keyword \kw{null}; the matrix is initialized 
     with zeros.
 \end{enumerate}
-\subsection{$6 \times N$ matrices}
+\subsection{$6 \times N$ Matrix}
+\label{sec:Mat6xN}
+Implements the type \ty{Mat6xN}.
 \begin{enumerate}
     \item general case: a sequence of $6 \times N$ reals, comma-separated, that
     represent the row-oriented coefficients $ a_{11} $, $ a_{12}$ ,
@@ -950,13 +962,13 @@ They are:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{constitutive law} : \bnt{label} ,
         [ \kw{name} , " \bnt{name} " , ]
-        \bnt{dim} , (\ty{ConstitutiveLaw}\bnt{dim}\ty{D}) \bnt{constitutive_law} ;
+        \bnt{dim} , (\htmlref{\ty{ConstitutiveLaw}<\bnt{dim}\kw{D}>}{sec:ConstitutiveLaw}) \bnt{constitutive_law} ;
 \end{Verbatim}
 %\end{verbatim}
 Constitutive laws are grouped by their dimensionality \nt{dim},
 which (up to now) can be any of 1, 3 and 6.
 The \nt{constitutive\_law} is parsed according to the rules
-described in Section~\ref{sec:CONSTITUTIVE-LAWS},
+described in Section~\ref{sec:ConstitutiveLaw},
 and can be referenced later when it needs to be used.
 
 
@@ -1128,18 +1140,18 @@ The \kw{drive caller} directive
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{drive caller} : \bnt{label} ,
         [ \kw{name} , " \bnt{name} " , ]
-        (\ty{DriveCaller}) \bnt{drive_caller} ;
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} ;
 \end{Verbatim}
 %\end{verbatim}
 allows to define
-a \hyperref{\kw{drive caller}}{\kw{drive caller} (see Section~}{)}{sec:DRIVE}
+a \hyperref{\kw{drive caller}}{\kw{drive caller} (see Section~}{)}{sec:DriveCaller}
 that can be subsequently reused.
 It is useful essentially in two cases:
 \begin{enumerate}
 	\renewcommand{\labelenumi}{\alph{enumi})}
-	\item to define a \htmlref{\kw{drive}}{sec:DRIVE}
+	\item to define a \htmlref{\kw{drive}}{sec:DriveCaller}
 	that will be used many times throughout a model;
-	\item to define a \htmlref{\kw{drive}}{sec:DRIVE} 
+	\item to define a \htmlref{\kw{drive}}{sec:DriveCaller} 
 	that needs to be used in a later defined part of a model, 
 	in order to make it parametric.
 \end{enumerate}
@@ -1158,7 +1170,7 @@ allows to define a hydraulic fluid to be later used in hydraulic elements,
 see Section~\ref{sec:EL:HYDR}.
 The fluid is identified by the \nt{label}. 
 The \nt{fluid\_type}s, with the related \nt{fluid\_properties}, are
-described in \ref{sec:HYDRAULIC-FLUID-DATA}
+described in \ref{sec:HydraulicFluid}
 
 
 
@@ -1216,7 +1228,7 @@ with prototype
 \begin{Verbatim}[commandchars=\\\{\}]
         \textcolor{green}{extern} \textcolor{red}{"C"} \textcolor{green}{int}
         module_init(\textcolor{green}{const char} *module_name,
-                \textcolor{green}{void} *data_manager, \textcolor{green}{void}* mbdyn_parser);
+                \textcolor{green}{void} *data_manager, \textcolor{green}{void} *mbdyn_parser);
 \end{Verbatim}
 %\end{verbatim}
 to be executed.
@@ -1285,10 +1297,10 @@ The \kw{reference} directive:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
-        (\ty{Vec3}) \bnt{absolute_position} ,
-        (\ty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
-        (\ty{Vec3}) \bnt{absolute_velocity} ,
-        (\ty{Vec3}) \bnt{absolute_angular_velocity} ;
+        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_position} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_velocity} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_angular_velocity} ;
 \end{Verbatim}
 %\end{verbatim}
 A \kw{reference} system is declared and defined.
@@ -1665,8 +1677,8 @@ man pages for details.
 The \kw{template drive caller} directive
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{template drive caller} : \bnt{label} , \{ " \bnt{dim_name} " | (\ty{int}) \bnt{dim} \} ,
-        (\ty{TplDriveCaller<Entity>}) \bnt{tpl_drive_caller} ;
+    \bnt{card} ::= \kw{template drive caller} : \bnt{label} , \{ " \bnt{dim_name} " | (\ty{integer}) \bnt{dim} \} ,
+        (\htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}) \bnt{tpl_drive_caller} ;
 
     \bnt{dim_name} ::= \{ \kw{1} | \kw{3} | \kw{6} | \kw{3x3} | \kw{6x6} \}
 
@@ -1674,7 +1686,7 @@ The \kw{template drive caller} directive
 \end{Verbatim}
 %\end{verbatim}
 allows to define
-a \hyperref{\kw{template drive caller}}{\kw{template drive caller} (see Section~}{)}{sec:TPL-DRIVE}
+a \hyperref{\kw{template drive caller}}{\kw{template drive caller} (see Section~}{)}{sec:TplDriveCaller}
 that can be subsequently reused.
 The type is defined according to
 \begin{center}
@@ -1682,20 +1694,20 @@ The type is defined according to
 \hline
 \ty{Entity} & \nt{dim\_name} & \nt{dim} \\
 \hline
-\ty{doublereal} & \kw{1} & \kw{1} \\
-\ty{Vec3}	& \kw{3} & \kw{3} \\
-\ty{Vec6}	& \kw{6} & \kw{6} \\
-\ty{Mat3x3}	& \kw{3x3} & \\
-\ty{Mat6x6}	& \kw{6x6} & \\
+\ty{real}				& \kw{1} & \kw{1} \\
+\htmlref{\ty{Vec3}}{sec:Vec3}		& \kw{3} & \kw{3} \\
+\htmlref{\ty{Vec6}}{sec:Vec6}		& \kw{6} & \kw{6} \\
+\htmlref{\ty{Mat3x3}}{sec:Mat3x3}	& \kw{3x3} & \\
+\htmlref{\ty{Mat6x6}}{sec:Mat6x6}	& \kw{6x6} & \\
 \hline
 \end{tabular}
 \end{center}
 Template drive callers are useful essentially in two cases:
 \begin{enumerate}
 	\renewcommand{\labelenumi}{\alph{enumi})}
-	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE}
+	\item to define a \htmlref{\kw{template drive}}{sec:TplDriveCaller}
 	that will be used many times throughout a model;
-	\item to define a \htmlref{\kw{template drive}}{sec:TPL-DRIVE} 
+	\item to define a \htmlref{\kw{template drive}}{sec:TplDriveCaller} 
 	that needs to be used in part of a model that is defined later, 
 	in order to make it parametric.
 \end{enumerate}
@@ -1705,7 +1717,7 @@ Template drive callers are useful essentially in two cases:
 
 
 
-\section{Node Degrees of Freedom}\label{sec:NODEDOF}
+\section{Node Degrees of Freedom}\label{sec:NodeDof}
 A node in MBDyn is an entity that owns public degrees of freedom
 and instantiates the corresponding public equations.
 It can lend them to other entities, called elements, to let them write
@@ -1719,7 +1731,7 @@ at a very low level, with the bare knowledge of the node label,
 the node type, the internal number of the degree of freedom,
 and the order of that degree of freedom (algebraic or differential, if any).
 The data that allows an entity to track a nodal degree of freedom
-is called \ty{NodeDof}; it is read according to
+is called \htmlref{\ty{NodeDof}}{sec:NodeDof}; it is read according to
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{node_dof} :: = \bnt{node_label} , 
@@ -1760,10 +1772,11 @@ and thus this field is not required.
 
 
 
-\section{Drives and Drive Callers}\label{sec:DRIVE}
+\section{Drives and Drive Callers}\label{sec:DriveCaller}
+Implements the type \htmlref{\ty{DriveCaller}}{sec:DriveCaller}.
 Every time some entity can be ``driven'', i.e.\ a value can be
 expressed as dependent on some ``external'' input, an object of the class 
-\ty{DriveCaller} is used. 
+\htmlref{\ty{DriveCaller}}{sec:DriveCaller} is used. 
 The \kw{drive} essentially represents a scalar function, whose
 value can change over time or, through some more sophisticated
 means, can depend on the state of the analysis.
@@ -1774,15 +1787,15 @@ For example, the amplitude of the force applied by a
 is defined by means of a \kw{drive}; as such, the value of the \kw{drive} 
 is implicitly calculated as a function of the time.
 However, a 
-\hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DRIVE:DOF}
+\hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DriveCaller:DOF}
 uses a subordinate \kw{drive} to compute its value based on the value
 of a degree of freedom of the analysis; as a consequence,
 the value of the \kw{dof drive} is represented by the
 value of the subordinate \kw{drive} when evaluated as a function
 of that specific degree of freedom at the desired time (function of function).
 
-The family of the \ty{DriveCaller} object is very large.
-The type of the \ty{DriveCaller} is declared as
+The family of the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} object is very large.
+The type of the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::=
@@ -1792,7 +1805,7 @@ The type of the \ty{DriveCaller} is declared as
 %\end{verbatim}    
 where \nt{arglist}, if any, is a comma-separated list of arguments
 that depends on \nt{drive\_caller\_type}.
-As an exception, a constant \ty{DriveCaller} (that behaves exactly as a
+As an exception, a constant \htmlref{\ty{DriveCaller}}{sec:DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
 of a keyword.
@@ -1856,7 +1869,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{array} ,
         \bnt{num_drives} ,
-            (\ty{DriveCaller}) \bnt{drive_caller}
+            (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller}
             [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -1867,13 +1880,13 @@ is created and at every call their value is added to give
 the final value of the array drive.
 
 \subsection{Closest next drive}
-\label{sec:DRIVE:CLOSEST_NEXT}
+\label{sec:DriveCaller:CLOSEST_NEXT}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{closest next} ,
         \bnt{initial_time} ,
         \{ \kw{forever} | \bnt{final_time} \} ,
-        (\ty{DriveCaller}) \bnt{increment}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{increment}
 \end{Verbatim}
 %\end{verbatim}
 This drive returns a non-zero value when called for the first time
@@ -1980,20 +1993,20 @@ that require their output to be fed into another drive caller,
 like the \kw{dof}, \kw{node} and \kw{element}
 drive callers, when the output needs to be used as is.
 
-\subsection{Dof drive}\label{sec:DRIVE:DOF}
+\subsection{Dof drive}\label{sec:DriveCaller:DOF}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{dof} ,
-        (\ty{NodeDof}) \bnt{driving_dof} ,
-        (\ty{DriveCaller}) \bnt{func_drive}
+        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{driving_dof} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
-a \hyperref{\ty{NodeDof}}{\ty{NodeDof} (see Section~}{)}{sec:NODEDOF}, 
+a \htmlref{\ty{NodeDof}}{sec:NodeDof}, 
 namely the reference to a degree of freedom of a node, is read. 
 Then a recursive call to a drive data is read. 
 The driver returns the value of the \nt{func\_drive} 
-\htmlref{\kw{drive}}{sec:DRIVE} using the value of the 
-\htmlref{\ty{NodeDof}}{sec:NODEDOF} as input instead of the time. 
+\htmlref{\kw{drive}}{sec:DriveCaller} using the value of the 
+\htmlref{\ty{NodeDof}}{sec:NodeDof} as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
 of the node it is applied to) or an active control system; e.g.:
@@ -2011,7 +2024,7 @@ and unit linear coefficient, while
 uses the value of the derivative of abstract node 1000 in computing 
 a string expression.
 Refer to the description of a 
-\hyperref{\ty{NodeDof}}{\ty{NodeDof} (see Section~}{)}{sec:NODEDOF}
+\htmlref{\ty{NodeDof}}{sec:NodeDof}
 entry for further details.
 
 The same effect can be obtained using the \kw{dof} plugin as follows:
@@ -2097,8 +2110,8 @@ The function
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{drive} ,
-        (\ty{DriveCaller}) \bnt{drive_caller1} , 
-        (\ty{DriveCaller}) \bnt{drive_caller2}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller1} , 
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller2}
 \end{Verbatim}
 %\end{verbatim}
 This is simply a ``function of function'' drive: the output 
@@ -2127,14 +2140,14 @@ is equivalent to
         string, "v=sin(5.*2*pi*Time); 10.*v*(v>0)";
 \end{verbatim}
 
-\subsection{Element drive}\label{sec:DRIVE:ELEMENT}
+\subsection{Element drive}\label{sec:DriveCaller:ELEMENT}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{element} ,
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
-        (\ty{DriveCaller}) \bnt{func_drive}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of an element is read.
@@ -2147,7 +2160,7 @@ If that element allows only one private data, the specification
 can be omitted.
 Then a recursive call to a drive data is read. 
 The driver returns the value of the \nt{func\_drive} 
-\htmlref{\kw{drive}}{sec:DRIVE} using the value of the 
+\htmlref{\kw{drive}}{sec:DriveCaller} using the value of the 
 element's private data as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the rotation
@@ -2215,8 +2228,8 @@ yields a function identical to the response of the system
 \end{align}
 to a step input occurring at time $t=5.0$ with amplitude $A=10.0$.
 
-\subsection{File drive}\label{sec:DRIVE:FILE}
-The \ty{DriveCaller} is attached to a file drive object that must be declared
+\subsection{File drive}\label{sec:DriveCaller:FILE}
+The \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is attached to a file drive object that must be declared
 and defined in the \htmlref{\kw{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
 As a consequence, \kw{file} drive callers can only be instantiated
@@ -2230,9 +2243,9 @@ of the input file.
         [ , \kw{amplitude} , \bnt{amplitude} ]
 \end{Verbatim}
 %\end{verbatim}
-\nt{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DRIVE} 
-the \ty{DriveCaller} is attached to, while
-\nt{column\_number} is the number of the column the \ty{DriveCaller}
+\nt{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DriveCaller} 
+the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is attached to, while
+\nt{column\_number} is the number of the column the \htmlref{\ty{DriveCaller}}{sec:DriveCaller}
 refers to (defaults to 1).
 An additional scaling factor \kw{amplitude} can be used to rescale
 the drive value (defaults to 1.0).
@@ -2282,8 +2295,8 @@ the \nt{number\_of\_terms} must be at least 1.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{frequency sweep} ,
         \bnt{initial_time} ,
-        (\ty{DriveCaller}) \bnt{angular_velocity_drive} ,
-        (\ty{DriveCaller}) \bnt{amplitude_drive} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{angular_velocity_drive} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{amplitude_drive} ,
         \bnt{initial_value} ,
         \{ \kw{forever} | \bnt{final_time} \} ,
         \bnt{final_value}
@@ -2313,7 +2326,7 @@ and the amplitude of the oscillation. Any drive can be used.
 	}}
 \end{align}
 
-\subsection{GiNaC}\label{sec:DRIVE:GINAC}
+\subsection{GiNaC}\label{sec:DriveCaller:GINAC}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{ginac} ,
@@ -2334,7 +2347,7 @@ Not to be confused with the \kw{string} drive caller.
     ..., ginac, symbol, "x", "10*log(1 + x)" ...
 \end{verbatim}
 
-\subsection{Linear drive}\label{sec:DRIVE:LINEAR}
+\subsection{Linear drive}\label{sec:DriveCaller:LINEAR}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{linear} ,
@@ -2374,20 +2387,20 @@ The \kw{mult} drive multiplies the value of two subordinate drives.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{mult} ,
-        (\ty{DriveCaller}) \bnt{drive\_1} ,
-        (\ty{DriveCaller}) \bnt{drive\_2}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive\_1} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive\_2}
 \end{Verbatim}
 %\end{verbatim}
 
 
-\subsection{Node drive}\label{sec:DRIVE:NODE}
+\subsection{Node drive}\label{sec:DriveCaller:NODE}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{node} ,
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
-        (\ty{DriveCaller}) \bnt{func_drive}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of a node is read.
@@ -2400,7 +2413,7 @@ If that node allows only one private data, the specification
 can be omitted.
 Then a recursive call to a drive data is read. 
 The driver returns the value of the \nt{func\_drive} 
-\htmlref{\kw{drive}}{sec:DRIVE} using the value of the 
+\htmlref{\kw{drive}}{sec:DriveCaller} using the value of the 
 node's private data as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the rotation
@@ -2413,7 +2426,7 @@ uses the value of the displacement in direction $z$ (3) of a
 \hyperref{\kw{structural node}}{\kw{structural node}, Section~}{}{sec:NODE:STRUCTURAL:PRIV},
 as is (that is, in a linear expression with null constant coefficient 
 and unit linear coefficient, see the 
-\hyperref{\kw{linear} drive}{\kw{linear} drive, Section~}{}{sec:DRIVE:LINEAR}),
+\hyperref{\kw{linear} drive}{\kw{linear} drive, Section~}{}{sec:DriveCaller:LINEAR}),
 while
 \begin{verbatim}
     ..., node, 1000, structural, index, 3,
@@ -2461,7 +2474,7 @@ The function
     \bnt{drive_caller} ::= \kw{periodic} ,
         \bnt{initial_time} ,
         \bnt{period} ,
-        (\ty{DriveCaller})\bnt{func_drive}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller})\bnt{func_drive}
 \end{Verbatim}
 The function
 \begin{align}
@@ -2555,8 +2568,8 @@ are not managed, so it is not very reliable).
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{sample and hold} ,
-        (\ty{DriveCaller}) \bnt{function} ,
-        (\ty{DriveCaller}) \bnt{trigger}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{function} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{trigger}
 	[ , \kw{initial value} , \bnt{initial_value} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -2674,7 +2687,7 @@ The function
 %\end{verbatim}
 \nt{expression\_string} is a string, delimited by double quotes.
 It is parsed by the math parser every time 
-the \htmlref{\kw{drive}}{sec:DRIVE} is invoked.
+the \htmlref{\kw{drive}}{sec:DriveCaller} is invoked.
 The variable \kw{Time} is kept up to date and can be used in the 
 string to compute the return value, e.g.:
 \begin{verbatim}
@@ -2683,7 +2696,7 @@ string to compute the return value, e.g.:
 generates a cosine modulated by an exponential.
 Another variable, \kw{Var}, is set to the value provided by the caller
 in case the drive is called with an explicit argument as, for instance,
-in the \hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DRIVE:DOF};
+in the \hyperref{\kw{dof drive}}{\kw{dof drive} (see Section~}{)}{sec:DriveCaller:DOF};
 e.g.:
 \begin{verbatim}
     ..., string, "e^(-Var)*cos(2.*pi*Time)" ...
@@ -2773,14 +2786,14 @@ by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
 In some cases, during the analysis, different entities can be reinitialized
 as a consequence of some event, typically triggered by the waking up 
 of a so-called \kw{driven} element (See Section~\ref{sec:EL:BASE:DRIVEN}).
-The \ty{DriveCaller} is re-parsed when the entity that owns it is sent
+The \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is re-parsed when the entity that owns it is sent
 a \kw{hint} of the form
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    "drive\{ (\ty{DriveCaller}) \bnt{drive_caller} \}"
+    "drive\{ (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} \}"
 \end{Verbatim}
 %\end{verbatim}
-is used, where \nt{drive\_caller} is an arbitrary \ty{DriveCaller}
+is used, where \nt{drive\_caller} is an arbitrary \htmlref{\ty{DriveCaller}}{sec:DriveCaller}
 specification.
 The whole hint argument needs to be enclosed in double quotes because MBDyn
 treats it as a string.
@@ -2827,17 +2840,17 @@ on the functions of the \kw{model} namespace.
 
 
 
-\subsection{Template Drive}\label{sec:TPL-DRIVE}
-A particular \ty{DriveCaller} is the template drive caller,
-indicated as \ty{TplDriveCaller<Entity>}.
+\subsection{Template Drive}\label{sec:TplDriveCaller}
+A particular \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is the template drive caller,
+indicated as \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}.
 It basically consists in a drive with dimensionality other than scalar.
 %Typically, it is made of a constant entity, with the dimensionality
 %of \nt{type}, that multiplies a conventional 
-%\hyperref{\ty{DriveCaller}}{\ty{DriveCaller} (see Section~}{)}{sec:DRIVE}
+%\hyperref{\htmlref{\ty{DriveCaller}}{sec:DriveCaller}}{\htmlref{\ty{DriveCaller}}{sec:DriveCaller} (see Section~}{)}{sec:DriveCaller}
 %to give a drive entity of dimensionality different from that 
 %of a simple scalar drive.
-The family of the \ty{TplDriveCaller<Entity>} object is very large.
-The type of the \ty{TplDriveCaller<Entity>} is declared as
+The family of the \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller} object is very large.
+The type of the \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::=
@@ -2862,7 +2875,7 @@ a shortcut for nothing;
 \item the \kw{single} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{single} ,
-        \bnt{entity} , (\ty{DriveCaller}) \bnt{drive_caller}
+        \bnt{entity} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller}
 \end{Verbatim}
 corresponding to $\nt{entity}\times\nt{drive\_caller}$,
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
@@ -2889,7 +2902,7 @@ special matrix layouts:
 
 \item the \kw{array} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\ty{DriveCaller}) \bnt{drive_caller} \}
+    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} \}
 
     \bnt{tpl_drive_caller} ::= \kw{array} ,
         \bnt{num_template_drive_callers} ,
@@ -2903,7 +2916,7 @@ In case of scalar values, a normal drive caller is actually instantiated,
 so no overhead is added.
 
 In the case of the \kw{component} template drive caller,
-as many instances of a \ty{DriveCaller} as the dimensionality
+as many instances of a \htmlref{\ty{DriveCaller}}{sec:DriveCaller} as the dimensionality
 of the template drive caller are expected.
 
 At least one \nt{tpl\_drive\_caller} is expected in the case of the \kw{array}
@@ -2921,7 +2934,7 @@ In this case, the syntax of the \kw{hint} is:
 \end{Verbatim}
 %\end{verbatim}
 where \nt{n} is the dimension of \nt{entity}.
-For example, a \ty{TplDriveCaller<Vec3>} drive hint is:
+For example, a \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller} drive hint is:
 \begin{verbatim}
     "drive3{ 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}
@@ -2964,7 +2977,7 @@ The input format is:
         \bnt{sigma1} ,
         \bnt{sigma2} ,
         \bnt{kappa} ,
-        (\ty{ScalarFunction}) \bnt{friction_function}
+        (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{friction_function}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -2978,7 +2991,7 @@ The input format is:
     \bnt{friction_arglist} ::=
         [ \kw{sigma2} , \bnt{sigma2} , ]
         [ \kw{velocity ratio} , \bnt{vel_ratio} , ]
-        (\ty{ScalarFunction}) \bnt{friction_function}
+        (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{friction_function}
 \end{Verbatim}
 %\end{verbatim}
     where \nt{sigma2} gives the viscous friction;
@@ -2993,6 +3006,8 @@ The input format is:
 \end{enumerate}
 
 \subsection{Shape functions}
+\label{sec:Shape}
+Implements the type \htmlref{\ty{Shape}}{sec:Shape}.
 The input format of shape functions is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3027,10 +3042,10 @@ Currently implemented shape functions for friction models are:
 
 
 \section{Shapes}
-The \ty{Shape} entities are objects that return a value depending on one
+The \htmlref{\ty{Shape}}{sec:Shape} entities are objects that return a value depending on one
 (or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
 At present, only 1D shapes are used, by aerodynamic elements.
-A \ty{Shape} input format is:
+A \htmlref{\ty{Shape}}{sec:Shape} input format is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_1D} ::= \bnt{shape_type} ,
@@ -3139,7 +3154,8 @@ For \kw{piecewise linear} shapes, there must be
 must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
-\section{Constitutive Laws}\label{sec:CONSTITUTIVE-LAWS}
+\section{Constitutive Laws}\label{sec:ConstitutiveLaw}
+Implements the type \texttt{\ty{ConstitutiveLaw}<\bnt{Entity}, \bnt{DerivativeOfEntity}>}.
 Every time a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of C++
 templates in order to allow the definition of a general constitutive law
@@ -3256,7 +3272,7 @@ The constitutive laws are entered as follows:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
         [ , \kw{prestress} , (\ty{Entity}) \bnt{prestress} ]
-        [ , \kw{prestrain} , (\ty{TplDriveCaller<Entity>}) \bnt{prestrain} ]
+        [ , \kw{prestrain} , (\htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}) \bnt{prestrain} ]
 
     \bnt{specific_const_law} ::= \bnt{const_law_name} ,
         \bnt{const_law_data}
@@ -3276,7 +3292,7 @@ entered as follows:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear elastic} [ \kw{isotropic} ] , 
-        (\ty{Scalar}) \bnt{stiffness}
+        (\ty{real}) \bnt{stiffness}
 \end{Verbatim}
 %\end{verbatim}
 the isotropic stiffness coefficient; the word \kw{isotropic}
@@ -3322,13 +3338,13 @@ $N \times N$ matrix.
   
 
 \subsection{Linear elastic generic axial torsion coupling}
-\label{sec:CONSTITUTIVE-LAWS:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}
+\label{sec:ConstitutiveLaw:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= 
         \kw{linear elastic generic axial torsion coupling} ,
             (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
-            (\ty{Scalar}) \bnt{coupling_coefficient}
+            (\ty{real}) \bnt{coupling_coefficient}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for $6 \times 1$ vectors, where the torsion stiffness,
@@ -3400,8 +3416,8 @@ this is defined only for scalars. The force is defined as:
     \bnt{specific_const_law} ::= \kw{linear elastic bistop} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\ty{DriveCaller}) \bnt{activating_condition} ,
-        (\ty{DriveCaller}) \bnt{deactivating_condition}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -3409,10 +3425,10 @@ this is defined only for scalars. The force is defined as:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{double linear elastic} ,
-        (\ty{Scalar}) \bnt{stiffness_1} ,
-        (\ty{Scalar}) \bnt{upper_strain} ,
-        (\ty{Scalar}) \bnt{lower_strain} ,
-        (\ty{Scalar}) \bnt{stiffness_2}
+        (\ty{real}) \bnt{stiffness_1} ,
+        (\ty{real}) \bnt{upper_strain} ,
+        (\ty{real}) \bnt{lower_strain} ,
+        (\ty{real}) \bnt{stiffness_2}
 \end{Verbatim}
 %\end{verbatim}
 this is defined for scalar and $3 \times 1$ vectors. In the scalar case the
@@ -3425,8 +3441,8 @@ out of the upper or lower bound, the \nt{stiffness\_2} is used.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{isotropic hardening elastic} ,
-        (\ty{Scalar}) \bnt{stiffness} ,
-        (\ty{Scalar}) \bnt{reference_strain}
+        (\ty{real}) \bnt{stiffness} ,
+        (\ty{real}) \bnt{reference_strain}
         [ , \kw{linear stiffness} , \bnt{linear_stiffness} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -3449,15 +3465,14 @@ with slope $\nt{stiffness}$.
 
 \subsection{Scalar function elastic, scalar function elastic isotropic}
 This constitutive law is based on a 
-\htmlref{\ty{ScalarFunction} (Section~\ref{sec:SCALARFUNCS})}
-	{sec:SCALARFUNCS}
+\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}
 to represent an analytical force-displacement curve 
 of a single variable that is automatically differentiated 
 to compute the slope of the curve, namely the local stiffness.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{isotropic} ] ,
-        (\ty{DifferentiableScalarFunction}) \bnt{function}
+        (\htmlref{\ty{DifferentiableScalarFunction}}{sec:ScalarFunction}) \bnt{function}
 \end{Verbatim}
 %\end{verbatim}
 this constitutive law is defined as follows:
@@ -3472,7 +3487,7 @@ When used for 1D elements, the word \kw{isotropic} can be omitted.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{scalar function elastic} [ \kw{orthotropic} ] ,
-        \{ (\ty{DifferentiableScalarFunction}) \bnt{function} | \kw{null} \}
+        \{ (\htmlref{\ty{DifferentiableScalarFunction}}{sec:ScalarFunction}) \bnt{function} | \kw{null} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -3510,7 +3525,7 @@ as a multilinear function.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscous} [ \kw{isotropic} ] , 
-        (\ty{Scalar}) \bnt{viscosity}
+        (\ty{real}) \bnt{viscosity}
 \end{Verbatim}
 %\end{verbatim}
 the linear viscous coefficient. \\
@@ -3536,9 +3551,9 @@ the linear viscous $N \times N $ matrix. \\
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear viscoelastic} [ \kw{isotropic} ] ,
-        (\ty{Scalar}) \bnt{stiffness} ,
-        \{ (\ty{Scalar}) \bnt{viscosity}
-            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
+        (\ty{real}) \bnt{stiffness} ,
+        \{ (\ty{real}) \bnt{viscosity}
+            | \kw{proportional} , (\ty{real}) \bnt{factor} \}
 \end{Verbatim}
 %\end{verbatim}
 the isotropic stiffness and viscosity coefficients.
@@ -3551,7 +3566,7 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
     \bnt{specific_const_law} ::= \kw{linear viscoelastic generic} ,  
         (\ty{DerivativeOfEntity}) \nt{stiffness} ,
         \{ (\ty{DerivativeOfEntity}) \bnt{viscosity} 
-            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
+            | \kw{proportional} , (\ty{real}) \bnt{factor} \}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity $N \times N$ matrices.
@@ -3563,10 +3578,10 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear time variant viscoelastic generic} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
-        (\ty{DriveCaller}) \bnt{stiffness_scale} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{stiffness_scale} ,
         \{ (\ty{DerivativeOfEntity}) \bnt{viscosity}
-            | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \} ,
-        (\ty{DriveCaller}) \bnt{viscosity_scale}
+            | \kw{proportional} , (\ty{real}) \bnt{factor} \} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{viscosity_scale}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
@@ -3587,8 +3602,8 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 \end{verbatim}
 At 2s, the stiffness grows of 10\% from the nominal value in .2s,
 while the damping doubles.
-See Section~\ref{sec:DRIVE} for details on the syntax
-of \ty{DriveCaller} entities.
+See Section~\ref{sec:DriveCaller} for details on the syntax
+of \htmlref{\ty{DriveCaller}}{sec:DriveCaller} entities.
 
 Beware that arbitrarily changing the stiffness
 and the damping of an elastic component during the execution
@@ -3604,13 +3619,13 @@ a non-physical transient, and later return to the appropriate damping value.
         \kw{linear viscoelastic generic axial torsion coupling} ,
             (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
             \{ (\ty{DerivativeOfEntity}) \bnt{viscosity} 
-                | \kw{proportional} , (\ty{Scalar}) \bnt{factor} \}
-            (\ty{Scalar}) \bnt{coupling_coefficient}
+                | \kw{proportional} , (\ty{real}) \bnt{factor} \}
+            (\ty{real}) \bnt{coupling_coefficient}
 \end{Verbatim}
 %\end{verbatim}
 this is defined only for $6 \times 1$ vectors; it is the viscoelastic 
 extension of the 
-\hyperref{\kw{linear elastic generic axial torsion coupling} constitutive law}{\kw{linear elastic generic axial torsion coupling} constitutive law (see Section~}{)}{sec:CONSTITUTIVE-LAWS:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}.
+\hyperref{\kw{linear elastic generic axial torsion coupling} constitutive law}{\kw{linear elastic generic axial torsion coupling} constitutive law (see Section~}{)}{sec:ConstitutiveLaw:LINEAR-ELASTIC-GENERIC-AXIAL-TORSION-COUPLING}.
 
 
 \subsection{Cubic viscoelastic generic}
@@ -3639,12 +3654,12 @@ where the stiffness of the joints is typically given in this form.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{double linear viscoelastic} ,
-        (\ty{Scalar}) \bnt{stiffness_1} ,
-        (\ty{Scalar}) \bnt{upper_strain} ,
-        (\ty{Scalar}) \bnt{lower_strain} ,
-        (\ty{Scalar}) \bnt{stiffness_2} ,
-        (\ty{Scalar}) \bnt{viscosity}
-        [ , \kw{second damping} , (\ty{Scalar}) \bnt{viscosity_2} ]
+        (\ty{real}) \bnt{stiffness_1} ,
+        (\ty{real}) \bnt{upper_strain} ,
+        (\ty{real}) \bnt{lower_strain} ,
+        (\ty{real}) \bnt{stiffness_2} ,
+        (\ty{real}) \bnt{viscosity}
+        [ , \kw{second damping} , (\ty{real}) \bnt{viscosity_2} ]
 \end{Verbatim}
 %\end{verbatim}
 this is analogous to the \kw{double linear elastic} constitutive law,
@@ -3659,10 +3674,10 @@ the double linear elastic and viscous term only applies to component 3.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{turbulent viscoelastic} ,
-        (\ty{Scalar}) \bnt{stiffness} ,
-        (\ty{Scalar}) \bnt{parabolic_viscosity}
-        [ , (\ty{Scalar}) \bnt{threshold}
-            [ , (\ty{Scalar}) \bnt{linear_viscosity} ] ]
+        (\ty{real}) \bnt{stiffness} ,
+        (\ty{real}) \bnt{parabolic_viscosity}
+        [ , (\ty{real}) \bnt{threshold}
+            [ , (\ty{real}) \bnt{linear_viscosity} ] ]
 \end{Verbatim}
 %\end{verbatim}
 the constitutive law has the form:
@@ -3692,8 +3707,8 @@ as observed in some fluids at intermediate Reynolds number.
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         (\ty{DerivativeOfEntity}) \bnt{viscosity} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\ty{DriveCaller}) \bnt{activating_condition} ,
-        (\ty{DriveCaller}) \bnt{deactivating_condition}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -3746,7 +3761,7 @@ equal to half its full length;
 it is active only when strain bounds are violated;
 \item the \nt{penalty\_factor\_for\_strain\_rate} defaults to 0;
 it is active only when strain bounds are violated;
-\item the \nt{metering\_area} is given by a \ty{DriveCaller} 
+\item the \nt{metering\_area} is given by a \htmlref{\ty{DriveCaller}}{sec:DriveCaller} 
 and is strain dependent; if the keyword \kw{negative} is used, 
 then the \nt{metering\_area\_for\_negative\_strain\_rate} is used
 when the strain rate is negative, i.e.\ the shock absorber
@@ -3898,7 +3913,7 @@ For an $n$-dimensional constitutive law, it implements the formula
         \label{eq:nlsf-cl}
 \end{equation}
 where $f'_i$ and $f''_i$ are arbitrary instances
-of the \htmlref{\kw{scalar functions}}{sec:SCALARFUNCS} primitive,
+of the \htmlref{\kw{scalar functions}}{sec:ScalarFunction} primitive,
 which includes piecewise linear and spline regularization
 of given data, while $k'_{0ij}$ and $k''_{0ij}$ are the constant
 coefficients of a linear viscoelastic model, that account
@@ -3916,20 +3931,20 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlsf viscoelastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force'} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ] ,
         \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force''} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf elastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force'} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf viscous} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_force''} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -4047,7 +4062,7 @@ are arbitrary nonlinear functions of the strain $\varepsilon$:
 \end{equation}
 where $\delta_{ij}$ is Kronecker's operator;
 $k'_i$ and $k''_i$ are implemented as arbitrary
-\htmlref{\kw{scalar functions}}{sec:SCALARFUNCS},
+\htmlref{\kw{scalar functions}}{sec:ScalarFunction},
 which includes piecewise linear and spline regularization
 of given data.
 
@@ -4061,20 +4076,20 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlp viscoelastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_stiffness} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ] ,
         \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_damping} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp elastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_stiffness} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp viscous} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
-        \{ \kw{null} | (\ty{ScalarFunction}) \bnt{diag_damping} \}
+        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -4182,9 +4197,9 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{bistop} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\ty{DriveCaller}) \bnt{activating_condition} ,
-        (\ty{DriveCaller}) \bnt{deactivating_condition} ,
-        (\ty{ConstitutiveLaw<Entity, DerivativeOfEntity>}) \bnt{wrapped_const_law}
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition} ,
+        (\htmlref{\ty{ConstitutiveLaw}<\bnt{Entity}, \bnt{DerivativeOfEntity}>}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -4222,7 +4237,7 @@ although it only allows $\nt{xi} = 1/2$.
 
 
 
-\section{Hydraulic fluid}\label{sec:HYDRAULIC-FLUID-DATA}
+\section{Hydraulic fluid}\label{sec:HydraulicFluid}
 Hydraulic fluid data defines the constitutive properties
 of hydraulic fluids, which are generally required by hydraulic elements.
 Hydraulic fluid data can be defined in two ways, according to the BNF:

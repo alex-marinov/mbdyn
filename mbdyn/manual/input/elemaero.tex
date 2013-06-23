@@ -45,13 +45,13 @@ The input format is:
     \bnt{elem_type} ::= \{ \kw{aerodynamic body} | \kw{aerodynamic beam2} | \kw{aerodynamic beam3} \}
 
     \bnt{normal_arglist} ::= \bnt{connectivity} ,
-        (\ty{Shape<1D>})          \bnt{surface_chord} ,
-        (\ty{Shape<1D>})          \bnt{surface_aerodynamic_center} ,
-        (\ty{Shape<1D>})          \bnt{surface_b_c_point} ,
-        (\ty{Shape<1D>})          \bnt{surface_twist} ,
-        [ \kw{tip loss} , (\ty{Shape<1D>}) \bnt{tip_loss} , ]
+        (\htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape})          \bnt{surface_chord} ,
+        (\htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape})          \bnt{surface_aerodynamic_center} ,
+        (\htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape})          \bnt{surface_b_c_point} ,
+        (\htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape})          \bnt{surface_twist} ,
+        [ \kw{tip loss} , (\htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape}) \bnt{tip_loss} , ]
         \bnt{integration_points}
-        [ , \kw{control} , (\ty{DriveCaller}) \bnt{control_drive} ] 
+        [ , \kw{control} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{control_drive} ] 
         [ , \bnt{airfoil_data} ]
         [ , \kw{unsteady} , \{ \kw{bielawa} \} ]
         [ , \kw{jacobian} , \{ \kw{yes} | \kw{no} | \bnt{bool} \} ]
@@ -69,29 +69,29 @@ where
     \bnt{body_conn} ::= \bnt{node_label}
         [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
             [ , \kw{passive} ] , ] 
-        (\ty{Vec3})              <relative_surface_offset> , 
-        (\ty{OrientationMatrix}) <relative_surface_orientation> ,
-        (\ty{Scalar})            <surface_span>
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              <relative_surface_offset> , 
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) <relative_surface_orientation> ,
+        (\ty{real})            <surface_span>
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam2}
     \bnt{beam2_conn} ::= \bnt{beam2_label}
         [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
             [ , \kw{passive} ] , ] 
-        (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
-        (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
-        (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
-        (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_2} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_surface_offset_1} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_surface_offset_2} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_surface_orientation_2} ,
 
     # \bnt{elem_type} ::= \kw{aerodynamic beam3}
     \bnt{beam3_conn} ::= \bnt{beam3_label} 
         [ , [ \kw{user defined} ] \kw{induced velocity} , \bnt{induced_velocity_label}
             [ , \kw{passive} ] , ] 
-        (\ty{Vec3})              \bnt{relative_surface_offset_1} ,
-        (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
-        (\ty{Vec3})              \bnt{relative_surface_offset_2} ,
-        (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_2} ,
-        (\ty{Vec3})              \bnt{relative_surface_offset_3} ,       
-        (\ty{OrientationMatrix}) \bnt{relative_surface_orientation_3} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_surface_offset_1} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_surface_orientation_1} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_surface_offset_2} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_surface_orientation_2} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_surface_offset_3} ,       
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_surface_orientation_3} ,
 
     \bnt{airfoil_data} ::=
         \{ \kw{naca 0012}
@@ -145,7 +145,7 @@ This means that the aerodynamic beam offsets refer to the position
 of the beam's nodes, and have nothing to do with offsets related
 to the structural beam element.
 
-The \ty{Shape<1D>} entities are used to compute the physical chord,
+The \htmlref{\ty{Shape}<\kw{1D}>}{sec:Shape} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
 kinematic boundary conditions are evaluated) and twist as functions 
 of the dimensionless abscissa along the span.
@@ -320,7 +320,7 @@ This element is defined as follows:
 
     \bnt{normal_arglist} ::= 
         \bnt{reference_modal_joint} ,
-        (\ty{OrientationMatrix}) \bnt{orientation} ,
+        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation} ,
         \bnt{reference_chord} ,
         \bnt{number_of_aerodynamic_states} ,
         [ \kw{rigid} , ]
@@ -352,8 +352,13 @@ The \nt{modal\_matrices\_file} file is an ASCII file that contains
 the matrices $\T{A}$, $\T{B}$, $\T{C}$, $\T{D}_0$, $\T{D}_1$ and $\T{D}_2$,
 of a state space model according to the representation
 \begin{align*}
-	\dot{\T{x}} &= \T{A}\T{x} + \T{B}\T{q} \\	
-	\T{f} &= q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{c}{2V_{\infty}} \T{D}_1 \dot{\T{q}} + \plbr{\frac{c}{2V_{\infty}}}^2 \T{D}_2 \ddot{\T{q}}}
+	\dot{\T{x}}
+	&=
+	\T{A}\T{x} + \T{B}\T{q}
+	\\
+	\T{f}
+	&=
+	q\plbr{\T{C}\T{x} + \T{D}_0 \T{q} + \frac{c}{2V_{\infty}} \T{D}_1 \dot{\T{q}} + \plbr{\frac{c}{2V_{\infty}}}^2 \T{D}_2 \ddot{\T{q}}}
 \end{align*}
 where $\T{x}$ are the \nt{number\_of\_aerodynamic\_states} (\nt{na})
 aerodynamic state variables,
@@ -426,41 +431,60 @@ All quantities are expressed in inches and pounds.
     \bnt{elem_type} ::= \kw{aircraft instruments}
 
     \bnt{normal_arglist} ::= \bnt{aircraft_node}
-        [ , \kw{orientation} , (\ty{OrientationMatrix}) \bnt{relative_orientation} ]
+        [ , \kw{orientation} , \{ \kw{flight mechanics} | \kw{aeroelasticity}
+            | (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation} \} ]
 \end{Verbatim}
 %\end{verbatim}
 The \nt{aircraft\_node} represents the aircraft; it is assumed
-that the ``nose'' of the aircraft is toward the positive $x$ direction
-of the node, and the ``top'' of the aircraft is toward the positive 
-$z$ direction of the node.
+that the positive $x$ direction of the node is tail to nose of the aircraft,
+the positive $z$ direction of the node is top to bottom of the aircraft,
+and the positive $y$ direction of the node is to the right of the pilot.
+The node representing the aircraft is intended in a ``world''
+reference frame whose positive $z$ direction points upward
+and whose positive $x$ direction points north
+(note that currently the world is flat).
+
 An optional orientation can be added to change the orientation 
 of the aircraft with respect to the node.
-This is useful, for example, with helicopters, where conventionally
-the positive direction of the $x$ axis is nose to tail.
+This is useful, for example, with aeroelasticity, in which conventionally
+the positive direction of the $x$ axis is nose to tail,
+and the positive direction of the $z$ axis is bottom to top.
+The keyword \kw{flight mechanics} indicates that the node representing
+the aircraft is oriented according to the default orientation
+of the element, whereas the keyword \kw{aeroelasticity}
+indicates that the node representing the aircraft is oriented accordingly.
+Arbitrary orientations can be dealt with by providing an appropriate
+\nt{relative\_orientation} matrix.
+
+\begin{center}
+\includegraphics[width=.5\textwidth]{elicottero}
+\end{center}
 
 The available measures are accessed during the simulation 
 by defining appropriate \kw{parameter} nodes, and by binding
 the \kw{aircraft instruments} element private data to the nodes 
 by means of the \kw{bind} mechanism, or directly by means
 of the 
-\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DRIVE:ELEMENT}.
+\hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DriveCaller:ELEMENT}.
 
 \paragraph{Private Data}
 The following data are available:
 \begin{itemize}
 \item \kw{"airspeed"}: the airspeed as seen by the reference 
-	point on the aircraft, i.e. the combination 
-	of the airstream speed and of the node speed
+	point on the aircraft, i.e.\ the absolute value
+	of the combination of the airstream speed and of the node speed
 \item \kw{"groundspeed"}: the absolute value of the projection
-	of the node speed in the $xy$ plane.
+	of the node speed in the $xy$ plane of the ``world''
 \item \kw{"altitude"}: the $z$ component of the node position
+	with respect to the ``world''
 \item \kw{"attitude"}: $\tan^{-1}\plbr{r_{31}, r_{11}}$
-	(FIXME: better $\arcsin\plbr{r_{31}}$?)
-\item \kw{"bank"}: $\tan^{-1}\plbr{r_{32}, r_{22}}$
-	(FIXME: better $\arcsin\plbr{r_{32}}$?)
-\item \kw{"turn"}: (not available yet)
-\item \kw{"slip"}: (not available yet)
+	% (FIXME: better $\arcsin\plbr{r_{31}}$?)
+\item \kw{"bank"}: $-\tan^{-1}\plbr{r_{32}, r_{22}}$
+	% (FIXME: better $\arcsin\plbr{r_{32}}$?)
+\item \kw{"turn"}: \emph{(FIXME: not implemented yet)}
+\item \kw{"slip"}: \emph{(FIXME: not implemented yet)}
 \item \kw{"verticalspeed"}: the $z$ component of the node velocity
+	in the ``world'' reference system
 \item \kw{"angleofattack"}: the angle between the local $z$ and $x$ components
 	of the velocity (airstream plus node),
 	expressed in the reference frame of the aircraft
@@ -468,9 +492,45 @@ The following data are available:
 	and the ``north'' (the global $x$ axis) about the global $z$ axis;
 	note: heading wraps about South
 	(+180 deg from East, -180 deg from West).
-\item \kw{"longitude"}: (FIXME: not implemented yet)
-\item \kw{"latitude"}: (FIXME: not implemented yet)
+\item \kw{"longitude"}: \emph{(FIXME: not implemented yet)}
+\item \kw{"latitude"}: \emph{(FIXME: not implemented yet)}
+\item \kw{"rollrate"}: the component of the angular velocity
+	of the node representing the aircraft along the $x$ axis
+	of the node itself (positive when the right wing moves downward)
+\item \kw{"pitchrate"}: the component of the angular velocity
+	of the node representing the aircraft along the $y$ axis
+	of the node itself (positive when the nose pitches upward)
+\item \kw{"yawrate"}: the component of the angular velocity
+	of the node representing the aircraft along the $z$ axis
+	of the node itself (positive when the right wing moves backward)
 \end{itemize}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    # expose heading using a parameter node
+    # ...
+    structural: AIRCRAFT, dynamic, ...
+    parameter: HEADING, /* bound to */ element;
+    # ...
+    aircraft instruments: AIRCRAFT, AIRCRAFT, orientation, aeroelasticity;
+    bind: AIRCRAFT, aircraft instruments, HEADING, string, "heading";
+
+    # implement a minimal SCAS on roll & yaw
+    # ...
+    structural: AIRCRAFT, dynamic, ...
+    # ...
+    aircraft instruments: AIRCRAFT, AIRCRAFT, orientation, flight mechanics;
+    couple: AIRCRAFT, follower,
+        AIRCRAFT,
+            position, null,
+            component,
+                element, AIRCRAFT, aerodynamic element, string, "rollrate",
+                    linear, 0., -ROLL_GAIN,
+                0.,
+                element, AIRCRAFT, aerodynamic element, string, "yawrate",
+                    linear, 0., -YAW_GAIN;
+\end{verbatim}
+
 
 \noindent
 \emph{Note: this element is eXperimental.}
@@ -483,17 +543,17 @@ The properties of the airstream are made of the physical properties
 of the air plus the description of the airstream velocity direction
 and amplitude.
 The former can be expressed in different forms, while the latter
-are based on three-dimensional drive callers, \ty{TplDriveCaller<Vec3>}.
+are based on three-dimensional drive callers, \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{arglist} ::=
-        \{ (\ty{DriveCaller}) \bnt{air_density} , (\ty{Scalar}) \bnt{sound_celerity}
+        \{ (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{air_density} , (\ty{real}) \bnt{sound_celerity}
             | \kw{std} , \{ \{ \kw{SI} | \kw{British} \}
                 [ , \kw{temperature deviation} , \bnt{delta_T} ]
-                | \bnt{p0} , (\ty{DriveCaller}) \bnt{rho0} ,
+                | \bnt{p0} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{rho0} ,
                     \bnt{T0} , \bnt{dT/dz} , \bnt{R} , \bnt{g0} , \bnt{z1} , \bnt{z2} \}
             [ , \kw{reference altitude} , \bnt{z0} ] \} ,
-        (\ty{TplDriveCaller<Vec3>}) \bnt{air_speed}
+        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{air_speed}
         [ , \kw{gust} , \bnt{gust_model} [ , ... ] ]
 \end{Verbatim}
 %\end{verbatim}
@@ -570,7 +630,7 @@ of the position where the air properties are computed
 to the reference altitude \nt{z0}.
 
 The asymptotic air properties are characterized by \nt{air\_speed},
-the \ty{TplDriveCaller<Vec3>} of the air speed,
+the \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller} of the air speed,
 expressed in the global reference frame.
 The possibility to vary the density and the airspeed using a driver
 has little physical meaning, especially the former;
@@ -597,10 +657,10 @@ The syntax of the \kw{front 1D} gust model is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{gust_model} ::= \kw{front 1D} ,
-        (\ty{Vec3})        \bnt{front_direction} ,
-        (\ty{Vec3})        \bnt{perturbation_direction} ,
-        (\ty{Scalar})      \bnt{front_velocity} ,
-        (\ty{DriveCaller}) \bnt{front_profile}
+        (\htmlref{\ty{Vec3}}{sec:Vec3})        \bnt{front_direction} ,
+        (\htmlref{\ty{Vec3}}{sec:Vec3})        \bnt{perturbation_direction} ,
+        (\ty{real})      \bnt{front_velocity} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{front_profile}
 \end{Verbatim}
 %\end{verbatim}
 This model consists in a uniform front, defined as
@@ -646,9 +706,9 @@ implemented as a gust model within the \kw{air properties}, is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{gust_model} ::= \kw{scalar function} ,
-        \kw{reference position} , (\ty{Vec3}) \bnt{X0} ,
-        \kw{reference orientation} , (\ty{OrientationMatrix}) \bnt{R0} ,
-        (\ty{ScalarFunction}) \bnt{sf}
+        \kw{reference position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{X0} ,
+        \kw{reference orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{R0} ,
+        (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{sf}
 \end{Verbatim}
 %\end{verbatim}
 It yields a uniform velocity profile along the $x$ axis of the
@@ -675,10 +735,10 @@ within the \kw{air properties}, is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{gust_model} ::= \kw{power law} ,
-        \kw{reference position} , (\ty{Vec3}) \bnt{X0} ,
-        \kw{reference orientation} , (\ty{OrientationMatrix}) \bnt{R0} ,
+        \kw{reference position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{X0} ,
+        \kw{reference orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{R0} ,
         \kw{reference elevation} , \bnt{z_ref} ,
-        \kw{reference velocity} , (\ty{DriveCaller}) \bnt{v_ref} ,
+        \kw{reference velocity} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{v_ref} ,
         \kw{exponent} , \bnt{exponent}
 \end{Verbatim}
 %\end{verbatim}
@@ -707,10 +767,10 @@ within the \kw{air properties}, is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{gust_model} ::= \kw{logarithmic} ,
-        \kw{reference position} , (\ty{Vec3}) \bnt{X0} ,
-        \kw{reference orientation} , (\ty{OrientationMatrix}) \bnt{R0} ,
+        \kw{reference position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{X0} ,
+        \kw{reference orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{R0} ,
         \kw{reference elevation} , \bnt{z_ref} ,
-        \kw{reference velocity} , (\ty{DriveCaller}) \bnt{v_ref} ,
+        \kw{reference velocity} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{v_ref} ,
         \kw{surface roughness length} , \bnt{z_0}
 \end{Verbatim}
 %\end{verbatim}
@@ -799,9 +859,9 @@ from that of the node \nt{node\_label} by the orientation matrix
 \nt{relative\_orientation} (defaults to \kw{eye}), namely
 \begin{subequations}
 \begin{align}
-	\TT{o} &= (\ty{OrientationMatrix})\ \nt{relative\_position}
+	\TT{o} &= \text{(\htmlref{\ty{Vec3}}{sec:Vec3})} \ \nt{relative\_position}
 	\\
-	\TT{R}_h &= (\ty{Vec3})\ \nt{relative\_orientation}
+	\TT{R}_h &= \text{(\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix})}\ \nt{relative\_orientation}
 	\\
 	\TT{v} &= \TT{R}_h^T \TT{R}_n^T \plbr{
 		\dot{\T{x}}_n + \T{\omega}_n \times \TT{R}_n \TT{o}
@@ -1049,7 +1109,7 @@ The syntax of the helicopter rotor \kw{induced velocity} element is:
     \bnt{induced_velocity_type} ::= \kw{rotor}
 
     \bnt{induced_velocity_data} ::= \bnt{craft_node} ,
-            [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{rotor_orientation} , ]
+            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rotor_orientation} , ]
         \bnt{rotor_node} ,
         \kw{induced velocity} , \bnt{induced_velocity_model}
 \end{Verbatim}
@@ -1084,7 +1144,7 @@ models:
 
     \bnt{option} ::=
         \{ \kw{ground} , \bnt{ground_node}
-            | \kw{delay} , (\ty{DriveCaller}) \bnt{memory_factor}
+            | \kw{delay} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{memory_factor}
             | \kw{max iterations} , \bnt{max_iterations}
             | \kw{tolerance} , \bnt{tolerance}
             | \kw{eta} , \bnt{eta}

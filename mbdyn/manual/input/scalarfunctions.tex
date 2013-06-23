@@ -25,10 +25,10 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-\section{Scalar functions}\label{sec:SCALARFUNCS}
-A \ty{ScalarFunction} object allows to compute the value of a function.
-Almost every scalar function is of type \ty{DifferentiableScalarFunction},
-derived from \ty{ScalarFunction}, and allows to compute the derivatives of
+\section{Scalar functions}\label{sec:ScalarFunction}
+A \htmlref{\ty{ScalarFunction}}{sec:ScalarFunction} object computes the value of a function.
+Almost every scalar function is of type \htmlref{\ty{DifferentiableScalarFunction}}{sec:ScalarFunction},
+derived from \htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}, and allows to compute the derivatives of
 the function as well. Currently implemented scalar functions are
 \begin{itemize}
 \item \kw{const}: $f(x)=c$
@@ -50,7 +50,7 @@ set of points $\{a,b\}$
 \end{itemize}
 
 \noindent
-Every \ty{ScalarFunction} card follows the format
+Every \htmlref{\ty{ScalarFunction}}{sec:ScalarFunction} card follows the format
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} :: = \kw{scalar function} : " \bnt{unique_scalar_func_name} " , 
@@ -194,7 +194,7 @@ while $\nt{x}_f$, $\nt{y}_f$ are the coordinates of the second point.
 \end{Verbatim}
 %\end{verbatim}
 The \kw{end} delimiter is required if the card needs to continue
-(i.e.\ the \ty{ScalarFunction} definition is embedded in a more complex
+(i.e.\ the \htmlref{\ty{ScalarFunction}}{sec:ScalarFunction} definition is embedded in a more complex
 statement); it can be omitted if the card ends with a semicolon
 right after the last point.
 
@@ -288,7 +288,7 @@ Differentiation of order higher than 1 is not currently implemented.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{sum}
 
-    \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
+    \bnt{scalar_func_args} ::= (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f1} , (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
 \begin{align}
@@ -310,7 +310,7 @@ Differentiation of order higher than 1 is not currently implemented.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{sub}
 
-    \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
+    \bnt{scalar_func_args} ::= (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f1} , (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
 \begin{align}
@@ -331,7 +331,7 @@ Differentiation of order higher than 1 is not currently implemented.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{mul}
 
-    \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
+    \bnt{scalar_func_args} ::= (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f1} , (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
 \begin{align}
@@ -352,7 +352,7 @@ Differentiation of order higher than 1 is not currently implemented.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_func_type} ::= \kw{div}
 
-    \bnt{scalar_func_args} ::= (\ty{ScalarFunction}) \bnt{f1} , (\ty{ScalarFunction}) \bnt{f2}
+    \bnt{scalar_func_args} ::= (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f1} , (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{f2}
 \end{Verbatim}
 %\end{verbatim}
 \begin{align}

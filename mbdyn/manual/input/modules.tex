@@ -60,7 +60,7 @@ This module implements inflow models for cycloidal rotors.
 
     \bnt{module_data} ::=
         \bnt{aircraft_node_label} ,
-        [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{orientation} , ]
+        [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation} , ]
         \bnt{rotor_node_label}
 \end{Verbatim}
 
@@ -69,12 +69,12 @@ This module implements inflow models for cycloidal rotors.
 
     \bnt{module_data} ::=
         \bnt{aircraft_node_label} ,
-        [ \kw{orientation} , (\ty{OrientationMatrix}) \bnt{orientation} , ]
+        [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation} , ]
         \bnt{rotor_node_label}
         (\ty{bool}) \bnt{average} ,
         \bnt{rotor_radius} ,
         \bnt{blade_span}
-        [ , \kw{delay} , (\ty{DriveCaller}) \bnt{delay} ]
+        [ , \kw{delay} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{delay} ]
         [ , \kw{omegacut} , \bnt{cut_frequency} ]
         [ , \kw{timestep} , \bnt{time_step} ]
 \end{Verbatim}
@@ -109,10 +109,10 @@ implements a scalar mass-damper-spring system.
         (\ty{StructDispNode}) \bnt{NonsmoothNODELABEL} ,
         \kw{mass} , (\ty{real}) \bnt{mass} ,
         \kw{radius} , (\ty{real}) \bnt{radius} ,
-        \kw{planes} , (\ty{int}) \bnt{number_of_planes} ,
+        \kw{planes} , (\ty{integer}) \bnt{number_of_planes} ,
             \bnt{PlaneDefiningNODELABEL} ,
-                \kw{position} , (\ty{Vec3}) \bnt{relative_plane_position} ,
-                \kw{rotation orientation} , (\ty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
+                \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_plane_position} ,
+                \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
                 \kw{restitution} , (\ty{real}) \bnt{rest_coeff}
                 [ , \kw{frictional coefficient} , (\ty{real}) \bnt{mu} ] # only if \nt{frictional} is true
                 [ , ... ]
@@ -253,7 +253,7 @@ in Boost's internal format.
 \section{Template Drive Caller Modules}
 
 \subsection{Module-eu2phi}
-This module implements a \ty{TplDriveCaller<Vec3>} drive caller
+This module implements a \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller} drive caller
 that converts three Euler angles into the corresponding Euler vector.
 
 Syntax:
@@ -261,7 +261,7 @@ Syntax:
     \kw{eu2phi} ,
         [ \kw{help} , ]
         [ \kw{format} , \{ \kw{euler123} | \kw{euler313} | \kw{euler321} \} , ]
-        (\ty{TplDriveCaller<Vec3>}) \bnt{drive}
+        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{drive}
 \end{Verbatim}
 Example:
 \begin{verbatim}
@@ -297,13 +297,12 @@ drive callers, constitutive laws, scalar functions, and elements.
 \subsubsection{General octave flags}
 Every GNU Octave based entity supports the following flags:
 \begin{Verbatim}[commandchars=\\\{\}]
-	\bnt{octave_flags} ::= [ \kw{update octave variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
-			   [ \kw{update mbdyn variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
-			   [ \kw{update global variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
-			   [ \kw{pass data manager}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
-			   [ \kw{embed octave}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
-			   [ \kw{octave search path}, (\ty{string}) \bnt{path1} [ , \ldots ] ]
-						   
+    \bnt{octave_flags} ::= [ \kw{update octave variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+        [ \kw{update mbdyn variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+        [ \kw{update global variables}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+        [ \kw{pass data manager}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+        [ \kw{embed octave}, \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{status} \}, ] \\
+        [ \kw{octave search path}, (\ty{string}) \bnt{path1} [ , \ldots ] ]
 \end{Verbatim}
 \paragraph{Global variables}
 If the flag \kw{update octave variables} is enabled, MBDyn's symbol table is copied to the global Octave name space before each function call.
@@ -332,8 +331,8 @@ From Octave's point of view an Octave element is a special class.
     \bnt{elem_type} ::= \kw{user defined}
 
     \bnt{normal_arglist} ::= \kw{octave} , " \bnt{class\_name} " \\
-                         [ , \bnt{octave\_flags} ] \\
-                         [ , \bnt{elem\_data} ]
+        [ , \bnt{octave\_flags} ] \\
+        [ , \bnt{elem\_data} ]
 \end{Verbatim}
 All member functions of this class must reside in a directory named ``\texttt{@}\bnt{class\_name}''.
 The parent directory of ``\texttt{@}\bnt{class\_name}'' must be in Octave's search path.
@@ -382,23 +381,23 @@ If the \texttt{octave-ad} package is installed, Octave based drive callers are d
 An arbitrary number of additional arguments can be passed to the Octave function \bnt{function\_name} after the \kw{arguments} keyword.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{octave} , " \bnt{function\_name} "
-                       [ , \bnt{octave\_flags} ] \\
-                       [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
+        [ , \bnt{octave\_flags} ] \\
+        [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Template Drive Caller}
 The syntax of a template drive caller is the same like the scalar drive caller. Of course the Octave function must return a matrix or a vector according to the dimension of the drive caller. The template drive caller is also differentiable by default.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{octave} , " \bnt{function\_name} "
-                           [ , \bnt{octave\_flags} ] \\
-                           [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
+        [ , \bnt{octave\_flags} ] \\
+        [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Scalar Function}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{scalar_function} ::= \kw{octave} , " \bnt{function\_name} "
-                          [ , \bnt{octave_flags} ] \\
-                          [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
+        [ , \bnt{octave_flags} ] \\
+        [ , \kw{arguments}, (\ty{integer}) \bnt{count}, \bnt{arg_1} [ , \ldots , \bnt{arg_n} ] ]
 \end{Verbatim}
 
 \subsubsection{Constitutive Law}
@@ -406,9 +405,9 @@ Octave constitutive laws are full featured user defined constitutive laws.
 Additional constitutive law specific data in \bnt{const\_law\_data} may be accessed from within the constructor of the Octave class.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{octave} , " \bnt{class\_name} " \\
-                             [ , \bnt{octave\_flags} ] \\
-                             \kw{dimension} , \bnt{dimension} \\
-                             [ , \bnt{const\_law\_data} ]
+        [ , \bnt{octave\_flags} ] \\
+        \kw{dimension} , \bnt{dimension} \\
+        [ , \bnt{const\_law\_data} ]
 \end{Verbatim}
 
 \paragraph{Octave constitutive law member functions}
