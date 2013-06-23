@@ -52,16 +52,36 @@ AircraftInstruments::~AircraftInstruments(void)
 	NO_OP;
 }
 
+Elem::Type
+AircraftInstruments::GetElemType(void) const
+{
+	return Elem::AERODYNAMIC;
+}
+
 void
 AircraftInstruments::Update(void)
 {
 	const Vec3& X(pNode->GetXCurr());
 	const Mat3x3& R(pNode->GetRCurr()*Rh);
 	const Vec3& V(pNode->GetVCurr());
+	const Vec3& Omega(pNode->GetWCurr());
 	Vec3 VV = V;
 	const Vec3 e1(R.GetVec(1));
 	const Vec3 e2(R.GetVec(2));
 	const Vec3 e3(R.GetVec(3));
+
+	/*
+	 * Assumptions:
+	 * - world is "flat"
+	 * - world "z" is positive upward
+	 * (flight mechanics conventions?)
+	 * - aircraft "x" is positive forward
+	 * - aircraft "z" is positive downward
+	 * - aircraft "y" is positive towards the right of the pilot
+	 * - pitch is positive nose up
+	 * - roll is positive right wing down
+	 * - yaw is positive right wing backward
+	 */
 
 	Vec3 VTmp(Zero3);
       	if (fGetAirVelocity(VTmp, X)) {
@@ -85,7 +105,7 @@ AircraftInstruments::Update(void)
 
 	/* bank */
 	/* FIXME: better asin(e2(3)) ? */
-	dMeasure[BANK] = std::atan2(e2(3), e2(2));
+	dMeasure[BANK] = -std::atan2(e2(3), e2(2));
 
 	/* turn */
 	dMeasure[TURN] = 0.;	/* FIXME */
@@ -111,6 +131,11 @@ AircraftInstruments::Update(void)
 	/* latitude */
 	/* FIXME: ??? */
 	dMeasure[LATITUDE] = X(1);	// /EARTH_RADIUS?
+
+	VTmp = R.MulTV(Omega);
+	dMeasure[ROLLRATE] = VTmp(1);
+	dMeasure[PITCHRATE] = VTmp(2);
+	dMeasure[YAWRATE] = VTmp(3);
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -187,55 +212,34 @@ unsigned int
 AircraftInstruments::iGetPrivDataIdx(const char *s) const
 {
 	ASSERT(s != NULL);
-	
-	if (strcasecmp(s, "airspeed") == 0) {
-		return AIRSPEED;
-	}
 
-	if (strcasecmp(s, "ground" "speed") == 0) {
-		return GROUNDSPEED;
-	}
+	struct {
+		const char *s;
+		int i;
+	} s2i[] = {
+		{ "airspeed", AIRSPEED },
+		{ "ground" "speed", GROUNDSPEED },
+		{ "altitude", ALTITUDE },
+		{ "attitude", ATTITUDE },
+		{ "bank", BANK },
+		{ "turn", TURN },
+		{ "slip", SLIP },
+		{ "vertical" "speed", VERTICALSPEED},
+		{ "angle" "of" "attack", AOA },
+		{ "aoa", AOA },
+		{ "heading", HEADING },
+		{ "longitude", LONGITUDE },
+		{ "latitude", LATITUDE },
+		{ "rollrate", ROLLRATE },
+		{ "pitchrate", PITCHRATE },
+		{ "yawrate", YAWRATE },
+		{ 0 }
+	};
 
-	if (strcasecmp(s, "altitude") == 0) {
-		return ALTITUDE;
-	}
-
-	if (strcasecmp(s, "attitude") == 0) {
-		return ATTITUDE;
-	}
-
-	if (strcasecmp(s, "bank") == 0) {
-		return BANK;
-	}
-
-	if (strcasecmp(s, "turn") == 0) {
-		return TURN;
-	}
-
-	if (strcasecmp(s, "slip") == 0) {
-		return SLIP;
-	}
-
-	if (strcasecmp(s, "vertical" "speed") == 0) {
-		return VERTICALSPEED;
-	}
-
-	if (strcasecmp(s, "aoa") == 0
-			|| strcasecmp(s, "angle" "of" "attack") == 0)
-	{
-		return AOA;
-	}
-
-	if (strcasecmp(s, "heading") == 0) {
-		return HEADING;
-	}
-
-	if (strcasecmp(s, "longitude") == 0) {
-		return LONGITUDE;
-	}
-
-	if (strcasecmp(s, "latitude") == 0) {
-		return LATITUDE;
+	for (int i = 0; s2i[i].s != 0; i++) {
+		if (strcasecmp(s, s2i[i].s) == 0) {
+			return s2i[i].i;
+		}
 	}
 
 	return 0;
@@ -253,6 +257,13 @@ AircraftInstruments::dGetPrivData(unsigned int i) const
 	return dMeasure[i];
 }
 
+void
+AircraftInstruments::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+{
+	connectedNodes.resize(1);
+	connectedNodes[0] = pNode;
+}
+
 Elem *
 ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel)
@@ -262,7 +273,15 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 	Mat3x3 R = Eye3;
 	if (HP.IsKeyWord("orientation")) {
-		R = HP.GetRotRel(ReferenceFrame(pNode));
+		if (HP.IsKeyWord("flight" "mechanics")) {
+			R = ::Eye3;
+
+		} else if (HP.IsKeyWord("aeroelasticity")) {
+			R = Mat3x3(-1., 0., 0., 0., 1., 0., 0., 0., -1.);
+
+		} else {
+			R = HP.GetRotRel(ReferenceFrame(pNode));
+		}
 	}
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 

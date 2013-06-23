@@ -52,6 +52,10 @@ public:
 		LONGITUDE,
 		LATITUDE,
 
+		ROLLRATE,
+		PITCHRATE,
+		YAWRATE,
+
 		LASTMEASURE
 	};
 
@@ -73,9 +77,7 @@ public:
 	virtual std::ostream& Restart(std::ostream& out) const;
 	
 	/* Tipo dell'elemento (usato per debug ecc.) */
-	virtual Elem::Type GetElemType(void) const {
-		return Elem::AERODYNAMIC;
-	};
+	virtual Elem::Type GetElemType(void) const;
 	
 	/* funzioni proprie */
 	
@@ -119,10 +121,7 @@ public:
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
 	virtual void
-	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		connectedNodes.resize(1);
-		connectedNodes[0] = pNode;
-	};
+	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	
 	/* ************************************************ */
 };

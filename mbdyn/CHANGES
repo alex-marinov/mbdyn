@@ -16,9 +16,11 @@ MBDyn 1.X-Devel
 		- added loads fade in in module-aerodyn
 		  (Jens van Schelve, Patrick Rix)
 		- added "drivep" (derivative) function to model namespace
+		- added measures in aircraft instruments
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
+		- reference systems of aircraft instruments changed
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
