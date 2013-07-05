@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		  (Jens van Schelve, Patrick Rix)
 		- added "drivep" (derivative) function to model namespace
 		- added measures in aircraft instruments
+		- added axial constitutive law wrapper
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
