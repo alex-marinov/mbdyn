@@ -2253,7 +2253,15 @@ MBDynParser::GetMatR2vec(void)
 		v2(3) = GetReal();
 	}
 
-	return MatR2vec(i1, v1, i2, v2);
+	Mat3x3 R;
+	try {
+		R = MatR2vec(i1, v1, i2, v2);
+	} catch (std::exception e) {
+		silent_cerr("MBDynParser::GetMatR2vec: " << e.what() << " at line " << GetLineData() << std::endl);
+		throw e;
+	}
+
+	return R;
 }
 
 
