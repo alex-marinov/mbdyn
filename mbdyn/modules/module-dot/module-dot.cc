@@ -230,7 +230,7 @@ ModuleDOT::Output(OutputHandler& OH) const
 				out << " \"" << psNodeNames[connectedNodes[0]->GetNodeType()]
 					<< "(" << connectedNodes[0]->GetLabel() << ")\";\n";
 
-			} else {
+			} else if (!connectedNodes.empty()) {
 				std::vector<const Node *>::const_iterator n = connectedNodes.begin();
 				out << " {\"" << psNodeNames[(*n)->GetNodeType()]
 					<< "(" << (*n)->GetLabel() << ")\"";
