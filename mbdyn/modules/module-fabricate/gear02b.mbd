@@ -12,7 +12,7 @@ begin: initial value;
 	final time: 1.;
 	time step: 1.e-4;
 
-	tolerance: 1.e-5;
+	tolerance: 1.e-6;
 	max iterations: 20;
 
 	derivatives coefficient: 1.e-12;
@@ -126,7 +126,8 @@ begin: elements;
       null, # relative center of mass
       diag, 0.01, 0.01, 0.01;  # inertia matrix
 
-	module load: "../mbdyn_teste/modules/module-fabricate/.libs/libmodule-fabricate.so";
+	#module load: "../mbdyn_teste/modules/module-fabricate/.libs/libmodule-fabricate.so";
+	module load: "libmodule-fabricate";
 	user defined: 1, SimpleGearJoint, 1, 2, 0, r1, r2, output, yes;
 
 end: elements;
