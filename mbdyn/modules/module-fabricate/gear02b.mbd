@@ -1,0 +1,132 @@
+# SimpleGearJoint - test 02b
+# Modified orientation of gears 1 and 2, and reference node (0) is rotating.
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-4;
+
+	tolerance: 1.e-5;
+	max iterations: 20;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 5;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+   default orientation: orientation matrix;
+	loadable elements: 1;
+   structural nodes: 3;
+   rigid bodies: 2;
+   joints: 3;
+end: control data;
+
+
+set: real r1 = 0.7;
+set: real r2 = 0.1;
+set: integer gear1 = 0;
+set: integer gear2 = 1;
+
+reference: gear1,
+	reference, global, null,
+	reference, global, euler, pi/5., -pi/2., -pi/3.,
+	reference, global, null,
+	reference, global, null;
+
+reference: gear2,
+	reference, global, r1+r2, 0., 0.,
+	reference, global, euler, pi/3., pi/2., pi/4.,
+	reference, global, null,
+	reference, global, null;
+
+begin: nodes;
+   structural: 0, dynamic, null, eye, null, null;  # reference node (no de referencia)
+   structural: 1, dynamic, # node of gear 1 (no da engrenagem 1)
+      reference, gear1, null, 
+      reference, gear1, eye, 
+      null, 
+      null; 
+   structural: 2, dynamic, # node of gear 2 (no da engrenagem 2)
+      reference, gear2, null, 
+      reference, gear2, eye, 
+      null, 
+      null; 
+end: nodes;
+
+
+begin: elements;
+   joint: 1, total pin joint, 
+      0, 
+         position, null,
+         position, null,
+         rotation orientation, eye,
+      position constraint,
+         active, active, active,
+         null,
+      orientation constraint,
+         active, active, active,
+            component, 
+               sine, 0., 2*pi, 1., forever, 0.,
+               sine, 0., 2*pi/2., 5., forever, 0.,
+               sine, 0., pi, 6., forever, 0.;
+ 
+   joint: 2,
+      total joint,
+         1,
+            position, reference, gear1, null,
+            rotation orientation, reference, gear1, eye,
+         0,
+            position, reference, gear1, null,
+            rotation orientation, reference, gear1, eye,
+         position constraint,
+            active, active, active,
+            null, 
+         orientation constraint,
+            active, active, active,
+            component, 
+               sine, 0., pi, -5., forever, 0.,
+               sine, 0., 3*pi, 4., forever, 0.,
+               sine, 0., 2*pi, -10., forever, 0.;
+ 
+
+   joint: 3,
+      total joint,
+         2,
+            position, reference, gear2, null,
+            rotation orientation, reference, gear2, eye,
+         0,
+            position, reference, gear2, null,
+            rotation orientation, reference, gear2, eye,
+         position constraint,
+            active, active, active,
+            null,
+         orientation constraint,
+            active, active, inactive,
+            null;
+ 
+     
+   body: 0, 1,
+      0.1,   # mass
+      null, # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+     
+   body: 1, 2,
+      0.1,   # mass
+      null, # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+
+	module load: "../mbdyn_teste/modules/module-fabricate/.libs/libmodule-fabricate.so";
+	user defined: 1, SimpleGearJoint, 1, 2, 0, r1, r2, output, yes;
+
+end: elements;
+
