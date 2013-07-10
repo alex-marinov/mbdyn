@@ -1,3 +1,4 @@
+/* $Header$ */
 /*
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
@@ -26,8 +27,11 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
+/*
+ * Author: Eduardo Okabe, 2013
+ */
 
-//Simple Gear Joint v2 - July 2nd, 2013
+// Simple Gear Joint v2 - July 2nd, 2013
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 

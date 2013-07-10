@@ -1,3 +1,4 @@
+# $Header$
 # SimpleGearJoint test 02 (unstable)
 # Instability due to inactive orientation constraint (Y axis) of total joint 2.
 

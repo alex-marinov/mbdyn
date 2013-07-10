@@ -1,3 +1,4 @@
+# $Header$
 # SimpleGearJoint - test 00
 # Plain test.
 
@@ -83,8 +84,9 @@ begin: elements;
       null, # relative center of mass
       diag, 0.01, 0.01, 0.01;  # inertia matrix
 
-	module load: "../mbdyn_teste/modules/module-fabricate/.libs/libmodule-fabricate.so";
-	user defined: 1, SimpleGearJoint, 1, 2, 0, r1, r2, output, yes;
+	#module load: "../mbdyn_teste/modules/module-fabricate/.libs/libmodule-fabricate.so";
+	module load: "libmodule-fabricate";
+	user defined: 1, simple gear joint, 1, 2, 0, r1, r2, output, yes;
 
 end: elements;
 
