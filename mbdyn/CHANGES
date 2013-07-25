@@ -34,6 +34,8 @@ MBDyn 1.X-Devel
 		  ifndef vars
 		- fixed reference orientation reset after initial assembly
 		  (Reinhard Resch)
+		- fixed inertia computation with structural displacement
+		  nodes (noted by Mattia Alioli)
 
 MBDyn 1.5.5
 	Enhancements:

@@ -68,7 +68,7 @@ Mass::~Mass(void)
 Vec3
 Mass::GetS_int(void) const
 {
-	return ::Zero3;
+	return pNode->GetXCurr()*dMass;
 }
 
 
@@ -76,7 +76,9 @@ Mass::GetS_int(void) const
 Mat3x3
 Mass::GetJ_int(void) const
 {
-	return ::Zero3x3;
+	const Vec3& x = pNode->GetXCurr();
+
+	return Mat3x3(MatCrossCross, x, x*(-dMass));
 }
 
 
