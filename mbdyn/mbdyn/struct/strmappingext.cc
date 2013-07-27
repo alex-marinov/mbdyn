@@ -129,6 +129,9 @@ m_p(3*uMappedPoints)
 		if ((p == nodes.end()) || (*p != *pPrev)) {
 			n->pNode = *pPrev;
 			n->Offsets.resize(p - pPrev);
+			for (std::vector<OffsetData>::iterator i = n->Offsets.begin(); i != n->Offsets.end(); ++i) {
+				i->Offset = ::Zero3;
+			}
 			n->F = Zero3;
 			n->M = Zero3;
 
@@ -1953,7 +1956,7 @@ ReadStructMappingExtForce(DataManager* pDM,
 	}
 
 	std::vector<const StructDispNode *> Nodes(nPoints);
-	std::vector<Vec3> Offsets(nPoints);
+	std::vector<Vec3> Offsets(nPoints, ::Zero3);
 	std::vector<uint32_t> Labels;
 	if (bLabels) {
 		Labels.resize(nPoints);
