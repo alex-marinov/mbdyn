@@ -53,7 +53,7 @@ static UDEMapType UDEMap;
 
 struct UDEWordSetType : public HighParser::WordSet {
 	bool IsWord(const std::string& s) const {
-		return UDEMap.find(std::string(s)) != UDEMap.end();
+		return ::UDEMap.find(std::string(s)) != ::UDEMap.end();
 	};
 };
 static UDEWordSetType UDEWordSet;
@@ -64,7 +64,7 @@ ParseUserDefinedElem(unsigned uLabel, DofOwner* pDO,
 {
 	DEBUGCOUTFNAME("ParseUserDefinedElem(" << uLabel << ")");
 
-	const char *s = HP.IsWord(UDEWordSet);
+	const char *s = HP.IsWord(::UDEWordSet);
 	if (s == 0) {
 		silent_cerr("ParseUserDefinedElem(" << uLabel << "): "
 			"unknown user-defined element type "
@@ -72,8 +72,8 @@ ParseUserDefinedElem(unsigned uLabel, DofOwner* pDO,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	UDEMapType::iterator i = UDEMap.find(std::string(s));
-	if (i == UDEMap.end()) {
+	UDEMapType::iterator i = ::UDEMap.find(std::string(s));
+	if (i == ::UDEMap.end()) {
 		silent_cerr("ParseUserDefinedElem(" << uLabel << "): "
 			"unknown user-defined element type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
@@ -84,7 +84,7 @@ ParseUserDefinedElem(unsigned uLabel, DofOwner* pDO,
 }
 
 // legacy
-Elem* 
+Elem * 
 ReadLoadable(DataManager* pDM, MBDynParser& HP, 
      const DofOwner* pDO, unsigned int uLabel)
 {
