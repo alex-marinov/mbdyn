@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- added measures in aircraft instruments
 		- added axial constitutive law wrapper
 		- added simple gear joint (Eduardo Okabe)
+		- added kinetic energy in automatic structural element
+		  private data
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change

@@ -289,7 +289,7 @@ AutomaticStructDispElem::SetValue(DataManager *pDM,
 unsigned int
 AutomaticStructDispElem::iGetNumPrivData(void) const
 {
-	return 12;
+	return 13;
 }
 
 unsigned int
@@ -308,13 +308,19 @@ AutomaticStructDispElem::iGetPrivDataIdx(const char *s) const
 	 * gammaP[1]
 	 * gammaP[2]
 	 * gammaP[3]
+	 * KE
 	 */
 	unsigned int idx = 0;
-	if (strncmp(s, "beta", STRLENOF("beta")) == 0) {
+	if (strcmp(s, "KE") == 0) {
+		return 13;
+
+	} else if (strncmp(s, "beta", STRLENOF("beta")) == 0) {
 		s += STRLENOF("beta");
+
 	} else if (strncmp(s, "gamma", STRLENOF("gamma")) == 0) {
 		s += STRLENOF("gamma");
 		idx += 3;
+
 	} else {
 		return 0;
 	}
@@ -351,6 +357,10 @@ AutomaticStructDispElem::iGetPrivDataIdx(const char *s) const
 doublereal
 AutomaticStructDispElem::dGetPrivData(unsigned int i) const
 {
+	if (i == 13) {
+		return (B*pNode->GetVCurr())/2;
+	}
+
 	unsigned int der = (i - 1)/6;
 	i -= 6*der;
 	unsigned int type = (i - 1)/3;
@@ -660,7 +670,7 @@ AutomaticStructElem::SetValue(DataManager *pDM,
 unsigned int
 AutomaticStructElem::iGetNumPrivData(void) const
 {
-	return 12;
+	return 13;
 }
 
 unsigned int
@@ -679,13 +689,19 @@ AutomaticStructElem::iGetPrivDataIdx(const char *s) const
 	 * gammaP[1]
 	 * gammaP[2]
 	 * gammaP[3]
+	 * KE
 	 */
 	unsigned int idx = 0;
-	if (strncmp(s, "beta", STRLENOF("beta")) == 0) {
+	if (strcmp(s, "KE") == 0) {
+		return 13;
+
+	} else if (strncmp(s, "beta", STRLENOF("beta")) == 0) {
 		s += STRLENOF("beta");
+
 	} else if (strncmp(s, "gamma", STRLENOF("gamma")) == 0) {
 		s += STRLENOF("gamma");
 		idx += 3;
+
 	} else {
 		return 0;
 	}
@@ -722,6 +738,11 @@ AutomaticStructElem::iGetPrivDataIdx(const char *s) const
 doublereal
 AutomaticStructElem::dGetPrivData(unsigned int i) const
 {
+	if (i == 13) {
+		const StructNode *pSN = dynamic_cast<const StructNode *>(pNode);
+		return (B*pSN->GetVCurr() + G*pSN->GetWCurr())/2;
+	}
+
 	unsigned int der = (i - 1)/6;
 	i -= 6*der;
 	unsigned int type = (i - 1)/3;
