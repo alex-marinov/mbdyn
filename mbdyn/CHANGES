@@ -38,6 +38,7 @@ MBDyn 1.X-Devel
 		  nodes (noted by Mattia Alioli)
 		- fixed data initialization in external struct mapping
 		  with membrane elements
+		- fixed bug in Cardano hinge initial assembly
 
 MBDyn 1.5.5
 	Enhancements:

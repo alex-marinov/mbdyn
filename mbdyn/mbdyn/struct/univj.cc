@@ -355,7 +355,7 @@ UniversalHingeJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.DecCoef(24 + iCnt, iCnt, 1.);
 
 		/* Derivata dell'equazione di vincolo, nodo 1 */
-		WM.DecCoef(29 + iCnt, 6 + iCnt, 1.);
+		WM.DecCoef(28 + iCnt, 6 + iCnt, 1.);
 
 		/* Equazione di vincolo, nodo 2 */
 		WM.IncCoef(24 + iCnt, 12 + iCnt, 1.);
