@@ -3808,9 +3808,9 @@ ReadStructNode(DataManager* pDM,
 			Mat3x3 Rh(Eye3);
 			if (HP.IsKeyWord("orientation")) {
 				Rh = HP.GetRotRel(RF);
-			}
 
-			od = ReadOptionalOrientationDescription(pDM, HP);
+				od = ReadOptionalOrientationDescription(pDM, HP);
+			}
 
 			const StructNode *pNodeRef2 = 0;
 			Vec3 fh2(Zero3);
@@ -3876,6 +3876,9 @@ ReadStructNode(DataManager* pDM,
 					<< HP.GetLineData() << std::endl);
 			}
 			R0 = HP.GetRotAbs(AbsRefFrame);
+
+			od = ReadOptionalOrientationDescription(pDM, HP);
+
 			DEBUGCOUT("R0 =" << std::endl << R0 << std::endl);
 		}
 
@@ -3950,8 +3953,6 @@ ReadStructNode(DataManager* pDM,
 		}
 
 		pDO->SetScale(pDM->dReadScale(HP, DofOwner::STRUCTURALNODE));
-
-		od = ReadOptionalOrientationDescription(pDM, HP);
 
 		flag fOut = pDM->fReadOutput(HP, Node::STRUCTURAL);
 		switch (CurrType) {

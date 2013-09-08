@@ -25,6 +25,8 @@ MBDyn 1.X-Devel
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
 		- reference systems of aircraft instruments changed
+		- reworked orientation description within node input
+		  according to documentation (was inconsistent)
 	Known issues:
 		- Schur solver is broken
 		- TotalPinJoint inverse dynamics support is broken
