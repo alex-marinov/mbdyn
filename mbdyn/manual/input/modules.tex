@@ -105,8 +105,8 @@ implements a scalar mass-damper-spring system.
     \bnt{name} ::= \kw{nonsmooth node}
 
     \bnt{module_data} ::=
-        [ \kw{frictional} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{frictional} \} , ]
         (\ty{StructDispNode}) \bnt{NonsmoothNODELABEL} ,
+        [ \kw{frictional} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{frictional} \} , ]
         \kw{mass} , (\ty{real}) \bnt{mass} ,
         \kw{radius} , (\ty{real}) \bnt{radius} ,
         \kw{planes} , (\ty{integer}) \bnt{number_of_planes} ,
@@ -114,7 +114,7 @@ implements a scalar mass-damper-spring system.
                 \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_plane_position} ,
                 \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
                 \kw{restitution} , (\ty{real}) \bnt{rest_coeff}
-                [ , \kw{frictional coefficient} , (\ty{real}) \bnt{mu} ] # only if \nt{frictional} is true
+                [ , \kw{friction coefficient} , (\ty{real}) \bnt{mu} ] # only if \nt{frictional} is true
                 [ , ... ]
         [ , \kw{constraint type} , \{ \kw{position} | \kw{velocity} | \kw{both} \} ] # default: both
         [ , \kw{theta} , \bnt{theta} ]
