@@ -177,6 +177,7 @@ The following data are available:
 \item \kw{"gammaP[1]"} momenta moment derivative in global direction 1
 \item \kw{"gammaP[2]"} momenta moment derivative in global direction 2
 \item \kw{"gammaP[3]"} momenta moment derivative in global direction 3
+\item \kw{"KE"} kinetic energy
 \end{enumerate}
 
 
@@ -3178,6 +3179,25 @@ and thus the corresponding dynamic effect.
 \end{Verbatim}
 %\end{verbatim}
 
+\subsubsection{Output}
+\begin{itemize}
+\item[1:] label
+\item[2:] pressure at node 1
+\item[3:] pressure at node 2
+\item[4:] pressure derivative at node 1
+\item[5:] pressure aderivative t node 2
+\item[6:] flow at node 1
+\item[7:] flow at node 2
+\item[8:] flow rate at node 1
+\item[9:] flow rate at node 2
+\item[10:] density at node 1
+\item[11:] reference density
+\item[12:] density at node 2
+\item[13:] derivative of density with respect to pressure at node 1
+\item[14:] derivative of density with respect to pressure at node 2
+\item[15:] Reynolds number
+\item[16:] flow type flag (boolean; true when flow is turbulent, false otherwise)
+\end{itemize}
 
 
 
