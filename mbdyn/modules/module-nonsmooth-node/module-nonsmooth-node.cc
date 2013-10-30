@@ -314,11 +314,6 @@ iIter(0)
 
 	m_pNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
 
-	if (HP.IsKeyWord("frictional")) {
-		bFrictional = HP.GetYesNoOrBool(true);
-	}
-
-
 	if (!HP.IsKeyWord("mass")) {
 		silent_cerr("ModuleNonsmoothNode(" << uLabel << "): \"mass\" expected at line "
 			<< HP.GetLineData() << std::endl);
@@ -378,13 +373,13 @@ iIter(0)
 
 		NS_data.constr[i].e_rest  = HP.GetReal();
 
-		if (bFrictional) {
-			if (!HP.IsKeyWord("friction" "coefficient")) {
-				silent_cerr("ModuleNonsmoothNode(" << uLabel << "): \"friction coefficient\" expected at line "
-					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+		if (HP.IsKeyWord("friction" "coefficient")) {
+			bFrictional = true;
 			NS_data.constr[i].mu = HP.GetReal();
+
+		} else if (bFrictional) {
+			silent_cerr("ModuleNonsmoothNode(" << uLabel << "): no friction coefficient for plane #" << i << " of " << NS_data.Np << " at line "
+				<< HP.GetLineData() << std::endl);
 		}
 	}
 
