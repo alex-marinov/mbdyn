@@ -1,0 +1,352 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2013
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# Impact modelling and analysis of the compliant legged robots
+# Shu-Sheng Bi, Xiao-Dong Zhou and Dan B Marghitu
+# Proceedings of the Institution of Mechanical Engineers, Part K: Journal of Multi-body Dynamics 2012 226:85
+# DOI: 10.1177/1464419312441451
+# The online version of this article can be found at:
+# http://pik.sagepub.com/content/226/2/85
+
+module load: "libmodule-nonsmooth-node";
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0;
+	final time: 1.;
+	time step: 1e-6;
+
+	method: ms, .6;
+
+	tolerance: 1e-6;
+	max iterations: 100;
+
+	derivatives tolerance: 1e+9;
+	derivatives max iterations: 100;
+
+	# linear solver: naive, colamd;
+	linear solver: umfpack, cc;
+
+	# output: iterations;
+end: initial value;
+
+set: const integer NBEAMS = 5;
+
+begin: control data;
+	structural nodes:
+		+1		# body
+		+2*NBEAMS	# beam
+		+1		# ground
+	;
+	rigid bodies:
+		+1		# body
+		+2*NBEAMS - 1	# beam
+	;
+	beams:
+		+NBEAMS		# beam
+	;
+	joints:
+		+1		# ground clamp
+		+1		# symmetry
+	;
+	loadable elements:
+		+1		# nonsmooth node
+	;
+	gravity;
+
+	# output meter: meter, 0., forever, steps, 100;
+end: control data;
+
+set: const integer BODY = 100;
+set: const integer BEAM = 200;
+
+set: const real LX_B = 0.15;
+set: const real LY_B = 0.08;
+set: const real LZ_B = 0.06;
+set: const real M_B = 2700*LX_B*LY_B*LY_B;
+set: const real JX_B = M_B*(LY_B^2 + LZ_B^2)/12;
+set: const real JY_B = M_B*(LZ_B^2 + LX_B^2)/12;
+set: const real JZ_B = M_B*(LX_B^2 + LY_B^2)/12;
+
+set: const real LX_L = 0.2;
+set: const real LY_L = 0.005;
+set: const real DM_L = 2550*LY_L^2;
+set: const real DJX_L = DM_L*2*LY_L^2/12;
+set: const real DJY_L = DM_L*LY_L^2/12;
+set: const real DJZ_L = DM_L*LY_L^2/12;
+set: const real DLX_L = LX_L/(2*NBEAMS);
+
+set: const real EA = 72e9*LY_L^2;
+set: const real GA = 72e9/(2*(1 + 0.22))*LY_L^2*5/6;
+set: const real EJ = 72e9*LY_L^4/12;
+set: const real GJ = 72e9/(2*(1 + 0.22))*LY_L^4/12; # FIXME
+set: const real DAMP = 1e-5;
+constitutive law: 1, 6,
+	linear viscoelastic generic, diag,
+	EA, GA, GA, GJ, EJ, EJ, proportional, DAMP;
+
+set: const real THETA = pi/4;
+set: real Z = LX_L*sin(THETA) + LZ_B/2 + .001;
+# set: real ZP = -4.425; # m/s
+set: real ZP = 0.; # m/s
+# set: real ZP = -1.; # m/s
+# set: real ZP = -2.; # m/s
+
+reference: 0,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+reference: BODY,
+	reference, 0, 0., 0., Z,
+	reference, 0, eye,
+	reference, 0, 0., 0., ZP,
+	reference, 0, null;
+
+reference: BEAM,
+	reference, BODY, 0., 0., -LZ_B/2,
+	reference, BODY, 2, 0., 1., 0., 1, cos(THETA), 0., -sin(THETA),
+	reference, BODY, null,
+	reference, BODY, null;
+
+begin: nodes;
+	structural: 0, static,
+		reference, 0, null,
+		reference, 0, eye,
+		reference, 0, null,
+		reference, 0, null;
+
+	structural: BODY, dynamic,
+		reference, BODY, null,
+		reference, BODY, eye,
+		reference, BODY, null,
+		reference, BODY, null;
+
+	structural: BEAM + 1, dynamic,
+		reference, BEAM, 1*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 2, dynamic,
+		reference, BEAM, 2*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 3, dynamic,
+		reference, BEAM, 3*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 4, dynamic,
+		reference, BEAM, 4*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 5, dynamic,
+		reference, BEAM, 5*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 6, dynamic,
+		reference, BEAM, 6*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 7, dynamic,
+		reference, BEAM, 7*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 8, dynamic,
+		reference, BEAM, 8*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 9, dynamic,
+		reference, BEAM, 9*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+	structural: BEAM + 10, static,
+		reference, BEAM, 10*DLX_L, 0., 0.,
+		reference, BEAM, eye,
+		reference, BEAM, null,
+		reference, BEAM, null;
+end: nodes;
+
+begin: elements;
+	gravity: 0., 0., -1., 9.8;
+
+	joint: 0, clamp, 0, node, node;
+
+	joint: 1, total pin joint,
+		BODY,
+			position, reference, node, null,
+			position orientation, reference, node, eye,
+			rotation orientation, reference, node, eye,
+		position, reference, node, null,
+		position orientation, reference, node, eye,
+		rotation orientation, reference, node, eye,
+		position constraint, 1, 1, 0, null,
+		orientation constraint, 1, 1, 1, null;
+
+	body: BODY, BODY,
+		condense, 2,
+		M_B,
+		reference, BODY, null,
+		diag, JX_B, JY_B, JZ_B,
+		DM_L*DLX_L/2,
+		reference, BEAM, DLX_L/4, 0., 0.,
+		diag, DJX_L*DLX_L/2, DM_L/12*(DLX_L/2)^3, DM_L/12*(DLX_L/2)^3;
+
+	body: BEAM + 1, BEAM + 1,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 2, BEAM + 2,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 3, BEAM + 3,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 4, BEAM + 4,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 5, BEAM + 5,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 6, BEAM + 6,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 7, BEAM + 7,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 8, BEAM + 8,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+	body: BEAM + 9, BEAM + 9,
+		DM_L*DLX_L,
+		reference, node, null,
+		diag, DJX_L*DLX_L, DM_L/12*DLX_L^3, DM_L/12*DLX_L^3;
+
+	beam3: BEAM + 1,
+		BODY,
+			position, reference, BEAM, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 1,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 2,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		from nodes,
+		reference, 1,
+		same,
+		same;
+	beam3: BEAM + 2,
+		BEAM + 2,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 3,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 4,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		from nodes,
+		reference, 1,
+		same,
+		same;
+	beam3: BEAM + 3,
+		BEAM + 4,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 5,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 6,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		from nodes,
+		reference, 1,
+		same,
+		same;
+	beam3: BEAM + 4,
+		BEAM + 6,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 7,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 8,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		from nodes,
+		reference, 1,
+		same,
+		same;
+	beam3: BEAM + 5,
+		BEAM + 8,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 9,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		BEAM + 10,
+			position, reference, node, null,
+			orientation, reference, BEAM, eye,
+		from nodes,
+		reference, 1,
+		same,
+		same;
+
+	user defined: 1, nonsmooth node,
+		BEAM + 10,		     
+		mass, DM_L*DLX_L/2,
+		radius, 0,
+		planes, 1,
+			0,
+			position, reference, 0, null,
+			rotation orientation, eye,
+			restitution, 0.8,
+			friction coefficient, 0.48,
+		LCP solver, lexico lemke,
+		# LCP solver, rpgs,
+		output, yes;
+end: elements;
