@@ -962,7 +962,7 @@ They are:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{constitutive law} : \bnt{label} ,
         [ \kw{name} , " \bnt{name} " , ]
-        \bnt{dim} , (\htmlref{\ty{ConstitutiveLaw}<\bnt{dim}\kw{D}>}{sec:ConstitutiveLaw}) \bnt{constitutive_law} ;
+        \bnt{dim} , (\htmlref{\ty{ConstitutiveLaw}\be{\bnt{dim}\kw{D}}}{sec:ConstitutiveLaw}) \bnt{constitutive_law} ;
 \end{Verbatim}
 %\end{verbatim}
 Constitutive laws are grouped by their dimensionality \nt{dim},
@@ -1678,7 +1678,7 @@ The \kw{template drive caller} directive
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{template drive caller} : \bnt{label} , \{ " \bnt{dim_name} " | (\ty{integer}) \bnt{dim} \} ,
-        (\htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}) \bnt{tpl_drive_caller} ;
+        (\htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}) \bnt{tpl_drive_caller} ;
 
     \bnt{dim_name} ::= \{ \kw{1} | \kw{3} | \kw{6} | \kw{3x3} | \kw{6x6} \}
 
@@ -2842,15 +2842,15 @@ on the functions of the \kw{model} namespace.
 
 \subsection{Template Drive}\label{sec:TplDriveCaller}
 A particular \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is the template drive caller,
-indicated as \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}.
+indicated as \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}.
 It basically consists in a drive with dimensionality other than scalar.
 %Typically, it is made of a constant entity, with the dimensionality
 %of \nt{type}, that multiplies a conventional 
 %\hyperref{\htmlref{\ty{DriveCaller}}{sec:DriveCaller}}{\htmlref{\ty{DriveCaller}}{sec:DriveCaller} (see Section~}{)}{sec:DriveCaller}
 %to give a drive entity of dimensionality different from that 
 %of a simple scalar drive.
-The family of the \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller} object is very large.
-The type of the \htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller} is declared as
+The family of the \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller} object is very large.
+The type of the \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::=
@@ -3155,7 +3155,7 @@ must be in the range $\sqbr{-1,1}$, in strict ascending order.
 
 
 \section{Constitutive Laws}\label{sec:ConstitutiveLaw}
-Implements the type \texttt{\ty{ConstitutiveLaw}<\bnt{Entity}, \bnt{DerivativeOfEntity}>}.
+Implements the type \texttt{\ty{ConstitutiveLaw}\be{\bnt{Entity}, \bnt{DerivativeOfEntity}}}.
 Every time a ``deformable'' entity requires a constitutive law, a template
 constitutive law is read. This has been implemented by means of C++
 templates in order to allow the definition of a general constitutive law
@@ -3272,7 +3272,7 @@ The constitutive laws are entered as follows:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
         [ , \kw{prestress} , (\ty{Entity}) \bnt{prestress} ]
-        [ , \kw{prestrain} , (\htmlref{\ty{TplDriveCaller}<\bnt{Entity}>}{sec:TplDriveCaller}) \bnt{prestrain} ]
+        [ , \kw{prestrain} , (\htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}) \bnt{prestrain} ]
 
     \bnt{specific_const_law} ::= \bnt{const_law_name} ,
         \bnt{const_law_data}
@@ -4199,7 +4199,7 @@ The syntax is
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
         (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
         (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition} ,
-        (\htmlref{\ty{ConstitutiveLaw}<\bnt{Entity}, \bnt{DerivativeOfEntity}>}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
+        (\htmlref{\ty{ConstitutiveLaw}\be{\bnt{Entity}, \bnt{DerivativeOfEntity}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
 %\end{verbatim}
 
