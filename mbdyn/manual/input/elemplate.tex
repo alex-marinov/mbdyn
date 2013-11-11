@@ -108,7 +108,21 @@ fluxes as functions of linear and angular strains according to
 		\kappa_{22} \\
 		\kappa_{23}
 	}}
+	+
+	\nt{prestress}
 \end{align}
+The \nt{prestress} is a force and moment per unit span contribution
+to the force and moment fluxes.
+Typically, only a membrane prestress makes sense, namely
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{prestress} ::= \bnt{T11} , \bnt{T12} , 0. , # force/span on face with normal 1
+                    \bnt{T21} , \bnt{T22} , 0. , # force/span on face with normal 2
+                    0. , 0. , 0. ,       # moment/span on face with normal 1
+                    0. , 0. , 0.         # moment/span on face with normal 2
+\end{Verbatim}
+with $\nt{T21} \equiv \nt{T12}$.
+
+
 When the \kw{isotropic} keyword is used, only two of the optional
 sub-keywords \kw{E}, \kw{nu} and \kw{G} are required, as the remaining
 parameter can be computed from the other two according to the relationship
@@ -121,6 +135,7 @@ parameter can be computed from the other two according to the relationship
 If all are provided, they must be consistent.
 The optional parameters \kw{as} and \kw{at} are not documented yet;
 the default should be used.
+
 
 \textbf{TODO: improve}
 
@@ -174,7 +189,15 @@ fluxes as functions of linear strains according to
 		\varepsilon_{22} \\
 		\varepsilon_{12}
 	}}
+	+
+	\nt{prestress}
 \end{align}
+The \nt{prestress} is a force per unit span contribution
+to the force fluxes,
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{prestress} ::= \bnt{T11} , \bnt{T22} , \bnt{T12}
+\end{Verbatim}
+
 When the \kw{isotropic} keyword is used, only two of the optional
 sub-keywords \kw{E}, \kw{nu} and \kw{G} are required, as the remaining
 parameter can be computed from the other two according to the relationship
