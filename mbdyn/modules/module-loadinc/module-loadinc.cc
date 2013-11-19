@@ -150,6 +150,11 @@ m_iDim(0)
 "        [ compliance , <compliance> , ]      # compliance*p = length\n"
 "        [ reference length, <ref_length> , ] # multiplies DeltaTheta\n"
 "        (DriveCaller) <DeltaS> ;             # arc length increment\n"
+"\n"
+"# output:\n"
+"# 1: <label>\n"
+"# 2: <p>\n"
+"# 3: <s>\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
@@ -640,6 +645,15 @@ m_pDrivenLoadIncNorm(0)
 "        [ position , (Vec3) <position> , ] # meaningless for couple\n"
 "        (Vec3) <direction> , \n"
 "        load increment normalization , <lin_label> ;\n"
+"\n"
+"# output:\n"
+"# 1: <label>@<node_label>\n"
+"# if type ::= \"force\":\n"
+"#     2,3,4: fx fy fz\n"
+"#     if node is not displacement-only:\n"
+"#         5,6,7: mx my mz\n"
+"# else\n"
+"#     2,3,4: mx my mz\n"
 			<< std::endl);
 
 		if (!HP.IsArg()) {
