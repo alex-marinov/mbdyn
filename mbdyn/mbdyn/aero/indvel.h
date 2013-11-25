@@ -63,11 +63,11 @@ public:
 		GLAUERT		= (2U | ROTOR),
 		MANGLER		= (3U | ROTOR),
 		DYNAMICINFLOW	= (4U | ROTOR),
+		PETERS_HE	= (5U | ROTOR),
 
-		CYCLOCOPTER	= (5U | ROTOR),
+		CYCLOCOPTER	= (11U | ROTOR),
 
 		LASTROTORTYPE
-
 	};
 
 public:

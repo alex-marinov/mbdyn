@@ -649,6 +649,131 @@ public:
 
 /* DynamicInflowRotor - end */
 
+/* PetersHeRotor - begin */
+
+/*
+ * Based on the 3 state dynamic inflow by Pitt-Peters:
+ *
+ * D. M. Pitt,  D. A. Peters,
+ * "Theoretical Prediction of Dynamic Inflow Derivatives",
+ * Vertica, Vol. 5, pp.21-34, 1981
+ *
+ * as discussed by Chen in:
+ *
+ * R. T. N. Chen,
+ * "A Survey of Nonuniform Inflow Models for Rotorcraft
+ * Flight Dynamics and Control Applications"
+ * Vertica, Vol 14, No. 2, pp.147-184, 1990
+ */
+
+class PetersHeRotor : virtual public Elem, public Rotor {
+protected:
+	doublereal dVConst;
+	doublereal dVSine;
+	doublereal dVCosine;
+
+	doublereal dL11;
+	doublereal dL13;
+	doublereal dL22;
+	doublereal dL31;
+	doublereal dL33;
+
+	virtual void Init(const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+      		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		const doublereal& dVConstTmp,
+		const doublereal& dVSineTmp,
+		const doublereal& dVCosineTmp,
+		flag fOut);
+
+public:
+	PetersHeRotor(unsigned int uLabel, const DofOwner* pDO);
+	PetersHeRotor(unsigned int uLabel,
+		const DofOwner* pDO,
+		const StructNode* pCraft,
+		const Mat3x3& rrot,
+		const StructNode* pRotor,
+      		const StructNode* pGround,
+		ResForceSet **ppres,
+		const doublereal& dOR,
+		const doublereal& dR,
+		unsigned int iMaxIt,
+		const doublereal& dTol,
+		const doublereal& dE,
+		const doublereal& dCH,
+		const doublereal& dCFF,
+		const doublereal& dVConstTmp,
+		const doublereal& dVSineTmp,
+		const doublereal& dVCosineTmp,
+		flag fOut);
+	virtual ~PetersHeRotor(void);
+
+	// ritorna il numero di Dofs per gli elementi che sono anche DofOwner
+	virtual unsigned int iGetNumDof(void) const {
+		return 3;
+	};
+
+	// output; si assume che ogni tipo di elemento sappia,
+	// attraverso l'OutputHandler, dove scrivere il proprio output
+	virtual void Output(OutputHandler& OH) const;
+
+	// Dimensioni del workspace
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 3;
+		*piNumCols = 3;
+	};
+
+	// assemblaggio jacobiano
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	// assemblaggio residuo
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	// Contributo al file di Restart
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	// Relativo ai ...WithDofs
+	virtual void SetInitialValue(VectorHandler& X);
+
+	// Relativo ai ...WithDofs
+	virtual void
+	SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+
+	InducedVelocity::Type GetInducedVelocityType(void) const {
+		return InducedVelocity::DYNAMICINFLOW;
+	};
+
+	// Somma alla trazione il contributo di un elemento */
+	virtual void
+	AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X);
+
+	// Restituisce ad un elemento la velocita' indotta
+	// in base alla posizione azimuthale
+	virtual Vec3 GetInducedVelocity(Elem::Type type,
+		unsigned uLabel, unsigned uPnt, const Vec3& X) const;
+};
+
+/* PetersHeRotor - end */
+
 class DataManager;
 class MBDynParser;
 

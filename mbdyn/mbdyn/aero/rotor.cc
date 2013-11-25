@@ -2019,6 +2019,524 @@ DynamicInflowRotor::GetInducedVelocity(Elem::Type type,
 /* DynamicInflowRotor - end */
 
 
+/* PetersHeRotor - begin */
+
+PetersHeRotor::PetersHeRotor(unsigned int uLabel, const DofOwner* pDO)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
+dVConst(0), dVSine(0), dVCosine(0),
+dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
+{
+	NO_OP;
+}
+
+PetersHeRotor::PetersHeRotor(unsigned int uLabel,
+	const DofOwner* pDO,
+	const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	const doublereal& dVConstTmp,
+	const doublereal& dVSineTmp,
+	const doublereal& dVCosineTmp,
+	flag fOut)
+: Elem(uLabel, flag(0)),
+Rotor(uLabel, pDO),
+dVConst(0), dVSine(0), dVCosine(0),
+dL11(0.), dL13(0.), dL22(0.), dL31(0.), dL33(0.)
+{
+	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR,
+		iMaxIt, dTol, dE, dCH, dCFF,
+		dVConstTmp, dVSineTmp, dVCosineTmp, fOut);
+}
+
+void
+PetersHeRotor::Init(const StructNode* pCraft,
+	const Mat3x3& rrot,
+	const StructNode* pRotor,
+	const StructNode* pGround,
+	ResForceSet **ppres,
+	const doublereal& dOR,
+	const doublereal& dR,
+	unsigned int iMaxIt,
+	const doublereal& dTol,
+	const doublereal& dE,
+	const doublereal& dCH,
+	const doublereal& dCFF,
+	const doublereal& dVConstTmp,
+	const doublereal& dVSineTmp,
+	const doublereal& dVCosineTmp,
+	flag fOut)
+{
+	ASSERT(dOR > 0.);
+	ASSERT(dR > 0.);
+
+	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
+
+	dVConst = dVConstTmp;
+	dVSine = dVSineTmp;
+	dVCosine = dVCosineTmp;
+
+	dOmegaRef = dOR;
+	dVTipRef = dOmegaRef*dRadius;
+	dArea = M_PI*dRadius*dRadius;
+
+	dHoverCorrection = dCH;
+	dForwardFlightCorrection = dCFF;
+
+	/* Significa che valuta la velocita' indotta media al passo corrente */
+	dWeight = 0.;
+
+#ifdef USE_MPI
+	if (is_parallel) {
+		SAFENEWARR(pBlockLenght, int, 20);
+		SAFENEWARR(pDispl, MPI::Aint, 20);
+		for (int i = 0; i < 20; i++) {
+			pBlockLenght[i] = 1;
+		}
+		for (int i = 0; i < 3; i++) {
+			pDispl[i] = MPI::Get_address(RRot3.pGetVec()+i);
+		}
+		pDispl[3] = MPI::Get_address(&dVConst);
+		pDispl[4] = MPI::Get_address(&dVSine);
+		pDispl[5] = MPI::Get_address(&dVCosine);
+		pDispl[6] = MPI::Get_address(&dOmega);
+		pDispl[7] = MPI::Get_address(&dPsi0);
+		for (int i = 8; i <= 10; i++) {
+			pDispl[i] = MPI::Get_address(Res.Pole().pGetVec()+i-8);
+		}
+		for (int i = 11; i < 20; i++) {
+			pDispl[i] = MPI::Get_address(RRotTranspose.pGetMat()+i-11);
+		}
+		SAFENEWWITHCONSTRUCTOR(pIndVelDataType, MPI::Datatype,
+				MPI::Datatype(MPI::DOUBLE.Create_hindexed(20, pBlockLenght, pDispl)));
+		pIndVelDataType->Commit();
+	}
+#endif /* USE_MPI */
+}
+
+
+PetersHeRotor::~PetersHeRotor(void)
+{
+#ifdef USE_MPI
+	SAFEDELETEARR(pBlockLenght);
+	SAFEDELETEARR(pDispl);
+	SAFEDELETE(pIndVelDataType);
+#endif /* USE_MPI */
+}
+
+
+void
+PetersHeRotor::Output(OutputHandler& OH) const
+{
+     	/*
+	 * FIXME: posso usare dei temporanei per il calcolo della trazione
+	 * totale per l'output, cosi' evito il giro dei cast
+	 */
+	if (fToBeOutput()) {
+#ifdef USE_MPI
+		if (is_parallel && IndVelComm.Get_size() > 1) {
+			if (IndVelComm.Get_rank() == 0) {
+				Vec3 TmpF(pTmpVecR), TmpM(pTmpVecR+3);
+
+				OH.Rotors()
+					<< std::setw(8) << GetLabel()	/* 1 */
+					<< " " << RRotTranspose*TmpF /* 2-4 */
+					<< " " << RRotTranspose*TmpM /* 5-7 */
+					<< " " << dUMean	/* 8 */
+					<< " " << dVelocity	/* 9 */
+					<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+					<< " " << dMu		/* 11 */
+					<< " " << dLambda	/* 12 */
+					<< " " << dChi		/* 13 */
+					<< " " << dPsi0		/* 14 */
+					<< " " << bUMeanRefConverged /* 15 */
+					<< " " << iCurrIter	/* 16 */
+					<< " " << dVConst	/* 17 */
+					<< " " << dVSine	/* 18 */
+					<< " " << dVCosine	/* 19 */
+					<< std::endl;
+
+				for (int i = 0; ppRes && ppRes[i]; i++) {
+					Vec3 TmpF(pTmpVecR+6+6*i);
+					Vec3 TmpM(pTmpVecR+9+6*i);
+
+					OH.Rotors()
+						<< std::setw(8) << GetLabel()
+						<< ":" << ppRes[i]->GetLabel()
+						<< " " << TmpF
+						<< " " << TmpM
+						<< std::endl;
+				}
+			}
+		} else {
+			OH.Rotors()
+				<< std::setw(8) << GetLabel()	/* 1 */
+				<< " " << RRotTranspose*Res.Force()  /* 2-4 */
+				<< " " << RRotTranspose*Res.Moment() /* 5-7 */
+				<< " " << dUMean	/* 8 */
+				<< " " << dVelocity	/* 9 */
+				<< " " << atan2(dSinAlphad, dCosAlphad)	/* 10 */
+				<< " " << dMu		/* 11 */
+				<< " " << dLambda	/* 12 */
+				<< " " << dChi		/* 13 */
+				<< " " << dPsi0		/* 14 */
+				<< " " << bUMeanRefConverged /* 15 */
+				<< " " << iCurrIter	/* 16 */
+				<< " " << dVConst	/* 17 */
+				<< " " << dVSine	/* 18 */
+				<< " " << dVCosine	/* 19 */
+				<< std::endl;
+
+			for (int i = 0; ppRes && ppRes[i]; i++) {
+				OH.Rotors()
+					<< std::setw(8) << GetLabel()
+	    				<< ":" << ppRes[i]->GetLabel()
+					<< " " << ppRes[i]->pRes->Force()
+					<< " " << ppRes[i]->pRes->Moment()
+					<< std::endl;
+			}
+		}
+
+#else /* !USE_MPI */
+		OH.Rotors()
+			<< std::setw(8) << GetLabel()	/* 1 */
+			<< " " << RRotTranspose*Res.Force()	/* 2-4 */
+			<< " " << RRotTranspose*Res.Moment()	/* 5-7 */
+			<< " " << dUMean	/* 8 */
+			<< " " << dVelocity	/* 9 */
+			<< " " << atan2(dSinAlphad,dCosAlphad)	/* 10 */
+			<< " " << dMu		/* 11 */
+			<< " " << dLambda	/* 12 */
+			<< " " << dChi		/* 13 */
+			<< " " << dPsi0		/* 14 */
+			<< " " << bUMeanRefConverged /* 15 */
+			<< " " << iCurrIter	/* 16 */
+			<< " " << dVConst	/* 17 */
+			<< " " << dVSine	/* 18 */
+			<< " " << dVCosine	/* 19 */
+			<< std::endl;
+
+		for (int i = 0; ppRes && ppRes[i]; i++) {
+			OH.Rotors()
+				<< std::setw(8) << GetLabel()
+    				<< ":" << ppRes[i]->GetLabel()
+				<< " " << ppRes[i]->pRes->Force()
+				<< " " << ppRes[i]->pRes->Moment()
+				<< std::endl;
+		}
+#endif /* !USE_MPI */
+	}
+}
+
+/* assemblaggio jacobiano */
+VariableSubMatrixHandler&
+PetersHeRotor::AssJac(VariableSubMatrixHandler& WorkMat,
+	doublereal dCoef,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
+{
+	DEBUGCOUT("Entering PetersHeRotor::AssJac()" << std::endl);
+
+	WorkMat.SetNullMatrix();
+
+#ifdef USE_MPI
+	if (is_parallel && IndVelComm.Get_rank() == 0)
+#endif /* USE_MPI */
+	{
+		SparseSubMatrixHandler& WM = WorkMat.SetSparse();
+		integer iFirstIndex = iGetFirstIndex();
+
+		WM.ResizeReset(5, 0);
+
+		WM.PutItem(1, iFirstIndex + 1, iFirstIndex + 1, dM11 + dCoef*dL11);
+		WM.PutItem(2, iFirstIndex + 3, iFirstIndex + 1, dCoef*dL31);
+		WM.PutItem(3, iFirstIndex + 2, iFirstIndex + 2, dM22 + dCoef*dL22);
+		WM.PutItem(4, iFirstIndex + 1, iFirstIndex + 3, dCoef*dL13);
+		WM.PutItem(5, iFirstIndex + 3, iFirstIndex + 3, dM33 + dCoef*dL33);
+	}
+
+	return WorkMat;
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+PetersHeRotor::AssRes(SubVectorHandler& WorkVec,
+	doublereal /* dCoef */ ,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+     	DEBUGCOUT("Entering PetersHeRotor::AssRes()" << std::endl);
+
+#ifdef USE_MPI
+     	ExchangeLoads(flag(1));
+
+     	if (!is_parallel || IndVelComm.Get_rank() == 0)
+#endif /* USE_MPI */
+	{
+	   	/* Calcola parametri vari */
+	   	Rotor::InitParam();
+
+       	   	WorkVec.Resize(3);
+
+	   	integer iFirstIndex = iGetFirstIndex();
+
+	   	WorkVec.PutRowIndex(1, iFirstIndex + 1);
+	   	WorkVec.PutRowIndex(2, iFirstIndex + 2);
+	   	WorkVec.PutRowIndex(3, iFirstIndex + 3);
+
+	   	dVConst = XCurr(iFirstIndex + 1);
+	   	dVSine = XCurr(iFirstIndex + 2);
+	   	dVCosine = XCurr(iFirstIndex + 3);
+
+	   	doublereal dVConstPrime = XPrimeCurr(iFirstIndex + 1);
+	   	doublereal dVSinePrime = XPrimeCurr(iFirstIndex + 2);
+	   	doublereal dVCosinePrime = XPrimeCurr(iFirstIndex + 3);
+
+		doublereal dCT = 0.;
+		doublereal dCl = 0.;
+		doublereal dCm = 0.;
+
+	   	/*
+		 * Attenzione: moltiplico tutte le equazioni per dOmega
+		 * (ovvero, i coefficienti CT, CL e CM sono divisi
+		 * per dOmega anziche' dOmega^2)
+		 */
+
+		dL11 = 0.;
+		dL13 = 0.;
+		dL22 = 0.;
+		dL31 = 0.;
+		dL33 = 0.;
+
+	   	doublereal dDim = dGetAirDensity(GetXCurr())*dArea*dOmega*(dRadius*dRadius);
+	   	if (dDim > std::numeric_limits<doublereal>::epsilon()) {
+			/*
+			 * From Claudio Monteggia:
+			 *
+			 *                        Ct
+			 * Um = -------------------------------------
+			 *       sqrt( lambda^2 / KH^4 + mu^2 / KF^2)
+			 */
+		 	doublereal dLambdaTmp
+				= dLambda/(dHoverCorrection*dHoverCorrection);
+		 	doublereal dMuTmp = dMu/dForwardFlightCorrection;
+
+		 	doublereal dVT
+				= sqrt(dLambdaTmp*dLambdaTmp + dMuTmp*dMuTmp);
+		 	doublereal dVm = 0.;
+		 	if (dVT > dVTipTreshold*dVTipRef) {
+		       		dVm = (dMuTmp*dMuTmp + dLambdaTmp*(dLambdaTmp + dVConst))/dVT;
+		 	}
+
+			/*
+			 * dUMean is just for output;
+			 */
+		   	dUMean = dVConst*dOmega*dRadius;
+
+		   	/* Trazione nel sistema rotore */
+		   	doublereal dT = RRot3*Res.Force();
+
+		   	/* Momento nel sistema rotore-vento */
+		   	doublereal dCosP = cos(dPsi0);
+		   	doublereal dSinP = sin(dPsi0);
+		   	Mat3x3 RTmp( dCosP, -dSinP, 0.,
+		      			dSinP, dCosP, 0.,
+		      			0., 0., 1.);
+
+		   	Vec3 M(RTmp*(RRotTranspose*Res.Moment()));
+
+		 	/* Thrust, roll and pitch coefficients */
+		 	dCT = dT/dDim;
+		 	dDim *= dRadius;
+		 	dCl = - M(1)/dDim;
+		 	dCm = - M(2)/dDim;
+
+			if (dVT > std::numeric_limits<doublereal>::epsilon()
+				&& dVm > std::numeric_limits<doublereal>::epsilon())
+			{
+
+				/* Matrix coefficients */
+				/* FIXME: divide by 0? */
+			 	doublereal dl11 = .5/dVT;
+				/* FIXME: divide by 0? */
+			 	doublereal d = 15./64.*M_PI*tan(dChi/2.);
+				/* FIXME: divide by 0? */
+			 	doublereal dl13 = d/dVm;
+				/* FIXME: divide by 0? */
+			 	doublereal dl31 = d/dVT;
+
+			 	doublereal dCosChi2 = cos(dChi/2.);
+			 	d = 2.*dCosChi2*dCosChi2;
+				/* FIXME: divide by 0? */
+			 	doublereal dl22 = -4./(d*dVm);
+				/* FIXME: divide by 0? */
+				doublereal dl33 = -4.*(d - 1)/(d*dVm);
+	
+				d = dl11*dl33 - dl31*dl13;
+				/* FIXME: divide by 0? */
+				dL11 = dOmega*dl33/d;
+				dL31 = -dOmega*dl31/d;
+				dL13 = -dOmega*dl13/d;
+				dL33 = dOmega*dl11/d;
+				dL22 = dOmega/dl22;
+		   	}
+		}
+	
+#ifdef DEBUG
+	   	/* Prova: */
+		static int i = -1;
+		int iv[] = { 0, 1, 0, -1, 0 };
+		if (++i == 4) {
+			i = 0;
+		}
+	   	Vec3 XTmp(pRotor->GetXCurr()+pCraft->GetRCurr()*Vec3(dRadius*iv[i],dRadius*iv[i+1],0.));
+	   	doublereal dPsiTmp, dXTmp;
+	   	GetPos(XTmp, dXTmp, dPsiTmp);
+	   	Vec3 IndV = GetInducedVelocity(GetElemType(), GetLabel(), 0, XTmp);
+	   	std::cout
+		 	<< "X rotore:  " << pRotor->GetXCurr() << std::endl
+		 	<< "V rotore:  " << VCraft << std::endl
+		 	<< "X punto:   " << XTmp << std::endl
+		 	<< "Omega:     " << dOmega << std::endl
+		 	<< "Velocita': " << dVelocity << std::endl
+		 	<< "Psi0:      " << dPsi0 << " ("
+				<< dPsi0*180./M_PI << " deg)" << std::endl
+		 	<< "Psi punto: " << dPsiTmp << " ("
+				<< dPsiTmp*180./M_PI << " deg)" << std::endl
+		 	<< "Raggio:    " << dRadius << std::endl
+		 	<< "r punto:   " << dXTmp << std::endl
+		 	<< "mu:        " << dMu << std::endl
+		 	<< "lambda:    " << dLambda << std::endl
+		 	<< "cos(ad):   " << dCosAlphad << std::endl
+		 	<< "sin(ad):   " << dSinAlphad << std::endl
+		 	<< "UMean:     " << dUMean << std::endl
+		 	<< "iv punto:  " << IndV << std::endl;
+#endif /* DEBUG */
+
+		WorkVec.PutCoef(1, dCT - dM11*dVConstPrime
+				- dL11*dVConst - dL13*dVCosine);
+	 	WorkVec.PutCoef(2, dCl - dM22*dVSinePrime
+				- dL22*dVSine);
+	 	WorkVec.PutCoef(3, dCm - dM33*dVCosinePrime
+				- dL31*dVConst - dL33*dVCosine);
+
+#ifdef USE_MPI
+     	} else {
+	   	WorkVec.Resize(0);
+#endif /* USE_MPI */
+     	}
+
+#ifdef USE_MPI
+	ExchangeVelocity();
+#endif /* USE_MPI */
+
+	/* Ora la trazione non serve piu' */
+	ResetForce();
+
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	Done();
+#endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
+
+     	return WorkVec;
+}
+
+/* Relativo ai ...WithDofs */
+void
+PetersHeRotor::SetInitialValue(VectorHandler& /* X */ )
+{
+	NO_OP;
+}
+
+
+/* Relativo ai ...WithDofs */
+void
+PetersHeRotor::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints *ph)
+{
+	integer iFirstIndex = iGetFirstIndex();
+
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
+		XP.PutCoef(iFirstIndex + iCnt, 0.);
+	}
+
+	X.PutCoef(iFirstIndex + 1, dVConst);
+	X.PutCoef(iFirstIndex + 2, dVSine);
+	X.PutCoef(iFirstIndex + 3, dVCosine);
+}
+
+
+/* Restart */
+std::ostream&
+PetersHeRotor::Restart(std::ostream& out) const
+{
+	return Rotor::Restart(out) << "dynamic inflow, " << dRadius
+		<< ", correction, " << dHoverCorrection
+		<< ", " << dForwardFlightCorrection << ';' << std::endl;
+}
+
+
+/* Somma alla trazione il contributo di forza di un elemento generico */
+void
+PetersHeRotor::AddForce(const Elem *pEl, const StructNode *pNode,
+	const Vec3& F, const Vec3& M, const Vec3& X)
+{
+	/*
+	 * Gli serve la trazione ed il momento rispetto al rotore,
+	 * che si calcola da se'
+	 */
+#ifdef USE_MPI
+	if (ReqV != MPI::REQUEST_NULL) {
+		while (!ReqV.Test()) {
+			MYSLEEP(mysleeptime);
+		}
+	}
+#endif /* USE_MPI */
+
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	pthread_mutex_lock(&forces_mutex);
+	Wait();
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+
+	Res.AddForces(F, M, X);
+	if (fToBeOutput()) {
+		InducedVelocity::AddForce(pEl, pNode, F, M, X);
+	}
+
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	pthread_mutex_unlock(&forces_mutex);
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+}
+
+
+/* Restituisce ad un elemento la velocita' indotta in base alla posizione
+ * azimuthale */
+Vec3
+PetersHeRotor::GetInducedVelocity(Elem::Type type,
+	unsigned uLabel, unsigned uPnt, const Vec3& X) const
+{
+#if defined(USE_MULTITHREAD) && defined(MBDYN_X_MT_ASSRES)
+	Wait();
+#endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
+
+	doublereal dr, dp;
+	GetPos(X, dr, dp);
+
+	return RRot3*((dVConst + dr*(dVCosine*cos(dp) + dVSine*sin(dp)))*dRadius*dOmega);
+};
+
+/* PetersHeRotor - end */
+
+
 /* Legge un rotore */
 Elem *
 ReadRotor(DataManager* pDM,
@@ -2055,6 +2573,7 @@ ReadRotor(DataManager* pDM,
 			GLAUERT,
 			MANGLER,
 			DYNAMICINFLOW,
+			PETERS_HE,
 
 		LASTKEYWORD
      	};
@@ -2114,7 +2633,7 @@ ReadRotor(DataManager* pDM,
   				NoRotor(uLabel, pDO, pCraft, rrot, pRotor,
   					ppres, dR, fOut));
 		} break;
-	
+
     	case UNIFORM:
     	case UNIFORM_SECTIONAL:
     	case GLAUERT:
@@ -2458,6 +2977,207 @@ ReadRotor(DataManager* pDM,
 			ASSERTMSG(0, "You shouldn't have reached this point");
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
       		}
+	 	break;
+	}
+
+    	case PETERS_HE: {
+		doublereal dOR = HP.GetReal();
+	 	DEBUGCOUT("Reference rotation speed: " << dOR << std::endl);
+	 	if (dOR <= 0.) {
+	      		silent_cerr("Rotor(" << uLabel << "): "
+				"invalid reference speed " << dOR
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	 	}
+
+	 	doublereal dR = HP.GetReal();
+	 	DEBUGCOUT("Radius: " << dR << std::endl);
+	 	if (dR <= 0.) {
+	      		silent_cerr("Rotor(" << uLabel << "): "
+				"invalid radius " << dR
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+	      		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	 	}
+
+		// optional parameters
+		bool bGotInitialValues(false);
+	 	doublereal dVConst = 0.;
+	 	doublereal dVSine = 0.;
+	 	doublereal dVCosine = 0.;
+		const StructNode *pGround = 0;
+		unsigned iMaxIter = unsigned(-1);
+		doublereal dTolerance = std::numeric_limits<double>::max();
+		doublereal dEta = -1.;
+	 	doublereal dCH = -1.;
+	 	doublereal dCFF = -1.;
+
+		while (HP.IsArg()) {
+			if (HP.IsKeyWord("ground")) {
+				/*
+				 * ground node for ground effect modeling
+				 */
+				if (pGround != 0) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"ground\" node "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* ground node */
+     				pGround = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+			} else if (HP.IsKeyWord("initial" "value")) {
+				if (bGotInitialValues) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing \"initial value\" another time "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+		   		dVConst = HP.GetReal();
+		   		dVSine = HP.GetReal();
+		   		dVCosine = HP.GetReal();
+
+				bGotInitialValues = true;
+
+	      		} else if (HP.IsKeyWord("max" "iterations")) {
+				if (iMaxIter != unsigned(-1)) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"max iterations\" value "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* max iterations when computing reference inflow velocity;
+				 * after iMaxIter iterations, the current value is accepted
+				 * regardless of convergence; thus, 1 reproduces original
+				 * behavior */
+				int i = HP.GetInt();
+				if (i <= 0) {
+					silent_cerr("illegal max iterations "
+						<< i << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+				iMaxIter = i;
+
+	 		} else if (HP.IsKeyWord("tolerance")) {
+				if (dTolerance != std::numeric_limits<double>::max()) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"tolerance\" value "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* tolerance when computing reference inflow velocity;
+				 * when the difference in inflow velocity between two
+				 * iterations is less than tolerance in module, the
+				 * cycle breaks */
+
+				dTolerance = HP.GetReal();
+				if (dTolerance <= 0.) {
+					silent_cerr("illegal tolerance "
+						<< dTolerance << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("eta")) {
+				if (dEta != -1.) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"eta\" relaxation factor "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				/* increment factor when computing reference inflow velocity;
+				 * only a fraction dEta of the difference between two iterations
+				 * is applied */
+
+				dEta = HP.GetReal();
+				if (dEta <= 0.) {
+					silent_cerr("illegal eta "
+						<< dEta << " for Rotor(" << uLabel << ")");
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+			} else if (HP.IsKeyWord("correction")) {
+				if (dCH != -1.) {
+					silent_cerr("Rotor(" << uLabel << "): "
+						"providing another \"correction\" factor "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+		 		/* Legge la correzione della velocita' indotta */
+		 		dCH = HP.GetReal();
+		 		DEBUGCOUT("Hover correction: " << dCH << std::endl);
+		 		if (dCH <= 0.) {
+		 			silent_cerr("Rotor(" << uLabel << "): "
+						"illegal null or negative hover inflow correction "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		 		}
+
+	 			dCFF = HP.GetReal();
+				DEBUGCOUT("Forward-flight correction: " << dCFF << std::endl);
+	 			if (dCFF <= 0.) {
+	 				silent_cerr("Rotor(" << uLabel << "): "
+						"illegal null or negative forward-flight inflow correction "
+						"at line " << HP.GetLineData()
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	 			}
+
+			} else {
+				break;
+		 	}
+		}
+
+	 	ppres = ReadResSets(pDM, HP);
+
+	 	flag fOut = pDM->fReadOutput(HP, Elem::INDUCEDVELOCITY);
+
+		if (iMaxIter == unsigned(-1)) {
+			iMaxIter = 1;
+
+		} else {
+			if (dTolerance == std::numeric_limits<double>::max()) {
+				silent_cerr("Rotor(" << uLabel << "): "
+					"warning, \"max iterations\" is meaningless with default tolerance"
+					<< std::endl);
+			}
+		}
+
+		if (dEta == -1.) {
+			dEta = 1.;
+		}
+
+		if (dCH == -1.) {
+	 		dCH = 1.;
+	 		dCFF = 1.;
+		}
+
+		// create element
+      		DEBUGCOUT("Dynamic inflow" << std::endl);
+
+  		SAFENEWWITHCONSTRUCTOR(pEl,
+			PetersHeRotor,
+			PetersHeRotor(uLabel, pDO,
+				pCraft, rrot, pRotor,
+				pGround, ppres,
+				dOR, dR,
+				iMaxIter, dTolerance, dEta,
+				dCH, dCFF,
+				dVConst, dVSine, dVCosine,
+				fOut));
 	 	break;
 	}
 
