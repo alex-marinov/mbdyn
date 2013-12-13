@@ -1,4 +1,12 @@
 BEGIN {
+	if (LX == 0) {
+		LX = 0.15;
+	}
+
+	if (LY == 0) {
+		LY = 0.08;
+	}
+
 	node_add("base_1", 0, -0.25, -0.15, 0, "hide");
 	node_add("base_2", 0, 0.25, -0.15, 0, "hide");
 	node_add("base_3", 0, 0.25, 0.15, 0, "hide");
@@ -11,15 +19,15 @@ BEGIN {
 	nodes[4] = "base_4";
 	side_add("base", 4, nodes, "base");
 
-	node_add("body_l_1", 100, -.075, -.04, -.03, "hide");
-	node_add("body_l_2", 100, .075, -.04, -.03, "hide");
-	node_add("body_l_3", 100, .075, .04, -.03, "hide");
-	node_add("body_l_4", 100, -.075, .04, -.03, "hide");
+	node_add("body_l_1", 100, -LX/2, -LY/2, -.03, "hide");
+	node_add("body_l_2", 100, LX/2, -LY/2, -.03, "hide");
+	node_add("body_l_3", 100, LX/2, LY/2, -.03, "hide");
+	node_add("body_l_4", 100, -LX/2, LY/2, -.03, "hide");
 
-	node_add("body_u_1", 100, -.075, -.04, .03, "hide");
-	node_add("body_u_2", 100, .075, -.04, .03, "hide");
-	node_add("body_u_3", 100, .075, .04, .03, "hide");
-	node_add("body_u_4", 100, -.075, .04, .03, "hide");
+	node_add("body_u_1", 100, -LX/2, -LY/2, .03, "hide");
+	node_add("body_u_2", 100, LX/2, -LY/2, .03, "hide");
+	node_add("body_u_3", 100, LX/2, LY/2, .03, "hide");
+	node_add("body_u_4", 100, -LX/2, LY/2, .03, "hide");
 
 	sideprop_add("body", 4);
 
