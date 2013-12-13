@@ -2509,6 +2509,39 @@ Piecewise linear function; the first and the last point/value pairs are
 extrapolated in case a value beyond the extremes is required.
 Linear interpolation between pairs is used.
 
+\subsection{Postponed drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{postponed} ,
+        \bnt{label}
+\end{Verbatim}
+%\end{verbatim}
+This drive is actually a stub for a drive that cannot be defined
+because it occurs too early, when the data manager is not yet available.
+A drive caller with \nt{label} must be defined before the drive caller
+is first used.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    begin: initial value;
+        # ...
+        method: ms, postponed, 99;
+        # ...
+    end: initial value;
+    # ...
+    begin: control data;
+        # ...
+    end: control data;
+    # ...
+    drive caller: 99, ...
+\end{verbatim}
+A drive caller that depends on the data manager must be used to define
+the spectral radius of the integration method.
+A reference to drive caller 99 is used.
+The drive caller labeled 99 is defined later,
+when all the required information is available.
+
+
 \subsection{Ramp drive}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]

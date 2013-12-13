@@ -1613,5 +1613,63 @@ PeriodicDriveCaller::dGetP(const doublereal& dVar) const
 
 /* PeriodicDriveCaller - end */
 
+/* PostponedDriveCaller - begin */
+
+class PostponedDriveCaller : public DriveCaller {
+protected:
+	MBDynParser& HP;
+	unsigned uDriveLabel;
+	mutable DriveOwner DO;
+
+	void Check(void) const;
+
+public:
+	PostponedDriveCaller(MBDynParser& HP, unsigned uLabel);
+	virtual ~PostponedDriveCaller(void);
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* Copia */
+	virtual DriveCaller* pCopy(void) const;
+
+	doublereal dGet(void) const;
+	doublereal dGet(const doublereal& dVar) const;
+
+	/* this is about drives that are differentiable */
+	virtual bool bIsDifferentiable(void) const;
+	virtual doublereal dGetP(const doublereal& dVar) const;
+};
+
+inline doublereal
+PostponedDriveCaller::dGet(void) const
+{
+	Check();
+	return DO.dGet();
+}
+
+inline doublereal
+PostponedDriveCaller::dGet(const doublereal& dVar) const
+{
+	Check();
+	return DO.dGet(dVar);
+}
+
+inline bool
+PostponedDriveCaller::bIsDifferentiable(void) const
+{
+	Check();
+	return DO.bIsDifferentiable();
+}
+
+inline doublereal 
+PostponedDriveCaller::dGetP(const doublereal& dVar) const
+{
+	Check();
+	return DO.dGetP(dVar);
+}
+
+/* PostponedDriveCaller - end */
+
 #endif /* DRIVE__H */
 

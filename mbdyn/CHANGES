@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- added simple gear joint (Eduardo Okabe)
 		- added kinetic energy in automatic structural element
 		  private data
+		- added "postponed" drive caller capability
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change

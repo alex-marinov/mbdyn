@@ -1156,6 +1156,57 @@ PeriodicDriveCaller::Restart(std::ostream& out) const
 
 /* PeriodicDriveCaller - end */
 
+/* PostponedDriveCaller - begin */
+
+void
+PostponedDriveCaller::Check(void) const
+{
+	if (!DO.pGetDriveCaller()) {
+		const DriveCaller *pDC = HP.GetDrive(uDriveLabel);
+		if (pDC == 0) {
+			silent_cerr("PostponedDriveCaller: unable to resolve postponed drive caller \"" << uDriveLabel << "\"" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		DO.Set(pDC->pCopy());
+		const_cast<PostponedDriveCaller *>(this)->SetDrvHdl(DO.pGetDriveCaller()->pGetDrvHdl());
+	}
+}
+
+PostponedDriveCaller::PostponedDriveCaller(MBDynParser& HP, unsigned uLabel)
+: DriveCaller(0),
+HP(HP), uDriveLabel(uLabel), DO(0)
+{
+	NO_OP;
+}
+
+PostponedDriveCaller::~PostponedDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+PostponedDriveCaller::Restart(std::ostream& out) const
+{
+	Check();
+
+	out << ", deferred, " << uDriveLabel << " /* actual drive: ",
+	    DO.pGetDriveCaller()->Restart(out) << " */";
+
+	return out;
+}
+
+/* Copia */
+DriveCaller *
+PostponedDriveCaller::pCopy(void) const
+{
+	DriveCaller *pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC, PostponedDriveCaller,
+		PostponedDriveCaller(HP, uDriveLabel));
+	return pDC;
+}
+
+/* PostponedDriveCaller - end */
 
 /* bag that contains functions to parse drive callers */
 
@@ -2641,6 +2692,30 @@ PeriodicDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 }
 
 
+struct PostponedDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+PostponedDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	integer label = HP.GetInt();
+	if (label < 0) {
+		silent_cerr("PostponedDriveCaller: invalid negative label \"" << label << "\" at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* allocazione e creazione */
+	DriveCaller *pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		PostponedDriveCaller,
+		PostponedDriveCaller(HP, unsigned(label)));
+
+	return pDC;
+}
+
+
 
 static unsigned done;
 
@@ -2679,6 +2754,7 @@ InitDriveData(void)
 	SetDriveData("parabolic", new ParabolicDCR);
 	SetDriveData("periodic", new PeriodicDCR);
 	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
+	SetDriveData("postponed", new PostponedDCR);
 	SetDriveData("ramp", new RampDCR);
 	SetDriveData("random", new RandomDCR);
 	SetDriveData("sample" "and" "hold", new SHDCR);

@@ -469,7 +469,13 @@ DriveCaller::~DriveCaller(void)
 void
 DriveCaller::SetDrvHdl(const DriveHandler* pDH)
 {
-	pDrvHdl = (DriveHandler *)pDH;
+	pDrvHdl = const_cast<DriveHandler *>(pDH);
+}
+
+const DriveHandler *
+DriveCaller::pGetDrvHdl(void) const
+{
+	return pDrvHdl;
 }
 
 doublereal

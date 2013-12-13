@@ -450,6 +450,7 @@ public:
 
 	/* allows to set the drive handler */
 	virtual void SetDrvHdl(const DriveHandler* pDH);
+	virtual const DriveHandler *pGetDrvHdl(void) const;
 };
 
 inline doublereal
