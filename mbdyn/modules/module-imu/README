@@ -2,7 +2,7 @@ module-imu.cc
 
 implements two uses of a IMU:
 
-ModuleIMU ("imu") mimicks an IMU by sending to the output
+ModuleIMU ("imu") mimics an IMU by sending to the output
 the measures of a strapdown IMU (angular velocity and acceleration
 components in a reference frame attached to the chassis of the sensor),
 making them also available as private data.
