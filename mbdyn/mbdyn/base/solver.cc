@@ -77,6 +77,7 @@
 #include "naivewrap.h"
 #include "Rot.hh"
 #include "cleanup.h"
+#include "drive_.h"
 
 #include "solver_impl.h"
 
@@ -286,7 +287,8 @@ dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.),
 dMinTimeStep(::dDefaultMinTimeStep),
-dMaxTimeStep(::dDefaultMaxTimeStep),
+MaxTimeStep(),
+eTimeStepLimit(TS_SOFT_LIMIT),
 iDummyStepsNumber(::iDefaultDummyStepsNumber),
 dDummyStepsRatio(::dDefaultDummyStepsRatio),
 eAbortAfter(AFTER_UNKNOWN),
@@ -335,7 +337,8 @@ pLocalSM(NULL),
 pDM(NULL),
 iNumDofs(0),
 pSM(NULL),
-pNLS(NULL)
+pNLS(NULL),
+dCurrTimeStep(0.)
 {
 	DEBUGCOUTFNAME("Solver::Solver");
 
@@ -875,7 +878,6 @@ Solver::Run(void)
 
 	/* Dati comuni a passi fittizi e normali */
 	long lStep = 1;
-	doublereal dCurrTimeStep = 0.;
 
 	if (iDummyStepsNumber > 0) {
 		/* passi fittizi */
@@ -1609,7 +1611,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 		{
 			return dMinTimeStep/2.;
 		}
-		return std::max(std::min(dNewStep, dMaxTimeStep), dMinTimeStep);
+		return std::max(std::min(dNewStep, MaxTimeStep.dGet()), dMinTimeStep);
 		}
 
 	case FACTOR:
@@ -1620,7 +1622,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 					bLastChance = false;
 				}
 				iStepsAfterReduction = 0;
-				return dCurrTimeStep*StrategyFactor.dReductionFactor;
+				return std::min(dCurrTimeStep*StrategyFactor.dReductionFactor, MaxTimeStep.dGet());
 
 			} else {
 				if (bLastChance == false) {
@@ -1631,7 +1633,7 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 					 * Fuori viene intercettato
 					 * il valore illegale
 					 */
-					return dCurrTimeStep*StrategyFactor.dReductionFactor;
+					return std::min(dCurrTimeStep*StrategyFactor.dReductionFactor, MaxTimeStep.dGet());
 				}
 			}
 		}
@@ -1650,16 +1652,16 @@ Solver::NewTimeStep(doublereal dCurrTimeStep,
 			if (iPerformedIters > StrategyFactor.iMaxIters) {
 				iStepsAfterReduction = 0;
 				bLastChance = false;
-				return std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep);
+				return std::min(std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep), MaxTimeStep.dGet());
 
 			} else if (iPerformedIters <= StrategyFactor.iMinIters
 				&& iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
 				&& iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
-				&& dCurrTimeStep < dMaxTimeStep)
+				&& dCurrTimeStep < MaxTimeStep.dGet())
 			{
 				iStepsAfterRaise = 0;
 				iWeightedPerformedIters = 0;
-				return dCurrTimeStep*StrategyFactor.dRaiseFactor;
+				return std::min(dCurrTimeStep*StrategyFactor.dRaiseFactor, MaxTimeStep.dGet());
 			}
 			return dCurrTimeStep;
 		}
@@ -2146,18 +2148,33 @@ Solver::ReadData(MBDynParser& HP)
 
 		case MAXTIMESTEP:
 			if (HP.IsKeyWord("unlimited")) {
-				dMaxTimeStep = 0.;
-			} else {
-				dMaxTimeStep = HP.GetReal();
-			}
-			DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
-				<< dMaxTimeStep << std::endl);
+				DriveCaller *pDC = 0;
+				SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(0.));
+				MaxTimeStep.Set(pDC);
 
-			if (dMaxTimeStep == 0.) {
+			} else {
+				MaxTimeStep.Set(HP.GetDriveCaller());
+			}
+
+#ifdef DEBUG
+			if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(PostponedDriveCaller)) {
+				DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is postponed" << std::endl);
+
+			} else {
+				DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is " << MaxTimeStep.dGet() << std::endl);
+			}
+#endif // DEBUG
+
+			eTimeStepLimit = (HP.IsKeyWord("hard" "limit")
+								&& HP.GetYesNoOrBool())
+							? TS_HARD_LIMIT
+							: TS_SOFT_LIMIT;
+
+			if (dGetInitialMaxTimeStep() == 0.) {
 				silent_cout("no max time step limit will be"
 					" considered" << std::endl);
 
-			} else if (dMaxTimeStep < 0.) {
+			} else if (dGetInitialMaxTimeStep() < 0.) {
 				silent_cerr("negative max time step"
 					" is not allowed" << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3649,6 +3666,12 @@ Solver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
+	if (MaxTimeStep.pGetDriveCaller() == 0) {
+		DriveCaller *pDC = 0;
+		SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(::dDefaultMaxTimeStep));
+		MaxTimeStep.Set(pDC);
+	}
+
 	switch (CurrStrategy) {
 	case FACTOR:
 		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
@@ -3664,7 +3687,8 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< std::endl);
 			StrategyFactor.iMaxIters = iMaxIterations;
 		}
-		if (dMaxTimeStep == ::dDefaultMaxTimeStep) {
+		if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)
+				&& MaxTimeStep.dGet() == ::dDefaultMaxTimeStep) {
 			silent_cerr("warning, "
 				<< "maximum time step not set and strategy "
 				<< "factor selected:\n"
@@ -3673,7 +3697,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< "max time step = "
 				<< dInitialTimeStep
 				<< std::endl);
-			dMaxTimeStep = dInitialTimeStep;
+			MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
 		}
 		if (dMinTimeStep == dDefaultMinTimeStep) {
 			silent_cerr("warning, "
@@ -3686,14 +3710,14 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				<< std::endl);
 			dMinTimeStep = dInitialTimeStep;
 		}
-		if (dMinTimeStep == dMaxTimeStep) {
+		if (dMinTimeStep == dGetInitialMaxTimeStep()) {
 			silent_cerr("error, "
 				<< "minimum and maximum time step are equal, but "
 				<< "strategy factor has been selected:\n"
 				<< "this is almost meaningless"
 				<< std::endl);
 		}
-		if (dMinTimeStep > dMaxTimeStep) {
+		if (dMinTimeStep > dGetInitialMaxTimeStep()) {
 			silent_cerr("error, "
 				<< "minimum and maximum time step are equal, but "
 				<< "strategy factor has been selected:\n"
@@ -3704,7 +3728,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		break;
 
 	case CHANGE:
-		if (dMinTimeStep > dMaxTimeStep) {
+		if (dMinTimeStep > dGetInitialMaxTimeStep()) {
 			silent_cerr("inconsistent min/max time step"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3717,10 +3741,12 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		}
 		dMinTimeStep = dInitialTimeStep;
 
-		if (dMaxTimeStep != dDefaultMaxTimeStep) {
-			silent_cerr("\"max time step\" only allowed with variable time step (ignored)." <<std::endl);
+		if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)) {
+			if (dGetInitialMaxTimeStep() != dDefaultMaxTimeStep) {
+				silent_cerr("\"max time step\" only allowed with variable time step (ignored)." <<std::endl);
+			}
+			MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
 		}
-		dMaxTimeStep = dInitialTimeStep;
 
 		break;
 	}
@@ -5337,6 +5363,15 @@ Solver::Eig(bool bNewLine)
 	}
 }
 
+doublereal Solver::dGetInitialMaxTimeStep() const
+{
+	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(PostponedDriveCaller)) {
+		return ::dDefaultMaxTimeStep;
+	}
+
+	// The same behavior like in previous releases
+	return MaxTimeStep.dGet();
+}
 
 SolutionManager *const
 Solver::AllocateSolman(integer iNLD, integer iLWS)
@@ -5541,4 +5576,38 @@ void
 Solver::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 {
 	pDM->PrintSolution(Sol, iIterCnt);
+}
+
+void Solver::CheckTimeStepLimit() const throw(NonlinearSolver::TimeStepLimitExceeded)
+{
+	switch (eTimeStepLimit) {
+	case TS_SOFT_LIMIT:
+		break;
+
+	case TS_HARD_LIMIT:
+		{
+			const doublereal dMaxTS = MaxTimeStep.dGet();
+
+			if (dCurrTimeStep > dMaxTS) {
+				if (outputIters()) {
+		#ifdef USE_MPI
+					if (!bParallel || MBDynComm.Get_rank() == 0)
+		#endif /* USE_MPI */
+					{
+							silent_cerr("warning: current time step = "
+									<< dCurrTimeStep
+									<< " > hard limit of the maximum time step = "
+									<< dMaxTS << std::endl);
+					}
+				}
+
+				throw NonlinearSolver::TimeStepLimitExceeded(MBDYN_EXCEPT_ARGS);
+			}
+		}
+		break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 }

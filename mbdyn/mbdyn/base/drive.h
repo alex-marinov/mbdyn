@@ -129,6 +129,7 @@ protected:
 
 public:
 	DriveOwner(const DriveCaller* pDC = 0);
+	DriveOwner(const DriveOwner& drive);
 	virtual ~DriveOwner(void);
 
 	void Set(const DriveCaller* pDC);

@@ -238,7 +238,12 @@ protected:
    	doublereal dRefTimeStep;
    	doublereal dInitialTimeStep;
    	doublereal dMinTimeStep;
-   	doublereal dMaxTimeStep;
+   	DriveOwner MaxTimeStep;
+
+   	enum TimeStepFlags {
+   		TS_SOFT_LIMIT = 0,
+   		TS_HARD_LIMIT = 1
+   	} eTimeStepLimit;
 
    	/* Dati dei passi fittizi di trimmaggio iniziale */
    	integer iDummyStepsNumber;
@@ -348,7 +353,13 @@ protected:
 	NonlinearSolver *const AllocateNonlinearSolver();
 	/* Alloca tutti i solman*/
 	void SetupSolmans(integer iStates, bool bCanBeParallel = false);
-   
+
+	/* Workaround: call this function instead of MaxTimeStep.dGet()
+	 * until all postponed drive callers have been instantiated */
+	doublereal dGetInitialMaxTimeStep() const;
+
+private:
+	doublereal dCurrTimeStep;
 
 public:   
    	/* costruttore */
@@ -390,6 +401,7 @@ public:
 
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
+	virtual void CheckTimeStepLimit() const throw(NonlinearSolver::TimeStepLimitExceeded);
 };
 
 inline void

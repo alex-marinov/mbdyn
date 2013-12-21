@@ -200,6 +200,10 @@ public:
 	public:
 		NoConvergence(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
+ 	class TimeStepLimitExceeded: public NoConvergence {
+ 	public:
+ 		TimeStepLimitExceeded(MBDYN_EXCEPT_ARGS_DECL): NoConvergence(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+ 	};
 	class ConvergenceOnSolution : public MBDynErrBase {
 	public:
 		ConvergenceOnSolution(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};

@@ -311,6 +311,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 			}
 		}
 
+		pS->CheckTimeStepLimit();
+
 		if (f <= fold + dAlpha * lambda * slope) {
 			TRACE("Sufficient decrease in f: backtrack" << std::endl);
 			return;
@@ -429,6 +431,8 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 			silent_cout(std::endl);
 		}
 	}
+
+	pS->CheckTimeStepLimit();
 
 	if (bTest) {
 		return;

@@ -166,6 +166,8 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}
 		
+		pS->CheckTimeStepLimit();
+
       	if (bTest) {
 	 		return;
       	}

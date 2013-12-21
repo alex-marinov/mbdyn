@@ -72,6 +72,7 @@
 #include "stepsol.h"
 #include <vector>
 #include "readlinsol.h"
+#include "drive_.h"
 
 #include "solver_impl.h"
 
@@ -1155,19 +1156,23 @@ InverseSolver::ReadData(MBDynParser& HP)
 			break;
 
 		case MAXTIMESTEP:
-			dMaxTimeStep = HP.GetReal();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is "
-				<< dMaxTimeStep << std::endl);
+			MaxTimeStep.Set(HP.GetDriveCaller());
+#ifdef DEBUG
+			if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(PostponedDriveCaller)) {
+				DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is postponed" << std::endl);
 
-			if (dMaxTimeStep == 0.) {
+			} else {
+				DEBUGLCOUT(MYDEBUG_INPUT, "Max time step is " << MaxTimeStep.dGet() << std::endl);
+			}
+#endif // DEBUG
+
+			if (dGetInitialMaxTimeStep() == 0.) {
 				silent_cout("no max time step limit will be"
 					" considered" << std::endl);
-			} else if (dMaxTimeStep < 0.) {
-				dMaxTimeStep = -dMaxTimeStep;
-				silent_cerr("warning, negative max time step"
-					" is not allowed;" << std::endl
-					<< "its modulus " << dMaxTimeStep
-					<< " will be considered" << std::endl);
+			} else if (dGetInitialMaxTimeStep() < 0.) {
+				silent_cerr("negative max time step"
+					" is not allowed" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 

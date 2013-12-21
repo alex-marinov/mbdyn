@@ -563,6 +563,12 @@ DriveOwner::DriveOwner(const DriveCaller* pDC)
 	NO_OP;
 }
 
+DriveOwner::DriveOwner(const DriveOwner& drive)
+: pDriveCaller(drive.pDriveCaller ? drive.pDriveCaller->pCopy() : 0)
+{
+	NO_OP;
+}
+
 DriveOwner::~DriveOwner(void)
 {
 	if (pDriveCaller != 0) {
