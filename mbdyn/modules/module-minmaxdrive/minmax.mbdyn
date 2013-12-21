@@ -1,0 +1,54 @@
+begin: data;
+	problem: initial value; # the default
+end: data;
+
+begin: initial value;
+	initial time: 1;
+	final time: 2;
+	time step: 0.2;
+	linear solver: naive, colamd;
+    nonlinear solver: newton raphson;
+    method: implicit euler;
+    derivatives max iterations: 2;
+end: initial value;
+
+begin: control data;
+    make restart file;
+    abstract nodes: 4;
+    genels: 4;
+end: control data;
+
+begin: nodes;
+    abstract: 1, algebraic;
+    abstract: 2, algebraic;
+    abstract: 3, algebraic;
+    abstract: 4, algebraic;
+end: nodes;
+
+begin: elements;
+    genel: 1, clamp, 1, abstract, 
+        min, 3,
+            1.75,
+            -3.7,
+            2.8;
+
+    genel: 2, clamp, 2, abstract,
+        max, 3,
+            10.7,
+            -2.9,
+            17.8;
+
+    genel: 3, clamp, 3, abstract, 
+        # derivative,
+	min, 3,
+            mult, const, 1.75, time,
+            mult, const, -3.7, time,
+            mult, const, 2.8, time;
+
+    genel: 4, clamp, 4, abstract,
+        # derivative,
+	max, 3,
+            mult, const, 10.7, time,
+            mult, const, -2.9, time,
+            mult, const, 17.8, time;
+end: elements;

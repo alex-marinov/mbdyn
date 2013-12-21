@@ -56,6 +56,7 @@
 #include "module-octave/module-octave.h"
 #endif // USE_OCTAVE
 #include "module-nodedistdrive/module-nodedistdrive.h"
+#include "module-minmaxdrive/module-minmaxdrive.h"
 #endif // STATIC_MODULES
 
 /* StringDriveCaller - begin */
@@ -2778,6 +2779,7 @@ InitDriveData(void)
 	mbdyn_octave_set();
 #endif // USE_OCTAVE
 	nodedistdrive_set();
+	minmaxdrive_set();
 #endif // STATIC_MODULES
 }
 

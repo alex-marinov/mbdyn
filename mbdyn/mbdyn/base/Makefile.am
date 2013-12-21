@@ -178,8 +178,11 @@ ScalarFunctionsImpl.cc
 nodist_libbase_la_SOURCES =
 
 if BUILD_STATIC_MODULES
-#nodist_libbase_la_SOURCES +=
-#
+nodist_libbase_la_SOURCES += \
+$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.cc \
+$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.h \
+$(srcdir)/../../modules/module-minmaxdrive/module-minmaxdrive.cc \
+$(srcdir)/../../modules/module-minmaxdrive/module-minmaxdrive.h
 ## add more...
 
 if USE_OCTAVE
