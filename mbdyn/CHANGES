@@ -22,6 +22,8 @@ MBDyn 1.X-Devel
 		- added kinetic energy in automatic structural element
 		  private data
 		- added "postponed" drive caller capability
+		- added max time step as drive (Reinhard Resch)
+		- added min/max drive caller (Reinhard Resch)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
