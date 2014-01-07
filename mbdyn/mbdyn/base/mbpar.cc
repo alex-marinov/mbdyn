@@ -690,6 +690,12 @@ MBDynParser::ConstitutiveLaw_int(void)
 	}
 }
 
+const MBDynParser::DCType&
+MBDynParser::GetDriveCallerContainer(void) const
+{
+	return DC;
+}
+
 void 
 MBDynParser::DriveCaller_int(void)
 {
@@ -722,6 +728,8 @@ MBDynParser::DriveCaller_int(void)
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	DriveCallerRead::ReadOutput(pDC, pDM, *this);
 
 	if (IsArg()) {
 		silent_cerr("semicolon expected after drive caller " << uLabel

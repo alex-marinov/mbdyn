@@ -1455,6 +1455,8 @@ DataManager::Output(long lStep,
 	 * dovuta al fatto che i dati propri non vengono modificati in modo
 	 * incontrollabile */
 
+	DriveTrace(OutHdl); // trace output will be written for every time step
+
 	/* output only when allowed by the output meter */
 	if (!force && !pOutputMeter->dGet()) {
 		return false;
@@ -1479,6 +1481,8 @@ DataManager::Output(long lStep,
 
 	/* Dati degli elementi */
 	ElemOutput(OutHdl);
+
+	DriveOutput(OutHdl);
 
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
 	iOutputBlock++;
@@ -1506,6 +1510,34 @@ DataManager::Output(long lStep,
 #endif /* USE_NETCDF */
 
 	return true;
+}
+
+void
+DataManager::DriveTrace(OutputHandler& OH) const
+{
+	if (!OH.IsOpen(OutputHandler::TRACES)) {
+		return;
+	}
+
+	const MBDynParser::DCType& DC = MBPar.GetDriveCallerContainer();
+
+	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		i->second->Trace(OH);
+	}
+}
+
+void
+DataManager::DriveOutput(OutputHandler& OH) const
+{
+	if (!OH.IsOpen(OutputHandler::DRIVECALLERS)) {
+		return;
+	}
+
+	const MBDynParser::DCType& DC = MBPar.GetDriveCallerContainer();
+
+	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		i->second->Output(OH);
+	}
 }
 
 /* Output dati */

@@ -486,6 +486,56 @@ DriveCaller::dGetP(const doublereal& dVar) const
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
+void DriveCaller::Output(OutputHandler& OH) const
+{
+	const flag fOut = fToBeOutput();
+
+	if (fOut) {
+		if (OH.UseText(OutputHandler::DRIVECALLERS)) {
+			std::ostream& os = OH.DriveCallers();
+
+			os << GetLabel();
+
+			if (fOut & OUTPUT_VALUE) {
+				os << ' ' << dGet();
+			}
+
+			if (fOut & OUTPUT_DERIVATIVE) {
+				ASSERT(bIsDifferentiable());
+
+				os << ' ' << dGetP();
+			}
+
+			os << std::endl;
+		}
+	}
+}
+
+void DriveCaller::Trace(OutputHandler& OH) const
+{
+	const flag fTrace = fToBeTraced();
+
+	if (fTrace) {
+		if (OH.UseText(OutputHandler::TRACES)) {
+			std::ostream& os = OH.Traces();
+
+			os << GetLabel();
+
+			if (fTrace & TRACE_VALUE) {
+				os << ' ' << dGet();
+			}
+
+			if (fTrace & TRACE_DERIVATIVE) {
+				ASSERT(bIsDifferentiable());
+
+				os << ' ' << dGetP();
+			}
+
+			os << std::endl;
+		}
+	}
+}
+
 /* DriveCaller - end */
 
 

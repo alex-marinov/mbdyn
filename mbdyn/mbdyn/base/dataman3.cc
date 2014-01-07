@@ -143,6 +143,7 @@ DataManager::ReadControl(MBDynParser& HP,
 			"none",
 			"reference" "frames",
 			"accelerations",
+			"drive" "callers",
 
 		"default" "orientation",
 		"default" "beam" "output",
@@ -233,6 +234,7 @@ DataManager::ReadControl(MBDynParser& HP,
 			NONE,
 			REFERENCEFRAMES,
 			ACCELERATIONS,
+			DRIVECALLERS,
 
 		DEFAULTORIENTATION,
 		DEFAULTBEAMOUTPUT,
@@ -1017,6 +1019,10 @@ EndOfUse:
 
 				case ACCELERATIONS:
 					bOutputAccels = true;
+					break;
+
+				case DRIVECALLERS:
+					bOutputDriveCaller = true;
 					break;
 
 				case STRUCTURALNODES:

@@ -426,11 +426,21 @@ DriveHandler::dGetSH(integer iNumber) const
  * un dato istante di tempo. Gli oggetti sono posseduti dai singoli elementi.
  * Ogni oggetto contiene i parametri che gli occorrono per la chiamata. */
 
-class DriveCaller : public WithLabel {
+class DriveCaller : public WithLabel, public ToBeOutput, public Traceable {
 protected:
 	mutable DriveHandler* pDrvHdl;
 
 public:
+	enum OutputFlags {
+		OUTPUT_VALUE 	  = OUTPUT_PRIVATE << 0,
+		OUTPUT_DERIVATIVE = OUTPUT_PRIVATE << 1
+	};
+
+	enum TraceFlags {
+		TRACE_VALUE		 = TRACE_PRIVATE << 0,
+		TRACE_DERIVATIVE = TRACE_PRIVATE << 1
+	};
+
 	DriveCaller(const DriveHandler* pDH);
 	virtual ~DriveCaller(void);
 
@@ -452,6 +462,8 @@ public:
 	/* allows to set the drive handler */
 	virtual void SetDrvHdl(const DriveHandler* pDH);
 	virtual const DriveHandler *pGetDrvHdl(void) const;
+	virtual void Output(OutputHandler& OH) const;
+	virtual void Trace(OutputHandler& OH) const;
 };
 
 inline doublereal
@@ -660,6 +672,7 @@ public:
 	virtual ~DriveCallerRead(void);
 	virtual DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred) = 0;
+	static void ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDynParser& HP);
 };
 
 /* drive caller registration function: call to register one */

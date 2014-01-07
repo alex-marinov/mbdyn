@@ -99,8 +99,9 @@ public:
 		PLATES,
 		GRAVITY,			// 30
 		DOFSTATS,
-
-		LASTFILE			// 32
+		DRIVECALLERS,
+		TRACES,
+		LASTFILE			// 34
 	};
 
 private:
@@ -179,6 +180,8 @@ private:
 	std::ofstream ofPlates;
 	std::ofstream ofGravity;
 	std::ofstream ofDofStats;
+	std::ofstream ofDriveCallers;
+	std::ofstream ofTraces;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -265,6 +268,8 @@ public:
 	inline std::ostream& Plates(void) const;
 	inline std::ostream& Gravity(void) const;
 	inline std::ostream& DofStats(void) const;
+	inline std::ostream& DriveCallers(void) const;
+	inline std::ostream& Traces(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -608,6 +613,20 @@ OutputHandler::DofStats(void) const
 	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofDofStats));
 }
 
+inline std::ostream&
+OutputHandler::DriveCallers(void) const
+{
+	ASSERT(IsOpen(DRIVECALLERS));
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofDriveCallers));
+}
+
+inline std::ostream&
+OutputHandler::Traces(void) const
+{
+	ASSERT(IsOpen(TRACES));
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofTraces));
+}
+
 inline int
 OutputHandler::iW(void) const
 {
@@ -664,6 +683,26 @@ public:
 };
 
 /* ToBeOutput - end */
+
+class Traceable {
+public:
+	enum {
+		TRACE 				= 0x01U,
+		TRACE_PUBLIC_MASK	= 0x0FU,
+		TRACE_PRIVATE		= 0x10U,
+		TRACE_PRIVATE_MASK	= ~TRACE_PUBLIC_MASK
+	};
+
+	Traceable(flag fTrace = 0);
+	virtual ~Traceable(void);
+
+	virtual void Trace(OutputHandler& OH) const=0;
+	virtual flag fToBeTraced(void) const;
+	virtual void SetTraceFlag(flag f = TRACE);
+
+private:
+	flag fTrace;
+};
 
 #endif /* OUTPUT_H */
 

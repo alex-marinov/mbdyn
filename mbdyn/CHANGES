@@ -24,6 +24,8 @@ MBDyn 1.X-Devel
 		- added "postponed" drive caller capability
 		- added max time step as drive (Reinhard Resch)
 		- added min/max drive caller (Reinhard Resch)
+		- added output of drive callers (Reinhard Resch)
+		- added tracing of drive callers (Reinhard Resch)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change

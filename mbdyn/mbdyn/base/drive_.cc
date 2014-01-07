@@ -1267,6 +1267,111 @@ DriveCallerRead::~DriveCallerRead(void)
 	NO_OP;
 }
 
+void DriveCallerRead::ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDynParser& HP)
+{
+	flag fOutput = pDM->bOutputDriveCallers()
+					? DriveCaller::OUTPUT_VALUE
+					: 0;
+
+	if (HP.IsKeyWord("output")) {
+		bool bGotKeyWord = false;
+
+		if (HP.IsKeyWord("value")) {
+			bGotKeyWord = true;
+
+            if (HP.GetYesNoOrBool()) {
+			    fOutput |= DriveCaller::OUTPUT_VALUE;
+            } else {
+                fOutput &= ~DriveCaller::OUTPUT_VALUE;
+            }
+		}
+
+		if (HP.IsKeyWord("derivative")) {
+			bGotKeyWord = true;
+            
+            if (HP.GetYesNoOrBool()) {
+			    fOutput |= DriveCaller::OUTPUT_DERIVATIVE;
+            } else {
+                fOutput &= ~DriveCaller::OUTPUT_DERIVATIVE;
+            }
+		}
+
+		if (!bGotKeyWord) {
+			if (HP.GetYesNoOrBool()) {
+				fOutput |= DriveCaller::OUTPUT_VALUE;
+
+				if (pDC->bIsDifferentiable()) {
+					fOutput |= DriveCaller::OUTPUT_DERIVATIVE;
+				}
+			} else {
+				fOutput = flag(0);
+			}
+		}
+	}
+
+	if (fOutput & DriveCaller::OUTPUT_DERIVATIVE) {
+		if (!pDC->bIsDifferentiable()) {
+			silent_cerr("warning invalid output flag: drive caller(" << pDC->GetLabel()
+					<< ") is not differentiable at line "
+					<< HP.GetLineData() << std::endl);
+
+			fOutput &= ~DriveCaller::OUTPUT_DERIVATIVE;
+		}
+	}
+
+	pDC->SetOutputFlag(fOutput);
+
+	flag fTrace = 0;
+
+	if (HP.IsKeyWord("output" "trace")) {
+		bool bGotKeyWord = false;
+
+		if (HP.IsKeyWord("value")) {
+			bGotKeyWord = true;
+
+            if (HP.GetYesNoOrBool()) {
+			    fTrace |= DriveCaller::TRACE_VALUE;
+            } else {
+                fTrace &= ~DriveCaller::TRACE_VALUE;
+            }
+		}
+
+		if (HP.IsKeyWord("derivative")) {
+			bGotKeyWord = true;
+
+            if (HP.GetYesNoOrBool()) {
+			    fTrace |= DriveCaller::TRACE_DERIVATIVE;
+            } else {
+                fTrace &= ~DriveCaller::TRACE_DERIVATIVE;
+            }
+		}
+
+		if (!bGotKeyWord) {
+			if (HP.GetYesNoOrBool()) {
+				fTrace |= DriveCaller::TRACE_VALUE;
+
+				if (pDC->bIsDifferentiable()) {
+					fTrace |= DriveCaller::TRACE_DERIVATIVE;
+				}
+			} else {
+				fTrace = flag(0);
+			}
+		}
+	}
+
+	if (fTrace & DriveCaller::TRACE_DERIVATIVE) {
+		if (!pDC->bIsDifferentiable()) {
+			silent_cerr("warning invalid trace flag: drive caller (" << pDC->GetLabel()
+					<< ") is not differentiable at line "
+					<< HP.GetLineData() << std::endl);
+
+			fTrace &= ~DriveCaller::TRACE_DERIVATIVE;
+		}
+	}
+
+	pDC->SetTraceFlag(fTrace);
+}
+
 struct TimeDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);

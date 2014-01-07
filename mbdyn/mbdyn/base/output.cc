@@ -77,8 +77,9 @@ const char* psExt[] = {
 	".pla",
 	".grv",		// 30
 	".dof",
-
-	NULL		// 32
+	".drv",
+	".trc",
+	NULL		// 34
 };
 
 /* Costruttore senza inizializzazione */
@@ -248,6 +249,14 @@ OutputHandler::OutputHandler_int(void)
 
 	OutData[DOFSTATS].flags = OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[DOFSTATS].pof = &ofDofStats;
+
+	OutData[DRIVECALLERS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+			| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+	OutData[DRIVECALLERS].pof = &ofDriveCallers;
+
+	OutData[TRACES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+			| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+	OutData[TRACES].pof = &ofTraces;
 
 	OutData[NETCDF].flags = 0
 		| OUTPUT_MAY_USE_NETCDF;
@@ -841,6 +850,27 @@ void
 ToBeOutput::SetOutputFlag(flag f)
 {
   	fOutput = f;
+}
+
+Traceable::Traceable(flag fTrace)
+:fTrace(fTrace)
+{
+
+}
+
+Traceable::~Traceable(void)
+{
+
+}
+
+flag Traceable::fToBeTraced(void) const
+{
+	return fTrace;
+}
+
+void Traceable::SetTraceFlag(flag f)
+{
+	fTrace = f;
 }
 
 /* ToBeOutput - end */

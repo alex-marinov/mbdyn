@@ -112,6 +112,7 @@ bInitialJointAssemblyToBeDone(bDefaultInitialJointAssemblyToBeMade),
 bSkipInitialJointAssembly(bDefaultSkipInitialJointAssembly),
 bOutputFrames(false),
 bOutputAccels(false),
+bOutputDriveCaller(false),
 dInitialPositionStiffness(dDefaultInitialStiffness),
 dInitialVelocityStiffness(dDefaultInitialStiffness),
 bOmegaRotates(bDefaultOmegaRotates),
@@ -459,6 +460,22 @@ DofIter()
 					break;
 				}
 			}
+		}
+	}
+
+	// open drive output & trave files only if needed
+	const MBDynParser::DCType& DC = MBPar.GetDriveCallerContainer();
+	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		if (i->second->fToBeTraced()) {
+			OutHdl.Open(OutputHandler::TRACES);
+			break;
+		}
+	}
+
+	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
+		if (i->second->fToBeOutput()) {
+			OutHdl.Open(OutputHandler::DRIVECALLERS);
+			break;
 		}
 	}
 
@@ -897,6 +914,12 @@ bool
 DataManager::bOutputAccelerations(void) const
 {
 	return bOutputAccels;
+}
+
+bool
+DataManager::bOutputDriveCallers(void) const
+{
+	return bOutputDriveCaller;
 }
 
 DataManager::NodeContainerType::const_iterator

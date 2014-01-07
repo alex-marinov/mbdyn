@@ -188,7 +188,11 @@ protected:
 	void ConstitutiveLaw_int(void);
 
 	/* Drives */
+public:
 	typedef std::map<unsigned, const DriveCaller *> DCType;
+	const DCType& GetDriveCallerContainer(void) const;
+
+protected:
 	DCType DC;
 
 	void DriveCaller_int(void);
@@ -373,8 +377,8 @@ public:
 	ConstitutiveLaw1D* GetConstLaw1D(ConstLawType::Type& clt);
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
 	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
-
 	const DriveCaller* GetDrive(unsigned uLabel) const;
+
 	DriveCaller* GetDriveCaller(bool bDeferred = false);
 	template <class T> const TplDriveCaller<T> *GetTplDrive(unsigned uLabel) const;
 	template <class T> TplDriveCaller<T> *GetTplDriveCaller(void);

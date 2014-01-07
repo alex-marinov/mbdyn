@@ -117,6 +117,7 @@ protected:
 	bool bSkipInitialJointAssembly;
 	bool bOutputFrames;
 	bool bOutputAccels;
+	bool bOutputDriveCaller;
 	doublereal dInitialPositionStiffness;
 	doublereal dInitialVelocityStiffness;
 	bool bOmegaRotates;
@@ -244,7 +245,7 @@ public:
 	doublereal dReadScale(MBDynParser& HP, enum DofOwner::Type t) const;
 
 	bool bOutputAccelerations(void) const;
-
+	bool bOutputDriveCallers(void) const;
 	const doublereal& dGetInitialPositionStiffness(void) const;
 	const doublereal& dGetInitialVelocityStiffness(void) const;
 	bool bDoesOmegaRotate(void) const;
@@ -673,7 +674,8 @@ public:
 	void ElemOutput(OutputHandler& OH) const;
 	void ElemOutput(OutputHandler& OH,
 			const VectorHandler& X, const VectorHandler& XP) const;
-
+	void DriveOutput(OutputHandler& OH) const;
+	void DriveTrace(OutputHandler& OH) const;
 	DataManager::ElemContainerType::const_iterator begin(Elem::Type t) const;
 	DataManager::ElemContainerType::const_iterator end(Elem::Type t) const;
 
