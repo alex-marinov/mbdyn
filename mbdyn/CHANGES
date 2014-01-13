@@ -48,6 +48,8 @@ MBDyn 1.X-Devel
 		- fixed data initialization in external struct mapping
 		  with membrane elements
 		- fixed bug in Cardano hinge initial assembly
+		- fixed bug in driven element when internal states
+		  are differential (Reinhard Resch)
 
 MBDyn 1.5.5
 	Enhancements:

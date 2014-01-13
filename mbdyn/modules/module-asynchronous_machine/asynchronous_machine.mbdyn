@@ -206,15 +206,13 @@ begin: elements;
 		position,node, 
 		orientation,node;
 		
-	#~ user defined: elem_id_motor, asynchronous_machine, help;
-	
+	driven: elem_id_motor, string, "( Time >= motor_t0 ) * ( Time < motor_t1 )",
 	user defined: elem_id_motor, asynchronous_machine,
 		rotor, node_id_rotor,					
 		stator, node_id_stator, 
 		MK, motor_MK,
 		sK, motor_sK,
 		OmegaS, const, motor_OmegaS,
-		motor on, string, "( Time >= motor_t0 ) * ( Time < motor_t1 )",
 		M0, motor_torque0,
 		MP0, motor_torque_derivative0;
 		

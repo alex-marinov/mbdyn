@@ -272,8 +272,22 @@ DrivenElem::AssJac(VariableSubMatrixHandler& WorkMat,
 		integer iFirstIndex = dynamic_cast<ElemWithDofs *>(pElem)->iGetFirstIndex();
 
   		for (unsigned int iCnt = 1; iCnt <= iNumDofs; iCnt++) {
+  			doublereal J;
+
+  			switch (pElem->GetDofType(iCnt - 1)) {
+  			case DofOrder::ALGEBRAIC:
+  				J = 1.;
+  				break;
+  			case DofOrder::DIFFERENTIAL:
+  				J = dCoef;
+  				break;
+  			default:
+  				ASSERT(0);
+  				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+  			}
+
 			WM.PutItem(iCnt, iFirstIndex+iCnt,
-	   				iFirstIndex+iCnt, 1.);
+	   				iFirstIndex+iCnt, J);
  		}
 	}
 
