@@ -26,6 +26,11 @@ MBDyn 1.X-Devel
 		- added min/max drive caller (Reinhard Resch)
 		- added output of drive callers (Reinhard Resch)
 		- added tracing of drive callers (Reinhard Resch)
+		- added improved scaling (Reinhard Resch)
+		- added support for automatic differentiation (Reinhard Resch)
+		- improved step size control (Reinhard Resch)
+		- improved hydrodynamic plain bearing (Reinhard Resch)
+		- improved module-octave (Reinhard Resch)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
