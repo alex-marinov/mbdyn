@@ -479,37 +479,102 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		case LinSol::NAIVE_SOLVER:
 		case LinSol::KLU_SOLVER:
 		case LinSol::UMFPACK_SOLVER: {
-			LinSol::Scale s(LinSol::SCALE_UNDEF); // Umfpack and KLU built in row scaling
-			SolutionManager::ScaleWhen ms(SolutionManager::NEVER); // row and column scaling with dgeequ
+			SolutionManager::ScaleOpt scale;
 
 			if (HP.IsKeyWord("no")) {
-				s = LinSol::SCALE_NONE;
+				scale.algorithm = SolutionManager::SCALEA_NONE;
 
-			} else if (HP.IsKeyWord("max")) {
-				s = LinSol::SCALE_MAX;
+			} else if (HP.IsKeyWord("max") || HP.IsKeyWord("row" "max")) {
+				scale.algorithm = SolutionManager::SCALEA_ROW_MAX;
 
-			} else if (HP.IsKeyWord("sum")) {
-				s = LinSol::SCALE_SUM;
+			} else if (HP.IsKeyWord("sum") || HP.IsKeyWord("row" "sum")) {
+				scale.algorithm = SolutionManager::SCALEA_ROW_SUM;
+			} else if (HP.IsKeyWord("column" "max")) {
+				scale.algorithm = SolutionManager::SCALEA_COL_MAX;
+			} else if (HP.IsKeyWord("column" "sum")) {
+				scale.algorithm = SolutionManager::SCALEA_COL_SUM;
+			} else if (HP.IsKeyWord("lapack")) {
+				scale.algorithm = SolutionManager::SCALEA_LAPACK;
 
-			} else if (HP.IsKeyWord("once")) {
-				ms = SolutionManager::ONCE;
-				s = LinSol::SCALE_NONE; // do not scale twice!
+			} else if (HP.IsKeyWord("iterative")) {
+				scale.algorithm = SolutionManager::SCALEA_ITERATIVE;
+
+				if (HP.IsKeyWord("scale" "tolerance")) {
+					scale.dTol = HP.GetReal();
+				}
+
+				if (HP.IsKeyWord("scale" "iterations")) {
+					scale.iMaxIter = HP.GetInt();
+				}
+			}
+
+			if (HP.IsKeyWord("once")) {
+				scale.when = SolutionManager::SCALEW_ONCE;
 
 			} else if (HP.IsKeyWord("always")) {
-				ms = SolutionManager::ALWAYS;
-				s = LinSol::SCALE_NONE; // do not scale twice!
+				scale.when = SolutionManager::SCALEW_ALWAYS;
 
-			} else {
-				silent_cerr("unknown scale value at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			} else if (HP.IsKeyWord("never")) {
+				scale.when = SolutionManager::SCALEW_NEVER;
 			}
 
-			if (!cs.SetScale(s)) {
-				silent_cerr("Warning: builtin row scaling is not available for " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+			switch (scale.when) {
+			case SolutionManager::SCALEW_ONCE:
+			case SolutionManager::SCALEW_ALWAYS:
+				switch (scale.algorithm) {
+				case SolutionManager::SCALEA_UNDEF:
+					scale.algorithm = SolutionManager::SCALEA_LAPACK; // Restore the original behavior for Naive
+					break;
+
+				default:
+					// Use the value provided by the input file
+					;
+				}
+				break;
+
+			case SolutionManager::SCALEW_NEVER:
+				scale.algorithm = SolutionManager::SCALEA_NONE;
+				break;
 			}
 
-			if (!cs.SetScaleWhen(ms)) {
-				silent_cerr("Warning: row and column scaling is not available for " << cs.GetSolverName() << " at line " << HP.GetLineData() << std::endl);
+			if (HP.IsKeyWord("verbose") && HP.GetYesNoOrBool()) {
+				scale.uFlags |= SolutionManager::SCALEF_VERBOSE;
+			}
+
+			if (HP.IsKeyWord("warnings") && HP.GetYesNoOrBool()) {
+				scale.uFlags |= SolutionManager::SCALEF_WARN;
+			}
+
+			unsigned uCondFlag = 0;
+
+			if (HP.IsKeyWord("print" "condition" "number")) {
+				if (HP.IsKeyWord("norm")) {
+					if (HP.IsKeyWord("inf")) {
+						uCondFlag = SolutionManager::SCALEF_COND_NUM_INF;
+					} else {
+						const doublereal dNorm = HP.GetReal();
+
+						if (dNorm != 1.) {
+							silent_cerr("Only one norm or infinity norm are supported for condition numbers at line " << HP.GetLineData() << std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+
+						uCondFlag = SolutionManager::SCALEF_COND_NUM_1;
+					}
+				} else {
+					uCondFlag = SolutionManager::SCALEF_COND_NUM_1;
+				}
+			}
+
+			if (uCondFlag != 0 && HP.GetYesNoOrBool()) {
+				scale.uFlags |= uCondFlag;
+			}
+
+			if (!cs.SetScale(scale)) {
+				silent_cerr("Warning: Scale options are not available for "
+						    << cs.GetSolverName()
+						    << " at line "
+						    << HP.GetLineData() << std::endl);
 			}
 
 			} break;

@@ -149,11 +149,23 @@ throw(LinearSolver::ErrFactor)
 /* NaiveSparseSolutionManager - begin */
 
 NaiveSparseSolutionManager::NaiveSparseSolutionManager(const integer Dim,
-	const doublereal dMP, SolutionManager::ScaleWhen ms)
+	const doublereal dMP, const ScaleOpt& s)
 : A(0),
 VH(Dim),
-ms(ms)
+scale(s),
+pMatScale(0)
 {
+	switch (scale.algorithm) {
+	case SCALEA_NONE:
+	case SCALEA_UNDEF:
+		scale.when = SCALEW_NEVER; // Default scaling is not supported for this solver
+		break;
+
+	default:
+		// Allocate MatrixScale<T> on demand
+		;
+	}
+
 	SAFENEWWITHCONSTRUCTOR(A, NaiveMatrixHandler, NaiveMatrixHandler(Dim));
 	SAFENEWWITHCONSTRUCTOR(pLS, NaiveSolver, NaiveSolver(Dim, dMP, A));
 
@@ -169,6 +181,8 @@ NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void)
 		SAFEDELETE(A);
 		A = 0;
 	}
+
+	SAFEDELETE(pMatScale);
 }
 
 void
@@ -182,73 +196,45 @@ template <class MH>
 void
 NaiveSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
 {
-	if (ms != SolutionManager::NEVER) {
+	if (scale.when != SCALEW_NEVER) {
+		MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
+
 		if (pLS->bReset()) {
-#if defined(DEBUG)
-			static bool bPrintMat = true;
-			if (bPrintMat) {
-				silent_cout("% matrix before scaling:\n");
-				silent_cout("Apre=[");
-				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-					if (i->dCoef != 0.) {
-						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-					}
-				}
-				silent_cout("];\n");
-			}
-#endif
-
-			if (msr.empty() || ms == SolutionManager::ALWAYS) {
+			if (!rMatScale.bGetInitialized()
+				|| scale.when == SolutionManager::SCALEW_ALWAYS) {
 				// (re)compute
-				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
-				dgeequ<MH>(mh, msr, msc, rowcnd, colcnd, amax);
-
-#if defined(DEBUG)
-				if (bPrintMat) {
-					silent_cout("% scale factors:\n");
-					silent_cout("msr=[");
-					for (std::vector<doublereal>::const_iterator i = msr.begin(); i < msr.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-
-					silent_cout("];\n");
-					silent_cout("msc=[");
-					for (std::vector<doublereal>::const_iterator i = msc.begin(); i < msc.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-					silent_cout("];\n");
-				}
-#endif
+				rMatScale.ComputeScaleFactors(mh);
 			}
-
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<MH>(mh, msr, msc);
+			rMatScale.ScaleMatrix(mh);
 
-#if defined(DEBUG)
-			if (bPrintMat) {
-				silent_cout("% matrix after scaling:\n");
-				silent_cout("Apost=[");
-				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-					if (i->dCoef != 0.) {
-						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-					}
-				}
-				silent_cout("];\n");
+			if (silent_err) {
+				rMatScale.Report(std::cerr);
 			}
-
-			bPrintMat = false;
-#endif
 		}
-		dgeequ_scale(VH, &msr[0]);
+
+		rMatScale.ScaleRightHandSide(VH);
 	}
+}
+
+template <typename MH>
+MatrixScale<MH>& NaiveSparseSolutionManager::GetMatrixScale()
+{
+	if (pMatScale == 0) {
+		pMatScale = MatrixScale<MH>::Allocate(scale);
+	}
+
+	// Will throw std::bad_cast if the type does not match
+	return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
 }
 
 void
 NaiveSparseSolutionManager::ScaleSolution(void)
 {
-	if (ms != SolutionManager::NEVER) {
+	if (scale.when != SCALEW_NEVER) {
+		ASSERT(pMatScale != 0);
 		// scale solution
-		dgeequ_scale(VH, &msc[0]);
+		pMatScale->ScaleSolution(VH);
 	}
 }
 
@@ -256,7 +242,7 @@ NaiveSparseSolutionManager::ScaleSolution(void)
 void
 NaiveSparseSolutionManager::Solve(void)
 {
-	ScaleMatrixAndRightHandSide<NaiveMatrixHandler>(*A);
+	ScaleMatrixAndRightHandSide(*A);
 
 	pLS->Solve();
 
@@ -293,8 +279,8 @@ template<class T>
 NaiveSparsePermSolutionManager<T>::NaiveSparsePermSolutionManager(
 	const integer Dim, 
 	const doublereal dMP,
-	SolutionManager::ScaleWhen ms)
-: NaiveSparseSolutionManager(Dim, dMP, ms),
+	const ScaleOpt& scale)
+: NaiveSparseSolutionManager(Dim, dMP, scale),
 dMinPiv(dMP < 0 ? 0 : dMP),
 TmpH(Dim),
 ePermState(PERM_NO)
@@ -353,7 +339,8 @@ NaiveSparsePermSolutionManager<T>::Solve(void)
 {
 	doublereal *pd = 0;
 
-	ScaleMatrixAndRightHandSide<NaivePermMatrixHandler>(*dynamic_cast<NaivePermMatrixHandler *>(A));
+	// Will throw std::bad_cast if the data type does not match
+	ScaleMatrixAndRightHandSide(dynamic_cast<NaivePermMatrixHandler&>(*A));
 
 	if (ePermState == PERM_NO) {
 		ComputePermutation();

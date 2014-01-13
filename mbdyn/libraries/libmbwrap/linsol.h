@@ -53,7 +53,7 @@ public:
 		LAST_SOLVER
 	};
 
-	enum {
+	enum SolverFlags {
 		SOLVER_FLAGS_NONE = 0x00U,
 		SOLVER_FLAGS_ALLOWS_MAP = 0x01U,
 		SOLVER_FLAGS_ALLOWS_CC = 0x02U,
@@ -80,13 +80,6 @@ public:
 			SOLVER_FLAGS_ALLOWS_NESTED_DISSECTION
 	};
 
-	enum Scale {
-		SCALE_NONE,
-		SCALE_MAX,
-		SCALE_SUM,
-		SCALE_UNDEF
-	};
-	
 	/* solver data */
 	struct solver_t {
 		const char *const	s_name;
@@ -141,18 +134,11 @@ protected:
 	doublereal dDropTolerance;
 
 	/*
-	 * matrix scaling	NO, ONCE, ALWAYS
+	 * matrix scaling
 	 * currently used by:
-	 *	Naive
+	 *	Naive, KLU, Umfpack
 	 */
-	SolutionManager::ScaleWhen ms;
-
-	/*
-	 * matrix scaling	NO, MAX, SUM
-	 * used only by:
-	 * 	Umfpack
-	 */
-	Scale scale;
+	SolutionManager::ScaleOpt scale;
 
 	/*
 	 * maximum number of iterations for iterative refinement
@@ -175,8 +161,7 @@ public:
 	const doublereal& dGetPivotFactor(void) const;
 	const doublereal& dGetDropTolerance(void) const;
 	unsigned GetBlockSize(void) const;
-	SolutionManager::ScaleWhen GetScaleWhen(void) const;
-	LinSol::Scale GetScale(void) const;
+	const SolutionManager::ScaleOpt& GetScale(void) const{ return scale; }
 	integer GetMaxIterations(void) const;
 
 	const char *const GetSolverName(SolverType t) const;
@@ -191,8 +176,7 @@ public:
 	bool SetPivotFactor(const doublereal &d);
 	bool SetDropTolerance(const doublereal &d);
 	bool SetBlockSize(unsigned bs);
-	bool SetScaleWhen(SolutionManager::ScaleWhen ms);
-	bool SetScale(Scale s);
+	bool SetScale(const SolutionManager::ScaleOpt& scale);
 	bool SetMaxIterations(integer iMaxIter);
 	SolutionManager *const
 	GetSolutionManager(integer iNLD, integer iLWS = 0) const;

@@ -119,9 +119,9 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}
 
-      		if (outputRes()) {
-			pS->PrintResidual(*pRes, iIterCnt);
-      		}
+		if (outputRes()) {
+		    pS->PrintResidual(*pRes, iIterCnt);
+		}
 
 		/* FIXME: if Tol == 0., no convergence on residual
 		 * is required, so we could simply don't compute
@@ -166,7 +166,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}
 		
-		pS->CheckTimeStepLimit();
+		pS->CheckTimeStepLimit(dErr);
 
       	if (bTest) {
 	 		return;

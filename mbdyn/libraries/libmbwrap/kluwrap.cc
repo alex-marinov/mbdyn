@@ -67,6 +67,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #ifdef USE_KLU
+#include <cassert>
 #include "solman.h"
 #include "spmapmh.h"
 #include "ccmh.h"
@@ -124,9 +125,18 @@ KLUSolver::~KLUSolver(void)
 void
 KLUSolver::Reset(void)
 {
+	if (Symbolic) {
+		// FIXME: This code might be an performance issue!
+		// However if we do not reset the symbolic object
+		// the code will fail if zero entries become nonzero
+		// during simulation.
+		klu_free_symbolic(&Symbolic, &Control);
+		ASSERT(Symbolic == 0);
+	}
+
 	if (Numeric) {
-		//klu_free_numeric(&Numeric, &Control);
-		//ASSERT(Numeric == 0);
+		klu_free_numeric(&Numeric, &Control);
+		ASSERT(Numeric == 0);
 	}
 
 	bHasBeenReset = true;
@@ -264,28 +274,53 @@ bool KLUSolver::bGetConditionNumber(doublereal& dCond)
 /* KLUSparseSolutionManager - begin */
 
 KLUSparseSolutionManager::KLUSparseSolutionManager(integer Dim,
-		doublereal dPivot, KLUSolver::Scale scale, ScaleWhen ms)
+												   doublereal dPivot,
+												   const ScaleOpt& s)
 : A(Dim),
 b(Dim),
 bVH(Dim, &b[0]),
-ms(ms)
+scale(s),
+pMatScale(0)
 {
+	KLUSolver::Scale kscale = KLUSolver::SCALE_UNDEF;
+
+	switch (scale.algorithm) {
+	case SCALEA_UNDEF:
+		scale.when = SCALEW_NEVER;
+		break;
+
+	case SCALEA_NONE:
+		kscale = KLUSolver::SCALE_NONE;
+		scale.when = SCALEW_NEVER;
+		break;
+
+	case SCALEA_ROW_MAX:
+		kscale = KLUSolver::SCALE_MAX;
+		scale.when = SCALEW_NEVER; // Do not scale twice! Use built in scaling from KLU
+		break;
+
+	case SCALEA_ROW_SUM:
+		kscale = KLUSolver::SCALE_SUM;
+		scale.when = SCALEW_NEVER; // Do not scale twice! Use built in scaling from KLU
+		break;
+
+	default:
+		// Allocate MatrixScale<T> on demand
+		kscale = KLUSolver::SCALE_NONE; // Do not scale twice!
+	}
+
 	SAFENEWWITHCONSTRUCTOR(pLS, KLUSolver,
-			KLUSolver(Dim, dPivot, scale));
+			KLUSolver(Dim, dPivot, kscale));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&b[0]);
 	pLS->SetSolutionManager(this);
-
-	if (scale != KLUSolver::SCALE_NONE && ms != NEVER) {
-		ASSERT(0); // avoid double scaling
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
 }
 
-KLUSparseSolutionManager::~KLUSparseSolutionManager(void) 
+
+KLUSparseSolutionManager::~KLUSparseSolutionManager(void)
 {
-	NO_OP;
+	SAFEDELETE(pMatScale);
 }
 
 void
@@ -297,80 +332,52 @@ KLUSparseSolutionManager::MatrReset(void)
 void
 KLUSparseSolutionManager::MakeCompressedColumnForm(void)
 {
-	ScaleMatrixAndRightHandSide<SpMapMatrixHandler>(A);
+	ScaleMatrixAndRightHandSide(A);
 
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 }
 
-template <class MH>
+template <typename MH>
 void KLUSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
 {
-#if defined(DEBUG)
-	static bool bPrintMat = true;
-#endif
+	if (scale.when != SCALEW_NEVER) {
+		MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
 
-	if (ms != SolutionManager::NEVER) {
 		if (pLS->bReset()) {
-			if (msr.empty() || ms == SolutionManager::ALWAYS) {
-#if defined(DEBUG)
-				if (bPrintMat) {
-					silent_cout("% matrix before scaling:\n");
-					silent_cout("Apre=[");
-					for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-						if (i->dCoef != 0.) {
-							silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-						}
-					}
-					silent_cout("];\n");
-				}
-#endif
+			if (!rMatScale.bGetInitialized()
+				|| scale.when == SolutionManager::SCALEW_ALWAYS) {
 				// (re)compute
-				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
-				dgeequ<MH>(mh, msr, msc, rowcnd, colcnd, amax);
-#if defined(DEBUG)
-				if (bPrintMat) {
-					silent_cout("% scale factors:\n");
-					silent_cout("msr=[");
-					for (std::vector<doublereal>::const_iterator i = msr.begin(); i < msr.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-
-					silent_cout("];\n");
-					silent_cout("msc=[");
-					for (std::vector<doublereal>::const_iterator i = msc.begin(); i < msc.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-					silent_cout("];\n");
-				}
-#endif
+				rMatScale.ComputeScaleFactors(mh);
 			}
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<MH>(mh, msr, msc);
+			rMatScale.ScaleMatrix(mh);
 
-#if defined(DEBUG)
-			if (bPrintMat) {
-				silent_cout("% matrix after scaling:\n");
-				silent_cout("Apost=[");
-				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-					if (i->dCoef != 0.) {
-						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-					}
-				}
-				silent_cout("];\n");
+			if (silent_err) {
+				rMatScale.Report(std::cerr);
 			}
-
-			bPrintMat = false;
-#endif
 		}
-		dgeequ_scale(bVH, &msr[0]);
+
+		rMatScale.ScaleRightHandSide(bVH);
 	}
+}
+
+template <typename MH>
+MatrixScale<MH>& KLUSparseSolutionManager::GetMatrixScale()
+{
+	if (pMatScale == 0) {
+		pMatScale = MatrixScale<MH>::Allocate(scale);
+	}
+
+	// Will throw std::bad_cast if the type does not match
+	return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
 }
 
 void KLUSparseSolutionManager::ScaleSolution(void)
 {
-	if (ms != SolutionManager::NEVER) {
+	if (scale.when != SCALEW_NEVER) {
+		ASSERT(pMatScale != 0);
 		// scale solution
-		dgeequ_scale(bVH, &msc[0]);
+		pMatScale->ScaleSolution(bVH);
 	}
 }
 
@@ -410,8 +417,9 @@ KLUSparseSolutionManager::pSolHdl(void) const
 
 template <class CC>
 KLUSparseCCSolutionManager<CC>::KLUSparseCCSolutionManager(integer Dim,
-		doublereal dPivot, KLUSolver::Scale scale, ScaleWhen ms)
-: KLUSparseSolutionManager(Dim, dPivot, scale, ms),
+		doublereal dPivot,
+		const ScaleOpt& scale)
+: KLUSparseSolutionManager(Dim, dPivot, scale),
 CCReady(false),
 Ac(0)
 {
@@ -447,7 +455,7 @@ KLUSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 		CCReady = true;
 	}
 
-	ScaleMatrixAndRightHandSide<CC>(*dynamic_cast<CC *>(Ac));
+	ScaleMatrixAndRightHandSide(*Ac);
 
 }
 
@@ -457,6 +465,15 @@ void
 KLUSparseCCSolutionManager<CC>::MatrInitialize()
 {
 	CCReady = false;
+
+	if (Ac) {
+		// If a DirCColMatrixHandler is in use and matrix scaling is enabled
+		// an uncaught exception (MatrixHandler::ErrRebuildMatrix) will be thrown
+		// if zero entries in the matrix become nonzero.
+		// For that reason we have to reinitialize Ac!
+		SAFEDELETE(Ac);
+		Ac = 0;
+	}
 
 	MatrReset();
 }
@@ -476,7 +493,6 @@ KLUSparseCCSolutionManager<CC>::pMatHdl(void) const
 
 template class KLUSparseCCSolutionManager<CColMatrixHandler<0> >;
 template class KLUSparseCCSolutionManager<DirCColMatrixHandler<0> >;
-
 /* KLUSparseCCSolutionManager - end */
 
 #endif /* USE_KLU */

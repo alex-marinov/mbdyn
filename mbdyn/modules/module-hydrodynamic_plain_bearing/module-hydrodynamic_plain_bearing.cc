@@ -69,6 +69,7 @@ public:
 		   doublereal dCoef,
 		   const VectorHandler& XCurr,
 		   const VectorHandler& XPrimeCurr);
+	inline
 	void ComputeResidual(Vec3& e_R2,
 						 Vec3& e_dot_R2,
 						 doublereal omega_proj[2],
@@ -84,7 +85,8 @@ public:
 						 doublereal& SoD,
 						 doublereal& SoV,
 						 doublereal& my,
-						 doublereal& beta)const;
+						 doublereal& beta,
+						 integer iGaussPoint)const;
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -122,7 +124,46 @@ public:
 	doublereal m_abs_FPrs1;	// contact force for epsilon == 1
 	doublereal m_myP;	// coulomb friction coefficient
 	doublereal m_signum_delta_omega; // maximum angular velocity difference where the friction torque is zero
+	integer iNumGaussPoints;
+	const doublereal* m_r;
+	const doublereal* m_alpha;
+	bool m_lambda;
+	static const doublereal s_r1[1], s_alpha1[1];
+	static const doublereal s_r2[2], s_alpha2[2];
+	static const doublereal s_r3[3], s_alpha3[3];
+	static const doublereal s_r6[6], s_alpha6[6];
 };
+
+// GAUSS-LEGENDRE integration points and weight factors according to K.J. Bathe 2002 table 5.6
+// times 0.5 in order to account for an integration over the interval -0.5*b ... 0.5*b
+
+const doublereal hydrodynamic_plain_bearing_with_offset::s_r1[1]     = {0.5 * 0.};
+const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha1[1] = {0.5 * 2};
+
+const doublereal hydrodynamic_plain_bearing_with_offset::s_r2[2] = {0.5 * -0.577350269189626,
+																	0.5 *  0.577350269189626};
+const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha2[2] = {0.5 * 1.,
+																		0.5 * 1.};
+
+const doublereal hydrodynamic_plain_bearing_with_offset::s_r3[3] = {0.5 * -0.774596669241483,
+																	0.5 *  0.,
+																	0.5 *  0.774596669241483};
+const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha3[3] = {0.5 * 0.555555555555556,
+																		0.5 * 0.888888888888889,
+																		0.5 * 0.555555555555556};
+
+const doublereal hydrodynamic_plain_bearing_with_offset::s_r6[6] = {0.5 * -0.932469514203152,
+																	0.5 * -0.661209386466265,
+																	0.5 * -0.238619186083197,
+																	0.5 *  0.238619186083197,
+																	0.5 *  0.661209386466265,
+																	0.5 *  0.932469514203152};
+const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha6[6] = {0.5 * 0.171324492379170,
+																		0.5 * 0.360761573048139,
+																		0.5 * 0.467913934572691,
+																		0.5 * 0.467913934572691,
+																		0.5 * 0.360761573048139,
+																		0.5 * 0.171324492379170};
 
 hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 	unsigned uLabel, const DofOwner *pDO,
@@ -144,7 +185,11 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 	m_m(1.),
 	m_abs_FPrs1(0.),
 	m_myP(0.),
-	m_signum_delta_omega(0.)
+	m_signum_delta_omega(0.),
+	iNumGaussPoints(0),
+	m_r(0),
+	m_alpha(0),
+	m_lambda(true)
 {
 	// help
 	if (HP.IsKeyWord("help"))
@@ -165,7 +210,7 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			"		bearing, (label) <bearing node>,\n"
 			"		[offset, (Vec3) <o2>,]\n"
 			"		bearing_width, (real) <b>,\n"
-			"		bearing_diameter, (real) <d>,\n"
+			"		{shaft diameter, (real) <d> | bearing_diameter, (real) <D>,}\n"
 			"		relative_clearance, (real) <Psi>,\n"
 			"		oil_viscosity, (real) <eta>,\n"
 			"		initial_assembly_factor, (DriveCaller),\n"
@@ -176,10 +221,12 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			"			force, (real) <abs_FPrs1>,\n"
 			"			coulomb_friction_coefficient, (real) <myP>,\n"
 			"			angular_velocity_threshold, (real) <signum_delta_omega>]\n"
+			"       [number of gauss points, <num_gauss_points>]\n"
+            "       [extend shaft to bearing center, {yes | no | (bool) <extend>}]\n"
 			"\n"
 			"   b ... bearing width [m]\n"
 			"	d ... bearing diameter [m]\n"
-			"	Psi ... relative clearance Psi = ( D - d ) / d [m/m]\n"
+			"	Psi ... relative clearance Psi = ( D - d ) / D [m/m]\n"
 			"	eta ... dynamic oil viscosity [Pa*s]\n"
 			"\n"
 			"	sP ... contact stiffness for wall contact at epsilon == 1 [N/m]\n"
@@ -238,12 +285,23 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 	}		
 	m_b = HP.GetReal();
 
-	if ( !( HP.IsKeyWord("bearing_diameter") || HP.IsKeyWord("bearing" "diameter") ) )
+	bool bHaveD = false;
+
+	if (HP.IsKeyWord("shaft" "diameter"))
 	{
-		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"bearing diameter\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		m_d = HP.GetReal();
 	}
-	m_d = HP.GetReal();
+	else
+	{
+		if ( !( HP.IsKeyWord("bearing_diameter") || HP.IsKeyWord("bearing" "diameter") ) )
+		{
+			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"bearing diameter\" expected at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		m_d = HP.GetReal();
+		bHaveD = true;
+	}
 
 	if ( !( HP.IsKeyWord("relative_clearance") || HP.IsKeyWord("relative" "clearance") ) )
 	{
@@ -251,6 +309,11 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	m_Psi = HP.GetReal();
+
+	if (bHaveD)
+	{
+		m_d *= (1 - m_Psi);
+	}
 
 	if ( !( HP.IsKeyWord("oil_viscosity") || HP.IsKeyWord("oil" "viscosity") ) )
 	{
@@ -308,6 +371,39 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		m_signum_delta_omega = HP.GetReal();
 	}
 
+	iNumGaussPoints = HP.IsKeyWord("number" "of" "gauss" "points") ? HP.GetInt() : 1;
+
+	m_lambda = HP.IsKeyWord("extend" "shaft" "to" "bearing" "center") ? HP.GetYesNoOrBool() : iNumGaussPoints == 1;
+
+	if (m_lambda && iNumGaussPoints > 1)
+	{
+		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): warning: extend shaft to bearing center = TRUE but number of gauss points > 1 is meaningless at line " << HP.GetLineData() << std::endl);
+	}
+
+#define CASE_GAUSS_POINT_NUM_(num) \
+	case num: \
+		assert(iNumGaussPoints == sizeof(s_r##num)/sizeof(s_r##num[0])); \
+		assert(iNumGaussPoints == sizeof(s_alpha##num)/sizeof(s_alpha##num[0])); \
+		m_r = s_r##num; \
+		m_alpha = s_alpha##num; \
+	break
+
+	switch (iNumGaussPoints)
+	{
+	CASE_GAUSS_POINT_NUM_(1);
+	CASE_GAUSS_POINT_NUM_(2);
+	CASE_GAUSS_POINT_NUM_(3);
+	CASE_GAUSS_POINT_NUM_(6);
+	default:
+		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+					<< "): integration rule with " << iNumGaussPoints
+					<< " gauss points not supported at line "
+					<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+#undef CASE_GAUSS_POINT_NUM_
+
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
 	std::ostream& out = pDM->GetLogFile();
@@ -333,6 +429,13 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			<< m_signum_delta_omega << " ";
 	}
 
+	out << iNumGaussPoints << " ";
+
+	for (integer i = 0; i < iNumGaussPoints; ++i)
+	{
+		out << m_r[i] << " " << m_alpha[i] << " ";
+	}
+
 	out << std::endl;
 }
 
@@ -347,20 +450,22 @@ hydrodynamic_plain_bearing_with_offset::~hydrodynamic_plain_bearing_with_offset(
 void
 hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 {
-	if ( fToBeOutput() )
+	if ( fToBeOutput() && OH.UseText(OutputHandler::LOADABLE) )
 	{
-		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
+		std::ostream& os = OH.Loadable();
 
-		Vec3 e_R2, e_dot_R2;
-		doublereal omega_proj[2];
-		Vec3 F2_R2, M2_R2;
-		Vec3 F2_I, M2_I, F1_I, M1_I;
+		os << std::setw(8) << GetLabel() << ' '; 		// 0
 
-		ComputeResidual(e_R2,e_dot_R2,omega_proj,F2_R2,M2_R2,F2_I,M2_I,F1_I,M1_I,eps,eps_dot,delta,SoD,SoV,my,beta);
-
-		if ( OH.UseText(OutputHandler::LOADABLE) )
+		for (integer i = 0; i < iNumGaussPoints; ++i)
 		{
-			std::ostream& os = OH.Loadable();
+			doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
+
+			Vec3 e_R2, e_dot_R2;
+			doublereal omega_proj[2];
+			Vec3 F2_R2, M2_R2;
+			Vec3 F2_I, M2_I, F1_I, M1_I;
+
+			ComputeResidual(e_R2,e_dot_R2,omega_proj,F2_R2,M2_R2,F2_I,M2_I,F1_I,M1_I,eps,eps_dot,delta,SoD,SoV,my,beta,i);
 
 			// output the current state: the column layout is as follows
 			// (all quantities are refered to the reference frame of the bearing node)
@@ -386,9 +491,7 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 			// 15	friction coefficient
 			// 16	angle between minimum clearance and force of rotation
 
-			os 	<< std::setw(8)
-				<< GetLabel() << ' ' 		// 0
-				<< e_R2(1) << ' ' 			// 1
+			os 	<< e_R2(1) << ' ' 			// 1
 				<< e_R2(2) << ' ' 			// 2
 				<< e_dot_R2(1) << ' '		// 3
 				<< e_dot_R2(2) << ' '		// 4
@@ -403,9 +506,11 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 				<< SoD << ' ' 				// 13
 				<< SoV << ' ' 				// 14
 				<< my << ' ' 				// 15
-				<< beta << ' '				// 16
-				<< std::endl;
+				<< beta << ' ';				// 16
+
 		}
+
+		os << std::endl;
 	}
 }
 
@@ -457,366 +562,369 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Vec3& omega2 = m_pBearing->GetWCurr();
 	const Vec3& omega2_ref = m_pBearing->GetWRef();
 
-	const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * m_o1_R1 ) - m_o2_R2;
-	const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
-	const doublereal lambda = -v_R2(3) / d1_R2(3);
-	Vec3 e_R2 = v_R2 + d1_R2 * lambda;
-
-	// FIXME: nan values if e_R2(1) == 0 && e_R2(2) == 0
-	if ( e_R2(1) == 0.0 && e_R2(2) == 0.0 )
-			e_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
-
-	const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) );
-	const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
-	const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3);
-
-	Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
-							+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
-
-	// FIXME: nan values if e_dot_R2(1) == 0 && e_dot_R2(2) == 0
-	if ( e_dot_R2(1) == 0.0 && e_dot_R2(2) == 0.0 )
-			e_dot_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
-
-	const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
-	const Vec3 l1_R1 = m_o1_R1 + lambda_d1_R1;
-	const Vec3 l1_I = R1 * l1_R1;
-	const Vec3 l2_R2 = m_o2_R2 + e_R2;
-	const doublereal omega_proj[2] = { R2.GetCol(3).Dot(omega1),
-				       R2.GetCol(3).Dot(omega2) };
-
-	const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
-
-	//												  |	0   1   2   3   4   5  |
-	static const doublereal ed[2][NBDIRSMAX] 	 	  = { { 1., 0., 0., 0., 0., 0. },	// 0 | inner derivative of the eccentricity of the shaft in direction 1 of the reference frame of the bearing (R2)
-						     	 	 	 	 	 	  { 0., 1., 0., 0., 0., 0. } };	// 1 | inner derivative of the eccentricity of the shaft in direction 2 of the reference frame of the bearing (R2)
-	static const doublereal e_dotd[2][NBDIRSMAX] 	  = { { 0., 0., 1., 0., 0., 0. },	// 0 | inner derivative of relative velocity of the shaft in direction 1 of the reference frame of the bearing (R2)
-						     	 	 	 	 	 	  { 0., 0., 0., 1., 0., 0. } }; // 1 | inner derivative of relative velocity of the shaft in direction 2 of the reference frame of the bearing (R2)
-	static const doublereal omega_projd[2][NBDIRSMAX] = { { 0., 0., 0., 0., 1., 0. },	// 0 | inner derivative of the angular velocity of the shaft in direction 3 of the reference frame of the bearing (R2)
-												 	  { 0., 0., 0., 0., 0., 1. } }; // 1 | inner derivative of the angular velocity of the bearing in direction 3 of the reference frame of the bearing (R2)
-
-	doublereal k[3];			// force vector at the bearing (not used for the evaluation of the jacobian matrix)
-	doublereal kd[3][NBDIRSMAX];	// variation of the force vector at the bearing with respect to the eccentricity of the shaft e and the relative velocity of the shaft
-
-	// kd = { { diff(k[0],e[0]), diff(k[0],e[1]), diff(k[0],e_dot[0]), diff(k[0],e_dot[1]), diff(k[0],omega_proj[0]), diff(k[0],omega_proj[1]) },
-	//        { diff(k[1],e[0]), diff(k[1],e[1]), diff(k[1],e_dot[0]), diff(k[1],e_dot[1]), diff(k[1],omega_proj[0]), diff(k[1],omega_proj[1]) },
-	//        { diff(k[2],e[0]), diff(k[2],e[1]), diff(k[2],e_dot[0]), diff(k[2],e_dot[1]), diff(k[2],omega_proj[0]), diff(k[2],omega_proj[1]) } };
-
-	doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
-
-	__FC_DECL__(hydrodynamic_plain_bearing_force_dv)(m_b, m_d, m_Psi, m_eta, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k, kd, eps, eps_dot, delta, SoD, SoV, my, beta, NBDIRSMAX);
-
-	Vec3 F2_R2;					// F2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
-
-	F2_R2(1) = k[0];
-	F2_R2(2) = k[1];
-	F2_R2(3) = 0.;
-
-	Mat3x3 dF2_R2_de_R2;		// diff(F2^(R2), e^(R2))
-
-	dF2_R2_de_R2(1,1) = kd[0][0]; dF2_R2_de_R2(1,2) = kd[0][1]; dF2_R2_de_R2(1,3) = 0.;
-	dF2_R2_de_R2(2,1) = kd[1][0]; dF2_R2_de_R2(2,2) = kd[1][1]; dF2_R2_de_R2(2,3) = 0.;
-	dF2_R2_de_R2(3,1) = 	  0.; dF2_R2_de_R2(3,2) = 		0.; dF2_R2_de_R2(3,3) = 0.;
-
-	Mat3x3 dF2_R2_de_dot_R2;	// diff(F2^(R2), diff(e^(R2),t))
-
-	dF2_R2_de_dot_R2(1,1) = kd[0][2]; dF2_R2_de_dot_R2(1,2) = kd[0][3]; dF2_R2_de_dot_R2(1,3) = 0.;
-	dF2_R2_de_dot_R2(2,1) = kd[1][2]; dF2_R2_de_dot_R2(2,2) = kd[1][3]; dF2_R2_de_dot_R2(2,3) = 0.;
-	dF2_R2_de_dot_R2(3,1) =		  0.; dF2_R2_de_dot_R2(3,2) =		 0; dF2_R2_de_dot_R2(3,3) = 0.;
-
-	Vec3 dF2_R2_domega1_proj;	// diff(F2^(R2), omega1_proj)
-
-	dF2_R2_domega1_proj(1) = kd[0][4];
-	dF2_R2_domega1_proj(2) = kd[1][4];
-	dF2_R2_domega1_proj(3) = 	   0.;
-
-	Vec3 dF2_R2_domega2_proj;	// diff(F2^(R2), omega2_proj)
-
-	dF2_R2_domega2_proj(1) = kd[0][5];
-	dF2_R2_domega2_proj(2) = kd[1][5];
-	dF2_R2_domega2_proj(3) =       0.;
-
-	Vec3 M2_R2;					// M2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
-
-	M2_R2(1) = 0.;
-	M2_R2(2) = 0.;
-	M2_R2(3) = k[2];
-
-	Mat3x3 dM2_R2_de_R2;		// diff(M2^(R2), e^(R2)
-
-	dM2_R2_de_R2(1,1) = 	  0.; 	dM2_R2_de_R2(1,2) = 	  0.; 	dM2_R2_de_R2(1,3) = 0.;
-	dM2_R2_de_R2(2,1) = 	  0.; 	dM2_R2_de_R2(2,2) = 	  0.; 	dM2_R2_de_R2(2,3) = 0.;
-	dM2_R2_de_R2(3,1) = kd[2][0]; 	dM2_R2_de_R2(3,2) = kd[2][1]; 	dM2_R2_de_R2(3,3) = 0.;
-
-	Mat3x3 dM2_R2_de_dot_R2;	// diff(M2^(R2), diff(e^(R2),t)
-
-	dM2_R2_de_dot_R2(1,1) = 	  0.; 	dM2_R2_de_dot_R2(1,2) = 	  0.; 	dM2_R2_de_dot_R2(1,3) = 0.;
-	dM2_R2_de_dot_R2(2,1) = 	  0.; 	dM2_R2_de_dot_R2(2,2) = 	  0.; 	dM2_R2_de_dot_R2(2,3) = 0.;
-	dM2_R2_de_dot_R2(3,1) = kd[2][2]; 	dM2_R2_de_dot_R2(3,2) = kd[2][3]; 	dM2_R2_de_dot_R2(3,3) = 0.;
-
-	Vec3 dM2_R2_domega1_proj;	// diff(M2^(R2), omega1_proj)
-
-	dM2_R2_domega1_proj(1) = 0.;
-	dM2_R2_domega1_proj(2) = 0.;
-	dM2_R2_domega1_proj(3) = kd[2][4];
-
-	Vec3 dM2_R2_domega2_proj;	// diff(M2^(R2), omega2_proj)
-
-	dM2_R2_domega2_proj(1) = 0.;
-	dM2_R2_domega2_proj(2) = 0.;
-	dM2_R2_domega2_proj(3) = kd[2][5];
-
-	if ( m_fcontact )
+	for (integer i = 0; i < iNumGaussPoints; ++i)
 	{
-		// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
+		Vec3 o1_R1 = m_o1_R1;
+		o1_R1(3) += m_r[i] * m_b;
+		const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - m_o2_R2;
+		const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
 
-		__FC_DECL__(plain_bearing_contact_force_dv)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, omega_projd,e_, ed, e_dot_,e_dotd, k, kd, NBDIRSMAX);
+		const doublereal lambda = m_lambda ? -v_R2(3) / d1_R2(3) : 0.;
 
-		F2_R2(1) += k[0];
-		F2_R2(2) += k[1];
+		Vec3 e_R2 = v_R2 + d1_R2 * lambda;
 
-		dF2_R2_de_R2(1,1) += kd[0][0]; dF2_R2_de_R2(1,2) += kd[0][1];
-		dF2_R2_de_R2(2,1) += kd[1][0]; dF2_R2_de_R2(2,2) += kd[1][1];
+		// FIXME: nan values if e_R2(1) == 0 && e_R2(2) == 0
+		if ( e_R2(1) == 0.0 && e_R2(2) == 0.0 )
+				e_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
 
-		dF2_R2_de_dot_R2(1,1) += kd[0][2]; dF2_R2_de_dot_R2(1,2) += kd[0][3];
-		dF2_R2_de_dot_R2(2,1) += kd[1][2]; dF2_R2_de_dot_R2(2,2) += kd[1][3];
+		const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * o1_R1 ) );
+		const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
+		const doublereal lambda_dot = m_lambda ? -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3) : 0.;
 
-		dF2_R2_domega1_proj(1) += kd[0][4];
-		dF2_R2_domega1_proj(2) += kd[1][4];
+		Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
+								+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
 
-		dF2_R2_domega2_proj(1) += kd[0][5];
-		dF2_R2_domega2_proj(2) += kd[1][5];
+		// FIXME: nan values if e_dot_R2(1) == 0 && e_dot_R2(2) == 0
+		if ( e_dot_R2(1) == 0.0 && e_dot_R2(2) == 0.0 )
+				e_dot_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
 
-		M2_R2(3) += k[2];
+		const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
+		const Vec3 l1_R1 = o1_R1 + lambda_d1_R1;
+		const Vec3 l1_I = R1 * l1_R1;
+		const Vec3 l2_R2 = m_o2_R2 + e_R2;
+		const doublereal omega_proj[2] = { R2.GetCol(3).Dot(omega1),
+						   R2.GetCol(3).Dot(omega2) };
 
-		dM2_R2_de_R2(3,1) += kd[2][0]; 	dM2_R2_de_R2(3,2) += kd[2][1];
+		const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
 
-		dM2_R2_de_dot_R2(3,1) += kd[2][2]; 	dM2_R2_de_dot_R2(3,2) += kd[2][3];
+		//												  |	0   1   2   3   4   5  |
+		static const doublereal ed[2][NBDIRSMAX] 	 	  = { { 1., 0., 0., 0., 0., 0. },	// 0 | inner derivative of the eccentricity of the shaft in direction 1 of the reference frame of the bearing (R2)
+														  { 0., 1., 0., 0., 0., 0. } };	// 1 | inner derivative of the eccentricity of the shaft in direction 2 of the reference frame of the bearing (R2)
+		static const doublereal e_dotd[2][NBDIRSMAX] 	  = { { 0., 0., 1., 0., 0., 0. },	// 0 | inner derivative of relative velocity of the shaft in direction 1 of the reference frame of the bearing (R2)
+														  { 0., 0., 0., 1., 0., 0. } }; // 1 | inner derivative of relative velocity of the shaft in direction 2 of the reference frame of the bearing (R2)
+		static const doublereal omega_projd[2][NBDIRSMAX] = { { 0., 0., 0., 0., 1., 0. },	// 0 | inner derivative of the angular velocity of the shaft in direction 3 of the reference frame of the bearing (R2)
+														  { 0., 0., 0., 0., 0., 1. } }; // 1 | inner derivative of the angular velocity of the bearing in direction 3 of the reference frame of the bearing (R2)
 
-		dM2_R2_domega1_proj(3) += kd[2][4];
+		doublereal k[3];			// force vector at the bearing (not used for the evaluation of the jacobian matrix)
+		doublereal kd[3][NBDIRSMAX];	// variation of the force vector at the bearing with respect to the eccentricity of the shaft e and the relative velocity of the shaft
 
-		dM2_R2_domega2_proj(3) += kd[2][5];
+		// kd = { { diff(k[0],e[0]), diff(k[0],e[1]), diff(k[0],e_dot[0]), diff(k[0],e_dot[1]), diff(k[0],omega_proj[0]), diff(k[0],omega_proj[1]) },
+		//        { diff(k[1],e[0]), diff(k[1],e[1]), diff(k[1],e_dot[0]), diff(k[1],e_dot[1]), diff(k[1],omega_proj[0]), diff(k[1],omega_proj[1]) },
+		//        { diff(k[2],e[0]), diff(k[2],e[1]), diff(k[2],e_dot[0]), diff(k[2],e_dot[1]), diff(k[2],omega_proj[0]), diff(k[2],omega_proj[1]) } };
+
+		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
+
+		__FC_DECL__(hydrodynamic_plain_bearing_force_dv)(m_b, m_d, m_Psi, m_eta, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k, kd, eps, eps_dot, delta, SoD, SoV, my, beta, NBDIRSMAX);
+
+		Vec3 F2_R2;					// F2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
+
+		F2_R2(1) = k[0];
+		F2_R2(2) = k[1];
+		F2_R2(3) = 0.;
+
+		Mat3x3 dF2_R2_de_R2;		// diff(F2^(R2), e^(R2))
+
+		dF2_R2_de_R2(1,1) = kd[0][0]; dF2_R2_de_R2(1,2) = kd[0][1]; dF2_R2_de_R2(1,3) = 0.;
+		dF2_R2_de_R2(2,1) = kd[1][0]; dF2_R2_de_R2(2,2) = kd[1][1]; dF2_R2_de_R2(2,3) = 0.;
+		dF2_R2_de_R2(3,1) = 	  0.; dF2_R2_de_R2(3,2) = 		0.; dF2_R2_de_R2(3,3) = 0.;
+
+		Mat3x3 dF2_R2_de_dot_R2;	// diff(F2^(R2), diff(e^(R2),t))
+
+		dF2_R2_de_dot_R2(1,1) = kd[0][2]; dF2_R2_de_dot_R2(1,2) = kd[0][3]; dF2_R2_de_dot_R2(1,3) = 0.;
+		dF2_R2_de_dot_R2(2,1) = kd[1][2]; dF2_R2_de_dot_R2(2,2) = kd[1][3]; dF2_R2_de_dot_R2(2,3) = 0.;
+		dF2_R2_de_dot_R2(3,1) =		  0.; dF2_R2_de_dot_R2(3,2) =		 0; dF2_R2_de_dot_R2(3,3) = 0.;
+
+		Vec3 dF2_R2_domega1_proj;	// diff(F2^(R2), omega1_proj)
+
+		dF2_R2_domega1_proj(1) = kd[0][4];
+		dF2_R2_domega1_proj(2) = kd[1][4];
+		dF2_R2_domega1_proj(3) = 	   0.;
+
+		Vec3 dF2_R2_domega2_proj;	// diff(F2^(R2), omega2_proj)
+
+		dF2_R2_domega2_proj(1) = kd[0][5];
+		dF2_R2_domega2_proj(2) = kd[1][5];
+		dF2_R2_domega2_proj(3) =       0.;
+
+		Vec3 M2_R2;					// M2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
+
+		M2_R2(1) = 0.;
+		M2_R2(2) = 0.;
+		M2_R2(3) = k[2];
+
+		Mat3x3 dM2_R2_de_R2;		// diff(M2^(R2), e^(R2)
+
+		dM2_R2_de_R2(1,1) = 	  0.; 	dM2_R2_de_R2(1,2) = 	  0.; 	dM2_R2_de_R2(1,3) = 0.;
+		dM2_R2_de_R2(2,1) = 	  0.; 	dM2_R2_de_R2(2,2) = 	  0.; 	dM2_R2_de_R2(2,3) = 0.;
+		dM2_R2_de_R2(3,1) = kd[2][0]; 	dM2_R2_de_R2(3,2) = kd[2][1]; 	dM2_R2_de_R2(3,3) = 0.;
+
+		Mat3x3 dM2_R2_de_dot_R2;	// diff(M2^(R2), diff(e^(R2),t)
+
+		dM2_R2_de_dot_R2(1,1) = 	  0.; 	dM2_R2_de_dot_R2(1,2) = 	  0.; 	dM2_R2_de_dot_R2(1,3) = 0.;
+		dM2_R2_de_dot_R2(2,1) = 	  0.; 	dM2_R2_de_dot_R2(2,2) = 	  0.; 	dM2_R2_de_dot_R2(2,3) = 0.;
+		dM2_R2_de_dot_R2(3,1) = kd[2][2]; 	dM2_R2_de_dot_R2(3,2) = kd[2][3]; 	dM2_R2_de_dot_R2(3,3) = 0.;
+
+		Vec3 dM2_R2_domega1_proj;	// diff(M2^(R2), omega1_proj)
+
+		dM2_R2_domega1_proj(1) = 0.;
+		dM2_R2_domega1_proj(2) = 0.;
+		dM2_R2_domega1_proj(3) = kd[2][4];
+
+		Vec3 dM2_R2_domega2_proj;	// diff(M2^(R2), omega2_proj)
+
+		dM2_R2_domega2_proj(1) = 0.;
+		dM2_R2_domega2_proj(2) = 0.;
+		dM2_R2_domega2_proj(3) = kd[2][5];
+
+		if ( m_fcontact )
+		{
+			// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
+
+			__FC_DECL__(plain_bearing_contact_force_dv)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, omega_projd,e_, ed, e_dot_,e_dotd, k, kd, NBDIRSMAX);
+
+			F2_R2(1) += k[0];
+			F2_R2(2) += k[1];
+
+			dF2_R2_de_R2(1,1) += kd[0][0]; dF2_R2_de_R2(1,2) += kd[0][1];
+			dF2_R2_de_R2(2,1) += kd[1][0]; dF2_R2_de_R2(2,2) += kd[1][1];
+
+			dF2_R2_de_dot_R2(1,1) += kd[0][2]; dF2_R2_de_dot_R2(1,2) += kd[0][3];
+			dF2_R2_de_dot_R2(2,1) += kd[1][2]; dF2_R2_de_dot_R2(2,2) += kd[1][3];
+
+			dF2_R2_domega1_proj(1) += kd[0][4];
+			dF2_R2_domega1_proj(2) += kd[1][4];
+
+			dF2_R2_domega2_proj(1) += kd[0][5];
+			dF2_R2_domega2_proj(2) += kd[1][5];
+
+			M2_R2(3) += k[2];
+
+			dM2_R2_de_R2(3,1) += kd[2][0]; 	dM2_R2_de_R2(3,2) += kd[2][1];
+
+			dM2_R2_de_dot_R2(3,1) += kd[2][2]; 	dM2_R2_de_dot_R2(3,2) += kd[2][3];
+
+			dM2_R2_domega1_proj(3) += kd[2][4];
+
+			dM2_R2_domega2_proj(3) += kd[2][5];
+		}
+
+		const doublereal alpha = m_alpha[i] * m_InitialAssemblyFactor.dGet();
+
+		F2_R2 *= alpha;
+		dF2_R2_de_R2 *= alpha;
+		dF2_R2_de_dot_R2 *= alpha;
+		dF2_R2_domega1_proj *= alpha;
+		dF2_R2_domega2_proj *= alpha;
+
+		M2_R2 *= alpha;
+		dM2_R2_de_R2 *= alpha;
+		dM2_R2_de_dot_R2 *= alpha;
+		dM2_R2_domega1_proj *= alpha;
+		dM2_R2_domega2_proj *= alpha;
+
+		const Mat3x3 R2_T = R2.Transpose();
+
+		const Vec3 F2_I = R2 * F2_R2;
+		const Vec3 M2_I = R2 * ( l2_R2.Cross( F2_R2 ) + M2_R2 );
+		const Vec3 F1_I = -F2_I;
+		const Vec3 M1_I = -l1_I.Cross( F2_I ) - R2 * M2_R2;
+
+		const Mat3x3 dv_dot_R2_dX1 = -R2.MulTM(Mat3x3(MatCross, omega2));	// diff(diff(v^(R2),t),X1)
+		const Mat3x3& dv_R2_dX1 = R2_T;				// diff(v^(R2),X1)
+		const Vec3 dlambda_dot_dX1 = m_lambda ? -dv_dot_R2_dX1.GetRow(3) / d1_R2(3) + dv_R2_dX1.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3) : Zero3; // diff(diff(lambda,t),X1)
+
+		const Vec3 dlambda_dX1 = m_lambda ? -dv_R2_dX1.GetRow(3) / d1_R2(3) : Zero3;
+
+		const Mat3x3 de_dot_R2_dX1 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX1) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX1) );
+
+		const Mat3x3 dv_dot_R2_domega1 = -R2.MulTM(Mat3x3(MatCross, R1 * o1_R1));
+		const Mat3x3 domega1_dg1 = -Mat3x3(MatCross, omega1_ref);
+		const Mat3x3 dv_R2_dg1 = -R2.MulTM( Mat3x3(MatCross, R1_0 * o1_R1) );
+		const Mat3x3 dv_dot_R2_dg1 = dv_dot_R2_domega1 * domega1_dg1 - R2.MulTM( ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0 * o1_R1)) );
+		const Mat3x3 dd1_R2_dg1 = -R2.MulTM(Mat3x3(MatCross, R1_0.GetCol(3)));
+		const Mat3x3 dd1_dot_R2_dg1 = R2.MulTM( R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) - ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0.GetCol(3))) );
+		const Vec3 dlambda_dot_dg1 = m_lambda ? -dv_dot_R2_dg1.GetRow(3) / d1_R2(3)
+						+ dd1_R2_dg1.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
+						+ dv_R2_dg1.GetRow(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3)
+						- dd1_R2_dg1.GetRow(3) * (2. * v_R2(3) / std::pow(d1_R2(3), 3) * d1_dot_R2(3))
+						+ dd1_dot_R2_dg1.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3), 2)) : Zero3;
+		const Vec3 dlambda_dg1 = m_lambda ? -dv_R2_dg1.GetRow(3) / d1_R2(3) + dd1_R2_dg1.GetRow(3) * (v_R2(3) / std::pow( d1_R2(3), 2 )) : Zero3;
+
+		const Mat3x3 de_dot_R2_dg1 = R2.MulTM( -omega1.Cross(Mat3x3( MatCross, R1_0 * o1_R1 )) + ( R1 * o1_R1 ).Cross(Mat3x3(MatCross, omega1_ref))
+									+ R1.GetCol(3).Tens(dlambda_dot_dg1) - Mat3x3( MatCross, R1_0.GetCol(3) ) * lambda_dot
+									+ omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dg1) + R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) * lambda
+									- omega1.Cross(Mat3x3( MatCross, R1_0.GetCol(3) )) * lambda );
+		const Mat3x3 dv_dot_R2_dX2 = R2.MulTM(Mat3x3(MatCross, omega2));
+		const Mat3x3 dv_R2_dX2 = -R2_T;
+		const Vec3 dlambda_dot_dX2 = m_lambda ? -dv_dot_R2_dX2.GetRow(3) / d1_R2(3) + dv_R2_dX2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3) : Zero3;
+
+		const Vec3 dlambda_dX2 = m_lambda ? -dv_R2_dX2.GetRow(3) / d1_R2(3) : Zero3;
+		const Mat3x3 de_dot_R2_dX2 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX2) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX2) );
+		const Mat3x3 dv_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1 - X2 + R1 * o1_R1 ) );
+		const Mat3x3 dd1_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, R1 * o1_R1 ) );
+		const Mat3x3 dv_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega2.Cross( X2 - X1 ) + ( omega1 - omega2 ).Cross( R1 * o1_R1 ) ) )
+					   + R2.MulTM( ( X2 - X1 - R1 * o1_R1 ).Cross(Mat3x3(MatCross, omega2_ref)) );
+		const Vec3 dlambda_dg2 = m_lambda ? -dv_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
+
+		const Mat3x3 dd1_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, ( omega1 - omega2 ).Cross( R1.GetCol(3) ) ) )
+									- R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) * Mat3x3(MatCross, omega2_ref) );
+		const Vec3 dlambda_dot_dg2 = m_lambda ? -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
+						+ dv_R2_dg2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3)
+						- dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / std::pow( d1_R2(3), 3) * d1_dot_R2(3))
+						+ dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
+
+		const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * o1_R1) - omega2.Cross( R2 * m_o2_R2 )
+									+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda))
+									+ R2.MulTM( -( R2 * m_o2_R2 ).Cross(Mat3x3(MatCross, omega2_ref)) + omega2.Cross(Mat3x3( MatCross, R2_0 * m_o2_R2 ))
+									+ R1.GetCol(3).Tens(dlambda_dot_dg2) + omega1.Cross(R1.GetCol(3)).Tens(dlambda_dg2));
+		const Mat3x3& dv_dot_R2_dX1_dot = R2_T;
+		const Vec3 dlambda_dot_dX1_dot = m_lambda ? -dv_dot_R2_dX1_dot.GetRow(3) / d1_R2(3) : Zero3;
+
+		const Mat3x3 de_dot_R2_dX1_dot = R2.MulTM( Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX1_dot));
+
+		const Mat3x3 dv_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1 * o1_R1 ) );
+		const Mat3x3 dd1_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) );
+		const Vec3 dlambda_dot_dg1_dot = m_lambda ? -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg1_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
+
+		const Mat3x3 de_dot_R2_dg1_dot = R2.MulTM( -Mat3x3( MatCross, R1 * o1_R1 ) + R1.GetCol(3).Tens(dlambda_dot_dg1_dot) - Mat3x3(MatCross, R1.GetCol(3) * lambda) );
+
+		const Mat3x3 dv_dot_dX2_dot = -R2_T;
+		const Vec3 dlambda_dot_dX2_dot = m_lambda ? -dv_dot_dX2_dot.GetRow(3) / d1_R2(3) : Zero3;
+
+		const Mat3x3 de_dot_R2_dX2_dot = R2.MulTM( -Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX2_dot));
+
+		const Mat3x3 dv_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R1 * o1_R1 + X1 - X2 ));
+		const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(MatCross, R1.GetCol(3)));
+		const Vec3 dlambda_dot_dg2_dot = m_lambda ? -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
+
+		const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
+
+		const Mat3x3 de_R2_dX1 = dv_R2_dX1 + d1_R2.Tens( dlambda_dX1 );
+
+		const Mat3x3 de_R2_dg1 = dv_R2_dg1 + d1_R2.Tens(dlambda_dg1) + dd1_R2_dg1 * lambda;
+
+		const Mat3x3 de_R2_dX2 = dv_R2_dX2 + d1_R2.Tens(dlambda_dX2);
+
+		const Mat3x3 de_R2_dg2 = dv_R2_dg2 + d1_R2.Tens( dlambda_dg2 ) + dd1_R2_dg2 * lambda;
+
+		const Vec3 domega1_proj_dg1 = omega1_ref.Cross( R2.GetCol(3) );
+		const Vec3 domega1_proj_dg1_dot = R2.GetCol(3);
+		const Vec3 domega1_proj_dg2 = -omega1.Cross( R2_0.GetCol(3) );
+		const Vec3 domega2_proj_dg2 = -omega2.Cross(R2_0.GetCol(3)) + omega2_ref.Cross(R2.GetCol(3));
+		const Vec3 domega2_proj_dg2_dot = R2.GetCol(3);
+
+		const Mat3x3 dF2_R2_dX1 = dF2_R2_de_R2 * de_R2_dX1 + dF2_R2_de_dot_R2 * de_dot_R2_dX1;
+
+		const Mat3x3 dF2_R2_dg1 = dF2_R2_de_R2 * de_R2_dg1 + dF2_R2_de_dot_R2 * de_dot_R2_dg1
+								+ dF2_R2_domega1_proj.Tens(domega1_proj_dg1);
+		const Mat3x3 dF2_R2_dX2 = dF2_R2_de_R2 * de_R2_dX2 + dF2_R2_de_dot_R2 * de_dot_R2_dX2;
+		const Mat3x3 dF2_R2_dg2 = dF2_R2_de_R2 * de_R2_dg2 + dF2_R2_de_dot_R2 * de_dot_R2_dg2
+								+ dF2_R2_domega1_proj.Tens(domega1_proj_dg2) + dF2_R2_domega2_proj.Tens(domega2_proj_dg2);
+
+		const Mat3x3 dF2_I_dX1 = R2 * dF2_R2_dX1;
+		const Mat3x3 dF2_I_dg1 = R2 * dF2_R2_dg1;
+		const Mat3x3 dF2_I_dX2 = R2 * dF2_R2_dX2;
+		const Mat3x3 dF2_I_dg2 = -Mat3x3( MatCross, R2_0 * F2_R2 ) + R2 * dF2_R2_dg2;
+
+		const Mat3x3 dF1_I_dX1 = -dF2_I_dX1;
+		const Mat3x3 dF1_I_dg1 = -dF2_I_dg1;
+		const Mat3x3 dF1_I_dX2 = -dF2_I_dX2;
+		const Mat3x3 dF1_I_dg2 = -dF2_I_dg2;
+
+		const Mat3x3 dM2_R2_dX1 = dM2_R2_de_R2 * de_R2_dX1 + dM2_R2_de_dot_R2 * de_dot_R2_dX1;
+		const Mat3x3 dM2_I_dX1 = R2 * ( -F2_R2.Cross(de_R2_dX1) + l2_R2.Cross(dF2_R2_dX1) + dM2_R2_dX1 );
+
+		const Mat3x3 dM2_R2_dg1 = dM2_R2_de_R2 * de_R2_dg1 + dM2_R2_de_dot_R2 * de_dot_R2_dg1 + dM2_R2_domega1_proj.Tens(domega1_proj_dg1);
+		const Mat3x3 dM2_I_dg1 = R2 * ( -F2_R2.Cross(de_R2_dg1) + l2_R2.Cross(dF2_R2_dg1) + dM2_R2_dg1 );
+
+		const Mat3x3 dM2_R2_dX2 = dM2_R2_de_R2 * de_R2_dX2 + dM2_R2_de_dot_R2 * de_dot_R2_dX2;
+		const Mat3x3 dM2_I_dX2 = R2 * ( -F2_R2.Cross( de_R2_dX2 ) + l2_R2.Cross(dF2_R2_dX2) + dM2_R2_dX2 );
+
+		const Mat3x3 dM2_R2_dg2 = dM2_R2_de_R2 * de_R2_dg2 + dM2_R2_de_dot_R2 * de_dot_R2_dg2
+								+ dM2_R2_domega1_proj.Tens(domega1_proj_dg2) + dM2_R2_domega2_proj.Tens(domega2_proj_dg2);
+		const Mat3x3 dM2_I_dg2 = -Mat3x3( MatCross, R2_0 * ( l2_R2.Cross(F2_R2) + M2_R2 ) )
+								+ R2 * ( -F2_R2.Cross(de_R2_dg2) + l2_R2.Cross(dF2_R2_dg2) + dM2_R2_dg2 );
+
+		const Mat3x3 dM1_I_dX1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3) ).Tens( dlambda_dX1 )
+							   - l1_I.Cross( R2 * dF2_R2_dX1 ) - R2 * dM2_R2_dX1;
+
+		const Mat3x3 dM1_I_dg1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg1) - Mat3x3( MatCross, R1_0 * l1_R1 ) )
+								- l1_I.Cross( R2 * dF2_R2_dg1 ) - R2 * dM2_R2_dg1;
+
+		const Mat3x3 dM1_I_dX2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dX2) )
+							   - l1_I.Cross( R2 * dF2_R2_dX2 ) - R2 * dM2_R2_dX2;
+
+		const Mat3x3 dM1_I_dg2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg2) )
+							   + l1_I.Cross( Mat3x3( MatCross, R2_0 * F2_R2 ) - R2 * dF2_R2_dg2 )
+							   + Mat3x3( MatCross, R2_0 * M2_R2 ) - R2 * dM2_R2_dg2;
+
+		const Mat3x3 dF2_R2_dX1_dot = dF2_R2_de_dot_R2 * de_dot_R2_dX1_dot;
+		const Mat3x3 dF2_I_dX1_dot = R2 * dF2_R2_dX1_dot;
+
+		const Mat3x3 dF2_R2_dg1_dot = dF2_R2_de_dot_R2 * de_dot_R2_dg1_dot + dF2_R2_domega1_proj.Tens( domega1_proj_dg1_dot );
+		const Mat3x3 dF2_I_dg1_dot = R2 * dF2_R2_dg1_dot;
+
+		const Mat3x3 dF2_R2_dX2_dot = dF2_R2_de_dot_R2 * de_dot_R2_dX2_dot;
+		const Mat3x3 dF2_I_dX2_dot = R2 * dF2_R2_dX2_dot;
+
+		const Mat3x3 dF2_R2_dg2_dot = dF2_R2_de_dot_R2 * de_dot_R2_dg2_dot + dF2_R2_domega2_proj.Tens( domega2_proj_dg2_dot );
+		const Mat3x3 dF2_I_dg2_dot = R2 * dF2_R2_dg2_dot;
+
+		const Mat3x3 dF1_I_dX1_dot = -dF2_I_dX1_dot;
+		const Mat3x3 dF1_I_dg1_dot = -dF2_I_dg1_dot;
+		const Mat3x3 dF1_I_dX2_dot = -dF2_I_dX2_dot;
+		const Mat3x3 dF1_I_dg2_dot = -dF2_I_dg2_dot;
+
+		const Mat3x3 dM2_R2_dX1_dot = dM2_R2_de_dot_R2 * de_dot_R2_dX1_dot;
+		const Mat3x3 dM2_I_dX1_dot = R2 * ( l2_R2.Cross( dF2_R2_dX1_dot) + dM2_R2_dX1_dot );
+
+		const Mat3x3 dM2_R2_dg1_dot = dM2_R2_de_dot_R2 * de_dot_R2_dg1_dot + dM2_R2_domega1_proj.Tens( domega1_proj_dg1_dot );
+		const Mat3x3 dM2_I_dg1_dot = R2 * ( l2_R2.Cross( dF2_R2_dg1_dot ) + dM2_R2_dg1_dot );
+
+		const Mat3x3 dM2_R2_dX2_dot = dM2_R2_de_dot_R2 * de_dot_R2_dX2_dot;
+		const Mat3x3 dM2_I_dX2_dot = R2 * ( l2_R2.Cross(dF2_R2_dX2_dot) + dM2_R2_dX2_dot );
+
+		const Mat3x3 dM2_R2_dg2_dot = dM2_R2_de_dot_R2 * de_dot_R2_dg2_dot + dM2_R2_domega2_proj.Tens(domega2_proj_dg2_dot);
+		const Mat3x3 dM2_I_dg2_dot = R2 * ( l2_R2.Cross( dF2_R2_dg2_dot ) + dM2_R2_dg2_dot );
+
+		const Mat3x3 dM1_I_dX1_dot = -l1_I.Cross( R2 * dF2_R2_dX1_dot ) - R2 * dM2_R2_dX1_dot;
+		const Mat3x3 dM1_I_dg1_dot = -l1_I.Cross( R2 * dF2_R2_dg1_dot ) - R2 * dM2_R2_dg1_dot;
+		const Mat3x3 dM1_I_dX2_dot = -l1_I.Cross( R2 * dF2_R2_dX2_dot ) - R2 * dM2_R2_dX2_dot;
+		const Mat3x3 dM1_I_dg2_dot = -l1_I.Cross( R2 * dF2_R2_dg2_dot ) - R2 * dM2_R2_dg2_dot;
+
+			/*
+			 *                    1,           4,           7,          10                    1,       4,       7,      10
+			 *        | dF1/dX1_dot, dF1/dg1_dot, dF1/dX2_dot, dF1/dg2_dot |          | dF1/dX1, dF1/dg1, dF1/dX2, dF1/dg2 |  1
+			 *        | dM1/dX1_dot, dM1/dg1_dot, dM1/dX2_dot, dM1/dg2_dot |          | dM1/dX1, dM1/dg1, dM1/dX2, dM1/dg2 |  4
+			 * Jac = -|                                                    | -dCoef * |                                    |
+			 *        | dF2/dX1_dot, dF2/dg1_dot, dF2/dX2_dot, dF2/dg2_dot |          | dF2/dX1, dF2/dg1, dF2/dX2, dF2/dg2 |  7
+			 *        | dM2/dX1_dot, dM2/dg1_dot, dM2/dX2_dot, dM2/dg2_dot |          | dM2/dX1, dM2/dg1, dM2/dX2, dM2/dg2 | 10
+			*/
+		WorkMat.Sub(  1,  1, dF1_I_dX1_dot + dF1_I_dX1 * dCoef );
+		WorkMat.Sub(  1,  4, dF1_I_dg1_dot + dF1_I_dg1 * dCoef );
+		WorkMat.Sub(  1,  7, dF1_I_dX2_dot + dF1_I_dX2 * dCoef );
+		WorkMat.Sub(  1, 10, dF1_I_dg2_dot + dF1_I_dg2 * dCoef );
+
+		WorkMat.Sub(  4,  1, dM1_I_dX1_dot + dM1_I_dX1 * dCoef );
+		WorkMat.Sub(  4,  4, dM1_I_dg1_dot + dM1_I_dg1 * dCoef );
+		WorkMat.Sub(  4,  7, dM1_I_dX2_dot + dM1_I_dX2 * dCoef );
+		WorkMat.Sub(  4, 10, dM1_I_dg2_dot + dM1_I_dg2 * dCoef );
+
+		WorkMat.Sub(  7,  1, dF2_I_dX1_dot + dF2_I_dX1 * dCoef );
+		WorkMat.Sub(  7,  4, dF2_I_dg1_dot + dF2_I_dg1 * dCoef );
+		WorkMat.Sub(  7,  7, dF2_I_dX2_dot + dF2_I_dX2 * dCoef );
+		WorkMat.Sub(  7, 10, dF2_I_dg2_dot + dF2_I_dg2 * dCoef );
+
+		WorkMat.Sub( 10,  1, dM2_I_dX1_dot + dM2_I_dX1 * dCoef );
+		WorkMat.Sub( 10,  4, dM2_I_dg1_dot + dM2_I_dg1 * dCoef );
+		WorkMat.Sub( 10,  7, dM2_I_dX2_dot + dM2_I_dX2 * dCoef );
+		WorkMat.Sub( 10, 10, dM2_I_dg2_dot + dM2_I_dg2 * dCoef );
 	}
-
-	const doublereal alpha = m_InitialAssemblyFactor.dGet();
-
-	F2_R2 *= alpha;
-	dF2_R2_de_R2 *= alpha;
-	dF2_R2_de_dot_R2 *= alpha;
-	dF2_R2_domega1_proj *= alpha;
-	dF2_R2_domega2_proj *= alpha;
-
-	M2_R2 *= alpha;
-	dM2_R2_de_R2 *= alpha;
-	dM2_R2_de_dot_R2 *= alpha;
-	dM2_R2_domega1_proj *= alpha;
-	dM2_R2_domega2_proj *= alpha;
-
-	const Mat3x3 R2_T = R2.Transpose();
-
-	const Vec3 F2_I = R2 * F2_R2;
-	const Vec3 M2_I = R2 * ( l2_R2.Cross( F2_R2 ) + M2_R2 );
-	const Vec3 F1_I = -F2_I;
-	const Vec3 M1_I = -l1_I.Cross( F2_I ) - R2 * M2_R2;
-
-	const Mat3x3 dv_dot_R2_dX1 = -R2.MulTM(Mat3x3(MatCross, omega2));	// diff(diff(v^(R2),t),X1)
-	const Mat3x3& dv_R2_dX1 = R2_T;				// diff(v^(R2),X1)
-	const Vec3 dlambda_dot_dX1 = -dv_dot_R2_dX1.GetRow(3) / d1_R2(3) + dv_R2_dX1.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3); // diff(diff(lambda,t),X1)
-
-	const Vec3 dlambda_dX1 = -dv_R2_dX1.GetRow(3) / d1_R2(3);
-
-	const Mat3x3 de_dot_R2_dX1 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX1) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX1) );
-
-	const Mat3x3 dv_dot_R2_domega1 = -R2.MulTM(Mat3x3(MatCross, R1 * m_o1_R1));
-	const Mat3x3 domega1_dg1 = -Mat3x3(MatCross, omega1_ref);
-	const Mat3x3 dv_R2_dg1 = -R2.MulTM( Mat3x3(MatCross, R1_0 * m_o1_R1) );
-	const Mat3x3 dv_dot_R2_dg1 = dv_dot_R2_domega1 * domega1_dg1 - R2.MulTM( ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0 * m_o1_R1)) );
-	const Mat3x3 dd1_R2_dg1 = -R2.MulTM(Mat3x3(MatCross, R1_0.GetCol(3)));
-	const Mat3x3 dd1_dot_R2_dg1 = R2.MulTM( R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) - ( omega1 - omega2 ).Cross(Mat3x3(MatCross, R1_0.GetCol(3))) );
-	const Vec3 dlambda_dot_dg1 = -dv_dot_R2_dg1.GetRow(3) / d1_R2(3)
-				    + dd1_R2_dg1.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
-				    + dv_R2_dg1.GetRow(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3)
-				    - dd1_R2_dg1.GetRow(3) * (2. * v_R2(3) / std::pow(d1_R2(3), 3) * d1_dot_R2(3))
-				    + dd1_dot_R2_dg1.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3), 2));
-	const Vec3 dlambda_dg1 = -dv_R2_dg1.GetRow(3) / d1_R2(3) + dd1_R2_dg1.GetRow(3) * (v_R2(3) / std::pow( d1_R2(3), 2 ));
-
-	const Mat3x3 de_dot_R2_dg1 = R2.MulTM( -omega1.Cross(Mat3x3( MatCross, R1_0 * m_o1_R1 )) + ( R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega1_ref))
-								+ R1.GetCol(3).Tens(dlambda_dot_dg1) - Mat3x3( MatCross, R1_0.GetCol(3) ) * lambda_dot
-								+ omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dg1) + R1.GetCol(3).Cross(Mat3x3(MatCross, omega1_ref)) * lambda
-								- omega1.Cross(Mat3x3( MatCross, R1_0.GetCol(3) )) * lambda );
-	const Mat3x3 dv_dot_R2_dX2 = R2.MulTM(Mat3x3(MatCross, omega2));
-	const Mat3x3 dv_R2_dX2 = -R2_T;
-	const Vec3 dlambda_dot_dX2 = -dv_dot_R2_dX2.GetRow(3) / d1_R2(3) + dv_R2_dX2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3);
-
-	const Vec3 dlambda_dX2 = -dv_R2_dX2.GetRow(3) / d1_R2(3);
-	const Mat3x3 de_dot_R2_dX2 = R2.MulTM( R1.GetCol(3).Tens(dlambda_dot_dX2) + omega1.Cross( R1.GetCol(3) ).Tens(dlambda_dX2) );
-	const Mat3x3 dv_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1 - X2 + R1 * m_o1_R1 ) );
-	const Mat3x3 dd1_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
-	const Mat3x3 dv_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega2.Cross( X2 - X1 ) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) ) )
-				   + R2.MulTM( ( X2 - X1 - R1 * m_o1_R1 ).Cross(Mat3x3(MatCross, omega2_ref)) );
-	const Vec3 dlambda_dg2 = -dv_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
-
-	const Mat3x3 dd1_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, ( omega1 - omega2 ).Cross( R1.GetCol(3) ) ) )
-								- R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) * Mat3x3(MatCross, omega2_ref) );
-	const Vec3 dlambda_dot_dg2 = -dv_dot_R2_dg2.GetRow(3) / d1_R2(3) + dd1_R2_dg2.GetRow(3) * (v_dot_R2(3) / std::pow(d1_R2(3), 2))
-				    + dv_R2_dg2.GetRow(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3)
-				    - dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / std::pow( d1_R2(3), 3) * d1_dot_R2(3))
-				    + dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
-
-	const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * m_o1_R1) - omega2.Cross( R2 * m_o2_R2 )
-								+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda))
-								+ R2.MulTM( -( R2 * m_o2_R2 ).Cross(Mat3x3(MatCross, omega2_ref)) + omega2.Cross(Mat3x3( MatCross, R2_0 * m_o2_R2 ))
-								+ R1.GetCol(3).Tens(dlambda_dot_dg2) + omega1.Cross(R1.GetCol(3)).Tens(dlambda_dg2));
-	const Mat3x3& dv_dot_R2_dX1_dot = R2_T;
-	const Vec3 dlambda_dot_dX1_dot = -dv_dot_R2_dX1_dot.GetRow(3) / d1_R2(3);
-
-	const Mat3x3 de_dot_R2_dX1_dot = R2.MulTM( Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX1_dot));
-
-	const Mat3x3 dv_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 ) );
-	const Mat3x3 dd1_dot_R2_dg1_dot = -R2.MulTM( Mat3x3( MatCross, R1.GetCol(3) ) );
-	const Vec3 dlambda_dot_dg1_dot = -dv_dot_R2_dg1_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg1_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
-
-	const Mat3x3 de_dot_R2_dg1_dot = R2.MulTM( -Mat3x3( MatCross, R1 * m_o1_R1 ) + R1.GetCol(3).Tens(dlambda_dot_dg1_dot) - Mat3x3(MatCross, R1.GetCol(3) * lambda) );
-
-	const Mat3x3 dv_dot_dX2_dot = -R2_T;
-	const Vec3 dlambda_dot_dX2_dot = -dv_dot_dX2_dot.GetRow(3) / d1_R2(3);
-
-	const Mat3x3 de_dot_R2_dX2_dot = R2.MulTM( -Eye3 + R1.GetCol(3).Tens(dlambda_dot_dX2_dot));
-
-	const Mat3x3 dv_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R1 * m_o1_R1 + X1 - X2 ));
-	const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(MatCross, R1.GetCol(3)));
-	const Vec3 dlambda_dot_dg2_dot = -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2));
-
-	const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
-
-	const Mat3x3 de_R2_dX1 = dv_R2_dX1 + d1_R2.Tens( dlambda_dX1 );
-
-	const Mat3x3 de_R2_dg1 = dv_R2_dg1 + d1_R2.Tens(dlambda_dg1) + dd1_R2_dg1 * lambda;
-
-	const Mat3x3 de_R2_dX2 = dv_R2_dX2 + d1_R2.Tens(dlambda_dX2);
-
-	const Mat3x3 de_R2_dg2 = dv_R2_dg2 + d1_R2.Tens( dlambda_dg2 ) + dd1_R2_dg2 * lambda;
-
-	const Vec3 domega1_proj_dg1 = omega1_ref.Cross( R2.GetCol(3) );
-	const Vec3 domega1_proj_dg1_dot = R2.GetCol(3);
-	const Vec3 domega1_proj_dg2 = -omega1.Cross( R2_0.GetCol(3) );
-	const Vec3 domega2_proj_dg2 = -omega2.Cross(R2_0.GetCol(3)) + omega2_ref.Cross(R2.GetCol(3));
-	const Vec3 domega2_proj_dg2_dot = R2.GetCol(3);
-
-	const Mat3x3 dF2_R2_dX1 = dF2_R2_de_R2 * de_R2_dX1 + dF2_R2_de_dot_R2 * de_dot_R2_dX1;
-
-	const Mat3x3 dF2_R2_dg1 = dF2_R2_de_R2 * de_R2_dg1 + dF2_R2_de_dot_R2 * de_dot_R2_dg1
-	                        + dF2_R2_domega1_proj.Tens(domega1_proj_dg1);
-	const Mat3x3 dF2_R2_dX2 = dF2_R2_de_R2 * de_R2_dX2 + dF2_R2_de_dot_R2 * de_dot_R2_dX2;
-	const Mat3x3 dF2_R2_dg2 = dF2_R2_de_R2 * de_R2_dg2 + dF2_R2_de_dot_R2 * de_dot_R2_dg2
-	                        + dF2_R2_domega1_proj.Tens(domega1_proj_dg2) + dF2_R2_domega2_proj.Tens(domega2_proj_dg2);
-
-	const Mat3x3 dF2_I_dX1 = R2 * dF2_R2_dX1;
-	const Mat3x3 dF2_I_dg1 = R2 * dF2_R2_dg1;
-	const Mat3x3 dF2_I_dX2 = R2 * dF2_R2_dX2;
-	const Mat3x3 dF2_I_dg2 = -Mat3x3( MatCross, R2_0 * F2_R2 ) + R2 * dF2_R2_dg2;
-
-	const Mat3x3 dF1_I_dX1 = -dF2_I_dX1;
-	const Mat3x3 dF1_I_dg1 = -dF2_I_dg1;
-	const Mat3x3 dF1_I_dX2 = -dF2_I_dX2;
-	const Mat3x3 dF1_I_dg2 = -dF2_I_dg2;
-
-	const Mat3x3 dM2_R2_dX1 = dM2_R2_de_R2 * de_R2_dX1 + dM2_R2_de_dot_R2 * de_dot_R2_dX1;
-	const Mat3x3 dM2_I_dX1 = R2 * ( -F2_R2.Cross(de_R2_dX1) + l2_R2.Cross(dF2_R2_dX1) + dM2_R2_dX1 );
-
-	const Mat3x3 dM2_R2_dg1 = dM2_R2_de_R2 * de_R2_dg1 + dM2_R2_de_dot_R2 * de_dot_R2_dg1 + dM2_R2_domega1_proj.Tens(domega1_proj_dg1);
-	const Mat3x3 dM2_I_dg1 = R2 * ( -F2_R2.Cross(de_R2_dg1) + l2_R2.Cross(dF2_R2_dg1) + dM2_R2_dg1 );
-
-	const Mat3x3 dM2_R2_dX2 = dM2_R2_de_R2 * de_R2_dX2 + dM2_R2_de_dot_R2 * de_dot_R2_dX2;
-	const Mat3x3 dM2_I_dX2 = R2 * ( -F2_R2.Cross( de_R2_dX2 ) + l2_R2.Cross(dF2_R2_dX2) + dM2_R2_dX2 );
-
-	const Mat3x3 dM2_R2_dg2 = dM2_R2_de_R2 * de_R2_dg2 + dM2_R2_de_dot_R2 * de_dot_R2_dg2
-	                        + dM2_R2_domega1_proj.Tens(domega1_proj_dg2) + dM2_R2_domega2_proj.Tens(domega2_proj_dg2);
-	const Mat3x3 dM2_I_dg2 = -Mat3x3( MatCross, R2_0 * ( l2_R2.Cross(F2_R2) + M2_R2 ) )
-	                        + R2 * ( -F2_R2.Cross(de_R2_dg2) + l2_R2.Cross(dF2_R2_dg2) + dM2_R2_dg2 );
-
-	const Mat3x3 dM1_I_dX1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3) ).Tens( dlambda_dX1 )
-	                       - l1_I.Cross( R2 * dF2_R2_dX1 ) - R2 * dM2_R2_dX1;
-
-	const Mat3x3 dM1_I_dg1 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg1) - Mat3x3( MatCross, R1_0 * l1_R1 ) )
-	                        - l1_I.Cross( R2 * dF2_R2_dg1 ) - R2 * dM2_R2_dg1;
-
-	const Mat3x3 dM1_I_dX2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dX2) )
-	                       - l1_I.Cross( R2 * dF2_R2_dX2 ) - R2 * dM2_R2_dX2;
-
-	const Mat3x3 dM1_I_dg2 = ( R2 * F2_R2 ).Cross( R1.GetCol(3).Tens(dlambda_dg2) )
-	                       + l1_I.Cross( Mat3x3( MatCross, R2_0 * F2_R2 ) - R2 * dF2_R2_dg2 )
-	                       + Mat3x3( MatCross, R2_0 * M2_R2 ) - R2 * dM2_R2_dg2;
-
-	const Mat3x3 dF2_R2_dX1_dot = dF2_R2_de_dot_R2 * de_dot_R2_dX1_dot;
-	const Mat3x3 dF2_I_dX1_dot = R2 * dF2_R2_dX1_dot;
-
-	const Mat3x3 dF2_R2_dg1_dot = dF2_R2_de_dot_R2 * de_dot_R2_dg1_dot + dF2_R2_domega1_proj.Tens( domega1_proj_dg1_dot );
-	const Mat3x3 dF2_I_dg1_dot = R2 * dF2_R2_dg1_dot;
-
-	const Mat3x3 dF2_R2_dX2_dot = dF2_R2_de_dot_R2 * de_dot_R2_dX2_dot;
-	const Mat3x3 dF2_I_dX2_dot = R2 * dF2_R2_dX2_dot;
-
-	const Mat3x3 dF2_R2_dg2_dot = dF2_R2_de_dot_R2 * de_dot_R2_dg2_dot + dF2_R2_domega2_proj.Tens( domega2_proj_dg2_dot );
-	const Mat3x3 dF2_I_dg2_dot = R2 * dF2_R2_dg2_dot;
-
-	const Mat3x3 dF1_I_dX1_dot = -dF2_I_dX1_dot;
-	const Mat3x3 dF1_I_dg1_dot = -dF2_I_dg1_dot;
-	const Mat3x3 dF1_I_dX2_dot = -dF2_I_dX2_dot;
-	const Mat3x3 dF1_I_dg2_dot = -dF2_I_dg2_dot;
-
-	const Mat3x3 dM2_R2_dX1_dot = dM2_R2_de_dot_R2 * de_dot_R2_dX1_dot;
-	const Mat3x3 dM2_I_dX1_dot = R2 * ( l2_R2.Cross( dF2_R2_dX1_dot) + dM2_R2_dX1_dot );
-
-	const Mat3x3 dM2_R2_dg1_dot = dM2_R2_de_dot_R2 * de_dot_R2_dg1_dot + dM2_R2_domega1_proj.Tens( domega1_proj_dg1_dot );
-	const Mat3x3 dM2_I_dg1_dot = R2 * ( l2_R2.Cross( dF2_R2_dg1_dot ) + dM2_R2_dg1_dot );
-
-	const Mat3x3 dM2_R2_dX2_dot = dM2_R2_de_dot_R2 * de_dot_R2_dX2_dot;
-	const Mat3x3 dM2_I_dX2_dot = R2 * ( l2_R2.Cross(dF2_R2_dX2_dot) + dM2_R2_dX2_dot );
-
-	const Mat3x3 dM2_R2_dg2_dot = dM2_R2_de_dot_R2 * de_dot_R2_dg2_dot + dM2_R2_domega2_proj.Tens(domega2_proj_dg2_dot);
-	const Mat3x3 dM2_I_dg2_dot = R2 * ( l2_R2.Cross( dF2_R2_dg2_dot ) + dM2_R2_dg2_dot );
-
-	const Mat3x3 dM1_I_dX1_dot = -l1_I.Cross( R2 * dF2_R2_dX1_dot ) - R2 * dM2_R2_dX1_dot;
-	const Mat3x3 dM1_I_dg1_dot = -l1_I.Cross( R2 * dF2_R2_dg1_dot ) - R2 * dM2_R2_dg1_dot;
-	const Mat3x3 dM1_I_dX2_dot = -l1_I.Cross( R2 * dF2_R2_dX2_dot ) - R2 * dM2_R2_dX2_dot;
-	const Mat3x3 dM1_I_dg2_dot = -l1_I.Cross( R2 * dF2_R2_dg2_dot ) - R2 * dM2_R2_dg2_dot;
-
-        /*
-         *                    1,           4,           7,          10                    1,       4,       7,      10
-         *        | dF1/dX1_dot, dF1/dg1_dot, dF1/dX2_dot, dF1/dg2_dot |          | dF1/dX1, dF1/dg1, dF1/dX2, dF1/dg2 |  1
-         *        | dM1/dX1_dot, dM1/dg1_dot, dM1/dX2_dot, dM1/dg2_dot |          | dM1/dX1, dM1/dg1, dM1/dX2, dM1/dg2 |  4
-         * Jac = -|                                                    | -dCoef * |                                    |
-         *        | dF2/dX1_dot, dF2/dg1_dot, dF2/dX2_dot, dF2/dg2_dot |          | dF2/dX1, dF2/dg1, dF2/dX2, dF2/dg2 |  7
-         *        | dM2/dX1_dot, dM2/dg1_dot, dM2/dX2_dot, dM2/dg2_dot |          | dM2/dX1, dM2/dg1, dM2/dX2, dM2/dg2 | 10
-        */
-	WorkMat.Put(  1,  1, -dF1_I_dX1_dot - dF1_I_dX1 * dCoef );
-	WorkMat.Put(  1,  4, -dF1_I_dg1_dot - dF1_I_dg1 * dCoef );
-	WorkMat.Put(  1,  7, -dF1_I_dX2_dot - dF1_I_dX2 * dCoef );
-	WorkMat.Put(  1, 10, -dF1_I_dg2_dot - dF1_I_dg2 * dCoef );
-
-	WorkMat.Put(  4,  1, -dM1_I_dX1_dot - dM1_I_dX1 * dCoef );
-	WorkMat.Put(  4,  4, -dM1_I_dg1_dot - dM1_I_dg1 * dCoef );
-	WorkMat.Put(  4,  7, -dM1_I_dX2_dot - dM1_I_dX2 * dCoef );
-	WorkMat.Put(  4, 10, -dM1_I_dg2_dot - dM1_I_dg2 * dCoef );
-
-	WorkMat.Put(  7,  1, -dF2_I_dX1_dot - dF2_I_dX1 * dCoef );
-	WorkMat.Put(  7,  4, -dF2_I_dg1_dot - dF2_I_dg1 * dCoef );
-	WorkMat.Put(  7,  7, -dF2_I_dX2_dot - dF2_I_dX2 * dCoef );
-	WorkMat.Put(  7, 10, -dF2_I_dg2_dot - dF2_I_dg2 * dCoef );
-
-	WorkMat.Put( 10,  1, -dM2_I_dX1_dot - dM2_I_dX1 * dCoef );
-	WorkMat.Put( 10,  4, -dM2_I_dg1_dot - dM2_I_dg1 * dCoef );
-	WorkMat.Put( 10,  7, -dM2_I_dX2_dot - dM2_I_dX2 * dCoef );
-	WorkMat.Put( 10, 10, -dM2_I_dg2_dot - dM2_I_dg2 * dCoef );
-
 #ifdef DEBUG
 	std::cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << ":" <<  "Jac=" << std::endl << WorkMat << std::endl;
 #endif
 	return WorkMatV;
 }
-
-
-
 
 SubVectorHandler&
 hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
@@ -842,20 +950,23 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt+6,intBearingMomentumIndex + iCnt);
 	}
 
-	doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
+	for (integer i = 0; i < iNumGaussPoints; ++i)
+	{
+		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
-	Vec3 e_R2, e_dot_R2;
-	doublereal omega_proj[2];
-	Vec3 F2_R2, M2_R2;
-	Vec3 F2_I, M2_I, F1_I, M1_I;
+		Vec3 e_R2, e_dot_R2;
+		doublereal omega_proj[2];
+		Vec3 F2_R2, M2_R2;
+		Vec3 F2_I, M2_I, F1_I, M1_I;
 
-	ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta);
-	// 1     2     3     4     5     6     7     8     9     10    11    12
-	// F1(1) F1(2) F1(3) M1(1) M1(2) M1(3) F2(1) F2(2) F2(3) M2(1) M2(2) M2(3)
-	WorkVec.Put(1,  F1_I);
-	WorkVec.Put(4,  M1_I);
-	WorkVec.Put(7,  F2_I);
-	WorkVec.Put(10, M2_I);
+		ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta, i);
+		// 1     2     3     4     5     6     7     8     9     10    11    12
+		// F1(1) F1(2) F1(3) M1(1) M1(2) M1(3) F2(1) F2(2) F2(3) M2(1) M2(2) M2(3)
+		WorkVec.Add(1,  F1_I);
+		WorkVec.Add(4,  M1_I);
+		WorkVec.Add(7,  F2_I);
+		WorkVec.Add(10, M2_I);
+	}
 
 #ifdef DEBUG
 	std::cerr << __FILE__ << ":" << __LINE__ << ":" << __PRETTY_FUNCTION__ << ": Res=" << std::endl;
@@ -864,7 +975,7 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,doublereal omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,doublereal& eps, doublereal& eps_dot,doublereal& delta,doublereal& SoD,doublereal& SoV,doublereal& my,doublereal& beta)const
+void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,doublereal omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,doublereal& eps, doublereal& eps_dot,doublereal& delta,doublereal& SoD,doublereal& SoV,doublereal& my,doublereal& beta, integer iGaussPoint)const
 {
         const Vec3& X1 = m_pShaft->GetXCurr();
         const Vec3& X2 = m_pBearing->GetXCurr();
@@ -875,57 +986,68 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
         const Vec3& omega1 = m_pShaft->GetWCurr();
         const Vec3& omega2 = m_pBearing->GetWCurr();
 
-        const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * m_o1_R1 ) - m_o2_R2;
-        const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
-        const doublereal lambda = -v_R2(3) / d1_R2(3);
-        e_R2 = v_R2 + d1_R2 * lambda;
-        const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * m_o1_R1 ) );
-        const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
-        const doublereal lambda_dot = -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3);
+		Vec3 o1_R1 = m_o1_R1;
+		o1_R1(3) += m_r[iGaussPoint] * m_b;
+#ifdef DEBUG
+		std::cerr << GetLabel() << ":" << iGaussPoint << ": o1=" << o1_R1 << std::endl;
+#endif
+		const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - m_o2_R2;
+		const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
 
-        // e_dot_R2 = R2^T * e_dot_I
-        e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * m_o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
-        					+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
-        const Vec3 l2_R2 = m_o2_R2 + e_R2;
-        const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
-        const Vec3 l1_I = R1 * ( m_o1_R1 + lambda_d1_R1 );
+		const doublereal lambda = m_lambda ? -v_R2(3) / d1_R2(3) : 0.;
 
-        omega_proj[0] = R2.GetCol(3).Dot(omega1);
-        omega_proj[1] = R2.GetCol(3).Dot(omega2);
+		e_R2 = v_R2 + d1_R2 * lambda;
+		const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * o1_R1 ) );
+		const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
+		const doublereal lambda_dot = m_lambda ? -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3) : 0.;
 
-        const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
+		// e_dot_R2 = R2^T * e_dot_I
+		e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
+							+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
+		const Vec3 l2_R2 = m_o2_R2 + e_R2;
+		const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
+		const Vec3 l1_I = R1 * ( o1_R1 + lambda_d1_R1 );
 
-        doublereal k[3];
+		omega_proj[0] = R2.GetCol(3).Dot(omega1);
+		omega_proj[1] = R2.GetCol(3).Dot(omega2);
 
-        __FC_DECL__(hydrodynamic_plain_bearing_force)(m_b, m_d, m_Psi, m_eta, omega_proj, e_, e_dot_, k, eps, eps_dot, delta, SoD, SoV, my, beta);
+		const doublereal e_[2] = { e_R2(1), e_R2(2) }, e_dot_[2] = { e_dot_R2(1), e_dot_R2(2) };
 
-        F2_R2(1) = k[0];
-        F2_R2(2) = k[1];
-        F2_R2(3) = 0.;
+		doublereal k[3];
 
-        M2_R2(1) = 0.;
-        M2_R2(2) = 0.;
-        M2_R2(3) = k[2];
+		__FC_DECL__(hydrodynamic_plain_bearing_force)(m_b, m_d, m_Psi, m_eta, omega_proj, e_, e_dot_, k, eps, eps_dot, delta, SoD, SoV, my, beta);
 
-        if ( m_fcontact )
-        {
-                // SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
+#ifdef DEBUG
+		std::cerr << GetLabel() << ":" << iGaussPoint << ": eps=" << eps << std::endl;
+#endif
 
-                __FC_DECL__(plain_bearing_contact_force)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, e_, e_dot_, k);
-                F2_R2(1) += k[0];
-                F2_R2(2) += k[1];
-                M2_R2(3) += k[2];
-        }
+		F2_R2(1) = k[0];
+		F2_R2(2) = k[1];
+		F2_R2(3) = 0.;
 
-        const doublereal alpha = m_InitialAssemblyFactor.dGet();
+		M2_R2(1) = 0.;
+		M2_R2(2) = 0.;
+		M2_R2(3) = k[2];
 
-        F2_R2 *= alpha;
-        M2_R2 *= alpha;
+		if ( m_fcontact )
+		{
+				// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
 
-        F2_I = R2 * F2_R2;
-        M2_I = R2 * ( l2_R2.Cross( F2_R2 ) + M2_R2 );
-        F1_I = -F2_I;
-        M1_I = -l1_I.Cross( F2_I ) - R2 * M2_R2;
+				__FC_DECL__(plain_bearing_contact_force)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, e_, e_dot_, k);
+				F2_R2(1) += k[0];
+				F2_R2(2) += k[1];
+				M2_R2(3) += k[2];
+		}
+
+		const doublereal alpha = m_alpha[iGaussPoint] * m_InitialAssemblyFactor.dGet();
+
+		F2_R2 *= alpha;
+		M2_R2 *= alpha;
+
+		F2_I = R2 * F2_R2;
+		M2_I = R2 * ( l2_R2.Cross( F2_R2 ) + M2_R2 );
+		F1_I = -F2_I;
+		M1_I = -l1_I.Cross( F2_I ) - R2 * M2_R2;
 }
 
 

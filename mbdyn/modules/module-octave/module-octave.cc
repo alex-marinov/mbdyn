@@ -822,25 +822,37 @@ pHP(pHP)
 
 	pOctaveInterface = this;
 
+	const int nmax_args = 4;
+	const int nmax_char = 14;
+	char args[nmax_char] = "octave"; //FIXME: this might be unsafe
+	char *argv[nmax_args] = { &args[0] } ;
 	int argc = 1;
-	if (silent_output) {
-		argc++;
-	}
-	if (pedantic_output) {
-		argc++;
-	}
-	string_vector argv(argc);
 
-	argc = 0;
-	argv(argc) = "octave";
+	char* p = strchr(args, '\0') + 1;
+
 	if (silent_output) {
-		argv(++argc) = "-q";
-	}
-	if (pedantic_output) {
-		argv(++argc) = "-V";
+		strncat(p, "-q", &args[nmax_char] - p - 2);
+		if (argc < nmax_args - 1)
+			argv[argc++] = p;
+		p = strchr(p, '\0') + 1;
 	}
 
-	octave_main(argv.nelem(), argv.c_str_vec(), 1);
+	if (pedantic_output) {
+		strncat(p, "-V", &args[nmax_char] - p - 2);
+		if (argc < nmax_args - 1)
+			argv[argc++] = p;
+		p = strchr(p, '\0') + 1;
+	}
+
+#if defined(DEBUG)
+	int i;
+	char** pp;
+	for (i = 0, pp = argv; *pp; ++pp, ++i) {
+		silent_cerr("octave>argv[" << i << "]=\"" << *pp << "\"" << std::endl);
+	}
+#endif
+
+	octave_main(argc, argv, 1);
 
 	LoadADPackage();
 }

@@ -233,9 +233,11 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 
 	p = *pSol; // save the Newton increment
 
-	const doublereal slope = g.InnerProd(p);
+	doublereal slope = g.InnerProd(p);
 
 	TRACE_VAR(slope);
+
+	doublereal dLambdaMinEff = -1.;
 
 	if (slope >= 0.) {
 		if (uFlags & VERBOSE_MODE) {
@@ -244,24 +246,34 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 						<< " at iteration " << iIterCnt << std::endl
 						<< "This could be a roundoff problem" << std::endl);
 		}
-		throw SlopeNotNegative(MBDYN_EXCEPT_ARGS);
+
+		if (uFlags & NON_NEGATIVE_SLOPE_CONTINUE) {
+			// It seems to be a numerical problem.
+			// Line search may not work in this situation.
+			// Resort to the ordinary Newton Raphson algorithm
+			slope = 0.;
+			dLambdaMinEff = 1.;
+		} else {
+			throw SlopeNotNegative(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
-	doublereal dLambdaMinEff;
+	if (dLambdaMinEff < 0) {
+		// dLambdaMinEff has to be detected
+		if (uFlags & RELATIVE_LAMBDA_MIN) {
+			doublereal test = 0.;
 
-	if (uFlags & RELATIVE_LAMBDA_MIN) {
-		doublereal test = 0.;
-
-		for (integer i = 1; i <= Size; ++i) {
-			const doublereal temp = std::abs(p(i)) / std::max(std::max(std::abs((*pDM->GetpXCurr())(i)), std::abs((*pDM->GetpXPCurr())(i))), 1.);
-			if (temp > test) {
-				test = temp;
+			for (integer i = 1; i <= Size; ++i) {
+				const doublereal temp = std::abs(p(i)) / std::max(std::max(std::abs((*pDM->GetpXCurr())(i)), std::abs((*pDM->GetpXPCurr())(i))), 1.);
+				if (temp > test) {
+					test = temp;
+				}
 			}
+
+			dLambdaMinEff = std::max(dLambdaMin, std::min(dTolX / test, 1.));
+		} else {
+			dLambdaMinEff = dLambdaMin;
 		}
-    
-		dLambdaMinEff = std::max(dLambdaMin, std::min(dTolX / test, 1.));
-	} else {
-		dLambdaMinEff = dLambdaMin;
 	}
 
 	doublereal lambda = 1.;
@@ -277,6 +289,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	TRACE_VAR(dLambdaMinEff);
 
 	do {
+		ASSERT(lambda <= dLambdaMax);
+
 		if (iIter > 0) {
 			TRACE("Start new step from Xold, XPold with lambda = " << lambda << " ..." << std::endl);
 			pNLP->Update(&dXneg); // restore the previous state
@@ -297,13 +311,14 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 
 		TRACE("New value for f:" << f << std::endl);
 
+		doublereal dErr;
+		MakeResTest(pS, pNLP, *pRes, 0., dErr);
+
 		if (outputIters() && (uFlags & PRINT_CONVERGENCE_INFO)) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
 			{
-				doublereal dErr;
-				MakeResTest(pS, pNLP, *pRes, 0., dErr);
 				silent_cout("\t\tf(" << iIterCnt << ":" << iIter << ")=" << std::setw(12) << f
 					<< "\tErr=" << std::setw(12) << dErr
 					<< "\tlambda=" << std::setw(12) << lambda
@@ -311,7 +326,7 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 			}
 		}
 
-		pS->CheckTimeStepLimit();
+		pS->CheckTimeStepLimit(dErr);
 
 		if (f <= fold + dAlpha * lambda * slope) {
 			TRACE("Sufficient decrease in f: backtrack" << std::endl);
@@ -432,7 +447,7 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		}
 	}
 
-	pS->CheckTimeStepLimit();
+	pS->CheckTimeStepLimit(dErr);
 
 	if (bTest) {
 		return;
@@ -583,8 +598,20 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 				}
 			}
 		} else if (dErr > dPrevErr) { // f <= fold + dAlpha * lambda * slope
-			ASSERT(0); // We should not get here since f was decreased also Err should be decreased
-			throw ResidualNotDecreased(MBDYN_EXCEPT_ARGS);
+			// We should not get here since f was decreased also Err should be decreased
+			// If not it could be a numerical problem (e.g. the tolerance could be too small)
+			if (uFlags & VERBOSE_MODE) {
+				silent_cerr("line search warning: f has been reduced during line search but the residual could not be reduced at time step "
+						<< pDM->dGetTime()
+						<< " at iteration " << iIterCnt << std::endl);
+			}
+
+			// Do not throw an exception here because if we specify for example
+			//		tolerance: <<Tol>>, test, minmax;
+			// it could happen that the the norm of the residual vector is decreased
+			// but the maximum residual is not!
+
+			// In any case we will check for divergence if DIVERGENCE_CHECK is enabled.
 		}
 
 		if (dErrFactor > dDivergenceCheck) {

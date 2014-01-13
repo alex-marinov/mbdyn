@@ -1463,6 +1463,10 @@ WCurr(W0),
 WPCurr(Zero3),
 WPPrev(Zero3),
 bOmegaRot(bOmRot)
+#ifdef USE_AUTODIFF
+,bUpdateRotation(true)
+,dCoefGrad(0.) // This should be safe because the time step should never be zero
+#endif
 {
 	NO_OP;
 }
@@ -1934,6 +1938,10 @@ StructNode::Output(OutputHandler& OH) const
 void
 StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 	integer iFirstIndex = iGetFirstIndex();
 
 	XCurr = Vec3(X, iFirstIndex + 1);
@@ -1977,18 +1985,243 @@ StructNode::Update(const VectorHandler& X, const VectorHandler& XP)
 #endif
 }
 
+#ifdef USE_AUTODIFF
+inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& g, doublereal dCoef, enum grad::FunctionCall func) const {
+	using namespace grad;
+
+	integer iFirstIndexLocal;
+
+	switch (func) {
+	case INITIAL_ASS_JAC:
+		GRADIENT_ASSERT(dCoef == 1.);
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		iFirstIndexLocal = -1; // Always start from zero in order to save memory
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	for (index_type i = 1; i <= 3; ++i) {
+		Gradient<iNumADVars>& g_i = g(i);
+		g_i.SetValuePreserve(gCurr(i));
+		g_i.DerivativeResizeReset(0,
+								  iFirstIndexLocal + i,
+								  MapVectorBase::LOCAL,
+								  -dCoef);
+	}
+}
+
+inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<iNumADVars>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func) const {
+	using namespace grad;
+
+	integer iFirstIndexLocal;
+
+	switch (func) {
+	case INITIAL_ASS_JAC:
+		GRADIENT_ASSERT(dCoef == 1.);
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		iFirstIndexLocal = -1; // Always start from zero in order to save memory
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	// gPCurr is unused during initial assembly
+	const Vec3& gPCurr = (func == INITIAL_ASS_JAC) ? WCurr : this->gPCurr;
+
+	for (index_type i = 1; i <= 3; ++i) {
+		Gradient<iNumADVars>& gP_i = gP(i);
+		gP_i.SetValuePreserve(gPCurr(i));
+		gP_i.DerivativeResizeReset(0,
+								   iFirstIndexLocal + i,
+								   MapVectorBase::LOCAL,
+								   -1.);
+	}
+}
+
+template <typename T>
+void StructNode::UpdateRotation(const Mat3x3& RRef, const Vec3& WRef, const grad::Vector<T, 3>& g, const grad::Vector<T, 3>& gP, grad::Matrix<T, 3, 3>& R, grad::Vector<T, 3>& W, enum grad::FunctionCall func) const
+{
+	using namespace grad;
+
+    const T d = 4. / (4. + Dot(g, g));
+
+    Matrix<T, 3, 3> RDelta;
+
+    const T tmp1 = -g(3) * g(3);
+    const T tmp2 = -g(2) * g(2);
+    const T tmp3 = -g(1) * g(1);
+    const T tmp4 = g(1) * g(2) * 0.5;
+    const T tmp5 = g(2) * g(3) * 0.5;
+    const T tmp6 = g(1) * g(3) * 0.5;
+
+    RDelta(1,1) = (tmp1 + tmp2) * d * 0.5 + 1;
+    RDelta(1,2) = (tmp4 - g(3)) * d;
+    RDelta(1,3) = (tmp6 + g(2)) * d;
+    RDelta(2,1) = (g(3) + tmp4) * d;
+    RDelta(2,2) = (tmp1 + tmp3) * d * 0.5 + 1.;
+    RDelta(2,3) = (tmp5 - g(1)) * d;
+    RDelta(3,1) = (tmp6 - g(2)) * d;
+    RDelta(3,2) = (tmp5 + g(1)) * d;
+    RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
+
+    R = RDelta * RRef;
+
+    switch (func) {
+    case INITIAL_ASS_JAC:
+    	W = gP;	// Note gP must be equal to WCurr during the initial assembly phase
+    	break;
+
+    case INITIAL_DER_JAC:
+    case REGULAR_JAC:
+		{
+			Matrix<T, 3, 3> G;
+
+			const T tmp7 = 0.5 * g(1) * d;
+			const T tmp8 = 0.5 * g(2) * d;
+			const T tmp9 = 0.5 * g(3) * d;
+
+			G(1,1) = d;
+			G(1,2) = -tmp9;
+			G(1,3) = tmp8;
+			G(2,1) = tmp9;
+			G(2,2) = d;
+			G(2,3) = -tmp7;
+			G(3,1) = -tmp8;
+			G(3,2) = tmp7;
+			G(3,3) = d;
+
+			W = G * gP + RDelta * WRef; // Note that the first index of gP and g must be the same in order to work!
+		}
+    	break;
+
+    default:
+    	GRADIENT_ASSERT(false);
+    }
+
+}
+
+void StructNode::UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) const
+{
+	using namespace grad;
+
+	if (dCoef != dCoefGrad) {
+		bUpdateRotation = true;
+		dCoefGrad = dCoef;
+	}
+
+	if (!bUpdateRotation) {
+		return;
+	}
+
+	Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
+
+	GetgCurr(gCurr_grad, dCoef, func);
+	GetgPCurr(gPCurr_grad, dCoef, func);
+
+	UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, func);
+
+#if GRADIENT_DEBUG > 0
+	{
+		const double dTol = std::numeric_limits<doublereal>::epsilon();
+
+		Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+
+		Mat3x3 RCurr_tmp = RDelta * RRef;
+
+		bool bErr = false;
+
+		for (index_type i = 1; i <= 3; ++i) {
+			for (index_type j = 1; j <= 3; ++j) {
+				if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
+					bErr = true;
+				}
+			}
+		}
+
+		for (index_type i = 1; i <= 3; ++i) {
+			for (index_type j = 1; j <= 3; ++j) {
+				if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
+					bErr = true;
+				}
+			}
+
+			if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
+				bErr = true;
+			}
+		}
+
+		if (bErr) {
+			std::cerr << "gCurr=" << gCurr << std::endl;
+			std::cerr << "RCurr=" << std::endl;
+			for (integer i = 1; i <= 3; ++i) {
+				for (integer j = 1; j <= 3; ++j) {
+					std::cerr << RCurr(i, j) << " ";
+				}
+				std::cerr << std::endl;
+			}
+
+			std::cerr << "RCurr_grad=" << std::endl;
+
+			std::cerr << "RRef=" << std::endl;
+			for (integer i = 1; i <= 3; ++i) {
+				for (integer j = 1; j <= 3; ++j) {
+					std::cerr << RRef(i, j) << " ";
+				}
+				std::cerr << std::endl;
+			}
+
+			std::cerr << "RPrev=" << std::endl;
+			for (integer i = 1; i <= 3; ++i) {
+				for (integer j = 1; j <= 3; ++j) {
+					std::cerr << RPrev(i, j) << " ";
+				}
+				std::cerr << std::endl;
+			}
+
+			std::cerr << "RCurr_grad=" << std::endl;
+
+			for (integer i = 1; i <= 3; ++i) {
+				for (integer j = 1; j <= 3; ++j) {
+					std::cerr << RCurr_grad(i, j).dGetValue() << " ";
+				}
+				std::cerr << std::endl;
+			}
+
+			std::cerr << "WCurr=" << WCurr << std::endl;
+			std::cerr << "WCurr_grad=";
+			for (integer i = 1; i <= 3; ++i) {
+				std::cerr << WCurr_grad(i).dGetValue() << " ";
+			}
+			std::cerr << std::endl;
+			GRADIENT_ASSERT(false);
+		}
+	}
+#endif
+
+	bUpdateRotation = false;
+}
+#endif
 
 /* Aggiorna dati in base alla soluzione */
 void
 StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Forza configurazione e velocita' al valore iniziale */
 	const_cast<VectorHandler &>(X).Put(iFirstIndex + 1, XCurr);
-	const_cast<VectorHandler &>(X).Put(iFirstIndex + 4, Zero3);
+	const_cast<VectorHandler &>(X).Put(iFirstIndex + 4, gCurr);
 	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 1, VCurr);
-	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 4, Zero3);
+	const_cast<VectorHandler &>(XP).Put(iFirstIndex + 4, gPCurr);
 }
 
 
@@ -1996,6 +2229,10 @@ StructNode::DerivativesUpdate(const VectorHandler& X, const VectorHandler& XP)
 void
 StructNode::InitialUpdate(const VectorHandler& X)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 	integer iFirstIndex = iGetFirstIndex();
 
 	XCurr = Vec3(X, iFirstIndex + 1);
@@ -2014,6 +2251,10 @@ StructNode::InitialUpdate(const VectorHandler& X)
 void 
 StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 	integer iFirstIndex = iGetFirstIndex();
 	switch (iOrder)	{
 	case InverseDynamics::POSITION: {
@@ -2063,6 +2304,10 @@ StructNode::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 #ifdef MBDYN_X_RELATIVE_PREDICTION
 	if (pRefNode) {
 		Vec3 Xtmp = XPrev - pRefNode->GetXCurr();
@@ -2217,6 +2462,10 @@ StructNode::BeforePredict(VectorHandler& X,
 void
 StructNode::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
+
 	integer iFirstIndex = iGetFirstIndex();
 
 	/* Spostamento e velocita' aggiornati */
@@ -2315,7 +2564,9 @@ StructNode::AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP, 
 			const VectorHandler& XPP)
 {
-
+#ifdef USE_AUTODIFF
+	bUpdateRotation = true;
+#endif
 /* Right now, AfterConvergence is performed only on position 
  * to reset orientation parameters. XPrime and XPrimePrime are 
  * left for compatibility with the virtual method in 

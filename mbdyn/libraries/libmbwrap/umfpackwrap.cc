@@ -356,32 +356,54 @@ UmfpackSparseSolutionManager::UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot,
 		doublereal dDropTolerance,
 		const unsigned blockSize,
-		UmfpackSolver::Scale scale,
-		integer iMaxIter,
-		ScaleWhen ms)
+		const ScaleOpt& s,
+		integer iMaxIter)
 : A(Dim),
 x(Dim),
 b(Dim),
 xVH(Dim, &x[0]),
 bVH(Dim, &b[0]),
-ms(ms)
+scale(s),
+pMatScale(0)
 {
+	UmfpackSolver::Scale uscale = UmfpackSolver::SCALE_UNDEF;
+
+	switch (scale.algorithm) {
+	case SCALEA_UNDEF:
+		scale.when = SCALEW_NEVER; // Do not scale twice
+		break;
+
+	case SCALEA_NONE:
+		uscale = UmfpackSolver::SCALE_NONE;
+		scale.when = SCALEW_NEVER;
+		break;
+
+	case SCALEA_ROW_MAX:
+		uscale = UmfpackSolver::SCALE_MAX;
+		scale.when = SCALEW_NEVER; // Do not scale twice! Use built in scaling from Umfpack
+		break;
+
+	case SCALEA_ROW_SUM:
+		uscale = UmfpackSolver::SCALE_SUM;
+		scale.when = SCALEW_NEVER; // Do not scale twice! Use built in scaling from Umfpack
+		break;
+
+	default:
+		// Allocate MatrixScale<T> on demand
+		uscale = UmfpackSolver::SCALE_NONE; // Do not scale twice!
+	}
+
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
-			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter));
+			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, uscale, iMaxIter));
 
 	(void)pLS->pdSetResVec(&b[0]);
 	(void)pLS->pdSetSolVec(&x[0]);
 	pLS->SetSolutionManager(this);
-
-	if (scale != UmfpackSolver::SCALE_NONE && ms != NEVER) {
-		ASSERT(0); // avoid double scaling
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
 }
 
 UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
 {
-	NO_OP;
+	SAFEDELETE(pMatScale);
 }
 
 void
@@ -398,96 +420,47 @@ UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
 }
 
-template <class MH>
-void UmfpackSparseSolutionManager::ScaleMatrixAndRightHandSide(MH &mh)
+template <typename MH>
+void UmfpackSparseSolutionManager::ScaleMatrixAndRightHandSide(MH& mh)
 {
-#if defined(DEBUG)
-	static bool bPrintMat = true;
-#endif
+	if (scale.when != SCALEW_NEVER) {
+		MatrixScale<MH>& rMatScale = GetMatrixScale<MH>();
 
-	if (ms != SolutionManager::NEVER) {
 		if (pLS->bReset()) {
-			// FIXME: if matrix is CC or Dir and the matrix was regenerated,
-			// the scaling needs to be recomputed
-			if (msr.empty() || ms == SolutionManager::ALWAYS) {
-#if defined(DEBUG)
-				if (bPrintMat) {
-					silent_cout("% matrix before scaling:\n");
-					silent_cout("Apre=[");
-					for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-						if (i->dCoef != 0.) {
-							silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-						}
-					}
-					silent_cout("];\n");
-				}
-#endif
+			if (!rMatScale.bGetInitialized()
+				|| scale.when == SolutionManager::SCALEW_ALWAYS) {
 				// (re)compute
-				doublereal rowcnd = -1., colcnd = -1., amax = -1.;
-				dgeequ<MH>(mh, msr, msc, rowcnd, colcnd, amax);
-
-#if defined(DEBUG)
-				if (amax < std::numeric_limits<doublereal>::epsilon()
-					|| amax > 1./std::numeric_limits<doublereal>::epsilon())
-				{
-					silent_cerr("Warning: The matrix should be scaled\n");
-				}
-
-				if (colcnd >= 0.1) {
-					silent_cerr("Warning: it is not worth scaling by C\n");
-				}
-
-				if (rowcnd >= 0.1
-					&& amax >= std::numeric_limits<doublereal>::epsilon()
-					&& amax <= 1./std::numeric_limits<doublereal>::epsilon())
-				{
-					silent_cerr("Warning: it is not worth scaling by R\n");
-				}
-
-				if (bPrintMat) {
-					silent_cout("% scale factors:\n");
-					silent_cout("msr=[");
-					for (std::vector<doublereal>::const_iterator i = msr.begin(); i < msr.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-
-					silent_cout("];\n");
-					silent_cout("msc=[");
-					for (std::vector<doublereal>::const_iterator i = msc.begin(); i < msc.end(); ++i) {
-						silent_cout(*i << ";\n");
-					}
-					silent_cout("];\n");
-				}
-#endif
+				rMatScale.ComputeScaleFactors(mh);
 			}
-
 			// in any case scale matrix and right-hand-side
-			dgeequ_scale<MH>(mh, msr, msc);
+			rMatScale.ScaleMatrix(mh);
 
-#if defined(DEBUG)
-			if (bPrintMat) {
-				silent_cout("% matrix after scaling:\n");
-				silent_cout("Apost=[");
-				for (typename MH::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-					if (i->dCoef != 0.) {
-						silent_cout(i->iRow + 1 << ", " << i->iCol + 1 << ", " << i->dCoef << ";\n");
-					}
-				}
-				silent_cout("];\n");
+			if (silent_err) {
+				rMatScale.Report(std::cerr);
 			}
-
-			bPrintMat = false;
-#endif
 		}
-		dgeequ_scale(bVH, &msr[0]);
+
+		rMatScale.ScaleRightHandSide(bVH);
 	}
+}
+
+template <typename MH>
+MatrixScale<MH>& UmfpackSparseSolutionManager::GetMatrixScale()
+{
+	if (pMatScale == 0) {
+		pMatScale = MatrixScale<MH>::Allocate(scale);
+	}
+
+	// Will throw std::bad_cast if the type does not match
+	return dynamic_cast<MatrixScale<MH>&>(*pMatScale);
 }
 
 void UmfpackSparseSolutionManager::ScaleSolution(void)
 {
-	if (ms != SolutionManager::NEVER) {
+	if (scale.when != SCALEW_NEVER) {
+		ASSERT(pMatScale != 0);
 		// scale solution
-		dgeequ_scale(xVH, &msc[0]);
+		pMatScale->ScaleSolution(xVH);
 	}
 }
 
@@ -541,10 +514,9 @@ UmfpackSparseCCSolutionManager<CC>::UmfpackSparseCCSolutionManager(integer Dim,
 		doublereal dPivot,
 		doublereal dDropTolerance,
 		const unsigned& blockSize,
-		UmfpackSolver::Scale scale,
-		integer iMaxIter,
-		ScaleWhen ms)
-: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter, ms),
+		const ScaleOpt& scale,
+		integer iMaxIter)
+: UmfpackSparseSolutionManager(Dim, dPivot, dDropTolerance, blockSize, scale, iMaxIter),
 CCReady(false),
 Ac(0)
 {
@@ -580,7 +552,7 @@ UmfpackSparseCCSolutionManager<CC>::MakeCompressedColumnForm(void)
 		CCReady = true;
 	}
 
-	ScaleMatrixAndRightHandSide<CC>(*dynamic_cast<CC *>(Ac));
+	ScaleMatrixAndRightHandSide(*Ac);
 }
 
 /* Inizializzatore "speciale" */
@@ -589,6 +561,15 @@ void
 UmfpackSparseCCSolutionManager<CC>::MatrInitialize()
 {
 	CCReady = false;
+
+	if (Ac) {
+		// If a DirCColMatrixHandler is in use and matrix scaling is enabled
+		// an uncaught exception (MatrixHandler::ErrRebuildMatrix) will be thrown
+		// if zero entries in the matrix become nonzero.
+		// For that reason we have to reinitialize Ac!
+		SAFEDELETE(Ac);
+		Ac = 0;
+	}
 
 	MatrReset();
 }

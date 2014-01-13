@@ -161,8 +161,6 @@ iWorkSpaceSize(0),
 blockSize(0),
 dPivotFactor(-1.),
 dDropTolerance(0.),
-ms(SolutionManager::NEVER),
-scale(SCALE_UNDEF),
 iMaxIter(0) // Restore the original behavior by default
 {
 	NO_OP;
@@ -415,42 +413,14 @@ LinSol::SetBlockSize(unsigned bs)
 	return true;
 }
 
-SolutionManager::ScaleWhen
-LinSol::GetScaleWhen(void) const
-{
-	return ms;
-}
-
 bool
-LinSol::SetScaleWhen(SolutionManager::ScaleWhen ms)
+LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 {
 	switch (currSolver) {
 	case LinSol::NAIVE_SOLVER:
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::KLU_SOLVER:
-		this->ms = ms;
-		break;
-
-	default:
-		return false;
-	}
-
-	return true;
-}
-
-LinSol::Scale
-LinSol::GetScale(void) const
-{
-	return scale;
-}
-
-bool
-LinSol::SetScale(Scale s)
-{
-	switch (currSolver) {
-	case LinSol::UMFPACK_SOLVER:
-	case LinSol::KLU_SOLVER:
-		this->scale = s;
+		scale = s;
 		break;
 
 	default:
@@ -668,38 +638,18 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::UMFPACK_SOLVER: 
 #ifdef USE_UMFPACK
 		{
-		UmfpackSolver::Scale s = UmfpackSolver::SCALE_UNDEF;
-
-		switch (scale) {
-		case SCALE_NONE:
-			s = UmfpackSolver::SCALE_NONE;
-			break;
-
-		case SCALE_MAX:
-			s = UmfpackSolver::SCALE_MAX;
-			break;
-
-		case SCALE_SUM:
-			s = UmfpackSolver::SCALE_SUM;
-			break;
-
-		default:
-			// don't do anything
-			break;
-		}
-
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef UmfpackSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, scale, iMaxIter));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef UmfpackSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
+					CCSM(iNLD, dPivotFactor, dDropTolerance, blockSize, scale, iMaxIter));
 			break;
 		}
 
@@ -707,7 +657,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				UmfpackSparseSolutionManager,
 				UmfpackSparseSolutionManager(iNLD,
-					dPivotFactor, dDropTolerance, blockSize, s, iMaxIter, ms));
+					dPivotFactor, dDropTolerance, blockSize, scale, iMaxIter));
 			break;
 		}
 		} break;
@@ -720,44 +670,27 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 	case LinSol::KLU_SOLVER:
 #ifdef USE_KLU
 		{
-		KLUSolver::Scale s = KLUSolver::SCALE_UNDEF;
-
-		switch (scale) {
-		case SCALE_NONE:
-			s = KLUSolver::SCALE_NONE;
-			break;
-
-		case SCALE_MAX:
-			s = KLUSolver::SCALE_MAX;
-			break;
-
-		case SCALE_SUM:
-			s = KLUSolver::SCALE_SUM;
-			break;
-
-		default:
-			ASSERT(0);
-		}
-
 		switch (type) {
 		case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
 			typedef KLUSparseCCSolutionManager<DirCColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, s, ms));
+					CCSM(iNLD, dPivotFactor, scale));
 			break;
 		}
 
 		case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
 			typedef KLUSparseCCSolutionManager<CColMatrixHandler<0> > CCSM;
 	      		SAFENEWWITHCONSTRUCTOR(pCurrSM, CCSM,
-					CCSM(iNLD, dPivotFactor, s, ms));
+					CCSM(iNLD, dPivotFactor, scale));
 			break;
 		}
 
 		default:
 			SAFENEWWITHCONSTRUCTOR(pCurrSM,
 				KLUSparseSolutionManager,
-				KLUSparseSolutionManager(iNLD, dPivotFactor, s, ms));
+				KLUSparseSolutionManager(iNLD,
+										 dPivotFactor,
+										 scale));
 			break;
 		}
 
@@ -773,7 +706,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<Colamd_ordering>,
-					NaiveSparsePermSolutionManager<Colamd_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<Colamd_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
@@ -793,7 +726,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<rcmk_ordering>,
-					NaiveSparsePermSolutionManager<rcmk_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<rcmk_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -821,7 +754,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
  			if (nThreads == 1) {
  				SAFENEWWITHCONSTRUCTOR(pCurrSM,
  					NaiveSparsePermSolutionManager<amd_ordering>,
- 					NaiveSparsePermSolutionManager<amd_ordering>(iNLD, dPivotFactor, ms));
+ 					NaiveSparsePermSolutionManager<amd_ordering>(iNLD, dPivotFactor, scale));
  			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -849,7 +782,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<king_ordering>,
-					NaiveSparsePermSolutionManager<king_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<king_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -877,7 +810,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<sloan_ordering>,
-					NaiveSparsePermSolutionManager<sloan_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<sloan_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -905,7 +838,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<md_ordering>,
-					NaiveSparsePermSolutionManager<md_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<md_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -934,7 +867,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparsePermSolutionManager<metis_ordering>,
-					NaiveSparsePermSolutionManager<metis_ordering>(iNLD, dPivotFactor, ms));
+					NaiveSparsePermSolutionManager<metis_ordering>(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 #if 0
@@ -965,7 +898,7 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
 			if (nThreads == 1) {
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,
 					NaiveSparseSolutionManager,
-					NaiveSparseSolutionManager(iNLD, dPivotFactor, ms));
+					NaiveSparseSolutionManager(iNLD, dPivotFactor, scale));
 			} else {
 #ifdef USE_NAIVE_MULTITHREAD
 				SAFENEWWITHCONSTRUCTOR(pCurrSM,

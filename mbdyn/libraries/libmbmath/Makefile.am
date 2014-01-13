@@ -17,6 +17,7 @@ dirccmh.h \
 fullmh.cc \
 fullmh.h \
 geomdata.h \
+gradient.h \
 interp.h \
 interp.cc \
 JacSubMatrix.cc \
@@ -25,6 +26,7 @@ ldl.f \
 ldl.h \
 ls.cc \
 ls.h \
+matvec.h \
 matvec3.cc \
 matvec3.h \
 matvec3n.cc \
@@ -71,7 +73,7 @@ endif
 libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
-noinst_PROGRAMS = matmultest itertest dgeequtest subtest
+noinst_PROGRAMS = matmultest itertest dgeequtest subtest gradienttest matvectest
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \
@@ -148,6 +150,46 @@ libmbmath.la \
 @FCLIBS@ \
 @LIBS@ \
 @THREAD_LIBS@
+
+gradienttest_SOURCES = gradienttest.cc
+gradienttest_LDADD = \
+libmbmath.la \
+../libmbutil/libmbutil.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@FCLIBS@ \
+@LIBS@ \
+@THREAD_LIBS@ \
+@RT_LIBS@
+
+matvectest_SOURCES = matvectest.cc matvectestfor.f
+matvectest_LDADD = \
+libmbmath.la \
+../libmbutil/libmbutil.la \
+../libcolamd/libmbdyncolamd.la \
+../libnaive/libnaive.la \
+@UMFPACK_LIBS@ \
+@MESCHACH_LIBS@ \
+@HARWELL_LIBS@ \
+@SUPERLU_LIBS@ \
+@TAUCS_LIBS@ \
+@LAPACK_LIBS@ \
+@Y12_LIBS@ \
+@METIS_LIBS@ \
+@BLAS_LIBS@ \
+@FCLIBS@ \
+@LIBS@ \
+@THREAD_LIBS@ \
+@RT_LIBS@
 
 INCLUDES = \
 -I../../include \

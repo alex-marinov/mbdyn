@@ -187,6 +187,12 @@ __FC_DECL__(dgecon)(
 	integer *IWORK,
 	integer *INFO);
 
+
+/* Function */ extern doublereal
+__FC_DECL__(dlamch)(
+	const char* CMACH);
+
+
 #if defined(__cplusplus)
 }
 #endif /* __cplusplus */

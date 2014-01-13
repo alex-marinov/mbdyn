@@ -43,8 +43,8 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
 !        INPUT PARAMETERS
 !-------------------------------------------------------------------------------------------------------------------------
 !       b   ... bearing width [m]
-!       d   ... bearing diameter [m]
-!       Psi ... relative radial clearance Psi = ( D - d ) / d [1]
+!       d   ... shaft diameter [m]
+!       Psi ... relative radial clearance Psi = ( D - d ) / D [1]
 !       eta ... dynamic oil viscosity [Pa*s]
 !       omega(1) ... angular velocity of the shaft [rad/s]
 !	    omega(2) ... angular velocity of the bearing [rad/s]

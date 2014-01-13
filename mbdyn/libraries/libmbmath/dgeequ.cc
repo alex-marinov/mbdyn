@@ -34,129 +34,91 @@
 #include <sstream>
 
 #include "dgeequ.h"
-#ifdef USE_LAPACK
-#include "ac/lapack.h"
-#endif // USE_LAPACK
 
-// helper for dgeequ
-void
-dgeequ_prepare(const MatrixHandler& mh,
-	std::vector<doublereal>& r, std::vector<doublereal>& c,
-	integer& nrows, integer& ncols)
+MatrixScaleBase::MatrixScaleBase(const SolutionManager::ScaleOpt& scale)
+:dCondBefore(-1.),
+ dCondAfter(-1.),
+ uFlags(scale.uFlags),
+ bOK(true)
 {
-	nrows = mh.iGetNumRows();
-	ncols = mh.iGetNumCols();
-
-	if (nrows <= 0) {
-		// error
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
-			"invalid null or negative row number in dgeequ_prepare()");
-	}
-
-	if (ncols <= 0) {
-		// error
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
-			"invalid null or negative column number in dgeequ_prepare()");
-	}
-
-	if (r.empty()) {
-		r.resize(nrows, 0.);
-	} else {
-		if (r.size() != unsigned(nrows)) {
-			// error
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
-				"row number mismatch in dgeequ_prepare()");
-		}
-		r.assign(nrows, 0.);
-	}
-
-	if (c.empty()) {
-		c.resize(ncols, 0.);
-	} else {
-		if (c.size() != unsigned(ncols)) {
-			// error
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
-				"column number mismatch in dgeequ_prepare()");
-		}
-		c.assign(ncols, 0.);
-	}
 
 }
 
-#ifdef USE_LAPACK
-// computes scaling factors for a full matrix handler
-// uses lapack's dgeequ
-void
-dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
-	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
+MatrixScaleBase::~MatrixScaleBase()
 {
-	integer nrows, ncols;
-	dgeequ_prepare(mh, r, c, nrows, ncols);
 
-	integer INFO;
-	__FC_DECL__(dgeequ)(
-		&nrows,
-		&ncols,
-		mh.pdGetMat(),
-		&nrows,
-		&r[0],
-		&c[0],
-		&rowcnd,
-		&colcnd,
-		&amax,
-		&INFO);
-	if (INFO != 0) {
-		// error
-		std::ostringstream os;
-		os << "LAPACK's dgeequ() failed: INFO=" << INFO;
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
-	}
 }
-#else // !USE_LAPACK
-void
-dgeequ(const FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
-	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
+
+std::ostream& MatrixScaleBase::Report(std::ostream& os) const
 {
-	dgeequ<FullMatrixHandler>(mh, r, c, rowcnd, colcnd, amax);
-}
-#endif // !USE_LAPACK
-
-// scales matrix for full matrix handler, in place
-FullMatrixHandler&
-dgeequ_scale(FullMatrixHandler& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
-{
-	integer nrows = mh.iGetNumRows();
-	integer ncols = mh.iGetNumCols();
-
-	doublereal *pd = mh.pdGetMat();
-
-	for (integer ic = 0; ic < ncols; ic++) {
-		for (integer ir = 0; ir < nrows; ir++) {
-			pd[ir] *= r[ir]*c[ic];
-		}
-		pd += ncols;
+	if ((uFlags & SolutionManager::SCALEF_COND_NUM)
+			&& dCondBefore > 0 && dCondAfter > 0) {
+		os << "cond: (" << dCondBefore << ") " << dCondAfter << std::endl;
 	}
 
-	return mh;
-}
-
-// scales vector, in place
-// caller needs to guarantee the length of s is at least N
-void
-dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s)
-{
-	for (; N-- > 0; ) {
-		v_out[N] = v_in[N]*s[N];
+	if ((uFlags & SolutionManager::SCALEF_VERBOSE)
+		|| (!bOK && (uFlags & SolutionManager::SCALEF_WARN))) {
+		vReport(os);
 	}
+
+	return os;
 }
 
-// scales vector handler, in place
-// caller needs to guarantee the length of s is at least N
 VectorHandler&
-dgeequ_scale(VectorHandler& v, doublereal *s)
+MatrixScaleBase::ScaleVector(VectorHandler& v, const std::vector<doublereal>& s)
 {
-	dgeequ_scale(v.iGetSize(), v.pdGetVec(), v.pdGetVec(), s);
+	if (static_cast<size_t>(v.iGetSize()) != s.size()) {
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	for (int i = 0; i < v.iGetSize(); ++i) {
+		v(i + 1) *= s[i];
+	}
 
 	return v;
 }
 
+void MatrixScaleBase::PrepareRows(const MatrixHandler& mh, integer& nrows)
+{
+	nrows = mh.iGetNumRows();
+
+	if (nrows <= 0) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative row number");
+	}
+
+	if (rowScale.empty()) {
+		rowScale.resize(nrows, 0.);
+	} else {
+		if (rowScale.size() != unsigned(nrows)) {
+			// error
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+				"row number mismatch");
+		}
+		rowScale.assign(nrows, 0.);
+	}
+}
+
+void MatrixScaleBase::PrepareCols(const MatrixHandler& mh, integer& ncols)
+{
+	ncols = mh.iGetNumCols();
+
+	if (ncols <= 0) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative column number");
+	}
+
+	if (colScale.empty()) {
+		colScale.resize(ncols, 0.);
+	} else {
+		if (colScale.size() != unsigned(ncols)) {
+			// error
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+				"column number mismatch");
+		}
+		colScale.assign(ncols, 0.);
+	}
+}

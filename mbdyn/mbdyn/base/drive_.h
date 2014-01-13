@@ -796,6 +796,7 @@ SineDriveCaller::dGetP(const doublereal& dVar) const
 	}
 
 	doublereal dVal = dAmplitude*dOmega*cos(dOmega*(dVar - dStartTime));
+
 	if (dVar == dStartTime || (!bNeverEnd && dVar == dEndTime)) {
 		dVal /= 2.;
 	}

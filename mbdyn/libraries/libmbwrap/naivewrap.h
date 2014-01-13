@@ -45,7 +45,7 @@
 #include "ls.h"
 #include "solman.h"
 #include "naivemh.h"
-
+#include "dgeequ.h"
 	
 /* NaiveSolver - begin */
 
@@ -77,17 +77,21 @@ protected:
 	mutable NaiveMatrixHandler *A;
 	mutable MyVectorHandler VH;
 
-	ScaleWhen ms;
-	std::vector<doublereal> msr;
-	std::vector<doublereal> msc;
+	ScaleOpt scale;
+	MatrixScaleBase* pMatScale;
 
 	template <class MH>
 	void ScaleMatrixAndRightHandSide(MH& mh);
+
+	template <typename MH>
+	MatrixScale<MH>& GetMatrixScale();
+
 	void ScaleSolution(void);
 
 public:
-	NaiveSparseSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
-		SolutionManager::ScaleWhen ms = SolutionManager::NEVER);
+	NaiveSparseSolutionManager(const integer Dim,
+							   const doublereal dMP = 1.e-9,
+							   const ScaleOpt& scale = ScaleOpt());
 	virtual ~NaiveSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -138,8 +142,9 @@ protected:
 	virtual void MatrReset(void);
 	
 public:
-	NaiveSparsePermSolutionManager(const integer Dim, const doublereal dMP = 1.e-9,
-		SolutionManager::ScaleWhen ms = SolutionManager::NEVER);
+	NaiveSparsePermSolutionManager(const integer Dim,
+								   const doublereal dMP = 1.e-9,
+								   const ScaleOpt& scale = ScaleOpt());
 	virtual ~NaiveSparsePermSolutionManager(void);
 
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */

@@ -63,15 +63,16 @@ struct LineSearchParameters
 	doublereal dLambdaFactMin;
     doublereal dDivergenceCheck;
     doublereal dMinStepScale;
-	enum { ZERO_GRADIENT_CONTINUE = 0x001,
-		   DIVERGENCE_CHECK		  = 0x002,
-           ALGORITHM_CUBIC		  = 0x004,
-           ALGORITHM_FACTOR		  = 0x008,
-           PRINT_CONVERGENCE_INFO = 0x010,
-           SCALE_NEWTON_STEP	  = 0x020,
-           RELATIVE_LAMBDA_MIN    = 0x040,
-           ABORT_AT_LAMBDA_MIN    = 0x080,
-           VERBOSE_MODE			  = 0x100,
+	enum { ZERO_GRADIENT_CONTINUE 	   = 0x001,
+		   DIVERGENCE_CHECK		  	   = 0x002,
+           ALGORITHM_CUBIC		  	   = 0x004,
+           ALGORITHM_FACTOR		  	   = 0x008,
+           PRINT_CONVERGENCE_INFO 	   = 0x010,
+           SCALE_NEWTON_STEP	  	   = 0x020,
+           RELATIVE_LAMBDA_MIN    	   = 0x040,
+           ABORT_AT_LAMBDA_MIN    	   = 0x080,
+           VERBOSE_MODE			  	   = 0x100,
+           NON_NEGATIVE_SLOPE_CONTINUE = 0x200,
            ALGORITHM = ALGORITHM_CUBIC | ALGORITHM_FACTOR };
 	unsigned uFlags;
 	LineSearchParameters();

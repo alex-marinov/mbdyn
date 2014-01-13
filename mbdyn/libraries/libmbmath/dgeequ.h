@@ -32,47 +32,527 @@
 #ifndef DGEEQU_H
 #define DGEEQU_H
 
+#include <algorithm>
+#include <cassert>
 #include <limits>
 #include <cmath>
 #include <vector>
 #include <limits>
-
 #include "mh.h"
 #include "fullmh.h"
+#include "solman.h"
 
-// helper for dgeequ
-void
-dgeequ_prepare(const MatrixHandler& mh,
-	std::vector<doublereal>& r, std::vector<doublereal>& c,
-	integer& nrows, integer& ncols);
+#ifdef USE_LAPACK
+#include "ac/lapack.h"
+#endif // USE_LAPACK
+
+class MatrixScaleBase
+{
+public:
+	explicit MatrixScaleBase(const SolutionManager::ScaleOpt& scale);
+	virtual ~MatrixScaleBase();
+	inline VectorHandler& ScaleRightHandSide(VectorHandler& bVH) const;
+	inline VectorHandler& ScaleSolution(VectorHandler& xVH) const;
+	std::ostream& Report(std::ostream& os) const;
+	const std::vector<doublereal>& GetRowScale()const{ return rowScale; }
+	const std::vector<doublereal>& GetColScale()const{ return colScale; }
+	bool bGetInitialized()const{ return !(rowScale.empty() && colScale.empty()); } // Allow row only or column only scaling
+
+protected:
+	inline MatrixHandler::Norm_t GetCondNumNorm()const;
+	virtual std::ostream& vReport(std::ostream& os) const=0;
+	inline void Prepare(const MatrixHandler& mh, integer& nrows, integer& ncols);
+	void PrepareRows(const MatrixHandler& mh, integer& nrows);
+	void PrepareCols(const MatrixHandler& mh, integer& ncols);
+
+	std::vector<doublereal> rowScale, colScale;
+	mutable doublereal dCondBefore, dCondAfter;
+	unsigned uFlags;
+	bool bOK;
+
+private:
+	static VectorHandler&
+	ScaleVector(VectorHandler& v, const std::vector<doublereal>& s);
+};
+
+template <typename T>
+class MatrixScale: public MatrixScaleBase
+{
+public:
+	inline explicit MatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~MatrixScale();
+	inline T& ScaleMatrix(T& mh) const;
+	inline bool ComputeScaleFactors(const T& mh);
+	static MatrixScale<T>* Allocate(const SolutionManager::ScaleOpt& scale);
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)=0;
+};
+
+template <typename T>
+class RowSumMatrixScale: public MatrixScale<T>
+{
+public:
+	inline RowSumMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~RowSumMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	std::vector<doublereal> normRow;
+};
+
+template <typename T>
+class RowMaxMatrixScale: public MatrixScale<T>
+{
+public:
+	inline RowMaxMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~RowMaxMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	std::vector<doublereal> normRow;
+};
+
+template <typename T>
+class ColSumMatrixScale: public MatrixScale<T>
+{
+public:
+	inline ColSumMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~ColSumMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	std::vector<doublereal> normCol;
+};
+
+template <typename T>
+class ColMaxMatrixScale: public MatrixScale<T>
+{
+public:
+	inline ColMaxMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~ColMaxMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	std::vector<doublereal> normCol;
+};
 
 // computes scaling factors for a matrix handler that has an iterator
 // based on lapack's dgeequ
-template <class T>
-void
-dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
-	doublereal& rowcnd, doublereal& colcnd, doublereal& amax)
+
+template <typename T>
+class LapackMatrixScale: public MatrixScale<T>
+{
+public:
+	inline LapackMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~LapackMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	doublereal SMLNUM, BIGNUM;
+	doublereal rowcnd, colcnd, amax;
+};
+
+// computes scaling factors for a matrix handler that has an iterator
+// based on `A parallel Matrix Scaling Algorithm'
+// from Patrick R. Amestoy, Iain S. Duff, Daniel Ruiz and Bora Ucar
+
+template <typename T>
+class IterativeMatrixScale: public MatrixScale<T>
+{
+public:
+	inline IterativeMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~IterativeMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	std::vector<doublereal> DR, DC, normR, normC;
+	const integer iMaxIter;
+	const doublereal dTol;
+	integer iIterTaken;
+	doublereal maxNormR, maxNormC;
+};
+
+VectorHandler& MatrixScaleBase::ScaleRightHandSide(VectorHandler& bVH) const
+{
+	if (!rowScale.empty()) {
+		ScaleVector(bVH, rowScale);
+	}
+
+	return bVH;
+}
+
+VectorHandler& MatrixScaleBase::ScaleSolution(VectorHandler& xVH) const
+{
+	if (!colScale.empty()) {
+		ScaleVector(xVH, colScale);
+	}
+
+	return xVH;
+}
+
+MatrixHandler::Norm_t MatrixScaleBase::GetCondNumNorm()const
+{
+	switch (uFlags & SolutionManager::SCALEF_COND_NUM) {
+	case SolutionManager::SCALEF_COND_NUM_1:
+		return MatrixHandler::NORM_1;
+
+	case SolutionManager::SCALEF_COND_NUM_INF:
+		return MatrixHandler::NORM_INF;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
+void MatrixScaleBase::Prepare(const MatrixHandler& mh, integer& nrows, integer& ncols)
+{
+	PrepareRows(mh, nrows);
+	PrepareCols(mh, ncols);
+}
+
+template <typename T>
+MatrixScale<T>::MatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScaleBase(scale)
+{
+
+}
+
+template <typename T>
+MatrixScale<T>::~MatrixScale()
+{
+
+}
+
+template <typename T>
+T& MatrixScale<T>::ScaleMatrix(T& mh) const
+{
+	if (uFlags & SolutionManager::SCALEF_COND_NUM) {
+		dCondBefore = mh.ConditionNumber(GetCondNumNorm());
+	}
+
+	const bool bScaleRows = !rowScale.empty();
+	const bool bScaleCols = !colScale.empty();
+
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+		doublereal dCoef = i->dCoef;
+
+		if (bScaleRows) {
+			dCoef *= rowScale[i->iRow];
+		}
+
+		if (bScaleCols) {
+			dCoef *= colScale[i->iCol];
+		}
+
+		mh(i->iRow + 1, i->iCol + 1) = dCoef;
+	}
+
+	if (uFlags & SolutionManager::SCALEF_COND_NUM) {
+		dCondAfter = mh.ConditionNumber(GetCondNumNorm());
+	}
+
+	return mh;
+}
+
+template <typename T>
+bool MatrixScale<T>::ComputeScaleFactors(const T& mh)
+{
+	bOK = ComputeScaleFactors(mh, rowScale, colScale);
+
+	return bOK;
+}
+
+template <typename T>
+MatrixScale<T>* MatrixScale<T>::Allocate(const SolutionManager::ScaleOpt& scale)
+{
+	MatrixScale<T>* pMatScale = 0;
+
+	switch (scale.algorithm) {
+	case SolutionManager::SCALEA_ROW_MAX:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   RowMaxMatrixScale<T>,
+							   RowMaxMatrixScale<T>(scale));
+		break;
+
+	case SolutionManager::SCALEA_ROW_SUM:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   RowSumMatrixScale<T>,
+							   RowSumMatrixScale<T>(scale));
+		break;
+
+	case SolutionManager::SCALEA_COL_MAX:
+			SAFENEWWITHCONSTRUCTOR(pMatScale,
+								   ColMaxMatrixScale<T>,
+								   ColMaxMatrixScale<T>(scale));
+			break;
+
+	case SolutionManager::SCALEA_COL_SUM:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   ColSumMatrixScale<T>,
+							   ColSumMatrixScale<T>(scale));
+		break;
+
+	case SolutionManager::SCALEA_LAPACK:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   LapackMatrixScale<T>,
+							   LapackMatrixScale<T>(scale));
+		break;
+
+	case SolutionManager::SCALEA_ITERATIVE:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   IterativeMatrixScale<T>,
+							   IterativeMatrixScale<T>(scale));
+		break;
+
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pMatScale;
+}
+
+template <typename T>
+RowSumMatrixScale<T>::RowSumMatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScale<T>(scale)
+{
+
+}
+
+template <typename T>
+RowSumMatrixScale<T>::~RowSumMatrixScale()
+{
+
+}
+
+template <typename T>
+bool RowSumMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	integer nrows;
+
+	MatrixScaleBase::PrepareRows(mh, nrows);
+
+	if (normRow.empty()) {
+		normRow.resize(nrows, 0.);
+	} else {
+		std::fill(normRow.begin(), normRow.end(), 0.);
+	}
+
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+		normRow[i->iRow] += std::abs(i->dCoef);
+	}
+
+	for (int i = 0; i < nrows; ++i) {
+		rowScale[i] = 1. / normRow[i];
+	}
+
+	return true;
+}
+
+template <typename T>
+std::ostream& RowSumMatrixScale<T>::vReport(std::ostream& os) const
+{
+	return os;
+}
+
+template <typename T>
+RowMaxMatrixScale<T>::RowMaxMatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScale<T>(scale)
+{
+
+}
+
+template <typename T>
+RowMaxMatrixScale<T>::~RowMaxMatrixScale()
+{
+
+}
+
+template <typename T>
+bool RowMaxMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	integer nrows;
+
+	MatrixScaleBase::PrepareRows(mh, nrows);
+
+	if (normRow.empty()) {
+		normRow.resize(nrows, 0.);
+	} else {
+		std::fill(normRow.begin(), normRow.end(), 0.);
+	}
+
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+		const doublereal d = std::abs(i->dCoef);
+
+		if (d > normRow[i->iRow]) {
+			normRow[i->iRow] = d;
+		}
+	}
+
+	for (int i = 0; i < nrows; ++i) {
+		rowScale[i] = 1. / normRow[i];
+	}
+
+	return true;
+}
+
+template <typename T>
+std::ostream& RowMaxMatrixScale<T>::vReport(std::ostream& os) const
+{
+	return os;
+}
+
+template <typename T>
+ColSumMatrixScale<T>::ColSumMatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScale<T>(scale)
+{
+
+}
+
+template <typename T>
+ColSumMatrixScale<T>::~ColSumMatrixScale()
+{
+
+}
+
+template <typename T>
+bool ColSumMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	integer ncols;
+
+	MatrixScaleBase::PrepareCols(mh, ncols);
+
+	if (normCol.empty()) {
+		normCol.resize(ncols, 0.);
+	} else {
+		std::fill(normCol.begin(), normCol.end(), 0.);
+	}
+
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+		normCol[i->iCol] += std::abs(i->dCoef);
+	}
+
+	for (int i = 0; i < ncols; ++i) {
+		colScale[i] = 1. / normCol[i];
+	}
+
+	return true;
+}
+
+template <typename T>
+std::ostream& ColSumMatrixScale<T>::vReport(std::ostream& os) const
+{
+	return os;
+}
+
+template <typename T>
+ColMaxMatrixScale<T>::ColMaxMatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScale<T>(scale)
+{
+
+}
+
+template <typename T>
+ColMaxMatrixScale<T>::~ColMaxMatrixScale()
+{
+
+}
+
+template <typename T>
+bool ColMaxMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	integer ncols;
+
+	MatrixScaleBase::PrepareCols(mh, ncols);
+
+	if (normCol.empty()) {
+		normCol.resize(ncols, 0.);
+	} else {
+		std::fill(normCol.begin(), normCol.end(), 0.);
+	}
+
+	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
+		const doublereal d = std::abs(i->dCoef);
+
+		if (d > normCol[i->iCol]) {
+			normCol[i->iCol] = d;
+		}
+	}
+
+	for (int i = 0; i < ncols; ++i) {
+		colScale[i] = 1. / normCol[i];
+	}
+
+	return true;
+}
+
+template <typename T>
+std::ostream& ColMaxMatrixScale<T>::vReport(std::ostream& os) const
+{
+	return os;
+}
+
+template <typename T>
+LapackMatrixScale<T>::LapackMatrixScale(const SolutionManager::ScaleOpt& scale)
+	:MatrixScale<T>(scale)
+{
+#if defined(HAVE_DLAMCH) || defined(HAVE_DLAMCH_)
+	// Use dlamch according to Netlib's dgeequ.f
+	SMLNUM = __FC_DECL__(dlamch)("S");
+#else
+	// According to Netlib's dlamch for x86-64 machines
+	SMLNUM = std::numeric_limits<doublereal>::min();
+#endif
+	BIGNUM = 1./SMLNUM;
+
+	rowcnd = colcnd = amax = -1;
+}
+
+template <typename T>
+LapackMatrixScale<T>::~LapackMatrixScale()
+{
+
+}
+
+template <typename T>
+bool LapackMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
 {
 	integer nrows, ncols;
-	dgeequ_prepare(mh, r, c, nrows, ncols);
-
-	// FIXME: define reasonable SMLNUM (e.g. using lapack's)
-	const doublereal SMLNUM = std::numeric_limits<doublereal>::epsilon();
-	const doublereal BIGNUM = 1./SMLNUM;
+	MatrixScale<T>::Prepare(mh, nrows, ncols);
 
 	doublereal rcmin;
 	doublereal rcmax;
 
 	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
 		doublereal d = std::abs(i->dCoef);
-		if (d > r[i->iRow]) {
-			r[i->iRow] = d;
+		if (d > rowScale[i->iRow]) {
+			rowScale[i->iRow] = d;
 		}
 	}
 
 	rcmin = BIGNUM;
 	rcmax = 0.;
-	for (std::vector<doublereal>::iterator i = r.begin(); i != r.end(); ++i) {
+	for (std::vector<doublereal>::iterator i = rowScale.begin(); i != rowScale.end(); ++i) {
 		if (*i > rcmax) {
 			rcmax = *i;
 		}
@@ -88,22 +568,22 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 			"null min row value in dgeequ");
 	}
 
-	for (std::vector<doublereal>::iterator i = r.begin(); i != r.end(); ++i) {
+	for (std::vector<doublereal>::iterator i = rowScale.begin(); i != rowScale.end(); ++i) {
 		*i = 1./(std::min(std::max(*i, SMLNUM), BIGNUM));
 	}
 
 	rowcnd = std::max(rcmin, SMLNUM)/std::min(rcmax, BIGNUM);
 
 	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-		doublereal d = std::abs(i->dCoef)*r[i->iRow];
-		if (d > c[i->iCol]) {
-			c[i->iCol] = d;
+		doublereal d = std::abs(i->dCoef)*rowScale[i->iRow];
+		if (d > colScale[i->iCol]) {
+			colScale[i->iCol] = d;
 		}
 	}
 
 	rcmin = BIGNUM;
 	rcmax = 0.;
-	for (std::vector<doublereal>::iterator i = c.begin(); i != c.end(); ++i) {
+	for (std::vector<doublereal>::iterator i = colScale.begin(); i != colScale.end(); ++i) {
 		if (*i > rcmax) {
 			rcmax = *i;
 		}
@@ -117,47 +597,187 @@ dgeequ(const T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c,
 			"null min column value in dgeequ");
 	}
 
-	for (std::vector<doublereal>::iterator i = c.begin(); i != c.end(); ++i) {
+	for (std::vector<doublereal>::iterator i = colScale.begin(); i != colScale.end(); ++i) {
 		*i = 1./(std::min(std::max(*i, SMLNUM), BIGNUM));
 	}
 
 	colcnd = std::max(rcmin, SMLNUM)/std::min(rcmax, BIGNUM);
+
+	return true;
 }
 
-// computes scaling factors for a full matrix handler
-// uses lapack's dgeequ if available
-void
-dgeequ(const FullMatrixHandler& mh,
-	std::vector<doublereal>& r, std::vector<doublereal>& c,
-	doublereal& rowcnd, doublereal& colcnd, doublereal& amax);
-
-// scales matrix for a matrix handler with an iterator, in place
-template <class T>
-T&
-dgeequ_scale(T& mh, std::vector<doublereal>& r, std::vector<doublereal>& c)
+template <typename T>
+std::ostream& LapackMatrixScale<T>::vReport(std::ostream& os) const
 {
-	for (typename T::const_iterator i = mh.begin(); i != mh.end(); ++i) {
-		// FIXME: were a non-const iterator available...
-#if 0
-		i->dCoef *= r[i->iRow] * c[i->iCol];
-#endif
-		mh(i->iRow + 1, i->iCol + 1) = i->dCoef * r[i->iRow] * c[i->iCol];
+	if (amax < std::numeric_limits<doublereal>::epsilon()
+		|| amax > 1./std::numeric_limits<doublereal>::epsilon())
+	{
+		os << "Warning: The matrix should be scaled\n";
 	}
 
-	return mh;
+	if (colcnd >= 0.1) {
+		os << "Warning: it is not worth scaling the columns\n";
+	}
+
+	if (rowcnd >= 0.1
+		&& amax >= std::numeric_limits<doublereal>::epsilon()
+		&& amax <= 1./std::numeric_limits<doublereal>::epsilon())
+	{
+		os << "Warning: it is not worth scaling the rows\n";
+	}
+
+	return os;
 }
 
-// scales matrix for full matrix handler, in place
-FullMatrixHandler&
-dgeequ_scale(FullMatrixHandler& mh,
-	std::vector<doublereal>& r, std::vector<doublereal>& c);
+template <typename T>
+IterativeMatrixScale<T>::IterativeMatrixScale(const SolutionManager::ScaleOpt& scale)
+:MatrixScale<T>(scale),
+ iMaxIter(scale.iMaxIter),
+ dTol(scale.dTol),
+ iIterTaken(-1),
+ maxNormR(-1.),
+ maxNormC(-1.)
+{
 
-// scales vector, in place
-void
-dgeequ_scale(integer N, doublereal *v_out, doublereal *v_in, doublereal *s);
+}
 
-// scales vector handler, in place
-VectorHandler&
-dgeequ_scale(VectorHandler& v, doublereal *s);
+template <typename T>
+IterativeMatrixScale<T>::~IterativeMatrixScale()
+{
+
+}
+
+template <typename T>
+bool IterativeMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	const integer nrows = mh.iGetNumRows();
+	const integer ncols = mh.iGetNumCols();
+
+	if (nrows <= 0) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative row number");
+	}
+
+	if (ncols <= 0) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative column number");
+	}
+
+	if (rowScale.empty()) {
+		rowScale.resize(nrows);
+		normR.resize(nrows);
+		DR.resize(nrows);
+		std::fill(rowScale.begin(), rowScale.end(), 1.);
+	} else if (rowScale.size() != static_cast<size_t>(nrows)) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "row number mismatch");
+	} else {
+		// Use the scale values from the last Newton iteration
+	}
+
+	if (colScale.empty()) {
+		colScale.resize(ncols);
+		normC.resize(ncols);
+		DC.resize(ncols);
+		std::fill(colScale.begin(), colScale.end(), 1.);
+	} else if (colScale.size() != static_cast<size_t>(ncols)) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "column number mismatch");
+	} else {
+		// Use the scale values from the last Newton iteration
+	}
+
+	int i;
+	bool bConverged = false;
+
+	for (i = 1; i <= iMaxIter; ++i) {
+		std::fill(DR.begin(), DR.end(), 0.);
+		std::fill(DC.begin(), DC.end(), 0.);
+
+		for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+			doublereal d = im->dCoef;
+
+			if (d == 0.) {
+				continue;
+			}
+
+			d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
+
+			if (d > DR[im->iRow]) {
+				DR[im->iRow] = d;
+			}
+
+			if (d > DC[im->iCol]) {
+				DC[im->iCol] = d;
+			}
+		}
+
+		for (int j = 0; j < nrows; ++j) {
+			rowScale[j] /= sqrt(DR[j]);
+		}
+
+		for (int j = 0; j < ncols; ++j) {
+			colScale[j] /= sqrt(DC[j]);
+		}
+
+		std::fill(normR.begin(), normR.end(), 0.);
+		std::fill(normC.begin(), normC.end(), 0.);
+
+		for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+			doublereal d = im->dCoef;
+
+			if (d == 0.) {
+				continue;
+			}
+
+			d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
+
+			if (d > normR[im->iRow]) {
+				normR[im->iRow] = d;
+			}
+
+			if (d > normC[im->iCol]) {
+				normC[im->iCol] = d;
+			}
+		}
+
+		maxNormR = 0.;
+
+		for (std::vector<doublereal>::const_iterator ir = normR.begin();
+			 ir != normR.end(); ++ir) {
+			maxNormR = std::max(maxNormR, std::abs(1. - *ir));
+		}
+
+		maxNormC = 0.;
+
+		for (std::vector<doublereal>::const_iterator ic = normC.begin();
+			 ic != normC.end(); ++ic) {
+			maxNormC = std::max(maxNormC, std::abs(1. - *ic));
+		}
+
+		if (maxNormR < dTol && maxNormC < dTol) {
+			bConverged = true;
+			break;
+		}
+	}
+
+	iIterTaken = i;
+
+	return bConverged;
+}
+
+template <typename T>
+std::ostream& IterativeMatrixScale<T>::vReport(std::ostream& os) const
+{
+	if (!MatrixScaleBase::bOK) {
+		os << "Warning: matrix scale did not converge\n";
+	}
+
+	os << "row scale: " << maxNormR << std::endl
+	   << "col scale: " <<  maxNormC << std::endl
+	   << "iter scale: " << iIterTaken << std::endl;
+
+	return os;
+}
 
 #endif // DGEEQU_H

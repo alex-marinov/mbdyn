@@ -222,7 +222,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			}
 		}
 		
-		pS->CheckTimeStepLimit();
+		pS->CheckTimeStepLimit(dErr);
 
 		if (bTest) {
 	 		return;

@@ -101,11 +101,52 @@ class SolutionManager {
 public:
 	// whether matrix scaling should be performed, and when, using dgeequ()
 	enum ScaleWhen {
-		NEVER = 0,
-		ONCE,
-		ALWAYS
+		SCALEW_NEVER = 0,
+		SCALEW_ONCE,
+		SCALEW_ALWAYS
 	};
 
+	enum ScaleAlgorithm {
+		SCALEA_NONE,
+		SCALEA_UNDEF,
+		SCALEA_ROW_MAX,
+		SCALEA_ROW_SUM,
+		SCALEA_COL_MAX,
+		SCALEA_COL_SUM,
+		SCALEA_LAPACK,
+		SCALEA_ITERATIVE
+	};
+
+	enum ScaleFlags {
+		SCALEF_DEFAULT = 0x0u,
+		SCALEF_WARN    = 0x1u,
+		SCALEF_VERBOSE = 0x2u,
+		SCALEF_COND_NUM_1 = 0x4u,
+		SCALEF_COND_NUM_INF = 0x8u,
+		SCALEF_COND_NUM = SCALEF_COND_NUM_1 | SCALEF_COND_NUM_INF
+	};
+
+	struct ScaleOpt {
+		ScaleOpt(ScaleWhen when = SCALEW_NEVER,
+				 ScaleAlgorithm alg = SCALEA_UNDEF,
+				 integer iMaxIter = 100,
+				 doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon()),
+				 unsigned flags = SCALEF_DEFAULT):
+			when(when),
+			algorithm(alg),
+			iMaxIter(iMaxIter),
+			dTol(dTol),
+			uFlags(flags)
+		{
+
+		}
+
+		ScaleWhen when;
+		ScaleAlgorithm algorithm;
+		integer iMaxIter;
+		doublereal dTol;
+		unsigned uFlags;
+	};
 protected:
 	LinearSolver *pLS;
 

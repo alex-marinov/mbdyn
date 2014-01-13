@@ -239,6 +239,7 @@ protected:
    	doublereal dInitialTimeStep;
    	doublereal dMinTimeStep;
    	DriveOwner MaxTimeStep;
+   	doublereal dMaxResidual;
 
    	enum TimeStepFlags {
    		TS_SOFT_LIMIT = 0,
@@ -401,7 +402,7 @@ public:
 
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
-	virtual void CheckTimeStepLimit() const throw(NonlinearSolver::TimeStepLimitExceeded);
+	virtual void CheckTimeStepLimit(doublereal dErr) const throw(NonlinearSolver::TimeStepLimitExceeded, NonlinearSolver::MaxResidualExceeded);
 };
 
 inline void

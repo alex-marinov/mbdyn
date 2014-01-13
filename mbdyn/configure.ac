@@ -194,6 +194,7 @@ OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View 
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
+OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 
 dnl ----------------------------------------------------------------
 dnl General "with" options
@@ -741,6 +742,56 @@ if test "$ol_enable_octave" != no ; then
 			AC_MSG_ERROR([octave support not available])
 		fi
 	fi
+fi
+
+if test "$ol_enable_autodiff" != no ; then
+	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Enable blitz++ support <http://oonumerics.org/blitz/>
+dnl
+AC_LANG_CPLUSPLUS
+AC_CHECK_HEADER(blitz/blitz.h,[have_blitz_blitz_h=yes],[have_blitz_blitz_h=no])
+AC_CHECK_HEADER(blitz/array.h,[have_blitz_array_h=yes],[have_blitz_array_h=no])
+AC_CHECK_HEADER(blitz/tinyvec.h,[have_blitz_tinyvec_h=yes],[have_blitz_tinyvec_h=no])
+AC_CHECK_HEADER(blitz/tinyvec-et.h,[have_blitz_tinyvecet_h=yes],[have_blitz_tinyvecet_h=no])
+AC_CHECK_HEADER(blitz/tinymat.h,[have_blitz_tinymat_h=yes],[have_blitz_tinymat_h=no])
+AC_CHECK_HEADER(blitz/matrix.h,[have_blitz_matrix_h=yes],[have_blitz_matrix_h=no])
+AC_LANG_C
+
+if test "$have_blitz_blitz_h" = "yes" \
+	-a "$have_blitz_array_h" = "yes" \
+	-a "$have_blitz_tinyvec_h" = "yes" \
+	-a "$have_blitz_tinyvecet_h" = "yes" \
+	-a "$have_blitz_tinymat_h" = "yes" \
+	-a "$have_blitz_matrix_h" = "yes"; \
+then
+	AC_DEFINE(HAVE_BLITZ, 1, [define if blitz++ can be used])
+fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for clock_gettime()
+dnl
+
+save_LIBS="$LIBS"
+try_LIBS="-lrt"
+LIBS="$try_LIBS $LIBS"
+AC_LANG_C
+AC_TRY_LINK([
+#include <time.h>
+			],[
+	struct timespec tp;
+	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
+			],[use_clock_gettime=yes],[use_clock_gettime=no])
+			
+LIBS="$save_LIBS"
+
+if test $use_clock_gettime = yes; then
+	AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [define if clock_gettime can be used])
+	RT_LIBS="$try_LIBS"
 fi
 
 dnl ----------------------------------------------------------------
@@ -1451,6 +1502,22 @@ if test $ol_with_lapack != no ; then
 	double i = 1., o;
 	o = dgecon(&i);
 			],[AC_DEFINE(HAVE_DGECON,1,[define to use LAPACK's dgecon in newton raphson solver])])
+	fi
+
+	if test "$have_lapack_" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dlamch_(const char *);
+			],[
+	double o;
+	o = dlamch_("S");
+			],[AC_DEFINE(HAVE_DLAMCH_,1,[define to use LAPACK's dlamch in dgeequ])])
+	elif test "$have_lapack" = "yes" ; then
+		AC_TRY_LINK([
+	extern double dlamch(const char *);
+			],[
+	double o;
+	o = dlamch("S");
+			],[AC_DEFINE(HAVE_DLAMCH,1,[define to use LAPACK's dlamch in dgeequ])])
 	fi
 
 	if test "$have_lapack_" = "yes" ; then

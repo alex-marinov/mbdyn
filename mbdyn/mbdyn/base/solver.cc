@@ -288,6 +288,7 @@ dRefTimeStep(0.),
 dInitialTimeStep(1.),
 dMinTimeStep(::dDefaultMinTimeStep),
 MaxTimeStep(),
+dMaxResidual(std::numeric_limits<doublereal>::max()),
 eTimeStepLimit(TS_SOFT_LIMIT),
 iDummyStepsNumber(::iDefaultDummyStepsNumber),
 dDummyStepsRatio(::dDefaultDummyStepsRatio),
@@ -1830,6 +1831,7 @@ Solver::ReadData(MBDynParser& HP)
 		"min" "time" "step",
 		"max" "time" "step",
 		"tolerance",
+		"max" "residual",
 		"max" "iterations",
 		"modify" "residual" "test",
 
@@ -1941,6 +1943,7 @@ Solver::ReadData(MBDynParser& HP)
 		MINTIMESTEP,
 		MAXTIMESTEP,
 		TOLERANCE,
+		MAXRESIDUAL,
 		MAXITERATIONS,
 		MODIFY_RES_TEST,
 
@@ -2660,6 +2663,16 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 		}
 
+		case MAXRESIDUAL: {
+			dMaxResidual = HP.GetReal();
+
+			if (dMaxResidual <= 0.) {
+				silent_cerr("error: max residual must be greater than zero at line "
+						<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			break;
+		}
 
 		case DERIVATIVESTOLERANCE: {
 			dDerivativesTol = HP.GetReal();
@@ -3457,6 +3470,12 @@ Solver::ReadData(MBDynParser& HP)
 								LineSearch.uFlags |= LineSearchParameters::ABORT_AT_LAMBDA_MIN;
 							} else {
 								LineSearch.uFlags &= ~LineSearchParameters::ABORT_AT_LAMBDA_MIN;
+							}
+						} else if (HP.IsKeyWord("non" "negative" "slope" "continue")) {
+							if (HP.GetYesNoOrBool()) {
+								LineSearch.uFlags |= LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
+							} else {
+								LineSearch.uFlags &= ~LineSearchParameters::NON_NEGATIVE_SLOPE_CONTINUE;
 							}
 						} else {
 							silent_cerr("Keyword \"tolerance x\", "
@@ -5578,8 +5597,32 @@ Solver::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 	pDM->PrintSolution(Sol, iIterCnt);
 }
 
-void Solver::CheckTimeStepLimit() const throw(NonlinearSolver::TimeStepLimitExceeded)
+void Solver::CheckTimeStepLimit(doublereal dErr) const throw(NonlinearSolver::MaxResidualExceeded, NonlinearSolver::TimeStepLimitExceeded)
 {
+	if (pDerivativeSteps) {
+		// Time step cannot be reduced
+		return;
+	}
+
+	if (dCurrTimeStep <= dMinTimeStep && bLastChance) {
+		return;
+	}
+
+	if (dErr > dMaxResidual) {
+		if (outputIters()) {
+#ifdef USE_MPI
+			if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+			{
+				silent_cerr("warning: current residual = " << dErr
+						<< " > maximum residual = " << dMaxResidual
+						<< std::endl);
+			}
+		}
+
+		throw NonlinearSolver::MaxResidualExceeded(MBDYN_EXCEPT_ARGS);
+	}
+
 	switch (eTimeStepLimit) {
 	case TS_SOFT_LIMIT:
 		break;

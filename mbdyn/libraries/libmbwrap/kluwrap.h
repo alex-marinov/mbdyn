@@ -82,8 +82,8 @@ extern "C" {
 #include "solman.h"
 #include "spmapmh.h"
 #include "ccmh.h"
-
-	
+#include "dgeequ.h"
+#include "linsol.h"
 /* KLUSolver - begin */
 
 class KLUSolver: public LinearSolver {
@@ -136,9 +136,8 @@ protected:
 
 	mutable MyVectorHandler bVH;
 
-	ScaleWhen ms;
-	std::vector<doublereal> msr;
-	std::vector<doublereal> msc;
+	ScaleOpt scale;
+	MatrixScaleBase* pMatScale;
 
 	std::vector<doublereal> Ax;
 	std::vector<integer> Ai;
@@ -148,15 +147,22 @@ protected:
 	/* Passa in forma di Compressed Column (callback per solve,
 	 * richiesto da SpMap e CC Matrix Handler) */
 	virtual void MakeCompressedColumnForm(void);
-	template <class MH>
+
+	template <typename MH>
 	void ScaleMatrixAndRightHandSide(MH& mh);
+
+	template <typename MH>
+	MatrixScale<MH>& GetMatrixScale();
+
 	void ScaleSolution(void);
 	
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
-   
+
 public:
-	KLUSparseSolutionManager(integer Dim, doublereal dPivot = -1., KLUSolver::Scale s = KLUSolver::SCALE_UNDEF, ScaleWhen ms = NEVER);
+	KLUSparseSolutionManager(integer Dim,
+							 doublereal dPivot = -1.,
+							 const ScaleOpt& scale = ScaleOpt());
 	virtual ~KLUSparseSolutionManager(void);
 #ifdef DEBUG
 	virtual void IsValid(void) const {
@@ -188,13 +194,15 @@ template <class CC>
 class KLUSparseCCSolutionManager: public KLUSparseSolutionManager {
 protected:
 	bool CCReady;
-	CompactSparseMatrixHandler *Ac;
+	CC *Ac;
 
 	virtual void MatrReset(void);
 	virtual void MakeCompressedColumnForm(void);
 	
 public:
-	KLUSparseCCSolutionManager(integer Dim, doublereal dPivot = -1., KLUSolver::Scale scale = KLUSolver::SCALE_UNDEF, ScaleWhen ms = NEVER);
+	KLUSparseCCSolutionManager(integer Dim,
+							   doublereal dPivot = -1.,
+							   const ScaleOpt& scale = ScaleOpt());
 	virtual ~KLUSparseCCSolutionManager(void);
 
 	/* Inizializzatore "speciale" */
