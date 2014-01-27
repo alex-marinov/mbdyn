@@ -211,7 +211,7 @@ public:
 		dUpperFreq(std::numeric_limits<doublereal>::max()),
 		dLowerFreq(-1.)
 		{
-			NO_OP;
+			currAnalysis = Analyses.end();
 		};
 	};
 

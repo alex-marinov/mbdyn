@@ -866,14 +866,19 @@ Solver::Run(void)
 	// if eigenanalysis is requested and currAnalysis points
 	// past the end of the array, the analysis was requested
 	// at Time == initial time; perform *after* derivatives
-	if (EigAn.bAnalysis
-		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
-				&& EigAn.Analyses.back() == dTime)
-			|| *EigAn.currAnalysis == dTime))
+	if (EigAn.bAnalysis)
 	{
-		Eig();
-		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
-			EigAn.currAnalysis++;
+		ASSERT(EigAn.Analyses.size() > 0);
+
+		if ((EigAn.currAnalysis == EigAn.Analyses.end()
+				&& EigAn.Analyses.back() == dTime)
+			|| (EigAn.currAnalysis != EigAn.Analyses.end()
+				&& *EigAn.currAnalysis == dTime))
+		{
+			Eig();
+			if (EigAn.currAnalysis != EigAn.Analyses.end()) {
+				EigAn.currAnalysis++;
+			}
 		}
 	}
 
@@ -2986,6 +2991,7 @@ Solver::ReadData(MBDynParser& HP)
 				EigAn.Analyses[0] = HP.GetReal();
 			}
 
+			ASSERT(EigAn.Analyses.size() > 0);
 			// initialize EigAn
 			EigAn.currAnalysis = EigAn.Analyses.begin();
 			EigAn.bAnalysis = true;

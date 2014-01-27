@@ -56,6 +56,7 @@ MBDyn 1.X-Devel
 		- fixed bug in Cardano hinge initial assembly
 		- fixed bug in driven element when internal states
 		  are differential (Reinhard Resch)
+		- fixed memory issue in eigenanalysis (Reinhard Resch)
 		- fixed bug in acceleration computation
 		  (noted by Reinhard Resch)
 
