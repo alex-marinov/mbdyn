@@ -221,9 +221,9 @@ Mat3x3::LDLSolve(const Vec3& v) const
 	// L * z = v
 
 	// z = L^-1 * v
-	doublereal z3 = v(3);
-	doublereal z2 = v(2) - l32*z3;
-	doublereal z1 = v(1) - l21*z2 - l31*z3;
+	doublereal z1 = v(1);
+	doublereal z2 = v(2) - l21*z1;
+	doublereal z3 = v(3) - l31*z1 - l32*z2;
 
 	// y = D^-1 * z
 	if (d1 > std::numeric_limits<doublereal>::epsilon()) {
@@ -245,7 +245,10 @@ Mat3x3::LDLSolve(const Vec3& v) const
 	}
 
 	// x = L^-T * y
-	return Vec3(z1, z2 - l21*z1, z3 - l31*z1 - l32*z2);
+	z2 -= l32*z3;
+	z1 -= l21*z2 + l31*z3;
+
+	return Vec3(z1, z2, z3);
 }
 
 bool

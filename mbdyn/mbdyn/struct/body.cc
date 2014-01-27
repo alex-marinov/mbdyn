@@ -1815,6 +1815,10 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			Mat3x3 JTmp(HP.GetMatRel(RF));
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
 				<< ") =" << std::endl << JTmp << std::endl);
+			if (!JTmp.IsSymmetric()) {
+				silent_cerr("Body(" << uLabel << "): "
+					"warning, non-symmetric inertia tensor at line " << HP.GetLineData() << std::endl);
+			}
 
 			if (HP.IsKeyWord("inertial")) {
 				DEBUGLCOUT(MYDEBUG_INPUT,

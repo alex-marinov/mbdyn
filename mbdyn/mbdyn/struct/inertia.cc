@@ -93,6 +93,7 @@ CenterOfMass::Collect_int(void)
 		J_cm += Mat3x3(MatCrossCross, S, X_cm);
 		J_cm = J_cm.Symm();
 
+		ASSERT(J_cm.IsSymmetric()); // NOTE: should be a run time test
 		Omega_cm = J_cm.LDLSolve(G - X_cm.Cross(B));
 	}
 }

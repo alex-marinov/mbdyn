@@ -31,6 +31,7 @@ MBDyn 1.X-Devel
 		- improved step size control (Reinhard Resch)
 		- improved hydrodynamic plain bearing (Reinhard Resch)
 		- improved module-octave (Reinhard Resch)
+		- added check for symmetry of inertia tensor
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
@@ -55,6 +56,8 @@ MBDyn 1.X-Devel
 		- fixed bug in Cardano hinge initial assembly
 		- fixed bug in driven element when internal states
 		  are differential (Reinhard Resch)
+		- fixed bug in acceleration computation
+		  (noted by Reinhard Resch)
 
 MBDyn 1.5.5
 	Enhancements:

@@ -409,6 +409,7 @@ AutomaticStructElem::ComputeAccelerations(Vec3& XPP, Vec3& WP) const
 	Mat3x3 Jcg = J + Mat3x3(MatCrossCross, Xcg, S);
 	const Vec3& V = pNode->GetVCurr();
 	const Vec3& W = dynamic_cast<const DynamicStructNode *>(pNode)->GetWCurr();
+	ASSERT(Jcg.IsSymmetric()); // NOTE: should be a run time test
 	WP = Jcg.LDLSolve(GP - Xcg.Cross(BP) - W.Cross(Jcg*W) + V.Cross(B));
 	XPP = (BP - WP.Cross(S) - W.Cross(W.Cross(S)))/m;
 }
