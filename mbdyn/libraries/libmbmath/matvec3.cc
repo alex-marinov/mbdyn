@@ -210,7 +210,7 @@ Mat3x3::LDLSolve(const Vec3& v) const
 	d2 = pdMat[M22] - l21*l21*d1;
 	ASSERT(d2 >= 0.);
 	if (d2 > std::numeric_limits<doublereal>::epsilon()) {
-		l32 = (pdMat[M32] + pdMat[M23])/(2.*d2);
+		l32 = ((pdMat[M32] + pdMat[M23])/2. - l21*l31*d1)/d2;
 	}
 
 	d3 = pdMat[M33] - l31*l31*d1 - l32*l32*d2;
