@@ -2648,6 +2648,31 @@ void testInv() {
 	assert(bCompare(detA, -0.0939830809103952, dTol));
 }
 
+void testSolve() {
+	const Mat3x3 A(1.32972137393521,      0.61849905020148,     0.709385530146435,
+				   0.61849905020148,     0.290559435134808,     0.344471283014357,
+				   0.709385530146435,     0.344471283014357,     0.752776020323268);
+
+	const Vec3 b(0.815664130323409,
+		     	 0.255816061333836,
+		     	 0.416955203644826);
+
+	const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+
+	const Vec3 x1 = A.Solve(b);
+	const Vec3 x2 = A.LDLSolve(b);
+	const doublereal f1 = (A * x1 - b).Norm();
+	const doublereal f2 = (A * x2 - b).Norm();
+	std::cout << "A=" << Tabular(Matrix<doublereal, 3, 3>(A)) << std::endl;
+	std::cout << "b=" << b << std::endl;
+	std::cout << "x1=" << x1 << std::endl;
+	std::cout << "x2=" << x2 << std::endl;
+	std::cout << "f1=" << f1 << std::endl;
+	std::cout << "f2=" << f2 << std::endl;
+	assert(f1 < dTol);
+	assert(f2 < dTol);
+}
+
 doublereal dStartTime;
 
 void tic(doublereal& dTime) {
@@ -2769,6 +2794,9 @@ int main(int argc, char* argv[]) {
 
     std::cerr << "---------------------------\ntestInv()\n";
     testInv();
+
+    std::cerr << "----------------------------\ntestSolve()\n";
+    testSolve();
 
 #ifdef NDEBUG
     std::cerr << "\nNo tests have been done" << std::endl;
