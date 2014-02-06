@@ -1,0 +1,159 @@
+#
+#	Linear transmission joint - test: displacement Z to Z (same reference node)
+#
+#   Library of motion transmission components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-3;
+
+	tolerance: 1.e-12;
+	max iterations: 20;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 1;
+	structural nodes: 3;
+	rigid bodies: 2;
+	joints: 3;
+end: control data;
+
+
+set: real c1 = 0.5;  # Coefficient associated to node 1 (eixo z)
+set: real c2 = 0.1;  # Coefficient associated to node 2 
+set: real v1 = 1.;   # Velocity of node 1
+
+set: integer part1 = 0;
+set: integer part2 = 1;
+
+reference: part1,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, 0., 0., v1,
+	reference, global, null;
+
+reference: part2,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, 0., 0., c1*v1/c2,
+	reference, global, null;
+
+
+begin: nodes;
+
+   # reference node 1:
+   structural: 0, dynamic, 
+      null, 
+      eye, 
+      null, 
+      null; 
+   
+    # node of part 1:
+   structural: 1, dynamic, 
+      reference, part1, null, 
+      reference, part1, eye, 
+      reference, part1, null, 
+      reference, part1, null;
+         
+    # node of part 2:
+   structural: 2, dynamic, 
+      reference, part2, null, 
+      reference, part2, eye, 
+      reference, part2, null, 
+      reference, part2, null;      
+   
+end: nodes;
+
+
+begin: elements;
+
+   # In this simulation, reference node 1 is clamped to the ground:
+   joint: 1, clamp, 0, node, node;
+  
+   # This total joint constrains all dofs of part 1, and impose a speed (5 m/s) to its z-axis:
+   joint: 2,
+      total joint,
+         0,
+            position, null,
+         1,
+            position, null,
+         position constraint,
+            active, active, velocity,
+            component,
+            0., 0., v1, 
+         orientation constraint,
+            active, active, active,
+            null;
+
+   # This total joint constrains all dofs of part 2, except its z-axis:
+   joint: 3,
+      total joint,
+         0,
+            position, null,
+         2,
+            position, null,
+         position constraint,
+            active, active, inactive,
+            null, 
+         orientation constraint,
+            active, active, active,
+            null;
+
+   # Inertia properties of part 1:  
+   body: 0, 1,
+      0.1,   # mass
+      null, # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+     
+   # Inertia properties of part 2:  
+   body: 1, 2,
+      0.1,   # mass
+      null, # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+
+   # Load Linear Transmission Joint module:
+	module load: "libmodule-fab-motion";
+
+   # Linear Transmission Joint constrains node 0 (reference 1), node 1 (part 1), node 0 (reference 2), node 3 (part 2)
+   # The transmission ratio (input/output) can be supplied as a constant real number (itself) or
+   # two constant real numbers (coef. of part 1 and coef. of part 2).
+
+   user defined: 1, LinearTransmissionJoint, 
+      1,             # node of part 1 
+      0,             # reference node of part 1 
+      2,             # node of part 2 
+      0,             # reference node of part 2 
+      ratio, c2/c1,  # transmission ratio
+      output, yes;   # enable output of constraint force and moments
+
+/*
+	output of linear transmission joint (.usr):
+	
+	column  1:  	element label
+	columns 2-4:  	force on node 1
+    columns 5-7:  	moment on node 1
+    columns 8-10:  	force on reference node 1
+    columns 11-13: 	moment on reference node 1
+    columns 14-16:  force on node 2
+    columns 17-19:  moment on node 2
+    columns 20-22: 	force on reference node 2
+    columns 23-25: 	moment on reference node 2	
+
+*/
+
+end: elements;
+

@@ -1,0 +1,118 @@
+#
+#	Hydrodynamic bearing element - model 3 -  long bearing Sommerfeld model
+#
+#	Model based on this article:
+#   Sommerfeld, A., Zur Hydrodynamischen theorie der Schmiermittelreibung
+#   Z. Angew. Math. Phys., n. 50, pp. 97-155, 1904.
+#
+#   Library of bearing components for "digital fabrication" machines (alpha version) [2013]
+#   Eduardo Okabe (okabe@unicamp.br)
+#   Postdoc CNPq at Aero/Polimi
+#
+
+begin: data;
+	problem: initial value;
+end: data;
+
+
+begin: initial value;
+	initial time: 0.;
+	final time: 1.;
+	time step: 1.e-4;
+
+	tolerance: 1.e-8;
+	max iterations: 100;
+
+	derivatives coefficient: 1.e-12;
+	derivatives tolerance: 1.e-3;
+	derivatives max iterations: 10;
+
+	output: iterations;
+#	output: residual;
+end: initial value;
+
+
+begin: control data;
+	loadable elements: 1;
+	structural nodes: 2;
+	rigid bodies: 1;
+	joints: 3;
+	gravity;
+end: control data;
+
+set: integer Fluid = 5000;
+set: integer mancal = 1000;
+
+reference: mancal,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+begin: nodes;
+   # support structure node (no da estrutura de suporte):
+   structural: 0, dynamic, 
+      reference, mancal, null,
+      reference, mancal, eye,
+      reference, mancal, null,
+      reference, mancal, null;
+   
+   # shaft node (no do eixo):
+   structural: 1, dynamic, 
+      reference, mancal, null,
+      reference, mancal, eye,
+      reference, mancal, null,
+      reference, mancal, 100.*2.*pi, 0., 0.; 
+end: nodes;
+
+
+begin: elements;
+   joint: 1, clamp, 0, node, node;
+ 
+   joint: 2,
+      total joint,
+         0,
+            position, null,
+         1,
+            position, null,
+         position constraint,
+            active, inactive, inactive,
+            null, 
+         orientation constraint,
+            inactive, active, active,
+            null;
+
+	# This joint adds damping which is not provided by Ocvirk model
+	joint: 3,
+		deformable displacement joint,
+			0,
+				position, null,
+			1,
+     			position, null,
+ 			linear viscous isotropic, 1e4;
+ 
+ 	# fluid
+	hydraulic fluid: Fluid, incompressible, 
+		density, 876., viscosity, 0.01985;
+     
+   body: 0, 1,
+      5.5,   # mass
+      1e-5, 0., 0., # relative center of mass
+      diag, 0.01, 0.01, 0.01;  # inertia matrix
+     
+	module load: "libmodule-fab-sbearings";
+
+	user defined: 1, hydrodynamic bearing, 
+	   sommerfeld,    # model type
+	   0,             # support node 
+	   1,             # shaft node 
+	   90e-6,         # radial clearance 
+	   30e-3,         # bearing diameter 
+	   20e-3,         # bearing length
+	   fluid, reference, Fluid,         # hydraulic fluid
+	   output, yes;   # enable output of constraint moments and actual angles
+
+	gravity: 0., 0., -1., const, 9.81;
+
+end: elements;
+
