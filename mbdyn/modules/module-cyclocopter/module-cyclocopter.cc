@@ -68,6 +68,8 @@ protected:
 	doublereal dSpan;		// Blade length
 	doublereal dArea;		// Cylinder longitudinal area
 
+	doublereal dKappa;		// Hover correction coefficient
+
 	DriveOwner Weight;
 	doublereal dWeight;
 
@@ -322,6 +324,7 @@ ReadUniform(DataManager* pDM,
 	doublereal& dL,
 	DriveCaller *& pdW,
 	doublereal& dOmegaFilter,
+	doublereal& dKappa,
 	doublereal& dDeltaT)
 {
 	bFlagAve = HP.GetYesNoOrBool();
@@ -365,6 +368,18 @@ ReadUniform(DataManager* pDM,
 		}
 	} else {
 		dOmegaFilter = 0.;
+	}
+
+	dKappa = 1.;
+	if (HP.IsKeyWord("kappa")) {
+		dKappa = HP.GetReal();
+		if (dKappa <= 0) {
+			silent_cerr("Illegal null or negative hover"
+				"correction coefficient" << uLabel
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			return false;
+		}
 	}
 
 	dDeltaT = 0.;
@@ -654,6 +669,7 @@ Uk(0.), Uk_1(0.), Uk_2(0.), Yk(0.), Yk_1(0.), Yk_2(0.)
 "		<blade_span>\n"
 "		[ , delay , (DriveCaller) <delay> ]\n"
 "		[ , omegacut , <cut_frequency> ]\n"
+"		[ , kappa , <hover_correction_coefficient> ]\n"
 "		[ , timestep , <time_step> ]\n"
 "		[ , <output_data> ]\n"
 "	;\n"
@@ -674,7 +690,7 @@ Uk(0.), Uk_1(0.), Uk_2(0.), Yk(0.), Yk_1(0.), Yk_2(0.)
 	DriveCaller *pdW = 0;
 	doublereal dOmegaFilter;
 	doublereal dDeltaT;
-	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dDeltaT)) {
+	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dKappa, dDeltaT)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -737,7 +753,7 @@ CyclocopterUniform1D::AfterConvergence(const VectorHandler& X, const VectorHandl
 		if (bFlagAverage) {
 			dTzMean = dTzMean/iStepCounter;
 			doublereal dRho = dGetAirDensity(GetXCurr());
-			dUindMean = copysign(std::sqrt(std::abs(dTzMean)/(2*dRho*dArea)), dTzMean);
+			dUindMean = dKappa*copysign(std::sqrt(std::abs(dTzMean)/(2*dRho*dArea)), dTzMean);
 			dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 			dTzMean = 0.;
 		}
@@ -788,7 +804,7 @@ CyclocopterUniform1D::AssRes(SubVectorHandler& WorkVec,
 		Yk = -Yk_1*a1 - Yk_2*a2 + Uk*b0 + Uk_1*b1 + Uk_2*b2;
 		dTz = Yk;
 		doublereal dRho = dGetAirDensity(GetXCurr());
-		dUindMean = copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
+		dUindMean = dKappa*copysign(std::sqrt(std::abs(dTz)/(2*dRho*dArea)), dTz);
 
 		dUindMean = (1 - dWeight)*dUindMean + dWeight*dUindMeanPrev;
 	}
@@ -954,6 +970,7 @@ Uk(::Zero3), Uk_1(::Zero3), Uk_2(::Zero3), Yk(::Zero3), Yk_1(::Zero3), Yk_2(::Ze
 "		<blade_span>\n"
 "		[ , delay , (DriveCaller) <delay> ]\n"
 "		[ , omegacut , <cut_frequency> ]\n"
+"		[ , kappa , <hover_correction_coefficient> ]\n"
 "		[ , timestep , <time_step> ]\n"
 "		[ , <output_data> ]\n"
 "	;\n"
@@ -974,7 +991,7 @@ Uk(::Zero3), Uk_1(::Zero3), Uk_2(::Zero3), Yk(::Zero3), Yk_1(::Zero3), Yk_2(::Ze
 	DriveCaller *pdW = 0;
 	doublereal dOmegaFilter;
 	doublereal dDeltaT;
-	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dDeltaT)) {
+	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dKappa, dDeltaT)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -1066,7 +1083,7 @@ CyclocopterUniform2D::AfterConvergence(const VectorHandler& X, const VectorHandl
 			doublereal dT = sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
 			/* Velocità indotta: calcolata in base alla dT */
 			doublereal dRho = dGetAirDensity(GetXCurr());
-			dUindMean = sqrt(dT/(2*dRho*dArea));
+			dUindMean = dKappa*sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema
 	 		* rotore */
 			dUind = ::Zero3;
@@ -1129,7 +1146,7 @@ CyclocopterUniform2D::AssRes(SubVectorHandler& WorkVec,
 		doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 		/* Velocità indotta: calcolata in base alla dT */
 		doublereal dRho = dGetAirDensity(GetXCurr());
-		dUindMean = sqrt(dT/(2*dRho*dArea));
+		dUindMean = dKappa*sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema
 	 	* rotore */
 		dUind = ::Zero3;
@@ -1324,6 +1341,7 @@ flag_print(true)
 "		<blade_span>\n"
 "		[ , delay , (DriveCaller) <delay> ]\n"
 "		[ , omegacut , <cut_frequency> ]\n"
+"		[ , kappa , <hover_correction_coefficient> ]\n"
 "		[ , timestep , <time_step> ]\n"
 "		[ , <output_data> ]\n"
 "	;\n"
@@ -1344,7 +1362,7 @@ flag_print(true)
 	DriveCaller *pdW = 0;
 	doublereal dOmegaFilter;
 	doublereal dDeltaT;
-	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dDeltaT)) {
+	if (!ReadUniform(pDM, HP, uLabel, bFlagAverage, dRadius, dSpan, pdW, dOmegaFilter, dKappa, dDeltaT)) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -1379,7 +1397,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 			doublereal dT = sqrt(FMean(2)*FMean(2) + FMean(3)*FMean(3));
 			/* Velocità indotta: calcolata in base alla dT */
 			doublereal dRho = dGetAirDensity(GetXCurr());
-			dUindMean = sqrt(dT/(2*dRho*dArea));
+			dUindMean = dKappa*sqrt(dT/(2*dRho*dArea));
 			/* Componenti della velocità indotta nel sistema
 	 		* rotore */
 			dUind = Zero3;
@@ -1471,7 +1489,7 @@ CyclocopterPolimi::AssRes(SubVectorHandler& WorkVec,
 		doublereal dT = sqrt(F(2)*F(2) + F(3)*F(3));
 		/* Velocità indotta: calcolata in base alla dT */
 		doublereal dRho = dGetAirDensity(GetXCurr());
-		dUindMean = sqrt(dT/(2*dRho*dArea));
+		dUindMean = dKappa*sqrt(dT/(2*dRho*dArea));
 		/* Componenti della velocità indotta nel sistema
 	 	* rotore */
 		dUind = Zero3;
