@@ -94,7 +94,7 @@ if test -z "$MB_VERSION"; then
 fi
 echo "Configuring MBDyn $MB_VERSION ..."
 
-AC_INIT(mbdyn, [$MB_VERSION])
+AC_INIT(mbdyn, m4_esyscmd([tr -d '\n' < build/version])) 
 AC_CONFIG_AUX_DIR(build)dnl
 AC_CONFIG_SRCDIR([build/version])
 
