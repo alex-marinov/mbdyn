@@ -158,7 +158,7 @@ endif
 libstruct_la_LIBADD = @LIBS@
 libstruct_la_LDFLAGS = -static
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/libmbc \

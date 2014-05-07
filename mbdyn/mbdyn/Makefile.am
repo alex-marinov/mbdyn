@@ -60,7 +60,7 @@ $(GINACLIB_LIBS)
 ### note: to avoid dynamic linking, in mbdyn_LDADD use
 ### ../libraries/libmbc/.libs/libmbc.a
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../include \
 -I$(srcdir)/../include \
 -I$(srcdir)/../libraries/libmbutil \

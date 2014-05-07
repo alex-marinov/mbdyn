@@ -56,7 +56,7 @@ withlab.h
 libmbutil_la_LIBADD = @LIBS@
 libmbutil_la_LDFLAGS =
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/libmbutil \

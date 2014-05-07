@@ -15,7 +15,7 @@ libnaive_la_LIBADD = @LIBS@ \
 @ATOMIC_OPS_LIBS@
 libnaive_la_LDFLAGS =
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../mbdyn

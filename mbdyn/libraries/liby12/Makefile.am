@@ -28,7 +28,8 @@ liby12_la_LDFLAGS =
 noinst_PROGRAMS = y12test
 y12test_SOURCES = test.c
 y12test_LDADD = ./liby12.la
-INCLUDES = \
+
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../libmbmath \

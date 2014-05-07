@@ -191,7 +191,7 @@ libmbmath.la \
 @THREAD_LIBS@ \
 @RT_LIBS@
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/liby12 \

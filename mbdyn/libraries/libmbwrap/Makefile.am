@@ -125,7 +125,7 @@ libmbwrap.la \
 
 endif
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../mbdyn \

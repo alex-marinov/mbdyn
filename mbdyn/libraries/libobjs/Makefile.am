@@ -11,7 +11,7 @@ getopt.c
 libobjs_la_LIBADD = @LIBS@
 libobjs_la_LDFLAGS =
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../mbdyn \

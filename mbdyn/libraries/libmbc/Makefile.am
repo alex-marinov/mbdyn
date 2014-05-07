@@ -30,7 +30,7 @@ include_HEADERS = \
 mbc.h \
 mbcxx.h
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/libmbc \
@@ -51,7 +51,7 @@ nodist__mbc_py_la_SOURCES = \
 mbc_py_wrap.cc
 
 SWIG_FLAGS = @SWIG_LIB@ $(AX_SWIG_PYTHON_OPT) $(AX_SWIG_PYTHON_CPPFLAGS)
-INCLUDES += $(PYTHON_CPPFLAGS) $(PYTHON_NUMPY_HEADERS)
+AM_CPPFLAGS += $(PYTHON_CPPFLAGS) $(PYTHON_NUMPY_HEADERS)
 
 mbc_py_wrap_dep = \
 $(srcdir)/mbc_py.i \

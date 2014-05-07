@@ -12,7 +12,7 @@ colamd.h
 libmbdyncolamd_la_LIBADD = @LIBS@
 libmbdyncolamd_la_LDFLAGS =
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../mbdyn

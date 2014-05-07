@@ -228,7 +228,7 @@ mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
 
 logproc_LDFLAGS = -static
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../include \
 -I$(srcdir)/../include \
 -I$(srcdir)/../libraries/libmbc \

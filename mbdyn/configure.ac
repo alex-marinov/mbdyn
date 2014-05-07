@@ -76,7 +76,6 @@ define([AC_CACHE_SAVE], )dnl
 
 dnl ================================================================
 dnl configure.in for MBDyn
-AC_INIT(build/version)
 
 DATE=`date "+%B %e, %Y"`
 
@@ -89,19 +88,21 @@ fi
 # unset CDPATH
 $ol_unset CDPATH || test "${CDPATH:+set}" != set || CDPATH=: && export CDPATH
 
-AC_CONFIG_AUX_DIR(build)dnl
-
 MB_VERSION=`cat $ac_aux_dir/version`
 if test -z "$MB_VERSION"; then
 	AC_MSG_ERROR([could not determine version])
 fi
 echo "Configuring MBDyn $MB_VERSION ..."
 
+AC_INIT(mbdyn, [$MB_VERSION])
+AC_CONFIG_AUX_DIR(build)dnl
+AC_CONFIG_SRCDIR([build/version])
+
 dnl Determine host platform
 dnl             we try not to use this for much
 AC_CANONICAL_SYSTEM
 
-AM_INIT_AUTOMAKE(mbdyn, [$MB_VERSION])
+AM_INIT_AUTOMAKE
 
 dnl We use autoconf features new to 2.13.
 dnl aclocal.m4 should be built using aclocal from automake 1.4
@@ -2790,34 +2791,34 @@ dnl
 dnl final output
 dnl
 AC_CONFIG_FILES([Makefile \
- 	./libraries/Makefile \
- 	./libraries/libmbutil/Makefile \
- 	./libraries/libobjs/Makefile \
- 	./libraries/libcolamd/Makefile \
- 	./libraries/libnaive/Makefile \
- 	./libraries/liby12/Makefile \
- 	./libraries/libmbmath/Makefile \
- 	./libraries/libmbwrap/Makefile \
- 	./libraries/libann/Makefile \
- 	./libraries/libmbc/Makefile \
- 	./mbdyn/Makefile \
- 	./mbdyn/base/Makefile \
- 	./mbdyn/aero/Makefile \
- 	./mbdyn/elec/Makefile \
- 	./mbdyn/thermo/Makefile \
- 	./mbdyn/hydr/Makefile \
- 	./mbdyn/struct/Makefile \
- 	./modules/Makefile \
- 	./utils/Makefile \
- 	./etc/Makefile \
- 	./etc/modal.d/Makefile \
- 	./etc/pam.d/Makefile \
- 	./var/Makefile \
- 	./manual/Makefile \
- 	./manual/femgen.1 \
- 	./manual/mbdyn.1 \
- 	./include/Makefile \
- 	./include/ac/Makefile 
- 	./build/Makefile])
+ 	libraries/Makefile \
+ 	libraries/libmbutil/Makefile \
+ 	libraries/libobjs/Makefile \
+ 	libraries/libcolamd/Makefile \
+ 	libraries/libnaive/Makefile \
+ 	libraries/liby12/Makefile \
+ 	libraries/libmbmath/Makefile \
+ 	libraries/libmbwrap/Makefile \
+ 	libraries/libann/Makefile \
+ 	libraries/libmbc/Makefile \
+ 	mbdyn/Makefile \
+ 	mbdyn/base/Makefile \
+ 	mbdyn/aero/Makefile \
+ 	mbdyn/elec/Makefile \
+ 	mbdyn/thermo/Makefile \
+ 	mbdyn/hydr/Makefile \
+ 	mbdyn/struct/Makefile \
+ 	modules/Makefile \
+ 	utils/Makefile \
+ 	etc/Makefile \
+ 	etc/modal.d/Makefile \
+ 	etc/pam.d/Makefile \
+ 	var/Makefile \
+ 	manual/Makefile \
+ 	manual/femgen.1 \
+ 	manual/mbdyn.1 \
+ 	include/Makefile \
+ 	include/ac/Makefile 
+ 	build/Makefile])
 AC_OUTPUT
 

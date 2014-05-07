@@ -71,7 +71,7 @@ libaero_la_LIBADD += -lWPModule
 endif
 endif
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/libmbutil \

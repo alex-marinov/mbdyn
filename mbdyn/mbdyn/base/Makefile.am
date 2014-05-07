@@ -228,7 +228,7 @@ endif
 libbase_la_LIBADD = @LIBS@ @SECURITY_LIBS@ $(GINACLIB_LIBS)
 libbase_la_LDFLAGS = -static
 
-INCLUDES = \
+AM_CPPFLAGS = \
 -I../../include \
 -I$(srcdir)/../../include \
 -I$(srcdir)/../../libraries/libmbc \
