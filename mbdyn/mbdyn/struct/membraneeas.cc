@@ -182,6 +182,8 @@ stress_i(NUMIP, vh(3))              // 1x12
 
 	fmh M_0(3, 3);
 	fmh M_0_Inv(3, 3);
+	// doublereal pd_M_0[9], *ppd_M_0[3]; fmh M_0(pd_M_0, ppd_M_0, 9, 3, 3);
+	// doublereal pd_M_0_Inv[9], *ppd_M_0_Inv[3]; fmh M_0_Inv(pd_M_0_Inv, ppd_M_0_Inv, 9, 3, 3);
 	{
 		Vec3 x_1 = InterpDeriv_xi1(xa, xi_0);
 		Vec3 x_2 = InterpDeriv_xi2(xa, xi_0);
@@ -221,6 +223,8 @@ stress_i(NUMIP, vh(3))              // 1x12
 	for (integer i = 0; i < NUMIP; i++) {
 		fmh L_alpha_B_i(4, 2);
 		fmh S_alpha_beta_i(2, 2);
+		// doublereal pd_L_alpha_B_i[8], *ppd_L_alpha_B_i[2]; fmh L_alpha_B_i(pd_L_alpha_B_i, ppd_L_alpha_B_i, 8, 4, 2);
+		// doublereal pd_S_alpha_beta_i[4], *ppd_S_alpha_beta_i[2]; fmh S_alpha_beta_i(pd_S_alpha_beta_i, ppd_S_alpha_beta_i, 4, 2, 2);
 		Vec3 x_1 = InterpDeriv_xi1(xa, xi_i[i]);
 		Vec3 x_2 = InterpDeriv_xi2(xa, xi_i[i]);
 		S_alpha_beta_i(1, 1) = T_0_i[i].GetCol(1) * x_1;
@@ -243,7 +247,8 @@ stress_i(NUMIP, vh(3))              // 1x12
 		
 		L_alpha_B_i.MatMatMul(L_alpha_beta_i[i], xi_i_i); 
 
-		fmh H(3, iGetNumDof());                        // ( 6 x iGetNumDof )
+		fmh H(3, iGetNumDof());
+		// integer i_H = iGetNumDof(); doublereal pd_H[3*i_H], *ppd_H[i_H]; fmh H(pd_H, ppd_H, 3*i_H, 3, i_H);
 		doublereal t = xi_i[i][0] * xi_i[i][1];
 		H(1, 1) = xi_i[i][0];
 		H(1, 2) = t;
@@ -258,10 +263,12 @@ stress_i(NUMIP, vh(3))              // 1x12
 //		H(4, 6) = t;
 		
 		fmh Perm(3, 3), tmpP(3, iGetNumDof());    // Perm (12x6), tmpP(6xiGetNumDof)
+		// doublereal pd_Perm[9], *ppd_Perm[3]; fmh Perm(pd_Perm, ppd_Perm, 9, 3, 3);
+		// integer i_tmpP = iGetNumDof(); doublereal pd_tmpP[3*i_tmpP], *ppd_tmpP[i_tmpP]; fmh tmpP(pd_tmpP, ppd_tmpP, 3*i_tmpP, 3, i_tmpP);
 // FIXME: CHECK ORDER !!!! apparently no need for permutation
-			Perm(1, 1) = 1.;
-			Perm(2, 2) = 1.;
-			Perm(3, 3) = 1.;
+		Perm(1, 1) = 1.;
+		Perm(2, 2) = 1.;
+		Perm(3, 3) = 1.;
 		
 		M_0_Inv.MatTMatMul(tmpP, H);
 		Perm.MatMatMul(P_i[i], tmpP);
@@ -270,14 +277,16 @@ stress_i(NUMIP, vh(3))              // 1x12
 	// save initial axial values
 	for (integer i = 0; i < NUMIP; i++) {
 		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-		fmh F(3,2);
+		fmh F(3, 2);
+		// doublereal pd_F[6], *ppd_F[2]; fmh(pd_F, ppd_F, 6, 3, 2);
 		F.Put(1, 1, y_i_1[i]);
 		F.Put(1, 2, y_i_2[i]);
-		fmh FTF(2,2);
+		fmh FTF(2, 2);
+		// doublereal pd_FTF[4], *ppd_FTF[2]; fmh FTF(pd_FTF, ppd_FTF, 4, 2, 2);
 		F.MatTMatMul(FTF, F);
-		eps_tilde_0_i[i](1) = 0.5*( FTF(1,1) - 1 );
-		eps_tilde_0_i[i](2) = 0.5*( FTF(2,2) - 1 );
-		eps_tilde_0_i[i](3) = FTF(1,2);
+		eps_tilde_0_i[i](1) = 0.5*( FTF(1, 1) - 1 );
+		eps_tilde_0_i[i](2) = 0.5*( FTF(2, 2) - 1 );
+		eps_tilde_0_i[i](3) = FTF(1, 2);
 /*
 		eps_tilde_1_0_i[i] = T_i[i].MulTV(y_i_1[i]);
 		eps_tilde_2_0_i[i] = T_i[i].MulTV(y_i_2[i]);
@@ -330,14 +339,14 @@ SubVectorHandler& Membrane4EAS::AssRes(SubVectorHandler& WorkVec,
 
 	for (integer i = 0; i < NUMIP; i++) {
 		InterpDeriv(xa, L_alpha_beta_i[i], y_i_1[i], y_i_2[i]);
-		fmh F(3,2);
+		fmh F(3, 2);
 		F.Put(1, 1, y_i_1[i]);
 		F.Put(1, 2, y_i_2[i]);
-		fmh FTF(2,2);
+		fmh FTF(2, 2);
 		F.MatTMatMul(FTF, F);
-		eps_tilde_i[i](1) = 0.5*( FTF(1,1) - 1 );
-		eps_tilde_i[i](2) = 0.5*( FTF(2,2) - 1 );
-		eps_tilde_i[i](3) = FTF(1,2);
+		eps_tilde_i[i](1) = 0.5*( FTF(1, 1) - 1 );
+		eps_tilde_i[i](2) = 0.5*( FTF(2, 2) - 1 );
+		eps_tilde_i[i](3) = FTF(1, 2);
 		eps_tilde_i[i] -= eps_tilde_0_i[i];
 /*
 		eps_tilde_1_i[i] = T_i[i].MulTV(y_i_1[i]) - eps_tilde_1_0_i[i];

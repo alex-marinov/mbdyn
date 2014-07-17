@@ -73,7 +73,12 @@ endif
 libmbmath_la_LIBADD = @LIBS@ @FCLIBS@ @ANN_LIBS@
 libmbmath_la_LDFLAGS =
 
-noinst_PROGRAMS = matmultest itertest dgeequtest subtest gradienttest matvectest
+noinst_PROGRAMS = matmultest itertest dgeequtest subtest matvectest
+
+if USE_AUTODIFF
+noinst_PROGRAMS += \
+gradienttest
+endif
 
 matmultest_SOURCES = matmultest.cc
 matmultest_LDADD = \

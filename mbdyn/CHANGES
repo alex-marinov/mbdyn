@@ -32,6 +32,7 @@ MBDyn 1.X-Devel
 		- improved hydrodynamic plain bearing (Reinhard Resch)
 		- improved module-octave (Reinhard Resch)
 		- added check for symmetry of inertia tensor
+		- added several modules by Eduardo Okabe (module-fab-*/)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change

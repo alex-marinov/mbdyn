@@ -88,7 +88,15 @@ fi
 # unset CDPATH
 $ol_unset CDPATH || test "${CDPATH:+set}" != set || CDPATH=: && export CDPATH
 
-MB_VERSION=`cat $ac_aux_dir/version`
+MBDYN_DEVEL=no
+if test -f "$ac_aux_dir/DEVEL" ; then
+	MBDYN_DEVEL=yes
+	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
+	MB_VERSION="Devel"
+else
+	MB_VERSION=`cat $ac_aux_dir/version`
+fi
+
 if test -z "$MB_VERSION"; then
 	AC_MSG_ERROR([could not determine version])
 fi
@@ -434,18 +442,6 @@ AC_LANG_CPLUSPLUS
 AC_CHECK_HEADERS(exception)
 AC_CHECK_HEADERS(stdexcept)
 AC_LANG_C
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Sort out defines
-dnl
-dnl !!! set to "no" before release !!!
-MBDYN_DEVEL=yes
-dnl MBDYN_DEVEL=no
-if test x"$MBDYN_DEVEL" = x"yes" ; then 
-	AC_DEFINE(MBDYN_DEVEL,1,[define to enable features under development])
-fi
-AM_CONDITIONAL(MBDYN_DEVEL,[test "$MBDYN_DEVEL" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl
@@ -2758,6 +2754,8 @@ AC_SUBST(GINACLIB_LIBS)
 AC_SUBST(DATE)
 
 dnl conditional build declarations
+AM_CONDITIONAL(MBDYN_DEVEL,[test "$MBDYN_DEVEL" = "yes"])
+
 AM_CONDITIONAL(USE_ARPACK,[test "$ol_link_arpack" = yes])
 AM_CONDITIONAL(USE_CHACO,[test "$ol_link_chaco" = yes])
 AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
@@ -2769,6 +2767,7 @@ AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
 AM_CONDITIONAL(USE_SCHUR,[test "$use_schur" = yes])
 AM_CONDITIONAL(USE_SOCKET,[test "$use_socket" = yes])
 AM_CONDITIONAL(USE_ANN,[test "$ol_link_ann" = yes])
+AM_CONDITIONAL(USE_AUTODIFF,[test "$ol_enable_autodiff" = yes])
 
 AM_CONDITIONAL(FOOL_LIBTOOL,[test "$fool_libtool" = yes])
 AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
