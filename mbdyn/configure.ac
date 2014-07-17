@@ -88,6 +88,10 @@ fi
 # unset CDPATH
 $ol_unset CDPATH || test "${CDPATH:+set}" != set || CDPATH=: && export CDPATH
 
+AC_INIT(mbdyn, m4_esyscmd([tr -d '\n' < build/version])) 
+AC_CONFIG_AUX_DIR(build)dnl
+AC_CONFIG_SRCDIR([build/version])
+
 MBDYN_DEVEL=no
 if test -f "$ac_aux_dir/DEVEL" ; then
 	MBDYN_DEVEL=yes
@@ -101,10 +105,6 @@ if test -z "$MB_VERSION"; then
 	AC_MSG_ERROR([could not determine version])
 fi
 echo "Configuring MBDyn $MB_VERSION ..."
-
-AC_INIT(mbdyn, m4_esyscmd([tr -d '\n' < build/version])) 
-AC_CONFIG_AUX_DIR(build)dnl
-AC_CONFIG_SRCDIR([build/version])
 
 dnl Determine host platform
 dnl             we try not to use this for much
