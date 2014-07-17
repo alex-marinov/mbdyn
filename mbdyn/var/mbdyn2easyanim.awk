@@ -52,6 +52,7 @@
 # noShowBeam		suppresses generation of beam elements
 # noShowAero		suppresses generation of aerodynamic elements
 # every			outputs data every many time steps
+# triad_length		if > 0, triads are drawn for each node with that length
 
 # multiplies a 3x3 matrix times a 3 vector, adds a second 3 vector
 # and stores result in another vector
