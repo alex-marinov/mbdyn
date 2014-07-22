@@ -245,6 +245,10 @@ module-inplane_friction/examples/inplane_friction.mbdyn \
 module-mds/mds \
 module-mds/module-mds.cc \
  \
+module-minmaxdrive/minmax.mbdyn \
+module-minmaxdrive/module-minmaxdrive.cc \
+module-minmaxdrive/module-minmaxdrive.h \
+ \
 module-muscles/muscle_test \
 module-muscles/module-muscles.cc \
 \
