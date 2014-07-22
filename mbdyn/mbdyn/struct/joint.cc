@@ -801,6 +801,12 @@ ReadJoint(DataManager* pDM,
 		OrientationDescription od = UNKNOWN_ORIENTATION_DESCRIPTION;
 		switch (CurrKeyWord) {
 		case GIMBALROTATION:
+		case SPHERICALHINGE:
+		case UNIVERSALROTATION:
+		case CARDANOROTATION:
+		case REVOLUTEHINGE:
+		case AXIALROTATION:
+		case REVOLUTEROTATION:
 			od = ReadOptionalOrientationDescription(pDM, HP);
 			break;
 
@@ -819,7 +825,7 @@ ReadJoint(DataManager* pDM,
 				SphericalHingeJoint,
 				SphericalHingeJoint(uLabel, pDO,
 					pNode1, pNode2,
-					d1, R1h, d2, R2h, fOut));
+					d1, R1h, d2, R2h, od, fOut));
 			std::ostream& out = pDM->GetLogFile();
 			out << "sphericalhinge: " << uLabel
 				<< " " << pNode1->GetLabel()
@@ -859,7 +865,7 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PlaneHingeJoint,
 				PlaneHingeJoint(uLabel, pDO, pNode1, pNode2,
-					d1, d2, R1h, R2h, fOut,
+					d1, d2, R1h, R2h, od, fOut,
 					calcInitdTheta, initDTheta,
 					r, preload, bsh, bf));
 			std::ostream& out = pDM->GetLogFile();
@@ -921,7 +927,7 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				PlaneRotationJoint,
 				PlaneRotationJoint(uLabel, pDO,
-					pNode1, pNode2, R1h, R2h, fOut));
+					pNode1, pNode2, R1h, R2h, od, fOut));
 			std::ostream& out = pDM->GetLogFile();
 			out << "revoluterotation: " << uLabel
 				<< " " << pNode1->GetLabel()
@@ -960,7 +966,7 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				UniversalRotationJoint,
 				UniversalRotationJoint(uLabel, pDO,
-					pNode1, pNode2, R1h, R2h, fOut));
+					pNode1, pNode2, R1h, R2h, od, fOut));
 			std::ostream& out = pDM->GetLogFile();
 			out << "cardanorotation: " << uLabel
 				<< " " << pNode1->GetLabel()
@@ -992,7 +998,7 @@ ReadJoint(DataManager* pDM,
 				AxialRotationJoint,
 				AxialRotationJoint(uLabel, pDO,
 					pNode1, pNode2,
-					d1, d2, R1h, R2h, pDC,
+					d1, d2, R1h, R2h, pDC, od,
 					fOut,
 					r, preload, bsh, bf));
 			std::ostream& out = pDM->GetLogFile();

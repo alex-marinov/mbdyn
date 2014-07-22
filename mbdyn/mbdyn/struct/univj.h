@@ -142,15 +142,23 @@ private:
 	 * I vettori F, M esprimono le reazioni vincolari di forza e coppia. */
 	const StructNode* pNode1;
 	const StructNode* pNode2;
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+#endif // USE_NETCDF
 	Mat3x3 R1h;
 	Mat3x3 R2h;
 	doublereal dM;
+
+protected:
+	OrientationDescription od;
 
 public:
 	/* Costruttore non banale */
 	UniversalRotationJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2,
-		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut);
+		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+		const OrientationDescription& od,
+		flag fOut);
 
 	/* Distruttore */
 	~UniversalRotationJoint(void);
@@ -187,6 +195,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler &OH);
 	void Output(OutputHandler& OH) const;
 
 

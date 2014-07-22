@@ -59,6 +59,10 @@ pNode2(pN2),
 tilde_R1h(tilde_R1h),
 tilde_R2h(tilde_R2h),
 od(od),
+#ifdef USE_NETCDF
+Var_Phi(0),
+Var_Omega(0),
+#endif // USE_NETCDF
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -170,48 +174,114 @@ DeformableHingeJoint::Restart(std::ostream& out) const
 }
 
 void
+DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("deformable hinge", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 DeformableHingeJoint::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Mat3x3 R(R1h.MulTM(R2h));
-
+		Vec3 OmegaTmp(R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		Vec3 v(GetF());
-		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, R1h*v) << " ";
+		Vec3 E;
+				switch (od) {
+				case EULER_123:
+					E = MatR2EulerAngles123(R)*dRaDegr;
+					break;
 
-		switch (od) {
-		case EULER_123:
-			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
-			break;
+				case EULER_313:
+					E = MatR2EulerAngles313(R)*dRaDegr;
+					break;
 
-		case EULER_313:
-			OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
-			break;
+				case EULER_321:
+					E = MatR2EulerAngles321(R)*dRaDegr;
+					break;
 
-		case EULER_321:
-			OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
-			break;
+				case ORIENTATION_VECTOR:
+					E = RotManip::VecRot(R);
+					break;
 
-		case ORIENTATION_VECTOR:
-			OH.Joints() << RotManip::VecRot(R);
-			break;
+				case ORIENTATION_MATRIX:
+					break;
 
-		case ORIENTATION_MATRIX:
-			OH.Joints() << R;
-			break;
+				default:
+					/* impossible */
+					break;
+				}
 
-		default:
-			/* impossible */
-			break;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(v.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((R1h*v).pGetVec(), OH.GetCurrentStep());
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+
 		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
+				Zero3, v, Zero3, R1h*v) << " ";
 
-		if (GetConstLawType() & ConstLawType::VISCOUS) {
-			OH.Joints() << " " << R1h.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.Joints() << E;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.Joints() << R;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+
+			if (GetConstLawType() & ConstLawType::VISCOUS) {
+				OH.Joints() << " " << OmegaTmp;
+			}
+
+			OH.Joints() << std::endl;
 		}
-
-		OH.Joints() << std::endl;
 	}
 }
 

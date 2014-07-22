@@ -43,11 +43,17 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
  private:
    const StructNode* pNode1;
    const StructNode* pNode2;
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+#endif // USE_NETCDF
    Vec3 d1;
    Mat3x3 R1h;
    Vec3 d2;
    Mat3x3 R2h;
    Vec3 F;
+
+ protected:
+	OrientationDescription od;
 
  public:
    /* Costruttore non banale */
@@ -55,6 +61,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
 		       const StructNode* pN1, const StructNode* pN2,
 		       const Vec3& dTmp1, const Mat3x3& RTmp1h,
 		       const Vec3& dTmp2, const Mat3x3& RTmp2h,
+		       const OrientationDescription& od,
 		       flag fOut);
    
    ~SphericalHingeJoint(void);
@@ -92,6 +99,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
    
+   void OutputPrepare(OutputHandler &OH);
    virtual void Output(OutputHandler& OH) const;
  
    virtual void SetValue(DataManager *pDM,

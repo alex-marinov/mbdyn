@@ -50,6 +50,7 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 		const StructNode* pN1, const StructNode* pN2,
 		const Vec3& dTmp1, const Vec3& dTmp2,
 		const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+		const OrientationDescription& od,
 		flag fOut, 
 		const bool _calcInitdTheta,
 		const doublereal initDTheta,
@@ -61,8 +62,15 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
+#ifdef USE_NETCDF
+Var_Phi(0),
+Var_Omega(0),
+//Var_MFR(0),
+//Var_MU(0),
+#endif // USE_NETCDF
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
-Sh_c(sh), fc(f), preF(pref), r(rr)
+Sh_c(sh), fc(f), preF(pref), r(rr),
+od(od)
 {
 	NO_OP;
 	char * fname = NULL;
@@ -937,21 +945,131 @@ PlaneHingeJoint::GetEqType(unsigned int i) const
    }
 }
 
+void
+PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("revolute hinge", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+
+/* TODO
+			Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+				"friciton moment ");
+
+			Var_MU = OH.CreateVar<doublereal>(name + "MU", "--",
+					"friction model specific data: friction coefficient?");
+*/
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void PlaneHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
-      
-      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    R2Tmp.MulTV(F), M, F, R2Tmp*M)
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr());
-      if (fc) {
-          of << " " << M3 << " " << fc->fc();
-      }
-      of << std::endl;
+      Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec((R2Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((R2Tmp*M).pGetVec(), OH.GetCurrentStep());
+
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+/*
+			if (fc) {
+					Var_MFR->put_rec(&M3, OH.GetCurrentStep());
+					Var_MU->put_rec(fc->fc(), OH.GetCurrentStep());
+			}
+			else
+			{
+				Var_MFR->put_rec(0, OH.GetCurrentStep());
+				Var_MU->put_rec(0, OH.GetCurrentStep());
+			}
+*/
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			  std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+					R2Tmp.MulTV(F), M, F, R2Tmp*M)
+			<< " ";
+
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				of << E;
+				break;
+
+			case ORIENTATION_MATRIX:
+				of << RTmp;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+			of << " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr());
+			  if (fc) {
+				  of << " " << M3 << " " << fc->fc();
+			  }
+			  of << std::endl;
+		}
    }
 }
 
@@ -1415,12 +1533,21 @@ doublereal PlaneHingeJoint::dGetPrivData(unsigned int i) const
 PlaneRotationJoint::PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
 				 const StructNode* pN1, const StructNode* pN2,
 				 const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+				 const OrientationDescription& od,
 				 flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), M(Zero3),
-NTheta(0), dTheta(0.), dThetaWrapped(0.)
+NTheta(0), dTheta(0.),
+dThetaWrapped(0.),
+#ifdef USE_NETCDF
+Var_Phi(0),
+Var_Omega(0),
+//Var_MFR(0),
+//Var_MU(0),
+#endif // USE_NETCDF
+od(od)
 {
    NO_OP;
 }
@@ -1896,17 +2023,107 @@ PlaneRotationJoint::GetEqType(unsigned int i) const
 }
 
 
+void
+PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("revolute rotation", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void PlaneRotationJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+      Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
       
-      Joint::Output(OH.Joints(), "PlaneRotation", GetLabel(),
-		    Zero3, M, Zero3, R2Tmp*M)
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()) << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((R2Tmp*M).pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			  Joint::Output(OH.Joints(), "PlaneRotation", GetLabel(),
+					Zero3, M, Zero3, R2Tmp*M)
+			<< " ";
+
+				switch (od) {
+				case EULER_123:
+				case EULER_313:
+				case EULER_321:
+				case ORIENTATION_VECTOR:
+					OH.Joints() << E;
+					break;
+
+				case ORIENTATION_MATRIX:
+					OH.Joints() << RTmp;
+					break;
+
+				default:
+					/* impossible */
+					break;
+				}
+
+				OH.Joints() << " " << OmegaTmp << std::endl;
+		}
    }
 }
 
@@ -2307,7 +2524,9 @@ AxialRotationJoint::AxialRotationJoint(unsigned int uL, const DofOwner* pDO,
 		const Vec3& dTmp1, const Vec3& dTmp2,
 		const Mat3x3& R1hTmp, 
 		const Mat3x3& R2hTmp,
-		const DriveCaller* pDC, flag fOut,
+		const DriveCaller* pDC,
+		const OrientationDescription& od,
+		flag fOut,
 		const doublereal rr,
 		const doublereal pref,
 		BasicShapeCoefficient *const sh,
@@ -2318,7 +2537,14 @@ DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.),
-Sh_c(sh), fc(f), preF(pref), r(rr)
+#ifdef USE_NETCDF
+Var_Phi(0),
+Var_Omega(0),
+//Var_MFR(0),
+//Var_MU(0),
+#endif // USE_NETCDF
+Sh_c(sh), fc(f), preF(pref), r(rr),
+od(od)
 {
 	NO_OP;
 }
@@ -3135,6 +3361,31 @@ AxialRotationJoint::GetEqType(unsigned int i) const
 	}
 }
 
+void
+AxialRotationJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("axial rotation", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+
+/* TODO
+			Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+				"friciton moment ");
+
+			Var_MU = OH.CreateVar<doublereal>(name + "MU", "--",
+					"friction model specific data: friction coefficient?");
+*/
+		}
+#endif // USE_NETCDF
+	}
+}
 
 /* Output (da mettere a punto) */
 void AxialRotationJoint::Output(OutputHandler& OH) const
@@ -3142,15 +3393,98 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
    if (fToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+      Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
       
-      std::ostream &of = Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
-		    R2Tmp.MulTV(F), M, F, R2Tmp*M) 
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << " " << dGet()
-	<< " " << R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()); 
-        if (fc) {
-            of << " " << M3 << " " << fc->fc();
-        }
-	of << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec((R2Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((R2Tmp*M).pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+/*
+			if (fc) {
+					Var_MFR->put_rec(&M3, OH.GetCurrentStep());
+					Var_MU->put_rec(fc->fc(), OH.GetCurrentStep());
+			}
+			else
+			{
+				Var_MFR->put_rec(0, OH.GetCurrentStep());
+				Var_MU->put_rec(0, OH.GetCurrentStep());
+			}
+*/
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+		  std::ostream &of = Joint::Output(OH.Joints(), "AxialRotation", GetLabel(),
+				R2Tmp.MulTV(F), M, F, R2Tmp*M)
+		  << " ";
+
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.Joints() << E;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.Joints() << RTmp;
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+			OH.Joints() << " " << dGet()
+		  << " " << OmegaTmp;
+		  if (fc) {
+			  of << " " << M3 << " " << fc->fc();
+		  }
+		of << std::endl;
+		}
    }
 }
 

@@ -58,6 +58,13 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    Mat3x3 R2h;
    Vec3 F;
    Vec3 M;
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+	NcVar *Var_Omega;
+//	NcVar *Var_MFR;
+//	NcVar *Var_MU;
+#endif // USE_NETCDF
+
    bool calcInitdTheta;
    mutable int NTheta;
    mutable doublereal dTheta, dThetaWrapped;
@@ -71,13 +78,18 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
-   
+
+ protected:
+	OrientationDescription od;
+
  public:
    /* Costruttore non banale */
    PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pN1, const StructNode* pN2,
 		   const Vec3& dTmp1, const Vec3& dTmp2,
-		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut,
+		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+	       const OrientationDescription& od,
+	       flag fOut,
 		   const bool _calcInitdTheta = true,
 		   const doublereal initDTheta = 0.,
 		   const doublereal rr = 0.,
@@ -147,6 +159,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
    
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 
@@ -207,12 +220,21 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
    Vec3 M;
    mutable int NTheta;
    mutable doublereal dTheta, dThetaWrapped;
-   
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+	NcVar *Var_Omega;
+#endif // USE_NETCDF
+
+ protected:
+	OrientationDescription od;
+
  public:
    /* Costruttore non banale */
    PlaneRotationJoint(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pN1, const StructNode* pN2,
-		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp, flag fOut);
+		   const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
+	       const OrientationDescription& od,
+	       flag fOut);
    
    /* Distruttore */
    ~PlaneRotationJoint(void);
@@ -275,6 +297,7 @@ class PlaneRotationJoint : virtual public Elem, public Joint {
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
    
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 
@@ -342,6 +365,13 @@ public Joint, public DriveOwner {
    mutable int NTheta;
    mutable doublereal dTheta, dThetaWrapped;
 
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+	NcVar *Var_Omega;
+//	NcVar *Var_MFR;
+//	NcVar *Var_MU;
+#endif // USE_NETCDF
+
    /* friction related data */
    BasicShapeCoefficient *const Sh_c;
    BasicFriction *const fc;
@@ -351,14 +381,19 @@ public Joint, public DriveOwner {
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
-   
+
+ protected:
+	OrientationDescription od;
+
  public:
    /* Costruttore non banale */
    AxialRotationJoint(unsigned int uL, const DofOwner* pDO, 
 		      const StructNode* pN1, const StructNode* pN2,
 		      const Vec3& dTmp1, const Vec3& dTmp2,
 		      const Mat3x3& R1hTmp, const Mat3x3& R2hTmp,
-		      const DriveCaller* pDC, flag fOut,
+		      const DriveCaller* pDC,
+		      const OrientationDescription& od,
+		      flag fOut,
 		      const doublereal rr = 0.,
 		      const doublereal pref = 0.,
 		      BasicShapeCoefficient *const sh = 0,
@@ -437,6 +472,7 @@ public Joint, public DriveOwner {
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
    
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 

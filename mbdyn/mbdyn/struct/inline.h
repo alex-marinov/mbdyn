@@ -88,6 +88,7 @@ class InLineJoint : virtual public Elem, public Joint {
    
    DofOrder::Order GetEqType(unsigned int i) const;
    
+	void OutputPrepare(OutputHandler &OH);
    virtual void Output(OutputHandler& OH) const;
 
    

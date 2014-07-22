@@ -188,13 +188,39 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void
+InLineJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("inline", OH, name);
+		}
+#endif // USE_NETCDF
+	}
+}
+
 void InLineJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {      
+   if (fToBeOutput()) {
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
-      Joint::Output(OH.Joints(), "inline", GetLabel(),
-		    F, Zero3, RvTmp*F, Zero3) << std::endl;
-      // TODO: output relative position and orientation
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec((RvTmp*F).pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+
+		  Joint::Output(OH.Joints(), "inline", GetLabel(),
+				F, Zero3, RvTmp*F, Zero3) << std::endl;
+		  // TODO: output relative position and orientation
+		}
    }   
 }
  

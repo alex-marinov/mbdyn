@@ -258,14 +258,39 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void
+PrismaticJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("prismatic", OH, name);
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void PrismaticJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
-      
-      Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    Zero3, M, Zero3, R1Tmp*M) << std::endl;      
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((R1Tmp*M).pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+		  Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+				Zero3, M, Zero3, R1Tmp*M) << std::endl;
+		}
    }   
 }
 

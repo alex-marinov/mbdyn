@@ -52,6 +52,13 @@ protected:
 
 	OrientationDescription od;
 
+private:
+#ifdef USE_NETCDF
+	NcVar *Var_Phi;
+	NcVar *Var_Omega;
+#endif // USE_NETCDF
+
+protected:
 	bool bFirstRes;
 
 	Vec3 M;
@@ -112,6 +119,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Aggiorna le deformazioni ecc. */

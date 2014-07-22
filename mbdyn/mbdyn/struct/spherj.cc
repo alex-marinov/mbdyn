@@ -34,6 +34,8 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "spherj.h"
+#include "Rot.hh"
+
 
 /* SphericalHingeJoint - begin */
 
@@ -43,13 +45,18 @@ SphericalHingeJoint::SphericalHingeJoint(unsigned int uL, const DofOwner* pDO,
 					 const StructNode* pN2,
 					 const Vec3& dTmp1, const Mat3x3& RTmp1h,
 					 const Vec3& dTmp2, const Mat3x3& RTmp2h,
+					 const OrientationDescription& od,
 					 flag fOut)
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), 
+#ifdef USE_NETCDF
+Var_Phi(0),
+#endif // USE_NETCDF
 d1(dTmp1), R1h(RTmp1h),
 d2(dTmp2), R2h(RTmp2h), 
-F(Zero3)
+F(Zero3),
+od(od)
 {
    NO_OP;
 }
@@ -211,17 +218,102 @@ DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
 	return DofOrder::ALGEBRAIC;
 }
 
+void
+SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("spherical hinge", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+		}
+#endif // USE_NETCDF
+	}
+}
 
 /* Output (da mettere a punto) */
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
    if (fToBeOutput()) {
-      Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
-      Mat3x3 RTmp(R1Tmp.MulTM(pNode2->GetRCurr()*R2h));
+		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
+		Mat3x3 RTmp(R1Tmp.MulTM(pNode2->GetRCurr()*R2h));
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
       
-      Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
-		    R1Tmp.MulTV(F), Zero3, F, Zero3) 
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec((R1Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+				Joint::Output(OH.Joints(), "SphericalHinge", GetLabel(),
+				R1Tmp.MulTV(F), Zero3, F, Zero3)
+				<< " ";
+
+				switch (od) {
+				case EULER_123:
+				case EULER_313:
+				case EULER_321:
+				case ORIENTATION_VECTOR:
+					OH.Joints() << E;
+					break;
+
+				case ORIENTATION_MATRIX:
+					OH.Joints() << RTmp;
+					break;
+
+				default:
+					/* impossible */
+					break;
+				}
+
+				OH.Joints() << std::endl;
+		}
    }   
 }
 

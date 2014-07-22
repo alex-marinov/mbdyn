@@ -36,6 +36,7 @@
 #include <limits>
 
 #include "univj.h"
+#include "Rot.hh"
 
 /* UniversalHingeJoint - begin */
 
@@ -605,11 +606,15 @@ UniversalRotationJoint::UniversalRotationJoint(unsigned int uL,
 	const StructNode* pN2,
 	const Mat3x3& R1hTmp,
 	const Mat3x3& R2hTmp,
+	const OrientationDescription& od,
 	flag fOut)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2),
-R1h(R1hTmp), R2h(R2hTmp), dM(0.)
+#ifdef USE_NETCDF
+Var_Phi(0),
+#endif // USE_NETCDF
+R1h(R1hTmp), R2h(R2hTmp), dM(0.), od(od)
 {
 	NO_OP;
 }
@@ -771,6 +776,23 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void
+UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("cardano rotation", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 /* Output (da mettere a punto) */
 void
 UniversalRotationJoint::Output(OutputHandler& OH) const
@@ -779,11 +801,81 @@ UniversalRotationJoint::Output(OutputHandler& OH) const
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
 		Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
+		Mat3x3 RTmp(R2Tmp.Transpose()*R1Tmp);
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
 
-		Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
-			Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM)
-			<< " " << MatR2EulerAngles(R2Tmp.Transpose()*R1Tmp)*dRaDegr
-			<< std::endl;
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec((Vec3(dM, 0., 0.)).pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec((vTmp*dM).pGetVec(), OH.GetCurrentStep());
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
+				Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM)
+				<< " ";
+				switch (od) {
+				case EULER_123:
+				case EULER_313:
+				case EULER_321:
+				case ORIENTATION_VECTOR:
+					OH.Joints() << E;
+					break;
+
+				case ORIENTATION_MATRIX:
+					OH.Joints() << RTmp;
+					break;
+
+			default:
+				/* impossible */
+				break;
+				}
+
+				OH.Joints() << std::endl;
+		}
 	}
 }
 
