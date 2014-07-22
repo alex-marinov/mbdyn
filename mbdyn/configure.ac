@@ -4,7 +4,7 @@ dnl
 dnl MBDyn (C) is a multibody analysis code.
 dnl http://www.mbdyn.org
 dnl
-dnl Copyright (C) 1996-2013
+dnl Copyright (C) 1996-2014
 dnl
 dnl Pierangelo Masarati     <masarati@aero.polimi.it>
 dnl Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -40,7 +40,7 @@ define([AC_INIT_BINSH],
 # MBDyn (C) is a multibody analysis code.
 # http://www.mbdyn.org
 #
-# Copyright (C) 1996-2013
+# Copyright (C) 1996-2014
 #
 # Pierangelo Masarati     <masarati@aero.polimi.it>
 # Paolo Mantegazza        <mantegazza@aero.polimi.it>
@@ -57,7 +57,7 @@ define([AC_INIT_BINSH],
 # 
 #
 echo ""
-echo "	Copyright (C) 1996-2013"
+echo "	Copyright (C) 1996-2014"
 echo "	"
 echo "	Pierangelo Masarati     <masarati@aero.polimi.it>"
 echo "	Paolo Mantegazza        <mantegazza@aero.polimi.it>"
@@ -123,7 +123,7 @@ AH_TOP([
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2013
+ * Copyright (C) 1996-2014
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  * Paolo Mantegazza     <mantegazza@aero.polimi.it>
