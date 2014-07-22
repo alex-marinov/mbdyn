@@ -9,6 +9,7 @@ libmbutil_la_SOURCES = \
 cleanup.cc \
 cleanup.h \
 clock_time.cc \
+clock_time.h \
 crypt.cc \
 crypt.h \
 demangle.cc \
