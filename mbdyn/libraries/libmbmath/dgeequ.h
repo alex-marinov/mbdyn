@@ -64,10 +64,10 @@ protected:
 	inline void Prepare(const MatrixHandler& mh, integer& nrows, integer& ncols);
 	void PrepareRows(const MatrixHandler& mh, integer& nrows);
 	void PrepareCols(const MatrixHandler& mh, integer& ncols);
-
+	inline bool bReport() const;
 	std::vector<doublereal> rowScale, colScale;
 	mutable doublereal dCondBefore, dCondAfter;
-	unsigned uFlags;
+	const unsigned uFlags;
 	bool bOK;
 
 private:
@@ -191,6 +191,28 @@ private:
 	doublereal maxNormR, maxNormC;
 };
 
+// computes scaling factors for a matrix handler that has an iterator
+// based on
+// R. Sinkhorn and P. Knopp. Concerning nonnegative matrices and doubly stochastic
+// matrices. Pacific Journal of Mathematics, 21(2): 1967.
+
+template <typename T>
+class RowMaxColMaxMatrixScale: public MatrixScale<T>
+{
+public:
+	inline RowMaxColMaxMatrixScale(const SolutionManager::ScaleOpt& scale);
+	virtual ~RowMaxColMaxMatrixScale();
+
+protected:
+	virtual bool ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale);
+	virtual std::ostream& vReport(std::ostream& os) const;
+
+private:
+	const doublereal dTol;
+	doublereal maxNormRow, maxNormCol;
+	std::vector<doublereal> normRow, normCol;
+};
+
 VectorHandler& MatrixScaleBase::ScaleRightHandSide(VectorHandler& bVH) const
 {
 	if (!rowScale.empty()) {
@@ -222,6 +244,11 @@ MatrixHandler::Norm_t MatrixScaleBase::GetCondNumNorm()const
 		ASSERT(0);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+}
+
+bool MatrixScaleBase::bReport() const
+{
+	return uFlags & (SolutionManager::SCALEF_WARN | SolutionManager::SCALEF_VERBOSE);
 }
 
 void MatrixScaleBase::Prepare(const MatrixHandler& mh, integer& nrows, integer& ncols)
@@ -324,6 +351,11 @@ MatrixScale<T>* MatrixScale<T>::Allocate(const SolutionManager::ScaleOpt& scale)
 							   IterativeMatrixScale<T>(scale));
 		break;
 
+	case SolutionManager::SCALEA_ROW_MAX_COL_MAX:
+		SAFENEWWITHCONSTRUCTOR(pMatScale,
+							   RowMaxColMaxMatrixScale<T>,
+							   RowMaxColMaxMatrixScale<T>(scale));
+		break;
 	default:
 		ASSERT(0);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -688,75 +720,92 @@ bool IterativeMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doubl
 	}
 
 	int i;
-	bool bConverged = false;
+	bool bConverged = false, bFirstTime = true;
 
-	for (i = 1; i <= iMaxIter; ++i) {
-		std::fill(DR.begin(), DR.end(), 0.);
-		std::fill(DC.begin(), DC.end(), 0.);
+	while (true) {
+		for (i = 1; i <= iMaxIter; ++i) {
+			std::fill(DR.begin(), DR.end(), 0.);
+			std::fill(DC.begin(), DC.end(), 0.);
 
-		for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
-			doublereal d = im->dCoef;
+			for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+				doublereal d = im->dCoef;
 
-			if (d == 0.) {
-				continue;
+				if (d == 0.) {
+					continue;
+				}
+
+				d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
+
+				if (d > DR[im->iRow]) {
+					DR[im->iRow] = d;
+				}
+
+				if (d > DC[im->iCol]) {
+					DC[im->iCol] = d;
+				}
 			}
 
-			d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
-
-			if (d > DR[im->iRow]) {
-				DR[im->iRow] = d;
+			for (int j = 0; j < nrows; ++j) {
+				rowScale[j] /= sqrt(DR[j]);
 			}
 
-			if (d > DC[im->iCol]) {
-				DC[im->iCol] = d;
+			for (int j = 0; j < ncols; ++j) {
+				colScale[j] /= sqrt(DC[j]);
+			}
+
+			std::fill(normR.begin(), normR.end(), 0.);
+			std::fill(normC.begin(), normC.end(), 0.);
+
+			for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+				doublereal d = im->dCoef;
+
+				if (d == 0.) {
+					continue;
+				}
+
+				d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
+
+				if (d > normR[im->iRow]) {
+					normR[im->iRow] = d;
+				}
+
+				if (d > normC[im->iCol]) {
+					normC[im->iCol] = d;
+				}
+			}
+
+			ASSERT(normR.size() > 0);
+			ASSERT(normC.size() > 0);
+
+			maxNormR = 0.;
+
+			for (std::vector<doublereal>::const_iterator ir = normR.begin();
+				 ir != normR.end(); ++ir) {
+				maxNormR = std::max(maxNormR, std::abs(1. - *ir));
+			}
+
+			maxNormC = 0.;
+
+			for (std::vector<doublereal>::const_iterator ic = normC.begin();
+				 ic != normC.end(); ++ic) {
+				maxNormC = std::max(maxNormC, std::abs(1. - *ic));
+			}
+
+			if (maxNormR < dTol && maxNormC < dTol) {
+				bConverged = true;
+				break;
 			}
 		}
 
-		for (int j = 0; j < nrows; ++j) {
-			rowScale[j] /= sqrt(DR[j]);
-		}
-
-		for (int j = 0; j < ncols; ++j) {
-			colScale[j] /= sqrt(DC[j]);
-		}
-
-		std::fill(normR.begin(), normR.end(), 0.);
-		std::fill(normC.begin(), normC.end(), 0.);
-
-		for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
-			doublereal d = im->dCoef;
-
-			if (d == 0.) {
-				continue;
-			}
-
-			d = std::abs(d * rowScale[im->iRow] * colScale[im->iCol]);
-
-			if (d > normR[im->iRow]) {
-				normR[im->iRow] = d;
-			}
-
-			if (d > normC[im->iCol]) {
-				normC[im->iCol] = d;
-			}
-		}
-
-		maxNormR = 0.;
-
-		for (std::vector<doublereal>::const_iterator ir = normR.begin();
-			 ir != normR.end(); ++ir) {
-			maxNormR = std::max(maxNormR, std::abs(1. - *ir));
-		}
-
-		maxNormC = 0.;
-
-		for (std::vector<doublereal>::const_iterator ic = normC.begin();
-			 ic != normC.end(); ++ic) {
-			maxNormC = std::max(maxNormC, std::abs(1. - *ic));
-		}
-
-		if (maxNormR < dTol && maxNormC < dTol) {
-			bConverged = true;
+		if (bConverged) {
+			break;	// Scale factors have been computed successfully!
+		} else if (bFirstTime) {
+			// No convergence: Reset the scale factors and try again!
+			std::fill(rowScale.begin(), rowScale.end(), 1.);
+			std::fill(colScale.begin(), colScale.end(), 1.);
+			bFirstTime = false;
+		} else {
+			// Still no convergence: Bail out!
 			break;
 		}
 	}
@@ -776,6 +825,149 @@ std::ostream& IterativeMatrixScale<T>::vReport(std::ostream& os) const
 	os << "row scale: " << maxNormR << std::endl
 	   << "col scale: " <<  maxNormC << std::endl
 	   << "iter scale: " << iIterTaken << std::endl;
+
+	return os;
+}
+
+template <typename T>
+RowMaxColMaxMatrixScale<T>::RowMaxColMaxMatrixScale(const SolutionManager::ScaleOpt& scale)
+:MatrixScale<T>(scale),
+ dTol(scale.dTol),
+ maxNormRow(-1.),
+ maxNormCol(-1.)
+{
+
+}
+
+template <typename T>
+RowMaxColMaxMatrixScale<T>::~RowMaxColMaxMatrixScale()
+{
+
+}
+
+template <typename T>
+bool RowMaxColMaxMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doublereal>& rowScale, std::vector<doublereal>& colScale)
+{
+	const integer nrows = mh.iGetNumRows();
+	const integer ncols = mh.iGetNumCols();
+
+	if (nrows <= 0) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative row number");
+	}
+
+	if (ncols <= 0) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS,
+			"invalid null or negative column number");
+	}
+
+	if (rowScale.empty()) {
+		rowScale.resize(nrows, 1.);
+		normRow.resize(nrows);
+	} else if (rowScale.size() != static_cast<size_t>(nrows)) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "row number mismatch");
+	}
+
+	if (colScale.empty()) {
+		colScale.resize(ncols, 1.);
+		normCol.resize(ncols);
+	} else if (colScale.size() != static_cast<size_t>(ncols)) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "column number mismatch");
+	}
+
+	std::fill(normRow.begin(), normRow.end(), 0.);
+
+	for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+		doublereal d = im->dCoef;
+
+		if (d == 0.) {
+			continue;
+		}
+
+		d = std::abs(d);
+
+		if (d > normRow[im->iRow]) {
+			normRow[im->iRow] = d;
+		}
+	}
+
+	for (integer i = 0; i < nrows; ++i) {
+		rowScale[i] = 1. / normRow[i];
+	}
+
+	std::fill(normCol.begin(), normCol.end(), 0.);
+
+	for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+		doublereal d = im->dCoef;
+
+		if (d == 0.) {
+			continue;
+		}
+
+		d = std::abs(rowScale[im->iRow] * d);
+
+		if (d > normCol[im->iCol]) {
+			normCol[im->iCol] = d;
+		}
+	}
+
+	for (integer i = 0; i < ncols; ++i) {
+		colScale[i] = 1. / normCol[i];
+	}
+
+	if (!this->bReport()) {
+		// Test for convergence will not be checked
+		// It would be a waste of time to compute the row and column norms
+		return true;
+	}
+
+	std::fill(normRow.begin(), normRow.end(), 0.);
+	std::fill(normCol.begin(), normCol.end(), 0.);
+
+	for (typename T::const_iterator im = mh.begin(); im != mh.end(); ++im) {
+		doublereal d = im->dCoef;
+
+		if (d == 0.) {
+			continue;
+		}
+
+		d = std::abs(colScale[im->iCol] * rowScale[im->iRow] * d);
+
+		if (d > normRow[im->iRow]) {
+			normRow[im->iRow] = d;
+		}
+
+		if (d > normCol[im->iCol]) {
+			normCol[im->iCol] = d;
+		}
+	}
+
+	maxNormRow = 0.;
+
+	for (std::vector<doublereal>::const_iterator ir = normRow.begin();
+		 ir != normRow.end(); ++ir) {
+		maxNormRow = std::max(maxNormRow, std::abs(1. - *ir));
+	}
+
+	maxNormCol = 0.;
+
+	for (std::vector<doublereal>::const_iterator ic = normCol.begin();
+		 ic != normCol.end(); ++ic) {
+		maxNormCol = std::max(maxNormCol, std::abs(1. - *ic));
+	}
+
+	return (maxNormRow < dTol && maxNormCol < dTol);
+}
+
+template <typename T>
+std::ostream& RowMaxColMaxMatrixScale<T>::vReport(std::ostream& os) const
+{
+	if (!MatrixScaleBase::bOK) {
+		os << "Warning: matrix scale did not converge\n";
+	}
+
+	os << "row scale: " << maxNormRow << std::endl
+	   << "col scale: " << maxNormCol << std::endl;
 
 	return os;
 }

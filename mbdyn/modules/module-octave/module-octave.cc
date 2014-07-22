@@ -161,6 +161,7 @@ private:
 	inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows);
 	template<typename T>
 	inline static bool ConvertMBDynToOctave(const T& mbValue, octave_value& octValue, int rows, int cols);
+  static void exit(int);
 
 private:
 	typedef std::map<std::string, bool> EmbedFileNameMap_t;
@@ -857,13 +858,27 @@ pHP(pHP)
 	LoadADPackage();
 }
 
+void OctaveInterface::exit(int)
+{
+  silent_cerr("octave interface has been uninitialized" << std::endl);
+}
+
 OctaveInterface::~OctaveInterface(void)
 {
 	TRACE("destructor");
 
 	ASSERT(this == pOctaveInterface);
+  
+  octave_exit = &OctaveInterface::exit;
 
-	do_octave_atexit();
+#if defined(HAVE_DO_OCTAVE_ATEXIT)
+  do_octave_atexit();
+#elif defined(HAVE_CLEAN_UP_AND_EXIT)
+  clean_up_and_exit(0, true);
+#else
+	#warning "do_octave_atexit() and clean_up_and_exit() are not defined"
+#endif
+
 	pOctaveInterface = 0;
 }
 

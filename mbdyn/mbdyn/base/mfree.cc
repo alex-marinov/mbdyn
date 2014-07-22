@@ -51,8 +51,8 @@ MatrixFreeSolver::MatrixFreeSolver(
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		bool JacReq) 
-: NonlinearSolver(JacReq),
+		const NonlinearSolverOptions& options)
+: NonlinearSolver(options),
 pPM(NULL),
 pRes(NULL),
 IterTol(ITol),

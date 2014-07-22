@@ -60,11 +60,16 @@ NonlinearSolverTest::~NonlinearSolverTest(void)
 
 doublereal
 NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
-		const VectorHandler& Vec, bool bResidual)
+		const VectorHandler& Vec, bool bResidual,
+		doublereal dScaleAlgEqu, doublereal* pTestDiff)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNorm::MakeTest");
 
    	doublereal dTest = 0.;
+
+   	if (pTestDiff) {
+   		*pTestDiff = 0.;
+   	}
 
 #ifdef USE_SCHUR
 	/* Only residual test is parallelized; the master node
@@ -124,10 +129,22 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 #endif // USE_SCHUR
 	{
 		ASSERT(Vec.iGetSize() == Size);
+		const DataManager* const pDM = pS->pGetDataManager();
 
  	  	for (int iCntp1 = 1; iCntp1 <= Size; iCntp1++) {
-			TestOne(dTest, Vec, iCntp1);
+ 	  		const DofOrder::Order order = pDM->GetEqType(iCntp1);
+ 	  		const doublereal dCoef = order == DofOrder::DIFFERENTIAL ? 1. : dScaleAlgEqu;
+
+			TestOne(dTest, Vec, iCntp1, dCoef);
+
+			if (pTestDiff && order == DofOrder::DIFFERENTIAL) {
+				TestOne(*pTestDiff, Vec, iCntp1, dCoef);
+			}
 		}
+	}
+
+	if (pTestDiff) {
+		*pTestDiff = TestPost(*pTestDiff);
 	}
 
 	return TestPost(dTest);
@@ -153,16 +170,21 @@ NonlinearSolverTest::dScaleCoef(const integer& iIndex) const
 
 doublereal
 NonlinearSolverTestNone::MakeTest(Solver *pS, integer Size, 
-		const VectorHandler& Vec, bool bResidual)
+		const VectorHandler& Vec, bool bResidual,
+		doublereal* pTestDiff)
 {
    	DEBUGCOUTFNAME("NonlinearSolverTestNone::MakeTest");
+
+   	if (pTestDiff) {
+   		*pTestDiff = 0.;
+   	}
 
 	return 0.;
 }
 
 void
 NonlinearSolverTestNone::TestOne(doublereal& dRes, 
-		const VectorHandler& Vec, const integer& iIndex) const
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
 {
 	dRes = 0.;
 }
@@ -180,9 +202,9 @@ NonlinearSolverTestNone::TestMerge(doublereal& dResCurr,
 
 void
 NonlinearSolverTestNorm::TestOne(doublereal& dRes, 
-		const VectorHandler& Vec, const integer& iIndex) const
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
 {
-	doublereal d = Vec(iIndex);
+	doublereal d = Vec(iIndex) * dCoef;
 
 	dRes += d*d;
 }
@@ -211,9 +233,9 @@ NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 
 void
 NonlinearSolverTestMinMax::TestOne(doublereal& dRes,
-		const VectorHandler& Vec, const integer& iIndex) const
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
 {
-	doublereal d = fabs(Vec(iIndex));
+	doublereal d = fabs(Vec(iIndex)) * dCoef;
 
 	if (d > dRes) {
 		dRes = d;
@@ -265,9 +287,9 @@ NonlinearSolverTestScale::dScaleCoef(const integer& iIndex) const
 
 void
 NonlinearSolverTestScaleNorm::TestOne(doublereal& dRes,
-		const VectorHandler& Vec, const integer& iIndex) const
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
 {
-	doublereal d = Vec(iIndex) * (*pScale)(iIndex);
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex) * dCoef;
 
 	dRes += d*d;
 }
@@ -291,9 +313,9 @@ NonlinearSolverTestScaleNorm::dScaleCoef(const integer& iIndex) const
 
 void
 NonlinearSolverTestScaleMinMax::TestOne(doublereal& dRes,
-		const VectorHandler& Vec, const integer& iIndex) const
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
 {
-	doublereal d = fabs(Vec(iIndex) * (*pScale)(iIndex));
+	doublereal d = fabs(Vec(iIndex) * (*pScale)(iIndex)) * dCoef;
 
 	if (d > dRes) {
 		dRes = d;
@@ -346,10 +368,10 @@ NonlinearSolverTestRange::MakeTest(Solver *pS, const integer& Size,
 
 void
 NonlinearSolverTestRange::TestOne(doublereal& dRes, const VectorHandler& Vec,
-	const integer& iIndex) const
+	const integer& iIndex, doublereal dCoef) const
 {
 	if (bIsValid(iIndex)) {
-		m_pTest->TestOne(dRes, Vec, iIndex);
+		m_pTest->TestOne(dRes, Vec, iIndex, dCoef);
 	}
 }
 
@@ -392,12 +414,22 @@ NonlinearSolverTestRange::SetRange(integer iFirstIndex, integer iLastIndex)
 	m_iLastIndex = iLastIndex;
 }
 
+NonlinearSolverOptions::NonlinearSolverOptions(bool bHonorJacRequest,
+											   enum ScaleFlags eScaleFlags,
+											   doublereal dScaleAlgebraic)
+:bHonorJacRequest(bHonorJacRequest),
+ eScaleFlags(eScaleFlags),
+ dScaleAlgebraic(dScaleAlgebraic)
+{
+
+}
+
 /* NonlinearSolver - begin */
 
-NonlinearSolver::NonlinearSolver(bool JacReq)
-: Size(0),
+NonlinearSolver::NonlinearSolver(const NonlinearSolverOptions& options)
+: NonlinearSolverOptions(options),
+Size(0),
 TotJac(0),
-bHonorJacRequest(JacReq),
 #ifdef USE_MPI
 bParallel(MPI::Is_initialized()),
 #endif /* USE_MPI */
@@ -438,9 +470,21 @@ NonlinearSolver::MakeResTest(Solver *pS,
 	const NonlinearProblem *pNLP,
 	const VectorHandler& Vec,
 	const doublereal& dTol,
-	doublereal& dTest)
+	doublereal& dTest,
+	doublereal& dTestDiff)
 {
-	dTest = pResTest->MakeTest(pS, Size, Vec, true)*pNLP->TestScale(pResTest);
+	doublereal dScaleAlgEqu;
+	const doublereal dTestScale = pNLP->TestScale(pResTest, dScaleAlgEqu);
+
+	if (eScaleFlags == SCALE_ALGEBRAIC_EQUATIONS_NO) {
+		// f = c / dCoef
+		dScaleAlgEqu = 1.;
+	} else {
+		// f = c * dScaleAlgebraic
+		dScaleAlgEqu *= dScaleAlgebraic;
+	}
+
+	dTest = pResTest->MakeTest(pS, Size, Vec, true, dScaleAlgEqu, &dTestDiff) * dTestScale;
 	return ((dTest < dTol) && pS->pGetDataManager()->IsConverged());
 }
 

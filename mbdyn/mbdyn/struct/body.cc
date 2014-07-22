@@ -860,7 +860,7 @@ Body::dGetPrivData(unsigned int i) const
 
 		Vec3 X = Rn*Xgc;
 		Vec3 V = Vn + Wn.Cross(X);
-		Vec3 W = Rn*Wn;
+		Vec3 W = Rn.MulTV(Wn);
 
 		Mat3x3 Jgc = J0 + Mat3x3(MatCrossCross, Xgc, Xgc*dMass);
 

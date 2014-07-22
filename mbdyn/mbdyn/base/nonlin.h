@@ -85,11 +85,13 @@ public:
 
 	/* loops over the vector Vec */
 	virtual doublereal MakeTest(Solver *pS, const integer& Size,
-			const VectorHandler& Vec, bool bResidual = false);
+			const VectorHandler& Vec, bool bResidual = false,
+			doublereal dScaleAlgEqu = 1.,
+			doublereal* pTestDiff=0);
 
 	/* tests a single value, and returns the measure accordingly */
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const = 0;
+			const integer& iIndex, doublereal dCoef) const = 0;
 
 	/* merges results of multiple tests */
 	virtual void TestMerge(doublereal& dResCurr,
@@ -105,17 +107,18 @@ public:
 class NonlinearSolverTestNone : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 	virtual doublereal MakeTest(Solver *pS, integer Size,
-			const VectorHandler& Vec, bool bResidual = false);
+			const VectorHandler& Vec, bool bResidual = false,
+			doublereal* pTestDiff=0);
 };
 
 class NonlinearSolverTestNorm : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 	virtual doublereal TestPost(const doublereal& dRes) const;
@@ -124,7 +127,7 @@ public:
 class NonlinearSolverTestMinMax : virtual public NonlinearSolverTest {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 };
@@ -144,7 +147,7 @@ class NonlinearSolverTestScaleNorm : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestNorm {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
@@ -154,7 +157,7 @@ class NonlinearSolverTestScaleMinMax : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestMinMax {
 public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
 			const doublereal& dResNew) const;
 	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
@@ -178,7 +181,7 @@ public:
 #endif
 
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
-			const integer& iIndex) const;
+			const integer& iIndex, doublereal dCoef) const;
 
 	virtual void TestMerge(doublereal& dResCurr, const doublereal& dResNew) const;
 
@@ -189,7 +192,23 @@ public:
 	void SetRange(integer iFirstIndex, integer iLastIndex);
 };
 
-class NonlinearSolver : public SolverDiagnostics
+struct NonlinearSolverOptions
+{
+	bool bHonorJacRequest;
+
+	enum ScaleFlags {
+		SCALE_ALGEBRAIC_EQUATIONS_NO = 0,
+		SCALE_ALGEBRAIC_EQUATIONS_YES = 1
+	} eScaleFlags;
+
+	doublereal dScaleAlgebraic;
+
+	NonlinearSolverOptions(bool bHonorJacRequest = false,
+						   enum ScaleFlags eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_NO,
+						   doublereal dScaleAlgebraic = 1.);
+};
+
+class NonlinearSolver : public SolverDiagnostics, protected NonlinearSolverOptions
 {
 public:
  	class ErrSimulationDiverged : MBDynErrBase {
@@ -231,7 +250,7 @@ public:
 protected:
 	integer Size;
 	integer TotJac;	
-	bool bHonorJacRequest;
+
 #ifdef USE_MPI
 	bool bParallel;
 #endif /* USE_MPI */
@@ -258,7 +277,7 @@ private:
 	doublereal dSumCond;
 
 public:
-	NonlinearSolver(bool JacReq = false);
+	explicit NonlinearSolver(const NonlinearSolverOptions& options);
 
 	virtual void SetTest(NonlinearSolverTest *pr, NonlinearSolverTest *ps);
 		
@@ -268,7 +287,8 @@ public:
 		const NonlinearProblem *pNLP,
 		const VectorHandler& Vec,
 		const doublereal& dTol,
-		doublereal& dTest);
+		doublereal& dTest,
+		doublereal& dTestDiff);
 	
 	virtual void Solve(const NonlinearProblem *pNLP,
 			Solver *pS,

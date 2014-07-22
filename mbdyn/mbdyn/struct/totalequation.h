@@ -307,7 +307,7 @@ public:
 
 	virtual std::ostream&
 	DescribeDof(std::ostream& out,
-		char *prefix = "",
+		const char *prefix = "",
 		bool bInitial = false) const;
 
 	virtual void

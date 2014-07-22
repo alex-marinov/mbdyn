@@ -1272,7 +1272,7 @@ TotalReaction::~TotalReaction(void)
 
 std::ostream&
 TotalReaction::DescribeDof(std::ostream& out,
-	char *prefix, bool bInitial) const
+	const char *prefix, bool bInitial) const
 {
 	integer iIndex = total_equation_element->iGetFirstIndex();
 

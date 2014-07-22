@@ -1740,6 +1740,20 @@ DataManager::GetEqDescription(int i) const
 	return pDofs[i - 1].EqDescription;
 }
 
+DofOrder::Order
+DataManager::GetDofType(int i) const
+{
+	ASSERT(i > 0 && i <= iTotDofs);
+	return pDofs[i - 1].Order;
+}
+
+DofOrder::Order
+DataManager::GetEqType(int i) const
+{
+	ASSERT(i > 0 && i <= iTotDofs);
+	return pDofs[i - 1].EqOrder;
+}
+
 #ifdef MBDYN_FDJAC
 bool
 DataManager::bFDJac(void) const

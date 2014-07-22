@@ -74,6 +74,7 @@ int
 main(int argc, char* argv[])
 {
 	SolutionManager::ScaleOpt scale;
+	scale.uFlags |= SolutionManager::SCALEF_VERBOSE | SolutionManager::SCALEF_WARN;
 	scale.iMaxIter = argc >= 2 ? atoi(argv[1]) : 100;
 	scale.dTol = argc >= 3 ? atof(argv[2]) : sqrt(std::numeric_limits<doublereal>::epsilon());
 
@@ -134,7 +135,15 @@ main(int argc, char* argv[])
 			  new IterativeMatrixScale<CColMatrixHandler<1> >(scale),
 			  new IterativeMatrixScale<DirCColMatrixHandler<0> >(scale),
 			  new IterativeMatrixScale<DirCColMatrixHandler<1> >(scale),
-			  new IterativeMatrixScale<SpMapMatrixHandler>(scale)}
+			  new IterativeMatrixScale<SpMapMatrixHandler>(scale)},
+			{ new RowMaxColMaxMatrixScale<NaiveMatrixHandler>(scale),
+			  new RowMaxColMaxMatrixScale<NaivePermMatrixHandler>(scale),
+			  new RowMaxColMaxMatrixScale<FullMatrixHandler>(scale),
+			  new RowMaxColMaxMatrixScale<CColMatrixHandler<0> >(scale),
+			  new RowMaxColMaxMatrixScale<CColMatrixHandler<1> >(scale),
+			  new RowMaxColMaxMatrixScale<DirCColMatrixHandler<0> >(scale),
+			  new RowMaxColMaxMatrixScale<DirCColMatrixHandler<1> >(scale),
+			  new RowMaxColMaxMatrixScale<SpMapMatrixHandler>(scale)}
 	};
 
 	const int N = sizeof(matScale)/sizeof(matScale[0]);
@@ -192,6 +201,18 @@ main(int argc, char* argv[])
 		ScaleMatrix("CC1", *matScale[iMatScale].pCCol1, ccm1);
 		ScaleMatrix("Map", *matScale[iMatScale].pMap, spm);
 	}
+
+    for (unsigned i = 0; i < sizeof(matScale)/sizeof(matScale[0]); ++i) {
+		delete matScale[i].pNaive;
+		delete matScale[i].pNaivePerm;
+		delete matScale[i].pFull;
+		delete matScale[i].pCCol0;
+		delete matScale[i].pCCol1;
+		delete matScale[i].pDirCCol0;
+		delete matScale[i].pDirCCol1;
+		delete matScale[i].pMap;
+    }
+
 	return 0;
 }
 
@@ -326,3 +347,21 @@ class IterativeMatrixScale<NaivePermMatrixHandler>;
 
 template
 class IterativeMatrixScale<FullMatrixHandler>;
+
+template
+class RowMaxColMaxMatrixScale<SpMapMatrixHandler>;
+
+template
+class RowMaxColMaxMatrixScale<DirCColMatrixHandler<0> >;
+
+template
+class RowMaxColMaxMatrixScale<CColMatrixHandler<0> >;
+
+template
+class RowMaxColMaxMatrixScale<NaiveMatrixHandler>;
+
+template
+class RowMaxColMaxMatrixScale<NaivePermMatrixHandler>;
+
+template
+class RowMaxColMaxMatrixScale<FullMatrixHandler>;

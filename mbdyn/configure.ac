@@ -379,7 +379,7 @@ ANN_LIBS=
 BULLET_LIBS=
 PYTHON_NUMPY_HEADERS=
 OCTAVE_LIBS=
-
+OCTAVE_INCLUDE=
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
@@ -686,7 +686,22 @@ dnl Enable Octave support <http://www.octave.org/>
 dnl
 use_octave=no
 if test "$ol_enable_octave" != no ; then
+	have_mkoctfile=no
+	which mkoctfile > /dev/null 2>&1
+	RC=$?
+	if test "$RC" = 0 ; then
+		have_mkoctfile=yes
+     	try_OCTAVE_LIBS="`mkoctfile -p OCTAVE_LIBS` `mkoctfile -p LFLAGS`"
+     	try_OCTAVE_INCLUDE="`mkoctfile -p INCFLAGS`"
+       export LD_LIBRARY_PATH="`mkoctfile -p OCTLIBDIR`:${LD_LIBRARY_PATH}"
+    else
+    	try_OCTAVE_LIBS="-loctinterp -loctave -lcruft"
+    	try_OCTAVE_INCLUDE=
+	fi
+
 	AC_LANG_CPLUSPLUS
+	save_CXXFLAGS="$CXXFLAGS"
+	CXXFLAGS="$CXXFLAGS $try_OCTAVE_INCLUDE"
 	AC_CHECK_HEADER(octave/oct.h,[have_octave_oct_h=yes],[have_octave_oct_h=no])
 	AC_CHECK_HEADER(octave/parse.h,[have_octave_parse_h=yes],[have_octave_parse_h=no],[
 #include <octave/oct.h>
@@ -697,14 +712,8 @@ if test "$ol_enable_octave" != no ; then
 	AC_CHECK_HEADER(octave/octave.h,[have_octave_octave_h=yes],[have_octave_octave_h=no],[
 #include <octave/oct.h>
 		])
+	CXXFLAGS="$save_CXXFLAGS"
 	AC_LANG_C
-
-	have_mkoctfile=no
-	which mkoctfile > /dev/null 2>&1
-	RC=$?
-	if test "$RC" = 0 ; then
-		have_mkoctfile=yes
-	fi
 
 	link_octave="no"
 	if test "$have_octave_oct_h" = "yes" \
@@ -713,9 +722,12 @@ if test "$ol_enable_octave" != no ; then
 		-a "$have_octave_octave_h" = "yes" \
 		-a "$have_mkoctfile" = "yes" ; \
 	then
+		OCTAVE_INCLUDE="$try_OCTAVE_INCLUDE"
+		save_CXXFLAGS="$CXXFLAGS"
 		save_LIBS="$LIBS"
-		try_LIBS="-loctinterp -loctave -lcruft"
+		try_LIBS="$try_OCTAVE_LIBS"
 		LIBS="$try_LIBS $LIBS"
+		CXXFLAGS="$CXXFLAGS $OCTAVE_INCLUDE"
 		AC_LANG_CPLUSPLUS
 		AC_TRY_LINK([
 #include <octave/oct.h>
@@ -725,15 +737,39 @@ if test "$ol_enable_octave" != no ; then
 			],[
 		octave_main(0, NULL, 1);
 			],[link_octave="yes"])
-		AC_LANG_C
+		AC_LANG_CPLUSPLUS
+		AC_TRY_LINK([
+#include <octave/oct.h>
+#include <octave/parse.h>
+#include <octave/toplev.h>
+#include <octave/octave.h>
+			],[
+		do_octave_atexit();
+			],[have_do_octave_atexit="yes"])
+		AC_LANG_CPLUSPLUS						
+		AC_TRY_LINK([
+#include <octave/oct.h>
+#include <octave/parse.h>
+#include <octave/toplev.h>
+#include <octave/octave.h>
+			],[
+		clean_up_and_exit(0, true);
+			],[have_clean_up_and_exit="yes"])			
+		AC_LANG_C		
 		LIBS="$save_LIBS"
+		CXXFLAGS="$save_CXXFLAGS"
 		OCTAVE_LIBS="$try_LIBS"
 	fi
 
 	if test "$link_octave" = yes ; then
+		if test "$have_do_octave_atexit" = yes; then
+			AC_DEFINE(HAVE_DO_OCTAVE_ATEXIT, 1, [define if do_octave_atexit can be used])
+		fi
+		if test "$have_clean_up_and_exit" = yes; then
+			AC_DEFINE(HAVE_CLEAN_UP_AND_EXIT, 1, [define if clean_up_and_exit can be used])
+		fi
 		use_octave=yes
 		AC_DEFINE(USE_OCTAVE, 1, [define if octave can be used])
-
 	else
 		if test "$ol_enable_octave" = "yes" ; then
 			AC_MSG_ERROR([octave support not available])
@@ -953,6 +989,34 @@ if test "$ol_with_threads" != "no" ; then
 		if test "$have_threads" = "yes" ; then
 			AC_DEFINE(HAVE_THREADS,1,[define if usable threads are available])
 			AC_MSG_RESULT([yes])
+		fi
+		
+		if test "$have_threads" = "yes" ; then
+			AC_MSG_CHECKING([for usable pthread_setaffinity_np])
+			save_LIBS="$LIBS"
+			THREAD_LIBS="-lpthread"
+			LIBS="$save_LIBS $THREAD_LIBS"
+			AC_TRY_LINK([
+	#define _GNU_SOURCE
+	#include <pthread.h>
+	#include <sched.h>
+			],[
+		    cpu_set_t cpuset;
+		    pthread_attr_t attr;
+	
+			CPU_ZERO(&cpuset);
+			CPU_SET(0, &cpuset);
+	
+			pthread_getattr_np(pthread_self(), &attr);
+			pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+			return pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+			],[
+				AC_DEFINE(USE_PTHREAD_SETAFFINITY_NP,1,[define to use pthread_setaffinity_np])
+				AC_MSG_RESULT([yes])
+			],[
+				AC_MSG_RESULT([no])
+			])
+			LIBS="$save_LIBS"
 		fi
 	fi
 fi
@@ -2743,7 +2807,7 @@ AC_SUBST(ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
 AC_SUBST(PYTHON_NUMPY_HEADERS)
 AC_SUBST(OCTAVE_LIBS)
-
+AC_SUBST(OCTAVE_INCLUDE)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
 

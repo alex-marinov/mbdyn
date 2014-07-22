@@ -178,7 +178,7 @@ public:
 			const VectorHandler& w, VectorHandler& z) const;
 
 	/* scale factor for tests */
-	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dCoef) const;
 
 };
 
@@ -219,7 +219,7 @@ public:
 	void Update(const VectorHandler* pSol) const;
 
 	/* scale factor for tests */
-	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
 };
 
 
@@ -249,6 +249,8 @@ public:
 	virtual void Jacobian(MatrixHandler* pJac) const;
 	
 	virtual void Update(const VectorHandler* pSol) const;
+
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const;
 
 protected:
 	virtual void SetCoef(doublereal dT, 
@@ -695,7 +697,7 @@ public:
 			const VectorHandler& w, VectorHandler& z) const;
 
 	/* scale factor for tests */
-	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const;
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest, doublereal& dCoef) const;
 
 	/* Needed for compatibility with class StepIntegrator */
 	virtual doublereal

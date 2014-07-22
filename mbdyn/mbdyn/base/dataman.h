@@ -839,6 +839,8 @@ public:
 
 	virtual const std::string& GetDofDescription(int i) const;
 	virtual const std::string& GetEqDescription(int i) const;
+	virtual DofOrder::Order GetDofType(int i) const;
+	virtual DofOrder::Order GetEqType(int i) const;
 };
 
 // if bActive is true, the cast only succeeds when driven element is active

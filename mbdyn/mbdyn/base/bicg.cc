@@ -60,8 +60,8 @@ BiCGStab::BiCGStab(const Preconditioner::PrecondType PType,
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		bool JacReq) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, JacReq)
+		const NonlinearSolverOptions& options)
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, options)
 {
 	NO_OP;
 }
@@ -139,6 +139,8 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 
 	doublereal dOldErr;
 	doublereal dErrFactor = 1.;
+	doublereal dErrDiff = 0.;
+
 	while (true) {
 
 #ifdef 	USE_EXTERNAL 	
@@ -159,7 +161,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			pS->PrintResidual(*pRes, iIterCnt);
       		}
 
-		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr/dOldErr;
 		}
@@ -182,7 +184,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 			}
 		}
 		
-		pS->CheckTimeStepLimit(dErr);
+		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
 		if (bTest) {
 	 		return;

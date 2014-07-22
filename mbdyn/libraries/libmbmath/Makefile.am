@@ -60,7 +60,9 @@ submat.cc \
 submat.h \
 tpls.h \
 vh.cc \
-vh.h
+vh.h \
+gradient.h \
+matvec.h
 
 if USE_SCHUR
 libmbmath_la_SOURCES += \

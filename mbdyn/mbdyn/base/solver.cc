@@ -289,6 +289,7 @@ dInitialTimeStep(1.),
 dMinTimeStep(::dDefaultMinTimeStep),
 MaxTimeStep(),
 dMaxResidual(std::numeric_limits<doublereal>::max()),
+dMaxResidualDiff(std::numeric_limits<doublereal>::max()),
 eTimeStepLimit(TS_SOFT_LIMIT),
 iDummyStepsNumber(::iDefaultDummyStepsNumber),
 dDummyStepsRatio(::dDefaultDummyStepsRatio),
@@ -324,7 +325,6 @@ iPrecondSteps(::iDefaultPreconditionerSteps),
 iIterativeMaxSteps(::iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
-bHonorJacRequest(false),
 /* for parallel solvers */
 bParallel(bPar),
 pSDM(NULL),
@@ -1824,7 +1824,7 @@ Solver::ReadData(MBDynParser& HP)
 	DEBUGCOUTFNAME("MultiStepIntegrator::ReadData");
 
 	/* parole chiave */
-	const char* sKeyWords[] = {
+	static const char*const sKeyWords[] = {
 		"begin",
 		"initial" "value",
 		"multistep",		/* deprecated */
@@ -1839,7 +1839,7 @@ Solver::ReadData(MBDynParser& HP)
 		"max" "residual",
 		"max" "iterations",
 		"modify" "residual" "test",
-
+		"enforce" "constraint" "equations",
 		/* DEPRECATED */
 		"fictitious" "steps" "number",
 		"fictitious" "steps" "ratio",
@@ -1951,7 +1951,7 @@ Solver::ReadData(MBDynParser& HP)
 		MAXRESIDUAL,
 		MAXITERATIONS,
 		MODIFY_RES_TEST,
-
+		ENFORCE_CONSTRAINT_EQUATIONS,
 		FICTITIOUSSTEPSNUMBER,
 		FICTITIOUSSTEPSRATIO,
 		FICTITIOUSSTEPSTOLERANCE,
@@ -2075,6 +2075,7 @@ Solver::ReadData(MBDynParser& HP)
 	doublereal dSolutionTol = 0.;
 	integer iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
+	bool bSetScaleAlgebraic = false;
 
 	/* Dati dei passi fittizi di trimmaggio iniziale */
 	doublereal dDummyStepsTolerance = ::dDefaultDummyStepsTolerance;
@@ -2669,12 +2670,25 @@ Solver::ReadData(MBDynParser& HP)
 		}
 
 		case MAXRESIDUAL: {
-			dMaxResidual = HP.GetReal();
+			if (HP.IsKeyWord("differential" "equations")) {
+				dMaxResidualDiff = HP.GetReal();
 
-			if (dMaxResidual <= 0.) {
-				silent_cerr("error: max residual must be greater than zero at line "
-						<< HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				if (dMaxResidualDiff <= 0.) {
+					silent_cerr("error: max residual for differential equations "
+								"must be greater than zero at line "
+							<< HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+			}
+
+			if (HP.IsKeyWord("all" "equations") || HP.IsArg()) {
+				dMaxResidual = HP.GetReal();
+
+				if (dMaxResidual <= 0.) {
+					silent_cerr("error: max residual must be greater than zero at line "
+							<< HP.GetLineData() << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 			}
 			break;
 		}
@@ -2724,6 +2738,26 @@ Solver::ReadData(MBDynParser& HP)
 				bModResTest = true;
 				DEBUGLCOUT(MYDEBUG_INPUT,
 					"Modify residual test" << std::endl);
+			}
+			break;
+
+		case ENFORCE_CONSTRAINT_EQUATIONS:
+			if (HP.IsKeyWord("constraint" "violations")) {
+				eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_YES;
+
+				bSetScaleAlgebraic = !HP.IsKeyWord("scale" "factor");
+
+				if (!bSetScaleAlgebraic) {
+					dScaleAlgebraic = HP.GetReal();
+				}
+			} else if (HP.IsKeyWord("constraint" "violation" "rates")) {
+				eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_NO;
+			} else {
+				silent_cerr("Keyword \"constraint violations\" or "
+						    "\"constraint violation rates\" expected at line "
+							<< HP.GetLineData() << std::endl);
+
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			break;
 
@@ -3968,6 +4002,10 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		silent_cerr("Unknown integration method" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		break;
+	}
+
+	if (bSetScaleAlgebraic) {
+		dScaleAlgebraic = 1. / dInitialTimeStep;
 	}
 
 #ifdef USE_MULTITHREAD
@@ -5487,7 +5525,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						bHonorJacRequest));
+						*this));
 			break;
 
 		default:
@@ -5504,7 +5542,7 @@ Solver::AllocateNonlinearSolver()
 						iIterativeMaxSteps,
 						dIterertiveEtaMax,
 						dIterertiveTau,
-						bHonorJacRequest));
+						*this));
 			break;
 		}
 		break;
@@ -5519,13 +5557,13 @@ Solver::AllocateNonlinearSolver()
 				NewtonRaphsonSolver(bTrueNewtonRaphson,
 					bKeepJac,
 					iIterationsBeforeAssembly,
-					bHonorJacRequest));
+					*this));
 		break;
 	case NonlinearSolver::LINESEARCH:
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				LineSearchSolver,
 				LineSearchSolver(pDM, 
-                                 bHonorJacRequest,
+                                 *this,
                                  LineSearch));
 		break;
 	}
@@ -5603,14 +5641,14 @@ Solver::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 	pDM->PrintSolution(Sol, iIterCnt);
 }
 
-void Solver::CheckTimeStepLimit(doublereal dErr) const throw(NonlinearSolver::MaxResidualExceeded, NonlinearSolver::TimeStepLimitExceeded)
+void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const throw(NonlinearSolver::MaxResidualExceeded, NonlinearSolver::TimeStepLimitExceeded)
 {
 	if (pDerivativeSteps) {
 		// Time step cannot be reduced
 		return;
 	}
 
-	if (dCurrTimeStep <= dMinTimeStep && bLastChance) {
+	if (dCurrTimeStep <= dMinTimeStep) {
 		return;
 	}
 
@@ -5622,6 +5660,21 @@ void Solver::CheckTimeStepLimit(doublereal dErr) const throw(NonlinearSolver::Ma
 			{
 				silent_cerr("warning: current residual = " << dErr
 						<< " > maximum residual = " << dMaxResidual
+						<< std::endl);
+			}
+		}
+
+		throw NonlinearSolver::MaxResidualExceeded(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (dErrDiff > dMaxResidualDiff) {
+		if (outputIters()) {
+#ifdef USE_MPI
+			if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+			{
+				silent_cerr("warning: current residual for differential equations = " << dErrDiff
+						<< " > maximum residual = " << dMaxResidualDiff
 						<< std::endl);
 			}
 		}

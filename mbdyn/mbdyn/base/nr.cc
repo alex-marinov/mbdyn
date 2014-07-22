@@ -58,8 +58,8 @@
 NewtonRaphsonSolver::NewtonRaphsonSolver(const bool bTNR,
 		const bool bKJ, 
 		const integer IterBfAss,
-		bool JacReq)
-: NonlinearSolver(JacReq), pRes(NULL),
+		const NonlinearSolverOptions& options)
+: NonlinearSolver(options), pRes(NULL),
 pSol(NULL),
 bTrueNewtonRaphson(bTNR),
 IterationBeforeAssembly(IterBfAss),
@@ -97,6 +97,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 
 	doublereal dOldErr;
 	doublereal dErrFactor = 1.;
+	doublereal dErrDiff = 0.;
 	bool bJacBuilt = false;
 
 	while (true) {
@@ -129,7 +130,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * in the output (maybe we could conditionally disable 
 		 * it? */
 
-		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr/dOldErr;
 		}
@@ -166,7 +167,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}
 		
-		pS->CheckTimeStepLimit(dErr);
+		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
       	if (bTest) {
 	 		return;

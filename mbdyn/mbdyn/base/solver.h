@@ -73,7 +73,7 @@ extern "C" int mbdyn_stop_at_end_of_time_step(void);
 extern "C" void mbdyn_set_stop_at_end_of_iteration(void);
 extern "C" void mbdyn_set_stop_at_end_of_time_step(void);
 
-class Solver : public SolverDiagnostics {
+class Solver : public SolverDiagnostics, protected NonlinearSolverOptions {
 public:
  	class ErrGeneric : public MBDynErrBase {
   	public:
@@ -240,6 +240,7 @@ protected:
    	doublereal dMinTimeStep;
    	DriveOwner MaxTimeStep;
    	doublereal dMaxResidual;
+   	doublereal dMaxResidualDiff;
 
    	enum TimeStepFlags {
    		TS_SOFT_LIMIT = 0,
@@ -311,7 +312,6 @@ protected:
 	integer iIterativeMaxSteps;
 	doublereal dIterertiveEtaMax;
 	doublereal dIterertiveTau;
-	bool bHonorJacRequest;
 	struct LineSearchParameters LineSearch;
 
 /* FOR PARALLEL SOLVERS */
@@ -402,7 +402,7 @@ public:
 
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
 	virtual void PrintSolution(const VectorHandler& Sol, integer iIterCnt) const;
-	virtual void CheckTimeStepLimit(doublereal dErr) const throw(NonlinearSolver::TimeStepLimitExceeded, NonlinearSolver::MaxResidualExceeded);
+	virtual void CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const throw(NonlinearSolver::TimeStepLimitExceeded, NonlinearSolver::MaxResidualExceeded);
 };
 
 inline void

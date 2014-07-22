@@ -57,7 +57,8 @@ public:
 	virtual void Update(const VectorHandler* pSol) const = 0;
 
 	/* scale factor for tests */
-	virtual doublereal TestScale(const NonlinearSolverTest *pTest) const = 0;
+	virtual doublereal TestScale(const NonlinearSolverTest *pTest,
+								 doublereal& dAlgebraicEquations) const = 0;
 	
 	virtual void EvalProd(doublereal Tau, const VectorHandler& f0,
 			const VectorHandler& w, VectorHandler& z) const = 0;

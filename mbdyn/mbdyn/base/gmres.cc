@@ -60,8 +60,8 @@ Gmres::Gmres(const Preconditioner::PrecondType PType,
 		integer MaxIt,
 		doublereal etaMx,
 		doublereal T,
-		bool JacReq) 
-: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, JacReq),
+		const NonlinearSolverOptions& options)
+: MatrixFreeSolver(PType, iPStep, ITol, MaxIt, etaMx, T, options),
 v(NULL),
 s(MaxLinIt + 1), cs(MaxLinIt + 1), sn(MaxLinIt + 1)
 {
@@ -139,6 +139,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 	
 	iIterCnt = 0;
 	dSolErr = 0.;
+	doublereal dErrDiff = 0.;
 
 	/* external nonlinear iteration */	
 	
@@ -199,7 +200,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			pS->PrintResidual(*pRes, iIterCnt);
       		}
 
-		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr/dOldErr;
 		}
@@ -222,7 +223,7 @@ Gmres::Solve(const NonlinearProblem* pNLP,
 			}
 		}
 		
-		pS->CheckTimeStepLimit(dErr);
+		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
 		if (bTest) {
 	 		return;

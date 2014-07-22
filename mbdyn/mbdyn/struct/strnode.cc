@@ -2109,101 +2109,129 @@ void StructNode::UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) 
 {
 	using namespace grad;
 
-	if (dCoef != dCoefGrad) {
-		bUpdateRotation = true;
-		dCoefGrad = dCoef;
-	}
+	if (bUpdateRotation || dCoef != dCoefGrad) {
+#ifdef USE_MULTITHREAD
+		if (!gradInUse.bIsInUse()) {
+			// Another thread has locked this node
+			// Wait until it is finished
 
-	if (!bUpdateRotation) {
-		return;
-	}
+			while (!gradInUse.bIsInUse()) {
+				DEBUGCOUT("StructNode::UpdateRotation: StructNode(" << GetLabel() << ") is in use!\n");
+			}
 
-	Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
+			if (!bUpdateRotation && dCoef == dCoefGrad) {
+				gradInUse.ReSetInUse();
+				return;
+			} else {
+				ASSERT(0);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 
-	GetgCurr(gCurr_grad, dCoef, func);
-	GetgPCurr(gPCurr_grad, dCoef, func);
+		try {
+#else
+		{
+#endif
+			dCoefGrad = dCoef;
+			Vector<Gradient<iNumADVars>, 3> gCurr_grad, gPCurr_grad;
 
-	UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, func);
+			GetgCurr(gCurr_grad, dCoef, func);
+			GetgPCurr(gPCurr_grad, dCoef, func);
+
+			UpdateRotation(RRef, WRef, gCurr_grad, gPCurr_grad, RCurr_grad, WCurr_grad, func);
 
 #if GRADIENT_DEBUG > 0
-	{
-		const double dTol = std::numeric_limits<doublereal>::epsilon();
+			{
+				const double dTol = std::numeric_limits<doublereal>::epsilon();
 
-		Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
+				Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 
-		Mat3x3 RCurr_tmp = RDelta * RRef;
+				Mat3x3 RCurr_tmp = RDelta * RRef;
 
-		bool bErr = false;
+				bool bErr = false;
 
-		for (index_type i = 1; i <= 3; ++i) {
-			for (index_type j = 1; j <= 3; ++j) {
-				if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
-					bErr = true;
+				for (index_type i = 1; i <= 3; ++i) {
+					for (index_type j = 1; j <= 3; ++j) {
+						if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr_tmp(i, j)) > dTol) {
+							bErr = true;
+						}
+					}
+				}
+
+				for (index_type i = 1; i <= 3; ++i) {
+					for (index_type j = 1; j <= 3; ++j) {
+						if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
+							bErr = true;
+						}
+					}
+
+					if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
+						bErr = true;
+					}
+				}
+
+				if (bErr) {
+					std::cerr << "gCurr=" << gCurr << std::endl;
+					std::cerr << "RCurr=" << std::endl;
+					for (integer i = 1; i <= 3; ++i) {
+						for (integer j = 1; j <= 3; ++j) {
+							std::cerr << RCurr(i, j) << " ";
+						}
+						std::cerr << std::endl;
+					}
+
+					std::cerr << "RCurr_grad=" << std::endl;
+
+					std::cerr << "RRef=" << std::endl;
+					for (integer i = 1; i <= 3; ++i) {
+						for (integer j = 1; j <= 3; ++j) {
+							std::cerr << RRef(i, j) << " ";
+						}
+						std::cerr << std::endl;
+					}
+
+					std::cerr << "RPrev=" << std::endl;
+					for (integer i = 1; i <= 3; ++i) {
+						for (integer j = 1; j <= 3; ++j) {
+							std::cerr << RPrev(i, j) << " ";
+						}
+						std::cerr << std::endl;
+					}
+
+					std::cerr << "RCurr_grad=" << std::endl;
+
+					for (integer i = 1; i <= 3; ++i) {
+						for (integer j = 1; j <= 3; ++j) {
+							std::cerr << RCurr_grad(i, j).dGetValue() << " ";
+						}
+						std::cerr << std::endl;
+					}
+
+					std::cerr << "WCurr=" << WCurr << std::endl;
+					std::cerr << "WCurr_grad=";
+					for (integer i = 1; i <= 3; ++i) {
+						std::cerr << WCurr_grad(i).dGetValue() << " ";
+					}
+					std::cerr << std::endl;
+					GRADIENT_ASSERT(false);
 				}
 			}
-		}
-
-		for (index_type i = 1; i <= 3; ++i) {
-			for (index_type j = 1; j <= 3; ++j) {
-				if (std::abs(RCurr_grad(i, j).dGetValue() - RCurr(i, j)) > dTol) {
-					bErr = true;
-				}
-			}
-
-			if (std::abs(WCurr_grad(i).dGetValue() - WCurr(i)) > dTol) {
-				bErr = true;
-			}
-		}
-
-		if (bErr) {
-			std::cerr << "gCurr=" << gCurr << std::endl;
-			std::cerr << "RCurr=" << std::endl;
-			for (integer i = 1; i <= 3; ++i) {
-				for (integer j = 1; j <= 3; ++j) {
-					std::cerr << RCurr(i, j) << " ";
-				}
-				std::cerr << std::endl;
-			}
-
-			std::cerr << "RCurr_grad=" << std::endl;
-
-			std::cerr << "RRef=" << std::endl;
-			for (integer i = 1; i <= 3; ++i) {
-				for (integer j = 1; j <= 3; ++j) {
-					std::cerr << RRef(i, j) << " ";
-				}
-				std::cerr << std::endl;
-			}
-
-			std::cerr << "RPrev=" << std::endl;
-			for (integer i = 1; i <= 3; ++i) {
-				for (integer j = 1; j <= 3; ++j) {
-					std::cerr << RPrev(i, j) << " ";
-				}
-				std::cerr << std::endl;
-			}
-
-			std::cerr << "RCurr_grad=" << std::endl;
-
-			for (integer i = 1; i <= 3; ++i) {
-				for (integer j = 1; j <= 3; ++j) {
-					std::cerr << RCurr_grad(i, j).dGetValue() << " ";
-				}
-				std::cerr << std::endl;
-			}
-
-			std::cerr << "WCurr=" << WCurr << std::endl;
-			std::cerr << "WCurr_grad=";
-			for (integer i = 1; i <= 3; ++i) {
-				std::cerr << WCurr_grad(i).dGetValue() << " ";
-			}
-			std::cerr << std::endl;
-			GRADIENT_ASSERT(false);
-		}
-	}
 #endif
 
-	bUpdateRotation = false;
+			bUpdateRotation = false;
+
+#if USE_MULTITHREAD
+		} catch (...) {
+			// Make sure that the spin lock will be reset in order to avoid infinite loops
+			gradInUse.ReSetInUse();
+			throw;
+		}
+
+		gradInUse.ReSetInUse();
+#else
+		}
+#endif
+	}
 }
 #endif
 

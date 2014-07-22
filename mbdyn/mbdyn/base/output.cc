@@ -119,7 +119,7 @@ nCurrRestartFile(0)
 void
 OutputHandler::OutputHandler_int(void)
 {
-	OutData[OUTPUT].flags = 0
+	OutData[OUTPUT].flags = OUTPUT_USE_DEFAULT_PRECISION
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[OUTPUT].pof = &ofOutput;
 

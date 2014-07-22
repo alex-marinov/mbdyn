@@ -254,13 +254,14 @@ mbdyn_util_oct.oct: mbdyn_util_oct.o
 endif
 
 if USE_OCTAVE
+octdir="octave-`octave-config --version`"
 install-exec-local-oct:
-	$(mkinstalldirs) "$(DESTDIR)$(datarootdir)" "$(DESTDIR)$(bindir)"
-	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct "$(DESTDIR)$(bindir)"
+	$(mkinstalldirs) "$(DESTDIR)$(datarootdir)" "$(DESTDIR)$(bindir)/$(octdir)"
+	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct "$(DESTDIR)$(bindir)/$(octdir)"
 	@echo "creating symlinks..."
 	@for f in $(OCTAVE_XFUNCS) ; do \
-		rm -f "$(DESTDIR)$(bindir)/$$f" ; \
-		ln -s "$(DESTDIR)$(bindir)/mbdyn_util_oct.oct" "$(DESTDIR)$(bindir)/$$f" ; \
+		rm -f "$(DESTDIR)$(bindir)/$(octdir)/$$f" ; \
+		ln -s "$(DESTDIR)$(bindir)/$(octdir)/mbdyn_util_oct.oct" "$(DESTDIR)$(bindir)/$(octdir)/$$f" ; \
 	done
 else
 install-exec-local-oct:

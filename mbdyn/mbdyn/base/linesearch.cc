@@ -100,9 +100,9 @@ uFlags(DIVERGENCE_CHECK
 }
 
 LineSearchSolver::LineSearchSolver(DataManager* pDM,
-	bool bHonorJacobianRequest, 
+	const NonlinearSolverOptions& options,
 	const struct LineSearchParameters& param)
-: NonlinearSolver(bHonorJacobianRequest),
+: NonlinearSolver(options),
 LineSearchParameters(param),
 pRes(0),
 pSol(0),
@@ -311,8 +311,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 
 		TRACE("New value for f:" << f << std::endl);
 
-		doublereal dErr;
-		MakeResTest(pS, pNLP, *pRes, 0., dErr);
+		doublereal dErr = 0., dErrDiff = 0.;
+		MakeResTest(pS, pNLP, *pRes, 0., dErr, dErrDiff);
 
 		if (outputIters() && (uFlags & PRINT_CONVERGENCE_INFO)) {
 #ifdef USE_MPI
@@ -326,7 +326,7 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 			}
 		}
 
-		pS->CheckTimeStepLimit(dErr);
+		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
 		if (f <= fold + dAlpha * lambda * slope) {
 			TRACE("Sufficient decrease in f: backtrack" << std::endl);
@@ -422,13 +422,14 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 	bool check = false;
 	iIterCnt = 0;
 	dSolErr = 0.;
-
+	dErr = 0.;
+	doublereal dErrDiff = 0.;
 	doublereal f;
 	Residual(f, iIterCnt);
 
 	TRACE("\t\tf(0) = " << f << std::endl);
 
-	bool bTest = MakeResTest(pS, pNLP, *pRes, 1e-2 * Tol, dErr); // use a more stringent test for the first iteration
+	bool bTest = MakeResTest(pS, pNLP, *pRes, 1e-2 * Tol, dErr, dErrDiff); // use a more stringent test for the first iteration
 	doublereal dPrevErr = std::numeric_limits<doublereal>::max(); // disable error test for the first iteration
 	doublereal dErrFactor = 1.;
 
@@ -447,7 +448,7 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		}
 	}
 
-	pS->CheckTimeStepLimit(dErr);
+	pS->CheckTimeStepLimit(dErr, dErrDiff);
 
 	if (bTest) {
 		return;
@@ -474,7 +475,7 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		}
 	
 		LineSearch(stpmax, fold, f, check, iIterCnt);
-		bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr);
+		bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr / dPrevErr;

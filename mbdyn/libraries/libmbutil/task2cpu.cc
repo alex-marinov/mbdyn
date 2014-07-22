@@ -40,6 +40,10 @@
 
 #include "ac/pthread.h"
 
+#ifdef USE_PTHREAD_SETAFFINITY_NP
+#include <sched.h>
+#endif
+
 #include <iostream>
 
 static bool		mbdyn_task2cpu_disabled = false;
@@ -71,8 +75,42 @@ mbdyn_task2cpu(int cpu)
 				       " ignored)" << std::endl);
 			::mbdyn_task2cpu_disabled = true;
 		}
-#else /* ! HAVE_TASK2CPU */
-		silent_cerr("/dev/TASK2CPU is not available" << std::endl);
+#elif defined(USE_PTHREAD_SETAFFINITY_NP)
+		cpu_set_t cpuset;
+		CPU_ZERO(&cpuset);
+		CPU_SET(cpu, &cpuset);
+
+		const pthread_t thread = pthread_self();
+
+		int s = pthread_setaffinity_np(thread, sizeof(cpuset), &cpuset);
+
+		if (0 != s) {
+			silent_cerr("warning: pthread_setaffinity_np failed with status " << s << std::endl);
+			goto failed;
+		}
+
+#ifdef DEBUG
+		s = pthread_getaffinity_np(thread, sizeof(cpuset), &cpuset);
+
+		if (0 != s) {
+			DEBUGCERR("warning: pthread_getaffinity_np failed with status " << s << std::endl);
+			goto failed;
+		}
+
+		for (int i = 0; i < CPU_SETSIZE; ++i) {
+			if (CPU_ISSET(i, &cpuset)) {
+				DEBUGCERR("thread " << cpu + 1 << " running at CPU " << i << std::endl);
+			}
+		}
+#endif
+		fd = 1; // return 0
+
+	failed:
+		if (fd == -1) {
+			::mbdyn_task2cpu_disabled = true;
+		}
+#else  /* ! HAVE_TASK2CPU */
+		silent_cerr("/dev/TASK2CPU or pthread_getaffinity_np are not available" << std::endl);
 		::mbdyn_task2cpu_disabled = true;
 #endif /* ! HAVE_TASK2CPU */
 	}

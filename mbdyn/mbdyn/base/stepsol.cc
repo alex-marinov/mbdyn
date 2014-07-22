@@ -206,8 +206,10 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 
 /* scale factor for tests */
 doublereal
-ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest) const
+ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& dCoef) const
 {
+	dCoef = 1.;
+
 	if (bModResTest) {
 #ifdef USE_MPI
 #warning "ImplicitStepIntegrator::TestScale() not available with Schur solution"
@@ -335,8 +337,9 @@ DerivativeSolver::Update(const VectorHandler* pSol) const
 
 /* scale factor for tests */
 doublereal
-DerivativeSolver::TestScale(const NonlinearSolverTest *pTest) const
+DerivativeSolver::TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const
 {
+	dAlgebraicEqu = dCoef;
 	return 1.;
 }
 
@@ -442,6 +445,13 @@ StepNIntegrator::Update(const VectorHandler* pSol) const
 	pDM->Update();
 }
 
+doublereal StepNIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& dAlgebraicEqu) const
+{
+	const doublereal dDiffEqu = ImplicitStepIntegrator::TestScale(pTest, dAlgebraicEqu);
+	dAlgebraicEqu = db0Differential;
+
+	return dDiffEqu;
+}
 
 /* StepNIntegrator - end */
 
@@ -1364,8 +1374,10 @@ InverseDynamicsStepSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 
 /* scale factor for tests */
 doublereal
-InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest) const
+InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest, doublereal& dCoef) const
 {
+	dCoef = 1.;
+
 	if (bModResTest) {
 #ifdef USE_MPI
 #warning "InverseDynamicsStepSolver::TestScale() not available with Schur solution"

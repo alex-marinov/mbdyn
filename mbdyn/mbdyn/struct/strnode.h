@@ -38,6 +38,9 @@
 #include "invdyn.h"
 
 #ifdef USE_AUTODIFF
+#ifdef USE_MULTITHREAD
+#include "veciter.h"
+#endif
 #include "gradient.h"
 #include "matvec.h"
 #endif
@@ -758,6 +761,9 @@ protected:
 	// bool bOutputAccels;
 
 #ifdef USE_AUTODIFF
+#ifdef USE_MULTITHREAD
+	mutable InUse gradInUse;
+#endif
 	mutable bool bUpdateRotation;
 	mutable doublereal dCoefGrad;
 

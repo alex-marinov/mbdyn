@@ -495,17 +495,18 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 				scale.algorithm = SolutionManager::SCALEA_COL_SUM;
 			} else if (HP.IsKeyWord("lapack")) {
 				scale.algorithm = SolutionManager::SCALEA_LAPACK;
-
 			} else if (HP.IsKeyWord("iterative")) {
 				scale.algorithm = SolutionManager::SCALEA_ITERATIVE;
+			} else if (HP.IsKeyWord("row" "max" "column" "max") || HP.IsKeyWord("sinkhorn" "knopp")) {
+				scale.algorithm = SolutionManager::SCALEA_ROW_MAX_COL_MAX;
+			}
 
-				if (HP.IsKeyWord("scale" "tolerance")) {
-					scale.dTol = HP.GetReal();
-				}
+			if (HP.IsKeyWord("scale" "tolerance")) {
+				scale.dTol = HP.GetReal();
+			}
 
-				if (HP.IsKeyWord("scale" "iterations")) {
-					scale.iMaxIter = HP.GetInt();
-				}
+			if (HP.IsKeyWord("scale" "iterations")) {
+				scale.iMaxIter = HP.GetInt();
 			}
 
 			if (HP.IsKeyWord("once")) {

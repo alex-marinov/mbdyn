@@ -131,7 +131,7 @@ public:
     };
 
 	LineSearchSolver(DataManager* pDM,
-                     bool bHonorJacobianRequest, 
+                     const NonlinearSolverOptions& options,
                      const struct LineSearchParameters& param);
 	~LineSearchSolver(void);
 	
