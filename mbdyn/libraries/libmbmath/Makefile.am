@@ -33,6 +33,7 @@ matvec3n.cc \
 matvec3n.h \
 matvec6.cc \
 matvec6.h \
+matvecass.h \
 matvecexp.cc \
 matvecexp.h \
 mbcomm.h \
