@@ -276,6 +276,11 @@ MinMaxDriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	const integer iNumDrives = HP.GetInt();
 
+	if (iNumDrives < 1) {
+		silent_cerr("at least one drive caller expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	std::vector<DriveOwner> drives;
 
 	drives.reserve(iNumDrives);
