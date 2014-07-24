@@ -92,6 +92,11 @@ public:
 
 	/* Tipo di nodo */
 	virtual Node::Type GetNodeType(void) const;
+
+    	virtual void Output(OutputHandler& OH) const {
+       	ScalarDifferentialNode::Output(OH.Electric());
+    	};
+
 };
 
 /* ElectricNode - end */

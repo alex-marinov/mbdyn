@@ -36,6 +36,7 @@ MBDyn 1.X-Devel
 		- added algebraic equations scaling (Reinhard Resch)
 		- added support for octave 3.8.1 (Reinhard Resch)
 		- more joints with NetCDF support (Louis Gagnon)
+		- added output of electric nodes (Eduardo Okabe)
 	Backward compatibility issues:
 		- "overwrite" option of "setenv" changed
 		- incompatible module-aerodyn syntax change
