@@ -139,6 +139,9 @@ Andrea Zanoni, as an undergrad, contributed to inverse dynamics
 Matteo Fancello, as an undergrad, contributed the continuous contact module
 	and is currently integrating MBDyn with INRIA's Siconos
 
+Eduardo Okabe, as visiting professor, contributed the fab* modules
+	about gears, lubricated bearings, and other improvements
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
