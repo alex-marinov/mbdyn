@@ -510,7 +510,7 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 					silent_cout(" f=" << std::setw(12) << f);
 
 					if (iIterCnt > 1) {
-						silent_cerr(" Err(n-1)=" << std::setw(12) << dPrevErr
+						silent_cout(" Err(n-1)=" << std::setw(12) << dPrevErr
 								 << " Err(n)/Err(n-1)=" << std::setw(12) << dErr / dPrevErr
 								 << " Err(n)/Err(1)=" << std::setw(12) << dErrFactor);
 					}
