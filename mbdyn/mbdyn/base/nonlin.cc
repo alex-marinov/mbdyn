@@ -48,6 +48,7 @@
 #include "dofown.h"
 #include "output.h"
 
+#include <cmath>
 #include <limits>
 #include <unistd.h>
 
@@ -153,6 +154,10 @@ NonlinearSolverTest::MakeTest(Solver *pS, const integer& Size,
 doublereal
 NonlinearSolverTest::TestPost(const doublereal& dRes) const
 {
+	if (!std::isfinite(dRes)) {
+		throw NonlinearSolver::ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+
 	return dRes;
 }
 
