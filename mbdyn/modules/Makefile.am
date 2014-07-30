@@ -129,6 +129,26 @@ module-asynchronous_machine/module-asynchronous_machine.h \
 module-asynchronous_machine/doc/Doxyfile \
 module-asynchronous_machine/doc/Makefile \
  \
+module-autodiff_test/autodiff_test.f \
+module-autodiff_test/Makefile.inc \
+module-autodiff_test/module-autodiff_test.cc \
+module-autodiff_test/module-autodiff_test.h \
+module-autodiff_test/examples/deformable_joint_ad.cod \
+module-autodiff_test/examples/deformable_joint_ad.elm \
+module-autodiff_test/examples/deformable_joint_ad.inv \
+module-autodiff_test/examples/deformable_joint_ad.nod \
+module-autodiff_test/examples/deformable_joint_ad.ref \
+module-autodiff_test/examples/deformable_joint_ad.set \
+module-autodiff_test/examples/deformable_joint_ad_f77.mbdyn \
+module-autodiff_test/examples/deformable_joint_ad_tmp.mbdyn \
+module-autodiff_test/examples/deformable_joint_ad_trad.mbdyn \
+module-autodiff_test/examples/inline_joint_ad.mbdyn \
+module-autodiff_test/examples/inline_joint_ad_2.mbdyn \
+module-autodiff_test/examples/inline_joint_ad_2_elements.elm \
+module-autodiff_test/examples/inline_joint_ad_2_parameters.set \
+module-autodiff_test/examples/inline_joint_ad_2_tmp.elm \
+module-autodiff_test/examples/inline_joint_ad_2_trad.elm \
+ \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README \
  \
