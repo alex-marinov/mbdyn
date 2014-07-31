@@ -64,7 +64,7 @@ rtmbdyn_rt_task_init(const char *name, int priority, int stack_size,
 	assert(*v_task == NULL);
 
 	*v_task = (void *)rt_task_init_schmod(nam2num(name), priority,
-			stack_size, max_msg_size, SCHED_FIFO,/*0x2*/ cpu);
+			stack_size, max_msg_size, SCHED_FIFO, /*0x2*/ cpu);
 	return (*v_task == NULL);
 }
 

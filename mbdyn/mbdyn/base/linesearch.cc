@@ -289,7 +289,8 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	TRACE_VAR(dLambdaMinEff);
 
 	do {
-		ASSERT(lambda <= dLambdaMax);
+		// FIXME: dLambdaMax not defined
+		// ASSERT(lambda <= dLambdaMax);
 
 		if (iIter > 0) {
 			TRACE("Start new step from Xold, XPold with lambda = " << lambda << " ..." << std::endl);

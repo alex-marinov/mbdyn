@@ -69,8 +69,7 @@
 #include <sasl/sasl.h>
 #include "mbsasl.h"
 
-#include <pthread.h>
-#include <semaphore.h>
+#include "ac/pthread.h"
 
 static sem_t	sem;
 

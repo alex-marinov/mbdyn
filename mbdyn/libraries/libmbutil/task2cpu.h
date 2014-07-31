@@ -32,6 +32,6 @@
 #ifndef TASK2CPU_H
 #define TASK2CPU_H
 
-int mbdyn_task2cpu(int cpu);
+extern int mbdyn_task2cpu(int cpu);
 
 #endif /* TASK2CPU_H */

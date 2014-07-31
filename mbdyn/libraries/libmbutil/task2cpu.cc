@@ -37,14 +37,14 @@
 #ifdef HAVE_TASK2CPU
 #include <sys/ioctl.h>
 #endif // HAVE_TASK2CPU
+#include <iostream>
 
 #include "ac/pthread.h"
-
 #ifdef USE_PTHREAD_SETAFFINITY_NP
 #include <sched.h>
 #endif
 
-#include <iostream>
+#include "myassert.h"
 
 static bool		mbdyn_task2cpu_disabled = false;
 #ifdef HAVE_THREADS
