@@ -31,6 +31,8 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include "ac/pthread.h"
+
 #include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
@@ -39,7 +41,6 @@
 #endif // HAVE_TASK2CPU
 #include <iostream>
 
-#include "ac/pthread.h"
 #ifdef USE_PTHREAD_SETAFFINITY_NP
 #include <sched.h>
 #endif
