@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- RTAI and multithread support incompatible
 		- module-octave and multithread support incompatible
 	Bug fixes:
+		- fix module-octave build and scripts installation
+		  (Reinhard Resch)
 
 MBDyn 1.5.6
 	Enhancements:

@@ -84,31 +84,68 @@
 
 function [y, J] = mbdyn_derivative(F, x, varargin)
   if nargin > 1
-    if ( ischar(F) )
-        f = feval(F, gradinit(x), varargin{:});
-    else
-        f = F(gradinit(x), varargin{:});
-    endif
- 
-    if isgradient (f)
-      y = f.x;
-      J = f.J;
-    else
-      warning ("AD: function not differentiable or not dependent on input")
-      y = f;
-      m = numel (y);
-      n = numel (x);
-      if use_sparse_jacobians () != 0
-        J = sparse (m, n);
+    if (3 == exist("gradinit", "file"))
+      f = feval(F, gradinit(x), varargin{:});
+   
+      if isgradient (f)
+        y = f.x;
+        J = f.J;
       else
-        J = zeros (m, n);
+        warning ("AD: function not differentiable or not dependent on input")
+        y = f;
+        m = numel (y);
+        n = numel (x);
+        if use_sparse_jacobians () != 0
+          J = sparse (m, n);
+        else
+          J = zeros (m, n);
+        endif
       endif
-    endif
-  else usage ("[y, J] = mbdyn_derivative(F, x, varargin)");
-  endif
 
-  # FIXME: reshape needed for TplDriveCaller<Mat3x3>
-  if ( isscalar(x) && ismatrix(y) )
-    J = reshape(J, rows(y), columns(y));
+      # FIXME: reshape needed for TplDriveCaller<Mat3x3>
+      if ( isscalar(x) && ismatrix(y) )
+        J = reshape(J, rows(y), columns(y));
+      endif
+    else
+      y = feval(F, x, varargin{:});
+
+      if (~(isscalar(x) && ismatrix(y)))
+        J = zeros(length(y), length(x));
+      endif
+
+      for i=1:length(x)
+        dx = zeros(size(x));
+        dx(i) = sqrt(eps) * norm(x) + sqrt(eps);
+        dy_dx = (feval(F, x + dx, varargin{:}) - y)  / dx(i);
+
+        # FIXME: reshape needed for TplDriveCaller<Mat3x3>
+        if ( isscalar(x) && ismatrix(y) )
+          J = dy_dx;
+        else
+          J(:, i) = dy_dx;
+        endif
+      endfor
+    endif
+  else 
+    usage ("[y, J] = mbdyn_derivative(F, x, varargin)");
   endif
 endfunction
+
+%!function y=f2(x)
+%! y(1,1) = (x - 1) / (x + 1);
+%! y(1,2) = 1/(1+x)^2;
+%! y(2,1) = (x - 1) * (x + 1);
+%! y(2,2) = x + 1 / x;
+
+%!function y=f1(x)
+%!  y(1)=sin(x(1)) * tan(x(2)) + exp(x(3));
+%!  y(2)=cos(x(2)) + sin(x(3))^2 * x(1);
+
+%!test
+%! x = [0.57; 0.68; -1.3];
+%! [y,J]=mbdyn_derivative(@f1, x)
+
+%!test
+%! x = 20;
+%! [y, J]=mbdyn_derivative(@f2, x)
+

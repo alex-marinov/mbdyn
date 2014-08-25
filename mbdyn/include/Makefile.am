@@ -9,11 +9,18 @@ SUBDIRS = ac
 
 all-local: mbdefs.h FORCE
 
+if USE_OCTAVE
+octbindir="${bindir}/octave-`octave-config --version`"
+else
+octbindir="${bindir}"
+endif
+
 mbdefs.h: mbdefs.h.in Makefile
 	sed \
 		-e "s;%MODULE_LOADPATH%;@MODULE_LOADPATH@;" \
 		-e "s;%BINPATH%;${bindir};" \
 		-e "s;%OCTAVEPATH%;${octavedir};" \
+		-e "s;%OCTAVEBINPATH%;${octbindir};" \
 		$(srcdir)/$@.in > $@
 
 uninstall-local: mbdefs.h

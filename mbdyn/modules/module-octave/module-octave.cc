@@ -891,9 +891,9 @@ OctaveInterface::LoadADPackage(void)
 
 	feval("pkg", args, 0);
 
-	bHaveADPackage = (error_state == 0);
+	bHaveADPackage = true; // Use finite differences in var/mbdyn_derivative.m if AD is not available
 
-	if (!bHaveADPackage) {
+	if ((error_state != 0)) {
 		silent_cerr("warning: octave package for automatic forward differentiation is not available" << std::endl);
 		error_state = 0; // ignore error
 	}
@@ -1244,12 +1244,13 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 	}
 
 	if (bFirstCall) {
-		// octave scripts by default are installed here
-		if (!AddOctaveSearchPath(BINPATH)) {
+		// octave .oct files by default are installed here
+		if (!AddOctaveSearchPath(OCTAVEBINPATH)) {
 			silent_cerr("OctaveInterface error: addpath(\"" << BINPATH << "\") failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		// octave .m files by default are installed here
 		if (!AddOctaveSearchPath(OCTAVEPATH)) {
 			silent_cerr("OctaveInterface error: addpath(\"" << OCTAVEPATH << "\") failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
