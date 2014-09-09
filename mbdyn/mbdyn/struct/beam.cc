@@ -1990,7 +1990,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {
 		b_I = true;
 	} else {
-		R_I = HP.GetRotAbs(AbsRefFrame);
+		R_I = HP.GetRotAbs(::AbsRefFrame);
 	}
 
 	/*     Legame costitutivo */
@@ -2035,7 +2035,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {
 			bII = true;
 		} else {
-			RII = HP.GetRotAbs(AbsRefFrame);
+			RII = HP.GetRotAbs(::AbsRefFrame);
 		}
 	}
 

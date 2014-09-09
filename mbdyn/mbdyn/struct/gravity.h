@@ -112,7 +112,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const = 0;
+	virtual Vec3 GetAcceleration(const Vec3& /* X */ ) const = 0;
 
 	virtual inline int GetNumConnectedNodes(void) const {
 		return 0;
@@ -163,12 +163,39 @@ public:
 
 	virtual void Output(OutputHandler& OH) const;
 
-	virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const {
+	virtual Vec3 GetAcceleration(const Vec3& /* X */ ) const {
 		return Acc;
 	};
 };
 
 /* UniformGravity - end */
+
+
+/* CentralGravity - begin */
+
+class CentralGravity : virtual public Elem, public Gravity {
+protected:
+	Vec3 m_X0;
+	doublereal m_dM;
+	doublereal m_dG;
+	doublereal m_dThreshold;
+
+public:
+	CentralGravity(const Vec3& X0, doublereal dM, doublereal dG, flag fOut);
+
+	virtual ~CentralGravity(void);
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* funzioni proprie */
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual Vec3 GetAcceleration(const Vec3& X) const;
+};
+
+/* CentralGravity - end */
 
 
 /* GravityOwner - begin */

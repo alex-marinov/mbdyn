@@ -4143,7 +4143,7 @@ ReadStructNode(DataManager* pDM,
 				"missing keyword \"position\" at line "
 				<< HP.GetLineData() << std::endl);
 		}
-		Vec3 X0(HP.GetPosAbs(AbsRefFrame));
+		Vec3 X0(HP.GetPosAbs(::AbsRefFrame));
 		DEBUGCOUT("X0 =" << std::endl << X0 << std::endl);
 
 		/* sistema di riferimento (trucco dei due vettori) */
@@ -4154,7 +4154,7 @@ ReadStructNode(DataManager* pDM,
 					"missing keyword \"orientation\" at line "
 					<< HP.GetLineData() << std::endl);
 			}
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 
 			od = ReadOptionalOrientationDescription(pDM, HP);
 
@@ -4168,7 +4168,7 @@ ReadStructNode(DataManager* pDM,
 				"missing keyword \"velocity\" at line "
 				<< HP.GetLineData() << std::endl);
 		}
-		Vec3 XPrime0(HP.GetVelAbs(AbsRefFrame, X0));
+		Vec3 XPrime0(HP.GetVelAbs(::AbsRefFrame, X0));
 		DEBUGCOUT("Xprime0 =" << std::endl << XPrime0 << std::endl);
 
 		Vec3 Omega0;
@@ -4178,7 +4178,7 @@ ReadStructNode(DataManager* pDM,
 					"missing keyword \"angular velocity\" at line "
 					<< HP.GetLineData() << std::endl);
 			}
-			Omega0 = HP.GetOmeAbs(AbsRefFrame);
+			Omega0 = HP.GetOmeAbs(::AbsRefFrame);
 			DEBUGCOUT("Omega0 =" << std::endl << Omega0 << std::endl);
 		}
 

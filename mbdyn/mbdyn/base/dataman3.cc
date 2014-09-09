@@ -1290,42 +1290,42 @@ EndOfUse:
 				bool bGot(false);
 
 				if (HP.IsKeyWord("position")) {
-					X = HP.GetPosAbs(AbsRefFrame);
+					X = HP.GetPosAbs(::AbsRefFrame);
 					if (!X.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("orientation")) {
-					R = HP.GetRotAbs(AbsRefFrame);
+					R = HP.GetRotAbs(::AbsRefFrame);
 					if (!R.IsExactlySame(Eye3)) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("velocity")) {
-					V = HP.GetVecAbs(AbsRefFrame);
+					V = HP.GetVecAbs(::AbsRefFrame);
 					if (!V.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("angular" "velocity")) {
-					W = HP.GetVecAbs(AbsRefFrame);
+					W = HP.GetVecAbs(::AbsRefFrame);
 					if (!W.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("acceleration")) {
-					XPP = HP.GetVecAbs(AbsRefFrame);
+					XPP = HP.GetVecAbs(::AbsRefFrame);
 					if (!XPP.IsNull()) {
 						bGot = true;
 					}
 				}
 
 				if (HP.IsKeyWord("angular" "acceleration")) {
-					WP = HP.GetVecAbs(AbsRefFrame);
+					WP = HP.GetVecAbs(::AbsRefFrame);
 					if (!WP.IsNull()) {
 						bGot = true;
 					}
@@ -1353,22 +1353,22 @@ EndOfUse:
 				bool bGot(false);
 
 				if (HP.IsKeyWord("position")) {
-					pXDrv = ReadDCVecRel(this, HP, AbsRefFrame);
+					pXDrv = ReadDCVecRel(this, HP, ::AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("orientation")) {
-					pThetaDrv = ReadDCVecRel(this, HP, AbsRefFrame);
+					pThetaDrv = ReadDCVecRel(this, HP, ::AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("velocity")) {
-					pVDrv = ReadDCVecRel(this, HP, AbsRefFrame);
+					pVDrv = ReadDCVecRel(this, HP, ::AbsRefFrame);
 					bGot = true;
 				}
 
 				if (HP.IsKeyWord("angular" "velocity")) {
-					pWDrv = ReadDCVecRel(this, HP, AbsRefFrame);
+					pWDrv = ReadDCVecRel(this, HP, ::AbsRefFrame);
 					bGot = true;
 				}
 

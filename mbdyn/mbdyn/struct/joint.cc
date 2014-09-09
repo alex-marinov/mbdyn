@@ -638,14 +638,14 @@ ReadJoint(DataManager* pDM,
 				<< HP.GetLineData() << std::endl);
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
-			X0 = HP.GetPosAbs(AbsRefFrame);
+			X0 = HP.GetPosAbs(::AbsRefFrame);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
 		/* currently unused */
 		if (HP.IsKeyWord("orientation")) {
-			(void)HP.GetRotAbs(AbsRefFrame);
+			(void)HP.GetRotAbs(::AbsRefFrame);
 		}
 
 
@@ -1100,14 +1100,14 @@ ReadJoint(DataManager* pDM,
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 		{
-			X0 = HP.GetPosAbs(AbsRefFrame);
+			X0 = HP.GetPosAbs(::AbsRefFrame);
 		}
 		DEBUGCOUT("Absolute X:" << std::endl << X0 << std::endl);
 
 		Mat3x3 R0(Eye3);
 		if (HP.IsKeyWord("orientation")) {
 			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 #ifdef MBDYN_X_COMPATIBLE_INPUT
 		} else if (HP.IsKeyWord("hinge")) {
 			pedantic_cerr("Joint(" << uLabel << "): "
@@ -1115,7 +1115,7 @@ ReadJoint(DataManager* pDM,
 				<< " is deprecated; use \"orientation\" instead"
 				<< std::endl);
 			DEBUGCOUT("Hinge orientation matrix is supplied" << std::endl);
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 		}
 
@@ -2476,7 +2476,7 @@ ReadJoint(DataManager* pDM,
 				<< HP.GetLineData() << std::endl);
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
-			x = HP.GetPosAbs(AbsRefFrame);
+			x = HP.GetPosAbs(::AbsRefFrame);
 #ifndef MBDYN_X_COMPATIBLE_INPUT
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
@@ -2557,14 +2557,14 @@ ReadJoint(DataManager* pDM,
 		Mat3x3 Rnh(Eye3);
 		Mat3x3 Rnhr(Eye3);
 
-		Vec3 Xc(HP.GetPosAbs(AbsRefFrame));
+		Vec3 Xc(HP.GetPosAbs(::AbsRefFrame));
 		Mat3x3 Rch(Eye3);
 		Mat3x3 Rchr(Eye3);
 
 		bool bXActive[3] = { true, true, true };
 		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = { 0, 0, 0 };
-		pXDC[0] = ReadDCVecAbs(pDM, HP, AbsRefFrame);
+		pXDC[0] = ReadDCVecAbs(pDM, HP, ::AbsRefFrame);
 
 		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
@@ -3124,19 +3124,19 @@ ReadJoint(DataManager* pDM,
 		Vec3 Xc(Zero3);
 		if (HP.IsKeyWord("position")) {
 			DEBUGCOUT("Position vector is supplied" << std::endl);
-			Xc = HP.GetPosRel(AbsRefFrame, RF, fn);
+			Xc = HP.GetPosRel(::AbsRefFrame, RF, fn);
 		}
 
 		Mat3x3 Rch(Eye3);
 		if (HP.IsKeyWord("position" "orientation")) {
 			DEBUGCOUT("Position orientation matrix is supplied" << std::endl);
-			Rch = HP.GetRotRel(AbsRefFrame, RF, Rnh);
+			Rch = HP.GetRotRel(::AbsRefFrame, RF, Rnh);
 		}
 
 		Mat3x3 Rchr(Eye3);
 		if (HP.IsKeyWord("rotation" "orientation")) {
 			DEBUGCOUT("Rotation orientation matrix is supplied" << std::endl);
-			Rchr = HP.GetRotRel(AbsRefFrame, RF, Rnhr);
+			Rchr = HP.GetRotRel(::AbsRefFrame, RF, Rnhr);
 		}
 
 		bool bXActive[3] = { false, false, false };

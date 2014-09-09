@@ -75,6 +75,7 @@ Gravity::AssRes(SubVectorHandler& WorkVec,
 
 /* Gravity - end */
 
+
 /* UniformGravity - begin */
 
 UniformGravity::UniformGravity(const TplDriveCaller<Vec3>* pDC, flag fOut)
@@ -128,6 +129,57 @@ UniformGravity::Output(OutputHandler& OH) const
 }
 
 /* UniformGravity - end */
+
+
+/* CentralGravity - begin */
+
+CentralGravity::CentralGravity(const Vec3& X0,
+	doublereal dM, doublereal dG, flag fOut)
+: Elem(1, fOut), Gravity(fOut), m_X0(X0), m_dM(dM), m_dG(dG)
+{
+	NO_OP;
+}
+
+CentralGravity::~CentralGravity(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+CentralGravity::Restart(std::ostream& out) const
+{
+	return out << "  gravity: central, "
+		"origin, ", m_X0.Write(out, ", ") << ", "
+		"mass, " << m_dM << ", "
+		"G, " << m_dG << ";"
+		<< std::endl;
+}
+
+void
+CentralGravity::Output(OutputHandler& OH) const
+{
+#if 0
+	// nothing to output...
+	if (fToBeOutput()) {
+		if (OH.UseText(OutputHandler::GRAVITY)) {
+			OH.Gravity() << std::setw(8) << GetLabel()
+				<< std::endl;
+		}
+	}
+#endif
+	NO_OP;
+}
+
+Vec3
+CentralGravity::GetAcceleration(const Vec3& X) const
+{
+	Vec3 D = m_X0 - X;
+	doublereal dD = D.Norm();
+	return D*(m_dM*m_dG/(dD*dD*dD));
+}
+
+/* CentralGravity - end */
 
 
 /* GravityOwner - begin */
@@ -187,6 +239,36 @@ ReadGravity(DataManager* pDM, MBDynParser& HP)
 	Elem *pE = 0;
 
 	if (HP.IsKeyWord("central")) {
+		Vec3 X0 = ::Zero3;
+		if (HP.IsKeyWord("origin")) {
+			X0 = HP.GetPosAbs(::AbsRefFrame);
+		}
+
+		if (!HP.IsKeyWord("mass")) {
+			silent_cerr("Gravity: \"mass\" keyword expected at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		doublereal dM = HP.GetReal();
+		if (dM <= std::numeric_limits<doublereal>::epsilon()) {
+			silent_cerr("Gravity: mass " << dM << " is negative or too small at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (!HP.IsKeyWord("G")) {
+			silent_cerr("Gravity: \"G\" keyword expected at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		// 6.673 84 x 10-11 m3 kg-1 s-2, http://physics.nist.gov/cuu/Constants/index.html
+		doublereal dG = 6.67384e-11;
+		if (!HP.IsKeyWord("si")) {
+			dG = HP.GetReal();
+			if (dG <= std::numeric_limits<doublereal>::epsilon()) {
+				silent_cerr("Gravity: gravity constant " << dG << " is negative or too small at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pE, CentralGravity, CentralGravity(X0, dM, dG, 0));
 
 	} else {
 		if (!HP.IsKeyWord("uniform")) {

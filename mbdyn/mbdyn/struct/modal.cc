@@ -2638,11 +2638,11 @@ ReadModal(DataManager* pDM,
 	 * and orientation of the reference point can be added */
 	if (HP.IsKeyWord("clamped")) {
 		if (HP.IsKeyWord("position")) {
-			X0 = HP.GetPosAbs(AbsRefFrame);
+			X0 = HP.GetPosAbs(::AbsRefFrame);
 		}
 
 		if (HP.IsKeyWord("orientation")) {
-			R = HP.GetRotAbs(AbsRefFrame);
+			R = HP.GetRotAbs(::AbsRefFrame);
 		}
 
 	/* otherwise a structural node of type "modal" must be given;
@@ -4553,7 +4553,7 @@ ReadModal(DataManager* pDM,
 		bOrigin = true;
 
 	} else if (HP.IsKeyWord("origin" "position")) {
-		Origin = HP.GetPosAbs(AbsRefFrame);
+		Origin = HP.GetPosAbs(::AbsRefFrame);
 		bOrigin = true;
 	}
 

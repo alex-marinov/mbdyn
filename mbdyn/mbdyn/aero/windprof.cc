@@ -119,7 +119,7 @@ ScalarFuncGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			X0 = HP.GetVecAbs(AbsRefFrame);
+			X0 = HP.GetVecAbs(::AbsRefFrame);
 
 		} else if (HP.IsKeyWord("reference" "orientation")) {
 			if (bGotR0) {
@@ -130,7 +130,7 @@ ScalarFuncGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 
 		} else {
 			break;
@@ -271,7 +271,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			X0 = HP.GetVecAbs(AbsRefFrame);
+			X0 = HP.GetVecAbs(::AbsRefFrame);
 
 		} else if (HP.IsKeyWord("reference" "orientation")) {
 			if (bGotR0) {
@@ -282,7 +282,7 @@ PowerLawGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 
 		} else {
 			break;
@@ -432,7 +432,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			X0 = HP.GetVecAbs(AbsRefFrame);
+			X0 = HP.GetVecAbs(::AbsRefFrame);
 
 		} else if (HP.IsKeyWord("reference" "orientation")) {
 			if (bGotR0) {
@@ -443,7 +443,7 @@ LogarithmicGR::Read(const DataManager* pDM, MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			R0 = HP.GetRotAbs(AbsRefFrame);
+			R0 = HP.GetRotAbs(::AbsRefFrame);
 
 		} else {
 			break;

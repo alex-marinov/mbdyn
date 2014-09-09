@@ -668,10 +668,10 @@ DataManager::ReadElems(MBDynParser& HP)
 
 				/* NOTE: i primi due sono gestiti direttamente
 				 * dagli elementi con inerzia, e quindi non sono usati */
-				Vec3 q(HP.GetVecAbs(AbsRefFrame));
-				Vec3 g(HP.GetVecAbs(AbsRefFrame));
-				Vec3 qp(HP.GetVecAbs(AbsRefFrame));
-				Vec3 gp(HP.GetVecAbs(AbsRefFrame));
+				Vec3 q(HP.GetVecAbs(::AbsRefFrame));
+				Vec3 g(HP.GetVecAbs(::AbsRefFrame));
+				Vec3 qp(HP.GetVecAbs(::AbsRefFrame));
+				Vec3 gp(HP.GetVecAbs(::AbsRefFrame));
 
 				DEBUGCOUT("Q  = " << q << std::endl
 					<< "G  = " << g << std::endl
@@ -683,8 +683,8 @@ DataManager::ReadElems(MBDynParser& HP)
 			} else {
 				DEBUGCOUT("reading AutomaticStructDispElem(" << pASD->GetLabel() << ")" << std::endl);
 
-				Vec3 q(HP.GetVecAbs(AbsRefFrame));
-				Vec3 qp(HP.GetVecAbs(AbsRefFrame));
+				Vec3 q(HP.GetVecAbs(::AbsRefFrame));
+				Vec3 qp(HP.GetVecAbs(::AbsRefFrame));
 
 				DEBUGCOUT("Q  = " << q << std::endl
 					<< "Qp = " << qp << std::endl);
@@ -2018,13 +2018,13 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		Vec3 x(Zero3);
 		if (HP.IsKeyWord("position")) {
-			x = HP.GetPosAbs(AbsRefFrame);
+			x = HP.GetPosAbs(::AbsRefFrame);
 		}
 
 		Mat3x3 R(Eye3);
 		Mat3x3 RT(Eye3);
 		if (HP.IsKeyWord("orientation")) {
-			R = HP.GetRotAbs(AbsRefFrame);
+			R = HP.GetRotAbs(::AbsRefFrame);
 			RT = R.Transpose();
 		}
 

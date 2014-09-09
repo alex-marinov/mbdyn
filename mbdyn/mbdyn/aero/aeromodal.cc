@@ -625,7 +625,7 @@ ReadAerodynamicModal(DataManager* pDM,
 		RF = ReferenceFrame(pModalNode);
 
 	} else {
-		RF = AbsRefFrame;
+		RF = ::AbsRefFrame;
 	}
 
 	Mat3x3 Ra(HP.GetRotRel(RF));

@@ -219,7 +219,7 @@ MBDynParser::Reference_int(void)
 		switch (GetRef(rfOut)) {
 		case MBDynParser::UNKNOWNFRAME:
 		case MBDynParser::GLOBAL:
-			rfOut = AbsRefFrame;
+			rfOut = ::AbsRefFrame;
 			break;
 
 		case MBDynParser::REFERENCE:
@@ -249,14 +249,14 @@ MBDynParser::Reference_int(void)
 				<< "): missing keyword \"position\" at line "
 				<< GetLineData() << std::endl);
 		}
-		x = GetPosAbs(AbsRefFrame);
+		x = GetPosAbs(::AbsRefFrame);
 
 		if (!IsKeyWord("orientation")) {
 			pedantic_cerr("ReferenceFrame(" << uLabel
 				<< "): missing keyword \"orientation\" at line "
 				<< GetLineData() << std::endl);
 		}
-		R = GetRotAbs(AbsRefFrame);
+		R = GetRotAbs(::AbsRefFrame);
 
 		if (IsArg()) {
 			if (!IsKeyWord("velocity")) {
@@ -264,14 +264,14 @@ MBDynParser::Reference_int(void)
 					<< "): missing keyword \"velocity\" at line "
 					<< GetLineData() << std::endl);
 			}
-			v = GetVelAbs(AbsRefFrame, x);
+			v = GetVelAbs(::AbsRefFrame, x);
 			if (IsArg()) {
 				if (!IsKeyWord("angular" "velocity")) {
 					pedantic_cerr("ReferenceFrame(" << uLabel
 						<< "): missing keyword \"angular velocity\" at line "
 						<< GetLineData() << std::endl);
 				}
-				w = GetOmeAbs(AbsRefFrame);
+				w = GetOmeAbs(::AbsRefFrame);
 			}
 		}
 	}
@@ -1306,7 +1306,7 @@ MBDynParser::GetPosAbs(const ReferenceFrame& rf)
 	}
 }
 
-#if 0 // TODO; not really needed: use MBDynParser::GetPosAbs(AbsRefFrame, ...) instead
+#if 0 // TODO; not really needed: use MBDynParser::GetPosAbs(::AbsRefFrame, ...) instead
 Vec3 
 MBDynParser::GetPosAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Vec3& other_X)
 {
@@ -1758,7 +1758,7 @@ MBDynParser::GetRotAbs(const ReferenceFrame& rf)
 	}
 }
 
-#if 0 // TODO; not really needed: use MBDynParser::GetRotAbs(AbsRefFrame, ...) instead
+#if 0 // TODO; not really needed: use MBDynParser::GetRotAbs(::AbsRefFrame, ...) instead
 Mat3x3 
 MBDynParser::GetRotAbs(const ReferenceFrame& rf, const ReferenceFrame& other_rf, const Mat3x3& other_R)
 {   

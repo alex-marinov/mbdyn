@@ -1344,7 +1344,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("from" "nodes") || HP.IsKeyWord("node")) {
 		f = flag(1);
 	} else {
-		R = HP.GetRotAbs(AbsRefFrame);
+		R = HP.GetRotAbs(::AbsRefFrame);
 	}
 	
 	/* Legame costitutivo */

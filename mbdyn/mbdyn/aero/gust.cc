@@ -139,10 +139,10 @@ Gust *
 Gust1DGR::Read(const DataManager* pDM, MBDynParser& HP)
 {
 	/* front direction */
-	Vec3 f = HP.GetVecAbs(AbsRefFrame);
+	Vec3 f = HP.GetVecAbs(::AbsRefFrame);
 
 	/* gust velocity direction */
-	Vec3 g = HP.GetVecAbs(AbsRefFrame);
+	Vec3 g = HP.GetVecAbs(::AbsRefFrame);
 
 	/* reference velocity */
 	doublereal v = HP.GetReal();
