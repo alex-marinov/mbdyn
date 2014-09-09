@@ -33,27 +33,20 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include "dataman.h"
 #include "gravity.h"
 
 /* Gravity - begin */
 
-Gravity::Gravity(const TplDriveCaller<Vec3>* pDC, flag fOut)
-: Elem(1, fOut), TplDriveOwner<Vec3>(pDC)
+Gravity::Gravity(flag fOut)
+: Elem(1, fOut)
 {
-	Acc = Get();
+	NO_OP;
 }
 
 Gravity::~Gravity(void)
 {
 	NO_OP;
-}
-
-/* Scrive il contributo dell'elemento al file di restart */
-std::ostream&
-Gravity::Restart(std::ostream& out) const
-{
-	return out << "  gravity: /*reference, global,*/ ",
-		pGetDriveCaller()->Restart(out) << ";" << std::endl;
 }
 
 /* assemblaggio jacobiano */
@@ -77,6 +70,40 @@ Gravity::AssRes(SubVectorHandler& WorkVec,
 {
 	DEBUGCOUT("Entering Gravity::AssRes()" << std::endl);
 	WorkVec.Resize(0);
+	return WorkVec;
+}
+
+/* Gravity - end */
+
+/* UniformGravity - begin */
+
+UniformGravity::UniformGravity(const TplDriveCaller<Vec3>* pDC, flag fOut)
+: Elem(1, fOut), Gravity(fOut), TplDriveOwner<Vec3>(pDC)
+{
+	Acc = Get();
+}
+
+UniformGravity::~UniformGravity(void)
+{
+	NO_OP;
+}
+
+/* Scrive il contributo dell'elemento al file di restart */
+std::ostream&
+UniformGravity::Restart(std::ostream& out) const
+{
+	return out << "  gravity: uniform, /* reference, global, */ ",
+		pGetDriveCaller()->Restart(out) << ";" << std::endl;
+}
+
+/* assemblaggio residuo */
+SubVectorHandler&
+UniformGravity::AssRes(SubVectorHandler& WorkVec,
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
+{
+	DEBUGCOUT("Entering UniformGravity::AssRes()" << std::endl);
 
 	/* Approfitto del fatto che Gravity viene aggiornato prima
 	 * degli altri elementi (vedi l'enum Elem::Type e la sequenza di
@@ -86,11 +113,11 @@ Gravity::AssRes(SubVectorHandler& WorkVec,
 	 * minimo overhead
 	 */
 	Acc = Get();
-	return WorkVec;
+	return Gravity::AssRes(WorkVec, dCoef, XCurr, XPrimeCurr);
 }
 
 void
-Gravity::Output(OutputHandler& OH) const
+UniformGravity::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
 		if (OH.UseText(OutputHandler::GRAVITY)) {
@@ -100,7 +127,7 @@ Gravity::Output(OutputHandler& OH) const
 	}
 }
 
-/* Gravity - end */
+/* UniformGravity - end */
 
 
 /* GravityOwner - begin */
@@ -153,3 +180,30 @@ ElemGravityOwner::~ElemGravityOwner(void)
 }
 
 /* ElemGravityOwner - end */
+
+Elem *
+ReadGravity(DataManager* pDM, MBDynParser& HP)
+{
+	Elem *pE = 0;
+
+	if (HP.IsKeyWord("central")) {
+
+	} else {
+		if (!HP.IsKeyWord("uniform")) {
+			silent_cerr("Gravity: "
+				"<type> expected "
+				"at line " << HP.GetLineData() << "; "
+				"assuming \"uniform\""
+				<< std::endl);
+		}
+
+		TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
+
+		flag fOut = pDM->fReadOutput(HP, Elem::GRAVITY);
+
+		SAFENEWWITHCONSTRUCTOR(pE, UniformGravity, UniformGravity(pDC, fOut));
+	}
+
+	return pE;
+}
+

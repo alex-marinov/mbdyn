@@ -63,17 +63,11 @@
 
 /* Gravity - begin */
 
-class Gravity : public Elem, public TplDriveOwner<Vec3> {
-protected:
-	Vec3 Acc;
-
+class Gravity : virtual public Elem {
 public:
-	Gravity(const TplDriveCaller<Vec3>* pDC, flag fOut);
+	Gravity(flag fOut);
 
 	virtual ~Gravity(void);
-
-	/* Scrive il contributo dell'elemento al file di restart */
-	virtual std::ostream& Restart(std::ostream& out) const;
 
 	/* Tipo dell'elemento (usato solo per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const {
@@ -118,11 +112,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
-	virtual void Output(OutputHandler& OH) const;
-
-	virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const {
-		return Acc;
-	};
+	virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const = 0;
 
 	virtual inline int GetNumConnectedNodes(void) const {
 		return 0;
@@ -130,6 +120,55 @@ public:
 };
 
 /* Gravity - end */
+
+
+/* UniformGravity - begin */
+
+class UniformGravity : virtual public Elem, public Gravity, public TplDriveOwner<Vec3> {
+protected:
+	Vec3 Acc;
+
+public:
+	UniformGravity(const TplDriveCaller<Vec3>* pDC, flag fOut);
+
+	virtual ~UniformGravity(void);
+
+	/* Scrive il contributo dell'elemento al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	/* funzioni di servizio */
+
+	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
+	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a
+	 * ritornare 0 per gli elementi che non possiedono gradi di liberta'.
+	 * Viene usato nella costruzione dei DofOwner e quindi deve essere
+	 * indipendente da essi. In genere non comporta overhead in quanto il
+	 * numero di dof aggiunti da un tipo e' una costante e non richede dati
+	 * propri.
+	 * Il metodo pGetDofOwner() ritorna il puntatore al DofOwner dell'oggetto.
+	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
+	 * Non e' virtuale in quanto ritorna NULL per tutti i tipi che non hanno
+	 * dof propri.
+	 * Il metodo GetDofType() ritorna, per ogni dof dell'elemento, l'ordine.
+	 * E' usato per completare i singoli Dof relativi all'elemento.
+	 */
+
+	/* funzioni proprie */
+
+	/* assemblaggio residuo */
+	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+
+	virtual void Output(OutputHandler& OH) const;
+
+	virtual const Vec3& GetAcceleration(const Vec3& /* X */ ) const {
+		return Acc;
+	};
+};
+
+/* UniformGravity - end */
 
 
 /* GravityOwner - begin */
@@ -228,5 +267,8 @@ public:
 };
 
 /* ElemGravityOwner - end */
+
+extern Elem *
+ReadGravity(DataManager* pDM, MBDynParser& HP);
 
 #endif // GRAVITY_H

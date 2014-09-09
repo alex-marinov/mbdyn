@@ -715,14 +715,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 				}
 
+				pE = ReadGravity(this, HP);
 				uLabel = 1;
-
-				TplDriveCaller<Vec3>* pDC = ReadDC3D(this, HP);
-
-				flag fOut = fReadOutput(HP, Elem::GRAVITY);
-
-				SAFENEWWITHCONSTRUCTOR(pE, Gravity, Gravity(pDC, fOut));
-
 				InsertElem(ElemData[Elem::GRAVITY], uLabel, pE);
 
 				*ei = pE;
