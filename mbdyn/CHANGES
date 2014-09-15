@@ -13,6 +13,8 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added central gravity field (suggested by Linh H. Phan)
+		- added automatic differentiation support to drive callers
+		  and constitutive laws (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

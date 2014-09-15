@@ -38,6 +38,10 @@
 #include "simentity.h"
 #include "tpldrive.h"
 
+#ifdef USE_AUTODIFF
+#include "matvec.h"
+#endif
+
 /* Tipi di cerniere deformabili */
 class ConstLawType {
 public:
@@ -165,11 +169,88 @@ public:
 	virtual DofOrder::Order GetDofType(unsigned int i) const {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	};
+
+protected:
+#ifdef USE_AUTODIFF
+	template <typename ConstLaw>
+	static inline void UpdateViscoelastic(ConstLaw* pCl, const T& Eps, const T& EpsPrime);
+
+	template <typename ConstLaw>
+	static inline void UpdateElastic(ConstLaw* pCl, const T& Eps);
+#endif
 };
 
 typedef ConstitutiveLaw<doublereal, doublereal> ConstitutiveLaw1D;
 typedef ConstitutiveLaw<Vec3, Mat3x3> ConstitutiveLaw3D;
 typedef ConstitutiveLaw<Vec6, Mat6x6> ConstitutiveLaw6D;
+
+#ifdef USE_AUTODIFF
+template <class T, class Tder>
+template <typename ConstLaw>
+inline void ConstitutiveLaw<T, Tder>::UpdateViscoelastic(ConstLaw* pCl, const T& Eps, const T& EpsPrime)
+{
+
+
+	using namespace grad;
+	const index_type N = VectorSize<T>::N;
+	Vector<Gradient<2 * N>, N> gEps, gEpsPrime, gF;
+
+	pCl->Epsilon = Eps;
+	pCl->EpsilonPrime = EpsPrime;
+
+	for (int i = 0; i < N; ++i)
+	{
+		gEps(i + 1).SetValuePreserve(Eps(i + 1));
+		gEps(i + 1).DerivativeResizeReset(0, i, MapVectorBase::LOCAL, 1.);
+		gEpsPrime(i + 1).SetValuePreserve(EpsPrime(i + 1));
+		gEpsPrime(i + 1).DerivativeResizeReset(0, i + N, MapVectorBase::LOCAL, 1.);
+	}
+
+	pCl->UpdateViscoelasticTpl(gEps, gEpsPrime, gF);
+
+	for (int i = 1; i <= N; ++i)
+	{
+		pCl->F(i) = gF(i).dGetValue();
+
+		for (int j = 0; j < N; ++j)
+		{
+			pCl->FDE(i, j + 1) = gF(i).dGetDerivativeLocal(j);
+			pCl->FDEPrime(i, j + 1) = gF(i).dGetDerivativeLocal(j + N);
+		}
+	}
+}
+
+template <class T, class Tder>
+template <typename ConstLaw>
+inline void ConstitutiveLaw<T, Tder>::UpdateElastic(ConstLaw* pCl, const T& Eps)
+{
+
+
+	using namespace grad;
+	const index_type N = VectorSize<T>::N;
+	Vector<Gradient<N>, N> gEps, gF;
+
+	pCl->Epsilon = Eps;
+
+	for (int i = 0; i < N; ++i)
+	{
+		gEps(i + 1).SetValuePreserve(Eps(i + 1));
+		gEps(i + 1).DerivativeResizeReset(0, i, MapVectorBase::LOCAL, 1.);
+	}
+
+	pCl->UpdateElasticTpl(gEps, gF);
+
+	for (int i = 1; i <= N; ++i)
+	{
+		pCl->F(i) = gF(i).dGetValue();
+
+		for (int j = 0; j < N; ++j)
+		{
+			pCl->FDE(i, j + 1) = gF(i).dGetDerivativeLocal(j);
+		}
+	}
+}
+#endif
 
 /* ConstitutiveLaw - end */
 

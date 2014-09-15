@@ -47,6 +47,7 @@
 
 #include "gradient.h"
 #include "matvec3.h" // FIXME: We need that for compatibility reasons
+#include "matvec6.h"
 
 #ifndef MATVEC_DEBUG
     #ifdef DEBUG
@@ -63,6 +64,30 @@
 #endif
 
 namespace grad {
+
+template <typename T>
+struct VectorSize
+{
+	static const int N = -1; // Note: must not be zero because that would mean variable size!
+};
+
+template <>
+struct VectorSize<doublereal>
+{
+	static const int N = 1;
+};
+
+template <>
+struct VectorSize<Vec3>
+{
+	static const int N = 3;
+};
+
+template <>
+struct VectorSize<Vec6>
+{
+	static const int N = 6;
+};
 
 template <typename T, index_type N_rows, index_type N_cols>
 class Matrix;

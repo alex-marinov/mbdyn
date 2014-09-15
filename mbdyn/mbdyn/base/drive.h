@@ -50,6 +50,10 @@
 #include "solman.h"
 #include "withlab.h"
 
+#ifdef USE_AUTODIFF
+#include <gradient.h>
+#endif
+
 extern const char* psDriveNames[];
 extern const char* psReadControlDrivers[];
 
@@ -142,6 +146,12 @@ public:
 	bool bIsDifferentiable(void) const;
 	doublereal dGetP(const doublereal& dVar) const;
 	doublereal dGetP(void) const;
+
+#ifdef USE_AUTODIFF
+	inline void dGet(doublereal x, doublereal& y) const;
+	template <int N>
+	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
+#endif
 };
 
 /* DriveOwner - end */
@@ -454,6 +464,12 @@ public:
 	virtual doublereal dGet(const doublereal& dVar) const = 0;
 	virtual inline doublereal dGet(void) const;
 
+#ifdef USE_AUTODIFF
+	inline void dGet(doublereal x, doublereal& y) const;
+	template <int N>
+	inline void dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const;
+#endif
+
 	/* this is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
 	virtual doublereal dGetP(const doublereal& dVar) const;
@@ -483,6 +499,40 @@ DriveCaller::dGetP(void) const
 {
 	return dGetP(pDrvHdl->dGetTime());
 }
+
+#ifdef USE_AUTODIFF
+inline void DriveCaller::dGet(doublereal x, doublereal& y) const
+{
+	y = dGet(x);
+}
+
+template <int N>
+inline void DriveCaller::dGet(const grad::Gradient<N>& gx, grad::Gradient<N>& gy) const
+{
+	using namespace grad;
+	const doublereal x = gx.dGetValue();
+	const doublereal y = dGet(x);
+	const doublereal dy_dx = dGetP(x);
+
+	gy.SetValuePreserve(y);
+	gy.DerivativeResizeReset(gx.pGetDofMap(), gx.iGetStartIndexLocal(), gx.iGetEndIndexLocal(), MapVectorBase::LOCAL, 0.);
+
+	for (index_type i = gx.iGetStartIndexLocal(); i < gx.iGetEndIndexLocal(); ++i) {
+		gy.SetDerivativeLocal(i, dy_dx * gx.dGetDerivativeLocal(i));
+	}
+}
+
+inline void DriveOwner::dGet(doublereal x, doublereal& y) const
+{
+	pDriveCaller->dGet(x, y);
+}
+
+template <int N>
+inline void DriveOwner::dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) const
+{
+	pDriveCaller->dGet(x, y);
+}
+#endif
 
 /* DriveCaller - end */
 
