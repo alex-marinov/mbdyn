@@ -24,6 +24,8 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix module-octave build and scripts installation
 		  (Reinhard Resch)
+		- fix initial assembly of viscoelastic deformable joint
+		  (noted by Reinhard Resch)
 
 MBDyn 1.5.6
 	Enhancements:
