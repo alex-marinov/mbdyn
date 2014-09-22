@@ -26,6 +26,9 @@ MBDyn 1.X-Devel
 		  (Reinhard Resch)
 		- fix initial assembly of viscoelastic deformable joint
 		  (noted by Reinhard Resch)
+		- fix python detection (David Verelst)
+		- fix SparseSuite_config detection
+		  (Marco Morandini; noted by David Verelst)
 
 MBDyn 1.5.6
 	Enhancements:
