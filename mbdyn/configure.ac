@@ -1632,6 +1632,26 @@ if test "$ol_with_umfpack" != "no" ; then
 
 	if test "$ac_cv_header_umfpack_h" = "yes" ; then
 
+		dnl check for SuiteSparseConfig
+		AC_MSG_CHECKING([for SuiteSparse_config library])
+		save_LIBS="$LIBS"
+		try_suitesparseconfig_LIBS="-lsuitesparseconfig -lrt -lm"
+		LIBS="$try_suitesparseconfig_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for suitesparseconfig */
+	return 0;
+		],[have_suitesparseconfig="yes"],[have_suitesparseconfig="no"])
+		if test "$have_suitesparseconfig" = "yes" ; then
+			try_umfpack_LIBS="$try_suitesparseconfig_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_umfpack_LIBS=
+			AC_MSG_RESULT([no])
+		fi
+
 		dnl check for AMD
 		AC_MSG_CHECKING([for AMD library])
 		save_LIBS="$LIBS"
@@ -1856,6 +1876,26 @@ if test "$ol_with_klu" != "no" ; then
 	AC_CHECK_HEADERS(klu.h)
 
 	if test "$ac_cv_header_klu_h" = "yes" ; then
+
+		dnl check for SuiteSparseConfig
+		AC_MSG_CHECKING([for SuiteSparse_config library])
+		save_LIBS="$LIBS"
+		try_suitesparseconfig_LIBS="-lsuitesparseconfig -lrt -lm"
+		LIBS="$try_suitesparseconfig_LIBS $LIBS"
+
+		AC_TRY_LINK([
+	/* no test: the library must exist, then we trust it */
+		],[
+	/* test for suitesparseconfig */
+	return 0;
+		],[have_suitesparseconfig="yes"],[have_suitesparseconfig="no"])
+		if test "$have_suitesparseconfig" = "yes" ; then
+			try_umfpack_LIBS="$try_suitesparseconfig_LIBS"
+			AC_MSG_RESULT([yes])
+		else
+			try_umfpack_LIBS=
+			AC_MSG_RESULT([no])
+		fi
 
 		dnl check for AMD
 		AC_MSG_CHECKING([for AMD library])
