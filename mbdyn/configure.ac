@@ -1630,6 +1630,7 @@ ol_link_umfpack=no
 if test "$ol_with_umfpack" != "no" ; then
 	AC_CHECK_HEADERS(umfpack.h)
 
+	have_suitesparseconfig="no"
 	if test "$ac_cv_header_umfpack_h" = "yes" ; then
 
 		dnl check for SuiteSparseConfig
@@ -1649,6 +1650,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_umfpack_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1669,6 +1671,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_umfpack_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1688,6 +1691,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			try_umfpack_LIBS="$try_colamd_LIBS $try_umfpack_LIBS"
 			AC_MSG_RESULT([yes])
 		else
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1707,6 +1711,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			try_umfpack_LIBS="$try_ccolamd_LIBS $try_umfpack_LIBS"
 			AC_MSG_RESULT([yes])
 		else
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1726,6 +1731,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			try_umfpack_LIBS="$try_camd_LIBS $try_umfpack_LIBS"
 			AC_MSG_RESULT([yes])
 		else
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1745,6 +1751,7 @@ if test "$ol_with_umfpack" != "no" ; then
 			try_umfpack_LIBS="$try_cholmod_LIBS $try_umfpack_LIBS"
 			AC_MSG_RESULT([yes])
 		else
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1875,6 +1882,7 @@ if test "$ol_with_klu" != "no" ; then
 	
 	AC_CHECK_HEADERS(klu.h)
 
+	have_suitesparseconfig="no"
 	if test "$ac_cv_header_klu_h" = "yes" ; then
 
 		dnl check for SuiteSparseConfig
@@ -1894,6 +1902,7 @@ if test "$ol_with_klu" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_umfpack_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1914,6 +1923,7 @@ if test "$ol_with_klu" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_klu_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1933,6 +1943,7 @@ if test "$ol_with_klu" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_klu_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1952,6 +1963,7 @@ if test "$ol_with_klu" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_klu_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
@@ -1970,6 +1982,7 @@ if test "$ol_with_klu" != "no" ; then
 			AC_MSG_RESULT([yes])
 		else
 			try_klu_LIBS=
+			LIBS="$save_LIBS"
 			AC_MSG_RESULT([no])
 		fi
 
