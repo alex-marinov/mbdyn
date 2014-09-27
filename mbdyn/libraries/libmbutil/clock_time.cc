@@ -50,6 +50,6 @@ double mbdyn_clock_time() {
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
 	return (tp.tv_sec + 1e-9 * tp.tv_nsec);
 #else
-	return doublereal(clock())/CLOCKS_PER_SEC;
+	return double(clock())/CLOCKS_PER_SEC;
 #endif
 }
