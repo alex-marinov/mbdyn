@@ -3362,6 +3362,10 @@ Solver::ReadData(MBDynParser& HP)
 				bKeepJac = false;
 				iIterationsBeforeAssembly = 0;
 
+				if (NonlinearSolverType == NonlinearSolver::NEWTONRAPHSON && HP.IsKeyWord("true")) {
+					break;
+				}
+
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
 					iIterationsBeforeAssembly = HP.GetInt();
