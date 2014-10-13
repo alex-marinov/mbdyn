@@ -1142,9 +1142,9 @@ public:
 		NO_OP;
 	};
 
-	VariableSubMatrixHandler(integer iMaxRows, integer iMaxCols)
+	VariableSubMatrixHandler(integer iMaxRows, integer iMaxCols, integer iNumItems = -1)
 	: FullSubMatrixHandler(iMaxRows, iMaxCols),
-	SparseSubMatrixHandler(iMaxRows*iMaxCols),
+	SparseSubMatrixHandler(iNumItems >= 0 ? iNumItems : iMaxRows * iMaxCols),
 	eStatus(NULLMATRIX)
 	{
 		NO_OP;

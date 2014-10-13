@@ -617,10 +617,10 @@ protected:
 	unsigned int iTotDrive;  /* numero totale dei drivers */
 
 	/* dati di lavoro */
-	integer iMaxWorkNumRows; /* dimensioni max della matrice di lavoro */
-	integer iMaxWorkNumCols; /*    ''         ''   */
-	integer iWorkIntSize;    /* dimensioni degli spazi di lavoro */
-	integer iWorkDoubleSize;
+	integer iMaxWorkNumRowsRes;	// the maximum number of rows of the residual subvector
+	integer iMaxWorkNumRowsJac; // the maximum number of rows in a full Jacobian submatrix
+	integer iMaxWorkNumColsJac;	// the maximum number of columns in a full Jacobian submatrix
+	integer iMaxWorkNumItemsJac; // the maximum number of items in a sparse Jacobian submatrix
 
 	VariableSubMatrixHandler *pWorkMatA;  /* SubMatrix di lavoro */
 	VariableSubMatrixHandler *pWorkMatB;

@@ -323,59 +323,66 @@ DataManager::ElemAssInit(void)
 			/* Aggiorna le dimensioni massime degli spazi di lavoro */
 			integer iNumRows = 0;
 			integer iNumCols = 0;
+
 			pE->WorkSpaceDim(&iNumRows, &iNumCols);
-			if (iNumRows > iMaxWorkNumRows) {
-				iMaxWorkNumRows = iNumRows;
-				DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
-					<< iMaxWorkNumRows << std::endl);
+
+			if (iNumRows >= 0) {
+				// Assume a full Jacobian matrix
+				if (iNumRows > iMaxWorkNumRowsJac) {
+					iMaxWorkNumRowsJac = iNumRows;
+					DEBUGLCOUT(MYDEBUG_INIT, "Current max work rows number: "
+						<< iMaxWorkNumRowsJac << std::endl);
+				}
+
+				if (iNumCols > iMaxWorkNumColsJac) {
+					iMaxWorkNumColsJac = iNumCols;
+					DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
+						<< iMaxWorkNumColsJac << std::endl);
+				}
+			} else {
+				// Assume a sparse Jacobian matrix
+				iNumRows = std::abs(iNumRows);
 			}
-			if (iNumCols > iMaxWorkNumCols) {
-				iMaxWorkNumCols = iNumCols;
-				DEBUGLCOUT(MYDEBUG_INIT, "Current max work cols number: "
-					<< iMaxWorkNumCols << std::endl);
+
+			const integer iNumItems = iNumRows * iNumCols;
+
+			if (iNumItems > iMaxWorkNumItemsJac) {
+				iMaxWorkNumItemsJac = iNumItems;
 			}
+
+			if (iNumRows > iMaxWorkNumRowsRes) {
+				iMaxWorkNumRowsRes = iNumRows;
+			}
+
 		} while (ElemIter.bGetNext(pE));
 	}
 
-	ASSERT(iMaxWorkNumRows > 0);
-	ASSERT(iMaxWorkNumCols > 0);
+	ASSERT(iMaxWorkNumRowsRes > 0);
+	ASSERT(iMaxWorkNumRowsJac > 0);
+	ASSERT(iMaxWorkNumColsJac > 0);
+	ASSERT(iMaxWorkNumItemsJac > 0);
 
-	/* Per evitare problemi, alloco tanto spazio quanto necessario per
-	 * scrivere in modo sparso la matrice piu' grande
-	 *
-	 * Nota: le dimensioni sono state moltiplicate per due per
-	 * poter creare due matrici (in quanto la seconda e'
-	 * richiesta per gli autovalori)
-	 */
-	iWorkIntSize = 2*iMaxWorkNumRows*iMaxWorkNumCols;
-	iWorkDoubleSize = iMaxWorkNumRows*iMaxWorkNumCols;
+	/* SubMatrixHandlers */
+	SAFENEWWITHCONSTRUCTOR(pWorkMatA,
+			VariableSubMatrixHandler,
+			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
+				iMaxWorkNumColsJac,
+				iMaxWorkNumItemsJac));
 
-	if (iWorkIntSize > 0) {
+	SAFENEWWITHCONSTRUCTOR(pWorkMatB,
+			VariableSubMatrixHandler,
+			VariableSubMatrixHandler(iMaxWorkNumRowsJac,
+				iMaxWorkNumColsJac,
+				iMaxWorkNumItemsJac));
 
-		/* SubMatrixHandlers */
-		SAFENEWWITHCONSTRUCTOR(pWorkMatA,
-				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iMaxWorkNumRows,
-					iMaxWorkNumCols));
+	pWorkMat = pWorkMatA;
 
-		SAFENEWWITHCONSTRUCTOR(pWorkMatB,
-				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iMaxWorkNumRows,
-					iMaxWorkNumCols));
+	SAFENEWWITHCONSTRUCTOR(pWorkVec,
+			MySubVectorHandler,
+			MySubVectorHandler(iMaxWorkNumRowsRes));
 
-		pWorkMat = pWorkMatA;
-
-		SAFENEWWITHCONSTRUCTOR(pWorkVec,
-				MySubVectorHandler,
-				MySubVectorHandler(iMaxWorkNumRows));
-
-		DEBUGCOUT("Creating working matrices:" << iMaxWorkNumRows
-				<< " x " << iMaxWorkNumCols << std::endl);
-
-	} else {
-		silent_cerr("warning, null size of working matrix"
-				<< std::endl);
-	}
+	DEBUGCOUT("Creating working matrices:" << iMaxWorkNumRowsJac
+			<< " x " << iMaxWorkNumColsJac << std::endl);
 }
 
 /* Assemblaggio dello jacobiano.

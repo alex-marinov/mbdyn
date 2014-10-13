@@ -426,21 +426,23 @@ MultiThreadDataManager::ThreadSpawn(void)
 		thread_data[i].pWorkMatA = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatA,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iMaxWorkNumRows,
-					iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRowsJac,
+					iMaxWorkNumColsJac,
+					iMaxWorkNumItemsJac));
 
 		thread_data[i].pWorkMatB = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkMatB,
 				VariableSubMatrixHandler,
-				VariableSubMatrixHandler(iMaxWorkNumRows,
-					iMaxWorkNumCols));
+				VariableSubMatrixHandler(iMaxWorkNumRowsJac,
+					iMaxWorkNumColsJac,
+					iMaxWorkNumItemsJac));
 
 		thread_data[i].pWorkMat = thread_data[i].pWorkMatA;
 
 		thread_data[i].pWorkVec = 0;
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pWorkVec,
 				MySubVectorHandler,
-				MySubVectorHandler(iMaxWorkNumRows));
+				MySubVectorHandler(iMaxWorkNumRowsRes));
 
 		/* set by AssJac when in CC form */
 		thread_data[i].pJacHdl = 0;
