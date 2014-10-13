@@ -403,7 +403,10 @@ pMatScale(0)
 
 UmfpackSparseSolutionManager::~UmfpackSparseSolutionManager(void) 
 {
-	SAFEDELETE(pMatScale);
+	if (pMatScale) {
+		SAFEDELETE(pMatScale);
+		pMatScale = 0;
+	}
 }
 
 void
