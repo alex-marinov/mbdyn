@@ -1392,7 +1392,19 @@ Modal::Output(OutputHandler& OH) const
 			out << std::setw(8) << GetLabel() << '.' << uModeNumber[iCnt - 1]
 				<< " " << a(iCnt)
 				<< " " << b(iCnt)
-				<< " " << bPrime(iCnt) << std::endl;
+				<< " " << bPrime(iCnt)
+				<< std::endl;
+		}
+
+		std::vector<StrNodeData>::const_iterator i = SND.begin();
+		std::vector<StrNodeData>::const_iterator end = SND.end();
+		for (; i != end; ++i) {
+			if (i->bOut) {
+				out << std::setw(8) << GetLabel() << "@" << i->pNode->GetLabel()
+					<< " ", i->F.Write(out, " ")
+					<< " ", i->M.Write(out, " ")
+					<< std::endl;
+			}
 		}
 	}
 }
@@ -4581,6 +4593,11 @@ ReadModal(DataManager* pDM,
 
 	std::vector<Modal::StrNodeData> SND(NStrNodes);
 
+	bool bOut = false;
+	if (HP.IsKeyWord("output")) {
+		bOut = HP.GetYesNoOrBool();
+	}
+
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (e' il nodo FEM) */
 		std::string Node1;
@@ -4675,6 +4692,10 @@ ReadModal(DataManager* pDM,
 		 * puo' servire per il restart? */
 		SND[iStrNode - 1].FEMNode = Node1;
 
+		if (HP.IsKeyWord("output")) {
+			SND[iStrNode - 1].bOut = HP.GetYesNoOrBool();
+		}
+
 		const Vec3& xMB(SND[iStrNode - 1].pNode->GetXCurr());
 		pedantic_cout("Interface node " << iStrNode << ":" << std::endl
 				<< "        MB node " << uNode2 << " x={" << xMB << "}" << std::endl);
@@ -4684,6 +4705,14 @@ ReadModal(DataManager* pDM,
 			"xrel={" << xFEMRel << "}" << std::endl);
 		pedantic_cout("        offset={" << xFEM - xMB << "}" << std::endl);
 	}  /* fine ciclo sui nodi d'interfaccia */
+
+	if (bOut) {
+		std::vector<Modal::StrNodeData>::iterator i = SND.begin();
+		std::vector<Modal::StrNodeData>::iterator end = SND.end();
+		for (; i != end; ++i) {
+			i->bOut = bOut;
+		}
+	}
 
 	/* fine ciclo caricamento dati */
 

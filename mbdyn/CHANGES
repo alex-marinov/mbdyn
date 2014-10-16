@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 		- added central gravity field (suggested by Linh H. Phan)
 		- added automatic differentiation support to drive callers
 		  and constitutive laws (Reinhard Resch)
+		- added (optional) joint reaction forces to modal element
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

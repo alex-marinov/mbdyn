@@ -138,6 +138,8 @@ public:
 		// variable, constructed during analysis
 		Vec3 F;
 		Vec3 M;
+
+		bool bOut;
 	};
 
 protected:

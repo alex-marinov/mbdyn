@@ -4533,13 +4533,16 @@ and orientation of the corresponding FEM nodes.
             [ , ... ] , ]
         [ \kw{use invariant 9} , ]
         [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{pos} \} , ]
-        \bnt{interface_nodes_number} , \bnt{interface_node} [ , ... ]
+	\bnt{interface_nodes_number} ,
+	    [ \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_all_interfaces} \} , ]
+	    \bnt{interface_node} [ , ... ]
 
     \bnt{mode_damping} ::= \bnt{mode_index} , \bnt{mode_damping_coef}
 
     \bnt{interface_node} ::=
         \{ " \bnt{fem_node_label} " | (\ty{integer}) \bnt{fem_node_label} \} ,
             \bnt{multibody_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_of_FEM_node}
+	        [ , \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_this_interface} \} ]
 \end{Verbatim}
 %\end{verbatim}
 The \nt{reference\_modal\_node} is a special dynamic structural node 
@@ -4638,8 +4641,8 @@ One trick is to build models incrementally.
 %\item place the corresponding multibody node exactly in the position
 %	indicated by the FEM model output.
 %\end{itemize}
-Offsets between FEM and multibody nodes 
-should be avoided unless strictly required.
+\emph{Note: offsets between FEM and multibody nodes 
+should be avoided unless strictly required.}
 
 \textbf{Note about the FEM file:}
 the format of the \nt{fem\_data\_file} is relatively straightforward;
