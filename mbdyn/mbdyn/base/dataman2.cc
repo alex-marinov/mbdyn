@@ -1050,6 +1050,15 @@ DataManager::InitialJointAssembly(void)
 	/* Soluzione */
 	VectorHandler* pSolHdl = pSM->pSolHdl();
 
+	if (
+#ifdef DEBUG
+			DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY) ||
+#endif /* DEBUG */
+			outputIters())
+	{
+		silent_cout("Assembly Tol=" << dInitialAssemblyTol << std::endl);
+	}
+
 	/* Ciclo di assemblaggio */
 	for (integer iNumIter = 0; ; iNumIter++) {
 		/* Assemblo il residuo */
@@ -1153,10 +1162,8 @@ DataManager::InitialJointAssembly(void)
 #endif /* DEBUG */
 				outputIters())
 		{
-			silent_cout("Iteration(" << iNumIter << ") "
-				"" << dTest
-				<< " (Tol=" << dInitialAssemblyTol << ")"
-				<< std::endl);
+			silent_cout("\tIteration(" << iNumIter << ") "
+				"" << dTest << std::endl);
 		}
 
 		/* Se la tolleranza e' raggiunta, esce dal ciclo */

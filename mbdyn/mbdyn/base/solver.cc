@@ -780,6 +780,12 @@ Solver::Run(void)
 	/* Derivative steps */
 	pCurrStepIntegrator = pDerivativeSteps;
 	try {
+		if (outputStep()) {
+			if (outputCounter()) {
+				silent_cout(std::endl);
+			}
+ 			silent_cout("Derivatives t=" << dTime << " coef=" << dDerivativesCoef << std::endl);
+		}
 		dTest = pDerivativeSteps->Advance(this,
 			0., 1., StepIntegrator::NEWSTEP,
 			qX, qXPrime, pX, pXPrime,
@@ -1162,6 +1168,12 @@ Solver::Run(void)
 IfFirstStepIsToBeRepeated:
 	try {
 		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
+		if (outputStep()) {
+			if (outputCounter()) {
+				silent_cout(std::endl);
+			}
+ 			silent_cout("Step(" << 1 << ':' << 0 << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+		}
 		dTest = pFirstRegularStep->Advance(this, dRefTimeStep,
 				dCurrTimeStep/dRefTimeStep, CurrStep,
 				qX, qXPrime, pX, pXPrime,
