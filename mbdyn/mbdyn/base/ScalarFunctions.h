@@ -73,7 +73,7 @@ extern const BasicScalarFunction *const
 ParseScalarFunction(MBDynParser& HP, DataManager* const pDM);
 
 extern void
-SetScalarFunctionDriveData(void);
+SetScalarFunctionDriveCallerData(void);
 
 struct ScalarFunctionRead {
 	virtual ~ScalarFunctionRead( void ) { NO_OP; };

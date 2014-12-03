@@ -2145,7 +2145,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	DriveCallerRead	*rf4 = new SmoothStepDCR;
 
-	if (!SetDriveData("smooth" "step", rf4)) {
+	if (!SetDriveCallerData("smooth" "step", rf4)) {
 		delete rf4;
 
 		silent_cerr("SmoothStepDrive: "

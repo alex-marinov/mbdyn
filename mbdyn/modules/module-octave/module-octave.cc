@@ -5606,7 +5606,7 @@ mbdyn_octave_set(void)
 	using namespace oct;
 
 	DriveCallerRead	*rf = new OctaveDCR;
-	if (!SetDriveData("octave", rf)) {
+	if (!SetDriveCallerData("octave", rf)) {
 		delete rf;
 		return false;
 	}
@@ -5642,7 +5642,7 @@ mbdyn_octave_set(void)
 	}
 
 	rf = new DerivativeDCR;
-	if (!SetDriveData("derivative", rf)) {
+	if (!SetDriveCallerData("derivative", rf)) {
 		delete rf;
 		return false;
 	}

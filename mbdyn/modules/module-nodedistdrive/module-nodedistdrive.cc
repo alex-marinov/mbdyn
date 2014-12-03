@@ -220,7 +220,7 @@ bool nodedistdrive_set()
 {
 	DriveCallerRead	*rf = new NodeDistDCR;
 
-	if (!SetDriveData("node" "distance", rf)) {
+	if (!SetDriveCallerData("node" "distance", rf)) {
 		delete rf;
 		return false;
 	}

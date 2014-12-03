@@ -315,14 +315,14 @@ minmaxdrive_set()
 {
 	DriveCallerRead	*rf = new MinMaxDriveDCR(MinMaxDriveDCR::MMD_MIN);
 
-	if (!SetDriveData("min", rf)) {
+	if (!SetDriveCallerData("min", rf)) {
 		delete rf;
 		return false;
 	}
 
 	rf = new MinMaxDriveDCR(MinMaxDriveDCR::MMD_MAX);
 
-	if (!SetDriveData("max", rf)) {
+	if (!SetDriveCallerData("max", rf)) {
 		delete rf;
 		return false;
 	}

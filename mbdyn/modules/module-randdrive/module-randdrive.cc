@@ -188,7 +188,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	DriveCallerRead	*rf = new BoostRandomDCR;
 
-	if (!SetDriveData("boost" "random", rf)) {
+	if (!SetDriveCallerData("boost" "random", rf)) {
 		delete rf;
 
 		silent_cerr("BoostRandomDrive: "

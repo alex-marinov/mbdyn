@@ -1441,7 +1441,7 @@ InitSF(void)
 
 	/* this is about initializing the scalar function drive */
 	ScalarFunctionDCR *rf = new ScalarFunctionDCR;
-	if (!SetDriveData("scalar" "function", rf)) {
+	if (!SetDriveCallerData("scalar" "function", rf)) {
 		delete rf;
 
 		silent_cerr("unable to register scalar function drive caller"

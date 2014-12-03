@@ -727,15 +727,15 @@ public:
 
 /* drive caller registration function: call to register one */
 extern bool
-SetDriveData(const char *name, DriveCallerRead* rf);
+SetDriveCallerData(const char *name, DriveCallerRead* rf);
 
 /* function that reads a drive caller */
 extern DriveCaller*
-ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+ReadDriveCallerData(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 
 /* create/destroy */
-extern void InitDriveData(void);
-extern void DestroyDriveData(void);
+extern void InitDriveCallerData(void);
+extern void DestroyDriveCallerData(void);
 
 #endif /* DRIVE_H */
 

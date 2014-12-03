@@ -97,7 +97,7 @@ moduleInitialized(false),
 pDM(0)
 {
 	/* make sure this is init'ed */
-	InitDriveData();
+	InitDriveCallerData();
 	InitTplDC();
 	InitCL();
 	InitSF();
@@ -105,7 +105,7 @@ pDM(0)
 
 MBDynParser::~MBDynParser(void)
 {   
-	DestroyDriveData();
+	DestroyDriveCallerData();
 	DestroyTplDC();
 	DestroyCL();
 	DestroySF();
@@ -1911,7 +1911,7 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 	if (!IsKeyWord("reference")) {
 		DriveCaller *pDC = 0;
 		try {
-			pDC = ReadDriveData(pDM, *this, bDeferred);
+			pDC = ReadDriveCallerData(pDM, *this, bDeferred);
 		}
 		catch (DataManager::ErrNeedDataManager) {
 			silent_cerr("the required drive caller must appear "

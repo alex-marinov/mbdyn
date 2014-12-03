@@ -1222,7 +1222,7 @@ struct DriveWordSetType : public HighParser::WordSet {
 static DriveWordSetType DriveWordSet;
 
 bool
-SetDriveData(const char *name, DriveCallerRead *rf)
+SetDriveCallerData(const char *name, DriveCallerRead *rf)
 {
 	pedantic_cout("registering drive \"" << name << "\"" << std::endl);
 	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, rf)).second;
@@ -1231,13 +1231,13 @@ SetDriveData(const char *name, DriveCallerRead *rf)
 /* Legge i dati dei drivers */
 
 DriveCaller *
-ReadDriveData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+ReadDriveCallerData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
-	DEBUGCOUTFNAME("ReadDriveData()");
+	DEBUGCOUTFNAME("ReadDriveCallerData()");
 
 	const char *s = HP.IsWord(DriveWordSet);
 	if (s == 0) {
-		pedantic_cerr("ReadDriveData: warning, assuming \"const\" drive caller at line " << HP.GetLineData() << std::endl);
+		pedantic_cerr("ReadDriveCallerData: warning, assuming \"const\" drive caller at line " << HP.GetLineData() << std::endl);
 		s = "const";
 	}
 
@@ -2826,56 +2826,56 @@ PostponedDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 static unsigned done;
 
 void
-InitDriveData(void)
+InitDriveCallerData(void)
 {
 	if (::done++ > 0) {
 		return;
 	}
 
-	SetDriveData("array", new ArrayDCR);
-	SetDriveData("closest" "next", new ClosestNextDCR);
-	SetDriveData("const", new ConstDCR);
-	SetDriveData("cosine", new CosineDCR);
-	SetDriveData("cubic", new CubicDCR);
-	SetDriveData("direct", new DirectDCR);
-	SetDriveData("dof", new DofDCR);
-	SetDriveData("double" "ramp", new DoubleRampDCR);
-	SetDriveData("double" "step", new DoubleStepDCR);
-	SetDriveData("drive", new DriveDCR);
-	SetDriveData("element", new ElementDCR);
-	SetDriveData("exponential", new ExponentialDCR);
-	SetDriveData("file", new FileDCR);
-	SetDriveData("fourier" "series", new FourierSeriesDCR);
-	SetDriveData("frequency" "sweep", new FrequencySweepDCR);
-	SetDriveData("function", new FunctionDCR);
+	SetDriveCallerData("array", new ArrayDCR);
+	SetDriveCallerData("closest" "next", new ClosestNextDCR);
+	SetDriveCallerData("const", new ConstDCR);
+	SetDriveCallerData("cosine", new CosineDCR);
+	SetDriveCallerData("cubic", new CubicDCR);
+	SetDriveCallerData("direct", new DirectDCR);
+	SetDriveCallerData("dof", new DofDCR);
+	SetDriveCallerData("double" "ramp", new DoubleRampDCR);
+	SetDriveCallerData("double" "step", new DoubleStepDCR);
+	SetDriveCallerData("drive", new DriveDCR);
+	SetDriveCallerData("element", new ElementDCR);
+	SetDriveCallerData("exponential", new ExponentialDCR);
+	SetDriveCallerData("file", new FileDCR);
+	SetDriveCallerData("fourier" "series", new FourierSeriesDCR);
+	SetDriveCallerData("frequency" "sweep", new FrequencySweepDCR);
+	SetDriveCallerData("function", new FunctionDCR);
 #ifdef USE_GINAC
-	SetDriveData("ginac", new GiNaCDCR);
+	SetDriveCallerData("ginac", new GiNaCDCR);
 #endif // USE_GINAC
-	SetDriveData("linear", new LinearDCR);
-	SetDriveData("meter", new MeterDCR);
-	SetDriveData("mult", new MultDCR);
-	SetDriveData("node", new NodeDCR);
-	SetDriveData("null", new NullDCR);
-	SetDriveData("one", new OneDCR);	/* deprecated */
-	SetDriveData("parabolic", new ParabolicDCR);
-	SetDriveData("periodic", new PeriodicDCR);
-	SetDriveData("piecewise" "linear", new PiecewiseLinearDCR);
-	SetDriveData("postponed", new PostponedDCR);
-	SetDriveData("ramp", new RampDCR);
-	SetDriveData("random", new RandomDCR);
-	SetDriveData("sample" "and" "hold", new SHDCR);
-	SetDriveData("sine", new SineDCR);
-	SetDriveData("step", new StepDCR);
-	SetDriveData("string", new StringDCR);
-	SetDriveData("tanh", new TanhDCR);
-	SetDriveData("time", new TimeDCR);
-	SetDriveData("timestep", new TimeStepDCR);
-	SetDriveData("unit", new OneDCR);
+	SetDriveCallerData("linear", new LinearDCR);
+	SetDriveCallerData("meter", new MeterDCR);
+	SetDriveCallerData("mult", new MultDCR);
+	SetDriveCallerData("node", new NodeDCR);
+	SetDriveCallerData("null", new NullDCR);
+	SetDriveCallerData("one", new OneDCR);	/* deprecated */
+	SetDriveCallerData("parabolic", new ParabolicDCR);
+	SetDriveCallerData("periodic", new PeriodicDCR);
+	SetDriveCallerData("piecewise" "linear", new PiecewiseLinearDCR);
+	SetDriveCallerData("postponed", new PostponedDCR);
+	SetDriveCallerData("ramp", new RampDCR);
+	SetDriveCallerData("random", new RandomDCR);
+	SetDriveCallerData("sample" "and" "hold", new SHDCR);
+	SetDriveCallerData("sine", new SineDCR);
+	SetDriveCallerData("step", new StepDCR);
+	SetDriveCallerData("string", new StringDCR);
+	SetDriveCallerData("tanh", new TanhDCR);
+	SetDriveCallerData("time", new TimeDCR);
+	SetDriveCallerData("timestep", new TimeStepDCR);
+	SetDriveCallerData("unit", new OneDCR);
 
 	/* NOTE: add here initialization of new built-in drive callers;
 	 * alternative ways to register new custom drive callers are:
-	 * - call SetDriveData() from anywhere in the code
-	 * - write a module that calls SetDriveData() from inside a function
+	 * - call SetDriveCallerData() from anywhere in the code
+	 * - write a module that calls SetDriveCallerData() from inside a function
 	 *   called module_init(), and run-time load it using "module load"
 	 *   in the input file.
 	 */
@@ -2889,10 +2889,10 @@ InitDriveData(void)
 }
 
 void
-DestroyDriveData(void)
+DestroyDriveCallerData(void)
 {
 	if (::done == 0) {
-		silent_cerr("DestroyDriveData() called once too many" << std::endl);
+		silent_cerr("DestroyDriveCallerData() called once too many" << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 

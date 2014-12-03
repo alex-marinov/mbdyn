@@ -133,7 +133,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	DriveCallerRead	*rf = new DummyDCR;
 
-	if (!SetDriveData("dummy", rf)) {
+	if (!SetDriveCallerData("dummy", rf)) {
 		delete rf;
 
 		silent_cerr("DummyDrive: "

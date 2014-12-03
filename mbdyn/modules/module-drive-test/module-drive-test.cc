@@ -158,7 +158,7 @@ module_init(const char *module_name, void *pdm, void *php)
 
 	DriveCallerRead	*rf = new DTDCR;
 
-	if (!SetDriveData("drive" "test", rf)) {
+	if (!SetDriveCallerData("drive" "test", rf)) {
 		delete rf;
 
 		silent_cerr("DriveTest: "
