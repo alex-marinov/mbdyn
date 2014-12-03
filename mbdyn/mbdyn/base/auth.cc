@@ -448,7 +448,7 @@ SASL2_Auth::Auth(int sock) const
 
 
 AuthMethod*
-ReadAuthMethod(DataManager* /* pDM */ , MBDynParser& HP)
+ReadAuthMethod(const DataManager* /* pDM */ , MBDynParser& HP)
 {
 	AuthMethod* pAuth = NULL;
 

@@ -139,6 +139,6 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern AuthMethod* ReadAuthMethod(DataManager* pDM, MBDynParser& HP);
+extern AuthMethod* ReadAuthMethod(const DataManager* pDM, MBDynParser& HP);
 
 #endif /* AUTH_H */
