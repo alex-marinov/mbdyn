@@ -221,9 +221,9 @@ InitGustData(void)
 	SetGustData("logarithmic", new LogarithmicGR);
 
 	/* NOTE: add here initialization of new built-in drive callers;
-	 * alternative ways to register new custom drive callers are:
-	 * - call SetDriveData() from anywhere in the code
-	 * - write a module that calls SetDriveData() from inside a function
+	 * alternative ways to register new custom gust models are:
+	 * - call SetGustData() from anywhere in the code
+	 * - write a module that calls SetGustData() from inside a function
 	 *   called module_init(), and run-time load it using "module load"
 	 *   in the input file.
 	 */
