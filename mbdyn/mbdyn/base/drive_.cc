@@ -43,9 +43,15 @@
 #include "drive_.h"
 #include "dofdrive.h"
 #include "privdrive.h"
-#include "filedrv.h"
 #include "ddrive.h"
 #include "shdrive.h"
+
+#include "filedrv.h"
+#include "fixedstep.h"
+#include "varstep.h"
+#include "sockdrv.h"
+#include "streamdrive.h"
+#include "socketstreamdrive.h"
 
 #ifdef USE_GINAC
 #include "ginacdrive.h"
@@ -1209,41 +1215,93 @@ PostponedDriveCaller::pCopy(void) const
 
 /* PostponedDriveCaller - end */
 
-/* bag that contains functions to parse drive callers */
 
-typedef std::map<std::string, DriveCallerRead *, ltstrcase> DrvFuncMapType;
-static DrvFuncMapType DrvFuncMap;
+/* bag that contains functions to parse drives */
+
+typedef std::map<std::string, DriveRead *, ltstrcase> DriveFuncMapType;
+static DriveFuncMapType DriveFuncMap;
 
 struct DriveWordSetType : public HighParser::WordSet {
 	bool IsWord(const std::string& s) const {
-		return DrvFuncMap.find(s) != DrvFuncMap.end();
+		return DriveFuncMap.find(s) != DriveFuncMap.end();
 	};
 };
+
 static DriveWordSetType DriveWordSet;
+
+bool
+SetDriveData(const char *name, DriveRead *rf)
+{
+	pedantic_cout("registering drive \"" << name << "\"" << std::endl);
+	return DriveFuncMap.insert(DriveFuncMapType::value_type(name, rf)).second;
+}
+
+/* Reads drives */
+
+Drive *
+ReadDriveData(unsigned uLabel, const DataManager* pDM, MBDynParser& HP)
+{
+	DEBUGCOUTFNAME("ReadDriveData()");
+
+	const char *s = HP.IsWord(DriveWordSet);
+	if (s == 0) {
+		silent_cerr("ReadDriveData(" << uLabel << "): "
+			"unknown drive type "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	DriveFuncMapType::iterator func = DriveFuncMap.find(std::string(s));
+	if (func == DriveFuncMap.end()) {
+		silent_cerr("unknown drive type \"" << s << "\" "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return func->second->Read(uLabel, pDM, HP);
+}
+
+DriveRead::~DriveRead(void)
+{
+	NO_OP;
+}
+
+/* bag that contains functions to parse drive callers */
+
+typedef std::map<std::string, DriveCallerRead *, ltstrcase> DriveCallerFuncMapType;
+static DriveCallerFuncMapType DriveCallerFuncMap;
+
+struct DriveCallerWordSetType : public HighParser::WordSet {
+	bool IsWord(const std::string& s) const {
+		return DriveCallerFuncMap.find(s) != DriveCallerFuncMap.end();
+	};
+};
+
+static DriveCallerWordSetType DriveCallerWordSet;
 
 bool
 SetDriveCallerData(const char *name, DriveCallerRead *rf)
 {
-	pedantic_cout("registering drive \"" << name << "\"" << std::endl);
-	return DrvFuncMap.insert(DrvFuncMapType::value_type(name, rf)).second;
+	pedantic_cout("registering drive caller \"" << name << "\"" << std::endl);
+	return DriveCallerFuncMap.insert(DriveCallerFuncMapType::value_type(name, rf)).second;
 }
 
-/* Legge i dati dei drivers */
+/* Reads drive callers */
 
 DriveCaller *
 ReadDriveCallerData(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 {
 	DEBUGCOUTFNAME("ReadDriveCallerData()");
 
-	const char *s = HP.IsWord(DriveWordSet);
+	const char *s = HP.IsWord(DriveCallerWordSet);
 	if (s == 0) {
 		pedantic_cerr("ReadDriveCallerData: warning, assuming \"const\" drive caller at line " << HP.GetLineData() << std::endl);
 		s = "const";
 	}
 
-	DrvFuncMapType::iterator func = DrvFuncMap.find(std::string(s));
-	if (func == DrvFuncMap.end()) {
-		silent_cerr("unknown drive type \"" << s << "\" "
+	DriveCallerFuncMapType::iterator func = DriveCallerFuncMap.find(std::string(s));
+	if (func == DriveCallerFuncMap.end()) {
+		silent_cerr("unknown drive caller type \"" << s << "\" "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
@@ -1256,7 +1314,7 @@ DriveCallerRead::NeedDM(const DataManager* pDM, MBDynParser& HP, bool bDeferred,
 	const char *const name)
 {
 	if (pDM == 0 && !bDeferred) {
-		silent_cerr("\"" << name << "\" drive needs data manager "
+		silent_cerr("\"" << name << "\" drive caller needs data manager "
 			"at line " << HP.GetLineData() << std::endl);
 		throw DataManager::ErrNeedDataManager(MBDYN_EXCEPT_ARGS);
 	}
@@ -2823,12 +2881,59 @@ PostponedDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 
 
-static unsigned done;
+static unsigned d_done;
+
+void
+InitDriveData(void)
+{
+	if (::d_done++ > 0) {
+		return;
+	}
+
+	SetDriveData("fixed" "step", new FixedStepDR);
+	SetDriveData("variable" "step", new VariableStepDR);
+#ifdef USE_SOCKET
+	SetDriveData("socket", new SocketDR);
+#endif // USE_SOCKET
+	SetDriveData("socket" "stream", new StreamDR("socket stream"));
+	SetDriveData("rtai" "input", new StreamDR("RTAI input"));
+	SetDriveData("stream", new StreamDR);
+
+	/* NOTE: add here initialization of new built-in drives;
+	 * alternative ways to register new custom drives are:
+	 * - call SetDriveData() from anywhere in the code
+	 * - write a module that calls SetDriveData() from inside a function
+	 *   called module_init(), and run-time load it using "module load"
+	 *   in the input file.
+	 */
+}
+
+void
+DestroyDriveData(void)
+{
+	if (::d_done == 0) {
+		silent_cerr("DestroyDriveData() called once too many" << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (--::d_done > 0) {
+		return;
+	}
+
+	/* free stuff */
+	for (DriveCallerFuncMapType::iterator i = DriveCallerFuncMap.begin(); i != DriveCallerFuncMap.end(); ++i) {
+		delete i->second;
+	}
+	DriveCallerFuncMap.clear();
+}
+
+
+static unsigned dc_done;
 
 void
 InitDriveCallerData(void)
 {
-	if (::done++ > 0) {
+	if (::dc_done++ > 0) {
 		return;
 	}
 
@@ -2891,18 +2996,18 @@ InitDriveCallerData(void)
 void
 DestroyDriveCallerData(void)
 {
-	if (::done == 0) {
+	if (::dc_done == 0) {
 		silent_cerr("DestroyDriveCallerData() called once too many" << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	if (--::done > 0) {
+	if (--::dc_done > 0) {
 		return;
 	}
 
 	/* free stuff */
-	for (DrvFuncMapType::iterator i = DrvFuncMap.begin(); i != DrvFuncMap.end(); ++i) {
+	for (DriveCallerFuncMapType::iterator i = DriveCallerFuncMap.begin(); i != DriveCallerFuncMap.end(); ++i) {
 		delete i->second;
 	}
-	DrvFuncMap.clear();
+	DriveCallerFuncMap.clear();
 }

@@ -2250,7 +2250,7 @@ DataManager::ReadDrivers(MBDynParser& HP)
 				- iNumTypes[Drive::FILEDRIVE] - 1;
 			ppD = DriveData[Drive::FILEDRIVE].ppFirstDrive + i;
 
-			*ppD = ReadFileDriver(this, HP, uLabel);
+			*ppD = ReadDriveData(uLabel, this, HP);
 		} break;
 
 		/* aggiungere qui i nuovi tipi */

@@ -710,6 +710,28 @@ ConstDriveCaller::dGetP(void) const
 class DataManager;
 class MBDynParser;
 
+
+/* prototype of the functional object: reads a drive */
+struct DriveRead {
+public:
+	virtual ~DriveRead(void);
+	virtual Drive *
+	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP) = 0;
+};
+
+/* drive registration function: call to register one */
+extern bool
+SetDriveData(const std::string &s, DriveRead *rf);
+
+/* function that reads a drive */
+extern Drive *
+ReadDriveData(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
+
+/* create/destroy */
+extern void InitDriveData(void);
+extern void DestroyDriveData(void);
+
+
 /* prototype of the functional object: reads a drive caller */
 struct DriveCallerRead {
 protected:

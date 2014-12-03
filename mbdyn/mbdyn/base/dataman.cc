@@ -206,6 +206,7 @@ DofIter()
 	NodeManager();
 	DofManager();
 
+	InitDriveData();
 	InitUDE();
 	InitGustData();
 
@@ -698,6 +699,7 @@ DataManager::~DataManager(void)
 	NodeManagerDestructor();
 	DofManagerDestructor();
 
+	DestroyDriveData();
 	DestroyUDE();
 	DestroyGustData();
 

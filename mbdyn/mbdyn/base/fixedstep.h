@@ -57,10 +57,6 @@ public:
 			bool bl, bool pz, Drive::Bailout bo);
 	virtual ~FixedStepFileDrive(void);
 
-	virtual FileDrive::Type GetFileDriveType(void) const {
-		return FileDrive::FIXEDSTEP;
-	};
-
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -72,8 +68,11 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Drive* ReadFixedStepFileDrive(DataManager* pDM,
-		MBDynParser& HP, unsigned int uLabel);
+struct FixedStepDR : public DriveRead {
+public:
+	virtual Drive *
+	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
+};
 
 #endif /* FIXEDSTEP_H */
 

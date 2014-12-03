@@ -258,10 +258,8 @@ VariableStepFileDrive::ServePending(const doublereal& t)
 
 /* legge i drivers tipo fixed step file */
 
-Drive*
-ReadVariableStepFileDrive(DataManager* pDM,
-		MBDynParser& HP,
-		unsigned int uLabel)
+Drive *
+VariableStepDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 {
 	integer idrives = HP.GetInt();
 	if (idrives <= 0) {
@@ -327,5 +325,5 @@ ReadVariableStepFileDrive(DataManager* pDM,
 				filename, idrives, bl, pz, bo));
 
 	return pDr;
-} /* End of ReadVariableStepFileDrive */
+}
 

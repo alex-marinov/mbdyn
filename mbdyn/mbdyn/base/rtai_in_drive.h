@@ -65,8 +65,6 @@ public:
    
    	virtual ~RTMBDynInDrive(void);
    
-   	virtual FileDrive::Type GetFileDriveType(void) const;
-
    	/* Scrive il contributo del DriveCaller al file di restart */
    	virtual std::ostream& Restart(std::ostream& out) const;
    

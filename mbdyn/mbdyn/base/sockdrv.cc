@@ -519,12 +519,6 @@ SocketDrive::ServePending(const doublereal& /* t */ )
    	}
 }
 
-FileDrive::Type
-SocketDrive::GetFileDriveType(void) const
-{
-   	return FileDrive::SOCKET;
-}
-
 /* Scrive il contributo del DriveCaller al file di restart */
 std::ostream&
 SocketDrive::Restart(std::ostream& out) const
@@ -536,10 +530,8 @@ SocketDrive::Restart(std::ostream& out) const
 
 /* legge i drivers tipo socket */
 
-Drive*
-ReadSocketDrive(DataManager* pDM,
-		MBDynParser& HP,
-		unsigned int uLabel)
+Drive *
+SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 {
 	Drive* pDr = NULL;
 

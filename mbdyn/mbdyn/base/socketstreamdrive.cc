@@ -67,6 +67,8 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
+#include "rtai_in_drive.h"
+
 #define DEFAULT_PORT	9012	/* intentionally unassigned by IANA */
 #define DEFAULT_HOST	"127.0.0.1"
 
@@ -133,12 +135,6 @@ SocketStreamDrive::~SocketStreamDrive(void)
 	if (pUS != 0) {
 		SAFEDELETE(pUS);
 	}
-}
-
-FileDrive::Type
-SocketStreamDrive::GetFileDriveType(void) const
-{
-	return FileDrive::SOCKETSTREAM;
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */   
@@ -289,10 +285,8 @@ do_abandon:;
 
 /* legge i drivers tipo stream */
 
-Drive*
-ReadSocketStreamDrive(DataManager* pDM,
-	MBDynParser& HP,
-	unsigned int uLabel)
+static Drive *
+ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 {
 	bool create = false;
 	unsigned short int port = -1; 
@@ -567,7 +561,7 @@ ReadSocketStreamDrive(DataManager* pDM,
 	}
 
 	if (create) {
-		pDM->RegisterSocketUser(pUS);
+		const_cast<DataManager *>(pDM)->RegisterSocketUser(pUS);
 
 	} else {
 		pUS->Connect();
@@ -582,6 +576,39 @@ ReadSocketStreamDrive(DataManager* pDM,
 			sOutFileName, iPrecision, dShift));
 
 	return pDr;
-} /* End of ReadStreamDrive */
+}
+
+Drive *
+StreamDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
+{
+	Drive *pDr = 0;
+
+	if (!s.empty()) {
+		pedantic_cout("\"" << s << "\" is deprecated; "
+			"use \"stream\" instead at line "
+			<< HP.GetLineData() << std::endl);
+	}
+
+#ifdef USE_RTAI
+	if (::rtmbdyn_rtai_task != NULL){
+		silent_cout("starting RTMBDyn drive " << uLabel << std::endl);
+		pDr = ReadRTMBDynInDrive(pDM, HP, uLabel);
+	} else 
+#endif /* USE_RTAI */		
+	{
+#ifdef USE_SOCKET
+		silent_cout("starting stream drive " << uLabel << std::endl);
+		pDr = ReadStreamDrive(pDM, HP, uLabel);
+#else // ! USE_SOCKET
+		silent_cerr("stream drive " << uLabel
+			<< " not allowed at line " << HP.GetLineData()
+			<< " because apparently the current architecture "
+			"does not support sockets" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif // ! USE_SOCKET
+	}
+
+	return pDr;
+}
 
 #endif // USE_SOCKET

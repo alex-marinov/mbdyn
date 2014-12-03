@@ -73,8 +73,6 @@ public:
 
 	virtual ~SocketStreamDrive(void);
 
-	virtual FileDrive::Type GetFileDriveType(void) const;
-
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -86,8 +84,17 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Drive* ReadSocketStreamDrive(DataManager* pDM,
-		MBDynParser& HP, unsigned int uLabel);
+struct StreamDR : public DriveRead {
+private:
+	std::string s;
+
+public:
+	StreamDR(void) { NO_OP; };
+	StreamDR(const std::string &s) : s(s) { NO_OP; };
+
+	virtual Drive *
+	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
+};
 
 #endif /* SOCKETSTREAMDRIVE_H */
 

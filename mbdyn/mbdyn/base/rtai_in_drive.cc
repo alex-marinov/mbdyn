@@ -110,12 +110,6 @@ RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 	}
 }
 
-FileDrive::Type 
-RTMBDynInDrive::GetFileDriveType(void) const
-{
-   	return FileDrive::RTAI_IN;
-}
-
 /* Scrive il contributo del DriveCaller al file di restart */
 std::ostream&
 RTMBDynInDrive::Restart(std::ostream& out) const

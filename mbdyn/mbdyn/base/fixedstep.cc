@@ -278,10 +278,8 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 
 /* legge i drivers tipo fixed step file */
 
-Drive*
-ReadFixedStepFileDrive(DataManager* pDM,
-		MBDynParser& HP,
-		unsigned int uLabel)
+Drive *
+FixedStepDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 {
 	integer isteps = -1;
 	if (!HP.IsKeyWord("count")) {
@@ -387,5 +385,5 @@ ReadFixedStepFileDrive(DataManager* pDM,
 				t0, dt, bl, pz, bo));
 
 	return pDr;
-} /* End of ReadFixedStepFileDrive */
+}
 

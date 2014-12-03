@@ -55,10 +55,6 @@ public:
 			bool bl, bool pz, Drive::Bailout bo);
 	virtual ~VariableStepFileDrive(void);
 
-	virtual FileDrive::Type GetFileDriveType(void) const {
-		return FileDrive::VARIABLESTEP;
-	};
-
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -70,8 +66,11 @@ public:
 class DataManager;
 class MBDynParser;
 
-extern Drive* ReadVariableStepFileDrive(DataManager* pDM,
-		MBDynParser& HP, unsigned int uLabel);
+struct VariableStepDR : public DriveRead {
+public:
+	virtual Drive *
+	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
+};
 
 #endif // VARSTEP_H
 

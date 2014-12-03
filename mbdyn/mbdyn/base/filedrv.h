@@ -40,20 +40,6 @@
 /* FileDrive - begin */
 
 class FileDrive : public Drive {
-public:
-	enum Type {
-		UNKNOWN = -1,
-
-		FIXEDSTEP = 0,
-		VARIABLESTEP,
-		SOCKET,
-		STREAM,
-		SOCKETSTREAM,
-		RTAI_IN,
-
-		LASTFILEDRIVE
-	};
-
 protected:
 	std::string sFileName;
 	integer iNumDrives;
@@ -66,8 +52,6 @@ public:
 	virtual ~FileDrive(void);
 
 	virtual Drive::Type GetDriveType(void) const;
-
-	virtual FileDrive::Type GetFileDriveType(void) const = 0;
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const = 0;
