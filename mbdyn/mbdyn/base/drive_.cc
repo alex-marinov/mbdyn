@@ -1230,7 +1230,7 @@ struct DriveWordSetType : public HighParser::WordSet {
 static DriveWordSetType DriveWordSet;
 
 bool
-SetDriveData(const char *name, DriveRead *rf)
+SetDriveData(const std::string& name, DriveRead *rf)
 {
 	pedantic_cout("registering drive \"" << name << "\"" << std::endl);
 	return DriveFuncMap.insert(DriveFuncMapType::value_type(name, rf)).second;
