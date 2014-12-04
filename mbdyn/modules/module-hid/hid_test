@@ -35,6 +35,11 @@ begin: initial value;
 	initial time: 0.;
 	final time: forever;
 	time step: 1.e-2;
+
+	real time: posix,
+		mode, period, time step, 10000000;
+
+	# output: iterations;
 end: initial value;
 
 set: integer N_LC = 6;
@@ -49,7 +54,7 @@ end: control data;
 
 module load: "libmodule-hid";
 
-set: const integer JOYSTICK1 = 999;
+set: const integer JOYSTICK_1 = 999;
 
 set: const integer AILERON = 1;
 set: const integer ELEVATOR = 2;
@@ -86,7 +91,7 @@ begin: nodes;
 end: nodes;
 
 begin: drivers;
-	file: JOYSTICK1, joystick,
+	file: JOYSTICK_1, joystick,
 		"/dev/input/js0",
 		8,
 		6,
@@ -110,20 +115,20 @@ begin: elements;
 	genel: BUTTON7, spring support, BUTTON7, abstract, algebraic, linear elastic, 1.;
 	genel: BUTTON8, spring support, BUTTON8, abstract, algebraic, linear elastic, 1.;
 
-	force: AILERON, abstract, AILERON, abstract, direct;
-	force: ELEVATOR, abstract, ELEVATOR, abstract, direct;
-	force: RUDDER, abstract, RUDDER, abstract, direct;
-	force: THROTTLE, abstract, THROTTLE, abstract, direct;
-	force: TRIM_L, abstract, TRIM_L, abstract, direct;
-	force: TRIM_F, abstract, TRIM_F, abstract, direct;
+	force: AILERON, abstract, AILERON, abstract, file, JOYSTICK_1, AILERON;
+	force: ELEVATOR, abstract, ELEVATOR, abstract, file, JOYSTICK_1, ELEVATOR;
+	force: RUDDER, abstract, RUDDER, abstract, file, JOYSTICK_1, RUDDER;
+	force: THROTTLE, abstract, THROTTLE, abstract, file, JOYSTICK_1, THROTTLE;
+	force: TRIM_L, abstract, TRIM_L, abstract, file, JOYSTICK_1, TRIM_L;
+	force: TRIM_F, abstract, TRIM_F, abstract, file, JOYSTICK_1, TRIM_F;
 
-	force: TRIGGER, abstract, TRIGGER, abstract, direct;
-	force: BUTTON2, abstract, BUTTON2, abstract, direct;
-	force: BUTTON3, abstract, BUTTON3, abstract, direct;
-	force: BUTTON4, abstract, BUTTON4, abstract, direct;
-	force: BUTTON5, abstract, BUTTON5, abstract, direct;
-	force: BUTTON6, abstract, BUTTON6, abstract, direct;
-	force: BUTTON7, abstract, BUTTON7, abstract, direct;
-	force: BUTTON8, abstract, BUTTON8, abstract, direct;
+	force: TRIGGER, abstract, TRIGGER, abstract, file, JOYSTICK_1, TRIGGER;
+	force: BUTTON2, abstract, BUTTON2, abstract, file, JOYSTICK_1, BUTTON2;
+	force: BUTTON3, abstract, BUTTON3, abstract, file, JOYSTICK_1, BUTTON3;
+	force: BUTTON4, abstract, BUTTON4, abstract, file, JOYSTICK_1, BUTTON4;
+	force: BUTTON5, abstract, BUTTON5, abstract, file, JOYSTICK_1, BUTTON5;
+	force: BUTTON6, abstract, BUTTON6, abstract, file, JOYSTICK_1, BUTTON6;
+	force: BUTTON7, abstract, BUTTON7, abstract, file, JOYSTICK_1, BUTTON7;
+	force: BUTTON8, abstract, BUTTON8, abstract, file, JOYSTICK_1, BUTTON8;
 end: elements;
 

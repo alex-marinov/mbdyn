@@ -67,7 +67,6 @@ public:
 
 	virtual ~JoystickDrive(void);
 
-	/* Scrive il contributo del Drive al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void ServePending(const doublereal& t);
@@ -81,7 +80,7 @@ JoystickDrive::JoystickDrive(unsigned int uL, const DriveHandler* pDH,
 m_fd(-1),
 m_b_reset(nButtons), m_nButtons(nButtons),
 m_lc_scale(lc_scale), m_nLC(m_lc_scale.size()),
-m_pdLC(pdVal), m_pdB(pdVal + m_nLC)
+m_pdLC(pdVal + 1), m_pdB(m_pdLC + m_nLC)
 {
 }
 
@@ -93,48 +92,79 @@ JoystickDrive::~JoystickDrive(void)
 	m_fd = -1;
 }
 
+static int
+fd_set_blocking(int fd, bool bBlocking)
+{
+	int flags, rc;
+
+	flags = fcntl(fd, F_GETFL, 0);
+	if (flags == -1) {
+		return 0;
+	}
+
+	if (bBlocking) {
+		flags &= ~O_NONBLOCK;
+
+	} else {
+		flags |= O_NONBLOCK;
+	}
+
+	rc = fcntl(fd, F_SETFL, flags);
+
+	return (rc != -1);
+}
+
 bool
 JoystickDrive::get_one(void)
 {
-#if 0
-	char buf[4*2];
-	read(m_fd, (void *)&buf[0], sizeof(buf));
-	short value = (buf[5] << 8) + buf[4];
-	unsigned short key = (buf[7] << 8) + buf[6];
+	fd_set readfds;
+	FD_ZERO(&readfds);
+	FD_SET(m_fd, &readfds);
+	struct timeval tv = { 0, 0 };
+	int rc = select(m_fd + 1, &readfds, NULL, NULL, &tv);
 
-	unsigned short type = key & 0xF;
-	unsigned short idx = (key & 0xF00) >> 16;
-#endif
+	// std::cerr << "select=" << rc << std::endl;
 
-#if 1
-	char buf[4];
-	size_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
-	if (n == 0) {
-		// done
+	switch (rc) {
+	case -1: {
+		int save_errno = errno;
+		char *err_msg = strerror(save_errno);
+
+		silent_cout("JoystickDrive("
+			"(" << sFileName << "): select failed"
+			<< " (" << save_errno << ": " 
+			<< err_msg << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+	case 0:
 		return true;
 
-	} else if (n != 4) {
-		// error
-	}
-	// discard by now
-
-	int16_t value;
-	n = read(m_fd, (void *)&value, sizeof(value));
-	if (n != 1) {
-		// error
-	}
-
-	uint8_t idx, type;
-	n = read(m_fd, (void *)&type, sizeof(type));
-	if (n != 1) {
-		// error
+	default:
+		if (!FD_ISSET(m_fd, &readfds)) {
+			silent_cout("JoystickDrive"
+				"(" << sFileName << "): "
+				"socket " << m_fd << " reset"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
-	n = read(m_fd, (void *)&idx, 1);
-	if (n != 1) {
-		// error
+	char buf[8];
+	fd_set_blocking(m_fd, true);
+	ssize_t n2 = read(m_fd, (void *)&buf[0], sizeof(buf));
+	fd_set_blocking(m_fd, false);
+	if (n2 == -1) {
+		int save_errno = errno;
+		// std::cerr << "recv=" << save_errno << " " << strerror(save_errno) << std::endl;
 	}
-#endif
+
+	uint32_t cnt = *((uint32_t *)&buf[0]);
+	uint8_t type = (uint8_t)buf[6];
+	uint8_t idx = (uint8_t)buf[7];
+	int16_t value = *((int16_t *)&buf[4]);
+
+	// std::cerr << "n2=" << n2 << " cnt=" << cnt << " value=" << int(value) << " type=" << unsigned(type) << " idx=" << unsigned(idx) << std::endl;
 
 	switch (type) {
 	case 1:
@@ -202,10 +232,10 @@ JoystickDrive::get_one(void)
 void
 JoystickDrive::init(void)
 {
-	m_fd = open(sFileName.c_str(), O_RDONLY|O_NONBLOCK);
+	m_fd = open(sFileName.c_str(), O_RDONLY);
 	if (m_fd == -1) {
 		int save_errno = errno;
-		silent_cerr("JoystickDrive(" << uLabel << "): "
+		silent_cerr("JoystickDrive(" << uLabel << ")::init(): "
 			"unable to open device <" << sFileName << "> "
 			"(" << save_errno << ": " << strerror(save_errno) << ")"
 		<< std::endl);
@@ -213,14 +243,30 @@ JoystickDrive::init(void)
 	}
 
 	// this probably contains the description of the channels...
-	char buf[14*4];
-	ssize_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
-	if (n != sizeof(buf)) {
-		// error?
+	for (int i; i < m_nLC + m_nButtons; i++) {
+		char buf[8];
+		ssize_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
+
+		// std::cerr << "read idx=" << i << " n=" << n << std::endl;
+
+		if (n == -1) {
+			int save_errno = errno;
+			silent_cerr("JoystickDrive(" << uLabel << ")::init(): "
+				"read failed (" << save_errno << ": " << strerror(save_errno) << ")"
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		uint8_t type = (uint8_t)buf[6];
+		uint8_t idx = (uint8_t)buf[7];
+		int16_t value = *((int16_t *)&buf[4]);
+
+		// std::cerr << "    type=" << uint(type) << " idx=" << uint(idx) << " value=" << value << std::endl;
 	}
+
+	fd_set_blocking(m_fd, false);
 }
 
-/* Scrive il contributo del Drive al file di restart */
 std::ostream&
 JoystickDrive::Restart(std::ostream& out) const
 {
@@ -244,10 +290,13 @@ JoystickDrive::ServePending(const doublereal& t)
 
 	// flush buffer
 	while (!get_one()) { NO_OP; };
+
+	// std::cerr << "JoystickDrive(" << sFileName << ")" << std::endl;
+	// for (int i = 0; i < m_nLC + m_nButtons; i++) {
+		// std::cerr << "    V[" << i << "]=" << pdVal[i] << std::endl;
+	// }
 }
 
-
-/* prototype of the functional object: reads a drive */
 struct JoystickDR : public DriveRead {
 	virtual Drive *
 	Read(unsigned uLabel, const DataManager* pDM, MBDynParser& HP);
