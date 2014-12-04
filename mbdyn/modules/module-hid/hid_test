@@ -1,0 +1,129 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2014
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.e-2;
+end: initial value;
+
+set: integer N_LC = 6;
+set: integer N_BUTTONS = 8;
+
+begin: control data;
+	abstract nodes: N_LC + N_BUTTONS;
+	file drivers: 1;
+	genels: N_LC + N_BUTTONS;
+	forces: N_LC + N_BUTTONS;
+end: control data;
+
+module load: "libmodule-hid";
+
+set: const integer JOYSTICK1 = 999;
+
+set: const integer AILERON = 1;
+set: const integer ELEVATOR = 2;
+set: const integer RUDDER = 3;
+set: const integer THROTTLE = 4;
+set: const integer TRIM_L = 5;
+set: const integer TRIM_F = 6;
+
+set: const integer TRIGGER = 7;
+set: const integer BUTTON2 = 8;
+set: const integer BUTTON3 = 9;
+set: const integer BUTTON4 = 10;
+set: const integer BUTTON5 = 11;
+set: const integer BUTTON6 = 12;
+set: const integer BUTTON7 = 13;
+set: const integer BUTTON8 = 14;
+
+begin: nodes;
+	abstract: AILERON;
+	abstract: ELEVATOR;
+	abstract: RUDDER;
+	abstract: THROTTLE;
+	abstract: TRIM_L;
+	abstract: TRIM_F;
+
+	abstract: TRIGGER;
+	abstract: BUTTON2;
+	abstract: BUTTON3;
+	abstract: BUTTON4;
+	abstract: BUTTON5;
+	abstract: BUTTON6;
+	abstract: BUTTON7;
+	abstract: BUTTON8;
+end: nodes;
+
+begin: drivers;
+	file: JOYSTICK1, joystick,
+		"/dev/input/js0",
+		8,
+		6,
+		scale, 1., 2., 3., 4., 5., 6.;
+end: drivers;
+
+begin: elements;
+	genel: AILERON, spring support, AILERON, abstract, algebraic, linear elastic, 1.;
+	genel: ELEVATOR, spring support, ELEVATOR, abstract, algebraic, linear elastic, 1.;
+	genel: RUDDER, spring support, RUDDER, abstract, algebraic, linear elastic, 1.;
+	genel: THROTTLE, spring support, THROTTLE, abstract, algebraic, linear elastic, 1.;
+	genel: TRIM_L, spring support, TRIM_L, abstract, algebraic, linear elastic, 1.;
+	genel: TRIM_F, spring support, TRIM_F, abstract, algebraic, linear elastic, 1.;
+
+	genel: TRIGGER, spring support, TRIGGER, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON2, spring support, BUTTON2, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON3, spring support, BUTTON3, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON4, spring support, BUTTON4, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON5, spring support, BUTTON5, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON6, spring support, BUTTON6, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON7, spring support, BUTTON7, abstract, algebraic, linear elastic, 1.;
+	genel: BUTTON8, spring support, BUTTON8, abstract, algebraic, linear elastic, 1.;
+
+	force: AILERON, abstract, AILERON, abstract, direct;
+	force: ELEVATOR, abstract, ELEVATOR, abstract, direct;
+	force: RUDDER, abstract, RUDDER, abstract, direct;
+	force: THROTTLE, abstract, THROTTLE, abstract, direct;
+	force: TRIM_L, abstract, TRIM_L, abstract, direct;
+	force: TRIM_F, abstract, TRIM_F, abstract, direct;
+
+	force: TRIGGER, abstract, TRIGGER, abstract, direct;
+	force: BUTTON2, abstract, BUTTON2, abstract, direct;
+	force: BUTTON3, abstract, BUTTON3, abstract, direct;
+	force: BUTTON4, abstract, BUTTON4, abstract, direct;
+	force: BUTTON5, abstract, BUTTON5, abstract, direct;
+	force: BUTTON6, abstract, BUTTON6, abstract, direct;
+	force: BUTTON7, abstract, BUTTON7, abstract, direct;
+	force: BUTTON8, abstract, BUTTON8, abstract, direct;
+end: elements;
+
