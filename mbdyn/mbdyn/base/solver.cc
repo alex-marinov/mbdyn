@@ -2364,7 +2364,7 @@ Solver::ReadData(MBDynParser& HP)
 					break;
 
 				default:
-					silent_cerr("Unknown output flag "
+					silent_cerr("Warning, unknown output flag "
 						"at line " << HP.GetLineData()
 						<< "; ignored" << std::endl);
 					break;
