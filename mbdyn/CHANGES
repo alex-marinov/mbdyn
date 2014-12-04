@@ -16,6 +16,8 @@ MBDyn 1.X-Devel
 		- added automatic differentiation support to drive callers
 		  and constitutive laws (Reinhard Resch)
 		- added (optional) joint reaction forces to modal element
+		- added runtime loadable file drivers
+		- added generic joystick driver
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
