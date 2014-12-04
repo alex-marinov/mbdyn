@@ -31,9 +31,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#include <cmath>
-#include <cfloat>
-#include <cstdio>
+#include <cstdint>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/stat.h>
