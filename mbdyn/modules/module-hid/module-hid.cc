@@ -130,10 +130,8 @@ JoystickDrive::get_one(void)
 		int save_errno = errno;
 		char *err_msg = strerror(save_errno);
 
-		silent_cout("JoystickDrive("
-			"(" << sFileName << "): select failed"
-			<< " (" << save_errno << ": " 
-			<< err_msg << ")" << std::endl);
+		silent_cout("JoystickDrive(" << uLabel << ", " << sFileName << "): select failed"
+			<< " (" << save_errno << ": " << err_msg << ")" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -155,11 +153,11 @@ JoystickDrive::get_one(void)
 	ssize_t n2 = read(m_fd, (void *)&buf[0], sizeof(buf));
 	fd_set_blocking(m_fd, false);
 	if (n2 == -1) {
-		int save_errno = errno;
+		// int save_errno = errno;
 		// std::cerr << "recv=" << save_errno << " " << strerror(save_errno) << std::endl;
 	}
 
-	uint32_t cnt = *((uint32_t *)&buf[0]);
+	// uint32_t cnt = *((uint32_t *)&buf[0]);
 	uint8_t type = (uint8_t)buf[6];
 	uint8_t idx = (uint8_t)buf[7];
 	int16_t value = *((int16_t *)&buf[4]);
@@ -235,7 +233,7 @@ JoystickDrive::init(void)
 	m_fd = open(sFileName.c_str(), O_RDONLY);
 	if (m_fd == -1) {
 		int save_errno = errno;
-		silent_cerr("JoystickDrive(" << uLabel << ")::init(): "
+		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << ")::init(): "
 			"unable to open device <" << sFileName << "> "
 			"(" << save_errno << ": " << strerror(save_errno) << ")"
 		<< std::endl);
@@ -243,6 +241,8 @@ JoystickDrive::init(void)
 	}
 
 	// this probably contains the description of the channels...
+	integer nB = 0, nLC = 0;
+	uint8_t iBmax = 0, iLCmax = 0;
 	for (int i; i < m_nLC + m_nButtons; i++) {
 		char buf[8];
 		ssize_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
@@ -251,7 +251,7 @@ JoystickDrive::init(void)
 
 		if (n == -1) {
 			int save_errno = errno;
-			silent_cerr("JoystickDrive(" << uLabel << ")::init(): "
+			silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << ")::init(): "
 				"read failed (" << save_errno << ": " << strerror(save_errno) << ")"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -259,9 +259,45 @@ JoystickDrive::init(void)
 
 		uint8_t type = (uint8_t)buf[6];
 		uint8_t idx = (uint8_t)buf[7];
-		int16_t value = *((int16_t *)&buf[4]);
+		// int16_t value = *((int16_t *)&buf[4]);
+		if ((type & 0x7F) == 1) {
+			nB++;
+			iBmax = std::max(iBmax, idx);
+
+		} else if ((type & 0x7F) == 2) {
+			nLC++;
+			iLCmax = std::max(iLCmax, idx);
+
+		} else {
+			silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
+				"warning, unknown type " << int(type & 0x7F) << ", ignored" << std::endl); }
 
 		// std::cerr << "    type=" << uint(type) << " idx=" << uint(idx) << " value=" << value << std::endl;
+	}
+
+	bool bFail(false);
+	if (nB != m_nButtons) {
+		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
+			"inconsistent number of buttons: expected " << m_nButtons << ", got " << nB << std::endl);
+		bFail = true;
+	}
+
+	if (iBmax >= m_nButtons) {
+		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
+			"inconsistent largest button index: expected " << m_nButtons - 1 << ", got " << iBmax << std::endl);
+		bFail = true;
+	}
+
+	if (nLC != m_nLC) {
+		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
+			"inconsistent number of linear controls: expected " << m_nLC << ", got " << nLC << std::endl);
+		bFail = true;
+	}
+
+	if (iLCmax >= m_nLC) {
+		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
+			"inconsistent largest linear control index: expected " << m_nLC - 1 << ", got " << iLCmax << std::endl);
+		bFail = true;
 	}
 
 	fd_set_blocking(m_fd, false);
@@ -305,6 +341,36 @@ struct JoystickDR : public DriveRead {
 Drive *
 JoystickDR::Read(unsigned uLabel, const DataManager* pDM, MBDynParser& HP)
 {
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	joystick						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+"									\n"
+"	All rights reserved						\n"
+"									\n"
+"	file: <label> , joystick ,					\n"
+"		<file> ,						\n"
+"		<number_of_buttons> ,					\n"
+"		<number_of_linear_controls> ,				\n"
+"			[ scale, <scale_factor> [ , ... ] ] ;		\n"
+"									\n"
+"	<file> ::= \"/dev/input/js0\"					\n"
+"									\n"
+"	<scale_factor>'s default to 1.0					\n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	const char *s = HP.GetFileName();
 	if (s == 0) {
 		// error
