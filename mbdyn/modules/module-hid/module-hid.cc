@@ -241,7 +241,7 @@ JoystickDrive::init(void)
 	// this probably contains the description of the channels...
 	integer nB = 0, nLC = 0;
 	uint8_t iBmax = 0, iLCmax = 0;
-	for (int i; i < m_nLC + m_nButtons; i++) {
+	for (int i = 0; i < m_nLC + m_nButtons; i++) {
 		char buf[8];
 		ssize_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
 
@@ -296,6 +296,10 @@ JoystickDrive::init(void)
 		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
 			"inconsistent largest linear control index: expected " << m_nLC - 1 << ", got " << unsigned(iLCmax) << std::endl);
 		bFail = true;
+	}
+
+	if (bFail) {
+		// ...
 	}
 
 	fd_set_blocking(m_fd, false);
