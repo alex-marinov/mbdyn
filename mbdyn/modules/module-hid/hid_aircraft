@@ -70,7 +70,8 @@ module load: "libmodule-hid";
 # include joystick label declarations and set them to values
 # specific for the joystick in use
 include: "hid.set";
-include: "hid_ms_sidewinder.set";
+#include: "hid_ms_sidewinder.set";
+include: "hid_thrustmaster.set";
 
 set: const integer JOYSTICK_1 = 999;
 
@@ -87,8 +88,7 @@ begin: drivers;
 		# help;
 		"/dev/input/js0",		# joystick device
 		JOYSTICK_N_BUTTONS,		# number of buttons
-		JOYSTICK_N_LC,			# number of linear controls
-		scale, 1., 1., 1., 1., 1., 1.;	# scale factor for linear controls
+		JOYSTICK_N_LC;			# number of linear controls
 end: drivers;
 
 begin: elements;
