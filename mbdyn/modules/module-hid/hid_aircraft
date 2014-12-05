@@ -1,0 +1,132 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2014
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.e-2;
+
+	tolerance: 1e-6;
+	max iterations: 20;
+
+	real time: posix,
+		mode, period, time step, 10e6, # nanoseconds
+		output, no;
+		# output, yes;
+
+	# output: iterations;
+end: initial value;
+
+begin: control data;
+	structural nodes: 1;
+	file drivers: 1;
+	rigid bodies: 1;
+	air properties;
+	aerodynamic elements: 1;
+	forces: 2;
+	output elements: 1;
+end: control data;
+
+set: const integer AIRCRAFT = 320;
+reference: AIRCRAFT,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, 100., 0., 0.,
+	reference, global, null;
+
+# load the joystick module
+module load: "libmodule-hid";
+
+# include joystick label declarations and set them to values
+# specific for the joystick in use
+include: "hid.set";
+include: "hid_ms_sidewinder.set";
+
+set: const integer JOYSTICK_1 = 999;
+
+begin: nodes;
+	structural: AIRCRAFT, dynamic,
+		reference, AIRCRAFT, null,
+		reference, AIRCRAFT, eye,
+		reference, AIRCRAFT, null,
+		reference, AIRCRAFT, null;
+end: nodes;
+
+begin: drivers;
+	file: JOYSTICK_1, joystick,
+		# help;
+		"/dev/input/js0",		# joystick device
+		JOYSTICK_N_BUTTONS,		# number of buttons
+		JOYSTICK_N_LC,			# number of linear controls
+		scale, 1., 1., 1., 1., 1., 1.;	# scale factor for linear controls
+end: drivers;
+
+begin: elements;
+	body: AIRCRAFT, AIRCRAFT,
+		5000.,
+		null,
+		diag, 1000., 1000., 2000.;
+
+	air properties: std, SI, null;
+
+	aircraft instruments: AIRCRAFT, AIRCRAFT, orientation, flight mechanics;
+
+	# thrust
+	force: AIRCRAFT + 1, follower, AIRCRAFT,
+		position, reference, node, null,
+		1., 0., 0., file, JOYSTICK_1, JOYSTICK_THROTTLE, amplitude, 5000.;
+
+	# control moments
+	couple: AIRCRAFT + 2, follower, AIRCRAFT,
+		position, reference, node, null,
+		component,
+			file, JOYSTICK_1, JOYSTICK_AILERONS, amplitude, 1000.,
+			file, JOYSTICK_1, JOYSTICK_ELEVATOR, amplitude, 1000.,
+			file, JOYSTICK_1, JOYSTICK_RUDDER, amplitude, 1000.;
+
+	# output towards visualization
+	stream output: 77,
+		stream name, "MBD2FG", # pleonastic
+		create, yes,
+		local, "aircraft.sock",
+		blocking,
+		# tailor as needed
+		values, 6,
+			drive, file, JOYSTICK_1, JOYSTICK_AILERONS,
+			drive, file, JOYSTICK_1, JOYSTICK_ELEVATOR,
+			drive, file, JOYSTICK_1, JOYSTICK_RUDDER,
+			drive, node, AIRCRAFT, structural, string, "X[1]", direct,
+			drive, node, AIRCRAFT, structural, string, "X[2]", direct,
+			drive, node, AIRCRAFT, structural, string, "X[3]", direct;
+end: elements;
+
