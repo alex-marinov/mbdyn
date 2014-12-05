@@ -79,7 +79,7 @@ main(int argc, char *argv[])
 					break;
 				}
 
-			printf("0x%8x %s[%2u]=%6d\n", cnt, type2str(type & 0x7FU), idx, value);
+				printf("0x%8x %s[%2u]=%6d\n", cnt, type2str(type & 0x7FU), idx, value);
 
 				continue;
 			}
