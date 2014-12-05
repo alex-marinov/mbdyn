@@ -42,52 +42,39 @@ begin: initial value;
 	# output: iterations;
 end: initial value;
 
-set: integer N_LC = 6;
-set: integer N_BUTTONS = 8;
+include: "hid.set";
+include: "hid_ms_sidewinder.set";
 
 begin: control data;
-	abstract nodes: N_LC + N_BUTTONS;
+	abstract nodes: JOYSTICK_N_LC + JOYSTICK_N_BUTTONS;
 	file drivers: 1;
-	genels: N_LC + N_BUTTONS;
-	forces: N_LC + N_BUTTONS;
+	genels: JOYSTICK_N_LC + JOYSTICK_N_BUTTONS;
+	forces: JOYSTICK_N_LC + JOYSTICK_N_BUTTONS;
 end: control data;
 
 module load: "libmodule-hid";
 
 set: const integer JOYSTICK_1 = 999;
 
-set: const integer AILERON = 1;
-set: const integer ELEVATOR = 2;
-set: const integer RUDDER = 3;
-set: const integer THROTTLE = 4;
 set: const integer TRIM_L = 5;
 set: const integer TRIM_F = 6;
 
-set: const integer TRIGGER = 7;
-set: const integer BUTTON2 = 8;
-set: const integer BUTTON3 = 9;
-set: const integer BUTTON4 = 10;
-set: const integer BUTTON5 = 11;
-set: const integer BUTTON6 = 12;
-set: const integer BUTTON7 = 13;
-set: const integer BUTTON8 = 14;
-
 begin: nodes;
-	abstract: AILERON;
-	abstract: ELEVATOR;
-	abstract: RUDDER;
-	abstract: THROTTLE;
+	abstract: JOYSTICK_AILERONS;
+	abstract: JOYSTICK_ELEVATOR;
+	abstract: JOYSTICK_RUDDER;
+	abstract: JOYSTICK_THROTTLE;
 	abstract: TRIM_L;
 	abstract: TRIM_F;
 
-	abstract: TRIGGER;
-	abstract: BUTTON2;
-	abstract: BUTTON3;
-	abstract: BUTTON4;
-	abstract: BUTTON5;
-	abstract: BUTTON6;
-	abstract: BUTTON7;
-	abstract: BUTTON8;
+	abstract: JOYSTICK_TRIGGER;
+	abstract: JOYSTICK_BUTTON_2;
+	abstract: JOYSTICK_BUTTON_3;
+	abstract: JOYSTICK_BUTTON_4;
+	abstract: JOYSTICK_BUTTON_5;
+	abstract: JOYSTICK_BUTTON_6;
+	abstract: JOYSTICK_BUTTON_7;
+	abstract: JOYSTICK_BUTTON_8;
 end: nodes;
 
 begin: drivers;
@@ -105,36 +92,36 @@ begin: drivers;
 end: drivers;
 
 begin: elements;
-	genel: AILERON, spring support, AILERON, abstract, algebraic, linear elastic, 1.;
-	genel: ELEVATOR, spring support, ELEVATOR, abstract, algebraic, linear elastic, 1.;
-	genel: RUDDER, spring support, RUDDER, abstract, algebraic, linear elastic, 1.;
-	genel: THROTTLE, spring support, THROTTLE, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_AILERONS, spring support, JOYSTICK_AILERONS, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_ELEVATOR, spring support, JOYSTICK_ELEVATOR, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_RUDDER, spring support, JOYSTICK_RUDDER, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_THROTTLE, spring support, JOYSTICK_THROTTLE, abstract, algebraic, linear elastic, 1.;
 	genel: TRIM_L, spring support, TRIM_L, abstract, algebraic, linear elastic, 1.;
 	genel: TRIM_F, spring support, TRIM_F, abstract, algebraic, linear elastic, 1.;
 
-	genel: TRIGGER, spring support, TRIGGER, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON2, spring support, BUTTON2, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON3, spring support, BUTTON3, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON4, spring support, BUTTON4, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON5, spring support, BUTTON5, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON6, spring support, BUTTON6, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON7, spring support, BUTTON7, abstract, algebraic, linear elastic, 1.;
-	genel: BUTTON8, spring support, BUTTON8, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_TRIGGER, spring support, JOYSTICK_TRIGGER, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_2, spring support, JOYSTICK_BUTTON_2, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_3, spring support, JOYSTICK_BUTTON_3, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_4, spring support, JOYSTICK_BUTTON_4, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_5, spring support, JOYSTICK_BUTTON_5, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_6, spring support, JOYSTICK_BUTTON_6, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_7, spring support, JOYSTICK_BUTTON_7, abstract, algebraic, linear elastic, 1.;
+	genel: JOYSTICK_BUTTON_8, spring support, JOYSTICK_BUTTON_8, abstract, algebraic, linear elastic, 1.;
 
-	force: AILERON, abstract, AILERON, abstract, file, JOYSTICK_1, AILERON;
-	force: ELEVATOR, abstract, ELEVATOR, abstract, file, JOYSTICK_1, ELEVATOR;
-	force: RUDDER, abstract, RUDDER, abstract, file, JOYSTICK_1, RUDDER;
-	force: THROTTLE, abstract, THROTTLE, abstract, file, JOYSTICK_1, THROTTLE;
+	force: JOYSTICK_AILERONS, abstract, JOYSTICK_AILERONS, abstract, file, JOYSTICK_1, JOYSTICK_AILERONS;
+	force: JOYSTICK_ELEVATOR, abstract, JOYSTICK_ELEVATOR, abstract, file, JOYSTICK_1, JOYSTICK_ELEVATOR;
+	force: JOYSTICK_RUDDER, abstract, JOYSTICK_RUDDER, abstract, file, JOYSTICK_1, JOYSTICK_RUDDER;
+	force: JOYSTICK_THROTTLE, abstract, JOYSTICK_THROTTLE, abstract, file, JOYSTICK_1, JOYSTICK_THROTTLE;
 	force: TRIM_L, abstract, TRIM_L, abstract, file, JOYSTICK_1, TRIM_L;
 	force: TRIM_F, abstract, TRIM_F, abstract, file, JOYSTICK_1, TRIM_F;
 
-	force: TRIGGER, abstract, TRIGGER, abstract, file, JOYSTICK_1, TRIGGER;
-	force: BUTTON2, abstract, BUTTON2, abstract, file, JOYSTICK_1, BUTTON2;
-	force: BUTTON3, abstract, BUTTON3, abstract, file, JOYSTICK_1, BUTTON3;
-	force: BUTTON4, abstract, BUTTON4, abstract, file, JOYSTICK_1, BUTTON4;
-	force: BUTTON5, abstract, BUTTON5, abstract, file, JOYSTICK_1, BUTTON5;
-	force: BUTTON6, abstract, BUTTON6, abstract, file, JOYSTICK_1, BUTTON6;
-	force: BUTTON7, abstract, BUTTON7, abstract, file, JOYSTICK_1, BUTTON7;
-	force: BUTTON8, abstract, BUTTON8, abstract, file, JOYSTICK_1, BUTTON8;
+	force: JOYSTICK_TRIGGER, abstract, JOYSTICK_TRIGGER, abstract, file, JOYSTICK_1, JOYSTICK_TRIGGER;
+	force: JOYSTICK_BUTTON_2, abstract, JOYSTICK_BUTTON_2, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_2;
+	force: JOYSTICK_BUTTON_3, abstract, JOYSTICK_BUTTON_3, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_3;
+	force: JOYSTICK_BUTTON_4, abstract, JOYSTICK_BUTTON_4, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_4;
+	force: JOYSTICK_BUTTON_5, abstract, JOYSTICK_BUTTON_5, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_5;
+	force: JOYSTICK_BUTTON_6, abstract, JOYSTICK_BUTTON_6, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_6;
+	force: JOYSTICK_BUTTON_7, abstract, JOYSTICK_BUTTON_7, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_7;
+	force: JOYSTICK_BUTTON_8, abstract, JOYSTICK_BUTTON_8, abstract, file, JOYSTICK_1, JOYSTICK_BUTTON_8;
 end: elements;
 
