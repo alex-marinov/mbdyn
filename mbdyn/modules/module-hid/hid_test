@@ -80,15 +80,13 @@ end: nodes;
 begin: drivers;
 	file: JOYSTICK_1, joystick,
 		# help;
-		"/dev/input/js0",		# joystick device
-		/*
-		JOYSTICK_N_BUTTONS,		# number of buttons
-		JOYSTICK_N_LC,			# number of linear controls
-		scale, 1., 2., 3., 4., 5., 6.;	# scale factor for linear controls
-		*/
+		"/dev/input/js0",			# joystick device
+		JOYSTICK_N_BUTTONS,			# number of buttons
+		JOYSTICK_N_LC;				# number of linear controls
+		# scale, 1., 2., 3., 4., 5., 6.;	# scale factor for linear controls
 		# 8, 6; # Fabio's
 		# 26, 8; # Andrea's
-		12, 7; # Mine
+		# 12, 7; # Mine
 end: drivers;
 
 begin: elements;

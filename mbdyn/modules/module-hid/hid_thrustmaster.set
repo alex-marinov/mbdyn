@@ -35,23 +35,23 @@ set: JOYSTICK_N_LC = 7;
 
 set: JOYSTICK_AILERONS = 1;
 set: JOYSTICK_ELEVATOR = 2;
-set: JOYSTICK_RUDDER = 4;
-# note: rudder both by turning joystick and by buttons on throttle
 set: JOYSTICK_THROTTLE = 3;
-
+set: JOYSTICK_RUDDER = 4;
+# note: rudder both by turning joystick and buttons on throttle (4)
+# where is 5?
 # lateral trim: 6
 # longitudinal trim: 7
 
 set: JOYSTICK_TRIGGER = 8;
-set: JOYSTICK_BUTTON_2 = 9;
-set: JOYSTICK_BUTTON_3 = 10;
-set: JOYSTICK_BUTTON_4 = 11;
-set: JOYSTICK_BUTTON_5 = 12;
-set: JOYSTICK_BUTTON_6 = 13;
-set: JOYSTICK_BUTTON_7 = 14;
-set: JOYSTICK_BUTTON_8 = 15;
-set: JOYSTICK_BUTTON_9 = 16;
-set: JOYSTICK_BUTTON_10 = 17;
-set: JOYSTICK_BUTTON_11 = 18;
-set: JOYSTICK_BUTTON_12 = 19;
+set: JOYSTICK_BUTTON_2 = 9;	# L1 (2)
+set: JOYSTICK_BUTTON_3 = 10;	# R3 (3)
+set: JOYSTICK_BUTTON_4 = 11;	# L3 (4)
+set: JOYSTICK_BUTTON_5 = 12;	# diamond (5)
+set: JOYSTICK_BUTTON_6 = 13;	# plus (6)
+set: JOYSTICK_BUTTON_7 = 14;	# circle (7)
+set: JOYSTICK_BUTTON_8 = 15;	# triangle (8)
+set: JOYSTICK_BUTTON_9 = 16;	# R2 (9)
+set: JOYSTICK_BUTTON_10 = 17;	# L2 (10)
+set: JOYSTICK_BUTTON_11 = 18;	# SE
+set: JOYSTICK_BUTTON_12 = 19;	# ST
 
