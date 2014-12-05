@@ -100,7 +100,8 @@ begin: drivers;
 		scale, 1., 2., 3., 4., 5., 6.;	# scale factor for linear controls
 		*/
 		# 8, 6; # Fabio's
-		26, 8; # Andrea's
+		# 26, 8; # Andrea's
+		12, 7; # Mine
 end: drivers;
 
 begin: elements;
