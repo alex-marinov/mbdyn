@@ -1,0 +1,23 @@
+This module registers a file driver that captures the input
+from HID USB devices (only tested with some
+joysticks).
+
+The file "hid.set" declares some variables that are used
+by all joysticks.
+
+The files "hid_ms_sidewinder.set" and "hid_thrustmaster.set"
+sets some of those variables as appropriate for the joystick
+they refer to.
+
+The file "hid_test" implements a simple model that reads
+(most) inputs and assigns their value to abstract nodes.
+
+The file "hid_airplane" implements a simple rigid-body
+"airplane" model that reads the main controls from the joystick
+and echoes them, along with aircraft parameters, through a stream
+that is supposed to be read by some visualization software.
+To test, read it with
+
+sudo socket2stream -P airplane.sock -n 6
+
+(edit as needed).
