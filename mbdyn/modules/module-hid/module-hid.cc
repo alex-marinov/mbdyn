@@ -282,7 +282,7 @@ JoystickDrive::init(void)
 
 	if (iBmax >= m_nButtons) {
 		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
-			"inconsistent largest button index: expected " << m_nButtons - 1 << ", got " << iBmax << std::endl);
+			"inconsistent largest button index: expected " << m_nButtons - 1 << ", got " << unsigned(iBmax) << std::endl);
 		bFail = true;
 	}
 
@@ -294,7 +294,7 @@ JoystickDrive::init(void)
 
 	if (iLCmax >= m_nLC) {
 		silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
-			"inconsistent largest linear control index: expected " << m_nLC - 1 << ", got " << iLCmax << std::endl);
+			"inconsistent largest linear control index: expected " << m_nLC - 1 << ", got " << unsigned(iLCmax) << std::endl);
 		bFail = true;
 	}
 

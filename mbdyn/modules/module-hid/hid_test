@@ -94,9 +94,13 @@ begin: drivers;
 	file: JOYSTICK_1, joystick,
 		# help;
 		"/dev/input/js0",		# joystick device
+		/*
 		8,				# number of buttons
 		6,				# number of linear controls
 		scale, 1., 2., 3., 4., 5., 6.;	# scale factor for linear controls
+		*/
+		# 8, 6; # Fabio's
+		26, 8; # Andrea's
 end: drivers;
 
 begin: elements;
