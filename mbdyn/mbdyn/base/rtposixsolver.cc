@@ -87,6 +87,10 @@ RTPOSIXSolver::Setup(void)
 
         if (sched_setscheduler(0, policy, &sched) < 0) {
 		silent_cerr("RTPOSIXSolver: sched_setscheduler failed" << std::endl);
+		if (bRTAllowNonRoot) {
+			// FIXME: hack (let it run without priority)
+			return;
+		}
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         }
 
