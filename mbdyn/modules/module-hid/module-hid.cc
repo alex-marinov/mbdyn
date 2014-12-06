@@ -51,11 +51,16 @@ private:
 
 	doublereal *m_pdLC, *m_pdB;
 
+	int m_flags;
+
 	// TODO: echo?
 	// TODO: self-describing?
 
 	bool get_one(void);
 	void init(void);
+
+	bool get_fd_flags(void);
+	bool set_fd_blocking(bool bBlocking);
 
 public:
 	JoystickDrive(unsigned int uL, const DriveHandler* pDH,
@@ -90,24 +95,30 @@ JoystickDrive::~JoystickDrive(void)
 	m_fd = -1;
 }
 
-static int
-fd_set_blocking(int fd, bool bBlocking)
+bool
+JoystickDrive::get_fd_flags(void)
 {
-	int flags, rc;
-
-	flags = fcntl(fd, F_GETFL, 0);
-	if (flags == -1) {
-		return 0;
+	m_flags = fcntl(m_fd, F_GETFL, 0);
+	if (m_flags == -1) {
+		return false;
 	}
+
+	return true;
+}
+
+bool
+JoystickDrive::set_fd_blocking(bool bBlocking)
+{
+	int rc;
 
 	if (bBlocking) {
-		flags &= ~O_NONBLOCK;
+		m_flags &= ~O_NONBLOCK;
 
 	} else {
-		flags |= O_NONBLOCK;
+		m_flags |= O_NONBLOCK;
 	}
 
-	rc = fcntl(fd, F_SETFL, flags);
+	rc = fcntl(m_fd, F_SETFL, m_flags);
 
 	return (rc != -1);
 }
@@ -121,7 +132,9 @@ JoystickDrive::get_one(void)
 	struct timeval tv = { 0, 0 };
 	int rc = select(m_fd + 1, &readfds, NULL, NULL, &tv);
 
-	// std::cerr << "select=" << rc << std::endl;
+#ifdef HID_DEBUG
+	std::cerr << "select=" << rc << std::endl;
+#endif // HID_DEBUG
 
 	switch (rc) {
 	case -1: {
@@ -146,21 +159,28 @@ JoystickDrive::get_one(void)
 		}
 	}
 
+	// toggle blocking to make sure we get the whole package
 	char buf[8];
-	fd_set_blocking(m_fd, true);
+	set_fd_blocking(true);
 	ssize_t n2 = read(m_fd, (void *)&buf[0], sizeof(buf));
-	fd_set_blocking(m_fd, false);
+	set_fd_blocking(false);
 	if (n2 == -1) {
-		// int save_errno = errno;
-		// std::cerr << "recv=" << save_errno << " " << strerror(save_errno) << std::endl;
+#ifdef HID_DEBUG
+		int save_errno = errno;
+		std::cerr << "recv=" << save_errno << " " << strerror(save_errno) << std::endl;
+#endif // HID_DEBUG
 	}
 
-	// uint32_t cnt = *((uint32_t *)&buf[0]);
+#ifdef HID_DEBUG
+	uint32_t cnt = *((uint32_t *)&buf[0]);
+#endif // HID_DEBUG
 	uint8_t type = (uint8_t)buf[6];
 	uint8_t idx = (uint8_t)buf[7];
 	int16_t value = *((int16_t *)&buf[4]);
 
-	// std::cerr << "n2=" << n2 << " cnt=" << cnt << " value=" << int(value) << " type=" << unsigned(type) << " idx=" << unsigned(idx) << std::endl;
+#ifdef HID_DEBUG
+	std::cerr << "n2=" << n2 << " cnt=" << cnt << " value=" << int(value) << " type=" << unsigned(type) << " idx=" << unsigned(idx) << std::endl;
+#endif // HID_DEBUG
 
 	switch (type) {
 	case 1:
@@ -245,7 +265,9 @@ JoystickDrive::init(void)
 		char buf[8];
 		ssize_t n = read(m_fd, (void *)&buf[0], sizeof(buf));
 
-		// std::cerr << "read idx=" << i << " n=" << n << std::endl;
+#ifdef HID_DEBUG
+		std::cerr << "read idx=" << i << " n=" << n << std::endl;
+#endif // HID_DEBUG
 
 		if (n == -1) {
 			int save_errno = errno;
@@ -270,7 +292,9 @@ JoystickDrive::init(void)
 			silent_cerr("JoystickDrive(" << uLabel << ", " << sFileName << "): "
 				"warning, unknown type " << int(type & 0x7F) << ", ignored" << std::endl); }
 
-		// std::cerr << "    type=" << uint(type) << " idx=" << uint(idx) << " value=" << value << std::endl;
+#ifdef HID_DEBUG
+		std::cerr << "    type=" << uint(type) << " idx=" << uint(idx) << " value=" << value << std::endl;
+#endif // HID_DEBUG
 	}
 
 	bool bFail(false);
@@ -302,7 +326,8 @@ JoystickDrive::init(void)
 		// ...
 	}
 
-	fd_set_blocking(m_fd, false);
+	get_fd_flags();
+	set_fd_blocking(false);
 }
 
 std::ostream&
@@ -329,10 +354,12 @@ JoystickDrive::ServePending(const doublereal& t)
 	// flush buffer
 	while (!get_one()) { NO_OP; };
 
-	// std::cerr << "JoystickDrive(" << sFileName << ")" << std::endl;
-	// for (int i = 0; i < m_nLC + m_nButtons; i++) {
-		// std::cerr << "    V[" << i << "]=" << pdVal[i] << std::endl;
-	// }
+#ifdef HID_DEBUG
+	std::cerr << "JoystickDrive(" << sFileName << ")" << std::endl;
+	for (int i = 0; i < m_nLC + m_nButtons; i++) {
+		std::cerr << "    V[" << i << "]=" << pdVal[i] << std::endl;
+	}
+#endif // HID_DEBUG
 }
 
 struct JoystickDR : public DriveRead {
