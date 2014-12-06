@@ -27,14 +27,23 @@
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # 
 
+# counters
 set: integer JOYSTICK_N_LC;
 set: integer JOYSTICK_N_BUTTONS;
 
+# aircraft controls
 set: integer JOYSTICK_AILERONS;
 set: integer JOYSTICK_ELEVATOR;
 set: integer JOYSTICK_RUDDER;
 set: integer JOYSTICK_THROTTLE;
 
+# helicopter controls
+set: integer JOYSTICK_CYCLIC_LATERAL;
+set: integer JOYSTICK_CYCLIC_LONGITUDINAL;
+set: integer JOYSTICK_COLLECTIVE;
+set: integer JOYSTICK_PEDALS;
+
+# buttons
 set: integer JOYSTICK_TRIGGER;
 set: integer JOYSTICK_BUTTON_2;
 set: integer JOYSTICK_BUTTON_3;

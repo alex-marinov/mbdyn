@@ -30,9 +30,11 @@
 # I: Bus=0003 Vendor=045e Product=0038 Version=0110
 # N: Name="Microsoft SideWinder Precision 2 Joystick"
 
+# counters
 set: JOYSTICK_N_LC = 6;
 set: JOYSTICK_N_BUTTONS = 8;
 
+# aircraft controls
 set: JOYSTICK_AILERONS = 1;
 set: JOYSTICK_ELEVATOR = 2;
 set: JOYSTICK_RUDDER = 3;
@@ -41,6 +43,13 @@ set: JOYSTICK_THROTTLE = 4;
 # lateral trim: 5
 # longitudinal trim: 6
 
+# helicopter controls
+set: JOYSTICK_CYCLIC_LATERAL = JOYSTICK_AILERONS;
+set: JOYSTICK_CYCLIC_LONGITUDINAL = JOYSTICK_ELEVATOR;
+set: JOYSTICK_COLLECTIVE = JOYSTICK_THROTTLE;
+set: JOYSTICK_PEDALS = JOYSTICK_RUDDER;
+
+# buttons
 set: JOYSTICK_TRIGGER = 7;
 set: JOYSTICK_BUTTON_2 = 8;
 set: JOYSTICK_BUTTON_3 = 9;
