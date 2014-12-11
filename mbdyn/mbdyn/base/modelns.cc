@@ -2636,6 +2636,12 @@ ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& 
 	}
 }
 
+Table*
+ModelNameSpace::GetTable(void)
+{
+	return 0;
+}
+
 bool
 ModelNameSpace::PushCurrData(const std::string& name, const TypedValue& value)
 {

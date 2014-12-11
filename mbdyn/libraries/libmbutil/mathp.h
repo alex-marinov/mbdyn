@@ -152,6 +152,7 @@ public:
 		virtual bool IsFunc(const std::string& fname) const = 0;
 		virtual MathParser::MathFunc_t* GetFunc(const std::string& fname) const = 0;
 		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const = 0;
+		virtual Table* GetTable(void) = 0;
 	};
 
 	/* Static namespace */
@@ -159,14 +160,16 @@ public:
 	private:
 		typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
 		funcType func;
+		Table *m_pTable;
 
 	public:
-		StaticNameSpace(void);
+		StaticNameSpace(Table *pTable = 0);
 		~StaticNameSpace(void);
 
 		bool IsFunc(const std::string& fname) const;
 		MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const;
+		virtual Table* GetTable(void);
 	};
 
 	/* Prototipo dei plugin */

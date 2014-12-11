@@ -29,49 +29,79 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-#ifndef MODELNS_H
-#define MODELNS_H
+#include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "mathp.h"
 #include "dataman.h"
 
-class ModelNameSpace: public MathParser::NameSpace {
+class TableNameSpace: public MathParser::NameSpace {
 protected:
-	const DataManager *pDM;
+	Table *m_pTable;
 
 public:
-	typedef MathParser::MathArgPriv_t<const DataManager *> MathArgDM;
-	typedef MathParser::MathArgPriv_t<const ModelNameSpace *> MathArgMNS;
-	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
-	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
-	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
-
-protected:
-	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
-	funcType func;
-
-	MathParser::MathFunc_t sf_func;
-	MathParser::MathFunc_t node_func;
-	MathParser::MathFunc_t elem_func;
-	MathParser::MathFunc_t unique_elem_func;
-
-	typedef std::map<std::string, TypedValue> currDataType;
-	currDataType currData;
-
-public:
-	ModelNameSpace(const DataManager *pDM);
-	~ModelNameSpace(void);
+	TableNameSpace(const std::string& sName);
+	~TableNameSpace(void);
 
 	bool IsFunc(const std::string& fname) const;
 	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 	TypedValue EvalFunc(MathParser::MathFunc_t *f,
 		const MathParser::MathArgs& args) const;
 	virtual Table* GetTable(void);
-
-	bool PushCurrData(const std::string& name, const TypedValue& value);
-	bool PopCurrData(const std::string& name);
-	bool GetCurrData(const std::string& name, TypedValue& value) const;
 };
 
-#endif /* MODELNS_H */
+TableNameSpace::TableNameSpace(const std::string& sName)
+: MathParser::NameSpace(sName)
+{
+	m_pTable = new Table(false);
+}
+
+TableNameSpace::~TableNameSpace(void)
+{
+	delete m_pTable;
+}
+
+bool
+TableNameSpace::IsFunc(const std::string& fname) const
+{
+	return false;
+}
+
+MathParser::MathFunc_t*
+TableNameSpace::GetFunc(const std::string& fname) const
+{
+	return 0;
+}
+
+TypedValue 
+TableNameSpace::EvalFunc(MathParser::MathFunc_t *f,
+	const MathParser::MathArgs& args) const
+{
+	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+}
+
+Table*
+TableNameSpace::GetTable(void)
+{
+	return m_pTable;
+}
+
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+	MBDynParser	*pHP = (MBDynParser *)php;
+
+	int rc = 0;
+	while (pHP->IsArg()) {
+		const char *sName = pHP->GetString();
+
+		/* registers namespace */
+		MathParser::NameSpace *pNS = new TableNameSpace(sName);
+		rc = pHP->GetMathParser().RegisterNameSpace(pNS);
+		if (rc != 0) {
+			delete pNS;
+		}
+	}
+
+	return rc;
+}
 

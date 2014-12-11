@@ -56,6 +56,7 @@ public:
 	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
 	TypedValue EvalFunc(MathParser::MathFunc_t *f,
 		const MathParser::MathArgs& args) const;
+	virtual Table* GetTable(void);
 };
 
 static int
@@ -220,6 +221,12 @@ UDUnitsNameSpace::EvalFunc(MathParser::MathFunc_t *f,
 	f->f(args);
 
 	return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(args[0]))());
+}
+
+Table*
+UDUnitsNameSpace::GetTable(void)
+{
+	return 0;
 }
 
 extern "C" int

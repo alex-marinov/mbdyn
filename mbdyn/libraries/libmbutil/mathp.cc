@@ -1912,9 +1912,18 @@ MathParser::NameSpace::sGetName(void) const
 	return name;
 }
 
-MathParser::StaticNameSpace::StaticNameSpace()
-: MathParser::NameSpace("default")
+static bool sns = 0;
+
+MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
+: MathParser::NameSpace("default"), m_pTable(pTable)
 {
+	// make sure there's only one StaticNameSpace
+	if (sns) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	sns = true;
+
 	MathFunc_t	*f;
 
 	// asin
@@ -2720,6 +2729,12 @@ MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs&
 	}
 }
 
+Table*
+MathParser::StaticNameSpace::GetTable(void)
+{
+	return m_pTable;
+}
+
 TypedValue::Type
 MathParser::GetType(const char* const s) const
 {
@@ -3483,26 +3498,31 @@ MathParser::expr(void)
 	}
 
 	if (currtoken == NAME) {
-		GetToken();
+		std::string name(namebuf);
 		MathParser::NameSpace *currNameSpace = defaultNameSpace;
+		Table *currTable = &table;
+
+		GetToken();
 		if (currtoken == NAMESPACESEP) {
-			std::string name(namebuf);
 			NameSpaceMap::iterator i = nameSpaceMap.find(name);
 			if (i == nameSpaceMap.end()) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
 			}
 			currNameSpace = i->second;
+			currTable = currNameSpace->GetTable();
 			GetToken();
 			if (currtoken != NAME) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
 			}
+			name += "::";
+			name += namebuf;
 			GetToken();
 		}
 
 		if (currtoken == OBR) {
 			/* in futuro ci potranno essere magari i dati strutturati */
 			if (!currNameSpace->IsFunc(namebuf)) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found; user-defined functions not supported yet!");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
 			}
 
 			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
@@ -3520,13 +3540,17 @@ MathParser::expr(void)
 			return d;
 			
 		} else {
-			NamedValue* v = table.Get(namebuf);
+			NamedValue* v = 0;
+			if (currTable) {
+				v = currTable->Get(namebuf);
+			}
+
 			if (v != NULL) {
 				return v->GetVal();
 			}
 		}
 
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown name \"", namebuf, "\"");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown name \"", name.c_str(), "\"");
 	}
 
 	/* invalid expr */
@@ -3596,17 +3620,40 @@ MathParser::stmt(void)
 					"after type in declaration");
 			}
 
-			/* FIXME: need to specialize symbol table for namespaces */
 			if (IsKeyWord(defaultNameSpace, namebuf)) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf, "' "
 						"is a keyword");
 			}
 
+			MathParser::NameSpace *currNameSpace = defaultNameSpace;
+			Table *currTable = &table;
+			std::string name(namebuf);
+
+			GetToken();
+			if (currtoken == NAMESPACESEP) {
+				NameSpaceMap::iterator i = nameSpaceMap.find(name);
+				if (i == nameSpaceMap.end()) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
+				}
+				currNameSpace = i->second;
+				currTable = currNameSpace->GetTable();
+				GetToken();
+				if (currtoken != NAME) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
+				}
+				name += "::";
+				name += namebuf;
+				GetToken();
+			}
+
 			/* with assign? */
-			if (GetToken() == ASSIGN) {
+			if (currtoken == ASSIGN) {
+				if (currTable == 0) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+				}
+
 				/* faccio una copia del nome! */
-				char* varname = NULL;
-				SAFESTRDUP(varname, namebuf);
+				std::string varname(namebuf);
 
 				GetToken();
 				TypedValue d = logical();
@@ -3616,7 +3663,7 @@ MathParser::stmt(void)
 				}
 
 				/* cerco la variabile */
-				NamedValue* v = table.Get(varname);
+				NamedValue* v = currTable->Get(varname.c_str());
 
 				if (v == NULL) {
 					/* create new var with assigned type */
@@ -3625,10 +3672,10 @@ MathParser::stmt(void)
 					 * takes care of casting, while it inherits
 					 * const'ness from d */
 					newvar.Cast(d);
-					v = table.Put(varname, newvar);
+					v = currTable->Put(varname.c_str(), newvar);
 
 					if (isIfndef) {
-						silent_cerr("warning, ifndef variable " << v->GetTypeName() << " \"" << v->GetName()
+						silent_cerr("warning, ifndef variable " << v->GetTypeName() << " \"" << name
 							<< "\" not yet defined; set to \"" << newvar << "\" at line " << mbdyn_get_line_data() << std::endl);
 					}
 
@@ -3638,7 +3685,7 @@ MathParser::stmt(void)
 					if (!bRedefineVars && !isIfndef) {
 				   		throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
-							"var \"", v->GetName(), "\"");
+							"var \"", name.c_str(), "\"");
 					}
 
 					if (v->Const() && !isIfndef) {
@@ -3646,14 +3693,14 @@ MathParser::stmt(void)
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"a const named value "
-							"\"", v->GetName(), "\"");
+							"\"", name.c_str(), "\"");
 					}
 
 					if (!v->IsVar()) {
 			   			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"non-var named value "
-							"\"", v->GetName(), "\"");
+							"\"", name.c_str(), "\"");
 					}
 
 					if (!isIfndef) {
@@ -3661,22 +3708,24 @@ MathParser::stmt(void)
 
 					} else {
 						if (v->GetType() != type) {
-							silent_cerr("warning, skipping redefinition of \"" << v->GetName()
+							silent_cerr("warning, skipping redefinition of \"" << name.c_str()
 								<< "\" from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type) << " at line " << mbdyn_get_line_data() << std::endl);
 
 						} else {
-							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << v->GetName()
+							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << name.c_str()
 								<< "\" at line " << mbdyn_get_line_data() << std::endl);
 						}
 					}
 				}
 				
-				/* distruggo il temporaneo */
-				SAFEDELETEARR(varname);
 				return v->GetVal();
 
 			} else if (currtoken == STMTSEP) {
-				NamedValue* v = table.Get(namebuf);
+				if (currTable == 0) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+				}
+				
+				NamedValue* v = currTable->Get(namebuf);
 				if (v == NULL || (!bRedefineVars && !isIfndef)) {
 					if (isConst) {
 						/* cannot insert a const var
@@ -3690,11 +3739,12 @@ MathParser::stmt(void)
 					 * la ridefinizione, tento
 					 * di inserirla comunque, cosi'
 					 * table da' errore */
-					v = table.Put(namebuf, TypedValue(type));
+					v = currTable->Put(namebuf, TypedValue(type));
 				}
 
 				return v->GetVal();
 			}
+
 		} else {
 			if (declarationmodifier != DMOD_UNKNOWN) {
 			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
@@ -3706,31 +3756,80 @@ MathParser::stmt(void)
 		      			"type modifier without type");
 			}
 
+			MathParser::NameSpace *currNameSpace = defaultNameSpace;
+			Table *currTable = &table;
+			std::string name(namebuf);
+
+			GetToken();
+			if (currtoken == NAMESPACESEP) {
+				NameSpaceMap::iterator i = nameSpaceMap.find(name);
+				if (i == nameSpaceMap.end()) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
+				}
+				currNameSpace = i->second;
+				currTable = currNameSpace->GetTable();
+				GetToken();
+				if (currtoken != NAME) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
+				}
+				name += "::";
+				name += namebuf;
+				GetToken();
+			}
+
+			if (currtoken == OBR) {
+				/* in futuro ci potranno essere magari i dati strutturati */
+				if (!currNameSpace->IsFunc(namebuf)) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
+				}
+
+				MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+				if (f == NULL) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
+				}
+				GetToken();
+				TypedValue d = evalfunc(currNameSpace, f);
+				if (currtoken != CBR) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
+							"expected after function "
+							"\"", f->fname.c_str(), "\" in expr()");
+				}
+				GetToken();
+				return d;
+			}
+
 			/* assignment? */
-			NamedValue* v = table.Get(namebuf);
+			if (currTable == 0) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+			}
+			NamedValue* v = currTable->Get(namebuf);
 			if (v != NULL) {
-				if (GetToken() == ASSIGN) {
+				if (currtoken == ASSIGN) {
 					GetToken();
 					TypedValue d = logical();
 					if (v->Const()) {
 			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 		      						"cannot assign const named value "
-								"\"", v->GetName(), "\"");
+								"\"", name.c_str(), "\"");
 			 		}
 
 			 		if (!v->IsVar()) {
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 								"cannot assign non-var named value "
-								"\"", v->GetName(), "\"");
+								"\"", name.c_str(), "\"");
 			 		}
 					dynamic_cast<Var *>(v)->Cast(d);
 					return v->GetVal();
 
 				} else {
-					TokenPush(currtoken);
-					currtoken = NAME;
+					// TokenPush(currtoken);
+					// currtoken = NAME;
+					return v->GetVal();
 				}
-			} /* else could be a function or a variable */
+
+			} else {
+				ASSERT(0);
+			}
 		}
 	}
 
@@ -3957,7 +4056,7 @@ tokenlist(NULL)
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	defaultNameSpace = new StaticNameSpace();
+	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName().c_str(), "\"");
@@ -3984,7 +4083,7 @@ tokenlist(0)
 
 	SAFENEWARR(namebuf, char, namebuflen + 1);
 
-	defaultNameSpace = new StaticNameSpace();
+	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
 				"\"", defaultNameSpace->sGetName().c_str(), "\"");
