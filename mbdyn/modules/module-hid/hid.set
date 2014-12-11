@@ -31,6 +31,9 @@
 set: integer JOYSTICK_N_LC;
 set: integer JOYSTICK_N_BUTTONS;
 
+set: integer JOYSTICK_LC_OFFSET;
+set: integer JOYSTICK_BUTTON_OFFSET;
+
 # aircraft controls
 set: integer JOYSTICK_AILERONS;
 set: integer JOYSTICK_ELEVATOR;
@@ -45,6 +48,8 @@ set: integer JOYSTICK_PEDALS;
 
 # buttons
 set: integer JOYSTICK_TRIGGER;
+
+set: integer JOYSTICK_BUTTON_1;
 set: integer JOYSTICK_BUTTON_2;
 set: integer JOYSTICK_BUTTON_3;
 set: integer JOYSTICK_BUTTON_4;

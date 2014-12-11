@@ -37,7 +37,8 @@ begin: initial value;
 	time step: 1.e-2;
 
 	real time: posix,
-		mode, period, time step, 10e6; # nanoseconds
+		mode, period, time step, 10e6,
+		allow nonroot; # nanoseconds
 
 	# output: iterations;
 end: initial value;

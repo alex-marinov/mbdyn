@@ -41,6 +41,7 @@ begin: initial value;
 
 	real time: posix,
 		mode, period, time step, 10e6, # nanoseconds
+		allow nonroot,
 		output, no;
 		# output, yes;
 
@@ -70,8 +71,9 @@ module load: "libmodule-hid";
 # include joystick label declarations and set them to values
 # specific for the joystick in use
 include: "hid.set";
-#include: "hid_ms_sidewinder.set";
 include: "hid_thrustmaster.set";
+#include: "hid_ms_sidewinder.set";
+#include: "hid_xxx.set";
 
 set: const integer JOYSTICK_1 = 999;
 
@@ -121,12 +123,18 @@ begin: elements;
 		local, "aircraft.sock",
 		blocking,
 		# tailor as needed
-		values, 6,
+		values, 4 + 6,
+			# echo of controls (FIXME: check sign!)
 			drive, file, JOYSTICK_1, JOYSTICK_AILERONS,
 			drive, file, JOYSTICK_1, JOYSTICK_ELEVATOR,
 			drive, file, JOYSTICK_1, JOYSTICK_RUDDER,
+			drive, file, JOYSTICK_1, JOYSTICK_THROTTLE,
+			# motion (FIXME: check angles and sign!)
 			drive, node, AIRCRAFT, structural, string, "X[1]", direct,
 			drive, node, AIRCRAFT, structural, string, "X[2]", direct,
-			drive, node, AIRCRAFT, structural, string, "X[3]", direct;
+			drive, node, AIRCRAFT, structural, string, "X[3]", direct,
+			drive, node, AIRCRAFT, structural, string, "E[1]", direct,
+			drive, node, AIRCRAFT, structural, string, "E[2]", direct,
+			drive, node, AIRCRAFT, structural, string, "E[3]", direct;
 end: elements;
 
