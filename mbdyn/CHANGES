@@ -15,9 +15,10 @@ MBDyn 1.X-Devel
 		- added central gravity field (suggested by Linh H. Phan)
 		- added automatic differentiation support to drive callers
 		  and constitutive laws (Reinhard Resch)
-		- added (optional) joint reaction forces to modal element
+		- added (optional) modal joint reaction forces output
 		- added runtime loadable file drivers
-		- added generic joystick driver
+		- added generic joystick driver (module-hid)
+		- added variables in namespaces
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken
@@ -32,6 +33,7 @@ MBDyn 1.X-Devel
 		- fix python detection (David Verelst)
 		- fix SparseSuite_config detection
 		  (Marco Morandini; noted by David Verelst)
+		- fixed (harmless) stmt parsing bug
 
 MBDyn 1.5.6
 	Enhancements:
