@@ -18,7 +18,9 @@ MBDyn 1.X-Devel
 		- added (optional) modal joint reaction forces output
 		- added runtime loadable file drivers
 		- added generic joystick driver (module-hid)
-		- added variables in namespaces
+		- added run-time loadable "description" registration
+		- added "namespace" stmt (module-namespace)
+		- added symbol table in namespaces (module-namespace)
 	Backward compatibility issues:
 	Known issues:
 		- Schur solver is broken

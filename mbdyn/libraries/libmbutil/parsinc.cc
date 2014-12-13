@@ -49,6 +49,72 @@
 #define PATH_MAX 4096
 #endif // !PATH_MAX
 
+
+
+struct IncludeDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+IncludeDR::Read(HighParser& HP)
+{
+	IncludeParser *pIP = dynamic_cast<IncludeParser *>(&HP);
+	ASSERT(pIP != 0);
+	return pIP->Include_int();
+}
+
+struct ChDirDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+ChDirDR::Read(HighParser& HP)
+{
+	if (!HP.IsArg()) {
+		silent_cerr("Parser error "
+			"in ChDir::Read(), "
+			"colon expected at line " << HP.GetLineData() 
+			<< std::endl);
+      		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+   	}
+
+	IncludeParser *pIP = dynamic_cast<IncludeParser *>(&HP);
+	ASSERT(pIP != 0);
+   
+	const char* sfname = pIP->GetFileName();
+
+	if (chdir(sfname)) {
+		silent_cerr("Error in chdir, path=\"" << sfname << "\" at line "
+			<< HP.GetLineData() << std::endl);
+		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
+	}
+
+	return true;
+}
+
+static unsigned desc_done;
+
+static void
+InitDescData(void)
+{
+	// NOTE: data will be destroyed when the underlying HighParser is destroyed (is this what we want?)
+	if (::desc_done++ > 0) {
+		return;
+	}
+
+	SetDescData("include", new IncludeDR);
+	SetDescData("chdir", new ChDirDR);
+
+	/* NOTE: add here initialization of new built-in descriptions;
+	 * alternative ways to register new custom descriptions are:
+	 * - call SetDescData() from anywhere in the code
+	 * - write a module that calls SetDescData() from inside a function
+	 *   called module_init(), and run-time load it using "module load"
+	 *   in the input file.
+	 */
+}
+
+
 /* IncludeParser - begin */
 
 IncludeParser::IncludeParser(MathParser& MP, 
@@ -74,6 +140,9 @@ sCurrFile(NULL)
 #else /* !USE_INCLUDE_PARSER */
    	NO_OP;
 #endif /* !USE_INCLUDE_PARSER */
+
+	// NOTE: data will be destroyed when the underlying HighParser is destroyed (is this what we want?)
+	InitDescData();
 }
 
 
@@ -208,10 +277,11 @@ IncludeParser::fCheckStack(void)
    	}
 }
 
-void 
+bool
 IncludeParser::Include_int()
 {
-   	if (FirstToken() == UNKNOWN) {
+   	// if (FirstToken() == UNKNOWN) {
+   	if (!IsArg()) {
 		silent_cerr("Parser error in IncludeParser::Include_int(),"
 			" colon expected at line " << GetLineData() 
 			<< std::endl);
@@ -347,47 +417,16 @@ IncludeParser::Include_int()
  
    	/* FIXME: mettere un test se c'e' il punto e virgola? */
    	CurrToken = HighParser::DESCRIPTION;
+
+	return true;
 }
 
 void
 IncludeParser::Eof(void)
 {
-	if(!fCheckStack()) {
+	if (!fCheckStack()) {
 		throw EndOfFile(MBDYN_EXCEPT_ARGS);
 	}
-}
-
-bool
-IncludeParser::GetDescription_int(const char *s)
-{
-   	if (!strcmp(s, "include")) {
-      		Include_int();
-      		return true;
-
-#ifdef USE_INCLUDE_PARSER
-	} else if (!strcmp(s, "chdir")) {
-  	 	if (FirstToken() == UNKNOWN) {
-			silent_cerr("Parser error "
-				"in IncludeParser::Include_int(), "
-				"colon expected at line " << GetLineData() 
-				<< std::endl);
-      			throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-   		}
-   
-   		const char* sfname = GetFileName();
-
-      		if (chdir(sfname)) {
-			silent_cerr("Error in chdir, path = " 
-				<< sfname << std::endl);
-	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
-      		}
-      		return true;
-
-#endif /* USE_INCLUDE_PARSER */
-		
-   	}
-	
-	return HighParser::GetDescription_int(s);
 }
 
 /*
@@ -665,4 +704,5 @@ IncludeParser::GetLineData(void) const
 }
 
 /* IncludeParser - end */
+
 

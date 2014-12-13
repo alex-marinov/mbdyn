@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2014
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,10 +31,10 @@
 
 /* Parser per l'ingresso dati - parte generale */
 
-/* Si compone di tre diverse strutture di scansione, 
+/* Si compone di tre diverse strutture di scansione,
  * piu' le strutture di memorizzazione di stringhe e variabili.
- * 
- * La prima struttura e' data dal LowParser, che riconosce gli elementi 
+ *
+ * La prima struttura e' data dal LowParser, che riconosce gli elementi
  * della sintassi. E' data da:
  * <statement_list>::=
  *   <statement> ; <statement_list>
@@ -49,55 +49,55 @@
  *   <word>
  *   <number>
  * ecc. ecc.
- * 
- * La seconda struttura e' data dall'HighParser, che riconosce la sintassi 
+ *
+ * La seconda struttura e' data dall'HighParser, che riconosce la sintassi
  * vera e propria. In alternativa al LowParser, qualora sia atteso un valore
- * numerico esprimibile mediante un'espressione regolare 
+ * numerico esprimibile mediante un'espressione regolare
  * (espressione matematica), e' possibile invocare la terza struttura,
  * il MathParser. Questo analizza espressioni anche complesse e multiple,
  * se correttamente racchiuse tra parentesi.
- * 
+ *
  * L'HighParser deve necessariamente riconoscere una parola chiave nel campo
  * <description>, mentre puo' trovare parole qualsiasi nel campo <arg>
  * qualora sia attesa una stringa.
- * 
- * Le parole chiave vengono fornite all'HighParser attraverso la KeyTable, 
+ *
+ * Le parole chiave vengono fornite all'HighParser attraverso la KeyTable,
  * ovvero una lista di parole impaccate (senza spazi). L'uso consigliato e':
- * 
+ *
  *   const char sKeyWords[] = { "keyword0",
  *                              "keyword1",
  *                              "...",
  *                              "keywordN"};
- * 
+ *
  *   enum KeyWords { KEYWORD0 = 0,
  *                   KEYWORD1,
  *                   ...,
  *                   KEYWORDN,
  *                   LASTKEYWORD};
- * 
+ *
  *   KeyTable K((int)LASTKEYWORD, sKeyWords);
- * 
- * Il MathParser usa una tabella di simboli, ovvero nomi (dotati di tipo) 
- * a cui e' associato un valore. La tabella e' esterna e quindi puo' essere 
+ *
+ * Il MathParser usa una tabella di simboli, ovvero nomi (dotati di tipo)
+ * a cui e' associato un valore. La tabella e' esterna e quindi puo' essere
  * conservata ed utilizzata in seguito conservando in memoria i nomi
  * definiti in precedenza.
- * 
+ *
  * A questo punto si puo' generare la tabella dei simboli:
- * 
+ *
  *   int iSymbolTableInitialSize = 10;
  *   Table T(iSymbolTableInitialSize);
- * 
+ *
  * Quindi si crea il MathParser:
- * 
+ *
  *   MathParser Math(T);
- * 
+ *
  * Infine si genera l'HighParser:
- * 
+ *
  *   HighParser HP(Math, K, StreamIn);
- * 
+ *
  * dove StreamIn e' l'istream da cui avviene la lettura.
  */
-            
+
 
 #ifndef MBPAR_H
 #define MBPAR_H
@@ -140,11 +140,11 @@ public:
 	public:
 		ErrReferenceUndefined(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
- 
+
 public:
 	enum Frame {
 		UNKNOWNFRAME = 0,
-		
+
 		GLOBAL,
 		NODE,
 		LOCAL,
@@ -153,30 +153,44 @@ public:
 		OTHER_POSITION,
 		OTHER_ORIENTATION,
 		OTHER_NODE,
-		
+
 		LASTFRAME
 	};
-   
-protected:      
+
 	/* Struttura e dati per la linked list di reference frames */
+public:
 	typedef std::map<unsigned, const ReferenceFrame *> RFType;
+	const RFType& GetReferenceFrameContainer(void) const;
+
+protected:
 	RFType RF;
-	
+
 	Frame GetRef(ReferenceFrame& rf);
-	
-	void Reference_int(void);
- 
+
+	bool Reference_int(void);
+friend struct RefFrameDR;
+
 	/* Struttura e dati per la linked list di hydraulic fluids */
+public:
 	typedef std::map<unsigned, const HydraulicFluid *> HFType;
+	const HFType& GetHydraulicFluidContainer(void) const;
+
+protected:
 	HFType HF;
-	
-	void HydraulicFluid_int(void);
- 
+
+	bool HydraulicFluid_int(void);
+friend struct HFluidDR;
+
 	/* Struttura e dati per la linked list di c81 data */
+public:
 	typedef std::map<unsigned, C81Data *> ADType;
+	const ADType& GetC81DataContainer(void) const;
+
+protected:
 	ADType AD;
 
-	void C81Data_int(void);
+	bool C81Data_int(void);
+friend struct C81DataDR;
 
 	typedef std::map<unsigned, const ConstitutiveLaw1D *> CL1DType;
 	typedef std::map<unsigned, const ConstitutiveLaw3D *> CL3DType;
@@ -185,7 +199,8 @@ protected:
 	CL3DType CL3D;
 	CL6DType CL6D;
 
-	void ConstitutiveLaw_int(void);
+	bool ConstitutiveLaw_int(void);
+friend struct ConstLawDR;
 
 	/* Drives */
 public:
@@ -195,35 +210,44 @@ public:
 protected:
 	DCType DC;
 
-	void DriveCaller_int(void);
+	bool DriveCaller_int(void);
+friend struct DriveCallerDR;
 
+public:
 	/* Template drives */
 	typedef std::map<unsigned, const TplDriveCaller<doublereal> *> DC1DType;
-	DC1DType DC1D;
 	typedef std::map<unsigned, const TplDriveCaller<Vec3> *> DC3DType;
-	DC3DType DC3D;
 	typedef std::map<unsigned, const TplDriveCaller<Vec6> *> DC6DType;
-	DC6DType DC6D;
-
 	typedef std::map<unsigned, const TplDriveCaller<Mat3x3> *> DC3x3DType;
-	DC3x3DType DC3x3D;
 	typedef std::map<unsigned, const TplDriveCaller<Mat6x6> *> DC6x6DType;
+
+	const DC1DType& GetDriveCaller1DContainer(void) const;
+	const DC3DType& GetDriveCaller3DContainer(void) const;
+	const DC6DType& GetDriveCaller6DContainer(void) const;
+	const DC3x3DType& GetDriveCaller3x3DContainer(void) const;
+	const DC6x6DType& GetDriveCaller6x6DContainer(void) const;
+
+protected:
+	DC1DType DC1D;
+	DC3DType DC3D;
+	DC6DType DC6D;
+	DC3x3DType DC3x3D;
 	DC6x6DType DC6x6D;
 
-	void TplDriveCaller_int(void);
+	bool TplDriveCaller_int(void);
+friend struct TplDriveCallerDR;
 
 	/* Scalar functions */
 	typedef std::map<std::string, const BasicScalarFunction *> SFType;
 	SFType SF;
 
-	void ScalarFunction_int(void);
+	bool ScalarFunction_int(void);
+friend struct SFuncDR;
 
 	/* Dynamic modules */
 	bool moduleInitialized;
-	void ModuleLoad_int(void);
-
-	/* Legge una parola chiave */
-	bool GetDescription_int(const char *s);
+	bool ModuleLoad_int(void);
+friend struct ModuleLoadDR;
 
 	DataManager *pDM;
 
@@ -261,6 +285,7 @@ public:
 	~MBDynParser(void);
 
 	void SetDataManager(DataManager *pdm);
+	DataManager *GetDataManager(void) const;
 
 	// Vec*, Mat*x* moved here from parser.h
 	/* vettore Vec3 */
@@ -369,7 +394,7 @@ public:
 	virtual Mat6x6 Get(const Mat6x6& m);
 
 	void OutputFrames(std::ostream& out) const;
-   
+
 	HydraulicFluid* GetHydraulicFluid(void);
 
 	const c81_data* GetC81Data(unsigned profile) const;
@@ -394,31 +419,31 @@ public:
  *   ExpectArg()
  * informano il parser di cio' che e' atteso; di default il costruttore
  * setta ExpectDescription().
- * 
+ *
  * Le funzioni:
  *   GetDescription()
  *   IsKeyWord()
  *   GetWord()
  * restituiscono un intero che corrisponde alla posizione occupata nella
  * KeyTable dalle parole corrispondenti, oppure -1 se la parola non e'
- * trovata. Si noti che IsKeyWord(), in caso di esito negativo, ripristina 
+ * trovata. Si noti che IsKeyWord(), in caso di esito negativo, ripristina
  * l'istream. Tutte preparano poi il parser per la lettura successiva.
- * 
- * La funzione 
- *   IsKeyWord(const char*) 
- * restituisce 0 se non trova la parola e ripristina l'istream, altrimenti 
+ *
+ * La funzione
+ *   IsKeyWord(const char*)
+ * restituisce 0 se non trova la parola e ripristina l'istream, altrimenti
  * restituisce 1 e prepara il parser alla lettura successiva.
- * 
- * Le funzioni 
- *   GetInt(), 
- *   GetReal(), 
- *   GetString(), 
+ *
+ * Le funzioni
+ *   GetInt(),
+ *   GetReal(),
+ *   GetString(),
  *   GetStringWithDelims(enum Delims)
  *   GetFileName(enum Delims)
  * restituiscono i valori attesi e preparano il parser alla lettura successiva.
  */
 
 /* MBDynParser - end */
-   
+
 #endif /* MBPAR_H */
 

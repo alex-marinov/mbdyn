@@ -1895,6 +1895,12 @@ MathParser::TokenPop(void)
 	return 1;
 }
 
+const MathParser::NameSpaceMap&
+MathParser::GetNameSpaceMap(void) const
+{
+	return nameSpaceMap;
+}
+
 MathParser::NameSpace::NameSpace(const std::string& name)
 : name(name)
 {
@@ -3136,7 +3142,18 @@ MathParser::IncNameBuf(void)
 TypedValue
 MathParser::logical(void)
 {
-	TypedValue d = relational();
+	return logical_int(relational());
+}
+
+TypedValue
+MathParser::logical(TypedValue d)
+{
+	return logical_int(relational(d));
+}
+
+TypedValue
+MathParser::logical_int(TypedValue d)
+{
 	while (true) {
 		switch (currtoken) {
 		case AND:
@@ -3165,7 +3182,18 @@ MathParser::logical(void)
 TypedValue
 MathParser::relational(void)
 {
-	TypedValue d = binary();
+	return relational_int(binary());
+}
+
+TypedValue
+MathParser::relational(TypedValue d)
+{
+	return relational_int(binary(d));
+}
+
+TypedValue
+MathParser::relational_int(TypedValue d)
+{
 	while (true) {
 		switch (currtoken) {
 		case GT:
@@ -3207,7 +3235,18 @@ MathParser::relational(void)
 TypedValue
 MathParser::binary(void)
 {
-	TypedValue d = mult();
+	return binary_int(mult());
+}
+
+TypedValue
+MathParser::binary(TypedValue d)
+{
+	return binary_int(mult(d));
+}
+
+TypedValue
+MathParser::binary_int(TypedValue d)
+{
 	while (true) {
 		switch (currtoken) {
 		case PLUS:
@@ -3229,7 +3268,18 @@ MathParser::binary(void)
 TypedValue
 MathParser::mult(void)
 {
-	TypedValue d = power();
+	return mult_int(power());
+}
+
+TypedValue
+MathParser::mult(TypedValue d)
+{
+	return mult_int(power(d));
+}
+
+TypedValue
+MathParser::mult_int(TypedValue d)
+{
 	while (true) {
 		switch (currtoken) {
 		case MULT:
@@ -3267,8 +3317,18 @@ MathParser::mult(void)
 TypedValue
 MathParser::power(void)
 {
-	TypedValue d = unary();
+	return power_int(unary());
+}
 
+TypedValue
+MathParser::power(TypedValue d)
+{
+	return power_int(d);
+}
+
+TypedValue
+MathParser::power_int(TypedValue d)
+{
 	if (currtoken == EXP) {
 		GetToken();
 
@@ -3282,8 +3342,8 @@ MathParser::power(void)
 		TypedValue e = power();
 
 		if (d < 0. && e <= 0.) {
-			DEBUGCERR("can't compute " << d << '^'
-					<< e << " in power()" << std::endl);
+			DEBUGCERR("can't compute (" << d << ")^("
+					<< e << ") in power()" << std::endl);
 			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "invalid operands in power()");
 		}
 
@@ -3327,7 +3387,7 @@ MathParser::power(void)
 TypedValue
 MathParser::unary(void)
 {
-	switch(currtoken) {
+	switch (currtoken) {
 	case MINUS:
 		GetToken();
 		return -expr();
@@ -3822,9 +3882,15 @@ MathParser::stmt(void)
 					return v->GetVal();
 
 				} else {
+					// NOTE: fails if <name> is actually <namespace>::<name>
+					// ASSERT(currtoken != NAME);
 					// TokenPush(currtoken);
 					// currtoken = NAME;
-					return v->GetVal();
+
+					// NOTE: fails if <name> is not the complete <stmt>
+					// return v->GetVal();
+
+					return logical(v->GetVal());
 				}
 
 			} else {

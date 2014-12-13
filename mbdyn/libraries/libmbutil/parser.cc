@@ -36,6 +36,7 @@
 #include <cstring>
 #include <stdlib.h>
 #include <stack>
+#include <map>
 
 #include "mathtyp.h"
 #include "parser.h"
@@ -276,6 +277,321 @@ KeyTable::Find(const char* sToFind) const
 /* KeyTable - end */
 
 
+/* DescRead - begin */
+
+/* bag that contains functions to parse descriptions */
+
+typedef std::map<std::string, DescRead *, ltstrcase> DescFuncMapType;
+static DescFuncMapType DescFuncMap;
+
+struct DescWordSetType : public HighParser::WordSet {
+	bool IsWord(const std::string& s) const {
+		return DescFuncMap.find(s) != DescFuncMap.end();
+	};
+};
+
+static DescWordSetType DescWordSet;
+
+bool
+SetDescData(const std::string& name, DescRead *rf)
+{
+	pedantic_cout("registering description \"" << name << "\"" << std::endl);
+	return DescFuncMap.insert(DescFuncMapType::value_type(name, rf)).second;
+}
+
+/* Reads descriptions */
+
+bool
+ReadDescription(HighParser& HP, const std::string& desc)
+{
+	DEBUGCOUTFNAME("ReadDescription()");
+
+	bool bRC(false);
+	DescFuncMapType::iterator func = DescFuncMap.find(desc);
+	if (func != DescFuncMap.end()) {
+		HP.GotDescription();
+		if (!HP.IsArg() && !HP.IsDescription()) {
+			silent_cerr("Parser error in ReadDescription(),"
+				" colon or semicolon expected after description at line "
+				<< HP.GetLineData() << std::endl);
+			throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+		}
+
+		bRC = func->second->Read(HP);
+
+		if (HP.IsArg()) {
+			silent_cerr("semicolon expected at line " << HP.GetLineData() << std::endl);
+			throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	return bRC;
+}
+
+DescRead::~DescRead(void)
+{
+	NO_OP;
+}
+
+struct RemarkDR : public DescRead {
+public:
+	bool Read(HighParser& HP);
+};
+
+bool
+RemarkDR::Read(HighParser& HP)
+{
+	if (!HP.IsArg()) {
+		silent_cerr("Parser error in RemarkDR::Read(),"
+			" arg(s) expected at line "
+			<< HP.GetLineData() << std::endl);
+		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* eat it anyway ;) */
+	const char *s = HP.GetStringWithDelims();
+	silent_cout("line " << HP.GetLineData() << ": " << s);
+	bool bFirst(true);
+	while (HP.IsArg()) {
+		if (bFirst) {
+			silent_cout(": ");
+			bFirst = false;
+
+		} else {
+			silent_cout(", ");
+		}
+
+#if 0
+		bool bIgnore(false);
+		if (HP.IsKeyWord("ignore")) {
+			bIgnore = true;
+		}
+#endif
+
+		TypedValue v;
+		v = HP.GetValue(v);
+		silent_cout(v);
+	}
+
+	silent_cout(std::endl);
+
+	return true;
+}
+
+struct PrintSymbolTableDR : public DescRead {
+public:
+	bool Read(HighParser& HP);
+};
+
+bool
+PrintSymbolTableDR::Read(HighParser& HP)
+{
+	if (!HP.IsArg()) {
+		silent_cout( "math parser symbol table at line "
+			<< HP.GetLineData() << ":" << std::endl
+			<< HP.GetMathParser().GetSymbolTable() << std::endl);
+		return true;
+	}
+
+	while (HP.IsArg()) {
+		const char *sName = HP.GetString();
+		MathParser::NameSpace *pN = HP.GetMathParser().GetNameSpace(sName);
+		if (pN == 0) {
+			silent_cerr("PrintSymbolTableDR::Read(): warning, unable to find namespace \"" << sName << "\" at line " 
+				<< HP.GetLineData() << std::endl);
+
+		} else {
+			Table *pT = pN->GetTable();
+			if (pT == 0) {
+				silent_cerr("PrintSymbolTableDR::Read(): warning, namespace \"" << sName << "\" "
+					"has no symbol table at line " << HP.GetLineData() << std::endl);
+
+			} else {
+				silent_cout( "namespace \"" << sName << "\" symbol table at line "
+					<< HP.GetLineData() << ":" << std::endl
+					<< *pT << std::endl);
+			}
+		}
+	}
+
+	return true;
+}
+
+struct SetDR : public DescRead {
+public:
+	bool Read(HighParser& HP);
+};
+
+bool
+SetDR::Read(HighParser& HP)
+{
+	if (!HP.IsArg()) {
+     		silent_cerr("Parser error in SetDR::Read(), "
+     			"arg expected at line "
+     			<< HP.GetLineData() << std::endl);
+     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	TypedValue v;
+	HP.GetValue(v);
+
+	return true;
+}
+
+struct SetEnvDR : public DescRead {
+public:
+	bool Read(HighParser& HP);
+};
+
+bool
+SetEnvDR::Read(HighParser& HP)
+{
+#ifdef HAVE_SETENV
+	if (!HP.IsArg()) {
+     		silent_cerr("Parser error in SetEnvDR::Read(), "
+     			"arg(s) expected at line "
+     			<< HP.GetLineData() << std::endl);
+     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	int overwrite = 0;
+	if (HP.IsKeyWord("overwrite")) {
+		bool b = HP.GetYesNoOrBool();
+		overwrite = b ? 1 : 0;
+	}
+
+	const char *ava = HP.GetStringWithDelims();
+	if (ava == NULL) {
+		silent_cerr("unable to get AVA for \"setenv\" at line "
+				<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	char *avasep = std::strchr(const_cast<char *>(ava), '=');
+	if (avasep == NULL) {
+#ifdef HAVE_UNSETENV
+		unsetenv(ava);
+#elif defined(HAVE_PUTENV)
+		if (putenv(ava)) {
+			silent_cerr("unable to unset the environment variable "
+					"\"" << ava << "\" at line "
+					<< HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+#endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
+
+	} else {
+		if (avasep == ava) {
+			silent_cerr("illegal AVA \"" << ava
+					<< "\" at line "
+					<< HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		avasep[0] = '\0';
+		avasep++;
+		bool bPresent(getenv(ava) != NULL);
+		int rc = setenv(ava, avasep, overwrite);
+		if (rc) {
+			silent_cerr("unable to set the environment variable \""
+					<< ava << "\" to \"" << avasep 
+					<< "\" at line " << HP.GetLineData()
+					<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (bPresent && overwrite == 0) {
+			silent_cout("Environment variable \"" << ava
+				<< "\" _not_ overwritten with \"" << avasep
+				<< "\" (current value is \"" << getenv(ava)
+				<< "\") at line " << HP.GetLineData()
+				<< std::endl);
+
+		} else if (!bPresent) {
+			silent_cout("Environment variable \"" << ava
+				<< "\" set to \"" << avasep
+				<< "\" at line " << HP.GetLineData()
+				<< std::endl);
+
+		} else {
+			silent_cout("Environment variable \"" << ava
+				<< "\" overwritten to \"" << avasep
+				<< "\" at line " << HP.GetLineData()
+				<< std::endl);
+		}
+	}
+#else // ! HAVE_SETENV
+	silent_cerr("SetEnvDR::Read(): warning, setenv() not available; ignored at line "
+		<< HP.GetLineData() << std::endl);
+#endif // !HAVE_SETENV
+	return true;
+}
+
+struct ExitDR : public DescRead {
+public:
+	bool Read(HighParser& HP);
+};
+
+bool
+ExitDR::Read(HighParser& HP)
+{
+	if (!HP.IsDescription()) {
+		silent_cerr("Parser error in ExitDR::Read(),"
+			" semicolon expected at line "
+			<< HP.GetLineData() << std::endl);
+		throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	/* exits with no error */
+	throw NoErr(MBDYN_EXCEPT_ARGS);
+}
+
+static unsigned desc_done;
+
+static void
+InitDescData(void)
+{
+	if (::desc_done++ > 0) {
+		return;
+	}
+
+	SetDescData("remark", new RemarkDR);
+	SetDescData("print" "symbol" "table", new PrintSymbolTableDR);
+	SetDescData("set", new SetDR);
+	SetDescData("setenv", new SetEnvDR);
+	SetDescData("exit", new ExitDR);
+
+	/* NOTE: add here initialization of new built-in descriptions;
+	 * alternative ways to register new custom descriptions are:
+	 * - call SetDescData() from anywhere in the code
+	 * - write a module that calls SetDescData() from inside a function
+	 *   called module_init(), and run-time load it using "module load"
+	 *   in the input file.
+	 */
+}
+
+static void
+DestroyDescData(void)
+{
+	if (::desc_done == 0) {
+		silent_cerr("DestroyDescData() called once too many" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (--::desc_done > 0) {
+		return;
+	}
+
+	/* free stuff */
+	for (DescFuncMapType::iterator i = DescFuncMap.begin(); i != DescFuncMap.end(); ++i) {
+		delete i->second;
+	}
+	DescFuncMap.clear();
+}
+
+/* DescRead - end */
+
+
 /* HighParser - begin */
 
 static std::stack<const HighParser *> pHP;
@@ -313,6 +629,8 @@ KeyT(0)
 	DEBUGCOUTFNAME("HighParser::HighParser");
 	CurrToken = HighParser::DESCRIPTION;
 
+	InitDescData();
+
 	pHP.push(this);
 }
 
@@ -323,6 +641,8 @@ HighParser::~HighParser(void)
 	Close();
 	ASSERT(pHP.top() == this);
 	pHP.pop();
+
+	DestroyDescData();
 }
 
 
@@ -370,12 +690,14 @@ HighParser::GetLineData(void) const
 bool
 HighParser::IsDescription(void) const
 {
-     	if (CurrToken != HighParser::DESCRIPTION) {
-	  	return false;
-     	}
-     	return true;
+     	return (CurrToken == HighParser::DESCRIPTION);
 }
 
+HighParser::Token
+HighParser::GotDescription(void)
+{
+	return FirstToken();
+}
 
 int
 HighParser::iGetDescription_int(const char* const s)
@@ -394,138 +716,6 @@ HighParser::iGetDescription_int(const char* const s)
      	}
 
      	return i;
-}
-
-
-void
-HighParser::Set_int(void)
-{
-     	if (FirstToken() == UNKNOWN) {
-     		silent_cerr("Parser error in HighParser::Set_int(), "
-     			"colon expected at line "
-     			<< GetLineData() << std::endl);
-     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
-
-	TypedValue v;
-	GetValue(v);
-}
-
-void
-HighParser::SetEnv_int(void)
-{
-#ifdef HAVE_SETENV
-     	if (FirstToken() == UNKNOWN) {
-     		silent_cerr("Parser error in HighParser::SetEnv_int(), "
-     			"colon expected at line "
-     			<< GetLineData() << std::endl);
-     		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
-
-	int overwrite = 0;
-	if (IsKeyWord("overwrite")) {
-		bool b = GetYesNoOrBool();
-		overwrite = b ? 1 : 0;
-	}
-
-	const char *ava = GetStringWithDelims();
-	if (ava == NULL) {
-		silent_cerr("unable to get AVA for \"setenv\" at line "
-				<< GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	char *avasep = std::strchr(const_cast<char *>(ava), '=');
-	if (avasep == NULL) {
-#ifdef HAVE_UNSETENV
-		unsetenv(ava);
-#elif defined(HAVE_PUTENV)
-		if (putenv(ava)) {
-			silent_cerr("unable to unset the environment variable "
-					"\"" << ava << "\" at line "
-					<< GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-#endif	/* !HAVE_UNSETENV && !HAVE_PUTENV */
-
-	} else {
-		if (avasep == ava) {
-			silent_cerr("illegal AVA \"" << ava
-					<< "\" at line "
-					<< GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		avasep[0] = '\0';
-		avasep++;
-		bool bPresent(getenv(ava) != NULL);
-		int rc = setenv(ava, avasep, overwrite);
-		if (rc) {
-			silent_cerr("unable to set the environment variable \""
-					<< ava << "\" to \"" << avasep 
-					<< "\" at line " << GetLineData()
-					<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		if (bPresent && overwrite == 0) {
-			silent_cout("Environment variable \"" << ava
-				<< "\" _not_ overwritten with \"" << avasep
-				<< "\" (current value is \"" << getenv(ava)
-				<< "\") at line " << GetLineData()
-				<< std::endl);
-
-		} else if (!bPresent) {
-			silent_cout("Environment variable \"" << ava
-				<< "\" set to \"" << avasep
-				<< "\" at line " << GetLineData()
-				<< std::endl);
-
-		} else {
-			silent_cout("Environment variable \"" << ava
-				<< "\" overwritten to \"" << avasep
-				<< "\" at line " << GetLineData()
-				<< std::endl);
-		}
-	}
-#endif // HAVE_SETENV
-}
-
-void
-HighParser::Remark_int(void)
-{
-	if (FirstToken() == UNKNOWN) {
-		silent_cerr("Parser error in MBDynParser::Remark_int(),"
-			" colon expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
-
-	/* eat it anyway ;) */
-	const char *s = GetStringWithDelims();
-	silent_cout("line " << GetLineData() << ": " << s);
-	bool bFirst(true);
-	while (IsArg()) {
-		if (bFirst) {
-			silent_cout(": ");
-			bFirst = false;
-		} else {
-			silent_cout(", ");
-		}
-
-#if 0
-		bool bIgnore(false);
-		if (IsKeyWord("ignore")) {
-			bIgnore = true;
-		}
-#endif
-
-		TypedValue v;
-		v = GetValue(v);
-		silent_cout(v);
-	}
-
-	silent_cout(std::endl);
 }
 
 
@@ -564,57 +754,11 @@ restart_parsing:;
 	/* Description corrente */
 	char* s = LowP.sGetWord();
 
-	if (GetDescription_int(s)) {
+ 	if (ReadDescription(*this, s)) {
 		goto restart_parsing;
 	}
 
 	return iGetDescription_int(s);
-}
-
-
-/*
- * special descriptions, that are eaten by the parser
- */
-bool
-HighParser::GetDescription_int(const char *s)
-{
-	/* Se trova un remark, scrive il commento ed eventualmente
-	 * quello che segue */
-	if (!strcmp(s, "remark")) {
-		Remark_int();
-		return true;
-		
- 	/* display the symbol table */
-	} else if (strcmp(s, "print" "symbol" "table" ) == 0 ) {
-		/* FIXME: move to a ddicated helper? */
-		if (FirstToken() == UNKNOWN) {
-			silent_cerr("Parser error in MBDynParser::GetDescription_int(),"
-				" semicolon expected at line "
-				<< GetLineData() << std::endl);
-			throw HighParser::ErrSemicolonExpected(MBDYN_EXCEPT_ARGS);
-		}
-
-		silent_cout( "math parser symbol table at line "
-				<< GetLineData() << ":" << std::endl
-				<< MathP.GetSymbolTable() << std::endl );
-		return true;
-		
-	/* calls the MathParser */
-	} else if (strcmp(s, "set") == 0) {
-		Set_int();
-		return true;
-
-	/* sets environment variable */
-	} else if (strcmp(s, "setenv") == 0) {
-		SetEnv_int();
-		return true;
-
-	/* exits with no error */
-	} else if (strcmp(s, "exit") == 0) {
-		throw NoErr(MBDYN_EXCEPT_ARGS);
-	}
-
-	return false;
 }
 
 
@@ -661,10 +805,7 @@ HighParser::ExpectArg(void)
 bool
 HighParser::IsArg(void)
 {
-	if (CurrToken == ARG) {
-		return true;
-	}
-	return false;
+	return (CurrToken == ARG);
 }
 
 void
@@ -1275,4 +1416,5 @@ operator << (std::ostream& out, const HighParser::ErrOut& err)
 	return out;
 }
 
+/* HighParser - end */
 

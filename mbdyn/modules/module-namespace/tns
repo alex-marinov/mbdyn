@@ -34,3 +34,10 @@ remark: "test::i expected: 1, actual", test::i;
 set: const real test2::r = 2*test::i;
 remark: "test2::r expected: 2, actual", test2::r;
 
+namespace: test3;
+set: const bool test3::b = TRUE;
+remark: "test3::b expected: 1, actual", test3::b;
+remark: "test3::b - 1 expected: 0, actual", test3::b - 1;
+
+print symbol table;
+print symbol table: test, test1, test2, test3;

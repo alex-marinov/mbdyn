@@ -25,6 +25,9 @@ gauss.cc \
 gauss.h \
 input.cc \
 input.h \
+legalese.cc \
+legalese.h \
+ltstrcase.h \
 mathp.cc \
 mathp.h \
 mathtyp.h \

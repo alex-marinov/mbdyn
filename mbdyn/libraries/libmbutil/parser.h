@@ -119,6 +119,7 @@
 #include "matvec3n.h"
 #include "matvec6.h"
 #include "mbsleep.h"
+#include "ltstrcase.h"
 
 
 /* Classi dichiarate */
@@ -191,6 +192,26 @@ public:
 };
 
 /* KeyTable - end */
+
+
+/* DescRead - begin */
+
+/* prototype of the functional object: reads a description */
+struct DescRead {
+public:
+	virtual ~DescRead(void);
+	virtual bool Read(HighParser& HP) = 0;
+};
+
+/* description registration function: call to register one */
+extern bool
+SetDescData(const std::string &s, DescRead *rf);
+
+/* function that reads a description */
+extern bool
+ReadDescription(HighParser& HP, const std::string& desc);
+
+/* DescRead - end */
 
 
 /* HighParser - begin */
@@ -313,10 +334,6 @@ protected:
 	virtual void NextToken(const char* sFuncName);
 
 	int iGetDescription_int(const char* const s);
-	void Set_int(void);
-	void SetEnv_int(void);
-	void Remark_int(void);
-	virtual bool GetDescription_int(const char *s);
 	virtual void Eof(void);
 
 	virtual void
@@ -340,6 +357,8 @@ public:
 	virtual void Close(void);
 	/* verifica se il token successivo e' una description (ambiguo ...) */
 	bool IsDescription(void) const;
+	/* ha appena trovato una description */
+	Token GotDescription(void);
 	/* Legge una parola chiave */
 	int GetDescription(void);
 	/* si attende una descrizione */

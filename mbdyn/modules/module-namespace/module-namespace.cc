@@ -32,6 +32,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "mathp.h"
+#include "parser.h"
 #include "dataman.h"
 
 class TableNameSpace: public MathParser::NameSpace {
@@ -85,10 +86,42 @@ TableNameSpace::GetTable(void)
 	return m_pTable;
 }
 
+struct NameSpaceDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+NameSpaceDR::Read(HighParser& HP)
+{
+	if (!HP.IsArg()) {
+		silent_cerr("Parser error in NameSpaceDR::Read(), "
+			" arg expected at line "
+			<< HP.GetLineData() << std::endl);
+		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	const char *sName = HP.GetString();
+	// FIXME: check for spaces?
+	
+	MathParser::NameSpace *pNS = new TableNameSpace(sName);
+	int rc = HP.GetMathParser().RegisterNameSpace(pNS);
+	if (rc != 0) {
+		delete pNS;
+	}
+
+	return (rc == 0);
+}
+
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
 	MBDynParser	*pHP = (MBDynParser *)php;
+
+	NameSpaceDR *pDR = new NameSpaceDR;
+	if (pDR == 0) {
+		return false;
+	}
+	SetDescData("namespace", pDR);
 
 	int rc = 0;
 	while (pHP->IsArg()) {

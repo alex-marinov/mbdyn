@@ -279,7 +279,9 @@ E. Bugs/missing features:
 	- handle .rfm files in mbdyn2easyanim
 	- use "dot" to generate model graph (DONE, in module-dot)
 	- add capability to run-time load a generic (context-dependent?)
-	  "description"
+	  "description" (DONE; context-dependent TODO)
+	- add namespace-specific symbol tables (DONE)
+	- add capability to register namespaces (DONE, in module-namespace)
 
 
 

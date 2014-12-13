@@ -301,7 +301,12 @@ public:
 protected:
 
 	StaticNameSpace* defaultNameSpace;
+
+public:
 	typedef std::map<std::string, NameSpace *> NameSpaceMap;
+	const NameSpaceMap& GetNameSpaceMap(void) const;
+
+protected:
 	NameSpaceMap nameSpaceMap;
 
 	/* buffer statico reallocabile per leggere nomi */
@@ -353,13 +358,29 @@ protected:
 	/*
 	 * funzioni la cui chiamata ricorsiva esprime la precedenza
 	 * degli operatori
+	 *
+	 * NOTE:
+	 * - the *_int(d) version does the actual job
+	 * - the *(void) version first parses the first operand,
+	 *   then calls *_int(d)
+	 * - the *(d) version calls *_int(d) with the argument
 	 */
 	TypedValue logical(void);
+	TypedValue logical(TypedValue d);
+	TypedValue logical_int(TypedValue d);
 	TypedValue relational(void);
+	TypedValue relational(TypedValue d);
+	TypedValue relational_int(TypedValue d);
 	TypedValue binary(void);
+	TypedValue binary(TypedValue d);
+	TypedValue binary_int(TypedValue d);
 	TypedValue mult(void);
-	TypedValue unary(void);
+	TypedValue mult(TypedValue d);
+	TypedValue mult_int(TypedValue d);
 	TypedValue power(void);
+	TypedValue power(TypedValue d);
+	TypedValue power_int(TypedValue d);
+	TypedValue unary(void);
 
 	/* helper per expr, che valuta le funzioni built-in */
 	TypedValue evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f);

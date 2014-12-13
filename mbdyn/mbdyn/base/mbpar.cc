@@ -53,41 +53,160 @@
 #include "dataman.h"
 #include "modules.h"
 
+#include "legalese.h"
+
+struct RefFrameDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+RefFrameDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->Reference_int();
+}
+
+struct HFluidDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+HFluidDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->HydraulicFluid_int();
+}
+
+struct C81DataDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+C81DataDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->C81Data_int();
+}
+
+struct ConstLawDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+ConstLawDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->ConstitutiveLaw_int();
+}
+
+struct DriveCallerDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+DriveCallerDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->DriveCaller_int();
+}
+
+struct TplDriveCallerDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+TplDriveCallerDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->TplDriveCaller_int();
+}
+
+struct SFuncDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+SFuncDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->ScalarFunction_int();
+}
+
+struct ModuleLoadDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+ModuleLoadDR::Read(HighParser& HP)
+{
+	MBDynParser *pMBP = dynamic_cast<MBDynParser *>(&HP);
+	ASSERT(pMBP != 0);
+	return pMBP->ModuleLoad_int();
+}
+
+struct LicenseDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+LicenseDR::Read(HighParser& HP)
+{
+	mbdyn_license();
+	return true;
+}
+
+struct WarrantyDR : public DescRead {
+	bool Read(HighParser& HP);
+};
+
+bool
+WarrantyDR::Read(HighParser& HP)
+{
+	mbdyn_warranty();
+	return true;
+}
+
+static unsigned desc_done;
+
+static void
+InitDescData(void)
+{
+	// NOTE: data will be destroyed when the underlying HighParser is destroyed (is this what we want?)
+	if (::desc_done++ > 0) {
+		return;
+	}
+
+	SetDescData("reference", new RefFrameDR);
+	SetDescData("hydraulic" "fluid", new HFluidDR);
+	SetDescData("c81" "data", new C81DataDR);
+	SetDescData("constitutive" "law", new ConstLawDR);
+	SetDescData("drive" "caller", new DriveCallerDR);
+	SetDescData("template" "drive" "caller", new TplDriveCallerDR);
+	SetDescData("scalar" "function", new SFuncDR);
+	SetDescData("module" "load", new ModuleLoadDR);
+	// TODO: move to HighParser
+	SetDescData("license", new LicenseDR);
+	SetDescData("warranty", new WarrantyDR);
+
+	/* NOTE: add here initialization of new built-in descriptions;
+	 * alternative ways to register new custom descriptions are:
+	 * - call SetDescData() from anywhere in the code
+	 * - write a module that calls SetDescData() from inside a function
+	 *   called module_init(), and run-time load it using "module load"
+	 *   in the input file.
+	 */
+}
+
+
+
 /* MBDynParser - begin */
-
-void
-mbdyn_license(void)
-{
-	silent_cout("license not available yet;"
-		" see GPL at http://www.gnu.org/" << std::endl);
-}
-
-void
-mbdyn_warranty(void)
-{
-	silent_cout("From GPL 2.1:\n"
-"\n"
-"  11. BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY\n"
-"  FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN\n"
-"  OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES\n"
-"  PROVIDE THE PROGRAM \"AS IS\" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED\n"
-"  OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF\n"
-"  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS\n"
-"  TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE\n"
-"  PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING,\n"
-"  REPAIR OR CORRECTION.\n"
-"\n"
-"  12. IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING\n"
-"  WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR\n"
-"  REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES,\n"
-"  INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING\n"
-"  OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED\n"
-"  TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY\n"
-"  YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER\n"
-"  PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE\n"
-"  POSSIBILITY OF SUCH DAMAGES.\n"
-<< std::endl);
-}
 
 MBDynParser::MBDynParser(MathParser& MP, 
 		InputStream& streamIn,
@@ -101,6 +220,9 @@ pDM(0)
 	InitTplDC();
 	InitCL();
 	InitSF();
+
+	// NOTE: data will be destroyed when the underlying HighParser is destroyed (is this what we want?)
+	InitDescData();
 }   
 
 MBDynParser::~MBDynParser(void)
@@ -181,6 +303,12 @@ MBDynParser::SetDataManager(DataManager *pdm)
 	}
 }
 
+DataManager *
+MBDynParser::GetDataManager(void) const
+{
+	return pDM;
+}
+
 const ReferenceFrame AbsRefFrame(0,
 	Vec3(0., 0., 0),
 	Mat3x3(1., 0., 0., 0., 1., 0., 0., 0., 1.),
@@ -188,12 +316,12 @@ const ReferenceFrame AbsRefFrame(0,
 	Vec3(0., 0., 0),
 	EULER_123);
 
-void 
+bool
 MBDynParser::Reference_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::Reference_int(),"
-			" colon expected at line " 
+			" arg expected at line " 
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -305,14 +433,16 @@ MBDynParser::Reference_int(void)
 	if (!sName.empty()) {
 		pRF->PutName(sName);
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::HydraulicFluid_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::HydraulicFluid_int(),"
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -350,14 +480,16 @@ MBDynParser::HydraulicFluid_int(void)
 	if (!sName.empty()) {
 		pHF->PutName(sName);
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::C81Data_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::C81Data_int(),"
-			" colon expected at line " << GetLineData()
+			" arg expected at line " << GetLineData()
 			<< std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -548,14 +680,16 @@ MBDynParser::C81Data_int(void)
 	if (!sName.empty()) {
 		data->PutName(sName.c_str());
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::ConstitutiveLaw_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::ConstitutiveLaw_int(),"
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -688,6 +822,25 @@ MBDynParser::ConstitutiveLaw_int(void)
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	return true;
+}
+
+const MBDynParser::RFType&
+MBDynParser::GetReferenceFrameContainer(void) const
+{
+	return RF;
+}
+
+const MBDynParser::HFType&
+MBDynParser::GetHydraulicFluidContainer(void) const
+{
+	return HF;
+}
+
+const MBDynParser::ADType& MBDynParser::GetC81DataContainer(void) const
+{
+	return AD;
 }
 
 const MBDynParser::DCType&
@@ -696,12 +849,42 @@ MBDynParser::GetDriveCallerContainer(void) const
 	return DC;
 }
 
-void 
+const MBDynParser::DC1DType&
+MBDynParser::GetDriveCaller1DContainer(void) const
+{
+	return DC1D;
+}
+
+const MBDynParser::DC3DType&
+MBDynParser::GetDriveCaller3DContainer(void) const
+{
+	return DC3D;
+}
+
+const MBDynParser::DC6DType&
+MBDynParser::GetDriveCaller6DContainer(void) const
+{
+	return DC6D;
+}
+
+const MBDynParser::DC3x3DType&
+MBDynParser::GetDriveCaller3x3DContainer(void) const
+{
+	return DC3x3D;
+}
+
+const MBDynParser::DC6x6DType&
+MBDynParser::GetDriveCaller6x6DContainer(void) const
+{
+	return DC6x6D;
+}
+
+bool
 MBDynParser::DriveCaller_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::DriveCaller_int(), "
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -752,14 +935,16 @@ MBDynParser::DriveCaller_int(void)
 				<< GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::TplDriveCaller_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::TplDriveCaller_int(), "
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -969,14 +1154,16 @@ MBDynParser::TplDriveCaller_int(void)
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::ScalarFunction_int(void)
 {
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::ScalarFunction_int(), "
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -988,9 +1175,11 @@ MBDynParser::ScalarFunction_int(void)
 			"at line " << GetLineData() << std::endl);
 		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	return true;
 }
 
-void 
+bool
 MBDynParser::ModuleLoad_int(void)
 {
 #ifndef USE_RUNTIME_LOADING
@@ -999,9 +1188,9 @@ MBDynParser::ModuleLoad_int(void)
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 #else // USE_RUNTIME_LOADING
-	if (FirstToken() == UNKNOWN) {
+	if (!IsArg()) {
 		silent_cerr("Parser error in MBDynParser::ModuleLoad_int(), "
-			" colon expected at line "
+			" arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -1074,81 +1263,9 @@ MBDynParser::ModuleLoad_int(void)
 	}
 
 	silent_cout("module \"" << module_name << "\" loaded" << std::endl);
-#endif // USE_RUNTIME_LOADING
-}
 
-bool
-MBDynParser::GetDescription_int(const char *s)
-{
-	/* Se trova un sistema di riferimento, lo gestisce direttamente */
-	if (!strcmp(s, "reference")) {
-		Reference_int();
-		return true;
-
-	/* Se trova un fluido idraulico, lo gestisce direttamente */
-	} else if (!strcmp(s, "hydraulic" "fluid")) {
-		HydraulicFluid_int();
-		return true;
-
-	/* Se trova dati aerodinamici c81, li gestisce direttamente */
-	} else if (!strcmp(s, "c81" "data")) {
-		C81Data_int();
-		return true;
-
-	/* Reads a constitutive law */
-	} else if (!strcmp(s, "constitutive" "law")) {
-		ConstitutiveLaw_int();
-		return true;
-
-	/* Reads a drive caller */
-	} else if (!strcmp(s, "drive" "caller")) {
-		DriveCaller_int();
-		return true;
-
-	/* Reads a template drive caller */
-	} else if (!strcmp(s, "template" "drive" "caller")) {
-		TplDriveCaller_int();
-		return true;
-
-	/* Reads a scalar function */
-	} else if (!strcmp(s, "scalar" "function")) {
-		ScalarFunction_int();
-		return true;
-
-	/* Loads a dynamic module */
-	} else if (!strcmp(s, "module" "load" )) {
-		ModuleLoad_int();
-		return true;
-
-	/* Scrive la licenza */
-	} else if (!strcmp(s, "license")) {
-		mbdyn_license();
-		CurrLowToken = LowP.GetToken(*pIn);
-
-		if (IsArg()) {
-			silent_cerr("semicolon expected after \"license\" "
-				"at line " << GetLineData() << std::endl);
-			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		return true;
-
-	/* Scrive il disclaimer */
-	} else if (!strcmp(s, "warranty")) {
-		mbdyn_warranty();
-		CurrLowToken = LowP.GetToken(*pIn);
-
-		if (IsArg()) {
-			silent_cerr("semicolon expected after \"warranty\" "
-				"at line " << GetLineData() << std::endl);
-			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		return true;
-	}
-
-	/* altrimenti e' una description normale */
-	return IncludeParser::GetDescription_int(s);
+	return true;
+#endif // ! USE_RUNTIME_LOADING
 }
 
 MBDynParser::Frame 

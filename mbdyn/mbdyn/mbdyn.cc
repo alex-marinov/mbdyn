@@ -123,6 +123,7 @@ const char sDefaultOutputFileName[] = "MBDyn";
 #include "solver.h"
 #include "invsolver.h"
 #include "modules.h"
+#include "legalese.h"
 
 #include "cleanup.h"
 

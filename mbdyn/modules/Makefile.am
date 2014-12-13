@@ -115,20 +115,23 @@ distclean:
 	rm -f Makefile libtool
 
 # Add distributed modules below
-EXTRA_DIST = Makefile.module Makefile.template \
- \
+EXTRA_DIST = Makefile.module Makefile.template
+
+EXTRA_DIST += \
 module-aerodyn/NREL_AeroDyn.h \
 module-aerodyn/Makefile.inc \
 module-aerodyn/mbdyn_ad.f90 \
 module-aerodyn/module-aerodyn.cc \
-module-aerodyn/README \
- \
+module-aerodyn/README
+
+EXTRA_DIST += \
 module-asynchronous_machine/asynchronous_machine.mbdyn \
 module-asynchronous_machine/module-asynchronous_machine.cc \
 module-asynchronous_machine/module-asynchronous_machine.h \
 module-asynchronous_machine/doc/Doxyfile \
-module-asynchronous_machine/doc/Makefile \
- \
+module-asynchronous_machine/doc/Makefile
+
+EXTRA_DIST += \
 module-autodiff_test/autodiff_test.f \
 module-autodiff_test/Makefile.inc \
 module-autodiff_test/module-autodiff_test.cc \
@@ -147,39 +150,49 @@ module-autodiff_test/examples/inline_joint_ad_2.mbdyn \
 module-autodiff_test/examples/inline_joint_ad_2_elements.elm \
 module-autodiff_test/examples/inline_joint_ad_2_parameters.set \
 module-autodiff_test/examples/inline_joint_ad_2_tmp.elm \
-module-autodiff_test/examples/inline_joint_ad_2_trad.elm \
- \
+module-autodiff_test/examples/inline_joint_ad_2_trad.elm
+
+EXTRA_DIST += \
 module-constlaw/module-constlaw.cc \
-module-constlaw/README \
- \
+module-constlaw/README
+
+EXTRA_DIST += \
 module-constlaw-f90/Makefile.inc \
 module-constlaw-f90/module-constlaw-f90.cc \
 module-constlaw-f90/README \
 module-constlaw-f90/usrsub.f90 \
-module-constlaw-f90/usrsub.h \
- \
+module-constlaw-f90/usrsub.h
+
+EXTRA_DIST += \
 module-constlaw-f95/Makefile.inc \
 module-constlaw-f95/module-constlaw-f95.cc \
 module-constlaw-f95/README \
 module-constlaw-f95/usrsub.f95 \
-module-constlaw-f95/usrsub.h \
- \
-module-cont-contact/module-cont-contact.cc \
- \
+module-constlaw-f95/usrsub.h
+
+EXTRA_DIST += \
+module-cont-contact/module-cont-contact.cc
+
+EXTRA_DIST += \
 module-cyclocopter/module-cyclocopter.cc \
-module-cyclocopter/module-cyclocopter.h \
- \
+module-cyclocopter/module-cyclocopter.h
+
+EXTRA_DIST += \
 module-damper-graall/damper_graall.f \
 module-damper-graall/Makefile.inc \
-module-damper-graall/module-damper-graall.cc \
- \
-module-damper-hydraulic/module-damper-hydraulic.cc \
- \
+module-damper-graall/module-damper-graall.cc
+
+EXTRA_DIST += \
+module-damper-hydraulic/module-damper-hydraulic.cc
+
+EXTRA_DIST += \
 module-drive/module-drive.cc \
-module-drive/README \
- \
-module-eu2phi/module-eu2phi.cc \
- \
+module-drive/README
+
+EXTRA_DIST += \
+module-eu2phi/module-eu2phi.cc
+
+EXTRA_DIST += \
 module-hydrodynamic_plain_bearing/diffsizes.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
@@ -187,17 +200,20 @@ module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.h \
 module-hydrodynamic_plain_bearing/Makefile.inc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
-module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn \
- \
+module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn
+
+EXTRA_DIST += \
 module-hunt-crossley/module-hunt-crossley.cc \
-module-hunt-crossley/hunt_crossley \
- \
+module-hunt-crossley/hunt_crossley
+
+EXTRA_DIST += \
 module-imu/module-imu.cc \
 module-imu/imu \
 module-imu/imu_constraint \
 module-imu/imu.tex \
-module-imu/README \
- \
+module-imu/README
+
+EXTRA_DIST += \
 module-inline_friction/module-inline_friction.cc \
 module-inline_friction/module-inline_friction.h \
 module-inline_friction/@InLineFriction/AssJac.m \
@@ -232,8 +248,9 @@ module-inline_friction/examples/inline_friction2_bench.elm \
 module-inline_friction/examples/inline_friction2.elm \
 module-inline_friction/examples/inline_friction2.mbdyn \
 module-inline_friction/examples/inline_friction2.nod \
-module-inline_friction/examples/inline_friction.mbdyn \
- \
+module-inline_friction/examples/inline_friction.mbdyn
+
+EXTRA_DIST += \
 module-inplane_friction/@InPlaneFriction/AssJac.m \
 module-inplane_friction/@InPlaneFriction/AssRes.m \
 module-inplane_friction/@InPlaneFriction/ComputeInitialResidual.m \
@@ -260,26 +277,32 @@ module-inplane_friction/@InPlaneFriction/SetInitialValue.m \
 module-inplane_friction/@InPlaneFriction/SetValue.m \
 module-inplane_friction/@InPlaneFriction/Update.m \
 module-inplane_friction/@InPlaneFriction/WorkSpaceDim.m \
-module-inplane_friction/examples/inplane_friction.mbdyn \
- \
+module-inplane_friction/examples/inplane_friction.mbdyn
+
+EXTRA_DIST += \
 module-mds/mds \
-module-mds/module-mds.cc \
- \
+module-mds/module-mds.cc
+
+EXTRA_DIST += \
 module-minmaxdrive/minmax.mbdyn \
 module-minmaxdrive/module-minmaxdrive.cc \
-module-minmaxdrive/module-minmaxdrive.h \
- \
+module-minmaxdrive/module-minmaxdrive.h
+
+EXTRA_DIST += \
 module-muscles/muscle_test \
-module-muscles/module-muscles.cc \
-\
+module-muscles/module-muscles.cc
+
+EXTRA_DIST += \
 module-nodedistdrive/module-nodedistdrive.cc \
-module-nodedistdrive/module-nodedistdrive.h \
-\
+module-nodedistdrive/module-nodedistdrive.h
+
+EXTRA_DIST += \
 module-nonsmooth-node/Makefile.inc \
 module-nonsmooth-node/mbdyn_siconos.cc \
 module-nonsmooth-node/mbdyn_siconos.h \
-module-nonsmooth-node/module-nonsmooth-node.cc \
-\
+module-nonsmooth-node/module-nonsmooth-node.cc
+
+EXTRA_DIST += \
 module-octave/Makefile.inc \
 module-octave/module-octave.cc \
 module-octave/module-octave.h \
@@ -323,25 +346,32 @@ module-octave/demo/@MyElem1/Output.m \
 module-octave/demo/@MyElem1/SetInitialValue.m \
 module-octave/demo/@MyElem1/SetValue.m \
 module-octave/demo/@MyElem1/Update.m \
-module-octave/demo/@MyElem1/WorkSpaceDim.m \
- \
+module-octave/demo/@MyElem1/WorkSpaceDim.m
+
+EXTRA_DIST += \
 module-scalarfunc/module-scalarfunc.cc \
-module-scalarfunc/README \
- \
+module-scalarfunc/README
+
+EXTRA_DIST += \
 module-tclpgin/Makefile.inc \
-module-tclpgin/module-tclpgin.cc \
- \
-module-template/module-template.cc \
- \
-module-template2/module-template2.cc \
- \
+module-tclpgin/module-tclpgin.cc
+
+EXTRA_DIST += \
+module-template/module-template.cc
+
+EXTRA_DIST += \
+module-template2/module-template2.cc
+
+EXTRA_DIST += \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
-module-udunits/README \
- \
+module-udunits/README
+
+EXTRA_DIST += \
 module-wheel2/module-wheel2.cc \
-module-wheel2/module-wheel2.h \
- \
+module-wheel2/module-wheel2.h
+
+EXTRA_DIST += \
 module-wheel4/module-wheel4.cc \
 module-wheel4/module-wheel4.h \
 module-wheel4/axleExampleNoData

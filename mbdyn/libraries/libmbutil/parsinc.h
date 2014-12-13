@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2014
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -31,10 +31,10 @@
 
 /* Parser per l'ingresso dati - parte generale */
 
-/* Si compone di tre diverse strutture di scansione, 
+/* Si compone di tre diverse strutture di scansione,
  * piu' le strutture di memorizzazione di stringhe e variabili.
- * 
- * La prima struttura e' data dal LowParser, che riconosce gli elementi 
+ *
+ * La prima struttura e' data dal LowParser, che riconosce gli elementi
  * della sintassi. E' data da:
  * <statement_list>::=
  *   <statement> ; <statement_list>
@@ -49,55 +49,55 @@
  *   <word>
  *   <number>
  * ecc. ecc.
- * 
- * La seconda struttura e' data dall'HighParser, che riconosce la sintassi 
+ *
+ * La seconda struttura e' data dall'HighParser, che riconosce la sintassi
  * vera e propria. In alternativa al LowParser, qualora sia atteso un valore
- * numerico esprimibile mediante un'espressione regolare 
+ * numerico esprimibile mediante un'espressione regolare
  * (espressione matematica), e' possibile invocare la terza struttura,
  * il MathParser. Questo analizza espressioni anche complesse e multiple,
  * se correttamente racchiuse tra parentesi.
- * 
+ *
  * L'HighParser deve necessariamente riconoscere una parola chiave nel campo
  * <description>, mentre puo' trovare parole qualsiasi nel campo <arg>
  * qualora sia attesa una stringa.
- * 
- * Le parole chiave vengono fornite all'HighParser attraverso la KeyTable, 
+ *
+ * Le parole chiave vengono fornite all'HighParser attraverso la KeyTable,
  * ovvero una lista di parole impaccate (senza spazi). L'uso consigliato e':
- * 
+ *
  *   const char sKeyWords[] = { "keyword0",
  *                              "keyword1",
  *                              "...",
  *                              "keywordN"};
- * 
+ *
  *   enum KeyWords { KEYWORD0 = 0,
  *                   KEYWORD1,
  *                   ...,
  *                   KEYWORDN,
  *                   LASTKEYWORD};
- * 
+ *
  *   KeyTable K((int)LASTKEYWORD, sKeyWords);
- * 
- * Il MathParser usa una tabella di simboli, ovvero nomi (dotati di tipo) 
- * a cui e' associato un valore. La tabella e' esterna e quindi puo' essere 
+ *
+ * Il MathParser usa una tabella di simboli, ovvero nomi (dotati di tipo)
+ * a cui e' associato un valore. La tabella e' esterna e quindi puo' essere
  * conservata ed utilizzata in seguito conservando in memoria i nomi
  * definiti in precedenza.
- * 
+ *
  * A questo punto si puo' generare la tabella dei simboli:
- * 
+ *
  *   int iSymbolTableInitialSize = 10;
  *   Table T(iSymbolTableInitialSize);
- * 
+ *
  * Quindi si crea il MathParser:
- * 
+ *
  *   MathParser Math(T);
- * 
+ *
  * Infine si genera l'HighParser:
- * 
+ *
  *   HighParser HP(Math, K, StreamIn);
- * 
+ *
  * dove StreamIn e' l'istream da cui avviene la lettura.
  */
-            
+
 
 #ifndef PARSINC_H
 #define PARSINC_H
@@ -109,58 +109,56 @@
 
 /* IncludeParser - begin */
 
-class IncludeParser : public HighParser {      
- protected:
-   
-   /* 
-    * Struttura e dati per la stack di flussi in ingresso, usata 
-    * per consentire l'inclusione multipla di files 
-    * ATTENZIONE: non impedisce l'inclusione ricorsiva, e quindi il loop 
-    */
-   struct MyInput {
-      std::ifstream* pfile;
-      InputStream* pis;
-      
-#ifdef USE_INCLUDE_PARSER
-      char* sPath;      
-      char* sFile;
+class IncludeParser : public HighParser {
+	friend struct IncludeDR;
+protected:
 
-      MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL,
-	      char* sp = NULL, char* sfile = NULL)
-	: pfile(pf), pis(pi), sPath(sp), sFile(sfile) { 
-	   NO_OP; 
-	};
+	/*
+	 * Struttura e dati per la stack di flussi in ingresso, usata
+	 * per consentire l'inclusione multipla di files
+	 * ATTENZIONE: non impedisce l'inclusione ricorsiva, e quindi il loop
+	 */
+	struct MyInput {
+		std::ifstream* pfile;
+		InputStream* pis;
+
+#ifdef USE_INCLUDE_PARSER
+		char* sPath;
+		char* sFile;
+
+		MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL,
+			char* sp = NULL, char* sfile = NULL)
+		: pfile(pf), pis(pi), sPath(sp), sFile(sfile) {
+			NO_OP;
+		};
 
 #else /* !USE_INCLUDE_PARSER */
-      MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL)
-	: pfile(pf), pis(pi) { 
-	   NO_OP;
-	};
+		MyInput(std::ifstream* pf = NULL, InputStream* pi = NULL)
+		: pfile(pf), pis(pi) {
+			NO_OP;
+		};
 #endif /* !USE_INCLUDE_PARSER */
-   };
-   
-   std::stack<MyInput *> myinput;
-   char* sCurrPath;
-   char* sInitialPath;
-   char* sCurrFile;
+	};
 
-   flag fCheckStack(void);
-   void Include_int(void);
+	std::stack<MyInput *> myinput;
+	char* sCurrPath;
+	char* sInitialPath;
+	char* sCurrFile;
 
-   /* Legge una parola chiave */
-   virtual bool GetDescription_int(const char *s);
-   virtual void Eof(void);
-   
- public:
-   IncludeParser(MathParser& MP, InputStream& streamIn, 
-		   const char *initial_file = "initial file");
-   virtual ~IncludeParser(void);
+	flag fCheckStack(void);
+	bool Include_int(void);
+	virtual void Eof(void);
 
-   virtual void Close(void);                  /* "Chiude" i flussi */   
-   
-   virtual const char* GetFileName(enum Delims Del = DEFAULTDELIM);
-   
-   virtual HighParser::ErrOut GetLineData(void) const;
+public:
+	IncludeParser(MathParser& MP, InputStream& streamIn,
+		const char *initial_file = "initial file");
+	virtual ~IncludeParser(void);
+
+	virtual void Close(void);                  /* "Chiude" i flussi */
+
+	virtual const char* GetFileName(enum Delims Del = DEFAULTDELIM);
+
+	virtual HighParser::ErrOut GetLineData(void) const;
 };
 
 /* Le funzioni:
@@ -168,31 +166,31 @@ class IncludeParser : public HighParser {
  *   ExpectArg()
  * informano il parser di cio' che e' atteso; di default il costruttore
  * setta ExpectDescription().
- * 
+ *
  * Le funzioni:
  *   GetDescription()
  *   IsKeyWord()
  *   GetWord()
  * restituiscono un intero che corrisponde alla posizione occupata nella
  * KeyTable dalle parole corrispondenti, oppure -1 se la parola non e'
- * trovata. Si noti che IsKeyWord(), in caso di esito negativo, ripristina 
+ * trovata. Si noti che IsKeyWord(), in caso di esito negativo, ripristina
  * l'istream. Tutte preparano poi il parser per la lettura successiva.
- * 
- * La funzione 
- *   IsKeyWord(const char*) 
- * restituisce 0 se non trova la parola e ripristina l'istream, altrimenti 
+ *
+ * La funzione
+ *   IsKeyWord(const char*)
+ * restituisce 0 se non trova la parola e ripristina l'istream, altrimenti
  * restituisce 1 e prepara il parser alla lettura successiva.
- * 
- * Le funzioni 
- *   GetInt(), 
- *   GetReal(), 
- *   GetString(), 
+ *
+ * Le funzioni
+ *   GetInt(),
+ *   GetReal(),
+ *   GetString(),
  *   GetStringWithDelims(enum Delims)
  *   GatFileName(enum Delims)
  * restituiscono i valori attesi e preparano il parser alla lettura successiva.
  */
 
 /* IncludeParser - end */
-   
+
 #endif /* PARSINC_H */
 
