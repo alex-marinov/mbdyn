@@ -193,6 +193,18 @@ EXTRA_DIST += \
 module-eu2phi/module-eu2phi.cc
 
 EXTRA_DIST += \
+module-hid/README \
+module-hid/Makefile.inc \
+module-hid/module-hid.cc \
+module-hid/hid_detect.c \
+module-hid/hid.set \
+module-hid/hid_ms_sidewinder.set \
+module-hid/hid_thrustmaster.set \
+module-hid/hid_xxx.set \
+module-hid/hid_aircraft \
+module-hid/hid_test
+
+EXTRA_DIST += \
 module-hydrodynamic_plain_bearing/diffsizes.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
@@ -291,6 +303,10 @@ module-minmaxdrive/module-minmaxdrive.h
 EXTRA_DIST += \
 module-muscles/muscle_test \
 module-muscles/module-muscles.cc
+
+EXTRA_DIST += \
+module-namespace/module-namespace.cc \
+module-namespace/tns
 
 EXTRA_DIST += \
 module-nodedistdrive/module-nodedistdrive.cc \
