@@ -101,7 +101,12 @@ NameSpaceDR::Read(HighParser& HP)
 	}
 
 	const char *sName = HP.GetString();
-	// FIXME: check for spaces?
+	if (!HP.GetMathParser().bNameValidate(sName)) {
+		silent_cerr("Parser error in NameSpaceDR::Read(), "
+			" invalid namespace \"" << sName << "\" at line "
+			<< HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 	
 	MathParser::NameSpace *pNS = new TableNameSpace(sName);
 	int rc = HP.GetMathParser().RegisterNameSpace(pNS);
@@ -115,7 +120,7 @@ NameSpaceDR::Read(HighParser& HP)
 extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
-	MBDynParser	*pHP = (MBDynParser *)php;
+	MBDynParser& HP = *dynamic_cast<MBDynParser *>(php);
 
 	NameSpaceDR *pDR = new NameSpaceDR;
 	if (pDR == 0) {
@@ -124,12 +129,19 @@ module_init(const char *module_name, void *pdm, void *php)
 	SetDescData("namespace", pDR);
 
 	int rc = 0;
-	while (pHP->IsArg()) {
-		const char *sName = pHP->GetString();
+	while (HP.IsArg()) {
+		const char *sName = HP.GetString();
 
+		if (!HP.GetMathParser().bNameValidate(s)) {
+			silent_cerr("Parser error in module-namespace::module_init(), "
+				" invalid namespace \"" << sName << "\" at line "
+				<< HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	
 		/* registers namespace */
 		MathParser::NameSpace *pNS = new TableNameSpace(sName);
-		rc = pHP->GetMathParser().RegisterNameSpace(pNS);
+		rc = HP.GetMathParser().RegisterNameSpace(pNS);
 		if (rc != 0) {
 			delete pNS;
 		}

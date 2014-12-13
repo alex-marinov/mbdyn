@@ -393,6 +393,21 @@ PrintSymbolTableDR::Read(HighParser& HP)
 		return true;
 	}
 
+	if (HP.IsKeyWord("all")) {
+		const MathParser::NameSpaceMap& ns = HP.GetMathParser().GetNameSpaceMap();
+		for (MathParser::NameSpaceMap::const_iterator i = ns.begin(); i != ns.end(); ++i) {
+			const std::string& sName = i->second->sGetName();
+			const Table *pT = i->second->GetTable();
+			if (pT != 0) {
+				silent_cout( "namespace \"" << sName << "\" symbol table at line "
+					<< HP.GetLineData() << ":" << std::endl
+					<< *pT << std::endl);
+			}
+		}
+
+		return true;
+	}
+
 	while (HP.IsArg()) {
 		const char *sName = HP.GetString();
 		MathParser::NameSpace *pN = HP.GetMathParser().GetNameSpace(sName);

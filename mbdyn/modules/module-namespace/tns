@@ -41,3 +41,5 @@ remark: "test3::b - 1 expected: 0, actual", test3::b - 1;
 
 print symbol table;
 print symbol table: test, test1, test2, test3;
+
+print symbol table: all;

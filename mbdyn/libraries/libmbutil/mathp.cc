@@ -3126,6 +3126,23 @@ end_of_comment:;
 	}
 }
 
+bool
+MathParser::bNameValidate(const std::string& s) const
+{
+	std::string::const_iterator i = s.begin();
+	if (*i != '_' && !isalpha(*i)) {
+		return false;
+	}
+
+	while (++i != s.end()) {
+		if (*i != '_' && !isalnum(*i)) {
+			return false;
+		}
+	}
+
+	return true;
+}
+
 void
 MathParser::IncNameBuf(void)
 {

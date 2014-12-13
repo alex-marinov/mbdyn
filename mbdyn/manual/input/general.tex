@@ -1283,12 +1283,18 @@ as this would help making MBDyn more portable.
 The \kw{print symbol table} directive:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{print symbol table} ;
+    \bnt{card} ::= \kw{print symbol table} [ : { \kw{all} | \bnt{namespace_list} } ] ;
+
+    \bnt{namespace_list} ::= \bnt{namespace} [ , \bnt{namespace_list} ]
 \end{Verbatim}
 %\end{verbatim}
 allows to print to standard output the contents of the parser's symbol
 table at any stage of the input phase.
 This may be useful for model debugging purposes.
+
+When no arguments are provided, it prints the symbol table of the math parser.
+Otherwise, it prints the symbol table associated with a specific namespace,
+according to the list of arguments (all namespaces when the keyword \kw{all} is used).
 
 
 

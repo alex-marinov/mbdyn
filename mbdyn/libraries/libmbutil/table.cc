@@ -157,7 +157,7 @@ Table::Get(const char* const name) const
 }
 
 std::ostream&
-operator << (std::ostream& out, Table& T)
+operator << (std::ostream& out, const Table& T)
 {
 	for (Table::VM::const_iterator i = T.vm.begin(); i != T.vm.end(); ++i) {
 		out << "  ";

@@ -41,7 +41,7 @@
 #include "mathtyp.h"
 
 class Table {
-	friend std::ostream& operator << (std::ostream& out, Table& T);
+	friend std::ostream& operator << (std::ostream& out, const Table& T);
 
 public:
 	class ErrNameAlreadyDefined : public MBDynErrBase {
@@ -65,7 +65,7 @@ public:
 	VM::const_iterator end(void) const { return vm.end(); };
 };
 
-extern std::ostream& operator << (std::ostream& out, Table& T);
+extern std::ostream& operator << (std::ostream& out, const Table& T);
 
 #endif // TABLE_H
 

@@ -430,6 +430,9 @@ public:
 	int RegisterNameSpace(NameSpace *ns);
 
 	NameSpace *GetNameSpace(const std::string& name) const;
+
+	/* validates a name */
+	bool bNameValidate(const std::string& s) const;
 };
 
 extern std::ostream&
