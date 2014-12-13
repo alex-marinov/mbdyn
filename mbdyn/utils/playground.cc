@@ -42,7 +42,7 @@
 int 
 main(int argn, const char* const argv[])
 {
-   	static doublereal d[3];
+   	static doublereal d[9];
    	while (true) {
       		std::cin >> d[0];
       		if (std::cin) {
@@ -55,6 +55,7 @@ main(int argn, const char* const argv[])
 	 		std::cout << "Gamma=" << Gamma << " det(Gamma)=" << dDet << std::endl;
 #endif
 
+#if 0
 			Mat3x3 R(RotManip::Rot(d));
 			Vec3 Theta(RotManip::VecRot(R));
 			Mat3x3 Rcheck(RotManip::Rot(Theta));
@@ -63,6 +64,14 @@ main(int argn, const char* const argv[])
 				<< "  R={" << Rcheck << "}" << std::endl
 				<< "  I={" << R.MulMT(Rcheck) << "}"
 				<< std::endl;
+#endif
+
+	 		std::cin >> d[3] >> d[4] >> d[5] >> d[6] >> d[7] >> d[8];
+			Mat3x3 M(d[0], d[1], d[2], d[3], d[4], d[5], d[6], d[7], d[8]);
+			doublereal b[3];
+			std::cin >> b[0] >> b[1] >> b[2];
+			Vec3 x = M.LDLSolve(Vec3(b[0], b[1], b[2]));
+			std::cout << x << std::endl;
       		} else {
 	 		break;
       		}

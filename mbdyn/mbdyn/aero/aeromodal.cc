@@ -295,7 +295,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 		Mat3x3 RR(Rn*Ra);
 
 		// q
-		pq->Put(1, RR.MulTV(X0) - P0);
+		pq->Put(1, RR.MulTV(X0 - P0));
 		pq->Put(4, RotManip::VecRot(RR.MulMT(R0))); // nota: wrappa; se serve si può eliminare
 
 		// dot{q}
@@ -435,7 +435,7 @@ AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 	const Vec3& X0(pModalNode->GetXCurr());
 	Vec3 V0(pModalNode->GetVCurr());
 	const Mat3x3& Rn(pModalNode->GetRCurr());
-	Mat3x3 RR(Rn*Ra);
+	const Mat3x3& RR(Rn*Ra);
 	Vec3 Vr(V0);
 
 	doublereal rho, vs, p, T;
