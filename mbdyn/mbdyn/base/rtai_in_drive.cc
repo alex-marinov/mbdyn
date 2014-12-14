@@ -118,7 +118,7 @@ RTMBDynInDrive::Restart(std::ostream& out) const
 }
 
 Drive *
-ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
+ReadRTMBDynInDrive(const DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	unsigned long node = (unsigned long)-1;
 	std::string host;

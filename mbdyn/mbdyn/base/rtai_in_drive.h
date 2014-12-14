@@ -77,7 +77,7 @@ class DataManager;
 class MBDynParser;
 
 extern Drive *
-ReadRTMBDynInDrive(DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
+ReadRTMBDynInDrive(const DataManager *pDM, MBDynParser& HP, unsigned int uLabel);
 
 
 #endif /* RTAI_IN_DRIVE_H */
