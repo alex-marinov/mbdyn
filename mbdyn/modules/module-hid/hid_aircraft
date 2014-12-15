@@ -73,7 +73,7 @@ module load: "libmodule-hid";
 include: "hid.set";
 include: "hid_thrustmaster.set";
 #include: "hid_ms_sidewinder.set";
-#include: "hid_xxx.set";
+#include: "hid_saitek_x45.set";
 
 set: const integer JOYSTICK_1 = 999;
 
