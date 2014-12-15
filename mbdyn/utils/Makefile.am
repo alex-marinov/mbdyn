@@ -206,6 +206,7 @@ eu2rot_LDADD = $(MYLIBS)
 eu2phi_LDADD = $(MYLIBS)
 femgen_LDADD = libfemgen.la
 intg_LDADD = $(MYLIBS)
+logproc_LDADD = @RTAI_LDFLAGS@
 playground_LDADD = $(MYLIBS)
 posrel_LDADD = $(MYLIBS)
 rot2eup_LDADD = $(MYLIBS)

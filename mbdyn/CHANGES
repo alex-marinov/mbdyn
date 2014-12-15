@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed build with RTAI configured without inlining
 
 MBDyn 1.6.0
 	Enhancements:

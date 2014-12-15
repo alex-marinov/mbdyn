@@ -374,6 +374,7 @@ JDQZ_LIBS=
 SECURITY_LIBS=
 NETCDF_LIBS=
 UDUNITS_LIBS=
+RTAI_LDFLAGS=
 RT_LIBS=
 ANN_LIBS=
 BULLET_LIBS=
@@ -2663,6 +2664,12 @@ if test $ol_with_rtai != no ; then
 	elif test "$ol_with_rtai" = "yes" ; then
 		AC_MSG_ERROR([RTAI is not available])
 	fi
+
+	RTAI_CONFIG=`which rtai-config`
+	RC=$?
+	if test $RC = 0 ; then
+		RTAI_LDFLAGS=`$RTAI_CONFIG --lxrt-ldflags`
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -2856,6 +2863,7 @@ AC_SUBST(SECURITY_LIBS)
 AC_SUBST(NETCDF_LIBS)
 AC_SUBST(UDUNITS_LIBS)
 AC_SUBST(RT_LIBS)
+AC_SUBST(RTAI_LDFLAGS)
 AC_SUBST(ANN_LIBS)
 AC_SUBST(BULLET_LIBS)
 AC_SUBST(PYTHON_NUMPY_HEADERS)
