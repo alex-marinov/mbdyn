@@ -2921,10 +2921,10 @@ DestroyDriveData(void)
 	}
 
 	/* free stuff */
-	for (DriveCallerFuncMapType::iterator i = DriveCallerFuncMap.begin(); i != DriveCallerFuncMap.end(); ++i) {
+	for (DriveFuncMapType::iterator i = DriveFuncMap.begin(); i != DriveFuncMap.end(); ++i) {
 		delete i->second;
 	}
-	DriveCallerFuncMap.clear();
+	DriveFuncMap.clear();
 }
 
 
