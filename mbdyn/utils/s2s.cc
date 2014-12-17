@@ -411,6 +411,46 @@ s2s_t::prepare(void)
   			}
 
 		} else {
+#if defined(HAVE_GETADDRINFO)
+			char portbuf[sizeof("65535")];
+			struct addrinfo hints = { 0 }, *res = NULL;
+			int rc;
+
+			rc = snprintf(portbuf, sizeof(portbuf), "%d", this->port);
+			if (rc > STRLENOF("65535")) {
+				throw;
+			}
+
+			hints.ai_family = AF_INET;
+			hints.ai_socktype = SOCK_STREAM;
+			rc = getaddrinfo(this->host, portbuf, &hints, &res);
+			if (rc != 0) {
+				int save_errno = h_errno;
+				silent_cerr("getaddrinfo(\"" << this->host << "\"): " << save_errno << " (" << strerror(save_errno) << ")" << std::endl);
+				throw;
+			}
+
+			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
+			addr.ms_addr.ms_addr_inet.sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
+
+			freeaddrinfo(res);
+
+#elif defined(HAVE_GETHOSTBYNAME)
+			struct hostent *hostinfo;
+
+			/* TODO: use getnameinfo() if available */
+			hostinfo = gethostbyname(this->host);
+			if (hostinfo == NULL) {
+				int save_errno = h_errno;
+				silent_cerr("gethostbyname(\"" << this->host << "\"): " << save_errno << " (" << strerror(save_errno) << ")" << std::endl);
+				throw;
+			}
+
+			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
+			addr.ms_addr.ms_addr_inet.sin_addr = *(struct in_addr *)hostinfo->h_addr;
+			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
+#elif defined(HAVE_INET_ATON)
 			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
 			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
 					
@@ -418,6 +458,9 @@ s2s_t::prepare(void)
 				silent_cerr("unknown host \"" << this->host << "\"" << std::endl);
 				throw;	
 			}
+#else
+			throw;
+#endif
 		}
 	}
 
