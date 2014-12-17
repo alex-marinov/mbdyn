@@ -89,6 +89,8 @@ main(int argc, char *argv[])
 			silent_cerr("recv(" << s2s.sock << ",\"" << s2s.buf << "\") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
+
+			// fallthru
 		}
 
 		case 0:
