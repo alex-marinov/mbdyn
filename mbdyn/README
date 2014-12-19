@@ -53,7 +53,7 @@ developers without CVS access:
 distribution:
 
 	- set build/version to the right number
-	- set MBDYN_DEVEL=no in configure.in
+	- set MBDYN_DEVEL=no in configure.ac
 	- follow the above instructions
 	- run "./configure" with the desired options
 	- add version and release date to NEWS
