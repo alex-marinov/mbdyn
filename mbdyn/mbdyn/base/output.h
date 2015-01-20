@@ -276,6 +276,7 @@ public:
 
 	void SetWidth(int iNewWidth);
 	void SetPrecision(int iNewPrecision);
+	void SetExceptions(std::ios::iostate flags);
 
 #ifdef USE_NETCDF
 	inline NcFile* pGetBinFile(void) const;

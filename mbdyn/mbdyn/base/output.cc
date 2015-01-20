@@ -287,6 +287,7 @@ OutputHandler::~OutputHandler(void)
 			} else
 #endif /* USE_NETCDF */
 			{
+				OutData[iCnt].pof->exceptions(std::ios::iostate(0));
 				OutData[iCnt].pof->close();
 			}
 		}
@@ -640,6 +641,15 @@ OutputHandler::SetPrecision(int iNewPrecision)
 				OutData[iCnt].pof->width(iCurrWidth);
 				OutData[iCnt].pof->precision(iCurrPrecision);
 			}
+		}
+	}
+}
+
+void OutputHandler::SetExceptions(std::ios::iostate flags)
+{
+	for (int iCnt = 0; iCnt < LASTFILE; iCnt++) {
+		if(OutData[iCnt].pof) {
+			OutData[iCnt].pof->exceptions(flags);
 		}
 	}
 }

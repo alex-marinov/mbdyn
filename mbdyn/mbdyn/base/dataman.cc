@@ -201,6 +201,8 @@ DofIter()
 	mbdyn_cleanup_register(datamanager_cleanup, &ppCleanupData);
 	*ppCleanupData = (void *)this;
 
+	OutHdl.SetExceptions(std::ios::badbit); // terminate if disk is full
+
 	/* pseudocostruttori */
 	ElemManager();
 	NodeManager();
