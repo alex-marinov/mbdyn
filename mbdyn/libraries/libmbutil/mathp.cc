@@ -3872,7 +3872,7 @@ MathParser::stmt(void)
 							"\"", f->fname.c_str(), "\" in expr()");
 				}
 				GetToken();
-				return d;
+				return logical(d);
 			}
 
 			/* assignment? */

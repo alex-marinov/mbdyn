@@ -14,8 +14,10 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 	Backward compatibility issues:
 	Known issues:
+		- nested calls to string drive callers deadlock
 	Bug fixes:
 		- fixed build with RTAI configured without inlining
+		- fixed math parser bug with function calls in expressions
 
 MBDyn 1.6.0
 	Enhancements:
