@@ -71,7 +71,12 @@ ClosestNext(0),
 SH(0)
 {
 #ifdef USE_MULTITHREAD
-	if (pthread_mutex_init(&parser_mutex, NULL)) {
+	pthread_mutexattr_t ma;
+	pthread_mutexattr_init(&ma);
+	pthread_mutexattr_settype(&ma, PTHREAD_MUTEX_RECURSIVE);
+	int rc = pthread_mutex_init(&parser_mutex, &ma);
+	pthread_mutexattr_destroy(&ma);
+	if (rc) {
 		silent_cerr("DriveHandler::DriveHandler(): mutex init failed"
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

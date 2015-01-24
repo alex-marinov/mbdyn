@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fixed build with RTAI configured without inlining
 		- fixed math parser bug with function calls in expressions
+		- fixed deadlock in recursive string parser calls
 
 MBDyn 1.6.0
 	Enhancements:
