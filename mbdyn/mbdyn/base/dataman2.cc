@@ -1362,7 +1362,7 @@ DataManager::DofOwnerSet(void)
 				DEBUGLCOUT(MYDEBUG_INIT, "    " << psElemNames[pEWD->GetElemType()]
 						<< "(" << pEWD->GetLabel() << ")" << std::endl);
 
-				DofOwner* pDO = (DofOwner*)pEWD->pGetDofOwner();
+				DofOwner* pDO = const_cast<DofOwner *>(pEWD->pGetDofOwner());
 				pDO->iNumDofs = pEWD->iGetNumDof();
 				DEBUGLCOUT(MYDEBUG_INIT, "    num dofs: " << pDO->iNumDofs << std::endl);
 			}
@@ -1649,7 +1649,7 @@ DataManager::AfterConvergence(void) const
 	case ITERATIONS:
 		if (++iCurrRestartIter == iRestartIterations) {
 			iCurrRestartIter = 0;
-			((DataManager*)this)->MakeRestart();
+			const_cast<DataManager *>(this)->MakeRestart();
 		}
 		break;
 
@@ -1657,7 +1657,7 @@ DataManager::AfterConvergence(void) const
 		doublereal dT = DrvHdl.dGetTime();
 		if (dT - dLastRestartTime >= dRestartTime) {
 			dLastRestartTime = dT;
-			((DataManager*)this)->MakeRestart();
+			const_cast<DataManager *>(this)->MakeRestart();
 		}
 		break;
 	}
@@ -1673,7 +1673,7 @@ DataManager::AfterConvergence(void) const
 
 		if (dT >= pdRestartTimes[iCurrRestartTime]) {
 			iCurrRestartTime++;
-			((DataManager*)this)->MakeRestart();
+			const_cast<DataManager *>(this)->MakeRestart();
 		}
 		break;
 	}
