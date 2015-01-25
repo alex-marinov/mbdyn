@@ -4183,7 +4183,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 	/* cerco la variabile */
 	NamedValue* var = table.Get(s);
 
-	if (var == NULL) {
+	if (var == 0) {
 		/* Se non c'e' la inserisco */
 		var = table.Put(s, TypedValue(v));
 	} else {
@@ -4191,7 +4191,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 		 * ad assegnarle il nuovo valore */
 		if (redefine) {
 			if (var->IsVar()) {
-				((Var *)var)->SetVal(TypedValue(v));
+				dynamic_cast<Var *>(var)->SetVal(TypedValue(v));
 			} else {
 				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 						"cannot redefine "
@@ -4228,7 +4228,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 		 * ad assegnarle il nuovo valore */
 		if (redefine) {
 			if (var->IsVar()) {
-				((Var *)var)->SetVal(TypedValue(v));
+				dynamic_cast<Var *>(var)->SetVal(TypedValue(v));
 
 			} else {
 				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
@@ -4354,7 +4354,7 @@ MathParser::Get(const InputStream& strm, const TypedValue& v)
 	} else {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "separator expected");
 	}
-	in = (InputStream*)p;
+	in = const_cast<InputStream *>(p);
 
 	return vv;
 }
@@ -4372,10 +4372,10 @@ void
 MathParser::GetForever(const InputStream& strm, std::ostream& out,
 		const char* const /* sep */ )
 {
- 	const InputStream* p = in;
-	in = (InputStream*)&strm;
+ 	InputStream *p = in;
+	in = const_cast<InputStream *>(&strm);
 	GetForever(out);
-	in = (InputStream*)p;
+	in = p;
 }
 
 int

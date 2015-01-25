@@ -224,7 +224,7 @@ SuperLUSolver::Solve(void) const
 #endif /* DEBUG */
 	
 	if (bHasBeenReset) {
-      		((SuperLUSolver *)this)->Factor();
+      		const_cast<SuperLUSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 

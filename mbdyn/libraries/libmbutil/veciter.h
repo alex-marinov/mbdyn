@@ -64,10 +64,10 @@ protected:
 	unsigned iSize;
 
 public:
-	VecIter(void) : pStart(NULL), pCount(NULL), iSize(0) { NO_OP; };
+	VecIter(void) : pStart(0), pCount(0), iSize(0) { NO_OP; };
 	VecIter(const T* p, unsigned i) : pStart(p), pCount(p), iSize(i)
 	{
-		ASSERT(pStart != NULL);
+		ASSERT(pStart != 0);
 		ASSERT(iSize > 0);
 	};
 
@@ -81,7 +81,7 @@ public:
 		ASSERT(p != NULL);
 		ASSERT(i > 0);
 
-		pStart = pCount = (T*)p;
+		pStart = pCount = const_cast<T *>(p);
 		iSize = i;
 	};
 
@@ -104,7 +104,7 @@ public:
 	{
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
-		ASSERT(pCount >= (T*)pStart);
+		ASSERT(pCount >= pStart);
 
 		if (pCount == pStart + iSize) {
 			return false;
@@ -119,7 +119,7 @@ public:
 	{
 		ASSERT(pStart != NULL);
 		ASSERT(iSize > 0);
-		ASSERT(pCount >= (T*)pStart);
+		ASSERT(pCount >= pStart);
 
 		++pCount;
 		if (pCount == pStart + iSize) {
@@ -212,7 +212,7 @@ public:
 	{
 		ASSERT(VecIter<T>::pStart != NULL);
 		ASSERT(VecIter<T>::iSize > 0);
-		ASSERT(VecIter<T>::pCount >= (T *)VecIter<T>::pStart - 1 && 
+		ASSERT(VecIter<T>::pCount >= VecIter<T>::pStart - 1 && 
 			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize);
 
 		if (VecIter<T>::pCount == VecIter<T>::pStart + VecIter<T>::iSize) {
@@ -229,7 +229,7 @@ public:
 	{
 		ASSERT(VecIter<T>::pStart != NULL);
 		ASSERT(VecIter<T>::iSize > 0);
-		ASSERT(VecIter<T>::pCount >= (T *)VecIter<T>::pStart - 1 && 
+		ASSERT(VecIter<T>::pCount >= VecIter<T>::pStart - 1 && 
 			VecIter<T>::pCount < VecIter<T>::pStart + VecIter<T>::iSize);
 
 		for (VecIter<T>::pCount++; 

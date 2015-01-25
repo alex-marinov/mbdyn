@@ -389,7 +389,7 @@ ParSuperLUSolver::Solve(void) const
 #endif /* DEBUG */
 	
 	if (bHasBeenReset) {
-      		((ParSuperLUSolver *)this)->Factor();
+      		const_cast<ParSuperLUSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 

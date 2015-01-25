@@ -231,7 +231,7 @@ Y12Solver::Solve(void) const
 #endif /* DEBUG */
 	
 	if (bHasBeenReset) {
-      		((Y12Solver *)this)->Factor();
+      		const_cast<Y12Solver *>(this)->Factor();
 	}
 		
 	integer iIFAIL = 0;

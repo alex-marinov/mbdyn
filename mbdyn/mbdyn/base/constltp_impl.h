@@ -58,7 +58,7 @@ public:
 	: m_clv(clv)
 	{
 		unsigned type = 0;
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			type |= (*i)->GetConstLawType();
 		}
 		m_type = ConstLawType::Type(type);
@@ -77,7 +77,7 @@ public:
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0)
 	{
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			(*i)->SetValue(pDM, X, XP, ph);
 		}
 	};
@@ -97,7 +97,7 @@ public:
 
 	virtual std::ostream& Restart(std::ostream& out) const {
 		out << "array, " << m_clv.size();
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			out << ", ", (*i)->Restart(out);
 		}
 		return out;
@@ -115,11 +115,11 @@ public:
 		}
 
 		bool bChangeJac(false);
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			try {
 				(*i)->Update(Eps, EpsPrime);
 			}
-			catch (Elem::ChangedEquationStructure e) {
+			catch (Elem::ChangedEquationStructure& e) {
 				bChangeJac = true;
 			}
 			ConstitutiveLaw<T, Tder>::F += (*i)->GetF();
@@ -141,13 +141,13 @@ public:
 		ConstitutiveLaw<T, Tder>::Epsilon = Eps;
 		ConstitutiveLaw<T, Tder>::EpsilonPrime = EpsPrime;
 
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			(*i)->AfterConvergence(Eps, EpsPrime);
 		}
 	};
 
 	virtual std::ostream& OutputAppend(std::ostream& out) const {
-		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); i++) {
+		for (typename std::vector<ConstitutiveLaw<T, Tder> *>::const_iterator i = m_clv.begin(); i != m_clv.end(); ++i) {
 			(*i)->OutputAppend(out);
 		}
 		return out;
@@ -200,7 +200,7 @@ public:
 		SimulationEntity::Hints *ph = 0)
 	{
 		if (ph) {
-			for (unsigned i = 0; i < ph->size(); i++) {
+			for (unsigned i = 0; i < ph->size(); ++i) {
 				TplVecHint<T> *pStressH = dynamic_cast<TplVecHint<T> *>((*ph)[i]);
 
 				if (pStressH) {
@@ -2244,7 +2244,7 @@ public:
 			try {
 				m_pCL->Update(Eps - m_EpsRef, EpsPrime);
 			}
-			catch (Elem::ChangedEquationStructure e) {
+			catch (Elem::ChangedEquationStructure& e) {
 				bChangeJac = true;
 			}
 			ConstitutiveLaw<T, Tder>::F = m_pCL->GetF();

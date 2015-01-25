@@ -338,7 +338,7 @@ ParNaiveSolver::Solve(void) const
 #endif /* DEBUG */
 	
 	if (bHasBeenReset) {
-      		((ParNaiveSolver *)this)->Factor();
+      		const_cast<ParNaiveSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 

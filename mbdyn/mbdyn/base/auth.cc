@@ -72,7 +72,6 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 	strncpy(User, u, sizeof(User));
 	User[STRLENOF(User)] = '\0';
 
-	char salt[33];
 	char *tmp = 0;
 	if (strncmp(c, "{CRYPT}", STRLENOF("{CRYPT}")) == 0) {
 		tmp = &c[STRLENOF("{CRYPT}")];
@@ -84,6 +83,7 @@ PasswordAuth::PasswordAuth(const char *u, const char *c, const char *salt_format
 		}
 
 	} else {
+		char salt[33];
 		tmp = crypt(c, mbdyn_make_salt(salt, sizeof(salt), salt_format));
 		if (tmp == NULL) {
 			silent_cerr("crypt() failed" << std::endl);

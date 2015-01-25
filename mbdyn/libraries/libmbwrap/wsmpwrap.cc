@@ -148,7 +148,7 @@ void
 WsmpSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
-      		((WsmpSolver *)this)->Factor();
+      		const_cast<WsmpSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 		

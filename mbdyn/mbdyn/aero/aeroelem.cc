@@ -1620,11 +1620,6 @@ AerodynamicBeam::AssJac(VariableSubMatrixHandler& WorkMat,
 	Vec3 f2Tmp(Rn2*f2);
 	Vec3 f3Tmp(Rn3*f3);
 
-	Vec3 fTmp[3];
-	fTmp[NODE1] = f1Tmp;
-	fTmp[NODE2] = f2Tmp;
-	fTmp[NODE3] = f3Tmp;
-
 	Vec3 X1Tmp(Xn[NODE1] + f1Tmp);
 	Vec3 X2Tmp(Xn[NODE2] + f2Tmp);
 	Vec3 X3Tmp(Xn[NODE3] + f3Tmp);
@@ -2580,10 +2575,6 @@ AerodynamicBeam2::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 f1Tmp(Rn1*f1);
 	Vec3 f2Tmp(Rn2*f2);
-
-	Vec3 fTmp[2];
-	fTmp[NODE1] = f1Tmp;
-	fTmp[NODE2] = f2Tmp;
 
 	Vec3 X1Tmp(Xn[NODE1] + f1Tmp);
 	Vec3 X2Tmp(Xn[NODE2] + f2Tmp);

@@ -687,7 +687,7 @@ HighParser::GetMathParser(void)
 int
 HighParser::GetLineNumber(void) const
 {
-	return ((InputStream*)pIn)->GetLineNumber();
+	return const_cast<InputStream *>(pIn)->GetLineNumber();
 }
 
 
@@ -1031,12 +1031,12 @@ HighParser::GetValue(const TypedValue& vDefVal)
 	try {
 		v = MathP.Get(*pIn, v);
 	}
-	catch (TypedValue::ErrWrongType e) {
+	catch (TypedValue::ErrWrongType& e) {
 		silent_cerr(sFuncName << ": " << e.what() << " at line "
 			<< GetLineData() << std::endl);
 		throw e;
 	}
-	catch (MathParser::ErrGeneric e) {
+	catch (MathParser::ErrGeneric& e) {
 		silent_cerr(sFuncName << ": error return from MathParser at line "
 			<< GetLineData() << std::endl);
 		throw e;

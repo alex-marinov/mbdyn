@@ -104,7 +104,7 @@ void
 LapackSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
-      		((LapackSolver *)this)->Factor();
+      		const_cast<LapackSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 

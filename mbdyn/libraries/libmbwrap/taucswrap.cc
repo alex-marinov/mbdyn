@@ -113,7 +113,7 @@ void
 TaucsSolver::Solve(void) const
 {
 	if (bHasBeenReset) {
-      		((TaucsSolver *)this)->Factor();
+      		const_cast<TaucsSolver *>(this)->Factor();
       		bHasBeenReset = false;
 	}
 		
@@ -179,7 +179,7 @@ TaucsSolver::Factor(void)
 		if (Symbolic == true) {
 			/* try to re-do symbolic analisys */
 			Symbolic = false;
-			((TaucsSolver *)this)->Factor();
+			const_cast<TaucsSolver *>(this)->Factor();
 		} else {
 			/* bail out */
 			silent_cerr("Taucs factorization failed" << std::endl);

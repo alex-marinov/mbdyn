@@ -199,7 +199,7 @@ FileName::_sPutExt(const char *sEName)
 const char *const
 FileName::sGet(void) const
 { 
-   	return ((FileName*)this)->_sPutExt(NULL); 
+   	return const_cast<FileName *>(this)->_sPutExt(0); 
 }
 
 int
