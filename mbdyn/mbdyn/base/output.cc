@@ -702,7 +702,7 @@ OutputHandler::CreateVar(const std::string& name, NcType type,
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); i++) {
+	for (AttrValVec::const_iterator i = attrs.begin(); i != attrs.end(); ++i) {
 		if (!var->add_att(i->attr.c_str(), i->val.c_str())) {
 			silent_cerr("OutputHandler::CreateVar(\"" << name << "\"): "
 				"add_att(\"" << i->attr << "\", \"" << i->val << "\") failed" << std::endl);
