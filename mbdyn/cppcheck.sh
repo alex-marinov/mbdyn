@@ -2,8 +2,8 @@
 
 #CPPCHECK=/home/masarati/tmp/cppcheck-1.46.1/cppcheck
 CPPCHECK=cppcheck
-SRCDIR=/home/masarati/Lavoro/mbdyn/mbdyn-src
-BLDDIR=/home/masarati/Lavoro/mbdyn/mbdyn-devel
+SRCDIR=~/Lavoro/mbdyn/mbdyn-src
+BLDDIR=~/Lavoro/mbdyn/mbdyn-devel
 
 $CPPCHECK --enable=all --force \
 	-I $BLDDIR/include/ \

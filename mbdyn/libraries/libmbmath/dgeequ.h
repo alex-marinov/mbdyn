@@ -774,8 +774,8 @@ bool IterativeMatrixScale<T>::ComputeScaleFactors(const T& mh, std::vector<doubl
 				}
 			}
 
-			ASSERT(normR.size() > 0);
-			ASSERT(normC.size() > 0);
+			ASSERT(!normR.empty());
+			ASSERT(!normC.empty());
 
 			maxNormR = 0.;
 
