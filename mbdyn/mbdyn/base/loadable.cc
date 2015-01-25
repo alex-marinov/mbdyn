@@ -541,7 +541,6 @@ LoadableElem::~LoadableElem(void)
    		if (lt_dlclose(handle) != 0) {
 			silent_cerr("unable to close module "
 				"\"" << module_name << "\"" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 #endif // USE_RUNTIME_LOADING
