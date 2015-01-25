@@ -75,7 +75,7 @@ FileDrive::iGetNumDrives(void) const
 
 class FileDriveCaller : public DriveCaller {
 protected:
-	FileDrive* pFileDrive;
+	const FileDrive* pFileDrive;
 	integer iNumDrive;
 	doublereal dAmplitude;
 

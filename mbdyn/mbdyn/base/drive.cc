@@ -471,7 +471,7 @@ DriveHandler::MySH::dGetVal0(void) const
 /* DriveCaller - begin */
 
 DriveCaller::DriveCaller(const DriveHandler* pDH)
-: pDrvHdl((DriveHandler *)pDH)
+: pDrvHdl(const_cast<DriveHandler *>(pDH))
 {
 	NO_OP;
 }

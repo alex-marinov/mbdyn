@@ -199,7 +199,7 @@ SetElem(const char *name, ElemRead *rf)
 
 ElemWithDofs::ElemWithDofs(unsigned int uL,
 	const DofOwner* pDO, flag fOut)
-: Elem(uL, fOut), DofOwnerOwner((DofOwner*)pDO)
+: Elem(uL, fOut), DofOwnerOwner(const_cast<DofOwner *>(pDO))
 {
 	NO_OP;
 }

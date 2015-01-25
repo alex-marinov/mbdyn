@@ -1041,8 +1041,8 @@ FourierSeriesDriveCaller::dGetP(const doublereal& dVar) const
 class FreqSweepDriveCaller : public DriveCaller {
 private:
 	doublereal dStartTime;
-	DriveCaller *pOmega;
-	DriveCaller *pAmplitude;
+	const DriveCaller *pOmega;
+	const DriveCaller *pAmplitude;
 	doublereal dInitialValue;
 	doublereal dEndTime;
 	doublereal dFinalValue;

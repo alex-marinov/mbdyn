@@ -48,7 +48,7 @@ GiNaCDriveCaller::GiNaCDriveCaller(const DriveHandler* pDH,
 	try {
 		gExpr = GiNaC::ex(expression, l);
 
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		silent_cerr("GiNaCDriveCaller: "
 			"expression \"" << expression << "\" parsing failed: " << e.what()
 			<< std::endl);
@@ -58,9 +58,9 @@ GiNaCDriveCaller::GiNaCDriveCaller(const DriveHandler* pDH,
 	try {
 		gExprDVar = gExpr.diff(*gVar);
 
-	} catch (std::exception e) {
+	} catch (std::exception& e) {
 		silent_cerr("GiNaCDriveCaller: "
-			"expression \"" << expression << "\" differetiation wrt/ \"Var\" failed: " << e.what()
+			"expression \"" << expression << "\" differentiation wrt/ \"Var\" failed: " << e.what()
 			<< std::endl);
 		throw e;
 	}
@@ -77,7 +77,7 @@ GiNaCDriveCaller::~GiNaCDriveCaller(void)
 DriveCaller*
 GiNaCDriveCaller::pCopy(void) const
 {
-	DriveCaller* pDC = NULL;
+	DriveCaller* pDC = 0;
 
 	std::ostringstream var, expr;
 	var << gVar;

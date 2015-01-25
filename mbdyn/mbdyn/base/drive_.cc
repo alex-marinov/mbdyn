@@ -756,8 +756,8 @@ FreqSweepDriveCaller::FreqSweepDriveCaller(const DriveHandler* pDH,
 	doublereal d3,
 	doublereal d4)
 : DriveCaller(pDH),
-dStartTime(d1), pOmega((DriveCaller *)pOmega),
-pAmplitude((DriveCaller *)pAmplitude),
+dStartTime(d1), pOmega(pOmega),
+pAmplitude(pAmplitude),
 dInitialValue(d2), dEndTime(d3), dFinalValue(d4),
 bNeverEnd(false)
 {
@@ -2785,7 +2785,7 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	/* drive file */
 	/* lettura dei dati specifici */
 	unsigned int uL = HP.GetInt();
-	FileDrive* pDrv = (FileDrive*)pDM->pFindDrive(Drive::FILEDRIVE, uL);
+	FileDrive* pDrv = dynamic_cast<FileDrive*>(pDM->pFindDrive(Drive::FILEDRIVE, uL));
 	if (pDrv == 0) {
 		silent_cerr("line " << HP.GetLineData()
 			<< ": can't find FileDrive(" << uL << ")" << std::endl);

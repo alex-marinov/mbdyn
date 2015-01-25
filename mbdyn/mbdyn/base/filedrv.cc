@@ -101,7 +101,7 @@ FileDrive::dGet(const doublereal& /* t */ , int i) const
 FileDriveCaller::FileDriveCaller(const DriveHandler* pDH,
 		const FileDrive* p, integer i,
 		const doublereal& da)
-: DriveCaller(pDH), pFileDrive((FileDrive*)p), iNumDrive(i), dAmplitude(da)
+: DriveCaller(pDH), pFileDrive(p), iNumDrive(i), dAmplitude(da)
 {
 	ASSERT(pFileDrive != NULL);
 	ASSERT(iNumDrive > 0 && iNumDrive <= pFileDrive->iGetNumDrives());

@@ -270,14 +270,14 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
-priv_data(NULL),
-module_name(NULL),
+priv_data(0),
+module_name(0),
 #ifdef USE_RUNTIME_LOADING
-handle(NULL),
+handle(0),
 #endif // USE_RUNTIME_LOADING
-calls(NULL)
+calls(0)
 {
-   	ASSERT(pDM != NULL);
+   	ASSERT(pDM != 0);
 
 	GetCalls(HP);
 	BindCalls(pDM, HP);
@@ -290,12 +290,12 @@ LoadableElem::LoadableElem(unsigned int uLabel,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
-priv_data(NULL),
-module_name(NULL),
+priv_data(0),
+module_name(0),
 #ifdef USE_RUNTIME_LOADING
-handle(NULL),
+handle(0),
 #endif // USE_RUNTIME_LOADING
-calls((LoadableCalls *)c)
+calls(const_cast<LoadableCalls *>(c))
 {
    	ASSERT(pDM != NULL);
 
