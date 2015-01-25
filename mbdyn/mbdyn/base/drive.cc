@@ -368,6 +368,11 @@ DriveHandler::dGet(InputStream& InStr) const
 
 	} catch (MBDynErrBase e) {
 		silent_cerr("StringDrive: " << e.what() << std::endl);
+
+#ifdef USE_MULTITHREAD
+		pthread_mutex_unlock(&parser_mutex);
+#endif /* USE_MULTITHREAD */
+
 		throw e;
 
 #if 0
@@ -377,7 +382,12 @@ DriveHandler::dGet(InputStream& InStr) const
 #endif
 
 	} catch (...) {
-		silent_cerr("StringDrive error" << std::endl);
+		silent_cerr("StringDrive generic error" << std::endl);
+
+#ifdef USE_MULTITHREAD
+		pthread_mutex_unlock(&parser_mutex);
+#endif /* USE_MULTITHREAD */
+
 		throw;
 	}
 
