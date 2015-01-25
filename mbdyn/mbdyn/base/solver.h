@@ -265,7 +265,7 @@ protected:
    	integer iStepsAfterReduction;
    	integer iStepsAfterRaise;
 	integer iWeightedPerformedIters;
-   	flag bLastChance;
+   	bool bLastChance;
 
    	/* Parametri per il metodo */
 	enum StepIntegratorType {

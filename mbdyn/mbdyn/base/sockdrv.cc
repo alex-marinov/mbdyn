@@ -296,10 +296,8 @@ get_auth_token(FILE *fd, char *user, char *cred, char **nextline)
 void
 SocketDrive::ServePending(const doublereal& /* t */ )
 {
-   	int cur_sock;
    	struct sockaddr_in client_name;
    	socklen_t socklen;
-   	FILE* fd;
 
    	/* prova */
    	for (integer iCnt = 1; iCnt <= iNumDrives; iCnt++) {
@@ -309,9 +307,6 @@ SocketDrive::ServePending(const doublereal& /* t */ )
    	}
 
    	while (true) {
-      		char user[USERLEN + 1];
-      		char cred[CREDLEN + 1];
-
       		int got_value = 0;
       		char *nextline = NULL;
       		const size_t bufsize = BUFSIZE;
@@ -320,7 +315,7 @@ SocketDrive::ServePending(const doublereal& /* t */ )
       		int label;
       		doublereal value;
 
-      		cur_sock = accept(sock,
+   		int cur_sock = accept(sock,
 				  (struct sockaddr *)&client_name,
 				  &socklen);
 
@@ -354,9 +349,12 @@ SocketDrive::ServePending(const doublereal& /* t */ )
 		}
 #endif /* HAVE_SASL2 */
 		
-      		fd = fdopen(cur_sock, "r");
+   		FILE* fd = fdopen(cur_sock, "r");
 
 		if (!bAuthc) {
+      			char user[USERLEN + 1];
+      			char cred[CREDLEN + 1];
+
       			if (get_auth_token(fd, user, cred, &nextline) == -1) {
 	 			silent_cerr(
 					"SocketDrive(" << GetLabel() << "): "

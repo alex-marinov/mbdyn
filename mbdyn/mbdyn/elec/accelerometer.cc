@@ -317,7 +317,7 @@ TranslAccel::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 tmpf = pStrNode->GetRCurr()*f;
 	Vec3 tmpd = pStrNode->GetRCurr()*Dir;
-	Vec3 tmp = tmpf.Cross(tmpd);
+	Vec3 tmp = tmpf.Cross(tmpd); // FIXME?
 	WM.PutItem(4, iFirstIndex, iFirstColIndex + 1, -tmpd.dGet(1));
 	WM.PutItem(5, iFirstIndex, iFirstColIndex + 2, -tmpd.dGet(2));
 	WM.PutItem(6, iFirstIndex, iFirstColIndex + 3, -tmpd.dGet(3));

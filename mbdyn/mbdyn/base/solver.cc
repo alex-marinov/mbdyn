@@ -805,7 +805,7 @@ Solver::Run(void)
 		 */
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (LinearSolver::ErrFactor err) {
+	catch (LinearSolver::ErrFactor& err) {
 		/*
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
@@ -883,7 +883,7 @@ Solver::Run(void)
 		{
 			Eig();
 			if (EigAn.currAnalysis != EigAn.Analyses.end()) {
-				EigAn.currAnalysis++;
+				++EigAn.currAnalysis;
 			}
 		}
 	}
@@ -938,7 +938,7 @@ Solver::Run(void)
 			 */
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
-		catch (LinearSolver::ErrFactor err) {
+		catch (LinearSolver::ErrFactor& err) {
 			/*
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
@@ -1033,7 +1033,7 @@ Solver::Run(void)
 		 		 */
 				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
-			catch (LinearSolver::ErrFactor err) {
+			catch (LinearSolver::ErrFactor& err) {
 				/*
 				 * Mettere qui eventuali azioni speciali
 				 * da intraprendere in caso di errore ...
@@ -1217,7 +1217,7 @@ IfFirstStepIsToBeRepeated:
 
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (LinearSolver::ErrFactor err) {
+	catch (LinearSolver::ErrFactor& err) {
 		/*
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
@@ -1279,7 +1279,7 @@ IfFirstStepIsToBeRepeated:
 			EigAn.currAnalysis = --i;
 		}
 		Eig();
-		EigAn.currAnalysis++;
+		++EigAn.currAnalysis;
 	}
 
 	if (pRTSolver) {
@@ -1445,7 +1445,7 @@ IfStepIsToBeRepeated:
 				"aborting..." << std::endl);
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
-		catch (LinearSolver::ErrFactor err) {
+		catch (LinearSolver::ErrFactor& err) {
 			/*
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
