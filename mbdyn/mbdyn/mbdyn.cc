@@ -1130,8 +1130,8 @@ main(int argc, char* argv[])
 		} catch (ErrInterrupted) {
 			silent_cout("MBDyn was interrupted" << std::endl);
 			rc = 2;
-		} catch (std::ios::failure) {
-			silent_cerr("An IO error occurred during the execution of MBDyn;"
+		} catch (std::ios::failure err) {
+			silent_cerr("An IO error occurred during the execution of MBDyn (" << err.what() << ");"
 				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
 		} catch (...) {
