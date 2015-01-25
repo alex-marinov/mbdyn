@@ -677,7 +677,7 @@ Node2Scalar::SetDofValue(const doublereal& dValue,
 {
 	ASSERT(iDof == 1);
 	if (iDof == 1) {
-		((Node*)ND.pNode)->SetDofValue(dValue, ND.iDofNumber + 1, iOrder);
+		dynamic_cast<Node*>(ND.pNode)->SetDofValue(dValue, ND.iDofNumber + 1, iOrder);
 	}
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }

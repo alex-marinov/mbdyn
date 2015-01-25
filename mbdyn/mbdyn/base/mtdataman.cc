@@ -782,7 +782,7 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 clock_t
 MultiThreadDataManager::GetCPUTime(void) const
 {
-	return ((MultiThreadDataManager *)this)->ThreadDestroy();
+	return const_cast<MultiThreadDataManager *>(this)->ThreadDestroy();
 }
 
 #endif /* USE_MULTITHREAD */
