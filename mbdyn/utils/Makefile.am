@@ -80,6 +80,7 @@ noinst_LTLIBRARIES += libstrext_socket_f.la
 endif
 
 MYLIBS = \
+../libraries/libmbutil/libmbutil.la \
 ../libraries/libmbwrap/libmbwrap.la \
 @Y12_LIBS@ \
 ../libraries/libmbc/libmbc.la \
@@ -218,7 +219,10 @@ s2s_gpc_LDADD = $(MYLIBS)
 sockdrive_LDADD = $(MYLIBS) @SECURITY_LIBS@
 socket2stream_LDADD = $(MYLIBS)
 stream2socket_LDADD = $(MYLIBS)
+test_modalext_LDADD = $(MYLIBS)
+test_modalext_edge_LDADD = $(MYLIBS)
 test_modalext_socket_LDADD = $(MYLIBS)
+test_strext_edge_LDADD = $(MYLIBS)
 test_strext_socket_LDADD = $(MYLIBS)
 test_strext_socket_f_LDADD = $(MYLIBS) libstrext_socket_f.la
 test_strext_socket_cxx_LDADD = $(MYLIBS)

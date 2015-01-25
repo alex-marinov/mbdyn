@@ -42,11 +42,14 @@ extern "C" {
 #if defined(HAVE_NANOSLEEP)
 #include <time.h>
 typedef struct timespec mbsleep_t;
+#define MBSLEEP_ISZERO(mbs) (((mbs).tv_sec == 0) && ((mbs).tv_nsec == 0))
 #elif defined(HAVE_USLEEP)
 #include <unistd.h>
 typedef useconds_t mbsleep_t;
+#define MBSLEEP_ISZERO(mbs) ((mbs) == 0)
 #else /* ! USLEEP */
 typedef unsigned long mbsleep_t;
+#define MBSLEEP_ISZERO(mbs) ((mbs) == 0)
 #endif /* ! SLEEP */
 
 extern mbsleep_t mbsleep_init(long t);

@@ -37,10 +37,13 @@
 #include <signal.h>
 #include <errno.h>
 
+#include "mbsleep.h"
+
 volatile sig_atomic_t keep_going = 1;
 
 int do_rename;
 int sleeptime = 1;
+mbsleep_t mbt;
 int verbose;
 enum {
 	RM,
@@ -144,7 +147,7 @@ check_flag(const char *flag, int sleeptime)
 
 		if (sleeptime) {
 			fprintf(stderr, "test_strext_edge: sleeping %d s\n", sleeptime);
-			usleep(1000000*sleeptime);
+			mbsleep(&mbt);
 		}
 	}
 
@@ -185,7 +188,7 @@ retry:;
 		if (rename(ftmpname, flag) == -1) {
 			switch (errno) {
 			case EBUSY:
-				usleep(1000000*sleeptime);
+				mbsleep(&mbt);
 				goto retry;
 
 			default: {
@@ -667,6 +670,7 @@ main(int argc, char *argv[])
 					optarg);
 				usage();
 			}
+ 			mbt = mbsleep_init(sleeptime);
 			break;
 
 		case 'v':

@@ -163,6 +163,7 @@ mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 				case ECONNREFUSED:	/* inet */
 				case ENOENT:		/* unix */
 					/* Socket does not exist yet; retry */
+					/* TODO: replace usleep with nanosleep */
 					usleep(useconds);
 					if (mbc->timeout > 0) {
 						timeout -= useconds;

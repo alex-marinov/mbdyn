@@ -39,6 +39,7 @@
 #include <unistd.h>
 #include <signal.h>
 
+#include "mbsleep.h"
 
 /* test tool specific stuff */
 static volatile sig_atomic_t keep_going = 1;
@@ -190,7 +191,8 @@ retry_1:;
 					goto done;
 				}
 
-				usleep(1000000);
+				mbsleep_t t = mbsleep_init(1);
+				mbsleep(&t);
 				goto retry_1;
 			}
 
@@ -229,7 +231,8 @@ retry_1:;
 			unlink(fname_in.c_str());
 
 			if (sleeptime) {
-				usleep(1000000*sleeptime);
+				mbsleep_t t = mbsleep_init(sleeptime);
+				mbsleep(&t);
 			}
 
 			/* set forces */

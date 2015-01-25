@@ -303,9 +303,10 @@ IO::Setup(int argc, char *argv[])
 		measures = stream_basic_IO;
 
 		if (s2s_measures.nChannels == 0) {
-			std::cin.getline(s2s_measures.buf, sizeof(s2s_measures.buf));
+			std::string buf;
+			std::getline(std::cin, buf);
 
-			std::istringstream	str(s2s_measures.buf);
+			std::istringstream str(buf);
 
 			for (;; s2s_measures.nChannels++) {
 				double	d;

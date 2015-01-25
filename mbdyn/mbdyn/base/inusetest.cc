@@ -44,6 +44,7 @@
 #include "mbconfig.h"
 #include "veciter.h"
 #include "filename.h"
+#include "mbsleep.h"
 
 unsigned dst = 100;
 unsigned rst = 10;
@@ -60,12 +61,14 @@ public:
 	void Set(unsigned w) {
 		who = w;
 
-		unsigned s = dst;
+		double d = 1.e-6*dst;
 		if (rst) {
-			s += rand()%rst;
+			d += 1.e-6 * (rand() % rst);
 		}
-		if (s) {
-			usleep(s);
+		mbsleep_t s;
+		mbsleep_real2sleep(d, &s);
+		if (!MBSLEEP_ISZERO(s)) {
+			mbsleep(&s);
 		}
 	};
 	unsigned Get(void) const { return who; };
