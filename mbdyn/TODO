@@ -229,10 +229,10 @@ D. Code:
 
 E. Bugs/missing features:
 
+	- fix deadlock when string drive callers are nested (DONE)
 	- check for nested /* */ comments in parsers (DONE)
 	- eliminate nasty dependence from f2c typedef's (doublereal and so)
-	- review deformable viscous/viscoelastic hinge according
-	  to the elastic one (DONE)
+	- review deformable viscous/viscoelastic hinge according to the elastic one (DONE)
 	- check "universal pin"
 	- fix etc/modal.d/MBDyn_NASTRAN_alter_[1-2].nas;
           allow the use of node sets to reduce the amount of FEM nodes 
@@ -282,6 +282,8 @@ E. Bugs/missing features:
 	  "description" (DONE; context-dependent TODO)
 	- add namespace-specific symbol tables (DONE)
 	- add capability to register namespaces (DONE, in module-namespace)
+	- add stream drives capable to read from configurable type channels (DONE; test)
+	- add stream output elements capable to write to configurable type channels (DONE; test)
 
 
 
