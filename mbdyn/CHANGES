@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added hostname support to utils
 	Backward compatibility issues:
 	Known issues:
 		- nested calls to string drive callers deadlock
