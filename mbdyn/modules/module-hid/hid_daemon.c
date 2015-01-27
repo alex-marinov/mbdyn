@@ -285,7 +285,7 @@ main(int argc, char *argv[])
 					ptarg.data[c].idx,
 					set ? "set" : "not set", clear ? ",to be cleared" : "");
 				if (clear) {
-					ptarg.data[c].type = BUTTON_CLEARED;
+					ptarg.data[c].value = BUTTON_CLEARED;
 				}
 
 			} else {
