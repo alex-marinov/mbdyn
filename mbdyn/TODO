@@ -99,7 +99,7 @@ D. Code:
 	Small Projects:
 	- add MATLAB/Octave and Simulink hooks.
 		``shell'' element, drive and so that executes unix commands 
-		including scripts, significantly matlab scripts.
+		including scripts, significantly matlab scripts. (see module-octave)
 	- move critical Reynolds numbers from constants to fluid properties
 		with pressure/temperature dependencies.
 	- add Reynolds dependence to AeroData
@@ -244,7 +244,7 @@ E. Bugs/missing features:
 	- allow strings as mode names in modal elements (joint, force, ...)
 	- add SetInitialValue to modal element
 	- allow to override initial modal value and derivative in .fem (DONE)
-	- check initial assembly of joints in slidercrank_r
+	- check initial assembly of joints in slidercrank_r example
 	- export private data from dummy structural nodes (DONE)
 	- allow 0 modes in modal element (nearly useless except for testing)
 	- UseSocket without host listens only on localhost (BY DESIGN)
@@ -254,8 +254,7 @@ E. Bugs/missing features:
 	- check initial assembly of "distance" when nodes velocity is not null
 	- check & fix NetCDF library detection
 	- allow re-orientation of FEM reference system in modal node
-	- allow offset & re-orientation of exported motion
-	  in external structural [mapping]
+	- allow offset & re-orientation of exported motion in external structural [mapping]
 	- send "delta" instead of position in external structural [mapping]
 	- add "output" flag to .out (DONE)
 	- support float instead of double in NetCDF output
@@ -264,7 +263,7 @@ E. Bugs/missing features:
 	- allow "mt" from command-line (DONE; "-N" switch)
 	- allow make of mod-* and moddae-* modules
 	- implement referenceable template drive callers (much like regular drive callers) (DONE)
-	- implement support for pardiso linear solver when compiled with icc
+	- implement support for pardiso linear solver when compiled with icc (need icc...)
 	- check "new" distance joint
 	- take care of nodes with output "off" in mbdyn2easyanim.sh
 	- allow "relative" node view in EasyAnim
@@ -278,8 +277,7 @@ E. Bugs/missing features:
 	- math parser: handle uninitialized values (DONE?)
 	- handle .rfm files in mbdyn2easyanim
 	- use "dot" to generate model graph (DONE, in module-dot)
-	- add capability to run-time load a generic (context-dependent?)
-	  "description" (DONE; context-dependent TODO)
+	- add capability to run-time load a generic (context-dependent?) "description" (DONE; context-dependent TODO)
 	- add namespace-specific symbol tables (DONE)
 	- add capability to register namespaces (DONE, in module-namespace)
 	- add stream drives capable to read from configurable type channels (DONE; test)
