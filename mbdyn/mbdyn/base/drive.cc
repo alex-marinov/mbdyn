@@ -366,7 +366,7 @@ DriveHandler::dGet(InputStream& InStr) const
 	try {
 		d = Parser.GetLastStmt(InStr);
 
-	} catch (MBDynErrBase e) {
+	} catch (MBDynErrBase& e) {
 		silent_cerr("StringDrive: " << e.what() << std::endl);
 
 #ifdef USE_MULTITHREAD

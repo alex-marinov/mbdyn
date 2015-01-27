@@ -2083,7 +2083,7 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2][2];
 	integer iNumElec = 0;
-	ScalarDifferentialNode** pvElecDofs = NULL;
+	const ScalarDifferentialNode **pvElecDofs = 0;
 	if (HP.IsKeyWord("piezoelectric" "actuator")) {
 		fPiezo = flag(1);
 		DEBUGLCOUT(MYDEBUG_INPUT,
@@ -2100,18 +2100,10 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		SAFENEWARR(pvElecDofs, ScalarDifferentialNode*, iNumElec);
+		SAFENEWARR(pvElecDofs, const ScalarDifferentialNode *, iNumElec);
 
 		for (integer i = 0; i < iNumElec; i++) {
-			unsigned int uL = HP.GetInt();
-			DEBUGLCOUT(MYDEBUG_INPUT, "linked to abstract node " << uL << std::endl);
-			pvElecDofs[i] = (ScalarDifferentialNode*)(pDM->pFindNode(Node::ABSTRACT, uL));
-			if (pvElecDofs[i] == NULL) {
-				silent_cerr("PiezoElectricBeam(" << uLabel << "): "
-					"can't find AbstractNode(" << uL << ") "
-					"at line " << HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			pvElecDofs[i] = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		}
 
 		PiezoMat[0][0].Resize(iNumElec);

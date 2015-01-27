@@ -79,6 +79,9 @@ pPrevNLP(NULL)
 
 MatrixFreeSolver::~MatrixFreeSolver(void)
 {
-	NO_OP;
+	if (pPM) {
+		SAFEDELETE(pPM);
+		pPM = 0;
+	}
 }
 

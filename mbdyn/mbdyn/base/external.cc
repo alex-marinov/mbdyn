@@ -46,7 +46,7 @@ void SendNull(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'N';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }
@@ -57,7 +57,7 @@ void SendInitial(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'I';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }
@@ -67,7 +67,7 @@ void SendFreeze(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'F';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }
@@ -77,7 +77,7 @@ void SendRegular(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'R';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }
@@ -87,7 +87,7 @@ void SendClose(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'Q';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }
@@ -97,7 +97,7 @@ void SendError(void) {
 	std::list<MPI::Intercomm>::iterator iComm; 
 	std::list<MPI::Intercomm>::const_iterator iComm_end = InterfaceComms.end(); 
 	char buff = 'X';
-	for(iComm = InterfaceComms.begin(); iComm != iComm_end; iComm++) {
+	for(iComm = InterfaceComms.begin(); iComm != iComm_end; ++iComm) {
 		iComm->Send(&buff, 1, MPI::CHAR, 0, 0);
 	}
 }

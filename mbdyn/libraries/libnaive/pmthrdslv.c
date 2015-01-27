@@ -72,7 +72,7 @@ pnaivfct(doublereal** a,
 	integer i, j, k, pvr = 0, pvc, nr, nc, r;
 	integer *pri, *pci;
 	char *pnzk;
-	doublereal den, mul, mulpiv, fapvr, fari;
+	doublereal den, mul, mulpiv, fari;
 	doublereal *par, *papvr;
 
 	if (minpiv == 0.) {
@@ -82,6 +82,8 @@ pnaivfct(doublereal** a,
 	for (i = 0; i < neq; i++) {
 		pri = ri[i];
 		if (task == 0) {
+			doublereal fapvr;
+
 			nr = nzr[i];
 			if (nr == 0) {
 				return NAIVE_ENULCOL + i; 

@@ -581,10 +581,12 @@ public:
 inline doublereal
 RampDriveCaller::dGet(const doublereal& dVar) const
 {
-	doublereal dVal, dEnd;
+	doublereal dVal;
 
 	dVal = dInitialValue;
 	if (dVar > dStartTime) {
+		doublereal dEnd;
+
 		if (dVar > dEndTime) {
 			dEnd = dEndTime;
 
@@ -664,10 +666,12 @@ public:
 inline doublereal
 DoubleRampDriveCaller::dGet(const doublereal& dVar) const
 {
-	doublereal dVal, dEnd;
+	doublereal dVal;
 
 	dVal = dInitialValue;
 	if (dVar > dAscendingStartTime) {
+		doublereal dEnd;
+
 		if (dVar > dAscendingEndTime) {
 			dEnd = dAscendingEndTime;
 

@@ -120,7 +120,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		iOrder = ReadDofOrder(pNode, iIndex, argv[3]);
 
 		NodeDof nd(iIndex-1, pNode);
-		pNode = NULL;
+		pNode = 0;
 		/* Chi dealloca questa memoria? ci vorrebbe l'handle */
 		SAFENEWWITHCONSTRUCTOR(pNode, Node2Scalar, Node2Scalar(nd));
 		pedantic_cerr(psNodeNames[pNode->GetNodeType()]
@@ -130,7 +130,7 @@ DofPlugIn::Read(int argc, char *argv[])
 		break;
 	}
 	}
-	dof = ScalarDof((ScalarNode*)pNode, iOrder, 0);
+	dof = ScalarDof(dynamic_cast<ScalarNode *>(pNode), iOrder, 0);
 
 	/* legge i parametri (<param>=<value>, separati da '&') */
 	if (argc == iParams + 1) {

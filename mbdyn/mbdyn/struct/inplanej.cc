@@ -260,12 +260,11 @@ InPlaneJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    WM.Add(7, 10, MTmp);            
    WM.Add(10, 19, MTmp);           
    
-   MTmp -= MTmp;
-   WM.Add(4, 1, MTmp);             
-   WM.Add(13, 4, MTmp);            
+   WM.Sub(4, 1, MTmp);             
+   WM.Sub(13, 4, MTmp);            
    
-   WM.Add(19, 10, MTmp);           
-   WM.Add(10, 7, MTmp);            
+   WM.Sub(19, 10, MTmp);           
+   WM.Sub(10, 7, MTmp);            
    
    MTmp = Mat3x3(MatCrossCross, x2mx1, F);
    WM.Add(4, 4, MTmp);             

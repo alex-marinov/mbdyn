@@ -607,7 +607,7 @@ Control_valve2::SetValue(DataManager *pDM,
 {
 	integer iFirstIndex = iGetFirstIndex()+1;
 	
-	((Control_valve2*)this)->Prepare();
+	const_cast<Control_valve2 *>(this)->Prepare();
 
 	for (int i = 0; i < LAST_Q; i++) {
 

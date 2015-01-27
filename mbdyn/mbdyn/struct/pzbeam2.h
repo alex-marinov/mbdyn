@@ -46,7 +46,7 @@ class PiezoActuatorBeam2 : public Beam2 {
    
  protected:
    int iNumElec;
-   ScalarDifferentialNode** pvElecDofs;
+   const ScalarDifferentialNode **pvElecDofs;
    VecN V;
    Mat3xN PiezoMat[NUMDEFORM];
    
@@ -73,7 +73,7 @@ class PiezoActuatorBeam2 : public Beam2 {
 		     const Mat3x3& r,
 		     const ConstitutiveLaw6D* pd,
 		     int iEl,
-		     ScalarDifferentialNode** pEDof,
+		     const ScalarDifferentialNode **pEDof,
 		     const Mat3xN& T_Ie, const Mat3xN& T_Ik,
 		     OrientationDescription ood,
 		     flag fOut);
@@ -147,7 +147,7 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
    
  protected:
    int iNumElec;
-   ScalarDifferentialNode** pvElecDofs;
+   const ScalarDifferentialNode **pvElecDofs;
    VecN V;
    Mat3xN PiezoMat[NUMDEFORM];
    
@@ -174,7 +174,7 @@ class PiezoActuatorVEBeam2 : public ViscoElasticBeam2 {
 		       const Mat3x3& r,
 		       const ConstitutiveLaw6D* pd,
 		       int iEl,
-		       ScalarDifferentialNode** pEDof,
+		       const ScalarDifferentialNode **pEDof,
 		       const Mat3xN& T_Ie, const Mat3xN& T_Ik,
 		       OrientationDescription ood,
 		       flag fOut);

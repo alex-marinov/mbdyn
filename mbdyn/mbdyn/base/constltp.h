@@ -264,7 +264,7 @@ protected:
    
 public:
 	ConstitutiveLawOwner(const ConstitutiveLaw<T, Tder>* pCL)
-	: pConstLaw((ConstitutiveLaw<T, Tder>*)pCL) { 
+	: pConstLaw(const_cast<ConstitutiveLaw<T, Tder> *>(pCL)) { 
 		ASSERT(pCL != NULL);
 	};
    

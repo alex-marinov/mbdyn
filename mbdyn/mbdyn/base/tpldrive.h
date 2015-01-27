@@ -84,7 +84,7 @@ protected:
 
 public:
 	TplDriveOwner(const TplDriveCaller<T>* pDC = 0)
-	: pTplDriveCaller((TplDriveCaller<T>*)pDC) {
+	: pTplDriveCaller(const_cast<TplDriveCaller<T> *>(pDC)) {
 		NO_OP;
 	};
 
