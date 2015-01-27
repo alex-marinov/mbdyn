@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added hostname support to utils
+		- added module for file drive input from LeapMotion device
 	Backward compatibility issues:
 	Known issues:
 		- nested calls to string drive callers deadlock
