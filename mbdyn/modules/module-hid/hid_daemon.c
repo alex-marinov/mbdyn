@@ -41,6 +41,8 @@
 #define LO(x) ((x) & 0x0F)
 #define HI(x) (((x) & 0xF0) >> 8)
 #define HEX(x) ("0123456789abcdef"[(x)])
+#define IS_BUTTON(type) (((type) & 0x7FU) == 1)
+#define IS_LC(type) (((type) & 0x7FU) == 2)
 
 static const char *
 type2str(uint8_t type)
@@ -57,6 +59,9 @@ type2str(uint8_t type)
 typedef struct data_t {
 	uint32_t cnt;
 	int16_t value;
+#define BUTTON_CLEARED 0x0U
+#define BUTTON_SET 0x1U
+#define BUTTON_CLEAR 0x2U
 	uint8_t type;
 	uint8_t idx;
 } data_t;
@@ -109,18 +114,19 @@ purge_hid(void *arg)
 		}
 
 		rc = idx;
-		switch (type & 0x7FU) {
-		case 1: /* button */
-			rc += ptarg->nlc;
-			break;
-
-		case 2: /* linear control */
-			break;
-		}
-
 		pthread_mutex_lock(&ptarg->mutex);
+		if (IS_BUTTON(type)) {
+			rc += ptarg->nlc;
+			if (value) {
+				ptarg->data[rc].value = BUTTON_SET;
+			} else {
+				ptarg->data[rc].value |= BUTTON_CLEAR;
+			}
+
+		} else {
+			ptarg->data[rc].value = value;
+		}
 		ptarg->data[rc].cnt = cnt;
-		ptarg->data[rc].value = value;
 		ptarg->data[rc].type = type;
 		ptarg->data[rc].idx = idx;
 		pthread_mutex_unlock(&ptarg->mutex);
@@ -270,11 +276,25 @@ main(int argc, char *argv[])
 		pthread_mutex_lock(&ptarg.mutex);
 		printf("time=%ld.%09ld\n", t.tv_sec, t.tv_nsec);
 		for (c = 0; c < ptarg.ndata; c++) {
-			printf("0x%8x %s[%2u]=%6d\n",
-				ptarg.data[c].cnt,
-				type2str(ptarg.data[c].type),
-				ptarg.data[c].idx,
-				ptarg.data[c].value);
+			if (IS_BUTTON(ptarg.data[c].type)) {
+				int8_t set = ptarg.data[c].value & BUTTON_SET;
+				int8_t clear = ptarg.data[c].value & BUTTON_CLEAR;
+				printf("0x%08x %s[%2u]=%s%s\n",
+					ptarg.data[c].cnt,
+					type2str(ptarg.data[c].type),
+					ptarg.data[c].idx,
+					set ? "set" : "not set", clear ? ",to be cleared" : "");
+				if (clear) {
+					ptarg.data[c].type = BUTTON_CLEARED;
+				}
+
+			} else {
+				printf("0x%08x %s[%2u]=%6d\n",
+					ptarg.data[c].cnt,
+					type2str(ptarg.data[c].type),
+					ptarg.data[c].idx,
+					ptarg.data[c].value);
+			}
 		}
 		pthread_mutex_unlock(&ptarg.mutex);
 	}
