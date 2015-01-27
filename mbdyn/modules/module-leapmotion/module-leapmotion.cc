@@ -42,7 +42,127 @@
 
 #include "Leap.h"
 
+class LMHandDrive : public FileDrive {
+private:
+	Leap::Controller controller;
+
+public:
+	LMHandDrive(unsigned int uL, const DriveHandler* pDH,
+		const std::string& sFileName,
+		const std::vector<doublereal>& v0);
+
+	virtual ~LMHandDrive(void);
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+
+	virtual void ServePending(const doublereal& t);
+};
+
+LMHandDrive::LMHandDrive(unsigned int uL, const DriveHandler* pDH,
+	const std::string& sFileName,
+	const std::vector<doublereal>& v0)
+: FileDrive(uL, pDH, sFileName, 14, v0)
+{
+	NO_OP;
+}
+
+LMHandDrive::~LMHandDrive(void)
+{
+	NO_OP;
+}
+
+std::ostream&
+LMHandDrive::Restart(std::ostream& out) const
+{
+	return out << "# not implemented yet" << std::endl;
+}
+
+void
+LMHandDrive::ServePending(const doublereal& t)
+{
+	Leap::Frame frame = controller.frame();
+
+	Leap::HandList hands = frame.hands();
+	Leap::Hand hand = hands.rightmost();
+	/*
+	1: type (invalid: 0, left: 1, right: 2)
+	2-4: palm position
+	5-7: palm direction
+	8-10: palm normal
+	11: palm roll
+	12: palm pitch
+	13: palm yaw
+	*/
+	bool bValid = hand.isValid();
+	unsigned idx = 1;
+	if (!bValid) {
+		for (; idx <= 14; idx++) {
+			pdVal[idx] = 0.;
+		}
+
+	} else {
+		pdVal[idx] = hand.isRight() ? 2. : 1.;
+
+		Leap::Vector pos(hand.palmPosition());
+		pdVal[++idx] = pos.x;
+		pdVal[++idx] = pos.y;
+		pdVal[++idx] = pos.z;
+
+		Leap::Vector dir(hand.direction());
+		pdVal[++idx] = dir.x;
+		pdVal[++idx] = dir.y;
+		pdVal[++idx] = dir.z;
+
+		Leap::Vector nor(hand.palmNormal());
+		pdVal[++idx] = nor.x;
+		pdVal[++idx] = nor.y;
+		pdVal[++idx] = nor.z;
+
+		pdVal[++idx] = nor.roll();
+		pdVal[++idx] = dir.pitch();
+		pdVal[++idx] = dir.yaw();
+	}
+}
+
+struct LMHandDR : public DriveRead {
+	virtual Drive *
+	Read(unsigned uLabel, const DataManager* pDM, MBDynParser& HP);
+};
+
+Drive *
+LMHandDR::Read(unsigned uLabel, const DataManager* pDM, MBDynParser& HP)
+{
+	if (HP.IsKeyWord("help")) {
+		silent_cout(
+"									\n"
+"Module: 	leapmotion hand						\n"
+"Author: 	Pierangelo Masarati <pierangelo.masarati@polimi.it>	\n"
+"Organization:	Dipartimento di Scienze e Tecnologie Aerospaziali	\n"
+"		Politecnico di Milano					\n"
+"		http://www.aero.polimi.it/				\n"
+"									\n"
+"	All rights reserved						\n"
+"									\n"
+"	file: <label> , leapmotion hand ,				\n"
+"           ...                                                         \n"
+			<< std::endl);
+
+		if (!HP.IsArg()) {
+			/*
+			 * Exit quietly if nothing else is provided
+			 */
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	const std::vector<doublereal> v0;
+
+	return new LMHandDrive(uLabel, pDM->pGetDrvHdl(), "LEAPMN", v0);
+}
+
 class LMDrive : public FileDrive {
+private:
+
 public:
 	LMDrive(unsigned int uL, const DriveHandler* pDH,
 		const std::string& sFileName,
@@ -111,11 +231,9 @@ LMDR::Read(unsigned uLabel, const DataManager* pDM, MBDynParser& HP)
 		}
 	}
 
-	const std::string sFileName(HP.GetFileName());
-
 	const std::vector<doublereal> v0;
 
-	return new LMDrive(uLabel, pDM->pGetDrvHdl(), sFileName, v0);
+	return new LMDrive(uLabel, pDM->pGetDrvHdl(), "LEAPMN", v0);
 }
 
 extern "C" int
@@ -126,8 +244,20 @@ module_init(const char *module_name, void *pdm, void *php)
 	MBDynParser	*pHP = (MBDynParser *)php;
 #endif
 
-	DriveRead *rf = new LMDR;
+	DriveRead *rf;
 
+	rf = new LMHandDR;
+	if (!SetDriveData("leapmotion" "hand", rf)) {
+		delete rf;
+
+		silent_cerr("LMHandDrive: "
+			"module_init(" << module_name << ") "
+			"failed" << std::endl);
+
+		return -1;
+	}
+
+	rf = new LMDR;
 	if (!SetDriveData("leapmotion", rf)) {
 		delete rf;
 
