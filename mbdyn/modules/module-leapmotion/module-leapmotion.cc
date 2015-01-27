@@ -63,7 +63,10 @@ LMHandDrive::LMHandDrive(unsigned int uL, const DriveHandler* pDH,
 	const std::vector<doublereal>& v0)
 : FileDrive(uL, pDH, sFileName, 14, v0)
 {
-	NO_OP;
+	if (!controller.isConnected()) {
+		silent_cerr("LMHandDrive: controller not available" << std::endl);
+		throw;
+	}
 }
 
 LMHandDrive::~LMHandDrive(void)
@@ -84,6 +87,7 @@ LMHandDrive::ServePending(const doublereal& t)
 
 	Leap::HandList hands = frame.hands();
 	Leap::Hand hand = hands.rightmost();
+
 	/*
 	1: type (invalid: 0, left: 1, right: 2)
 	2-4: palm position

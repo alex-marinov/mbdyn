@@ -36,6 +36,7 @@
 #include <cstdint>
 #include <ctime>
 #include <iostream>
+#include <iomanip>
 #include "Leap.h"
 
 int
@@ -79,7 +80,8 @@ main(int argc, char *argv[])
 	// connect to LM
 	Leap::Controller controller;
 	if (!controller.isConnected()) {
-		// TODO: error
+		std::cerr << "controller not available" << std::endl;
+		exit(EXIT_FAILURE);
 	}
 	
 	clock_gettime(CLOCK_MONOTONIC, &t0);
@@ -105,7 +107,8 @@ main(int argc, char *argv[])
 			Leap::Vector nor(hand.palmNormal());
 			Leap::Vector dir(hand.direction());
 			std::cout
-				<< what_hand << " hand,"
+				<< t.tv_sec << "." << std::setfill('0') << std::setw(9) << t.tv_nsec
+				<< " " << what_hand << " hand,"
 				" position={" << pos.x << ", " << pos.y << ", " << pos.z << "} mm,"
 				" direction={" << dir.x << ", " << dir.y << ", " << dir.z << "} mm,"
 				" normal={" << nor.x << ", " << nor.y << ", " << nor.z << "} mm,"
@@ -115,7 +118,9 @@ main(int argc, char *argv[])
 				<< std::endl;
 
 		} else {
-			std::cout << "invalid hand" << std::endl;
+			std::cout
+				<< t.tv_sec << "." << std::setfill('0') << std::setw(9) << t.tv_nsec
+				<< " invalid hand" << std::endl;
 		}
 	}
 
