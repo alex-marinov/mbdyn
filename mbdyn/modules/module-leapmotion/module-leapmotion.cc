@@ -63,9 +63,28 @@ LMHandDrive::LMHandDrive(unsigned int uL, const DriveHandler* pDH,
 	const std::vector<doublereal>& v0)
 : FileDrive(uL, pDH, sFileName, 14, v0)
 {
-	if (!controller.isConnected()) {
-		silent_cerr("LMHandDrive: controller not available" << std::endl);
-		throw;
+	mbsleep_t sleep_time = mbsleep_init(1);
+	long max_retries = -1;
+	bool bMsg(true);
+
+	for (;;) {
+		if (controller.isConnected()) {
+			break;
+		}
+
+		if (bMsg) {
+			silent_cerr("LMHandDrive: controller not available yet, please make sure the device is connected and the service is running..." << std::endl);
+			bMsg = false;
+		}
+
+		mbsleep(&sleep_time);
+		if (max_retries >= 0) {
+			if (max_retries == 0) {
+				silent_cerr("LMHandDrive: controller not available" << std::endl);
+				throw;
+			}
+			max_retries--;
+		}
 	}
 }
 

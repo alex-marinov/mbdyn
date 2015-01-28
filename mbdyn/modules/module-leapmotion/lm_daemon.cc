@@ -44,16 +44,36 @@ main(int argc, char *argv[])
 {
 
 	long int dt = -1;
+	long max_retries = -1;
+	long sleep_time = 1;
 
 	struct timespec t0, t;
 
 	while (1) {
-		int opt = getopt(argc, argv, "T:");
+		int opt = getopt(argc, argv, "R:S:T:");
 		if (opt == -1) {
 			break;
 		}
 
 		switch (opt) {
+		case 'R': {
+			char *next = 0;
+			max_retries = strtol(optarg, &next, 10);
+			if (next == optarg || max_retries <= 0) {
+				/* error */
+				exit(EXIT_FAILURE);
+			}
+			} break;
+
+		case 'S': {
+			char *next = 0;
+			sleep_time = strtol(optarg, &next, 10);
+			if (next == optarg || sleep_time <= 0) {
+				/* error */
+				exit(EXIT_FAILURE);
+			}
+			} break;
+
 		case 'T': {
 			char *next = 0;
 			dt = strtol(optarg, &next, 10);
@@ -79,11 +99,20 @@ main(int argc, char *argv[])
 
 	// connect to LM
 	Leap::Controller controller;
-	if (!controller.isConnected()) {
-		std::cerr << "controller not available" << std::endl;
-		exit(EXIT_FAILURE);
+	for (;;) {
+		if (controller.isConnected()) {
+			break;
+		}
+		sleep(sleep_time);
+		if (max_retries >= 0) {
+			if (max_retries == 0) {
+				std::cerr << "controller not available" << std::endl;
+				exit(EXIT_FAILURE);
+			}
+			max_retries--;
+		}
 	}
-	
+
 	clock_gettime(CLOCK_MONOTONIC, &t0);
 	t = t0;
 	for (;;) {
