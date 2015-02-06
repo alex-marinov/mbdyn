@@ -45,8 +45,8 @@ extern const char* psRodNames[];
 class Rod : 
 virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
 protected:
-	const StructNode* pNode1;
-	const StructNode* pNode2;
+	const StructDispNode* pNode1;
+	const StructDispNode* pNode2;
 	doublereal dL0;
    
 	Vec3 v;
@@ -70,7 +70,7 @@ public:
 	/* Costruttore non banale */
 	Rod(unsigned int uL, const DofOwner* pDO,
 			const ConstitutiveLaw1D* pCL,
-			const StructNode* pN1, const StructNode* pN2,
+			const StructDispNode* pN1, const StructDispNode* pN2,
 			doublereal dLength, flag fOut,
 			bool bHasOffsets = 0);
 
@@ -211,7 +211,7 @@ public:
 	/* Costruttore non banale */
 	ViscoElasticRod(unsigned int uL, const DofOwner* pDO,
 			const ConstitutiveLaw1D* pCL,
-			const StructNode* pN1, const StructNode* pN2,
+			const StructDispNode* pN1, const StructDispNode* pN2,
 			doublereal dLength, flag fOut);
    
 	/* Distruttore */

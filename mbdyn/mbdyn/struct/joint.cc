@@ -1354,22 +1354,44 @@ ReadJoint(DataManager* pDM,
 		bool bOffset(false);
 
 		/* nodo collegato 1 */
-		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		const StructDispNode* pNode1 = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+		const StructNode *pN1 = dynamic_cast<const StructNode *>(pNode1);
 		DEBUGCOUT("Linked to Node " << pNode1->GetLabel() << std::endl);
 
 		Vec3 f1(Zero3);
 		ReferenceFrame RF1(pNode1);
 		if (HP.IsKeyWord("position")) {
+			if (pN1 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"\"position\" not allowed with rotationless node " << pNode1->GetLabel()
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
 			f1 = HP.GetPosRel(RF1);
 			bOffset = true;
 		}
 
 		/* nodo collegato 2 */
-		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		const StructDispNode* pNode2 = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
+		const StructNode *pN2 = dynamic_cast<const StructNode *>(pNode2);
 		DEBUGCOUT("Linked to Node " << pNode2->GetLabel() << std::endl);
 
 		Vec3 f2(Zero3);
 		if (HP.IsKeyWord("position")) {
+			if (pN1 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"\"position\" not allowed on second node when first node "
+					<< pNode1->GetLabel() << " is rotationless"
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			} else if (pN2 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"\"position\" not allowed with rotationless node " << pNode2->GetLabel()
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
 			f2 = HP.GetPosRel(ReferenceFrame(pNode2), RF1, f1);
 			bOffset = true;
 		}
@@ -1380,6 +1402,7 @@ ReadJoint(DataManager* pDM,
 		if (HP.IsKeyWord("from" "nodes")) {
 			bFromNodes = true;
 			DEBUGCOUT("Initial length will be computed from nodes position" << std::endl);
+
 		} else {
 			dL0 = HP.GetReal();
 			DEBUGCOUT("Initial length = " << dL0 << std::endl);
@@ -1401,6 +1424,20 @@ ReadJoint(DataManager* pDM,
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			if (pN1 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"\"offset\" not allowed when first node "
+					<< pNode1->GetLabel() << " is rotationless"
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			} else if (pN2 == 0) {
+				silent_cerr("Joint(" << uLabel << "): "
+					"\"offset\" not allowed when second node "
+					<< pNode2->GetLabel() << " is rotationless"
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
 			bOffset = true;
 			ReferenceFrame RF1(pNode1);
 			f1 = HP.GetPosRel(RF1);
@@ -1411,9 +1448,9 @@ ReadJoint(DataManager* pDM,
 		}
 #endif /* MBDYN_X_COMPATIBLE_INPUT */
 
-		Vec3 v = pNode2->GetXCurr()-pNode1->GetXCurr();
+		Vec3 v = pNode2->GetXCurr() - pNode1->GetXCurr();
 		if (bOffset) {
-			v += pNode2->GetRCurr()*f2-pNode1->GetRCurr()*f1;
+			v += pN2->GetRCurr()*f2 - pN1->GetRCurr()*f1;
 		}
 		doublereal dL1 = v.Norm();
 
@@ -1455,7 +1492,8 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				RodWithOffset,
 				RodWithOffset(uLabel, pDO, pCL,
-					pNode1, pNode2, f1, f2, dL0, fOut));
+					pN1, pN2, f1, f2, dL0, fOut));
+
 		} else {
 			switch (CLType) {
 			case ConstLawType::VISCOUS:

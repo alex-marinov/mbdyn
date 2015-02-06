@@ -45,7 +45,7 @@
 /* Costruttore non banale */
 Rod::Rod(unsigned int uL, const DofOwner* pDO,
 		   const ConstitutiveLaw1D* pCL,
-		   const StructNode* pN1, const StructNode* pN2,
+		   const StructDispNode* pN1, const StructDispNode* pN2,
 		   doublereal dLength, flag fOut, bool bHasOffsets)
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
@@ -59,13 +59,13 @@ dEpsilon(0.),
 dEpsilonPrime(0.)
 {
 	/* Verifica di consistenza dei dati iniziali */
-	ASSERT(pN1 != NULL);
-	ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pN2 != NULL);
-	ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode1 != 0);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode2 != 0);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 
 	if (!bHasOffsets) {
-		v = pN2->GetXCurr() - pN1->GetXCurr();
+		v = pNode2->GetXCurr() - pNode1->GetXCurr();
 
 		doublereal dDot = v.Dot();
 		if (dDot <= std::numeric_limits<doublereal>::epsilon()) {
@@ -415,7 +415,7 @@ Rod::GetDummyPartPos(unsigned int part,
 {
 	ASSERT(part == 1);
 	x = pNode1->GetXCurr();
-	R = pNode1->GetRCurr();
+	R = ::Eye3; // pNode1->GetRCurr();
 }
 
 void
@@ -425,7 +425,7 @@ Rod::GetDummyPartVel(unsigned int part,
 {
 	ASSERT(part == 1);
 	v = pNode1->GetVCurr();
-	w = pNode1->GetWCurr();
+	w = ::Zero3; // pNode1->GetWCurr();
 }
 
 #ifdef USE_ADAMS
@@ -530,8 +530,8 @@ Rod::dGetPrivData(unsigned int i) const
 ViscoElasticRod::ViscoElasticRod(unsigned int uL,
 	const DofOwner* pDO,
 	const ConstitutiveLaw1D* pCL,
-	const StructNode* pN1,
-	const StructNode* pN2,
+	const StructDispNode* pN1,
+	const StructDispNode* pN2,
 	doublereal dLength, flag fOut)
 : Elem(uL, fOut),
 Rod(uL, pDO, pCL, pN1, pN2, dLength, fOut)
@@ -843,13 +843,15 @@ f1(f1Tmp),
 f2(f2Tmp)
 {
 	/* Verifica di consistenza dei dati iniziali */
-	ASSERT(pN1 != NULL);
-	ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
-	ASSERT(pN2 != NULL);
-	ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode1 != 0);
+	ASSERT(dynamic_cast<const StructNode *>(pNode1) != 0);
+	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
+	ASSERT(pNode2 != 0);
+	ASSERT(dynamic_cast<const StructNode *>(pNode2) != 0);
+	ASSERT(pNode2->GetNodeType() == Node::STRUCTURAL);
 
-	v = pN2->GetXCurr() + pN2->GetRCurr()*f2Tmp
-		- pN1->GetXCurr() - pN1->GetRCurr()*f1Tmp;
+	v = pNode2->GetXCurr() + dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2Tmp
+		- pNode1->GetXCurr() - dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1Tmp;
 
 	doublereal dDot = v.Dot();
 	if (dDot <= std::numeric_limits<doublereal>::epsilon()) {
@@ -875,10 +877,10 @@ RodWithOffset::Restart(std::ostream& out) const
 {
 	Joint::Restart(out) << ", rod, "
 		<< pNode1->GetLabel() << ", "
+		"position, reference, node, ", f1.Write(out, ", ") << ", "
 		<< pNode2->GetLabel() << ", "
-		<< dL0 << ", offset, reference, node, ",
-		f1.Write(out, ", ") << ", reference, node, ",
-		f2.Write(out, ", ") << ", ";
+		"position, reference, node, ", f2.Write(out, ", ") << ", "
+		<< dL0;
 	return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
@@ -919,15 +921,15 @@ RodWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}
 
-	const Mat3x3& R1(pNode1->GetRRef());
-	const Mat3x3& R2(pNode2->GetRRef());
+	const Mat3x3& R1(dynamic_cast<const StructNode *>(pNode1)->GetRRef());
+	const Mat3x3& R2(dynamic_cast<const StructNode *>(pNode2)->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
 
 	const Vec3& v1(pNode1->GetVCurr());
 	const Vec3& v2(pNode2->GetVCurr());
-	const Vec3& Omega1(pNode1->GetWRef());
-	const Vec3& Omega2(pNode2->GetWRef());
+	const Vec3& Omega1(dynamic_cast<const StructNode *>(pNode1)->GetWRef());
+	const Vec3& Omega2(dynamic_cast<const StructNode *>(pNode2)->GetWRef());
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
@@ -1042,8 +1044,8 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	DEBUGCOUT("RodWithOffset::AssVec()" << std::endl);
 
 	/* Dati */
-	const Mat3x3& R1(pNode1->GetRCurr());
-	const Mat3x3& R2(pNode2->GetRCurr());
+	const Mat3x3& R1(dynamic_cast<const StructNode *>(pNode1)->GetRCurr());
+	const Mat3x3& R2(dynamic_cast<const StructNode *>(pNode2)->GetRCurr());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
 	const Vec3& x1(pNode1->GetXCurr());
@@ -1051,8 +1053,8 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 
 	const Vec3& v1(pNode1->GetVCurr());
 	const Vec3& v2(pNode2->GetVCurr());
-	const Vec3& Omega1(pNode1->GetWCurr());
-	const Vec3& Omega2(pNode2->GetWCurr());
+	const Vec3& Omega1(dynamic_cast<const StructNode *>(pNode1)->GetWCurr());
+	const Vec3& Omega2(dynamic_cast<const StructNode *>(pNode2)->GetWCurr());
 
 	/* v = x2-x1 */
 	v = x2 + f2Tmp - x1 - f1Tmp;
@@ -1132,15 +1134,15 @@ RodWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		WM.PutColIndex(18 + iCnt, iNode2FirstVelIndex + iCnt);
 	}
 
-	const Mat3x3& R1(pNode1->GetRRef());
-	const Mat3x3& R2(pNode2->GetRRef());
+	const Mat3x3& R1(dynamic_cast<const StructNode *>(pNode1)->GetRRef());
+	const Mat3x3& R2(dynamic_cast<const StructNode *>(pNode2)->GetRRef());
 	Vec3 f1Tmp(R1*f1);
 	Vec3 f2Tmp(R2*f2);
 
 	const Vec3& v1(pNode1->GetVCurr());
 	const Vec3& v2(pNode2->GetVCurr());
-	const Vec3& Omega1(pNode1->GetWRef());
-	const Vec3& Omega2(pNode2->GetWRef());
+	const Vec3& Omega1(dynamic_cast<const StructNode *>(pNode1)->GetWRef());
+	const Vec3& Omega2(dynamic_cast<const StructNode *>(pNode2)->GetWRef());
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
@@ -1294,8 +1296,8 @@ RodWithOffset::GetDummyPartPos(unsigned int part,
 	Mat3x3& R) const
 {
 	ASSERT(part == 1);
-	x = pNode1->GetXCurr() + pNode1->GetRCurr()*f1;
-	R = pNode1->GetRCurr();
+	x = pNode1->GetXCurr() + dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
+	R = dynamic_cast<const StructNode *>(pNode1)->GetRCurr();
 }
 
 void
@@ -1304,8 +1306,8 @@ RodWithOffset::GetDummyPartVel(unsigned int part,
 	Vec3& w) const
 {
 	ASSERT(part == 1);
-	w = pNode1->GetWCurr();
-	v = pNode1->GetVCurr() + w.Cross(pNode1->GetRCurr()*f1);
+	w = dynamic_cast<const StructNode *>(pNode1)->GetWCurr();
+	v = pNode1->GetVCurr() + w.Cross(dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1);
 }
 
 #ifdef USE_ADAMS
@@ -1314,8 +1316,8 @@ RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 	unsigned int part,
 	unsigned int firstId) const
 {
-	Vec3 x1 = pNode1->GetXCurr() + pNode1->GetRCurr()*f1;
-	Vec3 x2 = pNode2->GetXCurr() + pNode2->GetRCurr()*f2;
+	Vec3 x1 = pNode1->GetXCurr() + dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
+	Vec3 x2 = pNode2->GetXCurr() + dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2;
 
 	Vec3 v1 = x2 - x1;
 	doublereal l = v1.Norm();
@@ -1339,7 +1341,7 @@ RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
 		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
 		<< firstId << " "
 		<< x1 << " "
-		<< MatR2EulerAngles(pNode1->GetRCurr())*dRaDegr << " "
+		<< MatR2EulerAngles(dynamic_cast<const StructNode *>(pNode1)->GetRCurr())*dRaDegr << " "
 		<< x1 << " "
 		<< e << " "
 		<< l << " " << 0. << " " << 0. << " "
