@@ -1562,7 +1562,26 @@ public:
     	(*this)(2) = v2;
     }
 
+    template <typename Expr1, typename Expr2>
+    Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2)
+    {
+    	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
+
+    	(*this)(1) = v1;
+    	(*this)(2) = v2;
+    }
+
     Vector(const T& v1, const T& v2, const T& v3) {
+    	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+
+    	(*this)(1) = v1;
+    	(*this)(2) = v2;
+    	(*this)(3) = v3;
+    }
+
+    template <typename Expr1, typename Expr2, typename Expr3>
+    Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2, const GradientExpression<Expr3>& v3)
+    {
     	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
 
     	(*this)(1) = v1;
