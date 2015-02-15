@@ -1988,7 +1988,10 @@ template <typename T, index_type N_rows, index_type N_cols>
 inline std::ostream& operator<<(std::ostream& os, const Matrix<T, N_rows, N_cols>& A) {
     for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
         for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
-            os << A(i, j) << ' ';
+            os << A(i, j);
+
+            if (i < A.iGetNumRows() || j < A.iGetNumCols())
+            	os << ' ';
         }
     }
     
@@ -2005,7 +2008,10 @@ inline std::ostream& operator<<(std::ostream& os, const TabularMatrixView<T, N_r
 template <typename T, index_type N_rows>
 inline std::ostream& operator<<(std::ostream& os, const Vector<T, N_rows>& x) {
     for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
-        os << x(i) << ' ';
+        os << x(i);
+
+        if (i < x.iGetNumRows())
+        	os << ' ';
     }
     
     return os;
