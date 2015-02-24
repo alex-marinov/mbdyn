@@ -776,6 +776,9 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 static int
 mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 {
+#ifndef HAVE_SYS_TIMES_H
+	const clock_t start = clock();
+#endif
 	mbdyn_welcome();
 #ifdef USE_MPI
 	if (mbp.using_mpi) {
@@ -961,9 +964,10 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			}
 		}
 
+#ifdef HAVE_SYS_TIMES_H
 		time_t tSecs = 0;
 		time_t tMils = 0;
-#ifdef HAVE_SYS_TIMES_H
+
 		/* Tempo di CPU impiegato */
 		struct tms tmsbuf;
 		times(&tmsbuf);
@@ -1016,7 +1020,11 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		}
 #endif /* USE_MPI */
 		silent_cout(std::endl);
-#endif /* HAVE_SYS_TIMES_H */
+
+#else /* ! HAVE_SYS_TIMES_H */
+		silent_cout(std::endl << "Elapsed time " 
+			<< double(clock() - start)/CLOCKS_PER_SEC << " seconds\n");
+#endif /* ! HAVE_SYS_TIMES_H */
 	} // while (last == 0)
 	throw NoErr(MBDYN_EXCEPT_ARGS);
 }
