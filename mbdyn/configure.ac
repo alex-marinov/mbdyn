@@ -2839,6 +2839,10 @@ fi
 AC_LANG_C
 
 dnl ----------------------------------------------------------------
+dnl TODO: add a check about whether a fortran (F77, F95) compiler is
+dnl needed, and bail out if not available
+
+dnl ----------------------------------------------------------------
 dnl
 dnl Variable substituion
 dnl
