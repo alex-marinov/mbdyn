@@ -3770,14 +3770,14 @@ This constitutive law implements a landing gear hydraulic shock absorber:
         [ \kw{epsilon min} , \bnt{lower_strain_bound} , ]
         [ \kw{penalty} , \bnt{penalty_factor_for_strain} , 
             \bnt{penalty_factor_for_strain_rate} , ]
-        [ \kw{metering} , \bnt{metering_area} ,
-            [ \kw{negative} , \bnt{metering_area_for_negative_strain_rate} , ]
-        [ \kw{orifice} , \bnt{orifice_area} , ]
+        [ \kw{metering} , (\ty{DriveCaller})\bnt{metering_area} ,
+            [ \kw{negative} , (\ty{DriveCaller})\bnt{metering_area_for_negative_strain_rate} , ]
+        [ \kw{orifice} , (\ty{DriveCaller})\bnt{orifice_area} , ]
         \bnt{fluid_area} ,
         \bnt{fluid_density} ,
         \bnt{drag_coefficient_/_reference_length} # scales strain rate to velocity
         [ , \kw{friction} , \bnt{reference_epsilon_prime} ,
-                 \bnt{friction_amplitude_coefficient} ]
+             \bnt{friction_amplitude_coefficient} ]
 \end{Verbatim}
 %\end{verbatim}
 where
