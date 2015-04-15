@@ -22,6 +22,7 @@ MBDyn 1.X-Devel
 		- fixed build with RTAI configured without inlining
 		- fixed math parser bug with function calls in expressions
 		- fixed deadlock in recursive string parser calls
+		- fixed echo of modal joint record 12 (noted by Timothy Jim)
 
 MBDyn 1.6.0
 	Enhancements:

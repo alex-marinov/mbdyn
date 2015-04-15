@@ -4493,12 +4493,15 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (bRecordGroup[MODAL_RECORD_12]) {
+			Mat3x3 JTmp2(JTmp);
+			JTmp2 += Mat3x3(MatCrossCross, STmp, STmp*dMass);
+			
 			fecho
 				<< "**" << std::endl
 				<< "** RECORD GROUP 12, GLOBAL INERTIA" << std::endl
 				<< dMass << std::endl
 				<< STmp << std::endl,
-				JTmp.Write(fecho, "\n");
+				JTmp2.Write(fecho, " ", "\n") << std::endl;
 		}
 
 		if (bRecordGroup[MODAL_RECORD_13]) {
