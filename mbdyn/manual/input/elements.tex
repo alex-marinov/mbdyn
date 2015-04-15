@@ -4497,6 +4497,8 @@ The following data are available:
 \item \kw{"v"} imposed velocity along joint direction
 \end{enumerate}
 
+
+
 \subsection{Modal}\label{sec:EL:STRUCT:JOINT:MODAL}
 \emph{
 Original implementation: Felice Felippone; \\
@@ -4531,6 +4533,7 @@ and orientation of the corresponding FEM nodes.
         [ [ \{ \kw{mass} | \kw{damping} | \kw{stiffness} \} ] \kw{threshold} , \bnt{threshold} , ]
         [ \{ \kw{create binary} | \kw{use binary} | \kw{update binary} \}
             [ , ... ] , ]
+        [ \kw{echo} , " \bnt{echo_fem_data_file} " [ , \kw{precision} , \bnt{precision_digits} ] , ]
         [ \kw{use invariant 9} , ]
         [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{pos} \} , ]
 	\bnt{interface_nodes_number} ,
