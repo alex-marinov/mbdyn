@@ -3078,8 +3078,24 @@ ReadModal(DataManager* pDM,
 			bReadFEM = false;
 
 		/* otherwise, if requested, update binary */
-		} else if (bUpdateBinary) {
-			bWriteBIN = true;
+		} else {
+			if (bUpdateBinary) {
+				bWriteBIN = true;
+
+				silent_cout("Modal(" << uLabel << "): "
+						"binary database file \"" << sBinFileFEM << "\" "
+						"older than text database file \"" << sFileFEM << "\"; "
+						"updating"
+						<< std::endl);
+
+			} else {
+				silent_cerr("Modal(" << uLabel << "): "
+						"warning, binary database file \"" << sBinFileFEM << "\" "
+						"older than text database file \"" << sFileFEM << "\"; "
+						"using text database file "
+						"(enable \"update binary\" to refresh binary database file)"
+						<< std::endl);
+			}
 		}
 
 	} else if (bCreateBinary || bUpdateBinary) {
