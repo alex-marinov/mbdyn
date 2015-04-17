@@ -260,13 +260,13 @@ used to be mutually exclusive in earlier versions.
 The reason for accepting \kw{RECORD GROUP 12} format,
 regardless of \kw{RECORD GROUP 11} presence, is related
 to the fact that in many applications the FEM nodal inertia
-may not available and, at the same time, a zero-order approximation
+may not be available and, at the same time, a zero-order approximation
 of the inertia is acceptable.
 The reason for allowing both is that when \kw{RECORD GROUP 11}
-is present, its data used to be used to compute the rigid-body
-motion invariants that can be provided by \kw{RECORD GROUP 12}.
-This might represent an unacceptable approximation.
-\kw{RECORD GROUP 12} allows to replace those invariants
+is present, its data were originally used to compute all inertia invariants,
+including the rigid-body ones that can be provided by \kw{RECORD GROUP 12}.
+This in some cases may represent an unacceptable approximation;
+\kw{RECORD GROUP 12} data can be used to replace those invariants
 by a better estimate, when available.
 
 Both \kw{RECORD GROUP 11} and \kw{RECORD GROUP 12} may be absent.
@@ -281,7 +281,44 @@ Although the format loosely requires that no more than 6 numerical values
 appear on a single line, MBDyn is very forgiving about this and can parse
 the input regardless of the formatting within each record.
 However this liberality may lead to inconsistent or unexpected parsing
-behavior, so be careful.
+behavior, so use at own risk.
+
+
+
+\subsection{Usage}
+The modal joint element is intended to model generically flexible elements
+whose flexibility is modeled in terms of linear superposition
+of deformable shapes expressed in a floating frame of reference (FFR).
+
+The reference (rigid-body) motion is handled by a special multibody node,
+the \htmlref{\kw{modal} node}{sec:NODE:STRUCTURAL:MODAL}.  
+In practice, this node ``carries around'' the (local) reference frame
+in which the finite element model (FEM) is defined.
+When the modal joint is to be directly connected to the ground,
+the modal node can be omitted using the \kw{clamped} keyword
+instead of the node's label.
+
+Interaction of the modal joint with the multibody environment should occur
+through the use of \emph{interface} nodes.
+Interface nodes are regular structural nodes that are clamped 
+to their corresponding FEM nodes;
+\htmlref{\kw{static} nodes}{sec:NODE:STRUCTURAL:STATIC} are recommended, to save 6 equations,
+unless one intends to explicitly connect additional inertia to them.
+
+(Note: in case the FEM mode shapes are defined as so-called \emph{attached modes},
+i.e.\ in case the FE model was clamped at the origin of its reference frame,
+the \kw{modal} node can be directly interfaced to the multibody environment as a regular interface node;
+otherwise the user needs to understand that such node is interfacing the \emph{origin}
+of the FEM reference frame.)
+
+For example, if you want to permit arbitrary relative rotation
+between two independent instances of the modal joint element,
+which are connected by a \htmlref{\kw{revolute hinge} joint}{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE},
+you should define the two instances of the modal element each with its own modal node,
+and each with an interface node at the respective locations of the hinge.
+At this point, the interface nodes can be connected
+by a regular \kw{revolute hinge} joint element.
+
 
 
 
