@@ -175,8 +175,8 @@ pPHIt(pPHItStrNode),
 pPHIr(pPHIrStrNode),
 pModeShapest(pModeShapest),
 pModeShapesr(pModeShapesr),
-pCurrXYZ(NULL),
-pCurrXYZVel(NULL),
+pCurrXYZ(0),
+pCurrXYZVel(0),
 pInv3(pInv3),
 pInv4(pInv4),
 pInv5(pInv5),
@@ -2302,7 +2302,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 	}
 
 	end = std::strchr(s, ',');
-	if (end == NULL) {
+	if (end == 0) {
 		return 0;
 	}
 
@@ -2493,7 +2493,7 @@ Modal::dGetPrivData(unsigned int i) const
 const Mat3xN&
 Modal::GetCurrFEMNodesPosition(void)
 {
-	if (pCurrXYZ == NULL) {
+	if (pCurrXYZ == 0) {
 		   SAFENEWWITHCONSTRUCTOR(pCurrXYZ, Mat3xN, Mat3xN(NFEMNodes, 0.));
 	}
 
@@ -2524,7 +2524,7 @@ Modal::GetCurrFEMNodesPosition(void)
 const Mat3xN&
 Modal::GetCurrFEMNodesVelocity(void)
 {
-	if (pCurrXYZ == NULL) {
+	if (pCurrXYZ == 0) {
 		   SAFENEWWITHCONSTRUCTOR(pCurrXYZVel, Mat3xN, Mat3xN(NFEMNodes, 0.));
 	}
 
@@ -2640,7 +2640,7 @@ ReadModal(DataManager* pDM,
 	unsigned int uLabel)
 {
 	/* legge i dati d'ingresso e li passa al costruttore dell'elemento */
-	Joint* pEl = NULL;
+	Joint* pEl = 0;
 	
 	const ModalNode *pModalNode = 0;
 	Vec3 X0(::Zero3);
@@ -2896,35 +2896,39 @@ ReadModal(DataManager* pDM,
 	DEBUGCOUT("Orientation of FEM Model : " << R << std::endl);
 	/* DEBUGCOUT("Damping coefficient: "<< cdamp << std::endl); */
 
-	doublereal dMass = 0;              /* massa totale */
-	Vec3 STmp(::Zero3);                  /* momenti statici  */
-	Mat3x3 JTmp(::Zero3x3);              /* inerzia totale  */
-	std::vector<doublereal> FEMMass;   /* masse nodali   */
-	std::vector<Vec3> FEMJ;            /* inerzie nodali (sono diagonali) */
+	doublereal dMass = 0;              // total mass
+	Vec3 XTmpIn(::Zero3);              // center of mass location
+	Vec3 STmp(::Zero3);                // static moment
+	Mat3x3 JTmp(::Zero3x3);            // total inertia from input
+	Mat3x3 JTmpIn(::Zero3x3);          // total inertia after manipulation
+	std::vector<doublereal> FEMMass;   // nodal masses
+	std::vector<Vec3> FEMJ;            // nodal inertia (diagonal)
 
-	Mat3xN *pModeShapest = NULL;       /* forme di traslaz. e rotaz. */
-	Mat3xN *pModeShapesr = NULL;
-	Mat3xN PHIti(NModes, 0.);          /* forme nodo i-esimo: 3*nmodi */
+	Mat3xN *pModeShapest = 0;          // displacement and rotation shapes
+	Mat3xN *pModeShapesr = 0;
+	Mat3xN PHIti(NModes, 0.);          // i-th node shapes: 3*nmodes
 	Mat3xN PHIri(NModes, 0.);
-	Mat3xN *pXYZFEMNodes = NULL;       /* punt. alle coordinate nodali */
-	MatNxN *pGenMass = NULL;           /* punt. masse e rigidezze modali */
-	MatNxN *pGenStiff = NULL;
-	MatNxN *pGenDamp = NULL;
+	Mat3xN *pXYZFEMNodes = 0;          // pointer to nodal coords
+	MatNxN *pGenMass = 0;              // pointer to modal mass
+	MatNxN *pGenStiff = 0;             // pointer to modal stiffness
+	MatNxN *pGenDamp = 0;              // pointer to modal damping
 
-	Mat3xN *pInv3 = NULL;     	      /* invarianti d'inerzia */
-	Mat3xN *pInv4 = NULL;
-	Mat3xN *pInv5 = NULL;
-	Mat3xN *pInv8 = NULL;
-	Mat3xN *pInv9 = NULL;
-	Mat3xN *pInv10 = NULL;
-	Mat3xN *pInv11 = NULL;
+	// inertia invariants
+	Mat3xN *pInv3 = 0;
+	Mat3xN *pInv4 = 0;
+	Mat3xN *pInv5 = 0;
+	Mat3xN *pInv8 = 0;
+	Mat3xN *pInv9 = 0;
+	Mat3xN *pInv10 = 0;
+	Mat3xN *pInv11 = 0;
 
-	VecN *a = NULL;                    /* spostamenti e velocita' modali */
-	VecN *aP = NULL;
+	// modal displacements and velocities
+	VecN *a = 0;
+	VecN *aP = 0;
 
-	/* input file */
+	// FEM database file name
 	const char *s = HP.GetFileName();
-	if (s == NULL) {
+	if (s == 0) {
 		silent_cerr("Modal(" << uLabel << "): unable to get "
 			"modal data file name at line " << HP.GetLineData()
 			<< std::endl);
@@ -3119,6 +3123,8 @@ ReadModal(DataManager* pDM,
 	std::vector<bool> bActiveModes;
 
 	enum {
+		MODAL_VERSION_UNKNOWN = 0,
+
 		MODAL_VERSION_1 = 1,
 		MODAL_VERSION_2 = 2,
 		MODAL_VERSION_3 = 3, // after adding record 13 (generalized damping)
@@ -3131,7 +3137,7 @@ ReadModal(DataManager* pDM,
 	const char	magic[5] = "bmod";
 	const uint32_t	BinVersion = MODAL_VERSION_4;
 
-	uint32_t	currBinVersion;
+	uint32_t	currBinVersion = MODAL_VERSION_UNKNOWN;
 	char		checkPoint;
 	uint32_t	NFEMNodesFEM = 0, NModesFEM = 0;
 
@@ -3848,7 +3854,7 @@ ReadModal(DataManager* pDM,
 						fbin.write((const char *)&d, sizeof(d));
 					}
 
-					STmp(iRow) = d;
+					XTmpIn(iRow) = d;
 				}
 
 				// here JTmp is with respect to the center of mass
@@ -3860,12 +3866,9 @@ ReadModal(DataManager* pDM,
 							fbin.write((const char *)&d, sizeof(d));
 						}
 
-						JTmp(iRow, iCol) = d;
+						JTmpIn(iRow, iCol) = d;
 					}
 				}
-
-				// here JTmp is with respect to the origin
-				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 
 				bRecordGroup[MODAL_RECORD_12] = true;
 				} break;
@@ -4315,25 +4318,22 @@ ReadModal(DataManager* pDM,
 				fbin.read((char *)&d, sizeof(d));
 				dMass = d;
 
-				// NOTE: the CM location is read and temporarily stored in STmp
+				// NOTE: the CM location is read and temporarily stored in XTmpIn
 				// later, it will be multiplied by the mass
 				for (int iRow = 1; iRow <= 3; iRow++) {
 					fbin.read((char *)&d, sizeof(d));
 
-					STmp(iRow) = d;
+					XTmpIn(iRow) = d;
 				}
 
-				// here JTmp is with respect to the center of mass
+				// here JTmpIn is with respect to the center of mass
 				for (int iRow = 1; iRow <= 3; iRow++) {
 					for (int iCol = 1; iCol <= 3; iCol++) {
 						fbin.read((char *)&d, sizeof(d));
 
-						JTmp(iRow, iCol) = d;
+						JTmpIn(iRow, iCol) = d;
 					}
 				}
-
-				// here JTmp is with respect to the origin
-				JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
 				} break;
 
 			case MODAL_RECORD_13:
@@ -4401,6 +4401,9 @@ ReadModal(DataManager* pDM,
 	if (bBailOut) {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	// JTmp is now referred to the origin
+	JTmp = JTmpIn - Mat3x3(MatCrossCross, XTmpIn, XTmpIn*dMass);
 
 	if (!sEchoFileName.empty()) {
 		std::ofstream fecho(sEchoFileName.c_str());
@@ -4509,15 +4512,12 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (bRecordGroup[MODAL_RECORD_12]) {
-			Mat3x3 JTmp2(JTmp);
-			JTmp2 += Mat3x3(MatCrossCross, STmp, STmp*dMass);
-			
 			fecho
 				<< "**" << std::endl
 				<< "** RECORD GROUP 12, GLOBAL INERTIA" << std::endl
 				<< dMass << std::endl
-				<< STmp << std::endl,
-				JTmp2.Write(fecho, " ", "\n") << std::endl;
+				<< XTmpIn << std::endl,
+				JTmpIn.Write(fecho, " ", "\n") << std::endl;
 		}
 
 		if (bRecordGroup[MODAL_RECORD_13]) {
@@ -4540,8 +4540,8 @@ ReadModal(DataManager* pDM,
 	 * posizione e' la somma di quella modale e di quella FEM   */
 
 	/* array contenente le forme modali dei nodi d'interfaccia */
-	Mat3xN* pPHItStrNode = NULL;
-	Mat3xN* pPHIrStrNode = NULL;
+	Mat3xN* pPHItStrNode = 0;
+	Mat3xN* pPHIrStrNode = 0;
 
 	/* traslazione origine delle coordinate */
 	Vec3 Origin(::Zero3);
@@ -4594,10 +4594,8 @@ ReadModal(DataManager* pDM,
 		}
 
 		if (!bBuildInvariants) {
-			// quick hack: restore JTmp, update STmp, update JTmp
-			JTmp += Mat3x3(MatCrossCross, STmp, STmp*dMass);
-			STmp -= Origin;
-			JTmp -= Mat3x3(MatCrossCross, STmp, STmp*dMass);
+			XTmpIn -= Origin;
+			JTmp = JTmpIn - Mat3x3(MatCrossCross, XTmpIn, XTmpIn*dMass);
 		}
 	}
 
@@ -4869,7 +4867,7 @@ ReadModal(DataManager* pDM,
 				<< "    " << dMass - dMassInv << std::endl);
 			pedantic_cerr("  Rigid-body CM location: "
 				"input - computed" << std::endl
-				<< "    " << STmp - STmpInv/dMassInv << std::endl);
+				<< "    " << XTmpIn - STmpInv/dMassInv << std::endl);
 			pedantic_cerr("  Rigid-body inertia: "
 				"input - computed" << std::endl
 				<< "    " << DJ.GetVec(1) << std::endl
@@ -4889,19 +4887,19 @@ ReadModal(DataManager* pDM,
 			pedantic_cerr(std::endl);
 		}
 
-		// if record 12 was read, leave its data in place
+		// if record 12 was read, leave its data in place,
+		// otherwise replace rigid-body invariants with those from record 12
 		if (!bRecordGroup[12]) {
 			dMass = dMassInv;
 			STmp = STmpInv;
 			JTmp = JTmpInv;
 		}
-
 	}
 
 	// if record 12 was read, fix static moment
 	if (bRecordGroup[12]) {
 		/* left over when reading XCG */
-		STmp *= dMass;
+		STmp = XTmpIn*dMass;
 	}
 
 	/*
