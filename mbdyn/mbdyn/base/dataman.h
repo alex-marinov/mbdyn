@@ -727,8 +727,6 @@ protected:
 	typedef std::vector<Node *> NodeVecType;
 	NodeVecType Nodes;
 
-	VecIter<Node*> NodeIter;
-
 	/* dati dei nodi: numero totale e puntatore all'array dei dati
 	 * (ogni nodo ha il suo formato caratteristico, comunque derivato
 	 * dalla classe Node) */

@@ -106,8 +106,6 @@ DataManager::NodeDataInit(void)
 	if (iTotNodes > 0) {
 		Nodes.resize(iTotNodes);
 
-		NodeIter.Init(&Nodes[0], iTotNodes);
-
 		for (NodeVecType::iterator i = Nodes.begin(); i != Nodes.end(); ++i) {
 			*i = 0;
 		}

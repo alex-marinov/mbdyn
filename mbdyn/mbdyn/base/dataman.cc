@@ -186,7 +186,6 @@ pWorkMat(0),
 pWorkVec(0),
 
 /* NodeManager */
-NodeIter(),
 iTotNodes(0),
 
 /* DofManager */
