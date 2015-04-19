@@ -59,11 +59,6 @@
 
 #include "module-inline_friction.h"
 
-#define FORCE_UPDATE_ASSRES 0
-#define FORCE_UPDATE_ASSJAC 0
-#define FORCE_UPDATE_AFTERCONVERGENCE 0
-#define FORCE_UPDATE_AFTERPREDICT 1
-
 class InlineFriction: virtual public Elem, public UserDefinedElem
 {
 public:
@@ -94,9 +89,6 @@ public:
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph);
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
-	virtual void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 	std::ostream& Restart(std::ostream& out) const;
 	virtual unsigned int iGetInitialNumDof(void) const;
 	virtual void
@@ -413,7 +405,7 @@ std::ostream& InlineFriction::DescribeEq(std::ostream& out, const char *prefix, 
 
 unsigned int InlineFriction::iGetNumPrivData(void) const
 {
-	return 7;
+	return 8;
 }
 
 unsigned int InlineFriction::iGetPrivDataIdx(const char *s) const
@@ -428,7 +420,8 @@ unsigned int InlineFriction::iGetPrivDataIdx(const char *s) const
 			{ 4, "mu" },
 			{ 5, "z" },
 			{ 6, "zP" },
-			{ 7, "v" }
+			{ 7, "v" },
+			{ 8, "Pf" }
 	};
 
 	const int N = sizeof(data) / sizeof(data[0]);
@@ -467,6 +460,11 @@ doublereal InlineFriction::dGetPrivData(unsigned int i) const
 			return zP;
 		case 7:
 			return SlidingVelocity(X1, R1, XP1, omega1, X2, R2, XP2, omega2);
+		case 8:
+			{
+				const double v = SlidingVelocity(X1, R1, XP1, omega1, X2, R2, XP2, omega2);
+				return -v * FrictionForce(v);
+			}
 		default:
 			silent_cerr("inline friction(" << GetLabel() << "): invalid private data index " << i << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -499,10 +497,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-#if FORCE_UPDATE_ASSJAC == 1
-	Update(XCurr, XPrimeCurr);
-#endif
-
 	integer iNumRows, iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 
@@ -712,10 +706,6 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-#if	FORCE_UPDATE_ASSRES == 1
-	Update(XCurr, XPrimeCurr);
-#endif
-
 	integer iNumRows, iNumCols;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
@@ -732,6 +722,12 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	for (integer i = 1; i <= 3; ++i) {
 		WorkVec.PutRowIndex(i + 12, iFirstIndex + i);
 	}
+
+	for (int i = 1; i <= 2; ++i)
+		lambda[i - 1] = XCurr(iFirstIndex + i);
+
+	z = XCurr(iFirstIndex + 3);
+	zP = XPrimeCurr(iFirstIndex + 3);
 
 	const Vec3& X1 = pNode1->GetXCurr();
 	const Mat3x3& R1 = pNode1->GetRCurr();
@@ -796,31 +792,6 @@ InlineFriction::SetValue(DataManager *pDM,
 
 	X.PutCoef(iFirstIndex + 3, z);
 	XP.PutCoef(iFirstIndex + 3, zP);
-}
-
-void InlineFriction::AfterPredict(VectorHandler& X, VectorHandler& XP)
-{
-#if	FORCE_UPDATE_AFTERPREDICT == 1
-	Update(X, XP);
-#endif
-}
-
-void InlineFriction::Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr)
-{
-	const integer iFirstIndex = iGetFirstIndex();
-
-	for (int i = 1; i <= 2; ++i)
-		lambda[i - 1] = XCurr(iFirstIndex + i);
-
-	z = XCurr(iFirstIndex + 3);
-	zP = XPrimeCurr(iFirstIndex + 3);
-}
-
-void InlineFriction::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
-{
-#if FORCE_UPDATE_AFTERCONVERGENCE == 1
-	Update(X, XP);
-#endif
 }
 
 std::ostream&

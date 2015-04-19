@@ -103,8 +103,6 @@ public:
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph);
-	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
-	virtual void Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr);
 	std::ostream& Restart(std::ostream& out) const;
 	virtual unsigned int iGetInitialNumDof(void) const;
 	virtual void
@@ -121,20 +119,21 @@ public:
 	       enum FunctionCall func);
 
   private:
+	inline void SaveLambda(const grad::Vector<doublereal, 2>& lambda);
+	template <grad::index_type N>
+	inline void SaveLambda(const grad::Vector<grad::Gradient<N>, 2>&) {}
+	inline void SaveFriction(doublereal omega, doublereal mf);
+	template <grad::index_type N>
+	inline void SaveFriction(const grad::Gradient<N>&, const grad::Gradient<N>&) {}
+
    	StructNode* pNode1;
    	Vector<doublereal, 3> o1;
    	Matrix<doublereal, 3, 3> e;
    	StructNode* pNode2;
    	Vector<doublereal, 3> o2;
 
-	enum LagrangeMultiplierIndex
-	{
-		L1 = 0,
-		L2 = 1
-	};
-
-	doublereal lambda[2];
-	doublereal z, zP;
+	grad::Vector<doublereal, 2> lambda;
+	doublereal z, zP, omega, mf;
 	doublereal d;
 	doublereal sigma0, sigma1;
 	doublereal muc, mus, vs, a, kv;
@@ -156,6 +155,8 @@ JournalBearing::JournalBearing(
 	o2(Zero3),
 	z(0.),
 	zP(0.),
+	omega(0.),
+	mf(0.),
 	d(0.),
 	sigma0(0.),
 	sigma1(0.),
@@ -165,8 +166,6 @@ JournalBearing::JournalBearing(
 	a(1.),
 	kv(0.)
 {
-	memset(lambda, 0, sizeof(lambda));
-
 	// help
 	if (HP.IsKeyWord("help")) {
 		silent_cout(
@@ -445,7 +444,7 @@ std::ostream& JournalBearing::DescribeEq(std::ostream& out, const char *prefix, 
 
 unsigned int JournalBearing::iGetNumPrivData(void) const
 {
-	return 2u + (muc > 0 ? 2u : 0u);
+	return 2u + (muc > 0 ? 5u : 0u);
 }
 
 unsigned int JournalBearing::iGetPrivDataIdx(const char *s) const
@@ -457,10 +456,13 @@ unsigned int JournalBearing::iGetPrivDataIdx(const char *s) const
 			{ 1u, "lambda1" },
 			{ 2u, "lambda2" },
 			{ 3u, "z" },
-			{ 4u, "zP" }
+			{ 4u, "zP" },
+			{ 5u, "omega" },
+			{ 6u, "mf" },
+			{ 7u, "Pf" }
 	};
 
-	const int N = muc > 0 ? 4 : 2;
+	const int N = iGetNumPrivData();
 
 	ASSERT(N <= sizeof(data) / sizeof(data[0]));
 
@@ -478,13 +480,22 @@ doublereal JournalBearing::dGetPrivData(unsigned int i) const
 	switch (i) {
 		case 1:
 		case 2:
-			return lambda[i - 1];
+			return lambda(i);
 
 		case 3:
 			return z;
 
 		case 4:
 			return zP;
+
+		case 5:
+			return omega;
+
+		case 6:
+			return mf;
+
+		case 7:
+			return -omega * mf;
 
 		default:
 			silent_cerr("journal bearing(" << GetLabel() << "): invalid private data index " << i << std::endl);
@@ -501,11 +512,16 @@ JournalBearing::Output(OutputHandler& OH) const
 		{
 			std::ostream& os = OH.Loadable();
 
-			os << std::setw(8) << GetLabel() << " " << lambda[L1] << " " << lambda[L2];
+			os << std::setw(8) << GetLabel();
+
+			for (int i = 1; i <= lambda.iGetNumRows(); ++i)
+			{
+				os << " " << lambda(i);
+			}
 
 			if (muc > 0)
 			{
-				os << " " << z << " " << zP;
+				os << " " << z << " " << zP << " " << omega << " " << mf << " " << -omega * mf;
 			}
 
 			os << std::endl;
@@ -580,6 +596,8 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 
 	XCurr.GetVec(iFirstIndex + 1, lambda, 1., &dof); // Note: for algebraic variables dCoef is always one
 
+	SaveLambda(lambda);
+
 	const Vec3 R2o2 = R2 * o2;
 	const Vec3 l1 = X2 + R2o2 - X1;
 
@@ -619,6 +637,8 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 			mf += (0.5 * d) * mu * sqrt(lambda(1) * lambda(1) + lambda(2) * lambda(2));
 		}
 
+		SaveFriction(domega, mf);
+
 		const Vec3 Mf = (R1 * e.GetCol(1)) * mf;
 
 		M1 += Mf;
@@ -637,6 +657,17 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 	for (integer i = 1; i <= 2; ++i) {
 		WorkVec.AddItem(iFirstIndex + i, Dot(e.GetCol(i + 1), a1) / dCoef);
 	}
+}
+
+void JournalBearing::SaveLambda(const grad::Vector<doublereal, 2>& lambda)
+{
+	this->lambda = lambda;
+}
+
+void JournalBearing::SaveFriction(doublereal omega, doublereal mf)
+{
+	this->omega = omega;
+	this->mf = mf;
 }
 
 int
@@ -663,33 +694,12 @@ JournalBearing::SetValue(DataManager *pDM,
 	int i;
 
 	for (i = 1; i <= 2; ++i) {
-		X.PutCoef(iFirstIndex + i, lambda[i - 1]);
+		X.PutCoef(iFirstIndex + i, lambda(i));
 	}
 
 	if (muc > 0.) {
 		X.PutCoef(iFirstIndex + i, z);
 		XP.PutCoef(iFirstIndex + i, zP);
-	}
-}
-
-void JournalBearing::AfterPredict(VectorHandler& X, VectorHandler& XP)
-{
-	Update(X, XP);
-}
-
-void JournalBearing::Update(const VectorHandler& XCurr,const VectorHandler& XPrimeCurr)
-{
-	const integer iFirstIndex = iGetFirstIndex();
-
-	int i;
-
-	for (i = 1; i <= 2; ++i) {
-		lambda[i - 1] = XCurr(iFirstIndex + i);
-	}
-
-	if (muc > 0.) {
-		z = XCurr(iFirstIndex + i);
-		zP = XPrimeCurr(iFirstIndex + i);
 	}
 }
 
@@ -748,6 +758,7 @@ JournalBearing::InitialAssRes(GradientAssVec<T>& WorkVec,
        enum FunctionCall func) {
 
 	typedef Vector<T, 3> Vec3;
+	typedef Vector<T, 2> Vec2;
 	typedef Matrix<T, 3, 3> Mat3x3;
 
 	Vec3 X1, XP1, X2, XP2, omega1, omega2;
@@ -767,20 +778,22 @@ JournalBearing::InitialAssRes(GradientAssVec<T>& WorkVec,
 	const integer iFirstIndexNode2 = pNode2->iGetFirstIndex();
 	const integer iFirstIndex = iGetFirstIndex();
 
-	T lambda[2], lambdaP[2];
+	Vec2 lambda, lambdaP;
 
 	for (integer i = 1; i <= 2; ++i) {
-		XCurr.dGetCoef(iFirstIndex + i, lambda[i - 1], 1., &dof);
-		XCurr.dGetCoef(iFirstIndex + i + 2, lambdaP[i - 1], 1., &dof);
+		XCurr.dGetCoef(iFirstIndex + i, lambda(i), 1., &dof);
+		XCurr.dGetCoef(iFirstIndex + i + 2, lambdaP(i), 1., &dof);
 	}
+
+	SaveLambda(lambda);
 
 	const Vec3 R2o2 = R2 * o2;
 	const Vec3 l1 = X2 + R2o2 - X1;
 
-	const Vec3 F1 = R1 * Vec3(e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2]);
+	const Vec3 F1 = R1 * Vec3(e.GetCol(2) * lambda(1) + e.GetCol(3) * lambda(2));
 	const Vec3 M1 = Cross(l1, F1);
-	const Vec3 FP1 = Cross(omega1, R1 * Vec3(e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2]))
-					+ R1 * Vec3(e.GetCol(2) * lambdaP[L1] + e.GetCol(3) * lambdaP[L2]);
+	const Vec3 FP1 = Cross(omega1, R1 * Vec3(e.GetCol(2) * lambda(1) + e.GetCol(3) * lambda(2)))
+					+ R1 * Vec3(e.GetCol(2) * lambdaP(1) + e.GetCol(3) * lambdaP(2));
 	const Vec3 MP1 = -Cross(F1, XP2 + Cross(omega2, R2o2) - XP1) + Cross(l1, FP1);
 	const Vec3 F2 = -F1;
 	const Vec3 M2 = Cross(R2o2, F2);
