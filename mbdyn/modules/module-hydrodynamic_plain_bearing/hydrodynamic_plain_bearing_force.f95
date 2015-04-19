@@ -27,6 +27,15 @@
 ! along with this program; if not, write to the Free Software
 ! Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 ! 
+
+! AUTHOR: Reinhard Resch <R.RESCH@secop.com>
+!        Copyright (C) 2011(-2015) all rights reserved.
+!
+!        The copyright of this code is transferred
+!        to Pierangelo Masarati and Paolo Mantegazza
+!        for use in the software MBDyn as described
+!        in the GNU Public License version 2.1
+
 MODULE MATH_CONST
         IMPLICIT NONE
         DOUBLE PRECISION,PARAMETER :: pi = 3.14159265358979D0
@@ -156,13 +165,8 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
                 & +  3D0 / 2D0 * eps * DSQRT( 1D0 - eps**2 ) ) * a8 * ( 1D0 - eps ) / ( -a9 - eps )
 
         ! angle between force for rotation and minimum clearance according to Butenschoen 1976
-        beta= ATAN( pi * DSQRT( 1D0 - eps**2 ) / ( 2D0 * DABS(eps) ) ) &
+        beta= ATAN2( pi * DSQRT( 1D0 - eps**2 ), ( 2D0 * DABS(eps) ) ) &
                 & * ( a3 + a4 * DABS(eps) + a5 * eps**2 + a6 * DABS(eps)**3 + a7 * eps**4 )
-
-        
-        ! friction coefficient according to Butenschoen
-        my = Psi * ( DABS( ( omega(1) - omega(2) ) / ( omega(2) + omega(1) - 2D0 * delta_dot ) ) &
-                  & * pi / ( DSQRT( 1D0 - eps**2 ) * SoD ) + DSIN(beta) * DABS(eps) / 2D0 )
         
         ! effective hydrodynamic angular velocity according to Butenschoen 1976
         omega_res = omega(1) + omega(2) - 2D0 * delta_dot
@@ -179,8 +183,12 @@ SUBROUTINE HYDRODYNAMIC_PLAIN_BEARING_FORCE(b,d,Psi,eta,omega,e,e_dot,k,eps,eps_
         IF ( DABS(eps) .LT. 1D-6 ) THEN
                 ! avoid division infinite by infinite in case of zero relative eccentricity
                 ! use analytical limit of abs_MR for eps going to zero
+                my = HUGE(1D0)
                 abs_MR = pi * b * d**2 * eta * DABS( omega(1) - omega(2) ) / Psi / 2D0
         ELSE
+        ! friction coefficient according to Butenschoen
+                my = Psi * ( DABS( ( omega(1) - omega(2) ) / ( omega(2) + omega(1) - 2D0 * delta_dot ) ) &
+                          & * pi / ( DSQRT( 1D0 - eps**2 ) * SoD ) + DSIN(beta) * DABS(eps) / 2D0 )
                 abs_MR = my * abs_FD * d / 2D0
         ENDIF
 
