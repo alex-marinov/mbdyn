@@ -634,7 +634,7 @@ doublereal UniInPlaneFriction::dGetPrivData(unsigned int i) const
 {
 	const div_t idx = div(i - 1, iNumPrivData);
 
-	if ( idx.quot < 0 || idx.quot >= ContactPoints1.size() || idx.rem < 0 || idx.rem >= iNumPrivData )
+	if ( idx.quot < 0 || ContactPointVec_t::size_type(idx.quot) >= ContactPoints1.size() || idx.rem < 0 || idx.rem >= iNumPrivData )
 	{
 		silent_cerr("unilateral in plane(" << GetLabel() << "): index " << i << " out of range" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

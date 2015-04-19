@@ -213,7 +213,7 @@ multi_step_drive_set()
 {
 	DriveCallerRead	*rf = new MultiStepDriveDCR;
 
-	if (!SetDriveData("multi" "step", rf)) {
+	if (!SetDriveCallerData("multi" "step", rf)) {
 		delete rf;
 		return false;
 	}

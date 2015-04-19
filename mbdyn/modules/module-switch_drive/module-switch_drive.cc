@@ -259,7 +259,7 @@ switch_drive_set()
 {
 	DriveCallerRead	*rf = new SwitchDriveDCR;
 
-	if (!SetDriveData("switch", rf)) {
+	if (!SetDriveCallerData("switch", rf)) {
 		delete rf;
 		return false;
 	}
