@@ -601,7 +601,15 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 
 		const T domega = Dot(e.GetCol(1), Transpose(R1) * Vec3(omega2 - omega1));
 		const T v = (0.5 * d) * domega;
-		const T g = muc + (mus - muc) * exp(-pow(fabs(v / vs), a));
+		
+		T g;
+		
+		if (std::abs(v) > std::numeric_limits<doublereal>::epsilon()) {
+			g = muc + (mus - muc) * exp(-pow(fabs(v / vs), a));
+		} else  {
+			g = mus;
+		}
+		
 		const T f = v - sigma0 * fabs(v) / g * z - zP;
 		const T mu = sigma0 * z + sigma1 * zP;
 
