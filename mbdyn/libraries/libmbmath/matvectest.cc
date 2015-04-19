@@ -1594,8 +1594,6 @@ void testMatVecCopy() {
 	std::cout << "v=" << v << std::endl;
 }
 
-#ifdef HAVE_BLITZ
-
 namespace gradVecAssTest {
 const int I1 = 1, I2 = 2, I3 = 3;
 
@@ -1624,6 +1622,7 @@ Matrix<T, 3, 3>& Euler123ToMatR(const Vector<T, 3>& v, Matrix<T, 3, 3>& R) {
 	return R;
 }
 
+#ifdef HAVE_BLITZ
 
 class Node {
 public:
@@ -2437,8 +2436,9 @@ void testAssembly() {
     std::cerr << "overhead:" << tckJacAD / tckJac << std::endl;
     std::cerr << "total time:" << (tckEnd - tckStart) / iIterCnt << std::endl;
 }
-}
+
 #endif
+}
 
 void testMatVec3() {
 	srand(0);
@@ -2720,6 +2720,225 @@ void testMatVec() {
     		assert(bCompare(cd_MatVecGradient[i][j], cd_MatVecGradientBlitz[i][j]));
     	}
 #endif
+    }
+}
+
+template <int iNumDofMax>
+void cppad_benchmark1(const int N)
+{
+    const int iNumDof = 6;
+    
+    assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
+    
+    Matrix<Gradient<iNumDofMax>, 3, 3> R;
+    Vector<Gradient<iNumDofMax>, 3> X, Y, Phi;
+    Vector<doublereal, 3> o;
+    LocalDofMap dof;
+        
+    o(1) = 1.;
+    o(2) = 2.;
+    o(3) = 3.;
+    
+    Matrix<doublereal, 3, iNumDof> jac;
+    
+    const double start = mbdyn_clock_time();
+    double calc = 0.;
+    
+    for (int loop = 0; loop < N; ++loop)
+    {            
+        for (int i = 0; i < 3; ++i)
+        {
+            X(i + 1).SetValuePreserve(0.);
+            X(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
+            Phi(i + 1).SetValuePreserve(0.);
+            Phi(i + 1).DerivativeResizeReset(&dof, i + 3, MapVectorBase::GLOBAL, 1.);
+        }
+        
+        const double start_calc = mbdyn_clock_time();
+        
+        gradVecAssTest::Euler123ToMatR(Phi, R);
+        
+        Y = X + R * o;
+        
+        calc += mbdyn_clock_time() - start_calc;
+        
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < iNumDof; ++j)
+            {
+                jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
+            }
+        }
+    }
+    
+    std::cout << "calculation time: " << calc/N << "s\n";
+    std::cout << "elapsed time: " << (mbdyn_clock_time() - start)/N << "s\n";
+    
+    std::cout << "x=" << X << std::endl;
+    std::cout << "y=" << Y << std::endl;
+    std::cout << "jac=\n";
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < iNumDof; ++j)
+        {
+            std::cout << jac(i + 1, j + 1) << '\t';
+        }
+        std::cout << std::endl;
+    }
+}
+
+template <int iNumDofMax>
+void cppad_benchmark2(const int N)
+{
+    const int iNumDof = 12;
+    
+    assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
+    
+    Matrix<Gradient<iNumDofMax>, 3, 3> R1, R2;
+    Vector<Gradient<iNumDofMax>, 3> X1, X2, Y, Phi1, Phi2;
+    Vector<doublereal, 3> o1, o2;
+    LocalDofMap dof;
+        
+    o1(1) = 1.;
+    o1(2) = 2.;
+    o1(3) = 3.;
+
+    o2(1) = 1.;
+    o2(2) = 2.;
+    o2(3) = 3.;
+    
+    Matrix<doublereal, 3, iNumDof> jac;
+    
+    const double start = mbdyn_clock_time();
+    double calc = 0.;
+    
+    for (int loop = 0; loop < N; ++loop)
+    {            
+        for (int i = 0; i < 3; ++i)
+        {
+            X1(i + 1).SetValuePreserve(0.);
+            X1(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
+            Phi1(i + 1).SetValuePreserve(0.);
+            Phi1(i + 1).DerivativeResizeReset(&dof, i + 3, MapVectorBase::GLOBAL, 1.);
+            X2(i + 1).SetValuePreserve(0.);
+            X2(i + 1).DerivativeResizeReset(&dof, i + 6, MapVectorBase::GLOBAL, 1.);
+            Phi2(i + 1).SetValuePreserve(0.);
+            Phi2(i + 1).DerivativeResizeReset(&dof, i + 9, MapVectorBase::GLOBAL, 1.);            
+        }
+        
+        const double start_calc = mbdyn_clock_time();
+        
+        gradVecAssTest::Euler123ToMatR(Phi1, R1);
+        gradVecAssTest::Euler123ToMatR(Phi2, R2);
+        
+        Y = X1 + R1 * o1 - X2 - R2 * o2;
+        
+        calc += mbdyn_clock_time() - start_calc;
+        
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < iNumDof; ++j)
+            {
+                jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
+            }
+        }
+    }
+    
+    std::cout << "calculation time: " << calc/N << "s\n";
+    std::cout << "elapsed time: " << (mbdyn_clock_time() - start)/N << "s\n";
+    
+    std::cout << "X1=" << X1 << std::endl;
+    std::cout << "X2=" << X2 << std::endl;
+    std::cout << "Y=" << Y << std::endl;
+    std::cout << "jac=\n";
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < iNumDof; ++j)
+        {
+            std::cout << jac(i + 1, j + 1) << '\t';
+        }
+        std::cout << std::endl;
+    }
+}
+
+template <int iNumDofMax>
+void cppad_benchmark3(const int N)
+{
+    const int iNumDof = 12;
+    
+    assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
+    
+    typedef Matrix<Gradient<iNumDofMax>, 3, 3> Mat3x3;
+    typedef Vector<Gradient<iNumDofMax>, 3> Vec3;
+    typedef Vector<doublereal, 3> CVec3;
+    
+    Mat3x3 R1, R2;
+    Vec3 X1, X2, Y, Phi1, Phi2;
+    CVec3 o1, o2;
+    LocalDofMap dof;
+        
+    o1(1) = 1.;
+    o1(2) = 2.;
+    o1(3) = 3.;
+
+    o2(1) = 1.;
+    o2(2) = 2.;
+    o2(3) = 3.;
+    
+    Matrix<doublereal, 3, iNumDof> jac;
+    
+    const double start = mbdyn_clock_time();
+    double calc = 0.;
+    
+    for (int loop = 0; loop < N; ++loop)
+    {            
+        for (int i = 0; i < 3; ++i)
+        {
+            X1(i + 1).SetValuePreserve(0.);
+            X1(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
+            Phi1(i + 1).SetValuePreserve(0.);
+            Phi1(i + 1).DerivativeResizeReset(&dof, i + 3, MapVectorBase::GLOBAL, 1.);
+            X2(i + 1).SetValuePreserve(0.);
+            X2(i + 1).DerivativeResizeReset(&dof, i + 6, MapVectorBase::GLOBAL, 1.);
+            Phi2(i + 1).SetValuePreserve(0.);
+            Phi2(i + 1).DerivativeResizeReset(&dof, i + 9, MapVectorBase::GLOBAL, 1.);            
+        }
+        
+        const double start_calc = mbdyn_clock_time();
+        
+        gradVecAssTest::Euler123ToMatR(Phi1, R1);
+        gradVecAssTest::Euler123ToMatR(Phi2, R2);
+        
+        Y = Transpose(R2) * Vec3(X1 + R1 * o1 - X2) - o2;
+        
+        calc += mbdyn_clock_time() - start_calc;
+        
+        for (int i = 0; i < 3; ++i)
+        {
+            for (int j = 0; j < iNumDof; ++j)
+            {
+                jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
+            }
+        }
+    }
+    
+    std::cout << "calculation time: " << calc/N << "s\n";
+    std::cout << "elapsed time: " << (mbdyn_clock_time() - start)/N << "s\n";
+    
+    std::cout << "X1=" << X1 << std::endl;
+    std::cout << "X2=" << X2 << std::endl;
+    std::cout << "Y=" << Y << std::endl;
+    std::cout << "jac=\n";
+
+    for (int i = 0; i < 3; ++i)
+    {
+        for (int j = 0; j < iNumDof; ++j)
+        {
+            std::cout << jac(i + 1, j + 1) << '\t';
+        }
+        std::cout << std::endl;
     }
 }
 
