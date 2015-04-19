@@ -152,6 +152,10 @@ module-autodiff_test/examples/inline_joint_ad_2_parameters.set \
 module-autodiff_test/examples/inline_joint_ad_2_tmp.elm \
 module-autodiff_test/examples/inline_joint_ad_2_trad.elm
 
+# TODO
+#EXTRA_DIST += \
+#module-journal_bearing
+
 EXTRA_DIST += \
 module-constlaw/module-constlaw.cc \
 module-constlaw/README
@@ -200,7 +204,7 @@ module-hid/hid_detect.c \
 module-hid/hid.set \
 module-hid/hid_ms_sidewinder.set \
 module-hid/hid_thrustmaster.set \
-module-hid/hid_xxx.set \
+module-hid/hid_saitek_x45.set \
 module-hid/hid_aircraft \
 module-hid/hid_test
 
@@ -292,6 +296,13 @@ module-inplane_friction/@InPlaneFriction/WorkSpaceDim.m \
 module-inplane_friction/examples/inplane_friction.mbdyn
 
 EXTRA_DIST += \
+module-journal_bearing/module-journal_bearing.cc \
+module-journal_bearing/module-journal_bearing.h \
+module-journal_bearing/examples/journal_bearing1.mbdyn \
+module-journal_bearing/examples/journal_bearing2.mbdyn
+
+
+EXTRA_DIST += \
 module-mds/mds \
 module-mds/module-mds.cc
 
@@ -299,6 +310,11 @@ EXTRA_DIST += \
 module-minmaxdrive/minmax.mbdyn \
 module-minmaxdrive/module-minmaxdrive.cc \
 module-minmaxdrive/module-minmaxdrive.h
+
+EXTRA_DIST += \
+module-multi_step_drive/module-multi_step_drive.cc \
+module-multi_step_drive/module-multi_step_drive.h \
+module-multi_step_drive/multi_step.mbdyn
 
 EXTRA_DIST += \
 module-muscles/muscle_test \
@@ -369,6 +385,11 @@ module-scalarfunc/module-scalarfunc.cc \
 module-scalarfunc/README
 
 EXTRA_DIST += \
+module-switch_drive/module-switch_drive.cc \
+module-switch_drive/module-switch_drive.h \
+module-switch_drive/switch.mbdyn
+
+EXTRA_DIST += \
 module-tclpgin/Makefile.inc \
 module-tclpgin/module-tclpgin.cc
 
@@ -382,6 +403,11 @@ EXTRA_DIST += \
 module-udunits/Makefile.inc \
 module-udunits/module-udunits.cc \
 module-udunits/README
+
+EXTRA_DIST += \
+module-uni_in_plane/module-uni_in_plane.cc \
+module-uni_in_plane/module-uni_in_plane.h \
+module-uni_in_plane/uni_in_plane.mbdyn
 
 EXTRA_DIST += \
 module-wheel2/module-wheel2.cc \
