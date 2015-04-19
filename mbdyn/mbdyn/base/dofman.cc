@@ -62,11 +62,13 @@ void DataManager::DofManagerDestructor(void)
       DEBUGLCOUT(MYDEBUG_INIT, "deleting dof owners structure" << std::endl);
       SAFEDELETEARR(pDofOwners);
    }
-   
+
+#if 0
    if(pDofs != NULL) {	
       DEBUGLCOUT(MYDEBUG_INIT, "deleting dofs structure" << std::endl);
       SAFEDELETEARR(pDofs);
    }   
+#endif
 }
 
 doublereal
@@ -130,7 +132,8 @@ void DataManager::DofInit(void)
       integer iNumDofs = 0;  /* numero di dof di un owner */
       for(int iCnt = 1; 
 	  pTmp < pDofOwners+iTotDofOwners; 
-	  iCnt++, pTmp++) {
+	  iCnt++, pTmp++)
+      {
 	 if((iNumDofs = pTmp->iNumDofs) > 0) {
 	    pTmp->iFirstIndex = iIndex;
 	    iIndex += iNumDofs;
@@ -153,19 +156,12 @@ void DataManager::DofInit(void)
    	
    /* Crea la struttura dinamica dei Dof */
    if(iTotDofs > 0) {	
-      SAFENEWARRNOFILL(pDofs, Dof, iTotDofs);
-      
-      /* Inizializza l'iteratore sui Dof */
-      DofIter.Init(pDofs, iTotDofs);
-      
-      /* Inizializza la struttura dinamica dei Dof */
-      Dof* pTmp = pDofs;
+      Dofs.resize(iTotDofs);
       integer iIndex = pDofOwners[0].iFirstIndex;
-      while(pTmp < pDofs+iTotDofs) {
-	 pTmp->iIndex = iIndex++;
-	 pTmp->Order = DofOrder::DIFFERENTIAL;
-	 pTmp++;
-      }	
+      for (DofIterator i = Dofs.begin(); i != Dofs.end(); ++i) {
+         i->iIndex = iIndex++;
+         i->Order = DofOrder::DIFFERENTIAL;
+      }
    } else {
       DEBUGCERR("");
       silent_cerr("no dofs are defined" << std::endl);

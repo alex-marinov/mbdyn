@@ -192,8 +192,7 @@ iTotNodes(0),
 iTotDofOwners(0),
 pDofOwners(0),
 iTotDofs(0),
-pDofs(0),
-DofIter()
+Dofs()
 {
 	DEBUGCOUTFNAME("DataManager::DataManager");
 
@@ -621,7 +620,7 @@ DofIter()
 	if (DEBUG_LEVEL_MATCH(MYDEBUG_INIT)) {
 		for (int iCnt = 0; iCnt < iTotDofs; iCnt++) {
 			std::cout << "Dof " << std::setw(4) << iCnt+1 << ": order "
-				<< pDofs[iCnt].Order << std::endl;
+				<< Dofs[iCnt].Order << std::endl;
 		}
 	}
 #endif /* DEBUG */

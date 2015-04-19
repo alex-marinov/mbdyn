@@ -175,7 +175,7 @@ void
 DataManager::DofOwnerInit(void)
 {
 	DEBUGCOUTFNAME("DataManager::DofOwnerInit");
-	ASSERT(pDofs != NULL);
+	ASSERT(!Dofs.empty());
 	ASSERT(!Nodes.empty());
 
 	if ( uPrintFlags & PRINT_TO_FILE ) {
@@ -183,14 +183,14 @@ DataManager::DofOwnerInit(void)
 	}
 
 	std::ostream& out_ds = (uPrintFlags & PRINT_TO_FILE)
-							? OutHdl.DofStats()
-							: std::cout;
+		? OutHdl.DofStats()
+		: std::cout;
 
 	bool pds =
 #ifdef DEBUG
-			DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
+		DEBUG_LEVEL_MATCH(MYDEBUG_INIT|MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-			(!silent_output && (uPrintFlags & PRINT_DOF_STATS));
+		(!silent_output && (uPrintFlags & PRINT_DOF_STATS));
 
 	/* NOTE: further direct use of std::cout instead
 	 * of silent_cout() macro because silent_cout is
@@ -398,7 +398,7 @@ DataManager::DofOwnerInit(void)
 			ASSERT((*i)->iGetFirstIndex() >= 0);
 
 			/* si fa passare il primo Dof */
-			Dof* pDf = pDofs + (*i)->iGetFirstIndex();
+			Dof* pDf = &Dofs[(*i)->iGetFirstIndex()];
 
 #ifdef DEBUG
 			DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
@@ -499,7 +499,7 @@ DataManager::DofOwnerInit(void)
 				ASSERT(pEWD->iGetFirstIndex() >= 0);
 
 				/* si fa passare il DofOwner */
-				Dof* pDf = pDofs + pEWD->iGetFirstIndex();
+				Dof* pDf = &Dofs[pEWD->iGetFirstIndex()];
 
 #ifdef DEBUG
 				DEBUGLCOUT(MYDEBUG_INIT|MYDEBUG_ASSEMBLY,
@@ -676,14 +676,14 @@ DataManager::InitialJointAssembly(void)
 	}
 
 	std::ostream& out_ds = (uPrintFlags & PRINT_TO_FILE)
-							? OutHdl.DofStats()
-							: std::cout;
+		? OutHdl.DofStats()
+		: std::cout;
 
 	/* Costruisce la struttura temporanea dei Dof */
 
 	ASSERTMSG(DofData[DofOwner::JOINT].iNum > 0,
-			"Warning, no joints are defined; "
-			"You shouldn't have reached this point");
+		"Warning, no joints are defined; "
+		"You shouldn't have reached this point");
 	ASSERT(DofData[DofOwner::STRUCTURALNODE].iNum > 0);
 
 	/* Nodi strutturali: mette gli indici ai DofOwner */
@@ -760,14 +760,14 @@ DataManager::InitialJointAssembly(void)
 	 */
 
 	/* Creazione e costruzione array Dof */
-	SAFENEWARRNOFILL(pDofs, Dof, iInitialNumDofs);
+	Dofs.resize(iInitialNumDofs);
 
 	// just to make sure nothing strange occurs...
 	iTotDofs = iInitialNumDofs;
 
 	integer iIndex;    /* Indice dei gradi di liberta' */
 	for (iIndex = 0; iIndex < iInitialNumDofs; iIndex++) {
-		pDofs[iIndex].iIndex = iIndex;
+		Dofs[iIndex].iIndex = iIndex;
 	}
 
 	/* mette a posto i dof */
@@ -808,7 +808,7 @@ DataManager::InitialJointAssembly(void)
 			pNode->DescribeDof(DofDesc, true);
 			if (DofDesc.size() == iNumDofs) {
 				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-					pDofs[iIndex + iCnt].Description = DofDesc[iCnt];
+					Dofs[iIndex + iCnt].Description = DofDesc[iCnt];
 				}
 
 			} else {
@@ -821,7 +821,7 @@ DataManager::InitialJointAssembly(void)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << ": dof(" << iCnt + 1 << ")";
-					pDofs[iIndex + iCnt].Description = os.str();
+					Dofs[iIndex + iCnt].Description = os.str();
 				}
 			}
 
@@ -829,7 +829,7 @@ DataManager::InitialJointAssembly(void)
 			pNode->DescribeEq(EqDesc, true);
 			if (EqDesc.size() == iNumDofs) {
 				for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-					pDofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
+					Dofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
 				}
 
 			} else {
@@ -842,7 +842,7 @@ DataManager::InitialJointAssembly(void)
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
 					os << ": equation(" << iCnt + 1 << ")";
-					pDofs[iIndex + iCnt].EqDescription = os.str();
+					Dofs[iIndex + iCnt].EqDescription = os.str();
 				}
 			}
 
@@ -923,7 +923,7 @@ DataManager::InitialJointAssembly(void)
 						pEl->DescribeDof(DofDesc, true);
 						if (DofDesc.size() == iNumDofs) {
 							for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-								pDofs[iIndex + iCnt].Description = DofDesc[iCnt];
+								Dofs[iIndex + iCnt].Description = DofDesc[iCnt];
 							}
 
 						} else {
@@ -936,7 +936,7 @@ DataManager::InitialJointAssembly(void)
 								os.str(name);
 								os.seekp(0, std::ios_base::end);
 								os << ": dof(" << iCnt + 1 << ")";
-								pDofs[iIndex + iCnt].Description = os.str();
+								Dofs[iIndex + iCnt].Description = os.str();
 							}
 						}
 
@@ -944,7 +944,7 @@ DataManager::InitialJointAssembly(void)
 						pEl->DescribeEq(EqDesc, true);
 						if (EqDesc.size() == iNumDofs) {
 							for (unsigned iCnt = 0; iCnt < iNumDofs; iCnt++) {
-								pDofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
+								Dofs[iIndex + iCnt].EqDescription = EqDesc[iCnt];
 							}
 
 						} else {
@@ -957,7 +957,7 @@ DataManager::InitialJointAssembly(void)
 								os.str(name);
 								os.seekp(0, std::ios_base::end);
 								os << ": equation(" << iCnt + 1 << ")";
-								pDofs[iIndex + iCnt].EqDescription = os.str();
+								Dofs[iIndex + iCnt].EqDescription = os.str();
 							}
 						}
 
@@ -1322,10 +1322,7 @@ endofcycle:
 	}
 
 	/* Dealloca il vettore dei Dof */
-	ASSERT(pDofs != NULL);
-	if (pDofs != NULL) {
-		SAFEDELETEARR(pDofs);
-	}
+	ASSERT(!Dofs.empty());
 
 	// restore
 	iTotDofs = 0;
@@ -1712,7 +1709,7 @@ DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
     		silent_cout("Eq  " << std::setw(8)
 			<< iTmpCnt << ": " 
 			<< std::setw(20) << Res(iTmpCnt)
-			<< " " << pDofs[iTmpCnt-1].EqDescription
+			<< " " << Dofs[iTmpCnt - 1].EqDescription
 			<< std::endl);
 	}
 }
@@ -1728,7 +1725,7 @@ DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
     		silent_cout("Dof " << std::setw(8)
 			<< iTmpCnt << ": " 
 			<< std::setw(20) << Sol(iTmpCnt)
-			<< " " << pDofs[iTmpCnt-1].Description
+			<< " " << Dofs[iTmpCnt - 1].Description
 			<< std::endl);
 	}
 }
@@ -1737,28 +1734,28 @@ const std::string&
 DataManager::GetDofDescription(int i) const
 {
 	ASSERT(i > 0 && i <= iTotDofs);
-	return pDofs[i - 1].Description;
+	return Dofs[i - 1].Description;
 }
 
 const std::string&
 DataManager::GetEqDescription(int i) const
 {
 	ASSERT(i > 0 && i <= iTotDofs);
-	return pDofs[i - 1].EqDescription;
+	return Dofs[i - 1].EqDescription;
 }
 
 DofOrder::Order
 DataManager::GetDofType(int i) const
 {
 	ASSERT(i > 0 && i <= iTotDofs);
-	return pDofs[i - 1].Order;
+	return Dofs[i - 1].Order;
 }
 
 DofOrder::Order
 DataManager::GetEqType(int i) const
 {
 	ASSERT(i > 0 && i <= iTotDofs);
-	return pDofs[i - 1].EqOrder;
+	return Dofs[i - 1].EqOrder;
 }
 
 #ifdef MBDYN_FDJAC

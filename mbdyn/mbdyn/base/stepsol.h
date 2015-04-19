@@ -91,8 +91,7 @@ public:
 
 protected:	
 	DataManager* pDM;
-	VecIter<Dof> DofIterator; 	/* Iteratore per la struttura dei Dof,
-					 * passato da DM */
+	const DataManager::DofVecType *pDofs; 	/* Dof array, passed by DM */
 
 	bool outputPred;
 	

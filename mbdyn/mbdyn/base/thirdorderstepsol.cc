@@ -86,15 +86,16 @@ ThirdOrderIntegrator::Advance(Solver* pS,
 		Restmp.Resize(n);
 		EqIsAlgebraic.resize(n);
 		EqIsDifferential.resize(n);
-	   	Dof CurrDof;
-		DofIterator.bGetFirst(CurrDof);
+	   	DataManager::DofIterator_const CurrDof = pDofs->begin();
 		for (int iCntm1 = 0; iCntm1 < n;
-			iCntm1++, DofIterator.bGetNext(CurrDof)) {
+			iCntm1++, ++CurrDof)
+		{
+			ASSERT(CurrDof != pDofs->end());
 			EqIsAlgebraic[iCntm1] = (
-				CurrDof.EqOrder==DofOrder::ALGEBRAIC);
+				CurrDof->EqOrder == DofOrder::ALGEBRAIC);
 			EqIsDifferential[iCntm1] = (!EqIsAlgebraic[iCntm1]);
 		}
-		DofIterator.bGetFirst(CurrDof);
+	   	CurrDof = pDofs->begin();
 		Jacxi_xp.Resize(n, n);
 		Jacxi_x.Resize(n, n);
 		Jac_xp.Resize(n, n);
@@ -198,7 +199,6 @@ ThirdOrderIntegrator::Predict(void)
 {
    	DEBUGCOUTFNAME("ThirdOrderIntegrator::Predict");
    	ASSERT(pDM != NULL);
-   	Dof CurrDof;
 
 #ifdef USE_SCHUR
 	SchurDataManager* pSDM;
@@ -208,7 +208,7 @@ ThirdOrderIntegrator::Predict(void)
 	}
 #endif // USE_SCHUR
 
-	DofIterator.bGetFirst(CurrDof);
+   	DataManager::DofIterator_const CurrDof = pDofs->begin();
 	
    	/* 
 	 * Linear combination of previous step state and derivative 

@@ -995,18 +995,13 @@ DataManager::IDDofInit(void)
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	SAFENEWARRNOFILL(pDofs, Dof, iRealTotDofs);/* Inizializza l'iteratore sui Dof */
-	DofIter.Init(pDofs, iRealTotDofs);
+	Dofs.resize(iRealTotDofs); /* Inizializza l'iteratore sui Dof */
 
 	/* Inizializza la struttura dinamica dei Dof */
-	 
-	/*FIXME:*/
-	Dof* pTmp = pDofs;
 	integer iIndex = pDofOwners[0].iFirstIndex;
-	while (pTmp < pDofs + iRealTotDofs) {
-		 pTmp->iIndex = iIndex++;
-		 pTmp->Order = DofOrder::DIFFERENTIAL;
-		 pTmp++;
+	for (integer idx = 0; idx < iRealTotDofs; idx++) {
+		Dofs[idx].iIndex = iIndex++;
+		Dofs[idx].Order = DofOrder::DIFFERENTIAL;
 	}
 }  
 

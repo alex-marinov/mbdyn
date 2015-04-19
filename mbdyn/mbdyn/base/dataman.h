@@ -322,12 +322,6 @@ public:
 		VectorHandler& XPrimePrimeCurr,
 		VectorHandler& LambdaCurr);
 	
-	/* Restituisce il numero di dof per la costruzione delle matrici ecc. */
-	integer iGetNumDofs(void) const { return iTotDofs; };
-
-	/* Restituisce il puntatore alla struttura dei dof */
-	VecIter<Dof>& GetDofIterator(void) /* const */ { return DofIter; };
-
 	/* Restituisce l'ostream al file di output,
 	 * usato dai vari metodi per scrivere il log del calcolo */
 	std::ostream& GetOutFile(void) const { return OutHdl.Output(); };
@@ -780,15 +774,27 @@ protected:
 	integer iTotDofOwners;           /* numero totale di DofOwners */
 	DofOwner* pDofOwners;            /* puntatore all'array dei DofOwner */
 
+public:
 	/* struttura dei dati di ogni singolo dof: totale dei dof; per ognuno:
 	 * indice e tipo (algebrico o differenziale) */
+	typedef std::vector<Dof> DofVecType;
+	typedef DofVecType::const_iterator DofIterator_const;
+	typedef DofVecType::iterator DofIterator;
+
+	/* Restituisce il puntatore alla struttura dei dof */
+	const DofVecType& GetDofs(void) const { return Dofs; };
+
+	/* Restituisce il numero di dof per la costruzione delle matrici ecc. */
+	integer iGetNumDofs(void) const { return iTotDofs; };
+
+protected:
+	DofVecType Dofs;
 	integer iTotDofs;                /* numero totale di Dof */
-	Dof* pDofs;                      /* puntatore all'array dei Dof */
-	VecIter<Dof> DofIter;            /* Iteratore dei Dof */
 
 	DofOwner DummyDofOwner; /* Per quelli che non hanno dof */
 
 	doublereal dGetDefaultScale(DofOwner::Type t) const;
+
 public:
 	/* pseudocostruttore */
 	void DofManager(void);

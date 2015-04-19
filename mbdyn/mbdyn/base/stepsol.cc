@@ -52,8 +52,8 @@ StepIntegrator::StepIntegrator(const integer MaxIt,
 		const doublereal dSolutionTol,
 		const integer stp,
 		const integer sts)
-: pDM(NULL),
-DofIterator(),
+: pDM(0),
+pDofs(0),
 outputPred(false),
 MaxIters(MaxIt),
 dTol(dT),
@@ -73,7 +73,7 @@ void
 StepIntegrator::SetDataManager(DataManager* pDatMan)
 {
 	pDM = pDatMan;
-	DofIterator = pDM->GetDofIterator();
+	pDofs = &pDM->GetDofs();
 }
 
 integer
@@ -215,16 +215,16 @@ ImplicitStepIntegrator::TestScale(const NonlinearSolverTest *pTest, doublereal& 
 #warning "ImplicitStepIntegrator::TestScale() not available with Schur solution"
 #endif /* USE_MPI */
 
-		Dof CurrDof;
 		doublereal dXPr = 0.;
 
-		DofIterator.bGetFirst(CurrDof);
+		DataManager::DofIterator_const CurrDof = pDofs->begin();
 
 	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize();
-				iCntp1++, DofIterator.bGetNext(CurrDof))
+			iCntp1++, ++CurrDof)
 		{
+			ASSERT(CurrDof != pDofs->end());
 
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			if (CurrDof->Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = pXPrimeCurr->operator()(iCntp1);
 				doublereal d2 = d*d;
 
@@ -1383,16 +1383,16 @@ InverseDynamicsStepSolver::TestScale(const NonlinearSolverTest *pTest, doublerea
 #warning "InverseDynamicsStepSolver::TestScale() not available with Schur solution"
 #endif /* USE_MPI */
 
-		Dof CurrDof;
 		doublereal dXPr = 0.;
 
-		DofIterator.bGetFirst(CurrDof);
+		DataManager::DofIterator_const CurrDof = pDofs->begin();
 
 	   	for (int iCntp1 = 1; iCntp1 <= pXPrimeCurr->iGetSize();
-				iCntp1++, DofIterator.bGetNext(CurrDof))
+			iCntp1++, ++CurrDof)
 		{
+			ASSERT(CurrDof != pDofs->end());
 
-			if (CurrDof.Order == DofOrder::DIFFERENTIAL) {
+			if (CurrDof->Order == DofOrder::DIFFERENTIAL) {
 				doublereal d = pXPrimeCurr->operator()(iCntp1);
 				doublereal d2 = d*d;
 

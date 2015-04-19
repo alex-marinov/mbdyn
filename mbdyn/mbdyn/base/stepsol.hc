@@ -43,8 +43,8 @@ StepIntegrator::UpdateLoop(
 	DEBUGCOUTFNAME("StepIntegrator::UpdateLoop");
 	ASSERT(pDM != NULL);
 	
-   	Dof CurrDof;
 #ifdef USE_SCHUR
+   	Dof CurrDof;
 	SchurDataManager* pSDM;
 	if ((pSDM = dynamic_cast<SchurDataManager*> (pDM)) != 0) {
 		
@@ -73,13 +73,14 @@ StepIntegrator::UpdateLoop(
 	} else
 #endif // USE_SCHUR
 	{
-		
-   		DofIterator.bGetFirst(CurrDof);
-		integer iNumDofs = pDM->iGetNumDofs();
+		DataManager::DofIterator_const CurrDof = pDofs->begin();
+		integer iNumDofs = pDofs->size();
 
 	   	for (int iCntp1 = 1; iCntp1 <= iNumDofs;
-				iCntp1++, DofIterator.bGetNext(CurrDof)) {
-			(t->*pUpd)(iCntp1,CurrDof.Order,pSol);
+				iCntp1++, ++CurrDof)
+		{
+			ASSERT(CurrDof != pDofs->end());
+			(t->*pUpd)(iCntp1, CurrDof->Order, pSol);
    		}
 	}
 	return;
