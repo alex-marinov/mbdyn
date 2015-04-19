@@ -42,9 +42,9 @@
 
     user defined: joint_id_slider1, 
 # enable the next line to use the octave version of the element
-        octave, "InLineFriction", embed octave, yes, octave search path, "..",
+        # octave, "InLineFriction", embed octave, yes, octave search path, "..",
 # enable the next line to use the C++ version of the element
-        # inline friction,
+        inline friction,
         node1,
             node_id_ground,
             offset, reference, ref_id_slider1, null,
@@ -64,9 +64,9 @@
 
     user defined: joint_id_slider2, 
 # enable the next line to use the octave version of the element
-        octave, "InLineFriction", embed octave, yes, octave search path, "..",
+        #octave, "InLineFriction", embed octave, yes, octave search path, "..",
 # enable the next line to use the C++ version of the element
-        # inline friction,
+        inline friction,
         node1,
             node_id_ground,
             offset, reference, ref_id_slider2, null,

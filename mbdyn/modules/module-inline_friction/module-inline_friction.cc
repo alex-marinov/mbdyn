@@ -145,10 +145,10 @@ InlineFriction::InlineFriction(
 	zP(0.),
 	mus(0.),
 	muc(0.),
-	vs(0.),
+	vs(1.),
 	iv(1.),
 	kv(0.),
-	delta(0.),
+	delta(1.),
 	PhiScale(1.)
 {
 	for (int i = 0; i < 2; ++i) {
@@ -229,73 +229,66 @@ InlineFriction::InlineFriction(
 		o2 = HP.GetPosRel(refNode2);
 	}
 
-	if (!HP.IsKeyWord("coulomb" "friction" "coefficient")) {
-		silent_cerr("inline friction(" << GetLabel() << "): keyword \"coulomb friction coefficient\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	if (HP.IsKeyWord("coulomb" "friction" "coefficient")) {
+	    muc = HP.GetReal();
 
-	muc = HP.GetReal();
+	    if (muc < 0) {
+		    silent_cerr("inline friction(" << GetLabel() << "): coulomb friction coefficient must be greater than zero at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	if (muc <= 0) {
-		silent_cerr("inline friction(" << GetLabel() << "): coulomb friction coefficient must be greater than zero at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (HP.IsKeyWord("static" "friction" "coefficient")) {
+    	    mus = HP.GetReal();
+	    } else {
+            mus = muc;
+        }
 
-	if (!HP.IsKeyWord("static" "friction" "coefficient")) {
-		silent_cerr("inline friction(" << GetLabel() << "): keyword \"static friction coefficient\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (mus < 0) {
+		    silent_cerr("inline friction(" << GetLabel() << "): static friction coefficient must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	mus = HP.GetReal();
+	    if (HP.IsKeyWord("sliding" "velocity" "coefficient")) {
+    	    vs = HP.GetReal();
+        }
 
-	if (mus < 0) {
-		silent_cerr("inline friction(" << GetLabel() << "): static friction coefficient must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (vs <= 0.) {
+		    silent_cerr("inline friction(" << GetLabel() << "): sliding velocity coefficient must be greater than zero at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	if (!HP.IsKeyWord("sliding" "velocity" "coefficient")) {
-		silent_cerr("inline friction(" << GetLabel() << "): keyword \"sliding velocity coefficient\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (HP.IsKeyWord("sliding" "velocity" "exponent")) {
+		    iv = HP.GetReal();
+	    }
 
-	vs = HP.GetReal();
+	    if (!HP.IsKeyWord("micro" "slip" "displacement")) {
+		    silent_cerr("inline friction(" << GetLabel() << "): keyword \"micro slip displacement\" expected at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	if (vs <= 0.) {
-		silent_cerr("inline friction(" << GetLabel() << "): sliding velocity coefficient must be greater than zero at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    delta = HP.GetReal();
 
-	if (HP.IsKeyWord("sliding" "velocity" "exponent")) {
-		iv = HP.GetReal();
-	}
+	    if (delta <= 0) {
+		    silent_cerr("inline friction(" << GetLabel() << "): micro slip displacement must be greater than zero at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	if (!HP.IsKeyWord("micro" "slip" "displacement")) {
-		silent_cerr("inline friction(" << GetLabel() << "): keyword \"micro slip displacement\" expected at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (HP.IsKeyWord("initial" "stiction" "state")) {
+		    z = HP.GetReal();
+	    }
 
-	delta = HP.GetReal();
+	    if (std::abs(z) > 1.) {
+		    silent_cerr("inline friction(" << GetLabel() << "): initial stiction state must be between -1 and 1 at line " << HP.GetLineData() << std::endl);
+		    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	    }
 
-	if (delta <= 0) {
-		silent_cerr("inline friction(" << GetLabel() << "): micro slip displacement must be greater than zero at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	    if (HP.IsKeyWord("initial" "stiction" "derivative")) {
+		    zP = HP.GetReal();
+	    }
 
-	if (HP.IsKeyWord("initial" "stiction" "state")) {
-		z = HP.GetReal();
-	}
-
-	if (std::abs(z) > 1.) {
-		silent_cerr("inline friction(" << GetLabel() << "): initial stiction state must be between -1 and 1 at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	if (HP.IsKeyWord("initial" "stiction" "derivative")) {
-		zP = HP.GetReal();
-	}
-
-	z *= delta;
-	zP *= delta;
+	    z *= delta;
+	    zP *= delta;
+    }
 
 	if (HP.IsKeyWord("viscous" "friction" "coefficient")) {
 		kv = HP.GetReal();
@@ -342,7 +335,7 @@ InlineFriction::~InlineFriction(void)
 
 unsigned int InlineFriction::iGetNumDof(void) const
 {
-	return 3u;
+	return 2u + 1u * (muc > 0.);
 }
 
 DofOrder::Order InlineFriction::GetDofType(unsigned int i) const
@@ -381,7 +374,7 @@ std::ostream& InlineFriction::DescribeDof(std::ostream& out, const char *prefix,
 
 	if (bInitial) {
 		out << prefix << iFirstIndex + 3 << "->" << iFirstIndex + 4 << ": reaction force derivatives [lambdaP1, lambdaP2]" << std::endl;
-	} else {
+	} else if (muc > 0) {
 		out << prefix << iFirstIndex + 3 << ": stiction state [z]" << std::endl;
 	}
 
@@ -396,7 +389,7 @@ std::ostream& InlineFriction::DescribeEq(std::ostream& out, const char *prefix, 
 
 	if (bInitial) {
 		out << prefix << iFirstIndex + 3 << "->" << iFirstIndex + 4 << ": velocity constraints [cP1, cP2]" << std::endl;
-	} else {
+	} else if (muc > 0) {
 		out << prefix << iFirstIndex + 3 << ": stick slip transition [Phi]" << std::endl;
 	}
 
@@ -405,7 +398,7 @@ std::ostream& InlineFriction::DescribeEq(std::ostream& out, const char *prefix, 
 
 unsigned int InlineFriction::iGetNumPrivData(void) const
 {
-	return 8;
+	return 8u;
 }
 
 unsigned int InlineFriction::iGetPrivDataIdx(const char *s) const
@@ -424,7 +417,7 @@ unsigned int InlineFriction::iGetPrivDataIdx(const char *s) const
 			{ 8, "Pf" }
 	};
 
-	const int N = sizeof(data) / sizeof(data[0]);
+	const int N = iGetNumPrivData();
 
 	for (int i = 0; i < N; ++i) {
 		if (0 == strcmp(data[i].name, s)) {
@@ -488,7 +481,7 @@ InlineFriction::Output(OutputHandler& OH) const
 void
 InlineFriction::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
-	*piNumRows = *piNumCols = 15;
+	*piNumRows = *piNumCols = 14 + 1 * (muc > 0);
 }
 
 VariableSubMatrixHandler&
@@ -509,6 +502,7 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const integer iFirstMomentumIndexNode2 = pNode2->iGetFirstMomentumIndex();
 	const integer iFirstPositionIndexNode2 = pNode2->iGetFirstPositionIndex();
 	const integer iFirstIndex = iGetFirstIndex();
+    const integer iNumDof = iGetNumDof();
 
 	for (integer i = 1; i <= 6; ++i) {
 		WorkMat.PutRowIndex(i, iFirstMomentumIndexNode1 + i);
@@ -517,7 +511,7 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 		WorkMat.PutColIndex(i + 6, iFirstPositionIndexNode2 + i);
 	}
 
-	for (integer i = 1; i <= 3; ++i) {
+	for (integer i = 1; i <= iNumDof; ++i) {
 		WorkMat.PutRowIndex(12 + i, iFirstIndex + i);
 		WorkMat.PutColIndex(12 + i, iFirstIndex + i);
 	}
@@ -525,16 +519,9 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Vec3& X1 = pNode1->GetXCurr();
 	const Mat3x3& R1 = pNode1->GetRCurr();
 	const Mat3x3& R1_0 = pNode1->GetRRef();
-	const Vec3& XP1 = pNode1->GetVCurr();
-	const Vec3& omega1 = pNode1->GetWCurr();
-	const Vec3& omega1_0 = pNode1->GetWRef();
 	const Vec3& X2 = pNode2->GetXCurr();
 	const Mat3x3& R2 = pNode2->GetRCurr();
 	const Mat3x3& R2_0 = pNode2->GetRRef();
-	const Vec3& XP2 = pNode2->GetVCurr();
-	const Vec3& omega2 = pNode2->GetWCurr();
-
-	const doublereal DeltaXP = SlidingVelocity(X1, R1, XP1, omega1, X2, R2, XP2, omega2);
 
 	// common subexpressions
 	const Vec3 R1e1 = R1 * e.GetCol(1);
@@ -544,49 +531,93 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Vec3 R2_0o2 = R2_0 * o2;
 	const Vec3 l1 = X2 + R2o2 - X1;
 
-	const Vec3 dDeltaXP_dX1_T = -omega1.Cross(R1e1);
-	const Vec3 dDeltaXP_dg1_T = -(XP2 + omega2.Cross(R2o2) - XP1 - omega1.Cross(l1)).Cross(R1_0 * e.GetCol(1))
-								- omega1_0.Cross((l1).Cross(R1e1));
-	const Vec3 dDeltaXP_dXP1_T = -R1e1;
-	const Vec3 dDeltaXP_dgP1_T = -l1.Cross(R1e1);
-	const Vec3 dDeltaXP_dX2_T = omega1.Cross(R1e1);
-	const Vec3 dDeltaXP_dg2_T = R2_0o2.Cross((omega1 - omega2).Cross(R1e1)) + omega2.Cross(R2o2.Cross(R1e1));
-	const Vec3& dDeltaXP_dXP2_T = R1e1;
-	const Vec3 dDeltaXP_dgP2_T = R2o2.Cross(R1e1);
+    const Vec3& XP1 = pNode1->GetVCurr();
+    const Vec3& omega1 = pNode1->GetWCurr();
+    const Vec3& omega1_0 = pNode1->GetWRef();
+    const Vec3& XP2 = pNode2->GetVCurr();
+    const Vec3& omega2 = pNode2->GetWCurr();
 
-	const doublereal tau = FrictionForce(DeltaXP);
-	const doublereal mu = FrictionCoefficient(DeltaXP);
-	const doublereal lambda_res = NormalForceMagnitude();
+    const doublereal DeltaXP = SlidingVelocity(X1, R1, XP1, omega1, X2, R2, XP2, omega2);
+    const Vec3 dDeltaXP_dX1_T = -omega1.Cross(R1e1);
+    const Vec3 dDeltaXP_dg1_T = -(XP2 + omega2.Cross(R2o2) - XP1 - omega1.Cross(l1)).Cross(R1_0 * e.GetCol(1))
+							    - omega1_0.Cross((l1).Cross(R1e1));
+    const Vec3 dDeltaXP_dXP1_T = -R1e1;
+    const Vec3 dDeltaXP_dgP1_T = -l1.Cross(R1e1);
+    const Vec3 dDeltaXP_dX2_T = omega1.Cross(R1e1);
+    const Vec3 dDeltaXP_dg2_T = R2_0o2.Cross((omega1 - omega2).Cross(R1e1)) + omega2.Cross(R2o2.Cross(R1e1));
+    const Vec3& dDeltaXP_dXP2_T = R1e1;
+    const Vec3 dDeltaXP_dgP2_T = R2o2.Cross(R1e1);
 
-	const doublereal dtau_dDeltaXP = kv - muc * lambda_res * z / delta * (mus / muc - 1) * exp(-std::pow(std::abs(DeltaXP) / vs, iv))
-									 * iv * std::pow(std::abs(DeltaXP) / vs, iv - 1) * copysign(1., DeltaXP) / vs;
-	doublereal dtau_dlambda[2];
+    const doublereal tau = FrictionForce(DeltaXP);
+    doublereal dtau_dDeltaXP = kv;
+    doublereal dtau_dlambda[2];
 
-	if (lambda_res != 0) {
-		for (int i = 0; i < 2; ++i) {
-			dtau_dlambda[i] = mu * lambda[i] * z / (lambda_res * delta);
-		}
-	} else { // avoid division by zero
-		for (int i = 0; i < 2; ++i) {
-			dtau_dlambda[i] = mu * copysign(1., lambda[i]) * z / delta;
-		}
-	}
+    if (muc > 0)
+    {
+	    const doublereal mu = FrictionCoefficient(DeltaXP);
+	    const doublereal lambda_res = NormalForceMagnitude();
 
-	const doublereal dtau_dz = mu * lambda_res / delta;
+	    dtau_dDeltaXP -= muc * lambda_res * z / delta * (mus / muc - 1) * exp(-std::pow(std::abs(DeltaXP) / vs, iv))
+									     * iv * std::pow(std::abs(DeltaXP) / vs, iv - 1) * copysign(1., DeltaXP) / vs;
 
-	const Vec3 dtau_dX1_T = dDeltaXP_dX1_T * dtau_dDeltaXP;
-	const Vec3 dtau_dg1_T = dDeltaXP_dg1_T * dtau_dDeltaXP;
-	const Vec3 dtau_dXP1_T = dDeltaXP_dXP1_T * dtau_dDeltaXP;
-	const Vec3 dtau_dgP1_T = dDeltaXP_dgP1_T * dtau_dDeltaXP;
-	const Vec3 dtau_dX2_T = dDeltaXP_dX2_T * dtau_dDeltaXP;
-	const Vec3 dtau_dg2_T = dDeltaXP_dg2_T * dtau_dDeltaXP;
-	const Vec3 dtau_dXP2_T = dDeltaXP_dXP2_T * dtau_dDeltaXP;
-	const Vec3 dtau_dgP2_T = dDeltaXP_dgP2_T * dtau_dDeltaXP;
+	    if (lambda_res != 0) {
+		    for (int i = 0; i < 2; ++i) {
+			    dtau_dlambda[i] = mu * lambda[i] * z / (lambda_res * delta);
+		    }
+	    } else { // avoid division by zero
+		    for (int i = 0; i < 2; ++i) {
+			    dtau_dlambda[i] = mu * copysign(1., lambda[i]) * z / delta;
+		    }
+	    }
+
+	    const doublereal dtau_dz = mu * lambda_res / delta;
+    	const Vec3 dF1_dz = R1e1 * dtau_dz;
+    	const Vec3 dM1_dz = l1.Cross(dF1_dz);
+    	const Vec3 dM2_dz = (-R2o2).Cross(dF1_dz);
+
+        const doublereal alpha = z / delta * copysign(1., DeltaXP) - 1;
+
+        const Vec3 dPhi_dX1_T = dDeltaXP_dX1_T * alpha;
+        const Vec3 dPhi_dg1_T = dDeltaXP_dg1_T * alpha;
+        const Vec3 dPhi_dXP1_T = dDeltaXP_dXP1_T * alpha;
+        const Vec3 dPhi_dgP1_T = dDeltaXP_dgP1_T * alpha;
+        const Vec3 dPhi_dX2_T = dDeltaXP_dX2_T * alpha;
+        const Vec3 dPhi_dg2_T = dDeltaXP_dg2_T * alpha;
+        const Vec3 dPhi_dXP2_T = dDeltaXP_dXP2_T * alpha;
+        const Vec3 dPhi_dgP2_T = dDeltaXP_dgP2_T * alpha;
+
+        const doublereal dPhi_dz = std::abs(DeltaXP) / delta;
+        const doublereal dPhi_dzP = 1.;
+
+	    WorkMat.Put(1, 15, -dF1_dz * dCoef);
+	    WorkMat.Put(4, 15, -dM1_dz * dCoef);
+	    WorkMat.Put(7, 15, dF1_dz * dCoef);
+	    WorkMat.Put(10, 15, -dM2_dz * dCoef);
+	    WorkMat.PutT(15,  1, (dPhi_dXP1_T + dPhi_dX1_T * dCoef) * (-PhiScale));
+	    WorkMat.PutT(15,  4, (dPhi_dgP1_T + dPhi_dg1_T * dCoef) * (-PhiScale));
+	    WorkMat.PutT(15,  7, (dPhi_dXP2_T + dPhi_dX2_T * dCoef) * (-PhiScale));
+	    WorkMat.PutT(15, 10, (dPhi_dgP2_T + dPhi_dg2_T * dCoef) * (-PhiScale));
+	    WorkMat.PutCoef(15, 15, (dPhi_dzP + dPhi_dz * dCoef) * (-PhiScale));
+    }
+    else
+    {
+        for (int i = 0; i < 2; ++i)
+        {
+            dtau_dlambda[i] = 0;
+        }
+    }
+
+    const Vec3 dtau_dX1_T = dDeltaXP_dX1_T * dtau_dDeltaXP;
+    const Vec3 dtau_dg1_T = dDeltaXP_dg1_T * dtau_dDeltaXP;
+    const Vec3 dtau_dXP1_T = dDeltaXP_dXP1_T * dtau_dDeltaXP;
+    const Vec3 dtau_dgP1_T = dDeltaXP_dgP1_T * dtau_dDeltaXP;
+    const Vec3 dtau_dX2_T = dDeltaXP_dX2_T * dtau_dDeltaXP;
+    const Vec3 dtau_dg2_T = dDeltaXP_dg2_T * dtau_dDeltaXP;
+    const Vec3 dtau_dXP2_T = dDeltaXP_dXP2_T * dtau_dDeltaXP;
+    const Vec3 dtau_dgP2_T = dDeltaXP_dgP2_T * dtau_dDeltaXP;
 
 	const Vec3 F1 = R1e1 * tau + R1e2 * lambda[L1] + R1e3 * lambda[L2];
 	const Vec3 M1 = l1.Cross(F1);
-	// const Vec3 F2 = -F1;
-	// const Vec3 M2 = R2o2.Cross(F2);
 
 	const Mat3x3 dF1_dX1 = R1e1.Tens(dtau_dX1_T);
 	const Mat3x3 dF1_dg1 = R1e1.Tens(dtau_dg1_T) - Mat3x3(MatCross, R1_0 * (e.GetCol(1) * tau + e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2]));
@@ -598,7 +629,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Mat3x3 dF1_dgP2 = R1e1.Tens(dtau_dgP2_T);
 	const Vec3 dF1_dlambda1 = R1e1 * dtau_dlambda[L1] + R1e2;
 	const Vec3 dF1_dlambda2 = R1e1 * dtau_dlambda[L2] + R1e3;
-	const Vec3 dF1_dz = R1e1 * dtau_dz;
 
 	const Mat3x3 dM1_dX1 = l1.Cross(dF1_dX1) + Mat3x3(MatCross, F1);
 	const Mat3x3 dM1_dg1 = l1.Cross(dF1_dg1);
@@ -610,7 +640,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Mat3x3 dM1_dgP2 = l1.Cross(dF1_dgP2);
 	const Vec3 dM1_dlambda1 = l1.Cross(dF1_dlambda1);
 	const Vec3 dM1_dlambda2 = l1.Cross(dF1_dlambda2);
-	const Vec3 dM1_dz = l1.Cross(dF1_dz);
 
 	const Mat3x3 dM2_dX1 = (-R2o2).Cross(dF1_dX1);
 	const Mat3x3 dM2_dg1 = (-R2o2).Cross(dF1_dg1);
@@ -622,7 +651,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Mat3x3 dM2_dgP2 = (-R2o2).Cross(dF1_dgP2);
 	const Vec3 dM2_dlambda1 = (-R2o2).Cross(dF1_dlambda1);
 	const Vec3 dM2_dlambda2 = (-R2o2).Cross(dF1_dlambda2);
-	const Vec3 dM2_dz = (-R2o2).Cross(dF1_dz);
 
 	const Vec3 dc1_dX1_T = -R1e2;
 	const Vec3 dc1_dg1_T = -l1.Cross(R1_0 * e.GetCol(2));
@@ -634,27 +662,12 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	const Vec3& dc2_dX2_T = R1e3;
 	const Vec3 dc2_dg2_T = R2_0o2.Cross(R1e3);
 
-	const doublereal alpha = z / delta * copysign(1., DeltaXP) - 1;
-
-	const Vec3 dPhi_dX1_T = dDeltaXP_dX1_T * alpha;
-	const Vec3 dPhi_dg1_T = dDeltaXP_dg1_T * alpha;
-	const Vec3 dPhi_dXP1_T = dDeltaXP_dXP1_T * alpha;
-	const Vec3 dPhi_dgP1_T = dDeltaXP_dgP1_T * alpha;
-	const Vec3 dPhi_dX2_T = dDeltaXP_dX2_T * alpha;
-	const Vec3 dPhi_dg2_T = dDeltaXP_dg2_T * alpha;
-	const Vec3 dPhi_dXP2_T = dDeltaXP_dXP2_T * alpha;
-	const Vec3 dPhi_dgP2_T = dDeltaXP_dgP2_T * alpha;
-
-	const doublereal dPhi_dz = std::abs(DeltaXP) / delta;
-	const doublereal dPhi_dzP = 1.;
-
 	WorkMat.Put(1,  1, -dF1_dXP1 - dF1_dX1 * dCoef);
 	WorkMat.Put(1,  4, -dF1_dgP1 - dF1_dg1 * dCoef);
 	WorkMat.Put(1,  7, -dF1_dXP2 - dF1_dX2 * dCoef);
 	WorkMat.Put(1, 10, -dF1_dgP2 - dF1_dg2 * dCoef);
 	WorkMat.Put(1, 13, -dF1_dlambda1);
 	WorkMat.Put(1, 14, -dF1_dlambda2);
-	WorkMat.Put(1, 15, -dF1_dz * dCoef);
 
 	WorkMat.Put(4,  1, -dM1_dXP1 - dM1_dX1 * dCoef);
 	WorkMat.Put(4,  4, -dM1_dgP1 - dM1_dg1 * dCoef);
@@ -662,7 +675,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	WorkMat.Put(4, 10, -dM1_dgP2 - dM1_dg2 * dCoef);
 	WorkMat.Put(4, 13, -dM1_dlambda1);
 	WorkMat.Put(4, 14, -dM1_dlambda2);
-	WorkMat.Put(4, 15, -dM1_dz * dCoef);
 
 	WorkMat.Put(7,  1, dF1_dXP1 + dF1_dX1 * dCoef);
 	WorkMat.Put(7,  4, dF1_dgP1 + dF1_dg1 * dCoef);
@@ -670,7 +682,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	WorkMat.Put(7, 10, dF1_dgP2 + dF1_dg2 * dCoef);
 	WorkMat.Put(7, 13, dF1_dlambda1);
 	WorkMat.Put(7, 14, dF1_dlambda2);
-	WorkMat.Put(7, 15, dF1_dz * dCoef);
 
 	WorkMat.Put(10,  1, -dM2_dXP1 - dM2_dX1 * dCoef);
 	WorkMat.Put(10,  4, -dM2_dgP1 - dM2_dg1 * dCoef);
@@ -678,7 +689,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	WorkMat.Put(10, 10, -dM2_dgP2 - dM2_dg2 * dCoef);
 	WorkMat.Put(10, 13, -dM2_dlambda1);
 	WorkMat.Put(10, 14, -dM2_dlambda2);
-	WorkMat.Put(10, 15, -dM2_dz * dCoef);
 
 	WorkMat.PutT(13,  1, -dc1_dX1_T);
 	WorkMat.PutT(13,  4, -dc1_dg1_T);
@@ -689,12 +699,6 @@ InlineFriction::AssJac(VariableSubMatrixHandler& WorkMatVar,
 	WorkMat.PutT(14,  4, -dc2_dg1_T);
 	WorkMat.PutT(14,  7, -dc2_dX2_T);
 	WorkMat.PutT(14, 10, -dc2_dg2_T);
-
-	WorkMat.PutT(15,  1, (dPhi_dXP1_T + dPhi_dX1_T * dCoef) * (-PhiScale));
-	WorkMat.PutT(15,  4, (dPhi_dgP1_T + dPhi_dg1_T * dCoef) * (-PhiScale));
-	WorkMat.PutT(15,  7, (dPhi_dXP2_T + dPhi_dX2_T * dCoef) * (-PhiScale));
-	WorkMat.PutT(15, 10, (dPhi_dgP2_T + dPhi_dg2_T * dCoef) * (-PhiScale));
-	WorkMat.PutCoef(15, 15, (dPhi_dzP + dPhi_dz * dCoef) * (-PhiScale));
 
 	return WorkMatVar;
 }
@@ -713,36 +717,46 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	const integer iFirstMomentumIndexNode1 = pNode1->iGetFirstMomentumIndex();
 	const integer iFirstMomentumIndexNode2 = pNode2->iGetFirstMomentumIndex();
 	const integer iFirstIndex = iGetFirstIndex();
+    const integer iNumDof = iGetNumDof();
 
 	for (integer i = 1; i <= 6; ++i) {
 		WorkVec.PutRowIndex(i, iFirstMomentumIndexNode1 + i);
 		WorkVec.PutRowIndex(i + 6, iFirstMomentumIndexNode2 + i);
 	}
 
-	for (integer i = 1; i <= 3; ++i) {
+	for (integer i = 1; i <= iNumDof; ++i) {
 		WorkVec.PutRowIndex(i + 12, iFirstIndex + i);
 	}
 
 	for (int i = 1; i <= 2; ++i)
 		lambda[i - 1] = XCurr(iFirstIndex + i);
 
-	z = XCurr(iFirstIndex + 3);
-	zP = XPrimeCurr(iFirstIndex + 3);
-
 	const Vec3& X1 = pNode1->GetXCurr();
 	const Mat3x3& R1 = pNode1->GetRCurr();
-	const Vec3& XP1 = pNode1->GetVCurr();
-	const Vec3& omega1 = pNode1->GetWCurr();
 	const Vec3& X2 = pNode2->GetXCurr();
 	const Mat3x3& R2 = pNode2->GetRCurr();
-	const Vec3& XP2 = pNode2->GetVCurr();
-	const Vec3& omega2 = pNode2->GetWCurr();
 
 	const Vec3 R2o2 = R2 * o2;
 	const Vec3 l1 = X2 + R2o2 - X1;
 
+    const Vec3& XP1 = pNode1->GetVCurr();
+    const Vec3& omega1 = pNode1->GetWCurr();
+    const Vec3& XP2 = pNode2->GetVCurr();
+    const Vec3& omega2 = pNode2->GetWCurr();
+
 	const doublereal DeltaXP = SlidingVelocity(X1, R1, XP1, omega1, X2, R2, XP2, omega2);
-	const doublereal tau = FrictionForce(DeltaXP);
+
+    if (muc > 0)
+    {
+        z = XCurr(iFirstIndex + 3); // Attention: update z before calling FrictionForce!
+        zP = XPrimeCurr(iFirstIndex + 3);
+
+        const doublereal Phi = zP - DeltaXP * (1. - z / delta * copysign(1., DeltaXP));
+
+        WorkVec.PutCoef(15, Phi * PhiScale);
+    }
+
+    const doublereal tau = FrictionForce(DeltaXP);
 
 	const Vec3 F1 = R1 * ( e.GetCol(1) * tau + e.GetCol(2) * lambda[L1] + e.GetCol(3) * lambda[L2] );
 	const Vec3 M1 = l1.Cross(F1);
@@ -750,7 +764,6 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	const Vec3 M2 = R2o2.Cross(F2);
 
 	const Vec3 a = R1.MulTV(l1) - o1;
-	const doublereal Phi = zP - DeltaXP * (1. - z / delta * copysign(1., DeltaXP));
 
 	WorkVec.Put(1, F1);
 	WorkVec.Put(4, M1);
@@ -760,8 +773,6 @@ InlineFriction::AssRes(SubVectorHandler& WorkVec,
 	for (int i = 1; i <= 2; ++i) {
 		WorkVec.PutCoef(12 + i, e.GetCol(i + 1).Dot(a) / dCoef);
 	}
-
-	WorkVec.PutCoef(15, Phi * PhiScale);
 
 	return WorkVec;
 }
@@ -790,8 +801,11 @@ InlineFriction::SetValue(DataManager *pDM,
 	for (int i = 1; i <= 2; ++i)
 		X.PutCoef(iFirstIndex + i, lambda[i - 1]);
 
-	X.PutCoef(iFirstIndex + 3, z);
-	XP.PutCoef(iFirstIndex + 3, zP);
+    if (muc > 0)
+    {
+    	X.PutCoef(iFirstIndex + 3, z);
+	    XP.PutCoef(iFirstIndex + 3, zP);
+    }
 }
 
 std::ostream&
@@ -1126,8 +1140,7 @@ doublereal InlineFriction::NormalForceMagnitude() const
 
 doublereal InlineFriction::FrictionCoefficient(doublereal DeltaXP) const
 {
-	const doublereal mu = (1. + (mus / muc - 1.) * exp(-std::pow(std::abs(DeltaXP) / vs, iv))) * muc;
-	return mu;
+	return muc > 0 ? (1. + (mus / muc - 1.) * exp(-std::pow(std::abs(DeltaXP) / vs, iv))) * muc : 0;
 }
 
 doublereal InlineFriction::FrictionForce(doublereal DeltaXP) const

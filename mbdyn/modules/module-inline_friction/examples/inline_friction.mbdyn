@@ -53,7 +53,7 @@ set: real g = 9.81;
 set: real mus = 0.5;
 set: real muc = 0.5;
 set: real vs = 1e-6;
-set: real kv = 1e-3;
+set: real kv = 0;
 set: real delta = 1e-6;
 set: real i = 1;
 
@@ -67,6 +67,7 @@ set: integer prm_node_id_lambda2 = 1004;
 set: integer prm_node_id_z = 1005;
 set: integer prm_node_id_zP = 1006;
 set: integer prm_node_id_tau = 1007;
+set: integer prm_node_id_v = 1008;
 set: integer body_id_slider = 2001;
 set: integer joint_id_ground = 3001;
 set: integer joint_id_slider = 3002;
@@ -80,8 +81,8 @@ begin: initial value;
 	initial time: 0.;
 	final time: 1;
 	time step: 1e-4;
-    min time step: 1e-4;
-    max time step: 5e-2;
+#    min time step: 1e-4;
+#    max time step: 5e-2;
 	max iterations: 10;
 	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
 	tolerance: 1e-8;
@@ -108,7 +109,7 @@ end: initial value;
 begin: control data;
     default output: all;
 	structural nodes: 2;
-    parameter nodes: 5;
+    parameter nodes: 6;
     rigid bodies: 1;
     loadable elements: 1;
     joints: 1;
@@ -153,6 +154,7 @@ parameter: prm_node_id_lambda2, element;
 parameter: prm_node_id_z, element;
 parameter: prm_node_id_zP, element;
 parameter: prm_node_id_tau, element;
+parameter: prm_node_id_v, element;
 
 end: nodes;
 
@@ -193,6 +195,7 @@ begin: elements;
     bind: joint_id_slider, user defined, prm_node_id_z,       string, "z";
     bind: joint_id_slider, user defined, prm_node_id_zP,      string, "zP";
     bind: joint_id_slider, user defined, prm_node_id_tau,     string, "tau";
+    bind: joint_id_slider, user defined, prm_node_id_v,     string, "v";
 
 	gravity: 0., 0., -1.,
 	const, g;		
