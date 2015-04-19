@@ -62,7 +62,10 @@ public:
 		SDC_CEIL,
 		SDC_NEAREST
 	};
-	explicit SwitchDriveCaller(const DriveHandler* pDH, Type eType, const std::vector<DriveOwner>& drives);
+	explicit SwitchDriveCaller(const DriveHandler* pDH,  
+                               const DriveOwner& oSwitch, 
+                               Type eType,
+                               const std::vector<DriveOwner>& drives);
 	virtual ~SwitchDriveCaller();
 	bool bIsDifferentiable(void) const;
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -71,8 +74,9 @@ public:
 	DriveCaller* pCopy(void) const;
 
 private:
-	const DriveCaller* pGetDrive(const doublereal& dVar) const;
+	const DriveCaller* pGetDrive() const;
 
+    DriveOwner oSwitch;
 	Type eType;
 	typedef std::vector<DriveOwner>::const_iterator iterator;
 	const std::vector<DriveOwner> rgDrives;
@@ -83,8 +87,12 @@ struct SwitchDriveDCR : public DriveCallerRead {
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
 };
 
-SwitchDriveCaller::SwitchDriveCaller(const DriveHandler* pDH, Type eType, const std::vector<DriveOwner>& drives)
+SwitchDriveCaller::SwitchDriveCaller(const DriveHandler* pDH,
+                                     const DriveOwner& oSwitch,
+                                     Type eType, 
+                                     const std::vector<DriveOwner>& drives)
 : DriveCaller(pDH),
+  oSwitch(oSwitch),
   eType(eType),
   rgDrives(drives)
 {
@@ -96,8 +104,10 @@ SwitchDriveCaller::~SwitchDriveCaller()
 	NO_OP;
 }
 
-const DriveCaller* SwitchDriveCaller::pGetDrive(const doublereal& dSwitch) const
+const DriveCaller* SwitchDriveCaller::pGetDrive() const
 {
+    const doublereal dSwitch = oSwitch.dGet();
+
 	integer iDrive;
 
 	switch (eType) {
@@ -123,6 +133,7 @@ const DriveCaller* SwitchDriveCaller::pGetDrive(const doublereal& dSwitch) const
 	if (iDrive < 0 || iDrive > iMaxIndex) {
 		silent_cerr("drive caller(" << GetLabel()
 				<< "): argument " << iDrive
+                << " from drive caller " << oSwitch.pGetDriveCaller()->GetLabel()
 				<< " is not in range [0:" << iMaxIndex << "]"
 				<< std::endl);
 
@@ -135,12 +146,12 @@ const DriveCaller* SwitchDriveCaller::pGetDrive(const doublereal& dSwitch) const
 doublereal
 SwitchDriveCaller::dGet(const doublereal& dVar) const
 {
-	return pGetDrive(dVar)->dGet(dVar);
+	return pGetDrive()->dGet(dVar);
 }
 
 doublereal SwitchDriveCaller::dGetP(const doublereal& dVar) const
 {
-	return pGetDrive(dVar)->dGetP(dVar);
+	return pGetDrive()->dGetP(dVar);
 }
 
 bool SwitchDriveCaller::bIsDifferentiable(void) const
@@ -180,7 +191,7 @@ SwitchDriveCaller::pCopy(void) const
 
 	SAFENEWWITHCONSTRUCTOR(pDC,
 			SwitchDriveCaller,
-			SwitchDriveCaller(pGetDrvHdl(), eType, rgDrives));
+			SwitchDriveCaller(pGetDrvHdl(), oSwitch, eType, rgDrives));
 
 	return pDC;
 }
@@ -205,6 +216,8 @@ SwitchDriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	}
 
 	DriveCaller *pDC = 0;
+
+    const DriveOwner oSwitch(HP.GetDriveCaller());
 
 	SwitchDriveCaller::Type eType;
 
@@ -236,7 +249,7 @@ SwitchDriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		SwitchDriveCaller,
-		SwitchDriveCaller(pDrvHdl, eType, rgDrives));
+		SwitchDriveCaller(pDrvHdl, oSwitch, eType, rgDrives));
 
 	return pDC;
 }

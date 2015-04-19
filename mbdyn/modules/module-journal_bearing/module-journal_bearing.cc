@@ -604,23 +604,28 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 	const Vec3 F2 = -F1;
 	Vec3 M2 = Cross(R2o2, F2);
 
-	if (muc > 0) {
+	if (muc > 0 || kv > 0) 
+    {
 		Vec3 omega1, omega2;
 
 		pNode1->GetWCurr(omega1, dCoef, func, &dof);
 		pNode2->GetWCurr(omega2, dCoef, func, &dof);
 
+		const T domega = Dot(e.GetCol(1), Transpose(R1) * Vec3(omega2 - omega1));
+	    T mf = kv * domega;
+
+        if (muc > 0)
+        {
 		T z, zP;
 
 		XCurr.dGetCoef(iFirstIndex + 3, z, dCoef, &dof);
 		XPrimeCurr.dGetCoef(iFirstIndex + 3, zP, 1., &dof);
 
-		const T domega = Dot(e.GetCol(1), Transpose(R1) * Vec3(omega2 - omega1));
-		const T v = (0.5 * d) * domega;
-		
 		T g;
 		
-		if (std::abs(v) > std::numeric_limits<doublereal>::epsilon()) {
+    		const T v = (0.5 * d) * domega;
+		
+		    if (v != 0.) {
 			g = muc + (mus - muc) * exp(-pow(fabs(v / vs), a));
 		} else  {
 			g = mus;
@@ -629,11 +634,12 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 		const T f = v - sigma0 * fabs(v) / g * z - zP;
 		const T mu = sigma0 * z + sigma1 * zP;
 
-		T mf = kv * domega;
-
 		if (lambda(1) != 0. || lambda(2) != 0) {
 			mf += (0.5 * d) * mu * sqrt(lambda(1) * lambda(1) + lambda(2) * lambda(2));
 		}
+
+    		WorkVec.AddItem(iFirstIndex + 3, f);
+        }
 
 		SaveFriction(domega, mf);
 
@@ -641,8 +647,6 @@ JournalBearing::AssRes(GradientAssVec<T>& WorkVec,
 
 		M1 += Mf;
 		M2 -= Mf;
-
-		WorkVec.AddItem(iFirstIndex + 3, f);
 	}
 
 	WorkVec.AddItem(iFirstMomentumIndexNode1 + 1, F1);

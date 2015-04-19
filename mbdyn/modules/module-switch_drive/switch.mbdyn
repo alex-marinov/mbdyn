@@ -24,7 +24,7 @@ end: nodes;
 
 begin: elements;
     genel: 1, clamp, 1, abstract, 
-        switch, floor,
+        switch, time, floor,
             11,
                 const, 0.,
                 const, 1.,
@@ -39,7 +39,7 @@ begin: elements;
                 const, 10.;
         
     genel: 2, clamp, 2, abstract,
-        switch, ceil,
+        switch, time, ceil,
             12,
                 const, 0.,
                 const, 1.,
@@ -55,7 +55,7 @@ begin: elements;
                 const, 11.;
 
     genel: 3, clamp, 3, abstract,
-        switch, nearest,
+        switch, time, nearest,
             12,
                 const, 0.,
                 const, 1.,
