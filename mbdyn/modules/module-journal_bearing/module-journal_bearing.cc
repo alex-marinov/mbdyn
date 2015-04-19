@@ -38,8 +38,6 @@
         in the GNU Public License version 2.1
 */
 
-#define CREATE_PROFILE 1
-
 #include <limits>
 #include <iostream>
 #include <iomanip>
@@ -266,7 +264,7 @@ JournalBearing::JournalBearing(
 
 		muc = HP.GetReal();
 
-		if (muc <= 0) {
+		if (muc < 0) {
 			silent_cerr("\"coulomb friction coefficient\" "
 						"must be greater than zero at line "
 						<< HP.GetLineData() << std::endl);
@@ -444,7 +442,7 @@ std::ostream& JournalBearing::DescribeEq(std::ostream& out, const char *prefix, 
 
 unsigned int JournalBearing::iGetNumPrivData(void) const
 {
-	return 2u + (muc > 0 ? 5u : 0u);
+	return 7u;
 }
 
 unsigned int JournalBearing::iGetPrivDataIdx(const char *s) const
