@@ -182,7 +182,9 @@ NaiveSparseSolutionManager::~NaiveSparseSolutionManager(void)
 		A = 0;
 	}
 
-	SAFEDELETE(pMatScale);
+	if (pMatScale != 0) {
+		SAFEDELETE(pMatScale);
+	}
 }
 
 void
