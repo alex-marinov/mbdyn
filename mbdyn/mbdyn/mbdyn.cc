@@ -1147,7 +1147,6 @@ main(int argc, char* argv[])
 				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
 			MB_EXIT(exit, rc);
-			throw;
 		}
  	}
 

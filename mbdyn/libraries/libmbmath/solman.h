@@ -88,8 +88,7 @@ public:
 		VectorHandler& XPrimeCurr) = 0;
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef) 
-		throw(ChangedEquationStructure) = 0;
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)=0;
 };
 
 /* SolutionDataManager - end */

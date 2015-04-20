@@ -354,18 +354,15 @@ public:
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
-		throw(ChangedEquationStructure);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
 
 	// inverse dynamics
 	/* Constraints residual, switch iOrder*/
 	virtual void AssConstrRes(VectorHandler& ResHdl,
-		InverseDynamics::Order iOrder) 
-		throw(ChangedEquationStructure) ;
+		InverseDynamics::Order iOrder);
 
 	/* Elem residual, equilibrium with no constraints */
-	virtual void AssRes(VectorHandler& ResHdl)
-		throw(ChangedEquationStructure);
+	virtual void AssRes(VectorHandler& ResHdl);
 	
 	/* Constraint Jacobian matrix*/	
 	virtual void AssConstrJac(MatrixHandler& JacHdl);
@@ -382,8 +379,7 @@ protected:
 			VariableSubMatrixHandler& WorkMatB);
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
-			SubVectorHandler& WorkVec)
-		throw(ChangedEquationStructure);
+			SubVectorHandler& WorkVec);
 
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,
@@ -393,13 +389,11 @@ protected:
 	void AssConstrRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec,
-		InverseDynamics::Order iOrder)
-	throw(ChangedEquationStructure);
+		InverseDynamics::Order iOrder);
 	
 	void AssRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec)
-	throw(ChangedEquationStructure);
+		SubVectorHandler& WorkVec);
 	// end of inverse dynamics
 
 protected:

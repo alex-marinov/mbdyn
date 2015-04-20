@@ -496,7 +496,6 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
 /* Assemblaggio del residuo */
 void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) 
-	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -507,7 +506,6 @@ void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec)
-	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 

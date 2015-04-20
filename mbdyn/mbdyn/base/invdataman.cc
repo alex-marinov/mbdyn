@@ -279,8 +279,7 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 
 /* Constraint residual assembly: */
 void
-DataManager::AssConstrRes(VectorHandler& ResHdl, InverseDynamics::Order iOrder) 
-	throw(ChangedEquationStructure)
+DataManager::AssConstrRes(VectorHandler& ResHdl, InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -292,7 +291,6 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 	VecIter<Elem *> &Iter,
 	SubVectorHandler& WorkVec,
 	InverseDynamics::Order iOrder)
-	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -655,8 +653,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 
 /* Equilibrium residual assembly, no constraints */
 void
-DataManager::AssRes(VectorHandler& ResHdl) 
-	throw(ChangedEquationStructure)
+DataManager::AssRes(VectorHandler& ResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -667,7 +664,6 @@ void
 DataManager::AssRes(VectorHandler& ResHdl,
 	VecIter<Elem *> &Iter,
 	SubVectorHandler& WorkVec)
-	throw(ChangedEquationStructure)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
