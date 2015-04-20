@@ -152,9 +152,28 @@ module-autodiff_test/examples/inline_joint_ad_2_parameters.set \
 module-autodiff_test/examples/inline_joint_ad_2_tmp.elm \
 module-autodiff_test/examples/inline_joint_ad_2_trad.elm
 
-# TODO
-#EXTRA_DIST += \
-#module-journal_bearing
+EXTRA_DIST += \
+module-ballbearing_contact/module-ballbearing_contact.cc \
+module-ballbearing_contact/module-ballbearing_contact.h \
+module-ballbearing_contact/@BallBearingContact/AssJac.m \
+module-ballbearing_contact/@BallBearingContact/AssRes.m \
+module-ballbearing_contact/@BallBearingContact/BallBearingContact.m \
+module-ballbearing_contact/@BallBearingContact/ComputeResidual.m \
+module-ballbearing_contact/@BallBearingContact/DescribeDof.m \
+module-ballbearing_contact/@BallBearingContact/DescribeEq.m \
+module-ballbearing_contact/@BallBearingContact/dGetPrivData.m \
+module-ballbearing_contact/@BallBearingContact/display.m \
+module-ballbearing_contact/@BallBearingContact/GetConnectedNodes.m \
+module-ballbearing_contact/@BallBearingContact/GetDofType.m \
+module-ballbearing_contact/@BallBearingContact/GetEqType.m \
+module-ballbearing_contact/@BallBearingContact/GetStateVector.m \
+module-ballbearing_contact/@BallBearingContact/iGetNumConnectedNodes.m \
+module-ballbearing_contact/@BallBearingContact/iGetNumDof.m \
+module-ballbearing_contact/@BallBearingContact/iGetNumPrivData.m \
+module-ballbearing_contact/@BallBearingContact/iGetPrivDataIdx.m \
+module-ballbearing_contact/@BallBearingContact/SetValue.m \
+module-ballbearing_contact/@BallBearingContact/Update.m \
+module-ballbearing_contact/@BallBearingContact/WorkSpaceDim.m
 
 EXTRA_DIST += \
 module-constlaw/module-constlaw.cc \
