@@ -4594,6 +4594,13 @@ reference frame, the \kw{modal} node is placed, or the location
 that corresponds to the optional absolute position and orientation
 in case of a clamped modal element.
 
+Note that having the \kw{modal} node coincident with a FEM node
+does not guarantee that the two remain coincident during the analysis.
+This is only true if the modal shapes corresponding to the FEM node
+are identically zero (i.e.\ in case of \emph{attached modes}).
+Otherwise, the FEM node initially coincident with the \kw{modal} node
+departs from it as long as the modal coordinates are non-zero.
+
 The FEM labels can be strings made of any character,
 provided they do not contain blanks.
 The strings must be enclosed in double quotes.
@@ -4711,7 +4718,7 @@ separated by a dot (e.g. \nt{label}\texttt{.}\nt{mode})
 \item the value of the first derivative of the modal unknown
 \item the value of the second derivative of the modal unknown
 \end{itemize}
-Note: the number of the mode is the first field of the output
+Note: the number of the mode in the first field of the output, after the dot,
 is the ordinal of the mode in the FEM data file.
 If only a portion of the modes was selected using the \kw{list} keyword,
 the mode numbers will reflect the selected modes.
@@ -4731,6 +4738,28 @@ the output will look like
       99.7 0.000000e+00 0.000000e+00 0.000000e+00
       99.9 0.000000e+00 0.000000e+00 0.000000e+00
 \end{verbatim}
+The global motion of the $n$-th point on the FEM mesh is given by the formula
+\begin{align}
+	\T{x}_n
+	&=
+	\T{x}_\text{modal}
+	+
+	\TT{R}_\text{modal} \plbr{
+		\T{f}_{0_n}
+		+
+		\TT{f}_{1_n} \T{q}
+	}
+\end{align}
+where $\T{x}_\text{modal}$ and $\TT{R}_\text{modal}$
+are the position vector and the orientation matrix of the modal node, if any,
+$\T{f}_{0_n}$ is the position of the $n$-th point in the floating frame of reference,
+$\T{f}_{1_n}$ is the matrix of the shapes that express the displacement on the $n$-th point
+in the floating frame of reference, and $\T{q}$ are the modal coordinates,
+i.e.\ the data in column 2 of the modal output file.
+In the Private Data, the $i$-th component of the position of the $n$-th node
+is given by \kw{"x[\bnt{n},\bnt{i}]"}.
+
+
 
 \subsubsection{Private Data}
 The following data are available, for each mode:
