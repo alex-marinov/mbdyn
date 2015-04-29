@@ -1381,6 +1381,7 @@ as described in the subsequent sections.
 
 
 \subsubsection{Socket communicator}
+\label{sec:el:forces:comm:socket}
 The optional parameter \kw{create}, when set to \kw{yes}, indicates
 that MBDyn will create the socket, and the peer will have to connect to it.
 Otherwise, when set to \kw{no}, it indicates that MBDyn will try to connect
@@ -1942,7 +1943,7 @@ If the optional keyword \kw{accelerations} is present,
 the output will also contain the modal accelerations.
 
 If the optional keyword \kw{type} is present,
-the alternative keywords \kw{rigid}, \kw{modal} or \kw{all}
+the mutually exclusive keywords \kw{rigid}, \kw{modal} or \kw{all}
 inform MBDyn about whether only the rigid or the modal portions
 of the force are expected.
 The default is \kw{all}, but some communicators might require
@@ -2098,8 +2099,22 @@ in order to easily couple with MBDyn.
 
 
 \subsubsection{Socket communicator}
-TBD
+When the \kw{socket} communicator is used,
+the communication layer is established according to the definition
+provided at page~\pageref{sec:el:forces:comm:socket}.
+For a single external modal force with \kw{socket} communicator,
+\kw{type} can be any of \kw{rigid}, \kw{modal}, or \kw{all}.
 
+\paragraph{Example.} \
+\begin{verbatim}
+    force: 10, external modal,
+        socket,
+            create, yes,
+            path, "/tmp/mbdyn.sock",
+            no signal,
+        coupling, tight,
+        2;    # modal joint label
+\end{verbatim}
 
 
 \subsubsection{Output}
@@ -2183,7 +2198,7 @@ If the optional keyword \kw{accelerations} is present,
 the output will also contain the modal accelerations.
 
 If the optional keyword \kw{type} is present,
-the alternative keywords \kw{rigid}, \kw{modal} or \kw{all}
+the mutually exclusive keywords \kw{rigid}, \kw{modal} or \kw{all}
 inform MBDyn about whether only the rigid or the modal portions
 of the force are expected.
 The default is \kw{all}, but some communicators might require
@@ -2201,7 +2216,54 @@ Same as \kw{external modal}.
 \subsubsection{Socket communicator}
 Same as \kw{external modal}.
 
-
+\paragraph{Example.} \
+\begin{verbatim}
+    force: 10, external modal mapping,
+        socket,
+            create, yes,
+            path, "/tmp/mbdyn.sock",
+            no signal,
+        coupling, tight,
+        send after predict, no,
+        # comment for absolute test
+        reference node, 0,
+        nodes number, 3,
+            1, 2, 3,
+        modes number, 3,
+        # full mapping file, "Hp_full.dat",
+        sparse mapping file, "Hp_sparse.dat",
+        type, modal;
+\end{verbatim}
+where file \texttt{Hp\_sparse.dat} contains
+\begin{verbatim}
+# Created by Octave 3.0.1, Mon Dec 14 22:20:31 2009 CET <mbdyn@mbdyn.aero.polimi.it>
+# name: Hps
+# type: sparse matrix
+# nnz: 7
+# rows: 3
+# columns: 18
+3 4 0.3333333333333332
+2 8 0.2352941176470588
+1 9 0.4
+3 10 0.3333333333333333
+2 14 0.9411764705882351
+1 15 0.7999999999999999
+3 16 0.3333333333333333
+\end{verbatim}
+corresponding to
+{\small
+\begin{align*}
+	\texttt{Hps}
+	&=
+	\sqbr{\matr{llllll|llllll|llllll}{
+		0.0 & 0.0 & 0.0 & 0.0   & 0.0 & 0.0 & 0.0 & 0.0   & 0.4 & 0.0   & 0.0 & 0.0 & 0.0 & 0.0   & 0.8 & 0.0   & 0.0 & 0.0
+		\\
+		0.0 & 0.0 & 0.0 & 0.0   & 0.0 & 0.0 & 0.0 & 0.235 & 0.0 & 0.0   & 0.0 & 0.0 & 0.0 & 0.941 & 0.0 & 0.0   & 0.0 & 0.0
+		\\
+		0.0 & 0.0 & 0.0 & 0.333 & 0.0 & 0.0 & 0.0 & 0.0   & 0.0 & 0.333 & 0.0 & 0.0 & 0.0 & 0.0   & 0.0 & 0.333 & 0.0 & 0.0
+	}}
+\end{align*}
+}
 
 
 \subsubsection{Output}
