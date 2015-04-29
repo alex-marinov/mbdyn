@@ -47,13 +47,14 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
-#ifdef USE_SOCKET
-
 #include "dataman.h"
 #include "filedrv.h"
 #include "streamdrive.h"
-#include "sock.h"
 #include "socketstreamdrive.h"
+
+#ifdef USE_SOCKET
+
+#include "sock.h"
 
 #include <string.h>
 #include <sys/types.h>
@@ -578,6 +579,9 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	return pDr;
 }
 
+#endif // USE_SOCKET
+
+
 Drive *
 StreamDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 {
@@ -610,5 +614,3 @@ StreamDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 
 	return pDr;
 }
-
-#endif // USE_SOCKET

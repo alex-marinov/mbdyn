@@ -39,8 +39,10 @@
 #define SOCKETSTREAMDRIVE_H
 
 #include "streamdrive.h"
-#include "usesock.h"
 
+#ifdef USE_SOCKET
+
+#include "usesock.h"
 
 /* SocketStreamDrive - begin */
 
@@ -80,6 +82,8 @@ public:
 };
 
 /* SocketStreamDrive - end */
+
+#endif // USE_SOCKET
 
 class DataManager;
 class MBDynParser;

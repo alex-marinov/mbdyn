@@ -30,8 +30,8 @@
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
 #include "dataman.h"
+#include "sockdrv.h"
 
 #ifdef USE_SOCKET
 
@@ -54,7 +54,6 @@
 #include <sys/un.h>
 #include <arpa/inet.h>
 
-#include "sockdrv.h"
 #include "sock.h"
 
 const size_t USERLEN = 32;
