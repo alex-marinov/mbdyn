@@ -279,6 +279,175 @@ Template of user-defined element.
 This module implements a simple tire model for aircraft landing and ground handling.
 
 
+\subsection{Module-wheel4}
+%% written on April 2015
+\emph{Authors: Louis Gagnon, Marco Morandini, and Pierangelo Masarati}
+
+\noindent
+This module implements a rigid ring tire model similar to the models commonly known as SWIFT. It is used as an element that will apply a 3D force and a 3D moment to the ring node of a wheel-ring multibody system. A wheel node is also necessary for inertia and contact forces calculations. It is intended to evaluate the transient behavior of the tire rolling on a deteriorated road profile. The equations are integrated implicitly except for the road profile, which is an input. This profile has to be previously filtered by a super ellipse function because the wheel4 module will only apply the tandem-cam part of the profile filtering. It is tailored for, but not restricted to, applications at low camber angles, limited steering and velocity changes, and continuous contact with the road. It is expected to be accurate under excitation frequencies up to 100~Hz and road deformations up to 20\% of the tire radius. A variable time-step algorithm is also embed and speeds up the simulation in cases where the road is flat.
+
+Two runnable examples are available and will clarify the implementation in an actual multibody simulation:
+\begin{itemize}
+\item the simple example \textit{axleExampleNoData} located within the module-wheel4 directory of the MBDyn package
+\item the more complex \textit{semitrailer} model is available on the example page of the MBDyn website; this example provides the script necessary to apply the super ellipse filter on the road profile; \htmladdnormallink{\kw{http://www.mbdyn.org/?Documentation\_\_\_Official\_Documentation\_\_\_Examples}}{http://www.mbdyn.org/?Documentation\_\_\_Official\_Documentation\_\_\_Examples}
+\end{itemize}
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{wheel4}
+
+    \bnt{module_data} ::=
+        (\ty{StructDispNode}) \bnt{WheelStructNodeLabel} , (\ty{StructBody}) \bnt{WheelBodyLabel} ,
+        (\ty{OrientationVector}) \bnt{wheel_axle_direction} , (\ty{real}) \bnt{tire_radius} ,
+        \kw{swift} ,
+        (\ty{StructDispNode}) \bnt{RingStructNodeLabel} , (\ty{StructBody}) \bnt{RingBodyLabel} ,
+        (\ty{vector}) \bnt{patch_stiffness} , (\ty{drive}) \bnt{stiffness_modifier} ,
+        (\ty{vector}) \bnt{patch_damping} , (\ty{drive}) \bnt{damping_modifier} ,
+        (\ty{vector}) \bnt{initial_patch_velocity} , (\ty{real}) \bnt{patch_mass} ,
+        (\ty{driver}) \bnt{road_profile_driver} ,
+        (\ty{real}) \bnt{patch_to_ellip_cam_ratio} ,
+        (\ty{real}) \bnt{r_a1_param} , (\ty{real}) \bnt{r_a2_param} ,
+        (\ty{real}) \bnt{patchToTireCircumf_ratio} ,
+        (\ty{real}) \bnt{vert_wheel_ring_stiff} ,
+        [\kw{loadedRadius}] ,
+        [\kw{slip} ,
+        \kw{ginac} , \bnt{longi_tire_force_funct} ,
+        \kw{ginac} , \bnt{lateral_tire_force_funct} ,
+        \kw{ginac} , \bnt{pneumatic_trail_funct} ,
+        \kw{ginac} , \bnt{aligning_residual_moment} ,
+        (\ty{real}) \bnt{S_ht} , (\ty{real}) \bnt{S_hf} ,
+        (\ty{real}) \bnt{q_sy1} , (\ty{real}) \bnt{q_sy3} ,
+        (\ty{real}) \bnt{dvao} ,
+        [\kw{threshold}, (\ty{real}) \bnt{TRH} , (\ty{real}) \bnt{TRHA} , (\ty{real}) \bnt{TRHT} , 
+        (\ty{real}) \bnt{TRHTA} , (\ty{real}) \bnt{TRHC} , (\ty{real}) \bnt{TdLs} , (\ty{real}) \bnt{TdReDiv} ,
+        (\ty{real}) \bnt{TdRe} , (\ty{real}) \bnt{dtOn} , (\ty{real}) \bnt{TmaxH} , 
+        (\ty{real}) \bnt{dtRes} , (\ty{real}) \bnt{maxstep} , (\ty{real}) \bnt{minstep} , 
+        (\ty{real}) \bnt{TmaxF} , (\ty{real}) \bnt{TminF} , (\ty{integer}) \bnt{TminS} , (\ty{real}) \bnt{TdivF} ,
+        (\ty{real}) \bnt{TdivF3} , (\ty{real}) \bnt{TdivF4} , (\ty{real}) \bnt{RDA} , 
+        (\ty{real}) \bnt{RDB} , (\ty{real}) \bnt{RDL}] ]
+\end{Verbatim}
+where the keyword \kw{loadedRadius} enables the use of the alternative, validated, loading radius instead of the more generally used definition. The keywords \kw{slip} and \kw{threshold} should always be present. Although the given examples are the best way to understand the model, the following tables clarify most input parameters,
+
+%theoretically allows turning off the contact forces, the code has never been adjusted to work that way and thus the keyword 
+%A similar reasoning applies to the  keyword, which enables the threshold parameters that stabilize the tire model. 
+
+\begin{tabular}{p{0.3\textwidth}p{0.7\textwidth}}
+	\hline
+		  & \textbf{tire parameters} \\
+        \bnt{wheel\_axle\_direction}      & 3D vector of the wheel axle direction in the absolute reference frame (care should be taken if set to a value other than \textit{0.,1.,0.} because no elaborate testing has been carried for alternate axle initial orientations; any comments or on its functionality are welcome) \\
+	\bnt{tire\_radius}	               &   rigid ring radius (undeformed radius of the tire) \\
+	\bnt{patch\_stiffness}                  & 3D stiffness vector of the contact patch to ring connection (in the ring reference frame) \\
+	\bnt{stiffness\_modifier}     & modifier drive to allow, for example, a gradual application of the stiffness   \\
+	\bnt{patch\_damping}          & 3D damping vector of the contact patch to ring connection (usually about 6\% to 10\% of critical damping and distributed over ring and patch connections)   \\
+	\bnt{damping\_modifier}       & modifier drive to allow, for example, a gradual application of the damping   \\ 
+	 \bnt{initial\_patch\_velocity}          & 3D vector for the initial velocity of the patch in absolute reference frame \\
+        \bnt{patch\_to\_ellip\_cam\_ratio}          &  patch contact-length to elliptical cam tandem base parameter (Schmeitz eq. 4.15, $l_s/(2a)$ )  \\
+	\bnt{r\_a1\_param} 	        &  $r_{a1}$ contact length parameter from Besselink eq. 4.85 \\
+	\bnt{r\_a2\_param} 	        & $r_{a2}$ contact length parameter from Besselink eq. 4.85  \\
+	\bnt{patchToTireCircumf\_ratio} & ratio of the contact patch length to tire circumference (to calculate how much mass contributes to the ring's centripetal forces)  \\	  
+	\bnt{vert\_wheel\_ring\_stiff}     & vertical stiffness given to the viscoelastic connection between the ring and the wheel nodes      \\ 
+	\bnt{longi\_tire\_force\_func}       & longitudinal force $F_x/F_z$ given in Ginac format \\
+        \bnt{lateral\_tire\_force\_func}            & lateral force $F_y/F_z$ given in Ginac format \\
+        \bnt{pneumatic\_trail\_func}               & pneumatic trail divided by vertical force and given in Ginac format  \\
+        \bnt{aligning\_residual\_moment}      & residual torque $M_{zr}/F_z$  given in Ginac format   \\
+	\bnt{S\_ht}      & horizontal shift of pneumatic trail, for aligning moment angle modifier \\
+	\bnt{S\_hf}   & residual aligning moment angle modifier/shift \\
+	\bnt{q\_sy1}   & tire rolling resistance linear velocity coefficient (usually between 0.01 and 0.02) \\
+	\bnt{q\_sy3}  & rolling resistance velocity correction coefficient \\
+	\bnt{dvao} & reference velocity for rolling resistance velocity influence factor \\
+	\hline
+\end{tabular}
+
+\begin{tabular}{p{0.3\textwidth}p{0.7\textwidth}}
+\hline
+	           & \textbf{variable timestep algorithm parameter} \\
+	\bnt{dtOn} & boolean to enable or disable adjustable timestep calculation (will greatly increase the rapidity of the solution only if you have few bumps on a very smooth road and will otherwise slow down the simulation) \\
+	\bnt{TmaxH} & maximum height change wanted on the road profile for one step \\
+	\bnt{dtRes} & resolution of bump search  \\
+	\bnt{maxstep} & maximum timestep imposed in the initial value section \\
+	\bnt{minstep} &  minimum timestep imposed in the initial value section \\
+	\bnt{TdivF3} &  timestep adjustment factor if force switched sign 3 times in the last \kw{TminS} steps\\
+	\bnt{TdivF4} &  timestep adjustment factor if force switched sign 4 or more times in the last \kw{TminS} steps\\
+	\hline
+\end{tabular}
+	
+\begin{tabular}{p{0.3\textwidth}p{0.7\textwidth}}
+\hline
+	           & \textbf{road offset parameters} \\
+	\bnt{RDA} & road offset (null before position reaches that value) \\
+	\bnt{RDB} & road offset (interpolated when position is between \bnt{RDA} and that value) \\
+	\bnt{RDL} & road loop condition (will loop after \bnt{RDB}+\bnt{RDL} over \bnt{RDL}) \\
+	\hline
+\end{tabular}
+	
+\begin{tabular}{p{0.3\textwidth}p{0.7\textwidth}}
+\hline
+	           & \textbf{algorithm threshold parameters} \\
+	\bnt{TRH} &   prevents division by zero at null x-velocity at the price of losing validity for velocities near \bnt{TRH} \\
+	\bnt{TRHA} & buffer used to prevent division by zero \\
+	\bnt{TRHT} & prevents division by zero when computing the angle of the vehicle or wheels \\
+	\bnt{TRHTA} & buffer used on angle zero division prevention \\
+	\bnt{TRHC} & maximum value allowed for the longitudinal slip ratio \\
+	\bnt{TdLs} & minimum value that the half contact patch length may take \\
+	\bnt{TdReDiv} & minimum value that the wheel angular velocity may take in the calculation of the effective rolling radius \\
+	\bnt{TdRe} & maximum ratio $\left|\frac{effective rolling radius}{ring radius}\right|$ which will be allowed to reach \\
+	\hline
+\end{tabular}
+\newline
+
+Information about the informally cited works may be found in the following two theses,
+\begin{itemize}
+\item Schmeitz, A. J. C. (2004) \textit{A Semi-Empirical Three-Dimensional Model of the Pneumatic Tyre Rolling over Arbitrarily Uneven Road Surfaces} available on request
+\item Besselink, I.J.M. (2000). \textit{Shimmy of Aircraft Main Landing Gears} available at
+\newline
+\htmladdnormallink{\kw{http://www.tue.nl/en/publication/ep/p/d/ep-uid/227775/}}{http://www.tue.nl/en/publication/ep/p/d/ep-uid/227775/}
+\end{itemize}
+
+\subsubsection{Output}
+The output can be obtained either in plain text in the \textbf{.usr} file or in NetCDF format in the \textbf{.nc} file. Section~\ref{sec:NetCDF:Node:Structural Node} explains the NetCDF output whereas the plain text output is as follows,
+\begin{itemize}
+\item 1: element label
+\item 2: velocity of wheel in x-dir (longitudinal, forward)
+\item 3: velocity of wheel in y-dir (lateral)
+\item 4: relative speed between center of wheel and contact point on tire in the forward direction
+\item 5-7: moment applied on ring by this module
+\item 8-10: moment arm on ring
+\item 11: slip ratio
+\item 12: slip angle
+\item 13: longitudinal friction coefficient
+\item 14: lateral friction coefficient
+\item 15: road height
+\item 16-18: road normal
+\item 19-21: position of patch
+\item 22-24: velocity of patch
+\item 25-27: relative position of patch
+\item 28-30: relative velocity of patch
+\item 31-33: force between ring and patch acting on patch
+\item 34-36: force between ring and patch acting on ring and thus applied on ring by this module
+\item 37-39: forward direction vector of the wheel
+\item 40-42: forward direction vector of the ring
+\item 43-45: forward direction vector of the ring without the slope of the profile
+\item 46-48: point of contact on ring between ring and springs (contact patch viscoelastic elements)
+\item 49: normal force for Pacejka's formulas
+\item 50-52: relative velocity between patch and wheel
+\item 53: sum of wheel, ring, and patch kinetic energies
+\item 54: sum of wheel and ring potential energies (patch is not included because it is not subjected to gravity)
+\item 55: sum of wheel, ring, and patch total energies (kinetic + potential)
+\item 56: virtually calculated effective rolling radius
+\item 57: half length of the tandem elliptical cam follower
+\item 58: modified loaded radius (distance between ring center and patch center)
+\item 59-61: distance between ring contact point and patch as seen from the ring in its own reference frame (not rotated with road slope)
+\item 62: centrifugal force added to tire
+\item 63-65: rolling resistance force vector (this force is then applied as a moment only)
+\item 66-68: aligning moment
+\item 69: center point x-value of the road profile (this is not actual position, but only position on the input road file
+\item 70: front edge x-point of the tandem (front contact point of patch)
+\item 71: rear edge x-point of the tandem (rear contact point of patch)
+\item 72: centrifugally induced virtual displacement of tire in the radial direction (units of distance)
+\item 73: patch vertical velocity calculated using road displacement and timestep
+\item 74: timestep
+\end{itemize}
+
+
 
 \section{Constitutive Law Modules}
 
