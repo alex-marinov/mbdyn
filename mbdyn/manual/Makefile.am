@@ -30,15 +30,22 @@ input/outputresults.tex \
 input/overview.tex \
 input/problems.tex \
 input/scalarfunctions.tex \
+ \
 input/airfoil.eps \
 input/beam2.eps \
 input/beam3.eps \
 input/beamsect.eps \
 input/discctrl.eps \
+input/elicottero.eps \
 input/MatR2vec.eps \
 input/shellPic.eps \
+ \
 input/f77sub.f \
+ \
 install/install.tex
+
+
+
 
 include $(top_srcdir)/build/bot.mk
 
