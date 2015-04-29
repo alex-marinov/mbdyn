@@ -303,27 +303,27 @@ Two runnable examples are available and will clarify the implementation in an ac
         (\ty{vector}) \bnt{patch_stiffness} , (\ty{drive}) \bnt{stiffness_modifier} ,
         (\ty{vector}) \bnt{patch_damping} , (\ty{drive}) \bnt{damping_modifier} ,
         (\ty{vector}) \bnt{initial_patch_velocity} , (\ty{real}) \bnt{patch_mass} ,
-        (\ty{driver}) \bnt{road_profile_driver} ,
+        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{road_profile_driver} ,
         (\ty{real}) \bnt{patch_to_ellip_cam_ratio} ,
         (\ty{real}) \bnt{r_a1_param} , (\ty{real}) \bnt{r_a2_param} ,
         (\ty{real}) \bnt{patchToTireCircumf_ratio} ,
-        (\ty{real}) \bnt{vert_wheel_ring_stiff} ,
-        [\kw{loadedRadius}] ,
-        [\kw{slip} ,
+        (\ty{real}) \bnt{vert_wheel_ring_stiff}
+        [ , \kw{loadedRadius} ]
+        [ , \kw{slip} ,
         \kw{ginac} , \bnt{longi_tire_force_funct} ,
         \kw{ginac} , \bnt{lateral_tire_force_funct} ,
         \kw{ginac} , \bnt{pneumatic_trail_funct} ,
         \kw{ginac} , \bnt{aligning_residual_moment} ,
         (\ty{real}) \bnt{S_ht} , (\ty{real}) \bnt{S_hf} ,
         (\ty{real}) \bnt{q_sy1} , (\ty{real}) \bnt{q_sy3} ,
-        (\ty{real}) \bnt{dvao} ,
-        [\kw{threshold}, (\ty{real}) \bnt{TRH} , (\ty{real}) \bnt{TRHA} , (\ty{real}) \bnt{TRHT} , 
+        (\ty{real}) \bnt{dvao}
+        [ , \kw{threshold}, (\ty{real}) \bnt{TRH} , (\ty{real}) \bnt{TRHA} , (\ty{real}) \bnt{TRHT} , 
         (\ty{real}) \bnt{TRHTA} , (\ty{real}) \bnt{TRHC} , (\ty{real}) \bnt{TdLs} , (\ty{real}) \bnt{TdReDiv} ,
         (\ty{real}) \bnt{TdRe} , (\ty{real}) \bnt{dtOn} , (\ty{real}) \bnt{TmaxH} , 
         (\ty{real}) \bnt{dtRes} , (\ty{real}) \bnt{maxstep} , (\ty{real}) \bnt{minstep} , 
         (\ty{real}) \bnt{TmaxF} , (\ty{real}) \bnt{TminF} , (\ty{integer}) \bnt{TminS} , (\ty{real}) \bnt{TdivF} ,
         (\ty{real}) \bnt{TdivF3} , (\ty{real}) \bnt{TdivF4} , (\ty{real}) \bnt{RDA} , 
-        (\ty{real}) \bnt{RDB} , (\ty{real}) \bnt{RDL}] ]
+        (\ty{real}) \bnt{RDB} , (\ty{real}) \bnt{RDL} ] ]
 \end{Verbatim}
 where the keyword \kw{loadedRadius} enables the use of the alternative, validated, loading radius instead of the more generally used definition. The keywords \kw{slip} and \kw{threshold} should always be present. Although the given examples are the best way to understand the model, the following tables clarify most input parameters,
 
@@ -494,18 +494,18 @@ This module implements a simple hydraulic damper with turbulent orifice and reli
 This module implements a family of simple muscle constitutive laws,
 based on \cite{PENNESTRI-2007-JB}.
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{drive_caller} ::= \kw{muscle Pennestri}
+    \bnt{drive_caller} ::= \kw{muscle Pennestri} ,
         [ \kw{initial length} , \bnt{Li} , ]
         \kw{reference length} , \bnt{L0} ,
         [ \kw{reference velocity} , \bnt{V0} , ]
         \kw{reference force} , \bnt{F0} ,
-        \kw{activation} , \ty{DriveCaller} \bnt{activation}
-            [ , \kw{activation check} , \ty{bool}\bnt{activation_check} ]
-        [ , \kw{ergonomy} , \{ \kw{yes} | \kw{no} \} , ]
+        \kw{activation} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activation}
+            [ , \kw{activation check} , (\ty{bool}) \bnt{activation_check} ]
+        [ , \kw{ergonomy} , \{ \kw{yes} | \kw{no} \} ]
         [ , \kw{reflexive} , # only when ergonomy == no
             \kw{proportional gain} , \bnt{kp} ,
             \kw{derivative gain} , \bnt{kd} ,
-            \kw{reference length} , \ty{DriveCaller} \bnt{lref} ]
+            \kw{reference length} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{lref} ]
 \end{Verbatim}
 The \kw{ergonomy} flag, when active, indicates that the equivalent damping
 must not be used.
