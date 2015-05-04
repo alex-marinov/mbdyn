@@ -98,6 +98,7 @@ begin: control data;
 end: control data;
 
 module load: "libmodule-wheel4.la";
+#module load: "libmodule-wheel4.la", wheel4;
 
 set: integer GROUND = 0; 	#ground
 #set: integer MOVING_G = 4;	#moving ground
@@ -417,7 +418,7 @@ set: integer RPD = ROAD_CE;	# driver for the profile of the road
 
 ##include: "WUE.elm"; ## Wheel user elem
 
-user defined: EID, wheel4,
+user defined: EID, rigid ring tire,
 		WNL,	# wheel structural node label
 		WBL, 	# wheel body label
 		0.,1.,0., 	# wheel axle direction (does sign matter??)

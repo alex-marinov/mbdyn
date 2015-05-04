@@ -1869,6 +1869,7 @@ Wheel4::InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr)
 
 /* TimeStep - begin */
 
+// FIXME: does not need to be an element, imho
 
 TimeStep::TimeStep(
 	unsigned uLabel, const DofOwner *pDO,
@@ -1896,12 +1897,14 @@ UserDefinedElem(uLabel, pDO)
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 		}
 	}
-		for (DataManager::ElemContainerType::const_iterator e = pDM->begin(Elem::LOADABLE);
-				e != pDM->end(Elem::LOADABLE); ++e)
-		{
-			pWheelE = e->second;
-			pWheelsE.push_back(pWheelE);
-			}
+
+	// FIXME: why?
+	for (DataManager::ElemContainerType::const_iterator e = pDM->begin(Elem::LOADABLE);
+			e != pDM->end(Elem::LOADABLE); ++e)
+	{
+		pWheelE = e->second;
+		pWheelsE.push_back(pWheelE);
+	}
 }
 
 TimeStep::~TimeStep(void)
@@ -1963,8 +1966,8 @@ doublereal TimeStep::dGetPrivData(unsigned int i) const
 	ASSERT(i >= 1 && i <= iGetNumPrivData());
 
 	doublereal dtMax = pWheelsE[0]->dGetPrivData(1);
-	for (unsigned iCnt=1; iCnt < pWheelsE.size(); iCnt++ ) {
-		dtMax = fmin(dtMax,pWheelsE[iCnt]->dGetPrivData(1));
+	for (unsigned iCnt = 1; iCnt < pWheelsE.size(); iCnt++) {
+		dtMax = fmin(dtMax, pWheelsE[iCnt]->dGetPrivData(1));
 	}
     	return dtMax; // this should return the maximum timestep that this wheel is able to take (to be fed into the strategy:change cirective in the MBDyn input file)
 }
@@ -2044,12 +2047,36 @@ extern "C" int
 module_init(const char *module_name, void *pdm, void *php)
 {
 	UserDefinedElemRead *rf = new UDERead<Wheel4>;
-	if (!SetUDE("wheel4", rf)) {
+	if (!SetUDE("rigid" "ring" "tire", rf)) {
 		delete rf;
-		silent_cerr("Wheel4: "
+		silent_cerr("RigidRingTire: "
 			"module_init(" << module_name << ") "
 			"failed" << std::endl);
 		return -1;
+	}
+
+	// DataManager *pDM = (DataManager *)pdm;
+	MBDynParser *pHP = (MBDynParser *)php;
+
+	while (pHP->IsArg()) {
+		const char *s = pHP->GetString();
+		if (s == 0) {
+			silent_cerr("RigidRingTire: "
+				"unable to get arg; "
+				"module_init(" << module_name << ") "
+				"failed" << std::endl);
+			return -1;
+		}
+
+		rf = new UDERead<Wheel4>;
+		if (!SetUDE(s, rf)) {
+			delete rf;
+			silent_cerr("Wheel4: "
+				"unable to set parser for name \"" << s << "\"; "
+				"module_init(" << module_name << ") "
+				"failed" << std::endl);
+			return -1;
+		}
 	}
 
 	UserDefinedElemRead *rf2 = new UDERead<TimeStep>;
