@@ -37,6 +37,7 @@
 %\usepackage[dvips,breaklinks=true,colorlinks=false]{hyperref}
 \usepackage{html}
 \usepackage{comment}
+\usepackage{color}
 
 \input{../stdmacro}
 %poor man's bold symbol
@@ -617,8 +618,194 @@ Unfortunately, this requires the implementation of more constraints
 than required by the regular solution phases, namely the time derivative
 of the algebraic constraints that depend only on the configuration.
 
+\bigskip
 
-\textbf{NOTE: this is a work in progress.} \
+
+
+\textbf{NOTE: Rationale.} \
+The rationale of an initial assembly procedure is to drive the problem
+in a configuration that complies with the kinematic constraints,
+starting from the configuration that was defined during the input.
+
+Constraint equations can be partitioned in holonomic,
+\begin{align}
+	\T{\phi}(\T{x}, t) = \T{0}
+\end{align}
+and non-holonomic, which are usually expressed as linear in the coordinate derivatives,
+\begin{align}
+	\TT{A}(\T{x}, t) \dot{\T{x}} + \T{b}(\T{x}, t) &= \T{0}
+\end{align}
+It is legitimate that $\T{\phi}(\T{x}_0^{(0)}, t_0) \neq \T{0}$,
+or that $\TT{A}(\T{x}_0^{(0)}, t_0) \T{v}_0^{(0)} + \T{b}(\T{x}_0^{(0)}, t_0) \neq \T{0}$,
+where the subscript $0$ indicates the initial condition,
+and the superscript $(0)$ indicates the values provided at input.
+In such cases, a procedure is sought that provides $\T{x}_0$ and $\T{v}_0$.
+Since the problem in many cases is underdetermined
+(as the number of constraint equations is less than the number
+of degrees of freedom of the unconstrained problem),
+a criterion is needed to determine the correction to the input configuration.
+
+A minimum norm correction is obtained by requiring that the solution complies
+with the constraints and, at the same time, departs as little as possible
+from the configuration that was provided at input, namely
+\begin{align}
+	\min_{\T{x}_0, \T{v}_0} \frac{1}{2} \sqbr{
+		\plbr{\T{x}_0 - \T{x}_0^{(0)}}^T \TT{W}_{\T{x}} \plbr{\T{x}_0 - \T{x}_0^{(0)}}
+		+
+		\plbr{\T{v}_0 - \T{v}_0^{(0)}}^T \TT{W}_{\T{v}} \plbr{\T{v}_0 - \T{v}_0^{(0)}}
+	}
+	\nonumber \\
+	\text{subjected to }
+	\lvvect{
+		\T{\phi}(\T{x}_0, t_0) = \T{0}
+		\\
+		\dot{\T{\phi}} = \T{\phi}_{/\T{x}}(\T{x}_0, t_0) \T{v}_0 + \T{\phi}_{/t}(\T{x}_0, t_0) = \T{0}
+		\\
+		\TT{A}(\T{x}_0, t_0) \T{v}_0 + \T{b}(\T{x}_0, t_0) = \T{0}
+	}
+\end{align}
+The problem can be reformulated as
+\begin{subequations}
+\label{eq:initial-assembly:min}
+\begin{align}
+	\TT{W}_{\T{x}} \plbr{\T{x}_0 - \T{x}_0^{(0)}}
+	+
+	\T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}}
+	&=
+	\T{0}
+	\label{eq:initial-assembly:min:x}
+	\\
+	\TT{W}_{\T{v}} \plbr{\T{v}_0 - \T{v}_0^{(0)}}
+	+
+	\T{\phi}_{/\T{x}}^T \T{\mu}_{\T{\phi}}
+	+
+	\TT{A}^T \T{\mu}_{\T{\psi}}
+	&=
+	\T{0}
+	\label{eq:initial-assembly:min:v}
+	\\
+	\T{\phi}(\T{x}_0, t_0) &= \T{0}
+	\label{eq:initial-assembly:min:phi}
+	\\
+	\T{\phi}_{/\T{x}}(\T{x}_0, t_0) \T{v}_0 + \T{\phi}_{/t}(\T{x}_0, t_0) &= \T{0}
+	\label{eq:initial-assembly:min:dphi}
+	\\
+	\TT{A}(\T{x}_0, t_0) \T{v}_0 + \T{b}(\T{x}_0, t_0) &= \T{0}
+	\label{eq:initial-assembly:min:psi}
+\end{align}
+\end{subequations}
+After (incomplete) linearization, the problem can be solved as
+\begin{align}
+	\sqbr{\matr{ccccc}{
+		\TT{W}_{\T{x}} & \TT{0} & \T{\phi}_{/\T{x}}^T & \TT{0} & \TT{0}
+		\\
+		\TT{0} & \TT{W}_{\T{v}} & \TT{0} & \T{\phi}_{/\T{x}}^T & \TT{A}^T
+		\\
+		\T{\phi}_{/\T{x}} & \TT{0} & \TT{0} & \TT{0} & \TT{0}
+		\\
+		\TT{0} & \T{\phi}_{/\T{x}} & \TT{0} & \TT{0} & \TT{0}
+		\\
+		\TT{0} & \TT{A} & \TT{0} & \TT{0} & \TT{0}
+	}}
+	\cubr{\cvvect{
+		\Delta\T{x}_0
+		\\
+		\Delta\T{v}_0
+		\\
+		\Delta\T{\lambda}_{\T{\phi}}
+		\\
+		\Delta\T{\mu}_{\T{\phi}}
+		\\
+		\Delta\T{\mu}_{\T{\psi}}
+	}}
+	&=
+	\cubr{\cvvect{
+		\TT{W}_{\T{x}} \plbr{\T{x}_0^{(0)} - \T{x}_0} - \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}}
+		\\
+		\TT{W}_{\T{v}} \plbr{\T{v}_0^{(0)} - \T{v}_0} - \T{\phi}_{/\T{x}}^T \T{\mu}_{\T{\phi}} - \TT{A}^T \T{\mu}_{\T{\psi}}
+		\\
+		-\T{\phi}
+		\\
+		-\dot{\T{\phi}}
+		\\
+		-\TT{A} \T{v}_0 - \T{b}
+	}}
+\end{align}
+The problem can be decomposed in two formally independent subproblems,
+\begin{align}
+	\sqbr{\matr{ccc}{
+		\TT{W}_{\T{x}} & \T{\phi}_{/\T{x}}^T
+		\\
+		\T{\phi}_{/\T{x}} & \TT{0}
+	}}
+	\cubr{\cvvect{
+		\Delta\T{x}_0
+		\\
+		\Delta\T{\lambda}_{\T{\phi}}
+	}}
+	&=
+	\cubr{\cvvect{
+		\TT{W}_{\T{x}} \plbr{\T{x}_0^{(0)} - \T{x}_0} - \T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}}
+		\\
+		-\T{\phi}
+	}}
+	\\
+	\sqbr{\matr{ccc}{
+		\TT{W}_{\T{v}} & \T{\phi}_{/\T{x}}^T & \TT{A}^T
+		\\
+		\T{\phi}_{/\T{x}} & \TT{0} & \TT{0}
+		\\
+		\TT{A} & \TT{0} & \TT{0}
+	}}
+	\cubr{\cvvect{
+		\Delta\T{v}_0
+		\\
+		\Delta\T{\mu}_{\T{\phi}}
+		\\
+		\Delta\T{\mu}_{\T{\psi}}
+	}}
+	&=
+	\cubr{\cvvect{
+		\TT{W}_{\T{v}} \plbr{\T{v}_0^{(0)} - \T{v}_0} - \T{\phi}_{/\T{x}}^T \T{\mu}_{\T{\phi}} - \TT{A}^T \T{\mu}_{\T{\psi}}
+		\\
+		-\dot{\T{\phi}}
+		\\
+		-\TT{A} \T{v}_0 - \T{b}
+	}}
+\end{align}
+where the latter depends on the former since $\T{\phi}$, $\TT{A}$, and $\T{b}$ may depend on $\T{x}_0$.
+
+The problems may couple again when, in order to influence the solution,
+one adds to the right hand side of Eq.~(\ref{eq:initial-assembly:min:x})
+some relatively arbitrary contributions that can be interpreted
+as the residual of an equilibrium,
+\begin{align}
+	\TT{W}_{\T{x}} \plbr{\T{x}_0 - \T{x}_0^{(0)}}
+	+
+	\T{\phi}_{/\T{x}}^T \T{\lambda}_{\T{\phi}}
+	&=
+	\T{r}(\T{x}_0, \T{v}_0, \T{a}_0, t_0)
+\end{align}
+where $\T{r}$ may include position, velocity, and even acceleration-dependent loads.
+By selectively activating what appears in $\T{r}$, one would drive the minimization
+towards a solution that finds the desired trade-off between staying close
+to the input configuration and, at the same time, tries to minimize the strain energy,
+or the gravitational potential energy, or whatever is desired.
+
+For example, one could set $\T{r} = \T{f}(t_0) - \TT{K} \T{x}_0$
+to account for a dead load $\T{f}(t_0)$, e.g.\ the weight.
+By carefully crafting the weight matrix $\TT{W}_{\T{x}}$
+(e.g.\ by setting it to zero if the stiffness matrix $\TT{K}$ is not singular),
+one could allow the nodes to depart from their initial configuration
+and obtain the static equilibrium configuration directly with the initial assembly.
+
+
+
+\bigskip
+
+
+
+\textbf{(OUTDATED?) NOTE: this is a work in progress.} \
 A new procedure is being considered, which requires only the use 
 of the constraint equation $\phi$ and its Jacobian matrix $\phi_{/x}$.
 
