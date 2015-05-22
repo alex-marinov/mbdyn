@@ -44,7 +44,7 @@ mbdyn_demangle(const char *name)
 	std::string ret;
 
 #ifdef HAVE_CXXABI_H
-	const char* const demangled_name = name;
+	const char* demangled_name = name;
 	int status = -1;
 	char* res = abi::__cxa_demangle(name, NULL, NULL, &status);
 	if (status == 0) {
