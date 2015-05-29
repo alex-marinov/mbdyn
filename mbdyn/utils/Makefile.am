@@ -256,6 +256,9 @@ mbdyn_util_oct.o: mbdyn_util_oct.cc
 
 mbdyn_util_oct.oct: mbdyn_util_oct.o
 	mkoctfile -o $@ $< $(OCTAVE_XLIBS)
+
+# workaround for Cygwin and MinGW
+mbdyn_util_oct.oct.exe: mbdyn_util_oct.oct
 endif
 
 if USE_OCTAVE
