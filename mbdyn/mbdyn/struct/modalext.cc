@@ -560,9 +560,10 @@ ModalExt::Output(OutputHandler& OH) const
 			}
 
 			if (uFlags & ExtModalForceBase::EMF_MODAL) {
-				unsigned cnt = 1;
+				unsigned cnt = 0;
+				const std::vector<unsigned int>& ML(pModal->GetModeList());
 				for (std::vector<doublereal>::const_iterator i = f.begin(); i != f.end(); ++i) {
-					out << GetLabel() << '.' << cnt
+					out << GetLabel() << '.' << ML[cnt]
 						<< " " << *i << std::endl;
 					cnt++;
 				}
