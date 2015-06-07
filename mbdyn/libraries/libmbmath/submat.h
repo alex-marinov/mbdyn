@@ -1235,7 +1235,7 @@ public:
 	};
 
 	/*
-	 * Collega una matrice sparsa con della memoria già assegnata
+	 * Links sparse matrix with already assigned memory
 	 */
 	void Attach(int iNumEntr, doublereal* pdTmpMat, integer* piTmpIndx) {
 		SetSparse();
@@ -1243,7 +1243,7 @@ public:
 	};
 
 	/*
-	 * Collega una matrice Full con della memoria già assegnata
+	 * Links full matrix with already assigned memory
 	 */
 	void Attach(int iNumRows, int iNumCols,
 			doublereal* pdTmpMat, integer* piTmpIndx) {

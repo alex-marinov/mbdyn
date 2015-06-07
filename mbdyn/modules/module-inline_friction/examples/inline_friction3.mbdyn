@@ -1,8 +1,10 @@
+#{
+
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2014
+ * Copyright (C) 1996-2013
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -30,15 +32,13 @@
 
 /*
  AUTHOR: Reinhard Resch <r.resch@secop.com>
-        Copyright (C) 2013(-2014) all rights reserved.
+        Copyright (C) 2011(-2013) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
         for use in the software MBDyn as described
         in the GNU Public License version 2.1
 */
-
-# module load: "libmodule-autodiff_test.la";
 
 set: real X0 = 20e-3;
 set: real Y0 = 30e-3;
@@ -50,19 +50,31 @@ set: real J22 = 1;
 set: real J33 = 1;
 set: real g = 9.81;
 
-set: real gravity_Zeta = -pi/2.;
+set: real gravity_Zeta = -pi/2;
 set: real gravity_Psi = 30 * pi / 180.;
 
-set: real theta_y = 70*pi/180;
+set: real mus = 0.8;
+set: real muc = 0.8;
+set: real vs = 1e-6;
+set: real kv = 0;
+set: real delta = 1e-7;
+set: real i = 1;
+
+set: real theta_y = 0.999*atan(muc);
 set: real theta_z = 90*pi/180;
 
 set: integer node_id_slider = 1001;
 set: integer node_id_ground = 1002;
 set: integer prm_node_id_lambda1 = 1003;
 set: integer prm_node_id_lambda2 = 1004;
+set: integer prm_node_id_z = 1005;
+set: integer prm_node_id_zP = 1006;
+set: integer prm_node_id_tau = 1007;
+set: integer prm_node_id_v = 1008;
 set: integer body_id_slider = 2001;
 set: integer joint_id_ground = 3001;
-set: integer joint_id_slider = 3002;
+set: integer joint_id_slider1 = 3002;
+set: integer joint_id_slider2 = 3003;
 set: integer ref_id_slider = 4001;
 
 begin: data;
@@ -72,39 +84,38 @@ end: data;
 begin: initial value;
 	initial time: 0.;
 	final time: 1;
-	time step: 1e-4;
-    min time step: 1e-4;
-    max time step: 5e-2;
-	max iterations: 10;
-	#strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
+	time step: 5e-4;
+#    min time step: 1e-4;
+#    max time step: 5e-2;
+#	strategy: factor, 0.8, 1, 1.25, 1, 3, 6;
 	tolerance: 1e-8;
 
-	max iterations: 100;
-    method: ms, 0.9;
-    derivatives tolerance: 2e-5;
-    derivatives max iterations: 100;
-	derivatives coefficient: 0.3e-2;
+	max iterations: 20;
+    method: ms, 0;
+    derivatives tolerance: 1e-5;
+    derivatives max iterations: 20;
+	derivatives coefficient: 1e-3;
+    output: iterations;
     #output: residual;
     #output: solution;
     #output: jacobian;
 
-    linear solver: umfpack, colamd, scale, iterative, always, max iterations, 10;
-
+    linear solver: umfpack, colamd, scale, row max column max, always, max iterations, 10;
+    #nonlinear solver: line search, scale newton step, no, lambda min, 1e-1, abort at lambda min, no, verbose, yes, print convergence info, yes;
 	eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,
     output matrices, 
 	parameter, 0.01,
 	output eigenvectors, output geometry,	
     use lapack, balance, permute;
-    #abort after: assembly;
     #abort after: derivatives;
 end: initial value;
 
 begin: control data;
     default output: all;
 	structural nodes: 2;
-    parameter nodes: 2;
+    parameter nodes: 6;
     rigid bodies: 1;
-    loadable elements: 1;
+    loadable elements: 2;
     joints: 1;
 	max iterations: 100;
 	tolerance: 1e-8;
@@ -128,6 +139,8 @@ reference: ref_id_slider,
 
 begin: nodes;
 
+# module load: "libmodule-inline_friction.la";
+
 structural: node_id_slider, dynamic,
     position, reference, ref_id_slider, 0., 0., -15e-3,
 	orientation, reference, ref_id_slider, euler123, 45*pi/180, -60*pi/180, 30*pi/180,
@@ -142,6 +155,10 @@ structural: node_id_ground, static,
 
 parameter: prm_node_id_lambda1, element;
 parameter: prm_node_id_lambda2, element;
+parameter: prm_node_id_z, element;
+parameter: prm_node_id_zP, element;
+parameter: prm_node_id_tau, element;
+parameter: prm_node_id_v, element;
 
 end: nodes;
 
@@ -160,22 +177,54 @@ begin: elements;
 
     joint: joint_id_ground, clamp, node_id_ground, node, node;
 
-    user defined: joint_id_slider, 
-        inline joint ad,
+    user defined: joint_id_slider1, 
+        # octave, "InLineFriction", embed octave, yes, octave search path, "..",
+         inline friction,
         node1,
             node_id_ground,
             offset, reference, ref_id_slider, null,
             orientation, reference, ref_id_slider, eye,
         node2,
             node_id_slider,
-            offset, reference, ref_id_slider, null;
+            offset, reference, ref_id_slider, -0.5, 0., 0.,
+        coulomb friction coefficient, muc,
+        static friction coefficient, mus,
+        sliding velocity coefficient, vs,
+        sliding velocity exponent, i,
+        micro slip displacement, delta,
+        viscous friction coefficient, 0.5 * kv;
 
-    bind: joint_id_slider, user defined, prm_node_id_lambda1, string, "lambda1";
-    bind: joint_id_slider, user defined, prm_node_id_lambda2, string, "lambda2";
+    bind: joint_id_slider1, user defined, prm_node_id_lambda1, string, "lambda1";
+    bind: joint_id_slider1, user defined, prm_node_id_lambda2, string, "lambda2";
+    bind: joint_id_slider1, user defined, prm_node_id_z,       string, "z";
+    bind: joint_id_slider1, user defined, prm_node_id_zP,      string, "zP";
+    bind: joint_id_slider1, user defined, prm_node_id_tau,     string, "tau";
+    bind: joint_id_slider1, user defined, prm_node_id_v,     string, "v";
+
+    user defined: joint_id_slider2, 
+        # octave, "InLineFriction", embed octave, yes, octave search path, "..",
+         inline friction,
+        node1,
+            node_id_ground,
+            offset, reference, ref_id_slider, null,
+            orientation, reference, ref_id_slider, eye,
+        node2,
+            node_id_slider,
+            offset, reference, ref_id_slider, 0.5, 0., 0.,
+        coulomb friction coefficient, muc,
+        static friction coefficient, mus,
+        sliding velocity coefficient, vs,
+        sliding velocity exponent, i,
+        micro slip displacement, delta,
+        viscous friction coefficient, 0.5 * kv;
 
 	gravity: cos(gravity_Zeta) * cos(gravity_Psi), 
              cos(gravity_Zeta) * sin(gravity_Psi), 
              sin(gravity_Zeta),
 	const, g;		
 end: elements;
-
+#}
+#/*
+fprintf(stderr,"inline_friction.mbdyn: embed octave is enabled ...\n");
+warning("error","Octave:divide-by-zero");
+#*/

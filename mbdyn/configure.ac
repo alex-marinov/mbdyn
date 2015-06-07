@@ -204,7 +204,7 @@ OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary outpu
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
 OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
-
+OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
@@ -780,6 +780,271 @@ fi
 
 if test "$ol_enable_autodiff" != no ; then
 	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
+	
+	AC_MSG_CHECKING([for posix_memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void *p;
+posix_memalign(&p, 32, 1024);
+			],[have_posix_memalign="yes"])
+	
+	if test "$have_posix_memalign" == "yes"; then		
+		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+	
+	AC_MSG_CHECKING([for memalign])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = memalign(32, 1024);
+				],[have_memalign="yes"])
+				
+	if test "$have_memalign" == "yes"; then
+		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+	
+	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
+	AC_TRY_LINK([
+#include <stdlib.h>
+				],[
+void* p = _aligned_malloc(1024, 32);
+_aligned_free(p);
+				],[have_aligned_malloc="yes"])
+	
+	if test "$have_aligned_malloc" == "yes"; then
+		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
+		AC_MSG_RESULT([yes])
+	else
+		AC_MSG_RESULT([no])
+	fi
+			
+	if test "$ol_enable_autodiff_vect" == 0 ; then
+		save_CXXFLAGS="$CXXFLAGS"
+		vector_flags="-O3 -march=native -mtune=native"
+		CXXFLAGS="$CXXFLAGS $vector_flags"
+		
+		AC_LANG_CPLUSPLUS
+		AC_TRY_RUN([
+#include <ctime>
+#include <cassert>
+#include <cstdlib>
+#include <iostream>
+#include <limits>
+#include <new>
+#include <iomanip>
+#include <fstream>
+using namespace std;
+
+template <typename scalar_type, int VECTOR_SIZE>
+class vector
+{
+public: 
+    static const int vec_size = VECTOR_SIZE / sizeof(scalar_type);
+    typedef scalar_type __attribute__((vector_size(VECTOR_SIZE))) vector_type;
+
+    vector(int n)
+    {
+        N = n / vec_size;
+        
+        if (n % vec_size != 0)
+        {
+            ++N;
+        }
+        
+        void* p;
+        
+#if HAVE_POSIX_MEMALIGN == 1
+    	if (0 != posix_memalign(&p, sizeof(vector_type), vector_size() * sizeof(vector_type)))
+    	{
+    		p = 0;
+    	}
+#elif HAVE_ALIGNED_MALLOC == 1
+        p = _aligned_malloc(vector_size() * sizeof(vector_type), sizeof(vector_type));
+#elif HAVE_MEMALIGN == 1
+    	p = memalign(sizeof(vector_type), vector_size() * sizeof(vector_type));
+#else
+		p = malloc(vector_size() * sizeof(vector_type));
+#endif
+        
+        v = reinterpret_cast<vector_type*>(p);
+        
+        if (v == 0)
+            throw std::bad_alloc();
+    }
+    
+    ~vector()
+    {
+#if HAVE_ALIGNED_MALLOC == 1
+        _aligned_free(v);
+#else
+    	free(v);
+#endif
+    }
+    
+    int size() const { return N * vec_size; }
+    
+    int vector_size() const { return N; }
+    
+    vector_type& operator[](int i)
+    {
+        return v[i];
+    }
+    
+    const vector_type& operator[](int i) const 
+    { 
+        return v[i]; 
+    }
+    
+    scalar_type& operator()(int i) 
+    {
+        return s[i];     
+    }
+    
+    const scalar_type& operator()(int i) const    
+    {
+        return s[i];     
+    }
+private:
+    union {
+        scalar_type* s;
+        vector_type* v;
+    };
+    int N;
+};
+
+template <typename T, int VECTOR_SIZE>
+T func_vec(const T a, const T b, const vector<T,VECTOR_SIZE>& ad, const vector<T,VECTOR_SIZE>& bd,  vector<T,VECTOR_SIZE>& cd)
+{
+    for (int i = 0; i < ad.vector_size(); ++i)
+    {
+        cd[i] = ad[i] * b + a * bd[i];
+    }
+    
+    return a * b;
+}
+
+template<typename T, int VECTOR_SIZE>
+clock_t testVector(int N, int M)
+{
+    T a, b, c;
+    
+    a = 10;
+    b = 5;
+    vector<T,VECTOR_SIZE> ad(N), bd(N), cd(N);
+    
+    for (int i = 0; i < ad.size(); ++i)
+    {
+        ad(i) = i + 1;
+        bd(i) = 10 * (i + 1);
+    }
+    
+    const clock_t start = clock();
+    
+    for (int i = 0; i < M; ++i)
+        c = func_vec(a, b, ad, bd, cd);
+    
+    const clock_t dt = clock() - start;
+    
+    assert(c == a * b);
+    for (int i = 0; i < ad.size(); ++i)
+    {
+        assert(cd(i) == ad(i) * b + bd(i) * a);
+    }
+    
+    return dt;
+}
+
+int vec_size = 0;
+clock_t tmin = std::numeric_limits<clock_t>::max();
+
+template <int i>
+void runTest(int N, int M, clock_t t[])
+{
+    const int iprev = i - 1;
+    runTest<iprev>(N, M, t);
+    const int K = 1 << (i + 3);
+    
+    cout << "checking for vector_size=" << setw(3) << K << " ... ";
+    
+    t[i] = testVector<double, K>(N, M);
+    
+    cout << "[OK] t=" << setw(5) << t[i] << endl;
+    
+    if (t[i] < tmin)
+    {
+        tmin = t[i];
+        vec_size = K;
+        ofstream("grad_vector_size.dat") << K;
+    }
+}
+
+template <>
+void runTest<-1>(int N, int M, clock_t t[])
+{
+}
+
+int main(int argc, char* argv[])
+{
+    int N = 1024;
+    int M = 1000000;
+    
+    if (argc > 1)
+        N = atoi(argv[1]);
+    
+    if (argc > 2)
+        M = atoi(argv[2]);
+    
+    const int K = 3;
+    clock_t t[K];
+    
+    ofstream("grad_vector_size.dat") << 0;
+    
+    runTest<K>(N, M, t);
+    
+    cout << "result: optimum(vector_size)=" << vec_size << endl;
+    return 0;
+}					],
+					[],
+					[printf "[FAILED]\n"])
+					
+		if test -f grad_vector_size.dat; then
+			ol_enable_autodiff_vect=`cat grad_vector_size.dat`
+			
+			if test -z "$ol_enable_autodiff_vect"; then
+				ol_enable_autodiff_vect=0
+			fi
+			
+			rm grad_vector_size.dat
+		fi
+		
+		CXXFLAGS="$save_CXXFLAGS"
+		AC_LANG_C
+	fi
+	
+	case "$ol_enable_autodiff_vect" in
+	16)
+		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 16, [the number of bytes of an avx or sse register])
+		AC_MSG_RESULT([vectorization of derivatives will use 16 byte vectors])
+		;;
+	32)
+		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 32, [the number of bytes of an avx or sse register])
+		AC_MSG_RESULT([vectorization of derivatives will use 32 byte vectors])
+		;;
+	64)
+		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 64, [the number of bytes of an avx or sse register])
+		AC_MSG_RESULT([vectorization of derivatives will use 64 byte vectors])
+		;;
+	*)
+		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 0, [the number of bytes of an avx or sse register])
+		AC_MSG_WARN([vectorization of derivatives is not possible])
+	esac
 fi
 
 dnl ----------------------------------------------------------------

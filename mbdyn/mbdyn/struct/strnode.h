@@ -702,7 +702,11 @@ StaticStructDispNode::iGetInitialFirstIndexPrime() const
  * contributi possono giungere da travi con matrice di inerzia consistente
  * (non ancora implementate). */
 
-class StructNode : virtual public StructDispNode {
+class StructNode : virtual public StructDispNode
+#ifdef USE_AUTODIFF
+, public grad::AlignedAlloc
+#endif
+{
 public:
 	class ErrGeneric : public MBDynErrBase {
   	public:

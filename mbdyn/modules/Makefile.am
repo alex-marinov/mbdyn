@@ -283,6 +283,7 @@ module-inline_friction/examples/inline_friction2_bench.elm \
 module-inline_friction/examples/inline_friction2.elm \
 module-inline_friction/examples/inline_friction2.mbdyn \
 module-inline_friction/examples/inline_friction2.nod \
+module-inline_friction/examples/inline_friction3.mbdyn \
 module-inline_friction/examples/inline_friction.mbdyn
 
 EXTRA_DIST += \
@@ -312,6 +313,7 @@ module-inplane_friction/@InPlaneFriction/SetInitialValue.m \
 module-inplane_friction/@InPlaneFriction/SetValue.m \
 module-inplane_friction/@InPlaneFriction/Update.m \
 module-inplane_friction/@InPlaneFriction/WorkSpaceDim.m \
+module-inplane_friction/examples/inplane_friction2.mbdyn \
 module-inplane_friction/examples/inplane_friction.mbdyn
 
 EXTRA_DIST += \

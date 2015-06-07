@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -46,15 +46,19 @@
 #include <cassert>
 #include <climits>
 #include <cmath>
+#include <cstdlib>
+#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <iomanip>
 #include <limits>
 #include <map>
+#include <new>
 #include <stdexcept>
 #include <typeinfo>
 #include <vector>
 
+#include "myassert.h"
 #include "except.h"
 #include "ac/f2c.h"
 
@@ -124,6 +128,10 @@ struct MaxSizeCheck<true> {
 	enum CheckType {};
 };
 
+#ifndef GRADIENT_VECTOR_REGISTER_SIZE
+	#define GRADIENT_VECTOR_REGISTER_SIZE 0
+#endif
+
 template <typename T>
 class GradientAllocator: public std::allocator<T> {
 public:
@@ -143,14 +151,17 @@ public:
     GradientAllocator() throw() { }
 
     GradientAllocator(const GradientAllocator& a) throw()
-    : std::allocator<T>(a) { }
+    	:std::allocator<T>(a)
+    { }
 
     template <typename U>
     GradientAllocator(const GradientAllocator<U>& a) throw()
-    : std::allocator<T>(a) { }
+    	:std::allocator<T>(a)
+    { }
 
     pointer
-    allocate(size_type n, const void* p=0) {
+    allocate(size_type n, const void* p=0)
+    {
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Inc(n);
 #endif
@@ -158,8 +169,57 @@ public:
     }
 
     void
-    deallocate(pointer p, size_type n) {
+    deallocate(pointer p, size_type n)
+    {
     	std::allocator<T>::deallocate(p, n);
+
+#if GRADIENT_MEMORY_STAT > 0
+    	sMemUsage.Dec(n);
+#endif
+    }
+
+    static T* allocate_aligned(size_type alignment, size_t n, size_type extra_bytes = 0u)
+    {
+#if GRADIENT_MEMORY_STAT > 0
+    	sMemUsage.Inc(n);
+#endif
+    	void* p;
+
+    	const size_type byte_size = sizeof(T) * n + extra_bytes;
+
+    	GRADIENT_ASSERT(alignment % sizeof(void*) == 0);
+
+#if defined(HAVE_POSIX_MEMALIGN)
+    	if (0 != posix_memalign(&p, alignment, byte_size))
+    	{
+    		p = 0;
+    	}
+#elif defined(HAVE_MEMALIGN)
+    	p = memalign(alignment, byte_size);
+#elif defined(HAVE_ALIGNED_MALLOC)
+        p = _aligned_malloc(byte_size, alignment);
+#else
+        p = malloc(byte_size);
+#endif
+
+    	if (p == 0)
+    	{
+    		throw std::bad_alloc();
+    	}
+
+    	return reinterpret_cast<T*>(p);
+    }
+
+
+    static void
+    deallocate_aligned(pointer p, size_type n)
+    {
+#if defined(HAVE_ALIGNED_MALLOC)
+        _aligned_free(p);
+#else
+    	free(p);
+#endif
+
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Dec(n);
 #endif
@@ -177,15 +237,15 @@ public:
     		std::cerr << "GradientAllocator<" << typeid(T).name()
     				<< ">\n\tiMaxMem = "
     				<< std::setprecision(3)
-    				<< doublereal(iMaxMem) / 1024 << "KB" << std::endl
-    				<< "\tiCurrMem=" << doublereal(iCurrMem) / 1024 << "KB" << std::endl
+    				<< iMaxMem << std::endl
+    				<< "\tiCurrMem=" << iCurrMem << std::endl
     				<< "\tiNumAlloc=" << iNumAlloc << std::endl
     				<< "\tiNumDealloc=" << iNumDealloc << std::endl;
     	}
 
     	void Inc(size_t iSize) {
     		++iNumAlloc;
-    		iCurrMem += iSize * sizeof(T);
+    		iCurrMem += iSize;
     		if (iCurrMem > iMaxMem) {
     			iMaxMem = iCurrMem;
     		}
@@ -193,7 +253,7 @@ public:
 
     	void Dec(size_t iSize) {
     		++iNumDealloc;
-    		iCurrMem -= iSize * sizeof(T);
+    		iCurrMem -= iSize;
     	}
 
     private:
@@ -205,22 +265,34 @@ public:
 #endif
 };
 
+struct AlignedAlloc
+{
+#if USE_AUTODIFF > 0 && GRADIENT_VECTOR_REGISTER_SIZE > 0
+	void* operator new(size_t size)
+	{
+		const size_t nBound = GRADIENT_VECTOR_REGISTER_SIZE > sizeof(void*) ? GRADIENT_VECTOR_REGISTER_SIZE : sizeof(void*);
+		return GradientAllocator<char>::allocate_aligned(nBound, 0, size);
+	}
+	void operator delete(void *p)
+	{
+		GradientAllocator<char>::deallocate_aligned(reinterpret_cast<char*>(p), 0);
+	}
+#endif
+};
+
 #if GRADIENT_MEMORY_STAT > 0
 template <typename T>
 typename GradientAllocator<T>::MemStat GradientAllocator<T>::sMemUsage;
 #endif
 
 template <typename T>
-struct RangeVectorTraits;
-
-template <>
-struct RangeVectorTraits<doublereal> {
-	static doublereal Zero(){
-		return 0.;
+struct RangeVectorTraits {
+	static T Zero(){
+		return T();
 	}
 
-	static doublereal Invalid(){
-		return NAN;
+	static T Invalid(){
+		return T(NAN);
 	}
 };
 
@@ -235,265 +307,585 @@ struct RangeVectorTraits<bool> {
 	}
 };
 
-template <typename T, index_type N_SIZE>
-class RangeVector {    
+typedef doublereal scalar_func_type; // data type for the value of a function
+typedef doublereal scalar_deriv_type; // data type for the value of a functions derivative
+
+template <typename T, index_type N_SIZE=0>
+class RangeVectorBase
+{
 public:
+
+#if GRADIENT_VECTOR_REGISTER_SIZE > 0
+	static const int iVectorSize = GRADIENT_VECTOR_REGISTER_SIZE / sizeof(T);
+	typedef T __attribute__((vector_size(iVectorSize * sizeof(T)))) vector_type;
+#else
+	#warning "vectorization not supported for this compiler"
+	static const int iVectorSize = 1;
+	typedef T vector_type;
+#endif
+
+	typedef T scalar_type;
+
+    static index_type iRoundStartIndexVector(index_type iStart)
+    {
+    	return iStart / iVectorSize;
+    }
+
+    static index_type iRoundEndIndexVector(index_type iEnd)
+    {
+    	return iEnd / iVectorSize + (iEnd % iVectorSize ? 1 : 0);
+    }
+};
+
+typedef doublereal scalar_func_type; // data type for the value of a function
+typedef doublereal scalar_deriv_type; // data type for the value of a functions derivative
+typedef typename RangeVectorBase<scalar_func_type>::vector_type vector_deriv_type;
+
+template <typename T, index_type N_SIZE>
+class RangeVector: public RangeVectorBase<T, N_SIZE> {
+public:
+	static const index_type iVectorSize = RangeVectorBase<T, N_SIZE>::iVectorSize;
+	typedef typename RangeVectorBase<T, N_SIZE>::scalar_type scalar_type;
+	typedef typename RangeVectorBase<T, N_SIZE>::vector_type vector_type;
+
+	static const index_type iMaxSizeVector = N_SIZE / iVectorSize + (N_SIZE % iVectorSize ? 1 : 0);
 	static const index_type iMaxSize = N_SIZE;
 
     RangeVector()
-        :iStart(0), iEnd(0) {
-
+	{
 #if GRADIENT_DEBUG > 0
-        Initialize(RangeVectorTraits<T>::Invalid());
+        Initialize(0, iMaxSize, RangeVectorTraits<scalar_type>::Invalid());
 #endif
+    	GRADIENT_ASSERT(bIsAligned());
+
+        iStart = 0;
+        iEnd = 0;
+        iStartVec = 0;
+        iEndVec = 0;
+
+        GRADIENT_ASSERT(bInvariant());
+    }
+    
+    RangeVector(const RangeVector& v)
+    {
+        GRADIENT_ASSERT(bIsAligned());
+
+    	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
     }
     
     template <typename T2, index_type N_SIZE2>
     RangeVector(const RangeVector<T2, N_SIZE2>& v)
-    	:iStart(v.iGetStartIndex()), iEnd(v.iGetEndIndex())
     {
+        GRADIENT_ASSERT(bIsAligned());
+
     	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
+    }
+
+    explicit RangeVector(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
+    {
+        GRADIENT_ASSERT(bIsAligned());
+
+        Initialize(iStartNew, iEndNew, dVal);
+
+        GRADIENT_ASSERT(bInvariant());
+    }
+
+    RangeVector& operator=(const RangeVector& v)
+    {
+        GRADIENT_ASSERT(bIsAligned());
+        
+    	GRADIENT_ASSERT(bInvariant());
+
+    	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
+
+    	return *this;
     }
 
     template <typename T2, index_type N_SIZE2>
     RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v)
     {
-    	iStart = v.iGetStartIndex();
-    	iEnd = v.iGetEndIndex();
+        GRADIENT_ASSERT(bIsAligned());
+        
+    	GRADIENT_ASSERT(bInvariant());
 
     	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
 
     	return *this;
     }
 
-    explicit RangeVector(index_type iStart, index_type iEnd, const T& dVal)
-        :iStart(iStart), iEnd(iEnd) {
+    void ResizeReset(index_type iStartNew, index_type iEndNew, const T& dVal)
+    {
+        GRADIENT_ASSERT(bIsAligned());
 
-        Initialize(dVal);
+    	GRADIENT_ASSERT(bInvariant());
+
+        Initialize(iStartNew, iEndNew, dVal);
+
+        GRADIENT_ASSERT(bInvariant());
     }
 
-    void ResizeReset(index_type iStartNew, index_type iEndNew, const T& dVal) {
-        iStart = iStartNew;
-        iEnd = iEndNew;
+    void ResizePreserve(index_type iStartNew, index_type iEndNew)
+    {
+        GRADIENT_ASSERT(bIsAligned());
+        
+    	GRADIENT_ASSERT(bInvariant());
 
-        Initialize(dVal);
-    }
-
-    void ResizePreserve(index_type iStartNew, index_type iEndNew) {
     	iStart = iStartNew;
     	iEnd = iEndNew;
+    	iStartVec = iRoundStartIndexVector(iStartNew);
+    	iEndVec = iRoundEndIndexVector(iEndNew);
 
-        GRADIENT_ASSERT(iEnd <= N_SIZE);
-        GRADIENT_ASSERT(iStart >= 0);
-        GRADIENT_ASSERT(iStart <= iEnd);
+    	std::fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
+    	std::fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
 
-    	for (index_type i = 0; i < iStart; ++i) {
-    		rgVec[i] = RangeVectorTraits<T>::Zero();
+    	GRADIENT_ASSERT(bInvariant());
     	}
 
-    	for (index_type i = iEnd; i < N_SIZE; ++i) {
-    		rgVec[i] = RangeVectorTraits<T>::Zero();
-    	}
-    }
+    void Reset()
+    {
+        GRADIENT_ASSERT(bIsAligned());
 
-    void Reset() {
+    	GRADIENT_ASSERT(bInvariant());
     	// Reset the data but preserve iStart and iEnd
+    	std::fill(rgArrayVec + iStartVec, rgArrayVec + iEndVec, RangeVectorTraits<vector_type>::Zero());
 
-    	for (index_type i = iGetStartIndex(); i < iGetEndIndex(); ++i) {
-    		SetValue(i, RangeVectorTraits<T>::Zero());
+    	GRADIENT_ASSERT(bInvariant());
     	}
 
-#if GRADIENT_DEBUG > 0
-    	for (index_type i = 0; i < N_SIZE; ++i) {
-    		// All elements must be zero
-    		GRADIENT_ASSERT(rgVec[i] == RangeVectorTraits<T>::Zero());
-    	}
-#endif
-    }
-
-    void Reserve(index_type iMaxSize) {
-    	GRADIENT_ASSERT(iMaxSize < N_SIZE);
+    void Reserve(index_type iMaxSizeNew)
+    {
+        GRADIENT_ASSERT(bIsAligned());
+    	GRADIENT_ASSERT(bInvariant());
+    	GRADIENT_ASSERT(iMaxSizeNew <= iMaxSize);
     }
 
     index_type iGetStartIndex() const { return iStart; }
     index_type iGetEndIndex() const { return iEnd; }
     index_type iGetSize() const { return iEnd - iStart; }
     static index_type iGetMaxSize() { return iMaxSize; }
+    index_type iGetStartIndexVector() const { return iStartVec; }
+    index_type iGetEndIndexVector() const { return iEndVec; }
+    index_type iGetSizeVector() const { return iEndVec - iStartVec; }
+    static index_type iGetMaxSizeVector() { return iMaxSizeVector; }
     
-    T GetValue(index_type i) const {
+    scalar_type GetValue(index_type i) const
+    {
         GRADIENT_ASSERT(i >= 0);
-        GRADIENT_ASSERT(i < N_SIZE);
-        GRADIENT_ASSERT((i >= iStart && i < iEnd) || rgVec[i] == 0.);
-        return rgVec[i];
+        GRADIENT_ASSERT(i < iMaxSize);
+        GRADIENT_ASSERT((i >= iGetStartIndex() && i < iGetEndIndex()) || rgArray[i] == RangeVectorTraits<scalar_type>::Zero());
+        GRADIENT_ASSERT(bIsAligned());
+
+        return rgArray[i];
     }
     
-    void SetValue(index_type i, const T& d) {
+    void SetValue(index_type i, const scalar_type& d)
+    {
         GRADIENT_ASSERT(i >= 0);
-        GRADIENT_ASSERT(i < N_SIZE);
-        GRADIENT_ASSERT((i >= iStart && i < iEnd)/* || rgVec[i] == 0.*/);
-        rgVec[i] = d;
+        GRADIENT_ASSERT(i < iMaxSize);
+        GRADIENT_ASSERT(i >= iGetStartIndex() && i < iGetEndIndex());
+        GRADIENT_ASSERT(bIsAligned());
+        
+        rgArray[i] = d;
+    }
+
+    vector_type GetVectorValue(index_type i) const {
+        GRADIENT_ASSERT(i >= 0);
+        GRADIENT_ASSERT(i < iMaxSizeVector);
+        GRADIENT_ASSERT(bIsAligned());
+        //GRADIENT_ASSERT(i >= iStartVec && i < iEndVec || rgArrayVec[i] == RangeVectorTraits<vector_type>::Zero());
+
+        return rgArrayVec[i];
+    }
+    
+    void SetVectorValue(index_type i, const vector_type& d) {
+        GRADIENT_ASSERT(i >= 0);
+        GRADIENT_ASSERT(i < iMaxSizeVector);
+        GRADIENT_ASSERT(i >= iGetStartIndexVector() && i < iGetEndIndexVector());
+        GRADIENT_ASSERT(bIsAligned());
+        
+        rgArrayVec[i] = d;
     }
 
     static bool bUseDynamicMem() { return false; }
     
 private:
-    void Initialize(const T& dVal) {
-        GRADIENT_ASSERT(iEnd <= N_SIZE);
-        GRADIENT_ASSERT(iStart >= 0);
-        GRADIENT_ASSERT(iStart <= iEnd);
+    using RangeVectorBase<T, N_SIZE>::iRoundStartIndexVector;
+    using RangeVectorBase<T, N_SIZE>::iRoundEndIndexVector;
 
-        for (index_type i = 0; i < iStart; ++i) {
-            rgVec[i] = RangeVectorTraits<T>::Zero(); // This allows fast access without frequent index checking
-        }
+    void Initialize(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
+    {
+    	iStart = iStartNew;
+    	iEnd = iEndNew;
+    	iStartVec = iRoundStartIndexVector(iStartNew);
+    	iEndVec = iRoundEndIndexVector(iEndNew);
         
-        for (index_type i = iStart; i < iEnd; ++i) {
-            rgVec[i] = dVal;
-        }
+        std::fill(rgArrayVec, rgArrayVec + iMaxSizeVector, RangeVectorTraits<vector_type>::Zero());
         
-        for (index_type i = iEnd; i < N_SIZE; ++i) {
-            rgVec[i] = RangeVectorTraits<T>::Zero(); // This allows fast access without frequent index checking
+        if (dVal != RangeVectorTraits<scalar_type>::Zero())
+        {
+        	std::fill(rgArray + iStart, rgArray + iEnd, dVal);
         }
     }
     
     template <typename T2, index_type N_SIZE2>
-    void Copy(const RangeVector<T2, N_SIZE2>& v) {
+    void Copy(const RangeVector<T2, N_SIZE2>& v)
+    {
     	typedef typename MaxSizeCheck<iMaxSize >= RangeVector<T2, N_SIZE2>::iMaxSize>::CheckType check_iMaxSize;
 
-		GRADIENT_ASSERT(iEnd <= N_SIZE);
-		GRADIENT_ASSERT(iStart >= 0);
-		GRADIENT_ASSERT(iStart <= iEnd);
+    	iStart = v.iGetStartIndex();
+    	iEnd = v.iGetEndIndex();
+    	iStartVec = iRoundStartIndexVector(iStart);
+    	iEndVec = iRoundEndIndexVector(iEnd);
 
-		for (index_type i = 0; i < iStart; ++i) {
-			rgVec[i] = RangeVectorTraits<T>::Zero(); // This allows fast access without frequent index checking
+		// This allows fast access without frequent index checking
+		std::fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
+		std::fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
+
+		CopyData(v);
 		}
 
+    template <typename T2, index_type N_SIZE2>
+    void CopyData(const RangeVector<T2, N_SIZE2>& v)
+    {
 		for (index_type i = iStart; i < iEnd; ++i) {
-			rgVec[i] = v.GetValue(i);
-		}
-
-		for (index_type i = iEnd; i < N_SIZE; ++i) {
-			rgVec[i] = RangeVectorTraits<T>::Zero(); // This allows fast access without frequent index checking
+			SetValue(i, v.GetValue(i));
 		}
     }
-private:
-    T rgVec[N_SIZE];
-    index_type iStart, iEnd;
+
+    void CopyData(const RangeVector& v)
+    {
+    	std::copy(v.rgArrayVec + v.iStartVec, v.rgArrayVec + v.iEndVec, rgArrayVec + iStartVec);
+    }
+
+#if GRADIENT_DEBUG > 0
+    bool bInvariant() const
+    {
+		GRADIENT_ASSERT(iEndVec <= iMaxSizeVector);
+		GRADIENT_ASSERT(iStartVec >= 0);
+		GRADIENT_ASSERT(iStartVec <= iEndVec);
+
+		const index_type iStartOffset = iStart - iStartVec * iVectorSize;
+
+		GRADIENT_ASSERT(iStartOffset >= 0);
+		GRADIENT_ASSERT(iStartOffset < iVectorSize);
+
+		const index_type iEndOffset = iEndVec * iVectorSize - iEnd;
+
+		GRADIENT_ASSERT(iEndOffset >= 0);
+		GRADIENT_ASSERT(iEndOffset < iVectorSize);
+
+		if (iGetSize() > 0)
+		{
+			for (index_type i = 0; i < iStart; ++i)
+			{
+				GRADIENT_ASSERT(GetValue(i) == RangeVectorTraits<scalar_type>::Zero());
+		}
+
+			for (index_type i = iEnd; i < iMaxSize; ++i)
+			{
+				GRADIENT_ASSERT(GetValue(i) == RangeVectorTraits<scalar_type>::Zero());
+		}
+    }
+
+		return true;
+    }
+    
+    bool bIsAligned() const
+    {
+#ifdef __GNUC__
+    	GRADIENT_ASSERT(__alignof__(rgArrayVec) >= sizeof(vector_type));
+#endif        
+        const ptrdiff_t alignment = (reinterpret_cast<const char*>(rgArrayVec) - reinterpret_cast<const char*>(0)) % sizeof(vector_type);
+        
+        if (alignment != 0)
+        {
+            std::cerr << "address " << rgArrayVec << " has invalid alignment " << alignment << std::endl;
+        }
+        
+        GRADIENT_ASSERT(alignment == 0);
+        
+        return alignment == 0;
+    }
+#endif
+
+    union
+    {
+    	scalar_type rgArray[iMaxSize];
+    	vector_type rgArrayVec[iMaxSizeVector];
+};
+
+    index_type iStart, iEnd, iStartVec, iEndVec;
 };
 
 template <typename T>
-class RangeVector<T, 0> {
-	typedef std::vector<T, GradientAllocator<T> > vector_type;
-	typedef typename vector_type::size_type size_type;
-
+class RangeVector<T, 0>: public RangeVectorBase<T, 0>
+{
 public:
+	static const index_type iVectorSize = RangeVectorBase<T, 0>::iVectorSize;
+	typedef typename RangeVectorBase<T, 0>::scalar_type scalar_type;
+	typedef typename RangeVectorBase<T, 0>::vector_type vector_type;
+
 	static const index_type iMaxSize = ((index_type(-1) < 0)
 											? ~index_type(0) & ~(index_type(1) << (sizeof(index_type) * CHAR_BIT - 1))
 											: ~index_type(0)
-										 ) / sizeof(T);
+										 ) / sizeof(scalar_type);
+
+	static const index_type iMaxSizeVector = iMaxSize / iVectorSize;
 
     RangeVector()
-        :iStart(0) {
-
+    	:pData(pNullData())
+	{
+    	GRADIENT_ASSERT(bInvariant());
     }
     
     RangeVector(const RangeVector& v)
-    	:oVec(v.oVec), iStart(v.iStart) {
+    	:pData(pNullData())
+    {
+    	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
+    	Copy(v);
 
-    }
-
-    ~RangeVector() {
-
+    	GRADIENT_ASSERT(bInvariant());
     }
 
     template <typename T2, index_type N_SIZE2>
     RangeVector(const RangeVector<T2, N_SIZE2>& v)
-    	:oVec(v.iGetEndIndex() - v.iGetStartIndex()),
-    	 iStart(v.iGetStartIndex())
+    	:pData(pNullData())
     {
+    	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
     	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
+    }
+
+    explicit RangeVector(index_type iStart, index_type iEnd, const scalar_type& dVal)
+    	:pData(pNullData())
+    {
+    	ReserveMem(iStart, iEnd, RESIZE);
+    	Initialize(iStart, iEnd, dVal);
+
+    	GRADIENT_ASSERT(bInvariant());
+    }
+
+    ~RangeVector()
+    {
+    	GRADIENT_ASSERT(bInvariant());
+
+    	FreeMem();
+    }
+
+    RangeVector& operator=(const RangeVector& v)
+    {
+    	GRADIENT_ASSERT(bInvariant());
+
+    	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
+    	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
+
+    	return *this;
     }
 
     template <typename T2, index_type N_SIZE2>
     RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v)
     {
-    	iStart = v.iGetStartIndex();
+    	GRADIENT_ASSERT(bInvariant());
 
-    	oVec.resize(v.iGetEndIndex() - iStart);
-
+    	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
     	Copy(v);
+
+    	GRADIENT_ASSERT(bInvariant());
 
     	return *this;
     }
 
-    explicit RangeVector(index_type iStart, index_type iEnd, const T& dVal)
-        :oVec(iEnd - iStart, dVal), iStart(iStart) {
+    void ResizeReset(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
+    {
+    	GRADIENT_ASSERT(bInvariant());
 
+    	ReserveMem(iStartNew, iEndNew, RESIZE);
+    	Initialize(iStartNew, iEndNew, dVal);
+
+    	GRADIENT_ASSERT(bInvariant());
     }
     
-    void ResizeReset(index_type iStartNew, index_type iEnd, const T& dVal) {
-        iStart = iStartNew;
+    void ResizePreserve(index_type iStartNew, index_type iEndNew)
+    {
+    	GRADIENT_ASSERT(bInvariant());
 
-        oVec.resize(iEnd - iStart);
+    	if (iStartNew == iGetStartIndex() && iEndNew - iStartNew <= iGetCapacity())
+    	{
+    		const index_type iEndCurrVec = iGetEndIndexVector();
 
-        std::fill(oVec.begin(), oVec.end(), dVal);
+    		ReserveMem(iStartNew, iEndNew, RESIZE);
+
+    		std::fill(beginVec() + iEndCurrVec, endVec(), RangeVectorTraits<vector_type>::Zero());
+    }
+    	else
+    	{
+			RangeVector<T, 0> oTmpVec;
+			oTmpVec.ReserveMem(iStartNew, iEndNew, RESIZE);
+			oTmpVec.Reset();
+			const index_type iComStartVec = std::max(iGetStartIndexVector(), oTmpVec.iGetStartIndexVector());
+			const index_type iComEndVec = std::min(iGetEndIndexVector(), oTmpVec.iGetEndIndexVector());
+
+			std::copy(beginVec() + iComStartVec - iGetStartIndexVector(),
+					  beginVec() + iComEndVec - iGetStartIndexVector(),
+					  oTmpVec.beginVec() + iComStartVec - oTmpVec.iGetStartIndexVector());
+
+			std::swap(pData, oTmpVec.pData);
+    	}
+
+    	GRADIENT_ASSERT(bInvariant());
     }
 
-    void ResizePreserve(index_type iStartNew, index_type iEndNew) {
+    void Reset()
+    {
+    	GRADIENT_ASSERT(bInvariant());
+    	// Reset the data but preserve memory and iStart
+    	std::fill(beginVec(), endVec(), RangeVectorTraits<vector_type>::Zero());
 
-    	if (iStartNew == iStart) {
-    		oVec.resize(iEndNew - iStartNew, RangeVectorTraits<T>::Zero());
-    	} else {
-    		vector_type oVecNew(iEndNew - iStartNew);
-
-    		for (index_type i = 0; size_t(i) < oVecNew.size(); ++i) {
-    			const index_type iOld = i + iStartNew - iStart;
-
-    			if (iOld >= 0 && size_t(iOld) < oVec.size()) {
-    				oVecNew[i] = oVec[iOld];
+    	GRADIENT_ASSERT(bInvariant());
     			}
+
+    void Reserve(index_type iMaxSize)
+    {
+    	GRADIENT_ASSERT(bInvariant());
+
+    	const index_type iCurrCap = iGetCapacity();
+
+    	if (iCurrCap >= iMaxSize)
+    	{
+    		return;
     		}
 
-    		oVec = oVecNew;
-    		iStart = iStartNew;
+    	if (iGetSizeVector() > 0)
+    	{
+    		RangeVector oTmpVec;
+
+    		GRADIENT_ASSERT(oTmpVec.iGetSizeVector() == 0);
+
+    		oTmpVec.Reserve(iMaxSize);
+    		oTmpVec = *this;
+
+    		std::swap(pData, oTmpVec.pData);
     	}
+    	else
+    	{
+    		ReserveMem(0, iMaxSize, RESERVE);
     }
 
-    void Reset() {
-    	// Reset the data but preserve memory and iStart
-    	std::fill(oVec.begin(), oVec.end(), RangeVectorTraits<T>::Zero());
+    	GRADIENT_ASSERT(bInvariant());
     }
 
-    void Reserve(index_type iMaxSize) {
-    	oVec.reserve(iMaxSize);
+    index_type iGetStartIndex() const
+    {
+    	return pData->iStart;
     }
 
-    index_type iGetStartIndex() const { return iStart; }
-    index_type iGetEndIndex() const { return iStart + oVec.size(); }
-    index_type iGetSize() const { return oVec.size(); }
-    index_type iGetMaxSize() const { return iMaxSize; }
+    index_type iGetEndIndex() const
+    {
+    	return pData->iEnd;
+    }
 
-    T GetValue(index_type i) const {
+    index_type iGetStartIndexVector() const
+    {
+    	return pData->iStartVec;
+    }
+
+    index_type iGetEndIndexVector() const
+    {
+    	return pData->iEndVec;
+    }
+
+    index_type iGetSizeVector() const
+    {
+    	return pData->iEndVec - pData->iStartVec;
+    }
+
+    index_type iGetSize() const
+    {
+    	return pData->iEnd - pData->iStart;
+    }
+
+    static index_type iGetMaxSize() { return iMaxSize; }
+    static index_type iGetMaxSizeVector() { return iMaxSizeVector; }
+
+    scalar_type GetValue(index_type i) const
+    {
     	GRADIENT_ASSERT(i >= 0);
     	GRADIENT_ASSERT(i < iGetMaxSize());
-        i -= iStart;
-        return (i >= 0 && size_type(i) < oVec.size())
-        		? oVec[i]
-        		: RangeVectorTraits<T>::Zero();
+
+        return i >= iGetStartIndex() && i < iGetEndIndex()
+        		? begin()[i - iGetStartIndexVector() * iVectorSize]
+        		: RangeVectorTraits<scalar_type>::Zero();
     }
     
-    void SetValue(index_type i, const T& d) {
+    void SetValue(index_type i, const scalar_type& d)
+    {
     	GRADIENT_ASSERT(i >= 0);
     	GRADIENT_ASSERT(i < iGetMaxSize());
+        GRADIENT_ASSERT(i >= iGetStartIndex() && i < iGetEndIndex());
 
-        i -= iStart;
-
-        GRADIENT_ASSERT(i >= 0 && size_type(i) < oVec.size());
-        oVec[i] = d;
+        begin()[i - iGetStartIndexVector() * iVectorSize] = d;
     }
     
+    vector_type GetVectorValue(index_type i) const
+    {
+        GRADIENT_ASSERT(i >= 0);
+        GRADIENT_ASSERT(i < iMaxSizeVector);
+
+        return i >= iGetStartIndexVector() && i < iGetEndIndexVector()
+        		? beginVec()[i - iGetStartIndexVector()]
+        		: RangeVectorTraits<vector_type>::Zero();
+    }
+
+    void SetVectorValue(index_type i, const vector_type& d) {
+        GRADIENT_ASSERT(i >= 0);
+        GRADIENT_ASSERT(i < iMaxSizeVector);
+        GRADIENT_ASSERT(i >= iGetStartIndexVector() && i < iGetEndIndexVector());
+
+        beginVec()[i - iGetStartIndexVector()] = d;
+    }
+
     static bool bUseDynamicMem() { return true; }
     
 private:
+    using RangeVectorBase<T, 0>::iRoundStartIndexVector;
+    using RangeVectorBase<T, 0>::iRoundEndIndexVector;
+
+    struct Data
+	{
+		index_type iStart;
+		index_type iEnd;
+		index_type iStartVec;
+		index_type iEndVec;
+		index_type iCapacityVec;
+
+		union
+		{
+			scalar_type rgArray[];
+			vector_type rgArrayVec[];
+		};
+	};
+
+    index_type iGetCapacity() const
+    {
+    	return iGetCapacityVector() * iVectorSize;
+    }
+
+    index_type iGetCapacityVector() const
+    {
+    	return pData->iCapacityVec;
+    }
+
     template <typename T2, index_type N_SIZE2>
     void Copy(const RangeVector<T2, N_SIZE2>& v)
     {
@@ -502,10 +894,154 @@ private:
     	}
     }
 
-private:
-    vector_type oVec;
-    index_type iStart;
+    void Copy(const RangeVector& v)
+    {
+    	std::copy(v.beginVec(), v.endVec(), beginVec());
+    }
+
+    void Initialize(index_type iStart, index_type iEnd, const scalar_type& dVal)
+    {
+    	Reset();
+
+    	if (dVal != RangeVectorTraits<scalar_type>::Zero())
+    	{
+    		std::fill(begin() + iStart - iGetStartIndexVector() * iVectorSize, begin() + iEnd - iGetStartIndexVector() * iVectorSize, dVal);
+    	}
+    }
+
+    enum MemFlags
+    {
+    	RESIZE,
+    	RESERVE
+    };
+
+    scalar_type* begin()
+    {
+    	return pData->rgArray;
+    }
+
+    scalar_type* end()
+    {
+    	return begin() + iGetSize();
+    }
+
+    const scalar_type* begin() const
+    {
+    	return pData->rgArray;
+    }
+
+    const scalar_type* end() const
+    {
+    	return begin() + iGetSize();
+    }
+
+    vector_type* beginVec()
+    {
+    	return pData->rgArrayVec;
+    }
+
+    vector_type* endVec()
+    {
+    	return beginVec() + iGetSizeVector();
+    }
+
+    const vector_type* beginVec() const
+    {
+    	return pData->rgArrayVec;
+    }
+
+    const vector_type* endVec() const
+    {
+    	return beginVec() + iGetSizeVector();
+    }
+
+    void ReserveMem(index_type iStartNew, index_type iEndNew, MemFlags eFlags = RESIZE)
+    {
+    	const index_type iCapCurr = iGetCapacityVector();
+    	index_type iStartVec = iRoundStartIndexVector(iStartNew);
+    	index_type iEndVec = iRoundEndIndexVector(iEndNew);
+    	const index_type iSizeVec = iEndVec - iStartVec;
+
+    	if (iSizeVec > iCapCurr)
+    	{
+    		FreeMem();
+
+    		pData = GradientAllocator<Data>::allocate_aligned(sizeof(vector_type), 1u, sizeof(vector_type) * iSizeVec);
+
+    		pData->iCapacityVec = iSizeVec;
+    	}
+
+    	GRADIENT_ASSERT(((char*)(pData->rgArrayVec) - (char*)0) % sizeof(vector_type) == 0);
+
+    	if (pData == pNullData())
+    	{
+    		GRADIENT_ASSERT(iSizeVec == 0);
+
+    		return;
+    	}
+
+    	if (eFlags == RESERVE)
+    	{
+    		iStartNew = iEndNew = iStartVec = iEndVec = 0;
+    	}
+
+		pData->iStart = iStartNew;
+		pData->iEnd = iEndNew;
+		pData->iStartVec = iStartVec;
+		pData->iEndVec = iEndVec;
+    }
+
+    void FreeMem()
+    {
+    	if (pData != pNullData())
+    	{
+    		GradientAllocator<Data>::deallocate_aligned(pData, 1u);
+    		pData = pNullData();
+    	}
+    }
+
+    static Data* pNullData()
+    {
+    	GRADIENT_ASSERT(sNullData.iStart == 0);
+    	GRADIENT_ASSERT(sNullData.iEnd == 0);
+    	GRADIENT_ASSERT(sNullData.iStartVec == 0);
+    	GRADIENT_ASSERT(sNullData.iEndVec == 0);
+    	GRADIENT_ASSERT(sNullData.iCapacityVec == 0);
+
+    	return const_cast<Data*>(&sNullData);
+    }
+    
+#if GRADIENT_DEBUG > 0
+    bool bInvariant() const
+    {
+    	GRADIENT_ASSERT(pData != 0);
+    	GRADIENT_ASSERT(pData->iStart >= 0);
+    	GRADIENT_ASSERT(pData->iStart <= pData->iEnd);
+    	GRADIENT_ASSERT(pData->iEnd - pData->iStart <= iVectorSize * pData->iCapacityVec);
+    	GRADIENT_ASSERT(pData->iStartVec >= 0);
+    	GRADIENT_ASSERT(pData->iStartVec <= pData->iEndVec);
+    	GRADIENT_ASSERT(pData->iEndVec - pData->iStartVec <= pData->iCapacityVec);
+
+    	const index_type iStartOffset = pData->iStart - pData->iStartVec * iVectorSize;
+
+    	GRADIENT_ASSERT(iStartOffset >= 0);
+    	GRADIENT_ASSERT(iStartOffset < iVectorSize);
+
+    	const index_type iEndOffset = pData->iEndVec * iVectorSize - pData->iEnd;
+    
+    	GRADIENT_ASSERT(iEndOffset >= 0);
+    	GRADIENT_ASSERT(iEndOffset < iVectorSize);
+    
+    	return true;
+    }
+#endif
+
+    Data* pData;
+    static const Data sNullData;
 };
+
+template <typename T>
+const typename RangeVector<T, 0>::Data RangeVector<T, 0>::sNullData = {0};
 
 enum FunctionCall {
 	// FIXME: There should be a flag for the initial derivatives phase
@@ -645,7 +1181,10 @@ public:
 template <index_type N_SIZE>
 class MapVector: public MapVectorBase {
 public:
-	static const index_type iMaxSize = RangeVector<doublereal, N_SIZE>::iMaxSize;
+	typedef RangeVector<scalar_deriv_type, N_SIZE> RangeVectorType;
+	static const index_type iMaxSize = RangeVectorType::iMaxSize;
+	typedef typename RangeVectorType::scalar_type scalar_type;
+	typedef typename RangeVectorType::vector_type vector_type;
 
 	template <index_type N_SIZE2>
 	MapVector(const MapVector<N_SIZE2>& v)
@@ -653,23 +1192,23 @@ public:
 
 	}
 
-    MapVector(LocalDofMap* pMap=0, index_type iStartLocal=0, index_type iEndLocal=0, LocalScope= LOCAL, doublereal dVal=0.)
+    MapVector(LocalDofMap* pMap=0, index_type iStartLocal=0, index_type iEndLocal=0, LocalScope= LOCAL, scalar_func_type dVal=0.)
         :pDofMap(pMap), oRange(iStartLocal, iEndLocal, dVal) {
     }
 
-    MapVector(LocalDofMap* pMap, index_type iLocal, LocalScope, doublereal dVal)
+    MapVector(LocalDofMap* pMap, index_type iLocal, LocalScope, scalar_func_type dVal)
         :pDofMap(pMap), oRange(iLocal, iLocal + 1, dVal) {
     }    
 
-    MapVector(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, GlobalScope s, doublereal dVal) {
+    MapVector(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, GlobalScope s, scalar_func_type dVal) {
         ResizeReset(pMap, iStartGlobal, iEndGlobal, s, dVal);
     }
 
-    MapVector(LocalDofMap* pMap, index_type iGlobal, GlobalScope s, doublereal dVal) {
+    MapVector(LocalDofMap* pMap, index_type iGlobal, GlobalScope s, scalar_func_type dVal) {
         ResizeReset(pMap, iGlobal, iGlobal + 1, s, dVal);
     }  
     
-    void ResizeReset(LocalDofMap* pMap, index_type iStartLocal, index_type iEndLocal, LocalScope, doublereal dVal) {
+    void ResizeReset(LocalDofMap* pMap, index_type iStartLocal, index_type iEndLocal, LocalScope, scalar_func_type dVal) {
         pDofMap = pMap;
         oRange.ResizeReset(iStartLocal, iEndLocal, dVal);
     }
@@ -679,7 +1218,7 @@ public:
         oRange.ResizePreserve(iStartLocal, iEndLocal);
     }
 
-    void ResizeReset(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, GlobalScope, doublereal dVal) {
+    void ResizeReset(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, GlobalScope, scalar_func_type dVal) {
         pDofMap = pMap;
         
         GRADIENT_ASSERT(pDofMap != 0);
@@ -712,7 +1251,7 @@ public:
     	oRange.Reserve(iSize);
     }
 
-    doublereal dGetGlobalVector(index_type iGlobalDof) const {
+    scalar_deriv_type dGetGlobalVector(index_type iGlobalDof) const {
         GRADIENT_ASSERT(pDofMap != 0);
         const index_type iLocalDof = pDofMap->iGetLocalIndex(iGlobalDof);
 
@@ -726,7 +1265,7 @@ public:
         return oRange.GetValue(iLocalDof);
     }
     
-    void SetGlobalVector(index_type iGlobalDof, doublereal dValue) {
+    void SetGlobalVector(index_type iGlobalDof, scalar_deriv_type dValue) {
         GRADIENT_ASSERT(pDofMap != 0);
         const index_type iLocalDof = pDofMap->iGetLocalIndex(iGlobalDof);
 
@@ -748,24 +1287,36 @@ public:
     }
     
     index_type iGetSize() const { return oRange.iGetSize(); }
+    index_type iGetSizeVector() const { return oRange.iGetSizeVector(); }
     index_type iGetMaxSize() const { return oRange.iGetMaxSize(); }
-    doublereal dGetLocalVector(index_type i) const { return oRange.GetValue(i); }
-    const RangeVector<doublereal, N_SIZE>& GetLocalVector() const { return oRange; }
-    void SetLocalVector(index_type i, doublereal dValue){ oRange.SetValue(i, dValue); }
+    index_type iGetMaxSizeVector() const { return oRange.iGetMaxSizeVector(); }
+    scalar_type dGetLocalVector(index_type i) const { return oRange.GetValue(i); }
+    vector_type dGetLocalVectorVector(index_type i) const { return oRange.GetVectorValue(i); }
+    const RangeVectorType& GetLocalVector() const { return oRange; }
+    void SetLocalVector(index_type i, scalar_type dValue){ oRange.SetValue(i, dValue); }
+    void SetLocalVectorVector(index_type i, vector_type dVector) { oRange.SetVectorValue(i, dVector); }
     index_type iGetStartIndexLocal() const { return oRange.iGetStartIndex(); }
     index_type iGetEndIndexLocal() const { return oRange.iGetEndIndex(); }
+    index_type iGetStartIndexLocalVector() const { return oRange.iGetStartIndexVector(); }
+    index_type iGetEndIndexLocalVector() const { return oRange.iGetEndIndexVector(); }
     LocalDofMap* pGetDofMap() const { return pDofMap; }
     bool bUseDynamicMem() const { return oRange.bUseDynamicMem(); }
     static const MapVector Zero;
     
 private:
     LocalDofMap* pDofMap;
-    RangeVector<doublereal, N_SIZE> oRange;
+    RangeVectorType oRange;
 };
 
 template <typename Expression>
 class GradientExpression: public Expression {
 public:
+	typedef typename Expression::GradientType GradientType;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename Expression::scalar_func_type scalar_func_type;
+	typedef typename Expression::scalar_deriv_type scalar_deriv_type;
+	typedef typename Expression::vector_deriv_type vector_deriv_type;
+
     GradientExpression(const Expression& u)
         :Expression(u) {
 
@@ -791,31 +1342,61 @@ struct MaxDerivatives {
 			? LhsExpr::iMaxDerivatives : RhsExpr::iMaxDerivatives;
 };
 
+template <index_type N_SIZE1, index_type N_SIZE2>
+struct GradientSizeHelper
+{
+	static const index_type iDimension = (N_SIZE1 == 0 || N_SIZE2 == 0) ? 0 : (N_SIZE1 > N_SIZE2 ? N_SIZE1 : N_SIZE2);
+	typedef Gradient<iDimension> GradientType;
+};
+
 template <typename BinFunc, typename LhsExpr, typename RhsExpr>
 class BinaryExpr {
 public:
+	static const bool bAlias = LhsExpr::bAlias || RhsExpr::bAlias;
 	static const index_type iMaxDerivatives = MaxDerivatives<LhsExpr, RhsExpr>::iMaxDerivatives;
+	static const bool bVectorize = sizeof(typename LhsExpr::vector_deriv_type) == sizeof(typename RhsExpr::vector_deriv_type)
+									&& LhsExpr::bVectorize && RhsExpr::bVectorize && BinFunc::bVectorize;
+	typedef typename GradientSizeHelper<LhsExpr::iDimension, RhsExpr::iDimension>::GradientType GradientType;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename GradientType::scalar_func_type scalar_func_type;
+	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
+	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
 	typedef LhsExpr LhsExprType;
 	typedef RhsExpr RhsExprType;
 
     BinaryExpr(const LhsExpr& u, const RhsExpr& v)
-        :oU(u), oV(v), bComputed(false) {
+        :oU(u), oV(v) {
+#if GRADIENT_DEBUG > 0
+    	f = df_du = df_dv = NAN;
+#endif
     }
     
-    doublereal dGetValue() const {
-        Compute();
-
+    scalar_func_type dGetValue() const {
+    	GRADIENT_ASSERT(!std::isnan(f));
         return f;
     }
     
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
-        Compute();
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
+    	GRADIENT_ASSERT(!std::isnan(f));
+    	GRADIENT_ASSERT(!std::isnan(df_du));
+    	GRADIENT_ASSERT(!std::isnan(df_dv));
 
-        const doublereal du_dX = oU.dGetDerivativeLocal(iLocalDof);
-        const doublereal dv_dX = oV.dGetDerivativeLocal(iLocalDof);
+        const scalar_deriv_type du_dX = oU.dGetDerivativeLocal(iLocalDof);
+        const scalar_deriv_type dv_dX = oV.dGetDerivativeLocal(iLocalDof);
 
-        return df_du * du_dX + df_dv * dv_dX;
+        return EvalDeriv(du_dX, dv_dX);
+    }
+    
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+    	GRADIENT_ASSERT(!std::isnan(f));
+    	GRADIENT_ASSERT(!std::isnan(df_du));
+    	GRADIENT_ASSERT(!std::isnan(df_dv));
+
+        const vector_deriv_type du_dX = oU.dGetDerivativeLocalVector(iLocalVecDof);
+        const vector_deriv_type dv_dX = oV.dGetDerivativeLocalVector(iLocalVecDof);
+
+        return EvalDeriv(du_dX, dv_dX);
     }
     
     index_type iGetStartIndexLocal() const {
@@ -826,6 +1407,14 @@ public:
         return std::max(oU.iGetEndIndexLocal(), oV.iGetEndIndexLocal());
     }
     
+    index_type iGetStartIndexLocalVector() const {
+        return std::min(oU.iGetStartIndexLocalVector(), oV.iGetStartIndexLocalVector());
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+        return std::max(oU.iGetEndIndexLocalVector(), oV.iGetEndIndexLocalVector());
+    }
+
     LocalDofMap* pGetDofMap() const {
         LocalDofMap* pDofMap = oU.pGetDofMap();
         
@@ -846,51 +1435,77 @@ public:
     	return iMaxDerivatives;
     }
 
-private:
     void Compute() const {
-        if (bComputed) {
-            return;
-        }
+    	GRADIENT_ASSERT(std::isnan(f));
+    	GRADIENT_ASSERT(std::isnan(df_du));
+    	GRADIENT_ASSERT(std::isnan(df_dv));
+
+    	oU.Compute();
+    	oV.Compute();
         
-        const doublereal u = oU.dGetValue();
-        const doublereal v = oV.dGetValue();
+        const scalar_func_type u = oU.dGetValue();
+        const scalar_func_type v = oV.dGetValue();
         
         f = BinFunc::f(u, v);
         df_du = BinFunc::df_du(u, v);
         df_dv = BinFunc::df_dv(u, v);
+    }
         
-        bComputed = true;
+private:
+    template <typename T>
+    T EvalDeriv(T du_dX, T dv_dX) const {
+    	return df_du * du_dX + df_dv * dv_dX;
     }
     
 private:
     const LhsExpr oU;
     const RhsExpr oV;
-    mutable doublereal f, df_du, df_dv;
-    mutable bool bComputed;
+    mutable scalar_func_type f;
+    mutable scalar_deriv_type df_du, df_dv;
 };
 
 template <typename UnFunc, typename Expr>
 class UnaryExpr {
 public:
+	static const bool bAlias = Expr::bAlias;
 	static const index_type iMaxDerivatives = Expr::iMaxDerivatives;
+	static const bool bVectorize = Expr::bVectorize && UnFunc::bVectorize;
+	typedef typename Expr::GradientType GradientType;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename GradientType::scalar_func_type scalar_func_type;
+	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
+	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
     UnaryExpr(const Expr& u)
-        :oU(u), bComputed(false) {
-            
+        :oU(u) {
+#if GRADIENT_DEBUG > 0
+    	f = df_du = NAN;
+#endif
     }
         
-    doublereal dGetValue() const {
-        Compute();
+    scalar_func_type dGetValue() const {
+    	GRADIENT_ASSERT(!std::isnan(f));
+    	GRADIENT_ASSERT(!std::isnan(df_du));
         
         return f;
     }
         
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
-        Compute();
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
+    	GRADIENT_ASSERT(!std::isnan(f));
+    	GRADIENT_ASSERT(!std::isnan(df_du));
         
-        const doublereal du_dX = oU.dGetDerivativeLocal(iLocalDof);
+        const scalar_deriv_type du_dX = oU.dGetDerivativeLocal(iLocalDof);
         
-        return df_du * du_dX;
+        return EvalDeriv(du_dX);
+    }
+
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+    	GRADIENT_ASSERT(!std::isnan(f));
+    	GRADIENT_ASSERT(!std::isnan(df_du));
+
+    	const vector_deriv_type du_dX = oU.dGetDerivativeLocalVector(iLocalVecDof);
+
+    	return EvalDeriv(du_dX);
     }
         
     index_type iGetStartIndexLocal() const {
@@ -901,6 +1516,14 @@ public:
         return oU.iGetEndIndexLocal();
     }
     
+    index_type iGetStartIndexLocalVector() const {
+        return oU.iGetStartIndexLocalVector();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+        return oU.iGetEndIndexLocalVector();
+    }
+
     LocalDofMap* pGetDofMap() const {
         return oU.pGetDofMap();
     }
@@ -913,50 +1536,75 @@ public:
     	return iMaxDerivatives;
     }
 
-private:
     void Compute() const {
-        if (bComputed) {
-            return;
-        }
+    	GRADIENT_ASSERT(std::isnan(f));
+    	GRADIENT_ASSERT(std::isnan(df_du));
+
+    	oU.Compute();
         
-        const doublereal u = oU.dGetValue();
+        const scalar_func_type u = oU.dGetValue();
         
         f = UnFunc::f(u);
         df_du = UnFunc::df_du(u);
+    }
+
         
-        bComputed = true;
+private:
+    template <typename T>
+    T EvalDeriv(T du_dX) const
+    {
+        return df_du * du_dX;
     }
     
 private:
     const Expr oU;
-    mutable doublereal f, df_du;
-    mutable bool bComputed;
+    mutable scalar_func_type f;
+    mutable scalar_deriv_type df_du;
 };
 
-template <typename T>
+template <typename T, bool ALIAS=false>
 class DirectExpr {
 public:
-	static const index_type iMaxDerivatives = T::iMaxDerivatives;
+	static const bool bAlias = ALIAS;
+	typedef typename T::GradientType GradientType;
+	static const index_type iMaxDerivatives = GradientType::iMaxDerivatives;
+	static const bool bVectorize = true;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename GradientType::scalar_func_type scalar_func_type;
+	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
+	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
     DirectExpr(const T& g)
         :oG(g) {
             
     }
     
-    doublereal dGetValue() const {
+    scalar_func_type dGetValue() const {
         return oG.dGetValue();
     }
         
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
         return oG.dGetDerivativeLocal(iLocalDof);
     }
         
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+        return oG.dGetDerivativeLocalVector(iLocalVecDof);
+    }
+
     index_type iGetStartIndexLocal() const {
         return oG.iGetStartIndexLocal();
     }
 
     index_type iGetEndIndexLocal() const {
         return oG.iGetEndIndexLocal();
+    }
+
+    index_type iGetStartIndexLocalVector() const {
+        return oG.iGetStartIndexLocalVector();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+        return oG.iGetEndIndexLocalVector();
     }
 
     LocalDofMap* pGetDofMap() const {
@@ -971,25 +1619,39 @@ public:
     	return oG.iGetMaxDerivatives();
     }
 
+    void Compute() const {}
+
 private:
-    const T& oG;
+    const GradientType& oG;
 };
 
+template <typename T>
 class ConstExpr {
 public:
+	static const bool bAlias = false;
 	static const index_type iMaxDerivatives = 0;
+	static const bool bVectorize = true;
+	typedef T GradientType;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename GradientType::scalar_func_type scalar_func_type;
+	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
+	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
-    ConstExpr(doublereal a)
+    ConstExpr(scalar_func_type a)
         :dConst(a) {
             
     }
         
-    doublereal dGetValue() const {
+    scalar_func_type dGetValue() const {
         return dConst;
     }
         
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
-        return 0.;
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
+        return scalar_deriv_type();
+    }
+
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+    	return vector_deriv_type();
     }
         
     index_type iGetStartIndexLocal() const {
@@ -1003,6 +1665,14 @@ public:
         return 0;
     }
     
+    index_type iGetStartIndexLocalVector() const {
+        return std::numeric_limits<index_type>::max();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+        return 0;
+    }
+
     LocalDofMap* pGetDofMap() const {
         return 0;
     }
@@ -1015,31 +1685,48 @@ public:
     	return iMaxDerivatives;
     }
 
+    void Compute() const {}
+
 private:
-    const doublereal dConst;
+    const scalar_func_type dConst;
 };
 
 template <typename BoolFunc, typename LhsExpr, typename RhsExpr>
 class BoolExpr {
 public:
+	static const bool bAlias = LhsExpr::bAlias || RhsExpr::bAlias;
 	static const index_type iMaxDerivatives = MaxDerivatives<LhsExpr, RhsExpr>::iMaxDerivatives;
+	static const bool bVectorize = true;
+	typedef typename GradientSizeHelper<LhsExpr::iDimension, RhsExpr::iDimension>::GradientType GradientType;
+	static const index_type iDimension = GradientType::iDimension;
+	typedef typename GradientType::scalar_func_type scalar_func_type;
+	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
+	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
     BoolExpr(const LhsExpr& u, const RhsExpr& v)
-        :oU(u), oV(v), bComputed(false) {
+        :oU(u), oV(v) {
     }
     
     bool dGetValue() const {
-        Compute();
+    	oU.Compute();
+    	oV.Compute();
         
-        return f;
+        const scalar_func_type u = oU.dGetValue();
+        const scalar_func_type v = oV.dGetValue();
+
+        return BoolFunc::f(u, v);
     }
     
     operator bool() const {
         return dGetValue();
     }
     
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
-        return 0.;
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
+        return scalar_deriv_type();
+    }
+    
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalDof) const {
+        return vector_deriv_type();
     }
     
     index_type iGetStartIndexLocal() const {
@@ -1050,6 +1737,14 @@ public:
         return 0;
     }
     
+    index_type iGetStartIndexLocalVector() const {
+        return std::numeric_limits<index_type>::max();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+        return 0;
+    }
+
     LocalDofMap* pGetDofMap() const {
         LocalDofMap* pDofMap = oU.pGetDofMap();
         
@@ -1066,20 +1761,10 @@ public:
     	return iMaxDerivatives;
     }
 
-private:
     void Compute() const {
-        if (bComputed) {
-            return;
-        }
-        
-        const doublereal u = oU.dGetValue();
-        const doublereal v = oV.dGetValue();
-        
-        f = BoolFunc::f(u, v);
-        
-        bComputed = true;
     }
     
+private:
     bool bHaveReferenceTo(const void* p) const {
         return oU.bHaveReferenceTo(p) || oV.bHaveReferenceTo(p);
     }
@@ -1087,255 +1772,294 @@ private:
 private:
     const LhsExpr oU;
     const RhsExpr oV;
-    mutable bool f, bComputed;
 };
 
 class FuncPlus {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return u + v;
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return 1.;
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return 1.;
     }
 };
 
 class FuncMinus {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return u - v;
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return 1.;
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return -1.;
     }
 };
 
 class FuncMult {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return u * v;
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return v;
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return u;
     }
 };
 
 class FuncDiv {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return u / v;
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return 1. / v;
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return -u / (v * v);
     }
 };
 
 class FuncPow {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return pow(u, v);
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return v * pow(u, v - 1.);
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return pow(u, v) * log(u);
     }
 };
 
 class FuncAtan2 {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return atan2(u, v);
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return v / (v * v + u * u);
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return -u / (v * v + u * u);
     }
 };
 
 class FuncCopysign {
 public:
-    static doublereal f(doublereal u, doublereal v) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
         return copysign(u, v);
     }
 
-    static doublereal df_du(doublereal u, doublereal v) {
+    static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
         return copysign(1., u) * copysign(1., v);
     }
 
-    static doublereal df_dv(doublereal u, doublereal v) {
+    static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
         return 0.;
     }
 };
 
 class FuncFabs {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return fabs(u);
     }
     
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return copysign(1., u);
     }
 };
 
 class FuncSqrt {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return sqrt(u);
     }
     
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / (2. * sqrt(u));
     }
 };
 
 class FuncExp {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return exp(u);
     }
     
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return exp(u);
     }
 };
 
 class FuncLog {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return log(u);
     }
     
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / u;
     }
 };
 
 class FuncSin {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return sin(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return cos(u);
     }
 };
 
 class FuncCos {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return cos(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return -sin(u);
     }
 };
 
 class FuncTan {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return tan(u);
     }
 
-    static doublereal df_du(doublereal u) {
-        const doublereal tan_u = tan(u);
+    static scalar_deriv_type df_du(scalar_func_type u) {
+        const scalar_deriv_type tan_u = tan(u);
         return 1. + tan_u * tan_u;
     }
 };
 
 class FuncSinh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return sinh(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return cosh(u);
     }
 };
 
 class FuncCosh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return cosh(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return sinh(u);
     }
 };
 
 class FuncTanh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return tanh(u);
     }
 
-    static doublereal df_du(doublereal u) {
-        const doublereal tanh_u = tanh(u);
+    static scalar_deriv_type df_du(scalar_func_type u) {
+        const scalar_deriv_type tanh_u = tanh(u);
         return 1. - tanh_u * tanh_u;
     }
 };
 
 class FuncAsin {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return asin(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / sqrt(1 - u * u);
     }
 };
 
 class FuncAcos {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return acos(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return -1. / sqrt(1 - u * u);
     }
 };
 
 class FuncAtan {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return atan(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / (1. + u * u);
     }
 };
@@ -1343,11 +2067,13 @@ public:
 #if HAVE_ASINH
 class FuncAsinh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return asinh(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / sqrt(1. + u * u);
     }
 };
@@ -1356,11 +2082,13 @@ public:
 #if HAVE_ACOSH
 class FuncAcosh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return acosh(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / sqrt(u * u - 1.);
     }
 };
@@ -1369,11 +2097,13 @@ public:
 #if HAVE_ATANH
 class FuncAtanh {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = false;
+
+    static scalar_func_type f(scalar_func_type u) {
         return atanh(u);
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return 1. / (1. - u * u);
     }
 };
@@ -1381,69 +2111,189 @@ public:
 
 class FuncUnaryMinus {
 public:
-    static doublereal f(doublereal u) {
+	static const bool bVectorize = true;
+
+    static scalar_func_type f(scalar_func_type u) {
         return -u;
     }
 
-    static doublereal df_du(doublereal u) {
+    static scalar_deriv_type df_du(scalar_func_type u) {
         return -1.;
     }
 };
 
 class FuncLessThan {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u < v;
     }
 };
 
 class FuncLessEqual {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u <= v;
     }
 };
 
 class FuncGreaterThan {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u > v;
     }
 };
 
 class FuncGreaterEqual {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u >= v;
     }
 };
 
 class FuncEqualTo {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u == v;
     }
 };
 
 class FuncNotEqualTo {
 public:
-    static bool f(doublereal u, doublereal v) {
+	static const bool bVectorize = true;
+
+    static bool f(scalar_func_type u, scalar_func_type v) {
         return u != v;
+    }
+};
+
+template <bool bVectorize>
+struct ApplyDerivativeHelper	{	};
+
+template <>
+struct ApplyDerivativeHelper<false>
+{
+    template <typename MapVectorType, typename Expression>
+    static void ApplyDerivative(MapVectorType& ad, const GradientExpression<Expression>& f) {
+        for (index_type i = ad.iGetStartIndexLocal(); i < ad.iGetEndIndexLocal(); ++i) {
+    		ad.SetLocalVector(i, f.dGetDerivativeLocal(i));
+        }
+    }
+
+    template <typename MapVectorType, typename Expression>
+    static void ApplyBinaryFunction1(MapVectorType& ad,
+    								 const GradientExpression<Expression>& f,
+    								 const index_type iStartLocal,
+    								 const index_type iEndLocal,
+    								 const scalar_deriv_type df_du,
+    								 const scalar_deriv_type df_dv) {
+		for (index_type i = iStartLocal; i < iEndLocal; ++i) {
+			const scalar_deriv_type ud = ad.dGetLocalVector(i);
+			const scalar_deriv_type vd = f.dGetDerivativeLocal(i);
+			ad.SetLocalVector(i, df_du * ud + df_dv * vd);
+		}
+    }
+};
+
+template <>
+struct ApplyDerivativeHelper<true>
+{
+    template <typename MapVectorType, typename Expression>
+    static void ApplyDerivative(MapVectorType& ad, const GradientExpression<Expression>& f) {
+        for (index_type i = ad.iGetStartIndexLocalVector(); i < ad.iGetEndIndexLocalVector(); ++i) {
+    		ad.SetLocalVectorVector(i, f.dGetDerivativeLocalVector(i));
+        }
+    }
+
+    template <typename MapVectorType, typename Expression>
+    static void ApplyBinaryFunction1(MapVectorType& ad,
+    								 const GradientExpression<Expression>& f,
+    								 const index_type iStartLocal,
+    								 const index_type iEndLocal,
+    								 const typename GradientExpression<Expression>::scalar_deriv_type df_du,
+    								 const typename GradientExpression<Expression>::scalar_deriv_type df_dv) {
+    	typedef RangeVectorBase<typename MapVectorType::scalar_type> RangeVectorType;
+    	typedef typename GradientExpression<Expression>::vector_deriv_type vector_deriv_type;
+    	const index_type iStartLocalVec = RangeVectorType::iRoundStartIndexVector(iStartLocal);
+    	const index_type iEndLocalVec = RangeVectorType::iRoundEndIndexVector(iEndLocal);
+
+		for (index_type i = iStartLocalVec; i < iEndLocalVec; ++i) {
+			const vector_deriv_type ud = ad.dGetLocalVectorVector(i);
+			const vector_deriv_type vd = f.dGetDerivativeLocalVector(i);
+			ad.SetLocalVectorVector(i, df_du * ud + df_dv * vd);
+		}
+    }
+};
+
+template <bool ALIAS>
+struct ApplyAliasHelper {};
+
+template <>
+struct ApplyAliasHelper<false>
+{
+	template <typename GradientType, typename Expression>
+	static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f)
+	{
+		g.ApplyNoAlias(f);
+	}
+
+    template <typename BinFunc, typename GradientType, typename Expression>
+    static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc)
+    {
+    	g.ApplyBinaryFunctionNoAlias(f, bfunc);
+    }
+};
+
+template <>
+struct ApplyAliasHelper<true>
+{
+	template <typename GradientType, typename Expression>
+	static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f)
+	{
+		g.ApplyWithAlias(f);
+	}
+
+    template <typename BinFunc, typename GradientType, typename Expression>
+    static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc)
+    {
+    	g.ApplyBinaryFunctionWithAlias(f, bfunc);
     }
 };
 
 template <index_type N_SIZE>
 class Gradient {
-public:
-	static const index_type iMaxDerivatives = MapVector<N_SIZE>::iMaxSize;
+	typedef MapVector<N_SIZE> MapVectorType;
 
-    explicit Gradient(doublereal a = 0., LocalDofMap* pDofMap = 0)
+public:
+	typedef Gradient GradientType;
+	static const index_type iDimension = N_SIZE;
+	static const index_type iMaxDerivatives = MapVectorType::iMaxSize;
+	typedef grad::scalar_func_type scalar_func_type;
+	typedef typename MapVectorType::scalar_type scalar_deriv_type;
+	typedef typename MapVectorType::vector_type vector_deriv_type;
+
+    explicit Gradient(scalar_func_type a = 0., LocalDofMap* pDofMap = 0)
         :a(a), ad(pDofMap){
     }
 
-    Gradient(doublereal a, const MapVector<N_SIZE>& da)
+    Gradient(scalar_func_type a, const MapVectorType& da)
         :a(a), ad(da) {
             
+    }
+
+    Gradient(const Gradient& g)
+    :a(g.a), ad(g.ad)
+    {
+        
     }
 
     template <index_type N_SIZE2>
@@ -1454,13 +2304,21 @@ public:
 
     template <index_type N_SIZE2>
     Gradient(const Gradient<N_SIZE2>& g, LocalDofMap* pDofMap) {
+#if GRADIENT_DEBUG > 0
+    	a = NAN;
+#endif
     	Copy(g, pDofMap);
     }
 
     template <typename Expression>
     Gradient(const GradientExpression<Expression>& f)
-        :a(f.dGetValue()),
-         ad(f.pGetDofMap(), f.iGetStartIndexLocal(), f.iGetEndIndexLocal(), MapVector<N_SIZE>::LOCAL, 0.) {
+        :ad(f.pGetDofMap(), f.iGetStartIndexLocal(), f.iGetEndIndexLocal(), MapVector<N_SIZE>::LOCAL, 0.) {
+
+    	// No aliases are possible because the object did not exist before
+    	GRADIENT_ASSERT(!f.bHaveReferenceTo(this));
+
+    	f.Compute();
+    	a = f.dGetValue();
 
         ApplyDerivative(f);
     }
@@ -1527,7 +2385,7 @@ public:
 		}
 
 #if GRADIENT_DEBUG > 0
-		for (index_type i = ad.iGetStartIndexLocal(); i < ad.iGetEndIndexLocal(); ++i) {
+		for (index_type i = iFirstLocal; i < iLastLocal; ++i) {
 			const index_type iGlobal = ad.iGetGlobalDof(i);
 			const index_type iLocal2 = g.pGetDofMap()->iGetLocalIndex(iGlobal);
 			if (iLocal2 != LocalDofMap::INVALID_INDEX) {
@@ -1553,7 +2411,7 @@ public:
     	ad.Reserve(iSize);
     }
 
-    Gradient& operator=(doublereal d) {
+    Gradient& operator=(scalar_func_type d) {
     	// This operator is needed for matrix/vector expressions with different base types
     	SetValue(d);
     	return *this;
@@ -1561,21 +2419,7 @@ public:
 
     template <typename Expression>
     Gradient& operator=(const GradientExpression<Expression>& f) {
-    	GRADIENT_ASSERT(f.iGetMaxDerivatives() <= iGetMaxDerivatives());
-
-        if (!f.bHaveReferenceTo(this)) {
-            a = f.dGetValue();
-
-            ad.ResizeReset(f.pGetDofMap(), f.iGetStartIndexLocal(), f.iGetEndIndexLocal(), MapVector<N_SIZE>::LOCAL, 0.);
-
-            ApplyDerivative(f);
-        } else {
-            // Attention: If we have an expression like a = (a + x)
-            // we must not overwrite the contents of a 
-            // until the expression (a + x) has been evaluated
-            const Gradient tmp(f);
-            *this = tmp;
-        }
+    	ApplyAliasHelper<GradientExpression<Expression>::bAlias>::ApplyExpression(*this, f);
         
         return *this;
     }
@@ -1663,17 +2507,17 @@ public:
     	return *this;
     }
     
-    inline Gradient& operator+=(doublereal d){
+    inline Gradient& operator+=(scalar_func_type d){
         a += d;
         return *this;
     }
 
-    inline Gradient& operator-=(doublereal d){
+    inline Gradient& operator-=(scalar_func_type d){
         a -= d;
         return *this;
     }
 
-    inline Gradient& operator*=(doublereal d) {
+    inline Gradient& operator*=(scalar_func_type d) {
     	a *= d;
 
     	for (index_type i = iGetStartIndexLocal(); i < iGetEndIndexLocal(); ++i) {
@@ -1683,7 +2527,7 @@ public:
         return *this;
     }
 
-    inline Gradient& operator/=(doublereal d) {
+    inline Gradient& operator/=(scalar_func_type d) {
     	a /= d;
 
     	for (index_type i = iGetStartIndexLocal(); i < iGetEndIndexLocal(); ++i) {
@@ -1693,59 +2537,71 @@ public:
         return *this;
     }
     
-    doublereal dGetValue() const {
+    scalar_func_type dGetValue() const {
         return a;
     }
 
-    void SetValue(doublereal dVal) {
+    void SetValue(scalar_func_type dVal) {
         a = dVal;
         ad.ResizeReset(0, 0, 0, MapVector<N_SIZE>::LOCAL, 0.);
     }
     
-    void SetValuePreserve(doublereal dVal) {
+    void SetValuePreserve(scalar_func_type dVal) {
     	// Keep the same derivatives - needed for the Node class for example
         a = dVal;
     }
     
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
     	GRADIENT_ASSERT(iLocalDof >= 0);
     	GRADIENT_ASSERT(iLocalDof < iGetMaxDerivatives());
         return ad.dGetLocalVector(iLocalDof);
     }
     
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+    	GRADIENT_ASSERT(iLocalVecDof >= 0);
+    	GRADIENT_ASSERT(iLocalVecDof < iGetMaxDerivativesVector());
+    	return ad.dGetLocalVectorVector(iLocalVecDof);
+    }
+
     const MapVector<N_SIZE>& GetDerivativeLocal() const {
     	return ad;
     }
 
-    doublereal dGetDerivativeGlobal(index_type iGlobalDof) const {
+    scalar_deriv_type dGetDerivativeGlobal(index_type iGlobalDof) const {
     	GRADIENT_ASSERT(ad.pGetDofMap()->iGetLocalIndex(iGlobalDof) >= 0);
     	GRADIENT_ASSERT(ad.pGetDofMap()->iGetLocalIndex(iGlobalDof) < iGetMaxDerivatives());
     	return ad.dGetGlobalVector(iGlobalDof);
     }
 
-    void DerivativeResizeReset(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, MapVectorBase::GlobalScope s, doublereal dVal) {
+    void DerivativeResizeReset(LocalDofMap* pMap, index_type iStartGlobal, index_type iEndGlobal, MapVectorBase::GlobalScope s, scalar_deriv_type dVal) {
     	ad.ResizeReset(pMap, iStartGlobal, iEndGlobal, s, dVal);
     }
 
-    void DerivativeResizeReset(LocalDofMap* pMap, index_type iStartLocal, index_type iEndLocal, MapVectorBase::LocalScope s, doublereal dVal) {
+    void DerivativeResizeReset(LocalDofMap* pMap, index_type iStartLocal, index_type iEndLocal, MapVectorBase::LocalScope s, scalar_deriv_type dVal) {
     	ad.ResizeReset(pMap, iStartLocal, iEndLocal, s, dVal);
     }
 
-    void DerivativeResizeReset(LocalDofMap* pMap, index_type iGlobal, MapVectorBase::GlobalScope s, doublereal dVal) {
+    void DerivativeResizeReset(LocalDofMap* pMap, index_type iGlobal, MapVectorBase::GlobalScope s, scalar_deriv_type dVal) {
     	DerivativeResizeReset(pMap, iGlobal, iGlobal + 1, s, dVal);
     }
 
-    void DerivativeResizeReset(LocalDofMap* pMap, index_type iLocal, MapVectorBase::LocalScope s, doublereal dVal) {
+    void DerivativeResizeReset(LocalDofMap* pMap, index_type iLocal, MapVectorBase::LocalScope s, scalar_deriv_type dVal) {
     	DerivativeResizeReset(pMap, iLocal, iLocal + 1, s, dVal);
     }
 
-    void SetDerivativeLocal(index_type iLocalDof, doublereal dCoef) {
+    void SetDerivativeLocal(index_type iLocalDof, scalar_deriv_type dCoef) {
     	GRADIENT_ASSERT(iLocalDof >= iGetStartIndexLocal());
     	GRADIENT_ASSERT(iLocalDof < iGetEndIndexLocal());
         ad.SetLocalVector(iLocalDof, dCoef);
     }
 
-    void SetDerivativeGlobal(index_type iGlobalDof, doublereal dCoef) {
+    void SetDerivativeLocalVector(index_type iLocalVecDof, vector_deriv_type dVec) {
+    	GRADIENT_ASSERT(iLocalVecDof >= iGetStartIndexLocalVector());
+    	GRADIENT_ASSERT(iLocalVecDof < iGetEndIndexLocalVector());
+    	ad.SetLocalVectorVector(iLocalVecDof, dVec);
+    }
+
+    void SetDerivativeGlobal(index_type iGlobalDof, scalar_deriv_type dCoef) {
         GRADIENT_ASSERT(ad.pGetDofMap()->iGetLocalIndex(iGlobalDof) >= iGetStartIndexLocal());
         GRADIENT_ASSERT(ad.pGetDofMap()->iGetLocalIndex(iGlobalDof) < iGetEndIndexLocal());
         ad.SetGlobalVector(iGlobalDof, dCoef);
@@ -1763,12 +2619,24 @@ public:
         return ad.iGetEndIndexLocal();
     }
     
+    index_type iGetStartIndexLocalVector() const {
+    	return ad.iGetStartIndexLocalVector();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
+    	return ad.iGetEndIndexLocalVector();
+    }
+
     index_type iGetLocalSize() const {
     	return iGetEndIndexLocal() - iGetStartIndexLocal();
     }
 
     index_type iGetMaxDerivatives() const {
     	return ad.iGetMaxSize();
+    }
+
+    index_type iGetMaxDerivativesVector() const {
+    	return ad.iGetMaxSizeVector();
     }
 
     bool bIsEqual(const Gradient& g) const {
@@ -1802,41 +2670,78 @@ public:
     }
     
 private:
+    friend struct ApplyAliasHelper<true>;
+    friend struct ApplyAliasHelper<false>;
+
+    template <typename Expression>
+    void ApplyNoAlias(const GradientExpression<Expression>& f) {
+    	GRADIENT_ASSERT(f.iGetMaxDerivatives() <= iGetMaxDerivatives());
+		GRADIENT_ASSERT(!f.bHaveReferenceTo(this));
+
+		f.Compute();
+
+		a = f.dGetValue();
+
+		ad.ResizeReset(f.pGetDofMap(), f.iGetStartIndexLocal(), f.iGetEndIndexLocal(), MapVector<N_SIZE>::LOCAL, 0.);
+
+		ApplyDerivative(f);
+    }
+
+    template <typename Expression>
+    void ApplyWithAlias(const GradientExpression<Expression>& f) {
+        // Attention: If we have an expression like a = (a + x)
+        // we must not overwrite the contents of a
+        // until the expression (a + x) has been evaluated
+        *this = Gradient(f);
+    }
+
     template <typename Expression>
     void ApplyDerivative(const GradientExpression<Expression>& f) {
     	// compile time check for the maximum number of derivatives
     	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
-
+    	const bool bVectorize = sizeof(vector_deriv_type) == sizeof(typename GradientExpression<Expression>::vector_deriv_type)
+    							&& GradientExpression<Expression>::bVectorize;
     	GRADIENT_ASSERT(f.iGetMaxDerivatives() <= iGetMaxDerivatives());
 
-        for (index_type i = ad.iGetStartIndexLocal(); i < ad.iGetEndIndexLocal(); ++i) {
-    		ad.SetLocalVector(i, f.dGetDerivativeLocal(i));
-        }
+    	ApplyDerivativeHelper<bVectorize>::ApplyDerivative(ad, f);
     }
     
     template <typename BinFunc, typename Expression>
     void ApplyBinaryFunction(const GradientExpression<Expression>& f) {
-    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+    	ApplyAliasHelper<GradientExpression<Expression>::bAlias>::ApplyBinaryFunction(*this, f, BinFunc());
+    }
 
-    	if (!f.bHaveReferenceTo(this)) {
+    template <typename BinFunc, typename Expression>
+    void ApplyBinaryFunctionNoAlias(const GradientExpression<Expression>& f, const BinFunc&) {
+    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+    	const bool bVectorize = sizeof(vector_deriv_type) == sizeof(typename GradientExpression<Expression>::vector_deriv_type)
+    							&& GradientExpression<Expression>::bVectorize;
+
+    	GRADIENT_ASSERT(!f.bHaveReferenceTo(this));
         	LocalDofMap* pDofMap = pGetDofMap();
-        	LocalDofMap* const pDofMap2 = f.pGetDofMap();
+        LocalDofMap* pDofMap2 = f.pGetDofMap();
+
+        if (pDofMap2 == 0) {
+        	pDofMap2 = pDofMap;
+        }
 
         	if (pDofMap == 0) {
         		pDofMap = pDofMap2;
         	}
 
-    		const doublereal u = a;
-    		const doublereal v = f.dGetValue();
+        f.Compute();
+
+        const scalar_func_type u = a;
+        const scalar_func_type v = f.dGetValue();
 
     		a = BinFunc::f(u, v);
-    		const doublereal df_du = BinFunc::df_du(u, v);
-    		const doublereal df_dv = BinFunc::df_dv(u, v);
+        const scalar_deriv_type df_du = BinFunc::df_du(u, v);
+        const scalar_deriv_type df_dv = BinFunc::df_dv(u, v);
 
     		const index_type iStartFunc = f.iGetStartIndexLocal();
     		const index_type iEndFunc = f.iGetEndIndexLocal();
 
-          	if (pDofMap == f.pGetDofMap()) {
+        if (pDofMap == pDofMap2) {
 				index_type iStartLocal = std::min(iGetStartIndexLocal(), iStartFunc);
 				index_type iEndLocal = std::max(iGetEndIndexLocal(), iEndFunc);
 
@@ -1848,11 +2753,7 @@ private:
 					iEndLocal = iEndFunc;
 				}
 
-				for (index_type i = iStartLocal; i < iEndLocal; ++i) {
-					const doublereal ud = ad.dGetLocalVector(i);
-					const doublereal vd = f.dGetDerivativeLocal(i);
-					ad.SetLocalVector(i, df_du * ud + df_dv * vd);
-				}
+            ApplyDerivativeHelper<bVectorize>::ApplyBinaryFunction1(ad, f, iStartLocal, iEndLocal, df_du, df_dv);
           	} else {
           		index_type iFirstLocal = std::numeric_limits<index_type>::max();
           		index_type iLastLocal = 0;
@@ -1905,7 +2806,7 @@ private:
         		if (df_du == 1.) {
         			// optimized loop for operator+= and operator-=
         			for (index_type i = iStartFunc; i < iEndFunc; ++i) {
-        				const doublereal vd = f.dGetDerivativeLocal(i);
+                    const scalar_deriv_type vd = f.dGetDerivativeLocal(i);
 
         				if (vd == 0.) {
         					// no effect for the current index
@@ -1917,7 +2818,7 @@ private:
 
         				GRADIENT_ASSERT(iLocal != LocalDofMap::INVALID_INDEX); // because vd != 0
 
-        				const doublereal ud = ad.dGetLocalVector(iLocal);
+                    const scalar_deriv_type ud = ad.dGetLocalVector(iLocal);
 
         				GRADIENT_TRACE("i=" << i << " iLocal=" << iLocal << " ud=" << ud << " vd=" << vd << std::endl);
 
@@ -1926,10 +2827,10 @@ private:
         		} else {
         			// generic loop for operator*= and operator/=
 					for (index_type i = ad.iGetStartIndexLocal(); i < ad.iGetEndIndexLocal(); ++i) {
-						const doublereal ud = ad.dGetLocalVector(i);
+                    const scalar_deriv_type ud = ad.dGetLocalVector(i);
 						const index_type iGlobal = pDofMap->iGetGlobalDof(i);
 						const index_type iLocal2 = pDofMap2->iGetLocalIndex(iGlobal);
-						doublereal vd;
+                    scalar_deriv_type vd;
 
 						if (iLocal2 == LocalDofMap::INVALID_INDEX) {
 							// Note: It can happen that there is no
@@ -1946,19 +2847,22 @@ private:
 					}
         		}
           	}
-    	} else {
-    		const Gradient tmp(GradientExpression<BinaryExpr<BinFunc, DirectExpr<Gradient>, Expression> >(*this, f));
-    		*this = tmp;
     	}
+
+    template <typename BinFunc, typename Expression>
+    void ApplyBinaryFunctionWithAlias(const GradientExpression<Expression>& f, const BinFunc&) {
+    	typedef typename MaxSizeCheck<iMaxDerivatives >= Expression::iMaxDerivatives>::CheckType check_iMaxDerivatives;
+
+        *this = Gradient(GradientExpression<BinaryExpr<BinFunc, DirectExpr<Gradient>, Expression> >(*this, f));
     }
 
 private:
-    doublereal a;
-    MapVector<N_SIZE> ad;
+    scalar_func_type a;
+    MapVectorType ad;
 };
 
 // helper functions needed for templates (e.g. Matrix<T>, Vector<T>)
-inline void Copy(doublereal& d1, const doublereal& d2, LocalDofMap*) {
+inline void Copy(scalar_func_type& d1, const scalar_func_type& d2, LocalDofMap*) {
 	d1 = d2;
 }
 
@@ -1967,7 +2871,7 @@ inline void Copy(Gradient<N_SIZE1>& g1, const Gradient<N_SIZE2>& g2, LocalDofMap
 	g1.Copy(g2, pDofMap);
 }
 
-inline void Reset(doublereal& d) {
+inline void Reset(scalar_func_type& d) {
 	d = 0.;
 }
 
@@ -1976,17 +2880,17 @@ inline void Reset(Gradient<N_SIZE>& g) {
 	g.Reset();
 }
 
-inline doublereal dGetValue(doublereal d) {
+inline scalar_func_type dGetValue(scalar_func_type d) {
 	return d;
 }
 
 template <index_type N_SIZE>
-inline doublereal dGetValue(const Gradient<N_SIZE>& g) {
+inline scalar_func_type dGetValue(const Gradient<N_SIZE>& g) {
 	return g.dGetValue();
 }
 
 template <index_type N_SIZE>
-inline void Convert(doublereal& d, const Gradient<N_SIZE>& g) {
+inline void Convert(scalar_func_type& d, const Gradient<N_SIZE>& g) {
 	// Attention: This operation must be explicit!
 	d = g.dGetValue();
 }
@@ -1994,6 +2898,17 @@ inline void Convert(doublereal& d, const Gradient<N_SIZE>& g) {
 template <typename T1, typename T2>
 inline void Convert(T1& g1, const T2& g2) {
 	g1 = g2;
+}
+
+template <index_type N_SIZE>
+inline GradientExpression<DirectExpr<Gradient<N_SIZE>, true> > Alias(const Gradient<N_SIZE>& g)
+{
+	return GradientExpression<DirectExpr<Gradient<N_SIZE>, true> >(g);
+}
+
+inline scalar_func_type Alias(scalar_func_type d)
+{
+	return d;
 }
 
 template <index_type N_SIZE>
@@ -2033,9 +2948,9 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
     } \
     \
     template <typename LhsExpr> \
-    inline GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr> > \
-    FunctionName(const GradientExpression<LhsExpr>& u, doublereal v) { \
-        return GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr> >(u, v); \
+    inline GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType> > > \
+    FunctionName(const GradientExpression<LhsExpr>& u, scalar_func_type v) { \
+        return GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType> > >(u, v); \
     } \
     template <index_type N_SIZE, typename RhsExpr> \
     inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, RhsExpr> > \
@@ -2043,9 +2958,9 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
         return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, RhsExpr> >(u, v); \
     } \
     template <typename RhsExpr> \
-    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr, RhsExpr> > \
-    FunctionName(doublereal u, const GradientExpression<RhsExpr>& v) { \
-        return GradientExpression<ExpressionName<FunctionClass, ConstExpr, RhsExpr> >(u, v); \
+    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType>, RhsExpr> > \
+    FunctionName(scalar_func_type u, const GradientExpression<RhsExpr>& v) { \
+        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType>, RhsExpr> >(u, v); \
     } \
     template <index_type N_SIZE> \
     inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > \
@@ -2053,15 +2968,15 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
         return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > (u, v); \
     } \
     template <index_type N_SIZE> \
-    inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr> > \
-    FunctionName(const Gradient<N_SIZE>& u, doublereal v) { \
-        return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr> >(u, v); \
+    inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE> > > > \
+    FunctionName(const Gradient<N_SIZE>& u, scalar_func_type v) { \
+        return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE> > > >(u, v); \
     } \
     \
     template <index_type N_SIZE> \
-    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr, DirectExpr<Gradient<N_SIZE> > > > \
-    FunctionName(doublereal u, const Gradient<N_SIZE>& v) { \
-        return GradientExpression<ExpressionName<FunctionClass, ConstExpr, DirectExpr<Gradient<N_SIZE> > > >(u, v); \
+    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > \
+    FunctionName(scalar_func_type u, const Gradient<N_SIZE>& v) { \
+        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > >(u, v); \
     }  
 
 #define GRADIENT_DEFINE_UNARY_FUNCTION(FunctionName, FunctionClass) \

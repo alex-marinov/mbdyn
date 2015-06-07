@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -56,6 +56,11 @@
 #include <blitz/matrix.h>
 #endif
 
+#ifdef HAVE_FEENABLEEXCEPT
+#define _GNU_SOURCE 1
+#include <fenv.h>
+#endif
+
 #ifndef MATVEC_DEBUG
 	#define MATVEC_DEBUG 1
 #endif
@@ -64,6 +69,7 @@
 	#define GRADIENT_DEBUG 1
 #endif
 
+#include "ac/f2c.h"
 #include "clock_time.h"
 #include "matvec.h"
 #include "matvec3.h"
@@ -260,7 +266,7 @@ void func2(const T *A, const T *b, const T *c__, T *d__, const doublereal& e, do
       IMPLICIT NONE
       DOUBLE PRECISION A(3, 3), b(3), c(3), d(3), e
  */
-extern "C" void func2ad_(const doublereal A[3][3],
+extern "C" void __FC_DECL__(func2ad)(const doublereal A[3][3],
 						 const doublereal b[3],
 						 const doublereal c[3],
 						 doublereal d[3],
@@ -275,7 +281,7 @@ const integer nbdirsmax = 12;
       DOUBLE PRECISION ad(nbdirsmax, 3, 3), bd(nbdirsmax, 3), cd(
      +                 nbdirsmax, 3), dd(nbdirsmax, 3)
 */
-extern "C" void func2ad_dv_(const doublereal A[3][3],
+extern "C" void __FC_DECL__(func2ad_dv)(const doublereal A[3][3],
 							const doublereal Ad[3][3][nbdirsmax],
 							const doublereal b[3],
 							const doublereal bd[3][nbdirsmax],
@@ -357,7 +363,7 @@ void func3<Gradient<0> >(const Matrix<Gradient<0> , 3, 3>& R1, const Matrix<Grad
 
 template <typename T>
 bool bCompare(const T& a, const T& b, doublereal dTolRel = 0.) {
-	doublereal dTolAbs = std::max(1., std::max(std::abs(a), std::abs(b))) * dTolRel;
+	doublereal dTolAbs = std::max<T>(1., std::max<T>(std::abs(a), std::abs(b))) * dTolRel;
 	return std::abs(a - b) <= dTolAbs;
 }
 
@@ -374,7 +380,7 @@ bool bCompare(const Gradient<N_SIZE>& a, const Gradient<N_SIZE>& b, doublereal d
 	index_type iEnd = std::max(a.iGetEndIndexLocal(), b.iGetEndIndexLocal());
 
 	for (index_type i = iStart; i < iEnd; ++i) {
-		doublereal dTolAbs = std::max(1., std::max(std::abs(a.dGetDerivativeLocal(i)), std::abs(b.dGetDerivativeLocal(i)))) * dTolRel;
+		doublereal dTolAbs = std::max<scalar_deriv_type>(1., std::max<scalar_deriv_type>(std::abs(a.dGetDerivativeLocal(i)), std::abs(b.dGetDerivativeLocal(i)))) * dTolRel;
 
 		if (std::abs(a.dGetDerivativeLocal(i) - b.dGetDerivativeLocal(i)) > dTolAbs) {
 			std::cerr << "ad(" << i << ") = " << a.dGetDerivativeLocal(i) << " != bd(" << i << ") = " << b.dGetDerivativeLocal(i) << std::endl;
@@ -439,8 +445,8 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
 
     std::cerr << "F77 (" << typeid(T).name() << "): " << dtF << "s" << std::endl;
 
-    std::cerr << "overhead matvec:" << dtMatVec / dtF << std::endl;
-    std::cerr << "overhead C:" << dtC / dtF << std::endl;
+    std::cerr << "overhead matvec:" << dtMatVec / std::max(std::numeric_limits<double>::epsilon(), dtF) << std::endl;
+    std::cerr << "overhead C:" << dtC / std::max(std::numeric_limits<double>::epsilon(), dtF) << std::endl;
 
     std::cout << "A=" << std::endl << A << std::endl;
     std::cout << "b=" << std::endl << b << std::endl;
@@ -449,7 +455,7 @@ void callFunc2(LocalDofMap* pDofMap, const Matrix<T, 3, 3>& A, const Vector<T, 3
     std::cout << "d_C=" << std::endl << d_C << std::endl;
     std::cout << "d_F=" << std::endl << d_F << std::endl;
 
-    const doublereal dTol = 10 * std::numeric_limits<doublereal>::epsilon();
+    const doublereal dTol = 10 * std::numeric_limits<scalar_deriv_type>::epsilon();
 
     for (int i = 1; i <= 3; ++i) {
     	assert(bCompare(d(i), d_C(i), dTol));
@@ -481,7 +487,7 @@ void testMatVecGradient(doublereal c_C[N], doublereal cd_C[N][N]) {
     std::cout << "c=" << std::endl << c << std::endl;
     std::cout << "d=" << std::endl << d << std::endl;
 
-    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    const doublereal dTol = sqrt(std::numeric_limits<scalar_deriv_type>::epsilon());
 
     for (int i = 1; i <= N; ++i) {
     	assert(bCompare(c(i), c1(i), dTol));
@@ -570,12 +576,12 @@ void testMatVecGradient(doublereal c_C[N], doublereal cd_C[N][N]) {
 
     d /= c(2);
 
+    std::cout << "d=" << d << std::endl;
+    std::cout << "d5=" << d5 << std::endl;
+
     for (int i = 1; i <= N; ++i) {
     	assert(bCompare(d(i), d5(i), dTol));
     }
-
-    std::cout << "d=" << d << std::endl;
-    std::cout << "d5=" << d5 << std::endl;
 }
 
 #ifdef HAVE_BLITZ
@@ -633,7 +639,7 @@ void testMatVecDouble(doublereal c_C[N]) {
 
     Vector<doublereal, N> d = -c;
 
-    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    const doublereal dTol = sqrt(std::numeric_limits<scalar_deriv_type>::epsilon());
 
     for (int i = 1; i <= N; ++i) {
     	assert(bCompare(c(i), c1(i), dTol));
@@ -672,7 +678,7 @@ void testMatVecDouble(doublereal c_C[N]) {
     	d2 += a(i) * b(i);
     }
 
-    assert(bCompare(d2, d1, std::numeric_limits<doublereal>::epsilon()));
+    assert(bCompare(d2, d1, std::numeric_limits<scalar_deriv_type>::epsilon()));
 
     std::cout << "s1=" << s1 << std::endl;
     std::cout << "s2=" << s2 << std::endl;
@@ -738,8 +744,8 @@ void testMatVecGradient2() {
     Matrix<Gradient<N_SIZE>, 3, 3> A_2 = A * 2.;
     Vector<Gradient<N_SIZE>, 3> b_2 = b * 2.;
 
-    A = A * 2.; // Test self assignment
-    b = b * 2.;
+    A = Alias(A) * 2.; // Test self assignment
+    b = Alias(b) * 2.;
 
     for (index_type i = 1; i < 3; ++i) {
     	assert(bCompare(b(i), b_2(i)));
@@ -749,11 +755,11 @@ void testMatVecGradient2() {
     	}
     }
 
-    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    const doublereal dTol = sqrt(std::numeric_limits<scalar_deriv_type>::epsilon());
 
     Matrix<Gradient<N_SIZE>, 3, 3> A_3 = (A + Transpose(A) * 0.75) * (2. / b(1));
 
-    A += Transpose(A) * 0.75;
+    A += Transpose(Alias(A)) * 0.75;
     A *= 2.;
     A /= b(1);
 
@@ -764,7 +770,7 @@ void testMatVecGradient2() {
     }
 
     Matrix<Gradient<N_SIZE>, 3, 3> A_4 = A * A(2, 3);
-    A *= A(2, 3);
+    A *= Alias(A(2, 3));
 
     for (index_type i = 1; i < 3; ++i) {
     	for (index_type j = 1; j < 3; ++j) {
@@ -774,7 +780,7 @@ void testMatVecGradient2() {
 
     Vector<Gradient<N_SIZE>, 3> b_3 = b * b(2);
 
-    b *= b(2);
+    b *= Alias(b(2));
 
     for (index_type i = 1; i <= 3; ++i) {
     	assert(bCompare(b(i), b_3(i), dTol));
@@ -782,7 +788,7 @@ void testMatVecGradient2() {
 
     Vector<Gradient<N_SIZE>, 3> b_4 = b / sqrt(Dot(b, b));
 
-    b /= sqrt(Dot(b, b));
+    b /= sqrt(Dot(Alias(b), b));
 
     for (index_type i = 1; i <= 3; ++i) {
     	assert(bCompare(b(i), b_4(i), dTol));
@@ -790,7 +796,7 @@ void testMatVecGradient2() {
 
     Vector<Gradient<N_SIZE>, 3> b_5 = ((b + b * 0.75 / b(1)) * (2. / (A(1, 3) + A(2, 3))) * A(2, 1) + Transpose(A).GetCol(3)) / A(1, 1) / 3.8;
 
-    b += b * 0.75 / b(1);
+    b += b * 0.75 / Alias(b(1));
     b *= 2.;
     b /= (A(1, 3) + A(2, 3));
     b *= A(2, 1);
@@ -811,6 +817,9 @@ void testMatVecGradient2() {
     Vector<Gradient<N_SIZE>, 2> e = SubVector<2, 3>(b / 2.) + SubVector<1, 2>(b * 3.);
     assert(bCompare(e(1), Gradient<N_SIZE>(b(2) / 2. + b(1) * 3), dTol));
     assert(bCompare(e(2), Gradient<N_SIZE>(b(3) / 2. + b(2) * 3), dTol));
+
+    A = Alias(A) * 0.5 + Transpose(A) * 3.5;
+    b = Alias(b) * 2.3 + c * 5.0;
 }
 
 void testMatVecDouble2() {
@@ -1093,7 +1102,12 @@ void testGradient(const S& ref, const Vector<Gradient<N_SIZE>, N_rows>& v, doubl
 	for (index_type i = 0; i < index_type(sizeof(ref.val)/sizeof(ref.val[0])); ++i) {
 		assert(bCompare(v(i + 1).dGetValue(), ref.val[i], dTol));
 		for (index_type j = 0; j < index_type(sizeof(ref.der[0])/sizeof(ref.der[0][0])); ++j) {
-			assert(bCompare(v(i + 1).dGetDerivativeGlobal(j + 1), ref.der[i][j], dTol));
+			std::cout << "v(" << i + 1 << ")=" << v(i + 1).dGetDerivativeGlobal(j + 1) << std::endl;
+			std::cout << "ref.der[" << i << "][" << j << "]=" << ref.der[i][j] << std::endl;
+
+			const bool bOK = bCompare<scalar_deriv_type>(v(i + 1).dGetDerivativeGlobal(j + 1), ref.der[i][j], dTol);
+			std::cout << "dTol=" << dTol << " :[" << (bOK ? "OK" : "NOK") << "]" << std::endl;
+			assert(bOK);
 		}
 	}
 }
@@ -1103,7 +1117,7 @@ void testGradient(const S& ref, const Gradient<N_SIZE>& g, doublereal dTol) {
 	for (index_type i = 0; i < index_type(sizeof(ref.val)/sizeof(ref.val[0])); ++i) {
 		assert(bCompare(g.dGetValue(), ref.val[i], dTol));
 		for (index_type j = 0; j < index_type(sizeof(ref.der[0])/sizeof(ref.der[0][0])); ++j) {
-			assert(bCompare(g.dGetDerivativeGlobal(j + 1), ref.der[i][j], dTol));
+			assert(bCompare<scalar_deriv_type>(g.dGetDerivativeGlobal(j + 1), ref.der[i][j], dTol));
 		}
 	}
 }
@@ -1254,6 +1268,119 @@ Norm_1(const Vector<T, N_rows>& u) {
 	return sqrt(Dot(u, u));
 }
 
+extern "C" void __FC_DECL__(func2addad_dv)(const doublereal x[],
+										   const doublereal xd[],
+										   const doublereal y[],
+										   const doublereal yd[],
+										   doublereal z[],
+										   doublereal zd[],
+										   const integer& n,
+										   const integer& nbdirs);
+
+extern "C" void __FC_DECL__(func2mulad_dv)(const doublereal x[],
+										   const doublereal xd[],
+										   const doublereal y[],
+										   const doublereal yd[],
+										   doublereal z[],
+										   doublereal zd[],
+										   const integer& n,
+										   const integer& nbdirs);
+
+template <typename T, index_type iRowCount>
+void doVecAdd(const Vector<T, iRowCount>& x, const Vector<T, iRowCount>& y, Vector<T, iRowCount>& z)
+{
+	z = x + y;
+}
+
+template <typename T, index_type iRowCount>
+void doVecMul(const Vector<T, iRowCount>& x, const Vector<T, iRowCount>& y, Vector<T, iRowCount>& z)
+{
+	for (index_type i = 1; i <= z.iGetNumRows(); ++i)
+	{
+		z(i) = x(i) * y(i);
+	}
+}
+
+template <index_type iRowCount, index_type iMaxDeriv, typename Function, typename FunctionF77>
+void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char* function)
+{
+    Vector<Gradient<iMaxDeriv>, iRowCount> x, y, z;
+    LocalDofMap dof;
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+		x(i).SetValuePreserve(i * 100);
+		x(i).DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+		y(i).SetValuePreserve(i);
+		y(i).DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+
+		for (int j = 0; j < N; ++j)
+		{
+			x(i).SetDerivativeGlobal(j, (j + 1));
+			y(i).SetDerivativeGlobal(j, (j + 1));
+		}
+    }
+
+    double start = mbdyn_clock_time();
+
+    for (int i = 0; i < M; ++i)
+    {
+    	f(x, y, z);
+    }
+
+    const double dt = mbdyn_clock_time() - start;
+
+    std::cerr << "C++: testVecAdd<" << iRowCount << "," << iMaxDeriv << ">(" << M << ", " << N << ", \"" << function << "\"):" << dt << std::endl;
+
+    doublereal xF[iRowCount], yF[iRowCount], zF[iRowCount];
+    doublereal *xdF = new doublereal[iRowCount*N];
+    doublereal *ydF = new doublereal[iRowCount*N];
+    doublereal *zdF = new doublereal[iRowCount*N];
+
+    for (int i = 0; i < iRowCount; ++i)
+    {
+    	xF[i] = x(i + 1).dGetValue();
+    	yF[i] = y(i + 1).dGetValue();
+    	zF[i] = 0.;
+
+    	for (int j = 0; j < N; ++j)
+    	{
+    		xdF[i * N + j] = x(i + 1).dGetDerivativeLocal(j);
+    		ydF[i * N + j] = y(i + 1).dGetDerivativeLocal(j);
+    		zdF[i * N + j] = 0.;
+    	}
+    }
+
+    start = mbdyn_clock_time();
+
+    for (int i = 0; i < M; ++i)
+    {
+    	f77(xF, xdF, yF, ydF, zF, zdF, iRowCount, N);
+    }
+
+    const double dtF77 = mbdyn_clock_time() - start;
+
+    std::cerr << "F77: testVecAdd<" << iRowCount << "," << iMaxDeriv << ">(" << M << ", " << N << ", \"" << function << "\"):" << dtF77 << std::endl;
+    std::cerr << "overhead=" << dt/std::max(std::numeric_limits<doublereal>::epsilon(), dtF77) << std::endl;
+
+    for (int i = 0; i < iRowCount; ++i)
+    {
+    	assert(xF[i] == x(i + 1).dGetValue());
+    	assert(yF[i] == y(i + 1).dGetValue());
+    	assert(zF[i] == z(i + 1).dGetValue());
+
+    	for (int j = 0; j < N; ++j)
+    	{
+    		assert(xdF[i * N + j] == x(i + 1).dGetDerivativeLocal(j));
+    		assert(ydF[i * N + j] == y(i + 1).dGetDerivativeLocal(j));
+    		assert(zdF[i * N + j] == z(i + 1).dGetDerivativeLocal(j));
+    	}
+    }
+
+    delete [] xdF;
+    delete [] ydF;
+    delete [] zdF;
+}
+
 void testMatVecProductGradient() {
     Matrix<Gradient<0>, 3, 4> A;
     LocalDofMap dof;
@@ -1286,7 +1413,7 @@ void testMatVecProductGradient() {
     Matrix<Gradient<0>, 3, 4> J1 = A * B1(1, 1) + I1 * H1(2, 2);
     Matrix<Gradient<0>, 3, 4> K1 = (I1 + J1) * H1(3, 4);
 
-    const doublereal dTol = 10 * std::numeric_limits<doublereal>::epsilon();
+    const doublereal dTol = 10 * std::numeric_limits<scalar_deriv_type>::epsilon();
 
     for (int i = 1; i <= 3; ++i) {
     	for (int j = 1; j <= 4; ++j) {
@@ -1339,7 +1466,7 @@ void testMatVecProductGradient() {
     	std::cout << i - 1 << ": ";
 
     	for (index_type j = 1; j <= r.iGetNumRows(); ++j) {
-    		assert(r(j) == A(i, j));
+    		assert(bCompare(r(j), A(i, j), std::numeric_limits<scalar_deriv_type>::epsilon()));
     		std::cout << r(j) << " ";
     	}
 
@@ -1353,7 +1480,7 @@ void testMatVecProductGradient() {
     	std::cout << j - 1 << ": ";
 
     	for (index_type i = 1; i <= c.iGetNumRows(); ++i) {
-    		assert(c(i) == A(i, j));
+    		assert(bCompare(c(i), A(i, j), std::numeric_limits<scalar_deriv_type>::epsilon()));
     		std::cout << c(i) << " ";
     	}
 
@@ -1369,9 +1496,29 @@ void testMatVecProductGradient() {
     	v(i) = x(i).dGetValue();
     }
 
+    Vector<Gradient<0>, 3> b_1;
+    Gradient<0> b1_2;
+    b1_2 = A(1, 1) * x(1);
+    b1_2 += A(1, 2) * x(2);
+    b1_2 += A(1, 3) * x(3);
+    b1_2 += A(1, 4) * x(4);
+
+    b_1(1) = A(1, 1) * x(1) + A(1, 2) * x(2) + A(1, 3) * x(3) + A(1, 4) * x(4);
+
+    assert(b1_2.bIsEqual(b_1(1)));
+
+    b_1(2) = A(2, 1) * x(1) + A(2, 2) * x(2) + A(2, 3) * x(3) + A(2, 4) * x(4);
+    b_1(3) = A(3, 1) * x(1) + A(3, 2) * x(2) + A(3, 3) * x(3) + A(3, 4) * x(4);
+
+
+    using namespace testMatVecProductGradient_testData;
+    testGradient(oct_b, b_1, dTol);
+
     for (index_type i = 1; i <= b.iGetNumRows(); ++i) {
     	b(i) = Dot(A.GetRow(i), x);
     }
+
+    testGradient(oct_b, b, dTol);
 
     Vector<Gradient<0>, 3> b2 = A * x;
     Vector<Gradient<0>, 3> b2d = Ad * x;
@@ -1473,34 +1620,32 @@ void testMatVecProductGradient() {
     std::cout << "zd=" << zd << std::endl;
 
     for (index_type i = 1; i <= b2.iGetNumRows(); ++i) {
-    	assert(b2d(i) == b2(i).dGetValue());
-    	assert(b2d1(i) == -2 * b2(i).dGetValue());
-    	assert(b2(i).bIsEqual(b(i)));
-    	assert(b3(i).bIsEqual(3 * b(i)));
-    	assert(b4(i).bIsEqual(2 * b(i)));
-    	assert(b5(i).bIsEqual(b(i)));
-    	assert(b6(i).bIsEqual(b(i)));
-    	assert(b7(i).bIsEqual(b(i)));
-    	assert(b8(i).dGetValue() == b(i).dGetValue());
-    	assert(c(i).bIsEqual(-b(i)));
+    	assert(bCompare(b2d(i).dGetValue(), b2(i).dGetValue(), dTol));
+    	assert(bCompare(b2d1(i).dGetValue(), -2 * b2(i).dGetValue(), dTol));
+    	assert(bCompare(b2(i), b(i), dTol));
+    	assert(bCompare(b3(i), Gradient<0>(3 * b(i)), dTol));
+    	assert(bCompare(b4(i), Gradient<0>(2 * b(i)), dTol));
+    	assert(bCompare(b5(i), b(i), dTol));
+    	assert(bCompare(b6(i), b(i), dTol));
+    	assert(bCompare(b7(i), b(i), dTol));
+    	assert(bCompare<scalar_deriv_type>(b8(i).dGetValue(), b(i).dGetValue(), dTol));
+    	assert(bCompare(c(i), Gradient<0>(-b(i)), dTol));
     }
 
 
-    assert(b(1) == 6300);
-    assert(b(2) == 11300);
-    assert(b(3) == 16300);
+    assert(bCompare(b(1).dGetValue(), 6300., dTol));
+    assert(bCompare(b(2).dGetValue(), 11300., dTol));
+    assert(bCompare(b(3).dGetValue(), 16300., dTol));
 
-    assert(D(1, 1) == -630);
-    assert(D(1, 2) == -1130);
-    assert(D(1, 3) == -1630);
-    assert(D(2, 1) == -1130);
-    assert(D(2, 2) == -2030);
-    assert(D(2, 3) == -2930);
-    assert(D(3, 1) == -1630);
-    assert(D(3, 2) == -2930);
-    assert(D(3, 3) == -4230);
-
-    using namespace testMatVecProductGradient_testData;
+    assert(bCompare(D(1, 1).dGetValue(), -630., dTol));
+    assert(bCompare(D(1, 2).dGetValue(), -1130., dTol));
+    assert(bCompare(D(1, 3).dGetValue(), -1630., dTol));
+    assert(bCompare(D(2, 1).dGetValue(), -1130., dTol));
+    assert(bCompare(D(2, 2).dGetValue(), -2030., dTol));
+    assert(bCompare(D(2, 3).dGetValue(), -2930., dTol));
+    assert(bCompare(D(3, 1).dGetValue(), -1630., dTol));
+    assert(bCompare(D(3, 2).dGetValue(), -2930., dTol));
+    assert(bCompare(D(3, 3).dGetValue(), -4230., dTol));
 
     testGradient(oct_b, b, dTol);
     testGradient(oct_c, c, dTol);
@@ -1525,6 +1670,51 @@ void testMatVecProductGradient() {
     std::cout << "A=" << A << std::endl;
     std::cout << "x=" << x << std::endl;
     std::cout << "b=" << b << std::endl;
+}
+
+template <index_type N_SIZE>
+void testMatVecProductGradient2(index_type iNumDeriv, int N) {
+    Matrix<Gradient<N_SIZE>, 3, 5> A;
+    Matrix<Gradient<N_SIZE>, 5, 7> B;
+    LocalDofMap dof;
+
+    srand(0);
+    
+    for (index_type i = 0; i < A.iGetNumRows(); ++i) {
+    	for (index_type j = 0; j < A.iGetNumCols(); ++j) {
+    		A(i + 1, j + 1).SetValue(10. * (i + 1) + j + 1 + rand());
+    		A(i + 1, j + 1).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::GLOBAL, 0.);
+            for (int k = 0; k < iNumDeriv; ++k) {
+                A(i + 1, j + 1).SetDerivativeGlobal(k, 1000. * (i + 1) + 100. * (j + 1) + k + 1 + rand());
+            }
+    	}
+    }
+    
+    for (index_type i = 0; i < B.iGetNumRows(); ++i) {
+    	for (index_type j = 0; j < B.iGetNumCols(); ++j) {
+    		B(i + 1, j + 1).SetValue(1000. * (i + 1) + 100. * (j + 1) + rand());
+    		B(i + 1, j + 1).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::GLOBAL, 0.);
+            for (int k = 0; k < iNumDeriv; ++k) {
+                B(i + 1, j + 1).SetDerivativeGlobal(k, 10000. * (i + 1) + 1000. * (j + 1) + 10. * (k + 1) + rand());
+            }
+    	}
+    }    
+
+    Matrix<Gradient<N_SIZE>, 3, 7> C;
+    
+    clock_t start = clock();
+    
+    for (int i = 0; i < N; ++i) {
+        C = A * B;
+    }
+
+    double dt = double(clock() - start) / (N * CLOCKS_PER_SEC);
+    
+    std::cerr << "iMaxDerivatives=" << iNumDeriv << std::endl;
+    std::cerr << "dt=" << dt << std::endl;
+    std::cout << "A=\n" << A << std::endl;
+    std::cout << "B=\n" << B << std::endl;
+    std::cout << "C=\n" << C << std::endl;
 }
 
 #ifdef HAVE_BLITZ
@@ -2378,7 +2568,7 @@ void testAssembly() {
 
             for (int i = 0; i < JacMat.rows(); ++i) {
                 for (int j = 0; j < JacMat.cols(); ++j) {
-                    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon()) * std::max(1., std::max(std::abs(JacMat(i, j)), std::abs(JacMatAD(i, j))));
+                    const doublereal dTol = sqrt(std::numeric_limits<scalar_deriv_type>::epsilon()) * std::max(1., std::max(std::abs(JacMat(i, j)), std::abs(JacMatAD(i, j))));
                     if(std::abs(JacMat(i, j) - JacMatAD(i, j)) > dTol) {
                     	throw std::runtime_error("testAssembly(): incorrect result");
                     }
@@ -2487,7 +2677,7 @@ void testMatVec3() {
 			std::cout << "A4=" << std::endl << A4 << std::endl;
 		}
 
-        const doublereal dTol = 10*std::numeric_limits<doublereal>::epsilon();
+        const doublereal dTol = 10*std::numeric_limits<scalar_deriv_type>::epsilon();
 
 		for (index_type i = 1; i <= 3; ++i) {
 			for (index_type j = 1; j <= 3; ++j) {
@@ -2708,7 +2898,7 @@ void testMatVec() {
     testMatVecGradientBlitz<N>(c_MatVecGradientBlitz, cd_MatVecGradientBlitz);
 #endif // HAVE_BLITZ
 
-    const doublereal dTol = 10 * std::numeric_limits<doublereal>::epsilon();
+    const doublereal dTol = 10 * std::numeric_limits<scalar_deriv_type>::epsilon();
 
     for (int i = 0; i < N; ++i) {
     	assert(bCompare(c_MatVecGradient[i], c_MatVecDouble[i], dTol));
@@ -2943,6 +3133,9 @@ void cppad_benchmark3(const int N)
 }
 
 int main(int argc, char* argv[]) {
+#ifdef HAVE_FEENABLEEXCEPT
+	feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
+#endif
 	if (argc > 1) {
 		NLoops = atol(argv[1]);
 	}
@@ -2978,6 +3171,9 @@ int main(int argc, char* argv[]) {
     std::cerr << "---------------------------\ntestMatVecGradient2<6>()\n";
 	testMatVecGradient2<6>();
 
+    std::cerr << "---------------------------\ntestMatVecGradient2<8>()\n";
+	testMatVecGradient2<8>();
+
     std::cerr << "---------------------------\ntestMatVecGradient2<10>()\n";
 	testMatVecGradient2<10>();
 
@@ -2992,6 +3188,16 @@ int main(int argc, char* argv[]) {
     std::cerr << "---------------------------\ntestMatVecProductGradient()\n";
     testMatVecProductGradient();
 
+    std::cerr << "---------------------------\ntestMatVecProductGradient2()\n";
+    testMatVecProductGradient2<1>(1, NLoops);
+    testMatVecProductGradient2<4>(4, NLoops);
+    testMatVecProductGradient2<8>(8, NLoops);
+    testMatVecProductGradient2<12>(12, NLoops);
+    testMatVecProductGradient2<32>(32, NLoops);
+    testMatVecProductGradient2<64>(64, NLoops);
+    testMatVecProductGradient2<0>(256, NLoops);
+    
+    std::cerr << "---------------------------\ntestMatVecCopy()\n";
     testMatVecCopy<1>();
     testMatVecCopy<3>();
     testMatVecCopy<5>();
@@ -3016,6 +3222,101 @@ int main(int argc, char* argv[]) {
 
     std::cerr << "----------------------------\ntestSolve()\n";
     testSolve();
+
+      {  
+            const int N = argc > 3 ? atoi(argv[3]) : 1;
+            const int nr = 4, nc = 4;
+            Matrix<doublereal, nr, nc> A, B, C;
+
+            for (int i = 1; i <= nr; ++i)
+            {
+                for (int j = 1; j <= nc; ++j)
+                {
+                    B(i, j) = rand();
+                    C(i, j) = rand();
+                }
+            }
+
+            clock_t start = clock();
+
+            for (int i = 0; i < N; ++i)
+            {
+                A = B * C;
+            }
+
+            std::cerr << "time: " << double(clock()-start)/N/CLOCKS_PER_SEC << std::endl;
+      }
+      
+    std::cerr << "----------------------------\ncppad_benchmark1<0>()\n";
+    cppad_benchmark1<0>(NLoops);
+
+    std::cerr << "----------------------------\ncppad_benchmark1<6>()\n";
+    cppad_benchmark1<6>(NLoops);
+
+    std::cerr << "----------------------------\ncppad_benchmark2<0>()\n";
+    cppad_benchmark2<0>(NLoops);
+
+    std::cerr << "----------------------------\ncppad_benchmark2<12>()\n";
+    cppad_benchmark2<12>(NLoops);
+
+    std::cerr << "----------------------------\ncppad_benchmark3<0>()\n";
+    cppad_benchmark3<0>(NLoops);
+
+    std::cerr << "----------------------------\ncppad_benchmark3<12>()\n";
+    cppad_benchmark3<12>(NLoops);
+      
+
+    testVecOp<3, 2>(NLoops, 2, doVecAdd<Gradient<2>, 3>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<3, 4>(NLoops, 4, doVecAdd<Gradient<4>, 3>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<3, 8>(NLoops, 8, doVecAdd<Gradient<8>, 3>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<3, 16>(NLoops, 16, doVecAdd<Gradient<16>, 3>, __FC_DECL__(func2addad_dv), "add");
+
+    testVecOp<12, 2>(NLoops, 2, doVecAdd<Gradient<2>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 4>(NLoops, 4, doVecAdd<Gradient<4>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 8>(NLoops, 8, doVecAdd<Gradient<8>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 16>(NLoops, 16, doVecAdd<Gradient<16>, 12>, __FC_DECL__(func2addad_dv), "add");
+
+    testVecOp<3, 2>(NLoops, 2, doVecMul<Gradient<2>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+	testVecOp<3, 4>(NLoops, 4, doVecMul<Gradient<4>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+	testVecOp<3, 8>(NLoops, 8, doVecMul<Gradient<8>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+	testVecOp<3, 16>(NLoops, 16, doVecMul<Gradient<16>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+
+    testVecOp<12, 2>(NLoops, 2, doVecAdd<Gradient<2>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 4>(NLoops, 4, doVecAdd<Gradient<4>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 8>(NLoops, 8, doVecAdd<Gradient<8>, 12>, __FC_DECL__(func2addad_dv), "add");
+	testVecOp<12, 16>(NLoops, 16, doVecAdd<Gradient<16>, 12>, __FC_DECL__(func2addad_dv), "add");
+
+    testVecOp<3, 0>(NLoops, 2, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 4, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 8, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 16, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 256, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 512, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<3, 0>(NLoops, 1024, doVecAdd<Gradient<0>, 3>, __FC_DECL__(func2addad_dv), "add");
+
+    testVecOp<12, 0>(NLoops, 2, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 4, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 8, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 16, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 256, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 512, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+    testVecOp<12, 0>(NLoops, 1024, doVecAdd<Gradient<0>, 12>, __FC_DECL__(func2addad_dv), "add");
+
+    testVecOp<3, 0>(NLoops, 2, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 4, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 8, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 16, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 256, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 512, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<3, 0>(NLoops, 1024, doVecMul<Gradient<0>, 3>, __FC_DECL__(func2mulad_dv), "mul");
+
+    testVecOp<12, 0>(NLoops, 2, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 4, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 8, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 16, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 256, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 512, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
+    testVecOp<12, 0>(NLoops, 1024, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
 
 #ifdef NDEBUG
     std::cerr << "\nNo tests have been done" << std::endl;

@@ -29,7 +29,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
         Copyright (C) 2011(-2014) all rights reserved.
 
         The copyright of this code is transferred
@@ -1165,7 +1165,7 @@ bool inline_friction_set(void)
 	return true;
 }
 
-//#ifndef STATIC_MODULES
+#ifndef STATIC_MODULES
 
 extern "C"
 {
@@ -1186,4 +1186,4 @@ int module_init(const char *module_name, void *pdm, void *php)
 
 }
 
-//#endif // ! STATIC_MODULE
+#endif // ! STATIC_MODULE

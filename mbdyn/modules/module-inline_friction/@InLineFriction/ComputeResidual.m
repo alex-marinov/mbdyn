@@ -26,8 +26,8 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-%        Copyright (C) 2011(-2014) all rights reserved.
+% AUTHOR: Reinhard Resch <r.resch@secop.com>
+%        Copyright (C) 2011(-2013) all rights reserved.
 %
 %        The copyright of this code is transferred
 %        to Pierangelo Masarati and Paolo Mantegazza

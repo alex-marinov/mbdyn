@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -48,6 +48,11 @@
 #include <functional>
 #include <typeinfo>
 #include <cmath>
+
+#ifdef HAVE_FEENABLEEXCEPT
+#define _GNU_SOURCE 1
+#include <fenv.h>
+#endif
 
 #ifdef HAVE_BLITZ
 #include <blitz/blitz.h>
@@ -84,8 +89,14 @@ doublereal random1() {
 
 template <typename T>
 bool bCompare(const T& a, const T& b, doublereal dTolRel = 0.) {
-	doublereal dTolAbs = std::max(1., std::max(std::abs(a), std::abs(b))) * dTolRel;
-	return std::abs(a - b) <= dTolAbs;
+	doublereal dTolAbs = std::max<T>(1., std::max<T>(std::abs(a), std::abs(b))) * dTolRel;
+
+	if (!(std::abs(a - b) <= dTolAbs)) {
+		std::cerr << "a = " << a << " != b = " << b << std::endl;
+		return false;
+	}
+
+	return true;
 }
 
 template <index_type N_SIZE>
@@ -119,16 +130,84 @@ void testRangeVector() {
     index_type start = 3;
     index_type end = 6;
     RangeVector<doublereal, N_SIZE> v(start, end, 0.);
+    RangeVector<float, 2 * N_SIZE> vf(v), vf2;
+    RangeVector<doublereal, N_SIZE> v2(v);
+
     int k = 0;
     
     for (index_type i = start; i < end; ++i) {
         v.SetValue(i, ++k);
     }
     
+    v2 = v;
+    vf = v;
+    vf.Reset();
+    vf.Reserve(N_SIZE == 0 ? vf.iGetEndIndex() * 2 : 2 * N_SIZE);
+    vf = v2;
+    const RangeVector<float, N_SIZE> v3(v2);
+    v2.Reset();
+    v2 = v3;
+    v2.Reserve(N_SIZE == 0 ? v2.iGetEndIndex() * 2 : N_SIZE);
+
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
         std::cout << "v[" << i << "]=" << v.GetValue(i) << std::endl;
+    }
+
+    for (index_type i = vf.iGetStartIndex(); i < vf.iGetEndIndex(); ++i) {
+        std::cout << "vf[" << i << "]=" << vf.GetValue(i) << std::endl;
+    }
+
+    for (index_type i = v2.iGetStartIndex(); i < v2.iGetEndIndex(); ++i) {
+        std::cout << "v2[" << i << "]=" << v2.GetValue(i) << std::endl;
+    }
+
+    for (index_type i = v3.iGetStartIndex(); i < v3.iGetEndIndex(); ++i) {
+        std::cout << "v3[" << i << "]=" << v3.GetValue(i) << std::endl;
+    }
+
+    std::cout << std::endl;
+
+    for (index_type i = 0; i < v.iGetEndIndex(); ++i)
+    {
+    	assert(v.GetValue(i) == vf.GetValue(i));
+    	assert(v2.GetValue(i) == v.GetValue(i));
+    }
+
+    v2.ResizeReset(v.iGetStartIndex(), v.iGetEndIndex(), 0.);
+
+    for (index_type i = v.iGetStartIndexVector(); i < v.iGetEndIndexVector(); ++i)
+    {
+    	v2.SetVectorValue(i, v.GetVectorValue(i));
+    }
+
+    for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i)
+    {
+    	assert(v2.GetValue(i) == v.GetValue(i));
+    }
+
+    vf.ResizeReset(0, 12, 0.0f);
+
+    for (index_type i = vf.iGetStartIndex(); i < vf.iGetEndIndex(); ++i)
+    {
+    	vf.SetValue(i, float(i + 1));
+    }
+
+    vf2.ResizeReset(vf.iGetStartIndex(), vf.iGetEndIndex(), 0.0f);
+
+    for (index_type i = vf.iGetStartIndexVector(); i < vf.iGetEndIndexVector(); ++i)
+    {
+    	vf2.SetVectorValue(i, vf.GetVectorValue(i));
+    }
+
+    for (index_type i = vf.iGetStartIndex(); i < vf.iGetEndIndex(); ++i)
+    {
+    	assert(vf.GetValue(i) == vf2.GetValue(i));
+    }
+
+    for (index_type i = vf2.iGetStartIndex(); i < vf2.iGetEndIndex(); ++i) {
+        std::cout << "vf2[" << i << "]=" << vf2.GetValue(i) << std::endl;
     }
 
     std::cout << std::endl;
@@ -330,7 +409,7 @@ void testGradient(index_type N) {
     Gradient<N_SIZE> u, v, w, f, f_tmp;
     doublereal f_d;
     
-    u.SetValuePreserve(random1() * 10);
+    u.SetValuePreserve(fabs(random1()) * 10);
     v.SetValuePreserve(random1() * 3);
     w.SetValuePreserve(random1() * 0.01);
     
@@ -395,13 +474,13 @@ void testGradient(index_type N) {
 
 		t_C += stop - start;
 
-	    assert(f.bIsEqual(f_tmp));
-	    assert(std::abs(f.dGetValue() / f_C - 1.) < sqrt(std::numeric_limits<doublereal>::epsilon()));
+		assert(bCompare(f, f_tmp, std::numeric_limits<doublereal>::epsilon()));
+	    assert(bCompare(f.dGetValue(), f_C, sqrt(std::numeric_limits<doublereal>::epsilon())));
 	    assert(bCompare(f.dGetValue(), f_d, std::numeric_limits<doublereal>::epsilon()));
 
 	    for (index_type j = 0; j < N; ++j) {
 	    	doublereal err = std::abs(f.dGetDerivativeGlobal(j) / fd_C[j] - 1.);
-	    	assert(err < sqrt(std::numeric_limits<doublereal>::epsilon()));
+	    	assert(err < sqrt(std::numeric_limits<scalar_deriv_type>::epsilon()));
 	    }
     }
     
@@ -447,9 +526,9 @@ void testGradient2() {
     LocalDofMap dof;
     Gradient<N_SIZE> u, v, w, f;
 
-    u.SetValuePreserve(random1() * 10);
-    v.SetValuePreserve(random1() * 3);
-    w.SetValuePreserve(random1() * 0.01);
+    u.SetValuePreserve(fabs(random1()) * 10);
+    v.SetValuePreserve(fabs(random1()) * 3);
+    w.SetValuePreserve(fabs(random1()) * 0.01);
 
     u.DerivativeResizeReset(&dof, 0, MapVectorBase::GLOBAL, random1() * 0.01);
     v.DerivativeResizeReset(&dof, 1, MapVectorBase::GLOBAL, random1() * 3);
@@ -498,7 +577,7 @@ void testGradient2() {
 	    //assert(bCompare(Y[0], f_C, dTol));
 
 	    for (index_type j = 0; j < 3; ++j) {
-	    	assert(bCompare(f.dGetDerivativeGlobal(j), fd_C[j], dTol));
+	    	assert(bCompare<scalar_deriv_type>(f.dGetDerivativeGlobal(j), fd_C[j], sqrt(std::numeric_limits<scalar_deriv_type>::epsilon())));
 	    //	assert(bCompare(jac[j], fd_C[j], dTol));
 	    }
     }
@@ -523,6 +602,15 @@ void testGradient2() {
     std::cerr << "t_AD=" << t_AD << "s" << std::endl;
     std::cerr << "t_C=" << t_C << "s" << std::endl;
     std::cerr << "overhead:" << t_AD / t_C << std::endl;
+
+    Gradient<N_SIZE> w2 = 3 * u + 2 * v + 0.5 * w;
+
+    w = 3 * u + 2 * v + 0.5 * Alias(w);
+
+    GRADIENT_ASSERT(bCompare(w, w2));
+
+    std::cout << "w=" << w << std::endl;
+    std::cout << "w2=" << w2 << std::endl;
 }
 
 void testGradientCopy(int N) {
@@ -555,6 +643,32 @@ void testGradientCopy(int N) {
 		Gradient<0> u(100., ud);
 		Gradient<0> v(200., vd);
 		Gradient<0> w(300., wd);
+
+		assert(u != 100.001);
+		assert(u >= 100.);
+		assert(u <= 100.);
+		assert(u == 100.);
+		assert(u > 99.999);
+		assert(u < 100.001);
+		assert(100. == u);
+		assert(100.001 != u);
+		assert(100. <= u);
+		assert(100. >= u);
+		assert(99.999 < u);
+		assert(100.001 > u);
+
+		assert(v != 200.001);
+		assert(v >= 200.);
+		assert(v <= 200.);
+		assert(v == 200.);
+		assert(v > 199.999);
+		assert(v < 200.001);
+		assert(200. == v);
+		assert(200.001 != v);
+		assert(200. <= v);
+		assert(200. >= v);
+		assert(199.999 < v);
+		assert(200.001 > v);
 
 		Gradient<0> x = v + w;
 
@@ -643,6 +757,74 @@ void testDifferentDofMaps(index_type N) {
 			}
 		}
 	}
+}
+
+template <index_type N_SIZE>
+void testGradientLin(int N) {
+	Gradient<N_SIZE> A11, A12, A13, A14;
+	Gradient<N_SIZE> x1, x2, x3, x4;
+	LocalDofMap oDof;
+
+	A11.SetValuePreserve(1);
+	A12.SetValuePreserve(2);
+	A13.SetValuePreserve(3);
+	A14.SetValuePreserve(4);
+
+	A11.DerivativeResizeReset(&oDof, 0, MapVectorBase::GLOBAL, 1);
+	A12.DerivativeResizeReset(&oDof, 1, MapVectorBase::GLOBAL, 1);
+	A13.DerivativeResizeReset(&oDof, 2, MapVectorBase::GLOBAL, 1);
+	A14.DerivativeResizeReset(&oDof, 3, MapVectorBase::GLOBAL, 1);
+
+	std::cout << "A11=" << A11 << std::endl;
+	std::cout << "A12=" << A12 << std::endl;
+	std::cout << "A13=" << A13 << std::endl;
+	std::cout << "A14=" << A14 << std::endl;
+
+	x1.SetValuePreserve(1);
+	x2.SetValuePreserve(1);
+	x3.SetValuePreserve(1);
+	x4.SetValuePreserve(1);
+
+	x1.DerivativeResizeReset(&oDof, 0, MapVectorBase::GLOBAL, 1);
+	x2.DerivativeResizeReset(&oDof, 1, MapVectorBase::GLOBAL, 1);
+	x3.DerivativeResizeReset(&oDof, 2, MapVectorBase::GLOBAL, 1);
+	x4.DerivativeResizeReset(&oDof, 3, MapVectorBase::GLOBAL, 1);
+
+	std::cout << "x1=" << x1 << std::endl;
+	std::cout << "x2=" << x2 << std::endl;
+	std::cout << "x3=" << x3 << std::endl;
+	std::cout << "x4=" << x4 << std::endl;
+
+	Gradient<N_SIZE> y1 = A11 * x1;
+	Gradient<N_SIZE> y2 = A12 * x2;
+	Gradient<N_SIZE> y3 = A13 * x3;
+	Gradient<N_SIZE> y4 = A14 * x4;
+
+	std::cout << "y1=" << y1 << std::endl;
+	std::cout << "y2=" << y2 << std::endl;
+	std::cout << "y3=" << y3 << std::endl;
+	std::cout << "y4=" << y4 << std::endl;
+
+	Gradient<N_SIZE> y_2 = y1 + y2;
+	Gradient<N_SIZE> y_3 = y_2 + y3;
+	Gradient<N_SIZE> y_4 = y_3 + y4;
+
+	Gradient<N_SIZE> y_1 = y1 + y2 + y3 + y4;
+	Gradient<N_SIZE> y = A11 * x1 + A12 * x2 + A13 * x3 + A14 * x4;
+
+	std::cout << "y=" << y << std::endl;
+	std::cout << "y_1=" << y_1 << std::endl;
+	std::cout << "y_2=" << y_2 << std::endl;
+	std::cout << "y_3=" << y_3 << std::endl;
+	std::cout << "y_4=" << y_4 << std::endl;
+
+	assert(y.bIsEqual(y_1));
+	assert(y.bIsEqual(y_4));
+	assert(y.dGetValue() == 10);
+	assert(y.dGetDerivativeGlobal(0) == 2);
+	assert(y.dGetDerivativeGlobal(1) == 3);
+	assert(y.dGetDerivativeGlobal(2) == 4);
+	assert(y.dGetDerivativeGlobal(3) == 5);
 }
 
 doublereal dStartTime;
@@ -1540,7 +1722,7 @@ void testAssembly() {
 
             for (int i = 0; i < JacMat.rows(); ++i) {
                 for (int j = 0; j < JacMat.cols(); ++j) {
-                    const doublereal dTol = sqrt(std::numeric_limits<doublereal>::epsilon()) * std::max(1., std::max(std::abs(JacMat(i, j)), std::abs(JacMatAD(i, j))));
+                    const doublereal dTol = sqrt(std::numeric_limits<scalar_deriv_type>::epsilon()) * std::max(1., std::max(std::abs(JacMat(i, j)), std::abs(JacMatAD(i, j))));
                     if(std::abs(JacMat(i, j) - JacMatAD(i, j)) > dTol) {
                     	throw std::runtime_error("testAssembly(): incorrect result");
                     }
@@ -1603,6 +1785,10 @@ void testAssembly() {
 #endif
 
 int main(int argc, char* argv[]) {
+#ifdef HAVE_FEENABLEEXCEPT
+	feenableexcept(FE_INVALID|FE_DIVBYZERO|FE_OVERFLOW);
+#endif
+
 	if (argc > 1) {
 		NLoops = atol(argv[1]);
 	}
@@ -1638,6 +1824,8 @@ int main(int argc, char* argv[]) {
     testGradientCopy(8);
     testGradientCopy(10);
     testGradientCopy(15);
+    testGradientLin<4>(4);
+    testGradientLin<0>(4);
 
 #ifdef HAVE_BLITZ
     gradAssTest::testAssembly();

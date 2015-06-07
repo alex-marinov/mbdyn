@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -44,7 +44,7 @@
 
 #include <cassert>
 #include <iostream>
-
+#include "myassert.h"
 #include "gradient.h"
 #include "matvec3.h" // FIXME: We need that for compatibility reasons
 #include "matvec6.h"
@@ -68,11 +68,11 @@ namespace grad {
 template <typename T>
 struct VectorSize
 {
-	static const int N = -1; // Note: must not be zero because that would mean variable size!
+	static const int N = -1; // Note must not be zero because that would mean variable size!
 };
 
 template <>
-struct VectorSize<doublereal>
+struct VectorSize<scalar_func_type>
 {
 	static const int N = 1;
 };
@@ -102,7 +102,11 @@ class Vector;
 template <typename ScalarBinaryFunction, typename T, typename ScalarLhsExpr, typename ScalarRhsExpr>
 class GenericBinaryExpression {
 public:
+	static const bool bAlias = false;
 	static const index_type iMaxDerivatives = 0;
+	static const bool bVectorize = true;
+	static const index_type iDimension = -1;
+	typedef char vector_deriv_type;
 	typedef T ScalarType;
 	typedef T ExpressionType;
 
@@ -114,12 +118,16 @@ public:
 		return a;
 	}
 
-    doublereal dGetValue() const {
+    scalar_func_type dGetValue() const {
         return a;
     }
 
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
         return 0;
+    }
+
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+        return vector_deriv_type();
     }
 
     index_type iGetStartIndexLocal() const {
@@ -127,6 +135,14 @@ public:
     }
 
     index_type iGetEndIndexLocal() const {
+        return 0;
+    }
+
+    index_type iGetStartIndexLocalVector() const {
+        return std::numeric_limits<index_type>::max();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
         return 0;
     }
 
@@ -142,6 +158,8 @@ public:
     	return iMaxDerivatives;
     }
 
+    void Compute() const {}
+
 private:
 	const ExpressionType a;
 };
@@ -149,7 +167,11 @@ private:
 template <typename ScalarUnaryFunction, typename T, typename ScalarExpr>
 class GenericUnaryExpression {
 public:
+	static const bool bAlias = false;
 	static const index_type iMaxDerivatives = 0;
+	static const bool bVectorize = true;
+	static const index_type iDimension = -1;
+	typedef char vector_deriv_type;
 	typedef T ScalarType;
 	typedef T ExpressionType;
 
@@ -161,12 +183,16 @@ public:
 		return a;
 	}
 
-    doublereal dGetValue() const {
+    scalar_func_type dGetValue() const {
         return a;
     }
 
-    doublereal dGetDerivativeLocal(index_type iLocalDof) const {
+    scalar_deriv_type dGetDerivativeLocal(index_type iLocalDof) const {
         return 0;
+    }
+
+    vector_deriv_type dGetDerivativeLocalVector(index_type iLocalVecDof) const {
+        return vector_deriv_type();
     }
 
     index_type iGetStartIndexLocal() const {
@@ -174,6 +200,14 @@ public:
     }
 
     index_type iGetEndIndexLocal() const {
+        return 0;
+    }
+
+    index_type iGetStartIndexLocalVector() const {
+        return std::numeric_limits<index_type>::max();
+    }
+
+    index_type iGetEndIndexLocalVector() const {
         return 0;
     }
 
@@ -188,6 +222,8 @@ public:
     static index_type iGetMaxDerivatives() {
     	return iMaxDerivatives;
     }
+
+    void Compute() const {}
 
 private:
 	const ExpressionType a;
@@ -205,18 +241,18 @@ struct CommonScalarType<Gradient<N_SIZE>, Gradient<N_SIZE> > {
 };
 
 template <index_type N_SIZE>
-struct CommonScalarType<Gradient<N_SIZE>, doublereal> {
+struct CommonScalarType<Gradient<N_SIZE>, scalar_func_type> {
 	typedef Gradient<N_SIZE> ScalarType;
 };
 
 template <index_type N_SIZE>
-struct CommonScalarType<doublereal, Gradient<N_SIZE> > {
+struct CommonScalarType<scalar_func_type, Gradient<N_SIZE> > {
 	typedef Gradient<N_SIZE> ScalarType;
 };
 
 template <>
-struct CommonScalarType<doublereal, doublereal> {
-	typedef doublereal ScalarType;
+struct CommonScalarType<scalar_func_type, scalar_func_type> {
+	typedef scalar_func_type ScalarType;
 };
 
 template <typename T>
@@ -239,14 +275,14 @@ struct BasicScalarType<GradientExpression<Expression> > {
 	typedef typename BasicScalarType<Expression>::ScalarType ScalarType;
 };
 
-template <index_type N_SIZE>
-struct BasicScalarType<DirectExpr<Gradient<N_SIZE> > > {
+template <index_type N_SIZE, bool ALIAS>
+struct BasicScalarType<DirectExpr<Gradient<N_SIZE>, ALIAS> > {
 	typedef Gradient<N_SIZE> ScalarType;
 };
 
-template <>
-struct BasicScalarType<ConstExpr> {
-	typedef doublereal ScalarType;
+template <index_type N_SIZE>
+struct BasicScalarType<ConstExpr<Gradient<N_SIZE> > > {
+	typedef scalar_func_type ScalarType;
 };
 
 template <typename ScalarBinaryFunction, typename T, typename ScalarLhsExpr, typename ScalarRhsExpr>
@@ -303,8 +339,8 @@ struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, Scal
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE, typename ScalarLhsExpr>
-struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, ScalarLhsExpr, doublereal>: ScalarTypeTraits<Gradient<N_SIZE> > {
-	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ScalarLhsExpr, ConstExpr> > ExpressionType;
+struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, ScalarLhsExpr, scalar_func_type>: ScalarTypeTraits<Gradient<N_SIZE> > {
+	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ScalarLhsExpr, ConstExpr<Gradient<N_SIZE> > > > ExpressionType;
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE, typename ScalarRhsExpr>
@@ -313,8 +349,8 @@ struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, Grad
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE, typename ScalarRhsExpr>
-struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, doublereal, ScalarRhsExpr>: ScalarTypeTraits<Gradient<N_SIZE> > {
-	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ConstExpr, ScalarRhsExpr> > ExpressionType;
+struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, scalar_func_type, ScalarRhsExpr>: ScalarTypeTraits<Gradient<N_SIZE> > {
+	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ConstExpr<Gradient<N_SIZE> >, ScalarRhsExpr> > ExpressionType;
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE>
@@ -323,13 +359,13 @@ struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, Grad
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE>
-struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, Gradient<N_SIZE>, doublereal>: ScalarTypeTraits<Gradient<N_SIZE> > {
-	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, DirectExpr<Gradient<N_SIZE> >, ConstExpr> > ExpressionType;
+struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, Gradient<N_SIZE>, scalar_func_type>: ScalarTypeTraits<Gradient<N_SIZE> > {
+	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE> > > > ExpressionType;
 };
 
 template <typename ScalarBinaryFunction, index_type N_SIZE>
-struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, doublereal, Gradient<N_SIZE> >: ScalarTypeTraits<Gradient<N_SIZE> > {
-	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ConstExpr, DirectExpr<Gradient<N_SIZE> > > > ExpressionType;
+struct ScalarBinaryExpressionTraits<ScalarBinaryFunction, Gradient<N_SIZE>, scalar_func_type, Gradient<N_SIZE> >: ScalarTypeTraits<Gradient<N_SIZE> > {
+	typedef GradientExpression<BinaryExpr<ScalarBinaryFunction, ConstExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > ExpressionType;
 };
 
 template <typename ScalarUnaryFunction, typename T, typename ScalarExpr>
@@ -447,6 +483,112 @@ struct IndexCheck<0L> {
 	enum CheckType {INDEX_CHECK};
 };
 
+namespace MatVecHelp
+{
+	template <typename T>
+	struct AliasTypeHelper
+	{
+
+	};
+
+	template <>
+	struct AliasTypeHelper<scalar_func_type>
+	{
+		static const bool bAlias = false;
+	};
+
+	template <typename Expression>
+	struct AliasTypeHelper<GradientExpression<Expression> >
+	{
+		static const bool bAlias = GradientExpression<Expression>::bAlias;
+	};
+
+	template <index_type N_SIZE, bool ALIAS>
+	struct AliasTypeHelper<DirectExpr<Gradient<N_SIZE>, ALIAS> >
+	{
+		static const bool bAlias = DirectExpr<Gradient<N_SIZE>, ALIAS>::bAlias;
+	};
+
+	template <index_type N_SIZE>
+	struct AliasTypeHelper<Gradient<N_SIZE> >
+	{
+		static const bool bAlias = false;
+	};
+
+	template <typename BinFunc, typename LhsExpr, typename RhsExpr>
+	struct AliasTypeHelper<BinaryExpr<BinFunc, LhsExpr, RhsExpr> >
+	{
+		static const bool bAlias = BinaryExpr<BinFunc, LhsExpr, RhsExpr>::bAlias;
+	};
+
+	template <typename UnFunc, typename Expr>
+	struct AliasTypeHelper<UnaryExpr<UnFunc, Expr> >
+	{
+		static const bool bAlias = UnaryExpr<UnFunc, Expr>::bAlias;
+	};
+
+	template <bool bAlias>
+	struct ApplyAliasHelperMatrix;
+
+	template <>
+	struct ApplyAliasHelperMatrix<false>
+	{
+	    template <typename MatrixType, typename Func, typename Expression>
+	    static inline void ApplyMatrixFunc(MatrixType& A, const Expression& B, const Func& f) {
+	    	A.ApplyMatrixFuncNoAlias(B, f);
+	    }
+	};
+
+	template <>
+	struct ApplyAliasHelperMatrix<true>
+	{
+	    template <typename MatrixType, typename Func, typename Expression>
+		static inline void ApplyMatrixFunc(MatrixType& A, const Expression& B, const Func& f) {
+			A.ApplyMatrixFuncAlias(B, f);
+		}
+	};
+
+	struct Assign
+	{
+		template <typename T, typename U>
+		static inline void Eval(T& b, const U& a) {
+			b = a;
+		}
+	};
+
+	struct Add
+	{
+		template <typename T, typename U>
+		static inline void Eval(T& b, const U& a) {
+			b += a;
+		}
+	};
+
+	struct Sub
+	{
+		template <typename T, typename U>
+		static inline void Eval(T& b, const U& a) {
+			b -= a;
+		}
+	};
+
+	struct Mul
+	{
+		template <typename T, typename U>
+		static inline void Eval(T& b, const U& a) {
+			b *= a;
+		}
+	};
+
+	struct Div
+	{
+		template <typename T, typename U>
+		static inline void Eval(T& b, const U& a) {
+			b /= a;
+		}
+	};
+}
+
 template <typename Expression, index_type N_rows>
 class VectorExpression: public Expression {
 public:
@@ -488,9 +630,10 @@ private:
     typedef typename IndexCheck<iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
 };
 
-template <typename Expression, index_type N_rows, index_type N_cols>
+template <typename Expression, index_type N_rows, index_type N_cols, bool CLEAR_ALIAS=false>
 class MatrixExpression: public Expression {
 public:
+	static const bool bAlias = CLEAR_ALIAS ? false : Expression::bAlias;
     static const index_type iNumRows = N_rows;
     static const index_type iNumCols = N_cols;
 	typedef typename Expression::ScalarType ScalarType;
@@ -546,6 +689,7 @@ private:
 template <typename ScalarBinFunc, typename VectorLhsExpr, typename VectorRhsExpr>
 class VectorVectorVectorBinaryExpr {
 public:
+	static const bool bAlias = VectorLhsExpr::bAlias || VectorRhsExpr::bAlias;
 	static const index_type iNumRows = VectorLhsExpr::iNumRows;
 	typedef typename ScalarBinFunc::ScalarType ScalarType;
     typedef typename ScalarBinFunc::ExpressionType ExpressionType;
@@ -584,6 +728,7 @@ private:
 template <typename ScalarBinFunc, typename VectorLhsExpr, typename ScalarRhsExpr>
 class VectorScalarVectorBinaryExpr {
 public:
+	static const bool bAlias = VectorLhsExpr::bAlias || MatVecHelp::AliasTypeHelper<ScalarRhsExpr>::bAlias;
 	static const index_type iNumRows = VectorLhsExpr::iNumRows;
 	typedef typename ScalarBinFunc::ScalarType ScalarType;
     typedef typename ScalarBinFunc::ExpressionType ExpressionType;
@@ -623,6 +768,7 @@ private:
 template <typename ScalarUnaryFunc, typename VectorExpr>
 class VectorVectorUnaryExpr {
 public:
+	static const bool bAlias = VectorExpr::bAlias;
 	static const index_type iNumRows = VectorExpr::iNumRows;
 	typedef typename ScalarUnaryFunc::ScalarType ScalarType;
     typedef typename ScalarUnaryFunc::ExpressionType ExpressionType;
@@ -655,6 +801,7 @@ private:
 template <index_type iStartIndex, index_type iEndIndex, typename VectorExpr>
 class SubVectorExpr {
 public:
+	static const bool bAlias = VectorExpr::bAlias;
 	static const index_type iNumRows = iEndIndex - iStartIndex + 1;
 	typedef typename VectorExpr::ScalarType ScalarType;
     typedef typename VectorExpr::ExpressionType ExpressionType;
@@ -686,9 +833,10 @@ private:
     const VectorExpr oU;
 };
 
-template <typename VectorType>
+template <typename VectorType, bool ALIAS=false>
 class VectorDirectExpr {
 public:
+	static const bool bAlias = ALIAS;
 	static const index_type iNumRows = VectorType::iNumRows;
     typedef typename VectorType::ScalarType ScalarType;
     typedef typename VectorType::ExpressionType ExpressionType;
@@ -719,6 +867,7 @@ private:
 
 class Vec3DirectExpr {
 public:
+	static const bool bAlias = false;
 	static const index_type iNumRows = 3;
     typedef ScalarTypeTraits<doublereal>::ScalarType ScalarType;
     typedef ScalarTypeTraits<doublereal>::DirectExpressionType ExpressionType;
@@ -750,6 +899,7 @@ private:
 template <typename T, index_type N_rows, index_type N_offset>
 class SliceVector {
 public:
+	static const bool bAlias = MatVecHelp::AliasTypeHelper<T>::bAlias;
 	static const index_type iNumRows = N_rows;
     typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
     typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
@@ -780,6 +930,7 @@ private:
 template <typename MatrixExpr>
 class ColumnVectorExpr {
 public:
+	static const bool bAlias = MatrixExpr::bAlias;
 	static const index_type iNumRows = MatrixExpr::iNumRows;
 	typedef typename MatrixExpr::ScalarType ScalarType;
 	typedef typename MatrixExpr::ExpressionType ExpressionType;
@@ -810,6 +961,7 @@ private:
 template <typename MatrixExpr>
 class RowVectorExpr {
 public:
+	static const bool bAlias = MatrixExpr::bAlias;
 	static const index_type iNumRows = MatrixExpr::iNumCols;
 	typedef typename MatrixExpr::ScalarType ScalarType;
 	typedef typename MatrixExpr::ExpressionType ExpressionType;
@@ -840,6 +992,7 @@ private:
 template <typename MatrixExpr>
 class TransposedMatrix {
 public:
+	static const bool bAlias = MatrixExpr::bAlias;
     static const index_type iNumRows = MatrixExpr::iNumCols;
     static const index_type iNumCols = MatrixExpr::iNumRows;
 	typedef typename MatrixExpr::RowVectorType ColumnVectorType;
@@ -899,6 +1052,7 @@ template <index_type iRowStart,
 		  typename MatrixExpr>
 class SubMatrixExpr {
 public:
+	static const bool bAlias = MatrixExpr::bAlias;
     static const index_type iNumRows = iRowEnd - iRowStart + 1;
     static const index_type iNumCols = iColEnd - iColStart + 1;
 
@@ -957,6 +1111,7 @@ private:
 template <typename ScalarBinFunc, typename MatrixLhsExpr, typename MatrixRhsExpr>
 class MatrixMatrixMatrixBinaryExpr {
 public:
+	static const bool bAlias = MatrixLhsExpr::bAlias || MatrixRhsExpr::bAlias;
 	static const index_type iNumRows = MatrixLhsExpr::iNumRows;
 	static const index_type iNumCols = MatrixLhsExpr::iNumCols;
 	typedef typename ScalarBinFunc::ScalarType ScalarType;
@@ -1022,6 +1177,7 @@ private:
 template <typename ScalarBinFunc, typename MatrixLhsExpr, typename ScalarRhsExpr>
 class MatrixScalarMatrixBinaryExpr {
 public:
+	static const bool bAlias = MatrixLhsExpr::bAlias || MatVecHelp::AliasTypeHelper<ScalarRhsExpr>::bAlias;
 	static const index_type iNumRows = MatrixLhsExpr::iNumRows;
 	static const index_type iNumCols = MatrixLhsExpr::iNumCols;
 	typedef typename ScalarBinFunc::ScalarType ScalarType;
@@ -1081,6 +1237,7 @@ private:
 template <typename ScalarUnaryFunc, typename MatrixExpr>
 class MatrixMatrixUnaryExpr {
 public:
+	static const bool bAlias = MatrixExpr::bAlias;
 	static const index_type iNumRows = MatrixExpr::iNumRows;
 	static const index_type iNumCols = MatrixExpr::iNumCols;
 	typedef typename ScalarUnaryFunc::ScalarType ScalarType;
@@ -1133,9 +1290,10 @@ private:
     const MatrixExpr oU;
 };
 
-template <typename MatrixType>
+template <typename MatrixType, bool ALIAS=false>
 class MatrixDirectExpr {
 public:
+	static const bool bAlias = ALIAS;
 	static const index_type iNumRows = MatrixType::iNumRows;
 	static const index_type iNumCols = MatrixType::iNumCols;
     typedef typename MatrixType::ScalarType ScalarType;
@@ -1190,6 +1348,7 @@ private:
 
 class Mat3x3DirectExpr {
 public:
+	static const bool bAlias = false;
 	static const index_type iNumRows = 3;
 	static const index_type iNumCols = 3;
 
@@ -1290,7 +1449,9 @@ public:
 
     template <typename Expression>
     Matrix(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-    	ApplyExpr(A, *this);
+    	// No aliases are possible because the object did not exist before
+    	using namespace MatVecHelp;
+    	ApplyMatrixFuncNoAlias(A, Assign());
     }
 
     template <typename T2>
@@ -1320,112 +1481,83 @@ public:
 
     template <typename Expression>
     Matrix& operator=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-    	ApplyExpr(A, *this);
+    	using namespace MatVecHelp;
+
+    	ApplyMatrixFunc<Assign>(A);
+
     	return *this;
     }
 
     template <typename T_Rhs>
     Matrix& operator+=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
-		MATVEC_ASSERT(N_rows == A.iGetNumRows());
-		MATVEC_ASSERT(N_cols == A.iGetNumCols());
+		using namespace MatVecHelp;
 
-    	for (index_type i = 1; i <= iGetNumRows(); ++i) {
-    		for (index_type j = 1; j <= iGetNumCols(); ++j) {
-    			(*this)(i, j) += A(i, j); // No need for reference checking here
-    		}
-    	}
+		ApplyMatrixFunc<Add>(MatrixExpression<MatrixDirectExpr<Matrix<T_Rhs, N_rows, N_cols> >, N_rows, N_cols>(A));
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Matrix& operator-=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
-		MATVEC_ASSERT(N_rows == A.iGetNumRows());
-		MATVEC_ASSERT(N_cols == A.iGetNumCols());
+		using namespace MatVecHelp;
 
-    	for (index_type i = 1; i <= iGetNumRows(); ++i) {
-    		for (index_type j = 1; j <= iGetNumCols(); ++j) {
-    			(*this)(i, j) -= A(i, j); // No need for reference checking here
-    		}
-    	}
+		ApplyMatrixFunc<Sub>(MatrixExpression<MatrixDirectExpr<Matrix<T_Rhs, N_rows, N_cols> >, N_rows, N_cols>(A));
 
     	return *this;
     }
 
     template <typename Expression>
     Matrix& operator+=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-		MATVEC_ASSERT(N_rows == A.iGetNumRows());
-		MATVEC_ASSERT(N_cols == A.iGetNumCols());
+		using namespace MatVecHelp;
 
-		if (!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem())) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				for (index_type j = 1; j <= iGetNumCols(); ++j) {
-					(*this)(i, j) += A(i, j);
-				}
-			}
-		} else {
-			*this += Matrix(A);
-		}
+		ApplyMatrixFunc<Add>(A);
 
     	return *this;
     }
 
     template <typename Expression>
     Matrix& operator-=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-		MATVEC_ASSERT(N_rows == A.iGetNumRows());
-		MATVEC_ASSERT(N_cols == A.iGetNumCols());
+		using namespace MatVecHelp;
 
-		if (!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem())) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				for (index_type j = 1; j <= iGetNumCols(); ++j) {
-					(*this)(i, j) -= A(i, j);
-				}
-			}
-		} else {
-			*this -= Matrix(A);
-		}
+		ApplyMatrixFunc<Sub>(A);
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Matrix& operator*=(const T_Rhs& a) {
-    	if (!bHaveReferenceTo(&a, &a)) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				for (index_type j = 1; j <= iGetNumCols(); ++j) {
-					(*this)(i, j) *= a;
-				}
-			}
-    	} else {
-    		*this *= T_Rhs(a); // Create a copy of `a`
-    	}
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Mul>(a);
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Matrix& operator/=(const T_Rhs& a) {
-    	if (!bHaveReferenceTo(&a, &a)) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				for (index_type j = 1; j <= iGetNumCols(); ++j) {
-					(*this)(i, j) /= a;
-				}
-			}
-    	} else {
-    		*this /= T_Rhs(a); // Create a copy of `a`
-    	}
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Div>(a);
 
     	return *this;
     }
 
     template <typename ScalarExpression>
     Matrix& operator*=(const GradientExpression<ScalarExpression>& a) {
-    	return (*this) *= ScalarType(a);	// Temporary object more efficient and no need for reference checking
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Mul>(ScalarType(a));
+
+    	return *this;
     }
 
     template <typename ScalarExpression>
     Matrix& operator/=(const GradientExpression<ScalarExpression>& a) {
-    	return (*this) /= ScalarType(a);	// Temporary object more efficient and no need for reference checking
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Div>(ScalarType(a));
+
+    	return *this;
     }
 
     inline Matrix& operator=(const Mat3x3& A);
@@ -1487,24 +1619,44 @@ private:
     	return &rgMat[iNumRows - 1][iNumCols - 1];
     }
 
-    template <typename Expression>
-    static void ApplyExpr(const MatrixExpression<Expression, N_rows, N_cols>& A, Matrix& B) {
-    	if (!A.bHaveReferenceTo(B.pGetFirstElem(), B.pGetLastElem())) {
+    friend struct MatVecHelp::ApplyAliasHelperMatrix<false>;
+    friend struct MatVecHelp::ApplyAliasHelperMatrix<true>;
+
+    template <typename Func, typename U>
+    void ApplyScalarFunc(const U& a) {
+		for (index_type i = 1; i <= iGetNumRows(); ++i) {
+			for (index_type j = 1; j <= iGetNumCols(); ++j) {
+				Func::Eval((*this)(i, j), a);
+			}
+		}
+    }
+
+    template <typename Func, typename Expression>
+    void ApplyMatrixFunc(const MatrixExpression<Expression, N_rows, N_cols>& A) {
+    	using namespace MatVecHelp;
+
+    	ApplyAliasHelperMatrix<MatrixExpression<Expression, N_rows, N_cols>::bAlias>::ApplyMatrixFunc(*this, A, Func());
+    }
+
+    template <typename Func, typename Expression>
+    void ApplyMatrixFuncNoAlias(const MatrixExpression<Expression, N_rows, N_cols>& A, const Func&) {
 			MATVEC_ASSERT(N_rows == A.iGetNumRows());
 			MATVEC_ASSERT(N_cols == A.iGetNumCols());
-			MATVEC_ASSERT(A.iGetNumRows() == B.iGetNumRows());
-			MATVEC_ASSERT(A.iGetNumCols() == B.iGetNumCols());
+		MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+		MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+    	MATVEC_ASSERT(!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem()));
 
-			for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
-				for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
-					B(i, j) = A(i, j);
-				}
+		for (index_type i = 1; i <= iGetNumRows(); ++i) {
+			for (index_type j = 1; j <= iGetNumCols(); ++j) {
+				Func::Eval((*this)(i, j), A(i, j));
 			}
-    	} else {
-    		B = Matrix(A);
     	}
     }
 
+    template <typename Func, typename Expression>
+    void ApplyMatrixFuncAlias(const MatrixExpression<Expression, N_rows, N_cols>& A, const Func& f) {
+    	ApplyMatrixFuncNoAlias(MatrixExpression<MatrixDirectExpr<Matrix>, N_rows, N_cols>(Matrix(A)), f);
+    }
 private:
     ScalarType rgMat[iNumRows][iNumCols];
 };
@@ -1533,14 +1685,25 @@ Direct(const Mat3x3& A) {
 }
 
 template <typename T, index_type N_rows, index_type N_cols>
+inline MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols>, true>, N_rows, N_cols>
+Alias(const Matrix<T, N_rows, N_cols>& A) {
+	return MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols>, true>, N_rows, N_cols>(A);
+}
+
+template <typename T, index_type N_rows, index_type N_cols>
 inline Matrix<T, N_rows, N_cols>::Matrix(const Mat3x3& A) {
-	ApplyExpr(Direct(A), *this);
+	using namespace MatVecHelp;
+
+	ApplyMatrixFunc<Assign>(Direct(A));
 }
 
 template <typename T, index_type N_rows, index_type N_cols>
 inline Matrix<T, N_rows, N_cols>&
 Matrix<T, N_rows, N_cols>::operator=(const Mat3x3& A) {
-	ApplyExpr(Direct(A), *this);
+	using namespace MatVecHelp;
+
+	ApplyMatrixFunc<Assign>(Direct(A));
+
 	return *this;
 }
 
@@ -1593,7 +1756,9 @@ public:
 
     template <typename Expression>
     Vector(const VectorExpression<Expression, N_rows>& f) {
-    	ApplyExpr(f);
+    	using namespace MatVecHelp;
+
+    	ApplyMatrixFuncNoAlias(f, Assign());
     }
     
     template <typename T2>
@@ -1627,96 +1792,83 @@ public:
 
     template <typename Expression>
     Vector& operator=(const VectorExpression<Expression, N_rows>& f) {
-    	ApplyExpr(f);
+    	using namespace MatVecHelp;
+
+    	ApplyMatrixFunc<Assign>(f);
+
         return *this;
     }
 
     template <typename T_Rhs>
     Vector& operator+=(const Vector<T_Rhs, N_rows>& v) {
-    	MATVEC_ASSERT(iGetNumRows() == v.iGetNumRows());
+    	using namespace MatVecHelp;
 
-		for (index_type i = 1; i <= v.iGetNumRows(); ++i) {
-			(*this)(i) += v(i); // No reference checking needed
-		}
+    	ApplyMatrixFunc<Add>(VectorExpression<VectorDirectExpr<Vector>, N_rows>(v));
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Vector& operator-=(const Vector<T_Rhs, N_rows>& v) {
-    	MATVEC_ASSERT(iGetNumRows() == v.iGetNumRows());
+    	using namespace MatVecHelp;
 
-    	for (index_type i = 1; i <= v.iGetNumRows(); ++i) {
-    		(*this)(i) -= v(i); // No reference checking needed
-    	}
+    	ApplyMatrixFunc<Sub>(VectorExpression<VectorDirectExpr<Vector>, N_rows>(v));
 
     	return *this;
     }
 
     template <typename Expression>
     Vector& operator+=(const VectorExpression<Expression, N_rows>& f) {
-    	MATVEC_ASSERT(iGetNumRows() == f.iGetNumRows());
+    	using namespace MatVecHelp;
 
-    	if (!f.bHaveReferenceTo(pGetFirstElem(), pGetLastElem())) {
-			for (index_type i = 1; i <= f.iGetNumRows(); ++i) {
-				(*this)(i) += f(i);
-			}
-    	} else {
-    		*this += Vector(f);
-    	}
+    	ApplyMatrixFunc<Add>(f);
 
     	return *this;
     }
 
     template <typename Expression>
     Vector& operator-=(const VectorExpression<Expression, N_rows>& f) {
-    	MATVEC_ASSERT(iGetNumRows() == f.iGetNumRows());
+    	using namespace MatVecHelp;
 
-    	if (!f.bHaveReferenceTo(pGetFirstElem(), pGetLastElem())) {
-			for (index_type i = 1; i <= f.iGetNumRows(); ++i) {
-				(*this)(i) -= f(i);
-			}
-    	} else {
-    		*this -= Vector(f);
-    	}
+    	ApplyMatrixFunc<Sub>(f);
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Vector& operator*=(const T_Rhs& g) {
-    	if (!bHaveReferenceTo(&g, &g)) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				(*this)(i) *= g;
-			}
-    	} else {
-    		*this *= T_Rhs(g);
-    	}
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Mul>(g);
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Vector& operator/=(const T_Rhs& g) {
-    	if (!bHaveReferenceTo(&g, &g)) {
-			for (index_type i = 1; i <= iGetNumRows(); ++i) {
-				(*this)(i) /= g;
-			}
-    	} else {
-    		*this /= T_Rhs(g);
-    	}
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Div>(g);
 
     	return *this;
     }
 
     template <typename ScalarExpression>
     Vector& operator*=(const GradientExpression<ScalarExpression>& f) {
-    	return (*this) *= ScalarType(f);
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Mul>(ScalarType(f));
+
+    	return *this;
     }
 
     template <typename ScalarExpression>
     Vector& operator/=(const GradientExpression<ScalarExpression>& f) {
-    	return (*this) /= ScalarType(f);
+    	using namespace MatVecHelp;
+
+    	ApplyScalarFunc<Div>(ScalarType(f));
+
+    	return *this;
     }
 
     inline Vector& operator=(const Vec3& v);
@@ -1757,17 +1909,37 @@ private:
     	return &rgVec[iNumRows - 1];
     }
 
-    template <typename Expression>
-    void ApplyExpr(const VectorExpression<Expression, N_rows>& f) {
-        MATVEC_ASSERT(f.iGetNumRows() == iGetNumRows());
+    friend struct MatVecHelp::ApplyAliasHelperMatrix<false>;
+	friend struct MatVecHelp::ApplyAliasHelperMatrix<true>;
 
-        if (!f.bHaveReferenceTo(pGetFirstElem(), pGetLastElem())) {
-			for (index_type i = 1; i <= f.iGetNumRows(); ++i) {
-				(*this)(i) = f(i);
+	template <typename Func, typename U>
+	void ApplyScalarFunc(const U& a) {
+		for (index_type i = 1; i <= iGetNumRows(); ++i) {
+			Func::Eval((*this)(i), a);
 			}
-        } else {
-        	*this = Vector(f);
         }
+
+	template <typename Func, typename Expression>
+	void ApplyMatrixFunc(const VectorExpression<Expression, N_rows>& A) {
+		using namespace MatVecHelp;
+
+		ApplyAliasHelperMatrix<VectorExpression<Expression, N_rows>::bAlias>::ApplyMatrixFunc(*this, A, Func());
+	}
+
+	template <typename Func, typename Expression>
+	void ApplyMatrixFuncNoAlias(const VectorExpression<Expression, N_rows>& A, const Func&) {
+		MATVEC_ASSERT(N_rows == A.iGetNumRows());
+		MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+		MATVEC_ASSERT(!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem()));
+
+		for (index_type i = 1; i <= iGetNumRows(); ++i) {
+			Func::Eval((*this)(i), A(i));
+		}
+	}
+
+	template <typename Func, typename Expression>
+	void ApplyMatrixFuncAlias(const VectorExpression<Expression, N_rows>& A, const Func& f) {
+		ApplyMatrixFuncNoAlias(VectorExpression<VectorDirectExpr<Vector>, N_rows>(Vector(A)), f);
     }
 
 private:
@@ -1786,15 +1958,26 @@ Direct(const Vec3& v) {
 }
 
 template <typename T, index_type N_rows>
+inline VectorExpression<VectorDirectExpr<Vector<T, N_rows>, true>, N_rows>
+Alias(const Vector<T, N_rows>& v) {
+	return VectorExpression<VectorDirectExpr<Vector<T, N_rows>, true>, N_rows>(v);
+}
+
+template <typename T, index_type N_rows>
 inline
 Vector<T, N_rows>::Vector(const Vec3& v) {
-	ApplyExpr(Direct(v));
+	using namespace MatVecHelp;
+
+	ApplyMatrixFunc<Assign>(Direct(v));
 }
 
 template <typename T, index_type N_rows>
 inline Vector<T, N_rows>&
 Vector<T, N_rows>::operator=(const Vec3& v) {
-	ApplyExpr(Direct(v));
+	using namespace MatVecHelp;
+
+	ApplyMatrixFunc<Assign>(Direct(v));
+
 	return *this;
 }
 
@@ -2163,6 +2346,7 @@ private:
 template <typename VectorLhsExpr, typename VectorRhsExpr>
 class VectorCrossExpr {
 public:
+	static const bool bAlias = VectorLhsExpr::bAlias || VectorRhsExpr::bAlias;
 	static const index_type iNumRows = 3;
 	typedef typename CrossTraits<VectorLhsExpr, VectorRhsExpr>::ExprMult ExprMult;
 	typedef typename CrossTraits<VectorLhsExpr, VectorRhsExpr>::ScalarType ScalarType;
@@ -2249,6 +2433,7 @@ inline Matrix<T, 2, 2> Inv(const Matrix<T, 2, 2>& A) {
 template <typename MatrixLhsExpr, typename VectorRhsExpr>
 class MatrixVectorProduct {
 public:
+	static const bool bAlias = MatrixLhsExpr::bAlias || VectorRhsExpr::bAlias;
 	static const index_type iNumRows = MatrixLhsExpr::iNumRows;
 	typedef typename MatrixLhsExpr::ScalarType MatrixLhsScalarExpr;
 	typedef typename VectorRhsExpr::ScalarType VectorRhsScalarExpr;
@@ -2286,6 +2471,7 @@ private:
 template <typename MatrixLhsExpr, typename MatrixRhsExpr>
 class MatrixMatrixProduct {
 public:
+	static const bool bAlias = MatrixLhsExpr::bAlias || MatrixRhsExpr::bAlias;
 	static const index_type iNumRows = MatrixLhsExpr::iNumRows;
 	static const index_type iNumCols = MatrixRhsExpr::iNumCols;
 	typedef typename MatrixLhsExpr::ScalarType MatrixLhsScalarExpr;
@@ -2445,9 +2631,9 @@ operator* (const Mat3x3& A, const Matrix<T, 3, N_cols_Rhs>& B) {
 	} \
 	\
 	template <index_type N_rows> \
-	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, doublereal, doublereal>, VectorDirectExpr<Vector<doublereal, N_rows> >, VectorDirectExpr<Vector<doublereal, N_rows> > >, N_rows> \
-	FunctionName(const Vector<doublereal, N_rows>& u, const Vector<doublereal, N_rows>& v) { \
-		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, doublereal, doublereal>, VectorDirectExpr<Vector<doublereal, N_rows> >, VectorDirectExpr<Vector<doublereal, N_rows> > >, N_rows>(u, v); \
+	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, scalar_func_type, scalar_func_type>, VectorDirectExpr<Vector<scalar_func_type, N_rows> >, VectorDirectExpr<Vector<scalar_func_type, N_rows> > >, N_rows> \
+	FunctionName(const Vector<scalar_func_type, N_rows>& u, const Vector<scalar_func_type, N_rows>& v) { \
+		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, scalar_func_type, scalar_func_type>, VectorDirectExpr<Vector<scalar_func_type, N_rows> >, VectorDirectExpr<Vector<scalar_func_type, N_rows> > >, N_rows>(u, v); \
 	} \
 	\
 	template <typename VectorLhsExpr, typename T, index_type N_rows> \
@@ -2476,15 +2662,15 @@ operator* (const Mat3x3& A, const Matrix<T, 3, N_cols_Rhs>& B) {
 	} \
 	\
 	template <typename VectorLhsExpr, index_type N_rows> \
-	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename VectorLhsExpr::ExpressionType, doublereal>, VectorLhsExpr, doublereal>, N_rows> \
-	FunctionName(const VectorExpression<VectorLhsExpr, N_rows>& u, doublereal v) { \
-		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename VectorLhsExpr::ExpressionType, doublereal >, VectorLhsExpr, doublereal>, N_rows>(u, v); \
+	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename VectorLhsExpr::ExpressionType, scalar_func_type>, VectorLhsExpr, scalar_func_type>, N_rows> \
+	FunctionName(const VectorExpression<VectorLhsExpr, N_rows>& u, scalar_func_type v) { \
+		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename VectorLhsExpr::ExpressionType, scalar_func_type >, VectorLhsExpr, scalar_func_type>, N_rows>(u, v); \
 	} \
 	\
 	template <typename T, index_type N_rows> \
-	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, doublereal >, VectorDirectExpr<Vector<T, N_rows> >, doublereal>, N_rows> \
-	FunctionName(const Vector<T, N_rows>& u, doublereal v) { \
-		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, doublereal >, VectorDirectExpr<Vector<T, N_rows> >, doublereal>, N_rows>(u, v); \
+	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, scalar_func_type >, VectorDirectExpr<Vector<T, N_rows> >, scalar_func_type>, N_rows> \
+	FunctionName(const Vector<T, N_rows>& u, scalar_func_type v) { \
+		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, scalar_func_type >, VectorDirectExpr<Vector<T, N_rows> >, scalar_func_type>, N_rows>(u, v); \
 	} \
 	\
 	template <typename T, index_type N_rows, index_type N_SIZE> \
@@ -2564,15 +2750,15 @@ operator* (const Mat3x3& A, const Matrix<T, 3, N_cols_Rhs>& B) {
 	} \
 	\
 	template <typename MatrixLhsExpr, index_type N_rows, index_type N_cols> \
-	inline MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename MatrixLhsExpr::ExpressionType, doublereal>, MatrixLhsExpr, doublereal>, N_rows, N_cols> \
-	FunctionName(const MatrixExpression<MatrixLhsExpr, N_rows, N_cols>& u, doublereal v) { \
-		return MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename MatrixLhsExpr::ExpressionType, doublereal >, MatrixLhsExpr, doublereal>, N_rows, N_cols>(u, v); \
+	inline MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename MatrixLhsExpr::ExpressionType, scalar_func_type>, MatrixLhsExpr, scalar_func_type>, N_rows, N_cols> \
+	FunctionName(const MatrixExpression<MatrixLhsExpr, N_rows, N_cols>& u, scalar_func_type v) { \
+		return MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename MatrixLhsExpr::ExpressionType, scalar_func_type >, MatrixLhsExpr, scalar_func_type>, N_rows, N_cols>(u, v); \
 	} \
 	\
 	template <typename T, index_type N_rows, index_type N_cols> \
-	inline MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, doublereal >, MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, doublereal>, N_rows, N_cols> \
-	FunctionName(const Matrix<T, N_rows, N_cols>& u, doublereal v) { \
-		return MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, doublereal >, MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, doublereal>, N_rows, N_cols>(u, v); \
+	inline MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, scalar_func_type >, MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, scalar_func_type>, N_rows, N_cols> \
+	FunctionName(const Matrix<T, N_rows, N_cols>& u, scalar_func_type v) { \
+		return MatrixExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T>::DirectExpressionType, scalar_func_type >, MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, scalar_func_type>, N_rows, N_cols>(u, v); \
 	} \
 	\
 	template <typename T, index_type N_rows, index_type N_cols, index_type N_SIZE> \

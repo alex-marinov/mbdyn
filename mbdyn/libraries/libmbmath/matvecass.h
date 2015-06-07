@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza

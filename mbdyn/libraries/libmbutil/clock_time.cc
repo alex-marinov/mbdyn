@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <reinhard.resch@accomp.it>
-        Copyright (C) 2013(-2014) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@secop.com>
+        Copyright (C) 2013(-2015) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -41,15 +41,24 @@
 
 #include <ctime>
 
+#if defined(WIN32) || defined(__CYGWIN__)
+#include <windows.h>
+#endif
+
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 #include "clock_time.h"
 
 double mbdyn_clock_time() {
-#ifdef HAVE_CLOCK_GETTIME
+#if defined(WIN32) || defined(__CYGWIN__)
+    LARGE_INTEGER c, f;
+    QueryPerformanceFrequency(&f);
+    QueryPerformanceCounter(&c);
+    return static_cast<double>(c.QuadPart) / f.QuadPart;
+#elif defined(HAVE_CLOCK_GETTIME)
 	timespec tp;
 	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
 	return (tp.tv_sec + 1e-9 * tp.tv_nsec);
 #else
-	return double(clock())/CLOCKS_PER_SEC;
+	return static_cast<double>(clock())/CLOCKS_PER_SEC;
 #endif
 }
