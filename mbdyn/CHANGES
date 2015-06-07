@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 		- added module for file drive input from LeapMotion device
 		- rod without offset now works with displacement nodes
 		- added several modules (Reinhard Resch)
+		- added autodiff vectorialization (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 		- nested calls to string drive callers deadlock
