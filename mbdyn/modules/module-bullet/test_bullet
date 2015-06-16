@@ -56,6 +56,6 @@ begin: elements;
 	couple: 1, follower, 1,
 		0.,0.,1., sine, 0,pi/1,10.,forever,0.;
 
-	user defined: 1, bullet, help;
+	user defined: 1, bullet, 0, 1;
 end: elements;
 
