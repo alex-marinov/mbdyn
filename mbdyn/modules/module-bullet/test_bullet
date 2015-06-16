@@ -30,7 +30,7 @@ begin: control data;
 	structural nodes: 2;
 	rigid bodies: 1; # mass of node 1
 	joints: 1; # ground of node 0
-	forces: 1;
+	gravity;
 	loadable elements: 1;
 end: control data;
 
@@ -43,8 +43,8 @@ begin: nodes;
 		output, no;
 
 	structural: 1, dynamic,
-		null,
-		eye,
+		0., 0., 10,
+		2, 0., 1., 0., 3, cos(pi/6), 0., sin(pi/6),
 		null,
 		null;
 end: nodes;
@@ -54,8 +54,7 @@ begin: elements;
 
 	body: 1, 1, 1., null, eye;
 
-	couple: 1, follower, 1,
-		0.,0.,1., sine, 0,pi/1,10.,forever,0.;
+	gravity: uniform, 0., 0., -1., 9.81;
 
 	user defined: 1, bullet,
 		# module-specific parameters
