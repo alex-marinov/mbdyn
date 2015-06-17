@@ -1549,6 +1549,8 @@ ViscoElasticDispJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	Mat3x3 Tmp(Mat3x3(MatCross, F) - FDEPrime*Mat3x3(MatCross, Omega2 - Omega1) + FDE);
 
+	// FIXME: check and rewrite
+
 	WM.Add(1, 1, Tmp);
 	WM.Sub(4, 1, Tmp);
 
@@ -1586,22 +1588,25 @@ ViscoElasticDispJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	}
 
 	Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
+	Vec3 d2(pNode2->GetRCurr()*tilde_f2);
+	Vec3 d1(pNode2->GetXCurr() + d2 - pNode1->GetXCurr());
+
 	Mat3x3 R1hT(R1h.Transpose());
-	Vec3 Omega1(pNode1->GetWCurr());
-	Vec3 Omega2(pNode2->GetWCurr());
+	Vec3 d1Prime(pNode2->GetVCurr()
+		+ pNode2->GetWCurr().Cross(d2)
+		- pNode1->GetVCurr());
 
-	Vec3 g1(pNode1->GetgCurr());
-	Vec3 g2(pNode2->GetgCurr());
+	tilde_d = R1hT*d1 - tilde_R1hT_tilde_f1;
+	tilde_dPrime = R1hT*(d1Prime - pNode1->GetWCurr().Cross(d1));
 
-	/* Aggiornamento: tilde_d += R1h^T(G(g2)*g2-G(g1)*g1) */
-	tilde_d = R1hT*(g2*(4./(4.+g2.Dot())) - g1*(4./(4.+g1.Dot())));
-	tilde_dPrime = R1hT*(Omega2-Omega1);
 	ConstitutiveLaw3DOwner::Update(tilde_d, tilde_dPrime);
 
 	Vec3 F(R1h*GetF());
 
 	WorkVec.Add(1, F);
+	WorkVec.Add(4, d1.Cross(F));
 	WorkVec.Sub(6 + 1, F);
+	WorkVec.Sub(6 + 4, d2.Cross(F));
 
 	return WorkVec;
 }
