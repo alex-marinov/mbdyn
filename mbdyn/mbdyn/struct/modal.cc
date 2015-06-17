@@ -195,8 +195,8 @@ VInv5jaPj(::Zero3),
 Inv8jTranspose(::Eye3),
 Inv9jkajak(::Eye3),
 Inv9jkajaPk(::Eye3),
-a(*aa),
-aPrime(NModes, 0.),
+a(*aa), a0(*aa),
+aPrime(NModes, 0.), aPrime0(*bb),
 b(*bb),
 bPrime(NModes, 0.),
 SND(snd)
@@ -1919,12 +1919,13 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 		}
 	}
 
-	/* aggiorna le forze modali : K*a, C*aP */
+	/* updates modal displacements and velocities: a, b (== aP) */
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		a.Put(iCnt, XCurr(iFlexIndex + iCnt));
 		b.Put(iCnt, XCurr(iFlexIndex + NModes + iCnt));
 	}
 
+	/* updates modal forces: K*a + C*aP */
 	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
 		doublereal temp = 0.;
 
@@ -2128,6 +2129,29 @@ Modal::InitialAssRes(SubVectorHandler& WorkVec,
 	} /* fine equazioni di vincolo */
 
 	return WorkVec;
+}
+
+void
+Modal::SetInitialValue(VectorHandler& X)
+{
+	/* inizializza la soluzione prima dell'assemblaggio iniziale */
+
+	int iFlexIndex = iGetFirstIndex();
+
+	for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+		/* modal multipliers */
+		X.PutCoef(iFlexIndex + iCnt, a(iCnt));
+
+		/* derivatives of modal multipliers */
+		X.PutCoef(iFlexIndex + NModes + iCnt, b(iCnt));
+	}
+
+	if (pModalNode) {
+		integer iRigidIndex = pModalNode->iGetFirstIndex();
+
+		X.Put(iRigidIndex + 6 + 1, pModalNode->GetVCurr());
+		X.Put(iRigidIndex + 9 + 1, pModalNode->GetWCurr());
+	}
 }
 
 void

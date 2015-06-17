@@ -116,8 +116,8 @@ protected:
 	Mat3x3 Inv9jkajak;
 	Mat3x3 Inv9jkajaPk;
 
-	VecN a;
-	VecN aPrime;
+	VecN a, a0;
+	VecN aPrime, aPrime0;
 	VecN b;
 	VecN bPrime;
 
@@ -246,6 +246,9 @@ public:
 	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
  
+	/* Setta il valore iniziale delle proprie variabili */
+	void SetInitialValue(VectorHandler& /* X */ );
+
 	void SetValue(DataManager *pDM,
 			VectorHandler& /* X */ , VectorHandler& /* XP */ ,
 			SimulationEntity::Hints *ph = 0);
