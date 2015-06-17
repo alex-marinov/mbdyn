@@ -431,11 +431,12 @@ Beam::InterpState(const Vec3& v1,
 	const Vec3& v3,
 	enum Section Sec)
 {
-	doublereal* pv1 = const_cast<doublereal *>(v1.pGetVec());
-	doublereal* pv2 = const_cast<doublereal *>(v2.pGetVec());
-	doublereal* pv3 = const_cast<doublereal *>(v3.pGetVec());
+	const doublereal* pv1 = v1.pGetVec();
+	const doublereal* pv2 = v2.pGetVec();
+	const doublereal* pv3 = v3.pGetVec();
 
-	return Vec3(pv1[0]*dN3[Sec][0] + pv2[0]*dN3[Sec][1] + pv3[0]*dN3[Sec][2],
+	return Vec3(
+		pv1[0]*dN3[Sec][0] + pv2[0]*dN3[Sec][1] + pv3[0]*dN3[Sec][2],
 		pv1[1]*dN3[Sec][0] + pv2[1]*dN3[Sec][1] + pv3[1]*dN3[Sec][2],
 		pv1[2]*dN3[Sec][0] + pv2[2]*dN3[Sec][1] + pv3[2]*dN3[Sec][2]);
 }
@@ -447,10 +448,12 @@ Beam::InterpDeriv(const Vec3& v1,
 	const Vec3& v3,
 	enum Section Sec)
 {
-	doublereal* pv1 = const_cast<doublereal *>(v1.pGetVec());
-	doublereal* pv2 = const_cast<doublereal *>(v2.pGetVec());
-	doublereal* pv3 = const_cast<doublereal *>(v3.pGetVec());
-	return Vec3((pv1[0]*dN3P[Sec][0] + pv2[0]*dN3P[Sec][1]
+	const doublereal* pv1 = v1.pGetVec();
+	const doublereal* pv2 = v2.pGetVec();
+	const doublereal* pv3 = v3.pGetVec();
+
+	return Vec3(
+		(pv1[0]*dN3P[Sec][0] + pv2[0]*dN3P[Sec][1]
 			+ pv3[0]*dN3P[Sec][2])*dsdxi[Sec],
 		(pv1[1]*dN3P[Sec][0] + pv2[1]*dN3P[Sec][1]
 			+ pv3[1]*dN3P[Sec][2])*dsdxi[Sec],

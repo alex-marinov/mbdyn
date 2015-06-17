@@ -277,7 +277,7 @@ RotorTrim::GetData(doublereal &dThrust,
 	dRollMoment = pRotor->dGetPrivData(iRotorMx);
 	dPitchMoment = pRotor->dGetPrivData(iRotorMy);
 	dRho = pRotor->dGetAirDensity(pRotor->GetXCurr());
-	dOmega = pRotor->dGetOmega();
+	dOmega = pRotor->dGetOmega(); // absolute value?
 	dMu = pRotor->dGetMu();
 }
 
