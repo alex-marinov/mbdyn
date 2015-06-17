@@ -295,7 +295,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 		Mat3x3 RR(Rn*Ra);
 
 		// q
-		pq->Put(1, RR.MulTV(X0 - P0));
+		pq->Put(1, RR.MulTV(X0) - P0);
 		pq->Put(4, RotManip::VecRot(RR.MulMT(R0))); // nota: wrappa; se serve si può eliminare
 
 		// dot{q}
@@ -322,7 +322,7 @@ AerodynamicModal::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(RigidF + NStModes+iCnt, iAeroIndex + iCnt);
 	}
 
-	/* Recupera i vettori {a} e {aP} e {aS}(deformate modali) */
+	/* Recupera i vettori {a} e {aP} e {aS} (deformate modali) */
 	// FIXME: get this info from modal joint?
 	for (unsigned int  iCnt = 1; iCnt <= NStModes; iCnt++) {
 		pq->PutCoef(iCnt + RigidF, XCurr(iModalIndex + iCnt));
@@ -435,8 +435,10 @@ AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 	const Vec3& X0(pModalNode->GetXCurr());
 	Vec3 V0(pModalNode->GetVCurr());
 	const Mat3x3& Rn(pModalNode->GetRCurr());
-	const Mat3x3& RR(Rn*Ra);
+	Mat3x3 RR(Rn*Ra);
 	Vec3 Vr(V0);
+
+	Vr(1) = 0.0; // perturbazione di velocita', verificare
 
 	doublereal rho, vs, p, T;
 	GetAirProps(X0, rho, vs, p, T);	/* p, T are not used yet */
@@ -499,8 +501,17 @@ AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 		}
 
 		// std::cout << F << std::endl;
-		F = RR*(-F);
+		F = RR*F;
 		M = RR*M;
+
+#if 0
+		// tolti perche' altrimenti inizia un Dutch Roll
+		F(1) = 0.;
+		F(2) = 0.;
+		M(1) = 0.;
+		M(3) = 0.;
+#endif
+
 		WorkVec.Add(1, F);
 		WorkVec.Add(4, M);
 	}
@@ -540,7 +551,7 @@ AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 			}
 
 			// std::cout << F << std::endl;
-			F = RR*(-F);
+			F = RR*F;
 			M = RR*M;
 			WorkVec.Add(1, F);
 			WorkVec.Add(4, M);
