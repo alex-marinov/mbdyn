@@ -782,8 +782,8 @@ public:
 	integer iGetNumDofs(void) const { return iTotDofs; };
 
 protected:
-	DofVecType Dofs;
 	integer iTotDofs;                /* numero totale di Dof */
+	DofVecType Dofs;
 
 	DofOwner DummyDofOwner; /* Per quelli che non hanno dof */
 
