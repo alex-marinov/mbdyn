@@ -62,6 +62,7 @@
 #include "point_contact.h"
 #include "prismj.h"    /* Vincolo prismatico */
 #include "rodj.h"      /* Aste elastiche */
+#include "rodbezj.h"
 #ifdef MBDYN_DEVEL
 #include "screwjoint.h"
 #endif // MBDYN_DEVEL
@@ -216,6 +217,7 @@ ReadJoint(DataManager* pDM,
 		"in" "line",
 		"rod",
 		"rod" "with" "offset",
+		"rod" "bezier",
 		"deformable" "hinge",
 		"deformable" "displacement" "hinge",	// deprecated
 		"deformable" "displacement" "joint",
@@ -282,6 +284,7 @@ ReadJoint(DataManager* pDM,
 		J_INLINE,
 		ROD,
 		RODWITHOFFSET,
+		RODBEZIER,
 		DEFORMABLEHINGE,
 		DEFORMABLEDISPHINGE,		// deprecated
 		DEFORMABLEDISPJOINT,
@@ -1630,6 +1633,164 @@ ReadJoint(DataManager* pDM,
 
 		} break;
 
+	case RODBEZIER:
+		{
+		bIsTorque = false;
+		bIsPrescribedMotion = false;
+		bIsRightHandSide = true;	
+
+		/* first node */
+		const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+
+		Vec3 fO(Zero3);
+		Vec3 fA(Zero3);
+		ReferenceFrame RF1(pNode1);
+
+		/* fist offset fO (origin) */
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			fO = HP.GetPosRel(RF1);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		
+		/* second offset fA (second control point) */
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			fA = HP.GetPosRel(RF1);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		DEBUGCOUT("Linked to Node " << pNode1->GetLabel()
+			<< "with offset O " << fO 
+			<< " and offset A " << fA << std::endl);
+
+		/* second node */
+		const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		Vec3 fB(Zero3);
+		Vec3 fI(Zero3);
+
+		/* first of second node offset fB (third control point) */
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			// perchè non fB = HP.GetPosRel(RF2)?
+			fB = HP.GetPosRel(ReferenceFrame(pNode2), RF1, fO);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+		
+		/* second offset of second node fI (insertion) */
+		if (HP.IsKeyWord("position")) {
+#ifdef MBDYN_X_COMPATIBLE_INPUT
+			NO_OP;
+		} else {
+			pedantic_cerr("Joint(" << uLabel << "): "
+				"missing keyword \"position\" at line "
+				<< HP.GetLineData() << std::endl);
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+			// idem come sopra: perchè non fI = HP.GetPosRel(RF2)?
+			fI = HP.GetPosRel(ReferenceFrame(pNode2), RF1, fO);
+#ifndef MBDYN_X_COMPATIBLE_INPUT
+		}
+#endif /* MBDYN_X_COMPATIBLE_INPUT */
+
+		bool bFromNodes = false;
+		doublereal dL0 = 0.;
+		if (HP.IsKeyWord("from" "nodes")) {
+			bFromNodes = true;
+			DEBUGCOUT("Initial length computed from nodes " << std::endl);
+		} else {
+			dL0 = HP.GetReal();
+			DEBUGCOUT("Initial length = " << dL0 << std::endl);
+		}
+
+		int iIntOrder = 2;
+		if (HP.IsKeyWord("integration" "order")) {
+			iIntOrder = HP.GetInt();
+			if (iIntOrder < 1) {
+				pedantic_cerr("Joint(" << uLabel << "): "
+					"integration order cannot be less than 1. "
+					<< std::endl);
+				iIntOrder = 1;
+			} else if (iIntOrder > 10) {
+				pedantic_cerr("Joint(" << uLabel << "): "
+					"maximum supported integration order is 10."
+					<< std::endl);
+			}
+		}
+
+		int iIntSegments = 3;
+		if (HP.IsKeyWord("integration" "segments")) {
+			iIntSegments = HP.GetInt();
+			if (iIntSegments < 1) {
+				pedantic_cerr("Joint (" << uLabel << "): "
+					"integration segments cannot be less than 1."
+					<< std::endl);
+			}
+		}
+
+		DEBUGCOUT("Joint(" << uLabel << "): Linked to Node " 
+			<< pNode2->GetLabel()
+			<< " with offset B " << fB 
+			<< " and offset I " << fI 
+			<< ". Integration order " << iIntOrder
+			<< " on " << iIntSegments << " segments" 
+			<< std::endl);
+
+		/* constitutive law */
+		ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+		ConstitutiveLaw1D* pCL = HP.GetConstLaw1D(CLType);
+
+		if (pCL->iGetNumDof() != 0) {
+			silent_cerr("line " << HP.GetLineData() << ": "
+				"rod bezier joint does not support "
+				"dynamic constitutive laws yet"
+				<< std::endl);
+			throw DataManager:: ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "rod bezier: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " ", fO.Write(out, " ")
+			<< " ", fA.Write(out, " ")
+			<< " " << pNode2->GetLabel()
+			<< " ", fB.Write(out, " ")
+			<< " ", fI.Write(out, " ")
+			<< std::endl;
+
+		SAFENEWWITHCONSTRUCTOR(pEl, 
+			RodBezier, 
+			RodBezier(uLabel, pDO, pCL,
+				pNode1, pNode2, fO, fA, fB, fI,
+				dL0, bFromNodes, 
+				iIntOrder, iIntSegments, fOut));
+		} break;		
 	case DEFORMABLEHINGE:
 	case DEFORMABLEDISPHINGE:	// deprecated
 	case DEFORMABLEDISPJOINT:

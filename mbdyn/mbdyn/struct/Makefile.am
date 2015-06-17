@@ -77,6 +77,8 @@ pzbeam.cc \
 pzbeam.h \
 pzbeam2.cc \
 pzbeam2.h \
+rodbezj.cc \
+rodbezj.h \
 rodj.cc \
 rodj.h \
 shapefnc.cc \
