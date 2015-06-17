@@ -994,7 +994,7 @@ DataManager::IDDofInit(void)
 	Dofs.resize(iRealTotDofs); /* Inizializza l'iteratore sui Dof */
 
 	/* Inizializza la struttura dinamica dei Dof */
-	integer iIndex = pDofOwners[0].iFirstIndex;
+	integer iIndex = DofOwners[0].iFirstIndex;
 	for (integer idx = 0; idx < iRealTotDofs; idx++) {
 		Dofs[idx].iIndex = iIndex++;
 		Dofs[idx].Order = DofOrder::DIFFERENTIAL;

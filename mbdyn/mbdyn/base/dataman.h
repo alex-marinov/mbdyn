@@ -766,7 +766,7 @@ protected:
 	 * totale dei possessori; per ognuno: indice del primo dof,
 	 * numero di dof posseduti */
 	integer iTotDofOwners;           /* numero totale di DofOwners */
-	DofOwner* pDofOwners;            /* puntatore all'array dei DofOwner */
+	std::vector<DofOwner> DofOwners; /* DofOwner container */
 
 public:
 	/* struttura dei dati di ogni singolo dof: totale dei dof; per ognuno:

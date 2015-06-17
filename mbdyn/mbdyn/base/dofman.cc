@@ -52,23 +52,12 @@ void DataManager::DofManager(void)
 }
 
 
-void DataManager::DofManagerDestructor(void)
+void
+DataManager::DofManagerDestructor(void)
 {
-   DEBUGCOUTFNAME("DataManager::DofManagerDestructor");
-   
-   /* Distrugge le strutture dinamiche */
-   ASSERT(pDofOwners != NULL);   
-   if(pDofOwners != NULL) {	
-      DEBUGLCOUT(MYDEBUG_INIT, "deleting dof owners structure" << std::endl);
-      SAFEDELETEARR(pDofOwners);
-   }
+	DEBUGCOUTFNAME("DataManager::DofManagerDestructor");
 
-#if 0
-   if(pDofs != NULL) {	
-      DEBUGLCOUT(MYDEBUG_INIT, "deleting dofs structure" << std::endl);
-      SAFEDELETEARR(pDofs);
-   }   
-#endif
+	// TODO: remove?
 }
 
 doublereal
@@ -90,17 +79,17 @@ void DataManager::DofDataInit(void)
 	
    /* Crea la struttura dinamica dei DofOwner */
    if (iTotDofOwners > 0) {	     
-      SAFENEWARRNOFILL(pDofOwners, DofOwner, iTotDofOwners);
+      DofOwners.resize(iTotDofOwners);
       
       /* Resetta la struttura dinamica dei DofOwner */
       for (int iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
-	 pDofOwners[iCnt].iFirstIndex = 0;
-	 pDofOwners[iCnt].iNumDofs = 0;
+	 DofOwners[iCnt].iFirstIndex = 0;
+	 DofOwners[iCnt].iNumDofs = 0;
       }
       
       /* Inizializza la struttura dinamica dei DofOwner
        * con il numero di Dof di ognuno */
-      DofData[0].pFirstDofOwner = pDofOwners;
+      DofData[0].pFirstDofOwner = &DofOwners[0];
       for (int iType = 0; iType < DofOwner::LASTDOFTYPE - 1; iType++) {
 	 DofData[iType + 1].pFirstDofOwner =
 	   DofData[iType].pFirstDofOwner+
@@ -125,21 +114,17 @@ void DataManager::DofInit(void)
       
       /* Di ogni DofOwner setta il primo indice
        * e calcola il numero totale di Dof */
-      DofOwner* pTmp = pDofOwners;  /* viene fatto scorrere 
-						 * sulla struttura dei 
-						 * DofOwners */
       integer iIndex = 0;    /* contatore dei Dof */
       integer iNumDofs = 0;  /* numero di dof di un owner */
-      for(int iCnt = 1; 
-	  pTmp < pDofOwners+iTotDofOwners; 
-	  iCnt++, pTmp++)
-      {
-	 if((iNumDofs = pTmp->iNumDofs) > 0) {
-	    pTmp->iFirstIndex = iIndex;
+
+      for (int iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
+	 iNumDofs = DofOwners[iCnt].iNumDofs;
+	 if (iNumDofs > 0) {
+	    DofOwners[iCnt].iFirstIndex = iIndex;
 	    iIndex += iNumDofs;
 	 } else {
-	    pTmp->iFirstIndex = -1;
-	    DEBUGCERR("warning, item " << iCnt << " has 0 dofs" << std::endl);
+	    DofOwners[iCnt].iFirstIndex = -1;
+	    DEBUGCERR("warning, item " << (iCnt + 1) << " has 0 dofs" << std::endl);
 	 }
       }
       
@@ -157,7 +142,7 @@ void DataManager::DofInit(void)
    /* Crea la struttura dinamica dei Dof */
    if(iTotDofs > 0) {	
       Dofs.resize(iTotDofs);
-      integer iIndex = pDofOwners[0].iFirstIndex;
+      integer iIndex = DofOwners[0].iFirstIndex;
       for (DofIterator i = Dofs.begin(); i != Dofs.end(); ++i) {
          i->iIndex = iIndex++;
          i->Order = DofOrder::DIFFERENTIAL;
@@ -174,9 +159,9 @@ void
 DataManager::SetScale(VectorHandler& XScale) const
 {
 	for (integer iCnt = 0; iCnt < iTotDofOwners; iCnt++) {
-		integer iFirstIndex = pDofOwners[iCnt].iFirstIndex;
-		unsigned int iNumDofs = pDofOwners[iCnt].iNumDofs;
-		doublereal dScale = pDofOwners[iCnt].dScale;
+		integer iFirstIndex = DofOwners[iCnt].iFirstIndex;
+		unsigned int iNumDofs = DofOwners[iCnt].iNumDofs;
+		doublereal dScale = DofOwners[iCnt].dScale;
 
 		for (unsigned int iDof = 1; iDof <= iNumDofs; iDof++) {
 			XScale.PutCoef(iFirstIndex + iDof, dScale);

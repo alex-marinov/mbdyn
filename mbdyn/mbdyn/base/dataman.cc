@@ -190,7 +190,7 @@ iTotNodes(0),
 
 /* DofManager */
 iTotDofOwners(0),
-pDofOwners(0),
+DofOwners(),
 iTotDofs(0),
 Dofs()
 {
@@ -590,7 +590,7 @@ Dofs()
 			std::cout << "DofType " << i << ':' << std::endl;
 			for (int j = 0; j < DofData[i].iNum; j++) {
 				std::cout << "DofOwner " << j << ", n. of dofs: "
-					<< pDofOwners[k++].iNumDofs << std::endl;
+					<< DofOwners[k++].iNumDofs << std::endl;
 			}
 		}
 	}
