@@ -57,6 +57,7 @@ protected:
 	struct timeval SocketTimeout;
 
 	std::string sOutFileName;
+	std::vector<doublereal> echoBuf;
 	std::ofstream outFile;
 	int iPrecision;
 	doublereal dShift;
@@ -67,6 +68,7 @@ public:
 		UseSocket *pUS, bool c,
 		const std::string& sFileName,
 		integer nd, const std::vector<doublereal>& v0,
+		StreamDrive::Modifier *pMod,
 		unsigned int ie, bool bReceiveFirst,
 		int flags,
 		const struct timeval& st,

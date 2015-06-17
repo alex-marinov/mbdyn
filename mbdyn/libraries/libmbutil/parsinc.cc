@@ -134,7 +134,7 @@ sCurrFile(NULL)
    	}
 	SAFESTRDUP(sCurrPath, s);
 	sInitialPath = sCurrPath;
-   	DEBUGCOUT("Current directory is <" << sCurrPath << '>' << std::endl);
+   	DEBUGCOUT("Current directory is \"" << sCurrPath << "\"" << std::endl);
    
    	SAFESTRDUP(sCurrFile, sInitialFile);
 #else /* !USE_INCLUDE_PARSER */
@@ -193,11 +193,11 @@ void IncludeParser::Close(void)
 #ifdef USE_INCLUDE_PARSER
       		sCurrPath = pmi->sPath;
       		sCurrFile = pmi->sFile;
-      		DEBUGCOUT("Entering directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << std::endl);
+      		DEBUGCOUT("Entering directory \"" << sCurrPath 
+			<< "\", file \"" << sCurrFile << "\"" << std::endl);
       		if (chdir(sCurrPath)) {
-			silent_cerr("Error in chdir, path=" 
-				<< sCurrPath << std::endl);
+			silent_cerr("Error in chdir, path=\"" 
+				<< sCurrPath << "\"" << std::endl);
 	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 #endif /* USE_INCLUDE_PARSER */
@@ -257,11 +257,11 @@ IncludeParser::fCheckStack(void)
 #ifdef USE_INCLUDE_PARSER
       		sCurrPath = pmi->sPath;
       		sCurrFile = pmi->sFile;
-      		DEBUGCOUT("Entering directory <" << sCurrPath 
-			<< ">, file <" << sCurrFile << '>' << std::endl);
+      		DEBUGCOUT("Entering directory \"" << sCurrPath 
+			<< "\", file \"" << sCurrFile << "\"" << std::endl);
       		if (chdir(sCurrPath)) {
-			silent_cerr("Error in chdir, path=" 
-				<< sCurrPath << std::endl);
+			silent_cerr("Error in chdir, path=\"" 
+				<< sCurrPath << "\"" << std::endl);
 	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 #endif /* USE_INCLUDE_PARSER */
@@ -337,7 +337,7 @@ IncludeParser::Include_int()
 #ifdef DEBUG
 		char *buf = getcwd(NULL, 0);
 		if (buf != NULL) {
-			DEBUGCERR("Current directory <" << buf << ">" 
+			DEBUGCERR("Current directory \"" << buf << "\"" 
 					<< std::endl);
 			free(buf);
 		}
@@ -379,8 +379,8 @@ IncludeParser::Include_int()
 	    			throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
 	 		}
 			SAFESTRDUP(sCurrPath, p);
-	 		DEBUGCOUT("Current directory is <" << sCurrPath 
-				<< '>' << std::endl);
+	 		DEBUGCOUT("Current directory is \"" << sCurrPath 
+				<< "\"" << std::endl);
 	 
 	 		s[1] = c;
 	 		break;
@@ -399,8 +399,8 @@ IncludeParser::Include_int()
 	 		throw ErrFileSystem(MBDYN_EXCEPT_ARGS);
       		}
 		SAFESTRDUP(sCurrPath, s);
-      		DEBUGCOUT("Current directory is <" << sCurrPath 
-			<< '>' << std::endl);
+      		DEBUGCOUT("Current directory is \"" << sCurrPath 
+			<< "\"" << std::endl);
    	}
 #endif /* USE_INCLUDE_PARSER */
 

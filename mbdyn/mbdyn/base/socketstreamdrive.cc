@@ -78,12 +78,13 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 	UseSocket *pUS, bool c,
 	const std::string& sFileName,
 	integer nd, const std::vector<doublereal>& v0,
+	StreamDrive::Modifier *pMod,
 	unsigned int ie, bool bReceiveFirst,
 	int flags,
 	const struct timeval& st,
 	const std::string& sOutFileName, int iPrecision,
 	doublereal dShift)
-: StreamDrive(uL, pDH, sFileName, nd, v0, c),
+: StreamDrive(uL, pDH, sFileName, nd, v0, c, pMod),
 InputEvery(ie), bReceiveFirst(bReceiveFirst), InputCounter(ie - 1),
 pUS(pUS), recv_flags(flags),
 SocketTimeout(st),
@@ -109,6 +110,7 @@ sOutFileName(sOutFileName), iPrecision(iPrecision), dShift(dShift)
 				"unable to open echo file '" << sOutFileName << "'" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+		echoBuf.resize(nd);
 
 		if (iPrecision > 0) {
 			outFile.precision(iPrecision);
@@ -170,7 +172,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	InputCounter = 0;
 	
 	int sock_nr = pUS->GetSock();
-	int rc = -1;
+	ssize_t rc = -1;
 	// Use socket timeout if set in input file; Default: 0
 	if (SocketTimeout.tv_sec || SocketTimeout.tv_usec) {
 		// Use Select() on the socket for automatic shutdown if
@@ -221,7 +223,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	// NOTE: flags __SHOULD__ contain MSG_WAITALL;
 	// however, it is not defined on some platforms (e.g. Cygwin)
 	// TODO: needs work for network independence!
-	rc = recv(sock_nr, buf, size, recv_flags);
+	rc = pUS->recv(&buf[0], size, recv_flags);
 
 	/* FIXME: no receive at first step? */
 	switch (rc) {
@@ -257,9 +259,17 @@ do_abandon:;
 		}
 
 	default: {
-		doublereal *rbuf = (doublereal *)buf - 1;
-
 		// check whether echo is needed
+		doublereal *rbuf = &echoBuf[0] - 1;
+		if (!sOutFileName.empty()) {
+			for (int i = 1; i <= iNumDrives; i++) {
+				rbuf[i] = pdVal[i];
+			}
+		}
+
+		// copy values from buffer
+		pMod->Modify(pdVal, &buf[0]);
+
 		if (!sOutFileName.empty()) {
 			for (int i = 1; i <= iNumDrives; i++) {
 				if (pdVal[i] != rbuf[i]) {
@@ -274,11 +284,6 @@ do_abandon:;
 			}
 		}
 
-		// copy values from buffer
-		for (int i = 1; i <= iNumDrives; i++) {
-			pdVal[i] = rbuf[i];
-		}
-
 		} break;
 	}
 }
@@ -289,7 +294,7 @@ do_abandon:;
 static Drive *
 ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 {
-	bool create = false;
+	bool bCreate = false;
 	unsigned short int port = -1; 
 	std::string name;
 	std::string host;
@@ -317,7 +322,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	}
 
 	if (HP.IsKeyWord("create")) {
-		if (!HP.GetYesNo(create)) {
+		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("SocketStreamDrive"
 				"(" << uLabel << ", \"" << name << "\"): "
 				"\"create\" must be either \"yes\" or \"no\" "
@@ -398,7 +403,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 		host = h;
 
-	} else if (path.empty() && !create) {
+	} else if (path.empty() && !bCreate) {
 		silent_cerr("SocketStreamDrive"
 			"(" << uLabel << ", \"" << name << "\"): "
 			"host undefined, "
@@ -406,6 +411,26 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 			"at line " << HP.GetLineData()
 			<< std::endl);
 		host = DEFAULT_HOST;
+	}
+
+	int socket_type = SOCK_STREAM;
+	if (HP.IsKeyWord("socket" "type")) {
+		if (HP.IsKeyWord("udp")) {
+			socket_type = SOCK_DGRAM;
+
+		} else if (!HP.IsKeyWord("tcp")) {
+			silent_cerr("SocketStreamDrive(" << uLabel << ", \"" << name << "\"): "
+				"invalid socket type "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if ((socket_type == SOCK_DGRAM) && !bCreate) {
+		silent_cerr("SocketStreamDrive(" << uLabel << ", \"" << name << "\"): "
+			"socket type=upd incompatible with create=no "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// we want to block until the whole chunk is received
@@ -550,18 +575,23 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 		}
 	}
 
+	StreamDrive::Modifier *pMod(0);
+	if (HP.IsKeyWord("modifier")) {
+		pMod = ReadStreamDriveModifier(HP, idrives);
+	}
+
 	UseSocket *pUS = 0;
 	if (path.empty()) {
 		if (port == (unsigned short int)(-1)) {
 			port = DEFAULT_PORT;
 		}
-		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, create));
+		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, socket_type, bCreate));
 
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, create));
+		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, socket_type, bCreate));
 	}
 
-	if (create) {
+	if ((socket_type == SOCK_STREAM) && bCreate) {
 		const_cast<DataManager *>(pDM)->RegisterSocketUser(pUS);
 
 	} else {
@@ -571,8 +601,9 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	Drive* pDr = 0;
 	SAFENEWWITHCONSTRUCTOR(pDr, SocketStreamDrive,
 		SocketStreamDrive(uLabel,
-			pDM->pGetDrvHdl(), pUS, create,
-			name, idrives, v0, InputEvery, bReceiveFirst,
+			pDM->pGetDrvHdl(), pUS, bCreate,
+			name, idrives, v0, pMod,
+			InputEvery, bReceiveFirst,
 			flags, SocketTimeout,
 			sOutFileName, iPrecision, dShift));
 

@@ -39,6 +39,7 @@
 #include "streamoutelem.h"
 #include "geomdata.h"
 #include "socketstreammotionelem.h"
+#include "bufmod.h"
 
 /* StreamOutElem - begin */
 
@@ -91,14 +92,23 @@ StreamOutElem::AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
 
 /* StreamContent - begin */
 
-StreamContent::StreamContent(void)
+StreamContent::StreamContent(size_t size, StreamContent::Modifier *pMod)
+: buf(size), m_pMod(pMod)
 {
-	NO_OP;
+	if (m_pMod == 0) {
+		m_pMod = new StreamContent::Copy(size, &buf[0]);
+
+	} else {
+		m_pMod->Set(size, &buf[0]);
+	}
 }
 
 StreamContent::~StreamContent(void)
 {
-	NO_OP;
+	if (m_pMod != 0) {
+		delete m_pMod;
+		m_pMod = 0;
+	}
 }
 
 void *
@@ -113,17 +123,127 @@ StreamContent::GetSize(void) const
 	return buf.size();
 }
 
+const void *
+StreamContent::GetOutBuf(void) const
+{
+	return m_pMod->GetOutBuf();
+}
+
+int
+StreamContent::GetOutSize(void) const
+{
+	return m_pMod->GetOutSize();
+}
+
+StreamContent::Modifier::~Modifier(void)
+{
+	NO_OP;
+}
+
+StreamContent::Copy::Copy(size_t size, const char *outbuf)
+: m_size(size), m_outbuf(outbuf)
+{
+	NO_OP;
+}
+
+void
+StreamContent::Copy::Set(size_t size, const char *outbuf)
+{
+	m_size = size;
+	m_outbuf = outbuf;
+}
+
+void
+StreamContent::Copy::Modify(void)
+{
+	NO_OP;
+}
+
+const void *
+StreamContent::Copy::GetOutBuf(void) const
+{
+	return m_outbuf;
+}
+
+int
+StreamContent::Copy::GetOutSize(void) const
+{
+	return m_size;
+}
+
+class StreamContentCopyCast : public StreamContent::Modifier {
+protected:
+	size_t m_size;
+	const char *m_buf;
+	std::vector<char> m_outbuf;
+	std::vector<BufCast *> m_data;
+
+public:
+	StreamContentCopyCast(size_t size, const char *buf, size_t outsize, const std::vector<BufCast *>& data);
+
+	void Set(size_t size, const char *buf);
+	void Modify(void);
+
+	const void *GetOutBuf(void) const;
+	int GetOutSize(void) const;
+};
+
+StreamContentCopyCast::StreamContentCopyCast(size_t size, const char *buf, size_t outsize, const std::vector<BufCast *>& data)
+: m_size(size), m_buf(buf), m_outbuf(outsize), m_data(data)
+{
+#ifdef DEBUG
+	std::vector<BufCast *>::const_iterator i = data.end();
+	ASSERT(i > data.begin());
+	--i;
+	size_t minsize = i->offset() + i->size();
+	ASSERT(outsize >= minsize);
+#endif
+}
+
+void
+StreamContentCopyCast::Set(size_t size, const char *buf)
+{
+	m_size = size;
+	m_buf = buf;
+
+	// FIXME: what about outbuf?
+	// in principle, size is sizeof(doublereal)*nChannels
+	ASSERT(m_size == sizeof(doublereal)*m_data.size());
+}
+
+void
+StreamContentCopyCast::Modify(void)
+{
+	ASSERT(m_size = m_data.size()*sizeof(doublereal));
+
+	doublereal *rbuf = (doublereal *)&m_buf[0];
+	for (size_t i = 0; i < m_data.size(); i++) {
+		m_data[i]->uncast(&m_outbuf[0], rbuf[i]);
+	}
+}
+
+const void *
+StreamContentCopyCast::GetOutBuf(void) const
+{
+	return &m_outbuf[0];
+}
+
+int
+StreamContentCopyCast::GetOutSize(void) const
+{
+	return m_outbuf.size();
+}
+
 /* StreamContent - end */
 
 
 /* StreamContentValue - begin */
 
-StreamContentValue::StreamContentValue(const std::vector<ScalarValue *>& v)
-: Values(v)
+StreamContentValue::StreamContentValue(const std::vector<ScalarValue *>& v,
+	StreamContent::Modifier *pMod)
+: StreamContent(sizeof(doublereal)*v.size(), pMod), Values(v)
 {
 	ASSERT(Values.size() > 0);
-
-	buf.resize(sizeof(doublereal)*Values.size());
 }
 
 StreamContentValue::~StreamContentValue(void)
@@ -148,6 +268,8 @@ StreamContentValue::Prepare(void)
 
 		curbuf += sizeof(doublereal);
 	}
+
+	m_pMod->Modify();
 }
 
 unsigned
@@ -163,7 +285,44 @@ StreamContentValue::GetNumChannels(void) const
  * to read is only a hack; needs improvements
  */
 
-StreamContent*
+StreamContent::Modifier *
+ReadStreamContentModifier(MBDynParser& HP, integer nCh)
+{
+	StreamContent::Modifier *pSCM(0);
+
+	if (HP.IsKeyWord("copy" "cast")) {
+		std::vector<BufCast *> data(nCh);
+		ReadBufCast(HP, data);
+		size_t minsize = data[data.size() - 1]->offset() + data[data.size() - 1]->size();
+		size_t size = minsize;
+		if (HP.IsKeyWord("size")) {
+			integer i = HP.GetInt();
+			if (i <= 0) {
+				silent_cerr("ReadStreamContentModifier: invalid size " << i
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			size = size_t(i);
+			if (size < minsize) {
+				silent_cerr("ReadStreamContentModifier: size " << size
+					<< " is less than min size " << minsize
+					<< " at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		pSCM = new StreamContentCopyCast(0, 0, size, data);
+
+	} else if (!HP.IsKeyWord("copy")) {
+		silent_cerr("ReadStreamContentModifier: unknown modifier type at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pSCM;
+}
+
+StreamContent *
 ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 {
 	switch (type) {
@@ -199,7 +358,12 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 		std::vector<ScalarValue *> Values(nch);
 		ReadScalarValues(pDM, HP, Values);
 
-		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentValue, StreamContentValue(Values));
+		StreamContent::Modifier *pMod(0);
+		if (HP.IsKeyWord("modifier")) {
+			pMod = ReadStreamContentModifier(HP, nch);
+		}
+
+		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentValue, StreamContentValue(Values, pMod));
 		} break;
 
 	case StreamContent::MOTION: {
@@ -272,8 +436,11 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 				nodes.insert(nodes.end(), pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP));
 			}
 		}
-	
-		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentMotion, StreamContentMotion(uFlags, nodes));
+
+		// FIXME: right now, we don't modify stream motion stuff	
+		StreamContent::Modifier *pMod(0);
+
+		SAFENEWWITHCONSTRUCTOR(pSC, StreamContentMotion, StreamContentMotion(uFlags, nodes, pMod));
 		} break;
 
 	default:

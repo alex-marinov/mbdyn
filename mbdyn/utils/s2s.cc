@@ -71,7 +71,7 @@ sock(-1),
 stream2socket(true),
 progname(0)
 {
-	buf[0] = '\0';
+	addr.ms_type = SOCK_STREAM;
 
 	next = ::s2s_list;
 	::s2s_list = next;
@@ -100,7 +100,8 @@ s2s_t::usage(int rc) const
 			*n = "",
 			*p = "",
 			*P = "",
-			*s = "";
+			*s = "",
+			*t = "";
 
 	b = "    -b {y|n}\t\t"		"blocking mode (default: yes)\n";
 	C = "    -C\t\t\t"		"create socket (default: connect to existing)\n";
@@ -109,6 +110,7 @@ s2s_t::usage(int rc) const
 	p = "    -p <port>\t\t"		"port number (for INET sockets)\n";
 	P = "    -P <path>\t\t"		"path (for LOCAL sockets)\n";
 	s = "    -s\t\t\t"		"decrease verbosity level\n";
+	t = "    -t <type>\t\t"		"socket type { tcp | udp }\n";
 
 	if (!this->stream2socket) {
 		F = "    -F <format>\t\t"	"output format (%[.<precision>]{eEfF})\n";
@@ -137,6 +139,7 @@ s2s_t::usage(int rc) const
 			<< p
 			<< P
 			<< s
+			<< t
 			<< std::endl);
 	exit(rc);
 }
@@ -236,10 +239,10 @@ s2s_t::parse(int argc, char *argv[])
 
 	const char	*optstring;
 	if (this->stream2socket) {
-		optstring = "b:Ch:n:p:P:s";
+		optstring = "b:Ch:n:p:P:st:";
 
 	} else {
-		optstring = "b:CF:h:n:p:P:s";
+		optstring = "b:CF:h:n:p:P:st:";
 	}
 
 	while (true) {
@@ -304,6 +307,18 @@ s2s_t::parse(int argc, char *argv[])
 			::fSilent++;
 			break;
 
+		case 't':
+			if (strcasecmp(optarg, "udp") == 0) {
+				this->addr.ms_type = SOCK_DGRAM;
+
+			} else if (strcasecmp(optarg, "tcp") != 0) {
+				silent_cerr("unable to parse option -p "
+						"\"" << optarg << "\""
+						<< std::endl);
+				usage(EXIT_FAILURE);
+			}
+			break;
+
 		default:
 			usage(EXIT_SUCCESS);
 		}
@@ -317,197 +332,137 @@ s2s_t::parse(int argc, char *argv[])
 void
 s2s_t::prepare(void)
 {
-	s2s_sockaddr_t	addr;
 	int		save_errno;
 	struct sockaddr	*addrp = 0;
-	socklen_t	addrl = 0;
 
 	if (this->path) {
-		addr.ms_type = AF_LOCAL;
-		addr.ms_domain = PF_LOCAL;
-		addrp = (struct sockaddr *)&addr.ms_addr.ms_addr_local;
-		addrl = sizeof(addr.ms_addr.ms_addr_local);
-		strncpy(this->buf, this->path, sizeof(this->buf));
+		this->addr.ms_domain = AF_LOCAL;
+		addrp = (struct sockaddr *)&this->addr.ms_addr.ms_addr_local;
+		this->addr.ms_len = sizeof(this->addr.ms_addr.ms_addr_local);
+
+		this->buf = this->path;
+
+		this->sock = mbdyn_make_named_socket_type(&this->addr.ms_addr.ms_addr_local,
+			this->path, this->addr.ms_type, this->create, &save_errno);
 		
-		if (this->create) {
-			this->sock = mbdyn_make_named_socket(&addr.ms_addr.ms_addr_local,
-				this->path, 1, &save_errno);
-		
-			if (this->sock == -1) {
-				const char	*err_msg = strerror(save_errno);
+		if (this->sock == -1) {
+			const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("socket(" << this->buf << ") failed "
-					"(" << save_errno << ": " << err_msg << ")"
-					<< std::endl);
-      				throw;
+			silent_cerr("socket(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+      			throw;
 
- 		  	} else if (this->sock == -2) {
-				const char	*err_msg = strerror(save_errno);
+ 	  	} else if (this->sock == -2) {
+			const char	*err_msg = strerror(save_errno);
 
-		      		silent_cerr("bind(" << this->buf << ") failed "
-					"(" << save_errno << ": " << err_msg << ")"
-					<< std::endl);
-		      		throw;
-		   	}
-
-		} else {
-			addr.ms_addr.ms_addr_local.sun_family = AF_UNIX;
-			strncpy(addr.ms_addr.ms_addr_local.sun_path, this->path,
-					sizeof(addr.ms_addr.ms_addr_local.sun_path));
+	      		silent_cerr("bind(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+	      		throw;
 		}
 
 	} else {
-		addr.ms_type = AF_INET;
-		addr.ms_domain = PF_INET;
-		addrp = (struct sockaddr *)&addr.ms_addr.ms_addr_inet;
-		addrl = sizeof(addr.ms_addr.ms_addr_inet);
+		addr.ms_domain = AF_INET;
+		addrp = (struct sockaddr *)&this->addr.ms_addr.ms_addr_inet;
+		addr.ms_len = sizeof(this->addr.ms_addr.ms_addr_inet);
 
 		if (this->host == 0) {
+			// default to localhost
 			this->host = "127.0.0.1";
 
 		} else {
 			char *p = std::strchr(const_cast<char *>(this->host), ':');
 			if (p != 0) {
+				if (this->port != -1) {
+					silent_cerr("port already passed as '-p'" << std::endl);
+					exit(EXIT_FAILURE);
+				}
+
 				char	*next;
+				unsigned long tmp_port;
 
 				p[0] = '\0';
 				p++;
-				this->port = strtoul(p, &next, 10);
+				tmp_port = strtoul(p, &next, 10);
 				if (next[0] != '\0') {
 					silent_cerr("unable to parse port out of "
 						"\"" << this->host << ":" << p << "\""
 						<< std::endl);
 					exit(EXIT_FAILURE);
 				}
+
+				this->port = tmp_port;
 			}
 		}
-		snprintf(this->buf, sizeof(this->buf), "%s:%u", this->host, this->port);
+		
+		std::ostringstream os;
+		os << this->host << ":" << this->port;
+		this->buf = os.str();
 
-		if (this->create) {
-	 	  	this->sock = mbdyn_make_inet_socket(&addr.ms_addr.ms_addr_inet, 
-					this->host, this->port, 1, &save_errno);
+		this->sock = mbdyn_make_inet_socket_type(&this->addr.ms_addr.ms_addr_inet, 
+			this->host, this->port, this->addr.ms_type, this->create, &save_errno);
 
-			if (this->sock == -1) {
-				const char	*err_msg = strerror(save_errno);
+		if (this->sock == -1) {
+			const char	*err_msg = strerror(save_errno);
 
-      				silent_cerr("socket(" << this->buf << ") failed "
-					"(" << save_errno << ": " << err_msg << ")"
-					<< std::endl);
-				throw;
-
-   			} else if (this->sock == -2) {
-				const char	*err_msg = strerror(save_errno);
-
-      				silent_cerr("bind(" << this->buf << ") failed "
-					"(" << save_errno << ": " << err_msg << ")"
-					<< std::endl);
-				throw;
-
-			} else if (this->sock == -3) {
-     				silent_cerr("illegal host[:port] name \"" << this->buf << "\" "
-					"(" << save_errno << ")"
-					<< std::endl);
-				throw;
-  			}
-
-		} else {
-#if defined(HAVE_GETADDRINFO)
-			char portbuf[sizeof("65535")];
-			struct addrinfo hints = { 0 }, *res = NULL;
-			int rc;
-
-			rc = snprintf(portbuf, sizeof(portbuf), "%d", this->port);
-			if (rc > STRLENOF("65535")) {
-				throw;
-			}
-
-			hints.ai_family = AF_INET;
-			hints.ai_socktype = SOCK_STREAM;
-			rc = getaddrinfo(this->host, portbuf, &hints, &res);
-			if (rc != 0) {
-				int save_errno = h_errno;
-				silent_cerr("getaddrinfo(\"" << this->host << "\"): " << save_errno << " (" << strerror(save_errno) << ")" << std::endl);
-				throw;
-			}
-
-			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
-			addr.ms_addr.ms_addr_inet.sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
-			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
-
-			freeaddrinfo(res);
-
-#elif defined(HAVE_GETHOSTBYNAME)
-			struct hostent *hostinfo;
-
-			/* TODO: use getnameinfo() if available */
-			hostinfo = gethostbyname(this->host);
-			if (hostinfo == NULL) {
-				int save_errno = h_errno;
-				silent_cerr("gethostbyname(\"" << this->host << "\"): " << save_errno << " (" << strerror(save_errno) << ")" << std::endl);
-				throw;
-			}
-
-			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
-			addr.ms_addr.ms_addr_inet.sin_addr = *(struct in_addr *)hostinfo->h_addr;
-			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
-#elif defined(HAVE_INET_ATON)
-			addr.ms_addr.ms_addr_inet.sin_family = AF_INET;
-			addr.ms_addr.ms_addr_inet.sin_port = htons(this->port);
-					
-			if (inet_aton(this->host, &addr.ms_addr.ms_addr_inet.sin_addr) == 0) {
-				silent_cerr("unknown host \"" << this->host << "\"" << std::endl);
-				throw;	
-			}
-#else
+      			silent_cerr("socket(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
 			throw;
-#endif
-		}
+
+   		} else if (this->sock == -2) {
+			const char	*err_msg = strerror(save_errno);
+
+			silent_cerr("bind(" << this->buf << ") failed "
+				"(" << save_errno << ": " << err_msg << ")"
+				<< std::endl);
+			throw;
+
+		} else if (this->sock == -3) {
+     			silent_cerr("illegal host[:port] name \"" << this->buf << "\" "
+				"(" << save_errno << ")"
+				<< std::endl);
+			throw;
+  		}
 	}
 
-	if (this->create) {
-		if (listen(this->sock, 1) < 0) {
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
+	if (this->addr.ms_type == SOCK_STREAM) {
+		if (this->create) {
+			if (listen(this->sock, 1) < 0) {
+				save_errno = errno;
+				const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("listen(" << this->sock << "," << this->buf << ") failed "
-				"(" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-      			throw;
-   		}
+      				silent_cerr("listen(" << this->sock << "," << this->buf << ") failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+      				throw;
+   			}
 
-		int sock = this->sock;
-		this->sock = accept(sock, addrp, &addrl);
-		close(sock);
-		if (this->sock == -1) {
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
+			int sock = this->sock;
+			socklen_t len;
+			this->sock = accept(sock, addrp, &len);
+			close(sock);
+			if (this->sock == -1) {
+				save_errno = errno;
+				const char	*err_msg = strerror(save_errno);
 
-                	silent_cerr("accept(" << this->sock << ",\"" << this->buf << "\") "
-				"failed (" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-			throw;
-        	}
+				silent_cerr("accept(" << this->sock << ",\"" << this->buf << "\") "
+					"failed (" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw;
+			}
 
-	} else {
-		this->sock = socket(addr.ms_domain, SOCK_STREAM, 0);
-		if (this->sock < 0){
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
+		} else {
+			if (connect(this->sock, addrp, addr.ms_len) < 0) {
+				save_errno = errno;
+				const char	*err_msg = strerror(save_errno);
 				
-			silent_cerr("socket(" << this->buf << ") failed "
-				"(" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-			throw;
-		}
-
-		if (connect(this->sock, addrp, addrl) < 0) {
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
-				
-			silent_cerr("connect(" << this->sock << ",\"" << this->buf << "\"," << addrl << ") "
-				"failed (" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-			throw;
+				silent_cerr("connect(" << this->sock << ",\"" << this->buf << "\"," << addr.ms_len << ") "
+					"failed (" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+				throw;
+			}
 		}
 	}
 
@@ -535,7 +490,16 @@ s2s_t::send(int flags) const
 		break;
 	}
 
-	return ::send(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
+	switch (this->addr.ms_type) {
+	case SOCK_STREAM:
+		return ::send(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
+
+	case SOCK_DGRAM:
+		return ::sendto(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags,
+			&addr.ms_addr.ms_addr_generic, addr.ms_len);
+	}
+
+	return -1;
 }
 
 ssize_t
@@ -551,7 +515,15 @@ s2s_t::recv(int flags)
 		break;
 	}
 
-	return ::recv(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
+	switch (this->addr.ms_type) {
+	case SOCK_STREAM:
+		return ::recv(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags);
+
+	case SOCK_DGRAM:
+		return ::recvfrom(sock, (char *)&dbuf[0], sizeof(double)*nChannels, flags, 0, 0);
+	}
+
+	return -1;
 }
 
 #endif // USE_SOCKET

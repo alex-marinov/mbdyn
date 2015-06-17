@@ -60,6 +60,7 @@ public:
 		const std::string& sFileName,
 		const std::string& host,
 		integer nd, const std::vector<doublereal>& v0,
+		StreamDrive::Modifier *pMod,
 		bool c, unsigned long /*int*/ n,
 		bool bNonBlocking);
    

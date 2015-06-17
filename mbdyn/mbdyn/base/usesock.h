@@ -39,6 +39,7 @@
 class UseSocket {
 protected:
 	int sock;
+	int socket_type;
 	bool create;
 	bool connected;
 	bool abandoned;
@@ -49,6 +50,7 @@ protected:
 
 public:
 	UseSocket(bool c);
+	UseSocket(int t, bool c);
 	virtual ~UseSocket(void);
 	
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -64,6 +66,9 @@ public:
 
 	socklen_t& GetSocklen(void) const;
 	virtual struct sockaddr *GetSockaddr(void) const = 0;
+
+	ssize_t send(const void *buf, size_t len, int flags);
+	ssize_t recv(void *buf, size_t len, int flags);
 };
 
 class UseInetSocket : public UseSocket {
@@ -71,9 +76,12 @@ protected:
 	std::string host;
  	unsigned short int port;
 	struct sockaddr_in addr;
-	
+
+	void UseInetSocket_int(void);
+
 public:
 	UseInetSocket(const std::string& h, unsigned short p, bool c);
+	UseInetSocket(const std::string& h, unsigned short p, int t, bool c);
 	virtual ~UseInetSocket(void);
 	
 	std::ostream& Restart(std::ostream& out) const;
@@ -87,9 +95,12 @@ class UseLocalSocket : public UseSocket {
 protected:
 	std::string path;
 	struct sockaddr_un addr;
-	
+
+	void UseLocalSocket_int(void);
+
 public:
 	UseLocalSocket(const std::string& p, bool c);
+	UseLocalSocket(const std::string& p, int t, bool c);
 	virtual ~UseLocalSocket(void);
 	
 	std::ostream& Restart(std::ostream& out) const;

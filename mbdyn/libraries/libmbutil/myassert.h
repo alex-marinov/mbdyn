@@ -198,15 +198,15 @@ extern std::ostream& _Out(std::ostream& out, const char* file, const int line);
     do { \
         if (::debug_level & MYDEBUG_FNAMES) { \
             if (::debug_level & MYDEBUG_PRETTYFN) { \
-                DEBUGCOUT("Entering <" << __PRETTY_FUNCTION__ << ">" << std::endl); \
+                DEBUGCOUT("Entering `" << __PRETTY_FUNCTION__ << "'" << std::endl); \
             } else { \
-                DEBUGCOUT("Entering <" << __FUNCTION__ << ">" << std::endl); \
+                DEBUGCOUT("Entering `" << __FUNCTION__ << "'" << std::endl); \
             } \
         } \
     } while (0)
 #else /* !__GNUC__ */
 #define DEBUGCOUTFNAME(fname) \
-    DEBUGLCOUT(MYDEBUG_FNAMES, "Entering <" << fname << ">" << std::endl)
+    DEBUGLCOUT(MYDEBUG_FNAMES, "Entering `" << fname << "'" << std::endl)
 #endif /* !__GNUC__ */
 
 #else /* !DEBUG */

@@ -42,6 +42,7 @@ struct s2s_sockaddr_t {
 		struct sockaddr_in	ms_addr_inet;
 		struct sockaddr_un	ms_addr_local;
 	}	ms_addr;
+	socklen_t	ms_len;
 };
 
 enum {
@@ -57,13 +58,14 @@ struct s2s_t {
 	// path and [host:][port] are mutually exclusive
 	const char	*host;
 	int	port;
+	s2s_sockaddr_t	addr;
 	int	create;
 	int	block;
 
 	// internal data
 	int	sock;
 
-	char	buf[S2S_BUFSIZE];
+	std::string buf;
 	std::vector<double>	dbuf;
 	bool	stream2socket;
 	const char	*progname;

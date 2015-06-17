@@ -66,7 +66,7 @@ f_send(0)
 	if (create) {
 		ASSERT(node == 0);
 
-		if (rtmbdyn_rt_mbx_init(name.c_str(), pSC->GetSize(), &mbx)) {
+		if (rtmbdyn_rt_mbx_init(name.c_str(), pSC->GetOutSize(), &mbx)) {
 			silent_cerr("RTMBDyn mailbox(" << name << ") "
 				"init failed" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -118,8 +118,8 @@ RTMBDynOutElem::AfterConvergence(const VectorHandler& X,
 {
 	pSC->Prepare();
 
-	int rc = f_send(node, -port, mbx, pSC->GetBuf(), pSC->GetSize());
-	if (rc != pSC->GetSize()) {
+	int rc = f_send(node, -port, mbx, (void *)pSC->GetOutBuf(), pSC->GetOutSize());
+	if (rc != pSC->GetOutSize()) {
 		/* FIXME: error */
 	}
 }

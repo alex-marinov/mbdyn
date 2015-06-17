@@ -201,7 +201,7 @@ mbc_init(mbc_t *mbc, struct sockaddr *addr, socklen_t socklen)
 int
 mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port)
 {
-	struct sockaddr_in addr;
+	struct sockaddr_in addr = { 0 };
 
 	if (host == NULL) {
 		fprintf(stderr, "host must be defined\n");
@@ -226,7 +226,7 @@ mbc_inet_init(mbc_t *mbc, const char *host, short unsigned port)
 int
 mbc_unix_init(mbc_t *mbc, const char *path)
 {
-	struct sockaddr_un addr;
+	struct sockaddr_un addr = { 0 };
 
 	if (path == NULL) {
 		fprintf(stderr, "path must be defined\n");

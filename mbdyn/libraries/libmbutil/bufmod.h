@@ -31,57 +31,30 @@
 
 /* socket driver */
 
-#ifndef STREAMDRIVE_H
-#define STREAMDRIVE_H
+#ifndef BUFMOD_H
+#define BUFMOD_H
 
-#include "filedrv.h"
+/* BufCast - begin */
 
-/* StreamDrive - begin */
-
-class StreamDrive : public FileDrive {
-public:
-	class Modifier {
-	public:
-		Modifier(void);
-		virtual ~Modifier(void);
-		virtual size_t GetSize(void) const = 0;
-		virtual void Modify(doublereal *out, const void *in) const = 0;
-	};
-
-	class Copy : public StreamDrive::Modifier {
-	protected:
-		integer m_iND;
-
-	public:
-		Copy(integer iND);
-		size_t GetSize(void) const;
-		void Modify(doublereal *out, const void *in) const;
-	};
-
+class BufCast {
 protected:
-	/* MBox buffer */
-	int size;
-	std::vector<char> buf;
-
-	bool create;
-
-	const Modifier *pMod;
+	size_t m_offset;
 
 public:
-   	StreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
-		const std::string& sFileName,
-		integer nd, const std::vector<doublereal>& v0,
-		bool c, StreamDrive::Modifier *pmod);
+	BufCast(size_t offset);
+	virtual ~BufCast(void);
 
-   	virtual ~StreamDrive(void);
-	void SetModifier(const Modifier *p);
+	virtual size_t size(void) const = 0;
+	virtual size_t offset(void) const = 0;
+	virtual doublereal cast(const void *p) const = 0;
+	virtual void uncast(void *pTo, doublereal d) const = 0;
+	virtual BufCast *copy(size_t offset) const = 0;
 };
 
-extern StreamDrive::Modifier *
-ReadStreamDriveModifier(MBDynParser& HP, integer nDrives);
+extern void
+ReadBufCast(HighParser& HP, std::vector<BufCast *>& data);
 
-/* StreamDrive - end */
+/* BufCast - end */
 
-#endif // STREAMDRIVE_H
+#endif // BUFMOD_H
 

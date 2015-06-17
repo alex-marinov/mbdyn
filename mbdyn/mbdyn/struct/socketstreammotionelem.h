@@ -46,8 +46,9 @@ protected:
 	std::vector<const StructNode *> nodes;
 
 public:
-	StreamContentMotion( unsigned uFlags,
-		std::vector<const StructNode *>& n);
+	StreamContentMotion(unsigned uFlags,
+		std::vector<const StructNode *>& n,
+	StreamContent::Modifier *pMod);
 	virtual ~StreamContentMotion(void);
 
 	void Prepare(void);

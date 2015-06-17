@@ -3785,12 +3785,15 @@ MathParser::stmt(void)
 
 					} else {
 						if (v->GetType() != type) {
-							silent_cerr("warning, skipping redefinition of \"" << name.c_str()
-								<< "\" from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type) << " at line " << mbdyn_get_line_data() << std::endl);
+							silent_cerr("warning, skipping redefinition of \"" << name.c_str() << "\""
+								<< " from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type)
+								<< " (orig=" << v->GetVal() << ", unchanged; new=" << d << ")"
+								<< " at line " << mbdyn_get_line_data() << std::endl);
 
 						} else {
-							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << name.c_str()
-								<< "\" at line " << mbdyn_get_line_data() << std::endl);
+							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << name.c_str() << "\""
+								<< " (orig=" << v->GetVal() << ", unchanged; new=" << d << ")"
+								<< " at line " << mbdyn_get_line_data() << std::endl);
 						}
 					}
 				}

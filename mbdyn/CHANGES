@@ -17,9 +17,14 @@ MBDyn 1.X-Devel
 		- rod without offset now works with displacement nodes
 		- added several modules (Reinhard Resch)
 		- added autodiff vectorialization (Reinhard Resch)
+		- added support for OpenBLAS (Reinhard Resch)
+		- added support for UDP to socket-based communication
+		- added configurable types to socket-based communication
 	Backward compatibility issues:
 	Known issues:
-		- nested calls to string drive callers deadlock
+		- aeromodal with rigid-body motion needs work
+		- deformable displacement joint initial assembly broken
+		- modal joint initial assembly with initial modal disp. broken
 	Bug fixes:
 		- fixed build with RTAI configured without inlining
 		- fixed math parser bug with function calls in expressions
@@ -27,6 +32,7 @@ MBDyn 1.X-Devel
 		- fixed echo of modal joint record 12 (noted by Timothy Jim)
 		- fixed Windows build of mbdyn_util_oct.oct (Reinhard Resch)
 		- fixed mode label in ModalExt output (noted by Timothy Jim)
+		- fixed (multithread) build in MinGW64 (Reinhard Resch)
 
 MBDyn 1.6.0
 	Enhancements:

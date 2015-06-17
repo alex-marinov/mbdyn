@@ -42,9 +42,10 @@ RTMBDynInDrive::RTMBDynInDrive(unsigned int uL,
 	const std::string& sFileName,
 	const std::string& host,
 	integer nd, const std::vector<doublereal>& v0,
+	StreamDrive::Modifier *pMod,
 	bool c, unsigned long /*int*/ n,
 	bool bNonBlocking)
-: StreamDrive(uL, pDH, sFileName, nd, v0, c),
+: StreamDrive(uL, pDH, sFileName, nd, v0, c, pMod),
 host(host), node(n), port(-1), bNonBlocking(bNonBlocking),
 mbx(NULL)
 {
@@ -98,9 +99,9 @@ RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 	 * store in pdVal the values of all the channels
 	 * served by the mailbox
 	 */
-	int rc = f_receive(node, port, mbx, (void *)buf, size);
+	int rc = f_receive(node, port, mbx, (void *)&buf[0], size);
 	if (!rc) {
-		doublereal *rbuf = (doublereal *)buf;
+		doublereal *rbuf = (doublereal *)&buf[0];
 		for (int i = 1; i <= iNumDrives; i++) {
 			pdVal[i] = rbuf[i-1];
 		}	
@@ -273,11 +274,17 @@ ReadRTMBDynInDrive(const DataManager *pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 
+	StreamDrive::Modifier *pMod(0);
+	if (HP.IsKeyWord("modifier")) {
+		pMod = ReadStreamDriveModifier(HP, idrives);
+	}
+
 	Drive* pDr = NULL;
 	SAFENEWWITHCONSTRUCTOR(pDr, RTMBDynInDrive,
 			RTMBDynInDrive(uLabel, 
 			pDM->pGetDrvHdl(),
-			name, host, idrives, v0, create, node, bNonBlocking));
+			name, host, idrives, v0, pMod,
+			create, node, bNonBlocking));
 	
 	return pDr;
 }

@@ -51,38 +51,31 @@
 #include <errno.h>
 #include <sys/poll.h>
 
+#include "sock.h"
+
 int
 mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int dobind, int *perrno)
 {
-   	int sock = -1;
-	struct sockaddr_in tmpname;
+	return mbdyn_make_inet_socket_type(name, hostname, port, MBDYN_DEFAULT_SOCKET_TYPE, dobind, perrno);
+}
 
-	if (name == NULL) {
-		name = &tmpname;
-	}
-
-	if (perrno) {
-		*perrno = 0;
-	}
-
-   	/* Give the socket a name. */
-   	name->sin_family = AF_INET;
-   	name->sin_port = htons(port);
-	
+int
+mbdyn_host2inet_addr(struct sockaddr_in *name, const char *hostname, unsigned short int port, int socket_type, int *perrno)
+{
 	if (hostname) {
 #if defined(HAVE_GETADDRINFO)
-		char portbuf[sizeof("65535")];
+		char portbuf[sizeof("65535") + 1];
 		struct addrinfo hints = { 0 }, *res = NULL;
 		int rc;
 
-		rc = snprintf(portbuf, sizeof(portbuf), "%d", port);
+		rc = snprintf(portbuf, sizeof(portbuf), "%d", (int)port);
 		if (rc > STRLENOF("65535")) {
 			return -4;
 		}
 
 		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_socktype = socket_type;
 		rc = getaddrinfo(hostname, portbuf, &hints, &res);
 		if (rc != 0) {
 			*perrno = errno;
@@ -118,8 +111,85 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
 		name->sin_addr.s_addr = htonl(INADDR_ANY);
 	}
 
+	return 0;
+}
+
+int
+mbdyn_make_inet_socket_type(struct sockaddr_in *name, const char *hostname,
+	unsigned short int port, int socket_type, int dobind, int *perrno)
+{
+   	int sock = -1;
+	struct sockaddr_in tmpname = { 0 };
+
+	if (name == NULL) {
+		name = &tmpname;
+	}
+
+	if (perrno) {
+		*perrno = 0;
+	}
+
+   	/* Give the socket a name. */
+   	name->sin_family = AF_INET;
+   	name->sin_port = htons(port);
+
+#if 0
+	if (hostname) {
+#if defined(HAVE_GETADDRINFO)
+		char portbuf[sizeof("65535")];
+		struct addrinfo hints = { 0 }, *res = NULL;
+		int rc;
+
+		rc = snprintf(portbuf, sizeof(portbuf), "%d", (int)port);
+		if (rc > STRLENOF("65535")) {
+			return -4;
+		}
+
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = socket_type;
+		rc = getaddrinfo(hostname, portbuf, &hints, &res);
+		if (rc != 0) {
+			*perrno = errno;
+			return -3;
+		}
+
+		name->sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
+
+		freeaddrinfo(res);
+
+#elif defined(HAVE_GETHOSTBYNAME)
+		struct hostent *hostinfo;
+
+		/* TODO: use getnameinfo() if available */
+		hostinfo = gethostbyname(hostname);
+		if (hostinfo == NULL) {
+			*perrno = h_errno;
+			return -3;
+		}
+
+		name->sin_addr = *(struct in_addr *)hostinfo->h_addr;
+#elif defined(HAVE_INET_ATON)
+		struct in_addr addr;
+		if (inet_aton(hostname, &addr) == 0) {
+			*perrno = errno;
+			return -3;
+		}
+		name->sin_addr = addr.s_addr;
+#else
+		return -3;
+#endif
+	} else {
+		name->sin_addr.s_addr = htonl(INADDR_ANY);
+	}
+#endif
+
+	int rc = mbdyn_host2inet_addr(name, hostname, port, socket_type, perrno);
+	if (rc != 0) {
+		return rc;
+	}
+
    	/* Create the socket. */
-   	sock = socket(PF_INET, SOCK_STREAM, 0);
+   	sock = socket(PF_INET, socket_type, 0);
    	if (sock < 0) {
 		if (perrno) {
 			*perrno = errno;
@@ -128,7 +198,6 @@ mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
    	}
 
 	if (dobind) {
-		int rc = -1;
 		rc = bind(sock, (struct sockaddr *) name, sizeof(struct sockaddr_in));
 		if (rc < 0) {
 			if (perrno) {
@@ -145,9 +214,16 @@ int
 mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 	int dobind, int *perrno)
 {
+	return mbdyn_make_named_socket_type(name, path, MBDYN_DEFAULT_SOCKET_TYPE, dobind, perrno);
+}
+
+int
+mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
+	int socket_type, int dobind, int *perrno)
+{
    	int sock = -1;
 
-   	struct sockaddr_un tmpname;
+   	struct sockaddr_un tmpname = { 0 };
 	socklen_t size;
 
 	if (name == NULL) {
@@ -159,7 +235,7 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 	}
 
    	/* Create the socket. */
-   	sock = socket(PF_LOCAL, SOCK_STREAM, 0);
+   	sock = socket(PF_LOCAL, socket_type, 0);
    	if (sock < 0) {
 		if (perrno) {
 			*perrno = errno;
@@ -176,11 +252,15 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 #else /* HAVE_OFFSETOF */
 	size = sizeof(struct sockaddr_un);
 #endif /* !HAVE_OFFSETOF */
-   	if (dobind && bind(sock, (struct sockaddr *) name, size) < 0) {
-		if (perrno) {
-			*perrno = errno;
+
+   	if (dobind) {
+		int rc = bind(sock, (struct sockaddr *)name, size);
+		if (rc < 0) {
+			if (perrno) {
+				*perrno = errno;
+			}
+      			return -2;
 		}
-      		return -2;
    	}
 
    	return sock;

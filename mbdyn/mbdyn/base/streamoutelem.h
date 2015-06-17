@@ -79,16 +79,47 @@ public:
 		LASTTYPE
 	};
 
+	class Modifier {
+	public:
+		virtual ~Modifier(void);
+
+		virtual void Set(size_t size, const char *buf) = 0;
+		virtual void Modify(void) = 0;
+
+		virtual const void *GetOutBuf(void) const = 0;
+		virtual int GetOutSize(void) const = 0;
+	};
+
+	class Copy : public Modifier {
+	protected:
+		size_t m_size;
+		const char *m_outbuf;
+
+	public:
+		Copy(size_t size, const char *buf);
+
+		void Set(size_t size, const char *buf);
+		void Modify(void);
+
+		virtual const void *GetOutBuf(void) const;
+		virtual int GetOutSize(void) const;
+	};
+
 protected:
 	/* Stream buffer */
 	std::vector<char> buf;
 
+	Modifier *m_pMod;
+
 public:
-	StreamContent(void);
+	StreamContent(size_t size, Modifier *pMod);
 	virtual ~StreamContent(void);
 
 	void *GetBuf(void) const;
 	int GetSize(void) const;
+
+	const void *GetOutBuf(void) const;
+	int GetOutSize(void) const;
 
 	virtual void Prepare(void) = 0;
 	virtual unsigned GetNumChannels(void) const = 0;
@@ -106,7 +137,8 @@ protected:
 	std::vector<ScalarValue *> Values;
 
 public:
-	StreamContentValue(const std::vector<ScalarValue *>& v);
+	StreamContentValue(const std::vector<ScalarValue *>& v,
+		StreamContent::Modifier *pMod);
 	virtual ~StreamContentValue(void);
 
 	void Prepare(void);

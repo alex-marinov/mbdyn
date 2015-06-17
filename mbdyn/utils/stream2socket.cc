@@ -69,10 +69,10 @@ main(int argc, char *argv[])
 	}
 
 	if (s2s.nChannels == 0) {
-		std::cin.getline(s2s.buf, sizeof(s2s.buf));
+		std::string buf;
+		std::getline(std::cin, buf);
 
-		std::istringstream	str(s2s.buf);
-
+		std::istringstream	str(buf);
 		for (;; s2s.nChannels++) {
 			double	d;
 

@@ -1561,15 +1561,16 @@ Solver::~Solver(void)
 	if (pX) {
 		SAFEDELETE(pX);
 	}
+
 	if (pXPrime) {
 		SAFEDELETE(pXPrime);
 	}
 
-	if (pdWorkSpace != NULL) {
+	if (pdWorkSpace) {
 		SAFEDELETEARR(pdWorkSpace);
 	}
 
-	if (pDM != NULL) {
+	if (pDM) {
 		SAFEDELETE(pDM);
 	}
 

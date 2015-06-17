@@ -42,11 +42,19 @@ typedef int socklen_t;
 
 extern int
 mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
-		unsigned short int port, int dobind, int *perror);
+	unsigned short int port, int dobind, int *perror);
+
+extern int
+mbdyn_make_inet_socket_type(struct sockaddr_in *name, const char *hostname,
+	unsigned short int port, int socket_type, int dobind, int *perror);
 
 extern int
 mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
-		int dobind, int *perror);
+	int dobind, int *perror);
+
+extern int
+mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
+	int socket_type, int dobind, int *perror);
 
 /* These have been erased from FreeBSD's headers, so we have to 
  * work around with this ugly hack. This is not exactly the same,
@@ -60,6 +68,9 @@ mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 #ifndef MSG_NOSIGNAL
 #define MSG_NOSIGNAL SO_NOSIGPIPE
 #endif /* ! MSG_NOSIGNAL */
+
+/* MBDyn's default socket type is tcp (SOCK_STREAM) (not udp, SOCK_DGRAM) */
+#define MBDYN_DEFAULT_SOCKET_TYPE SOCK_STREAM
 
 #ifdef __cplusplus
 }

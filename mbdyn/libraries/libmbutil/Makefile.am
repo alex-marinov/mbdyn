@@ -6,6 +6,8 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libmbutil.la
 
 libmbutil_la_SOURCES = \
+bufmod.cc \
+bufmod.h \
 cleanup.cc \
 cleanup.h \
 clock_time.cc \

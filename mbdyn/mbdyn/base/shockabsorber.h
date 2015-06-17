@@ -286,7 +286,7 @@ public:
 		
 		if (HP.IsKeyWord("epsilon" "min")) {
 			EpsMin = HP.GetReal(defaultEpsMin);
-			if ( EpsMin >= EpsMax) {
+			if (EpsMin >= EpsMax) {
 				silent_cerr("line " << HP.GetLineData()
 					<< ": epsilon min must be less"
 					" than epsilon max" << std::endl);

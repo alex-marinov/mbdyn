@@ -175,8 +175,9 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 		outFile << std::endl;
 	}
 
-	int rc = send(pUS->GetSock(), pSC->GetBuf(), pSC->GetSize(), send_flags);
-	if (rc == -1 || rc != pSC->GetSize()) {
+	// int rc = send(pUS->GetSock(), pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
+	ssize_t rc = pUS->send(pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
+	if (rc == -1 || rc != pSC->GetOutSize()) {
 		int save_errno = errno;
 
 		if (save_errno == EAGAIN && (send_flags & MSG_DONTWAIT)) {
@@ -336,6 +337,26 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			<< std::endl);
 	}
 
+	int socket_type = SOCK_STREAM;
+	if (HP.IsKeyWord("socket" "type")) {
+		if (HP.IsKeyWord("udp")) {
+			socket_type = SOCK_DGRAM;
+
+		} else if (!HP.IsKeyWord("tcp")) {
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"invalid socket type "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if ((socket_type == SOCK_DGRAM) && bCreate) {
+		silent_cerr("SocketStreamElem(" << uLabel << "): "
+			"socket type=upd incompatible with create=yes "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
 	bool bNonBlocking = false;
 	bool bNoSignal = false;
 	bool bSendFirst = true;
@@ -491,10 +512,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 					<< HP.GetLineData() << std::endl);
 			}
       
-			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, bCreate));
+			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, socket_type, bCreate));
 
 		} else {
-			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), bCreate));
+			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), socket_type, bCreate));
 		}
 
 		if (bCreate) {

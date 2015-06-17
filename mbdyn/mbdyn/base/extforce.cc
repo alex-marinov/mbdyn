@@ -886,13 +886,13 @@ ReadExtSocketHandler(DataManager* pDM,
 #ifdef USE_SOCKET
 	ExtFileHandlerBase *pEFH = 0;
 
-	bool create = false;
+	bool bCreate = false;
 	unsigned short int port = (unsigned short int)-1; 
 	std::string host;
 	std::string path;
 
 	if (HP.IsKeyWord("create")) {
-		if (!HP.GetYesNo(create)) {
+		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("ExtSocketHandler"
 				"(" << uLabel << "): "
 				"\"create\" must be either \"yes\" or \"no\" "
@@ -972,12 +972,32 @@ ReadExtSocketHandler(DataManager* pDM,
 
 		host = h;
 
-	} else if (path.empty() && !create) {
+	} else if (path.empty() && !bCreate) {
 		silent_cerr("ExtSocketHandler"
 			"(" << uLabel << "): "
 			"host undefined "
 			"at line " << HP.GetLineData()
 			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	int socket_type = SOCK_STREAM;
+	if (HP.IsKeyWord("socket" "type")) {
+		if (HP.IsKeyWord("udp")) {
+			socket_type = SOCK_DGRAM;
+
+		} else if (!HP.IsKeyWord("tcp")) {
+			silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
+				"invalid socket type "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	if ((socket_type == SOCK_DGRAM) && !bCreate) {
+		silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
+			"socket type=upd incompatible with create=no "
+			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -1028,13 +1048,13 @@ ReadExtSocketHandler(DataManager* pDM,
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, create));
+		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, socket_type, bCreate));
 
 	} else {
-		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, create));
+		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, socket_type, bCreate));
 	}
 
-	if (create) {
+	if (bCreate) {
 		pDM->RegisterSocketUser(pUS);
 
 	} else {

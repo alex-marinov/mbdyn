@@ -38,8 +38,9 @@
 /* StreamContentMotion - begin */
 
 StreamContentMotion::StreamContentMotion(unsigned uFlags,
-	std::vector<const StructNode *>& n)
-: uFlags(uFlags), nodes(n)
+	std::vector<const StructNode *>& n,
+	StreamContent::Modifier *pMod)
+: StreamContent(0, pMod), uFlags(uFlags), nodes(n)
 {
 	/* FIXME: size depends on the type of the output signals */
 	ASSERT(uFlags != 0);
@@ -60,6 +61,7 @@ StreamContentMotion::StreamContentMotion(unsigned uFlags,
 
 	buf.resize(size);
 	memset(&buf[0], 0, size);
+	m_pMod->Set(size, &buf[0]);
 }
 
 StreamContentMotion::~StreamContentMotion(void)
@@ -140,6 +142,8 @@ StreamContentMotion::Prepare(void)
 			curbuf += 3*sizeof(doublereal);
 		}
 	}
+
+	m_pMod->Modify();
 
 	ASSERT(curbuf == &buf[buf.size()]);
 }

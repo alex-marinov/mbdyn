@@ -60,8 +60,20 @@
 
 UseSocket::UseSocket(bool c)
 : sock(-1),
+socket_type(MBDYN_DEFAULT_SOCKET_TYPE),
 create(c),
 connected(false),
+abandoned(false),
+socklen(0)
+{
+	NO_OP;
+}
+
+UseSocket::UseSocket(int t, bool c)
+: sock(-1),
+socket_type(t),
+create(c),
+connected(false), // t == SOCK_DGRAM),
 abandoned(false),
 socklen(0)
 {
@@ -72,25 +84,27 @@ UseSocket::~UseSocket(void)
 {
 	if (sock != -1) {
 		int status;
-
-		status = shutdown(sock, SHUT_RDWR);
-		int save_errno = errno;
 		time_t t = time(NULL);
-		if (status == 0) {
-			pedantic_cout("UseSocket::~UseSocket: shutdown: "
-				"socket=" << sock
-				<< " status=" << status
-				<< " time=" << asctime(localtime(&t))
-				<< std::endl);
 
-		} else {
-			char *msg = strerror(save_errno);
-			silent_cerr("UseSocket::~UseSocket: shutdown "
-				"socket=" << sock
-				<< " status=" << status
-				<< " time=" << asctime(localtime(&t))
-				<< " error=" << save_errno << " (" << msg << ")"
-				<< std::endl);
+		if (socket_type == SOCK_STREAM) {
+			status = shutdown(sock, SHUT_RDWR);
+			int save_errno = errno;
+			if (status == 0) {
+				pedantic_cout("UseSocket::~UseSocket: shutdown: "
+					"socket=" << sock
+					<< " status=" << status
+					<< " time=" << asctime(localtime(&t))
+					<< std::endl);
+
+			} else {
+				char *msg = strerror(save_errno);
+				silent_cerr("UseSocket::~UseSocket: shutdown "
+					"socket=" << sock
+					<< " status=" << status
+					<< " time=" << asctime(localtime(&t))
+					<< " error=" << save_errno << " (" << msg << ")"
+					<< std::endl);
+			}
 		}
 
 		status = close(sock);
@@ -105,9 +119,24 @@ UseSocket::~UseSocket(void)
 std::ostream&
 UseSocket::Restart(std::ostream& out) const
 {
+	const char *sType;
+	switch (socket_type) {
+	case SOCK_STREAM:
+		sType = "tcp";
+		break;
+	case SOCK_DGRAM:
+		sType = "udp";
+		break;
+	default:
+		ASSERT(0);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	out << ", socket type, " << sType;
+
 	if (create) {
 		out << ", create, yes";
 	}
+
 	return out;
 }
 
@@ -144,6 +173,10 @@ UseSocket::PostConnect(void)
 void
 UseSocket::Connect(void)
 {
+	if (socket_type != SOCK_STREAM) {
+		return;
+	}
+
 	// FIXME: retry strategy should be configurable
 	int count = 600;
 	mbsleep_t timeout;
@@ -219,34 +252,81 @@ UseSocket::GetSocklen(void) const
 	return socklen;
 }
 
+ssize_t
+UseSocket::send(const void *buf, size_t len, int flags)
+{
+	switch (socket_type) {
+	case SOCK_STREAM:
+		return ::send(sock, buf, len, flags);
+
+	case SOCK_DGRAM:
+		return ::sendto(sock, buf, len, flags, GetSockaddr(), GetSocklen());
+
+	default:
+		ASSERT(0);
+	}
+
+	return -1;
+}
+
+ssize_t
+UseSocket::recv(void *buf, size_t len, int flags)
+{
+	switch (socket_type) {
+	case SOCK_STREAM:
+		return ::recv(sock, buf, len, flags);
+
+	case SOCK_DGRAM:
+		// struct sockaddr src_addr = { 0 };
+		// socklen_t addrlen = 0;
+		// return ::recvfrom(sock, buf, len, flags, &src_addr, &addrlen);
+		return ::recvfrom(sock, buf, len, flags, 0, 0);
+
+	default:
+		ASSERT(0);
+	}
+
+	return -1;
+}
+
 UseInetSocket::UseInetSocket(const std::string& h, unsigned short p, bool c)
 : UseSocket(c),
 host(h),
 port(p)
 {
+	UseInetSocket_int();
+}
+
+UseInetSocket::UseInetSocket(const std::string& h, unsigned short p, int t, bool c)
+: UseSocket(t, c),
+host(h),
+port(p)
+{
+	UseInetSocket_int();
+}
+
+void
+UseInetSocket::UseInetSocket_int(void)
+{
    	ASSERT(port > 0);
 
 	socklen = sizeof(addr);
 
-	char buf[256];
-
 	/* if 0, means INET on localhost */
-	if (h.empty()) {
+	if (host.empty()) {
 		host = DEFAULT_HOST;
 	}
 
-	snprintf(buf, sizeof(buf), "%s:%u", host.c_str(), port);
-	
 	if (create) {
 		int			save_errno;
 		
-   		sock = mbdyn_make_inet_socket(0, host.c_str(), port,
+   		sock = mbdyn_make_inet_socket_type(0, host.c_str(), port, socket_type,
 			1, &save_errno);
 		
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseInetSocket(" << buf << "): "
+      			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"socket() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
@@ -255,31 +335,33 @@ port(p)
    		} else if (sock == -2) {
 			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseInetSocket(" << buf << "): "
+      			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"bind() failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
    		} else if (sock == -3) {
-      			silent_cerr("UseInetSocket(" << buf << "): "
+      			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"illegal host name \"" << host << "\" "
 				"(" << save_errno << ")"
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
 
-   		if (listen(sock, 1) < 0) {
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
+		if (socket_type == SOCK_STREAM) {
+   			if (listen(sock, 1) < 0) {
+				save_errno = errno;
+				const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseInetSocket(" << buf << "): "
-				"listen() failed "
-				"(" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+      				silent_cerr("UseInetSocket(" << host << ":" << port << "): "
+					"listen() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+      				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
    		}
-	}	 
+	}
 }
 
 UseInetSocket::~UseInetSocket(void)
@@ -305,6 +387,7 @@ UseInetSocket::Connect(void)
 		return;
 	}
 
+#if 0
 	sock = socket(PF_INET, SOCK_STREAM, 0);
 	if (sock < 0) {
 		silent_cerr("UseSocket(): socket() failed "
@@ -320,6 +403,18 @@ UseInetSocket::Connect(void)
 				"\"" << host << ":" << port << "\""
 				<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);	
+	}
+#endif
+
+	int save_errno;
+	sock = mbdyn_make_inet_socket_type(&addr, host.c_str(), port, socket_type, 0, &save_errno);
+	if (sock < 0) {
+		const char	*err_msg = strerror(save_errno);
+
+		silent_cerr("UseInetSocket(" << host << ":" << port << "): socket() failed "
+			"(" << save_errno << ": " << err_msg << ")"
+			<< std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	pedantic_cout("connecting to inet socket "
@@ -350,14 +445,26 @@ UseInetSocket::GetSockaddr(void) const
 UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 : UseSocket(c), path(p)
 {
-	ASSERT(!p.empty());
+	UseLocalSocket_int();
+}
+
+UseLocalSocket::UseLocalSocket(const std::string& p, int t, bool c)
+: UseSocket(t, c), path(p)
+{
+	UseLocalSocket_int();
+}
+
+void
+UseLocalSocket::UseLocalSocket_int(void)
+{
+	ASSERT(!path.empty());
 
 	socklen = sizeof(addr);
 	
 	if (create) {
 		int		save_errno;
 
-		sock = mbdyn_make_named_socket(0, path.c_str(), 1, &save_errno);
+		sock = mbdyn_make_named_socket_type(0, path.c_str(), socket_type, 1, &save_errno);
 		
 		if (sock == -1) {
 			const char	*err_msg = strerror(save_errno);
@@ -377,16 +484,19 @@ UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    		}
-   		if (listen(sock, 1) < 0) {
-			save_errno = errno;
-			const char	*err_msg = strerror(save_errno);
 
-      			silent_cerr("UseLocalSocket(" << path << "): "
-				"listen() failed "
-				"(" << save_errno << ": " << err_msg << ")"
-				<< std::endl);
-      			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-   		}
+		if (socket_type == SOCK_STREAM) {
+   			if (listen(sock, 1) < 0) {
+				save_errno = errno;
+				const char	*err_msg = strerror(save_errno);
+
+      				silent_cerr("UseLocalSocket(" << path << "): "
+					"listen() failed "
+					"(" << save_errno << ": " << err_msg << ")"
+					<< std::endl);
+      				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+   			}
+		}
 	}	 
 }
 
@@ -410,8 +520,8 @@ UseLocalSocket::Connect(void)
 		return;
 	}
 
-	sock = socket(PF_LOCAL, SOCK_STREAM, 0);
-	if (sock < 0){
+	sock = socket(PF_LOCAL, socket_type, 0);
+	if (sock < 0) {
 		int save_errno = errno;
 		char *msg = strerror(save_errno);
 
