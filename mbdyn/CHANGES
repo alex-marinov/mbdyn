@@ -20,6 +20,7 @@ MBDyn 1.X-Devel
 		- added support for OpenBLAS (Reinhard Resch)
 		- added support for UDP to socket-based communication
 		- added configurable types to socket-based communication
+		- added Bezier-based rod joint (Andrea Zanoni)
 	Backward compatibility issues:
 	Known issues:
 		- aeromodal with rigid-body motion needs work
