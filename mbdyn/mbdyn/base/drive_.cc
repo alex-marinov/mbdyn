@@ -2894,10 +2894,10 @@ InitDriveData(void)
 	SetDriveData("variable" "step", new VariableStepDR);
 #ifdef USE_SOCKET
 	SetDriveData("socket", new SocketDR);
-#endif // USE_SOCKET
 	SetDriveData("socket" "stream", new StreamDR("socket stream"));
 	SetDriveData("rtai" "input", new StreamDR("RTAI input"));
 	SetDriveData("stream", new StreamDR);
+#endif // USE_SOCKET
 
 	/* NOTE: add here initialization of new built-in drives;
 	 * alternative ways to register new custom drives are:

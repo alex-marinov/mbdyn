@@ -48,7 +48,9 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#ifdef HAVE_SYS_IOCTL_H
 #include <sys/ioctl.h>
+#endif
 #include <stdio.h>
 }
 
@@ -240,7 +242,8 @@ MultiThreadDataManager::thread(void *p)
 			<< " starting..." << std::endl);
 	
 	bool bKeepGoing = true;
-
+    
+#ifdef HAVE_PTHREAD_SIGMASK
 	/* deal with signals ... */
 	sigset_t newset /* , oldset */ ;
 	sigemptyset(&newset);
@@ -248,6 +251,7 @@ MultiThreadDataManager::thread(void *p)
 	sigaddset(&newset, SIGINT);
 	sigaddset(&newset, SIGHUP);
 	pthread_sigmask(SIG_BLOCK, &newset, /* &oldset */ NULL);
+#endif
 
 	(void)mbdyn_task2cpu(arg->threadNumber - 1);
 

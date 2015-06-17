@@ -224,11 +224,14 @@ OL_ARG_WITH(ann,[  --with-ann              with ANN support],no,[auto yes no])
 OL_ARG_WITH(bullet,[  --with-bullet           with bullet support],no,[auto yes no])
 OL_ARG_WITH(blas,[
        math libraries:
-  --with-blas[={auto|goto|atlas|cblas|blas}]
-                          with (C)BLAS math library],auto,[auto goto atlas cblas blas])
+  --with-blas[={auto|goto|atlas|cblas|blas|openblas}]
+                          with (C)BLAS math library],auto,[auto goto atlas cblas blas openblas])
 AC_ARG_WITH(goto,[  --with-goto=lib(s)      with Goto BLAS implementation],[
 	ol_with_goto_lib="$withval"
 ],[ol_with_goto_lib=])
+AC_ARG_WITH(openblas,[  --with-openblas=lib(s)      with OpenBLAS implementation],[
+	ol_with_openblas_lib="$withval"
+],[ol_with_openblas_lib=])
 OL_ARG_WITH(ginac,[  --with-ginac            with GiNaC support
                           (ginac-config must be in $PATH)],auto,[auto yes no])
 OL_ARG_WITH(y12,[
@@ -429,6 +432,7 @@ AC_CHECK_HEADERS(sys/socket.h)
 AC_CHECK_HEADERS(sys/sysinfo.h)
 AC_CHECK_HEADERS(sys/times.h)
 AC_CHECK_HEADERS(sys/types.h)
+AC_CHECK_HEADERS(sys/ioctl.h)
 AC_CHECK_HEADERS(time.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(values.h)
@@ -1072,25 +1076,98 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Check for clock_gettime()
+dnl Check for POSIX realtime
 dnl
+if test $ol_with_rt != no ; then
+	save_LIBS="$LIBS"
+	try_RT_LIBS="-lrt"
+	LIBS="$try_RT_LIBS $LIBS"
+	AC_CHECK_LIB(rt,clock_nanosleep,[
+		have_librt=yes
+		RT_LIBS="$try_RT_LIBS"
+	],[have_librt=no])
 
-save_LIBS="$LIBS"
-try_LIBS="-lrt"
-LIBS="$try_LIBS $LIBS"
-AC_LANG_C
-AC_TRY_LINK([
-#include <time.h>
-			],[
-	struct timespec tp;
-	clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
-			],[use_clock_gettime=yes],[use_clock_gettime=no])
-			
-LIBS="$save_LIBS"
+	if test "$have_librt" = "yes" ; then
+		AC_DEFINE(USE_RT,1,[define to use POSIX realtime])
+        
+        dnl ----------------------------------------------------------------
+        dnl
+        dnl Check for clock_gettime()
+        dnl
+        AC_TRY_LINK([
+        #include <time.h>
+                    ],[
+            struct timespec tp;
+            clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
+                    ],[use_clock_gettime=yes],[use_clock_gettime=no])
+                    
+        if test $use_clock_gettime = yes; then
+            AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [define if clock_gettime can be used])
+        fi
+	elif test "$ol_with_rt" = "yes" ; then
+		AC_MSG_ERROR([POSIX realtime is not available])
+	fi
+    
+    LIBS="$save_LIBS"
+fi
 
-if test $use_clock_gettime = yes; then
-	AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [define if clock_gettime can be used])
-	RT_LIBS="$try_LIBS"
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for RTAI
+dnl
+use_rtai=no
+if test $ol_with_rtai != no ; then
+
+	dnl RTAI >= 3.0
+	AC_CHECK_HEADERS(rtai_lxrt.h)
+	AC_CHECK_HEADERS(rtai_netrpc.h)
+
+	if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
+			"$ac_cv_header_rtai_netrpc_h" = "yes" ; then
+		use_rtai=yes
+	else
+		dnl RTAI ~ 2.4.13
+		AC_CHECK_HEADERS(rtai_lxrt_user.h)
+		AC_CHECK_HEADERS(net_rpc.h)
+		if test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
+				"$ac_cv_header_net_rpc_h" = "yes" ; then
+			use_rtai=yes
+		else
+			rtai_mismatch=no
+			if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
+					"$ac_cv_header_rtai_netrpc_h" = "no" ; then
+				rtai_mismatch=yes
+			elif test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
+					"$ac_cv_header_net_rpc_h" = "no" ; then
+				rtai_mismatch=yes
+			fi
+
+			if test "$rtai_mismatch" = "yes" ; then
+				AC_MSG_WARN([possible RTAI version mismatch; YMMV])
+			fi
+
+		fi
+	fi
+
+	dnl FIXME: no longer used
+	dnl FIXME: is this correct for >= 3.0 as well?
+	dnl AC_CHECK_HEADERS(rtai_usp_posix.h)
+	dnl AC_CHECK_HEADERS(rtai_posix.h)
+	dnl if test "$ac_cv_header_rtai_usp_posix_h" = "no" -o \
+	dnl 		"$ac_cv_header_rtai_posix_h" = "no" ; then
+	dnl 	use_rtai=no
+	dnl fi
+	if test "$use_rtai" = "yes" ; then
+		AC_DEFINE(USE_RTAI,1,[define to use RTAI])
+	elif test "$ol_with_rtai" = "yes" ; then
+		AC_MSG_ERROR([RTAI is not available])
+	fi
+
+	RTAI_CONFIG=`which rtai-config`
+	RC=$?
+	if test $RC = 0 ; then
+		RTAI_LDFLAGS=`$RTAI_CONFIG --lxrt-ldflags`
+	fi
 fi
 
 dnl ----------------------------------------------------------------
@@ -1278,6 +1355,28 @@ if test "$ol_with_threads" != "no" ; then
 			return pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 			],[
 				AC_DEFINE(USE_PTHREAD_SETAFFINITY_NP,1,[define to use pthread_setaffinity_np])
+				AC_MSG_RESULT([yes])
+			],[
+				AC_MSG_RESULT([no])
+			])
+			LIBS="$save_LIBS"
+		fi
+    
+    	if test "$have_threads" = "yes" ; then
+			AC_MSG_CHECKING([for usable pthread_sigmask])
+			save_LIBS="$LIBS"
+			THREAD_LIBS="-lpthread"
+			LIBS="$save_LIBS $THREAD_LIBS"
+			AC_TRY_LINK([
+	#include <pthread.h>
+	#include <signal.h>
+			],[
+                sigset_t newset;
+                sigemptyset(&newset);
+                sigaddset(&newset, SIGTERM);
+                pthread_sigmask(SIG_BLOCK, &newset, NULL);
+			],[
+				AC_DEFINE(HAVE_PTHREAD_SIGMASK,1,[define to use pthread_sigmask])
 				AC_MSG_RESULT([yes])
 			],[
 				AC_MSG_RESULT([no])
@@ -1625,6 +1724,35 @@ if test $ol_with_blas != no ; then
 			LIBS="$save_LIBS"
 		fi
 	fi
+    
+	if test "${ol_with_openblas_lib:-set}" = set ; then
+		dnl in case one relies on a symbolic link named libopenblas.{a,so}
+		ol_with_openblas_lib="openblas"
+	fi
+
+	try_blas_LIBS=
+	if test "$have_blas" = "no" ; then
+		try_blas_LIBS="-l$ol_with_openblas_lib $FCLIBS $F77LIBS -lm"
+		if test "$ol_with_blas" = "auto" -o "$ol_with_blas" = "openblas" ; then
+			LIBS="$try_blas_LIBS $LIBS"
+
+			AC_TRY_LINK([
+	/* FIXME: some architectures might use different
+	 * naming conventions, e.g. uppercase, no underscore
+	 */
+	extern int dgemm_(void);
+			],[
+	/* test for blas */
+	return dgemm_();
+			],[have_blas="openblas"],[
+				have_blas="no"
+				if test "$ol_with_blas" = "openblas" ; then
+					AC_MSG_ERROR([OpenBLAS implementation not available])
+				fi
+			])
+			LIBS="$save_LIBS"
+		fi
+	fi    
 
 	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-lcblas -latlas -lm"
@@ -1696,7 +1824,7 @@ if test $ol_with_blas != no ; then
 			LIBS="$save_LIBS"
 		fi
 	fi
-
+    
 	dnl revert to original libraries; the BLAS libraries 
 	dnl will be explicitly added by those libraries that require them
 	if test "$have_blas" != "no" ; then
@@ -1792,13 +1920,38 @@ if test $ol_with_lapack != no ; then
 		],[have_lapack=yes
 		   have_lapack_=yes],[have_lapack=no
 				      have_lapack_=no])])
-	
-	if test $have_lapack != no ; then
-		AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
-		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
-		LAPACK_LIBS="$try_lapack_LIBS"
+	LIBS=$save_LIBS
+    
+	if test "$have_lapack" == "no"; then
+        if test "$have_lapack_" == "no"; then
+            save_LIBS="$LIBS"
+            try_lapack_LIBS="-lopenblas"
+            LIBS="$try_lapack_LIBS $BLAS_LIBS $FCLIBS $F77LIBS $save_LIBS"
+            AC_TRY_LINK([
+            extern double dgesvd(double *);
+                ],[
+            double i = 1., o;
+            o = dgesvd(&i);
+                ],[have_lapack=yes
+                   have_lapack_=no],[
+                AC_TRY_LINK([
+            extern double dgesvd_(double *);
+                    ],[
+            double i = 1., o;
+            o = dgesvd_(&i);
+                ],[have_lapack=yes
+                   have_lapack_=yes],[have_lapack=no
+                              have_lapack_=no])])
+            LIBS=$save_LIBS
+        fi
 	fi
 
+    if test "$have_lapack" != "no" ; then
+    	AC_DEFINE(USE_LAPACK,1,[define to use LAPACK libraries])
+		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
+		LAPACK_LIBS="$try_lapack_LIBS"
+    fi
+    
 	if test "$have_lapack_" = "yes" ; then
 		AC_TRY_LINK([
 	extern double dggev_(double *);
@@ -1902,7 +2055,7 @@ if test "$ol_with_umfpack" != "no" ; then
 		dnl check for SuiteSparseConfig
 		AC_MSG_CHECKING([for SuiteSparse_config library])
 		save_LIBS="$LIBS"
-		try_suitesparseconfig_LIBS="-lsuitesparseconfig -lrt -lm"
+		try_suitesparseconfig_LIBS="-lsuitesparseconfig -lm $RT_LIBS"
 		LIBS="$try_suitesparseconfig_LIBS $LIBS"
 
 		AC_TRY_LINK([
@@ -2154,7 +2307,7 @@ if test "$ol_with_klu" != "no" ; then
 		dnl check for SuiteSparseConfig
 		AC_MSG_CHECKING([for SuiteSparse_config library])
 		save_LIBS="$LIBS"
-		try_suitesparseconfig_LIBS="-lsuitesparseconfig -lrt -lm"
+		try_suitesparseconfig_LIBS="-lsuitesparseconfig $RT_LIBS -lm"
 		LIBS="$try_suitesparseconfig_LIBS $LIBS"
 
 		AC_TRY_LINK([
@@ -2854,86 +3007,6 @@ if test $ol_with_taucs != no ; then
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])	
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for POSIX realtime
-dnl
-if test $ol_with_rt != no ; then
-	save_LIBS="$LIBS"
-	try_RT_LIBS="-lrt"
-	LIBS="$try_RT_LIBS $LIBS"
-	AC_CHECK_LIB(rt,clock_nanosleep,[
-		have_librt=yes
-		RT_LIBS="$try_RT_LIBS"
-	],[have_librt=no])
-	LIBS="$save_LIBS"
-
-	if test "$have_librt" = "yes" ; then
-		AC_DEFINE(USE_RT,1,[define to use POSIX realtime])
-	elif test "$ol_with_rt" = "yes" ; then
-		AC_MSG_ERROR([POSIX realtime is not available])
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Check for RTAI
-dnl
-use_rtai=no
-if test $ol_with_rtai != no ; then
-
-	dnl RTAI >= 3.0
-	AC_CHECK_HEADERS(rtai_lxrt.h)
-	AC_CHECK_HEADERS(rtai_netrpc.h)
-
-	if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
-			"$ac_cv_header_rtai_netrpc_h" = "yes" ; then
-		use_rtai=yes
-	else
-		dnl RTAI ~ 2.4.13
-		AC_CHECK_HEADERS(rtai_lxrt_user.h)
-		AC_CHECK_HEADERS(net_rpc.h)
-		if test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
-				"$ac_cv_header_net_rpc_h" = "yes" ; then
-			use_rtai=yes
-		else
-			rtai_mismatch=no
-			if test "$ac_cv_header_rtai_lxrt_h" = "yes" -a \
-					"$ac_cv_header_rtai_netrpc_h" = "no" ; then
-				rtai_mismatch=yes
-			elif test "$ac_cv_header_rtai_lxrt_user_h" = "yes" -a \
-					"$ac_cv_header_net_rpc_h" = "no" ; then
-				rtai_mismatch=yes
-			fi
-
-			if test "$rtai_mismatch" = "yes" ; then
-				AC_MSG_WARN([possible RTAI version mismatch; YMMV])
-			fi
-
-		fi
-	fi
-
-	dnl FIXME: no longer used
-	dnl FIXME: is this correct for >= 3.0 as well?
-	dnl AC_CHECK_HEADERS(rtai_usp_posix.h)
-	dnl AC_CHECK_HEADERS(rtai_posix.h)
-	dnl if test "$ac_cv_header_rtai_usp_posix_h" = "no" -o \
-	dnl 		"$ac_cv_header_rtai_posix_h" = "no" ; then
-	dnl 	use_rtai=no
-	dnl fi
-	if test "$use_rtai" = "yes" ; then
-		AC_DEFINE(USE_RTAI,1,[define to use RTAI])
-	elif test "$ol_with_rtai" = "yes" ; then
-		AC_MSG_ERROR([RTAI is not available])
-	fi
-
-	RTAI_CONFIG=`which rtai-config`
-	RC=$?
-	if test $RC = 0 ; then
-		RTAI_LDFLAGS=`$RTAI_CONFIG --lxrt-ldflags`
 	fi
 fi
 

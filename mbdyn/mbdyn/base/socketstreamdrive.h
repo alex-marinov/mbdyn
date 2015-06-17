@@ -37,7 +37,7 @@
 
 #ifndef SOCKETSTREAMDRIVE_H
 #define SOCKETSTREAMDRIVE_H
-
+#ifdef USE_SOCKET
 #include "streamdrive.h"
 
 #ifdef USE_SOCKET
@@ -99,6 +99,6 @@ public:
 	virtual Drive *
 	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
 };
-
+#endif
 #endif /* SOCKETSTREAMDRIVE_H */
 

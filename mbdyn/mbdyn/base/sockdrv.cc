@@ -523,8 +523,6 @@ SocketDrive::Restart(std::ostream& out) const
    	return out << "SocketDrive not implemented yet" << std::endl;
 }
 
-#endif /* USE_SOCKET */
-
 /* legge i drivers tipo socket */
 
 Drive *
@@ -532,7 +530,6 @@ SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 {
 	Drive* pDr = NULL;
 
-#ifdef USE_SOCKET
 	integer idrives = HP.GetInt();
 	unsigned short int port = MBDynSocketDrivePort;
 	const char *path = NULL;
@@ -589,11 +586,6 @@ SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 	}
 
 	return pDr;
-
-#else /* ! USE_SOCKET */
-	silent_cerr("Sorry, socket drives not supported at line"
-		<< HP.GetLineData() << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif /* USE_SOCKET */
 }
 
+#endif /* USE_SOCKET */

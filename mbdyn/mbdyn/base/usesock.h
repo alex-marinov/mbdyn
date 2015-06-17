@@ -31,7 +31,7 @@
 
 #ifndef USESOCK_H
 #define USESOCK_H
-
+#ifdef USE_SOCKET
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
@@ -98,6 +98,6 @@ public:
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
 };
-
+#endif
 #endif /* USESOCK_H */
 
