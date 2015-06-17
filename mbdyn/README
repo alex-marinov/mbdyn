@@ -53,7 +53,7 @@ developers without CVS access:
 distribution:
 
 	- set build/version to the right number
-	- set MBDYN_DEVEL=no in configure.ac
+	# - set MBDYN_DEVEL=no in configure.ac
 	- follow the above instructions
 	- run "./configure" with the desired options
 	- add version and release date to NEWS
@@ -62,7 +62,8 @@ distribution:
 	- advance MBDYN_REL_ENG tag after running ./check_cvs.sh
 	- set MBDYN_REL_ENG_<version> tag
 	- run "make dist" && "make distcheck"
-	- update http://www.mbdyn.org/ web page
+	- update https://www.mbdyn.org/ web page
+	- announce on mailing lists
 
 
 
