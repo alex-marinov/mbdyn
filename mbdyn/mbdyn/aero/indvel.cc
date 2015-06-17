@@ -120,9 +120,16 @@ InducedVelocity::iGetPrivDataIdx(const char *s) const
 
 	unsigned int idx = 0;
 
+	// sanity check
+	if (s[0] == '\0' || s[1] == '\0' || s[2] != '\0' ) {
+		return 0;
+	}
+
 	switch (s[0]) {
 	case 'M':
 		idx += 3;
+		// fallthru
+
 	case 'T':
 		switch (s[1]) {
 		case 'x':
