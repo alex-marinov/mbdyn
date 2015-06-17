@@ -337,10 +337,18 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			<< std::endl);
 	}
 
-	int socket_type = SOCK_STREAM;
+#ifdef USE_SOCKET
+	const int sock_stream = SOCK_STREAM;
+	const int sock_dgram = SOCK_DGRAM;
+#else // ! USE_SOCKET
+	const int sock_stream = 1;
+	const int sock_dgram = 2;
+#endif // ! USE_SOCKET
+
+	int socket_type = sock_stream;
 	if (HP.IsKeyWord("socket" "type")) {
 		if (HP.IsKeyWord("udp")) {
-			socket_type = SOCK_DGRAM;
+			socket_type = sock_dgram;
 
 		} else if (!HP.IsKeyWord("tcp")) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -350,7 +358,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		}
 	}
 
-	if ((socket_type == SOCK_DGRAM) && bCreate) {
+	if ((socket_type == sock_dgram) && bCreate) {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"socket type=upd incompatible with create=yes "
 			"at line " << HP.GetLineData() << std::endl);
