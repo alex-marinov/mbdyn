@@ -195,7 +195,7 @@ StreamContentCopyCast::StreamContentCopyCast(size_t size, const char *buf, size_
 	std::vector<BufCast *>::const_iterator i = data.end();
 	ASSERT(i > data.begin());
 	--i;
-	size_t minsize = i->offset() + i->size();
+	size_t minsize = (*i)->offset() + (*i)->size();
 	ASSERT(outsize >= minsize);
 #endif
 }
