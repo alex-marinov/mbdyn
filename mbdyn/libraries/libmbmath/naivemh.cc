@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 2003-2014
+ * Copyright (C) 2003-2015
  * 
  * This code is a partial merge of HmFe and MBDyn.
  *
