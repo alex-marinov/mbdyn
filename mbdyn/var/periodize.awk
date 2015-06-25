@@ -2,7 +2,7 @@
 # $Header$
 # http://www.mbdyn.org
 # 
-# Copyright (C) 1996-2014
+# Copyright (C) 1996-2015
 # 
 # Pierangelo Masarati	<masarati@aero.polimi.it>
 # Paolo Mantegazza	<mantegazza@aero.polimi.it>

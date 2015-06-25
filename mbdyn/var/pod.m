@@ -30,7 +30,7 @@ function [S, Aout, B, mn, scl, ee, vv, X, H, BB, fm] = pod(A, ns, dt, uu, dec, o
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
 % 
-% Copyright (C) 1996-2014
+% Copyright (C) 1996-2015
 % 
 % Pierangelo Masarati	<masarati@aero.polimi.it>
 % Paolo Mantegazza	<mantegazza@aero.polimi.it>
