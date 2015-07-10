@@ -199,7 +199,7 @@ mbdyn_version(void)
 {
 	silent_cout(std::endl
 		<< "MBDyn - MultiBody Dynamics " << VERSION << std::endl
-		<< "compiled on " << __DATE__ << " at " << __TIME__
+		<< "configured on " << __DATE__ << " at " << __TIME__
 		<< std::endl);
 }
 

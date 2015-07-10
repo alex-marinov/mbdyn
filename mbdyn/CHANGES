@@ -13,6 +13,7 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 	Backward compatibility issues:
+		- output of "remarks" changed
 	Known issues:
 		- aeromodal with rigid-body motion needs work
 		- deformable displacement joint initial assembly broken

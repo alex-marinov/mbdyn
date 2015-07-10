@@ -341,36 +341,17 @@ public:
 bool
 RemarkDR::Read(HighParser& HP)
 {
-	if (!HP.IsArg()) {
-		silent_cerr("Parser error in RemarkDR::Read(),"
-			" arg(s) expected at line "
-			<< HP.GetLineData() << std::endl);
-		throw HighParser::ErrColonExpected(MBDYN_EXCEPT_ARGS);
-	}
+	silent_cout("line " << HP.GetLineData());
 
-	/* eat it anyway ;) */
-	const char *s = HP.GetStringWithDelims();
-	silent_cout("line " << HP.GetLineData() << ": " << s);
-	bool bFirst(true);
+	char prefix = ':';
 	while (HP.IsArg()) {
-		if (bFirst) {
-			silent_cout(": ");
-			bFirst = false;
-
-		} else {
-			silent_cout(", ");
-		}
-
-#if 0
-		bool bIgnore(false);
-		if (HP.IsKeyWord("ignore")) {
-			bIgnore = true;
-		}
-#endif
-
 		TypedValue v;
 		v = HP.GetValue(v);
-		silent_cout(v);
+		silent_cout(prefix << ' ' << v);
+
+		if (prefix == ':') {
+			prefix = ',';
+		}
 	}
 
 	silent_cout(std::endl);
