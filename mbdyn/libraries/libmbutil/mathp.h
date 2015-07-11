@@ -52,10 +52,6 @@
 
 class MathParser {
 public:
-	/* massimo numero di argomenti */
-	/* keep it updated */
-	static const Int max_nargs = 2;
-
 	enum ArgType {
 		/* AT_PRIVATE means only who created that type
 		 * is supposed to deal with it (the default);
