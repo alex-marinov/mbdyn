@@ -40,20 +40,20 @@ protected:
 	const DataManager *pDM;
 
 public:
-	typedef MathParser::MathArgPriv_t<const DataManager *> MathArgDM;
-	typedef MathParser::MathArgPriv_t<const ModelNameSpace *> MathArgMNS;
-	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
-	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
-	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
+	typedef MathArgPriv_t<const DataManager *> MathArgDM;
+	typedef MathArgPriv_t<const ModelNameSpace *> MathArgMNS;
+	typedef MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
+	typedef MathArgPriv_t<Node::Type> MathArgNode;
+	typedef MathArgPriv_t<Elem::Type> MathArgElem;
 
 protected:
-	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
+	typedef std::map<std::string, MathFunc_t *> funcType;
 	funcType func;
 
-	MathParser::MathFunc_t sf_func;
-	MathParser::MathFunc_t node_func;
-	MathParser::MathFunc_t elem_func;
-	MathParser::MathFunc_t unique_elem_func;
+	MathFunc_t sf_func;
+	MathFunc_t node_func;
+	MathFunc_t elem_func;
+	MathFunc_t unique_elem_func;
 
 	typedef std::map<std::string, TypedValue> currDataType;
 	currDataType currData;
@@ -63,9 +63,9 @@ public:
 	~ModelNameSpace(void);
 
 	bool IsFunc(const std::string& fname) const;
-	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
-	TypedValue EvalFunc(MathParser::MathFunc_t *f,
-		const MathParser::MathArgs& args) const;
+	MathFunc_t* GetFunc(const std::string& fname) const;
+	TypedValue EvalFunc(MathFunc_t *f,
+		const MathArgs& args) const;
 	virtual Table* GetTable(void);
 
 	bool PushCurrData(const std::string& name, const TypedValue& value);
