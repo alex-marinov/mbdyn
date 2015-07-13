@@ -47,11 +47,11 @@ typedef double (*mp_f2_f)(double, double);
 
 template <class Tin, class Tout, mp_f1_f F>
 static int
-mp_func_1(const MathArgs& args)
+mp_func_1(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
 	Tout *out = dynamic_cast<Tout *>(args[0]);
 	ASSERT(out != 0);
@@ -66,12 +66,12 @@ mp_func_1(const MathArgs& args)
 
 template <class Tin, class Tout, mp_f2_f F>
 static int
-mp_func_2(const MathArgs& args)
+mp_func_2(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 
 	Tout *out = dynamic_cast<Tout *>(args[0]);
 	ASSERT(out != 0);
@@ -90,12 +90,12 @@ mp_func_2(const MathArgs& args)
 }
 
 static int
-mp_asin_t(const MathArgs& args)
+mp_asin_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	const Real a1 = (*arg1)();
@@ -107,12 +107,12 @@ mp_asin_t(const MathArgs& args)
 }
 
 static int
-mp_acos_t(const MathArgs& args)
+mp_acos_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	const Real a1 = (*arg1)();
@@ -124,12 +124,12 @@ mp_acos_t(const MathArgs& args)
 }
 
 static int
-mp_tan_t(const MathArgs& args)
+mp_tan_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -143,12 +143,12 @@ mp_tan_t(const MathArgs& args)
 }
 
 static int
-mp_acosh_t(const MathArgs& args)
+mp_acosh_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	if ((*arg1)() <= 1.) {
@@ -159,12 +159,12 @@ mp_acosh_t(const MathArgs& args)
 }
 
 static int
-mp_atanh_t(const MathArgs& args)
+mp_atanh_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -176,12 +176,12 @@ mp_atanh_t(const MathArgs& args)
 }
 
 static int
-mp_greater_than_0_t(const MathArgs& args)
+mp_greater_than_0_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	if ((*arg1)() <= 0.) {
@@ -192,12 +192,12 @@ mp_greater_than_0_t(const MathArgs& args)
 }
 
 static int
-mp_greater_than_or_equal_to_0_t(const MathArgs& args)
+mp_greater_than_or_equal_to_0_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	if ((*arg1)() < 0.) {
@@ -208,12 +208,12 @@ mp_greater_than_or_equal_to_0_t(const MathArgs& args)
 }
 
 static int
-mp_rand(const MathArgs& args)
+mp_rand(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 0);
-	ASSERT(args[0]->Type() == MathArg_t::AT_INT);
+	ASSERT(args[0]->Type() == MathParser::AT_INT);
 
-	MathArgInt_t* out = dynamic_cast<MathArgInt_t*>(args[0]);
+	MathParser::MathArgInt_t* out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
 	ASSERT(out != 0);
 
 	*out = rand();
@@ -222,12 +222,12 @@ mp_rand(const MathArgs& args)
 }
 
 static int
-mp_rndm(const MathArgs& args)
+mp_rndm(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 0);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t* out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t* out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
 	*out = -1. + 2.*(Real(rand())/Real(RAND_MAX));
@@ -236,13 +236,13 @@ mp_rndm(const MathArgs& args)
 }
 
 static int
-mp_srnd(const MathArgs& args)
+mp_srnd(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_VOID);
-	ASSERT(args[1]->Type() == MathArg_t::AT_INT);
+	ASSERT(args[0]->Type() == MathParser::AT_VOID);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
 
-	MathArgInt_t *arg1 = dynamic_cast<MathArgInt_t *>(args[1]);
+	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	srand((unsigned int)(*arg1)());
@@ -251,55 +251,55 @@ mp_srnd(const MathArgs& args)
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathArgVoid_t& /* v */ )
+operator << (std::ostream& out, const MathParser::MathArgVoid_t& /* v */ )
 {
 	return out;
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathArgBool_t& v)
+operator << (std::ostream& out, const MathParser::MathArgBool_t& v)
 {
 	return out << v();
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathArgInt_t& v)
+operator << (std::ostream& out, const MathParser::MathArgInt_t& v)
 {
 	return out << v();
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathArgReal_t& v)
+operator << (std::ostream& out, const MathParser::MathArgReal_t& v)
 {
 	return out << v();
 }
 
 std::ostream&
-operator << (std::ostream& out, const MathArgString_t& v)
+operator << (std::ostream& out, const MathParser::MathArgString_t& v)
 {
 	return out << v();
 }
 
 static int
-mp_print(const MathArgs& args)
+mp_print(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
 
 	switch (args[1]->Type()) {
-	case MathArg_t::AT_BOOL:
-		silent_cout((*dynamic_cast<MathArgBool_t*>(args[1])) << std::endl);
+	case MathParser::AT_BOOL:
+		silent_cout((*dynamic_cast<MathParser::MathArgBool_t*>(args[1])) << std::endl);
 		break;
 
-	case MathArg_t::AT_INT:
-		silent_cout((*dynamic_cast<MathArgInt_t*>(args[1])) << std::endl);
+	case MathParser::AT_INT:
+		silent_cout((*dynamic_cast<MathParser::MathArgInt_t*>(args[1])) << std::endl);
 		break;
 
-	case MathArg_t::AT_REAL:
-		silent_cout((*dynamic_cast<MathArgReal_t*>(args[1])) << std::endl);
+	case MathParser::AT_REAL:
+		silent_cout((*dynamic_cast<MathParser::MathArgReal_t*>(args[1])) << std::endl);
 		break;
 
-	case MathArg_t::AT_STRING:
-		silent_cout((*dynamic_cast<MathArgString_t*>(args[1])) << std::endl);
+	case MathParser::AT_STRING:
+		silent_cout((*dynamic_cast<MathParser::MathArgString_t*>(args[1])) << std::endl);
 		break;
 
 	default:
@@ -310,17 +310,17 @@ mp_print(const MathArgs& args)
 }
 
 static int
-mp_stop(const MathArgs& args)
+mp_stop(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 2);
-	ASSERT(args[0]->Type() == MathArg_t::AT_VOID);
-	ASSERT(args[1]->Type() == MathArg_t::AT_INT);
-	ASSERT(args[2]->Type() == MathArg_t::AT_INT);
+	ASSERT(args[0]->Type() == MathParser::AT_VOID);
+	ASSERT(args[1]->Type() == MathParser::AT_INT);
+	ASSERT(args[2]->Type() == MathParser::AT_INT);
 
-	MathArgInt_t *s = dynamic_cast<MathArgInt_t *>(args[1]);
+	MathParser::MathArgInt_t *s = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
 	ASSERT(s != 0);
 
-	MathArgInt_t *v = dynamic_cast<MathArgInt_t *>(args[2]);
+	MathParser::MathArgInt_t *v = dynamic_cast<MathParser::MathArgInt_t *>(args[2]);
 	ASSERT(v != 0);
 
 	if ((*s)() != 0) {
@@ -338,16 +338,16 @@ mp_stop(const MathArgs& args)
 }
 
 static int
-mp_ctg(const MathArgs& args)
+mp_ctg(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t *>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	*out = 1./tan((*arg1)());
@@ -356,12 +356,12 @@ mp_ctg(const MathArgs& args)
 }
 
 static int
-mp_ctg_t(const MathArgs& args)
+mp_ctg_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t *>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t *>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -375,16 +375,16 @@ mp_ctg_t(const MathArgs& args)
 }
 
 static int
-mp_actg(const MathArgs& args)
+mp_actg(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	*out = atan2(1., (*arg1)());
@@ -393,20 +393,20 @@ mp_actg(const MathArgs& args)
 }
 
 static int
-mp_actg2(const MathArgs& args)
+mp_actg2(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 2);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	MathArgReal_t *arg2 = dynamic_cast<MathArgReal_t*>(args[2]);
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
 	Real a1 = (*arg1)();
@@ -418,16 +418,16 @@ mp_actg2(const MathArgs& args)
 }
 
 static int
-mp_ctgh(const MathArgs& args)
+mp_ctgh(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	*out = 1./tanh((*arg1)());
@@ -436,12 +436,12 @@ mp_ctgh(const MathArgs& args)
 }
 
 static int
-mp_ctgh_t(const MathArgs& args)
+mp_ctgh_t(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	if (fabs((*arg1)()) < std::numeric_limits<double>::epsilon()) {
@@ -452,16 +452,16 @@ mp_ctgh_t(const MathArgs& args)
 }
 
 static int
-mp_sign(const MathArgs& args)
+mp_sign(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgInt_t *out = dynamic_cast<MathArgInt_t*>(args[0]);
+	MathParser::MathArgInt_t *out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -475,20 +475,20 @@ mp_sign(const MathArgs& args)
 }
 
 static int
-mp_max(const MathArgs& args)
+mp_max(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 2);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	MathArgReal_t *arg2 = dynamic_cast<MathArgReal_t*>(args[2]);
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
 	Real a1 = (*arg1)();
@@ -499,20 +499,20 @@ mp_max(const MathArgs& args)
 }
 
 static int
-mp_min(const MathArgs& args)
+mp_min(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 2);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	MathArgReal_t *arg2 = dynamic_cast<MathArgReal_t*>(args[2]);
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
 	Real a1 = (*arg1)();
@@ -524,16 +524,16 @@ mp_min(const MathArgs& args)
 
 #ifdef __USE_XOPEN
 static int
-mp_actgh(const MathArgs& args)
+mp_actgh(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	*out = atanh(1./(*arg1)());
@@ -543,16 +543,16 @@ mp_actgh(const MathArgs& args)
 #endif
 
 static int
-mp_step(const MathArgs& args)
+mp_step(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -570,16 +570,16 @@ mp_step(const MathArgs& args)
 }
 
 static int
-mp_ramp(const MathArgs& args)
+mp_ramp(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -594,20 +594,20 @@ mp_ramp(const MathArgs& args)
 }
 
 static int
-mp_sramp(const MathArgs& args)
+mp_sramp(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 2);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	MathArgReal_t *arg2 = dynamic_cast<MathArgReal_t*>(args[2]);
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
 	Real a1 = (*arg1)();
@@ -626,16 +626,16 @@ mp_sramp(const MathArgs& args)
 }
 
 static int
-mp_par(const MathArgs& args)
+mp_par(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
 	Real a1 = (*arg1)();
@@ -658,24 +658,24 @@ enum mp_in_e {
 
 template<mp_in_e IN>
 static int
-mp_in(const MathArgs& args)
+mp_in(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 3);
-	ASSERT(args[0]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[1]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[2]->Type() == MathArg_t::AT_REAL);
-	ASSERT(args[3]->Type() == MathArg_t::AT_REAL);
+	ASSERT(args[0]->Type() == MathParser::AT_REAL);
+	ASSERT(args[1]->Type() == MathParser::AT_REAL);
+	ASSERT(args[2]->Type() == MathParser::AT_REAL);
+	ASSERT(args[3]->Type() == MathParser::AT_REAL);
 
-	MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 	ASSERT(out != 0);
 
-	MathArgReal_t *arg1 = dynamic_cast<MathArgReal_t*>(args[1]);
+	MathParser::MathArgReal_t *arg1 = dynamic_cast<MathParser::MathArgReal_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	MathArgReal_t *arg2 = dynamic_cast<MathArgReal_t*>(args[2]);
+	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t*>(args[2]);
 	ASSERT(arg2 != 0);
 
-	MathArgReal_t *arg3 = dynamic_cast<MathArgReal_t*>(args[3]);
+	MathParser::MathArgReal_t *arg3 = dynamic_cast<MathParser::MathArgReal_t*>(args[3]);
 	ASSERT(arg3 != 0);
 
 	Real l = (*arg1)();
@@ -724,31 +724,31 @@ mp_in(const MathArgs& args)
 }
 
 static int
-mp_cast(const MathArgs& args)
+mp_cast(const MathParser::MathArgs& args)
 {
 	ASSERT(args.size() == 1 + 1);
-	ASSERT(args[0]->Type() == MathArg_t::AT_ANY);
+	ASSERT(args[0]->Type() == MathParser::AT_ANY);
 
-	MathArgAny_t *arg1 = dynamic_cast<MathArgAny_t*>(args[1]);
+	MathParser::MathArgAny_t *arg1 = dynamic_cast<MathParser::MathArgAny_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if (args[0]->Type() == MathArg_t::AT_BOOL) {
-		MathArgBool_t *out = dynamic_cast<MathArgBool_t*>(args[0]);
+	if (args[0]->Type() == MathParser::AT_BOOL) {
+		MathParser::MathArgBool_t *out = dynamic_cast<MathParser::MathArgBool_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetBool();
 
-	} else if (args[0]->Type() == MathArg_t::AT_INT) {
-		MathArgInt_t *out = dynamic_cast<MathArgInt_t*>(args[0]);
+	} else if (args[0]->Type() == MathParser::AT_INT) {
+		MathParser::MathArgInt_t *out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetInt();
 
-	} else if (args[0]->Type() == MathArg_t::AT_REAL) {
-		MathArgReal_t *out = dynamic_cast<MathArgReal_t*>(args[0]);
+	} else if (args[0]->Type() == MathParser::AT_REAL) {
+		MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetReal();
 
-	} else if (args[0]->Type() == MathArg_t::AT_STRING) {
-		MathArgString_t *out = dynamic_cast<MathArgString_t*>(args[0]);
+	} else if (args[0]->Type() == MathParser::AT_STRING) {
+		MathParser::MathArgString_t *out = dynamic_cast<MathParser::MathArgString_t*>(args[0]);
 		ASSERT(out != 0);
 		TypedValue val(TypedValue::VAR_STRING);
 		val.Cast((*arg1)());
@@ -1938,7 +1938,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, asin>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, asin>;
 	f->t = mp_asin_t;
 	f->errmsg = std::string("invalid arg to asin()");
 
@@ -1955,7 +1955,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, acos>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, acos>;
 	f->t = mp_acos_t;
 	f->errmsg = std::string("invalid arg to acos()");
 
@@ -1972,7 +1972,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, atan>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atan>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2005,7 +2005,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->args[2] = new MathArgReal_t;
-	f->f = mp_func_2<MathArgReal_t, MathArgReal_t, atan2>;
+	f->f = mp_func_2<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atan2>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2038,7 +2038,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, cos>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, cos>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2054,7 +2054,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, sin>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sin>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2070,7 +2070,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, tan>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, tan>;
 	f->t = mp_tan_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2102,7 +2102,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, cosh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, cosh>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2118,7 +2118,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, sinh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sinh>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2134,7 +2134,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, tanh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, tanh>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2167,7 +2167,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, acosh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, acosh>;
 	f->t = mp_acosh_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2183,7 +2183,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, asinh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, asinh>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2199,7 +2199,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, atanh>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, atanh>;
 	f->t = mp_atanh_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2232,7 +2232,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, exp>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, exp>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2248,7 +2248,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, log>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log>;
 	f->t = mp_greater_than_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2264,7 +2264,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, log10>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, log10>;
 	f->t = mp_greater_than_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2280,7 +2280,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, sqrt>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, sqrt>;
 	f->t = mp_greater_than_or_equal_to_0_t;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2296,7 +2296,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, fabs>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, fabs>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2329,7 +2329,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
 	f->args[2] = new MathArgReal_t;
-	f->f = mp_func_2<MathArgReal_t, MathArgReal_t, copysign>;
+	f->f = mp_func_2<MathParser::MathArgReal_t, MathParser::MathArgReal_t, copysign>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2379,7 +2379,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, floor>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, floor>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2395,7 +2395,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, ceil>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, ceil>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2412,7 +2412,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
-	f->f = mp_func_1<MathArgReal_t, MathArgReal_t, rint>;
+	f->f = mp_func_1<MathParser::MathArgReal_t, MathParser::MathArgReal_t, rint>;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {
@@ -2676,7 +2676,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 MathParser::StaticNameSpace::~StaticNameSpace(void)
 {
 	for (funcType::iterator f = func.begin(); f != func.end(); ++f) {
-		for (MathArgs::iterator i = f->second->args.begin();
+		for (MathParser::MathArgs::iterator i = f->second->args.begin();
 			i != f->second->args.end();
 			++i)
 		{
@@ -2697,7 +2697,7 @@ MathParser::StaticNameSpace::IsFunc(const std::string& fname) const
 	return false;
 }
 
-MathFunc_t*
+MathParser::MathFunc_t*
 MathParser::StaticNameSpace::GetFunc(const std::string& fname) const
 {
 	funcType::const_iterator i = func.find(fname);
@@ -2710,24 +2710,24 @@ MathParser::StaticNameSpace::GetFunc(const std::string& fname) const
 }
 
 TypedValue
-MathParser::StaticNameSpace::EvalFunc(MathFunc_t *f, const MathArgs& args) const
+MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const
 {
 	f->f(args);
 
 	switch (args[0]->Type()) {
-	case MathArg_t::AT_VOID:
+	case MathParser::AT_VOID:
 		return TypedValue(0);
 
-	case MathArg_t::AT_BOOL:
+	case MathParser::AT_BOOL:
 		return TypedValue((*dynamic_cast<MathArgBool_t*>(args[0]))());
 
-	case MathArg_t::AT_INT:
+	case MathParser::AT_INT:
 		return TypedValue((*dynamic_cast<MathArgInt_t*>(args[0]))());
 
-	case MathArg_t::AT_REAL:
+	case MathParser::AT_REAL:
 		return TypedValue((*dynamic_cast<MathArgReal_t*>(args[0]))());
 
-	case MathArg_t::AT_STRING:
+	case MathParser::AT_STRING:
 		return TypedValue((*dynamic_cast<MathArgString_t*>(args[0]))());
 
 	default:
@@ -3423,7 +3423,7 @@ MathParser::unary(void)
 }
 
 TypedValue
-MathParser::evalfunc(MathParser::NameSpace *ns, MathFunc_t* f)
+MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 {
 	MathArgs args(f->args.size());
 
@@ -3433,72 +3433,72 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathFunc_t* f)
 
 	for (unsigned i = 1; i < args.size(); i++) {
 		switch (args[i]->Type()) {
-		case MathArg_t::AT_ANY:
+		case MathParser::AT_ANY:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "argument expected");
 				}
 				(*dynamic_cast<MathArgAny_t*>(args[i]))() = (*dynamic_cast<MathArgAny_t*>(f->args[i]))();
-				args[i]->SetFlag(MathArg_t::AF_OPTIONAL_NON_PRESENT);
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgAny_t*>(args[i]))() = stmtlist();
 			}
 			break;
 
-		case MathArg_t::AT_BOOL:
+		case MathParser::AT_BOOL:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "bool argument expected");
 				}
 				(*dynamic_cast<MathArgBool_t*>(args[i]))() = (*dynamic_cast<MathArgBool_t*>(f->args[i]))();
-				args[i]->SetFlag(MathArg_t::AF_OPTIONAL_NON_PRESENT);
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgBool_t*>(args[i]))() = stmtlist().GetBool();
 			}
 			break;
 
-		case MathArg_t::AT_INT:
+		case MathParser::AT_INT:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "integer argument expected");
 				}
 				(*dynamic_cast<MathArgInt_t*>(args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
-				args[i]->SetFlag(MathArg_t::AF_OPTIONAL_NON_PRESENT);
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
 			}
 			break;
 
-		case MathArg_t::AT_REAL:
+		case MathParser::AT_REAL:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "real argument expected");
 				}
 				(*dynamic_cast<MathArgReal_t*>(args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
-				args[i]->SetFlag(MathArg_t::AF_OPTIONAL_NON_PRESENT);
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
 			}
 			break;
 
-		case MathArg_t::AT_STRING:
+		case MathParser::AT_STRING:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "string argument expected");
 				}
 				(*dynamic_cast<MathArgString_t*>(args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
-				args[i]->SetFlag(MathArg_t::AF_OPTIONAL_NON_PRESENT);
+				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
 				(*dynamic_cast<MathArgString_t*>(args[i]))() = stmtlist().GetString();
 			}
 			break;
 
-		case MathArg_t::AT_PRIVATE:
+		case MathParser::AT_PRIVATE:
 			/* ignore */
 			break;
 
@@ -3507,10 +3507,10 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathFunc_t* f)
 		}
 
 		if (i < args.size() - 1) {
-			if (args[i + 1]->Type() != MathArg_t::AT_PRIVATE) {
+			if (args[i + 1]->Type() != AT_PRIVATE) {
 				switch (currtoken) {
 				case CBR:
-					if (!args[i + 1]->IsFlag(MathArg_t::AF_OPTIONAL)) {
+					if (!args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
 						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"mandatory argument expected");
 					}
@@ -3602,7 +3602,7 @@ MathParser::expr(void)
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
 			}
 
-			MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 			if (f == NULL) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
 			}
@@ -3863,7 +3863,7 @@ MathParser::stmt(void)
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
 				}
 
-				MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+				MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 				if (f == NULL) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
 				}

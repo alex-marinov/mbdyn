@@ -50,7 +50,7 @@
 #include "table.h"
 #include "input.h"
 
-class MathArg_t {
+class MathParser {
 public:
 	enum ArgType {
 		/* AT_PRIVATE means only who created that type
@@ -74,68 +74,66 @@ public:
 		AF_OPTIONAL_NON_PRESENT	= 0x2U
 	};
 
-private:
-	unsigned m_flags;
+	class MathArg_t {
+	private:
+		unsigned m_flags;
 
-public:
-	MathArg_t(unsigned f = AF_NONE) : m_flags(f) {};
-	virtual ~MathArg_t(void) { NO_OP; };
+	public:
+		MathArg_t(unsigned f = AF_NONE) : m_flags(f) {};
+		virtual ~MathArg_t(void) { NO_OP; };
 
-	void SetFlag(const ArgFlag& f) { m_flags |= unsigned(f); };
-	void ClearFlag(const ArgFlag& f) { m_flags &= ~unsigned(f); };
-	bool IsFlag(const ArgFlag f) const { return (m_flags & unsigned(f)) == unsigned(f); };
-	unsigned GetFlags(void) const { return m_flags; };
-	virtual ArgType Type(void) const = 0;
-	virtual MathArg_t *Copy(void) const = 0;
-};
+		void SetFlag(const MathParser::ArgFlag& f) { m_flags |= unsigned(f); };
+		void ClearFlag(const MathParser::ArgFlag& f) { m_flags &= ~unsigned(f); };
+		bool IsFlag(const MathParser::ArgFlag f) const { return (m_flags & unsigned(f)) == unsigned(f); };
+		unsigned GetFlags(void) const { return m_flags; };
+		virtual ArgType Type(void) const = 0;
+		virtual MathArg_t *Copy(void) const = 0;
+	};
 
-class MathArgVoid_t : public MathArg_t {
-public:
-	virtual ~MathArgVoid_t(void) { NO_OP; };
-	virtual ArgType Type(void) const { return AT_VOID; };
-	virtual MathArg_t *Copy(void) const { return new MathArgVoid_t; };
-};
+	class MathArgVoid_t : public MathArg_t {
+	public:
+		virtual ~MathArgVoid_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return AT_VOID; };
+		virtual MathArg_t *Copy(void) const { return new MathArgVoid_t; };
+	};
 
-template <class T, MathArg_t::ArgType TT = MathArg_t::AT_PRIVATE>
-class MathArgPriv_t : public MathArg_t {
-protected:
-	T m_val;
-public:
-	MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
-	MathArgPriv_t(void) : MathArg_t(AF_NONE) { NO_OP; };
-	virtual ~MathArgPriv_t(void) { NO_OP; };
-	virtual ArgType Type(void) const { return TT; };
-	virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };
+	template <class T, ArgType TT = AT_PRIVATE>
+	class MathArgPriv_t : public MathArg_t {
+	protected:
+		T m_val;
+	public:
+		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
+		MathArgPriv_t(void) : MathArg_t(AF_NONE) { NO_OP; };
+		virtual ~MathArgPriv_t(void) { NO_OP; };
+		virtual ArgType Type(void) const { return TT; };
+		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };
 
-	const T& operator()(void) const { return m_val; };
-	T& operator()(void) { return m_val; };
-};
+		const T& operator()(void) const { return m_val; };
+		T& operator()(void) { return m_val; };
+	};
 
-// not used right now; could be used for casting and so
-typedef MathArgPriv_t<MathArg_t::ArgType, MathArg_t::AT_TYPE> MathArgType_t;
+	// not used right now; could be used for casting and so
+	typedef MathArgPriv_t<ArgType, AT_TYPE> MathArgType_t;
 
-typedef MathArgPriv_t<TypedValue, MathArg_t::AT_ANY> MathArgAny_t;
-typedef MathArgPriv_t<bool, MathArg_t::AT_BOOL> MathArgBool_t;
-typedef MathArgPriv_t<Int, MathArg_t::AT_INT> MathArgInt_t;
-typedef MathArgPriv_t<Real, MathArg_t::AT_REAL> MathArgReal_t;
-typedef MathArgPriv_t<std::string, MathArg_t::AT_STRING> MathArgString_t;
+	typedef MathArgPriv_t<TypedValue, AT_ANY> MathArgAny_t;
+	typedef MathArgPriv_t<bool, AT_BOOL> MathArgBool_t;
+	typedef MathArgPriv_t<Int, AT_INT> MathArgInt_t;
+	typedef MathArgPriv_t<Real, AT_REAL> MathArgReal_t;
+	typedef MathArgPriv_t<std::string, AT_STRING> MathArgString_t;
 
-typedef std::vector<MathArg_t*> MathArgs;
-typedef int (*MathFunc_f)(const MathArgs& args);
-typedef int (*MathFuncTest_f)(const MathArgs& args);
+	typedef std::vector<MathArg_t*> MathArgs;
+	typedef int (*MathFunc_f)(const MathArgs& args);
+	typedef int (*MathFuncTest_f)(const MathArgs& args);
 
-/* structure of built-in functions */
-struct MathFunc_t {
-	std::string fname;		/* function name */
-	MathArgs args;			/* argomenti (0: out; 1->n: in) */
-	MathFunc_f f;			/* puntatore a funzione */
-	MathFuncTest_f t;		/* puntatore a funzione di test */
-	std::string errmsg;		/* messaggio di errore */
-};
+	/* struttura delle funzioni built-in */
+	struct MathFunc_t {
+		std::string fname;		/* function name */
+		MathArgs args;			/* argomenti (0: out; 1->n: in) */
+		MathFunc_f f;			/* puntatore a funzione */
+		MathFuncTest_f t;		/* puntatore a funzione di test */
+		std::string errmsg;		/* messaggio di errore */
+	};
 
-
-class MathParser {
-public:
 	/* carattere di inizio commento */
 	static const char ONE_LINE_REMARK = '#';
 
@@ -148,15 +146,15 @@ public:
 		virtual ~NameSpace(void);
 		virtual const std::string& sGetName(void) const;
 		virtual bool IsFunc(const std::string& fname) const = 0;
-		virtual MathFunc_t* GetFunc(const std::string& fname) const = 0;
-		virtual TypedValue EvalFunc(MathFunc_t *f, const MathArgs& args) const = 0;
+		virtual MathParser::MathFunc_t* GetFunc(const std::string& fname) const = 0;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const = 0;
 		virtual Table* GetTable(void) = 0;
 	};
 
 	/* Static namespace */
 	class StaticNameSpace : public MathParser::NameSpace {
 	private:
-		typedef std::map<std::string, MathFunc_t *> funcType;
+		typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
 		funcType func;
 		Table *m_pTable;
 
@@ -165,8 +163,8 @@ public:
 		~StaticNameSpace(void);
 
 		bool IsFunc(const std::string& fname) const;
-		MathFunc_t* GetFunc(const std::string& fname) const;
-		virtual TypedValue EvalFunc(MathFunc_t *f, const MathArgs& args) const;
+		MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const;
 		virtual Table* GetTable(void);
 	};
 
@@ -381,7 +379,7 @@ protected:
 	TypedValue unary(void);
 
 	/* helper per expr, che valuta le funzioni built-in */
-	TypedValue evalfunc(MathParser::NameSpace *ns, MathFunc_t* f);
+	TypedValue evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f);
 
 	/* valuta le espressioni */
 	TypedValue expr(void);
@@ -434,15 +432,15 @@ public:
 };
 
 extern std::ostream&
-operator << (std::ostream& out, const MathArgVoid_t& v);
+operator << (std::ostream& out, const MathParser::MathArgVoid_t& v);
 extern std::ostream&
-operator << (std::ostream& out, const MathArgBool_t& v);
+operator << (std::ostream& out, const MathParser::MathArgBool_t& v);
 extern std::ostream&
-operator << (std::ostream& out, const MathArgInt_t& v);
+operator << (std::ostream& out, const MathParser::MathArgInt_t& v);
 extern std::ostream&
-operator << (std::ostream& out, const MathArgReal_t& v);
+operator << (std::ostream& out, const MathParser::MathArgReal_t& v);
 extern std::ostream&
-operator << (std::ostream& out, const MathArgString_t& v);
+operator << (std::ostream& out, const MathParser::MathArgString_t& v);
 
 #endif /* MATHP_H */
 
