@@ -1809,7 +1809,7 @@ MathParser::ErrGeneric::ErrGeneric(MathParser* p,
 	const char* const s3)
 : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU + s2 + s3)
 {
-	silent_cerr("MathParser - " << r << s2 << s3
+	silent_cerr(" MathParser - " << r << s2 << s3
 		<< " at line " << p->GetLineNumber() << std::endl);
 }
 
@@ -3883,38 +3883,37 @@ MathParser::stmt(void)
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
 			}
 			NamedValue* v = currTable->Get(namebuf);
-			if (v != NULL) {
-				if (currtoken == ASSIGN) {
-					GetToken();
-					TypedValue d = logical();
-					if (v->Const()) {
-			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-		      						"cannot assign const named value "
-								"\"", name.c_str(), "\"");
-			 		}
+			if (v == NULL) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "var \"", namebuf, "\" not found");
+			}
 
-			 		if (!v->IsVar()) {
-						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-								"cannot assign non-var named value "
-								"\"", name.c_str(), "\"");
-			 		}
-					dynamic_cast<Var *>(v)->Cast(d);
-					return v->GetVal();
+			if (currtoken == ASSIGN) {
+				GetToken();
+				TypedValue d = logical();
+				if (v->Const()) {
+		      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+	      						"cannot assign const named value "
+							"\"", name.c_str(), "\"");
+		 		}
 
-				} else {
-					// NOTE: fails if <name> is actually <namespace>::<name>
-					// ASSERT(currtoken != NAME);
-					// TokenPush(currtoken);
-					// currtoken = NAME;
-
-					// NOTE: fails if <name> is not the complete <stmt>
-					// return v->GetVal();
-
-					return logical(v->GetVal());
-				}
+		 		if (!v->IsVar()) {
+					throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot assign non-var named value "
+							"\"", name.c_str(), "\"");
+		 		}
+				dynamic_cast<Var *>(v)->Cast(d);
+				return v->GetVal();
 
 			} else {
-				ASSERT(0);
+				// NOTE: fails if <name> is actually <namespace>::<name>
+				// ASSERT(currtoken != NAME);
+				// TokenPush(currtoken);
+				// currtoken = NAME;
+
+				// NOTE: fails if <name> is not the complete <stmt>
+				// return v->GetVal();
+
+				return logical(v->GetVal());
 			}
 		}
 	}

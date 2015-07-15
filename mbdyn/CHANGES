@@ -19,6 +19,8 @@ MBDyn 1.X-Devel
 		- deformable displacement joint initial assembly broken
 		- modal joint initial assembly with initial modal disp. broken
 	Bug fixes:
+		- fixed math parser bug with undefined vare at beginning
+		  of expression (noted by Andrea Zanoni)
 
 MBDyn 1.6.1
 	Enhancements:
