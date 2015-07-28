@@ -54,7 +54,13 @@ protected:
 
 	doublereal dEpsilon;
 	doublereal dEpsilonPrime;
-   
+
+#ifdef USE_NETCDF
+	NcVar *Var_v;
+	NcVar *Var_dElle;
+	NcVar *Var_dEllePrime;
+#endif // USE_NETCDF
+
 	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
 	 * delle equazioni. Allora, dopo aver settato indici e matrici,
 	 * le routines normali chiamano queste due che eseguono i calcoli 
@@ -119,7 +125,8 @@ public:
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
-   
+ 	
+	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 #if 0

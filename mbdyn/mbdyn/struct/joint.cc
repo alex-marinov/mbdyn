@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2015
+ * Copyright (C) 1996-2014
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -3290,9 +3290,23 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
+			<< " " << R1hr
 			<< " " << pNode2->GetLabel()
 			<< " " << f2
 			<< " " << R2h
+			<< " " << R2hr
+			<< " " << bXActive[0]
+			<< " " << bXActive[1]
+			<< " " << bXActive[2]
+			<< " " << bVActive[0]
+			<< " " << bVActive[1]
+			<< " " << bVActive[2]
+			<< " " << bRActive[0]
+			<< " " << bRActive[1]
+			<< " " << bRActive[2]
+			<< " " << bWActive[0]
+			<< " " << bWActive[1]
+			<< " " << bWActive[2]
 			<< std::endl;
 		} break;
 
@@ -3442,8 +3456,22 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode->GetLabel()
 			<< " " << fn
 			<< " " << Rnh
+			<< " " << Rnhr
 			<< " " << Xc
 			<< " " << Rch
+			<< " " << Rchr
+			<< " " << bXActive[0]
+			<< " " << bXActive[1]
+			<< " " << bXActive[2]
+			<< " " << bVActive[0]
+			<< " " << bVActive[1]
+			<< " " << bVActive[2]
+			<< " " << bRActive[0]
+			<< " " << bRActive[1]
+			<< " " << bRActive[2]
+			<< " " << bWActive[0]
+			<< " " << bWActive[1]
+			<< " " << bWActive[2]
 			<< std::endl;
 
 		} break;

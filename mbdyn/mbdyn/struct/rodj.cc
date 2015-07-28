@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2015
+ * Copyright (C) 1996-2014
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -54,6 +54,11 @@ pNode1(pN1),
 pNode2(pN2),
 dL0(dLength),
 v(Zero3),
+#ifdef USE_NETCDF
+Var_v(0),
+Var_dElle(0),
+Var_dEllePrime(0),
+#endif // USE_NETCDF
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)
@@ -283,6 +288,26 @@ Rod::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+Rod::OutputPrepare(OutputHandler& OH)
+{
+	if (fToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("rod", OH, name);
+
+			Var_dElle = OH.CreateVar<doublereal>(name + "l", "m",
+				"length of the element");
+			Var_dEllePrime = OH.CreateVar<doublereal>(name + "lP", "m/2",
+				"lengthening velocity of the element");
+			Var_v = OH.CreateVar<Vec3>(name + "v", "m",
+				"direction unit vector");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 Rod::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput()) {
@@ -290,6 +315,15 @@ Rod::Output(OutputHandler& OH) const
 		Vec3 vTmp(v/dElle);
 		doublereal d = GetF();
 
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			doublereal dEllePrime = dEpsilonPrime*dL0;
+			Var_dElle->put_rec(&dElle, OH.GetCurrentStep());
+			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
+			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
+		
 		std::ostream& out = OH.Joints();
 
 		Joint::Output(out, "Rod", GetLabel(),
