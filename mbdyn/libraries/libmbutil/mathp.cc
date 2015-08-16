@@ -2849,12 +2849,12 @@ start_parsing:;
 
 	/* number? */
 	if (c == '.' || isdigit(c)) {
-		/* lot of space ... */
-		static char s[256];
+		// lot of space...
+		char s[BUFSIZ];
 		bool f = false;
 		int i = 0;
 
-		/* FIXME: need to check for overflow */
+		// FIXME: need to check for overflow
 
 		s[i++] = char(c);
 
@@ -2869,22 +2869,43 @@ start_parsing:;
 				}
 				f = true;
 			}
+			if (i >= sizeof(s)) {
+				// buffer about to overflow
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
+			}
 		}
 		char e = tolower(c);
 		if (e == 'e' || e == 'f' || e == 'd' || e == 'g') {
 			f = true;
 			s[i++] = 'e';
+			if (i >= sizeof(s)) {
+				// buffer about to overflow
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
+			}
 			if ((c = in->get()) == '-' || c == '+') {
 				s[i++] = char(c);
+				if (i >= sizeof(s)) {
+					// buffer about to overflow
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
+				}
 				c = in->get();
 			}
 			if (isdigit(c)) {
 				s[i++] = char(c);
+				if (i >= sizeof(s)) {
+					// buffer about to overflow
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
+				}
+
 			} else {
-			       	return (currtoken = UNKNOWNTOKEN);
+				return (currtoken = UNKNOWNTOKEN);
 			}
 			while (isdigit((c = in->get()))) {
 				s[i++] = char(c);
+				if (i >= sizeof(s)) {
+					// buffer about to overflow
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
+				}
 			}
 		}
 		s[i] = '\0';
@@ -2977,7 +2998,7 @@ start_parsing:;
 			}
 
 			namebuf[l++] = char(c);
-			if (l ==  namebuflen) {
+			if (l == namebuflen) {
 				IncNameBuf();
 			}
 		}
