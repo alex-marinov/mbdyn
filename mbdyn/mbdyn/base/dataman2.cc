@@ -1266,7 +1266,7 @@ DataManager::InitialJointAssembly(void)
 		try {
 			pSM->Solve();
 		}
-		catch (LinearSolver::ErrFactor err) {
+		catch (LinearSolver::ErrFactor& err) {
 			silent_cerr("Initial assembly failed because no pivot element "
 				"could be found for column " << err.iCol
 				<< " (" << GetDofDescription(err.iCol) << "); "
@@ -1588,8 +1588,11 @@ DataManager::AfterPredict(void) const
 		try {
 			(*i)->AfterPredict(*pXCurr, *pXPrimeCurr);
 		}
-		catch (Elem::ChangedEquationStructure e) {
+		catch (Elem::ChangedEquationStructure& e) {
 			// ignore by now
+			silent_cerr("DataManager::AfterPredict: "
+				"warning, caught Elem::ChangedEquationStructure while processing "
+				<< psNodeNames[(*i)->GetNodeType()] << "(" << (*i)->GetLabel() << ")" << std::endl);
 		}
 	}
 
@@ -1599,8 +1602,11 @@ DataManager::AfterPredict(void) const
 			try {
 				pEl->AfterPredict(*pXCurr, *pXPrimeCurr);
 			}
-			catch (Elem::ChangedEquationStructure e) {
+			catch (Elem::ChangedEquationStructure) {
 				// ignore by now
+				silent_cerr("DataManager::AfterPredict: "
+					"warning, caught Elem::ChangedEquationStructure while processing "
+					<< psElemNames[pEl->GetElemType()] << "(" << pEl->GetLabel() << ")" << std::endl);
 			}
 		} while (ElemIter.bGetNext(pEl));
 	}

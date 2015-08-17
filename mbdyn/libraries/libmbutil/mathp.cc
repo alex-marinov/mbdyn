@@ -2874,9 +2874,9 @@ start_parsing:;
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "value too long");
 			}
 		}
-		char e = tolower(c);
-		if (e == 'e' || e == 'f' || e == 'd' || e == 'g') {
+		if (std::strchr("efdgEFDG", c) != 0) {
 			f = true;
+			// use 'e' because strtod only understands 'e' or 'E'
 			s[i++] = 'e';
 			if (i >= sizeof(s)) {
 				// buffer about to overflow
@@ -2918,6 +2918,8 @@ start_parsing:;
 			long l = strtol(s, &endptr, 10);
 			int save_errno = errno;
 			if (endptr == s || endptr[0] != '\0') {
+				silent_cerr(" MathParser - unable to parse \"" << s << "\" as integer"
+					<< " at line " << GetLineNumber() << std::endl);
 				return (currtoken = UNKNOWNTOKEN);
 			}
 
@@ -2953,6 +2955,8 @@ start_parsing:;
 			double d = strtod(s, &endptr);
 			int save_errno = errno;
 			if (endptr == s || endptr[0] != '\0') {
+				silent_cerr(" MathParser - unable to parse \"" << s << "\" as real"
+					<< " at line " << GetLineNumber() << std::endl);
 				return (currtoken = UNKNOWNTOKEN);
 			}
 
@@ -3212,7 +3216,7 @@ MathParser::logical_int(TypedValue d)
 		}
 
 		default:
-			  return d;
+			return d;
 		}
 	}
 }
@@ -3414,7 +3418,7 @@ MathParser::power_int(TypedValue d)
 			Real r = e.GetReal();
 			Real b = d.GetReal();
 			d.SetType(TypedValue::VAR_REAL);
-			d = TypedValue(Real(pow(b, r)));
+			d = TypedValue(Real(std::pow(b, r)));
 		}
 	}
 

@@ -2378,6 +2378,7 @@ PiecewiseLinearDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred
 			silent_cerr("point " << p[i]
 				<< " is smaller than or equal to preceding point " << p[i-1]
 				<< " at line " << HP.GetLineData() << std::endl);
+			SAFEDELETE(p);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		p[i+n] = HP.GetReal();
@@ -2412,8 +2413,8 @@ StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	/* lettura dei dati specifici */
 	std::string s(HP.GetStringWithDelims());
 
-#define TRIM_ALL_SPACES
-// #define TRIM_ALL_SPACES_BUT_ONE
+// #define TRIM_ALL_SPACES
+#define TRIM_ALL_SPACES_BUT_ONE
 
 #if defined(TRIM_ALL_SPACES)
 	for (std::string::iterator i = s.begin(); i != s.end();) {

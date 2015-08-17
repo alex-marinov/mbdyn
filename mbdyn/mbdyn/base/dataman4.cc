@@ -1230,14 +1230,16 @@ DataManager::ReadElems(MBDynParser& HP)
 		}
 	}
 
+#ifdef DEBUG
+	ASSERT(ei == Elems.end());
+
 	/* count & initialize element array */
 	unsigned iNumElems = 0;
 	for (int iCnt = 0; iCnt < Elem::LASTELEMTYPE; iCnt++) {
 		iNumElems += ElemData[iCnt].ElemContainer.size();
 	}
-
-	ASSERT(ei == Elems.end());
 	ASSERT(iNumElems == Elems.size());
+#endif // DEBUG
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "End of elements data" << std::endl);
 } /*  End of DataManager::ReadElems()  */
