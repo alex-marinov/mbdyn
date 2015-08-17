@@ -100,8 +100,8 @@ public:
 	TypedValue(const TypedValue::Type t, bool isConst = false);
 	TypedValue(const TypedValue& var);
 
-	const TypedValue& operator = (const TypedValue& var);
-	const TypedValue& Cast(const TypedValue& var);
+	TypedValue& operator = (const TypedValue& var);
+	TypedValue& Cast(const TypedValue& var);
 
 	TypedValue::Type GetType(void) const;
 	const char *const GetTypeName(void) const;

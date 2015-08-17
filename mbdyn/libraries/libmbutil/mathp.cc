@@ -889,7 +889,7 @@ TypedValue::TypedValue(const TypedValue& var)
 	}
 }
 
-const TypedValue&
+TypedValue&
 TypedValue::operator = (const TypedValue& var)
 {
 	if (Const()) {
@@ -960,7 +960,7 @@ TypedValue::operator = (const TypedValue& var)
 	return *this;
 }
 
-const TypedValue&
+TypedValue&
 TypedValue::Cast(const TypedValue& var)
 {
 	if (Const()) {
@@ -2852,7 +2852,7 @@ start_parsing:;
 		// lot of space...
 		char s[BUFSIZ];
 		bool f = false;
-		int i = 0;
+		unsigned i = 0;
 
 		// FIXME: need to check for overflow
 
