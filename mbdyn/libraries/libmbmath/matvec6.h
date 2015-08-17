@@ -100,25 +100,25 @@ class Vec6 {
       return v[i].pGetVec();
    };
    
-   inline const Vec6& operator = (const Vec6& x) {
+   inline Vec6& operator = (const Vec6& x) {
       v[0] = x.GetVec1();
       v[1] = x.GetVec2();
       return *this;
    };
    
-   inline const Vec6& operator += (const Vec6& x) {
+   inline Vec6& operator += (const Vec6& x) {
       v[0] += x.GetVec1();
       v[1] += x.GetVec2();
       return *this;
    };
    
-   inline const Vec6& operator -= (const Vec6& x) {
+   inline Vec6& operator -= (const Vec6& x) {
       v[0] -= x.GetVec1();
       v[1] -= x.GetVec2();
       return *this;
    };
    
-   const Vec6& operator *= (const doublereal& d) {
+   Vec6& operator *= (const doublereal& d) {
       if (d == 1.) {
 	 return *this; /* No operations */
       }
@@ -133,7 +133,7 @@ class Vec6 {
       return *this;
    };   
    
-   const Vec6& operator /= (const doublereal& d) {
+   Vec6& operator /= (const doublereal& d) {
       if (d == 1.) {
 	 return *this; /* No operations */
       }
@@ -435,7 +435,7 @@ class Mat6x6 {
       return m[i][j].pGetMat();
    };
 
-   inline const Mat6x6& operator = (const Mat6x6& x) {
+   inline Mat6x6& operator = (const Mat6x6& x) {
       m[0][0] = x.GetMat11();
       m[1][0] = x.GetMat21();
       m[0][1] = x.GetMat12();
@@ -443,7 +443,7 @@ class Mat6x6 {
       return *this;
    };
    
-   inline const Mat6x6& operator += (const Mat6x6& x) {
+   inline Mat6x6& operator += (const Mat6x6& x) {
       m[0][0] += x.GetMat11();
       m[1][0] += x.GetMat21();
       m[0][1] += x.GetMat12();
@@ -451,7 +451,7 @@ class Mat6x6 {
       return *this;
    };
    
-   inline const Mat6x6& operator -= (const Mat6x6& x) {
+   inline Mat6x6& operator -= (const Mat6x6& x) {
       m[0][0] -= x.GetMat11();
       m[1][0] -= x.GetMat21();
       m[0][1] -= x.GetMat12();
@@ -478,7 +478,7 @@ class Mat6x6 {
       return Mat6x6(m[0][0]/d, m[1][0]/d, m[0][1]/d, m[1][1]/d);
    };   
               
-   const Mat6x6& operator *= (const doublereal& d) {
+   Mat6x6& operator *= (const doublereal& d) {
       m[0][0] *= d;
       m[1][0] *= d;
       m[0][1] *= d;
@@ -486,7 +486,7 @@ class Mat6x6 {
       return *this;
    };   
    
-   const Mat6x6& operator /= (const doublereal& d) {
+   Mat6x6& operator /= (const doublereal& d) {
       ASSERT(d != 0.);
       m[0][0] /= d;
       m[1][0] /= d;

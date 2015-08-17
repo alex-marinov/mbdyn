@@ -359,7 +359,7 @@ class Vec3 {
    /*
     Operatore di assegnazione 
     */
-   const Vec3& operator = (const Vec3& v) {
+   Vec3& operator = (const Vec3& v) {
       pdVec[V1] = v.pdVec[V1];
       pdVec[V2] = v.pdVec[V2];
       pdVec[V3] = v.pdVec[V3];
@@ -381,7 +381,7 @@ class Vec3 {
     Operatore somma e assegnazione. 
     Somma v a se stesso in loco.
     */
-   const Vec3& operator += (const Vec3& v) {
+   Vec3& operator += (const Vec3& v) {
       pdVec[V1] += v.pdVec[V1];
       pdVec[V2] += v.pdVec[V2];
       pdVec[V3] += v.pdVec[V3];
@@ -402,7 +402,7 @@ class Vec3 {
     Operatore sottrazione e assegnazione. 
     Sottrae v da se stesso in loco.
     */
-   const Vec3& operator -= (const Vec3& v) {
+   Vec3& operator -= (const Vec3& v) {
       pdVec[V1] -= v.pdVec[V1];
       pdVec[V2] -= v.pdVec[V2];
       pdVec[V3] -= v.pdVec[V3];
@@ -423,7 +423,7 @@ class Vec3 {
     Operatore prodotto e assegnazione per scalare.
     Moltiplica se stesso per d in loco.
     */
-   const Vec3& operator *= (const doublereal& d) {
+   Vec3& operator *= (const doublereal& d) {
       pdVec[V1] *= d;
       pdVec[V2] *= d;
       pdVec[V3] *= d;
@@ -461,7 +461,7 @@ class Vec3 {
     Operatore divisione e assegnazione per scalare. 
     Divide se stesso per d in loco.
     */
-   const Vec3& operator /= (const doublereal& d) {
+   Vec3& operator /= (const doublereal& d) {
       ASSERT(d != 0.);	
       pdVec[V1] /= d;
       pdVec[V2] /= d;
@@ -1052,7 +1052,7 @@ class Mat3x3 {
    /*
     Operatore di assegnazione.
     */
-   const Mat3x3& operator = (const Mat3x3& m) {
+   Mat3x3& operator = (const Mat3x3& m) {
       
       pdMat[M11] = m.pdMat[M11];
       pdMat[M21] = m.pdMat[M21];
@@ -1087,7 +1087,7 @@ class Mat3x3 {
     Operatore somma e assegnazione.
     Somma v a se stesso in loco.
     */
-   const Mat3x3& operator += (const Mat3x3& m) {
+   Mat3x3& operator += (const Mat3x3& m) {
       pdMat[M11] += m.pdMat[M11];
       pdMat[M21] += m.pdMat[M21];
       pdMat[M31] += m.pdMat[M31];
@@ -1121,7 +1121,7 @@ class Mat3x3 {
     Operatore differenza e assegnazione.
     Sottrae v da se stesso in loco.
     */
-   const Mat3x3& operator -= (const Mat3x3& m) {
+   Mat3x3& operator -= (const Mat3x3& m) {
       pdMat[M11] -= m.pdMat[M11];
       pdMat[M21] -= m.pdMat[M21];
       pdMat[M31] -= m.pdMat[M31];
@@ -1158,7 +1158,7 @@ class Mat3x3 {
     Operatore moltiplicazione per scalare e assegnazione.
     Moltiplica se stesso per d in loco.
     */
-   const Mat3x3& operator *= (const doublereal& d) {
+   Mat3x3& operator *= (const doublereal& d) {
       if (d != 1.) {
 	 pdMat[M11] *= d;
 	 pdMat[M21] *= d;

@@ -198,7 +198,7 @@ Mat3x3::Solve(const Vec3& v) const
 Vec3
 Mat3x3::LDLSolve(const Vec3& v) const
 {
-	doublereal d1 = 0., d2 = 0., d3 = 0., l21 = 0., l31 = 0., l32 = 0.;
+	doublereal d1, d2, d3, l21 = 0., l31 = 0., l32 = 0.;
 
 	d1 = pdMat[M11];
 	ASSERT(d1 >= 0.);

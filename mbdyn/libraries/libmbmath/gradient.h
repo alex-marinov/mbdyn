@@ -333,7 +333,7 @@ public:
 
     static index_type iRoundEndIndexVector(index_type iEnd)
     {
-    	return iEnd / iVectorSize + (iEnd % iVectorSize ? 1 : 0);
+    	return iEnd / iVectorSize + ((iEnd % iVectorSize) ? 1 : 0);
     }
 };
 
