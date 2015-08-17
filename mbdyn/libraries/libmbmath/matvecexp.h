@@ -103,19 +103,19 @@ public:
 		mom = x;
 	};
 	
-	inline const ScalExp& operator = (const ScalExp& v) {
+	inline ScalExp& operator = (const ScalExp& v) {
 		vec = v.vec;
 		mom = v.mom;
 		return *this;
 	};
 
-	inline const ScalExp& operator += (const ScalExp& v) {
+	inline ScalExp& operator += (const ScalExp& v) {
 		vec += v.vec;
 		mom += v.mom;
 		return *this;
 	};
 
-	inline const ScalExp& operator -= (const ScalExp& v) {
+	inline ScalExp& operator -= (const ScalExp& v) {
 		vec -= v.vec;
 		mom -= v.mom;
 		return *this;
@@ -176,27 +176,23 @@ public:
 		NO_OP;
 	};
 
-	VecExp(const VecExp& vin) {
-		vec = vin.vec;
-		mom = vin.mom;
+	VecExp(const VecExp& vin) : vec(vin.vec), mom(vin.mom) {
+		NO_OP;
 	};
 
-	VecExp(const Vec6& vin) {
-		vec = vin.GetVec1();
-		mom = vin.GetVec2();
+	VecExp(const Vec6& vin) : vec(vin.GetVec1()), mom(vin.GetVec2()) {
+		NO_OP;
 	};
 
 	VecExp(const doublereal& d1, const doublereal& d2,
 		const doublereal& d3, const doublereal& d4, 
 		const doublereal& d5, const doublereal& d6)
-	{
-		vec = Vec3(d1, d2, d3);
-		mom = Vec3(d4, d5, d6);
+	: vec(Vec3(d1, d2, d3)), mom(Vec3(d4, d5, d6)) {
+		NO_OP;
 	};
    
-	VecExp(const Vec3& v1, const Vec3& v2) {
-		vec = v1;
-		mom = v2;
+	VecExp(const Vec3& v1, const Vec3& v2) : vec(v1), mom(v2) {
+		NO_OP;
 	};
    
 	inline const Vec3& GetVec(void) const {
@@ -215,19 +211,19 @@ public:
 		mom = x;
 	};
 	
-	inline const VecExp& operator = (const VecExp& v) {
+	inline VecExp& operator = (const VecExp& v) {
 		vec = v.vec;
 		mom = v.mom;
 		return *this;
 	};
 
-	inline const VecExp& operator += (const VecExp& v) {
+	inline VecExp& operator += (const VecExp& v) {
 		vec += v.vec;
 		mom += v.mom;
 		return *this;
 	};
 
-	inline const VecExp& operator -= (const VecExp& v) {
+	inline VecExp& operator -= (const VecExp& v) {
 		vec -= v.vec;
 		mom -= v.mom;
 		return *this;
@@ -333,9 +329,8 @@ public:
 		NO_OP;
 	};
 
-	MatExp(const MatExp& min) {
-		vec = min.vec;
-		mom = min.mom;
+	MatExp(const MatExp& min) : vec(min.vec), mom(min.mom) {
+		NO_OP;
 	};
 
 	MatExp(const VecExp& vin) {
@@ -350,13 +345,12 @@ public:
 	};
 
 	MatExp(const doublereal& d, const VecExp& v2) {
-		vec = Mat3x3(d,v2.GetVec());
+		vec = Mat3x3(d, v2.GetVec());
 		mom = Mat3x3(MatCross, v2.GetMom());
 	};
 
-	MatExp(const Mat3x3& ma, const Mat3x3& mxa) {
-		vec = ma;
-		mom = mxa;
+	MatExp(const Mat3x3& ma, const Mat3x3& mxa) : vec(ma), mom(mxa) {
+		NO_OP;
 	};
    
 	inline const Mat3x3& GetVec(void) const {
@@ -375,19 +369,19 @@ public:
 		mom = x;
 	};
 
-	inline const MatExp& operator = (const MatExp& m) {
+	inline MatExp& operator = (const MatExp& m) {
 		vec = m.vec;
 		mom = m.mom;
 		return *this;
 	};
 
-	inline const MatExp& operator += (const MatExp& v) {
+	inline MatExp& operator += (const MatExp& v) {
 		vec += v.vec;
 		mom += v.mom;
 		return *this;
 	};
 
-	inline const MatExp& operator -= (const MatExp& v) {
+	inline MatExp& operator -= (const MatExp& v) {
 		vec -= v.vec;
 		mom -= v.mom;
 		return *this;
