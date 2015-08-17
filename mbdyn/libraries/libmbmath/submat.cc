@@ -1615,10 +1615,10 @@ MySubVectorHandler::MySubVectorHandler(integer iSize, integer* piTmpRow,
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		
-		SAFENEWARR(piTmpRow, integer, iSize);
+		SAFENEWARR(piRowm1, integer, iSize);
 	}
 
-	piRowm1 = piTmpRow - 1;
+	piRowm1--;
 #ifdef DEBUG
 	IsValid();
 #endif /* DEBUG */
