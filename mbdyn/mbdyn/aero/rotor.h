@@ -407,7 +407,6 @@ protected:
 		const doublereal& dE,
 		const doublereal& dCH,
 		const doublereal& dCFF,
-		GlauertRotor::Type gtype,
 		flag fOut);
 
 public:

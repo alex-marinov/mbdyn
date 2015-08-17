@@ -1003,7 +1003,7 @@ Rotor(uLabel, pDO),
 gtype(gtype)
 {
 	Init(pCraft, rrot, pRotor, pGround, ppres, dOR, dR,
-		pdW, iMaxIt, dTol, dE, dCH, dCFF, gtype, fOut);
+		pdW, iMaxIt, dTol, dE, dCH, dCFF, fOut);
 }
 
 void
@@ -1020,7 +1020,6 @@ GlauertRotor::Init(const StructNode* pCraft,
 	const doublereal& dE,
 	const doublereal& dCH,
 	const doublereal& dCFF,
-	GlauertRotor::Type gtype,
 	flag fOut)
 {
 	ASSERT(dOR > 0.);
@@ -1028,7 +1027,6 @@ GlauertRotor::Init(const StructNode* pCraft,
 	ASSERT(pdW != 0);
 
 	Rotor::Init(pCraft, rrot, pRotor, pGround, ppres, dR, iMaxIt, dTol, dE, fOut);
-	gtype = gtype;
 
 	dOmegaRef = dOR;
 	dVTipRef = dOmegaRef*dRadius;
