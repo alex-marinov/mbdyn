@@ -501,8 +501,7 @@ ReadAuthMethod(const DataManager* /* pDM */ , MBDynParser& HP)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		char* user = 0;
-		SAFESTRDUP(user, tmp);
+		std::string user(tmp);
 
 		if (!HP.IsKeyWord("credentials")) {
 			silent_cerr("ReadAuthMethod: credentials expected at line "
@@ -516,30 +515,24 @@ ReadAuthMethod(const DataManager* /* pDM */ , MBDynParser& HP)
 			tmp = HP.GetStringWithDelims();
 		}
 
-		if (strlen(tmp) == 0) {
+		if (tmp[0] == '\0') {
 			silent_cout("ReadAuthMethod: null credentials at line "
 					<< HP.GetLineData() << std::endl);
 		}
 
-		char* cred = 0;
-		SAFESTRDUP(cred, tmp);
+		std::string cred(tmp);
 		memset((char *)tmp, '\0', strlen(tmp));
 
-		char *salt_format = 0;
+		std::string salt_format;
 		if (HP.IsKeyWord("salt" "format")) {
 			tmp = HP.GetStringWithDelims();
-			SAFESTRDUP(salt_format, tmp);
+			salt_format = tmp;
 		}
 
 		SAFENEWWITHCONSTRUCTOR(pAuth,
 				PasswordAuth,
-				PasswordAuth(user, cred, salt_format));
-		SAFEDELETEARR(user);
-		memset(cred, '\0', strlen(cred));
-		SAFEDELETEARR(cred);
-		if (salt_format) {
-			SAFEDELETEARR(salt_format);
-		}
+				PasswordAuth(user.c_str(), cred.c_str(), salt_format.c_str()));
+		memset(cred.c_str(), '\0', cred.size());
 
 		break;
 #else /* !HAVE_CRYPT */
