@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fixed math parser bug with undefined vare at beginning
 		  of expression (noted by Andrea Zanoni)
+		- fixed potential buffer overflow when parsing long numbers
 
 MBDyn 1.6.1
 	Enhancements:
