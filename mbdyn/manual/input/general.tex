@@ -1303,6 +1303,7 @@ The \kw{reference} directive:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
+        [ \kw{name} , (\ty{string}) \bnt{name} , ]
         (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_position} ,
         (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
         (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_velocity} ,
@@ -1321,10 +1322,15 @@ These routines are very general, and make intense use of the
 can be recursively defined by means of previously defined 
 \kw{reference} entries.
 
-Alternative form:
+\bigskip
+
+Alternative form, based on Denavit-Hartenberg parameters,
+which are particularly used in robotics:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
+        [ \kw{name} , " \bnt{name} " , ]
+        \kw{Denavit Hartenberg} ,
         [ \kw{reference} , \{ \kw{global} | \bnt{ref_label} \} , ]
         \bnt{d} , \bnt{theta} , \bnt{a} , \bnt{alpha} ;
 \end{Verbatim}
@@ -1347,23 +1353,23 @@ The new reference data are
 	\T{x}_\text{old}
 	+
 	\TT{R}_\text{old} \plbr{
-		d \T{e}_3
+		\nt{d} \, \T{e}_3
 		+
-		\text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \cdot \plbr{a \T{e}_1}
+		\text{exp}\plbr{\plbr{\nt{theta} \, \T{e}_3} \times{}} \cdot \plbr{\nt{a} \, \T{e}_1}
 	}
 	\\
 	\TT{R}_\text{new}
 	&=
-	\TT{R}_\text{old} \text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \text{exp}\plbr{\plbr{\alpha \T{e}_1} \times{}}
+	\TT{R}_\text{old} \text{exp}\plbr{\plbr{\nt{theta} \, \T{e}_3} \times{}} \text{exp}\plbr{\plbr{\nt{alpha} \, \T{e}_1} \times{}}
 	\\
 	\T{v}_\text{new}
 	&=
 	\T{v}_\text{old}
 	+
 	\T{\omega}_\text{old} \times \TT{R}_\text{old} \plbr{
-		d \T{e}_3
+		\nt{d} \, \T{e}_3
 		+
-		\text{exp}\plbr{\plbr{\theta \T{e}_3} \times{}} \cdot \plbr{a \T{e}_1}
+		\text{exp}\plbr{\plbr{\nt{theta} \, \T{e}_3} \times{}} \cdot \plbr{\nt{a} \, \T{e}_1}
 	}
 	\\
 	\T{\omega}_\text{new}
@@ -1371,6 +1377,7 @@ The new reference data are
 	\T{\omega}_\text{old}
 \end{align}
 \end{subequations}
+where the subscript ``old'' refers to the reference frame with label \nt{ref\_label1}, if any, or otherwise to the global reference system.
 
 \subsubsection{Use of Reference Frames}
 Every time an absolute or a relative geometric or physical entity is
