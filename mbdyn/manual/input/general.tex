@@ -1325,7 +1325,9 @@ can be recursively defined by means of previously defined
 \bigskip
 
 Alternative form, based on Denavit-Hartenberg parameters,
-which are particularly used in robotics:
+which are particularly used in robotics.
+It defines the reference system of the second part of a joint with respect to the first part,
+when the two parts are connected by revolute joints.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
@@ -1345,6 +1347,30 @@ where:
 
 \item \nt{alpha}: the angle $\alpha$ about the common normal, from previous to new $z$ axis.
 \end{itemize}
+The configuration of the first part of the joint is identified by an axis $z_1$ and a point $\text{P}_1$ on it.
+The configuration of the second part of the joint is identified by an axis $z_2$;
+point $\text{P}_2$ on the second part of the joint results from the definition itself,
+and is not strictly relevant for the definition.
+If the two axes are not parallel, they have a common normal, $x_2$, that crosses both;
+otherwise, one can arbitrarily choose $x_2$ as a direction orthogonal to both $z_1$
+(and $z_2$, since they are parallel, or even coincident).
+Choose $x_1$ as a vector normal to $z_1$, originating from the reference point of the first part of the joint, $\text{P}_1$,
+and directed towards the reference point of the second part of the joint, $\text{P}_2$
+(this is not strictly required, as one can choose axis $x_1$ at will, as it only provides the reference for the joint rotation).
+In general, $x_1$ will not be able to intersect axis $z_2$, unless axes $z_1$ and $z_2$ are co-planar.
+Point $\text{P}_2$ is the intersection between axes $x_2$ and $z_2$.
+If needed, axes $y_1$ and $y_2$ are defined according to the right-hand rule.
+Then:
+\begin{itemize}
+\item \nt{d} is the distance, along $z_1$, between the reference point of the first part, $\text{P}_1$, and the plane determined by axes $z_2$ and $x_2$;
+
+\item \nt{theta} is the angle about axis $z_1$ between axes $x_2$ and $x_1$; it represents the actual rotation of the joint;
+
+\item \nt{a} is the distance between axes $z_1$ and $z_2$, which is along axis $x_2$;
+
+\item \nt{alpha} is the angle formed by axis $z_2$ with respect to axis $z_1$; it corresponds to a rotation about axis $x_2$.
+\end{itemize}
+
 The new reference data are
 \begin{subequations}
 \begin{align}
