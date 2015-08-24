@@ -29,6 +29,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * With the contribution of Ankit Aggarwal <ankit.ankit.aggarwal@gmail.com>
+ * during Google Summer of Code 2015
+ */
+
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cerrno>
@@ -36,9 +41,14 @@
 #include <cstdlib>
 #include <climits>
 #include <limits>
+#include <sstream>
 
 #include "mathp.h"
 #include "parser.h"
+
+#ifdef USE_EE
+#include "evaluator_impl.h"
+#endif // USE_EE
 
 
 /* helper per le funzioni built-in */
@@ -732,29 +742,36 @@ mp_cast(const MathParser::MathArgs& args)
 	MathParser::MathArgAny_t *arg1 = dynamic_cast<MathParser::MathArgAny_t*>(args[1]);
 	ASSERT(arg1 != 0);
 
-	if (args[0]->Type() == MathParser::AT_BOOL) {
+	switch (args[0]->Type()) {
+	case MathParser::AT_BOOL: {
 		MathParser::MathArgBool_t *out = dynamic_cast<MathParser::MathArgBool_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetBool();
+		} break;
 
-	} else if (args[0]->Type() == MathParser::AT_INT) {
+	case MathParser::AT_INT: {
 		MathParser::MathArgInt_t *out = dynamic_cast<MathParser::MathArgInt_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetInt();
+		} break;
 
-	} else if (args[0]->Type() == MathParser::AT_REAL) {
+	case MathParser::AT_REAL: {
 		MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t*>(args[0]);
 		ASSERT(out != 0);
 		(*out)() = (*arg1)().GetReal();
+		} break;
 
-	} else if (args[0]->Type() == MathParser::AT_STRING) {
+	case MathParser::AT_STRING: {
 		MathParser::MathArgString_t *out = dynamic_cast<MathParser::MathArgString_t*>(args[0]);
 		ASSERT(out != 0);
 		TypedValue val(TypedValue::VAR_STRING);
 		val.Cast((*arg1)());
 		(*out)() = val.GetString();
+		} break;
 
-	} else {
+	default:
+		// add support for future types
+		return 1;
 	}
 
 	return 0;
@@ -766,7 +783,7 @@ struct TypeName_t {
 	TypedValue::Type type;
 };
 
-static TypeName_t TypeNames[] = {
+static const TypeName_t TypeNames[] = {
 	{ "bool",	TypedValue::VAR_BOOL },
 	{ "integer",	TypedValue::VAR_INT },
 	{ "real",	TypedValue::VAR_REAL },
@@ -780,7 +797,7 @@ struct typemodifiernames {
 	TypedValue::TypeModifier type;
 };
 
-static typemodifiernames TypeModifierNames[] = {
+static const typemodifiernames TypeModifierNames[] = {
 	{ "const",	TypedValue::MOD_CONST },
 	{ NULL,		TypedValue::MOD_UNKNOWN }
 };
@@ -790,7 +807,7 @@ struct declarationmodifiernames {
 	MathParser::DeclarationModifier type;
 };
 
-static declarationmodifiernames DeclarationModifierNames[] = {
+static const declarationmodifiernames DeclarationModifierNames[] = {
 	{ "ifndef",	MathParser::DMOD_IFNDEF },
 	{ NULL,		MathParser::DMOD_UNKNOWN }
 };
@@ -961,7 +978,7 @@ TypedValue::operator = (const TypedValue& var)
 }
 
 TypedValue&
-TypedValue::Cast(const TypedValue& var)
+TypedValue::Cast(const TypedValue& var, bool bErr)
 {
 	if (Const()) {
 		throw ErrConstraintViolation(MBDYN_EXCEPT_ARGS);
@@ -973,11 +990,13 @@ TypedValue::Cast(const TypedValue& var)
 		switch (var.type) {
 		case TypedValue::VAR_BOOL:
 		case TypedValue::VAR_INT:
+			// TODO: use std::ostringstream?
 			snprintf(buf, sizeof(buf), "%ld", (long)var.GetInt());
 			Set(std::string(buf));
 			break;
 
 		case TypedValue::VAR_REAL:
+			// TODO: use std::ostringstream?
 			snprintf(buf, sizeof(buf), "%e", (double)var.GetReal());
 			Set(std::string(buf));
 			break;
@@ -999,6 +1018,19 @@ TypedValue::Cast(const TypedValue& var)
 
 			case TypedValue::VAR_INT:
 			case TypedValue::VAR_REAL:
+				if (bErr) {
+					Real r = var.GetReal();
+					if (r != 0. && r != 1.) {
+						silent_cerr(" Error: implicit cast "
+							"of " << var
+							<< " from " << GetTypeName(var.type)
+							<< " to " << GetTypeName(type)
+							<< " alters its value"
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
 				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
@@ -1020,6 +1052,18 @@ TypedValue::Cast(const TypedValue& var)
 				break;
 
 			case TypedValue::VAR_REAL:
+				if (bErr) {
+					if (var.GetReal() != Real(var.GetInt())) {
+						silent_cerr(" Error: implicit cast "
+							"of " << var
+							<< " from " << GetTypeName(var.type)
+							<< " to " << GetTypeName(type)
+							<< " alters its value"
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+
 				silent_cerr("Warning: implicit cast "
 					"from " << GetTypeName(var.type)
 					<< " to " << GetTypeName(type)
@@ -1138,7 +1182,7 @@ TypedValue::GetReal(void) const
 		return Real(v.i);
 
 	case TypedValue::VAR_REAL:
- 		return v.r;
+		return v.r;
 
 	case TypedValue::VAR_STRING:
 		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_REAL, type);
@@ -1158,7 +1202,7 @@ TypedValue::GetString(void) const
 		throw ErrWrongType(MBDYN_EXCEPT_ARGS, VAR_STRING, type);
 
 	case TypedValue::VAR_STRING:
- 		return s;
+		return s;
 
 	default:
 		throw ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1596,11 +1640,19 @@ operator << (std::ostream& out, const TypedValue& v)
 	case TypedValue::VAR_INT:
 		return out << v.GetInt();
 
-	case TypedValue::VAR_REAL:
-		return out << v.GetReal();
+	case TypedValue::VAR_REAL: {
+		// FIXME: precision?
+		// make sure there is a (trailing) '.'
+		std::ostringstream os;
+		os << v.GetReal();
+		if (os.str().find('.') == std::string::npos) {
+			os << '.';
+		}
+		return out << os.str();
+		}
 
 	case TypedValue::VAR_STRING:
-		return out << v.GetString();
+		return out << '"' << v.GetString() << '"';
 
 	default:
 		throw TypedValue::ErrUnknownType(MBDYN_EXCEPT_ARGS);
@@ -1702,6 +1754,12 @@ Var::Const(void) const
 	return value.Const();
 }
 
+bool
+Var::MayChange(void) const
+{
+	return !value.Const();
+}
+
 TypedValue
 Var::GetVal(void) const
 {
@@ -1739,9 +1797,9 @@ Var::SetVal(const TypedValue& v)
 }
 
 void
-Var::Cast(const TypedValue& v)
+Var::Cast(const TypedValue& v, bool bErr)
 {
-	value.Cast(v);
+	value.Cast(v, bErr);
 }
 
 void
@@ -1785,6 +1843,12 @@ MathParser::PlugInVar::GetType(void) const
 
 bool
 MathParser::PlugInVar::Const(void) const
+{
+	return true;
+}
+
+bool
+MathParser::PlugInVar::MayChange(void) const
 {
 	return true;
 }
@@ -1833,64 +1897,36 @@ MathParser::GetLineNumber(void) const
 	return in->GetLineNumber();
 }
 
-MathParser::TokenList::TokenList(Token t)
-: t(t), value(Real(0)), name(NULL), next(NULL)
-{
-	NO_OP;
-}
-
-MathParser::TokenList::TokenList(const char* const s)
-: t(NAME), value(Real(0)), name(NULL), next(NULL)
-{
-	SAFESTRDUP(name, s);
-}
-
-MathParser::TokenList::TokenList(const TypedValue& v)
-: t(NUM), value(v), name(NULL), next(NULL)
-{
-	NO_OP;
-}
-
-MathParser::TokenList::~TokenList(void)
-{
-	if (t == NAME) {
-		SAFEDELETEARR(name);
-	}
-}
-
 void
 MathParser::TokenPush(Token t)
 {
-	TokenList* p = 0;
-
+	TokenVal tv;
+	tv.m_t = t;
 	if (t == NUM) {
-		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(value));
+		tv.m_v = value;
 	} else if (t == NAME) {
-		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(namebuf));
-	} else {
-		SAFENEWWITHCONSTRUCTOR(p, TokenList, TokenList(t));
+		tv.m_v = TypedValue(namebuf);
 	}
-	p->next = tokenlist;
-	tokenlist = p;
+	TokenStack.push(tv);
 }
 
 int
 MathParser::TokenPop(void)
 {
-	if (tokenlist == NULL) {
-		/* stack is empty */
+	if (TokenStack.empty()) {
 		return 0;
 	}
-	currtoken = tokenlist->t;
+
+	TokenVal tv = TokenStack.top();
+	TokenStack.pop();
+
+	currtoken = tv.m_t;
 	if (currtoken == NUM) {
-		value = tokenlist->value;
+		value = tv.m_v;
 	} else if (currtoken == NAME) {
-		ASSERT(tokenlist->name != NULL);
-		strcpy(namebuf, tokenlist->name);
+		// note: namebuf is expected to be large enough for value
+		namebuf = tv.m_v.GetString();
 	}
-	TokenList* p = tokenlist;
-	tokenlist = tokenlist->next;
-	SAFEDELETE(p);
 
 	return 1;
 }
@@ -1935,6 +1971,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// asin
 	f = new MathFunc_t;
 	f->fname = std::string("asin");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -1952,6 +1989,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// acos
 	f = new MathFunc_t;
 	f->fname = std::string("acos");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -1969,6 +2007,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// atan
 	f = new MathFunc_t;
 	f->fname = std::string("atan");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -1985,6 +2024,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// actan
 	f = new MathFunc_t;
 	f->fname = std::string("actan");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2001,6 +2041,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// atan2
 	f = new MathFunc_t;
 	f->fname = std::string("atan2");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2018,6 +2059,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// actan2
 	f = new MathFunc_t;
 	f->fname = std::string("actan2");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2035,6 +2077,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// cos
 	f = new MathFunc_t;
 	f->fname = std::string("cos");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2051,6 +2094,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// sin
 	f = new MathFunc_t;
 	f->fname = std::string("sin");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2067,6 +2111,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// tan
 	f = new MathFunc_t;
 	f->fname = std::string("tan");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2083,6 +2128,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// ctan
 	f = new MathFunc_t;
 	f->fname = std::string("ctan");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2099,6 +2145,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// cosh
 	f = new MathFunc_t;
 	f->fname = std::string("cosh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2115,6 +2162,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// sinh
 	f = new MathFunc_t;
 	f->fname = std::string("sinh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2131,6 +2179,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// tanh
 	f = new MathFunc_t;
 	f->fname = std::string("tanh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2147,6 +2196,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// ctanh
 	f = new MathFunc_t;
 	f->fname = std::string("ctanh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2164,6 +2214,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// acosh
 	f = new MathFunc_t;
 	f->fname = std::string("acosh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2180,6 +2231,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// asinh
 	f = new MathFunc_t;
 	f->fname = std::string("asinh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2196,6 +2248,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// atanh
 	f = new MathFunc_t;
 	f->fname = std::string("atanh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2212,6 +2265,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// actanh
 	f = new MathFunc_t;
 	f->fname = std::string("actanh");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2229,6 +2283,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// exp
 	f = new MathFunc_t;
 	f->fname = std::string("exp");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2245,6 +2300,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// log
 	f = new MathFunc_t;
 	f->fname = std::string("log");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2261,6 +2317,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// log10
 	f = new MathFunc_t;
 	f->fname = std::string("log10");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2277,6 +2334,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// sqrt
 	f = new MathFunc_t;
 	f->fname = std::string("sqrt");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2293,6 +2351,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// abs
 	f = new MathFunc_t;
 	f->fname = std::string("abs");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2309,6 +2368,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// sign
 	f = new MathFunc_t;
 	f->fname = std::string("sign");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgInt_t;
 	f->args[1] = new MathArgReal_t;
@@ -2325,6 +2385,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// copysign
 	f = new MathFunc_t;
 	f->fname = std::string("copysign");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2342,6 +2403,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// max
 	f = new MathFunc_t;
 	f->fname = std::string("max");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2359,6 +2421,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// min
 	f = new MathFunc_t;
 	f->fname = std::string("min");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2376,6 +2439,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// floor
 	f = new MathFunc_t;
 	f->fname = std::string("floor");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2392,6 +2456,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// ceil
 	f = new MathFunc_t;
 	f->fname = std::string("ceil");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2409,6 +2474,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// round
 	f = new MathFunc_t;
 	f->fname = std::string("round");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2426,6 +2492,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// rand
 	f = new MathFunc_t;
 	f->fname = std::string("rand");
+	f->ns = this;
 	f->args.resize(1 + 0);
 	f->args[0] = new MathArgInt_t;
 	f->f = mp_rand;
@@ -2441,6 +2508,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// random
 	f = new MathFunc_t;
 	f->fname = std::string("random");
+	f->ns = this;
 	f->args.resize(1 + 0);
 	f->args[0] = new MathArgReal_t;
 	f->f = mp_rndm;
@@ -2456,6 +2524,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// seed
 	f = new MathFunc_t;
 	f->fname = std::string("seed");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgVoid_t;
 	f->args[1] = new MathArgInt_t;
@@ -2472,6 +2541,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// step
 	f = new MathFunc_t;
 	f->fname = std::string("step");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2488,6 +2558,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// ramp
 	f = new MathFunc_t;
 	f->fname = std::string("ramp");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2504,6 +2575,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// sramp
 	f = new MathFunc_t;
 	f->fname = std::string("sramp");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2521,6 +2593,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// par
 	f = new MathFunc_t;
 	f->fname = std::string("par");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2537,6 +2610,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// in
 	f = new MathFunc_t;
 	f->fname = std::string("in_ll");
+	f->ns = this;
 	f->args.resize(1 + 3);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2554,6 +2628,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 
 	f = new MathFunc_t;
 	f->fname = std::string("in_le");
+	f->ns = this;
 	f->args.resize(1 + 3);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2571,6 +2646,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 
 	f = new MathFunc_t;
 	f->fname = std::string("in_el");
+	f->ns = this;
 	f->args.resize(1 + 3);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2588,6 +2664,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 
 	f = new MathFunc_t;
 	f->fname = std::string("in_ee");
+	f->ns = this;
 	f->args.resize(1 + 3);
 	f->args[0] = new MathArgReal_t;
 	f->args[1] = new MathArgReal_t;
@@ -2606,6 +2683,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// print
 	f = new MathFunc_t;
 	f->fname = std::string("print");
+	f->ns = this;
 	f->args.resize(1 + 1);
 	f->args[0] = new MathArgVoid_t;
 	f->args[1] = new MathArgReal_t;
@@ -2622,6 +2700,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	// stop
 	f = new MathFunc_t;
 	f->fname = std::string("stop");
+	f->ns = this;
 	f->args.resize(1 + 2);
 	f->args[0] = new MathArgVoid_t;
 	f->args[1] = new MathArgInt_t;
@@ -2657,6 +2736,7 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 		for (int i = 0; data[i].type != TypedValue::VAR_UNKNOWN; i++) {
 			f = new MathFunc_t;
 			f->fname = std::string(TypedValue::GetTypeName(data[i].type));
+			f->ns = this;
 			f->args.resize(1 + 1);
 			f->args[0] = data[i].arg;
 			f->args[1] = new MathArgAny_t;
@@ -2676,13 +2756,6 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 MathParser::StaticNameSpace::~StaticNameSpace(void)
 {
 	for (funcType::iterator f = func.begin(); f != func.end(); ++f) {
-		for (MathParser::MathArgs::iterator i = f->second->args.begin();
-			i != f->second->args.end();
-			++i)
-		{
-			delete *i;
-		}
-
 		delete f->second;
 	}
 }
@@ -2690,6 +2763,12 @@ MathParser::StaticNameSpace::~StaticNameSpace(void)
 bool
 MathParser::StaticNameSpace::IsFunc(const std::string& fname) const
 {
+#if 0
+	for (funcType::const_iterator f = func.begin(); f != func.end(); ++f) {
+		silent_cerr("*** " << f->second->fname << std::endl);
+	}
+#endif
+
 	if (func.find(fname) != func.end()) {
 		return true;
 	}
@@ -2703,32 +2782,32 @@ MathParser::StaticNameSpace::GetFunc(const std::string& fname) const
 	funcType::const_iterator i = func.find(fname);
 
 	if (i != func.end()) {
-		return i->second;
+		return new MathParser::MathFunc_t(*i->second);
 	}
 
 	return 0;
 }
 
 TypedValue
-MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const
+MathParser::StaticNameSpace::EvalFunc(MathParser::MathFunc_t *f) const
 {
-	f->f(args);
+	f->f(f->args);
 
-	switch (args[0]->Type()) {
+	switch (f->args[0]->Type()) {
 	case MathParser::AT_VOID:
 		return TypedValue(0);
 
 	case MathParser::AT_BOOL:
-		return TypedValue((*dynamic_cast<MathArgBool_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathArgBool_t*>(f->args[0]))());
 
 	case MathParser::AT_INT:
-		return TypedValue((*dynamic_cast<MathArgInt_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathArgInt_t*>(f->args[0]))());
 
 	case MathParser::AT_REAL:
-		return TypedValue((*dynamic_cast<MathArgReal_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathArgReal_t*>(f->args[0]))());
 
 	case MathParser::AT_STRING:
-		return TypedValue((*dynamic_cast<MathArgString_t*>(args[0]))());
+		return TypedValue((*dynamic_cast<MathArgString_t*>(f->args[0]))());
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2991,8 +3070,8 @@ start_parsing:;
 
 	/* name? */
 	if (isalpha(c) || c == '_') {
-		int l = 0;
-		namebuf[l++] = char(c);
+		namebuf.clear();
+		namebuf.push_back(char(c));
 		while ((c = in->get())) {
 			if (!(c == '_'
 				|| isalnum(c)
@@ -3001,12 +3080,8 @@ start_parsing:;
 				break;
 			}
 
-			namebuf[l++] = char(c);
-			if (l == namebuflen) {
-				IncNameBuf();
-			}
+			namebuf.push_back(char(c));
 		}
-		namebuf[l] = '\0';
 		in->putback(char(c));
 		return (currtoken = NAME);
 	}
@@ -3124,7 +3199,7 @@ end_of_comment:;
 		return (currtoken = NAMESPACESEP);
 
 	case '"': {
-		int l = 0;
+		namebuf.clear();
 		while ((c = in->get()) != '"') {
 			if (c == '\\') {
 				c = in->get();
@@ -3135,14 +3210,10 @@ end_of_comment:;
 					return (currtoken = ENDOFFILE);
 				}
 			}
-			namebuf[l++] = char(c);
-			if (l == namebuflen) {
-				IncNameBuf();
-			}
+			namebuf.push_back(char(c));
 		}
-		namebuf[l] = '\0';
 		value.SetType(TypedValue::VAR_STRING);
-		value.Set(std::string(namebuf));
+		value.Set(namebuf);
 		return (currtoken = NUM);
 		}
 
@@ -3168,19 +3239,7 @@ MathParser::bNameValidate(const std::string& s) const
 	return true;
 }
 
-void
-MathParser::IncNameBuf(void)
-{
-	int oldlen = namebuflen;
-	namebuflen *= 2;
-	char* s = NULL;
-	SAFENEWARR(s, char, namebuflen+1);
-	strncpy(s, namebuf, oldlen);
-	s[oldlen] = '\0';
-	SAFEDELETEARR(namebuf);
-	namebuf = s;
-}
-
+#ifndef USE_EE
 TypedValue
 MathParser::logical(void)
 {
@@ -3450,76 +3509,70 @@ MathParser::unary(void)
 TypedValue
 MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 {
-	MathArgs args(f->args.size());
-
-	for (unsigned i = 0; i < f->args.size(); i++) {
-		args[i] = f->args[i]->Copy();
-	}
-
-	for (unsigned i = 1; i < args.size(); i++) {
-		switch (args[i]->Type()) {
+	for (unsigned i = 1; i < f->args.size(); i++) {
+		switch (f->args[i]->Type()) {
 		case MathParser::AT_ANY:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "argument expected");
 				}
-				(*dynamic_cast<MathArgAny_t*>(args[i]))() = (*dynamic_cast<MathArgAny_t*>(f->args[i]))();
-				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+				(*dynamic_cast<MathArgAny_t*>(f->args[i]))() = (*dynamic_cast<MathArgAny_t*>(f->args[i]))();
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
-				(*dynamic_cast<MathArgAny_t*>(args[i]))() = stmtlist();
+				(*dynamic_cast<MathArgAny_t*>(f->args[i]))() = stmtlist();
 			}
 			break;
 
 		case MathParser::AT_BOOL:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "bool argument expected");
 				}
-				(*dynamic_cast<MathArgBool_t*>(args[i]))() = (*dynamic_cast<MathArgBool_t*>(f->args[i]))();
-				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+				(*dynamic_cast<MathArgBool_t*>(f->args[i]))() = (*dynamic_cast<MathArgBool_t*>(f->args[i]))();
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
-				(*dynamic_cast<MathArgBool_t*>(args[i]))() = stmtlist().GetBool();
+				(*dynamic_cast<MathArgBool_t*>(f->args[i]))() = stmtlist().GetBool();
 			}
 			break;
 
 		case MathParser::AT_INT:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "integer argument expected");
 				}
-				(*dynamic_cast<MathArgInt_t*>(args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
-				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+				(*dynamic_cast<MathArgInt_t*>(f->args[i]))() = (*dynamic_cast<MathArgInt_t*>(f->args[i]))();
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
-				(*dynamic_cast<MathArgInt_t*>(args[i]))() = stmtlist().GetInt();
+				(*dynamic_cast<MathArgInt_t*>(f->args[i]))() = stmtlist().GetInt();
 			}
 			break;
 
 		case MathParser::AT_REAL:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "real argument expected");
 				}
-				(*dynamic_cast<MathArgReal_t*>(args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
-				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+				(*dynamic_cast<MathArgReal_t*>(f->args[i]))() = (*dynamic_cast<MathArgReal_t*>(f->args[i]))();
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
-				(*dynamic_cast<MathArgReal_t*>(args[i]))() = stmtlist().GetReal();
+				(*dynamic_cast<MathArgReal_t*>(f->args[i]))() = stmtlist().GetReal();
 			}
 			break;
 
 		case MathParser::AT_STRING:
 			if (currtoken == CBR) {
-				if (!args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "string argument expected");
 				}
-				(*dynamic_cast<MathArgString_t*>(args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
-				args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+				(*dynamic_cast<MathArgString_t*>(f->args[i]))() = (*dynamic_cast<MathArgString_t*>(f->args[i]))();
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
 
 			} else {
-				(*dynamic_cast<MathArgString_t*>(args[i]))() = stmtlist().GetString();
+				(*dynamic_cast<MathArgString_t*>(f->args[i]))() = stmtlist().GetString();
 			}
 			break;
 
@@ -3531,11 +3584,11 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (i < args.size() - 1) {
-			if (args[i + 1]->Type() != AT_PRIVATE) {
+		if (i < f->args.size() - 1) {
+			if (f->args[i + 1]->Type() != AT_PRIVATE) {
 				switch (currtoken) {
 				case CBR:
-					if (!args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
+					if (!f->args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
 						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"mandatory argument expected");
 					}
@@ -3554,7 +3607,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 	}
 
 	if (f->t != 0) {
-		if (f->t(args)) {
+		if (f->t(f->args)) {
 			DEBUGCERR("error in function "
 				<< ns->sGetName() << "::" << f->fname 
 				<< " " "(msg: " << f->errmsg << ")"
@@ -3563,11 +3616,7 @@ MathParser::evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f)
 		}
 	}
 
-	TypedValue val = ns->EvalFunc(f, args);
-
-	for (unsigned i = 0; i < args.size(); i++) {
-		delete args[i];
-	}
+	TypedValue val = ns->EvalFunc(f);
 
 	return val;
 }
@@ -3608,7 +3657,7 @@ MathParser::expr(void)
 		if (currtoken == NAMESPACESEP) {
 			NameSpaceMap::iterator i = nameSpaceMap.find(name);
 			if (i == nameSpaceMap.end()) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
 			}
 			currNameSpace = i->second;
 			currTable = currNameSpace->GetTable();
@@ -3623,16 +3672,13 @@ MathParser::expr(void)
 
 		if (currtoken == OBR) {
 			/* in futuro ci potranno essere magari i dati strutturati */
-			if (!currNameSpace->IsFunc(namebuf)) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
-			}
-
 			MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 			if (f == NULL) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
 			}
 			GetToken();
 			TypedValue d = evalfunc(currNameSpace, f);
+			delete f;
 			if (currtoken != CBR) {
 				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
 						"expected after function "
@@ -3670,7 +3716,7 @@ MathParser::stmt(void)
 		bool isIfndef = false;
 		bool isConst = false;
 
-		DeclarationModifier declarationmodifier = GetDeclarationModifier(namebuf);
+		DeclarationModifier declarationmodifier = GetDeclarationModifier(namebuf.c_str());
 		if (declarationmodifier != DMOD_UNKNOWN) {
 			switch (declarationmodifier) {
 			case DMOD_IFNDEF:
@@ -3678,7 +3724,7 @@ MathParser::stmt(void)
 				break;
 
 			default:
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled definition modifier ", namebuf, "");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled definition modifier ", namebuf.c_str(), "");
 			}
 
 			if (GetToken() != NAME) {
@@ -3687,7 +3733,7 @@ MathParser::stmt(void)
 			}
 		}
 
-		TypedValue::TypeModifier typemodifier = GetTypeModifier(namebuf);
+		TypedValue::TypeModifier typemodifier = GetTypeModifier(namebuf.c_str());
 		if (typemodifier != TypedValue::MOD_UNKNOWN) {
 			switch (typemodifier) {
 			case TypedValue::MOD_CONST:
@@ -3695,7 +3741,7 @@ MathParser::stmt(void)
 				break;
 
 			default:
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled type modifier ", namebuf, "");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled type modifier ", namebuf.c_str(), "");
 			}
 
 			if (GetToken() != NAME) {
@@ -3705,7 +3751,7 @@ MathParser::stmt(void)
 		}
 
 		/* declaration? */
-		TypedValue::Type type = GetType(namebuf);
+		TypedValue::Type type = GetType(namebuf.c_str());
 		if (type != TypedValue::VAR_UNKNOWN) {
 			switch (GetToken()) {
 			case OBR:
@@ -3722,8 +3768,8 @@ MathParser::stmt(void)
 					"after type in declaration");
 			}
 
-			if (IsKeyWord(defaultNameSpace, namebuf)) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf, "' "
+			if (IsKeyWord(defaultNameSpace, namebuf.c_str())) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf.c_str(), "' "
 						"is a keyword");
 			}
 
@@ -3735,7 +3781,7 @@ MathParser::stmt(void)
 			if (currtoken == NAMESPACESEP) {
 				NameSpaceMap::iterator i = nameSpaceMap.find(name);
 				if (i == nameSpaceMap.end()) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
 				}
 				currNameSpace = i->second;
 				currTable = currNameSpace->GetTable();
@@ -3763,7 +3809,6 @@ MathParser::stmt(void)
 				if (isConst) {
 					d.SetConst();
 				}
-
 				/* cerco la variabile */
 				NamedValue* v = currTable->Get(varname.c_str());
 
@@ -3785,7 +3830,7 @@ MathParser::stmt(void)
 					/* altrimenti, se la posso ridefinire, mi limito
 					 * ad assegnarle il nuovo valore */
 					if (!bRedefineVars && !isIfndef) {
-				   		throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"var \"", name.c_str(), "\"");
 					}
@@ -3799,7 +3844,7 @@ MathParser::stmt(void)
 					}
 
 					if (!v->IsVar()) {
-			   			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot redefine "
 							"non-var named value "
 							"\"", name.c_str(), "\"");
@@ -3822,7 +3867,6 @@ MathParser::stmt(void)
 						}
 					}
 				}
-				
 				return v->GetVal();
 
 			} else if (currtoken == STMTSEP) {
@@ -3835,9 +3879,9 @@ MathParser::stmt(void)
 					if (isConst) {
 						/* cannot insert a const var
 						 * with no value */
-			      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-		      						"cannot create const named value "
-								"\"", namebuf, "\" with no value");
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot create const named value "
+							"\"", namebuf.c_str(), "\" with no value");
 					}
 					/* se la var non esiste, la inserisco;
 					 * se invece esiste e non vale 
@@ -3852,13 +3896,13 @@ MathParser::stmt(void)
 
 		} else {
 			if (declarationmodifier != DMOD_UNKNOWN) {
-			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-		      			"definition modifier without type");
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					"definition modifier without type");
 			}
 
 			if (typemodifier != TypedValue::MOD_UNKNOWN) {
-			      	throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-		      			"type modifier without type");
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					"type modifier without type");
 			}
 
 			MathParser::NameSpace *currNameSpace = defaultNameSpace;
@@ -3869,7 +3913,7 @@ MathParser::stmt(void)
 			if (currtoken == NAMESPACESEP) {
 				NameSpaceMap::iterator i = nameSpaceMap.find(name);
 				if (i == nameSpaceMap.end()) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf, "\"");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
 				}
 				currNameSpace = i->second;
 				currTable = currNameSpace->GetTable();
@@ -3884,22 +3928,20 @@ MathParser::stmt(void)
 
 			if (currtoken == OBR) {
 				/* in futuro ci potranno essere magari i dati strutturati */
-				if (!currNameSpace->IsFunc(namebuf)) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", name.c_str(), "' not found; user-defined functions not supported yet!");
-				}
-
 				MathParser::MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 				if (f == NULL) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf, "' not found");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
 				}
 				GetToken();
 				TypedValue d = evalfunc(currNameSpace, f);
+				delete f;
 				if (currtoken != CBR) {
 					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
 							"expected after function "
 							"\"", f->fname.c_str(), "\" in expr()");
 				}
 				GetToken();
+
 				return logical(d);
 			}
 
@@ -3909,23 +3951,23 @@ MathParser::stmt(void)
 			}
 			NamedValue* v = currTable->Get(namebuf);
 			if (v == NULL) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "var \"", namebuf, "\" not found");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "var \"", namebuf.c_str(), "\" not found");
 			}
 
 			if (currtoken == ASSIGN) {
 				GetToken();
 				TypedValue d = logical();
 				if (v->Const()) {
-		      			throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-	      						"cannot assign const named value "
-							"\"", name.c_str(), "\"");
-		 		}
+					throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						"cannot assign const named value "
+						"\"", name.c_str(), "\"");
+				}
 
-		 		if (!v->IsVar()) {
+				if (!v->IsVar()) {
 					throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
 							"cannot assign non-var named value "
 							"\"", name.c_str(), "\"");
-		 		}
+				}
 				dynamic_cast<Var *>(v)->Cast(d);
 				return v->GetVal();
 
@@ -3942,7 +3984,6 @@ MathParser::stmt(void)
 			}
 		}
 	}
-
 	return logical();
 }
 
@@ -4132,7 +4173,7 @@ last_arg:
 	/*
 	 * si arriva qui solo se il plugin non e' stato registrato
 	 */
-	silent_cerr("plugin '" << pginname << "' not supported" << std::endl);
+	silent_cerr(" plugin '" << pginname << "' not supported" << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
@@ -4147,8 +4188,8 @@ MathParser::stmtlist(void)
 	return d;
 }
 
+#endif // ! USE_EE
 
-const int default_namebuflen = 127;
 
 MathParser::MathParser(const InputStream& strm, Table& t, bool bRedefineVars)
 : PlugIns(0),
@@ -4156,15 +4197,12 @@ table(t),
 bRedefineVars(bRedefineVars),
 in(const_cast<InputStream*>(&strm)),
 defaultNameSpace(0),
-namebuf(0),
-namebuflen(default_namebuflen),
 value(),
-currtoken(UNKNOWNTOKEN),
-tokenlist(NULL)
+currtoken(UNKNOWNTOKEN)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 
-	SAFENEWARR(namebuf, char, namebuflen + 1);
+	// namebuf.resize(4);
 
 	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
@@ -4183,15 +4221,12 @@ table(t),
 bRedefineVars(bRedefineVars),
 in(0),
 defaultNameSpace(0),
-namebuf(0),
-namebuflen(default_namebuflen),
 value(),
-currtoken(UNKNOWNTOKEN),
-tokenlist(0)
+currtoken(UNKNOWNTOKEN)
 {
 	DEBUGCOUTFNAME("MathParser::MathParser");
 
-	SAFENEWARR(namebuf, char, namebuflen + 1);
+	// namebuf.resize(4);
 
 	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
@@ -4282,10 +4317,6 @@ MathParser::~MathParser(void)
 {
 	DEBUGCOUTFNAME("MathParser::~MathParser");
 
-	if (namebuf != NULL) {
-		SAFEDELETEARR(namebuf);
-	}
-
 	while (PlugIns) {
 		PlugInRegister *next = PlugIns->next;
 		SAFEDELETEARR(PlugIns->name);
@@ -4306,7 +4337,16 @@ MathParser::GetLastStmt(Real d, Token t)
 	}
 
 	for (;;) {
+#ifdef USE_EE
+		ExpressionElement *e = stmtlist();
+		d = e->Eval().GetReal();
+		if (pedantic_out) {
+			std::cout << "GetLastStmt: \"", e->Output(std::cout) << "\" = " << d << std::endl;
+		}
+		delete e;
+#else // ! USE_EE
 		d = stmtlist().GetReal();
+#endif // ! USE_EE
 		if (currtoken == ENDOFFILE || currtoken == t) {
 			break;
 		}
@@ -4335,6 +4375,54 @@ MathParser::GetLastStmt(const InputStream& strm, Real d, Token t)
 	return d;
 }
 
+#ifdef USE_EE
+ExpressionElement *
+MathParser::GetExpr(void)
+{
+	if (GetToken() == ARGSEP) {
+		return new EE_Value(0.);
+	}
+
+	ExpressionElement *e = 0;
+	for (;;) {
+		e = stmtlist();
+		if (pedantic_out) {
+			std::cout << "GetExpr: \"", e->Output(std::cout) << "\"" << std::endl;
+		}
+
+		if (currtoken == ENDOFFILE || currtoken == ARGSEP) {
+			break;
+		}
+
+		if (currtoken != STMTSEP) {
+			delete e;
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "statement separator expected");
+		}
+	}
+
+	// NOTE: caller must explicitly delete it
+	return e;
+}
+
+ExpressionElement *
+MathParser::GetExpr(const InputStream& strm)
+{
+	const InputStream *save_in = in;
+	Token save_currtoken = currtoken;
+
+	in = const_cast<InputStream *>(&strm);
+	currtoken = UNKNOWNTOKEN;
+
+	ExpressionElement *e = GetExpr();
+
+	in = const_cast<InputStream *>(save_in);
+	currtoken = save_currtoken;
+
+	// NOTE: caller must explicitly delete it
+	return e;
+}
+#endif // USE_EE
+
 Real
 MathParser::Get(Real d)
 {
@@ -4355,7 +4443,16 @@ TypedValue
 MathParser::Get(const TypedValue& /* v */ )
 {
 	GetToken();
+#ifdef USE_EE
+	ExpressionElement *e = stmt();
+	TypedValue vv = e->Eval();
+	if (pedantic_out) {
+		std::cout << "Get: \"", e->Output(std::cout) << "\" = " << vv << std::endl;
+	}
+	delete e;
+#else // ! USE_EE
 	TypedValue vv = stmt();
+#endif // ! USE_EE
 	if (currtoken != STMTSEP && currtoken != ENDOFFILE) {
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "statement separator expected");
 	}
@@ -4370,7 +4467,16 @@ MathParser::Get(const InputStream& strm, const TypedValue& v)
 	GetToken();
 	TypedValue vv = v;
 	if (currtoken != STMTSEP && currtoken != ARGSEP) {
+#ifdef USE_EE
+		ExpressionElement *e = stmt();
+		vv = e->Eval();
+		if (pedantic_out) {
+			std::cout << "Get: \"", e->Output(std::cout) << "\" = " << vv << std::endl;
+		}
+		delete e;
+#else // ! USE_EE
 		vv = stmt();
+#endif // ! USE_EE
 	}
 	if (currtoken == STMTSEP) {
 		in->putback(';');
@@ -4399,7 +4505,7 @@ void
 MathParser::GetForever(const InputStream& strm, std::ostream& out,
 		const char* const /* sep */ )
 {
- 	InputStream *p = in;
+	InputStream *p = in;
 	in = const_cast<InputStream *>(&strm);
 	GetForever(out);
 	in = p;
@@ -4452,3 +4558,952 @@ MathParser::GetNameSpace(const std::string& name) const
 	return i->second;
 }
 
+#ifdef USE_EE
+/*
+ * Evaluator code 
+ * Each function return ExpressionElement * for constructing a tree
+ */
+ExpressionElement *
+MathParser::logical(void)
+{
+	return logical_int(relational());
+}
+
+ExpressionElement *
+MathParser::logical(ExpressionElement * d)
+{
+	return logical_int(relational(d));
+}
+
+ExpressionElement *
+MathParser::logical_int(ExpressionElement * d)
+{
+	while (true) {
+		switch (currtoken) {
+		case AND:
+			GetToken();
+			// d = new EE_AND(d , relational()); 
+			d = EECreate<EE_AND>(d , relational()); 
+			break;
+
+		case OR:
+			GetToken();
+			// d = new EE_OR(d, relational()); 
+			d = EECreate<EE_OR>(d , relational()); 
+			break;
+
+		case XOR:
+			GetToken();
+			// d = new EE_XOR(d, relational());
+			d = EECreate<EE_XOR>(d , relational()); 
+			break;
+
+		default:
+			return d;
+		}
+	}
+}
+
+ExpressionElement *
+MathParser::relational(void)
+{
+	return relational_int(binary());
+}
+
+ExpressionElement *
+MathParser::relational(ExpressionElement * d)
+{
+	return relational_int(binary(d));
+}
+
+ExpressionElement *
+MathParser::relational_int(ExpressionElement *  d)
+{
+	while (true) {
+		switch (currtoken) {
+		case GT:
+			GetToken();
+			// d = new EE_Greater(d, binary());
+			d = EECreate<EE_Greater>(d , binary()); 
+			break;
+
+		case GE:
+			GetToken();
+			// d = new EE_Greater_Equal(d, binary());
+			d = EECreate<EE_Greater_Equal>(d , binary()); 
+			break;
+
+		case EQ:
+			GetToken();
+			// d = new EE_Equal_Equal(d, binary());
+			d = EECreate<EE_Equal_Equal>(d , binary()); 
+			break;
+
+		case LE:
+			GetToken();
+			// d = new EE_Lesser_Equal(d, binary());
+			d = EECreate<EE_Lesser_Equal>(d , binary()); 
+			break;
+
+		case LT:
+			GetToken();
+			// d = new EE_Lesser(d, binary());
+			d = EECreate<EE_Lesser>(d , binary()); 
+			break;
+
+		case NE:
+			GetToken();
+			// d = new EE_Not_Equal(d, binary());
+			d = EECreate<EE_Not_Equal>(d , binary()); 
+			break;
+
+		default:
+			return d;
+		}
+	}
+}
+
+ExpressionElement *
+MathParser::binary(void)
+{
+	return binary_int(mult());
+}
+
+ExpressionElement *
+MathParser::binary(ExpressionElement * d)
+{
+	return binary_int(mult(d));
+}
+
+ExpressionElement *
+MathParser::binary_int(ExpressionElement * d)
+{
+	while (true) {
+		switch (currtoken) {
+		case PLUS:
+			GetToken();
+			// d = new EE_Plus(d, mult());
+			d = EECreate<EE_Plus>(d , mult()); 
+			break;
+
+		case MINUS:
+			GetToken();
+			// d = new EE_Minus(d, mult());
+			d = EECreate<EE_Minus>(d , mult()); 
+			break;
+
+		default:
+			return d;
+		}
+	}
+}
+
+ExpressionElement *
+MathParser::mult(void)
+{
+	return mult_int(power());
+}
+
+ExpressionElement *
+MathParser::mult(ExpressionElement * d)
+{
+	return mult_int(power(d));
+}
+
+ExpressionElement *
+MathParser::mult_int(ExpressionElement * d)
+{
+	while (true) {
+		switch (currtoken) {
+		case MULT:
+			GetToken();
+			// d = new EE_Multiply(d, power());
+			d = EECreate<EE_Multiply>(d , power()); 
+			break;
+		
+		case DIV:
+			GetToken();
+			// d = new EE_Divide(d, power());
+			d = EECreate<EE_Divide>(d , power()); 
+			break;
+
+		case MOD:
+			GetToken();
+			// d = new EE_Modulus(d, power());
+			d = EECreate<EE_Modulus>(d , power()); 
+			break;
+
+		default:
+			return d;
+		}
+	}
+}
+
+
+ExpressionElement *
+MathParser::power(void)
+{
+	return power_int(unary());
+}
+
+ExpressionElement *
+MathParser::power(ExpressionElement* d)
+{
+	return power_int(d);
+}
+
+ExpressionElement *
+MathParser::power_int(ExpressionElement * d)
+{
+	if (currtoken == EXP) {
+		GetToken();
+
+		/*
+		 * Per l'esponente chiamo di nuovo power cosi' richiama unary;
+		 * se per caso dopo unary c'e' di nuovo un esponente,
+		 * l'associazione avviene correttamente da destra:
+		 *
+		 * 	d^e1^e2 == d^(e1^e2)
+		 */
+
+		// d = new EE_Power(d, power());
+		d = EECreate<EE_Power>(d , power()); 
+	}
+
+	return d;
+}
+
+
+ExpressionElement *
+MathParser::unary(void)
+{
+	switch (currtoken) {
+	case MINUS:
+		GetToken();
+		// return new EE_Unary_minus(expr());
+		return EECreate<EE_Unary_minus>(expr()); 
+
+	case PLUS:
+		GetToken();
+		return expr();
+
+	case NOT:
+		GetToken();
+		// return new EE_NOT(expr());
+		return EECreate<EE_NOT>(expr()); 
+
+	default:
+		return expr();
+	}
+}
+
+ExpressionElement *
+MathParser::parsefunc(MathFunc_t* f)
+{
+	for (unsigned i = 1; i < f->args.size(); i++) {
+		switch (f->args[i]->Type()) {
+		case MathParser::AT_ANY:
+		case MathParser::AT_BOOL:
+		case MathParser::AT_INT:
+		case MathParser::AT_REAL:
+		case MathParser::AT_STRING:
+			if (currtoken == CBR) {
+				if (!f->args[i]->IsFlag(MathParser::AF_OPTIONAL)) {
+					switch (f->args[i]->Type()) {
+					case MathParser::AT_ANY:
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "argument expected");
+					case MathParser::AT_BOOL:
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "bool argument expected");
+					case MathParser::AT_INT:
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "integer argument expected");
+					case MathParser::AT_REAL:
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "real argument expected");
+					case MathParser::AT_STRING:
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "string argument expected");
+					}
+				}
+				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
+
+			} else {
+				ExpressionElement *ee = stmtlist();
+				f->args[i]->SetExpr(ee);
+				if (dynamic_cast<EE_Value *>(ee)) {
+					f->args[i]->SetFlag(AF_CONST);
+				}
+			}
+			break;
+
+		case MathParser::AT_PRIVATE:
+			/* ignore */
+			break;
+
+		default:
+			/* NOTE: will need to deal with future types */
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (i < f->args.size() - 1) {
+			if (f->args[i + 1]->Type() != MathParser::AT_PRIVATE) {
+				switch (currtoken) {
+				case CBR:
+					if (!f->args[i + 1]->IsFlag(MathParser::AF_OPTIONAL)) {
+						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"mandatory argument expected");
+					}
+					break;
+
+				case ARGSEP:
+					GetToken();
+					break;
+
+				default:
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						"argument separator expected");
+				}
+			}
+		}
+	}
+
+	return new EE_Func(this, f);
+}
+
+ExpressionElement *
+MathParser::expr(void)
+{
+	if (currtoken == NUM) {
+		GetToken();
+		return new EE_Value(value);
+	}
+
+	if (currtoken == OBR) {
+		GetToken();
+		ExpressionElement *d = stmtlist();
+		if (currtoken != CBR) {
+			delete d;
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis expected");
+		}
+		GetToken();
+		return d;
+	}
+
+	if (currtoken == OPGIN) {
+		ExpressionElement *d = readplugin();
+		if (currtoken != CPGIN) {
+			delete d;
+			throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing plugin expected");
+		}
+		GetToken();
+		return d;
+	}
+
+	if (currtoken == NAME) {
+		std::string name(namebuf);
+		MathParser::NameSpace *currNameSpace = defaultNameSpace;
+		Table *currTable = &table;
+
+		GetToken();
+		if (currtoken == NAMESPACESEP) {
+			NameSpaceMap::iterator i = nameSpaceMap.find(name);
+			if (i == nameSpaceMap.end()) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+			}
+			currNameSpace = i->second;
+			currTable = currNameSpace->GetTable();
+			GetToken();
+			if (currtoken != NAME) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
+			}
+			name += "::";
+			name += namebuf;
+			GetToken();
+		}
+
+		if (currtoken == OBR) {
+			/* function handling 
+			 * in futuro ci potranno essere magari i dati strutturati */
+			MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+			if (f == 0) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
+			}
+			GetToken();
+			ExpressionElement *e = parsefunc(f);
+			if (currtoken != CBR) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
+						"expected after function "
+						"\"", f->fname.c_str(), "\" in expr()");
+			}
+			GetToken();
+			return e;
+			
+		} else {
+			NamedValue* v = 0;
+			if (currTable) {
+				v = currTable->Get(namebuf);
+			}
+
+			if (v != NULL) {
+				if (v->MayChange() || !ExpressionElement::IsFlag(ExpressionElement::EE_CONSTIFY)) {
+					return new EE_Var(v, currNameSpace);
+				}
+				return new EE_Value(v->GetVal());
+			}
+		}
+
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown name \"", name.c_str(), "\"");
+	}
+
+	/* invalid expr */
+	if (currtoken != ENDOFFILE) {
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown token");
+	}
+
+	// FIXME: is this ok?
+	TypedValue a(0., true); 
+	return new EE_Value(a);
+}
+
+
+ExpressionElement *
+MathParser::stmt(void)
+{
+	if (currtoken == NAME) {
+		bool bIsIfndef = false;
+		bool bIsConst = false;
+
+		DeclarationModifier declarationmodifier = GetDeclarationModifier(namebuf.c_str());
+		if (declarationmodifier != DMOD_UNKNOWN) {
+			switch (declarationmodifier) {
+			case DMOD_IFNDEF:
+				bIsIfndef = true;
+				break;
+
+			default:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled definition modifier ", namebuf.c_str(), "");
+			}
+
+			if (GetToken() != NAME) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "type (modifier) expected "
+					"after definition modifier in declaration");
+			}
+		}
+
+		TypedValue::TypeModifier typemodifier = GetTypeModifier(namebuf.c_str());
+		if (typemodifier != TypedValue::MOD_UNKNOWN) {
+			switch (typemodifier) {
+			case TypedValue::MOD_CONST:
+				bIsConst = true;
+				break;
+
+			default:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled type modifier ", namebuf.c_str(), "");
+			}
+
+			if (GetToken() != NAME) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "type expected "
+					"after type modifier in declaration");
+			}
+		}
+
+		/* declaration? */
+		TypedValue::Type type = GetType(namebuf.c_str());
+		if (type != TypedValue::VAR_UNKNOWN) {
+			switch (GetToken()) {
+			case OBR:
+				// explicit cast?
+				TokenPush(currtoken);
+				currtoken = NAME;
+				return logical();
+				
+			case NAME:
+				break;
+
+			default:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected "
+					"after type in declaration");
+			}
+
+			if (IsKeyWord(defaultNameSpace, namebuf.c_str())) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf.c_str(), "' "
+						"is a keyword");
+			}
+
+			MathParser::NameSpace *currNameSpace = defaultNameSpace;
+			Table *currTable = &table;
+			std::string name(namebuf);
+
+			GetToken();
+			if (currtoken == NAMESPACESEP) {
+				NameSpaceMap::iterator i = nameSpaceMap.find(name);
+				if (i == nameSpaceMap.end()) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+				}
+				currNameSpace = i->second;
+				currTable = currNameSpace->GetTable();
+				GetToken();
+				if (currtoken != NAME) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
+				}
+				name += "::";
+				name += namebuf;
+				GetToken();
+			}
+
+			/* TODO: this needs a *LOT* of work
+			 *
+			 * - if the definition is without assignment?
+			 * - if the definition is with assignment and it is const?
+			 * - when can we safely evaluate the value?
+
+				(const integer i = 10)	-> declaration, assignment, referentiation ::= EE_Declare, EE_Assign?
+				(integer i = 10)	-> declaration, assignment, referentiation ::= EE_Declare, EE_Assign?
+				(integer i)		-> declaration ::= EE_Declare?
+				(i = 10)		-> assigment, referentiation ::= EE_Assign?
+				(i)			-> referentiation ::= EE_Var
+
+			 * if we pre-declare, and only use EE_Assign, we implicitly
+			 * turn stuff like "real A = B + C" into "real A" once,
+			 * followed by multiple "A = B + C", which may be good
+			 * but is not consistent with earlier behavior
+			 *
+			 * Alternatively, we need EE_Declare (and possibly EE_Declare_Assign),
+			 * although its only purpose is to fail when repeatedly invoked.
+			 *
+			 * Another point: an expression like
+
+				((integer i = 10) && i)
+
+			 * is now perfectly valid, since "i" is created before it is referenced
+			 * after "&&".
+			 *
+			 * However, in the new implementation as it is now (pre-declaration)
+			 * it works fine, but it would fail if we introduce EE_Declare,
+			 * because "i" would not exist during parsing, it would only exist
+			 * during evaluation.
+			 *
+			 * Pre-declaration seems good, but we need to find a way
+			 * to intercept repeated declarations.  For instance:
+			 * - pre-declaration and assignment of const
+			 * - pre-declaration, deferred assignment of non-const
+			 * - evaluation flag for all? Fail if evaluated more than once.
+			 */
+
+			/* with assign? */
+			if (currtoken == ASSIGN) {
+				if (currTable == 0) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+				}
+
+				/* faccio una copia del nome! */
+				std::string varname(namebuf);
+
+				GetToken();
+				ExpressionElement *e = logical();
+
+				/* cerco la variabile */
+				NamedValue* v = currTable->Get(varname.c_str());
+
+				if (v == 0) {
+					/* create new var with assigned type */
+					TypedValue newvar(type);
+					/* assign new var, so that it internally
+					 * takes care of casting, while it inherits
+					 * const'ness from d */
+					TypedValue d(e->Eval());
+					delete e;
+					e = 0;
+
+					if (bIsConst) {
+						d.SetConst();
+					}
+					newvar.Cast(d);
+
+					v = currTable->Put(varname.c_str(), newvar);
+
+					if (bIsIfndef) {
+						silent_cerr("warning, ifndef variable " << v->GetTypeName() << " \"" << name
+							<< "\" not yet defined; set to \"" << newvar << "\" at line " << mbdyn_get_line_data() << std::endl);
+					}
+
+				} else {
+					/* altrimenti, se la posso ridefinire, mi limito
+					 * ad assegnarle il nuovo valore */
+					if (!bRedefineVars && !bIsIfndef) {
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"var \"", name.c_str(), "\"");
+					}
+
+					if (v->Const() && !bIsIfndef) {
+						// TODO: check redefinition of const'ness
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"a const named value "
+							"\"", name.c_str(), "\"");
+					}
+
+					if (!v->IsVar()) {
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot redefine "
+							"non-var named value "
+							"\"", name.c_str(), "\"");
+					}
+
+					if (!bIsIfndef) {
+						dynamic_cast<Var *>(v)->SetVal(e->Eval());
+
+					} else {
+						if (v->GetType() != type) {
+							silent_cerr("warning, skipping redefinition of \"" << name.c_str() << "\""
+								<< " from " << v->GetTypeName() << " to " << TypedValue::GetTypeName(type)
+								<< " (orig=" << v->GetVal() << ", unchanged; new=" << e->Eval() << ")"
+								<< " at line " << mbdyn_get_line_data() << std::endl);
+
+						} else {
+							silent_cerr("warning, skipping redefinition of " << v->GetTypeName() << " \"" << name.c_str() << "\""
+								<< " (orig=" << v->GetVal() << ", unchanged; new=" << e->Eval() << ")"
+								<< " at line " << mbdyn_get_line_data() << std::endl);
+						}
+					}
+
+					delete e;
+					e = 0;
+				}
+
+				if (bIsConst && ExpressionElement::IsFlag(ExpressionElement::EE_CONSTIFY)) {
+					return new EE_Value(dynamic_cast<Var *>(v)->GetVal());
+
+				} else {
+					return new EE_Var(v, currNameSpace);
+				}
+
+			} else if (currtoken == STMTSEP) {
+				if (currTable == 0) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+				}
+				
+				NamedValue* v = currTable->Get(namebuf);
+				if (v == NULL || (!bRedefineVars && !bIsIfndef)) {
+					if (bIsConst) {
+						/* cannot insert a const var
+						 * with no value */
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot create const named value "
+							"\"", namebuf.c_str(), "\" with no value");
+					}
+
+					/* se la var non esiste, la inserisco;
+					 * se invece esiste e non vale 
+					 * la ridefinizione, tento
+					 * di inserirla comunque, cosi'
+					 * table da' errore */
+					v = currTable->Put(namebuf, TypedValue(type));
+				}
+
+				return new EE_Var(v, currNameSpace);
+			}
+
+		} else {
+			if (declarationmodifier != DMOD_UNKNOWN) {
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					"definition modifier without type");
+			}
+
+			if (typemodifier != TypedValue::MOD_UNKNOWN) {
+				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					"type modifier without type");
+			}
+
+			MathParser::NameSpace *currNameSpace = defaultNameSpace;
+			Table *currTable = &table;
+			std::string name(namebuf);
+
+			GetToken();
+			if (currtoken == NAMESPACESEP) {
+				NameSpaceMap::iterator i = nameSpaceMap.find(name);
+				if (i == nameSpaceMap.end()) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+				}
+				currNameSpace = i->second;
+				currTable = currNameSpace->GetTable();
+				GetToken();
+				if (currtoken != NAME) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name expected after namespace");
+				}
+				name += "::";
+				name += namebuf;
+				GetToken();
+			}
+
+			if (currtoken == OBR) {
+				/* in futuro ci potranno essere magari i dati strutturati */
+				MathFunc_t* f = currNameSpace->GetFunc(namebuf);
+				if (f == 0) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
+				}
+				GetToken();
+				ExpressionElement *e = parsefunc(f);
+				if (currtoken != CBR) {
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
+							"expected after function "
+							"\"", f->fname.c_str(), "\" in expr()");
+				}
+				GetToken();
+
+				return logical(e);
+			}
+
+			/* assignment? */
+			if (currTable == 0) {
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+			}
+			NamedValue* v = currTable->Get(namebuf);
+			if (v != NULL) {
+				if (currtoken == ASSIGN) {
+					GetToken();
+					ExpressionElement *e = logical();
+					if (v->Const()) {
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+							"cannot assign const named value "
+							"\"", name.c_str(), "\"");
+					}
+
+					if (!v->IsVar()) {
+						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+								"cannot assign non-var named value "
+								"\"", name.c_str(), "\"");
+					}
+
+					// FIXME: we need to define a EE_Assign that does the operation below
+					dynamic_cast<Var *>(v)->Cast(e->Eval());
+					delete e;
+					return new EE_Var(v, currNameSpace);
+
+				} else {
+					// NOTE: fails if <name> is actually <namespace>::<name>
+					// ASSERT(currtoken != NAME);
+					// TokenPush(currtoken);
+					// currtoken = NAME;
+
+					// NOTE: fails if <name> is not the complete <stmt>
+					// return v->GetVal();
+					ExpressionElement *e;
+					if (v->MayChange() || !ExpressionElement::IsFlag(ExpressionElement::EE_CONSTIFY)) {
+						e = new EE_Var(v, currNameSpace);
+					} else {
+						e = new EE_Value(v->GetVal());
+					}
+					return logical(e);
+				}
+
+			} else {
+				ASSERT(0);
+			}
+		}
+	}
+	return logical();
+}
+
+ExpressionElement *
+MathParser::stmtlist(void)
+{
+	ExpressionElement * d = stmt();
+	if (currtoken == STMTSEP) {
+		GetToken();
+		return d = new EE_StmtList(d, stmtlist());
+	}
+	//return new EE_StmtList(NULL , d);
+	return d;
+}
+
+ExpressionElement *
+MathParser::readplugin(void)
+{
+	/*
+	 * parse plugin:
+	 * 	- arg[0]: nome plugin
+	 * 	- arg[1]: nome variabile
+	 * 	- arg[2]->arg[n]: dati da passare al costrutture
+	 */
+	std::vector<char *> argv(1);
+	char c, buf[1024];
+	int argc = 0;
+	unsigned int i = 0, in_quotes = 0;
+
+	/*
+	 * inizializzo l'array degli argomenti
+	 */
+	argv[0] = NULL;
+
+	/*
+	 * parserizzo la stringa:
+	 * <plugin> ::= '[' <type> ',' <var_name> <list_of_args> ']'
+	 * <type> ::= <registered_type>
+	 * <var_name> ::= <legal_var_name>
+	 * <list_of_args> ::= ',' <arg> <list_of_args> | ''
+	 * <arg> ::= <legal_string> (no unescaped ']' or ','!)
+	 */
+	while ((c = in->get()), !in->eof()) {
+		switch (c) {
+		case '\\':
+			c = in->get();
+			if (in_quotes) {
+				switch (c) {
+				case 'n':
+					c = '\n';
+					break;
+
+				default:
+					in->putback(c);
+					c = '\\';
+					break;
+				}
+			}
+			buf[i++] = c;
+			break;
+
+		case '"':
+			if (in_quotes == 0) {
+				in_quotes = 1;
+				break;
+			}
+			in_quotes = 0;
+			while (isspace((c = in->get()))) {
+				NO_OP;
+			}
+			if (c != ',' && c != ']') {
+				silent_cerr("need a separator "
+					"after closing quotes" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			in->putback(c);
+			break;
+
+		case ',':
+		case ']':
+			if (in_quotes) {
+				buf[i++] = c;
+				break;
+			}
+			buf[i] = '\0';
+			argv.resize(argc + 2);
+			trim_arg(buf);
+			SAFESTRDUP(argv[argc], buf);
+			++argc;
+			argv[argc] = NULL;
+			if (c == ']') {
+				goto last_arg;
+			}
+			i = 0;
+			break;
+
+		default:
+			buf[i++] = c;
+			break;
+		}
+
+		/*
+		 * FIXME: rendere dinamico il buffer ...
+		 */
+		if (i >= sizeof(buf)) {
+			silent_cerr("MathParser::readplugin(): buffer overflow" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+last_arg:
+	if (in->eof()) {
+		silent_cerr("eof encountered while parsing plugin"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/*
+	 * put the close plugin token back
+	 */
+	in->putback(c);
+	buf[i] = '\0';
+
+	/*
+	 * argomenti comuni a tutti i plugin
+	 */
+	char *pginname = argv[0];
+	char *varname = argv[1];
+	trim_arg(pginname);
+	trim_arg(varname);
+
+	/*
+	 * verifiche di validita' argomenti
+	 */
+	if (pginname == NULL || *pginname == '\0') {
+		silent_cerr("illegal or missing plugin name" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (varname == NULL || *varname == '\0') {
+		silent_cerr("illegal or missing plugin variable name"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/*
+	 * verifica esistenza nome
+	 */
+	NamedValue* v = table.Get(varname);
+	if (v != NULL) {
+		silent_cerr("variable " << varname << " already defined"
+			<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	/*
+	 * ricerca registrazione plugin
+	 */
+	struct PlugInRegister *p = 0;
+	for (p = PlugIns; p != 0; p = p->next) {
+		if (strcasecmp(p->name, pginname) == 0) {
+			break;
+		}
+	}
+
+	if (p == 0) {
+		silent_cerr(" plugin '" << pginname << "' not supported" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+#ifdef DEBUG
+	for (int i = 0; argv[i] != NULL; i++) {
+		silent_cout("argv[" << i << "]=" << argv[i]
+				<< std::endl);
+	}
+#endif /* DEBUG */
+
+	/*
+	 * costruisce il plugin e gli fa interpretare gli argomenti
+	 */
+	MathParser::PlugIn *pgin = (*p->constructor)(*this, p->arg);
+	pgin->Read(argc - 2, &argv[2]);
+
+	/*
+	 * riporta il parser nello stato corretto
+	 */
+	GetToken();
+
+	/*
+	 * costruisce la variabile, la inserisce nella tabella
+	 * e ne ritorna il valore (prima esecuzione)
+	 */
+	SAFENEWWITHCONSTRUCTOR(v, PlugInVar,
+			PlugInVar(varname, pgin));
+	table.Put(v);
+
+	/*
+	 * pulizia ...
+	 */
+	for (int i = 0; argv[i] != NULL; i++) {
+		SAFEDELETEARR(argv[i]);
+	}
+
+	return new EE_Var(v, defaultNameSpace);
+}
+
+#endif // USE_EE

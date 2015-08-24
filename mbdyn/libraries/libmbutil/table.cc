@@ -107,7 +107,7 @@ Table::~Table(void)
 }
 
 Var *
-Table::Put(const char* const name, const TypedValue& x)
+Table::Put(const std::string& name, const TypedValue& x)
 {
 	NamedValue* pNV = Get(name);
 	if (pNV != 0) {
@@ -116,7 +116,7 @@ Table::Put(const char* const name, const TypedValue& x)
 		throw Table::ErrNameAlreadyDefined(MBDYN_EXCEPT_ARGS);
 	}
 
-	Var *pVar = new Var(name, x);
+	Var *pVar = new Var(name.c_str(), x);
 
 	if (!vm.insert(VM::value_type(name, pVar)).second) {
 		silent_cerr("Table::Put(): unable to insert variable "
@@ -147,7 +147,7 @@ Table::Put(NamedValue *p)
 }
 
 NamedValue *
-Table::Get(const char* const name) const
+Table::Get(const std::string& name) const
 {
 	VM::const_iterator i = vm.find(name);
 	if (i == vm.end()) {

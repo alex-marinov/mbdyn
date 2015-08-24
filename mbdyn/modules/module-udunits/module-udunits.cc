@@ -54,8 +54,7 @@ public:
 
 	bool IsFunc(const std::string& fname) const;
 	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
-	TypedValue EvalFunc(MathParser::MathFunc_t *f,
-		const MathParser::MathArgs& args) const;
+	TypedValue EvalFunc(MathParser::MathFunc_t *f) const;
 	virtual Table* GetTable(void);
 };
 
@@ -178,6 +177,7 @@ UDUnitsNameSpace::UDUnitsNameSpace(const char *path)
 	}
 
 	f.fname = "convert";
+	f.ns = this;
 	f.args.resize(1 + 3);
 	f.args[0] = new MathParser::MathArgReal_t;
 	f.args[1] = new MathParser::MathArgString_t;
@@ -190,37 +190,30 @@ UDUnitsNameSpace::UDUnitsNameSpace(const char *path)
 UDUnitsNameSpace::~UDUnitsNameSpace(void)
 {
 	utTerm();
-
-	for (MathParser::MathArgs::iterator i = f.args.begin();
-		i != f.args.end(); ++i)
-	{
-		delete *i;
-	}
 }
 
 bool
 UDUnitsNameSpace::IsFunc(const std::string& fname) const
 {
-	return GetFunc(fname) != 0;
+	return (fname.compare(f.fname) == 0);
 }
 
 MathParser::MathFunc_t*
 UDUnitsNameSpace::GetFunc(const std::string& fname) const
 {
 	if (fname.compare(f.fname) == 0) {
-		return const_cast<MathParser::MathFunc_t*>(&f);
+		return new MathParser::MathFunc_t(f);
 	}
 
 	return 0;
 }
 
 TypedValue 
-UDUnitsNameSpace::EvalFunc(MathParser::MathFunc_t *f,
-	const MathParser::MathArgs& args) const
+UDUnitsNameSpace::EvalFunc(MathParser::MathFunc_t *f) const
 {
-	f->f(args);
+	f->f(f->args);
 
-	return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(args[0]))());
+	return TypedValue((*dynamic_cast<MathParser::MathArgReal_t*>(f->args[0]))());
 }
 
 Table*

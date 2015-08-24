@@ -19,6 +19,9 @@ demangle.h \
 destr.h \
 dummypgin.cc \
 dummypgin.h \
+evaluator.h \
+evaluator_impl.cc \
+evaluator_impl.h \
 except.cc \
 except.h \
 filename.h \

@@ -29,6 +29,11 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * With the contribution of Ankit Aggarwal <ankit.ankit.aggarwal@gmail.com>
+ * during Google Summer of Code 2015
+ */
+
 #ifndef MATHP_H
 #define MATHP_H
 
@@ -40,6 +45,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <stack>
 #include <string>
 
 #include "myassert.h"
@@ -49,6 +55,10 @@
 #include "mathtyp.h"
 #include "table.h"
 #include "input.h"
+
+#ifdef USE_EE
+#include "evaluator.h"
+#endif // USE_EE
 
 class MathParser {
 public:
@@ -71,7 +81,8 @@ public:
 	enum ArgFlag {
 		AF_NONE			= 0x0U,
 		AF_OPTIONAL		= 0x1U,
-		AF_OPTIONAL_NON_PRESENT	= 0x2U
+		AF_OPTIONAL_NON_PRESENT	= 0x2U,
+		AF_CONST		= 0x10U
 	};
 
 	class MathArg_t {
@@ -87,6 +98,11 @@ public:
 		bool IsFlag(const MathParser::ArgFlag f) const { return (m_flags & unsigned(f)) == unsigned(f); };
 		unsigned GetFlags(void) const { return m_flags; };
 		virtual ArgType Type(void) const = 0;
+#ifdef USE_EE
+		virtual void SetExpr(const ExpressionElement *ee) { throw ErrGeneric(MBDYN_EXCEPT_ARGS); };
+		virtual const ExpressionElement *GetExpr(void) const { return 0; };
+		virtual void Eval(void) { NO_OP; };
+#endif // USE_EE
 		virtual MathArg_t *Copy(void) const = 0;
 	};
 
@@ -101,12 +117,30 @@ public:
 	class MathArgPriv_t : public MathArg_t {
 	protected:
 		T m_val;
+#ifdef USE_EE
+		const ExpressionElement *m_ee; // NOTE: memory owned by someone else
+#endif // USE_EE
+
 	public:
+#ifdef USE_EE
+		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val), m_ee(0) { NO_OP; };
+		MathArgPriv_t(const T& val, const ExpressionElement *ee, unsigned f = AF_NONE) : MathArg_t(f), m_val(val), m_ee(ee) { NO_OP; };
+		MathArgPriv_t(void) : MathArg_t(AF_NONE), m_ee(0) { NO_OP; };
+#else // ! USE_EE
 		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val) { NO_OP; };
 		MathArgPriv_t(void) : MathArg_t(AF_NONE) { NO_OP; };
+#endif // ! USE_EE
+
 		virtual ~MathArgPriv_t(void) { NO_OP; };
 		virtual ArgType Type(void) const { return TT; };
+#ifdef USE_EE
+		virtual void SetExpr(const ExpressionElement *ee) { m_ee = ee; };
+		virtual const ExpressionElement *GetExpr(void) const { return m_ee; };
+		virtual void Eval(void) { if (m_ee) { EE_Eval(m_ee, m_val); } };
+		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, m_ee, GetFlags()); };
+#else // ! USE_EE
 		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };
+#endif // ! USE_EE
 
 		const T& operator()(void) const { return m_val; };
 		T& operator()(void) { return m_val; };
@@ -125,13 +159,29 @@ public:
 	typedef int (*MathFunc_f)(const MathArgs& args);
 	typedef int (*MathFuncTest_f)(const MathArgs& args);
 
+	// forward declaration
+	class NameSpace;
+
 	/* struttura delle funzioni built-in */
 	struct MathFunc_t {
 		std::string fname;		/* function name */
+		NameSpace *ns;			/* puntatore a namespace */
 		MathArgs args;			/* argomenti (0: out; 1->n: in) */
 		MathFunc_f f;			/* puntatore a funzione */
 		MathFuncTest_f t;		/* puntatore a funzione di test */
 		std::string errmsg;		/* messaggio di errore */
+
+		MathFunc_t(void) : ns(0), f(0), t(0) {};
+		MathFunc_t(const MathFunc_t& in) : fname(in.fname), ns(in.ns), args(in.args.size()), f(in.f), t(in.t), errmsg(in.errmsg) {
+			for (unsigned i = 0; i < args.size(); ++i) {
+				args[i] = in.args[i]->Copy();
+			}
+		};
+		~MathFunc_t(void) {
+			for (unsigned i = 0; i < args.size(); ++i) {
+				delete args[i];
+			}
+		};
 	};
 
 	/* carattere di inizio commento */
@@ -147,7 +197,7 @@ public:
 		virtual const std::string& sGetName(void) const;
 		virtual bool IsFunc(const std::string& fname) const = 0;
 		virtual MathParser::MathFunc_t* GetFunc(const std::string& fname) const = 0;
-		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const = 0;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f) const = 0;
 		virtual Table* GetTable(void) = 0;
 	};
 
@@ -164,7 +214,7 @@ public:
 
 		bool IsFunc(const std::string& fname) const;
 		MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
-		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f, const MathArgs& args) const;
+		virtual TypedValue EvalFunc(MathParser::MathFunc_t *f) const;
 		virtual Table* GetTable(void);
 	};
 
@@ -211,6 +261,7 @@ protected:
 
 		TypedValue::Type GetType(void) const;
 		bool Const(void) const;
+		bool MayChange(void) const;
 		TypedValue GetVal(void) const;
 	};
 
@@ -306,31 +357,19 @@ protected:
 	NameSpaceMap nameSpaceMap;
 
 	/* buffer statico reallocabile per leggere nomi */
-	char* namebuf;
-	Int namebuflen;
+	std::string namebuf;
 
 	/* valore numerico dotato di tipo */
 	TypedValue value;
-   
+
 	/* token corrente */
 	enum Token currtoken;
 
-	/* lista dei token; implementa una stack rudimentale */
-	struct TokenList {
-		enum Token t;
-		TypedValue value;     
-		char* name;
-
-		TokenList* next;
-      
-		TokenList(Token t);
-		TokenList(const char* const s);
-		TokenList(const TypedValue& v);
-		~TokenList(void);
+	struct TokenVal {
+		Token m_t;
+		TypedValue m_v;
 	};
-	
-	/* cima della stack */
-	TokenList* tokenlist;
+	std::stack<TokenVal> TokenStack;
 
 	/* operazioni sulla stack */
 	void TokenPush(enum Token t);
@@ -348,12 +387,11 @@ protected:
 	/* lexer */
 	enum Token GetToken(void);
 
-	/* aumenta il buffer se necessario */
-	void IncNameBuf(void);
+	void trim_arg(char *const s);
 
 	/*
-	 * funzioni la cui chiamata ricorsiva esprime la precedenza
-	 * degli operatori
+	 * functions whose recursive invocation expresses
+	 * operators' precedence
 	 *
 	 * NOTE:
 	 * - the *_int(d) version does the actual job
@@ -361,6 +399,38 @@ protected:
 	 *   then calls *_int(d)
 	 * - the *(d) version calls *_int(d) with the argument
 	 */
+
+#ifdef USE_EE
+	ExpressionElement* logical(void);
+	ExpressionElement* logical(ExpressionElement* d);
+	ExpressionElement* logical_int(ExpressionElement* d);
+	ExpressionElement* relational(void);
+	ExpressionElement* relational(ExpressionElement* d);
+	ExpressionElement* relational_int(ExpressionElement* d);
+	ExpressionElement* binary(void);
+	ExpressionElement* binary(ExpressionElement* d);
+	ExpressionElement* binary_int(ExpressionElement* d);
+	ExpressionElement* mult(void);
+	ExpressionElement* mult(ExpressionElement* d);
+	ExpressionElement* mult_int(ExpressionElement* d);
+	ExpressionElement* power(void);
+	ExpressionElement* power(ExpressionElement* d);
+	ExpressionElement* power_int(ExpressionElement* d );
+	ExpressionElement* unary(void);
+
+	/* helper for expr, which evaluates [built-in] functions */
+	ExpressionElement* parsefunc(MathParser::MathFunc_t* f);
+
+	/* evaluates expressions */
+	ExpressionElement* expr(void);
+
+	/* evaluates statements and statement lists */
+	ExpressionElement* stmt(void);
+	ExpressionElement* stmtlist(void);
+
+	ExpressionElement* readplugin(void);
+
+#else // ! USE_EE
 	TypedValue logical(void);
 	TypedValue logical(TypedValue d);
 	TypedValue logical_int(TypedValue d);
@@ -381,14 +451,19 @@ protected:
 	/* helper per expr, che valuta le funzioni built-in */
 	TypedValue evalfunc(MathParser::NameSpace *ns, MathParser::MathFunc_t* f);
 
-	/* valuta le espressioni */
+	/* evaluates expressions */
 	TypedValue expr(void);
 
-	/* valuta gli statement e le liste di statement */
+	/* evaluates statements and statement lists */
 	TypedValue stmt(void);
 	TypedValue stmtlist(void);
+
 	TypedValue readplugin(void);
-	void trim_arg(char *const s);
+#endif // ! USE_EE
+
+private:
+	// no copy constructor
+	MathParser(const MathParser&);
 
 public:   
 	MathParser(const InputStream& strm, Table& t, bool bRedefineVars = false);
@@ -408,7 +483,12 @@ public:
 	Real GetLastStmt(const InputStream& strm, Real d = 0.,
 			Token t = ARGSEP);
 
+#ifdef USE_EE
 	/* interpreta uno stmt e ne restitutisce il valore */
+	ExpressionElement *GetExpr(void);
+	ExpressionElement *GetExpr(const InputStream& strm);
+#endif // USE_EE
+
 	Real Get(Real d = 0.);
 	Real Get(const InputStream& strm, Real d = 0.);
 	TypedValue Get(const TypedValue& v);

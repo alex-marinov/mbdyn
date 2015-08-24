@@ -45,6 +45,9 @@ public:
 	typedef MathParser::MathArgPriv_t<const BasicScalarFunction *> MathArgSF;
 	typedef MathParser::MathArgPriv_t<Node::Type> MathArgNode;
 	typedef MathParser::MathArgPriv_t<Elem::Type> MathArgElem;
+	typedef MathParser::MathArgPriv_t<const SimulationEntity *> MathArgSEPtr;
+	typedef MathParser::MathArgPriv_t<unsigned int> MathArgSEIdx;
+	typedef MathParser::MathArgPriv_t<const DriveCaller *> MathArgDCPtr;
 
 protected:
 	typedef std::map<std::string, MathParser::MathFunc_t *> funcType;
@@ -58,14 +61,16 @@ protected:
 	typedef std::map<std::string, TypedValue> currDataType;
 	currDataType currData;
 
+	bool
+	FindFunc(const std::string& fname, MathParser::MathFunc_t** fpp = 0) const;
+
 public:
 	ModelNameSpace(const DataManager *pDM);
 	~ModelNameSpace(void);
 
 	bool IsFunc(const std::string& fname) const;
 	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
-	TypedValue EvalFunc(MathParser::MathFunc_t *f,
-		const MathParser::MathArgs& args) const;
+	TypedValue EvalFunc(MathParser::MathFunc_t *f) const;
 	virtual Table* GetTable(void);
 
 	bool PushCurrData(const std::string& name, const TypedValue& value);

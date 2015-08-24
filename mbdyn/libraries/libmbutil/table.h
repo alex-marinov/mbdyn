@@ -58,9 +58,9 @@ private:
 public:
 	Table(bool bSetConstants);
 	virtual ~Table(void);
-	Var* Put(const char* const name, const TypedValue& v);
+	Var* Put(const std::string& name, const TypedValue& v);
 	const NamedValue* Put(NamedValue* p);
-	NamedValue* Get(const char* const name) const;
+	NamedValue* Get(const std::string& name) const;
 	VM::const_iterator begin(void) const { return vm.begin(); };
 	VM::const_iterator end(void) const { return vm.end(); };
 };

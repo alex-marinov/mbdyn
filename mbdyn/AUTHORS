@@ -142,6 +142,9 @@ Matteo Fancello, as an undergrad, contributed the continuous contact module
 Eduardo Okabe, as visiting professor, contributed the fab* modules
 	about gears, lubricated bearings, and other improvements
 
+Ankit Aggarwal contributed to the mathematical expression evaluation code
+	developed within Google Summer of Code 2015
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 

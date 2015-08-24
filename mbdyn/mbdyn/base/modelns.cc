@@ -715,41 +715,55 @@ template <bool p>
 static int
 drive(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2 + 1);
+	ASSERT(args.size() == 1 + 2 + 2);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_REAL);
 	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
+	ASSERT(args[4]->Type() == MathParser::AT_PRIVATE);
 
 	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
 	ASSERT(out != 0);
 
-	MathParser::MathArgInt_t *arg1 = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
-	ASSERT(arg1 != 0);
-	ASSERT((*arg1)() >= 0);
+	MathParser::MathArgReal_t *arg_val = dynamic_cast<MathParser::MathArgReal_t *>(args[2]);
+	ASSERT(arg_val != 0);
 
-	MathParser::MathArgReal_t *arg2 = dynamic_cast<MathParser::MathArgReal_t *>(args[2]);
-	ASSERT(arg2 != 0);
-
-	ModelNameSpace::MathArgDM *dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[3]);
-	ASSERT(dm != 0);
-
-	unsigned uLabel = unsigned((*arg1)());
-
-	const DriveCaller *pDC = (*dm)()->GetMBDynParser().GetDrive(uLabel);
+	ModelNameSpace::MathArgDCPtr *arg_ptr = dynamic_cast<ModelNameSpace::MathArgDCPtr *>(args[3]);
+	ASSERT(arg_ptr != 0);
+	const DriveCaller *pDC = (*arg_ptr)();
 	if (pDC == 0) {
-		silent_cerr("model::drive(" << uLabel << ") not available"
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+		MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+		ASSERT(arg_label != 0);
+		ASSERT((*arg_label)() >= 0);
 
-	doublereal val = (*arg2)();
-	if (p) {
-		if (!pDC->bIsDifferentiable()) {
-			silent_cerr("model::drivep(" << uLabel << ") not differentiable"
+		unsigned uLabel = unsigned((*arg_label)());
+
+		ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[4]);
+		ASSERT(arg_dm != 0);
+
+		pDC = (*arg_dm)()->GetMBDynParser().GetDrive(uLabel);
+		if (pDC == 0) {
+			silent_cerr("model::drive(" << uLabel << ") not available"
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		if (p) {
+			if (!pDC->bIsDifferentiable()) {
+				silent_cerr("model::drivep(" << uLabel << ") not differentiable"
+					<< std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
+
+		if (arg_label->IsFlag(MathParser::AF_CONST)) {
+			(*arg_ptr)() = pDC;
+		}
+	}
+
+	doublereal val = (*arg_val)();
+	if (p) {
+		ASSERT(pDC->bIsDifferentiable());
 
 		*out = pDC->dGetP(val);
 
@@ -817,48 +831,94 @@ model_sf(const MathParser::MathArgs& args)
 static int
 model_node(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2 + 2);
+	ASSERT(args.size() == 1 + 2 + 4);
 	ASSERT(args[0]->Type() == MathParser::AT_REAL);
 	ASSERT(args[1]->Type() == MathParser::AT_INT);
 	ASSERT(args[2]->Type() == MathParser::AT_STRING);
 	ASSERT(args[3]->Type() == MathParser::AT_PRIVATE);
 	ASSERT(args[4]->Type() == MathParser::AT_PRIVATE);
+	ASSERT(args[5]->Type() == MathParser::AT_PRIVATE);
+	ASSERT(args[6]->Type() == MathParser::AT_PRIVATE);
 
 	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[0]);
 	ASSERT(out != 0);
 
-	MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
-	ASSERT(arg_label != 0);
-	int iLabel = (*arg_label)();
+	unsigned int idx = 0;
+	ModelNameSpace::MathArgSEIdx *arg_idx = dynamic_cast<ModelNameSpace::MathArgSEIdx *>(args[5]);
+	ASSERT(arg_idx != 0);
 
-	MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[2]);
-	ASSERT(arg_val != 0);
-	std::string v = (*arg_val)();
+	ModelNameSpace::MathArgSEPtr *arg_ptr = dynamic_cast<ModelNameSpace::MathArgSEPtr *>(args[4]);
+	ASSERT(arg_ptr != 0);
+	const SimulationEntity *pNode = (*arg_ptr)();
 
-	ModelNameSpace::MathArgNode *arg_type = dynamic_cast<ModelNameSpace::MathArgNode *>(args[3]);
-	ASSERT(arg_type != 0);
-	Node::Type type = (*arg_type)();
-
-	ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[4]);
-	ASSERT(arg_dm != 0);
-	const DataManager *pDM = (*arg_dm)();
-
-	if (iLabel < 0) {
-		silent_cerr("model::node: invalid node label " << iLabel << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	unsigned uLabel = unsigned(iLabel);
-
-	const Node *pNode = pDM->pFindNode(type, uLabel);
 	if (pNode == 0) {
-		silent_cerr("model::node: unable to find " << psNodeNames[type] << "(" << uLabel << ")" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+		MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[1]);
+		ASSERT(arg_label != 0);
+		int iLabel = (*arg_label)();
 
-	int idx = pNode->iGetPrivDataIdx(v.c_str());
-	if (idx == 0) {
-		silent_cerr("model::node: " << psNodeNames[type] << "(" << pNode->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[2]);
+		ASSERT(arg_val != 0);
+		std::string v = (*arg_val)();
+
+		ModelNameSpace::MathArgNode *arg_type = dynamic_cast<ModelNameSpace::MathArgNode *>(args[3]);
+		ASSERT(arg_type != 0);
+		Node::Type type = (*arg_type)();
+
+		ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[6]);
+		ASSERT(arg_dm != 0);
+		const DataManager *pDM = (*arg_dm)();
+
+		if (iLabel < 0) {
+			silent_cerr("model::node: invalid node label " << iLabel << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+		unsigned uLabel = unsigned(iLabel);
+
+		pNode = pDM->pFindNode(type, uLabel);
+		if (pNode == 0) {
+			silent_cerr("model::node: unable to find " << psNodeNames[type] << "(" << uLabel << ")" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		idx = pNode->iGetPrivDataIdx(v.c_str());
+		if (idx == 0) {
+			silent_cerr("model::node: " << psNodeNames[type] << "(" << dynamic_cast<const Node *>(pNode)->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (arg_label->IsFlag(MathParser::AF_CONST)) {
+			(*arg_ptr)() = pNode;
+
+			/* NOTE: only set idx if node label is const,
+			 * otherwise a different node could have a different idx
+			 * for the same string */
+			if (arg_val->IsFlag(MathParser::AF_CONST)) {
+				(*arg_idx)() = idx;
+			}
+		}
+
+	} else {
+		idx = (*arg_idx)();
+
+		/* NOTE: pNode is saved, so we presume it was constant;
+		 * apparently, idx was not constant, and we need to recompute it */
+		if (idx == 0) {
+			ASSERT(!arg_idx->IsFlag(MathParser::AF_CONST));
+
+			MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[2]);
+			ASSERT(arg_val != 0);
+			std::string v = (*arg_val)();
+
+			idx = pNode->iGetPrivDataIdx(v.c_str());
+			if (idx == 0) {
+				ModelNameSpace::MathArgNode *arg_type = dynamic_cast<ModelNameSpace::MathArgNode *>(args[3]);
+				ASSERT(arg_type != 0);
+				Node::Type type = (*arg_type)();
+
+				silent_cerr("model::node: " << psNodeNames[type] << "(" << dynamic_cast<const Node *>(pNode)->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 	}
 
 	*out = pNode->dGetPrivData(idx);
@@ -873,55 +933,120 @@ template <bool unique>
 static int
 model_elem(const MathParser::MathArgs& args)
 {
-	ASSERT(args.size() == 1 + 2 - unique + 2);
+	ASSERT(args.size() == 1 + 2 - unique + 4);
 
-	int idx = 0;
-	ASSERT(args[idx]->Type() == MathParser::AT_REAL);
-	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[idx]);
+	static const unsigned int out_idx = 0;
+	static const unsigned int val_idx = 2 - (unique ? 1 : 0);
+	static const unsigned int type_idx = 3 - (unique ? 1 : 0);
+	static const unsigned int ptr_idx = 4 - (unique ? 1 : 0);
+	static const unsigned int idx_idx = 5 - (unique ? 1 : 0);
+	static const unsigned int dm_idx = 6 - (unique ? 1 : 0);
+
+	ASSERT(args[out_idx]->Type() == MathParser::AT_REAL);
+	MathParser::MathArgReal_t *out = dynamic_cast<MathParser::MathArgReal_t *>(args[out_idx]);
 	ASSERT(out != 0);
 
-	unsigned uLabel(-1);
-	if (!unique) {
-		++idx;
-		ASSERT(args[idx]->Type() == MathParser::AT_INT);
-		MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[idx]);
-		ASSERT(arg_label != 0);
-		int iLabel = (*arg_label)();
-		if (iLabel < 0) {
-			silent_cerr("model::element: invalid element label " << iLabel << std::endl);
+	unsigned int idx = 0;
+	ModelNameSpace::MathArgSEIdx *arg_idx = dynamic_cast<ModelNameSpace::MathArgSEIdx *>(args[idx_idx]);
+	ASSERT(arg_idx != 0);
+
+	ModelNameSpace::MathArgSEPtr *arg_ptr = dynamic_cast<ModelNameSpace::MathArgSEPtr *>(args[ptr_idx]);
+	ASSERT(arg_ptr != 0);
+	const SimulationEntity *pElem = (*arg_ptr)();
+
+	if (pElem == 0) {
+		unsigned uLabel(-1);
+		bool bLabelConst(true);
+		if (!unique) {
+			static const unsigned int label_idx = 1; // undefined if unique == true
+
+			ASSERT(args[label_idx]->Type() == MathParser::AT_INT);
+			MathParser::MathArgInt_t *arg_label = dynamic_cast<MathParser::MathArgInt_t *>(args[label_idx]);
+			ASSERT(arg_label != 0);
+			int iLabel = (*arg_label)();
+			if (iLabel < 0) {
+				silent_cerr("model::element: invalid element label " << iLabel << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+			uLabel = unsigned(iLabel);
+			bLabelConst = arg_label->IsFlag(MathParser::AF_CONST);
+		}
+
+		ASSERT(args[val_idx]->Type() == MathParser::AT_STRING);
+		MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[val_idx]);
+		ASSERT(arg_val != 0);
+		std::string v = (*arg_val)();
+
+		ASSERT(args[type_idx]->Type() == MathParser::AT_PRIVATE);
+		ModelNameSpace::MathArgElem *arg_elem = dynamic_cast<ModelNameSpace::MathArgElem *>(args[type_idx]);
+		ASSERT(arg_elem != 0);
+		Elem::Type type = (*arg_elem)();
+
+		ASSERT(args[dm_idx]->Type() == MathParser::AT_PRIVATE);
+		ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[dm_idx]);
+		ASSERT(arg_dm != 0);
+		const DataManager *pDM = (*arg_dm)();
+
+		pElem = pDM->pFindElem(type, uLabel);
+		if (pElem == 0) {
+			if (unique) {
+				silent_cerr("model::element: unable to find " << psElemNames[type] << std::endl);
+
+			} else {
+				silent_cerr("model::element: unable to find " << psElemNames[type] << "(" << uLabel << ")" << std::endl);
+			}
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		uLabel = unsigned(iLabel);
-	}
 
-	++idx;
-	ASSERT(args[idx]->Type() == MathParser::AT_STRING);
-	MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[idx]);
-	ASSERT(arg_val != 0);
-	std::string v = (*arg_val)();
+		idx = pElem->iGetPrivDataIdx(v.c_str());
+		if (idx == 0) {
+			if (unique) {
+				silent_cerr("model::element: " << psElemNames[type] << ": invalid private data \"" << v << "\"" << std::endl);
 
-	++idx;
-	ASSERT(args[idx]->Type() == MathParser::AT_PRIVATE);
-	ModelNameSpace::MathArgElem *arg_elem = dynamic_cast<ModelNameSpace::MathArgElem *>(args[idx]);
-	ASSERT(arg_elem != 0);
-	Elem::Type type = (*arg_elem)();
+			} else {
+				silent_cerr("model::element: " << psElemNames[type] << "(" << dynamic_cast<const Elem *>(pElem)->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+			}
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 
-	++idx;
-	ASSERT(args[idx]->Type() == MathParser::AT_PRIVATE);
-	ModelNameSpace::MathArgDM *arg_dm = dynamic_cast<ModelNameSpace::MathArgDM *>(args[idx]);
-	ASSERT(arg_dm != 0);
-	const DataManager *pDM = (*arg_dm)();
+		if (unique || bLabelConst) {
+			(*arg_ptr)() = pElem;
 
-	const Elem *pElem = pDM->pFindElem(type, uLabel);
-	if (pElem == 0) {
-		silent_cerr("model::element: unable to find " << psElemNames[type] << "(" << uLabel << ")" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+			/* NOTE: only set idx if element label is const,
+			 * otherwise a different element could have a different idx
+			 * for the same string */
+			if (arg_val->IsFlag(MathParser::AF_CONST)) {
+				(*arg_idx)() = idx;
+			}
+		}
 
-	idx = pElem->iGetPrivDataIdx(v.c_str());
-	if (idx == 0) {
-		silent_cerr("model::element: " << psElemNames[type] << "(" << pElem->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	} else {
+		idx = (*arg_idx)();
+
+		/* NOTE: pElem is saved, so we presume it was constant;
+		 * apparently, idx was not constant, and we need to recompute it */
+		if (idx == 0) {
+			ASSERT(!arg_idx->IsFlag(MathParser::AF_CONST));
+
+			MathParser::MathArgString_t *arg_val = dynamic_cast<MathParser::MathArgString_t *>(args[val_idx]);
+			ASSERT(arg_val != 0);
+			std::string v = (*arg_val)();
+
+			idx = pElem->iGetPrivDataIdx(v.c_str());
+			if (idx == 0) {
+				ModelNameSpace::MathArgElem *arg_type = dynamic_cast<ModelNameSpace::MathArgElem *>(args[type_idx]);
+				ASSERT(arg_type != 0);
+				Elem::Type type = (*arg_type)();
+
+				if (unique) {
+					silent_cerr("model::element: " << psElemNames[type] << ": invalid private data \"" << v << "\"" << std::endl);
+	
+				} else {
+					silent_cerr("model::element: " << psElemNames[type] << "(" << dynamic_cast<const Elem *>(pElem)->GetLabel() << "): invalid private data \"" << v << "\"" << std::endl);
+				}
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 	}
 
 	*out = pElem->dGetPrivData(idx);
@@ -970,10 +1095,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// position
 	f = new MathParser::MathFunc_t;
 	f->fname = "position";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<NORM, CURR>;
 	f->t = 0;
 
@@ -987,10 +1113,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// position2
 	f = new MathParser::MathFunc_t;
 	f->fname = "position2";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1004,10 +1131,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xposition
 	f = new MathParser::MathFunc_t;
 	f->fname = "xposition";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX1, CURR>;
 	f->t = 0;
 
@@ -1021,10 +1149,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yposition
 	f = new MathParser::MathFunc_t;
 	f->fname = "yposition";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX2, CURR>;
 	f->t = 0;
 
@@ -1038,10 +1167,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zposition
 	f = new MathParser::MathFunc_t;
 	f->fname = "zposition";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX3, CURR>;
 	f->t = 0;
 
@@ -1055,11 +1185,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// distance
 	f = new MathParser::MathFunc_t;
 	f->fname = "distance";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<NORM, CURR>;
 	f->t = 0;
 
@@ -1073,11 +1204,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// distance2
 	f = new MathParser::MathFunc_t;
 	f->fname = "distance2";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1091,11 +1223,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xdistance
 	f = new MathParser::MathFunc_t;
 	f->fname = "xdistance";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX1, CURR>;
 	f->t = 0;
 
@@ -1109,11 +1242,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// ydistance
 	f = new MathParser::MathFunc_t;
 	f->fname = "ydistance";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX2, CURR>;
 	f->t = 0;
 
@@ -1127,11 +1261,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zdistance
 	f = new MathParser::MathFunc_t;
 	f->fname = "zdistance";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX3, CURR>;
 	f->t = 0;
 
@@ -1145,11 +1280,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xunitvec
 	f = new MathParser::MathFunc_t;
 	f->fname = "xunitvec";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX1, CURR>;
 	f->t = 0;
 
@@ -1163,11 +1299,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yunitvec
 	f = new MathParser::MathFunc_t;
 	f->fname = "yunitvec";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX2, CURR>;
 	f->t = 0;
 
@@ -1181,11 +1318,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zunitvec
 	f = new MathParser::MathFunc_t;
 	f->fname = "zunitvec";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX3, CURR>;
 	f->t = 0;
 
@@ -1199,10 +1337,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angle
 	f = new MathParser::MathFunc_t;
 	f->fname = "angle";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<NORM, CURR>;
 	f->t = 0;
 
@@ -1216,10 +1355,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangle
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangle";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX1, CURR>;
 	f->t = 0;
 
@@ -1233,10 +1373,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangle
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangle";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX2, CURR>;
 	f->t = 0;
 
@@ -1250,10 +1391,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangle
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangle";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX3, CURR>;
 	f->t = 0;
 
@@ -1267,11 +1409,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// anglerel
 	f = new MathParser::MathFunc_t;
 	f->fname = "anglerel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<NORM, CURR>;
 	f->t = 0;
 
@@ -1285,11 +1428,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xanglerel
 	f = new MathParser::MathFunc_t;
 	f->fname = "xanglerel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX1, CURR>;
 	f->t = 0;
 
@@ -1303,11 +1447,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yanglerel
 	f = new MathParser::MathFunc_t;
 	f->fname = "yanglerel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX2, CURR>;
 	f->t = 0;
 
@@ -1321,11 +1466,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zanglerel
 	f = new MathParser::MathFunc_t;
 	f->fname = "zanglerel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX3, CURR>;
 	f->t = 0;
 
@@ -1339,10 +1485,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// velocity
 	f = new MathParser::MathFunc_t;
 	f->fname = "velocity";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<NORM, CURR>;
 	f->t = 0;
 
@@ -1356,10 +1503,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// velocity2
 	f = new MathParser::MathFunc_t;
 	f->fname = "velocity2";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1373,10 +1521,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xvelocity
 	f = new MathParser::MathFunc_t;
 	f->fname = "xvelocity";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX1, CURR>;
 	f->t = 0;
 
@@ -1390,10 +1539,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yvelocity
 	f = new MathParser::MathFunc_t;
 	f->fname = "yvelocity";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX2, CURR>;
 	f->t = 0;
 
@@ -1407,10 +1557,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zvelocity
 	f = new MathParser::MathFunc_t;
 	f->fname = "zvelocity";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX3, CURR>;
 	f->t = 0;
 
@@ -1424,11 +1575,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// vrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "vrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<NORM, CURR>;
 	f->t = 0;
 
@@ -1442,11 +1594,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// vrel2
 	f = new MathParser::MathFunc_t;
 	f->fname = "vrel2";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1460,11 +1613,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "xvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX1, CURR>;
 	f->t = 0;
 
@@ -1478,11 +1632,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "yvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX2, CURR>;
 	f->t = 0;
 
@@ -1496,11 +1651,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "zvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX3, CURR>;
 	f->t = 0;
 
@@ -1514,10 +1670,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvel
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvel";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<NORM, CURR>;
 	f->t = 0;
 
@@ -1531,10 +1688,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvel
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvel2";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1548,10 +1706,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangvel
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangvel";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX1, CURR>;
 	f->t = 0;
 
@@ -1565,10 +1724,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangvel
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangvel";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX2, CURR>;
 	f->t = 0;
 
@@ -1582,10 +1742,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangvel
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangvel";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX3, CURR>;
 	f->t = 0;
 
@@ -1599,11 +1760,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<NORM, CURR>;
 	f->t = 0;
 
@@ -1617,11 +1779,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvrel2
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvrel2";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<SQUARE, CURR>;
 	f->t = 0;
 
@@ -1635,11 +1798,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX1, CURR>;
 	f->t = 0;
 
@@ -1653,11 +1817,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX2, CURR>;
 	f->t = 0;
 
@@ -1671,11 +1836,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangvrel
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangvrel";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX3, CURR>;
 	f->t = 0;
 
@@ -1689,10 +1855,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// position_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "position_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<NORM, PREV>;
 	f->t = 0;
 
@@ -1706,10 +1873,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// position2_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "position2_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<SQUARE, PREV>;
 	f->t = 0;
 
@@ -1723,10 +1891,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xposition_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xposition_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX1, PREV>;
 	f->t = 0;
 
@@ -1740,10 +1909,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yposition_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yposition_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX2, PREV>;
 	f->t = 0;
 
@@ -1757,10 +1927,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zposition_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zposition_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = position<IDX3, PREV>;
 	f->t = 0;
 
@@ -1774,11 +1945,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// distance_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "distance_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<NORM, PREV>;
 	f->t = 0;
 
@@ -1792,11 +1964,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// distance2_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "distance2_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<SQUARE, PREV>;
 	f->t = 0;
 
@@ -1810,11 +1983,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xdistance_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xdistance_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX1, PREV>;
 	f->t = 0;
 
@@ -1828,11 +2002,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// ydistance_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "ydistance_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX2, PREV>;
 	f->t = 0;
 
@@ -1846,11 +2021,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zdistance_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zdistance_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = distance<IDX3, PREV>;
 	f->t = 0;
 
@@ -1864,11 +2040,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xunitvec_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xunitvec_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX1, PREV>;
 	f->t = 0;
 
@@ -1882,11 +2059,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yunitvec_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yunitvec_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX2, PREV>;
 	f->t = 0;
 
@@ -1900,11 +2078,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zunitvec_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zunitvec_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = unitvec<IDX3, PREV>;
 	f->t = 0;
 
@@ -1918,10 +2097,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angle_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "angle_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<NORM, PREV>;
 	f->t = 0;
 
@@ -1935,10 +2115,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangle_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangle_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX1, PREV>;
 	f->t = 0;
 
@@ -1952,10 +2133,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangle_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangle_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX2, PREV>;
 	f->t = 0;
 
@@ -1969,10 +2151,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangle_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangle_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angle<IDX3, PREV>;
 	f->t = 0;
 
@@ -1986,11 +2169,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// anglerel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "anglerel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<NORM, PREV>;
 	f->t = 0;
 
@@ -2004,11 +2188,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xanglerel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xanglerel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX1, PREV>;
 	f->t = 0;
 
@@ -2022,11 +2207,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yanglerel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yanglerel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX2, PREV>;
 	f->t = 0;
 
@@ -2040,11 +2226,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zanglerel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zanglerel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = anglerel<IDX3, PREV>;
 	f->t = 0;
 
@@ -2058,10 +2245,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// velocity_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "velocity_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<NORM, PREV>;
 	f->t = 0;
 
@@ -2075,10 +2263,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// velocity2_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "velocity2_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<SQUARE, PREV>;
 	f->t = 0;
 
@@ -2092,10 +2281,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xvelocity_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xvelocity_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX1, PREV>;
 	f->t = 0;
 
@@ -2109,10 +2299,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yvelocity_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yvelocity_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX2, PREV>;
 	f->t = 0;
 
@@ -2126,10 +2317,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zvelocity_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zvelocity_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = velocity<IDX3, PREV>;
 	f->t = 0;
 
@@ -2143,11 +2335,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// vrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "vrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<NORM, PREV>;
 	f->t = 0;
 
@@ -2161,11 +2354,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// vrel2_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "vrel2_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<SQUARE, PREV>;
 	f->t = 0;
 
@@ -2179,11 +2373,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX1, PREV>;
 	f->t = 0;
 
@@ -2197,11 +2392,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX2, PREV>;
 	f->t = 0;
 
@@ -2215,11 +2411,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = vrel<IDX3, PREV>;
 	f->t = 0;
 
@@ -2233,10 +2430,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvel_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<NORM, PREV>;
 	f->t = 0;
 
@@ -2250,10 +2448,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvel2_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<SQUARE, PREV>;
 	f->t = 0;
 
@@ -2267,10 +2466,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangvel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangvel_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX1, PREV>;
 	f->t = 0;
 
@@ -2284,10 +2484,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangvel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangvel_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX2, PREV>;
 	f->t = 0;
 
@@ -2301,10 +2502,11 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangvel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangvel_prev";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
-	f->args[2] = new MathArgDM;
+	f->args[2] = new MathArgDM(pDM);
 	f->f = angvel<IDX3, PREV>;
 	f->t = 0;
 
@@ -2318,11 +2520,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<NORM, PREV>;
 	f->t = 0;
 
@@ -2336,11 +2539,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// angvrel2_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "angvrel2_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<SQUARE, PREV>;
 	f->t = 0;
 
@@ -2354,11 +2558,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// xangvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "xangvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX1, PREV>;
 	f->t = 0;
 
@@ -2372,11 +2577,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// yangvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "yangvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX2, PREV>;
 	f->t = 0;
 
@@ -2390,11 +2596,12 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// zangvrel_prev
 	f = new MathParser::MathFunc_t;
 	f->fname = "zangvrel_prev";
+	f->ns = this;
 	f->args.resize(1 + 2 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgInt_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDM(pDM);
 	f->f = angvrel<IDX3, PREV>;
 	f->t = 0;
 
@@ -2408,11 +2615,13 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// drive
 	f = new MathParser::MathFunc_t;
 	f->fname = "drive";
-	f->args.resize(1 + 2 + 1);
+	f->ns = this;
+	f->args.resize(1 + 2 + 2);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDCPtr(0);
+	f->args[4] = new MathArgDM(pDM);
 	f->f = drive<false>;
 	f->t = 0;
 
@@ -2426,11 +2635,13 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// drivep
 	f = new MathParser::MathFunc_t;
 	f->fname = "drivep";
-	f->args.resize(1 + 2 + 1);
+	f->ns = this;
+	f->args.resize(1 + 2 + 2);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgInt_t;
 	f->args[2] = new MathParser::MathArgReal_t;
-	f->args[3] = new MathArgDM;
+	f->args[3] = new MathArgDCPtr(0);
+	f->args[4] = new MathArgDM(pDM);
 	f->f = drive<true>;
 	f->t = 0;
 
@@ -2444,6 +2655,7 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 	// current simulation entity function
 	f = new MathParser::MathFunc_t;
 	f->fname = "current";
+	f->ns = this;
 	f->args.resize(1 + 1 + 1);
 	f->args[0] = new MathParser::MathArgReal_t;
 	f->args[1] = new MathParser::MathArgString_t;
@@ -2460,43 +2672,53 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 
 	// scalar functions
 	sf_func.fname = "sf";
+	sf_func.ns = this;
 	sf_func.args.resize(1 + 2 + 1);
 	sf_func.args[0] = new MathParser::MathArgReal_t;
 	sf_func.args[1] = new MathParser::MathArgReal_t;
 	sf_func.args[2] = new MathParser::MathArgInt_t(0, MathParser::AF_OPTIONAL);
-	sf_func.args[3] = new MathArgSF;
+	sf_func.args[3] = new MathArgSF(0);
 	sf_func.f = model_sf;
 	sf_func.t = 0;
 
 	// node functions
 	node_func.fname = "node";
-	node_func.args.resize(1 + 2 + 2);
+	node_func.ns = this;
+	node_func.args.resize(1 + 2 + 4);
 	node_func.args[0] = new MathParser::MathArgReal_t;
 	node_func.args[1] = new MathParser::MathArgInt_t;
 	node_func.args[2] = new MathParser::MathArgString_t;
-	node_func.args[3] = new MathArgNode;
-	node_func.args[4] = new MathArgDM;
+	node_func.args[3] = new MathArgNode(Node::UNKNOWN);
+	node_func.args[4] = new MathArgSEPtr(0);
+	node_func.args[5] = new MathArgSEIdx(0);
+	node_func.args[6] = new MathArgDM(pDM);
 	node_func.f = model_node;
 	node_func.t = 0;
 
 	// element functions
 	elem_func.fname = "element";
-	elem_func.args.resize(1 + 2 + 2);
+	elem_func.ns = this;
+	elem_func.args.resize(1 + 2 + 4);
 	elem_func.args[0] = new MathParser::MathArgReal_t;
 	elem_func.args[1] = new MathParser::MathArgInt_t;
 	elem_func.args[2] = new MathParser::MathArgString_t;
-	elem_func.args[3] = new MathArgElem;
-	elem_func.args[4] = new MathArgDM;
+	elem_func.args[3] = new MathArgElem(Elem::UNKNOWN);
+	elem_func.args[4] = new MathArgSEPtr(0);
+	elem_func.args[5] = new MathArgSEIdx(0);
+	elem_func.args[6] = new MathArgDM(pDM);
 	elem_func.f = model_elem<false>;
 	elem_func.t = 0;
 
 	// unique element functions
 	unique_elem_func.fname = "uniqueElement";
-	unique_elem_func.args.resize(1 + 1 + 2);
+	unique_elem_func.ns = this;
+	unique_elem_func.args.resize(1 + 1 + 4);
 	unique_elem_func.args[0] = new MathParser::MathArgReal_t;
 	unique_elem_func.args[1] = new MathParser::MathArgString_t;
-	unique_elem_func.args[2] = new MathArgElem;
-	unique_elem_func.args[3] = new MathArgDM;
+	unique_elem_func.args[2] = new MathArgElem(Elem::UNKNOWN);
+	unique_elem_func.args[3] = new MathArgSEPtr(0);
+	unique_elem_func.args[4] = new MathArgSEIdx(0);
+	unique_elem_func.args[5] = new MathArgDM(pDM);
 	unique_elem_func.f = model_elem<true>;
 	unique_elem_func.t = 0;
 }
@@ -2504,48 +2726,18 @@ ModelNameSpace::ModelNameSpace(const DataManager *pDM)
 ModelNameSpace::~ModelNameSpace(void)
 {
 	for (funcType::iterator f = func.begin(); f != func.end(); ++f) {
-		for (MathParser::MathArgs::iterator i = f->second->args.begin();
-			i != f->second->args.end(); ++i)
-		{
-			delete *i;
-		}
-
 		delete f->second;
-	}
-
-	for (MathParser::MathArgs::iterator i = sf_func.args.begin();
-		i != sf_func.args.end(); ++i)
-	{
-		delete *i;
-	}
-
-	for (MathParser::MathArgs::iterator i = node_func.args.begin();
-		i != node_func.args.end(); ++i)
-	{
-		delete *i;
-	}
-
-	for (MathParser::MathArgs::iterator i = elem_func.args.begin();
-		i != elem_func.args.end(); ++i)
-	{
-		delete *i;
-	}
-
-	for (MathParser::MathArgs::iterator i = unique_elem_func.args.begin();
-		i != unique_elem_func.args.end(); ++i)
-	{
-		delete *i;
 	}
 }
 
 bool
 ModelNameSpace::IsFunc(const std::string& fname) const
 {
-	return GetFunc(fname) != 0;
+	return FindFunc(fname);
 }
 
-MathParser::MathFunc_t*
-ModelNameSpace::GetFunc(const std::string& fname) const
+bool
+ModelNameSpace::FindFunc(const std::string& fname, MathParser::MathFunc_t** fpp) const
 {
 	static const std::string sf_prefix("sf::");
 	if (fname.compare(0, sf_prefix.size(), sf_prefix) == 0) {
@@ -2553,6 +2745,103 @@ ModelNameSpace::GetFunc(const std::string& fname) const
 		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(sfname);
 
 		if (sf == 0) {
+			silent_cerr("ModelNameSpace::FindFunc(" << fname << "): unable to find scalar function \"" << sfname << "\"" << std::endl);
+			return false;
+		}
+
+		if (fpp) {
+			MathParser::MathFunc_t* fp = new MathParser::MathFunc_t(sf_func);
+			*fpp = fp;
+
+			(*dynamic_cast<MathArgSF *>(fp->args[3]))() = sf;
+		}
+
+		return true;
+	}
+
+	static const std::string node_prefix = "node::";
+	if (fname.compare(0, node_prefix.size(), node_prefix) == 0) {
+		std::string type(fname, node_prefix.size());
+		const Node::Type t = str2nodetype(type.c_str());
+		if (t == Node::UNKNOWN) {
+			silent_cerr("ModelNameSpace::GetFunc(" << fname << "): unable to find node type \"" << type << "\"" << std::endl);
+			return false;
+		}
+
+		if (fpp) {
+			MathParser::MathFunc_t* fp = new MathParser::MathFunc_t(node_func);
+			*fpp = fp;
+			
+			fp->fname += "::";
+			fp->fname += type;
+			(*dynamic_cast<MathParser::MathArgInt_t *>(fp->args[1]))() = -1;
+			(*dynamic_cast<MathArgNode *>(fp->args[3]))() = t;
+		}
+
+		return true;
+	}
+
+	static const std::string elem_prefix = "element::";
+	if (fname.compare(0, elem_prefix.size(), elem_prefix) == 0) {
+		std::string type(fname, elem_prefix.size());
+		Elem::Type t = str2elemtype(type.c_str());
+		if (t == Elem::UNKNOWN) {
+			silent_cerr("ModelNameSpace::GetFunc(" << fname << "): unable to find element type \"" << type << "\"" << std::endl);
+			return false;
+		}
+
+		if (fpp) {
+			MathParser::MathFunc_t* fp = 0;
+
+			if (pDM->GetElemDataStructure(t).bIsUnique()) {
+				fp = new MathParser::MathFunc_t(unique_elem_func);
+
+				(*dynamic_cast<MathArgElem *>(fp->args[2]))() = t;
+
+			} else {
+				fp = new MathParser::MathFunc_t(elem_func);
+
+				(*dynamic_cast<MathParser::MathArgInt_t *>(elem_func.args[1]))() = -1;
+				(*dynamic_cast<MathArgElem *>(elem_func.args[3]))() = t;
+			}
+
+			*fpp = fp;
+
+			fp->fname += "::";
+			fp->fname += type;
+		}
+
+		return true;
+	}
+
+	funcType::const_iterator i = func.find(fname);
+
+	if (i != func.end()) {
+		if (fpp) {
+			MathParser::MathFunc_t* fp = new MathParser::MathFunc_t(*i->second);
+			*fpp = fp;
+		}
+		return true;
+	}
+
+	return false;
+}
+
+MathParser::MathFunc_t*
+ModelNameSpace::GetFunc(const std::string& fname) const
+{
+	MathParser::MathFunc_t* fp = 0;
+	FindFunc(fname, &fp);
+	return fp;
+
+#if 0
+	static const std::string sf_prefix("sf::");
+	if (fname.compare(0, sf_prefix.size(), sf_prefix) == 0) {
+		std::string sfname(fname, sf_prefix.size());
+		const BasicScalarFunction *sf = pDM->GetMBDynParser().GetScalarFunction(sfname);
+
+		if (sf == 0) {
+			silent_cerr("ModelNameSpace::FindFunc(" << fname << "): unable to find scalar function \"" << sfname << "\"" << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
@@ -2605,11 +2894,13 @@ ModelNameSpace::GetFunc(const std::string& fname) const
 	}
 
 	return 0;
+#endif
 }
 
 TypedValue 
-ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& args) const
+ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f) const
 {
+#if 0
 	for (unsigned i = 0; i != args.size(); i++) {
 		if (args[i]->Type() == MathParser::AT_PRIVATE) {
 			MathArgDM *dm = dynamic_cast<MathArgDM *>(args[i]);
@@ -2618,18 +2909,19 @@ ModelNameSpace::EvalFunc(MathParser::MathFunc_t *f, const MathParser::MathArgs& 
 			}
 		}
 	}
+#endif
 
-	f->f(args);
+	f->f(f->args);
 
-	switch (args[0]->Type()) {
+	switch (f->args[0]->Type()) {
 	case MathParser::AT_VOID:
 		return TypedValue(0);
 
 	case MathParser::AT_INT:
-		return TypedValue((*dynamic_cast<MathParser::MathArgInt_t *>(args[0]))());
+		return TypedValue((*dynamic_cast<MathParser::MathArgInt_t *>(f->args[0]))());
 
 	case MathParser::AT_REAL:
-		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t *>(args[0]))());
+		return TypedValue((*dynamic_cast<MathParser::MathArgReal_t *>(f->args[0]))());
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);

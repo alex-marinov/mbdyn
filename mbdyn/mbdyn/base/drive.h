@@ -284,7 +284,9 @@ public:
 	void PutSymbolTable(Table& T);
 	void SetVar(const doublereal& dVar);
 
+#ifndef USE_EE
 	doublereal dGet(InputStream& InStr) const;
+#endif // ! USE_EE
 
 	inline doublereal dGetTime(void) const;
 	inline doublereal dGetTimeStep(void) const;

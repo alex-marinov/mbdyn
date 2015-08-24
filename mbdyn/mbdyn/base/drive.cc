@@ -353,6 +353,7 @@ DriveHandler::SetVar(const doublereal& dVar)
 }
 
 
+#ifndef USE_EE
 doublereal
 DriveHandler::dGet(InputStream& InStr) const
 {
@@ -397,6 +398,7 @@ DriveHandler::dGet(InputStream& InStr) const
 
 	return d;
 }
+#endif // ! USE_EE
 
 DriveHandler::MyRand::MyRand(unsigned int uLabel, integer iS, integer iR)
 : MyMeter(uLabel, iS), iRand(iR)

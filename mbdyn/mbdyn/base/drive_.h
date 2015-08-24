@@ -36,6 +36,9 @@
 
 /* include generali */
 #include <sstream>
+#ifdef USE_EE
+#include <thread>
+#endif // USE_EE
 
 /* include per il debug */
 #include "myassert.h"
@@ -53,10 +56,36 @@
 
 class StringDriveCaller : public DriveCaller {
 private:
-	std::string sEvalStr;
+	// we keep the string just in case...
+	const std::string sEvalStr;
+
+#ifdef USE_EE
+	// "smart" shared pointer; needs -std=c++11
+
+	// TODO: actually, all drive callers could be wrapped in shared pointers
+	class SharedExpr : public std::enable_shared_from_this<SharedExpr> {
+	private:
+		const ExpressionElement *m_expr;
+	public:
+		SharedExpr(const ExpressionElement *expr) : m_expr(expr) {};
+		~SharedExpr(void) { delete m_expr; };
+		const ExpressionElement *Get(void) const { return m_expr; };
+        	std::shared_ptr<const SharedExpr> pCopy(void) const { return shared_from_this(); };
+	};
+
+	typedef std::shared_ptr<const SharedExpr> SharedExprPtr_t;
+
+	SharedExprPtr_t m_expr;
+#endif // USE_EE
 
 public:
+#ifdef USE_EE
+	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr, const ExpressionElement *expr);
+	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr, SharedExprPtr_t expr);
+#else // ! USE_EE
 	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr);
+#endif // ! USE_EE
+
 	~StringDriveCaller(void);
 
 	/* Scrive il contributo del DriveCaller al file di restart */
@@ -74,6 +103,9 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 {
 	DriveCaller::pDrvHdl->SetVar(dVar);
 
+#ifdef USE_EE
+	return m_expr->Get()->Eval().GetReal();
+#else // ! USE_EE
 #ifdef DEBUG
 
 	/* La variabile temporanea serve solo per il debug;
@@ -95,15 +127,20 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 	InputStream In(in);
 
 	return DriveCaller::pDrvHdl->dGet(In);
+#endif // ! USE_EE
 }
 
 inline doublereal
 StringDriveCaller::dGet(void) const
 {
+#ifdef USE_EE
+	return m_expr->Get()->Eval().GetReal();
+#else // ! USE_EE
 	std::istringstream in(sEvalStr);
 	InputStream In(in);
 
 	return DriveCaller::pDrvHdl->dGet(In);
+#endif // ! USE_EE
 }
 
 /* StringDriveCaller - end */

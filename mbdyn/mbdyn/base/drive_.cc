@@ -67,6 +67,46 @@
 
 /* StringDriveCaller - begin */
 
+#ifdef USE_EE
+StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
+	const std::string& sTmpStr, const ExpressionElement *expr)
+: DriveCaller(pDH), sEvalStr(sTmpStr), m_expr(new SharedExpr(expr))
+{
+	ASSERT(!sEvalStr.empty());
+	ASSERT(m_expr->Get() != 0);
+}
+
+
+StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
+	const std::string& sTmpStr, SharedExprPtr_t expr)
+: DriveCaller(pDH), sEvalStr(sTmpStr), m_expr(expr)
+{
+	ASSERT(!sEvalStr.empty());
+	ASSERT(m_expr->Get() != 0);
+}
+
+
+StringDriveCaller::~StringDriveCaller(void)
+{
+	ASSERT(m_expr->Get() != 0);
+}
+
+
+/* Copia */
+DriveCaller *
+StringDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		StringDriveCaller,
+		StringDriveCaller(pDrvHdl, sEvalStr, m_expr->pCopy()));
+
+	return pDC;
+}
+
+#else // ! USE_EE
+
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
 	const std::string& sTmpStr)
 : DriveCaller(pDH), sEvalStr(sTmpStr)
@@ -80,9 +120,7 @@ StringDriveCaller::~StringDriveCaller(void)
 	NO_OP;
 }
 
-
-/* Copia */
-DriveCaller *
+DriveCaller * 
 StringDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
@@ -92,6 +130,8 @@ StringDriveCaller::pCopy(void) const
 
 	return pDC;
 }
+
+#endif // ! USE_EE
 
 
 /* Scrive il contributo del DriveCaller al file di restart */
@@ -2413,6 +2453,24 @@ StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	/* lettura dei dati specifici */
 	std::string s(HP.GetStringWithDelims());
 
+#ifdef USE_EE
+	std::istringstream in(s);
+	InputStream In(in);
+
+	ExpressionElement *expr = HP.GetMathParser().GetExpr(In);
+
+	if (pedantic_out) {
+		std::string out = EEStrOut(expr);
+		pedantic_cout("StringDriveCaller: \"" << s << "\" => \"" << out << "\"" << std::endl);
+	}
+
+	/* allocazione e creazione */
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		StringDriveCaller,
+		StringDriveCaller(pDrvHdl, s, expr));
+
+#else // ! USE_EE
+
 // #define TRIM_ALL_SPACES
 #define TRIM_ALL_SPACES_BUT_ONE
 
@@ -2452,6 +2510,8 @@ StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		StringDriveCaller,
 		StringDriveCaller(pDrvHdl, s));
+
+#endif // ! USE_EE
 
 	return pDC;
 }

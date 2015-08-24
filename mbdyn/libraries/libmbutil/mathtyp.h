@@ -101,7 +101,7 @@ public:
 	TypedValue(const TypedValue& var);
 
 	TypedValue& operator = (const TypedValue& var);
-	TypedValue& Cast(const TypedValue& var);
+	TypedValue& Cast(const TypedValue& var, bool bErr = false);
 
 	TypedValue::Type GetType(void) const;
 	const char *const GetTypeName(void) const;
@@ -163,8 +163,12 @@ public:
 	const char *GetName(void) const;
 	virtual TypedValue::Type GetType(void) const = 0;
 	virtual const char *const GetTypeName(void) const;
-	virtual bool Const(void) const = 0;
 	virtual TypedValue GetVal(void) const = 0;
+
+	// Const() == true means its value cannot be changed by the caller
+	virtual bool Const(void) const = 0;
+	// MayChange() == true means its value may change even if it is Const()
+	virtual bool MayChange(void) const = 0;
 };
 
 class Var : public NamedValue {
@@ -183,6 +187,7 @@ public:
 
 	TypedValue::Type GetType(void) const;
 	bool Const(void) const;
+	bool MayChange(void) const;
 	TypedValue GetVal(void) const;
 
 	void SetVal(const bool& b);
@@ -190,7 +195,7 @@ public:
 	void SetVal(const Real& v);
 	void SetVal(const std::string& v);
 	void SetVal(const TypedValue& v);
-	void Cast(const TypedValue& v);
+	void Cast(const TypedValue& v, bool bErr = false);
 };
 
 #endif /* MATHTYP_H */

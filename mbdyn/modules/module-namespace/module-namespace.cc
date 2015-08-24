@@ -45,8 +45,7 @@ public:
 
 	bool IsFunc(const std::string& fname) const;
 	MathParser::MathFunc_t* GetFunc(const std::string& fname) const;
-	TypedValue EvalFunc(MathParser::MathFunc_t *f,
-		const MathParser::MathArgs& args) const;
+	TypedValue EvalFunc(MathParser::MathFunc_t *f) const;
 	virtual Table* GetTable(void);
 };
 
@@ -74,8 +73,7 @@ TableNameSpace::GetFunc(const std::string& fname) const
 }
 
 TypedValue 
-TableNameSpace::EvalFunc(MathParser::MathFunc_t *f,
-	const MathParser::MathArgs& args) const
+TableNameSpace::EvalFunc(MathParser::MathFunc_t *f) const
 {
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
