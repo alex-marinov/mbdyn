@@ -68,12 +68,12 @@ public:
 
 extern std::string EEStrOut(const ExpressionElement *e);
 
-extern bool EE_Eval(const ExpressionElement *ee, TypedValue& dst);
-extern bool EE_Eval(const ExpressionElement *ee, bool& dst);
-extern bool EE_Eval(const ExpressionElement *ee, Int& dst);
-extern bool EE_Eval(const ExpressionElement *ee, Real& dst);
-extern bool EE_Eval(const ExpressionElement *ee, std::string& dst);
+extern bool EE_Eval(TypedValue& dst, const ExpressionElement *ee);
+extern bool EE_Eval(bool& dst, const ExpressionElement *ee);
+extern bool EE_Eval(Int& dst, const ExpressionElement *ee);
+extern bool EE_Eval(Real& dst, const ExpressionElement *ee);
+extern bool EE_Eval(std::string& dst, const ExpressionElement *ee);
 
-template <class T> bool EE_Eval(const ExpressionElement *ee, T& dst) { ASSERT(ee == 0); };
+template <class T> bool EE_Eval(T& dst, const ExpressionElement *ee) { ASSERT(ee == 0); return false; };
 
 #endif // EVALUATOR_H

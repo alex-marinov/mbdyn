@@ -37,12 +37,12 @@
 #ifndef EVALUATOR_IMPL_H
 #define EVALUATOR_IMPL_H
 
-#include "evaluator.h"
 #include <iostream>
 #include <sstream>
 #include <cmath>
-#include <stdio.h>
 #include <limits>
+
+// "evaluator.h" must be explicitly included
 
 // for storing constant values like "1","1.23"
 class EE_Value : public ExpressionElement {
@@ -700,7 +700,7 @@ public:
 		const ExpressionElement *ee = m_f->args[1]->GetExpr();
 		if (ee != 0) {
 			ee->Output(out);
-			for (int i = 2; i < m_f->args.size(); ++i) {
+			for (unsigned i = 2; i < m_f->args.size(); ++i) {
 				ee = m_f->args[i]->GetExpr();
 				if (ee == 0) {
 					break;

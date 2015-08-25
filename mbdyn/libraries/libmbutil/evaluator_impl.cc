@@ -61,7 +61,7 @@ EEStrOut(const ExpressionElement *e)
 }
 
 bool
-EE_Eval(const ExpressionElement *ee, TypedValue& dst)
+EE_Eval(TypedValue& dst, const ExpressionElement *ee)
 {
 	if (ee == 0) {
 		return false;
@@ -73,7 +73,7 @@ EE_Eval(const ExpressionElement *ee, TypedValue& dst)
 }
 
 bool
-EE_Eval(const ExpressionElement *ee, bool& dst)
+EE_Eval(bool& dst, const ExpressionElement *ee)
 {
 	if (ee == 0) {
 		return false;
@@ -85,7 +85,7 @@ EE_Eval(const ExpressionElement *ee, bool& dst)
 }
 
 bool
-EE_Eval(const ExpressionElement *ee, Int& dst)
+EE_Eval(Int& dst, const ExpressionElement *ee)
 {
 	if (ee == 0) {
 		return false;
@@ -97,7 +97,7 @@ EE_Eval(const ExpressionElement *ee, Int& dst)
 }
 
 bool
-EE_Eval(const ExpressionElement *ee, Real& dst)
+EE_Eval(Real& dst, const ExpressionElement *ee)
 {
 	if (ee == 0) {
 		return false;
@@ -109,7 +109,7 @@ EE_Eval(const ExpressionElement *ee, Real& dst)
 }
 
 bool
-EE_Eval(const ExpressionElement *ee, std::string& dst)
+EE_Eval(std::string& dst, const ExpressionElement *ee)
 {
 	if (ee == 0) {
 		return false;

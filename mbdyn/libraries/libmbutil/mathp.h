@@ -136,7 +136,7 @@ public:
 #ifdef USE_EE
 		virtual void SetExpr(const ExpressionElement *ee) { m_ee = ee; };
 		virtual const ExpressionElement *GetExpr(void) const { return m_ee; };
-		virtual void Eval(void) { if (m_ee) { EE_Eval(m_ee, m_val); } };
+		virtual void Eval(void) { if (m_ee) { EE_Eval(m_val, m_ee); } };
 		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, m_ee, GetFlags()); };
 #else // ! USE_EE
 		virtual MathArg_t *Copy(void) const { return new MathArgPriv_t<T, TT>(m_val, GetFlags()); };

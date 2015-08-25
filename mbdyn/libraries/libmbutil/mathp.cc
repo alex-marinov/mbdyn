@@ -4820,6 +4820,10 @@ MathParser::parsefunc(MathFunc_t* f)
 						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "real argument expected");
 					case MathParser::AT_STRING:
 						throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "string argument expected");
+					default:
+						// impossible
+						ASSERT(0);
+						throw;
 					}
 				}
 				f->args[i]->SetFlag(MathParser::AF_OPTIONAL_NON_PRESENT);
