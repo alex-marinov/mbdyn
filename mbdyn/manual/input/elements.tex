@@ -2892,10 +2892,27 @@ For details, see \cite{PETERS-TRIM90}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{gravity}
 
-    \bnt{arglist} ::= (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{gravity_acceleration}
+    \bnt{arglist} ::= \bnt{gravity_model} , \bnt{gravity_data}
+
+    \bnt{gravity_model} ::=
+        [ \kw{uniform} , ]          # uniform gravity field (default)
+            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{gravity_acceleration}
+        | \kw{central} ,            # central gravity field
+            [ \kw{origin} , (\ty{Vec3})\bnt{absolute_origin} , ]
+            \kw{mass} , (\ty{real})\bnt{central_gravity_field_mass} ,
+            \kw{G} , \{ \kw{si} | (\ty{real})\bnt{universal_gravity_constant} \}
 \end{Verbatim}
 %\end{verbatim}
-the drive of the gravity acceleration, in the global reference frame.
+The 3D drive caller \nt{gravity\_acceleration} represents
+the gravity acceleration in the global reference frame.
+The keyword \kw{uniform} is optional; a uniform gravity field
+is assumed when \nt{gravity\_model} is missing.
+
+The optional vector \nt{absolute\_origin} is the absolute origin of the central gravity field.
+The scalar \nt{mass} is the central mass of the central gravity field.
+the scalar \nt{universal\_gravity\_constant} is the universal gravity constant;
+if the keyword \kw{si} is used, the value \textbf{6.67384 $\times$ 10$^{-11}$ m$^3$ kg$^{-1}$ s$^{-2}$} is used \\
+(source: \htmladdnormallink{http://physics.nist.gov/cuu/Constants/index.html}).
 
 
 
