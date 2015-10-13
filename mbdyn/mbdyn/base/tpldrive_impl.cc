@@ -898,13 +898,14 @@ ReadDC6x6D(const DataManager* pDM, MBDynParser& HP)
 	return func->second->Read(pDM, HP);
 }
 
-TplDriveCaller<Vec3> *
-ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
+template <class VM>
+static TplDriveCaller<Vec3> *
+ReadDCVec(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
 {
-	MBDynParser::VecRelManip manip(HP, rf);
+	VM manip(HP, rf);
 
 	HP.PushManip(&manip);
-	TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
+	TplDriveCaller<Vec3>* pDC = HP.GetTplDriveCaller<Vec3>();
 	if (HP.GetManip() == &manip) {
 		HP.PopManip();
 	}
@@ -913,17 +914,15 @@ ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
 }
 
 TplDriveCaller<Vec3> *
+ReadDCVecRel(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
+{
+	return ReadDCVec<MBDynParser::VecRelManip>(pDM, HP, rf); 
+}
+
+TplDriveCaller<Vec3> *
 ReadDCVecAbs(const DataManager* pDM, MBDynParser& HP, const ReferenceFrame& rf)
 {
-	MBDynParser::VecAbsManip manip(HP, rf);
-
-	HP.PushManip(&manip);
-	TplDriveCaller<Vec3>* pDC = ReadDC3D(pDM, HP);
-	if (HP.GetManip() == &manip) {
-		HP.PopManip();
-	}
-
-	return pDC;
+	return ReadDCVec<MBDynParser::VecAbsManip>(pDM, HP, rf); 
 }
 
 static unsigned done;
