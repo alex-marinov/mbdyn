@@ -87,7 +87,8 @@ Var_K(0),
 Var_NuP(0),
 Var_KP(0),
 #endif /* USE_NETCDF */
-bFirstRes(false)
+bFirstRes(false),
+bFirstIDRes(true)
 {
 	/* Validazione dati */
 	ASSERT(pN1 != NULL);
@@ -879,6 +880,72 @@ Beam2::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
 	w = Zero3;
 }
 
+/* inverse dynamics capable element */
+bool
+Beam2::bInverseDynamics(void) const
+{
+	return true;
+}
+
+
+/* Inverse Dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& XCurr)
+{
+	silent_cout("Beam2::IDAssJac()" << std::endl);
+
+	ASSERT(bIsErgonomy());
+
+	return AssJac(WorkMat, 1., XCurr, XCurr);
+}
+
+/* Inverse Dynamics Residual Assembly */
+SubVectorHandler&
+Beam2::AssRes(SubVectorHandler& WorkVec,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr, 
+	const VectorHandler& /* XPrimePrimeCurr */ ,
+	InverseDynamics::Order iOrder)
+{
+	silent_cout("Beam2::IDAssRes(" << iOrder << ")" << std::endl);
+
+	DEBUGCOUT("Entering Beam2::[InverseDynamics]AssRes()" << std::endl);
+
+	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
+		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
+
+	if (iOrder == InverseDynamics::POSITION) {
+		ASSERT(bIsErgonomy());
+
+		if (bFirstIDRes) {
+			// prepare for new step
+			AfterPredict(const_cast<VectorHandler&>(XCurr),
+				const_cast<VectorHandler&>(XPrimeCurr));
+	
+			bFirstIDRes = false;
+			bFirstRes = true;
+		}
+	}
+	
+	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
+}
+
+/* Inverse Dynamics update */
+void
+Beam2::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	NO_OP;
+}
+
+/* Inverse Dynamics after convergence */
+void
+Beam2::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	AfterConvergence(X, XP);
+	bFirstIDRes = true;
+}
 
 #ifdef USE_ADAMS
 std::ostream& 
@@ -1505,6 +1572,55 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		}
 	}
 	
+	// add here inverse dynamics
+	bool bIsErgonomy(false);
+	bool bIsRightHandSide(true);
+
+	if (HP.IsKeyWord("inverse" "dynamics")) {
+		if (HP.IsKeyWord("torque")) {
+			silent_cerr("Beam2(" << uLabel << "): \"torque\" meaningless in this context "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (HP.IsKeyWord("prescribed" "motion")) {
+			silent_cerr("Beam2(" << uLabel << "): \"prescribed motion\" meaningless in this context "
+				"at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (HP.IsKeyWord("right" "hand" "side")) {
+			bIsRightHandSide = HP.GetYesNoOrBool(bIsRightHandSide);
+		}
+
+		if (HP.IsKeyWord("ergonomy")) {
+			bIsErgonomy = HP.GetYesNoOrBool(bIsErgonomy);
+			if (bIsErgonomy) {
+				ConstLawType::Type type = pD->GetConstLawType();
+				if (type != ConstLawType::ELASTIC) {
+					silent_cerr("Beam2(" << uLabel << "): invalid constitutive law type (must be ELASTIC)" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bIsRightHandSide) {
+					silent_cerr("warning, Beam2(" << uLabel << ") is both \"ergonomy\" and \"right hand side\"" << std::endl);
+				}
+			}
+		}
+	}
+
+	// set flags for inverse dynamics
+	if (pDM->bIsInverseDynamics() && pEl->bInverseDynamics()) {
+		unsigned flags = 0;
+		if (bIsRightHandSide) {
+			flags |= InverseDynamics::RIGHT_HAND_SIDE;
+		}
+		if (bIsErgonomy) {
+			flags |= InverseDynamics::ERGONOMY;
+		}
+		pEl->SetInverseDynamicsFlags(flags);
+	}
+
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
 		silent_cerr("semicolon expected at line "

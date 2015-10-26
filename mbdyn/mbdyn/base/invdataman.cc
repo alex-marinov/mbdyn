@@ -66,9 +66,10 @@
 #include "j2p.h"
 
 /* deformable joint */
+#include "beam2.h"
+#include "body.h"
 #include "joint.h"
 #include "jointreg.h"
-#include "body.h"
 #include "Rot.hh"
 
 void 
@@ -266,6 +267,21 @@ DataManager::AssConstrJac(MatrixHandler& JacHdl,
 					for (int iCnt = 1; iCnt <= iNumDof; iCnt++) {
 						JacHdl(iFirstIndex + iCnt, iFirstIndex + iCnt) = 1.;
 					}
+				}
+			}
+
+			for (ElemContainerType::iterator j = ElemData[Elem::BEAM].ElemContainer.begin();
+				j != ElemData[Elem::BEAM].ElemContainer.end(); ++j)
+			{
+				bool bActive(true);
+				Beam2 *pB = Cast<Beam2>(j->second, true);
+				if (pB == 0) {
+					bActive = false;
+					pB = Cast<Beam2>(j->second, false);
+				}
+
+				if (pB && pB->bIsErgonomy() && bActive && pIDSS->GetOrder() == InverseDynamics::POSITION) {
+					JacHdl += pB->AssJac(WorkMat, *pXCurr);
 				}
 			}
 		}
@@ -639,6 +655,29 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				}
 			}
 		}
+
+		for (ElemContainerType::iterator j = ElemData[Elem::BEAM].ElemContainer.begin();
+			j != ElemData[Elem::BEAM].ElemContainer.end(); ++j)
+		{
+			bool bActive(true);
+			Beam2 *pB = Cast<Beam2>(j->second, true);
+			if (pB == 0) {
+				bActive = false;
+				pB = Cast<Beam2>(j->second, false);
+			}
+
+			if (pB && (iOrder == InverseDynamics::POSITION && pB->bIsErgonomy()) && bActive)
+			{
+				try {
+					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
+						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
+				}
+				catch (Elem::ChangedEquationStructure) {
+					ResHdl += WorkVec;
+					ChangedEqStructure = true;
+				}
+			}
+		}
 		} break;
 
 	default:
@@ -960,6 +999,20 @@ DataManager::IDDofInit(void)
 		const char *sRightHandSide = pJ->bIsRightHandSide() ? "R" : "_";
 
 		silent_cout("Joint(" << pJ->GetLabel() << "): " << sTorque << sPrescribedMotion << sErgonomy << sRightHandSide << std::endl);
+	}
+
+	for (ElemContainerType::iterator j = ElemData[Elem::BEAM].ElemContainer.begin();
+		j != ElemData[Elem::BEAM].ElemContainer.end(); ++j)
+	{
+		Beam2 *pB = Cast<Beam2>(j->second);
+		ASSERT(pB != 0);
+
+		const char *sTorque = "_";
+		const char *sPrescribedMotion = "_";
+		const char *sErgonomy = pB->bIsErgonomy() ? "E" : "_";
+		const char *sRightHandSide = pB->bIsRightHandSide() ? "R" : "_";
+
+		silent_cout("Beam2(" << pB->GetLabel() << "): " << sTorque << sPrescribedMotion << sErgonomy << sRightHandSide << std::endl);
 	}
 
 	switch (dynamic_cast<InverseSolver *>(pSolver)->GetProblemType()) {

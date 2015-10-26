@@ -125,6 +125,7 @@ class Beam2
    
     /* Is first res? */
     bool bFirstRes;
+    bool bFirstIDRes;
          
     /* Funzioni di servizio */
     virtual Vec3 
@@ -256,6 +257,33 @@ class Beam2
     /* output; si assume che ogni tipo di elemento sappia, attraverso
      * l'OutputHandler, dove scrivere il proprio output */
     virtual void Output(OutputHandler& OH) const;   
+
+	/* Inverse Dynamics stuff */
+
+	/* is this an Inverse Dynamics capable element? */
+	virtual bool bInverseDynamics(void) const;
+
+	/* Inverse Dynamics Jacobian matrix assembly */
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Inverse Dynamics residual assembly */
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr,
+		const VectorHandler& XPrimePrimeCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics update */
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	virtual void AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP,
+		const VectorHandler& XPP);
+
+	/* end of Inverse Dynamics stuff */
 
 #if 0
     /* Output di un modello NASTRAN equivalente nella configurazione corrente */

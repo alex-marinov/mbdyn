@@ -1634,6 +1634,7 @@ InverseDynamicsStepSolver::Update(const VectorHandler* pSol) const
 
 	pDM->Update(iOrder);
 
+	// prepare m_bJacobian for next phase
 	switch (dynamic_cast<const InverseSolver *>(pDM->GetSolver())->GetProblemType()) {
 	case InverseDynamics::FULLY_ACTUATED_COLLOCATED:
 		switch (iOrder) {

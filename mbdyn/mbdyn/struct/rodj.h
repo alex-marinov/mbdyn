@@ -154,8 +154,9 @@ public:
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 
-	/* Inverse dynamics */
-	/* inverse dynamics capable element */
+	/* Inverse Dynamics stuff */
+
+	/* is this an Inverse Dynamics capable element? */
 	virtual bool bInverseDynamics(void) const;
 
 	/* Inverse Dynamics Jacobian matrix assembly */
@@ -177,6 +178,8 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP,
 		const VectorHandler& XPP);
+
+	/* end of Inverse Dynamics stuff */
 
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
