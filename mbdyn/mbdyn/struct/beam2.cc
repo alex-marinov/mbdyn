@@ -124,7 +124,7 @@ bFirstRes(false)
 	Vec3 xTmp[NUMNODES];
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {      
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
 	}      
 	
 	/* Aggiorna le grandezze della trave nel punto di valutazione */
@@ -207,9 +207,9 @@ Beam2::InterpState(const Vec3& v1, const Vec3& v2)
 {
 	doublereal* pv1 = (doublereal*)v1.pGetVec();
 	doublereal* pv2 = (doublereal*)v2.pGetVec();
-	return Vec3(pv1[0]*dN2[0]+pv2[0]*dN2[1],
-			pv1[1]*dN2[0]+pv2[1]*dN2[1],
-			pv1[2]*dN2[0]+pv2[2]*dN2[1]);
+	return Vec3(pv1[0]*dN2[0] + pv2[0]*dN2[1],
+			pv1[1]*dN2[0] + pv2[1]*dN2[1],
+			pv1[2]*dN2[0] + pv2[2]*dN2[1]);
 }
 
 
@@ -218,9 +218,9 @@ Beam2::InterpDeriv(const Vec3& v1, const Vec3& v2)
 {
 	doublereal* pv1 = (doublereal*)v1.pGetVec();
 	doublereal* pv2 = (doublereal*)v2.pGetVec();
-	return Vec3((pv1[0]*dN2P[0]+pv2[0]*dN2P[1])*dsdxi,
-			(pv1[1]*dN2P[0]+pv2[1]*dN2P[1])*dsdxi,
-			(pv1[2]*dN2P[0]+pv2[2]*dN2P[1])*dsdxi);
+	return Vec3((pv1[0]*dN2P[0] + pv2[0]*dN2P[1])*dsdxi,
+			(pv1[1]*dN2P[0] + pv2[1]*dN2P[1])*dsdxi,
+			(pv1[2]*dN2P[0] + pv2[2]*dN2P[1])*dsdxi);
 }
 
 
@@ -281,13 +281,13 @@ Beam2::Omega0(void)
 	Vec3 g1P(Mat3x3(CGR_Rot::MatGm1, gTmp*(-.5))*w[NODE1]);
 	Vec3 g2P(Mat3x3(CGR_Rot::MatGm1, gTmp*.5)*w[NODE2]);
 
-        Vec3 gPTmp(g1P*dN2[NODE1]+g2P*dN2[NODE2]);
+        Vec3 gPTmp(g1P*dN2[NODE1] + g2P*dN2[NODE2]);
         Omega = Mat3x3(CGR_Rot::MatG, gTmp)*gPTmp;
 	
 #if 0
 	/* Modo brutale: interpolo le velocita' dei nodi */
 	Omega = pNode[NODE1]->GetWCurr()*dN2[NODE1]
-		+pNode[NODE2]->GetWCurr()*dN2[NODE2];
+		+ pNode[NODE2]->GetWCurr()*dN2[NODE2];
 #endif /* 0 */
 }
 
@@ -498,10 +498,10 @@ Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.ResizeReset(12, 12);
 	
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
-		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}      
 	
 	AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
@@ -526,8 +526,8 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.ResizeReset(12);
 
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}      
 	
 	AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
@@ -573,7 +573,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {            
 		gNod[i] = pNode[i]->GetgRef();
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRRef()*f[i];
+		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRRef()*f[i];
 	}
 	
 	Mat3x3 RDelta;
@@ -811,10 +811,10 @@ Beam2::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
    
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WM.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
-		WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
+		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}      
 	
 	AssStiffnessMat(WM, WM, 1., XCurr, XCurr);
@@ -836,8 +836,8 @@ Beam2::InitialAssRes(SubVectorHandler& WorkVec,
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
    
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
-		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex+iCnt);
-		WorkVec.PutRowIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
+		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
+		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 	}      
 	
 	AssStiffnessVec(WorkVec, 1., XCurr, XCurr);
@@ -891,7 +891,7 @@ Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 	part--;
 	
 	for (unsigned int i = 0; i <= 1; i++) {
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
+		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
 	}
 	
 	out << psAdamsElemCode[GetElemType()] << "_" << GetLabel()
@@ -1004,50 +1004,50 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
-		WMA.Sub(1, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Sub(1, 6*i+4, AzTmp[i].GetMat12());
+		WMA.Sub(1, 6*i + 1, AzTmp[i].GetMat11());
+		WMA.Sub(1, 6*i + 4, AzTmp[i].GetMat12());
 		
-		WMA.Sub(4, 6*i+1,
+		WMA.Sub(4, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[0].Cross(AzTmp[i].GetMat11()));
-		WMA.Sub(4, 6*i+4, 
+		WMA.Sub(4, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
 				+ bTmp[0].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
-		WMA.Add(7, 6*i+1, AzTmp[i].GetMat11());
-		WMA.Add(7, 6*i+4, AzTmp[i].GetMat12());
+		WMA.Add(7, 6*i + 1, AzTmp[i].GetMat11());
+		WMA.Add(7, 6*i + 4, AzTmp[i].GetMat12());
 		
-		WMA.Add(10, 6*i+1,
+		WMA.Add(10, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[1].Cross(AzTmp[i].GetMat11()));
-		WMA.Add(10, 6*i+4, 
+		WMA.Add(10, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
 				+ bTmp[1].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione viscosa all'indietro: */
-		WMB.Sub(1, 6*i+1, AzPrimeTmp[i].GetMat11());
-		WMB.Sub(1, 6*i+4, AzPrimeTmp[i].GetMat12());
+		WMB.Sub(1, 6*i + 1, AzPrimeTmp[i].GetMat11());
+		WMB.Sub(1, 6*i + 4, AzPrimeTmp[i].GetMat12());
 		
-		WMB.Sub(4, 6*i+1,
+		WMB.Sub(4, 6*i + 1,
 				AzPrimeTmp[i].GetMat21()
 				+ bTmp[0].Cross(AzPrimeTmp[i].GetMat11()));
-		WMB.Sub(4, 6*i+4,
+		WMB.Sub(4, 6*i + 4,
 				AzPrimeTmp[i].GetMat22()
 				+ bTmp[0].Cross(AzPrimeTmp[i].GetMat12()));
 		
 		/* Equazione viscosa in avanti: */
-		WMB.Add(7, 6*i+1, AzPrimeTmp[i].GetMat11());
-		WMB.Add(7, 6*i+4, AzPrimeTmp[i].GetMat12());
+		WMB.Add(7, 6*i + 1, AzPrimeTmp[i].GetMat11());
+		WMB.Add(7, 6*i + 4, AzPrimeTmp[i].GetMat12());
 		
-		WMB.Add(10, 6*i+1,
+		WMB.Add(10, 6*i + 1,
 				AzPrimeTmp[i].GetMat21()	       
 				+ bTmp[1].Cross(AzPrimeTmp[i].GetMat11()));
-		WMB.Add(10, 6*i+4, 
+		WMB.Add(10, 6*i + 4, 
 				AzPrimeTmp[i].GetMat22()	     
 				+ bTmp[1].Cross(AzPrimeTmp[i].GetMat12()));
 	}
@@ -1094,7 +1094,7 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 			xTmp[i] = pNode[i]->GetXCurr() + fTmp;
 			gPrimeNod[i] = pNode[i]->GetgPCurr();
 			xPrimeTmp[i] = pNode[i]->GetVCurr()
-				+pNode[i]->GetWCurr().Cross(fTmp);
+				+ pNode[i]->GetWCurr().Cross(fTmp);
 		}
 		
 		Mat3x3 RDelta;
@@ -1159,9 +1159,9 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 	}
 
 	WorkVec.Add(1, Az.GetVec1());
-	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1())+Az.GetVec2());
+	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1()) + Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
-	WorkVec.Sub(10, Az.GetVec2()+(p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
+	WorkVec.Sub(10, Az.GetVec2() + (p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
 }
 
 
@@ -1208,10 +1208,10 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	for (unsigned int i = 0; i < NUMNODES; i++) {            
 		gNod[i] = pNode[i]->GetgRef();
 		Vec3 fTmp = pNode[i]->GetRRef()*f[i];
-		xTmp[i] = pNode[i]->GetXCurr()+fTmp;
+		xTmp[i] = pNode[i]->GetXCurr() + fTmp;
 		gPrimeNod[i] = pNode[i]->GetgPRef();
 		xPrimeTmp[i] = pNode[i]->GetVCurr()
-			+pNode[i]->GetWRef().Cross(fTmp);
+			+ pNode[i]->GetWRef().Cross(fTmp);
 	}
 	
 	Mat3x3 RDelta;
@@ -1318,7 +1318,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
 			<< f1 << std::endl << "(global frame): "
-			<< pNode1->GetXCurr()+pNode1->GetRCurr()*f1 << std::endl);
+			<< pNode1->GetXCurr() + pNode1->GetRCurr()*f1 << std::endl);
 	
 	/* Nodo 2 */
 	const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
@@ -1336,7 +1336,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	
 	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
 			<< f2 << std::endl << "(global frame): "
-			<< pNode2->GetXCurr()+pNode2->GetRCurr()*f2 << std::endl);
+			<< pNode2->GetXCurr() + pNode2->GetRCurr()*f2 << std::endl);
 	
 	/* Matrice R */
 	Mat3x3 R;
