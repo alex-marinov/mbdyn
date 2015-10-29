@@ -16,7 +16,7 @@ MBDyn 1.X-Devel
 		  "string" drive caller (With the contribution
 		  of Ankit Aggarwal during Google Summer of Code 2015)
 	Backward compatibility issues:
-		- output of "remarks" changed
+		- (input and) output of "remarks" changed
 	Known issues:
 		- aeromodal with rigid-body motion needs work
 		- deformable displacement joint initial assembly broken
@@ -25,6 +25,8 @@ MBDyn 1.X-Devel
 		- fixed math parser bug with undefined vare at beginning
 		  of expression (noted by Andrea Zanoni)
 		- fixed potential buffer overflow when parsing long numbers
+		- fixed use of 'reference' for absolute/relative vector drives
+		  (noted by Doug Baldwin)
 
 MBDyn 1.6.1
 	Enhancements:
