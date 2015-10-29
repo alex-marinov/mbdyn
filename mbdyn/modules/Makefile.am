@@ -322,6 +322,8 @@ module-journal_bearing/module-journal_bearing.h \
 module-journal_bearing/examples/journal_bearing1.mbdyn \
 module-journal_bearing/examples/journal_bearing2.mbdyn
 
+EXTRA_DIST += \
+module-loadinc/module-loadinc.cc
 
 EXTRA_DIST += \
 module-mds/mds \

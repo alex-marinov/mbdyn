@@ -9,9 +9,8 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
-MBDyn 1.X-Devel
+MBDyn 1.7.0
 	Enhancements:
-		- added screw joint (Mauro Manetti & Marco Morandini)
 		- (optional) new handling of math expressions and
 		  "string" drive caller (With the contribution
 		  of Ankit Aggarwal during Google Summer of Code 2015)
