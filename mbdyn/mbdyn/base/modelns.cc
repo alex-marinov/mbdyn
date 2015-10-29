@@ -2801,8 +2801,8 @@ ModelNameSpace::FindFunc(const std::string& fname, MathParser::MathFunc_t** fpp)
 			} else {
 				fp = new MathParser::MathFunc_t(elem_func);
 
-				(*dynamic_cast<MathParser::MathArgInt_t *>(elem_func.args[1]))() = -1;
-				(*dynamic_cast<MathArgElem *>(elem_func.args[3]))() = t;
+				(*dynamic_cast<MathParser::MathArgInt_t *>(fp->args[1]))() = -1;
+				(*dynamic_cast<MathArgElem *>(fp->args[3]))() = t;
 			}
 
 			*fpp = fp;
