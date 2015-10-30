@@ -3889,6 +3889,11 @@ ReadJoint(DataManager* pDM,
 		if (bIsErgonomy) {
 			flags |= InverseDynamics::ERGONOMY;
 		}
+
+		if (flags == 0) {
+			silent_cerr("warning, Joint(" << uLabel << ") is used for inverse dynamics but no flag (torque, prescribed motion, right hand side, ergonomy) is active." << std::endl);
+		}
+
 		pEl->SetInverseDynamicsFlags(flags);
 	}
 
