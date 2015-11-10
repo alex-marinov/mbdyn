@@ -1456,7 +1456,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for build mbc library
 dnl
-AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes"])
+AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes" -a "$have_socket" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl
