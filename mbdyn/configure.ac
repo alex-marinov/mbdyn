@@ -199,6 +199,7 @@ OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
 OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver],no,[auto yes no force])dnl
 OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output],no)dnl
+OL_ARG_ENABLE(mbc,[  --enable-mbc            enable MBC - multibody communication library],yes)dnl
 OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output],no)dnl
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
@@ -1450,6 +1451,12 @@ if test "$ol_with_charm" != "no" ; then
 		AC_DEFINE(NEED_CHARM_SHIPWAKE,1,[define if CHARM WP module needs shipwake])
 	fi
 fi
+
+dnl ----------------------------------------------------------------
+dnl
+dnl Check for build mbc library
+dnl
+AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl
