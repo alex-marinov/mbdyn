@@ -214,7 +214,7 @@ StreamContentCopyCast::Set(size_t size, const char *buf)
 void
 StreamContentCopyCast::Modify(void)
 {
-	ASSERT(m_size = m_data.size()*sizeof(doublereal));
+	ASSERT(m_size == m_data.size()*sizeof(doublereal));
 
 	doublereal *rbuf = (doublereal *)&m_buf[0];
 	for (size_t i = 0; i < m_data.size(); i++) {

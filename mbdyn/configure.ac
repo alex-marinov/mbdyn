@@ -1456,6 +1456,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for build mbc library
 dnl
+dnl do not build libmbm if sockets are not available (fixes issue in MinGW)
 AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes" -a "$have_socket" = "yes"])
 
 dnl ----------------------------------------------------------------

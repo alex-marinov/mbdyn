@@ -133,56 +133,6 @@ mbdyn_make_inet_socket_type(struct sockaddr_in *name, const char *hostname,
    	name->sin_family = AF_INET;
    	name->sin_port = htons(port);
 
-#if 0
-	if (hostname) {
-#if defined(HAVE_GETADDRINFO)
-		char portbuf[sizeof("65535")];
-		struct addrinfo hints = { 0 }, *res = NULL;
-		int rc;
-
-		rc = snprintf(portbuf, sizeof(portbuf), "%d", (int)port);
-		if (rc > STRLENOF("65535")) {
-			return -4;
-		}
-
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = socket_type;
-		rc = getaddrinfo(hostname, portbuf, &hints, &res);
-		if (rc != 0) {
-			*perrno = errno;
-			return -3;
-		}
-
-		name->sin_addr = ((struct sockaddr_in *)res->ai_addr)->sin_addr;
-
-		freeaddrinfo(res);
-
-#elif defined(HAVE_GETHOSTBYNAME)
-		struct hostent *hostinfo;
-
-		/* TODO: use getnameinfo() if available */
-		hostinfo = gethostbyname(hostname);
-		if (hostinfo == NULL) {
-			*perrno = h_errno;
-			return -3;
-		}
-
-		name->sin_addr = *(struct in_addr *)hostinfo->h_addr;
-#elif defined(HAVE_INET_ATON)
-		struct in_addr addr;
-		if (inet_aton(hostname, &addr) == 0) {
-			*perrno = errno;
-			return -3;
-		}
-		name->sin_addr = addr.s_addr;
-#else
-		return -3;
-#endif
-	} else {
-		name->sin_addr.s_addr = htonl(INADDR_ANY);
-	}
-#endif
-
 	int rc = mbdyn_host2inet_addr(name, hostname, port, socket_type, perrno);
 	if (rc != 0) {
 		return rc;
