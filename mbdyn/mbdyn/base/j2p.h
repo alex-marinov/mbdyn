@@ -139,7 +139,7 @@ StrainGageParam::dGetDofValue(int iDof, int iOrder) const
 inline const doublereal&
 StrainGageParam::dGetX(void) const
 {  
-	unsigned int i = 6 * (iNum - 1);
+	unsigned int i = iNum - 1;
 
 	dX = pElem->dGetPrivData(i + 1)
 		+ dZ*pElem->dGetPrivData(i + 5)

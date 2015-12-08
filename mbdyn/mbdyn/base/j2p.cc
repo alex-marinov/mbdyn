@@ -154,7 +154,25 @@ StrainGageParam::Bind(const Elem* pEl, unsigned int i)
 	}
 
 	/* Nota: ora i == 1 o 2 per punto di valutazione I o II */
-	Elem2Param::Bind(pEl, i);
+	const char *s;
+	switch (i) {
+	case 1:
+		s = "pI.ex";
+		break;
+
+	case 2:
+		s = "pII.ex";
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	unsigned int idx = pEl->iGetPrivDataIdx(s);
+	ASSERT(idx > 0);
+	ASSERT(idx <= pEl->iGetNumPrivData());
+
+	Elem2Param::Bind(pEl, idx);
 }
 
 /* Contributo del nodo al file di restart */
