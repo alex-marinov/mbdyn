@@ -54,14 +54,15 @@ pNode1(pN1),
 pNode2(pN2),
 dL0(dLength),
 v(Zero3),
-#ifdef USE_NETCDF
-Var_v(0),
-Var_dElle(0),
-Var_dEllePrime(0),
-#endif // USE_NETCDF
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)
+#ifdef USE_NETCDF
+,
+Var_v(0),
+Var_dElle(0),
+Var_dEllePrime(0)
+#endif // USE_NETCDF
 {
 	/* Verifica di consistenza dei dati iniziali */
 	ASSERT(pNode1 != 0);
@@ -911,13 +912,6 @@ f2(f2Tmp)
 RodWithOffset::~RodWithOffset(void)
 {
 	NO_OP;
-}
-
-/* Deformazione */
-doublereal
-RodWithOffset::dCalcEpsilon(void)
-{
-	return dElle/dL0 - 1.;
 }
 
 /* Contributo al file di restart */

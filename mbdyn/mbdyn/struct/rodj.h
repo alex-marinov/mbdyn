@@ -280,9 +280,10 @@ public:
 
 class RodWithOffset : virtual public Elem, public Rod {
 protected:
+	// NOTE: should be "const"
+	// made modifiable to let derived classes modify them
 	Vec3 f1;
 	Vec3 f2;
-	virtual doublereal dCalcEpsilon(void);
 
 public:
 	/* Costruttore non banale */
