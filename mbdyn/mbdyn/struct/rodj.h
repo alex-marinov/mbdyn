@@ -54,6 +54,7 @@ protected:
 
 	doublereal dEpsilon;
 	doublereal dEpsilonPrime;
+	virtual doublereal dCalcEpsilon(void);
 
 #ifdef USE_NETCDF
 	NcVar *Var_v;
@@ -279,8 +280,9 @@ public:
 
 class RodWithOffset : virtual public Elem, public Rod {
 protected:
-	const Vec3 f1;
-	const Vec3 f2;
+	Vec3 f1;
+	Vec3 f2;
+	virtual doublereal dCalcEpsilon(void);
 
 public:
 	/* Costruttore non banale */

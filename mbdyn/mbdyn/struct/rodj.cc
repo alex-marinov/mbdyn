@@ -91,6 +91,14 @@ Rod::~Rod(void)
 	NO_OP;
 }
 
+/* Deformazione */
+doublereal
+Rod::dCalcEpsilon(void)
+{
+	return dElle/dL0 - 1.;
+}
+
+
 void
 Rod::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 {
@@ -159,7 +167,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 
 	/* Deformazione */
 	dElle = sqrt(dCross);
-	dEpsilon = dElle/dL0 - 1.;
+	dEpsilon = dCalcEpsilon();
 
 	Vec3 vPrime(pNode2->GetVCurr() - pNode1->GetVCurr());
 	dEpsilonPrime = v.Dot(vPrime)/(dElle*dL0);
@@ -694,7 +702,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 	dElle = sqrt(dCross);
 
 	/* Deformazione */
-	dEpsilon = dElle/dL0 - 1.;
+	dEpsilon = dCalcEpsilon();
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(pNode2->GetVCurr() - pNode1->GetVCurr());
@@ -837,7 +845,7 @@ ViscoElasticRod::InitialAssRes(SubVectorHandler& WorkVec,
 	dElle = sqrt(dCross);
 
 	/* Deformazione */
-	dEpsilon = dElle/dL0 - 1.;
+	dEpsilon = dCalcEpsilon();
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(pNode2->GetVCurr() - pNode1->GetVCurr());
@@ -903,6 +911,13 @@ f2(f2Tmp)
 RodWithOffset::~RodWithOffset(void)
 {
 	NO_OP;
+}
+
+/* Deformazione */
+doublereal
+RodWithOffset::dCalcEpsilon(void)
+{
+	return dElle/dL0 - 1.;
 }
 
 /* Contributo al file di restart */
@@ -1106,7 +1121,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	dElle = sqrt(dCross);
 
 	/* Deformazione */
-	dEpsilon = dElle/dL0 - 1.;
+	dEpsilon = dCalcEpsilon();
 
 	/* Velocita' di deformazione */
 	Vec3 vPrime(v2 + Omega2.Cross(f2Tmp) - v1 - Omega1.Cross(f1Tmp));
