@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed bug in EasyAnim post-processing of total joints
 		- fixed bug in strain gage priv data (noted by Jason)
 
 MBDyn 1.7.0

@@ -634,10 +634,10 @@ isvan == 0 && /^totaljoint:/ && show["totaljoint"] {
 		j_totaljoint[$2, 1, 1] = $4;
 		j_totaljoint[$2, 1, 2] = $5;
 		j_totaljoint[$2, 1, 3] = $6;
-		j_totaljoint[$2, 2] = $16;
-		j_totaljoint[$2, 2, 1] = $17;
-		j_totaljoint[$2, 2, 2] = $18;
-		j_totaljoint[$2, 2, 3] = $19;
+		j_totaljoint[$2, 2] = $25;
+		j_totaljoint[$2, 2, 1] = $26;
+		j_totaljoint[$2, 2, 2] = $27;
+		j_totaljoint[$2, 2, 3] = $28;
 		j_totaljoint_num++;
 
 		label1 = j_totaljoint[$2, 1];
@@ -683,9 +683,9 @@ isvan == 0 && /^totalpinjoint:/ && show["totalpinjoint"] {
 		j_totalpinjoint[$2, 1, 1] = $4;
 		j_totalpinjoint[$2, 1, 2] = $5;
 		j_totalpinjoint[$2, 1, 3] = $6;
-		j_totalpinjoint[$2, 2, 1] = $16;
-		j_totalpinjoint[$2, 2, 2] = $17;
-		j_totalpinjoint[$2, 2, 3] = $18;
+		j_totalpinjoint[$2, 2, 1] = $25;
+		j_totalpinjoint[$2, 2, 2] = $26;
+		j_totalpinjoint[$2, 2, 3] = $27;
 		j_totalpinjoint_num++;
 
 		label1 = j_totalpinjoint[$2, 1];
