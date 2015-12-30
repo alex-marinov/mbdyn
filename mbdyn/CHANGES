@@ -15,6 +15,9 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed invalid memory access bug in viscoelastic
+		  displacement joint Jacobian matrix initial assembly
+		  (Reinhard Resch); assembly still needs work
 		- fixed bug in EasyAnim post-processing of total joints
 		- fixed bug in strain gage priv data (noted by Jason)
 

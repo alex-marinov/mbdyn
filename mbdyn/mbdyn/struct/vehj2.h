@@ -528,7 +528,7 @@ public:
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12;
-		*piNumCols = 12;
+		*piNumCols = 24;
 	};
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
