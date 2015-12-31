@@ -29,8 +29,9 @@
  */
 
 /*
- * This file models an inverse pendulum, controlled by Simulink
- * by means of a simple PD controller.
+ * This file controls the inverse pendulum modeled in "pendulum";
+ * it is equivalent to the control action performed by Simulink
+ * using the pendulum.mdl controller model.
  *
  * Part of the SimulinkInterface test suite.
  */
@@ -55,77 +56,54 @@ end: multistep;
 
 begin: control data;
 	# default output: none;
-	structural nodes: 1;
-	rigid bodies: 1;
-	joints: 1;
-	output elements: 1;
-	gravity;
+	abstract nodes: 1;
+	genels: 1;
 	forces: 1;
+	output elements: 1;
         file drivers: 1;
-	default orientation: orientation vector;
 end: control data;
 
-set: real OMEGA = 0*1.e-1;
-
-reference: 1,
-	reference, global, null,
-	reference, global, eye,
-	reference, global, null,
-	reference, global, null;
-reference: 2,
-	reference, 1, null,
-	reference, 1, eye,
-	reference, 1, null,
-	reference, 1, 0.,OMEGA,0.;
+set: real OMEGA = 1.e-3;
 
 begin: nodes;
-	structural: 1, dynamic,
-		reference, 2, 0.,0.,1.,
-		reference, 2, eye,
-		reference, 2, null,
-		reference, 2, null;
+	abstract: 1;
 end: nodes;
 
 begin: drivers;
         file: 1, stream,
         	stream drive name, "MBXOUT",
-        	create, yes,
+        	create, no,
 		# path, "/tmp/mbdyn.pendulum.in.sock",
-		port, 8005,
-		receive first, no,
-		# echo, "frc.in",
-		1;
+		port, 10011, host, "localhost",
+		# receive first, no,
+		# echo, "mov.in",
+		2;
 end: drivers;
 
 begin: elements;
-	body: 1, 1,
-		1.,
-		null,
-		diag, 1.,1.,1.;
-	joint: 1, revolute pin,
-		1, reference, 1, null,
-		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.,
-		reference, 1, null,
-		hinge, reference, 1, 1, 1.,0.,0., 3, 0.,1.,0.;
-	gravity: 0.,0.,-1., 9.81;
-
 	stream output: 1,
 		stream name, "MBXINN",
-		create, yes,
+		create, no,
 		# path, "../tmp/mbdyn.out.pendulum.sock",
-		port, 10011,
-		# echo, "mov.out",
-		values, 2,
-			drive, element, 1, joint, string, "rz", direct,		# revolute angle
-			drive, element, 1, joint, string, "wz", direct;		# revolute angular velocity
+		port, 8005, host, "localhost",
+		# echo, "frc.out",
+		values, 1,
+			drive, node, 1, abstract, string, "x", direct;		# force
 
-	force: 1, follower,
-		1,			# applied to structural node 1
-			position, null,	# arm
-			-1.,0.,0.,	# direction
+	genel: 1, spring support,
+		1, abstract, algebraic,
+			linear elastic, 1.;
+	force: 1, abstract,
+		1, abstract, 	# applied to abstract node
+		array, 2,
 		file,
 			1,		# read input from file 1
-			1;		# use channel 1
+			1,		# use channel 1
+			amplitude, 200,
+		file,
+			1,		# read input from file 1
+			2,		# use channel 2
+			amplitude, 10;
 end: elements;
 
 # vim:ft=mbd
