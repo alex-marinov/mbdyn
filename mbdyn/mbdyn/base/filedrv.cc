@@ -49,15 +49,13 @@
 
 /* FileDrive - begin */
 
-	
-
 FileDrive::FileDrive(unsigned int uL, const DriveHandler* pDH,
 	const std::string& s,
 	integer nd, const std::vector<doublereal>& v0)
 : Drive(uL, pDH), sFileName(s), iNumDrives(nd), pdVal(0)
 {
    	SAFENEWARR(pdVal, doublereal, nd + 1);
-	pdVal[0] = -10101.;
+	pdVal[0] = MBDYN_FILE_DRIVE_CHECK;
 	if (v0.empty()) {
    		for (int iCntm1 = 1; iCntm1 <= nd; iCntm1++) {
       			pdVal[iCntm1] = 0.;

@@ -37,6 +37,8 @@
 #include "mbdyn.h"
 #include "drive.h"
 
+#define MBDYN_FILE_DRIVE_CHECK (-10101)
+
 /* FileDrive - begin */
 
 class FileDrive : public Drive {
