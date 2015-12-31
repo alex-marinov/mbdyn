@@ -268,7 +268,7 @@ do_abandon:;
 		}
 
 		// copy values from buffer
-		pMod->Modify(pdVal, &buf[0]);
+		pMod->Modify(&pdVal[1], &buf[0]);
 
 		if (!sOutFileName.empty()) {
 			for (int i = 1; i <= iNumDrives; i++) {

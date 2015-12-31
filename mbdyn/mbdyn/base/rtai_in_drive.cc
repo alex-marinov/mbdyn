@@ -101,9 +101,9 @@ RTMBDynInDrive::ServePending(const doublereal& /* t */ )
 	 */
 	int rc = f_receive(node, port, mbx, (void *)&buf[0], size);
 	if (!rc) {
-		doublereal *rbuf = (doublereal *)&buf[0];
+		doublereal *rbuf = (doublereal *)&buf[0] - 1;
 		for (int i = 1; i <= iNumDrives; i++) {
-			pdVal[i] = rbuf[i-1];
+			pdVal[i] = rbuf[i];
 		}	
 
 	} else {

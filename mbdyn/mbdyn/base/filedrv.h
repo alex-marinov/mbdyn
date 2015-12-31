@@ -45,6 +45,10 @@ protected:
 	integer iNumDrives;
    	doublereal* pdVal;
 
+	/* NOTE: pdVal actually points to one doublereal *before* the actual array;
+	 * use pdVal[base1idx] or pdVal[base0idx + 1]
+	 */
+
 public:
 	FileDrive(unsigned int uL, const DriveHandler* pDH,
 		const std::string& s,

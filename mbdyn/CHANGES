@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed off-by-one bug in socket stream drive
 		- fixed invalid memory access bug in viscoelastic
 		  displacement joint Jacobian matrix initial assembly
 		  (Reinhard Resch); assembly still needs work
