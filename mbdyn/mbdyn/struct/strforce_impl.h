@@ -78,7 +78,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -144,7 +144,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -246,7 +246,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -315,7 +315,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -370,7 +370,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -426,7 +426,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -532,7 +532,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -605,7 +605,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -662,7 +662,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;
@@ -720,7 +720,7 @@ public:
 		const VectorHandler& /* XCurr */ ,
 		const VectorHandler& /* XPrimeCurr */ ,
 		const VectorHandler& /* XPrimePrimeCurr */ ,
-		int iOrder);
+		InverseDynamics::Order iOrder);
 
 	virtual void OutputPrepare(OutputHandler &OH);
 	virtual void Output(OutputHandler& OH) const;

@@ -123,7 +123,8 @@ AbsoluteDispForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
+
 {
 	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
 
@@ -297,7 +298,7 @@ AbsoluteInternalDispForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AbsoluteDispForce::AssRes()" << std::endl);
 
@@ -549,7 +550,7 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AbsoluteForce::AssRes()" << std::endl);
 
@@ -837,7 +838,7 @@ FollowerForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering FollowerForce::AssRes()" << std::endl);
 
@@ -1073,7 +1074,7 @@ AbsoluteCouple::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AbsoluteCouple::AssRes()" << std::endl);
 
@@ -1276,7 +1277,7 @@ FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering FollowerCouple::AssRes()" << std::endl);
 
@@ -1597,7 +1598,7 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AbsoluteInternalForce::AssRes()" << std::endl);
 
@@ -1951,7 +1952,7 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering FollowerInternalForce::AssRes()" << std::endl);
 
@@ -2252,7 +2253,7 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering AbsoluteInternalCouple::AssRes()" << std::endl);
 
@@ -2478,7 +2479,7 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XCurr */ ,
 	const VectorHandler& /* XPrimeCurr */ ,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
-	int iOrder)
+	InverseDynamics::Order iOrder)
 {
 	DEBUGCOUT("Entering FollowerInternalCouple::AssRes()" << std::endl);
 
