@@ -15,6 +15,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed possibility to turn off output of aero elements
 		- fixed structural forces in inverse dynamics
 		  (Andrea Zanoni, noted by Davide Ivone)
 		- fixed off-by-one bug in socket stream drive
