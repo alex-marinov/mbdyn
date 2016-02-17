@@ -549,7 +549,7 @@ ModalExt::AssRes(SubVectorHandler& WorkVec,
 void
 ModalExt::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			std::ostream& out = OH.Forces();
 

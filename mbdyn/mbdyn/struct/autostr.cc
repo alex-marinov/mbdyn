@@ -230,7 +230,7 @@ AutomaticStructDispElem::AssRes(SubVectorHandler& WorkVec,
 void
 AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -252,7 +252,7 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 void
 AutomaticStructDispElem::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());
@@ -611,7 +611,7 @@ AutomaticStructElem::AssRes(SubVectorHandler& WorkVec,
 void
 AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -633,7 +633,7 @@ AutomaticStructElem::OutputPrepare(OutputHandler &OH)
 void
 AutomaticStructElem::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());

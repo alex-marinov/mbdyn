@@ -278,7 +278,7 @@ DamperGandhi::~DamperGandhi(void)
 void
 DamperGandhi::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << GetLabel() 

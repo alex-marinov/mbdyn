@@ -125,7 +125,7 @@ ModalForce::AssRes(SubVectorHandler& WorkVec,
 void
 ModalForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Forces();
 
 		out << GetLabel();

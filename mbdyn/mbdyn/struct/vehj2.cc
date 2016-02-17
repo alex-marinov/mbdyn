@@ -330,7 +330,7 @@ DeformableDispJoint::Restart(std::ostream& out) const
 void
 DeformableDispJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -343,7 +343,7 @@ DeformableDispJoint::OutputPrepare(OutputHandler& OH)
 void
 DeformableDispJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 
 
 #ifdef USE_NETCDF

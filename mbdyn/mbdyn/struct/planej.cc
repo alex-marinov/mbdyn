@@ -948,7 +948,7 @@ PlaneHingeJoint::GetEqType(unsigned int i) const
 void
 PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -974,7 +974,7 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void PlaneHingeJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
       Vec3 OmegaTmp(R2Tmp.MulTV(pNode2->GetWCurr()-pNode1->GetWCurr()));
@@ -2026,7 +2026,7 @@ PlaneRotationJoint::GetEqType(unsigned int i) const
 void
 PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -2044,7 +2044,7 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void PlaneRotationJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
 		Vec3 E;
@@ -3364,7 +3364,7 @@ AxialRotationJoint::GetEqType(unsigned int i) const
 void
 AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -3390,7 +3390,7 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void AxialRotationJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).MulTM(R2Tmp));
 		Vec3 E;
@@ -4512,7 +4512,7 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
 /* Output (da mettere a punto) */
 void PlanePinJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
       Mat3x3 R0Tmp(R0.MulTM(RTmp));
       

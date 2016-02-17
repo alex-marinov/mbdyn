@@ -228,7 +228,7 @@ void
 GearJoint::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << M1         // Moment on node 1
@@ -733,7 +733,7 @@ void
 LinearTransmissionJoint::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << F1         // Force on node 1
@@ -1396,7 +1396,7 @@ void
 MotionTransmissionJoint::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Loadable();
       out << std::setw(8) << GetLabel();
       if (mtype1==1) {

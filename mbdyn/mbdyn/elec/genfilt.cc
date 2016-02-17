@@ -381,7 +381,7 @@ GenelStateSpaceSISO::SetValue(DataManager *pDM,
 void
 GenelStateSpaceSISO::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream &out(OH.Genels());
 		out << std::setw(8) << GetLabel();
 		for (unsigned int i = 0; i < iNumDofs; i++) {
@@ -816,7 +816,7 @@ GenelStateSpaceMIMO::SetValue(DataManager *pDM,
 void
 GenelStateSpaceMIMO::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out(OH.Genels());
 		out << std::setw(8) << GetLabel();
 		for (unsigned int i = 0; i < iNumDofs; i++) {

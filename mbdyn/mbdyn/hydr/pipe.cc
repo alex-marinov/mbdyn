@@ -445,7 +445,7 @@ Pipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
    
 void Pipe::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       OH.Hydraulic()
 	<< std::setw(8) << GetLabel()
 	<< " " <<  vel << " " << flow  << " " << Re << std::endl;
@@ -967,7 +967,7 @@ Dynamic_pipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 
 void Dynamic_pipe::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out 
 	<< std::setw(8) << GetLabel()
@@ -1366,7 +1366,7 @@ DynamicPipe::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 
 void DynamicPipe::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Hydraulic();
       out 
 	<< std::setw(8) << GetLabel()	/*  1 */

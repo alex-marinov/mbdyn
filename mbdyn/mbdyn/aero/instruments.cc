@@ -153,7 +153,7 @@ AircraftInstruments::Restart(std::ostream& out) const
 void
 AircraftInstruments::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Aerodynamic()
 			<< std::setw(8) << GetLabel();
 

@@ -4607,7 +4607,7 @@ OctaveElement::~OctaveElement(void)
 void
 OctaveElement::Output(OutputHandler& OH) const
 {
-	if (!(fToBeOutput() && OH.UseText(OutputHandler::LOADABLE))) {
+	if (!(bToBeOutput() && OH.UseText(OutputHandler::LOADABLE))) {
 		return;
 	}
 

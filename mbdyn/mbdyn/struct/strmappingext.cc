@@ -1036,7 +1036,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.PutRowIndex(iSize + r, iFirstIndex + r);
 			}
 
-			if (bUseReferenceNodeForces || fToBeOutput()) {
+			if (bUseReferenceNodeForces || bToBeOutput()) {
 				// compute Global Reference Node Forces, even if they are not used, for output only :)
 				F2 += Nodes[n].F;
 				M2 += Nodes[n].M + (Nodes[n].pNode->GetXCurr() - xRef).Cross(Nodes[n].F);
@@ -1095,7 +1095,7 @@ StructMappingExtForce::AssRes(SubVectorHandler& WorkVec,
 void
 StructMappingExtForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			std::ostream& out = OH.Forces();
 

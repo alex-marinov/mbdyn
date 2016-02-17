@@ -463,7 +463,7 @@ Actuator::AssRes(SubVectorHandler& WorkVec,
 
 void Actuator::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << flow1  << " " << flow2 

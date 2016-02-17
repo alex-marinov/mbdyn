@@ -89,7 +89,7 @@ DriveDisplacementJoint::Restart(std::ostream& out) const
 void
 DriveDisplacementJoint::Output(OutputHandler& OH) const
 {   
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Vec3 d(pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1);
 		Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
@@ -714,7 +714,7 @@ DriveDisplacementPinJoint::Restart(std::ostream& out) const
 void
 DriveDisplacementPinJoint::Output(OutputHandler& OH) const
 {   
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Vec3 d(pNode->GetXCurr() + pNode->GetRCurr()*f - x);
 		Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
 				F, Zero3, F, Zero3)

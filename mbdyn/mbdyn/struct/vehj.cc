@@ -176,7 +176,7 @@ DeformableHingeJoint::Restart(std::ostream& out) const
 void
 DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -194,7 +194,7 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 void
 DeformableHingeJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Mat3x3 R(R1h.MulTM(R2h));
@@ -288,7 +288,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 void
 DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 R1h(pNode1->GetRCurr()*tilde_R1h);
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Mat3x3 R(R1h.MulTM(R2h));

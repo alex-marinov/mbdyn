@@ -147,7 +147,7 @@ BeamSliderJoint::Restart(std::ostream& out) const
 void 
 BeamSliderJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 RTmp(pNode->GetRCurr()*R);
 		Mat3x3 RTmpT(RTmp.Transpose());
 		

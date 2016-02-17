@@ -444,7 +444,7 @@ StructDispNode::SetDofValue(const doublereal& dValue,
 void
 StructDispNode::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -503,7 +503,7 @@ StructDispNode::OutputPrepare(OutputHandler &OH)
 void
 StructDispNode::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
@@ -1778,7 +1778,7 @@ StructNode::SetDofValue(const doublereal& dValue,
 void
 StructNode::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1845,7 +1845,7 @@ StructNode::OutputPrepare(OutputHandler &OH)
 void
 StructNode::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Vec3 E;
 		switch (od) {
 		case EULER_123:

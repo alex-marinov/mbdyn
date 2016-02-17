@@ -267,7 +267,7 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 
 void DistanceJoint::Output(OutputHandler& OH) const
 {
-   if(fToBeOutput()) {      
+   if(bToBeOutput()) {      
       doublereal d = dGet();
       Vec3 vTmp;      
       if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
@@ -918,7 +918,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 
 void DistanceJointWithOffset::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       doublereal d = dGet();
       Vec3 vTmp;      
       if (fabs(d) > std::numeric_limits<doublereal>::epsilon()) {
@@ -1709,7 +1709,7 @@ ClampJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
 void
 ClampJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		const Mat3x3& R(pNode->GetRCurr());
 
 		Joint::Output(OH.Joints(), "Clamp", GetLabel(),

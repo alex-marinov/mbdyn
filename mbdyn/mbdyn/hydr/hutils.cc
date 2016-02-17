@@ -364,7 +364,7 @@ Accumulator::AssRes(SubVectorHandler& WorkVec,
 void 
 Accumulator::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << s << " " << v << " " << vp << " " << pgas  
@@ -661,7 +661,7 @@ Tank::AssRes(SubVectorHandler& WorkVec,
 void 
 Tank::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel();
       out << " " << s << " " << sp << " " << flow1 << " " << flow2 << std::endl;

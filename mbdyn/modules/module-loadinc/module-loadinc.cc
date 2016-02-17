@@ -253,7 +253,7 @@ LoadIncNorm::~LoadIncNorm(void)
 void
 LoadIncNorm::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << GetLabel()
@@ -748,7 +748,7 @@ LoadIncForce::~LoadIncForce(void)
 void
 LoadIncForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << GetLabel() << "@" << m_pDNode->GetLabel();

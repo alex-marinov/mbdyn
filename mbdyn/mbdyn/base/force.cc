@@ -116,7 +116,7 @@ AbstractForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbstractForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
@@ -213,7 +213,7 @@ AbstractInternalForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbstractInternalForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			doublereal d = dGet();
 			OH.Forces()

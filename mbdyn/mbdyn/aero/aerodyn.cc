@@ -195,7 +195,7 @@ AirProperties::InitialAssRes(SubVectorHandler& WorkVec,
 void
 AirProperties::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		OH.AirProps() << std::setw(8) << GetLabel()
 			<< " " << dGetAirDensity(Zero3)
 			<< " " << dGetSoundSpeed(Zero3)

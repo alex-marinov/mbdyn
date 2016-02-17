@@ -1189,7 +1189,7 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 				WorkVec.Add(i*iOffset + 4, m);
 			}
 
-			if (bUseReferenceNodeForces || fToBeOutput()) {
+			if (bUseReferenceNodeForces || bToBeOutput()) {
 				F2 += f;
 				if (uRot != MBC_ROT_NONE) {
 					M2 += m + (point.pNode->GetXCurr() - xRef).Cross(f);
@@ -1237,7 +1237,7 @@ StructExtForce::AssRes(SubVectorHandler& WorkVec,
 void
 StructExtForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			std::ostream& out = OH.Forces();
 

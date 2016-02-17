@@ -1467,7 +1467,7 @@ TotalJoint::GetEqType(unsigned int i) const
 void
 TotalJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -1493,7 +1493,7 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 void
 TotalJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		const Vec3& X1(pNode1->GetXCurr());
 		const Vec3& X2(pNode2->GetXCurr());
 		const Mat3x3& R1(pNode1->GetRCurr());
@@ -3272,7 +3272,7 @@ TotalPinJoint::GetEqType(unsigned int i) const
 void
 TotalPinJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -3298,7 +3298,7 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 void
 TotalPinJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		const Vec3& Xn(pNode->GetXCurr());
 		const Mat3x3& Rn(pNode->GetRCurr());
 		const Vec3& Vn(pNode->GetVCurr());
@@ -3746,7 +3746,7 @@ M(::Zero3), F(::Zero3)
 void
 TotalForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		OH.Forces() << std::setw(8) << GetLabel()
 			<< " " << F << " " << M << std::endl;
 	}

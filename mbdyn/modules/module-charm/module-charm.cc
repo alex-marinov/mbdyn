@@ -1709,7 +1709,7 @@ ModuleCHARM::Output(OutputHandler& OH) const
 #endif
 
 	// should do something useful
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		for (unsigned ir = 0; ir < m_Rotors.size(); ir++) {

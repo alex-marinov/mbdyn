@@ -1046,7 +1046,7 @@ Beam::AfterPredict(VectorHandler& /* X */ ,
 void
 Beam::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1140,7 +1140,7 @@ Beam::OutputPrepare(OutputHandler &OH)
 void
 Beam::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {

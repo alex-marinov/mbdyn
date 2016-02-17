@@ -169,7 +169,7 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
 void LinearVelocityJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {      
+   if (bToBeOutput()) {      
       Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
 	<< " " << Dir << " " << dGet() << std::endl;
@@ -386,7 +386,7 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    
 void AngularVelocityJoint::Output(OutputHandler& OH) const
 {
-   if(fToBeOutput()) {      
+   if(bToBeOutput()) {      
       Vec3 Tmp(pNode->GetRCurr()*Dir);
       
       Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),

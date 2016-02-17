@@ -299,7 +299,7 @@ Rod::AssRes(SubVectorHandler& WorkVec,
 void
 Rod::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -319,7 +319,7 @@ Rod::OutputPrepare(OutputHandler& OH)
 void
 Rod::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		Vec3 vTmp(v/dElle);
 		doublereal d = GetF();

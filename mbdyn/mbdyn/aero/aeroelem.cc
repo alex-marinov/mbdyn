@@ -450,7 +450,7 @@ template <unsigned iNN>
 void
 Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::AERODYNAMIC)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1140,7 +1140,7 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		M += Xr.Cross(FTmp);
 
 		// specific for Gauss points force output
-		if (fToBeOutput()) {
+		if (bToBeOutput()) {
 			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
 		}
 
@@ -1164,7 +1164,7 @@ void
 AerodynamicBody::Output(OutputHandler& OH) const
 {
 	/* Output delle forze aerodinamiche F, M su apposito file */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Aerodynamic2DElem<1>::Output_int(OH);
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
@@ -2184,7 +2184,7 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
 
 			// specific for Gauss points force output
-			if (fToBeOutput()) {
+			if (bToBeOutput()) {
 				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
 			}
 
@@ -2210,7 +2210,7 @@ AerodynamicBeam::Output(OutputHandler& OH) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam::Output");
 
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Aerodynamic2DElem<3>::Output_int(OH);
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {
@@ -3083,7 +3083,7 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
 
 			// specific for Gauss points force output
-			if (fToBeOutput()) {
+			if (bToBeOutput()) {
 				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
 			}
 
@@ -3109,7 +3109,7 @@ AerodynamicBeam2::Output(OutputHandler& OH ) const
 {
 	DEBUGCOUTFNAME("AerodynamicBeam2::Output");
 
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Aerodynamic2DElem<2>::Output_int(OH);
 
 		if (OH.UseText(OutputHandler::AERODYNAMIC)) {

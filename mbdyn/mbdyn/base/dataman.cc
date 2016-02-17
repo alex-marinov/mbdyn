@@ -440,7 +440,7 @@ Dofs()
 			for (NodeContainerType::const_iterator n = NodeData[i].NodeContainer.begin();
 				n != NodeData[i].NodeContainer.end(); ++n)
 			{
-				if (n->second->fToBeOutput()) {
+				if (n->second->bToBeOutput()) {
 					OutHdl.Open(NodeData[i].OutFile);
 					break;
 				}
@@ -456,7 +456,7 @@ Dofs()
 			for (ElemContainerType::const_iterator e = ElemData[i].ElemContainer.begin();
 				e != ElemData[i].ElemContainer.end(); ++e)
 			{
-				if (e->second->fToBeOutput()) {
+				if (e->second->bToBeOutput()) {
 					OutHdl.Open(ElemData[i].OutFile);
 					break;
 				}
@@ -474,7 +474,7 @@ Dofs()
 	}
 
 	for (MBDynParser::DCType::const_iterator i = DC.begin(); i != DC.end(); ++i) {
-		if (i->second->fToBeOutput()) {
+		if (i->second->bToBeOutput()) {
 			OutHdl.Open(OutputHandler::DRIVECALLERS);
 			break;
 		}

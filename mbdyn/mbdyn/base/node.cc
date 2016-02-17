@@ -267,7 +267,7 @@ ScalarDifferentialNode::Update(const class VectorHandler& X,
 std::ostream&
 ScalarDifferentialNode::Output(std::ostream& out) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		out << std::setw(8) << GetLabel()
 			<< " " << dX
 			<< " " << dXP
@@ -449,7 +449,7 @@ ScalarAlgebraicNode::Update(const class VectorHandler& X,
 std::ostream&
 ScalarAlgebraicNode::Output(std::ostream& out) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		out << std::setw(8) << GetLabel()
 			<< " " << dX << std::endl;
 	}
@@ -531,7 +531,7 @@ ParameterNode::GetDofType(unsigned int i) const
 void
 ParameterNode::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Parameters();
 
 		out << std::setw(8) << GetLabel()

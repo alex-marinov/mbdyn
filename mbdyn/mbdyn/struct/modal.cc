@@ -1384,7 +1384,7 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 void
 Modal::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		/* stampa sul file di output i modi */
 		std::ostream& out = OH.Modal();
 

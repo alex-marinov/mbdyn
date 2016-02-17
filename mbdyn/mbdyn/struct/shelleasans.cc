@@ -847,7 +847,7 @@ Shell4EASANS::pGetNode(unsigned int i) const
 void
 Shell4EASANS::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::PLATES)) {
 			std::ostream& out = OH.Plates();
 			out << std::setw(8) << GetLabel();

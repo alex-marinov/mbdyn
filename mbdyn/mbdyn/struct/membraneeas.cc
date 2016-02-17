@@ -572,7 +572,7 @@ Membrane4EAS::pGetNode(unsigned int i) const
 void
 Membrane4EAS::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::PLATES)) {
 			std::ostream& out = OH.Plates();
 			out << std::setw(8) << GetLabel();

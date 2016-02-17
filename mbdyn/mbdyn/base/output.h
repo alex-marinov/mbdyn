@@ -680,6 +680,7 @@ public:
 	const VectorHandler& X, const VectorHandler& XP) const;
 
 	virtual flag fToBeOutput(void) const;
+	virtual bool bToBeOutput(void) const;
 	virtual void SetOutputFlag(flag f = flag(1));
 };
 

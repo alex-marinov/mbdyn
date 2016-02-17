@@ -449,7 +449,7 @@ RodBezier::AssVec(SubVectorHandler& WorkVec)
 void
 RodBezier::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		doublereal dF = GetF();
 

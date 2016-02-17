@@ -340,7 +340,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 void
 DistanceJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {      
+	if (bToBeOutput()) {      
 		Joint::Output(OH.Joints(), "Distance", GetLabel(),
 	    		Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3)
 			<< " " << Vec/dDistance << " " << dDistance

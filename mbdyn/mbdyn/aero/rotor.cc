@@ -182,7 +182,7 @@ Rotor::AfterConvergence(const VectorHandler& X,
 void
 Rotor::Output(OutputHandler& OH) const
 {
-    	if (fToBeOutput()) {
+    	if (bToBeOutput()) {
 #ifdef USE_MPI
 		if (is_parallel && IndVelComm.Get_size() > 1) {
 	    		if (IndVelComm.Get_rank() == 0) {
@@ -577,7 +577,7 @@ NoRotor::Init(const StructNode* pCraft,
 	Rotor::Init(pCraft, rrot, pRotor, 0, ppres, dR, 0, 0., 0., fOut);
 
 #ifdef USE_MPI
-	if (is_parallel && fToBeOutput()) {
+	if (is_parallel && bToBeOutput()) {
 		SAFENEWARR(pBlockLenght, int, 3);
 		SAFENEWARR(pDispl, MPI::Aint, 3);
 		for (int i = 0; i < 3; i++) {
@@ -667,7 +667,7 @@ NoRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 	Wait();
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
@@ -866,7 +866,7 @@ UniformRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 
 	/* Solo se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
@@ -953,7 +953,7 @@ UniformRotor2::AddSectionalForce(Elem::Type type,
 #endif // USE_MULTITHREAD && MBDYN_X_MT_ASSRES
 
 	/* Solo se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Vec3 FTmp(F*dW);
 		Vec3 MTmp(M*dW);
 		Res.AddForces(FTmp, MTmp, X);
@@ -1137,7 +1137,7 @@ GlauertRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	/* Solo se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
@@ -1408,7 +1408,7 @@ ManglerRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	/* Solo se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	} else {
@@ -1621,7 +1621,7 @@ DynamicInflowRotor::Output(OutputHandler& OH) const
 	 * FIXME: posso usare dei temporanei per il calcolo della trazione
 	 * totale per l'output, cosi' evito il giro dei cast
 	 */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_MPI
 		if (is_parallel && IndVelComm.Get_size() > 1) {
 			if (IndVelComm.Get_rank() == 0) {
@@ -1988,7 +1988,7 @@ DynamicInflowRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	Res.AddForces(F, M, X);
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
 
@@ -2139,7 +2139,7 @@ PetersHeRotor::Output(OutputHandler& OH) const
 	 * FIXME: posso usare dei temporanei per il calcolo della trazione
 	 * totale per l'output, cosi' evito il giro dei cast
 	 */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_MPI
 		if (is_parallel && IndVelComm.Get_size() > 1) {
 			if (IndVelComm.Get_rank() == 0) {
@@ -2506,7 +2506,7 @@ PetersHeRotor::AddForce(const Elem *pEl, const StructNode *pNode,
 #endif /* USE_MULTITHREAD && MBDYN_X_MT_ASSRES */
 
 	Res.AddForces(F, M, X);
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
 

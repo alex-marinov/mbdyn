@@ -134,7 +134,7 @@ AbsoluteDispForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -155,7 +155,7 @@ AbsoluteDispForce::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteDispForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -308,7 +308,7 @@ AbsoluteInternalDispForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -329,7 +329,7 @@ AbsoluteInternalDispForce::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -578,7 +578,7 @@ AbsoluteForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -602,7 +602,7 @@ AbsoluteForce::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -868,7 +868,7 @@ FollowerForce::AssRes(SubVectorHandler& WorkVec,
 void
 FollowerForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -892,7 +892,7 @@ FollowerForce::OutputPrepare(OutputHandler& OH)
 void
 FollowerForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
@@ -1097,7 +1097,7 @@ AbsoluteCouple::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteCouple::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1119,7 +1119,7 @@ AbsoluteCouple::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteCouple::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -1302,7 +1302,7 @@ FollowerCouple::AssRes(SubVectorHandler& WorkVec,
 void
 FollowerCouple::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1325,7 +1325,7 @@ FollowerCouple::OutputPrepare(OutputHandler& OH)
 void
 FollowerCouple::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
@@ -1631,7 +1631,7 @@ AbsoluteInternalForce::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -1658,7 +1658,7 @@ AbsoluteInternalForce::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteInternalForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -1986,7 +1986,7 @@ FollowerInternalForce::AssRes(SubVectorHandler& WorkVec,
 void
 FollowerInternalForce::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -2013,7 +2013,7 @@ FollowerInternalForce::OutputPrepare(OutputHandler& OH)
 void
 FollowerInternalForce::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
@@ -2282,7 +2282,7 @@ AbsoluteInternalCouple::AssRes(SubVectorHandler& WorkVec,
 void
 AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -2303,7 +2303,7 @@ AbsoluteInternalCouple::OutputPrepare(OutputHandler& OH)
 void
 AbsoluteInternalCouple::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
@@ -2508,7 +2508,7 @@ FollowerInternalCouple::AssRes(SubVectorHandler& WorkVec,
 void
 FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -2529,7 +2529,7 @@ FollowerInternalCouple::OutputPrepare(OutputHandler& OH)
 void
 FollowerInternalCouple::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());

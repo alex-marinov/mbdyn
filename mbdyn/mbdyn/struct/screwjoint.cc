@@ -155,7 +155,7 @@ ScrewJoint::~ScrewJoint(void)
 void //TODO
 ScrewJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 R1(pNode1->GetRCurr()*R1h);
 		std::ostream &of = Joint::Output(OH.Joints(), "ScrewJoint", GetLabel(),
 				F1 * dLambda, C1 * dLambda + e1hz*M3diff, 

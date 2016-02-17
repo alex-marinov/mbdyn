@@ -85,7 +85,7 @@ GimbalRotationJoint::Restart(std::ostream& out) const
 void
 GimbalRotationJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 Ra(pNode1->GetRCurr());
 
 		// TODO: allow to customize orientation description

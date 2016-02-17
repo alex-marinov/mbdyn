@@ -450,7 +450,7 @@ hydrodynamic_plain_bearing_with_offset::~hydrodynamic_plain_bearing_with_offset(
 void
 hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 {
-	if ( fToBeOutput() && OH.UseText(OutputHandler::LOADABLE) )
+	if ( bToBeOutput() && OH.UseText(OutputHandler::LOADABLE) )
 	{
 		std::ostream& os = OH.Loadable();
 

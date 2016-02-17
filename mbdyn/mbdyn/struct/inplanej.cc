@@ -166,7 +166,7 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
 
 void InPlaneJoint::Output(OutputHandler& OH) const
 {
-   if(fToBeOutput()) {      
+   if(bToBeOutput()) {      
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlane", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
@@ -506,7 +506,7 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
 
 void InPlaneWithOffsetJoint::Output(OutputHandler& OH) const
 {
-   if(fToBeOutput()) {            
+   if(bToBeOutput()) {            
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlaneWithOffs", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      

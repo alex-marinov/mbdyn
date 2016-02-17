@@ -152,7 +152,7 @@ ModuleIMU::~ModuleIMU(void)
 void
 ModuleIMU::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << std::setw(8) << GetLabel()
@@ -517,7 +517,7 @@ ModuleIMUConstraint::GetDofType(unsigned int i) const
 void
 ModuleIMUConstraint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << std::setw(8) << GetLabel()

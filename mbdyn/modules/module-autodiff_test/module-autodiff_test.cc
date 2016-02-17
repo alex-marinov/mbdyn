@@ -1297,7 +1297,7 @@ doublereal InlineJointAD::dGetPrivData(unsigned int i) const
 void
 InlineJointAD::Output(OutputHandler& OH) const
 {
-	if ( fToBeOutput() )
+	if ( bToBeOutput() )
 	{
 		if ( OH.UseText(OutputHandler::LOADABLE) )
 		{

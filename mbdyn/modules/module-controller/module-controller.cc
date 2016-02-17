@@ -166,7 +166,7 @@ ModuleController::~ModuleController(void)
 void
 ModuleController::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << std::setw(8) << GetLabel();

@@ -370,7 +370,7 @@ asynchronous_machine::~asynchronous_machine(void)
 void
 asynchronous_machine::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		// Note: The ODE for the asynchronous machine is defined for positive sign of OmegaS only!
 		// At user level the signs of M, dM/dt and d^2M/dt^2 are defined to be positive
 		// in positive coordinate system direction in the reference frame of the stator.

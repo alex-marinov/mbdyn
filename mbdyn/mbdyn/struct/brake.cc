@@ -438,7 +438,7 @@ Brake::GetEqType(unsigned int i) const
 /* Output (da mettere a punto) */
 void Brake::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());

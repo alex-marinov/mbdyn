@@ -191,7 +191,7 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
 void
 InLineJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -203,7 +203,7 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 
 void InLineJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
@@ -631,7 +631,7 @@ InLineWithOffsetJoint::GetEqType(unsigned int i) const
 
 void InLineWithOffsetJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {      
+   if (bToBeOutput()) {      
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
       Joint::Output(OH.Joints(), "inline", GetLabel(),
 		    F, Zero3, RvTmp*F, Zero3) << std::endl;

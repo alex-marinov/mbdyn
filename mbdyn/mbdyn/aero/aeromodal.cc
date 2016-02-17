@@ -594,7 +594,7 @@ AerodynamicModal::AssVec(SubVectorHandler& WorkVec)
 void
 AerodynamicModal::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		OH.AeroModals() << std::setw(8) << GetLabel() << " ";
 		for (unsigned int iCnt = 1; iCnt <= NAeroStates; iCnt++) {
 			OH.AeroModals() << " " << pxa->operator()(iCnt);

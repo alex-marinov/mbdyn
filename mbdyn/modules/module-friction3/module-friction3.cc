@@ -145,7 +145,7 @@ output(const LoadableElem* pEl, OutputHandler& OH)
 {
 	DEBUGCOUTFNAME("output");
 	
-	if (pEl->fToBeOutput()) {
+	if (pEl->bToBeOutput()) {
 		module_friction* p = (module_friction *)pEl->pGetData();      
 		std::ostream& out = OH.Loadable();
 

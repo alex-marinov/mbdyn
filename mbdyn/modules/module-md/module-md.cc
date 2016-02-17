@@ -382,7 +382,7 @@ MBDynMD::~MBDynMD(void)
 void
 MBDynMD::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		for (NodeContainer::const_iterator n = m_data.m_nodeData.begin();

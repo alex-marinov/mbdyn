@@ -218,7 +218,7 @@ ModuleIndVel::Output(OutputHandler& OH) const
 	std::cerr << "ModuleIndVel(" << GetLabel() << ")::Output: size=" << m_data.size() << std::endl;
 
 	// should do something useful
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		for (PD::const_iterator i = m_data.begin(); i != m_data.end(); ++i) {

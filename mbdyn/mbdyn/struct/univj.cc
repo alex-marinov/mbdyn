@@ -274,7 +274,7 @@ UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 void
 UniversalHingeJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
 
@@ -779,7 +779,7 @@ UniversalRotationJoint::AssRes(SubVectorHandler& WorkVec,
 void
 UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -797,7 +797,7 @@ UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 void
 UniversalRotationJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
 		Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
@@ -1285,7 +1285,7 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 void
 UniversalPinJoint::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 RTmp(pNode->GetRCurr()*Rh);
 		Vec3 vTmp(RTmp.GetVec(2).Cross(R0.GetVec(3)));
 
@@ -1293,7 +1293,7 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 			RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM)
 			<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr
 			<< std::endl;
-   }
+	}
 }
 
 

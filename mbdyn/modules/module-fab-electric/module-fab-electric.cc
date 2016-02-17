@@ -95,7 +95,7 @@ void
 Resistor::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on resistor
@@ -337,7 +337,7 @@ void
 Capacitor::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on Capacitor
@@ -581,7 +581,7 @@ void
 Inductor::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on Inductor
@@ -845,7 +845,7 @@ void
 Diode::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on Diode
@@ -1102,7 +1102,7 @@ void
 Switch::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on switch
@@ -1399,7 +1399,7 @@ void
 ElectricalSource::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Loadable();
       if (source_type!=CURRENTSOURCE && source_type!=VOLTAGESOURCE) {
          out << std::setw(8) << GetLabel()
@@ -1819,7 +1819,7 @@ void
 IdealTransformer::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Loadable();
       out << std::setw(8) << GetLabel()
          << " " << i_currIn         // input current
@@ -2121,7 +2121,7 @@ void
 OperationalAmplifier::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Loadable();
       out << std::setw(8) << GetLabel()
          << " " << i_curr           // output current
@@ -2427,7 +2427,7 @@ void
 BipolarTransistor::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       std::ostream& out = OH.Loadable();
       out << std::setw(8) << GetLabel()
          << " " << icurrC           // collector current
@@ -2773,7 +2773,7 @@ void
 ProximitySensor::Output(OutputHandler& OH) const
 {
 
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
    std::ostream& out = OH.Loadable();
    out << std::setw(8) << GetLabel()
       << " " << i_curr        // current on ProximitySensor

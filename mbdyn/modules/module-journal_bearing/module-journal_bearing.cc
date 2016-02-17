@@ -504,7 +504,7 @@ doublereal JournalBearing::dGetPrivData(unsigned int i) const
 void
 JournalBearing::Output(OutputHandler& OH) const
 {
-	if ( fToBeOutput() )
+	if ( bToBeOutput() )
 	{
 		if ( OH.UseText(OutputHandler::LOADABLE) )
 		{

@@ -261,7 +261,7 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
 void
 PrismaticJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -274,7 +274,7 @@ PrismaticJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void PrismaticJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 
 #ifdef USE_NETCDF

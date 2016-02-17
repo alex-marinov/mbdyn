@@ -251,7 +251,7 @@ Wheel4::~Wheel4(void)
 void
 Wheel4::OutputPrepare(OutputHandler &OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
@@ -581,7 +581,7 @@ Wheel4::OutputPrepare(OutputHandler &OH)
 void
 Wheel4::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::LOADABLE)) {

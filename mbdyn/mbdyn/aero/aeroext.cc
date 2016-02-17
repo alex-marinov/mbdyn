@@ -132,7 +132,7 @@ AerodynamicExternal::ConstructAndInitialize(void)
 {
 	/* dimensiona l'array per il buffer */
 	DEBUGCOUTFNAME("AerodynamicExternal::ConstructAndInitialize");
-	 if (fToBeOutput()) {
+	 if (bToBeOutput()) {
 		SAFENEWWITHCONSTRUCTOR(pForce, Mat3xN, Mat3xN(NodeN+1,0.));
 		SAFENEWWITHCONSTRUCTOR(pMoms, Mat3xN, Mat3xN(NodeN+1,0.));
 	}
@@ -253,7 +253,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 	if(MomFlag) pInterfComm->Recv(pdBufferVel->pdGetVec(), 3*NodeN*(OffN+1), MPI::DOUBLE, 0,(this->GetLabel())*10+5);
 	/* calcola le forze su ciascun nodo */
 	/* le forze e i momenti sono gia' espressi nel sistema di riferimento global */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		pForce->Reset();
 		pMoms->Reset();
 	}
@@ -281,7 +281,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 			}
 			M -= Fo.Cross( ppNode[i]->GetRCurr() * pOffsetVectors->GetVec(j) * pRefLength[i]);
 		}
-		if (fToBeOutput()) {
+		if (bToBeOutput()) {
 			pForce->AddVec(1,F);
 			pMoms->AddVec(1,M);
 			pForce->PutVec(i+2,F);
@@ -300,7 +300,7 @@ AerodynamicExternal::AssRes(SubVectorHandler& WorkVec,
 void
 AerodynamicExternal::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		integer lab = -1*GetLabel();
 		std::ostream& out = OH.Externals()
                         << std::setw(8) << lab
@@ -466,7 +466,7 @@ pForce(NULL)
 	SAFENEWWITHCONSTRUCTOR(pdBuffer, MyVectorHandler,
 		MyVectorHandler(8+3*ModalNodes));
 
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		integer NModes = pModal->uGetNModes();
 		SAFENEWWITHCONSTRUCTOR(pForce, MyVectorHandler,
 			MyVectorHandler(NModes));
@@ -594,7 +594,7 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 		}
 	}
 
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		*pForce = WorkVec;
 	}
 
@@ -606,7 +606,7 @@ AerodynamicExternalModal::AssRes(SubVectorHandler& WorkVec,
 void
 AerodynamicExternalModal::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Externals()
                         << std::setw(8) << -1*GetLabel();
 		int size = pForce->iGetSize();

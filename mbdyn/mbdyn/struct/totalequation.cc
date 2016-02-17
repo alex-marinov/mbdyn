@@ -829,7 +829,7 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 void
 TotalEquation::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		const Vec3& X1(pNode1->GetXCurr());
 		const Vec3& X2(pNode2->GetXCurr());
 		const Mat3x3& R1(pNode1->GetRCurr());
@@ -1826,7 +1826,7 @@ TotalReaction::GetEqType(unsigned int i) const
 void
 TotalReaction::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		const Vec3& X1(pNode1->GetXCurr());
 		const Vec3& X2(pNode2->GetXCurr());
 		const Mat3x3& R1(pNode1->GetRCurr());

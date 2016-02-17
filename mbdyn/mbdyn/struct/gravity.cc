@@ -120,7 +120,7 @@ UniformGravity::AssRes(SubVectorHandler& WorkVec,
 void
 UniformGravity::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::GRAVITY)) {
 			OH.Gravity() << std::setw(8) << GetLabel()
 				<< " " << Acc << std::endl;
@@ -161,7 +161,7 @@ CentralGravity::Output(OutputHandler& OH) const
 {
 #if 0
 	// nothing to output...
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::GRAVITY)) {
 			OH.Gravity() << std::setw(8) << GetLabel()
 				<< std::endl;

@@ -171,7 +171,7 @@ CyclocopterInflow::AfterConvergence(const VectorHandler& X, const VectorHandler&
 void
 CyclocopterInflow::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
                 OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
@@ -510,7 +510,7 @@ CyclocopterNoInflow::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		RRotorTranspose = pCraft->GetRCurr()*RRot;
 		RRotorTranspose = RRotorTranspose.Transpose();
 	}
@@ -525,7 +525,7 @@ void
 CyclocopterNoInflow::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3& F, const Vec3& M, const Vec3& X)
 {
 	/* Sole se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 	}
@@ -712,7 +712,7 @@ CyclocopterUniform1D::~CyclocopterUniform1D(void)
 void
 CyclocopterUniform1D::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
                 OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
@@ -830,7 +830,7 @@ CyclocopterUniform1D::AddForce(const Elem *pEl, const StructNode *pNode, const V
 
 
 	/* Sole se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 
@@ -1013,7 +1013,7 @@ CyclocopterUniform2D::~CyclocopterUniform2D(void)
 void
 CyclocopterUniform2D::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
                 OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
@@ -1181,7 +1181,7 @@ CyclocopterUniform2D::AddForce(const Elem *pEl, const StructNode *pNode, const V
 	}
 
 	/* Sole se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F, M, X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 
@@ -1444,7 +1444,7 @@ CyclocopterPolimi::AfterConvergence(const VectorHandler& X, const VectorHandler&
 void
 CyclocopterPolimi::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
                 OH.Loadable()
                         << std::setw(8) << GetLabel()   /* 1 */
                         << " " << RRotorTranspose*Res.Force()     /* 2-4 */
@@ -1525,7 +1525,7 @@ CyclocopterPolimi::AddForce(const Elem *pEl, const StructNode *pNode, const Vec3
 	}
 
 	/* Sole se deve fare l'output calcola anche il momento */
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Res.AddForces(F,M,X);
 		InducedVelocity::AddForce(pEl, pNode, F, M, X);
 

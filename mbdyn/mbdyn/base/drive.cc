@@ -507,7 +507,7 @@ void DriveCaller::Output(OutputHandler& OH) const
 {
 	const flag fOut = fToBeOutput();
 
-	if (fOut) {
+	if (fOut & flag(1)) {
 		if (OH.UseText(OutputHandler::DRIVECALLERS)) {
 			std::ostream& os = OH.DriveCallers();
 

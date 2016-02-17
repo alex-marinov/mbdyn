@@ -856,6 +856,12 @@ ToBeOutput::fToBeOutput(void) const
   	return fOutput;
 }
 
+bool
+ToBeOutput::bToBeOutput(void) const
+{
+  	return (fOutput & flag(1));
+}
+
 void
 ToBeOutput::SetOutputFlag(flag f)
 {

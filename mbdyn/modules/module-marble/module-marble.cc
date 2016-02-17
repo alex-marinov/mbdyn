@@ -126,7 +126,7 @@ marble_output(const LoadableElem* pEl, OutputHandler& OH)
 {
 	DEBUGCOUTFNAME("marble_output");
 	
-	if (pEl->fToBeOutput()) {
+	if (pEl->bToBeOutput()) {
 		module_marble* p = (module_marble *)pEl->pGetData();      
 
 		std::ostream& out = OH.Loadable();

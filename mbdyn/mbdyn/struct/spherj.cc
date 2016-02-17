@@ -221,7 +221,7 @@ DofOrder::Order SphericalHingeJoint::GetEqType(unsigned int i) const {
 void
 SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
@@ -237,7 +237,7 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void SphericalHingeJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 RTmp(R1Tmp.MulTM(pNode2->GetRCurr()*R2h));
 		Vec3 E;
@@ -723,7 +723,7 @@ DofOrder::Order PinJoint::GetEqType(unsigned int i) const {
 /* Output (da mettere a punto) */
 void PinJoint::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) {
+   if (bToBeOutput()) {
       Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
 	<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
    }   

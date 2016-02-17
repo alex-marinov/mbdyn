@@ -240,7 +240,7 @@ ModalMappingExt::Recv(ExtFileHandlerBase *pEFH)
 			Nodes[i].F = RRef*Vec3(&f[6*i]);
 			Nodes[i].M = RRef*Vec3(&f[6*i + 3]);
 
-			if ((bUseReferenceNodeForces || fToBeOutput()) && Nodes[i].pNode != pRefNode) {
+			if ((bUseReferenceNodeForces || bToBeOutput()) && Nodes[i].pNode != pRefNode) {
 				F2 += Nodes[i].F;
 				M2 += Nodes[i].M + (Nodes[i].pNode->GetXCurr() - XRef).Cross(Nodes[i].F);
 			}
@@ -331,7 +331,7 @@ ModalMappingExt::AssRes(SubVectorHandler& WorkVec,
 void
 ModalMappingExt::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::FORCES)) {
 			std::ostream& out = OH.Forces();
 

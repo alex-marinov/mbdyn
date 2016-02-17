@@ -143,7 +143,7 @@ MBDynCUDATest::~MBDynCUDATest(void)
 void
 MBDynCUDATest::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		std::ostream& out = OH.Loadable();
 
 		out << GetLabel() << "@" << m_pNode->GetLabel()

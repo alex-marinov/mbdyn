@@ -313,7 +313,7 @@ Control_valve::AssRes(SubVectorHandler& WorkVec,
   
 void Control_valve::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << Stato 
@@ -591,7 +591,7 @@ Control_valve2::AssRes(SubVectorHandler& WorkVec,
 void
 Control_valve2::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) { 
+	if (bToBeOutput()) { 
 		std::ostream& out = OH.Hydraulic();
 		out << std::setw(8) << GetLabel()
 			<< " " << Stato 
@@ -1041,7 +1041,7 @@ Dynamic_control_valve::AssRes(SubVectorHandler& WorkVec,
 
 void Dynamic_control_valve::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << s << " "  << sp << " "  << vp 
@@ -1459,7 +1459,7 @@ Pressure_flow_control_valve::AssRes(SubVectorHandler& WorkVec,
 
 void Pressure_flow_control_valve::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << s << " "  << sp << " "  << vp 
@@ -1810,7 +1810,7 @@ Pressure_valve::AssRes(SubVectorHandler& WorkVec,
 
 void Pressure_valve::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << s << " " << v  << " "<< vp  
@@ -2265,7 +2265,7 @@ Flow_valve::AssRes(SubVectorHandler& WorkVec,
   
 void Flow_valve::Output(OutputHandler& OH) const
 {
-   if (fToBeOutput()) { 
+   if (bToBeOutput()) { 
       std::ostream& out = OH.Hydraulic();
       out << std::setw(8) << GetLabel()
 	<< " " << s  << " " << v  << " "<< vp  

@@ -644,7 +644,7 @@ HBeam::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 void
 HBeam::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		OH.Beams() << std::setw(8) << GetLabel() << " " 
 			<< AzLoc.GetVec1() << " " << AzLoc.GetVec2() << std::endl;
 	}

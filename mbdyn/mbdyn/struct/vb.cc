@@ -94,7 +94,7 @@ ViscousBody::Restart(std::ostream& out) const
 void
 ViscousBody::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput()) {
+	if (bToBeOutput()) {
 		Mat3x3 Rh(pNode->GetRCurr()*tilde_Rh);
 		Vec3 F(GetF().GetVec1());
 		Vec3 M(GetF().GetVec2());
