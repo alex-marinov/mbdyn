@@ -232,6 +232,7 @@ public:
 	/* Inverse Dynamics update */
 	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
+	/* Inverse Dynamics after convergence */
 	virtual void AfterConvergence(const VectorHandler& X,
 			const VectorHandler& XP,
 			const VectorHandler& XPP);
@@ -431,6 +432,14 @@ public:
 		const VectorHandler&  XPrimePrimeCurr,
 		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
+	/* Inverse Dynamics update */
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics after convergence */
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
+			const VectorHandler& XPP);
+
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12;
@@ -524,6 +533,14 @@ public:
 		const VectorHandler&  XPrimeCurr,
 		const VectorHandler&  XPrimePrimeCurr,
 		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics update */
+	void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
+
+	/* Inverse Dynamics after convergence */
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP,
+			const VectorHandler& XPP);
 
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {

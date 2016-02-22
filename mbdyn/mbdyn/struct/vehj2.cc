@@ -1196,6 +1196,24 @@ ViscousDispJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+/* Inverse Dynamics update */
+void
+ViscousDispJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	if (iOrder != InverseDynamics::INVERSE_DYNAMICS) {
+		// issue "default" warning message
+		Joint::Update(XCurr, iOrder);
+	}
+}
+
+/* Inverse Dynamics after convergence */
+void
+ViscousDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(tilde_d);
+}
+
 void
 ViscousDispJoint::AssVec(SubVectorHandler& WorkVec)
 {
@@ -1453,6 +1471,24 @@ ViscoElasticDispJoint::AssRes(SubVectorHandler& WorkVec,
 	AssVec(WorkVec);
 	
 	return WorkVec;
+}
+
+/* Inverse Dynamics update */
+void
+ViscoElasticDispJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
+{
+	if (iOrder != InverseDynamics::INVERSE_DYNAMICS) {
+		// issue "default" warning message
+		Joint::Update(XCurr, iOrder);
+	}
+}
+
+/* Inverse Dynamics after convergence */
+void
+ViscoElasticDispJoint::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP, const VectorHandler& XPP)
+{
+	ConstitutiveLaw3DOwner::AfterConvergence(tilde_d);
 }
 
 void
