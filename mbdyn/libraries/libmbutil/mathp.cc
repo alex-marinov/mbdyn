@@ -2988,7 +2988,14 @@ start_parsing:;
 			}
 		}
 		s[i] = '\0';
-		in->putback(char(c));
+		if (in->eof()) {
+			// force EOF because on some archs (e.g. arm) char is unsigned,
+			// thus putback won't restore EOF
+			in->putback(char(c));
+			in->GetStream().setstate(std::ios::eofbit);
+		} else {
+			in->putback(char(c));
+		}
 		char *endptr = 0;
 		if (!f) {
 			value.SetType(TypedValue::VAR_INT);

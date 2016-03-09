@@ -50,13 +50,18 @@ skip_remarks(HighParser& HP, InputStream& In, char &cIn)
 {
 skip_again:;
 	for (cIn = In.get(); isspace(cIn); cIn = In.get()) {
+		// this is here in case in some implementation isspace returns success for EOF
 		if (In.eof()) {
 			return -1;
 		}
 	}
 
+	if (In.eof()) {
+		return -1;
+	}
+
 	switch (cIn) {
-	case -1:
+	case -1: // should be EOF!
 		return -1;
 	
 	case MathParser::ONE_LINE_REMARK:
