@@ -245,6 +245,7 @@ EXTRA_DIST += \
 module-imu/module-imu.cc \
 module-imu/imu \
 module-imu/imu_constraint \
+module-imu/imu_constraint2 \
 module-imu/imu.tex \
 module-imu/README
 

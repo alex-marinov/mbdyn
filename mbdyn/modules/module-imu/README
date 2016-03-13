@@ -12,3 +12,19 @@ and the acceleration of the point it is attached to.
 
 In both cases the IMU can be rigidly offset and oriented with respect
 to the structural node it is attached to.
+
+Test: in two separate terminals, execute
+
+	mbdyn imu
+	mbdyn imu_constraint2
+
+The model in file "imu" uses the "imu" user-defined element to produce
+the output of a 3-axis strapdown accelerometer and gyro, and sends it
+on a stream.
+
+The model in file "imu_constraint2" uses the "imu constraint" user-defined
+element to read the output of the other model, and impose it to another body.
+
+The motion of node 1 from "imu" should be (nearly) identical to that
+of node 1 from "imu_constraint2"
+
