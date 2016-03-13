@@ -199,6 +199,74 @@ in the form of the output of an Inertial Measurement Unit
 and an element that prescribes the motion of a structural node
 in terms of acceleration and angular velocity.
 
+\subsubsection{IMU}
+This user-defined element emulates a IMU.
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{imu}
+
+    \bnt{module_data} ::=
+        \bnt{node_label}
+            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ]
+            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix})\bnt{orientation} ]
+\end{Verbatim}
+It makes the acceleration and the angular velocity of node \nt{node\_label}
+available in the node's reference frame as private data.
+The location and orientation of the IMU with respect to the node may be modified
+by \nt{offset} and \nt{orientation}.
+
+\paragraph{Output.}
+This element sends output to the \texttt{.usr} file.
+Each entry contains
+\begin{itemize}
+\item[1)] the label
+\item[2--4)] three components of angular velocity, in the reference frame of the node
+\item[5--7)] three components of acceleration, in the reference frame of the node
+\end{itemize}
+
+\paragraph{Private Data.}
+The following data are available:
+\begin{enumerate}
+\item \kw{"wx"} angular velocity in local direction 1
+\item \kw{"wy"} angular velocity in local direction 2
+\item \kw{"wz"} angular velocity in local direction 3
+\item \kw{"ax"} acceleration in local direction 1
+\item \kw{"ay"} acceleration in local direction 2
+\item \kw{"az"} acceleration in local direction 3
+\end{enumerate}
+
+
+\subsubsection{IMU constraint}
+This user-defined element enforces IMU data as a constraint.
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{imu constraint}
+
+    \bnt{module_data} ::=
+        \bnt{node_label}
+            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ]
+            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix})\bnt{orientation} ]
+            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{omega} ,
+            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{acceleration}
+\end{Verbatim}
+It imposes the angular velocity \nt{omega} and the acceleration \nt{acceleration},
+namely the measurements that come from an IMU, to node \nt{node\_label}.
+The location and orientation of the IMU with respect to the node may be modified
+by \nt{offset} and \nt{orientation}.
+
+\paragraph{Output.}
+This element sends output to the \texttt{.usr} file.
+Each entry contains
+\begin{itemize}
+\item[1)] the label
+\item[2--4)] three angular velocity Lagrange multipliers, in the reference frame of the node
+\item[5--7)] three acceleration Lagrange multipliers, in the reference frame of the node
+\item[8--10)] three components of velocity, in the reference frame of the node
+\item[11--13)] three components of velocity derivative, in the reference frame of the node
+\end{itemize}
+
+
+
+
+
 \subsection{Module-mds}
 This module is a simple example of run-time loadable user-defined element,
 implements a scalar mass-damper-spring system.
@@ -248,16 +316,16 @@ implements a scalar mass-damper-spring system.
 \subsubsection{Output}
 \begin{itemize}
 \item 1: element label
-\item 2-4:   impulse on nonsmooth node in global ref. frame
-\item 5-7:   position of nonsmooth node in global ref. frame
-\item 8-10:  velocity of nonsmooth node in global ref. frame
-\item 11-13: constraint reaction between multibody node and nonsmooth node
+\item 2--4:   impulse on nonsmooth node in global ref. frame
+\item 5--7:   position of nonsmooth node in global ref. frame
+\item 8--10:  velocity of nonsmooth node in global ref. frame
+\item 11--13: constraint reaction between multibody node and nonsmooth node
 \item 14:    norm of the impulse reaction normal to the contact plane
 \item 15:    number of active constraints during step
 \end{itemize}
 if verbose, also:
 \begin{itemize}
-\item 16-18: position constraint relaxation factor
+\item 16--18: position constraint relaxation factor
 	(only when \kw{constraint type} is \kw{both})
 \item 19:    LCP solver status:
 	0 indicates convergence,
@@ -409,36 +477,36 @@ The output can be obtained either in plain text in the \textbf{.usr} file or in 
 \item 2: velocity of wheel in x-dir (longitudinal, forward)
 \item 3: velocity of wheel in y-dir (lateral)
 \item 4: relative speed between center of wheel and contact point on tire in the forward direction
-\item 5-7: moment applied on ring by this module
-\item 8-10: moment arm on ring
+\item 5--7: moment applied on ring by this module
+\item 8--10: moment arm on ring
 \item 11: slip ratio
 \item 12: slip angle
 \item 13: longitudinal friction coefficient
 \item 14: lateral friction coefficient
 \item 15: road height
-\item 16-18: road normal
-\item 19-21: position of patch
-\item 22-24: velocity of patch
-\item 25-27: relative position of patch
-\item 28-30: relative velocity of patch
-\item 31-33: force between ring and patch acting on patch
-\item 34-36: force between ring and patch acting on ring and thus applied on ring by this module
-\item 37-39: forward direction vector of the wheel
-\item 40-42: forward direction vector of the ring
-\item 43-45: forward direction vector of the ring without the slope of the profile
-\item 46-48: point of contact on ring between ring and springs (contact patch viscoelastic elements)
+\item 16--18: road normal
+\item 19--21: position of patch
+\item 22--24: velocity of patch
+\item 25--27: relative position of patch
+\item 28--30: relative velocity of patch
+\item 31--33: force between ring and patch acting on patch
+\item 34--36: force between ring and patch acting on ring and thus applied on ring by this module
+\item 37--39: forward direction vector of the wheel
+\item 40--42: forward direction vector of the ring
+\item 43--45: forward direction vector of the ring without the slope of the profile
+\item 46--48: point of contact on ring between ring and springs (contact patch viscoelastic elements)
 \item 49: normal force for Pacejka's formulas
-\item 50-52: relative velocity between patch and wheel
+\item 50--52: relative velocity between patch and wheel
 \item 53: sum of wheel, ring, and patch kinetic energies
 \item 54: sum of wheel and ring potential energies (patch is not included because it is not subjected to gravity)
 \item 55: sum of wheel, ring, and patch total energies (kinetic + potential)
 \item 56: virtually calculated effective rolling radius
 \item 57: half length of the tandem elliptical cam follower
 \item 58: modified loaded radius (distance between ring center and patch center)
-\item 59-61: distance between ring contact point and patch as seen from the ring in its own reference frame (not rotated with road slope)
+\item 59--61: distance between ring contact point and patch as seen from the ring in its own reference frame (not rotated with road slope)
 \item 62: centrifugal force added to tire
-\item 63-65: rolling resistance force vector (this force is then applied as a moment only)
-\item 66-68: aligning moment
+\item 63--65: rolling resistance force vector (this force is then applied as a moment only)
+\item 66--68: aligning moment
 \item 69: center point x-value of the road profile (this is not actual position, but only position on the input road file
 \item 70: front edge x-point of the tandem (front contact point of patch)
 \item 71: rear edge x-point of the tandem (rear contact point of patch)
