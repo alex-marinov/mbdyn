@@ -144,15 +144,15 @@ The label must match that of the node it refers to.
 
     # for 6 dof structural nodes
     \bnt{normal_arglist} ::=
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momentum} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momenta_moment} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momentum_derivative} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momenta_moment_derivative}
+        (\hty{Vec3}) \bnt{momentum} ,
+        (\hty{Vec3}) \bnt{momenta_moment} ,
+        (\hty{Vec3}) \bnt{momentum_derivative} ,
+        (\hty{Vec3}) \bnt{momenta_moment_derivative}
 
     # for 3 dof structural nodes
     \bnt{normal_arglist} ::=
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momentum} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{momentum_derivative}
+        (\hty{Vec3}) \bnt{momentum} ,
+        (\hty{Vec3}) \bnt{momentum_derivative}
 \end{Verbatim}
 %\end{verbatim}
 All the provided values are recomputed during the initial derivatives phase,
@@ -201,19 +201,19 @@ when connected to a rotationless, 3 degree of freedom structural node.
 
     \bnt{one_body} ::=
         (\ty{real}) \bnt{mass} , 
-        (\htmlref{\ty{Vec3}}{sec:Vec3})   \bnt{relative_center_of_mass} ,
-        (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{inertia_matrix}
+        (\hty{Vec3})   \bnt{relative_center_of_mass} ,
+        (\hty{Mat3x3}) \bnt{inertia_matrix}
         [ , \kw{inertial} , 
-            \{ \kw{node} | (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation_matrix} \} ]
+            \{ \kw{node} | (\hty{OrientationMatrix}) \bnt{orientation_matrix} \} ]
 
     \bnt{one_pointmass} ::=
         (\ty{real}) \bnt{mass}      # when \bnt{node_label} is a \kw{displacement} node
 
     \bnt{one_vm_body} ::=
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller})            \bnt{mass} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller})   \bnt{relative_center_of_mass} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Mat3x3}}{sec:TplDriveCaller}) \bnt{variable_mass_inertia_matrix} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Mat3x3}}{sec:TplDriveCaller}) \bnt{variable_geometry_inertia_matrix}
+        (\hty{DriveCaller})            \bnt{mass} ,
+        (\htybty{TplDriveCaller}{Vec3})   \bnt{relative_center_of_mass} ,
+        (\htybty{TplDriveCaller}{Mat3x3}) \bnt{variable_mass_inertia_matrix} ,
+        (\htybty{TplDriveCaller}{Mat3x3}) \bnt{variable_geometry_inertia_matrix}
 \end{Verbatim}
 %\end{verbatim}
 If only one mass is defined, the first method should be used. Otherwise,
@@ -371,8 +371,8 @@ At present only the \kw{stiffness spring} type is available.
     \bnt{bulk_type} ::= \kw{stiffness spring}
 
     \bnt{bulk_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{dof} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{stiffness_drive}
+        (\hty{NodeDof}) \bnt{dof} ,
+        (\hty{DriveCaller}) \bnt{stiffness_drive}
 \end{Verbatim}
 %\end{verbatim}
 The equation related to the desired dof of the linked node is added a
@@ -421,8 +421,8 @@ The syntax is described in the following.
         \{ \kw{translational} | \kw{rotational} \} ,
         \bnt{struct_node_label} ,
         \bnt{abstract_node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{measure_direction}
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} ]
+        ((\ty{Unit})\hty{Vec3}) \bnt{measure_direction}
+        [ , \kw{position} , (\hty{Vec3}) \bnt{position} ]
 \end{Verbatim}
 %\end{verbatim}
 The \kw{position} is optional; it is meaningless for \kw{rotational}
@@ -438,7 +438,7 @@ Legacy element: accelerometer with built-in transfer function
 
     \bnt{electric_arglist} ::= \bnt{struct_node_label} ,
         \bnt{abstract_node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{measure_direction} ,
+        ((\ty{Unit})\hty{Vec3}) \bnt{measure_direction} ,
         (\ty{real}) \bnt{omega} ,
         (\ty{real}) \bnt{tau} ,
         (\ty{real}) \bnt{csi} ,
@@ -469,8 +469,8 @@ and $ s $ is Laplace's variable.
     \bnt{electric_type} ::= \kw{displacement}
 
     \bnt{electric_arglist} ::=
-        \bnt{struct_node_1_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ,
-        \bnt{struct_node_2_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ,
+        \bnt{struct_node_1_label} , (\hty{Vec3}) \bnt{relative_offset_1} ,
+        \bnt{struct_node_2_label} , (\hty{Vec3}) \bnt{relative_offset_2} ,
         \bnt{abstract_node_label}
 \end{Verbatim}
 %\end{verbatim}
@@ -491,7 +491,7 @@ of the \kw{abstract} node.
     \bnt{electric_arglist} ::=
         \bnt{struct_node_1_label} ,
         \bnt{struct_node_2_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{direction_relative_to_node_1} ,
+        ((\ty{Unit})\hty{Vec3}) \bnt{direction_relative_to_node_1} ,
         \bnt{abstract_node_1_label} ,
         \bnt{abstract_node_2_label} ,
         (\ty{real}) \bnt{dG},
@@ -570,26 +570,26 @@ This element is not self-starting; it assumes that both
 inputs and outputs at times before the start time are zero.
 
 The so-called ``output'' signals, indicated with $\T{y}$,
-can be instances of either \htmlref{\ty{NodeDof}}{sec:NodeDof} or \htmlref{\ty{DriveCaller}}{sec:DriveCaller} objects.
+can be instances of either \hty{NodeDof} or \hty{DriveCaller} objects.
 The so-called ``input'' signals, indicated with $\T{u}$,
-must be instances of \htmlref{\ty{NodeDof}}{sec:NodeDof} object.
-This implies that instances of \htmlref{\ty{NodeDof}}{sec:NodeDof} objects
+must be instances of \hty{NodeDof} object.
+This implies that instances of \hty{NodeDof} objects
 need the corresponding equations to be (at least) statically defined.
 In fact, the \kw{discrete control} element uses the ``output''
-\htmlref{\ty{NodeDof}}{sec:NodeDof} values, the $\T{y}$, to compute the corresponding
+\hty{NodeDof} values, the $\T{y}$, to compute the corresponding
 ``inputs'', the $\T{u}$.
 The latter are substantially added as a right-hand side
-to the equations of the corresponding \htmlref{\ty{NodeDof}}{sec:NodeDof} objects.
+to the equations of the corresponding \hty{NodeDof} objects.
 As a consequence, other elements must contribute to the left-hand side
-of all the \htmlref{\ty{NodeDof}}{sec:NodeDof} equations in order to make them defined.
+of all the \hty{NodeDof} equations in order to make them defined.
 
 Note that other elements may also contribute to the right-hand side
-of the ``input'' \htmlref{\ty{NodeDof}}{sec:NodeDof} object.
+of the ``input'' \hty{NodeDof} object.
 Specifically, other \kw{abstract} forces may contribute to their value.
 In that case, the additional forces represent the exogenous inputs.
 They are considered as part of the input used by the \kw{discrete control}
 element, since the value $\T{u}_k$ to be used in the control equation
-is extracted from the value of the corresponding \htmlref{\ty{NodeDof}}{sec:NodeDof} objects.
+is extracted from the value of the corresponding \hty{NodeDof} objects.
 
 Figure~\ref{fig:discctrl} illustrates the behavior of the element.
 The typical suggested approach is illustrated later in an example.
@@ -623,15 +623,15 @@ The syntax is
         \bnt{control_data} , 
         \kw{outputs} ,
             (\ty{ScalarValue}) \bnt{output_value}
-                [ , \kw{scale} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{scale} ]
+                [ , \kw{scale} , (\hty{DriveCaller}) \bnt{scale} ]
             [ , ... ] ,
         \kw{inputs} ,
-            (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{input_dof}
+            (\hty{NodeDof}) \bnt{input_dof}
             [ , ... ]
 
     \bnt{output_value} ::=
-        \{ [ \kw{node dof} , ] (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{output_dof}
-            | \kw{drive} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{output_drive} \}
+        \{ [ \kw{node dof} , ] (\hty{NodeDof}) \bnt{output_dof}
+            | \kw{drive} , (\hty{DriveCaller}) \bnt{output_drive} \}
 \end{Verbatim}
 %\end{verbatim}
 The lists of the output and input dofs follows. The inputs
@@ -703,7 +703,7 @@ The \nt{persistent\_excitation} is defined as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{persistent_excitation} ::=
-        \kw{excitation} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{excitation_drive} [ , ... ]
+        \kw{excitation} , (\hty{DriveCaller}) \bnt{excitation_drive} [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 where \nt{num\_inputs} instances of \nt{excitation\_drive} must be defined.
@@ -722,14 +722,14 @@ The \nt{adaptive\_control\_data} card is
             \bnt{prediction_receding_horizon} ,
             [ \kw{prediction weights} , \bnt{Wi} [ , ... ] , ]
             [ \kw{control weights} , \bnt{Ri} [ , ... ] , ]
-            (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{weight_drive}
+            (\hty{DriveCaller}) \bnt{weight_drive}
         | \kw{deadbeat} ,
             \bnt{prediction_advancing_horizon} ,
             \bnt{control_advancing_horizon} \}
         [ , \bnt{forgetting_factor} ]
         [ , \bnt{persistent_excitation} ]
-        [ , \kw{trigger} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{trigger_drive} ]
-        [ , \kw{desired output} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{output_drive} [ , ... ] ]
+        [ , \kw{trigger} , (\hty{DriveCaller}) \bnt{trigger_drive} ]
+        [ , \kw{desired output} , (\hty{DriveCaller}) \bnt{output_drive} [ , ... ] ]
         [ , \kw{file} , " \bnt{file_name} " ]
 \end{Verbatim}
 %\end{verbatim}
@@ -792,7 +792,7 @@ They are defined in the control data file \texttt{discretecontrol.dat} as
     0.0 1.0
 \end{verbatim}
 The model consists in two abstract nodes for the control input
-\htmlref{\ty{NodeDof}}{sec:NodeDof} objects.
+\hty{NodeDof} objects.
 They need to be grounded.
 This can be formulated by using a \kw{spring support} \kw{genel}
 for each \kw{abstract} node, characterized by a unit spring coefficient,
@@ -805,8 +805,8 @@ such that
 \end{align}
 \end{subequations}
 Moreover, assume that the first measure, $y_1$,
-comes from a \htmlref{\ty{NodeDof}}{sec:NodeDof} object,
-while the second one, $y_2$, comes from a \htmlref{\ty{DriveCaller}}{sec:DriveCaller} object.
+comes from a \hty{NodeDof} object,
+while the second one, $y_2$, comes from a \hty{DriveCaller} object.
 The equation corresponding to $y_1$ must be appropriately grounded
 as well, for example by means of yet another \kw{spring support}
 \kw{genel}.
@@ -899,11 +899,11 @@ The label of the element is output first in all the cases.
     \bnt{force_type} ::= \kw{abstract}
 
     \bnt{force_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof})     \bnt{dof} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{force_magnitude}
+        (\hty{NodeDof})     \bnt{dof} ,
+        (\hty{DriveCaller}) \bnt{force_magnitude}
 \end{Verbatim}
 %\end{verbatim}
-the \nt{dof} field is a normal \htmlref{\ty{NodeDof}}{sec:NodeDof}; no \kw{order} is required
+the \nt{dof} field is a normal \hty{NodeDof}; no \kw{order} is required
 since the \kw{force} simply applies to the equation related to the node,
 regardless of the order.
 
@@ -912,8 +912,8 @@ The format is:
 \begin{itemize}
     \item the label of the element;
     \item the label of the node\footnote{Since the \kw{abstract} force type
-	can connect to \htmlref{\ty{NodeDof}}{sec:NodeDof}, information provided here
-	can be partial if the \htmlref{\ty{NodeDof}}{sec:NodeDof} actually represents
+	can connect to \hty{NodeDof}, information provided here
+	can be partial if the \hty{NodeDof} actually represents
 	a component of a node with more than one degree of freedom.
 	\label{footnote:EL:FORCE:ABSTRACT:OUTPUT:node_dof}}
 	the force is applied to;
@@ -928,12 +928,12 @@ The format is:
     \bnt{force_type} ::= \kw{abstract internal}
 
     \bnt{force_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof})     \bnt{dof_1} ,
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof})     \bnt{dof_2} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{force_magnitude}
+        (\hty{NodeDof})     \bnt{dof_1} ,
+        (\hty{NodeDof})     \bnt{dof_2} ,
+        (\hty{DriveCaller}) \bnt{force_magnitude}
 \end{Verbatim}
 %\end{verbatim}
-the \nt{dof\_1} and \nt{dof\_2} fields are normal \htmlref{\ty{NodeDof}}{sec:NodeDof}
+the \nt{dof\_1} and \nt{dof\_2} fields are normal \hty{NodeDof}
 but no \kw{order} is required since the \kw{force} simply applies
 to the equations related to the nodes, regardless of the order, with
 opposite magnitudes.
@@ -963,18 +963,18 @@ The format is:
 
     \bnt{force_arglist} ::=
         \bnt{node_label} , 
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{force_value}
+        \kw{position} , (\hty{Vec3}) \bnt{relative_arm} ,
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{force_value}
 
     \bnt{force_type} ::= \kw{total}
 
     \bnt{force_arglist} ::=
         \bnt{node_label}
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm} ]
-        [ , \kw{force orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{force_orientation} ]
-        [ , \kw{moment orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{moment_orientation} ]
-        [ , \kw{force} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{force_value} ]
-        [ , \kw{moment} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{moment_value} ]
+        [ , \kw{position} , (\hty{Vec3}) \bnt{relative_arm} ]
+        [ , \kw{force orientation} , (\hty{Mat3x3}) \bnt{force_orientation} ]
+        [ , \kw{moment orientation} , (\hty{Mat3x3}) \bnt{moment_orientation} ]
+        [ , \kw{force} , (\htybty{TplDriveCaller}{Vec3}) \bnt{force_value} ]
+        [ , \kw{moment} , (\htybty{TplDriveCaller}{Vec3}) \bnt{moment_value} ]
 \end{Verbatim}
 %\end{verbatim}
 The vector \nt{relative\_arm} defines the offset with respect
@@ -1066,24 +1066,24 @@ The format is:
 
     \bnt{force_arglist} ::=
         \bnt{node_1_label} , 
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_1} ,
+        \kw{position} , (\hty{Vec3}) \bnt{relative_arm_1} ,
         \bnt{node_2_label} ,
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_2} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{force_value}
+        \kw{position} , (\hty{Vec3}) \bnt{relative_arm_2} ,
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{force_value}
 
     \bnt{force_type} ::= \kw{total internal}
 
     \bnt{force_arglist} ::=
         \bnt{node_1_label} ,
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_1} , ]
-        [ \kw{force orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{force_orientation_1} , ]
-        [ \kw{moment orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{moment_orientation_1} , ]
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_arm_1} , ]
+        [ \kw{force orientation} , (\hty{Mat3x3}) \bnt{force_orientation_1} , ]
+        [ \kw{moment orientation} , (\hty{Mat3x3}) \bnt{moment_orientation_1} , ]
         \bnt{node_2_label}
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_2} ]
-        [ , \kw{force orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{force_orientation_2} ]
-        [ , \kw{moment orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{moment_orientation_2} ]
-        [ , \kw{force} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{force_value} ]
-        [ , \kw{moment} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{moment_value} ]
+        [ , \kw{position} , (\hty{Vec3}) \bnt{relative_arm_2} ]
+        [ , \kw{force orientation} , (\hty{Mat3x3}) \bnt{force_orientation_2} ]
+        [ , \kw{moment orientation} , (\hty{Mat3x3}) \bnt{moment_orientation_2} ]
+        [ , \kw{force} , (\htybty{TplDriveCaller}{Vec3}) \bnt{force_value} ]
+        [ , \kw{moment} , (\htybty{TplDriveCaller}{Vec3}) \bnt{moment_value} ]
 \end{Verbatim}
 %\end{verbatim}
 The format is basically identical to the previous case,
@@ -1134,8 +1134,8 @@ The structural couple is defined by using \kw{couple} as \nt{elem\_type}.
 
     \bnt{force_arglist} ::=
         \bnt{node_label} ,
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm} , ]
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{couple_value}
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_arm} , ]
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{couple_value}
 \end{Verbatim}
 %\end{verbatim}
 The vector \nt{relative\_arm} defines the offset with respect
@@ -1179,10 +1179,10 @@ The structural couple is defined by using \kw{couple} as \nt{elem\_type}.
 
     \bnt{force_arglist} ::=
         \bnt{node_1_label} ,
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_1} , ]
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_arm_1} , ]
         \bnt{node_2_label} ,
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_arm_2} , ]
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{couple_value}
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_arm_2} , ]
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{couple_value}
 \end{Verbatim}
 %\end{verbatim}
 The format is basically identical to the previous case,
@@ -1222,8 +1222,8 @@ of a \htmlref{\kw{modal}}{sec:EL:STRUCT:JOINT:MODAL} joint element.
     \bnt{force_arglist} ::=
         \bnt{modal_label} ,
             [ \kw{list} , \bnt{number_of_modes} , \bnt{mode1} [ , ... ] , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{force1}
-            [ , \kw{resultant} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{f} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{m} ]
+        (\hty{DriveCaller}) \bnt{force1}
+            [ , \kw{resultant} , (\hty{Vec3}) \bnt{f} , (\hty{Vec3}) \bnt{m} ]
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -1521,7 +1521,7 @@ Communication occurs by means of the communicators illustrated earlier.
                     [ , \kw{rotate reference node forces} , \{ \kw{yes} | \kw{no} \} ] \}
             [ , ... ] , ]
         \bnt{num_nodes} ,
-            \bnt{node_label} [ , \kw{offset} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ]
+            \bnt{node_label} [ , \kw{offset} , (\hty{Vec3}) \bnt{offset} ]
             [ , ... ]
         [ , \kw{echo} , \bnt{echo_file_name} ]
 \end{Verbatim}
@@ -1687,7 +1687,7 @@ Communication occurs by means of the communicators illustrated earlier.
                     [ , \kw{rotate reference node forces} , \{ \kw{yes} | \kw{no} \} ] \}
             [ , ... ] , ]
         \bnt{num_points} ,
-            \bnt{node_label} , \kw{offset} [ , \bnt{point_label} ] , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset}
+            \bnt{node_label} , \kw{offset} [ , \bnt{point_label} ] , (\hty{Vec3}) \bnt{offset}
                 [ , ... ]
         [ , \kw{echo} , " \bnt{echo_file_name} "
             [ , \{ \kw{precision} , \bnt{digits}
@@ -2363,8 +2363,8 @@ The latter could be moved to a more specific class in future releases.
     \bnt{genel_type} ::= \kw{clamp}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{clamped_node} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{imposed_value}
+        (\hty{NodeDof}) \bnt{clamped_node} ,
+        (\hty{DriveCaller}) \bnt{imposed_value}
 \end{Verbatim}
 %\end{verbatim}
 This element simply forces one arbitrary degree of freedom to assume a value
@@ -2384,9 +2384,9 @@ The format is:
     \bnt{genel_type} ::= \kw{distance}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node_1} ,
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node_2} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{imposed_distance}
+        (\hty{NodeDof}) \bnt{node_1} ,
+        (\hty{NodeDof}) \bnt{node_2} ,
+        (\hty{DriveCaller}) \bnt{imposed_distance}
 \end{Verbatim}
 %\end{verbatim}
 This element forces the difference between two arbitrary degrees of freedom
@@ -2406,9 +2406,9 @@ The format is:
     \bnt{genel_type} ::= \kw{spring}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node_1} ,
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node_2} ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\hty{NodeDof}) \bnt{node_1} ,
+        (\hty{NodeDof}) \bnt{node_2} ,
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 The constitutive law must be \kw{elastic}, but the \kw{distance}
@@ -2422,8 +2422,8 @@ of freedom of different order.
     \bnt{genel_type} ::= \kw{spring support}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node} ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\hty{NodeDof}) \bnt{node} ,
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{spring support} must use the \kw{algebraic} value of a 
@@ -2438,9 +2438,9 @@ constitutive law for a damper, and so on.
     \bnt{genel_type} ::= \kw{cross spring support}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{row_node} ,
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{col_node} ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\hty{NodeDof}) \bnt{row_node} ,
+        (\hty{NodeDof}) \bnt{col_node} ,
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 It writes a term depending on the \nt{col\_node} degree of freedom in an
@@ -2459,8 +2459,8 @@ constitutive law for a damper, and so on.
     \bnt{genel_type} ::= \kw{mass}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{node} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{mass}
+        (\hty{NodeDof}) \bnt{node} ,
+        (\hty{DriveCaller}) \bnt{mass}
 \end{Verbatim}
 %\end{verbatim}
 The mass must use the \kw{algebraic} value of a \kw{differential} node.
@@ -2479,9 +2479,9 @@ term is applied to the equation related to the dof:
     \bnt{genel_type} ::= \kw{scalar filter}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{output_node} ,
-        \{ [ \kw{node dof} , ] (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{input_node}
-            | \kw{drive} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{input_value} \} ,
+        (\hty{NodeDof}) \bnt{output_node} ,
+        \{ [ \kw{node dof} , ] (\hty{NodeDof}) \bnt{input_node}
+            | \kw{drive} , (\hty{DriveCaller}) \bnt{input_value} \} ,
         [ \kw{canonical form} , \{ \kw{controllable} | \kw{observable} \} , ]
         \bnt{output_order} [ , \bnt{output_coef_list} ] ,
         \bnt{input_order} [ , \bnt{input_coef_list} ]
@@ -2667,9 +2667,9 @@ had to be rearranged in order to make the denominator monic.
     \bnt{genel_type} ::= \kw{state space SISO}
 
     \bnt{genel_arglist} ::=
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{output_node} ,
-        \{ [ \kw{node dof} , ] (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{input_node}
-            | \kw{drive} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{input_value} \} ,
+        (\hty{NodeDof}) \bnt{output_node} ,
+        \{ [ \kw{node dof} , ] (\hty{NodeDof}) \bnt{input_node}
+            | \kw{drive} , (\hty{DriveCaller}) \bnt{input_value} \} ,
         \bnt{state_order}
         [ , \kw{matrix E} , \bnt{matrix_E_coef_list} ] ,
         \kw{matrix A} , \bnt{matrix_A_coef_list} ,
@@ -2725,10 +2725,10 @@ is in descriptor form.
     \bnt{genel_type} ::= \kw{state space MIMO}
 
     \bnt{genel_arglist} ::=
-        \bnt{num_outputs} , (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{output_node_list} ,
+        \bnt{num_outputs} , (\hty{NodeDof}) \bnt{output_node_list} ,
         \bnt{num_inputs} ,
-            \{ [ \kw{node dof} , ] (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{input_node}
-                | \kw{drive} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{input_value} \}
+            \{ [ \kw{node dof} , ] (\hty{NodeDof}) \bnt{input_node}
+                | \kw{drive} , (\hty{DriveCaller}) \bnt{input_value} \}
             [ , ... ] ,
         \bnt{state_order}
         [ , \kw{matrix E} , \bnt{matrix_E_coef_list} ] ,
@@ -2847,14 +2847,14 @@ The syntax of the \kw{rotor trim} is
         \bnt{thrust_node_label} ,
         \bnt{longitudinal_moment_node_label} ,
         \bnt{lateral_moment_node_label} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{desired_thrust_coefficient} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{desired_longitudinal_moment_coefficient} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{desired_lateral_moment_coefficient} ,
+        (\hty{DriveCaller}) \bnt{desired_thrust_coefficient} ,
+        (\hty{DriveCaller}) \bnt{desired_longitudinal_moment_coefficient} ,
+        (\hty{DriveCaller}) \bnt{desired_lateral_moment_coefficient} ,
         \bnt{rotor_lock_number} ,
         \bnt{rotor_nondimensional_flap_frequency} ,
         \bnt{thrust_time_constant} , \bnt{moments_time_constant} ,
 	\bnt{thrust_gain} , \bnt{moments_gain}
-	[ , \kw{trigger} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{trigger} ]
+	[ , \kw{trigger} , (\hty{DriveCaller}) \bnt{trigger} ]
 
     \bnt{rotor_trim_type} ::= \{ \kw{rotor} | \kw{generic} \}
 
@@ -2865,12 +2865,12 @@ The syntax of the \kw{rotor trim} is
     # for \kw{generic}
     \bnt{type_specific_rotor_trim_data} ::=
         [ \kw{reference node} , \bnt{ref_node_label} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{thrust} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{longitudinal_moment} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{lateral_moment} ,
+        (\hty{DriveCaller}) \bnt{thrust} ,
+        (\hty{DriveCaller}) \bnt{longitudinal_moment} ,
+        (\hty{DriveCaller}) \bnt{lateral_moment} ,
         \bnt{rotor_radius} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{angular_velocity} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{advance_ratio}
+        (\hty{DriveCaller}) \bnt{angular_velocity} ,
+        (\hty{DriveCaller}) \bnt{advance_ratio}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{rotor trim} is experimental; it allows to set the controls 
@@ -2896,11 +2896,11 @@ For details, see \cite{PETERS-TRIM90}.
 
     \bnt{gravity_model} ::=
         [ \kw{uniform} , ]          # uniform gravity field (default)
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{gravity_acceleration}
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{gravity_acceleration}
         | \kw{central} ,            # central gravity field
-            [ \kw{origin} , (\ty{Vec3})\bnt{absolute_origin} , ]
-            \kw{mass} , (\ty{real})\bnt{central_gravity_field_mass} ,
-            \kw{G} , \{ \kw{si} | (\ty{real})\bnt{universal_gravity_constant} \}
+            [ \kw{origin} , (\hty{Vec3}) \bnt{absolute_origin} , ]
+            \kw{mass} , (\ty{real}) \bnt{central_gravity_field_mass} ,
+            \kw{G} , \{ \kw{si} | (\ty{real}) \bnt{universal_gravity_constant} \}
 \end{Verbatim}
 %\end{verbatim}
 The 3D drive caller \nt{gravity\_acceleration} represents
@@ -2933,7 +2933,7 @@ if the keyword \kw{si} is used, the value \textbf{6.67384 $\times$ 10$^{-11}$ m$
 \end{Verbatim}
 %\end{verbatim}
 The field \nt{hydraulic\_element\_data} usually contains information
-about fluid properties, which are handled by means of a \htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}.
+about fluid properties, which are handled by means of a \hty{HydraulicFluid}.
 This can be directly inserted, following the syntax described in
 Section~\ref{sec:HydraulicFluid} preceded by the keyword \kw{fluid}, or a
 previously defined fluid can be recalled by using the keyword 
@@ -2968,14 +2968,14 @@ e.g.\ by means of \kw{minor loss} elements.
 
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} , 
-        \bnt{struct_node_1} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1} ,
-        \bnt{struct_node_2} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2} ,
-        [ \kw{direction} , ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{direction} , ]
+        \bnt{struct_node_1} , (\hty{Vec3}) \bnt{offset_1} ,
+        \bnt{struct_node_2} , (\hty{Vec3}) \bnt{offset_2} ,
+        [ \kw{direction} , ((\ty{Unit})\hty{Vec3}) \bnt{direction} , ]
         \bnt{area_1} ,
         \bnt{area_2} ,
         \bnt{cylinder_length} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid_1} ,
-        \{ \kw{same} | \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid_2} \}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid_1} ,
+        \{ \kw{same} | \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid_2} \}
 \end{Verbatim}
 %\end{verbatim}
 The vector \nt{direction} is internally normalized to unity.
@@ -3004,7 +3004,7 @@ A pressure loss between two pressure nodes.
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} ,
         \bnt{k12} , \bnt{k21} , \bnt{area} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 Coefficients \nt{k12} and \nt{k21} characterize the pressure loss
@@ -3024,7 +3024,7 @@ depending on the sign of the pressure drop.
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} , \bnt{node_3} ,
         \bnt{k12} , \bnt{k31} , \bnt{area_12} , \bnt{area_31} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 Coefficients \nt{k12} and \nt{k31} and the respective values of area
@@ -3046,8 +3046,8 @@ Turbulent flow is assumed.
         \bnt{node_3} , \bnt{node_4} ,
         \bnt{area} ,
         [ \kw{loss} , \bnt{loss_factor} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{state} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        (\hty{DriveCaller}) \bnt{state} ,
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 This element represents a valve that connects
@@ -3070,7 +3070,7 @@ of area that leaks when \nt{state} is exactly zero.
     \bnt{hydr_elem_data} ::=
         \bnt{node_1} , \bnt{node_2} ,
         \bnt{node_3} , \bnt{node_4} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{force} ,
+        (\hty{DriveCaller}) \bnt{force} ,
         \bnt{initial_displacement} ,
         \bnt{max_displacement} ,
         \bnt{duct_width} ,
@@ -3080,7 +3080,7 @@ of area that leaks when \nt{state} is exactly zero.
         \bnt{displacement_penalty} ,
         \bnt{velocity_penalty} ,
         \bnt{acceleration_penalty} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 This element represents a valve that connects
@@ -3111,7 +3111,7 @@ when the maximum stroke is reached.
         \bnt{node_1} , \bnt{node_2} ,
         \bnt{node_3} , \bnt{node_4} ,
         \bnt{node_5} , \bnt{node_6} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{force} ,
+        (\hty{DriveCaller}) \bnt{force} ,
         \bnt{initial_displacement} ,
         \bnt{max_displacement} ,
         \bnt{duct_width} ,
@@ -3121,7 +3121,7 @@ when the maximum stroke is reached.
         \bnt{displacement_penalty} ,
         \bnt{velocity_penalty} ,
         \bnt{acceleration_penalty} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 Same as Dynamic Control Valve (\ref{sec:EL:HYDR:DYNAMIC_CONTROL_VALVE}),
@@ -3147,7 +3147,7 @@ at the sides of the valve body and participate in the force balance.
         \bnt{displacement_penalty} ,
         \bnt{velocity_penalty} ,
         \bnt{acceleration_penalty} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3168,7 +3168,7 @@ at the sides of the valve body and participate in the force balance.
         \bnt{displacement_penalty} ,
         \bnt{velocity_penalty} ,
         \bnt{acceleration_penalty} ,
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3185,7 +3185,7 @@ at the sides of the valve body and participate in the force balance.
         \bnt{orifice_area} ,
         [ \kw{area} , \bnt{pipe_area} , ]
         [ \kw{reynolds} , \bnt{critical_reynolds_number} , ]
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3221,7 +3221,7 @@ Transition between laminar and turbulent flow is also modeled.
         \bnt{length} ,
         [ \kw{turbulent} , ]
         [ \kw{initial value} , \bnt{flow} , ]
-        \kw{fluid} , (\htmlref{\ty{HydraulicFluid}}{sec:HydraulicFluid}) \bnt{fluid}
+        \kw{fluid} , (\hty{HydraulicFluid}) \bnt{fluid}
 \end{Verbatim}
 %\end{verbatim}
 When \kw{area} is not given, it defaults to the equivalent area
@@ -3363,8 +3363,8 @@ about a given axis.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_direction} , 
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{acceleration}
+        ((\ty{Unit})\hty{Vec3}) \bnt{relative_direction} , 
+        (\hty{DriveCaller}) \bnt{acceleration}
 \end{Verbatim}
 %\end{verbatim}
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
@@ -3387,8 +3387,8 @@ about a given axis.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_direction} , 
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{velocity}
+        ((\ty{Unit})\hty{Vec3}) \bnt{relative_direction} , 
+        (\hty{DriveCaller}) \bnt{velocity}
 \end{Verbatim}
 %\end{verbatim}
 The rotation axis of the imposed angular velocity is \nt{relative\_direction};
@@ -3414,12 +3414,12 @@ but the angular velocity about axis 3 is imposed by means of the driver.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1} ,
-            [ \kw{position} , ] (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ,
-            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} , ]
+            [ \kw{position} , ] (\hty{Vec3}) \bnt{relative_offset_1} ,
+            [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} , ]
         \bnt{node_2} ,
-            [ \kw{position} , ] (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ,
-            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{angular_velocity}
+            [ \kw{position} , ] (\hty{Vec3}) \bnt{relative_offset_2} ,
+            [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} , ]
+        (\hty{DriveCaller}) \bnt{angular_velocity}
 \end{Verbatim}
 %\end{verbatim}
 This joint forces \nt{node\_1} and \nt{node\_2} to rotate about relative 
@@ -3465,17 +3465,17 @@ on a string of three-node beams, as discussed in \cite{SLIDER-AIDAA-2003}.
 
     \bnt{joint_arglist} ::=
         \bnt{slider_node_label} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} ,
-        [ \kw{hinge} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation} ] ,
+        (\hty{Vec3}) \bnt{relative_offset} ,
+        [ \kw{hinge} , (\hty{OrientationMatrix}) \bnt{relative_orientation} ] ,
         [ \kw{type} , \{ \kw{spherical} | \kw{classic} | \kw{spline} \} , ]
         \bnt{beam_number} ,
             \bnt{3_node_beam} ,
-                \{ \kw{same} | (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{first_node_offset} \} ,
-    [ \kw{hinge} , \{ \kw{same} | (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{first_node_orientation} ] , \}
-                (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{mid_node_offset} ,
-    [ \kw{hinge} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{mid_node_orientation} ] ,
-                (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{end_node_offset} ,
-    [ \kw{hinge} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{end_node_orientation} ] ,
+                \{ \kw{same} | (\hty{Vec3}) \bnt{first_node_offset} \} ,
+    [ \kw{hinge} , \{ \kw{same} | (\hty{OrientationMatrix}) \bnt{first_node_orientation} ] , \}
+                (\hty{Vec3}) \bnt{mid_node_offset} ,
+    [ \kw{hinge} , (\hty{OrientationMatrix}) \bnt{mid_node_orientation} ] ,
+                (\hty{Vec3}) \bnt{end_node_offset} ,
+    [ \kw{hinge} , (\hty{OrientationMatrix}) \bnt{end_node_orientation} ] ,
                 [ ... ]
         [ , \kw{initial beam} , \bnt{initial_beam} ]
         [ , \kw{initial node} , \bnt{initial_node} ]
@@ -3516,15 +3516,15 @@ for regular joints.
     \bnt{joint_type} ::= \kw{brake}
 
     \bnt{joint_arglist} ::= 
-        \bnt{node_1_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} 
-        [ , \kw{hinge} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
-        \bnt{node_2_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-        [ , \kw{hinge} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+        \bnt{node_1_label} , (\hty{Vec3}) \bnt{relative_offset_1} 
+        [ , \kw{hinge} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+        \bnt{node_2_label} , (\hty{Vec3}) \bnt{relative_offset_2}
+        [ , \kw{hinge} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         \kw{friction} , \bnt{average_radius} , 
             [ \kw{preload} , \bnt{const_value} , ]
             \bnt{friction_model} , 
             \bnt{shape_function} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{normal_force}
+        (\hty{DriveCaller}) \bnt{normal_force}
 \end{Verbatim}
 %\end{verbatim}
 \emph{Note: a
@@ -3573,11 +3573,11 @@ The relative position is constrained as well.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
 Note: this joint does not represent a constant velocity joint,
@@ -3603,10 +3603,10 @@ See above for details about the formulation.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset}
-            [ , \kw{orientation } , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
-        \kw{position } , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_pin_position}
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset}
+            [ , \kw{orientation } , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
+        \kw{position } , (\hty{Vec3}) \bnt{absolute_pin_position}
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
 \end{Verbatim}
 %\end{verbatim}
 \emph{Note: this is equivalent to a
@@ -3626,9 +3626,9 @@ See the \kw{cardano hinge} for more details.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3652,9 +3652,9 @@ in an arbitrary position and orientation that remains fixed.
 
     \bnt{joint_arglist} ::= \bnt{node_label} ,
         [ \kw{position} , ]
-            \{ \kw{node} | (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_position} \} ,
+            \{ \kw{node} | (\hty{Vec3}) \bnt{absolute_position} \} ,
         [ \kw{orientation} , ]
-            \{ \kw{node} | (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation_matrix} \}
+            \{ \kw{node} | (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} \}
 \end{Verbatim}
 %\end{verbatim}
 The keyword \kw{node} forces the joint to use
@@ -3699,11 +3699,11 @@ although no check is in place.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         \bnt{(ConstitutiveLaw<1D>)} \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
@@ -3784,11 +3784,11 @@ changes during the analysis.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
         \bnt{(ConstitutiveLaw<3D>)} \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
@@ -3896,12 +3896,12 @@ changes during the analysis.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_position_1} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_position_1} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} 
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_position_2} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{3D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_position_2} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+        (\htybkw{ConstitutiveLaw}{3D}) \bnt{const_law}
         [ , \kw{orientation description} ,
             \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
                 | \kw{orientation vector} | \kw{orientation matrix} \} ]
@@ -4022,12 +4022,12 @@ in combining a \kw{deformable hinge} and a \kw{deformable displacement joint}.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1}
-            [ , \kw{orientation} ,(\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1}
+            [ , \kw{orientation} ,(\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{6D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+        (\htybkw{ConstitutiveLaw}{6D}) \bnt{const_law}
         [ , \kw{orientation description} ,
             \{ \kw{euler123} | \kw{euler313} | \kw{euler 321}
                 | \kw{orientation vector} | \kw{orientation matrix} \} ]
@@ -4100,7 +4100,7 @@ If no offset is given, the points are coincident with the node themselves.
         [ \kw{position} , \bnt{relative_offset_1} , ]
         \bnt{node_2_label} ,
         [ \kw{position} , \bnt{relative_offset_2} , ]
-        \{ (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{distance} | \kw{from nodes} \}
+        \{ (\hty{DriveCaller}) \bnt{distance} | \kw{from nodes} \}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{relative\_offset\_*} are the distances of each end
@@ -4155,9 +4155,9 @@ in the reference frame of node 1, whose amplitude is defined by a drive.
     \bnt{joint_type} ::= \kw{drive displacement}
 
     \bnt{joint_arglist} ::= 
-        \bnt{node_1_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1} ,
-        \bnt{node_2_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{relative_position}
+        \bnt{node_1_label} , (\hty{Vec3}) \bnt{offset_1} ,
+        \bnt{node_2_label} , (\hty{Vec3}) \bnt{offset_2} ,
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{relative_position}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4183,7 +4183,7 @@ to the drive displacement point;
 \item \kw{offset\{2\}} the offset of the joint
 with respect to node 2 is reset by pointing 
 to the drive displacement point;
-\item unrecognized hints are passed through to the \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}.
+\item unrecognized hints are passed through to the \htybty{TplDriveCaller}{Vec3}.
 \end{itemize}
 
 
@@ -4199,9 +4199,9 @@ whose amplitude is defined by a drive.
     \bnt{joint_type} ::= \kw{drive displacement pin}
 
     \bnt{joint_arglist} ::= 
-        \bnt{node_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{node_offset} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{position}
+        \bnt{node_label} , (\hty{Vec3}) \bnt{node_offset} ,
+        (\hty{Vec3}) \bnt{offset} ,
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{position}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4227,7 +4227,7 @@ to the driven displacement point;
 \item \kw{offset\{0\}} the offset of the joint
 with respect to the absolute reference frame is reset by pointing
 to the driven displacement point;
-\item unrecognized hints are passed through to the \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}.
+\item unrecognized hints are passed through to the \htybty{TplDriveCaller}{Vec3}.
 \end{itemize}
 
 
@@ -4243,10 +4243,10 @@ by a drive.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{hinge_orientation}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{hinge_orientation}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4265,15 +4265,13 @@ The following data are available:
 \item \kw{"My"} reaction moment about node 1 hinge axis 2
 \item \kw{"Mz"} reaction moment about node 1 hinge axis 3
 \end{enumerate}
-
-\subsubsection{Hints}
 When wrapped by a \kw{driven} element, the following hints are honored:
 \begin{itemize}
 \item \kw{hinge\{1\}} the orientation with respect to node 1
 of the reference in which the enforced orientation is expressed is reset;
 \item \kw{hinge\{2\}} the orientation with respect to node 2
 of the reference in which the enforced orientation is expressed is reset;
-\item unrecognized hints are passed through to the \htmlref{\ty{Vec3}}{sec:Vec3} drive.
+\item unrecognized hints are passed through to the \htmlref{ety{Vec3}}{sec:Vec3} drive.
 \end{itemize}
 
 \subsection{Gimbal hinge}
@@ -4300,9 +4298,9 @@ between axis 3 of each side of the joint.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
         [ , \kw{orientation description} ,
             \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
                 | \kw{orientation vector} | \kw{orientation matrix} \} ]
@@ -4352,10 +4350,10 @@ The amplitude of the displacement is defined by a drive.
     \bnt{joint_type} ::= \kw{imposed displacement}
 
     \bnt{joint_arglist} ::= 
-        \bnt{node_1_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1} ,
-        \bnt{node_2_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{direction} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{relative_position}
+        \bnt{node_1_label} , (\hty{Vec3}) \bnt{offset_1} ,
+        \bnt{node_2_label} , (\hty{Vec3}) \bnt{offset_2} ,
+        (\hty{Vec3}) \bnt{direction} ,
+        (\hty{DriveCaller}) \bnt{relative_position}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4395,10 +4393,10 @@ The amplitude of the displacement is defined by a drive.
     \bnt{joint_type} ::= \kw{imposed displacement pin}
 
     \bnt{joint_arglist} ::= 
-        \bnt{node_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{node_offset} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{direction} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{position}
+        \bnt{node_label} , (\hty{Vec3}) \bnt{node_offset} ,
+        (\hty{Vec3}) \bnt{offset} ,
+        (\hty{Vec3}) \bnt{direction} ,
+        (\hty{DriveCaller}) \bnt{position}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4437,10 +4435,10 @@ along a line attached to the first node.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} , 
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_line_position} , ]
-        [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation} , ]
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_line_position} , ]
+        [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation} , ]
         \bnt{node_2_label}
-        [ , \kw{offset} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} ]
+        [ , \kw{offset} , (\hty{Vec3}) \bnt{relative_offset} ]
 \end{Verbatim}
 %\end{verbatim}
 A point, optionally offset by \nt{relative\_offset} from the position
@@ -4460,10 +4458,10 @@ in a plane attached to the first node.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} , 
-        [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_plane_position} , ]
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_normal_direction} ,
+        [ \kw{position} , (\hty{Vec3}) \bnt{relative_plane_position} , ]
+        ((\ty{Unit})\hty{Vec3}) \bnt{relative_normal_direction} ,
         \bnt{node_2_label}
-        [ , \kw{offset} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} ]
+        [ , \kw{offset} , (\hty{Vec3}) \bnt{relative_offset} ]
 \end{Verbatim}
 %\end{verbatim}
 A point, optionally offset by \nt{relative\_offset} from the position
@@ -4525,7 +4523,7 @@ by directly writing code in files \verb;mbdyn/struct/kin.cc; and
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{input}
+        (\hty{DriveCaller}) \bnt{input}
 \end{Verbatim}
 %\end{verbatim}
 This element is superseded by the
@@ -4542,8 +4540,8 @@ along a given axis.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_direction} , 
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{acceleration}
+        ((\ty{Unit})\hty{Vec3}) \bnt{relative_direction} , 
+        (\hty{DriveCaller}) \bnt{acceleration}
 \end{Verbatim}
 %\end{verbatim}
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
@@ -4564,8 +4562,8 @@ along a given axis.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-        ((\ty{Unit})\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_direction} , 
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{velocity}
+        ((\ty{Unit})\hty{Vec3}) \bnt{relative_direction} , 
+        (\hty{DriveCaller}) \bnt{velocity}
 \end{Verbatim}
 %\end{verbatim}
 The axis is \nt{relative\_direction}; it is internally normalized to unity.
@@ -4594,8 +4592,8 @@ and orientation of the corresponding FEM nodes.
 
     \bnt{joint_arglist} ::=
         \{ \bnt{reference_modal_node} | \kw{clamped}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_position} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation} ] \} ,
+            [ , \kw{position} , (\hty{Vec3}) \bnt{absolute_position} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{absolute_orientation} ] \} ,
         \bnt{mode_number} ,
         [ \kw{list} , \bnt{mode} [ , ... ] , ]
         [ \kw{initial value} ,
@@ -4614,7 +4612,7 @@ and orientation of the corresponding FEM nodes.
             [ , ... ] , ]
         [ \kw{echo} , " \bnt{echo_fem_data_file} " [ , \kw{precision} , \bnt{precision_digits} ] , ]
         [ \kw{use invariant 9} , ]
-        [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{pos} \} , ]
+        [ \{ \kw{origin node} , \bnt{origin_node} | \kw{origin position} , (\hty{Vec3}) \bnt{pos} \} , ]
 	\bnt{interface_nodes_number} ,
 	    [ \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_all_interfaces} \} , ]
 	    \bnt{interface_node} [ , ... ]
@@ -4623,7 +4621,7 @@ and orientation of the corresponding FEM nodes.
 
     \bnt{interface_node} ::=
         \{ " \bnt{fem_node_label} " | (\ty{integer}) \bnt{fem_node_label} \} ,
-            \bnt{multibody_label} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_of_FEM_node}
+            \bnt{multibody_label} , (\hty{Vec3}) \bnt{offset_of_FEM_node}
 	        [ , \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_this_interface} \} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -4875,11 +4873,11 @@ and to rotate about the common relative axis 3.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
 Note: this element is temporarily disabled;
@@ -4899,10 +4897,10 @@ See also Section~\ref{sec:EL:STRUCT:JOINT:PLANE_DISPLACEMENT}.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_pin_position}
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
+        \kw{position} , (\hty{Vec3}) \bnt{absolute_pin_position}
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
 \end{Verbatim}
 %\end{verbatim}
 Note: this element is temporarily disabled;
@@ -4937,9 +4935,9 @@ the joint initial orientation.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
 \end{Verbatim}
 %\end{verbatim}
 
@@ -4963,11 +4961,11 @@ by the two \kw{hinge} statements.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label} ,
-            \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
         [ , \kw{initial theta} , \bnt{initial_theta} ]
         [ , \kw{friction} , \bnt{average_radius} , 
             [ \kw{preload} , \bnt{const_value} , ]
@@ -5051,10 +5049,10 @@ by the two \kw{hinge} statements.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_label} ,
-            \kw{position}, (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset}
-            [ , \kw{orientation}, (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_pin_position}
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
+            \kw{position}, (\hty{Vec3}) \bnt{relative_offset}
+            [ , \kw{orientation}, (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix} ] ,
+        \kw{position} , (\hty{Vec3}) \bnt{absolute_pin_position}
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{absolute_pin_orientation_matrix} ]
         [ , \kw{initial theta} , \bnt{initial_theta} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -5105,11 +5103,11 @@ The relative position is not constrained.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} ] ,
         \bnt{node_2_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
 
@@ -5156,11 +5154,11 @@ The syntax is:
 
     \bnt{joint_arglist} ::=
         \bnt{node_1_label} ,
-            [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} , ]
+            [ \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1} , ]
         \bnt{node_2_label} , 
-            [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} , ]
+            [ \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} , ]
         \{ (\ty{real}) \bnt{rod_length} | \kw{from nodes} \}
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -5251,11 +5249,11 @@ The syntax is:
 
     \bnt{joint_arglist} ::=
         \bnt{node_1_label} ,
-            (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ,
+            (\hty{Vec3}) \bnt{relative_offset_1} ,
         \bnt{node_2_label} ,
-            (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ,
+            (\hty{Vec3}) \bnt{relative_offset_2} ,
         \{ (\ty{real}) \bnt{rod_length} | \kw{from nodes} \} ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 Analogous to the \kw{rod} joint with the optional offsets;
@@ -5280,7 +5278,7 @@ using Gauss-Legendre quadrature.\\ The absolute value of the force
 depends on the strain and strain rate of the curve as in the
 standard \kw{rod} element (see Section~\ref{sec:EL:STRUCT:JOINT:ROD})
 as determined by the 
-\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw} 
+\htybkw{ConstitutiveLaw}{1D} 
 \bnt{const\_law}.
 
 \begin{figure}
@@ -5297,15 +5295,15 @@ The syntax is:
 
 	\bnt{joint_arglist} ::=
 		\bnt{node_1_label} ,
-			(\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ,
-			(\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ,
+			(\hty{Vec3}) \bnt{relative_offset_1} ,
+			(\hty{Vec3}) \bnt{relative_offset_2} ,
 		\bnt{node_2_label} ,
-			(\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_3} ,
-			(\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_4} ,
+			(\hty{Vec3}) \bnt{relative_offset_3} ,
+			(\hty{Vec3}) \bnt{relative_offset_4} ,
 		\{ (\ty{real}) \bnt{rod_length} | \kw{from nodes} \} ,
 		[ \kw{integration order} , (\ty{integer}) \bnt{order} ] ,
 		[ \kw{integration segments} , (\ty{integer}) \bnt{segments} ] ,
-        (\htmlref{\ty{ConstitutiveLaw}\bkw{1D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}			
 Optional parameters \kw{integration order} and \kw{integration segments}
@@ -5365,11 +5363,11 @@ the relative orientation is not constrained.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} ,
-            [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} , ]
-            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_1} , ]
+            [ \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1} , ]
+            [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_1} , ]
         \bnt{node_2_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
 Note: the orientation matrix, set by means of the \kw{orientation} keyword,
@@ -5394,9 +5392,9 @@ the relative orientation is not constrained.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-            [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} , ]
-            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation} , ]
-        \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_pin_position}
+            [ \kw{position} , (\hty{Vec3}) \bnt{relative_offset} , ]
+            [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation} , ]
+        \kw{position} , (\hty{Vec3}) \bnt{absolute_pin_position}
         [ , \kw{orientation} , \bnt{absolute_orientation} ]   
 \end{Verbatim}
 %\end{verbatim}
@@ -5437,19 +5435,19 @@ ideal constraints that connect two nodes.
 
     \bnt{joint_arglist} ::=
         \bnt{node_1_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} ]
-            [ , \kw{position orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_pos_orientation_1} ]
-            [ , \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation_1} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_1} ]
+            [ , \kw{position orientation} , (\hty{OrientationMatrix}) \bnt{rel_pos_orientation_1} ]
+            [ , \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ]
         , \bnt{node_2_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2} ]
-            [ , \kw{position orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_pos_orientation_2} ]
-            [ , \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation_2} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} ]
+            [ , \kw{position orientation} , (\hty{OrientationMatrix}) \bnt{rel_pos_orientation_2} ]
+            [ , \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{rel_rot_orientation_2} ]
         [ , \kw{position constraint} ,
             \bnt{position_status} , \bnt{position_status} , \bnt{position_status} ,
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{imposed_relative_position} ]
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{imposed_relative_position} ]
         [ , \kw{orientation constraint} ,
             \bnt{orientation_status} , \bnt{orientation_status} , \bnt{orientation_status} ,
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{imposed_relative_rotation} ]
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{imposed_relative_rotation} ]
 
     \bnt{position_status} ::=
             \{ \kw{inactive} | \kw{active} | \kw{position} | \kw{velocity} | \bnt{status} \}
@@ -5631,18 +5629,18 @@ ideal constraints that ground one node.
 
     \bnt{joint_arglist} ::=
         \bnt{node_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} ]
-            [ , \kw{position orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_pos_orientation} ]
-            [ , \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation} ]
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute position} ]
-        [ , \kw{position orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{abs_pos_orientation} ]
-        [ , \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{abs_rot_orientation} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset} ]
+            [ , \kw{position orientation} , (\hty{OrientationMatrix}) \bnt{rel_pos_orientation} ]
+            [ , \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{rel_rot_orientation} ]
+        [ , \kw{position} , (\hty{Vec3}) \bnt{absolute position} ]
+        [ , \kw{position orientation} , (\hty{OrientationMatrix}) \bnt{abs_pos_orientation} ]
+        [ , \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{abs_rot_orientation} ]
         [ , \kw{position constraint} ,
             \bnt{position_status} , \bnt{position_status} , \bnt{position_status} ,
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{imposed_absolute_position} ]
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{imposed_absolute_position} ]
         [ , \kw{orientation constraint} ,
             \bnt{orientation_status} , \bnt{orientation_status} , \bnt{orientation_status} ,
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{imposed_absolute_rotation} ]
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{imposed_absolute_rotation} ]
 
     \bnt{position_status} ::=
             \{ \kw{inactive} | \kw{active} | \kw{position} | \kw{velocity} | \bnt{status} \}
@@ -5773,9 +5771,9 @@ Deprecated in favour of the
 
     \bnt{joint_arglist} ::=
         \bnt{node_label} ,
-            [ \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset} , ]
-            [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation} , ]
-            (\htmlref{\ty{ConstitutiveLaw}\bkw{6D}}{sec:ConstitutiveLaw}) \bnt{const_law}
+            [ \kw{position} , (\hty{Vec3}) \bnt{relative_offset} , ]
+            [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation} , ]
+            (\htybkw{ConstitutiveLaw}{6D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 This element defines a force and a moment that depend on the absolute 
@@ -6234,8 +6232,8 @@ in a subset of the kinematics of a set of structural nodes:
             [ , ... ]
 
     \bnt{value} ::=
-        \{ [ \kw{nodedof} , ] (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{output_dof}
-            | \kw{drive} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_data} \}
+        \{ [ \kw{nodedof} , ] (\hty{NodeDof}) \bnt{output_dof}
+            | \kw{drive} , (\hty{DriveCaller}) \bnt{drive_data} \}
 
     \bnt{motion} ::= \kw{motion} ,
         [ \kw{output flags} ,
@@ -6558,7 +6556,7 @@ The syntax for a driven element is:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{driven}
 
-    \bnt{normal_arglist} ::= (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{element_driver} ,
+    \bnt{normal_arglist} ::= (\hty{DriveCaller}) \bnt{element_driver} ,
         [ \kw{hint} , " \bnt{hint} " [ , ... ] ] ,
         \bnt{driven_element}
 
@@ -6711,8 +6709,8 @@ of elements to be generated.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{inertia} : \bnt{label}
         [ , \kw{name} , " \bnt{inertia_name} " ]
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{reference_position} ]
-        [ , \kw{orientation} , (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{reference_orientation} ]
+        [ , \kw{position} , (\hty{Vec3}) \bnt{reference_position} ]
+        [ , \kw{orientation} , (\hty{Mat3x3}) \bnt{reference_orientation} ]
         , \bnt{type_subset} [ , ... ]
         [ , \kw{output} , \{ \kw{no} | \kw{yes} | \kw{log} | \kw{both} \} ] ;
 

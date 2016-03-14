@@ -291,7 +291,7 @@ while no output is created when equal to zero.  It is useful to reduce
 the size of the output file during analysis phases that are not of interest.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{output meter} : (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{meter} ;
+    \bnt{card} ::= \kw{output meter} : (\hty{DriveCaller}) \bnt{meter} ;
 \end{Verbatim}
 %\end{verbatim}
 The functionality of the deprecated \kw{output frequency} statement
@@ -302,7 +302,7 @@ can be reproduced by using the \nt{meter} drive caller as follows:
 
 When integrating with variable time step,
 one may want to use the
-\kw{closest next} \htmlref{\ty{DriveCaller}}{sec:DriveCaller}
+\kw{closest next} \hty{DriveCaller}
 (see Section~\ref{sec:DriveCaller:CLOSEST_NEXT}); for example,
 \begin{verbatim}
     output meter: closest next, 2., forever, const, 0.01;
@@ -523,20 +523,20 @@ See the \kw{structural} node (Section~\ref{sec:NODE:STRUCTURAL}) for details.
     \bnt{rbk_data} ::= \{ \bnt{const_rbk} | \bnt{drive_rbk} \}
 
     \bnt{const_rbk} ::= \kw{const}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{abs_position} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{abs_orientation} ]
-            [ , \kw{velocity} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{abs_velocity} ]
-            [ , \kw{angular velocity} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{abs_angular_velocity} ]
-            [ , \kw{acceleration} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{abs_acceleration} ]
-            [ , \kw{angular acceleration} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{abs_angular_acceleration} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{abs_position} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{abs_orientation} ]
+            [ , \kw{velocity} , (\hty{Vec3}) \bnt{abs_velocity} ]
+            [ , \kw{angular velocity} , (\hty{Vec3}) \bnt{abs_angular_velocity} ]
+            [ , \kw{acceleration} , (\hty{Vec3}) \bnt{abs_acceleration} ]
+            [ , \kw{angular acceleration} , (\hty{Vec3}) \bnt{abs_angular_acceleration} ]
 
     \bnt{drive_rbk} ::= \kw{drive}
-            [ , \kw{position} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_position} ]
-            [ , \kw{orientation} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_orientation_vector} ]
-            [ , \kw{velocity} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_velocity} ]
-            [ , \kw{angular velocity} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_angular_velocity} ]
-            [ , \kw{acceleration} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_acceleration} ]
-            [ , \kw{angular acceleration} , (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{abs_angular_acceleration} ]
+            [ , \kw{position} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_position} ]
+            [ , \kw{orientation} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_orientation_vector} ]
+            [ , \kw{velocity} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_velocity} ]
+            [ , \kw{angular velocity} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_angular_velocity} ]
+            [ , \kw{acceleration} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_acceleration} ]
+            [ , \kw{angular acceleration} , (\htybty{TplDriveCaller}{Vec3}) \bnt{abs_angular_acceleration} ]
 \end{Verbatim}
 %\end{verbatim}
 In principle, the kinematic parameters should be consistent.

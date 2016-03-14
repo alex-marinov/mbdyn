@@ -1140,7 +1140,7 @@ The \kw{drive caller} directive
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{drive caller} : \bnt{label} ,
         [ \kw{name} , " \bnt{name} " , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} ;
+        (\hty{DriveCaller}) \bnt{drive_caller} ;
 \end{Verbatim}
 %\end{verbatim}
 allows to define
@@ -1304,10 +1304,10 @@ The \kw{reference} directive:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{reference} : \bnt{unique_label} , 
         [ \kw{name} , (\ty{string}) \bnt{name} , ]
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_position} ,
-        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_velocity} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{absolute_angular_velocity} ;
+        (\hty{Vec3}) \bnt{absolute_position} ,
+        (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+        (\hty{Vec3}) \bnt{absolute_velocity} ,
+        (\hty{Vec3}) \bnt{absolute_angular_velocity} ;
 \end{Verbatim}
 %\end{verbatim}
 A \kw{reference} system is declared and defined.
@@ -1715,7 +1715,7 @@ The \kw{template drive caller} directive
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{template drive caller} : \bnt{label} , \{ " \bnt{dim_name} " | (\ty{integer}) \bnt{dim} \} ,
-        (\htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}) \bnt{tpl_drive_caller} ;
+        (\htybent{TplDriveCaller}{Entity}) \bnt{tpl_drive_caller} ;
 
     \bnt{dim_name} ::= \{ \kw{1} | \kw{3} | \kw{6} | \kw{3x3} | \kw{6x6} \}
 
@@ -1731,11 +1731,11 @@ The type is defined according to
 \hline
 \ty{Entity} & \nt{dim\_name} & \nt{dim} \\
 \hline
-\ty{real}				& \kw{1} & \kw{1} \\
-\htmlref{\ty{Vec3}}{sec:Vec3}		& \kw{3} & \kw{3} \\
-\htmlref{\ty{Vec6}}{sec:Vec6}		& \kw{6} & \kw{6} \\
-\htmlref{\ty{Mat3x3}}{sec:Mat3x3}	& \kw{3x3} & \\
-\htmlref{\ty{Mat6x6}}{sec:Mat6x6}	& \kw{6x6} & \\
+\ty{real}	& \kw{1} & \kw{1} \\
+\hty{Vec3}	& \kw{3} & \kw{3} \\
+\hty{Vec6}	& \kw{6} & \kw{6} \\
+\hty{Mat3x3}	& \kw{3x3} & \\
+\hty{Mat6x6}	& \kw{6x6} & \\
 \hline
 \end{tabular}
 \end{center}
@@ -1768,7 +1768,7 @@ at a very low level, with the bare knowledge of the node label,
 the node type, the internal number of the degree of freedom,
 and the order of that degree of freedom (algebraic or differential, if any).
 The data that allows an entity to track a nodal degree of freedom
-is called \htmlref{\ty{NodeDof}}{sec:NodeDof}; it is read according to
+is called \hty{NodeDof}; it is read according to
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{node_dof} :: = \bnt{node_label} , 
@@ -1810,10 +1810,10 @@ and thus this field is not required.
 
 
 \section{Drives and Drive Callers}\label{sec:DriveCaller}
-Implements the type \htmlref{\ty{DriveCaller}}{sec:DriveCaller}.
+Implements the type \hty{DriveCaller}.
 Every time some entity can be ``driven'', i.e.\ a value can be
 expressed as dependent on some ``external'' input, an object of the class 
-\htmlref{\ty{DriveCaller}}{sec:DriveCaller} is used. 
+\hty{DriveCaller} is used. 
 The \kw{drive} essentially represents a scalar function, whose
 value can change over time or, through some more sophisticated
 means, can depend on the state of the analysis.
@@ -1831,8 +1831,8 @@ the value of the \kw{dof drive} is represented by the
 value of the subordinate \kw{drive} when evaluated as a function
 of that specific degree of freedom at the desired time (function of function).
 
-The family of the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} object is very large.
-The type of the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is declared as
+The family of the \hty{DriveCaller} object is very large.
+The type of the \hty{DriveCaller} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::=
@@ -1842,7 +1842,7 @@ The type of the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is declared as
 %\end{verbatim}    
 where \nt{arglist}, if any, is a comma-separated list of arguments
 that depends on \nt{drive\_caller\_type}.
-As an exception, a constant \htmlref{\ty{DriveCaller}}{sec:DriveCaller} (that behaves exactly as a
+As an exception, a constant \hty{DriveCaller} (that behaves exactly as a
 numerical constant with little or no overhead depending on the optimizing
 capability of the compiler) is assumed when a numeric value is used instead
 of a keyword.
@@ -1906,7 +1906,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{array} ,
         \bnt{num_drives} ,
-            (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller}
+            (\hty{DriveCaller}) \bnt{drive_caller}
             [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -1923,7 +1923,7 @@ the final value of the array drive.
     \bnt{drive_caller} ::= \kw{closest next} ,
         \bnt{initial_time} ,
         \{ \kw{forever} | \bnt{final_time} \} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{increment}
+        (\hty{DriveCaller}) \bnt{increment}
 \end{Verbatim}
 %\end{verbatim}
 This drive returns a non-zero value when called for the first time
@@ -2034,16 +2034,16 @@ drive callers, when the output needs to be used as is.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{dof} ,
-        (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{driving_dof} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
+        (\hty{NodeDof}) \bnt{driving_dof} ,
+        (\hty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
-a \htmlref{\ty{NodeDof}}{sec:NodeDof}, 
+a \hty{NodeDof}, 
 namely the reference to a degree of freedom of a node, is read. 
 Then a recursive call to a drive data is read. 
 The driver returns the value of the \nt{func\_drive} 
 \htmlref{\kw{drive}}{sec:DriveCaller} using the value of the 
-\htmlref{\ty{NodeDof}}{sec:NodeDof} as input instead of the time. 
+\hty{NodeDof} as input instead of the time. 
 This can be used as a sort of explicit feedback, to implement fancy
 springs (where a force is driven through a function by the displacement
 of the node it is applied to) or an active control system; e.g.:
@@ -2061,7 +2061,7 @@ and unit linear coefficient, while
 uses the value of the derivative of abstract node 1000 in computing 
 a string expression.
 Refer to the description of a 
-\htmlref{\ty{NodeDof}}{sec:NodeDof}
+\hty{NodeDof}
 entry for further details.
 
 The same effect can be obtained using the \kw{dof} plugin as follows:
@@ -2147,8 +2147,8 @@ The function
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{drive} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller1} , 
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller2}
+        (\hty{DriveCaller}) \bnt{drive_caller1} , 
+        (\hty{DriveCaller}) \bnt{drive_caller2}
 \end{Verbatim}
 %\end{verbatim}
 This is simply a ``function of function'' drive: the output 
@@ -2184,7 +2184,7 @@ is equivalent to
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
+        (\hty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of an element is read.
@@ -2266,7 +2266,7 @@ yields a function identical to the response of the system
 to a step input occurring at time $t=5.0$ with amplitude $A=10.0$.
 
 \subsection{File drive}\label{sec:DriveCaller:FILE}
-The \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is attached to a file drive object that must be declared
+The \hty{DriveCaller} is attached to a file drive object that must be declared
 and defined in the \htmlref{\kw{drivers}}{sec:DRIVERS} section 
 of the input file (see Section~\ref{sec:DRIVERS}).
 As a consequence, \kw{file} drive callers can only be instantiated
@@ -2281,8 +2281,8 @@ of the input file.
 \end{Verbatim}
 %\end{verbatim}
 \nt{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DriveCaller} 
-the \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is attached to, while
-\nt{column\_number} is the number of the column the \htmlref{\ty{DriveCaller}}{sec:DriveCaller}
+the \hty{DriveCaller} is attached to, while
+\nt{column\_number} is the number of the column the \hty{DriveCaller}
 refers to (defaults to 1).
 An additional scaling factor \kw{amplitude} can be used to rescale
 the drive value (defaults to 1.0).
@@ -2332,8 +2332,8 @@ the \nt{number\_of\_terms} must be at least 1.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{frequency sweep} ,
         \bnt{initial_time} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{angular_velocity_drive} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{amplitude_drive} ,
+        (\hty{DriveCaller}) \bnt{angular_velocity_drive} ,
+        (\hty{DriveCaller}) \bnt{amplitude_drive} ,
         \bnt{initial_value} ,
         \{ \kw{forever} | \bnt{final_time} \} ,
         \bnt{final_value}
@@ -2424,8 +2424,8 @@ The \kw{mult} drive multiplies the value of two subordinate drives.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{mult} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive\_1} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive\_2}
+        (\hty{DriveCaller}) \bnt{drive\_1} ,
+        (\hty{DriveCaller}) \bnt{drive\_2}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -2437,7 +2437,7 @@ The \kw{mult} drive multiplies the value of two subordinate drives.
         \bnt{label} ,
         \bnt{type} ,
         [ \{ \kw{string} , " \bnt{name} " | \kw{index} , \bnt{index} \} , ] # \kw{index} is deprecated
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{func_drive}
+        (\hty{DriveCaller}) \bnt{func_drive}
 \end{Verbatim}
 %\end{verbatim}
 a reference to the private data of a node is read.
@@ -2511,7 +2511,7 @@ The function
     \bnt{drive_caller} ::= \kw{periodic} ,
         \bnt{initial_time} ,
         \bnt{period} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller})\bnt{func_drive}
+        (\hty{DriveCaller})\bnt{func_drive}
 \end{Verbatim}
 The function
 \begin{align}
@@ -2638,8 +2638,8 @@ are not managed, so it is not very reliable).
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{sample and hold} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{function} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{trigger}
+        (\hty{DriveCaller}) \bnt{function} ,
+        (\hty{DriveCaller}) \bnt{trigger}
 	[ , \kw{initial value} , \bnt{initial_value} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -2856,14 +2856,14 @@ by \htmladdnormallink{Hutchinson}{http://www.hutchinson.fr} CdR.}
 In some cases, during the analysis, different entities can be reinitialized
 as a consequence of some event, typically triggered by the waking up 
 of a so-called \kw{driven} element (See Section~\ref{sec:EL:BASE:DRIVEN}).
-The \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is re-parsed when the entity that owns it is sent
+The \hty{DriveCaller} is re-parsed when the entity that owns it is sent
 a \kw{hint} of the form
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    "drive\{ (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} \}"
+    "drive\{ (\hty{DriveCaller}) \bnt{drive_caller} \}"
 \end{Verbatim}
 %\end{verbatim}
-is used, where \nt{drive\_caller} is an arbitrary \htmlref{\ty{DriveCaller}}{sec:DriveCaller}
+is used, where \nt{drive\_caller} is an arbitrary \hty{DriveCaller}
 specification.
 The whole hint argument needs to be enclosed in double quotes because MBDyn
 treats it as a string.
@@ -2911,16 +2911,16 @@ on the functions of the \kw{model} namespace.
 
 
 \subsection{Template Drive}\label{sec:TplDriveCaller}
-A particular \htmlref{\ty{DriveCaller}}{sec:DriveCaller} is the template drive caller,
-indicated as \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}.
+A particular \hty{DriveCaller} is the template drive caller,
+indicated as \htybent{TplDriveCaller}{Entity}.
 It basically consists in a drive with dimensionality other than scalar.
 %Typically, it is made of a constant entity, with the dimensionality
 %of \nt{type}, that multiplies a conventional 
-%\hyperref{\htmlref{\ty{DriveCaller}}{sec:DriveCaller}}{\htmlref{\ty{DriveCaller}}{sec:DriveCaller} (see Section~}{)}{sec:DriveCaller}
+%\hyperref{\hty{DriveCaller}}{\hty{DriveCaller} (see Section~}{)}{sec:DriveCaller}
 %to give a drive entity of dimensionality different from that 
 %of a simple scalar drive.
-The family of the \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller} object is very large.
-The type of the \htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller} is declared as
+The family of the \htybent{TplDriveCaller}{Entity} object is very large.
+The type of the \htybent{TplDriveCaller}{Entity} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::=
@@ -2945,7 +2945,7 @@ a shortcut for nothing;
 \item the \kw{single} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{single} ,
-        \bnt{entity} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller}
+        \bnt{entity} , (\hty{DriveCaller}) \bnt{drive_caller}
 \end{Verbatim}
 corresponding to $\nt{entity}\times\nt{drive\_caller}$,
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
@@ -2972,7 +2972,7 @@ special matrix layouts:
 
 \item the \kw{array} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{drive_caller} \}
+    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\hty{DriveCaller}) \bnt{drive_caller} \}
 
     \bnt{tpl_drive_caller} ::= \kw{array} ,
         \bnt{num_template_drive_callers} ,
@@ -2986,7 +2986,7 @@ In case of scalar values, a normal drive caller is actually instantiated,
 so no overhead is added.
 
 In the case of the \kw{component} template drive caller,
-as many instances of a \htmlref{\ty{DriveCaller}}{sec:DriveCaller} as the dimensionality
+as many instances of a \hty{DriveCaller} as the dimensionality
 of the template drive caller are expected.
 
 At least one \nt{tpl\_drive\_caller} is expected in the case of the \kw{array}
@@ -3004,7 +3004,7 @@ In this case, the syntax of the \kw{hint} is:
 \end{Verbatim}
 %\end{verbatim}
 where \nt{n} is the dimension of \nt{entity}.
-For example, a \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller} drive hint is:
+For example, a \htybty{TplDriveCaller}{Vec3} drive hint is:
 \begin{verbatim}
     "drive3{ 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}
@@ -3047,7 +3047,7 @@ The input format is:
         \bnt{sigma1} ,
         \bnt{sigma2} ,
         \bnt{kappa} ,
-        (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{friction_function}
+        (\hty{ScalarFunction}) \bnt{friction_function}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3059,7 +3059,7 @@ The input format is:
     \bnt{friction_model} ::= \kw{discrete coulomb}
 
     \bnt{friction_arglist} ::=
-        (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{friction_function}
+        (\hty{ScalarFunction}) \bnt{friction_function}
         [ , \kw{sigma2} , \bnt{sigma2} ]
         [ , \kw{velocity ratio} , \bnt{vel_ratio} ]
 \end{Verbatim}
@@ -3077,7 +3077,7 @@ The input format is:
 
 \subsection{Shape functions}
 \label{sec:Shape}
-Implements the type \htmlref{\ty{Shape}}{sec:Shape}.
+Implements the type \hty{Shape}.
 The input format of shape functions is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3112,10 +3112,10 @@ Currently implemented shape functions for friction models are:
 
 
 \section{Shapes}
-The \htmlref{\ty{Shape}}{sec:Shape} entities are objects that return a value depending on one
+The \hty{Shape} entities are objects that return a value depending on one
 (or two, for 2D shapes) dimensionless abscissa, ranging $ \sqbr{-1,1} $.
 At present, only 1D shapes are used, by aerodynamic elements.
-A \htmlref{\ty{Shape}}{sec:Shape} input format is:
+A \hty{Shape} input format is:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{shape_1D} ::= \bnt{shape_type} ,
@@ -3342,7 +3342,7 @@ The constitutive laws are entered as follows:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{constitutive_law_definition} ::= \bnt{specific_const_law}
         [ , \kw{prestress} , (\ty{Entity}) \bnt{prestress} ]
-        [ , \kw{prestrain} , (\htmlref{\ty{TplDriveCaller}\be{\bnt{Entity}}}{sec:TplDriveCaller}) \bnt{prestrain} ]
+        [ , \kw{prestrain} , (\htybent{TplDriveCaller}{Entity}) \bnt{prestrain} ]
 
     \bnt{specific_const_law} ::= \bnt{const_law_name} ,
         \bnt{const_law_data}
@@ -3486,8 +3486,8 @@ this is defined only for scalars. The force is defined as:
     \bnt{specific_const_law} ::= \kw{linear elastic bistop} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition}
+        (\hty{DriveCaller}) \bnt{activating_condition} ,
+        (\hty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -3535,7 +3535,7 @@ with slope $\nt{stiffness}$.
 
 \subsection{Scalar function elastic, scalar function elastic isotropic}
 This constitutive law is based on a 
-\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}
+\hty{ScalarFunction}
 to represent an analytical force-displacement curve 
 of a single variable that is automatically differentiated 
 to compute the slope of the curve, namely the local stiffness.
@@ -3648,10 +3648,10 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{linear time variant viscoelastic generic} ,
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{stiffness_scale} ,
+        (\hty{DriveCaller}) \bnt{stiffness_scale} ,
         \{ (\ty{DerivativeOfEntity}) \bnt{viscosity}
             | \kw{proportional} , (\ty{real}) \bnt{factor} \} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{viscosity_scale}
+        (\hty{DriveCaller}) \bnt{viscosity_scale}
 \end{Verbatim}
 %\end{verbatim}
 the linear stiffness and viscosity matrices are multiplied
@@ -3673,7 +3673,7 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 At 2s, the stiffness grows of 10\% from the nominal value in .2s,
 while the damping doubles.
 See Section~\ref{sec:DriveCaller} for details on the syntax
-of \htmlref{\ty{DriveCaller}}{sec:DriveCaller} entities.
+of \hty{DriveCaller} entities.
 
 Beware that arbitrarily changing the stiffness
 and the damping of an elastic component during the execution
@@ -3777,8 +3777,8 @@ as observed in some fluids at intermediate Reynolds number.
         (\ty{DerivativeOfEntity}) \bnt{stiffness} ,
         (\ty{DerivativeOfEntity}) \bnt{viscosity} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition}
+        (\hty{DriveCaller}) \bnt{activating_condition} ,
+        (\hty{DriveCaller}) \bnt{deactivating_condition}
 \end{Verbatim}
 %\end{verbatim}
   
@@ -3831,7 +3831,7 @@ equal to half its full length;
 it is active only when strain bounds are violated;
 \item the \nt{penalty\_factor\_for\_strain\_rate} defaults to 0;
 it is active only when strain bounds are violated;
-\item the \nt{metering\_area} is given by a \htmlref{\ty{DriveCaller}}{sec:DriveCaller} 
+\item the \nt{metering\_area} is given by a \hty{DriveCaller} 
 and is strain dependent; if the keyword \kw{negative} is used, 
 then the \nt{metering\_area\_for\_negative\_strain\_rate} is used
 when the strain rate is negative, i.e.\ the shock absorber
@@ -4001,20 +4001,20 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlsf viscoelastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force'} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ] ,
         \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force''} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf elastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force'} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_force'} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlsf viscous} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_force''} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_force''} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -4146,20 +4146,20 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{nlp viscoelastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_stiffness} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ] ,
         \{ (\ty{DerivativeOfEntity}) \bnt{kappa_0''} | \kw{proportional} , \bnt{coef} \} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_damping} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp elastic} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0'} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_stiffness} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_stiffness} \}
         [ , ... ]
 
     \bnt{specific_const_law} ::= \kw{nlp viscous} ,
         (\ty{DerivativeOfEntity}) \bnt{kappa_0''} ,
-        \{ \kw{null} | (\htmlref{\ty{ScalarFunction}}{sec:ScalarFunction}) \bnt{diag_damping} \}
+        \{ \kw{null} | (\hty{ScalarFunction}) \bnt{diag_damping} \}
         [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
@@ -4267,8 +4267,8 @@ The syntax is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{specific_const_law} ::= \kw{bistop} ,
         [ \kw{initial status} , \{ \kw{inactive} | \kw{active} | (\ty{bool}) \bnt{status} \} , ]
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activating_condition} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{deactivating_condition} ,
+        (\hty{DriveCaller}) \bnt{activating_condition} ,
+        (\hty{DriveCaller}) \bnt{deactivating_condition} ,
         (\htmlref{\ty{ConstitutiveLaw}\be{\bnt{Entity}, \bnt{DerivativeOfEntity}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
 %\end{verbatim}

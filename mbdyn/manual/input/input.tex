@@ -53,6 +53,11 @@
 \newcommand{\ty}[1]{\textcolor{green}{\texttt{#1}}}
 \newcommand{\bty}[1]{\texttt{<\textcolor{green}{#1}>}}
 
+\newcommand{\hty}[1]{\htmlref{\ty{#1}}{sec:#1}}
+\newcommand{\htybty}[2]{\htmlref{\ty{#1}\bty{#2}}{sec:#1}}
+\newcommand{\htybkw}[2]{\htmlref{\ty{#1}\bkw{#2}}{sec:#1}}
+\newcommand{\htybent}[2]{\htmlref{\ty{#1}\be{\bnt{#2}}}{sec:#1}}
+
 %\newcommand{\kw}[1]{\texttt{#1}}
 %\newcommand{\nt}[1]{\texttt{#1}}
 %\newcommand{\bnt}[1]{\texttt{<{#1}>}}

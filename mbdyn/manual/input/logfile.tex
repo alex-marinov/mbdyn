@@ -58,11 +58,11 @@ The \kw{aerodynamic body}.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{aero0}: \bnt{label} \bnt{node_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_left} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_left}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_right} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_right}
+        (\hty{Vec3}) \bnt{trail_left} (\hty{Vec3}) \bnt{lead_left}
+        (\hty{Vec3}) \bnt{trail_right} (\hty{Vec3}) \bnt{lead_right}
 \end{Verbatim}
 %\end{verbatim}
-The points are expressed as 3D vectors (\htmlref{\ty{Vec3}}{sec:Vec3}), whose origin and orientation
+The points are expressed as 3D vectors \hty{Vec3}, whose origin and orientation
 is expressed in the reference frame of the node.
 All data are on one line, without continuation.
 
@@ -72,12 +72,12 @@ The two-node \kw{aerodynamic beam}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{aero2}: \bnt{label}
         \bnt{node_1_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_left} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_left}
+        (\hty{Vec3}) \bnt{trail_left} (\hty{Vec3}) \bnt{lead_left}
         \bnt{node_2_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_right} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_right}
+        (\hty{Vec3}) \bnt{trail_right} (\hty{Vec3}) \bnt{lead_right}
 \end{Verbatim}
 %\end{verbatim}
-The points are expressed as 3D vectors (\htmlref{\ty{Vec3}}{sec:Vec3}), whose origin and orientation
+The points are expressed as 3D vectors \hty{Vec3}, whose origin and orientation
 is expressed in the reference frame of the respective nodes.
 All data are on one line, without continuation.
 
@@ -87,14 +87,14 @@ The three-node \kw{aerodynamic beam}.
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{aero3}: \bnt{label}
         \bnt{node_1_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_left} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_left}
+        (\hty{Vec3}) \bnt{trail_left} (\hty{Vec3}) \bnt{lead_left}
         \bnt{node_2_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_center} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_center}
+        (\hty{Vec3}) \bnt{trail_center} (\hty{Vec3}) \bnt{lead_center}
         \bnt{node_3_label}
-        (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{trail_right} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{lead_right}
+        (\hty{Vec3}) \bnt{trail_right} (\hty{Vec3}) \bnt{lead_right}
 \end{Verbatim}
 %\end{verbatim}
-The points are expressed as 3D vectors (\htmlref{\ty{Vec3}}{sec:Vec3}), whose origin and orientation
+The points are expressed as 3D vectors \hty{Vec3}, whose origin and orientation
 is expressed in the reference frame of the respective nodes.
 All data are on one line, without continuation.
 
@@ -103,8 +103,8 @@ The \kw{axialrotation} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{axialrotation}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -118,8 +118,8 @@ The two-node \kw{beam}.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{beam2}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{offset_2}
 \end{Verbatim}
 %\end{verbatim}
 The beam \kw{label} is followed by the label and the offset of each node.
@@ -130,9 +130,9 @@ The three-node \kw{beam}.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{beam3}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2}
-        \bnt{node_3_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_3}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{offset_2}
+        \bnt{node_3_label} (\hty{Vec3}) \bnt{offset_3}
 \end{Verbatim}
 %\end{verbatim}
 The beam \kw{label} is followed by the label and the offset of each node.
@@ -143,8 +143,8 @@ The \kw{brake} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{brake}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -158,8 +158,8 @@ The \kw{clamp} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{clamp}: \bnt{label}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{position} (\hty{Mat3x3}) \bnt{orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{position} (\hty{Mat3x3}) \bnt{orientation}
 \end{Verbatim}
 %\end{verbatim}
 The format is quite obscure; the \nt{position} and the \nt{orientation}
@@ -176,8 +176,8 @@ versions, where defined
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{joint_type}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 
     \bnt{joint_type} ::=
         [ \kw{invariant} ] \kw{deformable} \{ \kw{hinge} | [ \kw{displacement} ] \kw{joint} \}
@@ -194,8 +194,8 @@ The \kw{distance} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{distance}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{offset_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the joint, followed by the label of each node
@@ -210,8 +210,8 @@ The \kw{gimbal rotation} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{gimbalrotation}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -225,8 +225,8 @@ The \kw{inline} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{inline}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3})\bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3})\bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3})\bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3})\bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the joint, followed by the label of the node
@@ -242,8 +242,8 @@ The \kw{inplane} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{inplane}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the joint, followed by the label of the node
@@ -259,8 +259,8 @@ The \kw{prismatic} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{prismatic}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors are zero,
@@ -276,7 +276,7 @@ The syntax is the same of the \kw{structural node}
 (Section~\ref{sec:APP:LOGFILE:STRUCTURAL_NODE}), namely
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \kw{relative frame structural node}: \bnt{label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{X} \bnt{orientation_description}
+    \kw{relative frame structural node}: \bnt{label} (\hty{Vec3}) \bnt{X} \bnt{orientation_description}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -285,8 +285,8 @@ The \kw{revolute hinge} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{revolutehinge}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -300,8 +300,8 @@ The \kw{revolute rotation} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{revoluterotation}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -315,8 +315,8 @@ The \kw{rod} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{rod}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{offset_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the joint, followed by the label of each node
@@ -331,8 +331,8 @@ The \kw{rod bezier} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
 	\kw{rod bezier}: \bnt{label}
-		\bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_1} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_2}
-		\bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_3} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_offset_4}
+		\bnt{node_1_label} (\hty{Vec3}) \bnt{relative_offset_1} (\hty{Vec3}) \bnt{relative_offset_2}
+		\bnt{node_2_label} (\hty{Vec3}) \bnt{relative_offset_3} (\hty{Vec3}) \bnt{relative_offset_4}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the joint, followed by the label of node 1, 
@@ -345,8 +345,8 @@ The \kw{spherical hinge} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{sphericalhinge}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -360,8 +360,8 @@ The \kw{spherical pin} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{sphericalpin}: \bnt{label}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{position} (\hty{Mat3x3}) \bnt{orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{position} (\hty{Mat3x3}) \bnt{orientation}
 \end{Verbatim}
 %\end{verbatim}
 The format is quite obscure; the \nt{position} and the \nt{orientation}
@@ -374,8 +374,8 @@ All data are on one line, without continuation.
 The structural forces elements
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{force_type}: \bnt{force_label}
-        \bnt{node1_label} (\htmlref{\ty{Vec3}}{sec:Vec3})<arm1>
-        [ \bnt{node2_label} (\htmlref{\ty{Vec3}}{sec:Vec3})<arm2> ]
+        \bnt{node1_label} (\hty{Vec3})<arm1>
+        [ \bnt{node2_label} (\hty{Vec3})<arm2> ]
 
     \bnt{force_type} ::= \kw{structural} [ \kw{internal} ] \{ \kw{absolute} | \kw{follower} \} \{ \kw{force} | \kw{couple} \}
 \end{Verbatim}
@@ -387,14 +387,14 @@ as well, otherwise they must be omitted.
 The \kw{structural node}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \kw{structural node}: \bnt{label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{X} \bnt{orientation_description}
+    \kw{structural node}: \bnt{label} (\hty{Vec3}) \bnt{X} \bnt{orientation_description}
 
     \bnt{orientation_description} ::=
-        \{ \kw{euler123} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{euler123_angles}
-            | \kw{euler313} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{euler313_angles}
-            | \kw{euler321} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{euler321_angles}
-            | \kw{phi} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{orientation_vector}
-            | \kw{mat} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_matrix} \}
+        \{ \kw{euler123} (\hty{Vec3}) \bnt{euler123_angles}
+            | \kw{euler313} (\hty{Vec3}) \bnt{euler313_angles}
+            | \kw{euler321} (\hty{Vec3}) \bnt{euler321_angles}
+            | \kw{phi} (\hty{Vec3}) \bnt{orientation_vector}
+            | \kw{mat} (\hty{Mat3x3}) \bnt{orientation_matrix} \}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{label} of the node, the position \nt{X}
@@ -408,8 +408,8 @@ The \kw{universal hinge} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{universalhinge}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors indicates the location of the joint
@@ -423,8 +423,8 @@ The \kw{universal pin} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{universalpin}: \bnt{label}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation}
-        \bnt{node_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative\_position} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{relative\_orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{position} (\hty{Mat3x3}) \bnt{orientation}
+        \bnt{node_label} (\hty{Vec3}) \bnt{relative\_position} (\hty{Mat3x3}) \bnt{relative\_orientation}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position} vector and the \nt{orientation} matrix indicate 
@@ -440,8 +440,8 @@ The \kw{universal rotation} joint
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{universalrotation}: \bnt{label}
-        \bnt{node_1_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_1} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_1}
-        \bnt{node_2_label} (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{position_2} (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{orientation_2}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{position_1} (\hty{Mat3x3}) \bnt{orientation_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{position_2} (\hty{Mat3x3}) \bnt{orientation_2}
 \end{Verbatim}
 %\end{verbatim}
 The \nt{position\_*} vectors are zero,
@@ -459,16 +459,16 @@ An aggregate inertia.
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{inertia}: \bnt{label} (\bnt{name})
         mass:        (\ty{real}) \bnt{mass}
-        J:           (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{J}
-        Xcg:         (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{x_cg}
-        Jcg:         (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{J_cg}
-        Vcg:         (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{v_cg}
-        Wcg:         (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{omega_cg}
-        Xcg-X:       (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_x_cg}
-        R^T*(Xcg-X): (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_orientation_x_cg}
-        Rp:          (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{principal_axes_orientation_matrix}
-        Thetap:      (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{principal_axes_orientation_vector}
-        Jp:          (\htmlref{\ty{Mat3x3}}{sec:Mat3x3}) \bnt{principal_inertia_matrix_cg}
+        J:           (\hty{Mat3x3}) \bnt{J}
+        Xcg:         (\hty{Vec3}) \bnt{x_cg}
+        Jcg:         (\hty{Mat3x3}) \bnt{J_cg}
+        Vcg:         (\hty{Vec3}) \bnt{v_cg}
+        Wcg:         (\hty{Vec3}) \bnt{omega_cg}
+        Xcg-X:       (\hty{Vec3}) \bnt{relative_x_cg}
+        R^T*(Xcg-X): (\hty{Vec3}) \bnt{relative_orientation_x_cg}
+        Rp:          (\hty{Vec3}) \bnt{principal_axes_orientation_matrix}
+        Thetap:      (\hty{Vec3}) \bnt{principal_axes_orientation_vector}
+        Jp:          (\hty{Mat3x3}) \bnt{principal_inertia_matrix_cg}
 \end{Verbatim}
 %\end{verbatim}
 

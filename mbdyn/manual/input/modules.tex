@@ -60,7 +60,7 @@ This module implements inflow models for cycloidal rotors.
 
     \bnt{module_data} ::=
         \bnt{aircraft_node_label} ,
-        [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation} , ]
+        [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{orientation} , ]
         \bnt{rotor_node_label}
 \end{Verbatim}
 
@@ -69,12 +69,12 @@ This module implements inflow models for cycloidal rotors.
 
     \bnt{module_data} ::=
         \bnt{aircraft_node_label} ,
-        [ \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{orientation} , ]
+        [ \kw{orientation} , (\hty{OrientationMatrix}) \bnt{orientation} , ]
         \bnt{rotor_node_label}
         (\ty{bool}) \bnt{average} ,
         \bnt{rotor_radius} ,
         \bnt{blade_span}
-        [ , \kw{delay} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{delay} ]
+        [ , \kw{delay} , (\hty{DriveCaller}) \bnt{delay} ]
         [ , \kw{omegacut} , \bnt{cut_frequency} ]
         [ , \kw{timestep} , \bnt{time_step} ]
 \end{Verbatim}
@@ -206,8 +206,8 @@ This user-defined element emulates a IMU.
 
     \bnt{module_data} ::=
         \bnt{node_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix})\bnt{orientation} ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{offset} ]
+            [ , \kw{orientation} , \hty{OrientationMatrix} \bnt{orientation} ]
 \end{Verbatim}
 It makes the acceleration and the angular velocity of node \nt{node\_label}
 available in the node's reference frame as private data.
@@ -242,10 +242,10 @@ This user-defined element enforces IMU data as a constraint.
 
     \bnt{module_data} ::=
         \bnt{node_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{offset} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix})\bnt{orientation} ]
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{omega} ,
-            (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{acceleration}
+            [ , \kw{position} , (\hty{Vec3}) \bnt{offset} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{orientation} ]
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{omega} ,
+            (\htybty{TplDriveCaller}{Vec3}) \bnt{acceleration}
 \end{Verbatim}
 It imposes the angular velocity \nt{omega} and the acceleration \nt{acceleration},
 namely the measurements that come from an IMU, to node \nt{node\_label}.
@@ -282,8 +282,8 @@ implements a scalar mass-damper-spring system.
         \kw{radius} , (\ty{real}) \bnt{radius} ,
         \kw{planes} , (\ty{integer}) \bnt{number_of_planes} ,
             \bnt{PlaneDefiningNODELABEL} ,
-                \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{relative_plane_position} ,
-                \kw{rotation orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
+                \kw{position} , (\hty{Vec3}) \bnt{relative_plane_position} ,
+                \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
                 \kw{restitution} , (\ty{real}) \bnt{rest_coeff}
                 [ , \kw{friction coefficient} , (\ty{real}) \bnt{mu} ] 
             [ , ... ] # as many blocks as \nt{number_of_planes}
@@ -371,7 +371,7 @@ Two runnable examples are available and will clarify the implementation in an ac
         (\ty{vector}) \bnt{patch_stiffness} , (\ty{drive}) \bnt{stiffness_modifier} ,
         (\ty{vector}) \bnt{patch_damping} , (\ty{drive}) \bnt{damping_modifier} ,
         (\ty{vector}) \bnt{initial_patch_velocity} , (\ty{real}) \bnt{patch_mass} ,
-        (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{road_profile_driver} ,
+        (\hty{DriveCaller}) \bnt{road_profile_driver} ,
         (\ty{real}) \bnt{patch_to_ellip_cam_ratio} ,
         (\ty{real}) \bnt{r_a1_param} , (\ty{real}) \bnt{r_a2_param} ,
         (\ty{real}) \bnt{patchToTireCircumf_ratio} ,
@@ -567,13 +567,13 @@ based on \cite{PENNESTRI-2007-JB}.
         \kw{reference length} , \bnt{L0} ,
         [ \kw{reference velocity} , \bnt{V0} , ]
         \kw{reference force} , \bnt{F0} ,
-        \kw{activation} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{activation}
+        \kw{activation} , (\hty{DriveCaller}) \bnt{activation}
             [ , \kw{activation check} , (\ty{bool}) \bnt{activation_check} ]
         [ , \kw{ergonomy} , \{ \kw{yes} | \kw{no} \} ]
         [ , \kw{reflexive} , # only when ergonomy == no
             \kw{proportional gain} , \bnt{kp} ,
             \kw{derivative gain} , \bnt{kd} ,
-            \kw{reference length} , (\htmlref{\ty{DriveCaller}}{sec:DriveCaller}) \bnt{lref} ]
+            \kw{reference length} , (\hty{DriveCaller}) \bnt{lref} ]
 \end{Verbatim}
 The \kw{ergonomy} flag, when active, indicates that the equivalent damping
 must not be used.
@@ -639,7 +639,7 @@ in Boost's internal format.
 \section{Template Drive Caller Modules}
 
 \subsection{Module-eu2phi}
-This module implements a \htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller} drive caller
+This module implements a \htybty{TplDriveCaller}{Vec3} drive caller
 that converts three Euler angles into the corresponding Euler vector.
 
 Syntax:
@@ -647,7 +647,7 @@ Syntax:
     \kw{eu2phi} ,
         [ \kw{help} , ]
         [ \kw{format} , \{ \kw{euler123} | \kw{euler313} | \kw{euler321} \} , ]
-        (\htmlref{\ty{TplDriveCaller}\bty{Vec3}}{sec:TplDriveCaller}) \bnt{drive}
+        (\htybty{TplDriveCaller}{Vec3}) \bnt{drive}
 \end{Verbatim}
 Example:
 \begin{verbatim}

@@ -125,11 +125,11 @@ The syntax of 6 degrees of freedom rigid-body motion structural nodes is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{absolute_position} ,
-        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+        (\hty{Vec3})              \bnt{absolute_position} ,
+        (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
             [ \kw{orientation description} , \bnt{orientation_description} , ]
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{absolute_velocity} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{absolute_angular_velocity}
+        (\hty{Vec3})              \bnt{absolute_velocity} ,
+        (\hty{Vec3})              \bnt{absolute_angular_velocity}
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness}
@@ -145,8 +145,8 @@ The syntax of 3 degrees of freedom point mass motion structural nodes is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{absolute_position} ,
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{absolute_velocity} ,
+        (\hty{Vec3})              \bnt{absolute_position} ,
+        (\hty{Vec3})              \bnt{absolute_velocity} ,
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness} ]
@@ -221,8 +221,8 @@ The following types are available:
     \bnt{type} ::= \kw{offset}
 
     \bnt{dummy_node_data} ::=
-        (\htmlref{\ty{Vec3}}{sec:Vec3})              \bnt{relative_offset} ,
-        (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{relative_orientation_matrix}
+        (\hty{Vec3})              \bnt{relative_offset} ,
+        (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix}
             [ , \kw{orientation description} , \bnt{orientation_description} ]
 \end{Verbatim}
 %\end{verbatim}
@@ -234,12 +234,12 @@ The following types are available:
     \bnt{type} ::= \kw{relative frame}
 
     \bnt{dummy_node_data} ::= \bnt{reference_node_label}
-        [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{reference_offset} ]
-        [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{reference_orientation_matrix} ]
+        [ , \kw{position} , (\hty{Vec3}) \bnt{reference_offset} ]
+        [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{reference_orientation_matrix} ]
             [ \kw{orientation description} , \bnt{orientation_description} , ]
         [ , \kw{pivot node} , \bnt{pivot_node_label}
-            [ , \kw{position} , (\htmlref{\ty{Vec3}}{sec:Vec3}) \bnt{pivot_offset} ]
-            [ , \kw{orientation} , (\htmlref{\ty{OrientationMatrix}}{sec:OrientationMatrix}) \bnt{pivot_orientation_matrix} ] ]
+            [ , \kw{position} , (\hty{Vec3}) \bnt{pivot_offset} ]
+            [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{pivot_orientation_matrix} ] ]
 \end{Verbatim}
 %\end{verbatim}
     It outputs the configuration of the base node in the frame defined
@@ -528,7 +528,7 @@ by \kw{element} and \kw{node} drive callers.}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= \{ [ , \kw{value} , \bnt{initial_value} ]
         | , \kw{element}
-        | , \kw{sample and hold} , (\htmlref{\ty{NodeDof}}{sec:NodeDof}) \bnt{signal} , \bnt{sample_time}
+        | , \kw{sample and hold} , (\hty{NodeDof}) \bnt{signal} , \bnt{sample_time}
         | , \kw{beam strain gage} , \bnt{y} , \bnt{z} \}
 \end{Verbatim}
 %\end{verbatim}
@@ -551,7 +551,7 @@ node expects to be bound to an element, and to access bulk element data
 \paragraph{Sample and Hold.}
 \label{sec:NODE:PARAMETER:SAH}
 When the argument list starts with the keyword \kw{sample and hold},
-followed by a \htmlref{\ty{NodeDof}}{sec:NodeDof} specification and a sample time,
+followed by a \hty{NodeDof} specification and a sample time,
 the parameter node contains the value of the input signal, namely
 the value of the node, for the duration of the \nt{sample\_time}.
 This may be useful to preserve the value of some signal across
