@@ -664,6 +664,66 @@ Example:
 \end{verbatim}
 
 
+\section{Driver Modules}
+Recall that driver modules are invoked as \kw{file} drivers,
+whose syntax is
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{driver_type} ::= \kw{file}
+
+    \bnt{normal_arglist} ::= \bnt{name} [ , \bnt{module_data} ]
+\end{Verbatim}
+
+
+
+\subsection{Module-HID}
+This module provides input from joysticks in the form of a stream,
+using the Human Interface Device (HID) standard.
+It is the user's responsibility to map the device's output to stream channels.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{joystick}
+
+    \bnt{module_data} ::= \bnt{file} ,
+        \bnt{number_of_buttons} ,
+        \bnt{number_of_linear_controls}
+            [ , \kw{scale} , \bnt{scale_factor} [ , ... ] ] ; # \nt{scale_factor}s default to 1.0
+\end{Verbatim}
+This stream makes available \nt{number\_of\_buttons} + \nt{number\_of\_linear\_controls} channels.
+It is assumed that linear controls come after buttons;
+\nt{scale\_factor}s apply to linear controls.
+
+The value of buttons is 0 when not pressed, and 1 when pressed.
+
+The value coming from linear controls is (assumed to be) comprised between -\kw{UINT16\_MAX} and \kw{UINT16\_MAX};
+it is multiplied by its \nt{scale\_factor} and divided by \kw{UINT16\_MAX}, so that the value provided by the channel
+is comprised between -\nt{scale\_factor} and \nt{scale\_factor}.
+In some cases, the value coming from linear controls can be comprised between 0 and \kw{UINT16\_MAX};
+it is suggested to handle this occurrence, if needed, by means of an additional linear drive caller
+before using the value provided by this stream driver.
+
+Example:
+\begin{verbatim}
+    file: 999, joystick,
+        "/dev/input/js0",        # joystick device
+        8,                       # number of buttons
+        6,                       # number of linear controls
+            scale, 1., 10., 100., 256., 1., 1.;
+\end{verbatim}
+        
+Note that HID provide events when they occur, whereas the logic of file drivers
+is that of gathering information and making it consistently available through
+the solution of a time step.
+
+For buttons, the indication that the button was pressed across two time steps is returned.
+If the button was released, or pressed and released multiple times,
+only the indication that is was pressed (at least once) is actually returned.
+
+For linear controls, the last measured value across two time steps is returned.
+
+
+
+
+
 \section{Scalar Function Modules}
 
 \subsection{Module-scalarfunc}
