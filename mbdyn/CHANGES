@@ -25,6 +25,8 @@ MBDyn 1.X-Devel
 		- fixed bug in EasyAnim post-processing of total joints
 		- fixed bug in strain gage priv data (noted by Jason)
 		- fixed EOF handling on arm
+		- fixed check for body connected to modal node
+		  (noted by Reinhard Resch)
 
 MBDyn 1.7.0
 	Enhancements:

@@ -1709,6 +1709,12 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	/* nodo collegato */
 	const StructDispNode *pStrDispNode = pDM->ReadNode<const StructDispNode, Node::STRUCTURAL>(HP);
 	const StructNode *pStrNode = dynamic_cast<const StructNode *>(pStrDispNode);
+	if (pStrNode != 0 && dynamic_cast<const ModalNode *>(pStrNode) != 0) {
+		silent_cerr("Body(" << uLabel << "): "
+			"connection to ModalNode(" << pStrNode->GetLabel() << ") not allowed "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	/* may be determined by a special DataManager parameter... */
 	bool bStaticModel = pDM->bIsStaticModel();
