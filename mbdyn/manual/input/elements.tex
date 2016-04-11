@@ -1045,6 +1045,39 @@ $\TT{R}$ is the orientation matrix of the node \nt{node\_label}.
             ramp, 10., 0., 1., 0.,
             file, 5, 2;
 \end{verbatim}
+\paragraph{Known issues.} \
+The direction of a force (a \htybty{TplDriveCaller}{Vec3})
+by default is interpreted in the reference frame of the node the force acts upon.
+When using the \kw{single} style of \htybty{TplDriveCaller}{Vec3},
+one can refer to another reference system (the direction specified by the user
+is automatically transformed from that reference frame to the one of the node).
+However, this causes an ambiguity when the default \kw{single} specificator is omitted,
+rather than explicitly written.
+A reference system different from the default one can be specified using the syntax
+\begin{Verbatim}[commandchars=\\\{\}]
+	\kw{single} , \kw{reference} , \bnt{reference_frame} ,
+        	(\hty{Vec3}) \bnt{force_value}
+\end{Verbatim}
+Note that
+\begin{verbatim}
+    1., 0., 0.                               # equivalent to single, 1., 0., 0.
+\end{verbatim}
+and
+\begin{verbatim}
+    single, 1., 0., 0.                       # equivalent to 1., 0., 0.
+\end{verbatim}
+are equivalent.
+However,
+\begin{verbatim}
+    reference, global, 1., 0., 0.            # incorrect!
+\end{verbatim}
+is incorrect; the correct form is
+\begin{verbatim}
+    single, reference, global, 1., 0., 0.    # correct
+\end{verbatim}
+Currently, a reference frame different from that of the node cannot be specified
+for other styles of template drive caller (e.g.\ the \kw{component} style).
+
 
 \subsubsection{Output}
 The format is:

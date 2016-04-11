@@ -2951,7 +2951,17 @@ corresponding to $\nt{entity}\times\nt{drive\_caller}$,
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
 vector, $6 \times 1$ vector are the types currently defined, but, since 
 a C++ template has been used, the implementation of new ones 
-is straightforward);
+is straightforward).
+
+In some contexts (e.g.\ when specifying the direction of a force),
+in which the \nt{entity} is a \hty{Vec3}, it can be prefixed
+by an orientation modificator in the form of the specification
+of a reference frame in which \nt{entity} is expressed; for example,
+\begin{verbatim}
+    single, 1., 0., 0.                    # in the default context-specific reference 
+    single, reference, 99, 1., 0., 0.     # in reference frame 99
+    single, reference, global, 1., 0., 0. # in the global reference frame
+\end{verbatim}
 
 \item the \kw{component} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3014,6 +3024,7 @@ a \kw{sine} drive caller with the parameters illustrated above.
 
 
 \input{scalarfunctions.tex}
+
 
 
 \section{Friction}
