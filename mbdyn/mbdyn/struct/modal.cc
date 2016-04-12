@@ -4581,11 +4581,6 @@ ReadModal(DataManager* pDM,
 			pedantic_cerr("Modal(" << uLabel << "): "
 				"origin node expected as string with delimiters"
 				<< std::endl);
-#if 0
-			std::ostringstream os;
-			os << HP.GetInt();
-			FEMOriginNode = os.str();
-#endif // 0
 			FEMOriginNode = HP.GetString("");
 		}
 
