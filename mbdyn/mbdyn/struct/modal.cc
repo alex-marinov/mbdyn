@@ -5118,6 +5118,14 @@ ReadModal(DataManager* pDM,
 	SAFEDELETE(a);
 	SAFEDELETE(aP);
 
+	std::ostream& os = pDM->GetLogFile();
+
+	os << "modal: " << pEl->GetLabel() << " "
+		<< (pModalNode ? pModalNode->GetLabel() : -1) << " "
+		<< dMass << " "
+		<< STmp / dMass << " "
+		<< JTmp << std::endl;
+        
 	return pEl;
 }
 

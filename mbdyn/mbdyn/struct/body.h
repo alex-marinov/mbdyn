@@ -348,6 +348,7 @@ public:
 
 /* Body - end */
 
+
 /* DynamicBody - begin */
 
 class DynamicBody : 
@@ -373,10 +374,7 @@ public:
 
 	virtual ~DynamicBody(void);
  
-	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 12; 
-		*piNumCols = 6; 
-	};
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
  
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
@@ -384,7 +382,8 @@ public:
 		const VectorHandler& XCurr, 
 		const VectorHandler& XPrimeCurr);
 
-	void AssMats(VariableSubMatrixHandler& WorkMatA,
+	virtual void
+	AssMats(VariableSubMatrixHandler& WorkMatA,
 		VariableSubMatrixHandler& WorkMatB,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
@@ -401,10 +400,7 @@ public:
 	 * Sono considerati dof indipendenti la posizione e la velocita'
 	 * dei nodi */
 	virtual void 
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 12; 
-		*piNumCols = 6; 
-	};
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler& 
@@ -422,6 +418,55 @@ public:
 };
 
 /* DynamicBody - end */
+
+
+/* ModalBody - begin */
+
+class ModalBody : 
+virtual public Elem, public DynamicBody {
+private:
+	Vec3 XPP, WP;
+
+	/* Assembla le due matrici necessarie per il calcolo degli
+	 * autovalori e per lo jacobiano */  
+	void AssMats(FullSubMatrixHandler& WorkMatA,
+		FullSubMatrixHandler& WorkMatB,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr,
+		bool bGravity,
+		const Vec3& GravityAcceleration);
+
+public:
+	/* Costruttore definitivo (da mettere a punto) */
+	ModalBody(unsigned int uL, const ModalNode* pNodeTmp, 
+		doublereal dMassTmp, const Vec3& XgcTmp, const Mat3x3& JTmp, 
+		flag fOut);
+
+	virtual ~ModalBody(void);
+ 
+	void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+ 
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+
+	void AssMats(VariableSubMatrixHandler& WorkMatA,
+		VariableSubMatrixHandler& WorkMatB,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+ 
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr, 
+		const VectorHandler& XPrimeCurr);
+};
+
+/* ModalBody - end */
+
 
 /* StaticBody - begin */
 

@@ -12,6 +12,8 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added ModalBody: body connected to modal node
+		  (Reinhard Resch)
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
