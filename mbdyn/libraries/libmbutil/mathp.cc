@@ -260,6 +260,56 @@ mp_srnd(const MathParser::MathArgs& args)
 	return 0;
 }
 
+static int
+mp_sprintf(const MathParser::MathArgs& args)
+{
+	ASSERT(args.size() == 1 + 2);
+	ASSERT(args[0]->Type() == MathParser::AT_STRING);
+	ASSERT(args[1]->Type() == MathParser::AT_STRING);
+	ASSERT(args[2]->Type() == MathParser::AT_ANY);
+
+	MathParser::MathArgString_t *arg1 = dynamic_cast<MathParser::MathArgString_t *>(args[1]);
+	MathParser::MathArgAny_t *arg2 = dynamic_cast<MathParser::MathArgAny_t *>(args[2]);
+	ASSERT(arg1 != 0);
+
+	char buf[BUFSIZ];
+	const char *fmt = ((std::string&)(*arg1)()).c_str();
+	int rc;
+
+	switch ((*arg2)().GetType()) {
+	case TypedValue::VAR_BOOL: {
+		rc = snprintf(buf, sizeof(buf), fmt, (*arg2)().GetBool());
+		} break;
+
+	case TypedValue::VAR_INT: {
+		rc = snprintf(buf, sizeof(buf), fmt, (*arg2)().GetInt());
+		} break;
+
+	case TypedValue::VAR_REAL: {
+		rc = snprintf(buf, sizeof(buf), fmt, (*arg2)().GetReal());
+		} break;
+
+	case TypedValue::VAR_STRING: {
+		rc = snprintf(buf, sizeof(buf), fmt, (*arg2)().GetString().c_str());
+		} break;
+
+	default:
+		// impossible?
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (rc < 0 || (unsigned long)rc >= sizeof(buf)) {
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	MathParser::MathArgString_t* out = dynamic_cast<MathParser::MathArgString_t*>(args[0]);
+	ASSERT(out != 0);
+
+	*out = std::string(buf);
+
+	return 0;
+}
+
 std::ostream&
 operator << (std::ostream& out, const MathParser::MathArgVoid_t& /* v */ )
 {
@@ -2688,6 +2738,24 @@ MathParser::StaticNameSpace::StaticNameSpace(Table *pTable)
 	f->args[0] = new MathArgVoid_t;
 	f->args[1] = new MathArgReal_t;
 	f->f = mp_print;
+	f->t = 0;
+
+	if (!func.insert(funcType::value_type(f->fname, f)).second) {
+		silent_cerr("static namespace: "
+			"unable to insert handler "
+			"for function " << f->fname << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	// sprintf
+	f = new MathFunc_t;
+	f->fname = std::string("sprintf");
+	f->ns = this;
+	f->args.resize(1 + 2);
+	f->args[0] = new MathArgString_t;
+	f->args[1] = new MathArgString_t;
+	f->args[2] = new MathArgAny_t;
+	f->f = mp_sprintf;
 	f->t = 0;
 
 	if (!func.insert(funcType::value_type(f->fname, f)).second) {

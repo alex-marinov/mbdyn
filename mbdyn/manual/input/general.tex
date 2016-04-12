@@ -277,48 +277,49 @@ can be reassigned.
 		\multicolumn{1}{c}{\textbf{Arg[s]}} &
 		\multicolumn{1}{c}{\textbf{Description}} \\
 		\hline
-		\kw{asin}	& Real		& Real		& Arc sine \\
-		\kw{acos}	& Real		& Real		& Arc cosine \\
-		\kw{atan}	& Real		& Real		& Arc tangent \\
-		\kw{actan}	& Real		& Real		& Arc co-tangent \\
-		\kw{atan2}	& Real		& Real, Real	& (Robust) arc tangent \\
-		\kw{actan2}	& Real		& Real, Real	& (Robust) arc co-tangent \\
-		\kw{cos}	& Real		& Real		& Cosine \\
-		\kw{sin}	& Real		& Real		& Sine \\
-		\kw{tan}	& Real		& Real		& Tangent \\
-		\kw{ctan}	& Real		& Real		& Co-tangent \\
-		\kw{cosh}	& Real		& Real		& Hyperbolic cosine \\
-		\kw{sinh}	& Real		& Real		& Hyperbolic sine \\
-		\kw{tanh}	& Real		& Real		& Hyperbolic tangent \\
-		\kw{ctanh}	& Real		& Real		& Hyperbolic co-tangent \\
-		\kw{acosh}	& Real		& Real		& Hyperbolic arc cosine \\
-		\kw{asinh}	& Real		& Real		& Hyperbolic arc sine \\
-		\kw{atanh}	& Real		& Real		& Hyperbolic arc tangent \\
-		\kw{actanh}	& Real		& Real		& Hyperbolic arc co-tangent \\
-		\kw{exp}	& Real		& Real		& Exponential \\
-		\kw{log}	& Real		& Real		& Natural logarithm \\
-		\kw{log10}	& Real		& Real		& Base 10 logarithm \\
-		\kw{sqrt}	& Real		& Real		& Square root \\
-		\kw{abs}	& Real		& Real		& Absolute value \\
-		\kw{sign}	& Real		& Real		& Sign \\
-		\kw{copysign}	& Real		& Real, Real	& First arg with sign of second \\
-		\kw{floor}	& Integer	& Real		& Closest integer from below \\
-		\kw{ceil}	& Integer	& Real		& Closest integer from above \\
-		\kw{round}	& Integer	& Real		& Closest integer \\
-		\kw{rand}	& Integer	& Void		& random integer 
+		\kw{abs}	& real		& real		& absolute value \\
+		\kw{acos}	& real		& real		& arc cosine \\
+		\kw{acosh}	& real		& real		& hyperbolic arc cosine \\
+		\kw{actan}	& real		& real		& arc co-tangent \\
+		\kw{actan2}	& real		& real, real	& (robust) arc co-tangent \\
+		\kw{actanh}	& real		& real		& hyperbolic arc co-tangent \\
+		\kw{asinh}	& real		& real		& hyperbolic arc sine \\
+		\kw{atanh}	& real		& real		& hyperbolic arc tangent \\
+		\kw{asin}	& real		& real		& arc sine \\
+		\kw{atan}	& real		& real		& arc tangent \\
+		\kw{atan2}	& real		& real, real	& (robust) arc tangent \\
+		\kw{ceil}	& integer	& real		& closest integer from above \\
+		\kw{copysign}	& real		& real, real	& first arg with sign of second \\
+		\kw{cos}	& real		& real		& cosine \\
+		\kw{cosh}	& real		& real		& hyperbolic cosine \\
+		\kw{ctan}	& real		& real		& co-tangent \\
+		\kw{ctanh}	& real		& real		& hyperbolic co-tangent \\
+		\kw{exp}	& real		& real		& exponential \\
+		\kw{floor}	& integer	& real		& closest integer from below \\
+		\kw{in\_ee}	& bool		& real, real, real & true when arg1 $\le$ arg2 $\le$ arg3, false otherwise \\
+		\kw{in\_el}	& bool		& real, real, real & true when arg1 $\le$ arg2 $<$ arg3, false otherwise \\
+		\kw{in\_le}	& bool		& real, real, real & true when arg1 $<$ arg2 $\le$ arg3, false otherwise \\
+		\kw{in\_ll}	& bool		& real, real, real & true when arg1 $<$ arg2 $<$ arg3, false otherwise \\
+		\kw{log}	& real		& real		& natural logarithm \\
+		\kw{log10}	& real		& real		& base 10 logarithm \\
+		\kw{par}	& real		& real		& parabolic function \\
+		\kw{print}	& void		& real		& prints a value to standard output \\
+		\kw{ramp}	& real		& real		& ramp function \\
+		\kw{rand}	& integer	& void		& random integer 
 			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
-		\kw{random}	& Real		& Void		& random real $\sqbr{-1.0,1.0}$ \\
-		\kw{seed}	& Void		& Integer	& Seeds the random number generator \\
-		\kw{step}	& Real		& Real		& Step function \\
-		\kw{ramp}	& Real		& Real		& Ramp function \\
-		\kw{sramp}	& Real		& Real, Real	& Saturated ramp function \\
-		\kw{par}	& Real		& Real		& Parabolic function \\
-		\kw{in\_ll}	& Bool		& Real, Real, Real & True when arg1 $<$ arg2 $<$ arg3, false otherwise \\
-		\kw{in\_le}	& Bool		& Real, Real, Real & True when arg1 $<$ arg2 $\le$ arg3, false otherwise \\
-		\kw{in\_el}	& Bool		& Real, Real, Real & True when arg1 $\le$ arg2 $<$ arg3, false otherwise \\
-		\kw{in\_ee}	& Bool		& Real, Real, Real & True when arg1 $\le$ arg2 $\le$ arg3, false otherwise \\
-		\kw{print}	& Void		& Real		& Prints a value to standard output \\
-		\kw{stop}	& Integer	& Bool, Integer	& stops and returns second arg if first is true \\
+		\kw{random}	& real		& void		& random real $\sqbr{-1.0,1.0}$ \\
+		\kw{round}	& integer	& real		& closest integer \\
+		\kw{seed}	& void		& integer	& seeds the random number generator \\
+		\kw{sign}	& real		& real		& sign \\
+		\kw{sin}	& real		& real		& sine \\
+		\kw{sinh}	& real		& real		& hyperbolic sine \\
+		\kw{sprintf}	& string	& string, any	& returns a string with value formatted according to format \\
+		\kw{sqrt}	& real		& real		& square root \\
+		\kw{sramp}	& real		& real, real	& saturated ramp function \\
+		\kw{step}	& real		& real		& step function \\
+		\kw{stop}	& integer	& bool, integer	& stops and returns second arg if first is true \\
+		\kw{tan}	& real		& real		& tangent \\
+		\kw{tanh}	& real		& real		& hyperbolic tangent \\
 		\hline
 	\end{tabular}
 	\end{center}

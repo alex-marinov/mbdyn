@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added ModalBody: body connected to modal node
 		  (Reinhard Resch)
+		- added sprintf function to math parser
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
