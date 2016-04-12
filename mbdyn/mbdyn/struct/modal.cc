@@ -4581,9 +4581,12 @@ ReadModal(DataManager* pDM,
 			pedantic_cerr("Modal(" << uLabel << "): "
 				"origin node expected as string with delimiters"
 				<< std::endl);
+#if 0
 			std::ostringstream os;
 			os << HP.GetInt();
 			FEMOriginNode = os.str();
+#endif // 0
+			FEMOriginNode = HP.GetString("");
 		}
 
 		unsigned int iNode;
@@ -4641,24 +4644,16 @@ ReadModal(DataManager* pDM,
 
 	for (unsigned int iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
 		/* nodo collegato 1 (e' il nodo FEM) */
-		std::string Node1;
-		if (HP.IsStringWithDelims()) {
-			Node1 = HP.GetStringWithDelims();
-			// NOTE: we should check whether a label includes
-			// whitespace.  In any case, it wouldn't match
-			// any of the labels read, so it is pointless,
-			// but could help debugging...
-			if (Node1.find(' ') != std::string::npos ) {
-				silent_cout("Modal(" << uLabel << "): "
-					"FEM node \"" << Node1 << "\""
-					<< " at line " << HP.GetLineData()
-					<< " contains a blank" << std::endl);
-			}
-
-		} else {
-			std::ostringstream os;
-			os << HP.GetInt();
-			Node1 = os.str();
+		std::string Node1 = HP.GetString("");
+		// NOTE: we should check whether a label includes
+		// whitespace.  In any case, it wouldn't match
+		// any of the labels read, so it is pointless,
+		// but could help debugging...
+		if (Node1.find(' ') != std::string::npos ) {
+			silent_cout("Modal(" << uLabel << "): "
+				"FEM node \"" << Node1 << "\""
+				<< " at line " << HP.GetLineData()
+				<< " contains a blank" << std::endl);
 		}
 
 		DEBUGCOUT("Linked to FEM Node " << Node1 << std::endl);
