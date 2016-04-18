@@ -16,6 +16,8 @@ MBDyn 1.X-Devel
 		  (Reinhard Resch)
 		- added sprintf function to math parser
 		- added "single factor damping" to modal joint
+		- added "Rayleigh damping" to modal joint
+		  (suggested by Reinhard Resch)
 		- added check for symmetric/diagonal mass/stiffness
 		  matrices in modal joint
 		- added initial distance as "current" in distance joint
