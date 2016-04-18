@@ -218,8 +218,8 @@ the tolerance to zero, or by using the keyword \kw{null};
 however, it can be restored to any mechanism for output purposes.
 The optional parameter \kw{scale} is used to enable the scaling
 of the residual before performing the test; default scale factors 
-can be set for each type of degree of freedom owner, and some
-entities allow individual scaling; by default, no scaling takes place.
+can be set for each type of degree of freedom owner, as seen for the control data item of Section~\ref{sec:CONTROLDATA:DEFAULTSCALE}; some
+entities allow individual scaling, as seen for nodes in Chapter~\ref{sec:NODES}; by default, no scaling takes place.
 A tolerance \nt{solution\_tolerance} to test the solution 
 (the difference between the states at two iterations) is allowed, 
 and also in this case a test mechanism can be chosen;
@@ -251,6 +251,7 @@ Currently, no scaling is allowed in the solution test.
 \end{Verbatim}
 %\end{verbatim}
 Error out after \nt{max\_iterations} without passing the convergence test.
+The default value is zero.
 
 If the optional keywords \kw{at most} are given,
 the step is considered successfully performed after \nt{max\_iterations}
@@ -379,7 +380,7 @@ A shortcut to this case is provided as
 \end{Verbatim}
 %\end{verbatim}
 The keyword \kw{order} can be used to indicate a specific \nt{order}
-of the BDF formulas; only first order (implicit Euler) and 
+of the Backward Differentiation Formulas (BDF); only first order (implicit Euler) and 
 second order formulas are currently implemented, and the default
 is the second order formula, which is the most useful.
 The first order formula may be of help for very specific problems.

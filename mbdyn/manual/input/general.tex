@@ -368,6 +368,8 @@ can be reassigned.
 		\kw{in\_ll}	& bool		& real, real, real & true when arg1 $<$ arg2 $<$ arg3, false otherwise \\
 		\kw{log}	& real		& real		& natural logarithm \\
 		\kw{log10}	& real		& real		& base 10 logarithm \\
+		\kw{min}	& real		& real, real	& returns the smallest of the two inputs \\
+		\kw{max}	& real		& real, real	& returns the largest of the two inputs \\
 		\kw{par}	& real		& real		& parabolic function \\
 		\kw{print}	& void		& real		& prints a value to standard output \\
 		\kw{ramp}	& real		& real		& ramp function \\
@@ -454,6 +456,19 @@ They may be useful, for example, when parsing hints
 since \kw{hint} parsing occurs after prediction,
 but often needs to refer to the configuration
 at the previous, just completed time step.
+
+\paragraph{Example 1.} \
+This string returns the $y$ component of the relative angular velocity between structural nodes ``\verb;NODENAME_1;'' and ``\verb;NODENAME_2;'' at the current timestep:
+\begin{verbatim}
+    string, "model::yangvrel(NODENAME_1,NODENAME_2)", ...
+\end{verbatim}
+
+\paragraph{Example 2.} \
+This string returns the absolute $x$ component of the position of node ``\verb;NODENAME;'' at the previous timestep, plus the value of ``\verb;DRIVE_1 * DRIVE_2;'' when time is greater than 5 seconds:
+\begin{verbatim}
+    drive, string, "model::xposition_prev(NODENAME) + \
+        model::drive(DRIVE_1, Time) * model::drive(DRIVE_2, Time) * (Time > 5.)",
+\end{verbatim}
 
 \begin{table}
 	\begin{center}
@@ -2055,7 +2070,7 @@ The function
 	.
 \end{align}
 
-\subsection{Direct}
+\subsection{Direct drive}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{direct}
@@ -2811,9 +2826,9 @@ e.g.:
 
 \emph{Note: currently, the expression is parsed each time it is evaluated;
 this is not very efficient.
-A future version should build a tree-like form of the
+An experimental version builds a tree-like form of the
 parsed expression, where non-symbolic branches are evaluated once for all,
-to speed up evaluation.}
+to speed up evaluation. That version can be compiled using the additional compilation flags:} \verb;./configure CPPFLAGS="-DUSE_EE=1" CXX="g++ -std=c++11";
 
 \emph{Note: all whitespace in the string is eaten up during input.}
 For example
@@ -2998,6 +3013,14 @@ of a reference frame in which \nt{entity} is expressed; for example,
     single, 1., 0., 0.                    # in the default context-specific reference 
     single, reference, 99, 1., 0., 0.     # in reference frame 99
     single, reference, global, 1., 0., 0. # in the global reference frame
+\end{verbatim}
+
+\paragraph{Example.} \
+The following example implements a template drive having a constant unitary value in the X direction.
+\begin{verbatim}
+    single,
+        1., 0., 0.,
+        const, 1.;
 \end{verbatim}
 
 \item the \kw{component} template drive caller:

@@ -50,6 +50,7 @@ This module implements NREL's AeroDyn v 12.58 wind turbine aerodynamic loads.
 This module implements an asynchronous electric motor.
 
 \subsection{Module-cyclocopter}
+\label{sec:MODULES:CYCLOCOPTER}
 \emph{Author: Mattia Mattaboni (turned into module by Pierangelo Masarati)}
 
 \noindent
@@ -78,6 +79,87 @@ This module implements inflow models for cycloidal rotors.
         [ , \kw{omegacut} , \bnt{cut_frequency} ]
         [ , \kw{timestep} , \bnt{time_step} ]
 \end{Verbatim}
+
+
+The optional \kw{orientation} is required when axis 3 
+of the aircraft node is not normal to the rotor axis, it is defined with respect to the aircraft node; axis 3
+of the rotor node must be aligned with the rotor axis; the choices of axes 1 and 2 only influence the orientation of the output.
+
+\paragraph{Example 1.} \
+\begin{verbatim}
+user defined: CURR_DRUM,
+    cyclocopter no inflow,
+    AIRCRAFT,
+    orientation,
+        reference, node,
+            1, 0., 0., 1.,
+            3, 0., 1., 0.,
+    AIRCRAFT;
+\end{verbatim}
+The latter defines a cyclocopter with no inflow. It essentially is only useful to obtain the output data.
+
+\paragraph{Example 2.} \
+\begin{verbatim}
+user defined: CURR_DRUM,
+    cyclocopter uniform 2D,
+    AIRCRAFT,
+    orientation,
+        reference, node,
+    	    1, 0., 0., 1.,
+    	    3, 0., 1., 0.,
+    CURR_DRUM,
+    0, # no average
+    # 1, # average
+    ROTOR_DIAMETER/2.,
+    SPAN,
+    delay,
+        const, 0.5,
+    omegacut, OMEGA_CUT,
+    kappa, 1.3, # hover empirical correction coefficient
+    timestep, DT,
+    output, yes;	
+\end{verbatim}
+While this one defines a cyclocopter with a twodimensional inflow model.
+
+
+\subsubsection{Output}
+The output is obtained in plain text in the \textbf{.usr} file where the columns represent,
+\begin{itemize}
+\item 1: element label
+\item 2--4: rotor force on the aircraft in local $x$, $y$ and $z$ directions in the optionally transformed, if \bnt{orientation} is defined, aircraft reference frame  %RRotorTranspose*Res.Force()
+\item 5--7: rotor moment about the aircraft in local $x$, $y$ and $z$ directions in the optionally transformed, if \bnt{orientation} is defined, aircraft reference frame % RRotorTranspose*Res.Moment()
+\item 8:  mean magnitude of the inflow velocity, based on momentum theory % dUindMean
+\item 9--16: depends on inflow model
+\end{itemize}
+
+
+%~ CyclocopterUniform1D::Output(OutputHandler& OH) const
+%~ 
+                        %~ << " " << dAzimuth                	 /* 9 */
+                        %~ << " " << iStepCounter                	 /* 10 */
+                        %~ << " " << "0."                	 /* 11 */
+                        %~ << " " << "0."                	 /* 12 */
+                        %~ << " " << "0."                	 /* 13 */
+                        %~ << " " << FMeanOut                	 /* 14 */
+                        %~ << std::endl;
+%~ 
+%~ CyclocopterUniform2D::Output(OutputHandler& OH) const
+%~ 
+                        %~ << " " << dAzimuth                	 /* 9 */
+                        %~ << " " << iStepCounter                	 /* 10 */
+                        %~ << " " << dUind                	 /* 11-13 */
+                        %~ << " " << FMeanOut                	 /* 14-16 */
+                        %~ << std::endl;
+                        %~ 
+%~ 
+%~ CyclocopterPolimi::Output(OutputHandler& OH) const
+%~ 
+                        %~ << " " << dUind                	 /* 9 -11*/
+                        %~ << " " << dXi                	 /* 12 */
+                        %~ << " " << dAzimuth               /* 13 */
+                        %~ << " " << FMeanOut                	 /* 14-16 */
+                        %~ << std::endl;
+
 
 \subsection{Module-fab-electric}
 \emph{Author: Eduardo Okabe}

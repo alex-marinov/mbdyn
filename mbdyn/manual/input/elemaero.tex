@@ -137,7 +137,7 @@ then \nt{induced\_velocity} refers to a \kw{user defined} element.
 Note: if the keyword \kw{induced velocity} is used
 and no induced velocity element is found with the label \nt{induced velocity}
 a \kw{user defined} element with that label is looked up.
-If the optional 
+% If the optional (MISSING TEXT)
 
 An arbitrary relative orientation and offset is allowed for all elements with
 respect to the nodes they are linked to. 
@@ -147,7 +147,7 @@ to the structural beam element.
 
 The \htybkw{Shape}{1D} entities are used to compute the physical chord,
 aerodynamic center, velocity measurement point (the point where the
-kinematic boundary conditions are evaluated) and twist as functions 
+kinematic boundary conditions are evaluated) and twist, in radians, as functions 
 of the dimensionless abscissa along the span.
 
 The optional \kw{tip loss} keyword allows to define an additional shape,
@@ -1100,7 +1100,8 @@ The syntax of the \kw{induced velocity} elements is:
 \subsubsection{Rotor}
 \label{sec:EL:AERO:INDVEL:ROTOR}
 Currently, induced velocity models are only implemented
-for helicopter rotors.
+for helicopter and cycloidal rotors.
+For the latter, see Section~\ref{sec:MODULES:CYCLOCOPTER}.
 Originally, this type of element was known as \kw{rotor},
 and the original syntax is preserved for backwards compatibility.
 
