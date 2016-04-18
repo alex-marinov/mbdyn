@@ -387,24 +387,26 @@ ReadJoint(DataManager* pDM,
 		}
 
 		DriveCaller* pDC = NULL;
+		doublereal l;
+		if (bOffset) {
+			l = (pN2->GetXCurr()
+				+ pN2->GetRCurr()*f2
+				- pN1->GetXCurr()
+				- pN1->GetRCurr()*f1).Norm();
+		} else {
+			l = (pNode2->GetXCurr() - pNode1->GetXCurr()).Norm();
+		}
+
+		pedantic_cout("Distance(" << uLabel << "): "
+			"length from nodes = " << l << std::endl);
+
 		if (HP.IsKeyWord("from" "nodes")) {
-			doublereal l;
-			if (bOffset) {
-				l = (pN2->GetXCurr()
-					+ pN2->GetRCurr()*f2
-					- pN1->GetXCurr()
-					- pN1->GetRCurr()*f1).Norm();
-			} else {
-				l = (pNode2->GetXCurr() - pNode1->GetXCurr()).Norm();
-			}
-
-			pedantic_cout("Distance(" << uLabel << "): "
-				"length from nodes = " << l << std::endl);
-
 			SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(l));
 
 		} else {
+			pDM->PushCurrData("L", l);
 			pDC = HP.GetDriveCaller();
+			pDM->PopCurrData("L");
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -495,18 +497,20 @@ ReadJoint(DataManager* pDM,
 		}
 
 		DriveCaller* pDC = NULL;
+		doublereal l = (pNode2->GetXCurr()
+			- pNode1->GetXCurr()
+			+ pNode2->GetRCurr()*f2
+			- pNode1->GetRCurr()*f1).Norm();
+
+		pedantic_cout("DistanceWithOffset(" << uLabel << "): "
+			"length from nodes = " << l << std::endl);
+
 		if (HP.IsKeyWord("from" "nodes")) {
-			doublereal l = (pNode2->GetXCurr()
-				- pNode1->GetXCurr()
-				+ pNode2->GetRCurr()*f2
-				- pNode1->GetRCurr()*f1).Norm();
-
-			pedantic_cout("DistanceWithOffset(" << uLabel << "): "
-				"length from nodes = " << l << std::endl);
-
 			SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(l));
 		} else {
+			pDM->PushCurrData("L", l);
 			pDC = HP.GetDriveCaller();
+			pDM->PopCurrData("L");
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);

@@ -268,65 +268,6 @@ can be reassigned.
 
 \begin{table}
 	\begin{center}
-	\caption{Built-in mathematical functions 
-		in math parser}\label{tab:MATHP-FUNCTIONS}
-	\begin{tabular}{llll}
-		\hline
-		\multicolumn{1}{c}{\textbf{Name}} &
-		\multicolumn{1}{c}{\textbf{Returns}} &
-		\multicolumn{1}{c}{\textbf{Arg[s]}} &
-		\multicolumn{1}{c}{\textbf{Description}} \\
-		\hline
-		\kw{abs}	& real		& real		& absolute value \\
-		\kw{acos}	& real		& real		& arc cosine \\
-		\kw{acosh}	& real		& real		& hyperbolic arc cosine \\
-		\kw{actan}	& real		& real		& arc co-tangent \\
-		\kw{actan2}	& real		& real, real	& (robust) arc co-tangent \\
-		\kw{actanh}	& real		& real		& hyperbolic arc co-tangent \\
-		\kw{asinh}	& real		& real		& hyperbolic arc sine \\
-		\kw{atanh}	& real		& real		& hyperbolic arc tangent \\
-		\kw{asin}	& real		& real		& arc sine \\
-		\kw{atan}	& real		& real		& arc tangent \\
-		\kw{atan2}	& real		& real, real	& (robust) arc tangent \\
-		\kw{ceil}	& integer	& real		& closest integer from above \\
-		\kw{copysign}	& real		& real, real	& first arg with sign of second \\
-		\kw{cos}	& real		& real		& cosine \\
-		\kw{cosh}	& real		& real		& hyperbolic cosine \\
-		\kw{ctan}	& real		& real		& co-tangent \\
-		\kw{ctanh}	& real		& real		& hyperbolic co-tangent \\
-		\kw{exp}	& real		& real		& exponential \\
-		\kw{floor}	& integer	& real		& closest integer from below \\
-		\kw{in\_ee}	& bool		& real, real, real & true when arg1 $\le$ arg2 $\le$ arg3, false otherwise \\
-		\kw{in\_el}	& bool		& real, real, real & true when arg1 $\le$ arg2 $<$ arg3, false otherwise \\
-		\kw{in\_le}	& bool		& real, real, real & true when arg1 $<$ arg2 $\le$ arg3, false otherwise \\
-		\kw{in\_ll}	& bool		& real, real, real & true when arg1 $<$ arg2 $<$ arg3, false otherwise \\
-		\kw{log}	& real		& real		& natural logarithm \\
-		\kw{log10}	& real		& real		& base 10 logarithm \\
-		\kw{par}	& real		& real		& parabolic function \\
-		\kw{print}	& void		& real		& prints a value to standard output \\
-		\kw{ramp}	& real		& real		& ramp function \\
-		\kw{rand}	& integer	& void		& random integer 
-			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
-		\kw{random}	& real		& void		& random real $\sqbr{-1.0,1.0}$ \\
-		\kw{round}	& integer	& real		& closest integer \\
-		\kw{seed}	& void		& integer	& seeds the random number generator \\
-		\kw{sign}	& real		& real		& sign \\
-		\kw{sin}	& real		& real		& sine \\
-		\kw{sinh}	& real		& real		& hyperbolic sine \\
-		\kw{sprintf}	& string	& string, any	& returns a string with value formatted according to format \\
-		\kw{sqrt}	& real		& real		& square root \\
-		\kw{sramp}	& real		& real, real	& saturated ramp function \\
-		\kw{step}	& real		& real		& step function \\
-		\kw{stop}	& integer	& bool, integer	& stops and returns second arg if first is true \\
-		\kw{tan}	& real		& real		& tangent \\
-		\kw{tanh}	& real		& real		& hyperbolic tangent \\
-		\hline
-	\end{tabular}
-	\end{center}
-\end{table}
-
-\begin{table}
-	\begin{center}
 	\caption{Built-in types in math parser}\label{tab:MATHP-TYPES}
 	\begin{tabular}{ll}
 		\hline
@@ -390,6 +331,102 @@ can be reassigned.
 	\end{tabular}
 	\end{center}
 \end{table}
+
+\begin{table}
+	\begin{center}
+	\caption{Built-in mathematical functions 
+		in math parser}\label{tab:MATHP-FUNCTIONS}
+	\begin{tabular}{llll}
+		\hline
+		\multicolumn{1}{c}{\textbf{Name}} &
+		\multicolumn{1}{c}{\textbf{Returns}} &
+		\multicolumn{1}{c}{\textbf{Arg[s]}} &
+		\multicolumn{1}{c}{\textbf{Description}} \\
+		\hline
+		\kw{abs}	& real		& real		& absolute value \\
+		\kw{acos}	& real		& real		& arc cosine \\
+		\kw{acosh}	& real		& real		& hyperbolic arc cosine \\
+		\kw{actan}	& real		& real		& arc co-tangent \\
+		\kw{actan2}	& real		& real, real	& (robust) arc co-tangent \\
+		\kw{actanh}	& real		& real		& hyperbolic arc co-tangent \\
+		\kw{asinh}	& real		& real		& hyperbolic arc sine \\
+		\kw{atanh}	& real		& real		& hyperbolic arc tangent \\
+		\kw{asin}	& real		& real		& arc sine \\
+		\kw{atan}	& real		& real		& arc tangent \\
+		\kw{atan2}	& real		& real, real	& (robust) arc tangent \\
+		\kw{ceil}	& integer	& real		& closest integer from above \\
+		\kw{copysign}	& real		& real, real	& first arg with sign of second \\
+		\kw{cos}	& real		& real		& cosine \\
+		\kw{cosh}	& real		& real		& hyperbolic cosine \\
+		\kw{ctan}	& real		& real		& co-tangent \\
+		\kw{ctanh}	& real		& real		& hyperbolic co-tangent \\
+		\kw{exp}	& real		& real		& exponential \\
+		\kw{floor}	& integer	& real		& closest integer from below \\
+		\kw{in\_ee}	& bool		& real, real, real & true when arg1 $\le$ arg2 $\le$ arg3, false otherwise \\
+		\kw{in\_el}	& bool		& real, real, real & true when arg1 $\le$ arg2 $<$ arg3, false otherwise \\
+		\kw{in\_le}	& bool		& real, real, real & true when arg1 $<$ arg2 $\le$ arg3, false otherwise \\
+		\kw{in\_ll}	& bool		& real, real, real & true when arg1 $<$ arg2 $<$ arg3, false otherwise \\
+		\kw{log}	& real		& real		& natural logarithm \\
+		\kw{log10}	& real		& real		& base 10 logarithm \\
+		\kw{par}	& real		& real		& parabolic function \\
+		\kw{print}	& void		& real		& prints a value to standard output \\
+		\kw{ramp}	& real		& real		& ramp function \\
+		\kw{rand}	& integer	& void		& random integer 
+			$\sqbr{0,\mathrm{RAND\_MAX}}$ \\
+		\kw{random}	& real		& void		& random real $\sqbr{-1.0,1.0}$ \\
+		\kw{round}	& integer	& real		& closest integer \\
+		\kw{seed}	& void		& integer	& seeds the random number generator \\
+		\kw{sign}	& real		& real		& sign \\
+		\kw{sin}	& real		& real		& sine \\
+		\kw{sinh}	& real		& real		& hyperbolic sine \\
+		\kw{sprintf}	& string	& string, any	& returns a string with value formatted according to format \\
+		\kw{sqrt}	& real		& real		& square root \\
+		\kw{sramp}	& real		& real, real	& saturated ramp function \\
+		\kw{step}	& real		& real		& step function \\
+		\kw{stop}	& integer	& bool, integer	& stops and returns second arg if first is true \\
+		\kw{tan}	& real		& real		& tangent \\
+		\kw{tanh}	& real		& real		& hyperbolic tangent \\
+		\hline
+	\end{tabular}
+	\end{center}
+\end{table}
+
+\paragraph{Example.} 
+\begin{itemize}
+\item
+Print a zeros-padded integer: the statement
+\begin{verbatim}
+    remark: sprintf("%04d", 9);
+\end{verbatim}
+yields
+\begin{verbatim}
+    line 1, file <initial file>: "0009"
+\end{verbatim}
+
+\item
+Print an integer in hexadecimal format: the statement
+\begin{verbatim}
+    remark: sprintf("0x%x", 255);
+\end{verbatim}
+yields
+\begin{verbatim}
+    line 1, file <initial file>: "0xff"
+\end{verbatim}
+
+\item
+Print a string that formats multiple numbers: the statement
+\begin{verbatim}
+    remark: sprintf("N%04d", 9) + " = " + sprintf("%e", 0.1);
+\end{verbatim}
+yields
+\begin{verbatim}
+    line 1, file <initial file>: "N0009 = 1.000000e-01"
+\end{verbatim}
+\end{itemize}
+
+
+
+
 
 \subsection{Namespaces}
 \label{sec:GENERAL:NAMESPACE}
@@ -478,8 +515,7 @@ at the previous, just completed time step.
 				$Y$ component of rel.\ angular velocity between structural nodes \\
 		\kw{zangvrel}	& Real	& Integer, Integer	&
 				$Z$ component of rel.\ angular velocity between structural nodes \\
-		\kw{current}	& Real	& String		& allows to retrieve data specific to the current context
-				(essentially undocumented) \\
+		\kw{current}	& Real	& String		& allows to retrieve data specific to the current context \\
 \hline
 		\kw{drive}	& Real	& Integer, Real		&
 				evaluates the \htmlref{\kw{drive caller}}{sec:DRIVE-CALLER}

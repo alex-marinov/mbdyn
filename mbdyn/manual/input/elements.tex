@@ -4146,6 +4146,35 @@ caller is automatically instantiated for the \kw{distance}.
 Its value is computed from the initial positions of the nodes;
 if defined, the distance between the offsets is considered. 
 
+
+
+\subsubsection{Current}
+When parsing the drive caller, the following values are made available
+through the \kw{model::current} interface:
+\begin{itemize}
+\item
+\kw{"L"}: 
+the distance between the points connected by the joint,
+as it would be computed when \kw{from nodes} is used.
+\end{itemize}
+For example, to smoothly change the distance from the initial value to a desired value:
+\begin{verbatim}
+    set: const integer DISTANCE = 99;
+    set: const integer NODE1 = 1;
+    set: const integer NODE2 = 2;
+    set: const real DESIRED_DISTANCE = .33;
+    # ...
+    joint: DISTANCE, distance,
+        NODE1, position, null,
+        NODE2, position, null,
+        cosine, 0., pi/.5,
+            (DESIRED_DISTANCE - model::current("L"))/2,  # half (desired - initial)
+            half,
+            model::current("L");                         # start from initial
+\end{verbatim}
+
+
+
 \subsubsection{Output}
 The extra output is:
 \begin{itemize}
@@ -4304,7 +4333,7 @@ When wrapped by a \kw{driven} element, the following hints are honored:
 of the reference in which the enforced orientation is expressed is reset;
 \item \kw{hinge\{2\}} the orientation with respect to node 2
 of the reference in which the enforced orientation is expressed is reset;
-\item unrecognized hints are passed through to the \htmlref{ety{Vec3}}{sec:Vec3} drive.
+\item unrecognized hints are passed through to the \htybty{TplDriveCaller}{Vec3}.
 \end{itemize}
 
 \subsection{Gimbal hinge}
@@ -4635,10 +4664,11 @@ and orientation of the corresponding FEM nodes.
         \{ \bnt{fem_node_number} | \kw{from file} \} ,
         [ \{ \kw{no damping}
             | \kw{damping from file}
-            | \kw{proportional damping} , \bnt{damping_coef}
+            | \kw{rayleigh damping} , \bnt{mass_damping_coef} , \bnt{stiffness_damping_coef}
+            | \kw{single factor damping} , \bnt{damping_factor}
             | \kw{diag damping} ,
-                \{ \kw{all} , \bnt{damping_coef} [ , ...]
-                | \bnt{damped_modes} , \bnt{mode_damping} [ , ... ] \} \} , ]
+                \{ \kw{all} , \bnt{damping_factor} [ , ...]
+                | \bnt{num_damped_modes} , \bnt{mode_damping} [ , ... ] \} \} , ]
         " \bnt{fem_data_file} " ,
         [ [ \{ \kw{mass} | \kw{damping} | \kw{stiffness} \} ] \kw{threshold} , \bnt{threshold} , ]
         [ \{ \kw{create binary} | \kw{use binary} | \kw{update binary} \}
@@ -4650,7 +4680,7 @@ and orientation of the corresponding FEM nodes.
 	    [ \kw{output} , \{ \kw{yes} | \kw{no} | (\ty{bool})\bnt{output_flag_for_all_interfaces} \} , ]
 	    \bnt{interface_node} [ , ... ]
 
-    \bnt{mode_damping} ::= \bnt{mode_index} , \bnt{mode_damping_coef}
+    \bnt{mode_damping} ::= \bnt{mode_index} , \bnt{mode_damping_factor}
 
     \bnt{interface_node} ::=
         \{ " \bnt{fem_node_label} " | (\ty{integer}) \bnt{fem_node_label} \} ,
@@ -4785,39 +4815,70 @@ timestamp is more recent than that of the ASCII version.
 The keyword \kw{update binary} instructs MBDyn to regenerate the
 binary version when the ASCII version is more recent.
 
-\textbf{Note about the structural damping:}
-structural damping can be provided by specifying any of the
-\kw{no damping}, \kw{damping from file}, \kw{proportional damping}
-or \kw{diag damping}.
+\textbf{Note about structural damping:}
+information about structural damping can be provided by specifying any of the
+\kw{no damping}, \kw{damping from file}, \kw{rayleigh damping},
+\kw{single factor damping}, or \kw{diag damping} keywords.
+\begin{itemize}
+\item
+\kw{no damping}:
+instructs the solver that no damping must be used.
+
+\item
+\kw{damping from file}:
+the solver expects a(n optional) generalized damping matrix in the database
+(as \kw{RECORD GROUP 13});
+such matrix is used when \kw{damping from file} is specified,
+while it is ignored and overridden by any of the other specified forms
+of damping provided in the specification of the modal joint element.
+The generalized damping matrix appeared in MBDyn 1.5.3;
+
+\item
+\kw{rayleigh damping}:
+it is followed by
+\nt{mass\_damping\_coef} and \nt{stiffness\_damping\_coef},
+which are used to compute the damping matrix as
+\begin{align}
+	\TT{C} &= \nt{mass\_damping\_coef} \cdot \TT{M} + \nt{stiffness\_damping\_coef} \cdot \TT{K}
+\end{align}
+It appeared in MBDyn 1.7.1.
+
+\item
+\kw{single factor damping}:
+it is followed by the damping factor $\xi = \nt{damping\_factor}$
+that is applied to all modes.
+It appeared in MBDyn 1.7.1.
+
+\item
+\kw{diag damping}:
+it is followed by the number of damped modes \nt{num\_damped\_modes},
+or by the keyword \kw{all}.
+If \kw{all} is used, as many damping factors as the available modes
+are expected.
+Otherwise, a list of \nt{mode\_damping} values follows.
+Each occurrence of \nt{mode\_damping} is made of the mode's index \nt{mode\_index}
+and the related damping value \nt{damping\_factor}.
+\end{itemize}
+
 In the last two cases, a damping factor is required.
 The corresponding damping for the $i$-th mode is computed as
 \begin{displaymath}
-	c_i = \nt{factor}_i \, 2 \sqrt{k_i m_i}
+	c_i = 2 \, \nt{damping\_factor}_i \, \sqrt{k_i m_i}
 \end{displaymath}
-where $\nt{factor}_i$ is the value provided
-for \kw{proportional damping} (same for all modes) or the list 
+where $\nt{damping\_factor}_i$ is the value provided for the list 
 of values provided for \kw{diag damping} (for each mode).
 For example, a factor of 0.01 means 1\% damping.
 
-The keyword \kw{diag damping} is followed by the count of damped modes,
-or by the keyword \kw{all}.
-If \kw{all} is used, as many damping coefficients as the available modes
-are expected.
-Otherwise, a list of \nt{mode\_damping} values follows.
-Each occurrence of \nt{mode\_damping} is made of the mode's index
-and the related damping value.
+In previous versions, a (misleading) \kw{proportional damping} form
+was present, which is now deprecated and replaced by \kw{single factor damping}.
 
-A generalized damping matrix can be provided in the database (as \kw{RECORD GROUP 13});
-it is used when \kw{damping from file} is specified, while it is ignored
-and overridden by all the other above specified forms
-of damping provided in the specification of the modal joint element.
-The generalized damping matrix appeared in MBDyn 1.5.3.
 
 
 \subsubsection{Output}
-Up to MBDyn 1.2.6 output occurred in a specific file that needed
+Up to MBDyn 1.2.6, output occurred in a specific file that needed
 to be mandatorily given as the last argument to each modal element
 definition.
+
 Now output occurs in a \texttt{.mod} file, which contains, for each time step,
 as many rows as all the modes of all the modal elements whose output is enabled.
 Each row is structured as follows:
@@ -4867,32 +4928,43 @@ $\T{f}_{1_n}$ is the matrix of the shapes that express the displacement on the $
 in the floating frame of reference, and $\T{q}$ are the modal coordinates,
 i.e.\ the data in column 2 of the modal output file.
 In the Private Data, the $i$-th component of the position of the $n$-th node
-is given by \kw{"x[\bnt{n},\bnt{i}]"}.
+is given by \kw{"x[\bnt{n},\bnt{i}]"} (see the related section for details).
 
 
 
 \subsubsection{Private Data}
-The following data are available, for each mode:
+The following data are available:
 \begin{enumerate}
-\item \kw{"q[\bnt{m}]"} mode \nt{m} value
-\item \kw{"qP[\bnt{m}]"} mode \nt{m} derivative value
-\item \kw{"qPP[\bnt{m}]"} mode \nt{m} second derivative value
+\item \kw{"q[\bnt{mi}]"} the value of the mode amplitude indicated by \nt{mi}
+\item \kw{"qP[\bnt{mi}]"} the value of the mode amplitude derivative indicated by \nt{mi}
+\item \kw{"qPP[\bnt{mi}]"} the value of the mode amplitude second derivative indicated by \nt{mi}
 \item \kw{"x[\bnt{n},\bnt{i}]"} FEM node \nt{n} position \nt{i} component value
 \item \kw{"xP[\bnt{n},\bnt{i}]"} FEM node \nt{n} velocity \nt{i} component value
 \item \kw{"xPP[\bnt{n},\bnt{i}]"} FEM node \nt{n} acceleration \nt{i} component value
 \item \kw{"w[\bnt{n},\bnt{i}]"} FEM node \nt{n} angular velocity \nt{i} component value
 \item \kw{"wP[\bnt{n},\bnt{i}]"} FEM node \nt{n} angular acceleration \nt{i} component value
 \end{enumerate}
-When \nt{m} is a number, the mode whose name is that number is used;
-when \nt{m} is the character `\#' followed by a number,
-the mode whose index is the number is used.
+When the mode indicator \nt{mi} is a number \bnt{m}, then \nt{m} represents the name of mode;
+when \nt{mi} is the character `\verb;#;' followed by a number \bnt{m},
+then \nt{m} is the index of the mode.
 The two cases may differ when only a subset of the modes defined
 in the FEM data file are actually used.
+For example, if \nt{mode\_number} == 3 and in the joint definition
+the syntax ``\verb;list, 1, 7, 9;'' was used, to indicate that of the three modes to be used in the analysis
+the first mode is the first one in the database, whereas the second mode is the seventh one in the database,
+and the third mode is the ninth one in the database,
+then \verb;"q[1]"; is equivalent to \verb;"q[#1]";,
+whereas \verb;"q[7]"; is equivalent to \verb;"q[#2]";,
+and \verb;"q[9]"; is equivalent to \verb;"q[#3]";,
+and possibly more readable.
 
 ``FEM'' node means that the label of the FEM node must be used;
-this allows to use the motion of nodes that are not attached
+this allows access also to the motion of nodes that are not attached
 to a multibody node.
-This motion is expressed in the global reference frame.
+Such motion is intended as expressed in the global reference frame.
+No information on FEM node orientation is currently available.
+For example, \verb;"x[1001,1]"; provides access to the $x$ component of the position of node \verb;1001;;
+\verb;"xPP[N21,3]"; provides access to the $z$ component of the acceleration of node \verb;N21;.
 
 
 
@@ -4956,11 +5028,11 @@ the old name has been deprecated and its support may be discontinued
 in future versions.
 
 \subsection{Prismatic}
-This joints constraints the relative orientation of two nodes, so that
+This joints constrains the relative orientation of two nodes, so that
 their orientations remain parallel.
 The relative position is not constrained.
 The initial orientation of the joint must be
-compatible: use the \kw{hinge} keyword to assign 
+compatible: use the \kw{orientation} keyword to assign 
 the joint initial orientation.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -4987,7 +5059,7 @@ with respect to node 2 is reset;
 \label{sec:EL:STRUCT:JOINT:REVOLUTE_HINGE}
 This joint only allows the relative rotation of two nodes about
 a given axis, which is axis 3 in the reference systems defined 
-by the two \kw{hinge} statements.
+by the two \kw{orientation} statements.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{joint_type} ::= \kw{revolute hinge}
@@ -5075,7 +5147,7 @@ if any.
 \label{sec:EL:STRUCT:JOINT:REVOLUTE_PIN}
 This joint only allows the absolute rotation of a node about
 a given axis, which is axis 3 in the reference systems defined 
-by the two \kw{hinge} statements.
+by the two \kw{orientation} statements.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{joint_type} ::= \kw{revolute pin}
@@ -5128,7 +5200,7 @@ with respect to the absolute frame is reset;
 \label{sec:EL:STRUCT:JOINT:REVOLUTE_ROTATION}
 This joint allows the relative rotation of two nodes about
 a given axis, which is axis 3 in the reference systems defined 
-by the two \kw{hinge} statements.
+by the two \kw{orientation} statements.
 The relative position is not constrained.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -5237,6 +5309,41 @@ see Section~\ref{sec:ConstitutiveLaw}.
 %see also \kw{rod with offset}
 %in Section~\ref{sec:EL:STRUCT:JOINT:ROD_WITH_OFFSET}.
 
+
+
+\subsubsection{Current}
+When parsing the constitutive law, the following values are made available
+through the \kw{model::current} interface:
+\begin{itemize}
+\item
+\kw{"L0"}:
+the length of the rod \nt{rod\_length} as input by the user,
+or computed from the distance between the points connected by the rod when \kw{from nodes} is used;
+
+\item
+\kw{"L"}: 
+the length of the rod computed from the distance between the points connected by the rod;
+identical to \kw{"L0"} when \kw{from nodes} is used.
+\end{itemize}
+For example, if one knows the value of $EA$ and wants the stiffness
+in a linear elastic constitutive law to reflect its dependence
+on the reference length of the rod as computed from the initial configuration,
+the following syntax does the trick:
+\begin{verbatim}
+    set: const integer ROD = 99;
+    set: const integer NODE1 = 1;
+    set: const integer NODE2 = 2;
+    set: const real EA = 1.e+6;
+    # ...
+    joint: ROD, rod,
+        NODE1, position, null,
+        NODE2, position, null,
+        from nodes,                              # compute length from nodes
+        linear elastic, EA/model::current("L0"); # compute K as EA/rod_length
+\end{verbatim}
+
+
+
 \subsubsection{Output}
 The output occurs in the \texttt{.jnt} file, which contains:
 \begin{itemize}
@@ -5263,7 +5370,7 @@ The following data are available:
 \item \kw{"L"} distance between the two nodes/connection points
 \item \kw{"LPrime"} distance rate between the two nodes/connection points
 \end{enumerate}
-The rod joint can also access the private data provided 
+The rod joint can also give access the private data provided 
 by the constitutive law.
 It is accessed by prefixing the name of the data with the string
 \kw{"constitutiveLaw."}; see the specific constitutive law

@@ -2218,6 +2218,10 @@ Modal::iGetPrivDataIdx(const char *s) const
 	 *
 	 * where n is the 1-based mode number
 	 *
+	 * q[#i]  | qP[#i]  | qPP[#i]
+	 *
+	 * where i is the 1-based mode index (if only a subset of modes is used)
+	 *
 	 * x[n,i] | xP[n,i] | xPP[n,i]
 	 *          w[n,i]  | wP[n,i]
 	 *
@@ -2275,7 +2279,7 @@ Modal::iGetPrivDataIdx(const char *s) const
 		}
 
 		/* buffer per numero (dimensione massima: 32 bit) */
-		char buf[sizeof("18446744073709551615,18446744073709551615")];
+		char buf[sizeof("18446744073709551615") + 1];
 		size_t		len = end - s;
 
 		ASSERT(len < sizeof(buf));
@@ -2356,16 +2360,11 @@ Modal::iGetPrivDataIdx(const char *s) const
 		return 0;
 	}
 
-	unsigned int i;
-	for (i = 0; i < NFEMNodes; i++) {
-		if (IdFEMNodes[i] == FEMLabel) {
-			break;
-		}
-	}
-
-	if (i == NFEMNodes) {
+	std::vector<std::string>::const_iterator ii = find(IdFEMNodes.begin(), IdFEMNodes.end(), FEMLabel);
+	if (ii == IdFEMNodes.end()) {
 		return 0;
 	}
+	unsigned int i = ii - IdFEMNodes.begin();
 
 	return 3*NModes + 18*i + (what == 'w' ? 3 : 0) + 6*p + index;
 }
@@ -2834,9 +2833,9 @@ ReadModal(DataManager* pDM,
 	 * (scale masses) e per i modi (scale modes)   */
 
 	/* NOTA: AL MOMENTO NON E' USATO */
-	doublereal scalemasses = 1.;
-	doublereal scaleinertia = 1.;
-	doublereal scalemodes = 1.;
+	doublereal scalemasses(1.);
+	doublereal scaleinertia(1.);
+	doublereal scalemodes(1.);
 
 	if (HP.IsKeyWord("scale" "masses")) {
 		scalemasses = HP.GetReal();
@@ -2850,26 +2849,83 @@ ReadModal(DataManager* pDM,
 #endif /* MODAL_SCALE_DATA */
 
 	/* Legge i coefficienti di smorzamento */
-	bool bGotDamp(false);
-	doublereal cdamp(0.);
-	VecN DampRatios(NModes, 0.);
-	bool bDampFlag(false);
+	enum {
+		DAMPING_FROM_FILE = 0,
+		DAMPING_NO,
+		// DAMPING_PROPORTIONAL, // obsoleted
+		DAMPING_RAYLEIGH,
+		DAMPING_SINGLE_FACTOR,
+		DAMPING_DIAG
+	} eDamp(DAMPING_FROM_FILE);
+	const char *sDamp[] = {
+		"damping from file",
+		"no damping",
+		// "proportional damping", // obsoleted
+		"Rayleigh damping",
+		"single factor damping",
+		"diag damping",
+		NULL
+	};
+
+	doublereal damp_factor(0.), damp_coef_M(0.), damp_coef_K(0.);
+	std::vector<doublereal> DampRatios;
 
 	if (HP.IsKeyWord("no" "damping")) {
-		bGotDamp = true;
+		eDamp = DAMPING_NO;
+
+	} else if (HP.IsKeyWord("rayleigh" "damping")) {
+		eDamp = DAMPING_RAYLEIGH;
+		damp_coef_M = HP.GetReal();
+		if (damp_coef_M < 0.) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"warning, negative mass damping coefficient for \"Rayleigh damping\" "
+				"at line " << HP.GetLineData() << std::endl);
+		}
+		damp_coef_K = HP.GetReal();
+		if (damp_coef_K < 0.) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"warning, negative stiffness damping coefficient for \"Rayleigh damping\" "
+				"at line " << HP.GetLineData() << std::endl);
+		}
+
+	} else if (HP.IsKeyWord("single" "factor" "damping")) {
+		eDamp = DAMPING_SINGLE_FACTOR;
+		damp_factor = HP.GetReal();
+		if (damp_factor < 0.) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"warning, negative damping factor for \"single factor damping\" "
+				"at line " << HP.GetLineData() << std::endl);
+		}
 
 	} else if (HP.IsKeyWord("proportional" "damping")) {
-		bGotDamp = true;
-		cdamp = HP.GetReal();
+		silent_cerr("Modal(" << uLabel << "): "
+			"warning, \"proportional damping\" is deprecated; "
+			"use \"single factor damping\" with the desired damping factor instead "
+			"at line " << HP.GetLineData() << std::endl);
+		// NOTE: "proportional damping" deprecated, replaced by "single factor damping"
+		eDamp = DAMPING_SINGLE_FACTOR;
+		damp_factor = HP.GetReal();
+		if (damp_factor < 0.) {
+			silent_cerr("Modal(" << uLabel << "): "
+				"warning, negative damping factor for \"proportional damping\" "
+				"at line " << HP.GetLineData() << std::endl);
+		}
 
 	} else if (HP.IsKeyWord("diag" "damping"))  {
-		bGotDamp = true;
-		bDampFlag = true;
+		eDamp = DAMPING_DIAG;
+		DampRatios.resize(NModes);
+		fill(DampRatios.begin(), DampRatios.end(), 0.);
 
 		if (HP.IsKeyWord("all")) {
-			for (unsigned int iCnt = 1; iCnt <= NModes; iCnt ++) {
-				cdamp = HP.GetReal();
-				DampRatios.Put(iCnt, cdamp);
+			for (unsigned int iCnt = 0; iCnt < NModes; iCnt ++) {
+				damp_factor = HP.GetReal();
+				if (damp_factor < 0.) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"warning, negative damping factor for \"diag damping\" "
+						"of mode " << (iCnt + 1 ) << " "
+						"at line " << HP.GetLineData() << std::endl);
+				}
+				DampRatios[iCnt] = damp_factor;
 			}
 
 		} else {
@@ -2880,11 +2936,10 @@ ReadModal(DataManager* pDM,
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			std::vector<bool> gotit(NModes);
-			fill(gotit.begin(), gotit.end(), false);
+			std::vector<bool> gotit(NModes, false);
 
 			for (unsigned int iCnt = 1; iCnt <= unsigned(iDM); iCnt ++) {
-				integer iDampedMode =  HP.GetInt();
+				integer iDampedMode = HP.GetInt();
 				if (iDampedMode <= 0 || unsigned(iDampedMode) > NModes) {
 					silent_cerr("invalid index " << iDampedMode
 						<< " for damped mode #" << iCnt
@@ -2902,8 +2957,14 @@ ReadModal(DataManager* pDM,
 
 				}
 				gotit[iDampedMode - 1] = true;
-				cdamp = HP.GetReal();
-				DampRatios.Put(iDampedMode, cdamp);
+				damp_factor = HP.GetReal();
+				if (damp_factor < 0.) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"warning, negative damping factor for \"diag damping\" "
+						"of mode " << iDampedMode << " "
+						"at line " << HP.GetLineData() << std::endl);
+				}
+				DampRatios[iDampedMode - 1] = damp_factor;
 			}
 		}
 
@@ -3938,7 +3999,7 @@ ReadModal(DataManager* pDM,
 							continue;
 						}
 
-						if (!bGotDamp) {
+						if (eDamp == DAMPING_FROM_FILE) {
 							pGenDamp->Put(iCnt, jCnt, d);
 						}
 
@@ -4373,7 +4434,7 @@ ReadModal(DataManager* pDM,
 							continue;
 						}
 
-						if (!bGotDamp) {
+						if (eDamp == DAMPING_FROM_FILE) {
 							pGenDamp->Put(iCnt, jCnt, d);
 						}
 
@@ -4920,22 +4981,152 @@ ReadModal(DataManager* pDM,
 	 * TODO: Check rank of modal stiffness matrix
 	 */
 
-	if (bGotDamp) {
+	// check if mass matrix is symmetric and diagonal
+	bool bIsMSym = true;
+	bool bIsMDiag = true;
+	for (unsigned iRow = 2; iRow <= NModes; iRow++) {
+		for (unsigned iCol = 1; iCol < iRow; iCol++) {
+			doublereal mrc = pGenMass->dGet(iRow, iCol);
+			doublereal mcr = pGenMass->dGet(iCol, iRow);
+			if (mrc != mcr) {
+				if (bIsMSym) {
+					silent_cerr("Modal(" << uLabel << "): mass matrix is not symmetric: (at least) "
+						"M(" << iRow << ", " << iCol << ")=" << mrc << " "
+						"!= "
+						"M(" << iCol << ", " << iRow << ")=" << mcr << " "
+						<< std::endl);
+				}
+				bIsMSym = false;
+			}
+
+			if (mrc != 0. || mcr != 0.) {
+				if (bIsMDiag) {
+					silent_cerr("Modal(" << uLabel << "): mass matrix is not diagonal: (at least) "
+						"M(" << iRow << ", " << iCol << ")=" << mrc << " "
+						"and/or "
+						"M(" << iCol << ", " << iRow << ")=" << mcr << " "
+						"!= 0.0"
+						<< std::endl);
+				}
+				bIsMDiag = false;
+			}
+		}
+	}
+
+	bool bIsKSym = true;
+	bool bIsKDiag = true;
+	for (unsigned iRow = 2; iRow <= NModes; iRow++) {
+		for (unsigned iCol = 1; iCol < iRow; iCol++) {
+			doublereal mrc = pGenStiff->dGet(iRow, iCol);
+			doublereal mcr = pGenStiff->dGet(iCol, iRow);
+			if (mrc != mcr) {
+				if (bIsKSym) {
+					silent_cerr("Modal(" << uLabel << "): stiffness matrix is not symmetric: (at least) "
+						"K(" << iRow << ", " << iCol << ")=" << mrc << " "
+						"!= "
+						"K(" << iCol << ", " << iRow << ")=" << mcr << " "
+						<< std::endl);
+				}
+				bIsKSym = false;
+			}
+
+			if (mrc != 0. || mcr != 0.) {
+				if (bIsKDiag) {
+					silent_cerr("Modal(" << uLabel << "): stiffness matrix is not diagonal: (at least) "
+						"K(" << iRow << ", " << iCol << ")=" << mrc << " "
+						"and/or "
+						"K(" << iCol << ", " << iRow << ")=" << mcr << " "
+						"!= 0.0"
+						<< std::endl);
+				}
+				bIsKDiag = false;
+			}
+		}
+	}
+
+	if (eDamp == DAMPING_FROM_FILE) {
+		bool bIsCSym = true;
+		bool bIsCDiag = true;
+		for (unsigned iRow = 2; iRow <= NModes; iRow++) {
+			for (unsigned iCol = 1; iCol < iRow; iCol++) {
+				doublereal mrc = pGenDamp->dGet(iRow, iCol);
+				doublereal mcr = pGenDamp->dGet(iCol, iRow);
+				if (mrc != mcr) {
+					if (bIsCSym) {
+						silent_cerr("Modal(" << uLabel << "): damping matrix is not symmetric: (at least) "
+							"C(" << iRow << ", " << iCol << ") "
+							"!= "
+							"C(" << iCol << ", " << iRow << ") "
+							<< std::endl);
+					}
+					bIsCSym = false;
+				}
+
+				if (mrc != 0. || mcr != 0.) {
+					if (bIsCDiag) {
+						silent_cerr("Modal(" << uLabel << "): damping matrix is not diagonal: (at least) "
+							"C(" << iRow << ", " << iCol << ") "
+							"and/or "
+							"C(" << iCol << ", " << iRow << ") "
+							"!= 0.0"
+							<< std::endl);
+					}
+					bIsCDiag = false;
+				}
+			}
+		}
+
+	} else {
 		/*
 		 * costruisce la matrice di smorzamento:
 		 * il termine diagonale i-esimo e' pari a
 		 * cii = 2*cdampi*(ki*mi)^.5
 		 */
-		for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-			doublereal d = sqrt(pGenStiff->dGet(iCnt, iCnt)
-					*pGenMass->dGet(iCnt, iCnt));
+		switch (eDamp) {
+		case DAMPING_DIAG:
+		case DAMPING_SINGLE_FACTOR:
+			if (!bIsMDiag || !bIsKDiag) {
+				silent_cerr("Modal(" << uLabel << "): "
+					"warning, " << sDamp[eDamp]
+					<< " with non-diagonal mass and/or stiffness matrix" << std::endl);
+			}
 
-			if (bDampFlag) {
-				pGenDamp->Put(iCnt, iCnt, 2.*DampRatios(iCnt)*d);
+			for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+				doublereal k = pGenStiff->dGet(iCnt, iCnt);
+				doublereal m = pGenMass->dGet(iCnt, iCnt);
+				doublereal d = sqrt(k*m);
+
+				if (eDamp == DAMPING_DIAG) {
+					pGenDamp->Put(iCnt, iCnt, 2.*DampRatios[iCnt - 1]*d);
+
+				} else if (eDamp == DAMPING_SINGLE_FACTOR) {
+					pGenDamp->Put(iCnt, iCnt, 2.*damp_factor*d);
+				}
+			}
+			break;
+
+		case DAMPING_RAYLEIGH:
+			if (bIsMSym && bIsKSym) {
+				for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
+					doublereal m = pGenMass->dGet(iCnt, iCnt);
+					doublereal k = pGenStiff->dGet(iCnt, iCnt);
+					pGenDamp->Put(iCnt, iCnt, damp_coef_M*m + damp_coef_K*k);
+				}
 
 			} else {
-				pGenDamp->Put(iCnt, iCnt, 2.*cdamp*d);
+				for (unsigned int iRow = 1; iRow <= NModes; iRow++) {
+					for (unsigned int iCol = 1; iCol <= NModes; iCol++) {
+						doublereal m = pGenMass->dGet(iRow, iCol);
+						doublereal k = pGenStiff->dGet(iRow, iCol);
+						pGenDamp->Put(iRow, iCol, damp_coef_M*m + damp_coef_K*k);
+					}
+				}
 			}
+			break;
+
+		default:
+			// nothing to do
+			break;
 		}
 	}
 

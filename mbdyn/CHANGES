@@ -15,7 +15,13 @@ MBDyn 1.X-Devel
 		- added ModalBody: body connected to modal node
 		  (Reinhard Resch)
 		- added sprintf function to math parser
+		- added "single factor damping" to modal joint
+		- added check for symmetric/diagonal mass/stiffness
+		  matrices in modal joint
+		- added initial distance as "current" in distance joint
 	Backward compatibility issues:
+		- "proportional damping" in modal joint replaced by
+		  "single factor damping"
 	Known issues:
 	Bug fixes:
 		- fixed possibility to turn off output of aero elements
