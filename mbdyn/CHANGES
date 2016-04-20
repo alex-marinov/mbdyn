@@ -40,6 +40,8 @@ MBDyn 1.X-Devel
 		  (noted by Reinhard Resch)
 		- fixed parsing of modal joint "origin node" in string format
 		  (noted by Reinhard Resch)
+		- fixed bug in deformable displacement joint Jacobian
+		  matrix (Andrea Zanoni)
 
 MBDyn 1.7.0
 	Enhancements:

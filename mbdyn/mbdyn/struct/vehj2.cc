@@ -223,8 +223,8 @@ DeformableDispJoint::AssMatFDEPrime(FullSubMatrixHandler& WMA,
 	WMA.Sub(1, 4, MTmp);
 	WMA.Add(6 + 1, 4, MTmp);
 
-	WMA.Sub(4, 6 + 4, d1.Cross(MTmp));
-	WMA.Add(6 + 4, 6 + 4, d2.Cross(MTmp));
+	WMA.Sub(4, 4, d1.Cross(MTmp));
+	WMA.Add(6 + 4, 4, d2.Cross(MTmp));
 
 	/* F/dot{d} * ( [ ( w2 x d2 ) x ] - [ w1 x ] [ d2 x ] ) * dCoef */
 	Vec3 d2Prime(pNode2->GetWCurr().Cross(d2));
