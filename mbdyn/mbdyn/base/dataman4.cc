@@ -451,7 +451,8 @@ DataManager::ReadElems(MBDynParser& HP)
 					Elem* pE = dynamic_cast<Elem *>(pFindElem(Typ, uL));
 					if (pE == 0) {
 						silent_cerr(psElemNames[Typ] << "(" << uL << ") "
-							"is not defined; output cannot be modified"
+							"is not defined (ignored); output cannot be modified "
+							"at line " << HP.GetLineData()
 							<< std::endl);
 					} else {
 						DEBUGLCOUT(MYDEBUG_INPUT, "element " << uL << std::endl);

@@ -73,7 +73,7 @@ public:
 	void SetOutputFlags(unsigned OF);
 	void AddOutputFlags(unsigned OF);
 	void DelOutputFlags(unsigned OF);
-	inline MatrixHandler::Norm_t GetCondMatNorm()const;
+	inline MatrixHandler::Norm_t GetCondMatNorm(void) const;
 
 	inline bool outputMeter(void) const {
 		return (!pOutputMeter || pOutputMeter->dGet());

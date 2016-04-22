@@ -323,7 +323,7 @@ JoystickDrive::init(void)
 	}
 
 	if (bFail) {
-		// ...
+		// TODO: error
 	}
 
 	get_fd_flags();

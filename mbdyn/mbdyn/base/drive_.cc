@@ -1377,21 +1377,21 @@ void DriveCallerRead::ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDyn
 		if (HP.IsKeyWord("value")) {
 			bGotKeyWord = true;
 
-            if (HP.GetYesNoOrBool()) {
-			    fOutput |= DriveCaller::OUTPUT_VALUE;
-            } else {
-                fOutput &= ~DriveCaller::OUTPUT_VALUE;
-            }
+			if (HP.GetYesNoOrBool()) {
+				fOutput |= DriveCaller::OUTPUT_VALUE;
+			} else {
+				fOutput &= ~DriveCaller::OUTPUT_VALUE;
+       			}
 		}
 
 		if (HP.IsKeyWord("derivative")) {
 			bGotKeyWord = true;
             
-            if (HP.GetYesNoOrBool()) {
-			    fOutput |= DriveCaller::OUTPUT_DERIVATIVE;
-            } else {
-                fOutput &= ~DriveCaller::OUTPUT_DERIVATIVE;
-            }
+			if (HP.GetYesNoOrBool()) {
+				fOutput |= DriveCaller::OUTPUT_DERIVATIVE;
+			} else {
+				fOutput &= ~DriveCaller::OUTPUT_DERIVATIVE;
+			}
 		}
 
 		if (!bGotKeyWord) {
@@ -1427,21 +1427,21 @@ void DriveCallerRead::ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDyn
 		if (HP.IsKeyWord("value")) {
 			bGotKeyWord = true;
 
-            if (HP.GetYesNoOrBool()) {
-			    fTrace |= DriveCaller::TRACE_VALUE;
-            } else {
-                fTrace &= ~DriveCaller::TRACE_VALUE;
-            }
+			if (HP.GetYesNoOrBool()) {
+				fTrace |= DriveCaller::TRACE_VALUE;
+       			} else {
+				fTrace &= ~DriveCaller::TRACE_VALUE;
+			}
 		}
 
 		if (HP.IsKeyWord("derivative")) {
 			bGotKeyWord = true;
 
-            if (HP.GetYesNoOrBool()) {
-			    fTrace |= DriveCaller::TRACE_DERIVATIVE;
-            } else {
-                fTrace &= ~DriveCaller::TRACE_DERIVATIVE;
-            }
+			if (HP.GetYesNoOrBool()) {
+				fTrace |= DriveCaller::TRACE_DERIVATIVE;
+			} else {
+				fTrace &= ~DriveCaller::TRACE_DERIVATIVE;
+			}
 		}
 
 		if (!bGotKeyWord) {

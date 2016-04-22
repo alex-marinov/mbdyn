@@ -1684,8 +1684,9 @@ DataManager::ReadNodes(MBDynParser& HP)
 					if (pN == 0) {
 						silent_cerr(psNodeNames[Typ]
 							<< "(" << uL << ") "
-							"is not defined; "
-							"output cannot be modified"
+							"is not defined (ignored); "
+							"output cannot be modified "
+							"at line " << HP.GetLineData()
 							<< std::endl);
 
 					} else {
