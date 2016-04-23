@@ -204,8 +204,8 @@ struct NonlinearSolverOptions
 	doublereal dScaleAlgebraic;
 
 	NonlinearSolverOptions(bool bHonorJacRequest = false,
-						   enum ScaleFlags eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_NO,
-						   doublereal dScaleAlgebraic = 1.);
+		enum ScaleFlags eScaleFlags = SCALE_ALGEBRAIC_EQUATIONS_NO,
+		doublereal dScaleAlgebraic = 1.);
 };
 
 class NonlinearSolver : public SolverDiagnostics, protected NonlinearSolverOptions
