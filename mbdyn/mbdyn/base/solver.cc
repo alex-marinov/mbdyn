@@ -2396,7 +2396,8 @@ Solver::ReadData(MBDynParser& HP)
 			KeyWords KMethod = KeyWords(HP.GetWord());
 			switch (KMethod) {
 			case CRANKNICHOLSON:
-				silent_cout("warning: \"crank nicolson\" is the correct spelling" << std::endl);
+				silent_cout("warning: \"crank nicolson\" is the correct spelling "
+					"at line " << HP.GetLineData() << std::endl);
 			case CRANKNICOLSON:
 				RegularType = INT_CRANKNICOLSON;
 				break;

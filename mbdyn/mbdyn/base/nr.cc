@@ -128,7 +128,7 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * is required, so we could simply don't compute
 		 * the test; I'm leaving it in place so it appears
 		 * in the output (maybe we could conditionally disable 
-		 * it? */
+		 * it?) */
 
 		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
 		if (iIterCnt > 0) {
