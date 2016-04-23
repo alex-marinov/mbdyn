@@ -339,7 +339,19 @@ pDM(NULL),
 iNumDofs(0),
 pSM(NULL),
 pNLS(NULL),
-dCurrTimeStep(0.)
+eStatus(SOLVER_STATUS_UNINITIALIZED),
+dCurrTimeStep(0.),
+bOutputCounter(false),
+outputCounterPrefix(),
+outputCounterPostfix(),
+iTotIter(0),
+iStIter(0),
+dTotErr(0.),
+dTest(std::numeric_limits<double>::max()),
+dSolTest(std::numeric_limits<double>::max()),
+bSolConv(false),
+bOut(false),
+lStep(0)
 {
 	DEBUGCOUTFNAME("Solver::Solver");
 
@@ -349,17 +361,10 @@ dCurrTimeStep(0.)
 	StrategyFactor.iMaxIters = 0;
 }
 
-void
-Solver::Run(void)
-{
-	DEBUGCOUTFNAME("Solver::Run");
-
-	mbdyn_signal_init(1);
-
-	/* Legge i dati relativi al metodo di integrazione */
-	ReadData(HP);
-
 #ifdef USE_MULTITHREAD
+void
+Solver::ThreadPrepare(void)
+{
 	/* check for thread potential */
 	if (nThreads == 0) {
 		int n = get_nprocs();
@@ -374,6 +379,27 @@ Solver::Run(void)
 			nThreads = 1;
 		}
 	}
+}
+#endif /* USE_MULTITHREAD */
+
+bool
+Solver::Prepare(void)
+{
+	DEBUGCOUTFNAME("Solver::Prepare");
+
+	// consistency check
+	if (eStatus != SOLVER_STATUS_UNINITIALIZED) {
+		silent_cerr("Prepare() must be called first" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	mbdyn_signal_init(1);
+
+	/* Legge i dati relativi al metodo di integrazione */
+	ReadData(HP);
+
+#ifdef USE_MULTITHREAD
+	ThreadPrepare();
 #endif /* USE_MULTITHREAD */
 
 	if (pRTSolver) {
@@ -485,6 +511,10 @@ Solver::Run(void)
 	// close input stream
 	HP.Close();
 
+	bOutputCounter = outputCounter() && isatty(fileno(stderr));
+	outputCounterPrefix = bOutputCounter ? "\n" : "";
+	outputCounterPostfix = outputStep() ? "\n" : "\r";
+
 	/* Si fa dare l'std::ostream al file di output per il log */
 	std::ostream& Out = pDM->GetOutFile();
 
@@ -493,14 +523,14 @@ Solver::Run(void)
 		pDM->Output(0, dTime, 0., true);
 		Out << "End of Input; no simulation or assembly is required."
 			<< std::endl;
-		return;
+		return false;
 
 	} else if (eAbortAfter == AFTER_ASSEMBLY) {
 		/* Fa l'output dell'assemblaggio iniziale e poi esce */
 		pDM->Output(0, dTime, 0., true);
 		Out << "End of Initial Assembly; no simulation is required."
 			<< std::endl;
-		return;
+		return false;
 	}
 
 #ifdef USE_SCHUR
@@ -728,13 +758,6 @@ Solver::Run(void)
 		}
 	}
 
-	integer iTotIter = 0;
-	integer iStIter = 0;
-	doublereal dTotErr = 0.;
-	doublereal dTest = std::numeric_limits<double>::max();
-	doublereal dSolTest = std::numeric_limits<double>::max();
-	bool bSolConv = false;
-	bool bOut = false;
 	/* calcolo delle derivate */
 	DEBUGLCOUT(MYDEBUG_DERIVATIVES, "derivatives solution step"
 			<< std::endl);
@@ -821,7 +844,7 @@ Solver::Run(void)
 	}
 	catch (EndOfSimulation& eos) {
 		silent_cerr("Simulation ended during the derivatives steps:\n" << eos.what() << "\n");
-		return;
+		return false;
 	}
 
 	SAFEDELETE(pDerivativeSteps);
@@ -859,7 +882,8 @@ Solver::Run(void)
 		pDM->Output(0, dTime, 0., true);
 		Out << "End of derivatives; no simulation is required."
 			<< std::endl;
-		return;
+		return false;
+
 	} else if (mbdyn_stop_at_end_of_time_step()) {
 		/*
 		 * Fa l'output della soluzione delle derivate iniziali ed esce
@@ -872,8 +896,7 @@ Solver::Run(void)
 	// if eigenanalysis is requested and currAnalysis points
 	// past the end of the array, the analysis was requested
 	// at Time == initial time; perform *after* derivatives
-	if (EigAn.bAnalysis)
-	{
+	if (EigAn.bAnalysis) {
 		ASSERT(EigAn.Analyses.size() > 0);
 
 		if ((EigAn.currAnalysis == EigAn.Analyses.end()
@@ -889,7 +912,7 @@ Solver::Run(void)
 	}
 
 	/* Dati comuni a passi fittizi e normali */
-	long lStep = 1;
+	lStep = 1;
 
 	if (iDummyStepsNumber > 0) {
 		/* passi fittizi */
@@ -955,7 +978,7 @@ Solver::Run(void)
 		catch (EndOfSimulation& eos) {
 			silent_cerr("Simulation ended during the first dummy step:\n"
 				<< eos.what() << "\n");
-			return;
+			return false;
 		}
 
 		SAFEDELETE(pFirstDummyStep);
@@ -1051,7 +1074,7 @@ Solver::Run(void)
 			catch (EndOfSimulation& eos) {
 				silent_cerr("Simulation ended during the dummy steps:\n"
 					<< eos.what() << "\n");
-				return;
+				return false;
 			}
 
 #if 0
@@ -1115,7 +1138,7 @@ Solver::Run(void)
 			<< "# Step Time TStep NIter ResErr SolErr SolConv Out"
 				<< std::endl
 			<< "Step " << 0
-			<< " " << dTime+dCurrTimeStep
+			<< " " << dTime + dCurrTimeStep
 			<< " " << dCurrTimeStep
 			<< " " << iStIter
 			<< " " << dTest
@@ -1129,12 +1152,28 @@ Solver::Run(void)
 	if (eAbortAfter == AFTER_DUMMY_STEPS) {
 		Out << "End of dummy steps; no simulation is required."
 			<< std::endl;
-		return;
+		return false;
 
 	} else if (mbdyn_stop_at_end_of_time_step()) {
 		/* Fa l'output della soluzione ed esce */
 		Out << "Interrupted during dummy steps." << std::endl;
 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
+
+	eStatus = SOLVER_STATUS_PREPARED;
+
+	return true;
+}
+
+bool
+Solver::Start(void)
+{
+	DEBUGCOUTFNAME("Solver::Start");
+
+	// consistency check
+	if (eStatus != SOLVER_STATUS_PREPARED) {
+		silent_cerr("Start() must be called after Prepare()" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	/* primo passo regolare */
@@ -1159,8 +1198,7 @@ Solver::Run(void)
 	dCurrTimeStep = dRefTimeStep;
 
 	ASSERT(pFirstRegularStep!= NULL);
-	StepIntegrator::StepChange CurrStep
-			= StepIntegrator::NEWSTEP;
+	StepIntegrator::StepChange CurrStep = StepIntegrator::NEWSTEP;
 
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
@@ -1234,13 +1272,16 @@ IfFirstStepIsToBeRepeated:
 	catch (EndOfSimulation& eos) {
 		silent_cerr("Simulation ended during the first regular step:\n"
 			<< eos.what() << "\n");
-		return;
+		return false;
 	}
 
 	SAFEDELETE(pFirstRegularStep);
 	pFirstRegularStep = 0;
 
 	bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+
+	/* Si fa dare l'std::ostream al file di output per il log */
+	std::ostream& Out = pDM->GetOutFile();
 
 	if (mbdyn_stop_at_end_of_time_step()) {
 		/* Fa l'output della soluzione al primo passo ed esce */
@@ -1286,263 +1327,285 @@ IfFirstStepIsToBeRepeated:
 		pRTSolver->Init();
 	}
 
-	bool bOutputCounter = outputCounter() && isatty(fileno(stderr));
-	const char *outputCounterPrefix = bOutputCounter ? "\n" : "";
-	const char *outputCounterPostfix = outputStep() ? "\n" : "\r";
+	eStatus = SOLVER_STATUS_STARTED;
 
-	/* Altri passi regolari */
-	ASSERT(pRegularSteps != NULL);
+	return true;
+}
 
-	/* Setup SolutionManager(s) */
-	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
-	pCurrStepIntegrator = pRegularSteps;
-	while (true) {
-		StepIntegrator::StepChange CurrStep
-				= StepIntegrator::NEWSTEP;
+bool
+Solver::Advance(void)
+{
+	DEBUGCOUTFNAME("Solver::Advance");
 
-		if (pDM->EndOfSimulation() || dTime >= dFinalTime) {
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
-			}
-			silent_cout(outputCounterPrefix
-				<< "End of simulation at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "output in file \"" << sOutputFileName << "\"" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
+	// consistency check
+	if (eStatus != SOLVER_STATUS_STARTED) {
+		silent_cerr("Started() must be called first" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-			if (pRTSolver) {
-				pRTSolver->Log();
-			}
+	StepIntegrator::StepChange CurrStep = StepIntegrator::NEWSTEP;
 
-			return;
-
-		} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
-			silent_cout(outputCounterPrefix
-				<< "Simulation is stopped by RTAI task" << std::endl
-				<< "Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
-			pRTSolver->Log();
-			return;
-
-		} else if (mbdyn_stop_at_end_of_time_step()
-#ifdef USE_MPI
-			|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
-#endif /* USE_MPI */
-				)
-		{
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
-			}
-
-			silent_cout(outputCounterPrefix
-				<< "Interrupted!" << std::endl
-				<< "Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
-
-			if (pRTSolver) {
-				pRTSolver->Log();
-			}
-
-			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	if (pDM->EndOfSimulation() || dTime >= dFinalTime) {
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
 		}
-
-		lStep++;
-		pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
-
-		Flip();
+		silent_cout(outputCounterPrefix
+			<< "End of simulation at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "output in file \"" << sOutputFileName << "\"" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
 
 		if (pRTSolver) {
-			pRTSolver->Wait();
+			pRTSolver->Log();
 		}
 
-		int retries = -1;
-IfStepIsToBeRepeated:
-		try {
-			retries++;
-			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
-			if (outputStep()) {
-				if (outputCounter()) {
-					silent_cout(std::endl);
-				}
- 				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
-			}
-			dTest = pRegularSteps->Advance(this, dRefTimeStep,
-					dCurrTimeStep/dRefTimeStep, CurrStep,
-					qX, qXPrime, pX, pXPrime, iStIter,
-					dTest, dSolTest);
-		}
-		catch (NonlinearSolver::NoConvergence) {
-			if (dCurrTimeStep > dMinTimeStep) {
-				/* Riduce il passo */
-				CurrStep = StepIntegrator::REPEATSTEP;
-				doublereal dOldCurrTimeStep = dCurrTimeStep;
-				dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
-						iStIter,
-						CurrStep);
-				if (dCurrTimeStep < dOldCurrTimeStep) {
-					DEBUGCOUT("Changing time step"
-						" from " << dOldCurrTimeStep
-						<< " to " << dCurrTimeStep
-						<< " during step "
-						<< lStep << " after "
-						<< iStIter << " iterations"
-						<< std::endl);
-					goto IfStepIsToBeRepeated;
-				}
-			}
+		return false;
 
-			silent_cerr(outputCounterPrefix
-				<< "Max iterations number "
-				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
-				<< " has been reached during "
-				"Step=" << lStep << ", "
-				"Time=" << dTime + dCurrTimeStep << "; "
-				"TimeStep=" << dCurrTimeStep
-				<< " cannot be reduced further; "
-				"aborting..." << std::endl);
-			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-		}
-		catch (NonlinearSolver::ErrSimulationDiverged) {
-			if (dCurrTimeStep > dMinTimeStep) {
-				/* Riduce il passo */
-				CurrStep = StepIntegrator::REPEATSTEP;
-				doublereal dOldCurrTimeStep = dCurrTimeStep;
-				dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
-						iStIter,
-						CurrStep);
-				if (dCurrTimeStep < dOldCurrTimeStep) {
-					DEBUGCOUT("Changing time step"
-						" from " << dOldCurrTimeStep
-						<< " to " << dCurrTimeStep
-						<< " during step "
-						<< lStep << " after "
-						<< iStIter << " iterations"
-						<< std::endl);
-					goto IfStepIsToBeRepeated;
-				}
-			}
+	} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
+		silent_cout(outputCounterPrefix
+			<< "Simulation is stopped by RTAI task" << std::endl
+			<< "Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
+		pRTSolver->Log();
+		return false;
 
-			silent_cerr(outputCounterPrefix
-				<< "Simulation diverged after "
-				<< iStIter << " iterations, before "
-				"reaching max iteration number "
-				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
-				<< " during Step=" << lStep << ", "
-				"Time=" << dTime + dCurrTimeStep << "; "
-				"TimeStep=" << dCurrTimeStep
-				<< " cannot be reduced further; "
-				"aborting..." << std::endl);
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-		}
-		catch (LinearSolver::ErrFactor& err) {
-			/*
-			 * Mettere qui eventuali azioni speciali
-			 * da intraprendere in caso di errore ...
-			 */
-			silent_cerr(outputCounterPrefix
-				<< "Simulation failed because no pivot element "
-				"could be found for column " << err.iCol
-				<< " (" << pDM->GetDofDescription(err.iCol) << ") "
-				"after " << iStIter << " iterations "
-				"during step " << lStep << "; "
-				"aborting..." << std::endl);
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-		}
-		catch (NonlinearSolver::ConvergenceOnSolution) {
-			bSolConv = true;
-		}
-		catch (EndOfSimulation& eos) {
-			silent_cerr(outputCounterPrefix
-				<< "Simulation ended during a regular step:\n"
-				<< eos.what() << "\n");
+	} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
-			MBDynComm.Abort(0);
+		|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
 #endif /* USE_MPI */
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
+			)
+	{
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
+		}
+
+		silent_cout(outputCounterPrefix
+			<< "Interrupted!" << std::endl
+			<< "Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
+
+		if (pRTSolver) {
+			pRTSolver->Log();
+		}
+
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
+
+	lStep++;
+	pDM->BeforePredict(*pX, *pXPrime, *qX[0], *qXPrime[0]);
+
+	Flip();
+
+	if (pRTSolver) {
+		pRTSolver->Wait();
+	}
+
+	int retries = -1;
+IfStepIsToBeRepeated:
+	try {
+		retries++;
+		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
+		if (outputStep()) {
+			if (outputCounter()) {
+				silent_cout(std::endl);
 			}
-
-			silent_cout("Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
-
-			if (pRTSolver) {
-				pRTSolver->Log();
+ 			silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+		}
+		dTest = pRegularSteps->Advance(this, dRefTimeStep,
+				dCurrTimeStep/dRefTimeStep, CurrStep,
+				qX, qXPrime, pX, pXPrime, iStIter,
+				dTest, dSolTest);
+	}
+	catch (NonlinearSolver::NoConvergence) {
+		if (dCurrTimeStep > dMinTimeStep) {
+			/* Riduce il passo */
+			CurrStep = StepIntegrator::REPEATSTEP;
+			doublereal dOldCurrTimeStep = dCurrTimeStep;
+			dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
+					iStIter,
+					CurrStep);
+			if (dCurrTimeStep < dOldCurrTimeStep) {
+				DEBUGCOUT("Changing time step"
+					" from " << dOldCurrTimeStep
+					<< " to " << dCurrTimeStep
+					<< " during step "
+					<< lStep << " after "
+					<< iStIter << " iterations"
+					<< std::endl);
+				goto IfStepIsToBeRepeated;
 			}
-
-			return;
 		}
 
-		dTotErr += dTest;
-		iTotIter += iStIter;
-
-		bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
-
-		if (outputMsg()) {
-			Out << "Step " << lStep
-				<< " " << dTime + dCurrTimeStep
-				<< " " << dCurrTimeStep
-				<< " " << iStIter
-				<< " " << dTest
-				<< " " << dSolTest
-				<< " " << bSolConv
-				<< " " << bOut
-				<< std::endl;
-		}
-
-		if (bOutputCounter) {
-			silent_cout("Step " << std::setw(5) << lStep
-				<< " " << std::setw(13) << dTime + dCurrTimeStep
-				<< " " << std::setw(13) << dCurrTimeStep
-				<< " " << std::setw(4) << iStIter
-				<< " " << std::setw(13) << dTest
-				<< " " << std::setw(13) << dSolTest
-				<< " " << bSolConv
-				<< " " << bOut
-				<< outputCounterPostfix);
-		}
-
-		DEBUGCOUT("Step " << lStep
-			<< " has been successfully completed "
-			"in " << iStIter << " iterations" << std::endl);
-
-		dRefTimeStep = dCurrTimeStep;
-		dTime += dRefTimeStep;
-
-		bSolConv = false;
-
-		if (EigAn.bAnalysis
-			&& EigAn.currAnalysis != EigAn.Analyses.end()
-			&& *EigAn.currAnalysis <= dTime)
-		{
-			std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
-				EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
-			if (i != EigAn.Analyses.end()) {
-				EigAn.currAnalysis = --i;
+		silent_cerr(outputCounterPrefix
+			<< "Max iterations number "
+			<< std::abs(pRegularSteps->GetIntegratorMaxIters())
+			<< " has been reached during "
+			"Step=" << lStep << ", "
+			"Time=" << dTime + dCurrTimeStep << "; "
+			"TimeStep=" << dCurrTimeStep
+			<< " cannot be reduced further; "
+			"aborting..." << std::endl);
+		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+	}
+	catch (NonlinearSolver::ErrSimulationDiverged) {
+		if (dCurrTimeStep > dMinTimeStep) {
+			/* Riduce il passo */
+			CurrStep = StepIntegrator::REPEATSTEP;
+			doublereal dOldCurrTimeStep = dCurrTimeStep;
+			dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
+					iStIter,
+					CurrStep);
+			if (dCurrTimeStep < dOldCurrTimeStep) {
+				DEBUGCOUT("Changing time step"
+					" from " << dOldCurrTimeStep
+					<< " to " << dCurrTimeStep
+					<< " during step "
+					<< lStep << " after "
+					<< iStIter << " iterations"
+					<< std::endl);
+				goto IfStepIsToBeRepeated;
 			}
-			Eig(bOutputCounter);
-			++EigAn.currAnalysis;
 		}
 
-		/* Calcola il nuovo timestep */
-		dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
-		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-	} // while (true)  END OF ENDLESS-LOOP
-}  // Solver::Run()
+		silent_cerr(outputCounterPrefix
+			<< "Simulation diverged after "
+			<< iStIter << " iterations, before "
+			"reaching max iteration number "
+			<< std::abs(pRegularSteps->GetIntegratorMaxIters())
+			<< " during Step=" << lStep << ", "
+			"Time=" << dTime + dCurrTimeStep << "; "
+			"TimeStep=" << dCurrTimeStep
+			<< " cannot be reduced further; "
+			"aborting..." << std::endl);
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+	catch (LinearSolver::ErrFactor& err) {
+		/*
+		 * Mettere qui eventuali azioni speciali
+		 * da intraprendere in caso di errore ...
+		 */
+		silent_cerr(outputCounterPrefix
+			<< "Simulation failed because no pivot element "
+			"could be found for column " << err.iCol
+			<< " (" << pDM->GetDofDescription(err.iCol) << ") "
+			"after " << iStIter << " iterations "
+			"during step " << lStep << "; "
+			"aborting..." << std::endl);
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+	catch (NonlinearSolver::ConvergenceOnSolution) {
+		bSolConv = true;
+	}
+	catch (EndOfSimulation& eos) {
+		silent_cerr(outputCounterPrefix
+			<< "Simulation ended during a regular step:\n"
+			<< eos.what() << "\n");
+#ifdef USE_MPI
+		MBDynComm.Abort(0);
+#endif /* USE_MPI */
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
+		}
+
+		silent_cout("Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
+
+		if (pRTSolver) {
+			pRTSolver->Log();
+		}
+
+		return false;
+	}
+
+	dTotErr += dTest;
+	iTotIter += iStIter;
+
+	bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
+
+	/* Si fa dare l'std::ostream al file di output per il log */
+	std::ostream& Out = pDM->GetOutFile();
+
+	if (outputMsg()) {
+		Out << "Step " << lStep
+			<< " " << dTime + dCurrTimeStep
+			<< " " << dCurrTimeStep
+			<< " " << iStIter
+			<< " " << dTest
+			<< " " << dSolTest
+			<< " " << bSolConv
+			<< " " << bOut
+			<< std::endl;
+	}
+
+	if (bOutputCounter) {
+		silent_cout("Step " << std::setw(5) << lStep
+			<< " " << std::setw(13) << dTime + dCurrTimeStep
+			<< " " << std::setw(13) << dCurrTimeStep
+			<< " " << std::setw(4) << iStIter
+			<< " " << std::setw(13) << dTest
+			<< " " << std::setw(13) << dSolTest
+			<< " " << bSolConv
+			<< " " << bOut
+			<< outputCounterPostfix);
+	}
+
+	DEBUGCOUT("Step " << lStep
+		<< " has been successfully completed "
+		"in " << iStIter << " iterations" << std::endl);
+
+	dRefTimeStep = dCurrTimeStep;
+	dTime += dRefTimeStep;
+
+	bSolConv = false;
+
+	if (EigAn.bAnalysis
+		&& EigAn.currAnalysis != EigAn.Analyses.end()
+		&& *EigAn.currAnalysis <= dTime)
+	{
+		std::vector<doublereal>::iterator i = std::find_if(EigAn.Analyses.begin(),
+			EigAn.Analyses.end(), bind2nd(std::greater<doublereal>(), dTime));
+		if (i != EigAn.Analyses.end()) {
+			EigAn.currAnalysis = --i;
+		}
+		Eig(bOutputCounter);
+		++EigAn.currAnalysis;
+	}
+
+	/* Calcola il nuovo timestep */
+	dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
+
+	return true;
+}
+
+void
+Solver::Run(void)
+{
+	DEBUGCOUTFNAME("Solver::Run");
+
+	if (Prepare()) {
+		if (Start()) {
+			while (Advance()) {
+				NO_OP;
+			}
+		}
+	}
+}
 
 /* Distruttore */
 Solver::~Solver(void)

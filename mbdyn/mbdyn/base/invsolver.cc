@@ -82,15 +82,21 @@ InverseSolver::InverseSolver(MBDynParser& HPar,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, bPar),
 ProblemType(InverseDynamics::FULLY_ACTUATED_COLLOCATED),
-pXPrimePrime(NULL), pLambda(NULL)
+pXPrimePrime(0), pLambda(0)
 {
 	DEBUGCOUTFNAME("InverseSolver::InverseSolver");
 }
 
-void
-InverseSolver::Run(void)
+bool
+InverseSolver::Prepare(void)
 {
-	DEBUGCOUTFNAME("InverseSolver::Run");
+	DEBUGCOUTFNAME("InverseSolver::Prepare");
+
+	// consistency check
+	if (eStatus != SOLVER_STATUS_UNINITIALIZED) {
+		silent_cerr("Prepare() must be called first" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
 	mbdyn_signal_init(1);
 
@@ -101,20 +107,7 @@ InverseSolver::Run(void)
 //	bParallel = false;
 
 #ifdef USE_MULTITHREAD
-	/* check for thread potential */
-	if (nThreads == 0) {
-		int n = get_nprocs();
-
-		if (n > 1) {
-			silent_cout("no multithread requested "
-					"with a potential of " << n
-					<< " CPUs" << std::endl);
-			nThreads = n;
-
-		} else {
-			nThreads = 1;
-		}
-	}
+	ThreadPrepare();
 #endif /* USE_MULTITHREAD */
 
 	if (pRTSolver) {
@@ -438,16 +431,8 @@ InverseSolver::Run(void)
 	dTime = dInitialTime - dInitialTimeStep;
 	pDM->SetTime(dTime + dInitialTimeStep, dInitialTimeStep, 0);
 
-	integer iTotIter = 0;
-	integer iStIter = 0;
-	doublereal dTotErr = 0.;
-	doublereal dTest = std::numeric_limits<double>::max();
-	doublereal dSolTest = std::numeric_limits<double>::max();
-	bool bSolConv = false;
-	bool bOut = false;
-
-	dTest = 0.;
-	dSolTest = 0.;
+	// dTest = 0.;
+	// dSolTest = 0.;
 
 	mbdyn_signal_init(0);
 
@@ -475,7 +460,7 @@ InverseSolver::Run(void)
 	pNLS->SetExternal(External::EMPTY);
 #endif /* USE_EXTERNAL */
 
-	doublereal dCurrTimeStep = 0.;
+	dCurrTimeStep = 0.;
 
 #ifdef USE_EXTERNAL
 	/* comunica che gli ultimi dati inviati sono la condizione iniziale */
@@ -487,7 +472,7 @@ InverseSolver::Run(void)
 	pNLS->SetExternal(External::REGULAR);
 #endif /* USE_EXTERNAL */
 
-	long lStep = -1;
+	lStep = -1;
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	if (mbdyn_stop_at_end_of_time_step()) {
@@ -504,9 +489,9 @@ InverseSolver::Run(void)
 		pRTSolver->Init();
 	}
 
-	bool bOutputCounter = outputCounter() && isatty(fileno(stderr));
-	const char *outputCounterPrefix = bOutputCounter ? "\n" : "";
-	const char *outputCounterPostfix = outputStep() ? "\n" : "\r";
+	bOutputCounter = outputCounter() && isatty(fileno(stderr));
+	outputCounterPrefix = bOutputCounter ? "\n" : "";
+	outputCounterPostfix = outputStep() ? "\n" : "\r";
 
 	ASSERT(pRegularSteps != NULL);
 
@@ -518,216 +503,255 @@ InverseSolver::Run(void)
 	pDM->SetValue(*pX, *pXPrime);
 
 	pCurrStepIntegrator = pRegularSteps;
-	while (true) {
-		StepIntegrator::StepChange CurrStep
-				= StepIntegrator::NEWSTEP;
 
-		if (dTime >= dFinalTime) {
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
-			}
+	eStatus = SOLVER_STATUS_PREPARED;
 
-			silent_cout(outputCounterPrefix
-				<< "End of simulation at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "output in file \"" << sOutputFileName << "\"" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
+	return true;
+}
 
-			if (pRTSolver) {
-				pRTSolver->Log();
-			}
+bool
+InverseSolver::Start(void)
+{
+	DEBUGCOUTFNAME("InverseSolver::Start");
 
-			return;
+	// consistency check
+	if (eStatus != SOLVER_STATUS_PREPARED) {
+		silent_cerr("Start() must be called after Prepare()" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-		} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
-			silent_cout(outputCounterPrefix
-				<< "Simulation is stopped by RTAI task" << std::endl
-				<< "Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
-			pRTSolver->Log();
-			return;
+	// temporarily push status forward
+	eStatus = SOLVER_STATUS_STARTED;
+	bool b = Advance();
+	if (!b) {
+		// roll status back in case of failure
+		eStatus = SOLVER_STATUS_PREPARED;
+	}
+	return b;
+}
 
-		} else if (mbdyn_stop_at_end_of_time_step()
-#ifdef USE_MPI
-				|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
-#endif /* USE_MPI */
-				)
-		{
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
-			}
+bool
+InverseSolver::Advance(void)
+{
+	DEBUGCOUTFNAME("InverseSolver::Advance");
 
-			silent_cout(outputCounterPrefix
-				<< "Interrupted!" << std::endl
-				<< "Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
+	// consistency check
+	if (eStatus != SOLVER_STATUS_STARTED) {
+		silent_cerr("Started() must be called first" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
 
-			if (pRTSolver) {
-				pRTSolver->Log();
-			}
+	StepIntegrator::StepChange CurrStep = StepIntegrator::NEWSTEP;
 
-			throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	if (dTime >= dFinalTime) {
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
 		}
 
-		lStep++;
+		silent_cout(outputCounterPrefix
+			<< "End of simulation at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "output in file \"" << sOutputFileName << "\"" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
 
 		if (pRTSolver) {
-			pRTSolver->Wait();
+			pRTSolver->Log();
 		}
 
-		int retries = -1;
-IfStepIsToBeRepeated:
-		try {
-			retries++;
-			pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
-			if (outputStep()) {
-				silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
-			}
-			dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
-					CurrStep, pX, pXPrime, pXPrimePrime, pLambda,
-					iStIter, dTest, dSolTest);
-		}
+		return false;
 
-		catch (NonlinearSolver::NoConvergence) {
-			if (dCurrTimeStep > dMinTimeStep) {
-				/* Riduce il passo */
-				CurrStep = StepIntegrator::REPEATSTEP;
-				doublereal dOldCurrTimeStep = dCurrTimeStep;
-				dCurrTimeStep = NewTimeStep(dCurrTimeStep,
-						iStIter,
-						CurrStep);
-				if (dCurrTimeStep < dOldCurrTimeStep) {
-					DEBUGCOUT("Changing time step"
-						" during step "
-						<< lStep << " after "
-						<< iStIter << " iterations"
-						<< std::endl);
-					goto IfStepIsToBeRepeated;
-				}
-			}
+	} else if (pRTSolver && pRTSolver->IsStopCommanded()) {
+		silent_cout(outputCounterPrefix
+			<< "Simulation is stopped by RTAI task" << std::endl
+			<< "Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
+		pRTSolver->Log();
+		return false;
 
-			silent_cerr(outputCounterPrefix
-				<< "Max iterations number "
-				<< std::abs(pRegularSteps->GetIntegratorMaxIters())
-				<< " has been reached during"
-				" step " << lStep << ';'
-				<< std::endl
-				<< "time step dt="
-				<< dCurrTimeStep
-				<< " cannot be reduced"
-				" further;" << std::endl
-				<< "aborting..." << std::endl);
-			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
-		}
-
-		catch (NonlinearSolver::ErrSimulationDiverged) {
-			/*
-			 * Mettere qui eventuali azioni speciali
-			 * da intraprendere in caso di errore ...
-			 */
-			silent_cerr(outputCounterPrefix
-				<< "Simulation diverged after "
-				<< iStIter << " iterations, before "
-				"reaching max iteration number "
-				<< pRegularSteps->GetIntegratorMaxIters()
-				<< " during step " << lStep << ';'
-				<< std::endl
-				<< "time step dt="
-				<< dCurrTimeStep
-				<< " cannot be reduced"
-				" further;" << std::endl
-				<< "aborting..." << std::endl);
-			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
-		}
-		catch (NonlinearSolver::ConvergenceOnSolution) {
-			bSolConv = true;
-		}
-
-		catch (EndOfSimulation& eos) {
-			silent_cerr("Simulation ended during a regular step:\n"
-				<< eos.what() << "\n");
-			mbdyn_set_stop_at_end_of_time_step();
+	} else if (mbdyn_stop_at_end_of_time_step()
 #ifdef USE_MPI
-			MBDynComm.Abort(0);
+			|| (MPI_Finalized(&mpi_finalize), mpi_finalize)
+#endif /* USE_MPI */
+			)
+	{
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
+		}
+
+		silent_cout(outputCounterPrefix
+			<< "Interrupted!" << std::endl
+			<< "Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
+
+		if (pRTSolver) {
+			pRTSolver->Log();
+		}
+
+		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
+	}
+
+	lStep++;
+
+	if (pRTSolver) {
+		pRTSolver->Wait();
+	}
+
+	int retries = -1;
+IfStepIsToBeRepeated:
+	try {
+		retries++;
+		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, lStep);
+		if (outputStep()) {
+			silent_cout("Step(" << lStep << ':' << retries << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+		}
+		dTest = dynamic_cast<InverseDynamicsStepSolver *>(pRegularSteps)->Advance(this, dRefTimeStep,
+				CurrStep, pX, pXPrime, pXPrimePrime, pLambda,
+				iStIter, dTest, dSolTest);
+	}
+
+	catch (NonlinearSolver::NoConvergence) {
+		if (dCurrTimeStep > dMinTimeStep) {
+			/* Riduce il passo */
+			CurrStep = StepIntegrator::REPEATSTEP;
+			doublereal dOldCurrTimeStep = dCurrTimeStep;
+			dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+					iStIter,
+					CurrStep);
+			if (dCurrTimeStep < dOldCurrTimeStep) {
+				DEBUGCOUT("Changing time step"
+					" during step "
+					<< lStep << " after "
+					<< iStIter << " iterations"
+					<< std::endl);
+				goto IfStepIsToBeRepeated;
+			}
+		}
+
+		silent_cerr(outputCounterPrefix
+			<< "Max iterations number "
+			<< std::abs(pRegularSteps->GetIntegratorMaxIters())
+			<< " has been reached during"
+			" step " << lStep << ';'
+			<< std::endl
+			<< "time step dt="
+			<< dCurrTimeStep
+			<< " cannot be reduced"
+			" further;" << std::endl
+			<< "aborting..." << std::endl);
+		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
+	}
+
+	catch (NonlinearSolver::ErrSimulationDiverged) {
+		/*
+		 * Mettere qui eventuali azioni speciali
+		 * da intraprendere in caso di errore ...
+		 */
+		silent_cerr(outputCounterPrefix
+			<< "Simulation diverged after "
+			<< iStIter << " iterations, before "
+			"reaching max iteration number "
+			<< pRegularSteps->GetIntegratorMaxIters()
+			<< " during step " << lStep << ';'
+			<< std::endl
+			<< "time step dt="
+			<< dCurrTimeStep
+			<< " cannot be reduced"
+			" further;" << std::endl
+			<< "aborting..." << std::endl);
+		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+	catch (NonlinearSolver::ConvergenceOnSolution) {
+		bSolConv = true;
+	}
+
+	catch (EndOfSimulation& eos) {
+		silent_cerr("Simulation ended during a regular step:\n"
+			<< eos.what() << "\n");
+		mbdyn_set_stop_at_end_of_time_step();
+#ifdef USE_MPI
+		MBDynComm.Abort(0);
 #endif /* USE_MPI */
 
-			if (pRTSolver) {
-				pRTSolver->StopCommanded();
-			}
-
-			silent_cout(outputCounterPrefix
-				<< "Simulation ended at time "
-				<< dTime << " after "
-				<< lStep << " steps;" << std::endl
-				<< "total iterations: " << iTotIter << std::endl
-				<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
-				<< "total error: " << dTotErr << std::endl);
-
-			if (pRTSolver) {
-				pRTSolver->Log();
-			}
-
-			return;
-		}
-		catch (...) {
-			throw;
+		if (pRTSolver) {
+			pRTSolver->StopCommanded();
 		}
 
-		dTotErr += dTest;
-		iTotIter += iStIter;
+		silent_cout(outputCounterPrefix
+			<< "Simulation ended at time "
+			<< dTime << " after "
+			<< lStep << " steps;" << std::endl
+			<< "total iterations: " << iTotIter << std::endl
+			<< "total Jacobian matrices: " << pNLS->TotalAssembledJacobian() << std::endl
+			<< "total error: " << dTotErr << std::endl);
 
-		bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
-
-		if (outputMsg()) {
-			Out << "Step " << lStep
-				<< " " << dTime+dCurrTimeStep
-				<< " " << dCurrTimeStep
-				<< " " << iStIter
-				<< " " << dTest
-				<< " " << dSolTest
-				<< " " << bSolConv
-				<< " " << bOut
-				<< std::endl;
+		if (pRTSolver) {
+			pRTSolver->Log();
 		}
 
-		if (bOutputCounter) {
-			silent_cout("Step " << std::setw(5) << lStep
-				<< " " << std::setw(13) << dTime + dCurrTimeStep
-				<< " " << std::setw(13) << dCurrTimeStep
-				<< " " << std::setw(4) << iStIter
-				<< " " << std::setw(13) << dTest
-				<< " " << std::setw(13) << dSolTest
-				<< " " << bSolConv
-				<< " " << bOut
-				<< outputCounterPostfix);
-		}
+		return false;
+	}
+	catch (...) {
+		throw;
+	}
 
-		DEBUGCOUT("Step " << lStep
-			<< " has been successfully completed "
-			"in " << iStIter << " iterations" << std::endl);
+	dTotErr += dTest;
+	iTotIter += iStIter;
 
-		dRefTimeStep = dCurrTimeStep;
-		dTime += dRefTimeStep;
+	bOut = pDM->Output(lStep, dTime + dCurrTimeStep, dCurrTimeStep);
 
-		bSolConv = false;
+	/* Si fa dare l'std::ostream al file di output per il log */
+	std::ostream& Out = pDM->GetOutFile();
 
-		/* Calcola il nuovo timestep */
-		dCurrTimeStep =
-			NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
-		DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
-	} // while (true)  END OF ENDLESS-LOOP
-}  // InverseSolver::Run()
+	if (outputMsg()) {
+		Out << "Step " << lStep
+			<< " " << dTime+dCurrTimeStep
+			<< " " << dCurrTimeStep
+			<< " " << iStIter
+			<< " " << dTest
+			<< " " << dSolTest
+			<< " " << bSolConv
+			<< " " << bOut
+			<< std::endl;
+	}
+
+	if (bOutputCounter) {
+		silent_cout("Step " << std::setw(5) << lStep
+			<< " " << std::setw(13) << dTime + dCurrTimeStep
+			<< " " << std::setw(13) << dCurrTimeStep
+			<< " " << std::setw(4) << iStIter
+			<< " " << std::setw(13) << dTest
+			<< " " << std::setw(13) << dSolTest
+			<< " " << bSolConv
+			<< " " << bOut
+			<< outputCounterPostfix);
+	}
+
+	DEBUGCOUT("Step " << lStep
+		<< " has been successfully completed "
+		"in " << iStIter << " iterations" << std::endl);
+
+	dRefTimeStep = dCurrTimeStep;
+	dTime += dRefTimeStep;
+
+	bSolConv = false;
+
+	/* Calcola il nuovo timestep */
+	dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
+
+	return true;
+}
 
 /* Distruttore */
 InverseSolver::~InverseSolver(void)

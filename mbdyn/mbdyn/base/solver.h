@@ -92,12 +92,14 @@ public:
   		int EndCode;
   	public:
  		EndOfSimulation(const int e, MBDYN_EXCEPT_ARGS_DECL_NODEF) : 
- 		MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU), EndCode(e){};
+ 		MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU), EndCode(e) {};
   	};
   
 protected:
 #ifdef USE_MULTITHREAD
 	unsigned nThreads;
+
+	void ThreadPrepare(void);
 #endif /* USE_MULTITHREAD */
 
    	enum Strategy {
@@ -359,8 +361,24 @@ protected:
 	 * until all postponed drive callers have been instantiated */
 	doublereal dGetInitialMaxTimeStep() const;
 
-private:
+protected:
+	enum {
+		SOLVER_STATUS_UNINITIALIZED,
+		SOLVER_STATUS_PREPARED,
+		SOLVER_STATUS_STARTED
+	} eStatus;
 	doublereal dCurrTimeStep;
+	bool bOutputCounter;
+	std::string outputCounterPrefix;
+	std::string outputCounterPostfix;
+	integer iTotIter;
+	integer iStIter;
+	doublereal dTotErr;
+	doublereal dTest;
+	doublereal dSolTest;
+	bool bSolConv;
+	bool bOut;
+	long lStep;
 
 public:   
    	/* costruttore */
@@ -373,8 +391,12 @@ public:
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
    	virtual ~Solver(void);
 
+	virtual bool Prepare(void);
+	virtual bool Start(void);
+	virtual bool Advance(void);
+
    	/* esegue la simulazione */
-   	virtual void Run(void);
+   	void Run(void);
 
 	std::ostream & Restart(std::ostream& out, DataManager::eRestart type) const;
 

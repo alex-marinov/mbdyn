@@ -86,7 +86,11 @@ public:
    	virtual ~InverseSolver(void);
 
    	/* esegue la simulazione */
-   	virtual void Run(void);
+	virtual bool Prepare(void);
+	virtual bool Start(void);
+	virtual bool Advance(void);
+
+   	// virtual void Run(void);
 
 	std::ostream& Restart(std::ostream& out, DataManager::eRestart type) const;
 
