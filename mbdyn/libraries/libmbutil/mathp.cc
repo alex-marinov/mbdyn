@@ -1917,16 +1917,6 @@ MathParser::ErrGeneric::ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL_NODEF) 
 	silent_cerr(what() << " at line " << p->GetLineNumber() << std::endl);
 }
 
-MathParser::ErrGeneric::ErrGeneric(MathParser* p,
-	MBDYN_EXCEPT_ARGS_DECL_NODEF, 
-	const char* const s2,
-	const char* const s3)
-: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU + s2 + s3)
-{
-	silent_cerr(" MathParser - " << r << s2 << s3
-		<< " at line " << p->GetLineNumber() << std::endl);
-}
-
 /* gioca con table e stream di ingresso */
 Table&
 MathParser::GetSymbolTable(void) const
@@ -3082,17 +3072,13 @@ start_parsing:;
 				if (l == LONG_MIN) {
 					throw ErrGeneric(this,
 						MBDYN_EXCEPT_ARGS,
-						"integer value ",
-						std::string(s, endptr - s).c_str(),
-						" underflow");
+						std::string("integer value ") + std::string(s, endptr - s) + " underflow");
 				}
 
 				if (l == LONG_MAX) {
 					throw ErrGeneric(this,
 						MBDYN_EXCEPT_ARGS,
-						"integer value ",
-						std::string(s, endptr - s).c_str(),
-						" overflow");
+						std::string("integer value ") + std::string(s, endptr - s) + " overflow");
 				}
 
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -3119,17 +3105,13 @@ start_parsing:;
 				if (std::abs(d) == HUGE_VAL) {
 					throw ErrGeneric(this,
 						MBDYN_EXCEPT_ARGS,
-						"real value ",
-						std::string(s, endptr - s).c_str(),
-						" overflow");
+						std::string("real value ") + std::string(s, endptr - s) + " overflow");
 				}
 
 				if (d == 0.) {
 					throw ErrGeneric(this,
 						MBDYN_EXCEPT_ARGS,
-						"real value ",
-						std::string(s, endptr - s).c_str(),
-						" underflow");
+						std::string("real value ") + std::string(s, endptr - s) + " underflow");
 				}
 
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -4281,8 +4263,8 @@ currtoken(UNKNOWNTOKEN)
 
 	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
-				"\"", defaultNameSpace->sGetName().c_str(), "\"");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+			std::string("unable to register namespace \"") + defaultNameSpace->sGetName() + "\"");
 	}
 
 	time_t tm;
@@ -4305,8 +4287,8 @@ currtoken(UNKNOWNTOKEN)
 
 	defaultNameSpace = new StaticNameSpace(&t);
 	if (RegisterNameSpace(defaultNameSpace)) {
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to register namespace "
-				"\"", defaultNameSpace->sGetName().c_str(), "\"");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+			std::string("unable to register namespace \"") + defaultNameSpace->sGetName() + "\"");
 	}
 
 	time_t tm;
@@ -4331,9 +4313,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 				dynamic_cast<Var *>(var)->SetVal(TypedValue(v));
 			} else {
 				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-						"cannot redefine "
-						"non-var " "named value "
-						"\"", var->GetName(), "\"");
+					std::string("cannot redefine non-var named value \"") + var->GetName() + "\"");
 			}
 
 		} else {
@@ -4344,7 +4324,7 @@ MathParser::InsertSym(const char* const s, const Real& v, int redefine)
 	}
 
 	if (var == NULL) {
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "error while adding real var '", s, "");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("error while adding real var \"") + s + "\"");
 	}
 
 	return var;
@@ -4369,9 +4349,7 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 
 			} else {
 				throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-						"cannot redefine "
-						"non-var named value "
-						"\"", var->GetName(), "\"");
+					std::string("cannot redefine non-var named value \"") + var->GetName() + "\"");
 			}
 
 		} else {
@@ -4382,7 +4360,8 @@ MathParser::InsertSym(const char* const s, const Int& v, int redefine)
 	}
 
 	if (var == NULL) {
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "error while adding integer var '", s, "");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+			std::string("error while adding integer var \"") + s + "\"");
 	}
 
 	return var;
@@ -4984,7 +4963,8 @@ MathParser::expr(void)
 		if (currtoken == NAMESPACESEP) {
 			NameSpaceMap::iterator i = nameSpaceMap.find(name);
 			if (i == nameSpaceMap.end()) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("unable to find namespace \"") + namebuf + "\"");
 			}
 			currNameSpace = i->second;
 			currTable = currNameSpace->GetTable();
@@ -5002,14 +4982,14 @@ MathParser::expr(void)
 			 * in futuro ci potranno essere magari i dati strutturati */
 			MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 			if (f == 0) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("function \"") + name + "\" not found");
 			}
 			GetToken();
 			ExpressionElement *e = parsefunc(f);
 			if (currtoken != CBR) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
-						"expected after function "
-						"\"", f->fname.c_str(), "\" in expr()");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("closing parenthesis expected after function \"") + f->fname + "\" in expr()");
 			}
 			GetToken();
 			return e;
@@ -5028,7 +5008,7 @@ MathParser::expr(void)
 			}
 		}
 
-		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unknown name \"", name.c_str(), "\"");
+		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unknown name \"") + name + "\"");
 	}
 
 	/* invalid expr */
@@ -5057,7 +5037,8 @@ MathParser::stmt(void)
 				break;
 
 			default:
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled definition modifier ", namebuf.c_str(), "");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("unhandled definition modifier \"") + namebuf +  "\"");
 			}
 
 			if (GetToken() != NAME) {
@@ -5074,7 +5055,8 @@ MathParser::stmt(void)
 				break;
 
 			default:
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unhandled type modifier ", namebuf.c_str(), "");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("unhandled type modifier \"") + namebuf + "\"");
 			}
 
 			if (GetToken() != NAME) {
@@ -5102,8 +5084,8 @@ MathParser::stmt(void)
 			}
 
 			if (IsKeyWord(defaultNameSpace, namebuf.c_str())) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "name '", namebuf.c_str(), "' "
-						"is a keyword");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("name \"") + namebuf + "\" is a keyword");
 			}
 
 			MathParser::NameSpace *currNameSpace = defaultNameSpace;
@@ -5114,7 +5096,8 @@ MathParser::stmt(void)
 			if (currtoken == NAMESPACESEP) {
 				NameSpaceMap::iterator i = nameSpaceMap.find(name);
 				if (i == nameSpaceMap.end()) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("unable to find namespace \"") + namebuf + "\"");
 				}
 				currNameSpace = i->second;
 				currTable = currNameSpace->GetTable();
@@ -5169,7 +5152,8 @@ MathParser::stmt(void)
 			/* with assign? */
 			if (currtoken == ASSIGN) {
 				if (currTable == 0) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("namespace \"") + currNameSpace->sGetName() + "\" does not support variables");
 				}
 
 				/* faccio una copia del nome! */
@@ -5208,23 +5192,18 @@ MathParser::stmt(void)
 					 * ad assegnarle il nuovo valore */
 					if (!bRedefineVars && !bIsIfndef) {
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-							"cannot redefine "
-							"var \"", name.c_str(), "\"");
+							std::string("cannot redefine var \"") + name + "\"");
 					}
 
 					if (v->Const() && !bIsIfndef) {
 						// TODO: check redefinition of const'ness
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-							"cannot redefine "
-							"a const named value "
-							"\"", name.c_str(), "\"");
+							std::string("cannot redefine const named value \"") + name + "\"");
 					}
 
 					if (!v->IsVar()) {
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-							"cannot redefine "
-							"non-var named value "
-							"\"", name.c_str(), "\"");
+							std::string("cannot redefine non-var named value \"") + name + "\"");
 					}
 
 					if (!bIsIfndef) {
@@ -5257,7 +5236,8 @@ MathParser::stmt(void)
 
 			} else if (currtoken == STMTSEP) {
 				if (currTable == 0) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("namespace \"") + currNameSpace->sGetName() + "\" does not support variables");
 				}
 				
 				NamedValue* v = currTable->Get(namebuf);
@@ -5266,8 +5246,7 @@ MathParser::stmt(void)
 						/* cannot insert a const var
 						 * with no value */
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-							"cannot create const named value "
-							"\"", namebuf.c_str(), "\" with no value");
+							std::string("cannot create const named value \"") + namebuf + "\" with no value");
 					}
 
 					/* se la var non esiste, la inserisco;
@@ -5300,7 +5279,8 @@ MathParser::stmt(void)
 			if (currtoken == NAMESPACESEP) {
 				NameSpaceMap::iterator i = nameSpaceMap.find(name);
 				if (i == nameSpaceMap.end()) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unable to find namespace \"", namebuf.c_str(), "\"");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("unable to find namespace \"") + namebuf + "\"");
 				}
 				currNameSpace = i->second;
 				currTable = currNameSpace->GetTable();
@@ -5317,14 +5297,15 @@ MathParser::stmt(void)
 				/* in futuro ci potranno essere magari i dati strutturati */
 				MathFunc_t* f = currNameSpace->GetFunc(namebuf);
 				if (f == 0) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "function '", namebuf.c_str(), "' not found");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("function \"") + namebuf + "\" not found");
 				}
 				GetToken();
 				ExpressionElement *e = parsefunc(f);
 				if (currtoken != CBR) {
-					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "closing parenthesis "
-							"expected after function "
-							"\"", f->fname.c_str(), "\" in expr()");
+					throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+						std::string("closing parenthesis expected after function \"")
+							+ f->fname + "\" in expr()");
 				}
 				GetToken();
 
@@ -5333,23 +5314,23 @@ MathParser::stmt(void)
 
 			/* assignment? */
 			if (currTable == 0) {
-				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "namespace \"", currNameSpace->sGetName().c_str(), "\" does not support variables");
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("namespace \"") + currNameSpace->sGetName()
+						+ "\" does not support variables");
 			}
 			NamedValue* v = currTable->Get(namebuf);
-			if (v != NULL) {
+			if (v != 0) {
 				if (currtoken == ASSIGN) {
 					GetToken();
 					ExpressionElement *e = logical();
 					if (v->Const()) {
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-							"cannot assign const named value "
-							"\"", name.c_str(), "\"");
+							std::string("cannot assign const named value \"") + name + "\"");
 					}
 
 					if (!v->IsVar()) {
 						throw MathParser::ErrGeneric(this, MBDYN_EXCEPT_ARGS,
-								"cannot assign non-var named value "
-								"\"", name.c_str(), "\"");
+							std::string("cannot assign non-var named value \"") + name + "\"");
 					}
 
 					// FIXME: we need to define a EE_Assign that does the operation below
@@ -5375,7 +5356,9 @@ MathParser::stmt(void)
 				}
 
 			} else {
-				ASSERT(0);
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS,
+					std::string("unable to find variable \"")
+					+ currNameSpace->sGetName() + "::" + namebuf + "\"");
 			}
 		}
 	}

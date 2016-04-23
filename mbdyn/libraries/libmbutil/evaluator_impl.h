@@ -680,7 +680,8 @@ public:
 					<< m_f->ns->sGetName() << "::" << m_f->fname
 					<< " " "(msg: " << m_f->errmsg << ")"
 					<< " in EE_Func()" << std::endl);
-				throw MathParser::ErrGeneric(m_p, MBDYN_EXCEPT_ARGS, m_f->fname.c_str(), ": error ", m_f->errmsg.c_str());
+				throw MathParser::ErrGeneric(m_p, MBDYN_EXCEPT_ARGS,
+					m_f->fname + ": error " + m_f->errmsg);
 			}
 		}
 

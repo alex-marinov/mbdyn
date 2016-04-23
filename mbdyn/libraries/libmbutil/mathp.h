@@ -282,8 +282,6 @@ public:
 	public:
 		ErrGeneric(MBDYN_EXCEPT_ARGS_DECL);
 		ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL);
-		ErrGeneric(MathParser* p, MBDYN_EXCEPT_ARGS_DECL_NODEF,
-				const char* const s2, const char* const s3);
 	};
    
 	Table&   table;      /* symbol table */
