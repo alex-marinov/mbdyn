@@ -42,6 +42,7 @@ MBDyn 1.X-Devel
 		  (noted by Reinhard Resch)
 		- fixed bug in deformable displacement joint Jacobian
 		  matrix (Andrea Zanoni)
+		- fixed bug in stream drive echo, writing old instead of new
 
 MBDyn 1.7.0
 	Enhancements:

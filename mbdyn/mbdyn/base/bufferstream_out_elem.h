@@ -1,6 +1,6 @@
 /* $Header$ */
-/*
- * MBDyn (C) is a multibody analysis code.
+/* 
+ * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2015
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- *
+ * 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -33,69 +33,52 @@
  * Author: Michele Attolico <attolico@aero.polimi.it>
  */
 
-/* socket driver */
+#ifndef BUFFERSTREAM_OUT_ELEM_H
+#define BUFFERSTREAM_OUT_ELEM_H
 
-#ifndef SOCKETSTREAMDRIVE_H
-#define SOCKETSTREAMDRIVE_H
-
-#include "streamdrive.h"
+#include "streamoutelem.h"
 
 #ifdef USE_SOCKET
 
-#include "usesock.h"
+/* BufferStreamElem - begin */
 
-/* SocketStreamDrive - begin */
-
-class SocketStreamDrive : public StreamDrive {
+class BufferStreamElem : public StreamOutElem, virtual public Elem {
 protected:
-	unsigned int InputEvery;
-	bool bReceiveFirst;
-	unsigned int InputCounter;
-
-	UseSocket *pUS;
-	int recv_flags;
-	struct timeval SocketTimeout;
-
-	StreamDriveEcho *pSDE;
-
+	StreamContent *pSC;
+	std::vector<doublereal> buffer;
+	StreamOutEcho *pSOE;
+	
 public:
-	SocketStreamDrive(unsigned int uL,
-		const DriveHandler* pDH,
-		UseSocket *pUS, bool c,
-		const std::string& sFileName,
-		integer nd, const std::vector<doublereal>& v0,
-		StreamDrive::Modifier *pMod,
-		unsigned int ie, bool bReceiveFirst,
-		int flags,
-		const struct timeval& st,
-		StreamDriveEcho *pSDE);
+   	BufferStreamElem(unsigned int uL, unsigned int oe,
+		StreamContent *pSC, StreamOutEcho *pSOE);
 
-	virtual ~SocketStreamDrive(void);
+   	virtual ~BufferStreamElem(void);
 
-	/* Scrive il contributo del DriveCaller al file di restart */
+	const std::vector<doublereal>& GetBuf(void) const;
+
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	virtual void ServePending(const doublereal& t);
-};
+	virtual void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0);
+	virtual void AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP);
 
-/* SocketStreamDrive - end */
+	/* Inverse Dynamics */
+	virtual void AfterConvergence(const VectorHandler& X, 
+		const VectorHandler& XP, const VectorHandler& XPP);
+};
 
 #endif // USE_SOCKET
 
 class DataManager;
 class MBDynParser;
 
-struct StreamDR : public DriveRead {
-private:
-	std::string s;
+extern Elem *
+ReadBufferStreamElem(DataManager *pDM, MBDynParser& HP,
+	unsigned int uLabel, StreamContent::Type type);
 
-public:
-	StreamDR(void) { NO_OP; };
-	StreamDR(const std::string &s) : s(s) { NO_OP; };
+/* BufferStreamElem - end */
 
-	virtual Drive *
-	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
-};
-
-#endif /* SOCKETSTREAMDRIVE_H */
+#endif /* BUFFERSTREAM_OUT_ELEM_H */
 

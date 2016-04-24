@@ -52,6 +52,7 @@
 #include "sockdrv.h"
 #include "streamdrive.h"
 #include "socketstreamdrive.h"
+#include "bufferstreamdrive.h"
 
 #ifdef USE_GINAC
 #include "ginacdrive.h"
@@ -2959,6 +2960,7 @@ InitDriveData(void)
 	SetDriveData("rtai" "input", new StreamDR("RTAI input"));
 	SetDriveData("stream", new StreamDR);
 #endif // USE_SOCKET
+	SetDriveData("buffer" "stream", new BufferStreamDR);
 
 	/* NOTE: add here initialization of new built-in drives;
 	 * alternative ways to register new custom drives are:

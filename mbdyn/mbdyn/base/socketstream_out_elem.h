@@ -51,18 +51,14 @@ protected:
 	bool bSendFirst;
 	bool bAbortIfBroken;
 
-	std::string sOutFileName;
-	std::ofstream outFile;
-	int iPrecision;
-	doublereal dShift;
+	StreamOutEcho *pSOE;
 	
 public:
    	SocketStreamElem(unsigned int uL, const std::string& name,
 		unsigned int oe,
 		UseSocket *pUS, StreamContent *pSC,
 		int flags, bool bSendFirst, bool bAbortIfBroken,
-		const std::string& sOutFileName, int iPrecision,
-		doublereal dShift);
+		StreamOutEcho *pSOE);
 
    	virtual ~SocketStreamElem(void);
 

@@ -47,6 +47,9 @@
 #include "solver.h"
 #include "ls.h"
 
+#include "bufferstream_out_elem.h"
+#include "bufferstreamdrive.h"
+
 const LoadableCalls *
 DataManager::GetLoadableElemModule(std::string name) const
 {
@@ -1819,6 +1822,36 @@ DataManager::EndOfSimulation(void) const
 	}
 
 	return false;
+}
+
+const std::vector<doublereal>&
+DataManager::GetBufIn(unsigned uL)
+{
+	Drive* pD = pFindDrive(Drive::FILEDRIVE, uL);
+	if (pD == 0) {
+		silent_cerr("unable to find FileDrive(" << uL << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	BufferStreamDrive *pBSD = dynamic_cast<BufferStreamDrive *>(pD);
+	if (pBSD == 0) {
+		silent_cerr("FileDrive(" << uL << ") is not a BufferStreamDrive" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pBSD->GetBuf();
+}
+
+const std::vector<doublereal>&
+DataManager::GetBufOut(unsigned uL) const
+{
+	BufferStreamElem *pBSE = pFindElem<BufferStreamElem, StreamOutElem, Elem::SOCKETSTREAM_OUTPUT>(uL);
+	if (pBSE == 0) {
+		silent_cerr("unable to find BufferStreamElem(" << uL << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pBSE->GetBuf();
 }
 
 /* DataManager - end */

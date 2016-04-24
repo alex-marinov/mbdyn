@@ -643,6 +643,10 @@ public:
 
 	const DataManager::ElemDataStructure& GetElemDataStructure(Elem::Type Typ) const { return ElemData[Typ]; };
 
+	/* buffer per accesso a input/output speciali */
+	const std::vector<doublereal>& GetBufIn(unsigned uL);
+	const std::vector<doublereal>& GetBufOut(unsigned uL) const;
+
 	/* pseudocostruttore */
 	void ElemManager(void);
 	void ElemManagerDestructor(void);

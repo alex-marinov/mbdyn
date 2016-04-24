@@ -53,7 +53,7 @@ private:
 
 	int m_flags;
 
-	// TODO: echo?
+	// TODO: echo? -> StreamDriveEcho
 	// TODO: self-describing?
 
 	bool get_one(void);

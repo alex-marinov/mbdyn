@@ -11,6 +11,10 @@ auth.cc \
 auth.h \
 bicg.cc \
 bicg.h \
+bufferstream_out_elem.cc \
+bufferstream_out_elem.h \
+bufferstreamdrive.cc \
+bufferstreamdrive.h \
 bulk.cc \
 bulk.h \
 constltp.h \

@@ -29,14 +29,10 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-/*
- * Author: Michele Attolico <attolico@aero.polimi.it>
- */
-
 /* socket driver */
 
-#ifndef SOCKETSTREAMDRIVE_H
-#define SOCKETSTREAMDRIVE_H
+#ifndef BUFFERSTREAMDRIVE_H
+#define BUFFERSTREAMDRIVE_H
 
 #include "streamdrive.h"
 
@@ -44,33 +40,28 @@
 
 #include "usesock.h"
 
-/* SocketStreamDrive - begin */
+/* BufferStreamDrive - begin */
 
-class SocketStreamDrive : public StreamDrive {
+class BufferStreamDrive : public StreamDrive {
 protected:
 	unsigned int InputEvery;
-	bool bReceiveFirst;
 	unsigned int InputCounter;
 
-	UseSocket *pUS;
-	int recv_flags;
-	struct timeval SocketTimeout;
+	std::vector<doublereal> buffer;
 
 	StreamDriveEcho *pSDE;
 
 public:
-	SocketStreamDrive(unsigned int uL,
+	BufferStreamDrive(unsigned int uL,
 		const DriveHandler* pDH,
-		UseSocket *pUS, bool c,
-		const std::string& sFileName,
 		integer nd, const std::vector<doublereal>& v0,
 		StreamDrive::Modifier *pMod,
-		unsigned int ie, bool bReceiveFirst,
-		int flags,
-		const struct timeval& st,
+		unsigned int ie,
 		StreamDriveEcho *pSDE);
 
-	virtual ~SocketStreamDrive(void);
+	virtual ~BufferStreamDrive(void);
+
+	const std::vector<doublereal>& GetBuf(void);
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
@@ -78,24 +69,20 @@ public:
 	virtual void ServePending(const doublereal& t);
 };
 
-/* SocketStreamDrive - end */
+/* BufferStreamDrive - end */
 
 #endif // USE_SOCKET
 
 class DataManager;
 class MBDynParser;
 
-struct StreamDR : public DriveRead {
-private:
-	std::string s;
-
+struct BufferStreamDR : public DriveRead {
 public:
-	StreamDR(void) { NO_OP; };
-	StreamDR(const std::string &s) : s(s) { NO_OP; };
+	BufferStreamDR(void) { NO_OP; };
 
 	virtual Drive *
 	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
 };
 
-#endif /* SOCKETSTREAMDRIVE_H */
+#endif /* BUFFERSTREAMDRIVE_H */
 

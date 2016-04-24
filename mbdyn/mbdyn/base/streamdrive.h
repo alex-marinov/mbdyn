@@ -83,5 +83,30 @@ ReadStreamDriveModifier(MBDynParser& HP, integer nDrives);
 
 /* StreamDrive - end */
 
+/* StreamDriveEcho - begin */
+
+class StreamDriveEcho {
+private:
+	const DriveHandler *pDrvHdl;
+	std::string sOutFileName;
+	std::vector<doublereal> echoBuf;
+	std::ofstream outFile;
+	int iPrecision;
+	doublereal dShift;
+
+public:
+	StreamDriveEcho(const DriveHandler *pDrvHdl, std::string& sOutFileName, int iPrecision, doublereal dShift);
+	~StreamDriveEcho(void);
+	bool bIsEcho(void) const;
+	bool Init(const std::string& msg, unsigned uLabel, unsigned nChannels);
+	void EchoPrepare(const doublereal *pbuf, unsigned nChannels);
+	void Echo(const doublereal *pbuf, unsigned nChannels);
+};
+
+extern StreamDriveEcho *
+ReadStreamDriveEcho(const DataManager *pDM, MBDynParser& HP);
+
+/* StreamDriveEcho - end */
+
 #endif // STREAMDRIVE_H
 

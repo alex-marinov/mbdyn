@@ -147,5 +147,26 @@ public:
 
 /* StreamContentValue - end */
 
+/* StreamOutEcho - begin */
+
+class StreamOutEcho {
+private:
+	std::string sOutFileName;
+	std::ofstream outFile;
+	int iPrecision;
+	doublereal dShift;
+
+public:
+	StreamOutEcho(std::string& sOutFileName, int iPrecision, doublereal dShift);
+	~StreamOutEcho(void);
+	bool Init(const std::string& msg, unsigned uLabel, unsigned nChannels);
+	void Echo(const doublereal *pbuf, unsigned nChannels);
+};
+
+extern StreamOutEcho *
+ReadStreamOutEcho(MBDynParser& HP);
+
+/* StreamOutEcho - end */
+
 #endif /* STREAMOUTELEM_H */
 
