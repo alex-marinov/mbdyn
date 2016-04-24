@@ -20,7 +20,7 @@ MBDyn 1.7.1
 		- added check for symmetric/diagonal mass/stiffness
 		  matrices in modal joint
 		- added initial distance as "current" in distance joint
-		- added "buffer" stream drive and output elements
+		- added "buffer" stream drive and output element
 		- added skeleton for embedding solver(s)
 	Backward compatibility issues:
 		- "proportional damping" in modal joint replaced by
