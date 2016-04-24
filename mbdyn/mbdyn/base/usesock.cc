@@ -531,7 +531,12 @@ UseLocalSocket::Connect(void)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 	addr.sun_family = AF_UNIX;
-	memcpy(addr.sun_path, path.c_str(), sizeof(addr.sun_path));
+	if (path.size() >= sizeof(addr.sun_path)) {
+		silent_cerr("UseSocket(): path=\"" << path << "\" exceeds allowable size "
+			"of LOCAL socket path (" << sizeof(addr.sun_path) << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	memcpy(addr.sun_path, path.c_str(), path.size() + 1); // terminating '\0'
 
 	pedantic_cout("connecting to local socket \"" << path << "\" ..."
 		<< std::endl);
