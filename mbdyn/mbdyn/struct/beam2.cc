@@ -897,8 +897,11 @@ Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	DEBUGCOUT("Entering Beam2::[InverseDynamics]AssJac()" << std::endl);
 
+#if 0
+	// iOrder not available
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
 		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
+#endif
 
 	return AssJac(WorkMat, 1., XCurr, XCurr);
 }
