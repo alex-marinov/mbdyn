@@ -38,8 +38,6 @@
 
 #include "streamoutelem.h"
 
-#ifdef USE_SOCKET
-
 /* BufferStreamElem - begin */
 
 class BufferStreamElem : public StreamOutElem, virtual public Elem {
@@ -68,8 +66,6 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP);
 };
-
-#endif // USE_SOCKET
 
 class DataManager;
 class MBDynParser;

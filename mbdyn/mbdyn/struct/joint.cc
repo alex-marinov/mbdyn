@@ -2741,9 +2741,23 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
+			<< " " << R1hr
 			<< " " << pNode2->GetLabel()
 			<< " " << f2
 			<< " " << R2h
+			<< " " << R2hr
+			<< " " << bXActive[0]
+			<< " " << bXActive[1]
+			<< " " << bXActive[2]
+			<< " " << bVActive[0]
+			<< " " << bVActive[1]
+			<< " " << bVActive[2]
+			<< " " << bRActive[0]
+			<< " " << bRActive[1]
+			<< " " << bRActive[2]
+			<< " " << bWActive[0]
+			<< " " << bWActive[1]
+			<< " " << bWActive[2]
 			<< std::endl;
 		} break;
 
@@ -2790,8 +2804,10 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode->GetLabel()
 			<< " " << fn
 			<< " " << Rnh
+			<< " " << Rnhr
 			<< " " << Xc
 			<< " " << Rch
+			<< " " << Rchr
 			<< std::endl;
 
 		} break;
@@ -2846,9 +2862,23 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
+			<< " " << R1hr
 			<< " " << pNode2->GetLabel()
 			<< " " << f2
 			<< " " << R2h
+			<< " " << R2hr
+			<< " " << bXActive[0]
+			<< " " << bXActive[1]
+			<< " " << bXActive[2]
+			<< " " << bVActive[0]
+			<< " " << bVActive[1]
+			<< " " << bVActive[2]
+			<< " " << bRActive[0]
+			<< " " << bRActive[1]
+			<< " " << bRActive[2]
+			<< " " << bWActive[0]
+			<< " " << bWActive[1]
+			<< " " << bWActive[2]
 			<< std::endl;
 		} break;
 
@@ -2998,9 +3028,11 @@ ReadJoint(DataManager* pDM,
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
+			<< " " << R1hr
 			<< " " << pNode2->GetLabel()
 			<< " " << f2
 			<< " " << R2h
+			<< " " << R2hr
 			<< std::endl;
 		} break;
 
@@ -3095,7 +3127,7 @@ ReadJoint(DataManager* pDM,
 
 		}
 		
-		TotalEquation * tot_eq_pt = 0;
+		TotalEquation *tot_eq_pt(0);
 		if (HP.IsKeyWord("total" "equation")) {
 			unsigned int tot_eq_j_label = HP.GetInt();
 			Elem* el_pt = pDM->pFindElem(Elem::JOINT, tot_eq_j_label);
@@ -3134,13 +3166,16 @@ ReadJoint(DataManager* pDM,
 				fOut));
 
 		std::ostream& out = pDM->GetLogFile();
-		out << "totaljoint: " << uLabel
+		out << "totalreaction: " << uLabel
 			<< " " << pNode1->GetLabel()
 			<< " " << f1
 			<< " " << R1h
+			<< " " << R1hr
 			<< " " << pNode2->GetLabel()
 			<< " " << f2
 			<< " " << R2h
+			<< " " << R2hr
+			<< " " << tot_eq_pt->GetLabel()
 			<< std::endl;
 		} break;
 

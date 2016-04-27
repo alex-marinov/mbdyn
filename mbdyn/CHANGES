@@ -9,6 +9,19 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.X-Devel
+	Enhancements:
+		- added screw joint (Mauro Manetti & Marco Morandini)
+	Backward compatibility issues:
+	Known issues:
+		- aeromodal with rigid-body motion needs work
+		- deformable displacement joint initial assembly broken
+		- modal joint initial assembly with initial modal disp. broken
+	Bug fixes:
+		- fixed "log" of total* family
+		- fixed build of bufferstream* when sockets are not present
+		- fixed build with RTAI
+
 MBDyn 1.7.1
 	Enhancements:
 		- added ModalBody: body connected to modal node

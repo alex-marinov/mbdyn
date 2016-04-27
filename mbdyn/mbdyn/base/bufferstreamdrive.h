@@ -36,10 +36,6 @@
 
 #include "streamdrive.h"
 
-#ifdef USE_SOCKET
-
-#include "usesock.h"
-
 /* BufferStreamDrive - begin */
 
 class BufferStreamDrive : public StreamDrive {
@@ -70,8 +66,6 @@ public:
 };
 
 /* BufferStreamDrive - end */
-
-#endif // USE_SOCKET
 
 class DataManager;
 class MBDynParser;

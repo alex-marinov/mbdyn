@@ -396,7 +396,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	Elem *pEl = 0;
 	if (bIsRTAI) {
 #ifdef USE_RTAI
-		if (!sOutFileName.empty()) {
+		if (pSOE != 0) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"echo ignored in RTAI mode"
 				<< std::endl);

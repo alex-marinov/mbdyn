@@ -626,7 +626,7 @@ isvan == 0 && (/deformablejoint:/ || /deformabledisplacementjoint:/) && show["de
 	}
 }
 
-isvan == 0 && /^totaljoint:/ && show["totaljoint"] {
+isvan == 0 && (/^totaljoint:/ || /^totalequation:/ || /^totalreaction/) && show["totaljoint"] {
 	if (!exclude["joint", $2]) {
 		j_totaljoint_label[j_totaljoint_num] = $2;
 		j_totaljoint[$2] = j_totaljoint_num;
