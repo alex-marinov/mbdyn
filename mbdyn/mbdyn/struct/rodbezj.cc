@@ -69,11 +69,11 @@ fI(fITmp),
 dL0(dLength),
 l1(Zero3),
 l2(Zero3),
-iIntOrd(iIntOrder),
-iIntSeg(iIntSegments),
 dElle(0.),
 dEpsilon(0.),
-dEpsilonPrime(0.)
+dEpsilonPrime(0.),
+iIntOrd(iIntOrder),
+iIntSeg(iIntSegments)
 {
 	/* Check initial data coherence */
 	ASSERT(pN1 != NULL);
@@ -106,7 +106,7 @@ dEpsilonPrime(0.)
 		doublereal q, up;
 		doublereal s = 1.0/(2.0*iIntSegments);
 
-		for (int jj = 0; jj < iIntSegments; jj++) {
+		for (unsigned int jj = 0; jj < iIntSegments; jj++) {
 			q = s*(2*jj + 1);
 
 			PntWght gp = gdi->GetFirst();
@@ -136,13 +136,15 @@ RodBezier::~RodBezier(void)
 std::ostream&
 RodBezier::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", rod bezier, "
+	Joint::Restart(out); 
+	out << ", rod bezier, "
 		<< pNode1->GetLabel() << ", "
-		<< "position, reference, node, " << fO.Write(out, ", ") << ", "
-		<< "position, reference, node, " << fA.Write(out, ", ") << "," << std::endl
+		<< "position, reference, node, "; 
+		fO.Write(out, ", ") << ", "
+		<< "position, reference, node, "; fA.Write(out, ", ") << "," << std::endl
 		<< pNode2->GetLabel() << ", "
-		<< "position, reference, node, " << fO.Write(out, ", ") << ", "
-		<< "position, reference, node, " << fA.Write(out, ", ") << "," << std::endl
+		<< "position, reference, node, "; fO.Write(out, ", ") << ", "
+		<< "position, reference, node, "; fA.Write(out, ", ") << "," << std::endl
 		<< dL0 << "," << std::endl
 		<< "integration order, " << iIntOrd << ", "
 		<< "integration segments, " << iIntSeg << ", ";
@@ -218,7 +220,7 @@ RodBezier::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 TmpV;
 	
-	for (int jj = 0; jj < iIntSeg; jj++) {
+	for (unsigned int jj = 0; jj < iIntSeg; jj++) {
 		q = s*(2*jj + 1);
 		
 		PntWght gp = gdi->GetFirst();
@@ -382,7 +384,7 @@ RodBezier::AssVec(SubVectorHandler& WorkVec)
 	doublereal q, up, dAp1, dAp2, dAp3, dAp4;
 	doublereal s = 1.0/(2.0*iIntSeg);
 
-	for (int jj = 0; jj < iIntSeg; jj++) {
+	for (unsigned int jj = 0; jj < iIntSeg; jj++) {
 		q = s*(2*jj + 1); 
 		
 		PntWght gp = gdi->GetFirst();
@@ -505,8 +507,8 @@ RodBezier::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	const Vec3& x1(pNode1->GetXCurr());
 	const Vec3& x2(pNode2->GetXCurr());
 
-	const Vec3& v1(pNode1->GetVCurr());
-	const Vec3& v2(pNode2->GetVCurr());
+	//const Vec3& v1(pNode1->GetVCurr());
+	//const Vec3& v2(pNode2->GetVCurr());
 	const Vec3& Omega1(pNode1->GetWRef());
 	const Vec3& Omega2(pNode2->GetWRef());
 
@@ -515,10 +517,10 @@ RodBezier::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 	doublereal dFDE = GetFDE();
 	doublereal dFDEPrime = GetFDEPrime();
 	
-	const Vec3 b1 = pNode1->GetXCurr() + R1*fO; 
-	const Vec3 b2 = pNode1->GetXCurr() + R1*fA; 
-	const Vec3 b3 = pNode2->GetXCurr() + R2*fB; 
-	const Vec3 b4 = pNode2->GetXCurr() + R2*fI; 
+	const Vec3 b1 = x1 + R1*fO; 
+	const Vec3 b2 = x1 + R1*fA; 
+	const Vec3 b3 = x2 + R2*fB; 
+	const Vec3 b4 = x2 + R2*fI; 
 
 	Vec3 p;
 	doublereal q, up, pNorm, dKC, dAp1, dAp2, dAp3, dAp4;
@@ -538,7 +540,7 @@ RodBezier::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 
 	Vec3 TmpV;
 
-	for (int jj = 0; jj < iIntSeg; jj++) {
+	for (unsigned int jj = 0; jj < iIntSeg; jj++) {
 		q = s*(2*jj + 1);
 
 		PntWght gp = gdi->GetFirst();
