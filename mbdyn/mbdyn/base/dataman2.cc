@@ -1094,22 +1094,14 @@ DataManager::InitialJointAssembly(void)
 			TmpVec = pDispNode->GetXPrev() - pDispNode->GetXCurr();
 			pResHdl->Add(iFirstIndex + 1, TmpVec*dPosStiff);
 
-			/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
-			Mat3x3 RDelta;
 			if (pNode) {
-				RDelta = pNode->GetRPrev().MulMT(pNode->GetRCurr());
+				/* Rotazione: k*Delta_g = -k*g(R_Delta) + M */
+				Mat3x3 RDelta = pNode->GetRPrev().MulMT(pNode->GetRCurr());
 				TmpVec = Vec3(CGR_Rot::Param, RDelta);
 				pResHdl->Add(iFirstIndex + 4, TmpVec*dPosStiff);
-			}
 
-			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */
-			TmpVec = pDispNode->GetVPrev() - pDispNode->GetVCurr();
-			pResHdl->Add(iFirstIndex + iOffset + 1, TmpVec*dVelStiff);
-
-
-			/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
-			 *                                    k*(R_Delta*w0-w) + M */
-			if (pNode) {
+				/* Velocita' angolare: k*(Delta_w+(R_Delta*w0)/\Delta_g) =
+				 *                                    k*(R_Delta*w0-w) + M */
 				const Vec3& wPrev(pNode->GetWPrev());
 				const Vec3& wCurr(pNode->GetWCurr());
 
@@ -1125,6 +1117,11 @@ DataManager::InitialJointAssembly(void)
 
 				pResHdl->Add(iFirstIndex + iOffset + 4, TmpVec*dVelStiff);
 			}
+
+			/* Velocita': k*Delta_v = k*(v0-Delta_v) + F */
+			TmpVec = pDispNode->GetVPrev() - pDispNode->GetVCurr();
+			pResHdl->Add(iFirstIndex + iOffset + 1, TmpVec*dVelStiff);
+
 		}
 
 		/* Elementi (con iteratore): */
