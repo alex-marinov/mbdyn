@@ -292,7 +292,7 @@ ElemPrivPlugIn::Err(std::ostream& out) const
 std::ostream& 
 operator << (std::ostream& out, const PrivPlugIn& p)
 {
-	return out << p.Err(out);
+	return p.Err(out);
 }
 
 MathParser::PlugIn *
