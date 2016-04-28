@@ -137,7 +137,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 	std::cout << " BiCGStab New Step " <<std::endl;
 #endif /* DEBUG_ITERATIVE */
 
-	doublereal dOldErr;
+	doublereal dOldErr = 1.; //initialize to silence g++ warning
 	doublereal dErrFactor = 1.;
 	doublereal dErrDiff = 0.;
 
