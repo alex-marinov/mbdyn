@@ -1795,9 +1795,9 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
 	case INT_HOPE:
-		out << "hope, " << pRhoRegular->Restart(out) << ", "
-			<< pRhoAlgebraicRegular->Restart(out) << ";"
-			<< std::endl;
+		out << "hope, "; 
+		pRhoRegular->Restart(out) << ", ";
+		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
 
 	case INT_THIRDORDER:
