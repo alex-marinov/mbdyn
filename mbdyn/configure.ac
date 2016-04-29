@@ -1855,6 +1855,10 @@ ol_link_metis=no
 if test "$ol_with_metis" != "no" ; then
 	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
 		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
+	if test "ol_link_metis" != "yes" ; then
+		AC_CHECK_LIB(metis, METIS_PartGraphKway,
+			[ol_link_metis=yes],[ol_link_metis=no],[-lm])
+	fi
 	
 	AC_CHECK_HEADERS(metis.h)
 
