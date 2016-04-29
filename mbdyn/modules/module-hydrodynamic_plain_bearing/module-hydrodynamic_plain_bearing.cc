@@ -1091,7 +1091,8 @@ hydrodynamic_plain_bearing_with_offset::Restart(std::ostream& out) const
 			"		bearing_diameter," << m_d << ",\n"
 			"		relative_clearance," << m_Psi << ",\n"
 			"		oil_viscosity," << m_eta << ",\n"
-			"		initial_assembly_factor," << m_InitialAssemblyFactor.pGetDriveCaller()->Restart(out);
+			"		initial_assembly_factor,";
+			m_InitialAssemblyFactor.pGetDriveCaller()->Restart(out);
 
 	if ( m_fcontact )
 	{

@@ -754,21 +754,31 @@ TotalJoint::Restart(std::ostream& out) const
 {
 	Joint::Restart(out) << ", total joint, "
 		<< pNode1->GetLabel() << ", "
-			<< "position, " << f1.Write(out, ", ") << ", "
+			<< "position, ";
+			f1.Write(out, ", ") << ", "
 			<< "position orientation, "
-				"1 , ", R1h.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", R1h.GetVec(2).Write(out, ", ") << ", "
+				"1 , ";
+				R1h.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				R1h.GetVec(2).Write(out, ", ") << ", "
 			<< "rotation orientation, "
-				"1 , ", R1hr.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", R1hr.GetVec(2).Write(out, ", ") << ", "
+				"1 , ";
+				R1hr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				R1hr.GetVec(2).Write(out, ", ") << ", "
 		<< pNode2->GetLabel() << ", "
-			<< "position, " << f2.Write(out, ", ") << ", "
+			<< "position, ";
+			f2.Write(out, ", ") << ", "
 			<< "position orientation, "
-				"1 , ", R2h.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", R2h.GetVec(2).Write(out, ", ") << ", "
+				"1 , ";
+				R2h.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				R2h.GetVec(2).Write(out, ", ") << ", "
 			<< "rotation orientation, "
-				"1 , ", R2hr.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", R2hr.GetVec(2).Write(out, ", ");
+				"1 , ";
+				R2hr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				R2hr.GetVec(2).Write(out, ", ");
 
 	if (bPosActive[0] || bPosActive[1] || bPosActive[2]
 		|| bVelActive[0] || bVelActive[1] || bVelActive[2])
@@ -2765,20 +2775,30 @@ TotalPinJoint::Restart(std::ostream& out) const
 {
 	Joint::Restart(out) << ", total pin joint, "
 		<< pNode->GetLabel() << ", "
-			<< "position, " << tilde_fn.Write(out, ", ") << ", "
+			<< "position, ";
+			tilde_fn.Write(out, ", ") << ", "
 			<< "position orientation, "
-				"1 , ", tilde_Rnh.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", tilde_Rnh.GetVec(2).Write(out, ", ") << ", "
+				"1 , ";
+				tilde_Rnh.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				tilde_Rnh.GetVec(2).Write(out, ", ") << ", "
 			<< "rotation orientation, "
-				"1 , ", tilde_Rnhr.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", tilde_Rnhr.GetVec(2).Write(out, ", ") << ", "
-			<< "position, " << Xc.Write(out, ", ") << ", "
+				"1 , ";
+				tilde_Rnhr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				tilde_Rnhr.GetVec(2).Write(out, ", ") << ", "
+			<< "position, ";
+			Xc.Write(out, ", ") << ", "
 			<< "position orientation, "
-				"1 , ", Rch.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", Rch.GetVec(2).Write(out, ", ") << ", "
+				"1 , ";
+				Rch.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				Rch.GetVec(2).Write(out, ", ") << ", "
 			<< "rotation orientation, "
-				"1 , ", Rchr.GetVec(1).Write(out, ", ") << ", "
-				"2 , ", Rchr.GetVec(2).Write(out, ", ");
+				"1 , ";
+				Rchr.GetVec(1).Write(out, ", ") << ", "
+				"2 , ";
+				Rchr.GetVec(2).Write(out, ", ");
 
 	if (bPosActive[0] || bPosActive[1] || bPosActive[2]
 		|| bVelActive[0] || bVelActive[1] || bVelActive[2])

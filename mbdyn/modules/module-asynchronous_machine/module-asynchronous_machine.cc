@@ -1026,8 +1026,10 @@ asynchronous_machine::Restart(std::ostream& out) const
 		"stator, " << m_pStatorNode->GetLabel() << ", "
 		"MK, " << m_MK << ", "
 		"sK, " << m_sK << ", "
-		"OmegaS, " << m_OmegaS.pGetDriveCaller()->Restart(out) << ", "
-		"motor on, " << m_MotorOn.pGetDriveCaller()->Restart(out) << ", "
+		"OmegaS, ";
+		m_OmegaS.pGetDriveCaller()->Restart(out) << ", "
+		"motor on, ";
+		m_MotorOn.pGetDriveCaller()->Restart(out) << ", "
 		"M0, " << m_M * copysign(1., m_OmegaS.dGet()) << ", "
 		"MP0, " << m_dM_dt * copysign(1., m_OmegaS.dGet())  << ";" << std::endl;
 	
