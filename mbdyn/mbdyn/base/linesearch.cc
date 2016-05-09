@@ -279,7 +279,7 @@ LineSearchSolver::LineSearch(doublereal stpmax, doublereal fold,
 	doublereal lambda = 1.;
 	doublereal tmplam;
 	doublereal lambda2 = 0; //f2, lambda2 initialized to silence g++ possible uninitialized warning
-	foublereal f2 = 0.;
+	doublereal f2 = 0.;
 
 #ifdef DEBUG
 	lambda2 = f2 = NAN;
