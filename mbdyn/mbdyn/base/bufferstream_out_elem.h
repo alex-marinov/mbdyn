@@ -38,23 +38,21 @@
 
 #include "streamoutelem.h"
 
-/* BufferStreamElem - begin */
+/* BufferStreamElem_base - begin */
 
-class BufferStreamElem : public StreamOutElem, virtual public Elem {
+class BufferStreamElem_base : public StreamOutElem, virtual public Elem {
 protected:
 	StreamContent *pSC;
-	std::vector<doublereal> buffer;
 	StreamOutEcho *pSOE;
 	
 public:
-   	BufferStreamElem(unsigned int uL, unsigned int oe,
+   	BufferStreamElem_base(unsigned int uL, unsigned int oe,
 		StreamContent *pSC, StreamOutEcho *pSOE);
 
-   	virtual ~BufferStreamElem(void);
+   	virtual ~BufferStreamElem_base(void);
 
-	const std::vector<doublereal>& GetBuf(void) const;
-
-	virtual std::ostream& Restart(std::ostream& out) const;
+	const integer GetBufSize(void) const;
+	virtual const doublereal * GetBufRaw(void) const = 0;
 
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
@@ -66,6 +64,50 @@ public:
 	virtual void AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP);
 };
+
+/* BufferStreamElem_base - end */
+
+/* BufferStreamElem - begin */
+
+class BufferStreamElem : public BufferStreamElem_base, virtual public Elem {
+protected:
+	std::vector<doublereal> buffer;
+	
+public:
+   	BufferStreamElem(unsigned int uL, unsigned int oe,
+		StreamContent *pSC, StreamOutEcho *pSOE);
+
+   	virtual ~BufferStreamElem(void);
+
+	virtual const doublereal * GetBufRaw(void) const;
+	const std::vector<doublereal>& GetBuf(void) const;
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+/* BufferStreamElem - end */
+
+/* BufferStreamElemRaw - begin */
+
+class BufferStreamElemRaw : public BufferStreamElem_base, virtual public Elem {
+protected:
+	bool bOwnsMemory;
+	const doublereal *pBuffer;
+	
+public:
+   	BufferStreamElemRaw(unsigned int uL, unsigned int oe,
+		StreamContent *pSC, StreamOutEcho *pSOE,
+		bool bOwnsMemory);
+
+   	virtual ~BufferStreamElemRaw(void);
+
+	virtual void SetBufRaw(integer n, const doublereal *p);
+	virtual const doublereal * GetBufRaw(void) const;
+
+	virtual std::ostream& Restart(std::ostream& out) const;
+};
+
+/* BufferStreamElem - end */
 
 class DataManager;
 class MBDynParser;

@@ -1821,7 +1821,7 @@ DataManager::EndOfSimulation(void) const
 	return false;
 }
 
-const std::vector<doublereal>&
+std::vector<doublereal>&
 DataManager::GetBufIn(unsigned uL)
 {
 	Drive* pD = pFindDrive(Drive::FILEDRIVE, uL);

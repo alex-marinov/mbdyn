@@ -38,19 +38,19 @@
 #include "dataman.h"
 #include "bufferstream_out_elem.h"
 
-/* BufferStreamElem - begin */
+/* BufferStreamElem_base - begin */
 
-BufferStreamElem::BufferStreamElem(unsigned int uL,
+BufferStreamElem_base::BufferStreamElem_base(unsigned int uL,
 	unsigned int oe,
 	StreamContent *pSC, StreamOutEcho *pSOE)
 : Elem(uL, flag(0)),
 StreamOutElem(uL, 0, oe),
 pSC(pSC), pSOE(pSOE)
 {
-	pSOE->Init("BufferStreamElem", uLabel, pSC->GetNumChannels());
+	pSOE->Init("BufferStreamElem_base", uLabel, pSC->GetNumChannels());
 }
 
-BufferStreamElem::~BufferStreamElem(void)
+BufferStreamElem_base::~BufferStreamElem_base(void)
 {
 	if (pSC != 0) {
 		SAFEDELETE(pSC);
@@ -61,21 +61,14 @@ BufferStreamElem::~BufferStreamElem(void)
 	}
 }
 
-const std::vector<doublereal>&
-BufferStreamElem::GetBuf(void) const
+const integer
+BufferStreamElem_base::GetBufSize(void) const
 {
-	return buffer;
+	return pSC->GetNumChannels();
 }
 
-std::ostream&
-BufferStreamElem::Restart(std::ostream& out) const
-{   	
-	return out << "# BufferStreamElem(" << GetLabel() << "): "
-		"not implemented yet" << std::endl;
-}	
-
 void
-BufferStreamElem::SetValue(DataManager *pDM,
+BufferStreamElem_base::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
 {
@@ -84,7 +77,7 @@ BufferStreamElem::SetValue(DataManager *pDM,
 }
 
 void
-BufferStreamElem::AfterConvergence(const VectorHandler& X, 
+BufferStreamElem_base::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
 	/* output only every OutputEvery steps */
@@ -101,22 +94,149 @@ BufferStreamElem::AfterConvergence(const VectorHandler& X,
 	const doublereal *pd = (const doublereal *)pSC->GetBuf();
 	pSOE->Echo(pd, pSC->GetNumChannels());
 
+	doublereal *pBuffer = const_cast<doublereal *>(GetBufRaw());
 	for (unsigned i = 0; i < pSC->GetNumChannels(); i++) {
-		buffer[i] = pd[i];
+		pBuffer[i] = pd[i];
 	}
 }
 
 void
-BufferStreamElem::AfterConvergence(const VectorHandler& X, 
+BufferStreamElem_base::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP, const VectorHandler& XPP)
 {
 	AfterConvergence(X, XP);
 }
 
+/* BufferStreamElem_base - end */
+
+/* BufferStreamElem - begin */
+
+BufferStreamElem::BufferStreamElem(unsigned int uL,
+	unsigned int oe,
+	StreamContent *pSC, StreamOutEcho *pSOE)
+: Elem(uL, flag(0)),
+BufferStreamElem_base(uL, oe, pSC, pSOE),
+buffer(pSC->GetNumChannels())
+{
+	NO_OP;
+}
+
+BufferStreamElem::~BufferStreamElem(void)
+{
+	NO_OP;
+}
+
+const doublereal *
+BufferStreamElem::GetBufRaw(void) const
+{
+	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
+	ASSERT(buffer.size() == pSC->GetNumChannels());
+
+	return &buffer[0];
+}
+
+const std::vector<doublereal>&
+BufferStreamElem::GetBuf(void) const
+{
+	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
+	ASSERT(buffer.size() == pSC->GetNumChannels());
+
+	return buffer;
+}
+
+std::ostream&
+BufferStreamElem::Restart(std::ostream& out) const
+{   	
+	return out << "# BufferStreamElem(" << GetLabel() << "): "
+		"not implemented yet" << std::endl;
+}	
+
+/* BufferStreamElem - end */
+
+/* BufferStreamElemRaw - begin */
+
+BufferStreamElemRaw::BufferStreamElemRaw(unsigned int uL,
+	unsigned int oe,
+	StreamContent *pSC, StreamOutEcho *pSOE,
+	bool bOwnsMemory)
+: Elem(uL, flag(0)),
+BufferStreamElem_base(uL, oe, pSC, pSOE),
+bOwnsMemory(bOwnsMemory),
+pBuffer(0)
+{
+	NO_OP;
+}
+
+BufferStreamElemRaw::~BufferStreamElemRaw(void)
+{
+	if (bOwnsMemory) {
+		delete[] pBuffer;
+	}
+}
+
+void
+BufferStreamElemRaw::SetBufRaw(integer n, const doublereal *p)
+{
+	if (n != integer(pSC->GetNumChannels())) {
+		// error
+		std::ostringstream os;
+		os << "setting buffer pointer in BufferStreamElemRaw of wrong size (original=" << pSC->GetNumChannels() << ", new=" << n << ")";
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
+	}
+
+	if (bOwnsMemory) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamElemRaw that owns its memory");
+	}
+
+	if (pBuffer != 0) {
+		// error; maybe we could simply replace it, couldn't we?
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamElemRaw that has already been set");
+	}
+
+	pBuffer = p;
+}
+
+const doublereal *
+BufferStreamElemRaw::GetBufRaw(void) const
+{
+	return pBuffer;
+}
+
+std::ostream&
+BufferStreamElemRaw::Restart(std::ostream& out) const
+{   	
+	return out << "# BufferStreamElem(" << GetLabel() << "): "
+		"not implemented yet" << std::endl;
+}	
+
+/* BufferStreamElemRaw - end */
 
 Elem *
 ReadBufferStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
+	enum {
+		STL,
+		RAW
+	} eType = STL;
+	bool bOwnsMemory(true);
+
+	if (HP.IsKeyWord("type")) {
+		if (HP.IsKeyWord("raw")) {
+			eType = STL;
+			if (HP.IsKeyWord("owns" "memory")) {
+				bOwnsMemory = HP.GetYesNoOrBool();
+			}
+
+		} else if (!HP.IsKeyWord("slt")) {
+			silent_cerr("BufferStreamDrive"
+				"(" << uLabel << "\"): "
+				"invalid type at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	unsigned int OutputEvery = 1;
 	if (HP.IsKeyWord("output" "every")) {
 		int i = HP.GetInt();
@@ -141,8 +261,21 @@ ReadBufferStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	}
 
 	Elem *pEl = 0;
-	SAFENEWWITHCONSTRUCTOR(pEl, BufferStreamElem,
-		BufferStreamElem(uLabel, OutputEvery, pSC, pSOE));
+	switch (eType) {
+	case STL:
+		SAFENEWWITHCONSTRUCTOR(pEl, BufferStreamElem,
+			BufferStreamElem(uLabel, OutputEvery, pSC, pSOE));
+		break;
+
+	case RAW:
+		SAFENEWWITHCONSTRUCTOR(pEl, BufferStreamElemRaw,
+			BufferStreamElemRaw(uLabel, OutputEvery, pSC, pSOE, bOwnsMemory));
+		break;
+
+	default:
+		ASSERT(0);
+		break;
+	}
 
 	return pEl;
 }

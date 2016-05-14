@@ -12,6 +12,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
+		- added "raw" variants of buffer drive and output elem
 	Backward compatibility issues:
 	Known issues:
 		- aeromodal with rigid-body motion needs work

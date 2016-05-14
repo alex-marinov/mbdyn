@@ -36,7 +36,7 @@
 #include "streamdrive.h"
 #include "bufferstreamdrive.h"
 
-BufferStreamDrive::BufferStreamDrive(unsigned int uL,
+BufferStreamDrive_base::BufferStreamDrive_base(unsigned int uL,
 	const DriveHandler* pDH,
 	integer nd, const std::vector<doublereal>& v0,
 	StreamDrive::Modifier *pMod,
@@ -44,7 +44,6 @@ BufferStreamDrive::BufferStreamDrive(unsigned int uL,
 	StreamDriveEcho *pSDE)
 : StreamDrive(uL, pDH, 0, nd, v0, true, pMod),
 InputEvery(ie), InputCounter(ie - 1),
-buffer(nd),
 pSDE(pSDE)
 {
 	// NOTE: InputCounter is set to InputEvery - 1 so that input
@@ -58,32 +57,24 @@ pSDE(pSDE)
 
 	InputCounter -= InputEvery;
 
-	pSDE->Init("BufferStreamDrive", uLabel, nd);
+	pSDE->Init("BufferStreamDrive_base", uLabel, nd);
 }
 
-BufferStreamDrive::~BufferStreamDrive(void)
+BufferStreamDrive_base::~BufferStreamDrive_base(void)
 {
 	if (pSDE != 0) {
 		delete pSDE;
 	}
 }
 
-const std::vector<doublereal>&
-BufferStreamDrive::GetBuf(void)
+const integer
+BufferStreamDrive_base::GetBufSize(void) const
 {
-	return buffer;
+	return size;
 }
 
-/* Scrive il contributo del DriveCaller al file di restart */   
-std::ostream&
-BufferStreamDrive::Restart(std::ostream& out) const
-{
-	out << "  file: " << uLabel << ", buffer stream, " << iNumDrives << ";" << std::endl;
-	return out;
-}
-   
 void
-BufferStreamDrive::ServePending(const doublereal& t)
+BufferStreamDrive_base::ServePending(const doublereal& t)
 {
 	/* read only every InputEvery steps */
 	InputCounter++;
@@ -95,17 +86,148 @@ BufferStreamDrive::ServePending(const doublereal& t)
 	pSDE->EchoPrepare(&pdVal[1], iNumDrives);
 
 	// copy values from buffer
-	pMod->Modify(&pdVal[1], &buffer[0]);
+	pMod->Modify(&pdVal[1], GetBufRaw());
 
 	pSDE->Echo(&pdVal[1], iNumDrives);
 }
 
+
+BufferStreamDrive::BufferStreamDrive(unsigned int uL,
+	const DriveHandler* pDH,
+	integer nd, const std::vector<doublereal>& v0,
+	StreamDrive::Modifier *pMod,
+	unsigned int ie,
+	StreamDriveEcho *pSDE)
+: BufferStreamDrive_base(uL, pDH, nd, v0, pMod, ie, pSDE),
+buffer(nd)
+{
+	NO_OP;
+}
+
+BufferStreamDrive::~BufferStreamDrive(void)
+{
+	NO_OP;
+}
+
+const doublereal *
+BufferStreamDrive::GetBufRaw(void)
+{
+	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
+	ASSERT(buffer.size() == iNumDrives);
+
+	return &buffer[0];
+}
+
+std::vector<doublereal>&
+BufferStreamDrive::GetBuf(void)
+{
+	// paranoid sanity check: callers of GetBuf() could have altered the size of the buffer...
+	ASSERT(buffer.size() == iNumDrives);
+
+	return buffer;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */   
+std::ostream&
+BufferStreamDrive::Restart(std::ostream& out) const
+{
+	// input every, echo, ...
+	out << "  file: " << uLabel << ", buffer stream, type, stl, " << iNumDrives << ";" << std::endl;
+	return out;
+}
+   
+
+BufferStreamDriveRaw::BufferStreamDriveRaw(unsigned int uL,
+	const DriveHandler* pDH,
+	integer nd, const std::vector<doublereal>& v0,
+	StreamDrive::Modifier *pMod,
+	unsigned int ie,
+	StreamDriveEcho *pSDE,
+	bool bOwnsMemory)
+: BufferStreamDrive_base(uL, pDH, nd, v0, pMod, ie, pSDE),
+bOwnsMemory(bOwnsMemory),
+pBuffer(0)
+{
+	if (bOwnsMemory) {
+		pBuffer = new doublereal[nd];
+	}
+}
+
+BufferStreamDriveRaw::~BufferStreamDriveRaw(void)
+{
+	if (bOwnsMemory) {
+		delete[] pBuffer;
+	}
+}
+
+void
+BufferStreamDriveRaw::SetBufRaw(integer n, const doublereal *p)
+{
+	if (n != size) {
+		// error
+		std::ostringstream os;
+		os << "setting buffer pointer in BufferStreamDriveRaw of wrong size (original=" << size << ", new=" << n << ")";
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
+	}
+
+	if (bOwnsMemory) {
+		// error
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamDriveRaw that owns its memory");
+	}
+
+	if (pBuffer != 0) {
+		// error; maybe we could simply replace it, couldn't we?
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamDriveRaw that has already been set");
+	}
+
+	pBuffer = p;
+}
+
+const doublereal *
+BufferStreamDriveRaw::GetBufRaw(void)
+{
+	ASSERT(pBuffer != 0);
+
+	return pBuffer;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */   
+std::ostream&
+BufferStreamDriveRaw::Restart(std::ostream& out) const
+{
+	// input every, echo, ...
+	out << "  file: " << uLabel << ", buffer stream, type, raw, owns memory, " << (bOwnsMemory ? "yes" : "no" ) << iNumDrives << ";" << std::endl;
+	return out;
+}
+   
 
 /* legge i drivers tipo stream */
 
 static Drive *
 ReadBufferStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 {
+	enum {
+		STL,
+		RAW
+	} eType = STL;
+	bool bOwnsMemory(true);
+
+	if (HP.IsKeyWord("type")) {
+		if (HP.IsKeyWord("raw")) {
+			eType = STL;
+			if (HP.IsKeyWord("owns" "memory")) {
+				bOwnsMemory = HP.GetYesNoOrBool();
+			}
+
+		} else if (!HP.IsKeyWord("slt")) {
+			silent_cerr("BufferStreamDrive"
+				"(" << uLabel << "\"): "
+				"invalid type at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
 	unsigned int InputEvery = 1;
 	if (HP.IsKeyWord("input" "every")) {
 		int i = HP.GetInt();
@@ -146,11 +268,27 @@ ReadBufferStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	}
 
 	Drive* pDr = 0;
-	SAFENEWWITHCONSTRUCTOR(pDr, BufferStreamDrive,
-		BufferStreamDrive(uLabel,
-			pDM->pGetDrvHdl(),
-			idrives, v0, pMod,
-			InputEvery, pSDE));
+	switch (eType) {
+	case STL:
+		SAFENEWWITHCONSTRUCTOR(pDr, BufferStreamDrive,
+			BufferStreamDrive(uLabel,
+				pDM->pGetDrvHdl(),
+				idrives, v0, pMod,
+				InputEvery, pSDE));
+		break;
+
+	case RAW:
+		SAFENEWWITHCONSTRUCTOR(pDr, BufferStreamDriveRaw,
+			BufferStreamDriveRaw(uLabel,
+				pDM->pGetDrvHdl(),
+				idrives, v0, pMod,
+				InputEvery, pSDE, bOwnsMemory));
+		break;
+
+	default:
+		ASSERT(0);
+		break;
+	}
 
 	return pDr;
 }

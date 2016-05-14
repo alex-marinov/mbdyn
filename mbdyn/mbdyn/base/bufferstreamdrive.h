@@ -36,16 +36,38 @@
 
 #include "streamdrive.h"
 
-/* BufferStreamDrive - begin */
+/* BufferStreamDrive_base - begin */
 
-class BufferStreamDrive : public StreamDrive {
+class BufferStreamDrive_base : public StreamDrive {
 protected:
 	unsigned int InputEvery;
 	unsigned int InputCounter;
 
-	std::vector<doublereal> buffer;
-
 	StreamDriveEcho *pSDE;
+
+public:
+	BufferStreamDrive_base(unsigned int uL,
+		const DriveHandler* pDH,
+		integer nd, const std::vector<doublereal>& v0,
+		StreamDrive::Modifier *pMod,
+		unsigned int ie,
+		StreamDriveEcho *pSDE);
+
+	virtual ~BufferStreamDrive_base(void);
+
+	const integer GetBufSize(void) const;
+	virtual const doublereal *GetBufRaw(void) = 0;
+
+	virtual void ServePending(const doublereal& t);
+};
+
+/* BufferStreamDrive_base - end */
+
+/* BufferStreamDrive - begin */
+
+class BufferStreamDrive : public BufferStreamDrive_base {
+protected:
+	std::vector<doublereal> buffer;
 
 public:
 	BufferStreamDrive(unsigned int uL,
@@ -57,12 +79,38 @@ public:
 
 	virtual ~BufferStreamDrive(void);
 
-	const std::vector<doublereal>& GetBuf(void);
+	const doublereal *GetBufRaw(void);
+	std::vector<doublereal>& GetBuf(void);
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
+};
 
-	virtual void ServePending(const doublereal& t);
+/* BufferStreamDrive - end */
+
+/* BufferStreamDriveRaw - begin */
+
+class BufferStreamDriveRaw : public BufferStreamDrive_base {
+protected:
+	bool bOwnsMemory;
+	const doublereal *pBuffer;
+
+public:
+	BufferStreamDriveRaw(unsigned int uL,
+		const DriveHandler* pDH,
+		integer nd, const std::vector<doublereal>& v0,
+		StreamDrive::Modifier *pMod,
+		unsigned int ie,
+		StreamDriveEcho *pSDE,
+		bool bOwnsMemory);
+
+	virtual ~BufferStreamDriveRaw(void);
+
+	void SetBufRaw(integer n, const doublereal *p);
+	const doublereal *GetBufRaw(void);
+
+	/* Scrive il contributo del DriveCaller al file di restart */
+	virtual std::ostream& Restart(std::ostream& out) const;
 };
 
 /* BufferStreamDrive - end */
