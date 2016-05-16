@@ -1,0 +1,45 @@
+This directory contains a simple preprocessor for MBDyn.
+
+The preprocessor allows to mix standard MBDyn input files 
+directives with python code. 
+THe python code must be enclosed between
+the preprocessing directives 
+
+#beginpreprocess
+
+and
+
+#endpreprocess
+
+This allows to easily build any ripetitive MBDyn model by
+performing loops in python.
+
+MBDyn variables can be deaclared in python
+with the command 
+
+MBVar(name, type, value)
+
+or 
+
+ConstMBVar(name, type, value)
+
+Both commands will create a corresponding python variable that 
+you can use in loops _and_ in the declaration of MBDyn nodes and elements.
+
+Instead of writing the result of the arithmetic expression defined with 
+these variables, the arithemtic expression themselves will be
+written in the input file, to ease its readability.
+
+The preprocessed input file will be written to standard output.
+Just pipe it to mbdyn, or redirect it to a different file.
+
+You should study the examples to have a better idea of how to use this tool.
+
+Usage:
+
+python MBDynPreprocess.py input_fine_name
+
+(i.e. python MBDynPreprocess.py CrankPanel_v2.mbd )
+
+The preprocessor should work both with python2 and python3. Feel free
+to suggest improvements, corrections and bug fixes.
