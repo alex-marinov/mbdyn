@@ -139,9 +139,10 @@ enum KeyWords {
 		LOADABLE,		// deprecated
 	DRIVEN,
 
-	SOCKETSTREAM_OUTPUT,
-	SOCKETSTREAM_MOTION_OUTPUT,
-	RTAI_OUTPUT,
+	OUTPUT_ELEMENT,
+	SOCKETSTREAM_OUTPUT,		// deprecated
+	SOCKETSTREAM_MOTION_OUTPUT,	// deprecated
+	RTAI_OUTPUT,			// deprecated
 
 	INERTIA,
 
@@ -206,9 +207,10 @@ DataManager::ReadElems(MBDynParser& HP)
 			"loadable",		// deprecated
 		"driven",
 
-		"stream" "output",
-		"stream" "motion" "output",
-		"RTAI" "output",
+		"output" "element",
+		"stream" "output",		// deprecated
+		"stream" "motion" "output",	// deprecated
+		"RTAI" "output",		// deprecated
 
 		"inertia",
 
@@ -569,9 +571,10 @@ DataManager::ReadElems(MBDynParser& HP)
 					t = Elem::LOADABLE;
 					break;
 
-				case RTAI_OUTPUT:
-				case SOCKETSTREAM_OUTPUT:
-				case SOCKETSTREAM_MOTION_OUTPUT:
+				case OUTPUT_ELEMENT:
+				case RTAI_OUTPUT:			// deprecated
+				case SOCKETSTREAM_OUTPUT:		// deprecated
+				case SOCKETSTREAM_MOTION_OUTPUT:	// deprecated
 					silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 						<< " does not support bind" << std::endl);
 				default:
@@ -816,9 +819,10 @@ DataManager::ReadElems(MBDynParser& HP)
 						DEBUGLCOUT(MYDEBUG_INPUT, "OK, this element can be driven" << std::endl);
 						break;
 
-					case RTAI_OUTPUT:
-					case SOCKETSTREAM_OUTPUT:
-					case SOCKETSTREAM_MOTION_OUTPUT:
+					case OUTPUT_ELEMENT:
+					case RTAI_OUTPUT:			// deprecated
+					case SOCKETSTREAM_OUTPUT:		// deprecated
+					case SOCKETSTREAM_MOTION_OUTPUT:	// deprecated
 						silent_cerr(psElemNames[Elem::SOCKETSTREAM_OUTPUT]
 							<< " cannot be driven" << std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1047,9 +1051,11 @@ DataManager::ReadElems(MBDynParser& HP)
 				case BULK:
 				case USER_DEFINED:
 				case LOADABLE:
-				case RTAI_OUTPUT:
-				case SOCKETSTREAM_OUTPUT:
-				case SOCKETSTREAM_MOTION_OUTPUT:
+
+				case OUTPUT_ELEMENT:
+				case RTAI_OUTPUT:			// deprecated
+				case SOCKETSTREAM_OUTPUT:		// deprecated
+				case SOCKETSTREAM_MOTION_OUTPUT:	// deprecated
 				{
 					Elem **ppE = 0;
 
@@ -1955,22 +1961,23 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		break;
 	}
 
-	case RTAI_OUTPUT:
+	case RTAI_OUTPUT:			// deprecated
 #ifndef USE_RTAI
 		silent_cout("need --with-rtai to allow RTMBDyn mailboxes; "
 			"using stream output instead..." << std::endl);
 #endif /* ! USE_RTAI */
 		/* fall thru... */
 
-	case SOCKETSTREAM_OUTPUT:
-	case SOCKETSTREAM_MOTION_OUTPUT:
+	case OUTPUT_ELEMENT:
+	case SOCKETSTREAM_OUTPUT:		// deprecated
+	case SOCKETSTREAM_MOTION_OUTPUT:	// deprecated
 	{
-		silent_cout("Reading StreamOutputElement(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
+		silent_cout("Reading StreamOutElem(" << uLabel << ( sName.empty() ? "" : ( std::string(", \"") + sName + "\"" ) ) << ")" << std::endl);
 
 		if (iNumTypes[Elem::SOCKETSTREAM_OUTPUT]-- <= 0) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"StreamOutputElement(" << uLabel << ") "
+				"StreamOutElem(" << uLabel << ") "
 				"exceeds stream output elements number" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -1980,35 +1987,40 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		if (pFindElem(Elem::SOCKETSTREAM_OUTPUT, uLabel) != NULL) {
 			DEBUGCERR("");
 			silent_cerr("line " << HP.GetLineData() << ": "
-				"StreamOutputElement(" << uLabel << ") "
+				"StreamOutElem(" << uLabel << ") "
 				"already defined" << std::endl);
 
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		/* allocazione e creazione */
+		StreamOutElem::Type eType;
+		StreamContent::Type sType;
 		switch (KeyWords(CurrType)) {
 		case RTAI_OUTPUT:
 		case SOCKETSTREAM_OUTPUT:
-			pE = ReadSocketStreamElem(this, HP, uLabel,
-				StreamContent::VALUES);
+			pedantic_cerr("SocketStreamElem(" << uLabel << "): "
+				"deprecated in favour of 'output element: <label>, socket stream, ...' "
+				"at line " << HP.GetLineData() << std::endl);
+			eType = StreamOutElem::SOCKETSTREAM;
+			sType = StreamContent::VALUES;
 			break;
 
 		case SOCKETSTREAM_MOTION_OUTPUT:
 			pedantic_cerr("SocketStreamMotionElem(" << uLabel << "): "
-				"deprecated in favour of SocketStreamElem "
-				"with \"motion\" content type "
+				"deprecated in favour of 'output element: <label>, socket stream, motion, ...' "
 				"at line " << HP.GetLineData() << std::endl);
-			pE = ReadSocketStreamElem(this, HP, uLabel,
-				StreamContent::MOTION);
+			eType = StreamOutElem::SOCKETSTREAM;
+			sType = StreamContent::MOTION;
 			break;
 
 		default:
-			silent_cerr("You shouldn't be here: "
-				__FILE__ << ":" << __LINE__ << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			eType = StreamOutElem::UNDEFINED;
+			sType = StreamContent::UNKNOWN;
 			break;
 		}
+
+		pE = ReadOutputElem(this, HP, uLabel, eType, sType);
 
 		if (pE != 0) {
 			ppE = InsertElem(ElemData[Elem::SOCKETSTREAM_OUTPUT], uLabel, pE);

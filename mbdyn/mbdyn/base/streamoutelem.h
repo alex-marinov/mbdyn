@@ -42,6 +42,15 @@
 /* StreamOutElem - begin */
 
 class StreamOutElem : virtual public Elem {
+public:
+	enum Type {
+		UNDEFINED = -1,
+
+		RTAI,
+		SOCKETSTREAM,
+		BUFFERSTREAM
+	};
+
 protected:
 	std::string name;
 
@@ -167,6 +176,10 @@ extern StreamOutEcho *
 ReadStreamOutEcho(MBDynParser& HP);
 
 /* StreamOutEcho - end */
+
+extern Elem *
+ReadOutputElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel,
+	StreamOutElem::Type eType, StreamContent::Type sType);
 
 #endif /* STREAMOUTELEM_H */
 

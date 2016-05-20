@@ -44,7 +44,7 @@ BufferStreamElem_base::BufferStreamElem_base(unsigned int uL,
 	unsigned int oe,
 	StreamContent *pSC, StreamOutEcho *pSOE)
 : Elem(uL, flag(0)),
-StreamOutElem(uL, 0, oe),
+StreamOutElem(uL, "buffer", oe),
 pSC(pSC), pSOE(pSOE)
 {
 	if (pSOE != 0) {

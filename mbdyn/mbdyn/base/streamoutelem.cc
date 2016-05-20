@@ -38,6 +38,8 @@
 #include "dataman.h"
 #include "streamoutelem.h"
 #include "geomdata.h"
+#include "socketstream_out_elem.h"
+#include "bufferstream_out_elem.h"
 #include "socketstreammotionelem.h"
 #include "bufmod.h"
 
@@ -553,3 +555,39 @@ ReadStreamOutEcho(MBDynParser& HP)
 
 /* StreamOutEcho - end */
 
+Elem *
+ReadOutputElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamOutElem::Type eType, StreamContent::Type sType)
+{
+	Elem *pE(0);
+
+	if (eType == StreamOutElem::UNDEFINED) {
+		sType = StreamContent::UNKNOWN;
+
+		if (HP.IsKeyWord("socket" "stream")) {
+			eType = StreamOutElem::SOCKETSTREAM;
+
+		} else if (HP.IsKeyWord("buffer" "stream")) {
+			eType = StreamOutElem::BUFFERSTREAM;
+
+		} else {
+			silent_cerr("ReadOutputElem(" << uLabel << "): "
+				"unknown \"type\" at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+
+	switch (eType) {
+	case StreamOutElem::SOCKETSTREAM:
+		pE = ReadSocketStreamElem(pDM, HP, uLabel, sType);
+		break;
+
+	case StreamOutElem::BUFFERSTREAM:
+		pE = ReadBufferStreamElem(pDM, HP, uLabel, sType);
+		break;
+
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pE;
+}
