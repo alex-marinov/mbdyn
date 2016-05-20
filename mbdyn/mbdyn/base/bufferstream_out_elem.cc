@@ -47,7 +47,9 @@ BufferStreamElem_base::BufferStreamElem_base(unsigned int uL,
 StreamOutElem(uL, 0, oe),
 pSC(pSC), pSOE(pSOE)
 {
-	pSOE->Init("BufferStreamElem_base", uLabel, pSC->GetNumChannels());
+	if (pSOE != 0) {
+		pSOE->Init("BufferStreamElem_base", uLabel, pSC->GetNumChannels());
+	}
 }
 
 BufferStreamElem_base::~BufferStreamElem_base(void)
@@ -92,7 +94,9 @@ BufferStreamElem_base::AfterConvergence(const VectorHandler& X,
 
 	// check whether echo is needed
 	const doublereal *pd = (const doublereal *)pSC->GetBuf();
-	pSOE->Echo(pd, pSC->GetNumChannels());
+	if (pSOE != 0) {
+		pSOE->Echo(pd, pSC->GetNumChannels());
+	}
 
 	doublereal *pBuffer = const_cast<doublereal *>(GetBufRaw());
 	for (unsigned i = 0; i < pSC->GetNumChannels(); i++) {
@@ -228,7 +232,7 @@ ReadBufferStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 				bOwnsMemory = HP.GetYesNoOrBool();
 			}
 
-		} else if (!HP.IsKeyWord("slt")) {
+		} else if (!HP.IsKeyWord("stl")) {
 			silent_cerr("BufferStreamDrive"
 				"(" << uLabel << "\"): "
 				"invalid type at line " << HP.GetLineData()

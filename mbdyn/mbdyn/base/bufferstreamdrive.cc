@@ -42,7 +42,7 @@ BufferStreamDrive_base::BufferStreamDrive_base(unsigned int uL,
 	StreamDrive::Modifier *pMod,
 	unsigned int ie,
 	StreamDriveEcho *pSDE)
-: StreamDrive(uL, pDH, 0, nd, v0, true, pMod),
+: StreamDrive(uL, pDH, "buffer", nd, v0, true, pMod),
 InputEvery(ie), InputCounter(ie - 1),
 pSDE(pSDE)
 {
@@ -57,7 +57,9 @@ pSDE(pSDE)
 
 	InputCounter -= InputEvery;
 
-	pSDE->Init("BufferStreamDrive_base", uLabel, nd);
+	if (pSDE != 0) {
+		pSDE->Init("BufferStreamDrive_base", uLabel, nd);
+	}
 }
 
 BufferStreamDrive_base::~BufferStreamDrive_base(void)
@@ -82,13 +84,17 @@ BufferStreamDrive_base::ServePending(const doublereal& t)
 		return;
 	}
 	InputCounter = 0;
-	
-	pSDE->EchoPrepare(&pdVal[1], iNumDrives);
+
+	if (pSDE != 0) {
+		pSDE->EchoPrepare(&pdVal[1], iNumDrives);
+	}
 
 	// copy values from buffer
 	pMod->Modify(&pdVal[1], GetBufRaw());
 
-	pSDE->Echo(&pdVal[1], iNumDrives);
+	if (pSDE != 0) {
+		pSDE->Echo(&pdVal[1], iNumDrives);
+	}
 }
 
 
@@ -219,7 +225,7 @@ ReadBufferStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 				bOwnsMemory = HP.GetYesNoOrBool();
 			}
 
-		} else if (!HP.IsKeyWord("slt")) {
+		} else if (!HP.IsKeyWord("stl")) {
 			silent_cerr("BufferStreamDrive"
 				"(" << uLabel << "\"): "
 				"invalid type at line " << HP.GetLineData()
