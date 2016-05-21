@@ -91,8 +91,8 @@ public:
 
 class BufferStreamElemRaw : public BufferStreamElem_base, virtual public Elem {
 protected:
-	bool bOwnsMemory;
-	const doublereal *pBuffer;
+	bool m_bOwnsMemory;
+	const doublereal *m_pBuffer;
 	
 public:
    	BufferStreamElemRaw(unsigned int uL, unsigned int oe,
@@ -101,6 +101,7 @@ public:
 
    	virtual ~BufferStreamElemRaw(void);
 
+	bool bOwnsMemory(void) const;
 	virtual void SetBufRaw(integer n, const doublereal *p);
 	virtual const doublereal * GetBufRaw(void) const;
 

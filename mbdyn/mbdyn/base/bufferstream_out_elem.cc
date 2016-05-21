@@ -165,17 +165,23 @@ BufferStreamElemRaw::BufferStreamElemRaw(unsigned int uL,
 	bool bOwnsMemory)
 : Elem(uL, flag(0)),
 BufferStreamElem_base(uL, oe, pSC, pSOE),
-bOwnsMemory(bOwnsMemory),
-pBuffer(0)
+m_bOwnsMemory(bOwnsMemory),
+m_pBuffer(0)
 {
 	NO_OP;
 }
 
 BufferStreamElemRaw::~BufferStreamElemRaw(void)
 {
-	if (bOwnsMemory) {
-		delete[] pBuffer;
+	if (m_bOwnsMemory) {
+		delete[] m_pBuffer;
 	}
+}
+
+bool
+BufferStreamElemRaw::bOwnsMemory(void) const
+{
+	return m_bOwnsMemory;
 }
 
 void
@@ -188,23 +194,23 @@ BufferStreamElemRaw::SetBufRaw(integer n, const doublereal *p)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
 	}
 
-	if (bOwnsMemory) {
+	if (m_bOwnsMemory) {
 		// error
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamElemRaw that owns its memory");
 	}
 
-	if (pBuffer != 0) {
+	if (m_pBuffer != 0) {
 		// error; maybe we could simply replace it, couldn't we?
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamElemRaw that has already been set");
 	}
 
-	pBuffer = p;
+	m_pBuffer = p;
 }
 
 const doublereal *
 BufferStreamElemRaw::GetBufRaw(void) const
 {
-	return pBuffer;
+	return m_pBuffer;
 }
 
 std::ostream&

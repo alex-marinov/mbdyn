@@ -92,8 +92,8 @@ public:
 
 class BufferStreamDriveRaw : public BufferStreamDrive_base {
 protected:
-	bool bOwnsMemory;
-	const doublereal *pBuffer;
+	bool m_bOwnsMemory;
+	const doublereal *m_pBuffer;
 
 public:
 	BufferStreamDriveRaw(unsigned int uL,
@@ -106,6 +106,7 @@ public:
 
 	virtual ~BufferStreamDriveRaw(void);
 
+	bool bOwnsMemory(void) const;
 	void SetBufRaw(integer n, const doublereal *p);
 	const doublereal *GetBufRaw(void);
 

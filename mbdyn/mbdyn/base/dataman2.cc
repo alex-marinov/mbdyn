@@ -1844,11 +1844,81 @@ DataManager::GetBufOut(unsigned uL) const
 {
 	BufferStreamElem *pBSE = pFindElem<BufferStreamElem, StreamOutElem, Elem::SOCKETSTREAM_OUTPUT>(uL);
 	if (pBSE == 0) {
-		silent_cerr("unable to find BufferStreamElem(" << uL << ")" << std::endl);
+		silent_cerr("unable to find StreamOutElem(" << uL << "), or not a BufferStreamElem" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	return pBSE->GetBuf();
+}
+
+const doublereal *
+DataManager::GetBufInRaw(unsigned uL)
+{
+	Drive* pD = pFindDrive(Drive::FILEDRIVE, uL);
+	if (pD == 0) {
+		silent_cerr("unable to find FileDrive(" << uL << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	BufferStreamDrive_base *pBSD = dynamic_cast<BufferStreamDrive_base *>(pD);
+	if (pBSD == 0) {
+		silent_cerr("FileDrive(" << uL << ") is not a BufferStreamDrive_base" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pBSD->GetBufRaw();
+}
+
+void
+DataManager::SetBufInRaw(unsigned uL, integer n, const doublereal *p)
+{
+	Drive* pD = pFindDrive(Drive::FILEDRIVE, uL);
+	if (pD == 0) {
+		silent_cerr("unable to find FileDrive(" << uL << ")" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	BufferStreamDriveRaw *pBSD = dynamic_cast<BufferStreamDriveRaw *>(pD);
+	if (pBSD == 0) {
+		silent_cerr("FileDrive(" << uL << ") is not a BufferStreamDriveRaw" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (pBSD->bOwnsMemory()) {
+		silent_cerr("FileDrive(" << uL << ") owns its memory, unable to set buffer" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	pBSD->SetBufRaw(n, p);
+}
+
+const doublereal *
+DataManager::GetBufOutRaw(unsigned uL) const
+{
+	BufferStreamElem_base *pBSE = pFindElem<BufferStreamElem_base, StreamOutElem, Elem::SOCKETSTREAM_OUTPUT>(uL);
+	if (pBSE == 0) {
+		silent_cerr("unable to find StreamOutElem(" << uL << "), or not a BufferStreamElem_base" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	return pBSE->GetBufRaw();
+}
+
+void
+DataManager::SetBufOutRaw(unsigned uL, integer n, const doublereal *p)
+{
+	BufferStreamElemRaw *pBSE = pFindElem<BufferStreamElemRaw, StreamOutElem, Elem::SOCKETSTREAM_OUTPUT>(uL);
+	if (pBSE == 0) {
+		silent_cerr("unable to find StreamOutElem(" << uL << "), or not a BufferStreamElemRaw" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if (pBSE->bOwnsMemory()) {
+		silent_cerr("StreamOutElem(" << uL << ") owns its memory, unable to set buffer" << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	pBSE->SetBufRaw(n, p);
 }
 
 /* DataManager - end */

@@ -151,19 +151,25 @@ BufferStreamDriveRaw::BufferStreamDriveRaw(unsigned int uL,
 	StreamDriveEcho *pSDE,
 	bool bOwnsMemory)
 : BufferStreamDrive_base(uL, pDH, nd, v0, pMod, ie, pSDE),
-bOwnsMemory(bOwnsMemory),
-pBuffer(0)
+m_bOwnsMemory(bOwnsMemory),
+m_pBuffer(0)
 {
-	if (bOwnsMemory) {
-		pBuffer = new doublereal[nd];
+	if (m_bOwnsMemory) {
+		m_pBuffer = new doublereal[nd];
 	}
 }
 
 BufferStreamDriveRaw::~BufferStreamDriveRaw(void)
 {
-	if (bOwnsMemory) {
-		delete[] pBuffer;
+	if (m_bOwnsMemory) {
+		delete[] m_pBuffer;
 	}
+}
+
+bool
+BufferStreamDriveRaw::bOwnsMemory(void) const
+{
+	return m_bOwnsMemory;
 }
 
 void
@@ -176,25 +182,25 @@ BufferStreamDriveRaw::SetBufRaw(integer n, const doublereal *p)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
 	}
 
-	if (bOwnsMemory) {
+	if (m_bOwnsMemory) {
 		// error
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamDriveRaw that owns its memory");
 	}
 
-	if (pBuffer != 0) {
+	if (m_pBuffer != 0) {
 		// error; maybe we could simply replace it, couldn't we?
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, "setting buffer pointer in BufferStreamDriveRaw that has already been set");
 	}
 
-	pBuffer = p;
+	m_pBuffer = p;
 }
 
 const doublereal *
 BufferStreamDriveRaw::GetBufRaw(void)
 {
-	ASSERT(pBuffer != 0);
+	ASSERT(m_pBuffer != 0);
 
-	return pBuffer;
+	return m_pBuffer;
 }
 
 /* Scrive il contributo del DriveCaller al file di restart */   
@@ -202,7 +208,7 @@ std::ostream&
 BufferStreamDriveRaw::Restart(std::ostream& out) const
 {
 	// input every, echo, ...
-	out << "  file: " << uLabel << ", buffer stream, type, raw, owns memory, " << (bOwnsMemory ? "yes" : "no" ) << iNumDrives << ";" << std::endl;
+	out << "  file: " << uLabel << ", buffer stream, type, raw, owns memory, " << (m_bOwnsMemory ? "yes" : "no" ) << iNumDrives << ";" << std::endl;
 	return out;
 }
    
