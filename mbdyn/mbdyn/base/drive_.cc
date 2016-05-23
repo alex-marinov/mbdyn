@@ -1418,6 +1418,10 @@ void DriveCallerRead::ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDyn
 		}
 	}
 
+	if (fOutput) {
+		fOutput |= DriveCaller::OUTPUT;
+	}
+    
 	pDC->SetOutputFlag(fOutput);
 
 	flag fTrace = 0;
@@ -1468,6 +1472,10 @@ void DriveCallerRead::ReadOutput(DriveCaller* pDC, const DataManager* pDM, MBDyn
 		}
 	}
 
+	if (fTrace) {
+		fTrace |= DriveCaller::TRACE;
+	}
+    
 	pDC->SetTraceFlag(fTrace);
 }
 

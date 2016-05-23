@@ -859,12 +859,14 @@ ToBeOutput::fToBeOutput(void) const
 bool
 ToBeOutput::bToBeOutput(void) const
 {
-  	return (fOutput & flag(1));
+	return (fOutput & flag(1));
 }
 
 void
 ToBeOutput::SetOutputFlag(flag f)
 {
+	ASSERT(f ? f & flag(1) : 1);
+
   	fOutput = f;
 }
 
@@ -886,6 +888,8 @@ flag Traceable::fToBeTraced(void) const
 
 void Traceable::SetTraceFlag(flag f)
 {
+	ASSERT(f ? f & flag(1) : 1);
+
 	fTrace = f;
 }
 
