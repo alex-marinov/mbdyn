@@ -648,7 +648,7 @@ public:
 	const std::vector<doublereal>& GetBufOut(unsigned uL) const;
 
 	/* low-level variant (use at own risk) */
-	const doublereal * GetBufInRaw(unsigned uL);
+	doublereal * GetBufInRaw(unsigned uL);
 	void SetBufInRaw(unsigned uL, integer n, const doublereal *p);
 	const doublereal * GetBufOutRaw(unsigned uL) const;
 	void SetBufOutRaw(unsigned uL, integer n, const doublereal *p);

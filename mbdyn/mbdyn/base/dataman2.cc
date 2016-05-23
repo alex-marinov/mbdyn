@@ -1851,7 +1851,7 @@ DataManager::GetBufOut(unsigned uL) const
 	return pBSE->GetBuf();
 }
 
-const doublereal *
+doublereal *
 DataManager::GetBufInRaw(unsigned uL)
 {
 	Drive* pD = pFindDrive(Drive::FILEDRIVE, uL);
@@ -1866,7 +1866,8 @@ DataManager::GetBufInRaw(unsigned uL)
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	return pBSD->GetBufRaw();
+	// NOTE: this cast is needed because the input buf must be writeable.
+	return (doublereal *)pBSD->GetBufRaw();
 }
 
 void
