@@ -13,6 +13,8 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added "raw" variants of buffer drive and output elem
+		- added private data to electric motor (Reinhard Resch)
+		- added initial current to electric motor (Reinhard Resch)
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:
@@ -23,6 +25,7 @@ MBDyn 1.X-Devel
 		- fixed "log" of total* family
 		- fixed build of bufferstream* when sockets are not present
 		- fixed build with RTAI
+		- fixed output of drive callers (Reinhard Resch)
 
 MBDyn 1.7.1
 	Enhancements:
