@@ -68,14 +68,18 @@ public:
 			const StructNode* pN1, const StructNode* pN2,
 			const ElectricNode* pV1, const ElectricNode* pV2,
 			const Vec3& TmpDir, doublereal dG,
-			doublereal dl, doublereal dr,
+			doublereal dl, doublereal dr, doublereal i0,
 			flag fOut);
 	virtual ~Motor(void);
 
 	virtual Electric::Type GetElectricType(void) const {
 		return Electric::MOTOR;
 	};
-   
+
+	virtual unsigned int iGetNumPrivData(void) const;
+	virtual unsigned int iGetPrivDataIdx(const char *s) const;
+	virtual doublereal dGetPrivData(unsigned int i) const;
+
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
    
@@ -92,9 +96,13 @@ public:
 			doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
-   
-     	virtual void SetInitialValue(VectorHandler& /* X */ );
 
+	virtual void SetInitialValue(VectorHandler& X);
+
+	virtual void SetValue(DataManager *pDM,
+			VectorHandler& X, VectorHandler& XP,
+			SimulationEntity::Hints* h = 0);
+        
 	/* *******PER IL SOLUTORE PARALLELO******** */        
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
@@ -106,6 +114,20 @@ public:
 		connectedNodes[3] = pVoltage2;
 	};
 	/* ************************************************ */
+private:
+	inline doublereal dGetOmega(void) const;
+	inline doublereal dGetVoltage(void) const;
+	doublereal dGetOmega(const Vec3& TmpDir) const;
+	Vec3 GetAxisOfRotation(void) const;
+
+	doublereal M, i, iP;
+
+	static const int iNumPrivData = 7;
+
+	static const struct PrivData {
+		int index;
+		char name[6];
+	} rgPrivData[iNumPrivData];
 };
 
 #endif /* MOTOR_H */

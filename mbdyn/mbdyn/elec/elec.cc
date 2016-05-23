@@ -399,13 +399,18 @@ ReadElectric(DataManager* pDM,
 		doublereal dG = HP.GetReal();
 		doublereal dl = HP.GetReal();
 		doublereal dr = HP.GetReal();
+		doublereal i0 = 0;
+                
+		if (HP.IsKeyWord("initial" "current")) {
+			i0 = HP.GetReal();
+		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
 
 		SAFENEWWITHCONSTRUCTOR(pEl, Motor,
 			Motor(uLabel, pDO,
 				pStrNode1, pStrNode2, pVoltage1, pVoltage2,
-				TmpDir, dG, dl, dr, fOut));
+				TmpDir, dG, dl, dr, i0, fOut));
 		} break;
 
 	case DISCRETECONTROL: {

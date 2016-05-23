@@ -55,18 +55,31 @@
  
  */
 
+const Motor::PrivData Motor::rgPrivData[iNumPrivData] = {
+	{1, "omega"},
+	{2, "M"},
+	{3, "Pmech"},
+	{4, "U"},
+	{5, "i"},
+	{6, "iP"},
+	{7, "Pel"}
+};
+
 Motor::Motor(unsigned int uL, const DofOwner* pD, 
 		const StructNode* pN1, const StructNode* pN2,
 		const ElectricNode* pV1, const ElectricNode* pV2,
 		const Vec3& TmpDir, doublereal dG,
-		doublereal dl, doublereal dr,
+		doublereal dl, doublereal dr, doublereal i0,
 		flag fOut)
 : Elem(uL, fOut), 
 Electric(uL, pD, fOut),
 pStrNode1(pN1), pStrNode2(pN2), pVoltage1(pV1), pVoltage2(pV2),
-Dir(TmpDir), dGain(dG), dL(dl), dR(dr)
+Dir(TmpDir), dGain(dG), dL(dl), dR(dr), M(i0 * dG), i(i0)
 {
-	NO_OP;
+	const doublereal dU  = dGetVoltage();
+	const doublereal omega = dGetOmega();
+
+	iP = (dU - dGain * omega - dR *i) / dL;
 }
 
 Motor::~Motor(void)
@@ -205,27 +218,106 @@ Motor::AssRes(SubVectorHandler& WorkVec,
 	WorkVec.PutRowIndex(8, iElecNode2FirstIndex);
 	WorkVec.PutRowIndex(9, iFirstIndex);
 
-	doublereal i = XCurr(iFirstIndex);
-	doublereal iP = XPrimeCurr(iFirstIndex);
-	doublereal dV = pVoltage2->dGetX() - pVoltage1->dGetX();
+	i = XCurr(iFirstIndex);
+	iP = XPrimeCurr(iFirstIndex);
+	M = dGain * i;
 
-	Vec3 TmpDir(pStrNode1->GetRCurr()*Dir);
-	Vec3 C(TmpDir*(dGain*i));
-	doublereal omega =
-		TmpDir*(pStrNode2->GetWCurr() - pStrNode1->GetWCurr());
+	const doublereal dU  = dGetVoltage();
+	const Vec3 TmpDir(GetAxisOfRotation());
+	const Vec3 C(TmpDir * M);
+	const doublereal omega = dGetOmega(TmpDir);
 
 	WorkVec.Sub(1, C);
 	WorkVec.Add(4, C);
 	WorkVec.DecCoef(7, i);
 	WorkVec.IncCoef(8, i);
-	WorkVec.IncCoef(9, dV - dGain*omega - dL*iP - dR*i);
+	WorkVec.IncCoef(9, dU - dGain*omega - dL*iP - dR*i);
       
 	return WorkVec;
 }
 
-void
-Motor::SetInitialValue(VectorHandler& /* X */ )
+doublereal
+Motor::dGetVoltage(void) const
 {
-	NO_OP;
+	return pVoltage2->dGetX() - pVoltage1->dGetX();
 }
 
+doublereal
+Motor::dGetOmega(const Vec3& TmpDir) const
+{
+	return  TmpDir * (pStrNode2->GetWCurr() - pStrNode1->GetWCurr());
+}
+
+Vec3
+Motor::GetAxisOfRotation(void) const
+{
+	return pStrNode1->GetRCurr() * Dir;
+}
+
+doublereal
+Motor::dGetOmega(void) const
+{
+	return dGetOmega(GetAxisOfRotation());
+}
+
+void
+Motor::SetInitialValue(VectorHandler& X)
+{
+	const integer iFirstIndex = iGetFirstIndex() + 1;
+ 
+	X(iFirstIndex) = i;
+}
+
+void
+Motor::SetValue(DataManager *pDM,
+	VectorHandler& X, VectorHandler& XP,
+	SimulationEntity::Hints* h)
+{
+	const integer iFirstIndex = iGetFirstIndex() + 1;
+
+	X(iFirstIndex) = i;
+	XP(iFirstIndex) = iP;
+}
+
+unsigned int
+Motor::iGetNumPrivData(void) const
+{
+	return iNumPrivData;
+}
+
+unsigned int
+Motor::iGetPrivDataIdx(const char *s) const
+{
+	for (int i = 0; i < iNumPrivData; ++i ) {
+		if (0 == strcmp(rgPrivData[i].name, s)) {
+			return rgPrivData[i].index;
+		}
+	}
+
+	silent_cerr("motor(" << GetLabel() << "): private data \"" << s << "\" undefined" << std::endl);
+    
+	return 0;
+}
+
+doublereal
+Motor::dGetPrivData(unsigned int iIndex) const
+{
+	switch (iIndex) {
+	case 1:
+		return dGetOmega();
+	case 2:
+		return M;
+	case 3:
+		return dGetOmega() * M;
+	case 4:
+		return dGetVoltage();
+	case 5:
+		return i;
+	case 6:
+		return iP;
+	case 7:
+		return dGetVoltage() * i;
+	default:
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
