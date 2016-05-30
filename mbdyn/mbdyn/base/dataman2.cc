@@ -1156,11 +1156,12 @@ DataManager::InitialJointAssembly(void)
 		}
 		dTest = sqrt(dTest);
 
-		if (
+		if ((dTest <= dInitialAssemblyTol ||
+			iNumIter >= iMaxInitialIterations) && (
 #ifdef DEBUG
 				DEBUG_LEVEL_MATCH(MYDEBUG_ASSEMBLY) ||
 #endif /* DEBUG */
-				outputIters())
+			outputIters()))
 		{
 			silent_cout("\tIteration(" << iNumIter << ") "
 				"" << dTest << std::endl);
@@ -1284,6 +1285,24 @@ DataManager::InitialJointAssembly(void)
 			PrintSolution(*pSolHdl, iNumIter);
 		}
 
+		if (outputIters() || outputSolverConditionNumber()) {
+			if (outputIters()) {
+				silent_cout("\tIteration(" << iNumIter << ") " << std::setw(12) << dTest << " J");
+		}
+
+		if (outputSolverConditionNumber()) {
+			silent_cout(" cond=");
+				doublereal dCond;
+				if (pSM->bGetConditionNumber(dCond)) {
+					silent_cout(dCond);
+				} else {
+					silent_cout("NA");
+				}
+			}
+
+			silent_cout(std::endl);
+                }
+                
 		/* Aggiorno la soluzione */
 		if (dEpsilon != 1.) {
 			*pSolHdl *= dEpsilon;
