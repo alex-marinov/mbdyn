@@ -171,6 +171,46 @@ class cos(expression):
         ls = str(self.left)
         return 'cos(' + ls + ')'
 
+class tan(expression):
+	def __init__(self, left):
+		expression.__init__(self)
+		self.left = left
+	def __get__(self):
+		return math.tan(get_value(self.left))
+	def __str__(self):
+		ls = str(self.left)
+		return 'tan(' + ls + ')'
+
+class asin(expression):
+	def __init__(self, left):
+		expression.__init__(self)
+		self.left = left
+	def __get__(self):
+		return math.asin(get_value(self.left))
+	def __str__(self):
+		ls = str(self.left)
+		return 'asin(' + ls + ')'
+
+class acos(expression):
+	def __init__(self, left):
+		expression.__init__(self)
+		self.left = left
+	def __get__(self):
+		return math.acos(get_value(self.left))
+	def __str__(self):
+		ls = str(self.left)
+		return 'acos(' + ls + ')'
+
+class sqrt(expression):
+	def __init__(self, left):
+		expression.__init__(self)
+		self.left = left
+	def __get__(self):
+		return math.sqrt(get_value(self.left))
+	def __str__(self):
+		ls = str(self.left)
+		return 'sqrt(' + ls + ')'
+
 class terminal_expression(expression):
     def __init__(self, value):
         expression.__init__(self)
@@ -195,6 +235,16 @@ class binary_expression(expression):
         return y
     def __index__(self):
         return self.__trunc__()
+
+class atan2(binary_expression):
+	def __init__(self, left, right):
+		binary_expression.__init__(self, left, right)
+	def __get__(self):
+		return math.atan2(get_value(self.left), get_value(self.right))
+	def __str__(self):
+		ls = str(self.left)
+		rs = str(self.right)
+		return 'atan2(' + ls + ', ' + rs + ')'
 
 class addition(binary_expression):
     def __init__(self, left, right):
