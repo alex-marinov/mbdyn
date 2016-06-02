@@ -60,8 +60,13 @@ else:
 from MBDynLib import *
 
 script, filename = sys.argv
-preprocessing_include = re.compile("include:")
+preprocessing_include = re.compile("[\s]*include:")
 
+nodes = []
+bodies = []
+joints = []
+shells = []
+beams = []
 
 class PreProc:
     def __init__(self):
@@ -99,8 +104,8 @@ class PreProc:
     def print_p(self, preproc, linx):
         self.lin = linx
         if preproc:
-             print('#python # ' + self.lin.replace('\n', ' ').replace('\r', ''))
-             self.lins.append(self.lin)
+             print('#python ' + str(len(self.lins) + 1) + ' # ' + self.lin.replace('\n', ' ').replace('\r', ''))
+             self.lins.append(self.lin.replace('\n', ' ').replace('\r', ''))
         else:
             print(self.lin.replace('\n', ' ').replace('\r', ''))
 
@@ -129,6 +134,9 @@ def PreprocessMBDynFile(pp, fn):
                         pp.proprocessingdirectivefile + ':' + 
                         str(pp.proprocessingdirectiveline))
                 includedfilename = re.findall('"([^"]*)"', ln)[0]
+                print('\n#')
+                print('# include: \"' + includedfilename + '\"')
+                print('#\n')
                 PreprocessMBDynFile(pp, includedfilename)
             else:
                 pp.compile(ln, fn, lineno, globals())
