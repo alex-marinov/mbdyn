@@ -72,7 +72,7 @@ BufferStreamDrive_base::~BufferStreamDrive_base(void)
 const integer
 BufferStreamDrive_base::GetBufSize(void) const
 {
-	return size;
+	return iNumDrives;
 }
 
 void
@@ -175,10 +175,10 @@ BufferStreamDriveRaw::bOwnsMemory(void) const
 void
 BufferStreamDriveRaw::SetBufRaw(integer n, const doublereal *p)
 {
-	if (n != size) {
+	if (n != iNumDrives) {
 		// error
 		std::ostringstream os;
-		os << "setting buffer pointer in BufferStreamDriveRaw of wrong size (original=" << size << ", new=" << n << ")";
+		os << "setting buffer pointer in BufferStreamDriveRaw of wrong size (original=" << iNumDrives << ", new=" << n << ")";
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS, os.str());
 	}
 
@@ -226,7 +226,7 @@ ReadBufferStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 	if (HP.IsKeyWord("type")) {
 		if (HP.IsKeyWord("raw")) {
-			eType = STL;
+			eType = RAW;
 			if (HP.IsKeyWord("owns" "memory")) {
 				bOwnsMemory = HP.GetYesNoOrBool();
 			}

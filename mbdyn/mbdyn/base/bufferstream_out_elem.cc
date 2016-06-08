@@ -168,7 +168,9 @@ BufferStreamElem_base(uL, oe, pSC, pSOE),
 m_bOwnsMemory(bOwnsMemory),
 m_pBuffer(0)
 {
-	NO_OP;
+	if (m_bOwnsMemory) {
+		m_pBuffer = new doublereal[pSC->GetNumChannels()];
+	}
 }
 
 BufferStreamElemRaw::~BufferStreamElemRaw(void)
@@ -233,7 +235,7 @@ ReadBufferStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	if (HP.IsKeyWord("type")) {
 		if (HP.IsKeyWord("raw")) {
-			eType = STL;
+			eType = RAW;
 			if (HP.IsKeyWord("owns" "memory")) {
 				bOwnsMemory = HP.GetYesNoOrBool();
 			}
