@@ -70,12 +70,20 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 	/*
 	 * Mangia gli eventuali commenti iniziali
 	 */
+	unsigned uLineNo = 0;
 	char cTmp = '\0';
 	while (in.get(cTmp), cTmp == '#') {
-		char tmpbuf[1024];
+		char tmpbuf[8192];
 
 		do {
 			in.getline(tmpbuf, sizeof(tmpbuf));
+			++uLineNo;
+			if (in.fail()) {
+				silent_cerr("FixedStepFileDrive(" << uL << "): "
+					"can't get line " << uLineNo << " "
+					"from file \"" << sFileName << "\"" << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 			int idx = 0;
 			while (isspace(tmpbuf[idx])) {
 				idx++;
@@ -133,10 +141,21 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 		std::streampos pos = in.tellg();
 
 		for (ins = 0; !in.eof(); ins++) {
-			char tmpbuf[1024];
+			char tmpbuf[8192];
 
 			do {
 				in.getline(tmpbuf, sizeof(tmpbuf));
+				++uLineNo;
+				if (in.eof()) {
+					break;
+				}
+
+				if (in.fail()) {
+					silent_cerr("FixedStepFileDrive(" << uL << "): "
+						"can't get line " << uLineNo << " "
+						"from file \"" << sFileName << "\"" << std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 			} while (strlen(tmpbuf) == STRLENOF(tmpbuf) && tmpbuf[STRLENOF(tmpbuf)] != '\n');
 		}
 		iNumSteps = --ins;
@@ -171,20 +190,23 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 			for (c = in.get(); isspace(c); c = in.get()) {
 				if (c == '\n') {
 					if (i != iNumDrives) {
-						silent_cerr("unexpected end of line #" << j + 1 << " after channel #" << i << ", column #" << i << " of file '"
+						silent_cerr("unexpected end of line #" << j + 1 << " (" << uLineNo << ") after channel #" << i << ", column #" << i << " of file '"
 							<< sFileName << '\'' << std::endl);
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
+
+					++uLineNo;
 					break;
 				}
 			}
 
 			if (i == iNumDrives && c != '\n') {
-				silent_cerr("missing end-of-line at line #" << j + 1 << " of file '"
+				silent_cerr("missing end-of-line at line #" << j + 1 << " (" << uLineNo << ") of file '"
 					<< sFileName << '\'' << std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			++uLineNo;
 			in.putback(c);
 		}
 	}
