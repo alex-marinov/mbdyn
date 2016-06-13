@@ -73,7 +73,9 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 	unsigned uLineNo = 0;
 	char cTmp = '\0';
 	while (in.get(cTmp), cTmp == '#') {
-		char tmpbuf[8192];
+		// increase this to enlarge the size of the buffer
+#define FIXED_BUFSIZE (8192)
+		char tmpbuf[FIXED_BUFSIZE];
 
 		do {
 			in.getline(tmpbuf, sizeof(tmpbuf));
@@ -141,7 +143,7 @@ bLinear(bl), bPadZeroes(pz), boWhen(bo), pd(0), pvd(0)
 		std::streampos pos = in.tellg();
 
 		for (ins = 0; !in.eof(); ins++) {
-			char tmpbuf[8192];
+			char tmpbuf[FIXED_BUFSIZE];
 
 			do {
 				in.getline(tmpbuf, sizeof(tmpbuf));
