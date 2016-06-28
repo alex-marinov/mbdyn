@@ -388,6 +388,8 @@ OCTAVE_INCLUDE=
 dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
+wl=
+EXPORT_DYNAMIC_FLAG_SPEC=
 
 dnl MODULES_DIRS=
 MODULE_LOADPATH=
@@ -1398,7 +1400,9 @@ if test "$ol_enable_runtime_loading" != "no" ; then
 		AC_DEFINE(HAVE_LTDL_H,1,[define if you have <ltdl.h>])
 		AC_CHECK_LIB(ltdl, lt_dlinit,[have_lt_dlinit=yes],[have_lt_dlinit=no])
 		if test $have_lt_dlinit = "yes" ; then
+			eval `libtool --tag=CC --config|grep '^wl='`
 			LIBS="$LIBS -lltdl"
+			EXPORT_DYNAMIC_FLAG_SPEC="$export_dynamic_flag_spec"
 			have_runtime_loading=yes
 			MODULE_LOADPATH=$libexecdir
 		fi
@@ -3189,6 +3193,13 @@ fi
 AC_LANG_C
 
 dnl ----------------------------------------------------------------
+dnl Add EXPORT_DYNAMIC_FLAG_SPEC to LDFLAGS immediately before exit
+dnl otherwise all the tests during configure would fail
+
+LDFLAGS="$LDFLAGS $EXPORT_DYNAMIC_FLAG_SPEC"
+
+
+dnl ----------------------------------------------------------------
 dnl TODO: add a check about whether a fortran (F77, F95) compiler is
 dnl needed, and bail out if not available
 
@@ -3225,6 +3236,7 @@ AC_SUBST(OCTAVE_LIBS)
 AC_SUBST(OCTAVE_INCLUDE)
 AC_SUBST(MODULES_DIRS)
 AC_SUBST(MODULE_LOADPATH)
+AC_SUBST(wl)
 
 dnl AC_SUBST(GINACLIB_CONFIG)
 AC_SUBST(GINACLIB_CPPFLAGS)
