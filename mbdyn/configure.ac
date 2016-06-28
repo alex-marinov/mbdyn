@@ -1306,86 +1306,80 @@ dnl Check for threads (check anyway...)
 dnl
 have_threads="no"
 if test "$ol_with_threads" != "no" ; then
-	AC_MSG_CHECKING([for usable threads])
-	if test "$ac_cv_header_pthread_h" = "yes" ; then
+	AX_PTHREAD([have_threads="yes"],[have_threads="no"])
+	if test "$ol_with_threads" = "yes" ; then
+		if test "$have_thread" = "no" ; then
+			AC_MSG_ERROR([no pthread thread capability detected])
+		fi
+	fi
+	if test "$have_threads" = "yes" ; then
 		save_LIBS="$LIBS"
-		have_threads="no"
-		if test "$have_threads" = no ; then
-			AC_TRY_LINK([
-			/* Check whether threads are linked by default */
-#include <pthread.h>
-				],[
-		return pthread_create(0, 0, 0, 0);
-				],[have_threads="yes"])
-			LIBS="$save_LIBS"
-		fi
-
-		if test "$have_threads" = no ; then
-			THREAD_LIBS="-lpthread"
-			LIBS="$save_LIBS $THREAD_LIBS"
-			AC_TRY_LINK([
-			/* Check whether threads need -lpthread */
-#include <pthread.h>
-				],[
-		return pthread_create(0, 0, 0, 0);
-				],[have_threads="yes"])
-			LIBS="$save_LIBS"
-		fi
-
+		save_CXXFLAGS="$CXXFLAGS"
+		save_CFLAGS="$CFLAGS"
+		save_CC="$CC"
+		LIBS="$LIBS $PTHREAD_LIBS"
+		CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+		LDFLAGS="$LDFLAGS  $PTHREAD_CFLAGS"
+		CC="$PTHREAD_CC"
+		AC_TRY_LINK([
+				/* Check whether threads really works */
+				#include <pthread.h>
+			],[
+			return pthread_create(0, 0, 0, 0);
+			],[
+			],[
+				LIBS="$save_LIBS"
+				CXXFLAGS="$save_CXXFLAGS"
+				CFLAGS="$save_CFLAGS"
+				CC="$save_CC"
+				have_threads = "no"
+				if test "$ol_with_threads" = "yes" ; then
+					AC_MSG_ERROR([no pthread thread linking capability detected])
+				fi
+		])
 		if test "$have_threads" = "yes" ; then
 			AC_DEFINE(HAVE_THREADS,1,[define if usable threads are available])
 			AC_MSG_RESULT([yes])
 		fi
 		
-		if test "$have_threads" = "yes" ; then
-			AC_MSG_CHECKING([for usable pthread_setaffinity_np])
-			save_LIBS="$LIBS"
-			THREAD_LIBS="-lpthread"
-			LIBS="$save_LIBS $THREAD_LIBS"
-			AC_TRY_LINK([
-	#define _GNU_SOURCE
-	#include <pthread.h>
-	#include <sched.h>
+		AC_MSG_CHECKING([for usable pthread_setaffinity_np])
+		AC_TRY_LINK([
+				#define _GNU_SOURCE
+				#include <pthread.h>
+				#include <sched.h>
 			],[
-		    cpu_set_t cpuset;
-		    pthread_attr_t attr;
+				cpu_set_t cpuset;
+				pthread_attr_t attr;
 	
-			CPU_ZERO(&cpuset);
-			CPU_SET(0, &cpuset);
+				CPU_ZERO(&cpuset);
+				CPU_SET(0, &cpuset);
 	
-			pthread_getattr_np(pthread_self(), &attr);
-			pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
-			return pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+				pthread_getattr_np(pthread_self(), &attr);
+				pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
+				return pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 			],[
 				AC_DEFINE(USE_PTHREAD_SETAFFINITY_NP,1,[define to use pthread_setaffinity_np])
 				AC_MSG_RESULT([yes])
 			],[
 				AC_MSG_RESULT([no])
-			])
-			LIBS="$save_LIBS"
-		fi
+		])
     
-    	if test "$have_threads" = "yes" ; then
-			AC_MSG_CHECKING([for usable pthread_sigmask])
-			save_LIBS="$LIBS"
-			THREAD_LIBS="-lpthread"
-			LIBS="$save_LIBS $THREAD_LIBS"
-			AC_TRY_LINK([
-	#include <pthread.h>
-	#include <signal.h>
+		AC_MSG_CHECKING([for usable pthread_sigmask])
+		AC_TRY_LINK([
+				#include <pthread.h>
+				#include <signal.h>
 			],[
-                sigset_t newset;
-                sigemptyset(&newset);
-                sigaddset(&newset, SIGTERM);
-                pthread_sigmask(SIG_BLOCK, &newset, NULL);
+				sigset_t newset;
+				sigemptyset(&newset);
+				sigaddset(&newset, SIGTERM);
+				pthread_sigmask(SIG_BLOCK, &newset, NULL);
 			],[
 				AC_DEFINE(HAVE_PTHREAD_SIGMASK,1,[define to use pthread_sigmask])
 				AC_MSG_RESULT([yes])
 			],[
 				AC_MSG_RESULT([no])
-			])
-			LIBS="$save_LIBS"
-		fi
+		])
 	fi
 fi
 
@@ -1565,30 +1559,6 @@ if test "$ol_enable_multithread" != no ; then
 
 	if test "$ac_cv_header_atomic_ops_h" != "yes" ; then
 		AC_MSG_ERROR([need atomic_ops.h (from HP's atomic_ops project)])
-	fi
-
-	save_LIBS="$LIBS"
-	have_threads="no"
-	if test "$have_threads" = no ; then
-		AC_TRY_LINK([
-		/* Check whether threads are linked by default */
-#include <pthread.h>
-			],[
-	return pthread_create(0, 0, 0, 0);
-			],[have_threads="yes"])
-		LIBS="$save_LIBS"
-	fi
-
-	if test "$have_threads" = no ; then
-		THREAD_LIBS="-lpthread"
-		LIBS="$save_LIBS $THREAD_LIBS"
-		AC_TRY_LINK([
-		/* Check whether threads need -lpthread */
-#include <pthread.h>
-			],[
-	return pthread_create(0, 0, 0, 0);
-			],[have_threads="yes"])
-		LIBS="$save_LIBS"
 	fi
 	
 	if test "$have_threads" = no ; then
