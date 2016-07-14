@@ -41,3 +41,6 @@ builtin(include, build/m4_ax_python_devel.m4)dnl
 builtin(include, build/m4_ax_swig_enable_cxx.m4)dnl
 builtin(include, build/m4_ax_swig_multi_module_support.m4)dnl
 builtin(include, build/m4_ax_swig_python.m4)dnl
+dnl keep updated
+builtin(include, build/ax_pthread.m4)dnl
+
