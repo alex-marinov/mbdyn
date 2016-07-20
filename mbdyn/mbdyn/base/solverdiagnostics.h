@@ -69,6 +69,7 @@ public:
 	void SetNoOutput(void);
 
 	void SetOutputMeter(DriveCaller *pOM);
+	void SetOutputDriveHandler(const DriveHandler *pDH);
 
 	void SetOutputFlags(unsigned OF);
 	void AddOutputFlags(unsigned OF);

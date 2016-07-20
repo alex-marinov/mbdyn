@@ -511,6 +511,10 @@ Solver::Prepare(void)
 	// close input stream
 	HP.Close();
 
+	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
+	const DriveHandler* pDH = pDM->pGetDrvHdl();
+	SetOutputDriveHandler(pDH);
+
 	bOutputCounter = outputCounter() && isatty(fileno(stderr));
 	outputCounterPrefix = bOutputCounter ? "\n" : "";
 	outputCounterPostfix = outputStep() ? "\n" : "\r";
@@ -540,8 +544,6 @@ Solver::Prepare(void)
 	}
 #endif // USE_SCHUR
 
-	/* Si fa dare il DriveHandler e linka i drivers di rho ecc. */
-	const DriveHandler* pDH = pDM->pGetDrvHdl();
 	pRegularSteps->SetDriveHandler(pDH);
 	if (iDummyStepsNumber) {
 		pDummySteps->SetDriveHandler(pDH);

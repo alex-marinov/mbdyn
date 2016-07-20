@@ -63,6 +63,14 @@ SolverDiagnostics::SetOutputMeter(DriveCaller *pOM)
 }
 
 void
+SolverDiagnostics::SetOutputDriveHandler(const DriveHandler *pDH)
+{
+	if (pOutputMeter) {
+		pOutputMeter->SetDrvHdl(pDH);
+	}
+}
+
+void
 SolverDiagnostics::SetOutputFlags(unsigned OF)
 {
 	OutputFlags = OF;
