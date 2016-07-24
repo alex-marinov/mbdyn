@@ -17,6 +17,7 @@ MBDyn 1.X-Devel
 		- added initial current to electric motor (Reinhard Resch)
 		- added printing the CPU time used for each iteration
 		  (Reinhard Resch)
+		- reduce memory usage during initial assembly (Reinhard Resch)
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:

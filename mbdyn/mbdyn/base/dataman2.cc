@@ -33,7 +33,7 @@
  * continua qui perche' il file dataman.cc sta diventando lungo */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
+#include <algorithm>
 #include <set>
 #include <cmath>
 #include <sstream>
@@ -980,8 +980,10 @@ DataManager::InitialJointAssembly(void)
 
 	/* Trova le massime dimensioni del workspace
 	 * per l'assemblaggio iniziale */
-	integer iMaxRows = 0;
-	integer iMaxCols = 0;
+	integer iMaxRowsRes = 0;
+	integer iMaxRowsJac = 0;
+	integer iMaxColsJac = 0;
+	integer iMaxItemsJac = 0;
 
 	InitialAssemblyIterator IAIter(&ElemData);
 	InitialAssemblyElem* pEl = IAIter.GetFirst();
@@ -989,12 +991,19 @@ DataManager::InitialJointAssembly(void)
 		integer iCurrRows = 0;
 		integer iCurrCols = 0;
 		pEl->InitialWorkSpaceDim(&iCurrRows, &iCurrCols);
-		if (iCurrRows > iMaxRows) {
-			iMaxRows = iCurrRows;
+
+		if (iCurrRows >= 0) {
+			// Assume a full Jacobian matrix
+			iMaxRowsJac = std::max(iMaxRowsJac, iCurrRows);
+			iMaxColsJac = std::max(iMaxColsJac, iCurrCols);
+		} else {
+			// Assume a sparse Jacobian matrix
+			iCurrRows = std::abs(iCurrRows);
 		}
-		if (iCurrCols > iMaxCols) {
-			iMaxCols = iCurrCols;
-		}
+
+		iMaxRowsRes = std::max(iMaxRowsRes, iCurrRows);
+		iMaxItemsJac = std::max(iMaxItemsJac, iCurrRows * iCurrCols);
+
 		pEl = IAIter.GetNext();
 	}
 
@@ -1044,11 +1053,11 @@ DataManager::InitialJointAssembly(void)
 
 	/* Vettore di lavoro */
 	VectorHandler* pResHdl = pSM->pResHdl();
-	MySubVectorHandler WorkVec(iMaxRows);
+	MySubVectorHandler WorkVec(iMaxRowsRes);
 
 	/* Matrice di lavoro */
 	MatrixHandler* pMatHdl = pSM->pMatHdl();
-	VariableSubMatrixHandler WorkMat(iMaxRows, iMaxCols);
+	VariableSubMatrixHandler WorkMat(iMaxRowsJac, iMaxColsJac, iMaxItemsJac);
 
 	/* Soluzione */
 	VectorHandler* pSolHdl = pSM->pSolHdl();
