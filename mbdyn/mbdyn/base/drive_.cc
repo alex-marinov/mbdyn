@@ -1896,7 +1896,7 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dDescendingSlope = HP.GetReal(-1.);
 	DEBUGCOUT("Descending Slope Value: " << dDescendingSlope << std::endl);
 
-	doublereal dDescendingInitialTime = std::numeric_limits<double>::max();
+	doublereal dDescendingInitialTime = std::numeric_limits<doublereal>::max();
 	if (!HP.IsKeyWord("forever")) {
 		dDescendingInitialTime = HP.GetReal();
 	}
@@ -1912,7 +1912,14 @@ DoubleRampDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	doublereal dDescendingFinalTime = HP.GetReal();
+	doublereal dDescendingFinalTime;
+	if (HP.IsKeyWord("forever")) {
+		dDescendingFinalTime = std::numeric_limits<doublereal>::max();
+
+	} else {
+		dDescendingFinalTime = HP.GetReal();
+	}
+
 	DEBUGCOUT("Descending Final time: " << dDescendingFinalTime << std::endl);
 
 	if (dDescendingFinalTime <= dDescendingInitialTime) {
