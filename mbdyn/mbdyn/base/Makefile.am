@@ -79,6 +79,8 @@ invdyn.h \
 invdyn.cc \
 invsolver.cc \
 invsolver.h \
+invsolwrap.cc \
+invsolwrap.h \
 j2p.cc \
 j2p.h \
 linesearch.h \
