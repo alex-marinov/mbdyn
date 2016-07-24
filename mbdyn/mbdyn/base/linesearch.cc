@@ -49,7 +49,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <unistd.h>
-
+#include "clock_time.h"
 #include "solver.h"
 #include "linesearch.h"
 #ifdef USE_MPI
@@ -142,7 +142,7 @@ LineSearchSolver::Residual(doublereal& f, integer iIterCnt)
 #ifdef USE_EXTERNAL
 	SendExternal();
 #endif /* USE_EXTERNAL */
-
+        
 	pRes->Reset();
 
 	try {
@@ -461,23 +461,57 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 		: std::numeric_limits<doublereal>::max();
 
 	TRACE_VAR(stpmax);
-    
+
+	doublereal dStartTimeCPU, dEndTimeCPU, dJacobianCPU, dResidualCPU, dLinSolveCPU;
+        
 	while (true) {
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
+
 		Jacobian();
+
 		ASSERT(pSM->pMatHdl()->iGetNumCols() == Size);
 		ASSERT(pSM->pMatHdl()->iGetNumCols() == pRes->iGetSize());
 		ASSERT(pSM->pMatHdl()->iGetNumRows() == pRes->iGetSize());
+
 		g.Reset();
 		pSM->pMatHdl()->MatTVecDecMul(g, *pRes); // compute gradient g = \nabla f = fjac^T \, fvec = -Jac^T \, pRes
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dJacobianCPU = dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dJacobianCPU, CPU_JACOBIAN);
+			dStartTimeCPU = dEndTimeCPU;
+		}
+
 		const doublereal fold = f;
+
 		pSM->Solve();
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dLinSolveCPU = dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dLinSolveCPU, CPU_LINEAR_SOLVER);
+		}
 
    		if (outputSol()) {
 			pS->PrintSolution(*pSol, iIterCnt);
 		}
-	
+
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
+
 		LineSearch(stpmax, fold, f, check, iIterCnt);
+
 		bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dResidualCPU = dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dResidualCPU, CPU_RESIDUAL);
+		}
 
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr / dPrevErr;
@@ -506,6 +540,12 @@ LineSearchSolver::Solve(const NonlinearProblem *pNonLinProblem,
 					} else {
 						silent_cout("NA");
 					}
+				}
+
+				if (outputCPUTime()) {
+					silent_cout(" CPU:" << dResidualCPU << "/" << dGetTimeCPU(CPU_RESIDUAL)
+						<< "+" << dJacobianCPU << "/" << dGetTimeCPU(CPU_JACOBIAN)
+						<< "+" << dLinSolveCPU << "/" << dGetTimeCPU(CPU_LINEAR_SOLVER));
 				}
 
 				if (uFlags & PRINT_CONVERGENCE_INFO) {

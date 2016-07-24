@@ -55,6 +55,7 @@ protected:
 		OUTPUT_MAT_COND_NUM_INF = 0x0100,
 		OUTPUT_SOLVER_COND_NUM = 0x0200,
 		OUTPUT_SOLVER_COND_STAT = 0x400,
+		OUTPUT_CPU_TIME		= 0x800,
 		OUTPUT_MAT_COND_NUM = OUTPUT_MAT_COND_NUM_1 | OUTPUT_MAT_COND_NUM_INF,
 		OUTPUT_DEFAULT		= OUTPUT_MSG,
 		OUTPUT_STEP		= (OUTPUT_ITERS | OUTPUT_RES | OUTPUT_SOL | OUTPUT_JAC | OUTPUT_MAT_COND_NUM | OUTPUT_SOLVER_COND_NUM),
@@ -120,6 +121,11 @@ public:
 	inline bool outputSolverConditionStat(void) const {
 		return (OutputFlags & OUTPUT_SOLVER_COND_STAT);
 	}
+
+	inline bool outputCPUTime(void) const {
+		return (OutputFlags & OUTPUT_CPU_TIME);
+	}
+
 	// all messages not protected behind any other condition
 	// must be protected by a "if (outputMsg())" condition
 	inline bool outputMsg(void) const {

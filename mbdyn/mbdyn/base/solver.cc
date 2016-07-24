@@ -1950,6 +1950,7 @@ Solver::ReadData(MBDynParser& HP)
 			"counter",
 			"matrix" "condition" "number",
 			"solver" "condition" "number",
+			"cpu" "time",
 		"output" "meter",
 
 		"method",
@@ -2059,6 +2060,7 @@ Solver::ReadData(MBDynParser& HP)
 			COUNTER,
 			MATRIX_COND_NUM,
 			SOLVER_COND_NUM,
+			CPU_TIME,
 		OUTPUTMETER,
 
 		METHOD,
@@ -2427,6 +2429,9 @@ Solver::ReadData(MBDynParser& HP)
 							DelOutputFlags(OUTPUT_SOLVER_COND_STAT);
 						}
 					}
+					break;
+				case CPU_TIME:
+					OF |= OUTPUT_CPU_TIME;
 					break;
 
 				default:

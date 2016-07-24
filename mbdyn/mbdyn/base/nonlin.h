@@ -265,16 +265,27 @@ protected:
 		const doublereal& dTol,
 		doublereal& dTest);
 
+	enum CPUTimeType {
+		CPU_RESIDUAL,
+		CPU_JACOBIAN,
+		CPU_LINEAR_SOLVER,
+		CPU_LAST_TYPE = CPU_LINEAR_SOLVER
+	};
+
 	doublereal dGetCondMax()const { return dMaxCond; }
 	doublereal dGetCondMin()const { return dMinCond; }
 	doublereal dGetCondAvg()const { return dSumCond / iNumCond; }
+	inline doublereal dGetTimeCPU(CPUTimeType eType) const;
+
 	inline void AddCond(doublereal dCond);
+	inline void AddTimeCPU(doublereal dTime, CPUTimeType eType);
 
 private:
 	integer iNumCond;
 	doublereal dMaxCond;
 	doublereal dMinCond;
 	doublereal dSumCond;
+	doublereal dTimeCPU[CPU_LAST_TYPE];
 
 public:
 	explicit NonlinearSolver(const NonlinearSolverOptions& options);
@@ -327,6 +338,24 @@ inline void NonlinearSolver::AddCond(doublereal dCond) {
 	if (dCond < dMinCond) {
 		dMinCond = dCond;
 	}
+}
+
+inline doublereal
+NonlinearSolver::dGetTimeCPU(CPUTimeType eType) const
+{
+	ASSERT(eType >= 0);
+	ASSERT(eType < CPU_LAST_TYPE);
+
+	return dTimeCPU[eType];
+}
+
+inline void
+NonlinearSolver::AddTimeCPU(doublereal dTime, CPUTimeType eType)
+{
+	ASSERT(eType >= 0);
+	ASSERT(eType < CPU_LAST_TYPE);
+
+	dTimeCPU[eType] += dTime;
 }
 
 #endif /* NONLIN_H */

@@ -40,7 +40,7 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <unistd.h>
-
+#include "clock_time.h"
 #include "solver.h"
 #include "nr.h"  
 #ifdef USE_MPI
@@ -99,8 +99,13 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	doublereal dErrFactor = 1.;
 	doublereal dErrDiff = 0.;
 	bool bJacBuilt = false;
+	doublereal dStartTimeCPU, dEndTimeCPU, dJacobianCPU, dResidualCPU = 0., dLinSolveCPU;
 
 	while (true) {
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
+                
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
@@ -120,10 +125,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			}
 		}
 
-		if (outputRes()) {
-		    pS->PrintResidual(*pRes, iIterCnt);
-		}
-
 		/* FIXME: if Tol == 0., no convergence on residual
 		 * is required, so we could simply don't compute
 		 * the test; I'm leaving it in place so it appears
@@ -131,6 +132,17 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * it?) */
 
 		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dResidualCPU += dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dResidualCPU, CPU_RESIDUAL);
+		}
+
+		if (outputRes()) {
+			pS->PrintResidual(*pRes, iIterCnt);
+		}
+
 		if (iIterCnt > 0) {
 			dErrFactor *= dErr/dOldErr;
 		}
@@ -163,15 +175,21 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 					}
 				}
 
+				if (outputCPUTime()) {
+					silent_cout(" CPU:" << dResidualCPU << "/" << dGetTimeCPU(CPU_RESIDUAL)
+						<< "+" << dJacobianCPU << "/" << dGetTimeCPU(CPU_JACOBIAN)
+						<< "+" << dLinSolveCPU << "/" << dGetTimeCPU(CPU_LINEAR_SOLVER));
+				}
+
 				silent_cout(std::endl);
 			}
 		}
 		
 		pS->CheckTimeStepLimit(dErr, dErrDiff);
 
-      	if (bTest) {
-	 		return;
-      	}
+		if (bTest) {
+			return;
+		}
       		
 		if (iIterCnt >= std::abs(iMaxIter)) {
 			if (iMaxIter < 0 && dErrFactor < 1.) {
@@ -183,8 +201,12 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 			throw NoConvergence(MBDYN_EXCEPT_ARGS);
 		}
           
-      	iIterCnt++;
-      	bJacBuilt = false;
+		iIterCnt++;
+		bJacBuilt = false;
+
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
 
 		if (bTrueNewtonRaphson
 			|| (iPerformedIterations%IterationBeforeAssembly == 0)
@@ -211,9 +233,15 @@ rebuild_matrix:;
 			TotJac++;
 			bJacBuilt = true;
 		}
-		
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dJacobianCPU = dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dJacobianCPU, CPU_JACOBIAN);
+		}
+
 		iPerformedIterations++;
-		
+
 #ifdef USE_MPI
 		if (!bParallel || MBDynComm.Get_rank() == 0)
 #endif /* USE_MPI */
@@ -232,15 +260,34 @@ rebuild_matrix:;
 			}
 		}
 
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
+
 		pSM->Solve();
 
-      	if (outputSol()) {
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dLinSolveCPU = dEndTimeCPU - dStartTimeCPU;
+			AddTimeCPU(dLinSolveCPU, CPU_LINEAR_SOLVER);
+		}
+
+		if (outputSol()) {
 			pS->PrintSolution(*pSol, iIterCnt);
 		}		
-		
-      	pNLP->Update(pSol);
+
+		if (outputCPUTime()) {
+			dStartTimeCPU = mbdyn_clock_time();
+		}
+
+		pNLP->Update(pSol);
 		
 		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
+
+		if (outputCPUTime()) {
+			dEndTimeCPU = mbdyn_clock_time();
+			dResidualCPU = dEndTimeCPU - dStartTimeCPU;
+		}
 
 		if (outputIters()) {
 #ifdef USE_MPI

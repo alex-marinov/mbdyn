@@ -448,7 +448,7 @@ dSumCond(0.)
 , ExtStepType(External::ERROR)  
 #endif /* USE_EXTERNAL */
 {
-	NO_OP;
+	std::memset(dTimeCPU, 0, sizeof(dTimeCPU));
 }
 
 void
