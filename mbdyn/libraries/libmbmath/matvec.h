@@ -454,17 +454,20 @@ inline void ZeroInit(T* first, T* last) {
 
 template <>
 inline void ZeroInit<float>(float* first, float* last) {
-	array_fill(first, last, 0.0F);
+	// array_fill(first, last, 0.0F);
+	std::fill_n(first, last - first, 0.0F);
 }
  
 template <>
 inline void ZeroInit<double>(double* first, double* last) {
-	array_fill(first, last, 0.0);
+	// array_fill(first, last, 0.0);
+	std::fill_n(first, last - first, 0.0);
 }
 
 template <>
 inline void ZeroInit<long double>(long double* first, long double* last) {
-	array_fill(first, last, 0.0L);
+	// array_fill(first, last, 0.0L);
+	std::fill_n(first, last - first, 0.0L);
 }
 
 /**
