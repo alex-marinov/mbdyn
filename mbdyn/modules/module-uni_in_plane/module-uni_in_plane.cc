@@ -100,6 +100,8 @@ public:
 	       const grad::GradientVectorHandler<T>& XCurr,
 	       const grad::GradientVectorHandler<T>& XPrimeCurr,
 	       enum grad::FunctionCall func);
+	virtual void AfterConvergence(const VectorHandler& X,
+			const VectorHandler& XP);
 	int iGetNumConnectedNodes(void) const;
 	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
@@ -119,24 +121,31 @@ public:
 
    	struct ContactPoint
    	{
-   		inline explicit ContactPoint(const Vec3& offset=Zero3);
+   		inline explicit ContactPoint(const Vec3& offset=Zero3, doublereal s=std::numeric_limits<doublereal>::max());
 
-   		inline void UpdateReaction(const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
-   						   const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
-   						   const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
-   						   const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
-   						   const grad::Gradient<iNumDofGradient>&,
-   						   const grad::Gradient<iNumDofGradient>&)
+   		inline void AfterConvergence()
+   		{
+   			lambdaPrev = lambda;
+   		}
+
+   		inline void UpdateReaction(
+   				const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
+				const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
+				const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
+				const grad::Vector<grad::Gradient<iNumDofGradient>, 3>&,
+				const grad::Gradient<iNumDofGradient>&,
+				const grad::Gradient<iNumDofGradient>&)
    		{
 
    		}
 
-   		inline void UpdateReaction(const grad::Vector<doublereal, 3>& F1,
-   						   const grad::Vector<doublereal, 3>& M1,
-   						   const grad::Vector<doublereal, 3>& F2,
-   						   const grad::Vector<doublereal, 3>& M2,
-   						   const doublereal& dXn,
-   						   const doublereal& lambda);
+   		inline void UpdateReaction(
+   				const grad::Vector<doublereal, 3>& F1,
+   				const grad::Vector<doublereal, 3>& M1,
+				const grad::Vector<doublereal, 3>& F2,
+				const grad::Vector<doublereal, 3>& M2,
+				doublereal dXn,
+				doublereal lambda);
 
    		inline void UpdateFriction(const grad::Vector<grad::Gradient<iNumDofGradient>, 2>& U,
    								   const grad::Vector<grad::Gradient<iNumDofGradient>, 2>& tau,
@@ -152,20 +161,22 @@ public:
    								   const grad::Vector<doublereal, 2>& zP);
 
    		grad::Vector<doublereal, 3> o1;
-   		doublereal lambda;
+   		doublereal s;
+   		doublereal lambda, lambdaPrev, dXn;
    		grad::Vector<doublereal, 2> U, tau, z, zP;
-   		doublereal dXn;
    		grad::Vector<doublereal, 3> F1, M1, F2, M2;
    		grad::LocalDofMap dof;
    	};
 
-   	static const int iNumPrivData = 21;
+   	static const int iNumPrivData = 22;
+   	static const int iNumPrivDataGlobal = 1;
 
 	static const struct PrivateData
 	{
 		enum Index
 		{
 			LAMBDA,
+			DXN,
 			TAU1,
 			TAU2,
 			U1,
@@ -195,22 +206,25 @@ public:
    	typedef ContactPointVec_t::iterator ContactPointIter_t;
    	typedef ContactPointVec_t::const_iterator const_ContactPointIter_t;
 
+   	const DataManager* const pDM;
    	const StructNode* pNode1;
    	ContactPointVec_t ContactPoints1;
    	const StructNode* pNode2;
    	grad::Vector<doublereal, 3> o2;
    	grad::Matrix<doublereal, 3, 3> Rp;
-   	doublereal epsilon;
+   	doublereal epsilon, dFmax, tCurr, tPrev;
 	bool bEnableFriction;
 	grad::Matrix<doublereal, 2, 2> Mk, Ms, Mk2, Ms2, invMk2_sigma0;
 	grad::Matrix<doublereal, 2, 2> sigma0, sigma1, sigma2;
 	doublereal vs, a;
-   	DriveOwner InitialAssembly;
+   	DriveOwner m_oInitialAssembly, m_oOffset;
 };
 
-UniInPlaneFriction::ContactPoint::ContactPoint(const Vec3& offset)
+UniInPlaneFriction::ContactPoint::ContactPoint(const Vec3& offset, doublereal s)
 	:o1(offset),
+	 s(s),
 	 lambda(0.),
+	 lambdaPrev(0.),
 	 dXn(0.),
 	 F1(Zero3),
 	 M1(Zero3),
@@ -220,12 +234,13 @@ UniInPlaneFriction::ContactPoint::ContactPoint(const Vec3& offset)
 
 }
 
-void UniInPlaneFriction::ContactPoint::UpdateReaction(const grad::Vector<doublereal, 3>& F1,
+void UniInPlaneFriction::ContactPoint::UpdateReaction(
+						   const grad::Vector<doublereal, 3>& F1,
    						   const grad::Vector<doublereal, 3>& M1,
    						   const grad::Vector<doublereal, 3>& F2,
    						   const grad::Vector<doublereal, 3>& M2,
-   						   const doublereal& dXn,
-   						   const doublereal& lambda)
+   						   const doublereal dXn,
+   						   const doublereal lambda)
 {
 	this->F1 = F1;
 	this->M1 = M1;
@@ -249,6 +264,7 @@ void UniInPlaneFriction::ContactPoint::UpdateFriction(const grad::Vector<doubler
 const UniInPlaneFriction::PrivateData UniInPlaneFriction::rgPrivData[iNumPrivData] =
 {
 	{"lambda"},
+	{"dXn"},
 	{"tau1"},
 	{"tau2"},
 	{"U1"},
@@ -276,12 +292,17 @@ UniInPlaneFriction::UniInPlaneFriction(
 	DataManager* pDM, MBDynParser& HP)
 : 	Elem(uLabel, flag(0)),
 	UserDefinedElem(uLabel, pDO),
+	pDM(pDM),
 	pNode1(0),
 	pNode2(0),
 	o2(Zero3),
 	Rp(Eye3),
+	epsilon(0.),
+	dFmax(0.),
 	bEnableFriction(false)
 {
+	tCurr = tPrev = pDM->dGetTime();
+
 	using namespace grad;
 	// help
 	if (HP.IsKeyWord("help"))
@@ -294,14 +315,16 @@ UniInPlaneFriction::UniInPlaneFriction(
 			"\n"
 			"	unilateral in plane,\n"
 			"		node1, (label) <node1>,\n"
-			"			{ offset, (integer) <count>,\n"
-			"				(Vec3) <offset1>,\n"
-			"				(Vec3) <offset2>, ... }\n"
+			"			[ offset, (integer) <count>,\n"
+			"			  (Vec3) <offset1>,\n"
+			"			  [stiffness, (real) <stiffness1>,]\n"
+			"			  [ ... , ] ]\n"
 			"		epsilon, (real) <epsilon>,\n"
 			"		node2, (label) <node2>,\n"
 			"			[ offset, (Vec3) <offset>, ]\n"
 			"			[ hinge, (Mat3x3) <hinge>, ]\n"
-			"		[initial assembly, (DriveCaller) <initial_assembly>]"
+			"		[ initial assembly, (DriveCaller) <initial_assembly>, ]\n"
+			"		[ offset plane, (DriveCaller) <normal_offset> ]"
 			"\n"
 			<< std::endl);
 
@@ -346,8 +369,8 @@ UniInPlaneFriction::UniInPlaneFriction(
 		for (int i = 0; i < N; ++i)
 		{
 			const Vec3 o1 = HP.GetPosRel(refNode1);
-
-			ContactPoints1.push_back(ContactPoint(o1));
+			const doublereal s = HP.IsKeyWord("stiffness") ? HP.GetReal() : std::numeric_limits<doublereal>::max();
+			ContactPoints1.push_back(ContactPoint(o1, s));
 		}
 	}
 	else
@@ -357,7 +380,7 @@ UniInPlaneFriction::UniInPlaneFriction(
 
 	if ( !HP.IsKeyWord("epsilon") )
 	{
-		silent_cerr("unilateral in plane(" << GetLabel() << "): keyword \"offset\" or \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("unilateral in plane(" << GetLabel() << "): keyword \"epsilon\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -368,6 +391,8 @@ UniInPlaneFriction::UniInPlaneFriction(
 		silent_cerr("unilateral in plane(" << GetLabel() << "): epsilon must be greater than zero at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+
+	dFmax = HP.IsKeyWord("max" "force" "increment") ? HP.GetReal() : std::numeric_limits<doublereal>::max();
 
 	if ( !HP.IsKeyWord("node2") )
 	{
@@ -501,7 +526,8 @@ UniInPlaneFriction::UniInPlaneFriction(
 		invMk2_sigma0 = Inv(Mk2) * sigma0;
 	}
 
-	InitialAssembly.Set(HP.IsKeyWord("initial" "assembly") ? HP.GetDriveCaller() : new OneDriveCaller);
+	m_oInitialAssembly.Set(HP.IsKeyWord("initial" "assembly") ? HP.GetDriveCaller() : new OneDriveCaller);
+	m_oOffset.Set(HP.IsKeyWord("offset" "plane") ? HP.GetDriveCaller() : new NullDriveCaller);
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
@@ -595,11 +621,16 @@ std::ostream& UniInPlaneFriction::DescribeEq(std::ostream& out, const char *pref
 
 unsigned int UniInPlaneFriction::iGetNumPrivData(void) const
 {
-	return ContactPoints1.size() * iNumPrivData;
+	return iNumPrivDataGlobal + ContactPoints1.size() * iNumPrivData;
 }
 
 unsigned int UniInPlaneFriction::iGetPrivDataIdx(const char *s) const
 {
+	if (0 == strcmp(s, "max" "dt"))
+	{
+		return 1u;
+	}
+
 	std::istringstream is(s);
 	std::string tok1;
 	char tok2;
@@ -621,7 +652,7 @@ unsigned int UniInPlaneFriction::iGetPrivDataIdx(const char *s) const
 	{
 		if (tok1 == rgPrivData[j].name)
 		{
-			return (i - 1) * iNumPrivData + j + 1;
+			return iNumPrivDataGlobal + (i - 1) * iNumPrivData + j + 1;
 		}
 	}
 
@@ -632,9 +663,27 @@ error_return:
 
 doublereal UniInPlaneFriction::dGetPrivData(unsigned int i) const
 {
-	const div_t idx = div(i - 1, iNumPrivData);
+	if (i == 1u)
+	{
+		doublereal dtmax = std::numeric_limits<doublereal>::max();
 
-	if ( idx.quot < 0 || idx.quot >= ContactPoints1.size() || idx.rem < 0 || idx.rem >= iNumPrivData )
+		for (const_ContactPointIter_t j = ContactPoints1.begin(); j != ContactPoints1.end(); ++j)
+		{
+			const doublereal dF = j->lambda - j->lambdaPrev;
+
+			if (std::abs(dF) > dFmax)
+			{
+				const doublereal dt = tCurr - tPrev;
+				dtmax = std::min(dtmax, std::abs(dt / dF * dFmax));
+			}
+		}
+
+		return dtmax;
+	}
+
+	const div_t idx = div(i - 1 - iNumPrivDataGlobal, iNumPrivData);
+
+	if ( idx.quot < 0 || ::size_t(idx.quot) >= ContactPoints1.size() || idx.rem < 0 || idx.rem >= iNumPrivData )
 	{
 		silent_cerr("unilateral in plane(" << GetLabel() << "): index " << i << " out of range" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -646,6 +695,9 @@ doublereal UniInPlaneFriction::dGetPrivData(unsigned int i) const
 	{
 	case PrivateData::LAMBDA:
 		return cont.lambda;
+
+	case PrivateData::DXN:
+		return cont.dXn;
 
 	case PrivateData::TAU1:
 	case PrivateData::TAU2:
@@ -734,6 +786,8 @@ UniInPlaneFriction::AssRes(SubVectorHandler& WorkVec,
 {
 	using namespace grad;
 
+	tCurr = pDM->dGetTime();
+
 	GradientAssVec<doublereal>::AssRes(this, WorkVec, dCoef, XCurr, XPrimeCurr, REGULAR_RES);
 
 	return WorkVec;
@@ -758,9 +812,9 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 	integer iDofIndex = iFirstIndex;
 
 	const integer N = ContactPoints1.size();
-	const doublereal alpha = InitialAssembly.dGet();
+	const doublereal alpha = m_oInitialAssembly.dGet();
 
-	Vec3 X1, X2, X1P, X2P, omega1, omega2;
+	Vec3 X1, X2;
 	Mat3x3 R1, R2;
 	Vec2 z, zP, tau;
 	T lambda, kappa;
@@ -779,7 +833,8 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 
 		const Vector<doublereal, 3>& o1 = cont.o1;
 		const Vec3 dX = X1 + R1 * o1 - X2 - R2 * o2;
-		const T dXn = Dot(Rp.GetCol(3), Transpose(R2) * dX);
+		const T dXn = Dot(Rp.GetCol(3), Transpose(R2) * dX) - m_oOffset.dGet() + lambda / cont.s;
+
 		const T d = 0.5 * (dXn - lambda);
 		const T c = 0.5 * (dXn + lambda) - sqrt(d * d + epsilon);
 
@@ -791,6 +846,8 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 
 		if (bEnableFriction)
 		{
+			Vec3 X1P, X2P, omega1, omega2;
+
 			pNode1->GetVCurr(X1P, dCoef, func, &cont.dof);
 			pNode1->GetWCurr(omega1, dCoef, func, &cont.dof);
 			pNode2->GetVCurr(X2P, dCoef, func, &cont.dof);
@@ -859,6 +916,17 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 		WorkVec.AddItem(iFirstMomentumIndexNode2 + 4, M2);
 
 		cont.UpdateReaction(F1, M1, F2, M2, dXn, lambda);
+	}
+}
+
+void UniInPlaneFriction::AfterConvergence(const VectorHandler& X,
+		const VectorHandler& XP)
+{
+	tPrev = tCurr;
+
+	for (ContactPointIter_t i = ContactPoints1.begin(); i != ContactPoints1.end(); ++i)
+	{
+		i->AfterConvergence();
 	}
 }
 
