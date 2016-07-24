@@ -449,14 +449,22 @@ inline bool bArrayOverlap(const ScalarType1*, const ScalarType1*, const ScalarTy
 
 template <typename T>
 inline void ZeroInit(T* first, T* last) {
-	for (T* i = first; i < last; ++i) {
-		*i = T(0.);
-	}
+	NO_OP;
 }
 
-template <index_type N_SIZE>
-inline void ZeroInit(Gradient<N_SIZE>* first, Gradient<N_SIZE>* last) {
-	// Do nothing because Gradients will be initialized automatically
+template <>
+inline void ZeroInit<float>(float* first, float* last) {
+	array_fill(first, last, 0.0F);
+}
+ 
+template <>
+inline void ZeroInit<double>(double* first, double* last) {
+	array_fill(first, last, 0.0);
+}
+
+template <>
+inline void ZeroInit<long double>(long double* first, long double* last) {
+	array_fill(first, last, 0.0L);
 }
 
 /**
