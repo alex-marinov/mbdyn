@@ -19,6 +19,7 @@ mb_sol_create_(const char *sIn, const char *sOut)
 	pSW->pMP = new MathParser(*pSW->pT, false);
 	pSW->streamIn.open(sIn);
 	pSW->pIn = new InputStream(pSW->streamIn);
+	pSW->pHP = new MBDynParser(*pSW->pMP, *pSW->pIn, sIn);
 
 	return pSW;
 }
