@@ -193,7 +193,7 @@ OL_ARG_ENABLE(runtime_loading,[  --enable-runtime-loading    enable runtime load
 OL_ARG_WITH(static_modules,[  --with-static-modules   build (known) modules as static],auto,[no yes auto])
 OL_ARG_ENABLE(crypt,[  --enable-crypt          enable crypt (deprecated)], no)dnl
 OL_ARG_ENABLE(eig,[  --enable-eig            enable direct eigensolution
-                          (needs either LAPACK, ARPACK or JDQZ)],auto,[auto yes no])dnl needs LAPACK, ARPACK or JDQZ
+                          (needs one of LAPACK, ARPACK or JDQZ)],auto,[auto yes no])dnl needs LAPACK, ARPACK or JDQZ
 OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
