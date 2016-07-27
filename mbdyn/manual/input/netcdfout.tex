@@ -403,8 +403,118 @@ the type is \kw{internal follower}.
 
 
 
+\section{Eigenanalysis}
+\label{sec:NetCDF:Eigen}
+The binary output of eigenanalysis is structured as follows.
+\subsection{Base level}
+If at least one eigenanalysis is requested, a base level is added, called \kw{eig}.
+This level contains general data:
+\begin{itemize}
+\item \kw{eig.timestep}, the step number at which each eigenanalysis was performed;
+\item \kw{eig.time}, the time in seconds at which each eigenanalysis was performed;
+\item \kw{eig.time}, the coefficient used to build the problem matrices;
+\item \kw{eig.idx}, the indexes of the nodes dofs in the eigenvectors.
+\end{itemize}
 
+\subsection{Analysis level}
+For each analysis, a level \kw{eig.}\bnt{index} is created. The requested outputs 
+are then added to the level.
 
+\paragraph{Full matrices.}
+If \kw{output full matrices} was specified, the following variables are added to the
+\kw{eig.}\bnt{index} level:
+\begin{itemize}
+\item \kw{eig.}\bnt{index}\kw{.Aplus} : contains the 
+    $\TT{J}_{(+c)} = \T{f}_{/\dot{\T{x}}} + \texttt{dCoef} \cdot \T{f}_{/\T{x}}$ 
+    matrix;
+\item \kw{eig.}\bnt{index}\kw{.Aminus} : contains the
+    $\TT{J}_{(-c)} = \T{f}_{/\dot{\T{x}}} - \texttt{dCoef} \cdot \T{f}_{/\T{x}}$ 
+    matrix.
+\end{itemize}
+Both matrices are stored in full format.
+
+\paragraph{Sparse matrices.}
+If \kw{output sparse matrices} was specified, the following variables are added to the
+\kw{eig.}\bnt{index} level:
+\begin{itemize}
+\item \kw{eig.}\bnt{index}\kw{.Aplus} : contains the 
+    $\TT{J}_{(+c)} = \T{f}_{/\dot{\T{x}}} + \texttt{dCoef} \cdot \T{f}_{/\T{x}}$ 
+    matrix;
+\item \kw{eig.}\bnt{index}\kw{.Aminus} : contains the
+    $\TT{J}_{(-c)} = \T{f}_{/\dot{\T{x}}} - \texttt{dCoef} \cdot \T{f}_{/\T{x}}$ 
+    matrix.
+\end{itemize}
+and the following dimensions specified
+\begin{itemize}
+\item \kw{eig\_}\bnt{index}\kw{\_Aplus\_sp\_iSize} : 
+    represents the number of nonzero elements in matrix \texttt{Aplus};
+\item \kw{eig\_}\bnt{index}\kw{\_Aminus\_sp\_iSize} : 
+    represents the number of nonzero elements in matrix \texttt{Aminus};
+\end{itemize}
+Both matrices are stored in sparse format.
+
+\paragraph{Eigenvalues and Eigenvectors.}
+If \kw{output eigenvectors} was specifiied, the following variables are added to the
+\kw{eig.}\bnt{index} level:
+\begin{itemize}
+\item \kw{eig.}\bnt{index}\kw{.VR} : contains the right eigenvectors matrix;
+\item \kw{eig.}\bnt{index}\kw{.VL} : contains the left eigenvectors matrix, only written if the
+    choosen method computes it;
+\item \kw{eig.}\bnt{index}\kw{.alpha} : contains the \texttt{alpha} matrix, in which the
+    first row contains the $\alpha_r$ coefficients, the second row the $\alpha_i$ coefficients
+    and the third row the $\beta$ coefficients, so that the $k$-th discrete time eigenvalue
+    is
+    \begin{align}
+	\Lambda_k
+	&=
+	\frac{\alpha_r(k) + \text{i} \alpha_i(k)}{\beta(k)}
+	.
+    \end{align}
+    Note that this means that the transposed of the \texttt{alpha} matrix as described in 
+    Section~\ref{sec:IVP:eigenanalysis} is written in the NetCDF file;
+\end{itemize}
+Both matrices $\texttt{VL}$ and \texttt{VR} (when available) are stored as 3D matrices, where
+the first index of the third dimension refers to the real part of the eigenvectors and the 
+second index of the third dimension to the imaginary part. So to store the matrices in complex
+shape in software packages that support is, for example in Octave, a procedure like the following
+must be used (here making use of the Octave package \texttt{netcdf}, see 
+Section~\ref{sec:NetCDF:Octave}):
+\paragraph{Example.}
+\begin{verbatim}
+    # load the VR matrix in 3D format
+    octave:1> VR_3D = ncread('mbdyn_output.nc', 'eig.0.VR');
+    octave:2> VR_cpx = VR_3D(:, :, 1) + 1i*VR_3D(:, :, 2);
+    octave:3> clear VR_3D
+\end{verbatim}
+
+\paragraph{Geometry.}
+As opposed to the \texttt{.m} text file output, the reference configuration is
+not written separately in the NetCDF output, since it is already available from the standard
+structural nodes' output. 
+
+For example, to access the reference configuration of node \texttt{10}, 
+during the first calculated eigensolution, the following procedure can be used
+in Octave (here, again, making use of the Octave package \texttt{netcdf}, see 
+Section~\ref{sec:NetCDF:Octave}):
+\paragraph{Example.}
+\begin{verbatim}
+    # access the position and orientation of node 10 during the eigensolution 0
+    octave:1> ts = ncread('mbdyn_output.nc', 'eig.timestep');
+    octave:2> X0_10 = ncread('mbdyn_output.nc', 'node.struct.10.X', [1, ts(1)], [3, 1]) 
+    octave:3> Phi0_10 = ncread('mbdyn_output.nc', 'node.struct.10.Phi', [1, ts(1)], [3, 1])
+\end{verbatim}
+
+\subsubsection{Abort After}
+\label{sec:IVP:abort after}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{card} ::= \kw{abort after} :
+        \{ \kw{input} 
+            | \kw{assembly}
+            | \kw{derivatives}
+            | \kw{dummy steps} \} ;
+\end{Verbatim}
+%\end{verbatim}
 \section{Accessing the Database}
 The database can be accessed using any of the tools listed at the web site
 \begin{quote}
@@ -415,6 +525,8 @@ The database can be accessed using any of the tools listed at the web site
 
 
 \subsection{Octave}
+\label{sec:NetCDF:Octave}
+\paragraph{OctCDF (WARNING: possibily outdated).}
 The \texttt{octcdf} package, available from
 \begin{quote}
 \htmladdnormallink{\texttt{http://ocgmod1.marine.usf.edu/}}{http://ocgmod1.marine.usf.edu/},
@@ -440,3 +552,21 @@ So, for example, the $z$ component of the position of node 1000 can be plot with
     octave:4> plot(nc{'time'}(:), nc{'node.struct.1000.X'}(:,3))
 \end{verbatim}
 
+\paragraph{NetCDF.}
+The \texttt{netcdf} package appears to have superseded the \texttt{octcdf} package in recent
+distributions of Octave. It is no longer necessary to obtain a handler to the MBDyn output file. \\
+
+Variable properties are displayed as
+\begin{verbatim}
+    octave:1> ncinfo('mbdyn_output.nc', 'node.struct.1000.X');
+\end{verbatim}
+Single records (in this example the position of node \texttt{10} at timestep \texttt{15})
+are accessed as
+\begin{verbatim}
+    octave:2> X_1000_10 = ncread('mbdyn_output_nc, 'node.struct.1000.X', [1, 15], [3, 1]);
+\end{verbatim}
+Single values (in this example the $z$-position of node \texttt{10} at timestep \texttt{15}) 
+as
+\begin{verbatim}
+    octave:3> X_1000_10_z = ncread('mbdyn_output_nc, 'node.struct.1000.X', [3, 15], [1, 1]);
+\end{verbatim}

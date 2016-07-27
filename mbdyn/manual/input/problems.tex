@@ -622,6 +622,8 @@ This nonlinear solver is experimental.
             | \kw{output sparse matrices}
             | \kw{output eigenvectors}
             | \kw{output geometry}
+	    | \kw{matrix output precision}, \bnt{matrix precision},
+	    | \kw{results output precision}, \bnt{results precision},
             | \kw{parameter} , \bnt{param}
             | \kw{lower frequency limit} , \bnt{lower}
             | \kw{upper frequency limit} , \bnt{upper}
@@ -667,18 +669,33 @@ using the \kw{rigid body kinematics} card
 	an eigenvalue of the problem;  by default it is 1.0;
 \item \kw{output full matrices} causes the output
 	of the (full) problem matrices in a \texttt{.m} file,
-	intended to be loaded by tools like Octave/Matlab;
+	intended to be loaded by tools like Octave/Matlab. If
+	NetCDF output is enabled with the related 
+	card (see Section~\ref{sec:CONTROLDATA:NETCDF}), 
+	the matrices along with the eigenanalysis parameters 
+	are written in an \texttt{.nc} file as described in 
+	Section~\ref{sec:NetCDF:Eigen};
 \item \kw{output sparse matrices} causes the output
 	of the problem matrices in sparse form in a \texttt{.m} file,
-	intended to be loaded by tools like Octave/Matlab;
+	intended to be loaded by tools like Octave/Matlab, and in the
+	NetCDF \texttt{.nc} file as described in 
+	Section~\ref{sec:NetCDF:Eigen}, if NetCDF output is enabled;
 \item \kw{output eigenvectors} causes the output of the eigenvalues
 	and of the eigenvectors in a \texttt{.m} file,
-	intended to be loaded by tools like Octave/Matlab;
+	intended to be loaded by tools like Octave/Matlab, and/or in the
+	NetCDF \texttt{.nc} file as described in 
+	Section~\ref{sec:NetCDF:Eigen}, if NetCDF output is enabled;
 \item \kw{output geometry} causes the output of the reference
 	configuration of structural nodes, if any,
 	and of the indexes that need to be used in order to extract
 	the perturbation of their position and orientation
 	from the eigenvectors;
+\item \kw{matrix output precision} sets the precision for the text output
+  	of the problem matrices in the \texttt{.m} file to 
+        \nt{matrix precision};
+\item \kw{results output precision} sets the precision for the text output
+  	of the eigenanalysis results in the \texttt{.m} file to
+	\nt{results precision};
 \item \kw{use lapack} performs the eigenanalysis using
 	LAPACK's \texttt{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);
@@ -729,10 +746,16 @@ is much larger than the number of constraint equations.
 A brief summary of the eigenvalues is output in the \texttt{.out} file.
 Most of the information is dumped in a \texttt{.m} file in a format
 that is suitable for execution with scientific software like
-Octave and Matlab.
-The execution of the file populates the environment of those software
-with a set of variables that contains the results of the eigenanalysis.
-According to the options used in the \kw{eigenanalysis} card,
+Octave and Matlab. The execution of the file populates the environment 
+of those software with a set of variables that contains the results 
+of the eigenanalysis. \\ 
+Binary output in NetCDF format, if supported, is written in the 
+\texttt{.nc} file. Refer to Section~\ref{sec:CONTROLDATA:NETCDF} 
+for details on how to activate NetCDF output and to 
+Section~\ref{sec:NetCDF:Eigen} for a complete description of the 
+binary output. \\
+According to the options used in the 
+\kw{eigenanalysis} card,
 the \texttt{.m} file may contain:
 \begin{itemize}
 \item \texttt{Aplus}: 
