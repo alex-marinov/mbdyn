@@ -5134,7 +5134,7 @@ Solver::Eig(bool bNewLine)
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT) {
 		
 		unsigned uSize = EigAn.Analyses.size();
-		if (uSize > 1) {
+		if (uSize >= 1) {
 			pDM->OutputEigOpen(uCurr);
 			pDM->OutputEigParams(dTime, h/2., uCurr, EigAn.iResultsPrecision);
 		}
