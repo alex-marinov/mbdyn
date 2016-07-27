@@ -170,6 +170,10 @@ public:
 		doublereal dUpperFreq;
 		doublereal dLowerFreq;
 
+		// text output precision control
+		int iMatrixPrecision;
+		int iResultsPrecision;
+
 		// ARPACK specific
 		struct ARPACK {
 			integer iNEV;

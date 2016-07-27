@@ -210,6 +210,22 @@ protected:
 	NcVar *Var_Step;
 	NcVar *Var_Time;
 	NcVar *Var_TimeStep;
+
+	/* for eigenanalysis output */
+
+	const NcDim *m_Dim_Eig_iSize;
+	const NcDim *m_Dim_Eig_iComplex;
+
+	NcVar *Var_Eig_lStep;
+	NcVar *Var_Eig_dTime;
+	NcVar *Var_Eig_dCoef;
+	NcVar *Var_Eig_dAplus;
+	NcVar *Var_Eig_dAminus;
+	NcVar *Var_Eig_dAlpha;
+	NcVar *Var_Eig_Idx;
+	NcVar *Var_Eig_dVR;
+	NcVar *Var_Eig_dVL;
+
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #endif /* USE_NETCDF */
 	OrientationDescription od;
@@ -414,6 +430,8 @@ public:
 
 public:
 	virtual void OutputPrepare(void);
+	virtual void OutputEigPrepare(const integer iNumAnalyses,
+			const integer iSize);
 
 	/* stampa i risultati */
 	virtual bool
@@ -423,6 +441,41 @@ public:
 	Output(const VectorHandler& X, const VectorHandler& XP) const;
 
 	void OutputOpen(const OutputHandler::OutFiles out);
+
+	/* Eigenanalysis output */
+	void OutputEigOpen(const unsigned uCurrEigSol);
+	void
+	OutputEigParams(const doublereal& dTime,
+			const doublereal& dCoef,
+			const unsigned uCurrEigSol,
+			const int iResultsPrecision);
+	void
+	OutputEigFullMatrices(const MatrixHandler* pmMatA,
+			const MatrixHandler* pmMatB,
+			const unsigned uCurrEigSol,
+			const int iMatrixPrecision);
+	void
+	OutputEigSparseMatrices(const MatrixHandler* pmMatA,
+			const MatrixHandler* pmMatB,
+			const unsigned uCurrEigSol, 
+			const int iMatrixPrecision);
+	void
+	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
+			const MatrixHandler* pmMatB,
+			const unsigned uCurrEigSol,
+			const int iMatrixPrecision);
+	void
+	OutputEigenvectors(const VectorHandler *pBeta,
+			const VectorHandler& R, const VectorHandler& I,
+			const doublereal& dShiftR,
+			const MatrixHandler *pVL, const MatrixHandler& VR,
+			const std::vector<bool>& vOut,
+			const unsigned uCurrEigSol,
+			const int iResultsPrecision);
+
+	void OutputEigGeometry(const unsigned uCurrSol, 
+			const int iResultsPrecision);
+	bool OutputEigClose(void);
 
 #ifdef USE_ADAMS
 	/* MSC's ADAMS/View .res output */

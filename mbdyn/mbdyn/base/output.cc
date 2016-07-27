@@ -79,7 +79,8 @@ const char* psExt[] = {
 	".dof",
 	".drv",
 	".trc",
-	NULL		// 34
+	".m",
+	NULL		// 35
 };
 
 /* Costruttore senza inizializzazione */
@@ -258,6 +259,10 @@ OutputHandler::OutputHandler_int(void)
 			| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[TRACES].pof = &ofTraces;
 
+	OutData[EIGENANALYSIS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
+			| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
+	OutData[EIGENANALYSIS].pof = &ofEigenanalysis;
+
 	OutData[NETCDF].flags = 0
 		| OUTPUT_MAY_USE_NETCDF;
 	OutData[NETCDF].pof = 0;
@@ -336,6 +341,43 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 			}
 
 			// Setta la notazione
+			if (UseScientific(out)) {
+				OutData[out].pof->setf(std::ios::scientific);
+			}
+		}
+
+		return true;
+	}
+
+	return false;
+}
+
+bool
+OutputHandler::Open(const int out, const unsigned uCurrEigSol)
+{
+	if (!IsOpen(out)) {
+		std::stringstream ext_ss;
+		ext_ss << uCurrEigSol << psExt[out];
+		const std::string ext = ext_ss.str();
+		const char* fname = _sPutExt(ext.c_str());
+
+		// Opens the stream
+		OutData[out].pof->open(fname);
+
+		if (!(*OutData[out].pof)) {
+			silent_cerr("Unable to open file "
+				"\"" << fname << "\"" << std::endl);
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
+		} 
+
+		if (UseText(out)) {
+			
+			// Sets the field format
+			if (UseDefaultPrecision(out)) {
+				OutData[out].pof->precision(iCurrPrecision);
+			}
+
+			// Sets the notation
 			if (UseScientific(out)) {
 				OutData[out].pof->setf(std::ios::scientific);
 			}

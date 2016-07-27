@@ -47,6 +47,10 @@
 #include "solver.h"
 #include "ls.h"
 
+#include "Rot.hh"
+#include "naivemh.h"
+#include "spmapmh.h"
+
 #include "bufferstream_out_elem.h"
 #include "bufferstreamdrive.h"
 
@@ -1463,6 +1467,889 @@ DataManager::OutputPrepare(void)
 
 	/* Dati degli elementi */
 	ElemOutputPrepare(OutHdl);
+}
+
+/* Output setup for Eigenanalysis parameters */
+void
+DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
+{
+#ifdef USE_NETCDF
+	/* Set up additional NetCDF stuff for eigenanalysis output */
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+
+		OutputHandler::NcDimVec dim(1);
+		dim[0] = OutHdl.CreateDim("eigensolutions", iNumAnalyses);
+
+		m_Dim_Eig_iSize = OutHdl.CreateDim("eig_iSize", iSize);
+		m_Dim_Eig_iComplex = OutHdl.CreateDim("complex_var_dim", 2);
+
+		OutputHandler::AttrValVec attrs2(2);
+		attrs2[0] = OutputHandler::AttrVal("type", "integer");
+		attrs2[1] = OutputHandler::AttrVal("description", 
+				"timestep index of eigensolution");
+
+		Var_Eig_lStep = OutHdl.CreateVar("eig.timestep", ncInt, attrs2, dim);
+
+		OutputHandler::AttrValVec attrs3(3);
+		attrs3[0] = OutputHandler::AttrVal("units", "s");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description",
+				"simulation time at which the eigensolution was computed");
+
+		Var_Eig_dTime = OutHdl.CreateVar("eig.time", ncDouble, attrs3, dim);
+
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description",
+				"coefficient used to build Aplus and Aminus matrices");
+
+		Var_Eig_dCoef = OutHdl.CreateVar("eig.dCoef", ncDouble, attrs3, dim);
+
+		OutputHandler::NcDimVec dim2(2);
+		integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size(); 
+		
+		dim2[0] = dim[0];
+		dim2[1] = OutHdl.CreateDim("eig_iIdxSize", iNumNodes);
+
+		attrs2[0] = OutputHandler::AttrVal("type", "integer");
+		attrs2[1] = OutputHandler::AttrVal("description",
+				"structural nodes base index");
+
+		Var_Eig_Idx = OutHdl.CreateVar("eig.idx", ncInt, attrs2, dim2);
+	}
+#endif /* USE_NETCDF */
+}
+
+/* Output of Eigenanalysis parameters */
+void
+DataManager::OutputEigParams(const doublereal& dTime,
+		const doublereal& dCoef,
+		const unsigned uCurrEigSol,
+		const int iResultsPrecision)
+{
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+
+		if (iResultsPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iResultsPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iResultsPrecision);
+		}
+
+		// header
+		out
+			<< "% time: " << dTime << std::endl;
+		out
+			<< "dTime = " << dTime << ';' << std::endl;
+
+		// coefficient
+		out
+			<< "% coefficient" << std::endl
+			<< "dCoef = " << dCoef << ";" << std::endl;
+	}
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+
+		long lStep = OutHdl.GetCurrentStep();
+		
+		Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
+		Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
+		Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
+
+	}
+#endif /* USE_NETCDF */
+}
+
+void
+DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA, 
+			const MatrixHandler* pMatB,
+			const unsigned uCurrEigSol,
+			const int iMatrixPrecision)
+{
+	const FullMatrixHandler& MatB = dynamic_cast<const FullMatrixHandler &>(*pMatB);
+	const FullMatrixHandler& MatA = dynamic_cast<const FullMatrixHandler &>(*pMatA);
+	integer nrows = MatB.iGetNumRows();
+	integer ncols = MatB.iGetNumCols();
+
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+		OutputHandler::NcDimVec dim2(2);
+		dim2[0] = m_Dim_Eig_iSize;
+		dim2[1] = m_Dim_Eig_iSize;
+
+		OutputHandler::AttrValVec attrs3(3);
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
+
+		std::stringstream varname_ss;
+		varname_ss << "eig." << uCurrEigSol << ".Aplus";
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(),ncDouble, attrs3, dim2);
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+
+		varname_ss.str("");
+		varname_ss.clear();
+		varname_ss << "eig." << uCurrEigSol << ".Aminus";
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(),ncDouble, attrs3, dim2);
+
+		Var_Eig_dAplus->put(MatB.pdGetMat(), nrows, ncols);
+		Var_Eig_dAminus->put(MatA.pdGetMat(), nrows, ncols);
+
+	}
+#endif /* USE_NETCDF */
+
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+
+		if (iMatrixPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iMatrixPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iMatrixPrecision);
+		}
+
+		out
+			<< "% F/xPrime + dCoef * F/x" << std::endl
+			<< "Aplus" << " = [";
+
+
+		for (integer r = 1; r <= nrows; r++) {
+			for (integer c = 1; c <= ncols; c++) {
+				out << std::setw(24) << MatB(r, c) << ' ';
+			}
+
+			if (r == nrows) {
+				out << "];" << std::endl;
+
+			} else {
+				out << ";" << std::endl;
+			}
+		}
+		
+		out
+			<< "% F/xPrime - dCoef * F/x" << std::endl
+			<< "Aminus" << " = [";
+
+		for (integer r = 1; r <= nrows; r++) {
+			for (integer c = 1; c <= ncols; c++) {
+				out << std::setw(24) << MatA(r, c) << ' ';
+			}
+
+			if (r == nrows) {
+				out << "];" << std::endl;
+
+			} else {
+				out << ";" << std::endl;
+			}
+		}
+
+	}
+}
+
+void
+DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
+	const MatrixHandler* pMatB,
+	const unsigned uCurrEigSol,
+	const int iMatrixPrecision)
+{
+	const SpMapMatrixHandler& MatB = dynamic_cast<const SpMapMatrixHandler &>(*pMatB);
+	const SpMapMatrixHandler& MatA = dynamic_cast<const SpMapMatrixHandler &>(*pMatA);
+
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+		
+		if (iMatrixPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iMatrixPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iMatrixPrecision);
+		}
+
+		out
+			<< "% F/xPrime + dCoef *F/x" << std::endl
+			<< "Aplus" << " = [";
+
+		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
+				i != MatB.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
+			}
+		}
+
+		out << "];" << std::endl
+			<< "Aplus = spconvert(Aplus);" << std::endl;
+		
+		out
+			<< "% F/xPrime - dCoef *F/x" << std::endl
+			<< "Aminus" << " = [";
+
+		for (SpMapMatrixHandler::const_iterator i = MatA.begin();
+				i != MatA.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
+			}
+		}
+
+		out << "];" << std::endl
+			<< "Aminus = spconvert(Aminus);" << std::endl;
+	}
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+		OutputHandler::NcDimVec dim2(2);
+		std::stringstream dimname_ss;
+		dimname_ss << "eig_" << uCurrEigSol << "_Aplus_sp_iSize";
+		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), MatB.Nz());
+		dim2[1] = OutHdl.DimV3();
+
+		OutputHandler::AttrValVec attrs3(3);
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
+
+		dimname_ss.str("");
+		dimname_ss.clear();
+		dimname_ss << "eig_" << uCurrEigSol << "_Aminus_sp_iSize";
+		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), MatA.Nz());
+
+		std::stringstream varname_ss;
+		varname_ss << "eig." << uCurrEigSol << ".Aplus";
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+
+		varname_ss.str("");
+		varname_ss.clear();
+		varname_ss << "eig." << uCurrEigSol << ".Aminus";
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+
+		int iCnt = 0;
+		Vec3 v;
+		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
+				i != MatB.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
+				iCnt++;
+			}
+		}
+
+		iCnt = 0;
+		for (SpMapMatrixHandler::const_iterator j = MatA.begin();
+				j != MatA.end(); ++j)
+		{
+			if (j->dCoef != 0.) {
+				v = Vec3(j->iRow, j->iCol, j->dCoef);
+				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
+			}
+		}
+		
+	}
+#endif
+}
+
+void    
+DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
+	const MatrixHandler* pMatB,
+	const unsigned uCurrEigSol,
+	const int iMatrixPrecision)
+{
+	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
+	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
+
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+		
+		if (iMatrixPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iMatrixPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iMatrixPrecision);
+		}
+
+		out
+			<< "% F/xPrime + dCoef *F/x" << std::endl
+			<< "Aplus" << " = [";
+
+		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
+				i != MatB.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				out << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
+			}
+		}
+
+		out << "];" << std::endl
+			<< "Aplus = spconvert(Aplus);" << std::endl;
+		
+		out
+			<< "% F/xPrime - dCoef *F/x" << std::endl
+			<< "Aminus" << " = [";
+
+		for (NaiveMatrixHandler::const_iterator j = MatA.begin();
+				j != MatA.end(); ++j)
+		{
+			if (j->dCoef != 0.) {
+				out << j->iRow + 1 << " " << j->iCol + 1 << " " << j->dCoef << ";" << std::endl;
+			}
+		}
+
+		out << "];" << std::endl
+			<< "Aminus = spconvert(Aminus);" << std::endl;
+	}
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+
+		OutputHandler::NcDimVec dim2(2);
+		
+		std::stringstream dimname_ss;
+		dimname_ss << "eig_" << uCurrEigSol << "_Aplus_sp_iSize";
+
+		// FIXME: Is there a more efficient way of doing this??
+		integer iMatBNz = 0;
+		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
+				i != MatB.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				iMatBNz++;
+			}
+		}
+
+		integer iMatANz = 0;
+		for (NaiveMatrixHandler::const_iterator j = MatA.begin();
+				j != MatA.end(); ++j)
+		{
+			if(j->dCoef != 0.) {
+				iMatANz++;
+			}
+		}
+
+		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), iMatBNz);
+		dim2[1] = OutHdl.DimV3();
+
+		OutputHandler::AttrValVec attrs3(3);
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime + dCoef * F/x");
+
+		std::stringstream varname_ss;
+		varname_ss << "eig." << uCurrEigSol << ".Aplus";
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		
+		dimname_ss.str("");
+		dimname_ss.clear();
+		dimname_ss << "eig_" << uCurrEigSol << "_Aminus_sp_iSize";
+		dim2[0] = OutHdl.CreateDim(dimname_ss.str(), iMatANz);
+
+		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
+
+		varname_ss.str("");
+		varname_ss.clear();
+		varname_ss << "eig." << uCurrEigSol << ".Aminus";
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+
+		int iCnt = 0;
+		Vec3 v;
+		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
+				i != MatB.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
+				iCnt++;
+			}
+		}
+
+		iCnt = 0;
+		for (NaiveMatrixHandler::const_iterator i = MatA.begin();
+				i != MatA.end(); ++i)
+		{
+			if (i->dCoef != 0.) {
+				v = Vec3(i->iRow, i->iCol, i->dCoef);
+				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
+			}
+		}
+		
+	}
+#endif
+}
+
+void
+DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPrecision)
+{
+	NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
+	NodeContainerType::const_iterator e = NodeData[Node::STRUCTURAL].NodeContainer.end();
+	
+	// no structural nodes!
+	if (i == e) {
+		return;
+	}
+	
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+		
+		if (iResultsPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iResultsPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iResultsPrecision);
+		}
+		
+		out
+			<< "% structural nodes labels" << std::endl
+			<< "labels = [" << std::endl;
+		
+		for (; i != e; ++i) {
+			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+			ASSERT(pN != 0);
+
+			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+
+			out << std::setw(8) << pN->GetLabel() << ";" << std::endl;
+		}
+		
+		out << "];" << std::endl;
+
+		out
+			<< "% structural nodes base index" << std::endl
+			<< "idx = [" << std::endl;
+
+		for (i = NodeData[Node::STRUCTURAL].NodeContainer.begin(); i != e; ++i) {
+			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+			ASSERT(pN != 0);
+
+			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+
+			out << std::setw(8) << pN->iGetFirstIndex() << ";" << std::endl;
+		}
+		
+		out << "];" << std::endl;
+
+		out
+			<< "% structural nodes reference configuration (X, Phi)" << std::endl
+			<< "X0 = [" << std::endl;
+
+		for (i = NodeData[Node::STRUCTURAL].NodeContainer.begin(); i != e; ++i) {
+			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+			ASSERT(pN != 0);
+
+			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+
+			const Vec3& X(pN->GetX());
+			Vec3 Phi(mb_zero<Vec3>());
+			if (pSN) {
+				Phi = RotManip::VecRot(pSN->GetR());
+			}
+
+			out
+				<< std::setw(24) << X(1) << ";" << std::endl
+				<< std::setw(24) << X(2) << ";" << std::endl
+				<< std::setw(24) << X(3) << ";" << std::endl
+				<< std::setw(24) << Phi(1) << ";" << std::endl
+				<< std::setw(24) << Phi(2) << ";" << std::endl
+				<< std::setw(24) << Phi(3) << ";" << std::endl;
+		}
+
+		out << "];" << std::endl;
+	}
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+
+		/* start corner and count vector for NetCDF matrix output. 
+		 * Since we are writing a matrix element-by-element, count will
+		 * always be (1, 1) and start will move to the desired place in the
+		 * matrix */
+		std::vector<long> start (2, 0);
+		start[0] = uCurrEigSol;
+		std::vector<long> count (2, 1);
+		
+		for (i = NodeData[Node::STRUCTURAL].NodeContainer.begin(); i != e; ++i) {
+			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+			integer iNodeIndex;
+			ASSERT(pN != 0);
+
+			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+				continue;
+			}
+	
+			iNodeIndex = pSN->iGetFirstIndex();
+
+			Var_Eig_Idx->set_cur(&start[0]);
+			Var_Eig_Idx->put(&iNodeIndex, &count[0]);
+			start[1]++;
+		}
+
+	}
+#endif // USE_NETCDF
+}
+
+void
+DataManager::OutputEigenvectors(const VectorHandler *pBeta,
+		const VectorHandler& R, const VectorHandler& I,
+		const doublereal& dShiftR,
+		const MatrixHandler *pVL, const MatrixHandler& VR,
+		const std::vector<bool>& vOut,
+		const unsigned uCurrEigSol,
+		const int iResultsPrecision)
+{
+	const char signs[] = {'-', '+'};
+	int iSign;
+
+	integer iSize = VR.iGetNumRows();
+	integer iNVec = VR.iGetNumCols();
+
+	integer iEigenValues = 0;
+
+	for (integer r = 1; r <= iNVec; r++) {
+		if (!vOut[r - 1]) {
+			continue;
+		}
+		++iEigenValues;
+	}
+
+	if (iEigenValues == 0)
+		return; // this allows to load the .m file into Matlab/Octave even
+			// if no eigenvalues have converged
+	
+	// alphar, alphai, beta
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		std::ostream& out = OutHdl.Eigenanalysis();
+		
+		if (iResultsPrecision) {
+			// 7 = number of characters requested by scientific notation
+			int iNewWidth = iResultsPrecision + 7;
+			out.width(iNewWidth);
+			out.precision(iResultsPrecision);
+		}
+
+		out
+			<< "% alphar, alphai, beta" << std::endl
+			<< "alpha = [";
+
+		for (integer r = 1; r <= iNVec; r++) {
+			if (!vOut[r - 1]) {
+				continue;
+			}
+
+			out
+				<< std::setw(24) << R(r) + dShiftR << ' '
+				<< std::setw(24) << I(r) << ' '
+				<< std::setw(24) << (pBeta ? (*pBeta)(r) : 1.)
+				<< ";" << std::endl;
+		}
+
+		out << "];" << std::endl;
+
+		if (pVL) {
+			// VL
+			out
+				<< "% left eigenvectors" << std::endl
+				<< "VL = [" << std::endl;
+			for (integer r = 1; r <= iSize; r++) {
+				for (integer c = 1; c <= iNVec; c++) {
+					if (!vOut[c - 1]) {
+						continue;
+					}
+
+					if (I(c) != 0.) {
+						ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of left eigenvector only");
+						ASSERT(I(c) > 0.);
+
+						doublereal re = (*pVL)(r, c);
+						// NOTE: we cannot assume that if c == iNVec
+						// it corresponds to a real-valued eigenvalue;
+						// "im" will be wrong, but at least we no not sigsegv
+						doublereal im = (c < iNVec) ? (*pVL)(r, c + 1) : 0.;
+						if (im < 0) {
+							iSign = 0;
+							im = -im;
+						} else {
+							iSign = 1;
+						}
+						
+						out
+							<< re << signs[iSign] << "i*" << im << ' ';
+						if (vOut[c]) {
+							out 
+								<< re << signs[1 - iSign] << "i*" << im << ' ';
+						}
+						c++;
+					} else {
+						 out
+							<< (*pVL)(r, c) << ' ';
+					}
+				}
+
+				if (r < iSize) {
+					out << ";" << std::endl;
+				} else {
+					out << "];" << std::endl;
+				}
+			}
+		}
+
+		// VR
+		out 
+			<< "% right eigenvectors" << std::endl
+			<< "VR = [" << std::endl;
+		for (integer r = 1; r <= iSize; r++) {
+			for (integer c = 1; c <= iNVec; c++) {
+				if (!vOut[c - 1]) {
+					continue;
+				}
+
+				if(I(c) != 0.) {
+					ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of right eigenvector only");
+					ASSERT(I(c) > 0.);
+
+					doublereal re = VR(r, c);
+					// NOTE: we cannote assume that if c == iNVec
+					// it corresponds to a real-valued eigenvalue;
+					// "im" will be wrong, but at least we do not sigsev
+					doublereal im = (c < iNVec) ? VR(r, c + 1) : 0.;
+					if (im < 0.) {
+						iSign = 0;
+						im = -im;
+					} else {
+						iSign = 1;
+					}
+					out
+						<< re << signs[iSign] << "i*" << im << ' ';
+					if (vOut[c]) {
+						out
+							<< re << signs[1 - iSign] << "i*" << im << ' ';
+					}
+					c++;
+				} else {
+					out
+						<< VR(r, c) << ' ';
+				}
+			}
+
+			if (r < iSize) {
+				out << ";" << std::endl;
+			} else {
+				out << "];" << std::endl;
+			}
+		}
+	}
+
+#ifdef USE_NETCDF
+	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
+		OutputHandler::NcDimVec dim_alpha(2);
+		
+		std::stringstream dimname_ss;
+		dimname_ss << "eig_" << uCurrEigSol << "_iNVec_out";
+
+		integer iNVecOut = 0;
+		for (integer r = 1; r <= iNVec; r++)
+		{
+			if(vOut[r -1]){
+				iNVecOut++;
+			}
+		}
+
+		dim_alpha[0] = OutHdl.CreateDim(dimname_ss.str(), iNVecOut);
+		dim_alpha[1] = OutHdl.DimV3();
+		
+		OutputHandler::AttrValVec attrs3(3);
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description", "alpha matrix");
+
+		std::stringstream varname_ss;
+		varname_ss << "eig." << uCurrEigSol << ".alpha";
+		Var_Eig_dAlpha = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_alpha);
+
+		Vec3 v;
+		unsigned uNRec = 0;
+		for (integer r = 1; r <= iNVec; r++) {
+			if (!vOut[r - 1]) {
+				continue;
+			}
+
+			v(1) = R(r) + dShiftR;
+			v(2) = I(r);
+			v(3) = (pBeta ? (*pBeta)(r) : 1.);
+			Var_Eig_dAlpha->put_rec(v.pGetVec(), uNRec); // CHECKME
+			uNRec++;
+		}
+
+		OutputHandler::NcDimVec dim_v(3);
+		dim_v[0] = m_Dim_Eig_iComplex; 
+		dim_v[1] = dim_alpha[0];
+		dim_v[2] = m_Dim_Eig_iSize;
+
+		/* start corner and count vector for NetCDF matrix output. 
+		 * Since we are writing a matrix element-by-element, count will
+		 * always be (1, 1, 1) and start will move to the desired place in the
+		 * matrix */
+		std::vector<long> start (3, 0);
+		const std::vector<long> count (3, 1);
+
+		if (pVL) {
+			// VL
+			OutputHandler::AttrValVec attrs3(3);
+			attrs3[0] = OutputHandler::AttrVal("units", "-");
+			attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+			attrs3[2] = OutputHandler::AttrVal("description", "VL - Left eigenvectors matrix");
+			
+			std::stringstream varname_ss;
+			varname_ss << "eig." << uCurrEigSol << ".VL";
+			Var_Eig_dVL = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
+
+			doublereal re;
+			doublereal im;
+			
+
+			for (integer r = 1; r <= iSize; r++) {
+				start[1] = 0;
+				for (integer c = 1; c <= iNVec; c++) {
+					if (!vOut[c - 1]) {
+						continue;
+					}
+
+					start[2] = r - 1;
+					if (I(c) != 0.) {
+						ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of left eigenvector only");
+						ASSERT(I(c) > 0.);
+
+						re = (*pVL)(r, c); // see above comment
+						im = (c < iNVec) ? (*pVL)(r, c + 1) : 0.;
+						
+						// NetCDF indexing is zero-based!
+						start[0] = 0;	// real part in first "page" of VL
+						Var_Eig_dVL->set_cur(&start[0]);
+						Var_Eig_dVL->put(&re, &count[0]);
+						
+						start[0] = 1;	// imaginary part in second "page"
+						Var_Eig_dVL->set_cur(&start[0]);
+						Var_Eig_dVL->put(&im, &count[0]);
+						
+						start[1]++;
+
+						if (vOut[c]) {
+							im = -im;
+							
+							start[0] = 0;
+							Var_Eig_dVL->set_cur(&start[0]);
+							Var_Eig_dVL->put(&re, &count[0]);
+
+							start[0] = 1;
+							Var_Eig_dVL->set_cur(&start[0]);
+							Var_Eig_dVL->put(&im, &count[0]);
+							
+							start[1]++;
+						}
+						c++;
+					} else {
+						re = (*pVL)(r, c); 
+						im = 0.;
+						
+						start[0] = 0;
+						Var_Eig_dVL->set_cur(&start[0]);
+						Var_Eig_dVL->put(&re, &count[0]);
+
+						start[0] = 1;
+						Var_Eig_dVL->set_cur(&start[0]);
+						Var_Eig_dVL->put(&im, &count[0]);
+						
+						start[1]++;
+					}
+				}
+			}
+		}
+		
+		// VR
+		attrs3[0] = OutputHandler::AttrVal("units", "-");
+		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
+		attrs3[2] = OutputHandler::AttrVal("description", "VR - Left eigenvectors matrix");
+		
+		varname_ss.str("");
+		varname_ss.clear();
+		varname_ss << "eig." << uCurrEigSol << ".VR";
+		Var_Eig_dVR = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
+	
+		doublereal re;
+		doublereal im;
+		for (integer r = 1; r <= iSize; r++) {
+			start[1] = 0;
+			for (integer c = 1; c <= iNVec; c++) {
+				if (!vOut[c - 1]) {
+					continue;
+				}
+				
+				start[2] = r - 1;
+				if (I(c) != 0.) {
+					ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of right eigenvector only");
+					ASSERT(I(c) > 0.);
+
+					re = VR(r, c); // see above comments
+					im = (c < iNVec) ? VR(r, c + 1) : 0.;
+					
+					// NetCDF indexing is zero-based!
+					start[0] = 0;	// real part in first "page" of VL
+					Var_Eig_dVR->set_cur(&start[0]);
+					Var_Eig_dVR->put(&re, &count[0]);
+						
+					start[0] = 1;	// imaginary part in second "page"
+					Var_Eig_dVR->set_cur(&start[0]);
+					Var_Eig_dVR->put(&im, &count[0]);
+			
+					start[1]++;
+
+					if (vOut[c]) {
+						im = -im;
+						
+						start[0] = 0;
+						Var_Eig_dVR->set_cur(&start[0]);
+						Var_Eig_dVR->put(&re, &count[0]);
+
+						start[0] = 1;
+						Var_Eig_dVR->set_cur(&start[0]);
+						Var_Eig_dVR->put(&im, &count[0]);
+						start[1]++;
+					}
+					c++;
+				} else {
+					re = VR(r, c);
+					im = 0.;
+					
+					start[0] = 0;
+					Var_Eig_dVR->set_cur(&start[0]);
+					Var_Eig_dVR->put(&re, &count[0]);
+
+					start[0] = 1;
+					Var_Eig_dVR->set_cur(&start[0]);
+					Var_Eig_dVR->put(&im, &count[0]);
+
+					start[1]++;
+				}
+			}
+		}
+
+	}
+#endif /* USE_NETCDF */
+}
+
+bool
+DataManager::OutputEigClose(void)
+{
+	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
+		return OutHdl.Close(OutputHandler::EIGENANALYSIS);
+	}
 }
 
 /* Output dati */

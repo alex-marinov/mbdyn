@@ -101,7 +101,8 @@ public:
 		DOFSTATS,
 		DRIVECALLERS,
 		TRACES,
-		LASTFILE			// 34
+		EIGENANALYSIS,
+		LASTFILE			// 35
 	};
 
 private:
@@ -174,14 +175,15 @@ private:
 	std::ofstream ofAirProps;
 	std::ofstream ofParameters;
 	std::ofstream ofExternals;
-	std::ofstream ofModal;
+	std::ofstream ofModal;			/* 25 */
 	std::ofstream ofThermalNodes;
 	std::ofstream ofThermalElements;
 	std::ofstream ofPlates;
 	std::ofstream ofGravity;
-	std::ofstream ofDofStats;
+	std::ofstream ofDofStats;		/* 30 */
 	std::ofstream ofDriveCallers;
 	std::ofstream ofTraces;
+	std::ofstream ofEigenanalysis;
 
 	int iCurrWidth;
 	int iCurrPrecision;
@@ -210,6 +212,8 @@ public:
 	/* Aggiungere qui le funzioni che aprono i singoli stream */
 	bool Open(const OutputHandler::OutFiles out);
 
+	/* Overload for eigenanalysis text output */
+	bool Open(const int out, const unsigned uCurrEigSol);
 	bool IsOpen(const OutputHandler::OutFiles out) const;
 	bool UseDefaultPrecision(const OutputHandler::OutFiles out) const;
 	bool UseScientific(const OutputHandler::OutFiles out) const;
@@ -270,6 +274,7 @@ public:
 	inline std::ostream& DofStats(void) const;
 	inline std::ostream& DriveCallers(void) const;
 	inline std::ostream& Traces(void) const;
+	inline std::ostream& Eigenanalysis(void) const;
 
 	inline int iW(void) const;
 	inline int iP(void) const;
@@ -627,6 +632,14 @@ OutputHandler::Traces(void) const
 	ASSERT(IsOpen(TRACES));
 	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofTraces));
 }
+
+inline std::ostream&
+OutputHandler::Eigenanalysis(void) const
+{
+	ASSERT(IsOpen(EIGENANALYSIS));
+	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofEigenanalysis));
+}
+
 
 inline int
 OutputHandler::iW(void) const

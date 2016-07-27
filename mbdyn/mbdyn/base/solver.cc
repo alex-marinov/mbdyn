@@ -730,6 +730,13 @@ Solver::Prepare(void)
 	pDM->OutputPrepare();
 
 	/*
+	 * If eigenanalysis is requested, prepare output for it
+	 */
+	if (EigAn.bAnalysis) {
+		pDM->OutputEigPrepare(EigAn.Analyses.size(), iNumDofs);
+	}
+
+	/*
 	 * Dialoga con il DataManager per dargli il tempo iniziale
 	 * e per farsi inizializzare i vettori di soluzione e derivata
 	 */
@@ -3081,6 +3088,10 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case EIGENANALYSIS:
+			// initialize output precision: 0 means use default precision
+			EigAn.iMatrixPrecision = 0;
+			EigAn.iResultsPrecision = 0;
+			
 			// read eigenanalysis time (to be changed)
 			if (HP.IsKeyWord("list")) {
 				int iNumTimes = HP.GetInt();
@@ -3143,6 +3154,24 @@ Solver::ReadData(MBDynParser& HP)
 
 				} else if (HP.IsKeyWord("output" "geometry")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_GEOMETRY;
+				
+				} else if (HP.IsKeyWord("matrix" "output" "precision")) {
+					EigAn.iMatrixPrecision = HP.GetInt();
+					if (EigAn.iMatrixPrecision <= 0) {
+						silent_cerr("negative or null \"matrix output precision\" "
+							"parameter at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+				} else if (HP.IsKeyWord("results" "output" "precision")) {
+					EigAn.iResultsPrecision = HP.GetInt();
+					if (EigAn.iResultsPrecision <= 0) {
+						silent_cerr("negative or null \"results output precision\" "
+							"parameter at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
 
 				} else if (HP.IsKeyWord("upper" "frequency" "limit")) {
 					EigAn.dUpperFreq = HP.GetReal();
@@ -4206,240 +4235,13 @@ output_eigenvalues(const VectorHandler *pBeta,
 	}
 }
 
-// Writes eigenvalues and eigenvectors
-// in a form suitable for handling with octave/matlab
-static void
-output_eigenvectors(const VectorHandler *pBeta,
-	const VectorHandler& R, const VectorHandler& I,
-	const doublereal& dShiftR,
-	const MatrixHandler *pVL, const MatrixHandler& VR,
-	DataManager* pDM,
-	const Solver::EigenAnalysis *pEA,
-	const std::vector<bool>& vOut,
-	std::ostream& o)
-{
-	static const char signs[] = { '-', '+' };
-	int isign;
-
-	integer iSize = VR.iGetNumRows();
-	integer iNVec = VR.iGetNumCols();
-
-	integer iEigenvalues = 0;
-
-	for (integer r = 1; r <= iNVec; r++) {
-		if (!vOut[r - 1]) {
-			continue;
-		}
-		++iEigenvalues;
-	}
-
-	if ( iEigenvalues == 0 )
-		return; // this is allows it to load the .m file into Matlab/Octave even if no eigenvalues have converged
-
-	// alphar, alphai, beta
-	o
-		<< "% alphar, alphai, beta" << std::endl
-		<< "alpha = [";
-
-	for (integer r = 1; r <= iNVec; r++) {
-		if (!vOut[r - 1]) {
-			continue;
-		}
-
-		o
-			<< std::setw(24) << R(r) + dShiftR << ' '
-			<< std::setw(24) << I(r) << ' '
-			<< std::setw(24) << (pBeta ? (*pBeta)(r) : 1.)
-			<< ";" << std::endl;
-	}
-	o << "];" << std::endl;
-
-	if (pVL) {
-		// VL
-		o
-			<< "% left eigenvectors" << std::endl
-			<< "VL = [" << std::endl;
-		for (integer r = 1; r <= iSize; r++) {
-			for (integer c = 1; c <= iNVec; c++) {
-				if (!vOut[c - 1]) {
-					continue;
-				}
-
-				if (I(c) != 0.) {
-					ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of left eigenvector only");
-					ASSERT(I(c) > 0.);
-
-					doublereal re = (*pVL)(r, c);
-					// NOTE: we cannot assume that if c == iNVec
-					// it corresponds to a real-valued eigenvalue;
-					// "im" will be wrong, but at least we do not sigsegv
-					doublereal im = (c < iNVec) ? (*pVL)(r, c + 1) : 0.;
-					if (im < 0 ) {
-						isign = 0;
-						im = -im;
-
-					} else {
-						isign = 1;
-					}
-					o
-						<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im << ' ';
-					if (vOut[c]) {
-						o
-							<< std::setw(24) << re << signs[1 - isign] << "i*" << std::setw(24) << im << ' ';
-					}
-					c++;
-
-				} else {
-					o
-						<< std::setw(24) << (*pVL)(r, c) << ' ';
-				}
-			}
-
-			if (r < iSize) {
-				o << ";" << std::endl;
-
-			} else {
-				o << "];" << std::endl;
-			}
-		}
-	}
-
-	// VR
-	o
-		<< "% right eigenvectors" << std::endl
-		<< "VR = [" << std::endl;
-	for (integer r = 1; r <= iSize; r++) {
-		for (integer c = 1; c <= iNVec; c++) {
-			if (!vOut[c - 1]) {
-				continue;
-			}
-
-			if (I(c) != 0.) {
-				ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of right eigenvector only");
-				ASSERT(I(c) > 0.);
-
-				doublereal re = VR(r, c);
-				// NOTE: we cannot assume that if c == iNVec
-				// it corresponds to a real-valued eigenvalue;
-				// "im" will be wrong, but at least we do not sigsegv
-				doublereal im = (c < iNVec) ? VR(r, c + 1) : 0.;
-				if (im < 0.) {
-					isign = 0;
-					im = -im;
-
-				} else {
-					isign = 1;
-				}
-				o
-					<< std::setw(24) << re << signs[isign] << "i*" << std::setw(24) << im << ' ';
-				if (vOut[c]) {
-					o
-						<< std::setw(24) << re << signs[1-isign] << "i*" << std::setw(24) << im << ' ';
-				}
-				c++;
-
-			} else {
-				o
-					<< std::setw(24) << VR(r, c) << ' ';
-			}
-		}
-
-		if (r < iSize) {
-			o << ";" << std::endl;
-
-		} else {
-			o << "];" << std::endl;
-		}
-	}
-}
-
-// Writes reference solution and indexes
-// in a form suitable for handling with octave/matlab
-static void
-output_geometry(DataManager* pDM, std::ostream& o)
-{
-	DataManager::NodeContainerType::const_iterator i = pDM->begin(Node::STRUCTURAL);
-	DataManager::NodeContainerType::const_iterator e = pDM->end(Node::STRUCTURAL);
-
-	// no structural nodes!
-	if (i == e) {
-		return;
-	}
-
-	o
-		<< "% structural nodes labels" << std::endl
-		<< "labels = [" << std::endl;
-
-	for (; i != e; ++i) {
-		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
-		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
-		ASSERT(pN != 0);
-
-		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
-			continue;
-		}
-
-		o << std::setw(8) << pN->GetLabel() << ";" << std::endl;
-	}
-
-	o << "];" << std::endl;
-
-	o
-		<< "% structural nodes base index" << std::endl
-		<< "idx = [" << std::endl;
-
-	for (i = pDM->begin(Node::STRUCTURAL); i != e; ++i) {
-		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
-		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
-		ASSERT(pN != 0);
-
-		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
-			continue;
-		}
-
-		o << std::setw(8) << pN->iGetFirstIndex() << ";" << std::endl;
-	}
-
-	o << "];" << std::endl;
-
-	o
-		<< "% structural nodes reference configuration (X, Phi)" << std::endl
-		<< "X0 = [" << std::endl;
-
-	for (i = pDM->begin(Node::STRUCTURAL); i != e; ++i) {
-		const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
-		const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
-		ASSERT(pN != 0);
-
-		if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
-			continue;
-		}
-
-		const Vec3& X(pN->GetX());
-		Vec3 Phi(mb_zero<Vec3>());
-		if (pSN) {
-			Phi = RotManip::VecRot(pSN->GetR());
-		}
-
-		o
-			<< std::setw(24) << X(1) << ";" << std::endl
-			<< std::setw(24) << X(2) << ";" << std::endl
-			<< std::setw(24) << X(3) << ";" << std::endl
-			<< std::setw(24) << Phi(1) << ";" << std::endl
-			<< std::setw(24) << Phi(2) << ";" << std::endl
-			<< std::setw(24) << Phi(3) << ";" << std::endl;
-	}
-
-	o << "];" << std::endl;
-}
-
 #ifdef USE_LAPACK
 // Computes eigenvalues and eigenvectors using LAPACK's
 // generalized non-symmetric eigenanalysis
 static void
 eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
-	bool bNewLine)
+	DataManager *pDM, Solver::EigenAnalysis *pEA,
+	bool bNewLine, const unsigned uCurr)
 {
 	const FullMatrixHandler& MatA = dynamic_cast<const FullMatrixHandler &>(*pMatA);
 	const FullMatrixHandler& MatB = dynamic_cast<const FullMatrixHandler &>(*pMatB);
@@ -4770,12 +4572,12 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	output_eigenvalues(&Beta, AlphaR, AlphaI, 0., pDM, pEA, iILO, iIHI, vOut);
 
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
-		output_geometry(pDM, o);
+		pDM->OutputEigGeometry(uCurr, pEA->iResultsPrecision);
 	}
 
 	if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
-		output_eigenvectors(&Beta, AlphaR, AlphaI, 0.,
-			&MatVL, MatVR, pDM, pEA, vOut, o);
+		pDM->OutputEigenvectors(&Beta, AlphaR, AlphaI, 0.,
+			&MatVL, MatVR, vOut, uCurr, pEA->iResultsPrecision);
 	}
 
 	SAFEDELETEARR(pd);
@@ -4788,8 +4590,8 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 // canonical non-symmetric eigenanalysis
 static void
 eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
-	bool bNewLine)
+	DataManager *pDM, Solver::EigenAnalysis *pEA,
+	bool bNewLine, const unsigned uCurr)
 {
 	NaiveSparsePermSolutionManager<Colamd_ordering>& sm
 		= dynamic_cast<NaiveSparsePermSolutionManager<Colamd_ordering> &>(*pSM);
@@ -5062,14 +4864,14 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
-			output_geometry(pDM, o);
+			pDM->OutputEigGeometry(uCurr, pEA->iResultsPrecision);
 		}
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
 			std::vector<doublereal *> ZC(nconv);
 			FullMatrixHandler VR(&Z[0], &ZC[0], N*nconv, N, nconv);
-			output_eigenvectors(0, AlphaR, AlphaI, 1.,
-				0, VR, pDM, pEA, vOut, o);
+			pDM->OutputEigenvectors(0, AlphaR, AlphaI, 1.,
+				0, VR, vOut, uCurr, pEA->iResultsPrecision);
 		}
 
 	} else {
@@ -5087,8 +4889,8 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 // canonical non-symmetric eigenanalysis
 static void
 eig_jdqz(const MatrixHandler *pMatA, const MatrixHandler *pMatB,
-	DataManager *pDM, Solver::EigenAnalysis *pEA, std::ostream& o,
-	bool bNewLine)
+	DataManager *pDM, Solver::EigenAnalysis *pEA,
+	bool bNewLine, const unsigned uCurr)
 {
 	const NaiveMatrixHandler& MatA = dynamic_cast<const NaiveMatrixHandler &>(*pMatA);
 	const NaiveMatrixHandler& MatB = dynamic_cast<const NaiveMatrixHandler &>(*pMatB);
@@ -5225,7 +5027,7 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
 	
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
-			output_geometry(pDM, o);
+			pDM->OutputGeometry(pEA->iResultsPrecision);
 		}
 
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_EIGENVECTORS) {
@@ -5251,8 +5053,8 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 				p += n;
 			}
 	
-			output_eigenvectors(&Beta, AlphaR, AlphaI, 1.,
-				0, VR, pDM, pEA, vOut, o);
+			pDM->OutputEigenvectors(&Beta, AlphaR, AlphaI, 1.,
+				0, VR, vOut, uCurr, pEA->iResultsPrecision);
 		}
 
 	} else {
@@ -5264,86 +5066,6 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 	}
 }
 #endif // USE_JDQZ
-
-// writes a full matrix in a form compatible with octave/matlab
-static void
-output_full_matrix(std::ostream& o,
-	const MatrixHandler* pm,
-	const std::string& comment,
-	const std::string& name)
-{
-	const FullMatrixHandler& m = dynamic_cast<const FullMatrixHandler &>(*pm);
-
-	o
-		<< comment << std::endl
-		<< name << " = [";
-
-	integer nrows = m.iGetNumRows();
-	integer ncols = m.iGetNumCols();
-
-	for (integer r = 1; r <= nrows; r++) {
-		for (integer c = 1; c <= ncols; c++) {
-			o << std::setw(24) << m(r, c) << ' ';
-		}
-
-		if (r == nrows) {
-			o << "];" << std::endl;
-
-		} else {
-			o << ";" << std::endl;
-		}
-	}
-}
-
-// writes a sparse map matrix in a form compatible with octave/matlab
-static void
-output_sparse_matrix(std::ostream& o,
-	const MatrixHandler* pm,
-	const std::string& comment,
-	const std::string& name)
-{
-	const SpMapMatrixHandler& m = dynamic_cast<const SpMapMatrixHandler &>(*pm);
-
-	o
-		<< comment << std::endl
-		<< name << " = [";
-
-	for (SpMapMatrixHandler::const_iterator i = m.begin();
-		i != m.end(); ++i)
-	{
-		if (i->dCoef != 0.) {
-			o << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-		}
-	}
-
-	o << "];" << std::endl
-		<< name << " = spconvert(" << name << ");" << std::endl;
-}
-
-// writes a naive sparse matrix in a form compatible with octave/matlab
-static void
-output_naive_matrix(std::ostream& o,
-	const MatrixHandler* pm,
-	const std::string& comment,
-	const std::string& name)
-{
-	const NaiveMatrixHandler& m = dynamic_cast<const NaiveMatrixHandler &>(*pm);
-
-	o
-		<< comment << std::endl
-		<< name << " = [";
-
-	for (NaiveMatrixHandler::const_iterator i = m.begin();
-		i != m.end(); ++i)
-	{
-		if (i->dCoef != 0.) {
-			o << i->iRow + 1 << " " << i->iCol + 1 << " " << i->dCoef << ";" << std::endl;
-		}
-	}
-
-	o << "];" << std::endl
-		<< name << " = spconvert(" << name << ");" << std::endl;
-}
 
 // Driver for eigenanalysis
 void
@@ -5408,86 +5130,42 @@ Solver::Eig(bool bNewLine)
 		<< "Matrix B:" << std::endl << *pMatB << std::endl);
 #endif /* DEBUG */
 
-	std::ofstream o;
+	unsigned uCurr = EigAn.currAnalysis - EigAn.Analyses.begin();
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT) {
-		std::string tmpFileName;
-		if (sOutputFileName.empty()) {
-			tmpFileName = sInputFileName;
-
-		} else {
-			tmpFileName = sOutputFileName;
-		}
-
+		
 		unsigned uSize = EigAn.Analyses.size();
 		if (uSize > 1) {
-			unsigned uCurr = EigAn.currAnalysis - EigAn.Analyses.begin();
-			int iLength = 1 + (int)log10(uSize - 1);
-
-			char buf[BUFSIZ];
-			snprintf(buf, sizeof(buf), "_%0*u", iLength, uCurr);
-			tmpFileName += buf;
+			pDM->OutputEigOpen(uCurr);
+			pDM->OutputEigParams(dTime, h/2., uCurr, EigAn.iResultsPrecision);
 		}
-
-		tmpFileName += ".m";
-		o.open(tmpFileName.c_str());
-
-		o.setf(std::ios::right | std::ios::scientific);
-		o.precision(16);
-
-		// header
-		o
-			<< "% time: " << dTime << std::endl;
-
-		o
-			<< "dTime = " << dTime << ';' << std::endl;
-
-		/* coefficient */
-		o
-			<< "% coefficient" << std::endl
-			<< "dCoef = " << h/2. << ";" << std::endl;
 	}
-
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
-		/* first matrix */
-		output_full_matrix(o, pMatB, "% F/xPrime + dCoef * F/x", "Aplus");
-
-		/* second matrix */
-		output_full_matrix(o, pMatA, "% F/xPrime - dCoef * F/x", "Aminus");
-
-	} else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
-		void (*om)(std::ostream&, const MatrixHandler *,
-			const std::string&, const std::string&);
-
+		pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
+	} 
+	else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
 		if (dynamic_cast<const NaiveMatrixHandler *>(pMatB)) {
-			om = output_naive_matrix;
-	
+			pDM->OutputEigNaiveMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 		} else {
-			om = output_sparse_matrix;
+			pDM->OutputEigSparseMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
 		}
-
-		/* first matrix */
-		om(o, pMatB, "% F/xPrime + dCoef * F/x", "Aplus");
-
-		/* second matrix */
-		om(o, pMatA, "% F/xPrime - dCoef * F/x", "Aminus");
 	}
 
 	switch (EigAn.uFlags & EigenAnalysis::EIG_USE_MASK) {
 #ifdef USE_LAPACK
 	case EigenAnalysis::EIG_USE_LAPACK:
-		eig_lapack(pMatA, pMatB, pDM, &EigAn, o, bNewLine);
+		eig_lapack(pMatA, pMatB, pDM, &EigAn, bNewLine, uCurr);
 		break;
 #endif // USE_LAPACK
 
 #ifdef USE_ARPACK
 	case EigenAnalysis::EIG_USE_ARPACK:
-		eig_arpack(pMatA, pSM, pDM, &EigAn, o, bNewLine);
+		eig_arpack(pMatA, pSM, pDM, &EigAn, bNewLine, uCurr);
 		break;
 #endif // USE_ARPACK
 
 #ifdef USE_JDQZ
 	case EigenAnalysis::EIG_USE_JDQZ:
-		eig_jdqz(pMatA, pMatB, pDM, &EigAn, o, bNewLine);
+		eig_jdqz(pMatA, pMatB, pDM, &EigAn, bNewLine, uCurr);
 		break;
 #endif // USE_JDQZ
 
@@ -5496,9 +5174,7 @@ Solver::Eig(bool bNewLine)
 		break;
 	}
 
-	if (o) {
-		o.close();
-	}
+	pDM->OutputEigClose();
 
 	if (pSM) {
 		pMatB = 0;

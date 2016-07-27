@@ -154,6 +154,15 @@ bNetCDFnoText(false),
 Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),
+Var_Eig_lStep(0),
+Var_Eig_dTime(0),
+Var_Eig_dCoef(0),
+Var_Eig_dAplus(0),
+Var_Eig_dAminus(0),
+Var_Eig_dAlpha(0),
+Var_Eig_Idx(0),
+Var_Eig_dVR(0),
+Var_Eig_dVL(0),
 #endif // USE_NETCDF
 od(EULER_123),
 #if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
@@ -727,6 +736,14 @@ DataManager::OutputOpen(const OutputHandler::OutFiles o)
 	}
 }
 
+void
+DataManager::OutputEigOpen(const unsigned uCurrEigSol)
+{
+	if(!OutHdl.IsOpen(OutputHandler::EIGENANALYSIS)) {
+		OutHdl.Open(OutputHandler::EIGENANALYSIS, uCurrEigSol);
+		ASSERT(OutHdl.IsOpen(OutputHandler::EIGENANALYSIS));
+	}
+}
 
 bool
 DataManager::bOutput(ResType t) const
