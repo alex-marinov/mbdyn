@@ -1488,7 +1488,7 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 		attrs2[1] = OutputHandler::AttrVal("description", 
 				"timestep index of eigensolution");
 
-		Var_Eig_lStep = OutHdl.CreateVar("eig.timestep", ncInt, attrs2, dim);
+		Var_Eig_lStep = OutHdl.CreateVar("eig.step", ncInt, attrs2, dim);
 
 		OutputHandler::AttrValVec attrs3(3);
 		attrs3[0] = OutputHandler::AttrVal("units", "s");
@@ -1616,7 +1616,7 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 
 		for (integer r = 1; r <= nrows; r++) {
 			for (integer c = 1; c <= ncols; c++) {
-				out << std::setw(24) << MatB(r, c) << ' ';
+				out << MatB(r, c) << ' ';
 			}
 
 			if (r == nrows) {
@@ -1633,7 +1633,7 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 
 		for (integer r = 1; r <= nrows; r++) {
 			for (integer c = 1; c <= ncols; c++) {
-				out << std::setw(24) << MatA(r, c) << ' ';
+				out << MatA(r, c) << ' ';
 			}
 
 			if (r == nrows) {
@@ -1910,7 +1910,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 				continue;
 			}
 
-			out << std::setw(8) << pN->GetLabel() << ";" << std::endl;
+			out << pN->GetLabel() << ";" << std::endl;
 		}
 		
 		out << "];" << std::endl;
@@ -1928,7 +1928,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 				continue;
 			}
 
-			out << std::setw(8) << pN->iGetFirstIndex() << ";" << std::endl;
+			out << pN->iGetFirstIndex() << ";" << std::endl;
 		}
 		
 		out << "];" << std::endl;
@@ -1953,12 +1953,12 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 			}
 
 			out
-				<< std::setw(24) << X(1) << ";" << std::endl
-				<< std::setw(24) << X(2) << ";" << std::endl
-				<< std::setw(24) << X(3) << ";" << std::endl
-				<< std::setw(24) << Phi(1) << ";" << std::endl
-				<< std::setw(24) << Phi(2) << ";" << std::endl
-				<< std::setw(24) << Phi(3) << ";" << std::endl;
+				<< X(1) << ";" << std::endl
+				<< X(2) << ";" << std::endl
+				<< X(3) << ";" << std::endl
+				<< Phi(1) << ";" << std::endl
+				<< Phi(2) << ";" << std::endl
+				<< Phi(3) << ";" << std::endl;
 		}
 
 		out << "];" << std::endl;
@@ -2044,9 +2044,9 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			}
 
 			out
-				<< std::setw(24) << R(r) + dShiftR << ' '
-				<< std::setw(24) << I(r) << ' '
-				<< std::setw(24) << (pBeta ? (*pBeta)(r) : 1.)
+				<< R(r) + dShiftR << ' '
+				<< I(r) << ' '
+				<< (pBeta ? (*pBeta)(r) : 1.)
 				<< ";" << std::endl;
 		}
 
@@ -2183,7 +2183,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			v(1) = R(r) + dShiftR;
 			v(2) = I(r);
 			v(3) = (pBeta ? (*pBeta)(r) : 1.);
-			Var_Eig_dAlpha->put_rec(v.pGetVec(), uNRec); // CHECKME
+			Var_Eig_dAlpha->put_rec(v.pGetVec(), uNRec);
 			uNRec++;
 		}
 
