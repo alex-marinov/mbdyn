@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 		- added printing the CPU time used for each iteration
 		  (Reinhard Resch)
 		- reduce memory usage during initial assembly (Reinhard Resch)
+		- added netcdf output for eigenanalysis (Andrea Zanoni)
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:
