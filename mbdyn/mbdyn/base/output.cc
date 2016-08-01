@@ -356,13 +356,22 @@ bool
 OutputHandler::Open(const int out, const unsigned uCurrEigSol)
 {
 	if (!IsOpen(out)) {
-		std::stringstream ext_ss;
-		ext_ss << uCurrEigSol << psExt[out];
-		const std::string ext = ext_ss.str();
-		const char* fname = _sPutExt(ext.c_str());
+		std::string sCurrFileName = sGet();
+		std::stringstream fname_ss;
 
+		unsigned uExtIdx = sCurrFileName.find_last_of(EXT_SEP);
+
+		if (uExtIdx != std::string::npos) {
+			fname_ss << sCurrFileName.substr(0, uExtIdx);
+		} else {
+			fname_ss << sCurrFileName;
+		}
+		
+		fname_ss << '_' << uCurrEigSol << psExt[out];
+		const std::string fname = fname_ss.str();
+		
 		// Opens the stream
-		OutData[out].pof->open(fname);
+		OutData[out].pof->open(fname.c_str());
 
 		if (!(*OutData[out].pof)) {
 			silent_cerr("Unable to open file "
