@@ -507,6 +507,18 @@ Section~\ref{sec:NetCDF:Octave}):
     octave:1> VR_3D = ncread('mbdyn_output.nc', 'eig.0.VR');
     octave:2> VR_cpx = VR_3D(:, :, 1) + 1i*VR_3D(:, :, 2);
     octave:3> clear VR_3D
+    octave:4> # access 'component' of 'mode'
+    octave:5> # access 'eigenvalue'
+\end{verbatim}
+The same using the Octave package \texttt{octcdf}, see Section~\ref{sec:NetCDF:Octave}:
+\begin{verbatim}
+    # load the VR matrix in 3D format
+    octave:1> nc = netcdf('mbdyn_output.nc', 'r');
+    octave:2> VR_3D = nc{'eig.0.VR'}(:);
+    octave:3> VR_cpx = VR_3D(1, :, :) + 1i*VR_3D(2, :, :);
+    octave:4> clear VR_3D
+    octave:5> VR_cpx(:, mode, component); # access 'component' of 'mode'
+    octave:6> # access 'eigenvalue'
 \end{verbatim}
 The following example shows how to reconstruct the discrete time eigenvalues vector
 \texttt{Lambda} and the corresponding continuous time eigenvalues vector
@@ -581,6 +593,9 @@ The database can be accessed using any of the tools listed at the web site
 
 \subsection{Octave}
 \label{sec:NetCDF:Octave}
+Octave used to provide access to NetCDF databases using the (possibly outdated) \texttt{octcdf} package.
+The preferred package is the \texttt{netcdf} package.
+
 \paragraph{OctCDF (WARNING: possibly outdated).}
 The \texttt{octcdf} package, available from
 \begin{quote}
