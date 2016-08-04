@@ -553,25 +553,47 @@ Section~\ref{sec:NetCDF:Octave}):
 The following function can be used to recover the complete reference configuration
 \paragraph{Example 2.}
 \begin{verbatim}
-    function X0 = eig_geom(ncfile, eig, orient)
+function X0 = eig_geom(ncfile, eig, orient)
     %% EIG_GEOM -- Extracts the reference configuration of the eigensolution of 
-    %              index "eig" from MBDyn NetCDF output file "ncfile", written
-    %              with default orientation "orient"
+    %              index eig from MBDyn NetCDF output file ncfile, that is written
+    %              with default orientation orient 
+    %
+    %              INPUTS:
+    %                 - ncfile -- filename (full path) of MBDyn NetCDF output file
+    %                 - eig    -- index of eigensolution of interest
+    %                 - orient -- string identifying the orientation used for 
+    %                             the structural nodes output. Please note that this
+    %                             function does not handle multiple output
+    %                             orientation descriptions
     %              
     %              X0 = eig_geom(ncfile, eig, orient)
-
+    
+      pkg load netcdf
+    
       step = ncread(ncfile, 'eig.step', eig + 1, 1);
       nodes = ncread(ncfile, 'node.struct');
-  
+      
+      if orient == 'R'
+        ncoord = 12;
+      else
+        ncoord = 6;
+      end
+      
       X0 = zeros(length(nodes)*6, 1);
       for ii = 1:length(nodes)
         nodevar = ['node.struct.' num2str(nodes(ii)) '.'];
-        x_bg = (ii - 1)*6 + 1;
+        x_bg = (ii - 1)*ncoord + 1;
         r_bg = x_bg + 3;
         X0(x_bg:x_bg + 2) = ncread(ncfile, [nodevar 'X'], [1 step], [3 1]);
-        X0(r_bg:r_bg + 2) = ncread(ncfile, [nodevar orient], [1 step], [3 1]);
+        if orient == 'R'
+          X0(r_bg:r_bg + 2) = ncread(ncfile, [nodevar orient], [1 1 step], [3 1 1]);
+          X0(r_bg + 3: r_bg + 5) = ncread(ncfile, [nodevar orient], [1 2 step], [3 1 1]);
+          X0(r_bg + 6: r_bg + 8) = ncread(ncfile, [nodevar orient], [1 3 step], [3 1 1]);
+        else
+          X0(r_bg:r_bg + 2) = ncread(ncfile, [nodevar orient], [1 step], [rN 1]);
+        end
       end
-
+      
     end
 \end{verbatim}
 The reference configuration of eigensolution 0, with \kw{default orientation}
@@ -581,6 +603,17 @@ and
 \ref{sec:NetCDF:Node:Structural Node}) is extracted with
 \begin{verbatim}
     octave:1> X0 = eig_geom('mbdyn_output.nc', 0, 'Phi')
+\end{verbatim}
+In the same fashion, the reference configuration of eigensolution 2, with
+\kw{default orientation} set to \kw{orientation matrix} is extracted with
+\begin{verbatim}
+    octave:1> X0 = eig_geom('mbdyn_output.nc', 2, 'R')
+\end{verbatim}
+The orientation matrix of the node 3 (supposing it is also the third node in
+the model) in the reference configuration is, then
+\begin{verbatim}
+    octave:2> R3 = zeros(3,3);
+    octave:3> R3(:) = X0(2*12 + 4, 3*12);
 \end{verbatim}
 \section{Accessing the Database}
 The database can be accessed using any of the tools listed at the web site
@@ -626,17 +659,17 @@ So, for example, the $z$ component of the position of node 1000 can be plot with
 The \texttt{netcdf} package appears to have superseded the \texttt{octcdf} package in recent
 distributions of Octave. It is no longer necessary to obtain a handler to the MBDyn output file. \\
 
-Variable properties are displayed as
+Variable properties are displayed with
 \begin{verbatim}
     octave:1> ncinfo('mbdyn_output.nc', 'node.struct.1000.X');
 \end{verbatim}
 Single records (in this example the position of node \texttt{10} at step \texttt{15})
-are accessed as
+are accessed with
 \begin{verbatim}
     octave:2> X10_15 = ncread('mbdyn_output_nc, 'node.struct.10.X', [1, 15], [3, 1]);
 \end{verbatim}
 Single values (in this example the $z$-position of node \texttt{10} at step \texttt{15}) 
-as
+with
 \begin{verbatim}
     octave:3> X10_15_z = ncread('mbdyn_output_nc, 'node.struct.10.X', [3, 15], [1, 1]);
 \end{verbatim}
