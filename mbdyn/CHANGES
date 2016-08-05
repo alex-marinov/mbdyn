@@ -19,6 +19,12 @@ MBDyn 1.X-Devel
 		  (Reinhard Resch)
 		- reduce memory usage during initial assembly (Reinhard Resch)
 		- added netcdf output for eigenanalysis (Andrea Zanoni)
+		- added range checks to parsing (noted by Reinhard Resch)
+		- added several improvements related to automatic
+		  differentiation (Reinhard Resch)
+		- updated support for CodeAster modal element database
+		  generation (Reinhard Resch)
+		- improved electric motor (Reinhard Resch)
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:

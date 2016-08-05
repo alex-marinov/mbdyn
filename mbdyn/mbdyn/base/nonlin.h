@@ -327,7 +327,9 @@ protected:
 #endif /* USE_EXTERNAL */
 };
 
-inline void NonlinearSolver::AddCond(doublereal dCond) {
+inline void
+NonlinearSolver::AddCond(doublereal dCond)
+{
 	iNumCond++;
 	dSumCond += dCond;
 

@@ -104,6 +104,7 @@
 
 #include <iostream>
 #include <fstream>
+#include <limits>
 #include <ac/f2c.h>
 
 #include <string.h>
@@ -254,7 +255,11 @@ public:
 	public:
 		ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
-   
+	class ErrValueOutOfRange : public MBDynErrBase {
+	public:
+		ErrValueOutOfRange(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+	};
+
 public:      
 	enum Token {
 		UNKNOWN = -1,
@@ -307,7 +312,99 @@ public:
 		UPPER		= 0x08U
 	};
 
-protected:   
+	template <class T>
+	struct range_base {
+		virtual bool check(const T& value) const { return false; };
+	};
+
+	template <class T>
+	struct range_any : public range_base<T> {
+		virtual bool check(const T& value) const { return true; };
+	};
+
+	template<class T>
+	struct lower_limit : public range_base<T> {
+		T m_lower;
+		lower_limit(const T& l) : m_lower(l) {};
+
+		bool check(const T& value) const {
+			return (value >= m_lower);
+		};
+	};
+
+	template<class T>
+	struct lower_xlimit : public range_base<T> {
+		T m_lower;
+		lower_xlimit(const T& l) : m_lower(l) {};
+
+		bool check(const T& value) const {
+			return (value > m_lower);
+		};
+	};
+
+	template<class T>
+	struct upper_limit : public range_base<T> {
+		T m_upper;
+		upper_limit(const T& u) : m_upper(u) {};
+
+		bool check(const T& value) const {
+			return (value <= m_upper);
+		};
+	};
+
+	template<class T>
+	struct upper_xlimit : public range_base<T> {
+		T m_upper;
+		upper_xlimit(const T& u) : m_upper(u) {};
+
+		bool check(const T& value) const {
+			return (value < m_upper);
+		};
+	};
+
+	template<class T>
+	struct range_lu_base : public range_base<T> {
+		T m_lower, m_upper;
+		range_lu_base(const T& l, const T& u) : m_lower(l), m_upper(u) {};
+	};
+
+	template<class T>
+	struct range_lower_upper: public range_lu_base<T> {
+		range_lower_upper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+
+		bool check(const T& value) const {
+			return ((value >= range_lu_base<T>::m_lower) && (value <= range_lu_base<T>::m_upper));
+		};
+	};
+
+	template<class T>
+	struct range_xlower_upper: public range_lu_base<T> {
+		range_xlower_upper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+
+		bool check(const T& value) const {
+			return ((value > range_lu_base<T>::m_lower) && (value <= range_lu_base<T>::m_upper));
+		};
+	};
+
+	template<class T>
+	struct range_lower_xupper: public range_lu_base<T> {
+		range_lower_xupper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+
+		bool check(const T& value) const {
+			return ((value >= range_lu_base<T>::m_lower) && (value < range_lu_base<T>::m_upper));
+		};
+	};
+
+	template<class T>
+	struct range_xlower_xupper: public range_lu_base<T> {
+		range_xlower_xupper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+
+		bool check(const T& value) const {
+			return ((value > range_lu_base<T>::m_lower) && (value < range_lu_base<T>::m_upper));
+		};
+	};
+
+protected:
 	/* Parser di basso livello, per semplice lettura dei tipi piu' comuni */
 	LowParser LowP;
      
@@ -384,13 +481,13 @@ public:
 	/* legge un "yes"/"no" o booleano con il mathpar */
 	virtual bool GetYesNoOrBool(bool bDefval = false);
 	/* legge un intero con il mathpar */
-	virtual integer GetInt(int iDefval = 0);
+	virtual integer GetInt(int iDefval = 0, range_base<integer> r = range_any<integer>());
 	/* legge un reale con il mathpar */
-	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
+	virtual doublereal GetReal(const doublereal& dDefval = 0.0, range_base<doublereal> r = range_any<doublereal>());
 	/* legge una string con il mathpar */
 	virtual std::string GetString(const std::string& sDefVal);
 	/* legge un valore tipizzato con il mathpar */
-	virtual TypedValue GetValue(const TypedValue& v);
+	virtual TypedValue GetValue(const TypedValue& v, range_base<TypedValue> r = range_any<TypedValue>());
 	/* legge un timeout */
 	virtual mbsleep_t GetTimeout(const mbsleep_t& DefVal);
 	/* legge una keyword */

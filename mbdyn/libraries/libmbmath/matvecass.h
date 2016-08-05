@@ -42,6 +42,9 @@
 #ifndef ___MATVECASS_H__INCLUDED___
 #define ___MATVECASS_H__INCLUDED___
 
+#if GRADIENT_DEBUG > 0 && HAVE_FINITE == 1
+#include <cmath>
+#endif
 #include "gradient.h"
 #include "matvec.h"
 #include "submat.h"
@@ -162,7 +165,12 @@ public:
 		WorkVec.Resize(++iSubRow);
 
 		GRADIENT_ASSERT(iSubRow <= WorkVec.iGetSize());
-
+#if GRADIENT_DEBUG > 0 && HAVE_FINITE == 1
+                if (!std::isfinite(dCoef)) {
+                    silent_cerr("PutItem(" << iSubRow << ", " << iRow << ", " << dCoef << ")" << std::endl);
+                }
+                GRADIENT_ASSERT(std::isfinite(dCoef));
+#endif
 		WorkVec.PutItem(iSubRow, iRow, dCoef);
 	}
 
@@ -173,6 +181,12 @@ public:
 
 		for (integer i = 0; i < v.iGetNumRows(); ++i) {
 			GRADIENT_ASSERT(iSubRow + 1 <= WorkVec.iGetSize());
+#if GRADIENT_DEBUG > 0 && HAVE_FINITE == 1
+                        if (!std::isfinite(v(i + 1))) {
+                                silent_cerr("PutItem(" << iSubRow + 1 << ", " << iFirstRow + i << ", " << v(i + 1) << ")" << std::endl);
+                        }
+                        GRADIENT_ASSERT(std::isfinite(v(i + 1)));
+#endif
 			WorkVec.PutItem(++iSubRow, iFirstRow + i, v(i + 1));
 		}
 	}
@@ -247,21 +261,22 @@ public:
 	}
 
 	void AddItem(integer iRow, const Gradient<N_SIZE>& g) {
-		const index_type iNextItemNew = iNextItem + g.iGetLocalSize();
-
-		if (iNextItemNew > WorkMat.iGetNumRows()) {
-			WorkMat.Resize(iNextItemNew - 1, 0);
-		}
-
 		for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
 			const double dCoef = g.dGetDerivativeLocal(i);
+                if (dCoef) {
 			const index_type iDofIndex = g.iGetGlobalDof(i);
-
-			GRADIENT_ASSERT(iNextItem < iNextItemNew);
+                    WorkMat.Resize(iNextItem, 0);
 			GRADIENT_ASSERT(iNextItem <= WorkMat.iGetNumRows());
+#if GRADIENT_DEBUG > 0 && HAVE_FINITE == 1
+                    if (!std::isfinite(dCoef)) {
+                        silent_cerr("PutItem(" << iNextItem << ", " << iRow << ", " << iDofIndex << ", " << dCoef << ")" << std::endl);
+                    }
 
+                    GRADIENT_ASSERT(std::isfinite(dCoef));
+#endif
 			WorkMat.PutItem(iNextItem++, iRow, iDofIndex, dCoef);
 		}
+	}
 	}
 
 	template <index_type N_rows>

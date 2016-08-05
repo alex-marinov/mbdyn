@@ -48,8 +48,9 @@ se msg e' definito, viene aggiunto in coda al messaggio di default
 ******************************************************************************/
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
+#include <cassert>
 #include <cstring>
+#include <cstdlib>
 
 #include "myassert.h"
 
@@ -139,3 +140,14 @@ int get_debug_options(const char *const s, const debug_array da[])
 
 #endif /* DEBUG */
 
+#if defined(__GNUC__) && (defined(_M_IX86) || defined(__x86_64)) && !defined(NDEBUG) && (defined(__CYGWIN__) || defined(_WIN32)) 
+extern "C" void __assert_func (const char* file, int line, const char* func, const char* expr)
+{
+    std::cerr << "assertion " << expr << " failed: file " << file  << ":" << line  << ":" << func << std::endl;
+
+    // debug break interrupt on x86 and x86_64 makes debugging easier on Windows
+    __asm__ volatile ("int $3");
+
+    abort();
+}
+#endif

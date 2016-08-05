@@ -612,7 +612,37 @@ void testGradient2() {
     std::cout << "w=" << w << std::endl;
     std::cout << "w2=" << w2 << std::endl;
 }
+#if 0
+void testGradient3(index_type N)
+{
+    srand(0);
 
+    LocalDofMap dof;
+    Gradient<N_SIZE> u, v, w, f;
+
+    u.SetValuePreserve(random1() * 10);
+    v.SetValuePreserve(random1() * 3);
+    w.SetValuePreserve(random1() * 0.01);
+
+    u.DerivativeResizeReset(&dof, N, MapVectorBase::GLOBAL, 0.);
+    v.DerivativeResizeReset(&dof, N, MapVectorBase::GLOBAL, 0.);
+    w.DerivativeResizeReset(&dof, N, MapVectorBase::GLOBAL, 0.);
+
+
+    doublereal t_AD = 0., t_C = 0.;
+
+    for (int i = 0; i < NLoops; ++i) {
+    	const doublereal e = random1();
+    	doublereal start, stop;
+
+    	tic(start);
+    	func3(u, v, w, e, f);
+    	tic(stop);
+
+    	t_AD += stop - start;
+    }
+}
+#endif
 void testGradientCopy(int N) {
 	LocalDofMap map1, map2;
 	bool bFirst = true;

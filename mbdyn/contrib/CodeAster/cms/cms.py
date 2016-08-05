@@ -46,6 +46,7 @@
 
 #===============================================================================
 # LOG:
+# 2016-03-12: Support for Code_Aster 12.5.0 added by r.resch@secop.com
 # 2008-08-30: fix TOUT = 'OUI' using 'ENV_SPHERE' (needs work)
 # 2008-08-25: release with MBDyn 1.3.4-Beta
 # 2008-08-05: optionally prints rigid-body inertia matrix
@@ -74,9 +75,8 @@
 # NOTE: probably this stuff is not yet available in distributed code...
 from Utilitai.partition import *
 from Cata.cata import *
-
-from Numeric import *
-from LinearAlgebra import *
+from numpy import *
+from math import *
 
 #===============================================================================
 # NOTE: this function is basically extracted from example sdll123a,
@@ -140,12 +140,12 @@ def cms_diag_mass(matrrr, exposed_id):
 		if (rtt2[2*ii] > 0) and (rtt2[2*ii+1] == 1):
 			nnodes = nnodes + 1;
 
-	nodes_id = Numeric.zeros([nnodes, 6], Numeric.Int);
+	nodes_id = zeros([nnodes, 6], int);
 	for ii in range(vc):
 		if (rtt2[2*ii] > 0) and (rtt2[2*ii+1] > 0):
 			nodes_id[rtt2[2*ii] - 1][rtt2[2*ii+1] - 1] = adia[ii];
 
-	diagm = Numeric.zeros([nexposed, 6], Numeric.Float);
+	diagm = zeros([nexposed, 6], double);
 	for rr in range(nexposed):
 		assert(exposed_id[rr] <= nnodes);
 		for cc in range(6):
@@ -215,11 +215,11 @@ def cms_rigb_mass(matrrr, coord):
 	vc = len(rtt);
 
 	# make room for rigid body mass matrix
-	rigbm = Numeric.zeros([6, 6], Numeric.Float);
+	rigbm = zeros([6, 6], double);
 
 	# make room for nodal rigid body motion matrices
-	Zi = Numeric.zeros([6, 6], Numeric.Float);
-	Zj = Numeric.zeros([6, 6], Numeric.Float);
+	Zi = zeros([6, 6], double);
+	Zj = zeros([6, 6], double);
 
 	# initialize the diagonal
 	for kk in range(6):
@@ -336,6 +336,43 @@ def cms_rigb_mass(matrrr, coord):
 	return rigbm;
 # end of cms_rigb_mass
 
+def cms_extract_mode_shape(_sd_tab, eps):
+	# extract normal modes or static mode shapes
+	# NOTE: each array is actually a matrix, containing the number of the mode
+	#	in the first column, and the value in the second column; for example,
+	#	for a three nodes model:
+	#	sd_dx = [ 0, dx_mode0_node0 ]
+	#		[ 0, dx_mode0_node1 ]
+	#		[ 0, dx_mode0_node2 ]
+	#		[ 1, dx_mode1_node0 ]
+	#		[ 1, dx_mode1_node1 ]
+	#		[ 1, dx_mode1_node2 ]
+	#		[ ... ]
+	#	couldn't do anything more synthetic...
+
+        dof_names = ('DX','DY','DZ','DRX','DRY','DRZ');
+        
+        for j in range(len(dof_names)):
+                sd=_sd_tab.EXTR_TABLE().Array('NUME_ORDRE', dof_names[j]);
+                
+                if j == 0:
+                        modes=zeros([sd.shape[0], len(dof_names)], double);
+                        
+                for i in range(modes.shape[0]):
+                        val = sd[i, 1];
+
+                        # This might be helpful in case of modal shape values close to zero at the modal node
+                        if (abs(val) < eps):
+                                val = 0.;
+
+                        # If the node does not have rotational degrees of freedom we get nan
+                        if (isnan(val)):
+                                val = 0.;
+                                
+                        modes[i, j] = val;
+        
+        return modes;
+
 # write CMS data in MBDyn format
 def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 		nshapes, ndynamic, sol_dynamic, nstatic, sol_static, \
@@ -349,6 +386,8 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	diag_mass = (data[2] == 'OUI');
 	rigb_mass = (data[3] == 'OUI');
 
+        eps = data[4];
+        
 	# "cook" format specifiers based on precision
 	IFMT = "%" + str(precision) + "d";
 	RFMT = "%" + str(precision + 8) + "." + str(precision) + "e";
@@ -357,11 +396,11 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	# NOTE: overwrites existing files
 	# NOTE: must be absolute path, otherwise I don't know
 	# where it shows up...
-	if (data[0][0] != '/'):
-		print "***";
-		print "*** WARNING: MBDyn modal element data file needs absolute path"
-		print "***          file=\"" + data[0] + "\"";
-		print "***";
+	# if (data[0][0] != '/'):
+	# 	print "***";
+	# 	print "*** WARNING: MBDyn modal element data file needs absolute path"
+	# 	print "***          file=\"" + data[0] + "\"";
+	# 	print "***";
 	outf = file(data[0], 'w');
 
 	if (cms_exposed_fact['GROUP_NO'] != None):
@@ -372,7 +411,7 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 		# NOTE: this name must be reserved to MBDyn (!?!)
 		cms_exposed = 'MBDYN_TN';
 		# NOTE: 1.e+38 to make sure we catch all (?!?)
-		ma = maillage
+		_ma = maillage
 
 		# NOTE: hack to find out whether a mesh is 2D or 3D
 		# create handler for mesh
@@ -392,8 +431,8 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 		if is_3D:
 			# FIXME: only works if model is truly 3D :-(
 			# TODO: test whether the mesh is 2D or z_cst
-			ma = DEFI_GROUP(	reuse = ma,
-						MAILLAGE = ma,
+			_ma = DEFI_GROUP(reuse = _ma,
+					 MAILLAGE = _ma,
 						CREA_GROUP_NO = ( _F(
 							NOM = cms_exposed,
 							OPTION = 'ENV_SPHERE',
@@ -401,15 +440,15 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 							RAYON = 1.e+38,
 							PRECISION = ( 1.e+38 ) ) ) );
 		else:
-			ma = DEFI_GROUP(	reuse = ma,
-						MAILLAGE = ma,
+			_ma = DEFI_GROUP(reuse = _ma,
+					 MAILLAGE = _ma,
 						CREA_GROUP_NO = ( _F(
 							NOM = cms_exposed,
 							OPTION = 'ENV_SPHERE',
 							POINT = ( 0.0, 0.0 ),
 							RAYON = 1.e+38,
 							PRECISION = ( 1.e+38 ) ) ) );
-		maillage = ma;
+		maillage = _ma;
 
 	# create handler for mesh
 	mm = MAIL_PY();
@@ -491,77 +530,61 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	# record 8
 	outf.write("** RECORD GROUP 8, MODE SHAPES\n");
 
-	# extract normal modes
-	# NOTE: each array is actually a matrix, containing the number of the mode
-	#	in the first column, and the value in the second column; for example,
-	#	for a three nodes model:
-	#	sd_dx = [ 0, dx_mode0_node0 ]
-	#		[ 0, dx_mode0_node1 ]
-	#		[ 0, dx_mode0_node2 ]
-	#		[ 1, dx_mode1_node0 ]
-	#		[ 1, dx_mode1_node1 ]
-	#		[ 1, dx_mode1_node2 ]
-	#		[ ... ]
-	#	couldn't do anything more synthetic...
-	sd_tab = POST_RELEVE_T( ACTION = _F(	INTITULE = 'Normal modes',
+	for m in range(ndynamic):
+                idx = 0;
+                _sd_tab = POST_RELEVE_T( ACTION = _F(INTITULE = 'Normal modes',
 						GROUP_NO = cms_exposed,
 						RESULTAT = sol_dynamic,
 						NOM_CHAM = 'DEPL',
-						TOUT_ORDRE = 'OUI',
+					             NUME_ORDRE = (m + 1,),
 						TOUT_CMP = 'OUI',
 						OPERATION = 'EXTRACTION' ) );
-	sd_dx = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DX');
-	sd_dy = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DY');
-	sd_dz = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DZ');
-	sd_drx = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRX');
-	sd_dry = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRY');
-	sd_drz = sd_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRZ');
 
-	idx = 0;
-	for m in range(ndynamic):
+                # extract normal modes
+                modes_sd = cms_extract_mode_shape(_sd_tab, eps);
+                
 		outf.write("**    NORMAL MODE SHAPE #  %d\n" % (m + 1));
 		n = 0;
 		while n < nexposed:
-			dx = sd_dx[idx, 1];
-			dy = sd_dy[idx, 1];
-			dz = sd_dz[idx, 1];
-			drx = sd_drx[idx, 1];
-			dry = sd_dry[idx, 1];
-			drz = sd_drz[idx, 1];
-			outf.write((RFMT + RFMT + RFMT + RFMT + RFMT + RFMT + "\n") % (dx, dy, dz, drx, dry, drz))
+                        for j in range(modes_sd.shape[1]):
+                                outf.write(RFMT % modes_sd[idx, j]);
+                                
+                        outf.write("\n");
+                        
 			n = n + 1;
 			idx = idx + 1;
 
-	# extract static shapes
-	# NOTE: see comment related to normal modes
+                del _sd_tab;
+                del modes_sd;
+
+
 	if nstatic > 0:
-		ss_tab = POST_RELEVE_T(	ACTION = _F(	INTITULE = 'Static Shapes',
+		for m in range(nstatic):
+                        _ss_tab = POST_RELEVE_T(ACTION = _F(INTITULE = 'Static Shapes',
 							GROUP_NO = cms_exposed,
 							RESULTAT = sol_static,
+                                                            NUME_ORDRE = (m + 1,),
 							NOM_CHAM = 'DEPL',
 							TOUT_CMP = 'OUI',
 							OPERATION = 'EXTRACTION' ) );
-		ss_dx = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DX');
-		ss_dy = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DY');
-		ss_dz = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DZ');
-		ss_drx = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRX');
-		ss_dry = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRY');
-		ss_drz = ss_tab.EXTR_TABLE().Array('NUME_ORDRE', 'DRZ');
+
+                        # extract static shapes
+                        modes_ss = cms_extract_mode_shape(_ss_tab, eps);
 
 		idx = 0;
-		for m in range(nstatic):
 			outf.write("**    NORMAL MODE SHAPE #  %d (STATIC SHAPE #  %d)\n" % (ndynamic + m + 1, m + 1));
 			n = 0;
 			while n < nexposed:
-				dx = ss_dx[idx, 1];
-				dy = ss_dy[idx, 1];
-				dz = ss_dz[idx, 1];
-				drx = ss_drx[idx, 1];
-				dry = ss_dry[idx, 1];
-				drz = ss_drz[idx, 1];
-				outf.write((RFMT + RFMT + RFMT + RFMT + RFMT + RFMT + "\n") % (dx, dy, dz, drx, dry, drz))
+                                for j in range(modes_ss.shape[1]):
+                                        outf.write(RFMT % modes_ss[idx, j]);
+                                
+                                outf.write("\n");
+                        
 				n = n + 1;
 				idx = idx + 1;
+
+                        del _ss_tab;
+                        del modes_ss;
 
 	outf.write("**\n");
 
@@ -586,8 +609,6 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	if diag_mass:
 		# record 11
 		outf.write("** RECORD GROUP 11, DIAGONAL OF LUMPED MASS MATRIX\n");
-		outf.write("**\n");
-
 		diagm = cms_diag_mass(mmass, exposed_id);
 
 		for n in range(nexposed):
@@ -599,13 +620,11 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 	if rigb_mass:
 		# record 12
 		outf.write("** RECORD GROUP 12, RIGID BODY INERTIA MATRIX\n");
-		outf.write("**\n");
-
 		rigbm = cms_rigb_mass(mmass, coord);
 
 		m = rigbm[0][0];
-		Xcm = Numeric.zeros(3, Numeric.Float);
-		J = Numeric.zeros([3, 3], Numeric.Float);
+		Xcm = zeros(3, double);
+		J = zeros([3, 3], double);
 		if (m > 0.):
 			Xcm[0] = rigbm[2][4]/m;
 			Xcm[1] = rigbm[0][5]/m;
@@ -623,24 +642,23 @@ def cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 		outf.write((RFMT + RFMT + RFMT + "\n") % (J[0][0], J[0][1], J[0][2]));
 		outf.write((RFMT + RFMT + RFMT + "\n") % (J[1][0], J[1][1], J[1][2]));
 		outf.write((RFMT + RFMT + RFMT + "\n") % (J[2][0], J[2][1], J[2][2]));
-
+		outf.write("**\n");
 	outf.close();
 
 	return 0;
 # end of cms_write_mbdyn
 
 # write CMS data
-def cms_write(gen_model, mmass, maillage, cms_interface, cms_exposed_fact, sol_dynamic, sol_static, type, data):
+def cms_write(gen_model, mmass, maillage, cms_interface, cms_exposed_fact, sol_dynamic, sol_static, type, data, options):
 	rc = -1;
 	if (type == 'MBDYN'):
 		#===============================================================================
 		# extract generalized problem info and generalized matrices
-		info_gen_model = gen_model.NBRE_MODES();
-		nshapes = info_gen_model[0];
-		ndynamic = info_gen_model[1];
-		nstatic = info_gen_model[2];
+		ndynamic = options['NMAX_FREQ'];
 		gen_k = gen_model.EXTR_MATR_GENE( 'RIGI_GENE' );
 		gen_m = gen_model.EXTR_MATR_GENE( 'MASS_GENE' );
+                nshapes = gen_k.shape[0];
+		nstatic = nshapes - ndynamic;
 
 		rc = cms_write_mbdyn(data, maillage, cms_interface, cms_exposed_fact, \
 			nshapes, ndynamic, sol_dynamic, nstatic, sol_static, \
@@ -676,11 +694,12 @@ def cms_ops(self, MAILLAGE, INTERFACE, EXPOSED, MODELE, CARA_ELEM, CHAM_MATER, C
 
 	if out['TYPE'] == 'MBDYN':
 		type = 'MBDYN';
-		fichier = out['FICHIER'];
+		fichier = "fort.%d" % out['UNITE'];
 		precision = out['PRECISION'];
 		diag_mass = out['DIAG_MASS'];
 		rigb_mass = out['RIGB_MASS'];
-		data = (fichier, precision, diag_mass, rigb_mass);
+                epsilon = out['MODE_SHAPE_EPSILON'];
+		data = (fichier, precision, diag_mass, rigb_mass, epsilon);
 	else:
 		ier = 1;
 		return ier;
@@ -694,7 +713,7 @@ def cms_ops(self, MAILLAGE, INTERFACE, EXPOSED, MODELE, CARA_ELEM, CHAM_MATER, C
 	if do_craig_bampton:
 		# clamp all interface nodes
 		# NOTE: the model might need to have other parts clamped
-		cms_chbc = AFFE_CHAR_MECA(	MODELE = model,
+		_cms_chbc = AFFE_CHAR_MECA(MODELE = model,
 						DDL_IMPO = ( _F( GROUP_NO = cms_interface,
 								DX = 0., DY = 0., DZ = 0.,
 								DRX = 0., DRY = 0., DRZ = 0. ) ) );
@@ -706,86 +725,95 @@ def cms_ops(self, MAILLAGE, INTERFACE, EXPOSED, MODELE, CARA_ELEM, CHAM_MATER, C
 	# 	for Craig-Bampton
 	if chbc == None:
 		if do_craig_bampton:
-			matlock = CALC_MATR_ELEM(	MODELE = model,
+			_matlock = CALC_MATR_ELEM(MODELE = model,
 							CARA_ELEM = caele,
 							CHAM_MATER = chmat,
-							CHARGE = cms_chbc,
+							CHARGE = _cms_chbc,
 							OPTION = 'RIGI_MECA' );
 		else:
-			matlock = CALC_MATR_ELEM(	MODELE = model,
+			_matlock = CALC_MATR_ELEM(MODELE = model,
 							CARA_ELEM = caele,
 							CHAM_MATER = chmat,
 							OPTION = 'RIGI_MECA' );
 
 	else:
 		if do_craig_bampton:
-			matlock = CALC_MATR_ELEM(	MODELE = model,
+			_matlock = CALC_MATR_ELEM(MODELE = model,
 							CARA_ELEM = caele,
 							CHAM_MATER = chmat,
-							CHARGE = ( chbc, cms_chbc ),
+							CHARGE = ( chbc, _cms_chbc),
 							OPTION = 'RIGI_MECA' );
 		else:
-			matlock = CALC_MATR_ELEM(	MODELE = model,
+			_matlock = CALC_MATR_ELEM(MODELE = model,
 							CARA_ELEM = caele,
 							CHAM_MATER = chmat,
 							CHARGE = chbc,
 							OPTION = 'RIGI_MECA' );
 
-	matlocm = CALC_MATR_ELEM(	MODELE = model,
+	_matlocm = CALC_MATR_ELEM(MODELE = model,
 					CARA_ELEM = caele,
 					CHAM_MATER = chmat,
 					OPTION = 'MASS_MECA' );
-	# num = NUME_DDL( MATR_RIGI = matlock, METHODE = 'LDLT' );
-	num = NUME_DDL( MATR_RIGI = matlock );
-	matassk = ASSE_MATRICE( MATR_ELEM = matlock,
-	                        NUME_DDL = num );
-	matassm = ASSE_MATRICE( MATR_ELEM = matlocm,
-	                        NUME_DDL = num );
 
-	#===============================================================================
-	# NOTE: does not work in case of rigid body (presence of eigenvalues=0.0)
-	#	which could be a legitimate case
-	sol_dyn = MODE_ITER_SIMULT(	MATR_A = matassk,
-					MATR_B = matassm,
-					METHODE = 'TRI_DIAG',
-					CALC_FREQ = _F( OPTION = 'PLUS_PETITE',
-						NMAX_FREQ = cms_nmax_freq ) );
-	sol_dyn = NORM_MODE(	reuse = sol_dyn,
-					MODE = sol_dyn,
-					NORME = 'MASS_GENE' );
+	_matmdiag = CALC_MATR_ELEM(MODELE = model,
+				   CARA_ELEM = caele,
+				   CHAM_MATER = chmat,
+				   OPTION = 'MASS_MECA_DIAG' );
+        
+	_num = NUME_DDL(MATR_RIGI = _matlock);
+        
+	_matassk = ASSE_MATRICE(MATR_ELEM = _matlock,
+	                        NUME_DDL = _num);
+        
+	_matassm = ASSE_MATRICE(MATR_ELEM = _matlocm,
+	                        NUME_DDL = _num);
+
+        _matassmdiag = ASSE_MATRICE(MATR_ELEM = _matmdiag,
+	                            NUME_DDL = _num);
+
+        _sol_dyn=CALC_MODES(TYPE_RESU='DYNAMIQUE',
+                            OPTION='PLUS_PETITE',
+                            SOLVEUR_MODAL=_F(METHODE='TRI_DIAG',
+                                             DIM_SOUS_ESPACE=5*cms_nmax_freq,),
+                            MATR_RIGI=_matassk,
+                            MATR_MASS=_matassm,
+                            CALC_FREQ=_F(NMAX_FREQ=cms_nmax_freq,),
+                            NORM_MODE=_F(NORME='MASS_GENE',),
+                            VERI_MODE=_F(STOP_ERREUR='NON',),);
+
 
 	#===============================================================================
 	# put together the modal and static solutions
-	sol_stat = 0;
+	_sol_stat = 0;
 	if do_craig_bampton:
-		sol_stat = MODE_STATIQUE(	MATR_RIGI = matassk,
-						MATR_MASS = matassm,
+		_sol_stat = MODE_STATIQUE(MATR_RIGI = _matassk,
+						MATR_MASS = _matassm,
 						MODE_STAT = _F( GROUP_NO = cms_interface,
 							TOUT_CMP = 'OUI' ),
 						INFO = 2 );
 
-		interfa = DEFI_INTERF_DYNA(	NUME_DDL = num,
+		_interfa = DEFI_INTERF_DYNA(NUME_DDL = _num,
 						INTERFACE = _F(	NOM = 'INTERF',
 								TYPE = 'CRAIGB',
 								GROUP_NO = cms_interface ) );
 
 		# NOTE: RITZ no longer allows MODE_STAT in CodeAster 10.X
-		bm = DEFI_BASE_MODALE(	RITZ = ( _F( MODE_MECA = sol_dyn ),
-						 _F( MODE_STAT = sol_stat ) ),
-					INTERF_DYNA = interfa,
-					NUME_REF = num );
+		_bm = DEFI_BASE_MODALE(RITZ=(_F(MODE_MECA = _sol_dyn ),
+					     _F( MODE_INTF = _sol_stat)),
+				       INTERF_DYNA = _interfa,
+				       NUME_REF = _num);
 
 	else:
-		bm = DEFI_BASE_MODALE(	RITZ = _F( MODE_MECA = sol_dyn ),
-					NUME_REF = num );
+		_bm = DEFI_BASE_MODALE(RITZ = _F( MODE_MECA = _sol_dyn),
+				       NUME_REF = _num );
 
 	#===============================================================================
 	# create macro-element
-	GENMOD = MACR_ELEM_DYNA(	BASE_MODALE = bm,
-					MATR_RIGI = matassk,
-					MATR_MASS = matassm );
+	GENMOD = MACR_ELEM_DYNA(BASE_MODALE = _bm,
+				MATR_RIGI = _matassk,
+				MATR_MASS = _matassm );
 
-	rc = cms_write(GENMOD, matassm, maillage, cms_interface, cms_exposed_fact, sol_dyn, sol_stat, type, data);
+	rc = cms_write(GENMOD, _matassmdiag, maillage, cms_interface, cms_exposed_fact, _sol_dyn, _sol_stat, type, data, options);
 
 	return rc;
 # end of cms_gen
@@ -817,17 +845,20 @@ CMS = MACRO(	nom		= "CMS",
 					fr = "Extra boundary conditions" ),
 		OPTIONS		= FACT( statut = 'd', defaut = None,
 			NMAX_FREQ	= SIMP( statut = 'd', typ = 'I', defaut = 15,
-						fr = "Maximum number of frequencies" )
+						fr = "Maximum number of frequencies" ),
 		),
 		OUT		= FACT(
 			TYPE		= SIMP( statut = 'o', typ = 'TXM',
 						into = ( "MBDYN" ), fr = "Type of output" ),
 			b_data		= BLOC(condition = "TYPE == 'MBDYN'",
-						FICHIER = SIMP(statut = 'o', typ = 'TXM',
-							fr = "Output file name" ),
+						UNITE = SIMP(statut = 'd', typ = 'I',
+							fr = "unit number for output file" ),
 						PRECISION = SIMP(statut = 'd', typ = 'I',
 							defaut = 8,
 							fr = "Output precision (number of significant digits)" ),
+                                                MODE_SHAPE_EPSILON = SIMP(statut = 'd', typ = 'R',
+							defaut = 0.,
+							fr = "eigenvector components below this value will be set to zero" ),
 						DIAG_MASS = SIMP(statut = 'd', typ = 'TXM',
 							into = ( 'OUI', 'NON' ), defaut = 'NON',
 							fr = "Add diagonal of mass matrix to output; only makes sense when all nodes are exposed (not implemented yet)" ),

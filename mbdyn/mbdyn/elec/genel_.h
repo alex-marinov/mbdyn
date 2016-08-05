@@ -217,11 +217,11 @@ class GenelSpringSupport
 protected:
 	ScalarDof SD;
 	doublereal dVal;
-
+	doublereal dInitVal;
 public:
 	GenelSpringSupport(unsigned int uLabel, const DofOwner* pDO,
 		const ConstitutiveLaw1D* pCL,
-		const ScalarDof& sd, flag fOutput);
+		const ScalarDof& sd, doublereal X0, flag fOutput);
 
 	virtual ~GenelSpringSupport(void);
 
@@ -381,12 +381,13 @@ class GenelSpringDamperSupport
 protected:
 	ScalarDof SD;
 	doublereal dVal;
+	doublereal dInitVal;
 	doublereal dValPrime;
 
 public:
 	GenelSpringDamperSupport(unsigned int uLabel, const DofOwner* pDO,
 		const ConstitutiveLaw1D* pCL,
-		const ScalarDof& sd, flag fOutput);
+		const ScalarDof& sd, doublereal X0, flag fOutput);
 
 	virtual ~GenelSpringDamperSupport(void);
 

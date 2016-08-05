@@ -45,6 +45,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <iostream>
+#include <cmath>
 #include <typeinfo>
 
 #ifdef HAVE_BLITZ
@@ -73,6 +74,7 @@
 #include "clock_time.h"
 #include "matvec.h"
 #include "matvec3.h"
+#include "Rot.hh"
 #include "matvecass.h"
 
 using namespace grad;
@@ -363,12 +365,16 @@ void func3<Gradient<0> >(const Matrix<Gradient<0> , 3, 3>& R1, const Matrix<Grad
 
 template <typename T>
 bool bCompare(const T& a, const T& b, doublereal dTolRel = 0.) {
+    assert(!std::isnan(a));
+    assert(!std::isnan(b));
 	doublereal dTolAbs = std::max<T>(1., std::max<T>(std::abs(a), std::abs(b))) * dTolRel;
 	return std::abs(a - b) <= dTolAbs;
 }
 
 template <index_type N_SIZE>
 bool bCompare(const Gradient<N_SIZE>& a, const Gradient<N_SIZE>& b, doublereal dTolRel = 0.) {
+    assert(!std::isnan(a.dGetValue()));
+    assert(!std::isnan(b.dGetValue()));
 	doublereal dTolAbs = std::max(1., std::max(std::abs(a.dGetValue()), std::abs(b.dGetValue()))) * dTolRel;
 
 	if (std::abs(a.dGetValue() - b.dGetValue()) > dTolAbs) {
@@ -381,7 +387,8 @@ bool bCompare(const Gradient<N_SIZE>& a, const Gradient<N_SIZE>& b, doublereal d
 
 	for (index_type i = iStart; i < iEnd; ++i) {
 		doublereal dTolAbs = std::max<scalar_deriv_type>(1., std::max<scalar_deriv_type>(std::abs(a.dGetDerivativeLocal(i)), std::abs(b.dGetDerivativeLocal(i)))) * dTolRel;
-
+        assert(!std::isnan(a.dGetDerivativeLocal(i)));
+        assert(!std::isnan(b.dGetDerivativeLocal(i)));
 		if (std::abs(a.dGetDerivativeLocal(i) - b.dGetDerivativeLocal(i)) > dTolAbs) {
 			std::cerr << "ad(" << i << ") = " << a.dGetDerivativeLocal(i) << " != bd(" << i << ") = " << b.dGetDerivativeLocal(i) << std::endl;
 			return false;
@@ -1302,8 +1309,7 @@ void doVecMul(const Vector<T, iRowCount>& x, const Vector<T, iRowCount>& y, Vect
 }
 
 template <index_type iRowCount, index_type iMaxDeriv, typename Function, typename FunctionF77>
-void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char* function)
-{
+void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char* function) {
     Vector<Gradient<iMaxDeriv>, iRowCount> x, y, z;
     LocalDofMap dof;
 
@@ -1313,8 +1319,7 @@ void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char
 		y(i).SetValuePreserve(i);
 		y(i).DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
 
-		for (int j = 0; j < N; ++j)
-		{
+        for (int j = 0; j < N; ++j) {
 			x(i).SetDerivativeGlobal(j, (j + 1));
 			y(i).SetDerivativeGlobal(j, (j + 1));
 		}
@@ -1322,8 +1327,7 @@ void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char
 
     double start = mbdyn_clock_time();
 
-    for (int i = 0; i < M; ++i)
-    {
+    for (int i = 0; i < M; ++i) {
     	f(x, y, z);
     }
 
@@ -1336,14 +1340,12 @@ void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char
     doublereal *ydF = new doublereal[iRowCount*N];
     doublereal *zdF = new doublereal[iRowCount*N];
 
-    for (int i = 0; i < iRowCount; ++i)
-    {
+    for (int i = 0; i < iRowCount; ++i) {
     	xF[i] = x(i + 1).dGetValue();
     	yF[i] = y(i + 1).dGetValue();
     	zF[i] = 0.;
 
-    	for (int j = 0; j < N; ++j)
-    	{
+    	for (int j = 0; j < N; ++j) {
     		xdF[i * N + j] = x(i + 1).dGetDerivativeLocal(j);
     		ydF[i * N + j] = y(i + 1).dGetDerivativeLocal(j);
     		zdF[i * N + j] = 0.;
@@ -1352,8 +1354,7 @@ void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char
 
     start = mbdyn_clock_time();
 
-    for (int i = 0; i < M; ++i)
-    {
+    for (int i = 0; i < M; ++i) {
     	f77(xF, xdF, yF, ydF, zF, zdF, iRowCount, N);
     }
 
@@ -1362,14 +1363,12 @@ void testVecOp(const int M, const int N, Function f, FunctionF77 f77, const char
     std::cerr << "F77: testVecAdd<" << iRowCount << "," << iMaxDeriv << ">(" << M << ", " << N << ", \"" << function << "\"):" << dtF77 << std::endl;
     std::cerr << "overhead=" << dt/std::max(std::numeric_limits<doublereal>::epsilon(), dtF77) << std::endl;
 
-    for (int i = 0; i < iRowCount; ++i)
-    {
+    for (int i = 0; i < iRowCount; ++i) {
     	assert(xF[i] == x(i + 1).dGetValue());
     	assert(yF[i] == y(i + 1).dGetValue());
     	assert(zF[i] == z(i + 1).dGetValue());
 
-    	for (int j = 0; j < N; ++j)
-    	{
+    	for (int j = 0; j < N; ++j) {
     		assert(xdF[i * N + j] == x(i + 1).dGetDerivativeLocal(j));
     		assert(ydF[i * N + j] == y(i + 1).dGetDerivativeLocal(j));
     		assert(zdF[i * N + j] == z(i + 1).dGetDerivativeLocal(j));
@@ -1702,13 +1701,13 @@ void testMatVecProductGradient2(index_type iNumDeriv, int N) {
 
     Matrix<Gradient<N_SIZE>, 3, 7> C;
     
-    clock_t start = clock();
+    double start = mbdyn_clock_time();
     
     for (int i = 0; i < N; ++i) {
         C = A * B;
     }
 
-    double dt = double(clock() - start) / (N * CLOCKS_PER_SEC);
+    double dt = (mbdyn_clock_time() - start) / N;
     
     std::cerr << "iMaxDerivatives=" << iNumDeriv << std::endl;
     std::cerr << "dt=" << dt << std::endl;
@@ -2657,6 +2656,8 @@ void testMatVec3() {
 		Matrix<doublereal, 3, 3> A4 = R2 * C1;
 		Vector<doublereal, 3> v3(v1(1), v1(2), v1(3));
 		Vector<doublereal, 2> v4(v1(1), v1(2));
+        Matrix<doublereal, 3, 3> X1(MatCrossVec(g1, 1.));
+        Mat3x3 X2(1., g2);
 
 		if (n == 0) {
 			std::cout << "g1=" << std::endl << g1 << std::endl;
@@ -2687,6 +2688,7 @@ void testMatVec3() {
 				assert(std::abs(A1(i, j) - A2(i, j)) < dTol);
 				assert(std::abs(A1(i, j) - A3(i, j)) < dTol);
 				assert(std::abs(A1(i, j) - A4(i, j)) < dTol);
+                assert(std::abs(X1(i, j) - X2(i, j)) < dTol);
 			}
 			assert(std::abs(CCv1(i) - CCv2(i)) < dTol);
 			assert(std::abs(CCv3(i) - CCv1(i)) < dTol);
@@ -2914,8 +2916,7 @@ void testMatVec() {
 }
 
 template <int iNumDofMax>
-void cppad_benchmark1(const int N)
-{
+void cppad_benchmark1(const int N) {
     const int iNumDof = 6;
     
     assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
@@ -2934,10 +2935,8 @@ void cppad_benchmark1(const int N)
     const double start = mbdyn_clock_time();
     double calc = 0.;
     
-    for (int loop = 0; loop < N; ++loop)
-    {            
-        for (int i = 0; i < 3; ++i)
-        {
+    for (int loop = 0; loop < N; ++loop) {            
+        for (int i = 0; i < 3; ++i) {
             X(i + 1).SetValuePreserve(0.);
             X(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
             Phi(i + 1).SetValuePreserve(0.);
@@ -2952,10 +2951,8 @@ void cppad_benchmark1(const int N)
         
         calc += mbdyn_clock_time() - start_calc;
         
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < iNumDof; ++j)
-            {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < iNumDof; ++j) {
                 jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
             }
         }
@@ -2968,10 +2965,8 @@ void cppad_benchmark1(const int N)
     std::cout << "y=" << Y << std::endl;
     std::cout << "jac=\n";
 
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < iNumDof; ++j)
-        {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < iNumDof; ++j) {
             std::cout << jac(i + 1, j + 1) << '\t';
         }
         std::cout << std::endl;
@@ -2979,8 +2974,7 @@ void cppad_benchmark1(const int N)
 }
 
 template <int iNumDofMax>
-void cppad_benchmark2(const int N)
-{
+void cppad_benchmark2(const int N) {
     const int iNumDof = 12;
     
     assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
@@ -3003,10 +2997,8 @@ void cppad_benchmark2(const int N)
     const double start = mbdyn_clock_time();
     double calc = 0.;
     
-    for (int loop = 0; loop < N; ++loop)
-    {            
-        for (int i = 0; i < 3; ++i)
-        {
+    for (int loop = 0; loop < N; ++loop) {            
+        for (int i = 0; i < 3; ++i) {
             X1(i + 1).SetValuePreserve(0.);
             X1(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
             Phi1(i + 1).SetValuePreserve(0.);
@@ -3026,10 +3018,8 @@ void cppad_benchmark2(const int N)
         
         calc += mbdyn_clock_time() - start_calc;
         
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < iNumDof; ++j)
-            {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < iNumDof; ++j) {
                 jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
             }
         }
@@ -3043,10 +3033,8 @@ void cppad_benchmark2(const int N)
     std::cout << "Y=" << Y << std::endl;
     std::cout << "jac=\n";
 
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < iNumDof; ++j)
-        {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < iNumDof; ++j) {
             std::cout << jac(i + 1, j + 1) << '\t';
         }
         std::cout << std::endl;
@@ -3054,8 +3042,7 @@ void cppad_benchmark2(const int N)
 }
 
 template <int iNumDofMax>
-void cppad_benchmark3(const int N)
-{
+void cppad_benchmark3(const int N) {
     const int iNumDof = 12;
     
     assert(iNumDofMax == 0 || iNumDofMax >= iNumDof);
@@ -3082,10 +3069,8 @@ void cppad_benchmark3(const int N)
     const double start = mbdyn_clock_time();
     double calc = 0.;
     
-    for (int loop = 0; loop < N; ++loop)
-    {            
-        for (int i = 0; i < 3; ++i)
-        {
+    for (int loop = 0; loop < N; ++loop) {            
+        for (int i = 0; i < 3; ++i) {
             X1(i + 1).SetValuePreserve(0.);
             X1(i + 1).DerivativeResizeReset(&dof, i, MapVectorBase::GLOBAL, 1.);
             Phi1(i + 1).SetValuePreserve(0.);
@@ -3105,10 +3090,8 @@ void cppad_benchmark3(const int N)
         
         calc += mbdyn_clock_time() - start_calc;
         
-        for (int i = 0; i < 3; ++i)
-        {
-            for (int j = 0; j < iNumDof; ++j)
-            {
+        for (int i = 0; i < 3; ++i) {
+            for (int j = 0; j < iNumDof; ++j) {
                 jac(i + 1, j + 1) = Y(i + 1).dGetDerivativeGlobal(j);
             }
         }
@@ -3122,13 +3105,641 @@ void cppad_benchmark3(const int N)
     std::cout << "Y=" << Y << std::endl;
     std::cout << "jac=\n";
 
-    for (int i = 0; i < 3; ++i)
-    {
-        for (int j = 0; j < iNumDof; ++j)
-        {
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < iNumDof; ++j) {
             std::cout << jac(i + 1, j + 1) << '\t';
         }
         std::cout << std::endl;
+    }
+}
+
+void Mat3xN_test(int N, int M) {
+    Mat3xN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<doublereal, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i) = i;
+        x2(i) = 10 * i;
+    }
+    
+    Vector<doublereal, 3> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "Mat3xN: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        doublereal b_i = 0.;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+void MatNxN_test(int N, int M) {
+    MatNxN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<doublereal, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i) = i;
+        x2(i) = 10 * i;
+    }
+    
+    Vector<doublereal, DYNAMIC_SIZE> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "MatNxN: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        doublereal b_i = 0.;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+void MatDynamic_test(index_type iNumRows, index_type iNumCols, index_type iNumLoops) {
+    Matrix<doublereal, DYNAMIC_SIZE, DYNAMIC_SIZE> A(iNumRows, iNumCols);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<doublereal, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i) = i;
+        x2(i) = 10 * i;
+    }
+    
+    Vector<doublereal, DYNAMIC_SIZE> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < iNumLoops; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "Matrix<DYNAMIC_SIZE, DYNAMIC_SIZE>: " << (mbdyn_clock_time() - start) / iNumLoops << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        doublereal b_i = 0.;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+
+template <index_type N_SIZE>
+void Mat3xN_test_grad(int iNumDeriv, int N, int M) {
+    assert((N_SIZE == 0) || (N_SIZE >= iNumDeriv));
+    
+    LocalDofMap dof;
+    
+    Mat3xN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_SIZE>, 3> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "Mat3xN * Gradient: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        Gradient<N_SIZE> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_SIZE>
+void Mat3xNT_test_grad(int iNumDeriv, int N, int M) {
+    assert((N_SIZE == 0) || (N_SIZE >= iNumDeriv));
+    
+    LocalDofMap dof;
+    
+    Mat3xN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<Gradient<N_SIZE>, 3> x1(A.iGetNumRows()), x2(A.iGetNumRows());
+
+    for (index_type i = 1; i <= x1.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> b = Transpose(A) * x1;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        b = Transpose(A) * (x1 * 3. + x2 * 5.);
+    }
+
+    std::cerr << "Transpose(Mat3xN) * Gradient: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumCols(); ++i) {
+        Gradient<N_SIZE> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumRows(); ++j) {
+            b_i += A(j, i) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_SIZE>
+void MatNxNT_test_grad(int iNumDeriv, int N, int M) {
+    assert((N_SIZE == 0) || (N_SIZE >= iNumDeriv));
+    
+    LocalDofMap dof;
+    
+    MatNxN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> x1(A.iGetNumRows()), x2(A.iGetNumRows());
+
+    for (index_type i = 1; i <= x1.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> b = Transpose(A) * x1;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        b = Transpose(A) * (x1 * 3. + x2 * 5.);
+    }
+
+    std::cerr << "Transpose(MatNxN) * Gradient: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumCols(); ++i) {
+        Gradient<N_SIZE> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumRows(); ++j) {
+            b_i += A(j, i) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_SIZE>
+void MatNxN_test_grad(int iNumDeriv, int N, int M)
+{
+    assert((N_SIZE == 0) || (N_SIZE >= iNumDeriv));
+    
+    LocalDofMap dof;
+    
+    MatNxN A(N, 0.);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < M; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "MatNxN * Gradient: " << (mbdyn_clock_time() - start) / M << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        Gradient<N_SIZE> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_SIZE>
+void MatDynamic_test_grad(index_type iNumDeriv, index_type iNumRows, index_type iNumCols, int iNumLoops)
+{
+    assert((N_SIZE == 0) || (N_SIZE >= iNumDeriv));
+    
+    LocalDofMap dof;
+    
+    Matrix<Gradient<N_SIZE>, DYNAMIC_SIZE, DYNAMIC_SIZE> A(iNumRows, iNumCols);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j).SetValuePreserve(100 * i + j);
+            A(i, j).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+            
+            for (index_type k = 0; k < iNumDeriv; ++k) {
+                A(i, j).SetDerivativeLocal(k, 1000. * i + 100. * j + k + 1);
+            }
+        }
+    }
+
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> x1(A.iGetNumCols()), x2(A.iGetNumCols()), x(A.iGetNumCols());
+
+    for (index_type i = 1; i <= x.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_SIZE>, DYNAMIC_SIZE> b = A * x;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < iNumLoops; ++i) {
+        x = x1 * 3. + x2 * 5.;
+        b = A * x;
+    }
+
+    std::cerr << "Matrix<Gradient,DYNAMIC_SIZE,DYNAMIC_SIZE> * Gradient: " << (mbdyn_clock_time() - start) / iNumLoops << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        Gradient<N_SIZE> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            b_i += A(i, j) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_ROWS, index_type N_COLS>
+void MatDynamicT_test(index_type iNumRows, index_type iNumCols, int iNumLoops)
+{
+    assert((N_ROWS == iNumRows) || (N_ROWS == DYNAMIC_SIZE));
+    assert((N_COLS == iNumCols) || (N_COLS == DYNAMIC_SIZE));
+     
+    Matrix<doublereal, N_ROWS, N_COLS> A(iNumRows, iNumCols);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j) = 100 * i + j;
+        }
+    }
+
+    Vector<doublereal, N_ROWS> x1(A.iGetNumRows()), x2(A.iGetNumRows());
+
+    for (index_type i = 1; i <= x1.iGetNumRows(); ++i) {
+        x1(i) = i;
+        x2(i) = 10 * i;
+    }
+    
+    Vector<doublereal, N_COLS> b = Transpose(A) * x1;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < iNumLoops; ++i) {
+        b = Transpose(A) * (x1 * 3. + x2 * 5.);
+    }
+
+    std::cerr << "Transpose(Matrix<doublereal>,"
+              << iNumRows << "(" << N_ROWS << ")," << iNumCols << "(" << N_COLS << ")"
+              << ">) * Vector<doublereal>,"
+              << iNumRows << "(" << N_ROWS << ")>: " << (mbdyn_clock_time() - start) / iNumLoops << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumCols(); ++i) {
+        doublereal b_i = 0.;
+        
+        for (index_type j = 1; j <= A.iGetNumRows(); ++j) {
+            b_i += A(j, i) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+}
+
+template <index_type N_DERIV, index_type N_ROWS, index_type N_COLS>
+void MatDynamicT_test_grad(index_type iNumDeriv, index_type iNumRows, index_type iNumCols, int iNumLoops)
+{
+    assert((N_DERIV == 0) || (N_DERIV >= iNumDeriv));
+    assert((N_ROWS == iNumRows) || (N_ROWS == DYNAMIC_SIZE));
+    assert((N_COLS == iNumCols) || (N_COLS == DYNAMIC_SIZE));
+    
+    LocalDofMap dof;
+    
+    Matrix<Gradient<N_DERIV>, N_ROWS, N_COLS> A(iNumRows, iNumCols);
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            A(i, j).SetValuePreserve(100 * i + j);
+            A(i, j).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+            
+            for (index_type k = 0; k < iNumDeriv; ++k) {
+                A(i, j).SetDerivativeLocal(k, 1000. * i + 100. * j + k + 1);
+            }
+        }
+    }
+
+    Vector<Gradient<N_DERIV>, N_ROWS> x1(A.iGetNumRows()), x2(A.iGetNumRows());
+
+    for (index_type i = 1; i <= x1.iGetNumRows(); ++i) {
+        x1(i).SetValuePreserve(i);
+        x1(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x1(i).SetDerivativeLocal(k, -1. * k);
+        }
+        
+        x2(i).SetValuePreserve(10 * i);
+        x2(i).DerivativeResizeReset(&dof, 0, iNumDeriv, MapVectorBase::LOCAL, 0.);
+        
+        for (index_type k = 0; k < iNumDeriv; ++k) {
+            x2(i).SetDerivativeLocal(k, 10. * k);
+        }
+    }
+    
+    Vector<Gradient<N_DERIV>, N_COLS> b = Transpose(A) * x1;
+    
+    const double start = mbdyn_clock_time();
+    
+    for (int i = 0; i < iNumLoops; ++i) {
+        b = Transpose(A) * (x1 * 3. + x2 * 5.);
+    }
+
+    std::cerr << "Transpose(Matrix<Gradient<" << iNumDeriv << "(" << N_DERIV << ")"
+              << ">," << iNumRows << "(" << N_ROWS << ")," << iNumCols << "(" << N_COLS << ")"
+              << ">) * Vector<Gradient<" << iNumDeriv << "(" << N_DERIV << ")"
+              << ">," << iNumRows << "(" << N_ROWS << ")>: " << (mbdyn_clock_time() - start) / iNumLoops << "s\n";
+
+    const doublereal tol = sqrt(std::numeric_limits<doublereal>::epsilon());
+    
+    for (index_type i = 1; i <= A.iGetNumCols(); ++i) {
+        Gradient<N_DERIV> b_i;
+        
+        for (index_type j = 1; j <= A.iGetNumRows(); ++j) {
+            b_i += A(j, i) * (3. * x1(j) + 5. * x2(j));
+        }
+
+        assert(bCompare(b_i, b(i), tol));
+    }
+
+    for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+        for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+            assert(bCompare(A(i, j), A.GetRow(i)(j), 0.));
+            assert(bCompare(A(i, j), A.GetCol(j)(i), 0.));
+            assert(bCompare(A(i, j), Transpose(A)(j, i), 0.));
+            assert(bCompare(A(i, j), Transpose(A).GetCol(i)(j), 0.));
+            assert(bCompare(A(i, j), Transpose(A).GetRow(j)(i), 0.));
+        }
+    }
+}
+
+void MatManip_test(int NLoops) {
+    const doublereal tol1 = 10. * std::numeric_limits<doublereal>::epsilon();
+    const doublereal tol2 = 1e-4 * sqrt(tol1);
+    const doublereal alpha = 1. - sqrt(tol2);
+    
+    srand(0);
+    
+    for (int k = 0; k < 3 * NLoops; ++k) {
+        Vector<doublereal, 3> g0;
+        Vec3 g0_;
+        
+        for (int i = 1; i <= 3; ++i) {
+            g0_(i) = (2. * rand() / RAND_MAX - 1.);
+        }
+
+        g0_ *= (2. * rand() / RAND_MAX - 1.) * alpha * M_PI / g0_.Norm();
+
+        if (k >= NLoops && k < 2 * NLoops) {
+            g0_ *= sqrt(std::numeric_limits<doublereal>::epsilon());
+        } else if (k >= 2 * NLoops) {
+            g0_ *= std::numeric_limits<doublereal>::epsilon();
+        }
+        
+        g0 = g0_;
+        
+        const Mat3x3 G1(CGR_Rot::MatG, g0_);
+        const Mat3x3 R1(CGR_Rot::MatR, g0_);
+        const Mat3x3 X1(1., g0_);
+        const Matrix<doublereal, 3, 3> G2(MatGVec(g0));
+        Matrix<doublereal, 3, 3> R2(MatRVec(g0));
+        const Matrix<doublereal, 3, 3> X2(MatCrossVec(g0, 1.));
+        
+        for (index_type i = 1; i <= 3; ++i) {
+            for (index_type j = 1; j <= 3; ++j) {
+                assert(bCompare(G1(i, j), G2(i, j), tol1));
+                assert(bCompare(R1(i, j), R2(i, j), tol1));
+                assert(bCompare(X1(i, j), X2(i, j), tol1));
+            }
+        }
+
+        if (k == 0) {
+            R2 = ::Eye3;
+        } else if (k == 1) {
+            R2(1, 1) = -1;
+            R2(1, 2) = 0;
+            R2(1, 3) = 0;
+            R2(2, 1) = 0;
+            R2(2, 2) = -1;
+            R2(2, 3) = 0;
+            R2(3, 1) = 0;
+            R2(3, 2) = 0;
+            R2(3, 3) = 1;
+        } else if (k == 2) {
+            R2(1, 1) = -1;
+            R2(1, 2) = 0;
+            R2(1, 3) = 0;
+            R2(2, 1) = 0;
+            R2(2, 2) = 1;
+            R2(2, 3) = 0;
+            R2(3, 1) = 0;
+            R2(3, 2) = 0;
+            R2(3, 3) = -1;            
+        } else if (k == 3) {
+            R2(1, 1) = 1;
+            R2(1, 2) = 0;
+            R2(1, 3) = 0;
+            R2(2, 1) = 0;
+            R2(2, 2) = -1;
+            R2(2, 3) = 0;
+            R2(3, 1) = 0;
+            R2(3, 2) = 0;
+            R2(3, 3) = -1;
+        } else if (k == 4) {            
+            R2(1,1)=-2.2841125213377644e-01;
+            R2(1,2)=9.5997603033895429e-01;
+            R2(1,3)=1.6209355654480440e-01;
+            R2(2,1)=9.5997603033895418e-01;
+            R2(2,2)=1.9435901751267337e-01;
+            R2(2,3)=2.0166951551033063e-01;
+            R2(3,1)=1.6209355654480423e-01;
+            R2(3,2)=2.0166951551033083e-01;
+            R2(3,3)=-9.6594776537889704e-01;         
+        }
+        
+        Mat3x3 R2_;
+
+        for (index_type i = 1; i <= 3; ++i) {
+            for (index_type j = 1; j <= 3; ++j) {
+                R2_(i, j) = R2(i, j);
+            }
+        }
+        
+        const Vec3 g1(RotManip::VecRot(R2_));
+        const Vector<doublereal, 3> g2(VecRotMat(R2));
+        
+        for (index_type i = 1; i <= 3; ++i) {
+            assert(bCompare(g1(i), g2(i), std::numeric_limits<doublereal>::epsilon()) || bCompare(fabs(g1(i) - g2(i)), 2 * M_PI, std::numeric_limits<doublereal>::epsilon()));
+        }
     }
 }
 
@@ -3144,6 +3755,18 @@ int main(int argc, char* argv[]) {
         NLoopsAss = atol(argv[2]);
     }
 
+    if (NLoops < 1) {
+        NLoops = 1;
+    }
+
+    if (NLoopsAss < 1) {
+        NLoopsAss = 1;
+    }
+
+    std::cerr << "MatManip_test()\n";
+    
+    MatManip_test(NLoops);
+    
 	std::cerr << "---------------------------\ntestScalarTypeTraits()\n";
 	testScalarTypeTraits();
 
@@ -3318,6 +3941,51 @@ int main(int argc, char* argv[]) {
     testVecOp<12, 0>(NLoops, 512, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
     testVecOp<12, 0>(NLoops, 1024, doVecMul<Gradient<0>, 12>, __FC_DECL__(func2mulad_dv), "mul");
 
+    Mat3xN_test(3, NLoops);
+    Mat3xN_test(10, NLoops);
+    Mat3xN_test(100, NLoops);
+
+    MatNxN_test(3, NLoops);
+    MatNxN_test(10, NLoops);
+    MatNxN_test(100, NLoops);
+
+    Mat3xN_test_grad<4>(4, 3, NLoops);
+    Mat3xN_test_grad<5>(5, 10, NLoops);
+    Mat3xN_test_grad<0>(20, 100, NLoops);
+
+    Mat3xNT_test_grad<4>(4, 3, NLoops);
+    Mat3xNT_test_grad<5>(5, 10, NLoops);
+    Mat3xNT_test_grad<0>(20, 100, NLoops);
+    
+    MatNxN_test_grad<4>(4, 3, NLoops);
+    MatNxN_test_grad<5>(5, 10, NLoops);
+    MatNxN_test_grad<0>(20, 100, NLoops);
+
+    MatNxNT_test_grad<4>(4, 3, NLoops);
+    MatNxNT_test_grad<5>(5, 10, NLoops);
+    MatNxNT_test_grad<0>(20, 100, NLoops);
+    
+    MatDynamic_test(3, 4, NLoops);
+    MatDynamic_test(10, 20, NLoops);
+    
+    MatDynamic_test_grad<3>(3, 4, 5, NLoops);
+    MatDynamic_test_grad<5>(5, 10, 20, NLoops);
+    MatDynamic_test_grad<0>(15, 20, 30, NLoops);
+
+    MatDynamicT_test<10, 20>(10, 20, NLoops);
+    MatDynamicT_test<DYNAMIC_SIZE, 20>(10, 20, NLoops);
+    MatDynamicT_test<10, DYNAMIC_SIZE>(10, 20, NLoops);
+    MatDynamicT_test<DYNAMIC_SIZE, DYNAMIC_SIZE>(10, 20, NLoops);
+
+    MatDynamicT_test_grad<5, 10, 20>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<5, DYNAMIC_SIZE, 20>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<5, 10, DYNAMIC_SIZE>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<5, DYNAMIC_SIZE, DYNAMIC_SIZE>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<0, 10, 20>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<0, DYNAMIC_SIZE, 20>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<0, 10, DYNAMIC_SIZE>(5, 10, 20, NLoops);
+    MatDynamicT_test_grad<0, DYNAMIC_SIZE, DYNAMIC_SIZE>(5, 10, 20, NLoops);
+    
 #ifdef NDEBUG
     std::cerr << "\nNo tests have been done" << std::endl;
 #else

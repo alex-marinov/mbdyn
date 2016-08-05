@@ -910,7 +910,7 @@ ToBeOutput::fToBeOutput(void) const
 bool
 ToBeOutput::bToBeOutput(void) const
 {
-	return (fOutput & flag(1));
+	return fOutput & flag(1);
 }
 
 void

@@ -185,16 +185,19 @@ pInv9(pInv9),
 pInv10(pInv10),
 pInv11(pInv11),
 Inv3jaj(::Zero3),
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 Inv3jaPj(::Zero3),
+#endif
 Inv8jaj(::Zero3x3),
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 Inv8jaPj(::Zero3x3),
 Inv5jaj(NModes, 0.),
 Inv5jaPj(NModes, 0.),
-VInv5jaj(::Zero3),
-VInv5jaPj(::Zero3),
-Inv8jTranspose(::Eye3),
+#endif
 Inv9jkajak(::Eye3),
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 Inv9jkajaPk(::Eye3),
+#endif
 a(*aa), a0(*aa),
 aPrime(NModes, 0.), aPrime0(*bb),
 b(*bb),
@@ -525,8 +528,15 @@ Modal::GetEqType(unsigned int i) const
 void
 Modal::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF && !MODAL_DEBUG_AUTODIFF
+	const integer iNumRows = (pModalNode ? 12 : 0) + 2 * NModes  + 2 * NModes * NStrNodes + 12 * NStrNodes;
+	const integer iNumCols = (pModalNode ? 6 : 0) + 2 * NModes + NStrNodes * 12;
+	*piNumRows = -iNumRows;
+	*piNumCols = iNumCols;
+#else
 	/* la matrice e' gestita come piena (c'e' un po' di spreco...) */
 	*piNumCols = *piNumRows = iRigidOffset + iGetNumDof() + 6*NStrNodes;
+#endif
 }
 
 VariableSubMatrixHandler&
@@ -536,7 +546,17 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering Modal::AssJac()" << std::endl);
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF && !MODAL_DEBUG_AUTODIFF
+	SparseSubMatrixHandler& WorkMatSp = WorkMat.SetSparse();
 
+	grad::GradientAssVec<grad::Gradient<0> >::AssJac(this,
+							WorkMatSp,
+							dCoef,
+							XCurr,
+							XPrimeCurr,
+							grad::REGULAR_JAC,
+							&dofMap);
+#else        
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	integer iNumRows = 0;
 	integer iNumCols = 0;
@@ -896,7 +916,7 @@ Modal::AssJac(VariableSubMatrixHandler& WorkMat,
 			}
 		}
 	}
-
+#endif
 	return WorkMat;
 }
 
@@ -907,12 +927,34 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering Modal::AssRes()" << std::endl);
-
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF && !MODAL_DEBUG_AUTODIFF
+	grad::GradientAssVec<doublereal>::AssRes(this,
+						WorkVec,
+						dCoef,
+						XCurr,
+						XPrimeCurr,
+						grad::REGULAR_RES);
+#else
 	integer iNumRows;
 	integer iNumCols;
 
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
+
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF && MODAL_DEBUG_AUTODIFF
+	static integer iResidual = 0;
+	silent_cerr("Residual: #" << ++iResidual << std::endl);
+
+	MySubVectorHandler WorkVecAD(iNumRows);
+	WorkVecAD.Resize(iNumRows);
+	WorkVecAD.Reset();
+	grad::GradientAssVec<doublereal>::AssRes(this,
+						WorkVecAD,
+						dCoef,
+						XCurr,
+						XPrimeCurr,
+						grad::REGULAR_RES);
+#endif
 
 	/*
 	 * Equations:
@@ -1031,7 +1073,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		Inv5jaj.Reset(0.);
 		Inv5jaPj.Reset(0.);
 	}
-	Mat3x3 MatTmp1(::Zero3x3), MatTmp2(::Zero3x3);
+        
+	// Mat3x3 MatTmp1(::Zero3x3), MatTmp2(::Zero3x3);
+        
 	if (pInv9) {
 		Inv9jkajak.Reset();
 		Inv9jkajaPk.Reset();
@@ -1154,7 +1198,6 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			FTmp += R*Inv3jaPPj + (w.Cross(R*Inv3jaPj))*2.;
 		}
 		WorkVec.Sub(6 + 1, FTmp);
-
 #if 0
 		std::cerr << "m=" << dMass << "; S=" << S
 			<< "; a="  << a << "; aPrime =" << aPrime
@@ -1227,11 +1270,9 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 		if (pInv4 != 0) {
 			Vec3 Inv4j = pInv4->GetVec(jMode);
 			if (pInv5 != 0) {
-				VInv5jaj = Inv5jaj.GetVec(jMode);
-				Inv4j += VInv5jaj;
+				Inv4j += Inv5jaj.GetVec(jMode);
 
-				VInv5jaPj = Inv5jaPj.GetVec(jMode);
-				d -= ((R*VInv5jaPj).Dot(w))*2.;
+				d -= ((R*Inv5jaPj.GetVec(jMode)).Dot(w))*2.;
 			}
 
 			d -= (R*Inv4j).Dot(wP);
@@ -1377,9 +1418,497 @@ Modal::AssRes(SubVectorHandler& WorkVec,
 			<< std::setw(20) << WorkVec(i) << std::endl;
 	}
 #endif
+#endif
 
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF && MODAL_DEBUG_AUTODIFF
+	doublereal dTol = 1.;
+
+	for (integer i = 1; i <= WorkVec.iGetSize(); ++i) {
+		dTol = std::max(dTol, fabs(WorkVec.dGetCoef(i)));
+	}
+
+	dTol *= sqrt(std::numeric_limits<doublereal>::epsilon());
+	bool bOK = true;
+	for (integer i = 1; i <= WorkVec.iGetSize(); ++i) {
+		const doublereal dVal = WorkVec.dGetCoef(i);
+		const integer iRow = WorkVec.iGetRowIndex(i);
+		doublereal dValAD = 0.;
+
+		for (integer j = 1; j <= WorkVecAD.iGetSize(); ++j) {
+			if (iRow == WorkVecAD.iGetRowIndex(j)) {
+				dValAD += WorkVecAD.dGetCoef(j);
+			}
+		}
+
+		if (fabs(dVal - dValAD) > dTol) {
+			silent_cerr("\tRowIndex: " << iRow << " WorkVec(" << i << ")=" << dVal << ", WorkVecAD(" << i << ")=" << dValAD << std::endl);
+			bOK = false;
+		}
+	}
+	if (!bOK) {
+		silent_cerr("Residual #" << iResidual << ": NOK" << std::endl);
+	}
+	GRADIENT_ASSERT(bOK);
+#endif
 	return WorkVec;
 }
+
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+void
+Modal::UpdateStrNodeData(Modal::StrNodeData& oNode,
+	const grad::Vector<doublereal, 3>& d1tot,
+	const grad::Matrix<doublereal, 3, 3>& R1tot,
+	const grad::Vector<doublereal, 3>& F,
+	const grad::Vector<doublereal, 3>& M,
+	const grad::Matrix<doublereal, 3, 3>& R2)
+{
+	using namespace grad;
+
+	for (index_type i = 1; i <= 3; ++i) {
+		oNode.d1tot(i) = d1tot(i);
+		oNode.F(i) = F(i);
+		oNode.M(i) = M(i);
+	}
+
+	for (index_type j = 1; j <= 3; ++j) {
+		for (index_type i = 1; i <= 3; ++i) {
+			oNode.R1tot(i, j) = R1tot(i, j);
+			oNode.R2(i, j) = R2(i, j);
+		}
+	}
+}
+
+void
+Modal::UpdateModalNode(const grad::Vector<doublereal, 3>& xTmp,
+	const grad::Matrix<doublereal, 3, 3>& RTmp)
+{
+	using namespace grad;
+
+	for (index_type i = 1; i <= 3; ++i) {
+		x(i) = xTmp(i);
+	}
+
+	for (index_type j = 1; j <= 3; ++j) {
+		for (index_type i = 1; i <= 3; ++i) {
+			R(i, j) = RTmp(i, j);
+		}
+	}
+}
+
+void
+Modal::UpdateState(const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& aTmp,
+                   const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& aPrimeTmp,
+                   const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& bTmp,
+                   const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& bPrimeTmp)
+{
+	using namespace grad;
+
+	for (index_type i = 1; i <= a.iGetNumRows(); ++i) {
+		a(i) = aTmp(i);
+	}
+
+	for (index_type i = 1; i <= aPrime.iGetNumRows(); ++i) {
+		aPrime(i) = aPrimeTmp(i);
+	}
+
+	for (index_type i = 1; i <= b.iGetNumRows(); ++i) {
+		b(i) = bTmp(i);
+	}
+
+	for (index_type i = 1; i <= bPrime.iGetNumRows(); ++i) {
+		bPrime(i) = bPrimeTmp(i);
+	}
+}
+
+void
+Modal::UpdateInvariants(const grad::Vector<doublereal, 3>& Inv3jajTmp,
+                        const grad::Matrix<doublereal, 3, 3>& Inv8jajTmp,
+                        const grad::Matrix<doublereal, 3, 3>& Inv9jkajakTmp)
+{
+	using namespace grad;
+
+	for (index_type i = 1; i <= Inv3jajTmp.iGetNumRows(); ++i) {
+		Inv3jaj(i) = Inv3jajTmp(i);
+	}
+
+	for (index_type j = 1; j <= Inv8jajTmp.iGetNumCols(); ++j) {
+		for (index_type i = 1; i <= Inv8jajTmp.iGetNumRows(); ++i) {
+			Inv8jaj(i, j) = Inv8jajTmp(i, j);
+		}
+	}
+
+	for (index_type j = 1; j <= Inv9jkajakTmp.iGetNumCols(); ++j) {
+		for (index_type i = 1; i <= Inv9jkajakTmp.iGetNumRows(); ++i) {
+			Inv9jkajak(i, j) = Inv9jkajakTmp(i, j);
+		}
+	}
+}
+
+template <typename T>
+void
+Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
+              const doublereal dCoef,
+              const grad::GradientVectorHandler<T>& XCurr,
+              const grad::GradientVectorHandler<T>& XPrimeCurr,
+              const grad::FunctionCall func)
+{
+        using namespace grad;
+    
+        const integer iModalIndex = iGetFirstIndex();
+
+        typedef Matrix<T, 3, 3> Mat3x3;
+        typedef Vector<T, 3> Vec3;
+        typedef Vector<T, DYNAMIC_SIZE> VecN;
+        typedef Matrix<T, 3, DYNAMIC_SIZE> Mat3xN;
+    
+        VecN a(NModes), aPrime(NModes), b(NModes), bPrime(NModes); 
+
+        for (integer i = 1; i <= NModes; ++i) {
+                XCurr.dGetCoef(iModalIndex + i, a(i), dCoef, &dofMap);
+                XPrimeCurr.dGetCoef(iModalIndex + i, aPrime(i), 1., &dofMap);
+        }
+
+        for (integer i = 1; i <= NModes; ++i) {
+                XCurr.dGetCoef(iModalIndex + NModes + i, b(i), dCoef, &dofMap);
+                XPrimeCurr.dGetCoef(iModalIndex + NModes + i, bPrime(i), 1., &dofMap);
+        }
+
+        const VecN Ka = *pModalStiff * a;
+        const VecN CaP = *pModalDamp * b;
+        const VecN MaPP = *pModalMass * bPrime;
+
+        Vec3 Inv3jaj, Inv3jaPj, Inv3jaPPj;
+    
+        if (pInv3) {
+                Inv3jaj = *pInv3 * a;
+                Inv3jaPj = *pInv3 * b;
+                Inv3jaPPj = *pInv3 * bPrime;
+        }
+
+        Mat3x3 Inv8jaj, Inv8jaPj;
+        Mat3xN Inv5jaj(3, NModes), Inv5jaPj(3, NModes);
+        Mat3x3 Inv9jkajak, Inv9jkajaPk;
+        Mat3x3 Inv10jaPj;
+    
+        if (pInv5 || pInv8 || pInv9 || pInv10) {
+                for (index_type jMode = 1; jMode <= NModes; jMode++)  {
+                        const T& a_jMode = a(jMode);
+                        const T& aP_jMode = b(jMode);
+
+                        if (pInv5) {
+                                for (index_type kMode = 1; kMode <= NModes; kMode++) {
+                                        for (index_type i = 1; i <= 3; ++i) {
+                                                const doublereal v_i = (*pInv5)(i, (jMode - 1) * NModes + kMode);
+                                                Inv5jaj(i, kMode) += v_i * a_jMode;
+                                                Inv5jaPj(i, kMode) += v_i * aP_jMode;
+                                        }
+                                }
+                        }
+            
+                        if (pInv8) {				
+                                for (index_type jCnt = 1; jCnt <= 3; jCnt++) {
+                                        const index_type iMjC = (jMode - 1) * 3 + jCnt;
+                                        for (index_type i = 1; i <= 3; ++i) {
+                                                Inv8jaj(i, jCnt) += (*pInv8)(i, iMjC) * a_jMode;
+                                                Inv8jaPj(i, jCnt) += (*pInv8)(i, iMjC) * aP_jMode;
+                                        }
+                                }
+
+                                if (pInv9) {                    
+                                        for (index_type kMode = 1; kMode <= NModes; kMode++) {
+                                                const T& a_kMode = a(kMode);
+                                                const T& aP_kMode = b(kMode);
+                                                const index_type iOffset = (jMode - 1) * 3 * NModes + (kMode - 1) * 3;
+
+                                                for (index_type i = 1; i <= 3; ++i) {
+                                                        for (index_type j = 1; j <= 3; ++j) {
+                                                                Inv9jkajak(i, j) += (*pInv9)(i, iOffset + j) * a_jMode * a_kMode;
+                                                                Inv9jkajaPk(i, j) += (*pInv9)(i, iOffset + j) * a_jMode * aP_kMode;
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+
+                        if (pInv10) {
+                                for (index_type jCnt = 1; jCnt <= 3; jCnt++) {
+                                        const index_type iMjC = (jMode - 1) * 3 + jCnt;
+
+                                        for (index_type i = 1; i <= 3; ++i) {
+                                                Inv10jaPj(i, jCnt) += (*pInv10)(i, iMjC) * aP_jMode;
+                                        }
+                                }             
+                        }
+                }
+        }
+
+#ifdef MODAL_USE_GRAVITY
+        /* forza di gravita' (decidere come inserire g) */
+        /* FIXME: use a reasonable reference point where compute gravity */
+        ::Vec3 GravityAcceleration(::Zero3);
+        const bool bGravity = GravityOwner::bGetGravity(this->x, GravityAcceleration);
+#endif /* MODAL_USE_GRAVITY */
+
+        const integer iRigidIndex = pModalNode ? pModalNode->iGetFirstIndex() : -1;
+
+        Vec3 x(this->x), vP, wP, w, RTw;
+        Mat3x3 R(this->R);
+        Vec3 FTmp, MTmp;
+    
+        if (pModalNode) {        
+                Vec3 xP, g, gP, v;
+        
+                pModalNode->GetXCurr(x, dCoef, func, &dofMap);
+                pModalNode->GetVCurr(xP, dCoef, func, &dofMap);
+                pModalNode->GetgCurr(g, dCoef, func, &dofMap);
+                pModalNode->GetgPCurr(gP, dCoef, func, &dofMap);
+                pModalNode->GetXPPCurr(vP, dCoef, func, &dofMap);
+                const ::Vec3& wr = pModalNode->GetWRef();
+                pModalNode->GetWPCurr(wP, dCoef, func, &dofMap);
+
+                for (index_type i = 1; i <= 3; ++i) {
+                        XCurr.dGetCoef(iRigidIndex + 6 + i, v(i), dCoef, &dofMap);
+                        XCurr.dGetCoef(iRigidIndex + 9 + i, w(i), dCoef, &dofMap);
+                }
+
+                pModalNode->GetRCurr(R, dCoef, func, &dofMap);
+        
+                RTw = Transpose(R) * w;
+        
+                Mat3x3 J(Inv7);
+        
+                if (pInv8) {
+                        J += Inv8jaj + Transpose(Inv8jaj);
+                        if (pInv9 != 0) {
+                                J -= Inv9jkajak;
+                        }
+                }
+
+                J = Mat3x3(R * J) * Transpose(R);
+
+                Vec3 STmp(Inv2);
+        
+                if (pInv3) {
+                        STmp += Inv3jaj;
+                }
+
+                const Vec3 S = R * STmp;
+
+                FTmp = vP * -dMass + Cross(S, wP) - Cross(w, Vec3(Cross(w, S)));
+        
+                if (pInv3 != 0) {
+                        FTmp -= R * Inv3jaPPj + Cross(w, Vec3(R * Inv3jaPj)) * 2.;
+                }
+        
+#ifdef MODAL_USE_GRAVITY
+                if (bGravity) {
+                        FTmp += GravityAcceleration * dMass;
+                }
+#endif /* MODAL_USE_GRAVITY */
+
+                MTmp = -Cross(S, vP) - J * wP - Cross(w, Vec3(J * w));
+        
+                if (pInv4) {
+                        MTmp -= R * Vec3((*pInv4) * bPrime);
+                }
+        
+                if (pInv5) {
+                        MTmp -= R * Vec3(Inv5jaj * bPrime);
+                }       
+        
+                if (pInv8) {
+                        Mat3x3 Tmp = Inv8jaPj;
+                        if (pInv9 != 0) {
+                                Tmp -= Inv9jkajaPk;
+                        }
+                        MTmp -= R * Vec3(Tmp * RTw * 2.);
+                }
+     
+                if (pInv10) {
+                        Vec3 VTmp = Mat3x3(Inv10jaPj + Transpose(Inv10jaPj)) * RTw;
+                        if (pInv11) {
+                                VTmp += Cross(w, Vec3(R * Vec3(*pInv11 * b)));
+                        }
+                        MTmp -= R * VTmp;
+                }
+        
+#ifdef MODAL_USE_GRAVITY
+                if (bGravity) {
+                        MTmp += Cross(S, GravityAcceleration);
+                }
+#endif
+                const Vec3 f1 = v - xP;
+                const Vec3 f2 = w - Mat3x3(MatGVec(g)) * gP - Mat3x3(MatRVec(g)) * wr;
+        
+                WorkVec.AddItem(iRigidIndex + 1, f1);
+                WorkVec.AddItem(iRigidIndex + 4, f2);
+        }
+
+        for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                index_type jOffset = (jMode - 1) * 3 + 1;
+                T d = -MaPP(jMode) - CaP(jMode) - Ka(jMode);
+
+                if (pInv3) {
+                        const Vec3 RInv3j = R * pInv3->GetVec(jMode);
+            
+                        d -= Dot(RInv3j, vP);
+			
+#ifdef MODAL_USE_GRAVITY
+                        if (bGravity) {
+                                d += Dot(RInv3j, GravityAcceleration);
+                        }
+#endif /* MODAL_USE_GRAVITY */
+                }
+
+                if (pInv4) {
+                        Vec3 Inv4j(pInv4->GetVec(jMode));
+                        if (pInv5) {
+                                Inv4j += Inv5jaj.GetCol(jMode);
+                                d -= Dot(R * Inv5jaPj.GetCol(jMode), w) * 2.;
+                        }
+
+                        d -= Dot(R * Inv4j, wP);
+                }
+
+                if (pInv8 || pInv9 || pInv10) {
+                        Mat3x3 MatTmp;
+
+                        if (pInv8) {
+                                for (index_type i = 1; i <= 3; ++i) {
+                                        for (index_type j = 1; j <= 3; ++j) {
+                                                MatTmp(j, i) += (*pInv8)(i, jOffset + j - 1);
+                                        }
+                                }
+                                if (pInv9) {
+                                        for (index_type kModem1 = 0; kModem1 < NModes; kModem1++) {
+                                                const T& a_kMode = a(kModem1 + 1);
+                                                const index_type kOffset = (jMode - 1) * 3 * NModes + kModem1 * 3 + 1;
+	
+                                                for (index_type i = 1; i <= 3; ++i) {
+                                                        for (index_type j = 1; j <= 3; ++j) {
+                                                                MatTmp(i, j) -= (*pInv9)(i, kOffset + j - 1) * a_kMode;
+                                                        }
+                                                }
+                                        }
+                                }
+                        }
+
+                        if (pInv10) {
+                                for (index_type i = 1; i <= 3; ++i) {
+                                        for (index_type j = 1; j <= 3; ++j) {
+                                                MatTmp(i, j) += (*pInv10)(i, jOffset + j - 1);
+                                        }
+                                }
+                        }
+
+                        d += Dot(w, R * Vec3(MatTmp * RTw));
+                }
+                
+                WorkVec.AddItem(iModalIndex + NModes + jMode, d);
+        }
+
+        for (index_type iCnt = 1; iCnt <= NModes; iCnt++) {
+                WorkVec.AddItem(iModalIndex + iCnt, b(iCnt) - aPrime(iCnt));
+        }
+
+        for (index_type iStrNode = 1; iStrNode <= NStrNodes; iStrNode++) {
+                const index_type iStrNodem1 = iStrNode - 1;
+                const integer iNodeFirstMomIndex = SND[iStrNodem1].pNode->iGetFirstMomentumIndex();
+
+                Vec3 PHIta, PHIra;
+
+                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                        const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
+                        for (index_type i = 1; i <= 3; ++i) {
+                                PHIta(i) += (*pPHIt)(i, iOffset) * a(jMode);
+                                PHIra(i) += (*pPHIr)(i, iOffset) * a(jMode);
+                        }
+                }
+        
+                const Vec3 d1tot = R * Vec3(PHIta + SND[iStrNodem1].OffsetFEM);
+                const Mat3x3 R1tot = R * Mat3x3(MatCrossVec(PHIra, 1.));
+
+                Vec3 F;
+
+                for (index_type i = 1; i <= 3; ++i) {
+                        XCurr.dGetCoef(iModalIndex + 2 * NModes + 6 * iStrNodem1 + i, F(i), 1., &dofMap);
+                }
+
+                Vec3 x2;
+
+                SND[iStrNodem1].pNode->GetXCurr(x2, dCoef, func, &dofMap);
+
+                Mat3x3 R2;
+        
+                SND[iStrNodem1].pNode->GetRCurr(R2, dCoef, func, &dofMap);
+
+                Vec3 dTmp2(R2 * SND[iStrNodem1].OffsetMB);
+
+                if (pModalNode) {
+                        FTmp -= F;
+                        MTmp -= Cross(d1tot, F);           
+                }
+
+                Vec3 vtemp = Transpose(R) * F;
+        
+                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                        const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
+                        const T d = -Dot(vtemp, pPHIt->GetVec(iOffset));
+                        WorkVec.AddItem(iModalIndex + NModes + jMode, d);
+                }
+
+                Vec3 MTmp2 = Cross(dTmp2, F);
+                Vec3 M;
+
+                for (index_type i = 1; i <= 3; ++i) {
+                        XCurr.dGetCoef(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 3 + i, M(i), 1., &dofMap);
+                }
+
+                const Mat3x3 DeltaR = Transpose(R2) * R1tot;
+                const Vec3 ThetaCurr(VecRotMat(DeltaR));
+                const Vec3 R2_M = R2 * M;
+        
+                if (pModalNode) {
+                        MTmp -= R2_M;
+                }
+
+                MTmp2 += R2_M; // Bug here
+
+                vtemp = Transpose(R) * R2_M;
+        
+                for (index_type jMode = 1; jMode <= NModes; jMode++) {
+                        const index_type iOffset = (jMode - 1) * NStrNodes + iStrNode;
+                        const T d = -Dot(vtemp, pPHIr->GetVec(iOffset));
+                        WorkVec.AddItem(iModalIndex + NModes + jMode, d);
+                }
+        
+                ASSERT(dCoef != 0.);
+        
+                const Vec3 f1 = (x2 + dTmp2 - x - d1tot) / dCoef;
+                const Vec3 f2 = ThetaCurr / -dCoef;
+        
+                WorkVec.AddItem(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 1, f1);
+                WorkVec.AddItem(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 4, f2);
+        
+                WorkVec.AddItem(iNodeFirstMomIndex + 1, F);
+                WorkVec.AddItem(iNodeFirstMomIndex + 4, MTmp2); // Bug is here
+
+                UpdateStrNodeData(SND[iStrNodem1], d1tot, R1tot, F, M, R2);
+        }
+    
+        if (pModalNode) {
+                WorkVec.AddItem(iRigidIndex + 7, FTmp);
+                WorkVec.AddItem(iRigidIndex + 10, MTmp);
+        }
+
+        if (pModalNode) {
+                UpdateModalNode(x, R);
+        }
+    
+        UpdateState(a, aPrime, b, bPrime);
+        UpdateInvariants(Inv3jaj, Inv8jaj, Inv9jkajak);
+}
+#endif
 
 void
 Modal::Output(OutputHandler& OH) const
@@ -2690,6 +3219,7 @@ ReadModal(DataManager* pDM,
 
 		/* verifica di esistenza del nodo */
 		const StructNode* pTmpNode = pDM->pFindNode<const StructNode, Node::STRUCTURAL>(uNode);
+
 		if (pTmpNode == 0) {
 			silent_cerr("Modal(" << uLabel << "): "
 				"StructuralNode(" << uNode << ") "
@@ -2709,6 +3239,13 @@ ReadModal(DataManager* pDM,
 		pModalNode = dynamic_cast<const ModalNode *>(pTmpNode);
 		ASSERT(pModalNode != 0);
 
+                if (pModalNode->pGetRBK() != 0) {
+                    silent_cerr("Modal(" << uLabel
+                                << "): StructuralNode(" << uNode
+                                << ") uses rigid body kinematics at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
+                }
 		/* la posizione del nodo modale e' quella dell'origine del SdR
 		 * del corpo flessibile */
 		X0 = pModalNode->GetXCurr();
@@ -2967,8 +3504,9 @@ ReadModal(DataManager* pDM,
 				DampRatios[iDampedMode - 1] = damp_factor;
 			}
 		}
-
-	} else if (!HP.IsKeyWord("damping" "from" "file")) {
+        } else if (HP.IsKeyWord("damping" "from" "file")) {
+                eDamp = DAMPING_FROM_FILE;
+        } else {
 		silent_cout("Modal(" << uLabel << "): "
 				"no damping is assumed at line "
 				<< HP.GetLineData() << " (deprecated)"
@@ -5082,6 +5620,7 @@ ReadModal(DataManager* pDM,
 		 * il termine diagonale i-esimo e' pari a
 		 * cii = 2*cdampi*(ki*mi)^.5
 		 */
+
 		switch (eDamp) {
 		case DAMPING_DIAG:
 		case DAMPING_SINGLE_FACTOR:
@@ -5106,14 +5645,6 @@ ReadModal(DataManager* pDM,
 			break;
 
 		case DAMPING_RAYLEIGH:
-			if (bIsMSym && bIsKSym) {
-				for (unsigned int iCnt = 1; iCnt <= NModes; iCnt++) {
-					doublereal m = pGenMass->dGet(iCnt, iCnt);
-					doublereal k = pGenStiff->dGet(iCnt, iCnt);
-					pGenDamp->Put(iCnt, iCnt, damp_coef_M*m + damp_coef_K*k);
-				}
-
-			} else {
 				for (unsigned int iRow = 1; iRow <= NModes; iRow++) {
 					for (unsigned int iCol = 1; iCol <= NModes; iCol++) {
 						doublereal m = pGenMass->dGet(iRow, iCol);
@@ -5121,7 +5652,6 @@ ReadModal(DataManager* pDM,
 						pGenDamp->Put(iRow, iCol, damp_coef_M*m + damp_coef_K*k);
 					}
 				}
-			}
 			break;
 
 		default:
@@ -5301,8 +5831,9 @@ ReadModal(DataManager* pDM,
 
 	std::ostream& os = pDM->GetLogFile();
 
+        // If we do not cast the label to integer, the output will be UINT_MAX if no modal node is defined
 	os << "modal: " << pEl->GetLabel() << " "
-		<< (pModalNode ? pModalNode->GetLabel() : -1) << " "
+                << static_cast<integer>(pModalNode ? pModalNode->GetLabel() : -1) << " "
 		<< dMass << " "
 		<< STmp / dMass << " "
 		<< JTmp << std::endl;

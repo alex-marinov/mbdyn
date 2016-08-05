@@ -875,6 +875,11 @@ public:
 	template <grad::index_type N_SIZE>
 	inline void GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
+                inline void GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+                
+	template <grad::index_type N_SIZE>
+	inline void GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+
 	inline void GetRCurr(grad::Matrix<doublereal, 3, 3>& R, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
 
 	template <grad::index_type N_SIZE>
@@ -1074,6 +1079,43 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, dou
 								  MapVectorBase::GLOBAL,
 								  0.);
 		g_i.SetDerivativeGlobal(iFirstDofIndex + i + 3, -dCoef);
+	}
+}
+
+inline void StructNode::GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const
+{
+        GRADIENT_ASSERT(grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
+        
+        gP = gPCurr;
+}
+        
+template <grad::index_type N_SIZE>
+inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
+{
+	using namespace grad;
+
+	index_type iFirstDofIndex;
+
+	switch (func) {
+	case INITIAL_ASS_JAC:
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		iFirstDofIndex = iGetFirstIndex();
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	for (index_type i = 1; i <= 3; ++i) {
+		Gradient<N_SIZE>& g_i = gP(i);
+		g_i.SetValuePreserve(gPCurr(i));
+		g_i.DerivativeResizeReset(pDofMap,
+                                          iFirstDofIndex + 4,
+                                          iFirstDofIndex + 7,
+                                          MapVectorBase::GLOBAL,
+                                          0.);
+		g_i.SetDerivativeGlobal(iFirstDofIndex + i + 3, -1.);
 	}
 }
 
@@ -1485,6 +1527,25 @@ public:
 
 	virtual void AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP);
+                
+#ifdef USE_AUTODIFF
+       using StructNode::GetXPPCurr;
+       using StructNode::GetWPCurr;
+                
+       inline void
+       GetXPPCurr(grad::Vector<doublereal, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+                
+       template <grad::index_type N_SIZE>
+       inline void
+       GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+
+       inline void
+       GetWPCurr(grad::Vector<doublereal, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+                
+       template <grad::index_type N_SIZE>
+       inline void
+       GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+#endif                
 };
 
 
@@ -1505,6 +1566,77 @@ ModalNode::iGetInitialFirstIndexPrime() const
 	silent_cerr("ModalNode::iGetInitialFirstIndexPrime() not supported yet!" << std::endl);
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
+
+inline void
+ModalNode::GetXPPCurr(grad::Vector<doublereal, 3>& XPP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const {
+        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
+        XPP = XPPCurr;
+}
+
+template <grad::index_type N_SIZE>
+inline void
+ModalNode::GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
+	using namespace grad;
+
+	index_type iFirstDofIndex;
+
+	switch (func) {
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		iFirstDofIndex = iGetFirstIndex();
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	for (index_type i = 1; i <= 3; ++i) {
+		Gradient<N_SIZE>& g = XPP(i);
+		g.SetValuePreserve(XPPCurr(i));
+		g.DerivativeResizeReset(pDofMap,
+                                        iFirstDofIndex + 7,
+                                        iFirstDofIndex + 10,
+                                        MapVectorBase::GLOBAL,
+                                        0.);
+		g.SetDerivativeGlobal(iFirstDofIndex + i + 6, -1.);
+	}
+}
+
+inline void
+ModalNode::GetWPCurr(grad::Vector<doublereal, 3>& WP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const {
+        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
+        WP = WPCurr;
+}
+
+template <grad::index_type N_SIZE>
+inline void
+ModalNode::GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
+	using namespace grad;
+
+	index_type iFirstDofIndex;
+
+	switch (func) {
+	case INITIAL_DER_JAC:
+	case REGULAR_JAC:
+		iFirstDofIndex = iGetFirstIndex();
+		break;
+
+	default:
+		GRADIENT_ASSERT(false);
+	}
+
+	for (index_type i = 1; i <= 3; ++i) {
+		Gradient<N_SIZE>& g = WP(i);
+		g.SetValuePreserve(WPCurr(i));
+		g.DerivativeResizeReset(pDofMap,
+                                        iFirstDofIndex + 10,
+                                        iFirstDofIndex + 13,
+                                        MapVectorBase::GLOBAL,
+                                        0.);
+		g.SetDerivativeGlobal(iFirstDofIndex + i + 9, -1.);
+	}        
+}
+        
 #endif
 
 /* ModalNode - end */

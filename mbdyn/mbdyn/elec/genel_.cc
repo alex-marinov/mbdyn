@@ -517,10 +517,10 @@ GenelSpring::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const 
 GenelSpringSupport::GenelSpringSupport(unsigned int uLabel,
 	const DofOwner* pDO,
 	const ConstitutiveLaw1D* pCL,
-	const ScalarDof& sd, flag fOutput)
+	const ScalarDof& sd, doublereal X0, flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
-ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.)
+ConstitutiveLaw1DOwner(pCL), SD(sd), dVal(0.), dInitVal(X0)
 {
 	ASSERT(SD.iOrder == 0);
 }
@@ -600,7 +600,7 @@ GenelSpringSupport::AssRes(SubVectorHandler& WorkVec,
 
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex() + 1;
 
-	dVal = SD.pNode->dGetX();
+	dVal = SD.pNode->dGetX() - dInitVal;
 	ConstitutiveLaw1DOwner::Update(dVal, 0.);
 
 	WorkVec.PutItem(1, iNodeRowIndex, -GetF());
@@ -620,13 +620,17 @@ GenelSpringSupport::GetConnectedNodes(
 
 unsigned int GenelSpringSupport::iGetNumPrivData(void) const
 {
-	return 1u;
+	return 2u;
 }
 
 unsigned int GenelSpringSupport::iGetPrivDataIdx(const char *s) const
 {
 	if (0 == strcmp(s, "F")) {
 		return 1u;
+	}
+
+	if (0 == strcmp(s, "X")) {
+		return 2u;
 	}
 
 	silent_cerr("genel(" << GetLabel() << "): private data \"" << s << "\" not available" << std::endl);
@@ -638,6 +642,8 @@ doublereal GenelSpringSupport::dGetPrivData(unsigned int i) const
 	switch (i) {
 	case 1u:
 		return GetF();
+	case 2u:
+		return dVal;
 	default:
 		silent_cerr("genel(" << GetLabel() << "): private data index " << i << " out of range" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -893,11 +899,11 @@ GenelCrossSpringDamperSupport::GetConnectedNodes(
 GenelSpringDamperSupport::GenelSpringDamperSupport(unsigned int uLabel,
 	const DofOwner* pDO,
 	const ConstitutiveLaw1D* pCL,
-	const ScalarDof& sd, flag fOutput)
+	const ScalarDof& sd, doublereal X0, flag fOutput)
 : Elem(uLabel, fOutput),
 Genel(uLabel, pDO, fOutput),
 ConstitutiveLaw1DOwner(pCL),
-SD(sd), dVal(0.),dValPrime(0.)
+SD(sd), dVal(0.), dInitVal(X0), dValPrime(0.)
 {
 	ASSERT(sd.pNode->GetDofType(0) == DofOrder::DIFFERENTIAL);
 	ASSERT(sd.iOrder == 0);
@@ -979,7 +985,7 @@ GenelSpringDamperSupport::AssRes(SubVectorHandler& WorkVec,
 
 	integer iNodeRowIndex = SD.pNode->iGetFirstRowIndex()+1;
 
-	dVal = SD.pNode->dGetX();
+	dVal = SD.pNode->dGetX() - dInitVal;
 	dValPrime = SD.pNode->dGetXPrime();
 
 	ConstitutiveLaw1DOwner::Update(dVal, dValPrime);

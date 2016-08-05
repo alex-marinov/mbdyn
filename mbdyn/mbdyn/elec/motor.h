@@ -37,18 +37,28 @@
  * whose value is represented by an internal state that is a current,
  * according to equations:
 
-	C1 = Gain * i
+	M = M0(Phi_e) - (Gain + M1(Phi_e)) * i
 	
-	C2 = - Gain * i
+	C1 = -M
 
-	i1 = i
+	C2 = M
 
-	i2 = - i
+	i1 = - i
+
+	i2 = i
 	
 	    d i
-	L * --- + R * i = - Gain * Omega + V2 - V1
+	L * --- + R * i = - Gain * (Omega2 - Omega1) + V2 - V1
 	    d t
  
+ * In order to take into account the so called cogging torque or ripple torque 
+ * of DC motors, the following data can be provided:
+ *   M0(Phi_e) ... variation of the motor torque independent of current
+ *   M1(Phi_e) ... variation of the motor torque proportional to current  
+ *   p ... number of terminal pairs
+ *
+ *   Phi_m ... mechanical angle of rotation between rotor and stator
+ *   Phi_e = p * Phi_m ... electric angle between rotor field and stator field
  */
 
 class Motor : virtual public Elem, public Electric {
@@ -58,23 +68,40 @@ private:
 	const ElectricNode *pVoltage1;
 	const ElectricNode *pVoltage2;
 
-	Vec3 Dir;
+	Mat3x3 Rn;
 	doublereal dGain;
 	doublereal dL;
-	doublereal dR;
+	DriveOwner dR;
+	integer p;
+	DriveOwner M0, M1;
+
+	inline doublereal dGetOmega() const;
+	inline doublereal dGetVoltage() const;
+	inline doublereal dGetOmega(const Vec3& n) const;
+	inline Vec3 GetAxisOfRotation() const;
+	inline doublereal dGetPhiMechanical() const;
+	inline doublereal dGetPhiElectric(doublereal Phi_m) const;
+
+	doublereal M, i, iP, Phi_m, Phi_e;
+
+	static const int iNumPrivData = 12;
+
+	static const struct PrivData {
+	int index;
+		char name[8];
+	} rgPrivData[iNumPrivData];
 
 public:
 	Motor(unsigned int uL, const DofOwner* pD, 
 			const StructNode* pN1, const StructNode* pN2,
 			const ElectricNode* pV1, const ElectricNode* pV2,
-			const Vec3& TmpDir, doublereal dG,
-			doublereal dl, doublereal dr, doublereal i0,
+			const Mat3x3& Rn, doublereal dG,
+			doublereal dl, DriveCaller* dR, doublereal i0,
+			integer p, const DriveCaller* pM0, const DriveCaller* pM1,
 			flag fOut);
 	virtual ~Motor(void);
 
-	virtual Electric::Type GetElectricType(void) const {
-		return Electric::MOTOR;
-	};
+	virtual Electric::Type GetElectricType(void) const;
 
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -103,31 +130,7 @@ public:
 			VectorHandler& X, VectorHandler& XP,
 			SimulationEntity::Hints* h = 0);
         
-	/* *******PER IL SOLUTORE PARALLELO******** */        
-	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
-     	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
-		connectedNodes.resize(4);
-		connectedNodes[0] = pStrNode1;
-		connectedNodes[1] = pStrNode2;
-		connectedNodes[2] = pVoltage1;
-		connectedNodes[3] = pVoltage2;
-	};
-	/* ************************************************ */
-private:
-	inline doublereal dGetOmega(void) const;
-	inline doublereal dGetVoltage(void) const;
-	doublereal dGetOmega(const Vec3& TmpDir) const;
-	Vec3 GetAxisOfRotation(void) const;
-
-	doublereal M, i, iP;
-
-	static const int iNumPrivData = 7;
-
-	static const struct PrivData {
-		int index;
-		char name[6];
-	} rgPrivData[iNumPrivData];
+	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 };
 
 #endif /* MOTOR_H */

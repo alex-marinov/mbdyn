@@ -5412,11 +5412,8 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const thro
 		return;
 	}
 
-	if (dCurrTimeStep <= dMinTimeStep) {
-		return;
-	}
-
 	if (dErr > dMaxResidual) {
+            if (dCurrTimeStep > 2 * dMinTimeStep) { // FIXME
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -5430,8 +5427,10 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const thro
 
 		throw NonlinearSolver::MaxResidualExceeded(MBDYN_EXCEPT_ARGS);
 	}
+	}
 
 	if (dErrDiff > dMaxResidualDiff) {
+            if (dCurrTimeStep > 2 * dMinTimeStep) { // FIXME
 		if (outputIters()) {
 #ifdef USE_MPI
 			if (!bParallel || MBDynComm.Get_rank() == 0)
@@ -5445,6 +5444,7 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const thro
 
 		throw NonlinearSolver::MaxResidualExceeded(MBDYN_EXCEPT_ARGS);
 	}
+	}
 
 	switch (eTimeStepLimit) {
 	case TS_SOFT_LIMIT:
@@ -5454,7 +5454,7 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const thro
 		{
 			const doublereal dMaxTS = MaxTimeStep.dGet();
 
-			if (dCurrTimeStep > dMaxTS) {
+			if (dCurrTimeStep > dMaxTS && dCurrTimeStep > dMinTimeStep) {
 				if (outputIters()) {
 		#ifdef USE_MPI
 					if (!bParallel || MBDynComm.Get_rank() == 0)

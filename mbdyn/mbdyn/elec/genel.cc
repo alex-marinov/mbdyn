@@ -507,6 +507,16 @@ ReadGenel(DataManager* pDM,
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
+		doublereal X0 = 0.;
+
+		if (HP.IsKeyWord("position")) {
+			if (HP.IsKeyWord("from" "node")) {
+				X0 = SD.pNode->dGetX();
+			} else {
+				X0 = HP.GetReal();
+			}
+		}
+
 		flag fOut = pDM->fReadOutput(HP, Elem::GENEL);
 
 		switch (CLType) {
@@ -514,7 +524,7 @@ ReadGenel(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				GenelSpringSupport,
 				GenelSpringSupport(uLabel, pDO, pCL,
-					SD, fOut));
+					SD, X0, fOut));
 			break;
 
 		case ConstLawType::VISCOUS:
@@ -522,7 +532,7 @@ ReadGenel(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				GenelSpringDamperSupport,
 				GenelSpringDamperSupport(uLabel, pDO, pCL,
-					SD, fOut));
+					SD, X0, fOut));
 			break;
 
 		default:

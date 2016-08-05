@@ -377,9 +377,40 @@ ReadElectric(DataManager* pDM,
 			= pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
 
 		// direzione
-		Vec3 TmpDir;
+		Mat3x3 Rn(Zero3x3);
+		bool bHaveOrientation = false;
+
+		if (HP.IsKeyWord("orientation")) {
+			Rn = HP.GetRotRel(ReferenceFrame(pStrNode1));
+			bHaveOrientation = true;
+		} else { // FIXME
 		try {
-			TmpDir = HP.GetUnitVecRel(ReferenceFrame(pStrNode1));
+			// FIXME: The current implemention of the motor requires a rotation matrix instead of an axis.
+			// FIXME: In order to maintain backward compatibility a rotation matrix has to be synthesised here.
+			const Vec3 e3 = HP.GetUnitVecRel(ReferenceFrame(pStrNode1));
+			Vec3 e1(Zero3);
+
+			doublereal e1n = -1;
+
+			for (integer i = 1; i <= 3; ++i) {
+				const Vec3 e1t = Eye3.GetCol(i).Cross(e3);
+				const doublereal e1tn = e1t.Norm();
+
+				if (e1tn > e1n) {
+					e1 = e1t;
+					e1n = e1tn;
+				}
+			}
+
+			if (e1n <= 0) {
+				throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
+			}
+
+			e1 /= e1n;
+			Vec3 e2 = e3.Cross(e1);
+			e2 /= e2.Norm();
+
+			Rn = Mat3x3(e1, e2, e3);
 		} catch (ErrNullNorm) {
 			silent_cerr("Motor(" << uLabel << "): "
 				"illegal motor direction "
@@ -387,6 +418,9 @@ ReadElectric(DataManager* pDM,
 				<< std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
+		}
+
+		ASSERT(Eye3.IsSame(Rn.MulTM(Rn), sqrt(std::numeric_limits<doublereal>::epsilon())));
 
 		// nodo elettrico1 collegato
 		ElectricNode* pVoltage1
@@ -397,12 +431,57 @@ ReadElectric(DataManager* pDM,
 			= dynamic_cast<ElectricNode *>(pDM->ReadNode(HP, Node::ELECTRIC));
 
 		doublereal dG = HP.GetReal();
-		doublereal dl = HP.GetReal();
-		doublereal dr = HP.GetReal();
+		doublereal dL = HP.GetReal();
+	        DriveCaller* dR = HP.GetDriveCaller();
 		doublereal i0 = 0;
                 
 		if (HP.IsKeyWord("initial" "current")) {
 			i0 = HP.GetReal();
+		}
+
+		bool bHaveM0orM1 = false;
+
+		DriveCaller* pM0 = 0;
+
+		if (HP.IsKeyWord("M0")) {
+			bHaveM0orM1 = true;
+			pM0 =  HP.GetDriveCaller();
+		} else {
+			pM0 = new NullDriveCaller;
+		}
+
+		DriveCaller* pM1 = 0;
+
+		if (HP.IsKeyWord("M1")) {
+			bHaveM0orM1 = true;
+			pM1 = HP.GetDriveCaller();
+		} else {
+			pM1 = new NullDriveCaller;
+		}
+
+		integer p = 0;
+
+		if (bHaveM0orM1) {
+			if (!bHaveOrientation) {
+				silent_cerr("motor(" << uLabel
+					<< "): \"M0\" and \"M1\" require rotation matrix instead of axis at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			if (!HP.IsKeyWord("terminal" "pairs")) {
+				silent_cerr("motor(" << uLabel << "): keyword \"terminal pairs\" expected at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			p = HP.GetInt();
+
+			if (p < 1) {
+				silent_cerr("motor(" << uLabel
+					<< "): number of terminal pairs must be greater than zero at line "
+					<< HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::ELECTRIC);
@@ -410,7 +489,7 @@ ReadElectric(DataManager* pDM,
 		SAFENEWWITHCONSTRUCTOR(pEl, Motor,
 			Motor(uLabel, pDO,
 				pStrNode1, pStrNode2, pVoltage1, pVoltage2,
-				TmpDir, dG, dl, dr, i0, fOut));
+				Rn, dG, dL, dR, i0, p, pM0, pM1, fOut));
 		} break;
 
 	case DISCRETECONTROL: {

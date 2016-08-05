@@ -1001,7 +1001,7 @@ HighParser::IsWord(const HighParser::WordSet& ws)
 }
 
 TypedValue
-HighParser::GetValue(const TypedValue& vDefVal)
+HighParser::GetValue(const TypedValue& vDefVal, HighParser::range_base<TypedValue> range)
 {
 	const char sFuncName[] = "HighParser::GetValue()";
 
@@ -1032,6 +1032,11 @@ HighParser::GetValue(const TypedValue& vDefVal)
 	}
 
 	NextToken(sFuncName);
+
+	if (!range.check(v)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+
 	return v;
 }
 
@@ -1076,19 +1081,27 @@ HighParser::GetYesNoOrBool(bool bDefval)
 }
 
 integer
-HighParser::GetInt(int iDefVal)
+HighParser::GetInt(int iDefVal, HighParser::range_base<integer> range)
 {
 	TypedValue v(iDefVal);
 	v = GetValue(v);
-	return v.GetInt();
+	integer val = v.GetInt();
+	if (!range.check(val)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+	return val;
 }
 
 doublereal
-HighParser::GetReal(const doublereal& dDefVal)
+HighParser::GetReal(const doublereal& dDefVal, HighParser::range_base<doublereal> range)
 {
 	TypedValue v(dDefVal);
 	v = GetValue(v);
-	return v.GetReal();
+	doublereal val = v.GetReal();
+	if (!range.check(val)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+	return val;
 }
 
 mbsleep_t

@@ -251,6 +251,7 @@ class Mat3xN {
    void Reset(const doublereal& d = 0.);
    
    inline integer iGetNumCols(void) const;
+   inline integer iGetNumRows(void) const { return 3; }
    
    inline void Put(int i, integer j, const doublereal& d);
    inline void Add(int i, integer j, const doublereal& d);
@@ -541,6 +542,7 @@ class MatNxN {
    ~MatNxN(void);
    
    inline integer iGetNumRows(void) const;
+   inline integer iGetNumCols(void) const;
    void Reset(const doublereal d = 0.);
    inline void Put(integer i, integer j, const doublereal& d);
    inline void Add(integer i, integer j, const doublereal& d);
@@ -565,6 +567,13 @@ inline integer MatNxN::iGetNumRows(void) const
    return iNumRows;
 }
 
+inline integer MatNxN::iGetNumCols(void) const 
+{
+#ifdef DEBUG
+   IsValid();
+#endif /* DEBUG */
+   return iNumRows;
+}
 
 inline void MatNxN::Put(integer i, integer j, const doublereal& d)
 {

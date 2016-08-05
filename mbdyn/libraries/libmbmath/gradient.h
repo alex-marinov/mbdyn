@@ -128,6 +128,18 @@ struct MaxSizeCheck<true> {
 	enum CheckType {};
 };
 
+    template <typename T>
+    struct IntegerTypeTraits
+    {
+        // FIXME: We should use std::numeric_limits<T>::max() here!
+        // FIXME: Unfortunately that value is not accessible at compile time
+        static const T iMaxValue = (T(-1) < 0)
+            ? ~T(0) & ~(T(1) << (sizeof(T) * CHAR_BIT - 1))
+                                : ~T(0);
+    };
+
+    static const index_type DYNAMIC_SIZE = IntegerTypeTraits<index_type>::iMaxValue - 1;
+    
 #ifndef GRADIENT_VECTOR_REGISTER_SIZE
 	#define GRADIENT_VECTOR_REGISTER_SIZE 0
 #endif
@@ -146,31 +158,36 @@ public:
 
     template <typename U>
     struct rebind {
-        typedef GradientAllocator<U> other; };
+            typedef GradientAllocator<U> other;
+        };
 
     GradientAllocator() throw() { }
 
     GradientAllocator(const GradientAllocator& a) throw()
-    	:std::allocator<T>(a)
-    { }
+            :std::allocator<T>(a) {
+        }
 
     template <typename U>
     GradientAllocator(const GradientAllocator<U>& a) throw()
-    	:std::allocator<T>(a)
-    { }
+            :std::allocator<T>(a) {
+        }
 
     pointer
-    allocate(size_type n, const void* p=0)
-    {
+        allocate(size_type n, const void* p=0) {
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Inc(n);
 #endif
-        return std::allocator<T>::allocate(n, p);
+
+            const pointer pMem = std::allocator<T>::allocate(n, p);
+
+#if GRADIENT_DEBUG > 0
+            std::memset(pMem, 0xFF, n);
+#endif      
+            return pMem;
     }
 
     void
-    deallocate(pointer p, size_type n)
-    {
+        deallocate(pointer p, size_type n) {
     	std::allocator<T>::deallocate(p, n);
 
 #if GRADIENT_MEMORY_STAT > 0
@@ -178,8 +195,7 @@ public:
 #endif
     }
 
-    static T* allocate_aligned(size_type alignment, size_t n, size_type extra_bytes = 0u)
-    {
+        static T* allocate_aligned(size_type alignment, size_t n, size_type extra_bytes = 0u) {
 #if GRADIENT_MEMORY_STAT > 0
     	sMemUsage.Inc(n);
 #endif
@@ -190,8 +206,7 @@ public:
     	GRADIENT_ASSERT(alignment % sizeof(void*) == 0);
 
 #if defined(HAVE_POSIX_MEMALIGN)
-    	if (0 != posix_memalign(&p, alignment, byte_size))
-    	{
+            if (0 != posix_memalign(&p, alignment, byte_size)) {
     		p = 0;
     	}
 #elif defined(HAVE_MEMALIGN)
@@ -201,19 +216,27 @@ public:
 #else
         p = malloc(byte_size);
 #endif
-
-    	if (p == 0)
-    	{
+            if (p == 0) {
     		throw std::bad_alloc();
     	}
 
+#if GRADIENT_DEBUG > 0
+            const ptrdiff_t alignment_curr = (reinterpret_cast<const char*>(p) - reinterpret_cast<const char*>(0)) % sizeof(alignment);
+        
+            if (alignment_curr != 0) {
+                silent_cout("address " << p << " has invalid alignment " << alignment_curr << std::endl);
+            }
+
+            GRADIENT_ASSERT(alignment_curr == 0);
+
+            std::memset(p, 0xFF, byte_size);
+#endif        
     	return reinterpret_cast<T*>(p);
     }
 
 
     static void
-    deallocate_aligned(pointer p, size_type n)
-    {
+        deallocate_aligned(pointer p, size_type n) {
 #if defined(HAVE_ALIGNED_MALLOC)
         _aligned_free(p);
 #else
@@ -234,13 +257,13 @@ public:
     	}
 
     	~MemStat() {
-    		std::cerr << "GradientAllocator<" << typeid(T).name()
+                silent_cerr("GradientAllocator<" << typeid(T).name()
     				<< ">\n\tiMaxMem = "
     				<< std::setprecision(3)
     				<< iMaxMem << std::endl
     				<< "\tiCurrMem=" << iCurrMem << std::endl
     				<< "\tiNumAlloc=" << iNumAlloc << std::endl
-    				<< "\tiNumDealloc=" << iNumDealloc << std::endl;
+                            << "\tiNumDealloc=" << iNumDealloc << std::endl);
     	}
 
     	void Inc(size_t iSize) {
@@ -265,16 +288,13 @@ public:
 #endif
 };
 
-struct AlignedAlloc
-{
+    struct AlignedAlloc {
 #if USE_AUTODIFF > 0 && GRADIENT_VECTOR_REGISTER_SIZE > 0
-	void* operator new(size_t size)
-	{
+        void* operator new(size_t size) {
 		const size_t nBound = GRADIENT_VECTOR_REGISTER_SIZE > sizeof(void*) ? GRADIENT_VECTOR_REGISTER_SIZE : sizeof(void*);
 		return GradientAllocator<char>::allocate_aligned(nBound, 0, size);
 	}
-	void operator delete(void *p)
-	{
+        void operator delete(void *p) {
 		GradientAllocator<char>::deallocate_aligned(reinterpret_cast<char*>(p), 0);
 	}
 #endif
@@ -286,6 +306,22 @@ typename GradientAllocator<T>::MemStat GradientAllocator<T>::sMemUsage;
 #endif
 
 template <typename T>
+    inline void array_fill(T* first, T* const last, const T& val) {
+        while (first < last) {
+            *first++ = val;
+        }
+    }
+
+    template <typename T>
+    inline T* array_copy(const T* first, const T* const last, T* result) {
+        while (first < last) {
+            *result++ = *first++;
+        }
+        
+        return result;
+    }
+
+    template <typename T>
 struct RangeVectorTraits {
 	static T Zero(){
 		return T();
@@ -311,8 +347,7 @@ typedef doublereal scalar_func_type; // data type for the value of a function
 typedef doublereal scalar_deriv_type; // data type for the value of a functions derivative
 
 template <typename T, index_type N_SIZE=0>
-class RangeVectorBase
-{
+    class RangeVectorBase {
 public:
 
 #if GRADIENT_VECTOR_REGISTER_SIZE > 0
@@ -326,14 +361,12 @@ public:
 
 	typedef T scalar_type;
 
-    static index_type iRoundStartIndexVector(index_type iStart)
-    {
+        static index_type iRoundStartIndexVector(index_type iStart) {
     	return iStart / iVectorSize;
     }
 
-    static index_type iRoundEndIndexVector(index_type iEnd)
-    {
-    	return iEnd / iVectorSize + ((iEnd % iVectorSize) ? 1 : 0);
+        static index_type iRoundEndIndexVector(index_type iEnd) {
+            return iEnd / iVectorSize + (iEnd % iVectorSize ? 1 : 0);
     }
 };
 
@@ -351,8 +384,7 @@ public:
 	static const index_type iMaxSizeVector = N_SIZE / iVectorSize + (N_SIZE % iVectorSize ? 1 : 0);
 	static const index_type iMaxSize = N_SIZE;
 
-    RangeVector()
-	{
+        RangeVector() {
 #if GRADIENT_DEBUG > 0
         Initialize(0, iMaxSize, RangeVectorTraits<scalar_type>::Invalid());
 #endif
@@ -366,8 +398,7 @@ public:
         GRADIENT_ASSERT(bInvariant());
     }
     
-    RangeVector(const RangeVector& v)
-    {
+        RangeVector(const RangeVector& v) {
         GRADIENT_ASSERT(bIsAligned());
 
     	Copy(v);
@@ -376,8 +407,7 @@ public:
     }
     
     template <typename T2, index_type N_SIZE2>
-    RangeVector(const RangeVector<T2, N_SIZE2>& v)
-    {
+        RangeVector(const RangeVector<T2, N_SIZE2>& v) {
         GRADIENT_ASSERT(bIsAligned());
 
     	Copy(v);
@@ -385,8 +415,7 @@ public:
     	GRADIENT_ASSERT(bInvariant());
     }
 
-    explicit RangeVector(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
-    {
+        explicit RangeVector(index_type iStartNew, index_type iEndNew, const scalar_type& dVal) {
         GRADIENT_ASSERT(bIsAligned());
 
         Initialize(iStartNew, iEndNew, dVal);
@@ -394,8 +423,7 @@ public:
         GRADIENT_ASSERT(bInvariant());
     }
 
-    RangeVector& operator=(const RangeVector& v)
-    {
+        RangeVector& operator=(const RangeVector& v) {
         GRADIENT_ASSERT(bIsAligned());
         
     	GRADIENT_ASSERT(bInvariant());
@@ -408,8 +436,7 @@ public:
     }
 
     template <typename T2, index_type N_SIZE2>
-    RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v)
-    {
+        RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v) {
         GRADIENT_ASSERT(bIsAligned());
         
     	GRADIENT_ASSERT(bInvariant());
@@ -421,8 +448,7 @@ public:
     	return *this;
     }
 
-    void ResizeReset(index_type iStartNew, index_type iEndNew, const T& dVal)
-    {
+        void ResizeReset(index_type iStartNew, index_type iEndNew, const T& dVal) {
         GRADIENT_ASSERT(bIsAligned());
 
     	GRADIENT_ASSERT(bInvariant());
@@ -432,8 +458,7 @@ public:
         GRADIENT_ASSERT(bInvariant());
     }
 
-    void ResizePreserve(index_type iStartNew, index_type iEndNew)
-    {
+        void ResizePreserve(index_type iStartNew, index_type iEndNew) {
         GRADIENT_ASSERT(bIsAligned());
         
     	GRADIENT_ASSERT(bInvariant());
@@ -443,25 +468,23 @@ public:
     	iStartVec = iRoundStartIndexVector(iStartNew);
     	iEndVec = iRoundEndIndexVector(iEndNew);
 
-    	std::fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
-    	std::fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
+            array_fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
+            array_fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
 
     	GRADIENT_ASSERT(bInvariant());
     	}
 
-    void Reset()
-    {
+        void Reset() {
         GRADIENT_ASSERT(bIsAligned());
 
     	GRADIENT_ASSERT(bInvariant());
     	// Reset the data but preserve iStart and iEnd
-    	std::fill(rgArrayVec + iStartVec, rgArrayVec + iEndVec, RangeVectorTraits<vector_type>::Zero());
+            array_fill(rgArrayVec + iStartVec, rgArrayVec + iEndVec, RangeVectorTraits<vector_type>::Zero());
 
     	GRADIENT_ASSERT(bInvariant());
     	}
 
-    void Reserve(index_type iMaxSizeNew)
-    {
+        void Reserve(index_type iMaxSizeNew) {
         GRADIENT_ASSERT(bIsAligned());
     	GRADIENT_ASSERT(bInvariant());
     	GRADIENT_ASSERT(iMaxSizeNew <= iMaxSize);
@@ -476,8 +499,7 @@ public:
     index_type iGetSizeVector() const { return iEndVec - iStartVec; }
     static index_type iGetMaxSizeVector() { return iMaxSizeVector; }
     
-    scalar_type GetValue(index_type i) const
-    {
+        scalar_type GetValue(index_type i) const {
         GRADIENT_ASSERT(i >= 0);
         GRADIENT_ASSERT(i < iMaxSize);
         GRADIENT_ASSERT((i >= iGetStartIndex() && i < iGetEndIndex()) || rgArray[i] == RangeVectorTraits<scalar_type>::Zero());
@@ -486,8 +508,7 @@ public:
         return rgArray[i];
     }
     
-    void SetValue(index_type i, const scalar_type& d)
-    {
+        void SetValue(index_type i, const scalar_type& d) {
         GRADIENT_ASSERT(i >= 0);
         GRADIENT_ASSERT(i < iMaxSize);
         GRADIENT_ASSERT(i >= iGetStartIndex() && i < iGetEndIndex());
@@ -520,24 +541,22 @@ private:
     using RangeVectorBase<T, N_SIZE>::iRoundStartIndexVector;
     using RangeVectorBase<T, N_SIZE>::iRoundEndIndexVector;
 
-    void Initialize(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
-    {
+        void Initialize(index_type iStartNew, index_type iEndNew, const scalar_type& dVal) {
     	iStart = iStartNew;
     	iEnd = iEndNew;
     	iStartVec = iRoundStartIndexVector(iStartNew);
     	iEndVec = iRoundEndIndexVector(iEndNew);
         
-        std::fill(rgArrayVec, rgArrayVec + iMaxSizeVector, RangeVectorTraits<vector_type>::Zero());
+            array_fill(rgArrayVec, rgArrayVec + iMaxSizeVector, RangeVectorTraits<vector_type>::Zero());
         
         if (dVal != RangeVectorTraits<scalar_type>::Zero())
         {
-        	std::fill(rgArray + iStart, rgArray + iEnd, dVal);
+                array_fill(rgArray + iStart, rgArray + iEnd, dVal);
         }
     }
     
     template <typename T2, index_type N_SIZE2>
-    void Copy(const RangeVector<T2, N_SIZE2>& v)
-    {
+        void Copy(const RangeVector<T2, N_SIZE2>& v) {
     	typedef typename MaxSizeCheck<iMaxSize >= RangeVector<T2, N_SIZE2>::iMaxSize>::CheckType check_iMaxSize;
 
     	iStart = v.iGetStartIndex();
@@ -546,28 +565,25 @@ private:
     	iEndVec = iRoundEndIndexVector(iEnd);
 
 		// This allows fast access without frequent index checking
-		std::fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
-		std::fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
+            array_fill(rgArray, rgArray + iStart, RangeVectorTraits<scalar_type>::Zero());
+            array_fill(rgArray + iEnd, rgArray + iMaxSize, RangeVectorTraits<scalar_type>::Zero());
 
 		CopyData(v);
 		}
 
     template <typename T2, index_type N_SIZE2>
-    void CopyData(const RangeVector<T2, N_SIZE2>& v)
-    {
+        void CopyData(const RangeVector<T2, N_SIZE2>& v) {
 		for (index_type i = iStart; i < iEnd; ++i) {
 			SetValue(i, v.GetValue(i));
 		}
     }
 
-    void CopyData(const RangeVector& v)
-    {
-    	std::copy(v.rgArrayVec + v.iStartVec, v.rgArrayVec + v.iEndVec, rgArrayVec + iStartVec);
+        void CopyData(const RangeVector& v) {
+            array_copy(v.rgArrayVec + v.iStartVec, v.rgArrayVec + v.iEndVec, rgArrayVec + iStartVec);
     }
 
 #if GRADIENT_DEBUG > 0
-    bool bInvariant() const
-    {
+        bool bInvariant() const {
 		GRADIENT_ASSERT(iEndVec <= iMaxSizeVector);
 		GRADIENT_ASSERT(iStartVec >= 0);
 		GRADIENT_ASSERT(iStartVec <= iEndVec);
@@ -582,15 +598,12 @@ private:
 		GRADIENT_ASSERT(iEndOffset >= 0);
 		GRADIENT_ASSERT(iEndOffset < iVectorSize);
 
-		if (iGetSize() > 0)
-		{
-			for (index_type i = 0; i < iStart; ++i)
-			{
+            if (iGetSize() > 0) {
+                for (index_type i = 0; i < iStart; ++i) {
 				GRADIENT_ASSERT(GetValue(i) == RangeVectorTraits<scalar_type>::Zero());
 		}
 
-			for (index_type i = iEnd; i < iMaxSize; ++i)
-			{
+                for (index_type i = iEnd; i < iMaxSize; ++i) {
 				GRADIENT_ASSERT(GetValue(i) == RangeVectorTraits<scalar_type>::Zero());
 		}
     }
@@ -598,21 +611,24 @@ private:
 		return true;
     }
     
-    bool bIsAligned() const
-    {
+        bool bIsAligned() const {
 #ifdef __GNUC__
     	GRADIENT_ASSERT(__alignof__(rgArrayVec) >= sizeof(vector_type));
 #endif        
         const ptrdiff_t alignment = (reinterpret_cast<const char*>(rgArrayVec) - reinterpret_cast<const char*>(0)) % sizeof(vector_type);
         
-        if (alignment != 0)
-        {
-            std::cerr << "address " << rgArrayVec << " has invalid alignment " << alignment << std::endl;
+            if (alignment != 0) {
+                silent_cout("address " << rgArrayVec << " has invalid alignment " << alignment << std::endl);
         }
         
+#if defined(WIN32) || defined(__CYGWIN__)
+            // FIXME: Stack is aligned at 16 byte boundaries on 64bit Windows systems
+            // FIXME: Therefore this test will always fail on Windows
+            return true;
+#else
         GRADIENT_ASSERT(alignment == 0);
-        
         return alignment == 0;
+#endif
     }
 #endif
 
@@ -626,29 +642,23 @@ private:
 };
 
 template <typename T>
-class RangeVector<T, 0>: public RangeVectorBase<T, 0>
-{
+    class RangeVector<T, 0>: public RangeVectorBase<T, 0> {
 public:
 	static const index_type iVectorSize = RangeVectorBase<T, 0>::iVectorSize;
 	typedef typename RangeVectorBase<T, 0>::scalar_type scalar_type;
 	typedef typename RangeVectorBase<T, 0>::vector_type vector_type;
 
-	static const index_type iMaxSize = ((index_type(-1) < 0)
-											? ~index_type(0) & ~(index_type(1) << (sizeof(index_type) * CHAR_BIT - 1))
-											: ~index_type(0)
-										 ) / sizeof(scalar_type);
+        static const index_type iMaxSize = IntegerTypeTraits<index_type>::iMaxValue / sizeof(scalar_type);
 
 	static const index_type iMaxSizeVector = iMaxSize / iVectorSize;
 
     RangeVector()
-    	:pData(pNullData())
-	{
+            :pData(pNullData()) {
     	GRADIENT_ASSERT(bInvariant());
     }
     
     RangeVector(const RangeVector& v)
-    	:pData(pNullData())
-    {
+            :pData(pNullData()) {
     	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
     	Copy(v);
 
@@ -657,8 +667,7 @@ public:
 
     template <typename T2, index_type N_SIZE2>
     RangeVector(const RangeVector<T2, N_SIZE2>& v)
-    	:pData(pNullData())
-    {
+            :pData(pNullData()) {
     	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
     	Copy(v);
 
@@ -666,23 +675,20 @@ public:
     }
 
     explicit RangeVector(index_type iStart, index_type iEnd, const scalar_type& dVal)
-    	:pData(pNullData())
-    {
+            :pData(pNullData()) {
     	ReserveMem(iStart, iEnd, RESIZE);
     	Initialize(iStart, iEnd, dVal);
 
     	GRADIENT_ASSERT(bInvariant());
     }
 
-    ~RangeVector()
-    {
+        ~RangeVector() {
     	GRADIENT_ASSERT(bInvariant());
 
     	FreeMem();
     }
 
-    RangeVector& operator=(const RangeVector& v)
-    {
+        RangeVector& operator=(const RangeVector& v) {
     	GRADIENT_ASSERT(bInvariant());
 
     	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
@@ -694,8 +700,7 @@ public:
     }
 
     template <typename T2, index_type N_SIZE2>
-    RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v)
-    {
+        RangeVector& operator=(const RangeVector<T2, N_SIZE2>& v) {
     	GRADIENT_ASSERT(bInvariant());
 
     	ReserveMem(v.iGetStartIndex(), v.iGetEndIndex(), RESIZE);
@@ -706,8 +711,7 @@ public:
     	return *this;
     }
 
-    void ResizeReset(index_type iStartNew, index_type iEndNew, const scalar_type& dVal)
-    {
+        void ResizeReset(index_type iStartNew, index_type iEndNew, const scalar_type& dVal) {
     	GRADIENT_ASSERT(bInvariant());
 
     	ReserveMem(iStartNew, iEndNew, RESIZE);
@@ -716,27 +720,28 @@ public:
     	GRADIENT_ASSERT(bInvariant());
     }
     
-    void ResizePreserve(index_type iStartNew, index_type iEndNew)
-    {
+        void ResizePreserve(index_type iStartNew, index_type iEndNew) {
     	GRADIENT_ASSERT(bInvariant());
+            const index_type iStartNewVec = iRoundStartIndexVector(iStartNew);
+            const index_type iEndNewVec = iRoundEndIndexVector(iEndNew);
 
-    	if (iStartNew == iGetStartIndex() && iEndNew - iStartNew <= iGetCapacity())
-    	{
+            if (iStartNewVec == iGetStartIndexVector() && iEndNewVec - iStartNewVec <= iGetCapacityVector()) {
     		const index_type iEndCurrVec = iGetEndIndexVector();
 
     		ReserveMem(iStartNew, iEndNew, RESIZE);
 
-    		std::fill(beginVec() + iEndCurrVec, endVec(), RangeVectorTraits<vector_type>::Zero());
+                GRADIENT_ASSERT(iEndCurrVec <= pData->iEndVec);
+
+                array_fill(beginVec() + iEndCurrVec, endVec(), RangeVectorTraits<vector_type>::Zero());
     }
-    	else
-    	{
+            else {
 			RangeVector<T, 0> oTmpVec;
 			oTmpVec.ReserveMem(iStartNew, iEndNew, RESIZE);
 			oTmpVec.Reset();
 			const index_type iComStartVec = std::max(iGetStartIndexVector(), oTmpVec.iGetStartIndexVector());
 			const index_type iComEndVec = std::min(iGetEndIndexVector(), oTmpVec.iGetEndIndexVector());
 
-			std::copy(beginVec() + iComStartVec - iGetStartIndexVector(),
+                array_copy(beginVec() + iComStartVec - iGetStartIndexVector(),
 					  beginVec() + iComEndVec - iGetStartIndexVector(),
 					  oTmpVec.beginVec() + iComStartVec - oTmpVec.iGetStartIndexVector());
 
@@ -746,28 +751,24 @@ public:
     	GRADIENT_ASSERT(bInvariant());
     }
 
-    void Reset()
-    {
+        void Reset() {
     	GRADIENT_ASSERT(bInvariant());
     	// Reset the data but preserve memory and iStart
-    	std::fill(beginVec(), endVec(), RangeVectorTraits<vector_type>::Zero());
+            array_fill(beginVec(), endVec(), RangeVectorTraits<vector_type>::Zero());
 
     	GRADIENT_ASSERT(bInvariant());
     			}
 
-    void Reserve(index_type iMaxSize)
-    {
+        void Reserve(index_type iMaxSize) {
     	GRADIENT_ASSERT(bInvariant());
 
     	const index_type iCurrCap = iGetCapacity();
 
-    	if (iCurrCap >= iMaxSize)
-    	{
+            if (iCurrCap >= iMaxSize) {
     		return;
     		}
 
-    	if (iGetSizeVector() > 0)
-    	{
+            if (iGetSizeVector() > 0) {
     		RangeVector oTmpVec;
 
     		GRADIENT_ASSERT(oTmpVec.iGetSizeVector() == 0);
@@ -776,50 +777,41 @@ public:
     		oTmpVec = *this;
 
     		std::swap(pData, oTmpVec.pData);
-    	}
-    	else
-    	{
+            } else {
     		ReserveMem(0, iMaxSize, RESERVE);
     }
 
     	GRADIENT_ASSERT(bInvariant());
     }
 
-    index_type iGetStartIndex() const
-    {
+        index_type iGetStartIndex() const {
     	return pData->iStart;
     }
 
-    index_type iGetEndIndex() const
-    {
+        index_type iGetEndIndex() const {
     	return pData->iEnd;
     }
 
-    index_type iGetStartIndexVector() const
-    {
+        index_type iGetStartIndexVector() const {
     	return pData->iStartVec;
     }
 
-    index_type iGetEndIndexVector() const
-    {
+        index_type iGetEndIndexVector() const {
     	return pData->iEndVec;
     }
 
-    index_type iGetSizeVector() const
-    {
+        index_type iGetSizeVector() const {
     	return pData->iEndVec - pData->iStartVec;
     }
 
-    index_type iGetSize() const
-    {
+        index_type iGetSize() const {
     	return pData->iEnd - pData->iStart;
     }
 
     static index_type iGetMaxSize() { return iMaxSize; }
     static index_type iGetMaxSizeVector() { return iMaxSizeVector; }
 
-    scalar_type GetValue(index_type i) const
-    {
+        scalar_type GetValue(index_type i) const {
     	GRADIENT_ASSERT(i >= 0);
     	GRADIENT_ASSERT(i < iGetMaxSize());
 
@@ -828,8 +820,7 @@ public:
         		: RangeVectorTraits<scalar_type>::Zero();
     }
     
-    void SetValue(index_type i, const scalar_type& d)
-    {
+        void SetValue(index_type i, const scalar_type& d) {
     	GRADIENT_ASSERT(i >= 0);
     	GRADIENT_ASSERT(i < iGetMaxSize());
         GRADIENT_ASSERT(i >= iGetStartIndex() && i < iGetEndIndex());
@@ -837,8 +828,7 @@ public:
         begin()[i - iGetStartIndexVector() * iVectorSize] = d;
     }
     
-    vector_type GetVectorValue(index_type i) const
-    {
+        vector_type GetVectorValue(index_type i) const {
         GRADIENT_ASSERT(i >= 0);
         GRADIENT_ASSERT(i < iMaxSizeVector);
 
@@ -887,25 +877,22 @@ private:
     }
 
     template <typename T2, index_type N_SIZE2>
-    void Copy(const RangeVector<T2, N_SIZE2>& v)
-    {
+        void Copy(const RangeVector<T2, N_SIZE2>& v) {
     	for (index_type i = iGetStartIndex(); i < iGetEndIndex(); ++i) {
     		SetValue(i,  v.GetValue(i));
     	}
     }
 
-    void Copy(const RangeVector& v)
-    {
-    	std::copy(v.beginVec(), v.endVec(), beginVec());
+        void Copy(const RangeVector& v) {
+            array_copy(v.beginVec(), v.endVec(), beginVec());
     }
 
-    void Initialize(index_type iStart, index_type iEnd, const scalar_type& dVal)
-    {
+        void Initialize(index_type iStart, index_type iEnd, const scalar_type& dVal) {
     	Reset();
 
     	if (dVal != RangeVectorTraits<scalar_type>::Zero())
     	{
-    		std::fill(begin() + iStart - iGetStartIndexVector() * iVectorSize, begin() + iEnd - iGetStartIndexVector() * iVectorSize, dVal);
+                array_fill(begin() + iStart - iGetStartIndexVector() * iVectorSize, begin() + iEnd - iGetStartIndexVector() * iVectorSize, dVal);
     	}
     }
 
@@ -915,55 +902,45 @@ private:
     	RESERVE
     };
 
-    scalar_type* begin()
-    {
+        scalar_type* begin() {
     	return pData->rgArray;
     }
 
-    scalar_type* end()
-    {
+        scalar_type* end() {
     	return begin() + iGetSize();
     }
 
-    const scalar_type* begin() const
-    {
+        const scalar_type* begin() const {
     	return pData->rgArray;
     }
 
-    const scalar_type* end() const
-    {
+        const scalar_type* end() const {
     	return begin() + iGetSize();
     }
 
-    vector_type* beginVec()
-    {
+        vector_type* beginVec() {
     	return pData->rgArrayVec;
     }
 
-    vector_type* endVec()
-    {
+        vector_type* endVec() {
     	return beginVec() + iGetSizeVector();
     }
 
-    const vector_type* beginVec() const
-    {
+        const vector_type* beginVec() const {
     	return pData->rgArrayVec;
     }
 
-    const vector_type* endVec() const
-    {
+        const vector_type* endVec() const {
     	return beginVec() + iGetSizeVector();
     }
 
-    void ReserveMem(index_type iStartNew, index_type iEndNew, MemFlags eFlags = RESIZE)
-    {
+        void ReserveMem(index_type iStartNew, index_type iEndNew, MemFlags eFlags = RESIZE) {
     	const index_type iCapCurr = iGetCapacityVector();
     	index_type iStartVec = iRoundStartIndexVector(iStartNew);
     	index_type iEndVec = iRoundEndIndexVector(iEndNew);
     	const index_type iSizeVec = iEndVec - iStartVec;
 
-    	if (iSizeVec > iCapCurr)
-    	{
+            if (iSizeVec > iCapCurr) {
     		FreeMem();
 
     		pData = GradientAllocator<Data>::allocate_aligned(sizeof(vector_type), 1u, sizeof(vector_type) * iSizeVec);
@@ -973,15 +950,13 @@ private:
 
     	GRADIENT_ASSERT(((char*)(pData->rgArrayVec) - (char*)0) % sizeof(vector_type) == 0);
 
-    	if (pData == pNullData())
-    	{
+            if (pData == pNullData()) {
     		GRADIENT_ASSERT(iSizeVec == 0);
 
     		return;
     	}
 
-    	if (eFlags == RESERVE)
-    	{
+            if (eFlags == RESERVE) {
     		iStartNew = iEndNew = iStartVec = iEndVec = 0;
     	}
 
@@ -991,10 +966,8 @@ private:
 		pData->iEndVec = iEndVec;
     }
 
-    void FreeMem()
-    {
-    	if (pData != pNullData())
-    	{
+        void FreeMem() {
+            if (pData != pNullData()) {
     		GradientAllocator<Data>::deallocate_aligned(pData, 1u);
     		pData = pNullData();
     	}
@@ -1012,8 +985,7 @@ private:
     }
     
 #if GRADIENT_DEBUG > 0
-    bool bInvariant() const
-    {
+        bool bInvariant() const {
     	GRADIENT_ASSERT(pData != 0);
     	GRADIENT_ASSERT(pData->iStart >= 0);
     	GRADIENT_ASSERT(pData->iStart <= pData->iEnd);
@@ -1343,8 +1315,7 @@ struct MaxDerivatives {
 };
 
 template <index_type N_SIZE1, index_type N_SIZE2>
-struct GradientSizeHelper
-{
+    struct GradientSizeHelper {
 	static const index_type iDimension = (N_SIZE1 == 0 || N_SIZE2 == 0) ? 0 : (N_SIZE1 > N_SIZE2 ? N_SIZE1 : N_SIZE2);
 	typedef Gradient<iDimension> GradientType;
 };
@@ -2180,8 +2151,7 @@ template <bool bVectorize>
 struct ApplyDerivativeHelper	{	};
 
 template <>
-struct ApplyDerivativeHelper<false>
-{
+    struct ApplyDerivativeHelper<false> {
     template <typename MapVectorType, typename Expression>
     static void ApplyDerivative(MapVectorType& ad, const GradientExpression<Expression>& f) {
         for (index_type i = ad.iGetStartIndexLocal(); i < ad.iGetEndIndexLocal(); ++i) {
@@ -2205,8 +2175,7 @@ struct ApplyDerivativeHelper<false>
 };
 
 template <>
-struct ApplyDerivativeHelper<true>
-{
+    struct ApplyDerivativeHelper<true> {
     template <typename MapVectorType, typename Expression>
     static void ApplyDerivative(MapVectorType& ad, const GradientExpression<Expression>& f) {
         for (index_type i = ad.iGetStartIndexLocalVector(); i < ad.iGetEndIndexLocalVector(); ++i) {
@@ -2238,33 +2207,27 @@ template <bool ALIAS>
 struct ApplyAliasHelper {};
 
 template <>
-struct ApplyAliasHelper<false>
-{
+    struct ApplyAliasHelper<false> {
 	template <typename GradientType, typename Expression>
-	static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f)
-	{
+        static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f) {
 		g.ApplyNoAlias(f);
 	}
 
     template <typename BinFunc, typename GradientType, typename Expression>
-    static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc)
-    {
+        static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc) {
     	g.ApplyBinaryFunctionNoAlias(f, bfunc);
     }
 };
 
 template <>
-struct ApplyAliasHelper<true>
-{
+    struct ApplyAliasHelper<true> {
 	template <typename GradientType, typename Expression>
-	static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f)
-	{
+        static inline void ApplyExpression(GradientType& g, const GradientExpression<Expression>& f) {
 		g.ApplyWithAlias(f);
 	}
 
     template <typename BinFunc, typename GradientType, typename Expression>
-    static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc)
-    {
+        static void ApplyBinaryFunction(GradientType& g, const GradientExpression<Expression>& f, const BinFunc& bfunc) {
     	g.ApplyBinaryFunctionWithAlias(f, bfunc);
     }
 };
@@ -2291,8 +2254,7 @@ public:
     }
 
     Gradient(const Gradient& g)
-    :a(g.a), ad(g.ad)
-    {
+            :a(g.a), ad(g.ad) {
         
     }
 

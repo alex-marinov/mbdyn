@@ -30,7 +30,7 @@
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
-
+#include <sstream>
 #include "dataman.h"
 #include "filedrv.h"
 #include "streamdrive.h"

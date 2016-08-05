@@ -49,6 +49,15 @@
 #include <fstream>
 #include <joint.h>
 
+#if !defined(MODAL_USE_AUTODIFF)
+#define MODAL_USE_AUTODIFF USE_AUTODIFF
+#endif
+
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+#include <gradient.h>
+#include <matvec.h>
+#include <matvecass.h>
+#endif
 
 #if 0
 #define MODAL_USE_INV9
@@ -63,9 +72,62 @@
  */
 
 class Modal : virtual public Elem, public Joint {
+public:
+	struct StrNodeData;
+
+private:
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+	inline void
+	UpdateStrNodeData(StrNodeData& oNode,
+                          const grad::Vector<doublereal, 3>& d1tot,
+                          const grad::Matrix<doublereal, 3, 3>& R1tot,
+                          const grad::Vector<doublereal, 3>& F,
+                          const grad::Vector<doublereal, 3>& M,
+                          const grad::Matrix<doublereal, 3, 3>& R2);
+	inline void
+	UpdateStrNodeData(StrNodeData& oNode,
+                          const grad::Vector<grad::Gradient<0>, 3>& d1tot,
+                          const grad::Matrix<grad::Gradient<0>, 3, 3>& R1tot,
+                          const grad::Vector<grad::Gradient<0>, 3>& F,
+                          const grad::Vector<grad::Gradient<0>, 3>& M,
+                          const grad::Matrix<grad::Gradient<0>, 3, 3>& R2) {}
+
+	inline void
+	UpdateModalNode(const grad::Vector<doublereal, 3>& x,
+                        const grad::Matrix<doublereal, 3, 3>& R);
+
+	inline void
+	UpdateModalNode(const grad::Vector<grad::Gradient<0>, 3>& x,
+                        const grad::Matrix<grad::Gradient<0>, 3, 3>& R) {}
+
+        inline void
+	UpdateState(const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& a,
+                    const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& aP,
+                    const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& b,
+                    const grad::Vector<doublereal, grad::DYNAMIC_SIZE>& bP);
+
+        inline void
+	UpdateState(const grad::Vector<grad::Gradient<0>, grad::DYNAMIC_SIZE>&,
+                    const grad::Vector<grad::Gradient<0>, grad::DYNAMIC_SIZE>&,
+                    const grad::Vector<grad::Gradient<0>, grad::DYNAMIC_SIZE>&,
+                    const grad::Vector<grad::Gradient<0>, grad::DYNAMIC_SIZE>&) { }
+
+        inline void
+	UpdateInvariants(const grad::Vector<doublereal, 3>& Inv3jaj,
+                         const grad::Matrix<doublereal, 3, 3>& Inv8jaj,
+                         const grad::Matrix<doublereal, 3, 3>& Inv9jkajak);
+
+    inline void
+	UpdateInvariants(const grad::Vector<grad::Gradient<0>, 3>& Inv3jaj,
+					 const grad::Matrix<grad::Gradient<0>, 3, 3>& Inv8jaj,
+					 const grad::Matrix<grad::Gradient<0>, 3, 3>& Inv9jkajak) {}
+
+    grad::LocalDofMap dofMap;
+#endif
+
 protected:
-	const ModalNode* pModalNode;
-	unsigned iRigidOffset;		/* 0 iff pModalNode == 0; else 12 */
+	const ModalNode* const pModalNode;
+	const unsigned iRigidOffset;		/* 0 iff pModalNode == 0; else 12 */
 
 	/* configuration of reference point;
 	 * from ModalNode iff pModalNode == 0 */
@@ -73,17 +135,17 @@ protected:
 	mutable Mat3x3	R;
 	mutable Mat3x3	RT;
 
-	unsigned int NModes;
-	unsigned int NStrNodes;
+	const unsigned int NModes;
+	const unsigned int NStrNodes;
 
-	unsigned int NFEMNodes; // number of FEM nodes, common
-	std::vector<std::string> IdFEMNodes; // ID of FEM nodes, common
+	const unsigned int NFEMNodes; // number of FEM nodes, common
+	const std::vector<std::string> IdFEMNodes; // ID of FEM nodes, common
 	const Mat3xN *pXYZFEMNodes; // local position of FEM nodes, common
 	const doublereal dMass; // mass, common
 	const Vec3 Inv2; // undeformed static moment, common
 	const Mat3x3 Inv7; // undeformed inertia moment, common
 
-	std::vector<unsigned int> uModeNumber;
+	const std::vector<unsigned int> uModeNumber;
 	const MatNxN *pModalMass;
 	const MatNxN *pModalStiff;
 	const MatNxN *pModalDamp;
@@ -107,14 +169,23 @@ protected:
 	const Mat3xN *pInv11;
 
 	Vec3   Inv3jaj;
+
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 	Vec3   Inv3jaPj;
+#endif
+
 	Mat3x3 Inv8jaj;
+
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 	Mat3x3 Inv8jaPj;
-	Mat3xN Inv5jaj, Inv5jaPj;
-	Vec3   VInv5jaj, VInv5jaPj;
-	Mat3x3 Inv8jTranspose;
+	Mat3xN Inv5jaj;
+	Mat3xN Inv5jaPj;
+#endif
 	Mat3x3 Inv9jkajak;
+
+#if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 	Mat3x3 Inv9jkajaPk;
+#endif
 
 	VecN a, a0;
 	VecN aPrime, aPrime0;
@@ -230,6 +301,15 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
 
+#if USE_AUTODIFF && MODAL_USE_AUTODIFF
+       template <typename T>
+       void
+       AssRes(grad::GradientAssVec<T>& WorkVec,
+              doublereal dCoef,
+              const grad::GradientVectorHandler<T>& XCurr,
+              const grad::GradientVectorHandler<T>& XPrimeCurr,
+              enum grad::FunctionCall func);
+#endif        
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */

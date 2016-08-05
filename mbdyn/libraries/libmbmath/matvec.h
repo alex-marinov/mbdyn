@@ -48,6 +48,9 @@
 #include "gradient.h"
 #include "matvec3.h" // FIXME: We need that for compatibility reasons
 #include "matvec6.h"
+#include "matvec3n.h"
+#include "RotCoeff.hh"
+#include "Rot.hh"
 
 #ifndef MATVEC_DEBUG
     #ifdef DEBUG
@@ -66,26 +69,22 @@
 namespace grad {
 
 template <typename T>
-struct VectorSize
-{
+    struct VectorSize {
 	static const int N = -1; // Note must not be zero because that would mean variable size!
 };
 
 template <>
-struct VectorSize<scalar_func_type>
-{
+    struct VectorSize<scalar_func_type> {
 	static const int N = 1;
 };
 
 template <>
-struct VectorSize<Vec3>
-{
+    struct VectorSize<Vec3> {
 	static const int N = 3;
 };
 
 template <>
-struct VectorSize<Vec6>
-{
+    struct VectorSize<Vec6> {
 	static const int N = 6;
 };
 
@@ -449,25 +448,22 @@ inline bool bArrayOverlap(const ScalarType1*, const ScalarType1*, const ScalarTy
 
 template <typename T>
 inline void ZeroInit(T* first, T* last) {
-	NO_OP;
+
 }
 
 template <>
 inline void ZeroInit<float>(float* first, float* last) {
-	// array_fill(first, last, 0.0F);
-	std::fill_n(first, last - first, 0.0F);
+        array_fill(first, last, 0.0F);
 }
  
 template <>
 inline void ZeroInit<double>(double* first, double* last) {
-	// array_fill(first, last, 0.0);
-	std::fill_n(first, last - first, 0.0);
+        array_fill(first, last, 0.0);
 }
 
 template <>
 inline void ZeroInit<long double>(long double* first, long double* last) {
-	// array_fill(first, last, 0.0L);
-	std::fill_n(first, last - first, 0.0L);
+        array_fill(first, last, 0.0L);
 }
 
 /**
@@ -497,44 +493,37 @@ struct IndexCheck<0L> {
 namespace MatVecHelp
 {
 	template <typename T>
-	struct AliasTypeHelper
-	{
+	struct AliasTypeHelper {
 
 	};
 
 	template <>
-	struct AliasTypeHelper<scalar_func_type>
-	{
+	struct AliasTypeHelper<scalar_func_type> {
 		static const bool bAlias = false;
 	};
 
 	template <typename Expression>
-	struct AliasTypeHelper<GradientExpression<Expression> >
-	{
+	struct AliasTypeHelper<GradientExpression<Expression> > {
 		static const bool bAlias = GradientExpression<Expression>::bAlias;
 	};
 
 	template <index_type N_SIZE, bool ALIAS>
-	struct AliasTypeHelper<DirectExpr<Gradient<N_SIZE>, ALIAS> >
-	{
+	struct AliasTypeHelper<DirectExpr<Gradient<N_SIZE>, ALIAS> > {
 		static const bool bAlias = DirectExpr<Gradient<N_SIZE>, ALIAS>::bAlias;
 	};
 
 	template <index_type N_SIZE>
-	struct AliasTypeHelper<Gradient<N_SIZE> >
-	{
+	struct AliasTypeHelper<Gradient<N_SIZE> > {
 		static const bool bAlias = false;
 	};
 
 	template <typename BinFunc, typename LhsExpr, typename RhsExpr>
-	struct AliasTypeHelper<BinaryExpr<BinFunc, LhsExpr, RhsExpr> >
-	{
+	struct AliasTypeHelper<BinaryExpr<BinFunc, LhsExpr, RhsExpr> > {
 		static const bool bAlias = BinaryExpr<BinFunc, LhsExpr, RhsExpr>::bAlias;
 	};
 
 	template <typename UnFunc, typename Expr>
-	struct AliasTypeHelper<UnaryExpr<UnFunc, Expr> >
-	{
+	struct AliasTypeHelper<UnaryExpr<UnFunc, Expr> > {
 		static const bool bAlias = UnaryExpr<UnFunc, Expr>::bAlias;
 	};
 
@@ -542,8 +531,7 @@ namespace MatVecHelp
 	struct ApplyAliasHelperMatrix;
 
 	template <>
-	struct ApplyAliasHelperMatrix<false>
-	{
+	struct ApplyAliasHelperMatrix<false> {
 	    template <typename MatrixType, typename Func, typename Expression>
 	    static inline void ApplyMatrixFunc(MatrixType& A, const Expression& B, const Func& f) {
 	    	A.ApplyMatrixFuncNoAlias(B, f);
@@ -551,48 +539,42 @@ namespace MatVecHelp
 	};
 
 	template <>
-	struct ApplyAliasHelperMatrix<true>
-	{
+	struct ApplyAliasHelperMatrix<true> {
 	    template <typename MatrixType, typename Func, typename Expression>
 		static inline void ApplyMatrixFunc(MatrixType& A, const Expression& B, const Func& f) {
 			A.ApplyMatrixFuncAlias(B, f);
 		}
 	};
 
-	struct Assign
-	{
+	struct Assign {
 		template <typename T, typename U>
 		static inline void Eval(T& b, const U& a) {
 			b = a;
 		}
 	};
 
-	struct Add
-	{
+	struct Add {
 		template <typename T, typename U>
 		static inline void Eval(T& b, const U& a) {
 			b += a;
 		}
 	};
 
-	struct Sub
-	{
+	struct Sub {
 		template <typename T, typename U>
 		static inline void Eval(T& b, const U& a) {
 			b -= a;
 		}
 	};
 
-	struct Mul
-	{
+	struct Mul {
 		template <typename T, typename U>
 		static inline void Eval(T& b, const U& a) {
 			b *= a;
 		}
 	};
 
-	struct Div
-	{
+	struct Div {
 		template <typename T, typename U>
 		static inline void Eval(T& b, const U& a) {
 			b /= a;
@@ -630,12 +612,20 @@ public:
 #endif
     }
 
-    static index_type iGetNumRows() { return iNumRows; }
+        template <typename ScalarType>
+        explicit VectorExpression(const ScalarType* pArray, index_type iRows, index_type iOffset)
+            :Expression(pArray, iRows, iOffset) {
+#if MATVEC_DEBUG > 0
+            AssertValid();
+#endif            
+        }
+
+        index_type iGetNumRows() const { return Expression::iGetNumRows(); }
 
 private:
 #if MATVEC_DEBUG > 0
     void AssertValid() const {
-    	MATVEC_ASSERT(Expression::iGetNumRows() == iNumRows);
+            MATVEC_ASSERT((Expression::iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && Expression::iGetNumRows() >= 0));
     }
 #endif
     typedef typename IndexCheck<iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
@@ -673,19 +663,19 @@ public:
 #endif
     }
 
-    static index_type iGetNumRows() {
-    	return iNumRows;
+        index_type iGetNumRows() const {
+            return Expression::iGetNumRows();
     }
-    static index_type iGetNumCols() {
-    	return iNumCols;
+        index_type iGetNumCols() const {
+            return Expression::iGetNumCols();
     }
 
 private:
 
 #if MATVEC_DEBUG > 0
     void AssertValid() const {
-    	MATVEC_ASSERT(Expression::iGetNumRows() == iNumRows);
-        MATVEC_ASSERT(Expression::iGetNumCols() == iNumCols);
+            MATVEC_ASSERT((Expression::iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && Expression::iGetNumRows() >= 0));
+            MATVEC_ASSERT((Expression::iGetNumCols() == iNumCols) || (iNumCols == DYNAMIC_SIZE && Expression::iGetNumCols() >= 0));
     }
 #endif
 
@@ -718,7 +708,7 @@ public:
     
     index_type iGetNumRows() const {
         MATVEC_ASSERT(oU.iGetNumRows() == oV.iGetNumRows());
-        MATVEC_ASSERT(oU.iGetNumRows() == iNumRows);
+            MATVEC_ASSERT((oU.iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
     
@@ -756,7 +746,7 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(oU.iGetNumRows() == iNumRows);
+            MATVEC_ASSERT((oU.iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
 
@@ -791,12 +781,12 @@ public:
 
     ExpressionType operator()(index_type i) const {
     	MATVEC_ASSERT(i >= 1);
-    	MATVEC_ASSERT(i <= iNumRows);
+            MATVEC_ASSERT(i <= iGetNumRows());
         return ScalarUnaryFunc::f(oU(i));
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(oU.iGetNumRows() == iNumRows);
+            MATVEC_ASSERT((oU.iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
 
@@ -841,6 +831,7 @@ public:
 private:
     typedef typename MaxSizeCheck<iEndIndex <= VectorExpr::iNumRows>::CheckType check_iEndIndex;
     typedef typename MaxSizeCheck<iStartIndex >= 1>::CheckType check_iStartIndex;
+        typedef typename MaxSizeCheck<VectorExpr::iNumRows != DYNAMIC_SIZE>::CheckType check_iStaticSize;
     const VectorExpr oU;
 };
 
@@ -858,12 +849,12 @@ public:
     
     const ScalarType& operator()(index_type i) const {
     	MATVEC_ASSERT(i >= 1);
-    	MATVEC_ASSERT(i <= iNumRows);
+            MATVEC_ASSERT(i <= iGetNumRows());
         return oU(i);
     }
     
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(oU.iGetNumRows() == iNumRows);
+            MATVEC_ASSERT((oU.iGetNumRows() == iNumRows) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
     
@@ -915,9 +906,80 @@ public:
     typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
     typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
 
-    SliceVector(const ScalarType* p)
+        SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
     	:pVec(p) {
+            MATVEC_ASSERT(iRows == iNumRows);
+            MATVEC_ASSERT(iOffset = N_offset);
+        }
 
+        const ScalarType& operator()(index_type iRow) const {
+            --iRow;	// row index is 1-based
+            MATVEC_ASSERT(iRow >= 0);
+            MATVEC_ASSERT(iRow < iGetNumRows());
+            return *(pVec + iRow * N_offset);
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return bArrayOverlap(pVec, pVec + (iNumRows - 1) * N_offset, pFirst, pLast);
+        }
+
+    private:
+        const ScalarType* const pVec;
+    
+        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
+        typedef typename MaxSizeCheck<N_offset != DYNAMIC_SIZE>::CheckType check_iOffset;
+    };
+
+    template <typename T, index_type N_rows>
+    class SliceVector<T, N_rows, DYNAMIC_SIZE> {
+    public:
+        static const bool bAlias = MatVecHelp::AliasTypeHelper<T>::bAlias;
+        static const index_type iNumRows = N_rows;
+        typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
+        typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
+
+        SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
+            :pVec(p), iOffset(iOffset) {
+            
+            MATVEC_ASSERT(iRows == iNumRows);
+        }
+
+        const ScalarType& operator()(index_type iRow) const {
+            --iRow;	// row index is 1-based
+            MATVEC_ASSERT(iRow >= 0);
+            MATVEC_ASSERT(iRow < iGetNumRows());
+            return *(pVec + iRow * iOffset);
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return bArrayOverlap(pVec, pVec + (iNumRows - 1) * iOffset, pFirst, pLast);
+        }
+
+    private:
+        const ScalarType* const pVec;
+        const index_type iOffset;
+    
+        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
+    };
+
+    template <typename T, index_type N_offset>
+    class SliceVector<T, DYNAMIC_SIZE, N_offset> {
+    public:
+        static const bool bAlias = MatVecHelp::AliasTypeHelper<T>::bAlias;
+        static const index_type iNumRows = DYNAMIC_SIZE;
+        typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
+        typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
+
+        SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
+            :pVec(p), iCurrRows(iRows) {
+            
+            MATVEC_ASSERT(iOffset == N_offset);
     }
 
     const ScalarType& operator()(index_type iRow) const {
@@ -927,15 +989,54 @@ public:
         return *(pVec + iRow * N_offset);
     }
 
-    static index_type iGetNumRows() { return iNumRows; }
+        index_type iGetNumRows() const { return iCurrRows; }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return bArrayOverlap(pVec, pVec + (iCurrRows - 1) * N_offset, pFirst, pLast);
+        }
+
+    private:
+        const ScalarType* const pVec;
+        const index_type iCurrRows;
+    
+        typedef typename MaxSizeCheck<N_offset != DYNAMIC_SIZE>::CheckType check_iOffset;
+    };
+
+    
+    template <typename T>
+    class SliceVector<T, DYNAMIC_SIZE, DYNAMIC_SIZE> {
+    public:
+        static const bool bAlias = MatVecHelp::AliasTypeHelper<T>::bAlias;
+        static const index_type iNumRows = DYNAMIC_SIZE;
+        typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
+        typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
+
+        SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
+            :pVec(p), iCurrRows(iRows), iOffset(iOffset) {
+
+        }
+
+        const ScalarType& operator()(index_type iRow) const {
+            --iRow;	// row index is 1-based
+            MATVEC_ASSERT(iRow >= 0);
+            MATVEC_ASSERT(iRow < iGetNumRows());
+            return *(pVec + iRow * iOffset);
+        }
+
+        index_type iGetNumRows() const { return iCurrRows; }
 
     template <typename ScalarType2>
     bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
-    	return bArrayOverlap(pVec, pVec + iNumRows - 1, pFirst, pLast);
+            return bArrayOverlap(pVec, pVec + (iCurrRows - 1) * iOffset, pFirst, pLast);
     }
 
 private:
     const ScalarType* const pVec;
+        const index_type iCurrRows;
+        const index_type iOffset;
+    
+        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
 };
 
 template <typename MatrixExpr>
@@ -948,16 +1049,16 @@ public:
 
 	ColumnVectorExpr(const MatrixExpr& A, index_type iCol)
 		:A(A), iCol(iCol) {
-		MATVEC_ASSERT(iNumRows == A.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == A.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
 	}
 
     ExpressionType operator()(index_type iRow) const {
     	MATVEC_ASSERT(iRow >= 1);
-    	MATVEC_ASSERT(iRow <= iNumRows);
+            MATVEC_ASSERT(iRow <= iGetNumRows());
         return A(iRow, iCol);
     }
 
-    static index_type iGetNumRows() { return iNumRows; }
+        index_type iGetNumRows() const { return A.iGetNumRows(); }
 
     template <typename ScalarType2>
     bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
@@ -979,16 +1080,16 @@ public:
 
 	RowVectorExpr(const MatrixExpr& A, index_type iRow)
 		:A(A), iRow(iRow) {
-		MATVEC_ASSERT(iNumRows == A.iGetNumCols());
+            MATVEC_ASSERT((iNumRows == A.iGetNumCols()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
 	}
 
     ExpressionType operator()(index_type iCol) const {
     	MATVEC_ASSERT(iCol >= 1);
-    	MATVEC_ASSERT(iCol <= iNumRows);
+            MATVEC_ASSERT(iCol <= iGetNumRows());
         return A(iRow, iCol);
     }
 
-    static index_type iGetNumRows() { return iNumRows; }
+        index_type iGetNumRows() const { return A.iGetNumCols(); }
 
     template <typename ScalarType2>
     bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
@@ -1013,8 +1114,8 @@ public:
 
 	TransposedMatrix(const MatrixExpr& A)
 		:A(A) {
-		MATVEC_ASSERT(iNumRows == A.iGetNumCols());
-		MATVEC_ASSERT(iNumCols == A.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == A.iGetNumCols()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
+            MATVEC_ASSERT((iNumCols == A.iGetNumRows()) || (iNumCols == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
 	}
 
     const ScalarType& operator()(index_type i, index_type j) const {
@@ -1026,12 +1127,12 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(iNumRows == A.iGetNumCols());
+            MATVEC_ASSERT((iNumRows == A.iGetNumCols()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
         return A.iGetNumCols();
     }
 
     index_type iGetNumCols() const {
-    	MATVEC_ASSERT(iNumCols == A.iGetNumRows());
+            MATVEC_ASSERT((iNumCols == A.iGetNumRows()) || (iNumCols == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
     	return A.iGetNumRows();
     }
 
@@ -1116,6 +1217,8 @@ private:
     typedef typename MaxSizeCheck<iRowEnd <= MatrixExpr::iNumRows>::CheckType check_iRowEnd;
     typedef typename MaxSizeCheck<iColStart >= 1>::CheckType check_iColStart;
     typedef typename MaxSizeCheck<iColEnd <= MatrixExpr::iNumCols>::CheckType check_iColEnd;
+        typedef typename MaxSizeCheck<iNumRows != DYNAMIC_SIZE>::CheckType check_iNumRows;
+        typedef typename MaxSizeCheck<iNumCols != DYNAMIC_SIZE>::CheckType check_iNumCols;
 	const MatrixExpr A;
 };
 
@@ -1181,6 +1284,8 @@ private:
     typedef typename IndexCheck<MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumCols>::CheckType check_iNumCols;
 };
 
+
+
 /**
  * This class handles expressions of the form
  * f(matrix1, scalar1) = matrix2
@@ -1199,8 +1304,8 @@ public:
     MatrixScalarMatrixBinaryExpr(const MatrixLhsExpr& u, const ScalarRhsExpr& v)
         :oU(u), oV(v) {
 
-    	MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
-    	MATVEC_ASSERT(iNumCols == oU.iGetNumCols());
+            MATVEC_ASSERT((iNumRows == oU.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
+            MATVEC_ASSERT((iNumCols == oU.iGetNumCols()) || (iNumCols == DYNAMIC_SIZE && oU.iGetNumCols() >= 0)) ;
     }
 
     ExpressionType operator()(index_type i, index_type j) const {
@@ -1212,12 +1317,12 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == oU.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
 
     index_type iGetNumCols() const {
-    	MATVEC_ASSERT(iNumCols == oU.iGetNumCols());
+            MATVEC_ASSERT((iNumCols == oU.iGetNumCols()) || (iNumCols == DYNAMIC_SIZE && oU.iGetNumCols() >= 0));
     	return oU.iGetNumCols();
     }
 
@@ -1258,8 +1363,8 @@ public:
 
     MatrixMatrixUnaryExpr(const MatrixExpr& u)
         :oU(u) {
-    	MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
-    	MATVEC_ASSERT(iNumCols == oU.iGetNumCols());
+            MATVEC_ASSERT((iNumRows == oU.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
+            MATVEC_ASSERT((iNumCols == oU.iGetNumCols()) || (iNumCols == DYNAMIC_SIZE && oU.iGetNumCols() >= 0));
     }
 
     ExpressionType operator()(index_type i, index_type j) const {
@@ -1271,7 +1376,7 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == oU.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return oU.iGetNumRows();
     }
 
@@ -1314,8 +1419,8 @@ public:
 
     MatrixDirectExpr(const MatrixType& A)
         :A(A) {
-    	MATVEC_ASSERT(iNumRows == A.iGetNumRows());
-    	MATVEC_ASSERT(iNumCols == A.iGetNumCols());
+            MATVEC_ASSERT((iNumRows == A.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
+            MATVEC_ASSERT((iNumCols == A.iGetNumCols()) || (iNumCols == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
     }
 
     const ScalarType& operator()(index_type i, index_type j) const {
@@ -1327,12 +1432,12 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(iNumRows == A.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == A.iGetNumRows()) || (iNumRows == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
         return A.iGetNumRows();
     }
 
     index_type iGetNumCols() const {
-    	MATVEC_ASSERT(iNumCols == A.iGetNumCols());
+            MATVEC_ASSERT((iNumCols == A.iGetNumCols()) || (iNumCols == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
     	return A.iGetNumCols();
     }
 
@@ -1394,14 +1499,14 @@ public:
     	MATVEC_ASSERT(iRow >= 1);
     	MATVEC_ASSERT(iRow <= iGetNumRows());
     	--iRow;
-    	return RowVectorType(A.pGetMat() + iRow);
+            return RowVectorType(A.pGetMat() + iRow, iGetNumCols(), iGetNumRows());
     }
 
     ColumnVectorType GetCol(index_type iCol) const {
     	MATVEC_ASSERT(iCol >= 1);
     	MATVEC_ASSERT(iCol <= iGetNumCols());
     	--iCol;
-    	return ColumnVectorType(A.pGetMat() + iCol * iNumRows);
+            return ColumnVectorType(A.pGetMat() + iCol * iNumRows, iGetNumRows(), 1);
     }
 
     template <typename ScalarType2>
@@ -1413,103 +1518,506 @@ private:
     const Mat3x3& A;
 };
 
-template <typename InitClass, typename T, index_type N_rows, index_type N_cols>
-class MatrixInit: public InitClass {
+    class Mat3xNDirectExpr {
 public:
-	template <typename InitArg>
-	explicit MatrixInit(const InitArg& v)
-		:InitClass(v) {
+        static const bool bAlias = false;
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = DYNAMIC_SIZE;
 
+        typedef void RowVectorType;
+        typedef void ColumnVectorType;
+        typedef ScalarTypeTraits<doublereal>::ScalarType ScalarType;
+        typedef ScalarTypeTraits<doublereal>::DirectExpressionType ExpressionType;
+
+        Mat3xNDirectExpr(const Mat3xN& A)
+            :A(A) {
+
+        }
+
+        const ScalarType& operator()(index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1);
+            MATVEC_ASSERT(i <= iGetNumRows());
+            MATVEC_ASSERT(j >= 1);
+            MATVEC_ASSERT(j <= iGetNumCols());
+            return A(i, j);
+        }
+
+        index_type iGetNumRows() const {
+            return iNumRows;
+        }
+
+        index_type iGetNumCols() const {
+            return A.iGetNumCols();
+        }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return bArrayOverlap(&A(1, 1), &A(A.iGetNumRows(), A.iGetNumCols()), pFirst, pLast);
 	}
+
+    private:
+        const Mat3xN& A;
 };
 
-template <typename T, index_type N_rows, index_type N_cols>
-class Matrix {    
+    class MatNxNDirectExpr {
 public:
-    static const index_type iNumRows = N_rows;
-    static const index_type iNumCols = N_cols;
+        static const bool bAlias = false;
+        static const index_type iNumRows = DYNAMIC_SIZE;
+        static const index_type iNumCols = DYNAMIC_SIZE;
 
-    typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
-    typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
+        typedef void RowVectorType;
+        typedef void ColumnVectorType;
+        typedef ScalarTypeTraits<doublereal>::ScalarType ScalarType;
+        typedef ScalarTypeTraits<doublereal>::DirectExpressionType ExpressionType;
 
-    typedef VectorExpression<SliceVector<T, N_cols, 1>, N_cols> RowVectorType;
-    typedef VectorExpression<SliceVector<T, N_rows, N_cols>, N_rows> ColumnVectorType;
+        MatNxNDirectExpr(const MatNxN& A)
+            :A(A) {
 
-    Matrix() {
-    	for (index_type i = 0; i < iNumRows; ++i) {
-    		ZeroInit(&rgMat[i][0], &rgMat[i][iNumCols - 1] + 1);
     	}
+
+        const ScalarType& operator()(index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1);
+            MATVEC_ASSERT(i <= iGetNumRows());
+            MATVEC_ASSERT(j >= 1);
+            MATVEC_ASSERT(j <= iGetNumCols());
+            return A(i, j);
     }
 
-    Matrix(const T& A11, const T& A21, const T& A12, const T& A22) {
-    	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
-    	typedef typename IndexCheck<iNumCols - 2>::CheckType check_iNumCols;
+        index_type iGetNumRows() const {
+            return A.iGetNumRows();
+        }
 
-    	(*this)(1, 1) = A11;
-    	(*this)(2, 1) = A21;
-    	(*this)(1, 2) = A12;
-    	(*this)(2, 2) = A22;
+        index_type iGetNumCols() const {
+            return A.iGetNumCols();
     }
 
-    explicit inline Matrix(const Mat3x3& A);
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return bArrayOverlap(&A(1, 1), &A(A.iGetNumRows(), A.iGetNumCols()), pFirst, pLast);
+        }
 
-    template <typename InitClass>
-    explicit Matrix(const MatrixInit<InitClass, T, N_rows, N_cols>& func) {
-    	func.Initialize(*this);
+    private:
+        const MatNxN& A;
+    };
+    
+    template <typename InitClass, typename T, index_type N_rows, index_type N_cols>
+    class MatrixInit: public InitClass {
+    public:
+	template <typename InitArg>
+	explicit MatrixInit(const InitArg& v)
+            :InitClass(v) {
+
     }
 
-    template <typename Expression>
-    Matrix(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-    	// No aliases are possible because the object did not exist before
-    	using namespace MatVecHelp;
-    	ApplyMatrixFuncNoAlias(A, Assign());
+	template <typename InitArg1, typename InitArg2>
+	explicit MatrixInit(const InitArg1& v1, const InitArg2& a2)
+            :InitClass(v1, a2) {
+
     }
+    };
 
-    template <typename T2>
-    Matrix(const Matrix<T2, N_rows, N_cols>& A, LocalDofMap* pDofMap) {
-    	Copy(A, pDofMap);
+    template <typename InitClass, typename T, index_type N_rows>
+    class VectorInit: public InitClass {
+    public:
+	template <typename InitArg>
+	explicit VectorInit(const InitArg& R)
+            :InitClass(R) {
+
     }
+    };    
 
-    template <typename T2>
-    void Copy(const Matrix<T2, N_rows, N_cols>& A, LocalDofMap* pDofMap) {
-    	MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
-    	MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+    template <typename T, index_type N_rows>
+    class VectorData {
+    public:
+        explicit VectorData(index_type N, bool bZeroInit) {
+            MATVEC_ASSERT(N == N_rows);
 
-    	for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
-    		for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
-    			grad::Copy((*this)(i, j), A(i, j), pDofMap);
+            if (bZeroInit) {
+                ZeroInit(&rgData[0], &rgData[N_rows]);
     		}
     	}
+
+        VectorData(const VectorData& oData) {
+            std::copy(&oData.rgData[0], &oData.rgData[N_rows], &rgData[0]);
     }
 
-    void Reset() {
-       	for (index_type i = 1; i <= iGetNumRows(); ++i) {
-			for (index_type j = 1; j <= iGetNumCols(); ++j) {
-				grad::Reset((*this)(i, j));
+        template <typename U>
+        VectorData(const VectorData<U, N_rows>& oData) {
+            std::copy(&oData.rgData[0], &oData.rgData[N_rows], &rgData[0]);
 			}
+
+        T& operator[](index_type i) {
+            MATVEC_ASSERT(i >= 0);
+            MATVEC_ASSERT(i < N_rows);
+            return rgData[i];
 		}
+
+        const T& operator[](integer i) const {
+            MATVEC_ASSERT(i >= 0);
+            MATVEC_ASSERT(i < N_rows);
+            return rgData[i];
     }
 
-    template <typename Expression>
-    Matrix& operator=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
-    	using namespace MatVecHelp;
+        index_type iGetNumRows() const {
+            return N_rows;
+        }
 
-    	ApplyMatrixFunc<Assign>(A);
+        void Resize(index_type iNumRows) {
+            MATVEC_ASSERT(iNumRows == N_rows);
+        }
 
-    	return *this;
+        const T* pGetFirstElem() const {
+            return &rgData[0];
     }
 
-    template <typename T_Rhs>
-    Matrix& operator+=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
-		using namespace MatVecHelp;
+        const T* pGetLastElem() const {
+            return &rgData[N_rows - 1];
+        }
 
-		ApplyMatrixFunc<Add>(MatrixExpression<MatrixDirectExpr<Matrix<T_Rhs, N_rows, N_cols> >, N_rows, N_cols>(A));
+    private:
+        T rgData[N_rows];
+    };
 
-    	return *this;
+    template <typename T>
+    class VectorData<T, DYNAMIC_SIZE> {
+    public:
+        explicit VectorData(index_type N, bool)
+            :rgData(N) {
     }
 
-    template <typename T_Rhs>
-    Matrix& operator-=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
+        VectorData(const VectorData& oVec)
+            :rgData(oVec.rgData) {
+        }
+
+        T& operator[](index_type i) {
+            MATVEC_ASSERT(i >= 0);
+            MATVEC_ASSERT(i < index_type(rgData.size()));
+            return rgData[i];
+        }
+
+        const T& operator[](integer i) const {
+            MATVEC_ASSERT(i >= 0);
+            MATVEC_ASSERT(i < index_type(rgData.size()));
+            return rgData[i];
+        }
+
+        index_type iGetNumRows() const {
+            return rgData.size();
+        }
+
+        void Resize(index_type iNumRows) {
+            if (iNumRows != iGetNumRows()) {
+                rgData.resize(iNumRows);
+            }
+        }
+
+        const T* pGetFirstElem() const {
+            return &rgData.front();
+        }
+
+        const T* pGetLastElem() const {
+            return &rgData.back();
+        }
+        
+    private:
+        std::vector<T, GradientAllocator<T> > rgData;
+    };
+
+    
+    template <typename T, index_type N_rows, index_type N_cols>
+    class MatrixData
+    {
+    public:
+        MatrixData(index_type iNumRows, index_type iNumCols, bool bZeroInit) {
+            MATVEC_ASSERT(iNumRows == N_rows);
+            MATVEC_ASSERT(iNumCols == N_cols);
+
+            if (bZeroInit) {
+                ZeroInit(&rgData[0][0], &rgData[iNumRows - 1][iNumCols - 1] + 1);
+            }
+        }
+
+        index_type iGetNumRows() const { return N_rows; }
+        index_type iGetNumCols() const { return N_cols; }
+    
+        T& operator() (index_type i, index_type j) {
+            MATVEC_ASSERT(i >= 1 && i <= N_rows);
+            MATVEC_ASSERT(j >= 1 && j <= N_cols);
+            return rgData[i - 1][j - 1];
+        }
+
+        const T& operator() (index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1 && i <= N_rows);
+            MATVEC_ASSERT(j >= 1 && j <= N_cols);        
+            return rgData[i - 1][j - 1];
+        }
+
+        void Resize(index_type iRows, index_type iCols) {
+            MATVEC_ASSERT(iRows == N_rows);
+            MATVEC_ASSERT(iCols == N_cols);
+        }
+
+        const T* pGetFirstElem() const {
+            return &rgData[0][0];
+        }
+
+        const T* pGetLastElem() const {
+            return &rgData[N_rows - 1][N_cols - 1];
+        }
+        
+    private:
+        T rgData[N_rows][N_cols];
+    };
+
+    template <typename T>
+    class MatrixData<T, DYNAMIC_SIZE, DYNAMIC_SIZE>
+    {
+    public:
+        MatrixData(index_type iNumRows, index_type iNumCols, bool bZeroInit)
+            :iNumRows(iNumRows),
+             iNumCols(iNumCols),
+             rgData(iNumRows * iNumCols, bZeroInit) {
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }       
+        
+        T& operator() (index_type i, index_type j) {
+            MATVEC_ASSERT(i >= 1 && i <= iNumRows);
+            MATVEC_ASSERT(j >= 1 && j <= iNumCols);
+            return rgData[(i - 1) * iNumCols + (j - 1)];
+        }
+
+        const T& operator() (index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1 && i <= iNumRows);
+            MATVEC_ASSERT(j >= 1 && j <= iNumCols);
+            return rgData[(i - 1) * iNumCols + (j - 1)];
+        }
+
+        void Resize(index_type iRows, index_type iCols) {
+            if (iRows != iNumRows || iCols != iCols) {
+                rgData.Resize(iRows * iCols);
+                iNumRows = iRows;
+                iNumCols = iCols;
+            }
+        }
+
+        const T* pGetFirstElem() const {
+            return rgData.pGetFirstElem();
+        }
+
+        const T* pGetLastElem() const {
+            return rgData.pGetLastElem();
+        }        
+    private:
+        integer iNumRows, iNumCols;
+        VectorData<T, DYNAMIC_SIZE> rgData;
+    };
+
+    template <typename T, index_type N_rows>
+    class MatrixData<T, N_rows, DYNAMIC_SIZE>
+    {
+    public:
+        MatrixData(index_type iNumRows, index_type iNumCols, bool bZeroInit)
+            :iNumCols(iNumCols),
+             rgData(N_rows * iNumCols, bZeroInit) {
+            MATVEC_ASSERT(iNumRows == N_rows);
+        }
+
+        index_type iGetNumRows() const { return N_rows; }
+        index_type iGetNumCols() const { return iNumCols; }       
+        
+        T& operator() (index_type i, index_type j) {
+            MATVEC_ASSERT(i >= 1 && i <= N_rows);
+            MATVEC_ASSERT(j >= 1 && j <= iNumCols);
+            return rgData[(i - 1) * iNumCols + (j - 1)];
+        }
+
+        const T& operator() (index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1 && i <= N_rows);
+            MATVEC_ASSERT(j >= 1 && j <= iNumCols);
+            return rgData[(i - 1) * iNumCols + (j - 1)];
+        }
+
+        void Resize(index_type iRows, index_type iCols) {
+            MATVEC_ASSERT(iRows == N_rows);
+            
+            if (iCols != iNumCols) {
+                rgData.Resize(iRows * iCols);
+                iNumCols = iCols;
+            }
+        }
+
+        const T* pGetFirstElem() const {
+            return rgData.pGetFirstElem();
+        }
+
+        const T* pGetLastElem() const {
+            return rgData.pGetLastElem();
+        }        
+    private:
+        integer iNumCols;
+        VectorData<T, DYNAMIC_SIZE> rgData;
+    };
+
+    template <typename T, index_type N_cols>
+    class MatrixData<T, DYNAMIC_SIZE, N_cols>
+    {
+    public:
+        MatrixData(index_type iNumRows, index_type iNumCols, bool bZeroInit)
+            :iNumRows(iNumRows),
+             rgData(iNumRows * N_cols, bZeroInit) {
+            MATVEC_ASSERT(iNumCols == N_cols);
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return N_cols; }       
+        
+        T& operator() (index_type i, index_type j) {
+            MATVEC_ASSERT(i >= 1 && i <= iNumRows);
+            MATVEC_ASSERT(j >= 1 && j <= N_cols);
+            return rgData[(i - 1) * N_cols + (j - 1)];
+        }
+
+        const T& operator() (index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1 && i <= iNumRows);
+            MATVEC_ASSERT(j >= 1 && j <= N_cols);
+            return rgData[(i - 1) * N_cols + (j - 1)];
+        }
+
+        void Resize(index_type iRows, index_type iCols) {
+            MATVEC_ASSERT(iCols == N_cols);
+            
+            if (iRows != iNumRows) {
+                rgData.Resize(iRows * iCols);
+                iNumRows = iRows;
+            }
+        }
+
+        const T* pGetFirstElem() const {
+            return rgData.pGetFirstElem();
+        }
+
+        const T* pGetLastElem() const {
+            return rgData.pGetLastElem();
+        }        
+    private:
+        integer iNumRows;
+        VectorData<T, DYNAMIC_SIZE> rgData;
+    };
+    
+    template <typename T, index_type N_rows, index_type N_cols>
+    class Matrix {    
+    public:
+        static const index_type iNumRows = N_rows;
+        static const index_type iNumCols = N_cols;
+        static const index_type iInitNumRows = iNumRows == DYNAMIC_SIZE ? 0 : iNumRows;
+        static const index_type iInitNumCols = iNumCols == DYNAMIC_SIZE ? 0 : iNumCols;
+        typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
+        typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
+
+        typedef VectorExpression<SliceVector<T, N_cols, 1>, N_cols> RowVectorType;
+        typedef VectorExpression<SliceVector<T, N_rows, N_cols>, N_rows> ColumnVectorType;
+
+        Matrix()
+            :rgMat(iInitNumRows, iInitNumCols, true) {
+        }
+
+        Matrix(index_type iRows, index_type iCols)
+            :rgMat(iRows, iCols, true) {
+        }
+        
+        Matrix(const T& A11, const T& A21, const T& A12, const T& A22)
+            :rgMat(iNumRows, iNumCols, false) {
+            typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
+            typedef typename IndexCheck<iNumCols - 2>::CheckType check_iNumCols;
+
+            (*this)(1, 1) = A11;
+            (*this)(2, 1) = A21;
+            (*this)(1, 2) = A12;
+            (*this)(2, 2) = A22;
+        }
+
+        Matrix(const Matrix& A)
+            :rgMat(A.rgMat) {
+        }
+        
+        explicit inline Matrix(const Mat3x3& A);
+
+        template <typename InitClass>
+        explicit Matrix(const MatrixInit<InitClass, T, N_rows, N_cols>& func)
+            :rgMat(func.iGetNumRows(), func.iGetNumCols(), false) {
+            func.Initialize(*this);
+        }
+
+        template <typename Expression>
+        Matrix(const MatrixExpression<Expression, N_rows, N_cols>& A)
+            :rgMat(A.iGetNumRows(), A.iGetNumCols(), false) {
+            // No aliases are possible because the object did not exist before
+            using namespace MatVecHelp;
+            ApplyMatrixFuncNoAlias(A, Assign());
+        }
+
+        template <typename T2>
+        Matrix(const Matrix<T2, N_rows, N_cols>& A, LocalDofMap* pDofMap)
+            :rgMat(A.iGetNumRows(), A.iGetNumCols(), false) {
+            Copy(A, pDofMap);
+        }
+
+        template <typename T2>
+        void Copy(const Matrix<T2, N_rows, N_cols>& A, LocalDofMap* pDofMap) {
+            rgMat.Resize(A.iGetNumRows(), A.iGetNumCols());
+    
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+
+            for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+    		for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+                    grad::Copy((*this)(i, j), A(i, j), pDofMap);
+    		}
+            }
+        }
+
+        void Reset() {
+            for (index_type i = 1; i <= iGetNumRows(); ++i) {
+                for (index_type j = 1; j <= iGetNumCols(); ++j) {
+                    grad::Reset((*this)(i, j));
+                }
+            }
+        }
+
+        void Resize(index_type iRows, index_type iCols) {
+            rgMat.Resize(iRows, iCols);
+        }
+
+        template <typename Expression>
+        Matrix& operator=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
+
+            rgMat.Resize(A.iGetNumRows(), A.iGetNumCols());
+    
+            using namespace MatVecHelp;
+
+            ApplyMatrixFunc<Assign>(A);
+
+            return *this;
+        }
+
+        template <typename T_Rhs>
+        Matrix& operator+=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+            using namespace MatVecHelp;
+
+            ApplyMatrixFunc<Add>(MatrixExpression<MatrixDirectExpr<Matrix<T_Rhs, N_rows, N_cols> >, N_rows, N_cols>(A));
+
+            return *this;
+        }
+
+        template <typename T_Rhs>
+        Matrix& operator-=(const Matrix<T_Rhs, N_rows, N_cols>& A) {
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+    
 		using namespace MatVecHelp;
 
 		ApplyMatrixFunc<Sub>(MatrixExpression<MatrixDirectExpr<Matrix<T_Rhs, N_rows, N_cols> >, N_rows, N_cols>(A));
@@ -1519,6 +2027,8 @@ public:
 
     template <typename Expression>
     Matrix& operator+=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
 		using namespace MatVecHelp;
 
 		ApplyMatrixFunc<Add>(A);
@@ -1528,6 +2038,8 @@ public:
 
     template <typename Expression>
     Matrix& operator-=(const MatrixExpression<Expression, N_rows, N_cols>& A) {
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
 		using namespace MatVecHelp;
 
 		ApplyMatrixFunc<Sub>(A);
@@ -1574,60 +2086,54 @@ public:
     inline Matrix& operator=(const Mat3x3& A);
 
     const ScalarType& operator()(index_type iRow, index_type iCol) const {
-    	--iRow;	// row and column indices are 1-based for compatibility reasons
-    	--iCol;
-        MATVEC_ASSERT(iRow >= 0);
-        MATVEC_ASSERT(iRow < iNumRows);
-        MATVEC_ASSERT(iCol >= 0);
-        MATVEC_ASSERT(iCol < iNumCols);
-        return rgMat[iRow][iCol];
+            MATVEC_ASSERT(iRow >= 1);
+            MATVEC_ASSERT(iRow <= iGetNumRows());
+            MATVEC_ASSERT(iCol >= 1);
+            MATVEC_ASSERT(iCol <= iGetNumCols());
+            return rgMat(iRow, iCol);
     }
     
     ScalarType& operator()(index_type iRow, index_type iCol) {
-    	--iRow;	// row and column indices are 1-based for compatibility reasons
-    	--iCol;
-        MATVEC_ASSERT(iRow >= 0);
-        MATVEC_ASSERT(iRow < iNumRows);
-        MATVEC_ASSERT(iCol >= 0);
-        MATVEC_ASSERT(iCol < iNumCols);
-        return rgMat[iRow][iCol];
+            MATVEC_ASSERT(iRow >= 1);
+            MATVEC_ASSERT(iRow <= iGetNumRows());
+            MATVEC_ASSERT(iCol >= 1);
+            MATVEC_ASSERT(iCol <= iGetNumCols());
+            return rgMat(iRow, iCol);
     }    
     
     RowVectorType
     GetRow(index_type iRow) const {
     	MATVEC_ASSERT(iRow >= 1);
-    	MATVEC_ASSERT(iRow <= iNumRows);
-    	--iRow;
-    	return RowVectorType(&rgMat[iRow][0]);
+            MATVEC_ASSERT(iRow <= iGetNumRows());
+            return RowVectorType(&rgMat(iRow, 1), iGetNumCols(), 1);
     }
 
     ColumnVectorType
     GetCol(index_type iCol) const {
     	MATVEC_ASSERT(iCol >= 1);
-    	MATVEC_ASSERT(iCol <= iNumCols);
-    	--iCol;
-    	return ColumnVectorType(&rgMat[0][iCol]);
+            MATVEC_ASSERT(iCol <= iGetNumCols());
+            return ColumnVectorType(&rgMat(1, iCol), iGetNumRows(), iGetNumCols());
     }
 
-    index_type iGetNumRows() const { return iNumRows; }
-    index_type iGetNumCols() const { return iNumCols; }
-    const ScalarType* pGetMat() const { return &rgMat[0][0]; }
+        index_type iGetNumRows() const { return rgMat.iGetNumRows(); }
+        index_type iGetNumCols() const { return rgMat.iGetNumCols(); }
+        const ScalarType* pGetMat() const { return pGetFirstElem(); }
 
     template <typename ScalarType2>
     bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
-    	return bArrayOverlap(&rgMat[0][0],
-    						 &rgMat[iNumRows - 1][iNumCols -1],
+            return bArrayOverlap(pGetFirstElem(),
+                                 pGetLastElem(),
     						 pFirst,
     						 pLast);
     }
 
 private:
     const ScalarType* pGetFirstElem() const {
-    	return &rgMat[0][0];
+            return rgMat.pGetFirstElem();
     }
 
     const ScalarType* pGetLastElem() const {
-    	return &rgMat[iNumRows - 1][iNumCols - 1];
+            return rgMat.pGetLastElem();
     }
 
     friend struct MatVecHelp::ApplyAliasHelperMatrix<false>;
@@ -1651,11 +2157,12 @@ private:
 
     template <typename Func, typename Expression>
     void ApplyMatrixFuncNoAlias(const MatrixExpression<Expression, N_rows, N_cols>& A, const Func&) {
-			MATVEC_ASSERT(N_rows == A.iGetNumRows());
-			MATVEC_ASSERT(N_cols == A.iGetNumCols());
+            MATVEC_ASSERT(!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem()));
+            
+            rgMat.Resize(A.iGetNumRows(), A.iGetNumCols());
+            
 		MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
 		MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
-    	MATVEC_ASSERT(!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem()));
 
 		for (index_type i = 1; i <= iGetNumRows(); ++i) {
 			for (index_type j = 1; j <= iGetNumCols(); ++j) {
@@ -1668,31 +2175,52 @@ private:
     void ApplyMatrixFuncAlias(const MatrixExpression<Expression, N_rows, N_cols>& A, const Func& f) {
     	ApplyMatrixFuncNoAlias(MatrixExpression<MatrixDirectExpr<Matrix>, N_rows, N_cols>(Matrix(A)), f);
     }
+    
 private:
-    ScalarType rgMat[iNumRows][iNumCols];
+        MatrixData<ScalarType, iNumRows, iNumCols> rgMat;
 };
 
 template <typename T, index_type N_rows, index_type N_cols>
+    inline MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>
+    Direct(const Matrix<T, N_rows, N_cols>& A) {
+	return MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>(A);
+    }
+
+    inline MatrixExpression<Mat3x3DirectExpr, 3, 3>
+    Direct(const Mat3x3& A) {
+	return MatrixExpression<Mat3x3DirectExpr, 3, 3>(A);
+    }
+
+    inline MatrixExpression<Mat3xNDirectExpr, 3, DYNAMIC_SIZE>
+    Direct(const Mat3xN& A) {
+        return MatrixExpression<Mat3xNDirectExpr, 3, DYNAMIC_SIZE>(A);
+    }
+
+    inline MatrixExpression<MatNxNDirectExpr, DYNAMIC_SIZE, DYNAMIC_SIZE>
+    Direct(const MatNxN& A) {
+        return MatrixExpression<MatNxNDirectExpr, DYNAMIC_SIZE, DYNAMIC_SIZE>(A);
+    }
+    
+    template <typename T, index_type N_rows, index_type N_cols>
 inline MatrixExpression<TransposedMatrix<MatrixDirectExpr<Matrix<T, N_rows, N_cols> > >, N_cols, N_rows>
 Transpose(const Matrix<T, N_rows, N_cols>& A) {
 	return MatrixExpression<TransposedMatrix<MatrixDirectExpr<Matrix<T, N_rows, N_cols> > >, N_cols, N_rows>(Direct(A));
 }
 
-template <typename MatrixExpr, index_type N_rows, index_type N_cols>
-inline MatrixExpression<TransposedMatrix<MatrixExpr>, N_cols, N_rows>
-Transpose(const MatrixExpression<MatrixExpr, N_rows, N_cols>& A) {
+    inline MatrixExpression<TransposedMatrix<Mat3xNDirectExpr>, DYNAMIC_SIZE, 3>
+    Transpose(const Mat3xN& A) {
+	return MatrixExpression<TransposedMatrix<Mat3xNDirectExpr>, DYNAMIC_SIZE, 3>(Direct(A));
+}
+
+    inline MatrixExpression<TransposedMatrix<MatNxNDirectExpr>, DYNAMIC_SIZE, DYNAMIC_SIZE>
+    Transpose(const MatNxN& A) {
+	return MatrixExpression<TransposedMatrix<MatNxNDirectExpr>, DYNAMIC_SIZE, DYNAMIC_SIZE>(Direct(A));
+}
+
+    template <typename MatrixExpr, index_type N_rows, index_type N_cols>
+    inline MatrixExpression<TransposedMatrix<MatrixExpr>, N_cols, N_rows>
+    Transpose(const MatrixExpression<MatrixExpr, N_rows, N_cols>& A) {
 	return MatrixExpression<TransposedMatrix<MatrixExpr>, N_cols, N_rows>(A);
-}
-
-template <typename T, index_type N_rows, index_type N_cols>
-inline MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>
-Direct(const Matrix<T, N_rows, N_cols>& A) {
-	return MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>(A);
-}
-
-inline MatrixExpression<Mat3x3DirectExpr, 3, 3>
-Direct(const Mat3x3& A) {
-	return MatrixExpression<Mat3x3DirectExpr, 3, 3>(A);
 }
 
 template <typename T, index_type N_rows, index_type N_cols>
@@ -1702,7 +2230,8 @@ Alias(const Matrix<T, N_rows, N_cols>& A) {
 }
 
 template <typename T, index_type N_rows, index_type N_cols>
-inline Matrix<T, N_rows, N_cols>::Matrix(const Mat3x3& A) {
+    inline Matrix<T, N_rows, N_cols>::Matrix(const Mat3x3& A)
+        :rgMat(N_rows, N_cols, false) {
 	using namespace MatVecHelp;
 
 	ApplyMatrixFunc<Assign>(Direct(A));
@@ -1711,6 +2240,11 @@ inline Matrix<T, N_rows, N_cols>::Matrix(const Mat3x3& A) {
 template <typename T, index_type N_rows, index_type N_cols>
 inline Matrix<T, N_rows, N_cols>&
 Matrix<T, N_rows, N_cols>::operator=(const Mat3x3& A) {
+        typedef typename MaxSizeCheck<N_rows == 3 || N_rows == DYNAMIC_SIZE>::CheckType check_iNumRows;
+        typedef typename MaxSizeCheck<N_cols == 3 || N_cols == DYNAMIC_SIZE>::CheckType check_iNumCols;
+        
+        rgMat.Resize(3, 3);
+
 	using namespace MatVecHelp;
 
 	ApplyMatrixFunc<Assign>(Direct(A));
@@ -1722,14 +2256,24 @@ template <typename T, index_type N_rows>
 class Vector {
 public:
     static const index_type iNumRows = N_rows;
+        static const index_type iInitNumRows = iNumRows == DYNAMIC_SIZE ? 0 : iNumRows;
     typedef typename ScalarTypeTraits<T>::ScalarType ScalarType;
     typedef typename ScalarTypeTraits<T>::DirectExpressionType ExpressionType;
 
-    Vector() {
-    	ZeroInit(rgVec, rgVec + iGetNumRows());
+        Vector()
+            :rgVec(iInitNumRows, true) {
     }
 
-    Vector(const T& v1, const T& v2) {
+        explicit Vector(index_type N)
+            :rgVec(N, true) {
+        }
+    
+        Vector(const Vector& oVec)
+            :rgVec(oVec.rgVec) {
+        }
+    
+        Vector(const T& v1, const T& v2)
+            :rgVec(iInitNumRows, false) {
     	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
 
     	(*this)(1) = v1;
@@ -1738,14 +2282,15 @@ public:
 
     template <typename Expr1, typename Expr2>
     Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2)
-    {
+            :rgVec(iNumRows, false) {
     	typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
 
     	(*this)(1) = v1;
     	(*this)(2) = v2;
     }
 
-    Vector(const T& v1, const T& v2, const T& v3) {
+        Vector(const T& v1, const T& v2, const T& v3)
+            :rgVec(iNumRows, false) {
     	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
 
     	(*this)(1) = v1;
@@ -1755,7 +2300,7 @@ public:
 
     template <typename Expr1, typename Expr2, typename Expr3>
     Vector(const GradientExpression<Expr1>& v1, const GradientExpression<Expr2>& v2, const GradientExpression<Expr3>& v3)
-    {
+            :rgVec(iNumRows, false) {
     	typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
 
     	(*this)(1) = v1;
@@ -1766,14 +2311,23 @@ public:
     explicit inline Vector(const Vec3& v);
 
     template <typename Expression>
-    Vector(const VectorExpression<Expression, N_rows>& f) {
+        Vector(const VectorExpression<Expression, N_rows>& f)
+            :rgVec(f.iGetNumRows(), false) {
     	using namespace MatVecHelp;
 
     	ApplyMatrixFuncNoAlias(f, Assign());
     }
     
+        template <typename InitClass>
+        explicit Vector(const VectorInit<InitClass, T, N_rows>& func)
+            :rgVec(func.iGetNumRows(), false) {
+            func.Initialize(*this);
+        }
+        
     template <typename T2>
-    explicit Vector(const Vector<T2, N_rows>& v) {
+        explicit Vector(const Vector<T2, N_rows>& v)
+            :rgVec(v.iGetNumRows(), false) {
+        
     	MATVEC_ASSERT(v.iGetNumRows() == iGetNumRows());
 
     	for (index_type i = 1; i <= v.iGetNumRows(); ++i) {
@@ -1782,12 +2336,16 @@ public:
     }
 
     template <typename T2>
-    Vector(const Vector<T2, N_rows>& v, LocalDofMap* pDofMap) {
+        Vector(const Vector<T2, N_rows>& v, LocalDofMap* pDofMap)
+            :rgVec(v.iGetNumRows(), false) {
+        
     	Copy(v, pDofMap);
     }
 
     template <typename T2>
     void Copy(const Vector<T2, N_rows>& v, LocalDofMap* pDofMap) {
+            rgVec.Resize(v.iGetNumRows());
+    
     	MATVEC_ASSERT(v.iGetNumRows() == iGetNumRows());
 
     	for (index_type i = 1; i <= iGetNumRows(); ++i) {
@@ -1801,8 +2359,14 @@ public:
     	}
     }
 
+        void Resize(index_type iNumRows) {
+            rgVec.Resize(iNumRows);
+        }
+
     template <typename Expression>
     Vector& operator=(const VectorExpression<Expression, N_rows>& f) {
+            rgVec.Resize(f.iGetNumRows());
+    
     	using namespace MatVecHelp;
 
     	ApplyMatrixFunc<Assign>(f);
@@ -1812,24 +2376,38 @@ public:
 
     template <typename T_Rhs>
     Vector& operator+=(const Vector<T_Rhs, N_rows>& v) {
+            MATVEC_ASSERT(v.iGetNumRows() == iGetNumRows());
+            using namespace MatVecHelp;
+
+            ApplyMatrixFunc<Add>(VectorExpression<VectorDirectExpr<Vector<T_Rhs, N_rows> >, N_rows>(v));
+
+            return *this;
+        }
+
+        Vector& operator+=(const Vec3& v) {
+            MATVEC_ASSERT(iGetNumRows() == 3);
+            typedef typename MaxSizeCheck<iNumRows == 3 || iNumRows == DYNAMIC_SIZE>::CheckType check_iNumRows;
+            
     	using namespace MatVecHelp;
 
-    	ApplyMatrixFunc<Add>(VectorExpression<VectorDirectExpr<Vector>, N_rows>(v));
+            ApplyMatrixFunc<Add>(VectorExpression<Vec3DirectExpr, N_rows>(v));
 
     	return *this;
     }
 
     template <typename T_Rhs>
     Vector& operator-=(const Vector<T_Rhs, N_rows>& v) {
+            MATVEC_ASSERT(v.iGetNumRows() == iGetNumRows());
     	using namespace MatVecHelp;
 
-    	ApplyMatrixFunc<Sub>(VectorExpression<VectorDirectExpr<Vector>, N_rows>(v));
+            ApplyMatrixFunc<Sub>(VectorExpression<VectorDirectExpr<Vector<T_Rhs, N_rows> >, N_rows>(v));
 
     	return *this;
     }
 
     template <typename Expression>
     Vector& operator+=(const VectorExpression<Expression, N_rows>& f) {
+            MATVEC_ASSERT(f.iGetNumRows() == iGetNumRows());
     	using namespace MatVecHelp;
 
     	ApplyMatrixFunc<Add>(f);
@@ -1839,6 +2417,7 @@ public:
 
     template <typename Expression>
     Vector& operator-=(const VectorExpression<Expression, N_rows>& f) {
+            MATVEC_ASSERT(f.iGetNumRows() == iGetNumRows());
     	using namespace MatVecHelp;
 
     	ApplyMatrixFunc<Sub>(f);
@@ -1887,37 +2466,43 @@ public:
     const ScalarType& operator()(index_type iRow) const {
     	--iRow; // Row index is 1-based for compatibility reasons
         MATVEC_ASSERT(iRow >= 0);
-        MATVEC_ASSERT(iRow < iNumRows);
+            MATVEC_ASSERT(iRow < iGetNumRows());
         return rgVec[iRow];
     }
     
     ScalarType& operator()(index_type iRow) {
     	--iRow; // Row index is 1-based for compatibility reasons
         MATVEC_ASSERT(iRow >= 0);
-        MATVEC_ASSERT(iRow < iNumRows);
+            MATVEC_ASSERT(iRow < iGetNumRows());
         return rgVec[iRow];
     }
     
-    index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumRows() const {
+            const index_type iRows = rgVec.iGetNumRows();
     
-    ScalarType* pGetVec() { return rgVec; }
-    const ScalarType* pGetVec() const { return rgVec; }
+            MATVEC_ASSERT((N_rows == DYNAMIC_SIZE) || (iRows == N_rows));
+        
+            return iRows;
+        }
+    
+        ScalarType* pGetVec() { return &rgVec[0]; }
+        const ScalarType* pGetVec() const { return pGetFirstElem(); }
 
     template <typename ScalarType2>
     bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
-    	return bArrayOverlap(&rgVec[0],
-    						 &rgVec[iNumRows - 1],
+            return bArrayOverlap(pGetFirstElem(),
+                                 pGetLastElem(),
     						 pFirst,
     						 pLast);
     }
 
 private:
     const ScalarType* pGetFirstElem() const {
-    	return &rgVec[0];
+            return rgVec.pGetFirstElem();
     }
 
     const ScalarType* pGetLastElem() const {
-    	return &rgVec[iNumRows - 1];
+            return rgVec.pGetLastElem();
     }
 
     friend struct MatVecHelp::ApplyAliasHelperMatrix<false>;
@@ -1939,7 +2524,7 @@ private:
 
 	template <typename Func, typename Expression>
 	void ApplyMatrixFuncNoAlias(const VectorExpression<Expression, N_rows>& A, const Func&) {
-		MATVEC_ASSERT(N_rows == A.iGetNumRows());
+            MATVEC_ASSERT((N_rows == A.iGetNumRows()) || (N_rows == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
 		MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
 		MATVEC_ASSERT(!A.bHaveReferenceTo(pGetFirstElem(), pGetLastElem()));
 
@@ -1954,7 +2539,7 @@ private:
     }
 
 private:
-    ScalarType rgVec[iNumRows];
+        VectorData<ScalarType, N_rows> rgVec;
 };
 
 template <typename T, index_type N_rows>
@@ -1976,9 +2561,12 @@ Alias(const Vector<T, N_rows>& v) {
 
 template <typename T, index_type N_rows>
 inline
-Vector<T, N_rows>::Vector(const Vec3& v) {
+    Vector<T, N_rows>::Vector(const Vec3& v)
+        :rgVec(iNumRows, false) {
 	using namespace MatVecHelp;
 
+        typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+        
 	ApplyMatrixFunc<Assign>(Direct(v));
 }
 
@@ -2023,8 +2611,11 @@ SubMatrix(const MatrixExpression<MatrixExpr, N_rows, N_cols>& A) {
 template <typename T, typename VectorExpr>
 class MatCrossInit {
 public:
-	MatCrossInit(const VectorExpression<VectorExpr, 3>& v)
-		:v(v) {
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = 3;
+        
+	MatCrossInit(const VectorExpression<VectorExpr, 3>& v, doublereal d)
+            :v(v), d(d) {
 
 	}
 
@@ -2035,7 +2626,7 @@ public:
 		 *       z,  0, -x;
 		 *      -y,  x,  0];
 		 */
-		A(x, x) = A(y, y) = A(z, z) = T(0.);
+            A(x, x) = A(y, y) = A(z, z) = d;
 		A(x, y) = -v(z);
 		A(x, z) =  v(y);
 		A(y, x) =  v(z);
@@ -2044,13 +2635,57 @@ public:
 		A(z, y) =  v(x);
 	}
 
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }
 private:
 	const VectorExpression<VectorExpr, 3> v;
+        const doublereal d;
+    };
+
+    template <typename T, typename VectorExpr>
+    class MatRInit {
+    public:
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = 3;
+
+        MatRInit(const VectorExpression<VectorExpr, 3>& g)
+            :g(g) {
+        }
+
+        void Initialize(Matrix<T, 3, 3>& RDelta) const {
+            const T d = 4. / (4. + Dot(g, g));
+
+            const T tmp1 = -g(3) * g(3);
+            const T tmp2 = -g(2) * g(2);
+            const T tmp3 = -g(1) * g(1);
+            const T tmp4 = g(1) * g(2) * 0.5;
+            const T tmp5 = g(2) * g(3) * 0.5;
+            const T tmp6 = g(1) * g(3) * 0.5;
+
+            RDelta(1,1) = (tmp1 + tmp2) * d * 0.5 + 1;
+            RDelta(1,2) = (tmp4 - g(3)) * d;
+            RDelta(1,3) = (tmp6 + g(2)) * d;
+            RDelta(2,1) = (g(3) + tmp4) * d;
+            RDelta(2,2) = (tmp1 + tmp3) * d * 0.5 + 1.;
+            RDelta(2,3) = (tmp5 - g(1)) * d;
+            RDelta(3,1) = (tmp6 - g(2)) * d;
+            RDelta(3,2) = (tmp5 + g(1)) * d;
+            RDelta(3,3) = (tmp2 + tmp3) * d * 0.5 + 1.;
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }
+        
+    private:
+	const VectorExpression<VectorExpr, 3> g;
 };
 
 template <typename T, typename VectorExpr>
 class MatCrossCrossInit {
 public:
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = 3;
+        
 	MatCrossCrossInit(const VectorExpression<VectorExpr, 3>& v)
 		:v(v) {
 
@@ -2077,6 +2712,8 @@ public:
 		A(z, z) = -vyvy - vxvx;
 	}
 
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }
 private:
 	const VectorExpression<VectorExpr, 3> v;
 };
@@ -2084,6 +2721,9 @@ private:
 template <typename T, typename VectorExpr>
 class MatGInit {
 public:
+        static const index_type iNumRows = 3;
+        static const index_type iNumCols = 3;
+        
 	MatGInit(const VectorExpression<VectorExpr, 3>& g)
 		:g(g) {
 
@@ -2110,20 +2750,28 @@ public:
 		G(3, 3) = d;
 	}
 
+        index_type iGetNumRows() const { return iNumRows; }
+        index_type iGetNumCols() const { return iNumCols; }
 private:
 	const VectorExpression<VectorExpr, 3> g;
 };
 
 template <typename T>
 inline MatrixInit<MatCrossInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>
-MatCrossVec(const Vector<T, 3>& v) {
-	return MatrixInit<MatCrossInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>(Direct(v));
+    MatCrossVec(const Vector<T, 3>& v, doublereal d=0.) {
+	return MatrixInit<MatCrossInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>(Direct(v), d);
+    }
+
+    template <typename T>
+    inline MatrixInit<MatCrossInit<T, Vec3DirectExpr>, T, 3, 3>
+    MatCrossVec(const Vec3& v, doublereal d=0.) {
+	return MatrixInit<MatCrossInit<T, Vec3DirectExpr>, T, 3, 3>(Direct(v), d);
 }
 
 template <typename VectorExpr>
 inline MatrixInit<MatCrossInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>
-MatCrossVec(const VectorExpression<VectorExpr, 3>& v) {
-	return MatrixInit<MatCrossInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(v);
+    MatCrossVec(const VectorExpression<VectorExpr, 3>& v, doublereal d = 0.) {
+	return MatrixInit<MatCrossInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(v, d);
 }
 
 template <typename T>
@@ -2150,6 +2798,193 @@ MatGVec(const VectorExpression<VectorExpr, 3>& g) {
 	return MatrixInit<MatGInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(g);
 }
 
+    template <typename T>
+    inline MatrixInit<MatRInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>
+    MatRVec(const Vector<T, 3>& g) {
+	return MatrixInit<MatRInit<T, VectorDirectExpr<Vector<T, 3> > >, T, 3, 3>(Direct(g));
+    }
+
+    template <typename VectorExpr>
+    inline MatrixInit<MatRInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>
+    MatRVec(const VectorExpression<VectorExpr, 3>& g) {
+	return MatrixInit<MatRInit<typename VectorExpr::ScalarType, VectorExpr>, typename VectorExpr::ScalarType, 3, 3>(g);
+    }    
+    
+    template <typename T, typename MatrixExpr>
+    class VecRotInit {
+    public:
+        static const index_type iNumRows = 3;
+
+        VecRotInit(const MatrixExpression<MatrixExpr, 3, 3>& R)
+            :R(R) {
+        }
+
+        index_type iGetNumRows() const { return iNumRows; }
+#if 0
+        void Initialize(Vector<T, 3>& Phi) const {
+            using std::sqrt;
+            using std::fabs;
+            using std::acos;
+            /*
+              This algorithm was taken from
+              Rebecca M. Brannon and coauthors
+              Computational Physics and Mechanics
+              Sandia National Laboratories
+              Albuquerque, NM 87185-0820
+              http://www.me.unm.edu/~rmbrann/gobag.html
+            */
+            T cth = (R(1, 1) + R(2, 2) + R(3, 3) - 1.) * 0.5;
+            T sth(0.);
+
+            if (cth < 1.) {
+                sth = sqrt(1. - cth * cth);
+            }
+            
+            const scalar_func_type puny = 1e-12;
+
+            if (fabs(sth) > puny) {
+                const T angle = acos(cth);
+                const T a1 = 0.5 * angle / sth;
+                Phi(1) = (R(3, 2) - R(2, 3)) * a1;
+                Phi(2) = (R(1, 3) - R(3, 1)) * a1;
+                Phi(3) = (R(2, 1) - R(1, 2)) * a1;
+            } else if (cth > 0.) {
+                Phi(1) = R(3, 2);
+                Phi(2) = R(1, 3);
+                Phi(3) = R(2, 1);
+            } else {
+                const T angle = acos(cth);
+                Matrix<T, 3, 3> scr = R;
+
+                cth = 0.;
+
+                index_type j = -1;
+
+                for (index_type k = 1; k <= 3; ++k) {
+                    scr(k, k) += 1.;
+                    sth = Dot(scr.GetCol(k), scr.GetCol(k));
+
+                    if (sth > cth) {
+                        cth = sqrt(sth);
+                        j = k;
+
+                        for (index_type i = 1; i <= 3; ++i) {
+                            scr(i, j) /= cth;
+                        }
+                    }
+                }
+
+                if (j < 1) {
+                    MATVEC_ASSERT(false);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
+
+                for (index_type i = 1; i <= 3; ++i) {
+                    Phi(i) = scr(i, j) * angle;
+                }
+            }
+        }
+#else
+        void Initialize(Vector<T, 3>& unit) const {
+            // Modified from Appendix 2.4 of
+            //
+            // author = {Marco Borri and Lorenzo Trainelli and Carlo L. Bottasso},
+            // title = {On Representations and Parameterizations of Motion},
+            // journal = {Multibody System Dynamics},
+            // volume = {4},
+            // pages = {129--193},
+            // year = {2000}
+            using std::atan2;
+            using std::sqrt;
+            
+            const T cosphi = 0.5 * (R(1, 1) + R(2, 2) + R(3, 3) - 1.);
+            
+            if (cosphi > 0.) {
+                unit(1) = 0.5*(R(3, 2) - R(2, 3));
+		unit(2) = 0.5*(R(1, 3) - R(3, 1));
+                unit(3) = 0.5*(R(2, 1) - R(1, 2));
+                
+		const T sinphi2 = Dot(unit, unit);
+                T sinphi;
+                
+                if (sinphi2 != 0) {
+                    sinphi = sqrt(sinphi2);
+                } else {
+                    sinphi = unit(1);
+                }
+                
+		const T phi = atan2(sinphi, cosphi);
+                T a;
+                RotCo(phi, a);
+		unit /= a;
+            } else {
+		// -1 <= cosphi <= 0
+		Matrix<T, 3, 3> eet = (R + Transpose(R)) * 0.5;
+		eet(1, 1) -= cosphi;
+		eet(2, 2) -= cosphi;
+		eet(3, 3) -= cosphi;
+		// largest (abs) component of unit vector phi/|phi|
+		index_type maxcol = 1;
+		if (eet(2, 2) > eet(1, 1)) {
+                    maxcol = 2;
+		}
+		if (eet(3, 3) > eet(maxcol, maxcol)) {
+                    maxcol = 3;
+		}
+		unit = (eet.GetCol(maxcol)/sqrt(eet(maxcol, maxcol)*(1. - cosphi)));
+                T sinphi(0.);
+                for (index_type i = 1; i <= 3; ++i) {
+                    sinphi -= Cross(unit, R.GetCol(i))(i) * 0.5;
+                }
+
+		unit *= atan2(sinphi, cosphi);
+            }
+        }
+        
+    private:        
+        static void RotCo(const T& phi, T& cf) {
+            // This algorithm is a simplified version of RotCo in RotCoeff.hc
+            // from Marco Morandini  <morandini@aero.polimi.it>
+            // and Teodoro Merlini  <merlini@aero.polimi.it>
+            using std::sin;
+            using std::cos;
+            using std::sqrt;
+            using std::fabs;
+	
+            T phip[10];
+            T phi2(phi * phi);
+
+            if (fabs(phi) < RotCoeff::SerThrsh[0]) {
+                phip[0] = 1.;
+            
+                for (index_type j = 1; j <= 9; j++) {
+                    phip[j] = phip[j - 1] * phi2;
+                }
+
+                cf = 0.;
+            
+                for (index_type j = 0; j < RotCoeff::SerTrunc[0]; j++) {
+                    cf += phip[j] / RotCoeff::SerCoeff[0][j];
+                }
+
+                return;
+            } 
+	
+            const T pd(sqrt(phi2));
+            cf = sin(pd) / pd;                 // a = sin(phi)/phi
+        };
+#endif
+        
+    private:
+        const MatrixExpression<MatrixExpr, 3, 3> R;
+    };
+
+    template <typename T>
+    inline VectorInit<VecRotInit<T, MatrixDirectExpr<Matrix<T, 3, 3> > >, T, 3>
+    VecRotMat(const Matrix<T, 3, 3>& R) {
+	return VectorInit<VecRotInit<T, MatrixDirectExpr<Matrix<T, 3, 3> > >, T, 3>(Direct(R));
+    }
+    
 template <typename T, index_type N_rows, index_type N_cols>
 class TabularMatrixView {
 public:
@@ -2317,6 +3152,12 @@ Dot(const Vector<T_Lhs, N_rows>& u, const Vector<T_Rhs, N_rows>& v) {
 	return DotTraits<VectorDirectExpr<Vector<T_Lhs, N_rows> >, VectorDirectExpr<Vector<T_Rhs, N_rows> >, N_rows, N_rows>::Dot(Direct(u), Direct(v));
 }
 
+    template <typename T_Lhs, index_type N_rows>
+    inline typename DotTraits<VectorDirectExpr<Vector<T_Lhs, N_rows> >, Vec3DirectExpr, N_rows, N_rows>::ExpressionType
+    Dot(const Vector<T_Lhs, N_rows>& u, const Vec3& v) {
+	return DotTraits<VectorDirectExpr<Vector<T_Lhs, N_rows> >, Vec3DirectExpr, N_rows, N_rows>::Dot(Direct(u), Direct(v));
+    }
+    
 template <typename VectorExpr, index_type N_rows>
 inline typename VectorExpression<VectorExpr, N_rows>::ScalarType
 Norm(const VectorExpression<VectorExpr, N_rows>& u) {
@@ -2426,6 +3267,12 @@ inline Cross(const Vector<T_Lhs, 3>& u, const Vector<T_Rhs, 3>& v) {
 	return VectorExpression<VectorCrossExpr<VectorDirectExpr<Vector<T_Lhs, 3> >, VectorDirectExpr<Vector<T_Rhs, 3> > >, 3>(Direct(u), Direct(v));
 }
 
+    template <typename T_Lhs>
+    VectorExpression<VectorCrossExpr<VectorDirectExpr<Vector<T_Lhs, 3> >, Vec3DirectExpr>, 3>
+    inline Cross(const Vector<T_Lhs, 3>& u, const Vec3& v) {
+	return VectorExpression<VectorCrossExpr<VectorDirectExpr<Vector<T_Lhs, 3> >, Vec3DirectExpr>, 3>(Direct(u), Direct(v));
+    }
+    
 template <typename T>
 inline T Det(const Matrix<T, 2, 2>& A) {
 	return A(1, 1) * A(2, 2) - A(1, 2) * A(2, 1);
@@ -2441,7 +3288,7 @@ inline Matrix<T, 2, 2> Inv(const Matrix<T, 2, 2>& A) {
 						   A(1, 1) / detA);
 }
 
-template <typename MatrixLhsExpr, typename VectorRhsExpr>
+    template <index_type N_rows, index_type N_cols, typename MatrixLhsExpr, typename VectorRhsExpr>
 class MatrixVectorProduct {
 public:
 	static const bool bAlias = MatrixLhsExpr::bAlias || VectorRhsExpr::bAlias;
@@ -2475,10 +3322,79 @@ public:
     }
 
 private:
+        typedef typename IndexCheck<N_rows - MatrixLhsExpr::iNumRows>::CheckType check_iNumRowsLhs;
+        typedef typename IndexCheck<N_cols - MatrixLhsExpr::iNumCols>::CheckType check_iNumColsLhs;
+        typedef typename IndexCheck<N_cols - VectorRhsExpr::iNumRows>::CheckType check_iNumRowsRhs;
+        typedef typename MaxSizeCheck<N_rows != DYNAMIC_SIZE>::CheckType check_iNumRowsDynamic;
+        typedef typename MaxSizeCheck<N_cols != DYNAMIC_SIZE>::CheckType check_iNumColsDynamic;
+        
+        const MatrixLhsExpr A;
+        const VectorRhsExpr x;
+    };
+
+    template <typename MatrixLhsExpr, typename VectorRhsExpr>
+    class MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr> {
+    public:
+        static const bool bAlias = MatrixLhsExpr::bAlias || VectorRhsExpr::bAlias;
+        static const index_type iNumRows = MatrixLhsExpr::iNumRows;
+        typedef typename MatrixLhsExpr::ScalarType MatrixLhsScalarExpr;
+        typedef typename VectorRhsExpr::ScalarType VectorRhsScalarExpr;
+
+        typedef typename CommonScalarType<typename BasicScalarType<MatrixLhsScalarExpr>::ScalarType,
+                                          typename BasicScalarType<VectorRhsScalarExpr>::ScalarType>::ScalarType ScalarType;
+        typedef ScalarType ExpressionType;
+
+        MatrixVectorProduct(const MatrixLhsExpr& A, const VectorRhsExpr& x)
+            :A(A), x(x) {
+
+        }
+    
+        ScalarType operator()(index_type i) const {
+            MATVEC_ASSERT(i >= 1);
+            MATVEC_ASSERT(i <= iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == x.iGetNumRows());
+        
+            ScalarType b_i(0);
+        
+            for (integer j = 1; j <= A.iGetNumCols(); ++j) {
+                b_i += A(i, j) * x(j);
+            }
+
+            return b_i;
+        }
+
+        index_type iGetNumRows() const {
+            return A.iGetNumRows();
+        }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return A.bHaveReferenceTo(pFirst, pLast) || x.bHaveReferenceTo(pFirst, pLast);
+        }
+
+    private:
     const MatrixLhsExpr A;
     const VectorRhsExpr x;
 };
 
+    template <index_type N_rows, typename MatrixLhsExpr, typename VectorRhsExpr>
+    class MatrixVectorProduct<N_rows, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr>: public MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr> {
+    public:
+        MatrixVectorProduct(const MatrixLhsExpr& A, const VectorRhsExpr& x)
+            :MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr>(A, x) {
+
+        }
+    };
+
+    template <index_type N_cols, typename MatrixLhsExpr, typename VectorRhsExpr>
+    class MatrixVectorProduct<DYNAMIC_SIZE, N_cols, MatrixLhsExpr, VectorRhsExpr>: public MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr> {
+    public:
+        MatrixVectorProduct(const MatrixLhsExpr& A, const VectorRhsExpr& x)
+            :MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, VectorRhsExpr>(A, x) {
+
+        }
+    };
+    
 template <typename MatrixLhsExpr, typename MatrixRhsExpr>
 class MatrixMatrixProduct {
 public:
@@ -2547,39 +3463,52 @@ private:
  ****************************************************************************************************************/
 
 template <typename MatrixLhsExpr, index_type N_rows, index_type N_cols, typename VectorRhsExpr>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>
+    inline VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>
 operator* (const MatrixExpression<MatrixLhsExpr, N_rows, N_cols>& A, const VectorExpression<VectorRhsExpr, N_cols>& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>(A, x);
+	return VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>(A, x);
 }
 
 template <typename T, index_type N_rows, index_type N_cols, typename VectorRhsExpr>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>
+    inline VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>
 operator* (const Matrix<T, N_rows, N_cols>& A, const VectorExpression<VectorRhsExpr, N_cols>& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>(Direct(A), x);
+	return VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorRhsExpr, N_cols> >, N_rows>(Direct(A), x);
 }
 
 template <typename MatrixLhsExpr, index_type N_rows, index_type N_cols, typename T>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T, N_cols> >, N_cols> >, N_rows>
+    inline VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T, N_cols> >, N_cols> >, N_rows>
 operator* (const MatrixExpression<MatrixLhsExpr, N_rows, N_cols>& A, const Vector<T, N_cols>& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T, N_cols> >, N_cols> >, N_rows>(A, Direct(x));
+	return VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixLhsExpr, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T, N_cols> >, N_cols> >, N_rows>(A, Direct(x));
 }
 
 template <typename T1, typename T2, index_type N_rows, index_type N_cols>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T1, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T2, N_cols> >, N_cols> >, N_rows>
+    inline VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixDirectExpr<Matrix<T1, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T2, N_cols> >, N_cols> >, N_rows>
 operator* (const Matrix<T1, N_rows, N_cols>& A, const Vector<T2, N_cols>& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T1, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T2, N_cols> >, N_cols> >, N_rows>(Direct(A), Direct(x));
+	return VectorExpression<MatrixVectorProduct<N_rows, N_cols, MatrixExpression<MatrixDirectExpr<Matrix<T1, N_rows, N_cols> >, N_rows, N_cols>, VectorExpression<VectorDirectExpr<Vector<T2, N_cols> >, N_cols> >, N_rows>(Direct(A), Direct(x));
 }
 
 template <typename T, index_type N_rows>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, 3> >, N_rows, 3>, VectorExpression<Vec3DirectExpr, 3> >, N_rows>
+    inline VectorExpression<MatrixVectorProduct<N_rows, 3, MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, 3> >, N_rows, 3>, VectorExpression<Vec3DirectExpr, 3> >, N_rows>
 operator* (const Matrix<T, N_rows, 3>& A, const Vec3& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, 3> >, N_rows, 3>, VectorExpression<Vec3DirectExpr, 3> >, N_rows>(Direct(A), Direct(x));
+	return VectorExpression<MatrixVectorProduct<N_rows, 3, MatrixExpression<MatrixDirectExpr<Matrix<T, N_rows, 3> >, N_rows, 3>, VectorExpression<Vec3DirectExpr, 3> >, N_rows>(Direct(A), Direct(x));
 }
 
 template <typename T>
-inline VectorExpression<MatrixVectorProduct<MatrixExpression<Mat3x3DirectExpr, 3, 3>, VectorExpression<VectorDirectExpr<Vector<T, 3> >, 3> >, 3>
+    inline VectorExpression<MatrixVectorProduct<3, 3, MatrixExpression<Mat3x3DirectExpr, 3, 3>, VectorExpression<VectorDirectExpr<Vector<T, 3> >, 3> >, 3>
 operator* (const Mat3x3& A, const Vector<T, 3>& x) {
-	return VectorExpression<MatrixVectorProduct<MatrixExpression<Mat3x3DirectExpr, 3, 3>, VectorExpression<VectorDirectExpr<Vector<T, 3> >, 3> >, 3>(Direct(A), Direct(x));
+	return VectorExpression<MatrixVectorProduct<3, 3, MatrixExpression<Mat3x3DirectExpr, 3, 3>, VectorExpression<VectorDirectExpr<Vector<T, 3> >, 3> >, 3>(Direct(A), Direct(x));
+    }
+
+    template <typename T>
+    inline VectorExpression<MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixExpression<MatNxNDirectExpr, DYNAMIC_SIZE, DYNAMIC_SIZE>, VectorExpression<VectorDirectExpr<Vector<T, DYNAMIC_SIZE> >, DYNAMIC_SIZE> >, DYNAMIC_SIZE> operator*(const MatNxN& A, const Vector<T, DYNAMIC_SIZE>& x) {
+        MATVEC_ASSERT(A.iGetNumCols() == x.iGetNumRows());
+        return VectorExpression<MatrixVectorProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixExpression<MatNxNDirectExpr, DYNAMIC_SIZE, DYNAMIC_SIZE>, VectorExpression<VectorDirectExpr<Vector<T, DYNAMIC_SIZE> >, DYNAMIC_SIZE> >, DYNAMIC_SIZE>(Direct(A), Direct(x));
+    }
+
+    template <typename T>
+    inline VectorExpression<MatrixVectorProduct<3, DYNAMIC_SIZE, MatrixExpression<Mat3xNDirectExpr, 3, DYNAMIC_SIZE>, VectorExpression<VectorDirectExpr<Vector<T, DYNAMIC_SIZE> >, DYNAMIC_SIZE> >, 3> operator*(const Mat3xN& A, const Vector<T, DYNAMIC_SIZE>& x) {
+        MATVEC_ASSERT(A.iGetNumCols() == x.iGetNumRows());
+        MATVEC_ASSERT(A.iGetNumRows() == 3);
+        return VectorExpression<MatrixVectorProduct<3, DYNAMIC_SIZE, MatrixExpression<Mat3xNDirectExpr, 3, DYNAMIC_SIZE>, VectorExpression<VectorDirectExpr<Vector<T, DYNAMIC_SIZE> >, DYNAMIC_SIZE> >, 3> (Direct(A), Direct(x));
 }
 
 /****************************************************************************************************************
@@ -2641,6 +3570,12 @@ operator* (const Mat3x3& A, const Matrix<T, 3, N_cols_Rhs>& B) {
 		return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T1>::DirectExpressionType, typename ScalarTypeTraits<T2>::DirectExpressionType>, VectorDirectExpr<Vector<T1, N_rows> >, VectorDirectExpr<Vector<T2, N_rows> > >, N_rows>(u, v); \
 	} \
 	\
+    template <typename T1, index_type N_rows>              \
+    inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T1>::DirectExpressionType, typename ScalarTypeTraits<doublereal>::DirectExpressionType>, VectorDirectExpr<Vector<T1, N_rows> >, Vec3DirectExpr>, N_rows> \
+    FunctionName(const Vector<T1, N_rows>& u, const Vec3& v) { \
+        return VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, typename ScalarTypeTraits<T1>::DirectExpressionType, typename ScalarTypeTraits<doublereal>::DirectExpressionType>, VectorDirectExpr<Vector<T1, N_rows> >, Vec3DirectExpr>, N_rows>(u, v); \
+    }                                                                   \
+                                                                        \
 	template <index_type N_rows> \
 	inline VectorExpression<ExpressionName<ScalarBinaryOperation<FunctionClass, scalar_func_type, scalar_func_type>, VectorDirectExpr<Vector<scalar_func_type, N_rows> >, VectorDirectExpr<Vector<scalar_func_type, N_rows> > >, N_rows> \
 	FunctionName(const Vector<scalar_func_type, N_rows>& u, const Vector<scalar_func_type, N_rows>& v) { \
