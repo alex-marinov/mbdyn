@@ -25,6 +25,13 @@ MBDyn 1.X-Devel
 		- updated support for CodeAster modal element database
 		  generation (Reinhard Resch)
 		- improved electric motor (Reinhard Resch)
+		- improved module-hydrodynamic_plain_bearing (Reinhard Resch)
+			1) Multiple Gauss Points can be used in combination
+			   with axial movement of the shaft
+			2) It is possible to have eccentricities larger than
+			   one (Sommerfeld numbers are extrapolated linear).
+			3) Output can be generated for selected Gauss points
+			   only
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:

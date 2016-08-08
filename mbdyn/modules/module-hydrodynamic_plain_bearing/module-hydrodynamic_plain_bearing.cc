@@ -31,7 +31,7 @@
 
 /*
  AUTHOR: Reinhard Resch <R.RESCH@secop.com>
-        Copyright (C) 2011(-2015) all rights reserved.
+  Copyright (C) 2011(-2016) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -56,12 +56,12 @@
 #include "module-hydrodynamic_plain_bearing.h"
 #include "hydrodynamic_plain_bearing_force.h"
 
-class hydrodynamic_plain_bearing_with_offset: virtual public Elem, public UserDefinedElem
+class HydrodynamicPlainBearing: virtual public Elem, public UserDefinedElem
 {
 public:
-	hydrodynamic_plain_bearing_with_offset(unsigned uLabel, const DofOwner *pDO,
+    HydrodynamicPlainBearing(unsigned uLabel, const DofOwner *pDO,
 		DataManager* pDM, MBDynParser& HP);
-	virtual ~hydrodynamic_plain_bearing_with_offset(void);
+    virtual ~HydrodynamicPlainBearing(void);
 	virtual void Output(OutputHandler& OH) const;
 	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
 	VariableSubMatrixHandler&
@@ -86,7 +86,8 @@ public:
 						 doublereal& SoV,
 						 doublereal& my,
 						 doublereal& beta,
-						 integer iGaussPoint)const;
+                         doublereal r,
+                         doublereal alpha) const;
 	SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
@@ -111,22 +112,16 @@ public:
 	const StructNode* m_pBearing;
 	Vec3 m_o1_R1;
 	Vec3 m_o2_R2;
-
-	doublereal m_b;		// bearing width
-	doublereal m_d;		// shaft diameter
-	doublereal m_Psi;	// relative clearance Psi = s / d; s = D - d
-	doublereal m_eta;	// dynamic oil viscosity
+    bearing_data m_bdat;
 	DriveOwner m_InitialAssemblyFactor;
-	bool m_fcontact;	// use the contact model
-	doublereal m_sP;	// contact stiffness when epsilon == 1
-	doublereal m_DL;	// Lehr damping coefficient when epsilon == 1
-	doublereal m_m;		// equivalent dynamic mass for which m_DL is valid for
-	doublereal m_abs_FPrs1;	// contact force for epsilon == 1
-	doublereal m_myP;	// coulomb friction coefficient
-	doublereal m_signum_delta_omega; // maximum angular velocity difference where the friction torque is zero
-	integer iNumGaussPoints;
+    integer m_iNumGaussPoints;
 	const doublereal* m_r;
 	const doublereal* m_alpha;
+    struct OutputOpt {
+        doublereal r;
+        doublereal alpha;
+    } m_output[6];
+    integer m_iNumOutputPoints;
 	bool m_lambda;
 	static const doublereal s_r1[1], s_alpha1[1];
 	static const doublereal s_r2[2], s_alpha2[2];
@@ -137,35 +132,35 @@ public:
 // GAUSS-LEGENDRE integration points and weight factors according to K.J. Bathe 2002 table 5.6
 // times 0.5 in order to account for an integration over the interval -0.5*b ... 0.5*b
 
-const doublereal hydrodynamic_plain_bearing_with_offset::s_r1[1]     = {0.5 * 0.};
-const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha1[1] = {0.5 * 2};
+const doublereal HydrodynamicPlainBearing::s_r1[1]     = {0.5 * 0.};
+const doublereal HydrodynamicPlainBearing::s_alpha1[1] = {0.5 * 2};
 
-const doublereal hydrodynamic_plain_bearing_with_offset::s_r2[2] = {0.5 * -0.577350269189626,
+const doublereal HydrodynamicPlainBearing::s_r2[2] = {0.5 * -0.577350269189626,
 																	0.5 *  0.577350269189626};
-const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha2[2] = {0.5 * 1.,
+const doublereal HydrodynamicPlainBearing::s_alpha2[2] = {0.5 * 1.,
 																		0.5 * 1.};
 
-const doublereal hydrodynamic_plain_bearing_with_offset::s_r3[3] = {0.5 * -0.774596669241483,
+const doublereal HydrodynamicPlainBearing::s_r3[3] = {0.5 * -0.774596669241483,
 																	0.5 *  0.,
 																	0.5 *  0.774596669241483};
-const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha3[3] = {0.5 * 0.555555555555556,
+const doublereal HydrodynamicPlainBearing::s_alpha3[3] = {0.5 * 0.555555555555556,
 																		0.5 * 0.888888888888889,
 																		0.5 * 0.555555555555556};
 
-const doublereal hydrodynamic_plain_bearing_with_offset::s_r6[6] = {0.5 * -0.932469514203152,
+const doublereal HydrodynamicPlainBearing::s_r6[6] = {0.5 * -0.932469514203152,
 																	0.5 * -0.661209386466265,
 																	0.5 * -0.238619186083197,
 																	0.5 *  0.238619186083197,
 																	0.5 *  0.661209386466265,
 																	0.5 *  0.932469514203152};
-const doublereal hydrodynamic_plain_bearing_with_offset::s_alpha6[6] = {0.5 * 0.171324492379170,
+const doublereal HydrodynamicPlainBearing::s_alpha6[6] = {0.5 * 0.171324492379170,
 																		0.5 * 0.360761573048139,
 																		0.5 * 0.467913934572691,
 																		0.5 * 0.467913934572691,
 																		0.5 * 0.360761573048139,
 																		0.5 * 0.171324492379170};
 
-hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
+HydrodynamicPlainBearing::HydrodynamicPlainBearing(
 	unsigned uLabel, const DofOwner *pDO,
 	DataManager* pDM, MBDynParser& HP)
 : 	Elem(uLabel, flag(0)),
@@ -174,23 +169,16 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 	m_pBearing(0),
 	m_o1_R1(0.,0.,0.),
 	m_o2_R2(0.,0.,0.),
-	m_b(0.),
-	m_d(0.),
-	m_Psi(0.),
-	m_eta(0.),
 	m_InitialAssemblyFactor(0),
-	m_fcontact(false),
-	m_sP(0.),
-	m_DL(0.),
-	m_m(1.),
-	m_abs_FPrs1(0.),
-	m_myP(0.),
-	m_signum_delta_omega(0.),
-	iNumGaussPoints(0),
+	m_iNumGaussPoints(0),
 	m_r(0),
 	m_alpha(0),
+        m_iNumOutputPoints(0),
 	m_lambda(true)
 {
+    std::memset(&m_bdat, 0, sizeof(m_bdat));
+    std::memset(&m_output, 0, sizeof(m_output));
+    
 	// help
 	if (HP.IsKeyWord("help"))
 	{
@@ -214,14 +202,8 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			"		relative_clearance, (real) <Psi>,\n"
 			"		oil_viscosity, (real) <eta>,\n"
 			"		initial_assembly_factor, (DriveCaller),\n"
-			"           [contact,\n"
-			"			stiffness, (real) <sP>,\n"
-			"			damping_ratio, (real) <DL>,\n"
-			"			rated_mass, (real) <m>,\n"
-			"			force, (real) <abs_FPrs1>,\n"
-			"			coulomb_friction_coefficient, (real) <myP>,\n"
-			"			angular_velocity_threshold, (real) <signum_delta_omega>]\n"
 			"       [number of gauss points, <num_gauss_points>]\n"
+            "       [output points, (integer) <num_output_points> [, {gauss point, (integer) <index_1> | custom, r, (real) <r_1>, alpha, (real) <alpha_1>}]]\n"
             "       [extend shaft to bearing center, {yes | no | (bool) <extend>}]\n"
 			"\n"
 			"   b ... bearing width [m]\n"
@@ -229,12 +211,6 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			"	Psi ... relative clearance Psi = ( D - d ) / D [m/m]\n"
 			"	eta ... dynamic oil viscosity [Pa*s]\n"
 			"\n"
-			"	sP ... contact stiffness for wall contact at epsilon == 1 [N/m]\n"
-			"	DL ... Lehr damping ratio for wall contact at epsilon == 1 [1]\n"
-			"	m ... equivalent dynamic mass used for damping force calculation  [kg]\n"
-			"	abs_FPrs1 ... contact force at epsilon == 1	[N]\n"
-			"	myP ... coulomb friction coefficient [N/N]\n"
-			"	signum_delta_omega ... smallest angular velocity where coulomb friction is considered [rad/s]\n"
 			<< std::endl);
 
 		if (!HP.IsArg())
@@ -283,13 +259,14 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"bearing width\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}		
-	m_b = HP.GetReal();
+        
+    m_bdat.b = HP.GetReal();
 
 	bool bHaveD = false;
 
 	if (HP.IsKeyWord("shaft" "diameter"))
 	{
-		m_d = HP.GetReal();
+        m_bdat.d = HP.GetReal();
 	}
 	else
 	{
@@ -299,7 +276,7 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		m_d = HP.GetReal();
+        m_bdat.d = HP.GetReal();
 		bHaveD = true;
 	}
 
@@ -308,11 +285,12 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"relative clearance\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_Psi = HP.GetReal();
+        
+    m_bdat.Psi = HP.GetReal();
 
 	if (bHaveD)
 	{
-		m_d *= (1 - m_Psi);
+        m_bdat.d *= (1 - m_bdat.Psi);
 	}
 
 	if ( !( HP.IsKeyWord("oil_viscosity") || HP.IsKeyWord("oil" "viscosity") ) )
@@ -320,89 +298,118 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"oil viscosity\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	m_eta = HP.GetReal();
+        
+    m_bdat.eta = HP.GetReal();
 
 	m_InitialAssemblyFactor.Set(( HP.IsKeyWord("initial_assembly_factor") || HP.IsKeyWord("initial" "assembly" "factor") ) ? HP.GetDriveCaller() : new OneDriveCaller());
 
-	if ( HP.IsKeyWord("contact") )
-	{
-		m_fcontact = true;
+    m_iNumGaussPoints = HP.IsKeyWord("number" "of" "gauss" "points") ? HP.GetInt() : 1;
 
-		if ( !HP.IsKeyWord("stiffness") )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"stiffness\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_sP = HP.GetReal();
-
-		if ( !( HP.IsKeyWord("damping_ratio") || HP.IsKeyWord("damping" "ratio") ) )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"damping ratio\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_DL = HP.GetReal();
-
-		if ( !( HP.IsKeyWord("rated_mass") || HP.IsKeyWord("rated" "mass") ) )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"rated mass\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_m = HP.GetReal();
-
-		if ( !HP.IsKeyWord("force") )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"force\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_abs_FPrs1 = HP.GetReal();
-
-		if ( !( HP.IsKeyWord("coulomb_friction_coefficient") || HP.IsKeyWord("coulomb" "friction" "coefficient") ) )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"coulomb friction coefficient\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_myP = HP.GetReal();
-
-		if ( !( HP.IsKeyWord("angular_velocity_threshold") || HP.IsKeyWord("angular" "velocity" "threshold") ) )
-		{
-			silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): keyword \"angular velocity threshold\" expected at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		m_signum_delta_omega = HP.GetReal();
-	}
-
-	iNumGaussPoints = HP.IsKeyWord("number" "of" "gauss" "points") ? HP.GetInt() : 1;
-
-	m_lambda = HP.IsKeyWord("extend" "shaft" "to" "bearing" "center") ? HP.GetYesNoOrBool() : iNumGaussPoints == 1;
-
-	if (m_lambda && iNumGaussPoints > 1)
-	{
-		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel() << "): warning: extend shaft to bearing center = TRUE but number of gauss points > 1 is meaningless at line " << HP.GetLineData() << std::endl);
-	}
-
-#define CASE_GAUSS_POINT_NUM_(num) \
-	case num: \
-		assert(iNumGaussPoints == sizeof(s_r##num)/sizeof(s_r##num[0])); \
-		assert(iNumGaussPoints == sizeof(s_alpha##num)/sizeof(s_alpha##num[0])); \
-		m_r = s_r##num; \
-		m_alpha = s_alpha##num; \
+#define CASE_GAUSS_POINT_NUM_(num)                                      \
+    case num:                                                           \
+        assert(m_iNumGaussPoints == sizeof(s_r##num)/sizeof(s_r##num[0])); \
+        assert(m_iNumGaussPoints == sizeof(s_alpha##num)/sizeof(s_alpha##num[0])); \
+        m_r = s_r##num;                                                 \
+        m_alpha = s_alpha##num;                                         \
 	break
 
-	switch (iNumGaussPoints)
-	{
+    switch (m_iNumGaussPoints)
+		{
 	CASE_GAUSS_POINT_NUM_(1);
 	CASE_GAUSS_POINT_NUM_(2);
 	CASE_GAUSS_POINT_NUM_(3);
 	CASE_GAUSS_POINT_NUM_(6);
-	default:
+    default:
+        silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                    << "): integration rule with " << m_iNumGaussPoints
+                    << " gauss points not supported at line "
+                    << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+    hydrodynamic_plain_bearing_init(m_bdat);
+
+#undef CASE_GAUSS_POINT_NUM_
+        
+    ASSERT(m_iNumGaussPoints <= sizeof(m_output) / sizeof(m_output[0]));
+        
+    if (HP.IsKeyWord("output" "points")) {
+        m_iNumOutputPoints = HP.GetInt();
+
+        if (m_iNumOutputPoints < 0 || m_iNumOutputPoints > m_iNumGaussPoints) {
+            silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                        << "): number of points for output is not in range [0:" << m_iNumGaussPoints
+                        << "] at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+        for (integer i = 0; i < m_iNumOutputPoints; ++i) {
+            if (HP.IsKeyWord("gauss" "point")) {
+                integer iGaussPoint = HP.GetInt();
+
+                if (iGaussPoint < 1 || iGaussPoint > m_iNumGaussPoints) {
+                    silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                                << "): Gauss point index " << iGaussPoint
+                                << " is not in range [1:" << m_iNumGaussPoints << "] at line "
+                                << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+                m_output[i].r = m_r[iGaussPoint - 1];
+                m_output[i].alpha = m_alpha[iGaussPoint - 1];
+            } else if (HP.IsKeyWord("custom")) {
+                if (!HP.IsKeyWord("r")) {
+                    silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                                << "): keyword \"r\" expected at line "
+                                << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+                m_output[i].r = HP.GetReal();
+
+                if (fabs(m_output[i].r) > 0.5) {
+                    silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                                << "): abs(r) = " << fabs(m_output[i].r)
+                                << " > 0.5 is outside the bearing width at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                }
+
+                if (!HP.IsKeyWord("alpha")) {
+                    silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
+                                << "): keyword \"alpha\" expected at line "
+                                << HP.GetLineData() << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+                m_output[i].alpha = HP.GetReal();
+
+                if (m_output[i].alpha < 0 || m_output[i].alpha > 1) {
 		silent_cerr("hydrodynamic_plain_bearing_with_offset(" << GetLabel()
-					<< "): integration rule with " << iNumGaussPoints
-					<< " gauss points not supported at line "
+                                << "): alpha = " << m_output[i].alpha << " is not in range [0:1] at line "
 					<< HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
+            }
+        }
+    } else {
+        m_iNumOutputPoints = m_iNumGaussPoints;
 
-#undef CASE_GAUSS_POINT_NUM_
+        for (integer i = 0; i < m_iNumOutputPoints; ++i) {
+            m_output[i].r = m_r[i];
+            m_output[i].alpha = m_alpha[i];
+        }
+    }
+
+    if (HP.IsKeyWord("extend" "shaft" "to" "bearing" "center")) {
+        m_lambda = HP.GetYesNoOrBool();
+    }
+
+    if (HP.IsKeyWord("epsilon" "max")) {
+        m_bdat.eps_max = HP.GetReal();
+    } else {
+        m_bdat.eps_max = 0.999; // According to Butenschoen this model is valid until epsilon = 0.999
+    }
 
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
@@ -414,41 +421,35 @@ hydrodynamic_plain_bearing_with_offset::hydrodynamic_plain_bearing_with_offset(
 		<< m_o1_R1 << " "
 		<< m_pBearing->GetLabel() << " "
 		<< m_o2_R2 << " "
-		<< m_b << " "
-		<< m_d << " "
-		<< m_Psi << " "
-		<< m_eta << " ";
+        << m_bdat.b << " "
+        << m_bdat.d << " "
+        << m_bdat.Psi << " "
+        << m_bdat.eta << " ";
 
-	if ( m_fcontact )
+    out << m_iNumGaussPoints << " ";
+
+    for (integer i = 0; i < m_iNumGaussPoints; ++i)
 	{
-		out << m_sP << " "
-			<< m_DL << " "
-			<< m_m << " "
-			<< m_abs_FPrs1 << " "
-			<< m_myP << " "
-			<< m_signum_delta_omega << " ";
+        out << m_r[i] << " " << m_alpha[i] << " ";
 	}
 
-	out << iNumGaussPoints << " ";
+    out << m_iNumOutputPoints << " ";
 
-	for (integer i = 0; i < iNumGaussPoints; ++i)
+    for (integer i = 0; i < m_iNumOutputPoints; ++i)
 	{
-		out << m_r[i] << " " << m_alpha[i] << " ";
+        out << m_output[i].r << " " << m_output[i].alpha << " ";
 	}
 
 	out << std::endl;
 }
 
-hydrodynamic_plain_bearing_with_offset::~hydrodynamic_plain_bearing_with_offset(void)
+HydrodynamicPlainBearing::~HydrodynamicPlainBearing(void)
 {
-	// destroy private data
-	#ifdef DEBUG
-		std::cerr << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << std::endl;
-	#endif
+    // destroy private dataman
 }
 
 void
-hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
+HydrodynamicPlainBearing::Output(OutputHandler& OH) const
 {
 	if ( bToBeOutput() && OH.UseText(OutputHandler::LOADABLE) )
 	{
@@ -456,7 +457,7 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 
 		os << std::setw(8) << GetLabel() << ' '; 		// 0
 
-		for (integer i = 0; i < iNumGaussPoints; ++i)
+        for (integer i = 0; i < m_iNumOutputPoints; ++i)
 		{
 			doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
@@ -465,7 +466,7 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 			Vec3 F2_R2, M2_R2;
 			Vec3 F2_I, M2_I, F1_I, M1_I;
 
-			ComputeResidual(e_R2,e_dot_R2,omega_proj,F2_R2,M2_R2,F2_I,M2_I,F1_I,M1_I,eps,eps_dot,delta,SoD,SoV,my,beta,i);
+            ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta, m_output[i].r, m_output[i].alpha);
 
 			// output the current state: the column layout is as follows
 			// (all quantities are refered to the reference frame of the bearing node)
@@ -507,7 +508,6 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 				<< SoV << ' ' 				// 14
 				<< my << ' ' 				// 15
 				<< beta << ' ';				// 16
-
 		}
 
 		os << std::endl;
@@ -515,14 +515,14 @@ hydrodynamic_plain_bearing_with_offset::Output(OutputHandler& OH) const
 }
 
 void
-hydrodynamic_plain_bearing_with_offset::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
+HydrodynamicPlainBearing::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	*piNumRows = 12;
 	*piNumCols = 12;
 }
 
 VariableSubMatrixHandler&
-hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMatV,
+HydrodynamicPlainBearing::AssJac(VariableSubMatrixHandler& WorkMatV,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
@@ -562,11 +562,13 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 	const Vec3& omega2 = m_pBearing->GetWCurr();
 	const Vec3& omega2_ref = m_pBearing->GetWRef();
 
-	for (integer i = 0; i < iNumGaussPoints; ++i)
+    for (integer i = 0; i < m_iNumGaussPoints; ++i)
 	{
 		Vec3 o1_R1 = m_o1_R1;
-		o1_R1(3) += m_r[i] * m_b;
-		const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - m_o2_R2;
+        o1_R1(3) += m_r[i] * m_bdat.b;
+        Vec3 o2_R2 = m_o2_R2;
+        o2_R2(3) += m_r[i] * m_bdat.b;
+        const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - o2_R2;
 		const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
 
 		const doublereal lambda = m_lambda ? -v_R2(3) / d1_R2(3) : 0.;
@@ -575,23 +577,23 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 		// FIXME: nan values if e_R2(1) == 0 && e_R2(2) == 0
 		if ( e_R2(1) == 0.0 && e_R2(2) == 0.0 )
-				e_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
+            e_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_bdat.d * m_bdat.Psi / 2.;
 
 		const Vec3 v_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega2.Cross(X2 - X1) + ( omega1 - omega2 ).Cross( R1 * o1_R1 ) );
 		const Vec3 d1_dot_R2 = R2.MulTV( ( omega1 - omega2 ).Cross( R1.GetCol(3) ) );
 		const doublereal lambda_dot = m_lambda ? -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3),2) * d1_dot_R2(3) : 0.;
 
-		Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
+        Vec3 e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * o2_R2 )
 								+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
 
 		// FIXME: nan values if e_dot_R2(1) == 0 && e_dot_R2(2) == 0
 		if ( e_dot_R2(1) == 0.0 && e_dot_R2(2) == 0.0 )
-				e_dot_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_d * m_Psi / 2.;
+            e_dot_R2(1) = std::numeric_limits<doublereal>::epsilon() * m_bdat.d * m_bdat.Psi / 2.;
 
 		const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
 		const Vec3 l1_R1 = o1_R1 + lambda_d1_R1;
 		const Vec3 l1_I = R1 * l1_R1;
-		const Vec3 l2_R2 = m_o2_R2 + e_R2;
+        const Vec3 l2_R2 = o2_R2 + e_R2;
 		const doublereal omega_proj[2] = { R2.GetCol(3).Dot(omega1),
 						   R2.GetCol(3).Dot(omega2) };
 
@@ -614,7 +616,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 
 		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
-		__FC_DECL__(hydrodynamic_plain_bearing_force_dv)(m_b, m_d, m_Psi, m_eta, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k, kd, eps, eps_dot, delta, SoD, SoV, my, beta, NBDIRSMAX);
+        hydrodynamic_plain_bearing_force_dv(m_bdat, omega_proj, omega_projd, e_, ed, e_dot_, e_dotd, k, kd, eps, eps_dot, delta, SoD, SoV, my, beta, NBDIRSMAX);
 
 		Vec3 F2_R2;					// F2^(R2) = f(e^(R2), diff(e^(R2),t), omega1_proj, omega2_proj)
 
@@ -675,38 +677,6 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 		dM2_R2_domega2_proj(1) = 0.;
 		dM2_R2_domega2_proj(2) = 0.;
 		dM2_R2_domega2_proj(3) = kd[2][5];
-
-		if ( m_fcontact )
-		{
-			// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
-
-			__FC_DECL__(plain_bearing_contact_force_dv)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, omega_projd,e_, ed, e_dot_,e_dotd, k, kd, NBDIRSMAX);
-
-			F2_R2(1) += k[0];
-			F2_R2(2) += k[1];
-
-			dF2_R2_de_R2(1,1) += kd[0][0]; dF2_R2_de_R2(1,2) += kd[0][1];
-			dF2_R2_de_R2(2,1) += kd[1][0]; dF2_R2_de_R2(2,2) += kd[1][1];
-
-			dF2_R2_de_dot_R2(1,1) += kd[0][2]; dF2_R2_de_dot_R2(1,2) += kd[0][3];
-			dF2_R2_de_dot_R2(2,1) += kd[1][2]; dF2_R2_de_dot_R2(2,2) += kd[1][3];
-
-			dF2_R2_domega1_proj(1) += kd[0][4];
-			dF2_R2_domega1_proj(2) += kd[1][4];
-
-			dF2_R2_domega2_proj(1) += kd[0][5];
-			dF2_R2_domega2_proj(2) += kd[1][5];
-
-			M2_R2(3) += k[2];
-
-			dM2_R2_de_R2(3,1) += kd[2][0]; 	dM2_R2_de_R2(3,2) += kd[2][1];
-
-			dM2_R2_de_dot_R2(3,1) += kd[2][2]; 	dM2_R2_de_dot_R2(3,2) += kd[2][3];
-
-			dM2_R2_domega1_proj(3) += kd[2][4];
-
-			dM2_R2_domega2_proj(3) += kd[2][5];
-		}
 
 		const doublereal alpha = m_alpha[i] * m_InitialAssemblyFactor.dGet();
 
@@ -773,9 +743,9 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 						- dd1_R2_dg2.GetRow(3) * (2. * v_R2(3) / std::pow( d1_R2(3), 3) * d1_dot_R2(3))
 						+ dd1_dot_R2_dg2.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
 
-		const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * o1_R1) - omega2.Cross( R2 * m_o2_R2 )
+        const Mat3x3 de_dot_R2_dg2 = R2_0.MulTM( Mat3x3( MatCross, X1_dot - X2_dot + omega1.Cross(R1 * o1_R1) - omega2.Cross( R2 * o2_R2 )
 									+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda))
-									+ R2.MulTM( -( R2 * m_o2_R2 ).Cross(Mat3x3(MatCross, omega2_ref)) + omega2.Cross(Mat3x3( MatCross, R2_0 * m_o2_R2 ))
+            + R2.MulTM( -( R2 * o2_R2 ).Cross(Mat3x3(MatCross, omega2_ref)) + omega2.Cross(Mat3x3( MatCross, R2_0 * o2_R2 ))
 									+ R1.GetCol(3).Tens(dlambda_dot_dg2) + omega1.Cross(R1.GetCol(3)).Tens(dlambda_dg2));
 		const Mat3x3& dv_dot_R2_dX1_dot = R2_T;
 		const Vec3 dlambda_dot_dX1_dot = m_lambda ? -dv_dot_R2_dX1_dot.GetRow(3) / d1_R2(3) : Zero3;
@@ -797,7 +767,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 		const Mat3x3 dd1_dot_R2_dg2_dot = R2.MulTM(Mat3x3(MatCross, R1.GetCol(3)));
 		const Vec3 dlambda_dot_dg2_dot = m_lambda ? -dv_dot_R2_dg2_dot.GetRow(3) / d1_R2(3) + dd1_dot_R2_dg2_dot.GetRow(3) * (v_R2(3) / std::pow(d1_R2(3),2)) : Zero3;
 
-		const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * m_o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
+        const Mat3x3 de_dot_R2_dg2_dot = R2.MulTM( Mat3x3( MatCross, R2 * o2_R2 ) + R1.GetCol(3).Tens( dlambda_dot_dg2_dot) );
 
 		const Mat3x3 de_R2_dX1 = dv_R2_dX1 + d1_R2.Tens( dlambda_dX1 );
 
@@ -927,7 +897,7 @@ hydrodynamic_plain_bearing_with_offset::AssJac(VariableSubMatrixHandler& WorkMat
 }
 
 SubVectorHandler&
-hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
+HydrodynamicPlainBearing::AssRes(SubVectorHandler& WorkVec,
 	doublereal dCoef,
 	const VectorHandler& XCurr,
 	const VectorHandler& XPrimeCurr)
@@ -950,7 +920,7 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 		WorkVec.PutRowIndex(iCnt+6,intBearingMomentumIndex + iCnt);
 	}
 
-	for (integer i = 0; i < iNumGaussPoints; ++i)
+    for (integer i = 0; i < m_iNumGaussPoints; ++i)
 	{
 		doublereal eps, eps_dot, delta, SoD, SoV, my, beta;
 
@@ -959,7 +929,7 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 		Vec3 F2_R2, M2_R2;
 		Vec3 F2_I, M2_I, F1_I, M1_I;
 
-		ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta, i);
+        ComputeResidual(e_R2, e_dot_R2, omega_proj, F2_R2, M2_R2, F2_I, M2_I, F1_I, M1_I, eps, eps_dot, delta, SoD, SoV, my, beta, m_r[i], m_alpha[i]);
 		// 1     2     3     4     5     6     7     8     9     10    11    12
 		// F1(1) F1(2) F1(3) M1(1) M1(2) M1(3) F2(1) F2(2) F2(3) M2(1) M2(2) M2(3)
 		WorkVec.Add(1,  F1_I);
@@ -975,7 +945,7 @@ hydrodynamic_plain_bearing_with_offset::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,doublereal omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,doublereal& eps, doublereal& eps_dot,doublereal& delta,doublereal& SoD,doublereal& SoV,doublereal& my,doublereal& beta, integer iGaussPoint)const
+void HydrodynamicPlainBearing::ComputeResidual(Vec3& e_R2, Vec3& e_dot_R2,doublereal omega_proj[2],Vec3& F2_R2,Vec3& M2_R2,Vec3& F2_I,Vec3& M2_I,Vec3& F1_I,Vec3& M1_I,doublereal& eps, doublereal& eps_dot,doublereal& delta,doublereal& SoD,doublereal& SoV,doublereal& my,doublereal& beta, doublereal r, doublereal alpha)const
 {
         const Vec3& X1 = m_pShaft->GetXCurr();
         const Vec3& X2 = m_pBearing->GetXCurr();
@@ -987,11 +957,11 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
         const Vec3& omega2 = m_pBearing->GetWCurr();
 
 		Vec3 o1_R1 = m_o1_R1;
-		o1_R1(3) += m_r[iGaussPoint] * m_b;
-#ifdef DEBUG
-		std::cerr << GetLabel() << ":" << iGaussPoint << ": o1=" << o1_R1 << std::endl;
-#endif
-		const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - m_o2_R2;
+    o1_R1(3) += r * m_bdat.b;
+    Vec3 o2_R2 = m_o2_R2;
+    o2_R2(3) += r * m_bdat.b;
+
+    const Vec3 v_R2 = R2.MulTV( X1 - X2 + R1 * o1_R1 ) - o2_R2;
 		const Vec3 d1_R2 = R2.MulTV(R1.GetCol(3));
 
 		const doublereal lambda = m_lambda ? -v_R2(3) / d1_R2(3) : 0.;
@@ -1002,9 +972,9 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
 		const doublereal lambda_dot = m_lambda ? -v_dot_R2(3) / d1_R2(3) + v_R2(3) / std::pow(d1_R2(3), 2) * d1_dot_R2(3) : 0.;
 
 		// e_dot_R2 = R2^T * e_dot_I
-		e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * m_o2_R2 )
+    e_dot_R2 = R2.MulTV( X1_dot - X2_dot + omega1.Cross( R1 * o1_R1 ) - omega2.Cross( R2 * o2_R2 )
 							+ R1.GetCol(3) * lambda_dot + omega1.Cross(R1.GetCol(3)) * lambda);
-		const Vec3 l2_R2 = m_o2_R2 + e_R2;
+    const Vec3 l2_R2 = o2_R2 + e_R2;
 		const Vec3 lambda_d1_R1 = Vec3(0.,0.,lambda);
 		const Vec3 l1_I = R1 * ( o1_R1 + lambda_d1_R1 );
 
@@ -1015,11 +985,7 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
 
 		doublereal k[3];
 
-		__FC_DECL__(hydrodynamic_plain_bearing_force)(m_b, m_d, m_Psi, m_eta, omega_proj, e_, e_dot_, k, eps, eps_dot, delta, SoD, SoV, my, beta);
-
-#ifdef DEBUG
-		std::cerr << GetLabel() << ":" << iGaussPoint << ": eps=" << eps << std::endl;
-#endif
+    hydrodynamic_plain_bearing_force(m_bdat, omega_proj, e_, e_dot_, k, eps, eps_dot, delta, SoD, SoV, my, beta);
 
 		F2_R2(1) = k[0];
 		F2_R2(2) = k[1];
@@ -1029,17 +995,7 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
 		M2_R2(2) = 0.;
 		M2_R2(3) = k[2];
 
-		if ( m_fcontact )
-		{
-				// SUBROUTINE PLAIN_BEARING_CONTACT_FORCE( d, Psi, sP, DL, m, abs_FPrs1, myP, signum_delta_omega, Phi_dot, e, e_dot, k)
-
-				__FC_DECL__(plain_bearing_contact_force)( m_d, m_Psi, m_sP, m_DL, m_m, m_abs_FPrs1, m_myP, m_signum_delta_omega, omega_proj, e_, e_dot_, k);
-				F2_R2(1) += k[0];
-				F2_R2(2) += k[1];
-				M2_R2(3) += k[2];
-		}
-
-		const doublereal alpha = m_alpha[iGaussPoint] * m_InitialAssemblyFactor.dGet();
+    alpha *= m_InitialAssemblyFactor.dGet();
 
 		F2_R2 *= alpha;
 		M2_R2 *= alpha;
@@ -1052,19 +1008,19 @@ void hydrodynamic_plain_bearing_with_offset::ComputeResidual(Vec3& e_R2, Vec3& e
 
 
 unsigned int
-hydrodynamic_plain_bearing_with_offset::iGetNumPrivData(void) const
+HydrodynamicPlainBearing::iGetNumPrivData(void) const
 {
 	return 0;
 }
 
 int
-hydrodynamic_plain_bearing_with_offset::iGetNumConnectedNodes(void) const
+HydrodynamicPlainBearing::iGetNumConnectedNodes(void) const
 {
 	return 2; // 1x shaft + 1x bearing
 }
 
 void
-hydrodynamic_plain_bearing_with_offset::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
+HydrodynamicPlainBearing::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(iGetNumConnectedNodes());
 	connectedNodes[0] = m_pShaft;
@@ -1072,7 +1028,7 @@ hydrodynamic_plain_bearing_with_offset::GetConnectedNodes(std::vector<const Node
 }
 
 void
-hydrodynamic_plain_bearing_with_offset::SetValue(DataManager *pDM,
+HydrodynamicPlainBearing::SetValue(DataManager *pDM,
 	VectorHandler& X, VectorHandler& XP,
 	SimulationEntity::Hints *ph)
 {
@@ -1080,31 +1036,20 @@ hydrodynamic_plain_bearing_with_offset::SetValue(DataManager *pDM,
 }
 
 std::ostream&
-hydrodynamic_plain_bearing_with_offset::Restart(std::ostream& out) const
+HydrodynamicPlainBearing::Restart(std::ostream& out) const
 {
 	out << "hydrodynamic_plain_bearing_with_offset,\n"
 			"		shaft," << m_pShaft->GetLabel() << ",\n"
 			"		offset," << m_o1_R1 << ",\n"
 			"		bearing," << m_pBearing->GetLabel() << ",\n"
 			"		offset," << m_o2_R2 << "\n"
-			"		bearing_width," << m_b << ",\n"
-			"		bearing_diameter," << m_d << ",\n"
-			"		relative_clearance," << m_Psi << ",\n"
-			"		oil_viscosity," << m_eta << ",\n"
-			"		initial_assembly_factor,";
-			m_InitialAssemblyFactor.pGetDriveCaller()->Restart(out);
+        "		bearing width," << m_bdat.b << ",\n"
+        "		bearing diameter," << m_bdat.d << ",\n"
+        "		relative clearance," << m_bdat.Psi << ",\n"
+        "		oil viscosity," << m_bdat.eta << ",\n"
+        "		initial assembly factor,";
 
-	if ( m_fcontact )
-	{
-		out << ",\n"
-			"           contact,\n"
-			"			stiffness," << m_sP << ",\n"
-			"			damping_ratio," << m_DL << ",\n"
-			"			rated_mass," << m_m << ",\n"
-			"			force," << m_abs_FPrs1 << ",\n"
-			"			coulomb_friction_coefficient," << m_myP << ",\n"
-			"			angular_velocity_threshold," << m_signum_delta_omega;
-	}
+    m_InitialAssemblyFactor.pGetDriveCaller()->Restart(out);
 
 	out << ";\n";
 
@@ -1112,13 +1057,13 @@ hydrodynamic_plain_bearing_with_offset::Restart(std::ostream& out) const
 }
 
 unsigned int
-hydrodynamic_plain_bearing_with_offset::iGetInitialNumDof(void) const
+HydrodynamicPlainBearing::iGetInitialNumDof(void) const
 {
 	return 0;
 }
 
 void
-hydrodynamic_plain_bearing_with_offset::InitialWorkSpaceDim(
+HydrodynamicPlainBearing::InitialWorkSpaceDim(
 	integer* piNumRows,
 	integer* piNumCols) const
 {
@@ -1127,7 +1072,7 @@ hydrodynamic_plain_bearing_with_offset::InitialWorkSpaceDim(
 }
 
 VariableSubMatrixHandler&
-hydrodynamic_plain_bearing_with_offset::InitialAssJac(
+HydrodynamicPlainBearing::InitialAssJac(
 	VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
@@ -1137,7 +1082,7 @@ hydrodynamic_plain_bearing_with_offset::InitialAssJac(
 }
 
 SubVectorHandler&
-hydrodynamic_plain_bearing_with_offset::InitialAssRes(
+HydrodynamicPlainBearing::InitialAssRes(
 	SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr)
 {
@@ -1148,7 +1093,7 @@ hydrodynamic_plain_bearing_with_offset::InitialAssRes(
 
 bool hydrodynamic_plain_bearing_set(void)
 {
-	UserDefinedElemRead *rf = new UDERead<hydrodynamic_plain_bearing_with_offset>;
+    UserDefinedElemRead *rf = new UDERead<HydrodynamicPlainBearing>;
 
 	if (!SetUDE("hydrodynamic_plain_bearing_with_offset", rf))
 	{
@@ -1163,7 +1108,6 @@ bool hydrodynamic_plain_bearing_set(void)
 
 extern "C"
 {
-
 int module_init(const char *module_name, void *pdm, void *php)
 {
 	if (!hydrodynamic_plain_bearing_set())

@@ -31,7 +31,7 @@
 
 /*
  AUTHOR: Reinhard Resch <R.RESCH@secop.com>
-        Copyright (C) 2011(-2015) all rights reserved.
+        Copyright (C) 2011(-2016) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
