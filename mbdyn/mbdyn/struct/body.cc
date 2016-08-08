@@ -1465,11 +1465,7 @@ ModalBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		GravityAcceleration);
 
-	integer iNumRows = 6;
-        
-	if (g || pNode->pGetRBK()) {
-		iNumRows = 12;
-	}
+	const integer iNumRows = 12;
 
 	/* Dimensiona e resetta la matrice di lavoro */
 	WM.ResizeReset(iNumRows, 12);
@@ -1482,20 +1478,13 @@ ModalBody::AssJac(VariableSubMatrixHandler& WorkMat,
 	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
 	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
 	 * e' dato da iGetFirstPositionIndex()+i */
-	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WM.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
+	const integer iFirstIndexModal = pNode->iGetFirstIndex();
+	for (integer iCnt = 1; iCnt <= 12; iCnt++) {
+		WM.PutRowIndex(iCnt, iFirstIndexModal + iCnt);
 	}
 
 	for (integer iCnt = 1; iCnt <= 12; ++iCnt) {
-		WM.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
-	}
-
-	if (iNumRows == 12) {
-		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-			WM.PutRowIndex(6 + iCnt, iFirstMomentumIndex + iCnt);
-		}
+		WM.PutColIndex(iCnt, iFirstIndexModal + iCnt);
 	}
 
 	AssMats(WM, WM, dCoef, XCurr, XPrimeCurr, g, GravityAcceleration);
@@ -1520,14 +1509,11 @@ ModalBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	bool g = GravityOwner::bGetGravity(pNode->GetXCurr(),
 		GravityAcceleration);
 
-	integer iNumRows = 6;
-	if (g) {
-		iNumRows = 12;
-	}
+	const integer iNumRows = 12;
 
 	/* Dimensiona e resetta la matrice di lavoro */
-	WMA.ResizeReset(iNumRows, 6);
-	WMB.ResizeReset(6, 6);
+	WMA.ResizeReset(iNumRows, 12);
+	WMB.ResizeReset(iNumRows, 12);
 
 	/* Setta gli indici della matrice - le incognite sono ordinate come:
 	 *   - posizione (3)
@@ -1537,20 +1523,13 @@ ModalBody::AssMats(VariableSubMatrixHandler& WorkMatA,
 	 * e gli indici sono consecutivi. La funzione pGetFirstPositionIndex()
 	 * ritorna il valore del primo indice -1, in modo che l'indice i-esimo
 	 * e' dato da iGetFirstPositionIndex()+i */
-	integer iFirstPositionIndex = pNode->iGetFirstPositionIndex();
-	for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-		WMA.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
-		WMA.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
+	integer iFirstIndexModal = pNode->iGetFirstIndex();
+	for (integer iCnt = 1; iCnt <= 12; iCnt++) {
+		WMA.PutRowIndex(iCnt, iFirstIndexModal + iCnt);
+		WMA.PutColIndex(iCnt, iFirstIndexModal + iCnt);
 
-		WMB.PutRowIndex(iCnt, iFirstPositionIndex + iCnt);
-		WMB.PutColIndex(iCnt, iFirstPositionIndex + iCnt);
-	}
-
-	if (g) {
-		integer iFirstMomentumIndex = pNode->iGetFirstMomentumIndex();
-		for (integer iCnt = 1; iCnt <= 6; iCnt++) {
-			WMA.PutRowIndex(6 + iCnt, iFirstMomentumIndex + iCnt);
-		}
+		WMB.PutRowIndex(iCnt, iFirstIndexModal + iCnt);
+		WMB.PutColIndex(iCnt, iFirstIndexModal + iCnt);
 	}
 
 	AssMats(WMA, WMB, 1., XCurr, XPrimeCurr, g, GravityAcceleration);
@@ -1624,10 +1603,7 @@ ModalBody::AssRes(SubVectorHandler& WorkVec,
 
 	const RigidBodyKinematics *pRBK = pNode->pGetRBK();
 
-	integer iNumRows = 6;
-	if (g || pRBK) {
-		iNumRows = 12;
-	}
+	const integer iNumRows = 12;
 
 	WorkVec.ResizeReset(iNumRows);
 
