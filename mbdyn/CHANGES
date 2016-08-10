@@ -49,6 +49,7 @@ MBDyn 1.X-Devel
 		- fixed missing "forever" in double ramp descent final time
 		  (Reinhard Resch)
 		- fixed modal body assembly (Reinhard Resch)
+		- fixed solver initialization after first step
 
 MBDyn 1.7.1
 	Enhancements:

@@ -1336,6 +1336,13 @@ IfFirstStepIsToBeRepeated:
 		pRTSolver->Init();
 	}
 
+	/* Altri passi regolari */
+	ASSERT(pRegularSteps != 0);
+
+	/* Setup SolutionManager(s) */
+	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
+	pCurrStepIntegrator = pRegularSteps;
+
 	eStatus = SOLVER_STATUS_STARTED;
 
 	return true;
