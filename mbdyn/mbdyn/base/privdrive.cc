@@ -100,3 +100,14 @@ PrivDriveCaller::Restart(std::ostream& out) const
 	return DriveOwner::pGetDriveCaller()->Restart(out);
 }
 
+unsigned int
+PrivDriveCaller::iGetIndex(void) const {
+	return iIndex;
+}
+
+const SimulationEntity *
+PrivDriveCaller::iGetSE(void) const {
+	return pSE;
+}
+
+

@@ -64,6 +64,8 @@ public:
    
 	inline doublereal dGet(const doublereal& dVar) const;
 	inline doublereal dGet(void) const;
+	unsigned int iGetIndex(void) const;
+ 	const SimulationEntity* iGetSE(void) const;
 };
 
 inline doublereal
