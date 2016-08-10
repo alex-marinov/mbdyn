@@ -2582,7 +2582,7 @@ DataManager::AfterConvergence(void) const
 
 	case TIMES: {
 		doublereal dT = DrvHdl.dGetTime()
-			+ pSolver->GetDInitialTimeStep()/100.;
+			+ pSolver->dGetInitialTimeStep()/100.;
 		if (iCurrRestartTime == iNumRestartTimes) {
 			break;
 		}

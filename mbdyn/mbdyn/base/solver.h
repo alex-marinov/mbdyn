@@ -419,11 +419,19 @@ public:
 		return pNLS;
 	};
 	virtual StepIntegrator *pGetStepIntegrator(void) const {
+		// if (pCurrStepIntegrator == NULL)
+		// 	return pRegularSteps;
+		ASSERT(pCurrStepIntegrator != 0);
+
 		return pCurrStepIntegrator;
 	};
-	virtual doublereal GetDInitialTimeStep(void) const {
+	virtual doublereal dGetFinalTime(void) const {
+		return dFinalTime;
+	};
+	virtual doublereal dGetInitialTimeStep(void) const {
 		return dInitialTimeStep;
 	};
+
 	virtual clock_t GetCPUTime(void) const;
 
 	virtual void PrintResidual(const VectorHandler& Res, integer iIterCnt) const;
