@@ -2347,9 +2347,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 bool
 DataManager::OutputEigClose(void)
 {
-	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
-		return OutHdl.Close(OutputHandler::EIGENANALYSIS);
-	}
+	return OutHdl.Close(OutputHandler::EIGENANALYSIS);
 }
 
 /* Output dati */
