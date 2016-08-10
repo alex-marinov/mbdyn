@@ -481,13 +481,19 @@ public:
 	/* legge un "yes"/"no" o booleano con il mathpar */
 	virtual bool GetYesNoOrBool(bool bDefval = false);
 	/* legge un intero con il mathpar */
-	virtual integer GetInt(int iDefval = 0, range_base<integer> r = range_any<integer>());
+	virtual integer GetInt(integer iDefval = 0);
+	template <class Range>
+	integer GetInt(integer iDefval, Range r);
 	/* legge un reale con il mathpar */
-	virtual doublereal GetReal(const doublereal& dDefval = 0.0, range_base<doublereal> r = range_any<doublereal>());
+	virtual doublereal GetReal(const doublereal& dDefval = 0.0);
+	template <class Range>
+	doublereal GetReal(const doublereal& dDefval, Range r);
 	/* legge una string con il mathpar */
 	virtual std::string GetString(const std::string& sDefVal);
 	/* legge un valore tipizzato con il mathpar */
-	virtual TypedValue GetValue(const TypedValue& v, range_base<TypedValue> r = range_any<TypedValue>());
+	virtual TypedValue GetValue(const TypedValue& v);
+	template <class Range>
+	TypedValue GetValue(const TypedValue& v, Range r);
 	/* legge un timeout */
 	virtual mbsleep_t GetTimeout(const mbsleep_t& DefVal);
 	/* legge una keyword */
@@ -536,6 +542,74 @@ mbdyn_get_line_data(void);
 
 extern std::ostream&
 mbdyn_print_line_data(std::ostream& out);
+
+template <class Range>
+integer
+HighParser::GetInt(int iDefVal, Range range)
+{
+	TypedValue v(iDefVal);
+	v = GetValue(v);
+	integer val = v.GetInt();
+	if (!range.check(val)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+	return val;
+}
+
+
+template <class Range>
+doublereal
+HighParser::GetReal(const doublereal& dDefVal, Range range)
+{
+	TypedValue v(dDefVal);
+	v = GetValue(v);
+	doublereal val = v.GetReal();
+	if (!range.check(val)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+	return val;
+}
+
+template <class Range>
+TypedValue
+HighParser::GetValue(const TypedValue& vDefVal, Range range)
+{
+	const char sFuncName[] = "HighParser::GetValue()";
+
+	if (CurrToken != HighParser::ARG) {
+		silent_cerr("Parser error in "
+			<< sFuncName << ", arg expected at line "
+			<< GetLineData() << std::endl);
+		throw HighParser::ErrIntegerExpected(MBDYN_EXCEPT_ARGS);
+	}
+
+	TypedValue v(vDefVal);
+
+	try {
+		v = MathP.Get(*pIn, v);
+	}
+	catch (TypedValue::ErrWrongType& e) {
+		silent_cerr(sFuncName << ": " << e.what() << " at line "
+			<< GetLineData() << std::endl);
+		throw e;
+	}
+	catch (MathParser::ErrGeneric& e) {
+		silent_cerr(sFuncName << ": error return from MathParser at line "
+			<< GetLineData() << std::endl);
+		throw e;
+	}
+	catch (...) {
+		throw;
+	}
+
+	NextToken(sFuncName);
+
+	if (!range.check(v)) {
+		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+	}
+
+	return v;
+}
 
 #endif /* PARSER_H */
 

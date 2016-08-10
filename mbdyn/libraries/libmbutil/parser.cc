@@ -1001,43 +1001,9 @@ HighParser::IsWord(const HighParser::WordSet& ws)
 }
 
 TypedValue
-HighParser::GetValue(const TypedValue& vDefVal, HighParser::range_base<TypedValue> range)
+HighParser::GetValue(const TypedValue& vDefVal)
 {
-	const char sFuncName[] = "HighParser::GetValue()";
-
-	if (CurrToken != HighParser::ARG) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", arg expected at line "
-			<< GetLineData() << std::endl);
-		throw HighParser::ErrIntegerExpected(MBDYN_EXCEPT_ARGS);
-	}
-
-	TypedValue v(vDefVal);
-
-	try {
-		v = MathP.Get(*pIn, v);
-	}
-	catch (TypedValue::ErrWrongType& e) {
-		silent_cerr(sFuncName << ": " << e.what() << " at line "
-			<< GetLineData() << std::endl);
-		throw e;
-	}
-	catch (MathParser::ErrGeneric& e) {
-		silent_cerr(sFuncName << ": error return from MathParser at line "
-			<< GetLineData() << std::endl);
-		throw e;
-	}
-	catch (...) {
-		throw;
-	}
-
-	NextToken(sFuncName);
-
-	if (!range.check(v)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
-	}
-
-	return v;
+	return GetValue<range_any<TypedValue> >(vDefVal, range_any<TypedValue>());
 }
 
 bool
@@ -1081,27 +1047,15 @@ HighParser::GetYesNoOrBool(bool bDefval)
 }
 
 integer
-HighParser::GetInt(int iDefVal, HighParser::range_base<integer> range)
+HighParser::GetInt(integer iDefVal)
 {
-	TypedValue v(iDefVal);
-	v = GetValue(v);
-	integer val = v.GetInt();
-	if (!range.check(val)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
-	}
-	return val;
+	return GetInt<range_any<integer> >(iDefVal, range_any<integer>());
 }
 
 doublereal
-HighParser::GetReal(const doublereal& dDefVal, HighParser::range_base<doublereal> range)
+HighParser::GetReal(const doublereal& dDefVal)
 {
-	TypedValue v(dDefVal);
-	v = GetValue(v);
-	doublereal val = v.GetReal();
-	if (!range.check(val)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
-	}
-	return val;
+	return GetReal<range_any<doublereal> >(dDefVal, range_any<doublereal>());
 }
 
 mbsleep_t
