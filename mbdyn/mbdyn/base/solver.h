@@ -65,9 +65,10 @@ class Solver;
 #include "nonlin.h"
 #include "linesearch.h"
 #include "mfree.h"
+#include "cstring"
 #include "precond.h"
 #include "rtsolver.h"
-
+#include "TimeStepControl.h"
 extern "C" int mbdyn_stop_at_end_of_iteration(void);
 extern "C" int mbdyn_stop_at_end_of_time_step(void);
 extern "C" void mbdyn_set_stop_at_end_of_iteration(void);
@@ -101,32 +102,31 @@ protected:
 
 	void ThreadPrepare(void);
 #endif /* USE_MULTITHREAD */
-
-   	enum Strategy {
-		NOCHANGE,
-		CHANGE,
-		FACTOR
-	} CurrStrategy;
-
+	TimeStepControl * timeStepPtr;
+	doublereal dCurrTimeStep;
+	integer iStIter;
+	doublereal dTime;
+	DriveOwner MaxTimeStep;
+	doublereal dMinTimeStep;
+	StepIntegrator::StepChange CurrStep = StepIntegrator::NEWSTEP;
 	std::string sInputFileName;
 	std::string sOutputFileName;
    	MBDynParser& HP;
-	 
-   	/* Dati per strategia FACTOR */
-   	struct {
-      		doublereal dReductionFactor;
-      		doublereal dRaiseFactor;
-      		integer iStepsBeforeReduction;
-      		integer iStepsBeforeRaise;
-      		integer iMinIters;
-      		integer iMaxIters;
-   	} StrategyFactor;
+   	integer iMaxIterations;
+//***** Method for StepTime ****/
+public:
+	
+	doublereal dGetdMinTimeStep() {
+		return dMinTimeStep;
+	}
 
-   	/* Dati per strategia DRIVER_CHANGE */
-	DriveCaller* pStrategyChangeDrive;
-
+	void dSetMinTimeStep(doublereal val) {
+		dMinTimeStep = val;
+	}
+	
 public:
    	/* Dati per esecuzione di eigenanalysis */
+	
 	struct EigenAnalysis {
 		bool bAnalysis;
 		enum {
@@ -238,13 +238,13 @@ protected:
   	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */ 
 
    	/* Dati della simulazione */
-   	doublereal dTime;
+   	
    	doublereal dInitialTime;
    	doublereal dFinalTime;
    	doublereal dRefTimeStep;
    	doublereal dInitialTimeStep;
-   	doublereal dMinTimeStep;
-   	DriveOwner MaxTimeStep;
+   	
+   	
    	doublereal dMaxResidual;
    	doublereal dMaxResidualDiff;
 
@@ -266,12 +266,6 @@ protected:
 		AFTER_DUMMY_STEPS
 	};
 	AbortAfter eAbortAfter;
-
-	/* Parametri per la variazione passo */
-   	integer iStepsAfterReduction;
-   	integer iStepsAfterRaise;
-	integer iWeightedPerformedIters;
-   	bool bLastChance;
 
    	/* Parametri per il metodo */
 	enum StepIntegratorType {
@@ -371,12 +365,12 @@ protected:
 		SOLVER_STATUS_PREPARED,
 		SOLVER_STATUS_STARTED
 	} eStatus;
-	doublereal dCurrTimeStep;
+	
 	bool bOutputCounter;
 	std::string outputCounterPrefix;
 	std::string outputCounterPostfix;
 	integer iTotIter;
-	integer iStIter;
+	
 	doublereal dTotErr;
 	doublereal dTest;
 	doublereal dSolTest;

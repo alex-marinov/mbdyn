@@ -245,9 +245,9 @@ InverseSolver::Prepare(void)
 
 	/* relink those known drive callers that might need
 	 * the data manager, but were verated ahead of it */
-	if (pStrategyChangeDrive) {
+	/*if (pStrategyChangeDrive) {
 		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
-	}
+	}*/
 
 	ASSERT(iNumDofs > 0);
 
@@ -625,9 +625,11 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = NewTimeStep(dCurrTimeStep,
+			dCurrTimeStep = timeStepPtr -> dGetNewStepTime(CurrStep, iStIter); 
+			/*dCurrTimeStep = NewTimeStep(dCurrTimeStep,
 					iStIter,
 					CurrStep);
+			*/
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" during step "
@@ -747,7 +749,8 @@ IfStepIsToBeRepeated:
 	bSolConv = false;
 
 	/* Calcola il nuovo timestep */
-	dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+	dCurrTimeStep = timeStepPtr -> dGetNewStepTime(CurrStep,iStIter);
+	//NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	return true;
@@ -1110,7 +1113,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 	doublereal dTol = ::dDefaultTol;
 	doublereal dSolutionTol = 0.;
-	integer iMaxIterations = ::iDefaultMaxIterations;
+	iMaxIterations = ::iDefaultMaxIterations;
 	bool bModResTest = false;
 
 #ifdef USE_MULTITHREAD
@@ -1487,129 +1490,12 @@ InverseSolver::ReadData(MBDynParser& HP)
 			goto EndOfCycle;
 
 		case STRATEGY: {
-			switch (KeyWords(HP.GetWord())) {
-			case STRATEGYFACTOR: {
-				CurrStrategy = FACTOR;
 
-				/*
-				 * strategy: factor ,
-				 *     <reduction factor> ,
-				 *     <steps before reduction> ,
-				 *     <raise factor> ,
-				 *     <steps before raise> ,
-				 *     <min iterations> ,
-				 *     <max iterations> ;
-				 */
-
-				StrategyFactor.dReductionFactor = HP.GetReal();
-				if (StrategyFactor.dReductionFactor >= 1.) {
-					silent_cerr("warning, "
-						"illegal reduction factor "
-						"at line " << HP.GetLineData()
-						<< "; default value 1. "
-						"(no reduction) will be used"
-						<< std::endl);
-					StrategyFactor.dReductionFactor = 1.;
-				}
-
-				StrategyFactor.iStepsBeforeReduction = HP.GetInt();
-				if (StrategyFactor.iStepsBeforeReduction <= 0) {
-					silent_cerr("warning, "
-						"illegal number of steps "
-						"before reduction at line "
-						<< HP.GetLineData()
-						<< "; default value 1 will be "
-						"used (it may be dangerous)"
-						<< std::endl);
-					StrategyFactor.iStepsBeforeReduction = 1;
-				}
-
-				StrategyFactor.dRaiseFactor = HP.GetReal();
-				if (StrategyFactor.dRaiseFactor <= 1.) {
-					silent_cerr("warning, "
-						"illegal raise factor at line "
-						<< HP.GetLineData()
-						<< "; default value 1. "
-						"(no raise) will be used"
-						<< std::endl);
-					StrategyFactor.dRaiseFactor = 1.;
-				}
-
-				StrategyFactor.iStepsBeforeRaise = HP.GetInt();
-				if (StrategyFactor.iStepsBeforeRaise <= 0) {
-					silent_cerr("warning, "
-						"illegal number of steps "
-						"before raise at line "
-						<< HP.GetLineData()
-						<< "; default value 1 will be "
-						"used (it may be dangerous)"
-						<< std::endl);
-					StrategyFactor.iStepsBeforeRaise = 1;
-				}
-
-				StrategyFactor.iMinIters = HP.GetInt();
-				if (StrategyFactor.iMinIters <= 0) {
-					silent_cerr("warning, "
-						"illegal minimum number "
-						"of iterations at line "
-						<< HP.GetLineData()
-						<< "; default value 0 will be "
-						"used (never raise)"
-						<< std::endl);
-					StrategyFactor.iMinIters = 1;
-				}
-
-				StrategyFactor.iMaxIters = 0;
-				if (HP.IsArg()) {
-					StrategyFactor.iMaxIters = HP.GetInt();
-					if (StrategyFactor.iMaxIters <= 0) {
-						silent_cerr("warning, "
-							"illegal mmaximim number "
-							"of iterations at line "
-							<< HP.GetLineData()
-							<< "; default value will be "
-							"used"
-							<< std::endl);
-						StrategyFactor.iMaxIters = 0;
-					}
-				}
-
-				DEBUGLCOUT(MYDEBUG_INPUT,
-						"Time step control strategy: "
-						"Factor" << std::endl
-						<< "Reduction factor: "
-						<< StrategyFactor.dReductionFactor
-						<< "Steps before reduction: "
-						<< StrategyFactor.iStepsBeforeReduction
-						<< "Raise factor: "
-						<< StrategyFactor.dRaiseFactor
-						<< "Steps before raise: "
-						<< StrategyFactor.iStepsBeforeRaise
-						<< "Min iterations: "
-						<< StrategyFactor.iMinIters
-						<< "Max iterations: "
-						<< StrategyFactor.iMaxIters
-						<< std::endl);
-				break;
-			}
-
-			case STRATEGYNOCHANGE: {
-				CurrStrategy = NOCHANGE;
-				break;
-			}
-
-			case STRATEGYCHANGE: {
-				CurrStrategy = CHANGE;
+			timeStepPtr = ReadTimeStepData(this,HP);
+			/*if(typeid(timeStepPtr) == typeid(ChangeStep)){
 				pStrategyChangeDrive = HP.GetDriveCaller(true);
-				break;
-			}
-
-			default:
-				silent_cerr("unknown time step control "
-					"strategy at line "
-					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+			}*/
+			
 			break;
 		}
 
@@ -1948,7 +1834,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
-	switch (CurrStrategy) {
+	/*switch (CurrStrategy) {
 	case FACTOR:
 		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
 			silent_cerr("warning, "
@@ -1967,7 +1853,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 
 	default:
 		break;
-	}
+	}*/
 
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;

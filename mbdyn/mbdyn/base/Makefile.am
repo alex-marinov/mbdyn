@@ -171,6 +171,9 @@ tpldrive_impl.h \
 vec3drv.h \
 thirdorderstepsol.h \
 thirdorderstepsol.cc \
+TimeStepControl.h \
+TimeStepControl.cc \
+TimeStepFunctorClass.h\
 userelem.cc \
 userelem.h \
 usesock.cc \
