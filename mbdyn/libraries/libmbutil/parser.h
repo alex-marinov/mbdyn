@@ -110,8 +110,9 @@
 #include <string.h>
 #include <ctype.h>
 
-#include <stdlib.h>
+#include <cstdlib>
 #include <unistd.h>
+#include <typeinfo>
 
 #include "myassert.h"
 #include "input.h"
@@ -221,43 +222,49 @@ class HighParser {
 public:   
 	class ErrInvalidCallToGetDescription : public MBDynErrBase {
 	public:
-		ErrInvalidCallToGetDescription(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrInvalidCallToGetDescription(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrKeyWordExpected : public MBDynErrBase {
 	public:
-		ErrKeyWordExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrKeyWordExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrSemicolonExpected : public MBDynErrBase {
 	public:
-		ErrSemicolonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrSemicolonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrColonExpected : public MBDynErrBase {
 	public:
-		ErrColonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrColonExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrMissingSeparator : public MBDynErrBase {
 	public:
-		ErrMissingSeparator(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrMissingSeparator(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrIntegerExpected : public MBDynErrBase {
 	public:
-		ErrIntegerExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrIntegerExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrRealExpected : public MBDynErrBase {
 	public:
-		ErrRealExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrRealExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrStringExpected : public MBDynErrBase {
 	public:
-		ErrStringExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrStringExpected(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
 	class ErrIllegalDelimiter : public MBDynErrBase {
 	public:
-		ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrIllegalDelimiter(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) { NO_OP; };
 	};
+	template <class T>
 	class ErrValueOutOfRange : public MBDynErrBase {
+	protected:
+		T m_value;
+
 	public:
-		ErrValueOutOfRange(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
+		ErrValueOutOfRange(MBDYN_EXCEPT_ARGS_DECL_NOOPT, T value) : MBDynErrBase(MBDYN_EXCEPT_ARGS_NOOPT_PASSTHRU, typeid(T).name()), m_value(value) { NO_OP; };
+		virtual ~ErrValueOutOfRange(void) throw() { NO_OP; };
+		T Get(void) const { return m_value; };
 	};
 
 public:      
@@ -325,7 +332,7 @@ public:
 	template<class T>
 	struct range_ge : public range_base<T> {
 		T m_lower;
-		range_ge(const T& l) : m_lower(l) {};
+		range_ge(const T& l) : m_lower(l) { NO_OP; };
 
 		bool check(const T& value) const {
 			return (value >= m_lower);
@@ -335,7 +342,7 @@ public:
 	template<class T>
 	struct range_gt : public range_base<T> {
 		T m_lower;
-		range_gt(const T& l) : m_lower(l) {};
+		range_gt(const T& l) : m_lower(l) { NO_OP; };
 
 		bool check(const T& value) const {
 			return (value > m_lower);
@@ -345,7 +352,7 @@ public:
 	template<class T>
 	struct range_le : public range_base<T> {
 		T m_upper;
-		range_le(const T& u) : m_upper(u) {};
+		range_le(const T& u) : m_upper(u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return (value <= m_upper);
@@ -355,7 +362,7 @@ public:
 	template<class T>
 	struct range_lt : public range_base<T> {
 		T m_upper;
-		range_lt(const T& u) : m_upper(u) {};
+		range_lt(const T& u) : m_upper(u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return (value < m_upper);
@@ -365,12 +372,12 @@ public:
 	template<class T>
 	struct range_2_base : public range_base<T> {
 		T m_lower, m_upper;
-		range_2_base(const T& l, const T& u) : m_lower(l), m_upper(u) {};
+		range_2_base(const T& l, const T& u) : m_lower(l), m_upper(u) { NO_OP; };
 	};
 
 	template<class T>
 	struct range_ge_le : public range_2_base<T> {
-		range_ge_le(const T& l, const T& u) : range_2_base<T>(l, u) {};
+		range_ge_le(const T& l, const T& u) : range_2_base<T>(l, u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return ((value >= range_2_base<T>::m_lower) && (value <= range_2_base<T>::m_upper));
@@ -379,7 +386,7 @@ public:
 
 	template<class T>
 	struct range_gt_le : public range_2_base<T> {
-		range_gt_le(const T& l, const T& u) : range_2_base<T>(l, u) {};
+		range_gt_le(const T& l, const T& u) : range_2_base<T>(l, u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return ((value > range_2_base<T>::m_lower) && (value <= range_2_base<T>::m_upper));
@@ -388,7 +395,7 @@ public:
 
 	template<class T>
 	struct range_ge_lt : public range_2_base<T> {
-		range_ge_lt(const T& l, const T& u) : range_2_base<T>(l, u) {};
+		range_ge_lt(const T& l, const T& u) : range_2_base<T>(l, u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return ((value >= range_2_base<T>::m_lower) && (value < range_2_base<T>::m_upper));
@@ -397,7 +404,7 @@ public:
 
 	template<class T>
 	struct range_gt_lt : public range_2_base<T> {
-		range_gt_lt(const T& l, const T& u) : range_2_base<T>(l, u) {};
+		range_gt_lt(const T& l, const T& u) : range_2_base<T>(l, u) { NO_OP; };
 
 		bool check(const T& value) const {
 			return ((value > range_2_base<T>::m_lower) && (value < range_2_base<T>::m_upper));
@@ -551,7 +558,7 @@ HighParser::GetInt(int iDefVal, Range range)
 	v = GetValue(v);
 	integer val = v.GetInt();
 	if (!range.check(val)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+		throw ErrValueOutOfRange<integer>(MBDYN_EXCEPT_ARGS, val);
 	}
 	return val;
 }
@@ -565,7 +572,7 @@ HighParser::GetReal(const doublereal& dDefVal, Range range)
 	v = GetValue(v);
 	doublereal val = v.GetReal();
 	if (!range.check(val)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+		throw ErrValueOutOfRange<doublereal>(MBDYN_EXCEPT_ARGS, val);
 	}
 	return val;
 }
@@ -577,8 +584,7 @@ HighParser::GetValue(const TypedValue& vDefVal, Range range)
 	const char sFuncName[] = "HighParser::GetValue()";
 
 	if (CurrToken != HighParser::ARG) {
-		silent_cerr("Parser error in "
-			<< sFuncName << ", arg expected at line "
+		silent_cerr("Parser error in " << sFuncName << ", arg expected at line "
 			<< GetLineData() << std::endl);
 		throw HighParser::ErrIntegerExpected(MBDYN_EXCEPT_ARGS);
 	}
@@ -605,7 +611,7 @@ HighParser::GetValue(const TypedValue& vDefVal, Range range)
 	NextToken(sFuncName);
 
 	if (!range.check(v)) {
-		throw ErrValueOutOfRange(MBDYN_EXCEPT_ARGS);
+		throw ErrValueOutOfRange<TypedValue>(MBDYN_EXCEPT_ARGS, v);
 	}
 
 	return v;
