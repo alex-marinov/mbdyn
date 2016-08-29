@@ -625,11 +625,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr -> dGetNewStepTime(CurrStep, iStIter); 
-			/*dCurrTimeStep = NewTimeStep(dCurrTimeStep,
-					iStIter,
-					CurrStep);
-			*/
+			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter); 
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" during step "
@@ -749,8 +745,7 @@ IfStepIsToBeRepeated:
 	bSolConv = false;
 
 	/* Calcola il nuovo timestep */
-	dCurrTimeStep = timeStepPtr -> dGetNewStepTime(CurrStep,iStIter);
-	//NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+	dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep,iStIter);
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	return true;
