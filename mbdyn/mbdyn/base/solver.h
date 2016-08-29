@@ -69,6 +69,7 @@ class Solver;
 #include "precond.h"
 #include "rtsolver.h"
 #include "TimeStepControl.h"
+
 extern "C" int mbdyn_stop_at_end_of_iteration(void);
 extern "C" int mbdyn_stop_at_end_of_time_step(void);
 extern "C" void mbdyn_set_stop_at_end_of_iteration(void);
@@ -108,22 +109,12 @@ protected:
 	doublereal dTime;
 	DriveOwner MaxTimeStep;
 	doublereal dMinTimeStep;
-	StepIntegrator::StepChange CurrStep = StepIntegrator::NEWSTEP;
+	StepIntegrator::StepChange CurrStep;
 	std::string sInputFileName;
 	std::string sOutputFileName;
    	MBDynParser& HP;
    	integer iMaxIterations;
-//***** Method for StepTime ****/
-public:
-	
-	doublereal dGetdMinTimeStep() {
-		return dMinTimeStep;
-	}
 
-	void dSetMinTimeStep(doublereal val) {
-		dMinTimeStep = val;
-	}
-	
 public:
    	/* Dati per esecuzione di eigenanalysis */
 	
@@ -341,11 +332,6 @@ protected:
    	/* Lettura dati */
    	void ReadData(MBDynParser& HP);
 
-   	/* Nuovo delta t */
-   	doublereal NewTimeStep(doublereal dCurrTimeStep, 
-			       integer iPerformedIters,
-			       StepIntegrator::StepChange Dmy 
-			       = StepIntegrator::NEWSTEP);
 	/* Alloca Solman */
 	SolutionManager *const AllocateSolman(integer iNLD, integer iLWS = 0);
 	/* Alloca SchurSolman */

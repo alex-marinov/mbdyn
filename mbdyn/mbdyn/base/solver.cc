@@ -286,6 +286,7 @@ dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.),
 dMinTimeStep(::dDefaultMinTimeStep),
+CurrStep(StepIntegrator::NEWSTEP),
 MaxTimeStep(),
 dMaxResidual(std::numeric_limits<doublereal>::max()),
 dMaxResidualDiff(std::numeric_limits<doublereal>::max()),
@@ -1089,7 +1090,7 @@ Solver::Prepare(void)
 #ifdef DEBUG
 			if (DEBUG_LEVEL(MYDEBUG_FSTEPS)) {
 				Out << "Step " << lStep
-					<< " time " << dTime+dCurrTimeStep
+					<< " time " << dTime + dCurrTimeStep
 					<< " step " << dCurrTimeStep
 					<< " iterations " << iStIter
 					<< " error " << dTest << std::endl;
@@ -1204,10 +1205,11 @@ Solver::Start(void)
 	CurrStep = StepIntegrator::NEWSTEP;
 
 
-	timeStepPtr->Init(iMaxIterations,dCurrTimeStep ,MaxTimeStep ,dInitialTimeStep);
+	timeStepPtr->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
 	pCurrStepIntegrator = pFirstRegularStep;
+
 IfFirstStepIsToBeRepeated:
 	try {
 		pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 1);
@@ -1228,9 +1230,6 @@ IfFirstStepIsToBeRepeated:
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
 			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
-			/*dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
-						iStIter,
-						CurrStep);*/
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1298,7 +1297,7 @@ IfFirstStepIsToBeRepeated:
 	if (outputMsg()) {
 		Out
 			<< "Step " << lStep
-			<< " " << dTime+dCurrTimeStep
+			<< " " << dTime + dCurrTimeStep
 			<< " " << dCurrTimeStep
 			<< " " << iStIter
 			<< " " << dTest
@@ -1445,10 +1444,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep =  timeStepPtr->dGetNewStepTime(CurrStep , iStIter);
-			/*dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
-					iStIter,
-					CurrStep);*/
+			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1477,10 +1473,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep , iStIter);
-			/*dCurrTimeStep = NewTimeStep(dOldCurrTimeStep,
-					iStIter,
-					CurrStep);*/
+			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1602,8 +1595,7 @@ IfStepIsToBeRepeated:
 	}
 
 	/* Calcola il nuovo timestep */
-	dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep , iStIter);
-	//dCurrTimeStep = NewTimeStep(dCurrTimeStep, iStIter, CurrStep);
+	dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	return true;
@@ -1685,94 +1677,7 @@ Solver::~Solver(void)
 		SAFEDELETE(pNLS);
 	}
 
-	/*if (pStrategyChangeDrive) {
-		SAFEDELETE(pStrategyChangeDrive);
-	}*/
 	DestroyTimeStepData();
-}
-
-/* Nuovo delta t */
-doublereal
-Solver::NewTimeStep(doublereal dCurrTimeStep,
-	integer iPerformedIters,
-	StepIntegrator::StepChange Why)
-{
-	/*DEBUGCOUTFNAME("Solver::NewTimeStep");
-
-	switch (CurrStrategy) {
-	case NOCHANGE:
-		return dCurrTimeStep;
-
-	case CHANGE: {
-		doublereal dNewStep = pStrategyChangeDrive->dGet(dTime);
-		if (Why == StepIntegrator::REPEATSTEP
-			&& dNewStep == dCurrTimeStep)
-		{
-			return dMinTimeStep/2.;
-		}
-		return std::max(std::min(dNewStep, MaxTimeStep.dGet()), dMinTimeStep);
-		}
-
-	case FACTOR:
-		if (Why == StepIntegrator::REPEATSTEP) {
-			if (dCurrTimeStep*StrategyFactor.dReductionFactor > dMinTimeStep)
-			{
-				if (bLastChance == true) {
-					bLastChance = false;
-				}
-				iStepsAfterReduction = 0;
-				return std::min(dCurrTimeStep*StrategyFactor.dReductionFactor, MaxTimeStep.dGet());
-
-			} else {
-				if (bLastChance == false) {
-					bLastChance = true;
-					return dMinTimeStep;
-				} else {
-					/*
-					 * Fuori viene intercettato
-					 * il valore illegale
-					 *
-					return std::min(dCurrTimeStep*StrategyFactor.dReductionFactor, MaxTimeStep.dGet());
-				}
-			}
-		}
-
-		if (Why == StepIntegrator::NEWSTEP) {
-			iStepsAfterReduction++;
-			iStepsAfterRaise++;
-
-			iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
-
-// 			std::cerr << iPerformedIters << " " << StrategyFactor.iMaxIters << " "
-// 				<< iPerformedIters << " " << StrategyFactor.iMinIters  << " "
-// 				<< iStepsAfterReduction << " " << StrategyFactor.iStepsBeforeReduction << " "
-// 				<< iStepsAfterRaise << " " << StrategyFactor.iStepsBeforeRaise << " "
-// 				<< dCurrTimeStep << " " << dMaxTimeStep << "\n";
-			if (iPerformedIters > StrategyFactor.iMaxIters) {
-				iStepsAfterReduction = 0;
-				bLastChance = false;
-				return std::min(std::max(dCurrTimeStep*StrategyFactor.dReductionFactor, dMinTimeStep), MaxTimeStep.dGet());
-
-			} else if (iPerformedIters <= StrategyFactor.iMinIters
-				&& iStepsAfterReduction > StrategyFactor.iStepsBeforeReduction
-				&& iStepsAfterRaise > StrategyFactor.iStepsBeforeRaise
-				&& dCurrTimeStep < MaxTimeStep.dGet())
-			{
-				iStepsAfterRaise = 0;
-				iWeightedPerformedIters = 0;
-				return std::min(dCurrTimeStep*StrategyFactor.dRaiseFactor, MaxTimeStep.dGet());
-			}
-			return dCurrTimeStep;
-		}
-		break;
-
-	default:
-		silent_cerr("You shouldn't have reached this point!" << std::endl);
-		throw Solver::ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-	*/
-
-	return 0.;
 }
 
 /*scrive il contributo al file di restart*/
@@ -2235,19 +2140,12 @@ Solver::ReadData(MBDynParser& HP)
 			break;
 
 		case MINTIMESTEP:
-			dMinTimeStep = HP.GetReal();
-			DEBUGLCOUT(MYDEBUG_INPUT, "Min time step is "
-				<< dMinTimeStep << std::endl);
+			try {
+				dMinTimeStep = HP.GetReal(std::numeric_limits<doublereal>::min(), HighParser::range_gt<doublereal>(0.));
 
-			if (dMinTimeStep == 0.) {
-				silent_cerr("warning, null min time step"
-					" is not allowed" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-			} else if (dMinTimeStep < 0.) {
-				silent_cerr("negative min time step"
-					" is not allowed" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+				silent_cerr("invalid min time step " << e.Get() << " (must be positive) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
+				throw e;
 			}
 			break;
 
@@ -2961,137 +2859,10 @@ Solver::ReadData(MBDynParser& HP)
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 			goto EndOfCycle;
-		///Start over here
-		case STRATEGY: {
-			
+
+		case STRATEGY:
 			timeStepPtr = ReadTimeStepData(this,HP);
-			/*if(typeid(timeStepPtr) == typeid(ChangeStep)){
-				pStrategyChangeDrive = HP.GetDriveCaller(true);
-			}
-			// call the read function for the TimeStepRead
-			switch (KeyWords(HP.GetWord())) {
-			case STRATEGYFACTOR: {
-				CurrStrategy = FACTOR;
-
-				/*
-				 * strategy: factor ,
-				 *     <reduction factor> ,
-				 *     <steps before reduction> ,
-				 *     <raise factor> ,
-				 *     <steps before raise> ,
-				 *     <min iterations> ,
-				 *     <max iterations> ;
-				 */
-
-				/*StrategyFactor.dReductionFactor = HP.GetReal();
-				if (StrategyFactor.dReductionFactor >= 1.) {
-					silent_cerr("warning, "
-						"illegal reduction factor "
-						"at line " << HP.GetLineData()
-						<< "; default value 1. "
-						"(no reduction) will be used"
-						<< std::endl);
-					StrategyFactor.dReductionFactor = 1.;
-				}
-
-				StrategyFactor.iStepsBeforeReduction = HP.GetInt();
-				if (StrategyFactor.iStepsBeforeReduction <= 0) {
-					silent_cerr("warning, "
-						"illegal number of steps "
-						"before reduction at line "
-						<< HP.GetLineData()
-						<< "; default value 1 will be "
-						"used (it may be dangerous)"
-						<< std::endl);
-					StrategyFactor.iStepsBeforeReduction = 1;
-				}
-
-				StrategyFactor.dRaiseFactor = HP.GetReal();
-				if (StrategyFactor.dRaiseFactor <= 1.) {
-					silent_cerr("warning, "
-						"illegal raise factor at line "
-						<< HP.GetLineData()
-						<< "; default value 1. "
-						"(no raise) will be used"
-						<< std::endl);
-					StrategyFactor.dRaiseFactor = 1.;
-				}
-
-				StrategyFactor.iStepsBeforeRaise = HP.GetInt();
-				if (StrategyFactor.iStepsBeforeRaise <= 0) {
-					silent_cerr("warning, "
-						"illegal number of steps "
-						"before raise at line "
-						<< HP.GetLineData()
-						<< "; default value 1 will be "
-						"used (it may be dangerous)"
-						<< std::endl);
-					StrategyFactor.iStepsBeforeRaise = 1;
-				}
-
-				StrategyFactor.iMinIters = HP.GetInt();
-				if (StrategyFactor.iMinIters <= 0) {
-					silent_cerr("warning, "
-						"illegal minimum number "
-						"of iterations at line "
-						<< HP.GetLineData()
-						<< "; default value 0 will be "
-						"used (never raise)"
-						<< std::endl);
-					StrategyFactor.iMinIters = 1;
-				}
-
-				if (HP.IsArg()) {
-					StrategyFactor.iMaxIters = HP.GetInt();
-					if (StrategyFactor.iMaxIters <= 0) {
-						silent_cerr("warning, "
-							"illegal mmaximim number "
-							"of iterations at line "
-							<< HP.GetLineData()
-							<< "; default value will be "
-							"used"
-							<< std::endl);
-					}
-				}
-
-				DEBUGLCOUT(MYDEBUG_INPUT,
-						"Time step control strategy: "
-						"Factor" << std::endl
-						<< "Reduction factor: "
-						<< StrategyFactor.dReductionFactor
-						<< "Steps before reduction: "
-						<< StrategyFactor.iStepsBeforeReduction
-						<< "Raise factor: "
-						<< StrategyFactor.dRaiseFactor
-						<< "Steps before raise: "
-						<< StrategyFactor.iStepsBeforeRaise
-						<< "Min iterations: "
-						<< StrategyFactor.iMinIters
-						<< "Max iterations: "
-						<< StrategyFactor.iMaxIters
-						<< std::endl);
-				break;
-			}
-
-			case STRATEGYNOCHANGE: {
-				CurrStrategy = NOCHANGE;
-				break;
-			}
-
-			case STRATEGYCHANGE: {
-				CurrStrategy = CHANGE;
-				pStrategyChangeDrive = HP.GetDriveCaller(true);
-				break;
-			}
-
-			default:
-				silent_cerr("unknown time step control "
-					"strategy at line "
-					<< HP.GetLineData() << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}*/
 			break;
-		}
 
 		case POD:
 			silent_cerr("line " << HP.GetLineData()
@@ -3871,8 +3642,6 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		silent_cout("TimeStepPtr is NULL Creating NoChange \n" );
 		timeStepPtr = new NoChange(this);
 	}
-	
-	//timeStepPtr->SetUpMaxTimeStep(MaxTimeStep , dInitialTimeStep);
 	
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;
@@ -5397,27 +5166,25 @@ void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const thro
 	case TS_SOFT_LIMIT:
 		break;
 
-	case TS_HARD_LIMIT:
-		{
-			const doublereal dMaxTS = MaxTimeStep.dGet();
+	case TS_HARD_LIMIT: {
+		const doublereal dMaxTS = MaxTimeStep.dGet();
 
-			if (dCurrTimeStep > dMaxTS && dCurrTimeStep > dMinTimeStep) {
-				if (outputIters()) {
-		#ifdef USE_MPI
-					if (!bParallel || MBDynComm.Get_rank() == 0)
-		#endif /* USE_MPI */
-					{
-							silent_cerr("warning: current time step = "
-									<< dCurrTimeStep
-									<< " > hard limit of the maximum time step = "
-									<< dMaxTS << std::endl);
-					}
+		if (dCurrTimeStep > dMaxTS && dCurrTimeStep > dMinTimeStep) {
+			if (outputIters()) {
+#ifdef USE_MPI
+				if (!bParallel || MBDynComm.Get_rank() == 0)
+#endif /* USE_MPI */
+				{
+					silent_cerr("warning: current time step = "
+						<< dCurrTimeStep
+						<< " > hard limit of the maximum time step = "
+						<< dMaxTS << std::endl);
 				}
-
-				throw NonlinearSolver::TimeStepLimitExceeded(MBDYN_EXCEPT_ARGS);
 			}
+
+			throw NonlinearSolver::TimeStepLimitExceeded(MBDYN_EXCEPT_ARGS);
 		}
-		break;
+		} break;
 
 	default:
 		ASSERT(0);

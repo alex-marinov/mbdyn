@@ -34,73 +34,74 @@
  */
  
 
-#ifndef TIME_STEP_H
-#define TIME_STEP_H
+#ifndef TIMESTEPCONTROL_H
+#define TIMESTEPCONTROL_H
+
+#include "mbconfig.h"
+
+#include <map>
 
 class TimeStepControl;
-#include "mbconfig.h"
-#include "output.h"
-#include "solman.h"
-#include <map>
 #include "solver.h"
 #include "drive_.h"
 
 extern void InitTimeStepData(void);
 extern void DestroyTimeStepData(void);
+
+
 class TimeStepControl {
+protected:
+	doublereal dCurrTimeStep;
 
 public:
-	TimeStepControl(){};
-	virtual ~TimeStepControl(void){};
-	virtual doublereal dGetNewStepTime(StepIntegrator::StepChange currStep , doublereal iPerformedIters) = 0;
+	TimeStepControl(void) { NO_OP; };
+	virtual ~TimeStepControl(void) { NO_OP; };
+	virtual doublereal dGetNewStepTime(StepIntegrator::StepChange currStep, doublereal iPerformedIters) = 0;
 	virtual void SetDriveHandler(const DriveHandler* driveHandler) = 0;
-	virtual void Init(doublereal iMaxIterations,doublereal dCurrTimeStep ,DriveOwner & MaxTimeStep , doublereal dInitialTimeStep) = 0;
+	virtual void Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep) = 0;
 };
 
-extern TimeStepControl * ReadTimeStepData(Solver * s, MBDynParser& HP);
+extern TimeStepControl *ReadTimeStepData(Solver *s, MBDynParser& HP);
 
 class TimeStepRead {
-
 public:
-	virtual ~TimeStepRead(void){};
-	virtual TimeStepControl *
-	Read( Solver * s, MBDynParser& HP) = 0;
+	virtual ~TimeStepRead(void) { NO_OP; };
+	virtual TimeStepControl *Read(Solver *s, MBDynParser& HP) = 0;
 };
 
 class  NoChange : public TimeStepControl {
 private:
-	Solver * s;
-	doublereal dCurrTimeStep;
+	Solver *s;
+
 public:
 	NoChange(Solver * s);
-	doublereal dGetNewStepTime(StepIntegrator::StepChange currStep , doublereal iPerformedIters);
-	void SetDriveHandler(const DriveHandler* driveHandler){}
- 	void Init(doublereal iMaxIterations,doublereal dCurrTimeStep ,DriveOwner & MaxTimeStep , doublereal dInitialTimeStep);
-	~NoChange(){};
+	~NoChange(void) { NO_OP; };
+	doublereal dGetNewStepTime(StepIntegrator::StepChange currStep, doublereal iPerformedIters);
+	void SetDriveHandler(const DriveHandler* driveHandler) { NO_OP; };
+ 	void Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep);
 };
-
 
 class ChangeStep : public TimeStepControl {
 private:
-	Solver * s;
+	Solver *s;
 	DriveCaller* pStrategyChangeDrive;
+	doublereal dMinTimeStep;
 	DriveOwner MaxTimeStep;
-	doublereal dCurrTimeStep;
-public:
-	ChangeStep(Solver * s,DriveCaller* pStrategyChangeDrive);
-	doublereal dGetNewStepTime(StepIntegrator::StepChange currStep , doublereal iPerformedIters);
-	
-	void SetDriveHandler(const DriveHandler* driveHandler);
 
-	void Init(doublereal iMaxIterations,doublereal dCurrTimeStep ,DriveOwner & MaxTimeStep , doublereal dInitialTimeStep);
-	~ChangeStep(){
+public:
+	ChangeStep(Solver *s, DriveCaller* pStrategyChangeDrive);
+	~ChangeStep(void) {
 		SAFEDELETE(pStrategyChangeDrive);
 	};
+
+	doublereal dGetNewStepTime(StepIntegrator::StepChange currStep, doublereal iPerformedIters);
+	void SetDriveHandler(const DriveHandler* driveHandler);
+	void Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep);
 };
 
 class Factor : public TimeStepControl {
 private:
-	Solver * s;
+	Solver *s;
 	doublereal dReductionFactor;
 	doublereal iStepsBeforeReduction;
 	doublereal dRaiseFactor;
@@ -111,25 +112,21 @@ private:
 	doublereal iStepsAfterReduction;
 	doublereal iStepsAfterRaise;
 	doublereal iWeightedPerformedIters;
+	doublereal dMinTimeStep;
 	DriveOwner MaxTimeStep;
 
-	doublereal dCurrTimeStep;
-
 public:
-	Factor( Solver * s ,doublereal dReductionFactor,
-			doublereal iStepsBeforeReduction,
-			doublereal dRaiseFactor,
-			doublereal iStepsBeforeRaise,
-			doublereal iMinIters,
-			doublereal iMaxIters );
-	doublereal dGetNewStepTime(StepIntegrator::StepChange Why , doublereal iPerformedIters);
-	void SetDriveHandler(const DriveHandler* driveHandler){}
-	void Init(doublereal iMaxIterations,doublereal dCurrTimeStep ,DriveOwner & MaxTimeStep , doublereal dInitialTimeStep);
-	~Factor(){};
+	Factor(Solver *s,
+		doublereal dReductionFactor,
+		doublereal iStepsBeforeReduction,
+		doublereal dRaiseFactor,
+		doublereal iStepsBeforeRaise,
+		doublereal iMinIters,
+		doublereal iMaxIters);
+	~Factor(void) { NO_OP; };
+	doublereal dGetNewStepTime(StepIntegrator::StepChange Why, doublereal iPerformedIters);
+	void SetDriveHandler(const DriveHandler* driveHandler) { NO_OP; };
+	void Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep);
 };
 
-/********** READER FOR FACTOR **************/
-
-/***************SET AND CLEAR FOR MAP ************/
-
-#endif
+#endif // TIMESTEPCONTROL_H

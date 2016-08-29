@@ -32,6 +32,9 @@ MBDyn 1.X-Devel
 			   one (Sommerfeld numbers are extrapolated linear).
 			3) Output can be generated for selected Gauss points
 			   only
+		- added support for user-defined time step control code
+		  (With the contribution of Ankit Aggarwal during Google Summer
+		  of Code 2016)
 	Backward compatibility issues:
 		- reworked output elements syntax
 	Known issues:
