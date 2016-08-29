@@ -323,9 +323,9 @@ public:
 	};
 
 	template<class T>
-	struct lower_limit : public range_base<T> {
+	struct range_ge : public range_base<T> {
 		T m_lower;
-		lower_limit(const T& l) : m_lower(l) {};
+		range_ge(const T& l) : m_lower(l) {};
 
 		bool check(const T& value) const {
 			return (value >= m_lower);
@@ -333,9 +333,9 @@ public:
 	};
 
 	template<class T>
-	struct lower_xlimit : public range_base<T> {
+	struct range_gt : public range_base<T> {
 		T m_lower;
-		lower_xlimit(const T& l) : m_lower(l) {};
+		range_gt(const T& l) : m_lower(l) {};
 
 		bool check(const T& value) const {
 			return (value > m_lower);
@@ -343,9 +343,9 @@ public:
 	};
 
 	template<class T>
-	struct upper_limit : public range_base<T> {
+	struct range_le : public range_base<T> {
 		T m_upper;
-		upper_limit(const T& u) : m_upper(u) {};
+		range_le(const T& u) : m_upper(u) {};
 
 		bool check(const T& value) const {
 			return (value <= m_upper);
@@ -353,9 +353,9 @@ public:
 	};
 
 	template<class T>
-	struct upper_xlimit : public range_base<T> {
+	struct range_lt : public range_base<T> {
 		T m_upper;
-		upper_xlimit(const T& u) : m_upper(u) {};
+		range_lt(const T& u) : m_upper(u) {};
 
 		bool check(const T& value) const {
 			return (value < m_upper);
@@ -363,44 +363,44 @@ public:
 	};
 
 	template<class T>
-	struct range_lu_base : public range_base<T> {
+	struct range_2_base : public range_base<T> {
 		T m_lower, m_upper;
-		range_lu_base(const T& l, const T& u) : m_lower(l), m_upper(u) {};
+		range_2_base(const T& l, const T& u) : m_lower(l), m_upper(u) {};
 	};
 
 	template<class T>
-	struct range_lower_upper: public range_lu_base<T> {
-		range_lower_upper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+	struct range_ge_le : public range_2_base<T> {
+		range_ge_le(const T& l, const T& u) : range_2_base<T>(l, u) {};
 
 		bool check(const T& value) const {
-			return ((value >= range_lu_base<T>::m_lower) && (value <= range_lu_base<T>::m_upper));
+			return ((value >= range_2_base<T>::m_lower) && (value <= range_2_base<T>::m_upper));
 		};
 	};
 
 	template<class T>
-	struct range_xlower_upper: public range_lu_base<T> {
-		range_xlower_upper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+	struct range_gt_le : public range_2_base<T> {
+		range_gt_le(const T& l, const T& u) : range_2_base<T>(l, u) {};
 
 		bool check(const T& value) const {
-			return ((value > range_lu_base<T>::m_lower) && (value <= range_lu_base<T>::m_upper));
+			return ((value > range_2_base<T>::m_lower) && (value <= range_2_base<T>::m_upper));
 		};
 	};
 
 	template<class T>
-	struct range_lower_xupper: public range_lu_base<T> {
-		range_lower_xupper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+	struct range_ge_lt : public range_2_base<T> {
+		range_ge_lt(const T& l, const T& u) : range_2_base<T>(l, u) {};
 
 		bool check(const T& value) const {
-			return ((value >= range_lu_base<T>::m_lower) && (value < range_lu_base<T>::m_upper));
+			return ((value >= range_2_base<T>::m_lower) && (value < range_2_base<T>::m_upper));
 		};
 	};
 
 	template<class T>
-	struct range_xlower_xupper: public range_lu_base<T> {
-		range_xlower_xupper(const T& l, const T& u) : range_lu_base<T>(l, u) {};
+	struct range_gt_lt : public range_2_base<T> {
+		range_gt_lt(const T& l, const T& u) : range_2_base<T>(l, u) {};
 
 		bool check(const T& value) const {
-			return ((value > range_lu_base<T>::m_lower) && (value < range_lu_base<T>::m_upper));
+			return ((value > range_2_base<T>::m_lower) && (value < range_2_base<T>::m_upper));
 		};
 	};
 

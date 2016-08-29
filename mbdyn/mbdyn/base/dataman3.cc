@@ -263,7 +263,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi strutturali attesi */
 		case STRUCTURALNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::STRUCTURAL].iExpectedNum = iDmy;
 			DofData[DofOwner::STRUCTURALNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Structural nodes: " << iDmy << std::endl);
@@ -271,7 +271,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi elettrici attesi */
 		case ELECTRICNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::ELECTRIC].iExpectedNum = iDmy;
 			DofData[DofOwner::ELECTRICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric nodes: " << iDmy << std::endl);
@@ -279,7 +279,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi termici attesi */
 		case THERMALNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::THERMAL].iExpectedNum = iDmy;
 			DofData[DofOwner::THERMALNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Thermal nodes: " << iDmy << std::endl);
@@ -287,7 +287,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi astratti attesi */
 		case ABSTRACTNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::ABSTRACT].iExpectedNum = iDmy;
 			DofData[DofOwner::ABSTRACTNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Abstract nodes: " << iDmy << std::endl);
@@ -295,14 +295,14 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di nodi astratti attesi */
 		case PARAMETERNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::PARAMETER].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Parameter nodes: " << iDmy << std::endl);
  		} break;
 
 		/* Numero di nodi idraulici attesi */
 		case HYDRAULICNODES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			NodeData[Node::HYDRAULIC].iExpectedNum = iDmy;
 			DofData[DofOwner::HYDRAULICNODE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic nodes: " << iDmy << std::endl);
@@ -337,21 +337,21 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di corpi rigidi attesi */
 		case RIGIDBODIES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::BODY].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Rigid bodies: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di inerzie attese */
 		case INERTIA: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::INERTIA].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di vincoli attesi */
 		case JOINTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::JOINT].iExpectedNum = iDmy;
 			DofData[DofOwner::JOINT].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Joints: " << iDmy << std::endl);
@@ -362,7 +362,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di regolarizzazion vincoli attesi */
 		case JOINT_REGULARIZATIONS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::JOINT_REGULARIZATION].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Joint regularizations: " << iDmy << std::endl);
 			if (iDmy > 0 ) {
@@ -372,7 +372,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di travi attese */
 		case BEAMS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::BEAM].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Beams: " << iDmy << std::endl);
 			if (iDmy > 0 ) {
@@ -382,7 +382,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di piastre attese */
 		case PLATES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::PLATE].iExpectedNum = iDmy;
 			DofData[DofOwner::PLATE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Plates: " << iDmy << std::endl);
@@ -406,14 +406,14 @@ DataManager::ReadControl(MBDynParser& HP,
 			silent_cerr("deprecated \"rotors\", use \"induced velocity elements\" instead at line " << HP.GetLineData() << std::endl);
 			// fallthru
 		case INDUCEDVELOCITYELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::INDUCEDVELOCITY].iExpectedNum = iDmy;
 			DofData[DofOwner::INDUCEDVELOCITY].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Rotors: " << iDmy << std::endl);
 		} break;
 
 		case AEROMODALS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::AEROMODAL].iExpectedNum = iDmy;
 			DofData[DofOwner::AEROMODAL].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Aeromodals: " << iDmy << std::endl);
@@ -421,7 +421,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Elementi aerodinamici: vari elementi aerodinamici senza dof */
 		case AERODYNAMICELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::AERODYNAMIC].iExpectedNum = iDmy;
 			DofData[DofOwner::AERODYNAMIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Aerodynamic Elements: " << iDmy << std::endl);
@@ -429,14 +429,14 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di forze e coppie attese */
 		case FORCES: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::FORCE].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Forces: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di vincoli attesi */
 		case GENELS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::GENEL].iExpectedNum = iDmy;
 			DofData[DofOwner::GENEL].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Genels: " << iDmy << std::endl);
@@ -444,7 +444,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di elementi elettrici attesi */
 		case ELECTRICELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::ELECTRIC].iExpectedNum = iDmy;
 			DofData[DofOwner::ELECTRIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Electric elements: " << iDmy << std::endl);
@@ -452,7 +452,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di elementi termici attesi */
 		case THERMALELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::THERMAL].iExpectedNum = iDmy;
 			DofData[DofOwner::THERMAL].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Thermal elements: " << iDmy << std::endl);
@@ -460,7 +460,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di elementi idraulici attesi */
 		case HYDRAULICELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::HYDRAULIC].iExpectedNum = iDmy;
 			DofData[DofOwner::HYDRAULIC].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Hydraulic elements: " << iDmy << std::endl);
@@ -468,14 +468,14 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di elementi elettrici attesi */
 		case BULKELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::BULK].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Bulk elements: " << iDmy << std::endl);
 		} break;
 
 		/* Numero di elementi caricabili attesi */
 		case LOADABLEELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::LOADABLE].iExpectedNum = iDmy;
 			DofData[DofOwner::LOADABLE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "Loadable elements: " << iDmy << std::endl);
@@ -537,7 +537,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		case EXTERNALELEMENTS: {
 #ifdef USE_EXTERNAL
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::EXTERNAL].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "External elements: " << iDmy
 				<< std::endl);
@@ -550,7 +550,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		case SOCKETSTREAMOUTPUTELEMENTS:
 		case RTAIOUTPUTELEMENTS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			ElemData[Elem::SOCKETSTREAM_OUTPUT].iExpectedNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "RTAI output elements: " << iDmy
 				<< std::endl);
@@ -569,7 +569,7 @@ DataManager::ReadControl(MBDynParser& HP,
 
 		/* Numero di drivers attesi */
 		case FILEDRIVERS: {
-			integer iDmy = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+			integer iDmy = HP.GetInt(0, HighParser::range_ge<integer>(0));
 			DriveData[Drive::FILEDRIVE].iNum = iDmy;
 			DEBUGLCOUT(MYDEBUG_INPUT, "File drivers: " << iDmy << std::endl);
 		} break;
@@ -822,7 +822,7 @@ EndOfUse:
 			if (HP.IsArg()) {
 				if (HP.IsKeyWord("iterations")) {
 					RestartEvery = ITERATIONS;
-					iRestartIterations = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+					iRestartIterations = HP.GetInt(0, HighParser::range_ge<integer>(0));
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						"every " << iRestartIterations
 						<< " iterations" << std::endl);
@@ -834,7 +834,7 @@ EndOfUse:
 						<< " time units" << std::endl);
 				} else if (HP.IsKeyWord("times")) {
 					RestartEvery = TIMES;
-					iNumRestartTimes = HP.GetInt(0, HighParser::lower_limit<integer>(0));
+					iNumRestartTimes = HP.GetInt(0, HighParser::range_ge<integer>(0));
 					if (iNumRestartTimes < 1) {
 						silent_cerr("illegal number of restart times "
 							<< iNumRestartTimes << std::endl);
