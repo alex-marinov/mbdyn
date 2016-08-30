@@ -2,7 +2,7 @@ This directory contains a simple preprocessor for MBDyn.
 
 The preprocessor allows to mix standard MBDyn input files 
 directives with python code. 
-THe python code must be enclosed between
+The python code must be enclosed between
 the preprocessing directives 
 
 #beginpreprocess
@@ -11,10 +11,10 @@ and
 
 #endpreprocess
 
-This allows to easily build any ripetitive MBDyn model by
+This allows to easily build any repetitive MBDyn model by
 performing loops in python.
 
-MBDyn variables can be deaclared in python
+MBDyn variables can be declared in python
 with the command 
 
 MBVar(name, type, value)
@@ -27,7 +27,7 @@ Both commands will create a corresponding python variable that
 you can use in loops _and_ in the declaration of MBDyn nodes and elements.
 
 Instead of writing the result of the arithmetic expression defined with 
-these variables, the arithemtic expression themselves will be
+these variables, the arithmetic expression themselves will be
 written in the input file, to ease its readability.
 
 The preprocessed input file will be written to standard output.
