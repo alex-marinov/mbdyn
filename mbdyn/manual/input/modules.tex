@@ -659,27 +659,27 @@ The expression of the force is
 	f &= \nt{sign\_value} \cdot  x^{\nt{exp}} \plbr{ \nt{stiffness} + \nt{dissipation\_coef} \cdot \dot{x}} && \text{$x > 0$}
 \end{align}
 \end{subequations}
-with the dissipation coefficient \nt{dissipation\_coef} defined according each of the models.
+with the dissipation coefficient \nt{dissipation\_coef} defined according to each of the supported models.
 
 Their \kw{formulation} is:
 \begin{itemize}
-\item \kw{flores}: this is the default model; the dissipation coefficient is
+\item \kw{flores} \cite{FLORES-2011-MUBO}: this is the default model; the dissipation coefficient is
 \begin{align}
-	\nt{dissipation\_coef} &= \frac{8}{5} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\nt{restitution\_coef} \cdot \nt{initial\_eps\_prime\_tol}}
+	\nt{dissipation\_coef} &= \frac{8}{5} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\nt{restitution\_coef} \cdot \dot{x}_0}
 \end{align}
 Note that in this case $0 < \nt{restitution\_coef} \le 1$.
 
-\item \kw{hunt crossley}: the dissipation coefficient is
+\item \kw{hunt crossley} \cite{HUNT-1975}: the dissipation coefficient is
 \begin{align}
-	\nt{dissipation\_coef} &= \frac{3}{2} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\nt{initial\_eps\_prime\_tol}}
+	\nt{dissipation\_coef} &= \frac{3}{2} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\dot{x}_0}
 \end{align}
 
-\item \kw{lankarani nikravesh}: the dissipation coefficient is
+\item \kw{lankarani nikravesh} \cite{LANKARANI-1994-ND}: the dissipation coefficient is
 \begin{align}
-	\nt{dissipation\_coef} &= \frac{3}{4} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}^2}{\nt{initial\_eps\_prime\_tol}}
+	\nt{dissipation\_coef} &= \frac{3}{4} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}^2}{\dot{x}_0}
 \end{align}
 \end{itemize}
-Note that $\nt{dissipation\_coef} = 0$ when $|\dot{x}| < \nt{initial\_eps\_prime\_tol}$;
+Note that $\nt{dissipation\_coef} = 0$ when $|\dot{x}_0| < \nt{initial\_eps\_prime\_tol}$;
 i.e., when the initial contact velocity is below the threshold, no dissipation takes place.
 
 
