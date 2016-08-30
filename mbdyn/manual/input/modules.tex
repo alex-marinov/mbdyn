@@ -368,7 +368,7 @@ implements a scalar mass-damper-spring system.
             \bnt{PlaneDefiningNODELABEL} ,
                 \kw{position} , (\hty{Vec3}) \bnt{relative_plane_position} ,
                 \kw{rotation orientation} , (\hty{OrientationMatrix}) \bnt{rel_rot_orientation_1} ,
-                \kw{restitution} , (\ty{real}) \bnt{rest_coeff}
+                \kw{restitution} , (\ty{real}) \bnt{rest_coef}
                 [ , \kw{friction coefficient} , (\ty{real}) \bnt{mu} ] 
             [ , ... ] # as many blocks as \nt{number_of_planes}
         [ , \kw{constraint type} , \{ \kw{position} | \kw{velocity} | \kw{both} \} ] # default: \kw{both}
@@ -617,6 +617,71 @@ Simple example of run-time loadable user-defined constitutive law in Fortran 95.
 
 \noindent
 Implements various formulas of 1D continuous contact models.
+The same constitutive law can also be used as a 3D constitutive law,
+under the assumption that the 1D formulas are considered with respect
+to direction 3 of the 3D entity it is associated with.
+In such case, the component 3 of strain and strain rate are used as inputs,
+and the output force is applied along direction 3.
+
+The syntax is
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{help} ;
+        | [ \kw{help} , ]
+            [ \kw{sign} , \{ \kw{positive} | \kw{negative} | \bnt{sign_value} \} , ]
+            [ \kw{formulation} , \{ \kw{flores} | \kw{hunt crossley} | \kw{lankarani nikravesh} \} , ]
+            \kw{restitution} , \bnt{restitution_coef} ,
+            \kw{kappa} , \bnt{stiffness} ,
+            \kw{exp} , \bnt{exponent}
+            [ , \kw{EpsPrimeTol} , \bnt{initial_eps_prime_tol} ]
+\end{Verbatim}
+\begin{itemize}
+\item \bnt{sign\_value} is a non-null real number, whose sign is used for the \kw{sign} parameter.
+\item \bnt{restitution\_coef} is the restitution coefficient ($[0 \to 1]$).
+\item \bnt{stiffness} is the stiffness coefficient ($ > 0$).
+\item \bnt{exp} is the exponent ($ > 1$).
+\item \bnt{initial\_eps\_prime\_tol} is the tolerance on the initial contact velocity ($ > 0$).
+\end{itemize}
+
+Three models are implemented. They all use the strain and the strain rate, either as are, when \kw{sign} is \kw{positive},
+or their opposite, when \kw{sign} is \kw{negative},
+\begin{subequations}
+\begin{align}
+	x &= \nt{sign\_value} \cdot \nt{Eps}
+	\\
+	\dot{x} &= \nt{sign\_value} \cdot \nt{EpsPrime}
+\end{align}
+\end{subequations}
+The expression of the force is
+\begin{subequations}
+\begin{align}
+	f &= 0 && \text{$x \le 0$}
+	\\
+	f &= \nt{sign\_value} \cdot  x^{\nt{exp}} \plbr{ \nt{stiffness} + \nt{dissipation\_coef} \cdot \dot{x}} && \text{$x > 0$}
+\end{align}
+\end{subequations}
+with the dissipation coefficient \nt{dissipation\_coef} defined according each of the models.
+
+Their \kw{formulation} is:
+\begin{itemize}
+\item \kw{flores}: this is the default model; the dissipation coefficient is
+\begin{align}
+	\nt{dissipation\_coef} &= \frac{8}{5} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\nt{restitution\_coef} \cdot \nt{initial\_eps\_prime\_tol}}
+\end{align}
+Note that in this case $0 < \nt{restitution\_coef} \le 1$.
+
+\item \kw{hunt crossley}: the dissipation coefficient is
+\begin{align}
+	\nt{dissipation\_coef} &= \frac{3}{2} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}}{\nt{initial\_eps\_prime\_tol}}
+\end{align}
+
+\item \kw{lankarani nikravesh}: the dissipation coefficient is
+\begin{align}
+	\nt{dissipation\_coef} &= \frac{3}{4} \cdot \nt{stiffness} \cdot \frac{1 - \nt{restitution\_coef}^2}{\nt{initial\_eps\_prime\_tol}}
+\end{align}
+\end{itemize}
+Note that $\nt{dissipation\_coef} = 0$ when $|\dot{x}| < \nt{initial\_eps\_prime\_tol}$;
+i.e., when the initial contact velocity is below the threshold, no dissipation takes place.
+
 
 \subsection{Module-damper-graall}
 \emph{Author: Pierangelo Masarati, based on an original work of Gian Luca Ghiringhelli}
