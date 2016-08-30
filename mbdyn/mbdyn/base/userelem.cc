@@ -40,7 +40,6 @@
 #ifdef STATIC_MODULES
 #include "module-wheel2/module-wheel2.h"
 #include "module-asynchronous_machine/module-asynchronous_machine.h"
-#include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-inline_friction/module-inline_friction.h"
 #include "module-cyclocopter/module-cyclocopter.h"
 #ifdef HAVE_CHARM
@@ -119,8 +118,6 @@ InitUDE(void)
 	b = wheel2_set();
 	ASSERT(b != false);
 	b = asynchronous_machine_set();
-	ASSERT(b != false);
-	b = hydrodynamic_plain_bearing_set();
 	ASSERT(b != false);
 	b = inline_friction_set();
 	ASSERT(b != false);

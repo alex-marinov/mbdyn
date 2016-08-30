@@ -258,8 +258,7 @@ $(OCTAVE_INCLUDE)
 
 noinst_PROGRAMS = inusetest
 inusetest_SOURCES = inusetest.cc
-inusetest_LDADD = @THREAD_LIBS@ \
-@ATOMIC_OPS_LIBS@ \
+inusetest_LDADD = @ATOMIC_OPS_LIBS@ \
 ../../libraries/libmbutil/libmbutil.la
 
 include $(top_srcdir)/build/bot.mk
