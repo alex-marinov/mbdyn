@@ -159,15 +159,15 @@ public:
 
 				switch (m_type) {
 				case CC_FLORES_ET_AL:
-					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol)  * 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
 					break;
 
 				case CC_HUNT_CROSSLEY:
-					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol)  * 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
 					break;
 
 				case CC_LANKARANI_NIKRAVESH:
-					m_dDissCoef =  (std::abs(xp) > m_dInitialEpsPrimeTol)  * m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 3./4. * m_dK * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
 					break;
 				}
 			}
@@ -185,9 +185,9 @@ public:
 			doublereal xn   = std::pow(x, m_dExp);
 			doublereal xnm1 = std::pow(x, m_dExp - 1.);			
 			
-			ConstitutiveLaw<doublereal, doublereal>::F = m_dSign*(m_dK*xn + m_dDissCoef *xn*xp);	// FIXME
-			ConstitutiveLaw<doublereal, doublereal>::FDE = m_dSign*(m_dExp*m_dK*xnm1 + m_dDissCoef *m_dExp * xnm1);	
-			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = m_dSign*(m_dDissCoef * xn);
+			ConstitutiveLaw<doublereal, doublereal>::F = m_dSign*xn*(m_dK + m_dDissCoef*xp);	// FIXME
+			ConstitutiveLaw<doublereal, doublereal>::FDE = m_dSign*xnm1*(m_dExp*m_dK + m_dDissCoef*m_dExp);	
+			ConstitutiveLaw<doublereal, doublereal>::FDEPrime = m_dSign*xn*m_dDissCoef;
 			
 //			silent_cout("hello "  << std::endl);
 		}
@@ -468,15 +468,15 @@ public:
 					
 				switch (m_type) {
 				case CC_FLORES_ET_AL:
-					m_dDissCoef = 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 8./5. * m_dK * (1. - m_dRest) / m_dRest / m_dInitialEpsPrime;
 					break;
 
 				case CC_HUNT_CROSSLEY:
-					m_dDissCoef = 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 3./2. * m_dK * (1. - m_dRest) / m_dInitialEpsPrime;
 					break;
 
 				case CC_LANKARANI_NIKRAVESH:
-					m_dDissCoef =  m_dK * 3./4. * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
+					m_dDissCoef = (std::abs(xp) > m_dInitialEpsPrimeTol) * 3./4. * m_dK * (1. - std::pow(m_dRest, 2)) / m_dInitialEpsPrime;
 					break;
 				}
 			}
@@ -494,9 +494,9 @@ public:
 			doublereal xnm1 = std::pow(x, m_dExp - 1.);			
 		
 //----------------------FIXME CHECK CORRECTNESS
-			ConstitutiveLaw<Vec3, Mat3x3>::F(3) = m_dSign*(m_dK*xn + m_dDissCoef *xn*xp);	// FIXME
-			ConstitutiveLaw<Vec3, Mat3x3>::FDE(3, 3) = m_dSign*(m_dExp*m_dK*xnm1 + m_dDissCoef *m_dExp * xnm1);	
-			ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime(3, 3) = m_dSign*(m_dDissCoef * xn);
+			ConstitutiveLaw<Vec3, Mat3x3>::F(3) = m_dSign*xn*(m_dK + m_dDissCoef*xp);	// FIXME
+			ConstitutiveLaw<Vec3, Mat3x3>::FDE(3, 3) = m_dSign*xnm1*(m_dExp*m_dK + m_dDissCoef*m_dExp);	
+			ConstitutiveLaw<Vec3, Mat3x3>::FDEPrime(3, 3) = m_dSign*xn*m_dDissCoef;
 			
 
 		}
