@@ -268,26 +268,30 @@ Solver::Solver(MBDynParser& HPar,
 #ifdef USE_MULTITHREAD
 nThreads(nThreads),
 #endif /* USE_MULTITHREAD */
+pTSC(0),
+dCurrTimeStep(0.),
+iStIter(0),
+dTime(0.),
+MaxTimeStep(),
+dMinTimeStep(::dDefaultMinTimeStep),
+CurrStep(StepIntegrator::NEWSTEP),
 sInputFileName(sInFName),
 sOutputFileName(sOutFName),
 HP(HPar),
+iMaxIterations(::iDefaultMaxIterations),
 EigAn(),
 pRTSolver(0),
 iNumPreviousVectors(2),
 iUnkStates(1),
-pdWorkSpace(NULL),
+pdWorkSpace(0),
 qX(),
 qXPrime(),
-pX(NULL),
-pXPrime(NULL),
-dTime(0.),
+pX(0),
+pXPrime(0),
 dInitialTime(0.),
 dFinalTime(0.),
 dRefTimeStep(0.),
 dInitialTimeStep(1.),
-dMinTimeStep(::dDefaultMinTimeStep),
-CurrStep(StepIntegrator::NEWSTEP),
-MaxTimeStep(),
 dMaxResidual(std::numeric_limits<doublereal>::max()),
 dMaxResidualDiff(std::numeric_limits<doublereal>::max()),
 eTimeStepLimit(TS_SOFT_LIMIT),
@@ -302,11 +306,12 @@ pDummySteps(0),
 pFirstRegularStep(0),
 pRegularSteps(0),
 pCurrStepIntegrator(0),
-pRhoRegular(NULL),
-pRhoAlgebraicRegular(NULL),
-pRhoDummy(NULL),
-pRhoAlgebraicDummy(NULL),
+pRhoRegular(0),
+pRhoAlgebraicRegular(0),
+pRhoDummy(0),
+pRhoAlgebraicDummy(0),
 dDerivativesCoef(::dDefaultDerivativesCoefficient),
+CurrLinearSolver(),
 ResTest(NonlinearSolverTest::NORM),
 SolTest(NonlinearSolverTest::NONE),
 bScale(false),
@@ -314,6 +319,7 @@ bTrueNewtonRaphson(true),
 bKeepJac(false),
 iIterationsBeforeAssembly(0),
 NonlinearSolverType(NonlinearSolver::UNKNOWN),
+/* for matrix-free solvers */
 MFSolverType(MatrixFreeSolver::UNKNOWN),
 dIterTol(::dDefaultTol),
 PcType(Preconditioner::FULLJACOBIANMATRIX),
@@ -321,29 +327,30 @@ iPrecondSteps(::iDefaultPreconditionerSteps),
 iIterativeMaxSteps(::iDefaultPreconditionerSteps),
 dIterertiveEtaMax(defaultIterativeEtaMax),
 dIterertiveTau(defaultIterativeTau),
+/* end of matrix-free solvers */
+/* for line search solver */
+LineSearch(),
+/* end of line search solver */
 /* for parallel solvers */
 bParallel(bPar),
-pSDM(NULL),
+pSDM(0),
 iNumLocDofs(0),
 iNumIntDofs(0),
-pLocDofs(NULL),
-pIntDofs(NULL),
-pDofs(NULL),
-pLocalSM(NULL),
+pLocDofs(0),
+pIntDofs(0),
+pDofs(0),
+pLocalSM(0),
 /* end of parallel solvers */
-pDM(NULL),
+pDM(0),
 iNumDofs(0),
-pSM(NULL),
-pNLS(NULL),
+pSM(0),
+pNLS(0),
 eStatus(SOLVER_STATUS_UNINITIALIZED),
-dCurrTimeStep(0.),
 bOutputCounter(false),
 outputCounterPrefix(),
 outputCounterPostfix(),
 iTotIter(0),
-iStIter(0),
 dTotErr(0.),
-timeStepPtr(NULL),
 dTest(std::numeric_limits<double>::max()),
 dSolTest(std::numeric_limits<double>::max()),
 bSolConv(false),
@@ -565,7 +572,7 @@ Solver::Prepare(void)
 
 	/* relink those known drive callers that might need
 	 * the data manager, but were verated ahead of it */
-	timeStepPtr->SetDriveHandler(pDM->pGetDrvHdl());
+	pTSC->SetDriveHandler(pDM->pGetDrvHdl());
 	/*if (pStrategyChangeDrive) {
 		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
 	}*/
@@ -600,8 +607,8 @@ Solver::Prepare(void)
 			MyVectorHandler(iNumDofs,
 				pdWorkSpace+((iNumPreviousVectors)+ivec)*iNumDofs));
 		qXPrime.push_back(pXPrime);
-		pX = NULL;
-		pXPrime = NULL;
+		pX = 0;
+		pXPrime = 0;
 	}
 	/* allocate MyVectorHandlers for unknown time step(s): own memory */
 	SAFENEWWITHCONSTRUCTOR(pX,
@@ -643,9 +650,9 @@ Solver::Prepare(void)
 	 * test on residual may allow pre-scaling;
 	 * test on solution (difference between two iterations) does not
 	 */
-	NonlinearSolverTest *pResTest = NULL;
+	NonlinearSolverTest *pResTest = 0;
 	if (bScale) {
-		NonlinearSolverTestScale *pResTestScale = NULL;
+		NonlinearSolverTestScale *pResTestScale = 0;
 
 		switch (ResTest) {
 		case NonlinearSolverTest::NORM:
@@ -687,7 +694,7 @@ Solver::Prepare(void)
 		}
 	}
 
-	NonlinearSolverTest *pSolTest = NULL;
+	NonlinearSolverTest *pSolTest = 0;
 	switch (SolTest) {
 	case NonlinearSolverTest::NONE:
 		SAFENEW(pSolTest, NonlinearSolverTestNone);
@@ -937,7 +944,7 @@ Solver::Prepare(void)
 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			<< dCurrTimeStep << std::endl);
 
-		ASSERT(pFirstDummyStep != NULL);
+		ASSERT(pFirstDummyStep != 0);
 
 		/* Setup SolutionManager(s) */
 		SetupSolmans(pFirstDummyStep->GetIntegratorNumUnknownStates());
@@ -1033,7 +1040,7 @@ Solver::Prepare(void)
 				<< std::endl);
 
 			pCurrStepIntegrator = pDummySteps;
-			ASSERT(pDummySteps!= NULL);
+			ASSERT(pDummySteps!= 0);
 			try {
 				pDM->SetTime(dTime + dCurrTimeStep, dCurrTimeStep, 0);
 				dTest = pDummySteps->Advance(this,
@@ -1201,11 +1208,11 @@ Solver::Start(void)
 	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
 
-	ASSERT(pFirstRegularStep!= NULL);
+	ASSERT(pFirstRegularStep!= 0);
 	CurrStep = StepIntegrator::NEWSTEP;
 
 
-	timeStepPtr->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
+	pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
 	/* Setup SolutionManager(s) */
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
 	pCurrStepIntegrator = pFirstRegularStep;
@@ -1229,7 +1236,7 @@ IfFirstStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
+			dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1444,7 +1451,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
+			dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1473,7 +1480,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
+			dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" from " << dOldCurrTimeStep
@@ -1595,7 +1602,7 @@ IfStepIsToBeRepeated:
 	}
 
 	/* Calcola il nuovo timestep */
-	dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter);
+	dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter);
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	return true;
@@ -1622,7 +1629,7 @@ Solver::~Solver(void)
 
 	if (!qX.empty()) {
 		for (int ivec = 0; ivec < iNumPreviousVectors; ivec++) {
-			if (qX[ivec] != NULL) {
+			if (qX[ivec] != 0) {
 				SAFEDELETE(qX[ivec]);
 				SAFEDELETE(qXPrime[ivec]);
 			}
@@ -2423,7 +2430,7 @@ Solver::ReadData(MBDynParser& HP)
 			case HOPE:
 				pRhoRegular = HP.GetDriveCaller(true);
 
-				pRhoAlgebraicRegular = NULL;
+				pRhoAlgebraicRegular = 0;
 				if (HP.IsArg()) {
 					pRhoAlgebraicRegular = HP.GetDriveCaller(true);
 				} else {
@@ -2861,7 +2868,7 @@ Solver::ReadData(MBDynParser& HP)
 			goto EndOfCycle;
 
 		case STRATEGY:
-			timeStepPtr = ReadTimeStepData(this,HP);
+			pTSC = ReadTimeStepData(this, HP);
 			break;
 
 		case POD:
@@ -3638,9 +3645,9 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
 	}
 
-	if(timeStepPtr == NULL){
-		silent_cout("TimeStepPtr is NULL Creating NoChange \n" );
-		timeStepPtr = new NoChange(this);
+	if (pTSC == 0) {
+		silent_cout("Defaulting to NoChange time step control" );
+		pTSC = new NoChange(this);
 	}
 	
 	if (dFinalTime < dInitialTime) {
@@ -4080,7 +4087,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 	// 	2 matrices iSize x iSize
 	//	5 vectors iSize x 1
 	//	1 vector iWorkSize x 1
-	doublereal* pd = NULL;
+	doublereal* pd = 0;
 	int iTmpSize = 2*(iSize*iSize) + 3*iSize + iWorkSize;
 	if (sB[0] != 'N') {
 		iTmpSize += 2*iSize;
@@ -4095,7 +4102,7 @@ eig_lapack(const MatrixHandler* pMatA, const MatrixHandler* pMatB,
 #endif // !HAVE_MEMSET
 
 	// 2 pointer arrays iSize x 1 for the matrices
-	doublereal** ppd = NULL;
+	doublereal** ppd = 0;
 	SAFENEWARR(ppd, doublereal*, 2*iSize);
 
 	// Data Handlers
@@ -4954,7 +4961,7 @@ Solver::AllocateSolman(integer iNLD, integer iLWS)
 SolutionManager *const
 Solver::AllocateSchurSolman(integer iStates)
 {
-	SolutionManager *pSSM(NULL);
+	SolutionManager *pSSM(0);
 
 #ifdef USE_MPI
 	switch (CurrIntSolver.GetSolver()) {
@@ -4991,7 +4998,7 @@ Solver::AllocateSchurSolman(integer iStates)
 NonlinearSolver *const
 Solver::AllocateNonlinearSolver()
 {
-	NonlinearSolver *pNLS = NULL;
+	NonlinearSolver *pNLS = 0;
 
 	switch (NonlinearSolverType) {
 	case NonlinearSolver::MATRIXFREE:
@@ -5097,7 +5104,7 @@ Solver::SetupSolmans(integer iStates, bool bCanBeParallel)
 	 * FIXME: at present there MUST be a pSM
 	 * (even for matrix-free nonlinear solvers)
 	 */
-	if (pSM == NULL) {
+	if (pSM == 0) {
 		silent_cerr("No linear solver defined" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

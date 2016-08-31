@@ -103,7 +103,7 @@ protected:
 
 	void ThreadPrepare(void);
 #endif /* USE_MULTITHREAD */
-	TimeStepControl * timeStepPtr;
+	TimeStepControl * pTSC;
 	doublereal dCurrTimeStep;
 	integer iStIter;
 	doublereal dTime;

@@ -625,7 +625,7 @@ IfStepIsToBeRepeated:
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
 			doublereal dOldCurrTimeStep = dCurrTimeStep;
-			dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep, iStIter); 
+			dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep, iStIter); 
 			if (dCurrTimeStep < dOldCurrTimeStep) {
 				DEBUGCOUT("Changing time step"
 					" during step "
@@ -745,7 +745,7 @@ IfStepIsToBeRepeated:
 	bSolConv = false;
 
 	/* Calcola il nuovo timestep */
-	dCurrTimeStep = timeStepPtr->dGetNewStepTime(CurrStep,iStIter);
+	dCurrTimeStep = pTSC->dGetNewStepTime(CurrStep,iStIter);
 	DEBUGCOUT("Current time step: " << dCurrTimeStep << std::endl);
 
 	return true;
@@ -1484,15 +1484,10 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			goto EndOfCycle;
 
-		case STRATEGY: {
-
-			timeStepPtr = ReadTimeStepData(this,HP);
-			/*if(typeid(timeStepPtr) == typeid(ChangeStep)){
-				pStrategyChangeDrive = HP.GetDriveCaller(true);
-			}*/
+		case STRATEGY:
+			pTSC = ReadTimeStepData(this,HP);
 			
 			break;
-		}
 
 		case SOLVER:
 			silent_cerr("\"solver\" keyword at line "
