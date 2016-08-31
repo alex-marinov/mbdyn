@@ -245,9 +245,6 @@ InverseSolver::Prepare(void)
 
 	/* relink those known drive callers that might need
 	 * the data manager, but were verated ahead of it */
-	/*if (pStrategyChangeDrive) {
-		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
-	}*/
 
 	ASSERT(iNumDofs > 0);
 
@@ -297,6 +294,10 @@ InverseSolver::Prepare(void)
 	pXPrime->Reset();
 	pXPrimePrime->Reset();
 	pLambda->Reset();
+
+	/* relink those known drive callers that might need
+	 * the data manager, but were verated ahead of it */
+	pTSC->SetDriveHandler(pDM->pGetDrvHdl());
 
 	/*
 	 * Immediately link DataManager to current solution
@@ -493,9 +494,10 @@ InverseSolver::Prepare(void)
 	outputCounterPrefix = bOutputCounter ? "\n" : "";
 	outputCounterPostfix = outputStep() ? "\n" : "\r";
 
-	ASSERT(pRegularSteps != NULL);
+	pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
 
 	/* Setup SolutionManager(s) */
+	ASSERT(pRegularSteps != 0);
 	SetupSolmans(pRegularSteps->GetIntegratorNumUnknownStates(), true);
 
 	/* this is here to force AfterConvergence()
@@ -965,10 +967,6 @@ InverseSolver::ReadData(MBDynParser& HP)
 		/* END OF DEPRECATED */
 
 		"strategy",
-			"factor",
-			"no" "change",
-			"change",
-
 
 		/* DEPRECATED */
 		"solver",
@@ -1048,9 +1046,6 @@ InverseSolver::ReadData(MBDynParser& HP)
 		/* END OF DEPRECATED */
 
 		STRATEGY,
-		STRATEGYFACTOR,
-		STRATEGYNOCHANGE,
-		STRATEGYCHANGE,
 
 		/* DEPRECATED */
 		SOLVER,
@@ -1824,27 +1819,21 @@ InverseSolver::ReadData(MBDynParser& HP)
 
 EndOfCycle: /* esce dal ciclo di lettura */
 
-	/*switch (CurrStrategy) {
-	case FACTOR:
-		if (StrategyFactor.iMaxIters <= StrategyFactor.iMinIters) {
-			silent_cerr("warning, "
-				<< "strategy maximum number "
-				<< "of iterations "
-				<< "is <= minimum: "
-				<< StrategyFactor.iMaxIters << " <= "
-				<< StrategyFactor.iMinIters << "; "
-				<< "the maximum global iteration value "
-				<< iMaxIterations << " "
-				<< "will be used"
-				<< std::endl);
-			StrategyFactor.iMaxIters = iMaxIterations;
-		}
-		break;
+	if (MaxTimeStep.pGetDriveCaller() == 0) {
+		DriveCaller *pDC = 0;
+		SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(::dDefaultMaxTimeStep));
+		MaxTimeStep.Set(pDC);
+	}
+	
+	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)) {
+		MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
+	}
 
-	default:
-		break;
-	}*/
-
+	if (pTSC == 0) {
+		pedantic_cout("No time step control strategy defined; defaulting to NoChange time step control" );
+		pTSC = new NoChange(this);
+	}
+	
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;
 	}

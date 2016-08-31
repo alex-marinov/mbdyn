@@ -573,9 +573,6 @@ Solver::Prepare(void)
 	/* relink those known drive callers that might need
 	 * the data manager, but were verated ahead of it */
 	pTSC->SetDriveHandler(pDM->pGetDrvHdl());
-	/*if (pStrategyChangeDrive) {
-		pStrategyChangeDrive->SetDrvHdl(pDM->pGetDrvHdl());
-	}*/
 
 	ASSERT(iNumDofs > 0);
 
@@ -1208,12 +1205,11 @@ Solver::Start(void)
 	dRefTimeStep = dInitialTimeStep;
 	dCurrTimeStep = dRefTimeStep;
 
-	ASSERT(pFirstRegularStep!= 0);
 	CurrStep = StepIntegrator::NEWSTEP;
-
-
 	pTSC->Init(iMaxIterations, dMinTimeStep, MaxTimeStep, dInitialTimeStep);
+
 	/* Setup SolutionManager(s) */
+	ASSERT(pFirstRegularStep!= 0);
 	SetupSolmans(pFirstRegularStep->GetIntegratorNumUnknownStates(), true);
 	pCurrStepIntegrator = pFirstRegularStep;
 
@@ -3650,7 +3646,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 	}
 
 	if (pTSC == 0) {
-		silent_cout("Defaulting to NoChange time step control" );
+		pedantic_cout("No time step control strategy defined; defaulting to NoChange time step control" );
 		pTSC = new NoChange(this);
 	}
 	
