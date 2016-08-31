@@ -1684,6 +1684,10 @@ Solver::~Solver(void)
 		SAFEDELETE(pNLS);
 	}
 
+	if (pTSC) {
+		delete pTSC;
+	}
+
 	DestroyTimeStepData();
 }
 
