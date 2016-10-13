@@ -79,8 +79,9 @@
 InverseSolver::InverseSolver(MBDynParser& HPar,
 		const std::string& sInFName,
 		const std::string& sOutFName,
+		unsigned int nThreads,
 		bool bPar)
-: Solver(HPar, sInFName, sOutFName, bPar),
+: Solver(HPar, sInFName, sOutFName, nThreads, bPar),
 ProblemType(InverseDynamics::FULLY_ACTUATED_COLLOCATED),
 pXPrimePrime(0), pLambda(0)
 {

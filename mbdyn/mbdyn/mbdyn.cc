@@ -1421,7 +1421,7 @@ endofcycle:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				InverseSolver,
 				InverseSolver(HP, sInputFileName, 
-					sOutputFileName, bParallel));
+					sOutputFileName, nThreads, bParallel));
 		break;
 
 	default:

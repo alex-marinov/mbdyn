@@ -80,6 +80,7 @@ public:
    	InverseSolver(MBDynParser& HP, 
 		const std::string& sInputFileName, 
 		const std::string& sOutputFileName,
+		unsigned int nThreads,
 		bool bParallel = false);
 
    	/* distruttore: esegue tutti i distruttori e libera la memoria */
