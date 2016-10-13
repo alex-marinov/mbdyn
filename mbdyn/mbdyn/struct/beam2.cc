@@ -115,6 +115,7 @@ bFirstIDRes(true)
 	AzLoc = Zero6;
 	DefLoc = Zero6;
 	DefLocRef = Zero6;
+	DefLocPrev = Zero6;
 	p = Zero3;
 	g = Zero3;
 	L0 = Zero3;
@@ -471,7 +472,7 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		/* Porta le azioni interne nel sistema globale */
 		Az = MultRV(AzLoc, R);
 	}
-	
+
 	WorkVec.Add(1, Az.GetVec1());
 	WorkVec.Add(4, (p - pNode[NODE1]->GetXCurr()).Cross(Az.GetVec1()) + Az.GetVec2());
 	WorkVec.Sub(7, Az.GetVec1());
@@ -606,13 +607,13 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc);
 	AzLoc = pD->GetF();
-	
+
 	/* corregge le azioni interne locali (piezo, ecc) */
 	AddInternalForces(AzLoc);
-	
+
 	/* Porta le azioni interne nel sistema globale */
 	Az = AzRef = MultRV(AzLoc, R);
-	
+
 	/* Aggiorna il legame costitutivo di riferimento */
 	DRef = MultRMRt(pD->GetFDE(), RRef);
 	
