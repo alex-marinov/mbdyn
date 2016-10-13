@@ -2290,6 +2290,7 @@ StructNode::Update(const VectorHandler& X, InverseDynamics::Order iOrder)
 		gCurr = Vec3(X, iFirstIndex + 4);
 		Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 		RCurr = RDelta*RRef;
+		// gCurr = ::Zero3;
 		} break;
 		
 	case InverseDynamics::VELOCITY: {

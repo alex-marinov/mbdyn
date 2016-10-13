@@ -539,8 +539,8 @@ Step1Integrator::Advance(Solver* pS,
 	pXPrimeCurr  = pXPrime;
 	pXPrimePrev  = qXPrime[0];
 
-	SetCoef(TStep, dAph, StType);
 	/* predizione */
+	SetCoef(TStep, dAph, StType);
 	Predict();
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
       	pDM->AfterPredict();
@@ -683,16 +683,11 @@ Step2Integrator::Advance(Solver* pS,
 	pXPrimePrev  = qXPrime[0];
 	pXPrimePrev2 = qXPrime[1];
 
-	SetCoef(TStep, dAph, StType);
-
 	/* predizione */
-
+	SetCoef(TStep, dAph, StType);
 	Predict();
-
 	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-
       	pDM->AfterPredict();
-
 
 #ifdef DEBUG
 	integer iNumDofs = pDM->iGetNumDofs();
@@ -1465,6 +1460,9 @@ InverseDynamicsStepSolver::Advance(InverseSolver* pS,
 	MatrixHandler *pMat = pSM->pMatHdl();
 	VectorHandler *pRes = pSM->pResHdl();
 	VectorHandler *pSol = pSM->pSolHdl();
+
+	/* use position */
+	// Update(pSol);
 
 	/* Velocity */
 	SetOrder(InverseDynamics::VELOCITY);

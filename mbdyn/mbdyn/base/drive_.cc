@@ -703,7 +703,7 @@ iNumCycles(iNumCyc), dInitialValue(d4), bNeverEnd(false)
 		dFinalValue = dInitialValue;
 
 	/* Onde di coseno che continuano all'infinito */
-	} else if(iNumCycles == 0) {
+	} else if (iNumCycles == 0) {
 		dEndTime = 0.;
 		bNeverEnd = true;
 

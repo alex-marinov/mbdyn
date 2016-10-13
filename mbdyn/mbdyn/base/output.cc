@@ -33,6 +33,8 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include <sstream>
+
 #include "output.h"
 
 /* OutputHandler - begin */

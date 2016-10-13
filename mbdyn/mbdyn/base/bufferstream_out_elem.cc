@@ -34,7 +34,9 @@
  */
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
+
 #include <sstream>
+
 #include "dataman.h"
 #include "bufferstream_out_elem.h"
 

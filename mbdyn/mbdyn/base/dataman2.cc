@@ -2509,7 +2509,7 @@ DataManager::AfterPredict(void) const
 		}
 	}
 
-	Elem* pEl = NULL;
+	Elem* pEl = 0;
 	if (ElemIter.bGetFirst(pEl)) {
 		do {
 			try {

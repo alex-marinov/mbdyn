@@ -362,10 +362,10 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		AzTmp[i].SubMat22(Mat3x3(MatCross, Az.GetVec2()*(dN2[i]*dCoef)));
 	}
    
-	Vec3 bTmp[2];
+	Vec3 bTmp[NUMNODES];
 	
-	bTmp[0] = p - pNode[NODE1]->GetXCurr();
-	bTmp[1] = p - pNode[NODE2]->GetXCurr();
+	bTmp[NODE1] = p - pNode[NODE1]->GetXCurr();
+	bTmp[NODE2] = p - pNode[NODE2]->GetXCurr();
    
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
@@ -375,11 +375,11 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		WMA.Sub(3 + 1, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
-				+ bTmp[0].Cross(AzTmp[i].GetMat11()));
+				+ bTmp[NODE1].Cross(AzTmp[i].GetMat11()));
 		WMA.Sub(3 + 1, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
-				+ bTmp[0].Cross(AzTmp[i].GetMat12()));
+				+ bTmp[NODE1].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
 		WMA.Add(6 + 1, 6*i + 1, AzTmp[i].GetMat11());
@@ -388,11 +388,11 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		WMA.Add(9 + 1, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
-				+ bTmp[1].Cross(AzTmp[i].GetMat11()));
+				+ bTmp[NODE2].Cross(AzTmp[i].GetMat11()));
 		WMA.Add(9 + 1, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
-				+ bTmp[1].Cross(AzTmp[i].GetMat12()));
+				+ bTmp[NODE2].Cross(AzTmp[i].GetMat12()));
 	}
 	
 	/* correzione alle equazioni */
@@ -893,7 +893,7 @@ VariableSubMatrixHandler&
 Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 	const VectorHandler& XCurr)
 {
-	silent_cout("Beam2::IDAssJac()" << std::endl);
+	// silent_cout("Beam2::IDAssJac()" << std::endl);
 
 	DEBUGCOUT("Entering Beam2::[InverseDynamics]AssJac()" << std::endl);
 
@@ -914,15 +914,15 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
 	InverseDynamics::Order iOrder)
 {
-	silent_cout("Beam2::IDAssRes(" << iOrder << ")" << std::endl);
+	// silent_cout("Beam2::IDAssRes(" << iOrder << ")" << std::endl);
 
 	DEBUGCOUT("Entering Beam2::[InverseDynamics]AssRes()" << std::endl);
 
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
 		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
 
-	if (iOrder == InverseDynamics::POSITION) {
-		ASSERT(bIsErgonomy());
+	// if (iOrder == InverseDynamics::POSITION) {
+		// ASSERT(bIsErgonomy());
 
 		if (bFirstIDRes) {
 			// prepare for new step
@@ -932,7 +932,7 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 			bFirstIDRes = false;
 			bFirstRes = true;
 		}
-	}
+	// }
 	
 	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
 }
@@ -1070,10 +1070,10 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		AzTmp[i].SubMat22(Mat3x3(MatCross, Az.GetVec2()*(dN2[i]*dCoef)));
 	}
 	
-	Vec3 bTmp[2];
+	Vec3 bTmp[NUMNODES];
 	
-	bTmp[0] = p-pNode[NODE1]->GetXCurr();
-	bTmp[1] = p-pNode[NODE2]->GetXCurr();
+	bTmp[NODE1] = p-pNode[NODE1]->GetXCurr();
+	bTmp[NODE2] = p-pNode[NODE2]->GetXCurr();
 	
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
@@ -1083,11 +1083,11 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		WMA.Sub(4, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
-				+ bTmp[0].Cross(AzTmp[i].GetMat11()));
+				+ bTmp[NODE1].Cross(AzTmp[i].GetMat11()));
 		WMA.Sub(4, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
-				+ bTmp[0].Cross(AzTmp[i].GetMat12()));
+				+ bTmp[NODE1].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione in avanti: */
 		WMA.Add(7, 6*i + 1, AzTmp[i].GetMat11());
@@ -1096,11 +1096,11 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		WMA.Add(10, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
-				+ bTmp[1].Cross(AzTmp[i].GetMat11()));
+				+ bTmp[NODE2].Cross(AzTmp[i].GetMat11()));
 		WMA.Add(10, 6*i + 4, 
 				AzTmp[i].GetMat22()
 				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
-				+ bTmp[1].Cross(AzTmp[i].GetMat12()));
+				+ bTmp[NODE2].Cross(AzTmp[i].GetMat12()));
 		
 		/* Equazione viscosa all'indietro: */
 		WMB.Sub(1, 6*i + 1, AzPrimeTmp[i].GetMat11());
@@ -1108,10 +1108,10 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		
 		WMB.Sub(4, 6*i + 1,
 				AzPrimeTmp[i].GetMat21()
-				+ bTmp[0].Cross(AzPrimeTmp[i].GetMat11()));
+				+ bTmp[NODE1].Cross(AzPrimeTmp[i].GetMat11()));
 		WMB.Sub(4, 6*i + 4,
 				AzPrimeTmp[i].GetMat22()
-				+ bTmp[0].Cross(AzPrimeTmp[i].GetMat12()));
+				+ bTmp[NODE1].Cross(AzPrimeTmp[i].GetMat12()));
 		
 		/* Equazione viscosa in avanti: */
 		WMB.Add(7, 6*i + 1, AzPrimeTmp[i].GetMat11());
@@ -1119,10 +1119,10 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		
 		WMB.Add(10, 6*i + 1,
 				AzPrimeTmp[i].GetMat21()	       
-				+ bTmp[1].Cross(AzPrimeTmp[i].GetMat11()));
+				+ bTmp[NODE2].Cross(AzPrimeTmp[i].GetMat11()));
 		WMB.Add(10, 6*i + 4, 
 				AzPrimeTmp[i].GetMat22()	     
-				+ bTmp[1].Cross(AzPrimeTmp[i].GetMat12()));
+				+ bTmp[NODE2].Cross(AzPrimeTmp[i].GetMat12()));
 	}
 	
 	/* correzione alle equazioni */
