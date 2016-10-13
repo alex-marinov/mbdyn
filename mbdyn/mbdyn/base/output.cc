@@ -289,7 +289,9 @@ OutputHandler::~OutputHandler(void)
 		if (IsOpen(iCnt)) {
 #ifdef USE_NETCDF
 			if (iCnt == NETCDF) {
-				delete m_pBinFile;
+				if (m_pBinFile != 0) {
+					delete m_pBinFile;
+				}
 
 			} else
 #endif /* USE_NETCDF */
