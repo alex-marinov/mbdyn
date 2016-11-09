@@ -2889,7 +2889,7 @@ if test $ol_with_mpi != no ; then
                 if test $have_mpi = no ; then
 		        LIBS="$LIBS $try_mpi_LIBS"
 		        AC_TRY_LINK([
-#include <mpi_cxx_header>
+#include <$mpi_cxx_header>
 			],[
 	int argc = 0;
 	char **argv = 0;
