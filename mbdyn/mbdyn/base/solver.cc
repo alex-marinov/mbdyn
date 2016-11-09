@@ -110,10 +110,17 @@ enum {
 };
 
 volatile sig_atomic_t mbdyn_keep_going = MBDYN_KEEP_GOING;
+#if defined(__FreeBSD__)
+__sighandler_t *mbdyn_sh_term = SIG_DFL;
+__sighandler_t *mbdyn_sh_int = SIG_DFL;
+__sighandler_t *mbdyn_sh_hup = SIG_DFL;
+__sighandler_t *mbdyn_sh_pipe = SIG_DFL;
+#else // !defined(__FreeBSD__)
 __sighandler_t mbdyn_sh_term = SIG_DFL;
 __sighandler_t mbdyn_sh_int = SIG_DFL;
 __sighandler_t mbdyn_sh_hup = SIG_DFL;
 __sighandler_t mbdyn_sh_pipe = SIG_DFL;
+#endif // !defined(__FreeBSD__)
 
 extern "C" void
 mbdyn_really_exit_handler(int signum)
@@ -201,7 +208,12 @@ extern "C" void
 mbdyn_signal_init(int pre)
 {
 #ifdef HAVE_SIGNAL
-	__sighandler_t hdl;
+#if defined(__FreeBSD__)
+	__sighandler_t *hdl;
+#else // ! defined(__FreeBSD__)
+ 	__sighandler_t hdl;
+#endif // ! defined(__FreeBSD__)
+
 	if (pre) {
 		hdl = mbdyn_really_exit_handler;
 
@@ -407,9 +419,9 @@ Solver::Prepare(void)
 		pRTSolver->Setup();
 	}
 
-#ifdef USE_SCHUR
 	int mpi_finalize = 0;
 
+#ifdef USE_SCHUR
 	if (bParallel) {
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);

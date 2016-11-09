@@ -115,9 +115,9 @@ InverseSolver::Prepare(void)
 		pRTSolver->Setup();
 	}
 
-#ifdef USE_SCHUR
 	int mpi_finalize = 0;
 
+#ifdef USE_SCHUR
 	if (bParallel) {
 		DEBUGLCOUT(MYDEBUG_MEM, "creating parallel SchurDataManager"
 				<< std::endl);

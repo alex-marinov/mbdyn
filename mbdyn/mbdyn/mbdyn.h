@@ -50,7 +50,7 @@ typedef long int      Lint;
 typedef double        Real;
 
 /* signal types */
-#ifdef HAVE_SIGNAL
+#if defined(HAVE_SIGNAL) && !defined(__FreeBSD__)
 #ifndef HAVE___SIGHANDLER_T
 #ifndef HAVE_SIGHANDLER_T
 typedef void (*__sighandler_t)(int);
