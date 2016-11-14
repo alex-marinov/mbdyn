@@ -54,6 +54,7 @@ MBDyn 1.X-Devel
 		- fixed modal body assembly (Reinhard Resch)
 		- fixed solver initialization after first step
 		- fixed compilation in FreeBSD (Pedro Giffuni)
+		- fix Gauss integration with > 5 points (Reinhard Resch)
 
 MBDyn 1.7.1
 	Enhancements:
