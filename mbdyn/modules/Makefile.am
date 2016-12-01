@@ -216,6 +216,18 @@ EXTRA_DIST += \
 module-eu2phi/module-eu2phi.cc
 
 EXTRA_DIST += \
+module-FMU/FF.mbdyn \
+module-FMU/fmi_zip_unzip.h \
+module-FMU/Makefile.inc \
+module-FMU/mbdynFMI.cc \
+module-FMU/mbdynFMI_config.cc \
+module-FMU/mbdynFMI_config.h \
+module-FMU/mbdynFMI.h \
+module-FMU/module-FMU.cc \
+module-FMU/module-FMU.h \
+module-FMU/README.m
+
+EXTRA_DIST += \
 module-hid/README \
 module-hid/Makefile.inc \
 module-hid/module-hid.cc \
