@@ -1,3 +1,34 @@
+/* 
+ * MBDyn (C) is a multibody analysis code. 
+ * http://www.mbdyn.org
+ *
+ * Copyright (C) 1996-2016
+ *
+ * Pierangelo Masarati	<masarati@aero.polimi.it>
+ * Paolo Mantegazza	<mantegazza@aero.polimi.it>
+ *
+ * Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+ * via La Masa, 34 - 20156 Milano, Italy
+ * http://www.aero.polimi.it
+ *
+ * Changing this copyright notice is forbidden.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation (version 2 of the License).
+ * 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software
+ * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ */
+/* Copyright Marco Morandini */
+
 #include<cstdlib>
 #include<fstream>
 // #include<iostream>
@@ -262,15 +293,35 @@ bool ParseCommands(std::istream& in, std::ostream& out) {
 
 #include <argp.h>
 const char *argp_program_version = "MbdynPost-0.1";
-const char *argp_program_bug_address = "<morandini@aero.polimi.it>";
+const char *argp_program_bug_address = "<marco.morandini@polimi.it>";
 static char args_doc[] = "post_description input_file_basename";
 static char doc[] = "MbdynPost -- another Mbdyn result parser\n"
-"\nCopyright 2006 Marco Morandini\n"
-"You are allowed to use this code only\n"
-"under explicit permission of the copyright holder.\n"
-"You are not allowed to redistribute, copy or sell\n"
-"this code, or to use it for any activity not previously\n"
-"agreed with the copyright holder.\n"
+"\n"
+" MBDyn (C) is a multibody analysis code. \n"
+" http://www.mbdyn.org\n"
+"\n"
+" Copyright (C) 1996-2016\n"
+"\n"
+" Pierangelo Masarati	<masarati@aero.polimi.it>\n"
+" Paolo Mantegazza	<mantegazza@aero.polimi.it>\n"
+"\n"
+" Changing this copyright notice is forbidden.\n"
+"\n"
+" This program is free software; you can redistribute it and/or modify\n"
+" it under the terms of the GNU General Public License as published by\n"
+" the Free Software Foundation (version 2 of the License).\n"
+"\n"
+" This program is distributed in the hope that it will be useful,\n"
+" but WITHOUT ANY WARRANTY; without even the implied warranty of\n"
+" MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n"
+" GNU General Public License for more details.\n"
+"\n"
+" You should have received a copy of the GNU General Public License\n"
+" along with this program; if not, write to the Free Software\n"
+" Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
+"\n"
+"\nCopyright 2016 Marco Morandini\n"
+"\n"
 "\nIt is assumed that the file input_file_basename.log exists.\n"
 "\nThe post_description argument has the following syntax:\n"
 "\tpost_description: file_output[::file_output]*\n"
