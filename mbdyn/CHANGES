@@ -11,6 +11,7 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- added contrib/Post (Marco Morandini)
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added "raw" variants of buffer drive and output elem
 		- added private data to electric motor (Reinhard Resch)
