@@ -14,6 +14,13 @@ codeaster_srcdir = $(top_srcdir)/contrib/CodeAster
 codeaster_files = \
 $(codeaster_srcdir)/cms/cms.py
 
+Post_srcdir = $(top_srcdir)/contrib/Post
+Post_files = \
+$(Post_srcdir)/Makefile \
+$(Post_srcdir)/Mbdynpost.flex \
+$(Post_srcdir)/Post.C \
+$(Post_srcdir)/Post.hh
+
 mls_dir = $(octavedir)
 mls_srcdir = $(top_srcdir)/contrib/MLS
 mls_files = \
@@ -68,6 +75,7 @@ $(simulink_srcdir)/sfun_mbdyn_start.c \
 EXTRA_DIST = CHANGES \
 $(top_srcdir)/contrib/Patches \
 $(codeaster_files) \
+$(Post_files) \
 $(mls_files) \
 $(scicos_files) \
 $(simulink_files)

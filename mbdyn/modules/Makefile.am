@@ -225,7 +225,7 @@ module-FMU/mbdynFMI_config.h \
 module-FMU/mbdynFMI.h \
 module-FMU/module-FMU.cc \
 module-FMU/module-FMU.h \
-module-FMU/README.m
+module-FMU/README.md
 
 EXTRA_DIST += \
 module-hid/README \
