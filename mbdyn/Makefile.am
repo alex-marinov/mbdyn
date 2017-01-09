@@ -14,6 +14,16 @@ codeaster_srcdir = $(top_srcdir)/contrib/CodeAster
 codeaster_files = \
 $(codeaster_srcdir)/cms/cms.py
 
+Pythonpre_srcdit = $(top_srcdir)/contrib/PythonPreprocessor
+Pythonpre_files = \
+$(Pythonpre_srcdit)/README \
+$(Pythonpre_srcdit)/MBDynPreprocess.py \
+$(Pythonpre_srcdit)/MBDynLib.py \
+$(Pythonpre_srcdit)/examples/CrankPanel_v2.mbd \
+$(Pythonpre_srcdit)/examples/include1.dat \
+$(Pythonpre_srcdit)/examples/include2.dat \
+$(Pythonpre_srcdit)/examples/LateralBuckling2_v2.mbd 
+
 Post_srcdir = $(top_srcdir)/contrib/Post
 Post_files = \
 $(Post_srcdir)/Makefile \
@@ -75,6 +85,7 @@ $(simulink_srcdir)/sfun_mbdyn_start.c \
 EXTRA_DIST = CHANGES \
 $(top_srcdir)/contrib/Patches \
 $(codeaster_files) \
+$(Pythonpre_files) \
 $(Post_files) \
 $(mls_files) \
 $(scicos_files) \
