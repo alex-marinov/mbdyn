@@ -117,8 +117,8 @@ Typically, only a membrane prestress makes sense, namely
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{prestress} ::= \bnt{T11} , \bnt{T12} , 0. , # force/span on face with normal 1
                     \bnt{T21} , \bnt{T22} , 0. , # force/span on face with normal 2
-                    0. , 0. , 0. ,       # moment/span on face with normal 1
-                    0. , 0. , 0.         # moment/span on face with normal 2
+                    0.    , 0.    , 0. , # moment/span on face with normal 1
+                    0.    , 0.    , 0.   # moment/span on face with normal 2
 \end{Verbatim}
 with $\nt{T21} \equiv \nt{T12}$.
 
@@ -136,8 +136,152 @@ If all are provided, they must be consistent.
 The optional parameters \kw{as} and \kw{at} are not documented yet;
 the default should be used.
 
+When the (optional) \kw{matr} (or \kw{sym}) form is used,
+the required data for an orthotropic plate, from Classical Laminate Theory (CLT),
+with the principal axes of orthotropy parallel to the edges of the structure and laminate,
+and with a symmetrical arrangement of the layers, are
+\begin{align}
+        \cubr{\cvvect{
+                N_{x}
+                \\
+                N_{y}
+                \\
+                N_{xy}
+                \\
+                M_{x}
+                \\
+                M_{y}
+                \\
+                M_{xy}
+        }}
+        &=
+        \sqbr{\matr{cccccc}{
+	 CE_{x} & C\nu_{xy}E_y & 0 & 0 & 0 & 0 
+	 \\
+	 C\nu_{xy}E_y & CE_{y} & 0 & 0 & 0 & 0 
+	 \\
+	 0 & 0 & 2G_{xy}h & 0 & 0 & 0 
+	 \\
+	 0 & 0 & 0 & DE_{x} & D\nu_{xy}E_y & 0
+	 \\
+	 0 & 0 & 0 & D\nu_{xy}E_y & DE_{y} & 0 
+	 \\
+	 0 & 0 & 0 & 0 & 0 & 2F 
+	        }}
+        \cubr{\cvvect{
+                \varepsilon_{x}
+                \\
+                \varepsilon_{y}
+                \\
+                \varepsilon_{xy}
+                \\
+                \kappa_{x}
+		\\
+                \kappa_{y}
+		\\
+                \kappa_{xy}
+        }}
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	C &= \frac{h}{1-\nu_{xy}\nu_{yx}}
+	\\
+	D &= \frac{h^3}{12(1-\nu_{xy}\nu_{yx})}
+	\\
+	F &= \frac{G_{xy}h^3}{12} 
+\end{align}
+\end{subequations}
+The data actually required by MBDyn are
+{\tiny
+\begin{align}
+        \cubr{\cvvect{
+                N_{11}
+                \\
+                N_{12}
+                \\
+                N_{13}
+                \\
+                N_{21}
+                \\
+                N_{22}
+                \\
+                N_{23}
+                \\
+                M_{11}
+                \\
+                M_{12}
+                \\
+                M_{13}
+		\\
+                M_{21}
+                \\
+                M_{22}
+                \\
+                M_{23}
+        }}
+        &=
+        \sqbr{\matr{cccccccccccc}{
+  CE_{x} & 0      & 0      & 0 & C\nu_{xy}E_y & 0     & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                                
+  0      & 2G_{xy}h  & 0   & 0 & 0  & 0               & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                             
+  0      & 0      & \alpha_sG_{xy}h      & 0      & 0      & 0      & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                             
+  0      & 0 & 0      & 2G_{xy}h & 0 & 0      & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                             
+  C\nu_{xy}E_y & 0 & 0      & 0 & CE_{y} & 0      & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                             
+  0      & 0      & 0      & 0      & 0      & \alpha_sG_{xy}h      & 0 & 0 & 0 & 0 & 0 & 0
+  \\                                                                                                      
+  0 & 0 & 0 & 0 & 0 & 0      & 2F & 0 & 0    & 0 & 0 & 0
+  \\                                                                                                 
+  0 & 0 & 0 & 0 & 0 & 0      & 0 & DE_x & 0    & -D\nu_{xy}E_y & 0 & 0
+  \\                                                                                                 
+  0 & 0 & 0 & 0 & 0 & 0      & 0      & 0        & 2F\alpha_t    & 0        & 0      & 0
+  \\                                                                                                 
+  0 & 0 & 0 & 0 & 0 & 0      & -D\nu_{xy}E_y & 0 & 0    & DE_y & 0 & 0
+  \\                                                                                                 
+  0 & 0 & 0 & 0 & 0 & 0      & 0 & 0 & 0    & 0 & 2F & 0
+  \\                                                                                                 
+  0 & 0 & 0 & 0 & 0 & 0      & 0      & 0        & 0    & 0        & 0      & 2F\alpha_t
+        }}
+        \cubr{\cvvect{
+                \varepsilon_{11}
+                \\
+                \varepsilon_{12}
+                \\
+                \varepsilon_{13}
+                \\
+                \varepsilon_{21}
+                \\
+                \varepsilon_{22}
+                \\
+                \varepsilon_{23}
+                \\
+                \kappa_{11}
+		\\
+                \kappa_{12}
+		\\
+                \kappa_{13}
+                \\
+                \kappa_{21}
+		\\
+                \kappa_{22}
+		\\
+                \kappa_{23}
+        }}
+\end{align}
+}
 
-\textbf{TODO: improve}
+\noindent
+where $\alpha_s$ is the shear factor, and the torsional factor $\alpha_t$ 
+is the material coefficient typical for a 6-field shell theory, which does not appear in conventional shell theories.
+It should be viewed as an analogue of the shear factor. 
+Values of $\alpha_t$  from 0 to 1 have negligible influence on displacements and on the internal energy of the system.
+See \cite{WITKOWSKI-2009-EAS-ANS} for details.
+
+% \textbf{TODO: improve}
 
 
 
@@ -208,5 +352,51 @@ parameter can be computed from the other two according to the relationship
 	.
 \end{align}
 If all are provided, they must be consistent.
+
+
+When the (optional) \kw{matr} (or \kw{sym}) form is used,
+the required data for an orthotropic membrane are
+
+\begin{align}
+        \cubr{\cvvect{
+                N_{11}
+                \\
+                N_{22}
+                \\
+                N_{12}
+        }}
+        &=
+        \sqbr{\matr{cccccc}{
+	 CE_{1} & C\nu_{21}E_1 & 0  
+	 \\
+	 C\nu_{12}E_2 & CE_{2} & 0  
+	 \\
+	 0 & 0 & 2G_{12}h  
+       }}
+        \cubr{\cvvect{
+                \varepsilon_{11}
+                \\
+                \varepsilon_{22}
+                \\
+                \varepsilon_{12}
+        }}
+\end{align}
+with
+\begin{subequations}
+\begin{align}
+	C &= \frac{h}{1-\nu_{12}\nu_{21}}
+	\\
+	\nu_{12}E_2 &= \nu_{21}E_1 
+\end{align}
+\end{subequations}
+
+\paragraph{Example:}
+\begin{verbatim}
+    membrane4eas: 100, 1, 2, 3, 4,
+        matr, E1*H/(1-NU12*NU21),      E1*H*NU21/(1-NU12*NU21), 0,
+              E2*NU12*H/(1-NU12*NU21), E2*H/(1-NU12*NU21),      0,
+              0,                       0,                       2*G12*H,
+        prestress, PS, PS, 0.;
+\end{verbatim}
 
 

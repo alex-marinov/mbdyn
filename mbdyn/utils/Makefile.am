@@ -82,8 +82,14 @@ endif
 MYLIBS = \
 ../libraries/libmbutil/libmbutil.la \
 ../libraries/libmbwrap/libmbwrap.la \
-@Y12_LIBS@ \
-../libraries/libmbc/libmbc.la \
+@Y12_LIBS@
+
+if BUILD_MBC
+MYLIBS += \
+../libraries/libmbc/libmbc.la
+endif
+
+MYLIBS += \
 ../libraries/libann/libmbann.la \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
@@ -230,6 +236,9 @@ test_strext_socket_f_cxx_LDADD = $(MYLIBS) libstrext_socket_f.la
 trim_LDADD = $(MYLIBS)
 vec2rot_LDADD = $(MYLIBS)
 mbfem_LDADD = $(MYLIBS) @ANN_LIBS@
+
+# fool linking on MinGW/MSYS (WTF?!?)
+# test_strext_edge_LINK = $(CXXLD) -o $@
 
 logproc_LDFLAGS = -static
 

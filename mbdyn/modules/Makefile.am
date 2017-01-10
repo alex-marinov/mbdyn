@@ -194,7 +194,9 @@ module-constlaw-f95/usrsub.f95 \
 module-constlaw-f95/usrsub.h
 
 EXTRA_DIST += \
-module-cont-contact/module-cont-contact.cc
+module-cont-contact/module-cont-contact.cc \
+module-cont-contact/cont_contact_flap \
+module-cont-contact/freefall
 
 EXTRA_DIST += \
 module-cyclocopter/module-cyclocopter.cc \

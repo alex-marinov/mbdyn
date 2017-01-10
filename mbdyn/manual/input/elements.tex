@@ -3367,7 +3367,7 @@ A typical joint entry is
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{elem_type} ::= \kw{joint}
 
-    \bnt{normal_arglist} :: = \bnt{joint_type} , \bnt{joint_arglist}
+    \bnt{normal_arglist} ::= \bnt{joint_type} , \bnt{joint_arglist}
 \end{Verbatim}
 %\end{verbatim}
 The output is written to a file with extension \texttt{.jnt}.
@@ -3738,7 +3738,7 @@ although no check is in place.
         \bnt{node_2_label}
             [ , \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2} ]
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
-        \bnt{(ConstitutiveLaw<1D>)} \bnt{const_law}
+        (\htybkw{ConstitutiveLaw}{1D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 
@@ -3823,7 +3823,7 @@ changes during the analysis.
         \bnt{node_2_label} ,
             \kw{position} , (\hty{Vec3}) \bnt{relative_offset_2}
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ] ,
-        \bnt{(ConstitutiveLaw<3D>)} \bnt{const_law}
+        (\htybkw{ConstitutiveLaw}{3D}) \bnt{const_law}
 \end{Verbatim}
 %\end{verbatim}
 

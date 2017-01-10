@@ -92,9 +92,77 @@ Every time a numeric value is expected, the result of evaluating
 a mathematical expression can be used, including variable declaration 
 and assignment (variable names and values are kept in memory throughout
 the input phase and the simulation) and simple math functions.
-Named variables and non-named constants are strongly typed; four types are
-currently available: \kw{bool}, \kw{integer}, \kw{real}, and \kw{string}.
+Limited math on strings is also supported.
+Named variables and non-named constants are strongly typed.
+Four types are currently available: \kw{bool}, \kw{integer}, \kw{real}, and \kw{string}.
 
+\subsubsection{Bool}
+\label{sec:bool}
+A \hty{bool} can take the values 0 or 1.
+In the symbol table, the constants \kw{TRUE} ( = 1) and \kw{FALSE} ( = 0) are predefined.
+Casting from \hty{integer} and \hty{real} to \hty{bool} is supported; zero casts to (\hty{bool})0
+and non-zero casts to (\hty{bool})1.
+
+\subsubsection{Integer}
+\label{sec:integer}
+An \hty{integer} can take any integer value between the predefined constants
+\kw{INT\_MIN} and \kw{INT\_MAX} (which are machine-dependent; the C built-in type \kw{int} is used).
+Integers are signed.
+Please note that any sequence of digit not terminated by a dot (`\texttt{.}')
+is interpreted as an \hty{integer}.
+Thus, very large numbers, intended as \hty{real}, might overflow.
+Use the exponential notation, instead, or terminate real-valued numbers with a dot.
+
+\paragraph{Examples:}
+\begin{verbatim}
+    0
+    1
+    1234
+    -12
+    1000000000000000 # this likely overflows!
+\end{verbatim}
+
+\subsubsection{Real}
+\label{sec:real}
+A \hty{real} can take any real value between the predefined constants
+\kw{REAL\_MIN} and \kw{REAL\_MAX} (which are machine-dependent; the C built-in type \kw{double} is used).
+Any number that contains a dot (`\texttt{.}') is treated as \hty{real}.
+
+\paragraph{Examples:}
+\begin{verbatim}
+    0.
+    1.
+    1.234
+    -1.2
+    1000000000000000. # same as 1e15
+    1e15 # same as 1000000000000000.
+\end{verbatim}
+
+\subsubsection{String}
+\label{sec:string}
+A \hty{string} is an arbitrary sequence of characters.
+Currently, only basic chars (i.e.\ 0 to 127) are guaranteed to work.
+Strings are enclosed in double quotes (`\texttt{"}').
+
+\paragraph{Examples:}
+\begin{verbatim}
+    "0"
+    "1"
+    "hello"
+\end{verbatim}
+
+\subsubsection{Label}
+\label{sec:label}
+Labels are not actually types.
+They are treated separately because they play an important role in identifying several simulation entities.
+Currently, only unsigned \hty{integer} values can be used as labels.
+Please note that unsigned integers are not treated specially by the mathematical parser,
+but negative integers will be rejected when used as labels.
+In the future, \hty{string} values might be used as labels.
+
+
+\section{Variables}
+\label{sec:variables}
 Variable declaration/definition:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{declaration} ::= [\bnt{declaration_modifier}] [\bnt{type_modifier}] \bnt{type} \bnt{name}
@@ -2015,15 +2083,15 @@ value.
 %\end{verbatim}
 where \nt{angular\_velocity} is $2\pi/T$.
 This drive actually computes a function of the type
-\begin{displaymath}
-	f\plbr{t} = \nt{initial\_value} + \nt{amplitude} \cdot \plbr{
+\begin{align}
+	f\plbr{t} &= \nt{initial\_value} + \nt{amplitude} \cdot \plbr{
 		1 - \llk{cos}\plbr{
 			\nt{angular\_velocity} \cdot \plbr{
 				t - \nt{initial\_time}
 			}
 		}
 	} .
-\end{displaymath}
+\end{align}
 The value of \nt{number\_of\_cycles} determines the behavior of the
 drive. 
 If it is positive, \nt{number\_of\_cycles} oscillations are performed.
@@ -2033,21 +2101,39 @@ tangent.
 Special keywords can be used for \nt{number\_of\_cycles}:
 \begin{itemize}
 	\item \kw{forever}: the oscillation never stops;
-	\item \kw{one}: exactly one cycle is performed;
-	\item \kw{half}: exactly half cycle is performed,
+	\item \kw{one}: exactly one cycle is performed (equivalent to \nt{number\_of\_cycles} = 1);
+	\item \kw{half}: exactly half cycle is performed (equivalent to \nt{number\_of\_cycles} = -1),
 	so the function stops at
-	\begin{displaymath}
-		t = \nt{initial\_time} + \frac{\pi}{\nt{angular\_velocity}} ,
-	\end{displaymath}
-	with a value of
-	\begin{displaymath}
-		f = 2 \cdot \nt{amplitude} + \nt{initial\_value} ,
-	\end{displaymath}
-	starting and ending with continuous derivative.
+	\begin{align}
+		f &= \nt{initial\_value} \nonumber \\
+		& \mbox{} + \lcubr{\matr{ll}{
+			0 & \text{when } t \le \nt{initial\_time}
+			\\ \\
+			\multicolumn{2}{l}{\nt{amplitude} \cdot ( 1 - \cos( \nt{angular\_velocity} \cdot (t - \nt{initial\_time})))}
+			\\
+				& \text{when } \nt{initial\_time} < t < \nt{initial\_time} + \cfrac{\pi}{\nt{angular\_velocity}}
+			\\
+			2 \cdot \nt{amplitude} & \text{when } \nt{initial\_time} + \cfrac{\pi}{\nt{angular\_velocity}} \le t
+		}}
+	\end{align}
+	starting and ending with continuous first derivative.
 	In this case, it may be convenient to indicate the \nt{angular\_velocity}
 	as $\pi/\nt{duration}$, where \nt{duration} is the time
 	required to complete the half-wave.
 \end{itemize}
+Note that this drive caller \underline{does not correspond to} $\cos(t)$. 
+
+\paragraph{Example.}
+\begin{verbatim}
+    # starts at 1.5, duration = T, amplitude = A, a "bump" of height 2*A
+    ..., cosine, 1.5, 2*pi/T, A, one, 0., ...
+
+    # starts at .5, duration = T, amplitude = A, half "bump", remains at 2*A
+    ..., cosine, .5, pi/T, A, half, 0., ...
+
+    # starts at 1.2, frequency = Omega, amplitude = A, lasts forever
+    ..., cosine, 1.2, Omega, A, forever, 0., ...
+\end{verbatim}
 
 \textbf{TODO: add a plot that exemplifies the three cases.}
 
@@ -2749,6 +2835,14 @@ Alternative syntax example:
 \end{Verbatim}
 %\end{verbatim}
 where \nt{angular\_velocity} is $2\pi/T$.
+This drive actually computes
+\begin{align}
+	f(t)
+	&=
+	\nt{initial\_value}
+	+
+	\nt{amplitude} \cdot \sin\plbr{\nt{angular\_velocity} \cdot \plbr{t - \nt{initial\_time}}}
+\end{align}
 The value of \nt{number\_of\_cycles} determines the behavior of the drive. 
 If it is positive, $\nt{number\_of\_cycles}-1/2$ oscillations are performed. 
 If it is negative, the oscillations end after 
@@ -2757,27 +2851,41 @@ tangent.
 Special keywords can be used for \nt{number\_of\_cycles}:
 \begin{itemize}
 	\item \kw{forever}: the oscillation never stops;
-	\item \kw{one}: exactly half period is performed;
-	\item \kw{half}: exactly a quarter of period is performed,
+	\item \kw{one}: exactly half period is performed (equivalent to \nt{number\_of\_cycles} = 1);
+	\item \kw{half}: exactly a quarter of period is performed (equivalent to \nt{number\_of\_cycles} = -1),
 	so the function stops at
 \begin{align}
 	f\plbr{t} &= \nt{initial\_value} \\
 	&+ \lcubr{\matr{ll}{
-		0 & t < \nt{initial\_time} \\
+		0 & \text{when } t < \nt{initial\_time} \\
 		\\
 		\multicolumn{2}{l}{
 		\nt{amplitude} \cdot \sin\plbr{\nt{angular\_velocity} \cdot \plbr{
 			t - \nt{initial\_time}
 		}}
 		} \\
-			& \nt{initial\_time} \le t
+			& \text{when } \nt{initial\_time} \le t
 				\le \nt{initial\_time} + \cfrac{\pi}{2 \cdot \nt{angular\_velocity}} \\
 		\\
 		\nt{amplitude}
-			& \nt{initial\_time} + \cfrac{\pi}{2 \cdot \nt{angular\_velocity}} \le t
+			& \text{when } \nt{initial\_time} + \cfrac{\pi}{2 \cdot \nt{angular\_velocity}} \le t
 	}} \nonumber .
 \end{align}
 \end{itemize}
+Note that this drive caller \underline{does not correspond to} $\sin(t)$. 
+
+\paragraph{Example.}
+\begin{verbatim}
+    # starts at 1.5, duration = T, amplitude = A, a "bump" of height A
+    ..., sine, 1.5, pi/T, A, one, 0., ...
+
+    # starts at .5, duration = T, amplitude = A, half "bump", remains at A
+    ..., sine, .5, pi/(2*T), A, half, 0., ...
+
+    # starts at 1.2, frequency = Omega, amplitude = A, lasts forever
+    ..., sine, 1.2, Omega, A, forever, 0., ...
+\end{verbatim}
+
 
 \subsection{Step drive}
 %\begin{verbatim}
@@ -2790,8 +2898,8 @@ Special keywords can be used for \nt{number\_of\_cycles}:
 %\end{verbatim}    
 The function
 \begin{align}
-	f\plbr{t} &= \nt{initial\_value} \nonumber \\
-	&+ \lcubr{\matr{ll}{
+	f\plbr{t} &= \nt{initial\_value} % \nonumber \\ &
+	+ \lcubr{\matr{ll}{
 		0 
 			& t < \nt{initial\_time} \\
 		\\
@@ -2824,10 +2932,10 @@ e.g.:
     ..., string, "e^(-Var)*cos(2.*pi*Time)" ...
 \end{verbatim}
 
-\emph{Note: currently, the expression is parsed each time it is evaluated;
+\emph{Note: originally, the expression was parsed each time it is evaluated;
 this is not very efficient.
-An experimental version builds a tree-like form of the
-parsed expression, where non-symbolic branches are evaluated once for all,
+Starting from release 1.7.0, a tree-like form of the
+parsed expression is built, where non-symbolic branches are evaluated once for all,
 to speed up evaluation. That version can be compiled using the additional compilation flags:} \verb;./configure CPPFLAGS="-DUSE_EE=1" CXX="g++ -std=c++11";
 
 \emph{Note: all whitespace in the string is eaten up during input.}
