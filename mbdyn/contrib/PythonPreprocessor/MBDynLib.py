@@ -58,7 +58,7 @@ else:
 declared_ConstMBVars = {}
 declared_MBVars = {}
 
-MBDynLib_simplfy = True
+MBDynLib_simplify = True
 
 def get_value(x):
     if isinstance(x, expression):
@@ -67,7 +67,7 @@ def get_value(x):
         return x
 
 def simplify_null_element_multiplication(l, r):
-    if MBDynLib_simplfy:
+    if MBDynLib_simplify:
         if l == 0 or r == 0:
             return True
         else:
@@ -79,7 +79,7 @@ def simplify_null_element_division(l, r):
     assert get_value(r) != 0, (
         'Error, division by zero: \'' + srt(l) + ' / ' + str(r) + 
         '\'\n')
-    if MBDynLib_simplfy:
+    if MBDynLib_simplify:
         if l == 0:
             return True
         else:
@@ -88,7 +88,7 @@ def simplify_null_element_division(l, r):
         return False
 
 def simplify_neutral_element(l, r, op, ne):
-    if MBDynLib_simplfy:
+    if MBDynLib_simplify:
         #if get_value(l) == ne:
         if l == ne:
             return r
