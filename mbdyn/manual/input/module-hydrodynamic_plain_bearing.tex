@@ -38,24 +38,24 @@ This module implements a hydrodynamic plain bearing according to Hans J\"urgen B
     \bnt{name} ::= \kw{hydrodynamic_plain_bearing_with_offset}
 
     \bnt{arglist} ::=
-        \kw{shaft}, (\hty{label}) \bnt{shaft\_node} ,
+        \kw{shaft}, (\bnt{label}) \bnt{shaft\_node} ,
         [ \kw{offset} , (\hty{Vec3}) \bnt{o1} , ]
-        \kw{bearing} , (\hty{label}) \bnt{bearing\_node} ,
+        \kw{bearing} , (\bnt{label}) \bnt{bearing\_node} ,
         [ \kw{offset} , (\hty{Vec3}) \bnt{o2} , ]
-        \kw{bearing width} , (\hty{real}) \bnt{b} ,
-        \{ , \kw{shaft diameter} , (\hty{real}) \bnt{d} | \kw{bearing_diameter} , (\hty{real}) \bnt{D} \} ,
-        \kw{relative clearance} , (\hty{real}) \bnt{Psi} ,
-        \kw{oil viscosity} , (\hty{real}) \bnt{eta} ,
+        \kw{bearing width} , (\ty{real}) \bnt{b} ,
+        \{ , \kw{shaft diameter} , (\ty{real}) \bnt{d} | \kw{bearing_diameter} , (\ty{real}) \bnt{D} \} ,
+        \kw{relative clearance} , (\ty{real}) \bnt{Psi} ,
+        \kw{oil viscosity} , (\ty{real}) \bnt{eta} ,
         \kw{initial assembly factor} , (\hty{DriveCaller}) \bnt{assembly_factor}
-        [ , \kw{number of gauss points} , (\hty{integer}) \bnt{num_gauss_points} ]
-        [ , \kw{output points} , (\hty{integer}) \bnt{num_output_points} 
-            [ , \{ \kw{gauss point} , (\hty{integer}) \bnt{gauss_index_1 } |
-                \kw{custom} , \kw{r} , (\hty{real}) \bnt{r_1} , 
-                \kw{alpha} , (\hty{real}) \bnt{alpha_1} \}
+        [ , \kw{number of gauss points} , (\ty{integer}) \bnt{num_gauss_points} ]
+        [ , \kw{output points} , (\ty{integer}) \bnt{num_output_points} 
+            [ , \{ \kw{gauss point} , (\ty{integer}) \bnt{gauss_index_1 } |
+                \kw{custom} , \kw{r} , (\ty{real}) \bnt{r_1} , 
+                \kw{alpha} , (\ty{real}) \bnt{alpha_1} \}
             ]
         ]
-        [ , \kw{extend shaft to bearing center} , \{ \kw{yes} | \kw{no} | (\hty{bool}) \bnt{extend\_axis\_of\_shaft} \} ]
-        [ , \kw{epsilon max} , (\hty{real}) \bnt{epsilon\_max} ]
+        [ , \kw{extend shaft to bearing center} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{extend\_axis\_of\_shaft} \} ]
+        [ , \kw{epsilon max} , (\ty{real}) \bnt{epsilon\_max} ]
 \end{Verbatim}
 We assume that the axis of rotation is always axis three in the reference frame of the node. Only small misalignments of bearing and shaft are allowed.
 \begin{equation}
