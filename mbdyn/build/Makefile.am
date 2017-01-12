@@ -8,6 +8,7 @@ version \
 top.mk \
 bot.mk \
 mbdyn.m4 \
+ax_pthread.m4 \
 m4_ax_pkg_swig.m4 \
 m4_ax_python_devel.m4 \
 m4_ax_swig_enable_cxx.m4 \
