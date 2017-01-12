@@ -16,14 +16,14 @@
 %
 % Based on lapack's dgeequ routine.
 %
-%Copyright 2008-2015 Pierangelo Masarati <masarati@aero.polimi.it>
+%Copyright 2008-2017 Pierangelo Masarati <masarati@aero.polimi.it>
 
 % $Header$
 %
 % MBDyn (C) is a multibody analysis code. 
 % http://www.mbdyn.org
 % 
-% Copyright (C) 1996-2015
+% Copyright (C) 1996-2017
 % 
 % Pierangelo Masarati	<masarati@aero.polimi.it>
 % Paolo Mantegazza	<mantegazza@aero.polimi.it>
