@@ -50,7 +50,7 @@
 
 
 from __future__ import print_function, division
-import subprocess
+#import subprocess
 import re
 import sys
 if sys.version_info[0] < 3:
