@@ -8,6 +8,7 @@ noinst_LTLIBRARIES = libmbc_static.la
 ### libmbc_static.la is linked by mbdyn; libmbc.la is installed
 ### NOTE: all mbdyn needs are the "sock" stuff
 libmbc_static_la_SOURCES = \
+mbc_dummy.c \
 sock.c \
 sock.h
 
