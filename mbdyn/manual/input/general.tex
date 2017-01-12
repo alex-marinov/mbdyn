@@ -3071,16 +3071,11 @@ on the functions of the \kw{model} namespace.
 
 
 \subsection{Template Drive}\label{sec:TplDriveCaller}
-A particular \hty{DriveCaller} is the template drive caller,
-indicated as \htybent{TplDriveCaller}{Entity}.
-It basically consists in a drive with dimensionality other than scalar.
-%Typically, it is made of a constant entity, with the dimensionality
-%of \nt{type}, that multiplies a conventional 
-%\hyperref{\hty{DriveCaller}}{\hty{DriveCaller} (see Section~}{)}{sec:DriveCaller}
-%to give a drive entity of dimensionality different from that 
-%of a simple scalar drive.
+The template drive caller,
+indicated as \htybent{TplDriveCaller}{Entity}, is a higher-dimensional \hty{DriveCaller},
+whose dimensions are those of \bnt{Entity}.
 The family of the \htybent{TplDriveCaller}{Entity} object is very large.
-The type of the \htybent{TplDriveCaller}{Entity} is declared as
+A \htybent{TplDriveCaller}{Entity} is declared as
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::=
@@ -3092,7 +3087,7 @@ where \nt{arglist}, if any, is a comma-separated list of arguments
 that depends on \nt{tpl\_drive\_caller\_type}.
 
 If the alternative format is used, the keyword \kw{reference} 
-must be followed by the label of an already defined, valid drive caller
+must be followed by the label of an already defined, valid template drive caller
 (See Section~\ref{sec:TPL-DRIVE-CALLER}).
 
 There are four types of template drive callers:
@@ -3105,13 +3100,19 @@ a shortcut for nothing;
 \item the \kw{single} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{tpl_drive_caller} ::= \kw{single} ,
-        \bnt{entity} , (\hty{DriveCaller}) \bnt{drive_caller}
+        (\ty{<Entity>}) \bnt{entity} , (\hty{DriveCaller}) \bnt{drive_caller}
 \end{Verbatim}
-corresponding to $\nt{entity}\times\nt{drive\_caller}$,
+corresponding to $\nt{entity} \cdot \nt{drive\_caller}$,
 where \nt{entity} is a constant of the expected type (scalar, $3 \times 1$ 
-vector, $6 \times 1$ vector are the types currently defined, but, since 
+vector, $6 \times 1$ vector, $3 \times 3$ matrix, $6 \time 6$ matrix
+are the types currently defined, but since 
 a C++ template has been used, the implementation of new ones 
 is straightforward).
+
+\begin{framed}
+The keyword \kw{single} can be omitted; however, this practice is not recommended,
+since in some contexts the keyword is required to disambiguate the syntax.
+\end{framed}
 
 In some contexts (e.g.\ when specifying the direction of a force),
 in which the \nt{entity} is a \hty{Vec3}, it can be prefixed
@@ -3124,7 +3125,7 @@ of a reference frame in which \nt{entity} is expressed; for example,
 \end{verbatim}
 
 \paragraph{Example.} \
-The following example implements a template drive having a constant unitary value in the X direction.
+The following example implements a \hty{Vec3} template drive having a constant unitary value in the X direction.
 \begin{verbatim}
     single,
         1., 0., 0.,
@@ -3139,6 +3140,8 @@ The following example implements a template drive having a constant unitary valu
         # as many \nt{component_drive_caller} as the dimensionality of \nt{entity}
 
     \bnt{type} ::= \{ \kw{sym} | \kw{diag} \}
+
+    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\hty{DriveCaller}) \bnt{drive_caller} \}
 \end{Verbatim}
 where each element consists of the corresponding drive caller;
 the optional \nt{type} is used with matrix-type entities to specify
@@ -3148,10 +3151,17 @@ special matrix layouts:
 \item \kw{diag} indicates that only the diagonal components are expected;
 \end{itemize}
 
+\paragraph{Example.} \
+The following example implements a \hty{Vec3} template drive having constant value in the X direction, and a \kw{sine} drive in the Z direction.
+\begin{verbatim}
+    component,
+        const, 1.,                          # X: 1
+        inactive,                           # Y: 0
+        sine, 0., 2*pi, 1., forever, 0.;    # Z: sine
+\end{verbatim}
+
 \item the \kw{array} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{component_drive_caller} ::= \{ \kw{inactive} | (\hty{DriveCaller}) \bnt{drive_caller} \}
-
     \bnt{tpl_drive_caller} ::= \kw{array} ,
         \bnt{num_template_drive_callers} ,
             \bnt{tpl_drive_caller}
@@ -3173,6 +3183,7 @@ If \nt{num\_template\_drive\_callers} is exactly 1, only a single
 template drive caller is actually constructed, thus avoiding the overhead 
 related to handling the template drive caller array.    
 
+\subsubsection{Hints}
 The template drive can be re-parsed as a consequence of a
 \hyperref{\kw{hint}}{\kw{hint} (see Section~}{)}{sec:GENERAL:DRIVE:HINT}.
 In this case, the syntax of the \kw{hint} is:
@@ -3184,7 +3195,7 @@ In this case, the syntax of the \kw{hint} is:
 where \nt{n} is the dimension of \nt{entity}.
 For example, a \htybty{TplDriveCaller}{Vec3} drive hint is:
 \begin{verbatim}
-    "drive3{ 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
+    "drive3{ single, 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}
 which corresponds to a vector \texttt{1., 0., 0.} that multiplies
 a \kw{sine} drive caller with the parameters illustrated above.
