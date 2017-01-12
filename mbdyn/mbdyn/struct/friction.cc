@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 2003-2015
+ * Copyright (C) 2003-2017
  *
  * Marco Morandini	<morandini@aero.polimi.it>
  *

@@ -2,7 +2,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2016
+ * Copyright (C) 1996-2017
  *
  * Pierangelo Masarati	<masarati@aero.polimi.it>
  * Paolo Mantegazza	<mantegazza@aero.polimi.it>
@@ -300,7 +300,7 @@ static char doc[] = "MbdynPost -- another Mbdyn result parser\n"
 " MBDyn (C) is a multibody analysis code. \n"
 " http://www.mbdyn.org\n"
 "\n"
-" Copyright (C) 1996-2016\n"
+" Copyright (C) 1996-2017\n"
 "\n"
 " Pierangelo Masarati	<masarati@aero.polimi.it>\n"
 " Paolo Mantegazza	<mantegazza@aero.polimi.it>\n"
@@ -320,7 +320,7 @@ static char doc[] = "MbdynPost -- another Mbdyn result parser\n"
 " along with this program; if not, write to the Free Software\n"
 " Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA\n"
 "\n"
-"\nCopyright 2016 Marco Morandini\n"
+"\nCopyright 2017 Marco Morandini\n"
 "\n"
 "\nIt is assumed that the file input_file_basename.log exists.\n"
 "\nThe post_description argument has the following syntax:\n"

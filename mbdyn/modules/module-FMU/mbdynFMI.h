@@ -1,6 +1,6 @@
 /*
         AUTHOR: Devyesh Tandon <devyeshtandon+mbdyn@gmail.com>
-        Copyright (C) 2016(-2016) all rights reserved.
+        Copyright (C) 2016(-2017) all rights reserved.
         The copyright of this patch is transferred
         to Pierangelo Masarati and Paolo Mantegazza
         for use in the software MBDyn as described 

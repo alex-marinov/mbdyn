@@ -3,7 +3,7 @@
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
  *
- * Copyright (C) 1996-2015
+ * Copyright (C) 1996-2017
  *
  * Pierangelo Masarati  <masarati@aero.polimi.it>
  * Paolo Mantegazza     <mantegazza@aero.polimi.it>
@@ -40,7 +40,7 @@
  */
 
 /*
- * Copyright 1998-2015 The OpenLDAP Foundation, All Rights Reserved.
+ * Copyright 1998-2017 The OpenLDAP Foundation, All Rights Reserved.
  * COPYING RESTRICTIONS APPLY, see COPYRIGHT file
  */
 /*
