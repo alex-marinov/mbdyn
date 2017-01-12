@@ -3131,6 +3131,12 @@ The following example implements a \hty{Vec3} template drive having a constant u
         1., 0., 0.,
         const, 1.;
 \end{verbatim}
+The following example implements a \hty{Mat3x3} template drive that is \kw{sine}-valued along the diagonal.
+\begin{verbatim}
+    single,
+        eye,                                # identity matrix
+        sine, 0., 2*pi, 1., forever, 0.;    # sine drive caller
+\end{verbatim}
 
 \item the \kw{component} template drive caller:
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -3193,11 +3199,19 @@ In this case, the syntax of the \kw{hint} is:
 \end{Verbatim}
 %\end{verbatim}
 where \nt{n} is the dimension of \nt{entity}.
+
 For example, a \htybty{TplDriveCaller}{Vec3} drive hint is:
 \begin{verbatim}
-    "drive3{ single, 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
+    "drive3{single, 1., 0., 0., sine, 0., 2*pi, 1., forever, 0.}"
 \end{verbatim}
-which corresponds to a vector \texttt{1., 0., 0.} that multiplies
+which corresponds to a $3 \times 1$ vector \texttt{1., 0., 0.} that multiplies
+a \kw{sine} drive caller with the parameters illustrated above.
+
+A \htybty{TplDriveCaller}{Mat3x3} drive hint is:
+\begin{verbatim}
+    "drive3x3{single, eye, sine, 0., 2*pi, 1., forever, 0.}"
+\end{verbatim}
+which corresponds to a $3 \times 3$ identity matrix (the keyword \kw{eye}) that multiplies
 a \kw{sine} drive caller with the parameters illustrated above.
 
 
