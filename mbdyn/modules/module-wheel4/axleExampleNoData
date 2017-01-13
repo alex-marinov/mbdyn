@@ -48,7 +48,7 @@ begin: initial value;
 	initial time: 0.0;
 	final time: endtime;
 	time step: timestep;#0.001/50.; 
-	strategy: change, string, "dtMax"; ## private data
+	strategy: change, postponed, 99; ## defined later
 	max time step : maxstep;## this allows to cap overall timestep even if the wheel asks for a higher one
 	min time step : minstep; ## this caps the lowest timestep value ##ATTENTION: initial timestep must be between those two bounds
 	max iterations: 100;
@@ -454,7 +454,7 @@ user defined: EID, rigid ring tire,
 
 
 user defined: 204, timestep; 
-set: [element,dtMax,204,loadable,string="1"];
+drive caller: 99, element, 204, loadable, string, "1", direct;
 
 
 gravity: 
