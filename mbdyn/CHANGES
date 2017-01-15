@@ -12,6 +12,10 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 MBDyn 1.7.2
 	Enhancements:
 		- added contrib/Post (Marco Morandini)
+		- added python input file pre-processing (Marco Morandini)
+		- added support for Functional Mockup Interface (FMI) model
+		  exchange and co-simulation standard (with the contribution
+		  of Devyesh Tandon during Google Summer of Code 2016)
 		- added "raw" variants of buffer drive and output elem
 		- added private data to electric motor (Reinhard Resch)
 		- added initial current to electric motor (Reinhard Resch)
