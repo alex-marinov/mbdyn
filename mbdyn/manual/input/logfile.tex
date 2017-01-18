@@ -138,6 +138,20 @@ The three-node \kw{beam}.
 The beam \kw{label} is followed by the label and the offset of each node.
 All data are on one line, without continuation.
 
+\subsection{body}
+The \kw{body} element
+%\begin{verbatim}
+\begin{Verbatim}[commmandchars=\\\{\}]
+  \kw{body}: \bnt{label}
+  	\bnt{node_label} ({hty{real}) \bnt{mass} 
+	(\hty{Vec3}) \bnt{x_cg} 
+  	(\hty{Mat3x3}) \bnt{J}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{xcg} vector indicates the location of the center of mass with respect to
+the reference frame of the respective node. The \nt{J} matrix is the inertia
+matrix.
+
 \subsection{brake}
 The \kw{brake} joint
 %\begin{verbatim}
