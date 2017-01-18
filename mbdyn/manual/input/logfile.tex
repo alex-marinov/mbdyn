@@ -139,16 +139,17 @@ The beam \kw{label} is followed by the label and the offset of each node.
 All data are on one line, without continuation.
 
 \subsection{body}
-The \kw{body} element
+The \kw{body} element.
 %\begin{verbatim}
-\begin{Verbatim}[commmandchars=\\\{\}]
-  \kw{body}: \bnt{label}
-  	\bnt{node_label} ({hty{real}) \bnt{mass} 
-	(\hty{Vec3}) \bnt{x_cg} 
-  	(\hty{Mat3x3}) \bnt{J}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{body}: \bnt{label}
+        \bnt{node_label} 
+	(\ty{real}) \bnt{mass}
+        (\hty{Vec3}) \bnt{x_cg}
+        (\hty{Mat3x3}) \bnt{J}
 \end{Verbatim}
 %\end{verbatim}
-The \nt{xcg} vector indicates the location of the center of mass with respect to
+The \nt{x\_cg} vector indicates the location of the center of mass with respect to
 the reference frame of the respective node. The \nt{J} matrix is the inertia
 matrix.
 
@@ -340,6 +341,7 @@ All data are on one line, without continuation.
 Both \kw{rod} and \kw{rod with offset} joints are logged
 in this form.
 
+\begin{comment}
 \subsection{rod bezier}
 The \kw{rod bezier} joint
 %\begin{verbatim}
@@ -353,7 +355,7 @@ The \nt{label} of the joint, followed by the label of node 1,
 followed by the offsets 1 and 2 (in the reference frame of the
 node) and the same for node 2 and offsets 3 and 4.
 All data are on one line, without continuation.
-
+\end{comment}
 \subsection{spherical hinge}
 The \kw{spherical hinge} joint
 %\begin{verbatim}
