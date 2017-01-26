@@ -61,11 +61,15 @@ public:
 		return m_offset;
 	};
 
+	// "cast" in the sense that whatever type comes from the stream,
+	// it is cast into a doublereal
 	doublereal cast(const void *pFrom) const {
 		const char *p = &((const char *)pFrom)[m_offset];
 		return doublereal(*((T *)p));
 	};
 
+	// "uncast" in the sense that a doublereal is transformed into
+	// the correct type for the stream
 	void uncast(void *pTo, doublereal d) const {
 		char *p = &((char *)pTo)[m_offset];
 		((T *)p)[0] = T(d);
