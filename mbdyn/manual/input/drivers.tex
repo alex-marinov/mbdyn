@@ -297,6 +297,24 @@ or model debugging purposes.}
             [ , \kw{shift} , \bnt{shift} ] , ]
         \bnt{columns_number}
             [ , \kw{initial values} , \bnt{value \#1} , ... ]
+            [ , \kw{modifier} , \bnt{content_modifier} ]
+
+    \bnt{content_modifier} ::=
+        \kw{copy}
+        | \kw{copy cast} ,
+            \{ \kw{all} , \bnt{one_cast} | \bnt{one_cast} [...] \}
+            [ , \kw{size} , (\ty{int})\bnt{buffer_size} ]
+
+    \bnt{one_cast} ::=
+        \kw{int8_t}
+        | \kw{uint8_t}
+        | \kw{int16_t}
+        | \kw{uint16_t}
+        | \kw{int32_t}
+        | \kw{uint32_t}
+        | \kw{float}     # assuming float is 4 bytes
+        | \kw{double}    # assuming double is 8 bytes
+        | \kw{skip} , (\ty{int})\bnt{num_bytes}
 \end{Verbatim}
 %\end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
@@ -366,6 +384,8 @@ allows to set the initial values of each channel;
 this is useful for example if the initial value of a channel
 is needed during initial assembly, before the first set of values
 is read from the peer.
+
+\item the keyword \kw{modifier}... TODO
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 

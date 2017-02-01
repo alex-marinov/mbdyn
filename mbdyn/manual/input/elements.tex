@@ -6371,6 +6371,7 @@ in a subset of the kinematics of a set of structural nodes:
         \bnt{channel_number} ,
             \bnt{value}
             [ , ... ]
+        [ , \kw{modifier} , \bnt{content_modifier} ]
 
     \bnt{value} ::=
         \{ [ \kw{nodedof} , ] (\hty{NodeDof}) \bnt{output_dof}
@@ -6399,6 +6400,10 @@ they must be valid scalar dof entries, which can be connected
 in many ways to nodal degrees of freedom;
 in case of \kw{drive}, they can be arbitrary functions,
 including node or element private data;
+
+\item the keyword \kw{modifier} defines how the content of the stream
+is modified before being sent;
+see Section~\ref{sec:Stream} for details.
 
 \item the keyword \kw{motion} indicates that a subset of the kinematic
 parameters of a set of structural nodes is output by the element.
