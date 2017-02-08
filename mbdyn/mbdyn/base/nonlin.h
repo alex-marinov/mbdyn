@@ -269,7 +269,7 @@ protected:
 		CPU_RESIDUAL,
 		CPU_JACOBIAN,
 		CPU_LINEAR_SOLVER,
-		CPU_LAST_TYPE = CPU_LINEAR_SOLVER
+		CPU_LAST_TYPE
 	};
 
 	doublereal dGetCondMax()const { return dMaxCond; }
