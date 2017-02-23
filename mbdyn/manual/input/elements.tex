@@ -3354,6 +3354,7 @@ the node.
 
 
 \section{Joint Element}
+\label{sec:EL:JOINT}
 Joint elements connect structural nodes.
 Many different joints are available. 
 Joints may have internal degrees of freedom (the reaction forces)
@@ -3614,6 +3615,13 @@ The relative position is constrained as well.
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
+The joint is shown in Figure~\ref{fig:el:joint:CARDANO}.
+\begin{figure}
+\centering
+\includegraphics[width=.5\textwidth]{cardano}
+\caption{Cardano hinge.}
+\label{fig:el:joint:CARDANO}
+\end{figure}
 Note: this joint does not represent a constant velocity joint,
 so, when a steady deflection between the two nodes is present,
 a constant velocity about axis 1 of one node results in an oscillating
@@ -4509,6 +4517,13 @@ of node \nt{node\_2\_label}, slides along a line that passes through a point
 that is rigidly offset by \nt{relative\_line\_position}
 from the position of \nt{node\_1\_label}, and is directed as direction 3 
 of \nt{relative orientation}.
+The joint is shown in Figure~\ref{fig:el:joint:INLINE}.
+\begin{figure}
+\centering
+\includegraphics[width=.5\textwidth]{inline}
+\caption{Inline ioint.}
+\label{fig:el:joint:INLINE}
+\end{figure}
 
 
 
@@ -5079,6 +5094,13 @@ by the two \kw{orientation} statements.
             \bnt{shape_function} ]
 \end{Verbatim}
 %\end{verbatim}
+The joint is shown in Figure~\ref{fig:el:joint:REV}.
+\begin{figure}
+\centering
+\includegraphics[width=.7\textwidth]{revHinge}
+\caption{Revolute hinge.}
+\label{fig:el:joint:REV}
+\end{figure}
 
 Note: this element can be thought of as the combination of a 
 \hyperref{\kw{spherical hinge}}{\kw{spherical hinge} (see Section~}{)}{sec:EL:STRUCT:JOINT:SPHERICAL_HINGE},
@@ -5511,6 +5533,13 @@ the relative orientation is not constrained.
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
+The joint is shown in Figure~\ref{fig:el:joint:SPHERE}.
+\begin{figure}
+\centering
+\includegraphics[width=.7\textwidth]{spherHinge}
+\caption{Spherical hinge.}
+\label{fig:el:joint:SPHERE}
+\end{figure}
 Note: the orientation matrix, set by means of the \kw{orientation} keyword,
 is used for output purposes only. 
 A default identity matrix is assumed.

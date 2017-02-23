@@ -1561,7 +1561,7 @@ So, depending on the caller, the entry can be in the following forms:
 	the data are in \nt{reference\_label} reference frame. 
 	This reference frame must be already defined. 
 \end{enumerate}
-In some cases, significantly in case of joints that connect two nodes
+In some cases, significantly in case of joints (see Section~\ref{sec:EL:JOINT}) that connect two nodes
 $a$ and $b$, special reference types are allowed
 when reading specific entities related to the second node.
 These reference types compute the value of the entity with respect
@@ -1647,8 +1647,8 @@ Notes:
     orientation matrix \kw{eye}, velocity $ \cubr{0, 0, 0} $ and angular
     velocity $ \cubr{0, 0, 0} $.
     \item if the caller is not related to a node, the reference type
-    \kw{node} should not be defined. 
-    In this case it is considered equivalent to \kw{local}.
+    \kw{node} is not defined. 
+    % In this case it is considered equivalent to \kw{local}.
     \item when processing a velocity or an angular velocity, the resulting
     value always accounts for the velocity and angular velocity of the frame
     the entry is referred to. 
@@ -1667,8 +1667,8 @@ Notes:
     \end{eqnarray*}
     This, for instance, eases the input of all the parts of a complex system
     that is moving as a rigid body, by defining a reference frame with the
-    proper initial velocities, and then referring all the entities, e.g.\ the 
-    nodes, to that frame, with null local velocity.
+    proper initial linear and angular velocity, and then referring all the entities, e.g.\ the 
+    nodes, to that frame, with null local linear and angular velocity.
 \end{itemize}  
 {\em
     Recalling the declaration and the definition of reference frames,
@@ -1682,6 +1682,7 @@ Notes:
         null;
     \end{verbatim}
     which represents a redefinition of the global system.
+
     A more verbose, and self-explanatory definition would be:
     \begin{verbatim}
     reference: 1000,
@@ -1690,18 +1691,19 @@ Notes:
         reference, global, null,
         reference, global, null;			 
     \end{verbatim}
-    the reference frame one is referring to must be repeated for all the entries
+    The reference frame one is referring to must be repeated for all the entries
     since they must be allowed to refer to whatever frame is preferred 
     by the user.
+
     A fancier definition would be:
     \begin{verbatim}
     reference: Rotating_structure, 
         reference, Fixed_structure, null,
         reference, Spindle_1,
-            1, 0.,0.,1., 
-            3, 0.,1.,0.,
+            1, 0., 0., 1., 
+            3, 0., 1., 0.,
         reference, Fixed_structure, null,
-        reference, Spindle_1, 0.,0.,Omega_1;
+        reference, Spindle_1, 0., 0., Omega_1;
     \end{verbatim}
 }
 
