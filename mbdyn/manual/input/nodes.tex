@@ -121,19 +121,19 @@ See Section~\ref{sec:EL:STRUCT:JOINT:MODAL} for further details.
 
 \subsection{Syntax}
 \label{sec:NODE:STRUCTURAL:SYNTAX}
-The syntax of 6 degrees of freedom rigid-body motion structural nodes is
+The syntax of the 6 degrees of freedom rigid-body motion structural node is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static} | \kw{dynamic} | \kw{modal} \} ,
-        (\hty{Vec3})              \bnt{absolute_position} ,
-        (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
+        [ \kw{position} , ]         (\hty{Vec3})              \bnt{absolute_position} ,
+        [ \kw{orientation} , ]      (\hty{OrientationMatrix}) \bnt{absolute_orientation_matrix} ,
             [ \kw{orientation description} , \bnt{orientation_description} , ]
-        (\hty{Vec3})              \bnt{absolute_velocity} ,
-        (\hty{Vec3})              \bnt{absolute_angular_velocity}
+        [ \kw{velocity} , ]         (\hty{Vec3})              \bnt{absolute_velocity} ,
+        [ \kw{angular velocity} , ] (\hty{Vec3})              \bnt{absolute_angular_velocity}
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness}
-          , (\ty{YesNo})  \bnt{omega_rotates?} ]
+          , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{omega_rotates?} \} ]
 
     \bnt{orientation_description} ::=
         \{ \kw{euler123} | \kw{euler313} | \kw{euler321}
@@ -141,12 +141,12 @@ The syntax of 6 degrees of freedom rigid-body motion structural nodes is
 \end{Verbatim}
 %\end{verbatim}
 
-The syntax of 3 degrees of freedom point mass motion structural nodes is
+The syntax of the 3 degrees of freedom point mass motion structural node is
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{additional_args} ::= , \{ \kw{static displacement} | \kw{dynamic displacement} \} ,
-        (\hty{Vec3})              \bnt{absolute_position} ,
-        (\hty{Vec3})              \bnt{absolute_velocity} ,
+        [ \kw{position} , ] (\hty{Vec3}) \bnt{absolute_position} ,
+        [ \kw{velocity} , ] (\hty{Vec3}) \bnt{absolute_velocity} ,
         [ , \kw{assembly}
           , (\ty{real}) \bnt{position_initial_stiffness}
           , (\ty{real}) \bnt{velocity_initial_stiffness} ]
@@ -171,7 +171,7 @@ the optional output keyword
 \kw{accelerations} after the standard node output parameters:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{extra_arglist} ::= \kw{accelerations} , \{ \kw{yes} | \kw{no} | \bnt{value} \}
+    \bnt{extra_arglist} ::= \kw{accelerations} , \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{value} \}
 \end{Verbatim}
 %\end{verbatim}
 to enable/disable the output of the linear and angular accelerations
