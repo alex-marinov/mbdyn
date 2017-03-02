@@ -6311,6 +6311,7 @@ The syntax is:
         [ \{ \kw{local} , " \bnt{socket_name} " , |
             [ \kw{port} , \bnt{port_number} , ]
             [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \kw{socket type} , \{ \kw{tcp} | \kw{udp} \} , ]
         [ \{ [ \kw{no} ] \kw{signal}
             | [ \kw{non} ] \kw{blocking}
             | [ \kw{no} ] \kw{send first}
@@ -6350,6 +6351,8 @@ If no \nt{host\_name} is given, \kw{localhost} will be used;
 the mailbox resides; note that if this field is given, \kw{create} must
 be set to \kw{no}.
 The simulation will not start until the socket is created on the remote host;
+
+\item \kw{socket type} defaults to \kw{tcp};
 
 \item the flag \kw{no signal} requests that no \texttt{SIGPIPE} be raised
 when sending through a socket when the other end is broken

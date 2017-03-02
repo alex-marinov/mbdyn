@@ -1253,6 +1253,7 @@ EndOfUse:
 #ifdef USE_SOCKET
 			if (HP.IsKeyWord("forever")) {
 				SocketUsersTimeout = 0;
+
 			} else {
 				int timeout = HP.GetInt();
 				if (timeout <= 0) {

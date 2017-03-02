@@ -287,6 +287,7 @@ or model debugging purposes.}
         \kw{create} , \{ \kw{yes} | \kw{no} \} ,
         [ \{ \kw{local} , " \bnt{path} " ,
             | [ \kw{port} , \bnt{port_number} , ] [ \kw{host} , " \bnt{host_name} " , ] \} ]
+        [ \kw{socket type} , \{ \kw{tcp} | \kw{udp} \} , ]
         [ \{ [ \kw{no} ] \kw{signal}
             | [ \kw{non} ] \kw{blocking} \} , [ ... ] , ]
         [ \kw{input every} , \bnt{steps} , ]
@@ -302,6 +303,7 @@ or model debugging purposes.}
     \bnt{content_modifier} ::=
         \kw{copy}
         | \kw{copy cast} ,
+            [ \kw{swap} , \{ \kw{detect} | \kw{yes} | \kw{no} | (\ty{bool}) \bnt{swap} \} , ]
             \{ \kw{all} , \bnt{one_cast} | \bnt{one_cast} [...] \}
             [ , \kw{size} , (\ty{int})\bnt{buffer_size} ]
 
@@ -355,6 +357,8 @@ to any host (0.0.0.0); if \kw{create} is set to \kw{no},
 \nt{host\_name} indicates what host to connect to; the default 
 is localhost (127.0.0.1); the default port is 9011;
 
+\item \kw{socket type} defaults to \kw{tcp};
+
 \item the keyword \kw{no signal} disables raising a \texttt{SIGPIPE}
 in case the stream is read after it was closed by the peer;
 
@@ -385,7 +389,31 @@ this is useful for example if the initial value of a channel
 is needed during initial assembly, before the first set of values
 is read from the peer.
 
-\item the keyword \kw{modifier}... TODO
+\item the keyword \kw{modifier} installs a data modification layer.
+
+\item The \kw{copy} case leaves data unaltered.
+The \kw{copy cast} case performs data casting for each channel according to the subsequent rules.
+
+\begin{itemize}
+\item the optional keyword \kw{swap} instructs MBDyn to swap bytes
+in order to make transmitted values platform-independent with respect to endianness,
+under the assumtion that endianness is the same for all data types.
+The special value \kw{detect} causes the endianness of the platform
+to be detected and data converted in big endian form if needed.
+Otherwise, conversion is either forced in case of \kw{yes} or non-zero value of \nt{swap},
+or ignored in case of \kw{no} or zero value of \nt{swap}.
+
+\item if the keyword \kw{all} is present, a single \nt{one\_cast} cast rule
+is applied to all channels.
+Otherwise, a \nt{one\_cast} rule is read for each channel.
+Only the types listed above are recognized.
+The special value \kw{skip} actually causes \nt{num\_bytes} to be skipped
+before the subsequent \nt{one\_cast} rule is applied.
+
+\item the optional keyword \kw{size} is used to provide the entire size of the buffer,
+in case only a portion of it is going to be used.
+\end{itemize}
+
 \end{itemize}
 If no socket type is specified, i.e.\ none of the \kw{local}, \kw{port} 
 and \kw{host} keywords are given, a socket is opened by default 

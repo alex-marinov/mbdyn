@@ -189,6 +189,7 @@ ReadStreamDriveModifier(MBDynParser& HP, integer nDrives)
 		pSDM = new StreamDriveCopyCast(size, data);
 
 	} else if (!HP.IsKeyWord("copy")) {
+		// TODO: "copy" with byte swap for network-independent stuff...
 		silent_cerr("ReadStreamDriveModifier: unknown modifier type at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
