@@ -303,11 +303,18 @@ or model debugging purposes.}
     \bnt{content_modifier} ::=
         \kw{copy}
         | \kw{copy cast} ,
-            [ \kw{swap} , \{ \kw{detect} | \kw{yes} | \kw{no} | (\ty{bool}) \bnt{swap} \} , ]
-            \{ \kw{all} , \bnt{one_cast} | \bnt{one_cast} [...] \}
+            [ \kw{swap} ,
+                \{ \bnt{cast_type} [ , ... ]
+                | \kw{detect}
+                | \{ \kw{yes} | \kw{no} | (\ty{bool}) \bnt{swap} \} \} , ]
+            \{ \kw{all} , \bnt{cast_type} | \bnt{one_cast} [ , ... ] \}
             [ , \kw{size} , (\ty{int})\bnt{buffer_size} ]
 
     \bnt{one_cast} ::=
+        \bnt{cast_type}
+        | \kw{skip} , (\ty{int})\bnt{num_bytes}
+
+    \bnt{cast_type} ::=
         \kw{int8_t}
         | \kw{uint8_t}
         | \kw{int16_t}
@@ -316,7 +323,7 @@ or model debugging purposes.}
         | \kw{uint32_t}
         | \kw{float}     # assuming float is 4 bytes
         | \kw{double}    # assuming double is 8 bytes
-        | \kw{skip} , (\ty{int})\bnt{num_bytes}
+
 \end{Verbatim}
 %\end{verbatim}
 The \kw{stream} drive allows MBDyn to receive streamed inputs 
@@ -397,10 +404,12 @@ The \kw{copy cast} case performs data casting for each channel according to the 
 \begin{itemize}
 \item the optional keyword \kw{swap} instructs MBDyn to swap bytes
 in order to make transmitted values platform-independent with respect to endianness,
-under the assumtion that endianness is the same for all data types.
-The special value \kw{detect} causes the endianness of the platform
+under the assumption that endianness is the same for all data types.
+The keyword \kw{swap} may be followed by a list of the types that must be swapped,
+included in those defined in \nt{cast\_type}.
+Alternatively, the keyword \kw{detect} causes the endianness of the platform
 to be detected and data converted in big endian form if needed.
-Otherwise, conversion is either forced in case of \kw{yes} or non-zero value of \nt{swap},
+Otherwise, conversion is either forced for all types in case of \kw{yes} or non-zero value of \nt{swap},
 or ignored in case of \kw{no} or zero value of \nt{swap}.
 
 \item if the keyword \kw{all} is present, a single \nt{one\_cast} cast rule
