@@ -34,7 +34,7 @@ initial assembly of the joints in case of structural simulations, and to
 tell the data manager how many entities of every type it should expect from
 the following sections. Historically this is due to the fact that the data
 structure for nodes and elements is allocated at the beginning with fixed
-size. This is going to change, giving raise to a ``free'' and resizable
+size. This is going to change, giving raise to a ``free'' and resizeable
 structure. But this practice is to be considered reliable since it allows a
 sort of double-check on the entities that are inserted.
 
@@ -329,7 +329,7 @@ This deprecated statement was intended for producing output in formats
 compatible with other software.
 See Appendix~\ref{sec:APP:OUTPUTRESULTS} for a description of the types
 of output that MBDyn can provide.
-Most of them are produced in form of postprocessing, based on the default
+Most of them are produced in form of post-processing, based on the default
 raw output.
 
 Right now, the \kw{output results} statement is only used to enable

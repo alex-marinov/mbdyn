@@ -63,7 +63,7 @@ in detail.
 \label{sec:IVP}
 At present, the main problem is \kw{initial value},
 which solves initial value problems
-by means of generic integration schemes that can be casted
+by means of generic integration schemes that can be cast
 in a broad family of multistep and, experimentally,
 Implicit Runge-Kutta-like schemes
 \cite{MASARATI-LANZ-MANTEGAZZA-2001}.
@@ -484,7 +484,7 @@ On the other hand during the regular solution phase of an initial value problem 
 and $\delta\dot{\boldsymbol{x}}=\boldsymbol{J}^{-1}\,\boldsymbol{F}$ whereas $\delta\boldsymbol{x}=c\,\delta\dot{\boldsymbol{x}}$. But that's totally transparent to the nonlinear solver.
 \end{description}
 
-If the prediction for $\boldsymbol{x}$ is close enough to the solution of the problem, the convergence rate will be quadratic as long as $\boldsymbol{J}$ is exact and $\boldsymbol{F}$ is continuously differentiable in the neighbourhood of $\boldsymbol{x}$. Otherwise the rate of convergence will be not as good or even worse, the solution could diverge. The standard way to overcome such problems is to reduce the time step or to use adaptive time step control. If there are still convergence problems, the line search solver can be used.
+If the prediction for $\boldsymbol{x}$ is close enough to the solution of the problem, the convergence rate will be quadratic as long as $\boldsymbol{J}$ is exact and $\boldsymbol{F}$ is continuously differentiable in the neighborhood of $\boldsymbol{x}$. Otherwise the rate of convergence will be not as good or even worse, the solution could diverge. The standard way to overcome such problems is to reduce the time step or to use adaptive time step control. If there are still convergence problems, the line search solver can be used.
 
 \subparagraph{The basic idea of line search}
 The line search solver from \cite{NUMERICAL-RECIPES-IN-C} uses the following modified strategy:
@@ -500,11 +500,11 @@ The line search solver from \cite{NUMERICAL-RECIPES-IN-C} uses the following mod
 In other words the direction of the increment $\delta\boldsymbol{x}$ is the same like with the Newton Raphson solver but the step size can be optionally reduced by the factor $\lambda$ in order to avoid divergence.
 
 \subparagraph{How to determine $\lambda$}
-The parameter $\lambda$ is chosen by the algorithm at each iteration in order to minimize the scalar function $f=\frac{1}{2}\,\boldsymbol{F}^T\,\boldsymbol{F}$ during the line search along the Newton direction $\delta\boldsymbol{x}$. Since the Newton direction $\delta\boldsymbol{x}$ is a descent direction for $f$, it is guaranteed that the residual will decrease at each iteration as long as $\nabla f \neq \boldsymbol{0}$, $\boldsymbol{J}$ is exact and $\boldsymbol{F}\left(\boldsymbol{x}\right)$ is continuously differentiable in the neighbourhood of $\boldsymbol{x}$.
+The parameter $\lambda$ is chosen by the algorithm at each iteration in order to minimize the scalar function $f=\frac{1}{2}\,\boldsymbol{F}^T\,\boldsymbol{F}$ during the line search along the Newton direction $\delta\boldsymbol{x}$. Since the Newton direction $\delta\boldsymbol{x}$ is a descent direction for $f$, it is guaranteed that the residual will decrease at each iteration as long as $\nabla f \neq \boldsymbol{0}$, $\boldsymbol{J}$ is exact and $\boldsymbol{F}\left(\boldsymbol{x}\right)$ is continuously differentiable in the neighborhood of $\boldsymbol{x}$.
 
 \subparagraph{Local minimum}
 However it could happen that the solver converges to a local minimum of $f$ where $\nabla f = \boldsymbol{0}$ but $\boldsymbol{F} \neq \boldsymbol{0}$.
-The default behaviour of the solver is to bail out in such a situation unless \kw{zero gradient}, \kw{continue}, \kw{yes} has been specified. This flag has been added in order to test the solver but should not be used in general. If the solver bails out because the gradient $\nabla f$ is close to zero, it is recommended to decrease either $\bnt{tolerance\_min}$ or to reduce the time step.
+The default behavior of the solver is to bail out in such a situation unless \kw{zero gradient}, \kw{continue}, \kw{yes} has been specified. This flag has been added in order to test the solver but should not be used in general. If the solver bails out because the gradient $\nabla f$ is close to zero, it is recommended to decrease either $\bnt{tolerance\_min}$ or to reduce the time step.
 
 \subparagraph{Cubic interpolation of $f\left(\lambda\right)$}
 Two different strategies in order to determine $\lambda$ have been implemented.
@@ -569,7 +569,7 @@ By specifying smaller values for $\nt{max\_step\_size}$ one can force the solver
 Like for other nonlinear solvers, the convergence can be printed to the standard output by means of a \kw{output}:~\kw{iterations} statement in the initial value section. Moreover this solver prints also the line search history if \kw{print~convergence~info},~\kw{yes} was specified. This could be helpful in order to decide whether to increase or decrease $\nt{lambda\_min}$ or the maximum number of iterations. If one wants detailed information about the decisions of the solver, \kw{verbose}, \kw{yes} should be specified.
 
 \subparagraph{General notes}
-If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behaviour like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behaviour will be similar to a damped Newton method.
+If one specifies \kw{abort~at~lambda~min},~\kw{no}, \kw{scale~newton~step},~\kw{no}, \kw{divergence~check},~\kw{no} and $\nt{lambda\_min}=1$, one gets the same behavior like Newton Raphson. Moreover if $\nt{lambda\_min}<1$ and \kw{algorithm}, \kw{factor} was specified, the behavior will be similar to a damped Newton method.
 
 
 
@@ -942,7 +942,7 @@ Scaling may occur \kw{always}, i.e.\ for each factorization,
 or \kw{once}, thus preserving the scaling factors resulting
 from the analysis of the first matrix that is factored.
 
-\paragraph{Klu.}
+\paragraph{KLU.}
 The \kw{klu} solver is provided by University of Florida's SparseSuite.
 It is very efficient (usually faster than \kw{umfpack}),
 but it should be used with care, because in the current implementation,

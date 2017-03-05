@@ -1052,7 +1052,7 @@ by default is interpreted in the reference frame of the node the force acts upon
 When using the \kw{single} style of \htybty{TplDriveCaller}{Vec3},
 one can refer to another reference system (the direction specified by the user
 is automatically transformed from that reference frame to the one of the node).
-However, this causes an ambiguity when the default \kw{single} specificator is omitted,
+However, this causes an ambiguity when the default \kw{single} specifier is omitted,
 rather than explicitly written.
 A reference system different from the default one can be specified using the syntax
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -1612,7 +1612,7 @@ each line formatted as follows:
 	\item if \kw{orientation} is set to \kw{orientation vector},
 	the orientation vector's components;
 	\item if \kw{orientation} is set to \kw{euler 123},
-	the three Euler anlgles, in degrees, according to the 1,2,3
+	the three Euler angles, in degrees, according to the 1,2,3
 	convention;
 \end{itemize}
 \item the velocity with respect to the global frame;
@@ -1780,7 +1780,7 @@ The matrix must be
 $(3 \times \nt{mapped\_points}) \times (3 \times \nt{num\_points})$.
 If the \kw{mapped points number} keyword is not present,
 the element behaves as if the mapping were the identity matrix,
-namely the position and the velocity of the points rigidly offsed
+namely the position and the velocity of the points rigidly offset
 from MBDyn's nodes are directly passed to the peer solver.
 See the \htmlref{\kw{modal}}{sec:EL:FORCE:EXTERNAL:MODAL_MAPPING}
 variant for a description of the mapping file format.
@@ -2385,7 +2385,7 @@ actually generate output.
 
 \noindent
 At present, the \textsc{Genel} class contains very basic general elements
-and some elements specifically developed fo rotorcraft analysis.
+and some elements specifically developed for rotorcraft analysis.
 The latter could be moved to a more specific class in future releases.
 
 \subsection{General Purpose Elements}
@@ -3042,7 +3042,7 @@ A pressure loss between two pressure nodes.
 \end{Verbatim}
 %\end{verbatim}
 Coefficients \nt{k12} and \nt{k21} characterize the pressure loss
-when the flow goes from \nt{node\_1} to \nt{node\_2} and viceversa.
+when the flow goes from \nt{node\_1} to \nt{node\_2} and vice versa.
 Turbulent flow is assumed.
 
 
@@ -3298,7 +3298,7 @@ and thus the corresponding dynamic effect.
 \item[2:] pressure at node 1
 \item[3:] pressure at node 2
 \item[4:] pressure derivative at node 1
-\item[5:] pressure aderivative t node 2
+\item[5:] pressure derivative at node 2
 \item[6:] flow at node 1
 \item[7:] flow at node 2
 \item[8:] flow rate at node 1
@@ -4521,7 +4521,7 @@ The joint is shown in Figure~\ref{fig:el:joint:INLINE}.
 \begin{figure}
 \centering
 \includegraphics[width=.5\textwidth]{inline}
-\caption{Inline ioint.}
+\caption{Inline joint.}
 \label{fig:el:joint:INLINE}
 \end{figure}
 
@@ -4574,7 +4574,7 @@ between those of the nodes it connects.
 As a result, the moment exchanged between the two nodes
 is invariant to the sequence of definition of the nodes
 when anisotropic constitutive laws are used.
-It is worth stressing that determining the consititive law for this
+It is worth stressing that determining the constitutive law for this
 element may be tricky, since usual measurement approaches
 directly measure forces and moments in a reference frame
 that is attached to one of the two ends of the component,
@@ -6044,7 +6044,7 @@ of the reaction $\T{\lambda}$.
 %%% TODO
 \subsection{Dynamic}
 The \kw{dynamic} regularization differs from that of Tikhonov
-by the fact that the multiplers are intended as dynamical quantities
+by the fact that the multipliers are intended as dynamical quantities
 whose value varies, during the Newton-like iterations occurring
 for the solution of the nonlinear problem, according to a pseudo-time.
 As a consequence, the matrix condition is improved, but the equations,
@@ -6843,7 +6843,7 @@ of the overall system; and so on.
 
 Currently, only few elements, significantly joints, support 
 and honor hints.
-The typical syntax is given by a keywork followed by some optional
+The typical syntax is given by a keyword followed by some optional
 parameters within curly brackets.
 For instance, the hint that instructs a joint to compute the offset
 with respect to the second node when it is activated is

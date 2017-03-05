@@ -161,7 +161,7 @@ will be used over the span of the element.
 This consists in evaluating forces at specific spanwise stations.
 This assumes that the function to be integrated over the spanwise domain
 is regular.
-Sharp variations, like tip loss concentrated in the outmost 2\%
+Sharp variations, like tip loss concentrated in the outermost 2\%
 of a rotor blade span, might be entirely missed when using too little
 spanwise elements with too little integration points.
 
@@ -415,7 +415,7 @@ In this particular case, a 10 states Pad\'e approximation
 has been chosen.
 This example is taken from the Bisplinghoff Ashley Halfman
 (BAH) Jet Transport Wing cantilevered wing with modal aerodynamic 
-frequency responce, computed by a double-lattice method at Mach 0.0.
+frequency response, computed by a double-lattice method at Mach 0.0.
 Data were extracted from the MSC-NASTRAN aeroelastic example file, 
 named \texttt{ha145b}, while the aerodynamic state-space fitting 
 has been computed using a Pad\'e polynomial approximation
@@ -624,7 +624,7 @@ The air properties are defined according to the formulas
 	&&& \nt{z1} \le z < \nt{z2}
 \end{align}
 \end{subequations}
-The case of $z > \nt{z2}$ is not currenlty handled;
+The case of $z > \nt{z2}$ is not currently handled;
 the formulas for $z \ge \nt{z1}$ are actually used.
 The value of $z$ is computed by adding the $z$ component
 of the position where the air properties are computed

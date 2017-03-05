@@ -497,10 +497,10 @@ where the keyword \kw{loadedRadius} enables the use of the alternative, validate
 	\bnt{r\_a2\_param} 	        & $r_{a2}$ contact length parameter from Besselink eq. 4.85  \\
 	\bnt{patchToTireCircumf\_ratio} & ratio of the contact patch length to tire circumference (to calculate how much mass contributes to the ring's centripetal forces)  \\	  
 	\bnt{vert\_wheel\_ring\_stiff}     & vertical stiffness given to the viscoelastic connection between the ring and the wheel nodes      \\ 
-	\bnt{longi\_tire\_force\_func}       & longitudinal force $F_x/F_z$ given in Ginac format \\
-        \bnt{lateral\_tire\_force\_func}            & lateral force $F_y/F_z$ given in Ginac format \\
-        \bnt{pneumatic\_trail\_func}               & pneumatic trail divided by vertical force and given in Ginac format  \\
-        \bnt{aligning\_residual\_moment}      & residual torque $M_{zr}/F_z$  given in Ginac format   \\
+	\bnt{longi\_tire\_force\_func}       & longitudinal force $F_x/F_z$ given in GiNaC format \\
+        \bnt{lateral\_tire\_force\_func}            & lateral force $F_y/F_z$ given in GiNaC format \\
+        \bnt{pneumatic\_trail\_func}               & pneumatic trail divided by vertical force and given in GiNaC format  \\
+        \bnt{aligning\_residual\_moment}      & residual torque $M_{zr}/F_z$  given in GiNaC format   \\
 	\bnt{S\_ht}      & horizontal shift of pneumatic trail, for aligning moment angle modifier \\
 	\bnt{S\_hf}   & residual aligning moment angle modifier/shift \\
 	\bnt{q\_sy1}   & tire rolling resistance linear velocity coefficient (usually between 0.01 and 0.02) \\
@@ -971,7 +971,7 @@ Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
 
 \subsubsection{Drive Caller}
-An Octave drive caller could be used as an alternative to string drives or Ginac drives. 
+An Octave drive caller could be used as an alternative to string drives or GiNaC drives. 
 If the \texttt{octave-ad} package is installed, Octave based drive callers are differentiable by default.
 An arbitrary number of additional arguments can be passed to the Octave function \bnt{function\_name} after the \kw{arguments} keyword.
 \begin{Verbatim}[commandchars=\\\{\}]
@@ -1019,7 +1019,7 @@ Semantic and parameters of these functions are almost the same like in C++. \\
 \textbf{TODO}: Describe the meaning of the parameters!
 
 \subsection{Module-tclpgin}
-This module implements the tcl pluging in form of run-time loadable module.
+This module implements the Tcl plugin in form of run-time loadable module.
  
 \subsection{Module-template}
 Loadable element template (deprecated).

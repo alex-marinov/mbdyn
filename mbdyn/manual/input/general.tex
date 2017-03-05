@@ -3118,7 +3118,7 @@ since in some contexts the keyword is required to disambiguate the syntax.
 
 In some contexts (e.g.\ when specifying the direction of a force),
 in which the \nt{entity} is a \hty{Vec3}, it can be prefixed
-by an orientation modificator in the form of the specification
+by an orientation modifier in the form of the specification
 of a reference frame in which \nt{entity} is expressed; for example,
 \begin{verbatim}
     single, 1., 0., 0.                    # in the default context-specific reference 
@@ -3872,7 +3872,7 @@ $\nt{viscosity} = \nt{factor} \cdot \nt{stiffness}$.
 
 \paragraph{Example.}
 \begin{verbatim}
-    linear time variant visco elastic,
+    linear time variant viscoelastic,
         1000., cosine, 2., pi/.2, .1/2, half, 1.,
         100., cosine, 2., pi/.2, 1/2, half, 1.
 \end{verbatim}
@@ -4098,7 +4098,7 @@ are expected.  For example:
 \end{verbatim}
 
 \emph{Note: right now, the symbols defined within the mathematical parser
-are not available within symbolic consitutive laws.}
+are not available within symbolic constitutive laws.}
 
 \subsection{symbolic viscous}\label{sec:CL:SYMBOLIC-VISCOUS}
 The syntax is
@@ -4136,7 +4136,7 @@ and one for each \nt{expression} are expected.
 
 \subsection{ann elastic}\label{sec:CL:ANN-ELASTIC}
 The implementation  of the family of \kw{ann} constitutive laws
-is based on an Artifical Neural Network library that is embedded in MBDyn.
+is based on an Artificial Neural Network library that is embedded in MBDyn.
 
 The syntax is
 %\begin{verbatim}
@@ -4619,7 +4619,7 @@ according to equation
 	\nonumber
 \end{align}
 \emph{Note: highly experimental; currently, $\rho_0$, $a$ and $p_0$
-are hardcoded in SI units; the synatx will change}
+are hardcoded in SI units; the syntax will change}
 
 \subsection{Exponential compressible fluid, with saturation}
 %\begin{verbatim}
