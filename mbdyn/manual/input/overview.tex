@@ -15,7 +15,7 @@
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (version 2 of the License).
-% 
+%
 %
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -100,9 +100,9 @@ For example:
 
 \section{Input File Structure}
 The input is divided in blocks.
-This is a consequence of the fact that almost every module of the code 
-needs data and each module is responsible for its data input. 
-So it is natural to make each module read and interpret its data starting 
+This is a consequence of the fact that almost every module of the code
+needs data and each module is responsible for its data input.
+So it is natural to make each module read and interpret its data starting
 from the input phase.
 
 Every statement (or `card') follows the syntax:
@@ -111,32 +111,32 @@ Every statement (or `card') follows the syntax:
     \bnt{card} ::= \bnt{description} [ : \bnt{arglist} ] ;
 \end{Verbatim}
 %\end{verbatim}
-\nt{arglist} is a(n optional) list of arguments, that is driven by the 
-\nt{description} that identifies the card. 
-The keyword can be made of multiple words separated by spaces or tabs; 
+\nt{arglist} is a(n optional) list of arguments, that is driven by the
+\nt{description} that identifies the card.
+The keyword can be made of multiple words separated by spaces or tabs;
 the extra spaces\footnote{
-	Anything that makes the C function \texttt{isspace()} 
+	Anything that makes the C function \texttt{isspace()}
 	return \kw{true}
-} are skipped, and the match is case insensitive. 
+} are skipped, and the match is case insensitive.
 The arguments are usually separated by commas\footnote{
 	A few exceptions require a colon to separate blocks of arguments;
-	wherever it is feasible, those exceptions will be eliminated 
+	wherever it is feasible, those exceptions will be eliminated
 	in future versions.
 	Those cards will be marked as deprecated.
 }.
-A semicolon ends the card. 
+A semicolon ends the card.
 
-Many cards allow extra arguments that may assume default values 
-if not supplied by the user. 
+Many cards allow extra arguments that may assume default values
+if not supplied by the user.
 Usually these arguments are at the end of the card
-and must follow some rules. 
+and must follow some rules.
 A check for the existence of extra args is made,
 and they are usually read in a fixed sequence.
 Optional args are usually prefixed by a keyword.
 
 When structured arguments like matrices, vectors, or drive callers are
 expected, they are parsed by dedicated functions.
-Anyway, the structured data always follows the rules of the general data. 
+Anyway, the structured data always follows the rules of the general data.
 Few exceptions are present, and will be eliminated soon.
 Every data block is surrounded by the control statements \kw{begin} and
 \kw{end}:
@@ -190,7 +190,7 @@ The Schur solver allows an extra block after that of the elements:
 %\end{verbatim}
 where data specific to the partitioning and the connectivity
 of the Schur solver is provided.
-This is yet undocumented, and will likely be described 
+This is yet undocumented, and will likely be described
 in a future chapter.
 
 Chapter~\ref{sec:GENERAL} describes the basic and aggregate
@@ -202,48 +202,56 @@ and of the selected integration scheme.
 Chapter~\ref{sec:CONTROL-DATA} describes the model control data.
 Chapter~\ref{sec:NODES} describes the cards related to the input
 of nodes.
-Nodes come first because they are the elementary blocks 
-of the connectivity graph of the model, so historically 
+Nodes come first because they are the elementary blocks
+of the connectivity graph of the model, so historically
 they had to be defined before any element could be introduced.
-Chapter~\ref{sec:DRIVERS} describes the cards related 
+Chapter~\ref{sec:DRIVERS} describes the cards related
 to special drivers.
 Chapter~\ref{sec:ELEMENTS} describes the cards related to the input
 of elements.
 
 \subsection{Syntax Highlighting}
-To ease the creation of MBDyn file, two syntax highlighting methods can be used.
+To ease the creation of MBDyn file, several syntax highlighting plugins, for
+different text editors, can be used:
 
-The first one is intended to be used with the \htmladdnormallink{Vim}{http://www.vim.org/}
-command-line editor and can be implement by
-adding the \bnt{mbdyn-directory}\kw{/var/mbd.vim} file to the \kw{\textasciitilde{}/.vim/syntax/} folder.
-
-The second method can be used with the \htmladdnormallink{Geany}{http://www.geany.org/}
-GUI text editor for which the methodology to
-add MBDyn syntax highlighting is given at
-\htmladdnormallink{wiki.geany.org/config/mbdyn}{http://wiki.geany.org/config/mbdyn}.
-
-
-
-
+\begin{itemize}
+  \item \htmladdnormallink{Vim}{http://www.vim.org/}
+  (and its GUI variants): syntax highlighting for MBDyn can be activated by
+  adding the \bnt{mbdyn-directory}\kw{/var/mbd.vim} file to the
+  \kw{\textasciitilde{}/.vim/syntax/} folder;
+  %
+  \item \htmladdnormallink{Geany}{http://www.geany.org/}: the
+  methodology to add MBDyn syntax highlighting is given in Geany's
+  \htmladdnormallink{wiki}{http://wiki.geany.org/config/mbdyn}.
+  %
+  \item \htmladdnormallink{Kate and KWrite}{https://kate-editor.org/}:
+  instructions to add MBDyn syntax support can be found
+  \htmladdnormallink{here}{https://github.com/pietrodantuono/MBDynSyntaxHighlightingForKate};
+  %
+  \item \htmladdnormallink{Atom}{https://atom.io/}: the
+  \htmladdnormallink{language-mbdyn}{https://atom.io/packages/language-mbdyn}
+  package can be installed directly from the Atom \texttt{Preferences->Install}
+  panel: it provides both MBDyn syntax highlighting and autocompletion snippets.
+\end{itemize}
 
 \section{Output}
 The program outputs data to a set of files for each simulation.
 The contents of each file is related to the file extension,
-which is appended to the input file if no output file name 
+which is appended to the input file if no output file name
 is explicitly supplied.
 
 If no input file is explicitly provided as well, and thus input
 is directly read from \kw{stdin}, the output file name defaults
 to `MBDyn'.
-Otherwise, unless the output file name is explicitly set, the name 
+Otherwise, unless the output file name is explicitly set, the name
 of the input file is used.
 
 The contents of the output files are described within the description
 of the items (nodes or elements) that generate them.
-Only a general information file, with extension \texttt{.out}, 
-is described here. 
-The file contains general information about the simulation; 
-it is not formatted. 
+Only a general information file, with extension \texttt{.out},
+is described here.
+The file contains general information about the simulation;
+it is not formatted.
 
 The file contains occasional informational messages,
 prefixed by a hash mark (`\#').
@@ -281,4 +289,3 @@ is documented in Appendix~\ref{sec:APP:LOGFILE}.
 Experimental support for output using the NetCDF database format
 is available for selected items.
 See Appendix~\ref{sec:NETCDF} for details.
-
