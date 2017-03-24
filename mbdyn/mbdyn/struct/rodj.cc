@@ -321,12 +321,23 @@ Rod::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
+		
+		
 		Vec3 vTmp(v/dElle);
 		doublereal d = GetF();
+		doublereal dEllePrime = dEpsilonPrime*dL0;
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			doublereal dEllePrime = dEpsilonPrime*dL0;
+			
+			Vec3 F = Vec3(d, 0., 0.);
+			Vec3 M = Zero3;
+			Vec3 FTmp = vTmp*d;
+			
+			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_dElle->put_rec(&dElle, OH.GetCurrentStep());
 			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
 			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
