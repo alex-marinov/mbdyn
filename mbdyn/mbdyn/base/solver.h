@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -28,14 +28,14 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
- 
- /* 
+
+ /*
   *
   * Copyright (C) 2003-2017
   * Giuseppe Quaranta	<quaranta@aero.polimi.it>
   *
   * Classe che gestisce la soluzione del problema:
-  * 
+  *
   *   - Inizializza i dati (nodi ed elementi)
   *   - Alloca i vettori degli stati necessari
   *   - Stabililisce il tipo di integratore e quanti passi fare con esso
@@ -43,9 +43,9 @@
   *   - gestisce le operazioni di output
   *
   */
-  
+
 #ifndef SOLVER_H
-#define SOLVER_H  
+#define SOLVER_H
 
 #include <unistd.h>
 #include <cfloat>
@@ -93,10 +93,10 @@ public:
   	private:
   		int EndCode;
   	public:
- 		EndOfSimulation(const int e, MBDYN_EXCEPT_ARGS_DECL_NODEF) : 
+ 		EndOfSimulation(const int e, MBDYN_EXCEPT_ARGS_DECL_NODEF) :
  		MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU), EndCode(e) {};
   	};
-  
+
 protected:
 #ifdef USE_MULTITHREAD
 	unsigned nThreads;
@@ -117,7 +117,7 @@ protected:
 
 public:
    	/* Dati per esecuzione di eigenanalysis */
-	
+
 	struct EigenAnalysis {
 		bool bAnalysis;
 		enum {
@@ -224,18 +224,18 @@ protected:
 	integer iUnkStates;
 	doublereal* pdWorkSpace;
 	std::deque<MyVectorHandler*> qX;      /* queque vett. stati */
-  	std::deque<MyVectorHandler*> qXPrime; /* queque vett. stati der. */ 
+  	std::deque<MyVectorHandler*> qXPrime; /* queque vett. stati der. */
 	MyVectorHandler* pX;                  /* queque vett. stati inc. */
-  	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */ 
+  	MyVectorHandler* pXPrime;             /* queque vett. stati d. inc. */
 
    	/* Dati della simulazione */
-   	
+
    	doublereal dInitialTime;
    	doublereal dFinalTime;
    	doublereal dRefTimeStep;
    	doublereal dInitialTimeStep;
-   	
-   	
+
+
    	doublereal dMaxResidual;
    	doublereal dMaxResidualDiff;
 
@@ -247,7 +247,7 @@ protected:
    	/* Dati dei passi fittizi di trimmaggio iniziale */
    	integer iDummyStepsNumber;
    	doublereal dDummyStepsRatio;
-   
+
    	/* Flags vari */
 	enum AbortAfter {
 		AFTER_UNKNOWN,
@@ -269,19 +269,19 @@ protected:
 			INT_UNKNOWN
 	};
 	StepIntegratorType RegularType, DummyType;
-	
+
    	StepIntegrator* pDerivativeSteps;
    	StepIntegrator* pFirstDummyStep;
 	StepIntegrator* pDummySteps;
    	StepIntegrator* pFirstRegularStep;
    	StepIntegrator* pRegularSteps;
 	StepIntegrator* pCurrStepIntegrator;
-	
+
 	DriveCaller* pRhoRegular;
 	DriveCaller* pRhoAlgebraicRegular;
 	DriveCaller* pRhoDummy;
 	DriveCaller* pRhoAlgebraicDummy;
-	
+
 	doublereal dDerivativesCoef;
 	/* Type of linear solver */
 	LinSol CurrLinearSolver;
@@ -290,6 +290,7 @@ protected:
 	NonlinearSolverTest::Type ResTest;
 	NonlinearSolverTest::Type SolTest;
 	bool bScale;
+  MyVectorHandler Scale;
 
    	/* Parametri per solutore nonlineare */
    	bool bTrueNewtonRaphson;
@@ -325,7 +326,7 @@ protected:
 	/* il solution manager v*/
 	SolutionManager *pSM;
 	NonlinearSolver* pNLS;
-	
+
 	/* corregge i puntatori per un nuovo passo */
    	inline void Flip(void);
 
@@ -351,12 +352,12 @@ protected:
 		SOLVER_STATUS_PREPARED,
 		SOLVER_STATUS_STARTED
 	} eStatus;
-	
+
 	bool bOutputCounter;
 	std::string outputCounterPrefix;
 	std::string outputCounterPostfix;
 	integer iTotIter;
-	
+
 	doublereal dTotErr;
 	doublereal dTest;
 	doublereal dSolTest;
@@ -364,10 +365,10 @@ protected:
 	bool bOut;
 	long lStep;
 
-public:   
+public:
    	/* costruttore */
-   	Solver(MBDynParser& HP, 
-		const std::string& sInputFileName, 
+   	Solver(MBDynParser& HP,
+		const std::string& sInputFileName,
 		const std::string& sOutputFileName,
 		unsigned int nThreads,
 		bool bParallel = false);
@@ -426,7 +427,7 @@ Solver::Flip(void)
 	 * switcha i puntatori; in questo modo non e' necessario
 	 * copiare i vettori per cambiare passo
 	 */
-	qX.push_front(qX.back()); 
+	qX.push_front(qX.back());
 	qX.pop_back();
 	qXPrime.push_front(qXPrime.back());
 	qXPrime.pop_back();
@@ -437,10 +438,9 @@ Solver::Flip(void)
 	for (integer i = 1; i <= iNumDofs; i++) {
 		x->PutCoef(i, pX->operator()(i));
 		xp->PutCoef(i, pXPrime->operator()(i));
-	}			
+	}
 }
 
 /* Solver - end */
 
 #endif /* SOLVER_H */
-

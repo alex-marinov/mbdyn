@@ -647,7 +647,7 @@ Solver::Prepare(void)
 	/* a questo punto si costruisce il nonlinear solver */
 	pNLS = AllocateNonlinearSolver();
 
-	MyVectorHandler Scale(iNumDofs);
+	Scale.ResizeReset(iNumDofs);
 	if (bScale) {
 		/* collects scale factors from data manager */
 		pDM->SetScale(Scale);
@@ -1737,7 +1737,7 @@ Solver::Restart(std::ostream& out,DataManager::eRestart type) const
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
 	case INT_HOPE:
-		out << "hope, "; 
+		out << "hope, ";
 		pRhoRegular->Restart(out) << ", ";
 		pRhoAlgebraicRegular->Restart(out) << ";" << std::endl;
 		break;
@@ -2896,7 +2896,7 @@ Solver::ReadData(MBDynParser& HP)
 			// initialize output precision: 0 means use default precision
 			EigAn.iMatrixPrecision = 0;
 			EigAn.iResultsPrecision = 0;
-			
+
 			// read eigenanalysis time (to be changed)
 			if (HP.IsKeyWord("list")) {
 				int iNumTimes = HP.GetInt();
@@ -2959,7 +2959,7 @@ Solver::ReadData(MBDynParser& HP)
 
 				} else if (HP.IsKeyWord("output" "geometry")) {
 					EigAn.uFlags |= EigenAnalysis::EIG_OUTPUT_GEOMETRY;
-				
+
 				} else if (HP.IsKeyWord("matrix" "output" "precision")) {
 					EigAn.iMatrixPrecision = HP.GetInt();
 					if (EigAn.iMatrixPrecision <= 0) {
@@ -3652,7 +3652,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(::dDefaultMaxTimeStep));
 		MaxTimeStep.Set(pDC);
 	}
-	
+
 	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)) {
 		MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
 	}
@@ -3661,7 +3661,7 @@ EndOfCycle: /* esce dal ciclo di lettura */
 		pedantic_cout("No time step control strategy defined; defaulting to NoChange time step control" );
 		pTSC = new NoChange(this);
 	}
-	
+
 	if (dFinalTime < dInitialTime) {
 		eAbortAfter = AFTER_ASSEMBLY;
 	}
@@ -4441,7 +4441,7 @@ eig_arpack(const MatrixHandler* pMatA, SolutionManager* pSM,
 
 		 * the eigenvalues need to be modified by adding 1.
 		 */
-		
+
 
 		MatA.MatVecMul(*sm.pResHdl(), X);
 		sm.Solve();
@@ -4642,7 +4642,7 @@ eivec       Converged eigenvectors if wanted = .true., else con-
             verged Schur vectors
 n           The size of the problem
 target      The value near which the eigenvalues are sought
-eps         Tolerance of the eigensolutions, Ax-Bx /|/| < 
+eps         Tolerance of the eigensolutions, Ax-Bx /|/| <
 kmax        Number of wanted eigensolutions, on output: number of
             converged eigenpairs
 jmax        Maximum size of the search space
@@ -4760,7 +4760,7 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 		}
 		std::vector<bool> vOut(nconv);
 		output_eigenvalues(0, AlphaR, AlphaI, 1., pDM, pEA, 1, nconv, vOut);
-	
+
 		if (pEA->uFlags & Solver::EigenAnalysis::EIG_OUTPUT_GEOMETRY) {
 			pDM->OutputGeometry(pEA->iResultsPrecision);
 		}
@@ -4769,25 +4769,25 @@ lwork       Size of workspace, >= 4+m+5jmax+3kmax if GMRESm
 			FullMatrixHandler VR(n, nconv);
 			doublecomplex *p = &eivec[0] - 1;
 			for (integer c = 1; c <= nconv; c++) {
-				
+
 				if (AlphaI(c) == 0.) {
 					for (integer r = 1; r <= n; r++) {
 						VR(r, c) = p[r].r;
 					}
-						
+
 				} else {
 					for (integer r = 1; r <= n; r++) {
 						VR(r, c) = p[r].r;
 						VR(r, c + 1) = p[n + r].i;
 					}
-	
+
 					p += n;
 					c++;
 				}
-	
+
 				p += n;
 			}
-	
+
 			pDM->OutputEigenvectors(&Beta, AlphaR, AlphaI, 1.,
 				0, VR, vOut, uCurr, pEA->iResultsPrecision);
 		}
@@ -4867,7 +4867,7 @@ Solver::Eig(bool bNewLine)
 
 	unsigned uCurr = EigAn.currAnalysis - EigAn.Analyses.begin();
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT) {
-		
+
 		unsigned uSize = EigAn.Analyses.size();
 		if (uSize >= 1) {
 			pDM->OutputEigOpen(uCurr);
@@ -4876,7 +4876,7 @@ Solver::Eig(bool bNewLine)
 	}
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_FULL_MATRICES) {
 		pDM->OutputEigFullMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
-	} 
+	}
 	else if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT_SPARSE_MATRICES) {
 		if (dynamic_cast<const NaiveMatrixHandler *>(pMatB)) {
 			pDM->OutputEigNaiveMatrices(pMatA, pMatB, uCurr, EigAn.iMatrixPrecision);
@@ -5061,7 +5061,7 @@ Solver::AllocateNonlinearSolver()
 	case NonlinearSolver::LINESEARCH:
 		SAFENEWWITHCONSTRUCTOR(pNLS,
 				LineSearchSolver,
-				LineSearchSolver(pDM, 
+				LineSearchSolver(pDM,
                                  *this,
                                  LineSearch));
 		break;
