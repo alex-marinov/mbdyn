@@ -68,9 +68,10 @@ public:
 	class ErrWrongType : public MBDynErrBase {
 	public:
 		ErrWrongType(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-		ErrWrongType(const char *file, int line, const char *func,
+		ErrWrongType(MBDYN_EXCEPT_ARGS_DECL_NOOPT,
 			const TypedValue::Type& to,
-			const TypedValue::Type& from);
+			const TypedValue::Type& from,
+			const std::string r = std::string());
 	};
 	class ErrUnknownValue : public MBDynErrBase {
 	public:

@@ -103,38 +103,22 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 {
 	DriveCaller::pDrvHdl->SetVar(dVar);
 
-#ifdef USE_EE
-	return m_expr->Get()->Eval().GetReal();
-#else // ! USE_EE
-#ifdef DEBUG
-
-	/* La variabile temporanea serve solo per il debug;
-	 * il codice in effetti avrebbe dovuto essere:
-
-	return DriveCaller::pDrvHdl->dGet(InStr);
-
-	 * Tuttavia si ritiene che la modifica non sia troppo onerosa */
-
-	do {
-		std::istringstream in(sEvalStr);
-		InputStream In(in);
-		silent_cout("StringDriveCaller::dGet(): "
-			<< DriveCaller::pDrvHdl->dGet(In) << std::endl);
-	} while (0);
-#endif /* DEBUG */
-
-	std::istringstream in(sEvalStr);
-	InputStream In(in);
-
-	return DriveCaller::pDrvHdl->dGet(In);
-#endif // ! USE_EE
+	return dGet();
 }
 
 inline doublereal
 StringDriveCaller::dGet(void) const
 {
 #ifdef USE_EE
-	return m_expr->Get()->Eval().GetReal();
+	doublereal val;
+	try {
+		val = m_expr->Get()->Eval().GetReal();
+	} catch (MBDynErrBase& e) {
+		silent_cerr("StringDriveCaller::dGet(): " << e.what() << std::endl);
+		throw e;
+	}
+
+	return val;
 #else // ! USE_EE
 	std::istringstream in(sEvalStr);
 	InputStream In(in);

@@ -139,7 +139,7 @@ GiNaCElasticConstitutiveLaw<T, Tder>::GiNaCElasticConstitutiveLaw(
 	}
 	for (unsigned row = 0; row < dim; row++) {
 		for (unsigned col = 0; col < dim; col++) {
-			silent_cout("\t\tDer/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
+			silent_cout("\t\tDer[" << row << "]/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
 		}
 	}
 
@@ -466,7 +466,7 @@ GiNaCViscousConstitutiveLaw<T, Tder>::GiNaCViscousConstitutiveLaw(
 	}
 	for (unsigned row = 0; row < dim; row++) {
 		for (unsigned col = 0; col < dim; col++) {
-			silent_cout("\t\tDer/EpsPrime[" << row << "][" << col << "]:  \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
+			silent_cout("\t\tDer[" << row << "]/EpsPrime[" << row << "][" << col << "]:  \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
 		}
 	}
 
@@ -807,12 +807,12 @@ GiNaCViscoElasticConstitutiveLaw<T, Tder>::GiNaCViscoElasticConstitutiveLaw(
 	}
 	for (unsigned row = 0; row < dim; row++) {
 		for (unsigned col = 0; col < dim; col++) {
-			silent_cout("\t\tDer/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
+			silent_cout("\t\tDer[" << row << "]/Eps[" << row << "][" << col << "]:          \"" << gExprDEps[row][col] << "\"" << std::endl);
 		}
 	}
 	for (unsigned row = 0; row < dim; row++) {
 		for (unsigned col = 0; col < dim; col++) {
-			silent_cout("\t\tDer/EpsPrime[" << row << "][" << col << "]:          \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
+			silent_cout("\t\tDer[" << row << "]/EpsPrime[" << row << "][" << col << "]:          \"" << gExprDEpsPrime[row][col] << "\"" << std::endl);
 		}
 	}
 

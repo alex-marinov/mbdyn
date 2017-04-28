@@ -862,10 +862,11 @@ static const declarationmodifiernames DeclarationModifierNames[] = {
 	{ NULL,		MathParser::DMOD_UNKNOWN }
 };
 
-TypedValue::ErrWrongType::ErrWrongType(const char *file, int line, const char *func,
+TypedValue::ErrWrongType::ErrWrongType(MBDYN_EXCEPT_ARGS_DECL_NOOPT,
 	const TypedValue::Type& to,
-	const TypedValue::Type& from)
-: MBDynErrBase(file, line, func, std::string("cannot cast \"") + GetTypeName(from) + "\" into \"" + GetTypeName(to) + "\"")
+	const TypedValue::Type& from,
+	const std::string r)
+: MBDynErrBase(MBDYN_EXCEPT_ARGS_NOOPT_PASSTHRU, std::string("cannot cast \"") + GetTypeName(from) + "\" into \"" + GetTypeName(to) + "\"" + r)
 {
 	NO_OP;
 }
@@ -1516,13 +1517,17 @@ TypedValue
 TypedValue::operator % (const TypedValue& v) const
 {
 	// bool is implicitly cast to Int
-	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
-		|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
+	if (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT)
 	{
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, TypedValue::VAR_INT, v.GetType(), " in right argument");
 	}
 
-	return TypedValue(GetInt()%v.GetInt());
+	if (GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
+	{
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, TypedValue::VAR_INT, GetType(), " in left argument");
+	}
+
+	return TypedValue(GetInt() % v.GetInt());
 }
 
 const TypedValue&
@@ -1633,13 +1638,17 @@ TypedValue::operator %= (const TypedValue& v)
 	}
 
 	// bool is implicitly cast to Int
-	if ((GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
-			|| (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT))
+	if (v.GetType() != TypedValue::VAR_BOOL && v.GetType() != TypedValue::VAR_INT)
 	{
-		throw ErrWrongType(MBDYN_EXCEPT_ARGS, GetType(), v.GetType());
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, TypedValue::VAR_INT, v.GetType(), " in right argument");
 	}
 
-	Int i = GetInt()%v.GetInt();
+	if (GetType() != TypedValue::VAR_BOOL && GetType() != TypedValue::VAR_INT)
+	{
+		throw ErrWrongType(MBDYN_EXCEPT_ARGS, TypedValue::VAR_INT, GetType(), " in left argument");
+	}
+
+	Int i = GetInt() % v.GetInt();
 	type = TypedValue::VAR_INT;
 	return Set(i);
 }
