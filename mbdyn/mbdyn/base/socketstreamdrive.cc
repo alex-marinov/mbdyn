@@ -391,7 +391,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 	if ((socket_type == SOCK_DGRAM) && !bCreate) {
 		silent_cerr("SocketStreamDrive(" << uLabel << ", \"" << name << "\"): "
-			"socket type=upd incompatible with create=no "
+			"socket type=udp incompatible with create=no "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
