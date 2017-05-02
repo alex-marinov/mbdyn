@@ -1385,7 +1385,7 @@ DirectDriveCaller::dGetP(const doublereal& dVar) const
 	return 1.;
 }
 
-/* MeterDriveCaller - end */
+/* DirectDriveCaller - end */
 
 
 /* PiecewiseLinearDriveCaller - begin */
