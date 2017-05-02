@@ -276,17 +276,21 @@ FixedStepFileDrive::ServePending(const doublereal& t)
 	} else {
 		integer j1 = integer(floor(tt/dDT));
 		if (bLinear) {
-			if (j1 == iNumSteps) {
-				j1--;
-			}
-			integer j2 = j1 + 1;
-			doublereal dt1 = dT0 + j1*dDT;
-			doublereal dt2 = dt1 + dDT;
-			doublereal dw1 = (dt2 - t)/dDT;
-			doublereal dw2 = (t - dt1)/dDT;
+			if (j1 == iNumSteps - 1) {
+				for (int i = 1; i <= iNumDrives; i++) {
+   					pdVal[i] = pvd[i][j1];
+				}
 
-			for (int i = 1; i <= iNumDrives; i++) {
-   				pdVal[i] = pvd[i][j2]*dw2 + pvd[i][j1]*dw1;
+			} else {
+				integer j2 = j1 + 1;
+				doublereal dt1 = dT0 + j1*dDT;
+				doublereal dt2 = dt1 + dDT;
+				doublereal dw1 = (dt2 - t)/dDT;
+				doublereal dw2 = (t - dt1)/dDT;
+
+				for (int i = 1; i <= iNumDrives; i++) {
+   					pdVal[i] = pvd[i][j2]*dw2 + pvd[i][j1]*dw1;
+				}
 			}
 
 		} else {

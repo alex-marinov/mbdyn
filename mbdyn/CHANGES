@@ -16,6 +16,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
+		- fixed (harmless?) off-by-one read in fixed step drive
 
 MBDyn 1.7.2
 	Enhancements:
