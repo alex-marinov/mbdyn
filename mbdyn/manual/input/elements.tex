@@ -3615,7 +3615,7 @@ The relative position is constrained as well.
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
-The joint is shown in Figure~\ref{fig:el:joint:CARDANO}.
+The joint is shown in Figure~\ref{fig:el:joint:CARDANO} where the origins and orientations of \nt{node\_1} and \nt{node\_2} are given by axes 1, 2, 3 and 1$^\prime$, 2$^\prime$, 3$^\prime$, respectively. The central, constrained, axes 3 and 2$^\prime$ are obtained after having applied \nt{relative\_offset} and \nt{relative\_orientation\_matrix} transformations to \nt{node\_1} and \nt{node\_2}, respectively.
 \begin{figure}
 \centering
 \includegraphics[width=.5\textwidth]{cardano}
@@ -4516,8 +4516,8 @@ A point, optionally offset by \nt{relative\_offset} from the position
 of node \nt{node\_2\_label}, slides along a line that passes through a point 
 that is rigidly offset by \nt{relative\_line\_position}
 from the position of \nt{node\_1\_label}, and is directed as direction 3 
-of \nt{relative orientation}.
-The joint is shown in Figure~\ref{fig:el:joint:INLINE}.
+of \nt{relative\_orientation}.
+The joint is shown in Figure~\ref{fig:el:joint:INLINE} where the origin and orientation of \nt{node\_1} are given by axis 1$^\prime$, 2$^\prime$, 3$^\prime$ and \nt{relative\_line\_position} and \nt{relative\_orientation} are the transformations that yield axis 1$^\prime_0$, 2$^\prime_0$, 3$^\prime_0$ when applied to its coordinate axis. The origin and orientation of \nt{node\_2} are given by axis 1, 2, 3 and axis 1$_0$, 2$_0$, 3$_0$ is the result of applying the \nt{relative\_offset} translation to its coordinate axis.
 \begin{figure}
 \centering
 \includegraphics[width=.5\textwidth]{inline}
@@ -5094,7 +5094,7 @@ by the two \kw{orientation} statements.
             \bnt{shape_function} ]
 \end{Verbatim}
 %\end{verbatim}
-The joint is shown in Figure~\ref{fig:el:joint:REV}.
+The joint is shown in Figure~\ref{fig:el:joint:REV} where the axes shown are the those obtained after having applied the \nt{relative\_offset} and \nt{relative\_orientation\_matrix} transformations to the coordinate axes of \nt{node\_1} and \nt{node\_2}.
 \begin{figure}
 \centering
 \includegraphics[width=.7\textwidth]{revHinge}
@@ -5533,7 +5533,7 @@ the relative orientation is not constrained.
             [ , \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation_matrix_2} ]
 \end{Verbatim}
 %\end{verbatim}
-The joint is shown in Figure~\ref{fig:el:joint:SPHERE}.
+The joint is shown in Figure~\ref{fig:el:joint:SPHERE} where the axes shown are the those obtained after having applied the \nt{relative\_offset} and \nt{relative\_orientation\_matrix} transformations to the coordinates of \nt{node\_1} and \nt{node\_2}.
 \begin{figure}
 \centering
 \includegraphics[width=.7\textwidth]{spherHinge}
