@@ -373,6 +373,13 @@ class ConstMBVar(MBVar):
         declared_ConstMBVars[self.name] = self
 
 
+class IfndefMBVar(MBVar):
+    def __init__(self, name, var_type, value):
+        if name in declared_MBVars:
+            pass
+        else:
+            MBVar.__init__(self, name, 'const ' + var_type, value)
+
 class null:
     def __str__(self):
         s = 'null'
