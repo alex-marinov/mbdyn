@@ -205,14 +205,6 @@ OutputHandler::OutputHandler_int(void)
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[PARTITION].pof = &ofPartition;
 
-	OutData[ADAMSRES].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
-	OutData[ADAMSRES].pof = &ofAdamsRes;
-
-	OutData[ADAMSCMD].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
-		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
-	OutData[ADAMSCMD].pof = &ofAdamsCmd;
-
 	OutData[AEROMODALS].flags = OUTPUT_USE_DEFAULT_PRECISION | OUTPUT_USE_SCIENTIFIC
 		| OUTPUT_MAY_USE_TEXT | OUTPUT_USE_TEXT;
 	OutData[AEROMODALS].pof = &ofAeroModals;
@@ -312,13 +304,13 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 		if (out == NETCDF) {
 			m_pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
 			m_pBinFile->set_fill(NcFile::Fill);
-	
+
          		if (!m_pBinFile->is_valid()) {
 				silent_cerr("NetCDF file is invalid" << std::endl);
 				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 
-			// Let's define some dimensions which could be useful	       	     
+			// Let's define some dimensions which could be useful
 			m_DimTime = CreateDim("time");
 			m_DimV1 = CreateDim("vec1", 1);
 			m_DimV3 = CreateDim("vec3", 3);
@@ -370,10 +362,10 @@ OutputHandler::Open(const int out, const unsigned uCurrEigSol)
 		} else {
 			fname_ss << sCurrFileName;
 		}
-		
+
 		fname_ss << '_' << uCurrEigSol << psExt[out];
 		const std::string fname = fname_ss.str();
-		
+
 		// Opens the stream
 		OutData[out].pof->open(fname.c_str());
 
@@ -381,10 +373,10 @@ OutputHandler::Open(const int out, const unsigned uCurrEigSol)
 			silent_cerr("Unable to open file "
 				"\"" << fname << "\"" << std::endl);
 			throw ErrFile(MBDYN_EXCEPT_ARGS);
-		} 
+		}
 
 		if (UseText(out)) {
-			
+
 			// Sets the field format
 			if (UseDefaultPrecision(out)) {
 				OutData[out].pof->precision(iCurrPrecision);
@@ -642,20 +634,6 @@ OutputHandler::PartitionOpen(void)
 {
 	ASSERT(!IsOpen(PARTITION));
 	return Open(PARTITION);
-}
-
-bool
-OutputHandler::AdamsResOpen(void)
-{
-	ASSERT(!IsOpen(ADAMSRES));
-	return Open(ADAMSRES);
-}
-
-bool
-OutputHandler::AdamsCmdOpen(void)
-{
-	ASSERT(!IsOpen(ADAMSCMD));
-	return Open(ADAMSCMD);
 }
 
 bool

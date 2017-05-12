@@ -107,7 +107,7 @@ protected:
 	/* Puntatori ai vettori soluzione durante il passo */
 	mutable VectorHandler* pXCurr;
 	mutable VectorHandler* pXPrimeCurr;
-	
+
 	/* used by inverse dynamics: */
 	mutable VectorHandler* pXPrimePrimeCurr;
 	mutable VectorHandler* pLambdaCurr;
@@ -193,8 +193,6 @@ public:
 		RES_NONE	= 0x00,
 		RES_TEXT	= 0x01,
 		RES_NETCDF	= 0x02,
-		RES_ADAMS	= 0x04,
-		RES_MOTIONVIEW	= 0x08
 	};
 
 	bool bOutput(ResType t) const;
@@ -230,22 +228,6 @@ protected:
 #endif /* USE_NETCDF */
 	OrientationDescription od;
 
-#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
-	mutable integer iOutputBlock;
-#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
-
-#ifdef USE_ADAMS
-	char *sAdamsModelName;
-	bool bAdamsVelocity, bAdamsAcceleration;
-	unsigned int iAdamsOutputNodes;
-	unsigned int iAdamsOutputParts;
-	std::streambuf::pos_type adamsNoab;
-#endif /* USE_ADAMS */
-
-#ifdef USE_MOTIONVIEW
-	/* nothing yet */
-#endif /* USE_MOTIONVIEW */
-
 protected:
 	/* chiamate dal costruttore per leggere i relativi articoli */
 	void ReadControl(MBDynParser& HP, const char* sInputFileName);
@@ -279,7 +261,7 @@ protected:
 
 	void DofOwnerSet(void);
 	void DofOwnerInit(void);
-	
+
 	/* inverse dynamics: */
 	void IDDofOwnerSet(void);
 
@@ -337,7 +319,7 @@ public:
 		VectorHandler& XPrimeCurr,
 		VectorHandler& XPrimePrimeCurr,
 		VectorHandler& LambdaCurr);
-	
+
 	/* Restituisce l'ostream al file di output,
 	 * usato dai vari metodi per scrivere il log del calcolo */
 	std::ostream& GetOutFile(void) const { return OutHdl.Output(); };
@@ -379,8 +361,8 @@ public:
 
 	/* Elem residual, equilibrium with no constraints */
 	virtual void AssRes(VectorHandler& ResHdl);
-	
-	/* Constraint Jacobian matrix*/	
+
+	/* Constraint Jacobian matrix*/
 	virtual void AssConstrJac(MatrixHandler& JacHdl);
 	// end of inverse dynamics
 
@@ -406,7 +388,7 @@ protected:
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec,
 		InverseDynamics::Order iOrder);
-	
+
 	void AssRes(VectorHandler& ResHdl,
 		VecIter<Elem *> &Iter,
 		SubVectorHandler& WorkVec);
@@ -457,7 +439,7 @@ public:
 	void
 	OutputEigSparseMatrices(const MatrixHandler* pmMatA,
 			const MatrixHandler* pmMatB,
-			const unsigned uCurrEigSol, 
+			const unsigned uCurrEigSol,
 			const int iMatrixPrecision);
 	void
 	OutputEigNaiveMatrices(const MatrixHandler* pmMatA,
@@ -473,27 +455,9 @@ public:
 			const unsigned uCurrEigSol,
 			const int iResultsPrecision);
 
-	void OutputEigGeometry(const unsigned uCurrSol, 
+	void OutputEigGeometry(const unsigned uCurrSol,
 			const int iResultsPrecision);
 	bool OutputEigClose(void);
-
-#ifdef USE_ADAMS
-	/* MSC's ADAMS/View .res output */
-	bool bAdamsOutput(void) const;
-	void AdamsResOutputInit(void);
-	void AdamsResOutput(integer iBlock, const char *type,
-			const char *id) const;
-	void AdamsResOutputFini(void) const;
-#endif /* USE_ADAMS */
-
-#ifdef USE_MOTIONVIEW
-	/* Altair's Motion View output */
-	bool bMotionViewOutput(void) const;
-	void MotionViewResOutputInit(const char *sOutputFileName);
-	void MotionViewResOutput(integer iBlock, const char *type,
-			const char *id) const;
-	void MotionViewResOutputFini(void) const;
-#endif /* USE_MOTIONVIEW */
 
 	/* Prepara la soluzione con i valori iniziali */
 	void SetValue(VectorHandler& X, VectorHandler& XP);
@@ -506,7 +470,7 @@ public:
 	virtual void AfterPredict(void) const;
 	virtual void Update(void) const;
 	virtual void AfterConvergence(void) const;
-	
+
 	/* Inverse Dynamics: */
 	virtual void Update(InverseDynamics::Order iOrder) const;
 	virtual void IDAfterConvergence(void) const;
@@ -767,7 +731,7 @@ protected:
 		NodeContainerType NodeContainer;
 		NodeMapToListType NodeMapToList;
 	} NodeData[Node::LASTNODETYPE];
-	
+
 	Node ** InsertNode(NodeDataStructure& nodedata, unsigned int uLabel, Node * pN) {
 		nodedata.NodeContainer.push_back(NodeContainerType::value_type(uLabel, pN));
 		nodedata.NodeMapToList[uLabel] = --nodedata.NodeContainer.end();
@@ -1156,4 +1120,3 @@ extern OrientationDescription
 ReadOptionalOrientationDescription(DataManager *pDM, MBDynParser& HP);
 
 #endif /* DATAMAN_H */
-

@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -51,7 +51,7 @@ protected:
 	doublereal		dDistance;
 
 	void Abort(void);
-   
+
 	/*
 	 * Assembla le due matrici
 	 *
@@ -69,14 +69,14 @@ public:
 	DistanceJoint(unsigned int uL, const DofOwner* pDO,
 			const StructDispNode* pN1, const StructDispNode* pN2,
 			const DriveCaller* pDC, flag fOut);
-   
+
 	~DistanceJoint(void);
-   
+
 	/* Tipo di Joint */
-	virtual Joint::Type GetJointType(void) const { 
-		return Joint::DISTANCE; 
+	virtual Joint::Type GetJointType(void) const {
+		return Joint::DISTANCE;
 	};
-   
+
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
@@ -88,7 +88,7 @@ public:
 		ASSERT(i == 0);
 		return DofOrder::ALGEBRAIC;
 	};
-   
+
 	virtual DofOrder::Order GetEqType(unsigned int i) const {
 		ASSERT(i == 0);
 		return DofOrder::ALGEBRAIC;
@@ -99,11 +99,11 @@ public:
 		*piNumRows = 7;
 		*piNumCols = 7;
 	};
-   
+
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
 	virtual void
@@ -115,17 +115,17 @@ public:
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-   
+
 	virtual void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */
-   
+
 	virtual unsigned int iGetInitialNumDof(void) const {
 		return 2;
 	};
-	
+
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 14;
@@ -136,12 +136,12 @@ public:
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& XCurr);
-   
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);
-   
+
 	virtual void SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
@@ -151,7 +151,7 @@ public:
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
 	virtual doublereal dGetPrivData(unsigned int i) const;
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
@@ -162,19 +162,6 @@ public:
 	};
 	/* ************************************************ */
 
-#ifdef USE_ADAMS 
-	/* Adams output stuff */
-	virtual unsigned int iGetNumDummyParts(void) const {
-		return 1;
-	};
-	virtual void
-	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	virtual void
-	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-	virtual std::ostream&
-	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
-			unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
 /* DistanceJoint - end */
@@ -182,12 +169,12 @@ public:
 
 /* DistanceJointWithOffset - begin */
 
-class DistanceJointWithOffset : 
+class DistanceJointWithOffset :
 virtual public Elem, public DistanceJoint {
 private:
 	Vec3 f1;
 	Vec3 f2;
- 
+
 	/*
 	 * Assembla le due matrici
 	 *
@@ -210,23 +197,23 @@ public:
 	~DistanceJointWithOffset(void);
 
 	/* Tipo di Joint */
-	virtual Joint::Type GetJointType(void) const { 
-		return Joint::DISTANCEWITHOFFSET; 
+	virtual Joint::Type GetJointType(void) const {
+		return Joint::DISTANCEWITHOFFSET;
 	};
 
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 13;
-		*piNumCols = 13; 
+		*piNumCols = 13;
 	};
- 
+
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
 	virtual void
@@ -238,7 +225,7 @@ public:
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 			doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
 	/* funzioni usate nell'assemblaggio iniziale */
@@ -248,13 +235,13 @@ public:
 		*piNumRows = 26;
 		*piNumCols = 26;
 	};
-   
+
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
 	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			const VectorHandler& XCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 			const VectorHandler& XCurr);
@@ -263,16 +250,6 @@ public:
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph = 0);
 
-#ifdef USE_ADAMS 
-	/* Adams output stuff */
-	virtual void
-	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	virtual void
-	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-	virtual std::ostream&
-	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
-			unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
 /* DistanceJointWithOffset - end */
@@ -280,4 +257,3 @@ public:
 #endif
 
 #endif /* DISTANCE_H */
-

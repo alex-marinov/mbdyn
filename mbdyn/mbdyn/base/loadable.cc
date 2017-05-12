@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -37,13 +37,13 @@
 #include "loadable.h"
 
 /* funzioni di default */
-static unsigned int 
+static unsigned int
 int_i_get_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-static DofOrder::Order 
+static DofOrder::Order
 int_set_dof(const LoadableElem*, unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
@@ -56,23 +56,23 @@ int_output(const LoadableElem* /* pEl */ , OutputHandler& /* OH */ )
    	NO_OP;
 }
 
-static std::ostream& 
+static std::ostream&
 int_restart(const LoadableElem* pEl , std::ostream& out)
 {
-   	return out << "loadable: " << pEl->GetLabel() 
+   	return out << "loadable: " << pEl->GetLabel()
 		<< ", not implemented yet;" << std::endl;
 }
 
-static void 
+static void
 int_work_space_dim(const LoadableElem* /* pEl */ ,
-		 integer* piNumRows, 
+		 integer* piNumRows,
 		 integer* piNumCols)
 {
    	*piNumRows = 0;
    	*piNumCols = 0;
 }
 
-static VariableSubMatrixHandler& 
+static VariableSubMatrixHandler&
 int_ass_jac(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMat,
 	  doublereal /* dCoef */ ,
@@ -83,7 +83,7 @@ int_ass_jac(LoadableElem* /* pEl */ ,
    	return WorkMat;
 }
 
-static void 
+static void
 int_ass_mats(LoadableElem* /* pEl */ ,
 	  VariableSubMatrixHandler& WorkMatA,
 	  VariableSubMatrixHandler& WorkMatB,
@@ -91,10 +91,10 @@ int_ass_mats(LoadableElem* /* pEl */ ,
 	  const VectorHandler& /* XPrimeCurr */ )
 {
    	WorkMatA.SetNullMatrix();
-   	WorkMatB.SetNullMatrix(); 
+   	WorkMatB.SetNullMatrix();
 }
 
-static SubVectorHandler& 
+static SubVectorHandler&
 int_ass_res(LoadableElem* /* pEl */ ,
 	  SubVectorHandler& WorkVec,
 	  doublereal /* dCoef */ ,
@@ -105,7 +105,7 @@ int_ass_res(LoadableElem* /* pEl */ ,
    	return WorkVec;
 }
 
-static void 
+static void
 int_before_predict(const LoadableElem* /* pEl */ ,
 		 VectorHandler& /* X */ ,
 		 VectorHandler& /* XP */ ,
@@ -115,7 +115,7 @@ int_before_predict(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-static void 
+static void
 int_after_predict(const LoadableElem* /* pEl */ ,
 		VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
@@ -123,7 +123,7 @@ int_after_predict(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-static void 
+static void
 int_update(LoadableElem* /* pEl */ ,
 	 const VectorHandler& /* X */ ,
 	 const VectorHandler& /* XP */ )
@@ -131,7 +131,7 @@ int_update(LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-static void 
+static void
 int_after_convergence(const LoadableElem* /* pEl */ ,
 		const VectorHandler& /* X */ ,
 		const VectorHandler& /* XP */ )
@@ -139,41 +139,41 @@ int_after_convergence(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-static unsigned int 
+static unsigned int
 int_i_get_initial_num_dof(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-static void 
+static void
 int_initial_work_space_dim(const LoadableElem* /* pEl */ ,
-			 integer* piNumRows, 
+			 integer* piNumRows,
 			 integer* piNumCols)
 {
    	*piNumRows = 0;
-   	*piNumCols = 0;   
+   	*piNumCols = 0;
 }
 
-static VariableSubMatrixHandler& 
+static VariableSubMatrixHandler&
 int_initial_ass_jac(LoadableElem* /* pEl */ ,
-		  VariableSubMatrixHandler& WorkMat, 
+		  VariableSubMatrixHandler& WorkMat,
 		  const VectorHandler& /* XCurr */ )
 {
    	WorkMat.SetNullMatrix();
    	return WorkMat;
 }
 
-static SubVectorHandler& 
+static SubVectorHandler&
 int_initial_ass_res(LoadableElem* /* pEl */ ,
-		  SubVectorHandler& WorkVec, 
+		  SubVectorHandler& WorkVec,
 		  const VectorHandler& /* XCurr */ )
-{  
+{
    	WorkVec.Resize(0);
    	return WorkVec;
 }
 
-static void 
-int_set_value(const LoadableElem* /* pEl */ , 
+static void
+int_set_value(const LoadableElem* /* pEl */ ,
 		DataManager *pDM,
 		VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ ,
@@ -182,26 +182,26 @@ int_set_value(const LoadableElem* /* pEl */ ,
    	NO_OP;
 }
 
-static void 
+static void
 int_set_initial_value(const LoadableElem* /* pEl */ , VectorHandler& /* X */ )
 {
    	NO_OP;
 }
 
-static unsigned int 
+static unsigned int
 int_i_get_num_priv_data(const LoadableElem* /* pEl */ )
 {
    	return 0;
 }
 
-static unsigned int 
+static unsigned int
 int_i_get_priv_data_idx(const LoadableElem* /* pEl */ , const char *s)
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
    	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 }
 
-static doublereal 
+static doublereal
 int_d_get_priv_data(const LoadableElem* /* pEl */ , unsigned int /* i */ )
 {
    	silent_cerr("You shouldn't be here!" << std::endl);
@@ -220,53 +220,17 @@ int_get_connected_nodes(const LoadableElem* pEl, std::vector<const Node *>& conn
 	connectedNodes.resize(0);
 }
 
-static void 
+static void
 int_destroy(LoadableElem* /* pEl */ )
 {
    	NO_OP;
 }
 
-/* Adams output stuff -- added with 1.2.0 */
-static unsigned int
-int_i_get_num_dummy_parts(const LoadableElem* pEl)
-{
-	return 0;
-}
-
-static void
-int_get_dummy_part_pos(const LoadableElem* pEl, 
-		unsigned int part,
-		Vec3& x,
-		Mat3x3& R)
-{
-	NO_OP;
-}
-
-static void
-int_get_dummy_part_vel(const LoadableElem* pEl,
-		unsigned int part,
-		Vec3& v,
-		Vec3& w)
-{
-	NO_OP;
-}
-
-#ifdef USE_ADAMS
-static std::ostream&
-int_write_adams_dummy_part_cmd(const LoadableElem* pEl,
-		std::ostream& out,
-		unsigned int part,
-		unsigned int firstId)
-{
-	return out;
-}
-#endif /* USE_ADAMS */
-
 /* metodi della classe */
 
-LoadableElem::LoadableElem(unsigned int uLabel, 
-			   const DofOwner* pDO, 
-			   DataManager* pDM, 
+LoadableElem::LoadableElem(unsigned int uLabel,
+			   const DofOwner* pDO,
+			   DataManager* pDM,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
@@ -283,10 +247,10 @@ calls(0)
 	BindCalls(pDM, HP);
 }
 
-LoadableElem::LoadableElem(unsigned int uLabel, 
-			   const DofOwner* pDO, 
+LoadableElem::LoadableElem(unsigned int uLabel,
+			   const DofOwner* pDO,
 			   const LoadableCalls *c,
-			   DataManager* pDM, 
+			   DataManager* pDM,
 			   MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
@@ -323,8 +287,8 @@ LoadableElem::GetCalls(MBDynParser& HP)
 			err = "";
 		}
 
-      		silent_cerr("Loadable(" << uLabel 
-			<< "): unable to open module <" << module_name 
+      		silent_cerr("Loadable(" << uLabel
+			<< "): unable to open module <" << module_name
 			<< "> (" << err << ") at line " << HP.GetLineData()
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -340,20 +304,20 @@ LoadableElem::GetCalls(MBDynParser& HP)
    	DEBUGCOUT("binding to data \"" << data_name
      		<< "\" (must be def'd!)" << std::endl);
 	tmpcalls = (LoadableCalls **)lt_dlsym(handle, data_name);
-	
+
    	if (tmpcalls == NULL) {
       		const char* err = lt_dlerror();
       		if (err == NULL) {
-	 		silent_cerr("Loadable(" << uLabel 
+	 		silent_cerr("Loadable(" << uLabel
 	   			<< "): data \"" << data_name
-	   			<< "\" must be defined in module <" 
+	   			<< "\" must be defined in module <"
 				<< module_name << ">" << std::endl);
       		} else {
 	 		silent_cerr("Loadable(" << uLabel
-	   			<< "): error while binding to data \"" 
+	   			<< "): error while binding to data \""
 				<< data_name
 	   			<< "\" in module <" << module_name
-	   			<< "> (\"" << err 
+	   			<< "> (\"" << err
 				<< "\")" << std::endl);
       		}
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -374,12 +338,12 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 		silent_cerr("Loadable(" << uLabel
 			<< "): incompatible version; need "
 			<< LOADABLE_VERSION_OUT(LOADABLE_VERSION)
-			<< ", got " 
-			<< LOADABLE_VERSION_OUT(calls->loadable_version) 
+			<< ", got "
+			<< LOADABLE_VERSION_OUT(calls->loadable_version)
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-   
+
 	if (calls->read == NULL) {
 		silent_cerr("Loadable(" << uLabel
 			<< "): function \"read\" must be defined in module <"
@@ -507,35 +471,16 @@ LoadableElem::BindCalls(DataManager* pDM, MBDynParser& HP)
 	if (calls->destroy == NULL) {
 		calls->destroy = int_destroy;
 	}
-	
-	/* Adams output stuff -- added with 1.2.0 */
-	if (calls->i_get_num_dummy_parts == NULL) {
-		calls->i_get_num_dummy_parts = int_i_get_num_dummy_parts;
-	}
-
-	if (calls->get_dummy_part_pos == NULL) {
-		calls->get_dummy_part_pos = int_get_dummy_part_pos;
-	}
-
-	if (calls->get_dummy_part_vel == NULL) {
-		calls->get_dummy_part_vel = int_get_dummy_part_vel;
-	}
-	
-#ifdef USE_ADAMS
-	if (calls->write_adams_dummy_part_cmd == NULL) {
-		calls->write_adams_dummy_part_cmd = int_write_adams_dummy_part_cmd;
-	}
-#endif /* USE_ADAMS */
 
    	priv_data = calls->read(this, pDM, HP);
-   	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE)); 
+   	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 }
 
 LoadableElem::~LoadableElem(void)
 {
 	ASSERT(calls->destroy != NULL);
    	calls->destroy(this);
-   
+
 #ifdef USE_RUNTIME_LOADING
    	if (handle != NULL) {
    		if (lt_dlclose(handle) != 0) {
@@ -544,18 +489,18 @@ LoadableElem::~LoadableElem(void)
 		}
 	}
 #endif // USE_RUNTIME_LOADING
-	
+
    	SAFEDELETEARR(module_name);
 }
 
-unsigned int 
+unsigned int
 LoadableElem::iGetNumDof(void) const
 {
 	ASSERT(calls->i_get_num_dof != NULL);
    	return calls->i_get_num_dof(this);
 }
 
-DofOrder::Order 
+DofOrder::Order
 LoadableElem::GetDofType(unsigned int i) const
 {
    	ASSERT(i < iGetNumDof());
@@ -563,32 +508,32 @@ LoadableElem::GetDofType(unsigned int i) const
    	return calls->set_dof(this, i);
 }
 
-void 
+void
 LoadableElem::Output(OutputHandler& OH) const
 {
 	ASSERT(calls->output != NULL);
    	calls->output(this, OH);
 }
 
-std::ostream& 
+std::ostream&
 LoadableElem::Restart(std::ostream& out) const
 {
 	ASSERT(calls->restart != NULL);
-   	out << "    loadable: " << GetLabel() << ", \"" 
+   	out << "    loadable: " << GetLabel() << ", \""
 		<< module_name << "\", ";
    	return calls->restart(this, out) << ';' << std::endl;
 }
 
-void 
+void
 LoadableElem::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
 	ASSERT(calls->work_space_dim != NULL);
    	calls->work_space_dim(this, piNumRows, piNumCols);
 }
 
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 LoadableElem::AssJac(VariableSubMatrixHandler& WorkMat,
-		     doublereal dCoef, 
+		     doublereal dCoef,
 		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
@@ -606,18 +551,18 @@ LoadableElem::AssMats(VariableSubMatrixHandler& WorkMatA,
    	calls->ass_mats(this, WorkMatA, WorkMatB, XCurr, XPCurr);
 }
 
-SubVectorHandler& 
+SubVectorHandler&
 LoadableElem::AssRes(SubVectorHandler& WorkVec,
 		     doublereal dCoef,
-		     const VectorHandler& XCurr, 
+		     const VectorHandler& XCurr,
 		     const VectorHandler& XPCurr)
 {
    	ASSERT(calls->ass_res != NULL);
-   	return calls->ass_res(this, WorkVec, 
+   	return calls->ass_res(this, WorkVec,
 					    dCoef, XCurr, XPCurr);
 }
 
-void 
+void
 LoadableElem::BeforePredict(VectorHandler& X,
 			    VectorHandler& XP,
 			    VectorHandler& XPrev,
@@ -627,7 +572,7 @@ LoadableElem::BeforePredict(VectorHandler& X,
    	calls->before_predict(this, X, XP, XPrev, XPPrev);
 }
 
-void 
+void
 LoadableElem::AfterPredict(VectorHandler& X,
 			   VectorHandler& XP)
 {
@@ -635,15 +580,15 @@ LoadableElem::AfterPredict(VectorHandler& X,
    	calls->after_predict(this, X, XP);
 }
 
-void 
-LoadableElem::Update(const VectorHandler& XCurr, 
+void
+LoadableElem::Update(const VectorHandler& XCurr,
 		     const VectorHandler& XPrimeCurr)
 {
    	ASSERT(calls->update != NULL);
    	calls->update(this, XCurr, XPrimeCurr);
 }
 
-void 
+void
 LoadableElem::AfterConvergence(const VectorHandler& X,
 		const VectorHandler& XP)
 {
@@ -651,21 +596,21 @@ LoadableElem::AfterConvergence(const VectorHandler& X,
    	calls->after_convergence(this, X, XP);
 }
 
-unsigned int 
+unsigned int
 LoadableElem::iGetInitialNumDof(void) const
 {
    	ASSERT(calls->i_get_initial_num_dof != NULL);
    	return calls->i_get_initial_num_dof(this);
 }
 
-void 
+void
 LoadableElem::InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 {
    	ASSERT(calls->initial_work_space_dim != NULL);
    	calls->initial_work_space_dim(this, piNumRows, piNumCols);
 }
 
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 LoadableElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			    const VectorHandler& XCurr)
 {
@@ -673,22 +618,22 @@ LoadableElem::InitialAssJac(VariableSubMatrixHandler& WorkMat,
    	return calls->initial_ass_jac(this, WorkMat, XCurr);
 }
 
-SubVectorHandler& 
-LoadableElem::InitialAssRes(SubVectorHandler& WorkVec, 
+SubVectorHandler&
+LoadableElem::InitialAssRes(SubVectorHandler& WorkVec,
 			    const VectorHandler& XCurr)
 {
    	ASSERT(calls->initial_ass_res != NULL);
    	return calls->initial_ass_res(this, WorkVec, XCurr);
 }
 
-void 
+void
 LoadableElem::SetInitialValue(VectorHandler& X)
-{   
+{
    	ASSERT(calls->set_initial_value != NULL);
    	calls->set_initial_value(this, X);
 }
 
-void 
+void
 LoadableElem::SetValue(DataManager *pDM,
 		VectorHandler& X, VectorHandler& XP,
 		SimulationEntity::Hints *ph)
@@ -697,21 +642,21 @@ LoadableElem::SetValue(DataManager *pDM,
    	calls->set_value(this, pDM, X, XP, ph);
 }
 
-unsigned int 
+unsigned int
 LoadableElem::iGetNumPrivData(void) const
 {
    	ASSERT(calls->i_get_num_priv_data != NULL);
    	return calls->i_get_num_priv_data(this);
 }
 
-unsigned int 
+unsigned int
 LoadableElem::iGetPrivDataIdx(const char *s) const
 {
    	ASSERT(calls->i_get_priv_data_idx != NULL);
    	return calls->i_get_priv_data_idx(this, s);
 }
 
-doublereal 
+doublereal
 LoadableElem::dGetPrivData(unsigned int i) const
 {
    	ASSERT(calls->d_get_priv_data != NULL);
@@ -731,39 +676,7 @@ LoadableElem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 	return calls->get_connected_nodes(this, connectedNodes);
 }
 
-/* Adams output stuff */
-unsigned int
-LoadableElem::iGetNumDummyParts(void) const
-{
-	ASSERT(calls->i_get_num_dummy_parts != NULL);
-	return calls->i_get_num_dummy_parts(this);
-}
-
-void
-LoadableElem::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const
-{
-	ASSERT(calls->get_dummy_part_pos != NULL);
-	return calls->get_dummy_part_pos(this, part, x, R);
-}
-
-void
-LoadableElem::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
-{
-	ASSERT(calls->get_dummy_part_vel != NULL);
-	return calls->get_dummy_part_vel(this, part, v, w);
-}
-
-#ifdef USE_ADAMS
-std::ostream&
-LoadableElem::WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part, unsigned int firstId) const
-{
-	ASSERT(calls->write_adams_dummy_part_cmd != NULL);
-	return calls->write_adams_dummy_part_cmd(this, out, part, firstId);
-}
-#endif /* USE_ADAMS */
-
-UserDefinedElem* 
+UserDefinedElem*
 LoadableElemRead::Read(unsigned int uLabel, const DofOwner* pDO,
 	DataManager* pDM, MBDynParser& HP) const
 {
@@ -794,4 +707,3 @@ LoadableElemRead::Read(unsigned int uLabel, const DofOwner* pDO,
 
    	return pEl;
 }
-

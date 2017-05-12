@@ -15,7 +15,7 @@
 % This program is free software; you can redistribute it and/or modify
 % it under the terms of the GNU General Public License as published by
 % the Free Software Foundation (version 2 of the License).
-% 
+%
 %
 % This program is distributed in the hope that it will be useful,
 % but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -76,7 +76,7 @@ Version
 
 \chapter{Introduction}
 This document describes how to download, build, install and execute
-MBDyn --- MultiBody Analysis program, a suite of tools 
+MBDyn --- MultiBody Analysis program, a suite of tools
 for multibody/multidisciplinary analysis of complex systems.
 
 For any question or problem, to fix typos, bugs, for comments and
@@ -111,7 +111,7 @@ The package can be downloaded in source form from
 \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/}}{http://www.aero.polimi.it/\~{}mbdyn/}
 \end{center}
 
-Binary releases and snapshots are also available for Windows 2000/XP at 
+Binary releases and snapshots are also available for Windows 2000/XP at
 \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}masarati/Download/mbdyn/}}{http://www.aero.polimi.it/~masarati/Download/mbdyn/},
 compiled with Cygwin (see
 \htmladdnormallink{\kw{http://www.cygwin.com/}}{http://www.cygwin.com/})
@@ -119,7 +119,7 @@ and thus require \kw{cygltdl-3.dll};
 they are provided to Windows users to save them the burden of installing
 Cygwin (very easy and straightforward, though) and to compile a package
 under an unfamiliar environment.
-However, no support is provided for those builds, unless problems 
+However, no support is provided for those builds, unless problems
 are easily identifiable as related to the sources and not to the OS,
 and they impact the UN*X version as well.
 
@@ -128,7 +128,7 @@ and correctly detected by \kw{configure}.
 
 \section{Mathematical Utilities}
 MBDyn may exploit the availability of some mathematical utilities;
-neither of them is required for a basic compilation, but they may 
+neither of them is required for a basic compilation, but they may
 be useful or required for specific features.
 
 \subsection{ATLAS}\label{sec:DOWNLOAD:NUMERICAL:ATLAS}
@@ -146,7 +146,7 @@ This set of functions is packed into an archive called \kw{liblapack.a},
 so in typical installations it may shadow complete implementations
 of the Lapack package.
 A useful ``trick'' to have a complete Lapack installation that exploits
-ATLAS performances where available is described in 
+ATLAS performances where available is described in
 \htmladdnormallink{\kw{http://math-atlas.sourceforge.net/errata.html\#completelp}}{http://math-atlas.sourceforge.net/errata.html\#completelp}.
 The essential instructions are reported below, assuming that
 \kw{\$ATLAS} and \kw{\$LAPACK} respectively are the paths to your ATLAS
@@ -179,20 +179,20 @@ MBDyn may use a variety of linear solvers
 \subsection{Naive}
 The Naive solver is also native.
 It is especially meant for medium size problems (between 100 and 1000
-unknowns) and is essentially a sparse solver optimized for speed 
+unknowns) and is essentially a sparse solver optimized for speed
 rather than memory usage.
 
 \subsection{Y12}
 The Y12 solver is also built-in.
-the MBDyn Project distributes the Y12 library 
-\textbf{AS IS} and \textbf{WITHOUT ANY WARRANTY} as part 
+the MBDyn Project distributes the Y12 library
+\textbf{AS IS} and \textbf{WITHOUT ANY WARRANTY} as part
 of the source code, with no copyright statement and no license.
 Of course credits go to the original Authors:
-Zahari Zlatev, Jerzy Wasniewski, and Kjeld Schaumburg, 
-Comp.\ Sci., Math.\ Inst., University of Aarhus, 
+Zahari Zlatev, Jerzy Wasniewski, and Kjeld Schaumburg,
+Comp.\ Sci., Math.\ Inst., University of Aarhus,
 Ny Munkegade, DK 8000 Aarhus.
 This solver is recommended for moderate to large problems,
-if Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK}) 
+if Umfpack (see Section~\ref{sec:DOWNLOAD:SOLVERS:UMFPACK})
 is not available.
 
 \subsection{Umfpack}\label{sec:DOWNLOAD:SOLVERS:UMFPACK}
@@ -320,8 +320,6 @@ Specific options (from \kw{configure -{}-help}):
   --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco) (auto)
   --enable-multithread    enable multithread solution (no)
-  --enable-adams          enable MSC.ADAMS output (no)
-  --enable-motionview     enable Altair's Motion View output (no)
   --with-tcl              with tcl interpreters (auto)
   --with-libf2c[={f2c|g2c}] with f2c library (auto)
   --with-fs[={unix|dos}]  filesystem type (unix)
@@ -368,13 +366,13 @@ Essentially, a working \kw{-lpthread} library and a POSIX compliant
 \kw{pthread.h} header must be available.
 Currently, only the SuperLU sparse threaded solver is available;
 it is experimental.
-A threaded implementation of the built-in \kw{naive} sparse solver 
+A threaded implementation of the built-in \kw{naive} sparse solver
 is under development.
 
 \subsection{Schur Parallel Solver}
 The Schur parallel solver is enabled by using the switch
 \kw{-{}-enable-schur}.
-It requires a working MPI library with the \kw{ch} driver 
+It requires a working MPI library with the \kw{ch} driver
 and the C++ interface, and a partitioning library.
 The MPI library is selected by the switch \kw{-{}-with-mpi},
 which allows to specify the value \kw{pmpi} if the profiling
@@ -395,7 +393,7 @@ The real-time simulator is enabled by using the switch
 \kw{-{}-with-rtai}, which essentially detects the availability
 of the mandatory headers of the GNU/Linux Real-Time Application
 Interface.
-These headers changed between 2.4.13 and 3.X; both versions 
+These headers changed between 2.4.13 and 3.X; both versions
 are automatically detected.
 
 \chapter{Installing}
@@ -418,7 +416,7 @@ that is available under \kw{contrib/}.
 \chapter{Troubleshooting}
 
 \chapter{HOWTOs}
-This chapter contains mini-howtos about typical significant 
+This chapter contains mini-howtos about typical significant
 configurations of MBDyn as performed by the developers.
 Feel free to contribute your own if you had to do any unusual
 configuring to meet special needs.
@@ -444,8 +442,8 @@ of the directory plus the language-specific extension; this should be
 	\item C++: \kw{module-name.cc};
 	\item Fortran 77: \kw{module-name.f}.
 \end{itemize}
-\item the building of each module must be explicitly enabled; 
-this requires to configure with \kw{{-}{-}with-module=list}, 
+\item the building of each module must be explicitly enabled;
+this requires to configure with \kw{{-}{-}with-module=list},
 providing a list of the module names (without the leading \kw{module-}).
 \end{itemize}
 For example, to enable run-time loading and to build the \kw{wheel2} module,
@@ -461,7 +459,7 @@ Currently, only the \kw{wheel2} module can be statically built
 into MBDyn; this feature will require some reworking.
 
 Run-time loading of dynamic modules is known to work on any flavor
-of GNU/Linux on X86/X86\_64 and on Windows using Cygwin, when compiled 
+of GNU/Linux on X86/X86\_64 and on Windows using Cygwin, when compiled
 with gcc.
 It may work on other architectures and with other compilers, but it has
 not been tested by, nor reported to, the Developers.
@@ -471,7 +469,7 @@ not been tested by, nor reported to, the Developers.
 This section describes how the Schur parallel solver available
 within the MBDyn package has been successfully compiled and executed
 on a dual Athlon SMP machine.
-By no means it is intended to suggest how the related packages 
+By no means it is intended to suggest how the related packages
 should be built for other purposes, nor it may represent a replacement
 for the original build and install procedures.
 Please refer to the documentation available with each package
@@ -508,7 +506,7 @@ on each machine; in my case \kw{<arch>} is LINUX (more details in
 
 \paragraph{Metis}
 \begin{itemize}
-\item download XXX from 
+\item download XXX from
 \htmladdnormallink{\kw{http://www-users.cs.umn.edu/\~{}karypis/metis/metis/}}{http://www-users.cs.umn.edu/~karypis/metis/metis/}
 \item untar it in a temporary directory
 \item apply the patch \kw{metis-namespace-cleanup.patch} from \\
@@ -549,11 +547,11 @@ by defining
 \end{itemize}
 
 \paragraph{Run It!} \mbox{} \\
-To test the system, one needs a test input file; the example 
+To test the system, one needs a test input file; the example
 \kw{cantilever2} from
 \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}}{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}
 should do the trick.
-The input file does not need any specific change, unless special 
+The input file does not need any specific change, unless special
 features are required.
 To run it on an SMP machine, simply execute
 \begin{verbatim}
@@ -565,7 +563,7 @@ and \kw{/tmp/cantilever2.1.*} with the outputs from processes 0 and 1.
 \section{Real-Time Simulator}
 This section describes how the Real-Time simulator available
 within the MBDyn package has been successfully compiled and executed.
-By no means it is intended to suggest how the related packages 
+By no means it is intended to suggest how the related packages
 should be built for other purposes, nor it may represent a replacement
 for the original build and install procedures.
 Please refer to the documentation available with each package
@@ -589,7 +587,7 @@ Software requirements:
 \item untar the package in a temporary directory
 \item configure the package with
 \begin{verbatim}
-$ ./configure 
+$ ./configure
 \end{verbatim}
 \item \kw{make} the package
 \item \kw{make install}
@@ -614,7 +612,7 @@ by defining
 \end{itemize}
 
 \paragraph{Run It!} \mbox{} \\
-To test the system, one needs a test input file; the example 
+To test the system, one needs a test input file; the example
 \kw{RT-MBDyn/pendulum} from
 \htmladdnormallink{\kw{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}}{http://www.aero.polimi.it/\~{}mbdyn/documentation/examples/}
 should do the trick.
@@ -628,7 +626,7 @@ Simply execute
 \label{sec:SimulinkInterface}
 This section describes how the Simulink Interface available
 within the MBDyn package has been successfully compiled and executed.
-By no means it is intended to suggest how the related packages 
+By no means it is intended to suggest how the related packages
 should be built for other purposes, nor it may represent a replacement
 for the original build and install procedures.
 Please refer to the documentation available with each package
@@ -654,23 +652,23 @@ Software requirements:
 \item untar it in a temporary directory
 \item configure MBDyn by running
 \begin{verbatim}
-    $ ./configure 
+    $ ./configure
 \end{verbatim}
 \item \kw{make} the package
 \item \kw{make install} the package
-\item in directory \kw{contrib/SimulinkInterface}, edit the file 
+\item in directory \kw{contrib/SimulinkInterface}, edit the file
 \kw{Makefile} such that the appropriate \kw{mex} compiler is used;
 in my system it is \kw{/opt/matlab/bin/mex}
 \item \kw{make} the package
 \end{itemize}
 
 \paragraph{Run It!} \mbox{} \\
-To test the system, one needs a test input file; the example 
-\kw{pendulum} in the subdirectory \kw{examples} 
+To test the system, one needs a test input file; the example
+\kw{pendulum} in the subdirectory \kw{examples}
 should do the trick.
 \begin{itemize}
 \item start Matlab
-\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's 
+\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's
 path, by executing
 \begin{verbatim}
     > path('<path/to>/contrib/SimulinkInterface', path);
@@ -684,7 +682,7 @@ path, by executing
 some times, the first run fails; we're still trying to track that down.
 In case, just try again...
 \item for more details on creating your own model, or on editing
-the interface parameters, refer to the \kw{README} 
+the interface parameters, refer to the \kw{README}
 in \kw{contrib/SimulinkInterface}
 \end{itemize}
 
@@ -692,7 +690,7 @@ in \kw{contrib/SimulinkInterface}
 \label{sec:ScicosInterface}
 This section describes how the Scicos \cite{SCICOS} interface available
 within the MBDyn package has been successfully compiled and executed.
-By no means it is intended to suggest how the related packages 
+By no means it is intended to suggest how the related packages
 should be built for other purposes, nor it may represent a replacement
 for the original build and install procedures.
 Please refer to the documentation available with each package
@@ -723,23 +721,23 @@ Software requirements:
 \item untar it in a temporary directory
 \item configure MBDyn by running
 \begin{verbatim}
-    $ ./configure 
+    $ ./configure
 \end{verbatim}
 \item \kw{make} the package
 \item \kw{make install} the package
-\item in directory \kw{contrib/SimulinkInterface}, edit the file 
+\item in directory \kw{contrib/SimulinkInterface}, edit the file
 \kw{Makefile} such that the appropriate \kw{mex} compiler is used;
 in my system it is \kw{/opt/matlab/bin/mex}
 \item \kw{make} the package
 \end{itemize}
 
 \paragraph{Run It!} \mbox{} \\
-To test the system, one needs a test input file; the example 
-\kw{pendulum} in the subdirectory \kw{examples} 
+To test the system, one needs a test input file; the example
+\kw{pendulum} in the subdirectory \kw{examples}
 should do the trick.
 \begin{itemize}
 \item start Matlab
-\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's 
+\item add the subdirectory \kw{contrib/SimulinkInterface} to Matlab's
 path, by executing
 \begin{verbatim}
     > path('<path/to>/contrib/SimulinkInterface', path);
@@ -753,7 +751,7 @@ path, by executing
 some times, the first run fails; we're still trying to track that down.
 In case, just try again...
 \item for more details on creating your own model, or on editing
-the interface parameters, refer to the \kw{README} 
+the interface parameters, refer to the \kw{README}
 in \kw{contrib/SimulinkInterface}
 \end{itemize}
 

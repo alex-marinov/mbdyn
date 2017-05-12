@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -62,7 +62,6 @@
 extern const char* psElemNames[];
 extern const char* psReadControlElems[];
 extern const char* psReadElemsElems[];
-extern const char* psAdamsElemCode[];
 
 /* classi dichiarate */
 class ElemWithDofs;
@@ -84,8 +83,8 @@ private:
 	/*
 	 * Tipi di Elem. Lasciare sempre UNKNOWN = -1, cosi' il primo elemento
 	 * ha tipo zero, e l'ultima entry dell'enum, LAST...TYPE, e' uguale
-	 * al numero di tipi definiti, quindi puo' essere usata come costante nel 
-	 * dimensionamento degli arrays e come flag di fine tipi. 
+	 * al numero di tipi definiti, quindi puo' essere usata come costante nel
+	 * dimensionamento degli arrays e come flag di fine tipi.
 	 */
 
 public:
@@ -96,9 +95,9 @@ public:
 		// but after air properties
 		AIRPROPERTIES = 0,
 		INDUCEDVELOCITY,
-	
+
 		AUTOMATICSTRUCTURAL,
-	
+
 		GRAVITY,
 		BODY,
 		JOINT,
@@ -112,11 +111,11 @@ public:
 
 		ELECTRICBULK,
 		ELECTRIC,
-	
+
 		THERMAL,
 
 		HYDRAULIC,
-	
+
 		BULK,
 		LOADABLE,
 		DRIVEN,
@@ -138,7 +137,7 @@ public:
   	public:
  		ChangedEquationStructure(MBDYN_EXCEPT_ARGS_DECL) : MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
 	};
- 
+
 public:
 	Elem(unsigned int uL, flag fOut);
 	virtual ~Elem(void);
@@ -164,11 +163,11 @@ public:
 	/* funzioni di servizio */
 
 	/* Il metodo iGetNumDof() serve a ritornare il numero di gradi di liberta'
-	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a 
+	 * propri che l'elemento definisce. Non e' virtuale in quanto serve a
 	 * ritornare 0 per gli elementi che non possiedono gradi di liberta'.
-	 * Viene usato nella costruzione dei DofOwner e quindi deve essere 
-	 * indipendente da essi. In genere non comporta overhead in quanto il 
-	 * numero di dof aggiunti da un tipo e' una costante e non richede dati 
+	 * Viene usato nella costruzione dei DofOwner e quindi deve essere
+	 * indipendente da essi. In genere non comporta overhead in quanto il
+	 * numero di dof aggiunti da un tipo e' una costante e non richede dati
 	 * propri.
 	 * Il metodo pGetDofOwner() ritorna il puntatore al DofOwner dell'oggetto.
 	 * E' usato da tutti quelli che agiscono direttamente sui DofOwner.
@@ -194,13 +193,13 @@ public:
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) = 0;
 
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr) = 0;
 
@@ -220,24 +219,15 @@ public:
 	/* inverse dynamics residual assembly */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr,
 		const VectorHandler& XPrimePrimeCurr,
 		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
-	
+
 	/* returns the number of connected nodes */
 	virtual inline int GetNumConnectedNodes(void) const;
 	virtual inline void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
 
-	/* Adams output stuff */
-	virtual inline unsigned int iGetNumDummyParts(void) const;
-	virtual inline void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	virtual inline void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-
-#ifdef USE_ADAMS
-	virtual inline std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part, unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
 inline int
@@ -248,39 +238,13 @@ Elem::GetNumConnectedNodes(void) const
 
 	return connectedNodes.size();
 }
- 
+
 inline void
 Elem::GetConnectedNodes(std::vector<const Node *>& connectedNodes) const
 {
 	connectedNodes.resize(0);
 }
 
-/* Adams output stuff */
-inline unsigned int
-Elem::iGetNumDummyParts(void) const
-{
-	return 0;
-}
-
-inline void
-Elem::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-inline void
-Elem::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-
-#ifdef USE_ADAMS
-inline std::ostream&
-Elem::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const
-{
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-}
-#endif /* USE_ADAMS */
 
 Elem::Type str2elemtype(const char *const s);
 
@@ -330,9 +294,9 @@ public:
 	virtual ~SubjectToInitialAssembly(void);
 
 	/* Numero di gradi di liberta' definiti durante l'assemblaggio iniziale
-	 * e' dato dai gradi di liberta' soliti piu' le loro derivate necessarie; 
+	 * e' dato dai gradi di liberta' soliti piu' le loro derivate necessarie;
 	 * tipicamente per un vincolo di posizione il numero di dof raddoppia, in
-	 * quanto vengono derivate tutte le equazioni, mentre per un vincolo di 
+	 * quanto vengono derivate tutte le equazioni, mentre per un vincolo di
 	 * velocita' rimane inalterato. Sono possibili casi intermedi per vincoli
 	 * misti di posizione e velocita' */
 	virtual unsigned int iGetInitialNumDof(void) const = 0;
@@ -341,16 +305,16 @@ public:
 	 * conto del numero di dof che l'elemento definisce in questa fase e dei
 	 * dof dei nodi che vengono utilizzati. Sono considerati dof indipendenti
 	 * la posizione e la velocita' dei nodi */
-	virtual void InitialWorkSpaceDim(integer* piNumRows, 
+	virtual void InitialWorkSpaceDim(integer* piNumRows,
 		integer* piNumCols) const = 0;
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr) = 0;
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler& 
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr) = 0;
 };
@@ -360,7 +324,7 @@ public:
 
 /* InitialAssemblyElem - begin */
 
-class InitialAssemblyElem 
+class InitialAssemblyElem
 : virtual public Elem, public SubjectToInitialAssembly {
 public:
 	InitialAssemblyElem(unsigned int uL, flag fOut);
@@ -370,4 +334,3 @@ public:
 /* InitialAssemblyElem - end */
 
 #endif // ELEM_H
-

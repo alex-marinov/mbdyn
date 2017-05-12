@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -38,7 +38,7 @@
  * <min>	is increased when loadable elements data structure
  * 		changes (e.g. a new call is added)
  * <fix>	is increased when minor fixes are added to loadable
- * 		elements handling, which do not involve data 
+ * 		elements handling, which do not involve data
  * 		structure changes.
  */
 
@@ -65,39 +65,39 @@
 
 /*
  * Dynamically loadable element
- * 
+ *
  * fornisce l'interfaccia ad un modulo a parte e compilato come shared library
  * che deve provvedere le funzioni desiderate dell'elemento, altrimenti
  * vengono usate funzioni di default.
  * Deve provvedere altresi' una routine di input che legge da MBDynParser i
- * dati richiesti dall'interno del costruttore e li mette in una struttura 
+ * dati richiesti dall'interno del costruttore e li mette in una struttura
  * di dati privati che l'elemento vede come un (void *) .
  * Le funzioni da fornire seguono uno schema di denominazione standard.
  * Al momento: un modulo contiene un solo elemento, le funzioni
  * hanno il nome in "stile C", ovvero AssRes diventa ass_res.
  * Gli argomenti sono gli stessi della funzione della classe Elem,
  * ma sono preceduti da un puntatore all'elemento stesso:
- * 
- *     LoadableElem::AssRes(SubVectorHandler&, 
- *              	    doublereal, 
+ *
+ *     LoadableElem::AssRes(SubVectorHandler&,
+ *              	    doublereal,
  *      		    const VectorHandler&,
  *      		    const VectorHandler&)
- * 
+ *
  * diventa
- * 
+ *
  *     ass_res(LoadableElem*,
- *             SubVectorHandler&, 
- *             doublereal, 
+ *             SubVectorHandler&,
+ *             doublereal,
  *             const VectorHandler&,
  *             const VectorHandler&)
- * 
+ *
  * La funzione di ingresso dati e':
- * 
+ *
  *     void *read(LoadableElem*,
  *                DataManager*,
  *                MBDynParser&)
- * 
- * in questo modo, tramite il puntatore all'elemento, si ha accesso 
+ *
+ * in questo modo, tramite il puntatore all'elemento, si ha accesso
  * a tutti i dati dell'elemento;
  * rimane da studiare la questione dei diritti di accesso.
  */
@@ -111,7 +111,7 @@ typedef DofOrder::Order (* p_set_dof)(const LoadableElem*, unsigned int);
 typedef void (* p_output)(const LoadableElem*, OutputHandler&);
 typedef std::ostream& (* p_restart)(const LoadableElem*, std::ostream&);
 typedef void (* p_work_space_dim)(const LoadableElem*, integer*, integer*);
-typedef VariableSubMatrixHandler& 
+typedef VariableSubMatrixHandler&
 (* p_ass_jac)(LoadableElem*, VariableSubMatrixHandler&, doublereal,
 		const VectorHandler&, const VectorHandler&);
 typedef void
@@ -122,23 +122,23 @@ typedef SubVectorHandler&
 (* p_ass_res)(LoadableElem*, SubVectorHandler&, doublereal,
 		const VectorHandler&, const VectorHandler&);
 typedef void
-(* p_before_predict)(const LoadableElem* pEl, 
+(* p_before_predict)(const LoadableElem* pEl,
 		VectorHandler& X, VectorHandler& XP,
 		VectorHandler& XPrev, VectorHandler& XPPrev);
 typedef void
-(* p_after_predict)(const LoadableElem* pEl, 
+(* p_after_predict)(const LoadableElem* pEl,
 		VectorHandler& X, VectorHandler& XP);
 typedef void
-(* p_update)(LoadableElem* pEl, 
+(* p_update)(LoadableElem* pEl,
 		const VectorHandler& X, const VectorHandler& XP);
 typedef void
-(* p_after_convergence)(const LoadableElem* pEl, 
+(* p_after_convergence)(const LoadableElem* pEl,
     		const VectorHandler& X, const VectorHandler& XP);
 typedef unsigned int (* p_i_get_initial_num_dof)(const LoadableElem*);
 typedef void
 (* p_initial_work_space_dim)(const LoadableElem*, integer*, integer*);
 typedef VariableSubMatrixHandler&
-(* p_initial_ass_jac)(LoadableElem*, VariableSubMatrixHandler &, 
+(* p_initial_ass_jac)(LoadableElem*, VariableSubMatrixHandler &,
 		const VectorHandler&);
 typedef SubVectorHandler&
 (* p_initial_ass_res)(LoadableElem*, SubVectorHandler&, const VectorHandler&);
@@ -157,20 +157,6 @@ typedef void
 (* p_get_connected_nodes)(const LoadableElem*,
 		std::vector<const Node *>& connectedNodes);
 typedef void (* p_destroy)(LoadableElem*);
-
-/* Adams output stuff -- added with 1.2.0 */
-typedef unsigned int
-(* p_i_get_num_dummy_parts)(const LoadableElem* pEl);
-typedef void
-(* p_get_dummy_part_pos)(const LoadableElem* pEl, unsigned int part,
-		Vec3& x, Mat3x3& R);
-typedef void
-(* p_get_dummy_part_vel)(const LoadableElem* pEl, unsigned int part,
-		Vec3& v, Vec3& w);
-/* only used #ifdef USE_ADAMS */
-typedef std::ostream&
-(* p_write_adams_dummy_part_cmd)(const LoadableElem* pEl,
-		std::ostream& out, unsigned int part, unsigned int firstId);
 
 /*
  * Struttura che contiene le chiamate alle funzioni del modulo;
@@ -231,12 +217,6 @@ struct LoadableCalls {
 
 	p_destroy			destroy;
 
-	/* Adams output stuff -- added with 1.2.0 */
-	p_i_get_num_dummy_parts		i_get_num_dummy_parts;
-	p_get_dummy_part_pos		get_dummy_part_pos;
-	p_get_dummy_part_vel		get_dummy_part_vel;
-	/* only used #ifdef USE_ADAMS */
-	p_write_adams_dummy_part_cmd	write_adams_dummy_part_cmd;
 };
 
 class LoadableElem :
@@ -253,25 +233,25 @@ protected:
 
 	void GetCalls(MBDynParser& HP);
 	void BindCalls(DataManager* pDM, MBDynParser& HP);
-   
+
 public:
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
 		     DataManager* pDM, MBDynParser& HP);
    	LoadableElem(unsigned int uLabel, const DofOwner* pDO,
 			const LoadableCalls *c,
 			DataManager* pDM, MBDynParser& HP);
-   	~LoadableElem(void); 
-   
+   	~LoadableElem(void);
+
    	inline void* pGetData(void) const;
-   
-   	virtual unsigned int iGetNumDof(void) const;   
+
+   	virtual unsigned int iGetNumDof(void) const;
    	virtual DofOrder::Order GetDofType(unsigned int i) const;
-   
+
    	virtual void Output(OutputHandler& OH) const;
    	virtual std::ostream& Restart(std::ostream& out) const;
-   
+
    	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-   	virtual VariableSubMatrixHandler& 
+   	virtual VariableSubMatrixHandler&
      	AssJac(VariableSubMatrixHandler& WorkMat,
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
@@ -283,27 +263,27 @@ public:
 	       const VectorHandler& XPrimeCurr);
    	virtual SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 					 doublereal dCoef,
-					 const VectorHandler& XCurr, 
+					 const VectorHandler& XCurr,
 					 const VectorHandler& XPrimeCurr);
 
    	virtual void BeforePredict(VectorHandler& X,
 				   VectorHandler& XP,
 				   VectorHandler& XPrev,
-				   VectorHandler& XPPrev) const;   
+				   VectorHandler& XPPrev) const;
    	virtual void AfterPredict(VectorHandler& X,
-				  VectorHandler& XP);   
-	virtual void Update(const VectorHandler& XCurr, 
+				  VectorHandler& XP);
+	virtual void Update(const VectorHandler& XCurr,
                        	    const VectorHandler& XPrimeCurr);
    	virtual void AfterConvergence(const VectorHandler& X,
-			const VectorHandler& XP);   
+			const VectorHandler& XP);
 
    	virtual unsigned int iGetInitialNumDof(void) const;
-   	virtual void 
+   	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
    	VariableSubMatrixHandler&
-	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		      const VectorHandler& XCurr);
-   	SubVectorHandler& 
+   	SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
    	virtual void SetInitialValue(VectorHandler& X);
 
@@ -316,24 +296,17 @@ public:
    	virtual doublereal dGetPrivData(unsigned int i) const;
 
 	/* *******PER IL SOLUTORE BLOCK JACOBI-BROYDEN******** */
-     	/* 
+     	/*
 	 * Fornisce il tipo e la label dei nodi che sono connessi all'elemento
-	 * utile per l'assemblaggio della matrice di connessione fra i dofs 
+	 * utile per l'assemblaggio della matrice di connessione fra i dofs
 	 */
      	virtual int GetNumConnectedNodes(void) const;
 	virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
      	/* ************************************************ */
 
-	/* Adams output stuff */
-	unsigned int iGetNumDummyParts(void) const;
-	void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS
-	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
-inline void* 
+inline void*
 LoadableElem::pGetData(void) const
 {
    	return priv_data;
@@ -350,9 +323,8 @@ struct LoadableElemRead : public UserDefinedElemRead {
 		DataManager* const pDM, MBDynParser& HP) const;
 };
 
-extern Elem* 
-ReadLoadable(DataManager* pDM, MBDynParser& HP, 
+extern Elem*
+ReadLoadable(DataManager* pDM, MBDynParser& HP,
      const DofOwner* pDO, unsigned int uLabel);
 
 #endif // LOADABLE_H
-

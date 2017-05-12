@@ -627,7 +627,7 @@ DataManager::DofOwnerInit(void)
 							<< psNodeNames[real_i->GetNodeType()]
 							<< "(" << real_i->GetLabel() << ")" << std::endl;
 					}
-	
+
 					nodemap::iterator n = connectedElems[real_i->GetNodeType()].find(real_i);
 					if (n == connectedElems[real_i->GetNodeType()].end()) {
 						connectedElems[real_i->GetNodeType()][real_i] = new elmap;
@@ -1274,8 +1274,8 @@ DataManager::InitialJointAssembly(void)
 		{
 			silent_cout("Jacobian:" << std::endl
 					<< *pMatHdl);
-		}		
-		
+		}
+
 		/* Fattorizza e risolve con jacobiano e residuo appena calcolati */
 		try {
 			pSM->Solve();
@@ -1315,7 +1315,7 @@ DataManager::InitialJointAssembly(void)
 
 			silent_cout(std::endl);
                 }
-                
+
 		/* Aggiorno la soluzione */
 		if (dEpsilon != 1.) {
 			*pSolHdl *= dEpsilon;
@@ -1485,7 +1485,7 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 
 		OutputHandler::AttrValVec attrs2(2);
 		attrs2[0] = OutputHandler::AttrVal("type", "integer");
-		attrs2[1] = OutputHandler::AttrVal("description", 
+		attrs2[1] = OutputHandler::AttrVal("description",
 				"timestep index of eigensolution");
 
 		Var_Eig_lStep = OutHdl.CreateVar("eig.step", ncInt, attrs2, dim);
@@ -1506,8 +1506,8 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 		Var_Eig_dCoef = OutHdl.CreateVar("eig.dCoef", ncDouble, attrs3, dim);
 
 		OutputHandler::NcDimVec dim2(2);
-		integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size(); 
-		
+		integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size();
+
 		dim2[0] = dim[0];
 		dim2[1] = OutHdl.CreateDim("eig_iIdxSize", iNumNodes);
 
@@ -1552,7 +1552,7 @@ DataManager::OutputEigParams(const doublereal& dTime,
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 
 		long lStep = OutHdl.GetCurrentStep();
-		
+
 		Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
 		Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
 		Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
@@ -1562,7 +1562,7 @@ DataManager::OutputEigParams(const doublereal& dTime,
 }
 
 void
-DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA, 
+DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 			const MatrixHandler* pMatB,
 			const unsigned uCurrEigSol,
 			const int iMatrixPrecision)
@@ -1626,7 +1626,7 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 				out << ";" << std::endl;
 			}
 		}
-		
+
 		out
 			<< "% F/xPrime - dCoef * F/x" << std::endl
 			<< "Aminus" << " = [";
@@ -1658,7 +1658,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
-		
+
 		if (iMatrixPrecision) {
 			// 7 = number of characters requested by scientific notation
 			int iNewWidth = iMatrixPrecision + 7;
@@ -1680,7 +1680,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 
 		out << "];" << std::endl
 			<< "Aplus = spconvert(Aplus);" << std::endl;
-		
+
 		out
 			<< "% F/xPrime - dCoef *F/x" << std::endl
 			<< "Aminus" << " = [";
@@ -1745,12 +1745,12 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
 			}
 		}
-		
+
 	}
 #endif
 }
 
-void    
+void
 DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 	const MatrixHandler* pMatB,
 	const unsigned uCurrEigSol,
@@ -1761,7 +1761,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
-		
+
 		if (iMatrixPrecision) {
 			// 7 = number of characters requested by scientific notation
 			int iNewWidth = iMatrixPrecision + 7;
@@ -1783,7 +1783,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 
 		out << "];" << std::endl
 			<< "Aplus = spconvert(Aplus);" << std::endl;
-		
+
 		out
 			<< "% F/xPrime - dCoef *F/x" << std::endl
 			<< "Aminus" << " = [";
@@ -1803,7 +1803,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 
 		OutputHandler::NcDimVec dim2(2);
-		
+
 		std::stringstream dimname_ss;
 		dimname_ss << "eig_" << uCurrEigSol << "_Aplus_sp_iSize";
 
@@ -1837,7 +1837,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
 		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
-		
+
 		dimname_ss.str("");
 		dimname_ss.clear();
 		dimname_ss << "eig_" << uCurrEigSol << "_Aminus_sp_iSize";
@@ -1871,7 +1871,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
 			}
 		}
-		
+
 	}
 #endif
 }
@@ -1881,26 +1881,26 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 {
 	NodeContainerType::const_iterator i = NodeData[Node::STRUCTURAL].NodeContainer.begin();
 	NodeContainerType::const_iterator e = NodeData[Node::STRUCTURAL].NodeContainer.end();
-	
+
 	// no structural nodes!
 	if (i == e) {
 		return;
 	}
-	
+
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
-		
+
 		if (iResultsPrecision) {
 			// 7 = number of characters requested by scientific notation
 			int iNewWidth = iResultsPrecision + 7;
 			out.width(iNewWidth);
 			out.precision(iResultsPrecision);
 		}
-		
+
 		out
 			<< "% structural nodes labels" << std::endl
 			<< "labels = [" << std::endl;
-		
+
 		for (; i != e; ++i) {
 			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
 			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
@@ -1912,7 +1912,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 
 			out << pN->GetLabel() << ";" << std::endl;
 		}
-		
+
 		out << "];" << std::endl;
 
 		out
@@ -1930,7 +1930,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 
 			out << pN->iGetFirstIndex() << ";" << std::endl;
 		}
-		
+
 		out << "];" << std::endl;
 
 		out
@@ -1966,14 +1966,14 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 
-		/* start corner and count vector for NetCDF matrix output. 
+		/* start corner and count vector for NetCDF matrix output.
 		 * Since we are writing a matrix element-by-element, count will
 		 * always be (1, 1) and start will move to the desired place in the
 		 * matrix */
 		std::vector<long> start (2, 0);
 		start[0] = uCurrEigSol;
 		std::vector<long> count (2, 1);
-		
+
 		for (i = NodeData[Node::STRUCTURAL].NodeContainer.begin(); i != e; ++i) {
 			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
 			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
@@ -1983,7 +1983,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
 				continue;
 			}
-	
+
 			iNodeIndex = pSN->iGetFirstIndex();
 
 			Var_Eig_Idx->set_cur(&start[0]);
@@ -2022,11 +2022,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 	if (iEigenValues == 0)
 		return; // this allows to load the .m file into Matlab/Octave even
 			// if no eigenvalues have converged
-	
+
 	// alphar, alphai, beta
 	if (OutHdl.UseText(OutputHandler::EIGENANALYSIS)) {
 		std::ostream& out = OutHdl.Eigenanalysis();
-		
+
 		if (iResultsPrecision) {
 			// 7 = number of characters requested by scientific notation
 			int iNewWidth = iResultsPrecision + 7;
@@ -2078,11 +2078,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						} else {
 							iSign = 1;
 						}
-						
+
 						out
 							<< re << signs[iSign] << "i*" << im << ' ';
 						if (vOut[c]) {
-							out 
+							out
 								<< re << signs[1 - iSign] << "i*" << im << ' ';
 						}
 						c++;
@@ -2101,7 +2101,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 		// VR
-		out 
+		out
 			<< "% right eigenvectors" << std::endl
 			<< "VR = [" << std::endl;
 		for (integer r = 1; r <= iSize; r++) {
@@ -2149,7 +2149,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 		OutputHandler::NcDimVec dim_alpha(2);
-		
+
 		std::stringstream dimname_ss;
 		dimname_ss << "eig_" << uCurrEigSol << "_iNVec_out";
 
@@ -2163,7 +2163,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 		dim_alpha[0] = OutHdl.CreateDim(dimname_ss.str(), iNVecOut);
 		dim_alpha[1] = OutHdl.DimV3();
-		
+
 		OutputHandler::AttrValVec attrs3(3);
 		attrs3[0] = OutputHandler::AttrVal("units", "-");
 		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
@@ -2188,11 +2188,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 		OutputHandler::NcDimVec dim_v(3);
-		dim_v[0] = m_Dim_Eig_iComplex; 
+		dim_v[0] = m_Dim_Eig_iComplex;
 		dim_v[1] = dim_alpha[0];
 		dim_v[2] = m_Dim_Eig_iSize;
 
-		/* start corner and count vector for NetCDF matrix output. 
+		/* start corner and count vector for NetCDF matrix output.
 		 * Since we are writing a matrix element-by-element, count will
 		 * always be (1, 1, 1) and start will move to the desired place in the
 		 * matrix */
@@ -2205,14 +2205,14 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			attrs3[0] = OutputHandler::AttrVal("units", "-");
 			attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
 			attrs3[2] = OutputHandler::AttrVal("description", "VL - Left eigenvectors matrix");
-			
+
 			std::stringstream varname_ss;
 			varname_ss << "eig." << uCurrEigSol << ".VL";
 			Var_Eig_dVL = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
 
 			doublereal re;
 			doublereal im;
-			
+
 
 			for (integer r = 1; r <= iSize; r++) {
 				start[1] = 0;
@@ -2228,21 +2228,21 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 						re = (*pVL)(r, c); // see above comment
 						im = (c < iNVec) ? (*pVL)(r, c + 1) : 0.;
-						
+
 						// NetCDF indexing is zero-based!
 						start[0] = 0;	// real part in first "page" of VL
 						Var_Eig_dVL->set_cur(&start[0]);
 						Var_Eig_dVL->put(&re, &count[0]);
-						
+
 						start[0] = 1;	// imaginary part in second "page"
 						Var_Eig_dVL->set_cur(&start[0]);
 						Var_Eig_dVL->put(&im, &count[0]);
-						
+
 						start[1]++;
 
 						if (vOut[c]) {
 							im = -im;
-							
+
 							start[0] = 0;
 							Var_Eig_dVL->set_cur(&start[0]);
 							Var_Eig_dVL->put(&re, &count[0]);
@@ -2250,14 +2250,14 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 							start[0] = 1;
 							Var_Eig_dVL->set_cur(&start[0]);
 							Var_Eig_dVL->put(&im, &count[0]);
-							
+
 							start[1]++;
 						}
 						c++;
 					} else {
-						re = (*pVL)(r, c); 
+						re = (*pVL)(r, c);
 						im = 0.;
-						
+
 						start[0] = 0;
 						Var_Eig_dVL->set_cur(&start[0]);
 						Var_Eig_dVL->put(&re, &count[0]);
@@ -2265,23 +2265,23 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						start[0] = 1;
 						Var_Eig_dVL->set_cur(&start[0]);
 						Var_Eig_dVL->put(&im, &count[0]);
-						
+
 						start[1]++;
 					}
 				}
 			}
 		}
-		
+
 		// VR
 		attrs3[0] = OutputHandler::AttrVal("units", "-");
 		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
 		attrs3[2] = OutputHandler::AttrVal("description", "VR - Left eigenvectors matrix");
-		
+
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".VR";
 		Var_Eig_dVR = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
-	
+
 		doublereal re;
 		doublereal im;
 		for (integer r = 1; r <= iSize; r++) {
@@ -2290,7 +2290,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 				if (!vOut[c - 1]) {
 					continue;
 				}
-				
+
 				start[2] = r - 1;
 				if (I(c) != 0.) {
 					ASSERTMSG(c < iNVec, "partial eigenanalysis output: complex eigenvalue with real part of right eigenvector only");
@@ -2298,21 +2298,21 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 					re = VR(r, c); // see above comments
 					im = (c < iNVec) ? VR(r, c + 1) : 0.;
-					
+
 					// NetCDF indexing is zero-based!
 					start[0] = 0;	// real part in first "page" of VL
 					Var_Eig_dVR->set_cur(&start[0]);
 					Var_Eig_dVR->put(&re, &count[0]);
-						
+
 					start[0] = 1;	// imaginary part in second "page"
 					Var_Eig_dVR->set_cur(&start[0]);
 					Var_Eig_dVR->put(&im, &count[0]);
-			
+
 					start[1]++;
 
 					if (vOut[c]) {
 						im = -im;
-						
+
 						start[0] = 0;
 						Var_Eig_dVR->set_cur(&start[0]);
 						Var_Eig_dVR->put(&re, &count[0]);
@@ -2326,7 +2326,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 				} else {
 					re = VR(r, c);
 					im = 0.;
-					
+
 					start[0] = 0;
 					Var_Eig_dVR->set_cur(&start[0]);
 					Var_Eig_dVR->put(&re, &count[0]);
@@ -2400,24 +2400,6 @@ DataManager::Output(long lStep,
 	ElemOutput(OutHdl);
 
 	DriveOutput(OutHdl);
-
-#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
-	iOutputBlock++;
-#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
-
-#ifdef USE_ADAMS
-	/* Se richiesto, esegue l'output delle condizioni iniziali*/
-	if (bAdamsOutput()) {
-		AdamsResOutput(iOutputBlock, "DYNAMIC", "MBDyn");
-	}
-#endif /* USE_ADAMS */
-
-#ifdef USE_MOTIONVIEW
-	/* Se richiesto, esegue l'output delle condizioni iniziali*/
-	if (bMotionViewOutput()) {
-		MotionViewResOutput(iOutputBlock, "DYNAMIC", "MBDyn");
-	}
-#endif /* USE_MOTIONVIEW */
 
 	OutHdl.IncCurrentStep();
 #ifdef USE_NETCDF
@@ -2626,7 +2608,7 @@ DataManager::PrintResidual(const VectorHandler& Res, integer iIterCnt) const
 	integer iSize = Res.iGetSize();
  	for (int iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Eq  " << std::setw(8)
-			<< iTmpCnt << ": " 
+			<< iTmpCnt << ": "
 			<< std::setw(20) << Res(iTmpCnt)
 			<< " " << Dofs[iTmpCnt - 1].EqDescription
 			<< std::endl);
@@ -2642,7 +2624,7 @@ DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 	integer iSize = Sol.iGetSize();
  	for (integer iTmpCnt = 1; iTmpCnt <= iSize; iTmpCnt++) {
     		silent_cout("Dof " << std::setw(8)
-			<< iTmpCnt << ": " 
+			<< iTmpCnt << ": "
 			<< std::setw(20) << Sol(iTmpCnt)
 			<< " " << Dofs[iTmpCnt - 1].Description
 			<< std::endl);

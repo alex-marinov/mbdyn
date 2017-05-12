@@ -100,8 +100,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@LIBS@ \
-@THREAD_LIBS@
+@LIBS@
 
 itertest_SOURCES = itertest.cc
 itertest_LDADD = \
@@ -119,8 +118,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@LIBS@ \
-@THREAD_LIBS@
+@LIBS@
 
 dgeequtest_SOURCES = dgeequtest.cc
 dgeequtest_LDADD = \
@@ -138,8 +136,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@LIBS@ \
-@THREAD_LIBS@
+@LIBS@
 
 subtest_SOURCES = subtest.cc
 subtest_LDADD = \
@@ -157,8 +154,7 @@ libmbmath.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@LIBS@ \
-@THREAD_LIBS@
+@LIBS@
 
 gradienttest_SOURCES = gradienttest.cc
 gradienttest_LDADD = \
@@ -177,7 +173,6 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@THREAD_LIBS@ \
 @RT_LIBS@
 
 matvectest_SOURCES = matvectest.cc matvectestfor.f
@@ -197,7 +192,6 @@ libmbmath.la \
 @BLAS_LIBS@ \
 @FCLIBS@ \
 @LIBS@ \
-@THREAD_LIBS@ \
 @RT_LIBS@
 
 AM_CPPFLAGS = \

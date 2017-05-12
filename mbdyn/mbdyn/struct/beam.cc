@@ -1301,53 +1301,6 @@ Beam::pGetNode(unsigned int i) const
 }
 
 
-void
-Beam::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& r) const
-{
-	ASSERT(part == 1 || part == 2);
-	part--;
-
-	x = p[part];
-	r = R[part];
-}
-
-void
-Beam::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
-{
-	ASSERT(part == 1 || part == 2);
-	part--;
-
-	/* FIXME */
-	v = Zero3;
-	w = Zero3;
-}
-
-#ifdef USE_ADAMS
-std::ostream&
-Beam::WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const
-{
-	Vec3 xTmp[NUMNODES];
-
-	part--;
-
-	for (unsigned int i = part; i <= part+1; i++) {
-		xTmp[i] = pNode[i]->GetXCurr()+pNode[i]->GetRCurr()*f[i];
-	}
-
-	out << psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << 1+part << std::endl
-		<< firstId << " "
-		<< p[part] << " "
-		<< MatR2EulerAngles(R[part])*dRaDegr << " "
-		<< R[part].MulTV(xTmp[part]-p[part]) << " "
-		<< Zero3 /* MatR2EulerAngles(pNode[part]->GetRCurr())*dRaDegr */ << " "
-		<< R[part].MulTV(xTmp[1+part]-p[part]) << " "
-		<< Zero3 /* MatR2EulerAngles(pNode[1+part]->GetRCurr())*dRaDegr */
-		<< std::endl;
-
-	return out;
-}
-#endif /* USE_ADAMS */
-
 /* Beam - end */
 
 
@@ -1486,7 +1439,7 @@ ViscoElasticBeam::AssStiffnessMat(FullSubMatrixHandler& WMA,
 						+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN3P[iSez][i]*dsdxi[iSez]*dCoef))),
 					Mat3x3(MatCross, Omega[iSez]*(-dN3P[iSez][i]*dsdxi[iSez]*dCoef)));
 			AzPrimeTmp[iSez][i] = ERef[iSez]*AzPrimeTmp[iSez][i];
-	
+
 			/* Correggo per la rotazione da locale a globale */
 			AzTmp[iSez][i].SubMat12(Mat3x3(MatCross, Az[iSez].GetVec1()*(dN3[iSez][i]*dCoef)));
 			AzTmp[iSez][i].SubMat22(Mat3x3(MatCross, Az[iSez].GetVec2()*(dN3[iSez][i]*dCoef)));
@@ -2244,4 +2197,3 @@ ReadBeam(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 
 	return pEl;
 } /* End of ReadBeam() */
-

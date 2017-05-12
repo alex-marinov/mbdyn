@@ -74,7 +74,7 @@ AM_CPPFLAGS = \
 
 noinst_PROGRAMS = mbsasltest testexcept
 mbsasltest_SOURCES = mbsasltest.c
-mbsasltest_LDADD = @THREAD_LIBS@ @SECURITY_LIBS@ \
+mbsasltest_LDADD = @SECURITY_LIBS@ \
 libmbutil.la
 
 testexcept_SOURCES = testexcept.cc

@@ -18,7 +18,7 @@ dnl
 dnl This program is free software; you can redistribute it and/or modify
 dnl it under the terms of the GNU General Public License as published by
 dnl the Free Software Foundation (version 2 of the License).
-dnl 
+dnl
 dnl
 dnl This program is distributed in the hope that it will be useful,
 dnl but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -30,7 +30,7 @@ dnl along with this program; if not, write to the Free Software
 dnl Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 dnl
 dnl ----------------------------------------------------------------
-dnl Redefine AC_INIT_BINSH to provide copyright notice at top 
+dnl Redefine AC_INIT_BINSH to provide copyright notice at top
 dnl of generated configure script.  Prints simple copyright.
 define([AC_INIT_BINSH],
 [[#! /bin/sh
@@ -54,7 +54,7 @@ define([AC_INIT_BINSH],
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation (version 2 of the License).
-# 
+#
 #
 echo ""
 echo "	Copyright (C) 1996-2017"
@@ -88,7 +88,7 @@ fi
 # unset CDPATH
 $ol_unset CDPATH || test "${CDPATH:+set}" != set || CDPATH=: && export CDPATH
 
-AC_INIT(mbdyn, m4_esyscmd([tr -d '\n' < build/version])) 
+AC_INIT(mbdyn, m4_esyscmd([tr -d '\n' < build/version]))
 AC_CONFIG_AUX_DIR(build)dnl
 AC_CONFIG_SRCDIR([build/version])
 
@@ -137,7 +137,7 @@ AH_TOP([
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -147,7 +147,7 @@ AH_TOP([
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
- */ 
+ */
 ])
 AH_BOTTOM([
 /* this file must be included by every .c/.cc file */
@@ -170,7 +170,7 @@ mbdyn_subdir="/mbdyn"
 AC_ARG_WITH(subdir,
 [  --with-subdir=DIR       change default subdirectory used for installs],
 [case "$withval" in
-	no) 
+	no)
 		mbdyn_subdir=""
 		;;
 	yes)
@@ -198,9 +198,7 @@ OL_ARG_ENABLE(schur,[  --enable-schur          enable Schur parallel solver
                           (needs MPI and either Metis or Chaco)],auto,[auto yes no])dnl needs MPI and Metis or Chaco
 OL_ARG_ENABLE(multithread,[  --enable-multithread    enable multithread assembly],no,[auto yes no force])dnl
 OL_ARG_ENABLE(multithread_naive,[  --enable-multithread-naive    enable multithread naive solver],no,[auto yes no force])dnl
-OL_ARG_ENABLE(adams,[  --enable-adams          enable MSC.ADAMS output],no)dnl
 OL_ARG_ENABLE(mbc,[  --enable-mbc            enable MBC - multibody communication library],yes)dnl
-OL_ARG_ENABLE(motionview,[  --enable-motionview     enable Altair's Motion View output],no)dnl
 OL_ARG_ENABLE(netcdf,[  --enable-netcdf         enable NetCDF based binary output],auto)dnl
 OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
@@ -545,40 +543,6 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
-dnl Enable ADAMS/View compatible output (no need to detect stuff)
-dnl
-if test "$ol_enable_adams" != no ; then
-	AC_DEFINE(USE_ADAMS,1,[define this to enable ADAMS/View output])
-fi
-
-dnl ----------------------------------------------------------------
-dnl
-dnl Enable MotionView compatible output (detect result library?)
-dnl
-if test "$ol_enable_motionview" != no ; then
-	AC_CHECK_HEADER(mbs_result_api.h,[have_mbs_result_api_h=yes],[have_mbs_result_api_h=no])
-	if test $have_mbs_result_api_h = "yes" ; then
-		AC_DEFINE(USE_MOTIONVIEW,1,[define this to enable MotionView output])
-		AC_LANG_CPLUSPLUS
-		AC_TRY_COMPILE([
-#include <mbs_result_api.h>
-],[
-			mrfOpenResult();
-],		[mb_motionview_major_version=6],[mb_motionview_major_version=5])
-		AC_LANG_C
-		AC_DEFINE_UNQUOTED(PROBED_MOTIONVIEW_VER_MAJ,$mb_motionview_major_version,[set to the major version number of MotionView])
-		if test $mb_motionview_major_version -lt 6 ; then
-			AC_DEFINE(MRFOPENRESULT_NEEDS_ARGS,1,[define if MotionView API func mrfOpenResult() needs args])
-		fi
-	else
-		if test $ol_enable_motionview != auto ; then
-			AC_MSG_ERROR([Could not locate mbs_result_api.h header])
-		fi
-	fi
-fi
-
-dnl ----------------------------------------------------------------
-dnl
 dnl Enable NetCDF binary output
 dnl
 if test "$ol_enable_netcdf" != no ; then
@@ -754,7 +718,7 @@ if test "$ol_enable_octave" != no ; then
 			],[
 		do_octave_atexit();
 			],[have_do_octave_atexit="yes"])
-		AC_LANG_CPLUSPLUS						
+		AC_LANG_CPLUSPLUS
 		AC_TRY_LINK([
 #include <octave/oct.h>
 #include <octave/parse.h>
@@ -762,8 +726,8 @@ if test "$ol_enable_octave" != no ; then
 #include <octave/octave.h>
 			],[
 		clean_up_and_exit(0, true);
-			],[have_clean_up_and_exit="yes"])			
-		AC_LANG_C		
+			],[have_clean_up_and_exit="yes"])
+		AC_LANG_C
 		LIBS="$save_LIBS"
 		CXXFLAGS="$save_CXXFLAGS"
 		OCTAVE_LIBS="$try_LIBS"
@@ -787,7 +751,7 @@ fi
 
 if test "$ol_enable_autodiff" != no ; then
 	AC_DEFINE(USE_AUTODIFF, 1, [define if automatic differentiation can be used in order to compute the Jacobian matrix])
-	
+
 	AC_MSG_CHECKING([for posix_memalign])
 	AC_TRY_LINK([
 #include <stdlib.h>
@@ -795,28 +759,28 @@ if test "$ol_enable_autodiff" != no ; then
 void *p;
 posix_memalign(&p, 32, 1024);
 			],[have_posix_memalign="yes"])
-	
-	if test "$have_posix_memalign" == "yes"; then		
+
+	if test "$have_posix_memalign" == "yes"; then
 		AC_DEFINE(HAVE_POSIX_MEMALIGN, 1, [define if posix_memalign can be used])
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
 	fi
-	
+
 	AC_MSG_CHECKING([for memalign])
 	AC_TRY_LINK([
 #include <stdlib.h>
 				],[
 void* p = memalign(32, 1024);
 				],[have_memalign="yes"])
-				
+
 	if test "$have_memalign" == "yes"; then
 		AC_DEFINE(HAVE_MEMALIGN, 1, [define if memalign can be used])
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
 	fi
-	
+
 	AC_MSG_CHECKING([for _aligned_malloc and _aligned_free])
 	AC_TRY_LINK([
 #include <stdlib.h>
@@ -824,19 +788,19 @@ void* p = memalign(32, 1024);
 void* p = _aligned_malloc(1024, 32);
 _aligned_free(p);
 				],[have_aligned_malloc="yes"])
-	
+
 	if test "$have_aligned_malloc" == "yes"; then
 		AC_DEFINE(HAVE_ALIGNED_MALLOC, 1, [define if _aligned_malloc and _aligned_free can be used])
 		AC_MSG_RESULT([yes])
 	else
 		AC_MSG_RESULT([no])
 	fi
-			
+
 	if test "$ol_enable_autodiff_vect" == 0 ; then
 		save_CXXFLAGS="$CXXFLAGS"
 		vector_flags="-O3 -march=native -mtune=native"
 		CXXFLAGS="$CXXFLAGS $vector_flags"
-		
+
 		AC_LANG_CPLUSPLUS
 		AC_TRY_RUN([
 #include <ctime>
@@ -852,21 +816,21 @@ using namespace std;
 template <typename scalar_type, int VECTOR_SIZE>
 class vector
 {
-public: 
+public:
     static const int vec_size = VECTOR_SIZE / sizeof(scalar_type);
     typedef scalar_type __attribute__((vector_size(VECTOR_SIZE))) vector_type;
 
     vector(int n)
     {
         N = n / vec_size;
-        
+
         if (n % vec_size != 0)
         {
             ++N;
         }
-        
+
         void* p;
-        
+
 #if HAVE_POSIX_MEMALIGN == 1
     	if (0 != posix_memalign(&p, sizeof(vector_type), vector_size() * sizeof(vector_type)))
     	{
@@ -879,13 +843,13 @@ public:
 #else
 		p = malloc(vector_size() * sizeof(vector_type));
 #endif
-        
+
         v = reinterpret_cast<vector_type*>(p);
-        
+
         if (v == 0)
             throw std::bad_alloc();
     }
-    
+
     ~vector()
     {
 #if HAVE_ALIGNED_MALLOC == 1
@@ -894,29 +858,29 @@ public:
     	free(v);
 #endif
     }
-    
+
     int size() const { return N * vec_size; }
-    
+
     int vector_size() const { return N; }
-    
+
     vector_type& operator[](int i)
     {
         return v[i];
     }
-    
-    const vector_type& operator[](int i) const 
-    { 
-        return v[i]; 
-    }
-    
-    scalar_type& operator()(int i) 
+
+    const vector_type& operator[](int i) const
     {
-        return s[i];     
+        return v[i];
     }
-    
-    const scalar_type& operator()(int i) const    
+
+    scalar_type& operator()(int i)
     {
-        return s[i];     
+        return s[i];
+    }
+
+    const scalar_type& operator()(int i) const
+    {
+        return s[i];
     }
 private:
     union {
@@ -933,7 +897,7 @@ T func_vec(const T a, const T b, const vector<T,VECTOR_SIZE>& ad, const vector<T
     {
         cd[i] = ad[i] * b + a * bd[i];
     }
-    
+
     return a * b;
 }
 
@@ -941,30 +905,30 @@ template<typename T, int VECTOR_SIZE>
 clock_t testVector(int N, int M)
 {
     T a, b, c;
-    
+
     a = 10;
     b = 5;
     vector<T,VECTOR_SIZE> ad(N), bd(N), cd(N);
-    
+
     for (int i = 0; i < ad.size(); ++i)
     {
         ad(i) = i + 1;
         bd(i) = 10 * (i + 1);
     }
-    
+
     const clock_t start = clock();
-    
+
     for (int i = 0; i < M; ++i)
         c = func_vec(a, b, ad, bd, cd);
-    
+
     const clock_t dt = clock() - start;
-    
+
     assert(c == a * b);
     for (int i = 0; i < ad.size(); ++i)
     {
         assert(cd(i) == ad(i) * b + bd(i) * a);
     }
-    
+
     return dt;
 }
 
@@ -977,13 +941,13 @@ void runTest(int N, int M, clock_t t[])
     const int iprev = i - 1;
     runTest<iprev>(N, M, t);
     const int K = 1 << (i + 3);
-    
+
     cout << "checking for vector_size=" << setw(3) << K << " ... ";
-    
+
     t[i] = testVector<double, K>(N, M);
-    
+
     cout << "[OK] t=" << setw(5) << t[i] << endl;
-    
+
     if (t[i] < tmin)
     {
         tmin = t[i];
@@ -1001,40 +965,40 @@ int main(int argc, char* argv[])
 {
     int N = 1024;
     int M = 1000000;
-    
+
     if (argc > 1)
         N = atoi(argv[1]);
-    
+
     if (argc > 2)
         M = atoi(argv[2]);
-    
+
     const int K = 3;
     clock_t t[K];
-    
+
     ofstream("grad_vector_size.dat") << 0;
-    
+
     runTest<K>(N, M, t);
-    
+
     cout << "result: optimum(vector_size)=" << vec_size << endl;
     return 0;
 }					],
 					[],
 					[printf "[FAILED]\n"])
-					
+
 		if test -f grad_vector_size.dat; then
 			ol_enable_autodiff_vect=`cat grad_vector_size.dat`
-			
+
 			if test -z "$ol_enable_autodiff_vect"; then
 				ol_enable_autodiff_vect=0
 			fi
-			
+
 			rm grad_vector_size.dat
 		fi
-		
+
 		CXXFLAGS="$save_CXXFLAGS"
 		AC_LANG_C
 	fi
-	
+
 	case "$ol_enable_autodiff_vect" in
 	16)
 		AC_DEFINE(GRADIENT_VECTOR_REGISTER_SIZE, 16, [the number of bytes of an avx or sse register])
@@ -1092,7 +1056,7 @@ if test $ol_with_rt != no ; then
 
 	if test "$have_librt" = "yes" ; then
 		AC_DEFINE(USE_RT,1,[define to use POSIX realtime])
-        
+
         dnl ----------------------------------------------------------------
         dnl
         dnl Check for clock_gettime()
@@ -1103,14 +1067,14 @@ if test $ol_with_rt != no ; then
             struct timespec tp;
             clock_gettime(CLOCK_PROCESS_CPUTIME_ID, &tp);
                     ],[use_clock_gettime=yes],[use_clock_gettime=no])
-                    
+
         if test $use_clock_gettime = yes; then
             AC_DEFINE(HAVE_CLOCK_GETTIME, 1, [define if clock_gettime can be used])
         fi
 	elif test "$ol_with_rt" = "yes" ; then
 		AC_MSG_ERROR([POSIX realtime is not available])
 	fi
-    
+
     LIBS="$save_LIBS"
 fi
 
@@ -1342,7 +1306,7 @@ if test "$ol_with_threads" != "no" ; then
 			AC_DEFINE(HAVE_THREADS,1,[define if usable threads are available])
 			AC_MSG_RESULT([yes])
 		fi
-		
+
 		AC_MSG_CHECKING([for usable pthread_setaffinity_np])
 		AC_TRY_LINK([
 				#define _GNU_SOURCE
@@ -1351,10 +1315,10 @@ if test "$ol_with_threads" != "no" ; then
 			],[
 				cpu_set_t cpuset;
 				pthread_attr_t attr;
-	
+
 				CPU_ZERO(&cpuset);
 				CPU_SET(0, &cpuset);
-	
+
 				pthread_getattr_np(pthread_self(), &attr);
 				pthread_setaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
 				return pthread_getaffinity_np(pthread_self(), sizeof(cpuset), &cpuset);
@@ -1364,7 +1328,7 @@ if test "$ol_with_threads" != "no" ; then
 			],[
 				AC_MSG_RESULT([no])
 		])
-    
+
 		AC_MSG_CHECKING([for usable pthread_sigmask])
 		AC_TRY_LINK([
 				#include <pthread.h>
@@ -1481,7 +1445,7 @@ if test "$ol_enable_multithread" != no ; then
 		yes)
 			AC_MSG_ERROR([No threads available])
 			;;
-			
+
 		force)
 			have_threads=yes
 			;;
@@ -1524,7 +1488,7 @@ if test "$ol_enable_multithread_naive" != no ; then
 		yes)
 			AC_MSG_ERROR([No threads available])
 			;;
-			
+
 		force)
 			have_threads=yes
 			;;
@@ -1560,14 +1524,14 @@ if test "$ol_enable_multithread" != no ; then
 	if test "$ac_cv_header_atomic_ops_h" != "yes" ; then
 		AC_MSG_ERROR([need atomic_ops.h (from HP's atomic_ops project)])
 	fi
-	
+
 	if test "$have_threads" = no ; then
 		AC_MSG_RESULT([no])
 		case "$ol_enable_multithread" in
 		yes)
 			AC_MSG_ERROR([No threads available])
 			;;
-			
+
 		force)
 			have_threads=yes
 			;;
@@ -1706,7 +1670,7 @@ if test $ol_with_blas != no ; then
 			LIBS="$save_LIBS"
 		fi
 	fi
-    
+
 	if test "${ol_with_openblas_lib:-set}" = set ; then
 		dnl in case one relies on a symbolic link named libopenblas.{a,so}
 		ol_with_openblas_lib="openblas"
@@ -1734,7 +1698,7 @@ if test $ol_with_blas != no ; then
 			])
 			LIBS="$save_LIBS"
 		fi
-	fi    
+	fi
 
 	if test "$have_blas" = "no" ; then
 		try_blas_LIBS="-lcblas -latlas -lm"
@@ -1806,8 +1770,8 @@ if test $ol_with_blas != no ; then
 			LIBS="$save_LIBS"
 		fi
 	fi
-    
-	dnl revert to original libraries; the BLAS libraries 
+
+	dnl revert to original libraries; the BLAS libraries
 	dnl will be explicitly added by those libraries that require them
 	if test "$have_blas" != "no" ; then
 		ol_link_blas="yes"
@@ -1833,7 +1797,7 @@ if test "$ol_with_metis" != "no" ; then
 		AC_CHECK_LIB(metis, METIS_PartGraphKway,
 			[ol_link_metis=yes],[ol_link_metis=no],[-lm])
 	fi
-	
+
 	AC_CHECK_HEADERS(metis.h)
 
 	if test "$ac_cv_header_metis_h" = "yes" ; then
@@ -1907,7 +1871,7 @@ if test $ol_with_lapack != no ; then
 		   have_lapack_=yes],[have_lapack=no
 				      have_lapack_=no])])
 	LIBS=$save_LIBS
-    
+
 	if test "$have_lapack" == "no"; then
         if test "$have_lapack_" == "no"; then
             save_LIBS="$LIBS"
@@ -1937,7 +1901,7 @@ if test $ol_with_lapack != no ; then
 		AC_DEFINE(HAVE_DGESVD,1,[define to use LAPACK's dgesvd in GPC])
 		LAPACK_LIBS="$try_lapack_LIBS"
     fi
-    
+
 	if test "$have_lapack_" = "yes" ; then
 		AC_TRY_LINK([
 	extern double dggev_(double *);
@@ -2022,7 +1986,7 @@ if test $ol_with_lapack != no ; then
 		ol_link_lapack=yes
 		AC_MSG_RESULT([yes])
 	else
-		AC_MSG_RESULT([no])	
+		AC_MSG_RESULT([no])
 	fi
 	LIBS="$save_LIBS"
 fi
@@ -2228,7 +2192,7 @@ if test "$ol_with_umfpack" != "no" ; then
 					umfpack_use_long="yes"
 				],[
 					AC_MSG_ERROR([umfpack might be broken])
-				]) 
+				])
 			])
 			AC_LANG_C
 
@@ -2264,7 +2228,7 @@ fi
 
 if test $ol_link_umfpack = no ; then
 	case "$ol_with_umfpack" in
-	yes) 
+	yes)
 		AC_MSG_ERROR([Could not locate Umfpack])
 		;;
 	auto)
@@ -2284,7 +2248,7 @@ dnl
 ol_link_klu=no
 if test "$ol_with_klu" != "no" ; then
 	dnl OL_ADD_DIRS(klu)
-	
+
 	AC_CHECK_HEADERS(klu.h)
 
 	have_suitesparseconfig="no"
@@ -2403,11 +2367,11 @@ if test "$ol_with_klu" != "no" ; then
 
 	fi
 fi
-		
+
 
 if test $ol_link_klu = no ; then
 	case "$ol_with_klu" in
-	yes) 
+	yes)
 		AC_MSG_ERROR([Could not locate KLU])
 		;;
 	auto)
@@ -2609,7 +2573,7 @@ if test $ol_with_arpack != no ; then
 		],[have_arpack=yes
 		   have_arpack_=yes],[have_arpack=no
 				      have_arpack_=no])])
-	
+
 	if test $have_arpack != no ; then
 		AC_DEFINE(USE_ARPACK,1,[define to use ARPACK libraries])
 		ARPACK_LIBS="$try_arpack_LIBS"
@@ -2659,7 +2623,7 @@ if test $ol_with_jdqz != no ; then
 		],[have_jdqz=yes
 		   have_jdqz_=yes],[have_jdqz=no
 				      have_jdqz_=no])])
-	
+
 	if test $have_jdqz != no ; then
 		AC_DEFINE(USE_JDQZ,1,[define to use JDQZ library])
 		JDQZ_LIBS="$try_jdqz_LIBS"
@@ -2776,14 +2740,14 @@ dnl
 ol_link_pam=no
 if test $ol_with_pam != no ; then
 	AC_CHECK_HEADERS(security/pam_appl.h pam_misc.h security/pam_misc.h)
-	
+
 	if test "$ac_cv_header_security_pam_appl_h" = "yes" ; then
 		if test "$ac_cv_header_pam_misc_h" = "yes" \
 				-o "$ac_cv_header_security_pam_misc_h" = "yes" ; then
 			AC_CHECK_LIB(pam,pam_start,
 				[have_pam=yes],[have_pam=no],
 				[-lcrypt -lpam_misc -ldl])
-			
+
 			if test $have_pam != no ; then
 				SECURITY_LIBS="$SECURITY_LIBS -lcrypt -lpam -lpam_misc -ldl"
 				AC_DEFINE(USE_PAM,1,
@@ -2798,7 +2762,7 @@ if test $ol_with_pam != no ; then
 			AC_MSG_ERROR([Could not locate PAM])
 		else
 			AC_MSG_WARN([PAM not supported])
-		fi		
+		fi
 	fi
 fi
 
@@ -2873,7 +2837,7 @@ if test $ol_with_mpi != no ; then
 		mpi_cxx_header="mpicxx.h"
 		try_mpi_LIBS="-lmpi -lmpi_cxx"
 	fi
-	
+
 	if test $ac_cv_header_mpi_h = yes -a $have_mpi_cxx_header = yes ; then
 		AC_MSG_CHECKING([for mpi libraries])
 		AC_LANG_CPLUSPLUS
@@ -2909,7 +2873,7 @@ if test $ol_with_mpi != no ; then
 		fi
 	fi
 
-	if test $ol_link_mpi = no ; then	
+	if test $ol_link_mpi = no ; then
 		if test $ol_with_mpi != auto ; then
 			AC_MSG_ERROR([Could not locate MPI])
 		else
@@ -2992,7 +2956,7 @@ if test $ol_with_taucs != no ; then
 	if test "$have_taucs" = "yes" ; then
 		AC_MSG_RESULT([yes])
 	else
-		AC_MSG_RESULT([no])	
+		AC_MSG_RESULT([no])
 	fi
 fi
 
@@ -3109,7 +3073,7 @@ if test "$ac_cv_func_get_nprocs" = "no" ; then
         return get_nprocs();
        		],[have_get_nprocs=yes],[have_get_nprocs=no])
 	fi
-	
+
 	if test "$have_get_nprocs" = "yes" ; then
 		AC_DEFINE(HAVE_GET_NPROCS,1,[define if get_nprocs is available])
 	fi
@@ -3278,7 +3242,6 @@ AC_CONFIG_FILES([Makefile \
  	manual/femgen.1 \
  	manual/mbdyn.1 \
  	include/Makefile \
- 	include/ac/Makefile 
+ 	include/ac/Makefile
  	build/Makefile])
 AC_OUTPUT
-

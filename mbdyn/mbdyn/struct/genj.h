@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -47,24 +47,24 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    const StructDispNode* pNode2;
    mutable Vec3 v;
    doublereal dAlpha;
-   
+
  public:
    /* Costruttore non banale */
    DistanceJoint(unsigned int uL, const DofOwner* pDO,
 		 const StructDispNode* pN1, const StructDispNode* pN2,
 		 const DriveCaller* pDC, flag fOut);
-   
+
    ~DistanceJoint(void);
-   
+
    /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const { 
-      return Joint::DISTANCE; 
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::DISTANCE;
    };
-   
+
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
-   virtual unsigned int iGetNumDof(void) const { 
+   virtual unsigned int iGetNumDof(void) const {
       return 4;
    };
    virtual DofOrder::Order GetDofType(unsigned int i) const
@@ -72,42 +72,42 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC;
    };
-   
+
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       return DofOrder::DIFFERENTIAL;
    };
-   
+
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
      { *piNumRows = 10; *piNumCols = 10; };
-   
+
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
+				    const VectorHandler& XCurr,
 				    const VectorHandler& XPrimeCurr);
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
+			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr);
-   
+
    virtual void Output(OutputHandler& OH) const;
 
-   
+
    /* funzioni usate nell'assemblaggio iniziale */
-   
+
    virtual unsigned int iGetInitialNumDof(void) const { return 8; };
    virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const 
+				    integer* piNumCols) const
      { *piNumRows = 20; *piNumCols = 20; };
-   
+
    /* Contributo allo jacobiano durante l'assemblaggio iniziale */
    VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
 					   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
+
+   /* Contributo al residuo durante l'assemblaggio iniziale */
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
-   
+
    /* Setta il valore iniziale delle proprie variabili */
    virtual void SetInitialValue(VectorHandler& X);
    virtual void SetValue(DataManager *pDM,
@@ -119,7 +119,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
@@ -129,15 +129,6 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
-#ifdef USE_ADAMS
-   /* Adams output stuff */
-   virtual unsigned int iGetNumDummyParts(void) const {
-      return 1;
-   };
-   virtual void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
 /* DistanceJoint - end */
@@ -145,7 +136,7 @@ class DistanceJoint : virtual public Elem, public Joint, public DriveOwner {
 
 /* DistanceJointWithOffset - begin */
 
-class DistanceJointWithOffset : 
+class DistanceJointWithOffset :
 virtual public Elem, public Joint, public DriveOwner {
  private:
    const StructNode* pNode1;
@@ -154,25 +145,25 @@ virtual public Elem, public Joint, public DriveOwner {
    Vec3 f2;
    mutable Vec3 v;
    doublereal dAlpha;
-   
+
  public:
    /* Costruttore non banale */
    DistanceJointWithOffset(unsigned int uL, const DofOwner* pDO,
 			   const StructNode* pN1, const StructNode* pN2,
 			   const Vec3& f1Tmp, const Vec3& f2Tmp,
 			   const DriveCaller* pDC, flag fOut);
-   
+
    ~DistanceJointWithOffset(void);
-   
+
    /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const { 
-      return Joint::DISTANCEWITHOFFSET; 
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::DISTANCEWITHOFFSET;
    };
-   
+
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
-   virtual unsigned int iGetNumDof(void) const { 
+   virtual unsigned int iGetNumDof(void) const {
       return 4;
    };
 
@@ -181,44 +172,44 @@ virtual public Elem, public Joint, public DriveOwner {
       ASSERT(i >= 0 && i < 4);
       return DofOrder::ALGEBRAIC;
    };
-   
+
    virtual DofOrder::Order GetEqType(unsigned int i) const
    {
       return DofOrder::DIFFERENTIAL;
    };
-   
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
       *piNumRows = 16;
-      *piNumCols = 16; 
+      *piNumCols = 16;
    };
-   
+
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 				    doublereal dCoef,
-				    const VectorHandler& XCurr, 
+				    const VectorHandler& XCurr,
 				    const VectorHandler& XPrimeCurr);
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
+			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr);
-   
+
    virtual void Output(OutputHandler& OH) const;
 
-   
+
    /* funzioni usate nell'assemblaggio iniziale */
-   
+
    virtual unsigned int iGetInitialNumDof(void) const { return 8; };
    virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const 
+				    integer* piNumCols) const
      { *piNumRows = 32; *piNumCols = 32; };
-   
+
    /* Contributo allo jacobiano durante l'assemblaggio iniziale */
    VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
 					   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
+
+   /* Contributo al residuo durante l'assemblaggio iniziale */
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
-   
+
    /* Setta il valore iniziale delle proprie variabili */
    virtual void SetInitialValue(VectorHandler& X);
    virtual void SetValue(DataManager *pDM,
@@ -230,7 +221,7 @@ virtual public Elem, public Joint, public DriveOwner {
    virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
@@ -240,15 +231,6 @@ virtual public Elem, public Joint, public DriveOwner {
    };
    /* ************************************************ */
 
-   /* Adams output stuff */
-   virtual unsigned int iGetNumDummyParts(void) const {
-      return 1;
-   };
-   virtual void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-   virtual void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS
-   virtual std::ostream& WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part, unsigned int firstId) const;
-#endif /* USE_ADAMS */
 };
 
 /* DistanceJointWithOffset - end */
@@ -264,18 +246,18 @@ class ClampJoint : virtual public Elem, public Joint {
    Mat3x3 RClamp;              /* assetto imposto */
    Vec3 F;                     /* forza di reazione */
    Vec3 M;                     /* momento di reazione */
-   
+
  public:
    /* Costruttore definitivo (da mettere a punto) */
-   ClampJoint(unsigned int uL, const DofOwner*pD, const StructNode* pN, 
+   ClampJoint(unsigned int uL, const DofOwner*pD, const StructNode* pN,
 	      const Vec3& X0, const Mat3x3& R0, flag fOut);
-   
+
    /* Distruttore + o - banale */
    virtual ~ClampJoint(void);
-   
+
    /* Tipo di Joint */
-   virtual Joint::Type GetJointType(void) const { 
-      return Joint::CLAMP; 
+   virtual Joint::Type GetJointType(void) const {
+      return Joint::CLAMP;
    };
 
    /*Funzione che legge lo stato iniziale dal file di input*/
@@ -286,7 +268,7 @@ class ClampJoint : virtual public Elem, public Joint {
 
    /* Funzioni obbligatorie, per la gestione dei dof */
    virtual unsigned int iGetNumDof(void) const {
-      return 6; 
+      return 6;
    };
    virtual std::ostream& DescribeDof(std::ostream& out,
 		   const char *prefix = "",
@@ -301,24 +283,24 @@ class ClampJoint : virtual public Elem, public Joint {
    virtual DofOrder::Order GetDofType(unsigned int i) const
    {
       ASSERT(i >= 0 && i < 6);
-      return DofOrder::ALGEBRAIC; 
+      return DofOrder::ALGEBRAIC;
    };
-   
+
    virtual DofOrder::Order GetEqType(unsigned int i) const {
       ASSERT(i >= 0 && i < iGetNumDof());
-      return DofOrder::ALGEBRAIC; 
+      return DofOrder::ALGEBRAIC;
    }
 
-   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const 
+   virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
      { *piNumRows = 12; *piNumCols = 12; };
-      
+
    /* Assemblaggio matrice jacobiana */
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 				    doublereal dCoef,
 				    const VectorHandler& XCurr,
-				    const VectorHandler& XPrimeCurr); 
+				    const VectorHandler& XPrimeCurr);
 
-   
+
    /* Inverse Dynamics: AssJac() */
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,
 				    const VectorHandler& XCurr);
@@ -328,47 +310,47 @@ class ClampJoint : virtual public Elem, public Joint {
 	       VariableSubMatrixHandler& WorkMatB,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-   
+
    /* Assemblaggio residuo */
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
 			    doublereal dCoef,
-			    const VectorHandler& XCurr, 
+			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr);
 
    /* inverse dynamics capable element */
    virtual bool bInverseDynamics(void) const;
-   
+
    /* Inverse Dynamics: AssRes */
    SubVectorHandler& AssRes(SubVectorHandler& WorkVec,
-			    const VectorHandler& XCurr, 
+			    const VectorHandler& XCurr,
 			    const VectorHandler& XPrimeCurr,
 			    const VectorHandler& XPrimePrimeCurr,
 			    InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
    /* Inverse Dynamics update */
    void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
-   
+
    virtual void Output(OutputHandler& OH) const;
 
 
    /* funzioni usate nell'assemblaggio iniziale */
-   
+
    virtual unsigned int iGetInitialNumDof(void) const { return 12; };
    virtual void InitialWorkSpaceDim(integer* piNumRows,
-				    integer* piNumCols) const 
+				    integer* piNumCols) const
      { *piNumRows = 24; *piNumCols = 24; };
-   
+
    /* Contributo allo jacobiano durante l'assemblaggio iniziale */
    VariableSubMatrixHandler& InitialAssJac(VariableSubMatrixHandler& WorkMat,
 					   const VectorHandler& XCurr);
-   
-   /* Contributo al residuo durante l'assemblaggio iniziale */   
+
+   /* Contributo al residuo durante l'assemblaggio iniziale */
    SubVectorHandler& InitialAssRes(SubVectorHandler& WorkVec,
 				   const VectorHandler& XCurr);
-				   
+
    virtual void SetValue(DataManager *pDM,
 		   VectorHandler& X, VectorHandler& XP,
-		   SimulationEntity::Hints *ph = 0); 
+		   SimulationEntity::Hints *ph = 0);
    /* Metodi per l'estrazione di dati "privati".
     * Si suppone che l'estrattore li sappia interpretare.
     * Come default non ci sono dati privati estraibili */
@@ -376,7 +358,7 @@ class ClampJoint : virtual public Elem, public Joint {
    virtual unsigned int iGetPrivDataIdx(const char *s) const;
    virtual doublereal dGetPrivData(unsigned int i) const;
 
-   /* *******PER IL SOLUTORE PARALLELO******** */        
+   /* *******PER IL SOLUTORE PARALLELO******** */
    /* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
       utile per l'assemblaggio della matrice di connessione fra i dofs */
    virtual void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const {
@@ -389,4 +371,3 @@ class ClampJoint : virtual public Elem, public Joint {
 /* ClampJoint - end */
 
 #endif /* GENJ_H */
-

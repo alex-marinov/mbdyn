@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -129,7 +129,6 @@ const char sDefaultOutputFileName[] = "MBDyn";
 
 enum InputFormat {
 	MBDYN,
-	ADAMS,
 	LASTFORMAT
 };
 
@@ -211,7 +210,7 @@ mbdyn_usage(const char *sShortOpts)
 	silent_cout(std::endl
 		<< "mbdyn is a multibody simulation program." << std::endl
 		<< std::endl
-		<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << std::endl 
+		<< "usage: mbdyn [" << sShortOpts << "] [input-file list] " << std::endl
 		<< std::endl
 		<< "  -f, --input-file {file}   reads from 'file' instead of stdin" << std::endl
 		<< "  -o, --output-file {file}  writes to '{file}.<ext>'" << std::endl
@@ -284,7 +283,7 @@ mbdyn_welcome(void)
 			"to see the conditions." << std::endl
 		<< "There is absolutely no warranty for"
 			" MBDyn.  Use \"mbdyn --warranty\"" << std::endl
-		<< "for details." << std::endl 
+		<< "for details." << std::endl
 		<< std::endl);
 }
 
@@ -313,7 +312,7 @@ static struct option LongOpts[] = {
 	{ "version",        no_argument,       NULL,           int('v') },
 	{ "warranty",       no_argument,       NULL,           int('w') },
 	{ "working-dir",    required_argument, NULL,           int('W') },
-	
+
 	{ NULL,             0,                 NULL,           0        }
 };
 #endif /* HAVE_GETOPT_LONG */
@@ -334,7 +333,7 @@ parse_parallel_args(mbdyn_proc_t& mbp, int argc, char *argv[])
 			mbp.using_mpi = true;
 			continue;
 		}
-		
+
 		/* intercept silence/pedantic flags */
 		if (strncmp(argv[i], "-s", 2) == 0) {
 			mbp.parallel_fSilent++;
@@ -370,7 +369,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	opterr = 0;
 	while (true) {
 #ifdef HAVE_GETOPT_LONG
-		int iCurrOpt = getopt_long(argc, argv, sShortOpts, 
+		int iCurrOpt = getopt_long(argc, argv, sShortOpts,
 			LongOpts, &iIndexPtr);
 #else /* !HAVE_GETOPT_LONG */
 		int iCurrOpt = getopt(argc, argv, sShortOpts);
@@ -450,7 +449,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 #endif
 			if (!mbp.FileStreamIn) {
-				silent_cerr(std::endl 
+				silent_cerr(std::endl
 					<< "Unable to open file \""
 					<< mbp.sInputFileName << "\"");
 #ifdef USE_MPI
@@ -458,7 +457,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 					silent_cerr(" on " << mbp.ProcessorName);
 				}
 #endif /* USE_MPI */
-				silent_cerr(";" << std::endl 
+				silent_cerr(";" << std::endl
 					<< "aborting..."
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -469,7 +468,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 		case int('h'):
 			mbdyn_usage(sShortOpts);
 			throw NoErr(MBDYN_EXCEPT_ARGS);
-	
+
 		case int('H'):
 			mbp.bShowSymbolTable = true;
 			break;
@@ -478,7 +477,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			mbdyn_welcome();
 			mbdyn_license();
 			throw NoErr(MBDYN_EXCEPT_ARGS);
-	
+
 		case int('N'):
 			if (strcmp(optarg, "auto") == 0) {
 				mbp.nThreads = 0;
@@ -530,7 +529,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #ifdef USE_MPI
 			if (mbp.parallel_fPedantic > 0) {
 				mbp.parallel_fPedantic--;
-			} else 
+			} else
 #endif /* USE_MPI */
 			{
 				::fPedantic++;
@@ -549,7 +548,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #ifdef USE_MPI
 			if (mbp.parallel_fSilent > 0) {
 				mbp.parallel_fSilent--;
-			} else 
+			} else
 #endif /* USE_MPI */
 			{
 				::fSilent++;
@@ -564,7 +563,7 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #ifdef USE_MPI
 					char	*next;
 					long	r;
-						
+
 					s += STRLENOF("rank=");
 					errno = 0;
 					r = strtol(s, &next, 10);
@@ -650,12 +649,12 @@ mbdyn_parse_arguments(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			throw NoErr(MBDYN_EXCEPT_ARGS);
 
 		default:
-			silent_cerr(std::endl 
+			silent_cerr(std::endl
 				<< "Unrecoverable error; aborting..."
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-	} // while (true) end of endless loop 
+	} // while (true) end of endless loop
 
 	/*
 	 * primo argomento utile (potenziale nome di file di ingresso)
@@ -771,7 +770,7 @@ mbdyn_prepare_files(const std::string& sInputFileName, std::string& sOutputFileN
 	}
 
 	return 0;
-}   
+}
 
 static int
 mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
@@ -782,7 +781,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 	mbdyn_welcome();
 #ifdef USE_MPI
 	if (mbp.using_mpi) {
-		silent_cerr("PID=" << mbp.pid << " Process " << mbp.MyRank 
+		silent_cerr("PID=" << mbp.pid << " Process " << mbp.MyRank
 			<< " (" << mbp.MyRank + 1 << " of " << mbp.WorldSize
 			<< ") is alive on " << mbp.ProcessorName
 			<< std::endl);
@@ -837,8 +836,8 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			last = 1;
 
 		} else if (mbp.CurrInputSource == MBFILE_OPT) {
-			silent_cout("reading from file \"" 
-				<< mbp.sInputFileName 
+			silent_cout("reading from file \""
+				<< mbp.sInputFileName
 				<< "\"" << std::endl);
 			last = 1;
 
@@ -847,27 +846,12 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 			silent_cout("reading from file \""
 				<< mbp.sInputFileName
 				<< "\"" << std::endl);
-				
+
 			/* incrementa il numero di argomento */
 			if (++currarg == argc) {
-				last = 1; 
+				last = 1;
 			}
 
-#ifdef USE_ADAMS_PP
-			/* ADAMS extension */
-			char* p = std::strrchr(mbp.sInputFileName, int('.'));
-			if (p != NULL 
-				&& strlen(p+1) == 3 
-				&& !strncasecmp(p+1, "adm", 3))
-			{
-				mbp.CurrInputFormat = ADAMS;
-
-				silent_cerr("ADAMS input not implemented yet, "
-					"cannot open file \""
-					<< mbp.sInputFileName << "\"" << std::endl);
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			} else
-#endif /* USE_ADAMS_PP */
 			{
 				mbp.CurrInputFormat = MBDYN;
 #ifdef _WIN32
@@ -877,7 +861,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				mbp.FileStreamIn.open(mbp.sInputFileName.c_str());
 #endif
 				if (!mbp.FileStreamIn) {
-					silent_cerr(std::endl 
+					silent_cerr(std::endl
 						<< "Unable to open file "
 						"\"" << mbp.sInputFileName << "\";"
 						" aborting..." << std::endl);
@@ -894,10 +878,10 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 				SAFENEWWITHCONSTRUCTOR(mbp.pT, Table, Table(true));
 			}
 			if (mbp.pMP == NULL) {
-				SAFENEWWITHCONSTRUCTOR(mbp.pMP, 
-					MathParser, 
+				SAFENEWWITHCONSTRUCTOR(mbp.pMP,
+					MathParser,
 					MathParser(*mbp.pT, mbp.bRedefine));
-		
+
 					/* legge l'environment */
 				GetEnviron(*mbp.pMP);
 			}
@@ -914,14 +898,14 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 			std::string sOutputFileName = mbp.sOutputFileName;
 			mbdyn_prepare_files(mbp.sInputFileName, sOutputFileName);
-		
+
 			/* stream in ingresso */
 			InputStream In(*mbp.pIn);
-			MBDynParser HP(*mbp.pMP, In, 
+			MBDynParser HP(*mbp.pMP, In,
 				mbp.sInputFileName == sDefaultInputFileName ? "initial file" : mbp.sInputFileName.c_str());
 
-			pSolv = RunMBDyn(HP, mbp.sInputFileName, 
-				sOutputFileName, 
+			pSolv = RunMBDyn(HP, mbp.sInputFileName,
+				sOutputFileName,
 				mbp.nThreads, mbp.using_mpi, mbp.bException);
 			if (mbp.FileStreamIn.is_open()) {
 				mbp.FileStreamIn.close();
@@ -935,11 +919,6 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #endif // HAVE_GETCWD && HAVE_CHDIR
 			break;
 		}
-
-		case ADAMS:
-			silent_cerr("ADAMS input not implemented yet!"
-				<< std::endl);
-			throw ErrNotImplementedYet(MBDYN_EXCEPT_ARGS);
 
 		default:
 			silent_cerr("You shouldn't be here!" << std::endl);
@@ -985,7 +964,7 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 
 		n = snprintf(s, l, "%ld.%03ld", tSecs, tMils);
 
-		silent_cout(std::endl << "The simulation required " 
+		silent_cout(std::endl << "The simulation required "
 			<< timebuf << " seconds of CPU time");
 
 		if (tSecs > 60) {
@@ -1015,14 +994,14 @@ mbdyn_program(mbdyn_proc_t& mbp, int argc, char *argv[], int& currarg)
 #ifdef USE_MPI
 		if (mbp.using_mpi) {
 			silent_cout(" on " << mbp.ProcessorName
-				<< " (" << mbp.MyRank + 1 
+				<< " (" << mbp.MyRank + 1
 				<< " of " << mbp.WorldSize << ")");
 		}
 #endif /* USE_MPI */
 		silent_cout(std::endl);
 
 #else /* ! HAVE_SYS_TIMES_H */
-		silent_cout(std::endl << "Elapsed time " 
+		silent_cout(std::endl << "Elapsed time "
 			<< double(clock() - start)/CLOCKS_PER_SEC << " seconds\n");
 #endif /* ! HAVE_SYS_TIMES_H */
 	} // while (last == 0)
@@ -1063,10 +1042,10 @@ main(int argc, char* argv[])
 	mbp.pid = getpid();
 #endif // HAVE_GETPID
 
-    	/* 
+    	/*
 	 * FIXME: this is a hack to detect whether mbdyn has been
 	 * invoked thru mpirun (which means we need to initialize
-	 * MPI) or not (which means we don't); need to check how 
+	 * MPI) or not (which means we don't); need to check how
 	 * portable it is ...
 	 *
 	 * the check is on the first two chars because "most" of
@@ -1078,7 +1057,7 @@ main(int argc, char* argv[])
 	::fPedantic = mbp.parallel_fPedantic;
 
 	if (mbp.using_mpi) {
-		MPI::Init(argc, argv);	   
+		MPI::Init(argc, argv);
 		mbp.WorldSize = MPI::COMM_WORLD.Get_size();
 		mbp.MyRank = MPI::COMM_WORLD.Get_rank();
 
@@ -1093,19 +1072,19 @@ main(int argc, char* argv[])
 			::fSilent = mbp.parallel_fSilent;
 			::fPedantic = mbp.parallel_fPedantic;
 		}
-		
+
 		/*
 		 * all these temporaries are to avoid complains from
 		 * the compiler (MPI's API is really messy ):
 		 */
 		int ProcessorNameLength = sizeof(ProcessorName_);
-		MPI::Get_processor_name(mbp.ProcessorName, ProcessorNameLength); 
+		MPI::Get_processor_name(mbp.ProcessorName, ProcessorNameLength);
 
 		silent_cerr("using MPI (explicitly required by '-p*' switch)"
 			<< std::endl);
 	}
 #endif /* USE_MPI */
-   
+
     	/* primo argomento valido (potenziale nome di file di ingresso) */
     	int currarg = 0;
 
@@ -1168,13 +1147,13 @@ main(int argc, char* argv[])
 #endif /* USE_RTAI */
 
 	mbdyn_cleanup();
-   
+
     	MB_EXIT(return, rc);
 } // main() end
 
 
-static Solver* 
-RunMBDyn(MBDynParser& HP, 
+static Solver*
+RunMBDyn(MBDynParser& HP,
 	 const std::string& sInputFileName,
 	 const std::string& sOutputFileName,
 	 unsigned int nThreads,
@@ -1185,16 +1164,16 @@ RunMBDyn(MBDynParser& HP,
 
     	Solver* pSolv(0);
 
-    	/* NOTE: the flag "bParallel" states whether the analysis 
-	 * must be run in parallel or not; the flag "using_mpi" 
+    	/* NOTE: the flag "bParallel" states whether the analysis
+	 * must be run in parallel or not; the flag "using_mpi"
 	 * can be true because the "-p" switch was detected;
 	 * it can be switched on by the "parallel" keyword in the
 	 * "data" block, but the analysis can still be scalar if
 	 * only one machine is available */
     	bool bParallel(false);
-	
+
     	/* parole chiave */
-    	const char* sKeyWords[] = { 
+    	const char* sKeyWords[] = {
         	"begin",
 		"end",
         	"data",
@@ -1217,7 +1196,7 @@ RunMBDyn(MBDynParser& HP,
     	/* enum delle parole chiave */
     	enum KeyWords {
         	UNKNOWN = -1,
-		
+
         	BEGIN = 0,
 		END,
         	DATA,
@@ -1235,10 +1214,10 @@ RunMBDyn(MBDynParser& HP,
 
         	LASTKEYWORD
     	};
-   
+
     	/* tabella delle parole chiave */
     	KeyTable K(HP, sKeyWords);
-   
+
     	/* legge i dati della simulazione */
 	/* NOTE: if the first GetDescription() fails because
 	 * of an end-of-file, don't treat it as an error */
@@ -1248,26 +1227,26 @@ RunMBDyn(MBDynParser& HP,
 	} catch (EndOfFile) {
 		throw NoErr(MBDYN_EXCEPT_ARGS);
 	}
-	/* looking for "begin"... */	
+	/* looking for "begin"... */
 	if (cd != BEGIN) {
-        	silent_cerr(std::endl 
-	    		<< "Error: <begin> expected at line " 
+        	silent_cerr(std::endl
+	    		<< "Error: <begin> expected at line "
 	    		<< HP.GetLineData() << "; aborting..." << std::endl);
         	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     	}
 
-	/* looking for "data"... */	
+	/* looking for "data"... */
     	if (KeyWords(HP.GetWord()) != DATA) {
-        	silent_cerr(std::endl 
-	    		<< "Error: <begin: data;> expected at line " 
+        	silent_cerr(std::endl
+	    		<< "Error: <begin: data;> expected at line "
 	    		<< HP.GetLineData() << "; aborting..." << std::endl);
         	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
     	}
-   
+
     	KeyWords CurrInt = INITIAL_VALUE;
-   
+
     	/* Ciclo infinito */
-    	while (true) {	
+    	while (true) {
         	switch (KeyWords(HP.GetDescription())) {
 		case INTEGRATOR:
 			pedantic_cout("statement \"integrator\" is deprecated; "
@@ -1284,7 +1263,7 @@ RunMBDyn(MBDynParser& HP,
 	        	case PARALLEL_INITIAL_VALUE:
 	        		CurrInt = PARALLEL_INITIAL_VALUE;
 #ifdef USE_MPI
-				/* NOTE: use "parallel" in "data" block 
+				/* NOTE: use "parallel" in "data" block
 				 * for models that should always be solved
 				 * in parallel; otherwise this directive
 				 * is superseded by the "-p" command-line
@@ -1296,41 +1275,41 @@ RunMBDyn(MBDynParser& HP,
 					"parallel solution" << std::endl);
 	    			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_MPI */
-	
+
 			case INVERSE_DYNAMICS:
 	        		CurrInt = INVERSE_DYNAMICS;
 				break;
 
             		default:
-	        		silent_cerr(std::endl 
-		    			<< "Unknown problem at line " 
+	        		silent_cerr(std::endl
+		    			<< "Unknown problem at line "
 	            			<< HP.GetLineData()
 					<< "; aborting..." << std::endl);
 	        		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
             		}
-            		break;    
+            		break;
 
         	case END:
 	    		if (KeyWords(HP.GetWord()) != DATA) {
-	        		silent_cerr(std::endl 
+	        		silent_cerr(std::endl
 		    			<< "Error: <end: data;> expected"
 					" at line " << HP.GetLineData()
 					<< "; aborting..." << std::endl);
 	        		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	    		}
-	    		goto endofcycle;        
-	 
+	    		goto endofcycle;
+
         	default:
-	    		silent_cerr(std::endl 
-	        		<< "Unknown description at line " 
+	    		silent_cerr(std::endl
+	        		<< "Unknown description at line "
 	        		<< HP.GetLineData()
 				<< "; aborting..." << std::endl);
-	    		throw ErrGeneric(MBDYN_EXCEPT_ARGS);      
+	    		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
         	}
     	}
-   
+
    	/* Uscita dal ciclo infinito */
-endofcycle:   
+endofcycle:
 
 #ifdef USE_MPI
 	/* using_mpi is detected from command line switch "-p"
@@ -1343,7 +1322,7 @@ endofcycle:
 		int* pBuff = NULL;
 		SAFENEWARR(pBuff, int, size+1);
 		pBuff[0] = 0;
-		MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT, 
+		MPI::COMM_WORLD.Allgather(pBuff, 1, MPI::INT,
 				pBuff+1, 1, MPI::INT);
 		std::vector<unsigned int> iInterfaceProc(5);
 		unsigned int Icount = 0;
@@ -1352,13 +1331,13 @@ endofcycle:
 				Bcount++;
 			}
 			if (pBuff[i] > 9) {
-				if (Icount <= 5) { 
+				if (Icount <= 5) {
 					iInterfaceProc[Icount++] = i-1;
 
 				} else {
 					iInterfaceProc.push_back(i-1);
 				}
-			}	
+			}
 		}
 		if (Bcount == size) {
 			/* l'unica cosa che c'e' e' MBDyn */
@@ -1413,20 +1392,20 @@ endofcycle:
     	case PARALLEL_INITIAL_VALUE:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				Solver,
-				Solver(HP, sInputFileName, 
+				Solver(HP, sInputFileName,
 					sOutputFileName, nThreads, bParallel));
 		break;
 
     	case INVERSE_DYNAMICS:
         	SAFENEWWITHCONSTRUCTOR(pSolv,
 				InverseSolver,
-				InverseSolver(HP, sInputFileName, 
+				InverseSolver(HP, sInputFileName,
 					sOutputFileName, nThreads, bParallel));
 		break;
 
 	default:
         	silent_cerr("Unknown integrator; aborting..." << std::endl);
-        	throw ErrGeneric(MBDYN_EXCEPT_ARGS);   
+        	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
     	/* Runs the simulation */
@@ -1448,4 +1427,3 @@ endofcycle:
 
     	return pSolv;
 } // RunMBDyn
-

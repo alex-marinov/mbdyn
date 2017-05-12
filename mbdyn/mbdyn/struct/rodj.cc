@@ -321,19 +321,19 @@ Rod::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
-		
-		
+
+
 		Vec3 vTmp(v/dElle);
 		doublereal d = GetF();
 		doublereal dEllePrime = dEpsilonPrime*dL0;
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			
+
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
-			
+
 			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
@@ -343,7 +343,7 @@ Rod::Output(OutputHandler& OH) const
 			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
 		}
 #endif // USE_NETCDF
-		
+
 		std::ostream& out = OH.Joints();
 
 		Joint::Output(out, "Rod", GetLabel(),
@@ -435,7 +435,7 @@ Rod::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 Rod::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
-	const VectorHandler& XPrimeCurr, 
+	const VectorHandler& XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
 	InverseDynamics::Order iOrder)
 {
@@ -443,7 +443,7 @@ Rod::AssRes(SubVectorHandler& WorkVec,
 
 	ASSERT(iOrder == InverseDynamics::INVERSE_DYNAMICS
 		|| (iOrder == InverseDynamics::POSITION && bIsErgonomy()));
-	
+
 	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
 }
 
@@ -462,64 +462,6 @@ Rod::AfterConvergence(const VectorHandler& X,
 	AfterConvergence(X, XP);
 }
 
-void
-Rod::GetDummyPartPos(unsigned int part,
-	Vec3& x,
-	Mat3x3& R) const
-{
-	ASSERT(part == 1);
-	x = pNode1->GetXCurr();
-	R = ::Eye3; // pNode1->GetRCurr();
-}
-
-void
-Rod::GetDummyPartVel(unsigned int part,
-	Vec3& v,
-	Vec3& w) const
-{
-	ASSERT(part == 1);
-	v = pNode1->GetVCurr();
-	w = ::Zero3; // pNode1->GetWCurr();
-}
-
-#ifdef USE_ADAMS
-std::ostream&
-Rod::WriteAdamsDummyPartCmd(std::ostream& out,
-	unsigned int part,
-	unsigned int firstId) const
-{
-	Vec3 x1 = pNode1->GetXCurr();
-	Vec3 x2 = pNode2->GetXCurr();
-
-	Vec3 v1 = x2 - x1;
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(v1, -v1);
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2))*dRaDegr);
-
-	return out
-		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
-		<< firstId << " "
-		<< x1 << " "
-		<< MatR2EulerAngles(pNode1->GetRCurr())*dRaDegr << " "
-		<< x1 << " "
-		<< e << " "
-		<< l << " " << 0. << " " << 0. << " "
-		<< Zero3 << std::endl;
-}
-#endif /* USE_ADAMS */
 
 unsigned int
 Rod::iGetNumPrivData(void) const
@@ -1344,64 +1286,4 @@ RodWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void
-RodWithOffset::GetDummyPartPos(unsigned int part,
-	Vec3& x,
-	Mat3x3& R) const
-{
-	ASSERT(part == 1);
-	x = pNode1->GetXCurr() + dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
-	R = dynamic_cast<const StructNode *>(pNode1)->GetRCurr();
-}
-
-void
-RodWithOffset::GetDummyPartVel(unsigned int part,
-	Vec3& v,
-	Vec3& w) const
-{
-	ASSERT(part == 1);
-	w = dynamic_cast<const StructNode *>(pNode1)->GetWCurr();
-	v = pNode1->GetVCurr() + w.Cross(dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1);
-}
-
-#ifdef USE_ADAMS
-std::ostream&
-RodWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
-	unsigned int part,
-	unsigned int firstId) const
-{
-	Vec3 x1 = pNode1->GetXCurr() + dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
-	Vec3 x2 = pNode2->GetXCurr() + dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2;
-
-	Vec3 v1 = x2 - x1;
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(v1, -v1);
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2))*dRaDegr);
-
-	return out
-		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel() << "_" << part << std::endl
-		<< firstId << " "
-		<< x1 << " "
-		<< MatR2EulerAngles(dynamic_cast<const StructNode *>(pNode1)->GetRCurr())*dRaDegr << " "
-		<< x1 << " "
-		<< e << " "
-		<< l << " " << 0. << " " << 0. << " "
-		<< Zero3 << std::endl;
-}
-#endif /* USE_ADAMS */
-
 /* RodWithOffset - end */
-

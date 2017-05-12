@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -47,7 +47,7 @@
 DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 		const StructDispNode* pN1, const StructDispNode* pN2,
 		const DriveCaller* pDC, flag fOut)
-: Elem(uL, fOut), 
+: Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), Vec(Zero3), dAlpha(0.)
@@ -56,9 +56,9 @@ pNode1(pN1), pNode2(pN2), Vec(Zero3), dAlpha(0.)
 }
 
 /* Distruttore banale - ci pensa il DriveOwner a distruggere il DriveCaller */
-DistanceJoint::~DistanceJoint(void) 
-{ 
-	NO_OP; 
+DistanceJoint::~DistanceJoint(void)
+{
+	NO_OP;
 }
 
 void
@@ -95,16 +95,16 @@ DistanceJoint::SetValue(DataManager *pDM,
 			}
 		}
 	}
-	
+
 	doublereal dDistance = pGetDriveCaller()->dGet();
-   
+
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
 		Abort();
 	}
 
-	/* Scrive la direzione della distanza. Se e' stata ottenuta con 
+	/* Scrive la direzione della distanza. Se e' stata ottenuta con
 	 * l'assemblaggio iniziale bene, se no' la calcola */
 	Vec = pNode2->GetXCurr() - pNode1->GetXCurr();
 	doublereal d = Vec.Dot();
@@ -157,7 +157,7 @@ DistanceJoint::dGetPrivData(unsigned int i) const
 /* Contributo al file di restart */
 std::ostream& DistanceJoint::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", distance, " 
+	Joint::Restart(out) << ", distance, "
 		<< pNode1->GetLabel() << ", "
 		<< pNode2->GetLabel() << ", ",
 		pGetDriveCaller()->Restart(out) << ';' << std::endl;
@@ -174,7 +174,7 @@ DistanceJoint::AssMat(FullSubMatrixHandler& WorkMatA,
 		 const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering DistanceJoint::AssMat()" << std::endl);
- 
+
 	doublereal dd = dAlpha*dCoef;
 	doublereal dv = Vec.Norm();
 	for (int iCnt = 1; iCnt <= 3; iCnt++) {
@@ -209,10 +209,10 @@ DistanceJoint::AssMat(FullSubMatrixHandler& WorkMatA,
 		WorkMatA.IncCoef(3 + iCnt, 3 + iCnt, d*dd);
 	}
 }
-   
+
 
 /* Assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
@@ -222,7 +222,7 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeReset(7, 7);
- 
+
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -239,10 +239,10 @@ DistanceJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 	WM.PutColIndex(6 + 1, iFirstReactionIndex + 1);
 
 	AssMat(WM, WM, dCoef, XCurr, XPrimeCurr);
- 
+
 	return WorkMat;
 }
-   
+
 
 /* Assemblaggio jacobiano */
 void
@@ -255,10 +255,10 @@ DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 
  	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
 	WMA.ResizeReset(7, 7);
- 
+
  	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
 	WMB.ResizeReset(7, 7);
- 
+
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -270,7 +270,7 @@ DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 		WMA.PutColIndex(0 + iCnt, iNode1FirstPosIndex + iCnt);
 		WMA.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 		WMA.PutColIndex(3 + iCnt, iNode2FirstPosIndex + iCnt);
-		
+
 		WMB.PutRowIndex(0 + iCnt, iNode1FirstMomIndex + iCnt);
 		WMB.PutColIndex(0 + iCnt, iNode1FirstPosIndex + iCnt);
 		WMB.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
@@ -284,13 +284,13 @@ DistanceJoint::AssMats(VariableSubMatrixHandler& WorkMatA,
 
 	AssMat(WMA, WMB, 1., XCurr, XPrimeCurr);
 }
-   
+
 
 /* Assemblaggio residuo */
 SubVectorHandler&
 DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering DistanceJoint::AssRes()" << std::endl);
@@ -300,19 +300,19 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	integer iNumCols = 0;
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
- 
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
+
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
-   
-	for (int iCnt = 1; iCnt <= 3; iCnt++) {      
+
+	for (int iCnt = 1; iCnt <= 3; iCnt++) {
 		/* Indici del nodo 1 */
 		WorkVec.PutRowIndex(0 + iCnt, iNode1FirstMomIndex + iCnt);
 
 		/* Indici del nodo 2 */
 		WorkVec.PutRowIndex(3 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
-	
+
 	/* Indici del vincolo */
 	WorkVec.PutRowIndex(6 + 1, iFirstReactionIndex + 1);
 
@@ -322,9 +322,9 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 	dAlpha = XCurr(iFirstReactionIndex + 1);
 
 	dDistance = pGetDriveCaller()->dGet();
-   
+
 	/* Distanza nulla */
-	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
 		Abort();
 	}
 
@@ -332,7 +332,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 
 	Vec3 Tmp(Vec*dAlpha);
 	WorkVec.Add(0 + 1, Tmp);
-	WorkVec.Sub(3 + 1, Tmp);	
+	WorkVec.Sub(3 + 1, Tmp);
 
 	return WorkVec;
 }
@@ -340,7 +340,7 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 void
 DistanceJoint::Output(OutputHandler& OH) const
 {
-	if (bToBeOutput()) {      
+	if (bToBeOutput()) {
 		Joint::Output(OH.Joints(), "Distance", GetLabel(),
 	    		Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3)
 			<< " " << Vec/dDistance << " " << dDistance
@@ -351,23 +351,23 @@ DistanceJoint::Output(OutputHandler& OH) const
 /* Nota: vanno modificati in analogia al DistanceWithOffsetJoint */
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DistanceJoint::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 		const VectorHandler& XCurr)
 {
 	DEBUGCOUT("Entering DistanceJoint::InitialAssJac()" << std::endl);
 
 	WorkMat.SetNullMatrix();
-   
+
 	return WorkMat;
 }
 
 
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 		const VectorHandler& XCurr)
-{   
+{
 	DEBUGCOUT("Entering DistanceJoint::InitialAssRes()" << std::endl);
 
 	/* Dimensiona e resetta la matrice di lavoro */
@@ -376,63 +376,6 @@ DistanceJoint::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-#ifdef USE_ADAMS
-void 
-DistanceJoint::GetDummyPartPos(unsigned int part, 
-		Vec3& x, 
-		Mat3x3& R) const 
-{
-	ASSERT(part == 1);
-	x = pNode1->GetXCurr();
-	R = pNode1->GetRCurr();
-}
-
-void 
-DistanceJoint::GetDummyPartVel(unsigned int part, 
-		Vec3& v, 
-		Vec3& w) const 
-{
-	ASSERT(part == 1);
-	v = pNode1->GetVCurr();
-	w = pNode1->GetWCurr();
-}
-
-std::ostream& 
-DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part, 
-		unsigned int firstId) const
-{
-	Vec3 x1 = pNode1->GetXCurr();
-	Vec3 x2 = pNode2->GetXCurr();
-     
-	Vec3 v1 = x2 - x1;
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(Eye3-v1.Tens(v1));
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2))*dRaDegr);
-
-	return out
-		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel()
-		<< "_" << part << std::endl
-		<< firstId << " " << x1 << " "
-		<< MatR2EulerAngles(pNode1->GetRCurr())*dRaDegr << " "
-		<< x1 << " " << e << " "
-		<< l << " " << 0. << " " << 0. << " "
-		<< Zero3 << std::endl;
-}
-#endif /* USE_ADAMS */
 
 /* DistanceJoint - end */
 
@@ -440,15 +383,15 @@ DistanceJoint::WriteAdamsDummyPartCmd(std::ostream& out,
 /* DistanceJointWithOffset - begin */
 
 /* Costruttore non banale */
-DistanceJointWithOffset::DistanceJointWithOffset(unsigned int uL, 
+DistanceJointWithOffset::DistanceJointWithOffset(unsigned int uL,
 		const DofOwner* pDO,
-		const StructNode* pN1, 
+		const StructNode* pN1,
 		const StructNode* pN2,
-		const Vec3& f1Tmp, 
+		const Vec3& f1Tmp,
 		const Vec3& f2Tmp,
 		const DriveCaller* pDC,
 		flag fOut)
-: Elem(uL, fOut), 
+: Elem(uL, fOut),
 DistanceJoint(uL, pDO, pN1, pN2, pDC, fOut),
 f1(f1Tmp), f2(f2Tmp)
 {
@@ -456,8 +399,8 @@ f1(f1Tmp), f2(f2Tmp)
 }
 
 /* Distruttore banale - ci pensa il DriveOwner a distruggere il DriveCaller */
-DistanceJointWithOffset::~DistanceJointWithOffset(void) 
-{ 
+DistanceJointWithOffset::~DistanceJointWithOffset(void)
+{
 	NO_OP;
 }
 
@@ -465,11 +408,11 @@ DistanceJointWithOffset::~DistanceJointWithOffset(void)
 std::ostream&
 DistanceJointWithOffset::Restart(std::ostream& out) const
 {
-	Joint::Restart(out) << ", distance with offset, " 
-		<< pNode1->GetLabel() 
+	Joint::Restart(out) << ", distance with offset, "
+		<< pNode1->GetLabel()
 		<< ", reference, node, ",
 		f1.Write(out, ", ") << ", "
-		<< pNode2->GetLabel() 
+		<< pNode2->GetLabel()
 		<< ", reference, node, ",
 		f2.Write(out, ", ") << ", ";
 		return pGetDriveCaller()->Restart(out) << ';' << std::endl;
@@ -501,12 +444,12 @@ DistanceJointWithOffset::SetValue(DataManager *pDM,
 			}
 		}
 	}
-	
+
 	doublereal dDistance = pGetDriveCaller()->dGet();
 
 	/* Setta a 1 dAlpha, che e' indipendente dalle altre variabili
 	 * in caso di distanza nulla */
-	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
 		Abort();
 	}
 
@@ -532,7 +475,7 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssMat()" << std::endl);
- 
+
 	Vec3 f1Tmp(dynamic_cast<const StructNode *>(pNode1)->GetRRef()*f1);
 	Vec3 f2Tmp(dynamic_cast<const StructNode *>(pNode2)->GetRRef()*f2);
 
@@ -601,10 +544,10 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 
 	/* M1: lambda f1 Cross Delta x_1 */
 	WorkMatA.Add(3 + 1, 0 + 1, Tmp);
-	
+
 	/* M1: - lambda f1 Cross Delta x_2 */
 	WorkMatA.Sub(3 + 1, 6 + 1, Tmp);
-	
+
 	Tmp = Mat3x3(MatCross, f2Tmp*dd);
 
 	/* F1: lambda f2 Cross Delta g_2 */
@@ -615,17 +558,17 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 
 	/* M2: - lambda f2 Cross Delta x_1 */
 	WorkMatA.Sub(9 + 1, 0 + 1, Tmp);
-	
+
 	/* M2: lambda f2 Cross Delta x_2 */
 	WorkMatA.Add(9 + 1, 6 + 1, Tmp);
 
 	Tmp = Mat3x3(MatCrossCross, f1Tmp, f2Tmp*dd);
-	
+
 	/* M1: lambda f1 Cross f2 Cross Delta g_2 */
 	WorkMatA.Add(3 + 1, 9 + 1, Tmp);
 
 	Tmp = Mat3x3(MatCrossCross, f2Tmp, f1Tmp*dd);
-	
+
 	/* M2: lambda f2 Cross f1 Cross Delta g_1 */
 	WorkMatA.Add(9 + 1, 3 + 1, Tmp);
 
@@ -633,7 +576,7 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 
 	/* M1: - lambda (x2 + f2 - x1) Cross f1 Cross Delta g_1 */
 	WorkMatA.Sub(3 + 1, 3 + 1, Tmp);
-      
+
 	Tmp = Mat3x3(MatCrossCross, Vec - f2Tmp, f2Tmp*dd);
 
 	/* M2: - lambda (x2 - x1 - f1) Cross f2 Cross Delta g_2 */
@@ -641,7 +584,7 @@ DistanceJointWithOffset::AssMat(FullSubMatrixHandler& WorkMatA,
 }
 
 /* Assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 		doublereal dCoef,
 		const VectorHandler& XCurr,
@@ -651,7 +594,7 @@ DistanceJointWithOffset::AssJac(VariableSubMatrixHandler& WorkMat,
 
  	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeReset(13, 13);
- 
+
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -680,13 +623,13 @@ DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssMats()" << std::endl);
- 
+
  	FullSubMatrixHandler& WMA = WorkMatA.SetFull();
 	WMA.ResizeReset(13, 13);
- 
+
  	FullSubMatrixHandler& WMB = WorkMatB.SetFull();
 	WMB.ResizeReset(13, 13);
- 
+
 	integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
 	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -698,7 +641,7 @@ DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
 		WMA.PutColIndex(0 + iCnt, iNode1FirstPosIndex + iCnt);
 		WMA.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 		WMA.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-		
+
 		WMB.PutRowIndex(0 + iCnt, iNode1FirstMomIndex + iCnt);
 		WMB.PutColIndex(0 + iCnt, iNode1FirstPosIndex + iCnt);
 		WMB.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
@@ -714,10 +657,10 @@ DistanceJointWithOffset::AssMats(VariableSubMatrixHandler& WorkMatA,
 }
 
 /* Assemblaggio residuo */
-SubVectorHandler& 
+SubVectorHandler&
 DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUT("Entering DistanceJointWithOffset::AssRes()" << std::endl);
@@ -728,18 +671,18 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	WorkSpaceDim(&iNumRows, &iNumCols);
 	WorkVec.ResizeReset(iNumRows);
 
-	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();  
+	integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
 	integer iFirstReactionIndex = iGetFirstIndex();
-   
-	for (int iCnt = 1; iCnt <= 6; iCnt++) {      
+
+	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		/* Indici del nodo 1 */
 		WorkVec.PutRowIndex(0 + iCnt, iNode1FirstMomIndex + iCnt);
 
 		/* Indici del nodo 2 */
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 	}
-	
+
 	/* Indici del vincolo */
 	WorkVec.PutRowIndex(12 + 1, iFirstReactionIndex + 1);
 
@@ -754,9 +697,9 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	dAlpha = XCurr(iFirstReactionIndex + 1);
 
 	dDistance = pGetDriveCaller()->dGet();
-   
+
 	/* Distanza nulla */
-	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {	
+	if (fabs(dDistance) <= std::numeric_limits<doublereal>::epsilon()) {
 		Abort();
 	}
 
@@ -765,7 +708,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 	Vec3 Tmp(Vec*dAlpha);
 	WorkVec.Add(0 + 1, Tmp);
 	WorkVec.Add(3 + 1, f1Tmp.Cross(Tmp));
-	WorkVec.Sub(6 + 1, Tmp);	
+	WorkVec.Sub(6 + 1, Tmp);
 	WorkVec.Sub(9 + 1, f2Tmp.Cross(Tmp));
 
 	return WorkVec;
@@ -773,7 +716,7 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
 
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 				       const VectorHandler& XCurr)
 {
@@ -781,16 +724,16 @@ DistanceJointWithOffset::InitialAssJac(VariableSubMatrixHandler& WorkMat,
 			<< std::endl);
 
 	WorkMat.SetNullMatrix();
-	
+
 	return WorkMat;
 }
 
 
-/* Contributo al residuo durante l'assemblaggio iniziale */   
-SubVectorHandler& 
+/* Contributo al residuo durante l'assemblaggio iniziale */
+SubVectorHandler&
 DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 				       const VectorHandler& XCurr)
-{   
+{
 	DEBUGCOUT("Entering DistanceJointWithOffset::InitialAssRes()"
 			<< std::endl);
 
@@ -799,112 +742,6 @@ DistanceJointWithOffset::InitialAssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-
-#ifdef USE_ADAMS
-void 
-DistanceJointWithOffset::GetDummyPartPos(unsigned int part,
-		Vec3& x, 
-		Mat3x3& R) const 
-{
-	ASSERT(part == 1);
-	x = pNode1->GetXCurr()+dynamic_cast<const StructNode *>(pNode1)->GetRCurr()*f1;
-	
-	Vec3 x2 = pNode2->GetXCurr()+dynamic_cast<const StructNode *>(pNode2)->GetRCurr()*f2;
-
-	Vec3 v1 = x2 - x;
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(Eye3-v1.Tens(v1));
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	R = MatR2vec(1, v1, 2, v2);
-
-	// R = pNode1->GetRCurr();
-}
-
-void 
-DistanceJointWithOffset::GetDummyPartVel(unsigned int part,
-		Vec3& v, 
-		Vec3& w) const 
-{
-	ASSERT(part == 1);
-#if 0
-	x = pNode1->GetXCurr()+pNode1->GetRCurr()*f1;
-	
-	Vec3 x2 = pNode2->GetXCurr()+pNode2->GetRCurr()*f2;
-
-	Vec3 v1 = x2-x;
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(Eye3-v1.Tens(v1));
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	R = MatR2vec(1, v1, 2, v2);
-#endif
-
-	v = pNode1->GetVCurr();
-	w = dynamic_cast<const StructNode *>(pNode1)->GetWCurr();
-}
-
-std::ostream& 
-DistanceJointWithOffset::WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part, 
-		unsigned int firstId) const
-{
-	Vec3 x1 = pNode1->GetXCurr()+pNode1->GetRCurr()*f1;
-	Vec3 x2 = pNode2->GetXCurr()+pNode2->GetRCurr()*f2;
-
-	Vec3 v1 = x2-x1; 
-	doublereal l = v1.Norm();
-	v1 /= l;
-
-	Mat3x3 Rx(Eye3-v1.Tens(v1));
-	int index = 1;
-	if (fabs(v1.dGet(2)) < fabs(v1.dGet(index))) {
-		index = 2;
-	}
-	if (fabs(v1.dGet(3)) < fabs(v1.dGet(index))) {
-		index = 3;
-	}
-
-	Vec3 v2(Rx.GetVec(index));
-	v2 /= v2.Norm();
-
-	Vec3 e(MatR2EulerAngles(MatR2vec(1, v1, 2, v2))*dRaDegr);
-
-	return out 
-		<< psAdamsElemCode[GetElemType()] << "_" << GetLabel()
-		<< "_" << part << std::endl
-		<< firstId << " " << x1 << " "
-		<< e << " "
-		<< x1 << " "
-		<< e << " "
-		<< l << " " << 0. << " " << 0. << " "
-		<< Zero3 << std::endl;
-}
-#endif /* USE_ADAMS */
-
 #endif
 
 /* DistanceJointWithOffset - end */
-

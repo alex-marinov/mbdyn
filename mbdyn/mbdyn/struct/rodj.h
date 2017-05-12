@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -42,13 +42,13 @@ extern const char* psRodNames[];
 
 /* Rod - begin */
 
-class Rod : 
+class Rod :
 virtual public Elem, public Joint, public ConstitutiveLaw1DOwner {
 protected:
 	const StructDispNode* pNode1;
 	const StructDispNode* pNode2;
 	doublereal dL0;
-   
+
 	Vec3 v;
 	doublereal dElle;
 
@@ -62,17 +62,17 @@ protected:
 	NcVar *Var_dEllePrime;
 #endif // USE_NETCDF
 
-	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici 
+	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici
 	 * delle equazioni. Allora, dopo aver settato indici e matrici,
-	 * le routines normali chiamano queste due che eseguono i calcoli 
+	 * le routines normali chiamano queste due che eseguono i calcoli
 	 *
-	 * Purtroppo questa semplificazione vale solo per i Rod senza offset 
+	 * Purtroppo questa semplificazione vale solo per i Rod senza offset
 	 * e puramente elastici. Allora non dichiaro le funzioni come virtuali
 	 * in quanto non devono essere usate direttamente da classi derivate
 	 */
 	void AssMat(FullSubMatrixHandler& WorkMat, doublereal dCoef = 1.);
 	void AssVec(SubVectorHandler& WorkVec);
-   
+
 public:
 	/* Costruttore non banale */
 	Rod(unsigned int uL, const DofOwner* pDO,
@@ -86,23 +86,23 @@ public:
 
 	/* Tipo di Joint */
 	virtual Joint::Type GetJointType(void) const {
-		return Joint::ROD; 
+		return Joint::ROD;
 	};
-      
+
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
 	virtual void
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
-	virtual unsigned int iGetNumDof(void) const { 
+	virtual unsigned int iGetNumDof(void) const {
 		return 0;
 	};
 
 	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6; 
-		*piNumCols = 6; 
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 6;
 	};
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
@@ -113,20 +113,20 @@ public:
 
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-	   
+
 	virtual void
-	AssMats(VariableSubMatrixHandler& WorkMatA, 
+	AssMats(VariableSubMatrixHandler& WorkMatA,
  			VariableSubMatrixHandler& WorkMatB,
- 			const VectorHandler& XCurr, 
+ 			const VectorHandler& XCurr,
  			const VectorHandler& XPrimeCurr);
-	
+
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
- 	
+
 	virtual void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
@@ -141,19 +141,19 @@ public:
 		return 0;
 	};
 	virtual void
-	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-		*piNumRows = 6; 
-		*piNumCols = 6; 
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
+		*piNumRows = 6;
+		*piNumCols = 6;
 	};
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
      			const VectorHandler& XCurr);
 
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
+	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 	/* Inverse Dynamics stuff */
 
@@ -182,7 +182,7 @@ public:
 
 	/* end of Inverse Dynamics stuff */
 
-	/* *******PER IL SOLUTORE PARALLELO******** */        
+	/* *******PER IL SOLUTORE PARALLELO******** */
 	/* Fornisce il tipo e la label dei nodi che sono connessi all'elemento
 	 * utile per l'assemblaggio della matrice di connessione fra i dofs */
 	virtual void
@@ -193,19 +193,6 @@ public:
 	};
 	/* ************************************************ */
 
-	/* Adams output stuff */
-	virtual unsigned int iGetNumDummyParts(void) const {
-		return 1;
-	};
-	virtual void
-	GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	virtual void
-	GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS	
-	virtual std::ostream&
-	WriteAdamsDummyPartCmd(std::ostream& out, unsigned int part,
-			unsigned int firstId) const;
-#endif /* USE_ADAMS */
 
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -224,7 +211,7 @@ public:
 			const ConstitutiveLaw1D* pCL,
 			const StructDispNode* pN1, const StructDispNode* pN2,
 			doublereal dLength, flag fOut);
-   
+
 	/* Distruttore */
 	virtual ~ViscoElasticRod(void);
 
@@ -233,29 +220,29 @@ public:
 
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-	
+
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
      	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
-		*piNumRows = 6; 
+		*piNumRows = 6;
 		*piNumCols = 12;
 	};
-   
+
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
      			const VectorHandler& XCurr);
-   
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
+
+	/* Contributo al residuo durante l'assemblaggio iniziale */
 	virtual SubVectorHandler&
 	InitialAssRes(SubVectorHandler& WorkVec,
-			const VectorHandler& XCurr);   
+			const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
@@ -287,12 +274,12 @@ protected:
 
 public:
 	/* Costruttore non banale */
-	RodWithOffset(unsigned int uL, const DofOwner* pDO, 
+	RodWithOffset(unsigned int uL, const DofOwner* pDO,
   			const ConstitutiveLaw1D* pCL,
   			const StructNode* pN1, const StructNode* pN2,
   			const Vec3& f1Tmp, const Vec3& f2Tmp,
   			doublereal dLength, flag fOut);
- 
+
 	/* Distruttore */
 	virtual ~RodWithOffset(void);
 
@@ -303,19 +290,19 @@ public:
 	AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
 
 	virtual void
-	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
+	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12;
-		*piNumCols = 12; 
+		*piNumCols = 12;
 	};
-         
+
 	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
-	   
+
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec, doublereal dCoef,
-			const VectorHandler& XCurr, 
+			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 	void AssVec(SubVectorHandler& WorkVec);
 
@@ -326,28 +313,21 @@ public:
 #endif
 
 	/* funzioni usate nell'assemblaggio iniziale */
-   
+
 	virtual void
 	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const {
 		*piNumRows = 12;
-		*piNumCols = 24; 
+		*piNumCols = 24;
 	};
 
 	/* Contributo allo jacobiano durante l'assemblaggio iniziale */
-	virtual VariableSubMatrixHandler& 
-	InitialAssJac(VariableSubMatrixHandler& WorkMat, 
+	virtual VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
      			const VectorHandler& XCurr);
-   
-	/* Contributo al residuo durante l'assemblaggio iniziale */   
-	virtual SubVectorHandler&
-	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);   
 
-	void GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& R) const;
-	void GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const;
-#ifdef USE_ADAMS
-	std::ostream& WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part, unsigned int firstId) const;
-#endif /* USE_ADAMS */
+	/* Contributo al residuo durante l'assemblaggio iniziale */
+	virtual SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
 
 #ifdef MBDYN_X_WORKAROUND_GCC_3_2
 	virtual void SetValue(DataManager *pDM,
@@ -368,4 +348,3 @@ public:
 /* RodWithOffset - end */
 
 #endif /* RODJ_H */
-

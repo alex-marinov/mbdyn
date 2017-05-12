@@ -49,9 +49,9 @@
 
 #ifdef USE_NETCDF
 #if defined(HAVE_NETCDFCPP_H)
-#include <netcdfcpp.h>  
+#include <netcdfcpp.h>
 #elif defined(HAVE_NETCDF_H)
-#include <netcdf.h>  
+#include <netcdf.h>
 #endif
 #endif /* USE_NETCDF */
 
@@ -84,8 +84,6 @@ public:
 		LOADABLE,
 		GENELS,				// 15
 		PARTITION,
-		ADAMSRES,
-		ADAMSCMD,
 		AEROMODALS,
 		REFERENCEFRAMES,		// 20
 		LOG,
@@ -140,7 +138,7 @@ private:
 		std::ofstream*	pof;
 		unsigned	flags;
 	} OutData[LASTFILE];
-		
+
 	// NetCDF dimensions and global attributes related to the binary file
 #ifdef USE_NETCDF
 	const NcDim *m_DimTime;
@@ -167,8 +165,6 @@ private:
 	std::ofstream ofLoadable;
 	std::ofstream ofGenels;			/* 15 */
 	std::ofstream ofPartition;
-	std::ofstream ofAdamsRes;
-	std::ofstream ofAdamsCmd;
 	std::ofstream ofAeroModals;
 	std::ofstream ofReferenceFrames;	/* 20 */
 	std::ofstream ofLog;
@@ -234,8 +230,6 @@ public:
 	bool RestartOpen(bool openResXSol = false);
 
 	bool PartitionOpen(void);
-	bool AdamsResOpen(void);
-	bool AdamsCmdOpen(void);
 	bool LogOpen(void);
 
 	/* Aggiungere qui le funzioni che ritornano gli stream desiderati */
@@ -258,8 +252,6 @@ public:
 	inline std::ostream& Loadable(void) const;
 	inline std::ostream& Genels(void) const;
 	inline std::ostream& Partition(void) const;
-	inline std::ostream& AdamsRes(void) const;
-	inline std::ostream& AdamsCmd(void) const;
 	inline std::ostream& AeroModals(void) const;
 	inline std::ostream& ReferenceFrames(void) const;
 	inline std::ostream& Log(void) const;
@@ -532,20 +524,6 @@ OutputHandler::Partition(void) const
 }
 
 inline std::ostream&
-OutputHandler::AdamsRes(void) const
-{
-	ASSERT(IsOpen(ADAMSRES));
-	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAdamsRes));
-}
-
-inline std::ostream&
-OutputHandler::AdamsCmd(void) const
-{
-	ASSERT(IsOpen(ADAMSCMD));
-	return const_cast<std::ostream &>(dynamic_cast<const std::ostream &>(ofAdamsCmd));
-}
-
-inline std::ostream&
 OutputHandler::AeroModals(void) const
 {
 	ASSERT(IsOpen(AEROMODALS));
@@ -720,4 +698,3 @@ private:
 };
 
 #endif /* OUTPUT_H */
-

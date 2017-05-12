@@ -67,8 +67,7 @@ libmbwrap_la_LIBADD = \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@FCLIBS@ \
-@THREAD_LIBS@
+@FCLIBS@
 
 libmbwrap_la_LDFLAGS =
 
@@ -91,8 +90,7 @@ libmbwrap.la \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
-@LIBS@ \
-@THREAD_LIBS@
+@LIBS@
 
 cctest_SOURCES = cctest.cc
 cctest_LDADD = \
@@ -104,8 +102,7 @@ libmbwrap.la \
 @Y12_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@FCLIBS@ \
-@THREAD_LIBS@
+@FCLIBS@
 
 if USE_ARPACK
 arptest_SOURCES = arptest.cc
@@ -120,8 +117,7 @@ libmbwrap.la \
 @Y12_LIBS@ \
 @BLAS_LIBS@ \
 @LIBS@ \
-@FCLIBS@ \
-@THREAD_LIBS@
+@FCLIBS@
 
 endif
 

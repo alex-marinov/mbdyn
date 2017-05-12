@@ -104,7 +104,7 @@ MathPar(HP.GetMathParser()),
 pSolver(pS),
 DrvHdl(HP.GetMathParser()),
 OutHdl(sOutputFileName, 0),
-pXCurr(0), pXPrimeCurr(0), 
+pXCurr(0), pXPrimeCurr(0),
 /* Inverse Dynamics: */
 pXPrimePrimeCurr(0),
 pLambdaCurr(0),
@@ -165,17 +165,6 @@ Var_Eig_dVR(0),
 Var_Eig_dVL(0),
 #endif // USE_NETCDF
 od(EULER_123),
-#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
-iOutputBlock(1),
-#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
-#ifdef USE_ADAMS
-sAdamsModelName(0),
-bAdamsVelocity(false),
-bAdamsAcceleration(false),
-iAdamsOutputNodes(0),
-iAdamsOutputParts(0),
-adamsNoab(0),
-#endif /* USE_ADAMS */
 
 #ifdef USE_SOCKET
 SocketUsersTimeout(0),
@@ -229,7 +218,7 @@ Dofs()
 	HP.GetMathParser().RegisterPlugIn("element", elem_priv_plugin, this);
 
 	/* registra il namespace del modello */
-	
+
 	HP.GetMathParser().RegisterNameSpace(new ModelNameSpace(this));
 
 	/* Setta il tempo al valore iniziale */
@@ -526,21 +515,6 @@ Dofs()
 	}
 #endif /* DEBUG */
 
-#ifdef USE_ADAMS
-	/* Se richiesto, inizializza il file di output AdamsRes */
-	if (bAdamsOutput()) {
-		AdamsResOutputInit();
-		AdamsResOutput(iOutputBlock, "INPUT", "MBDyn");
-	}
-#endif /* USE_ADAMS */
-
-#ifdef USE_MOTIONVIEW
-	if (bMotionViewOutput()) {
-		MotionViewResOutputInit(sOutputFileName);
-		MotionViewResOutput(1, "INPUT", "MBDyn");
-	}
-#endif /* USE_MOTIONVIEW */
-
 	if (bAbortAfterInput) {
 		silent_cout("Only input is required" << std::endl);
 		return;
@@ -634,23 +608,6 @@ Dofs()
 	}
 #endif /* DEBUG */
 
-	/* Se richiesto, esegue l'output delle condizioni iniziali */
-#if defined(USE_ADAMS) || defined(USE_MOTIONVIEW)
-	iOutputBlock++;
-#endif /* defined(USE_ADAMS) || defined(USE_MOTIONVIEW) */
-
-#ifdef USE_ADAMS
-	if (bAdamsOutput()) {
-		AdamsResOutput(iOutputBlock, "INITIAL CONDITIONS", "MBDyn");
-	}
-#endif /* USE_ADAMS */
-
-	/* Se richiesto, esegue l'output delle condizioni iniziali */
-#ifdef USE_MOTIONVIEW
-	if (bMotionViewOutput()) {
-		MotionViewResOutput(iOutputBlock, "INITIAL CONDITIONS", "MBDyn");
-	}
-#endif /* USE_ADAMS */
 
 } /* End of DataManager::DataManager() */
 
@@ -669,18 +626,6 @@ DataManager::~DataManager(void)
 	if (RestartEvery == ATEND) {
 		MakeRestart();
 	}
-
-#ifdef USE_ADAMS
-	if (bAdamsOutput()) {
-		AdamsResOutputFini();
-	}
-#endif /* USE_ADAMS */
-
-#ifdef USE_MOTIONVIEW
-	if (bMotionViewOutput()) {
-		MotionViewResOutputFini();
-	}
-#endif /* USE_MOTIONVIEW */
 
 	if (sSimulationTitle != 0) {
 		SAFEDELETEARR(sSimulationTitle);
@@ -875,7 +820,7 @@ void DataManager::MakeRestart(void)
 	{
 		dynamic_cast<const Elem2Param *>(n->second)->RestartBind(OutHdl.Restart());
 	}
-		
+
 	OutHdl.Restart() << "end: elements;" << std::endl;
 
 	if (saveXSol) {
@@ -1002,4 +947,3 @@ DataManager::PopCurrData(const std::string& name)
 
 	return pMNS->PopCurrData(name);
 }
-

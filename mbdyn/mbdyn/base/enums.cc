@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -48,18 +48,18 @@ const char* psElemNames[] = {
 	"Joint Regularization",
    "Beam",
    "Plate",
-   
+
    "Force",
-   
+
    "Inertia",
-   
+
    "Electric Bulk",
    "Electric",
 
    "Thermal",
-   
+
    "Hydraulic",
-   
+
    "Bulk",
    "Loadable",
    "Driven",
@@ -88,18 +88,18 @@ const char* psReadElemsElems[] = {
 	"joint" "regularization",
    "beam",
    "plate",
-   
+
    "force",
-   
+
    "inertia",
-   
+
    "electric" "bulk",
    "electric",
 
    "thermal",
-   
+
    "hydraulic",
-   
+
    "bulk",
    "loadable",
    "driven",
@@ -107,7 +107,7 @@ const char* psReadElemsElems[] = {
 
    "aeromodal",
    "aerodynamic" "element",
-   
+
    "genel",
 
    "socket" "stream" "output",
@@ -117,7 +117,7 @@ const char* psReadElemsElems[] = {
 
 
 /* Nomi degli elementi quando vengono dichiarati nel blocco dati di controllo;
- * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con 
+ * hanno lo stesso numero progressivo degli elementi, quindi vi si accede con
  * l'enum Elem::Type */
 const char* psReadControlElems[] = {
    "air" "properties",
@@ -131,18 +131,18 @@ const char* psReadControlElems[] = {
 	"joint" "regularizations",
    "beams",
    "plates",
-   
+
    "forces",
 
    "inertia",
-   
+
    "electric" "bulk" "elements",
    "electric" "elements",
 
    "thermal" "elements",
-   
+
    "hydraulic" "elements",
-   
+
    "bulk" "elements",
    "loadable" "elements",
    "driven" "elements",
@@ -150,50 +150,10 @@ const char* psReadControlElems[] = {
 
    "aeromodals",
    "aerodynamic" "elements",
-   
+
    "genels",
 
    "output" "elements",
-
-   NULL
-};
-
-
-/* Codici Adams per denominazione entita' */
-const char *psAdamsElemCode[] = {
-   "AIRP",
-   "ROTR",
-
-   "AUTO",
-
-   "FORC",
-   
-   "GRAV",
-   "PART",
-   "LINK",
-   "BEAM",
-   "PLAT",
-   
-   "ELBK",
-   "ELEC",
-
-   "THER",
-   
-   "HYDR",
-   
-   "BULK",
-   "LOAD",
-   "DRVN",
-
-   "RMBX",
-   "EXTN",
-   
-   "AERO",
-   "AERM",
-   
-   "GENL",
-
-   "OUTP",
 
    NULL
 };
@@ -243,10 +203,10 @@ const char* psJointNames[] = {
    "Total Pin Joint",
    "Total Equation",
    "Total Reaction",
-   
+
    "Modal",
    "Screw",
-   
+
    NULL
 };
 
@@ -256,7 +216,7 @@ const char* psRodNames[] = {
    "Elastic Rod",
    "Visco-Elastic Rod",
    "Visco-Elastic Rod With Offset",
-   
+
    NULL
 };
 
@@ -266,7 +226,7 @@ const char* psConstLawNames[] = {
    "Elastic",
    "Viscous",
    "Visco-Elastic",
-   
+
    NULL
 };
 
@@ -287,7 +247,7 @@ const char* psGenelNames[] = {
    "Scalar Filter",
    "State Space SISO",
    "State Space MIMO",
-   
+
    NULL
 };
 
@@ -308,7 +268,7 @@ const char* psForceNames[] = {
    "Follower Reaction Couple",
 
    "External Structural Force",
-   
+
    NULL
 };
 
@@ -318,7 +278,7 @@ const char* psElectricNames[] = {
    "Accelerometer",
    "Discrete Control",
    "Motor",
-   
+
    NULL
 };
 
@@ -338,7 +298,7 @@ const char* psHydraulicNames[] = {
    "Prova",
    "Pipe (New)",
    "Pipe (Tubo)",
-   
+
    NULL
 };
 
@@ -348,7 +308,7 @@ const char* psBeamNames[] = {
    "Elastic Beam",
    "Visco-Elastic Beam",
    "Piezo-Electric Beam",
-   
+
    NULL
 };
 
@@ -361,7 +321,7 @@ const char* psAeroNames[] = {
    "Aerodynamic Beam",
    "Aerodynamic External",
    "Aerodynamic External Modal",
-   
+
    NULL
 };
 
@@ -373,7 +333,7 @@ const char* psRotorNames[] = {
    "Glauert Induced Speed Rotor",
    "Mangler Induced Speed Rotor",
    "Dynamic Inflow Induced Speed Rotor",
-   
+
    NULL
 };
 
@@ -382,7 +342,7 @@ const char* psRotorNames[] = {
 const char* psBulkNames[] = {
    "SpringSupport",
    "Spring",
-   
+
    NULL
 };
 
@@ -390,13 +350,13 @@ const char* psBulkNames[] = {
 /* Tipi di Drive */
 const char* psDriveNames[] = {
    "File",
-   
+
    NULL
 };
 
 const char* psReadControlDrivers[] = {
    "file" "drivers",
-   
+
    NULL
 };
 
@@ -404,45 +364,45 @@ const char* psReadControlDrivers[] = {
 const char* psFileDriveNames[] = {
    "FixedStepFile",
    "Socket",
-   
+
    NULL
 };
 
 /* Tipi di Node */
-const char* psNodeNames[] = {   
-   "Abstract",     
-   "Structural",   
-   "Electric",   
-   "Thermal",   
-   "Parameter",   
+const char* psNodeNames[] = {
+   "Abstract",
+   "Structural",
+   "Electric",
+   "Thermal",
+   "Parameter",
    "Hydraulic",
-   
+
    NULL
 };
 
 
 /* Nomi dei nodi quando vengono dichiarati nel blocco dati di controllo;
- * hanno lo stesso numero progressivo dei nodi, quindi vi si accede con 
+ * hanno lo stesso numero progressivo dei nodi, quindi vi si accede con
  * l'enum Node::Type */
 const char* psReadControlNodes[] = {
    "abstract" "nodes",
-   "structural" "nodes",   
-   "electric" "nodes",   
-   "thermal" "nodes",   
-   "parameter" "nodes",   
+   "structural" "nodes",
+   "electric" "nodes",
+   "thermal" "nodes",
+   "parameter" "nodes",
    "hydraulic" "nodes",
-   
+
    NULL
 };
 
 const char* psReadNodesNodes[] = {
    "abstract",
-   "structural",   
-   "electric",   
-   "thermal",   
-   "parameter",   
+   "structural",
+   "electric",
+   "thermal",
+   "parameter",
    "hydraulic",
-   
+
    NULL
 };
 
@@ -453,7 +413,7 @@ const char* psStructNodeNames[] = {
    "Static",
    "Modal",
    "Dummy",
-   
+
    NULL
 };
 
@@ -466,7 +426,7 @@ const char* psDofOwnerNames[] = {
    "Thermal Node",
    "Abstract Node",
    "Hydraulic Node",
-   
+
    "Joint Element",
    "Plate Element",
    "GENEL Element",
@@ -478,7 +438,6 @@ const char* psDofOwnerNames[] = {
    "Thermal Element",
    "Hydraulic Element",
    "Loadable Element",
-   
-   NULL
-};   
 
+   NULL
+};

@@ -6,7 +6,6 @@ include $(top_srcdir)/build/top.mk
 noinst_LTLIBRARIES = libbase.la
 
 libbase_la_SOURCES = \
-adams_res.cc \
 auth.cc \
 auth.h \
 bicg.cc \
@@ -95,7 +94,6 @@ modelns.cc \
 modelns.h \
 modules.cc \
 modules.h \
-motionview_res.cc \
 mtdataman.cc \
 mtdataman.h \
 nestedelem.cc \

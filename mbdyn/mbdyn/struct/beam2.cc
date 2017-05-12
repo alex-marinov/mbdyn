@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -49,12 +49,12 @@
 #include "Rot.hh"
 
 /*
- * Nota: non e' ancora stato implementato il contributo 
+ * Nota: non e' ancora stato implementato il contributo
  * della ViscoElasticBeam2 all'assemblaggio iniziale
  */
 
 /*
- * Nota: la parte viscoelastica va rivista in accordo con la piu' 
+ * Nota: la parte viscoelastica va rivista in accordo con la piu'
  * recente formulazione delle derivate delle deformazioni nel sistema
  * materiale
  */
@@ -62,7 +62,7 @@
 /* Beam2 - begin */
 
 /* Costruttore normale */
-Beam2::Beam2(unsigned int uL, 
+Beam2::Beam2(unsigned int uL,
 		const StructNode* pN1,
 		const StructNode* pN2,
 		const Vec3& F1,
@@ -73,8 +73,8 @@ Beam2::Beam2(unsigned int uL,
 		const ConstitutiveLaw6D* pd,
 		OrientationDescription ood,
 		flag fOut)
-: Elem(uL, fOut), 
-ElemGravityOwner(uL, fOut), 
+: Elem(uL, fOut),
+ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 od(ood),
 #ifdef USE_NETCDF
@@ -95,7 +95,7 @@ bFirstIDRes(true)
 	ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pN2 != NULL);
 	ASSERT(pN2->GetNodeType() == Node::STRUCTURAL);
- 
+
 	pNode[NODE1] = pN1;
 	pNode[NODE2] = pN2;
 	const_cast<Vec3&>(f[NODE1]) = F1;
@@ -103,13 +103,13 @@ bFirstIDRes(true)
 	const_cast<Mat3x3&>(RNode[NODE1]) = R1;
 	const_cast<Mat3x3&>(RNode[NODE2]) = R2;
 	RPrev = RRef = R = (Mat3x3&)r;
-	
-	pD = NULL; 
+
+	pD = NULL;
 	SAFENEWWITHCONSTRUCTOR(pD,
 			ConstitutiveLaw6DOwner,
 			ConstitutiveLaw6DOwner(pd));
-	
-	Omega = Zero3; 
+
+	Omega = Zero3;
 	Az = Zero6;
 	AzRef = Zero6;
 	AzLoc = Zero6;
@@ -120,24 +120,24 @@ bFirstIDRes(true)
 	g = Zero3;
 	L0 = Zero3;
 	L = Zero3;
-	
+
 	DsDxi();
-	
+
 	Vec3 xTmp[NUMNODES];
-	
-	for (unsigned int i = 0; i < NUMNODES; i++) {      
+
+	for (unsigned int i = 0; i < NUMNODES; i++) {
 		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
-	}      
-	
+	}
+
 	/* Aggiorna le grandezze della trave nel punto di valutazione */
 	p = InterpState(xTmp[NODE1], xTmp[NODE2]);
 }
 
 
-Beam2::~Beam2(void) 
+Beam2::~Beam2(void)
 {
 	ASSERT(pD != NULL);
-	if (pD != NULL) {      
+	if (pD != NULL) {
 		SAFEDELETE(pD);
 	}
 }
@@ -204,7 +204,7 @@ Beam2::dGetPrivData(unsigned int i) const
 	}
 }
 
-Vec3 
+Vec3
 Beam2::InterpState(const Vec3& v1, const Vec3& v2)
 {
 	doublereal* pv1 = (doublereal*)v1.pGetVec();
@@ -238,7 +238,7 @@ Beam2::DsDxi(void)
 		RNod[i] = pNode[i]->GetRCurr();
 		xTmp[i] = xNod[i] + RNod[i]*f[i];
 	}
-	
+
 	dsdxi = 1.;
 
 	Vec3 xGrad = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
@@ -248,7 +248,7 @@ Beam2::DsDxi(void)
 	} else {
 		silent_cerr("warning, Beam2(" << GetLabel() << ") "
 			"has singular metric; aborting..." << std::endl);
-		
+
 		throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -260,23 +260,23 @@ Beam2::DsDxi(void)
 
 
 /* Calcola la velocita' angolare delle sezioni a partire da quelle dei nodi */
-void 
+void
 Beam2::Omega0(void)
-{   
-	/* Modo consistente: */      
+{
+	/* Modo consistente: */
 	Mat3x3 RNod[NUMNODES];
 	Vec3 w[NUMNODES];
-	for (unsigned int i = 0; i < NUMNODES; i++) {     
+	for (unsigned int i = 0; i < NUMNODES; i++) {
 		RNod[i] = pNode[i]->GetRCurr()*RNode[i];
 		w[i] = pNode[i]->GetWCurr();
 	}
-	
+
 	/*
 	 * Calcolo i parametri di rotazione della rotazione relativa
 	 * tra inizio e fine e li dimezzo nell'ipotesi che siano limitati
 	 */
 	Vec3 gTmp(CGR_Rot::Param, RNod[NODE2].MulTM(RNod[NODE1]));
-	
+
 	/*
 	 * Le derivate dei parametri di rotazione si ricavano da omega
 	 */
@@ -285,7 +285,7 @@ Beam2::Omega0(void)
 
         Vec3 gPTmp(g1P*dN2[NODE1] + g2P*dN2[NODE2]);
         Omega = Mat3x3(CGR_Rot::MatG, gTmp)*gPTmp;
-	
+
 #if 0
 	/* Modo brutale: interpolo le velocita' dei nodi */
 	Omega = pNode[NODE1]->GetWCurr()*dN2[NODE1]
@@ -303,17 +303,17 @@ Beam2::Restart(std::ostream& out) const
 
 std::ostream&
 Beam2::Restart_(std::ostream& out) const
-{ 
+{
 	out << "  beam2: " << GetLabel();
 	for (unsigned int i = 0; i < NUMNODES; i++) {
-		out << ", " << pNode[i]->GetLabel() << ", reference, node, ", 
+		out << ", " << pNode[i]->GetLabel() << ", reference, node, ",
 		f[i].Write(out, ", ");
 	}
 	out << ", reference, global,"
 		<< "1, ", (R.GetVec(1)).Write(out, ", ") << ", "
 		<< "2, ", (R.GetVec(2)).Write(out, ", ") << ", ",
 	pD->pGetConstLaw()->Restart(out);
-	
+
 	return out;
 }
 
@@ -334,68 +334,68 @@ Beam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("Beam2::AssStiffnessMat");
-	
+
 	/*
 	 * La matrice arriva gia' dimensionata
 	 * e con gli indici di righe e colonne a posto
 	 */
-   
+
 	/* offset nel riferimento globale */
 	Vec3 fTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
 	}
-	
+
 	Mat6x6 AzTmp[NUMNODES];
-	
+
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Delta - deformazioni */
 		AzTmp[i] = Mat6x6(mb_deye<Mat3x3>(dN2P[i]*dsdxi*dCoef),
 				Zero3x3,
 				Mat3x3(MatCross, L*(dN2[i]*dCoef) -fTmp[i]*(dN2P[i]*dsdxi*dCoef)),
 				mb_deye<Mat3x3>(dN2P[i]*dsdxi*dCoef));
-		
+
 		/* Delta - azioni interne */
 		AzTmp[i] = DRef*AzTmp[i];
-		
+
 		/* Correggo per la rotazione da locale a globale */
 		AzTmp[i].SubMat12(Mat3x3(MatCross, Az.GetVec1()*(dN2[i]*dCoef)));
 		AzTmp[i].SubMat22(Mat3x3(MatCross, Az.GetVec2()*(dN2[i]*dCoef)));
 	}
-   
+
 	Vec3 bTmp[NUMNODES];
-	
+
 	bTmp[NODE1] = p - pNode[NODE1]->GetXCurr();
 	bTmp[NODE2] = p - pNode[NODE2]->GetXCurr();
-   
+
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
 		WMA.Sub(1, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Sub(1, 6*i + 4, AzTmp[i].GetMat12());
-		
+
 		WMA.Sub(3 + 1, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[NODE1].Cross(AzTmp[i].GetMat11()));
-		WMA.Sub(3 + 1, 6*i + 4, 
+		WMA.Sub(3 + 1, 6*i + 4,
 				AzTmp[i].GetMat22()
 				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
 				+ bTmp[NODE1].Cross(AzTmp[i].GetMat12()));
-		
+
 		/* Equazione in avanti: */
 		WMA.Add(6 + 1, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Add(6 + 1, 6*i + 4, AzTmp[i].GetMat12());
-		
+
 		WMA.Add(9 + 1, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[NODE2].Cross(AzTmp[i].GetMat11()));
-		WMA.Add(9 + 1, 6*i + 4, 
+		WMA.Add(9 + 1, 6*i + 4,
 				AzTmp[i].GetMat22()
 				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
 				+ bTmp[NODE2].Cross(AzTmp[i].GetMat12()));
 	}
-	
+
 	/* correzione alle equazioni */
 	Mat3x3 FTmp(MatCross, Az.GetVec1()*dCoef);
 	WMA.Sub(3 + 1, 1, FTmp);
@@ -411,64 +411,64 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("Beam2::AssStiffnessVec");
-	
+
 	/*
-	 * Riceve il vettore gia' dimensionato e con gli indici a posto 
+	 * Riceve il vettore gia' dimensionato e con gli indici a posto
 	 * per scrivere il residuo delle equazioni di equilibrio dei tre nodi
 	 */
-	
+
 	/*
-	 * Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
+	 * Per la trattazione teorica, il riferimento e' il file ul-travi.tex
 	 * (ora e' superato)
 	 */
-	
+
 	if (bFirstRes) {
 		bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
 
 	} else {
-		Vec3 gNod[NUMNODES];    
+		Vec3 gNod[NUMNODES];
 		Vec3 xTmp[NUMNODES];
-		
-		for (unsigned int i = 0; i < NUMNODES; i++) {      
-			gNod[i] = pNode[i]->GetgCurr();	 
+
+		for (unsigned int i = 0; i < NUMNODES; i++) {
+			gNod[i] = pNode[i]->GetgCurr();
 			xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
-		}      
-		
+		}
+
 		Mat3x3 RDelta;
 		Vec3 gGrad;
-		
+
 		/*
 		 * Aggiorna le grandezze della trave nel punto di valutazione
 		 */
-		
+
 		/* Posizione */
 		p = InterpState(xTmp[NODE1], xTmp[NODE2]);
-		
+
 		/* Matrici di rotazione */
 		g = InterpState(gNod[NODE1], gNod[NODE2]);
 		RDelta = Mat3x3(CGR_Rot::MatR, g);
 		R = RDelta*RRef;
-		
+
 		/* Derivate della posizione */
 		L = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-		
+
 		/* Derivate dei parametri di rotazione */
 		gGrad = InterpDeriv(gNod[NODE1], gNod[NODE2]);
-		
+
 		/*
 		 * Calcola le deformazioni nel sistema locale
 		 * nei punti di valutazione
 		 */
 		DefLoc = Vec6(R.MulTV(L) - L0,
 			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocRef.GetVec2());
-		
+
 		/* Calcola le azioni interne */
 		pD->Update(DefLoc);
 		AzLoc = pD->GetF();
-		
+
 		/* corregge le azioni interne locali (piezo, ecc) */
 		AddInternalForces(AzLoc);
-		
+
 		/* Porta le azioni interne nel sistema globale */
 		Az = MultRV(AzLoc, R);
 	}
@@ -479,35 +479,35 @@ Beam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 	WorkVec.Sub(10, Az.GetVec2() + (p - pNode[NODE2]->GetXCurr()).Cross(Az.GetVec1()));
 }
 
-   
+
 /* assemblaggio jacobiano */
 VariableSubMatrixHandler&
 Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal dCoef, 
+		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("Beam2::AssJac => AssStiffnessMat");
-	
+
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
-	
-	FullSubMatrixHandler& WM = WorkMat.SetFull();   
-	
+
+	FullSubMatrixHandler& WM = WorkMat.SetFull();
+
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
 	WM.ResizeReset(12, 12);
-	
+
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}      
-	
+	}
+
 	AssStiffnessMat(WM, WM, dCoef, XCurr, XPrimeCurr);
-	
+
 	return WorkMat;
 }
 
@@ -516,28 +516,28 @@ Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 Beam2::AssRes(SubVectorHandler& WorkVec,
 		doublereal dCoef,
-		const VectorHandler& XCurr, 
+		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr)
 {
 	DEBUGCOUTFNAME("Beam2::AssRes => AssStiffnessVec");
-	
+
 	integer iNode1FirstMomIndex = pNode[NODE1]->iGetFirstMomentumIndex();
 	integer iNode2FirstMomIndex = pNode[NODE2]->iGetFirstMomentumIndex();
-	
+
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
 	WorkVec.ResizeReset(12);
 
 	for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstMomIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstMomIndex + iCnt);
-	}      
-	
+	}
+
 	AssStiffnessVec(WorkVec, dCoef, XCurr, XPrimeCurr);
-	
+
 	return WorkVec;
 }
 
-    
+
 /* Settings iniziali, prima della prima soluzione */
 void
 Beam2::SetValue(DataManager *pDM,
@@ -549,61 +549,61 @@ Beam2::SetValue(DataManager *pDM,
 	LRef = L;
 	DefLocRef = DefLoc;
 	AzRef = Az;
-	
+
 	/*
 	 * Aggiorna il legame costitutivo di riferimento
 	 * (la deformazione e' gia' stata aggiornata dall'ultimo residuo)
 	 */
-	DRef = MultRMRt(pD->GetFDE(), RRef);      
-	
+	DRef = MultRMRt(pD->GetFDE(), RRef);
+
 	bFirstRes = true;
 }
-              
+
 
 /* Prepara i parametri di riferimento dopo la predizione */
 void
 Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
-{  
+{
 	/*
 	 * Calcola le deformazioni, aggiorna il legame costitutivo
 	 * e crea la FDE
 	 */
-	
-	/* Recupera i dati dei nodi */  
+
+	/* Recupera i dati dei nodi */
 	Vec3   gNod[NUMNODES];
 	Vec3   xTmp[NUMNODES];
-	
-	for (unsigned int i = 0; i < NUMNODES; i++) {            
+
+	for (unsigned int i = 0; i < NUMNODES; i++) {
 		gNod[i] = pNode[i]->GetgRef();
 		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRRef()*f[i];
 	}
-	
+
 	Mat3x3 RDelta;
 	Vec3 gGrad;
-	
+
 	/* Aggiorna le grandezze della trave nel punto di valutazione */
-	
+
 	/* Posizione */
 	p = InterpState(xTmp[NODE1], xTmp[NODE2]);
-	
+
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
 	RDelta = Mat3x3(CGR_Rot::MatR, g);
 	R = RRef = RDelta*RPrev;
-	
+
 	/* Derivate della posizione */
 	L = LRef = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-	
+
 	/* Derivate dei parametri di rotazione */
 	gGrad = InterpDeriv(gNod[NODE1], gNod[NODE2]);
-	
+
 	/*
 	 * Calcola le deformazioni nel sistema locale
 	 * nei punti di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(R.MulTV(L) - L0,
 		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocPrev.GetVec2());
-	
+
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc);
 	AzLoc = pD->GetF();
@@ -616,7 +616,7 @@ Beam2::AfterPredict(VectorHandler& /* X */ , VectorHandler& /* XP */ )
 
 	/* Aggiorna il legame costitutivo di riferimento */
 	DRef = MultRMRt(pD->GetFDE(), RRef);
-	
+
 	bFirstRes = true;
 }
 
@@ -799,36 +799,36 @@ Beam2::Output(OutputHandler& OH) const
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 Beam2::InitialAssJac(VariableSubMatrixHandler& WorkMat,
-		const VectorHandler& XCurr) 
-{ 
+		const VectorHandler& XCurr)
+{
 	DEBUGCOUTFNAME("Beam2::InitialAssJac => AssStiffnessMat");
-	
+
 	/* Dimensiona la matrice, la azzera e pone gli indici corretti */
 	FullSubMatrixHandler& WM = WorkMat.SetFull();
 	WM.ResizeReset(12, 12);
-	
+
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
-   
+
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WM.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutColIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WM.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
 		WM.PutColIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}      
-	
+	}
+
 	AssStiffnessMat(WM, WM, 1., XCurr, XCurr);
 	return WorkMat;
 }
 
 
-/* Contributo al residuo durante l'assemblaggio iniziale */   
+/* Contributo al residuo durante l'assemblaggio iniziale */
 SubVectorHandler&
 Beam2::InitialAssRes(SubVectorHandler& WorkVec,
-		const VectorHandler& XCurr) 
-{ 
+		const VectorHandler& XCurr)
+{
 	DEBUGCOUTFNAME("Beam2::InitialAssRes => AssStiffnessVec");
 
 	/* Dimensiona il vettore, lo azzera e pone gli indici corretti */
@@ -836,12 +836,12 @@ Beam2::InitialAssRes(SubVectorHandler& WorkVec,
 
 	integer iNode1FirstPosIndex = pNode[NODE1]->iGetFirstPositionIndex();
 	integer iNode2FirstPosIndex = pNode[NODE2]->iGetFirstPositionIndex();
-   
+
 	for (int iCnt = 1; iCnt <= 6; iCnt++) {
 		WorkVec.PutRowIndex(iCnt, iNode1FirstPosIndex + iCnt);
 		WorkVec.PutRowIndex(6 + iCnt, iNode2FirstPosIndex + iCnt);
-	}      
-	
+	}
+
 	AssStiffnessVec(WorkVec, 1., XCurr, XCurr);
 	return WorkVec;
 }
@@ -860,26 +860,6 @@ Beam2::pGetNode(unsigned int i) const
 	}
 }
 
-
-void
-Beam2::GetDummyPartPos(unsigned int part, Vec3& x, Mat3x3& r) const
-{
-	ASSERT(part == 1);
-	part--;
-   
-	x = p;
-	r = R;
-}
-
-void
-Beam2::GetDummyPartVel(unsigned int part, Vec3& v, Vec3& w) const
-{
-	ASSERT(part == 1);
-	part--;
-   
-	v = Zero3;
-	w = Zero3;
-}
 
 /* inverse dynamics capable element */
 bool
@@ -911,7 +891,7 @@ Beam2::AssJac(VariableSubMatrixHandler& WorkMat,
 SubVectorHandler&
 Beam2::AssRes(SubVectorHandler& WorkVec,
 	const VectorHandler& XCurr,
-	const VectorHandler& XPrimeCurr, 
+	const VectorHandler& XPrimeCurr,
 	const VectorHandler& /* XPrimePrimeCurr */ ,
 	InverseDynamics::Order iOrder)
 {
@@ -929,12 +909,12 @@ Beam2::AssRes(SubVectorHandler& WorkVec,
 			// prepare for new step
 			AfterPredict(const_cast<VectorHandler&>(XCurr),
 				const_cast<VectorHandler&>(XPrimeCurr));
-	
+
 			bFirstIDRes = false;
 			bFirstRes = true;
 		}
 	// }
-	
+
 	return AssRes(WorkVec, 1., XCurr, XPrimeCurr);
 }
 
@@ -954,33 +934,6 @@ Beam2::AfterConvergence(const VectorHandler& X,
 	bFirstIDRes = true;
 }
 
-#ifdef USE_ADAMS
-std::ostream& 
-Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
-		unsigned int part,
-		unsigned int firstId) const
-{
-	Vec3 xTmp[NUMNODES];
-	
-	part--;
-	
-	for (unsigned int i = 0; i <= 1; i++) {
-		xTmp[i] = pNode[i]->GetXCurr() + pNode[i]->GetRCurr()*f[i];
-	}
-	
-	out << psAdamsElemCode[GetElemType()] << "_" << GetLabel()
-		<< "_" << 1 << std::endl
-		<< firstId << " "
-		<< p << " " 
-		<< MatR2EulerAngles(R)*dRaDegr << " "
-		<< R.MulTV(xTmp[NODE1]-p) << " "
-		<< Zero3 /* MatR2EulerAngles(pNode[part]->GetRCurr())*dRaDegr */ << " "
-		<< R.MulTV(xTmp[NODE2]-p) << " "
-		<< Zero3 /* MatR2EulerAngles(pNode[1+part]->GetRCurr())*dRaDegr */ << std::endl;
-	
-	return out;
-}
-#endif /* USE_ADAMS */
 
 /* Beam2 - end */
 
@@ -988,25 +941,25 @@ Beam2::WriteAdamsDummyPartCmd(std::ostream& out,
 /* ViscoElasticBeam2 - begin */
 
 /* Costruttore normale */
-ViscoElasticBeam2::ViscoElasticBeam2(unsigned int uL, 
-		const StructNode* pN1, 
-		const StructNode* pN2, 
+ViscoElasticBeam2::ViscoElasticBeam2(unsigned int uL,
+		const StructNode* pN1,
+		const StructNode* pN2,
 		const Vec3& F1,
 		const Vec3& F2,
 		const Mat3x3& R1,
 		const Mat3x3& R2,
 		const Mat3x3& r,
-		const ConstitutiveLaw6D* pd, 
+		const ConstitutiveLaw6D* pd,
 		OrientationDescription ood,
 		flag fOut)
 : Elem(uL, fOut),
 Beam2(uL, pN1, pN2, F1, F2, R1, R2, r, pd, ood, fOut)
 {
-	LPrimeRef = LPrime = Zero3;  
+	LPrimeRef = LPrime = Zero3;
 	gPrime = Zero3;
-	
+
 	DefPrimeLoc = DefPrimeLocRef = Zero6;
-	
+
 	/* Nota: DsDxi() viene chiamata dal costruttore di Beam */
 	Beam2::Omega0();
 
@@ -1033,99 +986,99 @@ ViscoElasticBeam2::AssStiffnessMat(FullSubMatrixHandler& WMA,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("ViscoElasticBeam2::AssStiffnessMat");
-	
+
 	/*
 	 * La matrice arriva gia' dimensionata
 	 * e con gli indici di righe e colonne a posto
 	 */
-	
+
 	/* offset nel riferimento globale */
 	Vec3 fTmp[NUMNODES];
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		fTmp[i] = pNode[i]->GetRCurr()*f[i];
 	}
-	
+
 	Mat6x6 AzTmp[NUMNODES];
 	Mat6x6 AzPrimeTmp[NUMNODES];
-	
+
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Delta - deformazioni */
 		AzTmp[i] = AzPrimeTmp[i] = Mat6x6(mb_deye<Mat3x3>(dN2P[i]*dsdxi),
 				Zero3x3,
 				Mat3x3(MatCross, L*dN2[i] - fTmp[i]*(dN2P[i]*dsdxi)),
 				mb_deye<Mat3x3>(dN2P[i]*dsdxi));
-		
+
 		AzTmp[i] = DRef*AzTmp[i]*dCoef;
-		
+
 		AzTmp[i] += ERef*Mat6x6(Mat3x3(MatCross, Omega*(-dN2P[i]*dsdxi*dCoef)),
-				Zero3x3, 
+				Zero3x3,
 				(Mat3x3(MatCross, LPrime) - Mat3x3(MatCrossCross, Omega, L))*(dN2[i]*dCoef)
 					+ Mat3x3(MatCrossCross, Omega, fTmp[i]*(dN2P[i]*dsdxi*dCoef))
 					+ Mat3x3(MatCross, fTmp[i].Cross(pNode[i]->GetWCurr()*(dN2P[i]*dsdxi*dCoef))),
 				Mat3x3(MatCross, Omega*(-dN2P[i]*dsdxi*dCoef)));
-		
+
 		AzPrimeTmp[i] = ERef*AzPrimeTmp[i];
-		
+
 		/* Correggo per la rotazione da locale a globale */
 		AzTmp[i].SubMat12(Mat3x3(MatCross, Az.GetVec1()*(dN2[i]*dCoef)));
 		AzTmp[i].SubMat22(Mat3x3(MatCross, Az.GetVec2()*(dN2[i]*dCoef)));
 	}
-	
+
 	Vec3 bTmp[NUMNODES];
-	
+
 	bTmp[NODE1] = p-pNode[NODE1]->GetXCurr();
 	bTmp[NODE2] = p-pNode[NODE2]->GetXCurr();
-	
+
 	for (unsigned int i = 0; i < NUMNODES; i++) {
 		/* Equazione all'indietro: */
 		WMA.Sub(1, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Sub(1, 6*i + 4, AzTmp[i].GetMat12());
-		
+
 		WMA.Sub(4, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[NODE1].Cross(AzTmp[i].GetMat11()));
-		WMA.Sub(4, 6*i + 4, 
+		WMA.Sub(4, 6*i + 4,
 				AzTmp[i].GetMat22()
 				- Mat3x3(MatCrossCross, Az.GetVec1()*(-dCoef*dN2[i]), fTmp[i])
 				+ bTmp[NODE1].Cross(AzTmp[i].GetMat12()));
-		
+
 		/* Equazione in avanti: */
 		WMA.Add(7, 6*i + 1, AzTmp[i].GetMat11());
 		WMA.Add(7, 6*i + 4, AzTmp[i].GetMat12());
-		
+
 		WMA.Add(10, 6*i + 1,
 				AzTmp[i].GetMat21()
 				- Mat3x3(MatCross, Az.GetVec1()*(dCoef*dN2[i]))
 				+ bTmp[NODE2].Cross(AzTmp[i].GetMat11()));
-		WMA.Add(10, 6*i + 4, 
+		WMA.Add(10, 6*i + 4,
 				AzTmp[i].GetMat22()
 				+ Mat3x3(MatCrossCross, Az.GetVec1()*(dCoef*dN2[i]), fTmp[i])
 				+ bTmp[NODE2].Cross(AzTmp[i].GetMat12()));
-		
+
 		/* Equazione viscosa all'indietro: */
 		WMB.Sub(1, 6*i + 1, AzPrimeTmp[i].GetMat11());
 		WMB.Sub(1, 6*i + 4, AzPrimeTmp[i].GetMat12());
-		
+
 		WMB.Sub(4, 6*i + 1,
 				AzPrimeTmp[i].GetMat21()
 				+ bTmp[NODE1].Cross(AzPrimeTmp[i].GetMat11()));
 		WMB.Sub(4, 6*i + 4,
 				AzPrimeTmp[i].GetMat22()
 				+ bTmp[NODE1].Cross(AzPrimeTmp[i].GetMat12()));
-		
+
 		/* Equazione viscosa in avanti: */
 		WMB.Add(7, 6*i + 1, AzPrimeTmp[i].GetMat11());
 		WMB.Add(7, 6*i + 4, AzPrimeTmp[i].GetMat12());
-		
+
 		WMB.Add(10, 6*i + 1,
-				AzPrimeTmp[i].GetMat21()	       
+				AzPrimeTmp[i].GetMat21()
 				+ bTmp[NODE2].Cross(AzPrimeTmp[i].GetMat11()));
-		WMB.Add(10, 6*i + 4, 
-				AzPrimeTmp[i].GetMat22()	     
+		WMB.Add(10, 6*i + 4,
+				AzPrimeTmp[i].GetMat22()
 				+ bTmp[NODE2].Cross(AzPrimeTmp[i].GetMat12()));
 	}
-	
+
 	/* correzione alle equazioni */
 	Mat3x3 FTmp(MatCross, Az.GetVec1()*dCoef);
 	WMA.Sub(4, 1, FTmp);
@@ -1141,28 +1094,28 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 		const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("ViscoElasticBeam2::AssStiffnessVec");
-	
+
 	/*
-	 * Riceve il vettore gia' dimensionato e con gli indici a posto 
+	 * Riceve il vettore gia' dimensionato e con gli indici a posto
 	 * per scrivere il residuo delle equazioni di equilibrio dei due nodi
 	 */
-	
+
 	/*
-	 * Per la trattazione teorica, il riferimento e' il file ul-travi.tex 
+	 * Per la trattazione teorica, il riferimento e' il file ul-travi.tex
 	 * (ora e' superato)
 	 */
-	
+
 	if (bFirstRes) {
 		bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
 
 	} else {
-		Vec3 gNod[NUMNODES];    
+		Vec3 gNod[NUMNODES];
 		Vec3 xTmp[NUMNODES];
-		
-		Vec3 gPrimeNod[NUMNODES];    
+
+		Vec3 gPrimeNod[NUMNODES];
 		Vec3 xPrimeTmp[NUMNODES];
-		
-		for (unsigned int i = 0; i < NUMNODES; i++) {      
+
+		for (unsigned int i = 0; i < NUMNODES; i++) {
 			gNod[i] = pNode[i]->GetgCurr();
 			Vec3 fTmp = pNode[i]->GetRCurr()*f[i];
 			xTmp[i] = pNode[i]->GetXCurr() + fTmp;
@@ -1170,48 +1123,48 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 			xPrimeTmp[i] = pNode[i]->GetVCurr()
 				+ pNode[i]->GetWCurr().Cross(fTmp);
 		}
-		
+
 		Mat3x3 RDelta;
 		Vec3 gGrad;
 		Vec3 gPrimeGrad;
-		
+
 		/*
 		 * Aggiorna le grandezze della trave nel punto di valutazione
 		 */
-		
+
 		/* Posizione */
 		p = InterpState(xTmp[NODE1], xTmp[NODE2]);
-		
+
 		/* Matrici di rotazione */
 		g = InterpState(gNod[NODE1], gNod[NODE2]);
 		RDelta = Mat3x3(CGR_Rot::MatR, g);
 		R = RDelta*RRef;
-		
-		/* Velocita' angolare della sezione */	 
+
+		/* Velocita' angolare della sezione */
 		gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
 		Omega = Mat3x3(CGR_Rot::MatG, g)*gPrime + RDelta*OmegaRef;
-		
+
 		/* Derivate della posizione */
 		L = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-		
+
 		/* Derivate della velocita' */
 		LPrime = InterpDeriv(xPrimeTmp[NODE1], xPrimeTmp[NODE2]);
-		
+
 		/* Derivate dei parametri di rotazione */
 		gGrad = InterpDeriv(gNod[NODE1], gNod[NODE2]);
-		
+
 		/*
 		 * Derivate delle derivate spaziali dei parametri di rotazione
 		 */
 		gPrimeGrad = InterpDeriv(gPrimeNod[NODE1], gPrimeNod[NODE2]);
-		
-		/* 
+
+		/*
 		 * Calcola le deformazioni nel sistema locale nel punto
 		 * di valutazione
 		 */
 		DefLoc = Vec6(R.MulTV(L) - L0,
 			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocRef.GetVec2());
-		
+
 		/*
 		 * Calcola le velocita' di deformazione nel sistema locale
 		 * nel punto di valutazione
@@ -1220,7 +1173,7 @@ ViscoElasticBeam2::AssStiffnessVec(SubVectorHandler& WorkVec,
 			R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gPrimeGrad
 			+ (Mat3x3(CGR_Rot::MatG, g)*gGrad).Cross(Omega))
 			+ DefPrimeLocRef.GetVec2());
-		
+
 		/* Calcola le azioni interne */
 		pD->Update(DefLoc, DefPrimeLoc);
 		AzLoc = pD->GetF();
@@ -1246,40 +1199,40 @@ ViscoElasticBeam2::SetValue(DataManager *pDM,
 		SimulationEntity::Hints *ph)
 {
 	Beam2::SetValue(pDM, X, XP, ph);
-	
+
 	/* Aggiorna le grandezze della trave nei punti di valutazione */
 	OmegaRef = Omega;
 	LPrimeRef = LPrime;
 	DefPrimeLocRef = DefPrimeLoc;
-	
+
 	/*
 	 * Aggiorna il legame costitutivo di riferimento
 	 * (la deformazione e' gia' stata aggiornata dall'ultimo residuo)
 	 */
 	ERef = MultRMRt(pD->GetFDEPrime(), RRef);
-	
+
 	ASSERT(bFirstRes == true);
 }
-              
+
 
 /* Prepara i parametri di riferimento dopo la predizione */
 void
-ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ , 
+ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 		VectorHandler& /* XP */ )
 {
 	/*
 	 * Calcola le deformazioni, aggiorna il legame costitutivo
 	 * e crea la FDE
 	 */
-	
-	/* Recupera i dati dei nodi */  
+
+	/* Recupera i dati dei nodi */
 	Vec3   gNod[NUMNODES];
 	Vec3   xTmp[NUMNODES];
-	
+
 	Vec3   gPrimeNod[NUMNODES];
 	Vec3   xPrimeTmp[NUMNODES];
-	
-	for (unsigned int i = 0; i < NUMNODES; i++) {            
+
+	for (unsigned int i = 0; i < NUMNODES; i++) {
 		gNod[i] = pNode[i]->GetgRef();
 		Vec3 fTmp = pNode[i]->GetRRef()*f[i];
 		xTmp[i] = pNode[i]->GetXCurr() + fTmp;
@@ -1287,42 +1240,42 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 		xPrimeTmp[i] = pNode[i]->GetVCurr()
 			+ pNode[i]->GetWRef().Cross(fTmp);
 	}
-	
+
 	Mat3x3 RDelta;
 	Vec3 gGrad;
 	Vec3 gPrimeGrad;
-	
+
 	/* Aggiorna le grandezze della trave nel punto di valutazione */
 	/* Posizione */
 	p = InterpState(xTmp[NODE1], xTmp[NODE2]);
-	
+
 	/* Matrici di rotazione */
 	g = InterpState(gNod[NODE1], gNod[NODE2]);
 	RDelta = Mat3x3(CGR_Rot::MatR, g);
 	R = RRef = RDelta*RPrev;
-	
-	/* Velocita' angolare della sezione */	 
+
+	/* Velocita' angolare della sezione */
 	gPrime = InterpState(gPrimeNod[NODE1], gPrimeNod[NODE2]);
 	Omega = OmegaRef = Mat3x3(CGR_Rot::MatG, g)*gPrime;
-	
+
 	/* Derivate della posizione */
 	L = LRef = InterpDeriv(xTmp[NODE1], xTmp[NODE2]);
-	
+
 	/* Derivate della velocita' */
 	LPrime = LPrimeRef = InterpDeriv(xPrimeTmp[NODE1], xPrimeTmp[NODE2]);
-	
+
 	/* Derivate dei parametri di rotazione */
 	gGrad = InterpDeriv(gNod[NODE1], gNod[NODE2]);
-	
+
 	/* Derivate delle derivate spaziali dei parametri di rotazione */
 	gPrimeGrad = InterpDeriv(gPrimeNod[NODE1], gPrimeNod[NODE2]);
-	
+
 	/*
 	 * Calcola le deformazioni nel sistema locale nel punto di valutazione
 	 */
 	DefLoc = DefLocRef = Vec6(R.MulTV(L) - L0,
 		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gGrad) + DefLocPrev.GetVec2());
-	
+
 	/*
 	 * Calcola le velocita' di deformazione nel sistema locale
 	 * nel punto di valutazione
@@ -1330,21 +1283,21 @@ ViscoElasticBeam2::AfterPredict(VectorHandler& /* X */ ,
 	DefPrimeLoc = DefPrimeLocRef = Vec6(R.MulTV(LPrime + L.Cross(Omega)),
 		R.MulTV(Mat3x3(CGR_Rot::MatG, g)*gPrimeGrad
 		+ (Mat3x3(CGR_Rot::MatG, g)*gGrad).Cross(Omega)));
-	
+
 	/* Calcola le azioni interne */
 	pD->Update(DefLoc, DefPrimeLoc);
 	AzLoc = pD->GetF();
-	
+
 	/* corregge le azioni interne locali (piezo, ecc) */
 	AddInternalForces(AzLoc);
-	
+
 	/* Porta le azioni interne nel sistema globale */
 	Az = AzRef = MultRV(AzLoc, R);
-	
+
 	/* Aggiorna il legame costitutivo */
 	DRef = MultRMRt(pD->GetFDE(), R);
 	ERef = MultRMRt(pD->GetFDEPrime(), R);
-	
+
 	bFirstRes = true;
 }
 
@@ -1375,11 +1328,11 @@ Elem*
 ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 {
 	DEBUGCOUTFNAME("ReadBeam2");
-	
+
 	/* Nodo 1 */
 	const StructNode* pNode1 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-	
-	Mat3x3 R1(pNode1->GetRCurr());   
+
+	Mat3x3 R1(pNode1->GetRCurr());
 	if (HP.IsKeyWord("position")) {
 		/* just eat it! */
 		NO_OP;
@@ -1390,13 +1343,13 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		Rn1 = HP.GetRotRel(ReferenceFrame(pNode1));
 	}
 
-	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): " 
+	DEBUGLCOUT(MYDEBUG_INPUT, "node 1 offset (node reference frame): "
 			<< f1 << std::endl << "(global frame): "
 			<< pNode1->GetXCurr() + pNode1->GetRCurr()*f1 << std::endl);
-	
+
 	/* Nodo 2 */
 	const StructNode* pNode2 = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
-	
+
 	Mat3x3 R2(pNode2->GetRCurr());
 	if (HP.IsKeyWord("position")) {
 		/* just eat it! */
@@ -1407,11 +1360,11 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	if (HP.IsKeyWord("orientation") || HP.IsKeyWord("rot")) {
 		Rn2 = HP.GetRotRel(ReferenceFrame(pNode2));
 	}
-	
-	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): " 
+
+	DEBUGLCOUT(MYDEBUG_INPUT, "node 2 offset (node reference frame): "
 			<< f2 << std::endl << "(global frame): "
 			<< pNode2->GetXCurr() + pNode2->GetRCurr()*f2 << std::endl);
-	
+
 	/* Matrice R */
 	Mat3x3 R;
 	flag f(0);
@@ -1420,7 +1373,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	} else {
 		R = HP.GetRotAbs(::AbsRefFrame);
 	}
-	
+
 	/* Legame costitutivo */
 	ConstLawType::Type CLType = ConstLawType::UNKNOWN;
 	ConstitutiveLaw6D* pD = HP.GetConstLaw6D(CLType);
@@ -1432,7 +1385,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	
+
 	Beam::Type Type;
 	if (CLType == ConstLawType::ELASTIC) {
 		Type = Beam::ELASTIC;
@@ -1440,34 +1393,34 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		Type = Beam::VISCOELASTIC;
 	}
 
-#ifdef DEBUG   
+#ifdef DEBUG
 	Mat6x6 MTmp(pD->GetFDE());
 	Mat3x3 D11(MTmp.GetMat11());
 	Mat3x3 D12(MTmp.GetMat12());
 	Mat3x3 D21(MTmp.GetMat21());
 	Mat3x3 D22(MTmp.GetMat22());
-	
-	DEBUGLCOUT(MYDEBUG_INPUT, 
+
+	DEBUGLCOUT(MYDEBUG_INPUT,
 			"First point matrix D11: " << std::endl << D11 << std::endl
 			<< "First point matrix D12: " << std::endl << D12 << std::endl
 			<< "First point matrix D21: " << std::endl << D21 << std::endl
 			<< "First point matrix D22: " << std::endl << D22 << std::endl);
 #endif /* DEBUG */
-	
+
 	flag fPiezo(0);
 	Mat3xN PiezoMat[2];
 	integer iNumElec = 0;
 	const ScalarDifferentialNode** pvElecDofs = 0;
 	if (HP.IsKeyWord("piezoelectric" "actuator")) {
 		fPiezo = flag(1);
-		DEBUGLCOUT(MYDEBUG_INPUT, 
+		DEBUGLCOUT(MYDEBUG_INPUT,
 				"Piezoelectric actuator beam is expected"
 				<< std::endl);
-		
+
 		iNumElec = HP.GetInt();
-		DEBUGLCOUT(MYDEBUG_INPUT, 
+		DEBUGLCOUT(MYDEBUG_INPUT,
 				"piezo actuator " << uLabel
-				<< " has " << iNumElec 
+				<< " has " << iNumElec
 				<< " electrodes" << std::endl);
 		if (iNumElec <= 0) {
 			silent_cerr("Beam2(" << uLabel << "): "
@@ -1477,19 +1430,19 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		
+
 		SAFENEWARR(pvElecDofs, const ScalarDifferentialNode *, iNumElec);
-		
+
 		for (integer i = 0; i < iNumElec; i++) {
 			pvElecDofs[i] = pDM->ReadNode<const ScalarDifferentialNode, Node::ABSTRACT>(HP);
 		}
-		
+
 		PiezoMat[0].Resize(iNumElec);
 		PiezoMat[1].Resize(iNumElec);
-		
+
 		/* leggere le matrici (6xN sez. 1, 6xN sez. 2) */
 		HP.GetMat6xN(PiezoMat[0], PiezoMat[1], iNumElec);
-		
+
 #if 0
 		DEBUGLCOUT(MYDEBUG_INPUT, "Piezo matrix I:" << std::endl
 				<< PiezoMat[0][0] << PiezoMat[1][0]);
@@ -1500,7 +1453,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 	unsigned uFlags = Beam::OUTPUT_NONE;
 	ReadOptionalBeamCustomOutput(pDM, HP, uLabel, Type, uFlags, od);
 
-	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);       
+	flag fOut = pDM->fReadOutput(HP, Elem::BEAM);
 	if (fOut) {
 		fOut |= uFlags;
 	}
@@ -1511,7 +1464,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		Vec3 g(Vec3(CGR_Rot::Param, RR2.MulTM(R1*Rn1))/2);
 		R = RR2*Mat3x3(CGR_Rot::MatR, g);
 	}
-	
+
 	std::ostream& out = pDM->GetLogFile();
 	out << "beam2: " << uLabel
 		<< " " << pNode1->GetLabel()
@@ -1521,9 +1474,9 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 		<< std::endl;
 
 	Elem* pEl = NULL;
-	
+
 	if (CLType == ConstLawType::ELASTIC) {
-		if (fPiezo == 0) {	 
+		if (fPiezo == 0) {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					Beam2,
 					Beam2(uLabel,
@@ -1534,7 +1487,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						pD,
 						od,
 						fOut));
-		} else {	 
+		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 					PiezoActuatorBeam2,
 					PiezoActuatorBeam2(uLabel,
@@ -1549,10 +1502,10 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						od,
 						fOut));
 		}
-		
+
 	} else /* At least one is VISCOUS or VISCOELASTIC */ {
-		if (fPiezo == 0) {	 
-			SAFENEWWITHCONSTRUCTOR(pEl, 
+		if (fPiezo == 0) {
+			SAFENEWWITHCONSTRUCTOR(pEl,
 					ViscoElasticBeam2,
 					ViscoElasticBeam2(uLabel,
 						pNode1, pNode2,
@@ -1578,7 +1531,7 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 						fOut));
 		}
 	}
-	
+
 	// add here inverse dynamics
 	bool bIsErgonomy(false);
 	bool bIsRightHandSide(true);
@@ -1634,7 +1587,6 @@ ReadBeam2(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			<< HP.GetLineData() << std::endl);
 		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-	
+
 	return pEl;
 } /* End of ReadBeam2() */
-
