@@ -93,7 +93,7 @@ mbswap(const T in)
 	T out;
 	char *pout = (char *)&out;
 
-	for (int i = 0; i < sizeof(T)/2; i++) {
+	for (unsigned int i = 0; i < sizeof(T)/2; i++) {
 		pout[i] = pin[sizeof(T) - 1 - i];
 		pout[sizeof(T) - 1 - i] = pin[i];
 	}
@@ -150,7 +150,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(int8_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<int8_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<int8_t>(offset);
 		}
@@ -160,7 +160,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(uint8_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<uint8_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<uint8_t>(offset);
 		}
@@ -170,7 +170,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(int16_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<int16_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<int16_t>(offset);
 		}
@@ -180,7 +180,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(uint16_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<uint16_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<uint16_t>(offset);
 		}
@@ -190,7 +190,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(int32_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<int32_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<int32_t>(offset);
 		}
@@ -200,7 +200,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(uint32_t).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<uint32_t>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<uint32_t>(offset);
 		}
@@ -210,7 +210,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(float).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<float>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<float>(offset);
 		}
@@ -220,7 +220,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 		TypeMap_t::const_iterator i = swapmap.find(typeid(double).name());
 		if (i->second) {
 			pBC = new TBufCastHToN<double>(offset);
-			
+
 		} else {
 			pBC = new TBufCast<double>(offset);
 		}
@@ -340,4 +340,3 @@ retry:;
 		}
 	}
 }
-
