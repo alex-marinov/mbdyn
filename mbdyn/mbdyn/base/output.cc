@@ -315,7 +315,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 	} else
 #endif /* USE_NETCDF */
 	{
-		if (UseText(out) && !IsOpen(out)) {
+		if (!IsOpen(out)) {
 			const char *fname = _sPutExt(psExt[out]);
 
 			// Apre lo stream
@@ -327,14 +327,16 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
 
-			// Setta la formattazione dei campi
-			if (UseDefaultPrecision(out)) {
-				OutData[out].pof->precision(iCurrPrecision);
-			}
+			if (UseText(out)) {
+				// Setta la formattazione dei campi
+				if (UseDefaultPrecision(out)) {
+					OutData[out].pof->precision(iCurrPrecision);
+				}
 
-			// Setta la notazione
-			if (UseScientific(out)) {
-				OutData[out].pof->setf(std::ios::scientific);
+				// Setta la notazione
+				if (UseScientific(out)) {
+					OutData[out].pof->setf(std::ios::scientific);
+				}
 			}
 		}
 
