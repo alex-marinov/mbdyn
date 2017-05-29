@@ -13,6 +13,8 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added network byte order to drivers & element output streams
+		- added width/format for eigenanalysis output files
+		  (noted by Reinhard Resch)
 	Backward compatibility issues:
 		- got rid of adams and motionview output 
 	Known issues:

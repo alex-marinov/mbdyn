@@ -425,7 +425,7 @@ public:
 	void OutputOpen(const OutputHandler::OutFiles out);
 
 	/* Eigenanalysis output */
-	void OutputEigOpen(const unsigned uCurrEigSol);
+	void OutputEigOpen(const std::string& postfix);
 	void
 	OutputEigParams(const doublereal& dTime,
 			const doublereal& dCoef,

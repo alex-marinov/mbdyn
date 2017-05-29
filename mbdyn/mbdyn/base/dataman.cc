@@ -682,10 +682,10 @@ DataManager::OutputOpen(const OutputHandler::OutFiles o)
 }
 
 void
-DataManager::OutputEigOpen(const unsigned uCurrEigSol)
+DataManager::OutputEigOpen(const std::string& postfix)
 {
-	if(!OutHdl.IsOpen(OutputHandler::EIGENANALYSIS)) {
-		OutHdl.Open(OutputHandler::EIGENANALYSIS, uCurrEigSol);
+	if (!OutHdl.IsOpen(OutputHandler::EIGENANALYSIS)) {
+		OutHdl.Open(OutputHandler::EIGENANALYSIS, postfix);
 		ASSERT(OutHdl.IsOpen(OutputHandler::EIGENANALYSIS));
 	}
 }

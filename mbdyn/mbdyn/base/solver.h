@@ -157,6 +157,9 @@ public:
 
 		doublereal dParam;
 		bool bOutputModes;
+		enum { EIGAN_WIDTH_COMPUTE = -1 };
+		int iFNameWidth;
+		std::string iFNameFormat;
 
 		doublereal dUpperFreq;
 		doublereal dLowerFreq;
@@ -205,6 +208,8 @@ public:
 		uFlags(EIG_NONE),
 		dParam(1.),
 		bOutputModes(false),
+		iFNameWidth(0),
+		iFNameFormat(),
 		dUpperFreq(std::numeric_limits<doublereal>::max()),
 		dLowerFreq(-1.)
 		{

@@ -745,6 +745,9 @@ Solver::Prepare(void)
 	 */
 	if (EigAn.bAnalysis) {
 		pDM->OutputEigPrepare(EigAn.Analyses.size(), iNumDofs);
+		if (EigAn.iFNameWidth == EigenAnalysis::EIGAN_WIDTH_COMPUTE) {
+			EigAn.iFNameWidth = int(std::log10(double(EigAn.Analyses.size()))) + 1;
+		}
 	}
 
 	/*
@@ -3130,6 +3133,18 @@ Solver::ReadData(MBDynParser& HP)
 						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					}
 
+				} else if (HP.IsKeyWord("suffix" "width")) {
+					if (HP.IsKeyWord("compute")) {
+						EigAn.iFNameWidth = EigenAnalysis::EIGAN_WIDTH_COMPUTE;
+
+					} else {
+						EigAn.iFNameWidth = HP.GetInt(0, HighParser::range_ge<integer>(0));
+					}
+
+				} else if (HP.IsKeyWord("suffix" "format")) {
+					EigAn.iFNameFormat = HP.GetStringWithDelims();
+					// check?
+
 				} else {
 					silent_cerr("unknown option "
 						"at line " << HP.GetLineData()
@@ -4867,10 +4882,26 @@ Solver::Eig(bool bNewLine)
 
 	unsigned uCurr = EigAn.currAnalysis - EigAn.Analyses.begin();
 	if (EigAn.uFlags & EigenAnalysis::EIG_OUTPUT) {
-
 		unsigned uSize = EigAn.Analyses.size();
 		if (uSize >= 1) {
-			pDM->OutputEigOpen(uCurr);
+			std::stringstream postfix_ss;
+
+			postfix_ss << '_';
+
+			if (EigAn.iFNameWidth > 0) {
+				postfix_ss << std::setw(EigAn.iFNameWidth) << std::setfill('0') << uCurr;
+
+			} else if (!EigAn.iFNameFormat.empty()) {
+				char buf[BUFSIZ];
+
+				snprintf(buf, sizeof(buf), EigAn.iFNameFormat.c_str(), (int)uCurr);
+				postfix_ss << buf;
+
+			} else {
+				postfix_ss << uCurr;
+			}
+			
+			pDM->OutputEigOpen(postfix_ss.str());
 			pDM->OutputEigParams(dTime, h/2., uCurr, EigAn.iResultsPrecision);
 		}
 	}

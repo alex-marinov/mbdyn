@@ -618,12 +618,14 @@ This nonlinear solver is experimental.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{eigenanalysis} :
         \{ \bnt{when} | \kw{list} , \bnt{num_times} , \bnt{when} [ , ... ] \}
-        [ , \{ \kw{output} [ \kw{full} ] \kw{matrices}
+        [ , \{ \kw{suffix width} , \{ \kw{compute} | \bnt{width} \}
+            | \kw{suffix format} , " \bnt{format} "
+            | \kw{output} [ \kw{full} ] \kw{matrices}
             | \kw{output sparse matrices}
             | \kw{output eigenvectors}
             | \kw{output geometry}
-	    | \kw{matrix output precision}, \bnt{matrix precision},
-	    | \kw{results output precision}, \bnt{results precision},
+	    | \kw{matrix output precision}, \bnt{matrix_precision},
+	    | \kw{results output precision}, \bnt{results_precision},
             | \kw{parameter} , \bnt{param}
             | \kw{lower frequency limit} , \bnt{lower}
             | \kw{upper frequency limit} , \bnt{upper}
@@ -662,6 +664,13 @@ using the \kw{rigid body kinematics} card
 	if $\nt{when} = \nt{initial\_time}$ the first eigenanalysis
 	is performed after the ``derivatives'' phase
 	and before the first regular step;
+\item \nt{width} is the width of the field that contains the eigenanalysis number
+	in the related output file name; the resulting number is prefixed with zeros;
+	when \kw{compute} is used, the width is set in order to accommodate
+	the largest number;
+\item \nt{format} is the format that is going to be used; it must contain exactly one
+	format specification for an integer; for example, to have zero-prefixed, three digit
+	file names, use \texttt{"\%03d"};
 \item \nt{param} is the value of the coefficient that is used to project
 	the problem in the discrete time domain; it represents
 	a singularity point in the transformation from the discrete
@@ -692,10 +701,10 @@ using the \kw{rigid body kinematics} card
 	from the eigenvectors;
 \item \kw{matrix output precision} sets the precision for the text output
   	of the problem matrices in the \texttt{.m} file to 
-        \nt{matrix precision};
+        \nt{matrix\_precision};
 \item \kw{results output precision} sets the precision for the text output
   	of the eigenanalysis results in the \texttt{.m} file to
-	\nt{results precision};
+	\nt{results\_precision};
 \item \kw{use lapack} performs the eigenanalysis using
 	LAPACK's \texttt{dggev()} routine (generalized unsymmetric eigenanalysis
 	using the QZ decomposition);

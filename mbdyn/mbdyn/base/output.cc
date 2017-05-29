@@ -64,25 +64,23 @@ const char* psExt[] = {
 	".usr",
 	".gen",		// 15
 	".par",
-	".res",
-	".ada",
 	".amd",
-	".rfm",		// 20
+	".rfm",
 	".log",
-	".air",
+	".air",		// 20
 	".prm",
 	".ext",
-	".mod",		// 25
+	".mod",
 	".nc",
-	".thn",
+	".thn",		// 25
 	".the",
 	".pla",
-	".grv",		// 30
+	".grv",
 	".dof",
-	".drv",
+	".drv",		// 30
 	".trc",
-	".m",
-	NULL		// 35
+	".m",		// NOTE: ALWAYS LAST!
+	NULL		// 33
 };
 
 /* Costruttore senza inizializzazione */
@@ -299,25 +297,25 @@ OutputHandler::~OutputHandler(void)
 bool
 OutputHandler::Open(const OutputHandler::OutFiles out)
 {
-	if (!IsOpen(out)) {
 #ifdef USE_NETCDF
-		if (out == NETCDF) {
-			m_pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
-			m_pBinFile->set_fill(NcFile::Fill);
+	if (out == NETCDF && !IsOpen(out)) {
+		m_pBinFile = new NcFile(_sPutExt((char*)(psExt[NETCDF])), NcFile::Replace);
+		m_pBinFile->set_fill(NcFile::Fill);
 
-         		if (!m_pBinFile->is_valid()) {
-				silent_cerr("NetCDF file is invalid" << std::endl);
-				throw ErrFile(MBDYN_EXCEPT_ARGS);
-			}
+         	if (!m_pBinFile->is_valid()) {
+			silent_cerr("NetCDF file is invalid" << std::endl);
+			throw ErrFile(MBDYN_EXCEPT_ARGS);
+		}
 
-			// Let's define some dimensions which could be useful
-			m_DimTime = CreateDim("time");
-			m_DimV1 = CreateDim("vec1", 1);
-			m_DimV3 = CreateDim("vec3", 3);
+		// Let's define some dimensions which could be useful
+		m_DimTime = CreateDim("time");
+		m_DimV1 = CreateDim("vec1", 1);
+		m_DimV3 = CreateDim("vec3", 3);
 
-		} else
+	} else
 #endif /* USE_NETCDF */
-		{
+	{
+		if (UseText(out) && !IsOpen(out)) {
 			const char *fname = _sPutExt(psExt[out]);
 
 			// Apre lo stream
@@ -328,9 +326,7 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 					"\"" << fname << "\"" << std::endl);
 				throw ErrFile(MBDYN_EXCEPT_ARGS);
 			}
-		}
 
-		if (UseText(out)) {
 			// Setta la formattazione dei campi
 			if (UseDefaultPrecision(out)) {
 				OutData[out].pof->precision(iCurrPrecision);
@@ -349,9 +345,9 @@ OutputHandler::Open(const OutputHandler::OutFiles out)
 }
 
 bool
-OutputHandler::Open(const int out, const unsigned uCurrEigSol)
+OutputHandler::Open(const int out, const std::string& postfix)
 {
-	if (!IsOpen(out)) {
+	if (UseText(out) && !IsOpen(out)) {
 		std::string sCurrFileName = sGet();
 		std::stringstream fname_ss;
 
@@ -359,11 +355,13 @@ OutputHandler::Open(const int out, const unsigned uCurrEigSol)
 
 		if (uExtIdx != std::string::npos) {
 			fname_ss << sCurrFileName.substr(0, uExtIdx);
+
 		} else {
 			fname_ss << sCurrFileName;
 		}
+		
+		fname_ss << postfix << psExt[out] << std::ends;
 
-		fname_ss << '_' << uCurrEigSol << psExt[out];
 		const std::string fname = fname_ss.str();
 
 		// Opens the stream
@@ -375,17 +373,14 @@ OutputHandler::Open(const int out, const unsigned uCurrEigSol)
 			throw ErrFile(MBDYN_EXCEPT_ARGS);
 		}
 
-		if (UseText(out)) {
+		// Sets the field format
+		if (UseDefaultPrecision(out)) {
+			OutData[out].pof->precision(iCurrPrecision);
+		}
 
-			// Sets the field format
-			if (UseDefaultPrecision(out)) {
-				OutData[out].pof->precision(iCurrPrecision);
-			}
-
-			// Sets the notation
-			if (UseScientific(out)) {
-				OutData[out].pof->setf(std::ios::scientific);
-			}
+		// Sets the notation
+		if (UseScientific(out)) {
+			OutData[out].pof->setf(std::ios::scientific);
 		}
 
 		return true;

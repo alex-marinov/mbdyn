@@ -85,22 +85,22 @@ public:
 		GENELS,				// 15
 		PARTITION,
 		AEROMODALS,
-		REFERENCEFRAMES,		// 20
+		REFERENCEFRAMES,
 		LOG,
-		AIRPROPS,
+		AIRPROPS,			// 20
 		PARAMETERS,
 		EXTERNALS,
-		MODAL,				// 25
+		MODAL,
 		NETCDF,
-		THERMALNODES,
+		THERMALNODES,			// 25
 		THERMALELEMENTS,
 		PLATES,
-		GRAVITY,			// 30
+		GRAVITY,
 		DOFSTATS,
-		DRIVECALLERS,
+		DRIVECALLERS,			// 30
 		TRACES,
-		EIGENANALYSIS,
-		LASTFILE			// 35
+		EIGENANALYSIS,			// NOTE: ALWAYS LAST!
+		LASTFILE			// 33
 	};
 
 private:
@@ -209,7 +209,7 @@ public:
 	bool Open(const OutputHandler::OutFiles out);
 
 	/* Overload for eigenanalysis text output */
-	bool Open(const int out, const unsigned uCurrEigSol);
+	bool Open(const int out, const std::string& postfix);
 	bool IsOpen(const OutputHandler::OutFiles out) const;
 	bool UseDefaultPrecision(const OutputHandler::OutFiles out) const;
 	bool UseScientific(const OutputHandler::OutFiles out) const;
