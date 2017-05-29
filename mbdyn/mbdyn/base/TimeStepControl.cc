@@ -135,7 +135,7 @@ void
 ChangeStep::Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep)
 {
 	this->dCurrTimeStep = dInitialTimeStep;
-	this->MaxTimeStep = MaxTimeStep;
+	this->MaxTimeStep.Set(MaxTimeStep.pGetDriveCaller()->pCopy());
 	this->dMinTimeStep = dMinTimeStep;
 
 	doublereal dInitialMaxTimeStep ;
@@ -257,7 +257,7 @@ void
 Factor::Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& MaxTimeStep, doublereal dInitialTimeStep)
 {
 	this->dCurrTimeStep = dInitialTimeStep;
-	this->MaxTimeStep = MaxTimeStep;
+	this->MaxTimeStep.Set(MaxTimeStep.pGetDriveCaller()->pCopy());
 	this->dMinTimeStep = dMinTimeStep;
 
 	if (iMaxIters <= iMinIters) {
@@ -265,16 +265,10 @@ Factor::Init(integer iMaxIterations, doublereal dMinTimeStep, const DriveOwner& 
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	doublereal dInitialMaxTimeStep;
-	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(PostponedDriveCaller)) {
-		dInitialMaxTimeStep = std::numeric_limits<doublereal>::max();
-	} else{
-
-		dInitialMaxTimeStep = MaxTimeStep.dGet();
-	}
+	doublereal dInitialMaxTimeStep = MaxTimeStep.dGet();
 
 	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)
-			&& MaxTimeStep.dGet() == std::numeric_limits<doublereal>::max())
+			&& dInitialMaxTimeStep == std::numeric_limits<doublereal>::max())
 	{
 		silent_cerr("warning: maximum time step not set; the initial time step value " << dInitialTimeStep << " will be used" << std::endl);
 	}

@@ -128,6 +128,7 @@ public:
 /* Possessore di DriveCaller, ne garantisce la corretta distruzione */
 
 class DriveOwner {
+        void operator=(const DriveOwner&) {}
 protected:
 	DriveCaller* pDriveCaller;
 
