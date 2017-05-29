@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 	Known issues:
 	Bug fixes:
 		- fixed (harmless?) off-by-one read in fixed step drive
+		- fixed bugs in timestep control (Reinhard Resch)
 
 MBDyn 1.7.2
 	Enhancements:
