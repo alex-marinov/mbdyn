@@ -2050,33 +2050,36 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 		bool bAlways(false);
 		while (HP.IsArg()) {
 			if (HP.IsKeyWord("output")) {
-				if (HP.IsKeyWord("no")) {
-					bLog = false;
-					bOut = false;
+				do {
+					if (HP.IsKeyWord("no")) {
+						bLog = false;
+						bOut = false;
 
-				} else if (HP.IsKeyWord("yes")) {
-					bLog = false;
-					bOut = true;
+					} else if (HP.IsKeyWord("yes")) {
+						bLog = false;
+						bOut = true;
 
-				} else if (HP.IsKeyWord("log")) {
-					bLog = true;
+					} else if (HP.IsKeyWord("log")) {
+						bLog = true;
+						bOut = false;
 
-				} else if (HP.IsKeyWord("both")) {
-					bLog = true;
-					bOut = true;
+					} else if (HP.IsKeyWord("both")) {
+						bLog = true;
+						bOut = true;
 
-				} else if (HP.IsKeyWord("always")) {
-					bAlways = true;
-					bLog = true;
-					bOut = true;
+					} else if (HP.IsKeyWord("always")) {
+						bAlways = true;
 
-				} else {
-					silent_cerr("Inertia(" << uLabel << "): "
-						"unknown output mode "
-						"at line " << HP.GetLineData()
-						<< std::endl);
-					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-				}
+					} else {
+						silent_cerr("Inertia(" << uLabel << "): "
+							"unknown output mode "
+							"at line " << HP.GetLineData()
+							<< std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+				} while(HP.IsKeyWord("output"));
+
 				break;
 
 			} else if (HP.IsKeyWord("body")) {

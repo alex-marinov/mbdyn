@@ -6883,7 +6883,7 @@ and generalized as much as possible.
 
 \subsection{Inertia}\label{sec:EL:MISC:INERTIA}
 This card causes the equivalent inertia properties of a subset
-of elements to be generated.
+of elements to be computed.
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{card} ::= \kw{inertia} : \bnt{label}
@@ -6891,7 +6891,7 @@ of elements to be generated.
         [ , \kw{position} , (\hty{Vec3}) \bnt{reference_position} ]
         [ , \kw{orientation} , (\hty{Mat3x3}) \bnt{reference_orientation} ]
         , \bnt{type_subset} [ , ... ]
-        [ , \kw{output} , \{ \kw{no} | \kw{yes} | \kw{log} | \kw{both} \} ] ;
+        [ , \kw{output} , \{ \kw{no} | \kw{yes} | \kw{log} | \kw{both} | \kw{always} \} [ , ... ] ] ;
 
         \bnt{type_subset} ::= \bnt{type} , \{ \kw{all} | \bnt{label} [ , ... ] \}
 
@@ -6919,6 +6919,11 @@ statement essentially ineffective;
 \item \kw{yes} enables output to standard output;
 \item \kw{log} enables output to the \texttt{.log} file (the default);
 \item \kw{both} enables output to both standard output and \texttt{.log} file.
+\item \kw{always} causes inertia properties to be re-computed at each time step.
+To this end, an \kw{inertia} card must appear in the \kw{control data} block,
+declaring how many corresponding \kw{inertia} elements will be created.
+The number of inertia elements declared in the \kw{control data} section must match
+the number of \kw{inertia} cards in the \kw{elements} block whose output is set to \kw{always}.
 \end{itemize}
 
 
