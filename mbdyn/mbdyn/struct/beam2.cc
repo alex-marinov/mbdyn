@@ -742,6 +742,7 @@ Beam2::Output(OutputHandler& OH) const
 
 				default:
 					/* impossible */
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 					break;
 				}
 
