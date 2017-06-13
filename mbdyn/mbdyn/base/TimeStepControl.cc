@@ -204,18 +204,16 @@ Factor::dGetNewStepTime(StepIntegrator::StepChange Why, doublereal iPerformedIte
 	switch (Why) {
 	case StepIntegrator::REPEATSTEP:
 		if (dCurrTimeStep*dReductionFactor > dMinTimeStep) {
-			if (bLastChance == true) {
+			if (bLastChance) {
 				bLastChance = false;
 			}
 			iStepsAfterReduction = 0;
 			return (dCurrTimeStep = std::min(dCurrTimeStep*dReductionFactor, dMaxTimeStep));
-
 		}
 
-		if (bLastChance == false) {
+		if (!bLastChance) {
 			bLastChance = true;
 			return (dCurrTimeStep = dMinTimeStep);
-
 		}
 
 		return (dCurrTimeStep = std::min(dCurrTimeStep*dReductionFactor, dMaxTimeStep));

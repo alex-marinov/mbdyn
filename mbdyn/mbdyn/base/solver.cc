@@ -284,7 +284,7 @@ pTSC(0),
 dCurrTimeStep(0.),
 iStIter(0),
 dTime(0.),
-MaxTimeStep(),
+MaxTimeStep(new ConstDriveCaller(::dDefaultMaxTimeStep)),
 dMinTimeStep(::dDefaultMinTimeStep),
 CurrStep(StepIntegrator::NEWSTEP),
 sInputFileName(sInFName),
@@ -419,7 +419,9 @@ Solver::Prepare(void)
 		pRTSolver->Setup();
 	}
 
+#ifdef USE_MPI
 	int mpi_finalize = 0;
+#endif
 
 #ifdef USE_SCHUR
 	if (bParallel) {
@@ -956,6 +958,10 @@ Solver::Prepare(void)
 		DEBUGLCOUT(MYDEBUG_FSTEPS, "Current time step: "
 			<< dCurrTimeStep << std::endl);
 
+                if (outputStep()) {
+                    silent_cout("Dummy Step(" << lStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+                }
+                
 		ASSERT(pFirstDummyStep != 0);
 
 		/* Setup SolutionManager(s) */
@@ -1051,6 +1057,10 @@ Solver::Prepare(void)
 				<< "; current time step: " << dCurrTimeStep
 				<< std::endl);
 
+                        if (outputStep()) {
+                            silent_cout("Dummy Step(" << iSubStep << ") t=" << dTime + dCurrTimeStep << " dt=" << dCurrTimeStep << std::endl);
+                        }
+                        
 			pCurrStepIntegrator = pDummySteps;
 			ASSERT(pDummySteps!= 0);
 			try {
@@ -3661,16 +3671,6 @@ Solver::ReadData(MBDynParser& HP)
 	}
 
 EndOfCycle: /* esce dal ciclo di lettura */
-
-	if (MaxTimeStep.pGetDriveCaller() == 0) {
-		DriveCaller *pDC = 0;
-		SAFENEWWITHCONSTRUCTOR(pDC, ConstDriveCaller, ConstDriveCaller(::dDefaultMaxTimeStep));
-		MaxTimeStep.Set(pDC);
-	}
-
-	if (typeid(*MaxTimeStep.pGetDriveCaller()) == typeid(ConstDriveCaller)) {
-		MaxTimeStep.Set(new ConstDriveCaller(dInitialTimeStep));
-	}
 
 	if (pTSC == 0) {
 		pedantic_cout("No time step control strategy defined; defaulting to NoChange time step control" );
