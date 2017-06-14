@@ -163,6 +163,16 @@ Inertia::Inertia(unsigned int uL, const std::string& sN, std::set<const ElemGrav
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 CenterOfMass(elements),
+#ifdef USE_NETCDF
+Var_dMass(0),
+Var_X_cm(0),
+Var_V_cm(0),
+Var_Omega_cm(0),
+Var_DX(0),
+Var_dx(0),
+Var_Jp(0),
+Var_Phip(0),
+#endif // USE_NETCDF
 flags(0), X0(x0), R0(r0)
 {
 	this->PutName(sN);
@@ -267,7 +277,76 @@ void
 Inertia::Output(OutputHandler& OH) const
 {
 	if (fToBeOutput() & (0x1|0x8)) {
-		Output_int(std::cout);
+		if (OH.UseText(OutputHandler::INERTIA))
+			Output_int(std::cout);
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+
+			Vec3 DX(X_cm - X0);
+			Vec3 dx = R0.MulTV(DX);
+			Vec3 Phip = RotManip::VecRot(R_princ);
+
+			Var_dMass->put_rec(&dMass, OH.GetCurrentStep());
+			Var_X_cm->put_rec(X_cm.pGetVec(), OH.GetCurrentStep());
+			Var_V_cm->put_rec(V_cm.pGetVec(), OH.GetCurrentStep());
+			Var_Omega_cm->put_rec(Omega_cm.pGetVec(), OH.GetCurrentStep());
+
+			Var_DX->put_rec(DX.pGetVec(), OH.GetCurrentStep());
+			Var_dx->put_rec(dx.pGetVec(), OH.GetCurrentStep());
+			Var_Jp->put_rec(J_princ.pGetVec(), OH.GetCurrentStep());
+			Var_Phip->put_rec(Phip.pGetVec(), OH.GetCurrentStep());
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
+Inertia::OutputPrepare_int(OutputHandler &OH, std::string& name)
+{
+#ifdef USE_NETCDF
+	ASSERT(OH.IsOpen(OutputHandler::NETCDF));
+
+	std::ostringstream os;
+	os << "elem.inertia." << GetLabel();
+	(void)OH.CreateVar(os.str(), "inertia");
+
+	os << ".";
+	name = os.str();
+
+#endif // USE_NETCDF
+}
+
+void
+Inertia::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::INERTIA))
+		{
+			std::string name;
+			OutputPrepare_int(OH, name);
+
+			Var_dMass = OH.CreateVar<doublereal>(name + "M", "kg",
+				"total mass");
+			Var_X_cm = OH.CreateVar<Vec3>(name + "X_cm", "m",
+				"center of mass position (x, y, z)");
+			Var_V_cm = OH.CreateVar<Vec3>(name + "V_cm", "m/s",
+				"center of mass velocity (x, y, z)");
+			Var_Omega_cm = OH.CreateVar<Vec3>(name + "Omega_cm", "rad/s",
+				"center of mass angular velocity (x, y, z)");
+
+			Var_DX = OH.CreateVar<Vec3>(name + "DX", "m",
+				"relative center of mass position, global frame (x, y, z)");
+			Var_dx = OH.CreateVar<Vec3>(name + "dx", "m",
+			 	"relative center of mass position, local frame (x, y, z)");
+			Var_Jp = OH.CreateVar<Vec3>(name + "Jp", "kg*m^2",
+				"global inertia matrix, w.r.t. principal axes");
+			Var_Phip = OH.CreateVar<Vec3>(name + "Phip", "-",
+				"orientation vector of principal axes, global frame");
+
+		}
+#endif // USE_NETCDF
 	}
 }
 
@@ -301,6 +380,35 @@ Inertia::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+bool 
+Inertia::bInverseDynamics(void) const
+{
+	return true;
+}
+
+/* Inverse Dynamics residual assembly */
+SubVectorHandler&
+Inertia::AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  /* XPrimePrimeCurr */,
+		InverseDynamics::Order iOrder)
+{
+	WorkVec.Resize(0);
+
+	Collect_int();
+
+	return WorkVec;
+}
+
+/* inverse dynamics Jacobian matrix assembly */
+VariableSubMatrixHandler&
+Inertia::AssJac(VariableSubMatrixHandler& WorkMat,
+	const VectorHandler& /* XCurr */)
+{
+	WorkMat.SetNullMatrix();
+	return WorkMat;
+}
 
 /* Dimensione del workspace durante l'assemblaggio iniziale.
  * Occorre tener conto del numero di dof che l'elemento definisce

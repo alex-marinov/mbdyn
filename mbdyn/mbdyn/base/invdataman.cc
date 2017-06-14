@@ -42,6 +42,9 @@
 #include <strings.h>
 #include <time.h>
 
+/* for inertia element */
+#include <set>
+
 #include "dataman.h"
 #include "friction.h"
 
@@ -58,6 +61,7 @@
 
 /* temporary? */
 #include "beam.h"
+#include "inertia.h"
 
 /* To allow direct loading of modules */
 #include "modules.h"
@@ -71,6 +75,7 @@
 #include "joint.h"
 #include "jointreg.h"
 #include "Rot.hh"
+
 
 void 
 DataManager::LinkToSolution(VectorHandler& XCurr,
@@ -678,6 +683,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 				}
 			}
 		}
+
 		} break;
 
 	default:
@@ -695,8 +701,24 @@ void
 DataManager::AssRes(VectorHandler& ResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
-
 	AssRes(ResHdl, ElemIter, *pWorkVec);
+
+	for (ElemContainerType::iterator j = ElemData[Elem::INERTIA].ElemContainer.begin();
+		j != ElemData[Elem::INERTIA].ElemContainer.end(); ++j)
+	{
+		bool bActive(true);
+		Inertia *pI = Cast<Inertia>(j->second, true);
+		if (pI == 0) {
+			bActive = false;
+			pI = Cast<Inertia>(j->second, false);
+		}
+			if (pI && bActive)
+		{
+			ResHdl += j->second->AssRes(*pWorkVec, *pXCurr,
+				*pXPrimeCurr, *pXPrimePrimeCurr, 
+				InverseDynamics::INVERSE_DYNAMICS);
+		}
+	}
 }
 
 void

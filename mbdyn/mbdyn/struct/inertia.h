@@ -89,6 +89,21 @@ protected:
 	virtual void Collect_int(void);
 
 	virtual std::ostream& Output_int(std::ostream& out) const;
+	void OutputPrepare_int(OutputHandler &OH, std::string& name);
+	void OutputPrepare(OutputHandler &OH);
+
+#ifdef USE_NETCDF
+private:
+	NcVar *Var_dMass;
+	NcVar *Var_X_cm;
+	NcVar *Var_V_cm;
+	NcVar *Var_Omega_cm;
+
+	NcVar *Var_DX;
+	NcVar *Var_dx;
+	NcVar *Var_Jp;
+	NcVar *Var_Phip;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore definitivo (da mettere a punto) */
@@ -124,6 +139,22 @@ public:
 		doublereal dCoef,
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
+	
+	/* inverse dynamics capable element */
+	virtual bool bInverseDynamics(void) const;
+	
+	/* Inverse Dynamics Jacobian matrix assembly */
+	virtual VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		const VectorHandler& XCurr);
+
+	/* Inverse Dynamics residual assembly */
+	virtual SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		const VectorHandler& XCurr,
+		const VectorHandler&  XPrimeCurr,
+		const VectorHandler&  XPrimePrimeCurr,
+		InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
 	/* Dimensione del workspace durante l'assemblaggio iniziale.
 	 * Occorre tener conto del numero di dof che l'elemento definisce
