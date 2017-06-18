@@ -2172,10 +2172,10 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 
 		flag fOut = fReadOutput(HP, Elem::BODY);
 		if (bLog) {
-			fOut |= 0x2;
+			fOut |= Inertia::OUTPUT_LOG; // was 0x2
 		}
 		if (bOut) {
-			fOut |= 0x4;
+			fOut |= Inertia::OUTPUT_OUT; // was 0x4
 		}
 		if (bAlways) {
 			if (iNumTypes[Elem::INERTIA]-- <= 0) {
@@ -2197,7 +2197,7 @@ DataManager::ReadOneElem(MBDynParser& HP, unsigned int uLabel, const std::string
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			fOut |= 0x8;
+			fOut |= Inertia::OUTPUT_ALWAYS; // was 0x8
 		}
 
 

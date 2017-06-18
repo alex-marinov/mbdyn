@@ -276,9 +276,11 @@ Inertia::Restart(std::ostream& out) const
 void
 Inertia::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput() & (0x1|0x8)) {
-		if (OH.UseText(OutputHandler::INERTIA))
+	if (fToBeOutput() & (0x1 | Inertia::OUTPUT_ALWAYS)) {
+		if (OH.UseText(OutputHandler::INERTIA)) {
 			Output_int(std::cout);
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 

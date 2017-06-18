@@ -70,6 +70,13 @@ public:
 
 class Inertia :
 virtual public Elem, public ElemGravityOwner, public InitialAssemblyElem, public CenterOfMass {
+public:
+	enum {
+		OUTPUT_LOG = ToBeOutput::OUTPUT_PRIVATE,
+		OUTPUT_OUT = (ToBeOutput::OUTPUT_PRIVATE << 1),
+		OUTPUT_ALWAYS = (ToBeOutput::OUTPUT_PRIVATE << 2)
+	};
+
 protected:
 	/* reference point */
 	unsigned flags;
