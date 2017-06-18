@@ -171,6 +171,11 @@ public:
 /* StructuralForce - begin */
 
 class StructuralForce : virtual public Elem, public Force {
+public:
+	enum {
+		OUTPUT_REL = ToBeOutput::OUTPUT_PRIVATE
+	};
+
 protected:
 	TplDriveOwner<Vec3> f;
 	const StructNode* pNode;

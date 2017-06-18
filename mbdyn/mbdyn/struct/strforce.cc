@@ -895,7 +895,11 @@ FollowerForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			if (fToBeOutput() & OUTPUT_REL) {
+				Var_F->put_rec((f.Get()).pGetVec(), OH.GetCurrentStep());
+			} else {
+				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			}
 			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
 		}
 #endif // USE_NETCDF
@@ -903,8 +907,18 @@ FollowerForce::Output(OutputHandler& OH) const
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
-				<< " " << pNode->GetLabel()
-				<< " " << pNode->GetRCurr()*f.Get()
+				<< " " << pNode->GetLabel();
+
+			if (fToBeOutput() & OUTPUT_REL) {
+				OH.Forces()
+					<< " " << f.Get();
+
+			} else {
+				OH.Forces()
+					<< " " << pNode->GetRCurr()*f.Get();
+			}
+			
+			OH.Forces()
 				<< " " << pNode->GetXCurr() + pNode->GetRCurr()*Arm
 				<< std::endl;
 		}
@@ -1328,16 +1342,28 @@ FollowerCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-			Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			if (fToBeOutput() & OUTPUT_REL) {
+				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+			} else {
+				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			}
 		}
 #endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::FORCES)) {
 			OH.Forces()
 				<< GetLabel()
-				<< " " << pNode->GetLabel()
-				<< " " << pNode->GetRCurr()*f.Get()
-				<< std::endl;
+				<< " " << pNode->GetLabel();
+			if (fToBeOutput() & OUTPUT_REL) {
+				OH.Forces()
+					<< " " << f.Get()
+					<< std::endl;
+
+			} else {
+				OH.Forces()
+					<< " " << pNode->GetRCurr()*f.Get()
+					<< std::endl;
+			}
 		}
 	}
 }
@@ -2016,14 +2042,24 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
+				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+			} else {
+				Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			}
 			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
 			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
 		}
 #endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::FORCES)) {
-			Vec3 F(pNode1->GetRCurr()*f.Get());
+			Vec3 F;
+			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
+				F = f.Get();
+			} else {
+				F = pNode1->GetRCurr()*f.Get();
+			}
+
 			OH.Forces()
 				<< GetLabel()
 				<< " " << pNode1->GetLabel()
@@ -2532,12 +2568,22 @@ FollowerInternalCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-			Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
+				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+			} else {
+				Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
+			}
 		}
 #endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::FORCES)) {
-			Vec3 F(pNode1->GetRCurr()*f.Get());
+			Vec3 F;
+			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
+				F = f.Get();
+			} else {
+				F = pNode1->GetRCurr()*f.Get();
+			}
+
 			OH.Forces()
 				<< GetLabel()
 				<< " " << pNode1->GetLabel()
@@ -2761,7 +2807,16 @@ ReadStructuralForce(DataManager* pDM,
 		}
 	}
 
+	bool bOutRel(false);
+	if (bFollower && HP.IsKeyWord("output" "relative")) {
+		bOutRel = true;
+	}
+
 	flag fOut = pDM->fReadOutput(HP, Elem::FORCE);
+
+	if (bOutRel) {
+		fOut |= StructuralForce::OUTPUT_REL;
+	}
 
 	/* Alloca la forza */
 	if (!bCouple) {
@@ -2855,6 +2910,10 @@ ReadStructuralForce(DataManager* pDM,
 
 	if (pDispNode2 != 0) {
 		os << ' ' << pDispNode2->GetLabel() << ' ' << Arm2;
+	}
+
+	if (bFollower && (pEl->fToBeOutput() & StructuralForce::OUTPUT_REL)) {
+		os << " output_relative";
 	}
 
 	os << std::endl;
