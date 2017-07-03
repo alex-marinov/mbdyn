@@ -27,8 +27,14 @@ struct/libstruct.la \
 elec/libelec.la \
 thermo/libthermo.la \
 hydr/libhydr.la \
-base/libbase.la  \
-../libraries/libmbc/libmbc_static.la \
+base/libbase.la
+
+if BUILD_MBC
+mbdyn_LDADD += \
+../libraries/libmbc/libmbc_static.la
+endif
+
+mbdyn_LDADD += \
 ../libraries/libmbwrap/libmbwrap.la \
 ../libraries/libann/libmbann.la \
 $(GINACLIB_LIBS) \
