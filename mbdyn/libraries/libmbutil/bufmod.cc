@@ -258,7 +258,7 @@ static bool
 bIsLittleEndian(void)
 {
 	const int i = 1;
-	return (*(char *)&i) == 0;
+	return (*(char *)&i) != 0;
 }
 
 static void
