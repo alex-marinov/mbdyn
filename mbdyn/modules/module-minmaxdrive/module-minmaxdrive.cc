@@ -323,7 +323,7 @@ MinMaxDriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	drives.reserve(iNumDrives);
 
 	for (int i = 0; i < iNumDrives; ++i) {
-		drives.push_back(HP.GetDriveCaller());
+		drives[i].Set(HP.GetDriveCaller());
 	}
 
 	switch (eType) {
