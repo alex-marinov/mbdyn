@@ -61,6 +61,13 @@ protected:
 	Mat3x3 FDE;
 	Mat3x3 FDEPrime;
 
+#ifdef USE_NETCDF
+	NcVar *Var_tilde_d;
+	NcVar *Var_tilde_dPrime;
+	NcVar *Var_d;
+	NcVar *Var_dPrime;
+#endif // USE_NETCDF
+
 	void
 	AssMatF(FullSubMatrixHandler& WMA,
 		const Vec3& d1, const Vec3& d2, doublereal dCoef);

@@ -73,6 +73,14 @@ tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 od(od),
 tilde_k(Zero6), tilde_kPrime(Zero6),
+#ifdef USE_NETCDF
+Var_tilde_d(0),
+Var_tilde_dPrime(0),
+Var_d(0),
+Var_dPrime(0),
+Var_Phi(0),
+Var_Omega(0),
+#endif // USE_NETCDF
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -107,6 +115,29 @@ DeformableJoint::Restart(std::ostream& out) const
 	return pGetConstLaw()->Restart(out) << ';' << std::endl;
 }
 
+void
+DeformableJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("deformable joint", OH, name);
+			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
+					"relative position in local frame (x, y, z)");
+			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
+					"relative linear velocity in local frame (x, y, z)");
+			Var_d = OH.CreateVar<Vec3>(name + "D", "m",
+					"relative position in global frame (x, y, z)");
+			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime", "m/s",
+					"relative linear velocity in global frame (x, y, z)");
+			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
+				"local relative angular velocity (x, y, z)");
+		}
+#endif
+	}
+}
 
 void
 DeformableJoint::Output(OutputHandler& OH) const
@@ -117,33 +148,27 @@ DeformableJoint::Output(OutputHandler& OH) const
 		Mat3x3 R(R1h.MulTM(R2h));
 		Vec3 F(GetF().GetVec1());
 		Vec3 M(GetF().GetVec2());
-
-		Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
-				F, M, R1h*F, R1h*M);
-
-		// linear strain
-		OH.Joints() << " " << tilde_k.GetVec1() << " ";
+		Vec3 E;
 
 		// angular strain
 		switch (od) {
 		case EULER_123:
-			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
+			E = MatR2EulerAngles123(R)*dRaDegr;
 			break;
 
 		case EULER_313:
-			OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
+			E = MatR2EulerAngles313(R)*dRaDegr;
 			break;
 
 		case EULER_321:
-			OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
+			E = MatR2EulerAngles321(R)*dRaDegr;
 			break;
 
 		case ORIENTATION_VECTOR:
-			OH.Joints() << RotManip::VecRot(R);
+			E = RotManip::VecRot(R);
 			break;
 
 		case ORIENTATION_MATRIX:
-			OH.Joints() << R;
 			break;
 
 		default:
@@ -151,11 +176,59 @@ DeformableJoint::Output(OutputHandler& OH) const
 			break;
 		}
 
-		if (GetConstLawType() & ConstLawType::VISCOUS) {
-			OH.Joints() << " " << tilde_kPrime;
-		}
 
-		OH.Joints() << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Var_F_local->put_rec((R1h*F).pGetVec(), OH.GetCurrentStep());
+			Var_M_local->put_rec((R1h*M).pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
+			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
+
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				break;
+			case ORIENTATION_MATRIX:
+				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				break;
+			default:
+				/* impossible */
+				break;
+			}
+		}
+#endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DeformableJoint", GetLabel(),
+				F, M, R1h*F, R1h*M);
+
+			// linear strain
+			OH.Joints() << " " << tilde_k.GetVec1() << " ";
+			
+			// Angular strain
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.Joints() << E;
+				break;
+			case ORIENTATION_MATRIX:
+				OH.Joints() << R;
+				break;
+			default:
+				/* impossible */
+				break;
+			}
+
+			if (GetConstLawType() & ConstLawType::VISCOUS) {
+				OH.Joints() << " " << tilde_kPrime;
+			}
+
+			OH.Joints() << std::endl;
+		}
 	}
 }
 

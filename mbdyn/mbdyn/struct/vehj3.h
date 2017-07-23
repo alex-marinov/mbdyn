@@ -58,6 +58,15 @@ protected:
 	// tilde_dPrime, tilde_Omega
 	Vec6 tilde_kPrime;
 
+#ifdef USE_NETCDF
+	NcVar *Var_tilde_d;
+	NcVar *Var_tilde_dPrime;
+	NcVar *Var_d;
+	NcVar *Var_dPrime;
+	NcVar *Var_Phi;
+	NcVar *Var_Omega;
+#endif // USE_NETCDF
+
 	bool bFirstRes;
 
 	Vec3 d1, d2;
@@ -115,6 +124,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	void SetValue(DataManager *pDM,

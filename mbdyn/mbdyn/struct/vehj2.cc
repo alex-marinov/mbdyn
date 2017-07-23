@@ -58,6 +58,12 @@ tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 tilde_R1hT_tilde_f1(tilde_R1h.Transpose()*tilde_f1),
 tilde_d(Zero3), tilde_dPrime(Zero3),
+# ifdef USE_NETCDF
+Var_tilde_d(0),
+Var_tilde_dPrime(0),
+Var_d(0),
+Var_dPrime(0),
+#endif // USE_NETCDF
 bFirstRes(false), F(Zero3)
 {
 	ASSERT(pNode1 != NULL);
@@ -335,6 +341,15 @@ DeformableDispJoint::OutputPrepare(OutputHandler& OH)
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("deformable displacement", OH, name);
+
+			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
+					"relative position in local frame (x, y, z)");
+			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
+					"relative linear velocity in local frame (x, y, z)");
+			Var_d = OH.CreateVar<Vec3>(name + "D", "m",
+					"relative position in global frame (x, y, z)");
+			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime", "m/s",
+					"relative linear velocity in global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
 	}
@@ -344,17 +359,27 @@ void
 DeformableDispJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
-
-
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Var_F_local->put_rec(GetF().pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec((pNode1->GetRCurr()*(tilde_R1h*GetF())).pGetVec(), OH.GetCurrentStep());
+			Var_F_global->put_rec((pNode1->GetRCurr()*(tilde_R1h*GetF())).pGetVec(), 
+					OH.GetCurrentStep());
 			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			Var_tilde_d->put_rec(tilde_d.pGetVec(), OH.GetCurrentStep());
+			Var_d->put_rec((pNode1->GetRCurr()*(tilde_R1h*tilde_d)).pGetVec(), 
+					OH.GetCurrentStep());
+			if (GetConstLawType() & ConstLawType::VISCOUS) {
+				Var_tilde_dPrime->put_rec(tilde_dPrime.pGetVec(), 
+						OH.GetCurrentStep());
+				Var_dPrime->put_rec((pNode1->GetRCurr()*(tilde_R1h*tilde_dPrime)).pGetVec(),
+						OH.GetCurrentStep());
+			} else {
+				Var_tilde_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+				Var_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
+			}
 		}
 #endif // USE_NETCDF
-
 
 		if (OH.UseText(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "DeformableDispJoint", GetLabel(),
