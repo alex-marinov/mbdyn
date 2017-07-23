@@ -153,6 +153,42 @@ The \nt{x\_cg} vector indicates the location of the center of mass with respect 
 the reference frame of the respective node. The \nt{J} matrix is the inertia
 matrix.
 
+\subsection{acceleration, velocity}
+The \kw{angular acceleration}, the \kw{linear acceleration} 
+the \kw{angular velocity} and the \kw{linear velocity} joints.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{joint_type}: \bnt{label}
+        \bnt{node_label} (\hty{Vec3}) \bnt{relative_direction}
+    \bnt{joint_type} ::=
+    	\{ \kw{angularacceleration} | \kw{linearacceleration} | \kw{angularvelocity} |
+	\kw{linearvelocity} \}
+\end{Verbatim}
+%\end{verbatim}
+The \nt{relative direction} vectors indicate the (not normalized) axis of the imposed
+acceleration/velocity.
+All data are on one line, without continuation.
+
+\subsection{beam slider}
+The \kw{beam slider} joint.
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{beamslider}: \bnt{label}
+   	 \bnt{slider_node_label}
+	 (\hty{Vec3}) \bnt{relative_offset}
+	 (\hty{Mat3x3}) \bnt{relative_orientation}
+	 \bnt{beam_number}
+	 \bnt{3_node_beam_1}
+	 	(\hty{Vec3}) \bnt{first_node_offset}
+	 	(\hty{Mat3x3}) \bnt{first_node_orientation}
+	 	(\hty{Vec3}) \bnt{mid_node_offset}
+	 	(\hty{Mat3x3}) \bnt{mid_node_orientation}
+	 	(\hty{Vec3}) \bnt{end_node_offset}
+	 (\hty{Mat3x3}) \bnt{end_node_orientation}
+	 [\ldots]
+\end{Verbatim}
+%\end{verbatim}
+All data on one line, without continuation.
 \subsection{brake}
 The \kw{brake} joint
 %\begin{verbatim}
@@ -219,6 +255,28 @@ in the reference frame of the node.
 All data are on one line, without continuation.
 Both \kw{distance} and \kw{distance with offset} joints are logged
 in this form.
+
+\subsection{drive displacement}
+The \kw{drive displacement} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{drivedisplacement}: \bnt{label}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+        \bnt{node_2_label} (\hty{Vec3}) \bnt{offset_2}
+\end{Verbatim}
+%\end{verbatim}
+All data in one line, without continuation.
+
+\subsection{drive displacement}
+The \kw{drive displacement pin} joint
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{drivedisplacementpin}: \bnt{label}
+        \bnt{node_1_label} (\hty{Vec3}) \bnt{offset_1}
+	(\hty{Vec3}) \bnt{position}
+\end{Verbatim}
+%\end{verbatim}
+All data in one line, without continuation.
 
 \subsection{gimbal rotation}
 The \kw{gimbal rotation} joint
