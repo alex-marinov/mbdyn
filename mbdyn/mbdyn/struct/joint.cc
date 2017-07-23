@@ -2419,12 +2419,15 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
+		std::ostream& out = pDM->GetLogFile();
+
 		switch (CurrKeyWord) {
 		case LINEARVELOCITY:
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				LinearVelocityJoint,
 				LinearVelocityJoint(uLabel, pDO,
 					pNode, Dir, pDC, fOut));
+			out << "linearvelocity: ";
 			break;
 
 		case ANGULARVELOCITY:
@@ -2432,12 +2435,19 @@ ReadJoint(DataManager* pDM,
 				AngularVelocityJoint,
 				AngularVelocityJoint(uLabel, pDO,
 					pNode, Dir, pDC, fOut));
+			out << "angularvelocity: ";
 			break;
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+		
+		out << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << Dir
+			<< std::endl;
+
 		} break;
 
 	case LINEARACCELERATION:
@@ -2459,12 +2469,15 @@ ReadJoint(DataManager* pDM,
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
+		std::ostream& out = pDM->GetLogFile();
+
 		switch (CurrKeyWord) {
 		case LINEARACCELERATION:
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				LinearAccelerationJoint,
 				LinearAccelerationJoint(uLabel, pDO,
 					pNode, Dir, pDC, fOut));
+			out << "linearacceleration: ";
 			break;
 
 		case ANGULARACCELERATION:
@@ -2472,12 +2485,19 @@ ReadJoint(DataManager* pDM,
 				AngularAccelerationJoint,
 				AngularAccelerationJoint(uLabel, pDO,
 					pNode, Dir, pDC, fOut));
+			out << "angularacceleration: ";
 			break;
 
 		default:
 			ASSERTMSG(0, "You shouldn't have reached this point");
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		out << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << Dir
+			<< std::endl;
+
 		} break;
 
 	case PRISMATIC:
@@ -2645,6 +2665,15 @@ ReadJoint(DataManager* pDM,
 			DriveDisplacementJoint,
 			DriveDisplacementJoint(uLabel, pDO, pDC,
 				pNode1, pNode2, f1, f2, fOut));
+
+		std::ostream& out = pDM->GetLogFile();
+		out << "drivedisplacement: " << uLabel
+			<< " " << pNode1->GetLabel()
+			<< " " << f1
+			<< " " << pNode2->GetLabel()
+			<< " " << f2
+			<< std::endl;
+
 		} break;
 
 	case DRIVEDISPLACEMENTPIN:
@@ -2692,6 +2721,14 @@ ReadJoint(DataManager* pDM,
 			DriveDisplacementPinJoint,
 			DriveDisplacementPinJoint(uLabel, pDO, pDC,
 				pNode, f, x, fOut));
+		
+		std::ostream& out = pDM->GetLogFile();
+		out << "drivedisplacementpin: " << uLabel
+			<< " " << pNode->GetLabel()
+			<< " " << f
+			<< " " << x
+			<< std::endl;
+
 		} break;
 
 	case IMPOSEDDISPLACEMENT:
@@ -3525,11 +3562,17 @@ ReadJoint(DataManager* pDM,
 		{
 		/* Corpo slittante */
 		const StructNode* pNode = pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP);
+		std::ostream& out = pDM->GetLogFile();
+		out << "beamslider: " << uLabel;
 
 		ReferenceFrame RF(pNode);
 		Vec3 f(HP.GetPosRel(RF));
 		DEBUGCOUT("Linked to Node " << pNode->GetLabel()
 			<< "with offset " << f << std::endl);
+
+		out 
+			<< " " << pNode->GetLabel()
+			<< " " << f;
 
 		Mat3x3 R = Eye3;
 		if (HP.IsKeyWord("hinge")) {
@@ -3537,6 +3580,8 @@ ReadJoint(DataManager* pDM,
 		}
 		DEBUGLCOUT(MYDEBUG_INPUT,
 			"Slider rotation matrix: " << std::endl << R << std::endl);
+
+		out << " " << R;
 
 		/* Slider type */
 		BeamSliderJoint::Type sliderType = BeamSliderJoint::SPHERICAL;
@@ -3560,6 +3605,8 @@ ReadJoint(DataManager* pDM,
 				<< HP.GetLineData() << std::endl);
 			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
+
+		out << " " << nB;
 
 		BeamConn **bc = NULL;
 		SAFENEWARR(bc, BeamConn *, nB);
@@ -3585,10 +3632,15 @@ ReadJoint(DataManager* pDM,
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
+			out << " " << pBeam->GetLabel();
+
 			/* Nodo 1: */
 
 			/* Offset del punto rispetto al nodo */
 			const StructNode* pNode1 = pBeam->pGetNode(1);
+
+			out << " " << pNode1->GetLabel();
+
 			RF = ReferenceFrame(pNode1);
 			Vec3 f1;
 			Mat3x3 R1 = Eye3;
@@ -3617,6 +3669,8 @@ ReadJoint(DataManager* pDM,
 					}
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Node 1 offset: " << f1 << std::endl);
+				
+				out << " " << f1;
 
 				if (HP.IsKeyWord("hinge")) {
 					if (HP.IsKeyWord("same")) {
@@ -3645,14 +3699,20 @@ ReadJoint(DataManager* pDM,
 				}
 			}
 
+			out << " " << R1;
+
 			/* Nodo 2: */
 
 			/* Offset del punto rispetto al nodo */
 			const StructNode* pNode2 = pBeam->pGetNode(2);
 
+			out << " " << pNode2->GetLabel();
+
 			RF = ReferenceFrame(pNode2);
 			Vec3 f2(HP.GetPosRel(RF));
 			DEBUGLCOUT(MYDEBUG_INPUT, "Node 2 offset: " << f2 << std::endl);
+
+			out << " " << f2;
 
 			Mat3x3 R2(Eye3);
 			if (HP.IsKeyWord("hinge")) {
@@ -3662,14 +3722,20 @@ ReadJoint(DataManager* pDM,
 					<< R2 << std::endl);
 			}
 
+			out << " " << R2;
+
 			/* Nodo 3: */
 
 			/* Offset del punto rispetto al nodo */
 			const StructNode* pNode3 = pBeam->pGetNode(3);
 
+			out << " " << pNode3->GetLabel();
+
 			RF = ReferenceFrame(pNode3);
 			Vec3 f3(HP.GetPosRel(RF));
 			DEBUGLCOUT(MYDEBUG_INPUT, "Node 3 offset: " << f3 << std::endl);
+
+			out << " " << f3;
 
 			Mat3x3 R3(Eye3);
 			if (HP.IsKeyWord("hinge")) {
@@ -3678,6 +3744,8 @@ ReadJoint(DataManager* pDM,
 					"Node 3 rotation matrix: " << std::endl
 					<< R3 << std::endl);
 			}
+
+			out << " " << R3;
 
 			pLastNode = pNode3;
 
@@ -3719,6 +3787,7 @@ ReadJoint(DataManager* pDM,
 			}
 		}
 
+		out << std::endl;
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 		SAFENEWWITHCONSTRUCTOR(pEl, BeamSliderJoint,
