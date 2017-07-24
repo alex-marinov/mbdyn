@@ -431,7 +431,25 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 	
 		std::vector<const StructNode *> nodes;
 		if (HP.IsKeyWord("all")) {
-			/* FIXME: todo */
+			
+			DataManager::NodeContainerType::const_iterator i = pDM->begin(Node::STRUCTURAL);
+			DataManager::NodeContainerType::const_iterator e = pDM->end(Node::STRUCTURAL);
+
+			if (e == i) {
+				silent_cerr("ReadStreamContent: no structural nodes " << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			for (; i != e; ++i) {
+				const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
+				const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
+				ASSERT(pN != 0);
+					if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+					continue;
+					}
+
+				nodes.insert(nodes.end(), pSN);
+			}
 	
 		} else {
 			while (HP.IsArg()) {
