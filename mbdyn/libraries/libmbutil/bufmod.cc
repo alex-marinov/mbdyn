@@ -53,6 +53,7 @@ BufCast::~BufCast(void)
 	NO_OP;
 }
 
+#if 0 // moved to bufmod.h
 template <class T>
 class TBufCast : public BufCast {
 public:
@@ -138,6 +139,7 @@ public:
 		return new TBufCastHToN<T>(offset);
 	};
 };
+#endif
 
 typedef std::map<std::string, bool> TypeMap_t;
 
@@ -254,7 +256,7 @@ ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip 
 	return pBC;
 }
 
-static bool
+bool
 bIsLittleEndian(void)
 {
 	const int i = 1;

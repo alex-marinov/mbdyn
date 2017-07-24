@@ -51,8 +51,97 @@ public:
 	virtual BufCast *copy(size_t offset) const = 0;
 };
 
+template <class T>
+class TBufCast : public BufCast {
+public:
+	TBufCast(size_t offset) : BufCast(offset) { NO_OP; };
+
+	size_t size(void) const {
+		return sizeof(T);
+	};
+
+	size_t offset(void) const {
+		return m_offset;
+	};
+
+	// "cast" in the sense that whatever type comes from the stream,
+	// it is cast into a doublereal
+	doublereal cast(const void *pFrom) const {
+		const char *p = &((const char *)pFrom)[m_offset];
+		return doublereal(*((T *)p));
+	};
+
+	// "uncast" in the sense that a doublereal is transformed into
+	// the correct type for the stream
+	void uncast(void *pTo, doublereal d) const {
+		char *p = &((char *)pTo)[m_offset];
+		((T *)p)[0] = T(d);
+	};
+
+	BufCast *copy(size_t offset) const {
+		return new TBufCast<T>(offset);
+	};
+};
+
+template <typename T>
+static T
+mbswap(const T in)
+{
+	const char *pin = (const char *)&in;
+	T out;
+	char *pout = (char *)&out;
+
+	for (unsigned int i = 0; i < sizeof(T)/2; i++) {
+		pout[i] = pin[sizeof(T) - 1 - i];
+		pout[sizeof(T) - 1 - i] = pin[i];
+	}
+
+	return out;
+}
+
+template <int8_t>
+static int8_t
+mbswap(const int8_t in)
+{
+	return in;
+}
+
+template <uint8_t>
+static uint8_t
+mbswap(const uint8_t in)
+{
+	return in;
+}
+
+template <class T>
+class TBufCastHToN : public TBufCast<T> {
+public:
+	TBufCastHToN(size_t offset) : TBufCast<T>(offset) {};
+
+	// "cast" in the sense that whatever type comes from the stream,
+	// it is cast into a doublereal
+	doublereal cast(const void *pFrom) const {
+		const char *p = &((const char *)pFrom)[TBufCast<T>::m_offset];
+		return mbswap<T>(*((T *)p));
+	};
+
+	// "uncast" in the sense that a doublereal is transformed into
+	// the correct type for the stream
+	void uncast(void *pTo, doublereal d) const {
+		char *p = &((char *)pTo)[TBufCast<T>::m_offset];
+		((T *)p)[0] = mbswap<T>(T(d));
+	};
+
+	BufCast *copy(size_t offset) const {
+		return new TBufCastHToN<T>(offset);
+	};
+};
+
 extern void
 ReadBufCast(HighParser& HP, std::vector<BufCast *>& data);
+
+extern bool
+bIsLittleEndian(void);
 
 /* BufCast - end */
 
