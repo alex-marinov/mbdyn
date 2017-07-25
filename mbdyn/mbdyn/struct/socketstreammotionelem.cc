@@ -154,5 +154,22 @@ StreamContentMotion::GetNumChannels(void) const
 	return buf.size()/sizeof(doublereal);
 }
 
+std::vector<const StructNode *>::const_iterator
+StreamContentMotion::nodes_begin(void) const
+{
+	return nodes.cbegin();
+}
+
+std::vector<const StructNode *>::const_iterator
+StreamContentMotion::nodes_end(void) const
+{
+	return nodes.cend();
+}
+
+const unsigned
+StreamContentMotion::uGetFlags(void) const
+{
+	return uFlags;
+}
 /* StreamContentMotion - end */
 

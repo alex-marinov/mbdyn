@@ -53,6 +53,13 @@ public:
 
 	void Prepare(void);
 	unsigned GetNumChannels(void) const;
+
+	std::vector<const StructNode *>::const_iterator
+		nodes_begin(void) const;
+	std::vector<const StructNode *>::const_iterator
+		nodes_end(void) const;
+
+	const unsigned uGetFlags(void) const;
 };
 
 /* StreamContentMotion - end */

@@ -53,6 +53,7 @@
 
 #include "dataman.h"
 #include "socketstream_out_elem.h"
+#include "socketstreammotionelem.h"
 #include "sock.h"
 
 #ifdef USE_RTAI
@@ -60,6 +61,8 @@
 #endif // USE_RTAI
 
 #ifdef USE_SOCKET
+
+#include "geomdata.h"
 
 /* SocketStreamElem - begin */
 
@@ -376,7 +379,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		if (i <= 0) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"invalid output every value " << i << " "
-				"at line " << HP.GetLineData() << std::endl);
+		 		"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		OutputEvery = (unsigned int)i;
@@ -394,6 +397,13 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	}
 
 	Elem *pEl = 0;
+	
+	// .log file output
+	std::ostream& out = pDM->GetLogFile();
+	out 
+		<< "outputelement: " << uLabel 
+		<< " stream";
+
 	if (bIsRTAI) {
 #ifdef USE_RTAI
 		if (pSOE != 0) {
@@ -442,6 +452,16 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
 			RTMBDynOutElem(uLabel,
        				name, host, node, bCreate, pSC, bNonBlocking));
+
+		out
+			<< " " << "RTAI"
+			<< " " << name
+			<< " " << host
+			<< " " << node
+			<< " " << bCreate;
+
+		WriteStreamContentLogOutput(pSC, out);
+
 #endif // USE_RTAI
 
 	} else {
@@ -460,9 +480,35 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			}
       
 			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, socket_type, bCreate));
+		
+			// .log file output
+			out 
+				<< " " << "INET"
+				<< " " << name
+				<< " " << host
+				<< " " << port;
+			if (socket_type == sock_dgram)	{
+				out << " udp";
+			} else {
+				out << " tcp";
+			}
+				out << " " << bCreate;
+
 
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), socket_type, bCreate));
+			
+			// .log file output
+			out 
+				<< " " << "UNIX"
+				<< " " << name
+				<< " " << path;
+			if (socket_type == sock_dgram) {
+				out << " udp";
+			} else {
+				out << " tcp";
+			}
+				out << " " << bCreate;	
 		}
 
 		if (bCreate) {
@@ -506,9 +552,53 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			SocketStreamElem(uLabel, name, OutputEvery,
 				pUS, pSC, flags, bSendFirst, bAbortIfBroken,
 				pSOE));
+
+		out 
+			<< " " << !bNoSignal
+			<< " " << !bNonBlocking
+			<< " " << bSendFirst
+			<< " " << bAbortIfBroken
+			<< " " << OutputEvery;
+		
+		WriteStreamContentLogOutput(pSC, out);
+
 #endif // USE_SOCKET
 	}
 
 	return pEl;
 }
 
+void
+WriteStreamContentLogOutput(const StreamContent* pSC, 
+	std::ostream& out)
+{
+	const StreamContentMotion* pSCM = NULL;
+	pSCM = dynamic_cast<const StreamContentMotion*>(pSC);
+
+	if (pSCM == NULL) 
+	{
+		// pSC is of type StreamContent::VALUES
+		out 
+			<< " values"
+			<< " " << pSC->GetNumChannels()
+			<< std::endl;
+	} else {
+		// pSC is of type StreamContent::MOTION
+		const unsigned uFlags = pSCM->uGetFlags();
+		out 
+			<< " motion"
+			<< " " << bool(uFlags & GeometryData::X)
+			<< " " << bool(uFlags & GeometryData::R)
+			<< " " << bool(uFlags & GeometryData::RT)
+			<< " " << bool(uFlags & GeometryData::V)
+			<< " " << bool(uFlags & GeometryData::W);
+
+		for (std::vector<const StructNode*>::const_iterator i = pSCM->nodes_begin(); 
+				i != pSCM->nodes_end(); ++i) 
+		{
+			out << " " << (*i)->GetLabel();
+		}
+
+		out << std::endl;
+	}
+}

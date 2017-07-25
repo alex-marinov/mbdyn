@@ -513,15 +513,41 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	}
 
 	UseSocket *pUS = 0;
+
+
+	// .log file output
+	std::ostream& out = pDM->GetLogFile();
+	out << "filedriver: " << uLabel << " stream";
+
 	if (path.empty()) {
 		if (port == (unsigned short int)(-1)) {
 			port = DEFAULT_PORT;
 		}
 		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, socket_type, bCreate));
+	
+		// .log file output
+		out 
+			<< " INET"
+			<< " " << name
+			<< " " << host 
+			<< " " << port;
 
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, socket_type, bCreate));
+		out
+			<< " UNIX"
+			<< " " << name
+			<< " " << path;
 	}
+	
+	if (socket_type == SOCK_STREAM) {
+		out << " tcp";
+	} else {
+		out << " udp";
+	}
+			
+	out << " " << bCreate;
+
 
 	if ((socket_type == SOCK_STREAM) && bCreate) {
 		const_cast<DataManager *>(pDM)->RegisterSocketUser(pUS);
@@ -538,6 +564,38 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 			InputEvery, bReceiveFirst,
 			flags, SocketTimeout,
 			pSDE));
+#ifdef MSG_NOSIGNAL
+	if (flags & ~MSG_NOSIGNAL) {
+		out << " " << true;
+	} else {
+#endif // MSG_NOSIGNAL
+		out << " " << false;
+#ifdef MSG_NOSIGNAL
+	}
+#endif
+
+#ifdef MSG_DONTWAIT
+	if (flags & MSG_DONTWAIT) {
+		out << " " << true;
+	} else {
+#endif // MSG_DONTWAIT
+		out << " " << false;
+#ifdef MSG_DONTWAIT
+	}
+#endif
+
+	out 
+		<< " " << InputEvery
+		<< " " << bReceiveFirst
+		<< " " << SocketTimeout.tv_sec
+		<< " " << idrives;
+
+	for (std::vector<doublereal>::iterator it = v0.begin(); it != v0.end(); ++it)
+	{
+		out << " " << (*it);
+	}
+
+	out << std::endl;
 
 	return pDr;
 }

@@ -84,6 +84,10 @@ extern Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP,
 	unsigned int uLabel, StreamContent::Type type);
 
+extern void
+WriteStreamContentLogOutput(const StreamContent* pSC,
+	std::ostream& out);
+
 /* SocketStreamElem - end */
 
 #endif /* SOCKETSTREAM_OUT_ELEM_H */
