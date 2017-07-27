@@ -387,7 +387,7 @@ dnl GINACLIB_CONFIG=
 GINACLIB_LIBS=
 GINACLIB_CPPFLAGS=
 wl=
-EXPORT_DYNAMIC_FLAG_SPEC=
+EXPORT_FLAG_SPEC=
 
 dnl MODULES_DIRS=
 MODULE_LOADPATH=
@@ -1360,7 +1360,7 @@ if test "$ol_enable_runtime_loading" != "no" ; then
 		if test $have_lt_dlinit = "yes" ; then
 			eval `libtool --tag=CC --config|grep '^wl='`
 			LIBS="$LIBS -lltdl"
-			EXPORT_DYNAMIC_FLAG_SPEC="$export_dynamic_flag_spec"
+			EXPORT_DYNAMIC_FLAG_SPEC=`(./libtool --config; echo eval echo \\$export_dynamic_flag_spec) | sh`
 			have_runtime_loading=yes
 			MODULE_LOADPATH=$libexecdir
 		fi
