@@ -242,7 +242,7 @@ NonlinearSolverTestMinMax::TestOne(doublereal& dRes,
 {
 	doublereal d = fabs(Vec(iIndex)) * dCoef;
 
-	if (d > dRes) {
+	if (!(d < dRes)) { // this will work also if d equal nan
 		dRes = d;
 	}
 }
