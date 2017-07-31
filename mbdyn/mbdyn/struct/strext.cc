@@ -370,7 +370,7 @@ StructExtForce::Prepare(ExtFileHandlerBase *pEFH)
 		if (uNodal != MBC_NODAL) {
 			silent_cerr("StructExtForce(" << GetLabel() << "): "
 				"negotiation response failed: expecting MBC_NODAL "
-				"(=" << MBC_MODAL << "), got " << uNodal
+				"(=" << MBC_NODAL << "), got " << uNodal
 				<< std::endl);
 			bResult = false;
 		}
