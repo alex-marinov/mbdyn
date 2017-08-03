@@ -204,7 +204,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	std::string path;
 	std::string host;
 	unsigned short int port = (unsigned short int)(-1);
-	bool bCreate = false;
+	bool bGotCreate(false);
+	bool bCreate(false);
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
@@ -214,7 +215,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-		} else if (strlen(m) != 6) {
+		} else if (bIsRTAI && strlen(m) != 6) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"illegal stream name \"" << m << "\" "
 				"(must be exactly 6 chars) "
@@ -234,6 +235,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	}
 
 	if (HP.IsKeyWord("create")) {
+		bGotCreate = true;
 		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("SocketStreamElem(" << uLabel << "):"
 				"\"create\" must be either "
@@ -324,6 +326,10 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		if (HP.IsKeyWord("udp")) {
 			socket_type = sock_dgram;
 
+			if (!bGotCreate) {
+				bCreate = true;
+			}
+
 		} else if (!HP.IsKeyWord("tcp")) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"invalid socket type "
@@ -334,7 +340,7 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 	if ((socket_type == sock_dgram) && bCreate) {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
-			"socket type=upd incompatible with create=yes "
+			"socket type=udp incompatible with create=yes "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

@@ -886,12 +886,14 @@ ReadExtSocketHandler(DataManager* pDM,
 #ifdef USE_SOCKET
 	ExtFileHandlerBase *pEFH = 0;
 
-	bool bCreate = false;
+	bool bGotCreate(false);
+	bool bCreate(false);
 	unsigned short int port = (unsigned short int)-1; 
 	std::string host;
 	std::string path;
 
 	if (HP.IsKeyWord("create")) {
+		bGotCreate = true;
 		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("ExtSocketHandler"
 				"(" << uLabel << "): "
@@ -986,6 +988,10 @@ ReadExtSocketHandler(DataManager* pDM,
 		if (HP.IsKeyWord("udp")) {
 			socket_type = SOCK_DGRAM;
 
+			if (!bGotCreate) {
+				bCreate = true;
+			}
+
 		} else if (!HP.IsKeyWord("tcp")) {
 			silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
 				"invalid socket type "
@@ -996,7 +1002,7 @@ ReadExtSocketHandler(DataManager* pDM,
 
 	if ((socket_type == SOCK_DGRAM) && !bCreate) {
 		silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
-			"socket type=upd incompatible with create=no "
+			"socket type=udp incompatible with create=no "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}

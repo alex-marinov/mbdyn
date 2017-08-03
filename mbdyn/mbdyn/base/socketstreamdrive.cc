@@ -257,7 +257,8 @@ do_abandon:;
 static Drive *
 ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 {
-	bool bCreate = false;
+	bool bGotCreate(false);
+	bool bCreate(false);
 	unsigned short int port = -1; 
 	std::string name;
 	std::string host;
@@ -285,6 +286,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	}
 
 	if (HP.IsKeyWord("create")) {
+		bGotCreate = true;
 		if (!HP.GetYesNo(bCreate)) {
 			silent_cerr("SocketStreamDrive"
 				"(" << uLabel << ", \"" << name << "\"): "
@@ -294,7 +296,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-		
+
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetFileName();
 		
@@ -380,6 +382,9 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	if (HP.IsKeyWord("socket" "type")) {
 		if (HP.IsKeyWord("udp")) {
 			socket_type = SOCK_DGRAM;
+			if (!bGotCreate) {
+				bCreate = true;
+			}
 
 		} else if (!HP.IsKeyWord("tcp")) {
 			silent_cerr("SocketStreamDrive(" << uLabel << ", \"" << name << "\"): "
