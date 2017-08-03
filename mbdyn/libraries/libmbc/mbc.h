@@ -582,8 +582,9 @@ mbc_modal_destroy(mbc_modal_t *mbc);
 extern int
 mbc_modal_negotiate_request(mbc_modal_t *mbc);
 
-/** \brief Unused. */
-/* companion of above, provided for completeness; not used
+/** \brief Unused.
+ *
+ * companion of above, provided for completeness; not used
  */
 extern int
 mbc_modal_negotiate_response(mbc_modal_t *mbc);
