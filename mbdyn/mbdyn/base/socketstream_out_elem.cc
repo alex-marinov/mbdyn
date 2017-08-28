@@ -181,17 +181,82 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 
 #endif // USE_SOCKET
 
+/*----------------------------------------------------------------------------
+management of 'content type' for stream output element ('values','motion', etc)
+------------------------------------------------------------------------------
+
+Rearranged by Luca Conti (May 2017) on the basis of previous existing code
+(fully working, just rearranged).
+
+Edited in order to apply the same mechanism with 'readers' and 'maps' (std::map)
+  already in use for constitutive laws and drives
+*/
+
+/*temporary data that allows to store all necessary information for creation
+ of socket stream output element (used by functions in struct
+SocketStreamElemRead)*/
+struct SocketStreamOutputDataTmp {
+	bool bIsRTAI;
+	StreamOutEcho *pSOE;
+	StreamContent *pSC;
+	#if defined(HAVE_GETADDRINFO)
+			struct addrinfo hints,*res;
+			int rc;
+	#elif defined(HAVE_GETHOSTBYNAME)
+			struct hostent *he;
+	#elif defined(HAVE_INET_ATON)
+			struct in_addr addr;
+	#endif // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
+	std::string name;
+	std::string path;
+	std::string host;
+	bool bCreate;
+	bool bNonBlocking;
+	bool bNoSignal;
+	bool bSendFirst;
+	bool bAbortIfBroken;
+	unsigned short int port;
+	int socket_type;
+	int flags;
+	unsigned int OutputEvery;
+};
+
+#ifdef USE_SOCKET
+static const int sock_stream = SOCK_STREAM;
+static const int sock_dgram = SOCK_DGRAM;
+#else // ! USE_SOCKET
+static const int sock_stream = 1;
+static const int sock_dgram = 2;
+#endif // ! USE_SOCKET
+
+
+/*these functions are called by ReadSocketStreamElem in order to get and elaborate all data necessary to create the element*/
+struct SocketStreamOutputElemCreator {
+	virtual void getSocketStreamOutParam(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type, SocketStreamOutputDataTmp& socketStreamOutputDataTmp);
+	virtual Elem* createSocketStreamOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type, SocketStreamOutputDataTmp& socketStreamOutputDataTmp);
+};
+
 Elem *
 ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type)
 {
-	bool bIsRTAI(false);
+	SocketStreamOutputDataTmp socketStreamOutputDataTmp;
+	SocketStreamOutputElemCreator socketStreamOutputElemCreator;
+	socketStreamOutputElemCreator.getSocketStreamOutParam(pDM, HP, uLabel, type, socketStreamOutputDataTmp);
+	socketStreamOutputDataTmp.pSOE = ReadStreamOutEcho(HP);
+	socketStreamOutputDataTmp.pSC = ReadStreamContent(pDM, HP, type);
+	Elem* pEl = socketStreamOutputElemCreator.createSocketStreamOutElem(pDM, HP, uLabel, type, socketStreamOutputDataTmp);
+  return pEl;
+}
+
+void SocketStreamOutputElemCreator::getSocketStreamOutParam(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type, SocketStreamOutputDataTmp& socketStreamOutputDataTmp){
+	socketStreamOutputDataTmp.bIsRTAI = false;//bool bIsRTAI(false);
 #ifdef USE_RTAI
 	if (::rtmbdyn_rtai_task != 0) {
-		bIsRTAI = true;
+		socketStreamOutputDataTmp.bIsRTAI = true;
 	}
 #endif // USE_RTAI
 #ifndef USE_SOCKET
-	if (!bIsRTAI) {
+	if (!socketStreamOutputDataTmp.bIsRTAI) {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"not allowed because apparently the current "
 			"architecture does not support sockets "
@@ -200,12 +265,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 	}
 #endif // ! USE_SOCKET
 
-	std::string name;
-	std::string path;
-	std::string host;
-	unsigned short int port = (unsigned short int)(-1);
+	socketStreamOutputDataTmp.port = (unsigned short int)(-1);
+	socketStreamOutputDataTmp.bCreate = false;
 	bool bGotCreate(false);
-	bool bCreate(false);
 
 	if (HP.IsKeyWord("name") || HP.IsKeyWord("stream" "name")) {
 		const char *m = HP.GetStringWithDelims();
@@ -215,28 +277,28 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-		} else if (bIsRTAI && strlen(m) != 6) {
+		} else if (socketStreamOutputDataTmp.bIsRTAI && strlen(m) != 6) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"illegal stream name \"" << m << "\" "
 				"(must be exactly 6 chars) "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		} 
-		
-		name = m;
+		}
+
+		socketStreamOutputDataTmp.name = m;
 
 	} else {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"missing stream name "
 			"at line " << HP.GetLineData() << std::endl);
-		if (bIsRTAI) {
+		if (socketStreamOutputDataTmp.bIsRTAI) {
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
 
 	if (HP.IsKeyWord("create")) {
 		bGotCreate = true;
-		if (!HP.GetYesNo(bCreate)) {
+		if (!HP.GetYesNo(socketStreamOutputDataTmp.bCreate)) {
 			silent_cerr("SocketStreamElem(" << uLabel << "):"
 				"\"create\" must be either "
 				"\"yes\" or \"no\" "
@@ -245,26 +307,26 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 	}
-	
+
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
 		const char *m = HP.GetFileName();
-		
+
 		if (m == 0) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"unable to read local path "
 				"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		
-		path = m;
+
+		socketStreamOutputDataTmp.path = m;
 	}
 
 	if (HP.IsKeyWord("port")) {
-		if (!path.empty()) {
+		if (!socketStreamOutputDataTmp.path.empty()) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"cannot specify a port for a local socket "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		int p = HP.GetInt();
@@ -273,23 +335,23 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"illegal port " << p << " "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		port = p;
+		socketStreamOutputDataTmp.port = p;
 	}
 
 	if (HP.IsKeyWord("host")) {
-		if (!path.empty()) {
+		if (!socketStreamOutputDataTmp.path.empty()) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"cannot specify an allowed host "
 				"for a local socket "
 				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		const char *h;
-		
+
 		h = HP.GetStringWithDelims();
 		if (h == 0) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -298,36 +360,28 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
-		host = h;
+		socketStreamOutputDataTmp.host = h;
 
-	} else if (path.empty() && !bCreate) {
+	} else if (socketStreamOutputDataTmp.path.empty() && !socketStreamOutputDataTmp.bCreate) {
 		/* INET sockets (!path) must be created if host is missing */
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"host undefined "
 			"at line " << HP.GetLineData() << std::endl);
-		host = DEFAULT_HOST;
+		socketStreamOutputDataTmp.host = DEFAULT_HOST;
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"using default host: "
-			<< host << ":"
-			<< (port == (unsigned short int)(-1) ? DEFAULT_PORT : port)
+			<< socketStreamOutputDataTmp.host << ":"
+			<< (socketStreamOutputDataTmp.port == (unsigned short int)(-1) ? DEFAULT_PORT : socketStreamOutputDataTmp.port)
 			<< std::endl);
 	}
 
-#ifdef USE_SOCKET
-	const int sock_stream = SOCK_STREAM;
-	const int sock_dgram = SOCK_DGRAM;
-#else // ! USE_SOCKET
-	const int sock_stream = 1;
-	const int sock_dgram = 2;
-#endif // ! USE_SOCKET
-
-	int socket_type = sock_stream;
+	socketStreamOutputDataTmp.socket_type = sock_stream;
 	if (HP.IsKeyWord("socket" "type")) {
 		if (HP.IsKeyWord("udp")) {
-			socket_type = sock_dgram;
+			socketStreamOutputDataTmp.socket_type = sock_dgram;
 
 			if (!bGotCreate) {
-				bCreate = true;
+				socketStreamOutputDataTmp.bCreate = true;
 			}
 
 		} else if (!HP.IsKeyWord("tcp")) {
@@ -338,48 +392,48 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		}
 	}
 
-	if ((socket_type == sock_dgram) && bCreate) {
+	if (socketStreamOutputDataTmp.socket_type == sock_dgram && socketStreamOutputDataTmp.bCreate) {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"socket type=udp incompatible with create=yes "
 			"at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	bool bNonBlocking = false;
-	bool bNoSignal = false;
-	bool bSendFirst = true;
-	bool bAbortIfBroken = false;
+	socketStreamOutputDataTmp.bNonBlocking = false;
+	socketStreamOutputDataTmp.bNoSignal = false;
+	socketStreamOutputDataTmp.bSendFirst = true;
+	socketStreamOutputDataTmp.bAbortIfBroken = false;
 	while (HP.IsArg()) {
 		if (HP.IsKeyWord("no" "signal")) {
-			bNoSignal = true;
+			socketStreamOutputDataTmp.bNoSignal = true;
 
 		} else if (HP.IsKeyWord("signal")) {
-			bNoSignal = false;
+			socketStreamOutputDataTmp.bNoSignal = false;
 
 		} else if (HP.IsKeyWord("blocking")) {
-			bNonBlocking = false;
+			socketStreamOutputDataTmp.bNonBlocking = false;
 
 		} else if (HP.IsKeyWord("non" "blocking")) {
-			bNonBlocking = true;
+			socketStreamOutputDataTmp.bNonBlocking = true;
 
 		} else if (HP.IsKeyWord("no" "send" "first")) {
-			bSendFirst = false;
+			socketStreamOutputDataTmp.bSendFirst = false;
 
 		} else if (HP.IsKeyWord("send" "first")) {
-			bSendFirst = true;
+			socketStreamOutputDataTmp.bSendFirst = true;
 
 		} else if (HP.IsKeyWord("abort" "if" "broken")) {
-			bAbortIfBroken = true;
+			socketStreamOutputDataTmp.bAbortIfBroken = true;
 
 		} else if (HP.IsKeyWord("do" "not" "abort" "if" "broken")) {
-			bAbortIfBroken = false;
+			socketStreamOutputDataTmp.bAbortIfBroken = false;
 
 		} else {
 			break;
 		}
 	}
 
-	unsigned int OutputEvery = 1;
+	socketStreamOutputDataTmp.OutputEvery = 1;
 	if (HP.IsKeyWord("output" "every")) {
 		int i = HP.GetInt();
 		if (i <= 0) {
@@ -388,12 +442,12 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		 		"at line " << HP.GetLineData() << std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
-		OutputEvery = (unsigned int)i;
+		socketStreamOutputDataTmp.OutputEvery = (unsigned int)i;
 	}
 
-	StreamOutEcho *pSOE = ReadStreamOutEcho(HP);
-	StreamContent *pSC = ReadStreamContent(pDM, HP, type);
+}
 
+Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamContent::Type type, SocketStreamOutputDataTmp& socketStreamOutputDataTmp) {
 	/* Se non c'e' il punto e virgola finale */
 	if (HP.IsArg()) {
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -410,9 +464,9 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		<< "outputelement: " << uLabel 
 		<< " stream";
 
-	if (bIsRTAI) {
+	if (socketStreamOutputDataTmp.bIsRTAI) {
 #ifdef USE_RTAI
-		if (pSOE != 0) {
+		if (socketStreamOutputDataTmp.pSOE != 0) {
 			silent_cerr("SocketStreamElem(" << uLabel << "): "
 				"echo ignored in RTAI mode"
 				<< std::endl);
@@ -420,25 +474,24 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 		unsigned long node = (unsigned long)-1;
 #if defined(HAVE_GETADDRINFO)
-		struct addrinfo hints = { 0 }, *res = NULL;
-		int rc;
+		socketStreamOutputDataTmp.hints = {0};
+		socketStreamOutputDataTmp.res = null;
 
-		hints.ai_family = AF_INET;
-		hints.ai_socktype = SOCK_STREAM; // FIXME: SOCK_DGRAM?
-		rc = getaddrinfo(host.c_str(), NULL, &hints, &res);
-		if (rc == 0) {
-			node = ((struct sockaddr_in *)res->ai_addr)->sin_addr.s_addr;
-			freeaddrinfo(res);
+		socketStreamOutputDataTmp.hints.ai_family = AF_INET;
+		socketStreamOutputDataTmp.hints.ai_socktype = SOCK_STREAM; // FIXME: what about SOCK_DGRAM?
+		socketStreamOutputDataTmp.rc = getaddrinfo(socketStreamOutputDataTmp.host.c_str(), NULL, &(socketStreamOutputDataTmp.hints), &(socketStreamOutputDataTmp.res));
+		if (socketStreamOutputDataTmp.rc == 0) {
+			node = ((struct sockaddr_in *)(socketStreamOutputDataTmp.res)->ai_addr)->sin_addr.s_addr;
+			freeaddrinfo(socketStreamOutputDataTmp.res);
 		}
 #elif defined(HAVE_GETHOSTBYNAME)
-		struct hostent *he = gethostbyname(host.c_str());
-		if (he != NULL) {
-			node = ((unsigned long *)he->h_addr_list[0])[0];
-		} 
+		socketStreamOutputDataTmp.he = gethostbyname(socketStreamOutputDataTmp.host.c_str());
+		if (socketStreamOutputDataTmp.he != NULL) {
+			node = ((unsigned long *)(socketStreamOutputDataTmp.he)->h_addr_list[0])[0];
+		}
 #elif defined(HAVE_INET_ATON)
-		struct in_addr addr;
-		if (inet_aton(host.c_str(), &addr)) {
-			node = addr.s_addr;
+		if (inet_aton(socketStreamOutputDataTmp.host.c_str(), &(socketStreamOutputDataTmp.addr))) {
+			node = socketStreamOutputDataTmp.addr.s_addr;
 		}
 #else // ! HAVE_GETADDRINFO && ! HAVE_GETHOSTBYNAME && ! HAVE_INET_ATON
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -457,7 +510,8 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 			<< std::endl);
 		SAFENEWWITHCONSTRUCTOR(pEl, RTMBDynOutElem,
 			RTMBDynOutElem(uLabel,
-       				name, host, node, bCreate, pSC, bNonBlocking));
+				socketStreamOutputDataTmp.name, socketStreamOutputDataTmp.host, node,
+				socketStreamOutputDataTmp.bCreate, socketStreamOutputDataTmp.pSC, socketStreamOutputDataTmp.bNonBlocking));
 
 		out
 			<< " " << "RTAI"
@@ -471,53 +525,55 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 #endif // USE_RTAI
 
 	} else {
-		int flags = 0;
+		socketStreamOutputDataTmp.flags = 0;
 
 #ifdef USE_SOCKET
-		/* costruzione del nodo */
+		/* node creation */
 		UseSocket *pUS = 0;
-		if (path.empty()) {
-			if (port == (unsigned short int)(-1)) {
-				port = DEFAULT_PORT;
+		if (socketStreamOutputDataTmp.path.empty()) {
+			if (socketStreamOutputDataTmp.port == (unsigned short int)(-1)) {
+				socketStreamOutputDataTmp.port = DEFAULT_PORT;
 				silent_cerr("SocketStreamElem(" << uLabel << "): "
 					"port undefined; using default port "
-					<< port << " at line "
+					<< socketStreamOutputDataTmp.port << " at line "
 					<< HP.GetLineData() << std::endl);
 			}
-      
-			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host.c_str(), port, socket_type, bCreate));
+
+			SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(socketStreamOutputDataTmp.host.c_str(),
+				socketStreamOutputDataTmp.port, socketStreamOutputDataTmp.socket_type, socketStreamOutputDataTmp.bCreate));
 		
 			// .log file output
 			out 
 				<< " " << "INET"
-				<< " " << name
-				<< " " << host
-				<< " " << port;
-			if (socket_type == sock_dgram)	{
+				<< " " << socketStreamOutputDataTmp.name
+				<< " " << socketStreamOutputDataTmp.host
+				<< " " << socketStreamOutputDataTmp.port;
+			if (socketStreamOutputDataTmp.socket_type == sock_dgram) {
 				out << " udp";
 			} else {
 				out << " tcp";
 			}
-				out << " " << bCreate;
+			out << " " << socketStreamOutputDataTmp.bCreate;
 
 
 		} else {
-			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path.c_str(), socket_type, bCreate));
+			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(socketStreamOutputDataTmp.path.c_str(),
+				socketStreamOutputDataTmp.socket_type, socketStreamOutputDataTmp.bCreate));
 			
 			// .log file output
 			out 
 				<< " " << "UNIX"
-				<< " " << name
-				<< " " << path;
-			if (socket_type == sock_dgram) {
+				<< " " << socketStreamOutputDataTmp.name
+				<< " " << socketStreamOutputDataTmp.path;
+			if (socketStreamOutputDataTmp.socket_type == sock_dgram) {
 				out << " udp";
 			} else {
 				out << " tcp";
 			}
-				out << " " << bCreate;	
+			out << " " << socketStreamOutputDataTmp.bCreate;	
 		}
 
-		if (bCreate) {
+		if (socketStreamOutputDataTmp.bCreate) {
 			pDM->RegisterSocketUser(pUS);
 
 		} else {
@@ -525,12 +581,12 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		}
 
 #ifdef MSG_NOSIGNAL
-		if (bNoSignal) {
+		if (socketStreamOutputDataTmp.bNoSignal) {
 			// NOTE: we assume MSG_NOSIGNAL is a macro...
-			flags |= MSG_NOSIGNAL;
+			socketStreamOutputDataTmp.flags |= MSG_NOSIGNAL;
 
 		} else {
-			flags &= ~MSG_NOSIGNAL;
+			socketStreamOutputDataTmp.flags &= ~MSG_NOSIGNAL;
 		}
 #else // !MSG_NOSIGNAL
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -540,11 +596,11 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 
 #ifdef MSG_DONTWAIT
 		// NOTE: we assume MSG_DONTWAIT is a macro...
-		if (bNonBlocking) {
-			flags |= MSG_DONTWAIT;
+		if (socketStreamOutputDataTmp.bNonBlocking) {
+			socketStreamOutputDataTmp.flags |= MSG_DONTWAIT;
 
 		} else {
-			flags &= ~MSG_DONTWAIT;
+			socketStreamOutputDataTmp.flags &= ~MSG_DONTWAIT;
 		}
 #else // !MSG_DONTWAIT
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
@@ -555,18 +611,19 @@ ReadSocketStreamElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, Str
 		silent_cerr("starting SocketStreamElem(" << uLabel << ")..."
 			<< std::endl);
 		SAFENEWWITHCONSTRUCTOR(pEl, SocketStreamElem,
-			SocketStreamElem(uLabel, name, OutputEvery,
-				pUS, pSC, flags, bSendFirst, bAbortIfBroken,
-				pSOE));
+			SocketStreamElem(uLabel, socketStreamOutputDataTmp.name, socketStreamOutputDataTmp.OutputEvery,
+				pUS, socketStreamOutputDataTmp.pSC, socketStreamOutputDataTmp.flags,
+				socketStreamOutputDataTmp.bSendFirst, socketStreamOutputDataTmp.bAbortIfBroken,
+				socketStreamOutputDataTmp.pSOE));
 
 		out 
-			<< " " << !bNoSignal
-			<< " " << !bNonBlocking
-			<< " " << bSendFirst
-			<< " " << bAbortIfBroken
-			<< " " << OutputEvery;
+			<< " " << (!socketStreamOutputDataTmp.bNoSignal)
+			<< " " << (!socketStreamOutputDataTmp.bNonBlocking)
+			<< " " << socketStreamOutputDataTmp.bSendFirst
+			<< " " << socketStreamOutputDataTmp.bAbortIfBroken
+			<< " " << socketStreamOutputDataTmp.OutputEvery;
 		
-		WriteStreamContentLogOutput(pSC, out);
+		WriteStreamContentLogOutput(socketStreamOutputDataTmp.pSC, out);
 
 #endif // USE_SOCKET
 	}

@@ -173,23 +173,6 @@ StreamContent::Copy::GetOutSize(void) const
 	return m_size;
 }
 
-class StreamContentCopyCast : public StreamContent::Modifier {
-protected:
-	size_t m_size;
-	const char *m_buf;
-	std::vector<char> m_outbuf;
-	std::vector<BufCast *> m_data;
-
-public:
-	StreamContentCopyCast(size_t size, const char *buf, size_t outsize, const std::vector<BufCast *>& data);
-
-	void Set(size_t size, const char *buf);
-	void Modify(void);
-
-	const void *GetOutBuf(void) const;
-	int GetOutSize(void) const;
-};
-
 StreamContentCopyCast::StreamContentCopyCast(size_t size, const char *buf, size_t outsize, const std::vector<BufCast *>& data)
 : m_size(size), m_buf(buf), m_outbuf(outsize), m_data(data)
 {
@@ -324,6 +307,7 @@ ReadStreamContentModifier(MBDynParser& HP, integer nCh)
 	return pSCM;
 }
 
+#if 0
 StreamContent *
 ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 {
@@ -471,6 +455,7 @@ ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type)
 
 	return pSC;
 }
+#endif
 
 /* StreamOutEcho - begin */
 
@@ -609,3 +594,184 @@ ReadOutputElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel, StreamOut
 
 	return pE;
 }
+
+/*----------------------------------------------------------------------------
+management of 'content type' for stream output element ('values','motion', etc)
+------------------------------------------------------------------------------
+
+Rearranged by Luca Conti (May 2017) on the basis of previous existing code
+(fully working, just rearranged).
+
+Edited in order to apply the same mechanism with 'readers' and 'maps' (std::map)
+  already in use for constitutive laws and drives
+*/
+
+StreamOutputContentTypeMap streamOutputContentTypeMap;
+StreamOutputContentTypeWordSetType streamOutputContentTypeWordSet;
+unsigned streamOutputInitFunctionCalls = 0;
+
+/* content type search inside of the content-type bag: execution of its Read method */
+StreamContent* ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type) {
+	//searches in the bag the content type found in MBDyn input file
+	const char *s = HP.IsWord(streamOutputContentTypeWordSet);
+
+	StreamOutputContentTypeMap::iterator it = streamOutputContentTypeMap.find(std::string(s));
+	if (it == streamOutputContentTypeMap.end()) {
+		silent_cerr("[streamoutelem.cc] ReadStreamContent:unknown stream output content type "
+			"\"" << s << "\" "
+			"at line " << HP.GetLineData() << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+	return it->second->Read(pDM, HP);
+}
+
+/* default content type options: reader for 'motion' */
+StreamContent* MotionContentTypeReader::Read(DataManager* pDM, MBDynParser& HP) {
+		// instructions executed for 'motion' case content type
+
+			StreamContent* pSC;
+
+			unsigned uFlags = GeometryData::X;
+			if (HP.IsKeyWord("output" "flags")) {
+				uFlags = 0;
+				while (true) {
+					if (HP.IsKeyWord("position")) {
+						if (uFlags & GeometryData::X) {
+							silent_cerr("StreamContent: "
+								"position flag already defined "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						uFlags |= GeometryData::X;
+
+					} else if (HP.IsKeyWord("orientation" "matrix")) {
+						if (uFlags & GeometryData::ORIENTATION_MASK) {
+							silent_cerr("StreamContent: "
+								"orientation flag already defined "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						uFlags |= GeometryData::R;
+
+					} else if (HP.IsKeyWord("orientation" "matrix" "transpose")) {
+						if (uFlags & GeometryData::ORIENTATION_MASK) {
+							silent_cerr("StreamContent: "
+								"orientation flag already defined "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						uFlags |= GeometryData::RT;
+
+					} else if (HP.IsKeyWord("velocity")) {
+						if (uFlags & GeometryData::V) {
+							silent_cerr("StreamContent: "
+								"velocity flag already defined "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						uFlags |= GeometryData::V;
+
+					} else if (HP.IsKeyWord("angular" "velocity")) {
+						if (uFlags & GeometryData::W) {
+							silent_cerr("StreamContent: "
+								"angular velocity flag already defined "
+								"at line " << HP.GetLineData()
+								<< std::endl);
+							throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+						}
+						uFlags |= GeometryData::W;
+
+					} else {
+						break;
+					}
+				}
+			}
+
+			std::vector<const StructNode *> nodes;
+			if (HP.IsKeyWord("all")) {
+				/* FIXME: todo */
+
+			} else {
+				while (HP.IsArg()) {
+					nodes.insert(nodes.end(), pDM->ReadNode<const StructNode, Node::STRUCTURAL>(HP));
+				}
+			}
+
+			// FIXME: right now, we don't modify stream motion stuff
+			StreamContent::Modifier *pMod(0);
+
+			SAFENEWWITHCONSTRUCTOR(pSC, StreamContentMotion, StreamContentMotion(uFlags, nodes, pMod));
+
+			return pSC;
+	}
+
+/* default content type options: reader for 'values' */
+StreamContent* ValuesContentTypeReader::Read(DataManager* pDM, MBDynParser& HP) {
+		/* instructions executed for 'values' case content type */
+
+			StreamContent* pSC;
+
+			int nch = HP.GetInt();
+			if (nch <= 0) {
+				silent_cerr("illegal number of channels for StreamContent "
+					"at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+
+			std::vector<ScalarValue *> Values(nch);
+			ReadScalarValues(pDM, HP, Values);
+
+			StreamContent::Modifier *pMod(0);
+			if (HP.IsKeyWord("modifier")) {
+				pMod = ReadStreamContentModifier(HP, nch);
+			}
+
+			SAFENEWWITHCONSTRUCTOR(pSC, StreamContentValue, StreamContentValue(Values, pMod));
+
+			return pSC;
+	}
+
+	/* stream output content type parsing checker: allows the parser
+	to understand if the next keyword is a content type */
+	bool StreamOutputContentTypeWordSetType::IsWord(const std::string& s) const {
+			return streamOutputContentTypeMap.find(std::string(s)) != streamOutputContentTypeMap.end();
+		};
+
+	/*registration function: CALL IT TO REGISTER A NEW CONTENT TYPE -
+		it is also used by InitStreamOutputContentTypes(void) in order to load default options ('values','motion') */
+	bool SetStreamOutputContentType(const char *name, StreamOutputContentTypeReader *rf){
+		pedantic_cout("registering stream output content type \"" << name << "\""
+			<< std::endl );
+		return streamOutputContentTypeMap.insert(StreamOutputContentTypeMap::value_type(name, rf)).second;
+	}
+
+	/* initialization function: called by mbpar.cc in order to load default options ('values','motion')*/
+	void InitStreamOutputContentTypes(void){
+		if (streamOutputInitFunctionCalls++ > 0)
+			return;
+
+		/* loads default content types */
+		SetStreamOutputContentType("values", new ValuesContentTypeReader);
+		SetStreamOutputContentType("motion", new MotionContentTypeReader);
+	}
+	/*deallocation of all content types in streamOutputContentTypeMap - called by mbpar.cc*/
+	void DestroyStreamOutputContentTypes(void){
+		if (streamOutputInitFunctionCalls == 0) {
+			silent_cerr("DestroyStreamOutputContentTypes() called once too many" << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (--streamOutputInitFunctionCalls > 0) {
+			return;
+		}
+
+		/* empties all of the content types contained in streamOutputContentTypeMap*/
+		for (StreamOutputContentTypeMap::iterator i = streamOutputContentTypeMap.begin(); i != streamOutputContentTypeMap.end(); ++i) {
+			delete i->second;
+		}
+		streamOutputContentTypeMap.clear();
+	}

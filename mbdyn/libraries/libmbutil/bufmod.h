@@ -34,6 +34,9 @@
 #ifndef BUFMOD_H
 #define BUFMOD_H
 
+typedef std::map<std::string, bool> TypeMap_t;
+
+
 /* BufCast - begin */
 
 class BufCast {
@@ -143,7 +146,9 @@ ReadBufCast(HighParser& HP, std::vector<BufCast *>& data);
 extern bool
 bIsLittleEndian(void);
 
+extern void
+SwapMapInit(TypeMap_t& swapmap);
+
 /* BufCast - end */
 
 #endif // BUFMOD_H
-

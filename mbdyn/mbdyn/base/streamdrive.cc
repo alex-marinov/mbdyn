@@ -77,6 +77,11 @@ StreamDrive::SetModifier(const Modifier *p)
 	pMod = p;
 }
 
+const StreamDrive::Modifier *StreamDrive::pGetModifier(void) const
+{
+	return pMod;
+}
+
 StreamDrive::Modifier::Modifier(void)
 {
 	NO_OP;
@@ -113,19 +118,20 @@ StreamDrive::Copy::Modify(doublereal *out, const void *in) const
 
 /* StreamDriveCopyCast - begin */
 
+/* moved to streamdrive.h FIXME: DELETE
 class StreamDriveCopyCast : public StreamDrive::Modifier
 {
 protected:
 	size_t m_size;
 	std::vector<BufCast *> m_data;
-		
+
 public:
 	StreamDriveCopyCast(size_t size, const std::vector<BufCast *>& data);
 	~StreamDriveCopyCast(void);
 
 	size_t GetSize(void) const;
 	void Modify(doublereal *out, const void *in) const;
-};
+};*/
 
 StreamDriveCopyCast::StreamDriveCopyCast(size_t size, const std::vector<BufCast *>& data)
 : m_size(size), m_data(data)

@@ -35,6 +35,7 @@
 #define DRIVE__H
 
 /* include generali */
+#include "parser.h"
 #include <sstream>
 #ifdef USE_EE
 #include <thread>
@@ -51,6 +52,8 @@
 #include "withlab.h"
 
 #include "drive.h"
+#include "filedrv.h"
+
 
 /* StringDriveCaller - begin */
 
@@ -1697,5 +1700,36 @@ PostponedDriveCaller::dGetP(const doublereal& dVar) const
 
 /* PostponedDriveCaller - end */
 
-#endif /* DRIVE__H */
+/*----------------------------------------------------------------------------
+management of FileDriveCaller type
+------------------------------------------------------------------------------
 
+Coded by Luca Conti (May 2017)
+*/
+
+/*FileDriveCaller type reader: every content type must inherit
+from this struct and implement its own Read method*/
+struct FileDriveCallerTypeReader{
+	virtual integer Read(const DataManager* pDM, MBDynParser& HP, FileDrive* pDrv) = 0;
+};
+
+/*bag of FileDriveCaller type - every type is registered inside
+of it by using SetFileDriveCallerType(...)*/
+typedef std::map<std::string,FileDriveCallerTypeReader*> FileDriveCallerTypeMap;
+extern FileDriveCallerTypeMap fileDriveCallerTypeMap;
+
+/* FileDriveCaller type parsing checker: allows the parser
+to understand if the next keyword is a FileDriveCaller type */
+struct FileDriveCallerTypeWordSet : public HighParser::WordSet {
+	virtual bool IsWord(const std::string& s) const;
+};
+typedef struct FileDriveCallerTypeWordSet FileDriveCallerTypeWordSet;
+extern FileDriveCallerTypeWordSet fileDriveCallerTypeWordSet;
+
+/* registration function: call it to register a new FileDriveCaller type*/
+bool setFileDriveCallerType(const char *name, FileDriveCallerTypeReader *rf);
+
+/*deallocation of all FileDriveCaller types in fileDriveCallerTypeMap, if any was added*/
+void DestroyFileDriveCallerTypes(void);
+
+#endif /* DRIVE__H */

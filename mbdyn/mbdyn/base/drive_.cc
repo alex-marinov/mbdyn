@@ -2870,14 +2870,21 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	}
 
 	integer id = 1;
-	if (HP.IsArg()) {
-		id = HP.GetInt(id);
-		if (id < 1 || id > pDrv->iGetNumDrives()) {
-			silent_cerr("line " << HP.GetLineData()
-				<< ": invalid column number " << id
-				<< " (must be between 1 and " 
-				<< pDrv->iGetNumDrives() << ")" << std::endl);
-			throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		
+	const char *s = HP.IsWord(fileDriveCallerTypeWordSet);
+	if (s != NULL) {
+		FileDriveCallerTypeMap::iterator it = fileDriveCallerTypeMap.find(std::string(s));
+		id = it->second->Read(pDM, HP, pDrv);
+	} else {
+		if (HP.IsArg()) {
+			id = HP.GetInt(id);
+			if (id < 1 || id > pDrv->iGetNumDrives()) {
+				silent_cerr("line " << HP.GetLineData()
+					<< ": invalid column number " << id
+					<< " (must be between 1 and "
+					<< pDrv->iGetNumDrives() << ")" << std::endl);
+				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
 		}
 	}
 
@@ -2893,6 +2900,37 @@ FileDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	return pDC;
 }
+
+/*----------------------------------------------------------------------------
+management of FileDriveCaller type
+------------------------------------------------------------------------------
+
+Coded by Luca Conti (May 2017)
+*/
+
+FileDriveCallerTypeMap fileDriveCallerTypeMap;
+FileDriveCallerTypeWordSet fileDriveCallerTypeWordSet;
+
+/* FileDriveCaller type parsing checker: allows the parser
+to understand if the next keyword is a FileDriveCaller type */
+bool FileDriveCallerTypeWordSet::IsWord(const std::string& s) const {
+		return fileDriveCallerTypeMap.find(std::string(s)) != fileDriveCallerTypeMap.end();
+	};
+
+bool setFileDriveCallerType(const char *name, FileDriveCallerTypeReader *rf){
+	pedantic_cout("registering FileDriveCaller type \"" << name << "\""
+		<< std::endl );
+	return fileDriveCallerTypeMap.insert(FileDriveCallerTypeMap::value_type(name, rf)).second;
+}
+
+void DestroyFileDriveCallerTypes(void){
+	for (FileDriveCallerTypeMap::iterator i = fileDriveCallerTypeMap.begin(); i != fileDriveCallerTypeMap.end(); ++i) {
+		delete i->second;
+	}
+	fileDriveCallerTypeMap.clear();
+}
+
+/*---------------------------------------------------------------------------*/
 
 struct PeriodicDCR : public DriveCallerRead {
 	DriveCaller *

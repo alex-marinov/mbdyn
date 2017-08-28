@@ -34,6 +34,7 @@
 
 #include "elem.h"
 #include "scalarvalue.h"
+#include "bufmod.h"
 
 #define UNIX_PATH_MAX	108
 #define DEFAULT_PORT	9011 /* intentionally unassigned by IANA */
@@ -138,6 +139,9 @@ public:
 extern StreamContent*
 ReadStreamContent(DataManager *pDM, MBDynParser& HP, StreamContent::Type type);
 
+StreamContent::Modifier *
+ReadStreamContentModifier(MBDynParser& HP, integer nCh);
+
 /* StreamContent - end */
 
 /* StreamContentValue - begin */
@@ -154,6 +158,24 @@ public:
 	void Prepare(void);
 	unsigned GetNumChannels(void) const;
 };
+
+class StreamContentCopyCast : public StreamContent::Modifier {
+protected:
+	size_t m_size;
+	const char *m_buf;
+	std::vector<char> m_outbuf;
+	std::vector<BufCast *> m_data;
+
+public:
+	StreamContentCopyCast(size_t size, const char *buf, size_t outsize, const std::vector<BufCast *>& data);
+
+	void Set(size_t size, const char *buf);
+	void Modify(void);
+
+	const void *GetOutBuf(void) const;
+	int GetOutSize(void) const;
+};
+
 
 /* StreamContentValue - end */
 
@@ -182,5 +204,60 @@ extern Elem *
 ReadOutputElem(DataManager *pDM, MBDynParser& HP, unsigned int uLabel,
 	StreamOutElem::Type eType, StreamContent::Type sType);
 
-#endif /* STREAMOUTELEM_H */
+/*----------------------------------------------------------------------------
+management of 'content type' for stream output element ('values','motion', etc)
+------------------------------------------------------------------------------
 
+Rearranged by Luca Conti (May 2017) on the basis of previous existing code
+(fully working, just rearranged).
+
+Edited in order to apply the same mechanism with 'readers' and 'maps' (std::map)
+  already in use for constitutive laws and drives
+*/
+
+/* stream output content type reader: every content type must inherit
+from this struct and implement its own Read method */
+struct StreamOutputContentTypeReader {
+	virtual StreamContent* Read(DataManager* pDM, MBDynParser& HP) = 0;
+};
+
+/* default content type options: reader for 'motion' */
+struct MotionContentTypeReader : public StreamOutputContentTypeReader {
+	virtual StreamContent* Read(DataManager* pDM, MBDynParser& HP);
+};
+
+/* default content type options: reader for 'values' */
+struct ValuesContentTypeReader : public StreamOutputContentTypeReader {
+	virtual StreamContent* Read(DataManager* pDM, MBDynParser& HP);
+};
+
+/* bag of content-type readers - every content type is registered inside
+of it by using SetStreamOutputContentType(...) */
+typedef std::map<std::string,StreamOutputContentTypeReader*> StreamOutputContentTypeMap;
+extern StreamOutputContentTypeMap streamOutputContentTypeMap;
+
+/* stream output content type parsing checker: allows the parser
+to understand if the next keyword is a content type */
+struct StreamOutputContentTypeWordSetType : public HighParser::WordSet {
+	virtual bool IsWord(const std::string& s) const;
+};
+
+extern StreamOutputContentTypeWordSetType streamOutputContentTypeWordSet;
+
+/* registration function: call it to register a new content type -
+it is also used by InitStreamOutputContentTypes(void) in order to load default
+options ('values','motion') */
+bool SetStreamOutputContentType(const char *name, StreamOutputContentTypeReader *rf);
+
+/* initialization counter: counts how many times InitStreamOutputContentTypes
+is called */
+extern unsigned streamOutputInitFunctionCalls;
+
+/* initialization function: called by mbpar.cc in order to load default
+options ('values','motion') */
+void InitStreamOutputContentTypes(void);
+
+/* deallocation of all content types in streamOutputContentTypeMap - called by mbpar.cc */
+void DestroyStreamOutputContentTypes(void);
+
+#endif /* STREAMOUTELEM_H */

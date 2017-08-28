@@ -494,27 +494,37 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 	StreamDriveEcho *pSDE = ReadStreamDriveEcho(pDM, HP);
 
-	int idrives = HP.GetInt();
-	if (idrives <= 0) {
-		silent_cerr("SocketStreamDrive"
-			"(" << uLabel << ", \"" << name << "\"): "
-			"illegal number of channels " << idrives
-			<< " at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
+	/* Luca Conti edits - GSOC 2017 */
 
 	std::vector<doublereal> v0;
-	if (HP.IsKeyWord("initial" "values")) {
-		v0.resize(idrives);
-		for (int i = 0; i < idrives; i++) {
-			v0[i] = HP.GetReal();
-		}
-	}
-
 	StreamDrive::Modifier *pMod(0);
-	if (HP.IsKeyWord("modifier")) {
-		pMod = ReadStreamDriveModifier(HP, idrives);
+	int idrives;
+
+	const char *s = HP.IsWord(fileDriveContentTypeWordSet);
+	if (s != NULL) {
+		FileDriveContentTypeMap::iterator it = fileDriveContentTypeMap.find(std::string(s));
+		pMod = it->second->Read(v0, HP, idrives);
+	} else {
+		idrives = HP.GetInt();
+		if (idrives <= 0) {
+			silent_cerr("SocketStreamDrive"
+				"(" << uLabel << ", \"" << name << "\"): "
+				"illegal number of channels " << idrives
+				<< " at line " << HP.GetLineData()
+				<< std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		if (HP.IsKeyWord("initial" "values")) {
+			v0.resize(idrives);
+			for (int i = 0; i < idrives; i++) {
+				v0[i] = HP.GetReal();
+			}
+		}
+
+		if (HP.IsKeyWord("modifier")) {
+			pMod = ReadStreamDriveModifier(HP, idrives);
+		}
 	}
 
 	UseSocket *pUS = 0;
@@ -639,4 +649,30 @@ StreamDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 	}
 
 	return pDr;
+}
+
+/* Luca Conti edits - GSOC 2017 */
+
+FileDriveContentTypeMap fileDriveContentTypeMap;
+FileDriveContentTypeWordSetType fileDriveContentTypeWordSet;
+
+/* file drive content type parsing checker: allows the parser
+to understand if the next keyword is a content type */
+bool FileDriveContentTypeWordSetType::IsWord(const std::string& s) const {
+		return fileDriveContentTypeMap.find(std::string(s)) != fileDriveContentTypeMap.end();
+	};
+
+/* registration function: call it to register a new content type*/
+bool SetFileDriveContentType(const char *name, FileDriveContentTypeReader *rf) {
+	pedantic_cout("registering file drive content type \"" << name << "\""
+		<< std::endl );
+	return fileDriveContentTypeMap.insert(FileDriveContentTypeMap::value_type(name, rf)).second;
+}
+
+/*deallocation of all content types in fileDriveContentTypeMap, if any was added*/
+void DestroyFileDriveContentTypes(void) {
+	for (FileDriveContentTypeMap::iterator i = fileDriveContentTypeMap.begin(); i != fileDriveContentTypeMap.end(); ++i) {
+		delete i->second;
+	}
+	fileDriveContentTypeMap.clear();
 }

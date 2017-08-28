@@ -141,7 +141,6 @@ public:
 };
 #endif
 
-typedef std::map<std::string, bool> TypeMap_t;
 
 static BufCast *
 ReadOneBufCast(HighParser& HP, size_t& offset, TypeMap_t& swapmap, bool bNoSkip = false)
@@ -263,7 +262,7 @@ bIsLittleEndian(void)
 	return (*(char *)&i) != 0;
 }
 
-static void
+void
 SwapMapInit(TypeMap_t& swapmap)
 {
 	swapmap.insert(TypeMap_t::value_type(typeid(int8_t).name(), false));

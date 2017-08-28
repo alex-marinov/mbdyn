@@ -35,6 +35,7 @@
 #define STREAMDRIVE_H
 
 #include "filedrv.h"
+#include "bufmod.h"
 
 /* StreamDrive - begin */
 
@@ -76,6 +77,7 @@ public:
 
    	virtual ~StreamDrive(void);
 	void SetModifier(const Modifier *p);
+	const StreamDrive::Modifier *pGetModifier(void) const;
 };
 
 extern StreamDrive::Modifier *
@@ -108,5 +110,18 @@ ReadStreamDriveEcho(const DataManager *pDM, MBDynParser& HP);
 
 /* StreamDriveEcho - end */
 
-#endif // STREAMDRIVE_H
+class StreamDriveCopyCast : public StreamDrive::Modifier
+{
+protected:
+	size_t m_size;
+	std::vector<BufCast *> m_data;
 
+public:
+	StreamDriveCopyCast(size_t size, const std::vector<BufCast *>& data);
+	~StreamDriveCopyCast(void);
+
+	size_t GetSize(void) const;
+	void Modify(doublereal *out, const void *in) const;
+};
+
+#endif // STREAMDRIVE_H

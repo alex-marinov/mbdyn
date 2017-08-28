@@ -54,6 +54,9 @@
 #include "modules.h"
 
 #include "legalese.h"
+#include "streamoutelem.h"
+#include "socketstreamdrive.h"
+#include "drive_.h"
 
 struct RefFrameDR : public DescRead {
 	bool Read(HighParser& HP);
@@ -220,17 +223,21 @@ pDM(0)
 	InitTplDC();
 	InitCL();
 	InitSF();
+	InitStreamOutputContentTypes();
 
 	// NOTE: data will be destroyed when the underlying HighParser is destroyed (is this what we want?)
 	InitDescData();
-}   
+}
 
 MBDynParser::~MBDynParser(void)
-{   
+{
 	DestroyDriveCallerData();
 	DestroyTplDC();
 	DestroyCL();
 	DestroySF();
+	DestroyStreamOutputContentTypes();
+	DestroyFileDriveContentTypes();
+	DestroyFileDriveCallerTypes();
 
 	for (SFType::iterator i = SF.begin(); i != SF.end(); ++i) {
 		SAFEDELETE(i->second);

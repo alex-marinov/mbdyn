@@ -97,5 +97,27 @@ public:
 	Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP);
 };
 
-#endif /* SOCKETSTREAMDRIVE_H */
+/* Luca Conti edits - GSOC 2017 */
 
+/* file drive content type reader: every content type must inherit
+from this struct and implement its own Read method */
+struct FileDriveContentTypeReader{
+	virtual StreamDrive::Modifier * Read(std::vector<doublereal> &v0, MBDynParser& HP, int &idrives) = 0;
+};
+/* bag of content-type readers - every content type is registered inside
+of it by using SetFileDriveContentType(...) */
+typedef std::map<std::string,FileDriveContentTypeReader*> FileDriveContentTypeMap;
+extern FileDriveContentTypeMap fileDriveContentTypeMap;
+
+struct FileDriveContentTypeWordSetType : public HighParser::WordSet {
+	virtual bool IsWord(const std::string& s) const;
+};
+extern FileDriveContentTypeWordSetType fileDriveContentTypeWordSet;
+
+/* registration function: call it to register a new content type */
+bool SetFileDriveContentType(const char *name, FileDriveContentTypeReader *rf);
+
+/* deallocation of all content types in fileDriveContentTypeMap, if any was added */
+void DestroyFileDriveContentTypes(void);
+
+#endif /* SOCKETSTREAMDRIVE_H */

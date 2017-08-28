@@ -455,4 +455,11 @@ module-wheel4/module-wheel4.cc \
 module-wheel4/module-wheel4.h \
 module-wheel4/axleExampleNoData
 
+EXTRA_DIST += \
+module-flightGear/Makefile.inc \
+module-flightGear/module-flightGear.cc \
+module-flightGear/module-flightGear.h \
+module-flightGear/sendToFlightGear.cc \
+module-flightGear/recFromFlightGear.cc
+
 include $(top_srcdir)/build/bot.mk
