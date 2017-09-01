@@ -16,8 +16,12 @@ MBDyn 1.X-Devel
 		- added width/format for eigenanalysis output files
 		  (noted by Reinhard Resch)
 		- added relative output of follower force/couple
+		- refactored communication code (stream drivers and output
+		  elements) to support user-defined communicators (Luca Conti
+		  for GSoC 2017)
+		- added module-flightgear (Luca Conti for GSoC 2017)
 	Backward compatibility issues:
-		- got rid of adams and motionview output 
+		- got rid of adams and motionview output support
 	Known issues:
 	Bug fixes:
 		- fixed (harmless?) off-by-one read in fixed step drive
