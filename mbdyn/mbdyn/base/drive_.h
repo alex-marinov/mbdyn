@@ -1709,8 +1709,9 @@ Coded by Luca Conti (May 2017)
 
 /*FileDriveCaller type reader: every content type must inherit
 from this struct and implement its own Read method*/
-struct FileDriveCallerTypeReader{
+struct FileDriveCallerTypeReader {
 	virtual integer Read(const DataManager* pDM, MBDynParser& HP, FileDrive* pDrv) = 0;
+	virtual ~FileDriveCallerTypeReader(void) { NO_OP; };
 };
 
 /*bag of FileDriveCaller type - every type is registered inside

@@ -101,8 +101,9 @@ public:
 
 /* file drive content type reader: every content type must inherit
 from this struct and implement its own Read method */
-struct FileDriveContentTypeReader{
+struct FileDriveContentTypeReader {
 	virtual StreamDrive::Modifier * Read(std::vector<doublereal> &v0, MBDynParser& HP, int &idrives) = 0;
+	virtual ~FileDriveContentTypeReader(void) { NO_OP; };
 };
 /* bag of content-type readers - every content type is registered inside
 of it by using SetFileDriveContentType(...) */

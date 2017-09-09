@@ -219,6 +219,7 @@ Edited in order to apply the same mechanism with 'readers' and 'maps' (std::map)
 from this struct and implement its own Read method */
 struct StreamOutputContentTypeReader {
 	virtual StreamContent* Read(DataManager* pDM, MBDynParser& HP) = 0;
+	virtual ~StreamOutputContentTypeReader(void) { NO_OP; };
 };
 
 /* default content type options: reader for 'motion' */
