@@ -72,6 +72,8 @@ protected:
 	MyVectorHandler* pXPrimePrime;
 	MyVectorHandler* pLambda;
 
+	bool bFullResTest;
+
    	/* Lettura dati */
    	void ReadData(MBDynParser& HP);
 

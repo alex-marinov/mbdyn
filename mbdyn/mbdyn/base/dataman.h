@@ -474,7 +474,7 @@ public:
 	/* Inverse Dynamics: */
 	virtual void Update(InverseDynamics::Order iOrder) const;
 	virtual void IDAfterConvergence(void) const;
-	virtual void IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRange *pSolTest);
+	virtual void IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRange *pSolTest, bool bFullResTest);
 
 	void bSetStaticModel(bool b) {
 		bStaticModel = b;

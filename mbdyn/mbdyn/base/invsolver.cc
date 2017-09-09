@@ -83,7 +83,8 @@ InverseSolver::InverseSolver(MBDynParser& HPar,
 		bool bPar)
 : Solver(HPar, sInFName, sOutFName, nThreads, bPar),
 ProblemType(InverseDynamics::FULLY_ACTUATED_COLLOCATED),
-pXPrimePrime(0), pLambda(0)
+pXPrimePrime(0), pLambda(0),
+bFullResTest(false)
 {
 	DEBUGCOUTFNAME("InverseSolver::InverseSolver");
 }
@@ -396,7 +397,7 @@ InverseSolver::Prepare(void)
 		{
 			NonlinearSolverTestRange *pRT = new NonlinearSolverTestRange(pResTest);
 			NonlinearSolverTestRange *pST = new NonlinearSolverTestRange(pSolTest);
-			pDM->IDSetTest(pRT, pST);
+			pDM->IDSetTest(pRT, pST, bFullResTest);
 			pResTest = pRT;
 			pSolTest = pST;
 		} break;
@@ -938,6 +939,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 		"tolerance",
 		"max" "iterations",
 		"modify" "residual" "test",
+		"full" "residual" "test",
 
 		"abort" "after",
 			"input",
@@ -1019,6 +1021,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 		TOLERANCE,
 		MAXITERATIONS,
 		MODIFY_RES_TEST,
+		FULL_RES_TEST,
 
 		ABORTAFTER,
 		INPUT,
@@ -1105,7 +1108,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 	doublereal dTol = ::dDefaultTol;
 	doublereal dSolutionTol = 0.;
 	iMaxIterations = ::iDefaultMaxIterations;
-	bool bModResTest = false;
+	bool bModResTest(false);
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -1433,8 +1436,17 @@ InverseSolver::ReadData(MBDynParser& HP)
 			}
 			break;
 
+		case FULL_RES_TEST:
+			if (HP.IsArg()) {
+				bFullResTest = HP.GetYesNoOrBool();
 
+			} else {
+				bFullResTest = true;
+			}
 
+			DEBUGLCOUT(MYDEBUG_INPUT,
+				"Full residual test: " << bFullResTest << std::endl);
+			break;
 
 		case NEWTONRAPHSON: {
 			pedantic_cout("Newton Raphson is deprecated; use "

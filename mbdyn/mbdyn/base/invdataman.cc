@@ -1108,7 +1108,7 @@ DataManager::iIDGetTotNumDofs(void) const
 }
 
 void
-DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRange *pSolTest)
+DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRange *pSolTest, bool bFullResTest)
 {
 	integer iFirstIndex = std::numeric_limits<integer>::max();
 	integer iLastIndex = -1;
@@ -1154,6 +1154,11 @@ DataManager::IDSetTest(NonlinearSolverTestRange *pResTest, NonlinearSolverTestRa
 				iLastIndex = iIndex + iNumDofs;
 			}
 		}
+	}
+
+	if (bFullResTest) {
+		// NOTE: assumes *ALL* residual elements need to be evaluated!  Use with care...
+		iFirstIndex = 0;
 	}
 
 	silent_cout("DataManager::IDSetTest(): ResTest range=[" << iFirstIndex + 1 << ":" << iLastIndex << "]" << std::endl);
