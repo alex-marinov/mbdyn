@@ -229,6 +229,8 @@ k_x &=  \frac{4}{3} \left( 1 - 1.8 \mu^2 \right) \tan{\frac{\chi}{2}}
 \\
 k_y &= 0,
 \end{align}
+
+
 \begin{table}[h]
 \centering
 \caption{Glauert inflow model (source: Leishman \cite{LEISHMAN-2006})}\label{tab:GlauertCoeff}
@@ -247,6 +249,7 @@ Pitt \& Peters (1981)	&
 $\frac{15 \pi}{23} \tan{\frac{\chi}{2}}$	&	$0$\\
 Howlett (1981)		&
 $ \sin^2{\chi}$	&	$0$\\
+\hline
 \end{tabular}
 \end{table}
 
@@ -263,6 +266,41 @@ Note: the Glauert inflow model exactly matches the uniform inflow model
 when the advance ratio is null (in hover).
 In fact, when $\mu = 0$ then $\chi = k_x = 0$.
 The inflow is thus uniform over the rotor disk, and equal to $\lambda_0$.
+
+\begin{table}[h]
+\centering
+\caption{Glauert inflow model as implemented in MBDyn}\label{tab:GlauertCoeff2}
+\begin{tabular}{llcc}
+\textbf{Name} & \textbf{Author(s)} & $k_x$ & $k_y$ \\
+\hline
+(default) & Glauert & $\cfrac{4}{3} \plbr{1 - 1.8 \mu^2} \tan\plbr{\cfrac{\chi}{2}}$ & 0
+\\
+\kw{coleman} & Coleman et al. (1945) & $\tan\plbr{\cfrac{\chi}{2}}$ & 0
+\\
+\kw{drees} & Drees (1949) &	
+$\cfrac{4}{3}\cfrac{\left( 1 - \cos{\chi} -1.8 \mu^2\right)}{\sin{\chi}} $	&	$-2 \mu$
+\\
+\kw{payne} & Payne (1959) &
+$\cfrac{4}{3} \cfrac{\mu/\lambda}{1.2 + \mu/\lambda}$	&	$0$
+\\
+\kw{white and blake} & White \& Blake (1979)	&
+$\vphantom{\cfrac{1}{2}} \sqrt{2} \sin{\chi}$	&	$0$
+\\
+\kw{pitt and peters} & Pitt \& Peters (1981)	&
+$\cfrac{15 \pi}{23} \tan\plbr{\cfrac{\chi}{2}}$	&	$0$
+\\
+\kw{howlett} & Howlett (1981)		&
+$\vphantom{\cfrac{1}{2}} \sin^2{\chi}$	&	$0$
+\\
+\kw{drees 2} & Drees (?) & 
+%                doublereal dLdM = dLambda/dMu;
+%                k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM - dLdM));
+%                k2 = -2.*dMu;
+$ \cfrac{4}{3}\plbr{1 - 1.8 \mu^2} \sqrt{1 - \cfrac{\lambda}{\mu} + \plbr{\cfrac{\lambda}{\mu}}^2}$ & $-2 \mu$
+\\
+\hline
+\end{tabular}
+\end{table}
 
 \subsection{Mangler-Squire Model}
 
