@@ -6390,6 +6390,7 @@ this element obsoletes the \kw{RTAI output} element
 
 
 \subsubsection{Streamed output}
+\label{sec:EL:OUTELEM:STREAM_OUTPUT:STREAMED_OUTPUT}
 Different types of data can be sent.
 The most general form is called \kw{values}, consisting
 in an arbitrary set of independent scalar channels.
@@ -6398,7 +6399,7 @@ of a mechanical system is called \kw{motion}, consisting
 in a subset of the kinematics of a set of structural nodes:
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{content} ::= \{ \bnt{values} | \bnt{motion} \}
+    \bnt{content} ::= \{ \bnt{values} | \bnt{motion} | \bnt{user_defined} \}
 
     \bnt{values} ::= [ \kw{values} , ]
         \bnt{channel_number} ,
@@ -6419,6 +6420,8 @@ in a subset of the kinematics of a set of structural nodes:
                 | \kw{angular velocity} \}
              [ , ... ] , ]
         \{ \kw{all} | \bnt{struct_node_label} [ , ... ] \}
+
+    \bnt{user_defined} ::= \bnt{user_defined_type} [ , ... ]
 \end{Verbatim}
 %\end{verbatim}
 where

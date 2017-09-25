@@ -296,9 +296,12 @@ or model debugging purposes.}
         [ \kw{echo} , " \bnt{echo_file_name} "
             [ , \kw{precision} , \bnt{precision} ]
             [ , \kw{shift} , \bnt{shift} ] , ]
-        \bnt{columns_number}
+        \{ \bnt{columns_number}
             [ , \kw{initial values} , \bnt{value \#1} , ... ]
             [ , \kw{modifier} , \bnt{content_modifier} ]
+        | \bnt{user_defined} \}
+
+    \bnt{user_defined} ::= \bnt{user_defined_type} [ , ... ]
 
     \bnt{content_modifier} ::=
         \kw{copy}

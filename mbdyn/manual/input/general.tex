@@ -2416,8 +2416,10 @@ of the input file.
 \begin{Verbatim}[commandchars=\\\{\}]
     \bnt{drive_caller} ::= \kw{file} ,
         \bnt{drive_label}
-        [ , \bnt{column_number} ]
+        [ , \{ \bnt{column_number} | \bnt{user_defined} \} ]
         [ , \kw{amplitude} , \bnt{amplitude} ]
+
+    \bnt{user_defined} ::= \bnt{user_defined_type} [ , ...]
 \end{Verbatim}
 %\end{verbatim}
 \nt{drive\_label} is the label of the \htmlref{\kw{drive}}{sec:DriveCaller} 

@@ -882,6 +882,109 @@ Simple example of run-time loadable user-defined scalar function.
 
 \section{Miscellaneous Modules}
 
+\subsection{Module-flightgear}
+\emph{Author: Luca Conti (supported by Google Summer of Code 2017)}
+
+\bigskip
+
+\noindent
+This module implements...
+
+It consists of three components:
+\begin{itemize}
+\item a stream modifier for FlightGear flight dynamics data
+\item a stream modifier for FlightGear controls data
+\item a customization of the file drive caller to support retrieval of FlightGear specific data
+from stream drives (see Section~\ref{sec:DriveCaller:FILE})
+\end{itemize}
+The stream modifiers are used in conjunction with stream output elements for communication to FlightGear
+(see Section~\ref{sec:EL:OUTELEM:STREAM_OUTPUT:STREAMED_OUTPUT}),
+and with stream drivers for communication from FlightGear
+(see Section~\ref{sec:Stream}).
+
+\subsubsection{Stream Output Element}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{user_defined} ::= \bnt{user_defined_type} , 
+        \{ \kw{NetFDM} | \kw{NetCtrls} \}
+        [ , \kw{print options} ]
+        , \bnt{var_name} , \bnt{value}
+        [ , ...]
+
+    \bnt{user_defined_type} ::= \kw{flightgear}
+\end{Verbatim}
+where \bnt{value} is currently either \kw{drive} or \kw{nodedof}, followed by the related arguments
+as illustrated in Streamed output (see Sec.~\ref{sec:EL:OUTELEM:STREAM_OUTPUT:STREAMED_OUTPUT}).
+The supported values for \bnt{var\_name} are listed below with reference to flight dynamics (\kw{NetFDM})
+or controls (\kw{NetCtrls}).
+
+\subsubsection{Stream Drive}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{user_defined} ::= \bnt{user_defined_type} ,
+        \{ \kw{NetFDM} | \kw{NetCtrls} \}
+        [ , \kw{print options} ]
+
+    \bnt{user_defined_type} ::= \kw{flightgear}
+\end{Verbatim}
+
+\subsubsection{Flight Dynamics Available Channels}
+\begin{itemize}
+\item
+\end{itemize}
+
+
+\subsubsection{Controls Available Channels}
+\begin{itemize}
+\item
+\end{itemize}
+
+
+\subsubsection{File Drive Customization}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{user_defined} ::= \bnt{user_defined_type} , \bnt{var_name}
+
+    \bnt{user_defined_type} ::= \kw{flightgear}
+\end{Verbatim}
+The supported names are those listed above for flight dynamics and controls.
+The correct subset is chosen based on the type of stream drive the label refers to,
+i.e.\ when the file drive caller points to a stream driver related to flight dynamics (\kw{NetFDM}),
+the flight dynamics related values for \kw{var\_name} must be used.
+Similarly, the controls related values for \kw{var\_name} must be used when the file drive caller
+points to a stream driver related to controls (\kw{NetCtrls}).
+
+\paragraph{Example}
+\begin{verbatim}
+    # ...
+    \begin{drivers}
+    # ...
+        file: CTRLS, stream,
+            name, "CTRLS",
+            create, yes,
+            port, 9011,
+            socket type, udp,
+            non blocking,
+            flightgear, NetCtrls, print options;
+    # ...
+    \end{drivers}
+    \begin{elements}
+    # ...
+        stream output: FDM,
+            stream name, "FG_FDM",
+            create, no,
+            port, 9012,
+            host, "0.0.0.0",
+            socket type, tcp,
+            non blocking,
+            flightgear, NetFDM, print options,
+                longitude, drive, node, AIRCRAFT, structural, string, "X[1]", direct,
+                latitude, drive, node, AIRCRAFT, structural, string, "X[2]", direct;
+        
+        ..., file, CTRLS, flightgear, aileron;                       # use as is
+        ..., file, CTRLS, flightgear, throttle_01, amplitude, 100.;  # scale
+    \end{elements}
+\end{verbatim}
+
+
+
 \subsection{Module-octave}
 \emph{Author: Reinhard Resch}
 
