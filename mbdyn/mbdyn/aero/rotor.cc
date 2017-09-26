@@ -1197,6 +1197,7 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 		break;
 
 	case DREES_1:
+	case DREES_2:
 		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
 		// Wayne Johnson, "Rotorcraft Aeromechanics", 2013
 		// k1 = 4./3.*(1 - cos(dChi) - 1.8*dMu*dMu)/sin(dChi); // risk of division by zero...
@@ -1231,13 +1232,17 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 		k1 = pow(sin(dChi), 2);
 		break;
 
+#if 0
 	case DREES_2: {
-		// no source so far...
+		// Jianhua Zhang, "Active-Passive Hybrid Optimization of Rotor Blades With Trailing Edge Flaps", PhD Thesis, PSU, 2001
+		// in the end, it is identical to Drees' as of Wayne Johnson and Gordon J. Leishman
 		// FIXME: what if dMu ~ 0?
 		doublereal dLdM = dLambda/dMu;
-		k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM - dLdM));
+		// k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM - dLdM));
+		k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM) - dLdM);
 		k2 = -2.*dMu;
 		} break;
+#endif
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -2689,6 +2694,7 @@ ReadRotor(DataManager* pDM,
 				gtype = GlauertRotor::HOWLETT;
 
 			} else if (HP.IsKeyWord("drees" "2")) {
+				silent_cerr("warning, \"drees 2\" deprecated at line " << HP.GetLineData() << "; use \"drees\" instead" << std::endl);
 				gtype = GlauertRotor::DREES_2;
 
 			} else {
