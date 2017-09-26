@@ -1173,39 +1173,67 @@ GlauertRotor::GetInducedVelocity(Elem::Type type,
 	doublereal dr, dp;
 	GetPos(X, dr, dp);
 
+	// recall that tan(dChi) = dMu/dLambda
+
 	doublereal k1, k2 = 0.;
 	switch (gtype) {
 	case GLAUERT:
+		// NASA-TM-102219: attributed to Drees et al.
 		k1 = 4./3.*(1. - 1.8*dMu*dMu)*tan(dChi/2.);
 		break;
 
+#if 0
+	case WHEATLEY:
+		// NASA-TM-102219
+		k1 = 0.5;
+		break;
+#endif
+
 	case COLEMAN_ET_AL:
+		// NASA-TM-102219
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
+		// Wayne Johnson, "Rotorcraft Aeromechanics", 2013
 		k1 = tan(dChi/2.);
 		break;
 
 	case DREES_1:
-		// FIXME: divide by zero?
-		k1 = 4./3.*(1 - cos(dChi) - 1.8*dMu*dMu)/sin(dChi);
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
+		// Wayne Johnson, "Rotorcraft Aeromechanics", 2013
+		// k1 = 4./3.*(1 - cos(dChi) - 1.8*dMu*dMu)/sin(dChi); // risk of division by zero...
+		k1 = 4./3.*(tan(dChi/2.) - 1.8*dLambda*dMu/cos(dChi));
 		k2 = -2.*dMu;
 		break;
 
 	case PAYNE:
-		k1 = 4./3.*(dMu/dLambda/(1.2 + dMu/dLambda));
+		// NASA-TM-102219
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
+		// k1 = 4./3.*(dMu/dLambda/(1.2 + dMu/dLambda));
+		// reduce risk of division by zero
+		k1 = 4./3.*dMu/(1.2*dLambda + dMu);
 		break;
 
 	case WHITE_AND_BLAKE:
+		// NASA-TM-102219
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
+		// Wayne Johnson, "Rotorcraft Aeromechanics", 2013
 		k1 = sqrt(2.)*sin(dChi);
 		break;
 
 	case PITT_AND_PETERS:
-		k1 = 15.*M_PI/23.*tan(dChi/2.);
+		// NASA-TM-102219
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006: "23" instead of "32"...
+		k1 = 15.*M_PI/32.*tan(dChi/2.);
 		break;
 
 	case HOWLETT:
+		// NASA-TM-102219
+		// Gordon J. Leishman, "Principles of Helicopter Aerodynamics", 2nd Ed., 2006
 		k1 = pow(sin(dChi), 2);
 		break;
 
 	case DREES_2: {
+		// no source so far...
+		// FIXME: what if dMu ~ 0?
 		doublereal dLdM = dLambda/dMu;
 		k1 = 4./3.*((1. - 1.8*dMu*dMu)*sqrt(1. + dLdM*dLdM - dLdM));
 		k2 = -2.*dMu;
