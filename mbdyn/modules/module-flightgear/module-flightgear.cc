@@ -298,7 +298,7 @@ void printOptionsOnTextFile(const char * fileName, FieldsDescriptionFG &fieldsDe
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
-	for(int i = 0 ; i < fieldsDescriptionFG.size() ; i++){
+	for(int i = 0 ; i < (int)fieldsDescriptionFG.size() ; i++){
 		for(FieldsDescriptionFG::iterator it = fieldsDescriptionFG.begin() ; it != fieldsDescriptionFG.end() ; it++){
 			if(it->second.position == i+1){
 			  outFile << it->first << std::endl;
