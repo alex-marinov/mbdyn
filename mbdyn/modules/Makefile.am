@@ -456,10 +456,10 @@ module-wheel4/module-wheel4.h \
 module-wheel4/axleExampleNoData
 
 EXTRA_DIST += \
-module-flightGear/Makefile.inc \
-module-flightGear/module-flightGear.cc \
-module-flightGear/module-flightGear.h \
-module-flightGear/sendToFlightGear.cc \
-module-flightGear/recFromFlightGear.cc
+module-flightgear/Makefile.inc \
+module-flightgear/module-flightGear.cc \
+module-flightgear/module-flightGear.h \
+module-flightgear/sendToFlightGear.cc \
+module-flightgear/recFromFlightGear.cc
 
 include $(top_srcdir)/build/bot.mk
