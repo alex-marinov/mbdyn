@@ -145,6 +145,10 @@ Eduardo Okabe, as visiting professor, contributed the fab* modules
 Ankit Aggarwal contributed to the mathematical expression evaluation code
 	developed within Google Summer of Code 2015
 
+Luca Conti developed the FlightGear interface module, along with
+	significant refactoring of the communication code,
+	within Google Summer of Code 2017
+
 Other undergrads might have had a role in the F77 version of the code, 
 that I'm not aware of.
 
