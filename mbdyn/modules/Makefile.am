@@ -457,8 +457,8 @@ module-wheel4/axleExampleNoData
 
 EXTRA_DIST += \
 module-flightgear/Makefile.inc \
-module-flightgear/module-flightGear.cc \
-module-flightgear/module-flightGear.h \
+module-flightgear/module-flightgear.cc \
+module-flightgear/module-flightgear.h \
 module-flightgear/sendToFlightGear.cc \
 module-flightgear/recFromFlightGear.cc
 
