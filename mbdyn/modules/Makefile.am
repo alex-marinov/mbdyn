@@ -459,7 +459,7 @@ EXTRA_DIST += \
 module-flightgear/Makefile.inc \
 module-flightgear/module-flightgear.cc \
 module-flightgear/module-flightgear.h \
-module-flightgear/sendToFlightGear.cc \
-module-flightgear/recFromFlightGear.cc
+module-flightgear/sendToFlightgear.cc \
+module-flightgear/recFromFlightgear.cc
 
 include $(top_srcdir)/build/bot.mk
