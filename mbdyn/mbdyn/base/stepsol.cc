@@ -43,6 +43,7 @@
 
 #include "schurdataman.h"
 #include "external.h"
+#include "ls.h"
 #include "solver.h"
 #include "invsolver.h"
 #include "stepsol.h"
@@ -249,9 +250,13 @@ DerivativeSolver::DerivativeSolver(const doublereal Tl,
 		const doublereal dSolTl,
 		const doublereal dC,
 		const integer iMaxIt,
-		const bool bmod_res_test)
+		const bool bmod_res_test,
+		const integer iMaxIterCoef,
+		const doublereal dFactorCoef)
 : ImplicitStepIntegrator(iMaxIt, Tl, dSolTl, 1, 1, bmod_res_test),
-dCoef(dC)
+dCoef(dC),
+iMaxIterCoef(iMaxIterCoef),
+dFactorCoef(dFactorCoef)
 {
 	NO_OP;
 }
@@ -267,25 +272,119 @@ DerivativeSolver::Advance(Solver* pS,
 		const doublereal /* dAph */,
 		const StepChange /* StType */,
 		std::deque<MyVectorHandler*>& qX,
-	 	std::deque<MyVectorHandler*>& qXPrime,
+		std::deque<MyVectorHandler*>& qXPrime,
 		MyVectorHandler*const pX,
- 		MyVectorHandler*const pXPrime,
+		MyVectorHandler*const pXPrime,
 		integer& EffIter,
 		doublereal& Err,
 		doublereal& SolErr)
 {
 	/* no predizione */
 	ASSERT(pDM != NULL);
-	pXCurr = pX;
 
-	pXPrimeCurr = pXPrime;
+	/* Make a deep copy of the current state in order to restore it later */
+	MyVectorHandler X(*pX);
+	MyVectorHandler XPrime(*pXPrime);
 
-	pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
-	Err = 0.;
-	pS->pGetNonlinearSolver()->Solve(this, pS, MaxIters, dTol,
-    			EffIter, Err, dSolTol, SolErr);
-	/* if it gets here, it surely converged */
-	pDM->AfterConvergence();
+	pXCurr = &X;
+	pXPrimeCurr = &XPrime;
+
+	try {
+		pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+
+		bool bConverged = false;
+		const doublereal dInitialCoef = dCoef;
+		doublereal dCoefBest = dCoef;
+		doublereal dResErrMin = std::numeric_limits<doublereal>::max();
+		doublereal dSolErrMin = dResErrMin;
+		const integer iMaxPowerCoef = iMaxIterCoef > 0 ? 2 * iMaxIterCoef + 1 : 0;
+
+		for (int i = 0; i <= iMaxPowerCoef; ++i) {
+			const bool bLastChance = i == iMaxPowerCoef;
+
+			try {
+				Err = 0.;
+				pS->pGetNonlinearSolver()->Solve(this,
+					pS,
+					MaxIters,
+					dTol,
+					EffIter,
+					Err,
+					dSolTol,
+					SolErr);
+				bConverged = true;
+			} catch (NonlinearSolver::NoConvergence) {
+				if (bLastChance) {
+					throw;
+				}
+			} catch (NonlinearSolver::ErrSimulationDiverged) {
+				if (bLastChance) {
+					throw;
+				}
+			} catch (LinearSolver::ErrFactor) {
+				if (bLastChance) {
+					throw;
+				}
+			}
+
+			if (bConverged) {
+				break;
+			}
+
+			/* Save smallest residual error and corresponding derivative coefficient. */
+			if (Err < dResErrMin) {
+				dResErrMin = Err;
+				dSolErrMin = SolErr;
+				dCoefBest = dCoef;
+			}
+
+			/* Restore the state after assembly. */
+			*pXCurr = *pX;
+			*pXPrimeCurr = *pXPrime;
+
+			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+
+			/* Reset reference rotation parameters and angular velocities */
+			pDM->AfterPredict();
+
+			/* Try different values for derivatives coefficient. */
+			if (i < iMaxIterCoef) {
+				dCoef *= dFactorCoef;
+			} else if (i == iMaxIterCoef) {
+				dCoef = dInitialCoef / dFactorCoef;
+			} else if (i < 2 * iMaxIterCoef) {
+				dCoef /= dFactorCoef;
+			} else {
+				/* Convergence could not be achieved with any coefficient.
+				 * Choose those coefficient with smallest residual error 
+				 * and increase the tolerance, so it will converge in any case. */
+				const doublereal dSafetyFactor = 1.01;
+
+				dCoef = dCoefBest;
+				dTol = dSafetyFactor * dResErrMin;
+				dSolTol = dSafetyFactor * dSolErrMin;
+			}
+
+			silent_cout("Derivatives(" << i + 1  << '/' << 2 * iMaxIterCoef + 1
+				<< ") t=" << pDM->dGetTime()
+				<< " coef=" << dCoef / TStep
+				<< " tol=" << dTol
+				<< std::endl);
+		}
+		/* if it gets here, it surely converged */
+		pDM->AfterConvergence();
+
+		*pX = *pXCurr;
+		*pXPrime = *pXPrimeCurr;
+
+		pXCurr = 0;
+		pXPrimeCurr = 0;
+	} catch (...) {
+		/* Clean up pointers to local variables */
+		pXCurr = 0;
+		pXPrimeCurr = 0;
+		throw;
+	}
 
 	return Err;
 }

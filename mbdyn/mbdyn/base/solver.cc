@@ -835,7 +835,7 @@ Solver::Prepare(void)
  			silent_cout("Derivatives t=" << dTime << " coef=" << dDerivativesCoef << std::endl);
 		}
 		dTest = pDerivativeSteps->Advance(this,
-			0., 1., StepIntegrator::NEWSTEP,
+			dInitialTimeStep, 1., StepIntegrator::NEWSTEP,
 			qX, qXPrime, pX, pXPrime,
 			iStIter, dTest, dSolTest);
 	}
@@ -2118,6 +2118,8 @@ Solver::ReadData(MBDynParser& HP)
 
 	doublereal dDerivativesTol = ::dDefaultTol;
 	integer iDerivativesMaxIterations = ::iDefaultMaxIterations;
+	integer iDerivativesCoefMaxIter = 0;
+	doublereal dDerivativesCoefFactor = 10.;
 
 #ifdef USE_MULTITHREAD
 	bool bSolverThreads(false);
@@ -2827,17 +2829,44 @@ Solver::ReadData(MBDynParser& HP)
 		}
 
 		case DERIVATIVESCOEFFICIENT: {
-			dDerivativesCoef = HP.GetReal();
-			if (dDerivativesCoef <= 0.) {
-				dDerivativesCoef = ::dDefaultDerivativesCoefficient;
-				silent_cerr("warning, derivatives "
-					"coefficient <= 0. is illegal; "
-					"using default value "
-					<< dDerivativesCoef
-					<< std::endl);
-			}
-			DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives coefficient = "
+			const bool bAutoDerivCoef = HP.IsKeyWord("auto");
+
+			if (!bAutoDerivCoef) {
+				dDerivativesCoef = HP.GetReal();
+				if (dDerivativesCoef <= 0.) {
+					dDerivativesCoef = ::dDefaultDerivativesCoefficient;
+					silent_cerr("warning, derivatives "
+						"coefficient <= 0. is illegal; "
+						"using default value "
+						<< dDerivativesCoef
+						<< std::endl);
+				}
+				DEBUGLCOUT(MYDEBUG_INPUT, "Derivatives coefficient = "
 					<< dDerivativesCoef << std::endl);
+			}
+
+			if (bAutoDerivCoef || HP.IsKeyWord("auto")) {
+				if (HP.IsKeyWord("max" "iterations")) {
+					iDerivativesCoefMaxIter = HP.GetInt();
+					if (iDerivativesCoefMaxIter < 0) {
+						silent_cerr("number of iterations must be greater than or equal to zero at line " << HP.GetLineData() << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+
+				} else {
+					iDerivativesCoefMaxIter = 6;
+				}
+
+				if (HP.IsKeyWord("factor")) {
+					dDerivativesCoefFactor = HP.GetReal();
+
+					if (dDerivativesCoefFactor <= 1.) {
+						silent_cerr("factor must be greater than one at line " << HP.GetLineData() << std::endl);
+						throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+					}
+				}
+			}
+
 			break;
 		}
 
@@ -3718,7 +3747,9 @@ EndOfCycle: /* esce dal ciclo di lettura */
 				0.,
 				dInitialTimeStep*dDerivativesCoef,
 				iDerivativesMaxIterations,
-				bModResTest));
+				bModResTest,
+				iDerivativesCoefMaxIter,
+				dDerivativesCoefFactor));
 
 	/* First step prediction must always be Crank-Nicolson for accuracy */
 	if (iDummyStepsNumber) {

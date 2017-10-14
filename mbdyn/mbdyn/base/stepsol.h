@@ -185,6 +185,9 @@ class DerivativeSolver:
 	public ImplicitStepIntegrator{
 private:
 	doublereal dCoef;
+	const int iMaxIterCoef;
+	const doublereal dFactorCoef;
+
 protected:
 	void UpdateDof(const int DCount,
 		const DofOrder::Order Order,
@@ -194,7 +197,9 @@ public:
 			const doublereal dSolTl, 
 			const doublereal dC,
 			const integer iMaxIt,
-			const bool bmod_res_test);
+			const bool bmod_res_test,
+			const integer iMaxIterCoef,
+			const doublereal dFactorCoef);
 
 	~DerivativeSolver(void);
 	
