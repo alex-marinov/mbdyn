@@ -517,6 +517,7 @@ ReadForce(DataManager* pDM,
 			break;
 
 		default:
+			silent_cerr("total force not implemented yet at line " << HP.GetLineData() << "; use a \"force\" and a \"couple\" element instead" << std::endl); 
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 		} break;
