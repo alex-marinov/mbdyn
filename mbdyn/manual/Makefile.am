@@ -44,7 +44,7 @@ input/shellPic.eps \
 input/cardano.eps \
 input/inline.eps \
 input/revHinge.eps \
-input/shellPic.eps \
+input/spherHinge.eps \
  \
 input/module-hydrodynamic_plain_bearing.tex \
  \
