@@ -1244,7 +1244,11 @@ resulting in a rough transient.
 \subsubsection{Derivatives Coefficient}
 %\begin{verbatim}
 \begin{Verbatim}[commandchars=\\\{\}]
-    \bnt{card} ::= \kw{derivatives coefficient} : \bnt{coefficient} ;
+    \bnt{card} ::= \kw{derivatives coefficient} : \bnt{coefficient}
+        | [ \bnt{coefficient} , ] \kw{auto}
+            [ , \kw{max iterations} , \bnt{max_iterations} ]
+            [ , \kw{factor} , \bnt{factor} ]
+        ;
 \end{Verbatim}
 %\end{verbatim}
 
