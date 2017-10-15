@@ -60,9 +60,9 @@
 #include "rtai_out_elem.h"
 #endif // USE_RTAI
 
-#ifdef USE_SOCKET
-
 #include "geomdata.h"
+
+#ifdef USE_SOCKET
 
 /* SocketStreamElem - begin */
 

@@ -38,7 +38,7 @@
 #include "bufmod.h"
 
 // FIXME: conditional build?
-#include <arpa/inet.h>
+// #include <arpa/inet.h>
 // Some systems require the inclusion of <netinet/in.h> instead of <arpa/inet.h>.
 // #include <netinet/in.h>
 
