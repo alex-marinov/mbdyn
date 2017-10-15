@@ -40,6 +40,11 @@ input/elicottero.eps \
 input/MatR2vec.eps \
 input/rod_bezier.eps \
 input/shellPic.eps \
+\
+input/cardano.eps \
+input/inline.eps \
+input/revHinge.ep
+input/shellPic.eps \
  \
 input/module-hydrodynamic_plain_bearing.tex \
  \
