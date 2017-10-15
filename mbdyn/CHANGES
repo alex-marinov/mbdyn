@@ -19,6 +19,8 @@ MBDyn 1.7.3
 		  elements) to support user-defined communicators (Luca Conti
 		  for GSoC 2017)
 		- added module-flightgear (Luca Conti for GSoC 2017)
+		- added automatic derivatives coefficient estimation
+		  (Reinhard Resch)
 	Backward compatibility issues:
 		- got rid of adams and motionview output support
 		- deprecated "drees 2" inflow model (identical to "dreese")
