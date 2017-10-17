@@ -72,7 +72,7 @@ pD0(pD0Mat), pD1(pD1Mat), pD2(pD2Mat),
 pq(0), pqPrime(0), pqSec(0),
 pxa(0), pxaPrime(0),
 pgs(0), pgsPrime(0),
-gustVff(Vff), gustXi(0.707),
+gustVff(Vff), gustXi(0.707), // 1/sqrt(2)
 RigidF(rgF)
 {
 	DEBUGCOUTFNAME("AerodynamicModal::AerodynamicModal");
