@@ -9,6 +9,13 @@ Pierangelo Masarati     <masarati@aero.polimi.it>
 Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 
+MBDyn 1.X-Devel
+	Enhancements:
+		- added screw joint (Mauro Manetti & Marco Morandini)
+	Backward compatibility issues:
+	Known issues:
+	Bug fixes:
+
 MBDyn 1.7.3
 	Enhancements:
 		- added network byte order to drivers & element output streams
@@ -23,7 +30,8 @@ MBDyn 1.7.3
 		  (Reinhard Resch)
 	Backward compatibility issues:
 		- got rid of adams and motionview output support
-		- deprecated "drees 2" inflow model (identical to "dreese")
+		- deprecated "drees 2" rotor inflow model (identical to
+		  "dreese")
 	Known issues:
 	Bug fixes:
 		- fixed (harmless?) off-by-one read in fixed step drive
@@ -32,7 +40,7 @@ MBDyn 1.7.3
 		- fixed build without libmbc (noted by Richard Crozier)
 		- fixed test if residual is NaN (Reinard Resch)
 		- fixed error message in strext (Richard Crozier)
-		- fixed typos and strengthened inflow models
+		- fixed typos and strengthened rotor inflow models
 
 MBDyn 1.7.2
 	Enhancements:
