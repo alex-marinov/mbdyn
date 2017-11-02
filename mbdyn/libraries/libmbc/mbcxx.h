@@ -104,14 +104,14 @@ public:
 
 	uint32_t KinematicsLabel(void) const;
 
-	const double *const GetRefNodeX(void) const;
-	const double *const GetRefNodeR(void) const;
-	const double *const GetRefNodeTheta(void) const;
-	const double *const GetRefNodeEuler123(void) const;
-	const double *const GetRefNodeXP(void) const;
-	const double *const GetRefNodeOmega(void) const;
-	const double *const GetRefNodeXPP(void) const;
-	const double *const GetRefNodeOmegaP(void) const;
+	const double * GetRefNodeX(void) const;
+	const double * GetRefNodeR(void) const;
+	const double * GetRefNodeTheta(void) const;
+	const double * GetRefNodeEuler123(void) const;
+	const double * GetRefNodeXP(void) const;
+	const double * GetRefNodeOmega(void) const;
+	const double * GetRefNodeXPP(void) const;
+	const double * GetRefNodeOmegaP(void) const;
 
 	const double& X(uint8_t idx) const;
 	const double& R(uint8_t ir, uint8_t ic) const;
@@ -178,14 +178,14 @@ public:
 
 	uint32_t *GetKinematicsLabel(void) const;
 
-	const double *const GetX(void) const;
-	const double *const GetR(void) const;
-	const double *const GetTheta(void) const;
-	const double *const GetEuler123(void) const;
-	const double *const GetXP(void) const;
-	const double *const GetOmega(void) const;
-	const double *const GetXPP(void) const;
-	const double *const GetOmegaP(void) const;
+	const double * GetX(void) const;
+	const double * GetR(void) const;
+	const double * GetTheta(void) const;
+	const double * GetEuler123(void) const;
+	const double * GetXP(void) const;
+	const double * GetOmega(void) const;
+	const double * GetXPP(void) const;
+	const double * GetOmegaP(void) const;
 
 	const double& X(uint32_t n, uint8_t idx) const;
 	const double& R(uint32_t n, uint8_t ir, uint8_t ic) const;
@@ -199,14 +199,14 @@ public:
 	uint32_t GetKinematicsLabel(uint32_t n) const;
 	uint32_t KinematicsLabel(uint32_t n) const;
 
-	const double *const GetX(uint32_t n) const;
-	const double *const GetR(uint32_t n) const;
-	const double *const GetTheta(uint32_t n) const;
-	const double *const GetEuler123(uint32_t n) const;
-	const double *const GetXP(uint32_t n) const;
-	const double *const GetOmega(uint32_t n) const;
-	const double *const GetXPP(uint32_t n) const;
-	const double *const GetOmegaP(uint32_t n) const;
+	const double * GetX(uint32_t n) const;
+	const double * GetR(uint32_t n) const;
+	const double * GetTheta(uint32_t n) const;
+	const double * GetEuler123(uint32_t n) const;
+	const double * GetXP(uint32_t n) const;
+	const double * GetOmega(uint32_t n) const;
+	const double * GetXPP(uint32_t n) const;
+	const double * GetOmegaP(uint32_t n) const;
 
 	uint32_t *GetDynamicsLabel(void) const;
 
@@ -264,8 +264,8 @@ public:
 
 	uint32_t GetModes(void) const;
 
-	const double *const GetQ(void) const;
-	const double *const GetQP(void) const;
+	const double * GetQ(void) const;
+	const double * GetQP(void) const;
 
 	const double& Q(uint32_t m) const;
 	const double& QP(uint32_t m) const;
