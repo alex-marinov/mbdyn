@@ -1981,6 +1981,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 			ASSERT(pN != 0);
 
 			if (pSN && pSN->GetStructNodeType() == StructNode::DUMMY) {
+				start[1]++; 	// skip the dummy node
 				continue;
 			}
 
