@@ -3260,10 +3260,12 @@ ReadJoint(DataManager* pDM,
 			R2hr = HP.GetRotRel(RF2, RF1, R1hr);
 		}
 
+		bool bGotPositionConstraint(false);
 		bool bXActive[3] = { false, false, false };
 		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
+			bGotPositionConstraint = true;
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
@@ -3305,10 +3307,12 @@ ReadJoint(DataManager* pDM,
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
+		bool bGotOrientationConstraint(false);
 		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
+			bGotOrientationConstraint = true;
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bRActive[i] = false;
@@ -3348,6 +3352,12 @@ ReadJoint(DataManager* pDM,
 
 		} else {
 			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		if (!bGotPositionConstraint && !bGotOrientationConstraint) {
+			silent_cerr("TotalJoint(" << uLabel << "): "
+				"warning, no constraint defined"
+				<< " at line " << HP.GetLineData() << std::endl);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
@@ -3428,10 +3438,12 @@ ReadJoint(DataManager* pDM,
 			Rchr = HP.GetRotRel(::AbsRefFrame, RF, Rnhr);
 		}
 
+		bool bGotPositionConstraint(false);
 		bool bXActive[3] = { false, false, false };
 		bool bVActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pXDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("position" "constraint")) {
+			bGotPositionConstraint = true;
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bXActive[i] = false;
@@ -3472,10 +3484,12 @@ ReadJoint(DataManager* pDM,
 			SAFENEW(pXDC[0], ZeroTplDriveCaller<Vec3>);
 		}
 
+		bool bGotOrientationConstraint(false);
 		bool bRActive[3] = { false, false, false };
 		bool bWActive[3] = { false, false, false };
 		TplDriveCaller<Vec3>* pTDC[3] = {0, 0, 0};
 		if (HP.IsKeyWord("orientation" "constraint")) {
+			bGotOrientationConstraint = true;
 			for (unsigned i = 0; i < 3; i++) {
 				if (HP.IsKeyWord("inactive")) {
 					bRActive[i] = false;
@@ -3514,6 +3528,12 @@ ReadJoint(DataManager* pDM,
 
 		} else {
 			SAFENEW(pTDC[0], ZeroTplDriveCaller<Vec3>);
+		}
+
+		if (!bGotPositionConstraint && !bGotOrientationConstraint) {
+			silent_cerr("TotalPinJoint(" << uLabel << "): "
+				"warning, no constraint defined"
+				<< " at line " << HP.GetLineData() << std::endl);
 		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
