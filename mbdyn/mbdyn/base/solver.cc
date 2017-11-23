@@ -762,24 +762,24 @@ Solver::Prepare(void)
 	dTime = dInitialTime;
 	pDM->SetTime(dTime, dInitialTimeStep, 0);
 
-	EigAn.currAnalysis = std::find_if(EigAn.Analyses.begin(), EigAn.Analyses.end(),
-		bind2nd(std::greater<doublereal>(), dTime));
-	if (EigAn.currAnalysis != EigAn.Analyses.end() && EigAn.currAnalysis != EigAn.Analyses.begin()) {
-		--EigAn.currAnalysis;
-	}
-
-	// if eigenanalysis is requested and currAnalysis points
-	// past the end of the array, the analysis was requested
-	// at Time < initial time; perform *before* derivatives
-	if (EigAn.bAnalysis
-		&& ((EigAn.currAnalysis == EigAn.Analyses.end()
-				&& EigAn.Analyses.back() < dTime)
-			|| (EigAn.currAnalysis != EigAn.Analyses.end()
-				&& *EigAn.currAnalysis < dTime)))
-	{
-		Eig();
-		if (EigAn.currAnalysis != EigAn.Analyses.end()) {
+	/*
+	 * If first eigenanalysis requested at time *before* initial time,
+	 * perform it at initial time but *before* derivatives
+	 *
+	 *         | t_i
+	 * --------+---------------------->
+	 *
+	 *     o         # if t < t_i, analysis at t = t_i *before derivatives*
+	 *         o     # if t == t_i, analysis at t = t_i *after derivatives*
+	 */
+	if (EigAn.bAnalysis) {
+		EigAn.currAnalysis = EigAn.Analyses.begin();
+		while (*EigAn.currAnalysis < dTime) {
+			Eig();
 			++EigAn.currAnalysis;
+			if (EigAn.currAnalysis == EigAn.Analyses.end()) {
+				break;
+			}
 		}
 	}
 
@@ -918,17 +918,10 @@ Solver::Prepare(void)
 		throw ErrInterrupted(MBDYN_EXCEPT_ARGS);
 	}
 
-	// if eigenanalysis is requested and currAnalysis points
-	// past the end of the array, the analysis was requested
-	// at Time == initial time; perform *after* derivatives
+	// if eigenanalysis is requested at initial time,
+	// perform *after* derivatives
 	if (EigAn.bAnalysis) {
-		ASSERT(EigAn.Analyses.size() > 0);
-
-		if ((EigAn.currAnalysis == EigAn.Analyses.end()
-				&& EigAn.Analyses.back() == dTime)
-			|| (EigAn.currAnalysis != EigAn.Analyses.end()
-				&& *EigAn.currAnalysis == dTime))
-		{
+		if (EigAn.currAnalysis != EigAn.Analyses.end() && *EigAn.currAnalysis == dTime) {
 			Eig();
 			if (EigAn.currAnalysis != EigAn.Analyses.end()) {
 				++EigAn.currAnalysis;
