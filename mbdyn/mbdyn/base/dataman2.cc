@@ -1550,20 +1550,11 @@ DataManager::OutputEigParams(const doublereal& dTime,
 	}
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-
 		long lStep = OutHdl.GetCurrentStep();
-		if (lStep == 0 && uCurrEigSol) {
-			// the eigenanalysis was performed before the first regular step
-			Var_Eig_dTime->put_rec(&dTime, uCurrEigSol - 1);
-			Var_Eig_lStep->put_rec(&lStep, uCurrEigSol - 1);
-			Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol - 1);
-		} else {
-			Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
-			Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
-			Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
-		}
 
-
+		Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
+		Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
+		Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
 
 	}
 #endif /* USE_NETCDF */
@@ -1978,19 +1969,11 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 		 * Since we are writing a matrix element-by-element, count will
 		 * always be (1, 1) and start will move to the desired place in the
 		 * matrix */
-		std::vector<long> start (2, 0);
-
-		long lStep = OutHdl.GetCurrentStep();
-	
-		if (lStep == 0 && uCurrEigSol) {
-			// the eigenanalysis was performed before the first regular step
-			start[0] = uCurrEigSol - 1;
-		} else {
-			start[0] = uCurrEigSol;
-		}
-
+		std::vector<long> start (2, 0);	
 		std::vector<long> count (2, 1);
 
+		start[0] = uCurrEigSol;
+		
 		for (i = NodeData[Node::STRUCTURAL].NodeContainer.begin(); i != e; ++i) {
 			const StructDispNode *pN = dynamic_cast<const StructDispNode *>(i->second);
 			const StructNode *pSN = dynamic_cast<const StructNode *>(pN);
