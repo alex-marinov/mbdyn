@@ -161,7 +161,7 @@ MBCBase::KinematicsLabel(void) const
 	return MBC_R_K_LABEL(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeX(void) const
 {
 	assert(GetStatus() == READY);
@@ -169,7 +169,7 @@ MBCBase::GetRefNodeX(void) const
 	return MBC_R_X(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeR(void) const
 {
 	assert(GetStatus() == READY);
@@ -178,7 +178,7 @@ MBCBase::GetRefNodeR(void) const
 	return MBC_R_R(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeTheta(void) const
 {
 	assert(GetStatus() == READY);
@@ -187,7 +187,7 @@ MBCBase::GetRefNodeTheta(void) const
 	return MBC_R_THETA(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeEuler123(void) const
 {
 	assert(GetStatus() == READY);
@@ -196,7 +196,7 @@ MBCBase::GetRefNodeEuler123(void) const
 	return MBC_R_EULER_123(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeXP(void) const
 {
 	assert(GetStatus() == READY);
@@ -204,7 +204,7 @@ MBCBase::GetRefNodeXP(void) const
 	return MBC_R_XP(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeOmega(void) const
 {
 	assert(GetStatus() == READY);
@@ -213,7 +213,7 @@ MBCBase::GetRefNodeOmega(void) const
 	return MBC_R_OMEGA(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeXPP(void) const
 {
 	assert(GetStatus() == READY);
@@ -222,7 +222,7 @@ MBCBase::GetRefNodeXPP(void) const
 	return MBC_R_XPP(GetRefNodePtr());
 }
 
-const double *const
+const double *
 MBCBase::GetRefNodeOmegaP(void) const
 {
 	assert(GetStatus() == READY);
@@ -578,14 +578,14 @@ MBCNodal::GetKinematicsLabel(void) const
 	return MBC_N_K_LABELS(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetX(void) const
 {
 	assert(GetStatus() == READY);
 	return MBC_N_X(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetR(void) const
 {
 	assert(GetStatus() == READY);
@@ -593,7 +593,7 @@ MBCNodal::GetR(void) const
 	return MBC_N_R(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetTheta(void) const
 {
 	assert(GetStatus() == READY);
@@ -601,7 +601,7 @@ MBCNodal::GetTheta(void) const
 	return MBC_N_THETA(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetEuler123(void) const
 {
 	assert(GetStatus() == READY);
@@ -609,14 +609,14 @@ MBCNodal::GetEuler123(void) const
 	return MBC_N_EULER_123(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetXP(void) const
 {
 	assert(GetStatus() == READY);
 	return MBC_N_XP(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetOmega(void) const
 {
 	assert(GetStatus() == READY);
@@ -624,7 +624,7 @@ MBCNodal::GetOmega(void) const
 	return MBC_N_OMEGA(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetXPP(void) const
 {
 	assert(GetStatus() == READY);
@@ -632,7 +632,7 @@ MBCNodal::GetXPP(void) const
 	return MBC_N_XPP(&mbc);
 }
 
-const double *const
+const double *
 MBCNodal::GetOmegaP(void) const
 {
 	assert(GetStatus() == READY);
@@ -730,14 +730,14 @@ MBCNodal::KinematicsLabel(uint32_t n) const
 	return (MBC_N_K_LABELS(&mbc))[n - 1];
 }
 
-const double *const
+const double *
 MBCNodal::GetX(uint32_t n) const
 {
 	assert(GetStatus() == READY);
 	return &(MBC_N_X(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetR(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -745,7 +745,7 @@ MBCNodal::GetR(uint32_t n) const
 	return &(MBC_N_R(&mbc)[9*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetTheta(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -753,7 +753,7 @@ MBCNodal::GetTheta(uint32_t n) const
 	return &(MBC_N_THETA(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetEuler123(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -761,14 +761,14 @@ MBCNodal::GetEuler123(uint32_t n) const
 	return &(MBC_N_EULER_123(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetXP(uint32_t n) const
 {
 	assert(GetStatus() == READY);
 	return &(MBC_N_XP(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetOmega(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -776,7 +776,7 @@ MBCNodal::GetOmega(uint32_t n) const
 	return &(MBC_N_OMEGA(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetXPP(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -784,7 +784,7 @@ MBCNodal::GetXPP(uint32_t n) const
 	return &(MBC_N_XPP(&mbc)[3*(n - 1)]);
 }
 
-const double *const
+const double *
 MBCNodal::GetOmegaP(uint32_t n) const
 {
 	assert(GetStatus() == READY);
@@ -1061,14 +1061,14 @@ MBCModal::GetModes(void) const
 	return mbc.modes;
 }
 
-const double *const
+const double *
 MBCModal::GetQ(void) const
 {
 	assert(GetStatus() == READY);
 	return MBC_Q(&mbc);
 }
 
-const double *const
+const double *
 MBCModal::GetQP(void) const
 {
 	assert(GetStatus() == READY);
