@@ -432,6 +432,9 @@ All quantities are expressed in inches and pounds.
     \bnt{normal_arglist} ::= \bnt{aircraft_node}
         [ , \kw{orientation} , \{ \kw{flight mechanics} | \kw{aeroelasticity}
             | (\hty{OrientationMatrix}) \bnt{relative_orientation} \} ]
+	    [ , \kw{initial latitude} , (\ty{real})\bnt{initial_latitude}  \} ]
+	    [ , \kw{initial longitude} , (\ty{real})\bnt{initial_longitude}  \} ]
+	    [ , \kw{earth radius} , (\ty{real})\bnt{earth_radius}  \} ]
 \end{Verbatim}
 %\end{verbatim}
 The \nt{aircraft\_node} represents the aircraft; it is assumed
@@ -443,7 +446,7 @@ reference frame whose positive $z$ direction points upward
 and whose positive $x$ direction points north
 (note that currently the world is flat).
 
-An optional orientation can be added to change the orientation 
+An optional orientation can be added to change the orientation
 of the aircraft with respect to the node.
 This is useful, for example, with aeroelasticity, in which conventionally
 the positive direction of the $x$ axis is nose to tail,
@@ -455,44 +458,52 @@ indicates that the node representing the aircraft is oriented accordingly.
 Arbitrary orientations can be dealt with by providing an appropriate
 \nt{relative\_orientation} matrix.
 
+Values for the initial latitude and longitude can be provided, in
+radians. If not set, they are supposed null at the initial time. Also
+the earth radius can optionally be provided, with the default value
+being the average, \textbf{6371005 m}.
+
 \begin{center}
 \includegraphics[width=.5\textwidth]{elicottero}
 \end{center}
 
-The available measures are accessed during the simulation 
+The available measures are accessed during the simulation
 by defining appropriate \kw{parameter} nodes, and by binding
-the \kw{aircraft instruments} element private data to the nodes 
+the \kw{aircraft instruments} element private data to the nodes
 by means of the \kw{bind} mechanism, or directly by means
-of the 
+of the
 \hyperref{\kw{element} drive}{\kw{element} drive (see Section~}{)}{sec:DriveCaller:ELEMENT}.
 
 \paragraph{Private Data}
 The following data are available:
 \begin{itemize}
-\item \kw{"airspeed"}: the airspeed as seen by the reference 
+\item \kw{"airspeed"}: the airspeed as seen by the reference
 	point on the aircraft, i.e.\ the absolute value
 	of the combination of the airstream speed and of the node speed
 \item \kw{"groundspeed"}: the absolute value of the projection
 	of the node speed in the $xy$ plane of the ``world''
 \item \kw{"altitude"}: the $z$ component of the node position
 	with respect to the ``world''
-\item \kw{"attitude"}: $\tan^{-1}\plbr{r_{31}, r_{11}}$
+\item \kw{"attitude"}: the angle between the $x$ axis of the local
+  frame and the ``world'' $xy$ plane % i.e. $\tan^{-1}\plbr{r_{31}, r_{11}}$
 	% (FIXME: better $\arcsin\plbr{r_{31}}$?)
-\item \kw{"bank"}: $-\tan^{-1}\plbr{r_{32}, r_{22}}$
+\item \kw{"bank"}: the angle between the $y$ axis of the local
+  frame and the ``world'' $xy$ plane % i.e. $-\tan^{-1}\plbr{r_{32}, r_{22}}$
 	% (FIXME: better $\arcsin\plbr{r_{32}}$?)
-\item \kw{"turn"}: \emph{(FIXME: not implemented yet)}
-\item \kw{"slip"}: \emph{(FIXME: not implemented yet)}
-\item \kw{"verticalspeed"}: the $z$ component of the node velocity
+\item \kw{"turn"}: the turn rate, the $z$ component of the angular
+  velocity expressed in the ``world'' reference frame, measured in rad/min
+\item \kw{"slip"}: the sideslip angle, the angle between the $x$ axis of
+  the local frame and the projection of the velocity vector in the $xy$
+  plane of the local frame
+\item \kw{verticalspeed"}: the $z$ component of the node velocity
 	in the ``world'' reference system
 \item \kw{"angleofattack"}: the angle between the local $z$ and $x$ components
 	of the velocity (airstream plus node),
 	expressed in the reference frame of the aircraft
-\item \kw{"heading"}: the angle between the $x$ axis of the aircraft 
-	and the ``north'' (the global $x$ axis) about the global $z$ axis;
-	note: heading wraps about South
-	(+180 deg from East, -180 deg from West).
-\item \kw{"longitude"}: \emph{(FIXME: not implemented yet)}
-\item \kw{"latitude"}: \emph{(FIXME: not implemented yet)}
+\item \kw{"heading"}: the angle between the $x$ axis of the aircraft
+	and the ``north'' (the global $x$ axis) about the global $z$ axis
+\item \kw{"longitude"}: the aicraft longitude, in radians
+\item \kw{"latitude"}: the aicraft latitude, in radians
 \item \kw{"rollrate"}: the component of the angular velocity
 	of the node representing the aircraft along the $x$ axis
 	of the node itself (positive when the right wing moves downward)
