@@ -50,6 +50,7 @@
 
 from __future__ import print_function, division
 import sys
+
 if sys.version_info[0] < 3:
         import __builtin__ as builtins
 else:
@@ -403,7 +404,8 @@ class Position:
             s = 'reference, ' + str(self.reference) + ', '
         s = s + ', '.join(str(i) for i in self.relative_position)
         return s
-
+    def isnull(self):
+        return (self.reference == '') and isinstance(self.relative_position[0], null)
 
 class Node:
     def __init__(self, idx, pos, orient, vel, angular_vel, node_type = 'dynamic'):
@@ -428,6 +430,34 @@ class DynamicNode(Node):
 class StaticNode(Node):
     def __init__(self, idx, pos, orient, vel, angular_vel):
         Node.__init__(self, idx, pos, orient, vel, angular_vel, 'static')
+
+class DisplacementNode():
+    def __init__(self, idx, pos, vel, node_type = 'dynamic'):
+        self.idx = idx
+        self.position = pos
+        self.velocity = vel
+        self.node_type = node_type
+    def __str__(self):
+        s = 'structural: ' + str(self.idx) + ', ' + str(self.node_type) + ' displacement,\n'
+        s = s + '\t' + str(self.position) + ',\n'
+        s = s + '\t' + str(self.velocity) + ';\n'
+        return s
+
+class DynamicDisplacementNode(DisplacementNode):
+    def __init__(self, idx, pos, vel):
+        DisplacementNode.__init__(self, idx, pos, vel, 'dynamic')
+
+class StaticDisplacementNode(DisplacementNode):
+    def __init__(self, idx, pos, vel):
+        DisplacementNode.__init__(self, idx, pos, vel, 'static')
+
+class PointMass:
+    def __init__(self, idx, node, mass):
+        self.idx = idx
+        self.node = node
+        self.mass = mass
+    def __str__(self):
+        return 'body: ' + str(self.idx) + ', ' + str(self.node) + ', ' + str(self.mass) + ';\n'
 
 class Body:
     def __init__(self, idx, node, mass, position, inertial_matrix, inertial = null):
@@ -463,6 +493,33 @@ class Clamp:
         s = s + '\torientation, ' + str(self.orientation) + ';\n'
         return s
 
+class Rod:
+    def __init__(self, idx, nodes, positions, const_law, length = 'from nodes'):
+        assert len(nodes) == 2, (
+            '\n-------------------\nERROR:' + 
+            ' defining a rod with ' + str(len(nodes)) +
+            ' nodes' + '\n-------------------\n')
+        assert len(nodes) == len(positions), (
+            '\n-------------------\nERROR:' +
+            ' defining a rod with ' + str(len(nodes)) +
+            ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
+            '\n-------------------\n')
+        self.idx = idx
+        self.nodes = nodes
+        self.positions = positions
+        self.const_law = const_law
+        self.length = length
+    def __str__(self):
+        s = 'joint: ' + str(self.idx) + ',\n'
+        s = s + '\trod'
+        for (node, position) in zip(self.nodes, self.positions):
+            s = s + ',\n\t\t' + str(node) 
+            if not(position.isnull()):
+                s = s + ',\n\t\t\tposition, ' + str(position)
+        s = s + ',\n\t\t' + str(self.length) + ',\n'
+        s = s + '\t\t' + ', '.join(str(i) for i in self.const_law) + ';\n'
+        return s
+
 class Shell:
     def __init__(self, shell_type, idx, nodes, const_law):
         self.shell_type = shell_type
@@ -489,10 +546,10 @@ class Beam:
             ' defining a beam with ' + str(len(nodes)) +
             ' nodes and ' + str(len(positions)) + ' relative positions;\n' +
             '\n-------------------\n')
-        assert len(nodes) == len(positions), (
+        assert len(nodes) == len(orientations), (
             '\n-------------------\nERROR:' +
             ' defining a beam with ' + str(len(nodes)) +
-            ' nodes and ' + str(len(positions)) + ' relative orientations;\n' +
+            ' nodes and ' + str(len(orientations)) + ' relative orientations;\n' +
             '\n-------------------\n')
         assert len(const_laws_orientations) == len(const_laws), (
             '\n-------------------\nERROR:' +
