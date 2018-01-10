@@ -783,6 +783,7 @@ OutputHandler::CreateRotationVar(const std::string& name_prefix,
 		break;
 
 	case ORIENTATION_VECTOR:
+	case UNKNOWN_ORIENTATION_DESCRIPTION:  // only relevant to displacement nodes
 		dim.resize(2);
 		dim[0] = DimTime();
 		dim[1] = DimV3();

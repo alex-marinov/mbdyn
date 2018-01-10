@@ -512,6 +512,7 @@ StructDispNode::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
+			case UNKNOWN_ORIENTATION_DESCRIPTION:
 				Var_Phi->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
 				break;
 
@@ -543,6 +544,7 @@ StructDispNode::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
+			case UNKNOWN_ORIENTATION_DESCRIPTION:
 				OH.StrNodes() << ::Zero3;
 				break;
 
