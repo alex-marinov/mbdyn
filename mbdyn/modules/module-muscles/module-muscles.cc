@@ -51,6 +51,7 @@ protected:
 	DriveOwner Activation;
 	bool bActivationOverflow;
 	doublereal a;
+	doublereal aReq;	// requested activation: for output only
 
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		return out;
@@ -102,22 +103,23 @@ public:
 	};
 
 	virtual std::ostream& OutputAppend(std::ostream& out) const {
-		return out << " " << a;
+		return out << " " << a << " " << aReq;
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {
 		ConstitutiveLaw<doublereal, doublereal>::Epsilon = Eps - ElasticConstitutiveLaw<doublereal, doublereal>::Get();
 		ConstitutiveLaw<doublereal, doublereal>::EpsilonPrime = EpsPrime;
 
-		a = Activation.dGet();
+		aReq = Activation.dGet();
+		a = aReq;
 		if (a < 0.) {
-			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
+			silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
 			if (bActivationOverflow) {
 				a = 0.;
 			}
 
 		} else if (a > 1.) {
-			silent_cerr("MusclePennestriCL: activation overflow (a=" << a << ")" << std::endl);
+			silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
 			if (bActivationOverflow) {
 				a = 1.;
 			}
@@ -191,7 +193,7 @@ protected:
 	doublereal dKp;
 	doublereal dKd;
 	DriveOwner ReferenceLength;
-
+	
 public:
 	MusclePennestriReflexiveCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
@@ -234,15 +236,17 @@ public:
 		doublereal dLRef = ReferenceLength.dGet()/L0;
 
 		doublereal aRef = Activation.dGet();
-		a = aRef + dKp*(x - dLRef) + dKd*v;
-		if (a < 0.) {
-			silent_cerr("MusclePennestriCL: activation underflow (a=" << a << ")" << std::endl);
+		aReq = aRef + dKp*(x - dLRef) + dKd*v;
+		a = aReq;
+
+		if (aReq < 0.) {
+			silent_cerr("MusclePennestriCL: activation underflow (aReq=" << aReq << ")" << std::endl);
 			if (bActivationOverflow) {
 				a = 0.;
 			}
 
-		} else if (a > 1.) {
-			silent_cerr("MusclePennestriCL: activation overflow (a=" << a << ")" << std::endl);
+		} else if (aReq > 1.) {
+			silent_cerr("MusclePennestriCL: activation overflow (aReq=" << aReq << ")" << std::endl);
 			if (bActivationOverflow) {
 				a = 1.;
 			}
@@ -260,7 +264,7 @@ public:
 		ConstitutiveLaw<doublereal, doublereal>::FDE = F0*((df1dx*aRef + f1*dKp)*f2 + df3dx)*dxdEps;
 		ConstitutiveLaw<doublereal, doublereal>::FDEPrime = F0*f1*(df2dv*aRef + f2*dKd)*dvdEpsPrime;
 	};
-
+	 
 protected:
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		out
