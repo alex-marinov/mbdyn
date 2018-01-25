@@ -754,7 +754,15 @@ to the reflexive contribution to muscular activation, which is defined as
 	\nt{kd} \cdot \frac{\dot{\ell}}{\nt{V0}}
 \end{align}
 
-
+\paragraph{Output.}
+The module appends additional output to the row of the element it is
+attached to in the \texttt{.jnt} file. Two columns are added:
+\begin{itemize}
+  \item \kw{a}: the actual total activation of the muscle;
+  \item \kw{aReq}: the \emph{requested} activation of the muscle, before
+    saturation is applied to confine it in the $0 < a < 1$ range. 
+\end{itemize}
+The two parameters are also added to the NetCDF output of the element.
 
 \section{Drive Caller Modules}
 

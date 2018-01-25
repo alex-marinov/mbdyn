@@ -311,6 +311,7 @@ Rod::OutputPrepare(OutputHandler& OH)
 				"lengthening velocity of the element");
 			Var_v = OH.CreateVar<Vec3>(name + "v", "m",
 				"direction unit vector");
+			ConstitutiveLaw1DOwner::OutputAppendPrepare(OH, name + "CL");
 		}
 #endif // USE_NETCDF
 	}
@@ -349,7 +350,7 @@ Rod::Output(OutputHandler& OH) const
 		Joint::Output(out, "Rod", GetLabel(),
 			Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
 			<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
- 			ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
+ 			ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
 	}
 }
 

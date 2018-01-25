@@ -52,11 +52,13 @@ protected:
 	bool bActivationOverflow;
 	doublereal a;
 	doublereal aReq;	// requested activation: for output only
-
 	virtual std::ostream& Restart_int(std::ostream& out) const {
 		return out;
 	};
-
+#ifdef USE_NETCDF
+	NcVar *Var_dAct;
+	NcVar *Var_dActReq;
+#endif // USE_NETCDF
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
 		doublereal Li, doublereal L0, doublereal V0, doublereal F0,
@@ -64,6 +66,9 @@ public:
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
 	Li(Li), L0(L0), V0(V0), F0(F0),
 	Activation(pAct), bActivationOverflow(bActivationOverflow)
+#ifdef USE_NETCDF
+	, Var_dAct(0), Var_dActReq(0)
+#endif
 	{
 		NO_OP;
 	};
@@ -102,8 +107,26 @@ public:
 		return out;
 	};
 
-	virtual std::ostream& OutputAppend(std::ostream& out) const {
+	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+		{
+			Var_dAct->put_rec(&a, OH.GetCurrentStep());
+			Var_dActReq->put_rec(&aReq, OH.GetCurrentStep());
+		}
+#endif // USE_NETCDF
 		return out << " " << a << " " << aReq;
+	};
+
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
+#ifdef USE_NETCDF
+		ASSERT(OH.IsOpen(OutputHadler::NETCDF));
+		if (OH.UseNetCDF(OutputHandler::LOADABLE)) 
+		{
+			Var_dAct = OH.CreateVar<doublereal>(name + ".a", "", "Muscular activation (effective value)");
+			Var_dActReq = OH.CreateVar<doublereal>(name + ".aReq", "", "Requested muscular activation");
+		}
+#endif // USE_NETCDF
 	};
 
 	virtual void Update(const doublereal& Eps, const doublereal& EpsPrime) {

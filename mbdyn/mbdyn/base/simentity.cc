@@ -158,6 +158,18 @@ SimulationEntity::OutputAppend(std::ostream& out) const
 	return out;
 }
 
+std::ostream&
+SimulationEntity::OutputAppend(std::ostream& out, OutputHandler& OH) const
+{
+	return out;
+}
+
+void
+SimulationEntity::OutputAppendPrepare(OutputHandler& OH, const std::string& name)
+{
+	NO_OP;
+}
+
 void SimulationEntity::ReadInitialState(MBDynParser& HP)
 {
 	NO_OP;

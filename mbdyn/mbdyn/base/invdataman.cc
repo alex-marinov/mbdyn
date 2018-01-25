@@ -807,7 +807,7 @@ DataManager::Update(InverseDynamics::Order iOrder) const
 	// Nodes:
 	case InverseDynamics::POSITION:
 		// Update nodes positions
-		pV = pXCurr;
+		pV = pXCurr;	
 		break;
 
 	case InverseDynamics::VELOCITY:

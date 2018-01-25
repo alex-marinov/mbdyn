@@ -373,6 +373,15 @@ public:
 	virtual std::ostream& OutputAppend(std::ostream& out) const {
 		return pConstLaw->OutputAppend(out);
 	};
+	
+	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
+		return pConstLaw->OutputAppend(out, OH);
+	};
+	
+	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
+		pConstLaw->OutputAppendPrepare(OH, name);
+	};
+
 };
 
 typedef ConstitutiveLawOwner<doublereal, doublereal> ConstitutiveLaw1DOwner;
