@@ -5021,6 +5021,15 @@ MathParser::expr(void)
 				}
 				return new EE_Value(v->GetVal());
 			}
+
+			switch (currtoken) {
+			case NAME:
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unexpected name \"") + namebuf + "\"");
+
+			default:
+				// TODO: output token!
+				throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, "unexpected token");
+			}
 		}
 
 		throw ErrGeneric(this, MBDYN_EXCEPT_ARGS, std::string("unknown name \"") + name + "\"");
