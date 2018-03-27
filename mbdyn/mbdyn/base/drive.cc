@@ -68,7 +68,8 @@ iCurrStep(0),
 Meter(0),
 Rand(0),
 ClosestNext(0),
-SH(0)
+SH(0),
+DiscreteFilter(0)
 {
 #ifdef USE_MULTITHREAD
 	pthread_mutexattr_t ma;
@@ -202,6 +203,12 @@ DriveHandler::~DriveHandler(void)
 	{
 		SAFEDELETE(*i);
 	}
+
+	for (std::vector<MyDiscreteFilter*>::iterator i = DiscreteFilter.begin();
+		i != DiscreteFilter.end(); ++i)
+	{
+		SAFEDELETE(*i);
+	}
 }
 
 void
@@ -248,6 +255,12 @@ DriveHandler::SetTime(const doublereal& dt, const doublereal& dts,
 
 			for (std::vector<MySH *>::iterator i = SH.begin();
 				i != SH.end(); ++i)
+			{
+				(*i)->Set();
+			}
+
+			for (std::vector<MyDiscreteFilter*>::iterator i = DiscreteFilter.begin();
+				i != DiscreteFilter.end(); ++i)
 			{
 				(*i)->Set();
 			}
@@ -336,6 +349,19 @@ const doublereal
 DriveHandler::dGetSHVal0(integer iNumber) const
 {
 	return SH[iNumber]->dGetVal0();
+}
+
+integer
+DriveHandler::iDiscreteFilterInit(const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+{
+	MyDiscreteFilter* pmdf = 0;
+	integer iNumber = DiscreteFilter.size();
+	SAFENEWWITHCONSTRUCTOR(pmdf,
+		MyDiscreteFilter,
+		MyDiscreteFilter((unsigned int)iNumber, a, b0, b));
+	DiscreteFilter.push_back(pmdf);
+
+	return iNumber;
 }
 
 void
@@ -466,6 +492,17 @@ const doublereal
 DriveHandler::MySH::dGetVal0(void) const
 {
 	return dVal0;
+}
+
+DriveHandler::MyDiscreteFilter::MyDiscreteFilter(unsigned int uLabel, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+: WithLabel(uLabel), a(a), b0(b0), b(b), x(a.size()), u(b.size()), ax(0.), bu(0.), xk(0.), uk(0.)
+{
+	NO_OP;
+}
+
+DriveHandler::MyDiscreteFilter::~MyDiscreteFilter(void)
+{
+	NO_OP;
 }
 
 /* DriveHandler - end */

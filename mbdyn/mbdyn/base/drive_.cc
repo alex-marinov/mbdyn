@@ -1024,6 +1024,42 @@ ClosestNextDriveCaller::Restart(std::ostream& out) const
 /* ClosestNextDriveCaller - end */
 
 
+/* DiscreteFilterDriveCaller - begin */
+
+DiscreteFilterDriveCaller::DiscreteFilterDriveCaller(const DriveHandler* pDH, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+: DriveCaller(pDH), a(a), b0(b0), b(b)
+{
+	iDiscreteFilterDriveNumber = pDrvHdl->iDiscreteFilterInit(a, b0, b);
+}
+
+DiscreteFilterDriveCaller::~DiscreteFilterDriveCaller(void)
+{
+	NO_OP;
+}
+
+/* Copia */
+DriveCaller *
+DiscreteFilterDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = 0;
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		DiscreteFilterDriveCaller,
+		DiscreteFilterDriveCaller(pDrvHdl, a, b0, b));
+	return pDC;
+}
+
+/* Scrive il contributo del DriveCaller al file di restart */
+std::ostream&
+DiscreteFilterDriveCaller::Restart(std::ostream& out) const
+{
+	out
+		<< " discrete filter, TODO!";
+	return out;
+}
+
+/* DiscreteFilterDriveCaller - end */
+
+
 /* DirectDriveCaller - begin */
 
 DirectDriveCaller::DirectDriveCaller(const DriveHandler* pDH)
@@ -2373,6 +2409,61 @@ ClosestNextDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	return pDC;
 }
 
+struct DiscreteFilterDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+DiscreteFilterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "discrete" "filter");
+
+	const DriveHandler* pDrvHdl = 0;
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	unsigned na;
+	try {
+		na = HP.GetInt(1, HighParser::range_ge<integer>(0));
+
+	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+		silent_cerr("error: invalid number of coefficients a " << e.Get() << " in discrete filter (must be at least zero) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
+		throw e;
+	}
+
+	std::vector<doublereal> a(na);
+	for (unsigned i = 0; i < na; i++) {
+		a[i] = HP.GetReal();
+	}
+
+	// we assume b0 is always present, although possibly equal to 0
+	doublereal b0 = HP.GetReal();
+
+	unsigned nb;
+	try {
+		nb = HP.GetInt(1, HighParser::range_ge<integer>(0));
+
+	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+		silent_cerr("error: invalid number of coefficients b " << e.Get() << " in discrete filter (must be at least zero) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
+		throw e;
+	}
+
+	std::vector<doublereal> b(nb);
+	for (unsigned i = 0; i < nb; i++) {
+		b[i] = HP.GetReal();
+	}
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+		DiscreteFilterDriveCaller,
+		DiscreteFilterDriveCaller(pDrvHdl, a, b0, b));
+
+	return pDC;
+}
+
 struct DirectDCR : public DriveCallerRead {
 	DriveCaller *
 	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
@@ -3059,6 +3150,7 @@ InitDriveCallerData(void)
 	SetDriveCallerData("cosine", new CosineDCR);
 	SetDriveCallerData("cubic", new CubicDCR);
 	SetDriveCallerData("direct", new DirectDCR);
+	SetDriveCallerData("discrete" "filter", new DiscreteFilterDCR);
 	SetDriveCallerData("dof", new DofDCR);
 	SetDriveCallerData("double" "ramp", new DoubleRampDCR);
 	SetDriveCallerData("double" "step", new DoubleStepDCR);

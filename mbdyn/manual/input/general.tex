@@ -1989,6 +1989,7 @@ Drive callers are listed in Table~\ref{tab:DRIVE:DRIVE-CALLERS}.
 \kw{cosine} & $\surd$ & \\
 \kw{cubic} & $\surd$ & \\
 \kw{direct} & $\surd$ & \\ %
+\kw{discrete filter} & & \\ %
 \kw{dof} & & depends on subordinate drive caller \\ %
 \kw{double ramp} & $\surd$ & \\
 \kw{double step} & $\surd$ & \\
@@ -2169,6 +2170,28 @@ It is useful in conjunction with those drive callers
 that require their output to be fed into another drive caller,
 like the \kw{dof}, \kw{node} and \kw{element}
 drive callers, when the output needs to be used as is.
+
+\subsection{Discrete filter drive}
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{drive_caller} ::= \kw{discrete filter} ,
+        \bnt{n_a} [ , \bnt{a}_1 [ , ...] ] ,
+        \bnt{b_0} ,
+        \bnt{n_b} [ , \bnt{b}_1 [ , ...] ]
+\end{Verbatim}
+%\end{verbatim}
+To be used in conjunction with a \kw{drive} drive caller,
+filters the output of the ancillary drive according to the discrete filter coefficients.
+\begin{itemize}
+\item \bnt{n\_a}: number of regression coefficients
+\item \bnt{a}$_i$: $i$-th regression coefficient, $i \in [1, \bnt{n\_a}]$
+\item \bnt{b\_0}: direct transmission coefficient, must always be present; set to zero if not needed
+\item \bnt{n\_b}: number of input coefficients
+\item \bnt{b}$_i$: $i$-th input coefficient, $i \in [0, \bnt{n\_b}]$
+\end{itemize}
+
+\noindent
+\emph{NOTE: requires fixed time step.}
 
 \subsection{Dof drive}\label{sec:DriveCaller:DOF}
 %\begin{verbatim}
