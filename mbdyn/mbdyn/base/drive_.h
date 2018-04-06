@@ -1352,12 +1352,10 @@ ClosestNextDriveCaller::dGet(const doublereal& dVar) const
 class DiscreteFilterDriveCaller : public DriveCaller {
 private:
 	integer iDiscreteFilterDriveNumber;
-	const std::vector<doublereal> a;
-	doublereal b0;
-	const std::vector<doublereal> b;
 
 public:
 	DiscreteFilterDriveCaller(const DriveHandler* pDH,
+		DriveCaller *pDC,
 		const std::vector<doublereal>& a,
 		doublereal b0,
 		const std::vector<doublereal>& b);
@@ -1369,11 +1367,18 @@ public:
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	inline doublereal dGet(void) const;
 	inline doublereal dGet(const doublereal& dVar) const;
 #if 0
 	inline doublereal dGet(void) const;
 #endif
 };
+
+inline doublereal
+DiscreteFilterDriveCaller::dGet(void) const
+{
+	return pDrvHdl->dGetDiscreteFilter(iDiscreteFilterDriveNumber);
+}
 
 inline doublereal
 DiscreteFilterDriveCaller::dGet(const doublereal& dVar) const

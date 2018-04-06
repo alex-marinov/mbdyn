@@ -352,13 +352,13 @@ DriveHandler::dGetSHVal0(integer iNumber) const
 }
 
 integer
-DriveHandler::iDiscreteFilterInit(const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+DriveHandler::iDiscreteFilterInit(DriveCaller *pDC, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
 {
 	MyDiscreteFilter* pmdf = 0;
 	integer iNumber = DiscreteFilter.size();
 	SAFENEWWITHCONSTRUCTOR(pmdf,
 		MyDiscreteFilter,
-		MyDiscreteFilter((unsigned int)iNumber, a, b0, b));
+		MyDiscreteFilter((unsigned int)iNumber, pDC, a, b0, b));
 	DiscreteFilter.push_back(pmdf);
 
 	return iNumber;
@@ -494,15 +494,15 @@ DriveHandler::MySH::dGetVal0(void) const
 	return dVal0;
 }
 
-DriveHandler::MyDiscreteFilter::MyDiscreteFilter(unsigned int uLabel, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
-: WithLabel(uLabel), a(a), b0(b0), b(b), x(a.size()), u(b.size()), ax(0.), bu(0.), xk(0.), uk(0.)
+DriveHandler::MyDiscreteFilter::MyDiscreteFilter(unsigned int uLabel, DriveCaller *pDC, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+: WithLabel(uLabel), pDC(pDC), a(a), b0(b0), b(b), x(a.size()), u(b.size()), ax(0.), bu(0.), xk(0.), uk(0.)
 {
 	NO_OP;
 }
 
 DriveHandler::MyDiscreteFilter::~MyDiscreteFilter(void)
 {
-	NO_OP;
+	SAFEDELETE(pDC);
 }
 
 /* DriveHandler - end */

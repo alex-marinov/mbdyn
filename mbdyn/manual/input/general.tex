@@ -2177,11 +2177,11 @@ drive callers, when the output needs to be used as is.
     \bnt{drive_caller} ::= \kw{discrete filter} ,
         \bnt{n_a} [ , \bnt{a}_1 [ , ...] ] ,
         \bnt{b_0} ,
-        \bnt{n_b} [ , \bnt{b}_1 [ , ...] ]
+        \bnt{n_b} [ , \bnt{b}_1 [ , ...] ] ,
+	(\hty{DriveCaller}) \bnt{input_drive}
 \end{Verbatim}
 %\end{verbatim}
-To be used in conjunction with a \kw{drive} drive caller,
-filters the output of the ancillary drive according to the discrete filter coefficients.
+Filters the output of the ancillary drive caller \nt{input\_drive} according to the discrete filter coefficients.
 \begin{itemize}
 \item \nt{n\_a}: number of regression coefficients
 \item \nt{a}$_i$: $i$-th regression coefficient, $i \in [1, \nt{n\_a}]$
@@ -2196,29 +2196,29 @@ Formula:
 	\sum_{i=1}^{\nt{n\_a}} \nt{a}_i \, y_{k-i}
 	+ \sum_{i=0}^{\nt{n\_b}} \nt{b}_i \, u_{k-i}
 \end{align}
-The coefficients of the filter can be computed for example using Matlab
+The coefficients of the filter can be computed for example using Matlab, Python
 or similar tools.
 To obtain the coefficients of a 2nd order Butterworth filter,
 with cut frequency at 10 Hz, when the time step is \texttt{dt}, use
 \begin{verbatim}
-    >> [B, A] = butter(2, 10./(1/dt/2));
+    >> [B, A] = butter(2, 10./(1/(2*dt)));
     >> a_1 = -A(2);
     >> a_2 = -A(3);
     >> b_0 = B(1);
     >> b_1 = B(2);
     >> b_2 = B(3);
 \end{verbatim}
-The relative cut frequency (the second parameter in the \texttt{butter()} call)
-is the cut frequency of the filter divided by half the sampling frequency,
-namely $1/\texttt{dt}/2$.
+The relative cutoff frequency (the second parameter in the \texttt{butter()} call)
+is the cutoff frequency of the filter divided by half the sampling frequency,
+namely $1/(2 \, \texttt{dt})$.
 The corresponding MBDyn input is
 \begin{Verbatim}[commandchars=\\\{\}]
     ...,
-    \kw{drive}, \kw{discrete filter},
+    \kw{discrete filter},
         2, a_1, a_2,
         b_0,
         2, b_1, b_2,
-        \bnt{pre_filter_drive_caller} , ...
+        \bnt{input_drive} , ...
 \end{Verbatim}
 
 \noindent

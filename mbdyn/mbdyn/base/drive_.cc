@@ -1026,10 +1026,10 @@ ClosestNextDriveCaller::Restart(std::ostream& out) const
 
 /* DiscreteFilterDriveCaller - begin */
 
-DiscreteFilterDriveCaller::DiscreteFilterDriveCaller(const DriveHandler* pDH, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
-: DriveCaller(pDH), a(a), b0(b0), b(b)
+DiscreteFilterDriveCaller::DiscreteFilterDriveCaller(const DriveHandler* pDH, DriveCaller *pDC, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b)
+: DriveCaller(pDH)
 {
-	iDiscreteFilterDriveNumber = pDrvHdl->iDiscreteFilterInit(a, b0, b);
+	iDiscreteFilterDriveNumber = pDrvHdl->iDiscreteFilterInit(pDC, a, b0, b);
 }
 
 DiscreteFilterDriveCaller::~DiscreteFilterDriveCaller(void)
@@ -1042,9 +1042,10 @@ DriveCaller *
 DiscreteFilterDriveCaller::pCopy(void) const
 {
 	DriveCaller* pDC = 0;
+	DriveHandler::MyDiscreteFilter *pDF = pDrvHdl->pGetDiscreteFilter(iDiscreteFilterDriveNumber);
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DiscreteFilterDriveCaller,
-		DiscreteFilterDriveCaller(pDrvHdl, a, b0, b));
+		DiscreteFilterDriveCaller(pDrvHdl, pDF->pDC->pCopy(), pDF->a, pDF->b0, pDF->b));
 	return pDC;
 }
 
@@ -2425,6 +2426,7 @@ DiscreteFilterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	}
 
 	DriveCaller *pDC = 0;
+	DriveCaller *pDC_in = 0;
 
 	unsigned na;
 	try {
@@ -2457,9 +2459,11 @@ DiscreteFilterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		b[i] = HP.GetReal();
 	}
 
+	pDC_in = HP.GetDriveCaller(bDeferred);
+
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DiscreteFilterDriveCaller,
-		DiscreteFilterDriveCaller(pDrvHdl, a, b0, b));
+		DiscreteFilterDriveCaller(pDrvHdl, pDC_in, a, b0, b));
 
 	return pDC;
 }

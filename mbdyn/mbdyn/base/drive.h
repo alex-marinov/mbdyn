@@ -265,7 +265,10 @@ private:
 
 	/* For discrete filter drivers */
 	class MyDiscreteFilter: public WithLabel {
+	friend class DiscreteFilterDriveCaller;
 	protected:
+		DriveCaller* pDC;
+
 		const std::vector<doublereal> a;
 		doublereal b0;
 		const std::vector<doublereal> b;
@@ -275,10 +278,11 @@ private:
 		mutable doublereal xk, uk;
 
 	public:
-		MyDiscreteFilter(unsigned int uLabel, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b);
+		MyDiscreteFilter(unsigned int uLabel, DriveCaller* pDC, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b);
 		virtual ~MyDiscreteFilter(void);
 
-		virtual inline doublereal dGet(doublereal uk) const;
+		virtual inline doublereal dGet(void) const;
+		virtual inline doublereal dGet(doublereal dVal) const;
 		virtual inline void Set(void);
 	};
 
@@ -298,7 +302,7 @@ protected:
 	integer iClosestNextInit(const DriveCaller *pIncrement, doublereal dStartTime);
 	integer iSHInit(const DriveCaller *pFunc, const DriveCaller *pTrigger,
 		const doublereal dVal0);
-	integer iDiscreteFilterInit(const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b);
+	integer iDiscreteFilterInit(DriveCaller *pDC, const std::vector<doublereal>& a, doublereal b0, const std::vector<doublereal>& b);
 
 public:
 	DriveHandler(MathParser &mp);
@@ -318,6 +322,8 @@ public:
 	inline bool bGetMeter(integer iNumber) const;
 	inline bool bGetClosestNext(integer iNumber) const;
 	inline doublereal dGetSH(integer iNumber) const;
+	inline MyDiscreteFilter *pGetDiscreteFilter(integer iNumber) const;
+	inline doublereal dGetDiscreteFilter(integer iNumber) const;
 	inline doublereal dGetDiscreteFilter(integer iNumber, doublereal uk) const;
 
 	const DriveCaller *pGetSHFunc(integer iNumber) const;
@@ -406,40 +412,6 @@ DriveHandler::MySH::Set(void)
 
 
 inline doublereal
-DriveHandler::MyDiscreteFilter::dGet(doublereal uk) const
-{
-	// computes new value
-	this->uk = uk;
-	return xk = b0*uk + ax + bu;
-}
-
-
-inline void
-DriveHandler::MyDiscreteFilter::Set(void)
-{
-	// shifts one step ahead
-	for (unsigned i = 1; i < x.size(); i++) {
-		x[i] = x[i - 1];
-	}
-	x[0] = xk;
-
-	for (unsigned i = 1; i < u.size(); i++) {
-		u[i] = u[i - 1];
-	}
-	u[0] = uk;
-
-	ax = 0.;
-	for (unsigned i = 0; i < x.size(); i++) {
-		ax += a[i]*x[i];
-	}
-
-	bu = 0.;
-	for (unsigned i = 0; i < u.size(); i++) {
-		bu += b[i]*u[i];
-	}
-}
-
-inline doublereal
 DriveHandler::dGetTime(void) const
 {
 	ASSERT(pTime != 0);
@@ -484,6 +456,18 @@ inline doublereal
 DriveHandler::dGetSH(integer iNumber) const
 {
 	return SH[iNumber]->dGetSH();
+}
+
+inline DriveHandler::MyDiscreteFilter *
+DriveHandler::pGetDiscreteFilter(integer iNumber) const
+{
+	return DiscreteFilter[iNumber];
+}
+
+inline doublereal
+DriveHandler::dGetDiscreteFilter(integer iNumber) const
+{
+	return DiscreteFilter[iNumber]->dGet();
 }
 
 inline doublereal
@@ -601,6 +585,49 @@ inline void DriveOwner::dGet(const grad::Gradient<N>& x, grad::Gradient<N>& y) c
 #endif
 
 /* DriveCaller - end */
+
+inline doublereal
+DriveHandler::MyDiscreteFilter::dGet(doublereal dVal) const
+{
+	// computes new value
+	this->uk = pDC->dGet(dVal);
+	return xk = b0*uk + ax + bu;
+}
+
+
+inline doublereal
+DriveHandler::MyDiscreteFilter::dGet(void) const
+{
+	// computes new value
+	this->uk = pDC->dGet();
+	return xk = b0*uk + ax + bu;
+}
+
+
+inline void
+DriveHandler::MyDiscreteFilter::Set(void)
+{
+	// shifts one step ahead
+	for (unsigned i = 1; i < x.size(); i++) {
+		x[i] = x[i - 1];
+	}
+	x[0] = xk;
+
+	for (unsigned i = 1; i < u.size(); i++) {
+		u[i] = u[i - 1];
+	}
+	u[0] = pDC->dGet();
+
+	ax = 0.;
+	for (unsigned i = 0; i < x.size(); i++) {
+		ax += a[i]*x[i];
+	}
+
+	bu = 0.;
+	for (unsigned i = 0; i < u.size(); i++) {
+		bu += b[i]*u[i];
+	}
+}
 
 
 /* NullDriveCaller - begin */
