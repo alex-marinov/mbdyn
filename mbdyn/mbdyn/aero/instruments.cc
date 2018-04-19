@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -35,16 +35,27 @@
 
 #include "dataman.h"
 #include "instruments.h"
+#include <stdlib.h>
+#include <math.h>
 
-AircraftInstruments::AircraftInstruments(unsigned int uLabel, 
+AircraftInstruments::AircraftInstruments(unsigned int uLabel,
 	const DofOwner *pDO,
-	const StructNode* pN, const Mat3x3 &R, flag fOut)
+	const StructNode* pN, const Mat3x3 &R, flag fOut, doublereal initLong, doublereal initLat, doublereal earth_radius)
 : Elem(uLabel, fOut),
 AerodynamicElem(uLabel, pDO, fOut),
 pNode(pN),
-Rh(R)
+Rh(R),
+earth_radius(earth_radius)
 {
 	memset(&dMeasure[0], 0, sizeof(dMeasure));
+	/*Luca Conti edits--------------------------------------------------------*/
+	dMeasure[INIT_LATITUDE] = initLat;
+	dMeasure[INIT_LONGITUDE] = initLong;
+	normalizeGeoCoordinates();
+	const Vec3& X(pNode->GetXCurr());
+	dMeasure[INIT_X2] = X(2);
+	dMeasure[INIT_X1] = X(1);
+	/*------------------------------------------------------------------------*/
 }
 
 AircraftInstruments::~AircraftInstruments(void)
@@ -62,10 +73,14 @@ void
 AircraftInstruments::Update(void)
 {
 	const Vec3& X(pNode->GetXCurr());
-	const Mat3x3& R(pNode->GetRCurr()*Rh);
+	const Mat3x3 R(pNode->GetRCurr()*Rh);
 	const Vec3& V(pNode->GetVCurr());
 	const Vec3& Omega(pNode->GetWCurr());
 	Vec3 VV = V;
+
+	const float toll = 1e-6;			//Di Lallo Luigi edits
+
+	// body axes expressed in "world" reference frame
 	const Vec3 e1(R.GetVec(1));
 	const Vec3 e2(R.GetVec(2));
 	const Vec3 e3(R.GetVec(3));
@@ -83,59 +98,123 @@ AircraftInstruments::Update(void)
 	 * - yaw is positive right wing backward
 	 */
 
-	Vec3 VTmp(Zero3);
-      	if (fGetAirVelocity(VTmp, X)) {
-		VV -= VTmp;
+	// add wind velocity (wind evaluated at aircraft node, not at pitot's location!)
+	Vec3 VecTmp(Zero3);
+	if (fGetAirVelocity(VecTmp, X)) {
+		VV -= VecTmp;
 	}
 
-	/* airspeed */
+	// airspeed (norm of aircraft + wind velocity)
 	dMeasure[AIRSPEED] = VV.Norm();
 
-	/* groundspeed */
-	VTmp = V;
-	VTmp(3) = 0.;
-	dMeasure[GROUNDSPEED] = VTmp.Norm();
+	// groundspeed (norm of horizontal component of velocity at aircraft node)
+	VecTmp = V;
+	VecTmp(3) = 0.;
+	dMeasure[GROUNDSPEED] = VecTmp.Norm();
 
-	/* altitude */
+	// altitude (vertical component of node position)
 	dMeasure[ALTITUDE] = X(3);
 
 	/* attitude */
-	/* FIXME: better asin(e1(3)) ? */
-	dMeasure[ATTITUDE] = std::atan2(e1(3), e1(1));
+
+	// x axis of the body frame aligned with "world" y: attitude is 0
+	dMeasure[ATTITUDE] = std::asin(e1(3));
 
 	/* bank */
-	/* FIXME: better asin(e2(3)) ? */
-	dMeasure[BANK] = -std::atan2(e2(3), e2(2));
+	dMeasure[BANK] = std::asin(e2(3));
 
-	/* turn */
-	dMeasure[TURN] = 0.;	/* FIXME */
+	// turn (vertical component of angular velocity)
+	/* Luca Conti edits */
+	dMeasure[TURN] = Omega(3)*60; /* turn rate in rad/min */
 
-	/* slip */
-	dMeasure[SLIP] = 0.;	/* FIXME */
+	// slip
+	/*Luca Conti edits-----------------*/
+	// velocity aligned with z body frame! aircraft sliding vertically... strange, but might occur
+	if (abs(VV(2)) <= toll && abs(VV(1)) <= toll) {		//Di Lallo Luigi edits
+		dMeasure[SLIP] = 0;
 
-	/* vertical speed */
+	} else {
+		dMeasure[SLIP] = std::atan2(VV(2), VV(1));
+	}
+	/* SLIP is positive if the aircraft nose is tilted leftward wrt velocity vector, spans -PI;+PI */
+	/*---------------------------------*/
+
+	// vertical speed
 	dMeasure[VERTICALSPEED] = VV(3);
 
-	/* angle of attack */
-	VTmp = R.MulTV(VV);
-	dMeasure[AOA] = std::atan2(VTmp(3), VTmp(1));
+	// angle of attack
+	VecTmp = R.MulTV(VV);
+	dMeasure[AOA] = std::atan2(VecTmp(3), VecTmp(1));
 
-	/* heading */
-	/* FIXME: assumes a flat world! N={1,0,0}, W={0,1,0} */
-	dMeasure[HEADING] = -std::atan2(e1(2), e1(1));
+	// heading
+	/* Luca Conti edits
+	HEADING grows clockwise about z axis of "world" reference
+	moving towards N: HEADING = 0
+	moving towards E: HEADING = PI/2
+	moving towards S: HEADING = PI
+	moving towards W: HEADING = 3/2*PI
+	*/
+	/* x axis body frame aligned with vertical direction! aircraft nose pointing upward or downward */
+	if (abs(e1(2)) <= toll && abs(e1(1)) <= toll) {				//Di Lallo Luigi edits
+		dMeasure[HEADING] = 0;
 
-	/* longitude */
-	/* FIXME: ??? */
-	dMeasure[LONGITUDE] = -X(2);	// /EARTH_RADIUS?
+	} else {
+		dMeasure[HEADING] = -std::atan2(e1(2), e1(1));
+	}
+	/* in order to have HEADING between 0° and 360° */
+	while (dMeasure[HEADING] < 0) {
+		dMeasure[HEADING] += 2*M_PI;
+	}
 
-	/* latitude */
-	/* FIXME: ??? */
-	dMeasure[LATITUDE] = X(1);	// /EARTH_RADIUS?
+	// longitude
+	/* Luca Conti edits-------------------------------------------------- */
+	/* NB: "world" y axis points towards W, LONGITUDE grows towards E */
+	dMeasure[LONGITUDE] = dMeasure[INIT_LONGITUDE] + (-X(2) - (-dMeasure[INIT_X2]))/earth_radius;
+	/* ------------------------------------------------------------------ */
 
-	VTmp = R.MulTV(Omega);
-	dMeasure[ROLLRATE] = VTmp(1);
-	dMeasure[PITCHRATE] = VTmp(2);
-	dMeasure[YAWRATE] = VTmp(3);
+	// latitude
+	/* Luca Conti edits-------------------------------------------------- */
+	dMeasure[LATITUDE] = dMeasure[INIT_LATITUDE] + (X(1) - dMeasure[INIT_X1])/earth_radius;
+	/* ------------------------------------------------------------------ */
+
+	/* Luca Conti edits */
+	/* checks if LONGITUDE and LATITUDE exceed their standard value: in that case, the proper value is recalculated */
+	normalizeGeoCoordinates();
+
+	VecTmp = R.MulTV(Omega);
+	dMeasure[ROLLRATE] = VecTmp(1);
+	dMeasure[PITCHRATE] = VecTmp(2);
+	dMeasure[YAWRATE] = VecTmp(3);
+}
+
+void
+AircraftInstruments::normalizeGeoCoordinates(void)
+{
+	// checks if LONGITUDE exceeds -180/180: in that case, the proper value is recalculated
+	if (dMeasure[LONGITUDE] > M_PI || dMeasure[LONGITUDE] < -M_PI) {
+		int n = (int)dMeasure[LONGITUDE]/M_PI;
+		if (n % 2 != 0) {
+			dMeasure[LONGITUDE] = dMeasure[LONGITUDE] - (n + abs(n)/n)*M_PI;
+		} else {
+			dMeasure[LONGITUDE] = dMeasure[LONGITUDE] - n*M_PI;
+		}
+	}
+
+	// checks if LATITUDE exceeds -90/90: in that case, the proper value is recalculated
+	if (dMeasure[LATITUDE] > M_PI/2 || dMeasure[LATITUDE] < -M_PI/2) {
+		int n = (int) dMeasure[LATITUDE]/M_PI;
+		if (n % 2 != 0) {
+			dMeasure[LATITUDE] = -dMeasure[LATITUDE] + n*M_PI;
+			if (abs(dMeasure[LATITUDE]) > M_PI/2) {
+				dMeasure[LATITUDE] = -dMeasure[LATITUDE] - sign(n)*M_PI;
+			}
+		} else {
+			dMeasure[LATITUDE] = dMeasure[LATITUDE] - n*M_PI;
+			if (abs(dMeasure[LATITUDE]) > M_PI/2) {
+				dMeasure[LATITUDE] = -dMeasure[LATITUDE] + sign(n)*M_PI;
+			}
+		}
+	}
 }
 
 /* Scrive il contributo dell'elemento al file di restart */
@@ -143,13 +222,13 @@ std::ostream&
 AircraftInstruments::Restart(std::ostream& out) const
 {
 	out << "aircraft instruments: " << GetLabel()
-		<< ", " << pNode->GetLabel() 
+		<< ", " << pNode->GetLabel()
 		<< ", orientation, ", Rh.Write(out)
 		<< ";" << std::endl;
 
 	return out;
 }
-	
+
 void
 AircraftInstruments::Output(OutputHandler& OH) const
 {
@@ -172,13 +251,13 @@ AircraftInstruments::WorkSpaceDim(integer* piNumRows, integer* piNumCols) const
 	*piNumRows = 0;
 	*piNumCols = 0;
 }
-	
+
 /* assemblaggio jacobiano */
-VariableSubMatrixHandler& 
+VariableSubMatrixHandler&
 AircraftInstruments::AssJac(VariableSubMatrixHandler& WorkMat,
-		doublereal /* dCoef */ ,
-		const VectorHandler& /* XCurr */ ,
-		const VectorHandler& /* XPrimeCurr */ )
+	doublereal /* dCoef */ ,
+	const VectorHandler& /* XCurr */ ,
+	const VectorHandler& /* XPrimeCurr */ )
 {
 	DEBUGCOUTFNAME("AircraftInstruments::AssJac");
 
@@ -186,13 +265,13 @@ AircraftInstruments::AssJac(VariableSubMatrixHandler& WorkMat,
 
 	return WorkMat;
 }
-	
+
 /* assemblaggio residuo */
 SubVectorHandler&
 AircraftInstruments::AssRes(SubVectorHandler& WorkVec,
-		doublereal dCoef,
-		const VectorHandler& XCurr,
-		const VectorHandler& XPrimeCurr)
+	doublereal dCoef,
+	const VectorHandler& XCurr,
+	const VectorHandler& XPrimeCurr)
 {
 	WorkVec.Resize(0);
 
@@ -200,7 +279,7 @@ AircraftInstruments::AssRes(SubVectorHandler& WorkVec,
 
 	return WorkVec;
 }
-	
+
 /* Dati privati */
 unsigned int
 AircraftInstruments::iGetNumPrivData(void) const
@@ -228,7 +307,11 @@ AircraftInstruments::iGetPrivDataIdx(const char *s) const
 		{ "angle" "of" "attack", AOA },
 		{ "aoa", AOA },
 		{ "heading", HEADING },
+		{ "init_x1", INIT_X1 },/*Luca Conti edits*/
+		{ "init_x2", INIT_X2 },/*Luca Conti edits*/
+		{ "init_longitude", INIT_LONGITUDE },/*Luca Conti edits: to be specified by the user in the element, optional*/
 		{ "longitude", LONGITUDE },
+		{ "init_latitude", INIT_LATITUDE },/*Luca Conti edits: to be specified by the user in the element, optional*/
 		{ "latitude", LATITUDE },
 		{ "rollrate", ROLLRATE },
 		{ "pitchrate", PITCHRATE },
@@ -283,11 +366,30 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 			R = HP.GetRotRel(ReferenceFrame(pNode));
 		}
 	}
+
+	/* Luca Conti edits ------------------------------------------------- */
+	doublereal initLat = 0.;
+	doublereal initLong = 0.;
+	// default value in meters
+	doublereal earth_radius = 6371005.;
+
+	if (HP.IsKeyWord("initial" "latitude")){
+		initLat = HP.GetReal();
+	}
+
+	if (HP.IsKeyWord("initial" "longitude")){
+		initLong = HP.GetReal();
+	}
+
+	if (HP.IsKeyWord("earth" "radius")){
+		earth_radius = HP.GetReal();
+	}
+	/* ------------------------------------------------------------------ */
+
 	flag fOut = pDM->fReadOutput(HP, Elem::AERODYNAMIC);
 
 	SAFENEWWITHCONSTRUCTOR(pEl, AircraftInstruments,
-		AircraftInstruments(uLabel, pDO, pNode, R, fOut));
+		AircraftInstruments(uLabel, pDO, pNode, R, fOut, initLong, initLat, earth_radius));
 
 	return pEl;
 }
-

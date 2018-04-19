@@ -1,6 +1,6 @@
 /* $Header$ */
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -17,7 +17,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -49,7 +49,11 @@ public:
 		VERTICALSPEED,
 		AOA,
 		HEADING,
+		INIT_X1, // Luca Conti edits - initial x coordinate
+		INIT_X2, // Luca Conti edits - initial y coordinate
+		INIT_LONGITUDE, // Luca Conti edits: to be specified by the user in the element, optional
 		LONGITUDE,
+		INIT_LATITUDE, // Luca Conti edits: to be specified by the user in the element, optional
 		LATITUDE,
 
 		ROLLRATE,
@@ -64,52 +68,57 @@ protected:
 	Mat3x3 Rh;
 
 	doublereal dMeasure[LASTMEASURE];
+	/* Luca Conti edits */
+	// optionally chosen by the user in order to let him use any unit of measurement (set by default in meters if not differently specified)
+	doublereal earth_radius;
 
 	void Update(void);
-	
+
+	void normalizeGeoCoordinates(void);
+
 public:
 	AircraftInstruments(unsigned int uLabel,
 		const DofOwner *pDO, const StructNode* pN,
-		const Mat3x3 &R, flag fOut);
+		const Mat3x3 &R, flag fOut, doublereal initLong, doublereal initLat, doublereal earth_radius);
 	virtual ~AircraftInstruments(void);
-	
+
 	/* Scrive il contributo dell'elemento al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
-	
+
 	/* Tipo dell'elemento (usato per debug ecc.) */
 	virtual Elem::Type GetElemType(void) const;
-	
+
 	/* funzioni proprie */
-	
+
 	/*
 	 * output; si assume che ogni tipo di elemento sappia, attraverso
 	 * l'OutputHandler, dove scrivere il proprio output
 	 */
 	virtual void Output(OutputHandler& OH) const;
-	
+
 	/* Tipo di elemento aerodinamico */
 	virtual AerodynamicElem::Type GetAerodynamicElemType(void) const {
 		return AerodynamicElem::AIRCRAFTINSTRUMENTS;
 	};
-	
+
 	/* Dimensioni del workspace */
 	virtual void
 	WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
-	
+
 	/* assemblaggio jacobiano */
-	virtual VariableSubMatrixHandler& 
+	virtual VariableSubMatrixHandler&
 	AssJac(VariableSubMatrixHandler& WorkMat,
 	       doublereal /* dCoef */ ,
 	       const VectorHandler& /* XCurr */ ,
 	       const VectorHandler& /* XPrimeCurr */ );
-	
+
 	/* assemblaggio residuo */
 	virtual SubVectorHandler&
 	AssRes(SubVectorHandler& WorkVec,
 	       doublereal dCoef,
 	       const VectorHandler& XCurr,
 	       const VectorHandler& XPrimeCurr);
-	
+
 	/* Dati privati */
 	virtual unsigned int iGetNumPrivData(void) const;
 	virtual unsigned int iGetPrivDataIdx(const char *s) const;
@@ -122,7 +131,7 @@ public:
 	 */
 	virtual void
 	GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
-	
+
 	/* ************************************************ */
 };
 
@@ -134,4 +143,3 @@ ReadAircraftInstruments(DataManager* pDM, MBDynParser& HP,
 	const DofOwner *pDO, unsigned int uLabel);
 
 #endif // INSTRUMENTS_H
-
