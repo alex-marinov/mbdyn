@@ -1320,6 +1320,18 @@ ReadJoint(DataManager* pDM,
 				DEBUGCOUT("Node 2 reference frame q:" << std::endl << p << std::endl);
 			}
 		}
+		
+		BasicFriction *bf = 0;
+		BasicShapeCoefficient *bsh = 0;
+		doublereal preload = 0.;
+		if (HP.IsKeyWord("friction")) {
+			//~ r = HP.GetReal();
+			if (HP.IsKeyWord("preload")) {
+				preload = HP.GetReal();
+			}
+			bf = ParseFriction(HP,pDM);
+			bsh = ParseShapeCoefficient(HP);
+		}
 
 		flag fOut = pDM->fReadOutput(HP, Elem::JOINT);
 
@@ -1327,12 +1339,12 @@ ReadJoint(DataManager* pDM,
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				InLineWithOffsetJoint,
 				InLineWithOffsetJoint(uLabel, pDO,
-					pNode1, pNode2, R, p, q, fOut));
+					pNode1, pNode2, R, p, q, fOut));  /// TODO: friction to add...
 		} else {
 			SAFENEWWITHCONSTRUCTOR(pEl,
 				InLineJoint,
 				InLineJoint(uLabel, pDO,
-					pNode1, pNode2, R, p, fOut));
+					pNode1, pNode2, R, p, fOut, preload, bsh, bf));
 		}
 		std::ostream& out = pDM->GetLogFile();
 		out << "inline: " << uLabel

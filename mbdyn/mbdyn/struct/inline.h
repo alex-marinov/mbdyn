@@ -33,6 +33,7 @@
 #define INLINE_H
 
 #include <joint.h>
+#include "friction.h"
 
 /* InLineJoint - begin */
 
@@ -46,11 +47,23 @@ class InLineJoint : virtual public Elem, public Joint {
    
    Vec3 F;
    
+   /* friction related data */
+   BasicShapeCoefficient *const Sh_c;
+   BasicFriction *const fc;
+   const doublereal preF;
+   doublereal F3;
+   static const unsigned int NumSelfDof;
+   static const unsigned int NumDof;
+   /* end of friction related data */
+   
  public:
    /* Costruttore */
    InLineJoint(unsigned int uL, const DofOwner* pDO,
 	       const StructNode* pN1, const StructNode* pN2, 
-	       const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut);
+	       const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut,
+	       const doublereal pref = 0.,
+	       BasicShapeCoefficient *const sh = 0,
+	       BasicFriction *const f = 0);
    
    ~InLineJoint(void);
 
@@ -62,18 +75,17 @@ class InLineJoint : virtual public Elem, public Joint {
    /* Contributo al file di restart */
    virtual std::ostream& Restart(std::ostream& out) const;
 
-   virtual unsigned int iGetNumDof(void) const { 
-      return 2;
-   };
+   virtual unsigned int iGetNumDof(void) const;
       
-   virtual DofOrder::Order GetDofType(unsigned int i) const {
-      ASSERT(i >= 0 && i < 2);
-      return DofOrder::ALGEBRAIC;
-   };
+   virtual DofOrder::Order GetDofType(unsigned int i) const;
    
    virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const { 
-      *piNumRows = 12+2;
-      *piNumCols = 12+2; 
+      *piNumRows = NumDof;
+      *piNumCols = NumDof; 
+      if (fc) {
+          *piNumRows += fc->iGetNumDof();
+          *piNumCols += fc->iGetNumDof();
+      } 
    };
    
    VariableSubMatrixHandler& AssJac(VariableSubMatrixHandler& WorkMat,

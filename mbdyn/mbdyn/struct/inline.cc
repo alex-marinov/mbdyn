@@ -35,12 +35,19 @@
 
 /* InLineJoint - begin */
 
+const unsigned int InLineJoint::NumSelfDof(2);
+const unsigned int InLineJoint::NumDof(14);
+
 /* Costruttore non banale */
 InLineJoint::InLineJoint(unsigned int uL, const DofOwner* pDO,
 			 const StructNode* pN1, const StructNode* pN2, 
-			 const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut)
+			 const Mat3x3& RvTmp, const Vec3& pTmp, flag fOut,
+          const doublereal pref,
+          BasicShapeCoefficient *const sh,
+          BasicFriction *const f)
 : Elem(uL, fOut), Joint(uL, pDO, fOut),
-pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(Zero3)
+pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(Zero3),
+preF(pref), Sh_c(sh), fc(f)
 {
    NO_OP;
 };
@@ -48,16 +55,34 @@ pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(Zero3)
    
 InLineJoint::~InLineJoint(void)
 {
-   NO_OP;
+	if (Sh_c) {
+		delete Sh_c;
+	}
+
+	if (fc) {
+		delete fc;
+	}
 }
 
+DofOrder::Order
+InLineJoint::GetDofType(unsigned int i) const {
+   ASSERT(i >= 0 && i < iGetNumDof());
+   if (i<NumSelfDof) {
+       return DofOrder::ALGEBRAIC; 
+   } else {
+       return fc->GetDofType(i-NumSelfDof);
+   }
+};
 
 DofOrder::Order
 InLineJoint::GetEqType(unsigned int i) const
 {
 	ASSERTMSGBREAK(i < iGetNumDof(),
 		"INDEX ERROR in InLineJoint::GetEqType");
-	return DofOrder::ALGEBRAIC;
+   if (i<NumSelfDof) {
+      return DofOrder::ALGEBRAIC;
+   }
+	return fc->GetEqType(i-NumSelfDof);
 }
 
 
@@ -72,14 +97,11 @@ std::ostream& InLineJoint::Restart(std::ostream& out) const
 VariableSubMatrixHandler& 
 InLineJoint::AssJac(VariableSubMatrixHandler& WorkMat,
 		    doublereal dCoef,
-		    const VectorHandler& /* XCurr */ ,
-		    const VectorHandler& /* XPrimeCurr */ )
+		    const VectorHandler& XCurr,
+		    const VectorHandler& XPrimeCurr)
 {
    DEBUGCOUTFNAME("InLineJoint::AssJac");
-   SparseSubMatrixHandler& WM = WorkMat.SetSparse();
-   
-   WM.ResizeReset(69, 0);
-   
+
    integer iNode1FirstPosIndex = pNode1->iGetFirstPositionIndex();
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstPosIndex = pNode2->iGetFirstPositionIndex();
@@ -89,58 +111,109 @@ InLineJoint::AssJac(VariableSubMatrixHandler& WorkMat,
    Vec3 x2mx1(pNode2->GetXCurr()-pNode1->GetXCurr());
    Mat3x3 RvTmp(pNode1->GetRRef()*Rv);
    Vec3 FTmp(RvTmp*(F*dCoef));
-   
-   
    Vec3 Tmp1_1(RvTmp.GetVec(1).Cross(x2mx1));
    Vec3 Tmp1_2(RvTmp.GetVec(2).Cross(x2mx1));
-   for(int iCnt = 1; iCnt <= 3; iCnt++) {
-      doublereal d = RvTmp.dGet(iCnt, 1);
-      WM.PutItem(iCnt, iNode1FirstMomIndex+iCnt,
-		  iFirstReactionIndex+1, -d);
-      WM.PutItem(3+iCnt, iNode2FirstMomIndex+iCnt,
-		  iFirstReactionIndex+1, d);      
-      
-      WM.PutItem(6+iCnt, iFirstReactionIndex+1,
-		  iNode1FirstPosIndex+iCnt, -d);
-      WM.PutItem(9+iCnt, iFirstReactionIndex+1,
-		  iNode2FirstPosIndex+iCnt, d);
-      
-      d = RvTmp.dGet(iCnt, 2);
-      WM.PutItem(12+iCnt, iNode1FirstMomIndex+iCnt,
-		  iFirstReactionIndex+2, -d);
-      WM.PutItem(15+iCnt, iNode2FirstMomIndex+iCnt,
-		  iFirstReactionIndex+2, d);      
-      
-      WM.PutItem(18+iCnt, iFirstReactionIndex+2,
-		  iNode1FirstPosIndex+iCnt, -d);
-      WM.PutItem(21+iCnt, iFirstReactionIndex+2,
-		  iNode2FirstPosIndex+iCnt, d);
 
-      d = Tmp1_1.dGet(iCnt);
-      WM.PutItem(24+iCnt, iNode1FirstMomIndex+3+iCnt,
-		  iFirstReactionIndex+1, d);
-      
-      WM.PutItem(27+iCnt, iFirstReactionIndex+1,
-		  iNode1FirstPosIndex+3+iCnt, d);
-      
-      d = Tmp1_2.dGet(iCnt);
-      WM.PutItem(30+iCnt, iNode1FirstMomIndex+3+iCnt,
-		  iFirstReactionIndex+2, d);
-      
-      WM.PutItem(33+iCnt, iFirstReactionIndex+2,
-		  iNode1FirstPosIndex+3+iCnt, d);
+   /* Full matrix is required for the use of ExpandableRowVectors */
+   FullSubMatrixHandler& WM = WorkMat.SetFull();
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WM.ResizeReset(iNumRows, iNumCols);
+
+   /* Setta gli indici delle equazioni */
+   for (unsigned int iCnt = 1; iCnt <= 6; iCnt++) {
+      WM.PutRowIndex(iCnt, iNode1FirstMomIndex+iCnt);
+      WM.PutColIndex(iCnt, iNode1FirstPosIndex+iCnt);
+      WM.PutRowIndex(6+iCnt, iNode2FirstMomIndex+iCnt);
+      WM.PutColIndex(6+iCnt, iNode2FirstPosIndex+iCnt);
    }
    
-   WM.PutCross(36+1, iNode1FirstMomIndex,
-		iNode1FirstPosIndex+3, FTmp);
-   WM.PutCross(42+1, iNode1FirstMomIndex+3,
-		iNode1FirstPosIndex, -FTmp);
-   WM.PutMat3x3(48+1, iNode1FirstMomIndex+3,		
-		iNode1FirstPosIndex+3, Mat3x3(MatCrossCross, x2mx1, FTmp));
-   WM.PutCross(57+1, iNode1FirstMomIndex+3,
-		iNode2FirstPosIndex, FTmp);
-   WM.PutCross(63+1, iNode2FirstMomIndex,
-		iNode2FirstPosIndex+3, -FTmp);
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) {        // iGet gives self DOFs
+      WM.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+      WM.PutColIndex(12+iCnt, iFirstReactionIndex+iCnt);
+   }
+   
+   for(int iCnt = 1; iCnt <= 3; iCnt++) {
+      doublereal d = RvTmp.dGet(iCnt, 1);
+      WM.PutCoef(iCnt, 12+1, -d);
+      WM.PutCoef(6+iCnt, 12+1, d);	
+      
+      WM.PutCoef(12+1, iCnt, -d);
+      WM.PutCoef(12+1, 6+iCnt, d);
+      
+      d = RvTmp.dGet(iCnt, 2);
+      WM.PutCoef(iCnt, 12+2, -d);
+      WM.PutCoef(6+iCnt, 12+2, d);	
+      
+      WM.PutCoef(12+2, iCnt, -d);
+      WM.PutCoef(12+2, 6+iCnt, d);
+
+      d = Tmp1_1.dGet(iCnt);
+      WM.PutCoef(3+iCnt, 12+1, d);
+      
+      WM.PutCoef(12+1, 3+iCnt, d);
+      
+      d = Tmp1_2.dGet(iCnt);
+      WM.PutCoef(3+iCnt, 12+2, d);
+      
+      WM.PutCoef(12+2, 3+iCnt, d);
+      }
+      
+   WM.PutCross(0, 3, FTmp);  // TODO: change putcross FTmp signs back once FullMat putcross is fixed!
+   WM.PutCross(3, 0, -FTmp);
+   WM.Put(4, 4, Mat3x3(MatCrossCross, x2mx1, FTmp));
+   WM.PutCross(3, 6, FTmp);
+   WM.PutCross(6, 6+3, -FTmp);
+   
+   if (fc) {
+       // friction specific contributions:     
+       Vec3 e3a(RvTmp.GetVec(3));
+       //retrieve friction coef
+       doublereal f = fc->fc();
+       //shape function
+       doublereal shc = Sh_c->Sh_c();
+       //compute relative velocity
+       doublereal v = (pNode1->GetVCurr()-pNode2->GetVCurr()).Dot(e3a);
+       //reaction norm
+       doublereal modF = std::max(F.Norm(), preF); // F is not updated inside AssJac?
+       //reaction moment
+   //doublereal M3 = shc*modF*r;
+   
+       ExpandableRowVector dfc;
+       ExpandableRowVector dF;
+       ExpandableRowVector dv;
+       //variation of reaction force
+       dF.ReDim(3);
+       if ((modF == 0.) or (F.Norm() < preF)) {
+           dF.Set(Vec3(Zero3),1,12+1); // dF/d(13) ? = dF/d(1st reaction) ?
+       } else {
+           dF.Set(F/modF,1,12+1);
+       }
+       //variation of relative velocity
+       dv.ReDim(6);
+   
+       dv.Set(e3a,1, 0+1);
+       dv.Set(-e3a,4, 6+1);
+
+       //assemble friction states
+       fc->AssJac(WM,dfc,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,dCoef,modF,v,
+   	         XCurr,XPrimeCurr,dF,dv);
+       ExpandableMatrix dF3;
+       ExpandableRowVector dShc;
+       //compute variation of shape function
+       Sh_c->dSh_c(dShc,f,modF,v,dfc,dF,dv);
+       //variation of force component
+       dF3.ReDim(3,2);
+       dF3.SetBlockDim(1,1);
+       dF3.SetBlockDim(2,1);
+       dF3.Set(e3a*shc,1,1); dF3.Link(1,&dF); // dF3/dF * dF/d(pos1?)
+       dF3.Set(e3a*modF,1,2); dF3.Link(2,&dShc); // dF3/dShc * dShc/d(?)
+       //assemble first node variation of force component
+       dF3.Add(WM, 1, 1.);
+       //assemble second node variation of force component
+       dF3.Sub(WM, 6+1, 1.);
+   }
    
    return WorkMat;
 }
@@ -150,10 +223,13 @@ SubVectorHandler&
 InLineJoint::AssRes(SubVectorHandler& WorkVec,
 		    doublereal dCoef,
 		    const VectorHandler& XCurr, 
-		    const VectorHandler& /* XPrimeCurr */ )
+		    const VectorHandler& XPrimeCurr )
 {
    DEBUGCOUTFNAME("InLineJoint::AssRes");
-   WorkVec.ResizeReset(14);
+   integer iNumRows = 0;
+   integer iNumCols = 0;
+   WorkSpaceDim(&iNumRows, &iNumCols);
+   WorkVec.ResizeReset(iNumRows);
  
    integer iNode1FirstMomIndex = pNode1->iGetFirstMomentumIndex();
    integer iNode2FirstMomIndex = pNode2->iGetFirstMomentumIndex();
@@ -166,8 +242,9 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    }
    
    /* Indice equazione vincolo */
-   WorkVec.PutRowIndex(13, iFirstReactionIndex+1);
-   WorkVec.PutRowIndex(14, iFirstReactionIndex+2);
+   for (unsigned int iCnt = 1; iCnt <= iGetNumDof(); iCnt++) { // iGet gives self DOFs
+      WorkVec.PutRowIndex(12+iCnt, iFirstReactionIndex+iCnt);
+   }
 
    Vec3 x2mx1(pNode2->GetXCurr()-pNode1->GetXCurr());
    Mat3x3 RvTmp = pNode1->GetRCurr()*Rv;
@@ -184,9 +261,39 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
    ASSERT(dCoef != 0.);
    WorkVec.PutCoef(13, (Rv.GetVec(1).Dot(p)-RvTmp.GetVec(1).Dot(x2mx1))/dCoef);
    WorkVec.PutCoef(14, (Rv.GetVec(2).Dot(p)-RvTmp.GetVec(2).Dot(x2mx1))/dCoef);
+   
+   if (fc) {
+      bool ChangeJac(false);
+
+      Vec3 e3a(RvTmp.GetVec(3));
+      doublereal v = (pNode1->GetVCurr()-pNode2->GetVCurr()).Dot(e3a);
+      doublereal modF = std::max(F.Norm(), preF);
+      try {
+          fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
+      }
+      catch (Elem::ChangedEquationStructure) {
+          ChangeJac = true;
+      }
+      doublereal f = fc->fc();
+      doublereal shc = Sh_c->Sh_c(f,modF,v);
+      F3 = shc*modF;  // or M(3) with a Vec3 ?
+      WorkVec.Sub(1,e3a*F3); // subtracting a vector
+      WorkVec.Add(7,e3a*F3); // adding a vector
+      if (ChangeJac) {
+          throw Elem::ChangedEquationStructure(MBDYN_EXCEPT_ARGS);
+      }
+   }
 
    return WorkVec;
 }
+
+unsigned int InLineJoint::iGetNumDof(void) const {
+   unsigned int i = NumSelfDof;
+   if (fc) {
+       i+=fc->iGetNumDof();
+   } 
+   return i;
+};
 
 void
 InLineJoint::OutputPrepare(OutputHandler& OH)
@@ -217,9 +324,13 @@ void InLineJoint::Output(OutputHandler& OH) const
 
 		if (OH.UseText(OutputHandler::JOINTS)) {
 
-		  Joint::Output(OH.Joints(), "inline", GetLabel(),
-				F, Zero3, RvTmp*F, Zero3) << std::endl;
-		  // TODO: output relative position and orientation
+			std::ostream &of = Joint::Output(OH.Joints(), "inline", GetLabel(),
+				F, Zero3, RvTmp*F, Zero3);
+		  	// TODO: output relative position and orientation
+			if (fc) {
+				of << " " << F3 << " " << fc->fc();
+			}
+			of << std::endl;
 		}
    }   
 }
