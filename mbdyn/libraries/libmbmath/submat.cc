@@ -588,14 +588,14 @@ FullSubMatrixHandler::PutCross(integer iFirstRow, integer iFirstCol,
 
 	const doublereal *pdv = v.pGetVec();
 
-	ppdColsm1[iFirstCol + 1][ iFirstRow + 2] = -pdv[V3];
-	ppdColsm1[iFirstCol + 1][ iFirstRow + 3] = pdv[V2];
+	ppdColsm1[iFirstCol + 1][ iFirstRow + 2] = pdv[V3];
+	ppdColsm1[iFirstCol + 1][ iFirstRow + 3] = -pdv[V2];
 
-	ppdColsm1[iFirstCol + 2][ iFirstRow + 1] = pdv[V3];
-	ppdColsm1[iFirstCol + 2][ iFirstRow + 3] = -pdv[V1];
+	ppdColsm1[iFirstCol + 2][ iFirstRow + 1] = -pdv[V3];
+	ppdColsm1[iFirstCol + 2][ iFirstRow + 3] = pdv[V1];
 
-	ppdColsm1[iFirstCol + 3][ iFirstRow + 1] = -pdv[V2];
-	ppdColsm1[iFirstCol + 3][ iFirstRow + 2] = pdv[V1];
+	ppdColsm1[iFirstCol + 3][ iFirstRow + 1] = pdv[V2];
+	ppdColsm1[iFirstCol + 3][ iFirstRow + 2] = -pdv[V1];
 }
 
 
