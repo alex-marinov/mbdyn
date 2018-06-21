@@ -320,9 +320,11 @@ the higher the precision, the larger the files and the slower the simulation.
     \bnt{card} ::= \kw{output precision} : \bnt{number_of_digits} ;
 \end{Verbatim}
 %\end{verbatim}
-This will no longer be an issue when the binary output is implemented;
-in that case, the output format will likely be fixed (float), or
-an optional extended format (double) will be allowed.
+%~ This will no longer be an issue when the binary output is implemented;
+%~ in that case, the output format will likely be fixed (float), or
+%~ an optional extended format (double) will be allowed.
+This is not an issue when using the NetCFD output, which returns double
+precision and is faster. See Section~\ref{sec:NETCDF} for more info.
 
 \subsection{Output Results}\label{sec:CONTROLDATA:NETCDF}
 This deprecated statement was intended for producing output in formats
