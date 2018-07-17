@@ -43,3 +43,11 @@ python MBDynPreprocess.py input_fine_name
 
 The preprocessor should work both with python2 and python3. Feel free
 to suggest improvements, corrections and bug fixes.
+
+By default, the preprocessor echoes the python directives in the input file it
+produces. This behavior can be disabled with
+
+python MBDynPreprocess.py input_file_name off
+
+valid disabling parameters are 'false', 'no', 'off' and 0. All strings can be
+input in uppercase or lowercase, or with just the first letter uppercase.

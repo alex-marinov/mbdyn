@@ -29,10 +29,11 @@
 
 
 
-#COPYRIGHT (C) 2016
+#COPYRIGHT (C) 2016-2018
 #
 #Marco Morandini <marco.morandini@polimi.it>
 #Mattia Alioli   <mattia.alioli@polimi.it>
+#Andrea Zanoni   <andrea.zanoni@polimi.it>
 #
 #This library is free software; you can redistribute it and/or
 #modify it under the terms of the GNU Lesser General Public
@@ -48,7 +49,6 @@
 #License along with this library; if not, write to the Free Software
 #Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
 
-
 from __future__ import print_function, division
 #import subprocess
 import re
@@ -59,7 +59,11 @@ else:
         import builtins
 from MBDynLib import *
 
-script, filename = sys.argv
+if len(sys.argv) == 2:
+    script, filename = sys.argv
+    echo = True
+elif len(sys.argv) == 3:
+    script, filename, echo_str = sys.argv
 preprocessing_include = re.compile("[\s]*include:")
 
 nodes = []
@@ -68,13 +72,17 @@ joints = []
 shells = []
 beams = []
 
+if echo_str in ['False', 'false', 'FALSE', 'no', 'No', 'NO', 'off', 'Off', 'OFF', '0']:
+    echo = False
+
 class PreProc:
-    def __init__(self):
+    def __init__(self, echo):
         self.lin = None
         self.lins = []
         self.preprocessing = False
         self.preprocessing_start_token = re.compile("#beginpreprocess")
         self.preprocessing_end_token = re.compile("#endpreprocess")
+        self.echo = echo
         self.proprocessingdirectivefile = None
         self.proprocessingdirectiveline = None
 
@@ -88,7 +96,8 @@ class PreProc:
         self.proprocessingdirectivefile = filename
         self.proprocessingdirectiveline = linnumb
         self.lins = []        
-        print('#python #beginpreprocess at ' + filename + ':' + str(linnumb) + '\n')
+        if self.echo:
+            print('#python #beginpreprocess at ' + filename + ':' + str(linnumb) + '\n')
             
     def print_end(self, preproc, filename, linnumb):
         assert preproc, (
@@ -99,13 +108,15 @@ class PreProc:
         self.proprocessingdirectivefile = None
         self.proprocessingdirectiveline = None
         self.lins = '\n'.join(self.lins)
-        print('#python #endpreprocess at ' + filename + ':' + str(linnumb) + '\n')
+        if self.echo:
+            print('#python #endpreprocess at ' + filename + ':' + str(linnumb) + '\n')
 
     def print_p(self, preproc, linx):
         self.lin = linx
         if preproc:
-             print('#python ' + str(len(self.lins) + 1) + ' # ' + self.lin.replace('\n', ' ').replace('\r', ''))
-             self.lins.append(self.lin.replace('\n', ' ').replace('\r', ''))
+            if self.echo:
+                print('#python ' + str(len(self.lins) + 1) + ' # ' + self.lin.replace('\n', ' ').replace('\r', ''))
+            self.lins.append(self.lin.replace('\n', ' ').replace('\r', ''))
         else:
             print(self.lin.replace('\n', ' ').replace('\r', ''))
 
@@ -142,7 +153,7 @@ def PreprocessMBDynFile(pp, fn):
                 pp.compile(ln, fn, lineno, globals())
             lineno += 1
 
-pp = PreProc()
+pp = PreProc(echo)
 PreprocessMBDynFile(pp, filename)
 
 
