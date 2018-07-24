@@ -125,7 +125,6 @@ AircraftInstruments::Update(void)
 	with world "y".
 	In that case atan2 generates a domain error (both arguments zero)*/
 
-
 	// x axis of the body frame aligned with "world" y: attitude is 0
 	doublereal dAttitudeCurr = std::asin(e1(3));
 	if (std::abs(dAttitudeCurr - dAttitudePrev) >= (M_PI_2 - toll)) {
@@ -135,29 +134,13 @@ AircraftInstruments::Update(void)
 	}
 	dAttitudePrev = dAttitudeCurr;
 	
-	/* ------- OLD --------*/
-	// x axis of the body frame aligned with "world" y: attitude is 0
-	/*
-	if (std::abs(e1(3)) <= toll && std::abs(e1(1)) <= toll) {
-		dMeasure[ATTITUDE] = 0;
-
-	} else {
-		dMeasure[ATTITUDE] = std::atan2(e1(3), e1(1));
-	}
-	/*
-	/*-------------------------*/
-
-
-
 	/* bank */
 
 	/* NB: maybe this new version should be fine for every possible spatial orientation of the body frame.
 	Previous calculation of BANK did not take into account when y axis of the body frame is aligned with "world" x.
 	In that case atan2 generates a domain error (both arguments zero) */
 	
-
 	// y axis of the body frame aligned with "world" x: bank is 0
-	//doublereal dBankCurr = std::asin(e2(3)); //GIGI_OLD
 	doublereal dBankCurr = std::asin(-e2(3)); 
 	if (std::abs(dBankCurr - dBankPrev) >= (M_PI_2 - toll)) {
 		dMeasure[BANK] = dBankCurr + sign(dBankPrev)*M_PI_2;
@@ -166,21 +149,6 @@ AircraftInstruments::Update(void)
 	}
 	dBankPrev = dBankCurr;
 	
-
-
-	/* --------- OLD ------------*/
-	// y axis of the body frame aligned with "world" x: bank is 0
-	/*	
-	if (std::abs(e2(3)) <= toll && std::abs(e2(2)) <= toll) {
-		dMeasure[BANK] = 0.;
-
-	} else {
-		dMeasure[BANK] = -std::atan2(e2(3), e2(2)); //bank > 0 if aircraft turns right
-	}
-	*/
- 	/* ------------------------- */
-	
-
 	// turn (vertical component of angular velocity)
 	/* Luca Conti edits */
 	dMeasure[TURN] = Omega(3)*60; /* turn rate in rad/min */
@@ -205,28 +173,6 @@ AircraftInstruments::Update(void)
 	dMeasure[AOA] = -std::atan2(VecTmp(3), VecTmp(1));
 
 	// heading
-	/* Luca Conti edits
-	HEADING grows clockwise about z axis of "world" reference
-	moving towards N: HEADING = 0
-	moving towards E: HEADING = PI/2
-	moving towards S: HEADING = PI
-	moving towards W: HEADING = 3/2*PI
-	*/
-	
-
-
-	// OLD : 
-	/* x axis body frame aligned with vertical direction! aircraft nose pointing upward or downward */
-	//doublereal dHeadingCurr = -std::asin(e1(2));
-
-	//if (std::abs(dHeadingCurr - dHeadingPrev) >= (M_PI_2 - toll)) {
-	//	dMeasure[HEADING] = dHeadingCurr + sign(dHeadingPrev)*M_PI_2;
-	//} else {
-	//	dMeasure[HEADING] = dHeadingCurr;
-	//}
-
-	//dHeadingPrev = dHeadingCurr;
-
 
 	/* x axis body frame aligned with vertical direction! aircraft nose pointing upward or downward */
 	if (std::abs(e1(2)) <= toll &&  std::abs(e1(1)) <= toll) {
