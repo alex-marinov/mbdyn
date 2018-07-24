@@ -62,17 +62,12 @@ from MBDynLib import *
 echo = True
 filename = ''
 
-print('Number of arguments: {}'.format(len(sys.argv)))
-
 if len(sys.argv) == 2:
     script, filename = sys.argv
-    print('script = {}, filename = {}'.format(script, filename))
 elif len(sys.argv) == 3:
     script, filename, echo_str = sys.argv
     if echo_str in ['False', 'false', 'FALSE', 'no', 'No', 'NO', 'off', 'Off', 'OFF', '0']:
         echo = False
-    print('script = {}, filename = {}, echo_str = {}'.format(script, filename,
-        echo_str))
 preprocessing_include = re.compile("[\s]*include:")
 
 nodes = []
