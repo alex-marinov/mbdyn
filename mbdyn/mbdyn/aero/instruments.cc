@@ -36,7 +36,7 @@
 #include "dataman.h"
 #include "instruments.h"
 #include <stdlib.h>
-#include <math.h>
+#include <cmath>
 
 AircraftInstruments::AircraftInstruments(unsigned int uLabel,
 	const DofOwner *pDO,
@@ -45,7 +45,10 @@ AircraftInstruments::AircraftInstruments(unsigned int uLabel,
 AerodynamicElem(uLabel, pDO, fOut),
 pNode(pN),
 Rh(R),
-earth_radius(earth_radius)
+earth_radius(earth_radius),
+dAttitudePrev(0.),
+dBankPrev(0.)
+//,dHeadingPrev(0.)
 {
 	memset(&dMeasure[0], 0, sizeof(dMeasure));
 	/*Luca Conti edits--------------------------------------------------------*/
@@ -105,23 +108,78 @@ AircraftInstruments::Update(void)
 	}
 
 	// airspeed (norm of aircraft + wind velocity)
-	dMeasure[AIRSPEED] = VV.Norm();
+	dMeasure[AIRSPEED] = VV.Norm(); //m/s
 
 	// groundspeed (norm of horizontal component of velocity at aircraft node)
 	VecTmp = V;
 	VecTmp(3) = 0.;
-	dMeasure[GROUNDSPEED] = VecTmp.Norm();
+	dMeasure[GROUNDSPEED] = VecTmp.Norm();  //m/s
 
 	// altitude (vertical component of node position)
-	dMeasure[ALTITUDE] = X(3);
+	dMeasure[ALTITUDE] = X(3); 
 
 	/* attitude */
 
+	/*NB: maybe this new version should be fine for every possible spatial orientation of the body frame.
+	Previous calculation of ATTITUDE did not take into account when x axis of the body frame is aligned
+	with world "y".
+	In that case atan2 generates a domain error (both arguments zero)*/
+
+
 	// x axis of the body frame aligned with "world" y: attitude is 0
-	dMeasure[ATTITUDE] = std::asin(e1(3));
+	doublereal dAttitudeCurr = std::asin(e1(3));
+	if (std::abs(dAttitudeCurr - dAttitudePrev) >= (M_PI_2 - toll)) {
+		dMeasure[ATTITUDE] = dAttitudeCurr + sign(dAttitudePrev)*M_PI_2;
+	} else {
+		dMeasure[ATTITUDE] = dAttitudeCurr;
+	}
+	dAttitudePrev = dAttitudeCurr;
+	
+	/* ------- OLD --------*/
+	// x axis of the body frame aligned with "world" y: attitude is 0
+	/*
+	if (std::abs(e1(3)) <= toll && std::abs(e1(1)) <= toll) {
+		dMeasure[ATTITUDE] = 0;
+
+	} else {
+		dMeasure[ATTITUDE] = std::atan2(e1(3), e1(1));
+	}
+	/*
+	/*-------------------------*/
+
+
 
 	/* bank */
-	dMeasure[BANK] = std::asin(e2(3));
+
+	/* NB: maybe this new version should be fine for every possible spatial orientation of the body frame.
+	Previous calculation of BANK did not take into account when y axis of the body frame is aligned with "world" x.
+	In that case atan2 generates a domain error (both arguments zero) */
+	
+
+	// y axis of the body frame aligned with "world" x: bank is 0
+	//doublereal dBankCurr = std::asin(e2(3)); //GIGI_OLD
+	doublereal dBankCurr = std::asin(-e2(3)); 
+	if (std::abs(dBankCurr - dBankPrev) >= (M_PI_2 - toll)) {
+		dMeasure[BANK] = dBankCurr + sign(dBankPrev)*M_PI_2;
+	} else {
+		dMeasure[BANK] = dBankCurr;
+	}
+	dBankPrev = dBankCurr;
+	
+
+
+	/* --------- OLD ------------*/
+	// y axis of the body frame aligned with "world" x: bank is 0
+	/*	
+	if (std::abs(e2(3)) <= toll && std::abs(e2(2)) <= toll) {
+		dMeasure[BANK] = 0.;
+
+	} else {
+		dMeasure[BANK] = -std::atan2(e2(3), e2(2)); //bank > 0 if aircraft turns right
+	}
+	*/
+ 	/* ------------------------- */
+	
 
 	// turn (vertical component of angular velocity)
 	/* Luca Conti edits */
@@ -130,7 +188,7 @@ AircraftInstruments::Update(void)
 	// slip
 	/*Luca Conti edits-----------------*/
 	// velocity aligned with z body frame! aircraft sliding vertically... strange, but might occur
-	if (abs(VV(2)) <= toll && abs(VV(1)) <= toll) {		//Di Lallo Luigi edits
+	if (std::abs(VV(2)) <= toll && std::abs(VV(1)) <= toll) {		//Di Lallo Luigi edits
 		dMeasure[SLIP] = 0;
 
 	} else {
@@ -144,7 +202,7 @@ AircraftInstruments::Update(void)
 
 	// angle of attack
 	VecTmp = R.MulTV(VV);
-	dMeasure[AOA] = std::atan2(VecTmp(3), VecTmp(1));
+	dMeasure[AOA] = -std::atan2(VecTmp(3), VecTmp(1));
 
 	// heading
 	/* Luca Conti edits
@@ -154,8 +212,24 @@ AircraftInstruments::Update(void)
 	moving towards S: HEADING = PI
 	moving towards W: HEADING = 3/2*PI
 	*/
+	
+
+
+	// OLD : 
 	/* x axis body frame aligned with vertical direction! aircraft nose pointing upward or downward */
-	if (abs(e1(2)) <= toll && abs(e1(1)) <= toll) {				//Di Lallo Luigi edits
+	//doublereal dHeadingCurr = -std::asin(e1(2));
+
+	//if (std::abs(dHeadingCurr - dHeadingPrev) >= (M_PI_2 - toll)) {
+	//	dMeasure[HEADING] = dHeadingCurr + sign(dHeadingPrev)*M_PI_2;
+	//} else {
+	//	dMeasure[HEADING] = dHeadingCurr;
+	//}
+
+	//dHeadingPrev = dHeadingCurr;
+
+
+	/* x axis body frame aligned with vertical direction! aircraft nose pointing upward or downward */
+	if (std::abs(e1(2)) <= toll &&  std::abs(e1(1)) <= toll) {
 		dMeasure[HEADING] = 0;
 
 	} else {
@@ -165,6 +239,7 @@ AircraftInstruments::Update(void)
 	while (dMeasure[HEADING] < 0) {
 		dMeasure[HEADING] += 2*M_PI;
 	}
+
 
 	// longitude
 	/* Luca Conti edits-------------------------------------------------- */
@@ -194,7 +269,7 @@ AircraftInstruments::normalizeGeoCoordinates(void)
 	if (dMeasure[LONGITUDE] > M_PI || dMeasure[LONGITUDE] < -M_PI) {
 		int n = (int)dMeasure[LONGITUDE]/M_PI;
 		if (n % 2 != 0) {
-			dMeasure[LONGITUDE] = dMeasure[LONGITUDE] - (n + abs(n)/n)*M_PI;
+			dMeasure[LONGITUDE] = dMeasure[LONGITUDE] - (n + std::abs(n)/n)*M_PI;
 		} else {
 			dMeasure[LONGITUDE] = dMeasure[LONGITUDE] - n*M_PI;
 		}
@@ -205,12 +280,12 @@ AircraftInstruments::normalizeGeoCoordinates(void)
 		int n = (int) dMeasure[LATITUDE]/M_PI;
 		if (n % 2 != 0) {
 			dMeasure[LATITUDE] = -dMeasure[LATITUDE] + n*M_PI;
-			if (abs(dMeasure[LATITUDE]) > M_PI/2) {
+			if (std::abs(dMeasure[LATITUDE]) > M_PI/2) {
 				dMeasure[LATITUDE] = -dMeasure[LATITUDE] - sign(n)*M_PI;
 			}
 		} else {
 			dMeasure[LATITUDE] = dMeasure[LATITUDE] - n*M_PI;
-			if (abs(dMeasure[LATITUDE]) > M_PI/2) {
+			if (std::abs(dMeasure[LATITUDE]) > M_PI/2) {
 				dMeasure[LATITUDE] = -dMeasure[LATITUDE] + sign(n)*M_PI;
 			}
 		}

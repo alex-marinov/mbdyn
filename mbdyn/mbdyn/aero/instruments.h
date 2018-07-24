@@ -71,6 +71,9 @@ protected:
 	/* Luca Conti edits */
 	// optionally chosen by the user in order to let him use any unit of measurement (set by default in meters if not differently specified)
 	doublereal earth_radius;
+	doublereal dAttitudePrev;
+	doublereal dBankPrev;
+	//doublereal dHeadingPrev;
 
 	void Update(void);
 
