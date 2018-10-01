@@ -2057,6 +2057,7 @@ ReadBody(DataManager* pDM, MBDynParser& HP, unsigned int uLabel)
 			 * sia espressa nel centro di massa del corpo, quindi viene
 			 * corretta per l'eventuale offset rispetto al nodo
 			 */
+			// TODO: instead of "inertial" or "node", use "orientation [ , reference, <ref> ] , <mat>"...
 			Mat3x3 JTmp(HP.GetMatRel(RF));
 			DEBUGLCOUT(MYDEBUG_INPUT, "Inertia matrix of mass(" << iCnt
 				<< ") =" << std::endl << JTmp << std::endl);
