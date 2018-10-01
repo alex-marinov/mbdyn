@@ -26,6 +26,6 @@
 #DEFAULT (echo ""; id; echo %{sVv}; date; cat) >> $CVSROOT/CVSROOT/commitlog
 #^mbdyn/		(echo "From: cvs-mbdyn@aero.polimi.it";echo "To: masarati@aero.polimi.it";echo "Subject: [mbdyn-commit] `id -u -n`: %{sVv}";echo "";cat) | /usr/lib/sendmail -f cvs-mbdyn@aero.polimi.it masarati@aero.polimi.it
 #^mbdyn/		(echo "From: cvs-mbdyn@aero.polimi.it";echo "To: mbdyn-commit";echo "Subject: [mbdyn-commit] `id -u -n`: %{sVv}";echo "Reply-To: mbdyn@aero.polimi.it";echo "";cat) | /usr/lib/sendmail -f cvs-mbdyn@aero.polimi.it mbdyn-commit
-^mbdyn/		/usr/bin/cvslog.sh "%{sVv}" | /usr/lib/sendmail -f cvs-mbdyn@aero.polimi.it mbdyn-commit
+#^mbdyn/		/usr/bin/cvslog.sh "%{sVv}" | /usr/lib/sendmail -f cvs-mbdyn@aero.polimi.it mbdyn-commit
 
 
