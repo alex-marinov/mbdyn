@@ -194,11 +194,11 @@ when connected to a rotationless, 3 degree of freedom structural node.
     \bnt{elem_type} ::= \kw{body}
 
     \bnt{normal_arglist} ::= \bnt{node_label} ,
-        \{ \bnt{one_body}
-            | \bnt{one_pointmass}
+        \{ \bnt{one_body} [ , \kw{allow negative mass} ]
+            | \bnt{one_pointmass} [ , \kw{allow negative mass} ]
             | \kw{variable mass} , \bnt{one_vm_body}
-            | [ \kw{condense} , \bnt{num_masses} , ] [ \kw{allow negative mass} , ]
-	      \{ \bnt{one_body} | \bnt{one_pointmass} \} [ , ... ] \}
+            | \kw{condense} , \bnt{num_masses} [ , \kw{allow negative mass} ] ,
+	        \{ \bnt{one_body} | \bnt{one_pointmass} \} [ , ... ] \}
 
     \bnt{one_body} ::=
         (\ty{real}) \bnt{mass} , 
@@ -4549,8 +4549,13 @@ along a line attached to the first node.
 
     \bnt{joint_arglist} ::= 
         \bnt{node_1_label} , 
+<<<<<<< elements.tex
+        \kw{position} , (\hty{Vec3}) \bnt{relative_line_position} ,
+        \kw{orientation} , (\hty{OrientationMatrix}) \bnt{relative_orientation} ,
+=======
         [ \kw{position} , ] (\hty{Vec3}) \bnt{relative_line_position} ,
         [ \kw{orientation} , ] (\hty{OrientationMatrix}) \bnt{relative_orientation} ,
+>>>>>>> 1.359
         \bnt{node_2_label}
         [ , \kw{offset} , (\hty{Vec3}) \bnt{relative_offset} ]
 	[ , \kw{friction} ,
@@ -5956,6 +5961,78 @@ the hint is passed to the Vec3 drive hint parser.
 \item \kw{orientation-drive3} resets the absolute orientation drive;
 the hint is passed to the Vec3 drive hint parser.
 \end{itemize}
+Using \kw{hints} with a \kw{total pin joint} may be tricky.
+For example, when the \kw{position constraint} must be modified,
+it is important to understand what this field indicates.
+In the case of the \kw{total pin joint}, it indicates
+the relative position of the point attached to the node and expressed by the first \kw{position} keyword
+with respect to the absolute position of the point expressed by the second \kw{position} keyword.
+
+Let us assume that the \kw{structural node} labeled \texttt{NODE1} is defined in a given initial position, \texttt{\{X0, Y0, Z0\}}.
+During the analysis, the position of the node changes.  At time \texttt{T1}, the node is ``grabbed''
+by a \kw{total pin joint}, which prescribes a given \emph{displacement} from the location at which the node is grabbed.
+The syntax would be
+\begin{verbatim}
+    driven: 30, string, "Time >= T1",
+        hint, "position-drive3{array, 2,
+            # first vector, position of node at time T1
+            model::xposition(NODE1) - X0,
+                    model::yposition(NODE1) - Y0,
+                    model::zposition(NODE1) - Z0,
+                const, 1.,
+            # second vector, prescribed displacement
+            1., 0., 0.,
+                cosine, T1, 2*pi, 9., half, 0.
+            }",
+    joint: 30, total pin joint,
+        NODE1,
+            position, reference, global, X0, Y0, Z0,
+            position orientation, reference, global, eye,
+            rotation orientation, reference, global, eye,
+        # ground
+            # reference point on ground coincident with node initial position
+            position, reference, global, X0, Y0, Z0,
+            position orientation, reference, global, eye,
+            rotation orientation, reference, global, eye,
+        position constraint, active, active, active,
+            null, # irrelevant, will be overridden by hint
+        orientation constraint, inactive, inactive, inactive,
+            null;
+\end{verbatim}
+That is, an array of 3D \kw{template drive callers}, i.e.\ the sum of 2 vectors, needs to be created.
+The first drive caller is the result of computing the difference between the position
+of the node at the current time step and the initial position; it is a constant vector.
+The second drive caller is the prescribed displacement from the position of the node at time \texttt{T1}.
+
+An alternative way to produce the same result is to define the prescribed relative displacement in terms of an absolute displacement, i.e.
+\begin{verbatim}
+    driven: 30, string, "Time >= T1",
+        hint, "position-drive3{array, 2,
+            # first vector, position of node at time T1
+            model::xposition(NODE1), model::yposition(NODE1), model::zposition(NODE1),
+                const, 1.,
+            # second vector, prescribed displacement
+            1., 0., 0.,
+                cosine, T1, 2*pi, 9., half, 0.
+            }",
+    joint: 30, total pin joint,
+        NODE1,
+            position, reference, global, X0, Y0, Z0,
+            position orientation, reference, global, eye,
+            rotation orientation, reference, global, eye,
+        # ground
+            # reference point on ground in origin rather than node initial position
+            position, reference, global, null,
+            position orientation, reference, global, eye,
+            rotation orientation, reference, global, eye,
+        position constraint, active, active, active,
+            null, # irrelevant, will be overridden by hint
+        orientation constraint, inactive, inactive, inactive,
+            null;
+\end{verbatim}
+Notice that in both cases the prescribed relative position, in the definition of the \kw{total pin joint},
+is irrelevant, since it will be overridden by that defined in the \kw{hint}.
+As such, an arbitrary value, e.g.\ \kw{null}, is used.
 
 
 
