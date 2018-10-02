@@ -303,7 +303,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 		if (m == 0) {
 			silent_cerr("SocketStreamDrive"
 				"(" << uLabel << ", \"" << name << "\"): "
-				"unable to read local path"
+				"unable to read local path "
 				"at line " << HP.GetLineData()
 				<< std::endl);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
