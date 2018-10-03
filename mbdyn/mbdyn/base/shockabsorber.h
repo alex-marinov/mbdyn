@@ -620,7 +620,7 @@ public:
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
 #ifdef USE_NETCDF
-		ASSERT(OH.IsOpen(OutputHadler::NETCDF));
+		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
 			Var_dPressure = OH.CreateVar<doublereal>(name + ".p", "Pa", "Gas pressure");
 			Var_dArea = OH.CreateVar<doublereal>(name + ".A", "m^2", "Metering area");
