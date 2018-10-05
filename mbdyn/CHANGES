@@ -18,6 +18,7 @@ MBDyn 1.X-Devel
 	Bug fixes:
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives
+		- fix initialization (Reinhard Resch)
 
 MBDyn 1.7.3
 	Enhancements:

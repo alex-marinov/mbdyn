@@ -109,8 +109,8 @@ bFirstRes(false)
 	const_cast<Mat3x3&>(RNode[NODE1]) = R1;
 	const_cast<Mat3x3&>(RNode[NODE2]) = R2;
 	const_cast<Mat3x3&>(RNode[NODE3]) = R3;
-	RRef[S_I] = R[S_I] = (Mat3x3&)r_I;
-	RRef[SII] = R[SII] = (Mat3x3&)rII;
+	RPrev[S_I] = RRef[S_I] = R[S_I] = r_I;
+	RPrev[SII] = RRef[SII] = R[SII] = rII;
 
 	pD[S_I] = 0;
 	SAFENEWWITHCONSTRUCTOR(pD[S_I],
@@ -172,8 +172,8 @@ bFirstRes(false)
 	const_cast<Mat3x3&>(RNode[NODE1]) = R1;
 	const_cast<Mat3x3&>(RNode[NODE2]) = R2;
 	const_cast<Mat3x3&>(RNode[NODE3]) = R3;
-	RPrev[S_I] = RRef[S_I] = R[S_I] = const_cast<Mat3x3&>(r_I);
-	RPrev[SII] = RRef[SII] = R[SII] = const_cast<Mat3x3&>(rII);
+	RPrev[S_I] = RRef[S_I] = R[S_I] = r_I;
+	RPrev[SII] = RRef[SII] = R[SII] = rII;
 
 	pD[S_I] = 0;
 	SAFENEWWITHCONSTRUCTOR(pD[S_I],
@@ -230,6 +230,16 @@ Beam::Init(void)
 			xTmp[NODE2],
 			xTmp[NODE3],
 			Beam::Section(iSez));
+
+                DEBUGCOUT("Init" << std::endl);
+                DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+                DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+                DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+                DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+                DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+                DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+                DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+                DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);                
 	}
 }
 
@@ -598,6 +608,16 @@ Beam::AfterConvergence(const VectorHandler& X, const VectorHandler& XP)
 		RPrev[i] = R[i];
 		DefLocPrev[i] = DefLoc[i];
 		pD[i]->AfterConvergence(DefLoc[i]);
+
+                DEBUGCOUT("AfterConvergence" << std::endl);
+                DEBUGCOUT("p[" << i << "]=" << p[i] << std::endl);
+                DEBUGCOUT("g[" << i << "]=" << g[i] << std::endl);
+                DEBUGCOUT("RPrev[" << i << "]=" << RPrev[i] << std::endl);
+                DEBUGCOUT("RRef[" << i << "]=" << RRef[i] << std::endl);
+                DEBUGCOUT("R[" << i << "]=" << R[i] << std::endl);
+                DEBUGCOUT("L[" << i << "]=" << L[i] << std::endl);
+                DEBUGCOUT("DefLoc[" << i << "]=" << DefLoc[i] << std::endl);
+                DEBUGCOUT("Az[" << i << "]=" << Az[i] << std::endl);
 	}
 }
 
@@ -709,6 +729,20 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 
 	if (bFirstRes) {
 		bFirstRes = false; /* AfterPredict ha gia' calcolato tutto */
+
+#ifdef DEBUG
+                for (unsigned int iSez = 0; iSez < NUMSEZ; iSez++) {
+                    DEBUGCOUT("AssStiffnessVec bFirstRes = true" << std::endl);
+                    DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+                    DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+                    DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+                    DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+                    DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+                    DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+                    DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+                    DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);
+                }
+#endif
 	} else {
 		Vec3 gNod[NUMNODES];
 		Vec3 xTmp[NUMNODES];
@@ -751,6 +785,17 @@ Beam::AssStiffnessVec(SubVectorHandler& WorkVec,
 
 			/* Porta le azioni interne nel sistema globale */
 			Az[iSez] = MultRV(AzLoc[iSez], R[iSez]);
+
+                        DEBUGCOUT("AssStiffnessVec bFirstRes = false" << std::endl);
+                        DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+                        DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+                        DEBUGCOUT("RDelta[" << iSez << "]=" << RDelta[iSez] << std::endl);
+                        DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+                        DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+                        DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+                        DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+                        DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+                        DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);
 		}
 	}
 
@@ -977,6 +1022,16 @@ Beam::SetValue(DataManager *pDM,
 		/* Aggiorna il legame costitutivo di riferimento
 		 * (la deformazione e' gia' stata aggiornata dall'ultimo residuo) */
 		DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);
+
+                DEBUGCOUT("SetValue" << std::endl);
+                DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+                DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+                DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+                DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+                DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+                DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+                DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+                DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);
 	}
 
 	bFirstRes = true;
@@ -1038,6 +1093,17 @@ Beam::AfterPredict(VectorHandler& /* X */ ,
 
 		/* Aggiorna il legame costitutivo di riferimento */
 		DRef[iSez] = MultRMRt(pD[iSez]->GetFDE(), RRef[iSez]);
+
+                DEBUGCOUT("AfterPredict" << std::endl);
+                DEBUGCOUT("p[" << iSez << "]=" << p[iSez] << std::endl);
+                DEBUGCOUT("g[" << iSez << "]=" << g[iSez] << std::endl);
+                DEBUGCOUT("RDelta[" << iSez << "]=" << RDelta[iSez] << std::endl);
+                DEBUGCOUT("RPrev[" << iSez << "]=" << RPrev[iSez] << std::endl);
+                DEBUGCOUT("RRef[" << iSez << "]=" << RRef[iSez] << std::endl);
+                DEBUGCOUT("R[" << iSez << "]=" << R[iSez] << std::endl);
+                DEBUGCOUT("L[" << iSez << "]=" << L[iSez] << std::endl);
+                DEBUGCOUT("DefLoc[" << iSez << "]=" << DefLoc[iSez] << std::endl);
+                DEBUGCOUT("Az[" << iSez << "]=" << Az[iSez] << std::endl);
 	}
 
 	bFirstRes = true;
