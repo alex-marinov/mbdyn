@@ -13,12 +13,14 @@ MBDyn 1.X-Devel
 	Enhancements:
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added discrete filter drive caller
+		- added drive caller constitutive law wrapper
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives
 		- fix initialization (Reinhard Resch)
+		- fix one-time leak in axial wrapper
 
 MBDyn 1.7.3
 	Enhancements:

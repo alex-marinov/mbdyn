@@ -3593,7 +3593,9 @@ in Section~\ref{sec:CONSTITUTIVE-LAW}.
 	\multicolumn{1}{c}{\textbf{6D}} \\ 
 	\hline
 	\kw{array} (wrapper)							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{axial} (wrapper)							&         & $\surd$ &         \\
 	\kw{bistop} (wrapper)							& $\surd$ & $\surd$ & $\surd$ \\
+	\kw{drive caller} (wrapper)						& $\surd$ & $\surd$ & $\surd$ \\
 	\kw{invariant angular} (wrapper)					&         & $\surd$ &         \\
 	\hline
     \end{tabular}
@@ -4520,6 +4522,25 @@ No overall prestress nor prestrain is allowed by the \kw{array} wrapper.
 \end{verbatim}
 
 
+\subsection{axial wrapper}
+This constitutive law wrapper transforms a 1D constitutive law into a corresponding 3D constitutive law that acts about an axis that is fixed in the relative reference of the first node.  It is intended to be used with \kw{deformable hinge} joints that act between nodes constrained by a \kw{revolute hinge} joint, and thus are only allowed relative rotation about one axis.
+The syntax is
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{axial wrap} ,
+        (\hty{Vec3})\bnt{dir} ,
+        (\htmlref{\ty{ConstitutiveLaw}\be{\kw{doublereal}, \kw{doublereal}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
+\end{Verbatim}
+The 1D constitutive law \nt{wrapped\_const\_law} acts about (or along) direction \nt{dir}.
+
+\paragraph{Example.} \
+\begin{verbatim}
+    # the constitutive law
+    axial wrapper,
+        1., 0., 0.,            # the direction
+        linear elastic, 1000.  # the wrapped constitutive law
+\end{verbatim}
+
+
 \subsection{bistop}
 This wrapper applies the logic of the bistop, that is activate or deactivate
 the constitutive property based on distinct conditions, with memory,
@@ -4534,6 +4555,40 @@ The syntax is
         (\htmlref{\ty{ConstitutiveLaw}\be{\bnt{Entity}, \bnt{DerivativeOfEntity}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
 \end{Verbatim}
 %\end{verbatim}
+
+
+\subsection{drive caller wrapper}
+This wrapper multiplies a generic constitutive law by a scalar \kw{drive caller}.
+The syntax is
+%\begin{verbatim}
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{specific_const_law} ::= \kw{drive caller wrapper} ,
+        (\hty{DriveCaller}) \bnt{multiplier} ,
+        (\htmlref{\ty{ConstitutiveLaw}\be{\bnt{Entity}, \bnt{DerivativeOfEntity}}}{sec:ConstitutiveLaw}) \bnt{wrapped_const_law}
+\end{Verbatim}
+%\end{verbatim}
+The wrapped constitutive law \nt{wrapped\_const\_law} is multiplied by \nt{multiplier}, i.e.\
+\begin{align}
+	\T{f}\plbr{\T{\varepsilon}, \dot{\T{\varepsilon}}, t} &= w(t) \cdot \hat{\T{f}}\plbr{\T{\varepsilon}, \dot{\T{\varepsilon}}, t}
+\end{align}
+where $\hat{\T{f}}$ is the wrapped constitutive law, \nt{wrapped\_const\_law}, and $w(t)$ is the \kw{drive caller} \nt{multiplier};
+as a consequence, the gradients of the force $\T{f}$ with respect to the strain $\T{\varepsilon}$ and of its rate, $\dot{\T{\varepsilon}}$,
+are
+\begin{subequations}
+\begin{align}
+	\frac{\partial \T{f}}{\partial\T{\varepsilon}} &= w(t) \cdot \frac{\partial \hat{\T{f}}}{\partial\T{\varepsilon}}
+	\\
+	\frac{\partial \T{f}}{\partial\dot{\T{\varepsilon}}} &= w(t) \cdot \frac{\partial \hat{\T{f}}}{\partial\dot{\T{\varepsilon}}}
+\end{align}
+\end{subequations}
+
+\paragraph{Example.} \
+\begin{verbatim}
+    # the constitutive law
+    drive caller wrapper,
+        string, "Time >= T0",  # the drive caller
+        linear elastic, 1000.  # the wrapped constitutive law
+\end{verbatim}
 
 
 \subsection{invariant angular}

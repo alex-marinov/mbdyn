@@ -55,6 +55,7 @@
 /* ... */
 #include "tdclw.h"
 #include "constltp_axw.h"
+#include "constltp_dcw.h"
 
 /* constitutive law containers */
 typedef std::map<std::string, ConstitutiveLawRead<doublereal, doublereal> *, ltstrcase> CL1DFuncMapType;
@@ -1532,7 +1533,12 @@ InitCL(void)
 
 	/* invariant constitutive law */
 	SetCL3D("invariant" "angular", new InvAngularCLR);
+
+	/* other */
 	SetCL3D("axial" "wrapper", new AxialCLR);
+	SetCL1D("drive" "caller" "wrapper", new DriveCL1R);
+	SetCL3D("drive" "caller" "wrapper", new DriveCL3R);
+	SetCL6D("drive" "caller" "wrapper", new DriveCL6R);
 
 	/* ... */
 	TDCLW_init();
