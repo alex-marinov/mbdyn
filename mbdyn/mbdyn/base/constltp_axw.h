@@ -55,7 +55,7 @@ public:
 
 	virtual
 	~AxialCLWrapper(void) {
-		NO_OP;
+		SAFEDELETE(m_pCL);
 	};
 
 	ConstLawType::Type GetConstLawType(void) const {
@@ -120,4 +120,4 @@ struct AxialCLR : public ConstitutiveLawRead<Vec3, Mat3x3> {
 
 /* AxialCLWrapper - end */
 
-#endif // CONSTLTP_IMPL_H
+#endif // CONSTLTP_AXW_H
