@@ -62,6 +62,13 @@ public:
 		return m_pCL->GetConstLawType();
 	};
 
+	void SetValue(DataManager *pDM,
+		VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph = 0)
+	{
+		m_pCL->SetValue(pDM, X, XP, ph);
+	};
+
 	virtual
 	ConstitutiveLaw<T, Tder>* pCopy(void) const {
 		ConstitutiveLaw<T, Tder>* pCL = 0;
