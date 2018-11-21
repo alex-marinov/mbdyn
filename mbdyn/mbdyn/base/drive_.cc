@@ -385,7 +385,7 @@ CubicDriveCaller::Restart(std::ostream& out) const
 StepDriveCaller::StepDriveCaller(const DriveHandler* pDH,
 	doublereal d1, doublereal d2, doublereal d3)
 : DriveCaller(pDH),
-dStepTime(d1), dStepValue(d2), dInitialValue(d3)
+dStepTime(d1), dStepValuePlusInitialValue(d2), dInitialValue(d3)
 {
 	NO_OP;
 }
@@ -402,7 +402,7 @@ StepDriveCaller::pCopy(void) const
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		StepDriveCaller,
-		StepDriveCaller(pDrvHdl, dStepTime, dStepValue, dInitialValue));
+		StepDriveCaller(pDrvHdl, dStepTime, dStepValuePlusInitialValue, dInitialValue));
 	return pDC;
 }
 
@@ -412,7 +412,7 @@ StepDriveCaller::Restart(std::ostream& out) const
 {
 	return out
 		<< " step, " << dStepTime
-		<< ", " << dStepValue
+		<< ", " << dStepValuePlusInitialValue - dInitialValue
 		<< ", " << dInitialValue;
 }
 
@@ -423,7 +423,7 @@ StepDriveCaller::Restart(std::ostream& out) const
 
 DoubleStepDriveCaller::DoubleStepDriveCaller(const DriveHandler* pDH,
 	doublereal d1, doublereal d2, doublereal d3, doublereal d4)
-: DriveCaller(pDH), dStepTime(d1), dStepValue(d2),
+: DriveCaller(pDH), dStepTime(d1), dStepValuePlusInitialValue(d2),
 dEndStepTime(d3), dInitialValue(d4)
 {
 	NO_OP;
@@ -442,7 +442,7 @@ DoubleStepDriveCaller::pCopy(void) const
 	DriveCaller* pDC = 0;
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		DoubleStepDriveCaller,
-		DoubleStepDriveCaller(pDrvHdl, dStepTime, dStepValue, dEndStepTime, dInitialValue));
+		DoubleStepDriveCaller(pDrvHdl, dStepTime, dStepValuePlusInitialValue, dEndStepTime, dInitialValue));
 	return pDC;
 }
 
@@ -454,7 +454,7 @@ DoubleStepDriveCaller::Restart(std::ostream& out) const
 	return out
 		<< " double step, " << dStepTime
 		<< ", " << dEndStepTime
-		<< ", " << dStepValue
+		<< ", " << dStepValuePlusInitialValue - dInitialValue
 		<< ", " << dInitialValue;
 }
 
@@ -1789,9 +1789,10 @@ StepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	doublereal dInitialValue = HP.GetReal();
 	DEBUGCOUT("InitialValue: " << dInitialValue << std::endl);
 
+	// Notice: the code used dStepValue inconsistently
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		StepDriveCaller,
-		StepDriveCaller(pDrvHdl, dStepTime, dStepValue, dInitialValue));
+		StepDriveCaller(pDrvHdl, dStepTime, dStepValue + dInitialValue, dInitialValue));
 
 	return pDC;
 }
@@ -1837,7 +1838,7 @@ DoubleStepDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 		DoubleStepDriveCaller,
 		DoubleStepDriveCaller(pDrvHdl,
 			dStepTime,
-			dStepValue,
+			dStepValue + dInitialValue,
 			dEndStepTime,
 			dInitialValue));
 

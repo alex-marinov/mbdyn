@@ -436,7 +436,7 @@ CubicDriveCaller::dGetP(const doublereal& dVar) const
 class StepDriveCaller : public DriveCaller {
 private:
 	doublereal dStepTime;
-	doublereal dStepValue;
+	doublereal dStepValuePlusInitialValue;
 	doublereal dInitialValue;
 
 public:
@@ -467,7 +467,7 @@ inline doublereal
 StepDriveCaller::dGet(const doublereal& dVar) const
 {
 	if (dVar > dStepTime) {
-		return dStepValue;
+		return dStepValuePlusInitialValue;
 	}
 
 	if (dVar < dStepTime) {
@@ -475,7 +475,7 @@ StepDriveCaller::dGet(const doublereal& dVar) const
 	}
 
 	/* else if dVar == dStepTime */
-	return (dInitialValue + dStepValue)/2.;
+	return dStepValuePlusInitialValue/2.;
 }
 
 inline bool
@@ -504,7 +504,7 @@ StepDriveCaller::dGetP(const doublereal& dVar) const
 class DoubleStepDriveCaller : public DriveCaller {
 private:
 	doublereal dStepTime;
-	doublereal dStepValue;
+	doublereal dStepValuePlusInitialValue;
 	doublereal dEndStepTime;
 	doublereal dInitialValue;
 
@@ -537,7 +537,7 @@ inline doublereal
 DoubleStepDriveCaller::dGet(const doublereal& dVar) const
 {
 	if (dVar > dStepTime && dVar < dEndStepTime) {
-		return dStepValue;
+		return dStepValuePlusInitialValue;
 	}
 
 	if (dVar < dStepTime || dVar > dEndStepTime) {
@@ -545,7 +545,7 @@ DoubleStepDriveCaller::dGet(const doublereal& dVar) const
 	}
 
 	/* else if dVar == dStepTime || dVar == dEndStepTime */
-	return (dInitialValue + dStepValue)/2.;
+	return dStepValuePlusInitialValue/2.;
 }
 
 inline bool
