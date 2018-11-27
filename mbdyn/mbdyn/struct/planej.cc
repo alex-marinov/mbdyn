@@ -62,12 +62,12 @@ PlaneHingeJoint::PlaneHingeJoint(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars... TODO: try to remove
 Var_Phi(0),
 Var_Omega(0),
 //Var_MFR(0),
 //Var_MU(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
@@ -1006,6 +1006,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec((R2Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
@@ -1040,6 +1041,9 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 				Var_MU->put_rec(0, OH.GetCurrentStep());
 			}
 */
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -1541,12 +1545,12 @@ pNode1(pN1), pNode2(pN2),
 R1h(R1hTmp), R2h(R2hTmp), M(Zero3),
 NTheta(0), dTheta(0.),
 dThetaWrapped(0.),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
 Var_Omega(0),
 //Var_MFR(0),
 //Var_MU(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 od(od)
 {
    NO_OP;
@@ -2076,6 +2080,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
@@ -2098,6 +2103,9 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
 			}
 
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -2537,12 +2545,12 @@ DriveOwner(pDC),
 pNode1(pN1), pNode2(pN2), 
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 NTheta(0), dTheta(0.), dThetaWrapped(0.),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
 Var_Omega(0),
 //Var_MFR(0),
 //Var_MU(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
 {
@@ -3422,6 +3430,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec((R2Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
@@ -3454,6 +3463,9 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 				Var_MU->put_rec(0, OH.GetCurrentStep());
 			}
 */
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {

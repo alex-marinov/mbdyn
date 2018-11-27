@@ -62,10 +62,10 @@ protected:
 	Mat3x3 FDEPrime;
 
 #ifdef USE_NETCDF
-	NcVar *Var_tilde_d;
-	NcVar *Var_tilde_dPrime;
-	NcVar *Var_d;
-	NcVar *Var_dPrime;
+	MBDynNcVar Var_tilde_d;
+	MBDynNcVar Var_tilde_dPrime;
+	MBDynNcVar Var_d;
+	MBDynNcVar Var_dPrime;
 #endif // USE_NETCDF
 
 	void

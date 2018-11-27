@@ -57,12 +57,12 @@ v(Zero3),
 dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_v(0),
 Var_dElle(0),
 Var_dEllePrime(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	/* Verifica di consistenza dei dati iniziali */
 	ASSERT(pNode1 != 0);
@@ -334,7 +334,7 @@ Rod::Output(OutputHandler& OH) const
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
-
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
@@ -342,6 +342,9 @@ Rod::Output(OutputHandler& OH) const
 			Var_dElle->put_rec(&dElle, OH.GetCurrentStep());
 			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
 			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

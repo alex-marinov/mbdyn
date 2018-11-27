@@ -57,9 +57,9 @@ protected:
 	virtual doublereal dCalcEpsilon(void);
 
 #ifdef USE_NETCDF
-	NcVar *Var_v;
-	NcVar *Var_dElle;
-	NcVar *Var_dEllePrime;
+	MBDynNcVar Var_v;
+	MBDynNcVar Var_dElle;
+	MBDynNcVar Var_dEllePrime;
 #endif // USE_NETCDF
 
 	/* Le funzioni di assemblaggio sono le stesse, cambiano gli indici

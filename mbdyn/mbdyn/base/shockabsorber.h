@@ -199,12 +199,14 @@ private:
 		FrictionAmpl = p->FrictionAmpl;
 	};
    
-#ifdef USE_NETCDF
+#if defined(USE_NETCDFC)
 	NcVar *Var_dPressure;
 	NcVar *Var_dArea;
 	NcVar *Var_dFelastic;
 	NcVar *Var_dFviscous;
-#endif // USE_NETCDF
+#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
+// TODO: netCDF4 output
+#endif /* USE_NETCDF4 */
 public:
 	ShockAbsorberConstitutiveLaw(
 			const DataManager* pDM,
@@ -216,12 +218,14 @@ public:
 	bPenalty(false),
 	pAreaPinPlus(NULL), pAreaPinMinus(NULL), pAreaOrifices(NULL),
 	EpsPrimeRef(1.), FrictionAmpl(0.), dPressure(0.) 
-#ifdef USE_NETCDF
+#if defined(USE_NETCDFC)
 	, Var_dPressure(0),
 	Var_dArea(0),
 	Var_dFelastic(0),
 	Var_dFviscous(0)
-#endif // USE_NETCDF
+#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
+// TODO: netCDF4 output
+#endif /* USE_NETCDF4 */
 	{
 		if (HP.IsKeyWord("help")) {
 
@@ -619,7 +623,7 @@ public:
 	};
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
-#ifdef USE_NETCDF
+#if defined(USE_NETCDFC)
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
 			Var_dPressure = OH.CreateVar<doublereal>(name + ".p", "Pa", "Gas pressure");
@@ -627,18 +631,22 @@ public:
 			Var_dFelastic = OH.CreateVar<doublereal>(name + ".Fe", "N", "Elastic force");
 			Var_dFviscous = OH.CreateVar<doublereal>(name + ".Fv", "N", "Viscous force");
 		}
-#endif // USE_NETCDF
+#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
+// TODO: netCDF4 output
+#endif /* USE_NETCDF4 */
 	}
 
 	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
-#ifdef USE_NETCDF
+#if defined(USE_NETCDFC)
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
 			Var_dPressure->put_rec(&dPressure, OH.GetCurrentStep());
 			Var_dArea->put_rec(&dArea, OH.GetCurrentStep());
 			Var_dFelastic->put_rec(&dFelastic, OH.GetCurrentStep());
 			Var_dFviscous->put_rec(&dFviscous, OH.GetCurrentStep());
 		}
-#endif // USE_NETCDF
+#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
+// TODO: netCDF4 output
+#endif /* USE_NETCDF4 */
 		return out << " " << dPressure << " " << dArea
 			<< " " << dFelastic << " " << dFviscous;
 	};

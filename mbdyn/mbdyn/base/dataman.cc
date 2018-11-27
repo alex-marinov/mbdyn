@@ -151,6 +151,7 @@ ResMode(RES_TEXT),
 // NetCDF stuff
 bNetCDFsync(false),
 bNetCDFnoText(false),
+#if defined(USE_NETCDFC)
 Var_Step(0),
 Var_Time(0),
 Var_TimeStep(0),
@@ -163,6 +164,9 @@ Var_Eig_dAlpha(0),
 Var_Eig_Idx(0),
 Var_Eig_dVR(0),
 Var_Eig_dVL(0),
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// only want to call default constructors...
+#endif  /* USE_NETCDF4 */
 #endif // USE_NETCDF
 od(EULER_123),
 

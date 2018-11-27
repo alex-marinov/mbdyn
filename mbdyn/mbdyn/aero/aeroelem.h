@@ -91,7 +91,7 @@ protected:
 		Vec3 W;
 		Vec3 F;
 		Vec3 M;
-		NcVar *Var_X, *Var_Phi, *Var_V, *Var_W, *Var_F, *Var_M;
+		MBDynNcVar Var_X, Var_Phi, Var_V, Var_W, Var_F, Var_M;
 	} AeroNetCDFOutput;
 
 	std::vector<AeroNetCDFOutput> NetCDFOutputData;

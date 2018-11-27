@@ -69,14 +69,14 @@ class Beam2
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
-	NcVar	*Var_X,
-		*Var_Phi,
-		*Var_F,
-		*Var_M,
-		*Var_Nu,
-		*Var_K,
-		*Var_NuP,
-		*Var_KP;
+	MBDynNcVar Var_X,
+		Var_Phi,
+		Var_F,
+		Var_M,
+		Var_Nu,
+		Var_K,
+		Var_NuP,
+		Var_KP;
 #endif /* USE_NETCDF */
 
     /* Puntatori ai nodi */

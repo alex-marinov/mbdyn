@@ -205,24 +205,24 @@ protected:
 	/* NetCDF stuff */
 	bool bNetCDFsync;
 	bool bNetCDFnoText;
-	NcVar *Var_Step;
-	NcVar *Var_Time;
-	NcVar *Var_TimeStep;
+	MBDynNcVar Var_Step;
+	MBDynNcVar Var_Time;
+	MBDynNcVar Var_TimeStep;
 
 	/* for eigenanalysis output */
 
-	const NcDim *m_Dim_Eig_iSize;
-	const NcDim *m_Dim_Eig_iComplex;
+	MBDynNcDim m_Dim_Eig_iSize;
+	MBDynNcDim m_Dim_Eig_iComplex;
 
-	NcVar *Var_Eig_lStep;
-	NcVar *Var_Eig_dTime;
-	NcVar *Var_Eig_dCoef;
-	NcVar *Var_Eig_dAplus;
-	NcVar *Var_Eig_dAminus;
-	NcVar *Var_Eig_dAlpha;
-	NcVar *Var_Eig_Idx;
-	NcVar *Var_Eig_dVR;
-	NcVar *Var_Eig_dVL;
+	MBDynNcVar Var_Eig_lStep;
+	MBDynNcVar Var_Eig_dTime;
+	MBDynNcVar Var_Eig_dCoef;
+	MBDynNcVar Var_Eig_dAplus;
+	MBDynNcVar Var_Eig_dAminus;
+	MBDynNcVar Var_Eig_dAlpha;
+	MBDynNcVar Var_Eig_Idx;
+	MBDynNcVar Var_Eig_dVR;
+	MBDynNcVar Var_Eig_dVL;
 
 	/* - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - */
 #endif /* USE_NETCDF */

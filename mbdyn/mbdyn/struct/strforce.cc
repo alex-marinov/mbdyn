@@ -39,6 +39,7 @@
 #include "strforce.h"
 #include "strforce_impl.h"
 #include "tpldrive_impl.h"
+#include <sstream> // not sure why this is now needed...
 
 /* AbsoluteDispForce - begin */
 
@@ -52,10 +53,10 @@ AbsoluteDispForce::AbsoluteDispForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_F(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -158,7 +159,11 @@ AbsoluteDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -221,10 +226,10 @@ Force(uL, fOut),
 f(pDC),
 pNode1(pN1),
 pNode2(pN2)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_F(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -332,7 +337,11 @@ AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -403,10 +412,10 @@ StructuralForce::StructuralForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode(pN)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_F(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	ASSERT(pNode != NULL);
 	ASSERT(pNode->GetNodeType() == Node::STRUCTURAL);
@@ -440,10 +449,10 @@ AbsoluteForce::AbsoluteForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_A(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -605,8 +614,12 @@ AbsoluteForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
 			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -713,10 +726,10 @@ FollowerForce::FollowerForce(unsigned int uL, const StructNode* pN,
 : Elem(uL, fOut),
 StructuralForce(uL, pN, pDC, fOut),
 Arm(TmpArm)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_A(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -902,12 +915,16 @@ FollowerForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			if (fToBeOutput() & OUTPUT_REL) {
 				Var_F->put_rec((f.Get()).pGetVec(), OH.GetCurrentStep());
 			} else {
 				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
 			}
 			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1143,7 +1160,11 @@ AbsoluteCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1355,11 +1376,15 @@ FollowerCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			if (fToBeOutput() & OUTPUT_REL) {
 				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
 			} else {
 				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1462,10 +1487,10 @@ StructuralInternalForce::StructuralInternalForce(unsigned int uL,
 Force(uL, fOut),
 f(pDC),
 pNode1(pN1), pNode2(pN2)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_F(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode1->GetNodeType() == Node::STRUCTURAL);
@@ -1503,11 +1528,11 @@ AbsoluteInternalForce::AbsoluteInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_A1(0),
 Var_A2(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -1700,9 +1725,13 @@ AbsoluteInternalForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
 			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
 			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1848,11 +1877,11 @@ FollowerInternalForce::FollowerInternalForce(unsigned int uL,
 : Elem(uL, fOut),
 StructuralInternalForce(uL, pN1, pN2, pDC, fOut),
 Arm1(TmpArm1), Arm2(TmpArm2)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_A1(0),
 Var_A2(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }
@@ -2060,6 +2089,7 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
 			} else {
@@ -2067,6 +2097,9 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 			}
 			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
 			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2360,7 +2393,11 @@ AbsoluteInternalCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2592,11 +2629,15 @@ FollowerInternalCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
+#if defined(USE_NETCDFC)
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
 				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
 			} else {
 				Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

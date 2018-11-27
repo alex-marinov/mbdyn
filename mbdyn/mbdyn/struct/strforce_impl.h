@@ -46,7 +46,7 @@ protected:
 	const StructDispNode* pNode;
 
 #ifdef USE_NETCDF
-	NcVar *Var_F;
+	MBDynNcVar Var_F;
 #endif // USE_NETCDF
 
 public:
@@ -111,7 +111,7 @@ protected:
 	const StructDispNode* pNode2;
 
 #ifdef USE_NETCDF
-	NcVar *Var_F;
+	MBDynNcVar Var_F;
 #endif // USE_NETCDF
 
 public:
@@ -181,7 +181,7 @@ protected:
 	const StructNode* pNode;
 
 #ifdef USE_NETCDF
-	NcVar *Var_F;
+	MBDynNcVar Var_F;
 #endif // USE_NETCDF
 
 public:
@@ -211,7 +211,7 @@ protected:
 	const Vec3 Arm;
 
 #ifdef USE_NETCDF
-	NcVar *Var_A;
+	MBDynNcVar Var_A;
 #endif // USE_NETCDF
 
 public:
@@ -280,7 +280,7 @@ protected:
 	const Vec3 Arm;
 
 #ifdef USE_NETCDF
-	NcVar *Var_A;
+	MBDynNcVar Var_A;
 #endif // USE_NETCDF
 
 public:
@@ -463,7 +463,7 @@ protected:
 	const StructNode* pNode2;
 
 #ifdef USE_NETCDF
-	NcVar *Var_F;
+	MBDynNcVar Var_F;
 #endif // USE_NETCDF
 
 public:
@@ -495,8 +495,8 @@ protected:
 	const Vec3 Arm2;
 
 #ifdef USE_NETCDF
-	NcVar *Var_A1;
-	NcVar *Var_A2;
+	MBDynNcVar Var_A1;
+	MBDynNcVar Var_A2;
 #endif // USE_NETCDF
 
 public:
@@ -568,8 +568,8 @@ protected:
 	const Vec3 Arm2;
 
 #ifdef USE_NETCDF
-	NcVar *Var_A1;
-	NcVar *Var_A2;
+	MBDynNcVar Var_A1;
+	MBDynNcVar Var_A2;
 #endif // USE_NETCDF
 
 public:

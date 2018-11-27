@@ -54,8 +54,8 @@ protected:
 
 private:
 #ifdef USE_NETCDF
-	NcVar *Var_Phi;
-	NcVar *Var_Omega;
+	MBDynNcVar Var_Phi;
+	MBDynNcVar Var_Omega;
 #endif // USE_NETCDF
 
 protected:

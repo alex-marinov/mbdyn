@@ -1488,7 +1488,7 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 		attrs2[1] = OutputHandler::AttrVal("description",
 				"timestep index of eigensolution");
 
-		Var_Eig_lStep = OutHdl.CreateVar("eig.step", ncInt, attrs2, dim);
+		Var_Eig_lStep = OutHdl.CreateVar("eig.step", MbNcInt, attrs2, dim);
 
 		OutputHandler::AttrValVec attrs3(3);
 		attrs3[0] = OutputHandler::AttrVal("units", "s");
@@ -1496,14 +1496,14 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 		attrs3[2] = OutputHandler::AttrVal("description",
 				"simulation time at which the eigensolution was computed");
 
-		Var_Eig_dTime = OutHdl.CreateVar("eig.time", ncDouble, attrs3, dim);
+		Var_Eig_dTime = OutHdl.CreateVar("eig.time", MbNcDouble, attrs3, dim);
 
 		attrs3[0] = OutputHandler::AttrVal("units", "-");
 		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
 		attrs3[2] = OutputHandler::AttrVal("description",
 				"coefficient used to build Aplus and Aminus matrices");
 
-		Var_Eig_dCoef = OutHdl.CreateVar("eig.dCoef", ncDouble, attrs3, dim);
+		Var_Eig_dCoef = OutHdl.CreateVar("eig.dCoef", MbNcDouble, attrs3, dim);
 
 		OutputHandler::NcDimVec dim2(2);
 		integer iNumNodes = NodeData[Node::STRUCTURAL].NodeContainer.size();
@@ -1515,7 +1515,7 @@ DataManager::OutputEigPrepare(const integer iNumAnalyses, const integer iSize)
 		attrs2[1] = OutputHandler::AttrVal("description",
 				"structural nodes base index");
 
-		Var_Eig_Idx = OutHdl.CreateVar("eig.idx", ncInt, attrs2, dim2);
+		Var_Eig_Idx = OutHdl.CreateVar("eig.idx", MbNcInt, attrs2, dim2);
 	}
 #endif /* USE_NETCDF */
 }
@@ -1551,11 +1551,19 @@ DataManager::OutputEigParams(const doublereal& dTime,
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 		long lStep = OutHdl.GetCurrentStep();
-
+#if defined(USE_NETCDFC)  /// this block could be simplified by using an overloaded WriteNcVars function that would allow to feed the "timestep"
 		Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
 		Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
 		Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
-
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+		// the following synthax would be simpler with c++11 (using {} vector constructor)
+		std::vector<size_t> ncStartPos, ncCount;
+		ncStartPos.push_back(uCurrEigSol); // implicit cast here ok?
+		ncCount.push_back(1);
+		Var_Eig_dTime.putVar(ncStartPos, ncCount, &dTime); // could use two-argument version of putVar since only have one value to add, and thus delete previous line...
+		Var_Eig_lStep.putVar(ncStartPos, ncCount, &lStep);
+		Var_Eig_dCoef.putVar(ncStartPos, ncCount, &dCoef);
+#endif  /* USE_NETCDF4 */
 	}
 #endif /* USE_NETCDF */
 }
@@ -1584,16 +1592,27 @@ DataManager::OutputEigFullMatrices(const MatrixHandler* pMatA,
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(),ncDouble, attrs3, dim2);
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(),ncDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
+
+#if defined(USE_NETCDFC)
 		Var_Eig_dAplus->put(MatB.pdGetMat(), nrows, ncols);
 		Var_Eig_dAminus->put(MatA.pdGetMat(), nrows, ncols);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+		std::vector<size_t> ncStartPos, ncCount;
+		ncStartPos.push_back(0); // implicit cast here ok?
+		ncStartPos.push_back(0); // implicit cast here ok?
+		ncCount.push_back(nrows);
+		ncCount.push_back(ncols);
+		Var_Eig_dAplus.putVar(MatB.pdGetMat()); // seems that there is no purpose in giving matrix size as for old c++ (legacy) interface...
+		Var_Eig_dAminus.putVar(MatA.pdGetMat());
+#endif  /* USE_NETCDF4 */
 
 	}
 #endif /* USE_NETCDF */
@@ -1715,13 +1734,13 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 		attrs3[2] = OutputHandler::AttrVal("description", "F/xPrime - dCoef * F/x");
 
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
 		int iCnt = 0;
 		Vec3 v;
@@ -1730,7 +1749,12 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
+#if defined(USE_NETCDFC)
 				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				// TODO NETCDF4:
+				// Var_Eig_dAplus.putVar(v.pGetVec()); // no position??
+#endif  /* USE_NETCDF4 */
 				iCnt++;
 			}
 		}
@@ -1741,7 +1765,11 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		{
 			if (j->dCoef != 0.) {
 				v = Vec3(j->iRow, j->iCol, j->dCoef);
+#if defined(USE_NETCDFC)
 				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO NETCDF4
+#endif  /* USE_NETCDF4 */
 			}
 		}
 
@@ -1835,7 +1863,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".Aplus";
-		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		Var_Eig_dAplus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
 		dimname_ss.str("");
 		dimname_ss.clear();
@@ -1847,7 +1875,7 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
-		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim2);
+		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
 		int iCnt = 0;
 		Vec3 v;
@@ -1856,7 +1884,11 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
+#if defined(USE_NETCDFC)
 				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO NETCDF4
+#endif  /* USE_NETCDF4 */
 				iCnt++;
 			}
 		}
@@ -1867,7 +1899,11 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
+#if defined(USE_NETCDFC)
 				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO NETCDF4
+#endif  /* USE_NETCDF4 */
 			}
 		}
 
@@ -1987,8 +2023,12 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 
 			iNodeIndex = pSN->iGetFirstIndex();
 
+#if defined(USE_NETCDFC)
 			Var_Eig_Idx->set_cur(&start[0]);
 			Var_Eig_Idx->put(&iNodeIndex, &count[0]);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO NETCDF4
+#endif  /* USE_NETCDF4 */
 			start[1]++;
 		}
 
@@ -2148,6 +2188,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 	}
 
 #ifdef USE_NETCDF
+#if defined(USE_NETCDFC)
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 		OutputHandler::NcDimVec dim_alpha(2);
 
@@ -2172,7 +2213,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 		std::stringstream varname_ss;
 		varname_ss << "eig." << uCurrEigSol << ".alpha";
-		Var_Eig_dAlpha = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_alpha);
+		Var_Eig_dAlpha = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_alpha);
 
 		Vec3 v;
 		unsigned uNRec = 0;
@@ -2184,7 +2225,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			v(1) = R(r) + dShiftR;
 			v(2) = I(r);
 			v(3) = (pBeta ? (*pBeta)(r) : 1.);
+#if defined(USE_NETCDFC)
 			Var_Eig_dAlpha->put_rec(v.pGetVec(), uNRec);
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 			uNRec++;
 		}
 
@@ -2209,7 +2254,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 			std::stringstream varname_ss;
 			varname_ss << "eig." << uCurrEigSol << ".VL";
-			Var_Eig_dVL = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
+			Var_Eig_dVL = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_v);
 
 			doublereal re;
 			doublereal im;
@@ -2281,7 +2326,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		varname_ss.str("");
 		varname_ss.clear();
 		varname_ss << "eig." << uCurrEigSol << ".VR";
-		Var_Eig_dVR = OutHdl.CreateVar(varname_ss.str(), ncDouble, attrs3, dim_v);
+		Var_Eig_dVR = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_v);
 
 		doublereal re;
 		doublereal im;
@@ -2342,6 +2387,9 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 	}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO NETCDF4
+#endif  /* USE_NETCDF4 */
 #endif /* USE_NETCDF */
 }
 
@@ -2388,9 +2436,9 @@ DataManager::Output(long lStep,
 	 */
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
-		Var_Step->put_rec(&lStep, OutHdl.GetCurrentStep());
-		Var_Time->put_rec(&dTime, OutHdl.GetCurrentStep());
-		Var_TimeStep->put_rec(&dTimeStep, OutHdl.GetCurrentStep());
+		OutHdl.WriteNcVar(Var_Step, lStep);
+		OutHdl.WriteNcVar(Var_Time, dTime);
+		OutHdl.WriteNcVar(Var_TimeStep, dTimeStep);
 	}
 #endif /* USE_NETCDF */
 
@@ -2405,7 +2453,8 @@ DataManager::Output(long lStep,
 	OutHdl.IncCurrentStep();
 #ifdef USE_NETCDF
 	if (bNetCDFsync) {
-		OutHdl.pGetBinFile()->sync();
+		OutHdl.pGetBinFile()->sync(); // only works with netcdf-cxx4 >= 4.3.0, check implemented in configure.ac (see also https://github.com/Unidata/netcdf-cxx4/commit/e013ab35f0219fff92ed8237d2f385e89fd1cf77#diff-59778321f93df82ff613be3e32d9a3ec)
+
 	}
 #endif /* USE_NETCDF */
 

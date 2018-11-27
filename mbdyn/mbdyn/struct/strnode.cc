@@ -117,14 +117,14 @@ VCurr(V0),
 XPPCurr(Zero3),
 XPPPrev(Zero3),
 pRefNode(pRN),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_X(0),
 Var_Phi(0),
 Var_XP(0),
 Var_Omega(0),
 Var_XPP(0),
 Var_OmegaP(0),
-#endif /* USE_NETCDF */
+#endif /* USE_NETCDFC */
 od(od),
 dPositionStiffness(dPosStiff),
 dVelocityStiffness(dVelStiff),
@@ -505,33 +505,45 @@ StructDispNode::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
-			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
-			switch (od) {
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-			case ORIENTATION_VECTOR:
-			case UNKNOWN_ORIENTATION_DESCRIPTION:
-				Var_Phi->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
-				break;
-
-			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(::Eye3.pGetMat(), OH.GetCurrentStep());
-				break;
-
-			default:
-				/* impossible */
-				break;
-			}
-			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
-
-			if (bOutputAccels) {
-				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
-				Var_OmegaP->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
-			}
-		}
+		//~ if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+			//~ std::vector<MBDynNcVar> NcVarsToWrite; // this vector holds the MBDynNcVars that will be written to netcdf
+			//~ std::vector<const doublereal *> VecsToWrite; // and this one the actual data to be written
+//~ 
+			//~ NcVarsToWrite.push_back(Var_X);
+			//~ VecsToWrite.push_back(XCurr.pGetVec());
+			//~ 
+			//~ NcVarsToWrite.push_back(Var_Phi);
+			//~ switch (od) {
+			//~ case EULER_123:
+			//~ case EULER_313:
+			//~ case EULER_321:
+			//~ case ORIENTATION_VECTOR:
+			//~ case UNKNOWN_ORIENTATION_DESCRIPTION:
+				//~ VecsToWrite.push_back(::Zero3.pGetVec());
+				//~ break;
+//~ 
+			//~ case ORIENTATION_MATRIX:
+				//~ VecsToWrite.push_back(::Eye3.pGetMat());
+				//~ break;
+//~ 
+			//~ default:
+				//~ /* impossible */
+				//~ break;
+			//~ }
+			//~ NcVarsToWrite.push_back(Var_XP);
+			//~ VecsToWrite.push_back(VCurr.pGetVec());
+			//~ 
+			//~ NcVarsToWrite.push_back(Var_Omega);
+			//~ VecsToWrite.push_back(::Zero3.pGetVec());
+//~ 
+			//~ if (bOutputAccels) {
+				//~ NcVarsToWrite.push_back(Var_XPP);
+				//~ VecsToWrite.push_back(XPPCurr.pGetVec());
+				//~ NcVarsToWrite.push_back(Var_OmegaP);
+				//~ VecsToWrite.push_back(::Zero3.pGetVec());
+			//~ }
+			//~ OH.WriteVar(NcVarsToWrite, VecsToWrite, OH.GetCurrentStep());
+		//~ }
 #endif /* USE_NETCDF */
 
 		if (OH.UseText(OutputHandler::STRNODES)) {
@@ -545,18 +557,18 @@ StructDispNode::Output(OutputHandler& OH) const
 			case EULER_321:
 			case ORIENTATION_VECTOR:
 			case UNKNOWN_ORIENTATION_DESCRIPTION:
-				OH.StrNodes() << ::Zero3;
+				out << ::Zero3;
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.StrNodes() << ::Eye3;
+				out << ::Eye3;
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-			OH.StrNodes() << " " << VCurr << " " << ::Zero3;
+			out << " " << VCurr << " " << ::Zero3;
 
 			if (bOutputAccels) {
 				out
@@ -1876,29 +1888,29 @@ StructNode::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
-			Var_X->put_rec(XCurr.pGetVec(), OH.GetCurrentStep());
+			OH.WriteNcVar(Var_X, XCurr);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(RCurr.pGetMat(), OH.GetCurrentStep());
+					OH.WriteNcVar(Var_Phi, RCurr);
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-			Var_XP->put_rec(VCurr.pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(WCurr.pGetVec(), OH.GetCurrentStep());
-
+				OH.WriteNcVar(Var_XP, VCurr);
+				OH.WriteNcVar(Var_Omega, WCurr);
+				
 			if (bOutputAccels) {
-				Var_XPP->put_rec(XPPCurr.pGetVec(), OH.GetCurrentStep());
-				Var_OmegaP->put_rec(WPCurr.pGetVec(), OH.GetCurrentStep());
+					OH.WriteNcVar(Var_XPP, XPPCurr);
+					OH.WriteNcVar(Var_OmegaP, WPCurr);
 			}
 		}
 #endif /* USE_NETCDF */
@@ -1913,18 +1925,18 @@ StructNode::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.StrNodes() << E;
+				out << E;
 				break;
 
 			case ORIENTATION_MATRIX:
-				OH.StrNodes() << RCurr;
+				out << RCurr;
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-			OH.StrNodes() << " " << VCurr << " " << WCurr;
+			out << " " << VCurr << " " << WCurr;
 
 			if (bOutputAccels) {
 				out

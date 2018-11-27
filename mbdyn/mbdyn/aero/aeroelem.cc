@@ -109,12 +109,21 @@ AerodynamicOutput::SetData(const Vec3& v, const doublereal* pd,
 		ASSERT(NetCDFOutputIter >= NetCDFOutputData.begin());
 		ASSERT(NetCDFOutputIter < NetCDFOutputData.end());
 
+#if defined(USE_NETCDFC)
 		if (NetCDFOutputIter->Var_X) NetCDFOutputIter->X = X;
 		if (NetCDFOutputIter->Var_Phi) NetCDFOutputIter->R = R;
 		if (NetCDFOutputIter->Var_V) NetCDFOutputIter->V = V;
 		if (NetCDFOutputIter->Var_W) NetCDFOutputIter->W = W;
 		if (NetCDFOutputIter->Var_F) NetCDFOutputIter->F = F;
 		if (NetCDFOutputIter->Var_M) NetCDFOutputIter->M = M;
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+		if (!NetCDFOutputIter->Var_X.isNull()) NetCDFOutputIter->X = X;
+		if (!NetCDFOutputIter->Var_Phi.isNull()) NetCDFOutputIter->R = R;
+		if (!NetCDFOutputIter->Var_V.isNull()) NetCDFOutputIter->V = V;
+		if (!NetCDFOutputIter->Var_W.isNull()) NetCDFOutputIter->W = W;
+		if (!NetCDFOutputIter->Var_F.isNull()) NetCDFOutputIter->F = F;
+		if (!NetCDFOutputIter->Var_M.isNull()) NetCDFOutputIter->M = M;
+#endif  /* USE_NETCDF4 */
 
 		++NetCDFOutputIter;
 	}
@@ -476,10 +485,18 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 				unsigned uOutputFlags = (fToBeOutput() & OUTPUT_GP_ALL);
 
 				/* Add NetCDF (output) variables to the BinFile object
-				 * and save the NcVar* pointer returned from add_var
+				 * and save the NcVar* pointer (or object if using netcdf-cxx4
+				 * returned from add_var
 				 * as handle for later write accesses.
 				 * Define also variable attributes */
+#if defined(USE_NETCDFC)
 				i->Var_X = 0;
+				i->Var_Phi = 0;
+				i->Var_V = 0;
+				i->Var_W = 0;
+				i->Var_F = 0;
+				i->Var_M = 0;
+#endif  /* USE_NETCDFC */ // netcdf4 has no var pointer...
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_X) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -488,7 +505,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 						gp + " global position vector (X, Y, Z)");
 				}
 
-				i->Var_Phi = 0;
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_R) {
 					os.str("");
 					os << "_" << j;
@@ -496,7 +512,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 						gp + " global");
 				}
 
-				i->Var_V = 0;
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_V) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -505,7 +520,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 						gp + " global frame (V_X, V_Y, V_Z)");
 				}
 
-				i->Var_W = 0;
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_W) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -514,7 +528,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 						gp + " global frame (Omega_X, Omega_Y, Omega_Z)");
 				}
 
-				i->Var_F = 0;
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_F) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -523,7 +536,6 @@ Aerodynamic2DElem<iNN>::OutputPrepare(OutputHandler &OH)
 						gp + " force in local frame (F_X, F_Y, F_Z)");
 				}
 
-				i->Var_M = 0;
 				if (uOutputFlags & AerodynamicOutput::OUTPUT_GP_M) {
 					os.str(name);
 					os.seekp(0, std::ios_base::end);
@@ -548,6 +560,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 		for (std::vector<AeroNetCDFOutput>::const_iterator i = NetCDFOutputData.begin();
 			i != NetCDFOutputData.end(); ++i)
 		{
+#if defined(USE_NETCDFC)
 			if (i->Var_X) {
 				i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
 			}
@@ -612,6 +625,80 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			if (i->Var_M) {
 				i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+			std::vector<size_t> ncStartPos;
+			ncStartPos.push_back(1); // implicit cast here ok?
+			ncStartPos.push_back(OH.GetCurrentStep()); // implicit cast here? ok?
+			if (!i->Var_X.isNull()) {
+				// the following synthax would be simpler with c++11 (using {} vector constructor)
+				std::vector<size_t> ncCount; // move outside scope?
+				ncCount.push_back(3);
+				ncCount.push_back(1);
+				i->Var_X.putVar(ncStartPos, ncCount, i->X.pGetVec());
+			}
+
+//  TODO FOR NETCDF4:
+			//~ if (i->Var_Phi) {
+				//~ Vec3 E;
+				//~ switch (od) {
+				//~ case EULER_123:
+					//~ E = MatR2EulerAngles123(i->R)*dRaDegr;
+					//~ break;
+//~ 
+				//~ case EULER_313:
+					//~ E = MatR2EulerAngles313(i->R)*dRaDegr;
+					//~ break;
+//~ 
+				//~ case EULER_321:
+					//~ E = MatR2EulerAngles321(i->R)*dRaDegr;
+					//~ break;
+//~ 
+				//~ case ORIENTATION_VECTOR:
+					//~ E = RotManip::VecRot(i->R);
+					//~ break;
+//~ 
+				//~ case ORIENTATION_MATRIX:
+					//~ break;
+//~ 
+				//~ default:
+					//~ /* impossible */
+					//~ break;
+				//~ }
+//~ 
+				//~ switch (od) {
+				//~ case EULER_123:
+				//~ case EULER_313:
+				//~ case EULER_321:
+				//~ case ORIENTATION_VECTOR:
+					//~ i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+					//~ break;
+//~ 
+				//~ case ORIENTATION_MATRIX:
+					//~ i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
+					//~ break;
+//~ 
+				//~ default:
+					//~ /* impossible */
+					//~ break;
+				//~ }
+			//~ }
+//~ 
+			//~ if (i->Var_V) {
+				//~ i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
+			//~ }
+//~ 
+			//~ if (i->Var_W) {
+				//~ i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
+			//~ }
+//~ 
+			//~ if (i->Var_F) {
+				//~ i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
+			//~ }
+//~ 
+			//~ if (i->Var_M) {
+				//~ i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
+			//~ }
+#endif  /* USE_NETCDF4 */
 		}
 	}
 #endif /* USE_NETCDF */

@@ -46,6 +46,7 @@
 #include "beam.h"
 #include "pzbeam.h"
 #include "Rot.hh"
+#include <sstream> // not sure why this is now needed...
 
 /*
  * Nota: non e' ancora stato implementato il contributo
@@ -191,7 +192,7 @@ void
 Beam::Init(void)
 {
 	for (unsigned i = 0; i < NUMSEZ; i++) {
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 		Var_X[i] = 0;
 		Var_Phi[i] = 0;
 		Var_F[i] = 0;
@@ -200,7 +201,7 @@ Beam::Init(void)
 		Var_K[i] = 0;
 		Var_NuP[i] = 0;
 		Var_KP[i] = 0;
-#endif /* USE_NETCDF */
+#endif /* USE_NETCDFC */
 
 		Omega[i] = Zero3;
 		Az[i] = Zero6;
@@ -1209,6 +1210,7 @@ Beam::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+#if defined(USE_NETCDFC)
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
 				if (Var_X[iSez]) {
 					Var_X[iSez]->put_rec(p[iSez].pGetVec(), OH.GetCurrentStep());
@@ -1283,6 +1285,9 @@ Beam::Output(OutputHandler& OH) const
 					Var_KP[iSez]->put_rec(DefPrimeLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
 				}
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif /* USE_NETCDF */
 

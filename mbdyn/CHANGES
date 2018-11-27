@@ -14,6 +14,7 @@ MBDyn 1.X-Devel
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added discrete filter drive caller
 		- added drive caller constitutive law wrapper
+		- added support for NetCDF4
 	Backward compatibility issues:
 	Known issues:
 	Bug fixes:

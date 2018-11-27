@@ -86,13 +86,13 @@ Joint::Joint(unsigned int uL, const DofOwner* pDO,
 ElemGravityOwner(uL, fOut),
 ElemWithDofs(uL, pDO, fOut),
 InitialAssemblyElem(uL, fOut)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 ,
 Var_F_local(0),
 Var_M_local(0),
 Var_F_global(0),
 Var_M_global(0)
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 {
 	NO_OP;
 }

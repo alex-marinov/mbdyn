@@ -47,13 +47,30 @@
 #include <vector>
 #include <typeinfo>
 
-#ifdef USE_NETCDF
-#if defined(HAVE_NETCDFCPP_H)
+#if defined(USE_NETCDF)
+#if defined(USE_NETCDFC)
 #include <netcdfcpp.h>
-#elif defined(HAVE_NETCDF_H)
-#include <netcdf.h>
+typedef const NcDim * MBDynNcDim;
+typedef NcVar * MBDynNcVar;
+typedef NcFile MBDynNcFile;
+typedef NcType MBDynNcType;
+#define MBDynNcInt ncLong
+#define MBDynNcDouble ncDouble
+#define MBDynNcChar ncChar
+#elif defined(USE_NETCDF4)
+#include <netcdf>
+typedef netCDF::NcDim MBDynNcDim; // not const because cannot be if not a pointer (in this case)
+typedef netCDF::NcVar MBDynNcVar;
+typedef netCDF::NcFile MBDynNcFile;
+typedef netCDF::NcType MBDynNcType;
+#define MBDynNcInt netCDF::NcType::nc_INT /**< replaces long in netcdf4 */
+#define MBDynNcDouble netCDF::NcType::nc_DOUBLE
+#define MBDynNcChar netCDF::NcType::nc_CHAR
 #endif
-#endif /* USE_NETCDF */
+#define MbNcInt MBDynNcType(MBDynNcInt) /**< creates a NcType object for a int, makes the notation simpler */
+#define MbNcDouble MBDynNcType(MBDynNcDouble) /**< creates a NcType object for a double, makes the notation simpler */
+#define MbNcChar MBDynNcType(MBDynNcChar) /**< makes the notation simpler */
+#endif
 
 #include "myassert.h"
 #include "except.h"
@@ -112,6 +129,11 @@ public:
 	};
 	inline void IncCurrentStep(void) {
 		currentStep++;
+#if defined(USE_NETCDFC)
+		ncStart1[0] = this->GetCurrentStep();
+#elif defined(USE_NETCDF4)
+		ncStart1[0] = ncStart1x3[0] = ncStart1x3x3[0] = this->GetCurrentStep();
+#endif  /* USE_NETCDF4 */
 	};
        	inline long GetCurrentStep(void) const {
 		return currentStep;
@@ -141,10 +163,10 @@ private:
 
 	// NetCDF dimensions and global attributes related to the binary file
 #ifdef USE_NETCDF
-	const NcDim *m_DimTime;
-	const NcDim *m_DimV1;
-	const NcDim *m_DimV3;
-	NcFile *m_pBinFile;   /* ! one ! binary NetCDF data file */
+	MBDynNcDim m_DimTime;
+	MBDynNcDim m_DimV1;
+	MBDynNcDim m_DimV3;
+	MBDynNcFile *m_pBinFile;   /* ! one ! binary NetCDF data file */
 #endif /* USE_NETCDF */
 
 	/* handlers to streams */
@@ -276,7 +298,7 @@ public:
 	void SetExceptions(std::ios::iostate flags);
 
 #ifdef USE_NETCDF
-	inline NcFile* pGetBinFile(void) const;
+	inline MBDynNcFile * pGetBinFile(void) const;
 
 	struct AttrVal {
 		std::string attr;
@@ -286,31 +308,50 @@ public:
 	};
 
 	typedef std::vector<OutputHandler::AttrVal> AttrValVec;
-	typedef std::vector<const NcDim *> NcDimVec;
+	typedef std::vector<MBDynNcDim> NcDimVec;
 
-	const NcDim *
+	MBDynNcDim 
 	CreateDim(const std::string& name, integer size = -1);
 
-	const NcDim *
+	MBDynNcDim 
 	GetDim(const std::string& name) const;
 
-	inline const NcDim* DimTime(void) const;
-	inline const NcDim* DimV1(void) const;
-	inline const NcDim* DimV3(void) const;
+	inline MBDynNcDim DimTime(void) const;
+	inline MBDynNcDim DimV1(void) const;
+	inline MBDynNcDim DimV3(void) const;
 
-	NcVar *
-	CreateVar(const std::string& name, NcType type,
+	std::vector<size_t> ncStart1;
+#if defined(USE_NETCDF4)
+	std::vector<size_t> ncCount1;	
+	std::vector<size_t> ncStart1x3;
+	std::vector<size_t> ncCount1x3;
+	std::vector<size_t> ncStart1x3x3;
+	std::vector<size_t> ncCount1x3x3;
+#endif  /* USE_NETCDF4 */
+
+	MBDynNcVar
+	CreateVar(const std::string& name, const MBDynNcType& type,
 		const AttrValVec& attrs, const NcDimVec& dims);
+	
+	void
+	WriteNcVar(const MBDynNcVar&, const Vec3&);
 
-	NcVar *
+	void
+	WriteNcVar(const MBDynNcVar&, const Mat3x3&);
+
+	template <class Tvar>
+	void
+	WriteNcVar(const MBDynNcVar&, const Tvar&);
+	
+	MBDynNcVar
 	CreateVar(const std::string& name, const std::string& type);
 
 	template <class T>
-	NcVar *
+	MBDynNcVar
 	CreateVar(const std::string& name,
 		const std::string& units, const std::string& description);
 
-	NcVar *
+	MBDynNcVar
 	CreateRotationVar(const std::string& name_prefix,
 		const std::string& name_postfix,
 		OrientationDescription od,
@@ -320,7 +361,7 @@ public:
 
 #ifdef USE_NETCDF
 template <class T>
-NcVar *
+MBDynNcVar
 OutputHandler::CreateVar(const std::string& name,
 	const std::string& units, const std::string& description)
 {
@@ -330,48 +371,42 @@ OutputHandler::CreateVar(const std::string& name,
 	attrs[0] = AttrVal("units", units);
 	attrs[2] = AttrVal("description", description);
 	dims[0] = DimTime();
-
-	NcType type;
+	
 	if (typeid(T) == typeid(integer)) {
 		attrs[1] = AttrVal("type", "integer");
-		type = ncLong;
-
+		return CreateVar(name, MbNcInt, attrs, dims); // put this one inside if because couldn't figure out how to assign type inside if while declaring it outside of if.. alternative would be to create a pointer and change CreateVar function to copy type parameter instead of passing by reference (because type cannot be delete in CreateVar since addVar passes it by reference to netcdf)...
 	} else if (typeid(T) == typeid(doublereal)) {
 		attrs[1] = AttrVal("type", "doublereal");
-		type = ncDouble;
-
+	return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
 	} else if (typeid(T) == typeid(Vec3)) {
 		attrs[1] = AttrVal("type", "Vec3");
 		dims.resize(2);
 		dims[1] = DimV3();
-		type = ncDouble;
-
+		return CreateVar(name, MbNcDouble, attrs, dims); // see comment above
 	} else {
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
-
-	return CreateVar(name, type, attrs, dims);
 }
 
-inline NcFile *
+inline MBDynNcFile *
 OutputHandler::pGetBinFile(void) const
 {
 	return m_pBinFile;
 }
 
-inline const NcDim *
+inline MBDynNcDim 
 OutputHandler::DimTime(void) const
 {
 	return m_DimTime;
 }
 
-inline const NcDim *
+inline MBDynNcDim 
 OutputHandler::DimV1(void) const
 {
 	return m_DimV1;
 }
 
-inline const NcDim *
+inline MBDynNcDim 
 OutputHandler::DimV3(void) const
 {
 	return m_DimV3;

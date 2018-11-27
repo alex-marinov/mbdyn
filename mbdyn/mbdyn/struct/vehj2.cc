@@ -58,12 +58,12 @@ tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 tilde_R1hT_tilde_f1(tilde_R1h.Transpose()*tilde_f1),
 tilde_d(Zero3), tilde_dPrime(Zero3),
-# ifdef USE_NETCDF
+# ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_tilde_d(0),
 Var_tilde_dPrime(0),
 Var_d(0),
 Var_dPrime(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 bFirstRes(false), F(Zero3)
 {
 	ASSERT(pNode1 != NULL);
@@ -361,6 +361,7 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(GetF().pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec((pNode1->GetRCurr()*(tilde_R1h*GetF())).pGetVec(), 
@@ -378,6 +379,9 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 				Var_tilde_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 				Var_dPrime->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

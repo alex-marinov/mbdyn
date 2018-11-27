@@ -68,12 +68,12 @@ ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
 tilde_f1(R1h.MulTV(f1)),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_X(0),
 Var_Phi(0),
 Var_V(0),
 Var_Omega(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 M(::Zero3), F(::Zero3),
 ThetaDelta(::Zero3), ThetaDeltaPrev(::Zero3),
 ThetaDeltaRemnant(::Zero3),
@@ -1529,6 +1529,7 @@ TotalJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
@@ -1538,6 +1539,9 @@ TotalJoint::Output(OutputHandler& OH) const
 			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
 			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2091,12 +2095,12 @@ XDrv(pDCPos[0]), XPDrv(pDCPos[1]), XPPDrv(pDCPos[2]),
 ThetaDrv(pDCRot[0]), OmegaDrv(pDCRot[1]), OmegaPDrv(pDCRot[2]),
 nConstraints(0), nPosConstraints(0), nRotConstraints(0),
 nVelConstraints(0), nAgvConstraints(0),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_X(0),
 Var_Phi(0),
 Var_V(0),
 Var_Omega(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 M(::Zero3), F(::Zero3),
 ThetaDelta(::Zero3),
 ThetaDeltaPrev(::Zero3),
@@ -3359,6 +3363,7 @@ TotalPinJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
@@ -3368,6 +3373,9 @@ TotalPinJoint::Output(OutputHandler& OH) const
 			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
 			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

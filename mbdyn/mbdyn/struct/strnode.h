@@ -100,12 +100,12 @@ protected:
 					active (not default, see configuration options!) */
 
 #ifdef USE_NETCDF
-	NcVar	*Var_X,
-		*Var_Phi,
-		*Var_XP,
-		*Var_Omega,
-		*Var_XPP,
-		*Var_OmegaP;
+	MBDynNcVar Var_X,
+		Var_Phi,
+		Var_XP,
+		Var_Omega,
+		Var_XPP,
+		Var_OmegaP;
 #endif /* USE_NETCDF */
 
 	OrientationDescription od;

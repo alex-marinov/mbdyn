@@ -50,9 +50,9 @@ SphericalHingeJoint::SphericalHingeJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), 
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 d1(dTmp1), R1h(RTmp1h),
 d2(dTmp2), R2h(RTmp2h), 
 F(Zero3),
@@ -268,6 +268,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec((R1Tmp.MulTV(F)).pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
@@ -288,6 +289,9 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
 				/* impossible */
 				break;
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {

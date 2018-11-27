@@ -143,7 +143,7 @@ private:
 	const StructNode* pNode1;
 	const StructNode* pNode2;
 #ifdef USE_NETCDF
-	NcVar *Var_Phi;
+	MBDynNcVar Var_Phi;
 #endif // USE_NETCDF
 	Mat3x3 R1h;
 	Mat3x3 R2h;

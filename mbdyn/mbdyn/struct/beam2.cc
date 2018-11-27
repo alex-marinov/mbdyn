@@ -47,6 +47,7 @@
 #include "beam2.h"
 #include "pzbeam2.h"
 #include "Rot.hh"
+#include <sstream> // not sure why this is now needed (when enabling netcdf4)... TODO: try to remove
 
 /*
  * Nota: non e' ancora stato implementato il contributo
@@ -77,7 +78,7 @@ Beam2::Beam2(unsigned int uL,
 ElemGravityOwner(uL, fOut),
 InitialAssemblyElem(uL, fOut),
 od(ood),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_X(0),
 Var_Phi(0),
 Var_F(0),
@@ -86,7 +87,7 @@ Var_Nu(0),
 Var_K(0),
 Var_NuP(0),
 Var_KP(0),
-#endif /* USE_NETCDF */
+#endif /* USE_NETCDFC */
 bFirstRes(false),
 bFirstIDRes(true)
 {
@@ -714,6 +715,7 @@ Beam2::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+#if defined(USE_NETCDFC)
 			if (Var_X) {
 				Var_X->put_rec(p.pGetVec(), OH.GetCurrentStep());
 			}
@@ -787,6 +789,9 @@ Beam2::Output(OutputHandler& OH) const
 			if (Var_KP) {
 				Var_KP->put_rec(DefPrimeLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif /* USE_NETCDF */
 

@@ -73,14 +73,14 @@ tilde_f1(tilde_f1), tilde_f2(tilde_f2),
 tilde_R1h(tilde_R1h), tilde_R2h(tilde_R2h),
 od(od),
 tilde_k(Zero6), tilde_kPrime(Zero6),
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_tilde_d(0),
 Var_tilde_dPrime(0),
 Var_d(0),
 Var_dPrime(0),
 Var_Phi(0),
 Var_Omega(0),
-#endif // USE_NETCDF
+#endif // USE_NETCDFC
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -179,6 +179,7 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec((R1h*F).pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec((R1h*M).pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
@@ -198,6 +199,9 @@ DeformableJoint::Output(OutputHandler& OH) const
 				/* impossible */
 				break;
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {

@@ -35,6 +35,7 @@
 #include <cfloat>
 
 #include "autostr.h"
+#include <sstream> // not sure why this is now needed...
 
 /* AutomaticStructDispElem - begin */
 
@@ -255,10 +256,14 @@ AutomaticStructDispElem::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+#if defined(USE_NETCDFC)
 			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());
 			Var_G->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_BP->put_rec(BP.pGetVec(), OH.GetCurrentStep());
 			Var_GP->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif /* USE_NETCDF */
 
@@ -636,10 +641,10 @@ AutomaticStructElem::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
-			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());
-			Var_G->put_rec(G.pGetVec(), OH.GetCurrentStep());
-			Var_BP->put_rec(BP.pGetVec(), OH.GetCurrentStep());
-			Var_GP->put_rec(GP.pGetVec(), OH.GetCurrentStep());
+			OH.WriteNcVar(Var_B, B);
+			OH.WriteNcVar(Var_G, G);
+			OH.WriteNcVar(Var_BP, BP);
+			OH.WriteNcVar(Var_GP, GP);
 		}
 #endif /* USE_NETCDF */
 

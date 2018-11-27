@@ -116,14 +116,14 @@ protected:
 	OrientationDescription od;
 
 #ifdef USE_NETCDF
-	NcVar	*Var_X[2],
-		*Var_Phi[2],
-		*Var_F[2],
-		*Var_M[2],
-		*Var_Nu[2],
-		*Var_K[2],
-		*Var_NuP[2],
-		*Var_KP[2];
+	MBDynNcVar Var_X[2],
+		Var_Phi[2],
+		Var_F[2],
+		Var_M[2],
+		Var_Nu[2],
+		Var_K[2],
+		Var_NuP[2],
+		Var_KP[2];
 #endif /* USE_NETCDF */
 
   public:

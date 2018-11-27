@@ -279,10 +279,14 @@ void PrismaticJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+#if defined(USE_NETCDFC)
 			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_M_global->put_rec((R1Tmp*M).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+// TODO
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

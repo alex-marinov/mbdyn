@@ -131,14 +131,23 @@ DataManager::NodeOutputPrepare(OutputHandler& OH)
 			OutputHandler::NcDimVec dim(1);
 			dim[0] = OH.CreateDim(std::string(NodeData[nt].ShortDesc) + "_node_labels_dim", iNumNodes);
 
-			NcVar *VarLabels = OH.CreateVar(std::string("node.") + NodeData[nt].ShortDesc, ncInt, attrs, dim);
+			MBDynNcVar VarLabels = OH.CreateVar(std::string("node.") + NodeData[nt].ShortDesc, MbNcInt, attrs, dim);
 
 			NodeContainerType::const_iterator p = NodeData[nt].NodeContainer.begin();
+#if defined(USE_NETCDFC)
 			for (unsigned i = 0; i < unsigned(iNumNodes); i++, p++) {
 				VarLabels->set_cur(i);
 				const long l = p->second->GetLabel();
 				VarLabels->put(&l, 1);
 			}
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+			std::vector<size_t> ncStartPos(1,0);
+			for (unsigned i = 0; i < unsigned(iNumNodes); i++, p++) {
+				ncStartPos[0] = i;
+				const long l = p->second->GetLabel();
+				VarLabels.putVar(ncStartPos, &l);
+			}
+#endif  /* USE_NETCDF4 */
 		}
 	}
 #endif // USE_NETCDF
