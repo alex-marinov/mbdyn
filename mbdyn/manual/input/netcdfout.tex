@@ -664,10 +664,10 @@ Variable properties are displayed with
 Single records (in this example the position of node \texttt{10} at step \texttt{15})
 are accessed with
 \begin{verbatim}
-    octave:2> X10_15 = ncread('mbdyn_output_nc, 'node.struct.10.X', [1, 15], [3, 1]);
+    octave:2> X10_15 = ncread('mbdyn_output.nc', 'node.struct.10.X', [1, 15], [3, 1]);
 \end{verbatim}
 Single values (in this example the $z$-position of node \texttt{10} at step \texttt{15}) 
 with
 \begin{verbatim}
-    octave:3> X10_15_z = ncread('mbdyn_output_nc, 'node.struct.10.X', [3, 15], [1, 1]);
+    octave:3> X10_15_z = ncread('mbdyn_output.nc', 'node.struct.10.X', [3, 15], [1, 1]);
 \end{verbatim}
