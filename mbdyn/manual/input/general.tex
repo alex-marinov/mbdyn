@@ -2840,8 +2840,9 @@ are not managed, so it is not very reliable).
 \end{Verbatim}
 %\end{verbatim}
 When \nt{trigger} is non-zero, the value of \nt{function}
-is recorded and returned; when \nt{trigger} is zero,
-the last recorded value is returned.
+is recorded after convergence at the end of the time step,
+and returned whenever the drive is called afterwards;
+when \nt{trigger} is zero, the last recorded value is returned.
 When the optional keyword \kw{initial value} is present,
 if the trigger is initially zero, the value \nt{initial\_value}
 is returned until \nt{trigger} becomes non-zero.
