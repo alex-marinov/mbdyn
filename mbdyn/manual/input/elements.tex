@@ -194,8 +194,8 @@ when connected to a rotationless, 3 degree of freedom structural node.
     \bnt{elem_type} ::= \kw{body}
 
     \bnt{normal_arglist} ::= \bnt{node_label} ,
-        \{ \bnt{one_body} [ , \kw{allow negative mass} ]
-            | \bnt{one_pointmass} [ , \kw{allow negative mass} ]
+        \{ [ \kw{allow negative mass} , ] \bnt{one_body}
+            | [ \kw{allow negative mass} , ] \bnt{one_pointmass}
             | \kw{variable mass} , \bnt{one_vm_body}
             | \kw{condense} , \bnt{num_masses} [ , \kw{allow negative mass} ] ,
 	        \{ \bnt{one_body} | \bnt{one_pointmass} \} [ , ... ] \}
