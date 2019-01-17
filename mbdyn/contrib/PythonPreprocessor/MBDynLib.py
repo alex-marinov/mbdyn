@@ -57,6 +57,7 @@ else:
         import builtins
 
 declared_ConstMBVars = {}
+declared_IfndefMBVars = {}
 declared_MBVars = {}
 
 MBDynLib_simplify = True
@@ -326,6 +327,11 @@ class MBVar(terminal_expression):
         assert (name in declared_ConstMBVars) == False, (
             '\n-------------------\nERROR:' + 
             ' re-defining an already declared const variable:\n\t' + 
+            var_type + ' ' + name + 
+            '\n-------------------\n')
+        assert (name in declared_IfndefMBVars) == False, (
+            '\n-------------------\nERROR:' + 
+            ' re-defining an already declared ifndef variable:\n\t' + 
             var_type + ' ' + name + 
             '\n-------------------\n')
         self.declare()
