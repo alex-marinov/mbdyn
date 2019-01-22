@@ -28,6 +28,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 1996-2017
+ *
+ * Pierangelo Masarati <pierangelo.masarati@polimi.it>
+ *
+ * Sponsored by Hutchinson CdR, 2018-2019
+ */
+
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include "dataman.h"

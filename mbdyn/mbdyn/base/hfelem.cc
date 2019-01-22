@@ -28,6 +28,14 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
+/*
+ * Copyright (C) 1996-2017
+ *
+ * Pierangelo Masarati <pierangelo.masarati@polimi.it>
+ *
+ * Sponsored by Hutchinson CdR, 2018-2019
+ */
+
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <iostream>
@@ -64,7 +72,6 @@ private:
 	doublereal m_dOmegaAddInc;
 	doublereal m_dOmegaMulInc;
 
-	integer m_iCnt;
 	integer m_iPeriod;
 	integer m_iPeriodCnt;
 	bool m_bStarted;
@@ -132,7 +139,6 @@ m_dTInit(-std::numeric_limits<doublereal>::max()),
 m_dF(0.),
 m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
-m_iCnt(0),
 m_iPeriod(0),
 m_iPeriodCnt(0),
 m_bStarted(false),
@@ -338,7 +344,8 @@ HarmonicForcingElem::~HarmonicForcingElem(void)
 void
 HarmonicForcingElem::Output(OutputHandler& OH) const
 {
-	// should do something useful
+	// NOTE: output occurs only at convergence,
+	// not with fixed periodicity
 	if (bToBeOutput()) {
 		if (m_bOut && m_iPeriod == 0 && m_iPeriodCnt == 0) {
 			std::ostream& out = OH.Loadable();
@@ -354,16 +361,9 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 
 			out << std::endl;
 		}
-
-#if 0
-		std::ostream& out = OH.Loadable();
-
-		out << std::setw(8) << GetLabel()	// 1:	label
-			<< " " << m_dOmega
-			<< " " << m_dDeltaT
-			<< std::endl;
-#endif
 	}
+
+	// TODO: NetCDF support
 }
 
 void
@@ -400,7 +400,7 @@ HarmonicForcingElem::AssRes(SubVectorHandler& WorkVec,
 void
 HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 {
-	// prepare output
+	// initialize if needed
 	if (!m_bStarted) {
 		if (m_pDM->dGetTime() >= m_dTInit) {
 			m_bStarted = true;
@@ -410,11 +410,11 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 
 	} else {
 
-		// just initialized
+		// if just initialized
 		if (m_iPeriod == 0 && m_iPeriodCnt == 0) {
 			m_dT0 = m_pDM->dGetTime();
 
-			// reset
+			// reset vectors
 			for (unsigned i = 0; i < m_Input.size(); ++i) {
 				m_Xcos[i] = 0.;
 				m_Xsin[i] = 0.;
@@ -433,6 +433,10 @@ void
 HarmonicForcingElem::AfterConvergence(const VectorHandler& X, 
 		const VectorHandler& XP)
 {
+	if (!m_bStarted) {
+		return;
+	}
+
 	// collect input
 	doublereal dErr = 0.;
 
@@ -461,7 +465,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 	// check for convergence
 	if (m_iPeriod > 0) {
 		dErr = sqrt(dErr);
-		if (dErr < m_dTol) {
+		if (dErr <= m_dTol) {
 			m_bConverged = true;
 
 		} else {
@@ -469,33 +473,30 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 		}
 	}
 
-	if (m_bStarted) {
-		++m_iCnt;
-		++m_iPeriodCnt;
-		if (m_iPeriodCnt == m_iN) {
-			m_iPeriodCnt = 0;
-			++m_iPeriod;
-			if (m_bConverged && m_iPeriod >= m_iMinPeriods) {
-				m_iPeriodOut = m_iPeriod;
-				m_dOmegaOut = m_dOmega;
+	++m_iPeriodCnt;
+	if (m_iPeriodCnt == m_iN) {
+		m_iPeriodCnt = 0;
+		++m_iPeriod;
+		if (m_bConverged && m_iPeriod >= m_iMinPeriods) {
+			m_iPeriodOut = m_iPeriod;
+			m_dOmegaOut = m_dOmega;
 
-				m_bConverged = false;
-				m_iPeriod = 0;
+			m_bConverged = false;
+			m_iPeriod = 0;
 
-				if (m_dOmegaAddInc > 0.) {
-					m_dOmega += m_dOmegaAddInc;
+			if (m_dOmegaAddInc > 0.) {
+				m_dOmega += m_dOmegaAddInc;
 
-				} else {
-					m_dOmega *= m_dOmegaMulInc;
-				}
-
-				if (m_dOmega >= m_dOmegaMax) {
-					// schedule for termination!
-					throw NoErr(MBDYN_EXCEPT_ARGS);
-				}
-
-				m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
+			} else {
+				m_dOmega *= m_dOmegaMulInc;
 			}
+
+			if (m_dOmega >= m_dOmegaMax) {
+				// schedule for termination!
+				throw NoErr(MBDYN_EXCEPT_ARGS);
+			}
+
+			m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
 		}
 	}
 }
