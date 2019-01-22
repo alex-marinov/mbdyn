@@ -356,7 +356,7 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 				<< " " << m_iPeriodOut;		// 4:	how many periods required
 
 			for (unsigned i = 0; i < m_Input.size(); ++i) {
-				out << " " << m_Xsin[i] << " " << -m_Xcos[i];
+				out << " " << m_Xsin[i] << " " << m_Xcos[i];
 			}
 
 			out << std::endl;
