@@ -71,6 +71,8 @@ force.cc \
 force.h \
 gmres.cc \
 gmres.h \
+hfelem.cc \
+hfelem.h \
 hint.h \
 hint_impl.cc \
 hint_impl.h \

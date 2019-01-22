@@ -47,6 +47,8 @@
 #endif // HAVE_CHARM
 #endif // STATIC_MODULES
 
+#include "hfelem.h"
+
 typedef std::map<std::string, UserDefinedElemRead *, ltstrcase> UDEMapType;
 static UDEMapType UDEMap;
 
@@ -128,6 +130,8 @@ InitUDE(void)
 	ASSERT(b != false);
 #endif // HAVE_CHARM
 #endif // STATIC_MODULES
+	b = hfelem_set();
+	ASSERT(b != false);
 }
 
 void
