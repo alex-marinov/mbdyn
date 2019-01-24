@@ -53,7 +53,8 @@ private:
 	enum Priv {
 		DT = 1,
 		F,
-		OMEGA
+		OMEGA,
+		COUNT
 	};
 
 	const DataManager* m_pDM;
@@ -73,6 +74,7 @@ private:
 	doublereal m_dOmegaAddInc;
 	doublereal m_dOmegaMulInc;
 
+	integer m_iOmegaCnt;
 	integer m_iPeriod;
 	integer m_iPeriodCnt;
 	bool m_bStarted;
@@ -140,6 +142,7 @@ m_dTInit(-std::numeric_limits<doublereal>::max()),
 m_dF(0.),
 m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
+m_iOmegaCnt(0),
 m_iPeriod(0),
 m_iPeriodCnt(0),
 m_bStarted(false),
@@ -481,6 +484,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 		if (m_bConverged && m_iPeriod >= m_iMinPeriods) {
 			m_iPeriodOut = m_iPeriod;
 			m_dOmegaOut = m_dOmega;
+			m_iOmegaCnt++;
 
 			m_bConverged = false;
 			m_iPeriod = 0;
@@ -505,7 +509,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 unsigned int
 HarmonicForcingElem::iGetNumPrivData(void) const
 {
-	return 3;
+	return 4;
 }
 
 unsigned int
@@ -519,6 +523,9 @@ HarmonicForcingElem::iGetPrivDataIdx(const char *s) const
 
 	} else if (strcmp(s, "omega") == 0) {
 		return OMEGA;
+
+	} else if (strcmp(s, "count") == 0) {
+		return COUNT;
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -536,6 +543,9 @@ HarmonicForcingElem::dGetPrivData(unsigned int i) const
 
 	case OMEGA:
 		return m_dOmega;
+
+	case COUNT:
+		return doublereal(m_iOmegaCnt);
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
