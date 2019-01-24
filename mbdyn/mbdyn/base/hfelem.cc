@@ -52,7 +52,8 @@ private:
 	// add private data
 	enum Priv {
 		DT = 1,
-		F
+		F,
+		OMEGA
 	};
 
 	const DataManager* m_pDM;
@@ -504,7 +505,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 unsigned int
 HarmonicForcingElem::iGetNumPrivData(void) const
 {
-	return 2;
+	return 3;
 }
 
 unsigned int
@@ -515,6 +516,9 @@ HarmonicForcingElem::iGetPrivDataIdx(const char *s) const
 
 	} else if (strcmp(s, "excitation") == 0) {
 		return F;
+
+	} else if (strcmp(s, "omega") == 0) {
+		return OMEGA;
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -529,6 +533,9 @@ HarmonicForcingElem::dGetPrivData(unsigned int i) const
 
 	case F:
 		return m_dF;
+
+	case OMEGA:
+		return m_dOmega;
 
 	default:
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
