@@ -44,7 +44,7 @@
 #include "dataman.h"
 #include "userelem.h"
 
-#include "hfelem.h"
+#include "module-hfelem.h"
 
 static bool bHFElem(false);
 

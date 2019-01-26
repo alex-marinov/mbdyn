@@ -38,16 +38,15 @@
 #include "loadable.h"
 
 #ifdef STATIC_MODULES
-#include "module-wheel2/module-wheel2.h"
 #include "module-asynchronous_machine/module-asynchronous_machine.h"
 #include "module-inline_friction/module-inline_friction.h"
 #include "module-cyclocopter/module-cyclocopter.h"
+#include "module-hfelem/module-hfelem.h"
+#include "module-wheel2/module-wheel2.h"
 #ifdef HAVE_CHARM
 #include "module-charm/mbcharm.h"
 #endif // HAVE_CHARM
 #endif // STATIC_MODULES
-
-#include "hfelem.h"
 
 typedef std::map<std::string, UserDefinedElemRead *, ltstrcase> UDEMapType;
 static UDEMapType UDEMap;
