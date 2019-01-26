@@ -82,7 +82,9 @@ Since the amount of simulation time required to reach a certain excitation angul
 
 \item $\nt{omega\_mul\_increment} > 1$ when the angular frequency increment pattern is \kw{multiplicative}
 
-\item $\nt{omega}_i > \nt{omega}_{i-1}$ when the angular frequency increment pattern is \kw{custom}; in this latter case, the simulation ends either when the last angular frequency value is reached or when $\nt{omega}_i > \nt{omega\_max}$, if the latter is defined
+\item $\nt{omega}_i > \nt{omega}_{i-1}$ when the angular frequency increment pattern is \kw{custom}; in this latter case, the simulation ends either when the last angular frequency value is reached or when $\nt{omega}_i > \nt{omega\_max}$, if the latter is defined.
+
+The list of custom angular frequencies is terminated by the keyword \kw{last}.
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 \end{itemize}
