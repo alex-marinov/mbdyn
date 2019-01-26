@@ -61,7 +61,7 @@ private:
 
 	const DataManager* m_pDM;
 
-	integer m_iN;	// must be even
+	integer m_iN;
 
 	doublereal m_dTInit;
 	doublereal m_dT0;
@@ -224,11 +224,6 @@ m_dOmegaOut(0.)
 		throw e;
 	}
 
-	if ((m_iN/2)*2 != m_iN) {
-		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): N must be even, at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
 	// frequency
 	if (!HP.IsKeyWord("initial" "angular" "frequency")) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"initial angular frequency\" expected at line " << HP.GetLineData() << std::endl);
@@ -364,8 +359,8 @@ m_dOmegaOut(0.)
 
 	for (integer i = 0; i < m_iN; i++) {
 		doublereal dPsi = (2*M_PI*i)/m_iN;
-		m_cos_psi[i] = cos(dPsi)/(m_iN/2);
-		m_sin_psi[i] = sin(dPsi)/(m_iN/2);
+		m_cos_psi[i] = (cos(dPsi)/m_iN)/2;
+		m_sin_psi[i] = (sin(dPsi)/m_iN)/2;
 
 		m_X[i].resize(iNInput);
 	}
