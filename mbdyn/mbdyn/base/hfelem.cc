@@ -46,6 +46,8 @@
 
 #include "hfelem.h"
 
+static bool bHFElem(false);
+
 class HarmonicForcingElem
 : virtual public Elem, public UserDefinedElem {
 private:
@@ -71,14 +73,21 @@ private:
 
 	doublereal m_dTol;
 	integer m_iMinPeriods;
+	enum OmegaInc {
+		ADDITIVE,
+		MULTIPLICATIVE,
+		CUSTOM
+	} m_OmegaInc;
 	doublereal m_dOmegaAddInc;
 	doublereal m_dOmegaMulInc;
+	std::vector<doublereal> m_Omega;
 
 	integer m_iOmegaCnt;
 	integer m_iPeriod;
 	integer m_iPeriodCnt;
 	bool m_bStarted;
 	bool m_bConverged;
+	bool m_bDone;
 
 	bool m_bOut;
 	integer m_iPeriodOut;
@@ -147,6 +156,7 @@ m_iPeriod(0),
 m_iPeriodCnt(0),
 m_bStarted(false),
 m_bConverged(false),
+m_bDone(false),
 m_bOut(false),
 m_iPeriodOut(0),
 m_dOmegaOut(0.)
@@ -173,10 +183,16 @@ m_dOmegaOut(0.)
 	}
 
 	// do something useful
+	if (bHFElem) {
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): warning, another HarmonicExcitationElem has already been defined, which might conflict with the one defined here at line " << HP.GetLineData() << std::endl);
+		// do nothing by now
+	}
+
+	bHFElem = true;
 
 	// inputs
 	if (!HP.IsKeyWord("inputs" "number")) {
-		silent_cerr("HarmonicExcitationElem: \"inputs number\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"inputs number\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -185,7 +201,7 @@ m_dOmegaOut(0.)
 		iNInput = HP.GetInt(1, HighParser::range_gt<integer>(0));
 	
 	} catch (HighParser::ErrValueOutOfRange<integer> e) {
-		silent_cerr("HarmonicExcitationElem: number of input must be positive, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): number of input must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
 
@@ -196,7 +212,7 @@ m_dOmegaOut(0.)
 
 	// block size
 	if (!HP.IsKeyWord("steps" "number")) {
-		silent_cerr("HarmonicExcitationElem: \"steps number\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"steps number\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -204,18 +220,18 @@ m_dOmegaOut(0.)
 		m_iN = HP.GetInt(2, HighParser::range_gt<integer>(0));
 
 	} catch (HighParser::ErrValueOutOfRange<integer> e) {
-		silent_cerr("HarmonicExcitationElem: N must be positive, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): N must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
 
 	if ((m_iN/2)*2 != m_iN) {
-		silent_cerr("HarmonicExcitationElem: N must be even, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): N must be even, at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	// frequency
 	if (!HP.IsKeyWord("initial" "angular" "frequency")) {
-		silent_cerr("HarmonicExcitationElem: \"initial angular frequency\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"initial angular frequency\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -223,7 +239,7 @@ m_dOmegaOut(0.)
 		m_dOmega0 = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
 	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-		silent_cerr("HarmonicExcitationElem: initial frequency must be positive, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): initial frequency must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
 
@@ -236,7 +252,7 @@ m_dOmegaOut(0.)
 				m_dOmegaMax = HP.GetReal(m_dOmega0, HighParser::range_gt<doublereal>(m_dOmega0));
 
 			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-				silent_cerr("HarmonicExcitationElem: maximum frequency must be greater than initial frequency " << m_dOmega0 << ", at line " << HP.GetLineData() << std::endl);
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum frequency must be greater than initial frequency " << m_dOmega0 << ", at line " << HP.GetLineData() << std::endl);
 				throw e;
 			}
 		}
@@ -251,30 +267,54 @@ m_dOmegaOut(0.)
 
 	// frequency increment
 	if (!HP.IsKeyWord("angular" "frequency" "increment")) {
-		silent_cerr("HarmonicExcitationElem: \"angular frequency increment\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"angular frequency increment\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("additive")) {
+		m_OmegaInc = ADDITIVE;
 		try {
 			m_dOmegaAddInc = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
 		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-			silent_cerr("HarmonicExcitationElem: frequency additive increment must be positive, at line " << HP.GetLineData() << std::endl);
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): frequency additive increment must be positive, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
 
 	} else if (HP.IsKeyWord("multiplicative")) {
+		m_OmegaInc = MULTIPLICATIVE;
 		try {
 			m_dOmegaMulInc = HP.GetReal(1., HighParser::range_gt<doublereal>(1.));
 
 		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-			silent_cerr("HarmonicExcitationElem: frequency multiplicative increment must be greater than 1, at line " << HP.GetLineData() << std::endl);
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): frequency multiplicative increment must be greater than 1, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
 
+	} else if (HP.IsKeyWord("custom")) {
+		m_OmegaInc = CUSTOM;
+
+		doublereal dOmega = m_dOmega0;
+		m_Omega.push_back(dOmega);
+
+		for (integer i = 1; i++; ) {
+			if (HP.IsKeyWord("last")) {
+				break;
+			}
+
+			try {
+				dOmega = HP.GetReal(1., HighParser::range_gt<doublereal>(dOmega));
+
+			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): Omega[" << i << "] must be greater than Omega[" << i - 1 << "] = " << m_Omega[i-1] << ", at line " << HP.GetLineData() << std::endl);
+				throw e;
+			}
+
+			m_Omega.push_back(dOmega);
+		}
+
 	} else {
-		silent_cerr("HarmonicExcitationElem: unknown or missing frequency increment method at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): unknown or missing frequency increment method at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -285,7 +325,7 @@ m_dOmegaOut(0.)
 
 	// tolerance
 	if (!HP.IsKeyWord("tolerance")) {
-		silent_cerr("HarmonicExcitationElem: \"tolerance\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"tolerance\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -293,13 +333,13 @@ m_dOmegaOut(0.)
 		m_dTol = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
 	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-		silent_cerr("HarmonicExcitationElem: tolerance must be positive, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): tolerance must be positive, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
 
 	// minimum number of blocks
 	if (!HP.IsKeyWord("min" "periods")) {
-		silent_cerr("HarmonicExcitationElem: \"min periods\" expected at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): \"min periods\" expected at line " << HP.GetLineData() << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
@@ -307,7 +347,7 @@ m_dOmegaOut(0.)
 		m_iMinPeriods = HP.GetInt(2, HighParser::range_gt<integer>(1));
 
 	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
-		silent_cerr("HarmonicExcitationElem: minimum number of periods must be greater than 1, at line " << HP.GetLineData() << std::endl);
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): minimum number of periods must be greater than 1, at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
 
@@ -413,6 +453,10 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 		}
 
 	} else {
+		if (m_bDone) {
+			// throw it here, otherwise output might not be performed
+			throw NoErr(MBDYN_EXCEPT_ARGS);
+		}
 
 		// if just initialized
 		if (m_iPeriod == 0 && m_iPeriodCnt == 0) {
@@ -423,8 +467,6 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 				m_Xcos[i] = 0.;
 				m_Xsin[i] = 0.;
 			}
-
-			m_bOut = true;
 		}
 	}
 
@@ -482,6 +524,7 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 		m_iPeriodCnt = 0;
 		++m_iPeriod;
 		if (m_bConverged && m_iPeriod >= m_iMinPeriods) {
+			m_bOut = true;
 			m_iPeriodOut = m_iPeriod;
 			m_dOmegaOut = m_dOmega;
 			m_iOmegaCnt++;
@@ -489,16 +532,31 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 			m_bConverged = false;
 			m_iPeriod = 0;
 
-			if (m_dOmegaAddInc > 0.) {
+			switch (m_OmegaInc) {
+			case ADDITIVE:
 				m_dOmega += m_dOmegaAddInc;
+				break;
 
-			} else {
+			case MULTIPLICATIVE:
 				m_dOmega *= m_dOmegaMulInc;
+				break;
+
+			case CUSTOM:
+				if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
+					// schedule for termination!
+					m_bDone = true;
+				}
+				m_dOmega = m_Omega[m_iOmegaCnt];
+				break;
+
+			default:
+				// impossible
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 
-			if (m_dOmega >= m_dOmegaMax) {
+			if (m_dOmega > m_dOmegaMax) {
 				// schedule for termination!
-				throw NoErr(MBDYN_EXCEPT_ARGS);
+				m_bDone = true;
 			}
 
 			m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
