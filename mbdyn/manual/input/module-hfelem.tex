@@ -51,7 +51,7 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
 
     \bnt{arglist} ::=
         \kw{inputs number} , (\ty{integer}) \bnt{inputs_number} ,
-            (\hty{DriveCaller}) \bnt{input_signal} [ , ... ] ,
+            (\hty{DriveCaller}) \bnt{input_signal} [ , ... ] , # \nt{inputs_number} occurrences
         \kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
         \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
             [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
@@ -116,7 +116,8 @@ Each output row contains:
 \item[4)] how many periods were required to reach convergence (unsigned)
 \item[5--?)] fundamental frequency coefficient of output signals; for each of them, the real and the imaginary part are output (pairs of reals)
 \end{itemize}
-For example, to plot the results of the first output signal in Octave (or Matlab), one can:
+For example, to plot the results of the first output signal in Octave (or Matlab), one can use:
+\begin{framed}
 \begin{verbatim}
     octave:1> data = load('output_file.usr');
     octave:2> omega = data(:, 3);
@@ -124,6 +125,7 @@ For example, to plot the results of the first output signal in Octave (or Matlab
     octave:4> figure; loglog(omega, abs(x));
     octave:5> figure; semilogx(omega, atan2(imag(x), real(x)))*180/pi;
 \end{verbatim}
+\end{framed}
 
 
 No output in NetCDF format is currently available.
