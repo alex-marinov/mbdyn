@@ -65,26 +65,31 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
 \end{Verbatim}
 with
 \begin{itemize}
-\item $\nt{inputs\_number} > 0$; it is suggested that the \kw{node}, \kw{element} drive callers are used to extract relevant measures of the output of the system
+\item $\nt{inputs\_number} > 0$; it is suggested that the
+% \kw{node},
+% \kw{element} 
+\hyperref{\kw{node}}{\kw{node} (see Section~}{)}{sec:DriveCaller:NODE},
+\hyperref{\kw{element}}{\kw{element} (see Section~}{)}{sec:DriveCaller:ELEMENT}
+drive callers, either alone or in combination with other drive callers, are used to extract relevant measures of the output of the system;
 
 \item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
 \begin{align*}
 	\Delta t = \frac{2 \pi}{\omega \cdot \nt{steps\_number}}
 \end{align*}
 
-\item $\nt{omega0} > 0$, the initial excitation angular frequency
+\item $\nt{omega0} > 0$, the initial excitation angular frequency;
 
 \item $\nt{omega\_max} > \nt{omega0}$; if the \kw{max angular frequency} field is not present, or if the keyword \kw{forever} is used, the simulation ends when the \kw{final time} (as defined in the \nt{problem} block) is reached.
 
-Since the amount of simulation time required to reach a certain excitation angular frequency cannot be determined a priori, it is suggested that \kw{final time} (in the \nt{problem} block) is set to \kw{forever}, and termination is controlled using the \kw{omega\_max} field, or the \kw{custom} variant of the angular frequency increment field
+Since the amount of simulation time required to reach a certain excitation angular frequency cannot be determined a priori, it is suggested that \kw{final time} (in the \nt{problem} block) is set to \kw{forever}, and termination is controlled using the \kw{omega\_max} field, or the \kw{custom} variant of the angular frequency increment field;
 
-\item $\nt{omega\_add\_increment} > 0$ when the angular frequency increment pattern is \kw{additive}
+\item $\nt{omega\_add\_increment} > 0$ when the angular frequency increment pattern is \kw{additive};
 
-\item $\nt{omega\_mul\_increment} > 1$ when the angular frequency increment pattern is \kw{multiplicative}
+\item $\nt{omega\_mul\_increment} > 1$ when the angular frequency increment pattern is \kw{multiplicative};
 
 \item $\nt{omega}_i > \nt{omega}_{i-1}$ when the angular frequency increment pattern is \kw{custom}; in this latter case, the simulation ends either when the last angular frequency value is reached or when $\nt{omega}_i > \nt{omega\_max}$, if the latter is defined.
 
-The list of custom angular frequencies is terminated by the keyword \kw{last}.
+The list of custom angular frequencies is terminated by the keyword \kw{last};
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 \end{itemize}
@@ -97,6 +102,7 @@ The output of this element differs a bit from that of regular ones, since it onl
 \bigskip
 
 \begin{framed}
+\noindent
 \emph{Beware that, in case other user-defined elements are present in the model, this might ``screw up'' any regularity in the output file.}
 \end{framed}
 
