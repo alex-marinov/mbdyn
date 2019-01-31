@@ -20,23 +20,22 @@ discussion with other developers.
 
 Developers that would like to contribute to MBDyn but are not in the project
 regulars must:
-
-    - fork the Gitlab repository hosted [here](https://gitlab.polimi.it/Pub/mbdyn.git)
-    - checkout a fresh branch from the `develop` branch
-    - commit and push to your branch in their forked repository
-    - issue a merge request into the develop branch of MBDyn main repository
+ - fork the Gitlab repository hosted [here](https://gitlab.polimi.it/Pub/mbdyn.git)
+ - checkout a fresh branch from the `develop` branch
+ - commit and push to your branch in their forked repository
+ - issue a merge request into the develop branch of MBDyn main repository
 
 ## Guidelines for _internal_ developers
 Developers that would like to be included among the regulars in MBDyn must have
 either a **Google** or a **Polimi** account and must:
 
-    - request a "developer" access permission to the MBDyn administrators, 
+ - request a "developer" access permission to the MBDyn administrators, 
       @andomasarati in primis
-    - clone the repository from [here](https://gitlab.polimi.it/Pub/mbdyn.git)
-    - checkout a fresh branch from the `develop` branch
-    - make sure that your contribution follows the code development model 
+ - clone the repository from [here](https://gitlab.polimi.it/Pub/mbdyn.git)
+ - checkout a fresh branch from the `develop` branch
+ - make sure that your contribution follows the code development model 
       indicated above before pushing
-    - whenever they feel that their contribution would benefit from a discussion
+ - whenever they feel that their contribution would benefit from a discussion
       with other developers, issue a merge request instead of directly pushing
       to the main repository
     
