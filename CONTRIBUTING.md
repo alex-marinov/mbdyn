@@ -2,7 +2,7 @@
 
 MBDyn is developed primarily by _internal_ developers at Politecnico di 
 Milano Department of Aerospace Science and Technology 
-([DAER](www.aero.polimi.it)). 
+([DAER](http://www.aero.polimi.it/)). 
 
 All contributions from _external_ developers however are welcome, of course.
 As the project's maintainers, we only ask interested coders to follow the 
