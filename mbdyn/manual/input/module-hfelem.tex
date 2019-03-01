@@ -1,0 +1,184 @@
+% MBDyn (C) is a multibody analysis code. 
+% http://www.mbdyn.org
+% 
+% Copyright (C) 1996-2017
+% 
+% Pierangelo Masarati	<masarati@aero.polimi.it>
+% Paolo Mantegazza	<mantegazza@aero.polimi.it>
+% 
+% Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+% via La Masa, 34 - 20156 Milano, Italy
+% http://www.aero.polimi.it
+% 
+% Changing this copyright notice is forbidden.
+% 
+% This program is free software; you can redistribute it and/or modify
+% it under the terms of the GNU General Public License as published by
+% the Free Software Foundation (version 2 of the License).
+% 
+% 
+% This program is distributed in the hope that it will be useful,
+% but WITHOUT ANY WARRANTY; without even the implied warranty of
+% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+% GNU General Public License for more details.
+% 
+% You should have received a copy of the GNU General Public License
+% along with this program; if not, write to the Free Software
+% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 
+
+% Copyright (C) 1996-2017
+%
+% Pierangelo Masarati <pierangelo.masarati@polimi.it>
+%
+% Sponsored by Hutchinson CdR, 2018-2019
+
+
+\emph{Author: Pierangelo Masarati} \\
+\emph{This element was sponsored by Hutchinson CdR}
+
+\bigskip
+
+This element produces a harmonic excitation with variable frequency, which is used to control the time marching simulation to support the extraction of the harmonic response.
+
+The element produces a harmonic signal, of specified frequency, and monitors a set of signals produced by the analysis.
+When the fundamental harmonic of the monitored signals' response converges, the frequency of the excitation is changed, according to a prescribed pattern.
+The time step is changed accordingly, such that a period is performed within a prescribed number of time steps of equal length.
+The (complex) magnitude of the fundamental harmonic of each signal is logged at convergence.
+
+\begin{Verbatim}[commandchars=\\\{\}]
+    \bnt{name} ::= \kw{harmonic excitation}
+
+    \bnt{arglist} ::=
+        \kw{inputs number} , (\ty{integer}) \bnt{inputs_number} ,
+            (\hty{DriveCaller}) \bnt{input_signal} [ , ... ] , # \nt{inputs_number} occurrences
+        \kw{steps number} , (\ty{integer}) \bnt{steps_number} ,
+        \kw{initial angular frequency} , (\ty{real}) \bnt{omega0} ,
+            [ \kw{max angular frequency} , \{ \kw{forever} | (\ty{real}) \bnt{omega_max} \} , ]
+            \kw{angular frequency increment} ,
+                \{ \kw{additive} , (\ty{real}) \bnt{omega_add_increment}
+                    | \kw{multiplicative} , (\ty{real}) \bnt{omega_mul_increment}
+                    | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
+        [ \kw{initial time} , (\ty{real}) \bnt{initial_time} , ]
+        [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
+        \kw{min periods } , (\ty{integer}) \bnt{min_periods}
+\end{Verbatim}
+with
+\begin{itemize}
+\item $\nt{inputs\_number} > 0$; it is suggested that the
+% \kw{node},
+% \kw{element} 
+\hyperref{\kw{node}}{\kw{node} (see Section~}{)}{sec:DriveCaller:NODE},
+\hyperref{\kw{element}}{\kw{element} (see Section~}{)}{sec:DriveCaller:ELEMENT}
+drive callers, either alone or in combination with other drive callers, are used to extract relevant measures of the output of the system;
+
+\item $\nt{steps\_number} > 1$; the number of time steps within a single period, such that
+\begin{align*}
+	\Delta t = \frac{2 \pi}{\omega \cdot \nt{steps\_number}}
+\end{align*}
+
+\item $\nt{omega0} > 0$, the initial excitation angular frequency;
+
+\item $\nt{omega\_max} > \nt{omega0}$; if the \kw{max angular frequency} field is not present, or if the keyword \kw{forever} is used, the simulation ends when the \kw{final time} (as defined in the \nt{problem} block) is reached.
+
+Since the amount of simulation time required to reach a certain excitation angular frequency cannot be determined a priori, it is suggested that \kw{final time} (in the \nt{problem} block) is set to \kw{forever}, and termination is controlled using the \kw{omega\_max} field, or the \kw{custom} variant of the angular frequency increment field;
+
+\item $\nt{omega\_add\_increment} > 0$ when the angular frequency increment pattern is \kw{additive};
+
+\item $\nt{omega\_mul\_increment} > 1$ when the angular frequency increment pattern is \kw{multiplicative};
+
+\item $\nt{omega}_i > \nt{omega}_{i-1}$ when the angular frequency increment pattern is \kw{custom}; in this latter case, the simulation ends either when the last angular frequency value is reached or when $\nt{omega}_i > \nt{omega\_max}$, if the latter is defined.
+
+The list of custom angular frequencies is terminated by the keyword \kw{last};
+
+\item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
+\end{itemize}
+
+\paragraph{Output.}
+Output in text format takes place in the \emph{user-defined} elements output file (the one with the \texttt{.usr} extension).
+
+The output of this element differs a bit from that of regular ones, since it only occurs at convergence for each specific excitation frequency, which in turn can only occur at the end of a period.
+
+\bigskip
+
+\begin{framed}
+\noindent
+\emph{Beware that, in case other user-defined elements are present in the model, this might ``screw up'' any regularity in the output file.}
+\end{framed}
+
+\bigskip
+
+Each output row contains:
+\begin{itemize}
+\item[1)] the label (unsigned)
+\item[2)] the time at which convergence was reached (real)
+\item[3)] the angular frequency (real)
+\item[4)] how many periods were required to reach convergence (unsigned)
+\item[5--?)] fundamental frequency coefficient of output signals; for each of them, the real and the imaginary part are output (pairs of reals)
+\end{itemize}
+For example, to plot the results of the first output signal in Octave (or Matlab), one can use:
+\begin{framed}
+\begin{verbatim}
+    octave:1> data = load('output_file.usr');
+    octave:2> omega = data(:, 3);
+    octave:3> x = data(:, 5) + j*data(:, 6);
+    octave:4> figure; loglog(omega, abs(x));
+    octave:5> figure; semilogx(omega, atan2(imag(x), real(x)))*180/pi;
+\end{verbatim}
+\end{framed}
+
+
+No output in NetCDF format is currently available.
+
+\paragraph{Private Data.}
+This element exposes several signals in form of private data.
+The first two are fundamental for the functionality of this element.
+\begin{itemize}
+\item \kw{timestep}, i.e.\ the time step to be used in the simulation; to this end, the analysis (typically, an \kw{initial value} problem) must be set up with a \nt{problem} block containing
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{strategy} : \kw{change} , \kw{postponed} , (\ty{unsigned}) \bnt{timestep_drive_label} ;
+\end{Verbatim}
+Then, after instantiating the \kw{hfelem}, one must reference the time step drive, with the statement
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{drive caller} : (\ty{unsigned}) \bnt{timestep_drive_label} ,
+        \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+        \kw{string} , \kw{"timestep"} , \kw{direct} ;
+\end{Verbatim}
+
+\item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and unit amplitude.
+This signal must be used to excite the problem (e.g.\ as the multiplier of a force or moment, or a prescribed displacement or rotation).
+For example, in the case of a force:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
+        \bnt{node_label} ,
+            \kw{position}, \kw{null} ,
+        1., 0., 0., # absolute x direction
+        \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+        \kw{string} , \kw{"excitation"} , \kw{linear} , 0., 100. ;
+\end{Verbatim}
+In the above example, the force is applied to node \nt{node\_label}
+along the (absolute) $x$ direction, and scaled by a factor 100.
+
+
+\item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
+This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
+
+\item \kw{count}, the number of frequencies that have been applied so far.
+
+\end{itemize}
+
+\paragraph{Notes.}
+\begin{itemize}
+\item Only one instance of this element should be used in the analysis; currently, a warning is issued if it is instantiated more than once, and the two instances operate together, with undefined results (convergence is likely never reached, because the solution does not tend to become periodic with any of the expected periods).
+
+\item This element might terminate the simulation in two cases:
+\begin{itemize}
+\item[a)] the excitation angular frequency becomes greater than \nt{omega\_max};
+\item[b)] the \kw{angular frequency increment} pattern is \kw{custom}, and convergence is reached for the last value of excitation angular frequency.
+\end{itemize}
+\end{itemize}
+
+\paragraph{TODOs?}
+\begin{itemize}
+\item Make it possible to continue the analysis instead of stopping when \nt{omega\_max} is reached?
+\end{itemize}

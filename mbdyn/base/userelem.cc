@@ -38,10 +38,11 @@
 #include "loadable.h"
 
 #ifdef STATIC_MODULES
-#include "module-wheel2/module-wheel2.h"
 #include "module-asynchronous_machine/module-asynchronous_machine.h"
 #include "module-inline_friction/module-inline_friction.h"
 #include "module-cyclocopter/module-cyclocopter.h"
+#include "module-hfelem/module-hfelem.h"
+#include "module-wheel2/module-wheel2.h"
 #ifdef HAVE_CHARM
 #include "module-charm/mbcharm.h"
 #endif // HAVE_CHARM
@@ -128,6 +129,8 @@ InitUDE(void)
 	ASSERT(b != false);
 #endif // HAVE_CHARM
 #endif // STATIC_MODULES
+	b = hfelem_set();
+	ASSERT(b != false);
 }
 
 void
