@@ -128,9 +128,9 @@ InitUDE(void)
 	b = mbcharm_set();
 	ASSERT(b != false);
 #endif // HAVE_CHARM
-#endif // STATIC_MODULES
 	b = hfelem_set();
 	ASSERT(b != false);
+#endif // STATIC_MODULES
 }
 
 void
