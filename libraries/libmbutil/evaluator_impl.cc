@@ -46,7 +46,7 @@
 #include "mathp.h"
 #include "parser.h"
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 
 #include "evaluator_impl.h"
 
@@ -120,4 +120,4 @@ EE_Eval(std::string& dst, const ExpressionElement *ee)
 	return true;
 }
 
-#endif // USE_EE
+#endif // DO_NOT_USE_EE

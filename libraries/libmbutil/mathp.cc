@@ -46,9 +46,9 @@
 #include "mathp.h"
 #include "parser.h"
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 #include "evaluator_impl.h"
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 
 /* helper per le funzioni built-in */
@@ -3305,7 +3305,7 @@ MathParser::bNameValidate(const std::string& s) const
 	return true;
 }
 
-#ifndef USE_EE
+#ifdef DO_NOT_USE_EE
 TypedValue
 MathParser::logical(void)
 {
@@ -4406,7 +4406,7 @@ MathParser::GetLastStmt(Real d, Token t)
 	}
 
 	for (;;) {
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		ExpressionElement *e = stmtlist();
 		d = e->Eval().GetReal();
 		if (pedantic_out) {
@@ -4444,7 +4444,7 @@ MathParser::GetLastStmt(const InputStream& strm, Real d, Token t)
 	return d;
 }
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 ExpressionElement *
 MathParser::GetExpr(void)
 {
@@ -4490,7 +4490,7 @@ MathParser::GetExpr(const InputStream& strm)
 	// NOTE: caller must explicitly delete it
 	return e;
 }
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 Real
 MathParser::Get(Real d)
@@ -4512,7 +4512,7 @@ TypedValue
 MathParser::Get(const TypedValue& /* v */ )
 {
 	GetToken();
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	ExpressionElement *e = stmt();
 	TypedValue vv = e->Eval();
 	if (pedantic_out) {
@@ -4536,7 +4536,7 @@ MathParser::Get(const InputStream& strm, const TypedValue& v)
 	GetToken();
 	TypedValue vv = v;
 	if (currtoken != STMTSEP && currtoken != ARGSEP) {
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		ExpressionElement *e = stmt();
 		vv = e->Eval();
 		if (pedantic_out) {
@@ -4627,7 +4627,7 @@ MathParser::GetNameSpace(const std::string& name) const
 	return i->second;
 }
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 /*
  * Evaluator code 
  * Each function return ExpressionElement * for constructing a tree
@@ -5592,4 +5592,4 @@ last_arg:
 	return new EE_Var(v, defaultNameSpace);
 }
 
-#endif // USE_EE
+#endif // DO_NOT_USE_EE

@@ -11,6 +11,11 @@ Paolo Mantegazza        <mantegazza@aero.polimi.it>
 
 MBDyn 1.X-Devel
 	Enhancements:
+		- the new handling of math expressions and
+		  "string" drive caller (With the contribution
+		  of Ankit Aggarwal during Google Summer of Code 2015)
+		  is now the default. 
+		  It can be disabled by building with -DDO_NOT_USE_EE
 		- added screw joint (Mauro Manetti & Marco Morandini)
 		- added discrete filter drive caller
 		- added drive caller constitutive law wrapper
