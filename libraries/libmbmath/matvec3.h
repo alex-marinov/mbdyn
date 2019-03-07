@@ -1605,6 +1605,8 @@ enum OrientationDescription {
 	LAST_ORIENTATION_DESCRIPTION
 };
 
+#include "Rot_basic.h"
+
 /*
  Calcola i parametri di Rodrigues g a partire dalla matrice di rotazione R.
  Nota: i parametri devono essere definiti, ovvero R non deve rappresentare 
@@ -1666,15 +1668,16 @@ public:
 	Param_Manip() {};
 	inline void Manipulate(Vec3& v, const Mat3x3& m) const {
 		// singularity test
-		doublereal d = 1. + m.Trace();
-   
-		if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
-			silent_cerr("Param_Manip(): divide by zero, "
-			"probably due to singularity in rotation parameters" << std::endl);
-			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
-		}
-   
-		v = m.Ax()*(4./d);
+		v = RotManip::VecRot(m);
+// 		doublereal d = 1. + m.Trace();
+//    
+// 		if (fabs(d) < std::numeric_limits<doublereal>::epsilon()) {
+// 			silent_cerr("Param_Manip(): divide by zero, "
+// 			"probably due to singularity in rotation parameters" << std::endl);
+// 			throw ErrDivideByZero(MBDYN_EXCEPT_ARGS);
+// 		}
+//    
+// 		v = m.Ax()*(4./d);
 	};
 };
 
@@ -1688,18 +1691,19 @@ class MatR_Manip : public Mat3x3_Manip {
     Crea in m la matrice R corrispondente ai parametri g.
     */
    inline void Manipulate(Mat3x3& m, const Vec3& g) const {
-      doublereal d = (4./(4. + g.Dot()));
-      
-      /*
-       m = Eye3;
-       m += Mat3x3(g*d);
-       */
-      
-      /* E' piu' efficiente se creo contemporaneamente I+d*g/\ */
-      m = Mat3x3(1., g*d);
-      
-      /* Alla fine sommo il termine d/2*g/\g/\, che e' una matrice piena */
-      m += Mat3x3(MatCrossCross, g, g*(d/2.));
+      m = RotManip::Rot(g);
+//       doublereal d = (4./(4. + g.Dot()));
+//       
+//       /*
+//        m = Eye3;
+//        m += Mat3x3(g*d);
+//        */
+//       
+//       /* E' piu' efficiente se creo contemporaneamente I+d*g/\ */
+//       m = Mat3x3(1., g*d);
+//       
+//       /* Alla fine sommo il termine d/2*g/\g/\, che e' una matrice piena */
+//       m += Mat3x3(MatCrossCross, g, g*(d/2.));
    };
 };
 
@@ -1716,8 +1720,9 @@ class MatG_Manip : public Mat3x3_Manip {
     Crea in m la matrice G corrispondente ai parametri g.
     */
    inline void Manipulate(Mat3x3& m, const Vec3& g) const {
-      doublereal d = (4./(4.+g.Dot()));
-      m = Mat3x3(d, g*(d/2.));
+      m = RotManip::DRot(g);
+//       doublereal d = (4./(4.+g.Dot()));
+//       m = Mat3x3(d, g*(d/2.));
    };
 };
 
@@ -1734,8 +1739,9 @@ class MatGm1_Manip : public Mat3x3_Manip {
     Crea in m l'inversa della matrice G corrispondente ai parametri g.
     */
    inline void Manipulate(Mat3x3& m, const Vec3& g) const {
-      m = Mat3x3(1., g/(-2.));
-      m += g.Tens()/4.;
+     m = RotManip::DRot_I(g);
+//       m = Mat3x3(1., g/(-2.));
+//       m += g.Tens()/4.;
    };
 };
 
