@@ -4,8 +4,8 @@ http://www.mbdyn.org
 
 Copyright<sup>&copy;</sup> 1996-2019
 
-Pierangelo Masarati     <masarati@aero.polimi.it>    
-Paolo Mantegazza        <mantegazza@aero.polimi.it>
+[Pierangelo Masarati](mailto:pierangelo.masarati@polimi.it)    
+[Paolo Mantegazza](mailto:mantegazza@aero.polimi.it)
 
 Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano    
 via La Masa, 34 - 20156 Milano, Italy   
