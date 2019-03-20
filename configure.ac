@@ -667,9 +667,6 @@ dnl checks for netcdf header file (for netcdf4 c++):
 	
 	if test "$have_libnetcdf4" != yes ; then
 		if test "$have_libnetcdfc" != yes ; then
-			AC_DEFINE(USE_NETCDF4,0,[define this to enable NetCDF4 based output])
-			AC_DEFINE(USE_NETCDFC,0,[define this to enable classic/legacy NetCDF based output])
-			AC_DEFINE(USE_NETCDF,0,[also define this to enable NetCDF4 based output])
 			if test $ol_enable_netcdf != auto ; then
 				AC_MSG_ERROR([Could not locate neither netcdf4 nor netcdf classic/legacy headers or improper installation or versions installed.])
 			fi

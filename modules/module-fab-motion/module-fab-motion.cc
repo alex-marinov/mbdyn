@@ -594,7 +594,7 @@ LinearTransmissionJoint::LinearTransmissionJoint(
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
-pNode1(0), pNodeRef1(0), pNode2(0), pNodeRef2(0), Coef_f1(1.), Coef_f2(1.)
+pNode1(0), pNode2(0), pNodeRef1(0), pNodeRef2(0), Coef_f1(1.), Coef_f2(1.)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -1213,7 +1213,7 @@ MotionTransmissionJoint::MotionTransmissionJoint(
 	DataManager* pDM, MBDynParser& HP)
 : Elem(uLabel, flag(0)),
 UserDefinedElem(uLabel, pDO),
-pNode1(0), pNodeRef1(0), pNode2(0), pNodeRef2(0), Coef_f1(1.), Coef_f2(1.)
+pNode1(0), pNode2(0), pNodeRef1(0), pNodeRef2(0), Coef_f1(1.), Coef_f2(1.)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -2064,7 +2064,7 @@ SmoothStepDriveCaller::dGetP(void) const
 	return 0.;
 }
 
-/*
+*/
 
 /* prototype of the functional object: reads a drive caller */
 struct SmoothStepDCR : public DriveCallerRead {

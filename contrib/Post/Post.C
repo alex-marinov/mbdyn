@@ -47,6 +47,7 @@
 #include <FlexLexer.h>
 #undef yyFlexLexer
 
+std::string output_frequency_string;
 int output_frequency = 0;
 
 int step = 0;
@@ -56,6 +57,8 @@ int niter = 0;
 double reserr = 0.;
 double solerr = 0.;
 int solconv = 0;
+bool out_flag;
+
 
 #include "Post.hh"
 
@@ -168,7 +171,11 @@ bool ParseLog(std::istream& in, std::ostream& out) {
 		//std::endl << "-----------------------------" << std::endl;
 		switch (type) {
 			case OUTPUT_FREQUENCY_TOK:
-				in >> output_frequency;
+				in >> output_frequency_string;
+				if (output_frequency_string != std::string("custom")) {
+					output_frequency = std::stoi(output_frequency_string);
+				}
+					
 				return true;
 				break;
 			default:
@@ -182,8 +189,10 @@ bool ParseOut(MbdynpostFlexLexer &flex, std::istream& in) {
 	while ((type = flex.yylex()) != EOF_TOK) {
 		switch (type) {
 			case STEP_TOK:
-				in >> step >> current_time >> tstep >> niter >> reserr >> solerr >> solconv;
-				return true;
+				in >> step >> current_time >> tstep >> niter >> reserr >> solerr >> solconv >> out_flag;
+				if (out_flag) {
+					return true;
+				}
 				break;
 			default:
 				break;
