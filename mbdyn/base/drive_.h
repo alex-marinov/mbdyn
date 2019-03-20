@@ -37,9 +37,9 @@
 /* include generali */
 #include "parser.h"
 #include <sstream>
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 #include <thread>
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 /* include per il debug */
 #include "myassert.h"
@@ -62,7 +62,7 @@ private:
 	// we keep the string just in case...
 	const std::string sEvalStr;
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	// "smart" shared pointer; needs -std=c++11
 
 	// TODO: actually, all drive callers could be wrapped in shared pointers
@@ -79,10 +79,10 @@ private:
 	typedef std::shared_ptr<const SharedExpr> SharedExprPtr_t;
 
 	SharedExprPtr_t m_expr;
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 public:
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr, const ExpressionElement *expr);
 	StringDriveCaller(const DriveHandler* pDH, const std::string& sTmpStr, SharedExprPtr_t expr);
 #else // ! USE_EE
@@ -112,7 +112,7 @@ StringDriveCaller::dGet(const doublereal& dVar) const
 inline doublereal
 StringDriveCaller::dGet(void) const
 {
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	doublereal val;
 	try {
 		val = m_expr->Get()->Eval().GetReal();

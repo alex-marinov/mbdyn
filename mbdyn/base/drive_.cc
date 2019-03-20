@@ -68,7 +68,7 @@
 
 /* StringDriveCaller - begin */
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 StringDriveCaller::StringDriveCaller(const DriveHandler* pDH,
 	const std::string& sTmpStr, const ExpressionElement *expr)
 : DriveCaller(pDH), sEvalStr(sTmpStr), m_expr(new SharedExpr(expr))
@@ -2565,7 +2565,7 @@ StringDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	/* lettura dei dati specifici */
 	std::string s(HP.GetStringWithDelims());
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	std::istringstream in(s);
 	InputStream In(in);
 

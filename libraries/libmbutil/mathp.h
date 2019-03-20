@@ -56,9 +56,9 @@
 #include "table.h"
 #include "input.h"
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 #include "evaluator.h"
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 class MathParser {
 public:
@@ -98,11 +98,11 @@ public:
 		bool IsFlag(const MathParser::ArgFlag f) const { return (m_flags & unsigned(f)) == unsigned(f); };
 		unsigned GetFlags(void) const { return m_flags; };
 		virtual ArgType Type(void) const = 0;
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		virtual void SetExpr(const ExpressionElement *ee) { throw ErrGeneric(MBDYN_EXCEPT_ARGS); };
 		virtual const ExpressionElement *GetExpr(void) const { return 0; };
 		virtual void Eval(void) { NO_OP; };
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 		virtual MathArg_t *Copy(void) const = 0;
 	};
 
@@ -117,12 +117,12 @@ public:
 	class MathArgPriv_t : public MathArg_t {
 	protected:
 		T m_val;
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		const ExpressionElement *m_ee; // NOTE: memory owned by someone else
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 	public:
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		MathArgPriv_t(const T& val, unsigned f = AF_NONE) : MathArg_t(f), m_val(val), m_ee(0) { NO_OP; };
 		MathArgPriv_t(const T& val, const ExpressionElement *ee, unsigned f = AF_NONE) : MathArg_t(f), m_val(val), m_ee(ee) { NO_OP; };
 		MathArgPriv_t(void) : MathArg_t(AF_NONE), m_ee(0) { NO_OP; };
@@ -133,7 +133,7 @@ public:
 
 		virtual ~MathArgPriv_t(void) { NO_OP; };
 		virtual ArgType Type(void) const { return TT; };
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 		virtual void SetExpr(const ExpressionElement *ee) { m_ee = ee; };
 		virtual const ExpressionElement *GetExpr(void) const { return m_ee; };
 		virtual void Eval(void) { if (m_ee) { EE_Eval(m_val, m_ee); } };
@@ -398,7 +398,7 @@ protected:
 	 * - the *(d) version calls *_int(d) with the argument
 	 */
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	ExpressionElement* logical(void);
 	ExpressionElement* logical(ExpressionElement* d);
 	ExpressionElement* logical_int(ExpressionElement* d);
@@ -481,11 +481,11 @@ public:
 	Real GetLastStmt(const InputStream& strm, Real d = 0.,
 			Token t = ARGSEP);
 
-#ifdef USE_EE
+#ifndef DO_NOT_USE_EE
 	/* interpreta uno stmt e ne restitutisce il valore */
 	ExpressionElement *GetExpr(void);
 	ExpressionElement *GetExpr(const InputStream& strm);
-#endif // USE_EE
+#endif // DO_NOT_USE_EE
 
 	Real Get(Real d = 0.);
 	Real Get(const InputStream& strm, Real d = 0.);
