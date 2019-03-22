@@ -78,7 +78,7 @@ public:
 		const doublereal v,
 		const VectorHandler& X,
 		const VectorHandler& XP) 
-			throw(Elem::ChangedEquationStructure) = 0;
+			/*throw(Elem::ChangedEquationStructure)*/ = 0;
 /** Compute self jacobian and friction coefficient derivatives
  */
 	virtual void AssJac(

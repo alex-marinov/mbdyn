@@ -107,7 +107,7 @@ NaiveSolver::Solve(void) const
 
 void
 NaiveSolver::Factor(void)
-throw(LinearSolver::ErrFactor)
+/*throw(LinearSolver::ErrFactor)*/
 {
 	integer rc = naivfct(A->ppdRows, iSize,
 			A->piNzr, A->ppiRows, 

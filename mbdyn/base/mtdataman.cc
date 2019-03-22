@@ -754,7 +754,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 #ifdef MBDYN_X_MT_ASSRES
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
-	throw(ChangedEquationStructure)
+	/*throw(ChangedEquationStructure)*/
 {
 	ASSERT(thread_data != NULL);
 

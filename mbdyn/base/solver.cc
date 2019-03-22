@@ -5195,7 +5195,7 @@ Solver::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 	pDM->PrintSolution(Sol, iIterCnt);
 }
 
-void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const throw(NonlinearSolver::MaxResidualExceeded, NonlinearSolver::TimeStepLimitExceeded)
+void Solver::CheckTimeStepLimit(doublereal dErr, doublereal dErrDiff) const /*throw(NonlinearSolver::MaxResidualExceeded, NonlinearSolver::TimeStepLimitExceeded)*/
 {
 	if (pDerivativeSteps) {
 		// Time step cannot be reduced
