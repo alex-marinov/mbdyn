@@ -263,7 +263,7 @@ public:
 
 	public:
 		ErrValueOutOfRange(MBDYN_EXCEPT_ARGS_DECL_NOOPT, T value) : MBDynErrBase(MBDYN_EXCEPT_ARGS_NOOPT_PASSTHRU, typeid(T).name()), m_value(value) { NO_OP; };
-		virtual ~ErrValueOutOfRange(void) throw() { NO_OP; };
+		virtual ~ErrValueOutOfRange(void) noexcept { NO_OP; };
 		T Get(void) const { return m_value; };
 	};
 

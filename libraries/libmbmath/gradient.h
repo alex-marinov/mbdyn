@@ -161,14 +161,14 @@ public:
             typedef GradientAllocator<U> other;
         };
 
-    GradientAllocator() throw() { }
+    GradientAllocator() noexcept { }
 
-    GradientAllocator(const GradientAllocator& a) throw()
+    GradientAllocator(const GradientAllocator& a) noexcept
             :std::allocator<T>(a) {
         }
 
     template <typename U>
-    GradientAllocator(const GradientAllocator<U>& a) throw()
+    GradientAllocator(const GradientAllocator<U>& a) noexcept
             :std::allocator<T>(a) {
         }
 

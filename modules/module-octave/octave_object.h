@@ -177,7 +177,7 @@ public:
 	}
 
 private:
-	static void check_type(const octave_base_value& ref) throw(std::bad_cast)
+	static void check_type(const octave_base_value& ref) /*throw(std::bad_cast)*/
 	{
 		if ( NULL == dynamic_cast<const T*>(&ref) )
 			throw std::bad_cast();

@@ -70,9 +70,9 @@ private:
 
 public:
 	MBDynErrBase(MBDYN_EXCEPT_ARGS_DECL);
-	virtual ~MBDynErrBase(void) throw() {};
+	virtual ~MBDynErrBase(void) noexcept {};
 	void Set(const std::string& s);
-	const char * what(void) const throw();
+	const char * what(void) const noexcept;
 };
 
 

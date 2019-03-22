@@ -186,7 +186,7 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP) throw(Elem::ChangedEquationStructure);
+		const VectorHandler& XP) /*throw(Elem::ChangedEquationStructure)*/;
 	void AssJac(
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,
@@ -274,7 +274,7 @@ public:
 		const doublereal F,
 		const doublereal v,
 		const VectorHandler& X,
-		const VectorHandler& XP) throw(Elem::ChangedEquationStructure);
+		const VectorHandler& XP) /*throw(Elem::ChangedEquationStructure)*/;
 	void AssJac(
 		FullSubMatrixHandler& WorkMat,
 		ExpandableRowVector& dfc,

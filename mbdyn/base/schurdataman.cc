@@ -90,7 +90,7 @@ SchurDataManager::~SchurDataManager()
 }
 
 void
-SchurDataManager::AssRes(VectorHandler&, doublereal) throw(ChangedEquationStructure)
+SchurDataManager::AssRes(VectorHandler&, doublereal) /*throw(ChangedEquationStructure)*/
 {
 	NO_OP;
 }
@@ -1630,7 +1630,7 @@ SchurDataManager::SearchNode(Node** ppFirst, int dim, unsigned int& label)
 
 
 void
-SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) throw(ChangedEquationStructure)
+SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) /*throw(ChangedEquationStructure)*/
 {
 	DEBUGCOUT("Entering SchurDataManager::AssRes()" << std::endl);
 	ASSERT(pWorkVec != NULL);
