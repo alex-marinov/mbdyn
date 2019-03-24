@@ -202,7 +202,15 @@ begin: elements;
 			position, reference, node, null,
 		1., 0., 0.,
 			element, 99, loadable, string, "excitation", linear, 0., 1.;
-
+/*
+	force: 2, absolute,
+		2,
+			position, reference, node, null,
+		component,
+			element, 99, loadable, string, "psi", string, "100.*sin(Var)",
+			element, 99, loadable, string, "psi", string, "50.*sin(Var - pi/2)",
+			const, 0.;
+*/
 end: elements;
 
 # vim:ft=mbd

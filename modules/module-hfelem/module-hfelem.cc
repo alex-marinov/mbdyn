@@ -53,10 +53,13 @@ class HarmonicForcingElem
 private:
 	// add private data
 	enum Priv {
-		DT = 1,
-		F,
-		OMEGA,
-		COUNT
+		Priv_DT = 1,
+		Priv_F,
+		Priv_PSI,
+		Priv_OMEGA,
+		Priv_COUNT,
+
+		Priv_LAST
 	};
 
 	const DataManager* m_pDM;
@@ -69,6 +72,7 @@ private:
 	doublereal m_dOmega;
 	doublereal m_dOmega0;
 	doublereal m_dOmegaMax;
+	doublereal m_dPsi;
 	doublereal m_dF;
 
 	doublereal m_dTol;
@@ -148,6 +152,7 @@ HarmonicForcingElem::HarmonicForcingElem(
 UserDefinedElem(uLabel, pDO),
 m_pDM(pDM),
 m_dTInit(-std::numeric_limits<doublereal>::max()),
+m_dPsi(0.),
 m_dF(0.),
 m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
@@ -466,7 +471,8 @@ HarmonicForcingElem::AfterPredict(VectorHandler& X, VectorHandler& XP)
 	}
 
 	if (m_bStarted) {
-		m_dF = sin(m_dOmega*(m_pDM->dGetTime() - m_dT0));
+		m_dPsi = m_dOmega*(m_pDM->dGetTime() - m_dT0);
+		m_dF = sin(m_dPsi);
 	}
 }
 
@@ -562,23 +568,26 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 unsigned int
 HarmonicForcingElem::iGetNumPrivData(void) const
 {
-	return 4;
+	return (Priv_LAST - 1);
 }
 
 unsigned int
 HarmonicForcingElem::iGetPrivDataIdx(const char *s) const
 {
 	if (strcmp(s, "timestep") == 0) {
-		return DT;
+		return Priv_DT;
 
 	} else if (strcmp(s, "excitation") == 0) {
-		return F;
+		return Priv_F;
+
+	} else if (strcmp(s, "psi") == 0) {
+		return Priv_PSI;
 
 	} else if (strcmp(s, "omega") == 0) {
-		return OMEGA;
+		return Priv_OMEGA;
 
 	} else if (strcmp(s, "count") == 0) {
-		return COUNT;
+		return Priv_COUNT;
 	}
 
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -588,16 +597,19 @@ doublereal
 HarmonicForcingElem::dGetPrivData(unsigned int i) const
 {
 	switch (i) {
-	case DT:
+	case Priv_DT:
 		return m_dDeltaT;
 
-	case F:
+	case Priv_F:
 		return m_dF;
 
-	case OMEGA:
+	case Priv_PSI:
+		return m_dPsi;
+
+	case Priv_OMEGA:
 		return m_dOmega;
 
-	case COUNT:
+	case Priv_COUNT:
 		return doublereal(m_iOmegaCnt);
 
 	default:
