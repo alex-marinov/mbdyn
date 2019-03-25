@@ -818,7 +818,7 @@ ScrewJoint::AssVec(SubVectorHandler& WorkVec, doublereal dCoef,
 		try {
 			fc->AssRes(WorkVec,12+1,iFirstReactionIndex+1,modF,v,XCurr,XPrimeCurr);
 		}
-		catch (Elem::ChangedEquationStructure) {
+		catch (Elem::ChangedEquationStructure& err) {
 			ChangeJac = true;
 		}
 		doublereal f = fc->fc();

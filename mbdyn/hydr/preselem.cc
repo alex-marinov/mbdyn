@@ -180,7 +180,7 @@ Elem* ReadHydraulicElem(DataManager* pDM,
        if (HP.IsKeyWord("direction")) {
           try {
 	     axis = HP.GetUnitVecRel(RF);
-          } catch (ErrNullNorm) {
+          } catch (ErrNullNorm& err) {
 	     silent_cerr("Actuator(" << uLabel << "): "
 		     "need a definite direction, not "
 		     << axis << "!" << std::endl);

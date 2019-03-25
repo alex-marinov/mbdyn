@@ -332,7 +332,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ResHdl += pJ->AssRes(WorkVec, *pXCurr, 
 						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
 				}
-				catch (Elem::ChangedEquationStructure) {
+				catch (Elem::ChangedEquationStructure& e) {
 					ResHdl += WorkVec;
 					ChangedEqStructure = true;
 				}
@@ -640,7 +640,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
 						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
 				}
-				catch (Elem::ChangedEquationStructure) {
+				catch (Elem::ChangedEquationStructure& e) {
 					ResHdl += WorkVec;
 					ChangedEqStructure = true;
 				}
@@ -677,7 +677,7 @@ DataManager::AssConstrRes(VectorHandler& ResHdl,
 					ResHdl += j->second->AssRes(WorkVec, *pXCurr, 
 						*pXPrimeCurr, *pXPrimePrimeCurr, iOrder);
 				}
-				catch (Elem::ChangedEquationStructure) {
+				catch (Elem::ChangedEquationStructure& e) {
 					ResHdl += WorkVec;
 					ChangedEqStructure = true;
 				}
@@ -754,7 +754,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 					*pXPrimeCurr, *pXPrimePrimeCurr, 
 					InverseDynamics::INVERSE_DYNAMICS);
 			}
-			catch (Elem::ChangedEquationStructure) {
+			catch (Elem::ChangedEquationStructure& e) {
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
 			}
@@ -777,7 +777,7 @@ DataManager::AssRes(VectorHandler& ResHdl,
 					*pXPrimeCurr, *pXPrimePrimeCurr, 
 					InverseDynamics::INVERSE_DYNAMICS);
 			}
-			catch (Elem::ChangedEquationStructure) {
+			catch (Elem::ChangedEquationStructure& e) {
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
 			}

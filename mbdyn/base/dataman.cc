@@ -287,7 +287,7 @@ Dofs()
 	ReadControl(HP, sInputFileName);
 	try {
 		CurrDesc = KeyWords(HP.GetDescription());
-	} catch (EndOfFile) {
+	} catch (EndOfFile& e) {
 		NO_OP;
 	}
 
@@ -334,7 +334,7 @@ Dofs()
 		ReadNodes(HP);
 		try {
 			CurrDesc = KeyWords(HP.GetDescription());
-		} catch (EndOfFile) {}
+		} catch (EndOfFile& e) {}
 	} else {
 		DEBUGCERR("");
 		silent_cerr("warning, no nodes are defined" << std::endl);
@@ -371,7 +371,7 @@ Dofs()
 		ReadDrivers(HP);
 		try {
 			CurrDesc = KeyWords(HP.GetDescription());
-		} catch (EndOfFile) {}
+		} catch (EndOfFile& e) {}
 
 	} else {
 		DEBUGCERR("warning, no drivers are defined" << std::endl);

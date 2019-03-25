@@ -2433,7 +2433,7 @@ DiscreteFilterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	try {
 		na = HP.GetInt(1, HighParser::range_ge<integer>(0));
 
-	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+	} catch (HighParser::ErrValueOutOfRange<integer>& e) {
 		silent_cerr("error: invalid number of coefficients a " << e.Get() << " in discrete filter (must be at least zero) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}
@@ -2450,7 +2450,7 @@ DiscreteFilterDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	try {
 		nb = HP.GetInt(1, HighParser::range_ge<integer>(0));
 
-	} catch (HighParser::ErrValueOutOfRange<integer> e) {
+	} catch (HighParser::ErrValueOutOfRange<integer>& e) {
 		silent_cerr("error: invalid number of coefficients b " << e.Get() << " in discrete filter (must be at least zero) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
 		throw e;
 	}

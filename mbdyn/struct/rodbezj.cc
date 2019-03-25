@@ -428,7 +428,7 @@ RodBezier::AssVec(SubVectorHandler& WorkVec)
 	try {
 		ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
 
-	} catch (Elem::ChangedEquationStructure) {
+	} catch (Elem::ChangedEquationStructure& err) {
 		ChangeJac = true;
 	}
 

@@ -839,14 +839,14 @@ Solver::Prepare(void)
 			qX, qXPrime, pX, pXPrime,
 			iStIter, dTest, dSolTest);
 	}
-	catch (NonlinearSolver::NoConvergence) {
+	catch (NonlinearSolver::NoConvergence& e) {
 		silent_cerr("Initial derivatives calculation " << iStIter
 			<< " does not converge; aborting..." << std::endl
 			<< "(hint: try playing with the \"derivatives coefficient\" value)" << std::endl);
 		pDM->Output(0, dTime, 0., true);
 		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ErrSimulationDiverged) {
+	catch (NonlinearSolver::ErrSimulationDiverged& e) {
 		/*
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
@@ -864,7 +864,7 @@ Solver::Prepare(void)
 			"aborting..." << std::endl);
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ConvergenceOnSolution) {
+	catch (NonlinearSolver::ConvergenceOnSolution& e) {
 		bSolConv = true;
 	}
 	catch (EndOfSimulation& eos) {
@@ -968,7 +968,7 @@ Solver::Prepare(void)
 				qX, qXPrime, pX, pXPrime,
 				iStIter, dTest, dSolTest);
 		}
-		catch (NonlinearSolver::NoConvergence) {
+		catch (NonlinearSolver::NoConvergence& e) {
 			silent_cerr("First dummy step does not converge; "
 				"TimeStep=" << dCurrTimeStep
 				<< " cannot be reduced further; "
@@ -976,7 +976,7 @@ Solver::Prepare(void)
 			pDM->Output(0, dTime, dCurrTimeStep, true);
 			throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 		}
-		catch (NonlinearSolver::ErrSimulationDiverged) {
+		catch (NonlinearSolver::ErrSimulationDiverged& e) {
 			/*
 			 * Mettere qui eventuali azioni speciali
 			 * da intraprendere in caso di errore ...
@@ -994,7 +994,7 @@ Solver::Prepare(void)
 				"aborting..." << std::endl);
 			throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 		}
-		catch (NonlinearSolver::ConvergenceOnSolution) {
+		catch (NonlinearSolver::ConvergenceOnSolution& e) {
 			bSolConv = true;
 		}
 		catch (EndOfSimulation& eos) {
@@ -1065,7 +1065,7 @@ Solver::Prepare(void)
 					qX, qXPrime, pX, pXPrime,
 					iStIter, dTest, dSolTest);
 			}
-			catch (NonlinearSolver::NoConvergence) {
+			catch (NonlinearSolver::NoConvergence& e) {
 				silent_cerr("Dummy step " << iSubStep
 					<< " does not converge; "
 					"TimeStep=" << dCurrTimeStep
@@ -1075,7 +1075,7 @@ Solver::Prepare(void)
 				throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 			}
 
-			catch (NonlinearSolver::ErrSimulationDiverged) {
+			catch (NonlinearSolver::ErrSimulationDiverged& e) {
 				/*
 				 * Mettere qui eventuali azioni speciali
 				 * da intraprendere in caso di errore ...
@@ -1094,7 +1094,7 @@ Solver::Prepare(void)
 					"aborting..." << std::endl);
 				throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 			}
-			catch (NonlinearSolver::ConvergenceOnSolution) {
+			catch (NonlinearSolver::ConvergenceOnSolution& e) {
 				bSolConv = true;
 			}
 			catch (EndOfSimulation& eos) {
@@ -1245,7 +1245,7 @@ IfFirstStepIsToBeRepeated:
 				qX, qXPrime, pX, pXPrime,
 				iStIter, dTest, dSolTest);
 	}
-	catch (NonlinearSolver::NoConvergence) {
+	catch (NonlinearSolver::NoConvergence& e) {
 		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
@@ -1273,7 +1273,7 @@ IfFirstStepIsToBeRepeated:
 
 		throw Solver::ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ErrSimulationDiverged) {
+	catch (NonlinearSolver::ErrSimulationDiverged& e) {
 		/*
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
@@ -1292,7 +1292,7 @@ IfFirstStepIsToBeRepeated:
 			"aborting..." << std::endl);
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ConvergenceOnSolution) {
+	catch (NonlinearSolver::ConvergenceOnSolution& e) {
 		bSolConv = true;
 	}
 	catch (EndOfSimulation& eos) {
@@ -1460,7 +1460,7 @@ IfStepIsToBeRepeated:
 				qX, qXPrime, pX, pXPrime, iStIter,
 				dTest, dSolTest);
 	}
-	catch (NonlinearSolver::NoConvergence) {
+	catch (NonlinearSolver::NoConvergence& e) {
 		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
@@ -1489,7 +1489,7 @@ IfStepIsToBeRepeated:
 			"aborting..." << std::endl);
 		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ErrSimulationDiverged) {
+	catch (NonlinearSolver::ErrSimulationDiverged& e) {
 		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
@@ -1533,7 +1533,7 @@ IfStepIsToBeRepeated:
 			"aborting..." << std::endl);
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ConvergenceOnSolution) {
+	catch (NonlinearSolver::ConvergenceOnSolution& e) {
 		bSolConv = true;
 	}
 	catch (EndOfSimulation& eos) {
@@ -2170,7 +2170,7 @@ Solver::ReadData(MBDynParser& HP)
 			try {
 				dMinTimeStep = HP.GetReal(std::numeric_limits<doublereal>::min(), HighParser::range_gt<doublereal>(0.));
 
-			} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+			} catch (HighParser::ErrValueOutOfRange<doublereal>& e) {
 				silent_cerr("invalid min time step " << e.Get() << " (must be positive) [" << e.what() << "] at line " << HP.GetLineData() << std::endl);
 				throw e;
 			}

@@ -288,7 +288,7 @@ iTotalExpConnections(0)
 			return;
 		}
 
-	} catch (EndOfFile) {
+	} catch (EndOfFile& e) {
 		pedantic_cerr("no explicit connections declared "
 			"for this input file" << std::endl);
 		return;
@@ -1638,7 +1638,7 @@ SchurDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) /*throw(Change
 	try {
 		DataManager::AssRes(ResHdl, dCoef, MyElemIter, *pWorkVec);
 
-	} catch (ChangedEquationStructure) {
+	} catch (ChangedEquationStructure& e) {
 		Elem *pEl = NULL;
 
 		if (MyElemIter.bGetCurr(pEl) == true) {

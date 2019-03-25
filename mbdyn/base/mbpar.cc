@@ -2037,7 +2037,7 @@ MBDynParser::GetDriveCaller(bool bDeferred)
 		try {
 			pDC = ReadDriveCallerData(pDM, *this, bDeferred);
 		}
-		catch (DataManager::ErrNeedDataManager) {
+		catch (DataManager::ErrNeedDataManager& e) {
 			silent_cerr("the required drive caller must appear "
 					"inside or after the \"control data\" "
 					"block"
@@ -2133,7 +2133,7 @@ MBDynParser::GetTplDriveCaller(void)
 				throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
 		}
-		catch (DataManager::ErrNeedDataManager) {
+		catch (DataManager::ErrNeedDataManager& e) {
 			silent_cerr("the required drive caller must appear "
 				"inside or after the \"control data\" block"
 				<< std::endl);

@@ -624,7 +624,7 @@ IfStepIsToBeRepeated:
 				iStIter, dTest, dSolTest);
 	}
 
-	catch (NonlinearSolver::NoConvergence) {
+	catch (NonlinearSolver::NoConvergence& e) {
 		if (dCurrTimeStep > dMinTimeStep) {
 			/* Riduce il passo */
 			CurrStep = StepIntegrator::REPEATSTEP;
@@ -654,7 +654,7 @@ IfStepIsToBeRepeated:
 		throw ErrMaxIterations(MBDYN_EXCEPT_ARGS);
 	}
 
-	catch (NonlinearSolver::ErrSimulationDiverged) {
+	catch (NonlinearSolver::ErrSimulationDiverged& e) {
 		/*
 		 * Mettere qui eventuali azioni speciali
 		 * da intraprendere in caso di errore ...
@@ -673,7 +673,7 @@ IfStepIsToBeRepeated:
 			<< "aborting..." << std::endl);
 		throw SimulationDiverged(MBDYN_EXCEPT_ARGS);
 	}
-	catch (NonlinearSolver::ConvergenceOnSolution) {
+	catch (NonlinearSolver::ConvergenceOnSolution& e) {
 		bSolConv = true;
 	}
 

@@ -1094,11 +1094,11 @@ main(int argc, char* argv[])
 
     	try {
 		mbdyn_parse_arguments(mbp, argc, argv, currarg);
-	} catch (NoErr) {
+	} catch (NoErr& e) {
 		silent_cout("MBDyn terminated normally" << std::endl);
 		rc = EXIT_SUCCESS;
 		MB_EXIT(return, rc);
-	} catch (ErrInterrupted) {
+	} catch (ErrInterrupted& e) {
 		silent_cout("MBDyn was interrupted" << std::endl);
 		rc = 2;
 		MB_EXIT(exit, rc);
@@ -1111,13 +1111,13 @@ main(int argc, char* argv[])
 	    	/* The program is a big try block */
 	    	try {
 			mbdyn_program(mbp, argc, argv, currarg);
-		} catch (NoErr) {
+		} catch (NoErr& e) {
 			silent_cout("MBDyn terminated normally" << std::endl);
 			rc = EXIT_SUCCESS;
-		} catch (ErrInterrupted) {
+		} catch (ErrInterrupted& e) {
 			silent_cout("MBDyn was interrupted" << std::endl);
 			rc = 2;
-		} catch (std::ios::failure err) {
+		} catch (std::ios::failure& err) {
 			silent_cerr("An IO error occurred during the execution of MBDyn (" << err.what() << ");"
 				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
@@ -1224,7 +1224,7 @@ RunMBDyn(MBDynParser& HP,
 	KeyWords cd;
 	try {
 		cd = KeyWords(HP.GetDescription());
-	} catch (EndOfFile) {
+	} catch (EndOfFile& e) {
 		throw NoErr(MBDYN_EXCEPT_ARGS);
 	}
 	/* looking for "begin"... */

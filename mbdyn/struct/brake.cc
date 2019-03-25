@@ -387,7 +387,7 @@ SubVectorHandler& Brake::AssRes(SubVectorHandler& WorkVec,
 	  		iFirstReactionIndex + NumSelfDof,
 			modF, v, XCurr, XPrimeCurr);
       }
-      catch (Elem::ChangedEquationStructure) {
+      catch (Elem::ChangedEquationStructure& e) {
           ChangeJac = true;
       }
       doublereal f = fc->fc();
