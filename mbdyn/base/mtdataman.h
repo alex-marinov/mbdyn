@@ -87,6 +87,7 @@ protected:
 		AO_TS_t* lock;
 
 		VectorHandler* pResHdl;
+		VectorHandler* pAbsResHdl;
 		MatrixHandler* pMatA;
 		MatrixHandler* pMatB;
 		doublereal dCoef;
@@ -157,7 +158,7 @@ public:
 
 #ifdef MBDYN_X_MT_ASSRES
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0)
 		/*throw(ChangedEquationStructure)*/;
 #endif /* MBDYN_X_MT_ASSRES */
 

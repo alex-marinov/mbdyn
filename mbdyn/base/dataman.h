@@ -350,7 +350,7 @@ public:
 	virtual void AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl);
 
 	/* Assembla il residuo */
-	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef);
+	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl = 0);
 
 	// inverse dynamics
 	/* Constraints residual, switch iOrder*/
@@ -375,7 +375,8 @@ protected:
 			VariableSubMatrixHandler& WorkMatB);
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef,
 			VecIter<Elem *> &Iter,
-			SubVectorHandler& WorkVec);
+			SubVectorHandler& WorkVec,
+			VectorHandler*const pAbsResHdl = 0);
 
 	// inverse dynamics
 	void AssConstrJac(MatrixHandler& JacHdl,

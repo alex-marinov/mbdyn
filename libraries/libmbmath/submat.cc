@@ -1777,6 +1777,40 @@ MySubVectorHandler::AddTo(MyVectorHandler& VH) const
 	return VH;
 }
 
+VectorHandler&
+MySubVectorHandler::AddAbsValuesTo(VectorHandler& VH) const
+{
+#ifdef DEBUG
+	IsValid();
+	VH.IsValid();
+#endif /* DEBUG */
+
+	for (integer i = iGetSize(); i > 0; i--) {
+#if 0
+		/* FIXME: workaround for SchurVectorHandler... */
+		VH(piRowm1[i]) += pdVecm1[i];
+#endif
+		VH.IncCoef(piRowm1[i], std::abs(pdVecm1[i]));
+	}
+
+	return VH;
+}
+
+VectorHandler&
+MySubVectorHandler::AddAbsValuesTo(MyVectorHandler& VH) const
+{
+#ifdef DEBUG
+	IsValid();
+	VH.IsValid();
+#endif /* DEBUG */
+
+	doublereal* pdm1 = VH.pdGetVec() - 1;
+	for (integer i = iGetSize(); i > 0; i--) {
+		pdm1[piRowm1[i]] += std::abs(pdVecm1[i]);
+	}
+	return VH;
+}
+
 std::ostream&
 operator << (std::ostream& out, const SubVectorHandler& v)
 {
