@@ -381,17 +381,17 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
 #ifdef MBDYN_X_MT_ASSRES
 		SAFEDELETE(arg->pResHdl);
 #endif
-                if (arg->ppNaiveJacHdl && arg->ppNaiveJacHdl[arg->threadNumber]) {
-                        SAFEDELETE(arg->ppNaiveJacHdl[arg->threadNumber]);
-                        arg->ppNaiveJacHdl[arg->threadNumber] = nullptr;
-                }                
+		if (arg->ppNaiveJacHdl && arg->ppNaiveJacHdl[arg->threadNumber]) {
+			SAFEDELETE(arg->ppNaiveJacHdl[arg->threadNumber]);
+			arg->ppNaiveJacHdl[arg->threadNumber] = nullptr;
+		}                
 		if (arg->pAbsResHdl) SAFEDELETE(arg->pAbsResHdl);
 
 	} else {
 		if (arg->ppNaiveJacHdl) {
 			// can be nonzero only when in Naive form
 			SAFEDELETEARR(arg->ppNaiveJacHdl);
-                        arg->ppNaiveJacHdl = nullptr;
+			arg->ppNaiveJacHdl = nullptr;
 		}
 	}
 
@@ -511,10 +511,10 @@ MultiThreadDataManager::ThreadSpawn(void)
 #ifdef MBDYN_X_MT_ASSRES
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
-#endif
+		
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pAbsResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
-
+#endif
 		/* create thread */
 		if (pthread_create(&thread_data[i].thread, NULL, thread,
 					&thread_data[i]) != 0) {
