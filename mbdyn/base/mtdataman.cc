@@ -336,10 +336,12 @@ MultiThreadDataManager::thread(void *p)
 #ifdef MBDYN_X_MT_ASSRES
 		case MultiThreadDataManager::OP_ASSRES:
 			arg->pResHdl->Reset();
+			if (arg->pAbsResHdl) arg->pAbsResHdl->Reset();
 			arg->pDM->DataManager::AssRes(*arg->pResHdl,
 					arg->dCoef,
 					arg->ElemIter,
-					*arg->pWorkVec);
+					*arg->pWorkVec,
+					arg->pAbsResHdl);
 			break;
 #endif /* MBDYN_X_MT_ASSRES */
 
@@ -383,6 +385,8 @@ MultiThreadDataManager::thread_cleanup(ThreadData *arg)
                         SAFEDELETE(arg->ppNaiveJacHdl[arg->threadNumber]);
                         arg->ppNaiveJacHdl[arg->threadNumber] = nullptr;
                 }                
+		if (arg->pAbsResHdl) SAFEDELETE(arg->pAbsResHdl);
+
 	} else {
 		if (arg->ppNaiveJacHdl) {
 			// can be nonzero only when in Naive form
@@ -495,6 +499,8 @@ MultiThreadDataManager::ThreadSpawn(void)
 		/* set below */
 		thread_data[i].pResHdl = 0;	
 #endif
+		thread_data[i].pAbsResHdl = 0;	
+
 		/* to be sure... */
 		thread_data[i].pMatA = 0;
 		thread_data[i].pMatB = 0;
@@ -506,6 +512,9 @@ MultiThreadDataManager::ThreadSpawn(void)
 		SAFENEWWITHCONSTRUCTOR(thread_data[i].pResHdl,
 				MyVectorHandler, MyVectorHandler(iTotDofs));
 #endif
+		SAFENEWWITHCONSTRUCTOR(thread_data[i].pAbsResHdl,
+				MyVectorHandler, MyVectorHandler(iTotDofs));
+
 		/* create thread */
 		if (pthread_create(&thread_data[i].thread, NULL, thread,
 					&thread_data[i]) != 0) {
@@ -895,7 +904,7 @@ void MultiThreadDataManager::SetAffinity(const ThreadData& oThread)
 	
 #ifdef MBDYN_X_MT_ASSRES
 void
-MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
+MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef, const VectorHandler* pAbsResHdl)
 	/*throw(ChangedEquationStructure)*/
 {
 	ASSERT(thread_data != NULL);
@@ -911,7 +920,7 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 	}
 
 	DataManager::AssRes(ResHdl, dCoef, thread_data[0].ElemIter,
-			*thread_data[0].pWorkVec);
+			*thread_data[0].pWorkVec, *thread_data[0].pAbsResHdl);
 
 	pthread_mutex_lock(&thread_mutex);
 	if (thread_count > 0) {
@@ -921,6 +930,11 @@ MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
 
 	for (unsigned i = 1; i < nThreads; i++) {
 		ResHdl += *thread_data[i].pResHdl;
+	}
+	if (pAbsResHdl) {
+		for (unsigned i = 1; i < nThreads; i++) {
+			*thread_data[i].pAbsResHdl.AddAbsValuesTo(ResHdl);
+		}
 	}
 }
 #endif /* MBDYN_X_MT_ASSRES */
