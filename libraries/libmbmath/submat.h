@@ -1559,6 +1559,11 @@ public:
 	 * Si somma ad un vettore con metodi generici
 	 */
 	virtual VectorHandler& AddTo(VectorHandler& VH) const = 0;
+
+	/*
+	 * Si somma in valore assoluto ad un vettore con metodi generici
+	 */
+	virtual VectorHandler& AddAbsValuesTo(VectorHandler& VH) const = 0;
 };
 
 /*
@@ -1732,6 +1737,16 @@ public:
 	 * Si somma ad un MyVectorHandler
 	 */
 	virtual VectorHandler& AddTo(MyVectorHandler& VH) const;
+
+	/*
+	 * Si somma in valore assoluto ad un vettore con metodi generici
+	 */
+	virtual VectorHandler& AddAbsValuesTo(VectorHandler& VH) const;
+
+	/*
+	 * Si somma in valore assoluto ad un MyVectorHandler
+	 */
+	virtual VectorHandler& AddAbsValuesTo(MyVectorHandler& VH) const;
 };
 
 inline void

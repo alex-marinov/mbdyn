@@ -509,17 +509,18 @@ DataManager::AssMats(MatrixHandler& A_Hdl, MatrixHandler& B_Hdl,
 
 /* Assemblaggio del residuo */
 void
-DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef) 
+DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef, VectorHandler*const pAbsResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
-	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec);
+	AssRes(ResHdl, dCoef, ElemIter, *pWorkVec, pAbsResHdl);
 }
 
 void
 DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 		VecIter<Elem *> &Iter,
-		SubVectorHandler& WorkVec)
+		SubVectorHandler& WorkVec,
+		VectorHandler*const pAbsResHdl)
 {
 	DEBUGCOUT("Entering AssRes()" << std::endl);
 
@@ -530,9 +531,11 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 			try {
 				ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
+				if (pAbsResHdl) WorkVec.AddAbsValuesTo(*pAbsResHdl);
 			}
 			catch(Elem::ChangedEquationStructure& e) {
 				ResHdl += WorkVec;
+				if (pAbsResHdl) WorkVec.AddAbsValuesTo(*pAbsResHdl);
 				ChangedEqStructure = true;
 			}
 			catch (ErrDivideByZero& e) {
