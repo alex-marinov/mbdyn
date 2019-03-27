@@ -75,7 +75,7 @@ define([AC_CACHE_LOAD], )dnl
 define([AC_CACHE_SAVE], )dnl
 
 dnl ================================================================
-dnl configure.in for MBDyn
+dnl configure.ac for MBDyn
 
 DATE=`date "+%B %e, %Y"`
 
@@ -1866,10 +1866,11 @@ dnl Need either Metis or Chaco with MPI and Taucs
 dnl
 dnl First we check for Metis
 ol_link_metis=no
+new_metis_interface=no
 if test "$ol_with_metis" != "no" ; then
 	AC_CHECK_LIB(metis, METIS_PartGraphVKway,
 		[ol_link_metis=yes],[ol_link_metis=no],[-lm])
-	if test "ol_link_metis" != "yes" ; then
+	if test "$ol_link_metis" != "yes" ; then
 		AC_CHECK_LIB(metis, METIS_PartGraphKway,
 			[ol_link_metis=yes],[ol_link_metis=no],[-lm])
 	fi
@@ -1880,6 +1881,12 @@ if test "$ol_with_metis" != "no" ; then
 		if test "$ol_link_metis" != "no" ; then
 			AC_DEFINE(USE_METIS,1,
 				[define if you want to use Metis])
+			AC_TRY_COMPILE([#include "metis.h"], [idx_t i;], [new_metis_interface=yes],[new_metis_interface=no] )
+			if test "$new_metis_interface" != "no" ; then
+				AC_DEFINE(NEW_METIS_INTERFACE,1,[define if you want to use new Metis API])
+			else
+				AC_DEFINE(NEW_METIS_INTERFACE,0,[define if you want to use new Metis API])
+			fi
 		fi
 	fi
 
@@ -3262,6 +3269,7 @@ AM_CONDITIONAL(USE_CHACO,[test "$ol_link_chaco" = yes])
 AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
+AM_CONDITIONAL(NEW_METIS_INTERFACE,[test "$new_metis_interface" = yes])
 AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])
