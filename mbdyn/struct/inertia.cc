@@ -187,7 +187,7 @@ flags(0), X0(x0), R0(r0)
 	}
 
 	bool done(false);
-	if ((fOut & 0x1) & !silent_output) {
+	if ((fOut & OUTPUT_OUT) && (!silent_output)) {
 		if (!done) {
 			Collect_int();
 			done = true;
@@ -195,7 +195,7 @@ flags(0), X0(x0), R0(r0)
 		Output_int(std::cout);
 	}
 
-	if (fOut & 0x2) {
+	if (fOut & OUTPUT_LOG) {
 		if (!done) {
 			Collect_int();
 			done = true;
@@ -277,7 +277,7 @@ Inertia::Restart(std::ostream& out) const
 void
 Inertia::Output(OutputHandler& OH) const
 {
-	if (fToBeOutput() & (0x1 | Inertia::OUTPUT_ALWAYS)) {
+	if ((fToBeOutput() & Inertia::OUTPUT_ALWAYS)  && (!silent_output)) {
 		if (OH.UseText(OutputHandler::INERTIA)) {
 			Output_int(std::cout);
 		}
