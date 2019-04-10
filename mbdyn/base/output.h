@@ -152,6 +152,9 @@ private:
 		OUTPUT_MAY_USE_NETCDF		= 0x40U,
 		OUTPUT_USE_NETCDF		= 0x80U,
 
+// REMEMBER TO MODIFY OUTPUT_PRIVATE AND OUTPUT_MASK WHEN THE ABOVE MASKS
+// BECOME GRATER THAN OUTPUT_PRIVATE !
+
 		LAST
 	};
 
@@ -679,11 +682,11 @@ public:
 		OUTPUT = 0x1U,
 
 		// use OUTPUT_MASK to isolate public output flags
-		OUTPUT_MASK = 0xFU,
+		OUTPUT_MASK = 0xFFU,
 
 		// reserve values up to OUTPUT_PRIVATE for public use;
 		// reserved output flags can start from OUTPUT_PRIVATE up
-		OUTPUT_PRIVATE = 0x10U,
+		OUTPUT_PRIVATE = 0x100U,
 
 		// use OUTPUT_PRIVATE_MASK to isolate private output flags
 		OUTPUT_PRIVATE_MASK = ~OUTPUT_MASK

@@ -158,7 +158,7 @@ public:
 #ifdef MBDYN_X_MT_ASSRES
 	/* Assembla il residuo */
 	virtual void AssRes(VectorHandler &ResHdl, doublereal dCoef)
-		throw(ChangedEquationStructure);
+		/*throw(ChangedEquationStructure)*/;
 #endif /* MBDYN_X_MT_ASSRES */
 
 	/* additional CPU time, if any */

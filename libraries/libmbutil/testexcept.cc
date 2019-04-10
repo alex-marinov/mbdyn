@@ -38,7 +38,7 @@ class ErrPlain : public MBDynErrBase {
 public:
 	ErrPlain(MBDYN_EXCEPT_ARGS_DECL)
 	: MBDynErrBase(MBDYN_EXCEPT_ARGS_PASSTHRU) {};
-	virtual ~ErrPlain(void) throw() {};
+	virtual ~ErrPlain(void) noexcept {};
 };
 
 class ErrCode: public MBDynErrBase {
@@ -51,9 +51,9 @@ public:
 		ss << MBDynErrBase::what() << " code=" << code;
 		s = ss.str();
 	};
-	virtual ~ErrCode(void) throw() {};
+	virtual ~ErrCode(void) noexcept {};
 
-	const char* what(void) const throw () {
+	const char* what(void) const noexcept {
 		return s.c_str();
 	};
 };

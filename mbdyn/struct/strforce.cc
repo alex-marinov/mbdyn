@@ -2800,7 +2800,7 @@ ReadStructuralForce(DataManager* pDM,
 				if (bFollower) {
 					try {
 						Dir = HP.GetUnitVecRel(rf);
-					} catch (ErrNullNorm) {
+					} catch (ErrNullNorm& err) {
 						silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
 						throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 					}
@@ -2808,7 +2808,7 @@ ReadStructuralForce(DataManager* pDM,
 				} else {
 					try {
 						Dir = HP.GetUnitVecAbs(rf);
-					} catch (ErrNullNorm) {
+					} catch (ErrNullNorm& err) {
 						silent_cerr(sType << "(" << uLabel << ") has null direction" << std::endl);
 						throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 					}

@@ -151,7 +151,7 @@ public:
 
 	/* Assembla il residuo */
 	void AssRes(VectorHandler& ResHdl, doublereal dCoef) 
-		throw(ChangedEquationStructure);
+		/*throw(ChangedEquationStructure)*/;
 
 	/* Assembla lo jacobiano */
 	void AssJac(MatrixHandler& JacHdl, doublereal dCoef);

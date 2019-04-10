@@ -427,7 +427,7 @@ DataManager::AssJac(MatrixHandler& JacHdl, doublereal dCoef,
 				JacHdl += pTmpEl->AssJac(WorkMat, dCoef,
 						*pXCurr, *pXPrimeCurr);
 			}
-			catch (ErrDivideByZero) {
+			catch (ErrDivideByZero& e) {
 				silent_cerr("AssJac: divide by zero "
 					"in " << psElemNames[pTmpEl->GetElemType()]
 					<< "(" << pTmpEl->GetLabel() << ")"
@@ -517,11 +517,11 @@ DataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef,
 				ResHdl += pTmpEl->AssRes(WorkVec, dCoef,
 					*pXCurr, *pXPrimeCurr);
 			}
-			catch(Elem::ChangedEquationStructure) {
+			catch(Elem::ChangedEquationStructure& e) {
 				ResHdl += WorkVec;
 				ChangedEqStructure = true;
 			}
-			catch (ErrDivideByZero) {
+			catch (ErrDivideByZero& e) {
 				silent_cerr("AssRes: divide by zero "
 					"in " << psElemNames[pTmpEl->GetElemType()]
 					<< "(" << pTmpEl->GetLabel() << ")"

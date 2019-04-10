@@ -271,7 +271,7 @@ InLineJoint::AssRes(SubVectorHandler& WorkVec,
       try {
           fc->AssRes(WorkVec,12+NumSelfDof,iFirstReactionIndex+NumSelfDof,modF,v,XCurr,XPrimeCurr);
       }
-      catch (Elem::ChangedEquationStructure) {
+      catch (Elem::ChangedEquationStructure& e) {
           ChangeJac = true;
       }
       doublereal f = fc->fc();

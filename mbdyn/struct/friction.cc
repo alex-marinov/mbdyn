@@ -214,7 +214,7 @@ void ModLugreFriction::AssRes(
 	const doublereal F,
 	const doublereal v,
 	const VectorHandler& X,
-	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
+	const VectorHandler& XP) /*throw(Elem::ChangedEquationStructure)*/ {
 	doublereal z = X(solution_startdof+1);
 	doublereal zp = XP(solution_startdof+1);
 	f = sigma0*z + sigma1*zp + sigma2*v;
@@ -378,7 +378,7 @@ void DiscreteCoulombFriction::AssRes(
 	const doublereal F,
 	const doublereal v,
 	const VectorHandler& X,
-	const VectorHandler& XP) throw(Elem::ChangedEquationStructure) {
+	const VectorHandler& XP) /*throw(Elem::ChangedEquationStructure)*/ {
 // 	std::cerr << "Chimata residuo. Status:" << status << std::endl;
 	f = X(solution_startdof+1);
 //	if ((std::fabs(f)-fss(0) > 1.0E-6) && (first_iter == false)) {

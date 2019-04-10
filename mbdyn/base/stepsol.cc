@@ -190,7 +190,7 @@ ImplicitStepIntegrator::EvalProd(doublereal Tau, const VectorHandler& f0,
 	try {
 		Residual(&z);
 	}
-	catch (DataManager::ChangedEquationStructure) {
+	catch (DataManager::ChangedEquationStructure& e) {
 	}
 	XTau.ScalarMul(XTau, -1.);
 
@@ -313,15 +313,15 @@ DerivativeSolver::Advance(Solver* pS,
 					dSolTol,
 					SolErr);
 				bConverged = true;
-			} catch (NonlinearSolver::NoConvergence) {
+			} catch (NonlinearSolver::NoConvergence& e) {
 				if (bLastChance) {
 					throw;
 				}
-			} catch (NonlinearSolver::ErrSimulationDiverged) {
+			} catch (NonlinearSolver::ErrSimulationDiverged& e) {
 				if (bLastChance) {
 					throw;
 				}
-			} catch (LinearSolver::ErrFactor) {
+			} catch (LinearSolver::ErrFactor& e) {
 				if (bLastChance) {
 					throw;
 				}
@@ -1451,7 +1451,7 @@ InverseDynamicsStepSolver::EvalProd(doublereal Tau, const VectorHandler& f0,
 	try {
 		Residual(&z);
 	}
-	catch (DataManager::ChangedEquationStructure) {
+	catch (DataManager::ChangedEquationStructure& e) {
 	}
 	XTau.ScalarMul(XTau, -1.);
 

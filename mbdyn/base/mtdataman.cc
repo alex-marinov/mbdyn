@@ -278,7 +278,7 @@ MultiThreadDataManager::thread(void *p)
 						arg->ElemIter,
 						*arg->pWorkMat);
 
-			} catch (MatrixHandler::ErrRebuildMatrix) {
+			} catch (MatrixHandler::ErrRebuildMatrix& e) {
 				silent_cerr("thread " << arg->threadNumber
 						<< " caught ErrRebuildMatrix"
 						<< std::endl);
@@ -659,7 +659,7 @@ retry:;
 		DataManager::AssJac(JacHdl, dCoef, thread_data[0].ElemIter,
 				*thread_data[0].pWorkMat);
 
-	} catch (MatrixHandler::ErrRebuildMatrix) {
+	} catch (MatrixHandler::ErrRebuildMatrix& e) {
 		silent_cerr("thread " << thread_data[0].threadNumber
 				<< " caught ErrRebuildMatrix"
 				<< std::endl);
@@ -754,7 +754,7 @@ MultiThreadDataManager::NaiveAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 #ifdef MBDYN_X_MT_ASSRES
 void
 MultiThreadDataManager::AssRes(VectorHandler& ResHdl, doublereal dCoef)
-	throw(ChangedEquationStructure)
+	/*throw(ChangedEquationStructure)*/
 {
 	ASSERT(thread_data != NULL);
 

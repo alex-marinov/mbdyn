@@ -1143,7 +1143,7 @@ DataManager::InitialJointAssembly(void)
 			try {
 				*pResHdl += pEl->InitialAssRes(WorkVec, X);
 			}
-			catch (Elem::ChangedEquationStructure) {
+			catch (Elem::ChangedEquationStructure& e) {
 				// do nothing: Jacobian matrix
 				// is always recomputed anyway...
 			}
@@ -2547,7 +2547,7 @@ DataManager::AfterPredict(void) const
 			try {
 				pEl->AfterPredict(*pXCurr, *pXPrimeCurr);
 			}
-			catch (Elem::ChangedEquationStructure) {
+			catch (Elem::ChangedEquationStructure& e) {
 				// ignore by now
 				silent_cerr("DataManager::AfterPredict: "
 					"warning, caught Elem::ChangedEquationStructure while processing "

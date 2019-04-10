@@ -220,7 +220,7 @@ ReadElectric(DataManager* pDM,
 			Vec3 Dir;
 			try {
 				Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
-			} catch (ErrNullNorm) {
+			} catch (ErrNullNorm& err) {
 				silent_cerr("Accelerometer(" << uLabel << "): "
 					"null direction "
 					"at line " << HP.GetLineData()
@@ -270,7 +270,7 @@ ReadElectric(DataManager* pDM,
 			Vec3 Dir;
 			try {
 				Dir = HP.GetUnitVecRel(ReferenceFrame(pStrNode));
-			} catch (ErrNullNorm) {
+			} catch (ErrNullNorm& err) {
 				silent_cerr("Accelerometer(" << uLabel << "): "
 					"null direction "
 					"at line " << HP.GetLineData()
@@ -411,7 +411,7 @@ ReadElectric(DataManager* pDM,
 			e2 /= e2.Norm();
 
 			Rn = Mat3x3(e1, e2, e3);
-		} catch (ErrNullNorm) {
+		} catch (ErrNullNorm& err) {
 			silent_cerr("Motor(" << uLabel << "): "
 				"illegal motor direction "
 				"at line " << HP.GetLineData()

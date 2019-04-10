@@ -293,7 +293,7 @@ ass_res(LoadableElem* pEl,
 			p->fc->AssRes(WorkVec,2,iFirstReactionIndex,p->mass,
 				v,XCurr,XPrimeCurr);
 		}
-		catch (Elem::ChangedEquationStructure) {
+		catch (Elem::ChangedEquationStructure& err) {
 			ChangeJac = true;
 		}
 		doublereal f = p->fc->fc();

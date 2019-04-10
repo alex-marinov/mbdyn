@@ -151,7 +151,7 @@ BiCGStab::Solve(const NonlinearProblem* pNLP,
 		try {
 	      		pNLP->Residual(pRes);
 		}
-		catch (SolutionDataManager::ChangedEquationStructure) {
+		catch (SolutionDataManager::ChangedEquationStructure& e) {
 			if (bHonorJacRequest) {
 				bBuildMat = true;
 			}
@@ -237,7 +237,7 @@ rebuild_matrix:;
 			try {
       				pNLP->Jacobian(pSM->pMatHdl());
 
-			} catch (MatrixHandler::ErrRebuildMatrix) {
+			} catch (MatrixHandler::ErrRebuildMatrix& e) {
 				silent_cout("NewtonRaphsonSolver: "
 						"rebuilding matrix..."
 						<< std::endl);

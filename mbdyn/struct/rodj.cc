@@ -178,7 +178,7 @@ Rod::AssVec(SubVectorHandler& WorkVec)
 	try {
 		ConstitutiveLaw1DOwner::Update(dEpsilon);
 
-	} catch (Elem::ChangedEquationStructure) {
+	} catch (Elem::ChangedEquationStructure& err) {
 		ChangeJac = true;
 	}
 
@@ -671,7 +671,7 @@ ViscoElasticRod::AssRes(SubVectorHandler& WorkVec,
 	try {
 		ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
 
-	} catch (Elem::ChangedEquationStructure) {
+	} catch (Elem::ChangedEquationStructure& err) {
 		ChangeJac = true;
 	}
 	doublereal dF = GetF();
@@ -1083,7 +1083,7 @@ RodWithOffset::AssVec(SubVectorHandler& WorkVec)
 	try {
 		ConstitutiveLaw1DOwner::Update(dEpsilon, dEpsilonPrime);
 
-	} catch (Elem::ChangedEquationStructure) {
+	} catch (Elem::ChangedEquationStructure& err) {
 		ChangeJac = true;
 	}
 

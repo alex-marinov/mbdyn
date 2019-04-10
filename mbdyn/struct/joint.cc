@@ -1219,7 +1219,7 @@ ReadJoint(DataManager* pDM,
 		Vec3 v;
 		try {
 			v = HP.GetUnitVecRel(RF);
-		} catch (ErrNullNorm) {
+		} catch (ErrNullNorm & err) {
 			silent_cerr("Joint(" << uLabel << "): "
 				"null direction at line " << HP.GetLineData()
 				<< std::endl);
@@ -2422,7 +2422,7 @@ ReadJoint(DataManager* pDM,
 		Vec3 Dir;
 		try {
 			Dir = HP.GetUnitVecRel(ReferenceFrame(pNode));
-		} catch (ErrNullNorm) {
+		} catch (ErrNullNorm & err) {
 			silent_cerr("linear/angular velocity direction is null" << std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
 		}
@@ -2471,7 +2471,7 @@ ReadJoint(DataManager* pDM,
 		Vec3 Dir;
 		try {
 			Dir = HP.GetUnitVecRel(ReferenceFrame(pNode));
-		} catch (ErrNullNorm) {
+		} catch (ErrNullNorm & err) {
 			silent_cerr("Joint(" << uLabel << "): "
 				"direction is null" << std::endl);
 			throw ErrNullNorm(MBDYN_EXCEPT_ARGS);
@@ -3850,7 +3850,7 @@ ReadJoint(DataManager* pDM,
 		Vec3 SupDirection;
 		try {
 			SupDirection = HP.GetUnitVecRel(ReferenceFrame(pSup));
-		} catch (ErrNullNorm) {
+		} catch (ErrNullNorm & err) {
 			silent_cerr("PointSurfaceContact(" << uLabel << "): "
 				"invalid direction at line " << HP.GetLineData()
 				<< std::endl);
