@@ -150,15 +150,41 @@ This signal must be used to excite the problem (e.g.\ as the multiplier of a for
 For example, in the case of a force:
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
-        \bnt{node_label} ,
+        (\ty{unsigned}) \bnt{node_label} ,
             \kw{position}, \kw{null} ,
         1., 0., 0., # absolute x direction
         \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
-        \kw{string} , \kw{"excitation"} , \kw{linear} , 0., 100. ;
+            \kw{string} , \kw{"excitation"} , \kw{linear} , 0., 100. ;
 \end{Verbatim}
 In the above example, the force is applied to node \nt{node\_label}
 along the (absolute) $x$ direction, and scaled by a factor 100.
 
+\item \kw{psi}, i.e.\ the argument of the sine function that corresponds to the \kw{excitation}:
+\begin{align}
+	\kw{excitation} ::= \sin\plbr{\kw{psi}}
+\end{align}
+Its definition is thus
+\begin{align}
+	\kw{psi} ::= \kw{omega} \cdot (t - t_0)
+\end{align}
+It is useful to have multiple inputs with different phase; for example, in the case of a force whose components have different phase:
+\begin{Verbatim}[commandchars=\\\{\}]
+    \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
+        (\ty{unsigned}) \bnt{node_label} ,
+            \kw{position}, \kw{null} ,
+        component,
+            # absolute x direction
+            \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+                \kw{string} , \kw{"psi"} , \kw{string} , "100.*sin(Var)",
+            # absolute y direction
+            \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
+                \kw{string} , \kw{"psi"} , \kw{string} , "50.*sin(Var - pi/2)",
+            # absolute y direction
+            const, 0.;
+\end{Verbatim}
+In the above example, the force is applied to node \nt{node\_label}
+along the (absolute) $x$ direction, scaled by a factor 100, and
+along the (absolute) $y$ direction, scaled by a factor 50, with 90 deg phase delay.
 
 \item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
 This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
