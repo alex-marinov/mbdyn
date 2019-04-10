@@ -195,6 +195,8 @@ This may be useful, for example, to modify the amplitude of the signal as a func
 
 \paragraph{Notes.}
 \begin{itemize}
+\item As illustrated in the \textbf{Private Data} \kw{timestep} section, \underline{the time step must be controlled by this element}.
+
 \item Only one instance of this element should be used in the analysis; currently, a warning is issued if it is instantiated more than once, and the two instances operate together, with undefined results (convergence is likely never reached, because the solution does not tend to become periodic with any of the expected periods).
 
 \item This element might terminate the simulation in two cases:
