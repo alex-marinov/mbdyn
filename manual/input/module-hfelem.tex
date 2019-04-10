@@ -123,7 +123,7 @@ For example, to plot the results of the first output signal in Octave (or Matlab
     octave:2> omega = data(:, 3);
     octave:3> x = data(:, 5) + j*data(:, 6);
     octave:4> figure; loglog(omega, abs(x));
-    octave:5> figure; semilogx(omega, atan2(imag(x), real(x)))*180/pi;
+    octave:5> figure; semilogx(omega, atan2(imag(x), real(x))*180/pi);
 \end{verbatim}
 \end{framed}
 
