@@ -206,6 +206,51 @@ This may be useful, for example, to modify the amplitude of the signal as a func
 \end{itemize}
 \end{itemize}
 
+\paragraph{Example.}
+\begin{verbatim}
+begin: initial value;
+    # ...
+    final time: forever;
+
+    # the time step will be passed from outside
+    set: const integer TIMESTEP_DRIVE = 99;
+    strategy: change, postponed, TIMESTEP_DRIVE;
+
+    # ...
+end: initial value;
+
+# ...
+
+begin: elements;
+    # ...
+
+    set: const integer HARMONIC_EXCITATION = 99;
+    user defined: HARMONIC_EXCITATION, harmonic excitation,
+        inputs number, 2,
+            node, 2, structural, string, "X[1]", direct,
+            node, 2, structural, string, "XP[1]", direct,
+        steps number, 128,
+        initial angular frequency, 2.*2*pi,
+            max angular frequency, 25.*2*pi, # otherwise forever (or until max time)
+            angular frequency increment,
+                # additive, 0.25*2*pi,
+                multiplicative, 1.06,
+                # custom, 4.*2*pi, 8.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, last,
+        # initial time, 5., # defaults to "always"
+        tolerance, 1.e-8,
+        min periods, 2;
+
+    # make sure output occurs...
+    output: loadable, HARMONIC_EXCITATION;
+
+    # pass time step to solver
+    drive caller: TIMESTEP_DRIVE, element, HARMONIC_EXCITATION, loadable,
+        string, "timestep", direct;
+
+    # ...
+end: elements;
+\end{verbatim}
+
 \paragraph{TODOs?}
 \begin{itemize}
 \item Make it possible to continue the analysis instead of stopping when \nt{omega\_max} is reached?
