@@ -459,7 +459,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 
 		/* set below */
 		thread_data[i].pResHdl = 0;	
-		thread_data[i].pAbsResHdl = 0;	
+		thread_data[i].pAbsResHdl = 0;
 
 		/* to be sure... */
 		thread_data[i].pMatA = 0;
