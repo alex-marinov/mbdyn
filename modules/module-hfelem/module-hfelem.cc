@@ -364,8 +364,8 @@ m_dOmegaOut(0.)
 
 	for (integer i = 0; i < m_iN; i++) {
 		doublereal dPsi = (2*M_PI*i)/m_iN;
-		m_cos_psi[i] = (cos(dPsi)/m_iN)/2;
-		m_sin_psi[i] = (sin(dPsi)/m_iN)/2;
+		m_cos_psi[i] = cos(dPsi)/(m_iN/2);
+		m_sin_psi[i] = sin(dPsi)/(m_iN/2);
 
 		m_X[i].resize(iNInput);
 	}
