@@ -1,0 +1,253 @@
+# MBDyn (C) is a multibody analysis code. 
+# http://www.mbdyn.org
+# 
+# Copyright (C) 1996-2017
+# 
+# Pierangelo Masarati	<masarati@aero.polimi.it>
+# Paolo Mantegazza	<mantegazza@aero.polimi.it>
+# 
+# Dipartimento di Ingegneria Aerospaziale - Politecnico di Milano
+# via La Masa, 34 - 20156 Milano, Italy
+# http://www.aero.polimi.it
+# 
+# Changing this copyright notice is forbidden.
+# 
+# This program is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation (version 2 of the License).
+# 
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+# 
+# $Header$
+
+#
+# Copyright (C) 1996-2017
+#
+# Pierangelo Masarati <pierangelo.masarati@polimi.it>
+#
+# Sponsored by Hutchinson CdR, 2018-2019
+#
+
+/*
+ 
+ \|       /\ k     m
+ \o---+  /  \  +---o --> x, f
+ \|    \/    \/
+
+
+ - output a set of measures
+ - make sure the response is "harmonic"
+ - change the excitation frequency (and possibly amplitude) and the time step
+
+*/
+
+
+begin: data;
+	problem: initial value;
+end: data;
+
+begin: initial value;
+	initial time: 0.;
+	final time: forever;
+	time step: 1.e-3;
+
+	# the time step will be passed from outside
+	set: const integer TIMESTEP_DRIVE = 99;
+	strategy: change, postponed, TIMESTEP_DRIVE;
+	
+
+	tolerance: 1e-9;
+	max iterations: 10;
+
+	derivatives tolerance: 1e19;
+	derivatives max iterations: 10;
+	derivatives coefficient: 1e-12;
+
+	method: ms, .6;
+
+	output: iterations;
+	# output: residual;
+end: initial value;
+
+begin: control data;
+	structural nodes:
+		+1	# ground
+		+1	# body
+		+1	# endpoint
+	;
+	joints:
+		+1	# clamp
+		+1	# total joint
+		+1	# endpoint
+		+2	# spring-damper
+	;
+	rigid bodies: 1;
+
+	#file drivers: 1;
+	#output elements: 1;
+	loadable elements: 1;
+
+	output results: netcdf;
+
+	# tolerance: 1e-2;
+	# max iterations: 10;
+end: control data;
+
+set: const integer BASE = 0;
+reference: BASE,
+	reference, global, null,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+set: const integer BODY = 1;
+reference: BODY,
+	reference, global, 1., 0., 0.,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+set: const integer ENDPOINT = 2;
+reference: ENDPOINT,
+	reference, global, 2., 0., 0.,
+	reference, global, eye,
+	reference, global, null,
+	reference, global, null;
+
+begin: nodes;
+	structural: BASE, static,
+		reference, BASE, null,
+		reference, BASE, eye,
+		reference, BASE, null,
+		reference, BASE, null;
+
+	structural: BODY, dynamic,
+		reference, BODY, null,
+		reference, BODY, eye,
+		reference, BODY, null,
+		reference, BODY, null;
+
+	structural: ENDPOINT, static,
+		reference, ENDPOINT, null,
+		reference, ENDPOINT, eye,
+		reference, ENDPOINT, null,
+		reference, ENDPOINT, null;
+end: nodes;
+
+begin: elements;
+	set: const real EXCITATION_START = 1.;
+	set: const real EXCITATION_AMPLITUDE = 0.01;
+	user defined: 99, harmonic excitation,
+		inputs number, 2,
+			node, BODY, structural, string, "X[1]", direct,
+			node, BODY, structural, string, "XP[1]", direct,
+		steps number, 128,
+		initial angular frequency, 2.*2*pi,
+			max angular frequency, 25.*2*pi, # otherwise forever (or until max time)
+			angular frequency increment,
+				# additive, 0.25*2*pi,
+				multiplicative, 1.06,
+				# custom, 4.*2*pi, 6.*2*pi, 8.*2*pi, 10.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, 50.*2*pi, last,
+		initial time, EXCITATION_START, # defaults to "always"
+		tolerance, 1.e-8,
+		min periods, 2;
+
+	output: loadable, 99;
+
+	drive caller: TIMESTEP_DRIVE, element, 99, loadable, string, "timestep", direct;
+
+	joint: BASE, total pin joint,
+		BASE,
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		# ground
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		position constraint, 1, 1, 1,
+			# null,
+			# excitation
+			1., 0., 0., 
+				# element, 99, loadable, string, "psi", string, "(Time >= EXCITATION_START)*EXCITATION_AMPLITUDE*sin(Var)",
+				element, 99, loadable, string, "psi", string, "EXCITATION_AMPLITUDE*sin(Var)",
+		orientation constraint, 1, 1, 1, null;
+
+	joint: BODY, total joint,
+		BODY,
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		BASE,
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		position constraint, 0, 1, 1, null,
+		orientation constraint, 1, 1, 1, null;
+
+	joint: ENDPOINT, total joint,
+		ENDPOINT,
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		BASE,
+			position, reference, BASE, null,
+			position orientation, reference, BASE, eye,
+			rotation orientation, reference, BASE, eye,
+		position constraint, 1, 1, 1,
+			# null,
+			# preload
+			1., 0., 0., cosine, 0., pi/(.8*EXCITATION_START), -.1, half, 0.,
+		orientation constraint, 1, 1, 1, null;
+
+	set: const real omega = 10.*2*pi;
+	set: const real xi = .1;
+	set: const real M = 1.;
+	set: const real K = M*omega^2;
+	set: const real C = M*2*xi*omega;
+
+	body: BODY, BODY,
+		M,
+		null,
+		null;
+
+	constitutive law: 99, 1, 
+		linear viscoelastic, K, C;
+		# cubic viscoelastic generic, K, 0, 10.*K, C;
+
+	joint: 12, rod,
+		BODY,
+			position, reference, node, null,
+		BASE, 
+			position, reference, node, null,
+		from nodes,
+		reference, 99;
+
+	joint: 13, rod,
+		BODY,
+			position, reference, node, null,
+		ENDPOINT, 
+			position, reference, node, null,
+		from nodes,
+		reference, 99;
+
+/*
+	force: 2, absolute,
+		2,
+			position, reference, node, null,
+		component,
+			element, 99, loadable, string, "psi", string, "100.*sin(Var)",
+			element, 99, loadable, string, "psi", string, "50.*sin(Var - pi/2)",
+			const, 0.;
+*/
+end: elements;
+
+# vim:ft=mbd
