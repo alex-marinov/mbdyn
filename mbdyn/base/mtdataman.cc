@@ -497,7 +497,7 @@ MultiThreadDataManager::ThreadSpawn(void)
 #endif
 #ifdef MBDYN_X_MT_ASSRES
 		/* set below */
-		thread_data[i].pResHdl = 0;	
+		thread_data[i].pResHdl = 0;
 #endif
 		thread_data[i].pAbsResHdl = 0;	
 
