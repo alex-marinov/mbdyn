@@ -62,6 +62,7 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
         [ \kw{initial time} , (\ty{real}) \bnt{initial_time} , ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
         \kw{min periods } , (\ty{integer}) \bnt{min_periods}
+        [ , \kw{timestep drive label} , (\ty{unsigned}) \bnt{timestep_label} ]
 \end{Verbatim}
 with
 \begin{itemize}
@@ -92,6 +93,8 @@ Since the amount of simulation time required to reach a certain excitation angul
 The list of custom angular frequencies is terminated by the keyword \kw{last};
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
+
+\item \nt{timestep\_label} is the label of the timestep drive caller, as defined in the \kw{strategy}\texttt{:} \kw{change} statement in the \kw{initial value} block, and postponed until the definition of the user-defined element.
 \end{itemize}
 
 \paragraph{Output.}
@@ -189,6 +192,8 @@ along the (absolute) $y$ direction, scaled by a factor 50, with 90 deg phase del
 \item \kw{omega}, i.e.\ the angular frequency of the excitation signal.
 This may be useful, for example, to modify the amplitude of the signal as a function of the frequency.
 
+\item \kw{amplitude}, the amplitude of the excitation signal (currently set to 1).
+
 \item \kw{count}, the number of frequencies that have been applied so far.
 
 \end{itemize}
@@ -243,7 +248,7 @@ begin: elements;
     # make sure output occurs...
     output: loadable, HARMONIC_EXCITATION;
 
-    # pass time step to solver
+    # pass time step to solver (alternatively, use the "timestep drive label" option)
     drive caller: TIMESTEP_DRIVE, element, HARMONIC_EXCITATION, loadable,
         string, "timestep", direct;
 

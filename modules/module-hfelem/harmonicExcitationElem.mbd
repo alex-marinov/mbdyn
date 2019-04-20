@@ -190,11 +190,13 @@ begin: elements;
 				# custom, 4.*2*pi, 6.*2*pi, 8.*2*pi, 10.*2*pi, 15.*2*pi, 20.*2*pi, 30.*2*pi, 50.*2*pi, last,
 		# initial time, 5., # defaults to "always"
 		tolerance, 1.e-8,
-		min periods, 2;
+		min periods, 2,
+		timestep drive label, TIMESTEP_DRIVE;
 
 	output: loadable, 99;
 
-	drive caller: TIMESTEP_DRIVE, element, 99, loadable, string, "timestep", direct;
+	# use the (optional) "timestep drive label" instead
+	# drive caller: TIMESTEP_DRIVE, element, 99, loadable, string, "timestep", direct;
 
 	# force from outside
 	force: 2, absolute,

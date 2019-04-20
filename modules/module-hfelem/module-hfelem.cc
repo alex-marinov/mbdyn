@@ -44,6 +44,10 @@
 #include "dataman.h"
 #include "userelem.h"
 
+#include "mbpar.h"
+#include "privdrive.h"
+#include "drive_.h"
+
 #include "module-hfelem.h"
 
 static bool bHFElem(false);
@@ -57,6 +61,7 @@ private:
 		Priv_F,
 		Priv_PSI,
 		Priv_OMEGA,
+		Priv_AMPLITUDE,
 		Priv_COUNT,
 
 		Priv_LAST
@@ -74,13 +79,14 @@ private:
 	doublereal m_dOmegaMax;
 	doublereal m_dPsi;
 	doublereal m_dF;
+	doublereal m_dAmplitude;
 
 	doublereal m_dTol;
 	integer m_iMinPeriods;
 	enum OmegaInc {
-		ADDITIVE,
-		MULTIPLICATIVE,
-		CUSTOM
+		Inc_ADDITIVE,
+		Inc_MULTIPLICATIVE,
+		Inc_CUSTOM
 	} m_OmegaInc;
 	doublereal m_dOmegaAddInc;
 	doublereal m_dOmegaMulInc;
@@ -154,6 +160,7 @@ m_pDM(pDM),
 m_dTInit(-std::numeric_limits<doublereal>::max()),
 m_dPsi(0.),
 m_dF(0.),
+m_dAmplitude(1.),
 m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
 m_iOmegaCnt(0),
@@ -272,7 +279,7 @@ m_dOmegaOut(0.)
 	}
 
 	if (HP.IsKeyWord("additive")) {
-		m_OmegaInc = ADDITIVE;
+		m_OmegaInc = Inc_ADDITIVE;
 		try {
 			m_dOmegaAddInc = HP.GetReal(0., HighParser::range_gt<doublereal>(0.));
 
@@ -282,7 +289,7 @@ m_dOmegaOut(0.)
 		}
 
 	} else if (HP.IsKeyWord("multiplicative")) {
-		m_OmegaInc = MULTIPLICATIVE;
+		m_OmegaInc = Inc_MULTIPLICATIVE;
 		try {
 			m_dOmegaMulInc = HP.GetReal(1., HighParser::range_gt<doublereal>(1.));
 
@@ -292,7 +299,7 @@ m_dOmegaOut(0.)
 		}
 
 	} else if (HP.IsKeyWord("custom")) {
-		m_OmegaInc = CUSTOM;
+		m_OmegaInc = Inc_CUSTOM;
 
 		doublereal dOmega = m_dOmega0;
 		m_Omega.push_back(dOmega);
@@ -351,6 +358,47 @@ m_dOmegaOut(0.)
 		throw e;
 	}
 
+	// instantiate timestep drive caller
+	if (HP.IsKeyWord("timestep" "drive" "label")) {
+		unsigned uTSLabel;
+		try {
+			uTSLabel = HP.GetInt(0, HighParser::range_ge<integer>(0));
+
+		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): timestep label must be non-negative, at line " << HP.GetLineData() << std::endl);
+			throw e;
+		}
+
+		// check if driver already exists
+		if (HP.GetDrive(uTSLabel) != 0) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
+				"drive caller " << uLabel << " already defined "
+				"at line " << HP.GetLineData() << std::endl);
+			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+
+		DriveCaller *pDirectDC = 0;
+		SAFENEWWITHCONSTRUCTOR(pDirectDC,
+			DirectDriveCaller,
+			DirectDriveCaller(pDM->pGetDrvHdl()));
+
+		DriveCaller *pDC = 0;
+		SAFENEWWITHCONSTRUCTOR(pDC,
+			PrivDriveCaller,
+			PrivDriveCaller(pDM->pGetDrvHdl(),	// pDrvHdl,
+				pDirectDC, 			// pTmp; direct
+				this,				// pSE
+				Priv_DT,			// iIndex,
+				"timestep"));			// sIndexName.c_str()
+
+		try {
+			(void)HP.SetDrive(uTSLabel, pDC);
+		} catch (MBDynParser::ErrGeneric e) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): unable to create timestep driver: " << e.what() << " at line " << HP.GetLineData() << std::endl);
+			throw e;
+		}
+	}
+
 	SetOutputFlag(pDM->fReadOutput(HP, Elem::LOADABLE));
 
 	m_cos_psi.resize(m_iN);
@@ -397,7 +445,7 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 			out << std::setw(8) << GetLabel()	// 1:	label
 				<< " " << m_pDM->dGetTime()	// 2:	when
 				<< " " << m_dOmegaOut		// 3:	what frequency
-				<< " " << m_iPeriodOut;		// 4:	how many periods required
+				<< " " << m_iPeriodOut;		// 4:	how many periods required (-1 if not converged?)
 
 			for (unsigned i = 0; i < m_Input.size(); ++i) {
 				out << " " << m_Xsin[i] << " " << m_Xcos[i];
@@ -534,15 +582,15 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 			m_iPeriod = 0;
 
 			switch (m_OmegaInc) {
-			case ADDITIVE:
+			case Inc_ADDITIVE:
 				m_dOmega += m_dOmegaAddInc;
 				break;
 
-			case MULTIPLICATIVE:
+			case Inc_MULTIPLICATIVE:
 				m_dOmega *= m_dOmegaMulInc;
 				break;
 
-			case CUSTOM:
+			case Inc_CUSTOM:
 				if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
 					// schedule for termination!
 					m_bDone = true;
@@ -586,6 +634,9 @@ HarmonicForcingElem::iGetPrivDataIdx(const char *s) const
 	} else if (strcmp(s, "omega") == 0) {
 		return Priv_OMEGA;
 
+	} else if (strcmp(s, "amplitude") == 0) {
+		return Priv_AMPLITUDE;
+
 	} else if (strcmp(s, "count") == 0) {
 		return Priv_COUNT;
 	}
@@ -608,6 +659,9 @@ HarmonicForcingElem::dGetPrivData(unsigned int i) const
 
 	case Priv_OMEGA:
 		return m_dOmega;
+
+	case Priv_AMPLITUDE:
+		return m_dAmplitude;
 
 	case Priv_COUNT:
 		return doublereal(m_iOmegaCnt);
