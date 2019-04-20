@@ -116,7 +116,16 @@ private:
 	std::vector<doublereal> m_XcosPrev;
 	std::vector<doublereal> m_XsinPrev;
 
-	std::vector<DriveCaller *> m_Input;
+	struct HFInput {
+		enum {
+			HF_TEST = 0x1U,
+			HF_OUTPUT = 0x2U
+		};
+
+		DriveCaller *m_pDC;
+		unsigned m_Flag;
+	};
+	std::vector<HFInput> m_Input;
 
 public:
 	HarmonicForcingElem(unsigned uLabel, const DofOwner *pDO,
@@ -224,8 +233,45 @@ m_OutputFormat(Out_COMPLEX)
 	}
 
 	m_Input.resize(iNInput);
+	bool bTest(false);
 	for (integer i = 0; i < iNInput; ++i) {
-		m_Input[i] = HP.GetDriveCaller();
+		m_Input[i].m_pDC = HP.GetDriveCaller();
+
+		m_Input[i].m_Flag = HFInput::HF_TEST | HFInput::HF_OUTPUT;
+		while (true) {
+			if (HP.IsKeyWord("test")) {
+				bool b = HP.GetYesNoOrBool(false);
+				if (b) {
+					m_Input[i].m_Flag |= HFInput::HF_TEST;
+				} else {
+					m_Input[i].m_Flag &= ~HFInput::HF_TEST;
+				}
+
+			} else if (HP.IsKeyWord("output")) {
+				bool b = HP.GetYesNoOrBool(false);
+				if (b) {
+					m_Input[i].m_Flag |= HFInput::HF_OUTPUT;
+				} else {
+					m_Input[i].m_Flag &= ~HFInput::HF_OUTPUT;
+				}
+
+			} else {
+				break;
+			}
+		}
+
+		if (m_Input[i].m_Flag == 0) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): warning, input #" << i << " unused, at line " << HP.GetLineData() << std::endl);
+		}
+
+		if (m_Input[i].m_Flag & HFInput::HF_TEST) {
+			bTest = true;
+		}
+	}
+
+	if (!bTest) {
+		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): no input is used for convergence test, at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	if (HP.IsKeyWord("output" "format")) {
@@ -447,8 +493,8 @@ m_OutputFormat(Out_COMPLEX)
 HarmonicForcingElem::~HarmonicForcingElem(void)
 {
 	// destroy private data
-	for (std::vector<DriveCaller *>::iterator i = m_Input.begin(); i != m_Input.end(); ++i) {
-		delete *i;
+	for (std::vector<HFInput>::iterator i = m_Input.begin(); i != m_Input.end(); ++i) {
+		delete i->m_pDC;
 	}
 }
 
@@ -469,15 +515,19 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 			switch (m_OutputFormat) {
 			case Out_COMPLEX:
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
-					// real imag
-					out << " " << m_Xsin[i] << " " << m_Xcos[i];
+					if (m_Input[i].m_Flag & HFInput::HF_OUTPUT) {
+						// real imag
+						out << " " << m_Xsin[i] << " " << m_Xcos[i];
+					}
 				}
 				break;
 
 			case Out_MAGNITUDE_PHASE:
 				for (unsigned i = 0; i < m_Input.size(); ++i) {
-					// magnitude phase
-					out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i]) << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+					if (m_Input[i].m_Flag & HFInput::HF_OUTPUT) {
+						// magnitude phase
+						out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i]) << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+					}
 				}
 				break;
 			}
@@ -575,12 +625,12 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 			m_Xsin[i] -= m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
 		}
 
-		m_X[m_iPeriodCnt][i] = m_Input[i]->dGet();
+		m_X[m_iPeriodCnt][i] = m_Input[i].m_pDC->dGet();
 
 		m_Xcos[i] += m_X[m_iPeriodCnt][i]*m_cos_psi[m_iPeriodCnt];
 		m_Xsin[i] += m_X[m_iPeriodCnt][i]*m_sin_psi[m_iPeriodCnt];
 
-		if (m_iPeriod > 0) {
+		if (m_iPeriod > 0 && (m_Input[i].m_Flag & HFInput::HF_TEST)) {
 			doublereal d = m_Xcos[i] - m_XcosPrev[i];
 			dErr += d*d;
 			d = m_Xsin[i] - m_XsinPrev[i];
