@@ -91,6 +91,8 @@ begin: control data;
 	;
 	rigid bodies: 1;
 
+	gravity;
+
 	#file drivers: 1;
 	#output elements: 1;
 	loadable elements: 1;
@@ -208,7 +210,7 @@ begin: elements;
 		position constraint, 1, 1, 1,
 			# null,
 			# preload
-			1., 0., 0., cosine, 0., pi/(.8*EXCITATION_START), -.1, half, 0.,
+			1., 0., 0., cosine, 0., pi/(.4*EXCITATION_START), -.1, half, 0.,
 		orientation constraint, 1, 1, 1, null;
 
 	set: const real omega = 10.*2*pi;
@@ -251,6 +253,8 @@ begin: elements;
 			element, 99, loadable, string, "psi", string, "50.*sin(Var - pi/2)",
 			const, 0.;
 */
+
+	gravity: uniform, 1., 0., 0., cosine, .5*EXCITATION_START, pi/(.4*EXCITATION_START), -9.81/2, half, 0.;
 end: elements;
 
 # vim:ft=mbd
