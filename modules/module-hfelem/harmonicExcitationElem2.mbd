@@ -149,6 +149,7 @@ begin: elements;
 		inputs number, 2,
 			node, BODY, structural, string, "X[1]", direct,
 			node, BODY, structural, string, "XP[1]", direct,
+		output format, magnitude phase,
 		steps number, 128,
 		initial angular frequency, 2.*2*pi,
 			max angular frequency, 25.*2*pi, # otherwise forever (or until max time)

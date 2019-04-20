@@ -103,11 +103,16 @@ private:
 	integer m_iPeriodOut;
 	doublereal m_dOmegaOut;
 
+	enum OutputFormat {
+		Out_COMPLEX,
+		Out_MAGNITUDE_PHASE
+	} m_OutputFormat;
+
 	std::vector<doublereal> m_cos_psi;
 	std::vector<doublereal> m_sin_psi;
 	std::vector<std::vector<doublereal> > m_X;
-	std::vector<doublereal> m_Xcos;
-	std::vector<doublereal> m_Xsin;
+	std::vector<doublereal> m_Xcos;		// imaginary part (input is assumed to be "sin")
+	std::vector<doublereal> m_Xsin;		// real part (input is assumed to be "sin")
 	std::vector<doublereal> m_XcosPrev;
 	std::vector<doublereal> m_XsinPrev;
 
@@ -171,7 +176,8 @@ m_bConverged(false),
 m_bDone(false),
 m_bOut(false),
 m_iPeriodOut(0),
-m_dOmegaOut(0.)
+m_dOmegaOut(0.),
+m_OutputFormat(Out_COMPLEX)
 {
 	// help
 	if (HP.IsKeyWord("help")) {
@@ -220,6 +226,19 @@ m_dOmegaOut(0.)
 	m_Input.resize(iNInput);
 	for (integer i = 0; i < iNInput; ++i) {
 		m_Input[i] = HP.GetDriveCaller();
+	}
+
+	if (HP.IsKeyWord("output" "format")) {
+		if (HP.IsKeyWord("complex")) {
+			m_OutputFormat = Out_COMPLEX;
+
+		} else if (HP.IsKeyWord("magnitude" "phase")) {
+			m_OutputFormat = Out_MAGNITUDE_PHASE;
+
+		} else {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): unknown output format at line " << HP.GetLineData() << std::endl);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
 	}
 
 	// block size
@@ -374,7 +393,7 @@ m_dOmegaOut(0.)
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
 				"drive caller " << uLabel << " already defined "
 				"at line " << HP.GetLineData() << std::endl);
-			throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 		}
 
 		DriveCaller *pDirectDC = 0;
@@ -447,8 +466,20 @@ HarmonicForcingElem::Output(OutputHandler& OH) const
 				<< " " << m_dOmegaOut		// 3:	what frequency
 				<< " " << m_iPeriodOut;		// 4:	how many periods required (-1 if not converged?)
 
-			for (unsigned i = 0; i < m_Input.size(); ++i) {
-				out << " " << m_Xsin[i] << " " << m_Xcos[i];
+			switch (m_OutputFormat) {
+			case Out_COMPLEX:
+				for (unsigned i = 0; i < m_Input.size(); ++i) {
+					// real imag
+					out << " " << m_Xsin[i] << " " << m_Xcos[i];
+				}
+				break;
+
+			case Out_MAGNITUDE_PHASE:
+				for (unsigned i = 0; i < m_Input.size(); ++i) {
+					// magnitude phase
+					out << " " << std::sqrt(m_Xsin[i]*m_Xsin[i] + m_Xcos[i]*m_Xcos[i]) << " " << std::atan2(m_Xcos[i], m_Xsin[i]);
+				}
+				break;
 			}
 
 			out << std::endl;
