@@ -194,11 +194,11 @@ begin: elements;
 		orientation constraint, 1, 1, 1, null;
 
 	joint: ENDPOINT, total joint,
-		ENDPOINT,
+		BASE,
 			position, reference, BASE, null,
 			position orientation, reference, BASE, eye,
 			rotation orientation, reference, BASE, eye,
-		BASE,
+		ENDPOINT,
 			position, reference, BASE, null,
 			position orientation, reference, BASE, eye,
 			rotation orientation, reference, BASE, eye,
