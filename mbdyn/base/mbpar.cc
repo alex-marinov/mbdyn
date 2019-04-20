@@ -2029,6 +2029,15 @@ MBDynParser::GetDrive(unsigned uLabel) const
 	return i->second;
 }
 
+bool
+MBDynParser::SetDrive(unsigned uLabel, const DriveCaller *pDC)
+{
+	if (!DC.insert(DCType::value_type(uLabel, pDC)).second) {
+		silent_cerr("drive caller " << uLabel << " already defined" << std::endl);
+		throw MBDynParser::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+}
+
 DriveCaller *
 MBDynParser::GetDriveCaller(bool bDeferred)
 {
