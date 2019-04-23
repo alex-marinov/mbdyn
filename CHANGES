@@ -21,6 +21,7 @@ MBDyn 1.X-Devel
 		- added drive caller constitutive law wrapper
 		- added support for NetCDF4 (Louis Gagnon)
 	Backward compatibility issues:
+		- now escape sequences are honored in "hints"
 	Known issues:
 	Bug fixes:
 		- fix TotalPinJoint assembly (Eduardo Okabe)
