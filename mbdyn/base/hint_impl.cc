@@ -119,7 +119,8 @@ DriveHint::pCreateDrive(DataManager *pDM) const
 	std::istringstream in(sHint);
 	InputStream In(in);
 
-	MBDynParser HP(pDM->GetMathParser(), In, "DriveHint::pCreateDrive");
+	MBDynParser& HP(pDM->GetMBDynParser());
+	HP.PutInputStream(In);
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 

@@ -509,6 +509,9 @@ public:
 	virtual const char* GetString(unsigned flags = HighParser::NONE);
 	/* stringa delimitata */
 	virtual const char* GetStringWithDelims(enum Delims Del = DEFAULTDELIM, bool escape = true); 
+
+	/* Sets a new input stream (use with care!) */
+	virtual const void PutInputStream(InputStream& streamIn);
 };
 
 /* Le funzioni:
