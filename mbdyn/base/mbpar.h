@@ -403,7 +403,7 @@ public:
 	ConstitutiveLaw3D* GetConstLaw3D(ConstLawType::Type& clt);
 	ConstitutiveLaw6D* GetConstLaw6D(ConstLawType::Type& clt);
 	const DriveCaller* GetDrive(unsigned uLabel) const;
-	bool SetDrive(unsigned uLabel, const DriveCaller *pDC);
+	void SetDrive(unsigned uLabel, const DriveCaller *pDC);
 
 	DriveCaller* GetDriveCaller(bool bDeferred = false);
 	template <class T> const TplDriveCaller<T> *GetTplDrive(unsigned uLabel) const;

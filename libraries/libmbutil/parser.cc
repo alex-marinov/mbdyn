@@ -1366,6 +1366,21 @@ nullstring:;
 	return s;
 }
 
+/* Returns the current input stream */
+InputStream&
+HighParser::GetInputStream(void) const
+{
+	ASSERT(pIn != 0);
+	return *pIn;
+}
+
+/* Sets a new input stream (use with care!) */
+const void
+HighParser::PutInputStream(InputStream& streamIn)
+{
+	pIn = &streamIn;
+}
+
 /* HighParser - end */
 
 std::ostream&

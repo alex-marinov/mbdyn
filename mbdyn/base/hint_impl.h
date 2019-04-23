@@ -126,11 +126,18 @@ TplDriveHint<T>::pCreateDrive(DataManager *pDM) const
 	std::istringstream in(sHint);
 	InputStream In(in);
 
-	MBDynParser HP(pDM->GetMathParser(), In, "TplDriveHint::pCreateDrive");
+	MBDynParser& HP(pDM->GetMBDynParser());
+	InputStream& InOrig(HP.GetInputStream());
+
+	HP.PutInputStream(In);
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 
-	return HP.GetTplDriveCaller<T>();
+	TplDriveCaller<T> *pDC(HP.GetTplDriveCaller<T>());
+
+	HP.PutInputStream(InOrig);
+
+	return pDC;
 }
 
 typedef TplDriveHint<Vec3> TplDriveHint3;

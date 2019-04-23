@@ -5380,6 +5380,16 @@ is defined as
 	F = EA \frac{l - l_0}{l_0} ,
 \end{displaymath}
 where $EA$ is the axial stiffness of the rod.
+The corresponding syntax would be:
+\begin{verbatim}
+    set: const real L0 = 0.35;   # reference length
+    set: const real EA = 1.0e+6; # axial stiffness
+    joint: 99, rod,
+        1, position, null,
+        2, position, null,
+        L0,
+        linear elastic, EA;
+\end{verbatim}
 
 For further details on the supported constitutive laws, 
 see Section~\ref{sec:ConstitutiveLaw}.
@@ -5391,20 +5401,20 @@ see Section~\ref{sec:ConstitutiveLaw}.
 
 
 \subsubsection{Current}
-When parsing the constitutive law, the following values are made available
-through the \kw{model::current} interface:
+When parsing the constitutive law, the following run-time computed values are made available
+through the \kw{model::current}\texttt{(\bnt{string})} model namespace interface:
 \begin{itemize}
 \item
-\kw{"L0"}:
+\nt{string}\texttt{ ::= }\kw{"L0"}:
 the length of the rod \nt{rod\_length} as input by the user,
 or computed from the distance between the points connected by the rod when \kw{from nodes} is used;
 
 \item
-\kw{"L"}: 
+\nt{string}\texttt{ ::= }\kw{"L"}: 
 the length of the rod computed from the distance between the points connected by the rod;
 identical to \kw{"L0"} when \kw{from nodes} is used.
 \end{itemize}
-For example, if one knows the value of $EA$ and wants the stiffness
+For example, if one knows the value of $K$ and wants the axial stiffness
 in a linear elastic constitutive law to reflect its dependence
 on the reference length of the rod as computed from the initial configuration,
 the following syntax does the trick:
@@ -5412,13 +5422,13 @@ the following syntax does the trick:
     set: const integer ROD = 99;
     set: const integer NODE1 = 1;
     set: const integer NODE2 = 2;
-    set: const real EA = 1.e+6;
+    set: const real K = 1.e+6;
     # ...
     joint: ROD, rod,
         NODE1, position, null,
         NODE2, position, null,
-        from nodes,                              # compute length from nodes
-        linear elastic, EA/model::current("L0"); # compute K as EA/rod_length
+        from nodes,                             # compute length from nodes
+        linear elastic, K*model::current("L0"); # compute EA as K*rod_length
 \end{verbatim}
 
 
