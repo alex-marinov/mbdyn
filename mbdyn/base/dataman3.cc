@@ -600,6 +600,7 @@ DataManager::ReadControl(MBDynParser& HP,
 					break;
 
 				case GRAVITY:
+					// FIXME: to be implemented!
 					ElemData[Elem::GRAVITY].ToBeUsedInAssembly(true);
 					DEBUGLCOUT(MYDEBUG_INPUT,
 						"Gravity will be used "
