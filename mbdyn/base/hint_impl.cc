@@ -120,11 +120,17 @@ DriveHint::pCreateDrive(DataManager *pDM) const
 	InputStream In(in);
 
 	MBDynParser& HP(pDM->GetMBDynParser());
+	InputStream& InOrig(HP.GetInputStream());
+
 	HP.PutInputStream(In);
 	HP.ExpectArg();
 	HP.SetDataManager(pDM);
 
-	return HP.GetDriveCaller(false);
+	DriveCaller *pDC(HP.GetDriveCaller(false));
+
+	HP.PutInputStream(InOrig);
+
+	return pDC;
 }
 
 /* DriveHint - end */
