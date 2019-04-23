@@ -23,6 +23,7 @@ MBDyn 1.X-Devel
 	Backward compatibility issues:
 		- now escape sequences are honored in "hints"
 	Known issues:
+		- gravity not used in assembly
 	Bug fixes:
 		- fix TotalPinJoint assembly (Eduardo Okabe)
 		- fix eigenanalysis before derivatives
