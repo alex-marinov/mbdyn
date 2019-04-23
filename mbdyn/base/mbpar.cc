@@ -2029,7 +2029,7 @@ MBDynParser::GetDrive(unsigned uLabel) const
 	return i->second;
 }
 
-bool
+void
 MBDynParser::SetDrive(unsigned uLabel, const DriveCaller *pDC)
 {
 	if (!DC.insert(DCType::value_type(uLabel, pDC)).second) {
