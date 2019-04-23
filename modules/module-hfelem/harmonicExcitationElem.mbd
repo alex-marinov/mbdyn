@@ -195,6 +195,8 @@ begin: elements;
 		# initial time, 5., # defaults to "always"
 		tolerance, 1.e-8,
 		min periods, 2,
+		max periods, 50,
+			# no convergence strategy, abort,
 		timestep drive label, TIMESTEP_DRIVE;
 
 	output: loadable, 99;

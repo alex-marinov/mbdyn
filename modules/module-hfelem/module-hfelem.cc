@@ -83,6 +83,11 @@ private:
 
 	doublereal m_dTol;
 	integer m_iMinPeriods;
+	integer m_iMaxPeriods;
+	enum NoConv {
+		NoConv_CONTINUE,
+		NoConv_ABORT
+	} m_NoConvStrategy;
 	enum OmegaInc {
 		Inc_ADDITIVE,
 		Inc_MULTIPLICATIVE,
@@ -175,6 +180,8 @@ m_dTInit(-std::numeric_limits<doublereal>::max()),
 m_dPsi(0.),
 m_dF(0.),
 m_dAmplitude(1.),
+m_iMaxPeriods(0),
+m_NoConvStrategy(NoConv_CONTINUE),
 m_dOmegaAddInc(0.),
 m_dOmegaMulInc(1.),
 m_iOmegaCnt(0),
@@ -418,9 +425,35 @@ m_OutputFormat(Out_COMPLEX)
 	try {
 		m_iMinPeriods = HP.GetInt(2, HighParser::range_gt<integer>(1));
 
-	} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+	} catch (HighParser::ErrValueOutOfRange<integer> e) {
 		silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): minimum number of periods must be greater than 1, at line " << HP.GetLineData() << std::endl);
 		throw e;
+	}
+
+	// maximum number of blocks
+	if (HP.IsKeyWord("max" "periods")) {
+		try {
+			m_iMaxPeriods = HP.GetInt(m_iMinPeriods + 1, HighParser::range_gt<integer>(m_iMinPeriods));
+
+		} catch (HighParser::ErrValueOutOfRange<integer> e) {
+			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): maximum number of periods must be greater than minimum number of periods " << m_iMinPeriods << ", at line " << HP.GetLineData() << std::endl);
+			throw e;
+		}
+
+		m_NoConvStrategy = NoConv_CONTINUE;
+		if (HP.IsKeyWord("no" "convergence" "strategy")) {
+			if (HP.IsKeyWord("continue")) {
+				m_NoConvStrategy = NoConv_CONTINUE;
+
+			} else if (HP.IsKeyWord("abort")) {
+				m_NoConvStrategy = NoConv_ABORT;
+
+			} else {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): "
+					"unknown no convergence strategy at line " << HP.GetLineData() << std::endl);
+				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+			}
+		}
 	}
 
 	// instantiate timestep drive caller
@@ -429,7 +462,7 @@ m_OutputFormat(Out_COMPLEX)
 		try {
 			uTSLabel = HP.GetInt(0, HighParser::range_ge<integer>(0));
 
-		} catch (HighParser::ErrValueOutOfRange<doublereal> e) {
+		} catch (HighParser::ErrValueOutOfRange<integer> e) {
 			silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): timestep label must be non-negative, at line " << HP.GetLineData() << std::endl);
 			throw e;
 		}
@@ -653,43 +686,55 @@ HarmonicForcingElem::AfterConvergence(const VectorHandler& X,
 	if (m_iPeriodCnt == m_iN) {
 		m_iPeriodCnt = 0;
 		++m_iPeriod;
-		if (m_bConverged && m_iPeriod >= m_iMinPeriods) {
-			m_bOut = true;
-			m_iPeriodOut = m_iPeriod;
-			m_dOmegaOut = m_dOmega;
-			m_iOmegaCnt++;
+		if (m_iPeriod >= m_iMinPeriods) {
+			if (m_bConverged || ((m_iMaxPeriods > 0) && (m_iPeriod >= m_iMaxPeriods) && (m_NoConvStrategy == NoConv_CONTINUE))) {
+				m_bOut = true;
+				if (m_bConverged) {
+					m_iPeriodOut = m_iPeriod;
+				} else {
+					m_iPeriodOut = -m_iPeriod;
+				}
+				m_dOmegaOut = m_dOmega;
+				m_iOmegaCnt++;
 
-			m_bConverged = false;
-			m_iPeriod = 0;
+				m_bConverged = false;
+				m_iPeriod = 0;
 
-			switch (m_OmegaInc) {
-			case Inc_ADDITIVE:
-				m_dOmega += m_dOmegaAddInc;
-				break;
+				switch (m_OmegaInc) {
+				case Inc_ADDITIVE:
+					m_dOmega += m_dOmegaAddInc;
+					break;
 
-			case Inc_MULTIPLICATIVE:
-				m_dOmega *= m_dOmegaMulInc;
-				break;
+				case Inc_MULTIPLICATIVE:
+					m_dOmega *= m_dOmegaMulInc;
+					break;
 
-			case Inc_CUSTOM:
-				if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
+				case Inc_CUSTOM:
+					if ((unsigned)m_iOmegaCnt >= m_Omega.size()) {
+						// schedule for termination!
+						m_bDone = true;
+					}
+					m_dOmega = m_Omega[m_iOmegaCnt];
+					break;
+
+				default:
+					// impossible
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (m_dOmega > m_dOmegaMax) {
 					// schedule for termination!
 					m_bDone = true;
 				}
-				m_dOmega = m_Omega[m_iOmegaCnt];
-				break;
 
-			default:
-				// impossible
-				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-			}
+				m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
 
-			if (m_dOmega > m_dOmegaMax) {
+			} else if ((m_iMaxPeriods > 0) && (m_iPeriod > m_iMaxPeriods) && (m_NoConvStrategy == NoConv_ABORT)) {
+				silent_cerr("HarmonicExcitationElem(" << GetLabel() << "): max periods " << m_iMaxPeriods << " exceeded for frequency " << m_dOmega << "; aborting..." << std::endl);
+
 				// schedule for termination!
 				m_bDone = true;
 			}
-
-			m_dDeltaT = (2*M_PI/m_dOmega)/m_iN;
 		}
 	}
 }

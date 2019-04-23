@@ -61,7 +61,9 @@ The (complex) magnitude of the fundamental harmonic of each signal is logged at 
                     | \kw{custom} , (\ty{real}) \bnt{omega1} [ , ... ] , \kw{last} \} ,
         [ \kw{initial time} , (\ty{real}) \bnt{initial_time} , ]
         [ \kw{tolerance} , (\ty{real}) \bnt{tolerance} , ]
-        \kw{min periods } , (\ty{integer}) \bnt{min_periods}
+        \kw{min periods} , (\ty{integer}) \bnt{min_periods}
+        [ , \kw{max periods} , (\ty{integer}) \bnt{max_periods}
+            [ , \kw{no convergence strategy} , \{ \kw{continue} | \kw{abort} \} ] ]
         [ , \kw{timestep drive label} , (\ty{unsigned}) \bnt{timestep_label} ]
 \end{Verbatim}
 with
@@ -94,7 +96,18 @@ The list of custom angular frequencies is terminated by the keyword \kw{last};
 
 \item $\nt{min\_periods} > 1$ is the minimum number of periods that must be performed before checking for convergence.
 
+\item $\nt{max\_periods} > \nt{min\_periods}$ is the maximum number of periods that can be performed for convergence.
+In case convergence is not achieved, if the value of \kw{no convergence strategy} is
+\begin{itemize}
+\item \kw{continue}: the frequency is marked as not converged
+(the value of the number of periods for convergence is set to $-\nt{max\_periods}$) and the analysis moves to the subsequent frequency;
+
+\item \kw{abort}: the analysis is aborted.
+\end{itemize}
+
 \item \nt{timestep\_label} is the label of the timestep drive caller, as defined in the \kw{strategy}\texttt{:} \kw{change} statement in the \kw{initial value} block, and postponed until the definition of the user-defined element.
+Using this keyword replaces the need to manually define an \kw{element} drive caller for the timestep
+(see the discussion of the \kw{timestep} private datum).
 \end{itemize}
 
 \paragraph{Output.}
@@ -147,6 +160,8 @@ Then, after instantiating the \kw{hfelem}, one must reference the time step driv
         \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
         \kw{string} , \kw{"timestep"} , \kw{direct} ;
 \end{Verbatim}
+Alternatively, one can use the optional keyword \kw{timestep drive label} to pass the element the label of the timestep drive caller,
+which is directly instantiated by the element.
 
 \item \kw{excitation}, i.e.\ the harmonic forcing term, which is a sine wave of given frequency and unit amplitude.
 This signal must be used to excite the problem (e.g.\ as the multiplier of a force or moment, or a prescribed displacement or rotation).
@@ -170,7 +185,7 @@ Its definition is thus
 \begin{align}
 	\kw{psi} ::= \kw{omega} \cdot (t - t_0)
 \end{align}
-It is useful to have multiple inputs with different phase; for example, in the case of a force whose components have different phase:
+It may be useful to have multiple inputs with different phases; for example, in the case of a force whose components have different phases:
 \begin{Verbatim}[commandchars=\\\{\}]
     \kw{force} : (\ty{unsigned}) \bnt{force_label} , \kw{absolute} ,
         (\ty{unsigned}) \bnt{node_label} ,
@@ -182,7 +197,7 @@ It is useful to have multiple inputs with different phase; for example, in the c
             # absolute y direction
             \kw{element} , (\ty{unsigned}) \bnt{hfelem_label} , \kw{loadable} ,
                 \kw{string} , \kw{"psi"} , \kw{string} , "50.*sin(Var - pi/2)",
-            # absolute y direction
+            # absolute z direction
             const, 0.;
 \end{Verbatim}
 In the above example, the force is applied to node \nt{node\_label}
