@@ -343,7 +343,12 @@ Rod::Output(OutputHandler& OH) const
 			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
 			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+			OH.WriteNcVar(Var_F_local, F);
+			OH.WriteNcVar(Var_M_local, M);
+			OH.WriteNcVar(Var_F_global, FTmp);
+			OH.WriteNcVar(Var_dElle, dElle);
+			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
+			OH.WriteNcVar(Var_v, vTmp);
 #endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF

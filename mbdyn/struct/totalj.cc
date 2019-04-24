@@ -1540,7 +1540,15 @@ TotalJoint::Output(OutputHandler& OH) const
 			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+			OH.WriteNcVar(Var_F_local, F);
+			OH.WriteNcVar(Var_M_local, M);
+			OH.WriteNcVar(Var_F_global, FTmp);
+			OH.WriteNcVar(Var_M_global, MTmp);
+			
+			OH.WriteNcVar(Var_X, XTmp);
+			OH.WriteNcVar(Var_Phi, ThetaTmp);
+			OH.WriteNcVar(Var_V, VTmp);
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 #endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
@@ -3374,7 +3382,16 @@ TotalPinJoint::Output(OutputHandler& OH) const
 			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+			OH.WriteNcVar(Var_F_local, F);
+			OH.WriteNcVar(Var_M_local, M);
+			OH.WriteNcVar(Var_F_global, FTmp);
+			OH.WriteNcVar(Var_M_global, MTmp);
+
+			
+			OH.WriteNcVar(Var_X, XTmp);
+			OH.WriteNcVar(Var_Phi, ThetaTmp);
+			OH.WriteNcVar(Var_V, VTmp);
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 #endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
