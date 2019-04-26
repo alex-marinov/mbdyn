@@ -300,9 +300,16 @@ Inertia::Output(OutputHandler& OH) const
 			Var_Jp->put_rec(J_princ.pGetVec(), OH.GetCurrentStep());
 			Var_Phip->put_rec(Phip.pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			OH.WriteNcVar(Var_dMass, dMass);
+			OH.WriteNcVar(Var_X_cm, X_cm);
+			OH.WriteNcVar(Var_V_cm, V_cm);
+			OH.WriteNcVar(Var_Omega_cm, Omega_cm);
 
+			OH.WriteNcVar(Var_DX, DX);
+			OH.WriteNcVar(Var_dx, dx);
+			OH.WriteNcVar(Var_Jp, J_Princ);
+			OH.WriteNcVar(Var_Phip, Phip);
+#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 	}
@@ -320,7 +327,6 @@ Inertia::OutputPrepare_int(OutputHandler &OH, std::string& name)
 
 	os << ".";
 	name = os.str();
-
 #endif // USE_NETCDF
 }
 
@@ -351,7 +357,6 @@ Inertia::OutputPrepare(OutputHandler &OH)
 				"global inertia matrix, w.r.t. principal axes");
 			Var_Phip = OH.CreateVar<Vec3>(name + "Phip", "-",
 				"orientation vector of principal axes, global frame");
-
 		}
 #endif // USE_NETCDF
 	}

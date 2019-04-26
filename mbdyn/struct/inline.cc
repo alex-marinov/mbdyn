@@ -320,7 +320,10 @@ void InLineJoint::Output(OutputHandler& OH) const
 			Var_F_global->put_rec((RvTmp*F).pGetVec(), OH.GetCurrentStep());
 			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+			OH.WriteNcVar(Var_F_local, F);
+			OH.WriteNcVar(Var_M_local, Zero3);
+			OH.WriteNcVar(Var_F_global, (RvTmp*F));
+			OH.WriteNcVar(Var_M_global, Zero3);
 #endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
