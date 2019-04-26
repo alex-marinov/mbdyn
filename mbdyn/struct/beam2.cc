@@ -715,9 +715,12 @@ Beam2::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
-#if defined(USE_NETCDFC)
 			if (Var_X) {
+#if defined(USE_NETCDFC)
 				Var_X->put_rec(p.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_X, p);
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_Phi) {
@@ -753,11 +756,19 @@ Beam2::Output(OutputHandler& OH) const
 				case EULER_313:
 				case EULER_321:
 				case ORIENTATION_VECTOR:
+#if defined(USE_NETCDFC)
 					Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+					OH.WriteNcVar(Var_Phi, E);
+#endif  /* USE_NETCDF4 */
 					break;
 
 				case ORIENTATION_MATRIX:
+#if defined(USE_NETCDFC)
 					Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+					OH.WriteNcVar(Var_Phi, R);
+#endif  /* USE_NETCDF4 */
 					break;
 
 				default:
@@ -767,31 +778,52 @@ Beam2::Output(OutputHandler& OH) const
 			}
 
 			if (Var_F) {
+#if defined(USE_NETCDFC)
 				Var_F->put_rec(AzLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_F, AzLoc.GetVec1());
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_M) {
+#if defined(USE_NETCDFC)
 				Var_M->put_rec(AzLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_M, AzLoc.GetVec2());
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_Nu) {
+#if defined(USE_NETCDFC)
 				Var_Nu->put_rec(DefLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_Nu, DefLoc.GetVec1());
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_K) {
+#if defined(USE_NETCDFC)
 				Var_K->put_rec(DefLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_K, DefLoc.GetVec2());
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_NuP) {
+#if defined(USE_NETCDFC)
 				Var_NuP->put_rec(DefPrimeLoc.GetVec1().pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_NuP, DefPrimeLoc.GetVec1());
+#endif  /* USE_NETCDF4 */
 			}
 
 			if (Var_KP) {
+#if defined(USE_NETCDFC)
 				Var_KP->put_rec(DefPrimeLoc.GetVec2().pGetVec(), OH.GetCurrentStep());
-			}
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+				OH.WriteNcVar(Var_KP, DefPrimeLoc.GetVec2());
 #endif  /* USE_NETCDF4 */
+			}
 		}
 #endif /* USE_NETCDF */
 
