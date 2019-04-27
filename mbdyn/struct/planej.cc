@@ -1011,17 +1011,31 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
 			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
 			Var_M_global->put_rec((R2Tmp*M).pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+			OH.WriteNcVar(Var_F_local, (R2Tmp.MulTV(F)));
+			OH.WriteNcVar(Var_M_local, M);
+			OH.WriteNcVar(Var_F_global, F);
+			OH.WriteNcVar(Var_M_global, (R2Tmp*M));
+#endif  /* USE_NETCDF4 */
 
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
+#if defined(USE_NETCDFC)
 				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcvar(Var_Phi, E);
+#endif  /* USE_NETCDF4 */
 				break;
 
 			case ORIENTATION_MATRIX:
+#if defined(USE_NETCDFC)
 				Var_Phi->put_rec(RTmp.pGetMat(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+				OH.WriteNcVar(Var_Phi, RTmp);
+#endif  /* USE_NETCDF4 */
 				break;
 
 			default:
@@ -1029,7 +1043,10 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 				break;
 			}
 
+#if defined(USE_NETCDFC)
 			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
+#endif  /* USE_NETCDF4 */
 /*
 			if (fc) {
 					Var_MFR->put_rec(&M3, OH.GetCurrentStep());
@@ -1041,9 +1058,6 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 				Var_MU->put_rec(0, OH.GetCurrentStep());
 			}
 */
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
