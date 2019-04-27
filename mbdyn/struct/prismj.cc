@@ -285,7 +285,10 @@ void PrismaticJoint::Output(OutputHandler& OH) const
 			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
 			Var_M_global->put_rec((R1Tmp*M).pGetVec(), OH.GetCurrentStep());
 #elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
+			OH.WriteNcVar(Var_F_local, Zero3);
+			OH.WriteNcVar(Var_M_local, M);
+			OH.WriteNcVar(Var_F_global, Zero3);
+			OH.WriteNcVar(Var_M_global, (R1Tmp*M));
 #endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
