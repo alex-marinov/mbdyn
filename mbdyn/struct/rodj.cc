@@ -330,26 +330,15 @@ Rod::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_dElle->put_rec(&dElle, OH.GetCurrentStep());
-			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
-			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F_local, F);
 			OH.WriteNcVar(Var_M_local, M);
 			OH.WriteNcVar(Var_F_global, FTmp);
 			OH.WriteNcVar(Var_dElle, dElle);
 			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
 			OH.WriteNcVar(Var_v, vTmp);
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

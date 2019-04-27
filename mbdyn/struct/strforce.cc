@@ -159,11 +159,7 @@ AbsoluteDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -337,11 +333,7 @@ AbsoluteInternalDispForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -612,13 +604,8 @@ AbsoluteForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
 			OH.WriteNcVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -915,23 +902,11 @@ FollowerForce::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec((f.Get()).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 			} else {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, (pNode->GetRCurr()*f.Get()));
-#endif  /* USE_NETCDF4 */
 			}
-#if defined(USE_NETCDFC)
-			Var_A->put_rec((pNode->GetXCurr() + pNode->GetRCurr()*Arm).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_A, (pNode->GetXCurr() + pNode->GetRCurr()*Arm));
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1167,11 +1142,7 @@ AbsoluteCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -1382,17 +1353,9 @@ FollowerCouple::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			if (fToBeOutput() & OUTPUT_REL) {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 			} else {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec((pNode->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, (pNode->GetRCurr()*f.Get()));
-#endif  /* USE_NETCDF4 */
 			}
 		}
 #endif // USE_NETCDF
@@ -1734,15 +1697,9 @@ AbsoluteInternalForce::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
-			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
 			OH.WriteNcVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
 			OH.WriteNcVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2099,25 +2056,12 @@ FollowerInternalForce::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 			} else {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, (pNode1->GetRCurr()*f.Get()));
-#endif  /* USE_NETCDF4 */
 			}
-#if defined(USE_NETCDFC)
-			Var_A1->put_rec((pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1).pGetVec(), OH.GetCurrentStep());
-			Var_A2->put_rec((pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_A1, (pNode1->GetXCurr() + pNode1->GetRCurr()*Arm1));
 			OH.WriteNcVar(Var_A2, (pNode2->GetXCurr() + pNode2->GetRCurr()*Arm2));
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2411,11 +2355,7 @@ AbsoluteInternalCouple::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
-#if defined(USE_NETCDFC)
-			Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 
@@ -2646,17 +2586,9 @@ FollowerInternalCouple::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::FORCES)) {
 			if (fToBeOutput() & StructuralForce::OUTPUT_REL) {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec(f.Get().pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, f.Get());
-#endif  /* USE_NETCDF4 */
 			} else {
-#if defined(USE_NETCDFC)
-				Var_F->put_rec((pNode1->GetRCurr()*f.Get()).pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 				OH.WriteNcVar(Var_F, (pNode1->GetRCurr()*f.Get()));
-#endif  /* USE_NETCDF4 */
 			}
 		}
 #endif // USE_NETCDF

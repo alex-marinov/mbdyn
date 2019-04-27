@@ -302,7 +302,7 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("inline", OH, name);
+			OutputPrepare_int("inline", OH, name);	
 		}
 #endif // USE_NETCDF
 	}
@@ -314,17 +314,10 @@ void InLineJoint::Output(OutputHandler& OH) const
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec((RvTmp*F).pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
 			OH.WriteNcVar(Var_F_local, F);
 			OH.WriteNcVar(Var_M_local, Zero3);
 			OH.WriteNcVar(Var_F_global, (RvTmp*F));
 			OH.WriteNcVar(Var_M_global, Zero3);
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 

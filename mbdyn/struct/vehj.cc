@@ -228,33 +228,29 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(v.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec((R1h*v).pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+
+			OH.WriteNcVar(Var_F_local, Zero3);
+			OH.WriteNcVat(Var_M_local, v);
+			OH.WriteNcVar(Var_F_global, Zero3);
+			OH.WriteNcVar(Var_M_global, (R1h*v));
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, R);
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {

@@ -179,29 +179,24 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec((R1h*F).pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec((R1h*M).pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
-
+			OH.WriteNcVar(Var_F_local, (R1h*F));
+			OH.WriteNcVar(Var_M_local, (R1h*M));
+			OH.WriteNcVar(Var_F_global, F);
+			OH.WriteNcVar(Var_M_global, M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, R);
 				break;
 			default:
 				/* impossible */
 				break;
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
