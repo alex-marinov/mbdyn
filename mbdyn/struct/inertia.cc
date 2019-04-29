@@ -296,7 +296,7 @@ Inertia::Output(OutputHandler& OH) const
 
 			OH.WriteNcVar(Var_DX, DX);
 			OH.WriteNcVar(Var_dx, dx);
-			OH.WriteNcVar(Var_Jp, J_Princ);
+			OH.WriteNcVar(Var_Jp, J_princ);
 			OH.WriteNcVar(Var_Phip, Phip);
 		}
 #endif // USE_NETCDF

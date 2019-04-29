@@ -716,7 +716,7 @@ Beam2::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
 
-			unsigned uOutputFlags = (fToBeOutput & ToBeOutput::OUTPUT_PRIVATE_MASK);
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
 
 			if (uOutputFlags & Beam::OUTPUT_EP_X) {
 				OH.WriteNcVar(Var_X, p);
