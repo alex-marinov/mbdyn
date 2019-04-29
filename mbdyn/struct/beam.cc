@@ -1210,12 +1210,15 @@ Beam::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
+
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
-				if (Var_X[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_X) {
 					OH.WriteNcVar(Var_X[iSez], p[iSez]);
 				}
 
-				if (Var_Phi[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_R) {
 					Vec3 E;
 					switch (od) {
 					case EULER_123:
@@ -1260,27 +1263,27 @@ Beam::Output(OutputHandler& OH) const
 					}
 				}
 
-				if (Var_F[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_F) {
 					OH.WriteNcVar(Var_F[iSez], AzLoc[iSez].GetVec1());
 				}
 
-				if (Var_M[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_M) {
 					OH.WriteNcVar(Var_M[iSez], AzLoc[iSez].GetVec2());
 				}
 
-				if (Var_Nu[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
 					OH.WriteNcVar(Var_Nu[iSez], DefLoc[iSez].GetVec1());
 				}
 
-				if (Var_K[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_K) {
 					OH.WriteNcVar(Var_K[iSez], DefLoc[iSez].GetVec2());
 				}
 
-				if (Var_NuP[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
 					OH.WriteNcVar(Var_NuP[iSez], DefPrimeLoc[iSez].GetVec1());
 				}
 
-				if (Var_KP[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
 					OH.WriteNcVar(Var_KP[iSez], DefPrimeLoc[iSez].GetVec2());
 				}
 			}
