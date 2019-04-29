@@ -151,15 +151,6 @@ Joint::Output(std::ostream& out, const char* /* sJointName */ ,
      << FLocal << " " << MLocal << " " << FGlobal << " " << MGlobal;
 #endif
 
-#ifdef USE_NETCDF
-   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-	   OH.WriteNcVar(Var_F_local, FLocal);
-	   OH.WriteNcVar(Var_M_local, MLocal);
-	   OH.WriteNcVar(Var_F_global, FGlobal);
-	   OH.WriteNcVar(Var_M_global, MGlobal);
-   }
-#endif // USE_NETCDF
-
 	return out
 		<< std::setw(8) << uLabel
 		<< " " << FLocal << " " << MLocal
