@@ -230,7 +230,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 
 			OH.WriteNcVar(Var_F_local, Zero3);
-			OH.WriteNcVat(Var_M_local, v);
+			OH.WriteNcVar(Var_M_local, v);
 			OH.WriteNcVar(Var_F_global, Zero3);
 			OH.WriteNcVar(Var_M_global, (R1h*v));
 			OH.WriteNcVar(Var_Omega, OmegaTmp);

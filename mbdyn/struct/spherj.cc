@@ -268,7 +268,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, (R1Tmp*MulTV(F)));
+			OH.WriteNcVar(Var_F_local, (R1Tmp.MulTV(F)));
 			OH.WriteNcVar(Var_M_local, Zero3);
 			OH.WriteNcVar(Var_F_global, F);
 			OH.WriteNcVar(Var_M_global, Zero3);

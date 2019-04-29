@@ -1016,7 +1016,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				OH.WriteNcvar(Var_Phi, E);
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
@@ -3422,7 +3422,6 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
 			OH.WriteNcVar(Var_F_local, (R2Tmp.MulTV(F)));
 			OH.WriteNcVar(Var_M_local, M);
 			OH.WriteNcVar(Var_F_global, F);
