@@ -257,7 +257,7 @@ AutomaticStructDispElem::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
 			OH.WriteNcVar(Var_B, B);
-			OH.WriteNcVar(Var_G; Zero3);
+			OH.WriteNcVar(Var_G, Zero3);
 			OH.WriteNcVar(Var_BP, BP);
 			OH.WriteNcVar(Var_GP, Zero3);
 		}
