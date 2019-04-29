@@ -56,8 +56,8 @@ protected:
 		return out;
 	};
 #ifdef USE_NETCDF
-	MBDynNcVar *Var_dAct;
-	MBDynNcVar *Var_dActReq;
+	MBDynNcVar Var_dAct;
+	MBDynNcVar Var_dActReq;
 #endif // USE_NETCDF
 public:
 	MusclePennestriCL(const TplDriveCaller<doublereal> *pTplDC, doublereal dPreStress,
@@ -66,7 +66,7 @@ public:
 	: ElasticConstitutiveLaw<doublereal, doublereal>(pTplDC, dPreStress),
 	Li(Li), L0(L0), V0(V0), F0(F0),
 	Activation(pAct), bActivationOverflow(bActivationOverflow)
-#ifdef USE_NETCDF
+#ifdef USE_NETCDFC
 	, Var_dAct(0), Var_dActReq(0)
 #endif
 	{
