@@ -46,6 +46,9 @@ class LinearAccelerationJoint
    const StructNode* pNode;
    Vec3 Dir;
    doublereal dF;
+#ifdef USE_NETCDF
+   MBDynNcVar Var_a;
+#endif // USE_NETCDF
    
  public:
    /* Costruttore non banale */
@@ -79,7 +82,8 @@ class LinearAccelerationJoint
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-   
+  
+   void OutputPrepare(OutputHandler& OH);
    void Output(OutputHandler& OH) const;
  
 	virtual void SetValue(DataManager *pDM,

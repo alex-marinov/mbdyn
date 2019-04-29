@@ -333,9 +333,9 @@ Rod::Output(OutputHandler& OH) const
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
-			OH.WriteNcVar(Var_F_local, F);
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, FTmp);
+			
+			Joint::NetCDFOutput(F, M, FTmp, M);
+			
 			OH.WriteNcVar(Var_dElle, dElle);
 			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
 			OH.WriteNcVar(Var_v, vTmp);

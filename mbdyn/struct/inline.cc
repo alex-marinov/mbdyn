@@ -47,7 +47,12 @@ InLineJoint::InLineJoint(unsigned int uL, const DofOwner* pDO,
           BasicFriction *const f)
 : Elem(uL, fOut), Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), Rv(RvTmp), p(pTmp), F(Zero3),
-preF(pref), Sh_c(sh), fc(f)
+preF(pref), Sh_c(sh), 
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_FF(0),
+Var_fc(0),
+#endif // USE_NETCDFC
+fc(f)
 {
    NO_OP;
 };
@@ -302,7 +307,13 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("inline", OH, name);	
+			OutputPrepare_int("inline", OH, name);
+
+			Var_FF = OH.CreateVar<Vec3>(name + "FF", "N",
+				"friction force (x, y, z)");
+
+			Var_fc = OH.CreateVar<doublereal(name + "fc", "-",
+				"friction coefficient");
 		}
 #endif // USE_NETCDF
 	}
@@ -314,14 +325,11 @@ void InLineJoint::Output(OutputHandler& OH) const
       Mat3x3 RvTmp(pNode1->GetRCurr()*Rv);
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, F);
-			OH.WriteNcVar(Var_M_local, Zero3);
-			OH.WriteNcVar(Var_F_global, (RvTmp*F));
-			OH.WriteNcVar(Var_M_global, Zero3);
+			Joint::NetCDFOutput(OH, F, Zero3, RvTmp*F, Zero3);
+			OH.WriteNcVar(Var_FF, F3);
+			OH.WriteNcVar(Var_fc, fc->fc());
 		}
 #endif // USE_NETCDF
-
-
 		if (OH.UseText(OutputHandler::JOINTS)) {
 
 			std::ostream &of = Joint::Output(OH.Joints(), "inline", GetLabel(),

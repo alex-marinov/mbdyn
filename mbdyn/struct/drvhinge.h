@@ -64,6 +64,10 @@ protected:
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec, doublereal dCoef);
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_d;
+	MBDynNcVar Var_Theta;
+#endif // USE_NETCDF
 public:
 	/* Costruttore non banale */
 	DriveHingeJoint(unsigned int uL,	       
@@ -86,6 +90,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	void SetValue(DataManager *pDM,

@@ -188,6 +188,9 @@ class ContactJoint : virtual public Elem, public Joint {
       Joint::Output(OH.Joints(), "Contact", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, F, Zero3)
 	<< " " << dD << endl;
+#ifdef USE_NETCDF
+      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0., ), Zero3, F, Zero3);
+#endif // USE_NETCDF
    };
 
    

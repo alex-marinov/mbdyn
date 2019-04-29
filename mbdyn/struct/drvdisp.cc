@@ -56,6 +56,9 @@ R1Ref(Eye3),
 RRef(Eye3),
 f2Ref(Zero3),
 dRef(Zero3),
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_d(0),
+#endif // USE_NETCDFC
 F(Zero3)
 {
 	ASSERT(pNode1 != NULL);
@@ -85,6 +88,20 @@ DriveDisplacementJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("total", OH, name);
+
+			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
+				"imposed relative displacement (x, y, z)");
+		}
+#endif // USE_NETCDF
+}
 
 void
 DriveDisplacementJoint::Output(OutputHandler& OH) const
@@ -95,6 +112,12 @@ DriveDisplacementJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
 				pNode1->GetRCurr().Transpose()*F, Zero3, F, Zero3)
 			<< " " << d << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(F, Zero3, F, Zero3);
+			OH.WriteNcVar(Var_d, d);
+		}
+#endif // USE_NETCDF
 	}
 }
 
@@ -684,6 +707,9 @@ TplDriveOwner<Vec3>(pDC),
 pNode(pN), f(f), x(x),
 fRef(Zero3),
 dRef(Zero3),
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_d(0),
+#endif // USE_NETCDFC
 F(Zero3)
 {
 	ASSERT(pNode != NULL);
@@ -710,6 +736,20 @@ DriveDisplacementPinJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("total", OH, name);
+
+			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
+				"imposed relative displacement (x, y, z)");
+		}
+#endif // USE_NETCDF
+}
 
 void
 DriveDisplacementPinJoint::Output(OutputHandler& OH) const
@@ -719,6 +759,12 @@ DriveDisplacementPinJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
 				F, Zero3, F, Zero3)
 			<< " " << d << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(F, Zero3, F, Zero3);
+			OH.WriteNcVar(Var_d, d);
+		}
+#endif // USE_NETCDF
 	}
 }
 

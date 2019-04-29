@@ -58,6 +58,10 @@ RRef(Eye3),
 ThetaRef(Zero3),
 ThetaCurr(Zero3),
 M(Zero3),
+#ifdef USE_NETCDFC
+	Var_d(0);
+	Var_Theta(0);
+#endif // USE_NETCDFC
 bFirstRes(false)
 {
 	ASSERT(pNode1 != NULL);
@@ -89,6 +93,22 @@ DriveHingeJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+DriveHingeJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("drivehinge", OH, name);
+
+			Var_d = OH.CreateVar<Vec3>(name + "d", "deg",
+				"Imposed orientation");
+			Var_Theta = OH.CreateVar<Vec3>(name + "Theta", "rad",
+				"Relative orientation");
+#endif // USE_NETCDF
+	}
+}
 
 void
 DriveHingeJoint::Output(OutputHandler& OH) const
@@ -100,6 +120,13 @@ DriveHingeJoint::Output(OutputHandler& OH) const
 				Zero3, M, Zero3, R1*M)
 			<< " " << d*dRaDegr
 			<< " " << ThetaCurr << std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R1*M);
+			OH.WriteNcVar(Var_d, d*dRaDegr);
+			OH.WriteNcVar(Var_Theta, ThetaCurr);
+		}
+#endif // USE_NETCDF
 	}
 }
 
