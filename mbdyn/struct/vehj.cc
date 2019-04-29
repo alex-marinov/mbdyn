@@ -229,10 +229,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 
-			OH.WriteNcVar(Var_F_local, Zero3);
-			OH.WriteNcVar(Var_M_local, v);
-			OH.WriteNcVar(Var_F_global, Zero3);
-			OH.WriteNcVar(Var_M_global, (R1h*v));
+			Joint::NetCDFOutput(Zero3, v, Zero3, R1h*v);
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
 
 			switch (od) {
@@ -292,8 +289,9 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Mat3x3 R(R1h.MulTM(R2h));
 		Mat3x3 hat_R(R1h*RotManip::Rot(RotManip::VecRot(R)/2.));
-
+		Vec3 OmegaTmp(hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		Vec3 v(GetF());
+
 		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
 			Zero3, v, Zero3, hat_R*v) << " ";
 
@@ -322,11 +320,35 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 			/* impossible */
 			break;
 		}
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+
+			Joint::NetCDFOutput(Zero3, v, Zero3, hat_R*v);
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.WriteNcVar(Var_Phi, E);
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.WriteNcVar(Var_Phi, R);
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
+		}
+#endif // USE_NETCDF
 
 		if (GetConstLawType() & ConstLawType::VISCOUS) {
-			OH.Joints() << " " << hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
+			OH.Joints() << " " << OmegaTmp;
 			}
 		OH.Joints() << std::endl;
+	
 	}
 }
 

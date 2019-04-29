@@ -1006,11 +1006,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, (R2Tmp.MulTV(F)));
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, F);
-			OH.WriteNcVar(Var_M_global, (R2Tmp*M));
-
+			Joint::NetCDFOutput(R2Tmp.MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -2076,10 +2072,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, Zero3);
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, Zero3);
-			OH.WriteNcVar(Var_M_global, R2Tmp*M);
+			Joint::NetCDFOutput(Zero3, M, Zero3, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -3422,10 +3415,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, (R2Tmp.MulTV(F)));
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, F);
-			OH.WriteNcVar(Var_M_global, R2Tmp*M);
+			Joint::NetCDFOutput(R2Tmp*MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:

@@ -1529,11 +1529,7 @@ TotalJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, F);
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, FTmp);
-			OH.WriteNcVar(Var_M_global, MTmp);
-			
+			Joint::NetCDFOutput(F, M, FTmp, MTmp);
 			OH.WriteNcVar(Var_X, XTmp);
 			OH.WriteNcVar(Var_Phi, ThetaTmp);
 			OH.WriteNcVar(Var_V, VTmp);
@@ -3359,11 +3355,7 @@ TotalPinJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, F);
-			OH.WriteNcVar(Var_M_local, M);
-			OH.WriteNcVar(Var_F_global, FTmp);
-			OH.WriteNcVar(Var_M_global, MTmp);
-	
+			Joint::NetCDFOutput(F, M, FTmp, MTmp);
 			OH.WriteNcVar(Var_X, XTmp);
 			OH.WriteNcVar(Var_Phi, ThetaTmp);
 			OH.WriteNcVar(Var_V, VTmp);

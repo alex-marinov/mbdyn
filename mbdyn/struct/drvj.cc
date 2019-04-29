@@ -47,7 +47,12 @@ LinearVelocityJoint::LinearVelocityJoint(unsigned int uL,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC),
-pNode(pN), Dir(TmpDir), dF(0.)
+pNode(pN), Dir(TmpDir), 
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_dv(0),
+Var_v(0),
+#endif // USE_NETCDFC
+dF(0.)
 {
    NO_OP;
 }
@@ -166,13 +171,39 @@ LinearVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;   
 }
 
-   
+
+void 
+LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#if USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("linear velocity", OH, name);
+
+			Var_dv = OH.CreateVar<doublereal>(name + "dv", "[-]",
+					"direction of imposed velocity");
+
+			Var_v = OH.CreateVar<doublereal>(name + "v", "m/s",
+					"magnitude of imposed velocity");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 void LinearVelocityJoint::Output(OutputHandler& OH) const
 {
    if (bToBeOutput()) {      
       Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
 	<< " " << Dir << " " << dGet() << std::endl;
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3);
+		OH.WriteNcVar(Var_dv, Dir);
+		OH.WriteNcVar(Var_v, dGet());
+	}
+#endif // USE_NETCDF
    }   
 }
  
@@ -259,7 +290,12 @@ AngularVelocityJoint::AngularVelocityJoint(unsigned int uL,
 : Elem(uL, fOut), 
 Joint(uL, pDO, fOut), 
 DriveOwner(pDC), 
-pNode(pN), Dir(TmpDir), dM(0.)
+pNode(pN), Dir(TmpDir), 
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_dw(0),
+Var_w(0),
+#endif // USE_NETCDFC
+dM(0.)
 {
    NO_OP;
 }
@@ -383,6 +419,24 @@ AngularVelocityJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;   
 }
 
+void
+AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#if USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("angular velocity", OH, name);
+
+			Var_dw = OH.CreateVar<doublereal>(name + "dw", "[-]",
+					"direction of imposed angular velocity");
+
+			Var_w = OH.CreateVar<doublereal>(name + "w", "rad/s",
+					"magnitude of imposed angular velocity");
+		}
+#endif // USE_NETCDF
+	}
+}
    
 void AngularVelocityJoint::Output(OutputHandler& OH) const
 {
@@ -392,6 +446,13 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
       Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
 		    Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
 	<< " " << Tmp << " " << dGet() << std::endl;      
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM, Zero3);
+		OH.WriteNcVar(Var_dw, Tmp);
+		OH.WriteNcVar(Var_w, dGet());
+	}
+#endif // USE_NETCDF
    }   
 }
  

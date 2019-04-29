@@ -361,10 +361,7 @@ DeformableDispJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, GetF());
-			OH.WriteNcVar(Var_M_local, Zero3);
-			OH.WriteNcVar(Var_F_global, (pNode1->GetRCurr()*(tilde_R1h*GetF())));
-			OH.WriteNcVar(Var_M_global, Zero3);
+			Joint::NetCDFOuput(GetF(), Zero3, pNode1->GetRCurr()*(tilde_R1h*GetF(), Zero3);
 			OH.WriteNcVar(Var_tilde_d, tilde_d);
 			OH.WriteNcVar(Var_d, (pNode1->GetRCurr()*(tilde_R1h*tilde_d)));
 			if (GetConstLawType() & ConstLawType::VISCOUS) {

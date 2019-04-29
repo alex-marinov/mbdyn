@@ -284,6 +284,12 @@ UniversalHingeJoint::Output(OutputHandler& OH) const
 			R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
 			<< " " << MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr
 			<< std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
+			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr);
+		}
+#endif // USE_NETCDF
 	}
 }
 
@@ -832,10 +838,7 @@ UniversalRotationJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			
-			OH.WriteNcVar(Var_F_local, Zero3);
-			OH.WriteNcVar(Var_M_local, Vec3(dM, 0., 0.));
-			OH.WriteNcVar(Var_F_global, Zero3);
-			OH.WriteNcVar(Var_M_global, (vTmp*dM));
+			Joint::NetCDFOutput(Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM);
 			
 			switch (od) {
 			case EULER_123:
@@ -1295,6 +1298,12 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 			RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM)
 			<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr
 			<< std::endl;
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
+			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr);
+		}
+#endif // USE_NETCDF
 	}
 }
 

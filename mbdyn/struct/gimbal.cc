@@ -51,7 +51,12 @@ GimbalRotationJoint::GimbalRotationJoint(unsigned int uL,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 pNode1(pN1), pNode2(pN2), R1h(R1), R2h(R2),
-M(Zero3), dTheta(0.), dPhi(0.), od(od)
+M(Zero3), dTheta(0.), dPhi(0.), 
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_Theta(0),
+Var_Phi(0),
+#endif // USE_NETFCDF
+od(od)
 {
 	ASSERT(pNode1 != NULL);
 	ASSERT(pNode2 != NULL);
@@ -81,6 +86,24 @@ GimbalRotationJoint::Restart(std::ostream& out) const
 	return out;
 }
 
+void
+GimbalRotationJoint::OutputPrepare(OutputHandler& OH) const
+{
+	if (bToBeOutput()) {
+#if USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("gimbal rotation", OH, name);
+
+			Var_Theta = OH.CreateVar<doublereal>(name + "Theta", "rad",
+					"relative angle Theta");
+
+			Var_Phi = OH.CreateVar<doublereal>(name + "Phi", "rad",
+					"relative andle Phi");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void
 GimbalRotationJoint::Output(OutputHandler& OH) const
@@ -124,6 +147,13 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 		}
 
 		out << std::endl;
+#ifdef USE_NETFCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(Zero3, M, Zero3, Ra*M);
+			OH.WriteNcVar(Var_Theta, dTheta);
+			OH.WriteNcVAr(Var_Phi, dPhi);
+		}
+#endif // USE_NETCDF
 	}
 }
 
