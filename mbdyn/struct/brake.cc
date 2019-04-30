@@ -59,7 +59,14 @@ Brake::Brake(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
-Sh_c(sh), fc(f), preF(pref), r(rr), brakeForce(pdc) /* ,
+Sh_c(sh), fc(f), preF(pref), r(rr), 
+#ifdef USE_NETCDFC
+Var_E(0),
+Var_Omega(0),
+Var_fc(0),
+Var_Fb(0),
+#endif // USE_NTECDFC
+brakeForce(pdc) /* ,
 isForce(isforce), Dir(dir) */
 {
 	NO_OP;
@@ -435,6 +442,28 @@ Brake::GetEqType(unsigned int i) const
    }
 }
 
+void
+Brake::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("brake", OH, name);
+			Var_E = OH.CreateRotationVar(name, "E", EULER_123,
+				"relative rotation (Euler123)");
+			Var_Omega = OH.CreateVar<Vec3>(name, "Omega", "rad/s",
+				"local relative angular velocity, node 2 RF (x, y, z)");
+			Var_fc = OH.CreateVar<doublereal>(name, "fc", "-",
+				"friction coefficient");
+
+			Var_BF = OH.CreateVar<doublereal>(name, "Fb", "N",
+				"normal force the brake is activated with");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void Brake::Output(OutputHandler& OH) const
 {
@@ -442,7 +471,7 @@ void Brake::Output(OutputHandler& OH) const
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());
-      
+
       std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
 		    /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
 	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
@@ -451,6 +480,18 @@ void Brake::Output(OutputHandler& OH) const
           of << " " << fc->fc() << " " << brakeForce.dGet();
       }
       of << std::endl;
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandlers::JOINTS)) {
+	      
+	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
+	      
+	      OH.WriteNcVar(Var_E, MatR2EulerAngles(RTmp)*dRaDegr);
+	      OH.WriteNcVAr(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+	      OH.WriteNcVar(Var_fc, fc->fc());
+	      OH.WriteNcVar(Var_BF, brakeForce.dGet());
+
+      }
+#endif // USE_NETCDF
    }
 }
 
