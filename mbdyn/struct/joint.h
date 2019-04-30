@@ -202,10 +202,11 @@ public:
 		unsigned int uLabel,
 		const Vec3& FLocal, const Vec3& MLocal,
 		const Vec3& FGlobal, const Vec3& MGlobal) const;
+
 #ifdef USE_NETCDF
 	/* Default NetCDF output for joints */
 	void
-	Joint::NetCDFOutput(OutputHandler &OH,
+	NetCDFOutput(OutputHandler &OH,
 		const Vec3& FLocal, const Vec3& MLocal,
 		const Vec3& FGlobal, const Vec3& MGlobal) const;
 #endif
