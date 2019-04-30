@@ -300,9 +300,13 @@ void DistanceJoint::Output(OutputHandler& OH) const
       } else {
 	 vTmp = v;
       }
-      Joint::Output(OH.Joints(), "Distance", GetLabel(),
-		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v/d << " " << d << std::endl;
+
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      Joint::Output(OH.Joints(), "Distance", GetLabel(),
+			      vTmp, Zero3, v*dAlpha, Zero3)
+		      << " " << v/d << " " << d << std::endl;
+      }
+
 #ifdef USE_NETCDF
 	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
@@ -310,6 +314,7 @@ void DistanceJoint::Output(OutputHandler& OH) const
 		OH.WriteNcVar(Var_d, d);
 	}
 #endif // USE_NETCDF
+
    }
 }
 

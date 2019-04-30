@@ -122,10 +122,13 @@ ViscousBody::Output(OutputHandler& OH) const
 		Vec3 F(GetF().GetVec1());
 		Vec3 M(GetF().GetVec2());
 
-		Joint::Output(OH.Joints(), "ViscousBody", GetLabel(),
-				F, M, Rh*F, Rh*M);
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "ViscousBody", GetLabel(),
+					F, M, Rh*F, Rh*M);
 
-		OH.Joints() << " " << tilde_kPrime << " " << std::endl;
+			OH.Joints() << " " << tilde_kPrime << " " << std::endl;
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, Rh*F, Rh*M);
@@ -133,6 +136,7 @@ ViscousBody::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_omega, tilde_kPrime.GetVec2());
 		}
 #endif // USE_NETCDF
+
 	}
 }
 

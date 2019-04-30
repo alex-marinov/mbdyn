@@ -179,7 +179,7 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(R1h*F, R1h*M, F, M);
+			Joint::NetCDFOutput(OH, R1h*F, R1h*M, F, M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:

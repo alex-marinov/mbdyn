@@ -177,11 +177,13 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		Mat3x3 RTmp(pNode->GetRCurr()*R);
 		Mat3x3 RTmpT(RTmp.Transpose());
-		
-		Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
-				RTmpT*F, M, F, RTmp*M)
-			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
-			<< " " << sRef << " " << l << std::endl;
+	
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
+					RTmpT*F, M, F, RTmp*M)
+				<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
+				<< " " << sRef << " " << l << std::endl;
+		}
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmpT*F, M, F, RTmp*M);

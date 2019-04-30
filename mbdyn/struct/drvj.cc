@@ -442,17 +442,22 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {      
       Vec3 Tmp(pNode->GetRCurr()*Dir);
-      
-      Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
-		    Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
-	<< " " << Tmp << " " << dGet() << std::endl;      
+     
+
+	if (OH.UseText(OutputHandler::JOINTS)) {
+		Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
+				Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
+			<< " " << Tmp << " " << dGet() << std::endl;     
+	}
+
 #ifdef USE_NETCDF
 	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM, Zero3);
+		Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM, Zero3);
 		OH.WriteNcVar(Var_dw, Tmp);
 		OH.WriteNcVar(Var_w, dGet());
 	}
 #endif // USE_NETCDF
+
    }   
 }
  

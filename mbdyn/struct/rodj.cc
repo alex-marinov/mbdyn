@@ -334,20 +334,21 @@ Rod::Output(OutputHandler& OH) const
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
 			
-			Joint::NetCDFOutput(F, M, FTmp, M);
+			Joint::NetCDFOutput(OH, F, M, FTmp, M);
 			
 			OH.WriteNcVar(Var_dElle, dElle);
 			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
 			OH.WriteNcVar(Var_v, vTmp);
 		}
 #endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream& out = OH.Joints();
 
-		std::ostream& out = OH.Joints();
-
-		Joint::Output(out, "Rod", GetLabel(),
-			Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-			<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
- 			ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
+			Joint::Output(out, "Rod", GetLabel(),
+					Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
+				<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
+				ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
+		}
 	}
 }
 

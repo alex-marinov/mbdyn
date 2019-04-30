@@ -365,18 +365,23 @@ void
 DistanceJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
-		Joint::Output(OH.Joints(), "Distance", GetLabel(),
-	    		Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3)
-			<< " " << Vec/dDistance << " " << dDistance
-			<< std::endl;
-	}
+		
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "Distance", GetLabel(),
+					Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3)
+				<< " " << Vec/dDistance << " " << dDistance
+				<< std::endl;
+		}
+
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(OH, Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3);
-		OH.WriteNcVar(Var_V, Vec/dDistance);
-		OH.WriteNcVar(Var_d, dDistance);
-	}
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3);
+			OH.WriteNcVar(Var_V, Vec/dDistance);
+			OH.WriteNcVar(Var_d, dDistance);
+		}
 #endif // USE_NETCDF
+
+	}
 }
 
 /* Nota: vanno modificati in analogia al DistanceWithOffsetJoint */

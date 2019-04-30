@@ -184,9 +184,11 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 void LinearAccelerationJoint::Output(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
-		Joint::Output(OH.Joints(), "LinearAcc", GetLabel(), 
-		 	Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3) 
-     		<< " " << dGet() << std::endl;
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "LinearAcc", GetLabel(), 
+		 		Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3) 
+     			<< " " << dGet() << std::endl;
+		}
 	#ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
    			Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3);

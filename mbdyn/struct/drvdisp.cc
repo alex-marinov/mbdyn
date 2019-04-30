@@ -756,15 +756,20 @@ DriveDisplacementPinJoint::Output(OutputHandler& OH) const
 {   
 	if (bToBeOutput()) {
 		Vec3 d(pNode->GetXCurr() + pNode->GetRCurr()*f - x);
-		Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
-				F, Zero3, F, Zero3)
-			<< " " << d << std::endl;
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DriveDisplacementPinJoint", GetLabel(),
+					F, Zero3, F, Zero3)
+				<< " " << d << std::endl;
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(F, Zero3, F, Zero3);
+			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
 			OH.WriteNcVar(Var_d, d);
 		}
 #endif // USE_NETCDF
+
 	}
 }
 

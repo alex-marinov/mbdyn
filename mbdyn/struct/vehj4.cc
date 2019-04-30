@@ -162,13 +162,17 @@ DeformableAxialJoint::Output(OutputHandler& OH) const
 		Mat3x3 R(R1h.MulTM(R2h));
 
 		Vec3 v(0., 0., GetF());
-		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, R1h*v) << " " << RotManip::VecRot(R)(3);
-		if (GetConstLawType() & ConstLawType::VISCOUS) {
-			OH.Joints() << " " << R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr());
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
+					Zero3, v, Zero3, R1h*v) << " " << RotManip::VecRot(R)(3);
+			if (GetConstLawType() & ConstLawType::VISCOUS) {
+				OH.Joints() << " " << R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr());
+			}
+
+			OH.Joints() << std::endl;
 		}
 
-		OH.Joints() << std::endl;
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
@@ -176,6 +180,7 @@ DeformableAxialJoint::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_Omega, R1h.GetVec(3).Dot(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		}
 #endif // USE_NETCDF
+
 	}
 }
 

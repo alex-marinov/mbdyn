@@ -1006,7 +1006,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(R2Tmp.MulTV(F), M, F, R2Tmp*M);
+			Joint::NetCDFOutput(OH, R2Tmp.MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -2072,7 +2072,7 @@ void PlaneRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(Zero3, M, Zero3, R2Tmp*M);
+			Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -3415,7 +3415,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(R2Tmp*MulTV(F), M, F, R2Tmp*M);
+			Joint::NetCDFOutput(OH, R2Tmp*MulTV(F), M, F, R2Tmp*M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:

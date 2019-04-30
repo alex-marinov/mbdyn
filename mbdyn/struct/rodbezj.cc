@@ -490,13 +490,16 @@ RodBezier::Output(OutputHandler& OH) const
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		doublereal dF = GetF();
 
-		std::ostream& out = OH.Joints();
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream& out = OH.Joints();
 
-		Joint::Output(out, "RodBezier", GetLabel(),
-			Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3)
-			<< " " << l2*dF << " " << dElle << " " << l1 << " " 
-			<< " " << l2 << " " << " " << dEpsilonPrime*dL0,
-			ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
+			Joint::Output(out, "RodBezier", GetLabel(),
+					Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3)
+				<< " " << l2*dF << " " << dElle << " " << l1 << " " 
+				<< " " << l2 << " " << " " << dEpsilonPrime*dL0,
+				ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3);
@@ -507,6 +510,7 @@ RodBezier::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_v, dEpsilonPrime*dL0);
 		}
 #endif // USE_NETCDF
+
 	}
 }
 

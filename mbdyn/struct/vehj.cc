@@ -227,9 +227,10 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 				}
 
 #ifdef USE_NETCDF
+
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 
-			Joint::NetCDFOutput(Zero3, v, Zero3, R1h*v);
+			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
 
 			switch (od) {
@@ -249,6 +250,7 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 				break;
 			}
 		}
+
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
@@ -320,10 +322,11 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 			/* impossible */
 			break;
 		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 
-			Joint::NetCDFOutput(Zero3, v, Zero3, hat_R*v);
+			Joint::NetCDFOutput(OH, Zero3, v, Zero3, hat_R*v);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:

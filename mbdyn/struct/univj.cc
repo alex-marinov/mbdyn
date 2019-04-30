@@ -275,18 +275,20 @@ void
 UniversalHingeJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
-		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
-		Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
+			Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
 
-		Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
+			Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
 
-		Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
-			R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-			<< " " << MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr
-			<< std::endl;
+			Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
+					R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
+				<< " " << MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr
+				<< std::endl;
+		}
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
+			Joint::NetCDFOutput(OH, RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
 			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr);
 		}
 #endif // USE_NETCDF
@@ -838,7 +840,7 @@ UniversalRotationJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			
-			Joint::NetCDFOutput(Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM);
+			Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, vTmp*dM);
 			
 			switch (od) {
 			case EULER_123:
@@ -1294,13 +1296,16 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 		Mat3x3 RTmp(pNode->GetRCurr()*Rh);
 		Vec3 vTmp(RTmp.GetVec(2).Cross(R0.GetVec(3)));
 
-		Joint::Output(OH.Joints(), "CardanoPin", GetLabel(),
-			RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM)
-			<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr
-			<< std::endl;
+
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "CardanoPin", GetLabel(),
+					RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM)
+				<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr
+				<< std::endl;
+		}
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
+			Joint::NetCDFOutput(OH, RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
 			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr);
 		}
 #endif // USE_NETCDF

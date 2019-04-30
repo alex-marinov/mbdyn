@@ -472,14 +472,17 @@ void Brake::Output(OutputHandler& OH) const
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());
 
-      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
-      if (fc) {
-          of << " " << fc->fc() << " " << brakeForce.dGet();
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+			      /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
+		      << " " << MatR2EulerAngles(RTmp)*dRaDegr
+		      << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
+	      if (fc) {
+		      of << " " << fc->fc() << " " << brakeForce.dGet();
+	      }
+	      of << std::endl;
       }
-      of << std::endl;
+
 #ifdef USE_NETCDF
       if (OH.UseNetCDF(OutputHandlers::JOINTS)) {
 	      
@@ -492,6 +495,7 @@ void Brake::Output(OutputHandler& OH) const
 
       }
 #endif // USE_NETCDF
+
    }
 }
 
