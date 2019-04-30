@@ -865,6 +865,12 @@ TotalEquation::Output(OutputHandler& OH) const
 			<< " " << R1rTmp.MulTV(Omega2 - Omega1)
 			<< std::endl;
 			// accelerations?
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::Joints)) {
+			Joint::NetCDFOutput(OH, Zero3, Zero3, Zero3, Zero3);
+			// TODO
+		}
+#endif // USE_NETCDF
 	}
 }
 
@@ -1872,6 +1878,12 @@ TotalReaction::Output(OutputHandler& OH) const
 			<< " " << R1rTmp.MulTV(Omega2 - Omega1)
 			<< std::endl;
 			// accelerations?
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::Joints)) {
+			Joint::NetCDFOutput(OH, F, M, R1Tmp*F, R1rTmp*M);
+			// TODO
+		}
+#endif // USE_NETCDF
 	}
 }
 

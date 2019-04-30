@@ -170,7 +170,12 @@ void InPlaneJoint::Output(OutputHandler& OH) const
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlane", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
-   }   
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
+      }
+#endif // USE_NETCDF
+   } 
 }
  
 
@@ -510,6 +515,11 @@ void InPlaneWithOffsetJoint::Output(OutputHandler& OH) const
       Vec3 vTmp(pNode1->GetRCurr()*v);
       Joint::Output(OH.Joints(), "InPlaneWithOffs", GetLabel(),
 		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
+      }
+#endif // USE_NETCDF
    }   
 }
  

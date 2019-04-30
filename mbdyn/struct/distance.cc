@@ -50,7 +50,12 @@ DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), Vec(Zero3), dAlpha(0.)
+pNode1(pN1), pNode2(pN2), Vec(Zero3), 
+#ifdef USE_NETCDFC
+Var_V(0),
+Var_d(0),
+#endif // USE_NETCDF
+dAlpha(0.)
 {
 	NO_OP;
 }
@@ -338,6 +343,25 @@ DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 void
+DistanceJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("distance", OH, name);
+			
+			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
+				"constrained distance direction unit vector (x, y, z)");
+			
+			Var_d = OH.CreateVar<doublereal>(name + "d", "m",
+				"constrained distance magnitude");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 DistanceJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
@@ -346,6 +370,13 @@ DistanceJoint::Output(OutputHandler& OH) const
 			<< " " << Vec/dDistance << " " << dDistance
 			<< std::endl;
 	}
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(OH, Vec3(dAlpha, 0., 0.), Zero3, Vec*dAlpha, Zero3);
+		OH.WriteNcVar(Var_V, Vec/dDistance);
+		OH.WriteNcVar(Var_d, dDistance);
+	}
+#endif // USE_NETCDF
 }
 
 /* Nota: vanno modificati in analogia al DistanceWithOffsetJoint */

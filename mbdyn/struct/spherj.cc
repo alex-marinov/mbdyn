@@ -227,7 +227,7 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("spherical hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.CreateRotationVar(name, "", od, "relative orientation");
 
 		}
 #endif // USE_NETCDF
@@ -268,10 +268,7 @@ void SphericalHingeJoint::Output(OutputHandler& OH) const
       
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			OH.WriteNcVar(Var_F_local, (R1Tmp.MulTV(F)));
-			OH.WriteNcVar(Var_M_local, Zero3);
-			OH.WriteNcVar(Var_F_global, F);
-			OH.WriteNcVar(Var_M_global, Zero3);
+			Joint::NetCDFOutput(OH, (R1Tmp.MulTV(F)), Zero3, F, Zero3);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
@@ -576,7 +573,11 @@ PinJoint::PinJoint(unsigned int uL, const DofOwner* pDO,
 		   const StructNode* pN,
 		   const Vec3& X0Tmp, const Vec3& dTmp, flag fOut)
 : Elem(uL, fOut), 
-Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), F(Zero3)
+Joint(uL, pDO, fOut), pNode(pN), X0(X0Tmp), d(dTmp), 
+#ifdef USE_NETCDFC
+Var_Phi(0),
+#endif // USE_NETCDFC
+F(Zero3)
 {
    NO_OP;
 }
@@ -720,13 +721,101 @@ DofOrder::Order PinJoint::GetEqType(unsigned int i) const {
 	return DofOrder::ALGEBRAIC;
 }
 
+
+void
+PinJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("spherical pin", OH, name);
+
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+				"node orientation");
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 /* Output (da mettere a punto) */
 void PinJoint::Output(OutputHandler& OH) const
 {
    if (bToBeOutput()) {
-      Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
-	<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
-   }   
+		Mat3x3 RTmp(pNode->GetRCurr());
+		Vec3 E;
+		switch (od) {
+		case EULER_123:
+			E = MatR2EulerAngles123(RTmp)*dRaDegr;
+			break;
+
+		case EULER_313:
+			E = MatR2EulerAngles313(RTmp)*dRaDegr;
+			break;
+
+		case EULER_321:
+			E = MatR2EulerAngles321(RTmp)*dRaDegr;
+			break;
+
+		case ORIENTATION_VECTOR:
+			E = RotManip::VecRot(RTmp);
+			break;
+
+		case ORIENTATION_MATRIX:
+			break;
+
+		default:
+			/* impossible */
+			break;
+		}
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
+	      switch (od) {
+		      case EULER_123:
+		      case EULER_313:
+		      case EULER_321:
+		      case ORIENTATION_VECTOR:
+			      OH.WriteNcVar(Var_Phi, E);
+			      break;
+
+		      case ORIENTATION_MATRIX:
+			      OH.WriteNcVar(Var_Phi, RTmp);
+			      break;
+
+		      default:
+			      /* impossible */
+			      break;
+	      }
+
+      }
+#endif // USE_NETCDF
+      if (OH.UseText(OutputHandler::JOINTS)) {
+		Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
+		<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
+
+		switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+				OH.Joints() << E;
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.Joints() << RTmp;
+				break;
+
+			default:
+				/* impossible */
+				break;
+		}
+
+		OH.Joints() << std::endl;
+      }
+   }
 }
 
 

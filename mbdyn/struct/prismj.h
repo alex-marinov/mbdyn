@@ -97,7 +97,6 @@ class PrismaticJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
-   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
    void SetValue(DataManager *pDM,

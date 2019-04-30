@@ -52,7 +52,12 @@ DistanceJoint::DistanceJoint(unsigned int uL, const DofOwner* pDO,
 : Elem(uL, fOut),
 Joint(uL, pDO, fOut),
 DriveOwner(pDC),
-pNode1(pN1), pNode2(pN2), v(Zero3), dAlpha(0.)
+pNode1(pN1), pNode2(pN2), v(Zero3), 
+#ifdef USE_NETCDFC
+Var_V(0),
+Var_d(0),
+#endif // USE_NETCDFC
+dAlpha(0.)
 {
    NO_OP;
 }
@@ -265,6 +270,26 @@ SubVectorHandler& DistanceJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 
+void
+DistanceJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("distance", OH, name);
+			
+			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
+				"constrained distance direction unit vector (x, y, z)");
+			
+			Var_d = OH.CreateVar<doublereal>(name + "d", "m",
+				"constrained distance magnitude");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 void DistanceJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {
@@ -277,7 +302,14 @@ void DistanceJoint::Output(OutputHandler& OH) const
       }
       Joint::Output(OH.Joints(), "Distance", GetLabel(),
 		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v << " " << d << std::endl;
+	<< " " << v/d << " " << d << std::endl;
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
+		OH.WriteNcVar(Var_V, v/d);
+		OH.WriteNcVar(Var_d, d);
+	}
+#endif // USE_NETCDF
    }
 }
 
@@ -855,6 +887,24 @@ DistanceJointWithOffset::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void
+DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("distance with offsets", OH, name);
+			
+			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
+				"constrained distance direction unit vector (x, y, z)");
+			
+			Var_d = OH.CreateVar<doublereal>(name + "d", "m",
+				"constrained distance magnitude");
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void DistanceJointWithOffset::Output(OutputHandler& OH) const
 {
@@ -868,7 +918,14 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
       }
       Joint::Output(OH.Joints(), "DistanceWithOffs", GetLabel(),
 		    vTmp, Zero3, v*dAlpha, Zero3)
-	<< " " << v << " " << d << std::endl;
+	<< " " << v/d << " " << d << std::endl;
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(OH, vTmp) Zero3, v*dAlpha, Zero3);
+		OH.WriteNcVar(Var_V, v/d);
+		OH.WriteNcVar(Var_d, d);
+	}
+#endif // USE_NETCDF
    }
 }
 
@@ -1550,6 +1607,11 @@ ClampJoint::Output(OutputHandler& OH) const
 		Joint::Output(OH.Joints(), "Clamp", GetLabel(),
 			R.MulTV(F), R.MulTV(M), F, M) << std::endl;
 	}
+#ifdef USE_NETCDF
+	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		Joint::NetCDFOutput(OH, R.MulTV(F), R.MulTV(M), F, M);
+	}
+#endif // USE_NETCDF
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */
