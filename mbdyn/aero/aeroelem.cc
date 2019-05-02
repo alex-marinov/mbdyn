@@ -560,12 +560,12 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 		for (std::vector<AeroNetCDFOutput>::const_iterator i = NetCDFOutputData.begin();
 			i != NetCDFOutputData.end(); ++i)
 		{
-#if defined(USE_NETCDFC)
-			if (i->Var_X) {
-				i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
+			if (!i->Var_X.isNull()) {
+				// i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(i->Var_X, i->X);
 			}
 
-			if (i->Var_Phi) {
+			if (!i->Var_Phi.isNull()) {
 				Vec3 E;
 				switch (od) {
 				case EULER_123:
@@ -597,11 +597,13 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 				case EULER_313:
 				case EULER_321:
 				case ORIENTATION_VECTOR:
-					i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+					// i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+					OH.WriteNcVar(i->Var_Phi, E);
 					break;
 
 				case ORIENTATION_MATRIX:
-					i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
+					// i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
+					OH.WriteNcVar(i->Var_Phi, i->R);
 					break;
 
 				default:
@@ -610,95 +612,25 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 				}
 			}
 
-			if (i->Var_V) {
-				i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
+			if (!i->Var_V.isNull()) {
+				//i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(i->Var_V, i->V);
 			}
 
-			if (i->Var_W) {
-				i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
+			if (!i->Var_W.isNull()) {
+				// i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(i->Var_W, i->W);
 			}
 
-			if (i->Var_F) {
-				i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
+			if (!i->Var_F.isNull()) {
+				// i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(i->Var_F, i->F);
 			}
 
-			if (i->Var_M) {
-				i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
+			if (!i->Var_M.isNull()) {
+				// i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(i->Var_M, i->M);
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-			std::vector<size_t> ncStartPos;
-			ncStartPos.push_back(1); // implicit cast here ok?
-			ncStartPos.push_back(OH.GetCurrentStep()); // implicit cast here? ok?
-			if (!i->Var_X.isNull()) {
-				// the following synthax would be simpler with c++11 (using {} vector constructor)
-				std::vector<size_t> ncCount; // move outside scope?
-				ncCount.push_back(3);
-				ncCount.push_back(1);
-				i->Var_X.putVar(ncStartPos, ncCount, i->X.pGetVec());
-			}
-
-//  TODO FOR NETCDF4:
-			//~ if (i->Var_Phi) {
-				//~ Vec3 E;
-				//~ switch (od) {
-				//~ case EULER_123:
-					//~ E = MatR2EulerAngles123(i->R)*dRaDegr;
-					//~ break;
-//~ 
-				//~ case EULER_313:
-					//~ E = MatR2EulerAngles313(i->R)*dRaDegr;
-					//~ break;
-//~ 
-				//~ case EULER_321:
-					//~ E = MatR2EulerAngles321(i->R)*dRaDegr;
-					//~ break;
-//~ 
-				//~ case ORIENTATION_VECTOR:
-					//~ E = RotManip::VecRot(i->R);
-					//~ break;
-//~ 
-				//~ case ORIENTATION_MATRIX:
-					//~ break;
-//~ 
-				//~ default:
-					//~ /* impossible */
-					//~ break;
-				//~ }
-//~ 
-				//~ switch (od) {
-				//~ case EULER_123:
-				//~ case EULER_313:
-				//~ case EULER_321:
-				//~ case ORIENTATION_VECTOR:
-					//~ i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
-					//~ break;
-//~ 
-				//~ case ORIENTATION_MATRIX:
-					//~ i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
-					//~ break;
-//~ 
-				//~ default:
-					//~ /* impossible */
-					//~ break;
-				//~ }
-			//~ }
-//~ 
-			//~ if (i->Var_V) {
-				//~ i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
-			//~ }
-//~ 
-			//~ if (i->Var_W) {
-				//~ i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
-			//~ }
-//~ 
-			//~ if (i->Var_F) {
-				//~ i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
-			//~ }
-//~ 
-			//~ if (i->Var_M) {
-				//~ i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
-			//~ }
-#endif  /* USE_NETCDF4 */
 		}
 	}
 #endif /* USE_NETCDF */
