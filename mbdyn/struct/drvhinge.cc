@@ -106,6 +106,7 @@ DriveHingeJoint::OutputPrepare(OutputHandler &OH)
 				"Imposed orientation");
 			Var_Theta = OH.CreateVar<Vec3>(name + "Theta", "rad",
 				"Relative orientation");
+		}
 #endif // USE_NETCDF
 	}
 }

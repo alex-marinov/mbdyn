@@ -177,11 +177,12 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 
 			Var_a = OH.CreateVar<doublereal>(name + "a", "m/s^2",
 				"imposed acceleration (x, y, z)");
+		}
 #endif // USE_NETCDF
 	}
 }
 
-void LinearAccelerationJoint::Output(OutputHandler& OH)
+void LinearAccelerationJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -195,6 +196,7 @@ void LinearAccelerationJoint::Output(OutputHandler& OH)
 			OH.WriteNcVar(Var_a, dGet());
 		}
 	#endif // USE_NETCDF
+	}
 }
  
 void

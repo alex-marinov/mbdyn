@@ -193,17 +193,24 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 
 void LinearVelocityJoint::Output(OutputHandler& OH) const
 {
-   if (bToBeOutput()) {      
-      Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3)
-	<< " " << Dir << " " << dGet() << std::endl;
+   if (bToBeOutput()) {
+
+	   Vec3 FTmp = Vec3(dF, 0., 0.);
+
+	   if (OH.UseText(OutputHandler::JOINTS)) {
+		   Joint::Output(OH.Joints(), "LinearVelocity", GetLabel(),
+				   FTmp, Zero3, Dir*dF, Zero3)
+			   << " " << Dir << " " << dGet() << std::endl;
+	   }
+
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(Vec3(dF, 0., 0.), Zero3, Dir*dF, Zero3);
-		OH.WriteNcVar(Var_dv, Dir);
-		OH.WriteNcVar(Var_v, dGet());
-	}
+	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		   Joint::NetCDFOutput(OH, FTmp, Zero3, Dir*dF, Zero3);
+		   OH.WriteNcVar(Var_dv, Dir);
+		   OH.WriteNcVar(Var_v, dGet());
+	   }
 #endif // USE_NETCDF
+
    }   
 }
  
@@ -441,21 +448,22 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 void AngularVelocityJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {      
-      Vec3 Tmp(pNode->GetRCurr()*Dir);
-     
+	   Vec3 Tmp(pNode->GetRCurr()*Dir);
+	   Vec3 MTmp = Vec3(dM, 0., 0.);
 
-	if (OH.UseText(OutputHandler::JOINTS)) {
-		Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
-				Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM)
-			<< " " << Tmp << " " << dGet() << std::endl;     
-	}
+
+	   if (OH.UseText(OutputHandler::JOINTS)) {
+		   Joint::Output(OH.Joints(), "AngularVelocity", GetLabel(),
+				   Zero3, MTmp, Zero3, Tmp*dM)
+			   << " " << Tmp << " " << dGet() << std::endl;     
+	   }
 
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Tmp*dM, Zero3);
-		OH.WriteNcVar(Var_dw, Tmp);
-		OH.WriteNcVar(Var_w, dGet());
-	}
+	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		   Joint::NetCDFOutput(OH, Zero3, MTmp, Zero3, Tmp*dM);
+		   OH.WriteNcVar(Var_dw, Tmp);
+		   OH.WriteNcVar(Var_w, dGet());
+	   }
 #endif // USE_NETCDF
 
    }   

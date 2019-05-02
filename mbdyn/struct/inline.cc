@@ -312,7 +312,7 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 			Var_FF = OH.CreateVar<Vec3>(name + "FF", "N",
 				"friction force (x, y, z)");
 
-			Var_fc = OH.CreateVar<doublereal(name + "fc", "-",
+			Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
 				"friction coefficient");
 		}
 #endif // USE_NETCDF

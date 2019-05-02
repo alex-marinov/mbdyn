@@ -146,8 +146,8 @@ DeformableAxialJoint::OutputPrepare(OutputHandler& OH)
 			Var_Theta = OH.CreateVar<doublereal>(name + "Theta", "rad",
 				"relative angle");
 
-			Var_Omega = OH.CreateVar<doublereal(name + "Omega", "rad/s",
-				"relativa angular velocity");
+			Var_Omega = OH.CreateVar<doublereal>(name + "Omega", "rad/s",
+				"relative angular velocity");
 		}
 #endif // USE_NETCDF
 	}

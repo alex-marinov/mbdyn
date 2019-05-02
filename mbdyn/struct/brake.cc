@@ -450,14 +450,17 @@ Brake::OutputPrepare(OutputHandler& OH)
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
 			OutputPrepare_int("brake", OH, name);
-			Var_E = OH.CreateRotationVar(name, "E", EULER_123,
+			
+			Var_E = OH.CreateRotationVar(name + "E", "", EULER_123,
 				"relative rotation (Euler123)");
-			Var_Omega = OH.CreateVar<Vec3>(name, "Omega", "rad/s",
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "rad/s",
 				"local relative angular velocity, node 2 RF (x, y, z)");
-			Var_fc = OH.CreateVar<doublereal>(name, "fc", "-",
+			
+			Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
 				"friction coefficient");
 
-			Var_BF = OH.CreateVar<doublereal>(name, "Fb", "N",
+			Var_Fb = OH.CreateVar<doublereal>(name + "Fb", "N",
 				"normal force the brake is activated with");
 		}
 #endif // USE_NETCDF
@@ -484,14 +487,14 @@ void Brake::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-      if (OH.UseNetCDF(OutputHandlers::JOINTS)) {
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 	      
 	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 	      
 	      OH.WriteNcVar(Var_E, MatR2EulerAngles(RTmp)*dRaDegr);
-	      OH.WriteNcVAr(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
 	      OH.WriteNcVar(Var_fc, fc->fc());
-	      OH.WriteNcVar(Var_BF, brakeForce.dGet());
+	      OH.WriteNcVar(Var_Fb, brakeForce.dGet());
 
       }
 #endif // USE_NETCDF

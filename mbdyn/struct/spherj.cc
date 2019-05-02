@@ -731,8 +731,8 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("spherical pin", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, 
-				"node orientation");
+			Var_Phi = OH.CreateVar<Vec3>(name + "E", "rad", 
+				"node orientation (E123)");
 
 		}
 #endif // USE_NETCDF
@@ -743,79 +743,19 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 /* Output (da mettere a punto) */
 void PinJoint::Output(OutputHandler& OH) const
 {
-   if (bToBeOutput()) {
-		Mat3x3 RTmp(pNode->GetRCurr());
-		Vec3 E;
-		switch (od) {
-		case EULER_123:
-			E = MatR2EulerAngles123(RTmp)*dRaDegr;
-			break;
-
-		case EULER_313:
-			E = MatR2EulerAngles313(RTmp)*dRaDegr;
-			break;
-
-		case EULER_321:
-			E = MatR2EulerAngles321(RTmp)*dRaDegr;
-			break;
-
-		case ORIENTATION_VECTOR:
-			E = RotManip::VecRot(RTmp);
-			break;
-
-		case ORIENTATION_MATRIX:
-			break;
-
-		default:
-			/* impossible */
-			break;
+	if (bToBeOutput()) {
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
+				<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
+			OH.Joints() << std::endl;
 		}
 #ifdef USE_NETCDF
-      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-	      Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
-	      switch (od) {
-		      case EULER_123:
-		      case EULER_313:
-		      case EULER_321:
-		      case ORIENTATION_VECTOR:
-			      OH.WriteNcVar(Var_Phi, E);
-			      break;
-
-		      case ORIENTATION_MATRIX:
-			      OH.WriteNcVar(Var_Phi, RTmp);
-			      break;
-
-		      default:
-			      /* impossible */
-			      break;
-	      }
-
-      }
-#endif // USE_NETCDF
-      if (OH.UseText(OutputHandler::JOINTS)) {
-		Joint::Output(OH.Joints(), "Pin", GetLabel(), F, Zero3, F, Zero3) 
-		<< " " << MatR2EulerAngles(pNode->GetRCurr())*dRaDegr << std::endl;
-
-		switch (od) {
-			case EULER_123:
-			case EULER_313:
-			case EULER_321:
-			case ORIENTATION_VECTOR:
-				OH.Joints() << E;
-				break;
-
-			case ORIENTATION_MATRIX:
-				OH.Joints() << RTmp;
-				break;
-
-			default:
-				/* impossible */
-				break;
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
+			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(pNode->GetRCurr())*dRaDegr);
 		}
-
-		OH.Joints() << std::endl;
-      }
-   }
+#endif // USE_NETCDF
+	}
 }
 
 

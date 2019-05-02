@@ -802,6 +802,7 @@ OutputHandler::WriteNcVar(const MBDynNcVar& Var_Var, const Tvar& pGetVar) {
 #endif  /* USE_NETCDF4 */
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const doublereal&);
 template void OutputHandler::WriteNcVar(const MBDynNcVar&, const long&);
+template void OutputHandler::WriteNcVar(const MBDynNcVar&, const int&);
 //// TODO: add all necessary type templates (char, etc..)
 
 MBDynNcVar 

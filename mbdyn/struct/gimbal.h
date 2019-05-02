@@ -83,6 +83,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	virtual unsigned int iGetNumDof(void) const { 

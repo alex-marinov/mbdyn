@@ -926,7 +926,7 @@ void DistanceJointWithOffset::Output(OutputHandler& OH) const
 	<< " " << v/d << " " << d << std::endl;
 #ifdef USE_NETCDF
 	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(OH, vTmp) Zero3, v*dAlpha, Zero3);
+		Joint::NetCDFOutput(OH, vTmp, Zero3, v*dAlpha, Zero3);
 		OH.WriteNcVar(Var_V, v/d);
 		OH.WriteNcVar(Var_d, d);
 	}
@@ -1609,14 +1609,16 @@ ClampJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		const Mat3x3& R(pNode->GetRCurr());
 
-		Joint::Output(OH.Joints(), "Clamp", GetLabel(),
-			R.MulTV(F), R.MulTV(M), F, M) << std::endl;
-	}
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "Clamp", GetLabel(),
+					R.MulTV(F), R.MulTV(M), F, M) << std::endl;
+		}
 #ifdef USE_NETCDF
-	if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-		Joint::NetCDFOutput(OH, R.MulTV(F), R.MulTV(M), F, M);
-	}
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, R.MulTV(F), R.MulTV(M), F, M);
+		}
 #endif // USE_NETCDF
+	}
 }
 
 /* Contributo allo jacobiano durante l'assemblaggio iniziale */

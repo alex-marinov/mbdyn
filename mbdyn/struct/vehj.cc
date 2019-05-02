@@ -294,45 +294,54 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		Vec3 OmegaTmp(hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		Vec3 v(GetF());
 
-		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, hat_R*v) << " ";
 
-		switch (od) {
-		case EULER_123:
-			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
-			break;
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
+					Zero3, v, Zero3, hat_R*v) << " ";
 
-		case EULER_313:
-			OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
-			break;
+			switch (od) {
+				case EULER_123:
+					OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
+					break;
 
-		case EULER_321:
-			OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
-			break;
+				case EULER_313:
+					OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_VECTOR:
-			OH.Joints() << RotManip::VecRot(R);
-			break;
+				case EULER_321:
+					OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_MATRIX:
-			OH.Joints() << R;
-			break;
+				case ORIENTATION_VECTOR:
+					OH.Joints() << RotManip::VecRot(R);
+					break;
 
-		default:
-			/* impossible */
-			break;
+				case ORIENTATION_MATRIX:
+					OH.Joints() << R;
+					break;
+
+				default:
+					/* impossible */
+					break;
+			}
 		}
-
 #ifdef USE_NETCDF
+		// TODO: Improve removing unnecessary duplications
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 
 			Joint::NetCDFOutput(OH, Zero3, v, Zero3, hat_R*v);
 			switch (od) {
 			case EULER_123:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles123(R)*dRaDegr);
+				break;
 			case EULER_313:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles313(R)*dRaDegr);
+				break;
 			case EULER_321:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles321(R)*dRaDegr);
+				break;
 			case ORIENTATION_VECTOR:
-				OH.WriteNcVar(Var_Phi, E);
+				OH.WriteNcVar(Var_Phi, RotManip::VecRot(R));
 				break;
 
 			case ORIENTATION_MATRIX:

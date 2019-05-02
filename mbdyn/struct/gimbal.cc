@@ -87,7 +87,7 @@ GimbalRotationJoint::Restart(std::ostream& out) const
 }
 
 void
-GimbalRotationJoint::OutputPrepare(OutputHandler& OH) const
+GimbalRotationJoint::OutputPrepare(OutputHandler& OH)
 {
 	if (bToBeOutput()) {
 #if USE_NETCDF
@@ -155,7 +155,7 @@ GimbalRotationJoint::Output(OutputHandler& OH) const
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, M, Zero3, Ra*M);
 			OH.WriteNcVar(Var_Theta, dTheta);
-			OH.WriteNcVAr(Var_Phi, dPhi);
+			OH.WriteNcVar(Var_Phi, dPhi);
 		}
 #endif // USE_NETCDF
 	}

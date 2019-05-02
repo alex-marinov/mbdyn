@@ -470,13 +470,13 @@ RodBezier::OutputPrepare(OutputHandler& OH)
 			Var_l = OH.CreateVar<doublereal>(name + "l", "m",
 				"length of the element");
 
-			Var_l1 = OH.Createvar<Vec3>(name + "l1", "-",
+			Var_l1 = OH.CreateVar<Vec3>(name + "l1", "-",
 				"node 1 reference unit vector (x, y, z)");
 			
-			Var_l2 = OH.Createvar<Vec3>(name + "l2", "-",
+			Var_l2 = OH.CreateVar<Vec3>(name + "l2", "-",
 				"node 2 reference unit vector (x, y, z)");
 
-			Var_v = OH.Createvar<doublereal>(name + "v", "m/s",
+			Var_v = OH.CreateVar<doublereal>(name + "v", "m/s",
 				"length rate of change");
 		}
 #endif // USE_NETCDF
@@ -489,12 +489,13 @@ RodBezier::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		doublereal dF = GetF();
+		Vec3 FTmp = Vec3(dF, 0., 0.);
 
 		if (OH.UseText(OutputHandler::JOINTS)) {
 			std::ostream& out = OH.Joints();
 
 			Joint::Output(out, "RodBezier", GetLabel(),
-					Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3)
+					FTmp, Zero3, l1*dF, Zero3)
 				<< " " << l2*dF << " " << dElle << " " << l1 << " " 
 				<< " " << l2 << " " << " " << dEpsilonPrime*dL0,
 				ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
@@ -502,11 +503,11 @@ RodBezier::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3);
+			Joint::NetCDFOutput(OH, FTmp, Zero3, l1*dF, Zero3);
 			OH.WriteNcVar(Var_F2, l2*dF);
 			OH.WriteNcVar(Var_l, dElle);
 			OH.WriteNcVar(Var_l1, l1);
-			OH.WriteNcVar(Var_l2 l2);
+			OH.WriteNcVar(Var_l2, l2);
 			OH.WriteNcVar(Var_v, dEpsilonPrime*dL0);
 		}
 #endif // USE_NETCDF

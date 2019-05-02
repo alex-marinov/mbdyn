@@ -89,7 +89,7 @@ DriveDisplacementJoint::Restart(std::ostream& out) const
 }
 
 void
-DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
+DriveDisplacementJoint::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
@@ -101,6 +101,7 @@ DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
 				"imposed relative displacement (x, y, z)");
 		}
 #endif // USE_NETCDF
+	}
 }
 
 void
@@ -109,15 +110,21 @@ DriveDisplacementJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		Vec3 d(pNode2->GetXCurr() + pNode2->GetRCurr()*f2
 			- pNode1->GetXCurr() - pNode1->GetRCurr()*f1);
-		Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
-				pNode1->GetRCurr().Transpose()*F, Zero3, F, Zero3)
-			<< " " << d << std::endl;
+
+
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DriveDisplacementJoint", GetLabel(),
+					pNode1->GetRCurr().Transpose()*F, Zero3, F, Zero3)
+				<< " " << d << std::endl;
+		}
+
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(F, Zero3, F, Zero3);
+			Joint::NetCDFOutput(OH, F, Zero3, F, Zero3);
 			OH.WriteNcVar(Var_d, d);
 		}
 #endif // USE_NETCDF
+
 	}
 }
 
@@ -749,6 +756,7 @@ DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
 				"imposed relative displacement (x, y, z)");
 		}
 #endif // USE_NETCDF
+	}
 }
 
 void

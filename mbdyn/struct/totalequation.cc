@@ -869,7 +869,7 @@ TotalEquation::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::Joints)) {
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, Zero3, Zero3, Zero3, Zero3);
 			// TODO
 		}
@@ -1886,7 +1886,7 @@ TotalReaction::Output(OutputHandler& OH) const
 		}
 
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::Joints)) {
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, M, R1Tmp*F, R1rTmp*M);
 			// TODO
 		}

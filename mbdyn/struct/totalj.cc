@@ -3355,7 +3355,7 @@ TotalPinJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(F, M, FTmp, MTmp);
+			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
 			OH.WriteNcVar(Var_X, XTmp);
 			OH.WriteNcVar(Var_Phi, ThetaTmp);
 			OH.WriteNcVar(Var_V, VTmp);

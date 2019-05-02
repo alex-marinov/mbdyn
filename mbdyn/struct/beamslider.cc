@@ -161,7 +161,7 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 			Var_Beam = OH.CreateVar<integer>(name + "Beam", "-",
 				"current beam label");
 
-			Var_sRef = OH.CreateVar<doblereal>(name + "sRef", "",
+			Var_sRef = OH.CreateVar<doublereal>(name + "sRef", "",
 				"current curvilinear abscissa");
 
 			Var_l = OH.CreateVar<Vec3>(name + "l", "-",
@@ -188,7 +188,7 @@ BeamSliderJoint::Output(OutputHandler& OH) const
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmpT*F, M, F, RTmp*M);
 
-			OH.WriteNcVar(Var_Beam, ppBeam[iCurrBeam]->pGetBeam()->GetLabel());
+			OH.WriteNcVar(Var_Beam, (int)(ppBeam[iCurrBeam]->pGetBeam()->GetLabel()));
 			OH.WriteNcVar(Var_sRef, sRef);
 			OH.WriteNcVar(Var_l, l);
 		}
