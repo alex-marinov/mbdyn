@@ -219,11 +219,12 @@ This may be useful, for example, to modify the amplitude of the signal as a func
 
 \item Only one instance of this element should be used in the analysis; currently, a warning is issued if it is instantiated more than once, and the two instances operate together, with undefined results (convergence is likely never reached, because the solution does not tend to become periodic with any of the expected periods).
 
-\item This element might terminate the simulation in two cases:
-\begin{itemize}
-\item[a)] the excitation angular frequency becomes greater than \nt{omega\_max};
-\item[b)] the \kw{angular frequency increment} pattern is \kw{custom}, and convergence is reached for the last value of excitation angular frequency.
-\end{itemize}
+\item This element might terminate the simulation in the following cases:
+\begin{enumerate}[label=\alph*)] %{itemize}
+\item the excitation angular frequency becomes greater than \nt{omega\_max};
+\item the \kw{angular frequency increment} pattern is \kw{custom}, and convergence is reached for the last value of excitation angular frequency.
+\item the \kw{no convergence strategy} option for the \kw{max periods} optional parameters is \kw{abort}, and no steady value is achieved for the fundamental harmonic of the response within the specified maximum number of periods.
+\end{enumerate} %{itemize}
 \end{itemize}
 
 \paragraph{Example.}
