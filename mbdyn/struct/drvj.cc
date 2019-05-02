@@ -179,7 +179,7 @@ LinearVelocityJoint::OutputPrepare(OutputHandler& OH)
 #if USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("linear velocity", OH, name);
+			OutputPrepare_int("Linear velocity", OH, name);
 
 			Var_dv = OH.CreateVar<doublereal>(name + "dv", "[-]",
 					"direction of imposed velocity");
@@ -433,7 +433,7 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 #if USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("angular velocity", OH, name);
+			OutputPrepare_int("Angular velocity", OH, name);
 
 			Var_dw = OH.CreateVar<doublereal>(name + "dw", "[-]",
 					"direction of imposed angular velocity");

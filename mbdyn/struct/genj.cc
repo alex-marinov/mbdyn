@@ -277,7 +277,7 @@ DistanceJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("distance", OH, name);
+			OutputPrepare_int("Distance", OH, name);
 			
 			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
 				"constrained distance direction unit vector (x, y, z)");
@@ -899,7 +899,7 @@ DistanceJointWithOffset::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("distance with offsets", OH, name);
+			OutputPrepare_int("Distance with offset", OH, name);
 			
 			Var_V = OH.CreateVar<Vec3>(name + "V", "-",
 				"constrained distance direction unit vector (x, y, z)");
@@ -1590,18 +1590,6 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
-void ClampJoint::OutputPrepare(OutputHandler& OH)
-{
-	if (bToBeOutput()) {
-#ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			std::string name;
-			OutputPrepare_int("clamp", OH, name);
-		}
-#endif
-	}
-}
-
 /* Inverse Dynamics update */
 void
 ClampJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
@@ -1614,6 +1602,20 @@ ClampJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)
    	F = Vec3(XCurr, iFirstReactionIndex + 1);
    	M = Vec3(XCurr, iFirstReactionIndex + 4);
 }
+
+
+void ClampJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Clamp", OH, name);
+		}
+#endif
+	}
+}
+
 
 void
 ClampJoint::Output(OutputHandler& OH) const

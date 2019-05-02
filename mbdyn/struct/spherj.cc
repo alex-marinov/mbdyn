@@ -225,7 +225,7 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("spherical hinge", OH, name);
+			OutputPrepare_int("Spherical hinge", OH, name);
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "relative orientation");
 
@@ -729,7 +729,7 @@ PinJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("spherical pin", OH, name);
+			OutputPrepare_int("Spherical pin", OH, name);
 
 			Var_Phi = OH.CreateVar<Vec3>(name + "E", "rad", 
 				"node orientation (E123)");

@@ -93,7 +93,7 @@ GimbalRotationJoint::OutputPrepare(OutputHandler& OH)
 #if USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("gimbal rotation", OH, name);
+			OutputPrepare_int("Gimbal rotation", OH, name);
 
 			Var_Theta = OH.CreateVar<doublereal>(name + "Theta", "rad",
 					"relative angle Theta");

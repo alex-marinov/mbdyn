@@ -164,6 +164,19 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 
+void InPlaneJoint::OutputPrepare(OutputHandler& OH)
+{
+	if(bToBeOutput()) {      
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("In plane", OH, name);
+	}
+#endif // USE_NETCDF
+	}
+}
+
+
 void InPlaneJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {      
@@ -512,6 +525,18 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    }
       
    return WorkVec;
+}
+
+void InPlaneWithOffsetJoint::OutputPrepare(OutputHandler& OH)
+{
+	if(bToBeOutput()) {      
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("In plane with offset", OH, name);
+	}
+#endif // USE_NETCDF
+	}
 }
 
 

@@ -836,6 +836,19 @@ TotalEquation::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void TotalEquation::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Total equation", OH, name);
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 void
 TotalEquation::Output(OutputHandler& OH) const
 {
@@ -1851,6 +1864,20 @@ TotalReaction::GetEqType(unsigned int i) const
 
 	return DofOrder::ALGEBRAIC;
 }
+
+
+void TotalReaction::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Total reaction", OH, name);
+		}
+#endif // USE_NETCDF
+	}
+}
+
 
 /* Output (da mettere a punto), per ora solo reazioni */
 void

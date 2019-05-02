@@ -180,7 +180,7 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("deformable hinge", OH, name);
+			OutputPrepare_int("Deformable hinge", OH, name);
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 

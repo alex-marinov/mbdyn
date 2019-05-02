@@ -1481,7 +1481,7 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("total", OH, name);
+			OutputPrepare_int("Total joint", OH, name);
 
 			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
 				"local relative position (x, y, z)");
@@ -3314,7 +3314,7 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("totalpin", OH, name);
+			OutputPrepare_int("Total pin joint", OH, name);
 
 			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
 				"local relative position (x, y, z)");

@@ -173,7 +173,7 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("linearacceleration", OH, name);
+			OutputPrepare_int("Linear acceleration", OH, name);
 
 			Var_a = OH.CreateVar<doublereal>(name + "a", "m/s^2",
 				"imposed acceleration (x, y, z)");

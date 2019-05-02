@@ -156,7 +156,7 @@ BeamSliderJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("beamslider", OH, name);
+			OutputPrepare_int("Beam slider", OH, name);
 			
 			Var_Beam = OH.CreateVar<integer>(name + "Beam", "-",
 				"current beam label");

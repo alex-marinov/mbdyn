@@ -95,7 +95,7 @@ DriveDisplacementJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("total", OH, name);
+			OutputPrepare_int("Drive displacement", OH, name);
 
 			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
 				"imposed relative displacement (x, y, z)");
@@ -750,7 +750,7 @@ DriveDisplacementPinJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("total", OH, name);
+			OutputPrepare_int("Drive displacement pin", OH, name);
 
 			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
 				"imposed relative displacement (x, y, z)");

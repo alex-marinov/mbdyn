@@ -791,7 +791,7 @@ UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("cardano rotation", OH, name);
+			OutputPrepare_int("Cardano rotation", OH, name);
 
 			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
 

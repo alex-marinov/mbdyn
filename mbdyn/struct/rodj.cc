@@ -303,7 +303,7 @@ Rod::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("rod", OH, name);
+			OutputPrepare_int("Rod", OH, name);
 
 			Var_dElle = OH.CreateVar<doublereal>(name + "l", "m",
 				"length of the element");

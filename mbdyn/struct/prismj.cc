@@ -258,7 +258,22 @@ SubVectorHandler& PrismaticJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+
+
 /* Output (da mettere a punto) */
+void PrismaticJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Prismatic", OH, name);
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 void PrismaticJoint::Output(OutputHandler& OH) const
 {
    if (bToBeOutput()) {
@@ -271,7 +286,7 @@ void PrismaticJoint::Output(OutputHandler& OH) const
 #endif // USE_NETCDF
 
 		if (OH.UseText(OutputHandler::JOINTS)) {
-		  Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+		  Joint::Output(OH.Joints(), "Prismatic", GetLabel(),
 				Zero3, M, Zero3, R1Tmp*M) << std::endl;
 		}
    }   

@@ -122,7 +122,7 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("deformable joint", OH, name);
+			OutputPrepare_int("Deformable joint", OH, name);
 			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
 					"relative position in local frame (x, y, z)");
 			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
