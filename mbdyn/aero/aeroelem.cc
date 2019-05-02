@@ -561,7 +561,6 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			i != NetCDFOutputData.end(); ++i)
 		{
 			if (!i->Var_X.isNull()) {
-				// i->Var_X->put_rec(i->X.pGetVec(), OH.GetCurrentStep());
 				OH.WriteNcVar(i->Var_X, i->X);
 			}
 
@@ -597,12 +596,10 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 				case EULER_313:
 				case EULER_321:
 				case ORIENTATION_VECTOR:
-					// i->Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
 					OH.WriteNcVar(i->Var_Phi, E);
 					break;
 
 				case ORIENTATION_MATRIX:
-					// i->Var_Phi->put_rec(i->R.pGetMat(), OH.GetCurrentStep());
 					OH.WriteNcVar(i->Var_Phi, i->R);
 					break;
 
@@ -613,22 +610,18 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 			if (!i->Var_V.isNull()) {
-				//i->Var_V->put_rec(i->V.pGetVec(), OH.GetCurrentStep());
 				OH.WriteNcVar(i->Var_V, i->V);
 			}
 
 			if (!i->Var_W.isNull()) {
-				// i->Var_W->put_rec(i->W.pGetVec(), OH.GetCurrentStep());
 				OH.WriteNcVar(i->Var_W, i->W);
 			}
 
 			if (!i->Var_F.isNull()) {
-				// i->Var_F->put_rec(i->F.pGetVec(), OH.GetCurrentStep());
 				OH.WriteNcVar(i->Var_F, i->F);
 			}
 
 			if (!i->Var_M.isNull()) {
-				// i->Var_M->put_rec(i->M.pGetVec(), OH.GetCurrentStep());
 				OH.WriteNcVar(i->Var_M, i->M);
 			}
 		}
