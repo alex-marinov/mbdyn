@@ -223,9 +223,7 @@ public:
 	Var_dArea(0),
 	Var_dFelastic(0),
 	Var_dFviscous(0)
-#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
-// TODO: netCDF4 output
-#endif /* USE_NETCDF4 */
+#endif /*! USE_NETCDFC */
 	{
 		if (HP.IsKeyWord("help")) {
 
@@ -623,7 +621,7 @@ public:
 	};
 
 	virtual void OutputAppendPrepare(OutputHandler& OH, const std::string& name) {
-#if defined(USE_NETCDFC)
+#if defined(USE_NETCDF)
 		ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
 			Var_dPressure = OH.CreateVar<doublereal>(name + ".p", "Pa", "Gas pressure");
@@ -631,22 +629,18 @@ public:
 			Var_dFelastic = OH.CreateVar<doublereal>(name + ".Fe", "N", "Elastic force");
 			Var_dFviscous = OH.CreateVar<doublereal>(name + ".Fv", "N", "Viscous force");
 		}
-#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
-// TODO: netCDF4 output
-#endif /* USE_NETCDF4 */
+#endif /* USE_NETCDF */
 	}
 
 	virtual std::ostream& OutputAppend(std::ostream& out, OutputHandler& OH) const {
-#if defined(USE_NETCDFC)
+#if defined(USE_NETCDF)
 		if (OH.UseNetCDF(OutputHandler::NETCDF)) {
-			Var_dPressure->put_rec(&dPressure, OH.GetCurrentStep());
-			Var_dArea->put_rec(&dArea, OH.GetCurrentStep());
-			Var_dFelastic->put_rec(&dFelastic, OH.GetCurrentStep());
-			Var_dFviscous->put_rec(&dFviscous, OH.GetCurrentStep());
+			OH.WriteNcVar(Var_dPressure, dPressure);
+			OH.WriteNcVar(Var_dArea, dArea);
+			OH.WriteNcVar(Var_dFelastic, dFelastic);
+			OH.WriteNcVar(Var_dFviscous, dFviscous);
 		}
-#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
-// TODO: netCDF4 output
-#endif /* USE_NETCDF4 */
+#endif /* USE_NETCDF */
 		return out << " " << dPressure << " " << dArea
 			<< " " << dFelastic << " " << dFviscous;
 	};
