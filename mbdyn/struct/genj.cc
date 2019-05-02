@@ -1590,6 +1590,18 @@ ClampJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+void ClampJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("clamp", OH, name);
+		}
+#endif
+	}
+}
+
 /* Inverse Dynamics update */
 void
 ClampJoint::Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder)

@@ -340,6 +340,7 @@ class ClampJoint : virtual public Elem, public Joint {
    /* Inverse Dynamics update */
    void Update(const VectorHandler& XCurr, InverseDynamics::Order iOrder = InverseDynamics::INVERSE_DYNAMICS);
 
+   void OutputPrepare(OutputHandler& OH);
    virtual void Output(OutputHandler& OH) const;
 
 
