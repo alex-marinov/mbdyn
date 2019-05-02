@@ -230,6 +230,12 @@ module-FMU/module-FMU.h \
 module-FMU/README.md
 
 EXTRA_DIST += \
+module-hfelem/harmonicExcitationElem2.mbd \
+module-hfelem/harmonicExcitationElem.mbd \
+module-hfelem/module-hfelem.cc \
+module-hfelem/module-hfelem.h
+
+EXTRA_DIST += \
 module-hid/README \
 module-hid/Makefile.inc \
 module-hid/module-hid.cc \
