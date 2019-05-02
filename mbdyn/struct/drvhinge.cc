@@ -59,8 +59,8 @@ ThetaRef(Zero3),
 ThetaCurr(Zero3),
 M(Zero3),
 #ifdef USE_NETCDFC
-	Var_d(0);
-	Var_Theta(0);
+Var_d(0),
+Var_Theta(0),
 #endif // USE_NETCDFC
 bFirstRes(false)
 {

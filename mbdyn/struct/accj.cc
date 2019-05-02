@@ -50,7 +50,7 @@ DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
 #ifdef USE_NETCDFC   // Netcdf4 has non-pointer variables...
-	Var_a(0);
+Var_a(0),
 #endif // USE_NETCDFC
 dF(0.)
 {
