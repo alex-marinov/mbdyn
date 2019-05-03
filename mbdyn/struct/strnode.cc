@@ -532,6 +532,7 @@ StructDispNode::Output(OutputHandler& OH) const
 				OH.WriteNcVar(Var_XPP, XPPCurr);
 				OH.WriteNcVar(Var_OmegaP, Zero3);
 			}
+		}
 #endif /* USE_NETCDF */
 
 		if (OH.UseText(OutputHandler::STRNODES)) {

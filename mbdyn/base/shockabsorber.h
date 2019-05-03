@@ -199,14 +199,12 @@ private:
 		FrictionAmpl = p->FrictionAmpl;
 	};
    
-#if defined(USE_NETCDFC)
-	NcVar *Var_dPressure;
-	NcVar *Var_dArea;
-	NcVar *Var_dFelastic;
-	NcVar *Var_dFviscous;
-#elif defined(USE_NETCDF4) /*! USE_NETCDFC */
-// TODO: netCDF4 output
-#endif /* USE_NETCDF4 */
+#if defined(USE_NETCDF)
+	MBDynNcVar Var_dPressure;
+	MBDynNcVar Var_dArea;
+	MBDynNcVar Var_dFelastic;
+	MBDynNcVar Var_dFviscous;
+#endif /* USE_NETCDF */
 public:
 	ShockAbsorberConstitutiveLaw(
 			const DataManager* pDM,
