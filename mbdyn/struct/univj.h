@@ -98,6 +98,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler& OH);
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */
@@ -298,6 +299,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */

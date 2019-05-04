@@ -270,6 +270,27 @@ UniversalHingeJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+
+void
+UniversalHingeJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Cardano hinge", OH, name);
+
+			// Only orientation vector for now. 
+			// TODO use orientation description?
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, 
+					"Orientation vector of node in relative frame (x, y, z)");
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 /* Output (da mettere a punto) */
 void
 UniversalHingeJoint::Output(OutputHandler& OH) const
@@ -278,18 +299,21 @@ UniversalHingeJoint::Output(OutputHandler& OH) const
 		Mat3x3 R1Tmp(pNode1->GetRCurr()*R1h);
 		Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
 
-		Vec3 vTmp(R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)));
+		Vec3 MTmp = (R2Tmp.GetVec(2).Cross(R1Tmp.GetVec(3)))*dM;
+
+		Vec3 PhiTmp(MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr);
+		Vec3 MTildeTmp = Vec3(dM, 0., 0.);
+		Vec3 FTildeTmp = R1Tmp.Transpose()*F;
 
 		if (OH.UseText(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "CardanoHinge", GetLabel(),
-					R1Tmp.Transpose()*F, Vec3(dM, 0., 0.), F, vTmp*dM)
-				<< " " << MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr
-				<< std::endl;
+					FTildeTmp, MTildeTmp, F, MTmp)
+				<< " " << PhiTmp << std::endl;
 		}
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(OH, R1Tmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
-			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R2Tmp.MulTM(R1Tmp))*dRaDegr);
+			Joint::NetCDFOutput(OH, FTildeTmp, MTildeTmp, F, MTmp);
+			OH.WriteNcVar(Var_Phi, PhiTmp);
 		}
 #endif // USE_NETCDF
 	}
@@ -793,7 +817,8 @@ UniversalRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Cardano rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+					"Relative orientation");
 
 		}
 #endif // USE_NETCDF
@@ -1288,6 +1313,27 @@ SubVectorHandler& UniversalPinJoint::AssRes(SubVectorHandler& WorkVec,
 	return WorkVec;
 }
 
+
+void
+UniversalPinJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Cardano pin", OH, name);
+
+			// Only orientation vector for now. 
+			// TODO use orientation description?
+			Var_Phi = OH.CreateRotationVar(name, "", ORIENTATION_VECTOR, 
+					"Orientation vector of node in relative frame (x, y, z)");
+
+		}
+#endif // USE_NETCDF
+	}
+}
+
+
 /* Output (da mettere a punto) */
 void
 UniversalPinJoint::Output(OutputHandler& OH) const
@@ -1295,18 +1341,18 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 		Mat3x3 RTmp(pNode->GetRCurr()*Rh);
 		Vec3 vTmp(RTmp.GetVec(2).Cross(R0.GetVec(3)));
+		Vec3 PhiTmp(MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr);
+		Vec3 MTildeTmp = Vec3(dM, 0., 0.);
 
-
-		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+		if (OH.UseText(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "CardanoPin", GetLabel(),
-					RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM)
-				<< " " << MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr
-				<< std::endl;
+					RTmp.MulTV(F), MTildeTmp, F, vTmp*dM)
+				<< " " << PhiTmp << std::endl;
 		}
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-			Joint::NetCDFOutput(OH, RTmp.MulTV(F), Vec3(dM, 0., 0.), F, vTmp*dM);
-			OH.WriteNcVar(Var_Phi, MatR2EulerAngles(R0.Transpose()*RTmp)*dRaDegr);
+			Joint::NetCDFOutput(OH, RTmp.MulTV(F), MTildeTmp, F, vTmp*dM);
+			OH.WriteNcVar(Var_Phi, PhiTmp);
 		}
 #endif // USE_NETCDF
 	}
