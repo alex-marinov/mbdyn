@@ -167,7 +167,7 @@ Joint::NetCDFOutput(OutputHandler &OH,
 	OH.WriteNcVar(Var_F_local, FLocal);
 	OH.WriteNcVar(Var_M_local, MLocal);
 	OH.WriteNcVar(Var_F_global, FGlobal);
-	OH.WriteNcVar(Var_F_global, MGlobal);
+	OH.WriteNcVar(Var_M_global, MGlobal);
 }
 #endif // USE_NETCDF
 /* Inverse Dynamics update */
