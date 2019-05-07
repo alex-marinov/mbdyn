@@ -1028,7 +1028,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 
 			if (fc) {
 				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_MU, fc);
+				OH.WriteNcVar(Var_MU, fc->fc());
 			}
 		}
 #endif // USE_NETCDF
@@ -3430,7 +3430,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
 			if (fc) {
 				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_MU, fc);
+				OH.WriteNcVar(Var_MU, fc->fc());
 			}
 		}
 #endif // USE_NETCDF
@@ -4492,7 +4492,7 @@ PlanePinJoint::OutputPrepare(OutputHandler& OH)
 {
    if (bToBeOutput()) {
 #ifdef USE_NETCDF
-	   if OH.UseNetCDF(OutputHandler::JOINTS) {
+	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 		   std::string name;
 		   OutputPrepare_int("Plane Pin", OH, name);
 	   }
@@ -4515,7 +4515,7 @@ void PlanePinJoint::Output(OutputHandler& OH) const
       }
 
 #ifdef USE_NETCDF
-	   if OH.UseNetCDF(OutputHandler::JOINTS) {
+	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, RTmp.MulTV(F), M, F, RTmp*M);
 	   }
 #endif // USE_NETCDF
