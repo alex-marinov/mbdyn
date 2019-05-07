@@ -61,8 +61,8 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 #ifdef USE_NETCDF
 	MBDynNcVar Var_Phi;
 	MBDynNcVar Var_Omega;
-//	MBDynNcVar Var_MFR;
-//	MBDynNcVar Var_MU;
+	MBDynNcVar Var_MFR;
+	MBDynNcVar Var_MU;
 #endif // USE_NETCDF
 
    bool calcInitdTheta;
@@ -368,8 +368,8 @@ public Joint, public DriveOwner {
 #ifdef USE_NETCDF
 	MBDynNcVar Var_Phi;
 	MBDynNcVar Var_Omega;
-//	MBDynNcVar Var_MFR;
-//	MBDynNcVar Var_MU;
+	MBDynNcVar Var_MFR;
+	MBDynNcVar Var_MU;
 #endif // USE_NETCDF
 
    /* friction related data */
@@ -601,7 +601,8 @@ class PlanePinJoint : virtual public Elem, public Joint {
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-			    
+   
+   void OutputPrepare(OutputHandler& OH);
    virtual void Output(OutputHandler& OH) const;
  
    

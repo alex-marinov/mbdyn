@@ -493,8 +493,11 @@ void Brake::Output(OutputHandler& OH) const
 	      
 	      OH.WriteNcVar(Var_E, MatR2EulerAngles(RTmp)*dRaDegr);
 	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
-	      OH.WriteNcVar(Var_fc, fc->fc());
-	      OH.WriteNcVar(Var_Fb, brakeForce.dGet());
+	      
+	      if (fc) {
+		      OH.WriteNcVar(Var_fc, fc->fc());
+		      OH.WriteNcVar(Var_Fb, brakeForce.dGet());
+	      }
 
       }
 #endif // USE_NETCDF

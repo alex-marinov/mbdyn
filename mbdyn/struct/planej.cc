@@ -959,13 +959,13 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
 
-/* TODO
-			Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
-				"friciton moment ");
+			if (fc) {
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+						"friciton moment ");
 
-			Var_MU = OH.CreateVar<doublereal>(name + "MU", "--",
-					"friction model specific data: friction coefficient?");
-*/
+				Var_MU = OH.CreateVar<doublereal>(name + "fc", "--",
+						"friction model specific data: friction coefficient");
+			}
 		}
 #endif // USE_NETCDF
 	}
@@ -1025,17 +1025,11 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 			}
 
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
-/*
+
 			if (fc) {
-					Var_MFR->put_rec(&M3, OH.GetCurrentStep());
-					Var_MU->put_rec(fc->fc(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_MFR, M3);
+				OH.WriteNcVar(Var_MU, fc);
 			}
-			else
-			{
-				Var_MFR->put_rec(0, OH.GetCurrentStep());
-				Var_MU->put_rec(0, OH.GetCurrentStep());
-			}
-*/
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -3368,13 +3362,13 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
 
-/* TODO
-			Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
-				"friciton moment ");
+			if (fc) {
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+						"friciton moment ");
 
-			Var_MU = OH.CreateVar<doublereal>(name + "MU", "--",
-					"friction model specific data: friction coefficient?");
-*/
+				Var_MU = OH.CreateVar<doublereal>(name + "fc", "-",
+						"friction model specific data: friction coefficient");
+			}
 		}
 #endif // USE_NETCDF
 	}
@@ -3434,17 +3428,10 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 			}
 
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
-/*
 			if (fc) {
-					Var_MFR->put_rec(&M3, OH.GetCurrentStep());
-					Var_MU->put_rec(fc->fc(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_MFR, M3);
+				OH.WriteNcVar(Var_MU, fc);
 			}
-			else
-			{
-				Var_MFR->put_rec(0, OH.GetCurrentStep());
-				Var_MU->put_rec(0, OH.GetCurrentStep());
-			}
-*/
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
@@ -4500,6 +4487,19 @@ SubVectorHandler& PlanePinJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void 
+PlanePinJoint::OutputPrepare(OutputHandler& OH)
+{
+   if (bToBeOutput()) {
+#ifdef USE_NETCDF
+	   if OH.UseNetCDF(OutputHandler::JOINTS) {
+		   std::string name;
+		   OutputPrepare_int("Plane Pin", OH, name);
+	   }
+#endif // USE_NETCDF
+   }
+}
+
 /* Output (da mettere a punto) */
 void PlanePinJoint::Output(OutputHandler& OH) const
 {
@@ -4507,10 +4507,18 @@ void PlanePinJoint::Output(OutputHandler& OH) const
       Mat3x3 RTmp(pNode->GetRCurr()*Rh);
       Mat3x3 R0Tmp(R0.MulTM(RTmp));
       
-      Joint::Output(OH.Joints(), "PlanePin", GetLabel(),
-		    RTmp.MulTV(F), M, F, RTmp*M) 
-	<< " " << MatR2EulerAngles(R0Tmp)*dRaDegr
-	<< " " << RTmp.MulTV(pNode->GetWCurr()) << std::endl;      
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      Joint::Output(OH.Joints(), "PlanePin", GetLabel(),
+			      RTmp.MulTV(F), M, F, RTmp*M) 
+		      << " " << MatR2EulerAngles(R0Tmp)*dRaDegr
+		      << " " << RTmp.MulTV(pNode->GetWCurr()) << std::endl;      
+      }
+
+#ifdef USE_NETCDF
+	   if OH.UseNetCDF(OutputHandler::JOINTS) {
+		   Joint::NetCDFOutput(OH, RTmp.MulTV(F), M, F, RTmp*M);
+	   }
+#endif // USE_NETCDF
    }
 }
 

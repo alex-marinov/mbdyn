@@ -309,11 +309,13 @@ InLineJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Inline", OH, name);
 
-			Var_FF = OH.CreateVar<Vec3>(name + "FF", "N",
-				"friction force (x, y, z)");
+			if (fc) {
+				Var_FF = OH.CreateVar<Vec3>(name + "FF", "N",
+						"friction force (x, y, z)");
 
-			Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
-				"friction coefficient");
+				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+						"friction coefficient");
+			}
 		}
 #endif // USE_NETCDF
 	}
@@ -326,8 +328,10 @@ void InLineJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, F, Zero3, RvTmp*F, Zero3);
-			OH.WriteNcVar(Var_FF, F3);
-			OH.WriteNcVar(Var_fc, fc->fc());
+			if (fc) {
+				OH.WriteNcVar(Var_FF, F3);
+				OH.WriteNcVar(Var_fc, fc->fc());
+			}
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
