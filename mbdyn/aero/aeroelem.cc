@@ -560,11 +560,19 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 		for (std::vector<AeroNetCDFOutput>::const_iterator i = NetCDFOutputData.begin();
 			i != NetCDFOutputData.end(); ++i)
 		{
+#if defined(USE_NETCDFC)
+			if (!i->Var_X) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_X.isNull()) {
+#endif // USE_NETCDF4
 				OH.WriteNcVar(i->Var_X, i->X);
 			}
 
+#if defined(USE_NETCDFC)
 			if (!i->Var_Phi.isNull()) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+			if (!i->Var_Phi) {
+#endif // USE_NETCDF4
 				Vec3 E;
 				switch (od) {
 				case EULER_123:
@@ -609,19 +617,35 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 				}
 			}
 
+#if defined(USE_NETCDFC)
 			if (!i->Var_V.isNull()) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+			if (!i->Var_V) {
+#endif // USE_NETCDF4
 				OH.WriteNcVar(i->Var_V, i->V);
 			}
 
+#if defined(USE_NETCDFC)
 			if (!i->Var_W.isNull()) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+			if (!i->Var_W) {
+#endif // USE_NETCDF4
 				OH.WriteNcVar(i->Var_W, i->W);
 			}
 
+#if defined(USE_NETCDFC)
 			if (!i->Var_F.isNull()) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+			if (!i->Var_F) {
+#endif // USE_NETCDF4
 				OH.WriteNcVar(i->Var_F, i->F);
 			}
 
+#if defined(USE_NETCDFC)
 			if (!i->Var_M.isNull()) {
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+			if (!i->Var_M) {
+#endif // USE_NETCDF4
 				OH.WriteNcVar(i->Var_M, i->M);
 			}
 		}
