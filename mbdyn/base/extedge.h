@@ -95,6 +95,8 @@ public:
 
 	virtual std::ostream *GetOutStream(void);
 	virtual std::istream *GetInStream(void);
+
+	virtual ExtFileHandlerBase::Type GetType(void) { return ExtFileHandlerBase::TYPE_EDGE; };
 };
 
 /* ExtFileHandlerEDGE - end */

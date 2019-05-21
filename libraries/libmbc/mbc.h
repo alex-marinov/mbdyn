@@ -41,6 +41,25 @@ extern "C" {
 
 #include <stdint.h>
 
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+#else
+  #ifndef SOCKET_ERROR
+    #define SOCKET_ERROR -1
+  #endif /* SOCKET_ERROR */
+  /*extern int WSAGetLastError(void);*/
+  /* We define the SOCKET type if not defined already */
+  #ifndef SOCK_TYPEDEF
+    #define SOCK_TYPEDEF
+    typedef int SOCKET;
+  #endif /* SOCK_TYPEDEF */
+#endif /* _WIN32 */
+
+
 /** \brief Legal commands
  *
  * The values of this enumeration appear as tags at the beginning
@@ -102,7 +121,7 @@ enum MBCType {
 /** \brief Connection data structure (partially opaque) */
 typedef struct {
 	/** Opaque. */
-	int		sock;
+	SOCKET	    sock;
 
 	/** Opaque. */
 	unsigned	sock_flags;

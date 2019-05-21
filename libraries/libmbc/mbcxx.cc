@@ -1,5 +1,5 @@
-/* 
- * MBDyn (C) is a multibody analysis code. 
+/*
+ * MBDyn (C) is a multibody analysis code.
  * http://www.mbdyn.org
  *
  * Copyright (C) 1996-2017
@@ -16,7 +16,7 @@
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation (version 2 of the License).
- * 
+ *
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -125,9 +125,12 @@ MBCBase::~MBCBase(void)
 int
 MBCBase::Init(const char *const path)
 {
+	int rc = -1;
+#ifndef _WIN32
 	if (GetStatus() != INITIALIZED) return -1;
-	int rc = mbc_unix_init(GetBasePtr(), path);
+	rc = mbc_unix_init(GetBasePtr(), path);
 	if (rc == 0) SetStatus(SOCKET_READY);
+#endif /* ! _WIN32 */
 	return rc;
 }
 

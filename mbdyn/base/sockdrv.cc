@@ -36,23 +36,29 @@
 #ifdef USE_SOCKET
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stddef.h>
 #include <ctype.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <errno.h>
+  #include <unistd.h>
+  #include <fcntl.h>
+  #include <sys/types.h>
+  #include <netdb.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <sys/un.h>
+  #include <arpa/inet.h>
+#endif /* _WIN32 */
 
 #include "sock.h"
 
@@ -77,8 +83,8 @@ pFlags(NULL)
 
    	/* Create the socket and set it up to accept connections. */
 	data.Port = p;
-   	sock = mbdyn_make_inet_socket(0, NULL, data.Port, 1, &save_errno);
-   	if (sock == -1) {
+   	int serr = mbdyn_make_inet_socket(&sock, 0, NULL, data.Port, 1, &save_errno);
+   	if (serr == -1) {
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
@@ -87,7 +93,7 @@ pFlags(NULL)
 			<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   	} else if (sock == -2) {
+   	} else if (serr == -2) {
 		const char	*err_msg = strerror(save_errno);
 
       		silent_cerr("SocketDrive(" << GetLabel()
@@ -100,6 +106,7 @@ pFlags(NULL)
    	Init();
 }
 
+#ifndef _WIN32
 SocketDrive::SocketDrive(unsigned int uL, const DriveHandler* pDH,
 	const char *path,
 	integer nd, const std::vector<doublereal>& v0)
@@ -139,11 +146,24 @@ pFlags(NULL)
 
 	Init();
 }
+#endif /* ! _WIN32 */
 
 void
 SocketDrive::Init(void)
 {
    	/* non-blocking */
+#ifdef _WIN32
+    bool blocking = false;
+    unsigned long mode = blocking ? 0 : 1;
+   	int result = ioctlsocket(sock, FIONBIO, &mode);
+
+   	if (result != 0) {
+		silent_cerr("SocketDrive(" << GetLabel()
+				<< ": unable to set socket to non-blocking mode"
+				<< std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+   	}
+#else
    	int oldflags = fcntl(sock, F_GETFL, 0);
    	if (oldflags == -1) {
 		silent_cerr("SocketDrive(" << GetLabel()
@@ -158,6 +178,7 @@ SocketDrive::Init(void)
 				<< std::endl);
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    	}
+#endif
 
    	if (listen(sock, 1) < 0) {
       		silent_cerr("SocketDrive(" << GetLabel()
@@ -175,16 +196,21 @@ SocketDrive::Init(void)
 SocketDrive::~SocketDrive(void)
 {
    	/* some shutdown stuff ... */
+#ifdef _WIN32
+   	shutdown(sock, SD_BOTH /* 2 */ );
+#else
    	shutdown(sock, SHUT_RDWR /* 2 */ );
+#endif /* _WIN32 */
 
 	switch (type) {
+#ifndef _WIN32
 	case AF_LOCAL:
 		if (data.Path) {
 			unlink(data.Path);
 			SAFEDELETEARR(data.Path);
 		}
 		break;
-
+#endif /* _WIN32 */
 	default:
 		NO_OP;
 		break;
@@ -543,9 +569,16 @@ SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 	}
 
 	if (HP.IsKeyWord("local")) {
+#ifdef _WIN32
+        silent_cerr("SocketDrive(" << uLabel << "): "
+            "local sockets are not supported on Windows, you must use inet "
+            "at line " << HP.GetLineData()
+            << std::endl);
+        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#else /* _WIN32 */
 		path = HP.GetFileName();
 		ASSERT(path != NULL);
-
+#endif /* _WIN32 */
 	} else if (HP.IsKeyWord("port")) {
 		port = HP.GetInt();
 #ifdef IPPORT_USERRESERVED
@@ -577,12 +610,15 @@ SocketDR::Read(unsigned uLabel, const DataManager *pDM, MBDynParser& HP)
 			SocketDrive,
 			SocketDrive(uLabel, pDM->pGetDrvHdl(),
 				port, pAuth, idrives, v0));
-
+#ifndef _WIN32
 	} else {
 		SAFENEWWITHCONSTRUCTOR(pDr,
 			SocketDrive,
 			SocketDrive(uLabel, pDM->pGetDrvHdl(),
 				path, idrives, v0));
+#else
+
+#endif /* _WIN32 */
 	}
 
 	return pDr;

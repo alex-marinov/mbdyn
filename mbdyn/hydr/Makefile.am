@@ -31,6 +31,7 @@ AM_CPPFLAGS = \
 -I$(srcdir)/../../libraries/libmbutil \
 -I$(srcdir)/../../libraries/libmbmath \
 -I$(srcdir)/../../libraries/libmbwrap \
+-I$(srcdir)/../../libraries/libmbc \
 -I$(srcdir)/../../mbdyn \
 -I$(srcdir)/../../mbdyn/base \
 -I$(srcdir)/../../mbdyn/struct \

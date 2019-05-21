@@ -39,12 +39,18 @@ endif
 endif
 
 if USE_SOCKET
+if HAVE_GETPASS
 bin_PROGRAMS += \
-autopilot \
 sockdrive \
 socket2stream \
 stream2socket \
 trim
+endif
+
+if HAVE_TERMIOS
+bin_PROGRAMS += \
+autopilot
+endif
 
 if MBDYN_DEVEL
 bin_PROGRAMS += \
@@ -53,12 +59,21 @@ s2s_dss
 endif
 endif
 
+if INSTALL_TEST_PROGRAMS
+bin_PROGRAMS += \
+playground \
+test_modalext \
+test_modalext_edge \
+test_strext_edge
+noinst_PROGRAMS =
+else
 # do not install these
 noinst_PROGRAMS = \
 playground \
 test_modalext \
 test_modalext_edge \
 test_strext_edge
+endif
 
 if USE_OCTAVE
 noinst_PROGRAMS += \
@@ -68,12 +83,21 @@ endif
 noinst_LTLIBRARIES = libfemgen.la
 
 if USE_SOCKET
+if INSTALL_TEST_PROGRAMS
+bin_PROGRAMS += \
+test_modalext_socket \
+test_strext_socket \
+test_strext_socket_f \
+test_strext_socket_cxx \
+test_strext_socket_f_cxx
+else
 noinst_PROGRAMS += \
 test_modalext_socket \
 test_strext_socket \
 test_strext_socket_f \
 test_strext_socket_cxx \
 test_strext_socket_f_cxx
+endif
 
 # fake library to tweak the selected linker
 noinst_LTLIBRARIES += libstrext_socket_f.la

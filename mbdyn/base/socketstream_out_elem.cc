@@ -36,19 +36,28 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cstring>
+#include <stdio.h>
+#include <stdlib.h>
 
 #ifdef USE_SOCKET
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>
-#include <stdio.h>
-#include <stdlib.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <arpa/inet.h>
+#endif /* _WIN32 */
 #endif // USE_SOCKET
 
 #include "dataman.h"
@@ -72,12 +81,14 @@ SocketStreamElem::SocketStreamElem(unsigned int uL,
 	UseSocket *pUS,
 	StreamContent *pSC,
 	int flags, bool bSendFirst, bool bAbortIfBroken,
-	StreamOutEcho *pSOE)
+	StreamOutEcho *pSOE,
+	bool bMsgDontWait)
 : Elem(uL, flag(0)),
 StreamOutElem(uL, name, oe),
 pUS(pUS), pSC(pSC), send_flags(flags),
 bSendFirst(bSendFirst), bAbortIfBroken(bAbortIfBroken),
-pSOE(pSOE)
+pSOE(pSOE),
+bMsgDontWait(bMsgDontWait)
 {
 	if (pSOE) {
 		pSOE->Init("SocketStreamElem", uLabel, pSC->GetNumChannels());
@@ -152,9 +163,13 @@ SocketStreamElem::AfterConvergence(const VectorHandler& X,
 	// int rc = send(pUS->GetSock(), pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
 	ssize_t rc = pUS->send(pSC->GetOutBuf(), pSC->GetOutSize(), send_flags);
 	if (rc == -1 || rc != pSC->GetOutSize()) {
-		int save_errno = errno;
-
-		if (save_errno == EAGAIN && (send_flags & MSG_DONTWAIT)) {
+		int save_errno = WSAGetLastError();
+#ifdef _WIN32
+            int test_errno = WSAEWOULDBLOCK;
+#else
+            int test_errno = EAGAIN;
+#endif /* _WIN32 */
+		if (save_errno == test_errno && bMsgDontWait) {
 			// would block; continue (and discard...)
 			return;
 		}
@@ -309,6 +324,13 @@ void SocketStreamOutputElemCreator::getSocketStreamOutParam(DataManager *pDM, MB
 	}
 
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
+#ifdef _WIN32
+        silent_cerr("SocketStreamElem(" << uLabel << "): "
+            "local sockets are not supported on Windows, you must use inet "
+            "at line " << HP.GetLineData()
+            << std::endl);
+        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#else
 		const char *m = HP.GetFileName();
 
 		if (m == 0) {
@@ -319,6 +341,7 @@ void SocketStreamOutputElemCreator::getSocketStreamOutParam(DataManager *pDM, MB
 		}
 
 		socketStreamOutputDataTmp.path = m;
+#endif /* _WIN32 */
 	}
 
 	if (HP.IsKeyWord("port")) {
@@ -457,6 +480,7 @@ Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM,
 	}
 
 	Elem *pEl = 0;
+	bool bMsgDontWait = false;
 	
 	// .log file output
 	std::ostream& out = pDM->GetLogFile();
@@ -556,7 +580,13 @@ Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM,
 			out << " " << socketStreamOutputDataTmp.bCreate;
 
 
-		} else {
+		}
+		else {
+#ifdef _WIN32
+			silent_cerr("SocketStreamElem(" << uLabel << "): "
+				"Unix style local sockets are not supported on windows"
+				<< std::endl);
+#else
 			SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(socketStreamOutputDataTmp.path.c_str(),
 				socketStreamOutputDataTmp.socket_type, socketStreamOutputDataTmp.bCreate));
 			
@@ -570,7 +600,8 @@ Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM,
 			} else {
 				out << " tcp";
 			}
-			out << " " << socketStreamOutputDataTmp.bCreate;	
+			out << " " << socketStreamOutputDataTmp.bCreate;
+#endif // _WIN32	
 		}
 
 		if (socketStreamOutputDataTmp.bCreate) {
@@ -603,6 +634,11 @@ Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM,
 			socketStreamOutputDataTmp.flags &= ~MSG_DONTWAIT;
 		}
 #else // !MSG_DONTWAIT
+
+                if (socketStreamOutputDataTmp.bNonBlocking) {
+                    bMsgDontWait = true;
+                }
+
 		silent_cerr("SocketStreamElem(" << uLabel << "): "
 			"MSG_DONTWAIT undefined; "
 			"your mileage may vary" << std::endl);
@@ -614,7 +650,7 @@ Elem* SocketStreamOutputElemCreator::createSocketStreamOutElem(DataManager *pDM,
 			SocketStreamElem(uLabel, socketStreamOutputDataTmp.name, socketStreamOutputDataTmp.OutputEvery,
 				pUS, socketStreamOutputDataTmp.pSC, socketStreamOutputDataTmp.flags,
 				socketStreamOutputDataTmp.bSendFirst, socketStreamOutputDataTmp.bAbortIfBroken,
-				socketStreamOutputDataTmp.pSOE));
+				socketStreamOutputDataTmp.pSOE, bMsgDontWait));
 
 		out 
 			<< " " << (!socketStreamOutputDataTmp.bNoSignal)

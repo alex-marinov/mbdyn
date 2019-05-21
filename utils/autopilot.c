@@ -145,17 +145,22 @@ unsigned short int	port = 0;
 int
 send_message(const char *message)
 {
-	int sock;
+	SOCKET sock;
 	struct sockaddr_in peer_name;
 	FILE *fd;
 
 	/* Create the socket. */
 	if (path) {
+#ifndef _WIN32
 		sock = mbdyn_make_named_socket(0, path, 0, NULL);
+#else
+		fprintf(stderr, "Unix named sockets not supported on windows.\n");
+		return -1;
+#endif /* !_WIN32 */
 	} else {
-		sock = mbdyn_make_inet_socket(0, host, port, 0, NULL);
+		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 	}
-	if (sock < 0) {
+	if (sock == INVALID_SOCKET) {
 		return -1;
 	}
 

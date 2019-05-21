@@ -43,6 +43,7 @@ extern const char *MBDynSocketDrivePath;
 
 #include "auth.h"
 #include "filedrv.h"
+#include "sock.h"
 
 /* SocketDrive - begin */
 
@@ -63,19 +64,24 @@ protected:
 
    	int *pFlags;
 
-   	int sock;
+   	SOCKET sock;
 
 	void Init(void);
 
 public:
-   	SocketDrive(unsigned int uL, const DriveHandler* pDH,
+   	SocketDrive(unsigned int uL,
+                const DriveHandler* pDH,
 	        unsigned short int p, AuthMethod* a,
-		integer nd, const std::vector<doublereal>& v0);
+		        integer nd,
+		        const std::vector<doublereal>& v0);
 
-   	SocketDrive(unsigned int uL, const DriveHandler* pDH,
+#ifndef _WIN32
+   	SocketDrive(unsigned int uL,
+                const DriveHandler* pDH,
 	        const char *path,
-		integer nd, const std::vector<doublereal>& v0);
-
+		        integer nd,
+		        const std::vector<doublereal>& v0);
+#endif /* _WIN32 */
    	virtual ~SocketDrive(void);
 
    	/* Scrive il contributo del DriveCaller al file di restart */

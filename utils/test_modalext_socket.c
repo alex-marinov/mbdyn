@@ -59,7 +59,7 @@ usage(void)
 		"usage: testsocket [options]\n"
 		"\t-c [random:]<c>\tnumber of iterations\n"
 		"\t-f {fx,fy,fz,mx,my,mz} reference node force/moment\n"
-		"\t-H <url>\tURL (local://path | inet://host:port)\n"
+		"\t-H <url>\tURL (local://path | inet://host:port) note local sockets not supported on Windows\n"
 		"\t-M <modes>\tmodes number\n"
 		"\t-p {p1,...,pM}\tmodal forces (need -M first)\n"
 		"\t-r\t\tuse reference node data\n"
@@ -179,10 +179,16 @@ main(int argc, char *argv[])
 				port = (unsigned short)l;
 
 			} else if (strncasecmp(optarg, "local://", sizeof("local://") - 1) == 0) {
+#ifdef _WIN32
+				fprintf(stderr, "test_modalext_socket: "
+					"local sockets are not supported in Windows\n");
+				usage();
+#else
 				path = optarg + sizeof("local://") - 1;
 				if (path[0] != '/') {
 					usage();
 				}
+#endif /* _WIN32 */
 
 			} else {
 				usage();
@@ -290,9 +296,15 @@ main(int argc, char *argv[])
 	}
 
 	if (path) {
+#ifdef _WIN32
+		fprintf(stderr, "test_modalext_socket: "
+				"Windows does not support local sockets\n ");
+		exit(EXIT_FAILURE);
+#else
 		if (mbc_unix_init((mbc_t *)mbc, path)) {
 			exit(EXIT_FAILURE);
 		}
+#endif /* _WIN32 */
 
 	} else if (host) {
 		if (mbc_inet_init((mbc_t *)mbc, host, port)) {

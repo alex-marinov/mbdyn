@@ -36,20 +36,32 @@
 #include "dataman_.h"
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <errno.h>
 #include <unistd.h>
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <sys/un.h>
 #include <netdb.h>
+#endif /* _WIN32 */
+
+#include "sock.h"
 
 void
 DataManager::RegisterSocketUser(UseSocket *pUS)
 {
-	ASSERT(pUS->GetSock() != -1);
-	SocketUsers[pUS->GetSock()] = pUS;
+	ASSERT(pUS->GetSock() != INVALID_SOCKET);
+	SocketUsers[SocketUsers.size()] = pUS;
 }
 
 void
@@ -75,21 +87,24 @@ DataManager::WaitSocketUsers(void)
 		finalTime = time(NULL) + SocketUsersTimeout;
 	}
 	
+	/* declare two sets of sockets, zeroing them out with FD_ZERO */
 	fd_set	active_set, read_set;
 	FD_ZERO(&active_set);
 
-	/* insert registered sockets in set */
+	/* insert the already registered sockets into active set */
 	std::map<int, UseSocket *>::iterator ri;
 	std::map<int, UseSocket *>::const_iterator re = SocketUsers.end();
-	int n;
-	for (n = 0, ri = SocketUsers.begin(); ri != re; ++n, ++ri) {
-		FD_SET(ri->first, &active_set);
+	int nactive; /* count how many are added */
+	for (nactive = 0, ri = SocketUsers.begin(); ri != re; ++nactive, ++ri) {
+		FD_SET(ri->second->GetSock(), &active_set);
 	}
 
 	/* wait for all registered */
-	while (n > 0) {
-		struct timeval	timeout, *timeoutp = 0;
-
+	while (nactive > 0) {
+		struct timeval	timeout, *timeoutp = NULL;
+        /* check if user specified timeout for connection to be made
+           successfully has passed. If finalTime is zero, there is
+           no timeout and we will keep trying forever. */
 		if (finalTime != 0) {
 			timeout.tv_sec = time(NULL);
 			if (timeout.tv_sec >= finalTime) {
@@ -106,11 +121,12 @@ do_timeout:;
 		}
 
 		read_set = active_set;
+		/* FD_SETSIZE determines the maximum number of descriptors in a set. */
 		int a = select(FD_SETSIZE, &read_set, 0, 0, timeoutp);
 		switch (a) {
-		case -1: {
-			int save_errno = errno;
-			char *msg = strerror(save_errno);
+		case SOCKET_ERROR: {
+			int save_errno = WSAGetLastError();
+			char *msg = sock_err_string(save_errno);
 
 			silent_cerr("select() failed: " << save_errno << " "
 				"(" << msg << ")" << std::endl);
@@ -122,16 +138,22 @@ do_timeout:;
 		}
 
 		/* loop on active to see what is being connected */
-		for (int i = 0; i < FD_SETSIZE && a > 0; i++) {
-			if (FD_ISSET(i, &read_set)) {
-				UseSocket *pUS = SocketUsers[i];
-				int sock;
+		for (int i = 0; i < nactive && a != SOCKET_ERROR; i++) {
 				
-				sock = accept(i, pUS->GetSockaddr(),
+			UseSocket *pUS = SocketUsers[i];
+            
+			int isset = FD_ISSET(pUS->GetSock(), &read_set);
+
+			if (isset) {
+
+				SOCKET sock;
+
+				sock = accept(pUS->GetSock(), pUS->GetSockaddr(),
 						&pUS->GetSocklen());
-				if (sock < 0) {
-					int save_errno = errno;
-					char *msg = strerror(save_errno);
+
+				if (sock == INVALID_SOCKET) {
+					int save_errno = WSAGetLastError();
+					char *msg = sock_err_string(save_errno);
 
 					silent_cerr("accept() failed: "
 							<< save_errno << " "
@@ -141,13 +163,19 @@ do_timeout:;
 				}
 
 				/* remove accepted from set */
-				FD_CLR(i, &active_set);
-				close(i);
+				FD_CLR(pUS->GetSock(), &active_set);
+
+#ifdef _WIN32
+				closesocket (pUS->GetSock());
+#else
+				close(pUS->GetSock());
+#endif /* _WIN32 */
+
 				SocketUsers.erase(i);
 
 				/* register as connected */
 				pUS->ConnectSock(sock);
-				n--;
+				nactive--;
 				a--;
 			}
 		}

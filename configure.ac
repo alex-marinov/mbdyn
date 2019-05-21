@@ -204,6 +204,7 @@ OL_ARG_ENABLE(python,[  --enable-python         enable Python support],no)dnl
 OL_ARG_ENABLE(octave,[  --enable-octave         enable Octave support],no)dnl
 OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
+OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
@@ -437,6 +438,11 @@ AC_CHECK_HEADERS(sys/ioctl.h)
 AC_CHECK_HEADERS(time.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(values.h)
+dnl termios.h used in utils autopilot.c, we don't build if we don't have it (e.g. on windows)
+AC_CHECK_HEADER(termios.h, [have_termios=yes], [have_termios=no])
+
+dnl on windows we use winsock
+AC_CHECK_HEADERS(winsock2.h)
 
 
 dnl ----------------------------------------------------------------
@@ -1234,6 +1240,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks for socket
 dnl
+AC_CHECK_LIB([ws2_32], [main])
 AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
 use_socket=no
 if test "$have_socket" = "yes" ; then
@@ -1246,6 +1253,13 @@ if test "$have_socket" = "yes" ; then
 		AC_TRY_COMPILE([#include <sys/socket.h>],[
 			socklen_t l;
 		],[have_socklen_t=yes],[have_socklen_t=no])
+
+		if test "$have_socklen_t" = "no" ; then
+			AC_TRY_COMPILE([#include <ws2tcpip.h>],[
+				socklen_t l;
+			],[have_socklen_t=yes],[have_socklen_t=no])
+		fi
+
 		if test $have_socklen_t != no ; then
 			AC_DEFINE(HAVE_SOCKLEN_T,1,
 				[define if typedef socklen_t is defined])
@@ -1494,7 +1508,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for build mbc library
 dnl
-dnl do not build libmbm if sockets are not available (fixes issue in MinGW)
+dnl do not build libmbc if sockets are not available (fixes issue in MinGW)
 AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes" -a "$have_socket" = "yes"])
 
 dnl ----------------------------------------------------------------
@@ -3283,6 +3297,10 @@ AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
 AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])
+
+AM_CONDITIONAL(HAVE_TERMIOS,[test "$have_termios" = yes])
+AM_CONDITIONAL(HAVE_GETPASS,[test "$have_getpass" = yes])
+AM_CONDITIONAL(INSTALL_TEST_PROGRAMS,[test "$ol_enable_install_test_progs" = yes])
 
 dnl ----------------------------------------------------------------
 dnl

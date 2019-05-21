@@ -32,17 +32,31 @@
 #ifndef USESOCK_H
 #define USESOCK_H
 #ifdef USE_SOCKET
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  /* Assume that any non-Windows platform uses POSIX-style sockets instead. */
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <sys/un.h>
+#endif
+
+#include "sock.h"
 
 class UseSocket {
 protected:
-	int sock;
+	SOCKET sock;
 	int socket_type;
 	bool create;
 	bool connected;
 	bool abandoned;
+	bool isblocking;
 
 	mutable socklen_t socklen;
 
@@ -55,7 +69,7 @@ public:
 	
 	virtual std::ostream& Restart(std::ostream& out) const;
 
-	int GetSock(void) const;
+	SOCKET GetSock(void) const;
 	void SetSock(int s);
 	virtual void Connect(void);
 	virtual void ConnectSock(int s);
@@ -63,12 +77,13 @@ public:
 	bool Connected(void) const;
 	void Abandon(void);
 	bool Abandoned(void) const;
+	bool IsBlocking(void) { return isblocking; }
 
 	socklen_t& GetSocklen(void) const;
 	virtual struct sockaddr *GetSockaddr(void) const = 0;
 
 	ssize_t send(const void *buf, size_t len, int flags);
-	ssize_t recv(void *buf, size_t len, int flags);
+	ssize_t recv(void *buf, size_t len, int flags, bool bMsgDontWait);
 };
 
 class UseInetSocket : public UseSocket {
@@ -91,6 +106,7 @@ public:
 	struct sockaddr *GetSockaddr(void) const;
 };
 
+#ifndef _WIN32
 class UseLocalSocket : public UseSocket {
 protected:
 	std::string path;
@@ -109,6 +125,8 @@ public:
 	void ConnectSock(int s);
 	struct sockaddr *GetSockaddr(void) const;
 };
+#endif /* _WIN32 */
+
 #endif
 #endif /* USESOCK_H */
 

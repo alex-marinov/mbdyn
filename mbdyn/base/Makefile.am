@@ -63,6 +63,8 @@ external.cc \
 external.h \
 extforce.cc \
 extforce.h \
+extsocket.cc \
+extsocket.h \
 filedrv.cc \
 filedrv.h \
 fixedstep.cc \

@@ -32,6 +32,8 @@
 #ifndef SOCK_H
 #define SOCK_H
 
+#include "mbconfig.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -40,21 +42,110 @@ extern "C" {
 typedef int socklen_t;
 #endif /* HAVE_SOCKLEN_T */
 
+#ifndef _WIN32
+/* We define the SOCKET type if not defined already */
+#ifndef SOCKET_TYPEDEF
+#define SOCKET_TYPEDEF
+typedef int SOCKET;
+#endif /* SOCKET_TYPEDEF */
+#endif /* ! _WIN32 */
+
+/** Creates an inet socket of default type (SOCK_STREAM)
+ *
+ *  param name Output sockaddr_in structure which will have a name of the socket added
+ *    a new sockaddr_in structure will be created if this is NULL
+ *  param hostname Input A pointer to a NULL-terminated ANSI string that contains a host
+ *    (node) name or a numeric host address string. The numeric host address string is an
+ *    IPv4 address or an IPv6 hex address.
+ *  param port Input port number on which which to connect
+ *  param dobind Input flag determining whether to bind to the socket
+ *  param perror Output error returned when the socket was created
+ *
+ */
 extern int
-mbdyn_make_inet_socket(struct sockaddr_in *name, const char *hostname,
+mbdyn_make_inet_socket(SOCKET* sock, struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int dobind, int *perror);
 
+/** Creates an inet socket
+ *
+ *  param name Output sockaddr_in structure which will have a name of the socket added
+ *    a new sockaddr_in structure will be created if this is NULL
+ *  param hostname Input A pointer to a NULL-terminated ANSI string that contains a host
+ *    (node) name or a numeric host address string. The numeric host address string is an
+ *    IPv4 address or an IPv6 hex address.
+ *  param port Input port number on which which to connect
+ *  param socket_type Input type of socket to be created, can be SOCK_STREAM or
+ *    SOCK_DGRAM
+ *  param dobind Input flag determining whether to bind to the socket
+ *  param perror Output error returned when the socket was created
+ *
+ */
 extern int
-mbdyn_make_inet_socket_type(struct sockaddr_in *name, const char *hostname,
+mbdyn_make_inet_socket_type(SOCKET* sock, struct sockaddr_in *name, const char *hostname,
 	unsigned short int port, int socket_type, int dobind, int *perror);
 
+char* sock_err_string (int err);
+
+#ifdef _WIN32
+
+/* h_errno is not used on windows for sockets, we can't redefine errno, but
+   it should be safe enough to redefine h_errno which is
+   networking specific */
+#define h_errno WSAGetLastError()
+
+
+void winsock_err_string (int err, char* msg);
+
+#else
+
+#ifndef SOCKET_ERROR
+#define SOCKET_ERROR -1
+#endif /* ! SOCKET_ERROR */
+
+/* winsock sockets return INVALID_SOCKET rather that -1
+   so we define it here for BSD sockets */
+#ifndef INVALID_SOCKET
+#define INVALID_SOCKET -1
+#endif /* INVALID_SOCKET */
+
+/* errno does not work on windows with winsock, you must call
+   WSAGetLastError instead. On other platforms we define this function
+   here, which simply returns errno */
+extern int
+WSAGetLastError(void);
+
+/** Creates a local (unix) socket of default type (SOCK_STREAM)
+ *
+ *  param name Output sockaddr_un structure which will have a name of the socket added
+ *    a new sockaddr_in structure will be created if this is NULL
+ *  param path Input A pointer to a NULL-terminated ANSI string that contains a path
+ *    for the socket connection
+ *  param port Input port number on which which to connect
+ *  param dobind Input flag determining whether to bind to the socket
+ *  param perror Output error returned when the socket was created
+ *
+ */
 extern int
 mbdyn_make_named_socket(struct sockaddr_un *name, const char *path,
 	int dobind, int *perror);
 
+/** Creates a local (unix) socket
+ *
+ *  param name Output sockaddr_un structure which will have a name of the socket added
+ *    a new sockaddr_un structure will be created if this is NULL
+ *  param path Input A pointer to a NULL-terminated ANSI string that contains a path
+ *    for the socket connection
+ *  param port Input port number on which which to connect
+ *  param socket_type Input type of socket to be created, can be SOCK_STREAM or
+ *    SOCK_DGRAM
+ *  param dobind Input flag determining whether to bind to the socket
+ *  param perror Output error returned when the socket was created
+ *
+ */
 extern int
 mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 	int socket_type, int dobind, int *perror);
+#endif /* _WIN32 */
 
 /* These have been erased from FreeBSD's headers, so we have to 
  * work around with this ugly hack. This is not exactly the same,
@@ -65,9 +156,6 @@ mbdyn_make_named_socket_type(struct sockaddr_un *name, const char *path,
 #ifndef IPPORT_USERRESERVED
 #define IPPORT_USERRESERVED IPPORT_RESERVED
 #endif /* ! IPPORT_USERRESERVED */
-#ifndef MSG_NOSIGNAL
-#define MSG_NOSIGNAL SO_NOSIGPIPE
-#endif /* ! MSG_NOSIGNAL */
 
 /* MBDyn's default socket type is tcp (SOCK_STREAM) (not udp, SOCK_DGRAM) */
 #define MBDYN_DEFAULT_SOCKET_TYPE SOCK_STREAM

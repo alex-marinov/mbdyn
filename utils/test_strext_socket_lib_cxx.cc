@@ -213,11 +213,16 @@ test_init(int argc, char *argv[])
 				port = (unsigned short)l;
 
 			} else if (strncasecmp(optarg, "local://", sizeof("local://") - 1) == 0) {
+#ifdef _WIN32
+				fprintf(stderr, "test_strext_socket: "
+					"local sockets are not supported in Windows\n");
+				usage();
+#else
 				path = optarg + sizeof("local://") - 1;
 				if (path[0] != '/') {
 					usage();
 				}
-
+#endif /* _WIN32 */
 			} else {
 				usage();
 			}
@@ -464,11 +469,16 @@ test_init(int argc, char *argv[])
 	}
 
 	if (path) {
+#ifdef _WIN32
+		fprintf(stderr, "test_strext_socket: "
+				"Windows does not support local sockets\n ");
+		exit(EXIT_FAILURE);
+#else
 		/* initialize UNIX socket (path) */
 		if (mbc->Init(path)) {
 			exit(EXIT_FAILURE);
 		}
-
+#endif /* _WIN32 */
 	} else if (host) {
 		/* initialize INET socket (host, port) */
 		if (mbc->Init(host, port)) {

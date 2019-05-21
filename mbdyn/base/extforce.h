@@ -71,6 +71,13 @@ public:
 		OUTPUT_REF_DYN = (OUTPUT_REF | OUTPUT_DYN)
 	};
 
+	enum Type {
+	    TYPE_NONE,
+	    TYPE_FILE,
+	    TYPE_SOCKET,
+	    TYPE_EDGE,
+	};
+
 protected:
 	std::streamsize Precision;
 	mbsleep_t SleepTime;
@@ -96,6 +103,8 @@ public:
 	virtual bool Recv_pre(void) = 0;
 	// NOTE: returns true if converged
 	virtual bool Recv_post(void) = 0;
+
+	virtual ExtFileHandlerBase::Type GetType(void) { return ExtFileHandlerBase::TYPE_NONE; };
 
 	virtual std::ostream *GetOutStream(void);
 	virtual std::istream *GetInStream(void);
@@ -137,51 +146,52 @@ public:
 	virtual bool Recv_pre(void);
 	virtual bool Recv_post(void);
 
+	virtual ExtFileHandlerBase::Type GetType(void){ return ExtFileHandlerBase::TYPE_FILE; };
+
 	virtual std::ostream *GetOutStream(void);
 	virtual std::istream *GetInStream(void);
 };
 
 /* ExtFileHandler - end */
 
-/* ExtSocketHandler - begin */
+ /* ExtRemoteHandler - begin */
 
-#ifdef USE_SOCKET
-class ExtSocketHandler : public ExtFileHandlerBase {
+/** ExtRemoteHandler. Base class for remote communication classes
+ *
+ */
+class ExtRemoteHandler : public ExtFileHandlerBase {
 protected:
-	UseSocket *pUS;
-	unsigned recv_flags;
-	unsigned send_flags;
+
 	bool bReadForces;
 	bool bLastReadForce;
 
 	ESCmd u2cmd(unsigned u) const;
 	const char *cmd2str(ESCmd cmd) const;
+	bool ActOnCmd(uint8_t u);
 
 public:
-	ExtSocketHandler(UseSocket *pUS, mbsleep_t SleepTime,
-		int recv_flags, int send_flags);
-	virtual ~ExtSocketHandler(void);
+	ExtRemoteHandler(mbsleep_t SleepTime, bool bReadForces, bool bLastReadForce);
+	virtual ~ExtRemoteHandler(void);
 
-	virtual bool Prepare_pre(void);
-	virtual Negotiate NegotiateRequest(void) const;
-	virtual void Prepare_post(bool ok);
+	virtual bool Prepare_pre(void) = 0;
+	virtual Negotiate NegotiateRequest(void) const = 0;
+	virtual void Prepare_post(bool ok) = 0;
 
 	virtual void AfterPredict(void);
 
-	virtual bool Send_pre(SendWhen when);
+	virtual bool Send_pre(SendWhen when) = 0;
 	virtual void Send_post(SendWhen when);
 
-	virtual bool Recv_pre(void);
+	virtual bool Recv_pre(void) = 0;
 	virtual bool Recv_post(void);
 
-	virtual int GetOutFileDes(void);
-	virtual int GetSendFlags(void) const;
-	virtual int GetInFileDes(void);
-	virtual int GetRecvFlags(void) const;
-};
-#endif // USE_SOCKET
+	virtual ExtFileHandlerBase::Type GetType(void) { return ExtFileHandlerBase::TYPE_NONE; };
 
-/* ExtSocketHandler - end */
+};
+
+/* ExtRemoteHandler - end */
+
+/* ExtSocketHandler moved to extsocket.h, extsocket.cc */
 
 /* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
 

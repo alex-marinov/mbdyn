@@ -83,7 +83,7 @@ protected:
 		CLOSED
 	} m_status;
 
-	Status GetStatus(void) const;
+
 	void SetStatus(Status s);
 
 public:
@@ -93,6 +93,7 @@ public:
 	int Init(const char *const path);
 	int Init(const char *const host, short unsigned port);
 
+	Status GetStatus(void) const;
 	virtual int Negotiate(void) const = 0;
 	virtual int PutForces(bool bConverged) const = 0;
 	virtual int GetMotion(void) const = 0;

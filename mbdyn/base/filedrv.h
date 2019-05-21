@@ -56,8 +56,11 @@ public:
 		const std::string& s,
 		integer nd, const std::vector<doublereal>& v0);
 	virtual ~FileDrive(void);
-
-	virtual Drive::Type GetDriveType(void) const;
+#ifdef _WIN32
+// Microsoft think macros are great!
+#undef GetDriveType
+#endif // _WIN32
+	virtual Drive::Type GetDriveType(void) const override;
 
 	/* Scrive il contributo del DriveCaller al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const = 0;

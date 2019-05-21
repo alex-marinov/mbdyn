@@ -33,6 +33,7 @@
 
 #include "dataman.h"
 #include "extedge.h"
+#include "extsocket.h"
 #include "modaledge.h"
 #include "modalmappingext.h"
 
