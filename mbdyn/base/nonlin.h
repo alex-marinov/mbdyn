@@ -78,6 +78,7 @@ public:
 		NONE,
 		NORM,
 		MINMAX,
+		RELNORM,
 
 		LASTNONLINEARSOLVERTEST
 	};
