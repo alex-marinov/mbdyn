@@ -571,7 +571,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 #if defined(USE_NETCDFC)
 			if (!i->Var_Phi) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
-			if (!i->Var_Phi.isNull() {
+			if (!i->Var_Phi.isNull()) {
 #endif // USE_NETCDF4
 				Vec3 E;
 				switch (od) {
