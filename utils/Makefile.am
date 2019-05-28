@@ -39,6 +39,7 @@ endif
 endif
 
 if USE_SOCKET
+
 if HAVE_GETPASS
 bin_PROGRAMS += \
 sockdrive \
@@ -53,10 +54,13 @@ autopilot
 endif
 
 if MBDYN_DEVEL
+if !WINDOWS
 bin_PROGRAMS += \
 s2s_gpc \
 s2s_dss
 endif
+endif
+
 endif
 
 if INSTALL_TEST_PROGRAMS
