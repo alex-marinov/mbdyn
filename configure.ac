@@ -272,13 +272,20 @@ AC_ARG_WITH(module,[
 OL_ARG_WITH(charm,[  --with-charm            with CHARM WP module],no,[auto yes no])
 
 fool_libtool=yes
+build_windows=no
 case "$host" in
 	*-apple-*)
 		fool_libtool=no
 		;;
+    cygwin*|*mingw*)
+        build_windows=yes
+        ;;
 	*)
 		;;
 esac
+
+dnl Add a conditional we can use in Makefile.am for MS Windows builds
+AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl
@@ -295,8 +302,8 @@ fi
 AC_PROG_FC
 AC_FC_DUMMY_MAIN
 AC_FC_LIBRARY_LDFLAGS
+AC_PROG_F77
 if test "x$FC" = "x" ; then
-	AC_PROG_F77
 	if test "x$F77" = "x" ; then
 		AC_MSG_ERROR([Need a working Fortran compiler])
 	fi
@@ -585,7 +592,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 		nc.sync(); // test for sync option (comes in later version, >=4.3.0)
 		nc.close(); // test for close (appears in 4.3.0)
 				],[
-					
+
 				], [
 					have_libnetcdf4=no
 					AC_MSG_WARN([netcdf-cxx4 version too old, either link version 4.3.0 or more recent
@@ -658,7 +665,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			AC_MSG_WARN([Not using classic/legacy netcdf])
 		fi
 	fi
-	
+
 	if test $have_libnetcdf4 = yes ; then
 		AC_DEFINE(USE_NETCDF4,1,[define this to enable NetCDF4 based output])
 		AC_DEFINE(USE_NETCDF,1,[also define this to enable NetCDF4 based output])
@@ -670,7 +677,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			AC_MSG_WARN([Not using netcdf4])
 		fi
 	fi
-	
+
 	if test "$have_libnetcdf4" != yes ; then
 		if test "$have_libnetcdfc" != yes ; then
 			if test $ol_enable_netcdf != auto ; then
@@ -678,7 +685,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			fi
 		fi
 	fi
-	
+
 fi
 
 if test "$ol_enable_netcdf" != no ; then
