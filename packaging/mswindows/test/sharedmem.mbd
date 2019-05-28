@@ -1,0 +1,78 @@
+
+begin: data;
+  integrator: initial value;
+end: data;
+
+begin: initial value;
+  initial time: 0.;
+  # final time: .001;
+  final time: 0.1;
+  time step: 1e-3;
+
+  tolerance: 1e-9;
+  max iterations: 10;
+
+  #derivatives tolerance: 1;
+  derivatives max iterations: 10;
+  #derivatives coefficient: 1;
+
+  threads: disable;
+
+  #output: iterations;
+  #output: residual;
+end: initial value;
+
+begin: control data;
+  structural nodes:
+    +1
+    +1
+  ;
+  joints:
+    +1  # clamp
+  ;
+  rigid bodies:
+    +1
+  ;
+  forces:
+    +1  # extnodal
+  ;
+
+  default orientation: orientation matrix;
+
+end: control data;
+
+begin: nodes;
+  structural: 0, static,
+    null,
+    eye,
+    null,
+    null;
+  structural: 1, dynamic,
+    null,
+    eye,
+    null,
+    null;
+end: nodes;
+
+begin: elements;
+
+  joint: 0, clamp, 0, node, node;
+
+  body: 1, 1,
+    1.,
+    null,
+    eye;
+
+  force: 10, external structural,  # force from external program
+    shared memory,                 # communicator
+      create, yes,
+      name, "shared_mem_test_shmName",
+      coupling,
+        tight,
+    2,                      # number of nodes to receive forces
+      0, offset, null,      # first node
+      1, offset, null;      # second node
+
+end: elements;
+
+# vim:ft=mbd
