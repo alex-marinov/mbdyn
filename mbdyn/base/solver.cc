@@ -676,6 +676,10 @@ Solver::Prepare(void)
 			SAFENEW(pResTestScale, NonlinearSolverTestScaleMinMax);
 			break;
 
+		case NonlinearSolverTest::RELNORM:
+			SAFENEW(pResTestScale, NonlinearSolverTestScaleRelNorm);
+			break;
+
 		default:
 			ASSERT(0);
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -699,6 +703,10 @@ Solver::Prepare(void)
 
 		case NonlinearSolverTest::MINMAX:
 			SAFENEW(pResTest, NonlinearSolverTestMinMax);
+			break;
+
+		case NonlinearSolverTest::RELNORM:
+			SAFENEW(pResTest, NonlinearSolverTestRelNorm);
 			break;
 
 		default:
@@ -2620,6 +2628,8 @@ Solver::ReadData(MBDynParser& HP)
 						ResTest = NonlinearSolverTest::NORM;
 					} else if (HP.IsKeyWord("minmax")) {
 						ResTest = NonlinearSolverTest::MINMAX;
+					} else if (HP.IsKeyWord("relnorm")) {
+						ResTest = NonlinearSolverTest::RELNORM;
 					} else if (HP.IsKeyWord("none")) {
 						ResTest = NonlinearSolverTest::NONE;
 					} else {
