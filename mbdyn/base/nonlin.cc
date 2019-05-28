@@ -234,6 +234,37 @@ NonlinearSolverTestNorm::TestPost(const doublereal& dRes) const
 
 /* NonlinearSolverTestNorm - end */
 
+/* NonlinearSolverTestRelNorm - begin */
+
+void
+NonlinearSolverTestRelNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestRelNorm::TestMerge(doublereal& dResCurr,
+		const doublereal& dResNew) const
+{
+	dResCurr += dResNew;
+}
+
+doublereal
+NonlinearSolverTestRelNorm::TestPost(const doublereal& dRes) const
+{
+	/* va qui perche' non posso fare sqrt() su !isfinite() */
+	if (!std::isfinite(dRes)) {
+		throw NonlinearSolver::ErrSimulationDiverged(MBDYN_EXCEPT_ARGS);
+	}
+
+	return sqrt(dRes);
+}
+
+/* NonlinearSolverTestNorm - end */
+
 /* NonlinearSolverTestMinMax */
 
 void
@@ -308,6 +339,32 @@ NonlinearSolverTestScaleNorm::TestMerge(doublereal& dResCurr,
 
 const doublereal&
 NonlinearSolverTestScaleNorm::dScaleCoef(const integer& iIndex) const
+{
+	return NonlinearSolverTestScale::dScaleCoef(iIndex);
+}
+
+/* NonlinearSolverTestScaleNorm - end */
+
+/* NonlinearSolverTestScaleRelNorm - begin */
+
+void
+NonlinearSolverTestScaleRelNorm::TestOne(doublereal& dRes,
+		const VectorHandler& Vec, const integer& iIndex, doublereal dCoef) const
+{
+	doublereal d = Vec(iIndex) * (*pScale)(iIndex) * dCoef;
+
+	dRes += d*d;
+}
+
+void
+NonlinearSolverTestScaleRelNorm::TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const
+{
+	NonlinearSolverTestNorm::TestMerge(dResCurr, dResNew);
+}
+
+const doublereal&
+NonlinearSolverTestScaleRelNorm::dScaleCoef(const integer& iIndex) const
 {
 	return NonlinearSolverTestScale::dScaleCoef(iIndex);
 }
