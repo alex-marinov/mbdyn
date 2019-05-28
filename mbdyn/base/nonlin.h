@@ -146,6 +146,15 @@ public:
 	virtual doublereal TestPost(const doublereal& dRes) const;
 };
 
+class NonlinearSolverTestRelNorm : virtual public NonlinearSolverTest {
+public:
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual doublereal TestPost(const doublereal& dRes) const;
+};
+
 class NonlinearSolverTestMinMax : virtual public NonlinearSolverTest {
 public:
         virtual Type GetType() const;
@@ -170,6 +179,16 @@ class NonlinearSolverTestScaleNorm : virtual public NonlinearSolverTestScale,
 	virtual public NonlinearSolverTestNorm {
 public:
         virtual Type GetType() const;
+	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
+			const integer& iIndex, doublereal dCoef) const;
+	virtual void TestMerge(doublereal& dResCurr,
+			const doublereal& dResNew) const;
+	virtual const doublereal& dScaleCoef(const integer& iIndex) const;
+};
+
+class NonlinearSolverTestScaleRelNorm : virtual public NonlinearSolverTestScale,
+	virtual public NonlinearSolverTestNorm {
+public:
 	virtual void TestOne(doublereal& dRes, const VectorHandler& Vec,
 			const integer& iIndex, doublereal dCoef) const;
 	virtual void TestMerge(doublereal& dResCurr,
