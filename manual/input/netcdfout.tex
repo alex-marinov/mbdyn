@@ -204,6 +204,7 @@ Currently supported element types are:
 \item Beam elements, indicated as \kw{beam2} and \kw{beam3}
 for 2- and 3-node beam elements, respectively.
 \item Force and couple elements, indicated as \kw{force} and \kw{couple}.
+\item Joint elements, indicated as \kw{joints}.
 \end{itemize}
 
 
@@ -401,6 +402,311 @@ the type is \kw{internal follower}.
 \item \kw{elem.couple.}\bnt{label}\kw{.M} contains the three components of the force, in the absolute reference frame.
 \end{itemize}
 
+\subsubsection{Joint} 
+\label{sec:NetCDF:Elem:Joint}
+
+All the joint elements write the following variables
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.f} contains the three components of the reaction
+  force, in the relative reference frame.
+\item \kw{elem.joint.}\bnt{label}\kw{.m} contains the three components of the reaction
+  moment, in the relative reference frame.
+\item \kw{elem.joint.}\bnt{label}\kw{.F} contains the three components of the reaction
+  force, in the absolute reference frame.
+\item \kw{elem.joint.}\bnt{label}\kw{.M} contains the three components of the reaction
+  moment, in the absolute reference frame.
+\end{itemize}
+
+Additional variables can be added, depending on the joint type. 
+
+\paragraph{Angular acceleration:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.wP} contains the three components of the imposed
+  angular acceleration, in the joint reference frame.
+\end{itemize}
+
+\paragraph{Angular velocity:}
+\begin{itemize}
+\item \kw{elem.joint}\bnt{label}\kw{.w} contains the three component of the axis about
+  which the angular velocity is imposed, in the absolute reference frame;
+\item \kw{elem.joint}\bnt{label}\kw{.dOmega} contains the absolute value of the imposed
+  angular velocity.
+\end{itemize}
+
+\paragraph{Axial rotation:}
+\begin{itemize}
+\item \kw{elem.joint}\bnt{label}\kw{.Phi} contains the relative orientation of the
+  connected nodes, expressed in the joint reference frame attached to node 1;
+\item \kw{elem.joint}\bnt{label}\kw{.Omega} contains the relative angular velocity
+  of the two connected nodes, expressed in the joint reference frame attached to node 1.
+\end{itemize}
+
+If friction is present:
+\begin{itemize}
+\item \kw{elem.joint}\bnt{label}\kw{.MR} contains the friction moment;
+\item \kw{elem.joint}\bnt{label}\kw{.fc} contains the friction coefficient.
+\end{itemize}
+
+\paragraph{Beam slider:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Beam} contains the label of the current beam;
+\item \kw{elem.joint.}\bnt{label}\kw{.sRef} contains the current curvilinear abscissa;
+\item \kw{elem.joint.}\bnt{label}\kw{.l} contains the local direction unit vector.
+\end{itemize}
+
+\paragraph{Brake:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector 
+  expressing the relative orientation of the connected nodes, with respect to node 1;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity, expressed in the reference frame of node 2.
+\end{itemize}
+
+If friction is present:
+\begin{itemize}
+\item \kw{elem.joint}\bnt{label}\kw{.fc} contains the friction coefficient;
+\item \kw{elem.joint}\bnt{label}\kw{.Fb} contains the brake force.
+\end{itemize}
+
+\paragraph{Cardano rotation/pin:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the reference frame of node 2.
+\end{itemize}
+
+\paragraph{Cardano hinge:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the reference frame of node 2;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the reference frame of node 2;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the reference frame of node 2;
+\end{itemize}
+
+\paragraph{Deformable axial joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Theta} contains the relative angle 
+  between the connected nodes;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity between the connected nodes. 
+\end{itemize}
+
+\paragraph{Deformable displacement joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.d} contains the relative position
+  of the connected nodes, in the joint local frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.dPrime} contains the relative velocity
+  of the connected nodes, in the joint local frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.D} contains the relative position
+  of the connected nodes, in the global frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.DPrime} contains the relative velocity
+  of the connected nodes, in the global frame. 
+\end{itemize}
+
+\paragraph{Deformable hinge:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity of the connected nodes, expressed in the joint reference frame.
+\end{itemize}
+
+\paragraph{Deformable displacement:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.d} contains the relative position
+  of the connected nodes, in the joint local frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.dPrime} contains the relative velocity
+  of the connected nodes, in the joint local frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.D} contains the relative position
+  of the connected nodes, in the global frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.DPrime} contains the relative velocity
+  of the connected nodes, in the global frame. 
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity of the connected nodes, expressed in the joint reference frame.
+\end{itemize}
+
+\paragraph{Distance:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.V} contains the three components
+  of the unit vector along which the distance is constrained, 
+  expressed in the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.d} contains the magnitude of the
+  constrained distance;
+\end{itemize}
+
+\paragraph{Drive displacement/Drive displacement pin:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.d} contains the three components
+  of the imposed relative displacement, in the global reference frame;
+\end{itemize}
+
+\paragraph{Drive hinge:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\end{itemize}
+
+\paragraph{Gimbal rotation:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Theta} contains the relative rotation
+  angle about joint axis 1;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the relative rotation
+  angle about joint axis 2;
+\end{itemize}
+
+\paragraph{In line:}
+Only if friction is present:
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.FF} contains the friction force along
+  the constraint direction;
+\item \kw{elem.joint.}\bnt{label}\kw{.fc} contains the friction coefficient.
+\end{itemize}
+
+\paragraph{Linear acceleration:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.a} contains the imposed relative linear
+  acceleration.
+\end{itemize}
+
+\paragraph{Linear velocity}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.v} contains the imposed relative linear
+  velocity.
+\end{itemize}
+
+\paragraph{Revolute hinge:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity of the connected nodes, expressed in the joint reference frame.
+\end{itemize}
+
+If friction is present:
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.MRF} contains the friction moment
+  exchanged by the two constrained nodes about the joint axis 3;
+\item \kw{elem.joint.}\bnt{label}\kw{.fc} contains the friction coefficient.
+\end{itemize}
+
+\paragraph{Revolute rotation:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the global reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular
+  velocity of the connected nodes, expressed in the joint reference frame.
+\end{itemize}
+
+\paragraph{Rod:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.dElle} contains the length of the
+  element;
+\item \kw{elem.joint.}\bnt{label}\kw{.dEllePrime} contains the lengthening
+  velocity of the element;
+\item \kw{elem.joint.}\bnt{label}\kw{.v} contains the three components of
+  the unit vector representing the element line of action, expressed 
+  in the global reference frame;
+\end{itemize}
+
+\paragraph{Spherical joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.R} contains the orientation matrix
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\end{itemize}
+
+\paragraph{Spherical pin joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.E} contains the Euler angles 
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\end{itemize}
+
+\paragraph{Total joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.X} contains the three components of
+  the relative position of the connected nodes, expressed in the joint 
+  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.V} contains the three components of
+  the relative velocity of the connected nodes, expressed in the joint 
+  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the three components
+  of the relative angular velocity of the connected nodes, expressed in 
+  the joint reference frame.
+\end{itemize}
+
+\paragraph{Viscous body:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.V} contains the three components of
+  the relative velocity of the connected nodes, expressed in the joint 
+  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the three components
+  of the relative angular velocity of the connected nodes, expressed in 
+  the joint reference frame.
+\end{itemize}
+
+
+
+\paragraph{Total pin joint:}
+\begin{itemize}
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the orientation vector
+  expressing the relative orientation of the connected nodes, expressed in 
+  the joint reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.X} contains the three components of
+  the relative position of the connected nodes, expressed in the joint 
+  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.V} contains the three components of
+  the relative velocity of the connected nodes, expressed in the joint 
+  reference frame;
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the three components
+  of the relative angular velocity of the connected nodes, expressed in 
+  the joint reference frame.
+\end{itemize}
 
 
 \subsection{Eigenanalysis}
