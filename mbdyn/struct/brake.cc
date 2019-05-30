@@ -61,7 +61,7 @@ pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
 Sh_c(sh), fc(f), preF(pref), r(rr), 
 #ifdef USE_NETCDFC
-Var_E(0),
+Var_Phi(0),
 Var_Omega(0),
 Var_fc(0),
 Var_Fb(0),
@@ -451,7 +451,7 @@ Brake::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("brake", OH, name);
 			
-			Var_E = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
+			Var_Phi = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
 				"relative rotation (Euler123)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "rad/s",
@@ -491,7 +491,7 @@ void Brake::Output(OutputHandler& OH) const
 	      
 	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 	      
-	      OH.WriteNcVar(Var_E, RotManip::VecRot(RTmp));
+	      OH.WriteNcVar(Var_Phi, RotManip::VecRot(RTmp));
 	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
 	      
 	      if (fc) {
