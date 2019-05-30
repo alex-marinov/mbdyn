@@ -427,24 +427,24 @@ Additional variables can be added, depending on the joint type.
 
 \paragraph{Angular velocity:}
 \begin{itemize}
-\item \kw{elem.joint}\bnt{label}\kw{.w} contains the three component of the axis about
+\item \kw{elem.joint.}\bnt{label}\kw{.w} contains the three component of the axis about
   which the angular velocity is imposed, in the absolute reference frame;
-\item \kw{elem.joint}\bnt{label}\kw{.dOmega} contains the absolute value of the imposed
+\item \kw{elem.joint.}\bnt{label}\kw{.dOmega} contains the absolute value of the imposed
   angular velocity.
 \end{itemize}
 
 \paragraph{Axial rotation:}
 \begin{itemize}
-\item \kw{elem.joint}\bnt{label}\kw{.Phi} contains the relative orientation of the
+\item \kw{elem.joint.}\bnt{label}\kw{.Phi} contains the relative orientation of the
   connected nodes, expressed in the joint reference frame attached to node 1;
-\item \kw{elem.joint}\bnt{label}\kw{.Omega} contains the relative angular velocity
+\item \kw{elem.joint.}\bnt{label}\kw{.Omega} contains the relative angular velocity
   of the two connected nodes, expressed in the joint reference frame attached to node 1.
 \end{itemize}
 
 If friction is present:
 \begin{itemize}
-\item \kw{elem.joint}\bnt{label}\kw{.MR} contains the friction moment;
-\item \kw{elem.joint}\bnt{label}\kw{.fc} contains the friction coefficient.
+\item \kw{elem.joint.}\bnt{label}\kw{.MR} contains the friction moment;
+\item \kw{elem.joint.}\bnt{label}\kw{.fc} contains the friction coefficient.
 \end{itemize}
 
 \paragraph{Beam slider:}
@@ -464,8 +464,8 @@ If friction is present:
 
 If friction is present:
 \begin{itemize}
-\item \kw{elem.joint}\bnt{label}\kw{.fc} contains the friction coefficient;
-\item \kw{elem.joint}\bnt{label}\kw{.Fb} contains the brake force.
+\item \kw{elem.joint.}\bnt{label}\kw{.fc} contains the friction coefficient;
+\item \kw{elem.joint.}\bnt{label}\kw{.Fb} contains the brake force.
 \end{itemize}
 
 \paragraph{Cardano rotation/pin:}
