@@ -227,7 +227,8 @@ SphericalHingeJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Spherical hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "relative orientation");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+					"relative orientation, in joint reference frame");
 
 		}
 #endif // USE_NETCDF

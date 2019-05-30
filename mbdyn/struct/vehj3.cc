@@ -124,14 +124,15 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Deformable joint", OH, name);
 			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
-					"relative position in local frame (x, y, z)");
+				"relative position in local frame (x, y, z)");
 			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
-					"relative linear velocity in local frame (x, y, z)");
+				"relative linear velocity in local frame (x, y, z)");
 			Var_d = OH.CreateVar<Vec3>(name + "D", "m",
-					"relative position in global frame (x, y, z)");
+				"relative position in global frame (x, y, z)");
 			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime", "m/s",
-					"relative linear velocity in global frame (x, y, z)");
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+				"relative linear velocity in global frame (x, y, z)");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+				"relative orientation, in joint reference frame");
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
 		}

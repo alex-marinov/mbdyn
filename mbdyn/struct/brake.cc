@@ -451,7 +451,7 @@ Brake::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("brake", OH, name);
 			
-			Var_E = OH.CreateRotationVar(name + "E", "", EULER_123,
+			Var_E = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
 				"relative rotation (Euler123)");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "rad/s",
@@ -491,7 +491,7 @@ void Brake::Output(OutputHandler& OH) const
 	      
 	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
 	      
-	      OH.WriteNcVar(Var_E, MatR2EulerAngles(RTmp)*dRaDegr);
+	      OH.WriteNcVar(Var_E, RotManip::VecRot(RTmp));
 	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
 	      
 	      if (fc) {

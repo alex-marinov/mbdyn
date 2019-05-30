@@ -98,7 +98,7 @@ DriveDisplacementJoint::OutputPrepare(OutputHandler &OH)
 			OutputPrepare_int("Drive displacement", OH, name);
 
 			Var_d = OH.CreateVar<Vec3>(name + "d", "m",
-				"imposed relative displacement (x, y, z)");
+				"imposed relative displacement, global frame (x, y, z)");
 		}
 #endif // USE_NETCDF
 	}

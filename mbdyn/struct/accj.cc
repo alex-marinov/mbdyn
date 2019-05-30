@@ -301,6 +301,9 @@ Joint(uL, pDO, fOut),
 DriveOwner(pDC),
 pNode(pN),
 Dir(TmpDir),
+#ifdef USE_NETCDFC
+Var_wP(0),
+#endif // USE_NETCDFC
 dM(0.)
 {
    ASSERT(pNode != NULL);
@@ -418,7 +421,22 @@ AngularAccelerationJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
-   
+void
+AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Angular acceleration", OH, name);
+
+			Var_wP = OH.CreateVar<doublereal>(name + "wP", "rad/s^2",
+				"imposed angular acceleration (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+  
 void AngularAccelerationJoint::Output(OutputHandler& OH) const
 {
    Joint::Output(OH.Joints(), "AngularAcc", GetLabel(), 
@@ -426,6 +444,7 @@ void AngularAccelerationJoint::Output(OutputHandler& OH) const
      << " " << dGet() << std::endl;   
 #ifdef USE_NETCDF
    Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM);
+   OH.WriteNcVar(Var_wP, dGet());
 #endif // USE_NETCDF
 }
  

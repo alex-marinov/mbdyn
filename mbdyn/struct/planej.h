@@ -62,7 +62,7 @@ class PlaneHingeJoint : virtual public Elem, public Joint {
 	MBDynNcVar Var_Phi;
 	MBDynNcVar Var_Omega;
 	MBDynNcVar Var_MFR;
-	MBDynNcVar Var_MU;
+	MBDynNcVar Var_fc;
 #endif // USE_NETCDF
 
    bool calcInitdTheta;
@@ -369,7 +369,7 @@ public Joint, public DriveOwner {
 	MBDynNcVar Var_Phi;
 	MBDynNcVar Var_Omega;
 	MBDynNcVar Var_MFR;
-	MBDynNcVar Var_MU;
+	MBDynNcVar Var_fc;
 #endif // USE_NETCDF
 
    /* friction related data */

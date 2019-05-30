@@ -313,7 +313,7 @@ UniversalHingeJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, FTildeTmp, MTildeTmp, F, MTmp);
-			OH.WriteNcVar(Var_Phi, PhiTmp);
+			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R2Tmp*MulTM(R1Tmp)));
 		}
 #endif // USE_NETCDF
 	}
@@ -1352,7 +1352,7 @@ UniversalPinJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			Joint::NetCDFOutput(OH, RTmp.MulTV(F), MTildeTmp, F, vTmp*dM);
-			OH.WriteNcVar(Var_Phi, PhiTmp);
+			OH.WriteNcVar(Var_Phi, RotManip::VecRot(R0.MulTV(RTmp)));
 		}
 #endif // USE_NETCDF
 	}

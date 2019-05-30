@@ -99,7 +99,7 @@ GimbalRotationJoint::OutputPrepare(OutputHandler& OH)
 					"relative angle Theta");
 
 			Var_Phi = OH.CreateVar<doublereal>(name + "Phi", "rad",
-					"relative andle Phi");
+					"relative angle Phi");
 		}
 #endif // USE_NETCDF
 	}

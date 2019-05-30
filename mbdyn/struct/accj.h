@@ -130,6 +130,9 @@ class AngularAccelerationJoint
    const StructNode* pNode;
    Vec3 Dir;
    doublereal dM;
+#ifdef USE_NETCDF
+   MBDynNcVar Var_wP;
+#endif // USE_NETCDF
    
  public:
    /* Costruttore non banale */
@@ -163,6 +166,7 @@ class AngularAccelerationJoint
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   void OutputPrepare(OutputHandler& OH);
    void Output(OutputHandler& OH) const;
  
 	virtual void SetValue(DataManager *pDM,

@@ -65,8 +65,8 @@ d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), F(Zero3), M(Zero3),
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars... TODO: try to remove
 Var_Phi(0),
 Var_Omega(0),
-//Var_MFR(0),
-//Var_MU(0),
+Var_MFR(0),
+Var_fc(0),
 #endif // USE_NETCDFC
 calcInitdTheta(_calcInitdTheta), NTheta(0), dTheta(initDTheta), dThetaWrapped(initDTheta),
 Sh_c(sh), fc(f), preF(pref), r(rr),
@@ -963,7 +963,7 @@ PlaneHingeJoint::OutputPrepare(OutputHandler& OH)
 				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
 						"friciton moment ");
 
-				Var_MU = OH.CreateVar<doublereal>(name + "fc", "--",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc", "--",
 						"friction model specific data: friction coefficient");
 			}
 		}
@@ -1028,7 +1028,7 @@ void PlaneHingeJoint::Output(OutputHandler& OH) const
 
 			if (fc) {
 				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_MU, fc->fc());
+				OH.WriteNcVar(Var_fc, fc->fc());
 			}
 		}
 #endif // USE_NETCDF
@@ -1534,8 +1534,8 @@ dThetaWrapped(0.),
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
 Var_Omega(0),
-//Var_MFR(0),
-//Var_MU(0),
+Var_MFR(0),
+Var_fc(0),
 #endif // USE_NETCDFC
 od(od)
 {
@@ -2022,7 +2022,8 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("revolute rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.CreateRotationVar(name, "", od, "relative
+				orientation");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
@@ -2527,8 +2528,8 @@ NTheta(0), dTheta(0.), dThetaWrapped(0.),
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
 Var_Omega(0),
-//Var_MFR(0),
-//Var_MU(0),
+Var_MFR(0),
+Var_fc(0),
 #endif // USE_NETCDFC
 Sh_c(sh), fc(f), preF(pref), r(rr),
 od(od)
@@ -3357,16 +3358,16 @@ AxialRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("axial rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.CreateRotationVar(name, "", od, "Relative orientation");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
 
 			if (fc) {
 				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
-						"friciton moment ");
+						"friciton moment");
 
-				Var_MU = OH.CreateVar<doublereal>(name + "fc", "-",
+				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
 						"friction model specific data: friction coefficient");
 			}
 		}
@@ -3430,7 +3431,7 @@ void AxialRotationJoint::Output(OutputHandler& OH) const
 			OH.WriteNcVar(Var_Omega, OmegaTmp);
 			if (fc) {
 				OH.WriteNcVar(Var_MFR, M3);
-				OH.WriteNcVar(Var_MU, fc->fc());
+				OH.WriteNcVar(Var_fc, fc->fc());
 			}
 		}
 #endif // USE_NETCDF

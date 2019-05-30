@@ -142,7 +142,7 @@ class AngularVelocityJoint
    Vec3 Dir;
    doublereal dM;
 #ifdef USE_NETCDF
-   MBDynNcVar Var_dw;
+   MBDynNcVar Var_dOmega;
    MBDynNcVar Var_w;
 #endif // USE_NETCDF
  public:

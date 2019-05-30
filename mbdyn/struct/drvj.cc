@@ -299,7 +299,7 @@ Joint(uL, pDO, fOut),
 DriveOwner(pDC), 
 pNode(pN), Dir(TmpDir), 
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
-Var_dw(0),
+Var_dOmega(0),
 Var_w(0),
 #endif // USE_NETCDFC
 dM(0.)
@@ -435,11 +435,11 @@ AngularVelocityJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Angular velocity", OH, name);
 
-			Var_dw = OH.CreateVar<doublereal>(name + "dw", "[-]",
-					"direction of imposed angular velocity");
+			Var_dOmega = OH.CreateVar<doublereal>(name + "dOmega", "rad/s",
+					"magnitude imposed angular velocity");
 
-			Var_w = OH.CreateVar<doublereal>(name + "w", "rad/s",
-					"magnitude of imposed angular velocity");
+			Var_w = OH.CreateVar<Vec3>(name + "w", "[-]",
+					"direction of imposed angular velocity");
 		}
 #endif // USE_NETCDF
 	}
@@ -461,8 +461,8 @@ void AngularVelocityJoint::Output(OutputHandler& OH) const
 #ifdef USE_NETCDF
 	   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 		   Joint::NetCDFOutput(OH, Zero3, MTmp, Zero3, Tmp*dM);
-		   OH.WriteNcVar(Var_dw, Tmp);
-		   OH.WriteNcVar(Var_w, dGet());
+		   OH.WriteNcVar(Var_w, Tmp);
+		   OH.WriteNcVar(Var_dOmega, dGet());
 	   }
 #endif // USE_NETCDF
 

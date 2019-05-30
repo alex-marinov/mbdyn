@@ -233,11 +233,11 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
-			os << "node.struct." << GetLabel() << ".";
+			os << "elem.autostruct." << GetLabel() << ".";
 
 			std::string name(os.str());
 
