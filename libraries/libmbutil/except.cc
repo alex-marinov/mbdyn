@@ -51,7 +51,10 @@ MBDynErrBase::Set(const std::string& s)
 }
 
 const char *
-MBDynErrBase::what(void) const noexcept
+MBDynErrBase::what(void) const 
+#ifdef HAVE_NOEXCEPT
+noexcept 
+#endif
 {
 	return s.c_str();
 }
