@@ -561,7 +561,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			i != NetCDFOutputData.end(); ++i)
 		{
 #if defined(USE_NETCDFC)
-			if (!i->Var_X) {
+			if (i->Var_X) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_X.isNull()) {
 #endif // USE_NETCDF4
@@ -569,7 +569,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (!i->Var_Phi) {
+			if (i->Var_Phi) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_Phi.isNull()) {
 #endif // USE_NETCDF4
@@ -618,7 +618,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (!i->Var_V) {
+			if (i->Var_V) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_V.isNull()) {
 #endif // USE_NETCDF4
@@ -626,7 +626,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (!i->Var_W) {
+			if (i->Var_W) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_W.isNull()) {
 #endif // USE_NETCDF4
@@ -634,7 +634,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (!i->Var_F) {
+			if (i->Var_F) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_F.isNull()) {
 #endif // USE_NETCDF4
@@ -642,7 +642,7 @@ Aerodynamic2DElem<iNN>::Output_int(OutputHandler &OH) const
 			}
 
 #if defined(USE_NETCDFC)
-			if (!i->Var_M) {
+			if (i->Var_M) {
 #elif defined(USE_NETCDF4) // !USE_NETCDFC
 			if (!i->Var_M.isNull()) {
 #endif // USE_NETCDF4

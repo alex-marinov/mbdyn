@@ -175,7 +175,7 @@ LinearAccelerationJoint::OutputPrepare(OutputHandler &OH)
 			std::string name;
 			OutputPrepare_int("Linear acceleration", OH, name);
 
-			Var_a = OH.CreateVar<doublereal>(name + "a", "m/s^2",
+			Var_a = OH.CreateVar<Vec3>(name + "a", "m/s^2",
 				"imposed acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -430,7 +430,7 @@ AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("Angular acceleration", OH, name);
 
-			Var_wP = OH.CreateVar<doublereal>(name + "wP", "rad/s^2",
+			Var_wP = OH.CreateVar<Vec3>(name + "wP", "rad/s^2",
 				"imposed angular acceleration (x, y, z)");
 		}
 #endif // USE_NETCDF
@@ -439,13 +439,19 @@ AngularAccelerationJoint::OutputPrepare(OutputHandler& OH)
   
 void AngularAccelerationJoint::Output(OutputHandler& OH) const
 {
-   Joint::Output(OH.Joints(), "AngularAcc", GetLabel(), 
-		 Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM) 
-     << " " << dGet() << std::endl;   
+	if (bToBeOutput()) {
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "AngularAcc", GetLabel(), 
+				Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM)
+				<< " " << dGet() << std::endl;   
+		}
 #ifdef USE_NETCDF
-   Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM);
-   OH.WriteNcVar(Var_wP, dGet());
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, Zero3, Vec3(dM, 0., 0.), Zero3, Dir*dM);
+			OH.WriteNcVar(Var_wP, dGet());
+		}
 #endif // USE_NETCDF
+	}
 }
  
 void
