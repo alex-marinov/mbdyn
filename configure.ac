@@ -1215,6 +1215,22 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Checks for noexcept
+dnl
+AC_LANG_CPLUSPLUS
+have_noexcept=no
+AC_MSG_CHECKING([for noexcept])
+AC_TRY_COMPILE([int pippo() noexcept {return 1;}],[],[have_noexcept=yes],[have_noexcept=no])
+if test $have_noexcept != no ; then
+	AC_DEFINE(HAVE_NOEXCEPT,1, [define if the compiler accept noexcept])
+	AC_MSG_RESULT([yes])
+else
+	AC_MSG_RESULT([no])
+fi
+AC_LANG_C
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Checks for working offsetof
 dnl
 have_offsetof=no
