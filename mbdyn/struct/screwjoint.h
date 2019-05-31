@@ -71,6 +71,14 @@ private:
 	doublereal M3diff;
 	doublereal vrel;
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_dTheta;
+	MBDynNcVar Var_Theta;
+	MBDynNcVar Var_vrel;
+	MBDynNcVar Var_fc;
+	MBDynNcVar Var_MFR;
+#endif // USE_NETCDF
+
 // 	bool bFirstRes;
 
 	void AssMat(FullSubMatrixHandler& WM, doublereal dCoef,
@@ -108,6 +116,7 @@ public:
 // 	/* Contributo al file di restart */
 // 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 // 	void SetValue(DataManager *pDM,

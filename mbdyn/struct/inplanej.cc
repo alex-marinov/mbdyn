@@ -164,13 +164,37 @@ SubVectorHandler& InPlaneJoint::AssRes(SubVectorHandler& WorkVec,
 }
 
 
+void InPlaneJoint::OutputPrepare(OutputHandler& OH)
+{
+	if(bToBeOutput()) {      
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("In plane", OH, name);
+	}
+#endif // USE_NETCDF
+	}
+}
+
+
 void InPlaneJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {      
       Vec3 vTmp(pNode1->GetRCurr()*v);
-      Joint::Output(OH.Joints(), "InPlane", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
-   }   
+
+
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      Joint::Output(OH.Joints(), "InPlane", GetLabel(),
+			      Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
+      }
+
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
+      }
+#endif // USE_NETCDF
+
+   } 
 }
  
 
@@ -503,13 +527,32 @@ InPlaneWithOffsetJoint::AssRes(SubVectorHandler& WorkVec,
    return WorkVec;
 }
 
+void InPlaneWithOffsetJoint::OutputPrepare(OutputHandler& OH)
+{
+	if(bToBeOutput()) {      
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("In plane with offset", OH, name);
+	}
+#endif // USE_NETCDF
+	}
+}
+
 
 void InPlaneWithOffsetJoint::Output(OutputHandler& OH) const
 {
    if(bToBeOutput()) {            
       Vec3 vTmp(pNode1->GetRCurr()*v);
-      Joint::Output(OH.Joints(), "InPlaneWithOffs", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;      
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      Joint::Output(OH.Joints(), "InPlaneWithOffs", GetLabel(),
+			      Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3) << std::endl;
+      }
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      Joint::NetCDFOutput(OH, Vec3(dF, 0., 0.), Zero3, vTmp*dF, Zero3);
+      }
+#endif // USE_NETCDF
    }   
 }
  

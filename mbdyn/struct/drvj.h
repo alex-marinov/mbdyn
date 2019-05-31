@@ -46,7 +46,11 @@ class LinearVelocityJoint
    const StructNode* pNode;
    Vec3 Dir;
    doublereal dF;
-   
+#ifdef USE_NETCDF
+   MBDynNcVar Var_dv;
+   MBDynNcVar Var_v;
+#endif // USE_NETCDF
+
  public:
    /* Costruttore non banale */
    LinearVelocityJoint(unsigned int uL, 
@@ -88,7 +92,8 @@ class LinearVelocityJoint
 			    doublereal dCoef,
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
-   
+  
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 
@@ -136,7 +141,10 @@ class AngularVelocityJoint
    const StructNode* pNode;
    Vec3 Dir;
    doublereal dM;
-   
+#ifdef USE_NETCDF
+   MBDynNcVar Var_dOmega;
+   MBDynNcVar Var_w;
+#endif // USE_NETCDF
  public:
    /* Costruttore non banale */
    AngularVelocityJoint(unsigned int uL, 
@@ -179,6 +187,7 @@ class AngularVelocityJoint
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 

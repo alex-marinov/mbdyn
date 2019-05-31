@@ -1481,7 +1481,7 @@ TotalJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("total", OH, name);
+			OutputPrepare_int("Total joint", OH, name);
 
 			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
 				"local relative position (x, y, z)");
@@ -1529,19 +1529,11 @@ TotalJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(MTmp.pGetVec(), OH.GetCurrentStep());
-
-			Var_X->put_rec(XTmp.pGetVec(), OH.GetCurrentStep());
-			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
-			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
+			OH.WriteNcVar(Var_X, XTmp);
+			OH.WriteNcVar(Var_Phi, ThetaTmp);
+			OH.WriteNcVar(Var_V, VTmp);
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 
@@ -3322,7 +3314,7 @@ TotalPinJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("totalpin", OH, name);
+			OutputPrepare_int("Total pin joint", OH, name);
 
 			Var_X = OH.CreateVar<Vec3>(name + "X", "m",
 				"local relative position (x, y, z)");
@@ -3363,19 +3355,11 @@ TotalPinJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(MTmp.pGetVec(), OH.GetCurrentStep());
-
-			Var_X->put_rec(XTmp.pGetVec(), OH.GetCurrentStep());
-			Var_Phi->put_rec(ThetaTmp.pGetVec(), OH.GetCurrentStep());
-			Var_V->put_rec(VTmp.pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			Joint::NetCDFOutput(OH, F, M, FTmp, MTmp);
+			OH.WriteNcVar(Var_X, XTmp);
+			OH.WriteNcVar(Var_Phi, ThetaTmp);
+			OH.WriteNcVar(Var_V, VTmp);
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 		}
 #endif // USE_NETCDF
 
