@@ -33,6 +33,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include "Rot.hh"
 #include "brake.h"
 
 /* Brake - begin */

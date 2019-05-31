@@ -1534,8 +1534,6 @@ dThetaWrapped(0.),
 #ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
 Var_Phi(0),
 Var_Omega(0),
-Var_MFR(0),
-Var_fc(0),
 #endif // USE_NETCDFC
 od(od)
 {
