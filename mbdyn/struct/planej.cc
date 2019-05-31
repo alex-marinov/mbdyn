@@ -2022,8 +2022,8 @@ PlaneRotationJoint::OutputPrepare(OutputHandler& OH)
 			std::string name;
 			OutputPrepare_int("revolute rotation", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "relative
-				orientation");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+				"relative orientation");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
