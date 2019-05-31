@@ -66,6 +66,10 @@ protected:
 	Mat3x3 MDE;
 	Mat3x3 MDEPrime;
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_Theta;
+	MBDynNcVar Var_Omega;
+#endif // USE_NETCDF
 	/* Jacobian matrix helpers */
 	virtual void
 	AssMatM(FullSubMatrixHandler& WMA, doublereal dCoef);
@@ -101,6 +105,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	/* Aggiorna le deformazioni ecc. */

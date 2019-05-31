@@ -94,6 +94,13 @@ f1(f1Tmp), f2(f2Tmp),
 GammaInv(Eye3),
 F1(Zero3), C1(Zero3), C2(Zero3),
 Sh_c(sh),
+#ifdef USE_NETCDFC
+	Var_dTheta(0),
+	Var_Theta(0),
+	Var_vrel(0),
+	Var_fc(0),
+	Var_MFR(0),
+#endif // USE_NETCDFC
 fc(f)
 {
 	ASSERT(pNode1 != NULL);
@@ -151,21 +158,66 @@ ScrewJoint::~ScrewJoint(void)
 // 	return out;
 // }
 
+void
+ScrewJoint::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Screw Joint", OH, name);
+
+			Var_dTheta = OH.CreateVar<doublereal>(name + "dTheta", "rad",
+				"screw angle magnitude [deg]");
+			Var_Theta = OH.CreateVar<Vec3>(name + "Theta", "-",
+				"screw axis (x, y, z)");
+			if (fc) {
+				Var_vrel = OH.CreateVar<doublereal>(name + "vRel", "m/s",
+					"contact point sliding velocity");
+				Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+					"friction coefficient");
+				Var_MFR = OH.CreateVar<doublereal>(name + "MFR", "Nm",
+					"friction moment");
+
+			}
+		}
+#endif // USE_NETCDF
+	}
+}
 
 void //TODO
 ScrewJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		Mat3x3 R1(pNode1->GetRCurr()*R1h);
-		std::ostream &of = Joint::Output(OH.Joints(), "ScrewJoint", GetLabel(),
-				F1 * dLambda, C1 * dLambda + e1hz*M3diff, 
-				R1*F1 * dLambda, R1*(C1 * dLambda + e1hz*M3diff) )
-			<< " " << dTheta*dRaDegr << " " << dD
-			<< " " << Theta << " " << D;
+		Vec3 FTilde(F1 * dLambda);
+		Vec3 MTilde(C1 * dLambda + e1hz*M3diff);
+		Vec3 F(R1*F1 * dLambda);
+		Vec3 M(R1*(C1 * dLambda + e1hz*M3diff));
+		
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream &of = Joint::Output(OH.Joints(), "ScrewJoint", GetLabel(),
+					FTilde, MTilde, F, M)
+				<< " " << dTheta*dRaDegr << " " << dD
+				<< " " << Theta << " " << D;
 			if (fc) {
 				of << " " << vrel << " " << fc->fc() << " " << e1hz*M3diff;
 			}	
 			of << std::endl;
+		}
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, FTilde, MTilde, F, M);
+			OH.WriteNcVar(Var_dTheta, dD);
+			OH.WriteNcVar(Var_Theta, D);
+
+			if (fc) {
+				OH.WriteNcVar(Var_vrel, vrel);
+				OH.WriteNcVar(Var_fc, fc->fc());
+				OH.WriteNcVar(Var_MFR, e1hz*M3diff);
+			}
+		}
+#endif // USE_NETCDF
 	}
 }
 

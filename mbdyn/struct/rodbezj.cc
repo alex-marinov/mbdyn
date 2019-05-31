@@ -73,9 +73,16 @@ dElle(0.),
 dEpsilon(0.),
 dEpsilonPrime(0.),
 iIntOrd(iIntOrder),
+#ifdef USE_NETCDFC
+Var_F2(0),
+Var_l(0),
+Var_l1(0),
+Var_l2(0),
+Var_v(0),
+#endif // USE_NETCDFC
 iIntSeg(iIntSegments)
 {
-	/* Check initial data coherence */
+	/* Check initial data consistency */
 	ASSERT(pN1 != NULL);
 	ASSERT(pN1->GetNodeType() == Node::STRUCTURAL);
 	ASSERT(pN2 != NULL);
@@ -449,19 +456,62 @@ RodBezier::AssVec(SubVectorHandler& WorkVec)
 }
 
 void
+RodBezier::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("rod bezier", OH, name);
+			
+			Var_F2 = OH.CreateVar<Vec3>(name + "F2", "N",
+				"force on Node 2 (x, y, z)");
+
+			Var_l = OH.CreateVar<doublereal>(name + "l", "m",
+				"length of the element");
+
+			Var_l1 = OH.CreateVar<Vec3>(name + "l1", "-",
+				"node 1 reference unit vector (x, y, z)");
+			
+			Var_l2 = OH.CreateVar<Vec3>(name + "l2", "-",
+				"node 2 reference unit vector (x, y, z)");
+
+			Var_v = OH.CreateVar<doublereal>(name + "v", "m/s",
+				"length rate of change");
+		}
+#endif // USE_NETCDF
+	}
+}
+
+void
 RodBezier::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		ASSERT(dElle > std::numeric_limits<doublereal>::epsilon());
 		doublereal dF = GetF();
+		Vec3 FTmp = Vec3(dF, 0., 0.);
 
-		std::ostream& out = OH.Joints();
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream& out = OH.Joints();
 
-		Joint::Output(out, "RodBezier", GetLabel(),
-			Vec3(dF, 0., 0.), Zero3, l1*dF, Zero3)
-			<< " " << l2*dF << " " << dElle << " " << l1 << " " 
-			<< " " << l2 << " " << " " << dEpsilonPrime*dL0,
-			ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
+			Joint::Output(out, "RodBezier", GetLabel(),
+					FTmp, Zero3, l1*dF, Zero3)
+				<< " " << l2*dF << " " << dElle << " " << l1 << " " 
+				<< " " << l2 << " " << " " << dEpsilonPrime*dL0,
+				ConstitutiveLaw1DOwner::OutputAppend(out) << std::endl;
+		}
+
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, FTmp, Zero3, l1*dF, Zero3);
+			OH.WriteNcVar(Var_F2, l2*dF);
+			OH.WriteNcVar(Var_l, dElle);
+			OH.WriteNcVar(Var_l1, l1);
+			OH.WriteNcVar(Var_l2, l2);
+			OH.WriteNcVar(Var_v, dEpsilonPrime*dL0);
+		}
+#endif // USE_NETCDF
+
 	}
 }
 

@@ -340,11 +340,35 @@ public:
 	WriteNcVar(const MBDynNcVar&, const Vec3&);
 
 	void
+	WriteNcVar(const MBDynNcVar&, const Vec3&, const size_t&);
+
+	void
 	WriteNcVar(const MBDynNcVar&, const Mat3x3&);
+
+	void
+	WriteNcVar(const MBDynNcVar&, const Mat3x3&, const size_t&);
 
 	template <class Tvar>
 	void
 	WriteNcVar(const MBDynNcVar&, const Tvar&);
+	
+	template <class Tvar, class Tstart>
+	void
+	WriteNcVar(const MBDynNcVar&, const Tvar&, const Tstart&);
+
+#if defined(USE_NETCDFC)
+	template <class Tvar>
+	void
+	WriteNcVar(const MBDynNcVar&, const Tvar&, 
+			const std::vector<size_t>&, 
+			const std::vector<size_t>& = std::vector<size_t>(1,1));
+#elif defined(USE_NETCDF4) // !USE_NETCDFC
+	template <class Tvar, class Tstart>
+	void
+	WriteNcVar(const MBDynNcVar&, const Tvar&, 
+			const std::vector<Tstart>&, 
+			const std::vector<size_t>& = std::vector<size_t>(1,1));
+#endif // USE_NETCDF4
 	
 	MBDynNcVar
 	CreateVar(const std::string& name, const std::string& type);

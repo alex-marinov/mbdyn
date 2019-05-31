@@ -66,6 +66,13 @@ protected:
 	unsigned int iIntSeg;
 
 	GaussDataIterator *gdi;
+#ifdef USE_NETCDF
+	MBDynNcVar Var_F2;
+	MBDynNcVar Var_l;
+	MBDynNcVar Var_l2;
+	MBDynNcVar Var_l1;
+	MBDynNcVar Var_v;
+#endif // USE_NETCDF
 
 public:
 	/* Costructor */
@@ -114,6 +121,7 @@ public:
 
 	void AssVec(SubVectorHandler& WorkVec);
 
+	void OutputPrepare(OutputHandler& OH);
 	void Output(OutputHandler& OH) const;
 
 	/* initial assembly functions */

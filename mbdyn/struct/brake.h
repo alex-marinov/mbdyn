@@ -82,7 +82,14 @@ class Brake : virtual public Elem, public Joint {
    static const unsigned int NumSelfDof;
    static const unsigned int NumDof;
    /* end of friction related data */
-   
+
+#ifdef USE_NETCDF
+   MBDynNcVar Var_Phi;
+   MBDynNcVar Var_Omega;
+   MBDynNcVar Var_fc;
+   MBDynNcVar Var_Fb;
+#endif // USE_NETCDF
+
  public:
    /* Costruttore non banale */
    Brake(unsigned int uL, const DofOwner* pDO,
@@ -141,7 +148,8 @@ class Brake : virtual public Elem, public Joint {
 			    const VectorHandler& XPrimeCurr);
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
-   
+  
+   void OutputPrepare(OutputHandler &OH);
    void Output(OutputHandler& OH) const;
  
 

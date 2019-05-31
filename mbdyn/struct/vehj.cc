@@ -180,9 +180,10 @@ DeformableHingeJoint::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("deformable hinge", OH, name);
+			OutputPrepare_int("Deformable hinge", OH, name);
 
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+				"relative orientation, in joint reference frame");
 
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
@@ -227,35 +228,30 @@ DeformableHingeJoint::Output(OutputHandler& OH) const
 				}
 
 #ifdef USE_NETCDF
+
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(v.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec((R1h*v).pGetVec(), OH.GetCurrentStep());
-			Var_Omega->put_rec(OmegaTmp.pGetVec(), OH.GetCurrentStep());
+
+			Joint::NetCDFOutput(OH, Zero3, v, Zero3, R1h*v);
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
 
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 
 			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, R);
 				break;
 
 			default:
 				/* impossible */
 				break;
 			}
-
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
+
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {
 			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
@@ -296,41 +292,76 @@ DeformableHingeJoint::OutputInv(OutputHandler& OH) const
 		Mat3x3 R2h(pNode2->GetRCurr()*tilde_R2h);
 		Mat3x3 R(R1h.MulTM(R2h));
 		Mat3x3 hat_R(R1h*RotManip::Rot(RotManip::VecRot(R)/2.));
-
+		Vec3 OmegaTmp(hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr()));
 		Vec3 v(GetF());
-		Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
-			Zero3, v, Zero3, hat_R*v) << " ";
 
-		switch (od) {
-		case EULER_123:
-			OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
-			break;
 
-		case EULER_313:
-			OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
-			break;
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "DeformableHinge", GetLabel(),
+					Zero3, v, Zero3, hat_R*v) << " ";
 
-		case EULER_321:
-			OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
-			break;
+			switch (od) {
+				case EULER_123:
+					OH.Joints() << MatR2EulerAngles123(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_VECTOR:
-			OH.Joints() << RotManip::VecRot(R);
-			break;
+				case EULER_313:
+					OH.Joints() << MatR2EulerAngles313(R)*dRaDegr;
+					break;
 
-		case ORIENTATION_MATRIX:
-			OH.Joints() << R;
-			break;
+				case EULER_321:
+					OH.Joints() << MatR2EulerAngles321(R)*dRaDegr;
+					break;
 
-		default:
-			/* impossible */
-			break;
+				case ORIENTATION_VECTOR:
+					OH.Joints() << RotManip::VecRot(R);
+					break;
+
+				case ORIENTATION_MATRIX:
+					OH.Joints() << R;
+					break;
+
+				default:
+					/* impossible */
+					break;
+			}
 		}
+#ifdef USE_NETCDF
+		// TODO: Improve removing unnecessary duplications
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+
+			Joint::NetCDFOutput(OH, Zero3, v, Zero3, hat_R*v);
+			switch (od) {
+			case EULER_123:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles123(R)*dRaDegr);
+				break;
+			case EULER_313:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles313(R)*dRaDegr);
+				break;
+			case EULER_321:
+				OH.WriteNcVar(Var_Phi, MatR2EulerAngles321(R)*dRaDegr);
+				break;
+			case ORIENTATION_VECTOR:
+				OH.WriteNcVar(Var_Phi, RotManip::VecRot(R));
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.WriteNcVar(Var_Phi, R);
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+			OH.WriteNcVar(Var_Omega, OmegaTmp);
+		}
+#endif // USE_NETCDF
 
 		if (GetConstLawType() & ConstLawType::VISCOUS) {
-			OH.Joints() << " " << hat_R.MulTV(pNode2->GetWCurr() - pNode1->GetWCurr());
+			OH.Joints() << " " << OmegaTmp;
 			}
 		OH.Joints() << std::endl;
+	
 	}
 }
 

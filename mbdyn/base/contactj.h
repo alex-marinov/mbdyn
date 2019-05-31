@@ -182,12 +182,32 @@ class ContactJoint : virtual public Elem, public Joint {
       
       return WorkVec;
    };
-   
+  
+   void OutputPrepare(OutputHandler& OH) {
+	   if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			   std::string name;
+			   OutputPrepare_int("Contact", OH, name);
+		   }
+#endif // USE_NETCDF
+	   }
+   }
+
    virtual void Output(OutputHandler& OH) const {
-      Vec3 F(pNode1->GetRCurr()*(n*dF));
-      Joint::Output(OH.Joints(), "Contact", GetLabel(),
-		    Vec3(dF, 0., 0.), Zero3, F, Zero3)
-	<< " " << dD << endl;
+	   if (bToBeOutput()) {
+		   if (OH.UseText(OutputHandler::JOINTS)) {
+			   Vec3 F(pNode1->GetRCurr()*(n*dF));
+			   Joint::Output(OH.Joints(), "Contact", GetLabel(),
+					   Vec3(dF, 0., 0.), Zero3, F, Zero3);
+		   << " " << dD << endl;
+		   }
+#ifdef USE_NETCDF
+		   if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			   Joint::NetCDFOutput(OH, Vec3(dF, 0., 0., ), Zero3, F, Zero3);
+		   }
+#endif // USE_NETCDF
+	   }
    };
 
    

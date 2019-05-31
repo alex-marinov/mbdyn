@@ -122,16 +122,17 @@ DeformableJoint::OutputPrepare(OutputHandler &OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("deformable joint", OH, name);
+			OutputPrepare_int("Deformable joint", OH, name);
 			Var_tilde_d = OH.CreateVar<Vec3>(name + "d", "m",
-					"relative position in local frame (x, y, z)");
+				"relative position in local frame (x, y, z)");
 			Var_tilde_dPrime = OH.CreateVar<Vec3>(name + "dPrime", "m/s",
-					"relative linear velocity in local frame (x, y, z)");
+				"relative linear velocity in local frame (x, y, z)");
 			Var_d = OH.CreateVar<Vec3>(name + "D", "m",
-					"relative position in global frame (x, y, z)");
+				"relative position in global frame (x, y, z)");
 			Var_dPrime = OH.CreateVar<Vec3>(name + "DPrime", "m/s",
-					"relative linear velocity in global frame (x, y, z)");
-			Var_Phi = OH.CreateRotationVar(name, "", od, "global");
+				"relative linear velocity in global frame (x, y, z)");
+			Var_Phi = OH.CreateRotationVar(name, "", od, 
+				"relative orientation, in joint reference frame");
 			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "radian/s",
 				"local relative angular velocity (x, y, z)");
 		}
@@ -179,29 +180,21 @@ DeformableJoint::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec((R1h*F).pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec((R1h*M).pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
-
+			Joint::NetCDFOutput(OH, R1h*F, R1h*M, F, M);
 			switch (od) {
 			case EULER_123:
 			case EULER_313:
 			case EULER_321:
 			case ORIENTATION_VECTOR:
-				Var_Phi->put_rec(E.pGetVec(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, E);
 				break;
 			case ORIENTATION_MATRIX:
-				Var_Phi->put_rec(R.pGetMat(), OH.GetCurrentStep());
+				OH.WriteNcVar(Var_Phi, R);
 				break;
 			default:
 				/* impossible */
 				break;
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif // USE_NETCDF
 		if (OH.UseText(OutputHandler::JOINTS)) {

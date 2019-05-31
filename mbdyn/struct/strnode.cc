@@ -505,45 +505,34 @@ StructDispNode::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		//~ if (OH.UseNetCDF(OutputHandler::STRNODES)) {
-			//~ std::vector<MBDynNcVar> NcVarsToWrite; // this vector holds the MBDynNcVars that will be written to netcdf
-			//~ std::vector<const doublereal *> VecsToWrite; // and this one the actual data to be written
-//~ 
-			//~ NcVarsToWrite.push_back(Var_X);
-			//~ VecsToWrite.push_back(XCurr.pGetVec());
-			//~ 
-			//~ NcVarsToWrite.push_back(Var_Phi);
-			//~ switch (od) {
-			//~ case EULER_123:
-			//~ case EULER_313:
-			//~ case EULER_321:
-			//~ case ORIENTATION_VECTOR:
-			//~ case UNKNOWN_ORIENTATION_DESCRIPTION:
-				//~ VecsToWrite.push_back(::Zero3.pGetVec());
-				//~ break;
-//~ 
-			//~ case ORIENTATION_MATRIX:
-				//~ VecsToWrite.push_back(::Eye3.pGetMat());
-				//~ break;
-//~ 
-			//~ default:
-				//~ /* impossible */
-				//~ break;
-			//~ }
-			//~ NcVarsToWrite.push_back(Var_XP);
-			//~ VecsToWrite.push_back(VCurr.pGetVec());
-			//~ 
-			//~ NcVarsToWrite.push_back(Var_Omega);
-			//~ VecsToWrite.push_back(::Zero3.pGetVec());
-//~ 
-			//~ if (bOutputAccels) {
-				//~ NcVarsToWrite.push_back(Var_XPP);
-				//~ VecsToWrite.push_back(XPPCurr.pGetVec());
-				//~ NcVarsToWrite.push_back(Var_OmegaP);
-				//~ VecsToWrite.push_back(::Zero3.pGetVec());
-			//~ }
-			//~ OH.WriteVar(NcVarsToWrite, VecsToWrite, OH.GetCurrentStep());
-		//~ }
+		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
+			OH.WriteNcVar(Var_X, XCurr);
+			switch (od) {
+			case EULER_123:
+			case EULER_313:
+			case EULER_321:
+			case ORIENTATION_VECTOR:
+			case UNKNOWN_ORIENTATION_DESCRIPTION:
+				OH.WriteNcVar(Var_Phi, Zero3);
+				break;
+
+			case ORIENTATION_MATRIX:
+				OH.WriteNcVar(Var_Phi, Eye3);
+				break;
+
+			default:
+				/* impossible */
+				break;
+			}
+
+			OH.WriteNcVar(Var_XP, VCurr);
+			OH.WriteNcVar(Var_Omega, Zero3);
+
+			if (bOutputAccels) {
+				OH.WriteNcVar(Var_XPP, XPPCurr);
+				OH.WriteNcVar(Var_OmegaP, Zero3);
+			}
+		}
 #endif /* USE_NETCDF */
 
 		if (OH.UseText(OutputHandler::STRNODES)) {

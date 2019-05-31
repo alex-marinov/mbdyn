@@ -1121,6 +1121,12 @@ main(int argc, char* argv[])
 			silent_cerr("An IO error occurred during the execution of MBDyn (" << err.what() << ");"
 				" aborting... " << std::endl);
 			rc = EXIT_FAILURE;
+#ifdef DEBUG
+		} catch (const std::exception& e) {
+			silent_cerr("An error occurred during the execution of MBDyn (" << e.what() << ");"
+				" aborting..." << std::endl);
+			rc = EXIT_FAILURE;
+#endif // DEBUG
 		} catch (...) {
 			silent_cerr("An error occurred during the execution of MBDyn;"
 				" aborting... " << std::endl);
