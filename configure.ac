@@ -1225,7 +1225,8 @@ if test $have_noexcept != no ; then
 	AC_DEFINE(HAVE_NOEXCEPT,1, [define if the compiler accept noexcept])
 	AC_MSG_RESULT([yes])
 else
-	AC_MSG_RESULT([no])
+	dnl AC_MSG_RESULT([no])
+	AC_MSG_ERROR([The C++ compiler does not support the noexcept keyword. You should upgrade to a more recent compiler supporting c++11.])
 fi
 AC_LANG_C
 
