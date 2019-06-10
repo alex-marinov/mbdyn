@@ -1168,17 +1168,17 @@ AerodynamicBody::AssVec(SubVectorHandler& WorkVec,
 		// Se e' definito il rotore, aggiungere il contributo alla trazione
 		AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xnr, RRloc, Vr, Wn);
 
+		// specific for Gauss points force output
+		if (bToBeOutput()) {
+			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
+		}
+
 		FTmp *= dWght;
 		MTmp *= dWght;
 
 		F += FTmp;
 		M += MTmp;
 		M += Xr.Cross(FTmp);
-
-		// specific for Gauss points force output
-		if (bToBeOutput()) {
-			SetData(VTmp, dTng, Xr, RRloc, Vr, Wn, FTmp, MTmp);
-		}
 
 		iPnt++;
 
@@ -2213,16 +2213,16 @@ AerodynamicBeam::AssVec(SubVectorHandler& WorkVec,
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
 			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
+			// specific for Gauss points force output
+			if (bToBeOutput()) {
+				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
+			}
+
 			FTmp *= dWght;
 			MTmp *= dWght;
 			F[iNode] += FTmp;
 			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
-
-			// specific for Gauss points force output
-			if (bToBeOutput()) {
-				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
-			}
 
 			iPnt++;
 
@@ -3112,16 +3112,16 @@ AerodynamicBeam2::AssVec(SubVectorHandler& WorkVec,
 			// Se e' definito il rotore, aggiungere il contributo alla trazione
 			AddSectionalForce_int(iPnt, FTmp, MTmp, dWght, Xr, RRloc, Vr, Wr);
 
+			// specific for Gauss points force output
+			if (bToBeOutput()) {
+				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
+			}
+
 			FTmp *= dWght;
 			MTmp *= dWght;
 			F[iNode] += FTmp;
 			M[iNode] += MTmp;
 			M[iNode] += (Xr - Xn[iNode]).Cross(FTmp);
-
-			// specific for Gauss points force output
-			if (bToBeOutput()) {
-				SetData(VTmp, dTng, Xr, RRloc, Vr, Wr, FTmp, MTmp);
-			}
 
 			iPnt++;
 
