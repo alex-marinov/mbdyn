@@ -1551,19 +1551,9 @@ DataManager::OutputEigParams(const doublereal& dTime,
 #ifdef USE_NETCDF
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 		long lStep = OutHdl.GetCurrentStep();
-#if defined(USE_NETCDFC)  /// this block could be simplified by using an overloaded WriteNcVars function that would allow to feed the "timestep"
-		Var_Eig_dTime->put_rec(&dTime, uCurrEigSol);
-		Var_Eig_lStep->put_rec(&lStep, uCurrEigSol);
-		Var_Eig_dCoef->put_rec(&dCoef, uCurrEigSol);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-		// the following synthax would be simpler with c++11 (using {} vector constructor)
-		std::vector<size_t> ncStartPos, ncCount;
-		ncStartPos.push_back(uCurrEigSol); // implicit cast here ok?
-		ncCount.push_back(1);
-		Var_Eig_dTime.putVar(ncStartPos, ncCount, &dTime); // could use two-argument version of putVar since only have one value to add, and thus delete previous line...
-		Var_Eig_lStep.putVar(ncStartPos, ncCount, &lStep);
-		Var_Eig_dCoef.putVar(ncStartPos, ncCount, &dCoef);
-#endif  /* USE_NETCDF4 */
+		OutHdl.WriteNcVar(Var_Eig_dTime, dTime, uCurrEigSol);
+		OutHdl.WriteNcVar(Var_Eig_lStep, lStep, uCurrEigSol);
+		OutHdl.WriteNcVar(Var_Eig_dCoef, dCoef, uCurrEigSol);
 	}
 #endif /* USE_NETCDF */
 }
@@ -1742,19 +1732,14 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
 		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
-		int iCnt = 0;
+		size_t iCnt = 0;
 		Vec3 v;
 		for (SpMapMatrixHandler::const_iterator i = MatB.begin();
 				i != MatB.end(); ++i)
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
-#if defined(USE_NETCDFC)
-				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-				// TODO NETCDF4:
-				// Var_Eig_dAplus.putVar(v.pGetVec()); // no position??
-#endif  /* USE_NETCDF4 */
+				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
 				iCnt++;
 			}
 		}
@@ -1765,11 +1750,7 @@ DataManager::OutputEigSparseMatrices(const MatrixHandler* pMatA,
 		{
 			if (j->dCoef != 0.) {
 				v = Vec3(j->iRow, j->iCol, j->dCoef);
-#if defined(USE_NETCDFC)
-				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO NETCDF4
-#endif  /* USE_NETCDF4 */
+				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
 			}
 		}
 
@@ -1877,18 +1858,14 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		varname_ss << "eig." << uCurrEigSol << ".Aminus";
 		Var_Eig_dAminus = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim2);
 
-		int iCnt = 0;
+		size_t iCnt = 0;
 		Vec3 v;
 		for (NaiveMatrixHandler::const_iterator i = MatB.begin();
 				i != MatB.end(); ++i)
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
-#if defined(USE_NETCDFC)
-				Var_Eig_dAplus->put_rec(v.pGetVec(), iCnt);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO NETCDF4
-#endif  /* USE_NETCDF4 */
+				OutHdl.WriteNcVar(Var_Eig_dAplus, v, iCnt);
 				iCnt++;
 			}
 		}
@@ -1899,11 +1876,8 @@ DataManager::OutputEigNaiveMatrices(const MatrixHandler* pMatA,
 		{
 			if (i->dCoef != 0.) {
 				v = Vec3(i->iRow, i->iCol, i->dCoef);
-#if defined(USE_NETCDFC)
-				Var_Eig_dAminus->put_rec(v.pGetVec(), iCnt);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO NETCDF4
-#endif  /* USE_NETCDF4 */
+				OutHdl.WriteNcVar(Var_Eig_dAminus, v, iCnt);
+				iCnt++;
 			}
 		}
 
@@ -2005,8 +1979,8 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 		 * Since we are writing a matrix element-by-element, count will
 		 * always be (1, 1) and start will move to the desired place in the
 		 * matrix */
-		std::vector<long> start (2, 0);	
-		std::vector<long> count (2, 1);
+		std::vector<size_t> start (2, 0);	
+		const std::vector<size_t> count (2, 1);
 
 		start[0] = uCurrEigSol;
 		
@@ -2022,13 +1996,7 @@ DataManager::OutputEigGeometry(const unsigned uCurrEigSol, const int iResultsPre
 			}
 
 			iNodeIndex = pSN->iGetFirstIndex();
-
-#if defined(USE_NETCDFC)
-			Var_Eig_Idx->set_cur(&start[0]);
-			Var_Eig_Idx->put(&iNodeIndex, &count[0]);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO NETCDF4
-#endif  /* USE_NETCDF4 */
+			OutHdl.WriteNcVar(Var_Eig_Idx, iNodeIndex, start, count); 
 			start[1]++;
 		}
 
@@ -2188,7 +2156,6 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 	}
 
 #ifdef USE_NETCDF
-#if defined(USE_NETCDFC)
 	if (OutHdl.UseNetCDF(OutputHandler::NETCDF)) {
 		OutputHandler::NcDimVec dim_alpha(2);
 
@@ -2216,7 +2183,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		Var_Eig_dAlpha = OutHdl.CreateVar(varname_ss.str(), MbNcDouble, attrs3, dim_alpha);
 
 		Vec3 v;
-		unsigned uNRec = 0;
+		size_t uNRec = 0;
 		for (integer r = 1; r <= iNVec; r++) {
 			if (!vOut[r - 1]) {
 				continue;
@@ -2225,11 +2192,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 			v(1) = R(r) + dShiftR;
 			v(2) = I(r);
 			v(3) = (pBeta ? (*pBeta)(r) : 1.);
-#if defined(USE_NETCDFC)
-			Var_Eig_dAlpha->put_rec(v.pGetVec(), uNRec);
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			OutHdl.WriteNcVar(Var_Eig_dAlpha, v, uNRec);
 			uNRec++;
 		}
 
@@ -2242,8 +2205,8 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		 * Since we are writing a matrix element-by-element, count will
 		 * always be (1, 1, 1) and start will move to the desired place in the
 		 * matrix */
-		std::vector<long> start (3, 0);
-		const std::vector<long> count (3, 1);
+		std::vector<size_t> start (3, 0);
+		const std::vector<size_t> count (3, 1);
 
 		if (pVL) {
 			// VL
@@ -2277,12 +2240,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 
 						// NetCDF indexing is zero-based!
 						start[0] = 0;	// real part in first "page" of VL
-						Var_Eig_dVL->set_cur(&start[0]);
-						Var_Eig_dVL->put(&re, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
 
 						start[0] = 1;	// imaginary part in second "page"
-						Var_Eig_dVL->set_cur(&start[0]);
-						Var_Eig_dVL->put(&im, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
 
 						start[1]++;
 
@@ -2290,12 +2251,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 							im = -im;
 
 							start[0] = 0;
-							Var_Eig_dVL->set_cur(&start[0]);
-							Var_Eig_dVL->put(&re, &count[0]);
+							OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
 
 							start[0] = 1;
-							Var_Eig_dVL->set_cur(&start[0]);
-							Var_Eig_dVL->put(&im, &count[0]);
+							OutHdl.WriteNcVar(Var_Eig_dVL, im, start, count);
 
 							start[1]++;
 						}
@@ -2305,12 +2264,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						im = 0.;
 
 						start[0] = 0;
-						Var_Eig_dVL->set_cur(&start[0]);
-						Var_Eig_dVL->put(&re, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVL, re, start, count);
 
 						start[0] = 1;
-						Var_Eig_dVL->set_cur(&start[0]);
-						Var_Eig_dVL->put(&im, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVL, im, start, count);
 
 						start[1]++;
 					}
@@ -2321,7 +2278,7 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		// VR
 		attrs3[0] = OutputHandler::AttrVal("units", "-");
 		attrs3[1] = OutputHandler::AttrVal("type", "doublereal");
-		attrs3[2] = OutputHandler::AttrVal("description", "VR - Left eigenvectors matrix");
+		attrs3[2] = OutputHandler::AttrVal("description", "VR - Right eigenvectors matrix");
 
 		varname_ss.str("");
 		varname_ss.clear();
@@ -2346,13 +2303,11 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 					im = (c < iNVec) ? VR(r, c + 1) : 0.;
 
 					// NetCDF indexing is zero-based!
-					start[0] = 0;	// real part in first "page" of VL
-					Var_Eig_dVR->set_cur(&start[0]);
-					Var_Eig_dVR->put(&re, &count[0]);
+					start[0] = 0;	// real part in first 'page' of VR
+					OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
 
-					start[0] = 1;	// imaginary part in second "page"
-					Var_Eig_dVR->set_cur(&start[0]);
-					Var_Eig_dVR->put(&im, &count[0]);
+					start[0] = 1;	// imaginary part in second 'page'
+					OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
 
 					start[1]++;
 
@@ -2360,12 +2315,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 						im = -im;
 
 						start[0] = 0;
-						Var_Eig_dVR->set_cur(&start[0]);
-						Var_Eig_dVR->put(&re, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
 
 						start[0] = 1;
-						Var_Eig_dVR->set_cur(&start[0]);
-						Var_Eig_dVR->put(&im, &count[0]);
+						OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
 						start[1]++;
 					}
 					c++;
@@ -2374,12 +2327,10 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 					im = 0.;
 
 					start[0] = 0;
-					Var_Eig_dVR->set_cur(&start[0]);
-					Var_Eig_dVR->put(&re, &count[0]);
+					OutHdl.WriteNcVar(Var_Eig_dVR, re, start, count);
 
 					start[0] = 1;
-					Var_Eig_dVR->set_cur(&start[0]);
-					Var_Eig_dVR->put(&im, &count[0]);
+					OutHdl.WriteNcVar(Var_Eig_dVR, im, start, count);
 
 					start[1]++;
 				}
@@ -2387,9 +2338,6 @@ DataManager::OutputEigenvectors(const VectorHandler *pBeta,
 		}
 
 	}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO NETCDF4
-#endif  /* USE_NETCDF4 */
 #endif /* USE_NETCDF */
 }
 

@@ -233,11 +233,11 @@ AutomaticStructDispElem::OutputPrepare(OutputHandler &OH)
 {
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
-		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
+		if (OH.UseNetCDF(OutputHandler::STRNODES)) {
 			ASSERT(OH.IsOpen(OutputHandler::NETCDF));
 
 			std::ostringstream os;
-			os << "node.struct." << GetLabel() << ".";
+			os << "elem.autostruct." << GetLabel() << ".";
 
 			std::string name(os.str());
 
@@ -256,14 +256,10 @@ AutomaticStructDispElem::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::INERTIA)) {
-#if defined(USE_NETCDFC)
-			Var_B->put_rec(B.pGetVec(), OH.GetCurrentStep());
-			Var_G->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
-			Var_BP->put_rec(BP.pGetVec(), OH.GetCurrentStep());
-			Var_GP->put_rec(::Zero3.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			OH.WriteNcVar(Var_B, B);
+			OH.WriteNcVar(Var_G, Zero3);
+			OH.WriteNcVar(Var_BP, BP);
+			OH.WriteNcVar(Var_GP, Zero3);
 		}
 #endif /* USE_NETCDF */
 

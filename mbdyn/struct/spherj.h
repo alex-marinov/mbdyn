@@ -44,7 +44,7 @@ class SphericalHingeJoint : virtual public Elem, public Joint {
    const StructNode* pNode1;
    const StructNode* pNode2;
 #ifdef USE_NETCDF
-	MBDynNcVar Var_Phi;
+   MBDynNcVar Var_Phi;
 #endif // USE_NETCDF
    Vec3 d1;
    Mat3x3 R1h;
@@ -158,7 +158,10 @@ class PinJoint : virtual public Elem, public Joint {
    Vec3 X0;
    Vec3 d;
    Vec3 F;
-   
+#ifdef USE_NETCDF
+   MBDynNcVar Var_Phi;
+#endif // USE_NETCDF
+
  public:
    /* Costruttore non banale */
    PinJoint(unsigned int uL, const DofOwner* pDO,
@@ -199,7 +202,8 @@ class PinJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XPrimeCurr);
 			    
    DofOrder::Order GetEqType(unsigned int i) const;
-   
+  
+   void OutputPrepare(OutputHandler& OH);
    virtual void Output(OutputHandler& OH) const;
  
    

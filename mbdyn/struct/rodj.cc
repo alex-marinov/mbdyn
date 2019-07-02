@@ -303,7 +303,7 @@ Rod::OutputPrepare(OutputHandler& OH)
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
 			std::string name;
-			OutputPrepare_int("rod", OH, name);
+			OutputPrepare_int("Rod", OH, name);
 
 			Var_dElle = OH.CreateVar<doublereal>(name + "l", "m",
 				"length of the element");
@@ -330,30 +330,25 @@ Rod::Output(OutputHandler& OH) const
 
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
-
 			Vec3 F = Vec3(d, 0., 0.);
 			Vec3 M = Zero3;
 			Vec3 FTmp = vTmp*d;
-#if defined(USE_NETCDFC)
-			Var_F_local->put_rec(F.pGetVec(), OH.GetCurrentStep());
-			Var_M_local->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_F_global->put_rec(FTmp.pGetVec(), OH.GetCurrentStep());
-			Var_M_global->put_rec(M.pGetVec(), OH.GetCurrentStep());
-			Var_dElle->put_rec(&dElle, OH.GetCurrentStep());
-			Var_dEllePrime->put_rec(&dEllePrime, OH.GetCurrentStep());
-			Var_v->put_rec(vTmp.pGetVec(), OH.GetCurrentStep());
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
+			
+			Joint::NetCDFOutput(OH, F, M, FTmp, M);
+			
+			OH.WriteNcVar(Var_dElle, dElle);
+			OH.WriteNcVar(Var_dEllePrime, dEllePrime);
+			OH.WriteNcVar(Var_v, vTmp);
 		}
 #endif // USE_NETCDF
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			std::ostream& out = OH.Joints();
 
-		std::ostream& out = OH.Joints();
-
-		Joint::Output(out, "Rod", GetLabel(),
-			Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
-			<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
- 			ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
+			Joint::Output(out, "Rod", GetLabel(),
+					Vec3(d, 0., 0.), Zero3, vTmp*d, Zero3)
+				<< " " << dElle << " " << vTmp << " " << dEpsilonPrime*dL0,
+				ConstitutiveLaw1DOwner::OutputAppend(out, OH) << std::endl;
+		}
 	}
 }
 

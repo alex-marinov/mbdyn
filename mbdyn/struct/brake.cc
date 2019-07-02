@@ -33,6 +33,7 @@
 
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
+#include "Rot.hh"
 #include "brake.h"
 
 /* Brake - begin */
@@ -59,7 +60,14 @@ Brake::Brake(unsigned int uL, const DofOwner* pDO,
 Joint(uL, pDO, fOut), 
 pNode1(pN1), pNode2(pN2),
 d1(dTmp1), R1h(R1hTmp), d2(dTmp2), R2h(R2hTmp), /* F(Zero3), */ M(Zero3), dTheta(0.),
-Sh_c(sh), fc(f), preF(pref), r(rr), brakeForce(pdc) /* ,
+Sh_c(sh), fc(f), preF(pref), r(rr), 
+#ifdef USE_NETCDFC
+Var_Phi(0),
+Var_Omega(0),
+Var_fc(0),
+Var_Fb(0),
+#endif // USE_NTECDFC
+brakeForce(pdc) /* ,
 isForce(isforce), Dir(dir) */
 {
 	NO_OP;
@@ -435,6 +443,31 @@ Brake::GetEqType(unsigned int i) const
    }
 }
 
+void
+Brake::OutputPrepare(OutputHandler& OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("brake", OH, name);
+			
+			Var_Phi = OH.CreateRotationVar(name + "Phi", "rad", ORIENTATION_VECTOR,
+				"relative rotation (Euler123)");
+
+			Var_Omega = OH.CreateVar<Vec3>(name + "Omega", "rad/s",
+				"local relative angular velocity, node 2 RF (x, y, z)");
+			
+			Var_fc = OH.CreateVar<doublereal>(name + "fc", "-",
+				"friction coefficient");
+
+			Var_Fb = OH.CreateVar<doublereal>(name + "Fb", "N",
+				"normal force the brake is activated with");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 /* Output (da mettere a punto) */
 void Brake::Output(OutputHandler& OH) const
 {
@@ -442,15 +475,34 @@ void Brake::Output(OutputHandler& OH) const
       Mat3x3 R2Tmp(pNode2->GetRCurr()*R2h);
       Mat3x3 RTmp((pNode1->GetRCurr()*R1h).Transpose()*R2Tmp);
       Mat3x3 R2TmpT(R2Tmp.Transpose());
-      
-      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
-		    /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
-	<< " " << MatR2EulerAngles(RTmp)*dRaDegr
-	  << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
-      if (fc) {
-          of << " " << fc->fc() << " " << brakeForce.dGet();
+
+      if (OH.UseText(OutputHandler::JOINTS)) {
+	      std::ostream &of = Joint::Output(OH.Joints(), "PlaneHinge", GetLabel(),
+			      /* R2TmpT*F*/ Zero3, M, /* F */ Zero3, R2Tmp*M)
+		      << " " << MatR2EulerAngles(RTmp)*dRaDegr
+		      << " " << R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr());
+	      if (fc) {
+		      of << " " << fc->fc() << " " << brakeForce.dGet();
+	      }
+	      of << std::endl;
       }
-      of << std::endl;
+
+#ifdef USE_NETCDF
+      if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+	      
+	      Joint::NetCDFOutput(OH, Zero3, M, Zero3, R2Tmp*M);
+	      
+	      OH.WriteNcVar(Var_Phi, RotManip::VecRot(RTmp));
+	      OH.WriteNcVar(Var_Omega, R2TmpT*(pNode2->GetWCurr()-pNode1->GetWCurr()));
+	      
+	      if (fc) {
+		      OH.WriteNcVar(Var_fc, fc->fc());
+		      OH.WriteNcVar(Var_Fb, brakeForce.dGet());
+	      }
+
+      }
+#endif // USE_NETCDF
+
    }
 }
 

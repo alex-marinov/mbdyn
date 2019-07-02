@@ -1225,6 +1225,23 @@ fi
 
 dnl ----------------------------------------------------------------
 dnl
+dnl Checks for noexcept
+dnl
+AC_LANG_CPLUSPLUS
+have_noexcept=no
+AC_MSG_CHECKING([for noexcept])
+AC_TRY_COMPILE([int pippo() noexcept {return 1;}],[],[have_noexcept=yes],[have_noexcept=no])
+if test $have_noexcept != no ; then
+	AC_DEFINE(HAVE_NOEXCEPT,1, [define if the compiler accept noexcept])
+	AC_MSG_RESULT([yes])
+else
+	dnl AC_MSG_RESULT([no])
+	AC_MSG_ERROR([The C++ compiler does not support the noexcept keyword. You should upgrade to a more recent compiler supporting c++11.])
+fi
+AC_LANG_C
+
+dnl ----------------------------------------------------------------
+dnl
 dnl Checks for working offsetof
 dnl
 have_offsetof=no
@@ -3315,6 +3332,7 @@ AM_CONDITIONAL(USE_GINAC,[test "$ol_link_ginac" = yes])
 AM_CONDITIONAL(USE_JDQZ,[test "$ol_link_jdqz" = yes])
 AM_CONDITIONAL(USE_METIS,[test "$ol_link_metis" = yes])
 AM_CONDITIONAL(NEW_METIS_INTERFACE,[test "$new_metis_interface" = yes])
+AM_CONDITIONAL(USE_NETCDF4,[test "$have_libnetcdf4" = yes])
 AM_CONDITIONAL(USE_OCTAVE,[test "$use_octave" = yes])
 AM_CONDITIONAL(USE_PYTHON,[test "$use_python" = yes])
 AM_CONDITIONAL(USE_RTAI,[test "$use_rtai" = yes])

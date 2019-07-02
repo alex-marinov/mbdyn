@@ -127,6 +127,12 @@ private:
 	Vec3 fb;
 	Vec3 xc;
 	Mat3x3 Rb;
+
+#ifdef USE_NETCDF
+	MBDynNcVar Var_Beam;
+	MBDynNcVar Var_sRef;
+	MBDynNcVar Var_l;
+#endif // USE_NETCDF
    
 public:
 	/* Costruttore non banale */
@@ -173,7 +179,8 @@ public:
 			doublereal dCoef,
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
-	
+
+	void OutputPrepare(OutputHandler &OH);
 	void Output(OutputHandler& OH) const;
 	
 	/* funzioni usate nell'assemblaggio iniziale */

@@ -64,6 +64,11 @@ protected:
 		doublereal dCoef);
 	void AssVec(SubVectorHandler& WorkVec);
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_v;
+	MBDynNcVar Var_omega;	
+#endif // USE_NETCDF
+
 public:
 	/* Costruttore non banale */
 	ViscousBody(unsigned int uL,
@@ -86,6 +91,7 @@ public:
 	/* Contributo al file di restart */
 	virtual std::ostream& Restart(std::ostream& out) const;
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	void SetValue(DataManager *pDM,

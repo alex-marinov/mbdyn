@@ -60,6 +60,12 @@ test_modalext \
 test_modalext_edge \
 test_strext_edge
 
+
+if USE_NETCDF4
+noinst_PROGRAMS += \
+ncprint
+endif
+
 if USE_OCTAVE
 noinst_PROGRAMS += \
 mbdyn_util_oct.oct
@@ -170,6 +176,8 @@ Mbfem/nas_read.cc \
 Mbfem/nas_read.h \
 Mbfem/node3.h
 
+ncprint_SOURCES = ncprint.cc
+
 mbdyn_util_oct_oct_SOURCES = mbdyn_util_oct.cc
 if USE_OCTAVE
 OCTAVE_XINCLUDE = -I$(top_srcdir)/include -I$(top_srcdir)/libraries/libmbutil -I$(top_srcdir)/libraries/libmbmath -I$(top_srcdir)/mbdyn -I../include
@@ -216,6 +224,7 @@ femgen_LDADD = libfemgen.la
 intg_LDADD = $(MYLIBS)
 logproc_LDADD = @RTAI_LDFLAGS@
 playground_LDADD = $(MYLIBS)
+ncprint_LDADD = $(MYLIBS) @NETCDF_LIBS@
 posrel_LDADD = $(MYLIBS)
 rot2eup_LDADD = $(MYLIBS)
 rot2eu_LDADD = $(MYLIBS)

@@ -1210,13 +1210,15 @@ Beam::Output(OutputHandler& OH) const
 	if (bToBeOutput()) {
 #ifdef USE_NETCDF
 		if (OH.UseNetCDF(OutputHandler::BEAMS)) {
-#if defined(USE_NETCDFC)
+
+			unsigned uOutputFlags = (fToBeOutput() & ToBeOutput::OUTPUT_PRIVATE_MASK);
+
 			for (unsigned iSez = 0; iSez < NUMSEZ; iSez++) {
-				if (Var_X[iSez]) {
-					Var_X[iSez]->put_rec(p[iSez].pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_X) {
+					OH.WriteNcVar(Var_X[iSez], p[iSez]);
 				}
 
-				if (Var_Phi[iSez]) {
+				if (uOutputFlags & Beam::OUTPUT_EP_R) {
 					Vec3 E;
 					switch (od) {
 					case EULER_123:
@@ -1248,11 +1250,11 @@ Beam::Output(OutputHandler& OH) const
 					case EULER_313:
 					case EULER_321:
 					case ORIENTATION_VECTOR:
-						Var_Phi[iSez]->put_rec(E.pGetVec(), OH.GetCurrentStep());
+						OH.WriteNcVar(Var_Phi[iSez], E);
 						break;
 
 					case ORIENTATION_MATRIX:
-						Var_Phi[iSez]->put_rec(R[iSez].pGetMat(), OH.GetCurrentStep());
+						OH.WriteNcVar(Var_Phi[iSez], R[iSez]);
 						break;
 
 					default:
@@ -1261,33 +1263,30 @@ Beam::Output(OutputHandler& OH) const
 					}
 				}
 
-				if (Var_F[iSez]) {
-					Var_F[iSez]->put_rec(AzLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_F) {
+					OH.WriteNcVar(Var_F[iSez], AzLoc[iSez].GetVec1());
 				}
 
-				if (Var_M[iSez]) {
-					Var_M[iSez]->put_rec(AzLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_M) {
+					OH.WriteNcVar(Var_M[iSez], AzLoc[iSez].GetVec2());
 				}
 
-				if (Var_Nu[iSez]) {
-					Var_Nu[iSez]->put_rec(DefLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_NU) {
+					OH.WriteNcVar(Var_Nu[iSez], DefLoc[iSez].GetVec1());
 				}
 
-				if (Var_K[iSez]) {
-					Var_K[iSez]->put_rec(DefLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_K) {
+					OH.WriteNcVar(Var_K[iSez], DefLoc[iSez].GetVec2());
 				}
 
-				if (Var_NuP[iSez]) {
-					Var_NuP[iSez]->put_rec(DefPrimeLoc[iSez].GetVec1().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_NUP) {
+					OH.WriteNcVar(Var_NuP[iSez], DefPrimeLoc[iSez].GetVec1());
 				}
 
-				if (Var_KP[iSez]) {
-					Var_KP[iSez]->put_rec(DefPrimeLoc[iSez].GetVec2().pGetVec(), OH.GetCurrentStep());
+				if (uOutputFlags & Beam::OUTPUT_EP_KP) {
+					OH.WriteNcVar(Var_KP[iSez], DefPrimeLoc[iSez].GetVec2());
 				}
 			}
-#elif defined(USE_NETCDF4)  /*! USE_NETCDFC */
-// TODO
-#endif  /* USE_NETCDF4 */
 		}
 #endif /* USE_NETCDF */
 

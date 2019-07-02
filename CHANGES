@@ -33,6 +33,8 @@ MBDyn 1.X-Devel
 		- fix escaping in hints
 		- fix "reference" to drive callers in drive caller hints
 		- fix inconsistency in rod constitutive law docs
+		- fix total pin joint initial assembly (Eduardo Okabe)
+		- fix output at Gauss points (noted by Roberta Cumbo)
 
 MBDyn 1.7.3
 	Enhancements:

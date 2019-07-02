@@ -64,6 +64,11 @@ protected:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+#ifdef USE_NETCDF
+	MBDynNcVar Var_V;
+	MBDynNcVar Var_d;
+#endif // USE_NETCDF
+
 public:
 	/* Costruttore non banale */
 	DistanceJoint(unsigned int uL, const DofOwner* pDO,
@@ -118,6 +123,7 @@ public:
 			const VectorHandler& XCurr,
 			const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */

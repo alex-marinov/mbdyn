@@ -85,6 +85,11 @@ f(fTmp), R(RTmp),
 F(Zero3), M(Zero3),
 sRef(0.), s(0.),
 dL(dl),
+#ifdef USE_NETCDFC // netcdfcxx4 has non-pointer vars...
+Var_Beam(0),
+Var_sRef(0),
+Var_l(0),
+#endif // USE_NETCDFC
 x(Zero3), l(Zero3)
 {
 	ASSERT(pNode != NULL);
@@ -144,17 +149,50 @@ BeamSliderJoint::Restart(std::ostream& out) const
 		<< "beam slider;" << std::endl;
 }
 
+void
+BeamSliderJoint::OutputPrepare(OutputHandler &OH)
+{
+	if (bToBeOutput()) {
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			std::string name;
+			OutputPrepare_int("Beam slider", OH, name);
+			
+			Var_Beam = OH.CreateVar<integer>(name + "Beam", "-",
+				"current beam label");
+
+			Var_sRef = OH.CreateVar<doublereal>(name + "sRef", "",
+				"current curvilinear abscissa");
+
+			Var_l = OH.CreateVar<Vec3>(name + "l", "-",
+				"local direction vector (x, y, z)");
+		}
+#endif // USE_NETCDF
+	}
+}
+
 void 
 BeamSliderJoint::Output(OutputHandler& OH) const
 {
 	if (bToBeOutput()) {
 		Mat3x3 RTmp(pNode->GetRCurr()*R);
 		Mat3x3 RTmpT(RTmp.Transpose());
-		
-		Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
-				RTmpT*F, M, F, RTmp*M)
-			<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
-			<< " " << sRef << " " << l << std::endl;
+	
+		if (OH.UseText(OutputHandler::JOINTS)) {
+			Joint::Output(OH.Joints(), "BeamSlider", GetLabel(),
+					RTmpT*F, M, F, RTmp*M)
+				<< " " << ppBeam[iCurrBeam]->pGetBeam()->GetLabel()
+				<< " " << sRef << " " << l << std::endl;
+		}
+#ifdef USE_NETCDF
+		if (OH.UseNetCDF(OutputHandler::JOINTS)) {
+			Joint::NetCDFOutput(OH, RTmpT*F, M, F, RTmp*M);
+
+			OH.WriteNcVar(Var_Beam, (int)(ppBeam[iCurrBeam]->pGetBeam()->GetLabel()));
+			OH.WriteNcVar(Var_sRef, sRef);
+			OH.WriteNcVar(Var_l, l);
+		}
+#endif // USE_NETCDF
 	}
 }
 

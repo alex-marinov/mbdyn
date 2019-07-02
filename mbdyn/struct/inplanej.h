@@ -103,6 +103,7 @@ class InPlaneJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   void OutputPrepare(OutputHandler& OH);
    virtual void Output(OutputHandler& OH) const;
 
    
@@ -207,6 +208,7 @@ class InPlaneWithOffsetJoint : virtual public Elem, public Joint {
 			    const VectorHandler& XCurr, 
 			    const VectorHandler& XPrimeCurr);
    
+   void OutputPrepare(OutputHandler& OH);
    virtual void Output(OutputHandler& OH) const;
 
    

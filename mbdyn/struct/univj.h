@@ -53,6 +53,9 @@ private:
 	Mat3x3 R2h;
 	Vec3 F;
 	doublereal dM;
+#ifdef USE_NETCDF
+	MBDynNcVar Var_Phi;
+#endif // USE_NETCDF
 
 public:
 	/* Costruttore non banale */
@@ -95,6 +98,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler& OH);
 	void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */
@@ -248,7 +252,9 @@ private:
 	Mat3x3 Rh;
 	Vec3 F;
 	doublereal dM;
-
+#ifdef USE_NETCDF
+	MBDynNcVar Var_Phi;
+#endif // USE_NETCDF
 public:
 	/* Costruttore non banale */
 	UniversalPinJoint(unsigned int uL, const DofOwner* pDO,
@@ -293,6 +299,7 @@ public:
 		const VectorHandler& XCurr,
 		const VectorHandler& XPrimeCurr);
 
+	void OutputPrepare(OutputHandler& OH);
 	virtual void Output(OutputHandler& OH) const;
 
 	/* funzioni usate nell'assemblaggio iniziale */
