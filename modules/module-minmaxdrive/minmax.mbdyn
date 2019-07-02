@@ -52,7 +52,7 @@ begin: elements;
             mult, const, -2.9, time,
             mult, const, 17.8, time;
 
-    drive caller: 101, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))", 
+    drive caller: 101, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))", 
         output, 
             value, yes, 
             derivative, yes, 
@@ -60,7 +60,7 @@ begin: elements;
             value, yes, 
             derivative, yes;
 
-    drive caller: 102, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 102, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))",
         output, 
             value, yes, 
             derivative, yes, 
@@ -68,37 +68,37 @@ begin: elements;
             value, yes, 
             derivative, yes;
 
-    drive caller: 103, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 103, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))",
         output, 
             derivative, yes;
 
-    drive caller: 104, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 104, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))",
         output, 
             value, yes;
 
-    drive caller: 105, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 105, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))",
         output trace, 
             derivative, yes;
 
-    drive caller: 106, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 106, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))",
         output trace, 
             value, yes;
 
-    drive caller: 107, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 107, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))",
         output, yes;
 
-    drive caller: 108, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 108, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))",
         output, yes;
 
-    drive caller: 109, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 109, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))",
         output trace, yes;
 
-    drive caller: 110, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))",
+    drive caller: 110, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))",
         output trace, yes;
 
-    drive caller: 111, name, "sin", string, "sin(2 * 3.14159265358979 * (Var - 1))";
+    drive caller: 111, name, "sin", ginac, symbol, "Time", "sin(2 * 3.14159265358979 * (Time - 1))";
 
-    drive caller: 112, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))", 
+    drive caller: 112, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))", 
         output, 
             value, no, 
             derivative, no, 
@@ -106,7 +106,7 @@ begin: elements;
             value, yes, 
             derivative, yes;
 
-    drive caller: 113, name, "cos", string, "cos(2 * 3.14159265358979 * (Var - 1))", 
+    drive caller: 113, name, "cos", ginac, symbol, "Time", "cos(2 * 3.14159265358979 * (Time - 1))", 
         output, no, 
         output trace, no;
 end: elements;
