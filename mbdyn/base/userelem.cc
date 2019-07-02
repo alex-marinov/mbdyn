@@ -42,6 +42,7 @@
 #include "module-inline_friction/module-inline_friction.h"
 #include "module-multi_step_drive/module-multi_step_drive.h"
 #include "module-nodedistdrive/module-nodedistdrive.h"
+#include "module-switch_drive/module-switch_drive.h"
 #ifdef USE_AUTODIFF
 #include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
 #include "module-ballbearing_contact/module-ballbearing_contact.h"
@@ -133,6 +134,8 @@ InitUDE(void)
         b = multi_step_drive_set();
         ASSERT(b != false);
         b = nodedistdrive_set();
+        ASSERT(b != false);
+        b = switch_drive_set();
         ASSERT(b != false);
 #ifdef USE_AUTODIFF
         b = hydrodynamic_plain_bearing_set();

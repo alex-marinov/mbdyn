@@ -142,7 +142,10 @@ $(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.cc \
 $(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.h \
 \
 $(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.cc \
-$(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.h
+$(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.h \
+\
+$(srcdir)/../../modules/module-switch_drive/module-switch_drive.cc \
+$(srcdir)/../../modules/module-switch_drive/module-switch_drive.h
 
 if USE_AUTODIFF
 nodist_libstruct_la_SOURCES += \
