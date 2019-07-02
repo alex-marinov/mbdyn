@@ -45,20 +45,22 @@ class IncompressibleHydraulicFluid : public HydraulicFluid {
  protected:
    const doublereal dDensity;
    const doublereal dViscosity;
+   const doublereal dDensityDTemp;
    
  public:
    IncompressibleHydraulicFluid(unsigned int Label, 
 				const doublereal& dDensity,
 				const doublereal& dViscosity = 0.,
 				const doublereal& dPres0 = -1.,
-				const doublereal& dTemp0 = -1.)
+				const doublereal& dTemp0 = -1.,
+                                const doublereal& dAlpha = 0.)
      : HydraulicFluid(Label, dPres0, dTemp0), 
-     dDensity(dDensity), dViscosity(dViscosity) {
+       dDensity(dDensity), dViscosity(dViscosity), dDensityDTemp(-dDensity * dAlpha) {
 	NO_OP;
      };
    IncompressibleHydraulicFluid(const IncompressibleHydraulicFluid& HF)
      : HydraulicFluid(HF), 
-     dDensity(HF.dDensity), dViscosity(HF.dViscosity) {
+       dDensity(HF.dDensity), dViscosity(HF.dViscosity), dDensityDTemp(HF.dDensityDTemp) {
 	NO_OP;
      };
    
@@ -81,8 +83,8 @@ class IncompressibleHydraulicFluid : public HydraulicFluid {
    doublereal dGetDensity(const doublereal& /* dPres */ ) const {
       return dDensity;
    };
-   doublereal dGetDensity(const doublereal& /* dPres */ , const doublereal& /* dTemp */ ) const {
-      return dDensity;
+   doublereal dGetDensity(const doublereal& /* dPres */ , const doublereal& dTemp) const {
+      return dDensity + (dTemp - dTemp0) * dDensityDTemp;
    };
    
    doublereal dGetDensityDPres(void) const {
@@ -96,13 +98,13 @@ class IncompressibleHydraulicFluid : public HydraulicFluid {
    };
    
    doublereal dGetDensityDTemp(void) const {
-      return 0.;
+      return dDensityDTemp;
    };
    doublereal dGetDensityDTemp(const doublereal& /* dPres */ ) const {
-      return 0.;
+      return dDensityDTemp;
    };
    doublereal dGetDensityDTemp(const doublereal& /* dPres */ , const doublereal& /* dTemp */ ) const {
-      return 0.;
+      return dDensityDTemp;
    };
 
    doublereal dGetViscosity(void) const {

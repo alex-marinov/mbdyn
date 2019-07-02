@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2015(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -323,7 +323,7 @@ MinMaxDriveDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 	drives.reserve(iNumDrives);
 
 	for (int i = 0; i < iNumDrives; ++i) {
-		drives[i].Set(HP.GetDriveCaller());
+		drives.push_back(HP.GetDriveCaller());
 	}
 
 	switch (eType) {

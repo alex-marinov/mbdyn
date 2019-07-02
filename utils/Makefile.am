@@ -94,6 +94,7 @@ MYLIBS += \
 @HARWELL_LIBS@ \
 @UMFPACK_LIBS@ \
 @KLU_LIBS@ \
+@PASTIX_LIBS@ \
 @MESCHACH_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -260,26 +261,44 @@ AM_CPPFLAGS = \
 	$(CXXLINK) -shared -o $@ $<
 
 if USE_OCTAVE
+PKG_NAME:=mbdyn_util_oct
+COPYRIGHT:=pierangelo.masarati@polimi.it
+PKG_AUTHOR:=r.resch@a1.net
+PKG_DIR:=$(PKG_NAME)
+PKG_FILE:=$(PKG_NAME).tar.gz
+
 mbdyn_util_oct.o: mbdyn_util_oct.cc
-	mkoctfile $(OCTAVE_XINCLUDE) -c -o $@ $<
+	$(OCTAVE_MKOCTFILE) $(OCTAVE_XINCLUDE) -c -o $@ $<
 
 mbdyn_util_oct.oct: mbdyn_util_oct.o
-	mkoctfile -o $@ $< $(OCTAVE_XLIBS)
+	$(OCTAVE_MKOCTFILE) -o $@ $< $(OCTAVE_XLIBS)
 
 # workaround for Cygwin and MinGW
 mbdyn_util_oct.oct.exe: mbdyn_util_oct.oct
-endif
 
-if USE_OCTAVE
-octdir="octave-`octave-config --version`"
-install-exec-local-oct:
-	$(mkinstalldirs) "$(DESTDIR)$(datarootdir)" "$(DESTDIR)$(bindir)/$(octdir)"
-	$(INSTALL_SCRIPT) -m 755 mbdyn_util_oct.oct "$(DESTDIR)$(bindir)/$(octdir)"
-	@echo "creating symlinks..."
-	@for f in $(OCTAVE_XFUNCS) ; do \
-		rm -f "$(DESTDIR)$(bindir)/$(octdir)/$$f" ; \
-		ln -s "$(DESTDIR)$(bindir)/$(octdir)/mbdyn_util_oct.oct" "$(DESTDIR)$(bindir)/$(octdir)/$$f" ; \
-	done
+$(PKG_FILE): $(top_srcdir)/utils/PKG_ADD mbdyn_util_oct.oct
+	@rm -rf $(PKG_DIR) $(PKG_FILE) 
+	@$(MKDIR_P) $(PKG_DIR)/package/inst
+	@echo "Copyright $(COPYRIGHT)" > $(PKG_DIR)/package/COPYING
+	@echo "Name: $(PKG_NAME)" > $(PKG_DIR)/package/DESCRIPTION
+	@echo "Version: $(VERSION)" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Date: 2019-04-07" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Author: $(PKG_AUTHOR)" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Maintainer: $(PKG_AUTHOR)" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Title: MBDyn Octave package" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Description: MBDyn rotation handling functions" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "License: GPLv2" >> $(PKG_DIR)/package/DESCRIPTION
+	@echo "Categories: Multibody dynamics" >> $(PKG_DIR)/package/DESCRIPTION
+	@$(INSTALL_SCRIPT) mbdyn_util_oct.oct $(PKG_DIR)/package/inst/
+	@$(INSTALL_SCRIPT) $(top_srcdir)/utils/PKG_ADD $(PKG_DIR)/package/PKG_ADD
+	@cd $(PKG_DIR); tar -zcf $(PKG_FILE) package
+	@cp -f $(PKG_DIR)/$(PKG_FILE) $(PKG_FILE)
+	@rm -rf $(PKG_DIR)
+	@printf "Octave package file \"%s\" created\n" $(PKG_FILE)
+
+install-exec-local-oct: $(PKG_FILE)
+	@octave-cli -qfHW --eval "pkg install $<"
+	@printf "package \"%s\" installed\n" $(PKG_NAME)
 else
 install-exec-local-oct:
 endif

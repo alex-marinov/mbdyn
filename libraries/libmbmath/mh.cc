@@ -130,6 +130,21 @@ MatrixHandler::ScalarMul(const doublereal& d)
 	return *this;
 }
 
+std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) const
+{
+    	integer nr = iGetNumRows();
+	integer nc = iGetNumCols();
+
+	for (integer i = 1; i <= nr; i++) {
+		for (integer j = 1; j <= nc; j++) {
+                    os << std::setw(16) << (*this)(i, j) << ' ';
+		}
+	        os << std::endl;
+	}
+
+	return os;
+}
+
 /* Matrix Matrix product */
 MatrixHandler&
 MatrixHandler::MatMatMul_base(void (MatrixHandler::*op)(integer iRow, 
@@ -523,17 +538,7 @@ doublereal MatrixHandler::Norm(enum Norm_t eNorm)const
 std::ostream&
 operator << (std::ostream& out, const MatrixHandler& MH)
 {
-	integer nr = MH.iGetNumRows();
-	integer nc = MH.iGetNumCols();
-
-	for (integer i = 1; i <= nr; i++) {
-		for (integer j = 1; j <= nc; j++) {
-			out << std::setw(16) << MH(i, j) << ' ';
-		}
-		out << std::endl;
-	}
-
-	return out;
+    return MH.Print(out, MatrixHandler::MAT_PRINT_FULL);
 }
 
 /* MatrixHandler - end */

@@ -29,8 +29,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
-        Copyright (C) 2011(-2017) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
+        Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -38,7 +38,11 @@
         in the GNU Public License version 2.1
 */
 
+#ifdef OCTAVE_OBJECT_BUILD_STANDALONE
+#define USE_OCTAVE 1
+#else
 #include <mbconfig.h>
+#endif
 
 #ifdef USE_OCTAVE
 
@@ -57,111 +61,165 @@ using namespace std;
 
 namespace oct {
 
-octave_object::method_function* octave_object::class_object::lookup_method(const std::string& method_name)const
-{
+    octave_object::octave_method::octave_method()
+        :pfunc(nullptr) {
+    }        
+        
+    octave_object::octave_method::octave_method(const std::string& method, method_function* pfn, octave_object* pobject)
+        :method(method),
+         pfunc(pfn),
+         object(pobject, true) {
+    }
+
+    void octave_object::octave_method::print(std::ostream& os, bool pr_as_read_syntax)
+    {
+        os << "@" << method;        
+    }
+    
+    octave_value_list octave_object::octave_method::subsref(const std::string& type,
+                                                            const std::list<octave_value_list>& idx,
+                                                            int nargout)
+    {
+#if TRACE_SUBSREF == 1
+	{
+
+            int i = 0;
+
+            octave_stdout << "method: \"" << method << "\"\n";
+        
+            for (auto it = idx.begin(); it != idx.end(); ++it)
+            {            
+                for (octave_idx_type j = 0; j < it->length(); ++j) {
+                    octave_stdout << "idx(" << ++i << ")=";
+                    (*it)(j).print_raw(octave_stdout);
+                    octave_stdout << endl;
+                }            
+            }
+        }
+#endif
+        return (*pfunc)(&object.get_rep(), idx.size() ? idx.front() : octave_value_list(), nargout);
+    }
+    
+    octave_value octave_object::octave_method::subsref(const std::string& type,
+                                                       const std::list<octave_value_list>& idx)
+    {
+        octave_value_list retval = subsref(type, idx, 1);
+
+        if (!retval.length()) {
+            return octave_value();
+        }
+
+        return retval(0);
+    }
+
+    DEFINE_OCTAVE_ALLOCATOR(octave_object::octave_method)
+    DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(octave_object::octave_method, "method", "method");
+    
+    octave_object::method_function* octave_object::class_object::lookup_method(const std::string& method_name)const
+    {
 	typedef method_table_t::const_iterator iter_t;
 
 	iter_t p = method_table.find(method_name);
 
 	if ( p != method_table.end() )
-		return p->second;
+            return p->second;
 
 	if ( parent_object != NULL )
 	{
-		return parent_object->lookup_method(method_name);
+            return parent_object->lookup_method(method_name);
 	}
 	else
 	{
-		cerr << "octave_object::class_object::lookup_method(\"" << method_name << "\") failed!" << endl;
-		const class_object* class_obj = this;
+#if TRACE_SUBSREF == 1
+            cerr << "octave_object::class_object::lookup_method(\"" << method_name << "\") failed!" << endl;
+            const class_object* class_obj = this;
 
-		cerr << "dump of octave_object::class_object::method_table:" << endl;
+            cerr << "dump of octave_object::class_object::method_table:" << endl;
 
-		while ( class_obj != NULL )
-		{
-			for ( iter_t p = class_obj->method_table.begin(); p != class_obj->method_table.end(); ++p )
-				cerr << " " << p->first << "->" << p->second <<  endl;
-			class_obj = class_obj->parent_object;
-		}
+            while ( class_obj != NULL )
+            {
+                for ( iter_t p = class_obj->method_table.begin(); p != class_obj->method_table.end(); ++p )
+                    cerr << " " << p->first << "->" << p->second <<  endl;
+                class_obj = class_obj->parent_object;
+            }
+#endif
 	}
 
 	return NULL;
-}
+    }
 
-octave_object::class_object octave_object::dispatch_class_object(NULL,NULL);
+    octave_object::class_object octave_object::dispatch_class_object(NULL,NULL);
 
-octave_object::octave_object()
-{
+    octave_object::octave_object()
+    {
 
-}
+    }
 
-octave_object::~octave_object()
-{
+    octave_object::~octave_object()
+    {
 
-}
+    }
 
-static bool any_arg_is_magic_colon (const octave_value_list& args)
-{
-  int nargin = args.length ();
+    static bool any_arg_is_magic_colon (const octave_value_list& args)
+    {
+        int nargin = args.length ();
 
-  for (int i = 0; i < nargin; i++)
-    if (args(i).is_magic_colon ())
-      return true;
+        for (int i = 0; i < nargin; i++)
+            if (args(i).is_magic_colon ())
+                return true;
 
-  return false;
-}
+        return false;
+    }
 
 #if TRACE_SUBSREF == 1
+    static void print_args(const octave_value_list& args)
+    {
+        int nargin = args.length ();
 
-static void print_args(const octave_value_list& args)
-{
-  int nargin = args.length ();
+        for (int i = 0; i < nargin; i++)
+        {
+            args(i).print_raw(octave_stdout);
 
-  for (int i = 0; i < nargin; i++)
-  {
-    args(i).print(octave_stdout);
-
-    if( i < nargin - 1 )
-    	octave_stdout << ',';
-  }
-}
-
+            if( i < nargin - 1 )
+                octave_stdout << ',';
+        }
+    }
 #endif
 
-octave_object::method_function* octave_object::lookup_method(const std::string& method_name)
-{
+    octave_object::method_function* octave_object::lookup_method(const std::string& method_name)
+    {
 	return get_class_object()->lookup_method(method_name);
-}
+    }
 
-octave_value_list octave_object::subsref (const std::string& type,
-		const std::list<octave_value_list>& idx,
-		int nargout)
-{
-	#if TRACE_SUBSREF == 1
+    octave_value_list octave_object::subsref (const std::string& type,
+                                              const std::list<octave_value_list>& idx,
+                                              int nargout)
+    {
+#if TRACE_SUBSREF == 1
 	{
-		octave_stdout << endl;
-		octave_stdout << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << endl;
-		octave_stdout << "type=" << type << endl;
+            octave_stdout << endl;
+            octave_stdout << __FILE__ << ":" << __LINE__ << ":" << __FUNCTION__ << endl;
+            octave_stdout << "type=" << type << endl;
 
-		typedef std::list<octave_value_list>::const_iterator iter_t;
+            typedef std::list<octave_value_list>::const_iterator iter_t;
 
-		int i = 0;
+            int i = 0;
 
-		for ( iter_t it = idx.begin(); it != idx.end(); ++it, ++i )
-		{
-			octave_stdout << "idx(" << i << ")=";
-			print_args(*it);
-			octave_stdout << endl;
-		}
+            for ( iter_t it = idx.begin(); it != idx.end(); ++it, ++i )
+            {
+                octave_stdout << "idx(" << i << ")=";
+                print_args(*it);
+                octave_stdout << endl;
+            }
 	}
-	#endif
+#endif
 
 	octave_value_list retval;
 	size_t skip = 1;
 
 	if ( type.length() < 1 )
 	{
-		panic_impossible();
+            panic_impossible();
 	}
 
 	const char operator_char = type[0];
@@ -170,100 +228,104 @@ octave_value_list octave_object::subsref (const std::string& type,
 	{
 	case '.':
 	{
-		octave_value_list method_name_list = idx.front();
+            octave_value_list method_name_list = idx.front();
 
-		if ( method_name_list.length () != 1 || !method_name_list(0).is_string() )
-			panic_impossible();
+            if ( method_name_list.length () != 1 || !method_name_list(0).is_string() )
+                panic_impossible();
 
-		const std::string method_name = method_name_list(0).string_value();
+            const std::string method_name = method_name_list(0).string_value();
 
-		method_function *method_pfn = lookup_method(method_name);
+            method_function *method_pfn = lookup_method(method_name);
 
-		if ( method_pfn == NULL )
-		{
-			error("octave_object: class \"%s\" has no member \"%s\"", class_name().c_str(), method_name.c_str());
-			return retval;
-		}
+            if ( method_pfn == NULL )
+            {
+                error("octave_object: class \"%s\" has no member \"%s\"", class_name().c_str(), method_name.c_str());
+                return retval;
+            }
 
-		if ( idx.size() < 2 || type[1] != '(')
-		{
-			retval = (*method_pfn)(this,octave_value_list(),nargout);
-		}
-		else
-		{
-			skip = 2;
-			std::list<octave_value_list>::const_iterator pidx = idx.begin();
-			pidx++;
+#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION >= 5
+            retval.append(new octave_method(method_name, method_pfn, this));
+#else
+            if ( idx.size() < 2 || type[1] != '(')
+            {
+                retval = (*method_pfn)(this,octave_value_list(),nargout);
+            }
+            else
+            {
+                skip = 2;
+                std::list<octave_value_list>::const_iterator pidx = idx.begin();
+                pidx++;
 
-			if (any_arg_is_magic_colon (*pidx))
-			{
-				error("octave object: invalid use of colon in method argument list");
-				return retval;
-			}
-			else
-			{
-				retval = (*method_pfn)(this,*pidx,nargout);
-			}
-		}
+                if (any_arg_is_magic_colon (*pidx))
+                {
+                    error("octave object: invalid use of colon in method argument list");
+                    return retval;
+                }
+                else
+                {
+                    retval = (*method_pfn)(this,*pidx,nargout);
+                }
+            }
+#endif                
 	}
 	break;
 	case '(':
 	{
-		if (idx.size() < 1)
-		{
-			error("octave object: invalid number of indices");
-			return retval;
-		}
+            if (idx.size() < 1)
+            {
+                error("octave object: invalid number of indices");
+                return retval;
+            }
 
-		retval = (*this)(idx.front());
+            retval = (*this)(idx.front());
 	}
 	break;
 	case '{':
 	{
-		std::string nm = type_name();
-		error("%s cannot be indexed with %c", nm.c_str(), operator_char);
-		return retval;
+            std::string nm = type_name();
+            error("%s cannot be indexed with %c", nm.c_str(), operator_char);
+            return retval;
 
 	}
 	break;
 
 	default:
-		panic_impossible();
+            panic_impossible();
 	}
 
 	if ( !error_state && idx.size() > skip )
 	{
-		retval = retval(0).next_subsref(type, idx, skip);
+            retval = retval(0).next_subsref(type, idx, skip);
 	}
 
 	return retval;
-}
+    }
 
-octave_value octave_object::operator()(const octave_value_list& idx) const
-{
+    octave_value octave_object::operator()(const octave_value_list& idx) const
+    {
 	std::string nm = type_name();
 	error("%s cannot be indexed with %c", nm.c_str(), '(');
 	return octave_value();
-}
+    }
 
-octave_value octave_object::subsref(const std::string& type,
-	  	  	  	  	  	  	 const std::list<octave_value_list>& idx)
-{
+    octave_value octave_object::subsref(const std::string& type,
+                                        const std::list<octave_value_list>& idx)
+    {
 	octave_value_list ret_val = subsref(type,idx,1);
 
 	if ( ret_val.length() < 1 )
-		return octave_value();
+            return octave_value();
 
 	return ret_val(0);
-}
+    }
 
-void error(const char* fmt, ...)
-{
+    void error(const char* fmt, ...)
+    {
 	va_list va;
 	va_start(va, fmt);
 	::verror(fmt, va);
 	va_end(va);
-}
+    }
 
 } // namespace
 

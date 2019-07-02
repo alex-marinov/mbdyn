@@ -600,9 +600,11 @@ MultiThreadDataManager::CCAssJac(MatrixHandler& JacHdl, doublereal dCoef)
 retry:;
 		CCReady = CC_NO;
 		for (unsigned i = 1; i < nThreads; i++) {
+                    if (thread_data[i].pJacHdl) {
 			SAFEDELETE(thread_data[i].pJacHdl);
 			thread_data[i].pJacHdl = 0;
 		}
+	}
 	}
 
 	switch (CCReady) {

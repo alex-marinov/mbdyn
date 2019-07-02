@@ -1929,7 +1929,8 @@ ReadJoint(DataManager* pDM,
 
 
 		/* Legame costitutivo */
-		ConstLawType::Type CLType;
+                ConstLawType::Type CLType = ConstLawType::UNKNOWN;
+
 		ConstitutiveLaw1D* pCL1 = 0;
 		ConstitutiveLaw3D* pCL3 = 0;
 		unsigned iCLNumDof = 0;

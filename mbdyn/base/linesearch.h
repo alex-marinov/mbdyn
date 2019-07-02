@@ -37,7 +37,7 @@
   */
 
  /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2011(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -58,7 +58,8 @@ struct LineSearchParameters
 	doublereal dTolMin;
 	integer iMaxIterations;
 	doublereal dMaxStep;
-	doublereal dAlpha;
+    doublereal dAlphaFull;
+    doublereal dAlphaModified;
 	doublereal dLambdaMin;
 	doublereal dLambdaFactMin;
     doublereal dDivergenceCheck;
@@ -75,19 +76,42 @@ struct LineSearchParameters
            NON_NEGATIVE_SLOPE_CONTINUE = 0x200,
            ALGORITHM = ALGORITHM_CUBIC | ALGORITHM_FACTOR };
 	unsigned uFlags;
+    integer iIterationsBeforeAssembly;
+    bool bKeepJac;
+    doublereal dTimeStepTol;
+    doublereal dUpdateRatio;
 	LineSearchParameters();
 };
 
-class LineSearchSolver: public NonlinearSolver, private LineSearchParameters
+class LineSearchSolver: public NonlinearSolver, protected LineSearchParameters
 {
+private:
+    doublereal lambda2;
+    doublereal f2;
+    
+protected:
 	VectorHandler* 	pRes;
 	VectorHandler* 	pSol;
 	MyVectorHandler p;
 	MyVectorHandler g;
-	MyVectorHandler dXneg;
 	const NonlinearProblem* pNLP;
     Solver* pS;
-	const DataManager* const pDM;
+    SolutionManager* pSM;
+    DataManager* const pDM;
+    integer iRebuildJac;
+
+    struct CPUTime
+    {
+        explicit CPUTime(LineSearchSolver& oSolver)
+            :Residual(oSolver, CPU_RESIDUAL),
+             Jacobian(oSolver, CPU_JACOBIAN),
+             LinearSolver(oSolver, CPU_LINEAR_SOLVER)
+        {
+        }
+        CPUStopWatch Residual;
+        CPUStopWatch Jacobian;
+        CPUStopWatch LinearSolver;
+    };
 
 public:
 	class SlopeNotNegative: public NoConvergence
@@ -135,7 +159,41 @@ public:
                      const struct LineSearchParameters& param);
 	~LineSearchSolver(void);
 	
-	void Solve(const NonlinearProblem *pNLP,
+protected:
+    void Attach(const NonlinearProblem* pNLP, Solver* pS);
+    doublereal dGetMinNewtonInc(const VectorHandler& dX) const;
+    doublereal dGetLambdaNext(doublereal dLambdaCurr, doublereal dSlope, doublereal fPrev, doublereal fCurr);
+    doublereal dGetLambdaMin(doublereal& dSlope, bool bRebuildJac, const VectorHandler& p, integer iIterCnt) const;
+    doublereal dGetMaxNewtonStep(const VectorHandler& XCurr, const VectorHandler& XPrimeCurr) const;
+    void ScaleNewtonStep(doublereal stpmax, VectorHandler& dX, integer iIterCnt) const;
+    bool bCheckZeroGradient(doublereal fCurr,
+                            doublereal dErr,
+                            doublereal dTol,
+                            integer iIterCnt) const;
+    bool bCheckDivergence(doublereal dErrFactor,
+                          doublereal dErrPrev,
+                          doublereal dErr,
+                          integer iIterCnt) const;
+    void OutputIteration(doublereal dErr, integer iIterCnt, bool bRebuildJac, const CPUTime& oCPU);
+    void OutputLineSearch(integer iIterCnt,
+                          integer iLineSearchIter,
+                          doublereal fCurr,
+                          doublereal dErr,
+                          doublereal dLambda,
+                          doublereal dSlope) const;
+    void Residual(doublereal& f, integer iIterCnt);
+    void Jacobian();
+};
+
+class LineSearchFull: public LineSearchSolver
+{    
+public:
+    LineSearchFull(DataManager* pDM,
+                   const NonlinearSolverOptions& options,
+                   const struct LineSearchParameters& param);
+    ~LineSearchFull(void);
+	
+    virtual void Solve(const NonlinearProblem *pNLP,
 			Solver *pS,
 			const integer iMaxIter,
 			const doublereal& Tol,
@@ -145,9 +203,28 @@ public:
 			doublereal& dSolErr);
 
 private:
-	void LineSearch(doublereal stpmax, doublereal fold, doublereal& f, bool& check, const integer& iIterCnt);
-    void Residual(doublereal& f, integer iIterCnt);
-    void Jacobian();
+   bool LineSearch(doublereal dMaxStep, doublereal fPrev, doublereal& fCurr, integer iIterCnt);
+};
+
+class LineSearchModified: public LineSearchSolver
+{
+private:
+    doublereal dTimePrev, dTimeStepPrev;
+    
+public:
+    LineSearchModified(DataManager* pDM,
+                       const NonlinearSolverOptions& options,
+                       const struct LineSearchParameters& param);
+    ~LineSearchModified(void);
+	
+    virtual void Solve(const NonlinearProblem *pNLP,
+                       Solver *pS,
+                       const integer iMaxIter,
+                       const doublereal& Tol,
+                       integer& iIterCnt,
+                       doublereal& dErr,
+                       const doublereal& SolTol,
+                       doublereal& dSolErr);
 };
 
 #endif /* LINE_SEARCH_H */

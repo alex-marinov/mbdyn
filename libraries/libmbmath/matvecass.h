@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -129,6 +129,7 @@ public:
 
 		default:
 			GRADIENT_ASSERT(0);
+                        iSubRow = -1;
 		}
 	}
 

@@ -44,6 +44,71 @@
 #include "module-fab-sbearings.h"
 #include "constltp.h"
 
+class HydrodynamicBearing01
+: virtual public Elem, public UserDefinedElem {
+private:
+   const StructNode* pNode1;
+   const StructNode* pNode2;
+   Mat3x3 R1tilde;
+   Mat3x3 R2tilde;
+   Vec3 X1tilde;
+   Vec3 X2tilde;
+   Vec3 XRel;
+   Vec3 XPRel;
+   Vec3 HForce;
+   Vec3 HMoment;
+   doublereal cr;
+   doublereal d0;
+   doublereal l0;
+   doublereal wr_min;
+   const HydraulicFluid* hFluid;
+   enum bModels {
+      OCVIRK,
+      CAPONE91,
+      SOMMERFELD,
+   };
+   bModels bearing_model;
+
+public:
+	HydrodynamicBearing01(unsigned uLabel, const DofOwner *pDO,
+		DataManager* pDM, MBDynParser& HP);
+	virtual ~HydrodynamicBearing01(void);
+
+	virtual void Output(OutputHandler& OH) const;
+	virtual void WorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+	VariableSubMatrixHandler&
+	AssJac(VariableSubMatrixHandler& WorkMat,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+	void JacNum(doublereal Xi[], doublereal JacMat[], integer n, integer m);
+	SubVectorHandler&
+	AssRes(SubVectorHandler& WorkVec,
+		doublereal dCoef,
+		const VectorHandler& XCurr,
+		const VectorHandler& XPrimeCurr);
+	void FForce(doublereal Xi[], doublereal Fi[]) const;
+	doublereal hi(doublereal cr, doublereal x, doublereal y, doublereal v) const;
+    doublereal dhi(doublereal dx, doublereal dy, doublereal v) const;
+	unsigned int iGetNumPrivData(void) const;
+	int iGetNumConnectedNodes(void) const;
+	void GetConnectedNodes(std::vector<const Node *>& connectedNodes) const;
+	void SetValue(DataManager *pDM, VectorHandler& X, VectorHandler& XP,
+		SimulationEntity::Hints *ph);
+	std::ostream& Restart(std::ostream& out) const;
+	virtual unsigned int iGetInitialNumDof(void) const;
+	virtual void
+	InitialWorkSpaceDim(integer* piNumRows, integer* piNumCols) const;
+   	VariableSubMatrixHandler&
+	InitialAssJac(VariableSubMatrixHandler& WorkMat,
+		      const VectorHandler& XCurr);
+   	SubVectorHandler&
+	InitialAssRes(SubVectorHandler& WorkVec, const VectorHandler& XCurr);
+	unsigned int iGetNumDof(void) const;
+	DofOrder::Order GetDofType(unsigned int i) const;
+	void AfterConvergence(const VectorHandler& X, const VectorHandler& XP);
+};
+
 // Hydrodynamic Bearing Model 01 v0 - September 12th, 2013
 // Warning: IDETC/CIE 2014 version uses ADOL-C instead of finite differences !!!!
 
@@ -895,33 +960,37 @@ struct RollingBearingCLR : public ConstitutiveLawRead<T, Tder> {
 	};
 };
 
-
-extern "C" int
-module_init(const char *module_name, void *pdm, void *php)
+bool fab_sbearings_set(void)
 {
 	UserDefinedElemRead *rf1 = new UDERead<HydrodynamicBearing01>;
 
 	if (!SetUDE("hydrodynamic" "bearing", rf1)) {
 		delete rf1;
-
-		silent_cerr("module-fabricate-bearings: "
-			"module_init(" << module_name << ") "
-			"failed" << std::endl);
-
-		return -1;
+        return false;
 	}
 
 	ConstitutiveLawRead<Vec3, Mat3x3> *rf3D = new RollingBearingCLR<Vec3, Mat3x3>;
 
 	if (!SetCL3D("rolling" "bearing", rf3D)) {
 		delete rf3D;
+        return false;
+    }
 
-		silent_cerr("RollingBearingConstitutiveLaw3D: "
-			"module_init(" << module_name << ") "
+    return true;
+}
+
+#if !(defined(STATIC_MODULES) && defined(MODULE_FAB_SBEARINGS_LINK_STATIC))
+
+extern "C" int
+module_init(const char *module_name, void *pdm, void *php)
+{
+    if (!fab_sbearings_set()) {
+        silent_cerr("module_init(" << module_name << ") "
 			"failed" << std::endl);
 
 		return -1;
 	}
-
 	return 0;
 }
+
+#endif

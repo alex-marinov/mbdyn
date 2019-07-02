@@ -135,17 +135,29 @@ $(srcdir)/../../modules/module-wheel2/module-wheel2.h \
 $(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.cc \
 $(srcdir)/../../modules/module-asynchronous_machine/module-asynchronous_machine.h \
 \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/diffsizes.f95 \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
-$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
-\
 $(srcdir)/../../modules/module-inline_friction/module-inline_friction.cc \
 $(srcdir)/../../modules/module-inline_friction/module-inline_friction.h \
 \
 $(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.cc \
-$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.h
+$(srcdir)/../../modules/module-nodedistdrive/module-nodedistdrive.h \
+\
+$(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.cc \
+$(srcdir)/../../modules/module-multi_step_drive/module-multi_step_drive.h
+
+if USE_AUTODIFF
+nodist_libstruct_la_SOURCES += \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
+$(srcdir)/../../modules/module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
+\
+$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.h \
+$(srcdir)/../../modules/module-uni_in_plane/module-uni_in_plane.cc \
+\
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.h \
+$(srcdir)/../../modules/module-ballbearing_contact/module-ballbearing_contact.cc \
+\
+$(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.h \
+$(srcdir)/../../modules/module-journal_bearing/module-journal_bearing.cc
+endif
 
 # add more...
 endif

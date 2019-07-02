@@ -341,7 +341,7 @@ public:
 	MathParser& GetMathParser(void) const { return MathPar; };
 	MBDynParser& GetMBDynParser(void) const { return MBPar; };
 	const Solver *GetSolver(void) const { return pSolver; };
-
+        NonlinearSolver* pGetNonlinearSolver() const;
 	bool PushCurrData(const std::string& name, const TypedValue& value);
 	bool PopCurrData(const std::string& name);
 

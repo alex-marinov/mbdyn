@@ -383,7 +383,7 @@ ReadElectric(DataManager* pDM,
 		if (HP.IsKeyWord("orientation")) {
 			Rn = HP.GetRotRel(ReferenceFrame(pStrNode1));
 			bHaveOrientation = true;
-		} else { // FIXME
+                } else {
 		try {
 			// FIXME: The current implemention of the motor requires a rotation matrix instead of an axis.
 			// FIXME: In order to maintain backward compatibility a rotation matrix has to be synthesised here.
@@ -411,7 +411,7 @@ ReadElectric(DataManager* pDM,
 			e2 /= e2.Norm();
 
 			Rn = Mat3x3(e1, e2, e3);
-		} catch (ErrNullNorm& err) {
+                    } catch (ErrNullNorm&) {
 			silent_cerr("Motor(" << uLabel << "): "
 				"illegal motor direction "
 				"at line " << HP.GetLineData()

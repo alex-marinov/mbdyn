@@ -349,7 +349,7 @@ StructDispNode::GetXCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& X, doublereal 
 {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -387,7 +387,7 @@ StructDispNode::GetVCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& V, doublereal 
 {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -1055,7 +1055,7 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, dou
 {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -1084,7 +1084,7 @@ inline void StructNode::GetgCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& g, dou
 
 inline void StructNode::GetgPCurr(grad::Vector<doublereal, 3>& gP, doublereal, enum grad::FunctionCall func, grad::LocalDofMap*) const
 {
-        GRADIENT_ASSERT(grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
+        GRADIENT_ASSERT(func == grad::INITIAL_DER_RES || func == grad::REGULAR_RES);
         
         gP = gPCurr;
 }
@@ -1094,7 +1094,7 @@ inline void StructNode::GetgPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& gP, d
 {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -1131,7 +1131,7 @@ inline void StructNode::GetRCurr(grad::Matrix<grad::Gradient<N_SIZE>, 3, 3>& R, 
 
 	UpdateRotation(dCoef, func);
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -1176,7 +1176,7 @@ inline void StructNode::GetWCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& W, dou
 
 	UpdateRotation(dCoef, func);
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_ASS_JAC:
@@ -1578,7 +1578,7 @@ inline void
 ModalNode::GetXPPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& XPP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_DER_JAC:
@@ -1613,7 +1613,7 @@ inline void
 ModalNode::GetWPCurr(grad::Vector<grad::Gradient<N_SIZE>, 3>& WP, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
 	using namespace grad;
 
-	index_type iFirstDofIndex;
+	index_type iFirstDofIndex = -1;
 
 	switch (func) {
 	case INITIAL_DER_JAC:

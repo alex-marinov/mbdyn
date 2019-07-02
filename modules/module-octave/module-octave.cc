@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /home/reinhard/CVS/mbdyn/modules/module-octave/module-octave.cc,v 2.43 2019/06/20 17:21:17 reinhard Exp $ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -30,8 +30,8 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
-        Copyright (C) 2011(-2017) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
+        Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza
@@ -70,13 +70,17 @@
 #undef MPI_Info
 #include <octave/oct.h>
 #include <octave/parse.h>
+#if (OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 2 || OCTAVE_MAJOR_VERSION > 4)
+#include <octave/interpreter.h>
+#else
 #include <octave/toplev.h>
+#endif
 #include <octave/octave.h>
-
+#if !(OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION > 4)
+#include <octave/oct-alloc.h>
+#endif
 #include "module-octave.h"
 #include "octave_object.h"
-
-//#define DEBUG
 
 #ifdef DEBUG
 #define TRACE(msg) ((void)(std::cerr << __FILE__ << ":" << __LINE__ << ":" << __PRETTY_FUNCTION__ << ":" << msg << std::endl))
@@ -823,9 +827,13 @@ pHP(pHP)
 
 	pOctaveInterface = this;
 
+#if OCTAVE_MAJOR_VERSION >= 5
+        char* argv[] = {nullptr};
+        int argc = 0;
+#else
 	const int nmax_args = 4;
-	const int nmax_char = 14;
-	char args[nmax_char] = "octave"; //FIXME: this might be unsafe
+	const int nmax_char = 18;
+	char args[nmax_char] = "octave-cli"; //FIXME: this might be unsafe
 	char *argv[nmax_args] = { &args[0] } ;
 	int argc = 1;
 
@@ -852,9 +860,17 @@ pHP(pHP)
 		silent_cerr("octave>argv[" << i << "]=\"" << *pp << "\"" << std::endl);
 	}
 #endif
-
+#endif
 	octave_main(argc, argv, 1);
 
+        feval("page_screen_output", octave_value(false), 0); // turn off pager
+
+        if ((error_state != 0)) {
+                silent_cerr("warning: page_screen_output failed" << std::endl);
+                error_state = 0; // ignore error
+        }
+
+        
 	LoadADPackage();
 }
 
@@ -868,8 +884,9 @@ OctaveInterface::~OctaveInterface(void)
 	TRACE("destructor");
 
 	ASSERT(this == pOctaveInterface);
-  
+#if !(OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 4 || OCTAVE_MAJOR_VERSION > 4)
   octave_exit = &OctaveInterface::exit;
+#endif
 
 #if defined(HAVE_DO_OCTAVE_ATEXIT)
   do_octave_atexit();
@@ -885,6 +902,11 @@ OctaveInterface::~OctaveInterface(void)
 bool
 OctaveInterface::LoadADPackage(void)
 {
+#if OCTAVE_MAJOR_VERSION >= 4 && OCTAVE_MINOR_VERSION >= 2 || OCTAVE_MAJOR_VERSION > 4
+        // AD package is broken on this octave version
+        // Use finite differences in var/mbdyn_derivative.m if AD is not available
+        bHaveADPackage = true;     
+#else
 	octave_value_list args;
 	args.append(octave_value("load"));
 	args.append(octave_value("ad"));
@@ -894,11 +916,12 @@ OctaveInterface::LoadADPackage(void)
 	bHaveADPackage = true; // Use finite differences in var/mbdyn_derivative.m if AD is not available
 
 	if ((error_state != 0)) {
-		silent_cerr("warning: octave package for automatic forward differentiation is not available" << std::endl);
-		error_state = 0; // ignore error
+            silent_cerr("warning: octave package for automatic forward differentiation is not available" << std::endl);
+            error_state = 0; // ignore error
+            bHaveADPackage = false;
 	}
-
-	return bHaveADPackage;
+#endif
+        return bHaveADPackage;
 }
 
 OctaveInterface *
@@ -1244,17 +1267,23 @@ OctaveInterface::EvalFunction(const std::string& func, const octave_value_list& 
 	}
 
 	if (bFirstCall) {
-		// octave .oct files by default are installed here
-		if (!AddOctaveSearchPath(OCTAVEBINPATH)) {
-			silent_cerr("OctaveInterface error: addpath(\"" << BINPATH << "\") failed" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+            octave_value_list args;
+            args.append(octave_value("load"));
+            args.append(octave_value("mbdyn_util_oct"));
 
-		// octave .m files by default are installed here
-		if (!AddOctaveSearchPath(OCTAVEPATH)) {
-			silent_cerr("OctaveInterface error: addpath(\"" << OCTAVEPATH << "\") failed" << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
+            feval("pkg", args, 0);
+
+            if ((error_state != 0)) {
+                silent_cerr("warning: octave package mbdyn_util_oct has not been installed" << std::endl);
+
+                error_state = 0;
+            }
+            
+            // octave .m files by default are installed here
+            if (!AddOctaveSearchPath(OCTAVEPATH)) {
+                    silent_cerr("OctaveInterface error: addpath(\"" << OCTAVEPATH << "\") failed" << std::endl);
+                    throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+            }
 	}
 
 	bFirstCall = false;
@@ -1516,7 +1545,7 @@ BEGIN_METHOD_TABLE(MBDynInterface, octave_object)
 	METHOD_DISPATCH(MBDynInterface, GetVersion)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(MBDynInterface);
+DEFINE_OCTAVE_ALLOCATOR(MBDynInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(MBDynInterface, "MBDyn", "MBDyn");
 
 ConstVectorHandlerInterface::ConstVectorHandlerInterface(OctaveInterface* pInterface, const VectorHandler* X)
@@ -1570,11 +1599,11 @@ octave_value ConstVectorHandlerInterface::operator()(const octave_value_list& id
 		if (!(idx(0).is_range()
 				|| (idx(0).is_integer_type()
 					&& (idx(0).rows() == 1 || idx(0).columns() == 1)))) {
-			error("%s: invalid index type %dx%d (%s)\n"
+			error("%s: invalid index type %ldx%ld (%s)\n"
 					"expected integer vector",
 					type_name().c_str(),
-					idx(0).rows(),
-					idx(0).columns(),
+                              static_cast<long>(idx(0).rows()),
+                              static_cast<long>(idx(0).columns()),
 					idx(0).type_name().c_str());
 			return octave_value();
 		}
@@ -1718,7 +1747,7 @@ BEGIN_METHOD_TABLE(ConstVectorHandlerInterface, MBDynInterface)
 	METHOD_DISPATCH(ConstVectorHandlerInterface, iGetSize)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(ConstVectorHandlerInterface);
+DEFINE_OCTAVE_ALLOCATOR(ConstVectorHandlerInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(ConstVectorHandlerInterface, "ConstVectorHandler", "ConstVectorHandler");
 
 VectorHandlerInterface::VectorHandlerInterface(OctaveInterface* pInterface, VectorHandler* X)
@@ -1853,7 +1882,7 @@ BEGIN_METHOD_TABLE(VectorHandlerInterface, ConstVectorHandlerInterface)
 	METHOD_DISPATCH(VectorHandlerInterface, PutVec)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(VectorHandlerInterface);
+DEFINE_OCTAVE_ALLOCATOR(VectorHandlerInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(VectorHandlerInterface, "VectorHandler", "VectorHandler");
 
 const std::string OStreamInterface::strsprintf("sprintf");
@@ -1904,7 +1933,7 @@ BEGIN_METHOD_TABLE(OStreamInterface, MBDynInterface)
 	METHOD_DISPATCH(OStreamInterface, printf)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(OStreamInterface);
+DEFINE_OCTAVE_ALLOCATOR(OStreamInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(OStreamInterface, "ostream", "ostream");
 
 
@@ -2353,7 +2382,7 @@ BEGIN_METHOD_TABLE(ScalarNodeInterface, NodeInterface)
 	METHOD_DISPATCH(ScalarNodeInterface, dGetXPrime)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(ScalarNodeInterface);
+DEFINE_OCTAVE_ALLOCATOR(ScalarNodeInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(ScalarNodeInterface, "ScalarNode", "ScalarNode");
 
 StructDispNodeBaseInterface::StructDispNodeBaseInterface(OctaveInterface* pInterface)
@@ -2569,7 +2598,7 @@ const StructDispNode* StructDispNodeInterface::Get()const
 	return pNode;
 }
 
-DEFINE_OCTAVE_ALLOCATOR(StructDispNodeInterface);
+DEFINE_OCTAVE_ALLOCATOR(StructDispNodeInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(StructDispNodeInterface, "StructDispNode", "StructDispNode");
 
 StructNodeInterface::StructNodeInterface(OctaveInterface* pInterface, const StructNode* pNode)
@@ -2735,7 +2764,7 @@ BEGIN_METHOD_TABLE(StructNodeInterface, StructDispNodeBaseInterface)
 	METHOD_DISPATCH(StructNodeInterface, GetWPPrev)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(StructNodeInterface);
+DEFINE_OCTAVE_ALLOCATOR(StructNodeInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(StructNodeInterface, "StructNode", "StructNode");
 
 DataManagerInterface::DataManagerInterface(OctaveInterface* pInterface, const DataManager* pDM)
@@ -3119,7 +3148,7 @@ BEGIN_METHOD_TABLE(DataManagerInterface, MBDynInterface)
 	METHOD_DISPATCH(DataManagerInterface, dGetTime)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(DataManagerInterface);
+DEFINE_OCTAVE_ALLOCATOR(DataManagerInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(DataManagerInterface, "DataManager", "DataManager");
 
 const MBDynParserInterface::MBDynStringDelims
@@ -3729,7 +3758,7 @@ BEGIN_METHOD_TABLE(MBDynParserInterface, MBDynInterface)
 	METHOD_DISPATCH(MBDynParserInterface, GetDriveCaller)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(MBDynParserInterface);
+DEFINE_OCTAVE_ALLOCATOR(MBDynParserInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(MBDynParserInterface, "MBDynParser", "MBDynParser");
 
 DriveCallerInterface::DriveCallerInterface(OctaveInterface* pInterface, const DriveCaller* pDC)
@@ -3824,7 +3853,7 @@ BEGIN_METHOD_TABLE(DriveCallerInterface, MBDynInterface)
 	METHOD_DISPATCH(DriveCallerInterface, dGetP)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(DriveCallerInterface);
+DEFINE_OCTAVE_ALLOCATOR(DriveCallerInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(DriveCallerInterface, "DriveCaller", "DriveCaller");
 
 OctaveDriveCaller::OctaveDriveCaller(const std::string& strFunc, OctaveInterface* pInterface, int iFlags, const octave_value_list& args)
@@ -5592,7 +5621,7 @@ BEGIN_METHOD_TABLE(OctaveElementInterface, MBDynInterface)
 	METHOD_DISPATCH(OctaveElementInterface, iGetFirstIndex)
 END_METHOD_TABLE()
 
-DEFINE_OCTAVE_ALLOCATOR(OctaveElementInterface);
+DEFINE_OCTAVE_ALLOCATOR(OctaveElementInterface)
 DEFINE_OV_TYPEID_FUNCTIONS_AND_DATA(OctaveElementInterface, "MBDynElement", "MBDynElement");
 
 }

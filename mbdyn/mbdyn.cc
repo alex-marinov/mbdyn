@@ -1102,7 +1102,11 @@ main(int argc, char* argv[])
 		silent_cout("MBDyn was interrupted" << std::endl);
 		rc = 2;
 		MB_EXIT(exit, rc);
-    	}
+    	} catch (...) {
+                silent_cerr("An error occurred during the execution of MBDyn" << std::endl);
+                rc = EXIT_FAILURE;
+                MB_EXIT(exit, rc);
+        }
 
 	if (mbp.bException) {
 		mbdyn_program(mbp, argc, argv, currarg);

@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -679,8 +679,8 @@ private:
     }
 #endif
 
-    typedef typename IndexCheck<iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
-    typedef typename IndexCheck<iNumCols - Expression::iNumCols>::CheckType check_iNumCols;
+        typedef typename IndexCheck<iNumRows == DYNAMIC_SIZE || Expression::iNumRows == DYNAMIC_SIZE ? 0 : iNumRows - Expression::iNumRows>::CheckType check_iNumRows;
+        typedef typename IndexCheck<iNumCols == DYNAMIC_SIZE || Expression::iNumCols == DYNAMIC_SIZE ? 0 : iNumCols - Expression::iNumCols>::CheckType check_iNumCols;
 };
 
 /**
@@ -819,7 +819,7 @@ public:
     }
 
     index_type iGetNumRows() const {
-    	MATVEC_ASSERT(oU.iGetNumRows() == VectorExpr::iNumRows);
+            MATVEC_ASSERT((oU.iGetNumRows() == VectorExpr::iNumRows) || (VectorExpr::iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0));
         return iNumRows;
     }
 
@@ -908,7 +908,7 @@ public:
 
         SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
     	:pVec(p) {
-            MATVEC_ASSERT(iRows == iNumRows);
+            MATVEC_ASSERT((iRows == iNumRows) || (iNumRows == DYNAMIC_SIZE && iRows >= 0));
             MATVEC_ASSERT(iOffset = N_offset);
         }
 
@@ -944,7 +944,7 @@ public:
         SliceVector(const ScalarType* p, index_type iRows, index_type iOffset)
             :pVec(p), iOffset(iOffset) {
             
-            MATVEC_ASSERT(iRows == iNumRows);
+            MATVEC_ASSERT((iRows == iNumRows) || (iNumRows == DYNAMIC_SIZE && iRows >= 0));
         }
 
         const ScalarType& operator()(index_type iRow) const {
@@ -1175,8 +1175,8 @@ public:
 
     SubMatrixExpr(const MatrixExpr& A)
 		:A(A) {
-		MATVEC_ASSERT(MatrixExpr::iNumCols == A.iGetNumCols());
-		MATVEC_ASSERT(MatrixExpr::iNumRows == A.iGetNumRows());
+            MATVEC_ASSERT((MatrixExpr::iNumCols == A.iGetNumCols()) || (MatrixExpr::iNumCols == DYNAMIC_SIZE && A.iGetNumCols() >= 0));
+            MATVEC_ASSERT((MatrixExpr::iNumRows == A.iGetNumRows()) || (MatrixExpr::iNumRows == DYNAMIC_SIZE && A.iGetNumRows() >= 0));
 	}
 
     const ScalarType& operator()(index_type i, index_type j) const {
@@ -1236,10 +1236,13 @@ public:
     MatrixMatrixMatrixBinaryExpr(const MatrixLhsExpr& u, const MatrixRhsExpr& v)
         :oU(u), oV(v) {
 
-    	MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
-    	MATVEC_ASSERT(iNumCols == oU.iGetNumCols());
-    	MATVEC_ASSERT(iNumRows == oV.iGetNumRows());
-    	MATVEC_ASSERT(iNumCols == oV.iGetNumCols());
+            MATVEC_ASSERT(oU.iGetNumRows() == oV.iGetNumRows());
+            MATVEC_ASSERT(oU.iGetNumCols() == oV.iGetNumCols());
+            
+            MATVEC_ASSERT((iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0) || (iNumRows == oU.iGetNumRows()));
+            MATVEC_ASSERT((iNumCols == DYNAMIC_SIZE && oU.iGetNumCols() >= 0) || (iNumCols == oU.iGetNumCols()));
+            MATVEC_ASSERT((iNumRows == DYNAMIC_SIZE && oV.iGetNumRows() >= 0) || (iNumRows == oV.iGetNumRows()));
+            MATVEC_ASSERT((iNumCols == DYNAMIC_SIZE && oV.iGetNumCols() >= 0) || (iNumCols == oV.iGetNumCols()));
     }
 
     ExpressionType operator()(index_type i, index_type j) const {
@@ -1252,13 +1255,13 @@ public:
 
     index_type iGetNumRows() const {
         MATVEC_ASSERT(oU.iGetNumRows() == oV.iGetNumRows());
-        MATVEC_ASSERT(iNumRows == oU.iGetNumRows());
+            MATVEC_ASSERT((iNumRows == DYNAMIC_SIZE && oU.iGetNumRows() >= 0) || (iNumRows == oU.iGetNumRows()));
         return oU.iGetNumRows();
     }
 
     index_type iGetNumCols() const {
     	MATVEC_ASSERT(oU.iGetNumCols() == oV.iGetNumCols());
-    	MATVEC_ASSERT(iNumCols == oU.iGetNumCols());
+            MATVEC_ASSERT((iNumCols == DYNAMIC_SIZE && oU.iGetNumCols() >= 0) || (iNumCols == oU.iGetNumCols()));
     	return oU.iGetNumCols();
     }
 
@@ -1280,8 +1283,8 @@ private:
     const MatrixRhsExpr oV;
 
     // check if the dimensions of both matrices are the same
-    typedef typename IndexCheck<MatrixLhsExpr::iNumRows - MatrixRhsExpr::iNumRows>::CheckType check_iNumRows;
-    typedef typename IndexCheck<MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumCols>::CheckType check_iNumCols;
+        typedef typename IndexCheck<(MatrixLhsExpr::iNumRows == DYNAMIC_SIZE || MatrixRhsExpr::iNumRows == DYNAMIC_SIZE) ? 0 : MatrixLhsExpr::iNumRows - MatrixRhsExpr::iNumRows>::CheckType check_iNumRows;
+        typedef typename IndexCheck<(MatrixLhsExpr::iNumCols == DYNAMIC_SIZE || MatrixRhsExpr::iNumCols == DYNAMIC_SIZE) ? 0 : MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumCols>::CheckType check_iNumCols;
 };
 
 
@@ -1927,7 +1930,8 @@ public:
             :rgMat(iRows, iCols, true) {
         }
         
-        Matrix(const T& A11, const T& A21, const T& A12, const T& A22)
+        Matrix(const T& A11, const T& A21,
+               const T& A12, const T& A22)
             :rgMat(iNumRows, iNumCols, false) {
             typedef typename IndexCheck<iNumRows - 2>::CheckType check_iNumRows;
             typedef typename IndexCheck<iNumCols - 2>::CheckType check_iNumCols;
@@ -1938,6 +1942,24 @@ public:
             (*this)(2, 2) = A22;
         }
 
+        Matrix(const T& A11, const T& A21, const T& A31,
+               const T& A12, const T& A22, const T& A32,
+               const T& A13, const T& A23, const T& A33)
+            :rgMat(iNumRows, iNumCols, false) {
+            typedef typename IndexCheck<iNumRows - 3>::CheckType check_iNumRows;
+            typedef typename IndexCheck<iNumCols - 3>::CheckType check_iNumCols;
+
+            (*this)(1, 1) = A11;
+            (*this)(2, 1) = A21;
+            (*this)(3, 1) = A31;
+            (*this)(1, 2) = A12;
+            (*this)(2, 2) = A22;
+            (*this)(3, 2) = A32;
+            (*this)(1, 3) = A13;
+            (*this)(2, 3) = A23;
+            (*this)(3, 3) = A33;
+        }
+        
         Matrix(const Matrix& A)
             :rgMat(A.rgMat) {
         }
@@ -1958,6 +1980,20 @@ public:
             ApplyMatrixFuncNoAlias(A, Assign());
         }
 
+        template <typename T2>
+        explicit Matrix(const Matrix<T2, N_rows, N_cols>& A)
+            :rgMat(A.iGetNumRows(), A.iGetNumCols(), false) {
+        
+            MATVEC_ASSERT(A.iGetNumRows() == iGetNumRows());
+            MATVEC_ASSERT(A.iGetNumCols() == iGetNumCols());
+            
+            for (index_type i = 1; i <= A.iGetNumRows(); ++i) {
+                for (index_type j = 1; j <= A.iGetNumCols(); ++j) {
+                    grad::Convert((*this)(i, j), A(i, j));
+                }
+            }
+        }
+        
         template <typename T2>
         Matrix(const Matrix<T2, N_rows, N_cols>& A, LocalDofMap* pDofMap)
             :rgMat(A.iGetNumRows(), A.iGetNumCols(), false) {
@@ -3170,7 +3206,8 @@ Norm(const VectorExpression<VectorExpr, N_rows>& u) {
 template <typename T, index_type N_rows>
 inline T
 Norm(const Vector<T, N_rows>& u) {
-	return Norm(Direct(u));
+        using std::sqrt;
+	return sqrt(Dot(u, u));
 }
 
 template <typename VectorLhsExpr, typename VectorRhsExpr>
@@ -3395,7 +3432,7 @@ private:
         }
     };
     
-template <typename MatrixLhsExpr, typename MatrixRhsExpr>
+    template <index_type N_rows_Lhs, index_type N_cols_Lhs, index_type N_cols_Rhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
 class MatrixMatrixProduct {
 public:
 	static const bool bAlias = MatrixLhsExpr::bAlias || MatrixRhsExpr::bAlias;
@@ -3454,10 +3491,119 @@ public:
     }
 
 private:
+        typedef typename IndexCheck<N_rows_Lhs - MatrixLhsExpr::iNumRows>::CheckType CheckNumRowsLhs;
+        typedef typename IndexCheck<N_cols_Lhs - MatrixLhsExpr::iNumCols>::CheckType CheckNumColsLhs;
+        typedef typename IndexCheck<N_cols_Rhs - MatrixRhsExpr::iNumCols>::CheckType CheckNumColsRhs;
+        typedef typename IndexCheck<MatrixLhsExpr::iNumCols - MatrixRhsExpr::iNumRows>::CheckType CheckMatrDimLhsRhs;
+        
+        const MatrixLhsExpr A;
+        const MatrixRhsExpr B;
+    };
+
+    template <typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+	static const bool bAlias = MatrixLhsExpr::bAlias || MatrixRhsExpr::bAlias;
+	static const index_type iNumRows = DYNAMIC_SIZE;
+	static const index_type iNumCols = DYNAMIC_SIZE;
+	typedef typename MatrixLhsExpr::ScalarType MatrixLhsScalarExpr;
+	typedef typename MatrixRhsExpr::ScalarType MatrixRhsScalarExpr;
+	typedef typename CommonScalarType<typename BasicScalarType<MatrixLhsScalarExpr>::ScalarType,
+                                          typename BasicScalarType<MatrixRhsScalarExpr>::ScalarType>::ScalarType ScalarType;
+        typedef ScalarType ExpressionType;
+
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :A(A), B(B) {
+            MATVEC_ASSERT(A.iGetNumCols() == B.iGetNumRows());
+        }
+
+        ExpressionType operator()(index_type i, index_type j) const {
+            MATVEC_ASSERT(i >= 1);
+            MATVEC_ASSERT(i <= iGetNumRows());
+            MATVEC_ASSERT(j >= 1);
+            MATVEC_ASSERT(j <= iGetNumCols());
+            MATVEC_ASSERT(A.iGetNumCols() == B.iGetNumRows());
+            
+            ScalarType Cij(0.);
+
+            for (index_type k = 1; k <= A.iGetNumCols(); ++k) {
+                Cij += A(i, k) * B(k, j);
+            }
+
+            return Cij;
+        }
+
+        index_type iGetNumRows() const {
+            return A.iGetNumRows();
+        }
+
+        index_type iGetNumCols() const {
+            return B.iGetNumCols();
+        }
+
+        template <typename ScalarType2>
+        bool bHaveReferenceTo(const ScalarType2* pFirst, const ScalarType2* pLast) const {
+            return A.bHaveReferenceTo(pFirst, pLast) || B.bHaveReferenceTo(pFirst, pLast);
+        }
+
+    private:        
     const MatrixLhsExpr A;
     const MatrixRhsExpr B;
 };
 
+    template <index_type N_rows_lhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<N_rows_lhs, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
+
+    template <index_type N_cols_lhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<DYNAMIC_SIZE, N_cols_lhs, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
+
+    template <index_type N_cols_rhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, N_cols_rhs, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
+    
+    template <index_type N_rows_lhs, index_type N_cols_lhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<N_rows_lhs, N_cols_lhs, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
+
+    template <index_type N_cols_lhs, index_type N_cols_rhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<DYNAMIC_SIZE, N_cols_lhs, N_cols_rhs, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
+    
+    template <index_type N_rows_lhs, index_type N_cols_rhs, typename MatrixLhsExpr, typename MatrixRhsExpr>
+    class MatrixMatrixProduct<N_rows_lhs, DYNAMIC_SIZE, N_cols_rhs, MatrixLhsExpr, MatrixRhsExpr>
+        :public MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr> {
+    public:
+        MatrixMatrixProduct(const MatrixLhsExpr& A, const MatrixRhsExpr& B)
+            :MatrixMatrixProduct<DYNAMIC_SIZE, DYNAMIC_SIZE, DYNAMIC_SIZE, MatrixLhsExpr, MatrixRhsExpr>(A, B) {
+        }
+    };
 /****************************************************************************************************************
  * matrix vector product
  ****************************************************************************************************************/
@@ -3516,39 +3662,39 @@ operator* (const Mat3x3& A, const Vector<T, 3>& x) {
  ****************************************************************************************************************/
 
 template <typename MatrixLhsExpr, index_type N_rows_Lhs, index_type N_cols_Lhs, typename MatrixRhsExpr, index_type N_cols_Rhs>
-inline MatrixExpression<MatrixMatrixProduct<MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>
+    inline MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>
 operator* (const MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>& A, const MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs>& B) {
-	return MatrixExpression<MatrixMatrixProduct<MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>(A, B);
+	return MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>(A, B);
 }
 
 template <typename MatrixLhsExpr, index_type N_rows_Lhs, index_type N_cols_Lhs, typename T, index_type N_cols_Rhs>
-inline MatrixExpression<MatrixMatrixProduct<MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixDirectExpr<Matrix<T, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>
+    inline MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixDirectExpr<Matrix<T, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>
 operator* (const MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>& A, const Matrix<T, N_cols_Lhs, N_cols_Rhs>& B) {
-	return MatrixExpression<MatrixMatrixProduct<MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixDirectExpr<Matrix<T, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>(A, Direct(B));
+	return MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixExpression<MatrixLhsExpr, N_rows_Lhs, N_cols_Lhs>, MatrixDirectExpr<Matrix<T, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>(A, Direct(B));
 }
 
 template <typename T, index_type N_rows_Lhs, index_type N_cols_Lhs, typename MatrixRhsExpr, index_type N_cols_Rhs>
-inline MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T, N_rows_Lhs, N_cols_Lhs> >, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>
+    inline MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixDirectExpr<Matrix<T, N_rows_Lhs, N_cols_Lhs> >, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>
 operator* (const Matrix<T, N_rows_Lhs, N_cols_Lhs>& A, const MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs>& B) {
-	return MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T, N_rows_Lhs, N_cols_Lhs> >, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>(Direct(A), B);
+	return MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixDirectExpr<Matrix<T, N_rows_Lhs, N_cols_Lhs> >, MatrixExpression<MatrixRhsExpr, N_cols_Lhs, N_cols_Rhs> >, N_rows_Lhs, N_cols_Rhs>(Direct(A), B);
 }
 
 template <typename T_Lhs, index_type N_rows_Lhs, index_type N_cols_Lhs, typename T_Rhs, index_type N_cols_Rhs>
-inline MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T_Lhs, N_rows_Lhs, N_cols_Lhs> >, MatrixDirectExpr<Matrix<T_Rhs, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>
+    inline MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixDirectExpr<Matrix<T_Lhs, N_rows_Lhs, N_cols_Lhs> >, MatrixDirectExpr<Matrix<T_Rhs, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>
 operator* (const Matrix<T_Lhs, N_rows_Lhs, N_cols_Lhs>& A, const Matrix<T_Rhs, N_cols_Lhs, N_cols_Rhs>& B) {
-	return MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T_Lhs, N_rows_Lhs, N_cols_Lhs> >, MatrixDirectExpr<Matrix<T_Rhs, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>(Direct(A), Direct(B));
+	return MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, N_cols_Lhs, N_cols_Rhs, MatrixDirectExpr<Matrix<T_Lhs, N_rows_Lhs, N_cols_Lhs> >, MatrixDirectExpr<Matrix<T_Rhs, N_cols_Lhs, N_cols_Rhs> > >, N_rows_Lhs, N_cols_Rhs>(Direct(A), Direct(B));
 }
 
 template <typename T, index_type N_rows_Lhs>
-inline MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T, N_rows_Lhs, 3> >, Mat3x3DirectExpr>, N_rows_Lhs, 3>
+    inline MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, 3, 3, MatrixDirectExpr<Matrix<T, N_rows_Lhs, 3> >, Mat3x3DirectExpr>, N_rows_Lhs, 3>
 operator* (const Matrix<T, N_rows_Lhs, 3>& A, const Mat3x3& B) {
-	return MatrixExpression<MatrixMatrixProduct<MatrixDirectExpr<Matrix<T, N_rows_Lhs, 3> >, Mat3x3DirectExpr>, N_rows_Lhs, 3>(Direct(A), Direct(B));
+	return MatrixExpression<MatrixMatrixProduct<N_rows_Lhs, 3, 3, MatrixDirectExpr<Matrix<T, N_rows_Lhs, 3> >, Mat3x3DirectExpr>, N_rows_Lhs, 3>(Direct(A), Direct(B));
 }
 
 template <typename T, index_type N_cols_Rhs>
-inline MatrixExpression<MatrixMatrixProduct<Mat3x3DirectExpr, MatrixDirectExpr<Matrix<T, 3, N_cols_Rhs> > >, 3, N_cols_Rhs>
+    inline MatrixExpression<MatrixMatrixProduct<3, 3, N_cols_Rhs, Mat3x3DirectExpr, MatrixDirectExpr<Matrix<T, 3, N_cols_Rhs> > >, 3, N_cols_Rhs>
 operator* (const Mat3x3& A, const Matrix<T, 3, N_cols_Rhs>& B) {
-	return MatrixExpression<MatrixMatrixProduct<Mat3x3DirectExpr, MatrixDirectExpr<Matrix<T, 3, N_cols_Rhs> > >, 3, N_cols_Rhs>(Direct(A), Direct(B));
+	return MatrixExpression<MatrixMatrixProduct<3, 3, N_cols_Rhs, Mat3x3DirectExpr, MatrixDirectExpr<Matrix<T, 3, N_cols_Rhs> > >, 3, N_cols_Rhs>(Direct(A), Direct(B));
 }
 
 #define VECTOR_VECTOR_DEFINE_BINARY_FUNCTION(ExpressionName, FunctionName, FunctionClass) \

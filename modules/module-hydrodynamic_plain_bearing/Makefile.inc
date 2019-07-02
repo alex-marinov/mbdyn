@@ -10,5 +10,5 @@
 #
 ###############################################################################
 
-MODULE_DEPENDENCIES=diffsizes.lo hydrodynamic_plain_bearing_force.lo hydrodynamic_plain_bearing_force_dv.lo
+MODULE_DEPENDENCIES=
 

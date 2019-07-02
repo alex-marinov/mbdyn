@@ -26,7 +26,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% AUTHOR: Reinhard Resch <r.resch@secop.com>
+% AUTHOR: Reinhard Resch <r.resch@a1.net>
 %        Copyright (C) 2011(-2017) all rights reserved.
 %
 %        The copyright of this code is transferred

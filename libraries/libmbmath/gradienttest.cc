@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -214,6 +214,7 @@ void testRangeVector() {
 
     v.ResizePreserve(1, 6);
 
+    std::cout << "v.ResizePreserve(1, 6);\n";
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
@@ -224,6 +225,7 @@ void testRangeVector() {
 
     v.ResizePreserve(1, 5);
 
+    std::cout << "v.ResizePreserve(1, 5);\n";
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
@@ -234,6 +236,7 @@ void testRangeVector() {
 
     v.ResizePreserve(0, 6);
     
+    std::cout << "v.ResizePreserve(0, 6);\n";
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
@@ -244,6 +247,7 @@ void testRangeVector() {
 
     v.ResizePreserve(4, 5);
 
+    std::cout << " v.ResizePreserve(4, 5);\n";
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
@@ -252,8 +256,10 @@ void testRangeVector() {
 
     std::cout << std::endl;
 
+
     v.ResizePreserve(0, 6);
 
+    std::cout << "v.ResizePreserve(0, 6);\n";
     std::cout << "v(" << v.iGetStartIndex() << ":" << v.iGetEndIndex() - 1 << ")\n";
 
     for (index_type i = v.iGetStartIndex(); i < v.iGetEndIndex(); ++i) {
@@ -396,6 +402,75 @@ void funcDeriv(index_type N, doublereal u, const doublereal ud[], doublereal v, 
 
     for (index_type i = 0; i < N; ++i) {
     	fd[i] = df_du * ud[i] + df_dv * vd[i] + df_dw * wd[i];
+    }
+}
+
+template <typename T>
+void func2(const T& a, const T& b, const T& c, const T& d, integer e, T& f)
+{
+    f = d - pow(a / b + c * d, e) / d + a * b;
+}
+
+double func2Deriv(double a, double b, double c, double d, integer e, double ad, double bd, double cd, double dd)
+{
+    return dd*((-(c*pow(c*d+a/b,e-1)*e)/d)+pow(c*d+a/b,e)/pow(d,2)+1)+ad*(b-(pow(c*d+a/b,e-1)*e)/(b*d))+bd*((a*pow(c*d+a/b,e-1)*e)/(pow(b,2)*d)+a)-cd*pow(c*d+a/b,e-1)*e;
+}
+
+template <index_type N_SIZE>
+void test_func2(index_type N) {
+    Gradient<N_SIZE> a, b, c, d, f;
+    doublereal f_tmp;
+    LocalDofMap dof;
+
+    srand(0);
+
+    a.SetValuePreserve(fabs(random1() * 3.5));
+    b.SetValuePreserve(fabs(random1() * 1.5));
+    c.SetValuePreserve(fabs(random1() * 5.5));
+    d.SetValuePreserve(fabs(random1() * 3.5));
+
+    a.DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+    b.DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+    c.DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+    d.DerivativeResizeReset(&dof, 0, N, MapVectorBase::GLOBAL, 0.);
+    
+    for (index_type i = 0; i < N; ++i) {
+    	a.SetDerivativeGlobal(i, random1() * 0.1);
+        b.SetDerivativeGlobal(i, random1() * 3);
+        c.SetDerivativeGlobal(i, random1() * 5);
+        d.SetDerivativeGlobal(i, random1() * 9);
+    }
+
+    for (index_type e = -3; e <= 10; ++e) {
+        func2(a, b, c, d, e, f);
+        func2(a.dGetValue(),
+              b.dGetValue(),
+              c.dGetValue(),
+              d.dGetValue(),
+              e,
+              f_tmp);
+
+        assert(bCompare(f.dGetValue(), f_tmp, std::numeric_limits<doublereal>::epsilon()));
+
+        std::cout << "f=" << f.dGetValue() << std::endl;
+        std::cout << "f_tmp=" << f_tmp << std::endl;
+        
+        for (index_type i = 0; i < N; ++i) {
+            double fd_tmp = func2Deriv(a.dGetValue(),
+                                       b.dGetValue(),
+                                       c.dGetValue(),
+                                       d.dGetValue(),
+                                       e,
+                                       a.dGetDerivativeGlobal(i),
+                                       b.dGetDerivativeGlobal(i),
+                                       c.dGetDerivativeGlobal(i),
+                                       d.dGetDerivativeGlobal(i));
+                                       
+            assert(bCompare(f.dGetDerivativeGlobal(i), fd_tmp, sqrt(std::numeric_limits<doublereal>::epsilon())));
+
+            std::cout << "df/dX" << i << "=" << f.dGetDerivativeGlobal(i) << std::endl;
+            std::cout << "fd_tmp" << i << "=" << fd_tmp << std::endl;
+        }
     }
 }
 
@@ -1846,6 +1921,17 @@ int main(int argc, char* argv[]) {
     testGradient2<0>();
     testGradient2<3>();
 
+    std::cerr << "test_func2:" << std::endl;
+    
+    test_func2<1>(1);
+    test_func2<2>(2);
+    test_func2<4>(4);
+    test_func2<6>(6);
+    test_func2<8>(8);
+    test_func2<10>(10);
+    test_func2<12>(12);
+    test_func2<0>(12);
+    
     testGradientCopy(0);
     testGradientCopy(1);
     testGradientCopy(2);

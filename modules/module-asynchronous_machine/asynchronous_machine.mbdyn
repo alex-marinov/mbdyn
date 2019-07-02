@@ -28,7 +28,7 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 # 
-# Author: Reinhard Resch <r.resch@secop.com>
+# Author: Reinhard Resch <r.resch@a1.net>
 set: integer node_id_rotor 				= 1001;
 set: integer node_id_stator				= 1002;
 set: integer node_id_motor_torque			= 1003;

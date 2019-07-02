@@ -49,6 +49,7 @@ public:
                 UMFPACK_SOLVER,
                 KLU_SOLVER,
 		Y12_SOLVER,
+                PASTIX_SOLVER,
 
 		LAST_SOLVER
 	};

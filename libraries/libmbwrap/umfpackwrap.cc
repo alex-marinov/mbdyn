@@ -90,7 +90,8 @@
 #define UMFPACKWRAP_report_status 	umfpack_dl_report_status
 #define UMFPACKWRAP_numeric 		umfpack_dl_numeric
 #define UMFPACKWRAP_solve 		umfpack_dl_solve
-
+#define UMFPACKWRAP_report_numeric      umfpack_dl_report_numeric
+#define UMFPACKWRAP_report_symbolic     umfpack_dl_report_symbolic
 #else // ! USE_UMFPACK_LONG
 
 #define UMFPACKWRAP_defaults 		umfpack_di_defaults
@@ -104,12 +105,17 @@
 #define UMFPACKWRAP_report_status 	umfpack_di_report_status
 #define UMFPACKWRAP_numeric 		umfpack_di_numeric
 #define UMFPACKWRAP_solve 		umfpack_di_solve
-
+#define UMFPACKWRAP_report_numeric      umfpack_di_report_numeric
+#define UMFPACKWRAP_report_symbolic     umfpack_di_report_symbolic
 #endif // ! USE_UMFPACK_LONG
 
 /* required factorization type (A * x = b) */
 #define SYS_VALUE 			UMFPACK_A
 #define SYS_VALUET 			UMFPACK_Aat
+
+#ifdef UMFPACK_PROFILE
+#include "clock_time.h"
+#endif
 
 /* UmfpackSolver - begin */
 	
@@ -124,6 +130,7 @@ iSize(size),
 Axp(0),
 Aip(0),
 App(0),
+iNumNonZeros(-1),
 Symbolic(0),
 Numeric(0),
 bHaveCond(false)
@@ -132,6 +139,10 @@ bHaveCond(false)
 	memset(&Info[0], 0, sizeof(Info));
 	UMFPACKWRAP_defaults(Control);
 
+#ifdef UMFPACK_REPORT
+        Control[UMFPACK_PRL] = 2;
+#endif
+        
 	if (dPivot != -1. && (dPivot >= 0. && dPivot <= 1.)) {
 		/*
 		 * 1.0: true partial pivoting
@@ -171,8 +182,7 @@ UmfpackSolver::~UmfpackSolver(void)
 	ASSERT(Numeric == 0);
 }
 
-void
-UmfpackSolver::Reset(void)
+void UmfpackSolver::ResetNumeric(void) const
 {
 	bHaveCond = false;
 
@@ -182,6 +192,22 @@ UmfpackSolver::Reset(void)
 	}
 
 	bHasBeenReset = true;
+}
+
+void UmfpackSolver::ResetSymbolic(void) const
+{
+        if (Symbolic) {
+                UMFPACKWRAP_free_symbolic(&Symbolic);
+                ASSERT(Symbolic == 0);
+        }
+
+        ResetNumeric();
+}
+
+void
+UmfpackSolver::Reset(void)
+{
+        ResetNumeric();
 }
 
 void
@@ -206,14 +232,12 @@ UmfpackSolver::Solve(bool bTranspose) const
 		
 	int status;
 
+#ifdef UMFPACK_PROFILE
+        doublereal start = mbdyn_clock_time();
+#endif
 	/*
 	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
 	 */
-		
-#ifdef UMFPACK_REPORT
-	doublereal t = t_iniz;
-#endif /* UMFPACK_REPORT */
-
 	status = UMFPACKWRAP_solve((bTranspose ? SYS_VALUET : SYS_VALUE),
 			App, Aip, Axp,
 			LinearSolver::pdSol, LinearSolver::pdRhs, 
@@ -232,22 +256,28 @@ UmfpackSolver::Solve(bool bTranspose) const
 	}
 
 	if (Control[UMFPACK_IRSTEP] > 0 && Info[UMFPACK_IR_TAKEN] >= Control[UMFPACK_IRSTEP]) {
-		silent_cerr("warning: UMFPACK_IR_TAKEN = " << Info[UMFPACK_IR_TAKEN]
+		silent_cerr("Umfpack warning: UMFPACK_IR_TAKEN = " << Info[UMFPACK_IR_TAKEN]
 		             << " >= UMFPACK_IRSTEP = " << Control[UMFPACK_IRSTEP] <<  std::endl
-		             << "\tThe flag \"max iterations\" of the linear solver is too small or the condition number of the Jacobian matrix is too high" << std::endl);
+		             << "Umfpack warning: The flag \"max iterations\" of the linear solver is too small or the condition number of the Jacobian matrix is too high" << std::endl);
 	}
 
 #ifdef UMFPACK_REPORT
 	UMFPACKWRAP_report_info(Control, Info);
-	doublereal t1 = umfpack_timer() - t;	/* ?!? not used! */
 #endif /* UMFPACK_REPORT */
+
+#ifdef UMFPACK_PROFILE
+        doublereal dt = mbdyn_clock_time() - start;
+        silent_cout("UMFPACK: solve takes " << dt << "s\n");
+#endif
 }
 
 void
 UmfpackSolver::Factor(void)
 {
 	int status;
-
+#ifdef UMFPACK_PROFILE
+        doublereal start = mbdyn_clock_time();
+#endif
 	/*
 	 * NOTE: Axp, Aip, App should have been set by * MakeCompactForm()
 	 */
@@ -257,10 +287,8 @@ UmfpackSolver::Factor(void)
 	}
 
 #ifdef UMFPACK_REPORT
-	UMFPACKWRAP_report_symbolic ("Symbolic factorization of A",
-			Symbolic, Control) ;
+        UMFPACKWRAP_report_symbolic (Symbolic, Control) ;
 	UMFPACKWRAP_report_info(Control, Info);
-	doublereal t1 = umfpack_timer() - t;	/* ?!? not used! */
 #endif /* UMFPACK_REPORT */
 
 	status = UMFPACKWRAP_numeric(App, Aip, Axp, Symbolic, 
@@ -274,6 +302,10 @@ UmfpackSolver::Factor(void)
 				&Numeric, Control, Info);
 	}
 
+        if (status == UMFPACK_WARNING_singular_matrix) {
+            throw ErrNoPivot(-1, MBDYN_EXCEPT_ARGS);
+        }
+        
 	if (status != UMFPACK_OK) {
 		UMFPACKWRAP_report_info(Control, Info);
 		UMFPACKWRAP_report_status(Control, status);
@@ -290,11 +322,14 @@ UmfpackSolver::Factor(void)
 	}
 		
 #ifdef UMFPACK_REPORT
-	UMFPACKWRAP_report_numeric ("Numeric factorization of A",
-			Numeric, Control);
+        UMFPACKWRAP_report_numeric (Numeric, Control);
 	UMFPACKWRAP_report_info(Control, Info);
-	t1 = umfpack_timer() - t;	/* ?!? not used! */
 #endif /* UMFPACK_REPORT */
+
+#ifdef UMFPACK_PROFILE
+        doublereal dt = mbdyn_clock_time() - start;
+        silent_cout("UMFPACK: factorization takes " << dt << "s\n");
+#endif
 }
 
 void
@@ -313,6 +348,12 @@ UmfpackSolver::MakeCompactForm(SparseMatrixHandler& mh,
 	Axp = &(Ax[0]);
 	Aip = &(Ai[0]);
 	App = &(Ap[0]);
+
+        if (mh.Nz() != iNumNonZeros) {
+                ResetSymbolic();
+        }
+
+        iNumNonZeros = mh.Nz();
 }
 
 bool 
@@ -396,8 +437,8 @@ pMatScale(0)
 	SAFENEWWITHCONSTRUCTOR(pLS, UmfpackSolver,
 			UmfpackSolver(Dim, dPivot, dDropTolerance, blockSize, uscale, iMaxIter));
 
-	(void)pLS->pdSetResVec(&b[0]);
-	(void)pLS->pdSetSolVec(&x[0]);
+	pLS->pdSetResVec(&b[0]);
+	pLS->pdSetSolVec(&x[0]);
 	pLS->SetSolutionManager(this);
 }
 
@@ -415,12 +456,32 @@ UmfpackSparseSolutionManager::MatrReset(void)
 	pLS->Reset();
 }
 
+void UmfpackSparseSolutionManager::MatrInitialize(void)
+{
+        pGetSolver()->ResetSymbolic();
+}
+
 void
 UmfpackSparseSolutionManager::MakeCompressedColumnForm(void)
 {
+#ifdef UMFPACK_PROFILE
+    doublereal start = mbdyn_clock_time();
+#endif
+    
 	ScaleMatrixAndRightHandSide<SpMapMatrixHandler>(A);
 
+#ifdef UMFPACK_PROFILE
+    doublereal dt = mbdyn_clock_time() - start;
+    silent_cout("UMFPACK: scaling A takes " << dt << "s\n");
+    start = mbdyn_clock_time();
+#endif
+    
 	pLS->MakeCompactForm(A, Ax, Ai, Adummy, Ap);
+    
+#ifdef UMFPACK_PROFILE
+    dt = mbdyn_clock_time() - start;
+    silent_cout("UMFPACK: making compact form takes " << dt << "s\n");
+#endif
 }
 
 template <typename MH>
@@ -574,7 +635,7 @@ UmfpackSparseCCSolutionManager<CC>::MatrInitialize()
 		Ac = 0;
 	}
 
-	MatrReset();
+        UmfpackSparseSolutionManager::MatrInitialize();
 }
 	
 /* Rende disponibile l'handler per la matrice */

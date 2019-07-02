@@ -61,6 +61,7 @@ extern "C" {
 #include "naivewrap.h"
 #include "parnaivewrap.h"
 #include "wsmpwrap.h"
+#include "pastixwrap.h"
 
 const char *solvers[] = {
 #if defined(USE_Y12)
@@ -87,6 +88,9 @@ const char *solvers[] = {
 #if defined(USE_WSMP)
 		"wsmp",
 #endif
+#if defined(USE_PASTIX)
+                "pastix",
+#endif                
 		"naive",
 		NULL
 };
@@ -382,6 +386,7 @@ enum {
 int
 main(int argc, char *argv[])
 {
+        try {
 	SolutionManager *pSM = NULL;
 	const char *solver =
 #if defined(USE_UMFPACK)
@@ -770,7 +775,30 @@ main(int argc, char *argv[])
 			<< std::endl;
 		usage(EXIT_FAILURE);
 #endif /* !USE_WSMP */
-
+                } else if (strcasecmp(solver, "pastix") == 0) {
+#ifdef USE_PASTIX
+                        std::cerr << "Pastix solver";
+                        if (dir) {
+                                typedef PastixCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
+                                SAFENEWWITHCONSTRUCTOR(pSM,
+                                                       CCSM,
+                                                       CCSM(size, nt, 250));
+                        } else if (cc) {
+                                typedef PastixCCSolutionManager<CColMatrixHandler<1> > CCSM;
+                                SAFENEWWITHCONSTRUCTOR(pSM,
+                                                       CCSM,
+                                                       CCSM(size, nt, 250));
+                        } else {
+                                SAFENEWWITHCONSTRUCTOR(pSM,
+                                                       PastixSolutionManager,
+                                                       PastixSolutionManager(size, nt, 250));
+                        }
+                        std::cerr << std::endl;
+#else /* !USE_PASTIX */
+                        std::cerr << "need --with-pastix to use Pastix library" 
+                                << std::endl;
+                        usage(EXIT_FAILURE);
+#endif /* !USE_PASTIX */
 	} else if (strcasecmp(solver, "naive") == 0) {
 		std::cerr << "Naive solver";
 		if (dpivot == -1.) {
@@ -835,7 +863,6 @@ main(int argc, char *argv[])
 	clock_t ct = 0;
 	struct tms tmsbuf;
 #endif // HAVE_TIMES
-	try {
 		start = clock();
 		tf = rd_CPU_ts();
 #ifdef HAVE_TIMES
@@ -855,9 +882,6 @@ main(int argc, char *argv[])
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
 #endif // HAVE_TIMES
-	} catch (...) {
-		exit(EXIT_FAILURE);
-	}
 	if (output_solution) {
 		for (int i = 1; i <= size; i++) {
 			std::cout << "\tsol[" << i << "] = " << px->operator()(i) 
@@ -882,7 +906,6 @@ main(int argc, char *argv[])
 
 	SetupSystem(random, random_args, singular, 0, filename, pM, pV);
 	
-	try {
 		start = clock();
 		tf = rd_CPU_ts();
 #ifdef HAVE_TIMES
@@ -902,9 +925,6 @@ main(int argc, char *argv[])
 		ct = tmsbuf.tms_utime + tmsbuf.tms_cutime
 			+ tmsbuf.tms_stime + tmsbuf.tms_cstime - ct;
 #endif // HAVE_TIMES
-	} catch (...) {
-		exit(EXIT_FAILURE);
-	}
 	
 	if (output_solution) {
 		for (int i = 1; i <= size; i++) {
@@ -921,5 +941,13 @@ main(int argc, char *argv[])
 	std::cout << "Time to solve: " << cpu_time_used << std::endl;
 	
 	return 0;
+
+        } catch (const std::exception& err) {
+                std::cerr << "wraptest: an exception occured (" << err.what() << ")" << std::endl;
+                exit(EXIT_FAILURE);
+	} catch (...) {
+                std::cerr << "wraptest: an unexpected exception occured" << std::endl;
+		exit(EXIT_FAILURE);
+	}        
 }
 

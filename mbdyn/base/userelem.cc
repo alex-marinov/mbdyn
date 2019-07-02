@@ -40,6 +40,14 @@
 #ifdef STATIC_MODULES
 #include "module-asynchronous_machine/module-asynchronous_machine.h"
 #include "module-inline_friction/module-inline_friction.h"
+#include "module-multi_step_drive/module-multi_step_drive.h"
+#include "module-nodedistdrive/module-nodedistdrive.h"
+#ifdef USE_AUTODIFF
+#include "module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h"
+#include "module-ballbearing_contact/module-ballbearing_contact.h"
+#include "module-journal_bearing/module-journal_bearing.h"
+#include "module-uni_in_plane/module-uni_in_plane.h"
+#endif
 #include "module-cyclocopter/module-cyclocopter.h"
 #include "module-hfelem/module-hfelem.h"
 #include "module-wheel2/module-wheel2.h"
@@ -121,7 +129,21 @@ InitUDE(void)
 	b = asynchronous_machine_set();
 	ASSERT(b != false);
 	b = inline_friction_set();
-	ASSERT(b != false);
+        ASSERT(b != false);
+        b = multi_step_drive_set();
+        ASSERT(b != false);
+        b = nodedistdrive_set();
+        ASSERT(b != false);
+#ifdef USE_AUTODIFF
+        b = hydrodynamic_plain_bearing_set();
+        ASSERT(b != false);
+        b = ballbearing_contact_set();
+        ASSERT(b != false);
+        b = journal_bearing_set();
+        ASSERT(b != false);
+        b = uni_in_plane_set();
+        ASSERT(b != false);
+#endif
 	b = mbdyn_cyclocopter_set();
 	ASSERT(b != false);
 #ifdef HAVE_CHARM

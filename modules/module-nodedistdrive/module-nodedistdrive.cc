@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2015(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -65,15 +65,10 @@ public:
 						const Vec3& o2,
 						const Vec3& e1);
 	virtual ~NodeDistDriveCaller(void);
-
-	/* Copia */
 	virtual DriveCaller* pCopy(void) const;
-
 	virtual std::ostream& Restart(std::ostream& out) const;
-
 	inline doublereal dGet(const doublereal& dVar) const;
 	inline doublereal dGet(void) const;
-	/* this is about drives that are differentiable */
 	virtual bool bIsDifferentiable(void) const;
 	inline virtual doublereal dGetP(void) const;
 	inline virtual doublereal dGetP(const doublereal& dVar) const;
@@ -85,6 +80,31 @@ private:
 	const Vec3 o2;
 	const Vec3 e1;
 };
+
+class NodeRotDriveCaller : public DriveCaller
+{
+public:
+	NodeRotDriveCaller(const DriveHandler* pDH,
+                           const StructNode* pNode1,
+                           const Mat3x3& e1,
+                           const StructNode* pNode2,
+                           const Mat3x3& e2);
+	virtual ~NodeRotDriveCaller(void);
+	virtual DriveCaller* pCopy(void) const;
+	virtual std::ostream& Restart(std::ostream& out) const;
+	inline doublereal dGet(const doublereal& dVar) const;
+	inline doublereal dGet(void) const;
+	virtual bool bIsDifferentiable(void) const;
+	inline virtual doublereal dGetP(void) const;
+	inline virtual doublereal dGetP(const doublereal& dVar) const;
+
+private:
+	const StructNode* const pNode1;
+        const Mat3x3 e1;
+	const StructNode* const pNode2;
+	const Mat3x3 e2;
+};
+
 
 struct NodeDistDCR : public DriveCallerRead {
 	DriveCaller *
@@ -104,7 +124,6 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	DriveCaller *pDC = 0;
 
-	/* driver legato ad un grado di liberta' nodale */
 	if (pDM == 0) {
 		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
 			<< "no DOF dependent drivers are allowed;" << std::endl
@@ -142,7 +161,6 @@ NodeDistDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
 
 	e1 /= e1.Norm();
 
-	/* allocazione e creazione */
 	SAFENEWWITHCONSTRUCTOR(pDC,
 		NodeDistDriveCaller,
 		NodeDistDriveCaller(pDrvHdl, pNode1, o1, pNode2, o2, e1));
@@ -225,7 +243,6 @@ NodeDistDriveCaller::~NodeDistDriveCaller(void)
 	NO_OP;
 }
 
-/* Copia */
 DriveCaller*
 NodeDistDriveCaller::pCopy(void) const
 {
@@ -242,8 +259,6 @@ NodeDistDriveCaller::pCopy(void) const
 	return pDC;
 }
 
-
-/* Restart */
 std::ostream&
 NodeDistDriveCaller::Restart(std::ostream& out) const
 {
@@ -257,6 +272,147 @@ NodeDistDriveCaller::Restart(std::ostream& out) const
 	return out;
 }
 
+struct NodeRotDCR : public DriveCallerRead {
+	DriveCaller *
+	Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred);
+};
+
+DriveCaller *
+NodeRotDCR::Read(const DataManager* pDM, MBDynParser& HP, bool bDeferred)
+{
+	NeedDM(pDM, HP, bDeferred, "node rotation");
+
+	const DriveHandler* pDrvHdl = 0;
+
+	if (pDM != 0) {
+		pDrvHdl = pDM->pGetDrvHdl();
+	}
+
+	DriveCaller *pDC = 0;
+
+	if (pDM == 0) {
+		silent_cerr("sorry, since the driver is not owned by a DataManager" << std::endl
+			<< "no DOF dependent drivers are allowed;" << std::endl
+			<< "aborting..." << std::endl);
+		throw DataManager::ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	if ( !HP.IsKeyWord("node1") )
+	{
+		silent_cerr("node distance drive caller: keyword \"node1\" expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	StructNode* const pNode1 = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP);
+
+	const Mat3x3 e1 = HP.IsKeyWord("orientation") ? HP.GetRotRel(ReferenceFrame(pNode1)) : Eye3;
+
+	if ( !HP.IsKeyWord("node2") )
+	{
+		silent_cerr("node distance drive caller: keyword \"node2\" expected at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	}
+
+	StructNode* const pNode2 = pDM->ReadNode<StructNode, StructDispNode, Node::STRUCTURAL>(HP);
+
+	const Mat3x3 e2 = HP.IsKeyWord("orientation") ? HP.GetRotRel(ReferenceFrame(pNode2)) : Eye3;
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+                               NodeRotDriveCaller,
+                               NodeRotDriveCaller(pDrvHdl, pNode1, e1, pNode2, e2));
+
+	pDM->GetLogFile()
+            << "noderotdrive: " << pDC->GetLabel()
+            << " (" << pDC->GetName() << ") "
+            << pNode1->GetLabel() << " "
+            << e1 << " "
+            << pNode2->GetLabel() << " "
+            << e2 << std::endl;
+
+	return pDC;
+}
+
+doublereal
+NodeRotDriveCaller::dGet(const doublereal& dVar) const
+{
+	return dGet();
+}
+
+doublereal
+NodeRotDriveCaller::dGet(void) const
+{
+    const Mat3x3& R1 = pNode1->GetRCurr();
+    const Mat3x3& R2 = pNode2->GetRCurr();
+
+    const Vec3 v = e2.MulTV(R2.MulTV(R1 * e1.GetCol(1)));
+
+    return atan2(v(2), v(1));
+}
+
+bool NodeRotDriveCaller::bIsDifferentiable(void) const
+{
+	return true;
+}
+
+doublereal NodeRotDriveCaller::dGetP(void) const
+{
+    const Vec3& omega1 = pNode1->GetWCurr();
+    const Vec3& omega2 = pNode2->GetWCurr();
+    const Mat3x3& R2 = pNode2->GetRCurr();
+    
+    return e2.GetCol(3).Dot(R2.MulTV(omega1 - omega2));
+}
+
+doublereal NodeRotDriveCaller::dGetP(const doublereal& dVar) const
+{
+	return dGetP();
+}
+
+NodeRotDriveCaller::NodeRotDriveCaller(
+		const DriveHandler* pDH,
+		const StructNode* pNode1,
+		const Mat3x3& e1,
+		const StructNode* pNode2,
+		const Mat3x3& e2)
+: DriveCaller(pDH),
+  pNode1(pNode1), e1(e1),
+  pNode2(pNode2), e2(e2)
+{
+	NO_OP;
+};
+
+NodeRotDriveCaller::~NodeRotDriveCaller(void)
+{
+	NO_OP;
+}
+
+DriveCaller*
+NodeRotDriveCaller::pCopy(void) const
+{
+	DriveCaller* pDC = NULL;
+
+	SAFENEWWITHCONSTRUCTOR(pDC,
+			NodeRotDriveCaller,
+			NodeRotDriveCaller(
+				pDrvHdl,
+				pNode1, e1,
+				pNode2, e2));
+
+	return pDC;
+}
+
+std::ostream&
+NodeRotDriveCaller::Restart(std::ostream& out) const
+{
+	out << "node rotation,"
+		<< pNode1->GetLabel() << ","
+		<< e1 << ","
+		<< pNode2->GetLabel() << ","
+		<< e2;
+
+	return out;
+}
+
 bool nodedistdrive_set()
 {
 	DriveCallerRead	*rf = new NodeDistDCR;
@@ -266,6 +422,13 @@ bool nodedistdrive_set()
 		return false;
 	}
 
+        rf = new NodeRotDCR;
+
+	if (!SetDriveCallerData("node" "rotation", rf)) {
+		delete rf;
+		return false;
+	}
+        
     return true;
 }
 

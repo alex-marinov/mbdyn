@@ -1458,15 +1458,15 @@ InverseSolver::ReadData(MBDynParser& HP)
 			case MODIFIED:
 				bTrueNewtonRaphson = 0;
 				if (HP.IsArg()) {
-					iIterationsBeforeAssembly = HP.GetInt();
+					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
 				} else {
-					iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
+					LineSearch.iIterationsBeforeAssembly = ::iDefaultIterationsBeforeAssembly;
 				}
 				DEBUGLCOUT(MYDEBUG_INPUT, "Modified "
 						"Newton-Raphson will be used; "
 						"matrix will be assembled "
 						"at most after "
-						<< iIterationsBeforeAssembly
+						<< LineSearch.iIterationsBeforeAssembly
 						<< " iterations" << std::endl);
 				break;
 
@@ -1477,7 +1477,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 			/* no break: fall-thru to next case */
 			case NR_TRUE:
 				bTrueNewtonRaphson = 1;
-				iIterationsBeforeAssembly = 0;
+				LineSearch.iIterationsBeforeAssembly = 0;
 				break;
 			}
 			break;
@@ -1547,19 +1547,19 @@ InverseSolver::ReadData(MBDynParser& HP)
 			switch (NonlinearSolverType) {
 			case NonlinearSolver::NEWTONRAPHSON:
 				bTrueNewtonRaphson = true;
-				bKeepJac = false;
-				iIterationsBeforeAssembly = 0;
+				LineSearch.bKeepJac = false;
+				LineSearch.iIterationsBeforeAssembly = 0;
 
 				if (HP.IsKeyWord("modified")) {
 					bTrueNewtonRaphson = false;
-					iIterationsBeforeAssembly = HP.GetInt();
+					LineSearch.iIterationsBeforeAssembly = HP.GetInt();
 
 					if (HP.IsKeyWord("keep" "jacobian")) {
 						pedantic_cout("Use of deprecated \"keep jacobian\" at line " << HP.GetLineData() << std::endl);
-						bKeepJac = true;
+						LineSearch.bKeepJac = true;
 
 					} else if (HP.IsKeyWord("keep" "jacobian" "matrix")) {
-						bKeepJac = true;
+						LineSearch.bKeepJac = true;
 					}
 
 					DEBUGLCOUT(MYDEBUG_INPUT, "modified "
@@ -1568,7 +1568,7 @@ InverseSolver::ReadData(MBDynParser& HP)
 							"matrix will be "
 							"assembled at most "
 							"after "
-							<< iIterationsBeforeAssembly
+							<< LineSearch.iIterationsBeforeAssembly
 							<< " iterations"
 							<< std::endl);
 					if (HP.IsKeyWord("honor" "element" "requests")) {
