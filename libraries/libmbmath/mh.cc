@@ -135,11 +135,19 @@ std::ostream& MatrixHandler::Print(std::ostream& os, MatPrintFormat eFormat) con
     	integer nr = iGetNumRows();
 	integer nc = iGetNumCols();
 
-	for (integer i = 1; i <= nr; i++) {
-		for (integer j = 1; j <= nc; j++) {
-                    os << std::setw(16) << (*this)(i, j) << ' ';
+	if (eFormat == MAT_PRINT_FULL) {
+		for (integer i = 1; i <= nr; i++) {
+			for (integer j = 1; j <= nc; j++) {
+				os << std::setw(16) << (*this)(i, j) << ' ';
+			}
+			os << std::endl;
 		}
-	        os << std::endl;
+	} else if (eFormat == MAT_PRINT_TRIPLET) {
+		for (integer i = 1; i <= nr; i++) {
+			for (integer j = 1; j <= nc; j++) {
+				os << i << "\t" << j << "\t" << std::setw(16) << (*this)(i, j) << '\n';
+			}
+		}
 	}
 
 	return os;

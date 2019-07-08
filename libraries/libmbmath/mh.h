@@ -156,7 +156,7 @@ public:
               MAT_PRINT_TRIPLET
         };
                 
-        virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const;
+        virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat = MAT_PRINT_FULL) const;
         /* Matrix Matrix product */
 protected:
 	virtual MatrixHandler&
