@@ -51,6 +51,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		::solver[LinSol::UMFPACK_SOLVER].s_alias,
 		::solver[LinSol::KLU_SOLVER].s_name,
 		::solver[LinSol::Y12_SOLVER].s_name,
+                ::solver[LinSol::PASTIX_SOLVER].s_name,
 		NULL
 	};
 
@@ -66,6 +67,7 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 		UMFPACK3,
 		KLU,
 		Y12,
+                PASTIX,
 
 		LASTKEYWORD
 	};
@@ -184,6 +186,15 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 #endif /* USE_Y12 */
 		break;
 
+	case PASTIX:
+		cs.SetSolver(LinSol::PASTIX_SOLVER);
+		DEBUGLCOUT(MYDEBUG_INPUT,
+				"Using pastix sparse LU solver" << std::endl);
+#ifdef USE_PASTIX
+		bGotIt = true;
+#endif /* USE_Y12 */
+		break;
+                
 	default:
 		silent_cerr("unknown solver" << std::endl);
 		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
@@ -475,10 +486,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 	}
 
 	if (HP.IsKeyWord("scale")) {
-		switch (cs.GetSolver()) {
-		case LinSol::NAIVE_SOLVER:
-		case LinSol::KLU_SOLVER:
-		case LinSol::UMFPACK_SOLVER: {
 			SolutionManager::ScaleOpt scale;
 
 			if (HP.IsKeyWord("no")) {
@@ -577,15 +584,6 @@ ReadLinSol(LinSol& cs, HighParser &HP, bool bAllowEmpty)
 						    << " at line "
 						    << HP.GetLineData() << std::endl);
 			}
-
-			} break;
-
-		default:
-			pedantic_cerr("scale is meaningless for "
-					<< currSolver.s_name
-					<< " solver" << std::endl);
-			break;
-		}
 	}
 
 	if (HP.IsKeyWord("max" "iterations")) {

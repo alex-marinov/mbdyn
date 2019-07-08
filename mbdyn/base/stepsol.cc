@@ -298,15 +298,18 @@ DerivativeSolver::Advance(Solver* pS,
 		doublereal dResErrMin = std::numeric_limits<doublereal>::max();
 		doublereal dSolErrMin = dResErrMin;
 		const integer iMaxPowerCoef = iMaxIterCoef > 0 ? 2 * iMaxIterCoef + 1 : 0;
+                integer MaxIterFact = 1;
 
 		for (int i = 0; i <= iMaxPowerCoef; ++i) {
 			const bool bLastChance = i == iMaxPowerCoef;
 
 			try {
 				Err = 0.;
+                                SolErr = 0.;
+
 				pS->pGetNonlinearSolver()->Solve(this,
 					pS,
-					MaxIters,
+                                                                 MaxIterFact * MaxIters,
 					dTol,
 					EffIter,
 					Err,
@@ -322,6 +325,8 @@ DerivativeSolver::Advance(Solver* pS,
 					throw;
 				}
 			} catch (LinearSolver::ErrFactor& e) {
+                                pDM->GetSolver()->pGetSolutionManager()->MatrReset();
+
 				if (bLastChance) {
 					throw;
 				}
@@ -338,14 +343,27 @@ DerivativeSolver::Advance(Solver* pS,
 				dCoefBest = dCoef;
 			}
 
-			/* Restore the state after assembly. */
+                        /* Restore the previous state after initial assembly. */
+                        
 			*pXCurr = *pX;
 			*pXPrimeCurr = *pXPrime;
 
 			pDM->LinkToSolution(*pXCurr, *pXPrimeCurr);
+                        pDM->DerivativesUpdate(); /* has to be called here because the first residual of the nonlinear solver will be incorrect otherwise */
 
-			/* Reset reference rotation parameters and angular velocities */
-			pDM->AfterPredict();
+#ifdef DEBUG
+                        for (integer i = 1; i <= pXCurr->iGetSize(); ++i) {
+                            DofOrder::Order eOrder = pDM->GetDofType(i);
+                            
+                            if (eOrder == DofOrder::DIFFERENTIAL && pXCurr->dGetCoef(i) != pX->dGetCoef(i)) {
+                                DEBUGCOUT("warning: XCurr(" << i << ") = " << pXCurr->dGetCoef(i) << " X(i)=" << pX->dGetCoef(i) << std::endl);
+                            }
+
+                            if (eOrder == DofOrder::ALGEBRAIC && pXPrimeCurr->dGetCoef(i) != pXPrime->dGetCoef(i)) {
+                                DEBUGCOUT("warning: XPrimeCurr(" << i << ") = " << pXPrimeCurr->dGetCoef(i) << " XPrime(i)=" << pXPrime->dGetCoef(i) << std::endl);
+                            }
+                        }
+#endif
 
 			/* Try different values for derivatives coefficient. */
 			if (i < iMaxIterCoef) {
@@ -363,6 +381,7 @@ DerivativeSolver::Advance(Solver* pS,
 				dCoef = dCoefBest;
 				dTol = dSafetyFactor * dResErrMin;
 				dSolTol = dSafetyFactor * dSolErrMin;
+                                MaxIterFact = 2;
 			}
 
 			silent_cout("Derivatives(" << i + 1  << '/' << 2 * iMaxIterCoef + 1
@@ -377,10 +396,13 @@ DerivativeSolver::Advance(Solver* pS,
 		*pX = *pXCurr;
 		*pXPrime = *pXPrimeCurr;
 
+                pDM->LinkToSolution(*pX, *pXPrime);
+
 		pXCurr = 0;
 		pXPrimeCurr = 0;
 	} catch (...) {
 		/* Clean up pointers to local variables */
+                pDM->LinkToSolution(*pX, *pXPrime);
 		pXCurr = 0;
 		pXPrimeCurr = 0;
 		throw;

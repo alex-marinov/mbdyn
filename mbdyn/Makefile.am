@@ -39,6 +39,7 @@ mbdyn_LDADD += \
 ../libraries/libann/libmbann.la \
 $(GINACLIB_LIBS) \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @HARWELL_LIBS@ \
 @ARPACK_LIBS@ \
 @JDQZ_LIBS@ \

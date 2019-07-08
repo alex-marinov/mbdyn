@@ -97,6 +97,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -115,6 +116,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -133,6 +135,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -151,6 +154,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -169,6 +173,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \
@@ -188,6 +193,7 @@ libmbmath.la \
 @TAUCS_LIBS@ \
 @LAPACK_LIBS@ \
 @Y12_LIBS@ \
+@PASTIX_LIBS@ \
 @METIS_LIBS@ \
 @BLAS_LIBS@ \
 @FCLIBS@ \

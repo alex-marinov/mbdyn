@@ -97,16 +97,16 @@ public:
 	};
 
 private:
-	integer iSize;
+	const integer iSize;
 	mutable doublereal *Axp;
 	mutable integer *Aip;
 	mutable integer *App;
-
-	void *Symbolic;
+        mutable integer iNumNonZeros;
+	mutable void *Symbolic;
 	mutable doublereal Control[UMFPACK_CONTROL];
 	mutable doublereal Info[UMFPACK_INFO];
 	mutable void *Numeric;
-	bool bHaveCond;
+	mutable bool bHaveCond;
 
 	bool bPrepareSymbolic(void);
 	
@@ -123,6 +123,9 @@ public:
 	~UmfpackSolver(void);
 
 	void Reset(void);
+        void ResetNumeric(void) const;
+        void ResetSymbolic(void) const;
+
 	void Solve(void) const;
 	void SolveT(void) const;
 
@@ -171,6 +174,10 @@ protected:
 	/* Backward Substitution */
 	void BackSub(doublereal t_iniz = 0.);
    
+        UmfpackSolver* pGetSolver() {
+                ASSERT(dynamic_cast<UmfpackSolver*>(pLS) != 0);
+                return static_cast<UmfpackSolver*>(pLS);
+        }
 public:
 	UmfpackSparseSolutionManager(integer Dim,
 		doublereal dPivot = -1.,
@@ -187,6 +194,7 @@ public:
 
 	/* Inizializzatore generico */
 	virtual void MatrReset(void);
+        virtual void MatrInitialize(void);
 	
 	/* Risolve il sistema Backward Substitution; fattorizza se necessario */
 	virtual void Solve(void);

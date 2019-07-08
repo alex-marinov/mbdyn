@@ -151,6 +151,12 @@ public:
 	/* */
 	virtual MatrixHandler& ScalarMul(const doublereal& d);
 
+        enum MatPrintFormat {
+              MAT_PRINT_FULL,
+              MAT_PRINT_TRIPLET
+        };
+                
+        virtual std::ostream& Print(std::ostream& os, MatPrintFormat eFormat) const;
         /* Matrix Matrix product */
 protected:
 	virtual MatrixHandler&

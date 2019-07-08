@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2015(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -533,12 +533,20 @@ UniInPlaneFriction::UniInPlaneFriction(
 
 	std::ostream& out = pDM->GetLogFile();
 
-	out << "unilateral in plane: " << GetLabel() << " " << pNode1->GetLabel() << " " << ContactPoints1.size() << " ";
-
 	for ( const_ContactPointIter_t it = ContactPoints1.begin(); it != ContactPoints1.end(); ++it )
-		out << it->o1 << " ";
-
-	out << pNode2->GetLabel() << " " << o2 << " " << Rp << std::endl;
+    {
+        // FIXME: support for this element to be added to mbdyn2easyanim.awk
+        out << "totaljoint: " << GetLabel() << "." << it - ContactPoints1.begin()
+            << " " << pNode2->GetLabel()
+            << " " << o2
+            << " " << Rp
+            << " " << Rp
+            << " " << pNode1->GetLabel()
+            << " " << it->o1
+            << " " << Eye3
+            << " " << Eye3
+            << std::endl;
+    }
 }
 
 UniInPlaneFriction::~UniInPlaneFriction(void)
@@ -589,7 +597,7 @@ std::ostream& UniInPlaneFriction::DescribeDof(std::ostream& out, const char *pre
 		{
 			for (int j = 1; j <= 2; ++j)
 			{
-				out << prefix << ++iIndex << ": sticktion state [z" << j << "(" << i << ")]" << std::endl;
+				out << prefix << ++iIndex << ": stiction state [z" << j << "(" << i << ")]" << std::endl;
 			}
 		}
 	}
@@ -611,7 +619,7 @@ std::ostream& UniInPlaneFriction::DescribeEq(std::ostream& out, const char *pref
 		{
 			for (int j = 1; j <= 2; ++j)
 			{
-				out << prefix << ++iIndex << ": sticktion state variation [Phi" << j << "(" << i << ")]" << std::endl;
+				out << prefix << ++iIndex << ": stiction state variation [Phi" << j << "(" << i << ")]" << std::endl;
 			}
 		}
 	}
@@ -835,11 +843,12 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 		const Vec3 dX = X1 + R1 * o1 - X2 - R2 * o2;
 		const T dXn = Dot(Rp.GetCol(3), Transpose(R2) * dX) - m_oOffset.dGet() + lambda / cont.s;
 
+		if ( alpha != 0. )
+		{
 		const T d = 0.5 * (dXn - lambda);
 		const T c = 0.5 * (dXn + lambda) - sqrt(d * d + epsilon);
-
-		if ( alpha != 0. )
-			WorkVec.AddItem(iDofIndex, c * alpha / dCoef);
+			WorkVec.AddItem(iDofIndex, c * (alpha / dCoef));
+		}
 		else WorkVec.AddItem(iDofIndex, lambda / dCoef);
 
 		Vec3 F1p = Rp.GetCol(3) * lambda;
@@ -878,7 +887,7 @@ UniInPlaneFriction::AssRes(grad::GradientAssVec<T>& WorkVec,
 				XPrimeCurr.dGetCoef(iDofIndex + i, zP(i), 1., &cont.dof);
 			}
 
-			const Vec2 Phi = (U - invMk2_sigma0 * z * kappa - zP) * alpha;
+			const Vec2 Phi = (U - (invMk2_sigma0 * z) * kappa - zP) * alpha;
 
 			for (int i = 1; i <= 2; ++i)
 			{

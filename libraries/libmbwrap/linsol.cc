@@ -50,7 +50,7 @@
 #include "taucswrap.h"
 #include "naivewrap.h"
 #include "parnaivewrap.h"
-
+#include "pastixwrap.h"
 
 #include "linsol.h"
 
@@ -131,6 +131,11 @@ const LinSol::solver_t solver[] = {
 		LinSol::Y12_SOLVER,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
 		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		-1., -1. },
+        { "Pastix", NULL,
+		LinSol::PASTIX_SOLVER,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP|LinSol::SOLVER_FLAGS_ALLOWS_DIR|LinSol::SOLVER_FLAGS_ALLOWS_CC|LinSol::SOLVER_FLAGS_ALLOWS_MT_FCT|LinSol::SOLVER_FLAGS_ALLOWS_MT_ASS,
+		LinSol::SOLVER_FLAGS_ALLOWS_MAP,
 		-1., -1. },
 	{ NULL, NULL, 
 		LinSol::EMPTY_SOLVER,
@@ -235,11 +240,11 @@ LinSol::SetSolver(LinSol::SolverType t, unsigned f)
 		currSolver = t;
 		return true;
 #endif /* USE_MESCHACH */
-
-		/* else */
-		silent_cerr(::solver[t].s_name << " unavailable" << std::endl);
-		return false;
-
+        case LinSol::PASTIX_SOLVER:
+#ifdef USE_PASTIX
+                currSolver = t;
+                return true;
+#endif
 	case LinSol::NAIVE_SOLVER:
 		currSolver = t;
 		return true;
@@ -420,6 +425,7 @@ LinSol::SetScale(const SolutionManager::ScaleOpt& s)
 	case LinSol::NAIVE_SOLVER:
 	case LinSol::UMFPACK_SOLVER:
 	case LinSol::KLU_SOLVER:
+        case LinSol::PASTIX_SOLVER:
 		scale = s;
 		break;
 
@@ -441,6 +447,7 @@ LinSol::SetMaxIterations(integer iMaxIterations)
 {
 	switch (currSolver) {
 	case LinSol::UMFPACK_SOLVER:
+        case LinSol::PASTIX_SOLVER:
 		iMaxIter = iMaxIterations;
 		break;
 
@@ -701,6 +708,36 @@ LinSol::GetSolutionManager(integer iNLD, integer iLWS) const
       		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif /* !USE_KLU */
 
+	case LinSol::PASTIX_SOLVER: 
+#ifdef USE_PASTIX
+		{
+                    switch (type) {
+                    case LinSol::SOLVER_FLAGS_ALLOWS_DIR: {
+                        typedef PastixCCSolutionManager<DirCColMatrixHandler<1> > CCSM;
+                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                               CCSM,
+                                               CCSM(iNLD, nThreads, iMaxIter, scale));
+                    } break;
+
+                    case LinSol::SOLVER_FLAGS_ALLOWS_CC: {
+                        typedef PastixCCSolutionManager<CColMatrixHandler<1> > CCSM;
+                        SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                               CCSM,
+                                               CCSM(iNLD, nThreads, iMaxIter, scale));
+                    } break;
+
+                    default:
+			SAFENEWWITHCONSTRUCTOR(pCurrSM,
+                                               PastixSolutionManager,
+                                               PastixSolutionManager(iNLD, nThreads, iMaxIter, scale));
+                    }
+		} break;
+#else /* !USE_PASTIX */
+      		silent_cerr("Configure with --with-pastix "
+			"to enable Pastix solver" << std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif /* !USE_PASTIX */
+                
 	case LinSol::NAIVE_SOLVER:
 		if (perm == LinSol::SOLVER_FLAGS_ALLOWS_COLAMD) {
 			if (nThreads == 1) {

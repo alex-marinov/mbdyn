@@ -41,6 +41,10 @@
 #include "dofown.h"
 #include "simentity.h"
 
+#ifdef USE_AUTODIFF
+#include "gradient.h"
+#endif
+
 /*
  * Array dei nomi dei nodi.
  * Usato per output
@@ -262,7 +266,36 @@ public:
 	virtual const doublereal& dGetXPrime(void) const = 0;
 
 	virtual void AfterPredict(VectorHandler& X, VectorHandler& XP);
+
+#ifdef USE_AUTODIFF
+    inline void GetX(doublereal& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+    
+    template <grad::index_type N_SIZE>
+    inline void GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+#endif
 };
+
+#ifdef USE_AUTODIFF
+inline void ScalarNode::GetX(doublereal& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
+{
+    dX = dGetX();
+}
+    
+template <grad::index_type N_SIZE>
+inline void ScalarNode::GetX(grad::Gradient<N_SIZE>& dX, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
+{
+    if (func & grad::REGULAR_FLAG) {
+        doublereal dDeriv = GetDofType(0) == DofOrder::DIFFERENTIAL ? -dCoef : -1;
+        dX.SetValuePreserve(dGetX());
+        dX.DerivativeResizeReset(pDofMap,
+                                 iGetFirstColIndex() + 1,
+                                 grad::MapVectorBase::GLOBAL,
+                                 dDeriv);
+    } else {
+        dX.SetValue(dGetX());
+    }
+}
+#endif
 
 /* ScalarNode - end */
 
@@ -380,6 +413,13 @@ public:
 	 * with 0 < i <= iGetNumPrivData()
 	 */
 	virtual doublereal dGetPrivData(unsigned int i) const;
+
+#ifdef USE_AUTODIFF
+    inline void GetXPrime(doublereal& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+    
+    template <grad::index_type N_SIZE>
+    inline void GetXPrime(grad::Gradient<N_SIZE>& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const;
+#endif
 };
 
 inline const doublereal&
@@ -394,6 +434,27 @@ ScalarDifferentialNode::dGetXPrime(void) const
 {
 	return dXP;
 }
+
+#ifdef USE_AUTODIFF
+inline void ScalarDifferentialNode::GetXPrime(doublereal& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
+{
+    dXPrime = dGetXPrime();
+}
+    
+template <grad::index_type N_SIZE>
+inline void ScalarDifferentialNode::GetXPrime(grad::Gradient<N_SIZE>& dXPrime, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const
+{
+    if (func & grad::REGULAR_FLAG) {
+        dXPrime.SetValuePreserve(dGetXPrime());
+        dXPrime.DerivativeResizeReset(pDofMap,
+                                      iGetFirstColIndex() + 1,
+                                      grad::MapVectorBase::GLOBAL,
+                                      -1.);
+    } else {
+        dXPrime.SetValue(dGetXPrime());
+    }
+}
+#endif
 
 /* ScalarDifferentialNode - end */
 

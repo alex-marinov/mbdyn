@@ -26,8 +26,8 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% AUTHOR: Reinhard Resch <r.resch@secop.com>
-%        Copyright (C) 2011(-2017) all rights reserved.
+% AUTHOR: Reinhard Resch <r.resch@a1.net>
+%        Copyright (C) 2011(-2019) all rights reserved.
 %
 %        The copyright of this code is transferred
 %        to Pierangelo Masarati and Paolo Mantegazza
@@ -68,16 +68,7 @@ function f = ComputeInitialResidual(elem, XCurr)
 
     R1 = RDelta1 * R1_0;
     R2 = RDelta2 * R2_0;
-%{
-    switch( typeinfo(R1) )
-        case "matrix"
-            assert(R1, elem.pNode1.GetRCurr(), sqrt(eps));
-            assert(R2, elem.pNode2.GetRCurr(), sqrt(eps));
-        case "gradient"
-        otherwise
-            error("unexpected type: %s", typeinfo(R1));
-    endswitch
-%}
+
     F1 = R1 * (elem.e3 * lambda);
     M1 = cross(X2 + R2 * elem.o2 - X1, F1);
     F2 = -F1;
@@ -89,18 +80,7 @@ function f = ComputeInitialResidual(elem, XCurr)
     M2P = cross(cross(W2, R2 * elem.o2), F2) + cross(R2 * elem.o2, F2P);
 
     c = elem.e3.' * ( R1.' * ( X2 + R2 * elem.o2 - X1 ) - elem.o1 );
-%{
-    switch ( typeinfo(c) )
-        case "matrix"
-            disp("InitialAssRes:");
-            disp("X2 + R2 * elem.o2 - X1="); disp(X2 + R2 * elem.o2 - X1);
-            X1
-            X2
-            R1
-            R2
-            c
-    endswitch
-%}
+
     cP = elem.e3.' * R1.' * ( cross(X2 + R2 * elem.o2 - X1, W1) + X2P + cross(W2, R2 * elem.o2) - X1P );
 
     f = [ F1;

@@ -103,7 +103,7 @@ bFirstIDRes(true)
 	const_cast<Vec3&>(f[NODE2]) = F2;
 	const_cast<Mat3x3&>(RNode[NODE1]) = R1;
 	const_cast<Mat3x3&>(RNode[NODE2]) = R2;
-	RPrev = RRef = R = (Mat3x3&)r;
+	RPrev = RRef = R = r;
 
 	pD = NULL;
 	SAFENEWWITHCONSTRUCTOR(pD,

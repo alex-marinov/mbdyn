@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2017) all rights reserved.
 
         The copyright of this code is transferred
@@ -64,7 +64,7 @@
 
 #ifndef GRADIENT_DEBUG
     #ifdef DEBUG
-        #define GRADIENT_DEBUG 2
+#define GRADIENT_DEBUG 1
     #else
 	    #define GRADIENT_DEBUG 0
     #endif
@@ -722,28 +722,51 @@ public:
     
         void ResizePreserve(index_type iStartNew, index_type iEndNew) {
     	GRADIENT_ASSERT(bInvariant());
+
             const index_type iStartNewVec = iRoundStartIndexVector(iStartNew);
             const index_type iEndNewVec = iRoundEndIndexVector(iEndNew);
 
             if (iStartNewVec == iGetStartIndexVector() && iEndNewVec - iStartNewVec <= iGetCapacityVector()) {
-    		const index_type iEndCurrVec = iGetEndIndexVector();
+                const index_type iEndCurr = iGetEndIndex();
 
     		ReserveMem(iStartNew, iEndNew, RESIZE);
 
-                GRADIENT_ASSERT(iEndCurrVec <= pData->iEndVec);
+                const index_type iEndNewRound = iGetEndIndexVector() * iVectorSize;
 
-                array_fill(beginVec() + iEndCurrVec, endVec(), RangeVectorTraits<vector_type>::Zero());
+                for (index_type i = iEndCurr; i < iEndNewRound; ++i) {
+                    SetValueUnchecked(i, RangeVectorTraits<T>::Zero());
     }
-            else {
+            } else {
 			RangeVector<T, 0> oTmpVec;
 			oTmpVec.ReserveMem(iStartNew, iEndNew, RESIZE);
 			oTmpVec.Reset();
-			const index_type iComStartVec = std::max(iGetStartIndexVector(), oTmpVec.iGetStartIndexVector());
-			const index_type iComEndVec = std::min(iGetEndIndexVector(), oTmpVec.iGetEndIndexVector());
+                const index_type iComStart = std::max(iGetStartIndex(), oTmpVec.iGetStartIndex());
+                const index_type iComEnd = std::min(iGetEndIndex(), oTmpVec.iGetEndIndex());
 
-                array_copy(beginVec() + iComStartVec - iGetStartIndexVector(),
-					  beginVec() + iComEndVec - iGetStartIndexVector(),
-					  oTmpVec.beginVec() + iComStartVec - oTmpVec.iGetStartIndexVector());
+                GRADIENT_ASSERT(iComStart - iGetStartIndex() >= 0);
+                GRADIENT_ASSERT(iComEnd - iGetStartIndex() <= iGetSize());
+                GRADIENT_ASSERT(iComEnd - oTmpVec.iGetStartIndex() <= oTmpVec.iGetSize());
+                GRADIENT_ASSERT(iComStart - oTmpVec.iGetStartIndex() < oTmpVec.iGetSize());
+                GRADIENT_ASSERT(iComEnd - iComStart <= oTmpVec.iGetSize());
+                GRADIENT_ASSERT(iComEnd - iComStart <= iGetSize());
+
+                for (index_type i = iComStart; i < iComEnd; ++i) {
+                    oTmpVec.SetValue(i, GetValue(i));
+                }
+
+#if GRADIENT_DEBUG > 0
+                for (index_type i = 0; i < iComStart; ++i) {
+                    GRADIENT_ASSERT(oTmpVec.GetValue(i) == RangeVectorTraits<T>::Zero());
+                }
+                
+                for (index_type i = iComStart; i < iComEnd; ++i) {
+                    GRADIENT_ASSERT(GetValue(i) == oTmpVec.GetValue(i));
+                }
+
+                for (index_type i = iComEnd; i < oTmpVec.iGetEndIndex(); ++i) {
+                    GRADIENT_ASSERT(oTmpVec.GetValue(i) == RangeVectorTraits<T>::Zero());
+                }
+#endif
 
 			std::swap(pData, oTmpVec.pData);
     	}
@@ -821,11 +844,9 @@ public:
     }
     
         void SetValue(index_type i, const scalar_type& d) {
-    	GRADIENT_ASSERT(i >= 0);
-    	GRADIENT_ASSERT(i < iGetMaxSize());
         GRADIENT_ASSERT(i >= iGetStartIndex() && i < iGetEndIndex());
 
-        begin()[i - iGetStartIndexVector() * iVectorSize] = d;
+            SetValueUnchecked(i, d);
     }
     
         vector_type GetVectorValue(index_type i) const {
@@ -848,6 +869,13 @@ public:
     static bool bUseDynamicMem() { return true; }
     
 private:
+        void SetValueUnchecked(index_type i, const scalar_type& d) {
+            GRADIENT_ASSERT(i >= 0);
+            GRADIENT_ASSERT(i < iGetMaxSize());
+            GRADIENT_ASSERT(i >= iGetStartIndexVector() * iVectorSize && i < iGetEndIndexVector() * iVectorSize);
+            begin()[i - iGetStartIndexVector() * iVectorSize] = d;
+        }
+
     using RangeVectorBase<T, 0>::iRoundStartIndexVector;
     using RangeVectorBase<T, 0>::iRoundEndIndexVector;
 
@@ -861,18 +889,16 @@ private:
 
 		union
 		{
-			scalar_type rgArray[];
-			vector_type rgArrayVec[];
+                scalar_type rgArray[1];
+                vector_type rgArrayVec[1];
 		};
 	};
 
-    index_type iGetCapacity() const
-    {
+        index_type iGetCapacity() const {
     	return iGetCapacityVector() * iVectorSize;
     }
 
-    index_type iGetCapacityVector() const
-    {
+        index_type iGetCapacityVector() const {
     	return pData->iCapacityVec;
     }
 
@@ -943,7 +969,9 @@ private:
             if (iSizeVec > iCapCurr) {
     		FreeMem();
 
-    		pData = GradientAllocator<Data>::allocate_aligned(sizeof(vector_type), 1u, sizeof(vector_type) * iSizeVec);
+                GRADIENT_ASSERT(iSizeVec > 0);
+                
+                pData = GradientAllocator<Data>::allocate_aligned(sizeof(vector_type), 1u, sizeof(vector_type) * (iSizeVec - 1));
 
     		pData->iCapacityVec = iSizeVec;
     	}
@@ -973,8 +1001,7 @@ private:
     	}
     }
 
-    static Data* pNullData()
-    {
+        static Data* pNullData() {
     	GRADIENT_ASSERT(sNullData.iStart == 0);
     	GRADIENT_ASSERT(sNullData.iEnd == 0);
     	GRADIENT_ASSERT(sNullData.iStartVec == 0);
@@ -1414,8 +1441,8 @@ public:
     	oU.Compute();
     	oV.Compute();
         
-        const scalar_func_type u = oU.dGetValue();
-        const scalar_func_type v = oV.dGetValue();
+            const auto u = oU.dGetValue();
+            const auto v = oV.dGetValue(); // Use auto here in order to support pow(doublereal, integer)
         
         f = BinFunc::f(u, v);
         df_du = BinFunc::df_du(u, v);
@@ -1596,7 +1623,7 @@ private:
     const GradientType& oG;
 };
 
-template <typename T>
+    template <typename T, typename C = scalar_func_type>
 class ConstExpr {
 public:
 	static const bool bAlias = false;
@@ -1608,12 +1635,12 @@ public:
 	typedef typename GradientType::scalar_deriv_type scalar_deriv_type;
 	typedef typename GradientType::vector_deriv_type vector_deriv_type;
 
-    ConstExpr(scalar_func_type a)
+        ConstExpr(C a)
         :dConst(a) {
             
     }
         
-    scalar_func_type dGetValue() const {
+        C dGetValue() const {
         return dConst;
     }
         
@@ -1659,7 +1686,7 @@ public:
     void Compute() const {}
 
 private:
-    const scalar_func_type dConst;
+        const C dConst;
 };
 
 template <typename BoolFunc, typename LhsExpr, typename RhsExpr>
@@ -1830,6 +1857,23 @@ public:
     }
 };
 
+    class FuncPowInt {
+    public:
+        static const bool bVectorize = false;
+
+        static scalar_func_type f(scalar_func_type u, integer v) {
+            return pow(u, v);
+        }
+
+        static scalar_deriv_type df_du(scalar_func_type u, integer v) {
+            return v * pow(u, v - 1);
+        }
+
+        static scalar_deriv_type df_dv(scalar_func_type u, integer v) {
+            return 0.;
+        }
+    };
+    
 class FuncAtan2 {
 public:
 	static const bool bVectorize = false;
@@ -2080,6 +2124,23 @@ public:
 };
 #endif
 
+    class FuncFmod {
+    public:
+        static const bool bVectorize = false;
+
+        static scalar_func_type f(scalar_func_type u, scalar_func_type v) {
+            return fmod(u, v);
+        }
+
+        static scalar_deriv_type df_du(scalar_func_type u, scalar_func_type v) {
+            return 1.;
+        }
+
+        static scalar_deriv_type df_dv(scalar_func_type u, scalar_func_type v) {
+            return -int(u / v);
+        }
+    };
+        
 class FuncUnaryMinus {
 public:
 	static const bool bVectorize = true;
@@ -2292,9 +2353,15 @@ public:
     	index_type iFirstLocal = std::numeric_limits<index_type>::max();
     	index_type iLastLocal = 0;
 
+#if GRADIENT_DEBUG > 0
     	GRADIENT_TRACE("g=" << g << std::endl);
+            if (pDofMap) {
     	GRADIENT_TRACE("*pDofMap=" << *pDofMap << std::endl);
+            }
+            if (pDofMap2) {
     	GRADIENT_TRACE("*pDofMap2=" << *pDofMap2 << std::endl);
+            }
+#endif
 
     	for (index_type i = g.iGetStartIndexLocal(); i < g.iGetEndIndexLocal(); ++i) {
     		if (g.dGetDerivativeLocal(i) == 0.) {
@@ -2324,14 +2391,22 @@ public:
     		iFirstLocal = iLastLocal = 0;
     	}
 
+#if GRADIENT_DEBUG > 0
+            if (pDofMap) {
     	GRADIENT_TRACE("*pDofMap=" << *pDofMap << std::endl);
-
+            }
+#endif
     	a = g.dGetValue();
 		ad.ResizeReset(pDofMap, iFirstLocal, iLastLocal, MapVectorBase::LOCAL, 0.);
 
+#if GRADIENT_DEBUG > 0
+            if (pDofMap2) {
 		GRADIENT_TRACE("*pDofMap2=" << *pDofMap2 << std::endl);
+            }
+            if (pDofMap) {
 		GRADIENT_TRACE("*pDofMap=" << *pDofMap << std::endl);
-
+            }
+#endif
 		for (index_type i = iFirstLocal; i < iLastLocal; ++i) {
 			const index_type iGlobal = pDofMap->iGetGlobalDof(i);
 			const index_type iLocal2 = pDofMap2->iGetLocalIndex(iGlobal);
@@ -2704,8 +2779,13 @@ private:
     		const index_type iEndFunc = f.iGetEndIndexLocal();
 
         if (pDofMap == pDofMap2) {
-				index_type iStartLocal = std::min(iGetStartIndexLocal(), iStartFunc);
-				index_type iEndLocal = std::max(iGetEndIndexLocal(), iEndFunc);
+                index_type iStartLocal = iGetStartIndexLocal();
+                index_type iEndLocal = iGetEndIndexLocal();
+
+                if (iEndFunc > iStartFunc) {
+                    iStartLocal = std::min(iStartLocal, iStartFunc);
+                    iEndLocal = std::max(iEndLocal, iEndFunc);
+                }
 
 				ad.ResizePreserve(pDofMap, iStartLocal, iEndLocal, MapVector<N_SIZE>::LOCAL);
 
@@ -2752,18 +2832,28 @@ private:
               		iLastLocal = 0;
             	}
 
+#if GRADIENT_DEBUG > 0
             	GRADIENT_TRACE("iFirstLocal=" << iFirstLocal << std::endl);
             	GRADIENT_TRACE("iLastLocal=" << iLastLocal << std::endl);
+                if (pDofMap) {
             	GRADIENT_TRACE("*pDofMap=" << *pDofMap << std::endl);
+                }
+#endif
 
         		ad.ResizePreserve(pDofMap,
         						  std::min(ad.iGetStartIndexLocal(), iFirstLocal),
         						  std::max(ad.iGetEndIndexLocal(), iLastLocal),
         						  MapVectorBase::LOCAL);
 
+#if GRADIENT_DEBUG > 0
+                if (pDofMap2) {
         		GRADIENT_TRACE("*pDofMap2=" << *pDofMap2 << std::endl);
+                }
+                if (pDofMap) {
         		GRADIENT_TRACE("*pDofMap=" << *pDofMap << std::endl);
+                }
         		GRADIENT_TRACE("ad=" << ad.iGetStartIndexLocal() << ":" << ad.iGetEndIndexLocal() << std::endl);
+#endif
 
         		if (df_du == 1.) {
         			// optimized loop for operator+= and operator-=
@@ -2833,8 +2923,9 @@ inline void Copy(Gradient<N_SIZE1>& g1, const Gradient<N_SIZE2>& g2, LocalDofMap
 	g1.Copy(g2, pDofMap);
 }
 
-inline void Reset(scalar_func_type& d) {
-	d = 0.;
+    template <typename T>
+    inline void Reset(T& d) {
+        d = T();
 }
 
 template <index_type N_SIZE>
@@ -2886,7 +2977,11 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
         for (LocalDofMap::GlobalIterator i = pDofMap->BeginGlobal(); i != pDofMap->EndGlobal(); ++i) {
         	const index_type iGlobal = i->first;
         	const index_type iLocal = i->second;
-        	os << std::setw(3) << iGlobal << ":" << std::setw(12) << f.dGetDerivativeLocal(iLocal) << " ";
+                const scalar_deriv_type d = f.dGetDerivativeLocal(iLocal);
+                
+                if (d) {
+                    os << iGlobal << ":" << d << " ";
+                }
         }
 
         os << ")";
@@ -2896,7 +2991,36 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
     return os;
 }    
 
+#define GRADIENT_DEFINE_BINARY_FUNCTION_CONST_ARG_LHS(ExpressionName, FunctionName, FunctionClass, ScalarFuncTypeLhs) \
+    template <typename RhsExpr>                                         \
+    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType, ScalarFuncTypeLhs>, RhsExpr> > \
+    FunctionName(ScalarFuncTypeLhs u, const GradientExpression<RhsExpr>& v) { \
+        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType, ScalarFuncTypeLhs>, RhsExpr> >(u, v); \
+    }                                                                   \
+                                                                        \
+    template <index_type N_SIZE>                                        \
+    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE>, ScalarFuncTypeLhs>, DirectExpr<Gradient<N_SIZE> > > > \
+    FunctionName(ScalarFuncTypeLhs u, const Gradient<N_SIZE>& v) {       \
+        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE>, ScalarFuncTypeLhs>, DirectExpr<Gradient<N_SIZE> > > >(u, v); \
+    }
+    
+#define GRADIENT_DEFINE_BINARY_FUNCTION_CONST_ARG_RHS(ExpressionName, FunctionName, FunctionClass, ScalarFuncTypeRhs) \
+    template <typename LhsExpr>                                         \
+    inline GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType, ScalarFuncTypeRhs> > > \
+    FunctionName(const GradientExpression<LhsExpr>& u, ScalarFuncTypeRhs v) { \
+        return GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType, ScalarFuncTypeRhs> > >(u, v); \
+    }                                                                   \
+                                                                        \
+    template <index_type N_SIZE>                                        \
+    inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE>, ScalarFuncTypeRhs> > > \
+    FunctionName(const Gradient<N_SIZE>& u, ScalarFuncTypeRhs v) {       \
+        return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE>, ScalarFuncTypeRhs> > >(u, v); \
+    }                                                                   \
+
 #define GRADIENT_DEFINE_BINARY_FUNCTION(ExpressionName, FunctionName, FunctionClass) \
+    GRADIENT_DEFINE_BINARY_FUNCTION_CONST_ARG_LHS(ExpressionName, FunctionName, FunctionClass, scalar_func_type) \
+    GRADIENT_DEFINE_BINARY_FUNCTION_CONST_ARG_RHS(ExpressionName, FunctionName, FunctionClass, scalar_func_type) \
+                                                                        \
     template <typename LhsExpr, typename RhsExpr> \
     inline GradientExpression<ExpressionName<FunctionClass, LhsExpr, RhsExpr> > \
     FunctionName(const GradientExpression<LhsExpr>& u, const GradientExpression<RhsExpr>& v) { \
@@ -2909,37 +3033,17 @@ inline std::ostream& operator<<(std::ostream& os, const Gradient<N_SIZE>& f) {
         return GradientExpression<ExpressionName<FunctionClass, LhsExpr, DirectExpr<Gradient<N_SIZE> > > >(u, v); \
     } \
     \
-    template <typename LhsExpr> \
-    inline GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType> > > \
-    FunctionName(const GradientExpression<LhsExpr>& u, scalar_func_type v) { \
-        return GradientExpression<ExpressionName<FunctionClass, LhsExpr, ConstExpr<typename LhsExpr::GradientType> > >(u, v); \
-    } \
     template <index_type N_SIZE, typename RhsExpr> \
     inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, RhsExpr> > \
     FunctionName(const Gradient<N_SIZE>& u, const GradientExpression<RhsExpr>& v) { \
         return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, RhsExpr> >(u, v); \
     } \
-    template <typename RhsExpr> \
-    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType>, RhsExpr> > \
-    FunctionName(scalar_func_type u, const GradientExpression<RhsExpr>& v) { \
-        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<typename RhsExpr::GradientType>, RhsExpr> >(u, v); \
-    } \
+                                                                        \
     template <index_type N_SIZE> \
     inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > \
     FunctionName(const Gradient<N_SIZE>& u, const Gradient<N_SIZE>& v) { \
         return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > (u, v); \
     } \
-    template <index_type N_SIZE> \
-    inline GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE> > > > \
-    FunctionName(const Gradient<N_SIZE>& u, scalar_func_type v) { \
-        return GradientExpression<ExpressionName<FunctionClass, DirectExpr<Gradient<N_SIZE> >, ConstExpr<Gradient<N_SIZE> > > >(u, v); \
-    } \
-    \
-    template <index_type N_SIZE> \
-    inline GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > > \
-    FunctionName(scalar_func_type u, const Gradient<N_SIZE>& v) { \
-        return GradientExpression<ExpressionName<FunctionClass, ConstExpr<Gradient<N_SIZE> >, DirectExpr<Gradient<N_SIZE> > > >(u, v); \
-    }  
 
 #define GRADIENT_DEFINE_UNARY_FUNCTION(FunctionName, FunctionClass) \
     template <typename Expr> \
@@ -2961,6 +3065,9 @@ GRADIENT_DEFINE_BINARY_FUNCTION(BinaryExpr, operator /, FuncDiv)
 GRADIENT_DEFINE_BINARY_FUNCTION(BinaryExpr, pow, FuncPow)
 GRADIENT_DEFINE_BINARY_FUNCTION(BinaryExpr, atan2, FuncAtan2)
 GRADIENT_DEFINE_BINARY_FUNCTION(BinaryExpr, copysign, FuncCopysign)
+    GRADIENT_DEFINE_BINARY_FUNCTION(BinaryExpr, fmod, FuncFmod)
+    
+    GRADIENT_DEFINE_BINARY_FUNCTION_CONST_ARG_RHS(BinaryExpr, pow, FuncPowInt, integer)
 
 GRADIENT_DEFINE_BINARY_FUNCTION(BoolExpr, operator <, FuncLessThan)
 GRADIENT_DEFINE_BINARY_FUNCTION(BoolExpr, operator <=, FuncLessEqual)

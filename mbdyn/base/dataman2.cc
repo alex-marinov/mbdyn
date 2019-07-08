@@ -2632,6 +2632,11 @@ DataManager::PrintSolution(const VectorHandler& Sol, integer iIterCnt) const
 const std::string&
 DataManager::GetDofDescription(int i) const
 {
+        if (i == -1) {
+                static const std::string strUnknownDof("unknown");
+                return strUnknownDof;
+        }
+    
 	ASSERT(i > 0 && i <= iTotDofs);
 	return Dofs[i - 1].Description;
 }

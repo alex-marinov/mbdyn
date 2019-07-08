@@ -26,7 +26,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-% AUTHOR: Reinhard Resch <r.resch@secop.com>
+% AUTHOR: Reinhard Resch <r.resch@a1.net>
 %        Copyright (C) 2011(-2013) all rights reserved.
 %
 %        The copyright of this code is transferred
@@ -49,8 +49,8 @@ function [Jac, ridx, cidx, bSparse] = AssJac(elem, dCoef, XCurr, XPrimeCurr)
 
     [X, XP] = GetStateVector(elem, XCurr, XPrimeCurr);
 
-    [f, df_dX] = D(@(X) ComputeResidual(elem, dCoef, X, XP), X);
-    [f, df_dXP] = D(@(XP) ComputeResidual(elem, dCoef, X, XP), XP);
+    [f, df_dX] = mbdyn_derivative(@(X) ComputeResidual(elem, dCoef, X, XP), X);
+    [f, df_dXP] = mbdyn_derivative(@(XP) ComputeResidual(elem, dCoef, X, XP), XP);
 
     Jac = -df_dXP - dCoef * df_dX;
 endfunction

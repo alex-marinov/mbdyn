@@ -57,7 +57,7 @@ all: libtool all__
 
 libtool: 
 	-@ln -sf ../libtool .
-	
+
 all__:
 	@echo "Configured modules: $(MODULES_DIRS)"
 	-@if test x"$(MODULES_DIRS)" != x ; then \
@@ -248,11 +248,6 @@ module-hid/hid_aircraft \
 module-hid/hid_test
 
 EXTRA_DIST += \
-module-hydrodynamic_plain_bearing/diffsizes.f95 \
-module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force_dv.f95 \
-module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.f95 \
-module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing_force.h \
-module-hydrodynamic_plain_bearing/Makefile.inc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.cc \
 module-hydrodynamic_plain_bearing/module-hydrodynamic_plain_bearing.h \
 module-hydrodynamic_plain_bearing/hydrodynamic_plain_bearing.mbdyn

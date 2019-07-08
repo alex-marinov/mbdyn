@@ -878,6 +878,11 @@ DataManager::GetOutput(Elem::Type t, unsigned& flags, OrientationDescription& od
 	od = ElemData[t].od;
 }
 
+NonlinearSolver* DataManager::pGetNonlinearSolver() const
+{
+    return GetSolver()->pGetNonlinearSolver();
+}
+
 bool
 DataManager::bOutputAccelerations(void) const
 {

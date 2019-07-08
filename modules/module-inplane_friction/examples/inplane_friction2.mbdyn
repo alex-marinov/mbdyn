@@ -31,7 +31,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2011(-2013) all rights reserved.
 
         The copyright of this code is transferred
@@ -92,12 +92,12 @@ begin: initial value;
 	max iterations: 10;
 	tolerance: 1e-8;
     method: bdf;
-    derivatives tolerance: 1e-5;
+    derivatives tolerance: 1e-4;
     derivatives max iterations: 20;
 	derivatives coefficient: 1.e-7;
     #output: residual;
     #output: jacobian;
-
+    output: iterations;
     linear solver: naive;
 
 	eigenanalysis: list, 11, 0., 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1,

@@ -301,6 +301,28 @@ public:
 			const VectorHandler& XCurr, 
 			const VectorHandler& XPrimeCurr);
 
+#ifdef USE_AUTODIFF
+    template <grad::index_type N_SIZE>
+    inline void GetACurr(grad::index_type iMode, grad::Gradient<N_SIZE>& ai, doublereal dCoef, enum grad::FunctionCall func, grad::LocalDofMap* pDofMap) const {
+        using namespace grad;
+        
+        GRADIENT_ASSERT(iMode >= 1);
+        GRADIENT_ASSERT(iMode <= a.iGetNumRows());
+        GRADIENT_ASSERT(func != INITIAL_ASS_JAC || dCoef == 1.);
+        
+        const index_type iFirstIndex = iGetFirstIndex();
+        
+        ai.SetValuePreserve(a(iMode));
+        ai.DerivativeResizeReset(pDofMap, iFirstIndex + iMode, MapVectorBase::GLOBAL, -dCoef);
+    }
+
+    inline void GetACurr(grad::index_type iMode, doublereal& ai, doublereal, enum grad::FunctionCall, grad::LocalDofMap*) const {
+        GRADIENT_ASSERT(iMode >= 1);
+        GRADIENT_ASSERT(iMode <= a.iGetNumRows());
+        ai = a(iMode);
+    }
+#endif
+    
 #if USE_AUTODIFF && MODAL_USE_AUTODIFF
        template <typename T>
        void

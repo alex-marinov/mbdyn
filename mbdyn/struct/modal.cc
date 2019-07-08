@@ -194,7 +194,7 @@ Inv8jaPj(::Zero3x3),
 Inv5jaj(NModes, 0.),
 Inv5jaPj(NModes, 0.),
 #endif
-Inv9jkajak(::Eye3),
+Inv9jkajak(::Zero3x3),
 #if !(USE_AUTODIFF && MODAL_USE_AUTODIFF) || MODAL_DEBUG_AUTODIFF
 Inv9jkajaPk(::Eye3),
 #endif
@@ -1872,7 +1872,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                         MTmp -= R2_M;
                 }
 
-                MTmp2 += R2_M; // Bug here
+                MTmp2 += R2_M;
 
                 vtemp = Transpose(R) * R2_M;
         
@@ -1891,7 +1891,7 @@ Modal::AssRes(grad::GradientAssVec<T>& WorkVec,
                 WorkVec.AddItem(iModalIndex + 2 * NModes + 6 * iStrNodem1 + 4, f2);
         
                 WorkVec.AddItem(iNodeFirstMomIndex + 1, F);
-                WorkVec.AddItem(iNodeFirstMomIndex + 4, MTmp2); // Bug is here
+                WorkVec.AddItem(iNodeFirstMomIndex + 4, MTmp2);
 
                 UpdateStrNodeData(SND[iStrNodem1], d1tot, R1tot, F, M, R2);
         }
@@ -3752,13 +3752,13 @@ ReadModal(DataManager* pDM,
 		MODAL_VERSION_2 = 2,
 		MODAL_VERSION_3 = 3, // after adding record 13 (generalized damping)
 		MODAL_VERSION_4 = 4, // after making sizes portable
-
+                MODAL_VERSION_5 = 5, // after adding Inv3, Inv4 and Inv8 from modal element data for AVL-EXCITE (https://www.avl.com/excite)
 		MODAL_VERSION_LAST
 	};
 
 	/* NOTE: increment this each time the binary format changes! */
 	const char	magic[5] = "bmod";
-	const uint32_t	BinVersion = MODAL_VERSION_4;
+	const uint32_t	BinVersion = MODAL_VERSION_5;
 
 	uint32_t	currBinVersion = MODAL_VERSION_UNKNOWN;
 	char		checkPoint;
@@ -3781,7 +3781,11 @@ ReadModal(DataManager* pDM,
 		MODAL_RECORD_11 = 11,
 		MODAL_RECORD_12 = 12,
 		MODAL_RECORD_13 = 13,
-
+                MODAL_RECORD_14 = 14,
+                MODAL_RECORD_15 = 15,
+                MODAL_RECORD_16 = 16,
+                MODAL_RECORD_17 = 17,
+                MODAL_RECORD_18 = 18,
 		// NOTE: do not exceed 127
 
 		MODAL_LAST_RECORD,
@@ -3805,6 +3809,9 @@ ReadModal(DataManager* pDM,
 	// record 11: (optional) diagonal mass matrix
 	// record 12: (optional) rigid body inertia
 	// record 13: (optional) damping matrix
+        // record 14: (optional) invariant 3
+        // record 15: (optional) invariant 4
+        // record 16: (optional) invariant 8
 
 	std::string fname;
 	if (bReadFEM) {
@@ -4551,7 +4558,244 @@ ReadModal(DataManager* pDM,
 
 				bRecordGroup[MODAL_RECORD_13] = true;
 				} break;
+			case MODAL_RECORD_14: {
+				if (bRecordGroup[MODAL_RECORD_14]) {
+					silent_cerr("file=\"" << sFileFEM << "\": "
+						"\"RECORD GROUP 14\" already parsed"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
 
+				if (bActiveModes.empty()) {
+					silent_cerr("Modal(" << uLabel << "): "
+						"input file \"" << sFileFEM << "\" "
+						"is bogus (RECORD GROUP 14)"
+						<< std::endl);
+					throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+				}
+
+				if (bWriteBIN) {
+					checkPoint = MODAL_RECORD_14;
+					fbin.write(&checkPoint, sizeof(checkPoint));
+				}
+
+                                SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
+                                
+                                for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                    unsigned int iMode = 1;
+                                    for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                        fdat >> d;
+
+                                        if (bWriteBIN) {
+                                            fbin.write((const char *)&d, sizeof(d));
+                                        }
+
+                                        if (!bActiveModes[jMode]) {
+                                            continue;
+                                        }
+
+                                        pInv3->Put(iRow, iMode++, d);
+                                    }
+                                }
+
+				bRecordGroup[MODAL_RECORD_14] = true;
+				} break;
+                        case MODAL_RECORD_15: {
+                            if (bRecordGroup[MODAL_RECORD_15]) {
+                                silent_cerr("file=\"" << sFileFEM << "\": "
+                                            "\"RECORD GROUP 15\" already parsed"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bActiveModes.empty()) {
+                                silent_cerr("Modal(" << uLabel << "): "
+                                            "input file \"" << sFileFEM << "\" "
+                                            "is bogus (RECORD GROUP 15)"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bWriteBIN) {
+                                checkPoint = MODAL_RECORD_15;
+                                fbin.write(&checkPoint, sizeof(checkPoint));
+                            }
+
+                            SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
+                                
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int iMode = 1;
+                                for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                    fdat >> d;
+
+                                    if (bWriteBIN) {
+                                        fbin.write((const char *)&d, sizeof(d));
+                                    }
+
+                                    if (!bActiveModes[jMode]) {
+                                        continue;
+                                    }
+
+                                    pInv4->Put(iRow, iMode++, d);
+                                }
+                            }
+
+                            bRecordGroup[MODAL_RECORD_15] = true;
+                        } break;
+                        case MODAL_RECORD_16: {
+                            if (bRecordGroup[MODAL_RECORD_16]) {
+                                silent_cerr("file=\"" << sFileFEM << "\": "
+                                            "\"RECORD GROUP 16\" already parsed"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bActiveModes.empty()) {
+                                silent_cerr("Modal(" << uLabel << "): "
+                                            "input file \"" << sFileFEM << "\" "
+                                            "is bogus (RECORD GROUP 16)"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bWriteBIN) {
+                                checkPoint = MODAL_RECORD_16;
+                                fbin.write(&checkPoint, sizeof(checkPoint));
+                            }
+
+                            SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));
+                                
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int iMode = 0;
+                                for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                    for (unsigned int iCol = 1; iCol <= 3; ++iCol) {
+                                        fdat >> d;
+
+                                        if (bWriteBIN) {
+                                            fbin.write((const char *)&d, sizeof(d));
+                                        }
+
+                                        if (!bActiveModes[jMode]) {
+                                            continue;
+                                        }
+
+                                        pInv8->Put(iRow, 3 * iMode + iCol, d);
+                                    }
+
+                                    if (bActiveModes[jMode]) {
+                                        ++iMode;
+                                    }
+                                }
+                            }
+
+                            bRecordGroup[MODAL_RECORD_16] = true;
+                        } break;
+                        case MODAL_RECORD_17: {
+                            if (bRecordGroup[MODAL_RECORD_17]) {
+                                silent_cerr("file=\"" << sFileFEM << "\": "
+                                            "\"RECORD GROUP 17\" already parsed"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bActiveModes.empty()) {
+                                silent_cerr("Modal(" << uLabel << "): "
+                                            "input file \"" << sFileFEM << "\" "
+                                            "is bogus (RECORD GROUP 17)"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bWriteBIN) {
+                                checkPoint = MODAL_RECORD_17;
+                                fbin.write(&checkPoint, sizeof(checkPoint));
+                            }
+
+                            SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(3*NModes*NModes, 0.));
+                                
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int jMode = 0;
+                                for (unsigned int j = 1; j <= NModesFEM; ++j) {
+                                    unsigned int kMode = 0;
+                                    for (unsigned int k = 1; k <= NModesFEM; ++k) {
+                                        fdat >> d;
+
+                                        if (bWriteBIN) {
+                                            fbin.write((const char *)&d, sizeof(d));
+                                        }
+
+                                        if (!bActiveModes[j] || !bActiveModes[k]) {
+                                            continue;
+                                        }
+
+                                        pInv5->Put(iRow, jMode * NModes + kMode + 1, d);
+
+                                        ++kMode;
+                                    }
+
+                                    if (bActiveModes[j]) {
+                                        ++jMode;
+                                    }
+                                }
+                            }
+
+                            bRecordGroup[MODAL_RECORD_17] = true;
+                        } break;
+                        case MODAL_RECORD_18: {
+                            if (bRecordGroup[MODAL_RECORD_18]) {
+                                silent_cerr("file=\"" << sFileFEM << "\": "
+                                            "\"RECORD GROUP 18\" already parsed"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bActiveModes.empty()) {
+                                silent_cerr("Modal(" << uLabel << "): "
+                                            "input file \"" << sFileFEM << "\" "
+                                            "is bogus (RECORD GROUP 18)"
+                                            << std::endl);
+                                throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+                            }
+
+                            if (bWriteBIN) {
+                                checkPoint = MODAL_RECORD_18;
+                                fbin.write(&checkPoint, sizeof(checkPoint));
+                            }
+
+                            SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*3*NModes*NModes, 0.));
+
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int jMode = 0;
+                                for (unsigned int j = 1; j <= NModesFEM; ++j) {
+                                    unsigned int kMode = 0;
+                                    for (unsigned int k = 1; k <= NModesFEM; ++k) {
+                                        for (unsigned int iCol = 1; iCol <= 3; ++iCol) {
+                                            fdat >> d;
+
+                                            if (bWriteBIN) {
+                                                fbin.write((const char *)&d, sizeof(d));
+                                            }
+
+                                            if (!bActiveModes[j] || !bActiveModes[k]) {
+                                                continue;
+                                            }
+
+                                            pInv9->Put(iRow, iCol + 3 * (jMode * NModes + kMode), d);
+                                        }
+
+                                        if (bActiveModes[k]) {
+                                            ++kMode;
+                                        }
+                                    }
+                                    
+                                    if (bActiveModes[j]) {
+                                        ++jMode;
+                                    }                                    
+                                }
+                            }
+
+                            bRecordGroup[MODAL_RECORD_18] = true;
+                        } break;                                                        
 			default:
 				silent_cerr("file=\"" << sFileFEM << "\": "
 					"\"RECORD GROUP " << rg << "\" unhandled"
@@ -4985,6 +5229,121 @@ ReadModal(DataManager* pDM,
 				}
 				break;
 
+			case MODAL_RECORD_14:
+                                SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
+                            
+                                for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                        unsigned int iMode = 1;
+                                        for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                                doublereal d;
+                                                fbin.read((char*)&d, sizeof(d));
+
+                                                if (!bActiveModes[jMode]) {
+                                                        continue;
+                                                }
+
+                                                pInv3->Put(iRow, iMode++, d);
+                                        }
+                                }
+				break;
+                        case MODAL_RECORD_15:
+                                SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
+                                
+                                for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                        unsigned int iMode = 1;
+                                        for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                                doublereal d;
+                                                fbin.read((char *)&d, sizeof(d));
+                                    
+                                                if (!bActiveModes[jMode]) {
+                                                        continue;
+                                                }
+
+                                                pInv4->Put(iRow, iMode++, d);
+                                        }
+                                }
+                                break;
+                        case MODAL_RECORD_16:
+                                SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));
+                                
+                                for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                        unsigned int iMode = 0;
+                                        for (unsigned int jMode = 1; jMode <= NModesFEM; ++jMode) {
+                                                for (unsigned int iCol = 1; iCol <= 3; ++iCol) {
+                                                        doublereal d;
+                                                        fbin.read((char *)&d, sizeof(d));
+                                                        
+                                                        if (!bActiveModes[jMode]) {
+                                                                continue;
+                                                        }
+
+                                                        pInv8->Put(iRow, 3 * iMode + iCol, d);
+                                                }
+
+                                                if (bActiveModes[jMode]) {
+                                                        ++iMode;
+                                                }
+                                        }
+                                }
+                                break;
+                        case MODAL_RECORD_17:
+                            SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(3*NModes*NModes, 0.));
+                                
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int jMode = 0;
+                                for (unsigned int j = 1; j <= NModesFEM; ++j) {
+                                    unsigned int kMode = 0;
+                                    for (unsigned int k = 1; k <= NModesFEM; ++k) {
+                                        doublereal d;
+                                        
+                                        fbin.read((char *)&d, sizeof(d));
+
+                                        if (!bActiveModes[j] || !bActiveModes[k]) {
+                                            continue;
+                                        }
+
+                                        pInv5->Put(iRow, jMode * NModes + kMode + 1, d);
+
+                                        ++kMode;
+                                    }
+
+                                    if (bActiveModes[j]) {
+                                        ++jMode;
+                                    }
+                                }
+                            }
+                            break;
+                        case MODAL_RECORD_18:
+                            SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*3*NModes*NModes, 0.));
+                                
+                            for (unsigned int iRow = 1; iRow <= 3; ++iRow) {
+                                unsigned int jMode = 0;
+                                for (unsigned int j = 1; j <= NModesFEM; ++j) {
+                                    unsigned int kMode = 0;
+                                    for (unsigned int k = 1; k <= NModesFEM; ++k) {
+                                        for (unsigned int iCol = 1; iCol <= 3; ++iCol) {
+                                            doublereal d;
+                                                                          
+                                            fbin.read((char *)&d, sizeof(d));
+
+                                            if (!bActiveModes[j] || !bActiveModes[k]) {
+                                                continue;
+                                            }
+
+                                            pInv9->Put(iRow, iCol + 3 * (jMode * NModes + kMode), d);
+                                        }
+
+                                        if (bActiveModes[k]) {
+                                            ++kMode;
+                                        }
+                                    }
+                                    
+                                    if (bActiveModes[j]) {
+                                        ++jMode;
+                                    }                                    
+                                }
+                            }
+                            break;
 			default:
 				silent_cerr("Modal(" << uLabel << "): "
 					"file \"" << sBinFileFEM << "\" "
@@ -5362,21 +5721,42 @@ ReadModal(DataManager* pDM,
 
 		/* TODO: select what terms are used */
 
+                if (!pInv3) {
 		SAFENEWWITHCONSTRUCTOR(pInv3, Mat3xN, Mat3xN(NModes, 0.));
+                }
+
+                ASSERT(pInv3->iGetNumCols() == NModes);
+                
+                if (!pInv4) {
 		SAFENEWWITHCONSTRUCTOR(pInv4, Mat3xN, Mat3xN(NModes, 0.));
+                }
+
+                ASSERT(pInv4->iGetNumCols() == NModes);
 
 		/* NOTE: we assume that Inv5 is used only if Inv4 is used as well */
 		/* Inv5 e' un 3xMxM */
+                if (!pInv5) {
 		SAFENEWWITHCONSTRUCTOR(pInv5, Mat3xN, Mat3xN(NModes*NModes, 0.));
+                }
 
+                ASSERT(pInv5->iGetNumCols() == NModes * NModes);
+
+                if (!pInv8) {
 		/* Inv8 e' un 3x3xM */
 		SAFENEWWITHCONSTRUCTOR(pInv8, Mat3xN, Mat3xN(3*NModes, 0.));
+                }
+
+                ASSERT(pInv8->iGetNumCols() == 3 * NModes);
 
 		/* NOTE: we assume that Inv9 is used only if Inv8 is used as well */
 		/* by default: no */
 		if (HP.IsKeyWord("use" "invariant" "9")) {
+                    if (!pInv9) {
 			/* Inv9 e' un 3x3xMxM */
 			SAFENEWWITHCONSTRUCTOR(pInv9, Mat3xN, Mat3xN(3*NModes*NModes, 0.));
+		}
+
+                    ASSERT(pInv9->iGetNumCols() == 3 * NModes * NModes);
 		}
 		/* Inv10 e' un 3x3xM */
 		SAFENEWWITHCONSTRUCTOR(pInv10,Mat3xN, Mat3xN(3*NModes, 0.));

@@ -30,7 +30,7 @@
  */
 
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
         Copyright (C) 2013(-2013) all rights reserved.
 
         The copyright of this code is transferred
@@ -120,9 +120,10 @@ public:
    	static const index_type iNumADVars = 14;
    	const DataManager* const pDM;
 	const StructNode* pNode1;
+    typedef Matrix<doublereal, 2, 2> Mat2x2;
     doublereal R;
     doublereal k;
-	Matrix<doublereal, 2, 2> Mk, Mk2, inv_Mk2, Ms, Ms2, sigma0, sigma1;
+    Mat2x2 Mk, Mk2, inv_Mk, inv_Mk_sigma0, Ms, Ms2, sigma0, sigma1;
 	doublereal gamma, vs, beta;
     doublereal dStictionStateEquScale;
     doublereal dStictionStateDofScale;
@@ -159,6 +160,7 @@ public:
 		Vector<doublereal, 2> z;
 		Vector<doublereal, 2> zP;
 		Vector<doublereal, 2> uP;
+        Vector<doublereal, 2> tau;
     };
 
     std::vector<Washer> washers;
@@ -166,10 +168,10 @@ public:
     inline void CheckTimeStep(Washer& w, doublereal Fn, doublereal d, doublereal dn_dt);
     inline void CheckTimeStep(Washer& w, const Gradient<iNumADVars>&, const Gradient<iNumADVars>&, const Gradient<iNumADVars>&);
 
-    static const int iNumPrivData = 9;
+    static const int iNumPrivData = 11;
 
 	static const struct PrivData {
-		char szPattern[8];
+		char szPattern[9];
 	} rgPrivData[iNumPrivData];
 };
 
@@ -183,7 +185,9 @@ BallBearingContact::rgPrivData[iNumPrivData] = {
 	{"zP1[%u]"},
 	{"zP2[%u]"},
 	{"uP1[%u]"},
-	{"uP2[%u]"}
+	{"uP2[%u]"},
+        {"tau1[%u]"},
+        {"tau2[%u]"}
 };
 
 BallBearingContact::BallBearingContact(
@@ -435,7 +439,7 @@ BallBearingContact::BallBearingContact(
 
 		Mk2 = Mk * Mk;
 
-		inv_Mk2 = Inv(Mk2);
+		inv_Mk = Inv(Mk);
 
 		Ms(1, 1) = musx;
 		Ms(2, 2) = musy;
@@ -448,6 +452,10 @@ BallBearingContact::BallBearingContact(
 		sigma1(1, 1) = sigma1x;
 		sigma1(2, 2) = sigma1y;
 
+                sigma1 = Mat2x2(sigma1 * Inv(sigma0));
+
+                inv_Mk_sigma0 = inv_Mk * sigma0;
+                
 		dStictionStateEquScale = HP.IsKeyWord("stiction" "state" "equation" "scale") ? HP.GetReal() : 1.;
 		dStictionStateDofScale = HP.IsKeyWord("stiction" "state" "dof" "scale") ? HP.GetReal() : 1.;
 	}
@@ -617,11 +625,15 @@ inline void BallBearingContact::AssRes(GradientAssVec<T>& WorkVec,
 			
 			const VVec2 uP = Transpose(SubMatrix<1, 3, 1, 2>(i->Rt2)) * VVec3(Transpose(R2) * VVec3(c1P - c2P - Cross(omega2, Deltac)));
 
+			tau = Mk * VVec2(z + sigma1 * zP) * norm_Fn;
+
+                        if (typeid(T) == typeid(doublereal)) {
 			for (int j = 1; j <= 2; ++j) {
 				i->uP(j) = dGetValue(uP(j));
+                                i->tau(j) = dGetValue(tau(j));
+                            }
 			}
 
-			tau = (sigma0 * z + sigma1 * zP) * norm_Fn;
 			const T Norm_uP = Norm(uP);
 
 			if (Norm_uP == 0.) {
@@ -634,7 +646,7 @@ inline void BallBearingContact::AssRes(GradientAssVec<T>& WorkVec,
 				kappa = a0 / g;
 			}
 
-			Phi = (uP - inv_Mk2 * VVec2(sigma0 * VVec2(z * kappa)) - zP) * dStictionStateEquScale;
+			Phi = (inv_Mk_sigma0 * VVec2(uP - inv_Mk * z * kappa) - zP) * dStictionStateEquScale;
 		}
 
 		const VVec3 R2_Rt2_e3_n = R2 * VVec3(i->Rt2.GetCol(3) * n);
@@ -799,6 +811,10 @@ doublereal BallBearingContact::dGetPrivData(unsigned int i) const
 	case 8:
 		return w.uP(d.rem - 6);
 
+        case 9:
+        case 10:
+            return w.tau(d.rem - 8);
+            
 	default:
 		silent_cerr("ballbearingcontact(" << GetLabel()
 				<< "): invalid index " << i << std::endl);

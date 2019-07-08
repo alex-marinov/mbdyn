@@ -78,6 +78,10 @@ void _Assert(const char* file, const int line, const char* msg)
    throw MyAssert::ErrGeneric(MBDYN_EXCEPT_ARGS);
 #endif   
    
+#if !defined(NDEBUG) && defined(__GNUC__)
+   _assert(msg, file, line);
+#endif
+   
    return;
 }
 
@@ -140,10 +144,20 @@ int get_debug_options(const char *const s, const debug_array da[])
 
 #endif /* DEBUG */
 
-#if defined(__GNUC__) && (defined(_M_IX86) || defined(__x86_64)) && !defined(NDEBUG) && (defined(__CYGWIN__) || defined(_WIN32)) 
-extern "C" void __assert_func (const char* file, int line, const char* func, const char* expr)
+#if defined(__GNUC__) && (defined(_M_IX86) || defined(__x86_64)) && !defined(NDEBUG) && defined(_WIN32) && defined(__MINGW_IMPORT)
+extern void __CRTDECL _assert(const char *_Message, const char *_File, unsigned _Line)
 {
-    std::cerr << "assertion " << expr << " failed: file " << file  << ":" << line  << ":" << func << std::endl;
+    std::cerr << "assertion " << _Message << " failed: file " << _File  << ":" << _Line  << std::endl;
+
+    // debug break interrupt on x86 and x86_64 makes debugging easier on Windows
+    __asm__ volatile ("int $3");
+
+    abort();
+}
+
+extern void __CRTDECL _wassert(const wchar_t *_Message,const wchar_t *_File,unsigned _Line)
+{
+    std::wcerr << L"assertion " << _Message << L" failed: file " << _File  << L":" << _Line << std::endl;
 
     // debug break interrupt on x86 and x86_64 makes debugging easier on Windows
     __asm__ volatile ("int $3");

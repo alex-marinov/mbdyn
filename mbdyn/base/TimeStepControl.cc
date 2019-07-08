@@ -217,13 +217,11 @@ Factor::dGetNewStepTime(StepIntegrator::StepChange Why, doublereal iPerformedIte
 		}
 
 		return (dCurrTimeStep = std::min(dCurrTimeStep*dReductionFactor, dMaxTimeStep));
-
 	case StepIntegrator::NEWSTEP:
 		iStepsAfterReduction++;
 		iStepsAfterRaise++;
 
 		iWeightedPerformedIters = (10*iPerformedIters + 9*iWeightedPerformedIters)/10;
-
 		if (iPerformedIters > iMaxIters) {
 			iStepsAfterReduction = 0;
 			bLastChance = false;

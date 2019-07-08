@@ -92,6 +92,11 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	if ((!bKeepJac) || (pNLP != pPrevNLP)) {
 		iPerformedIterations = 0;
 	}
+
+        if (pNLP != pPrevNLP) {
+            ResetCond();
+        }
+        
 	pPrevNLP = pNLP;
 	dSolErr = 0.;
 
@@ -99,13 +104,11 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 	doublereal dErrFactor = 1.;
 	doublereal dErrDiff = 0.;
 	bool bJacBuilt = false;
-	doublereal dStartTimeCPU, dEndTimeCPU, dJacobianCPU, dResidualCPU = 0., dLinSolveCPU;
+        CPUStopWatch oCPUResidual(*this, CPU_RESIDUAL), oCPUJacobian(*this, CPU_JACOBIAN), oCPULinearSolver(*this, CPU_LINEAR_SOLVER);
 
-	while (true) {
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+        oCPUResidual.Tic();
                 
+	while (true) {
 		pRes = pSM->pResHdl();
 		pSol = pSM->pSolHdl();
 		Size = pRes->iGetSize();
@@ -132,12 +135,6 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		 * it?) */
 
 		bool bTest = MakeResTest(pS, pNLP, *pRes, Tol, dErr, dErrDiff);
-
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dResidualCPU += dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dResidualCPU, CPU_RESIDUAL);
-		}
 
 		if (outputRes()) {
 			pS->PrintResidual(*pRes, iIterCnt);
@@ -176,12 +173,12 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 				}
 
 				if (outputCPUTime()) {
-					silent_cout(" CPU:" << dResidualCPU << "/" << dGetTimeCPU(CPU_RESIDUAL)
-						<< "+" << dJacobianCPU << "/" << dGetTimeCPU(CPU_JACOBIAN)
-						<< "+" << dLinSolveCPU << "/" << dGetTimeCPU(CPU_LINEAR_SOLVER));
+                                    silent_cout(" CPU:" << oCPUResidual
+                                                << "+" << oCPUJacobian
+                                                << "+" << oCPULinearSolver);
 				}
 
-				silent_cout(std::endl);
+				silent_cout('\n');
 			}
 		}
 		
@@ -202,11 +199,10 @@ NewtonRaphsonSolver::Solve(const NonlinearProblem *pNLP,
 		}
           
 		iIterCnt++;
-		bJacBuilt = false;
 
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+        oCPUJacobian.Tic(oCPUResidual);
+        
+      	bJacBuilt = false;
 
 		if (bTrueNewtonRaphson
 			|| (iPerformedIterations%IterationBeforeAssembly == 0)
@@ -234,12 +230,6 @@ rebuild_matrix:;
 			bJacBuilt = true;
 		}
 
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dJacobianCPU = dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dJacobianCPU, CPU_JACOBIAN);
-		}
-
 		iPerformedIterations++;
 
 #ifdef USE_MPI
@@ -248,8 +238,13 @@ rebuild_matrix:;
 		{
 			if (outputJac()) {
 				if (bJacBuilt) {
-					silent_cout("Jacobian:" << std::endl
-							<< *(pSM->pMatHdl()));
+                                        if (outputJac()) {
+                                                silent_cout("Jacobian:" << '\n');
+
+                                                if (silent_out) {
+                                                        pSM->pMatHdl()->Print(std::cout, MatrixHandler::MAT_PRINT_TRIPLET);
+                                                }
+                                        }
 				} else {
 					silent_cout("Jacobian: unchanged" << std::endl);
 				}
@@ -260,34 +255,19 @@ rebuild_matrix:;
 			}
 		}
 
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+                oCPULinearSolver.Tic(oCPUJacobian);
 
 		pSM->Solve();
-
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dLinSolveCPU = dEndTimeCPU - dStartTimeCPU;
-			AddTimeCPU(dLinSolveCPU, CPU_LINEAR_SOLVER);
-		}
 
 		if (outputSol()) {
 			pS->PrintSolution(*pSol, iIterCnt);
 		}		
 
-		if (outputCPUTime()) {
-			dStartTimeCPU = mbdyn_clock_time();
-		}
+                oCPUResidual.Tic(oCPULinearSolver);
 
 		pNLP->Update(pSol);
 		
 		bTest = MakeSolTest(pS, *pSol, SolTol, dSolErr);
-
-		if (outputCPUTime()) {
-			dEndTimeCPU = mbdyn_clock_time();
-			dResidualCPU = dEndTimeCPU - dStartTimeCPU;
-		}
 
 		if (outputIters()) {
 #ifdef USE_MPI

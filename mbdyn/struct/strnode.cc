@@ -2145,7 +2145,7 @@ void StructNode::UpdateRotation(doublereal dCoef, enum grad::FunctionCall func) 
 
 #if GRADIENT_DEBUG > 0
 			{
-				const double dTol = 10 * std::numeric_limits<doublereal>::epsilon();
+                                const double dTol = sqrt(std::numeric_limits<doublereal>::epsilon());
 
 				Mat3x3 RDelta(CGR_Rot::MatR, gCurr);
 

@@ -1,4 +1,4 @@
-/* $Header$ */
+/* $Header: /home/reinhard/CVS/mbdyn/modules/module-octave/module-octave.h,v 2.6 2017/05/27 09:28:21 acc1359 Exp $ */
 /* 
  * MBDyn (C) is a multibody analysis code. 
  * http://www.mbdyn.org
@@ -29,8 +29,8 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 /*
- AUTHOR: Reinhard Resch <r.resch@secop.com>
-        Copyright (C) 2011(-2017) all rights reserved.
+ AUTHOR: Reinhard Resch <r.resch@a1.net>
+        Copyright (C) 2011(-2019) all rights reserved.
 
         The copyright of this code is transferred
         to Pierangelo Masarati and Paolo Mantegazza

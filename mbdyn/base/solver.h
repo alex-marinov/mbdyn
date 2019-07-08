@@ -144,7 +144,8 @@ public:
 			EIG_USE_LAPACK			= 0x1000U,
 			EIG_USE_ARPACK			= 0x2000U,
 			EIG_USE_JDQZ			= 0x4000U,
-			EIG_USE_MASK			= (EIG_USE_LAPACK|EIG_USE_ARPACK|EIG_USE_JDQZ),
+                        EIG_USE_EXTERNAL                = 0x8000U,
+			EIG_USE_MASK			= (EIG_USE_LAPACK|EIG_USE_ARPACK|EIG_USE_JDQZ|EIG_USE_EXTERNAL),
 
 			EIG_LAST
 		};
@@ -299,8 +300,6 @@ protected:
 
    	/* Parametri per solutore nonlineare */
    	bool bTrueNewtonRaphson;
-   	bool bKeepJac;
-   	integer iIterationsBeforeAssembly;
 	NonlinearSolver::Type NonlinearSolverType;
 	MatrixFreeSolver::SolverType MFSolverType;
 	doublereal dIterTol;
