@@ -32,20 +32,29 @@
 #include "mbconfig.h"           /* This goes first in every *.c,*.cc file */
 
 #include <cstring>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <cstdio>
 #include <cstdlib>
 #include <cerrno>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <fcntl.h>
-#include <signal.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <netdb.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <sys/un.h>
+  #include <arpa/inet.h>
+  #include <unistd.h>
+  #include <fcntl.h>
+  #include <signal.h>
+#endif /* _WIN32 */
 
 #include <iostream>
 #include <sstream>
@@ -78,14 +87,18 @@ main(int argc, char *argv[])
 		int len = s2s.recv(0);
 
 		switch (len) {
-		case -1: {
-			int		save_errno = errno;
-
-			if (save_errno == EAGAIN && !s2s.is_blocking()) {
+		case SOCKET_ERROR: {
+			int		save_errno = WSAGetLastError();
+#ifdef _WIN32
+            int test_errno = WSAEWOULDBLOCK;
+#else
+            int test_errno = EAGAIN;
+#endif /* _WIN32 */
+			if (save_errno == test_errno && !s2s.is_blocking()) {
 				continue;
 			}
 				
-			const char	*err_msg = strerror(save_errno);
+			const char	*err_msg = sock_err_string(save_errno);
 			silent_cerr("recv(" << s2s.sock << ",\"" << s2s.buf << "\") "
 				"failed (" << save_errno << ": " << err_msg << ")"
 				<< std::endl);

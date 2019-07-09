@@ -35,14 +35,24 @@
 #include "ac/getopt.h"
 
 #include <stdio.h>
-#include <errno.h>
 #include <stdlib.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <sys/un.h>
-#include <netdb.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <errno.h>
+  #include <unistd.h>
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <sys/un.h>
+  #include <netdb.h>
+#endif /* _WIN32 */
 
 #include <string.h>
 #include <signal.h>
@@ -73,7 +83,7 @@ usage(void)
 		"\t\t-I {yes|no}\timpulsive (reset after one step)\n"
 		"\t\t-m <mech>\tSASL mechanism (needs -S)\n"
 		"\t\t-p <port>\tport number\n"
-		"\t\t-P <path>\tpath of named pipe\n"
+		"\t\t-P <path>\tpath of named pipe (not available on Windows)\n"
 		"\t\t-S\t\tenable SASL auth"
 #ifndef HAVE_SASL2
 			" (not supported)"
@@ -94,7 +104,7 @@ static struct mbdyn_sasl_t mbdyn_sasl = MBDYN_SASL_INIT;
 int
 main(int argc, char *argv[])
 {
-	int sock;
+	SOCKET sock;
 
 	char *path = NULL;
 	char *host = (char *)SERVERHOST;
@@ -158,7 +168,10 @@ main(int argc, char *argv[])
 			break;
 
 		case 'P':
+#ifdef _WIN32
+			fprintf(stderr, "P (path) option not possible as local (unix) sockets are not supported on Windows\n");
 			path = optarg;
+#endif /* _WIN32 */
 			break;
 
 		case 'S':
@@ -206,11 +219,16 @@ main(int argc, char *argv[])
 	}
 
 	if (path) {
+#ifndef _WIN32
+		fprintf(stderr, "local sockets not supported on Windows\n");
+		exit(EXIT_FAILURE);
+#else
 		sock = mbdyn_make_named_socket(0, path, 0, NULL);
+#endif /* _WIN32 */
 	} else {
-		sock = mbdyn_make_inet_socket(0, host, port, 0, NULL);
+		int serr = mbdyn_make_inet_socket(&sock, 0, host, port, 0, NULL);
 	}
-	if (sock < 0) {
+	if (sock == INVALID_SOCKET) {
 		fprintf(stderr, "socket initialization error\n");
 		exit(EXIT_FAILURE);
 	}
@@ -238,7 +256,16 @@ main(int argc, char *argv[])
 #endif /* HAVE_SASL2 */
 	}
 
+#ifdef _WIN32
+	fd = FILE;
+	fd->_file = sock;
+	fd->_cnt = 0;
+	fd->_ptr = NULL;
+	fd->_base = NULL;
+	fd->_flag = 0;
+#else
 	fd = fdopen(sock, "w");
+#endif /* _WIN32 */
 
 	if (!sasl) {
 		if (user) {

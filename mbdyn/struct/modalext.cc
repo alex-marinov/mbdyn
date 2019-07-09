@@ -37,7 +37,9 @@
 #include "modaledge.h"
 
 #include <fstream>
+#ifndef _WIN32
 #include <cerrno>
+#endif /* _WIN32 */
 
 /* ExtModalForceBase - begin */
 
@@ -91,10 +93,10 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 			uint32_ptr[1] = uModes;
 
 			ssize_t rc = send(pEFH->GetOutFileDes(),
-				(const void *)buf, sizeof(buf),
+				(const char *)buf, sizeof(buf),
 				pEFH->GetSendFlags());
 			if (rc == -1) {
-				int save_errno = errno;
+				int save_errno = WSAGetLastError();
 				char *err_msg = strerror(save_errno);
 				silent_cerr("ExtModalForce(" << uLabel << "): "
 					"negotiation request send() failed "
@@ -131,10 +133,10 @@ ExtModalForce::Prepare(ExtFileHandlerBase *pEFH, unsigned uLabel, bool bRigid, u
 			uint32_t *uint32_ptr;
 
 			ssize_t rc = recv(pEFH->GetInFileDes(),
-				(void *)buf, sizeof(buf),
+				buf, sizeof(buf),
 				pEFH->GetRecvFlags());
 			if (rc == -1) {
-				int save_errno = errno;
+				int save_errno = WSAGetLastError();
 				char *err_msg = strerror(save_errno);
 				silent_cerr("ExtModalForce(" << uLabel << "): "
 					"negotiation response recv() failed "
@@ -256,11 +258,11 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
 		size = 3*sizeof(doublereal);
 
-		rc = recv(infd, (void *)f.pGetVec(), size, recv_flags);
+		rc = recv(infd, (char*)f.pGetVec(), size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
-		rc = recv(infd, (void *)m.pGetVec(), size, recv_flags);
+		rc = recv(infd, (char*)m.pGetVec(), size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
@@ -268,7 +270,7 @@ ExtModalForce::RecvFromFileDes(int infd, int recv_flags,
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
 		size = fv.size()*sizeof(doublereal);
-		rc = recv(infd, (void *)&fv[0], size, recv_flags);
+		rc = recv(infd, (char*)&fv[0], size, recv_flags);
 		if (rc != (ssize_t)size) {
 			// error
 		}
@@ -310,15 +312,15 @@ ExtModalForce::SendToFileDes(int outfd, int send_flags,
 {
 #ifdef USE_SOCKET
 	if ((uFlags & ExtModalForceBase::EMF_RIGID)) {
-		send(outfd, (const void *)x.pGetVec(), 3*sizeof(doublereal), send_flags);
-		send(outfd, (const void *)R.pGetMat(), 9*sizeof(doublereal), send_flags);
-		send(outfd, (const void *)v.pGetVec(), 3*sizeof(doublereal), send_flags);
-		send(outfd, (const void *)w.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)x.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)R.pGetMat(), 9*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)v.pGetVec(), 3*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)w.pGetVec(), 3*sizeof(doublereal), send_flags);
 	}
 
 	if ((uFlags & ExtModalForceBase::EMF_MODAL)) {
-		send(outfd, (const void *)&q[0], q.size()*sizeof(doublereal), send_flags);
-		send(outfd, (const void *)&qP[0], qP.size()*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)&q[0], q.size()*sizeof(doublereal), send_flags);
+		send(outfd, (const char*)&qP[0], qP.size()*sizeof(doublereal), send_flags);
 	}
 #else // ! USE_SOCKET
 	throw ErrGeneric(MBDYN_EXCEPT_ARGS);

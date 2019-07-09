@@ -12,7 +12,7 @@ _Some projects require specific entry tests, if your project does not, then foll
   - describe how you compiled MBDyn, including any difficulties you encountered and how you tackled them, the case you chose to run (provide a link to the actual case) and provide at least one figure showing the results as a plot of relevant data, such as positions, forces, 
 velocities, etc...
 
-Useful links: [MBDyn latest release](https://www.mbdyn.org/userfiles/downloads/mbdyn-1.7.3.tar.gz), [input manual](https://www.mbdyn.org/userfiles/documents/mbdyn-input-1.7.3.pdf), [examples](https://www.mbdyn.org/?Documentation___Official_Documentation___Examples).
+Useful links: [MBDyn latest release and input manual](https://www.mbdyn.org/?Software_Download), [examples](https://www.mbdyn.org/?Documentation___Official_Documentation___Examples).
 
 _Note that this step does not require programming, you just need to be able to write a consistent MBDyn input file_
 

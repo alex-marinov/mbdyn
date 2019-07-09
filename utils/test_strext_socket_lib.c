@@ -210,11 +210,16 @@ test_init(int argc, char *argv[])
 				port = (unsigned short)l;
 
 			} else if (strncasecmp(optarg, "local://", sizeof("local://") - 1) == 0) {
+#ifdef _WIN32
+				fprintf(stderr, "test_strext_socket: "
+					"local sockets are not supported in Windows\n");
+				usage();
+#else
 				path = optarg + sizeof("local://") - 1;
 				if (path[0] != '/') {
 					usage();
 				}
-
+#endif /* _WIN32 */
 			} else {
 				usage();
 			}
@@ -432,6 +437,8 @@ test_init(int argc, char *argv[])
 
 		case 'v':
 			mbc->mbc.verbose = 1;
+			fprintf(stdout, "test_strext_socket: "
+				"Verbose output option selected\n ");
 			break;
 
 		case 'x':
@@ -447,15 +454,35 @@ test_init(int argc, char *argv[])
 		rot = MBC_U_ROT_2_REF_NODE_ROT(rot);
 	}
 
+	if (mbc->mbc.verbose == 1){
+        fprintf(stderr, "test_strext_socket: "
+                    "Finished parsing input\n ");
+	}
+
 	if (path) {
+#ifdef _WIN32
+		fprintf(stderr, "test_strext_socket: "
+				"Windows does not support local sockets, use inet sockets instead.\n ");
+		exit(EXIT_FAILURE);
+#else
 		/* initialize UNIX socket (path) */
 		if (mbc_unix_init((mbc_t *)mbc, path)) {
 			exit(EXIT_FAILURE);
 		}
+#endif /* _WIN32 */
 
 	} else if (host) {
+		if (mbc->mbc.verbose == 1){
+			fprintf(stdout, "test_strext_socket: "
+				"Initialising inet socket (%s:%d)\n ", host, port);
+		}
+
 		/* initialize INET socket (host, port) */
-		if (mbc_inet_init((mbc_t *)mbc, host, port)) {
+		int retval = mbc_inet_init((mbc_t *)mbc, host, port);
+
+		if (retval) {
+		    fprintf(stderr, "test_strext_socket: "
+				"mbc_inet_init call failed (return value %d)\n ", retval);
 			exit(EXIT_FAILURE);
 		}
 
@@ -466,6 +493,8 @@ test_init(int argc, char *argv[])
 	/* initialize data structure:
 	 */
 	if (mbc_nodal_init(mbc, refnode, nodes, labels, rot, accelerations)) {
+		fprintf(stderr, "test_strext_socket: "
+			"mbc_nodal_init call failed\n");
 		exit(EXIT_FAILURE);
 	}
 

@@ -207,6 +207,7 @@ AC_ARG_WITH(mkoctfile,[  --with-mkoctfile=exec-path Octave build tool mkoctfile]
 ],[ol_with_mkoctfile_exec=mkoctfile])
 OL_ARG_ENABLE(autodiff,[--enable-autodiff       enable automatic differentiation in order to compute the Jacobian matrix],no)dnl
 OL_ARG_ENABLE(autodiff_vect, [  --enable-autodiff_vect={0|16|32|64}     enable vectorization for automatic differentiation],0,[0 16 32 64])dnl
+OL_ARG_ENABLE(install_test_progs, [  --enable-install_test_progs       enable installation of some test programs which are otherwise not installed], no)
 dnl ----------------------------------------------------------------
 dnl General "with" options
 OL_ARG_WITH(g2c,[  --with-g2c              with g2c header],no,[auto yes no])
@@ -275,13 +276,20 @@ AC_ARG_WITH(module,[
 OL_ARG_WITH(charm,[  --with-charm            with CHARM WP module],no,[auto yes no])
 
 fool_libtool=yes
+build_windows=no
 case "$host" in
 	*-apple-*)
 		fool_libtool=no
 		;;
+    cygwin*|*mingw*)
+        build_windows=yes
+        ;;
 	*)
 		;;
 esac
+
+dnl Add a conditional we can use in Makefile.am for MS Windows builds
+AM_CONDITIONAL([WINDOWS], [test "$build_windows" = "yes"])
 
 dnl ----------------------------------------------------------------
 dnl
@@ -298,8 +306,8 @@ fi
 AC_PROG_FC
 AC_FC_DUMMY_MAIN
 AC_FC_LIBRARY_LDFLAGS
+AC_PROG_F77
 if test "x$FC" = "x" ; then
-	AC_PROG_F77
 	if test "x$F77" = "x" ; then
 		AC_MSG_ERROR([Need a working Fortran compiler])
 	fi
@@ -443,6 +451,11 @@ AC_CHECK_HEADERS(sys/ioctl.h)
 AC_CHECK_HEADERS(time.h)
 AC_CHECK_HEADERS(unistd.h)
 AC_CHECK_HEADERS(values.h)
+dnl termios.h used in utils autopilot.c, we don't build if we don't have it (e.g. on windows)
+AC_CHECK_HEADER(termios.h, [have_termios=yes], [have_termios=no])
+
+dnl on windows we use winsock
+AC_CHECK_HEADERS(winsock2.h)
 
 
 dnl ----------------------------------------------------------------
@@ -585,7 +598,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 		nc.sync(); // test for sync option (comes in later version, >=4.3.0)
 		nc.close(); // test for close (appears in 4.3.0)
 				],[
-					
+
 				], [
 					have_libnetcdf4=no
 					AC_MSG_WARN([netcdf-cxx4 version too old, either link version 4.3.0 or more recent
@@ -658,7 +671,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			AC_MSG_WARN([Not using classic/legacy netcdf])
 		fi
 	fi
-	
+
 	if test $have_libnetcdf4 = yes ; then
 		AC_DEFINE(USE_NETCDF4,1,[define this to enable NetCDF4 based output])
 		AC_DEFINE(USE_NETCDF,1,[also define this to enable NetCDF4 based output])
@@ -670,7 +683,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			AC_MSG_WARN([Not using netcdf4])
 		fi
 	fi
-	
+
 	if test "$have_libnetcdf4" != yes ; then
 		if test "$have_libnetcdfc" != yes ; then
 			if test $ol_enable_netcdf != auto ; then
@@ -678,7 +691,7 @@ dnl checks for netcdf header file (for netcdf4 c++):
 			fi
 		fi
 	fi
-	
+
 fi
 
 if test "$ol_enable_netcdf" != no ; then
@@ -1261,6 +1274,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Checks for socket
 dnl
+AC_CHECK_LIB([ws2_32], [main])
 AC_CHECK_FUNC(socket,[have_socket=yes],[have_socket=no])
 use_socket=no
 if test "$have_socket" = "yes" ; then
@@ -1273,6 +1287,13 @@ if test "$have_socket" = "yes" ; then
 		AC_TRY_COMPILE([#include <sys/socket.h>],[
 			socklen_t l;
 		],[have_socklen_t=yes],[have_socklen_t=no])
+
+		if test "$have_socklen_t" = "no" ; then
+			AC_TRY_COMPILE([#include <ws2tcpip.h>],[
+				socklen_t l;
+			],[have_socklen_t=yes],[have_socklen_t=no])
+		fi
+
 		if test $have_socklen_t != no ; then
 			AC_DEFINE(HAVE_SOCKLEN_T,1,
 				[define if typedef socklen_t is defined])
@@ -1521,7 +1542,7 @@ dnl ----------------------------------------------------------------
 dnl
 dnl Check for build mbc library
 dnl
-dnl do not build libmbm if sockets are not available (fixes issue in MinGW)
+dnl do not build libmbc if sockets are not available (fixes issue in MinGW)
 AM_CONDITIONAL(BUILD_MBC,[test "$ol_enable_mbc" = "yes" -a "$have_socket" = "yes"])
 
 dnl ----------------------------------------------------------------
@@ -3346,6 +3367,10 @@ AM_CONDITIONAL(BUILD_Y12,[test "$ol_link_y12" = yes])
 
 AM_CONDITIONAL(BUILD_STATIC_MODULES,[test "$build_static_modules" = yes])
 AM_CONDITIONAL(BUILD_CHARM,[test "$build_charm" = yes])
+
+AM_CONDITIONAL(HAVE_TERMIOS,[test "$have_termios" = yes])
+AM_CONDITIONAL(HAVE_GETPASS,[test "$have_getpass" = yes])
+AM_CONDITIONAL(INSTALL_TEST_PROGRAMS,[test "$ol_enable_install_test_progs" = yes])
 
 dnl ----------------------------------------------------------------
 dnl

@@ -38,18 +38,29 @@
 #include "mbsleep.h"
 
 #include <string.h>
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <stdio.h>
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 #include <stdlib.h>
-#include <errno.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <sys/types.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <netdb.h>
+#ifdef HAVE_UNISTD_H
+  #include <unistd.h>
+#endif /* HAVE_UNISTD_H */
+  #include <errno.h>
+  #include <sys/socket.h>
+  #include <arpa/inet.h>
+#endif /* _WIN32 */
+
 #include <time.h>
 
 #include "usesock.h"
@@ -66,7 +77,7 @@ connected(false),
 abandoned(false),
 socklen(0)
 {
-	NO_OP;
+	isblocking = false;
 }
 
 UseSocket::UseSocket(int t, bool c)
@@ -77,7 +88,7 @@ connected(false), // t == SOCK_DGRAM),
 abandoned(false),
 socklen(0)
 {
-	NO_OP;
+	isblocking = false;
 }
 
 UseSocket::~UseSocket(void)
@@ -87,8 +98,12 @@ UseSocket::~UseSocket(void)
 		time_t t = time(NULL);
 
 		if (socket_type == SOCK_STREAM) {
-			status = shutdown(sock, SHUT_RDWR);
-			int save_errno = errno;
+#ifdef _WIN32
+		status = shutdown(sock, SD_BOTH);
+#else
+		status = shutdown(sock, SHUT_RDWR);
+#endif /* _WIN32 */
+			int save_errno = WSAGetLastError();
 			if (status == 0) {
 				pedantic_cout("UseSocket::~UseSocket: shutdown: "
 					"socket=" << sock
@@ -106,8 +121,11 @@ UseSocket::~UseSocket(void)
 					<< std::endl);
 			}
 		}
-
+#ifdef _WIN32
+		status = closesocket(sock);
+#else
 		status = close(sock);
+#endif /* _WIN32 */
 		pedantic_cout("UseSocket::~UseSocket: close: "
 			"socket=" << sock
 			<< " status=" << status
@@ -140,7 +158,7 @@ UseSocket::Restart(std::ostream& out) const
 	return out;
 }
 
-int
+SOCKET
 UseSocket::GetSock(void) const
 {
 	return sock;
@@ -158,9 +176,16 @@ UseSocket::PostConnect(void)
 	struct linger lin;
 	lin.l_onoff = 1;
 	lin.l_linger = 0;
+	int status = -1;
 	
-	if (setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, &lin, sizeof(lin))) {
-		int save_errno = errno;
+#ifdef _WIN32
+	status = setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, (const char*)&lin, sizeof(lin));
+#else
+	status = setsockopt(GetSock(), SOL_SOCKET, SO_LINGER, &lin, sizeof(lin));
+#endif /* _WIN32 */
+
+	if (status) {
+		int save_errno = WSAGetLastError();
 		char *msg = strerror(save_errno);
 
       		silent_cerr("UseSocket::PostConnect: setsockopt() failed "
@@ -183,11 +208,19 @@ UseSocket::Connect(void)
 	mbsleep_real2sleep(0.1, &timeout);
 
 	for ( ; count > 0; count--) {
-		if (connect(sock, GetSockaddr(), GetSocklen()) < 0) {
-			int save_errno = errno;
+		int rc = connect(sock, GetSockaddr(), GetSocklen());
+
+		if (rc == SOCKET_ERROR) {
+		
+			int save_errno = WSAGetLastError();
+
 			switch (save_errno) {
+#ifdef _WIN32
+			case WSAECONNREFUSED: // winsock inet
+#else
 			case ECONNREFUSED:	// inet
 			case ENOENT:		// unix
+#endif // _WIN32
 				/* Socket does not exist yet; retry */
 				mbsleep(&timeout);
 				continue;
@@ -257,10 +290,10 @@ UseSocket::send(const void *buf, size_t len, int flags)
 {
 	switch (socket_type) {
 	case SOCK_STREAM:
-		return ::send(sock, buf, len, flags);
+		return ::send(sock, (const char*)buf, len, flags);
 
 	case SOCK_DGRAM:
-		return ::sendto(sock, buf, len, flags, GetSockaddr(), GetSocklen());
+		return ::sendto(sock, (const char*)buf, len, flags, GetSockaddr(), GetSocklen());
 
 	default:
 		ASSERT(0);
@@ -270,23 +303,95 @@ UseSocket::send(const void *buf, size_t len, int flags)
 }
 
 ssize_t
-UseSocket::recv(void *buf, size_t len, int flags)
+UseSocket::recv(void *buf, size_t len, int flags, bool bMsgDontWait)
 {
+	ssize_t result = -1;
+
+#ifdef _WIN32
+	if (bMsgDontWait && isblocking)
+	{
+		// flags |= MSG_DONTWAIT;
+		/* set to non-blocking for the recv call */
+		unsigned long blkmode = 1;
+		int ioctlresult = ioctlsocket(sock, FIONBIO, &blkmode);
+		if (ioctlresult != 0) {
+			silent_cerr("UseSocket: recv() failed"
+				<< "(" << ioctlresult << ": unable to set socket to non-blocking mode)"
+				<< std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+		}
+	}
+#else
+	if (bMsgDontWait && ~(MSG_DONTWAIT & flags))
+	{
+		flags |= MSG_DONTWAIT;
+	}
+#endif /* _WIN32 */
+
 	switch (socket_type) {
 	case SOCK_STREAM:
-		return ::recv(sock, buf, len, flags);
+
+	    result = ::recv(sock, (char *)buf, len, flags);
+
+		break;
 
 	case SOCK_DGRAM:
 		// struct sockaddr src_addr = { 0 };
 		// socklen_t addrlen = 0;
 		// return ::recvfrom(sock, buf, len, flags, &src_addr, &addrlen);
-		return ::recvfrom(sock, buf, len, flags, 0, 0);
+		result = ::recvfrom(sock, (char *)buf, len, flags, 0, 0);
+
+		break;
 
 	default:
 		ASSERT(0);
+		break;
 	}
 
-	return -1;
+	if (result == SOCKET_ERROR) {
+		int err = WSAGetLastError();
+#ifdef _WIN32
+		char msg[100] = "";
+		winsock_err_string (err, msg);
+#else
+		char* msg = strerror(err);
+#endif /* _WIN32 */
+		silent_cout("UseSocket: recv() failed"
+			<< "(" << result
+			<< ": message was: "
+			<< msg
+			<< ")"
+			<< std::endl);
+		//throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+	} else {
+		fprintf (stdout, "UseSocket: recv() succeeded, result: %d, buf size: %d", result, sizeof(buf));
+//        silent_cout("UseSocket: recv() succeeded"
+//        << "(" << result
+//        << ": buf size: "
+//        << sizeof(buf)
+//        << ")"
+//        << std::endl);
+	}
+
+
+#ifdef _WIN32
+    if (bMsgDontWait && isblocking)
+    {
+        // set socket back to blocking, if that was how it
+        // was originally created
+        // flags |= MSG_DONTWAIT;
+        unsigned long blkmode = 0;
+   	    int ioctlresult = ioctlsocket(sock, FIONBIO, &blkmode);
+        if (ioctlresult != 0) {
+		    silent_cerr("UseSocket: recv() failed"
+				<< "(" << ioctlresult << " : unable to set socket back to blocking mode)"
+				<< std::endl);
+      		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+   	    }
+    }
+#endif /* _WIN32 */
+
+	return result;
 }
 
 UseInetSocket::UseInetSocket(const std::string& h, unsigned short p, bool c)
@@ -308,6 +413,9 @@ port(p)
 void
 UseInetSocket::UseInetSocket_int(void)
 {
+
+	int serr = 0;
+
    	ASSERT(port > 0);
 
 	socklen = sizeof(addr);
@@ -320,11 +428,11 @@ UseInetSocket::UseInetSocket_int(void)
 	if (create) {
 		int			save_errno;
 		
-   		sock = mbdyn_make_inet_socket_type(0, host.c_str(), port, socket_type,
+   		serr = mbdyn_make_inet_socket_type(&sock, 0, host.c_str(), port, socket_type,
 			1, &save_errno);
 		
-		if (sock == -1) {
-			const char	*err_msg = strerror(save_errno);
+		if (serr == -1) {
+			const char	*err_msg = sock_err_string(save_errno);
 
       			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"socket() failed "
@@ -332,8 +440,8 @@ UseInetSocket::UseInetSocket_int(void)
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   		} else if (sock == -2) {
-			const char	*err_msg = strerror(save_errno);
+   		} else if (serr == -2) {
+			const char	*err_msg = sock_err_string(save_errno);
 
       			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"bind() failed "
@@ -341,7 +449,7 @@ UseInetSocket::UseInetSocket_int(void)
 				<< std::endl);
       			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
-   		} else if (sock == -3) {
+   		} else if (serr == -3) {
       			silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 				"illegal host name \"" << host << "\" "
 				"(" << save_errno << ")"
@@ -351,8 +459,8 @@ UseInetSocket::UseInetSocket_int(void)
 
 		if (socket_type == SOCK_STREAM) {
    			if (listen(sock, 1) < 0) {
-				save_errno = errno;
-				const char	*err_msg = strerror(save_errno);
+				save_errno = WSAGetLastError();
+				const char	*err_msg = sock_err_string(save_errno);
 
       				silent_cerr("UseInetSocket(" << host << ":" << port << "): "
 					"listen() failed "
@@ -389,7 +497,7 @@ UseInetSocket::Connect(void)
 
 #if 0
 	sock = socket(PF_INET, SOCK_STREAM, 0);
-	if (sock < 0) {
+	if (sock == INVALID_SOCKET) {
 		silent_cerr("UseSocket(): socket() failed "
 				<< "\"" << host << ":" << port << "\""
 				<< std::endl);
@@ -407,9 +515,10 @@ UseInetSocket::Connect(void)
 #endif
 
 	int save_errno;
-	sock = mbdyn_make_inet_socket_type(&addr, host.c_str(), port, socket_type, 0, &save_errno);
-	if (sock < 0) {
-		const char	*err_msg = strerror(save_errno);
+	int serr;
+	serr = mbdyn_make_inet_socket_type(&sock, &addr, host.c_str(), port, socket_type, 0, &save_errno);
+	if (sock == INVALID_SOCKET) {
+		const char	*err_msg = sock_err_string(save_errno);
 
 		silent_cerr("UseInetSocket(" << host << ":" << port << "): socket() failed "
 			"(" << save_errno << ": " << err_msg << ")"
@@ -442,6 +551,7 @@ UseInetSocket::GetSockaddr(void) const
 	return (struct sockaddr *)&addr;
 }
 	
+#ifndef _WIN32
 UseLocalSocket::UseLocalSocket(const std::string& p, bool c)
 : UseSocket(c), path(p)
 {
@@ -497,6 +607,7 @@ UseLocalSocket::UseLocalSocket_int(void)
       				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
    			}
 		}
+
 	}	 
 }
 
@@ -558,5 +669,6 @@ UseLocalSocket::GetSockaddr(void) const
 {
 	return (struct sockaddr *)&addr;
 }
+#endif /* _WIN32 */
 
 #endif // USE_SOCKET

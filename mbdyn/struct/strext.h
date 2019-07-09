@@ -34,6 +34,8 @@
 #ifndef STREXT_H
 #define STREXT_H
 
+#include "mbconfig.h"
+
 #include <vector>
 #include <string>
 
@@ -75,6 +77,11 @@ protected:
 
 	// buffer for filedes I/O
 	unsigned dynamics_size;
+	unsigned node_kinematics_size;
+	unsigned dynamics_nbytes;
+	unsigned node_kinematics_nbytes;
+	unsigned labels_size;
+	unsigned labels_nbytes;
 	std::vector<char> iobuf;
 	uint32_t *iobuf_labels;
 	doublereal *iobuf_x;
@@ -88,6 +95,7 @@ protected:
 	doublereal *iobuf_f;
 	doublereal *iobuf_m;
 
+	bool CheckProblemsMatch (unsigned  uNodal, bool bRef, unsigned  uR, bool bL, bool bA, unsigned uN);
 	bool Prepare(ExtFileHandlerBase *pEFH);
 	void Send(ExtFileHandlerBase *pEFH, ExtFileHandlerBase::SendWhen when);
 	void Recv(ExtFileHandlerBase *pEFH);

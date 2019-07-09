@@ -57,16 +57,26 @@
 #include "sock.h"
 
 #include <string.h>
-#include <sys/types.h>
-#include <sys/select.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <netdb.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <errno.h>
-#include <sys/un.h>
-#include <arpa/inet.h>
+
+#ifdef _WIN32
+  /* See http://stackoverflow.com/questions/12765743/getaddrinfo-on-win32 */
+  #ifndef _WIN32_WINNT
+    #define _WIN32_WINNT 0x0501  /* Windows XP. */
+  #endif
+  #include <winsock2.h>
+  #include <ws2tcpip.h>
+#else
+  #include <sys/types.h>
+  #include <sys/select.h>
+  #include <sys/socket.h>
+  #include <netinet/in.h>
+  #include <netdb.h>
+  #include <errno.h>
+  #include <sys/un.h>
+  #include <arpa/inet.h>
+#endif /* _WIN32 */
 
 #include "rtai_in_drive.h"
 
@@ -82,12 +92,14 @@ SocketStreamDrive::SocketStreamDrive(unsigned int uL,
 	unsigned int ie, bool bReceiveFirst,
 	int flags,
 	const struct timeval& st,
-	StreamDriveEcho *pSDE)
+	StreamDriveEcho *pSDE,
+	bool bMsgDontWait)
 : StreamDrive(uL, pDH, sFileName, nd, v0, c, pMod),
 InputEvery(ie), bReceiveFirst(bReceiveFirst), InputCounter(ie - 1),
 pUS(pUS), recv_flags(flags),
 SocketTimeout(st),
-pSDE(pSDE)
+pSDE(pSDE),
+bMsgDontWait(bMsgDontWait)
 {
 	// NOTE: InputCounter is set to InputEvery - 1 so that input
 	// is expected at initialization (initial time) and then every
@@ -149,7 +161,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	}
 	InputCounter = 0;
 	
-	int sock_nr = pUS->GetSock();
+	SOCKET sock = pUS->GetSock();
 	ssize_t rc = -1;
 	// Use socket timeout if set in input file; Default: 0
 	if (SocketTimeout.tv_sec || SocketTimeout.tv_usec) {
@@ -161,17 +173,22 @@ SocketStreamDrive::ServePending(const doublereal& t)
 		FD_ZERO(&readfds);
 
 		// Add descriptors to the set
-		FD_SET(sock_nr, &readfds);
+		FD_SET(sock, &readfds);
 
 		// Copy timeout because select(2) may overwrite it
 		struct timeval tv = SocketTimeout;
 
 		// Call select
-		rc = select(sock_nr + 1, &readfds, NULL, NULL, &tv);
+#ifdef _WIN32
+		rc = select(0, &readfds, NULL, NULL, &tv);
+#else
+		rc = select(sock + 1, &readfds, NULL, NULL, &tv);
+#endif // _WIN32
+
 		switch (rc) {
-		case -1: {
-			int save_errno = errno;
-			char *err_msg = strerror(save_errno);
+		case SOCKET_ERROR: {
+			int save_errno = WSAGetLastError();
+			char *err_msg = sock_err_string(save_errno);
 
 			silent_cout("SocketStreamDrive"
 				"(" << sFileName << "): select failed"
@@ -187,10 +204,10 @@ SocketStreamDrive::ServePending(const doublereal& t)
 			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 
 		default:
-			if (!FD_ISSET(sock_nr, &readfds)) {
+			if (!FD_ISSET(sock, &readfds)) {
 				silent_cout("SocketStreamDrive"
 					"(" << sFileName << "): "
-					"socket " << sock_nr << " reset"
+					"socket " << sock << " reset"
 					<< std::endl);
 				throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 			}
@@ -201,7 +218,7 @@ SocketStreamDrive::ServePending(const doublereal& t)
 	// NOTE: flags __SHOULD__ contain MSG_WAITALL;
 	// however, it is not defined on some platforms (e.g. Cygwin)
 	// TODO: needs work for network independence!
-	rc = pUS->recv(&buf[0], size, recv_flags);
+	rc = pUS->recv(&buf[0], size, recv_flags, bMsgDontWait);
 
 	/* FIXME: no receive at first step? */
 	switch (rc) {
@@ -213,13 +230,24 @@ do_abandon:;
 		pUS->Abandon();
 		break;
 
-	case -1: {
-		int save_errno = errno;
+	case SOCKET_ERROR: {
+		int save_errno = WSAGetLastError();
 
 		// some errno values may be legal
 		switch (save_errno) {
+#ifdef _WIN32
+		case WSAEWOULDBLOCK:
+			if (bMsgDontWait) {
+				// non-blocking
+				return;
+			}
+			break;
+
+		case WSAECONNRESET:
+			goto do_abandon;
+#else
 		case EAGAIN:
-			if (recv_flags & MSG_DONTWAIT) {
+			if (bMsgDontWait) {
 				// non-blocking
 				return;
 			}
@@ -227,9 +255,10 @@ do_abandon:;
 
 		case ECONNRESET:
 			goto do_abandon;
+#endif /* _WIN32 */
 		}
 
-		char *err_msg = strerror(save_errno);
+		char *err_msg = sock_err_string(save_errno);
 		silent_cout("SocketStreamDrive(" << sFileName << ") failed "
 				"(" << save_errno << ": " << err_msg << ")"
 				<< std::endl);
@@ -298,6 +327,13 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 	}
 
 	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
+#ifdef _WIN32
+        silent_cerr("SocketStreamDrive(" << uLabel << "): "
+            "local sockets are not supported on Windows, you must use inet "
+            "at line " << HP.GetLineData()
+            << std::endl);
+        throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#else /* _WIN32 */
 		const char *m = HP.GetFileName();
 		
 		if (m == 0) {
@@ -310,6 +346,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 		}
 		
 		path = m;
+#endif /* _WIN32 */
 	}
 	
 	if (HP.IsKeyWord("port")) {
@@ -403,6 +440,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 
 	// we want to block until the whole chunk is received
 	int flags = 0;
+	bool bMsgDontWait = false;
 #ifdef MSG_WAITALL
 	flags |= MSG_WAITALL;
 #endif // MSG_WAITALL
@@ -434,12 +472,19 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 		} else if (HP.IsKeyWord("blocking")) {
 			// not honored by recv(2)?
 			flags |= MSG_WAITALL;
+
+		bMsgDontWait = false;
+#ifndef _WIN32
 			flags &= ~MSG_DONTWAIT;
+#endif /* _WIN32 */
 
 		} else if (HP.IsKeyWord("non" "blocking")) {
 			// not honored by recv(2)?
 			flags &= ~MSG_WAITALL;
+		bMsgDontWait = true;
+#ifndef _WIN32
 			flags |= MSG_DONTWAIT;
+#endif /* ! _WIN32 */
 
 		} else {
 			break;
@@ -548,11 +593,17 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 			<< " " << port;
 
 	} else {
+#ifndef _WIN32
 		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, socket_type, bCreate));
 		out
 			<< " UNIX"
 			<< " " << name
 			<< " " << path;
+#else
+		silent_cerr("local sockets are not supported on Windows, you must use inet"
+			    << std::endl);
+        	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
+#endif /* ! _WIN32 */
 	}
 	
 	if (socket_type == SOCK_STREAM) {
@@ -578,7 +629,7 @@ ReadStreamDrive(const DataManager *pDM, MBDynParser& HP, unsigned uLabel)
 			name, idrives, v0, pMod,
 			InputEvery, bReceiveFirst,
 			flags, SocketTimeout,
-			pSDE));
+			pSDE, bMsgDontWait));
 #ifdef MSG_NOSIGNAL
 	if (flags & ~MSG_NOSIGNAL) {
 		out << " " << true;

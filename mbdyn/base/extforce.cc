@@ -34,16 +34,14 @@
 #include "dataman.h"
 #include "extforce.h"
 #include "extedge.h"
+#include "extsocket.h"
 #include "except.h"
 #include "solver.h"
 
 #include <fstream>
-
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <cstdlib>
-#include <unistd.h>
 #include <cerrno>
+#include <sys/stat.h>
 
 /* ExtFileHandlerBase - begin */
 
@@ -220,7 +218,7 @@ ExtFileHandler::Send_post(SendWhen when)
 {
 	outf.close();
 	if (rename(tmpout.c_str(), fout.c_str()) != 0) {
-		int save_errno = errno;
+		int save_errno = WSAGetLastError();
 		silent_cerr("ExtFileHandler: unable to rename output file "
 			"\"" << tmpout.c_str() << "\" "
 			"into \"" << fout.c_str() << "\" "
@@ -293,12 +291,10 @@ ExtFileHandler::GetInStream(void)
 
 /* ExtFileHandler - end */
 
-/* ExtSocketHandler - begin */
-
-#ifdef USE_SOCKET
+/* ExtRemoteHandler - begin */
 
 ESCmd
-ExtSocketHandler::u2cmd(unsigned u) const
+ExtRemoteHandler::u2cmd(unsigned u) const
 {
 	switch (u) {
 	case ES_REGULAR_DATA:
@@ -323,7 +319,7 @@ static const char *ESCmd2str[] = {
 };
 
 const char *
-ExtSocketHandler::cmd2str(ESCmd cmd) const
+ExtRemoteHandler::cmd2str(ESCmd cmd) const
 {
 	if (cmd == ES_UNKNOWN) {
 		return "UNKNOWN";
@@ -332,179 +328,27 @@ ExtSocketHandler::cmd2str(ESCmd cmd) const
 	return ESCmd2str[cmd];
 }
 
-ExtSocketHandler::ExtSocketHandler(UseSocket *pUS, mbsleep_t SleepTime,
-	int recv_flags, int send_flags)
+ExtRemoteHandler::ExtRemoteHandler(mbsleep_t SleepTime, bool bReadForces, bool bLastReadForce)
 : ExtFileHandlerBase(SleepTime, 0),
-pUS(pUS), recv_flags(recv_flags), send_flags(send_flags),
-bReadForces(true), bLastReadForce(false)
+bReadForces(bReadForces), bLastReadForce(bLastReadForce)
 {
 	NO_OP;
 }
 
-ExtSocketHandler::~ExtSocketHandler(void)
+ExtRemoteHandler::~ExtRemoteHandler(void)
 {
-	if (pUS->GetSock() >= 0) {
-		uint8_t u = ES_ABORT;
-
-		// ignore result
-		(void)send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
-	}
-	SAFEDELETE(pUS);
-}
-
-ExtFileHandlerBase::Negotiate
-ExtSocketHandler::NegotiateRequest(void) const
-{
-	if (pUS->Create()) {
-		return ExtFileHandlerBase::NEGOTIATE_SERVER;
-
-	} else {
-		return ExtFileHandlerBase::NEGOTIATE_CLIENT;
-	}
-}
-
-bool
-ExtSocketHandler::Prepare_pre(void)
-{
-	uint8_t u;
-	ssize_t rc;
-
-	switch (NegotiateRequest()) {
-	case ExtFileHandlerBase::NEGOTIATE_CLIENT:
-		u = ES_NEGOTIATION;
-
-		rc = send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
-		if (rc == -1) {
-			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: negotiation request send() failed "
-				"(" << save_errno << ": " << strerror(save_errno) << ")"
-				<< std::endl);
-			return (bOK = false);
-
-		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: negotiation request send() failed "
-				"(sent " << rc << " bytes "
-				"instead of " << sizeof(u) << ")"
-				<< std::endl);
-			return (bOK = false);
-		}
-		break;
-
-	case ExtFileHandlerBase::NEGOTIATE_SERVER:
-		rc = recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
-		if (rc == -1) {
-			return (bOK = false);
-
-		} else if (rc != sizeof(u)) {
-			return (bOK = false);
-		}
-
-		if (u != ES_NEGOTIATION) {
-			silent_cerr("ExtSocketHandler: negotiation request recv() failed"
-				<< std::endl);
-			return (bOK = false);
-		}
-		break;
-
-	default:
-		ASSERT(0);
-	}
-
-	return true;
+    NO_OP;
 }
 
 void
-ExtSocketHandler::Prepare_post(bool ok)
-{
-	if (NegotiateRequest()) {
-		uint8_t u = ok ? ES_OK : ES_ABORT;
-
-		ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u),
-			send_flags);
-		if (rc == -1) {
-			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: negotiation response send() failed "
-				"(" << save_errno << ": " << strerror(save_errno) << ")"
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: negotiation response send() failed "
-				"(sent " << rc << " bytes "
-				"instead of " << sizeof(u) << ")"
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-	} else {
-		uint8_t u;
-		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
-			recv_flags);
-		if (rc == -1) {
-			int save_errno = errno;
-			silent_cerr("ExtSocketHandler: negotiation response recv() failed "
-				"(" << save_errno << ": " << strerror(save_errno) << ")"
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: negotiation response recv() failed "
-				"(received " << rc << " bytes "
-				"instead of " << sizeof(u) << ")"
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-
-		}
-
-		if (u != ES_OK) {
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-}
-
-void
-ExtSocketHandler::AfterPredict(void)
+ExtRemoteHandler::AfterPredict(void)
 {
 	bLastReadForce = false;
 	bReadForces = true;
 }
 
-bool
-ExtSocketHandler::Send_pre(SendWhen when)
-{
-	if (!bReadForces || !bOK) {
-		return false;
-	}
-
-	uint8_t u;
-	if (when == SEND_AFTER_CONVERGENCE) {
-		u = ES_REGULAR_DATA_AND_GOTO_NEXT_STEP;
-	} else {
-		u = ES_REGULAR_DATA;
-	}
-	ssize_t rc = send(pUS->GetSock(), (void *)&u, sizeof(u), send_flags);
-	if (rc == -1) {
-		int save_errno = errno;
-		silent_cerr("ExtSocketHandler: send() failed "
-			"(" << save_errno << ": " << strerror(save_errno) << ")"
-			<< std::endl);
-		mbdyn_set_stop_at_end_of_iteration();
-		return (bOK = false);
-
-	} else if (rc != sizeof(u)) {
-		silent_cerr("ExtSocketHandler: send() failed "
-			"(sent " << rc << " bytes "
-			"instead of " << sizeof(u) << ")"
-			<< std::endl);
-		mbdyn_set_stop_at_end_of_iteration();
-		return (bOK = false);
-	}
-
-	return true;
-}
-
 void
-ExtSocketHandler::Send_post(SendWhen when)
+ExtRemoteHandler::Send_post(SendWhen when)
 {
 #if 0
 	if (when == SEND_AFTER_CONVERGENCE) {
@@ -515,70 +359,12 @@ ExtSocketHandler::Send_post(SendWhen when)
 }
 
 bool
-ExtSocketHandler::Recv_pre(void)
+ExtRemoteHandler::ActOnCmd(uint8_t u)
 {
-	if (!bReadForces) {
-		return false;
-	}
-
-	uint8_t u = 0;
-
-	if (SleepTime != 0) {
-		for ( ; ; ) {
-			ssize_t rc;
-
-			rc = recv(pUS->GetSock(), (void *)&u, sizeof(u),
-				recv_flags | MSG_DONTWAIT);
-			if (rc != -1) {
-				break;
-			}
-
-			int save_errno = errno;
-	
-			if (errno != EAGAIN) {
-				silent_cerr("ExtSocketHandler: "
-					"recv() failed (" << save_errno << ": "
-					<< strerror(save_errno) << ")"
-					<< std::endl);
-				mbdyn_set_stop_at_end_of_iteration();
-				return (bOK = false);
-			}
-
-			if (mbdyn_stop_at_end_of_iteration()) {
-				return (bOK = false);
-			}
-
-			mbsleep(&SleepTime);
-		}
-
-	} else {
-		// wait until the status code is returned
-		ssize_t rc = recv(pUS->GetSock(), (void *)&u, sizeof(u), recv_flags);
-		if (rc == -1) {
-			int save_errno = errno;
-	
-			if (errno != EAGAIN) {
-				silent_cerr("ExtSocketHandler: "
-					"recv() failed (" << save_errno << ": "
-					<< strerror(save_errno) << ")"
-					<< std::endl);
-				mbdyn_set_stop_at_end_of_iteration();
-				return (bOK = false);
-			}
-
-		} else if (rc != sizeof(u)) {
-			silent_cerr("ExtSocketHandler: "
-				"recv()=" << rc << " (expected " << sizeof(u) << ")" 
-				<< std::endl);
-			mbdyn_set_stop_at_end_of_iteration();
-			return (bOK = false);
-		}
-	}
-
 	// TODO: act upon status code value
 	switch (u2cmd(u)) {
 	case ES_UNKNOWN:
-		silent_cerr("ExtSocketHandler: "
+		silent_cerr("ExtRemoteHandler: "
 			"received unknown code (" << unsigned(u) << ")"
 			<< std::endl);
 		mbdyn_set_stop_at_end_of_iteration();
@@ -593,7 +379,7 @@ ExtSocketHandler::Recv_pre(void)
 		return false;
 
 	case ES_ABORT:
-		silent_cout("ExtSocketHandler: peer requested end of simulation"
+		silent_cout("ExtRemoteHandler: peer requested end of simulation"
 			<< std::endl);
 		mbdyn_set_stop_at_end_of_time_step();
 		bReadForces = false;
@@ -612,7 +398,7 @@ ExtSocketHandler::Recv_pre(void)
 }
 
 bool
-ExtSocketHandler::Recv_post(void)
+ExtRemoteHandler::Recv_post(void)
 {
 	if (bLastReadForce) {
 		bReadForces = false;
@@ -621,33 +407,7 @@ ExtSocketHandler::Recv_post(void)
 	return !bReadForces;
 }
 
-int
-ExtSocketHandler::GetOutFileDes(void)
-{
-	return pUS->GetSock();
-}
-
-int
-ExtSocketHandler::GetSendFlags(void) const
-{
-	return send_flags;
-}
-
-int
-ExtSocketHandler::GetInFileDes(void)
-{
-	return pUS->GetSock();
-}
-
-int
-ExtSocketHandler::GetRecvFlags(void) const
-{
-	return recv_flags;
-}
-
-#endif // USE_SOCKET
-
-/* ExtSocketHandler - end */
+/* ExtSocketHandler moved to extsocket.h, extsocket.cc */
 
 /* ExtFileHandlerEDGE moved to extedge.h, extedge.cc */
 
@@ -879,211 +639,6 @@ ReadExtFileParams(DataManager* pDM,
 
 
 static ExtFileHandlerBase *
-ReadExtSocketHandler(DataManager* pDM,
-	MBDynParser& HP, 
-	unsigned int uLabel)
-{
-#ifdef USE_SOCKET
-	ExtFileHandlerBase *pEFH = 0;
-
-	bool bGotCreate(false);
-	bool bCreate(false);
-	unsigned short int port = (unsigned short int)-1; 
-	std::string host;
-	std::string path;
-
-	if (HP.IsKeyWord("create")) {
-		bGotCreate = true;
-		if (!HP.GetYesNo(bCreate)) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"\"create\" must be either \"yes\" or \"no\" "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-		
-	if (HP.IsKeyWord("local") || HP.IsKeyWord("path")) {
-		const char *m = HP.GetFileName();
-		
-		if (m == 0) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"unable to read local path "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		
-		path = m;
-	}
-	
-	if (HP.IsKeyWord("port")) {
-		if (!path.empty()) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"cannot specify port "
-				"for a local socket "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-		}
-
-		int p = HP.GetInt();
-		/* Da sistemare da qui */
-#ifdef IPPORT_USERRESERVED
-		if (p <= IPPORT_USERRESERVED) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"cannot listen on reserved port "
-				<< port << ": less than "
-				"IPPORT_USERRESERVED=" << IPPORT_USERRESERVED
-				<< " at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		/* if #undef'd, don't bother checking;
-		 * the OS will do it for us */
-#endif /* IPPORT_USERRESERVED */
-
-		port = p;
-	}
-
-	if (HP.IsKeyWord("host")) {
-		if (!path.empty()) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"cannot specify host for a local socket "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);		
-		}
-
-		const char *h;
-		
-		h = HP.GetStringWithDelims();
-		if (h == 0) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"unable to read host "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-
-		host = h;
-
-	} else if (path.empty() && !bCreate) {
-		silent_cerr("ExtSocketHandler"
-			"(" << uLabel << "): "
-			"host undefined "
-			"at line " << HP.GetLineData()
-			<< std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	int socket_type = SOCK_STREAM;
-	if (HP.IsKeyWord("socket" "type")) {
-		if (HP.IsKeyWord("udp")) {
-			socket_type = SOCK_DGRAM;
-
-			if (!bGotCreate) {
-				bCreate = true;
-			}
-
-		} else if (!HP.IsKeyWord("tcp")) {
-			silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
-				"invalid socket type "
-				"at line " << HP.GetLineData() << std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-	}
-
-	if ((socket_type == SOCK_DGRAM) && !bCreate) {
-		silent_cerr("ExtSocketHandler(" << uLabel << "\"): "
-			"socket type=udp incompatible with create=no "
-			"at line " << HP.GetLineData() << std::endl);
-		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-	}
-
-	// we want to block until the whole chunk is received
-	int recv_flags = 0;
-	int send_flags = 0;
-#ifdef MSG_WAITALL
-	recv_flags |= MSG_WAITALL;
-#endif // MSG_WAITALL
-
-	while (HP.IsArg()) {
-		if (HP.IsKeyWord("signal")) {
-#ifdef MSG_NOSIGNAL
-			recv_flags &= ~MSG_NOSIGNAL;
-			send_flags &= ~MSG_NOSIGNAL;
-#else // ! MSG_NOSIGNAL
-			silent_cout("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"MSG_NOSIGNAL not defined (ignored) "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-#endif // ! MSG_NOSIGNAL
-
-		// not honored by recv(2)
-		} else if (HP.IsKeyWord("no" "signal")) {
-#ifdef MSG_NOSIGNAL
-			recv_flags |= MSG_NOSIGNAL;
-			send_flags |= MSG_NOSIGNAL;
-#else // ! MSG_NOSIGNAL
-			silent_cout("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"MSG_NOSIGNAL not defined (ignored) "
-				"at line " << HP.GetLineData()
-				<< std::endl);
-#endif // ! MSG_NOSIGNAL
-
-		} else {
-			break;
-		}
-	}
-
-	UseSocket *pUS = 0;
-	if (path.empty()) {
-		if (port == (unsigned short int)(-1)) {
-			silent_cerr("ExtSocketHandler"
-				"(" << uLabel << "): "
-				"port missing"
-				<< std::endl);
-			throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-		}
-		SAFENEWWITHCONSTRUCTOR(pUS, UseInetSocket, UseInetSocket(host, port, socket_type, bCreate));
-
-	} else {
-		SAFENEWWITHCONSTRUCTOR(pUS, UseLocalSocket, UseLocalSocket(path, socket_type, bCreate));
-	}
-
-	if (bCreate) {
-		pDM->RegisterSocketUser(pUS);
-
-	} else {
-		pUS->Connect();
-	}
-
-	mbsleep_t SleepTime = mbsleep_init(0);
-	std::streamsize Precision = 0;
-	ReadExtFileParams(pDM, HP, uLabel, SleepTime, Precision);
-	// NOTE: so far, precision is ignored
-
-	SAFENEWWITHCONSTRUCTOR(pEFH, ExtSocketHandler,
-		ExtSocketHandler(pUS, SleepTime, recv_flags, send_flags));
-
-	return pEFH;
-#else // ! USE_SOCKET
-	silent_cerr("ExtSocketHandler not supported" << std::endl);
-	throw ErrGeneric(MBDYN_EXCEPT_ARGS);
-#endif // ! USE_SOCKET
-}
-
-
-static ExtFileHandlerBase *
 ReadExtFileHandler(DataManager* pDM,
 	MBDynParser& HP, 
 	unsigned int uLabel)
@@ -1093,6 +648,11 @@ ReadExtFileHandler(DataManager* pDM,
 
 	} else if (HP.IsKeyWord("socket")) {
 		return ReadExtSocketHandler(pDM, HP, uLabel);
+	} else {
+	    silent_cerr("ExtForce(" << uLabel << "): "
+			"unrecognised communicator type "
+			"at line " << HP.GetLineData() << std::endl);
+		throw ErrGeneric(MBDYN_EXCEPT_ARGS);
 	}
 
 	ExtFileHandlerBase *pEFH = 0;

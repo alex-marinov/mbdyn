@@ -336,6 +336,10 @@ s2s_t::prepare(void)
 	struct sockaddr	*addrp = 0;
 
 	if (this->path) {
+#ifdef _WIN32
+        silent_cerr("Local (unix) sockets not supported on Windows" << std::endl);
+		exit(EXIT_FAILURE);
+#else
 		this->addr.ms_domain = AF_LOCAL;
 		addrp = (struct sockaddr *)&this->addr.ms_addr.ms_addr_local;
 		this->addr.ms_len = sizeof(this->addr.ms_addr.ms_addr_local);
@@ -361,6 +365,7 @@ s2s_t::prepare(void)
 				<< std::endl);
 	      		throw;
 		}
+#endif /* _WIN32 */
 
 	} else {
 		addr.ms_domain = AF_INET;
@@ -400,10 +405,10 @@ s2s_t::prepare(void)
 		os << this->host << ":" << this->port;
 		this->buf = os.str();
 
-		this->sock = mbdyn_make_inet_socket_type(&this->addr.ms_addr.ms_addr_inet, 
+		int serr = mbdyn_make_inet_socket_type(&this->sock, &this->addr.ms_addr.ms_addr_inet,
 			this->host, this->port, this->addr.ms_type, this->create, &save_errno);
 
-		if (this->sock == -1) {
+		if (serr == -1) {
 			const char	*err_msg = strerror(save_errno);
 
       			silent_cerr("socket(" << this->buf << ") failed "
@@ -411,7 +416,7 @@ s2s_t::prepare(void)
 				<< std::endl);
 			throw;
 
-   		} else if (this->sock == -2) {
+   		} else if (serr == -2) {
 			const char	*err_msg = strerror(save_errno);
 
 			silent_cerr("bind(" << this->buf << ") failed "
@@ -419,7 +424,7 @@ s2s_t::prepare(void)
 				<< std::endl);
 			throw;
 
-		} else if (this->sock == -3) {
+		} else if (serr == -3) {
      			silent_cerr("illegal host[:port] name \"" << this->buf << "\" "
 				"(" << save_errno << ")"
 				<< std::endl);
@@ -430,8 +435,8 @@ s2s_t::prepare(void)
 	if (this->addr.ms_type == SOCK_STREAM) {
 		if (this->create) {
 			if (listen(this->sock, 1) < 0) {
-				save_errno = errno;
-				const char	*err_msg = strerror(save_errno);
+				save_errno = WSAGetLastError();
+				const char	*err_msg = sock_err_string(save_errno);
 
       				silent_cerr("listen(" << this->sock << "," << this->buf << ") failed "
 					"(" << save_errno << ": " << err_msg << ")"
@@ -444,8 +449,8 @@ s2s_t::prepare(void)
 			this->sock = accept(sock, addrp, &len);
 			close(sock);
 			if (this->sock == -1) {
-				save_errno = errno;
-				const char	*err_msg = strerror(save_errno);
+				save_errno = WSAGetLastError();
+				const char	*err_msg = sock_err_string(save_errno);
 
 				silent_cerr("accept(" << this->sock << ",\"" << this->buf << "\") "
 					"failed (" << save_errno << ": " << err_msg << ")"
@@ -455,8 +460,8 @@ s2s_t::prepare(void)
 
 		} else {
 			if (connect(this->sock, addrp, addr.ms_len) < 0) {
-				save_errno = errno;
-				const char	*err_msg = strerror(save_errno);
+				save_errno = WSAGetLastError();
+				const char	*err_msg = sock_err_string(save_errno);
 				
 				silent_cerr("connect(" << this->sock << ",\"" << this->buf << "\"," << addr.ms_len << ") "
 					"failed (" << save_errno << ": " << err_msg << ")"
@@ -468,7 +473,10 @@ s2s_t::prepare(void)
 
 	signal(SIGTERM, s2s_shutdown);
 	signal(SIGINT, s2s_shutdown);
+#ifndef _WIN32
+    /* there is no SIGPIPE on Windows */
 	signal(SIGPIPE, s2s_shutdown);
+#endif /* _WIN32 */
 }
 
 bool
@@ -480,6 +488,7 @@ s2s_t::is_blocking(void) const
 ssize_t
 s2s_t::send(int flags) const
 {
+    // TODO: no MSG_DONTWAIT on Windows
 	switch (block) {
 	case BLOCK_NO:
 		flags |= MSG_DONTWAIT;
@@ -505,6 +514,7 @@ s2s_t::send(int flags) const
 ssize_t
 s2s_t::recv(int flags)
 {
+    // TODO: no MSG_DONTWAIT on Windows
 	switch (block) {
 	case BLOCK_NO:
 		flags |= MSG_DONTWAIT;

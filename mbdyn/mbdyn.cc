@@ -1029,6 +1029,20 @@ main(int argc, char* argv[])
 
 	atexit(mbdyn_cleanup_destroy);
 
+#ifdef USE_SOCKET
+#ifdef _WIN32
+    // winsock requires initialisation
+    WSADATA wsa_data;
+    if (WSAStartup(MAKEWORD(2,2),&wsa_data) != 0)
+    {
+        silent_cerr("Winsock initialisation failed. Error Code: "
+                    << WSAGetLastError() << std::endl);
+        return -1;
+    }
+    silent_cout("Winsock initialised successfully" << std::endl);
+#endif /* _WIN32 */
+#endif /* USE_SOCKET */
+
 #ifdef USE_MPI
 	char	ProcessorName_[1024] = "localhost";
 
@@ -1155,6 +1169,14 @@ main(int argc, char* argv[])
 		::rtmbdyn_rtai_task = NULL;
 	}
 #endif /* USE_RTAI */
+
+
+#ifdef USE_SOCKET
+#ifdef _WIN32
+    // winsock requires cleanup
+    WSACleanup();
+#endif /* _WIN32 */
+#endif /* USE_SOCKET */
 
 	mbdyn_cleanup();
 

@@ -54,6 +54,7 @@ protected:
 
 	UseSocket *pUS;
 	int recv_flags;
+	bool bMsgDontWait;
 	struct timeval SocketTimeout;
 
 	StreamDriveEcho *pSDE;
@@ -68,7 +69,8 @@ public:
 		unsigned int ie, bool bReceiveFirst,
 		int flags,
 		const struct timeval& st,
-		StreamDriveEcho *pSDE);
+		StreamDriveEcho *pSDE,
+		bool bMsgDontWait);
 
 	virtual ~SocketStreamDrive(void);
 

@@ -50,6 +50,7 @@ protected:
 	int send_flags;
 	bool bSendFirst;
 	bool bAbortIfBroken;
+	bool bMsgDontWait;
 
 	StreamOutEcho *pSOE;
 	
@@ -58,7 +59,7 @@ public:
 		unsigned int oe,
 		UseSocket *pUS, StreamContent *pSC,
 		int flags, bool bSendFirst, bool bAbortIfBroken,
-		StreamOutEcho *pSOE);
+		StreamOutEcho *pSOE, bool bMsgDontWait);
 
    	virtual ~SocketStreamElem(void);
 

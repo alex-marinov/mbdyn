@@ -11,6 +11,7 @@ export LTCXXCOMPILE = @LIBTOOL@ --tag=CXX --mode=compile @CXX@ @DEFS@ \
 	-I../$(top_srcdir)/libraries/libmbmath \
 	-I../$(top_srcdir)/libraries/libmbwrap \
 	-I../$(top_srcdir)/libraries/libobjs \
+	-I../$(top_srcdir)/libraries/libmbc \
 	-I../$(top_srcdir)/mbdyn \
 	-I../$(top_srcdir)/mbdyn/base \
 	-I../$(top_srcdir)/mbdyn/struct \
@@ -26,6 +27,7 @@ export LTCOMPILE = @LIBTOOL@ --mode=compile @CC@ @DEFS@ \
 	-I. -I@srcdir@ \
 	-I../../include \
 	-I../$(top_srcdir)/include \
+	-I../$(top_srcdir)/libraries/libmbc \
 	-I../$(top_srcdir)/libraries/libmbutil \
 	-I../$(top_srcdir)/libraries/libmbmath \
 	-I../$(top_srcdir)/libraries/libmbwrap \
@@ -55,7 +57,7 @@ export LIBEXEC_DIR=$(libexecdir)
 
 all: libtool all__
 
-libtool: 
+libtool:
 	-@ln -sf ../libtool .
 
 all__:
